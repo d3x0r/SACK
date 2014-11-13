@@ -174,6 +174,20 @@ void ZVoxelWorld::AddSector( ZVoxelSector * Sector )
   Long x,y,z,Offset;
   ZVoxelSector * SectorPointer;
 
+  {
+	  int n;
+	  for( n = 0; n < 6; n++ )
+	  {
+		  ZVoxelSector *near_sec = FindSector( Sector->Pos_x + ZVoxelReactor::nbp6[n].x
+											,  Sector->Pos_y + ZVoxelReactor::nbp6[n].y
+											,  Sector->Pos_z + ZVoxelReactor::nbp6[n].z );
+		  if( near_sec )
+		  {
+			  Sector->near_sectors[n] = near_sec;
+			  near_sec->near_sectors[n^1] = Sector;
+		  }
+	  }
+  }
 
   // Adding to fast access hash
 
@@ -2303,7 +2317,8 @@ bool ZVoxelWorld::SetVoxel_WithCullingUpdate(Long x, Long y, Long z, UShort Voxe
   // Computing memory offsets from sector start
 
   Offset[VOXEL_INCENTER] = (y & ZVOXELBLOCMASK_Y)       + ( (x & ZVOXELBLOCMASK_X)<<ZVOXELBLOCSHIFT_Y )       + ((z & ZVOXELBLOCMASK_Z) << (ZVOXELBLOCSHIFT_Y+ZVOXELBLOCSHIFT_X));
-
+  //if( Sector[VOXEL_INCENTER]->Data[Offset[VOXEL_INCENTER]].Data && VoxelValue)
+//	  DebugBreak();
   // Computing absolute memory pointer of blocks
   {
 	  int i = VOXEL_INCENTER; 

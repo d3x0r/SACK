@@ -159,21 +159,32 @@ ZVoxelReactor::ZBlocPos ZVoxelReactor::xbp6[6] = // Les 4 autours et ensuite cel
 
 ZVoxelReactor::ZBlocPos ZVoxelReactor::xbp6_opposing[6] = // same as xbp6, but ^1 to index yeilds opposing direction
 {
+    { 0, 1, 1 }, // 3 = Left of the robot.
+    { 2, 1, 1 }, // 1 = Right of the robot.
     { 1, 1, 2 }, // 0 = Front of the robot.
     { 1, 1, 0 }, // 2 = Back of the robot.
-    { 2, 1, 1 }, // 1 = Right of the robot.
-    { 0, 1, 1 }, // 3 = Left of the robot.
     { 1, 2, 1 }, // 4 = Above the robot.
     { 1, 0, 1 }  // 5 = Under the robot.
 };
-ZVoxelReactor::ZBlocPos ZVoxelReactor::xbp6_opposing_escape[6][5] = // same as xbp6, but ^1 to index yeilds opposing direction
+
+ RelativeVoxelOrds ZVoxelReactor::x6_opposing_escape[6][5] = // same as xbp6, but ^1 to index yeilds opposing direction
 {
-	{{ 1, 1, 2 },{ 2, 2, 2 },{ 2, 0, 2 },{ 0, 2, 2 },{ 0, 0, 2 }}, // 0 = Front of the robot.
-    {{ 1, 1, 0 },{ 2, 2, 0 },{ 2, 0, 0 },{ 0, 2, 0 },{ 0, 0, 0 }}, // 2 = Back of the robot.
-    {{ 2, 1, 1 },{ 2, 2, 2 },{ 2, 2, 0 },{ 2, 0, 2 },{ 2, 0, 0 }}, // 1 = Right of the robot.
-    {{ 0, 1, 1 },{ 0, 2, 2 },{ 0, 2, 0 },{ 0, 0, 2 },{ 0, 0, 0 }}, // 3 = Left of the robot.
-    {{ 1, 2, 1 },{ 2, 2, 2 },{ 2, 2, 0 },{ 0, 2, 2 },{ 0, 2, 0 }}, // 4 = Above the robot.
-    {{ 1, 0, 1 },{ 2, 0, 2 },{ 2, 0, 0 },{ 0, 0, 2 },{ 0, 0, 0 }}  // 5 = Under the robot.
+	{ VOXEL_LEFT  ,VOXEL_LEFT_ABOVE  ,VOXEL_LEFT_BELOW  ,VOXEL_LEFT_AHEAD , VOXEL_LEFT_BEHIND }, // left
+    { VOXEL_RIGHT ,VOXEL_RIGHT_ABOVE ,VOXEL_RIGHT_BELOW ,VOXEL_RIGHT_AHEAD, VOXEL_RIGHT_BEHIND }, // right
+    { VOXEL_AHEAD ,VOXEL_AHEAD_ABOVE ,VOXEL_AHEAD_BELOW ,VOXEL_AHEAD_LEFT , VOXEL_AHEAD_RIGHT },  // front
+    { VOXEL_BEHIND,VOXEL_BEHIND_ABOVE,VOXEL_BEHIND_BELOW,VOXEL_BEHIND_LEFT, VOXEL_BEHIND_RIGHT }, // back
+    { VOXEL_ABOVE ,VOXEL_ABOVE_RIGHT ,VOXEL_ABOVE_LEFT  ,VOXEL_ABOVE_AHEAD, VOXEL_ABOVE_BEHIND }, // above
+    { VOXEL_BELOW ,VOXEL_BELOW_RIGHT ,VOXEL_BELOW_LEFT  ,VOXEL_BELOW_AHEAD, VOXEL_BELOW_BEHIND }, // below
+};
+
+ZVoxelReactor::ZBlocPosN ZVoxelReactor::xbp6_opposing_escape[6][5] = // same as xbp6, but ^1 to index yeilds opposing direction
+{
+    {{ 0, 1, 1 },{ 0, 2, 1 },{ 0, 0, 1 },{ 0, 1, 2 },{ 0, 1, 0 }}, // VOXEL_LEFT-1
+    {{ 2, 1, 1 },{ 2, 2, 1 },{ 2, 0, 1 },{ 2, 1, 2 },{ 2, 1, 0 }}, // VOXEL_RIGHT-1
+	{{ 1, 1, 2 },{ 1, 2, 2 },{ 1, 0, 2 },{ 0, 1, 2 },{ 2, 1, 2 }}, // VOXEL_AHEAD-1
+    {{ 1, 1, 0 },{ 1, 2, 0 },{ 1, 0, 0 },{ 0, 1, 0 },{ 2, 1, 0 }}, // VOXEL_BEHIND-1
+    {{ 1, 2, 1 },{ 2, 2, 1 },{ 0, 2, 1 },{ 1, 2, 2 },{ 1, 2, 0 }}, // VOXEL_ABOVE-1
+    {{ 1, 0, 1 },{ 2, 0, 1 },{ 0, 0, 1 },{ 1, 0, 2 },{ 1, 0, 0 }}  // VOXEL_BELOW-1
 };
 ZVoxelReactor::ZBlocPosN ZVoxelReactor::xbp6_nc[6] = // Meme chose que xnp6 mais avec range -1,1 au lieu de 0,2.(Same thing but with xnp6 Range -1.1 instead of 0.2.)
 {
@@ -211,14 +222,14 @@ ZVoxelReactor::ZBlocPos ZVoxelReactor::bft6[10] = // Les 6 autours et les 4 de l
     {1,0,0}
 };
 
-ZVoxelReactor::ZBlocPosN ZVoxelReactor::nbp6[6] =
+ZVoxelReactor::ZBlocPosN ZVoxelReactor::nbp6[6] = // aligned with VOXEL_<SIDE> defiitions...
 {
   {-1, 0, 0},
   { 1, 0, 0},
-  { 0,-1, 0},
-  { 0, 1, 0},
+  { 0, 0, 1},
   { 0, 0,-1},
-  { 0, 0, 1}
+  { 0, 1, 0},
+  { 0,-1, 0},
 };
 
 UByte ZVoxelReactor::BlocOpposite[6] =
@@ -581,7 +592,7 @@ void ZVoxelReactor::ProcessSectors( double LastLoopTime )
 				case 0:
 					break;
 				default:
-					  ref.x = x; ref.y = y; ref.z = z;
+					  ref.wx = RSx + (ref.x = x); ref.wy = RSy + (ref.y = y); ref.wz = RSz + (ref.z = z);
 					  ref.Offset = MainOffset;
 					  ref.VoxelType = VoxelType;
 

@@ -706,7 +706,7 @@ void ZVoxelCuller_Basic::CullSingleVoxel( int x, int y, int z )
   Offset[VOXEL_INCENTER] = (y & ZVOXELBLOCMASK_Y)       + ( (x & ZVOXELBLOCMASK_X)<<ZVOXELBLOCSHIFT_Y )       + ((z & ZVOXELBLOCMASK_Z) << (ZVOXELBLOCSHIFT_Y+ZVOXELBLOCSHIFT_X));
 
   // Computing absolute memory pointer of blocks
-  for( int i = 0; i < 6; i++ )
+  for( int i = 0; i < 7; i++ )
   {
 	Voxel_Address[i]     = Sector[i]->Data + Offset[i];
 	FaceCulling_Address[i]     = (UByte*)Sector[i]->Culling + Offset[i];
@@ -715,12 +715,12 @@ void ZVoxelCuller_Basic::CullSingleVoxel( int x, int y, int z )
 		     | ( VoxelType->Draw_FullVoxelOpacity ? 2 : 0 ) 
 			 | ( VoxelType->Draw_TransparentRendering ? 4 : 0 );
   }
-	Voxel_Address[VOXEL_INCENTER]     = Sector[VOXEL_INCENTER]->Data + Offset[VOXEL_INCENTER];
-	FaceCulling_Address[VOXEL_INCENTER]     = (UByte*)Sector[VOXEL_INCENTER]->Culling + Offset[VOXEL_INCENTER];
-    Voxel = Voxel_Address[VOXEL_INCENTER]->Data;    VoxelType = VoxelTypeTable[Voxel];
-      VoxelState[VOXEL_INCENTER] = ( (Voxel==0) ? 1 : 0) 
-		     | ( VoxelType->Draw_FullVoxelOpacity ? 2 : 0 ) 
-			 | ( VoxelType->Draw_TransparentRendering ? 4 : 0 );
+	//Voxel_Address[VOXEL_INCENTER]     = Sector[VOXEL_INCENTER]->Data + Offset[VOXEL_INCENTER];
+	//FaceCulling_Address[VOXEL_INCENTER]     = (UByte*)Sector[VOXEL_INCENTER]->Culling + Offset[VOXEL_INCENTER];
+    //Voxel = Voxel_Address[VOXEL_INCENTER]->Data;    VoxelType = VoxelTypeTable[Voxel];
+     // VoxelState[VOXEL_INCENTER] = ( (Voxel==0) ? 1 : 0) 
+	//	     | ( VoxelType->Draw_FullVoxelOpacity ? 2 : 0 ) 
+	//		 | ( VoxelType->Draw_TransparentRendering ? 4 : 0 );
 
   Voxel = Voxel_Address[VOXEL_INCENTER]->Data;
 

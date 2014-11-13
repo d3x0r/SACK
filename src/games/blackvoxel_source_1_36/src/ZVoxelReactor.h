@@ -107,8 +107,8 @@ class ZVoxelReactor
     static ZBlocPosN nbp6[6];
     static ZBlocPos  xbp6[6];  // Bloc positions with 6 slots around main cube. ( New standardised robot order.).
     static ZBlocPos  xbp6_opposing[6];  // Bloc positions with 6 slots around main cube. ( New standardised robot order.).
-    static ZBlocPos  xbp6_opposing_escape[6][5];  // Bloc positions with 6 slots around main cube. ( New standardised robot order.).
-	
+    static RelativeVoxelOrds  x6_opposing_escape[6][5];  // Bloc positions with 6 slots around main cube. ( New standardised robot order.).
+	static ZBlocPosN xbp6_opposing_escape[6][5]	;
     static ZBlocPosN xbp6_nc[6];// same as xbp6 with -1,+1 range
 
   public:
@@ -157,6 +157,618 @@ class ZVoxelReactor
     void VoxelFluid_SetVolumePressure_Recurse(ZVector3L * Location, ZonePressure * Pr  );
     void ProcessSectors( double LastLoopTime );
 
+#define OffsetDelta(x,y,z)  ( ((x)*ZVOXELBLOCSIZE_Y) + (y) + ((z)*ZVOXELBLOCSIZE_Y*ZVOXELBLOCSIZE_X) )
+
+
+	static void GetVoxelRefs( const ZVoxelRef &self, ZVoxelSector **ResultSectors, ULong *ResultOffsets )
+	{
+		ResultSectors[VOXEL_INCENTER] = self.Sector;
+		register ULong origin = ( self.x << ZVOXELBLOCSHIFT_Y ) + self.y + ( self.z << ( ZVOXELBLOCSHIFT_X + ZVOXELBLOCSHIFT_Y ) );
+		{
+			register ULong *in = ZVoxelSector::RelativeVoxelOffsets_Unwrapped;
+			register ULong *out =ResultOffsets;
+			int n;
+			for( n= 0; n < 27; n++ )
+				(*out++) = origin + (*in++);
+			if( self.x == 0 ) 
+			{
+				ResultSectors[VOXEL_LEFT] = self.Sector->near_sectors[VOXEL_LEFT-1]; 	ResultSectors[VOXEL_RIGHT] = self.Sector;
+				for( n = 0; n < 9; n++ ) 
+					ResultOffsets[ZVoxelSector::VoxelFaceGroups[VOXEL_LEFT-1][n]] += ( ZVOXELBLOCSIZE_X ) * ZVOXELBLOCSIZE_Y;
+			}
+			else if( self.x == ( ZVOXELBLOCSIZE_X - 1 ) ) 
+			{
+				ResultSectors[VOXEL_LEFT] = self.Sector;	ResultSectors[VOXEL_RIGHT] = self.Sector->near_sectors[VOXEL_RIGHT-1];
+				for( n = 0; n < 9; n++ ) ResultOffsets[ZVoxelSector::VoxelFaceGroups[VOXEL_RIGHT-1][n]] -= ( ZVOXELBLOCSIZE_X ) * ZVOXELBLOCSIZE_Y;
+			}
+			else
+			{
+				ResultSectors[VOXEL_LEFT] = self.Sector;			ResultSectors[VOXEL_RIGHT] = self.Sector;
+			}
+			if( self.y == 0 ) 
+			{
+				ResultSectors[VOXEL_ABOVE] = self.Sector;				ResultSectors[VOXEL_BELOW] = self.Sector->near_sectors[VOXEL_BELOW-1];
+				for( n = 0; n < 9; n++ ) ResultOffsets[ZVoxelSector::VoxelFaceGroups[VOXEL_BELOW-1][n]] += ( ZVOXELBLOCSIZE_Y );
+			}
+			else if( self.y == ( ZVOXELBLOCSIZE_Y - 1 ) ) 
+			{
+				ResultSectors[VOXEL_ABOVE] = self.Sector->near_sectors[VOXEL_ABOVE-1];				ResultSectors[VOXEL_BELOW] = self.Sector;
+				for( n = 0; n < 9; n++ ) ResultOffsets[ZVoxelSector::VoxelFaceGroups[VOXEL_ABOVE-1][n]] -= ( ZVOXELBLOCSIZE_Y );
+			}
+			else
+			{
+				ResultSectors[VOXEL_ABOVE] = self.Sector;				ResultSectors[VOXEL_BELOW] = self.Sector;
+			}
+
+			if( self.z == 0 ) 
+			{
+				ResultSectors[VOXEL_AHEAD] = self.Sector;				ResultSectors[VOXEL_BEHIND] =  self.Sector->near_sectors[VOXEL_BEHIND-1];
+				for( n = 0; n < 9; n++ ) ResultOffsets[ZVoxelSector::VoxelFaceGroups[VOXEL_BEHIND-1][n]] += ( ZVOXELBLOCSIZE_Z ) * ZVOXELBLOCSIZE_Y * ZVOXELBLOCSIZE_X;
+			}
+			else if( self.z == ( ZVOXELBLOCSIZE_Z - 1 ) ) 
+			{
+				ResultSectors[VOXEL_AHEAD] = self.Sector->near_sectors[VOXEL_AHEAD-1];				ResultSectors[VOXEL_BEHIND] = self.Sector;
+				for( n = 0; n < 9; n++ ) ResultOffsets[ZVoxelSector::VoxelFaceGroups[VOXEL_AHEAD-1][n]] -= ( ZVOXELBLOCSIZE_Z ) * ZVOXELBLOCSIZE_Y * ZVOXELBLOCSIZE_X;
+			}
+			else
+			{
+				ResultSectors[VOXEL_AHEAD] = self.Sector;				ResultSectors[VOXEL_BEHIND] = self.Sector;
+			}
+			
+			// test to make sure resulting offsets are within range.
+			//for( n = 0; n < 27; n++ ) if( ResultOffsets[n] & 0xFFFF8000 ) DebugBreak();
+		}
+		if( self.x == 0 )
+		{
+			if( self.y == 0 )
+			{
+				ResultSectors[VOXEL_LEFT_ABOVE] = ResultSectors[VOXEL_LEFT];
+				ResultSectors[VOXEL_LEFT_BELOW] = ResultSectors[VOXEL_BELOW]->near_sectors[VOXEL_LEFT-1];
+				ResultSectors[VOXEL_RIGHT_ABOVE] = ResultSectors[VOXEL_ABOVE];
+				ResultSectors[VOXEL_RIGHT_BELOW] = ResultSectors[VOXEL_BELOW];
+				if( self.z == 0 )
+				{
+					ResultSectors[VOXEL_AHEAD_LEFT] = ResultSectors[VOXEL_LEFT];
+					ResultSectors[VOXEL_AHEAD_RIGHT] = ResultSectors[VOXEL_RIGHT];
+					ResultSectors[VOXEL_BEHIND_LEFT] = ResultSectors[VOXEL_BEHIND]->near_sectors[VOXEL_LEFT-1];
+					ResultSectors[VOXEL_BEHIND_RIGHT] = ResultSectors[VOXEL_BEHIND];
+
+					ResultSectors[VOXEL_ABOVE_AHEAD] = ResultSectors[VOXEL_AHEAD];
+					ResultSectors[VOXEL_ABOVE_BEHIND] = ResultSectors[VOXEL_BEHIND];
+					ResultSectors[VOXEL_BELOW_AHEAD] = ResultSectors[VOXEL_BELOW];
+					ResultSectors[VOXEL_BELOW_BEHIND] = ResultSectors[VOXEL_BEHIND]->near_sectors[VOXEL_BELOW-1];
+
+					ResultSectors[VOXEL_LEFT_ABOVE_AHEAD] = ResultSectors[VOXEL_LEFT_ABOVE];
+					ResultSectors[VOXEL_LEFT_BELOW_AHEAD] = ResultSectors[VOXEL_LEFT_BELOW];
+					ResultSectors[VOXEL_RIGHT_ABOVE_AHEAD] = ResultSectors[VOXEL_RIGHT_ABOVE];
+					ResultSectors[VOXEL_RIGHT_BELOW_AHEAD] = ResultSectors[VOXEL_RIGHT_BELOW];
+					ResultSectors[VOXEL_LEFT_ABOVE_BEHIND] = ResultSectors[VOXEL_ABOVE_BEHIND]->near_sectors[VOXEL_LEFT-1];
+					ResultSectors[VOXEL_LEFT_BELOW_BEHIND] = ResultSectors[VOXEL_LEFT_BELOW];
+					ResultSectors[VOXEL_RIGHT_ABOVE_BEHIND] = ResultSectors[VOXEL_RIGHT_ABOVE];
+					ResultSectors[VOXEL_RIGHT_BELOW_BEHIND] = ResultSectors[VOXEL_RIGHT_BELOW];
+				}
+				else if( self.z == (ZVOXELBLOCSIZE_Z-1) )
+				{
+					ResultSectors[VOXEL_AHEAD_LEFT] =  ResultSectors[VOXEL_AHEAD]->near_sectors[VOXEL_LEFT-1];
+					ResultSectors[VOXEL_AHEAD_RIGHT] = ResultSectors[VOXEL_AHEAD];
+					ResultSectors[VOXEL_BEHIND_LEFT] = ResultSectors[VOXEL_LEFT];
+					ResultSectors[VOXEL_BEHIND_RIGHT] = ResultSectors[VOXEL_BEHIND];
+
+					ResultSectors[VOXEL_ABOVE_AHEAD] = ResultSectors[VOXEL_AHEAD];
+					ResultSectors[VOXEL_ABOVE_BEHIND] = ResultSectors[VOXEL_ABOVE];
+					ResultSectors[VOXEL_BELOW_AHEAD] = ResultSectors[VOXEL_AHEAD]->near_sectors[VOXEL_BELOW-1];
+					ResultSectors[VOXEL_BELOW_BEHIND] = ResultSectors[VOXEL_BELOW];
+
+					ResultSectors[VOXEL_LEFT_ABOVE_AHEAD] = ResultSectors[VOXEL_LEFT_AHEAD];
+					ResultSectors[VOXEL_LEFT_BELOW_AHEAD] = ResultSectors[VOXEL_BELOW_AHEAD]->near_sectors[VOXEL_LEFT-1];
+					ResultSectors[VOXEL_RIGHT_ABOVE_AHEAD] = ResultSectors[VOXEL_RIGHT_ABOVE];
+					ResultSectors[VOXEL_RIGHT_BELOW_AHEAD] = ResultSectors[VOXEL_RIGHT_BELOW];
+					ResultSectors[VOXEL_LEFT_ABOVE_BEHIND] = ResultSectors[VOXEL_LEFT_ABOVE];
+					ResultSectors[VOXEL_LEFT_BELOW_BEHIND] = ResultSectors[VOXEL_LEFT_BELOW];
+					ResultSectors[VOXEL_RIGHT_ABOVE_BEHIND] = ResultSectors[VOXEL_RIGHT_ABOVE];
+					ResultSectors[VOXEL_RIGHT_BELOW_BEHIND] = ResultSectors[VOXEL_RIGHT_BELOW];
+				}
+				else
+				{
+					ResultSectors[VOXEL_AHEAD_LEFT] = ResultSectors[VOXEL_LEFT];
+					ResultSectors[VOXEL_AHEAD_RIGHT] = ResultSectors[VOXEL_RIGHT];
+					ResultSectors[VOXEL_BEHIND_LEFT] = ResultSectors[VOXEL_LEFT];
+					ResultSectors[VOXEL_BEHIND_RIGHT] = ResultSectors[VOXEL_RIGHT];
+
+					ResultSectors[VOXEL_ABOVE_AHEAD] = ResultSectors[VOXEL_ABOVE];
+					ResultSectors[VOXEL_ABOVE_BEHIND] = ResultSectors[VOXEL_ABOVE];
+					ResultSectors[VOXEL_BELOW_AHEAD] = ResultSectors[VOXEL_BELOW];
+					ResultSectors[VOXEL_BELOW_BEHIND] = ResultSectors[VOXEL_BELOW];
+
+					ResultSectors[VOXEL_LEFT_ABOVE_AHEAD] = ResultSectors[VOXEL_LEFT_ABOVE];
+					ResultSectors[VOXEL_LEFT_BELOW_AHEAD] = ResultSectors[VOXEL_LEFT_BELOW];
+					ResultSectors[VOXEL_RIGHT_ABOVE_AHEAD] = ResultSectors[VOXEL_RIGHT_ABOVE];
+					ResultSectors[VOXEL_RIGHT_BELOW_AHEAD] = ResultSectors[VOXEL_RIGHT_BELOW];
+					ResultSectors[VOXEL_LEFT_ABOVE_BEHIND] = ResultSectors[VOXEL_LEFT_ABOVE];
+					ResultSectors[VOXEL_LEFT_BELOW_BEHIND] = ResultSectors[VOXEL_LEFT_BELOW];
+					ResultSectors[VOXEL_RIGHT_ABOVE_BEHIND] = ResultSectors[VOXEL_RIGHT_ABOVE];
+					ResultSectors[VOXEL_RIGHT_BELOW_BEHIND] = ResultSectors[VOXEL_RIGHT_BELOW];
+				}
+			}
+			else if( self.y == (ZVOXELBLOCSIZE_Y-1) )
+			{
+				ResultSectors[VOXEL_LEFT_ABOVE] = ResultSectors[VOXEL_ABOVE]->near_sectors[VOXEL_LEFT-1];
+				ResultSectors[VOXEL_LEFT_BELOW] = ResultSectors[VOXEL_LEFT];
+				ResultSectors[VOXEL_RIGHT_ABOVE] = ResultSectors[VOXEL_ABOVE];
+				ResultSectors[VOXEL_RIGHT_BELOW] = ResultSectors[VOXEL_BELOW];
+				if( self.z == 0 )
+				{
+					ResultSectors[VOXEL_AHEAD_LEFT] = ResultSectors[VOXEL_LEFT];
+					ResultSectors[VOXEL_AHEAD_RIGHT] = ResultSectors[VOXEL_RIGHT];
+					ResultSectors[VOXEL_BEHIND_LEFT] = ResultSectors[VOXEL_BEHIND]->near_sectors[VOXEL_LEFT-1];
+					ResultSectors[VOXEL_BEHIND_RIGHT] = ResultSectors[VOXEL_BEHIND];
+
+					ResultSectors[VOXEL_ABOVE_AHEAD] = ResultSectors[VOXEL_ABOVE];
+					ResultSectors[VOXEL_ABOVE_BEHIND] = ResultSectors[VOXEL_ABOVE];
+					ResultSectors[VOXEL_BELOW_AHEAD] = ResultSectors[VOXEL_BELOW];
+					ResultSectors[VOXEL_BELOW_BEHIND] = ResultSectors[VOXEL_BELOW];
+
+					ResultSectors[VOXEL_LEFT_ABOVE_AHEAD] = ResultSectors[VOXEL_LEFT_ABOVE];
+					ResultSectors[VOXEL_LEFT_BELOW_AHEAD] = ResultSectors[VOXEL_LEFT_BELOW];
+					ResultSectors[VOXEL_RIGHT_ABOVE_AHEAD] = ResultSectors[VOXEL_RIGHT_ABOVE];
+					ResultSectors[VOXEL_RIGHT_BELOW_AHEAD] = ResultSectors[VOXEL_RIGHT_BELOW];
+					ResultSectors[VOXEL_LEFT_ABOVE_BEHIND] = ResultSectors[VOXEL_BEHIND_LEFT]->near_sectors[VOXEL_ABOVE-1];
+					ResultSectors[VOXEL_LEFT_BELOW_BEHIND] = ResultSectors[VOXEL_LEFT_BELOW];
+					ResultSectors[VOXEL_RIGHT_ABOVE_BEHIND] = ResultSectors[VOXEL_RIGHT_ABOVE];
+					ResultSectors[VOXEL_RIGHT_BELOW_BEHIND] = ResultSectors[VOXEL_RIGHT_BELOW];
+				}
+				else if( self.z == (ZVOXELBLOCSIZE_Z-1) )
+				{
+					ResultSectors[VOXEL_AHEAD_LEFT] = ResultSectors[VOXEL_AHEAD]->near_sectors[VOXEL_LEFT-1];
+					ResultSectors[VOXEL_AHEAD_RIGHT] = ResultSectors[VOXEL_AHEAD];
+					ResultSectors[VOXEL_BEHIND_LEFT] = ResultSectors[VOXEL_LEFT];
+					ResultSectors[VOXEL_BEHIND_RIGHT] = ResultSectors[VOXEL_BEHIND];
+
+					ResultSectors[VOXEL_ABOVE_AHEAD] = ResultSectors[VOXEL_AHEAD]->near_sectors[VOXEL_ABOVE-1];
+					ResultSectors[VOXEL_ABOVE_BEHIND] = ResultSectors[VOXEL_ABOVE];
+					ResultSectors[VOXEL_BELOW_AHEAD] = ResultSectors[VOXEL_AHEAD];
+					ResultSectors[VOXEL_BELOW_BEHIND] = ResultSectors[VOXEL_BEHIND];
+
+					ResultSectors[VOXEL_LEFT_ABOVE_AHEAD] = ResultSectors[VOXEL_AHEAD_LEFT]->near_sectors[VOXEL_ABOVE-1];
+					ResultSectors[VOXEL_LEFT_BELOW_AHEAD] = ResultSectors[VOXEL_LEFT_BELOW];
+					ResultSectors[VOXEL_RIGHT_ABOVE_AHEAD] = ResultSectors[VOXEL_RIGHT_ABOVE];
+					ResultSectors[VOXEL_RIGHT_BELOW_AHEAD] = ResultSectors[VOXEL_RIGHT_BELOW];
+					ResultSectors[VOXEL_LEFT_ABOVE_BEHIND] = ResultSectors[VOXEL_LEFT_ABOVE];
+					ResultSectors[VOXEL_LEFT_BELOW_BEHIND] = ResultSectors[VOXEL_LEFT_BELOW];
+					ResultSectors[VOXEL_RIGHT_ABOVE_BEHIND] = ResultSectors[VOXEL_RIGHT_ABOVE];
+					ResultSectors[VOXEL_RIGHT_BELOW_BEHIND] = ResultSectors[VOXEL_RIGHT_BELOW];
+				}
+				else //----------------------------------------------
+				{
+					// left bound, top bound, front nobound
+					ResultSectors[VOXEL_AHEAD] = self.Sector;
+					ResultSectors[VOXEL_BEHIND] = self.Sector;
+
+					ResultSectors[VOXEL_AHEAD_LEFT] = ResultSectors[VOXEL_LEFT];
+					ResultSectors[VOXEL_AHEAD_RIGHT] = ResultSectors[VOXEL_RIGHT];
+					ResultSectors[VOXEL_BEHIND_LEFT] = ResultSectors[VOXEL_LEFT];
+					ResultSectors[VOXEL_BEHIND_RIGHT] = ResultSectors[VOXEL_RIGHT];
+
+					ResultSectors[VOXEL_ABOVE_AHEAD] = ResultSectors[VOXEL_ABOVE];
+					ResultSectors[VOXEL_ABOVE_BEHIND] = ResultSectors[VOXEL_ABOVE];
+					ResultSectors[VOXEL_BELOW_AHEAD] = ResultSectors[VOXEL_BELOW];
+					ResultSectors[VOXEL_BELOW_BEHIND] = ResultSectors[VOXEL_BELOW];
+
+					ResultSectors[VOXEL_LEFT_ABOVE_AHEAD] = ResultSectors[VOXEL_LEFT_ABOVE];
+					ResultSectors[VOXEL_LEFT_BELOW_AHEAD] = ResultSectors[VOXEL_LEFT_BELOW];
+					ResultSectors[VOXEL_RIGHT_ABOVE_AHEAD] = ResultSectors[VOXEL_RIGHT_ABOVE];
+					ResultSectors[VOXEL_RIGHT_BELOW_AHEAD] = ResultSectors[VOXEL_RIGHT_BELOW];
+					ResultSectors[VOXEL_LEFT_ABOVE_BEHIND] = ResultSectors[VOXEL_LEFT_ABOVE];
+					ResultSectors[VOXEL_LEFT_BELOW_BEHIND] = ResultSectors[VOXEL_LEFT_BELOW];
+					ResultSectors[VOXEL_RIGHT_ABOVE_BEHIND] = ResultSectors[VOXEL_RIGHT_ABOVE];
+					ResultSectors[VOXEL_RIGHT_BELOW_BEHIND] = ResultSectors[VOXEL_RIGHT_BELOW];
+				}
+			}
+			else //----------------------------------------------
+			{
+				// left bound, above/below unbound
+				ResultSectors[VOXEL_ABOVE] = self.Sector;
+				ResultSectors[VOXEL_BELOW] = self.Sector;
+				ResultSectors[VOXEL_LEFT_ABOVE] = ResultSectors[VOXEL_LEFT];
+				ResultSectors[VOXEL_LEFT_BELOW] = ResultSectors[VOXEL_LEFT];
+				ResultSectors[VOXEL_RIGHT_ABOVE] = ResultSectors[VOXEL_RIGHT];
+				ResultSectors[VOXEL_RIGHT_BELOW] = ResultSectors[VOXEL_RIGHT];
+				if( self.z == 0 )
+				{
+					ResultSectors[VOXEL_AHEAD_LEFT] = ResultSectors[VOXEL_LEFT];
+					ResultSectors[VOXEL_AHEAD_RIGHT] = ResultSectors[VOXEL_RIGHT];
+					ResultSectors[VOXEL_BEHIND_LEFT] = ResultSectors[VOXEL_BEHIND]->near_sectors[VOXEL_LEFT-1];
+					ResultSectors[VOXEL_BEHIND_RIGHT] = ResultSectors[VOXEL_BEHIND];
+
+					ResultSectors[VOXEL_ABOVE_AHEAD] = ResultSectors[VOXEL_AHEAD];
+					ResultSectors[VOXEL_ABOVE_BEHIND] = ResultSectors[VOXEL_BEHIND];
+					ResultSectors[VOXEL_BELOW_AHEAD] = ResultSectors[VOXEL_BELOW];
+					ResultSectors[VOXEL_BELOW_BEHIND] = ResultSectors[VOXEL_BEHIND];
+
+					ResultSectors[VOXEL_LEFT_ABOVE_AHEAD] = ResultSectors[VOXEL_LEFT_ABOVE];
+					ResultSectors[VOXEL_LEFT_BELOW_AHEAD] = ResultSectors[VOXEL_LEFT_BELOW];
+					ResultSectors[VOXEL_RIGHT_ABOVE_AHEAD] = ResultSectors[VOXEL_RIGHT_ABOVE];
+					ResultSectors[VOXEL_RIGHT_BELOW_AHEAD] = ResultSectors[VOXEL_RIGHT_BELOW];
+					ResultSectors[VOXEL_LEFT_ABOVE_BEHIND] = ResultSectors[VOXEL_LEFT_ABOVE];
+					ResultSectors[VOXEL_LEFT_BELOW_BEHIND] = ResultSectors[VOXEL_LEFT_BELOW];
+					ResultSectors[VOXEL_RIGHT_ABOVE_BEHIND] = ResultSectors[VOXEL_RIGHT_ABOVE];
+					ResultSectors[VOXEL_RIGHT_BELOW_BEHIND] = ResultSectors[VOXEL_RIGHT_BELOW];
+				}
+				else if( self.z == (ZVOXELBLOCSIZE_Z-1) )
+				{
+					ResultSectors[VOXEL_AHEAD_LEFT] = ResultSectors[VOXEL_AHEAD]->near_sectors[VOXEL_LEFT-1];
+					ResultSectors[VOXEL_AHEAD_RIGHT] = ResultSectors[VOXEL_AHEAD];
+					ResultSectors[VOXEL_BEHIND_LEFT] = ResultSectors[VOXEL_LEFT];
+					ResultSectors[VOXEL_BEHIND_RIGHT] = ResultSectors[VOXEL_BEHIND];
+
+					ResultSectors[VOXEL_ABOVE_AHEAD] = ResultSectors[VOXEL_AHEAD];
+					ResultSectors[VOXEL_ABOVE_BEHIND] = ResultSectors[VOXEL_ABOVE];
+					ResultSectors[VOXEL_BELOW_AHEAD] = ResultSectors[VOXEL_AHEAD];
+					ResultSectors[VOXEL_BELOW_BEHIND] = ResultSectors[VOXEL_BELOW];
+
+					ResultSectors[VOXEL_LEFT_ABOVE_AHEAD] = ResultSectors[VOXEL_LEFT_ABOVE];
+					ResultSectors[VOXEL_LEFT_BELOW_AHEAD] = ResultSectors[VOXEL_LEFT_BELOW];
+					ResultSectors[VOXEL_RIGHT_ABOVE_AHEAD] = ResultSectors[VOXEL_RIGHT_ABOVE];
+					ResultSectors[VOXEL_RIGHT_BELOW_AHEAD] = ResultSectors[VOXEL_RIGHT_BELOW];
+					ResultSectors[VOXEL_LEFT_ABOVE_BEHIND] = ResultSectors[VOXEL_LEFT_ABOVE];
+					ResultSectors[VOXEL_LEFT_BELOW_BEHIND] = ResultSectors[VOXEL_LEFT_BELOW];
+					ResultSectors[VOXEL_RIGHT_ABOVE_BEHIND] = ResultSectors[VOXEL_RIGHT_ABOVE];
+					ResultSectors[VOXEL_RIGHT_BELOW_BEHIND] = ResultSectors[VOXEL_RIGHT_BELOW];
+				}
+				else
+				{
+					// left bound, y unbound z unbound
+					ResultSectors[VOXEL_AHEAD_LEFT] = ResultSectors[VOXEL_LEFT];
+					ResultSectors[VOXEL_AHEAD_RIGHT] = ResultSectors[VOXEL_RIGHT];
+					ResultSectors[VOXEL_BEHIND_LEFT] = ResultSectors[VOXEL_LEFT];
+					ResultSectors[VOXEL_BEHIND_RIGHT] = ResultSectors[VOXEL_RIGHT];
+
+					ResultSectors[VOXEL_ABOVE_AHEAD] = ResultSectors[VOXEL_ABOVE];
+					ResultSectors[VOXEL_ABOVE_BEHIND] = ResultSectors[VOXEL_ABOVE];
+					ResultSectors[VOXEL_BELOW_AHEAD] = ResultSectors[VOXEL_BELOW];
+					ResultSectors[VOXEL_BELOW_BEHIND] = ResultSectors[VOXEL_BELOW];
+
+					ResultSectors[VOXEL_LEFT_ABOVE_AHEAD] = ResultSectors[VOXEL_LEFT_ABOVE];
+					ResultSectors[VOXEL_LEFT_BELOW_AHEAD] = ResultSectors[VOXEL_LEFT_BELOW];
+					ResultSectors[VOXEL_RIGHT_ABOVE_AHEAD] = ResultSectors[VOXEL_RIGHT_ABOVE];
+					ResultSectors[VOXEL_RIGHT_BELOW_AHEAD] = ResultSectors[VOXEL_RIGHT_BELOW];
+					ResultSectors[VOXEL_LEFT_ABOVE_BEHIND] = ResultSectors[VOXEL_LEFT_ABOVE];
+					ResultSectors[VOXEL_LEFT_BELOW_BEHIND] = ResultSectors[VOXEL_LEFT_BELOW];
+					ResultSectors[VOXEL_RIGHT_ABOVE_BEHIND] = ResultSectors[VOXEL_RIGHT_ABOVE];
+					ResultSectors[VOXEL_RIGHT_BELOW_BEHIND] = ResultSectors[VOXEL_RIGHT_BELOW];
+				}
+			}
+		}
+		else if( self.x == (ZVOXELBLOCSIZE_X-1) )
+		{
+			if( self.y == 0 )
+			{
+				ResultSectors[VOXEL_LEFT_ABOVE] = ResultSectors[VOXEL_ABOVE];
+				ResultSectors[VOXEL_LEFT_BELOW] = ResultSectors[VOXEL_BELOW];
+				ResultSectors[VOXEL_RIGHT_ABOVE] = ResultSectors[VOXEL_BELOW];
+				ResultSectors[VOXEL_RIGHT_BELOW] = ResultSectors[VOXEL_RIGHT]->near_sectors[VOXEL_BELOW-1];
+				if( self.z == 0 )
+				{
+					ResultSectors[VOXEL_AHEAD_LEFT] = ResultSectors[VOXEL_LEFT];
+					ResultSectors[VOXEL_AHEAD_RIGHT] = ResultSectors[VOXEL_RIGHT];
+					ResultSectors[VOXEL_BEHIND_LEFT] = ResultSectors[VOXEL_BEHIND];
+					ResultSectors[VOXEL_BEHIND_RIGHT] = ResultSectors[VOXEL_BEHIND]->near_sectors[VOXEL_RIGHT-1];
+
+					ResultSectors[VOXEL_ABOVE_AHEAD] = ResultSectors[VOXEL_AHEAD];
+					ResultSectors[VOXEL_ABOVE_BEHIND] = ResultSectors[VOXEL_BEHIND];
+					ResultSectors[VOXEL_BELOW_AHEAD] = ResultSectors[VOXEL_BELOW];
+					ResultSectors[VOXEL_BELOW_BEHIND] = ResultSectors[VOXEL_BELOW]->near_sectors[VOXEL_BEHIND-1];
+
+					ResultSectors[VOXEL_LEFT_ABOVE_AHEAD] = ResultSectors[VOXEL_LEFT_ABOVE];
+					ResultSectors[VOXEL_LEFT_BELOW_AHEAD] = ResultSectors[VOXEL_LEFT_BELOW];
+					ResultSectors[VOXEL_RIGHT_ABOVE_AHEAD] = ResultSectors[VOXEL_RIGHT_ABOVE];
+					ResultSectors[VOXEL_RIGHT_BELOW_AHEAD] = ResultSectors[VOXEL_RIGHT_BELOW];
+					ResultSectors[VOXEL_LEFT_ABOVE_BEHIND] = ResultSectors[VOXEL_LEFT_ABOVE];
+					ResultSectors[VOXEL_LEFT_BELOW_BEHIND] = ResultSectors[VOXEL_LEFT_BELOW];
+					ResultSectors[VOXEL_RIGHT_ABOVE_BEHIND] = ResultSectors[VOXEL_RIGHT_ABOVE];
+					ResultSectors[VOXEL_RIGHT_BELOW_BEHIND] = ResultSectors[VOXEL_BELOW_BEHIND]->near_sectors[VOXEL_RIGHT-1];
+				}
+				else if( self.z == (ZVOXELBLOCSIZE_Z-1) )
+				{
+					ResultSectors[VOXEL_AHEAD_LEFT] = ResultSectors[VOXEL_AHEAD];
+					ResultSectors[VOXEL_AHEAD_RIGHT] = ResultSectors[VOXEL_AHEAD]->near_sectors[VOXEL_RIGHT-1];
+					ResultSectors[VOXEL_BEHIND_LEFT] = ResultSectors[VOXEL_LEFT];
+					ResultSectors[VOXEL_BEHIND_RIGHT] = ResultSectors[VOXEL_RIGHT];
+
+					ResultSectors[VOXEL_ABOVE_AHEAD] = ResultSectors[VOXEL_AHEAD];
+					ResultSectors[VOXEL_ABOVE_BEHIND] = ResultSectors[VOXEL_BEHIND];
+					ResultSectors[VOXEL_BELOW_AHEAD] = ResultSectors[VOXEL_AHEAD]->near_sectors[VOXEL_BELOW-1];
+					ResultSectors[VOXEL_BELOW_BEHIND] = ResultSectors[VOXEL_BELOW];
+
+					ResultSectors[VOXEL_LEFT_ABOVE_AHEAD] = ResultSectors[VOXEL_LEFT_AHEAD];
+					ResultSectors[VOXEL_LEFT_BELOW_AHEAD] = ResultSectors[VOXEL_LEFT_BELOW];
+					ResultSectors[VOXEL_RIGHT_ABOVE_AHEAD] = ResultSectors[VOXEL_RIGHT_ABOVE];
+					ResultSectors[VOXEL_RIGHT_BELOW_AHEAD] = ResultSectors[VOXEL_BELOW_AHEAD]->near_sectors[VOXEL_RIGHT-1];
+					ResultSectors[VOXEL_LEFT_ABOVE_BEHIND] = ResultSectors[VOXEL_LEFT_ABOVE];
+					ResultSectors[VOXEL_LEFT_BELOW_BEHIND] = ResultSectors[VOXEL_LEFT_BELOW];
+					ResultSectors[VOXEL_RIGHT_ABOVE_BEHIND] = ResultSectors[VOXEL_RIGHT_ABOVE];
+					ResultSectors[VOXEL_RIGHT_BELOW_BEHIND] = ResultSectors[VOXEL_RIGHT_BELOW];
+				}
+				else
+				{
+					ResultSectors[VOXEL_AHEAD_LEFT] = ResultSectors[VOXEL_LEFT];
+					ResultSectors[VOXEL_AHEAD_RIGHT] = ResultSectors[VOXEL_RIGHT];
+					ResultSectors[VOXEL_BEHIND_LEFT] = ResultSectors[VOXEL_LEFT];
+					ResultSectors[VOXEL_BEHIND_RIGHT] = ResultSectors[VOXEL_RIGHT];
+
+					ResultSectors[VOXEL_ABOVE_AHEAD] = ResultSectors[VOXEL_ABOVE];
+					ResultSectors[VOXEL_ABOVE_BEHIND] = ResultSectors[VOXEL_ABOVE];
+					ResultSectors[VOXEL_BELOW_AHEAD] = ResultSectors[VOXEL_BELOW];
+					ResultSectors[VOXEL_BELOW_BEHIND] = ResultSectors[VOXEL_BELOW];
+
+					ResultSectors[VOXEL_LEFT_ABOVE_AHEAD] = ResultSectors[VOXEL_LEFT_ABOVE];
+					ResultSectors[VOXEL_LEFT_BELOW_AHEAD] = ResultSectors[VOXEL_LEFT_BELOW];
+					ResultSectors[VOXEL_RIGHT_ABOVE_AHEAD] = ResultSectors[VOXEL_RIGHT_ABOVE];
+					ResultSectors[VOXEL_RIGHT_BELOW_AHEAD] = ResultSectors[VOXEL_RIGHT_BELOW];
+					ResultSectors[VOXEL_LEFT_ABOVE_BEHIND] = ResultSectors[VOXEL_LEFT_ABOVE];
+					ResultSectors[VOXEL_LEFT_BELOW_BEHIND] = ResultSectors[VOXEL_LEFT_BELOW];
+					ResultSectors[VOXEL_RIGHT_ABOVE_BEHIND] = ResultSectors[VOXEL_RIGHT_ABOVE];
+					ResultSectors[VOXEL_RIGHT_BELOW_BEHIND] = ResultSectors[VOXEL_RIGHT_BELOW];
+				}
+			}
+			else if( self.y == (ZVOXELBLOCSIZE_Y-1) )
+			{
+				ResultSectors[VOXEL_ABOVE] = self.Sector->near_sectors[VOXEL_ABOVE-1];
+				ResultSectors[VOXEL_BELOW] = self.Sector;
+				ResultSectors[VOXEL_LEFT_ABOVE] = ResultSectors[VOXEL_ABOVE];
+				ResultSectors[VOXEL_LEFT_BELOW] = ResultSectors[VOXEL_BELOW];
+				ResultSectors[VOXEL_RIGHT_ABOVE] = ResultSectors[VOXEL_ABOVE]->near_sectors[VOXEL_RIGHT-1];
+				ResultSectors[VOXEL_RIGHT_BELOW] = ResultSectors[VOXEL_RIGHT];
+				if( self.z == 0 )
+				{
+					ResultSectors[VOXEL_AHEAD_LEFT] = ResultSectors[VOXEL_LEFT];
+					ResultSectors[VOXEL_AHEAD_RIGHT] = ResultSectors[VOXEL_RIGHT];
+					ResultSectors[VOXEL_BEHIND_LEFT] = ResultSectors[VOXEL_LEFT];
+					ResultSectors[VOXEL_BEHIND_RIGHT] = ResultSectors[VOXEL_BEHIND]->near_sectors[VOXEL_RIGHT-1];
+
+					ResultSectors[VOXEL_ABOVE_AHEAD] = ResultSectors[VOXEL_ABOVE];
+					ResultSectors[VOXEL_ABOVE_BEHIND] = ResultSectors[VOXEL_ABOVE];
+					ResultSectors[VOXEL_BELOW_AHEAD] = ResultSectors[VOXEL_BELOW];
+					ResultSectors[VOXEL_BELOW_BEHIND] = ResultSectors[VOXEL_BELOW];
+
+					ResultSectors[VOXEL_LEFT_ABOVE_AHEAD] = ResultSectors[VOXEL_LEFT_ABOVE];
+					ResultSectors[VOXEL_LEFT_BELOW_AHEAD] = ResultSectors[VOXEL_LEFT_BELOW];
+					ResultSectors[VOXEL_RIGHT_ABOVE_AHEAD] = ResultSectors[VOXEL_RIGHT_ABOVE];
+					ResultSectors[VOXEL_RIGHT_BELOW_AHEAD] = ResultSectors[VOXEL_RIGHT_BELOW];
+					ResultSectors[VOXEL_LEFT_ABOVE_BEHIND] = ResultSectors[VOXEL_LEFT_ABOVE];
+					ResultSectors[VOXEL_LEFT_BELOW_BEHIND] = ResultSectors[VOXEL_LEFT_BELOW];
+					ResultSectors[VOXEL_RIGHT_ABOVE_BEHIND] = ResultSectors[VOXEL_ABOVE_BEHIND]->near_sectors[VOXEL_RIGHT-1];
+					ResultSectors[VOXEL_RIGHT_BELOW_BEHIND] = ResultSectors[VOXEL_RIGHT_BELOW];
+				}
+				else if( self.z == (ZVOXELBLOCSIZE_Z-1) )
+				{
+					ResultSectors[VOXEL_AHEAD_LEFT] = ResultSectors[VOXEL_LEFT];
+					ResultSectors[VOXEL_AHEAD_RIGHT] = ResultSectors[VOXEL_AHEAD]->near_sectors[VOXEL_RIGHT-1];
+					ResultSectors[VOXEL_BEHIND_LEFT] = ResultSectors[VOXEL_LEFT];
+					ResultSectors[VOXEL_BEHIND_RIGHT] = ResultSectors[VOXEL_RIGHT];
+
+					ResultSectors[VOXEL_ABOVE_AHEAD] = ResultSectors[VOXEL_AHEAD]->near_sectors[VOXEL_ABOVE-1];
+					ResultSectors[VOXEL_ABOVE_BEHIND] = ResultSectors[VOXEL_ABOVE];
+					ResultSectors[VOXEL_BELOW_AHEAD] = ResultSectors[VOXEL_AHEAD];
+					ResultSectors[VOXEL_BELOW_BEHIND] = ResultSectors[VOXEL_BEHIND];
+
+					ResultSectors[VOXEL_LEFT_ABOVE_AHEAD] = ResultSectors[VOXEL_ABOVE_AHEAD];
+					ResultSectors[VOXEL_LEFT_BELOW_AHEAD] = ResultSectors[VOXEL_LEFT_AHEAD];
+					ResultSectors[VOXEL_RIGHT_ABOVE_AHEAD] = ResultSectors[VOXEL_ABOVE_AHEAD]->near_sectors[VOXEL_RIGHT-1];
+					ResultSectors[VOXEL_RIGHT_BELOW_AHEAD] = ResultSectors[VOXEL_RIGHT_BELOW];
+					ResultSectors[VOXEL_LEFT_ABOVE_BEHIND] = ResultSectors[VOXEL_LEFT_ABOVE];
+					ResultSectors[VOXEL_LEFT_BELOW_BEHIND] = ResultSectors[VOXEL_LEFT_BELOW];
+					ResultSectors[VOXEL_RIGHT_ABOVE_BEHIND] = ResultSectors[VOXEL_RIGHT_ABOVE];
+					ResultSectors[VOXEL_RIGHT_BELOW_BEHIND] = ResultSectors[VOXEL_RIGHT_BELOW];
+				}
+				else
+				{
+					ResultSectors[VOXEL_AHEAD_LEFT] = ResultSectors[VOXEL_LEFT];
+					ResultSectors[VOXEL_AHEAD_RIGHT] = ResultSectors[VOXEL_RIGHT];
+					ResultSectors[VOXEL_BEHIND_LEFT] = ResultSectors[VOXEL_LEFT];
+					ResultSectors[VOXEL_BEHIND_RIGHT] = ResultSectors[VOXEL_RIGHT];
+
+					ResultSectors[VOXEL_ABOVE_AHEAD] = ResultSectors[VOXEL_ABOVE];
+					ResultSectors[VOXEL_ABOVE_BEHIND] = ResultSectors[VOXEL_ABOVE];
+					ResultSectors[VOXEL_BELOW_AHEAD] = ResultSectors[VOXEL_BELOW];
+					ResultSectors[VOXEL_BELOW_BEHIND] = ResultSectors[VOXEL_BELOW];
+
+					ResultSectors[VOXEL_LEFT_ABOVE_AHEAD] = ResultSectors[VOXEL_LEFT_ABOVE];
+					ResultSectors[VOXEL_LEFT_BELOW_AHEAD] = ResultSectors[VOXEL_LEFT_BELOW];
+					ResultSectors[VOXEL_RIGHT_ABOVE_AHEAD] = ResultSectors[VOXEL_RIGHT_ABOVE];
+					ResultSectors[VOXEL_RIGHT_BELOW_AHEAD] = ResultSectors[VOXEL_RIGHT_BELOW];
+					ResultSectors[VOXEL_LEFT_ABOVE_BEHIND] = ResultSectors[VOXEL_LEFT_ABOVE];
+					ResultSectors[VOXEL_LEFT_BELOW_BEHIND] = ResultSectors[VOXEL_LEFT_BELOW];
+					ResultSectors[VOXEL_RIGHT_ABOVE_BEHIND] = ResultSectors[VOXEL_RIGHT_ABOVE];
+					ResultSectors[VOXEL_RIGHT_BELOW_BEHIND] = ResultSectors[VOXEL_RIGHT_BELOW];
+				}
+			}
+			else
+			{
+				ResultSectors[VOXEL_LEFT_ABOVE] = ResultSectors[VOXEL_LEFT];
+				ResultSectors[VOXEL_LEFT_BELOW] = ResultSectors[VOXEL_LEFT];
+				ResultSectors[VOXEL_RIGHT_ABOVE] = ResultSectors[VOXEL_RIGHT];
+				ResultSectors[VOXEL_RIGHT_BELOW] = ResultSectors[VOXEL_RIGHT];
+				if( self.z == 0 )
+				{
+					ResultSectors[VOXEL_AHEAD_LEFT] = ResultSectors[VOXEL_LEFT];
+					ResultSectors[VOXEL_AHEAD_RIGHT] = ResultSectors[VOXEL_RIGHT];
+					ResultSectors[VOXEL_BEHIND_LEFT] = ResultSectors[VOXEL_BEHIND];
+					ResultSectors[VOXEL_BEHIND_RIGHT] = ResultSectors[VOXEL_BEHIND]->near_sectors[VOXEL_RIGHT-1];
+
+					ResultSectors[VOXEL_ABOVE_AHEAD] = ResultSectors[VOXEL_AHEAD];
+					ResultSectors[VOXEL_ABOVE_BEHIND] = ResultSectors[VOXEL_BEHIND];
+					ResultSectors[VOXEL_BELOW_AHEAD] = ResultSectors[VOXEL_BELOW];
+					ResultSectors[VOXEL_BELOW_BEHIND] = ResultSectors[VOXEL_BEHIND];
+
+					ResultSectors[VOXEL_LEFT_ABOVE_AHEAD] = ResultSectors[VOXEL_LEFT_ABOVE];
+					ResultSectors[VOXEL_LEFT_BELOW_AHEAD] = ResultSectors[VOXEL_LEFT_BELOW];
+					ResultSectors[VOXEL_RIGHT_ABOVE_AHEAD] = ResultSectors[VOXEL_RIGHT_ABOVE];
+					ResultSectors[VOXEL_RIGHT_BELOW_AHEAD] = ResultSectors[VOXEL_RIGHT_BELOW];
+					ResultSectors[VOXEL_LEFT_ABOVE_BEHIND] = ResultSectors[VOXEL_LEFT_ABOVE];
+					ResultSectors[VOXEL_LEFT_BELOW_BEHIND] = ResultSectors[VOXEL_LEFT_BELOW];
+					ResultSectors[VOXEL_RIGHT_ABOVE_BEHIND] = ResultSectors[VOXEL_RIGHT_ABOVE];
+					ResultSectors[VOXEL_RIGHT_BELOW_BEHIND] = ResultSectors[VOXEL_RIGHT_BELOW];
+				}
+				else if( self.z == (ZVOXELBLOCSIZE_Z-1) )
+				{
+					ResultSectors[VOXEL_AHEAD_LEFT] = ResultSectors[VOXEL_AHEAD];
+					ResultSectors[VOXEL_AHEAD_RIGHT] = ResultSectors[VOXEL_AHEAD]->near_sectors[VOXEL_RIGHT-1];
+					ResultSectors[VOXEL_BEHIND_LEFT] = ResultSectors[VOXEL_LEFT];
+					ResultSectors[VOXEL_BEHIND_RIGHT] = ResultSectors[VOXEL_RIGHT];
+
+					ResultSectors[VOXEL_ABOVE_AHEAD] = ResultSectors[VOXEL_AHEAD];
+					ResultSectors[VOXEL_ABOVE_BEHIND] = ResultSectors[VOXEL_ABOVE];
+					ResultSectors[VOXEL_BELOW_AHEAD] = ResultSectors[VOXEL_AHEAD];
+					ResultSectors[VOXEL_BELOW_BEHIND] = ResultSectors[VOXEL_BELOW];
+
+					ResultSectors[VOXEL_LEFT_ABOVE_AHEAD] = ResultSectors[VOXEL_LEFT_ABOVE];
+					ResultSectors[VOXEL_LEFT_BELOW_AHEAD] = ResultSectors[VOXEL_LEFT_BELOW];
+					ResultSectors[VOXEL_RIGHT_ABOVE_AHEAD] = ResultSectors[VOXEL_RIGHT_ABOVE];
+					ResultSectors[VOXEL_RIGHT_BELOW_AHEAD] = ResultSectors[VOXEL_RIGHT_BELOW];
+					ResultSectors[VOXEL_LEFT_ABOVE_BEHIND] = ResultSectors[VOXEL_LEFT_ABOVE];
+					ResultSectors[VOXEL_LEFT_BELOW_BEHIND] = ResultSectors[VOXEL_LEFT_BELOW];
+					ResultSectors[VOXEL_RIGHT_ABOVE_BEHIND] = ResultSectors[VOXEL_RIGHT_ABOVE];
+					ResultSectors[VOXEL_RIGHT_BELOW_BEHIND] = ResultSectors[VOXEL_RIGHT_BELOW];
+				}
+				else
+				{
+					ResultSectors[VOXEL_AHEAD_LEFT] = ResultSectors[VOXEL_LEFT];
+					ResultSectors[VOXEL_AHEAD_RIGHT] = ResultSectors[VOXEL_RIGHT];
+					ResultSectors[VOXEL_BEHIND_LEFT] = ResultSectors[VOXEL_LEFT];
+					ResultSectors[VOXEL_BEHIND_RIGHT] = ResultSectors[VOXEL_RIGHT];
+
+					ResultSectors[VOXEL_ABOVE_AHEAD] = ResultSectors[VOXEL_ABOVE];
+					ResultSectors[VOXEL_ABOVE_BEHIND] = ResultSectors[VOXEL_ABOVE];
+					ResultSectors[VOXEL_BELOW_AHEAD] = ResultSectors[VOXEL_BELOW];
+					ResultSectors[VOXEL_BELOW_BEHIND] = ResultSectors[VOXEL_BELOW];
+
+					ResultSectors[VOXEL_LEFT_ABOVE_AHEAD] = ResultSectors[VOXEL_LEFT_ABOVE];
+					ResultSectors[VOXEL_LEFT_BELOW_AHEAD] = ResultSectors[VOXEL_LEFT_BELOW];
+					ResultSectors[VOXEL_RIGHT_ABOVE_AHEAD] = ResultSectors[VOXEL_RIGHT_ABOVE];
+					ResultSectors[VOXEL_RIGHT_BELOW_AHEAD] = ResultSectors[VOXEL_RIGHT_BELOW];
+					ResultSectors[VOXEL_LEFT_ABOVE_BEHIND] = ResultSectors[VOXEL_LEFT_ABOVE];
+					ResultSectors[VOXEL_LEFT_BELOW_BEHIND] = ResultSectors[VOXEL_LEFT_BELOW];
+					ResultSectors[VOXEL_RIGHT_ABOVE_BEHIND] = ResultSectors[VOXEL_RIGHT_ABOVE];
+					ResultSectors[VOXEL_RIGHT_BELOW_BEHIND] = ResultSectors[VOXEL_RIGHT_BELOW];
+				}
+			}
+		}
+		else //---------------------------------------------------------
+		{
+			// left/right unbound... left and right should never be terms of equality
+			if( self.y == 0 )
+			{
+				ResultSectors[VOXEL_LEFT_ABOVE] = ResultSectors[VOXEL_ABOVE];
+				ResultSectors[VOXEL_LEFT_BELOW] = ResultSectors[VOXEL_BELOW];
+				ResultSectors[VOXEL_RIGHT_ABOVE] = ResultSectors[VOXEL_ABOVE];
+				ResultSectors[VOXEL_RIGHT_BELOW] = ResultSectors[VOXEL_BELOW];
+				if( self.z == 0 )
+				{
+					ResultSectors[VOXEL_ABOVE_AHEAD] = ResultSectors[VOXEL_AHEAD];
+					ResultSectors[VOXEL_ABOVE_BEHIND] = ResultSectors[VOXEL_BEHIND];
+					ResultSectors[VOXEL_BELOW_AHEAD] = ResultSectors[VOXEL_BELOW];
+					ResultSectors[VOXEL_BELOW_BEHIND] = ResultSectors[VOXEL_BELOW]->near_sectors[VOXEL_BEHIND-1];
+				}
+				else if( self.z == (ZVOXELBLOCSIZE_Z-1) )
+				{
+					ResultSectors[VOXEL_ABOVE_AHEAD] = ResultSectors[VOXEL_AHEAD];
+					ResultSectors[VOXEL_ABOVE_BEHIND] = ResultSectors[VOXEL_BEHIND];
+					ResultSectors[VOXEL_BELOW_AHEAD] =  ResultSectors[VOXEL_BELOW]->near_sectors[VOXEL_AHEAD-1];
+					ResultSectors[VOXEL_BELOW_BEHIND] = ResultSectors[VOXEL_BELOW];
+				}
+				else
+				{
+					ResultSectors[VOXEL_ABOVE_AHEAD] = ResultSectors[VOXEL_ABOVE];
+					ResultSectors[VOXEL_ABOVE_BEHIND] = ResultSectors[VOXEL_ABOVE];
+					ResultSectors[VOXEL_BELOW_AHEAD] = ResultSectors[VOXEL_BELOW];
+					ResultSectors[VOXEL_BELOW_BEHIND] = ResultSectors[VOXEL_BELOW];
+				}
+				ResultSectors[VOXEL_AHEAD_LEFT] = ResultSectors[VOXEL_AHEAD];
+				ResultSectors[VOXEL_AHEAD_RIGHT] = ResultSectors[VOXEL_AHEAD];
+				ResultSectors[VOXEL_BEHIND_LEFT] = ResultSectors[VOXEL_BEHIND];
+				ResultSectors[VOXEL_BEHIND_RIGHT] = ResultSectors[VOXEL_BEHIND];
+
+				ResultSectors[VOXEL_LEFT_ABOVE_AHEAD] = ResultSectors[VOXEL_ABOVE_AHEAD];
+				ResultSectors[VOXEL_LEFT_BELOW_AHEAD] = ResultSectors[VOXEL_BELOW_AHEAD];
+				ResultSectors[VOXEL_RIGHT_ABOVE_AHEAD] = ResultSectors[VOXEL_ABOVE_AHEAD];
+				ResultSectors[VOXEL_RIGHT_BELOW_AHEAD] = ResultSectors[VOXEL_BELOW_AHEAD];
+				ResultSectors[VOXEL_LEFT_ABOVE_BEHIND] = ResultSectors[VOXEL_ABOVE_BEHIND];
+				ResultSectors[VOXEL_LEFT_BELOW_BEHIND] = ResultSectors[VOXEL_BELOW_BEHIND];
+				ResultSectors[VOXEL_RIGHT_ABOVE_BEHIND] = ResultSectors[VOXEL_ABOVE_BEHIND];
+				ResultSectors[VOXEL_RIGHT_BELOW_BEHIND] = ResultSectors[VOXEL_BELOW_BEHIND];
+			}
+			else if( self.y == (ZVOXELBLOCSIZE_Y-1) )
+			{
+				ResultSectors[VOXEL_LEFT_ABOVE] = ResultSectors[VOXEL_ABOVE];
+				ResultSectors[VOXEL_LEFT_BELOW] = ResultSectors[VOXEL_BELOW];
+				ResultSectors[VOXEL_RIGHT_ABOVE] = ResultSectors[VOXEL_ABOVE];
+				ResultSectors[VOXEL_RIGHT_BELOW] = ResultSectors[VOXEL_BELOW];
+				if( self.z == 0 )
+				{
+					ResultSectors[VOXEL_ABOVE_AHEAD] = ResultSectors[VOXEL_ABOVE];
+					ResultSectors[VOXEL_ABOVE_BEHIND] =  ResultSectors[VOXEL_ABOVE]->near_sectors[VOXEL_BEHIND-1];
+					ResultSectors[VOXEL_BELOW_AHEAD] = ResultSectors[VOXEL_BELOW];
+					ResultSectors[VOXEL_BELOW_BEHIND] = ResultSectors[VOXEL_BELOW];
+
+				}
+				else if( self.z == (ZVOXELBLOCSIZE_Z-1) )
+				{
+					ResultSectors[VOXEL_ABOVE_AHEAD] =   ResultSectors[VOXEL_ABOVE]->near_sectors[VOXEL_AHEAD-1];
+					ResultSectors[VOXEL_ABOVE_BEHIND] = ResultSectors[VOXEL_ABOVE];
+					ResultSectors[VOXEL_BELOW_AHEAD] = ResultSectors[VOXEL_AHEAD];
+					ResultSectors[VOXEL_BELOW_BEHIND] = ResultSectors[VOXEL_BEHIND];
+				}
+				else
+				{
+					ResultSectors[VOXEL_ABOVE_AHEAD] = ResultSectors[VOXEL_ABOVE];
+					ResultSectors[VOXEL_ABOVE_BEHIND] = ResultSectors[VOXEL_ABOVE];
+					ResultSectors[VOXEL_BELOW_AHEAD] = ResultSectors[VOXEL_BELOW];
+					ResultSectors[VOXEL_BELOW_BEHIND] = ResultSectors[VOXEL_BELOW];
+				}
+				ResultSectors[VOXEL_AHEAD_LEFT] = ResultSectors[VOXEL_AHEAD];
+				ResultSectors[VOXEL_AHEAD_RIGHT] = ResultSectors[VOXEL_AHEAD];
+				ResultSectors[VOXEL_BEHIND_LEFT] = ResultSectors[VOXEL_BEHIND];
+				ResultSectors[VOXEL_BEHIND_RIGHT] = ResultSectors[VOXEL_BEHIND];
+
+				ResultSectors[VOXEL_LEFT_ABOVE_AHEAD] = ResultSectors[VOXEL_ABOVE_AHEAD];
+				ResultSectors[VOXEL_LEFT_BELOW_AHEAD] = ResultSectors[VOXEL_BELOW_AHEAD];
+				ResultSectors[VOXEL_RIGHT_ABOVE_AHEAD] = ResultSectors[VOXEL_ABOVE_AHEAD];
+				ResultSectors[VOXEL_RIGHT_BELOW_AHEAD] = ResultSectors[VOXEL_BELOW_AHEAD];
+				ResultSectors[VOXEL_LEFT_ABOVE_BEHIND] = ResultSectors[VOXEL_ABOVE_BEHIND];
+				ResultSectors[VOXEL_LEFT_BELOW_BEHIND] = ResultSectors[VOXEL_BELOW_BEHIND];
+				ResultSectors[VOXEL_RIGHT_ABOVE_BEHIND] = ResultSectors[VOXEL_ABOVE_BEHIND];
+				ResultSectors[VOXEL_RIGHT_BELOW_BEHIND] = ResultSectors[VOXEL_BELOW_BEHIND];
+			}
+			else  //----------------------------------------------
+			{
+				// x not on bound, y not on bound.
+				ResultSectors[VOXEL_LEFT_ABOVE] = ResultSectors[VOXEL_LEFT];
+				ResultSectors[VOXEL_LEFT_BELOW] = ResultSectors[VOXEL_LEFT];
+				ResultSectors[VOXEL_RIGHT_ABOVE] = ResultSectors[VOXEL_RIGHT];
+				ResultSectors[VOXEL_RIGHT_BELOW] = ResultSectors[VOXEL_RIGHT];
+
+				ResultSectors[VOXEL_AHEAD_LEFT] = ResultSectors[VOXEL_AHEAD];
+				ResultSectors[VOXEL_AHEAD_RIGHT] = ResultSectors[VOXEL_AHEAD];
+				ResultSectors[VOXEL_BEHIND_LEFT] = ResultSectors[VOXEL_BEHIND];
+				ResultSectors[VOXEL_BEHIND_RIGHT] = ResultSectors[VOXEL_BEHIND];
+
+				ResultSectors[VOXEL_ABOVE_AHEAD] = ResultSectors[VOXEL_AHEAD];
+				ResultSectors[VOXEL_ABOVE_BEHIND] = ResultSectors[VOXEL_BEHIND];
+				ResultSectors[VOXEL_BELOW_AHEAD] = ResultSectors[VOXEL_AHEAD];
+				ResultSectors[VOXEL_BELOW_BEHIND] = ResultSectors[VOXEL_BEHIND];
+
+				ResultSectors[VOXEL_LEFT_ABOVE_AHEAD] = ResultSectors[VOXEL_AHEAD];
+				ResultSectors[VOXEL_LEFT_BELOW_AHEAD] = ResultSectors[VOXEL_AHEAD];
+				ResultSectors[VOXEL_RIGHT_ABOVE_AHEAD] = ResultSectors[VOXEL_AHEAD];
+				ResultSectors[VOXEL_RIGHT_BELOW_AHEAD] = ResultSectors[VOXEL_AHEAD];
+				ResultSectors[VOXEL_LEFT_ABOVE_BEHIND] = ResultSectors[VOXEL_BEHIND];
+				ResultSectors[VOXEL_LEFT_BELOW_BEHIND] = ResultSectors[VOXEL_BEHIND];
+				ResultSectors[VOXEL_RIGHT_ABOVE_BEHIND] = ResultSectors[VOXEL_BEHIND];
+				ResultSectors[VOXEL_RIGHT_BELOW_BEHIND] = ResultSectors[VOXEL_BEHIND];
+			}
+		}
+	}
 
 };
 
