@@ -2373,6 +2373,84 @@ bool ZVoxelWorld::SetVoxel_WithCullingUpdate(Long x, Long y, Long z, UShort Voxe
 }
 
 
+bool ZVoxelWorld::SetVoxel_WithCullingUpdate(ZVoxelSector *_Sector, ULong offset, UShort VoxelValue, UByte ImportanceFactor, bool CreateExtension, VoxelLocation * Location)
+{
+	ZVoxelSector::VoxelData * Voxel_Address[19];
+  ULong  Offset[19];
+  UShort VoxelState[19];
+  UShort Voxel;
+  //ZVoxelSector * Sector[19];
+  ZVoxelType ** VoxelTypeTable;
+  ZVoxelType * VoxelType;
+
+  UShort * ExtFaceState;
+  UShort * IntFaceState;
+  ZMemSize OtherInfos;
+
+  VoxelTypeTable = VoxelTypeManager->VoxelTable;
+
+  // Fetching sectors
+
+  if ( 0== (_Sector = _Sector) ) return(false);
+
+  // Computing memory offsets from sector start
+
+  Offset[VOXEL_INCENTER] = offset;
+  //if( _Sector->Data[Offset[VOXEL_INCENTER]].Data && VoxelValue)
+//	  DebugBreak();
+  // Computing absolute memory pointer of blocks
+  {
+	  int i = VOXEL_INCENTER; 
+	Voxel_Address[i]     = _Sector->Data + Offset[i];
+    Voxel = Voxel_Address[i]->Data;    VoxelType = VoxelTypeTable[Voxel];
+      VoxelState[i] = ( (Voxel==0) ? 1 : 0) 
+		     | ( VoxelType->Draw_FullVoxelOpacity ? 2 : 0 ) 
+			 | ( VoxelType->Draw_TransparentRendering ? 4 : 0 );
+  }
+  // Computing absolute
+  // Fetching Voxels and computing voxel state
+
+  // Delete Old voxel extended informations if any
+
+  Voxel = Voxel_Address[VOXEL_INCENTER]->Data;
+  OtherInfos = _Sector->Data[Offset[VOXEL_INCENTER]].OtherInfos;
+
+  if (OtherInfos)
+  {
+    VoxelType = VoxelTypeTable[Voxel];
+    if (VoxelType->Is_HasAllocatedMemoryExtension) VoxelType->DeleteVoxelExtension(OtherInfos);
+  }
+
+  // Storing Extension
+
+  VoxelType = VoxelTypeTable[VoxelValue];
+  if (CreateExtension)
+  {
+    Voxel_Address[VOXEL_INCENTER]->Data = 0; // Temporary set to 0 to prevent VoxelReactor for crashing while loading the wrong extension.
+    (*(_Sector->Data + Offset[VOXEL_INCENTER])).OtherInfos =(ZMemSize)VoxelType->CreateVoxelExtension();
+  }
+
+  // Storing Voxel
+
+  Voxel_Address[VOXEL_INCENTER]->Data = VoxelValue;
+  VoxelState[VOXEL_INCENTER] = ((VoxelValue==0) ? 1 : 0) | ( VoxelType->Draw_FullVoxelOpacity ? 2 : 0 ) | ( VoxelType->Draw_TransparentRendering ? 4 : 0 );
+
+	if (VoxelTypeTable[VoxelValue]->Is_Active) _Sector->Flag_IsActiveVoxels = true;
+
+  // Filling VoxelLocation if any
+
+  if ((Location))
+  {
+    Location->Sector = _Sector;
+    Location->Offset = offset;
+  }
+
+  _Sector->Flag_IsModified |= ImportanceFactor;
+
+  _Sector->Culler->CullSingleVoxel( _Sector, offset );
+  return(true);
+}
+
 
 void ZVoxelWorld::Purge(UShort VoxelType)
 {
