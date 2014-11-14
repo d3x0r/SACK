@@ -401,7 +401,10 @@ void ZVoxelSector::InitSector()
   for (i=0;i<DataSize;i++) Data[i].TempInfos = 273+20;
 
   for( int r = 0; r < 6; r++ )
-	Flag_Render_Dirty[r] = true;
+  {
+	  near_sectors[r] = 0;
+	  Flag_Render_Dirty[r] = true;
+  }
   Flag_HighPriorityRefresh = false;
   Flag_Void_Regular = true;
   Flag_Void_Transparent = true;

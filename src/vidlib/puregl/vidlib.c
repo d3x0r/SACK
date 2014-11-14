@@ -3620,7 +3620,7 @@ static struct display_camera *OpenCameras( void )
 	{
 		struct display_camera *camera = (struct display_camera *)GetLink( &l.cameras, 0 );
 		lprintf( WIDE("Setting up redraw timer..") );
-		l.redraw_timer_id = SetTimer( camera->hWndInstance, (UINT_PTR)1, 16, NULL );
+		l.redraw_timer_id = SetTimer( camera->hWndInstance, (UINT_PTR)1, 1, NULL );
 		lprintf( WIDE("Setting up redraw timer.. result %d"), l.redraw_timer_id );
 	}
 

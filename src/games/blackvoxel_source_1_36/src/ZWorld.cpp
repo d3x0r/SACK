@@ -258,7 +258,12 @@ void ZVoxelWorld::RemoveSector( ZVoxelSector * Sector )
   if (Sector->GlobalList_Next) Sector->GlobalList_Next->GlobalList_Pred = Sector->GlobalList_Pred;
 
   // Zeroing fields
-
+  for( int i = 0; i < 6; i++ )
+  {
+	  if( Sector->near_sectors[i] )
+		  Sector->near_sectors[i]->near_sectors[i^1] = 0;
+	  Sector->near_sectors[i] = 0;
+  }
   Sector->Next = 0; Sector->Pred = 0; Sector->GlobalList_Next = 0; Sector->GlobalList_Pred = 0;
 
 }
