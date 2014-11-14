@@ -699,7 +699,8 @@ void ZVoxelCuller_Basic::CullSingleVoxel( ZVoxelSector *_Sector, ULong offset )
 
   if( !(offset&(ZVOXELBLOCMASK_X<<ZVOXELBLOCSHIFT_Y)) )
   {
-	Sector[VOXEL_LEFT] = _Sector->near_sectors[VOXEL_LEFT-1];
+	if( !(Sector[VOXEL_LEFT] = _Sector->near_sectors[VOXEL_LEFT-1] ))
+		Sector[VOXEL_LEFT] = world->WorkingScratchSector;
 	Offset[VOXEL_LEFT] += (ZVOXELBLOCSIZE_X*ZVOXELBLOCSIZE_Y);
   }
   else
@@ -707,7 +708,8 @@ void ZVoxelCuller_Basic::CullSingleVoxel( ZVoxelSector *_Sector, ULong offset )
 
   if( !((offset&(ZVOXELBLOCMASK_X<<ZVOXELBLOCSHIFT_Y))^(ZVOXELBLOCMASK_X<<ZVOXELBLOCSHIFT_Y) ) )
   {
-	Sector[VOXEL_RIGHT] = _Sector->near_sectors[VOXEL_RIGHT-1];
+	if( !(Sector[VOXEL_RIGHT] = _Sector->near_sectors[VOXEL_RIGHT-1] ) )
+		Sector[VOXEL_RIGHT] = world->WorkingScratchSector;
 	Offset[VOXEL_RIGHT] -= (ZVOXELBLOCSIZE_X*ZVOXELBLOCSIZE_Y);
   }
   else
@@ -715,7 +717,8 @@ void ZVoxelCuller_Basic::CullSingleVoxel( ZVoxelSector *_Sector, ULong offset )
 
   if( !((offset&(ZVOXELBLOCMASK_Z<<(ZVOXELBLOCSHIFT_X+ZVOXELBLOCSHIFT_Y))^(ZVOXELBLOCMASK_Z<<(ZVOXELBLOCSHIFT_X+ZVOXELBLOCSHIFT_Y) )  ) ))
   {
-	Sector[VOXEL_INFRONT] = _Sector->near_sectors[VOXEL_INFRONT-1];
+	if( ! (Sector[VOXEL_INFRONT] = _Sector->near_sectors[VOXEL_INFRONT-1] ) )
+		Sector[VOXEL_INFRONT] = world->WorkingScratchSector;
 	Offset[VOXEL_INFRONT] -= (ZVOXELBLOCSIZE_X*ZVOXELBLOCSIZE_Y*ZVOXELBLOCSIZE_Z);
   }
   else
@@ -723,7 +726,8 @@ void ZVoxelCuller_Basic::CullSingleVoxel( ZVoxelSector *_Sector, ULong offset )
 
   if( !(offset&(ZVOXELBLOCMASK_Z<<(ZVOXELBLOCSHIFT_X+ZVOXELBLOCSHIFT_Y)) ) )
   {
-	Sector[VOXEL_BEHIND] = _Sector->near_sectors[VOXEL_BEHIND-1];
+	if( ! ( Sector[VOXEL_BEHIND] = _Sector->near_sectors[VOXEL_BEHIND-1] ) )
+		Sector[VOXEL_BEHIND] = world->WorkingScratchSector;
 	Offset[VOXEL_BEHIND] += (ZVOXELBLOCSIZE_X*ZVOXELBLOCSIZE_Y*ZVOXELBLOCSIZE_Z);
   }
   else
@@ -731,7 +735,8 @@ void ZVoxelCuller_Basic::CullSingleVoxel( ZVoxelSector *_Sector, ULong offset )
 	
   if( !((offset&(ZVOXELBLOCMASK_Y))^(ZVOXELBLOCMASK_Y) ) )
   {
-	Sector[VOXEL_ABOVE] = _Sector->near_sectors[VOXEL_ABOVE-1];
+	if( ! ( Sector[VOXEL_ABOVE] = _Sector->near_sectors[VOXEL_ABOVE-1] ) )
+		Sector[VOXEL_ABOVE] = world->WorkingScratchSector;
 	Offset[VOXEL_ABOVE] -= (ZVOXELBLOCSIZE_Y);
   }
   else
@@ -739,7 +744,8 @@ void ZVoxelCuller_Basic::CullSingleVoxel( ZVoxelSector *_Sector, ULong offset )
 
   if( !(offset&(ZVOXELBLOCMASK_Y)) )
   {
-	Sector[VOXEL_BELOW] = _Sector->near_sectors[VOXEL_BELOW-1];
+	if( ! ( Sector[VOXEL_BELOW] = _Sector->near_sectors[VOXEL_BELOW-1] ) )
+		Sector[VOXEL_BELOW] = world->WorkingScratchSector;
 	Offset[VOXEL_BELOW] += (ZVOXELBLOCSIZE_Y);
   }
   else
