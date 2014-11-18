@@ -30,6 +30,7 @@ namespace loader {
 #endif
 
 Image ImageJpgFile (_8* buf, _32 size);
+LOGICAL CPROC JpgImageFile( Image image, _8 **buf, size_t *size);
 
 #ifdef __cplusplus 
 }// namespace loader
