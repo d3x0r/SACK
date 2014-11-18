@@ -1502,7 +1502,8 @@ void Widget_KeyPressHandler( PCHAT_LIST list
 			result = UPDATE_NOTHING;
 			break;
 		case SPECIALKEY:
-			//result = ConsoleKeyDefs[key_index].op[mod].data.SpecialKey( pdp );
+		    list->InputPaste( list->psvInputPaste );
+			//result = ConsoleKeyDefs[key_index].op[mod].data.SpecialKey( (PCONSOLE_INFO)list );
 			break;
 		}
 		switch( result )
