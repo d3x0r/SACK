@@ -46,31 +46,32 @@ bool ZVoxelType_AromaGenerator::React( const ZVoxelRef &self, double tick )
 {
 	ZVoxelExtension_AromaGenerator *instance = (ZVoxelExtension_AromaGenerator *)self.VoxelExtension;
 	int spawned = 0;
+    self.Sector->ModifTracker.Set(self.Offset);
 	instance->time_since_spawn += tick;
 	//lprintf( "tick is %g", tick );
 	while( instance->time_since_spawn > 25 )
 	{
-		    Long RSx = self.Sector->Pos_x << ZVOXELBLOCSHIFT_X;
-			Long RSy = self.Sector->Pos_y << ZVOXELBLOCSHIFT_Y;
-			Long RSz = self.Sector->Pos_z << ZVOXELBLOCSHIFT_Z;
+		ULong number = SRG_GetEntropy( ZVoxelReactor::Random2, 5, 0 );
+		number = number % 27;
+		if( number != 0 )
+		{ 
+			// add an aroma
+			ZVoxelSector *next_sector;
+			ULong offset;
+			ZVoxelSector::GetNearVoxel( self.Sector, self.Offset, &next_sector, offset, (RelativeVoxelOrds)number ); 
 
-		//UShort above = self.World->GetVoxel( RSx +self.x, RSy +self.y+1, RSz +self.z );
-		//if( above == 0 )
-		{
-			ULong number = SRG_GetEntropy( ZVoxelReactor::Random2, 5, 0 );
-			number = number % 27;
-			if( number != 13 )
-			{ int x, y, z;
-				// add an aroma
-				UShort next = self.World->GetVoxel( x = RSx +self.x + ( number % 3 - 1 ), y = RSy +self.y+1+ ( (number / 3) % 3 - 1 ), z = RSz +self.z + ( (number / 9) % 3 - 1 ) );
-				if( VoxelTypeManager->VoxelTable[next]->Is_CanBeReplacedBy_Water) 
-				{
-					self.World->SetVoxel_WithCullingUpdate(x, y, z, (self.x & 1)/*SRG_GetEntropy( ZVoxelReactor::Random2, 1, 0 )*/?242:244, ZVoxelSector::CHANGE_CRITICAL);                                         
-					spawned++;
-				}
+			UShort next = next_sector->Data[offset].Data;
+			if( VoxelTypeManager->VoxelTable[next]->Is_CanBeReplacedBy_Water) 
+			{
+				self.World->SetVoxel_WithCullingUpdate( next_sector, offset, (self.x & 1)/*SRG_GetEntropy( ZVoxelReactor::Random2, 1, 0 )*/?242:244, ZVoxelSector::CHANGE_CRITICAL, true );                                         
+				/*
+				lprintf( "Voxel generator %d %d %d into %s %d,%d,%d", self.wx, self.wy, self.wz
+					, (next_sector == self.Sector)?"self":"near"
+					, (offset>>ZVOXELBLOCSHIFT_Y)&ZVOXELBLOCMASK_X, offset & ZVOXELBLOCMASK_Y, offset >> ( ZVOXELBLOCSHIFT_Y+ZVOXELBLOCSHIFT_X) );
+				*/
+				spawned++;
 			}
 		}
-		//lprintf( "Setting %p to 0", &instance->time_since_spawn );
 		instance->time_since_spawn -= 25;
 	}
 	//lprintf( "Ground react at %g", tick );

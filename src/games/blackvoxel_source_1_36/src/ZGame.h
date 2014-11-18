@@ -88,7 +88,7 @@
 #ifndef Z_ZSOUND_H
 #  include "ZSound.h"
 #endif
-
+#include "z/ZTypes.h"
 #ifndef Z_ZWORLD_H
 #  include "ZWorld.h"
 #endif

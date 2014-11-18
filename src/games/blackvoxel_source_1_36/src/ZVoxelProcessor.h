@@ -84,6 +84,7 @@ class ZVoxelProcessor : public ZObject
     ZEgmyScatter  EgmyScatter;
 public:
     ZHighPerfTimer Timer;
+    ZHighPerfTimer Timer_Compute;
 protected:
 
     static int thread_func(void * Data);

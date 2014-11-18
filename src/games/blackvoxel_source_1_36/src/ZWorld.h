@@ -25,7 +25,6 @@
 
 #ifndef Z_ZWORLD_H
 #define Z_ZWORLD_H
-
 // #ifndef Z_ZWORLD_H
 // #  include "ZWorld.h"
 // #endif
@@ -161,6 +160,7 @@ private:
     inline bool MoveVoxel_Sm(Long Sx, Long Sy, Long Sz, Long Ex, Long Ey, Long Ez, UShort ReplacementVoxel, UByte ImportanceFactor); // Set Moved flag
     inline bool MoveVoxel_Sm( ZVector3L * SCoords, ZVector3L * DCoords, UShort ReplacementVoxel, UByte ImportanceFactor);
     inline bool ExchangeVoxels(Long Sx, Long Sy, Long Sz, Long Dx, Long Dy, Long Dz, UByte ImportanceFactor, bool SetMoved);
+	inline bool ExchangeVoxels( ZVoxelSector *Ss, ULong So, ZVoxelSector *Ds, ULong Do, UByte ImportanceFactor, bool SetMoved);
 
     bool BlitBox(ZVector3L &SCoords, ZVector3L &DCoords, ZVector3L &Box);
 
@@ -607,6 +607,60 @@ bool ZVoxelWorld::ExchangeVoxels(Long Sx, Long Sy, Long Sz, Long Dx, Long Dy, Lo
   {
     Location1.Sector->ModifTracker.Set(Location1.Offset);
     Location2.Sector->ModifTracker.Set(Location2.Offset);
+  }
+
+  return(true);
+}
+
+bool ZVoxelWorld::ExchangeVoxels( ZVoxelSector *Ss, ULong So, ZVoxelSector *Ds, ULong Do, UByte ImportanceFactor, bool SetMoved)
+{
+  UShort VoxelType1,VoxelType2,Temp1,Temp2;
+  ZMemSize Extension1,Extension2;
+  /*
+				lprintf( "Exchange %d %d %d into %s %d,%d,%d"
+					, (So>>ZVOXELBLOCSHIFT_Y)&ZVOXELBLOCMASK_X, So & ZVOXELBLOCMASK_Y, So >> ( ZVOXELBLOCSHIFT_Y+ZVOXELBLOCSHIFT_X)
+					, (Ds == Ss)?"self":"near"
+					, (Do>>ZVOXELBLOCSHIFT_Y)&ZVOXELBLOCMASK_X, Do & ZVOXELBLOCMASK_Y, Do >> ( ZVOXELBLOCSHIFT_Y+ZVOXELBLOCSHIFT_X) 
+				);
+  */
+  // Getting Voxel Memory Location Informations
+
+  //if (!GetVoxelLocation(&Location1, Sx, Sy, Sz)) return(false);
+  //if (!GetVoxelLocation(&Location2, Dx, Dy, Dz)) return(false);
+  if ((So == Do) && (Ss == Ds)) return(false);
+
+  // Getting all infos.
+
+  VoxelType1 = Ss->Data[So].Data;
+  Extension1 = Ss->Data[So].OtherInfos;
+  Temp1      = Ss->Data[So].TempInfos;
+  VoxelType2 = Ds->Data[Do].Data;
+  Extension2 = Ds->Data[Do].OtherInfos;
+  Temp2      = Ds->Data[Do].TempInfos;
+
+  // Setting Extensions to zero to prevent multithreading issues of access to the wrong type of extension.
+
+  Ss->Data[So].OtherInfos=0;
+  Ds->Data[Do].OtherInfos=0;
+
+  // Set the voxels
+
+  if (!SetVoxel_WithCullingUpdate( Ds, Do, VoxelType1, ImportanceFactor, false, 0 )) return(false);
+  if (!SetVoxel_WithCullingUpdate( Ss, So, VoxelType2, ImportanceFactor, false, 0 )) return(false);
+
+  // Set Extensions a and temperature informations.
+
+  Ss->Data[So].OtherInfos = Extension2;
+  Ss->Data[So].TempInfos  = Temp2;
+  Ds->Data[Do].OtherInfos = Extension1;
+  Ds->Data[Do].TempInfos  = Temp1;
+
+  // Set moved
+
+  if (SetMoved)
+  {
+    Ss->ModifTracker.Set(So);
+    Ds->ModifTracker.Set(Do);
   }
 
   return(true);

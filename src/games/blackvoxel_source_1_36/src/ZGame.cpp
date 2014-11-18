@@ -24,7 +24,7 @@
  */
 
 #define INCLUDED_SOCKET_LIBRARY
-#define LOGGING_MACROS_DEFINED
+//#define LOGGING_MACROS_DEFINED
 #include <stdhdrs.h>
 #define DEFINE_DEFAULT_RENDER_INTERFACE
 #include <render.h>
