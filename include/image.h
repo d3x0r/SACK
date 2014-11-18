@@ -601,8 +601,15 @@ ALPHA_TRANSPARENT_MAX = 0x2FF
          // buffer decoded okay.
       }
       </code>                                                       */
-	IMAGE_PROC  Image IMAGE_API  DecodeMemoryToImage ( P_8 buf, _32 size );
-
+			IMAGE_PROC  Image IMAGE_API  DecodeMemoryToImage ( P_8 buf, _32 size );
+#ifdef __cplusplus
+		namespace loader{
+#endif
+	IMAGE_PROC  LOGICAL IMAGE_API  PngImageFile ( Image image, P_8 *buf, size_t *size );
+	IMAGE_PROC  LOGICAL IMAGE_API  JpgImageFile ( Image image, P_8 *buf, size_t *size );
+#ifdef __cplusplus
+		}
+#endif
       /* direct hack for processing clipboard data... probably does some massaging of the databefore calling DecodeMemoryToImage */
    IMAGE_PROC  Image IMAGE_API  ImageRawBMPFile (_8* ptr, _32 filesize); 
 
@@ -1894,6 +1901,8 @@ IMAGE_PROC_PTR( void, PutStringFontExx )( Image pImage
 // sometimes it's not possible to use blatcolor to clear an imate...
 // sometimes its parent is not redrawn?
 IMAGE_PROC_PTR( void, ResetImageBuffers )( Image image, LOGICAL image_only );
+	IMAGE_PROC_PTR(  LOGICAL, PngImageFile )( Image image, P_8 *buf, size_t *size );
+	IMAGE_PROC_PTR(  LOGICAL, JpgImageFile )( Image image, P_8 *buf, size_t *size );
 
 } IMAGE_INTERFACE, *PIMAGE_INTERFACE;
 

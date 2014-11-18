@@ -158,7 +158,9 @@ IMAGE_INTERFACE RealImageInterface = {
 									, IsImageTargetFinal
 									, NULL
 									, PutStringFontExx
-									, NULL  // reset image buffers... proxy layer
+												 , NULL  // reset image buffers... proxy layer
+												 , PngImageFile
+                                     , JpgImageFile
 };
 
 #undef GetImageInterface

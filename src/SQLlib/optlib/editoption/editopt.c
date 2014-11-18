@@ -214,6 +214,8 @@ static void CPROC UpdateValue( PTRSZVAL psv, PCOMMON pc )
 
 static void CPROC ResetButton( PTRSZVAL psv, PCOMMON pc )
 {
+	if( !option_thread )
+		option_thread = default_local;
 	ResetList( GetNearControl( pc, LST_OPTIONMAP ) );
 	ResetOptionMap( (PODBC)psv );
 	l.last_option = NULL;
@@ -222,6 +224,8 @@ static void CPROC ResetButton( PTRSZVAL psv, PCOMMON pc )
 
 static void CPROC DeleteBranch( PTRSZVAL psv, PCOMMON pc )
 {
+	if( !option_thread )
+		option_thread = default_local;
 	if( l.last_option )
 		DeleteOption( l.last_option );
 	ResetList( GetNearControl( pc, LST_OPTIONMAP ) );
