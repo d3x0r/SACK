@@ -486,6 +486,24 @@ void Chat_SetMessageInputHandler( PSI_CONTROL pc, void (CPROC *Handler)( PTRSZVA
 	chat_control->psvInputData = psv;
 }
 
+
+void Chat_SetPasteInputHandler( PSI_CONTROL pc, void (CPROC *Handler)( PTRSZVAL psv ), PTRSZVAL psv )
+{
+	PCHAT_LIST *ppList = (ControlData( PCHAT_LIST*, pc ));
+	PCHAT_LIST chat_control = (*ppList);
+	chat_control->InputPaste = Handler;
+	chat_control->psvInputPaste = psv;
+}
+
+
+void Chat_SetDropInputHandler( PSI_CONTROL pc, void (CPROC *Handler)( PTRSZVAL psv, CTEXTSTR path, S_32 x, S_32 y ), PTRSZVAL psv )
+{
+	PCHAT_LIST *ppList = (ControlData( PCHAT_LIST*, pc ));
+	PCHAT_LIST chat_control = (*ppList);
+	chat_control->InputDrop = Handler;
+	chat_control->psvInputDrop = psv;
+}
+
 void Chat_ClearMessages( PSI_CONTROL pc )
 {
 	PCHAT_LIST *ppList = (ControlData( PCHAT_LIST*, pc ));
@@ -1011,10 +1029,20 @@ static void CPROC PSIMeasureString( PTRSZVAL psv, CTEXTSTR s, int nShow, _32 *w,
 	GetStringSizeFontEx( s, nShow, w, h, font );
 }
 
+
+static void CPROC DropAccept( PSI_CONTROL pc, CTEXTSTR path, S_32 x, S_32 y )
+{
+	PCHAT_LIST *ppList = ControlData( PCHAT_LIST*, pc );
+	PCHAT_LIST list = (*ppList);
+	 list->InputDrop( list->psvInputDrop, path, x, y );
+}
+
+
 static int OnCreateCommon( CONTROL_NAME )( PSI_CONTROL pc )
 {
 	PCHAT_LIST *ppList = ControlData( PCHAT_LIST*, pc );
 	PCHAT_LIST list;
+	AddCommonAcceptDroppedFiles( pc, DropAccept );
 	SetupDefaultConfig();
 	(*ppList) = New( CHAT_LIST );
 	MemSet( (*ppList), 0, sizeof( CHAT_LIST ) );

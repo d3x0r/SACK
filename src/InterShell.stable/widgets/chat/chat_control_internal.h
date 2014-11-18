@@ -29,6 +29,10 @@ typedef struct chat_list_tag
 	PUSER_INPUT_BUFFER CommandInfo;
 	void (CPROC*InputData)( PTRSZVAL psv, PTEXT input );
 	PTRSZVAL psvInputData;
+	void (CPROC*InputPaste)( PTRSZVAL psv );
+	PTRSZVAL psvInputPaste;
+	void (CPROC*InputDrop)( PTRSZVAL psv, CTEXTSTR input, S_32 x, S_32 y );
+	PTRSZVAL psvInputDrop;
 	PHISTORY_LINE_CURSOR phlc_Input;
 	SFTFont input_font;
 	int nFontHeight;
