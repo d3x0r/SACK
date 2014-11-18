@@ -156,6 +156,7 @@ const int ZVoxelSector::VoxelFaceGroups[6][9] = { {  VOXEL_LEFT,
 
 };
 
+FACEDRAW_Operations ZVoxelSector::RelativeVoxelOffset_Fixups[];
 
 void ZVoxelSector::DefaultInit( void )
 {
@@ -163,9 +164,16 @@ void ZVoxelSector::DefaultInit( void )
 	{
 			// these should have been done in-line... but forgot; and it became long serial code 
 #define OffsetDelta(x,y,z)  ( ((x)*ZVOXELBLOCSIZE_Y) + (y) + ((z)*ZVOXELBLOCSIZE_Y*ZVOXELBLOCSIZE_X) )
-#define OffsetDeltaWrapped(x,y,z)  ( (( ((x)>0?(-(ZVOXELBLOCSIZE_X-1)):(x)<0?(ZVOXELBLOCSIZE_X-1):0) )*ZVOXELBLOCSIZE_Y) \
-	           + (( ((y)>0?(-(ZVOXELBLOCSIZE_Y-1)):(y)<0?(ZVOXELBLOCSIZE_Y-1):0) ))   \
-			   + ((( ((z)>0?(-(ZVOXELBLOCSIZE_Z-1)):(z)<0?(ZVOXELBLOCSIZE_Z-1):0) ))*ZVOXELBLOCSIZE_Y*ZVOXELBLOCSIZE_X) )
+#define OffsetDeltaWrapped(x,y,z)  ( (( ((x)>0?(-(ZVOXELBLOCSIZE_X)):(x)<0?(ZVOXELBLOCSIZE_X):0) )*ZVOXELBLOCSIZE_Y) \
+	           + (( ((y)>0?(-(ZVOXELBLOCSIZE_Y)):(y)<0?(ZVOXELBLOCSIZE_Y):0) ))   \
+			   + ((( ((z)>0?(-(ZVOXELBLOCSIZE_Z)):(z)<0?(ZVOXELBLOCSIZE_Z):0) ))*ZVOXELBLOCSIZE_Y*ZVOXELBLOCSIZE_X) )
+
+		{
+			int n, f;
+			for( n = 0; n < 6; n++ )
+				for( f = 0; f < 9; f++ )
+					*(int*)&RelativeVoxelOffset_Fixups[VoxelFaceGroups[n][f]] |= ( 1 << n );
+		}
 
 			RelativeVoxelOffsets_Unwrapped[VOXEL_LEFT] = OffsetDelta( -1, 0, 0 );
 			RelativeVoxelOffsets_Unwrapped[VOXEL_RIGHT] = OffsetDelta( 1, 0, 0 );

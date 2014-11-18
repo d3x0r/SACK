@@ -59,6 +59,7 @@ void ZVoxelProcessor::MakeTasks()
   cnt=0;
 
   Timer.Start();
+  Timer_Compute.Start();
 
   // Sector Tasks like face culling.
 
@@ -71,11 +72,18 @@ void ZVoxelProcessor::MakeTasks()
   }
 
   if (GameEnv->Enable_MVI) VoxelReactor.ProcessSectors( ((double)Timer.GetResult()) / 1000.0 );
+  Timer_Compute.End();
   // printf("Processed: %lu Sectors\n", cnt);
 	if( ThreadContinue )
-	  SDL_Delay(20); // 2
-  //SDL_Delay(200); // 2
+	{
+		ULong tmp;
+		if( ( tmp = (ULong)(Timer_Compute.GetResult()/1000) ) < 20 )
+			SDL_Delay(20 - tmp ); // 2
+		else
+			Relinquish();
+	}
   Timer.End();
+  //SDL_Delay(200); // 2
 }
 
 ULong RNG_z = 0;

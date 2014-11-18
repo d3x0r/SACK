@@ -2373,7 +2373,7 @@ bool ZVoxelWorld::SetVoxel_WithCullingUpdate(Long x, Long y, Long z, UShort Voxe
 
   Sector[VOXEL_INCENTER]->Flag_IsModified |= ImportanceFactor;
 
-  Sector[VOXEL_INCENTER]->Culler->CullSingleVoxel( x, y, z );
+  Sector[VOXEL_INCENTER]->Culler->CullSingleVoxel(Sector[VOXEL_INCENTER], Offset[VOXEL_INCENTER]);
   return(true);
 }
 

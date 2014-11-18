@@ -194,6 +194,108 @@ void ZRender_Interface::Render_VoxelSelector(ZVoxelCoords * SelectedVoxel, float
 }
 
 
+void ZRender_Interface::Render_EmptySector(int x, int y, int z, float r, float g, float b)
+{
+
+  //      PointedCube.x = 1;
+  //      PointedCube.y = 0;
+  //      PointedCube.z = 0;
+  /*
+
+
+        ZVector3f P1,P2,P3,P4,P5,P6,P7,P8;
+        P1.x = SelectedVoxel->x * GlobalSettings.VoxelBlockSize + 0.0f;   P1.y = SelectedVoxel->y * GlobalSettings.VoxelBlockSize + 0.0f;   P1.z = SelectedVoxel->z * GlobalSettings.VoxelBlockSize + 0.0f;
+        P2.x = SelectedVoxel->x * GlobalSettings.VoxelBlockSize + 0.0f;   P2.y = SelectedVoxel->y * GlobalSettings.VoxelBlockSize + 0.0f;   P2.z = SelectedVoxel->z * GlobalSettings.VoxelBlockSize + GlobalSettings.VoxelBlockSize;
+        P3.x = SelectedVoxel->x * GlobalSettings.VoxelBlockSize + GlobalSettings.VoxelBlockSize; P3.y = SelectedVoxel->y * GlobalSettings.VoxelBlockSize + 0.0f;   P3.z = SelectedVoxel->z * GlobalSettings.VoxelBlockSize + GlobalSettings.VoxelBlockSize;
+        P4.x = SelectedVoxel->x * GlobalSettings.VoxelBlockSize + GlobalSettings.VoxelBlockSize; P4.y = SelectedVoxel->y * GlobalSettings.VoxelBlockSize + 0.0f;   P4.z = SelectedVoxel->z * GlobalSettings.VoxelBlockSize + 0.0f;
+        P5.x = SelectedVoxel->x * GlobalSettings.VoxelBlockSize + 0.0f;   P5.y = SelectedVoxel->y * GlobalSettings.VoxelBlockSize + GlobalSettings.VoxelBlockSize; P5.z = SelectedVoxel->z * GlobalSettings.VoxelBlockSize + 0.0f;
+        P6.x = SelectedVoxel->x * GlobalSettings.VoxelBlockSize + 0.0f;   P6.y = SelectedVoxel->y * GlobalSettings.VoxelBlockSize + GlobalSettings.VoxelBlockSize; P6.z = SelectedVoxel->z * GlobalSettings.VoxelBlockSize + GlobalSettings.VoxelBlockSize;
+        P7.x = SelectedVoxel->x * GlobalSettings.VoxelBlockSize + GlobalSettings.VoxelBlockSize; P7.y = SelectedVoxel->y * GlobalSettings.VoxelBlockSize + GlobalSettings.VoxelBlockSize; P7.z = SelectedVoxel->z * GlobalSettings.VoxelBlockSize + GlobalSettings.VoxelBlockSize;
+        P8.x = SelectedVoxel->x * GlobalSettings.VoxelBlockSize + GlobalSettings.VoxelBlockSize; P8.y = SelectedVoxel->y * GlobalSettings.VoxelBlockSize + GlobalSettings.VoxelBlockSize; P8.z = SelectedVoxel->z * GlobalSettings.VoxelBlockSize + 0.0f;
+*/
+
+        glDisable(GL_TEXTURE_2D);
+
+        //      PointedCube.x = 1;
+        //      PointedCube.y = 0;
+        //      PointedCube.z = 0;
+
+              ZVector3f P1,P2,P3,P4,P5,P6,P7,P8;
+			  P1.x = x * ZVOXELBLOCSIZE_X * GlobalSettings.VoxelBlockSize + 0.0f;   P1.y = y * ZVOXELBLOCSIZE_Y * GlobalSettings.VoxelBlockSize + 0.0f; P1.z = z * ZVOXELBLOCSIZE_Z * GlobalSettings.VoxelBlockSize + 0.0f;
+              P2.x = x * ZVOXELBLOCSIZE_X * GlobalSettings.VoxelBlockSize + 0.0f;   P2.y = y * ZVOXELBLOCSIZE_Y * GlobalSettings.VoxelBlockSize + 0.0f; P2.z = z * ZVOXELBLOCSIZE_Z * GlobalSettings.VoxelBlockSize + ZVOXELBLOCSIZE_Z * GlobalSettings.VoxelBlockSize;
+              P3.x = x * ZVOXELBLOCSIZE_X * GlobalSettings.VoxelBlockSize + ZVOXELBLOCSIZE_X * GlobalSettings.VoxelBlockSize; P3.y = y * ZVOXELBLOCSIZE_Y * GlobalSettings.VoxelBlockSize + 0.0f; P3.z = z * ZVOXELBLOCSIZE_Z * GlobalSettings.VoxelBlockSize + ZVOXELBLOCSIZE_Z * GlobalSettings.VoxelBlockSize;
+              P4.x = x * ZVOXELBLOCSIZE_X * GlobalSettings.VoxelBlockSize + ZVOXELBLOCSIZE_X * GlobalSettings.VoxelBlockSize; P4.y = y * ZVOXELBLOCSIZE_Y * GlobalSettings.VoxelBlockSize + 0.0f; P4.z = z * ZVOXELBLOCSIZE_Z * GlobalSettings.VoxelBlockSize + 0.0f;
+              P5.x = x * ZVOXELBLOCSIZE_X * GlobalSettings.VoxelBlockSize + 0.0f;   P5.y = y * ZVOXELBLOCSIZE_Y * GlobalSettings.VoxelBlockSize + ZVOXELBLOCSIZE_Y * GlobalSettings.VoxelBlockSize; P5.z = z * ZVOXELBLOCSIZE_Z * GlobalSettings.VoxelBlockSize + 0.0f;
+              P6.x = x * ZVOXELBLOCSIZE_X * GlobalSettings.VoxelBlockSize + 0.0f;   P6.y = y * ZVOXELBLOCSIZE_Y * GlobalSettings.VoxelBlockSize + ZVOXELBLOCSIZE_Y * GlobalSettings.VoxelBlockSize; P6.z = z * ZVOXELBLOCSIZE_Z * GlobalSettings.VoxelBlockSize + ZVOXELBLOCSIZE_Z * GlobalSettings.VoxelBlockSize;
+              P7.x = x * ZVOXELBLOCSIZE_X * GlobalSettings.VoxelBlockSize + ZVOXELBLOCSIZE_X * GlobalSettings.VoxelBlockSize; P7.y = y * ZVOXELBLOCSIZE_Y * GlobalSettings.VoxelBlockSize + ZVOXELBLOCSIZE_Y * GlobalSettings.VoxelBlockSize; P7.z = z * ZVOXELBLOCSIZE_Z * GlobalSettings.VoxelBlockSize + ZVOXELBLOCSIZE_Z * GlobalSettings.VoxelBlockSize;
+              P8.x = x * ZVOXELBLOCSIZE_X * GlobalSettings.VoxelBlockSize + ZVOXELBLOCSIZE_X * GlobalSettings.VoxelBlockSize; P8.y = y * ZVOXELBLOCSIZE_Y * GlobalSettings.VoxelBlockSize + ZVOXELBLOCSIZE_Y * GlobalSettings.VoxelBlockSize; P8.z = z * ZVOXELBLOCSIZE_Z * GlobalSettings.VoxelBlockSize + 0.0f;
+
+
+              glDisable(GL_TEXTURE_2D);
+              glColor3f(r,g,b);
+              glEnable(GL_LINE_SMOOTH);
+
+              glEnable (GL_LINE_SMOOTH);
+              glEnable (GL_BLEND);
+              glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+              glHint (GL_LINE_SMOOTH_HINT, GL_DONT_CARE);
+              glLineWidth (3.5);
+
+
+              //glLineWidth(0.001f);
+              //glPointSize(0.001f);
+                glBegin(GL_LINES);
+                  glVertex3f(P1.x,P1.y,P1.z);glVertex3f(P2.x,P2.y,P2.z);
+                  glVertex3f(P2.x,P2.y,P2.z);glVertex3f(P3.x,P3.y,P3.z);
+                  glVertex3f(P3.x,P3.y,P3.z);glVertex3f(P4.x,P4.y,P4.z);
+                  glVertex3f(P4.x,P4.y,P4.z);glVertex3f(P1.x,P1.y,P1.z);
+
+                  glVertex3f(P5.x,P5.y,P5.z);glVertex3f(P6.x,P6.y,P6.z);
+                  glVertex3f(P6.x,P6.y,P6.z);glVertex3f(P7.x,P7.y,P7.z);
+                  glVertex3f(P7.x,P7.y,P7.z);glVertex3f(P8.x,P8.y,P8.z);
+                  glVertex3f(P8.x,P8.y,P8.z);glVertex3f(P5.x,P5.y,P5.z);
+
+                  glVertex3f(P1.x,P1.y,P1.z);glVertex3f(P5.x,P5.y,P5.z);
+                  glVertex3f(P2.x,P2.y,P2.z);glVertex3f(P6.x,P6.y,P6.z);
+                  glVertex3f(P3.x,P3.y,P3.z);glVertex3f(P7.x,P7.y,P7.z);
+                  glVertex3f(P4.x,P4.y,P4.z);glVertex3f(P8.x,P8.y,P8.z);
+                glEnd();
+              glColor3f(1.0,1.0,1.0);
+
+              glEnable(GL_TEXTURE_2D);
+        glEnable(GL_LINE_SMOOTH);
+
+        glEnable (GL_LINE_SMOOTH);
+        glEnable (GL_BLEND);
+        glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        glHint (GL_LINE_SMOOTH_HINT, GL_DONT_CARE);
+        glLineWidth (3.5);
+
+
+        //glLineWidth(0.001f);
+        //glPointSize(0.001f);
+          glBegin(GL_LINES);
+            glVertex3f(P1.x,P1.y,P1.z);glVertex3f(P2.x,P2.y,P2.z);
+            glVertex3f(P2.x,P2.y,P2.z);glVertex3f(P3.x,P3.y,P3.z);
+            glVertex3f(P3.x,P3.y,P3.z);glVertex3f(P4.x,P4.y,P4.z);
+            glVertex3f(P4.x,P4.y,P4.z);glVertex3f(P1.x,P1.y,P1.z);
+
+            glVertex3f(P5.x,P5.y,P5.z);glVertex3f(P6.x,P6.y,P6.z);
+            glVertex3f(P6.x,P6.y,P6.z);glVertex3f(P7.x,P7.y,P7.z);
+            glVertex3f(P7.x,P7.y,P7.z);glVertex3f(P8.x,P8.y,P8.z);
+            glVertex3f(P8.x,P8.y,P8.z);glVertex3f(P5.x,P5.y,P5.z);
+
+            glVertex3f(P1.x,P1.y,P1.z);glVertex3f(P5.x,P5.y,P5.z);
+            glVertex3f(P2.x,P2.y,P2.z);glVertex3f(P6.x,P6.y,P6.z);
+            glVertex3f(P3.x,P3.y,P3.z);glVertex3f(P7.x,P7.y,P7.z);
+            glVertex3f(P4.x,P4.y,P4.z);glVertex3f(P8.x,P8.y,P8.z);
+          glEnd();
+        glColor3f(1.0,1.0,1.0);
+        glEnable(GL_TEXTURE_2D);
+
+}
+
+
 
 Bool ZRender_Interface::LoadVoxelTexturesToGPU(PTRSZVAL psvInit)
 {

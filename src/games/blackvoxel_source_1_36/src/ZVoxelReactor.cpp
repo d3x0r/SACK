@@ -702,11 +702,14 @@ void ZVoxelReactor::ProcessSectors( double LastLoopTime )
                               for(i=0,j=4,vCount=0,WaveCount=0;i<4;i++,j++)
                               {
                                 cx = x+bft[i].x ; cy = y+bft[i].y ; cz = z+bft[i].z ; SecondaryOffset[i] = If_x[cx]+If_y[cy]+If_z[cz];St[i] = SectorTable[ Of_x[cx] + Of_y[cy] + Of_z[cz] ]; Vp[i] = &St[i]->Data[ SecondaryOffset[i] ].Data;
-                                cx = x+bft[j].x ; cy = y+bft[j].y ; cz = z+bft[j].z ; SecondaryOffset[j] = If_x[cx]+If_y[cy]+If_z[cz];St[j] = SectorTable[ Of_x[cx] + Of_y[cy] + Of_z[cz] ]; Vp[j] = &St[j]->Data[ SecondaryOffset[j] ].Data;
-                                if (VoxelTypeManager->VoxelTable[*Vp[i]]->Is_CanBeReplacedBy_Water && VoxelTypeManager->VoxelTable[*Vp[j]]->Is_CanBeReplacedBy_Water) {vCount++; DirEn[i]=true;}
-                                else DirEn[i]=false;
-                                if (VoxelTypeManager->VoxelTable[*Vp[i]]->Is_CanBeReplacedBy_Water) {WaveCount++;WaveDirEn[i] = true;}
-                                else                                                                {WaveDirEn[i] = false;}
+                                if (VoxelTypeManager->VoxelTable[*Vp[i]]->Is_CanBeReplacedBy_Water )
+								{
+								  cx = x+bft[j].x ; cy = y+bft[j].y ; cz = z+bft[j].z ; SecondaryOffset[j] = If_x[cx]+If_y[cy]+If_z[cz];St[j] = SectorTable[ Of_x[cx] + Of_y[cy] + Of_z[cz] ]; Vp[j] = &St[j]->Data[ SecondaryOffset[j] ].Data;
+                                  if( VoxelTypeManager->VoxelTable[*Vp[j]]->Is_CanBeReplacedBy_Water) {vCount++; DirEn[i]=true;}
+                                  else DirEn[i]=false;
+                                  {WaveCount++;WaveDirEn[i] = true;}
+							  	}
+                                else  {WaveDirEn[i] = false;DirEn[i]=false;}
                               }
 
                               if (vCount>0)

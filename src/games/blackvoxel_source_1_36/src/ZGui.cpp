@@ -137,8 +137,8 @@ Bool ZGraphicUserManager::KeyDown( UShort KeySym )
   {
     if (Actual_FocusStack[i]->Flag_Enable_Proc_KeyDown) Actual_FocusStack[i]->KeyDown(KeySym);
   }
-
-  return(true);
+  // keys are used alater...
+  return(false);
 }
 
 Bool ZGraphicUserManager::KeyUp( UShort KeySym )
@@ -150,7 +150,7 @@ Bool ZGraphicUserManager::KeyUp( UShort KeySym )
     if (Actual_FocusStack[i]->Flag_Enable_Proc_KeyDown) Actual_FocusStack[i]->KeyUp(KeySym);
   }
 
-  return(true);
+  return(false);
 }
 
 Bool ZGraphicUserManager::MouseMove ( Short Relative_x, Short Relative_y, UShort Absolute_x, UShort Absolute_y)

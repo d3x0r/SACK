@@ -191,7 +191,9 @@ protected:
 
 
     void Render_DebugLine       ( ZVector3d & Start, ZVector3d & End);
-    void Render_VoxelSelector   (ZVoxelCoords * SelectedVoxel, float r, float g, float b);
+	void Render_EmptySector(int x, int y, int z, float r, float g, float b);
+
+	void Render_VoxelSelector   (ZVoxelCoords * SelectedVoxel, float r, float g, float b);
 	void EmitFaces				( ZVoxelType ** VoxelTypeTable, UShort &VoxelType, UShort &prevVoxelType, ULong info
 							  , Long x, Long y, Long z
 							  , Long Sector_Display_x, Long Sector_Display_y, Long Sector_Display_z );

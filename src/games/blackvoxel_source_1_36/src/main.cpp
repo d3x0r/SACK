@@ -163,7 +163,9 @@ bool *pSM_Continue;
 bool *pStartGame;
 bool *pGameContinue;
 ZHighPerfTimer Timer;
+ZHighPerfTimer Timer_Draw;
 ZHighPerfTimer PhysicsTimer;
+ZHighPerfTimer PhysicsTimer_Compute;
 double ReadableDisplayCounter = 0.0;
 
 double FrameTime;
@@ -220,6 +222,7 @@ static LOGICAL OnUpdate3d( "BlackVoxel" )( PTRANSFORM origin )
 	if( Ge->PhysicEngine )
 	{
 		// Game Events.
+		PhysicsTimer_Compute.Start();
 
 		Ge->GameEventSequencer->ProcessEvents(Ge->PhysicEngine->GetSelectedActor()->Time_TotalGameTime);
 		
@@ -240,6 +243,8 @@ static LOGICAL OnUpdate3d( "BlackVoxel" )( PTRANSFORM origin )
 		Ge->GameStat->FrameTime = (ULong) FrameTime;
 		Ge->GameStat->DoLogRecord();
 
+		PhysicsTimer_Compute.End();
+
 		PhysicsTimer.Start();
 	}
 	if( Ge->Basic_Renderer )
@@ -248,9 +253,8 @@ static LOGICAL OnUpdate3d( "BlackVoxel" )( PTRANSFORM origin )
 		{
 			for( int n = 0; n < 16; n++ )
 				((float*)origin)[n] = Ge->Basic_Renderer->Camera->orientation.m[0][n];
-			//for( n = 0; n < 16; n++ )
-			//	((float*)(Ge->sack_camera[psvInit-1]))[n] = Ge->Basic_Renderer->Camera->orientation.m[0][n];
 		}
+
 				ReadableDisplayCounter += FrameTime;
 				if (Ge->GameWindow_DisplayInfos
 					&& Ge->VoxelProcessor
@@ -261,9 +265,9 @@ static LOGICAL OnUpdate3d( "BlackVoxel" )( PTRANSFORM origin )
 					ReadableDisplayCounter = 0.0;
 					ZString As;
 
-					As = "FPS: "; As << (ULong)( 1000.0 * Ge->frames / ( timeGetTime() - Ge->frame_start )) << " FTM: " << FrameTime;
-					As << " MVI Time: " << Ge->VoxelProcessor->Timer.GetResult() / 1000.0; 
-					As << " PT: " << PhysicsTimer.GetResult() / 1000.0;  
+					As = "FPS: "; As << (ULong)( 1000.0 * Ge->frames / ( timeGetTime() - Ge->frame_start )) << " FTM: " << (Timer_Draw.GetResult() / 1000.0);
+					As << " MVI Time: " << (ULong)( Ge->VoxelProcessor->Timer.GetResult() / 1000.0 ) << " " << (ULong)(Ge->VoxelProcessor->Timer_Compute.GetResult() / 1000.0);  
+					As << " PT: " << (ULong)(PhysicsTimer_Compute.GetResult() / 1000.0);  
 					Ge->frame_start = timeGetTime();
 					Ge->frames = 0;
 					Ge->GameWindow_DisplayInfos->SetText(&As);
@@ -295,6 +299,8 @@ static LOGICAL OnUpdate3d( "BlackVoxel" )( PTRANSFORM origin )
 static void OnDraw3d( "BlackVoxel" )( PTRSZVAL psvInit )
 {
 	ULong Result;
+	Timer_Draw.Start();
+
 	if( psvInit == 1 )
 	{
 		if( !Ge->frames )
@@ -398,6 +404,7 @@ static void OnDraw3d( "BlackVoxel" )( PTRSZVAL psvInit )
 	if( psvInit == 1 )
 	Ge->GuiManager.Render( psvInit - 1 );
 	            Timer.End();
+	Timer_Draw.End();
 
 }
 

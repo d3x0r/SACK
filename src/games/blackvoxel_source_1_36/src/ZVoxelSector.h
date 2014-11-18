@@ -217,6 +217,7 @@ class ZVoxelSector : public ZObject
 
   public:
 	static ULong RelativeVoxelOffsets_Unwrapped[27];
+	static FACEDRAW_Operations RelativeVoxelOffset_Fixups[27]; // (ordered the same way voxel order is?)... but as a bitmask of draw ops
 	static ULong RelativeVoxelOffsets_Wrapped[27];
 	static int VoxelSectorReactorMapTemp[64]; // for debugging purposes... map reactor maps to physical 27 3x3x3 maps
 	const static int VoxelFaceGroups[6][9];
@@ -439,6 +440,58 @@ public:
 
       return( IsModified ); // Save only if sector is modified AND if modifications are rated important enough.
     }
+
+	static inline void GetNearVoxel( ZVoxelSector *Sector, ULong origin_offset, ZVoxelSector **SectorOut, ULong &offsetOut, RelativeVoxelOrds direction )
+	{
+		SectorOut[0] = Sector;
+		offsetOut = origin_offset + ZVoxelSector:: RelativeVoxelOffsets_Unwrapped[direction];
+		FACEDRAW_Operations fixup = ZVoxelSector::RelativeVoxelOffset_Fixups[direction];
+		if( ( fixup & DRAWFACE_LEFT ) && !(origin_offset&(ZVOXELBLOCMASK_X<<ZVOXELBLOCSHIFT_Y)) )  
+		{
+			offsetOut += ( ZVOXELBLOCSIZE_X ) * ZVOXELBLOCSIZE_Y;
+			SectorOut[0] = SectorOut[0]->near_sectors[VOXEL_LEFT-1];
+		}
+		if( ( fixup & DRAWFACE_RIGHT ) && ( !((origin_offset&(ZVOXELBLOCMASK_X<<ZVOXELBLOCSHIFT_Y))^(ZVOXELBLOCMASK_X<<ZVOXELBLOCSHIFT_Y) ) ) )  
+		{
+			if( SectorOut[0] )
+			{
+				offsetOut -= ( ZVOXELBLOCSIZE_X ) * ZVOXELBLOCSIZE_Y;
+				SectorOut[0] = SectorOut[0]->near_sectors[VOXEL_RIGHT-1];
+			}
+		}
+		if( ( fixup & DRAWFACE_AHEAD ) && ( !((origin_offset&(ZVOXELBLOCMASK_Z<<(ZVOXELBLOCSHIFT_X+ZVOXELBLOCSHIFT_Y))^(ZVOXELBLOCMASK_Z<<(ZVOXELBLOCSHIFT_X+ZVOXELBLOCSHIFT_Y) )  ) )) )  
+		{
+			if( SectorOut[0] )
+			{
+				offsetOut -= ( ZVOXELBLOCSIZE_Z ) * ZVOXELBLOCSIZE_Y * ZVOXELBLOCSIZE_X;
+				SectorOut[0] = SectorOut[0]->near_sectors[VOXEL_AHEAD-1];
+			}
+		}
+		if( ( fixup & DRAWFACE_BEHIND ) && ( !(origin_offset&(ZVOXELBLOCMASK_Z<<(ZVOXELBLOCSHIFT_X+ZVOXELBLOCSHIFT_Y)) ) ) )  
+		{
+			if( SectorOut[0] )
+			{
+				offsetOut += ( ZVOXELBLOCSIZE_Z ) * ZVOXELBLOCSIZE_Y * ZVOXELBLOCSIZE_X;
+				SectorOut[0] = SectorOut[0]->near_sectors[VOXEL_BEHIND-1];
+			}
+		}
+		if( ( fixup & DRAWFACE_ABOVE ) && ( !((origin_offset&(ZVOXELBLOCMASK_Y))^(ZVOXELBLOCMASK_Y) ) ) )
+		{
+			if( SectorOut[0] )
+			{
+				offsetOut -= ZVOXELBLOCSIZE_Y;
+				SectorOut[0] = SectorOut[0]->near_sectors[VOXEL_ABOVE-1];
+			}
+		}
+		if( ( fixup & DRAWFACE_BELOW ) && (!(origin_offset&(ZVOXELBLOCMASK_Y)) ) )  
+		{
+			if( SectorOut[0] )
+			{
+				offsetOut += ZVOXELBLOCSIZE_Y;
+				SectorOut[0] = SectorOut[0]->near_sectors[VOXEL_BELOW-1];
+			}
+		}
+	}
 
     // Saving
 
