@@ -36,6 +36,7 @@
 #include "alMain.h"
 
 #ifdef _WIN32
+#include <shlwapi.h>
 #include <shellapi.h>
 #include <shlobj.h>
 #endif
