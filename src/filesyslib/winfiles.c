@@ -63,7 +63,9 @@ static void UpdateLocalDataPath( void )
 	TEXTCHAR path[MAX_PATH];
 	TEXTCHAR *realpath;
 	int len;
-
+#ifndef SHGFP_TYPE_CURRENT
+#define SHGFP_TYPE_CURRENT 0
+#endif
 	SHGetFolderPath( NULL, CSIDL_COMMON_APPDATA, NULL, SHGFP_TYPE_CURRENT, path );
 	realpath = NewArray( TEXTCHAR, len = StrLen( path )
 							  + StrLen( l.producer?l.producer:WIDE("") )

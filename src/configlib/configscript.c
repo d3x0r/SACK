@@ -1206,7 +1206,7 @@ int TextToInt( CTEXTSTR text, PS_64 out )
 	accum = 0;
 	while( text[0] )
 	{
-		TEXTCHAR *c;
+		CTEXTSTR c;
 		_32 val;
 		if( ( c = StrChr( maxbase1, text[0] ) ) ) val = (_32)(c - maxbase1);
 		if( !c ) if( ( c = StrChr( maxbase2, text[0] ) ) ) val = (_32)(c - maxbase2);
