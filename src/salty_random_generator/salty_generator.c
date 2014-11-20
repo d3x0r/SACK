@@ -1,5 +1,8 @@
 #include <stdhdrs.h>
 #include <sha1.h>
+#ifdef SACK_BAG_EXPORTS
+#define SHA2_SOURCE
+#endif
 #include <sha2.h>
 #ifndef SALTY_RANDOM_GENERATOR_SOURCE
 #define SALTY_RANDOM_GENERATOR_SOURCE

@@ -2524,7 +2524,7 @@ NETWORK_PROC( SOCKADDR *,CreateSockAddress)( CTEXTSTR name, _16 nDefaultPort )
 	SOCKADDR *sa = NULL;
 	TEXTCHAR *port;
 	_16 wPort;
-	if( name && ( port = StrRChr( (TEXTSTR)name, ':' ) ) )
+	if( name && ( port = (TEXTSTR)StrRChr( (TEXTSTR)name, ':' ) ) )
 	{
 		tmp = StrDup( name );
 		bTmpName = 1;
