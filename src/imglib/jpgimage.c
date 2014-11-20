@@ -392,14 +392,24 @@ LOGICAL JpgImageFile( Image image, _8 **buf, size_t *size)
   {
 	  int n;
 	  int m = image->pwidth * image->height;
-     P_8 in = (P_8)image->image;
+	  P_8 in = (P_8)image->image;
 	  P_8 out = tmpbuf;
 	  for( n = 0; n < m; n++ )
 	  {
-        (*out++) = (*in++);
-        (*out++) = (*in++);
-		  (*out++) = (*in++);
-        (*in++);
+			if( bGLColorMode )
+			{
+			  out[0] = (*in++);
+			  out[1] = (*in++);
+			  out[2] = (*in++);
+			}
+			else
+			{
+			  out[2] = (*in++);
+			  out[1] = (*in++);
+			  out[0] = (*in++);
+			}
+			(*in++);
+			out += 3;
 	  }
   }
   /* Step 1: allocate and initialize JPEG compression object */
