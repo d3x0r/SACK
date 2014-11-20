@@ -4865,7 +4865,7 @@ RENDER_PROC (void, UpdateDisplayEx) (PVIDEO hVideo DBG_PASS )
 	{
 		if( hVideo->flags.bLayeredWindow && hVideo->flags.bFullScreen  && !hVideo->flags.bNotFullScreen )
 		{
-			BlotScaledImage( hVideo->pImageLayeredStretch, hVideo->pImage, 0, 0 );
+			BlotScaledImage( hVideo->pImageLayeredStretch, hVideo->pImage );
 			// causes color distortion.
 			//StretchBlt ((HDC)hVideo->hDCBitmapFullScreen, 0, 0, hVideo->pImageLayeredStretch->width, hVideo->pImageLayeredStretch->height,
 			//			(HDC)hVideo->hDCBitmap, 0, 0, hVideo->pImage->width, hVideo->pImage->height, SRCCOPY);

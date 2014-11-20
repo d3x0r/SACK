@@ -37,3 +37,6 @@ SET( GLUT_SOURCES
 )
 
 add_library( freeglut SHARED ${GLUT_SOURCES} )
+if( MINGW )
+target_link_libraries( freeglut opengl32 winmm )
+endif( MINGW )

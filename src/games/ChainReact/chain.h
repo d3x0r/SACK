@@ -34,5 +34,5 @@ void AddPeice( int x, int y, int posx, int posy );
 int ConfigurePlayers( void );
 void PlayerErrorMin( void );
 
-void ConfigureBoard( int *animate );
+void ConfigureBoard( int *animate, int *sphere );
 
