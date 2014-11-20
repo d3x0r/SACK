@@ -13,8 +13,8 @@ foreach(flag_var
 endforeach(flag_var)
 
 if( WATCOM )
-string( REGEX REPLACE "library clbrdll.lib" "" CMAKE_C_STANDARD_LIBRARIES ${CMAKE_C_STANDARD_LIBRARIES} )
-string( REGEX REPLACE "library plbrdll.lib" "" CMAKE_C_STANDARD_LIBRARIES ${CMAKE_C_STANDARD_LIBRARIES} )
+string( REGEX REPLACE "library clbrdll.lib" "" CMAKE_C_STANDARD_LIBRARIES "${CMAKE_C_STANDARD_LIBRARIES}" )
+string( REGEX REPLACE "library plbrdll.lib" "" CMAKE_C_STANDARD_LIBRARIES "${CMAKE_C_STANDARD_LIBRARIES}" )
 endif( WATCOM )
 
 set( project proxy.portable )
@@ -73,7 +73,7 @@ SET_PROPERTY(TARGET ${project} APPEND PROPERTY COMPILE_DEFINITIONS "SACK_BAG_EXP
 SET_TARGET_PROPERTIES(${project} PROPERTIES
                   FOLDER "Network Examples"
 )
-target_link_libraries( ${project} ${SOCKET_LIBRARIES} ${WIN_SYS_LIBS} )
+target_link_libraries( ${project} ${SOCKET_LIBRARIES} ${SACK_PLATFORM_LIBRARIES} )
 install_default_dest( ${project} )
 
 if( WIN32 )
@@ -119,7 +119,7 @@ sack_add_executable( ${project} ${FIRST_GCC_PROGRAM_SOURCE}
 ${LAST_GCC_PROGRAM_SOURCE} 
     ${SOURCES_ROOT}/src/deadstart/deadstart_core.c
 )
-target_link_libraries( ${project} wsock32 ws2_32 winmm )
+target_link_libraries( ${project} ${SACK_PLATFORM_LIBRARIES} )
 
 SET_PROPERTY(TARGET ${project} APPEND PROPERTY COMPILE_DEFINITIONS "SACK_BAG_EXPORTS;BUILD_SERVICE;__STATIC__;__NO_GUI__;__NO_DEFAULT_INTERFACES__;__NO_OPTIONS__;NO_DEADSTART_DLLMAIN" )
 string( REPLACE "." "_" TARGET_LABEL ${project} )
