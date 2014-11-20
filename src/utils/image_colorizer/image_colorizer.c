@@ -384,18 +384,6 @@ PTEXT GetValueText( CTEXTSTR name )
    return NULL;
 }
 
-IMAGE_NAMESPACE
-#ifdef __cplusplus
-namespace loader {
-#endif
-extern LOGICAL PngImageFile ( Image pImage, _8 ** buf, int *size);
-#ifdef __cplusplus
-};
-#endif
-IMAGE_NAMESPACE_END
-#ifdef __cplusplus
-using namespace sack::image::loader;
-#endif
 int main( void )
 {
 	const TEXTCHAR *method = getenv( WIDE("REQUEST_METHOD") );
@@ -452,7 +440,7 @@ int main( void )
 
 				//BlotImageMultiShaded( out, image, 0, 0, cred, cgreen, cblue );
 				{
-					int size;
+					size_t size;
 					_8 *buf;
 					if( PngImageFile( out, &buf, &size ) )
 					{

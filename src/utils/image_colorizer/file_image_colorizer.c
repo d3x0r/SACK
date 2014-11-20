@@ -5,19 +5,6 @@
 #include <image.h>
 
 
-IMAGE_NAMESPACE
-#ifdef __cplusplus
-namespace loader {
-#endif
-extern LOGICAL PngImageFile ( Image pImage, _8 ** buf, int *size);
-#ifdef __cplusplus
-};
-#endif
-IMAGE_NAMESPACE_END
-#ifdef __cplusplus
-using namespace sack::image::loader;
-#endif
-
 SaneWinMain( argc, argv )
 {
 	//printf( "content-type:plain/text\r\n\r\n" );

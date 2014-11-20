@@ -51,7 +51,7 @@ set( CMAKE_VS_PLATFORM_TOOLSET v110_xp )
 endif( MSVC12 )
 
 set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS
-			${CMAKE_CONFIGURATION_TYPES} Debug Delease RelWithDebInfo MinSizeRel )
+			${CMAKE_CONFIGURATION_TYPES} Debug Release RelWithDebInfo MinSizeRel )
 
 include( ${CMAKE_CURRENT_LIST_DIR}/CMakeBuild.txt )
 

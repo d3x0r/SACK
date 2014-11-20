@@ -7,7 +7,6 @@ PROJECT( image_colorizer )
 set(BASE_SOURCES
 ${FIRST_GCC_PROGRAM_SOURCE} 
     image_colorizer.c
-    imagepng.c
 ${LAST_GCC_PROGRAM_SOURCE}
 )
 
@@ -24,7 +23,6 @@ PROJECT( file_image_colorizer )
 set(BASE_SOURCES
 ${FIRST_GCC_PROGRAM_SOURCE} 
     file_image_colorizer.c
-    imagepng.c
 ${LAST_GCC_PROGRAM_SOURCE}
 )
 
