@@ -5,6 +5,7 @@ set(SOURCES
    chat/scrollable_chat_list.c
    chat/scroll_chat_input_prompt.c
    chat/console_keydefs.c
+   chat/image_viewer.c
    banner/banner.c 
    keypad/buttons.c 
    keypad/keypad_control.c 

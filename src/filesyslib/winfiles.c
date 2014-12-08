@@ -1210,7 +1210,7 @@ int  sack_fclose ( FILE *file_file )
 	if( file && file->fsi )
 	{
 		size_t result;
-		POINTER dupbuf = malloc( size*count );
+		POINTER dupbuf = malloc( size*count + 3 );
 		memcpy( dupbuf, buffer, size*count );
 		result = file->fsi->write( file_file, (const char*)dupbuf, size * count );
 		Deallocate( POINTER, dupbuf );
