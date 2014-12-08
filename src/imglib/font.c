@@ -553,11 +553,11 @@ static _32 PutCharacterFontX ( ImageFile *pImage
 #  ifdef PURE_OPENGL2_ENABLED
 			if( background )
 			{
-				AppendShaderTristripQuad( GetShader( WIDE("Simple Shader"), NULL ), v2[vi], _back_color );
+				AppendShaderTristripQuad( GetShader( WIDE("Simple Shader") ), v2[vi], _back_color );
 				//glDrawArrays( GL_TRIANGLE_STRIP, 0, 4 );
 			}
 
-			AppendShaderTristripQuad( GetShader( WIDE("Simple Shaded Texture"), NULL ), v[vi], pifSrc->glActiveSurface, texture_v, _color );
+			AppendShaderTristripQuad( GetShader( WIDE("Simple Shaded Texture") ), v[vi], pifSrc->glActiveSurface, texture_v, _color );
 			//glDrawArrays( GL_TRIANGLE_STRIP, 0, 4 );
 			// Back Face
 #  endif  // ifdef OPENGL2
@@ -790,7 +790,7 @@ static _32 PutCharacterFontX ( ImageFile *pImage
 			CharDatax = CharData2;
 			inc = (pchar->size+3)/4;
 		}
-		else if( ( UseFont->flags & 3 ) == FONT_FLAG_8BIT )
+		else if( ( UseFont->flags & 3 ) == 3 || ( UseFont->flags & 3 )  == FONT_FLAG_8BIT )
 		{
 			CharPlotAlphax = CharPlotAlpha8;
 			CharDatax = CharData8;
@@ -1040,14 +1040,14 @@ static int Step( CTEXTSTR *pc, size_t *nLen, CDATA *fore_original, CDATA *back_o
 	}
 	if( ch )
 	{
-		while( ch == WIDE('\x9F') )
+		while( ch == (unsigned char)'\x9F' )
 		{
 			// use a long unique code for color sequencing...
          // so we can encode other things like images..
 #define PREFIX "org.d3x0r.sack.image:color"
   			if( StrCmp( (*pc), PREFIX ) != 0 )
 			{
-				while( ch && ( ch != WIDE( '\x9C' ) ) )
+				while( ch && ( ch != (unsigned char)'\x9C' ) )
 				{
 					ch = GetUtfChar( pc );
 					if( nLen )
@@ -1505,9 +1505,6 @@ _32 PutMenuStringFontEx( ImageFile *pImage, S_32 x, S_32 y, CDATA color, CDATA b
 	{
 		InternalRenderFontCharacter(  NULL, UseFont, pString?pString[0]:0 );
 	}
-	if( !height )
-		height = &_height;
-	*height = UseFont->height;
 	if( !width )
 		width = &_width;
 	max_width = *width = 0;
@@ -1544,6 +1541,9 @@ _32 PutMenuStringFontEx( ImageFile *pImage, S_32 x, S_32 y, CDATA color, CDATA b
 		else
 			*width = 0;
 	}
+	if( !height )
+		height = &_height;
+	*height = UseFont->height;
 
 	if( max_width > *width )
 		*width = max_width;

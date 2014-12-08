@@ -108,15 +108,22 @@ static void CPROC SimpleMultiShadedTextureEnable( PImageShaderTracker tracker, P
 }
 
 
-void InitSimpleMultiShadedTextureShader( PImageShaderTracker tracker, PTRSZVAL psv_data )
+PTRSZVAL SetupSimpleMultiShadedTextureShader( void )
+{
+	struct private_mst_shader_data *data = New(struct private_mst_shader_data );
+	return (PTRSZVAL)data;
+}
+
+
+void InitSimpleMultiShadedTextureShader( PImageShaderTracker tracker, PTRSZVAL psvInst )
 {
 	GLint result;
 	const char *v_codeblocks[2];
 	const char *p_codeblocks[2];
-	struct private_mst_shader_data *data = (struct private_mst_shader_data *)psv_data;
+	struct private_mst_shader_data *data = (struct private_mst_shader_data*)psvInst;
 	struct image_shader_attribute_order attribs[] = { { 0, "vPosition" }, { 1, "in_TexCoord" } };
 
-	SetShaderEnable( tracker, SimpleMultiShadedTextureEnable );
+	//SetShaderEnable( tracker, SimpleMultiShadedTextureEnable, (PTRSZVAL)data );
 
 	if( result = glGetError() )
 	{

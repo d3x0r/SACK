@@ -585,7 +585,7 @@ IMAGE_NAMESPACE
 			/**///glBindTexture(GL_TEXTURE_2D, pifSrc->glActiveSurface);				// Select Our Texture
 			if( method == BLOT_COPY )
 			{
-				AppendShaderTristripQuad( GetShader( WIDE("Simple Texture"), NULL ), v[vi], pifSrc->glActiveSurface, texture_v );
+				AppendShaderTristripQuad( GetShader( WIDE("Simple Texture") ), v[vi], pifSrc->glActiveSurface, texture_v );
 			}
 			else if( method == BLOT_SHADED )
 			{
@@ -596,7 +596,7 @@ IMAGE_NAMESPACE
 				_color[2] = BlueVal( tmp ) / 255.0f;
 				_color[3] = AlphaVal( tmp ) / 255.0f;
 
-				AppendShaderTristripQuad( GetShader( WIDE("Simple Shaded Texture"), NULL ), v[vi], pifSrc->glActiveSurface, texture_v, _color );
+				AppendShaderTristripQuad( GetShader( WIDE("Simple Shaded Texture") ), v[vi], pifSrc->glActiveSurface, texture_v, _color );
 			}
 			else if( method == BLOT_MULTISHADE )
 			{
@@ -619,7 +619,7 @@ IMAGE_NAMESPACE
 				b_color[2] = BlueVal( b ) / 255.0f;
 				b_color[3] = AlphaVal( b ) / 255.0f;
 
-				AppendShaderTristripQuad( GetShader( WIDE("Simple MultiShaded Texture"), NULL ), v[vi], pifSrc->glActiveSurface, texture_v, r_color, g_color, b_color );
+				AppendShaderTristripQuad( GetShader( WIDE("Simple MultiShaded Texture") ), v[vi], pifSrc->glActiveSurface, texture_v, r_color, g_color, b_color );
 
 			}
 			else if( method == BLOT_INVERTED )
