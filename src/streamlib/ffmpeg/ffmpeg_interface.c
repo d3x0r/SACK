@@ -61,7 +61,11 @@
 #endif
 
 #ifdef WIN32
+#ifdef __GNUC__
+#define lib_psi WIDE("libbag.psi.dll")
+#else
 #define lib_psi WIDE("bag.psi.dll")
+#endif
 #define lib_format WIDE("avformat-56.dll")
 #define lib_codec WIDE("avcodec-56.dll")
 #define lib_device WIDE("avdevice-56.dll")
