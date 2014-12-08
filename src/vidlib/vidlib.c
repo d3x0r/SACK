@@ -1091,16 +1091,17 @@ BOOL CreateDrawingSurface (PVIDEO hVideo)
 		//		  bmInfo.bmiHeader.biHeight );
 		if( hVideo->flags.bLayeredWindow && hVideo->flags.bFullScreen )
 		{
+			HBITMAP hPriorBm;
 			hVideo->pImageLayeredStretch =
 				RemakeImage( hVideo->pImageLayeredStretch, pBuffer, bmInfo.bmiHeader.biWidth,
 								 bmInfo.bmiHeader.biHeight);
 			if (!hVideo->hDCBitmapFullScreen) 
 				hVideo->hDCBitmapFullScreen = CreateCompatibleDC ((HDC)hVideo->hDCOutput);
-			hVideo->hOldBitmapFullScreen = SelectObject ((HDC)hVideo->hDCBitmapFullScreen, hBmNew);
+			hPriorBm = SelectObject ((HDC)hVideo->hDCBitmapFullScreen, hBmNew);
 			if (hVideo->hBmFullScreen && hVideo->hWndOutput)
 			{
 				// if we had an old one, we'll want to delete it.
-				if (SelectObject( (HDC)hVideo->hDCBitmapFullScreen, hBmNew ) != hVideo->hBmFullScreen)
+				if (hPriorBm != hVideo->hBmFullScreen)
 				{
 					Log (WIDE( "Hmm Somewhere we lost track of which bitmap is selected?! bitmap resource not released" ));
 				}
@@ -1111,22 +1112,23 @@ BOOL CreateDrawingSurface (PVIDEO hVideo)
 				}
 			}
 			else // first time through hBm will be NULL... so we save the original bitmap for the display.
-				hVideo->hOldBitmapFullScreen = SelectObject ((HDC)hVideo->hDCBitmapFullScreen, hBmNew);
+				hVideo->hOldBitmapFullScreen = hPriorBm;
 			// okay and now this is the bitmap to use for output
 			hVideo->hBmFullScreen = hBmNew;
 		}
 		else
 		{
+			HBITMAP hPriorBm;
 			hVideo->pImage =
 				RemakeImage( hVideo->pImage, pBuffer, bmInfo.bmiHeader.biWidth,
 								 bmInfo.bmiHeader.biHeight);
 			if (!hVideo->hDCBitmap) // first time ONLY...
 				hVideo->hDCBitmap = CreateCompatibleDC ((HDC)hVideo->hDCOutput);
-			hVideo->hOldBitmap = SelectObject ((HDC)hVideo->hDCBitmap, hBmNew);
+			hPriorBm = SelectObject ((HDC)hVideo->hDCBitmap, hBmNew);
 			if (hVideo->hBm && hVideo->hWndOutput)
 			{
 				// if we had an old one, we'll want to delete it.
-				if (SelectObject( (HDC)hVideo->hDCBitmap, hBmNew ) != hVideo->hBm)
+				if ( hPriorBm != hVideo->hBm)
 				{
 					Log (WIDE( "Hmm Somewhere we lost track of which bitmap is selected?! bitmap resource not released" ));
 				}
@@ -1136,8 +1138,10 @@ BOOL CreateDrawingSurface (PVIDEO hVideo)
 					DeleteObject (hVideo->hBm);
 				}
 			}
-			else // first time through hBm will be NULL... so we save the original bitmap for the display.
-				hVideo->hOldBitmap = SelectObject ((HDC)hVideo->hDCBitmap, hBmNew);
+			else
+				hVideo->hOldBitmap = hPriorBm; // original BM, don't change.
+			//else // first time through hBm will be NULL... so we save the original bitmap for the display.
+			//	hVideo->hOldBitmap = SelectObject ((HDC)hVideo->hDCBitmap, hBmNew);
 			// okay and now this is the bitmap to use for output
 			hVideo->hBm = hBmNew;
 		}
@@ -3045,16 +3049,17 @@ WM_DROPFILES
 			}
 			else
 				lprintf( WIDE("Failed to find window to show?") );
-			if( l.flags.bPostedInvalidate && l.invalidated_window == hVideo )
-			{
-				l.flags.bPostedInvalidate = 0;
-				UpdateDisplayPortion (hVideo, 0, 0, 0, 0);
-				if( l.flags.bPostedInvalidate )
-					lprintf( "triggered to draw too soon!" );
-				l.flags.bPostedInvalidate = 0;
-			}
-			else if( l.invalidated_window )
-				lprintf( " failed %d %p %p", l.flags.bPostedInvalidate, l.invalidated_window, hVideo );
+			if( l.flags.bPostedInvalidate )
+				if( l.invalidated_window == hVideo )
+				{
+					l.flags.bPostedInvalidate = 0;
+					UpdateDisplayPortion (hVideo, 0, 0, 0, 0);
+					if( l.flags.bPostedInvalidate )
+						lprintf( "triggered to draw too soon!" );
+					l.flags.bPostedInvalidate = 0;
+				}
+				else if( l.invalidated_window )
+					lprintf( " failed %d %p %p", l.flags.bPostedInvalidate, l.invalidated_window, hVideo );
 			//InvalidateRect( hVideo->hWndOutput, NULL, FALSE );
 		}
 		//lprintf( "redraw... WM_PAINT" );
