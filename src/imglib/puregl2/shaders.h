@@ -72,10 +72,13 @@ struct image_shader_tracker
 	int worldview;
 	int modelview;
 	void (CPROC*Init)( PImageShaderTracker, PTRSZVAL psv );
+	PTRSZVAL (CPROC*Setup)( void );
 	PTRSZVAL psv_userdata;
-	void (CPROC*Enable)( PImageShaderTracker,PTRSZVAL,va_list);
+	void (CPROC*Enable)( PImageShaderTracker,PTRSZVAL);
 	void (CPROC*AppendTristrip )( PImageShaderTracker,int triangles,PTRSZVAL,va_list);
 	void (CPROC*Flush)( PImageShaderTracker tracker, PTRSZVAL, PTRSZVAL, int from, int to );
+
+	PTRSZVAL (CPROC*InitShaderOp)( PImageShaderTracker tracker, PTRSZVAL psvShader, va_list args );
 };
 
 struct image_shader_op
@@ -87,7 +90,21 @@ struct image_shader_op
 	int depth_enabled;
 };
 
-PImageShaderTracker CPROC GetShader( CTEXTSTR name, void(*)(PImageShaderTracker,PTRSZVAL) );
+struct image_shader_image_buffer
+{
+	struct image_shader_tracker *tracker;
+	Image target;
+	PLIST output;
+};
+
+struct image_shader_image_buffer_op
+{
+	struct image_shader_image_buffer *image_shader_op;
+	PTRSZVAL psvKey;
+};
+
+PImageShaderTracker CPROC GetShaderInit( CTEXTSTR name, PTRSZVAL (CPROC*)(void), void(CPROC*)(PImageShaderTracker,PTRSZVAL) );
+#define GetShader(name) GetShaderInit( name, NULL, NULL )
 void CPROC SetShaderModelView( PImageShaderTracker tracker, RCOORD *matrix );
 
 int CPROC CompileShaderEx( PImageShaderTracker shader, char const *const *vertex_code, int vert_blocks, char const*const*frag_code, int frag_blocks, struct image_shader_attribute_order *, int nAttribs );
@@ -98,15 +115,19 @@ void CPROC EnableShader( PImageShaderTracker shader, ... );
 
 
 // verts and a single color
+PTRSZVAL SetupSuperSimpleShader( void );
 void InitSuperSimpleShader( PImageShaderTracker tracker, PTRSZVAL psv );
 
 // verts, texture verts and a single texture
-void InitSimpleTextureShader( PImageShaderTracker tracker, PTRSZVAL );
+PTRSZVAL SetupSimpleTextureShader( void );
+void InitSimpleTextureShader( PImageShaderTracker tracker, PTRSZVAL psv );
 
 // verts, texture_verts, texture and a single texture
+PTRSZVAL SetupSimpleShadedTextureShader( void );
 void InitSimpleShadedTextureShader( PImageShaderTracker tracker, PTRSZVAL psv );
 
 //
+PTRSZVAL SetupSimpleMultiShadedTextureShader( void );
 void InitSimpleMultiShadedTextureShader( PImageShaderTracker tracker, PTRSZVAL psv );
 
 void DumpAttribs( PImageShaderTracker tracker, int program );
@@ -115,14 +136,20 @@ void CloseShaders( struct glSurfaceData *glSurface );
 void FlushShaders( struct glSurfaceData *glSurface );
 
 struct shader_buffer *CreateShaderBuffer( int dimensions, int start_size, int expand_by );
-void CPROC AppendShaderData( PImageShaderTracker tracker, PTRSZVAL psvKey, struct shader_buffer *buffer, float *data );
+void CPROC AppendShaderData( PImageShaderTracker tracker, struct shader_buffer *buffer, float *data );
 
-void CPROC  SetShaderEnable( PImageShaderTracker tracker, void (CPROC*EnableShader)( PImageShaderTracker tracker, PTRSZVAL, va_list args ) );
+void CPROC  SetShaderEnable( PImageShaderTracker tracker, void (CPROC*EnableShader)( PImageShaderTracker tracker ), PTRSZVAL psv );
+void CPROC  SetShaderOpInit( PImageShaderTracker tracker, PTRSZVAL (CPROC*InitOp)( PImageShaderTracker tracker, PTRSZVAL, va_list args ) );
 void CPROC  SetShaderFlush( PImageShaderTracker tracker, void (CPROC*FlushShader)( PImageShaderTracker tracker, PTRSZVAL, PTRSZVAL, int from, int to ) );
 void CPROC  SetShaderAppendTristrip( PImageShaderTracker tracker, void (CPROC*EnableShader)( PImageShaderTracker tracker, int triangles, PTRSZVAL,va_list args ) );
 void CPROC  AppendShaderTristripQuad( PImageShaderTracker tracker, ... );
 void CPROC  AppendShaderTristrip( PImageShaderTracker tracker, int triangles, ... );
 
+size_t AppendShaderBufferData( struct shader_buffer *buffer, float *data );
+
+
+struct image_shader_image_buffer_op * BeginImageShaderOp(PImageShaderTracker tracker, Image target, ... );
+void AppendImageShaderOpTristrip( struct image_shader_image_buffer_op *op, int triangles, ... );
 
 
 IMAGE_NAMESPACE_END

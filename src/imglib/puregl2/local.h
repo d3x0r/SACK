@@ -40,8 +40,10 @@ struct glSurfaceData
 	} shader;
 	PLIST shaders;
 	struct {
+		PLIST tracked_shader_operations;
 		PLIST shader_operations;
 		struct image_shader_op *last_operation;
+		PLIST image_shader_operations; // struct image_shader_image_buffer_op
 	} shader_local;
 
 

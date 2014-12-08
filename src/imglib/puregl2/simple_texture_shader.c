@@ -109,6 +109,14 @@ static struct private_shader_texture_data *GetImageBuffer( struct private_shader
 	return texture;
 }
 
+PTRSZVAL CPROC SimpleTextureShader_OpInit( PImageShaderTracker tracker, PTRSZVAL psv, va_list args )
+{
+	struct private_shader_data *data = (struct private_shader_data *)psv;
+	int texture = va_arg( args, int );
+	struct private_shader_texture_data *text_buffer = GetImageBuffer( data, texture );
+	return (PTRSZVAL)text_buffer;
+}
+
 static void CPROC SimpleTextureEnable( PImageShaderTracker tracker, PTRSZVAL psv_userdata, va_list args )
 {
 	/*
@@ -184,25 +192,31 @@ void CPROC SimpleTexture_AppendTristrip( PImageShaderTracker tracker, int triang
 			// 2,3,4
 			// 4,5,6
 			// 0, 2, 4, 6
-			AppendShaderData( tracker, (PTRSZVAL)text_buffer, text_buffer->vert_pos, verts + ( tri +  0 ) * 3 );
-			AppendShaderData( tracker, (PTRSZVAL)text_buffer, text_buffer->vert_texture_uv, texture_verts + 2 * (tri + 0 ));
-			AppendShaderData( tracker, (PTRSZVAL)text_buffer, text_buffer->vert_pos, verts + ( tri + 1 ) * 3 );
-			AppendShaderData( tracker, (PTRSZVAL)text_buffer, text_buffer->vert_texture_uv, texture_verts + 2 * (tri + 1 ));
-			AppendShaderData( tracker, (PTRSZVAL)text_buffer, text_buffer->vert_pos, verts + ( tri + 2 ) * 3 );
-			AppendShaderData( tracker, (PTRSZVAL)text_buffer, text_buffer->vert_texture_uv, texture_verts + 2 * (tri + 2 ));
+			AppendShaderData( tracker, text_buffer->vert_pos, verts + ( tri +  0 ) * 3 );
+			AppendShaderData( tracker, text_buffer->vert_texture_uv, texture_verts + 2 * (tri + 0 ));
+			AppendShaderData( tracker, text_buffer->vert_pos, verts + ( tri + 1 ) * 3 );
+			AppendShaderData( tracker, text_buffer->vert_texture_uv, texture_verts + 2 * (tri + 1 ));
+			AppendShaderData( tracker, text_buffer->vert_pos, verts + ( tri + 2 ) * 3 );
+			AppendShaderData( tracker, text_buffer->vert_texture_uv, texture_verts + 2 * (tri + 2 ));
 		}
 		else
 		{
 			// 2,1,3
 			// 4,3,5
-			AppendShaderData( tracker, (PTRSZVAL)text_buffer, text_buffer->vert_pos, verts + ( (tri-1) + 2 ) * 3 );
-			AppendShaderData( tracker, (PTRSZVAL)text_buffer, text_buffer->vert_texture_uv, texture_verts + 2 * ((tri-1) + 2 ));
-			AppendShaderData( tracker, (PTRSZVAL)text_buffer, text_buffer->vert_pos, verts + ( (tri-1) + 1 ) * 3 );
-			AppendShaderData( tracker, (PTRSZVAL)text_buffer, text_buffer->vert_texture_uv, texture_verts + 2 * ((tri-1) + 1 ));
-			AppendShaderData( tracker, (PTRSZVAL)text_buffer, text_buffer->vert_pos, verts + ( (tri-1) + 3 ) * 3 );
-			AppendShaderData( tracker, (PTRSZVAL)text_buffer, text_buffer->vert_texture_uv, texture_verts + 2 * ((tri-1) + 3 ));
+			AppendShaderData( tracker, text_buffer->vert_pos, verts + ( (tri-1) + 2 ) * 3 );
+			AppendShaderData( tracker, text_buffer->vert_texture_uv, texture_verts + 2 * ((tri-1) + 2 ));
+			AppendShaderData( tracker, text_buffer->vert_pos, verts + ( (tri-1) + 1 ) * 3 );
+			AppendShaderData( tracker, text_buffer->vert_texture_uv, texture_verts + 2 * ((tri-1) + 1 ));
+			AppendShaderData( tracker, text_buffer->vert_pos, verts + ( (tri-1) + 3 ) * 3 );
+			AppendShaderData( tracker, text_buffer->vert_texture_uv, texture_verts + 2 * ((tri-1) + 3 ));
 		}
 	}
+}
+
+PTRSZVAL SetupSimpleTextureShader( void )
+{
+	struct private_shader_data *data = New(struct private_shader_data );
+	return (PTRSZVAL)data;
 }
 
 void InitSimpleTextureShader( PImageShaderTracker tracker, PTRSZVAL psv_data )
@@ -214,6 +228,7 @@ void InitSimpleTextureShader( PImageShaderTracker tracker, PTRSZVAL psv_data )
 
 	//SetShaderEnable( tracker, SimpleTextureEnable );
 	SetShaderFlush( tracker, SimpleTextureFlush );
+	SetShaderOpInit( tracker, SimpleTextureShader_OpInit );
 	SetShaderAppendTristrip( tracker, SimpleTexture_AppendTristrip );
 
 	v_codeblocks[0] = gles_simple_v_shader;
@@ -328,32 +343,39 @@ void CPROC SimpleTexture_AppendTristrip2( PImageShaderTracker tracker, int trian
 			// 2,3,4
 			// 4,5,6
 			// 0, 2, 4, 6
-			AppendShaderData( tracker, (PTRSZVAL)text_buffer, text_buffer->vert_pos, verts + ( tri +  0 ) * 3 );
-			AppendShaderData( tracker, (PTRSZVAL)text_buffer, text_buffer->vert_color, color);
-			AppendShaderData( tracker, (PTRSZVAL)text_buffer, text_buffer->vert_texture_uv, texture_verts + 2 * (tri + 0 ));
-			AppendShaderData( tracker, (PTRSZVAL)text_buffer, text_buffer->vert_pos, verts + ( tri + 1 ) * 3 );
-			AppendShaderData( tracker, (PTRSZVAL)text_buffer, text_buffer->vert_color, color);
-			AppendShaderData( tracker, (PTRSZVAL)text_buffer, text_buffer->vert_texture_uv, texture_verts + 2 * (tri + 1 ));
-			AppendShaderData( tracker, (PTRSZVAL)text_buffer, text_buffer->vert_pos, verts + ( tri + 2 ) * 3 );
-			AppendShaderData( tracker, (PTRSZVAL)text_buffer, text_buffer->vert_color, color);
-			AppendShaderData( tracker, (PTRSZVAL)text_buffer, text_buffer->vert_texture_uv, texture_verts + 2 * (tri + 2 ));
+			AppendShaderData( tracker, text_buffer->vert_pos, verts + ( tri +  0 ) * 3 );
+			AppendShaderData( tracker, text_buffer->vert_color, color);
+			AppendShaderData( tracker, text_buffer->vert_texture_uv, texture_verts + 2 * (tri + 0 ));
+			AppendShaderData( tracker, text_buffer->vert_pos, verts + ( tri + 1 ) * 3 );
+			AppendShaderData( tracker, text_buffer->vert_color, color);
+			AppendShaderData( tracker, text_buffer->vert_texture_uv, texture_verts + 2 * (tri + 1 ));
+			AppendShaderData( tracker, text_buffer->vert_pos, verts + ( tri + 2 ) * 3 );
+			AppendShaderData( tracker, text_buffer->vert_color, color);
+			AppendShaderData( tracker, text_buffer->vert_texture_uv, texture_verts + 2 * (tri + 2 ));
 		}
 		else
 		{
 			// 2,1,3
 			// 4,3,5
-			AppendShaderData( tracker, (PTRSZVAL)text_buffer, text_buffer->vert_pos, verts + ( (tri-1) + 2 ) * 3 );
-			AppendShaderData( tracker, (PTRSZVAL)text_buffer, text_buffer->vert_color, color);
-			AppendShaderData( tracker, (PTRSZVAL)text_buffer, text_buffer->vert_texture_uv, texture_verts + 2 * ((tri-1) + 2 ));
-			AppendShaderData( tracker, (PTRSZVAL)text_buffer, text_buffer->vert_pos, verts + ( (tri-1) + 1 ) * 3 );
-			AppendShaderData( tracker, (PTRSZVAL)text_buffer, text_buffer->vert_color, color);
-			AppendShaderData( tracker, (PTRSZVAL)text_buffer, text_buffer->vert_texture_uv, texture_verts + 2 * ((tri-1) + 1 ));
-			AppendShaderData( tracker, (PTRSZVAL)text_buffer, text_buffer->vert_pos, verts + ( (tri-1) + 3 ) * 3 );
-			AppendShaderData( tracker, (PTRSZVAL)text_buffer, text_buffer->vert_color, color);
-			AppendShaderData( tracker, (PTRSZVAL)text_buffer, text_buffer->vert_texture_uv, texture_verts + 2 * ((tri-1) + 3 ));
+			AppendShaderData( tracker, text_buffer->vert_pos, verts + ( (tri-1) + 2 ) * 3 );
+			AppendShaderData( tracker, text_buffer->vert_color, color);
+			AppendShaderData( tracker, text_buffer->vert_texture_uv, texture_verts + 2 * ((tri-1) + 2 ));
+			AppendShaderData( tracker, text_buffer->vert_pos, verts + ( (tri-1) + 1 ) * 3 );
+			AppendShaderData( tracker, text_buffer->vert_color, color);
+			AppendShaderData( tracker, text_buffer->vert_texture_uv, texture_verts + 2 * ((tri-1) + 1 ));
+			AppendShaderData( tracker, text_buffer->vert_pos, verts + ( (tri-1) + 3 ) * 3 );
+			AppendShaderData( tracker, text_buffer->vert_color, color);
+			AppendShaderData( tracker, text_buffer->vert_texture_uv, texture_verts + 2 * ((tri-1) + 3 ));
 		}
 	}
 }
+
+PTRSZVAL SetupSimpleShadedTextureShader( void )
+{
+	struct private_shader_data *data = New(struct private_shader_data );
+	return (PTRSZVAL)data;
+}
+
 
 void InitSimpleShadedTextureShader( PImageShaderTracker tracker, PTRSZVAL psv )
 {
@@ -365,6 +387,7 @@ void InitSimpleShadedTextureShader( PImageShaderTracker tracker, PTRSZVAL psv )
 	//SetShaderEnable( tracker, SimpleTextureEnable2 );
 	SetShaderAppendTristrip( tracker, SimpleTexture_AppendTristrip2 );
 	SetShaderFlush( tracker, SimpleTextureFlush2 );
+	SetShaderOpInit( tracker, SimpleTextureShader_OpInit );
 
 	v_codeblocks[0] = gles_simple_v_shader_shaded_texture;
 	v_codeblocks[1] = NULL;
@@ -373,11 +396,6 @@ void InitSimpleShadedTextureShader( PImageShaderTracker tracker, PTRSZVAL psv )
 
 	if( CompileShaderEx( tracker, v_codeblocks, 1, p_codeblocks, 1, attribs, 3 ) )
 	{
-		if( !data )
-		{
-			data = New( struct private_shader_data );
-			data->vert_data = NULL;
-		}
 		data->color_attrib = glGetAttribLocation(tracker->glProgramId, "in_Color" );
 		data->texture_attrib =  glGetAttribLocation(tracker->glProgramId, "in_texCoord" );
 		data->texture = glGetUniformLocation(tracker->glProgramId, "tex");

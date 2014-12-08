@@ -66,10 +66,10 @@ static void OnFirstDraw3d( WIDE( "@00 PUREGL Image Library" ) )( PTRSZVAL psv )
 	}
 	else
 	{
-		l.simple_shader = GetShader( WIDE("Simple Shader"), InitSuperSimpleShader );
-		l.simple_texture_shader = GetShader( WIDE("Simple Texture"), InitSimpleTextureShader );
-		l.simple_shaded_texture_shader = GetShader( WIDE("Simple Shaded Texture"), InitSimpleShadedTextureShader );
-		l.simple_multi_shaded_texture_shader = GetShader( WIDE("Simple MultiShaded Texture"), InitSimpleMultiShadedTextureShader );
+		l.simple_shader = GetShaderInit( WIDE("Simple Shader"), SetupSuperSimpleShader, InitSuperSimpleShader );
+		l.simple_texture_shader = GetShaderInit( WIDE("Simple Texture"), SetupSimpleTextureShader, InitSimpleTextureShader );
+		l.simple_shaded_texture_shader = GetShaderInit( WIDE("Simple Shaded Texture"), SetupSimpleShadedTextureShader, InitSimpleShadedTextureShader );
+		l.simple_multi_shaded_texture_shader = GetShaderInit( WIDE("Simple MultiShaded Texture"), SetupSimpleMultiShadedTextureShader, InitSimpleMultiShadedTextureShader );
 		//l.simple_inverse_texture_shader = GetShader( WIDE("Simple Inverse Texture"), InitSimpleShadedTextureShader );
 	}
 }
@@ -449,6 +449,9 @@ void  BlatColor ( Image pifDest, S_32 x, S_32 y, _32 w, _32 h, CDATA color )
 		scale( v[vi][2], v[vi][2], l.scale );
 		scale( v[vi][3], v[vi][3], l.scale );
 
+		{
+			struct image_shader_op *op = BeginShaderOp( l.simple_shader );
+
 		AppendShaderTristripQuad( l.simple_shader, v[vi], _color );
 		//glDrawArrays( GL_TRIANGLE_STRIP, 0, 4 );
 		CheckErr();
@@ -458,6 +461,7 @@ void  BlatColor ( Image pifDest, S_32 x, S_32 y, _32 w, _32 h, CDATA color )
 			for( n = 0; n < 4; n++ )
             lprintf( WIDE("point %g,%g,%g"), v[vi][n][0], v[vi][n][1], v[vi][n][2] );
 			lprintf( WIDE("Drew triangle strip, %08x"), color );
+		}
 		}
 	}
 	else
@@ -575,7 +579,7 @@ void  BlatColorAlpha ( Image pifDest, S_32 x, S_32 y, _32 w, _32 h, CDATA color 
 		scale( v[vi][2], v[vi][2], l.scale );
 		scale( v[vi][3], v[vi][3], l.scale );
 
-		AppendShaderTristripQuad( GetShader( WIDE("Simple Shader"), NULL ), v[vi], _color );
+		AppendShaderTristripQuad( GetShader( WIDE("Simple Shader") ), v[vi], _color );
 		//glDrawArrays( GL_TRIANGLE_STRIP, 0, 4 );
 		//CheckErr();
 	}
@@ -638,7 +642,7 @@ void CPROC cplotraw( Image pi, S_32 x, S_32 y, CDATA c )
 		v[0] = (float)(x/l.scale);
 		v[1] = (float)(y/l.scale);
 		v[2] = 0.0f;
-		EnableShader( GetShader( WIDE("Simple Shader"), NULL ), v, _color );
+		EnableShader( GetShader( WIDE("Simple Shader") ), v, _color );
 
       glDrawArrays( GL_POINTS, 0, 1 );
 		CheckErr();
@@ -1075,7 +1079,7 @@ void Render3dImage( Image pifSrc, PCVECTOR o, LOGICAL render_pixel_scaled )
 		tmp->v_image[3][0] = tmp->x_size2;
 		tmp->v_image[3][1] = tmp->y_size2;
 
-		EnableShader( GetShader( WIDE("Simple Texture"), NULL ), tmp->v[tmp->vi], pifSrc->glActiveSurface, tmp->v_image );
+		EnableShader( GetShader( WIDE("Simple Texture") ), tmp->v[tmp->vi], pifSrc->glActiveSurface, tmp->v_image );
 		glDrawArrays( GL_TRIANGLE_STRIP, 0, 4 );
 
 		//Deallocate( struct workspace *, tmp );
