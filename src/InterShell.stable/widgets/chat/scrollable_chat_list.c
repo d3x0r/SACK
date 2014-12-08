@@ -38,6 +38,8 @@ typedef struct chat_message_tag
 	CHAT_TIME received_time; // the time the message was received
 	CHAT_TIME sent_time; // the time the message was sent
 	TEXTSTR text;
+	Image image;
+	Image thumb_image;
 	TEXTSTR formatted_text;
 	size_t formatted_text_len;
 	int formatted_height;
@@ -538,7 +540,37 @@ void Chat_EnqueMessage( PSI_CONTROL pc, LOGICAL sent
 			pcm->sent_time = sent_time[0];
 		else
 			MemSet( &pcm->sent_time, 0, sizeof( pcm->sent_time ) );
+		pcm->image = NULL;
+		pcm->thumb_image = NULL;
 		pcm->text = StrDup( text );
+		pcm->sent = sent;
+		pcm->formatted_text = NULL;
+		EnqueLink( &chat_control->messages, pcm );
+	}
+}
+
+void Chat_EnqueImage( PSI_CONTROL pc, LOGICAL sent
+							 , PCHAT_TIME sent_time
+							 , PCHAT_TIME received_time
+							 , Image image )
+{
+	PCHAT_LIST *ppList = (ControlData( PCHAT_LIST*, pc ));
+	PCHAT_LIST chat_control = (*ppList);
+	if( chat_control )
+	{
+		PCHAT_MESSAGE pcm = New( CHAT_MESSAGE );
+		if( received_time )
+			pcm->received_time = received_time[0];
+		else
+			MemSet( &pcm->received_time, 0, sizeof( pcm->received_time ) );
+		if( sent_time )
+			pcm->sent_time = sent_time[0];
+		else
+			MemSet( &pcm->sent_time, 0, sizeof( pcm->sent_time ) );
+		pcm->text = NULL;
+		pcm->image = image;
+		pcm->thumb_image = MakeImageFile( 32 * image->width / image->height , 32 );
+		BlotScaledImage( pcm->thumb_image, pcm->image );
 		pcm->sent = sent;
 		pcm->formatted_text = NULL;
 		EnqueLink( &chat_control->messages, pcm );
@@ -770,7 +802,7 @@ void DrawAMessage( Image window, PCHAT_LIST list, PCHAT_MESSAGE msg )
 			//- ( l.received.BorderSegment[SEGMENT_LEFT]->width 
 			//+ l.received.BorderSegment[SEGMENT_RIGHT]->width ) ;
 	}
-	if( !msg->formatted_text )
+	if( !msg->formatted_text && msg->text )
 	{
 		int max_width = width;// - ((msg->sent)?l.sent.arrow_w:l.received.arrow_w);
 		int max_height = 9999;
@@ -783,7 +815,18 @@ void DrawAMessage( Image window, PCHAT_LIST list, PCHAT_MESSAGE msg )
 		msg->message_y = ( l.side_pad + frame_height );
 	}
 	else
-		frame_height = msg->formatted_height + l.sent.BorderSegment[SEGMENT_TOP]->height + l.sent.BorderSegment[SEGMENT_BOTTOM]->height ;
+	{
+		if( msg->formatted_text )
+			frame_height = msg->formatted_height + l.sent.BorderSegment[SEGMENT_TOP]->height + l.sent.BorderSegment[SEGMENT_BOTTOM]->height ;
+		else
+			if( msg->thumb_image )
+			{
+				msg->message_y = l.side_pad + msg->thumb_image->height;
+				msg->max_width = msg->thumb_image->width;
+				msg->formatted_height = msg->thumb_image->height ;
+				frame_height = msg->thumb_image->height + l.sent.BorderSegment[SEGMENT_TOP]->height + l.sent.BorderSegment[SEGMENT_BOTTOM]->height ;
+			}
+	}
 	//lprintf( WIDE("update next top by %d"), msg->message_y );
 	list->display.message_top -= msg->message_y;
 
@@ -793,20 +836,32 @@ void DrawAMessage( Image window, PCHAT_LIST list, PCHAT_MESSAGE msg )
 		, !msg->sent, TRUE );
 	if( msg->sent )
 	{
-		PutStringFontExx( window, x_offset_left 
-								+ ( ( x_offset_right - x_offset_left ) 
+		if( msg->thumb_image )
+			BlotImage( window, msg->thumb_image
+							, x_offset_left + ( ( x_offset_right - x_offset_left ) 
 								- ( 
 									+ msg->max_width ) )
-						, list->display.message_top + l.received.BorderSegment[SEGMENT_TOP]->height
-						, l.sent.text_color, 0
-						, msg->formatted_text, msg->formatted_text_len, list->received_font, 0, msg->max_width );
+							, list->display.message_top + l.received.BorderSegment[SEGMENT_TOP]->height );
+		if( msg->formatted_text )
+			PutStringFontExx( window, x_offset_left 
+									+ ( ( x_offset_right - x_offset_left ) 
+									- ( 
+										+ msg->max_width ) )
+							, list->display.message_top + l.received.BorderSegment[SEGMENT_TOP]->height
+							, l.sent.text_color, 0
+							, msg->formatted_text, msg->formatted_text_len, list->received_font, 0, msg->max_width );
 	}
 	else
 	{
-		PutStringFontExx( window, x_offset_left 
-						, list->display.message_top + l.received.BorderSegment[SEGMENT_TOP]->height
-						, l.received.text_color, 0
-						, msg->formatted_text, msg->formatted_text_len, list->received_font, 0, msg->max_width );
+		if( msg->thumb_image )
+			BlotImage( window, msg->thumb_image
+							, x_offset_left 
+							, list->display.message_top + l.received.BorderSegment[SEGMENT_TOP]->height );
+		if( msg->formatted_text )
+			PutStringFontExx( window, x_offset_left 
+							, list->display.message_top + l.received.BorderSegment[SEGMENT_TOP]->height
+							, l.received.text_color, 0
+							, msg->formatted_text, msg->formatted_text_len, list->received_font, 0, msg->max_width );
 	}
 }
 
@@ -847,6 +902,44 @@ static void DrawMessages( PCHAT_LIST list, Image window )
 			break;
 		}
 	}
+}
+
+static PCHAT_MESSAGE FindMessage( PCHAT_LIST list, int y )
+{
+	int message_top = list->message_window->height + list->control_offset;		
+	int message_idx;
+	PCHAT_MESSAGE msg;
+	if( y >= ( list->message_window->height - list->command_height ) )
+		return NULL; // in command area.
+
+	//y = list->message_window->height - y;
+	//lprintf( WIDE("BEgin draw messages...") );
+	for( message_idx = -1; msg = (PCHAT_MESSAGE)PeekQueueEx( list->messages, message_idx ); message_idx-- )
+	{
+		//lprintf( "check message %d", message_idx );
+		if( msg->formatted_text )
+		{
+			//lprintf( WIDE("have to skip message...") );
+			message_top -= msg->message_y;
+			if( ( message_top - msg->message_y ) >= list->message_window->height )
+				continue;
+		}
+		else if( msg->thumb_image )
+		{
+			message_top -= msg->thumb_image->height + (2*l.side_pad);
+			if( ( message_top - msg->thumb_image->height + (2*l.side_pad) ) >= list->message_window->height )
+				continue;
+		}
+		if( y > ( message_top ) )
+			break;
+		if( message_top < l.side_pad )
+		{
+			lprintf( WIDE("Done.") );
+			break;
+		}
+	}
+	return msg;
+
 }
 
 static void OnDisplayConnect( WIDE("@chat resources") )( struct display_app*app, struct display_app_local ***pppLocal )
@@ -953,7 +1046,17 @@ static int OnMouseCommon( CONTROL_NAME )( PSI_CONTROL pc, S_32 x, S_32 y, _32 b 
 		if( !list->flags.checked_drag )
 		{
 			// did not find a drag motion while the button was down... this is a tap
-			
+			{
+				// go through the drawn things, was it a click on a message?
+				PCHAT_MESSAGE msg = FindMessage( list, list->first_y );
+				if( msg )
+				{
+					if( msg->image )
+					{
+						ImageViewer_ShowImage( msg->image );
+					}
+				}
+			}
 		}
 
 	}

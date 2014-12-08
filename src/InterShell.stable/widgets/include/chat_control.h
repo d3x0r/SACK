@@ -24,5 +24,13 @@ CHAT_CONTROL_PROC( void, Chat_EnqueMessage )( PSI_CONTROL pc, LOGICAL sent
 							 , PCHAT_TIME sent_time
 							 , PCHAT_TIME received_time
 							 , CTEXTSTR text );
+CHAT_CONTROL_PROC( void, Chat_EnqueImage )( PSI_CONTROL pc, LOGICAL sent
+							 , PCHAT_TIME sent_time
+							 , PCHAT_TIME received_time
+							 , Image image );
 CHAT_CONTROL_PROC( void, Chat_ClearMessages )( PSI_CONTROL pc );
+
+CHAT_CONTROL_PROC( PSI_CONTROL, ImageViewer_ShowImage )( Image image );
+
+
 #endif

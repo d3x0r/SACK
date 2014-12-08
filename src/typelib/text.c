@@ -2737,14 +2737,18 @@ char * WcharConvertExx ( const wchar_t *wch, size_t len DBG_PASS )
 					sizeInBytes+= 4;
 				else
 					sizeInBytes+= 5;
+				wch++;
 			}
 			else if( !( wch[0] & 0xF000 ) )
 				sizeInBytes += 3;
+			else if( wch[0] & 0x80 )
+				sizeInBytes += 2; // need one extra byte for high val chars
 			else 
 			{
 				// just encode the 16 bits as it is.
 				sizeInBytes+= 3;
 			}
+			wch++;
 		}
 	}
 	wch = _wch;
@@ -2769,6 +2773,12 @@ char * WcharConvertExx ( const wchar_t *wch, size_t len DBG_PASS )
 				if( !( wch[0] & 0xFF80 ) )
 				{
 					(*ch++) = ((unsigned char*)wch)[0];
+				}
+				else if( !( wch[0] & 0xFF00 ) )
+				{
+					//(*ch++) = ((unsigned char*)wch)[0];
+					(*ch++) = 0xC0 | ( ( ((unsigned char*)wch)[1] & 0x7 ) << 2 ) | ( ( ((unsigned char*)wch)[0] ) >> 6 ); 
+					(*ch++) = 0x80 | ( ((unsigned char*)wch)[0] & 0x3F );
 				}
 				else if( !( wch[0] & 0xF800 ) )
 				{
@@ -3071,18 +3081,19 @@ unsigned int GetUtfChar( CTEXTSTR *from )
 		{
 			// things like 0x9F, 0x9A is OK; is a single byte character, is a unicode application escape 
 			//lprintf( "a continuation encoding was found." );
-			result = (*from)[0];
+			
+			//result = (unsigned char)(*from)[0];
 			(*from)++;
 		}
 		else
 		{
-			result = (*from)[0];
+			//result = (unsigned char)(*from)[0];
 			(*from)++;
 		}
 	}
 	else
 	{
-		result = (*from)[0];
+		result = (unsigned char)(*from)[0];
 		(*from)++;
 	}
 #endif
