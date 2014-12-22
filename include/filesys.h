@@ -113,6 +113,8 @@ struct file_system_interface {
 	size_t (CPROC *size)( void *); // get file size
 	size_t (CPROC *tell)( void *); // get file current position
 	int (CPROC *flush )(void *kp);
+	int (CPROC *exists)( const char *file );
+	LOGICAL (CPROC*copy_write_buffer)(void );
 	// ftell can be done with seek( file, 0, SEEK_CUR );
 };
 

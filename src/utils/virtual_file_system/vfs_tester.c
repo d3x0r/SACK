@@ -33,7 +33,8 @@ void test2( void )
 
 PRIORITY_PRELOAD( Sack_VFS_Register, SQL_PRELOAD_PRIORITY )
 {
-	sack_vfs_load_volume( ExpandPath( "*/sack.vault" ) );
+	sack_vfs_load_crypt_volume( ExpandPath( "*/sack.vault" ), "alkj109ad908a0a8asdf908na90na80a98d098ahkljwerklja", "0000000-0000-0000-000000-000000" );
+	//sack_vfs_load_volume( ExpandPath( "*/sack.vault" ) );
 
 }
 
@@ -44,10 +45,10 @@ SaneWinMain( argc, argv )
 		fsi = sack_get_filesystem_interface( SACK_VFS_FILESYSTEM_NAME );
 		if( fsi )
 		{
-			sack_vfs_load_volume( ExpandPath( "*/sack.vault" ) );
+			//sack_vfs_load_crypt_volume( ExpandPath( "*/sack.vault" ), "alkj109ad908a0a8asdf908na90na80a98d098ahkljwerklja", "0000000-0000-0000-000000-000000" );
 
-			//test1();
-			//test2();
+			test1();
+			test2();
 
 		}
 		else
