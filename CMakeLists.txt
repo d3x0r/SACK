@@ -870,9 +870,9 @@ add_library( bag SHARED
   ${LAST_GCC_LIBRARY_SOURCE}  
 )
 
-if( FORCE_CXX )
+if( __CLR__ )
 set( ExtraFlags ${ExtraFlags} /CLR )
-endif( FORCE_CXX )
+endif( __CLR__ )
 
 SET_TARGET_PROPERTIES(bag PROPERTIES 
                   DEFINE_SYMBOL SACK_BAG_EXPORTS
@@ -1317,6 +1317,7 @@ set( INSTALL_FRAME_BORDER ${INTERFACE_OUTPUT_DIR}/images )
 add_subdirectory( data )
 add_subdirectory( include )
 add_subdirectory( src/utils/runner )
+add_subdirectory( src/utils/virtual_file_system )
 
 if( BUILD_TESTS )
    

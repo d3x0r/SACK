@@ -1,3 +1,4 @@
+#define NO_UNICODE_C
 #include <stdhdrs.h>
 #ifdef __WATCOMC__
 // definition of SH_DENYNO
@@ -12,7 +13,9 @@
 #include "../SQLlib/sqlstruc.h"
 #include "3.7.16.2/sqlite3.h"
 
+#ifndef UNICODE  // fix strings
 //#define LOG_OPERATIONS
+#endif
 
 SQL_NAMESPACE
 static void InitVFS( CTEXTSTR name, struct file_system_interface *fsi );
@@ -97,7 +100,9 @@ int xRead(sqlite3_file*file, void*buffer, int iAmt, sqlite3_int64 iOfst)
 #endif
 		return SQLITE_OK;
 	}
+#ifdef LOG_OPERATIONS
 	lprintf( "Errno : %d", errno );
+#endif
 	MemSet( ((char*)buffer)+actual, 0, iAmt - actual );
 	return SQLITE_IOERR_SHORT_READ;
 
@@ -142,7 +147,7 @@ int xWrite(sqlite3_file*file, const void*buffer, int iAmt, sqlite3_int64 iOfst)
 	if( iAmt == ( actual = sack_fwrite( buffer, 1, iAmt, my_file->file ) ) )
 	{
 #ifdef LOG_OPERATIONS
-		lprintf( "file is now %d", sack_fsize( my_file->file ) );
+		lprintf( "file  %s is now %d", my_file->filename, sack_fsize( my_file->file ) );
 #endif
 		return SQLITE_OK;
 	}
@@ -351,7 +356,7 @@ int xOpen(sqlite3_vfs* vfs, const char *zName, sqlite3_file*file,
 		//if( hResult == 0 )
 		{
 			//lprintf( WIDE("is it ok?") );
-			my_file->filename = StrDup( zName );
+			my_file->filename = DupCStr( zName );
 #if defined( __GNUC__ )
 			//__ANDROID__
 #define sack_fsopen(a,b,c,d) sack_fopen(a,b,c)
@@ -361,7 +366,7 @@ int xOpen(sqlite3_vfs* vfs, const char *zName, sqlite3_file*file,
 
 			if( my_vfs->fsi )
 			{
-				my_file->file = sack_fsopenEx( 0, zName, "rb+", _SH_DENYNO, my_vfs->fsi );//KWfopen( zName );
+				my_file->file = sack_fsopenEx( 0, my_file->filename, WIDE("rb+"), _SH_DENYNO, my_vfs->fsi );//KWfopen( zName );
 				if( my_file->file )
 				{
 					InitializeCriticalSec( &my_file->cs );
@@ -370,9 +375,9 @@ int xOpen(sqlite3_vfs* vfs, const char *zName, sqlite3_file*file,
 			}
 			else
 			{
-				my_file->file = sack_fsopen( 0, zName, "rb+", _SH_DENYNO );//KWfopen( zName );
+				my_file->file = sack_fsopen( 0, my_file->filename, WIDE("rb+"), _SH_DENYNO );//KWfopen( zName );
 				if( !my_file->file )
-					my_file->file = sack_fsopen( 0, zName, "wb+", _SH_DENYNO );//KWfopen( zName );
+					my_file->file = sack_fsopen( 0, my_file->filename, WIDE("wb+"), _SH_DENYNO );//KWfopen( zName );
 				if( my_file->file )
 				{
 					InitializeCriticalSec( &my_file->cs );
@@ -393,9 +398,15 @@ int xDelete(sqlite3_vfs*vfs, const char *zName, int syncDir)
 	lprintf( "delete on %s (%s:%p)", zName, vfs->zName, my_vfs->fsi );
 #endif
 	if( my_vfs->fsi )
-		my_vfs->fsi->unlink( zName );
+		my_vfs->fsi->unlink( (TEXTCHAR*)zName );
 	else
+	{
+#ifdef UNICODE
+		sack_unlink( 0, (TEXTSTR)zName );
+#else
 		sack_unlink( 0, zName );
+#endif
+	}
 	return SQLITE_OK;
 }
 
@@ -437,27 +448,13 @@ static int xAccess(
 	//if( flags & SQLITE_ACCESS_EXISTS )
 	{
 		FILE *tmp;
-
-		if( tmp = sack_fopenEx( 0, zPath, "rb", my_vfs->fsi ) )
+		if( my_vfs->fsi->exists( zPath ) )
 		{
-			if( sack_fsize( tmp ) )
-			{
 #ifdef LOG_OPERATIONS
-				//lprintf( "Open file: %s (vfs:%s)", zName, vfs->zName );
-				lprintf( "Access on %s %s = yes;exists", zPath, pVfs->zName );
+			//lprintf( "Open file: %s (vfs:%s)", zName, vfs->zName );
+			lprintf( "Access on %s %s = file exists path", zPath, pVfs->zName );
 #endif
-				rc = 0;
-			}
-			else
-			{
-#ifdef LOG_OPERATIONS
-				//lprintf( "Open file: %s (vfs:%s)", zName, vfs->zName );
-				lprintf( "Access on %s %s = no;exists", zPath, pVfs->zName );
-#endif
-				rc = -1;
-			}
-			sack_fclose( tmp );
-			//rc = 0;		
+			rc = 0;
 		}
 		else
 		{
@@ -491,9 +488,18 @@ static int xFullPathname(
   int nPathOut,                   /* Size of output buffer in bytes */
   char *zPathOut                  /* Pointer to output buffer */
 ){
+#ifdef UNICODE
+	TEXTSTR tmp = DupCStr( zPath );
+	TEXTSTR path = ExpandPath( tmp );
+	char *tmp2 = CStrDup( path );
+	strncpy( zPathOut, tmp2, nPathOut );
+	Release( tmp );
+	Release( tmp2 );
+#else
 	TEXTSTR path = ExpandPath( zPath );
-	//lprintf( "Expand %s = %s", zPath, path );
 	StrCpyEx( zPathOut, path, nPathOut );
+#endif
+	//lprintf( "Expand %s = %s", zPath, path );
 	Release( path );
 	return SQLITE_OK;
 }
@@ -504,8 +510,14 @@ void InitVFS( CTEXTSTR name, struct file_system_interface *fsi )
 	INDEX idx;
 	LIST_FORALL( l.registered_vfs, idx, struct my_sqlite3_vfs *, vfs )
 	{
+#ifdef UNICODE
+		char *tmp = CStrDup( name );
+		if( stricmp( vfs->vfs.zName, tmp ) == 0 )
+			return;
+#else
 		if( StrCaseCmp( vfs->vfs.zName, name ) == 0 )
 			return;
+#endif
 	}
 	//lprintf( WIDE("getting interface...") );
 	{

@@ -2758,7 +2758,7 @@ int __GetSQLResult( PODBC odbc, PCOLLECT collection, int bMore )
 			case SQLITE_DONE:
             break;
 			case SQLITE_CORRUPT:
-				lprintf( "Database is corrupt: %s", sqlite3_errmsg(odbc->db ) );
+				lprintf( WIDE("Database is corrupt: %s"), sqlite3_errmsg(odbc->db ) );
 				break;
 			default:
 				lprintf( WIDE("Step status %d:%s"), rc3, sqlite3_errmsg(odbc->db ) );
