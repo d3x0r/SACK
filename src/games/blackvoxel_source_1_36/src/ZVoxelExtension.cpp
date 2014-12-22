@@ -17,15 +17,26 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 /*
- * ZVoxelExtension_FabMachine.cpp
+ * ZVoxelExtension.cpp
  *
- *  Created on: 5 mars 2013
+ *  Created on: 11 nov. 2014
  *      Author: laurent
  */
 
-#ifndef Z_VOXELEXTENSION_H
-#  include "ZVoxelExtension.h"
-#endif
+#include "ZVoxelExtension.h"
+
+
+bool ZVoxelExtension::_ThrowExtension(ZStream_SpecialRamStream * Stream, ZMemSize ExtensionSize)
+{
+  bool Ok;
+  UByte Temp_Byte;
+
+  Ok = true;
+  ExtensionSize-=2;
+  for(ZMemSize i=0;i<ExtensionSize;i++) Ok = Ok && Stream->Get(Temp_Byte);
+
+  return(Ok);
+}
 
 
 ULong ZVoxelExtension::ExtensionCharCodes[] = {	

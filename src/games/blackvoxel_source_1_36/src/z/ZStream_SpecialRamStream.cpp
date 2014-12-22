@@ -25,6 +25,7 @@
 
 #include "ZStream_SpecialRamStream.h"
 #include <stdio.h>
+#include <string.h>
 
 
 ZMonoSizeMemoryPool ZStream_SpecialRamStream::MemPool;
@@ -47,4 +48,10 @@ void ZStream_SpecialRamStream::Debug_MemoryOut(Long Offset)
     }
     printf("\n");
   }
+}
+
+void ZStream_SpecialRamStream::BufferToString(ZString & OutputString)
+{
+  OutputString.SetLen(Pointer);
+  memcpy(OutputString.String, Buffer, Pointer);
 }

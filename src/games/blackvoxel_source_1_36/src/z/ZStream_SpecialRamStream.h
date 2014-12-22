@@ -38,6 +38,8 @@
 #  include "ZStreams.h"
 #endif
 
+class ZString;
+
 class ZStream_SpecialRamStream
 {
   static ZMonoSizeMemoryPool MemPool;
@@ -320,7 +322,7 @@ class ZStream_SpecialRamStream
     Pointer = 0;
   }
 
-
+  void BufferToString(ZString & OutputString);
 
 };
 

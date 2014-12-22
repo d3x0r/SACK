@@ -178,7 +178,7 @@ class ZRender_Sorter
       {
         for ( y=0 ; y < ZVOXELBLOCSIZE_Y ; y++ )
         {
-          AddVoxel( Sector->Data[Offset].Data, x,y,z,Sector->Culler->getFaceCulling(Sector,Offset));
+          AddVoxel( Sector->Data.Data[Offset], x,y,z,Sector->Culler->getFaceCulling(Sector,Offset));
           Offset ++;
         }
       }

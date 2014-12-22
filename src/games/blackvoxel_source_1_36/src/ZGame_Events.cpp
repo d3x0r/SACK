@@ -217,7 +217,9 @@ Bool ZGame_Events::KeyUp( UShort KeySym )
   ZActor * Actor;
 
   Keyboard_Matrix[KeySym] = 0;
-  Actor = GameEnv->PhysicEngine->GetSelectedActor();
+  if( GameEnv->PhysicEngine )
+  {
+	Actor = GameEnv->PhysicEngine->GetSelectedActor();
 
   switch(KeySym)
   {
@@ -230,6 +232,8 @@ Bool ZGame_Events::KeyUp( UShort KeySym )
 
   }
   return(true);
+	}
+  return false;
 }
 
 Bool ZGame_Events::MouseMove ( Short Relative_x, Short Relative_y, UShort Absolute_x, UShort Absolute_y)
@@ -739,8 +743,8 @@ void ZGame_Events::Process_StillEvents()
       VoxelLocation Loc;
       if (GameEnv->World->GetVoxelLocation(&Loc, x,y,z))
       {
-        printf("Voxel Name : %s\n", GameEnv->VoxelTypeManager.VoxelTable[ Loc.Sector->Data[Loc.Offset].Data ]->VoxelTypeName.String);
-        GameEnv->VoxelTypeManager.VoxelTable[ Loc.Sector->Data[Loc.Offset].Data ]->GetBlockInformations( &Loc, Infos );
+        printf("Voxel Name : %s\n", GameEnv->VoxelTypeManager.VoxelTable[ Loc.Sector->Data.Data[Loc.Offset] ]->VoxelTypeName.String);
+        GameEnv->VoxelTypeManager.VoxelTable[ Loc.Sector->Data.Data[Loc.Offset] ]->GetBlockInformations( &Loc, Infos );
         printf("Sector Location : %d,%d,%d\n", Loc.Sector->Pos_x , Loc.Sector->Pos_y, Loc.Sector->Pos_z);
         printf("Zone Coords : %d,%d\n",(((Loc.Sector->Pos_x) >> 4) + 32 +1 ), (((Loc.Sector->Pos_z) >> 4) + 32 +1 ));
         printf("%s\n",Infos.String);

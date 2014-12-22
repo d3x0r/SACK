@@ -543,8 +543,8 @@ SaneWinMain( argc, argv )
   // Test Code
 
   #if DEVELOPPEMENT_ON == 1
-    //ZTest_Parts TestParts;
-    //if (!TestParts.RunTestCode()) exit(0);
+    // ZTest_Parts TestParts;
+    // if (!TestParts.RunTestCode()) exit(0);
   #endif
 
   // Game main object

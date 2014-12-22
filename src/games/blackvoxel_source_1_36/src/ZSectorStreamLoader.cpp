@@ -312,33 +312,33 @@ void ZFileSectorLoader::LimitedUpdateFaceCulling(ZVoxelSector * Sector )
 
       // Prefetching the bloc matrix (only 2 rows)
 	  // left/ahead (below)
-      BlocMatrix[1][0] = SectorTable[(STableX[xc ]+STableY[0]+STableZ[zc ])]->Data[OfTableX[xc]+OfTableY[0]+OfTableZ[zc]].Data;
+      BlocMatrix[1][0] = SectorTable[(STableX[xc ]+STableY[0]+STableZ[zc ])]->Data.Data[OfTableX[xc ]+OfTableY[0]+OfTableZ[zc ]];
 	  // center/ahead (below)
-      BlocMatrix[1][1] = SectorTable[(STableX[xp ]+STableY[0]+STableZ[zc ])]->Data[OfTableX[xp]+OfTableY[0]+OfTableZ[zc]].Data;
+      BlocMatrix[1][1] = SectorTable[(STableX[xp ]+STableY[0]+STableZ[zc ])]->Data.Data[OfTableX[xp ]+OfTableY[0]+OfTableZ[zc ]];
 	  // right/ahead (below)
-      BlocMatrix[1][2] = SectorTable[(STableX[xpp]+STableY[0]+STableZ[zc ])]->Data[OfTableX[xpp]+OfTableY[0]+OfTableZ[zc]].Data;
+      BlocMatrix[1][2] = SectorTable[(STableX[xpp]+STableY[0]+STableZ[zc ])]->Data.Data[OfTableX[xpp]+OfTableY[0]+OfTableZ[zc ]];
 	  // left/center (below)
-      BlocMatrix[1][3] = SectorTable[(STableX[xc ]+STableY[0]+STableZ[zp ])]->Data[OfTableX[xc]+OfTableY[0]+OfTableZ[zp]].Data;
+      BlocMatrix[1][3] = SectorTable[(STableX[xc ]+STableY[0]+STableZ[zp ])]->Data.Data[OfTableX[xc ]+OfTableY[0]+OfTableZ[zp ]];
 	  // cneter/center (below)
-      BlocMatrix[1][4] = SectorTable[(STableX[xp ]+STableY[0]+STableZ[zp ])]->Data[OfTableX[xp]+OfTableY[0]+OfTableZ[zp]].Data;
+      BlocMatrix[1][4] = SectorTable[(STableX[xp ]+STableY[0]+STableZ[zp ])]->Data.Data[OfTableX[xp ]+OfTableY[0]+OfTableZ[zp ]];
 	  // right/center (below)
-      BlocMatrix[1][5] = SectorTable[(STableX[xpp]+STableY[0]+STableZ[zp ])]->Data[OfTableX[xpp]+OfTableY[0]+OfTableZ[zp]].Data;
+      BlocMatrix[1][5] = SectorTable[(STableX[xpp]+STableY[0]+STableZ[zp ])]->Data.Data[OfTableX[xpp]+OfTableY[0]+OfTableZ[zp ]];
 	  // left/behind (below)
-      BlocMatrix[1][6] = SectorTable[(STableX[xc ]+STableY[0]+STableZ[zpp])]->Data[OfTableX[xc]+OfTableY[0]+OfTableZ[zpp]].Data;
+      BlocMatrix[1][6] = SectorTable[(STableX[xc ]+STableY[0]+STableZ[zpp])]->Data.Data[OfTableX[xc ]+OfTableY[0]+OfTableZ[zpp]];
 	  // center/behind (below)
-      BlocMatrix[1][7] = SectorTable[(STableX[xp ]+STableY[0]+STableZ[zpp])]->Data[OfTableX[xp]+OfTableY[0]+OfTableZ[zpp]].Data;
+      BlocMatrix[1][7] = SectorTable[(STableX[xp ]+STableY[0]+STableZ[zpp])]->Data.Data[OfTableX[xp ]+OfTableY[0]+OfTableZ[zpp]];
 	  // right/behind (below)
-      BlocMatrix[1][8] = SectorTable[(STableX[xpp]+STableY[0]+STableZ[zpp])]->Data[OfTableX[xpp]+OfTableY[0]+OfTableZ[zpp]].Data;
+      BlocMatrix[1][8] = SectorTable[(STableX[xpp]+STableY[0]+STableZ[zpp])]->Data.Data[OfTableX[xpp]+OfTableY[0]+OfTableZ[zpp]];
 
-      BlocMatrix[2][0] = SectorTable[(STableX[xc ]+STableY[1]+STableZ[zc ])]->Data[OfTableX[xc ]+OfTableY[1]+OfTableZ[zc ]].Data;
-      BlocMatrix[2][1] = SectorTable[(STableX[xp ]+STableY[1]+STableZ[zc ])]->Data[OfTableX[xp ]+OfTableY[1]+OfTableZ[zc ]].Data;
-      BlocMatrix[2][2] = SectorTable[(STableX[xpp]+STableY[1]+STableZ[zc ])]->Data[OfTableX[xpp]+OfTableY[1]+OfTableZ[zc ]].Data;
-      BlocMatrix[2][3] = SectorTable[(STableX[xc ]+STableY[1]+STableZ[zp ])]->Data[OfTableX[xc ]+OfTableY[1]+OfTableZ[zp ]].Data;
-      BlocMatrix[2][4] = SectorTable[(STableX[xp ]+STableY[1]+STableZ[zp ])]->Data[OfTableX[xp ]+OfTableY[1]+OfTableZ[zp ]].Data;
-      BlocMatrix[2][5] = SectorTable[(STableX[xpp]+STableY[1]+STableZ[zp ])]->Data[OfTableX[xpp]+OfTableY[1]+OfTableZ[zp ]].Data;
-      BlocMatrix[2][6] = SectorTable[(STableX[xc ]+STableY[1]+STableZ[zpp])]->Data[OfTableX[xc ]+OfTableY[1]+OfTableZ[zpp]].Data;
-      BlocMatrix[2][7] = SectorTable[(STableX[xp ]+STableY[1]+STableZ[zpp])]->Data[OfTableX[xp ]+OfTableY[1]+OfTableZ[zpp]].Data;
-      BlocMatrix[2][8] = SectorTable[(STableX[xpp]+STableY[1]+STableZ[zpp])]->Data[OfTableX[xpp]+OfTableY[1]+OfTableZ[zpp]].Data;
+      BlocMatrix[2][0] = SectorTable[(STableX[xc ]+STableY[1]+STableZ[zc ])]->Data.Data[OfTableX[xc ]+OfTableY[1]+OfTableZ[zc ]];
+      BlocMatrix[2][1] = SectorTable[(STableX[xp ]+STableY[1]+STableZ[zc ])]->Data.Data[OfTableX[xp ]+OfTableY[1]+OfTableZ[zc ]];
+      BlocMatrix[2][2] = SectorTable[(STableX[xpp]+STableY[1]+STableZ[zc ])]->Data.Data[OfTableX[xpp]+OfTableY[1]+OfTableZ[zc ]];
+      BlocMatrix[2][3] = SectorTable[(STableX[xc ]+STableY[1]+STableZ[zp ])]->Data.Data[OfTableX[xc ]+OfTableY[1]+OfTableZ[zp ]];
+      BlocMatrix[2][4] = SectorTable[(STableX[xp ]+STableY[1]+STableZ[zp ])]->Data.Data[OfTableX[xp ]+OfTableY[1]+OfTableZ[zp ]];
+      BlocMatrix[2][5] = SectorTable[(STableX[xpp]+STableY[1]+STableZ[zp ])]->Data.Data[OfTableX[xpp]+OfTableY[1]+OfTableZ[zp ]];
+      BlocMatrix[2][6] = SectorTable[(STableX[xc ]+STableY[1]+STableZ[zpp])]->Data.Data[OfTableX[xc ]+OfTableY[1]+OfTableZ[zpp]];
+      BlocMatrix[2][7] = SectorTable[(STableX[xp ]+STableY[1]+STableZ[zpp])]->Data.Data[OfTableX[xp ]+OfTableY[1]+OfTableZ[zpp]];
+      BlocMatrix[2][8] = SectorTable[(STableX[xpp]+STableY[1]+STableZ[zpp])]->Data.Data[OfTableX[xpp]+OfTableY[1]+OfTableZ[zpp]];
 
       for ( yc=0 ; yc< ZVOXELBLOCSIZE_Y ; yc++ )
       {
@@ -352,15 +352,15 @@ void ZFileSectorLoader::LimitedUpdateFaceCulling(ZVoxelSector * Sector )
 
         // Fetching a new bloc of data slice;
 
-        BlocMatrix[2][0] = SectorTable[(STableX[xc ]+STableY[ypp]+STableZ[zc ])]->Data[OfTableX[xc ]+OfTableY[ypp]+OfTableZ[zc ]].Data; 
-        BlocMatrix[2][1] = SectorTable[(STableX[xp ]+STableY[ypp]+STableZ[zc ])]->Data[OfTableX[xp ]+OfTableY[ypp]+OfTableZ[zc ]].Data;
-        BlocMatrix[2][2] = SectorTable[(STableX[xpp]+STableY[ypp]+STableZ[zc ])]->Data[OfTableX[xpp]+OfTableY[ypp]+OfTableZ[zc ]].Data;
-        BlocMatrix[2][3] = SectorTable[(STableX[xc ]+STableY[ypp]+STableZ[zp ])]->Data[OfTableX[xc ]+OfTableY[ypp]+OfTableZ[zp ]].Data;
-        BlocMatrix[2][4] = SectorTable[(STableX[xp ]+STableY[ypp]+STableZ[zp ])]->Data[OfTableX[xp ]+OfTableY[ypp]+OfTableZ[zp ]].Data;
-        BlocMatrix[2][5] = SectorTable[(STableX[xpp]+STableY[ypp]+STableZ[zp ])]->Data[OfTableX[xpp]+OfTableY[ypp]+OfTableZ[zp ]].Data;
-        BlocMatrix[2][6] = SectorTable[(STableX[xc ]+STableY[ypp]+STableZ[zpp])]->Data[OfTableX[xc ]+OfTableY[ypp]+OfTableZ[zpp]].Data;
-        BlocMatrix[2][7] = SectorTable[(STableX[xp ]+STableY[ypp]+STableZ[zpp])]->Data[OfTableX[xp ]+OfTableY[ypp]+OfTableZ[zpp]].Data;
-        BlocMatrix[2][8] = SectorTable[(STableX[xpp]+STableY[ypp]+STableZ[zpp])]->Data[OfTableX[xpp]+OfTableY[ypp]+OfTableZ[zpp]].Data;
+        BlocMatrix[2][0] = SectorTable[(STableX[xc ]+STableY[ypp]+STableZ[zc ])]->Data.Data[OfTableX[xc ]+OfTableY[ypp]+OfTableZ[zc ]]; 
+        BlocMatrix[2][1] = SectorTable[(STableX[xp ]+STableY[ypp]+STableZ[zc ])]->Data.Data[OfTableX[xp ]+OfTableY[ypp]+OfTableZ[zc ]];
+        BlocMatrix[2][2] = SectorTable[(STableX[xpp]+STableY[ypp]+STableZ[zc ])]->Data.Data[OfTableX[xpp]+OfTableY[ypp]+OfTableZ[zc ]];
+        BlocMatrix[2][3] = SectorTable[(STableX[xc ]+STableY[ypp]+STableZ[zp ])]->Data.Data[OfTableX[xc ]+OfTableY[ypp]+OfTableZ[zp ]];
+        BlocMatrix[2][4] = SectorTable[(STableX[xp ]+STableY[ypp]+STableZ[zp ])]->Data.Data[OfTableX[xp ]+OfTableY[ypp]+OfTableZ[zp ]];
+        BlocMatrix[2][5] = SectorTable[(STableX[xpp]+STableY[ypp]+STableZ[zp ])]->Data.Data[OfTableX[xpp]+OfTableY[ypp]+OfTableZ[zp ]];
+        BlocMatrix[2][6] = SectorTable[(STableX[xc ]+STableY[ypp]+STableZ[zpp])]->Data.Data[OfTableX[xc ]+OfTableY[ypp]+OfTableZ[zpp]];
+        BlocMatrix[2][7] = SectorTable[(STableX[xp ]+STableY[ypp]+STableZ[zpp])]->Data.Data[OfTableX[xp ]+OfTableY[ypp]+OfTableZ[zpp]];
+        BlocMatrix[2][8] = SectorTable[(STableX[xpp]+STableY[ypp]+STableZ[zpp])]->Data.Data[OfTableX[xpp]+OfTableY[ypp]+OfTableZ[zpp]];
 
         info = 0;
         if (BlocMatrix[1][4] > 0)

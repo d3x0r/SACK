@@ -2762,13 +2762,13 @@ void ZActor_Player::Start_Riding(Long x, Long y, Long z)
       GameEnv->GameWindow_Advertising->Advertise("NOT AVAILLABLE IN DEMO VERSION", ZGameWindow_Advertising::VISIBILITY_MEDIUM, 0, 5000,1500);
       return;
     }
-    Riding_Voxel = Loc.Sector->Data[Loc.Offset].Data;
-    Riding_VoxelInfo = Loc.Sector->Data[Loc.Offset].OtherInfos;
+    Riding_Voxel = Loc.Sector->Data.Data[Loc.Offset];
+    Riding_VoxelInfo = Loc.Sector->Data.OtherInfos[Loc.Offset];
 
     if (GameEnv->VoxelTypeManager.VoxelTable[Riding_Voxel]->Is_Rideable && COMPILEOPTION_ALLOWVEHICLE == 1 )
     {
-      Loc.Sector->Data[Loc.Offset].Data = 0;
-      Loc.Sector->Data[Loc.Offset].OtherInfos =0;
+      Loc.Sector->Data.Data[Loc.Offset] = 0;
+      Loc.Sector->Data.OtherInfos[Loc.Offset] =0;
       GameEnv->World->SetVoxel_WithCullingUpdate(x,y,z,0,ZVoxelSector::CHANGE_CRITICAL,true,0);
       Riding_IsRiding = true;
 
@@ -2807,7 +2807,7 @@ void ZActor_Player::Stop_Riding()
     GameEnv->World->Convert_Coords_PlayerToVoxel(ViewDirection.origin().x, ViewDirection.origin().y, ViewDirection.origin().z, VLoc.x, VLoc.y, VLoc.z);
     if (GameEnv->World->SetVoxel_WithCullingUpdate(VLoc.x, VLoc.y, VLoc.z, Riding_Voxel, ZVoxelSector::CHANGE_CRITICAL, false, &Loc))
     {
-      Loc.Sector->Data[Loc.Offset].OtherInfos = Riding_VoxelInfo;
+      Loc.Sector->Data.OtherInfos[Loc.Offset] = Riding_VoxelInfo;
       Riding_Voxel = 0;
       Riding_VoxelInfo = 0;
       Riding_IsRiding = false;

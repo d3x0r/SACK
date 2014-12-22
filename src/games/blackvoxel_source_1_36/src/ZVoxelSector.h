@@ -287,11 +287,11 @@ class ZVoxelSector : public ZObject
     ZMemSize DataSize;
 	class VoxelData {
 	public:
-		UShort Data;
-		UShort TempInfos;
-		ZMemSize OtherInfos;
+		UShort Data[ZVOXELBLOCSIZE_X*ZVOXELBLOCSIZE_Y*ZVOXELBLOCSIZE_Z];
+		UShort TempInfos[ZVOXELBLOCSIZE_X*ZVOXELBLOCSIZE_Y*ZVOXELBLOCSIZE_Z];
+		ZMemSize OtherInfos[ZVOXELBLOCSIZE_X*ZVOXELBLOCSIZE_Y*ZVOXELBLOCSIZE_Z];
 	};
-	VoxelData *Data;
+	VoxelData Data;
     //UShort    * Data;
 	ZVoxelCuller *Culler;
 	void      * Culling;
@@ -317,7 +317,7 @@ protected:
     void CleanupSector(); //
 
     void Compress_Short_RLE(VoxelData * Data, void * Stream);
-    void Compress_OtherInfos_RLE(VoxelData * Data, VoxelData * VoxelData, void * Stream);
+    void Compress_OtherInfos_RLE(VoxelData * Data, UShort * VoxelData, void * Stream);
     //void Compress_FaceCulling_RLE(UByte * Data, void  * Stream);
     void Compress_Temperatures_RLE(VoxelData * Data, void  * Stream);
 
@@ -355,8 +355,8 @@ public:
       Long Offset;
 
       Offset = (y & ZVOXELBLOCMASK_Y) + ( (x & ZVOXELBLOCMASK_X)*Size_y )+ ((z & ZVOXELBLOCMASK_Z) * (Size_y*Size_x));
-      Data[Offset].Data = CubeValue;
-      Data[Offset].OtherInfos=0;
+      Data.Data[Offset] = CubeValue;
+      Data.OtherInfos[Offset]=0;
     }
 
     inline void SetCube_WithExtension(Long x, Long y, Long z, UShort CubeValue, ZMemSize Extension)
@@ -364,8 +364,8 @@ public:
       Long Offset;
 
       Offset = (y & ZVOXELBLOCMASK_Y) + ( (x & ZVOXELBLOCMASK_X)*Size_y )+ ((z & ZVOXELBLOCMASK_Z) * (Size_y*Size_x));
-      Data[Offset].Data = CubeValue;
-      Data[Offset].OtherInfos = Extension;
+      Data.Data[Offset] = CubeValue;
+      Data.OtherInfos[Offset] = Extension;
     }
 
     UShort GetCube(Long x, Long y, Long z)
@@ -373,7 +373,7 @@ public:
       Long Offset;
 
       Offset = (y & ZVOXELBLOCMASK_Y) + ( (x & ZVOXELBLOCMASK_X)*Size_y )+ ((z & ZVOXELBLOCMASK_Z) * (Size_y*Size_x));
-      return(Data[Offset].Data);
+      return(Data.Data[Offset]);
     }
 
     void MakeSector()
@@ -402,7 +402,7 @@ public:
 
       for ( i=0 ; i<DataSize ; i++ )
       {
-        Data[i].Data = VoxelType;
+        Data.Data[i] = VoxelType;
         //FaceCulling[i] = 0x3FFFFF;
       }
     }

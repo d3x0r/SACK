@@ -30,6 +30,8 @@
 //#  include "ZVoxelExtension.h"
 //#endif
 
+#include <stddef.h>
+
 #ifndef Z_ZTYPES_H
 #  include "z/ZTypes.h"
 #endif
@@ -38,14 +40,19 @@
 #  include "z/ZStream_SpecialRamStream.h"
 #endif
 
+#ifndef Z_ZMEMPOOL_OPTIMIZED_H
+#  include "ZMemPool_Optimized.h"
+#endif
+
 class ZGame;
 
 class ZVoxelExtension
 {
   public:
-  ULong ExtensionType;
 
+    // Extension type
 
+    ULong ExtensionType;
 
   enum ExtensionTypes { Extension_None = 0
 	  ,Extension_Storage=1
@@ -68,13 +75,29 @@ class ZVoxelExtension
 
   static ULong ExtensionCharCodes[Extension_Count];
 
-  virtual ULong GetExtensionID() {return(0);}
-  virtual bool Save(ZStream_SpecialRamStream * Stream)=0;
-  virtual bool Load(ZStream_SpecialRamStream * Stream)=0;
-  virtual void SetGameEnv(ZGame * GameEnv) { }
-  virtual ZVoxelExtension * GetNewCopy() { return(0); }
+  protected:
 
-  virtual ~ZVoxelExtension() {}
+    bool _ThrowExtension(ZStream_SpecialRamStream * Stream, ZMemSize ExtensionSize);
+
+  public:
+
+    virtual ULong GetExtensionID() { return(MulticharConst('N','S','P','C'));}
+    virtual bool Save(ZStream_SpecialRamStream * Stream)=0;
+    virtual bool Load(ZStream_SpecialRamStream * Stream)=0;
+    virtual void SetGameEnv(ZGame * GameEnv) { }
+    virtual ZVoxelExtension * GetNewCopy() { return(0); }
+
+    virtual ~ZVoxelExtension() {}
+
+    inline void * operator new (size_t Size)
+    {
+      return(ZMemPool_Optimized::GetMainPublicPool()->AllocMem(Size));
+    }
+
+    inline void operator delete (void * Memory)
+    {
+      ZMemPool_Optimized::GetMainPublicPool()->FreeMem(Memory);
+    }
 };
 
 

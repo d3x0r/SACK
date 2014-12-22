@@ -51,6 +51,37 @@ extern GLuint TextureName[1024];
 
 class ZGame;
 
+class ZRender_Smooth_displaydata : public ZObject
+{
+  public:
+	  struct image_shader_op *DisplayList_Regular[6];
+	  struct image_shader_op *DisplayList_Transparent[6];
+    //GLint DisplayList_Regular[6];
+    //GLint DisplayList_Transparent[6];
+
+    ZRender_Smooth_displaydata()
+    {
+		for( int i = 0; i < 6; i++ )
+		{
+		  DisplayList_Regular[i] = 0;
+		  DisplayList_Transparent[i] = 0;
+		}
+
+    }
+    ~ZRender_Smooth_displaydata()
+    {
+		for( int i = 0; i < 6; i++ )
+		{
+			  //if (DisplayList_Regular[i])     glDeleteLists(DisplayList_Regular[i], 1);
+			  //DisplayList_Regular[i] = 0;
+			  //if (DisplayList_Transparent[i]) glDeleteLists(DisplayList_Transparent[i], 1);
+			  //DisplayList_Transparent[i] = 0;
+		}
+    }
+
+};
+
+
 class ZVoxelCuller_Smooth: public ZVoxelCuller
 {
 public:
