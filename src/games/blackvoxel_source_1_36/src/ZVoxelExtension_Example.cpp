@@ -17,51 +17,12 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 /*
- * ZTest_Parts.cpp
+ * ZVoxelExtension_Example.cpp
  *
- *  Created on: 23 sept. 2014
+ *  Created on: 11 nov. 2014
  *      Author: laurent
  */
 
-#include "Z0Test_Parts.h"
-#include <stdio.h>
 
-#ifndef Z_MACROASSEMBLER_H
-#  include "ZMacroAssembler.h"
-#endif
-
-#ifndef Z_ZVCPU_H
-#  include "ZVCPU.h"
-#endif
-
-#ifndef Z_ZVMACHINE_T1_H
-#  include "ZVMachine_T1.h"
-#endif
-
-#ifndef Z_ZSTREAMS_FILE_H
-#  include "z/ZStream_File.h"
-#endif
-
-bool ZTest_Parts::RunTestCode()
-{
-  ZStream_File Stream;
-  ZString Text, Out;
-  printf("Test Parts");
-
-  Stream.SetFileName("/home/laurent/workspace/a_newblackvoxel/test.zcpuasm");
-  Stream.GetFileContent(Text);
-  //Text = "  move.b #10,r0";
-
-  ZMacroAssembler Mass;
-
-  Mass.Assemble(Text, Out);
-  Stream.SetFileName("test.bin");
-  Stream.PutFileContent(Out);
-
-  BlackCPU<ZVMachine_T1> Cpu;
-
-
-  return(false);
-}
-
+#include "ZVoxelExtension_Example.h"
 

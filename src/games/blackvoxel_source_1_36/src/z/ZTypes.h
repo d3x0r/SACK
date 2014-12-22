@@ -29,6 +29,7 @@
 #define DEFINE_DEFAULT_RENDER_INTERFACE
 #include <render.h>
 #include <render3d.h>
+#include <image3d.h>
 
 #ifdef _WIN32
 #include <Windows.h>

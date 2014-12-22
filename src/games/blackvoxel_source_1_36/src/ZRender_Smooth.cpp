@@ -280,7 +280,7 @@ void ZVoxelCuller_Smooth::CullSingleVoxel( int x, int y, int z )
 {
 //bool ZVoxelWorld::SetVoxel_WithCullingUpdate(Long x, Long y, Long z, UShort VoxelValue, UByte ImportanceFactor, bool CreateExtension, VoxelLocation * Location)
 //{
-	ZVoxelSector::VoxelData * Voxel_Address[19];
+	UShort * Voxel_Address[19];
   ULong  Offset[19];
   ULong * FaceCulling_Address[19];
   UShort VoxelState[19];
@@ -343,16 +343,16 @@ void ZVoxelCuller_Smooth::CullSingleVoxel( int x, int y, int z )
   // Computing absolute memory pointer of blocks
   for( int i = 0; i < 19; i++ )
   {
-	Voxel_Address[i]     = Sector[i]->Data + Offset[i];
+	Voxel_Address[i]     = Sector[i]->Data.Data + Offset[i];
 	FaceCulling_Address[i]     = (ULong*)Sector[i]->Culling + Offset[i];
-    Voxel = Voxel_Address[i]->Data;    VoxelType = VoxelTypeTable[Voxel];
+    Voxel = (*Voxel_Address[i]);    VoxelType = VoxelTypeTable[Voxel];
       VoxelState[i] = ( (Voxel==0) ? 1 : 0) 
 		     | ( VoxelType->Draw_FullVoxelOpacity ? 2 : 0 ) 
 			 | ( VoxelType->Draw_TransparentRendering ? 4 : 0 );
   }
 
-  Voxel = Voxel_Address[VOXEL_INCENTER]->Data;
-  OtherInfos = Sector[VOXEL_INCENTER]->Data[Offset[VOXEL_INCENTER]].OtherInfos;
+  Voxel = (*Voxel_Address[VOXEL_INCENTER]);
+  OtherInfos = Sector[VOXEL_INCENTER]->Data.OtherInfos[Offset[VOXEL_INCENTER]];
 
   if (OtherInfos)
   {
@@ -362,7 +362,7 @@ void ZVoxelCuller_Smooth::CullSingleVoxel( int x, int y, int z )
 
   // Storing Extension
 
-  VoxelType = VoxelTypeTable[Voxel_Address[VOXEL_INCENTER]->Data];
+  VoxelType = VoxelTypeTable[(*Voxel_Address[VOXEL_INCENTER])];
 
   // Getting case subtables.
 
@@ -1863,7 +1863,7 @@ void ZRender_Smooth::MakeSectorRenderingData(ZVoxelSector * Sector)
           for ( y=0 ; y < Sector->Size_y ; y++ )
           {
             Offset = y + ( x*Sector->Size_y )+ (z * (Sector->Size_y*Sector->Size_x));
-            cube = Sector->Data[Offset].Data;
+            cube = Sector->Data.Data[Offset];
             info = ((ULong*)Sector->Culling)[Offset];
 
 

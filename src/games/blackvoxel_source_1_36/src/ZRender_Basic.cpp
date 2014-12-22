@@ -333,24 +333,24 @@ void SectorUpdateFaceCulling(ZVoxelWorld *world, ZVoxelSector *Sector, bool Isol
 
       // Prefetching the bloc matrix (only 2 rows)
 //    BlocMatrix[1][0] = SectorTable[(ZFileSectorLoader::STableX[xc ]+STableY[0]+STableZ[zc ])]->Data[OfTableX[xc]+OfTableY[0]+OfTableZ[zc]];
-      BlocMatrix[1][1] = SectorTable[(STableX[xp ]+STableY[0]+STableZ[zc ])]->Data[OfTableX[xp]+OfTableY[0]+OfTableZ[zc]].Data;
-//    BlocMatrix[1][2] = SectorTable[(STableX[xpp]+STableY[0]+STableZ[zc ])]->Data[OfTableX[xpp]+OfTableY[0]+OfTableZ[zc]];
-      BlocMatrix[1][3] = SectorTable[(STableX[xc ]+STableY[0]+STableZ[zp ])]->Data[OfTableX[xc]+OfTableY[0]+OfTableZ[zp]].Data;
-      BlocMatrix[1][4] = SectorTable[(STableX[xp ]+STableY[0]+STableZ[zp ])]->Data[OfTableX[xp]+OfTableY[0]+OfTableZ[zp]].Data;
-      BlocMatrix[1][5] = SectorTable[(STableX[xpp]+STableY[0]+STableZ[zp ])]->Data[OfTableX[xpp]+OfTableY[0]+OfTableZ[zp]].Data;
-//    BlocMatrix[1][6] = SectorTable[(STableX[xc ]+STableY[0]+STableZ[zpp])]->Data[OfTableX[xc]+OfTableY[0]+OfTableZ[zpp]];
-      BlocMatrix[1][7] = SectorTable[(STableX[xp ]+STableY[0]+STableZ[zpp])]->Data[OfTableX[xp]+OfTableY[0]+OfTableZ[zpp]].Data;
-//    BlocMatrix[1][8] = SectorTable[(STableX[xpp]+STableY[0]+STableZ[zpp])]->Data[OfTableX[xpp]+OfTableY[0]+OfTableZ[zpp]];
+      BlocMatrix[1][1] = SectorTable[(STableX[xp ]+STableY[0]+STableZ[zc ])]->Data.Data[OfTableX[xp ]+OfTableY[0]+OfTableZ[zc ]];
+//    BlocMatrix[1][2] = SectorTable[(STableX[xpp]+STableY[0]+STableZ[zc ])]->Data;	   [OfTableX[xpp]+OfTableY[0]+OfTableZ[zc ]]
+      BlocMatrix[1][3] = SectorTable[(STableX[xc ]+STableY[0]+STableZ[zp ])]->Data.Data[OfTableX[xc ]+OfTableY[0]+OfTableZ[zp ]];
+      BlocMatrix[1][4] = SectorTable[(STableX[xp ]+STableY[0]+STableZ[zp ])]->Data.Data[OfTableX[xp ]+OfTableY[0]+OfTableZ[zp ]];
+      BlocMatrix[1][5] = SectorTable[(STableX[xpp]+STableY[0]+STableZ[zp ])]->Data.Data[OfTableX[xpp]+OfTableY[0]+OfTableZ[zp ]];
+//    BlocMatrix[1][6] = SectorTable[(STableX[xc ]+STableY[0]+STableZ[zpp])]->Data;	   [OfTableX[xc ]+OfTableY[0]+OfTableZ[zpp]]
+      BlocMatrix[1][7] = SectorTable[(STableX[xp ]+STableY[0]+STableZ[zpp])]->Data.Data[OfTableX[xp ]+OfTableY[0]+OfTableZ[zpp]];
+//    BlocMatrix[1][8] = SectorTable[(STableX[xpp]+STableY[0]+STableZ[zpp])]->Data;	   [OfTableX[xpp]+OfTableY[0]+OfTableZ[zpp]]
 
-//    BlocMatrix[2][0] = SectorTable[(STableX[xc ]+STableY[1]+STableZ[zc ])]->Data[OfTableX[xc ]+OfTableY[1]+OfTableZ[zc ]];
-      BlocMatrix[2][1] = SectorTable[(STableX[xp ]+STableY[1]+STableZ[zc ])]->Data[OfTableX[xp ]+OfTableY[1]+OfTableZ[zc ]].Data;
-//    BlocMatrix[2][2] = SectorTable[(STableX[xpp]+STableY[1]+STableZ[zc ])]->Data[OfTableX[xpp]+OfTableY[1]+OfTableZ[zc ]];
-      BlocMatrix[2][3] = SectorTable[(STableX[xc ]+STableY[1]+STableZ[zp ])]->Data[OfTableX[xc ]+OfTableY[1]+OfTableZ[zp ]].Data;
-      BlocMatrix[2][4] = SectorTable[(STableX[xp ]+STableY[1]+STableZ[zp ])]->Data[OfTableX[xp ]+OfTableY[1]+OfTableZ[zp ]].Data;
-      BlocMatrix[2][5] = SectorTable[(STableX[xpp]+STableY[1]+STableZ[zp ])]->Data[OfTableX[xpp]+OfTableY[1]+OfTableZ[zp ]].Data;
-//    BlocMatrix[2][6] = SectorTable[(STableX[xc ]+STableY[1]+STableZ[zpp])]->Data[OfTableX[xc ]+OfTableY[1]+OfTableZ[zpp]];
-      BlocMatrix[2][7] = SectorTable[(STableX[xp ]+STableY[1]+STableZ[zpp])]->Data[OfTableX[xp ]+OfTableY[1]+OfTableZ[zpp]].Data;
-//    BlocMatrix[2][8] = SectorTable[(STableX[xpp]+STableY[1]+STableZ[zpp])]->Data[OfTableX[xpp]+OfTableY[1]+OfTableZ[zpp]];
+//    BlocMatrix[2][0] = SectorTable[(STableX[xc ]+STableY[1]+STableZ[zc ])]->Data;	   [OfTableX[xc ]+OfTableY[1]+OfTableZ[zc ]]
+      BlocMatrix[2][1] = SectorTable[(STableX[xp ]+STableY[1]+STableZ[zc ])]->Data.Data[OfTableX[xp ]+OfTableY[1]+OfTableZ[zc ]];
+//    BlocMatrix[2][2] = SectorTable[(STableX[xpp]+STableY[1]+STableZ[zc ])]->Data;	   [OfTableX[xpp]+OfTableY[1]+OfTableZ[zc ]]
+      BlocMatrix[2][3] = SectorTable[(STableX[xc ]+STableY[1]+STableZ[zp ])]->Data.Data[OfTableX[xc ]+OfTableY[1]+OfTableZ[zp ]];
+      BlocMatrix[2][4] = SectorTable[(STableX[xp ]+STableY[1]+STableZ[zp ])]->Data.Data[OfTableX[xp ]+OfTableY[1]+OfTableZ[zp ]];
+      BlocMatrix[2][5] = SectorTable[(STableX[xpp]+STableY[1]+STableZ[zp ])]->Data.Data[OfTableX[xpp]+OfTableY[1]+OfTableZ[zp ]];
+//    BlocMatrix[2][6] = SectorTable[(STableX[xc ]+STableY[1]+STableZ[zpp])]->Data;	   [OfTableX[xc ]+OfTableY[1]+OfTableZ[zpp]]
+      BlocMatrix[2][7] = SectorTable[(STableX[xp ]+STableY[1]+STableZ[zpp])]->Data.Data[OfTableX[xp ]+OfTableY[1]+OfTableZ[zpp]];
+//    BlocMatrix[2][8] = SectorTable[(STableX[xpp]+STableY[1]+STableZ[zpp])]->Data;	   [OfTableX[xpp]+OfTableY[1]+OfTableZ[zpp]]
 
       for ( yc=0 ; yc< ZVOXELBLOCSIZE_Y ; yc++ )
       {
@@ -364,15 +364,15 @@ void SectorUpdateFaceCulling(ZVoxelWorld *world, ZVoxelSector *Sector, bool Isol
 
         // Fetching a new bloc of data slice;
 
-//      BlocMatrix[2][0] = SectorTable[(STableX[xc ]+STableY[ypp]+STableZ[zc ])]->Data[OfTableX[xc ]+OfTableY[ypp]+OfTableZ[zc ]];
-        BlocMatrix[2][1] = SectorTable[(STableX[xp ]+STableY[ypp]+STableZ[zc ])]->Data[OfTableX[xp ]+OfTableY[ypp]+OfTableZ[zc ]].Data;
-//      BlocMatrix[2][2] = SectorTable[(STableX[xpp]+STableY[ypp]+STableZ[zc ])]->Data[OfTableX[xpp]+OfTableY[ypp]+OfTableZ[zc ]];
-        BlocMatrix[2][3] = SectorTable[(STableX[xc ]+STableY[ypp]+STableZ[zp ])]->Data[OfTableX[xc ]+OfTableY[ypp]+OfTableZ[zp ]].Data;
-        BlocMatrix[2][4] = SectorTable[(STableX[xp ]+STableY[ypp]+STableZ[zp ])]->Data[OfTableX[xp ]+OfTableY[ypp]+OfTableZ[zp ]].Data;
-        BlocMatrix[2][5] = SectorTable[(STableX[xpp]+STableY[ypp]+STableZ[zp ])]->Data[OfTableX[xpp]+OfTableY[ypp]+OfTableZ[zp ]].Data;
-//      BlocMatrix[2][6] = SectorTable[(STableX[xc ]+STableY[ypp]+STableZ[zpp])]->Data[OfTableX[xc ]+OfTableY[ypp]+OfTableZ[zpp]];
-        BlocMatrix[2][7] = SectorTable[(STableX[xp ]+STableY[ypp]+STableZ[zpp])]->Data[OfTableX[xp ]+OfTableY[ypp]+OfTableZ[zpp]].Data;
-//      BlocMatrix[2][8] = SectorTable[(STableX[xpp]+STableY[ypp]+STableZ[zpp])]->Data[OfTableX[xpp]+OfTableY[ypp]+OfTableZ[zpp]];
+//      BlocMatrix[2][0] = SectorTable[(STableX[xc ]+STableY[ypp]+STableZ[zc ])]->Data;    [OfTableX[xc ]+OfTableY[ypp]+OfTableZ[zc ]]
+        BlocMatrix[2][1] = SectorTable[(STableX[xp ]+STableY[ypp]+STableZ[zc ])]->Data.Data[OfTableX[xp ]+OfTableY[ypp]+OfTableZ[zc ]];
+//      BlocMatrix[2][2] = SectorTable[(STableX[xpp]+STableY[ypp]+STableZ[zc ])]->Data;	   [OfTableX[xpp]+OfTableY[ypp]+OfTableZ[zc ]]
+        BlocMatrix[2][3] = SectorTable[(STableX[xc ]+STableY[ypp]+STableZ[zp ])]->Data.Data[OfTableX[xc ]+OfTableY[ypp]+OfTableZ[zp ]];
+        BlocMatrix[2][4] = SectorTable[(STableX[xp ]+STableY[ypp]+STableZ[zp ])]->Data.Data[OfTableX[xp ]+OfTableY[ypp]+OfTableZ[zp ]];
+        BlocMatrix[2][5] = SectorTable[(STableX[xpp]+STableY[ypp]+STableZ[zp ])]->Data.Data[OfTableX[xpp]+OfTableY[ypp]+OfTableZ[zp ]];
+//      BlocMatrix[2][6] = SectorTable[(STableX[xc ]+STableY[ypp]+STableZ[zpp])]->Data;	   [OfTableX[xc ]+OfTableY[ypp]+OfTableZ[zpp]]
+        BlocMatrix[2][7] = SectorTable[(STableX[xp ]+STableY[ypp]+STableZ[zpp])]->Data.Data[OfTableX[xp ]+OfTableY[ypp]+OfTableZ[zpp]];
+//      BlocMatrix[2][8] = SectorTable[(STableX[xpp]+STableY[ypp]+STableZ[zpp])]->Data;	   [OfTableX[xpp]+OfTableY[ypp]+OfTableZ[zpp]]
 
         // Compute face culling info
 /*
@@ -465,8 +465,8 @@ ULong SectorUpdateFaceCulling_Partial(ZVoxelWorld *world, ZVoxelSector *Sector, 
   {
     if ( (Sector_Out = Sector->near_sectors[VOXEL_ABOVE-1]))
     {
-      VoxelData_In  = Sector_In->Data;
-      VoxelData_Out = Sector_Out->Data;
+      VoxelData_In  = &Sector_In->Data;
+      VoxelData_Out = &Sector_Out->Data;
       VoxelFC_In    = (UByte*)Sector_In->Culling;
 
       for ( Off_Ip=ZVOXELBLOCSIZE_Y-1, Off_Op=0 ; Off_Ip < (ZVOXELBLOCSIZE_Y * 16) ; Off_Ip+=ZVOXELBLOCSIZE_Y, Off_Op+=ZVOXELBLOCSIZE_Y ) // x (0..15)
@@ -475,7 +475,7 @@ ULong SectorUpdateFaceCulling_Partial(ZVoxelWorld *world, ZVoxelSector *Sector, 
         {
           Off_In = Off_Ip + Off_Aux;
           Off_Out= Off_Op + Off_Aux;
-          FaceState = IntFaceStateTable[ VoxelTypeTable[ VoxelData_In[Off_In].Data ]->DrawInfo & ZVOXEL_DRAWINFO_CULLINGBITS ][ VoxelTypeTable[ VoxelData_Out[Off_Out].Data ]->DrawInfo & ZVOXEL_DRAWINFO_CULLINGBITS ];
+          FaceState = IntFaceStateTable[ VoxelTypeTable[ VoxelData_In->Data[Off_In] ]->DrawInfo & ZVOXEL_DRAWINFO_CULLINGBITS ][ VoxelTypeTable[ VoxelData_Out->Data[Off_Out] ]->DrawInfo & ZVOXEL_DRAWINFO_CULLINGBITS ];
           if (FaceState) 
 		  {
 			  VoxelFC_In[Off_In] |= DRAWFACE_ABOVE; 
@@ -490,7 +490,7 @@ ULong SectorUpdateFaceCulling_Partial(ZVoxelWorld *world, ZVoxelSector *Sector, 
     }
 	else
 	{
-      VoxelData_In  = Sector_In->Data;
+      VoxelData_In  = &Sector_In->Data;
       //VoxelData_Out = Sector_Out->Data;
       VoxelFC_In    = (UByte*)Sector_In->Culling;
       for ( Off_Ip=ZVOXELBLOCSIZE_Y-1, Off_Op=0 ; Off_Ip < (ZVOXELBLOCSIZE_Y * 16) ; Off_Ip+=ZVOXELBLOCSIZE_Y, Off_Op+=ZVOXELBLOCSIZE_Y ) // x (0..15)
@@ -500,7 +500,7 @@ ULong SectorUpdateFaceCulling_Partial(ZVoxelWorld *world, ZVoxelSector *Sector, 
 
           Off_In = Off_Ip + Off_Aux;
           Off_Out= Off_Op + Off_Aux;
-          FaceState = IntFaceStateTable[ VoxelTypeTable[ VoxelData_In[Off_In].Data ]->DrawInfo & ZVOXEL_DRAWINFO_CULLINGBITS ][ VoxelTypeTable[ 0 ]->DrawInfo & ZVOXEL_DRAWINFO_CULLINGBITS ];
+          FaceState = IntFaceStateTable[ VoxelTypeTable[ VoxelData_In->Data[Off_In] ]->DrawInfo & ZVOXEL_DRAWINFO_CULLINGBITS ][ VoxelTypeTable[ 0 ]->DrawInfo & ZVOXEL_DRAWINFO_CULLINGBITS ];
           if (FaceState) 
 			  VoxelFC_In[Off_In] |= DRAWFACE_ABOVE; 
 		  else 
@@ -518,8 +518,8 @@ ULong SectorUpdateFaceCulling_Partial(ZVoxelWorld *world, ZVoxelSector *Sector, 
 
 
 
-      VoxelData_In  = Sector_In->Data;
-      VoxelData_Out = Sector_Out->Data;
+      VoxelData_In  = &Sector_In->Data;
+      VoxelData_Out = &Sector_Out->Data;
       VoxelFC_In    = (UByte*)Sector_In->Culling;
 
       for ( Off_Ip=0, Off_Op=ZVOXELBLOCSIZE_Y-1 ; Off_Ip < (ZVOXELBLOCSIZE_Y * 16) ; Off_Ip+=ZVOXELBLOCSIZE_Y, Off_Op+=ZVOXELBLOCSIZE_Y ) // x (0..15)
@@ -528,15 +528,15 @@ ULong SectorUpdateFaceCulling_Partial(ZVoxelWorld *world, ZVoxelSector *Sector, 
         {
           Off_In = Off_Ip + Off_Aux;
           Off_Out= Off_Op + Off_Aux;
-          UShort Voxel_In = VoxelData_In[Off_In].Data;
-          UShort Voxel_Out = VoxelData_Out[Off_Out].Data;
+          UShort Voxel_In = VoxelData_In->Data[Off_In];
+          UShort Voxel_Out = VoxelData_Out->Data[Off_Out];
           //ZVoxelType * VtIn =  VoxelTypeTable[ Voxel_In ];
           //ZVoxelType * VtOut = VoxelTypeTable[ Voxel_Out ];
 
 
           FaceState = IntFaceStateTable[ VoxelTypeTable[ Voxel_In ]->DrawInfo & ZVOXEL_DRAWINFO_CULLINGBITS ][ VoxelTypeTable[ Voxel_Out ]->DrawInfo & ZVOXEL_DRAWINFO_CULLINGBITS ];
 
-          //FaceState = IntFaceStateTable[ VoxelTypeTable[ VoxelData_In[Off_In].Data ]->DrawInfo & ZVOXEL_DRAWINFO_CULLINGBITS ][ VoxelTypeTable[ VoxelData_Out[Off_Out].Data ]->DrawInfo & ZVOXEL_DRAWINFO_CULLINGBITS ];
+          //FaceState = IntFaceStateTable[ VoxelTypeTable[ VoxelData_In->Data[Off_In] ]->DrawInfo & ZVOXEL_DRAWINFO_CULLINGBITS ][ VoxelTypeTable[ VoxelData_Out->Data[Off_Out] ]->DrawInfo & ZVOXEL_DRAWINFO_CULLINGBITS ];
           if (FaceState) VoxelFC_In[Off_In] |= DRAWFACE_BELOW; else VoxelFC_In[Off_In] &= ~DRAWFACE_BELOW;
         }
       }
@@ -548,8 +548,8 @@ ULong SectorUpdateFaceCulling_Partial(ZVoxelWorld *world, ZVoxelSector *Sector, 
   if (FacesToDraw & DRAWFACE_LEFT)
     if ((Sector_Out = Sector->near_sectors[VOXEL_LEFT-1]))
     {
-      VoxelData_In  = Sector_In->Data;
-      VoxelData_Out = Sector_Out->Data;
+      VoxelData_In  = &Sector_In->Data;
+      VoxelData_Out = &Sector_Out->Data;
       VoxelFC_In    = (UByte*)Sector_In->Culling;
       // VoxelData_In[63]=1;
       // VoxelData_In[63 + ZVOXELBLOCSIZE_Y*15 ]=14; // x
@@ -562,7 +562,7 @@ ULong SectorUpdateFaceCulling_Partial(ZVoxelWorld *world, ZVoxelSector *Sector, 
           Off_In = Off_Ip + Off_Aux;
           Off_Out= Off_Op + Off_Aux;
           //VoxelData_In[Off_In]=1; VoxelData_Out[Off_Out]=14;
-          FaceState = IntFaceStateTable[ VoxelTypeTable[ VoxelData_In[Off_In].Data ]->DrawInfo & ZVOXEL_DRAWINFO_CULLINGBITS ][ VoxelTypeTable[ VoxelData_Out[Off_Out].Data ]->DrawInfo & ZVOXEL_DRAWINFO_CULLINGBITS ];
+          FaceState = IntFaceStateTable[ VoxelTypeTable[ VoxelData_In->Data[Off_In] ]->DrawInfo & ZVOXEL_DRAWINFO_CULLINGBITS ][ VoxelTypeTable[ VoxelData_Out->Data[Off_Out] ]->DrawInfo & ZVOXEL_DRAWINFO_CULLINGBITS ];
           if (FaceState) VoxelFC_In[Off_In] |= DRAWFACE_LEFT; else VoxelFC_In[Off_In] &= ~DRAWFACE_LEFT;
 
 
@@ -576,8 +576,8 @@ ULong SectorUpdateFaceCulling_Partial(ZVoxelWorld *world, ZVoxelSector *Sector, 
   if (FacesToDraw & DRAWFACE_RIGHT)
     if ((Sector_Out = Sector->near_sectors[VOXEL_RIGHT-1]))
     {
-      VoxelData_In  = Sector_In->Data;
-      VoxelData_Out = Sector_Out->Data;
+      VoxelData_In  = &Sector_In->Data;
+      VoxelData_Out = &Sector_Out->Data;
       VoxelFC_In    = (UByte*)Sector_In->Culling;
 
       for ( Off_Ip=ZVOXELBLOCSIZE_Y * (ZVOXELBLOCSIZE_X-1), Off_Op=0 ; Off_Op < (ZVOXELBLOCSIZE_Y * ZVOXELBLOCSIZE_X * ZVOXELBLOCSIZE_Z) ; Off_Ip+=(ZVOXELBLOCSIZE_Y * ZVOXELBLOCSIZE_X), Off_Op+=(ZVOXELBLOCSIZE_Y * ZVOXELBLOCSIZE_X) ) // z (0..15)
@@ -586,7 +586,7 @@ ULong SectorUpdateFaceCulling_Partial(ZVoxelWorld *world, ZVoxelSector *Sector, 
         {
           Off_In = Off_Ip + Off_Aux;
           Off_Out= Off_Op + Off_Aux;
-          FaceState = IntFaceStateTable[ VoxelTypeTable[ VoxelData_In[Off_In].Data ]->DrawInfo & ZVOXEL_DRAWINFO_CULLINGBITS ][ VoxelTypeTable[ VoxelData_Out[Off_Out].Data ]->DrawInfo & ZVOXEL_DRAWINFO_CULLINGBITS ];
+          FaceState = IntFaceStateTable[ VoxelTypeTable[ VoxelData_In->Data[Off_In] ]->DrawInfo & ZVOXEL_DRAWINFO_CULLINGBITS ][ VoxelTypeTable[ VoxelData_Out->Data[Off_Out] ]->DrawInfo & ZVOXEL_DRAWINFO_CULLINGBITS ];
           if (FaceState) VoxelFC_In[Off_In] |= DRAWFACE_RIGHT; else VoxelFC_In[Off_In] &= ~DRAWFACE_RIGHT;
         }
       }
@@ -598,8 +598,8 @@ ULong SectorUpdateFaceCulling_Partial(ZVoxelWorld *world, ZVoxelSector *Sector, 
   if (FacesToDraw & DRAWFACE_AHEAD)
     if ((Sector_Out = Sector->near_sectors[VOXEL_AHEAD-1]))
     {
-      VoxelData_In  = Sector_In->Data;
-      VoxelData_Out = Sector_Out->Data;
+      VoxelData_In  = &Sector_In->Data;
+      VoxelData_Out = &Sector_Out->Data;
       VoxelFC_In    = (UByte*)Sector_In->Culling;
       for ( Off_Ip=0, Off_Op= (ZVOXELBLOCSIZE_Y * ZVOXELBLOCSIZE_X * (ZVOXELBLOCSIZE_Z-1)) ; Off_Ip < (ZVOXELBLOCSIZE_Y * ZVOXELBLOCSIZE_X) ; Off_Ip+=ZVOXELBLOCSIZE_Y, Off_Op+=ZVOXELBLOCSIZE_Y ) // x (0..15)
       {
@@ -607,7 +607,7 @@ ULong SectorUpdateFaceCulling_Partial(ZVoxelWorld *world, ZVoxelSector *Sector, 
         {
           Off_In = Off_Ip + Off_Aux;
           Off_Out= Off_Op + Off_Aux;
-          FaceState = IntFaceStateTable[ VoxelTypeTable[ VoxelData_In[Off_In].Data ]->DrawInfo & ZVOXEL_DRAWINFO_CULLINGBITS ][ VoxelTypeTable[ VoxelData_Out[Off_Out].Data ]->DrawInfo & ZVOXEL_DRAWINFO_CULLINGBITS ];
+          FaceState = IntFaceStateTable[ VoxelTypeTable[ VoxelData_In->Data[Off_In] ]->DrawInfo & ZVOXEL_DRAWINFO_CULLINGBITS ][ VoxelTypeTable[ VoxelData_Out->Data[Off_Out] ]->DrawInfo & ZVOXEL_DRAWINFO_CULLINGBITS ];
           if (FaceState) VoxelFC_In[Off_In] |= DRAWFACE_AHEAD; else VoxelFC_In[Off_In] &= ~DRAWFACE_AHEAD;
         }
       }
@@ -619,8 +619,8 @@ ULong SectorUpdateFaceCulling_Partial(ZVoxelWorld *world, ZVoxelSector *Sector, 
   if (FacesToDraw & DRAWFACE_BEHIND)
     if ((Sector_Out = Sector->near_sectors[VOXEL_BEHIND-1]))
     {
-      VoxelData_In  = Sector_In->Data;
-      VoxelData_Out = Sector_Out->Data;
+      VoxelData_In  = &Sector_In->Data;
+      VoxelData_Out = &Sector_Out->Data;
       VoxelFC_In    = (UByte*)Sector_In->Culling;
 
       for ( Off_Ip=(ZVOXELBLOCSIZE_Y * ZVOXELBLOCSIZE_X * (ZVOXELBLOCSIZE_Z-1)) , Off_Op=0 ; Off_Op < (ZVOXELBLOCSIZE_Y * ZVOXELBLOCSIZE_X) ; Off_Ip+=ZVOXELBLOCSIZE_Y, Off_Op+=ZVOXELBLOCSIZE_Y ) // x (0..15)
@@ -629,7 +629,7 @@ ULong SectorUpdateFaceCulling_Partial(ZVoxelWorld *world, ZVoxelSector *Sector, 
         {
           Off_In = Off_Ip + Off_Aux;
           Off_Out= Off_Op + Off_Aux;
-          FaceState = IntFaceStateTable[ VoxelTypeTable[ VoxelData_In[Off_In].Data ]->DrawInfo & ZVOXEL_DRAWINFO_CULLINGBITS ][ VoxelTypeTable[ VoxelData_Out[Off_Out].Data ]->DrawInfo & ZVOXEL_DRAWINFO_CULLINGBITS ];
+          FaceState = IntFaceStateTable[ VoxelTypeTable[ VoxelData_In->Data[Off_In] ]->DrawInfo & ZVOXEL_DRAWINFO_CULLINGBITS ][ VoxelTypeTable[ VoxelData_Out->Data[Off_Out] ]->DrawInfo & ZVOXEL_DRAWINFO_CULLINGBITS ];
           if (FaceState) VoxelFC_In[Off_In] |= DRAWFACE_BEHIND; else VoxelFC_In[Off_In] &= ~DRAWFACE_BEHIND;
         }
       }
@@ -669,7 +669,7 @@ void ZVoxelCuller_Basic::CullSingleVoxel( ZVoxelSector *_Sector, ULong offset )
 
 //bool ZVoxelWorld::SetVoxel_WithCullingUpdate(Long x, Long y, Long z, UShort VoxelValue, UByte ImportanceFactor, bool CreateExtension, VoxelLocation * Location)
 //{
-	ZVoxelSector::VoxelData * Voxel_Address[19];
+	UShort * Voxel_Address[19];
   ULong  Offset[19];
   UByte * FaceCulling_Address[19];
   UShort VoxelState[19];
@@ -754,19 +754,19 @@ void ZVoxelCuller_Basic::CullSingleVoxel( ZVoxelSector *_Sector, ULong offset )
   // Computing absolute memory pointer of blocks
   for( int i = 0; i < 7; i++ )
   {
-	Voxel_Address[i]     = Sector[i]->Data + Offset[i];
+	Voxel_Address[i]     = Sector[i]->Data.Data + Offset[i];
 	FaceCulling_Address[i]     = (UByte*)Sector[i]->Culling + Offset[i];
-    Voxel = Voxel_Address[i]->Data;    VoxelType = VoxelTypeTable[Voxel];
+    Voxel = (*Voxel_Address[i]);    VoxelType = VoxelTypeTable[Voxel];
       VoxelState[i] = ( (Voxel==0) ? 1 : 0) 
 		     | ( VoxelType->Draw_FullVoxelOpacity ? 2 : 0 ) 
 			 | ( VoxelType->Draw_TransparentRendering ? 4 : 0 );
   }
 
-  Voxel = Voxel_Address[VOXEL_INCENTER]->Data;
+  Voxel = (*Voxel_Address[VOXEL_INCENTER]);
 
   // Storing Extension
 
-  VoxelType = VoxelTypeTable[Voxel_Address[VOXEL_INCENTER]->Data];
+  VoxelType = VoxelTypeTable[(*Voxel_Address[VOXEL_INCENTER])];
 
   // Storing Voxel
 
@@ -903,7 +903,7 @@ void ZVoxelCuller_Basic::Compress_RLE(ZVoxelSector *Sector, void  * Stream)
 
 bool SetVoxel_WithCullingUpdate(ZVoxelWorld *world, ZVoxelSector *sector, Long x, Long y, Long z, UShort VoxelValue, UByte ImportanceFactor, bool CreateExtension, VoxelLocation * Location)
 {
-  ZVoxelSector::VoxelData * Voxel_Address[19];
+  UShort * Voxel_Address[19];
   ULong  Offset[19];
   UByte * FaceCulling_Address[19];
   UShort VoxelState[19];
@@ -940,9 +940,9 @@ bool SetVoxel_WithCullingUpdate(ZVoxelWorld *world, ZVoxelSector *sector, Long x
   // Computing absolute memory pointer of blocks
   for( int i = 0; i < 19; i++ )
   {
-	Voxel_Address[i]     = Sector[i]->Data + Offset[i];
+	Voxel_Address[i]     = Sector[i]->Data.Data + Offset[i];
     FaceCulling_Address[i]     = (UByte*)Sector[i]->Culling + Offset[i];
-    Voxel = Voxel_Address[i]->Data;    VoxelType = VoxelTypeTable[Voxel];
+    Voxel = (*Voxel_Address[i]);    VoxelType = VoxelTypeTable[Voxel];
       VoxelState[i] = ( (Voxel==0) ? 1 : 0) 
 		     | ( VoxelType->Draw_FullVoxelOpacity ? 2 : 0 ) 
 			 | ( VoxelType->Draw_TransparentRendering ? 4 : 0 );
@@ -983,8 +983,8 @@ bool SetVoxel_WithCullingUpdate(ZVoxelWorld *world, ZVoxelSector *sector, Long x
   */
   // Delete Old voxel extended informations if any
 
-  Voxel = Voxel_Address[VOXEL_INCENTER]->Data;
-  OtherInfos = Sector[VOXEL_INCENTER]->Data[Offset[VOXEL_INCENTER]].OtherInfos;
+  Voxel      = Sector[VOXEL_INCENTER]->Data.Data[Offset[VOXEL_INCENTER]];
+  OtherInfos = Sector[VOXEL_INCENTER]->Data.OtherInfos[Offset[VOXEL_INCENTER]];
 
   if (OtherInfos)
   {
@@ -997,13 +997,13 @@ bool SetVoxel_WithCullingUpdate(ZVoxelWorld *world, ZVoxelSector *sector, Long x
   VoxelType = VoxelTypeTable[VoxelValue];
   if (CreateExtension)
   {
-    Voxel_Address[VOXEL_INCENTER]->Data = 0; // Temporary set to 0 to prevent VoxelReactor for crashing while loading the wrong extension.
-	Sector[VOXEL_INCENTER]->Data[Offset[VOXEL_INCENTER]].OtherInfos =(ZMemSize)VoxelType->CreateVoxelExtension();
+    (*Voxel_Address[VOXEL_INCENTER]) = 0; // Temporary set to 0 to prevent VoxelReactor for crashing while loading the wrong extension.
+	Sector[VOXEL_INCENTER]->Data.OtherInfos[Offset[VOXEL_INCENTER]] =(ZMemSize)VoxelType->CreateVoxelExtension();
   }
 
   // Storing Voxel
 
-  Voxel_Address[VOXEL_INCENTER]->Data = VoxelValue;
+  (*Voxel_Address[VOXEL_INCENTER]) = VoxelValue;
   VoxelState[VOXEL_INCENTER] = ((VoxelValue==0) ? 1 : 0) | ( VoxelType->Draw_FullVoxelOpacity ? 2 : 0 ) | ( VoxelType->Draw_TransparentRendering ? 4 : 0 );
 
 
@@ -1611,7 +1611,7 @@ void ZRender_Basic::MakeSectorRenderingData(ZVoxelSector * Sector)
           for ( y=0 ; y < Sector->Size_y ; y++ )
           {
             Offset = y + ( x*Sector->Size_y )+ (z * (Sector->Size_y*Sector->Size_x));
-            cube = Sector->Data[Offset].Data;
+            cube = Sector->Data.Data[Offset];
             info = ((UByte*)Sector->Culling)[Offset];
 
 

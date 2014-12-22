@@ -248,7 +248,7 @@ void ZVoxelSector::DefaultInit( void )
 
   DataSize = Size_x * Size_y * Size_z;
   DisplayData = 0;
-  Data        = new VoxelData[DataSize];
+  //Data        = new VoxelData();
   //FaceCulling = new ULong [DataSize];
   //OtherInfos  = new ZMemSize[DataSize];
   //TempInfos   = new UShort[DataSize];
@@ -281,11 +281,11 @@ ZVoxelSector::ZVoxelSector( const ZVoxelSector &Sector)
 
   DataSize = Sector.Size_x * Sector.Size_y * Sector.Size_z;
 
-  Data        = new ZVoxelSector::VoxelData[DataSize];
+  //Data        = new ZVoxelSector::VoxelData[DataSize];
   //OtherInfos  = new ZMemSize[DataSize];
   //TempInfos   = new UShort[DataSize];
 
-  memcpy(Data, Sector.Data, DataSize * sizeof(ZVoxelSector::VoxelData) );
+  memcpy(&Data, &Sector.Data, sizeof(ZVoxelSector::VoxelData) );
   //memcpy(FaceCulling, Sector.FaceCulling, DataSize);
   //memcpy(OtherInfos, Sector.OtherInfos, DataSize * sizeof(ZMemSize));
   //memcpy(TempInfos, Sector.TempInfos, DataSize << 2);
@@ -340,14 +340,14 @@ ZVoxelSector::ZVoxelSector(Long Size_x, Long Size_y, Long Size_z)
   DisplayData = 0;
   if (DataSize>0)
   {
-    Data        = new VoxelData[DataSize];
+    //Data        = new VoxelData[DataSize];
     //FaceCulling = new ULong [DataSize];
     //OtherInfos  = new ZMemSize [DataSize];
     //TempInfos   = new UShort[DataSize];
   }
   else
   {
-    Data        = 0;
+    //Data        = 0;
     Culling = 0;
     //OtherInfos  = 0;
     //TempInfos   = 0;
@@ -367,7 +367,7 @@ void ZVoxelSector::ChangeSize(Long Size_x, Long Size_y, Long Size_z)
 {
   ULong i;
 
-  if (Data)        {delete [] Data;        Data = 0;        }
+  //if (Data)        {delete [] Data;        Data = 0;        }
   if (Culling)     {delete [] Culling;     Culling = 0; }
   if (DisplayData) {delete DisplayData;    DisplayData = 0;    }
   //if (OtherInfos)  {delete [] OtherInfos;  OtherInfos  = 0; }
@@ -381,16 +381,16 @@ void ZVoxelSector::ChangeSize(Long Size_x, Long Size_y, Long Size_z)
   DataSize = Size_x * Size_y * Size_z;
   DisplayData = 0;
 
-  Data        = new VoxelData[DataSize];
+  //Data        = new VoxelData[DataSize];
   Culler->InitFaceCullData( this );
   //FaceCulling = new ULong [DataSize];
   //OtherInfos  = new ZMemSize [DataSize];
   //TempInfos   = new UShort[DataSize];
 
-  for(i=0;i<DataSize;i++) Data[i].Data = 0;
+  for(i=0;i<DataSize;i++) Data.Data[i] = 0;
   //for(i=0;i<DataSize;i++) FaceCulling[i] = 0;
-  for(i=0;i<DataSize;i++) Data[i].OtherInfos = 0;
-  for (i=0;i<DataSize;i++) Data[i].TempInfos = 273+20;
+  for(i=0;i<DataSize;i++) Data.OtherInfos[i] = 0;
+  for (i=0;i<DataSize;i++) Data.TempInfos[i] = 273+20;
 }
 
 void ZVoxelSector::InitSector()
@@ -405,8 +405,8 @@ void ZVoxelSector::InitSector()
   RingNum = 65535;
   Culling = 0;
 
-  for(i=0;i<DataSize;i++) Data[i].OtherInfos = 0;
-  for (i=0;i<DataSize;i++) Data[i].TempInfos = 273+20;
+  for(i=0;i<DataSize;i++)  Data.OtherInfos[i] = 0;
+  for (i=0;i<DataSize;i++) Data.TempInfos [i] = 273+20;
 
   for( int r = 0; r < 6; r++ )
   {
@@ -439,13 +439,13 @@ void ZVoxelSector::CleanupSector()
 
   for(i=0;i<DataSize;i++)
   {
-    if ((Infos=Data[i].OtherInfos))
+    if ((Infos=Data.OtherInfos[i]))
     {
-      if (VoxelTypeManager->VoxelTable[ Data[i].Data ]->Is_HasAllocatedMemoryExtension )
+      if (VoxelTypeManager->VoxelTable[ Data.Data[i] ]->Is_HasAllocatedMemoryExtension )
       {
-        VoxelTypeManager->VoxelTable[ Data[i].Data ]->DeleteVoxelExtension(Infos, true);
+        VoxelTypeManager->VoxelTable[ Data.Data[i] ]->DeleteVoxelExtension(Infos, true);
       }
-      Data[i].OtherInfos = 0;
+      Data.OtherInfos[i] = 0;
     }
   }
 }; //
@@ -461,17 +461,17 @@ ZVoxelSector::~ZVoxelSector()
   {
     for (i=0;i<DataSize;i++)
     {
-      if (VoxelTypeManager->VoxelTable[ Data[i].Data ]->Is_HasAllocatedMemoryExtension)
+      if (VoxelTypeManager->VoxelTable[ Data.Data[i] ]->Is_HasAllocatedMemoryExtension)
       {
-        VoxelTypeManager->VoxelTable[ Data[i].Data ]->DeleteVoxelExtension( Data[i].OtherInfos, true );
-        Data[i].OtherInfos = 0;
+        VoxelTypeManager->VoxelTable[ Data.Data[i] ]->DeleteVoxelExtension( Data.OtherInfos[i], true );
+        Data.OtherInfos[i] = 0;
       }
     }
   }
 
   // Delete memory zones
 
-  if (Data)        {delete [] Data;        Data = 0;        }
+  //if (Data)        {delete [] Data;        Data = 0;        }
   if (Culling)     {delete [] Culling;     Culling = 0;     }
   if (DisplayData) {delete DisplayData;    DisplayData = 0; }
   //if (OtherInfos)  {delete [] OtherInfos;  OtherInfos  = 0; }
@@ -619,7 +619,7 @@ Bool ZVoxelSector::Save(ULong UniverseNum, char const * OptFileName)
   Rs.Put(0xA600DBEDu);
   StartLen = Rs.GetActualBufferLen();
   Rs.Put((UShort)1); // Version
-  Compress_Short_RLE(this->Data, &Rs);
+  Compress_Short_RLE(&this->Data, &Rs);
   *Size = Rs.GetActualBufferLen() - StartLen;
   Rs.FlushBuffer();
 
@@ -642,7 +642,7 @@ Bool ZVoxelSector::Save(ULong UniverseNum, char const * OptFileName)
   Rs.Put(0xA600DBEDu);
   StartLen = Rs.GetActualBufferLen();
   Rs.Put((UShort)1); // Version
-  Compress_OtherInfos_RLE(this->Data, this->Data, &Rs);
+  Compress_OtherInfos_RLE(&this->Data, this->Data.Data, &Rs);
   *Size = Rs.GetActualBufferLen() - StartLen;
   Rs.FlushBuffer();
 
@@ -653,7 +653,7 @@ Bool ZVoxelSector::Save(ULong UniverseNum, char const * OptFileName)
   Rs.Put(0xA600DBEDu);
   StartLen = Rs.GetActualBufferLen();
   Rs.Put((UShort)1); // Version
-  Compress_Temperatures_RLE(this->Data, &Rs);
+  Compress_Temperatures_RLE(&this->Data, &Rs);
   *Size = Rs.GetActualBufferLen() - StartLen;
   Rs.FlushBuffer();
 
@@ -674,13 +674,13 @@ Bool ZVoxelSector::Save(ULong UniverseNum, char const * OptFileName)
 
   for (i=0;i<DataSize;i++)
   {
-    Voxel = Data[i].Data;
+    Voxel = Data.Data[i];
     VoxelType = VoxelTypeManager->VoxelTable[Voxel];
     if (VoxelType->Is_HasAllocatedMemoryExtension)
     {
       (*ExtensionCount)++;
       Rs.Put(i); // Voxel Offset;
-      VoxelExtension = (ZVoxelExtension *)Data[i].OtherInfos;
+      VoxelExtension = (ZVoxelExtension *)Data.OtherInfos[i];
       Rs.Put(VoxelExtension->GetExtensionID());
 
       VoxelExtension->Save(&Rs);
@@ -739,8 +739,8 @@ Bool ZVoxelSector::Old_Load(ULong UniverseNum)
 
   DataSize = ZVOXELBLOCSIZE_X * ZVOXELBLOCSIZE_Y * ZVOXELBLOCSIZE_Z;
 
-  if (DataSize != fread(Data, sizeof(UShort),DataSize,fh)) {fclose (fh);return(false);}
-  if (DataSize != fread(Data, sizeof(UByte) ,DataSize,fh)) {fclose (fh);return(false);}
+  if (DataSize != fread(Data.Data, sizeof(UShort),DataSize,fh)) {fclose (fh);return(false);}
+  //if (DataSize != fread(Data, sizeof(UByte) ,DataSize,fh)) {fclose (fh);return(false);}
   fclose (fh);
 
   return(true);
@@ -868,7 +868,7 @@ Bool ZVoxelSector::Load(ULong UniverseNum, char const * OptFileName)
       Ok = Rs.Get(Section_Len);
       Ok&= Rs.Get(Section_Version);
       if (!Ok) { printf("Sector Loading Error (%ld,%ld,%ld): Can't read VOXEL DATA section informations.\n", (UNum)Pos_x,(UNum)Pos_y,(UNum)Pos_z); Rs.Close(); InStream.Close(); return(false); }
-      if (!Decompress_Short_RLE(Data,&Rs)) { printf("Sector Loading Error (%ld,%ld,%ld): Can't read and decompress VOXEL DATA section data.\n", (UNum)Pos_x,(UNum)Pos_y,(UNum)Pos_z); Rs.Close(); InStream.Close(); return(false); }
+      if (!Decompress_Short_RLE(&Data,&Rs)) { printf("Sector Loading Error (%ld,%ld,%ld): Can't read and decompress VOXEL DATA section data.\n", (UNum)Pos_x,(UNum)Pos_y,(UNum)Pos_z); Rs.Close(); InStream.Close(); return(false); }
     }
     else if (SectionName == "FACECULL")
     {
@@ -882,14 +882,14 @@ Bool ZVoxelSector::Load(ULong UniverseNum, char const * OptFileName)
       Ok = Rs.Get(Section_Len);
       Ok&= Rs.Get(Section_Version);
       if (!Ok) { printf("Sector Loading Error (%ld,%ld,%ld): Can't read VOXEL DATA section informations.\n", (UNum)Pos_x,(UNum)Pos_y,(UNum)Pos_z); Rs.Close(); InStream.Close(); return(false); }
-      if (!Decompress_OtherInfos_RLE(Data,&Rs)) { printf("Sector Loading Error (%ld,%ld,%ld): Can't read and decompress FACE CULLING section data.\n", (UNum)Pos_x,(UNum)Pos_y,(UNum)Pos_z); Rs.Close(); InStream.Close(); return(false); }
+      if (!Decompress_OtherInfos_RLE(&Data,&Rs)) { printf("Sector Loading Error (%ld,%ld,%ld): Can't read and decompress FACE CULLING section data.\n", (UNum)Pos_x,(UNum)Pos_y,(UNum)Pos_z); Rs.Close(); InStream.Close(); return(false); }
     }
     else if (SectionName == "TEMPDATA")
     {
       Ok = Rs.Get(Section_Len);
       Ok&= Rs.Get(Section_Version);
       if (!Ok) { printf("Sector Loading Error (%ld,%ld,%ld): Can't read VOXEL DATA section informations.\n", (UNum)Pos_x,(UNum)Pos_y,(UNum)Pos_z); Rs.Close(); InStream.Close(); return(false); }
-      if (!Decompress_Temperatures_RLE(Data,&Rs)) { printf("Sector Loading Error (%ld,%ld,%ld): Can't read and decompress FACE CULLING section data.\n", (UNum)Pos_x,(UNum)Pos_y,(UNum)Pos_z); Rs.Close(); InStream.Close(); return(false); }
+      if (!Decompress_Temperatures_RLE(&Data,&Rs)) { printf("Sector Loading Error (%ld,%ld,%ld): Can't read and decompress FACE CULLING section data.\n", (UNum)Pos_x,(UNum)Pos_y,(UNum)Pos_z); Rs.Close(); InStream.Close(); return(false); }
     }
     else if (SectionName =="VOXELEXT")
     {
@@ -912,7 +912,7 @@ Bool ZVoxelSector::Load(ULong UniverseNum, char const * OptFileName)
 
       for (i=0;i<DataSize;i++)
       {
-        Voxel = Data[i].Data;
+        Voxel = Data.Data[i];
         VoxelType = VoxelTypeManager->VoxelTable[Voxel];
         if (VoxelType->Is_HasAllocatedMemoryExtension)
         {
@@ -939,7 +939,7 @@ Bool ZVoxelSector::Load(ULong UniverseNum, char const * OptFileName)
             RemainingExtensionsInFile--;
           } while (PassExtension);
 
-          Data[i].OtherInfos = (ZMemSize)VoxelExtension;
+          Data.OtherInfos[i] = (ZMemSize)VoxelExtension;
           if (!VoxelExtension->Load(&Rs)) { printf("Sector Loading Error (%ld,%ld,%ld): Can't read VOXEL EXTENSION section / Can't read voxel extension subdata.\n", (UNum)Pos_x,(UNum)Pos_y,(UNum)Pos_z); Rs.Close(); InStream.Close(); return(false); }
         }
       }
@@ -1074,11 +1074,11 @@ void ZVoxelSector::Compress_Short_RLE(VoxelData * Data, void * Stream)
   ULong i;
   bool Continue;
 
-  Last = Data[Point++].Data;
+  Last = Data->Data[Point++];
   Continue = true;
   while (Continue)
   {
-    if (Point != DataSize) Actual = Data[Point++].Data;
+    if (Point != DataSize) Actual = Data->Data[Point++];
     else                   {Actual = Last - 1; Continue = false; }
     if (Last == Actual)
     {
@@ -1112,7 +1112,7 @@ void ZVoxelSector::Compress_Short_RLE(VoxelData * Data, void * Stream)
 
 }
 
-void ZVoxelSector::Compress_OtherInfos_RLE(VoxelData * Data, VoxelData * VoxelData, void * Stream)
+void ZVoxelSector::Compress_OtherInfos_RLE(VoxelData * Data, UShort * VoxelData, void * Stream)
 {
   ZStream_SpecialRamStream * Rs = (ZStream_SpecialRamStream *)Stream;
   ULong MagicToken = 0xA600DBED;
@@ -1122,16 +1122,16 @@ void ZVoxelSector::Compress_OtherInfos_RLE(VoxelData * Data, VoxelData * VoxelDa
   ULong i;
   bool Continue;
 
-  Last = Data[Point].OtherInfos;
-  if (VoxelTypeManager->VoxelTable[VoxelData[Point++].Data]->Is_HasAllocatedMemoryExtension) Last = 0;
+  Last = Data->OtherInfos[Point];
+  if (VoxelTypeManager->VoxelTable[VoxelData[Point++]]->Is_HasAllocatedMemoryExtension) Last = 0;
 
   Continue = true;
   while (Continue)
   {
     if (Point != DataSize)
     {
-      Actual = this->Data[Point].OtherInfos;
-      if (VoxelTypeManager->VoxelTable[VoxelData[Point++].Data]->Is_HasAllocatedMemoryExtension) Actual = 0;
+      Actual = this->Data.OtherInfos[Point];
+      if (VoxelTypeManager->VoxelTable[VoxelData[Point++]]->Is_HasAllocatedMemoryExtension) Actual = 0;
     }
     else                   {Actual = Last - 1; Continue = false; }
     if (Last == Actual)
@@ -1224,11 +1224,11 @@ void ZVoxelSector::Compress_Temperatures_RLE(VoxelData * Data, void  * Stream)
   ULong i;
   bool Continue;
 
-  Last = Data[Point++].TempInfos;
+  Last = Data->TempInfos[Point++];
   Continue = true;
   while (Continue)
   {
-    if (Point != DataSize) Actual = Data[Point++].TempInfos;
+    if (Point != DataSize) Actual = Data->TempInfos[Point++];
     else                   {Actual = Last - 1; Continue = false; }
     if (Last == Actual)
     {
@@ -1283,11 +1283,11 @@ bool ZVoxelSector::Decompress_Short_RLE(VoxelData * Data, void * Stream)
         return(false);
       }
 
-      while (nRepeat--) {Data[Pointer++].Data = Actual;}
+      while (nRepeat--) {Data->Data[Pointer++] = Actual;}
     }
     else
     {
-      Data[Pointer++].Data = Actual;
+      Data->Data[Pointer++] = Actual;
     }
   }
 
@@ -1349,11 +1349,11 @@ bool ZVoxelSector::Decompress_OtherInfos_RLE(VoxelData * Data, void * Stream)
         return(false);
       }
 
-	  while (nRepeat--) {Data[Pointer++].OtherInfos = Actual;}
+	  while (nRepeat--) {Data->OtherInfos[Pointer++] = Actual;}
     }
     else
     {
-      Data[Pointer++].OtherInfos = Actual;
+      Data->OtherInfos[Pointer++] = Actual;
     }
   }
 
@@ -1381,11 +1381,11 @@ bool ZVoxelSector::Decompress_Temperatures_RLE(VoxelData * Data, void * Stream)
         return(false);
       }
 
-	  while (nRepeat--) {Data[Pointer++].TempInfos = Actual;}
+	  while (nRepeat--) {Data->TempInfos[Pointer++] = Actual;}
     }
     else
     {
-		Data[Pointer++].TempInfos = Actual;
+		Data->TempInfos[Pointer++] = Actual;
     }
   }
 
@@ -1439,24 +1439,24 @@ void ZVoxelSector::Draw_safe_SetVoxel(Long x, Long y, Long z, UShort VoxelType, 
 
   // Si le Voxel Stocké dispose d'une extension, la libérer.
 
-  OldVoxel = Data[Pointer].Data;
+  OldVoxel = Data.Data[Pointer];
 
   if ( OldVoxel && !DrawIfVoid ) return;
   if ( VoxelTypeManager->VoxelTable[OldVoxel]->Is_HasAllocatedMemoryExtension)
   {
-    VoxelTypeManager->VoxelTable[Data[Pointer].Data]->DeleteVoxelExtension(Data[Pointer].OtherInfos);
-    Data[Pointer].OtherInfos = 0;
+    VoxelTypeManager->VoxelTable[Data.Data[Pointer]]->DeleteVoxelExtension(Data.OtherInfos[Pointer]);
+    Data.OtherInfos[Pointer] = 0;
   }
 
   // Stocke le voxel
 
-  Data[Pointer].Data = VoxelType;
+  Data.Data[Pointer] = VoxelType;
 
   // Si le voxel a stocker comporte une partie extension, la créer et l'enregistrer.
 
   if ( VoxelTypeManager->VoxelTable[VoxelType]->Is_HasAllocatedMemoryExtension)
   {
-    Data[Pointer].OtherInfos = (ZMemSize)VoxelTypeManager->VoxelTable[VoxelType]->CreateVoxelExtension();
+    Data.OtherInfos[Pointer] = (ZMemSize)VoxelTypeManager->VoxelTable[VoxelType]->CreateVoxelExtension();
   }
 }
 
@@ -1467,16 +1467,16 @@ void ZVoxelSector::Purge(UShort VoxelType)
 
   for (i=0;i< (ZVOXELBLOCSIZE_X * ZVOXELBLOCSIZE_Y * ZVOXELBLOCSIZE_Z); i++ )
   {
-    Voxel = this->Data[i].Data;
+    Voxel = this->Data.Data[i];
     if (Voxel == VoxelType)
     {
       if ( VoxelTypeManager->VoxelTable[Voxel]->Is_HasAllocatedMemoryExtension)
       {
-		  VoxelTypeManager->VoxelTable[Voxel]->DeleteVoxelExtension(Data[i].OtherInfos);
+		  VoxelTypeManager->VoxelTable[Voxel]->DeleteVoxelExtension(Data.OtherInfos[i]);
       }
-      Data[i].Data=0;
-      Data[i].OtherInfos=0;
-      Data[i].TempInfos=0;
+      Data.Data       [i] = 0;
+      Data.OtherInfos [i] = 0;
+      Data.TempInfos  [i] = 0;
     }
   }
 }
@@ -1933,7 +1933,7 @@ void ZVoxelSector::BlitSector( ZVoxelSector * Source, ZVector3L * Offset)
       for ( ; So < SoEnd; So++, Do++)
       {
         register UShort VoxelType;
-        VoxelType = Source->Data[So].Data;
+        VoxelType = Source->Data.Data[So];
 
         if (VoxelType)
         {
@@ -1943,14 +1943,14 @@ void ZVoxelSector::BlitSector( ZVoxelSector * Source, ZVector3L * Offset)
             if (Do > DataSize) MANUAL_BREAKPOINT;
           #endif
 
-          Data[Do].Data = VoxelType;
-          if ((Data[Do].OtherInfos = Source->Data[So].OtherInfos))
+          Data.Data[Do] = VoxelType;
+          if ((Data.OtherInfos[Do] = Source->Data.OtherInfos[So]))
           {
-            if (VoxelTypeManager->VoxelTable[Data[So].Data]->Is_HasAllocatedMemoryExtension)
+            if (VoxelTypeManager->VoxelTable[Data.Data[So]]->Is_HasAllocatedMemoryExtension)
             {
               ZVoxelExtension * Ext;
-              Ext = ((ZVoxelExtension *)Data[So].OtherInfos)->GetNewCopy();
-              Data[Do].OtherInfos = (ZMemSize)Ext;
+              Ext = ((ZVoxelExtension *)Data.OtherInfos[So])->GetNewCopy();
+              Data.OtherInfos[Do] = (ZMemSize)Ext;
             }
           }
         }
@@ -1969,7 +1969,7 @@ void ZVoxelSector::Subst(UShort Source_VoxelType, UShort Dest_VoxelType)
 
   for (i=0;i<VoxelCount;i++)
   {
-    if (Data[i].Data==Source_VoxelType) Data[i].Data=Dest_VoxelType;
+    if (Data.Data[i]==Source_VoxelType) Data.Data[i]=Dest_VoxelType;
   }
 
 }

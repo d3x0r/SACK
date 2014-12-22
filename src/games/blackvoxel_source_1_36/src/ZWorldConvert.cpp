@@ -37,7 +37,7 @@ void ZWorldConverter::SectorConvert(ZVoxelSector * Sector)
 
   for(i=0;i<SectorSize;i++)
   {
-    Sector->Data[i].Data = ConversionTable[Sector->Data[i].Data];
+    Sector->Data.Data[i] = ConversionTable[Sector->Data.Data[i]];
   }
 }
 

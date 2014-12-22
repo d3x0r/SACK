@@ -105,9 +105,15 @@
 #  include "ZVoxelType_Concrete.h"
 #endif
 
+#ifndef Z_ZVOXELTYPE_EXAMPLE_H
+#  include "ZVoxelType_Example.h"
+#endif
+
 #ifndef Z_ZVOXELTYPE_VOID_H
 #  include "ZVoxelType_Void.h"
 #endif
+
+
 
 void ZVoxelTypeManager::DumpInfos()
 {
@@ -1624,9 +1630,10 @@ Bool ZVoxelTypeManager::LoadVoxelTypes()
 	  case 230:
 	  case 231: VoxelType = new ZVoxelType_IndicatorLight(i); break;
       case 235: VoxelType = new ZVoxelType_Concrete(i);              break;
+      case 237: VoxelType = new ZVoxelType_Example(i);               break;
 
 	  case 236: VoxelType = new ZVoxelType_Food(i); break;
-	  case 237: VoxelType = new ZVoxelType_Food(i); break;
+	  //case 237: VoxelType = new ZVoxelType_Food(i); break;
 	  case 238: VoxelType = new ZVoxelType_Food(i); break;
 	  case 239: VoxelType = new ZVoxelType_FertileGround(i); break;
 	  case 240: VoxelType = new ZVoxelType_Animal(i); break;

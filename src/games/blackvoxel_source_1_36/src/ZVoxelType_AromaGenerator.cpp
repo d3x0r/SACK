@@ -60,7 +60,7 @@ bool ZVoxelType_AromaGenerator::React( const ZVoxelRef &self, double tick )
 			ULong offset;
 			ZVoxelSector::GetNearVoxel( self.Sector, self.Offset, &next_sector, offset, (RelativeVoxelOrds)number ); 
 
-			UShort next = next_sector->Data[offset].Data;
+			UShort next = next_sector->Data.Data[offset];
 			if( VoxelTypeManager->VoxelTable[next]->Is_CanBeReplacedBy_Water) 
 			{
 				self.World->SetVoxel_WithCullingUpdate( next_sector, offset, (self.x & 1)/*SRG_GetEntropy( ZVoxelReactor::Random2, 1, 0 )*/?242:244, ZVoxelSector::CHANGE_CRITICAL, true );                                         

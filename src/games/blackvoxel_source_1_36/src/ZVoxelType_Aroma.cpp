@@ -91,7 +91,7 @@ bool ZVoxelType_Aroma::React( const ZVoxelRef &self, double tick )
 				DirEn[i]=false;
 				continue;
 			}
-			Vp[i] = &St[i+1]->Data[ SecondaryOffset[i+1] ].Data;
+			Vp[i] = &St[i+1]->Data.Data[ SecondaryOffset[i+1] ];
 #if defined( CAN_RECURSE )
 			if( self.VoxelTypeManager->ActiveTable->Get(*Vp[i]) 
 				&& !St[i+1]->ModifTracker.Get(SecondaryOffset[i+1] ) )
@@ -111,7 +111,7 @@ bool ZVoxelType_Aroma::React( const ZVoxelRef &self, double tick )
 			{
 				int check_index = ZVoxelReactor::x6_opposing_escape[j][k];
 				PrefSecondaryOffset[j][k] = SecondaryOffset[check_index];
-				Vp2[j][k] = &St[check_index]->Data[ SecondaryOffset[check_index] ].Data;
+				Vp2[j][k] = &St[check_index]->Data.Data[ SecondaryOffset[check_index] ];
 #if defined( CAN_RECURSE )
 				if( self.VoxelTypeManager->ActiveTable->Get(*Vp2[j][k]) 
 					&& !St[check_index]->ModifTracker.Get(SecondaryOffset[check_index] ) )
@@ -162,7 +162,7 @@ bool ZVoxelType_Aroma::React( const ZVoxelRef &self, double tick )
 					if (!j)
 					{
 						int check_index = ZVoxelReactor::x6_opposing_escape[i][k]; 
-						if( &St[check_index]->Data[ SecondaryOffset[check_index] ].Data != Vp2[i][k]  )
+						if( &St[check_index]->Data.Data[ SecondaryOffset[check_index] ] != Vp2[i][k]  )
 							DebugBreak();
 						//lprintf( "swap %d,%d %d", i, k, check_index );
 						self.World->ExchangeVoxels( self.Sector, self.Offset
@@ -190,7 +190,7 @@ bool ZVoxelType_Aroma::React( const ZVoxelRef &self, double tick )
 					if( *Vp[i] )
 						DebugBreak();
 					//lprintf( "swap %d", i + 1 );
-					if( &St[i+1]->Data[ SecondaryOffset[i+1] ].Data != ( Vp[i] ) )
+					if( &St[i+1]->Data.Data[ SecondaryOffset[i+1] ] != ( Vp[i] ) )
 					{
 						DebugBreak();
 					}
