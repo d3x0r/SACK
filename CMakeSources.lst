@@ -583,6 +583,7 @@ set( BASE_SOURCES ${BASE_SOURCES} ${FFMPEG_SOURCES} )
 
 
 if( FORCE_CXX )
+set_source_files_properties(${BAG_SQLITE_INTERFACE} PROPERTIES LANGUAGE CXX )
 set_source_files_properties(${GENX_SOURCES} PROPERTIES LANGUAGE CXX )
 set_source_files_properties(${IMAGE_SOURCES} PROPERTIES LANGUAGE CXX )
 set_source_files_properties(${PSI_SOURCES} PROPERTIES LANGUAGE CXX )

@@ -1609,7 +1609,7 @@ z = (Qyx-Qxy)*s
 #define SPRINTF sprintf
 #else
 #define PRINTF lprintf
-#define SPRINTF(a,b,...) snprintf(a,sizeof(a),b,##__VA_ARGS__)
+#define SPRINTF(a,b,...) tnprintf(a,sizeof(a),b,##__VA_ARGS__)
 #endif
 
 #define DOUBLE_FORMAT  WIDE("%g")
@@ -1628,7 +1628,7 @@ void PrintVector( CTEXTSTR lpName, PCVECTOR v )
  void PrintVectorStdEx( CTEXTSTR lpName, VECTOR v DBG_PASS )
 {
    TEXTCHAR byBuffer[256];
-   snprintf( byBuffer, sizeof( byBuffer ), WIDE("Vector  %s = <") DOUBLE_FORMAT WIDE(", ") DOUBLE_FORMAT WIDE(", ") DOUBLE_FORMAT WIDE("> ") DOUBLE_FORMAT WIDE("\n"),
+   tnprintf( byBuffer, sizeof( byBuffer ), WIDE("Vector  %s = <") DOUBLE_FORMAT WIDE(", ") DOUBLE_FORMAT WIDE(", ") DOUBLE_FORMAT WIDE("> ") DOUBLE_FORMAT WIDE("\n"),
             lpName, v[0], v[1], v[2], Length(v) );
    PRINTF( WIDE("%s"), byBuffer );
 }

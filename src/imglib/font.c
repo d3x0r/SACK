@@ -1044,7 +1044,7 @@ static int Step( CTEXTSTR *pc, size_t *nLen, CDATA *fore_original, CDATA *back_o
 		{
 			// use a long unique code for color sequencing...
          // so we can encode other things like images..
-#define PREFIX "org.d3x0r.sack.image:color"
+#define PREFIX WIDE("org.d3x0r.sack.image:color")
   			if( StrCmp( (*pc), PREFIX ) != 0 )
 			{
 				while( ch && ( ch != (unsigned char)'\x9C' ) )

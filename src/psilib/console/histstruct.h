@@ -2,7 +2,7 @@
 #ifndef HISTORY_STRUCTURES_DEFINED
 #define HISTORY_STRUCTURES_DEFINED
 
-//#include "consolestruc.h"
+#include "consolestruc.h"
 PSI_CONSOLE_NAMESPACE
 
 struct history_line_tag {

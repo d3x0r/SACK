@@ -651,7 +651,7 @@ LRESULT CALLBACK
 								{
 									if( l.flags.bLogKeyEvent )
 										lprintf( WIDE("Local Keydefs Dispatch key : %p %08lx"), hVideo, key );
-									if( hVideo && !HandleKeyEvents( hVideo->KeyDefs, key ) )
+									if( hVideo && hVideo->KeyDefs && !HandleKeyEvents( hVideo->KeyDefs, key ) )
 									{
 										if( l.flags.bLogKeyEvent )
 											lprintf( WIDE("Global Keydefs Dispatch key : %08lx"), key );
@@ -2360,6 +2360,8 @@ WM_DROPFILES
 			if( l.GetTouchInputInfo )
 			{
 				TOUCHINPUT inputs[100];
+				struct input_point outputs[20];
+
 				int count = LOWORD(wParam);
 				PVIDEO hVideo = (PVIDEO)GetWindowLong( hWnd, WD_HVIDEO );
 				if( count > 100 )
@@ -2367,22 +2369,54 @@ WM_DROPFILES
 				l.GetTouchInputInfo( (HTOUCHINPUT)lParam, count, inputs, sizeof( TOUCHINPUT ) );
 				//lprintf( "touch event with %d", count );
 				l.CloseTouchInputHandle( (HTOUCHINPUT)lParam );
+				{
+					int n;
+					for( n = 0; n < count; n++ )
+					{
+						// windows coordiantes some in in hundreths of pixesl as a long
+						lprintf( WIDE("input point %d,%d %08x  %s %s %s %s %s %s %s")
+								 , inputs[n].x, inputs[n].y
+								 , inputs[n].dwFlags
+								 , ( inputs[n].dwFlags & TOUCHEVENTF_MOVE)?WIDE("MOVE"):WIDE("")
+								 , ( inputs[n].dwFlags & TOUCHEVENTF_DOWN)?WIDE("DOWN"):WIDE("")
+								 , ( inputs[n].dwFlags & TOUCHEVENTF_UP)?WIDE("UP"):WIDE("")
+								 , ( inputs[n].dwFlags & TOUCHEVENTF_INRANGE)?WIDE("InRange"):WIDE("")
+								 , ( inputs[n].dwFlags & TOUCHEVENTF_PRIMARY)?WIDE("Primary"):WIDE("")
+								 , ( inputs[n].dwFlags & TOUCHEVENTF_NOCOALESCE)?WIDE("NoCoales"):WIDE("")
+								 , ( inputs[n].dwFlags & TOUCHEVENTF_PALM)?WIDE("PALM"):WIDE("")
+
+								 );
+						outputs[n].x = inputs[n].x / 100.0f;
+						outputs[n].y = inputs[n].y / 100.0f;
+
+						if( inputs[n].dwFlags & TOUCHEVENTF_DOWN )
+							outputs[n].flags.new_event = 1;
+						else
+							outputs[n].flags.new_event = 0;
+
+						if( inputs[n].dwFlags & TOUCHEVENTF_UP )
+							outputs[n].flags.end_event = 1;
+						else
+							outputs[n].flags.end_event = 0;
+					}
+				}
 				if( hVideo )
 				{
-               int handled = 0;
+					int handled = 0;
+
 					if( hVideo->pTouchCallback )
 					{
-						handled = hVideo->pTouchCallback( hVideo->dwTouchData, inputs, count );
+						handled = hVideo->pTouchCallback( hVideo->dwTouchData, outputs, count );
 					}
 
 					if( !handled )
 					{
-                  // this will be like a hvid core
-                  handled = Handle3DTouches( hVideo, inputs, count );
+						// this will be like a hvid core
+						handled = Handle3DTouches( hVideo, inputs, count );
 					}
 					if( handled )
 						Return 0;
-               Return 1;
+					Return 1;
 				}
 			}
 		}

@@ -3304,7 +3304,10 @@ void SetCommonFont( PSI_CONTROL pc, SFTFont font )
 			GetStringSizeFont( WIDE("XXXXX"), &_w, &_h, NULL/*pc->caption.font*/ );
 			GetStringSizeFont( WIDE("XXXXX"), &w, &h, font );
 			if(h == 0 )
-				DebugBreak();
+			{
+            h = 10;
+				//DebugBreak();
+			}
 
 			if( w != _w || h != _h )
 			{

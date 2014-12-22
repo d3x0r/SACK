@@ -898,7 +898,7 @@ static void DrawMessages( PCHAT_LIST list, Image window )
 			DrawAMessage( window, list, msg );
 		if( list->display.message_top < l.side_pad )
 		{
-			lprintf( WIDE("Done.") );
+			//lprintf( WIDE("Done.") );
 			break;
 		}
 	}
@@ -934,7 +934,7 @@ static PCHAT_MESSAGE FindMessage( PCHAT_LIST list, int y )
 			break;
 		if( message_top < l.side_pad )
 		{
-			lprintf( WIDE("Done.") );
+			//lprintf( WIDE("Done.") );
 			break;
 		}
 	}
