@@ -678,7 +678,7 @@ LOGICAL sack_set_eof ( HANDLE file_handle )
 		if( file->fsi )
 		{
 			file->fsi->truncate( file_handle );
-			lprintf( "result is %d", file->fsi->size( file_handle ) );
+			lprintf( WIDE("result is %d"), file->fsi->size( file_handle ) );
 		}
 		else
 		{
@@ -1210,10 +1210,15 @@ int  sack_fclose ( FILE *file_file )
 	if( file && file->fsi )
 	{
 		size_t result;
-		POINTER dupbuf = malloc( size*count + 3 );
-		memcpy( dupbuf, buffer, size*count );
-		result = file->fsi->write( file_file, (const char*)dupbuf, size * count );
-		Deallocate( POINTER, dupbuf );
+		if( !file->fsi->copy_write_buffer || file->fsi->copy_write_buffer() )
+		{
+			POINTER dupbuf = malloc( size*count + 3 );
+			memcpy( dupbuf, buffer, size*count );
+			result = file->fsi->write( file_file, (const char*)dupbuf, size * count );
+			Deallocate( POINTER, dupbuf );
+		}
+		else
+			result = file->fsi->write( file_file, (const char*)buffer, size * count );
 		return result;
 	}
 	return fwrite( (POINTER)buffer, size, count, file_file );
@@ -1234,6 +1239,18 @@ TEXTSTR sack_fgets ( TEXTSTR buffer, size_t size,FILE *file_file )
 #endif
 }
 
+LOGICAL sack_fexistsEx ( CTEXTSTR filename, struct file_system_interface *fsi )
+{
+	if( fsi && fsi->exists )
+	{
+#ifdef UNICODE
+		lprintf( WIDE( "FAILED" ) );
+		return fsi->exists( (char *)filename );
+#else
+		return fsi->exists( filename );
+#endif
+	}
+}
 
 int  sack_rename ( CTEXTSTR file_source, CTEXTSTR new_name )
 {
