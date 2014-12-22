@@ -2341,16 +2341,23 @@ static PTRSZVAL CPROC ProcessVideoFrame( PTHREAD thread )
 		if( !packet )
 		{
 			if( file->flags.no_more_packets )
-			if( !file->flags.video.first_flush )
-			{
-				file->flags.video.first_flush = 1;
-				file->flags.video.flushing = 1;
-				packet = &l.blank_packet;
-			}
+				if( !file->flags.video.first_flush )
+				{
+					file->flags.video.first_flush = 1;
+					file->flags.video.flushing = 1;
+					packet = &l.blank_packet;
+				}
+				else
+				{
+					// allow pause...
+					file->flags.video.flushing = 0;
+				}
+
 		}
 		else
 		{
 			file->flags.video.first_flush = 0;
+			file->flags.video.flushing = 0;
 			file->video_packets--;
 		}
 		if( packet )
@@ -2421,7 +2428,7 @@ static PTRSZVAL CPROC ProcessVideoFrame( PTHREAD thread )
 					lprintf( WIDE("Begin with a new frame...") );
 #endif
 			pause_wait:
-				while( file->flags.paused )
+				while( file->flags.paused && !file->flags.video.flushing )
 				{
 					//Image out_surface = GetDisplayImage( file->output );
 					file->flags.using_video_frame = 0;
@@ -2472,7 +2479,9 @@ static PTRSZVAL CPROC ProcessVideoFrame( PTHREAD thread )
 					file->video_next_pts_time = ( 1000000LL * file->pVideoFrame->pkt_pts
 														  * file->pVideoCodecCtx->ticks_per_frame * file->pVideoCodecCtx->time_base.num ) / file->pVideoCodecCtx->time_base.den
 						+ file->media_start_time;
+#ifdef DEBUG_VIDEO_PACKET_READ
 					lprintf( WIDE("Setting next time to %")_64fs WIDE(" %")_64fs, file->video_next_pts_time, file->video_next_pts_time - file->media_start_time );
+#endif
 				}
 
 				if( !file->videoFrame )
@@ -2510,7 +2519,7 @@ static PTRSZVAL CPROC ProcessVideoFrame( PTHREAD thread )
 						//lprintf( WIDE("awake...") );
 						if( file->flags.close_processing )
 							goto video_done;
-						if( file->flags.paused )
+						if( file->flags.paused && !file->flags.video.flushing )
 						{
 #ifdef DEBUG_VIDEO_PACKET_READ
 							lprintf( WIDE("Woke up from sleep to pause(%")_64fs WIDE(" left)"), file->video_current_pts_time - ffmpeg.av_gettime());
@@ -2566,7 +2575,7 @@ static PTRSZVAL CPROC ProcessVideoFrame( PTHREAD thread )
 #ifdef DEBUG_VIDEO_PACKET_READ
 									lprintf( WIDE("awake...") );
 #endif
-									if( file->flags.paused )
+									if( file->flags.paused && !file->flags.video.flushing )
 										goto pause_wait;
 									time = ffmpeg.av_gettime();
 								}
@@ -2806,6 +2815,7 @@ static PTRSZVAL CPROC ProcessFrames( PTHREAD thread )
 #ifdef DEBUG_LOW_LEVEL_PACKET_READ
 				lprintf( WIDE("packet reader; no more packets.") );
 #endif
+				file->flags.no_more_packets = 1;
 				while( ( !file->flags.need_video_frame || file->video_packets ) 
 					|| ( !file->flags.need_audio_frame || file->out_of_queue ) )
 				{
@@ -2813,7 +2823,6 @@ static PTRSZVAL CPROC ProcessFrames( PTHREAD thread )
 					WakeableSleep( 10 );
 				}
 				lprintf( WIDE("threads are both like empty") );
-				file->flags.no_more_packets = 1;
 				if( !file->flags.sent_end_event )
 				{
 					lprintf( WIDE("Send end event...") );
