@@ -364,7 +364,7 @@ Image ImageJpgFile (_8 * buf, _32 size)
  * and a compression quality factor are passed in.
  */
 
-LOGICAL JpgImageFile( Image image, _8 **buf, size_t *size)
+LOGICAL JpgImageFile( Image image, _8 **buf, size_t *size, int Q )
 {
   /* This struct contains the JPEG compression parameters and pointers to
    * working space (which is allocated as needed by the JPEG library).
@@ -452,7 +452,7 @@ LOGICAL JpgImageFile( Image image, _8 **buf, size_t *size)
   /* Now you can set any non-default parameters you wish to.
    * Here we just illustrate the use of quality (quantization table) scaling:
    */
-  jpeg_set_quality(&cinfo, 85, TRUE /* limit to baseline-JPEG values */);
+  jpeg_set_quality(&cinfo, Q, TRUE /* limit to baseline-JPEG values */);
 
   /* Step 4: Start compressor */
 

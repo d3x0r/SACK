@@ -606,7 +606,7 @@ ALPHA_TRANSPARENT_MAX = 0x2FF
 		namespace loader{
 #endif
 	IMAGE_PROC  LOGICAL IMAGE_API  PngImageFile ( Image image, P_8 *buf, size_t *size );
-	IMAGE_PROC  LOGICAL IMAGE_API  JpgImageFile ( Image image, P_8 *buf, size_t *size );
+	IMAGE_PROC  LOGICAL IMAGE_API  JpgImageFile ( Image image, P_8 *buf, size_t *size, int Q );
 #ifdef __cplusplus
 		}
 #endif
@@ -1902,7 +1902,7 @@ IMAGE_PROC_PTR( void, PutStringFontExx )( Image pImage
 // sometimes its parent is not redrawn?
 IMAGE_PROC_PTR( void, ResetImageBuffers )( Image image, LOGICAL image_only );
 	IMAGE_PROC_PTR(  LOGICAL, PngImageFile )( Image image, P_8 *buf, size_t *size );
-	IMAGE_PROC_PTR(  LOGICAL, JpgImageFile )( Image image, P_8 *buf, size_t *size );
+	IMAGE_PROC_PTR(  LOGICAL, JpgImageFile )( Image image, P_8 *buf, size_t *size, int Q );
 
 } IMAGE_INTERFACE, *PIMAGE_INTERFACE;
 

@@ -5181,6 +5181,7 @@ void  GetDisplaySizeEx ( int nDisplay
 			int v_test = 0;
 			int i;
 			int found = 0;
+			int ndisplay_enum = 0;
 			DISPLAY_DEVICE dev;
 			DEVMODE dm;
 			dm.dmSize = sizeof( DEVMODE );
@@ -5202,8 +5203,9 @@ void  GetDisplaySizeEx ( int nDisplay
 					}
 					else
 						lprintf( WIDE("Found display name, but enum current settings failed? %s %d" ), teststring, GetLastError() );
+					ndisplay_enum++;
 					lprintf( WIDE( "[%s] might be [%s]" ), teststring, dev.DeviceName );
-					if( StrCaseCmp( teststring, dev.DeviceName ) == 0 )
+					if( StrCaseCmp( teststring, dev.DeviceName ) == 0 || ndisplay_enum )
 					{
 						if( EnumDisplaySettings( dev.DeviceName, ENUM_CURRENT_SETTINGS, &dm ) )
 						{
