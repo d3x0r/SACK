@@ -14,7 +14,7 @@
 #include <sack_vfs.h>
 
 SACK_VFS_NAMESPACE
-
+#define PARANOID_INIT
 typedef _32 BLOCKINDEX; // 4096 blocks... 
 typedef _32 FPI; // file position type
 
@@ -24,6 +24,7 @@ enum block_cache_entries
 	, BLOCK_CACHE_NAMES
 	, BLOCK_CACHE_FILE
 	, BLOCK_CACHE_BAT
+	, BLOCK_CACHE_COUNT
 };
 
 PREFIX_PACKED struct volume {
@@ -34,12 +35,12 @@ PREFIX_PACKED struct volume {
 	DWORD dwSize;
 	CTEXTSTR userkey;
 	CTEXTSTR devkey;
-	int curseg;
-	int segment[4];// associated with usekey[n]
+	enum block_cache_entries curseg;
+	int segment[BLOCK_CACHE_COUNT];// associated with usekey[n]
 	struct random_context *entropy;
 	P_8 key;  // allow byte encrypting...
 	P_8 segkey;  // allow byte encrypting... key based on sector volume file index
-	P_8 usekey[4]; // composite key
+	P_8 usekey[BLOCK_CACHE_COUNT]; // composite key
 	PLIST files; // when reopened file structures need to be updated also...
 } PACKED;
 
@@ -55,7 +56,7 @@ PREFIX_PACKED struct directory_entry
 struct disk
 {
 	// BAT is at 0 of every 4096 blocks (4097 total)
-	// BAT[0] == itself....
+	// &BAT[0] == itself....
 	// BAT[0] == first directory entry (actually next entry; first is always here)
 	// BAT[1] == first name entry (actually next name block; first is known as here)
 	// bat[4096] == NEXT_BAT[0]; NEXT_BAT = BAT + 4096 + 1024*4096;
@@ -81,7 +82,6 @@ static struct {
 
 static _32 GetFreeBlock( struct volume *vol, LOGICAL init );
 static void DumpDirectory( struct volume *vol );
-
 
 // read the byte from namespace at offset; decrypt byte in-register
 // compare against the filename bytes.
@@ -172,19 +172,20 @@ static void ExpandVolume( struct volume *vol )
 	}
 	if( vol->key )
 	{
-		_32 ofs = oldsize;
-		_32 first_slab = ofs / ( 4096 );
+		_32 first_slab = oldsize / ( 4096 );
 		_32 slab = vol->dwSize / ( 4096 );
 		_32 n;
-		for( n = ((first_slab /1025)*1025);  n < slab; n += 1025  )
+		for( n = first_slab; n < slab; n++  )
 		{
-			if( ( n * 4096 ) < oldsize )
-				continue;
 			vol->segment[BLOCK_CACHE_BAT] = n + 1;
-			UpdateSegmentKey( vol, BLOCK_CACHE_BAT );
+			if( ( n % 1025 ) == 0 )	 UpdateSegmentKey( vol, BLOCK_CACHE_BAT );
+#ifdef PARANOID_INIT
+			else 	                 SRG_GetEntropyBuffer( vol->entropy, (P_32)vol->usekey[BLOCK_CACHE_BAT], 4096 * 8 );
+#else
+			else continue;
+#endif
 			MemCpy( ((P_8)vol->disk) + n * 4096, vol->usekey[BLOCK_CACHE_BAT], 4096 );
 		}
-
 	}
 	if( !oldsize )
 	{
@@ -375,12 +376,7 @@ struct volume *sack_vfs_load_volume( CTEXTSTR filepath )
 static void AddSalt( PTRSZVAL psv, POINTER *salt, size_t *salt_size )
 {
 	struct volume *vol = (struct volume *)psv;
-	if( vol->segment[vol->curseg] )
-	{
-		(*salt_size) = 4;
-		(*salt) = &vol->segment[vol->curseg];
-	}
-	else if( vol->userkey )
+	if( vol->userkey )
 	{
 		(*salt_size) = StrLen( vol->userkey );
 		(*salt) = (POINTER)vol->userkey;
@@ -392,7 +388,12 @@ static void AddSalt( PTRSZVAL psv, POINTER *salt, size_t *salt_size )
 		(*salt) = (POINTER)vol->devkey;
 		vol->devkey = NULL;
 	}
-	else
+	else if( vol->segment[vol->curseg] )
+	{
+		(*salt_size) = sizeof( vol->segment[vol->curseg] );
+		(*salt) = &vol->segment[vol->curseg];
+	}
+	else 
 		(*salt_size) = 0;
 }
 
@@ -405,14 +406,14 @@ struct volume *sack_vfs_load_crypt_volume( CTEXTSTR filepath, CTEXTSTR userkey, 
 	vol->userkey = userkey;
 	vol->devkey = devkey;
 	{
-		_32 size = 4096 + 4096 * 4 + 16;
+		_32 size = 4096 + 4096 * BLOCK_CACHE_COUNT + 16;
 		int n;
 		vol->entropy = SRG_CreateEntropy2( AddSalt, (PTRSZVAL)vol );
 		vol->key = (P_8)OpenSpace( NULL, NULL, &size );
-		for( n = 0; n < 4; n++ )
+		for( n = 0; n < BLOCK_CACHE_COUNT; n++ )
 			vol->usekey[n] = vol->key + (n+1) * 4096;
 		vol->segkey = vol->key + 4096 * (n+1);
-		vol->curseg = 0;
+		vol->curseg = BLOCK_CACHE_DIRECTORY;
 		vol->segment[0] = 0;
 		SRG_GetEntropyBuffer( vol->entropy, (P_32)vol->key, 4096 * 8 );
 	}
@@ -559,11 +560,7 @@ struct sack_vfs_file * CPROC sack_vfs_openfile( struct volume *vol, CTEXTSTR fil
 	return file;
 }
 
-struct sack_vfs_file * CPROC sack_vfs_open( CTEXTSTR filename )
-{
-	return sack_vfs_openfile( l.default_volume, filename );
-}
-
+struct sack_vfs_file * CPROC sack_vfs_open( CTEXTSTR filename ) { return sack_vfs_openfile( l.default_volume, filename ); }
 
 LOGICAL CPROC _sack_vfs_exists( struct volume *vol, CTEXTSTR file )
 {
@@ -573,21 +570,11 @@ LOGICAL CPROC _sack_vfs_exists( struct volume *vol, CTEXTSTR file )
 	return FALSE;
 }
 
-LOGICAL CPROC sack_vfs_exists( CTEXTSTR file )
-{
-	return _sack_vfs_exists( l.default_volume, file );
-}
+LOGICAL CPROC sack_vfs_exists( CTEXTSTR file ) { return _sack_vfs_exists( l.default_volume, file ); }
 
+_32 CPROC sack_vfs_tell( struct sack_vfs_file *file ) { return file->fpi; }
 
-_32 CPROC sack_vfs_tell( struct sack_vfs_file *file )
-{
-	return file->fpi;
-}
-
-_32 CPROC sack_vfs_size( struct sack_vfs_file *file )
-{
-	return file->entry->filesize ^ file->dirent_key.filesize;
-}
+_32 CPROC sack_vfs_size( struct sack_vfs_file *file ) {	return file->entry->filesize ^ file->dirent_key.filesize; }
 
 _32 CPROC sack_vfs_seek( struct sack_vfs_file *file, size_t pos, int whence )
 {
@@ -748,18 +735,9 @@ _32 CPROC sack_vfs_read( struct sack_vfs_file *file, char * data, size_t length 
 	return written;
 }
 
-_32 sack_vfs_truncate( struct sack_vfs_file *file )
-{
-	file->entry->filesize = file->fpi;
-	return file->fpi;
-}
+_32 sack_vfs_truncate( struct sack_vfs_file *file ) { file->entry->filesize = file->fpi; return file->fpi; }
 
-int sack_vfs_close( struct sack_vfs_file *file )
-{
-	DeleteLink( &file->vol->files, file );
-	Release( file );
-	return 0;
-}
+int sack_vfs_close( struct sack_vfs_file *file ) { DeleteLink( &file->vol->files, file ); Release( file ); return 0; }
 
 void sack_vfs_unlink_file( struct volume *vol, CTEXTSTR filename )
 {
@@ -783,21 +761,11 @@ void sack_vfs_unlink_file( struct volume *vol, CTEXTSTR filename )
 	}
 }
 
-void sack_vfs_unlink( CTEXTSTR filename )
-{
-	sack_vfs_unlink_file( l.default_volume, filename );
-}
+void sack_vfs_unlink( CTEXTSTR filename ) {	sack_vfs_unlink_file( l.default_volume, filename ); }
 
-int sack_vfs_flush( struct sack_vfs_file *file )
-{
-	/* noop */
-	return 0;
-}
+int sack_vfs_flush( struct sack_vfs_file *file ) {	/* noop */	return 0; }
 
-static LOGICAL CPROC sack_vfs_need_copy_write( void )
-{
-	return FALSE;
-}
+static LOGICAL CPROC sack_vfs_need_copy_write( void ) {	return FALSE; }
 
 static struct file_system_interface sack_vfs_fsi = { sack_vfs_open
                                                    , sack_vfs_close
