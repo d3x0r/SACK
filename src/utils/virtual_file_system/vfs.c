@@ -93,15 +93,13 @@ static int MaskStrCmp( struct volume *vol, CTEXTSTR filename, _32 name_offset )
 		while(  ( c = ( ((P_8)vol->disk)[name_offset] ^ vol->usekey[BLOCK_CACHE_NAMES][name_offset&0x3FF] ) )
 			  && filename[0] )
 		{
-			if( ! (((filename[0] >='a' && filename[0] <='z' )?filename[0]-('a'-'A'):filename[0])
-									 == ((c >='a' && c <='z' )?c-('a'-'A'):c) ) )
-  				return 1;  // not 0
+			int del = tolower(filename[0]) - tolower(c);
+			if( del ) return del;
 			filename++;
 			name_offset++;
 		}
-		if( !filename[0] && !c )
-			return 0;
-		return 1;
+		// c will be 0 or filename will be 0... 
+		return filename[0] - c;
 	}
 	else
 	{
@@ -161,15 +159,6 @@ static void ExpandVolume( struct volume *vol )
 		}
 		vol->disk = new_disk;
 	}
-	if( !oldsize )
-	{
-		MemSet( vol->disk, 0, vol->dwSize );
-	}
-	else
-	{
-		if( oldsize )
-			MemSet( ((P_8)vol->disk) + oldsize, 0, vol->dwSize - oldsize );
-	}
 	if( vol->key )
 	{
 		_32 first_slab = oldsize / ( 4096 );
@@ -187,6 +176,9 @@ static void ExpandVolume( struct volume *vol )
 			MemCpy( ((P_8)vol->disk) + n * 4096, vol->usekey[BLOCK_CACHE_BAT], 4096 );
 		}
 	}
+	else if( !oldsize ) MemSet( vol->disk, 0, vol->dwSize );
+	else if( oldsize ) MemSet( ((P_8)vol->disk) + oldsize, 0, vol->dwSize - oldsize );
+
 	if( !oldsize )
 	{
 		// can't recover dirents and nameents dynamically; so just assume
