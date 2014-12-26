@@ -95,7 +95,7 @@ static int MaskStrCmp( struct volume *vol, CTEXTSTR filename, _32 name_offset )
 		{
 			if( ! (((filename[0] >='a' && filename[0] <='z' )?filename[0]-('a'-'A'):filename[0])
 									 == ((c >='a' && c <='z' )?c-('a'-'A'):c) ) )
-  			   return 1;  // not 0
+  				return 1;  // not 0
 			filename++;
 			name_offset++;
 		}
@@ -522,11 +522,11 @@ static struct directory_entry * GetNewDirectory( struct volume *vol, CTEXTSTR fi
 			struct directory_entry *ent = next_entries + n;
 			_32 name_ofs = ent->name_offset ^ entkey->name_offset;
 			_32 first_blk = ent->first_block ^ entkey->first_block;
-            // not name_offset (end of list) or not first_block(free entry) use this block
+			// not name_offset (end of list) or not first_block(free entry) use this entry
 			if( name_ofs && first_blk )	continue;
 			name_ofs = SaveFileName( vol, filename ) ^ entkey->name_offset;
 			first_blk = GetFreeBlock( vol, FALSE ) ^ entkey->first_block;
-			// get free block might have expanded and moved the disk.
+			// get free block might have expanded and moved the disk; reseek and get ent address
 			next_entries = BTSEEK( struct directory_entry *, vol, this_dir_block, BLOCK_CACHE_DIRECTORY );
 			ent = next_entries + n;
 			ent->name_offset = name_ofs;
