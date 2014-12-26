@@ -76,6 +76,7 @@ struct sack_vfs_file
 
 static struct {
 	struct volume *default_volume;
+	struct directory_entry zero_entkey;
 } l;
 
 static _32 GetFreeBlock( struct volume *vol, LOGICAL init );
@@ -106,7 +107,6 @@ static int MaskStrCmp( struct volume *vol, CTEXTSTR filename, _32 name_offset )
 	{
 		return StrCaseCmp( filename, (CTEXTSTR)(((P_8)vol->disk) + name_offset) );
 	}
-
 }
 
 static void UpdateSegmentKey( struct volume *vol, enum block_cache_entries cache_idx )
@@ -123,8 +123,6 @@ static void UpdateSegmentKey( struct volume *vol, enum block_cache_entries cache
 		}
 	}
 }
-
-
 
 // add some space to the volume....
 static void ExpandVolume( struct volume *vol )
@@ -321,21 +319,13 @@ static void DumpDirectory( struct volume *vol )
 	struct directory_entry *next_entries;
 	do
 	{
-		struct directory_entry *entkey;
 		next_entries = BTSEEK( struct directory_entry *, vol, this_dir_block, BLOCK_CACHE_DIRECTORY );
-		entkey = ((struct directory_entry *)vol->usekey[BLOCK_CACHE_DIRECTORY]);
 		for( n = 0; n < ENTRIES; n++ )
 		{
-			_32 name_ofs = next_entries[n].name_offset;
-			// if file is deleted; don't check it's name.
-			if( vol->key )
-			{
-				name_ofs ^= entkey[n].name_offset;
-			}
-			if( !name_ofs )
-				return;
-			if( !(next_entries[n].first_block ^ entkey[n].first_block ) )
-				continue;
+			struct directory_entry *entkey = ( vol->key )?((struct directory_entry *)vol->usekey[BLOCK_CACHE_DIRECTORY])+n:&l.zero_entkey;
+			_32 name_ofs = next_entries[n].name_offset ^ entkey->name_offset;
+			if( !name_ofs ) return;  // end of directory			
+			if( !(next_entries[n].first_block ^ entkey->first_block ) ) continue;// if file is deleted; don't check it's name.
 			{
 				TEXTCHAR buf[256];
 				P_8 name = TSEEK( P_8, vol, name_ofs, BLOCK_CACHE_NAMES );
@@ -345,16 +335,16 @@ static void DumpDirectory( struct volume *vol )
 				{
 					name_ofs -= 4096;
 					name_ofs += 8192;
-					next_entries[n].name_offset = name_ofs ^ entkey[n].name_offset;
-					next_entries[n].first_block = entkey[n].first_block;
+					next_entries[n].name_offset = name_ofs ^ entkey->name_offset;
+					next_entries[n].first_block = entkey->first_block;
 					name = TSEEK( P_8, vol, name_ofs, BLOCK_CACHE_NAMES );
 				}
 				for( ch = 0; c = (name[ch] ^ vol->usekey[BLOCK_CACHE_NAMES][( name_ofs & 0x7FF ) +ch]); ch++ )
 					buf[ch] = c;
 				buf[ch] = c;
 				lprintf( "Directory entry: %s  start %d length %d", buf
-					, next_entries[n].first_block ^ entkey[n].first_block
-					, next_entries[n].filesize ^ entkey[n].filesize
+					, next_entries[n].first_block ^ entkey->first_block
+					, next_entries[n].filesize ^ entkey->filesize
 					);
 			}
 		}
@@ -378,7 +368,7 @@ struct volume *sack_vfs_load_volume( CTEXTSTR filepath )
 	vol->key = NULL;
 	vol->files = NULL;
 	ExpandVolume( vol );
-	l.default_volume = vol;
+	if( !l.default_volume )	l.default_volume = vol;
 	return vol;
 }
 
@@ -435,7 +425,7 @@ struct volume *sack_vfs_load_crypt_volume( CTEXTSTR filepath, CTEXTSTR userkey, 
 void sack_vfs_unload_volume( struct volume * vol )
 {
 	Release( vol->key );
-	//SRG_DestroyEntropy( vol->entropy );
+	SRG_DestroyEntropy( &vol->entropy );
 	Release( vol );
 	if( l.default_volume == vol ) l.default_volume = NULL;
 }
@@ -448,36 +438,28 @@ static struct directory_entry * ScanDirectory( struct volume *vol, CTEXTSTR file
 	struct directory_entry *next_entries;
 	do
 	{
-		struct directory_entry *entkey;
 		next_entries = BTSEEK( struct directory_entry *, vol, this_dir_block, BLOCK_CACHE_DIRECTORY );
-		entkey = ((struct directory_entry *)vol->usekey[BLOCK_CACHE_DIRECTORY]);
 		for( n = 0; n < ENTRIES; n++ )
 		{
+			struct directory_entry *entkey = ( vol->key)?((struct directory_entry *)vol->usekey[BLOCK_CACHE_DIRECTORY])+n:&l.zero_entkey;
 			CTEXTSTR testname;
-			_32 name_ofs = next_entries[n].name_offset;
+			_32 name_ofs = next_entries[n].name_offset ^ entkey->name_offset;
+			if( !name_ofs )	return NULL;
 			// if file is deleted; don't check it's name.
-			if( vol->key )
-			{
-				name_ofs ^= entkey[n].name_offset;
-			}
-			if( !name_ofs )
-				return NULL;
-			if( !(next_entries[n].first_block ^ entkey[n].first_block ) )
-				continue;
-			testname = TSEEK( CTEXTSTR, vol, name_ofs, 1 );
+			if( !(next_entries[n].first_block ^ entkey->first_block ) ) continue;
+			testname = TSEEK( CTEXTSTR, vol, name_ofs, BLOCK_CACHE_NAMES );
 			if( MaskStrCmp( vol, filename, name_ofs ) == 0 )
 			{
-				dirkey[0] = entkey[n];
+				dirkey[0] = (*entkey);
 				return next_entries + n;
 			}
 		}
 		next_dir_block = GetNextBlock( vol, this_dir_block, TRUE, TRUE );
-		if( this_dir_block == next_dir_block )
-			DebugBreak();
-		if( next_dir_block == 0 )
-			DebugBreak();
+#ifdef _DEBUG
+		if( this_dir_block == next_dir_block ) DebugBreak();
+		if( next_dir_block == 0 ) DebugBreak();
+#endif
 		this_dir_block = next_dir_block;
-
 	}
 	while( 1 );
 }
@@ -494,21 +476,19 @@ static FPI SaveFileName( struct volume *vol, CTEXTSTR filename )
 		while( name < ( (unsigned char*)names + 4096 ) )
 		{
 			int c = name[0];
-			if( vol->key )
-				c = c ^ vol->usekey[BLOCK_CACHE_NAMES][name-(unsigned char*)names];
+			if( vol->key )	c = c ^ vol->usekey[BLOCK_CACHE_NAMES][name-(unsigned char*)names];
 			if( !c )
 			{
 				size_t namelen;
 				if( ( namelen = StrLen( filename ) ) < (size_t)( ( (unsigned char*)names + 4096 ) - name ) )
 				{
-					MemCpy( name, filename, ( namelen + 1 ) * sizeof( TEXTCHAR )  );
 					if( vol->key )
 					{						
 						for( n = 0; n < namelen + 1; n++ )
-						{
-							name[n] ^= vol->usekey[BLOCK_CACHE_NAMES][n + (name-(unsigned char*)names)];
-						}
+							name[n] = filename[n] ^ vol->usekey[BLOCK_CACHE_NAMES][n + (name-(unsigned char*)names)];
 					}
+					else
+						MemCpy( name, filename, ( namelen + 1 ) * sizeof( TEXTCHAR )  );
 					return ((PTRSZVAL)name) - ((PTRSZVAL)vol->disk);
 				}
 			}
@@ -517,8 +497,7 @@ static FPI SaveFileName( struct volume *vol, CTEXTSTR filename )
 					return ((PTRSZVAL)name) - ((PTRSZVAL)vol->disk);
 			if( vol->key )
 			{
-				while( ( name[0] ^ vol->usekey[BLOCK_CACHE_NAMES][name-(unsigned char*)names] ) )
-					name++;
+				while( ( name[0] ^ vol->usekey[BLOCK_CACHE_NAMES][name-(unsigned char*)names] ) ) name++;
 				name++;
 			}
 			else
@@ -536,33 +515,20 @@ static struct directory_entry * GetNewDirectory( struct volume *vol, CTEXTSTR fi
 	struct directory_entry *next_entries;
 	do
 	{
-		struct directory_entry *entkey = (struct directory_entry *)vol->usekey[BLOCK_CACHE_DIRECTORY];
 		next_entries = BTSEEK( struct directory_entry *, vol, this_dir_block, BLOCK_CACHE_DIRECTORY );
 		for( n = 0; n < ENTRIES; n++ )
 		{
+			struct directory_entry *entkey = ( vol->key )?((struct directory_entry *)vol->usekey[BLOCK_CACHE_DIRECTORY])+n:&l.zero_entkey;
 			struct directory_entry *ent = next_entries + n;
-			_32 name_ofs = ent->name_offset;
-			_32 first_blk = ent->first_block;
-			if( vol->key )
-			{
-				name_ofs ^= entkey[n].name_offset;
-				first_blk ^= entkey[n].first_block;
-			}
+			_32 name_ofs = ent->name_offset ^ entkey->name_offset;
+			_32 first_blk = ent->first_block ^ entkey->first_block;
             // not name_offset (end of list) or not first_block(free entry) use this block
-			if( name_ofs && first_blk )
-				continue;
-			name_ofs = SaveFileName( vol, filename );
-			first_blk = GetFreeBlock( vol, FALSE );
-			{
-				// get free block might have expanded and moved the disk.
-				next_entries = BTSEEK( struct directory_entry *, vol, this_dir_block, BLOCK_CACHE_DIRECTORY );
-				ent = next_entries + n;
-			}
-			if( vol->key )
-			{
-				name_ofs ^= entkey[n].name_offset;
-				first_blk ^= entkey[n].first_block;
-			}			
+			if( name_ofs && first_blk )	continue;
+			name_ofs = SaveFileName( vol, filename ) ^ entkey->name_offset;
+			first_blk = GetFreeBlock( vol, FALSE ) ^ entkey->first_block;
+			// get free block might have expanded and moved the disk.
+			next_entries = BTSEEK( struct directory_entry *, vol, this_dir_block, BLOCK_CACHE_DIRECTORY );
+			ent = next_entries + n;
 			ent->name_offset = name_ofs;
 			ent->first_block = first_blk;
   			return ent;
@@ -578,9 +544,7 @@ struct sack_vfs_file * CPROC sack_vfs_openfile( struct volume *vol, CTEXTSTR fil
 	struct sack_vfs_file *file = New( struct sack_vfs_file );
 	file->entry = ScanDirectory( vol, filename, &file->dirent_key );
 	if( !file->entry )
-	{
 		file->entry = GetNewDirectory( vol, filename );
-	}
 	if( vol->key )
 	{
 		_32 offset = ( (PTRSZVAL)file->entry - (PTRSZVAL)vol->disk->directory );
@@ -605,8 +569,7 @@ LOGICAL CPROC _sack_vfs_exists( struct volume *vol, CTEXTSTR file )
 {
 	struct directory_entry entkey;
 	struct directory_entry *ent = ScanDirectory( vol, file, &entkey );
-	if( ent )
-		return TRUE;
+	if( ent ) return TRUE;
 	return FALSE;
 }
 
@@ -660,7 +623,7 @@ _32 CPROC sack_vfs_seek( struct sack_vfs_file *file, size_t pos, int whence )
 	return file->fpi;
 }
 
-void MaskBlock( struct volume *vol, P_8 usekey, P_8 block, _32 block_ofs, _32 ofs, const char *data, size_t length )
+static void MaskBlock( struct volume *vol, P_8 usekey, P_8 block, _32 block_ofs, _32 ofs, const char *data, size_t length )
 {
 	_32 n;
 	if( vol->key )
@@ -812,17 +775,9 @@ void sack_vfs_unlink_file( struct volume *vol, CTEXTSTR filename )
 		{
 			BLOCKINDEX *this_BAT = TSEEK( BLOCKINDEX*, vol, ( ( block >> 10 ) * ( 1025 * 4096 ) ), BLOCK_CACHE_FILE );
 			_32 _thiskey;
-			if( block != 0xFFFFFFFF )
-			{
-				_thiskey = ((P_32)vol->usekey[BLOCK_CACHE_FILE])[_block & 0x3FF];
-				block = GetNextBlock( vol, block, FALSE, FALSE );
-			}
-			if( vol->key )
-			{
-				this_BAT[_block & 0x3ff] = _thiskey;
-			}
-			else
-				this_BAT[_block & 0x3ff] = 0;
+			_thiskey = ( vol->key )?((P_32)vol->usekey[BLOCK_CACHE_FILE])[_block & 0x3FF]:0;
+			block = GetNextBlock( vol, block, FALSE, FALSE );
+			this_BAT[_block & 0x3ff] = _thiskey;
 			_block = block;
 		}while( block != 0xFFFFFFFF );
 	}

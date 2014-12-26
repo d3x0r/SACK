@@ -84,6 +84,12 @@ struct random_context *SRG_CreateEntropy2( void (*getsalt)( PTRSZVAL, POINTER *s
 	return SRG_CreateEntropyInternal( getsalt, psv_user, TRUE );
 }
 
+void SRG_DestroyEntropy( struct random_context **ppEntropy )
+{
+	Release( (*ppEntropy) );
+	(*ppEntropy) = NULL;
+}
+
 void SRG_GetEntropyBuffer( struct random_context *ctx, _32 *buffer, _32 bits )
 {
 	_32 tmp;
