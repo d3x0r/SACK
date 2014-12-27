@@ -15,8 +15,8 @@
 
 SACK_VFS_NAMESPACE
 #define PARANOID_INIT
-typedef _32 BLOCKINDEX; // 4096 blocks... 
-typedef _32 FPI; // file position type
+typedef size_t BLOCKINDEX; // 4096 blocks...
+typedef size_t FPI; // file position type
 
 enum block_cache_entries
 {
@@ -32,11 +32,11 @@ PREFIX_PACKED struct volume {
 	struct disk *disk;
 	//_32 dirents;  // constant 0
 	//_32 nameents; // constant 1
-	DWORD dwSize;
+	size_t dwSize;
 	CTEXTSTR userkey;
 	CTEXTSTR devkey;
 	enum block_cache_entries curseg;
-	int segment[BLOCK_CACHE_COUNT];// associated with usekey[n]
+	BLOCKINDEX segment[BLOCK_CACHE_COUNT];// associated with usekey[n]
 	struct random_context *entropy;
 	P_8 key;  // allow byte encrypting...
 	P_8 segkey;  // allow byte encrypting... key based on sector volume file index
@@ -48,7 +48,7 @@ PREFIX_PACKED struct directory_entry
 {
 	FPI name_offset;  // name offset from beginning of disk
 	BLOCKINDEX first_block;  // first block of data of the file
-	_32 filesize;  // how big the file is
+	size_t filesize;  // how big the file is
 	_32 filler;  // extra data(unused)
 } PACKED;
 #define ENTRIES ( 4096/sizeof( struct directory_entry) )
