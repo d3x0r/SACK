@@ -308,8 +308,8 @@ FILESYS_PROC _64 FILESYS_API ConvertFileTimeToInt( const FILETIME *filetime );
 
 #ifndef __ANDROID__
 #  ifndef S_IRUSR
-#define S_IRUSR 1
-#define S_IWUSR 2
+#    define S_IRUSR 1
+#    define S_IWUSR 2
 #  endif
 #endif
 //# endif
@@ -349,6 +349,7 @@ FILESYS_PROC  size_t FILESYS_API  sack_fread ( POINTER buffer, size_t size, int 
 FILESYS_PROC  size_t FILESYS_API  sack_fwrite ( CPOINTER buffer, size_t size, int count,FILE *file_file );
 FILESYS_PROC  TEXTSTR FILESYS_API  sack_fgets ( TEXTSTR  buffer, size_t size,FILE *file_file );
 FILESYS_PROC  int FILESYS_API  sack_fflush ( FILE *file );
+FILESYS_PROC  int FILESYS_API  sack_ftruncate ( FILE *file );
 
 FILESYS_PROC  int FILESYS_API  sack_unlink ( INDEX group, CTEXTSTR filename );
 FILESYS_PROC  int FILESYS_API  sack_rmdir( INDEX group, CTEXTSTR filename );

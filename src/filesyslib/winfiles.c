@@ -677,14 +677,15 @@ LOGICAL sack_set_eof ( HANDLE file_handle )
 	{
 		if( file->fsi )
 		{
-			file->fsi->truncate( file_handle );
-			lprintf( WIDE("result is %d"), file->fsi->size( file_handle ) );
+			file->fsi->truncate( (void*)file_handle );
+			lprintf( WIDE("result is %d"), file->fsi->size( (void*)file_handle ) );
 		}
 		else
 		{
 #ifdef _WIN32
+         ;
 #else
-			truncate( file->fullname, sack_ftell( (FILE*)file_handle );
+			truncate( file->fullname, sack_ftell( (FILE*)file_handle ) );
 #endif
 		}
 		return TRUE;
@@ -699,6 +700,26 @@ LOGICAL sack_set_eof ( HANDLE file_handle )
 		return ftruncate( handle, lseek( handle, 0, SEEK_CUR ) );
 #endif
 	}
+}
+
+int sack_ftruncate( FILE *file_file )
+{
+	struct file *file;
+	file = FindFileByFILE( file_file );
+	if( file )
+	{
+		if( file->fsi )
+		{
+			file->fsi->truncate( (void*)file_file );
+			lprintf( WIDE("result is %d"), file->fsi->size( (void*)file_file ) );
+		}
+		else
+		{
+			truncate( file->fullname, sack_ftell( (FILE*)file_file ) );
+		}
+		return TRUE;
+	}
+   return FALSE;
 }
 
 
