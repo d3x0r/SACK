@@ -280,12 +280,17 @@ if( NOT __NO_OPTIONS__ )
     if( NOT __ANDROID__ )
                 SET( progfile_list ${progfile_list} SetOption )
     endif( NOT __ANDROID__ )
-		SET( literal_libfile_list ${literal_libfile_list} EditOptions.plugin  )
+		SET( literal_libfile_list ${literal_libfile_list} EditOptions.plugin )
 endif( NOT __NO_OPTIONS__ )
 
 
 if( WIN32 )
-		SET( literal_libfile_list ${literal_libfile_list} application_delay.module loginfo.module seed_random.module )
+		SET( literal_libfile_list ${literal_libfile_list} 
+                        application_delay.module 
+                        loginfo.module 
+                        seed_random.module 
+                        sack_vfs.module 
+                    )
 		if( NOT BUILD_MONOLITHIC )
                 set( libfile_list ${libfile_list}  glew )
 		endif( NOT BUILD_MONOLITHIC )
