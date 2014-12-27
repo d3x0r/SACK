@@ -158,7 +158,7 @@ int xTruncate(sqlite3_file*file, sqlite3_int64 size)
 {
 	struct my_file_data *my_file = (struct my_file_data*)file;
 	sack_fseek( my_file->file, size, SEEK_SET );
-	sack_set_eof( my_file->file );
+	sack_ftruncate( my_file->file ); // works through file system interface...
 	//SetFileLength( my_file->filename, (size_t)size );
 	return SQLITE_OK;
 }
