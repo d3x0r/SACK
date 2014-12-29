@@ -1536,6 +1536,10 @@ _32 PutMenuStringFontEx( ImageFile *pImage, S_32 x, S_32 y, CDATA color, CDATA b
 			else if( !chars[character] )
 			{
 				InternalRenderFontCharacter(  NULL, UseFont, character );
+				// the NUL character may not have a height associated with it...
+				// so keep trying to set intial height as new characters are added.
+				if( !(*height) )
+					(*height) = UseFont->height;
 			}
 			if( ( character < UseFont->characters ) && chars[character] )
 				*width += chars[character]->width;
