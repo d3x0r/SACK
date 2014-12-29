@@ -1490,12 +1490,12 @@ _32 PutMenuStringFontEx( ImageFile *pImage, S_32 x, S_32 y, CDATA color, CDATA b
 	_32 _width, max_width, _height;
 	PCHARACTER *chars;
 	CDATA tmp1 = 0;
-	if( !pString )
+	if( !pString || !pString[0] )
 	{
 		if( width )
 			*width = 0;
 		if( height )
-					*height = 0;
+			*height = 0;
 		return 0;
 	}
 	if( !UseFont )
@@ -1508,6 +1508,13 @@ _32 PutMenuStringFontEx( ImageFile *pImage, S_32 x, S_32 y, CDATA color, CDATA b
 	if( !width )
 		width = &_width;
 	max_width = *width = 0;
+	if( !height )
+		height = &_height;
+	// default to one line of height...
+	// later, if there's no characters to make width, this resets to 0
+	// otherwise, height increments with newlines (adding a line is
+	// another height... so starting with 1 is appropriate.
+	*height = UseFont->height;
 	chars = UseFont->character;
 	if( pString )
 	{
@@ -1541,10 +1548,8 @@ _32 PutMenuStringFontEx( ImageFile *pImage, S_32 x, S_32 y, CDATA color, CDATA b
 		else
 			*width = 0;
 	}
-	if( !height )
-		height = &_height;
-	*height = UseFont->height;
-
+	if( !max_width )
+		UseFont->height = 0; // zero length is also zero height.
 	if( max_width > *width )
 		*width = max_width;
 	return *width;
