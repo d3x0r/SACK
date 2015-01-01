@@ -715,7 +715,11 @@ int sack_ftruncate( FILE *file_file )
 		}
 		else
 		{
-			truncate( file->fullname, sack_ftell( (FILE*)file_file ) );
+#ifdef _WIN32
+			;
+#else
+			ftruncate( file->fullname, sack_ftell( (FILE*)file_file ) );
+#endif
 		}
 		return TRUE;
 	}
@@ -1271,6 +1275,7 @@ LOGICAL sack_fexistsEx ( CTEXTSTR filename, struct file_system_interface *fsi )
 		return fsi->exists( filename );
 #endif
 	}
+	return FALSE;
 }
 
 int  sack_rename ( CTEXTSTR file_source, CTEXTSTR new_name )
