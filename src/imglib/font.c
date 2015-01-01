@@ -551,14 +551,17 @@ static _32 PutCharacterFontX ( ImageFile *pImage
 #  endif  // ifndef OPENGL2  (OPENGl1?)
 
 #  ifdef PURE_OPENGL2_ENABLED
-			if( background )
 			{
-				AppendShaderTristripQuad( GetShader( WIDE("Simple Shader") ), v2[vi], _back_color );
-				//glDrawArrays( GL_TRIANGLE_STRIP, 0, 4 );
-			}
+				struct image_shader_op *op;
+				if( background )
+				{
+					op = BeginImageShaderOp( GetShader( WIDE("Simple Shader") ), pifDest, _back_color );
+					AppendImageShaderOpTristrip( op, 2, v2[vi] );
+				}
 
-			AppendShaderTristripQuad( GetShader( WIDE("Simple Shaded Texture") ), v[vi], pifSrc->glActiveSurface, texture_v, _color );
-			//glDrawArrays( GL_TRIANGLE_STRIP, 0, 4 );
+				op = BeginImageShaderOp( GetShader( WIDE("Simple Shaded Texture") ), pifDest, pifSrc->glActiveSurface, _color  );
+				AppendImageShaderOpTristrip( op, 2, v2[vi], texture_v );
+			}
 			// Back Face
 #  endif  // ifdef OPENGL2
 #endif
@@ -1552,8 +1555,8 @@ _32 PutMenuStringFontEx( ImageFile *pImage, S_32 x, S_32 y, CDATA color, CDATA b
 		else
 			*width = 0;
 	}
-	if( !max_width )
-		UseFont->height = 0; // zero length is also zero height.
+	if( !max_width && !(*width) )
+		(*height) = 0; // zero length is also zero height.
 	if( max_width > *width )
 		*width = max_width;
 	return *width;

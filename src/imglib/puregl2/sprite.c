@@ -1142,7 +1142,12 @@ static void TranslatePoints( Image dest, PSPRITE sprite )
 
 				ReloadOpenGlTexture( topmost_parent, 0 );
 				//EnableShader( GetShader( WIDE("Simple Texture") ), v[vi], topmost_parent->glActiveSurface, texture_v );
-				AppendShaderTristripQuad( GetShader( WIDE("Simple Texture") ), v[vi], topmost_parent->glActiveSurface, texture_v );
+				//AppendShaderTristripQuad( GetShader( WIDE("Simple Texture") ), v[vi], topmost_parent->glActiveSurface, texture_v );
+				{
+					struct image_shader_op *op;
+					op = BeginImageShaderOp( GetShader( WIDE("Simple Texture") ), dest,  topmost_parent->glActiveSurface );
+					AppendImageShaderOpTristrip( op, 2, v[vi] );
+				}
 			}
 			//glDrawArrays( GL_TRIANGLE_STRIP, 0, 4 );
 	}

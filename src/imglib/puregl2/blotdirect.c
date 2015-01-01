@@ -517,6 +517,7 @@ IMAGE_NAMESPACE
 		TranslateCoord( pifDest, &xd, &yd );
 		TranslateCoord( pifSrc, &xs, &ys );
 		{
+			struct image_shader_op *op;// = BeginImageShaderOp( GetShader( WIDE("Simple Texture") ), pifDest, pifSrc->glActiveSurface  );
 			int glDepth = 1;
 			float x_size, x_size2, y_size, y_size2;
 			float texture_v[4][2];
@@ -585,7 +586,8 @@ IMAGE_NAMESPACE
 			/**///glBindTexture(GL_TEXTURE_2D, pifSrc->glActiveSurface);				// Select Our Texture
 			if( method == BLOT_COPY )
 			{
-				AppendShaderTristripQuad( GetShader( WIDE("Simple Texture") ), v[vi], pifSrc->glActiveSurface, texture_v );
+				op = BeginImageShaderOp( GetShader( WIDE("Simple Texture") ), pifDest, pifSrc->glActiveSurface  );
+				AppendImageShaderOpTristrip( op, 2, v[vi], texture_v );
 			}
 			else if( method == BLOT_SHADED )
 			{
@@ -596,7 +598,8 @@ IMAGE_NAMESPACE
 				_color[2] = BlueVal( tmp ) / 255.0f;
 				_color[3] = AlphaVal( tmp ) / 255.0f;
 
-				AppendShaderTristripQuad( GetShader( WIDE("Simple Shaded Texture") ), v[vi], pifSrc->glActiveSurface, texture_v, _color );
+				op = BeginImageShaderOp( GetShader( WIDE("Simple Shaded Texture") ), pifDest, pifSrc->glActiveSurface, _color  );
+				AppendImageShaderOpTristrip( op, 2, v[vi], texture_v );
 			}
 			else if( method == BLOT_MULTISHADE )
 			{
@@ -619,8 +622,8 @@ IMAGE_NAMESPACE
 				b_color[2] = BlueVal( b ) / 255.0f;
 				b_color[3] = AlphaVal( b ) / 255.0f;
 
-				AppendShaderTristripQuad( GetShader( WIDE("Simple MultiShaded Texture") ), v[vi], pifSrc->glActiveSurface, texture_v, r_color, g_color, b_color );
-
+				op = BeginImageShaderOp( GetShader( WIDE("Simple MultiShaded Texture") ), pifDest, pifSrc->glActiveSurface, r_color, g_color, b_color );
+				AppendImageShaderOpTristrip( op, 2, v[vi], texture_v );
 			}
 			else if( method == BLOT_INVERTED )
 			{

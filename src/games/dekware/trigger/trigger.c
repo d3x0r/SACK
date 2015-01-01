@@ -6,7 +6,7 @@
 #define DEFINES_DEKWARE_INTERFACE
 #include "plugin.h"
 
-#define DEBUG_TRIGGER_MATCHING
+//#define DEBUG_TRIGGER_MATCHING
 
 int myTypeID; // supplied for uhmm... grins...
 INDEX nTrigExten;

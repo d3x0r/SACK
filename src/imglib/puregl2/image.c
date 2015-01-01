@@ -450,9 +450,10 @@ void  BlatColor ( Image pifDest, S_32 x, S_32 y, _32 w, _32 h, CDATA color )
 		scale( v[vi][3], v[vi][3], l.scale );
 
 		{
-			struct image_shader_op *op = BeginShaderOp( l.simple_shader );
+			struct image_shader_op *op = BeginImageShaderOp( l.simple_shader, pifDest, _color );
 
-		AppendShaderTristripQuad( l.simple_shader, v[vi], _color );
+			AppendImageShaderOpTristrip( op, 2, v[vi] );
+		}
 		//glDrawArrays( GL_TRIANGLE_STRIP, 0, 4 );
 		CheckErr();
 		if( 0)
@@ -461,7 +462,6 @@ void  BlatColor ( Image pifDest, S_32 x, S_32 y, _32 w, _32 h, CDATA color )
 			for( n = 0; n < 4; n++ )
             lprintf( WIDE("point %g,%g,%g"), v[vi][n][0], v[vi][n][1], v[vi][n][2] );
 			lprintf( WIDE("Drew triangle strip, %08x"), color );
-		}
 		}
 	}
 	else
@@ -579,7 +579,11 @@ void  BlatColorAlpha ( Image pifDest, S_32 x, S_32 y, _32 w, _32 h, CDATA color 
 		scale( v[vi][2], v[vi][2], l.scale );
 		scale( v[vi][3], v[vi][3], l.scale );
 
-		AppendShaderTristripQuad( GetShader( WIDE("Simple Shader") ), v[vi], _color );
+		{
+			struct image_shader_op *op = BeginImageShaderOp( l.simple_shader, pifDest, _color );
+
+			AppendImageShaderOpTristrip( op, 2, v[vi] );
+		}
 		//glDrawArrays( GL_TRIANGLE_STRIP, 0, 4 );
 		//CheckErr();
 	}
