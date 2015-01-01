@@ -12,7 +12,7 @@ PSI_CONSOLE_NAMESPACE
 struct BlockFormatter
 {
 	PCONSOLE_INFO console;
-   SFTFont font;
+	SFTFont font;
 };
 
 
@@ -161,7 +161,7 @@ void FormatTextToBlockEx( CTEXTSTR input, TEXTSTR *output, int* pixel_width, int
 				maxlen = len;
 			//lprintf( "line %d len %d", lines, len );
 			if( len == 0 )
-            break;
+				break;
 		}
 		//lprintf( "measured block in characters %d,%d", maxlen, lines );
 		console->mark_start.row = lines;
@@ -200,7 +200,7 @@ void FormatTextToBlockEx( CTEXTSTR input, TEXTSTR *output, int* pixel_width, int
 
 void FormatTextToBlock( CTEXTSTR input, TEXTSTR *output, int char_width, int char_height )
 {
-   FormatTextToBlockEx( input, output, &char_width, &char_height, NULL );
+	FormatTextToBlockEx( input, output, &char_width, &char_height, NULL );
 
 }
 
