@@ -4064,7 +4064,7 @@ void ConvertSQLDateEx( CTEXTSTR date
    natoi( n, p, 2 ); if( day ) *day = n;
    if( p[0] )
    {
-      p++; // skip the '-'
+      if( p[0] == '-' ) p++; // skip the '-'
       natoi( n, p, 2 ); if( hour ) *hour = n;
       natoi( n, p, 2 ); if( minute ) *minute = n;
       natoi( n, p, 2 ); if( second ) *second = n;
