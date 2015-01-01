@@ -125,7 +125,11 @@ void CPROC do_linec( ImageFile *pImage, int x1, int y1
 		scale( v[vi][2], v[vi][2], l.scale );
 		scale( v[vi][3], v[vi][3], l.scale );
 
-		AppendShaderTristripQuad( GetShader( WIDE("Simple Shader") ), v[vi], _color );
+		{
+			struct image_shader_image_buffer_op *op;
+			op = BeginImageShaderOp( GetShader( WIDE("Simple Shader") ), pImage, _color  );
+			AppendImageShaderOpTristrip( op, 2, v[vi] );
+		}
 		//glDrawArrays( GL_TRIANGLE_STRIP, 0, 4 );
 		CheckErr();
 
@@ -283,7 +287,11 @@ void CPROC do_lineAlphac( ImageFile *pImage, int x1, int y1
 		scale( v[vi][2], v[vi][2], l.scale );
 		scale( v[vi][3], v[vi][3], l.scale );
 
-		AppendShaderTristripQuad( GetShader( WIDE("Simple Shader") ), v[vi], _color );
+		{
+			struct image_shader_image_buffer_op *op;
+			op = BeginImageShaderOp( GetShader( WIDE("Simple Shader") ), pImage, _color  );
+			AppendImageShaderOpTristrip( op, 2, v[vi] );
+		}
 		//EnableShader( GetShader( WIDE("Simple Shader"), NULL ), v[vi], _color );
 		//glDrawArrays( GL_TRIANGLE_STRIP, 0, 4 );
 		//CheckErr();

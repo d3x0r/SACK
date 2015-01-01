@@ -1109,6 +1109,17 @@ void InternalRenderFontCharacter( PFONT_RENDERER renderer, PFONT font, INDEX idx
 						descent = CEIL( face->glyph->metrics.horiBearingY ) /*- font->height + */ + 1;
 					}
 
+					if( ( face->glyph->linearVertAdvance>>16 ) > renderer->font->height )
+					{
+						renderer->font->height = (short)(face->glyph->linearVertAdvance>>16);
+						renderer->font->baseline = renderer->max_ascent +
+							( ( renderer->font->height
+								- ( renderer->max_ascent - renderer->min_descent ) )
+							 / 2 );
+						//if( 0 )
+						//	lprintf( WIDE("Result baseline %c(%d %x)  %d %d   %d,%d"), idx?idx:' ', idx, idx, renderer->font->height,renderer->font->baseline, renderer->max_ascent, renderer->min_descent );
+
+					}
 					// done when the font is initially loaded
 					// loading face characteristics shouldn't matter
 					if( ascent > renderer->max_ascent )
@@ -1191,17 +1202,6 @@ void InternalRenderFontCharacter( PFONT_RENDERER renderer, PFONT font, INDEX idx
 					}
 				}
 		//lprintf( "advance and height... %d %d", ( face->glyph->linearVertAdvance>>16 ), renderer->font->height );
-		if( ( face->glyph->linearVertAdvance>>16 ) > renderer->font->height )
-		{
-			renderer->font->height = (short)(face->glyph->linearVertAdvance>>16);
-			renderer->font->baseline = renderer->max_ascent +
-				( ( renderer->font->height
-					- ( renderer->max_ascent - renderer->min_descent ) )
-				 / 2 );
-			//if( 0 )
-			//	lprintf( WIDE("Result baseline %c(%d %x)  %d %d   %d,%d"), idx?idx:' ', idx, idx, renderer->font->height,renderer->font->baseline, renderer->max_ascent, renderer->min_descent );
-
-		}
 			switch( face->glyph->format )
 			{
 			case FT_GLYPH_FORMAT_OUTLINE:

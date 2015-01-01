@@ -84,7 +84,7 @@ void CPROC SimpleShader_Flush( PImageShaderTracker tracker, PTRSZVAL psv, PTRSZV
 	shaderOp->vert_color->used = 0;
 }
 
-void CPROC SimpleShader_AppendTristrip( PImageShaderTracker tracker, int triangles, PTRSZVAL psv, va_list args )
+void CPROC SimpleShader_AppendTristrip( struct image_shader_op *op, int triangles, PTRSZVAL psv, va_list args )
 {
 	struct simple_shader_op_data *data = (struct simple_shader_op_data *)psv;
 	float *verts = va_arg( args, float * );
@@ -98,23 +98,23 @@ void CPROC SimpleShader_AppendTristrip( PImageShaderTracker tracker, int triangl
 			// 2,3,4
 			// 4,5,6
 			// 0, 2, 4, 6
-			AppendShaderData( tracker, data->vert_pos, verts + ( tri +  0 ) * 3 );
-			AppendShaderData( tracker, data->vert_color, color);
-			AppendShaderData( tracker, data->vert_pos, verts + ( tri + 1 ) * 3 );
-			AppendShaderData( tracker, data->vert_color, color);
-			AppendShaderData( tracker, data->vert_pos, verts + ( tri + 2 ) * 3 );
-			AppendShaderData( tracker, data->vert_color, color);
+			AppendShaderData( op, data->vert_pos, verts + ( tri +  0 ) * 3 );
+			AppendShaderData( op, data->vert_color, color);
+			AppendShaderData( op, data->vert_pos, verts + ( tri + 1 ) * 3 );
+			AppendShaderData( op, data->vert_color, color);
+			AppendShaderData( op, data->vert_pos, verts + ( tri + 2 ) * 3 );
+			AppendShaderData( op, data->vert_color, color);
 		}
 		else
 		{
 			// 2,1,3
 			// 4,3,5
-			AppendShaderData( tracker, data->vert_pos, verts + ( (tri-1) + 2 ) * 3 );
-			AppendShaderData( tracker, data->vert_color, color);
-			AppendShaderData( tracker, data->vert_pos, verts + ( (tri-1) + 1 ) * 3 );
-			AppendShaderData( tracker, data->vert_color, color);
-			AppendShaderData( tracker, data->vert_pos, verts + ( (tri-1) + 3 ) * 3 );
-			AppendShaderData( tracker, data->vert_color, color);
+			AppendShaderData( op, data->vert_pos, verts + ( (tri-1) + 2 ) * 3 );
+			AppendShaderData( op, data->vert_color, color);
+			AppendShaderData( op, data->vert_pos, verts + ( (tri-1) + 1 ) * 3 );
+			AppendShaderData( op, data->vert_color, color);
+			AppendShaderData( op, data->vert_pos, verts + ( (tri-1) + 3 ) * 3 );
+			AppendShaderData( op, data->vert_color, color);
 		}
 	}
 }

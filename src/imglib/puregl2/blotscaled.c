@@ -535,7 +535,7 @@ void CPROC cBlotScaledMultiTImgAI( SCALED_BLOT_WORK_PARAMS
 		//lprintf( WIDE( "use regular texture %p (%d,%d)" ), pifSrc, pifSrc->width, pifSrc->height );
 
 		{
-			struct image_shader_image_buffer_op *op = BeginImageShaderOp( GetShader( WIDE("Simple Texture") ), pifDest, pifSrc->glActiveSurface  );
+			struct image_shader_op *op;// = BeginImageShaderOp( GetShader( WIDE("Simple Texture") ), pifDest, pifSrc->glActiveSurface  );
 			int glDepth = 1;
 			VECTOR v[2][4];
 			float texture_v[4][2];
@@ -621,9 +621,8 @@ void CPROC cBlotScaledMultiTImgAI( SCALED_BLOT_WORK_PARAMS
 				_color[2] = BlueVal( tmp ) / 255.0f;
 				_color[3] = AlphaVal( tmp ) / 255.0f;
 
-				AppendImageShaderOpTristrip( op, 2, v[vi], texture_v, _color );
-				op = BeginImageShaderOp( GetShader( WIDE("Simple Shaded Texture") ), pifDest, pifSrc->glActiveSurface  );
-				AppendShaderTristripQuad( GetShader( WIDE("Simple Shaded Texture") ), v[vi], pifSrc->glActiveSurface, texture_v, _color );
+				op = BeginImageShaderOp( GetShader( WIDE("Simple Shaded Texture") ), pifDest, pifSrc->glActiveSurface, _color  );
+				AppendImageShaderOpTristrip( op, 2, v[vi], texture_v );
 			}
 			else if( method == BLOT_MULTISHADE )
 			{
@@ -647,7 +646,7 @@ void CPROC cBlotScaledMultiTImgAI( SCALED_BLOT_WORK_PARAMS
 				b_color[3] = AlphaVal( b ) / 255.0f;
 
 				op = BeginImageShaderOp( GetShader( WIDE("Simple MultiShaded Texture") ), pifDest, pifSrc->glActiveSurface  );
-				AppendShaderTristripQuad( GetShader( WIDE("Simple MultiShaded Texture") ), v[vi], pifSrc->glActiveSurface, texture_v, r_color, g_color, b_color );
+				AppendShaderTristripQuad( op, v[vi], pifSrc->glActiveSurface, texture_v, r_color, g_color, b_color );
 			}
 			else if( method == BLOT_INVERTED )
 			{
