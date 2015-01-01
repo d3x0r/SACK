@@ -3,7 +3,7 @@
 
 #include <psi.h>
 
-#ifndef CHAT_CONTROL_SOURCE
+#ifdef CHAT_CONTROL_SOURCE
 #define CHAT_CONTROL_PROC(a,b) EXPORT_METHOD a b
 #else
 #define CHAT_CONTROL_PROC(a,b) IMPORT_METHOD a b
@@ -31,6 +31,8 @@ CHAT_CONTROL_PROC( void, Chat_EnqueImage )( PSI_CONTROL pc, LOGICAL sent
 CHAT_CONTROL_PROC( void, Chat_ClearMessages )( PSI_CONTROL pc );
 
 CHAT_CONTROL_PROC( PSI_CONTROL, ImageViewer_ShowImage )( Image image );
+
+CHAT_CONTROL_PROC( void, Chat_GetCurrentTime )( PCHAT_TIME timebuf );
 
 
 #endif

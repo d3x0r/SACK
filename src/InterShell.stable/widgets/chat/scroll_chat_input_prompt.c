@@ -1,11 +1,14 @@
+
 #ifndef FORCE_NO_INTERFACE
 #define USE_IMAGE_INTERFACE l.pii
 #define USE_RENDER_INTERFACE l.pdi
 #endif
+#define CHAT_CONTROL_SOURCE
 
 
 #include <stdhdrs.h>
 #include <image.h>
+#include "chat_control.h"
 
 #include "chat_control_internal.h" 
 

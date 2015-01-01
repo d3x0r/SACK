@@ -3,8 +3,6 @@
 #define USE_RENDER_INTERFACE l.pdi
 #endif
 #define USES_INTERSHELL_INTERFACE
-#define DEFINES_INTERSHELL_INTERFACE
-#define CHAT_CONTROL_MAIN_SOURCE
 #include <stdhdrs.h>
 #include <controls.h>
 #include <psi.h>
@@ -16,6 +14,8 @@
 #include "../../intershell_registry.h"
 #include "../../intershell_export.h"
 
+#define CHAT_CONTROL_SOURCE
+#include "chat_control.h"
 #include "chat_control_internal.h"   // l defintiion
 
 #define CONTROL_NAME WIDE("Image Viewer Popup")
@@ -160,6 +160,8 @@ PSI_CONTROL ImageViewer_ShowImage( Image image )
 	ImageViewer *pViewer;
 	int x = 10;
 	int y = 10;
+	_32 w, h;
+	GetDisplaySize( &w, &h );
 	pc = MakeNamedControl( NULL, CONTROL_NAME, x, y, image->width, image->height, -1 );
 	pViewer = ControlData( ImageViewer *, pc );
 	pViewer->image = image;
