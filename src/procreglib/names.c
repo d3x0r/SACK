@@ -26,7 +26,7 @@ PROCREG_NAMESPACE
 //#define lprintf( f, ... ) { TEXTCHAR buf[256]; tnprintf( buf, 256, f,##__VA_ARGS__ ); SystemLogFL( buf DBG_SRC ); }
 
 	static struct procreg_local_private_tag {
-      // don't use critical sections while registering.
+		// don't use critical sections while registering.
 		struct {
 			BIT_FIELD enable_critical_sections : 1;
 		} flags;
@@ -92,7 +92,7 @@ static int CPROC SavedNameCmpEx(CTEXTSTR dst, CTEXTSTR src, size_t srclen)
 {
 	// NUL does not nessecarily terminate strings
 	// instead slave off the length...
-    TEXTCHAR f,last;
+	 TEXTCHAR f,last;
 	size_t l1 = srclen; // one for length, one for nul
 	size_t l2 = dst[-1] - 2; // one for length, one for nul
 	// case insensitive loop..
@@ -100,11 +100,11 @@ static int CPROC SavedNameCmpEx(CTEXTSTR dst, CTEXTSTR src, size_t srclen)
 	// interesting... first sort by length
 	// and then by content?
 	//if( l1 != l2 )
-    //  return l2-l1;
+	 //  return l2-l1;
 	do {
 		if( (*src) == '\\' || (*src)=='/' )
 		{
-         l1 = 0; // no more length .. should have gotten a matched length on dst...
+			l1 = 0; // no more length .. should have gotten a matched length on dst...
 			break;
 		}
 		if ( ((f = (TEXTCHAR)(*(dst++))) >= 'A') && (f <= 'Z') )
@@ -112,7 +112,7 @@ static int CPROC SavedNameCmpEx(CTEXTSTR dst, CTEXTSTR src, size_t srclen)
 		if ( ((last = (TEXTCHAR)(*(src++))) >= 'A') && (last <= 'Z') )
 			last -= ('A' - 'a');
 		--l2;
-      --l1;
+		--l1;
 	} while ( l2 && l1 && (f == last) );
 	//lprintf( WIDE("Results to compare...%d,%d  %c,%c"), l1, l2, f, last );
 	// if up to the end of some portion of the strings matched...
@@ -137,8 +137,8 @@ static int CPROC SavedNameCmpEx(CTEXTSTR dst, CTEXTSTR src, size_t srclen)
 
 static int CPROC SavedNameCmp(CTEXTSTR dst, CTEXTSTR src)
 {
-   //lprintf( WIDE("Compare names... (tree) %s,%s"), dst, src );
-   return SavedNameCmpEx( dst, src, src[-1]-2 );
+	//lprintf( WIDE("Compare names... (tree) %s,%s"), dst, src );
+	return SavedNameCmpEx( dst, src, src[-1]-2 );
 }
 //---------------------------------------------------------------------------
 
@@ -159,7 +159,7 @@ static TEXTSTR StripName( TEXTSTR buf, CTEXTSTR name )
 		}
 		else
 		{
-         // drop spaces...
+			// drop spaces...
 			if( escape || ( name[0] > ' ' && name[0] < 127 ) )
 			{
 				*(buf++) = name[0];
@@ -168,8 +168,8 @@ static TEXTSTR StripName( TEXTSTR buf, CTEXTSTR name )
 		}
 		name++;
 	}
-   buf[0] = 0;
-   return savebuf;
+	buf[0] = 0;
+	return savebuf;
 }
 
 //---------------------------------------------------------------------------
@@ -223,8 +223,8 @@ static CTEXTSTR DressName( TEXTSTR buf, CTEXTSTR name )
 		}
 		name++;
 	}
-   buf[0] = 0;
-   return savebuf + 1;
+	buf[0] = 0;
+	return savebuf + 1;
 }
 
 //---------------------------------------------------------------------------
@@ -301,11 +301,11 @@ static CTEXTSTR DoSaveNameEx( CTEXTSTR stripped, size_t len DBG_PASS )
 	}
 	for( space = l.NameSpace; space; space = space->next )
 	{
-      //lprintf( "Finding next name space free %p %p %p", l.NameSpace, space, space->next );
+		//lprintf( "Finding next name space free %p %p %p", l.NameSpace, space, space->next );
 		if( ( space->nextname + len ) < ( NAMESPACE_SIZE - 3 ) )
 		{
 			p = NULL;
-         break;
+			break;
 		}
 	}
 	if( !space || !p )
@@ -315,7 +315,7 @@ static CTEXTSTR DoSaveNameEx( CTEXTSTR stripped, size_t len DBG_PASS )
 		{
 			space = (PNAMESPACE)Allocate( sizeof( NAMESPACE ) );
 			space->nextname = 0;
-         //lprintf( "Adding new namespace %p", space );
+			//lprintf( "Adding new namespace %p", space );
 			LinkThing( l.NameSpace, space );
 		}
 		MemCpy( p = space->buffer + space->nextname + 1, stripped,(_32)(sizeof( TEXTCHAR)*(len + 1)) );
@@ -421,9 +421,9 @@ CTEXTSTR SaveNameConcatN( CTEXTSTR name1, ... )
 		len += newlen;
 	}
 	_stripbuffer[0] = (TEXTCHAR)(len + 2);
-   // and add another - final part of string is \0\0
+	// and add another - final part of string is \0\0
 	//stripbuffer[len] = 0;
-   //len++;
+	//len++;
 	return DoSaveName( stripbuffer, len );
 }
 
@@ -452,7 +452,7 @@ CTEXTSTR TranslateText( CTEXTSTR text )
 
 void LoadTranslation( CTEXTSTR translation_name, CTEXTSTR filename )
 {
-   //FILE *input = sack_fopen( l.translations, filename, "rb" );
+	//FILE *input = sack_fopen( l.translations, filename, "rb" );
 }
 
 //---------------------------------------------------------------------------
@@ -484,7 +484,7 @@ static void CPROC KillName( POINTER user, PTRSZVAL key )
 	else if( name->flags.bData )
 	{
 	}
-   DeleteFromSet( NAME, &l.Names, user );
+	DeleteFromSet( NAME, &l.Names, user );
 }
 
 //---------------------------------------------------------------------------
@@ -523,8 +523,8 @@ static void ReadConfiguration( void );
 //}
 PRIORITY_PRELOAD( InitProcReg2, SYSLOG_PRELOAD_PRIORITY )
 {
-   // this has to be done after timer's init is done, which is SYSLOG_PRELOAD_PRIORITY-1
-   procreg_local_private_data.flags.enable_critical_sections = 1;
+	// this has to be done after timer's init is done, which is SYSLOG_PRELOAD_PRIORITY-1
+	procreg_local_private_data.flags.enable_critical_sections = 1;
 }
 
 PRIORITY_PRELOAD( InitProcreg, NAMESPACE_PRELOAD_PRIORITY )
@@ -591,7 +591,7 @@ static PTREEDEF AddClassTree( PTREEDEF class_root, TEXTCHAR *name, PTREEROOT roo
 		}
 		return &classname->tree;
 	}
-   return NULL;
+	return NULL;
 }
 
 //---------------------------------------------------------------------------
@@ -617,15 +617,15 @@ PTREEDEF GetClassTreeEx( PTREEDEF root, PTREEDEF _name_class, PTREEDEF alias, LO
 
 	if(
 #if defined( __ARM__ ) || defined( UNDER_CE )
-	  // if its odd, it comes from the name space
-      // (savename)
+		// if its odd, it comes from the name space
+		// (savename)
 		(((PTRSZVAL)class_root)&0x3) ||
 #endif
 		(class_root->Magic != MAGIC_TREE_NUMBER) )
 	{
 		// if root name is passed as a NAME, then resolve it
-      // assuming the root of all names as the root...
-      class_root = GetClassTreeEx( l.Names, class_root, NULL, bCreate );
+		// assuming the root of all names as the root...
+		class_root = GetClassTreeEx( l.Names, class_root, NULL, bCreate );
 	}
 
 	if( _name_class )
@@ -633,8 +633,8 @@ PTREEDEF GetClassTreeEx( PTREEDEF root, PTREEDEF _name_class, PTREEDEF alias, LO
 		if(
 #if defined( __ARM__ ) || defined( UNDER_CE )
 	  // if its odd, it comes from the name space
-      // (savename)
-		    !(((PTRSZVAL)_name_class)&0x3) &&
+		// (savename)
+			 !(((PTRSZVAL)_name_class)&0x3) &&
 #endif
 			(_name_class->Magic == MAGIC_TREE_NUMBER) )
 		{
@@ -695,7 +695,7 @@ PTREEDEF GetClassTreeEx( PTREEDEF root, PTREEDEF _name_class, PTREEDEF alias, LO
 						}
 						else
 						{
-                     PTREEDEF new_root;
+							PTREEDEF new_root;
 							PTREEROOT tree;
 
 							// added name in this place name terminates on a '/'
@@ -714,11 +714,11 @@ PTREEDEF GetClassTreeEx( PTREEDEF root, PTREEDEF _name_class, PTREEDEF alias, LO
 															 );
 							if( !new_root )
 							{
-                        // if this happens it was probably added while adding...
+								// if this happens it was probably added while adding...
 								DestroyBinaryTree( tree );
-                        continue;
+								continue;
 							}
-                     class_root = new_root;
+							class_root = new_root;
 						}
 					}
 					else
@@ -740,7 +740,7 @@ PTREEDEF GetClassTreeEx( PTREEDEF root, PTREEDEF _name_class, PTREEDEF alias, LO
 						}
 						class_root = &new_root->tree;
 					}
-               break;
+					break;
 				} while( 1 );
 				if( end )
 					start = end + 1;
@@ -756,7 +756,7 @@ PTREEDEF GetClassTreeEx( PTREEDEF root, PTREEDEF _name_class, PTREEDEF alias, LO
 //---------------------------------------------------------------------------
 PROCREG_PROC( PCLASSROOT, CheckClassRoot )( CTEXTSTR name_class )
 {
-   return GetClassTreeEx( NULL, (PCLASSROOT)name_class, NULL, FALSE );
+	return GetClassTreeEx( NULL, (PCLASSROOT)name_class, NULL, FALSE );
 }
 
 //---------------------------------------------------------------------------
@@ -937,7 +937,7 @@ PROCREG_PROC( LOGICAL, RegisterFunctionExx )( PCLASSROOT root
 #ifdef _DEBUG
 				{
 					CTEXTSTR name = pathrchr( pFile );
-               // chop the trailing filename, removing path of filename.
+					// chop the trailing filename, removing path of filename.
 					if( name )
 						name++;
 					else
@@ -970,7 +970,7 @@ PROCREG_PROC( LOGICAL, RegisterFunctionExx )( CTEXTSTR root
 														  )
 {
 	return RegisterFunctionExx( (PCLASSROOT)root, (PCLASSROOT)name_class, public_name, returntype
-                              , proc, args, library, real_name DBG_RELAY );
+	                          , proc, args, library, real_name DBG_RELAY );
 }
 #endif
 
@@ -1012,13 +1012,13 @@ PROCREG_PROC( int, RegisterProcedureExx )( PCLASSROOT root
 	//if( proc )
 	{
 		return RegisterFunctionExx( root, (PCLASSROOT)name_class
-										  , public_name
-										  , returntype
-										  , NULL
-										  , args
-										  , library
-                                , name
-											 DBG_RELAY );
+		                          , public_name
+		                          , returntype
+		                          , NULL
+		                          , args
+		                          , library
+		                          , name
+		                          DBG_RELAY );
 	}
    //return 0;
 }
@@ -1026,12 +1026,12 @@ PROCREG_PROC( int, RegisterProcedureExx )( PCLASSROOT root
 #undef RegisterProcedureEx
 PROCREG_PROC( int, RegisterProcedureEx )( CTEXTSTR name_class
                                         , CTEXTSTR public_name
-													 , CTEXTSTR returntype
+                                        , CTEXTSTR returntype
                                         , CTEXTSTR library
-													 , CTEXTSTR name
-													 , CTEXTSTR args
+                                        , CTEXTSTR name
+                                        , CTEXTSTR args
                                          DBG_PASS
-													 )
+                                        )
 {
    return RegisterProcedureExx( NULL, name_class, public_name, returntype, library, name, args DBG_RELAY );
 }
@@ -1039,8 +1039,8 @@ PROCREG_PROC( int, RegisterProcedureEx )( CTEXTSTR name_class
 
 PROCREG_PROC( PROCEDURE, ReadRegisteredProcedureEx )( PCLASSROOT root
                                                     , CTEXTSTR returntype
-																	 , CTEXTSTR parms
-																  )
+                                                    , CTEXTSTR parms
+                                                    )
 {
 	PTREEDEF class_root = GetClassTree( root, NULL );
 	PNAME oldname = (PNAME)GetCurrentNodeEx( class_root->Tree, &class_root->cursor );
@@ -1225,12 +1225,12 @@ void DumpRegisteredNamesWork( PTREEDEF tree, int level )
 struct browse_index
 {
 	PCLASSROOT current_limbs;
-   PCLASSROOT current_branch;
+	PCLASSROOT current_branch;
 };
 
 PROCREG_PROC( int, NameHasBranches )( PCLASSROOT *data )
 {
-   PTREEDEF class_root;
+	PTREEDEF class_root;
 	PNAME name;
 	class_root = (PTREEDEF)*data;
 	name = (PNAME)GetCurrentNodeEx( class_root->Tree, &class_root->cursor );
@@ -1240,7 +1240,7 @@ PROCREG_PROC( int, NameHasBranches )( PCLASSROOT *data )
 
 int NewNameIsAlias( PCLASSROOT *data )
 {
-   struct browse_index *class_root = (struct browse_index*)(*data);
+	struct browse_index *class_root = (struct browse_index*)(*data);
 	PNAME name;
 	name = (PNAME)GetCurrentNodeEx( class_root->current_branch->Tree, &class_root->current_branch->cursor );
 	return name->flags.bAlias; // may also have a value, but it was created as a path node in the tree
@@ -1248,7 +1248,7 @@ int NewNameIsAlias( PCLASSROOT *data )
 
 int NameIsAlias( PCLASSROOT *data )
 {
-   PTREEDEF class_root;
+	PTREEDEF class_root;
 	PNAME name;
 	class_root = (PTREEDEF)*data;
 	name = (PNAME)GetCurrentNodeEx( class_root->Tree, &class_root->cursor );
@@ -1257,13 +1257,13 @@ int NameIsAlias( PCLASSROOT *data )
 
 PROCREG_PROC( PCLASSROOT, GetCurrentRegisteredTree )( PCLASSROOT *data )
 {
-   PTREEDEF class_root;
+	PTREEDEF class_root;
 	PNAME name;
 	class_root = (PTREEDEF)*data;
 	name = (PNAME)GetCurrentNodeEx( class_root->Tree, &class_root->cursor );
-   if( name )
+	if( name )
 		return &name->tree;
-   return NULL;
+	return NULL;
 }
 
 
@@ -1286,17 +1286,17 @@ PROCREG_PROC( CTEXTSTR, GetFirstRegisteredNameEx )( PCLASSROOT root, CTEXTSTR cl
 			return name->name;
 		}
 	}
-   return NULL;
+	return NULL;
 }
 
 PROCREG_PROC( CTEXTSTR, GetFirstRegisteredName )( CTEXTSTR classname, PCLASSROOT *data )
 {
-   return GetFirstRegisteredNameEx( NULL, classname, data );
+	return GetFirstRegisteredNameEx( NULL, classname, data );
 }
 #ifdef __cplusplus
 PROCREG_PROC( CTEXTSTR, GetFirstRegisteredName )( PCLASSROOT classname, PCLASSROOT *data )
 {
-   return GetFirstRegisteredNameEx( NULL, (CTEXTSTR)classname, data );
+	return GetFirstRegisteredNameEx( NULL, (CTEXTSTR)classname, data );
 }
 #endif
 
@@ -1304,9 +1304,9 @@ PROCREG_PROC( CTEXTSTR, GetFirstRegisteredName )( PCLASSROOT classname, PCLASSRO
 
 PROCREG_PROC( CTEXTSTR, GetNextRegisteredName )( PCLASSROOT *data )
 {
-   PTREEDEF class_root;
+	PTREEDEF class_root;
 	PNAME name;
-   class_root = (PTREEDEF)*data;
+	class_root = (PTREEDEF)*data;
 	if( class_root )
 	{
 		name = (PNAME)GetGreaterNodeEx( class_root->Tree, &class_root->cursor );
@@ -1324,7 +1324,7 @@ PROCREG_PROC( CTEXTSTR, GetNextRegisteredName )( PCLASSROOT *data )
 
 PROCREG_PROC( void, DumpRegisteredNames )( void )
 {
-   if( l.Names )
+	if( l.Names )
 		DumpRegisteredNamesWork( l.Names, 0 );
 }
 
@@ -1398,23 +1398,23 @@ PROCREG_PROC( int, RegisterValueExx )( PCLASSROOT root, CTEXTSTR name_class, CTE
 PROCREG_PROC( int, RegisterValueEx )( CTEXTSTR name_class, CTEXTSTR name, int bIntVal, CTEXTSTR value )
 {
 	Init();
-   return RegisterValueExx( l.Names, name_class, name, bIntVal, value );
+	return RegisterValueExx( l.Names, name_class, name, bIntVal, value );
 }
 //---------------------------------------------------------------------------
 
 PROCREG_PROC( int, RegisterValue )( CTEXTSTR name_class, CTEXTSTR name, CTEXTSTR value )
 {
-   return RegisterValueEx( name_class, name, FALSE, value );
+	return RegisterValueEx( name_class, name, FALSE, value );
 }
 //---------------------------------------------------------------------------
 PROCREG_PROC( int, RegisterIntValueEx )( PCLASSROOT root, CTEXTSTR name_class, CTEXTSTR name, PTRSZVAL value )
 {
-   return RegisterValueExx( root, name_class, name, TRUE, (CTEXTSTR)value );
+	return RegisterValueExx( root, name_class, name, TRUE, (CTEXTSTR)value );
 }
 
 PROCREG_PROC( int, RegisterIntValue )( CTEXTSTR name_class, CTEXTSTR name, PTRSZVAL value )
 {
-   return RegisterValueEx( name_class, name, TRUE, (CTEXTSTR)value );
+	return RegisterValueEx( name_class, name, TRUE, (CTEXTSTR)value );
 }
 
 //---------------------------------------------------------------------------
@@ -1570,7 +1570,7 @@ PROCREG_PROC( PTRSZVAL, RegisterDataType )( CTEXTSTR classname
 												 , void (CPROC *Close)(POINTER,PTRSZVAL) )
 {
 	Init();
-   return RegisterDataTypeEx( l.Names, classname, name, size, Open, Close );
+	return RegisterDataTypeEx( l.Names, classname, name, size, Open, Close );
 }
 
 //---------------------------------------------------------------------------
@@ -1586,7 +1586,7 @@ PROCREG_PROC( PTRSZVAL, MakeRegisteredDataTypeEx)( PCLASSROOT root
 	PTREEDEF class_root = GetClassTree( root, (PCLASSROOT)classname );
 	if( class_root )
 	{
-      	TEXTCHAR buf[256];
+		TEXTCHAR buf[256];
 		PNAME pName = (PNAME)FindInBinaryTree( class_root->Tree, (PTRSZVAL)DressName( buf, name ));
 		if( !pName )
 			pName = (PNAME)RegisterDataTypeEx( root, classname, name, datasize, NULL, NULL );
@@ -1660,7 +1660,7 @@ PROCREG_PROC( PTRSZVAL, CreateRegisteredDataTypeEx)( PCLASSROOT root
 					instancename = SaveName( instancename );
 				{
 					POINTER p;
-               // look up prior instance...
+					// look up prior instance...
 					if( !( p = FindInBinaryTree( pDataDef->instances.Tree, (PTRSZVAL)instancename ) ) )
 					{
 #ifdef DEBUG_GLOBAL_REGISTRATION
@@ -1769,23 +1769,23 @@ static PTRSZVAL CPROC HandleLibrary( PTRSZVAL psv, arg_list args )
 	{
 		lprintf( WIDE("Service: %s has multiple definitions, will use last first.")
 				 , servicename );
-      return psv;
+		return psv;
 	}
-   //lprintf( WIDE("Registering library %s function %s"), library, load_proc_name );
+	//lprintf( WIDE("Registering library %s function %s"), library, load_proc_name );
 	{
 		RegisterProcedureExx( pcr
-								  , servicename
-								  , WIDE("load")
-								  , WIDE("POINTER")
-                          , library
-								  , load_proc_name
-								  , WIDE("void") DBG_SRC );
+		                    , servicename
+		                    , WIDE("load")
+		                    , WIDE("POINTER")
+		                    , library
+		                    , load_proc_name
+		                    , WIDE("void") DBG_SRC );
 		RegisterProcedureExx( pcr
-								  , servicename
-								  , WIDE("unload")
-								  , WIDE("void")
-                          , library
-								  , unload_proc_name, WIDE("POINTER") DBG_SRC );
+		                    , servicename
+		                    , WIDE("unload")
+		                    , WIDE("void")
+		                    , library
+		                    , unload_proc_name, WIDE("POINTER") DBG_SRC );
 	}
 	return psv;
 }
@@ -1915,8 +1915,8 @@ static PTRSZVAL CPROC HandleModulePath( PTRSZVAL psv, arg_list args )
 PROCREG_PROC( void, SetInterfaceConfigFile )( TEXTCHAR *filename )
 {
 	if( l.config_filename )
-      Release( l.config_filename );
-   l.config_filename = StrDup( filename );
+		Release( l.config_filename );
+	l.config_filename = StrDup( filename );
 }
 
 
@@ -1924,9 +1924,9 @@ static PTRSZVAL CPROC SetDefaultDirectory( PTRSZVAL psv, arg_list args )
 {
 #ifndef __NO_OPTIONS__
 	PARAM( args, CTEXTSTR, path );
-   SetCurrentPath( path );
+	SetCurrentPath( path );
 #endif
-   return psv;
+	return psv;
 }
 
 static PTRSZVAL CPROC SetOptionDefault( PTRSZVAL psv, arg_list args )
@@ -1980,7 +1980,7 @@ static PTRSZVAL CPROC TestOption( PTRSZVAL psv, arg_list args )
 		l.flags.bFindEndif++;
 		l.flags.bFindElse = 1;
 	}
-   else if( StrCaseCmp( buf, value ) != 0 )
+	else if( StrCaseCmp( buf, value ) != 0 )
 	{
 		l.flags.bFindEndif++;
 		l.flags.bFindElse = 1;
@@ -2049,14 +2049,14 @@ static PTRSZVAL CPROC SetProducerName( PTRSZVAL psv, arg_list args )
 {
 	PARAM( args, CTEXTSTR, name );
 	sack_set_common_data_producer( name );
-   return psv;
+	return psv;
 }
 
 static PTRSZVAL CPROC SetApplicationName( PTRSZVAL psv, arg_list args )
 {
 	PARAM( args, CTEXTSTR, name );
 	sack_set_common_data_application( name );
-   return psv;
+	return psv;
 }
 
 //-----------------------------------------------------------------------
@@ -2212,7 +2212,7 @@ POINTER GetInterfaceExx( CTEXTSTR pServiceName, LOGICAL ReadConfig DBG_PASS )
 #undef GetInterfaceEx
 POINTER GetInterfaceEx( CTEXTSTR pServiceName, LOGICAL ReadConfig )
 {
-   return GetInterfaceExx( pServiceName, ReadConfig DBG_SRC );
+	return GetInterfaceExx( pServiceName, ReadConfig DBG_SRC );
 }
 
 
@@ -2231,7 +2231,7 @@ POINTER GetInterfaceDbg( CTEXTSTR pServiceName DBG_PASS )
 #undef GetInterface
 PUBLIC( POINTER, GetInterface )( CTEXTSTR pServiceName )
 {
-   return GetInterfaceDbg( pServiceName DBG_SRC );
+	return GetInterfaceDbg( pServiceName DBG_SRC );
 }
 
 //-----------------------------------------------------------------------
@@ -2251,7 +2251,7 @@ PROCREG_PROC( void, DropInterface )( CTEXTSTR pServiceName, POINTER interface_dr
 
 static void DoDeleteRegistry( void )
 {
-   DoDeleteRegistry( );
+	DoDeleteRegistry( );
 }
 
 //-----------------------------------------------------------------------
@@ -2314,8 +2314,8 @@ void RegisterAndCreateGlobalWithInit( POINTER *ppGlobal, PTRSZVAL global_size, C
 #  ifdef DEBUG_FIRST_UNICODE_OPERATION
 		{
 			wchar_t buf[32];
-         strcpy( (char*)buf, "abcdefghijklmn" );
-         swprintf( buf, 32, L"%s", L"some_name" );
+			strcpy( (char*)buf, "abcdefghijklmn" );
+			swprintf( buf, 32, L"%s", L"some_name" );
 			{
 				char tmpmsg[256];
 				int chars;
@@ -2333,7 +2333,7 @@ void RegisterAndCreateGlobalWithInit( POINTER *ppGlobal, PTRSZVAL global_size, C
 				__android_log_print( ANDROID_LOG_INFO, "org.d3x0r.sack.xxxx", tmpmsg );
 
 
-            				ofs = snprintf( tmpmsg, 256, "in the beginning(w):" );
+								ofs = snprintf( tmpmsg, 256, "in the beginning(w):" );
 				for( chars = 0; chars < 32; chars++ )
 					ofs += snprintf( tmpmsg + ofs, 256 - ofs, "%c", (name)[chars] );
 
@@ -2448,7 +2448,7 @@ void RegisterAndCreateGlobalWithInit( POINTER *ppGlobal, PTRSZVAL global_size, C
 
 void RegisterAndCreateGlobal( POINTER *ppGlobal, PTRSZVAL global_size, CTEXTSTR name )
 {
-   RegisterAndCreateGlobalWithInit( ppGlobal, global_size, name, NULL );
+	RegisterAndCreateGlobalWithInit( ppGlobal, global_size, name, NULL );
 }
 
 #ifdef __cplusplus_cli
