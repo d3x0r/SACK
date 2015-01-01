@@ -5,6 +5,7 @@
 #define USES_INTERSHELL_INTERFACE
 #define DEFINES_INTERSHELL_INTERFACE
 #define CHAT_CONTROL_MAIN_SOURCE
+#define CHAT_CONTROL_SOURCE
 #include <stdhdrs.h>
 #include <controls.h>
 #include <psi.h>
@@ -16,8 +17,9 @@
 #include "../../intershell_registry.h"
 #include "../../intershell_export.h"
 
-#include "chat_control_internal.h" 
+// include public defs before internals...
 #include "chat_control.h"
+#include "chat_control_internal.h" 
 
 #define CONTROL_NAME WIDE("Scrollable Message List")
 
@@ -33,6 +35,8 @@ typedef struct chat_time_tag
 typedef struct chat_time_tag *PCHAT_TIME;
 */
 
+
+
 typedef struct chat_message_tag
 {
 	CHAT_TIME received_time; // the time the message was received
@@ -42,14 +46,21 @@ typedef struct chat_message_tag
 	Image thumb_image;
 	TEXTSTR formatted_text;
 	size_t formatted_text_len;
-	int formatted_height;
-	_32 max_width; // how wide the formatted message was
-	int message_y;
-	LOGICAL sent; // if not sent, is received message - determine justification and decoration
+	int _formatted_height;
+	int _message_y;
+	LOGICAL _sent; // if not sent, is received message - determine justification and decoration
 } CHAT_MESSAGE;
 typedef struct chat_message_tag *PCHAT_MESSAGE;
 
-
+typedef struct chat_context_tag
+{
+	LOGICAL sent;
+	int formatted_height;
+	_32 max_width; // how wide the formatted message was
+	int message_y;
+	PLINKQUEUE messages; // queue of PCHAT_MESSAGE (search forward and backward ability)
+} CHAT_CONTEXT;
+typedef CHAT_CONTEXT *PCHAT_CONTEXT;
 
 enum {
 	SEGMENT_TOP_LEFT
@@ -73,6 +84,141 @@ PRELOAD( GetInterfaces )
 	l.pdi = GetDisplayInterface();
 }
 
+static const int month_len[]   = { 31, 28, 31, 30,  31,  30,  31,  31,  30,  31,  30,  31 };
+static const int month_total[] = {  0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334 };
+
+static int IsLeap( int year )
+{
+	return (year % 4 == 0) && (year % 100 != 0 || year % 400 == 0);
+}
+
+static int GetDays( int year, int month )
+{
+	int leap = (year % 4 == 0) && (year % 100 != 0 || year % 400 == 0);
+	if( leap && month == 2 )
+		return month_len[month-1] + 1;
+	return month_len[month-1];
+}
+
+static int J2G( int year, int day_of_year )
+{
+	static const int month_len[] = { 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
+
+	int leap = (year % 4 == 0) && (year % 100 != 0 || year % 400 == 0);
+	int day_of_month = day_of_year;
+	int month;
+	for (month = 0; month < 12; month ++) {
+		int mlen = month_len[month];
+		if (leap && month == 1)
+			mlen ++;
+		if (day_of_month <= mlen)
+			break;
+		day_of_month -= mlen;
+	}
+}
+
+static int G2J( int year, int month, int day )
+{
+
+	int leap = (year % 4 == 0) && (year % 100 != 0 || year % 400 == 0);
+	int day_of_year = 0;
+	int extra = 0;
+	int day_of_month = 0;
+	if (leap && month >= 2)
+		extra = 1;
+	return month_total[month-1] + day + extra;
+}
+
+static CTEXTSTR FormatMessageTime( PCHAT_TIME now, PCHAT_TIME message_time )
+{
+	static TEXTCHAR timebuf[64];
+	int now_day = G2J( now->yr, now->mo, now->dy );
+	int msg_day = G2J( message_time->yr, message_time->mo, message_time->dy );
+	if( now->yr != message_time->yr )
+	{
+		int del = now->yr - message_time->yr;
+		if( del == 1 )
+		{
+			int mo = now->mo + 12;
+			if( ( mo - message_time->mo ) < 12 )
+			{
+				del = mo - message_time->mo;
+				snprintf( timebuf, 64, "%d months ago", del );
+				return timebuf;
+			}
+		}
+		snprintf( timebuf, 64, "%d%s ago", del, del == 1?" year":" years" );
+	}
+	else if( now->mo != message_time->mo )
+	{
+		int del = now->mo - message_time->mo;
+		if( del == 1 )
+		{
+			int dy = now->dy + GetDays( message_time->yr, message_time->mo );
+			if( ( dy - message_time->dy ) < GetDays( message_time->yr, message_time->mo ) )
+			{
+				del = dy - message_time->dy;
+				snprintf( timebuf, 64, "%d days ago", del );
+				return timebuf;
+			}
+		}
+		snprintf( timebuf, 64, "%d%s ago", del, del == 1?" day":" days" );
+	}
+	else if( now->dy != message_time->dy )
+	{
+		int del = now->dy - message_time->dy;
+		if( del == 1 )
+		{
+			int hr = now->hr + 24;
+			if( ( hr - message_time->hr ) < 24 )
+			{
+				del = hr - message_time->hr;
+				snprintf( timebuf, 64, "%d hours ago", del );
+				return timebuf;
+			}
+		}
+		snprintf( timebuf, 64, "%d%s ago", del, del == 1?" day":" days" );
+	}
+	else if( now->hr != message_time->hr )
+	{
+		int del = now->hr - message_time->hr;
+		if( del == 1 )
+		{
+			int mn = now->mn + 60;
+			if( ( mn - message_time->mn ) < 60 )
+			{
+				del = mn - message_time->mn;
+				snprintf( timebuf, 64, "%d minutes ago", del );
+				return timebuf;
+			}
+		}
+		snprintf( timebuf, 64, "%d%s ago", del, del == 1?" hour":" hours" );
+	}
+	else if( now->mn != message_time->mn )
+	{
+		int del = now->mn - message_time->mn;
+		if( del == 1 )
+		{
+			int sc = now->sc + 60;
+			if( ( sc - message_time->sc ) < 60 )
+			{
+				del = sc - message_time->sc;
+				snprintf( timebuf, 64, "%d seconds ago", del );
+				return timebuf;
+			}
+		}
+		snprintf( timebuf, 64, "%d%s ago", del, del == 1?" minute":" minutes" );
+	}
+	else if( now->sc != message_time->sc )
+	{
+		int del = now->sc - message_time->sc;
+		snprintf( timebuf, 64, "%d%s ago", del, del == 1?" second":" seconds" );
+	}
+	else
+		snprintf( timebuf, 64, "now" );
+
+	return timebuf;
+}
 
 static void ChopDecorations( void )
 {
@@ -362,6 +508,7 @@ static void SetupDefaultConfig( void )
 		l.decoration_name = WIDE("chat-decoration.png");
 		l.decoration = LoadImageFile( l.decoration_name );
 
+		l.time_pad = 1;
 		l.side_pad = 5;
 		l.sent.text_color = BASE_COLOR_BLACK;
 		l.sent.back_x = 0;
@@ -459,22 +606,22 @@ static void OnSaveCommon( WIDE( "Chat Control" ) )( FILE *file )
 			 , l.received.div_x2
 			 , l.received.div_y1
 			 , l.received.div_y2 );
-   fprintf( file, WIDE("%sChat Control Background Image=%s\n")
+	fprintf( file, WIDE("%sChat Control Background Image=%s\n")
 			 , InterShell_GetSaveIndent()
 			 , l.decoration_name );
-   fprintf( file, WIDE("%sChat Control Side Pad=%d\n")
+	fprintf( file, WIDE("%sChat Control Side Pad=%d\n")
 			 , InterShell_GetSaveIndent()
 			 , l.side_pad );
-   fprintf( file, WIDE("%sChat Control Received Decoration Justification=%d\n")
+	fprintf( file, WIDE("%sChat Control Received Decoration Justification=%d\n")
 			 , InterShell_GetSaveIndent()
 			, l.flags.received_justification );
-   fprintf( file, WIDE("%sChat Control Sent Decoration Justification=%d\n")
+	fprintf( file, WIDE("%sChat Control Sent Decoration Justification=%d\n")
 			 , InterShell_GetSaveIndent()
 			, l.flags.sent_justification );
-   fprintf( file, WIDE("%sChat Control Received Text Justification=%d\n")
+	fprintf( file, WIDE("%sChat Control Received Text Justification=%d\n")
 			 , InterShell_GetSaveIndent()
 			, l.flags.received_text_justification );
-   fprintf( file, WIDE("%sChat Control Sent Text Justification=%d\n")
+	fprintf( file, WIDE("%sChat Control Sent Text Justification=%d\n")
 			 , InterShell_GetSaveIndent()
 			, l.flags.sent_text_justification );
 }
@@ -512,11 +659,20 @@ void Chat_ClearMessages( PSI_CONTROL pc )
 	PCHAT_LIST chat_control = (*ppList);
 	if( chat_control )
 	{
-		PCHAT_MESSAGE pcm;
-		while( pcm = (PCHAT_MESSAGE)DequeLink( &chat_control->messages ) )
+		PCHAT_CONTEXT pcc;
+		while( pcc = (PCHAT_CONTEXT)DequeLink( &chat_control->contexts ) )
 		{
-			Release( pcm->text );
-			Release( pcm );
+			PCHAT_MESSAGE pcm;
+			INDEX idx;
+			while( pcm = (PCHAT_MESSAGE)DequeLink( &pcc->messages ) )
+			{
+				if( pcm->formatted_text )
+					Release( pcm->formatted_text );
+				Release( pcm->text );
+				Release( pcm );
+			}
+			DeleteLinkQueue( &pcc->messages );
+			Release( pcc );
 		}
 	}
 }
@@ -531,7 +687,21 @@ void Chat_EnqueMessage( PSI_CONTROL pc, LOGICAL sent
 	PCHAT_LIST chat_control = (*ppList);
 	if( chat_control )
 	{
-		PCHAT_MESSAGE pcm = New( CHAT_MESSAGE );
+		PCHAT_CONTEXT pcc;
+		PCHAT_MESSAGE pcm;
+		pcc = (PCHAT_CONTEXT)PeekQueueEx( chat_control->contexts, -1 );
+		if( !pcc || ( pcc->sent != sent ) )
+		{
+			pcc = New( CHAT_CONTEXT );
+			pcc->sent = sent;
+			pcc->max_width = 0;
+			pcc->formatted_height = 0;
+			pcc->messages = NULL;
+			EnqueLink( &chat_control->contexts, pcc );
+		}
+
+
+		pcm = New( CHAT_MESSAGE );
 		if( received_time )
 			pcm->received_time = received_time[0];
 		else
@@ -543,9 +713,9 @@ void Chat_EnqueMessage( PSI_CONTROL pc, LOGICAL sent
 		pcm->image = NULL;
 		pcm->thumb_image = NULL;
 		pcm->text = StrDup( text );
-		pcm->sent = sent;
+		pcm->_sent = sent;
 		pcm->formatted_text = NULL;
-		EnqueLink( &chat_control->messages, pcm );
+		EnqueLink( &pcc->messages, pcm );
 	}
 }
 
@@ -558,7 +728,20 @@ void Chat_EnqueImage( PSI_CONTROL pc, LOGICAL sent
 	PCHAT_LIST chat_control = (*ppList);
 	if( chat_control )
 	{
-		PCHAT_MESSAGE pcm = New( CHAT_MESSAGE );
+		PCHAT_CONTEXT pcc;
+		PCHAT_MESSAGE pcm;
+		pcc = (PCHAT_CONTEXT)PeekQueueEx( chat_control->contexts, -1 );
+		if( !pcc || ( pcc->sent != sent ) )
+		{
+			pcc = New( CHAT_CONTEXT );
+			pcc->sent = sent;
+			pcc->max_width = 0;
+			pcc->formatted_height = 0;
+			pcc->messages = NULL;
+			EnqueLink( &chat_control->contexts, pcc );
+		}
+		
+		pcm = New( CHAT_MESSAGE );
 		if( received_time )
 			pcm->received_time = received_time[0];
 		else
@@ -571,9 +754,9 @@ void Chat_EnqueImage( PSI_CONTROL pc, LOGICAL sent
 		pcm->image = image;
 		pcm->thumb_image = MakeImageFile( 32 * image->width / image->height , 32 );
 		BlotScaledImage( pcm->thumb_image, pcm->image );
-		pcm->sent = sent;
+		pcm->_sent = sent;
 		pcm->formatted_text = NULL;
-		EnqueLink( &chat_control->messages, pcm );
+		EnqueLink( &pcc->messages, pcm );
 	}
 }
 
@@ -627,10 +810,12 @@ void MeasureFrameWidth( Image window, S_32 *left, S_32 *right, LOGICAL received,
 	}
 }
 
-void DrawMessageFrame( Image window, int y, int height, int inset, LOGICAL received, LOGICAL complete )
+_32 DrawMessageFrame( Image window, int y, int height, int inset, LOGICAL received, LOGICAL complete )
 {
 	S_32 x_offset_left;
 	S_32 x_offset_right;
+	height +=  l.sent.BorderSegment[SEGMENT_TOP]->height + l.sent.BorderSegment[SEGMENT_BOTTOM]->height;
+	y -= l.sent.BorderSegment[SEGMENT_TOP]->height + l.sent.BorderSegment[SEGMENT_BOTTOM]->height;
 	//lprintf( WIDE("Draw at %d   %d  bias %d") , y, height, inset );
 	MeasureFrameWidth( window, &x_offset_left, &x_offset_right, received, complete );
 	if( received )
@@ -773,20 +958,22 @@ void DrawMessageFrame( Image window, int y, int height, int inset, LOGICAL recei
 							  , ALPHA_TRANSPARENT );
 		}
 	}
+	return height;
 }
 
-
-
-void DrawAMessage( Image window, PCHAT_LIST list, PCHAT_MESSAGE msg )
+_32 UpdateContextExtents( Image window, PCHAT_LIST list, PCHAT_CONTEXT context )
 {
-	_32 width ;
+	int message_idx;
+	PCHAT_MESSAGE msg;
+
+	_32 width;
 	S_32 x_offset_left, x_offset_right;	
 	S_32 frame_height;
 	S_32 _x_offset_left, _x_offset_right;	
-	MeasureFrameWidth( window, &x_offset_left, &x_offset_right, !msg->sent, TRUE );
+	MeasureFrameWidth( window, &x_offset_left, &x_offset_right, !context->sent, TRUE );
 	_x_offset_left = x_offset_left;
 	_x_offset_right = x_offset_right;
-	if( msg->sent )
+	if( context->sent )
 	{
 		x_offset_left += l.sent.BorderSegment[SEGMENT_LEFT]->width + l.sent.arrow_w + l.sent.arrow_x_offset;
 		x_offset_right -= l.sent.BorderSegment[SEGMENT_RIGHT]->width;
@@ -802,140 +989,283 @@ void DrawAMessage( Image window, PCHAT_LIST list, PCHAT_MESSAGE msg )
 			//- ( l.received.BorderSegment[SEGMENT_LEFT]->width 
 			//+ l.received.BorderSegment[SEGMENT_RIGHT]->width ) ;
 	}
+
+	context->formatted_height = 0;
+	context->message_y = 0;
+	//lprintf( WIDE("BEgin draw messages...") );
+	for( message_idx = -1; msg = (PCHAT_MESSAGE)PeekQueueEx( context->messages, message_idx ); message_idx-- )
+	{
+		if( !msg->formatted_text && msg->text )
+		{
+			int max_width = width;// - ((msg->sent)?l.sent.arrow_w:l.received.arrow_w);
+			int max_height = 9999;
+			FormatTextToBlockEx( msg->text, &msg->formatted_text, &max_width, &max_height, list->sent_font );
+			max_height +=  l.time_pad + GetFontHeight( list->date_font );
+			msg->formatted_text_len = StrLen( msg->formatted_text );
+			msg->_formatted_height = max_height;
+			if( max_width > context->max_width )
+				context->max_width = max_width;
+
+			frame_height = msg->_formatted_height;
+			//lprintf( WIDE("update message_y = %d"), ( l.side_pad + frame_height ) );
+
+			msg->_message_y = ( ((message_idx<-1)?l.side_pad:0) + frame_height );
+		}
+		else
+		{
+			if( msg->formatted_text )
+				frame_height = msg->_formatted_height;
+			else
+				if( msg->thumb_image )
+				{
+					msg->_formatted_height = msg->thumb_image->height ;
+					msg->_formatted_height +=  ((message_idx<-1)?l.side_pad:0)  + l.time_pad + GetFontHeight( list->date_font );
+					msg->_message_y = + msg->_formatted_height;
+					if( msg->thumb_image->width > context->max_width )
+						context->max_width = msg->thumb_image->width;
+
+					frame_height = msg->_formatted_height;
+				}
+		}
+		context->formatted_height += frame_height;
+		context->message_y += msg->_message_y;
+	}
+	return x_offset_right - x_offset_left;
+}
+
+void DrawAMessage( Image window, PCHAT_LIST list, PCHAT_CONTEXT context, PCHAT_MESSAGE msg )
+{
+	_32 width ;
+	S_32 x_offset_left, x_offset_right;	
+	S_32 frame_height;
+	S_32 _x_offset_left, _x_offset_right;	
+	MeasureFrameWidth( window, &x_offset_left, &x_offset_right, !context->sent, TRUE );
+	_x_offset_left = x_offset_left;
+	_x_offset_right = x_offset_right;
+	if( context->sent )
+	{
+		x_offset_left += l.sent.BorderSegment[SEGMENT_LEFT]->width + l.sent.arrow_w + l.sent.arrow_x_offset;
+		x_offset_right -= l.sent.BorderSegment[SEGMENT_RIGHT]->width;
+		width = ( x_offset_right - x_offset_left ) ;
+		  //- ( l.sent.BorderSegment[SEGMENT_LEFT]->width 
+		//	+ l.sent.BorderSegment[SEGMENT_RIGHT]->width ) ;
+	}
+	else
+	{
+		x_offset_left += l.received.BorderSegment[SEGMENT_LEFT]->width ;
+		x_offset_right -= ( l.received.BorderSegment[SEGMENT_RIGHT]->width + l.received.arrow_w + l.received.arrow_x_offset ); 
+		width = ( x_offset_right - x_offset_left ) ;
+			//- ( l.received.BorderSegment[SEGMENT_LEFT]->width 
+			//+ l.received.BorderSegment[SEGMENT_RIGHT]->width ) ;
+	}
+	/*
 	if( !msg->formatted_text && msg->text )
 	{
 		int max_width = width;// - ((msg->sent)?l.sent.arrow_w:l.received.arrow_w);
 		int max_height = 9999;
 		FormatTextToBlockEx( msg->text, &msg->formatted_text, &max_width, &max_height, list->sent_font );
 		msg->formatted_text_len = StrLen( msg->formatted_text );
-		msg->formatted_height = max_height;
-		msg->max_width = max_width;
-		frame_height = msg->formatted_height + l.sent.BorderSegment[SEGMENT_TOP]->height + l.sent.BorderSegment[SEGMENT_BOTTOM]->height ;
+		msg->_formatted_height = max_height;
+		if( max_width > context->max_width )
+			context->max_width = max_width;
+		context->formatted_height += max_height;
+
+		frame_height = msg->_formatted_height;
 		//lprintf( WIDE("update message_y = %d"), ( l.side_pad + frame_height ) );
-		msg->message_y = ( l.side_pad + frame_height );
+
+		msg->_message_y = ( l.side_pad + frame_height );
 	}
 	else
 	{
 		if( msg->formatted_text )
-			frame_height = msg->formatted_height + l.sent.BorderSegment[SEGMENT_TOP]->height + l.sent.BorderSegment[SEGMENT_BOTTOM]->height ;
+			frame_height = msg->_formatted_height;
 		else
 			if( msg->thumb_image )
 			{
-				msg->message_y = l.side_pad + msg->thumb_image->height;
-				msg->max_width = msg->thumb_image->width;
-				msg->formatted_height = msg->thumb_image->height ;
-				frame_height = msg->thumb_image->height + l.sent.BorderSegment[SEGMENT_TOP]->height + l.sent.BorderSegment[SEGMENT_BOTTOM]->height ;
+				msg->_message_y = l.side_pad + msg->thumb_image->height;
+				if( msg->thumb_image->width > context->max_width )
+					context->max_width = msg->thumb_image->width;
+				msg->_formatted_height = msg->thumb_image->height ;
+				frame_height = msg->thumb_image->height ;
 			}
 	}
+	*/
 	//lprintf( WIDE("update next top by %d"), msg->message_y );
-	list->display.message_top -= msg->message_y;
-
-	DrawMessageFrame( window, list->display.message_top, frame_height
-		, ( x_offset_right - x_offset_left
-		    ) - ( msg->max_width - 10 ) 
-		, !msg->sent, TRUE );
-	if( msg->sent )
+	list->display.message_top -= msg->_message_y;
+	if( context->sent )
 	{
+		int time_height;
+		CTEXTSTR timebuf;
+		_32 w, h;
+		timebuf = FormatMessageTime( &l.now, &msg->sent_time ) ;
+		GetStringSizeFont( timebuf, &w, &h, list->date_font );
+			PutStringFontExx( window, x_offset_left 
+									+ ( ( x_offset_right - x_offset_left ) 
+									- ( 
+										+ context->max_width ) )
+							, list->display.message_top// + l.received.BorderSegment[SEGMENT_TOP]->height
+							, l.sent.text_color, 0
+							, timebuf
+							, StrLen( timebuf ), list->date_font, 0, context->max_width );
+
 		if( msg->thumb_image )
 			BlotImage( window, msg->thumb_image
 							, x_offset_left + ( ( x_offset_right - x_offset_left ) 
 								- ( 
-									+ msg->max_width ) )
-							, list->display.message_top + l.received.BorderSegment[SEGMENT_TOP]->height );
+									+ context->max_width ) )
+							, h + list->display.message_top //+ l.received.BorderSegment[SEGMENT_TOP]->height 
+							);
 		if( msg->formatted_text )
 			PutStringFontExx( window, x_offset_left 
 									+ ( ( x_offset_right - x_offset_left ) 
 									- ( 
-										+ msg->max_width ) )
-							, list->display.message_top + l.received.BorderSegment[SEGMENT_TOP]->height
+										+ context->max_width ) )
+							, h + list->display.message_top //+ l.received.BorderSegment[SEGMENT_TOP]->height
 							, l.sent.text_color, 0
-							, msg->formatted_text, msg->formatted_text_len, list->received_font, 0, msg->max_width );
+							, msg->formatted_text, msg->formatted_text_len, list->received_font, 0, context->max_width );
 	}
 	else
 	{
+		int time_height;
+		CTEXTSTR timebuf;
+		_32 w, h;
+		timebuf = FormatMessageTime( &l.now, &msg->received_time ) ;
+		GetStringSizeFont( timebuf, &w, &h, list->date_font );
+
+		PutStringFontExx( window, x_offset_left 									
+						, list->display.message_top //+ l.received.BorderSegment[SEGMENT_TOP]->height
+						, l.sent.text_color, 0
+						, timebuf
+						, StrLen( timebuf ), list->date_font, 0, context->max_width );
+
 		if( msg->thumb_image )
 			BlotImage( window, msg->thumb_image
 							, x_offset_left 
-							, list->display.message_top + l.received.BorderSegment[SEGMENT_TOP]->height );
+							, h + list->display.message_top //+ l.received.BorderSegment[SEGMENT_TOP]->height
+							);
 		if( msg->formatted_text )
 			PutStringFontExx( window, x_offset_left 
-							, list->display.message_top + l.received.BorderSegment[SEGMENT_TOP]->height
+							, h + list->display.message_top //+ l.received.BorderSegment[SEGMENT_TOP]->height
 							, l.received.text_color, 0
-							, msg->formatted_text, msg->formatted_text_len, list->received_font, 0, msg->max_width );
+							, msg->formatted_text, msg->formatted_text_len, list->received_font, 0, context->max_width );
 	}
 }
 
+
+
 static void ReformatMessages( PCHAT_LIST list )
 {
+	int context_idx;
+	PCHAT_CONTEXT context;
 	int message_idx;
 	PCHAT_MESSAGE msg;
-	for( message_idx = -1; msg = (PCHAT_MESSAGE)PeekQueueEx( list->messages, message_idx ); message_idx-- )
+	for( context_idx = -1; context = (PCHAT_CONTEXT)PeekQueueEx( list->contexts, context_idx ); context_idx-- )
 	{
-		Deallocate( TEXTSTR, msg->formatted_text );
-		msg->formatted_text = NULL;
+		context->max_width = 0;
+		for( message_idx = -1; msg = (PCHAT_MESSAGE)PeekQueueEx( context->messages, message_idx ); message_idx-- )
+		{
+			Deallocate( TEXTSTR, msg->formatted_text );
+			msg->formatted_text = NULL;
+		}
 	}
 }
 
 static void DrawMessages( PCHAT_LIST list, Image window )
 {
+	int context_idx;
+	PCHAT_CONTEXT context;
 	int message_idx;
 	PCHAT_MESSAGE msg;
-	//lprintf( WIDE("BEgin draw messages...") );
-	for( message_idx = -1; msg = (PCHAT_MESSAGE)PeekQueueEx( list->messages, message_idx ); message_idx-- )
+
+	for( context_idx = -1; context = (PCHAT_CONTEXT)PeekQueueEx( list->contexts, context_idx ); context_idx-- )
 	{
-		//lprintf( "check message %d", message_idx );
-		if( msg->formatted_text && 
-			 ( ( list->display.message_top - msg->message_y ) >= window->height ) )
+		_32 frame_size;
+		_32 max_width = UpdateContextExtents( window, list, context );
+
+		if( context_idx < -1 )
+			list->display.message_top -= l.side_pad;
+
+		if( ( ( list->display.message_top - context->message_y ) >= window->height ) )
 		{
-			//lprintf( WIDE("have to skip message...") );
-			list->display.message_top -= msg->message_y;
+			list->display.message_top -= context->message_y;
 			continue;
 		}
-		//lprintf( "formatted : %d %d  %d", msg->formatted_text, list->display.message_top, msg->message_y );
-		if( !msg->formatted_text || 
-			 ( ( ( list->display.message_top - msg->message_y ) < window->height )
-			&& (list->display.message_top > l.side_pad ) ) )
-			DrawAMessage( window, list, msg );
-		if( list->display.message_top < l.side_pad )
+
+		frame_size = DrawMessageFrame( window, list->display.message_top - context->message_y, context->formatted_height
+			, max_width - ( context->max_width - 10 ) 
+			, !context->sent, TRUE );
+
+		if( context->sent )
+			list->display.message_top -= l.sent.BorderSegment[SEGMENT_BOTTOM]->height;
+		else
+			list->display.message_top -= l.received.BorderSegment[SEGMENT_BOTTOM]->height;
+
+		//lprintf( WIDE("BEgin draw messages...") );
+		for( message_idx = -1; msg = (PCHAT_MESSAGE)PeekQueueEx( context->messages, message_idx ); message_idx-- )
 		{
-			//lprintf( WIDE("Done.") );
-			break;
+			//lprintf( "check message %d", message_idx );
+			if( msg->formatted_text && 
+				 ( ( list->display.message_top - msg->_message_y ) >= window->height ) )
+			{
+				//lprintf( WIDE("have to skip message...") );
+				list->display.message_top -= msg->_message_y;
+				continue;
+			}
+			//lprintf( "formatted : %d %d  %d", msg->formatted_text, list->display.message_top, msg->message_y );
+			if( !msg->formatted_text || 
+				 ( ( ( list->display.message_top - msg->_message_y ) < window->height )
+				&& (list->display.message_top > l.side_pad ) ) )
+				DrawAMessage( window, list, context, msg );
+			if( list->display.message_top < l.side_pad )
+			{
+				//lprintf( WIDE("Done.") );
+				break;
+			}
 		}
+		if( context->sent )
+			list->display.message_top -= l.sent.BorderSegment[SEGMENT_TOP]->height;
+		else
+			list->display.message_top -= l.received.BorderSegment[SEGMENT_TOP]->height;
 	}
 }
 
 static PCHAT_MESSAGE FindMessage( PCHAT_LIST list, int y )
 {
 	int message_top = list->message_window->height + list->control_offset;		
+	int context_idx;
+	PCHAT_CONTEXT context;
 	int message_idx;
 	PCHAT_MESSAGE msg;
 	if( y >= ( list->message_window->height - list->command_height ) )
 		return NULL; // in command area.
 
-	//y = list->message_window->height - y;
-	//lprintf( WIDE("BEgin draw messages...") );
-	for( message_idx = -1; msg = (PCHAT_MESSAGE)PeekQueueEx( list->messages, message_idx ); message_idx-- )
+	for( context_idx = -1; context = (PCHAT_CONTEXT)PeekQueueEx( list->contexts, context_idx ); context_idx-- )
 	{
-		//lprintf( "check message %d", message_idx );
-		if( msg->formatted_text )
+		//y = list->message_window->height - y;
+		//lprintf( WIDE("BEgin draw messages...") );
+		for( message_idx = -1; msg = (PCHAT_MESSAGE)PeekQueueEx( context->messages, message_idx ); message_idx-- )
 		{
-			//lprintf( WIDE("have to skip message...") );
-			message_top -= msg->message_y;
-			if( ( message_top - msg->message_y ) >= list->message_window->height )
-				continue;
-		}
-		else if( msg->thumb_image )
-		{
-			message_top -= msg->thumb_image->height + (2*l.side_pad);
-			if( ( message_top - msg->thumb_image->height + (2*l.side_pad) ) >= list->message_window->height )
-				continue;
-		}
-		if( y > ( message_top ) )
-			break;
-		if( message_top < l.side_pad )
-		{
-			//lprintf( WIDE("Done.") );
-			break;
+			//lprintf( "check message %d", message_idx );
+			if( msg->formatted_text )
+			{
+				//lprintf( WIDE("have to skip message...") );
+				message_top -= msg->_message_y;
+				if( ( message_top - msg->_message_y ) >= list->message_window->height )
+					continue;
+			}
+			else if( msg->thumb_image )
+			{
+				message_top -= msg->thumb_image->height + (2*l.side_pad);
+				if( ( message_top - msg->thumb_image->height + (2*l.side_pad) ) >= list->message_window->height )
+					continue;
+			}
+			if( y > ( message_top ) )
+				break;
+			if( message_top < l.side_pad )
+			{
+				//lprintf( WIDE("Done.") );
+				break;
+			}
 		}
 	}
 	return msg;
@@ -953,6 +1283,8 @@ static int OnDrawCommon( CONTROL_NAME )( PSI_CONTROL pc )
 	PCHAT_LIST list = (*ppList);
 	Image window = GetControlSurface( pc );
 	int lines, skip_lines;
+
+	Chat_GetCurrentTime( &l.now );
 
 	if( !list )
 	{
@@ -974,11 +1306,10 @@ static int OnDrawCommon( CONTROL_NAME )( PSI_CONTROL pc )
 			lines = 3;
 		}
 		list->nFontHeight = GetFontHeight( list->sent_font );
-		list->command_height = list->nFontHeight * lines 
-			+ l.sent.BorderSegment[SEGMENT_TOP]->height + l.sent.BorderSegment[SEGMENT_BOTTOM]->height;
+		list->command_height = list->nFontHeight * lines ;
 			
 		DrawMessageFrame( window
-			, window->height - ( list->command_height + l.side_pad )
+			, window->height - ( list->command_height + l.side_pad ) 
 			, list->command_height
 			, 0
 			, FALSE
@@ -1019,8 +1350,10 @@ static int OnDrawCommon( CONTROL_NAME )( PSI_CONTROL pc )
 	if( l.decoration )
 	{
 
-		ResizeImage( list->message_window, window->width, window->height - ( list->command_height + l.side_pad * 2 /* above and below input*/ ) );
-		list->display.message_top = list->message_window->height + list->control_offset;
+		ResizeImage( list->message_window, window->width, window->height 
+			- ( list->command_height + l.side_pad * 2 /* above and below input*/ + l.sent.BorderSegment[SEGMENT_TOP]->height + l.sent.BorderSegment[SEGMENT_BOTTOM]->height) );
+		list->display.message_top = 
+									list->message_window->height + list->control_offset;
 		DrawMessages( list, list->message_window );
 	}
 	return 1;
@@ -1094,15 +1427,22 @@ static int OnMouseCommon( CONTROL_NAME )( PSI_CONTROL pc, S_32 x, S_32 y, _32 b 
 					int tmp_top = list->message_window->height + list->control_offset;
 					int message_idx;
 					int total_offset = 0;
-					PCHAT_MESSAGE msg;
-					for( message_idx = -1; msg = (PCHAT_MESSAGE)PeekQueueEx( list->messages, message_idx ); message_idx-- )
+					int context_idx;
+					PCHAT_CONTEXT context;
+					PCHAT_MESSAGE msg = NULL; // might have 0 contexts
+					for( context_idx = -1; context = (PCHAT_CONTEXT)PeekQueueEx( list->contexts, context_idx ); context_idx-- )
 					{
-						// never displayed the message.
-						if( !msg->formatted_text )
+						for( message_idx = -1; msg = (PCHAT_MESSAGE)PeekQueueEx( context->messages, message_idx ); message_idx-- )
+						{
+							// never displayed the message.
+							if( !msg->formatted_text )
+								break;
+							last_message_y = msg->_message_y;
+							tmp_top -= msg->_message_y;
+							total_offset += msg->_message_y;
+						}
+						if( msg )
 							break;
-						last_message_y = msg->message_y;
-						tmp_top -= msg->message_y;
-						total_offset += msg->message_y;
 					}
 					if( !msg && ( tmp_top > ( list->message_window->height - last_message_y ) ) )
 					{
@@ -1154,6 +1494,8 @@ static int OnCreateCommon( CONTROL_NAME )( PSI_CONTROL pc )
 		= list->received_font
 		= list->input_font 
 		= RenderFontFileScaledEx( WIDE("msyh.ttf"), 18, 18, NULL, NULL, 2/*FONT_FLAG_8BIT*/, NULL, NULL );
+	list->date_font 
+		= RenderFontFileScaledEx( WIDE("msyh.ttf"), 9, 9, NULL, NULL, 2/*FONT_FLAG_8BIT*/, NULL, NULL );
 	//list->colors.background_color = BASE_COLOR_WHITE;
 	list->message_window = MakeSubImage( GetControlSurface( pc ), 0, 0, 1, 1 );
 		list->pHistory = PSI_CreateHistoryRegion();
@@ -1252,4 +1594,20 @@ static int OnKeyCommon( CONTROL_NAME )( PSI_CONTROL pc, _32 key )
 	return 1;
 }
 
+void Chat_GetCurrentTime( PCHAT_TIME timebuf )
+{
+#ifdef _WIN32
+	SYSTEMTIME st;
+	GetLocalTime( &st );
+	timebuf->yr = st.wYear;
+	timebuf->mo = st.wMonth;
+	timebuf->dy = st.wDay;
+	timebuf->hr = st.wHour;
+	timebuf->mn = st.wMinute;
+	timebuf->sc = st.wSecond;
+	timebuf->ms = st.wMilliseconds;
+#else
+	lprintf( "No time buffer built for ______" );
+#endif
+}
 

@@ -7,6 +7,8 @@
 // command line update....
 //#include "WinLogic.h"
 
+#define CHAT_CONTROL_SOURCE
+#include "chat_control.h"
 #include "chat_control_internal.h"
 
 

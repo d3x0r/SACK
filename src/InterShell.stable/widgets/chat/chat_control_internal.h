@@ -10,7 +10,8 @@
 
 typedef struct chat_list_tag
 {
-	PLINKQUEUE messages; //
+	PLINKQUEUE contexts; // PCHAT_CONTEXT list which contain messages
+	//PLINKQUEUE messages; //
 	Image message_window;
 	int first_button;
 	int control_offset;
@@ -35,6 +36,7 @@ typedef struct chat_list_tag
 	PTRSZVAL psvInputDrop;
 	PHISTORY_LINE_CURSOR phlc_Input;
 	SFTFont input_font;
+	SFTFont date_font;
 	int nFontHeight;
 	int command_height; // total rendered height, including skip and frame
 	SFTFont message_font;
@@ -55,6 +57,7 @@ typedef struct chat_list_tag
 		SFTFont received_font;
 } CHAT_LIST;
 typedef struct chat_list_tag *PCHAT_LIST;
+
 
 #define l local_scollable_list_data
 #ifndef CHAT_CONTROL_MAIN_SOURCE
@@ -96,8 +99,9 @@ struct scollable_list_local
 		BIT_FIELD sent_text_justification : 2;
 		BIT_FIELD received_text_justification : 2;
 	} flags;
-
+	struct chat_time_tag now;
 	int side_pad;
+	int time_pad;
 } l;
 
 
