@@ -2909,7 +2909,6 @@ void  DebugDumpHeapMemEx ( PMEM pHeap, LOGICAL bVerbose )
 	GetHeapMemStatsEx( pHeap, pFree, pUsed, pChunks, pFreeChunks DBG_SRC );
 }
 
-#ifdef __cplusplus
 
 #ifdef _MSC_VER 
 //>= 900
@@ -2977,6 +2976,8 @@ PRELOAD( ShareMemToVSAllocHook )
 	//_set_new_handler( pn );
 }
 #endif
+
+#ifdef __cplusplus
 
 };//namespace sack {
 };//	namespace memory {

@@ -40,6 +40,7 @@ CTEXTSTR GetGUID( void )
 {
 	GUID guid;
 	TEXTSTR text_guid = NewArray( TEXTCHAR, 37 );
+	CTEXTSTR result;
 	//TEXTSTR ext;
 	int n;
 	int x = 1;
@@ -65,7 +66,9 @@ CTEXTSTR GetGUID( void )
 	//lprintf( "My Conversion: %s", text_guid );
 	//UuidToString( &guid, &ext );
 	//lprintf( "   Conversion : %s", ext );
-	return SaveText( text_guid );
+	result = SaveText( text_guid );
+	Release( text_guid );
+	return result;
 }
 
 CTEXTSTR GetSeqGUID( void )

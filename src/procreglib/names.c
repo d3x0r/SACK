@@ -530,17 +530,17 @@ PRIORITY_PRELOAD( InitProcReg2, SYSLOG_PRELOAD_PRIORITY )
 PRIORITY_PRELOAD( InitProcreg, NAMESPACE_PRELOAD_PRIORITY )
 {
 	Init();
-#ifndef __NO_OPTIONS__
-	l.flags.bDisableMemoryLogging = SACK_GetProfileIntEx( GetProgramName(), WIDE("SACK/Process Registry/Disable Memory Logging"), 1, TRUE );
-#else
-	l.flags.bDisableMemoryLogging = 1;
-#endif
 #ifndef __NO_DEFAULT_INTERFACES__
 	if( !l.flags.bReadConfiguration )
 	{
 		l.flags.bReadConfiguration = 1;
 		ReadConfiguration();
 	}
+#endif
+#ifndef __NO_OPTIONS__
+	l.flags.bDisableMemoryLogging = SACK_GetProfileIntEx( GetProgramName(), WIDE("SACK/Process Registry/Disable Memory Logging"), 1, TRUE );
+#else
+	l.flags.bDisableMemoryLogging = 1;
 #endif
 }
 

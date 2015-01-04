@@ -285,7 +285,10 @@ static int OnMouseCommon( EDIT_FIELD_NAME )( PSI_CONTROL pc, S_32 x, S_32 y, _32
 	//lprintf( WIDE("Edit mosue: %d %d %X"), x, y, b );
 	GetStringSizeFont( GetText(pc->caption.text), &width, &height, font );
 	// how to find the line/character we're interested in....
-	cy = (y - pe->top_side_pad) / height;
+	if( height )
+		cy = (y - pe->top_side_pad) / height;
+	else
+		cy = 0;
 	if( x < LEFT_SIDE_PAD )
 	{
 		found = 1;

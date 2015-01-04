@@ -1855,7 +1855,8 @@ void ReleaseCollectionResults( PCOLLECT pCollect, int bEntire )
 		{
 			for( idx = 0; idx < pCollect->columns; idx++ )
 			{
-				Release( (POINTER)pCollect->results[idx] );
+				if( pCollect->results[idx] )
+					Release( (POINTER)pCollect->results[idx] );
 			}
 			Release( (POINTER)pCollect->results );
 			pCollect->results = NULL;
@@ -4045,30 +4046,75 @@ static struct {
 
 //-----------------------------------------------------------------------
 
-#define natoi(n, p,len) if( (p)[0] == '-' ) p++; for( n = 0, cnt = 0; cnt < len; cnt++ ) (n) = ((n)*10) + (p)[cnt] - '0'; p += len;
+#define natoi(n, p,len) for( n = 0, cnt = 0; p[cnt] && cnt < len; cnt++ ) (n) = ((n)*10) + (p)[cnt] - '0'; if( p[0] ) p += len;
 
 void ConvertSQLDateEx( CTEXTSTR date
                      , int *year, int *month, int *day
                      , int *hour, int *minute, int *second
-                     , int *msec, S_32 *nsec )
+                     , int *msec, S_32 *nsec
+					 , int *zone_ofs_hr, int *zone_ofs_mn
+					 )
 {
-   CTEXTSTR p;
-   int n, cnt;
-   p = date;
-   if( msec )
-      *msec = 0;
-   if( nsec )
-      *nsec = 0;
-   natoi( n, p, 4 ); if( year ) *year = n;
-   natoi( n, p, 2 ); if( month ) *month = n;
-   natoi( n, p, 2 ); if( day ) *day = n;
-   if( p[0] )
-   {
-      if( p[0] == '-' ) p++; // skip the '-'
-      natoi( n, p, 2 ); if( hour ) *hour = n;
-      natoi( n, p, 2 ); if( minute ) *minute = n;
-      natoi( n, p, 2 ); if( second ) *second = n;
-   }
+	CTEXTSTR p;
+	int n, cnt;
+	p = date;
+	if( msec )
+		*msec = 0;
+	if( nsec )
+		*nsec = 0;
+	natoi( n, p, 4 ); if( year ) *year = n;
+	if( p[0]=='-' || p[0] == '/' ) p++;
+	natoi( n, p, 2 ); if( month ) *month = n;
+	if( p[0]=='-' || p[0] == '/' ) p++;
+	natoi( n, p, 2 ); if( day ) *day = n;
+	if( p[0] )
+	{
+		CTEXTSTR np;
+		if( p[0]== 'T' || p[0] == ' ' || p[0] == '-'  ) p++;
+		natoi( n, p, 2 ); if( hour ) *hour = n;
+		if( p[0]==':' ) p++;
+		natoi( n, p, 2 ); if( minute ) *minute = n;
+		if( p[0]==':' ) p++;
+		natoi( n, p, 2 ); if( second ) *second = n;
+		if( p[0]=='.' ) {
+			p++;
+			natoi( n, p, 3 ); if( msec ) *msec = n;
+		}
+	}
+	else 
+	{
+		if( hour ) *hour = 0;
+		if( minute ) *minute = 0;
+		if( second ) *second = 0;
+	}
+	if( p[0] )
+	{
+		int add_zone = 1;
+		if( p[0] == 'Z' )
+		{
+			p++;
+			if( zone_ofs_hr ) (*zone_ofs_hr) = 0;
+			if( zone_ofs_mn ) (*zone_ofs_mn) = 0;
+		}
+		else if( p[0] == '+' )
+		{
+			p++;
+			add_zone = 1;
+		}
+		else if( p[0] == '-' )
+		{
+			p++;
+			add_zone = 0;
+		}
+		natoi( n, p, 2 ); if( zone_ofs_hr ) (*zone_ofs_hr) = add_zone?n:-n;
+		if( p[0] == ':' ) p++;
+		natoi( n, p, 2 ); if( zone_ofs_mn ) (*zone_ofs_mn) = n;
+	}
+	else
+	{
+		if( zone_ofs_hr ) (*zone_ofs_hr) = 0;
+		if( zone_ofs_mn ) (*zone_ofs_mn) = 0;
+	}
 }
 
 //-----------------------------------------------------------------------

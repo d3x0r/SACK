@@ -651,10 +651,10 @@ struct image_shader_op * BeginShaderOp(PImageShaderTracker tracker, ... )
 	return shader_op;
 }
 
-struct image_shader_image_buffer_op * BeginImageShaderOp(PImageShaderTracker tracker, Image target, ... )
+struct image_shader_op * BeginImageShaderOp(PImageShaderTracker tracker, Image target, ... )
 {
 	INDEX idx;
-	struct image_shader_image_buffer_op *isibo;
+	struct image_shader_op *isibo;
 	struct image_shader_image_buffer *image_shader_op;
 	LIST_FORALL( l.glActiveSurface->shader_local.image_shader_operations, idx, struct image_shader_image_buffer *, image_shader_op )
 	{
@@ -674,15 +674,18 @@ struct image_shader_image_buffer_op * BeginImageShaderOp(PImageShaderTracker tra
 		PTRSZVAL psvKey;
 		va_start( args, target );
 		psvKey = tracker->InitShaderOp( tracker, tracker->psv_userdata, args );
-		LIST_FORALL( image_shader_op->output, idx, struct image_shader_image_buffer_op *, isibo )
+		LIST_FORALL( image_shader_op->output, idx, struct image_shader_op *, isibo )
 		{		
 			if( isibo->psvKey == psvKey )
 				break;
 		}
 		if( !isibo )
 		{
-			isibo = New( struct image_shader_image_buffer_op );
-			isibo->image_shader_op = image_shader_op;
+			isibo = New( struct image_shader_op );
+			isibo->from = 0;
+			isibo->to = 0;
+			isibo->tracker = tracker;
+			isibo->depth_enabled = 1;
 			isibo->psvKey = psvKey;
 			AddLink( &image_shader_op->output, isibo );
 		}
@@ -696,11 +699,11 @@ void ClearShaderOp(struct image_shader_op *op )
 {
 }
 
-void AppendImageShaderOpTristrip( struct image_shader_image_buffer_op *op, int triangles, ... )
+void AppendImageShaderOpTristrip( struct image_shader_op *op, int triangles, ... )
 {
 	va_list args;
 	va_start( args, triangles );
-	op->image_shader_op->tracker->AppendTristrip( op->image_shader_op->tracker, triangles, op->psvKey, args );
+	op->tracker->AppendTristrip( op->tracker, triangles, op->psvKey, args );
 	
 }
 

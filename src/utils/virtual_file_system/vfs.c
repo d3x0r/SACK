@@ -122,6 +122,53 @@ static void UpdateSegmentKey( struct volume *vol, enum block_cache_entries cache
 	}
 }
 
+static LOGICAL ValidateBAT( struct volume *vol )
+{
+	if( vol->key )
+	{
+		_32 first_slab = 0;
+		_32 slab = vol->dwSize / ( 4096 );
+		_32 last_block = ( slab * 1024 ) / 1025;
+		_32 n;
+		for( n = first_slab; n < slab; n += 1025  )
+		{
+			int m;
+			_32 *BAT = (P_32)(((P_8)vol->disk) + n * 4096);
+			vol->segment[BLOCK_CACHE_BAT] = n + 1;
+			UpdateSegmentKey( vol, BLOCK_CACHE_BAT );
+			for( m = 0; m < 1024; m++ )
+			{
+				_32 block = BAT[m] ^ ((P_32)vol->usekey[BLOCK_CACHE_BAT])[m];
+				if( block == 0xFFFFFFFF )
+					continue;
+				if( block >= last_block )
+					return FALSE;
+			}
+		}
+	}
+	else 
+	{
+		_32 first_slab = 0;
+		_32 slab = vol->dwSize / ( 4096 );
+		_32 last_block = ( slab * 1024 ) / 1025;
+		_32 n;
+		for( n = first_slab; n < slab; n += 1025  )
+		{
+			int m;
+			_32 *BAT = (P_32)(((P_8)vol->disk) + n * 4096);
+			for( m = 0; m < 1024; m++ )
+			{
+				_32 block = BAT[m];
+				if( block == 0xFFFFFFFF )
+					continue;
+				if( block >= last_block )
+					return FALSE;
+			}
+		}
+	}
+	return TRUE;
+}
+
 // add some space to the volume....
 static void ExpandVolume( struct volume *vol )
 {
@@ -134,7 +181,6 @@ static void ExpandVolume( struct volume *vol )
 		if( new_disk && vol->dwSize )
 		{
 			vol->disk = new_disk;
-			//DumpDirectory( vol );
 			return;
 		}
 		else
@@ -361,6 +407,7 @@ struct volume *sack_vfs_load_volume( CTEXTSTR filepath )
 	vol->key = NULL;
 	vol->files = NULL;
 	ExpandVolume( vol );
+	if( !ValidateBAT( vol ) )  return NULL;
 	if( !l.default_volume )	l.default_volume = vol;
 	return vol;
 }
@@ -406,11 +453,12 @@ struct volume *sack_vfs_load_crypt_volume( CTEXTSTR filepath, CTEXTSTR userkey, 
 			vol->usekey[n] = vol->key + (n+1) * 4096;
 		vol->segkey = vol->key + 4096 * (n+1);
 		vol->curseg = BLOCK_CACHE_DIRECTORY;
-		vol->segment[0] = 0;
+		vol->segment[BLOCK_CACHE_DIRECTORY] = 0;
 		SRG_GetEntropyBuffer( vol->entropy, (P_32)vol->key, 4096 * 8 );
 	}
 	vol->files = NULL;
 	ExpandVolume( vol );
+	if( !ValidateBAT( vol ) ) return NULL;
 	if( !l.default_volume )  l.default_volume = vol;
 	return vol;
 }

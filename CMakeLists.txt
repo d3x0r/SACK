@@ -643,6 +643,7 @@ set( cplusplus_sources
     ${plusplus_header_dup}
     ${cplusplus_sources} 
     ${VECTLIB_PLUSPLUS_SOURCES}
+    ${BAG_SQLITE_SOURCES}
   #${LAST_GCC_LIBRARY_SOURCE} 
 )
 
@@ -867,6 +868,7 @@ add_library( bag SHARED
     ${ODBC_SOURCES}
     ${GENX_SOURCES}
     ${BAG_SQLITE_INTERFACE}
+    ${BAG_SQLITE_SOURCES}
   ${LAST_GCC_LIBRARY_SOURCE}  
 )
 
@@ -900,7 +902,7 @@ set( SACK_PLUSPLUS_SOURCES
 if( NOT __NO_CPLUSPLUS )
 if( NOT FORCE_CXX )
 set( cplusplus_sources )
-COPY_CPLUSPLUS( cplusplus_sources ${SACK_PLUSPLUS_SOURCES} src/sqlite/3.7.16.2/sqlite3.h include/sha1.h include/md5.h )
+COPY_CPLUSPLUS( cplusplus_sources ${SACK_PLUSPLUS_SOURCES} src/sqlite/3.8.7.4/sqlite3.h include/sha1.h include/md5.h )
 if( NEED_UUID )
 COPY_CPLUSPLUS( cplusplus_sources ${SACK_PLUSPLUS_SOURCES} src/uuid-1.6.2/uuid.h )
 endif( NEED_UUID )
@@ -909,6 +911,7 @@ set( cplusplus_sources
     ${plusplus_header_dup}
     ${cplusplus_sources} 
     ${VECTLIB_PLUSPLUS_SOURCES}
+    ${BAG_SQLITE_SOURCES}
 )
 
 set( psi_cplusplus_sources )
@@ -983,7 +986,6 @@ add_library( bag.externals SHARED
     ${PNG_SOURCE}
     ${FREETYPE_SOURCE}
     ${EXPAT_SOURCES}
-    ${BAG_SQLITE_SOURCES}
     ${BAG_EXTERNAL_MORE_SOURCES}
 )
 SET_TARGET_PROPERTIES(bag.externals PROPERTIES

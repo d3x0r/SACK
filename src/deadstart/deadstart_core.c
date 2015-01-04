@@ -430,7 +430,7 @@ void MarkRootDeadstartComplete( void )
 
 #ifndef __NO_OPTIONS__
 // options initializes at SQL+1
-PRIORITY_PRELOAD( InitDeadstartOptions, SQL_PRELOAD_PRIORITY+2 )
+PRIORITY_PRELOAD( InitDeadstartOptions, NAMESPACE_PRELOAD_PRIORITY+1 )
 {
 #ifdef DISABLE_DEBUG_REGISTER_AND_DISPATCH
 #  ifndef __NO_OPTIONS

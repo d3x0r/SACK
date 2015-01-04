@@ -622,7 +622,9 @@ PSSQL_PROC( int, GetSQLTypes )( void );
 PSSQL_PROC( void, ConvertSQLDateEx )( CTEXTSTR date
 												  , int *year, int *month, int *day
 												  , int *hour, int *minute, int *second
-												  , int *msec, S_32 *nsec );
+												  , int *msec, S_32 *nsec
+												  , int *zone_hr, int *zone_mn
+												  );
 #endif
 /* <combine sack::sql::ConvertSQLDateEx@CTEXTSTR@int *@int *@int *@int *@int *@int *@int *@S_32 *>
    
