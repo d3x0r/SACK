@@ -34,6 +34,8 @@ typedef struct chat_list_tag
 	PTRSZVAL psvInputPaste;
 	void (CPROC*InputDrop)( PTRSZVAL psv, CTEXTSTR input, S_32 x, S_32 y );
 	PTRSZVAL psvInputDrop;
+	void (CPROC*MessageSeen)( PTRSZVAL psv );
+	PTRSZVAL psvMessageSeen;
 	PHISTORY_LINE_CURSOR phlc_Input;
 	SFTFont input_font;
 	SFTFont date_font;

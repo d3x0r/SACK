@@ -1005,7 +1005,11 @@ POINTER  PeekQueueEx	 ( PLINKQUEUE plq, int idx )
 				top = (top) + plq->Cnt;
 		}
 		if( idx == 0 )
+		{
+			if( plq->Top == plq->Bottom )
+				return NULL;
 			return plq->pNode[top];
+		}
 	}
 	else
 	{

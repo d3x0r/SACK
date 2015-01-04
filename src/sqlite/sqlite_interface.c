@@ -11,7 +11,7 @@
 #endif
 #define BUILDS_INTERFACE
 #include "../SQLlib/sqlstruc.h"
-#include "3.7.16.2/sqlite3.h"
+#include "sqlite3.h"
 
 #ifndef UNICODE  // fix strings
 //#define LOG_OPERATIONS
