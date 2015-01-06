@@ -1,3 +1,4 @@
+
 set( PROJECT sack_vfs.module )
 
 set(BASE_SOURCES
@@ -37,3 +38,7 @@ target_link_libraries( ${PROJECT} ${SACK_LIBRARIES} sack_vfs.module )
 install_mode_dest( ${PROJECT} )
 
 endif( BUILD_TESTS ) 
+
+add_subdirectory( vfs_command )
+add_subdirectory( vfs_runner )
+

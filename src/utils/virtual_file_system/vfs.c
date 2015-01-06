@@ -42,6 +42,7 @@ PREFIX_PACKED struct volume {
 	P_8 segkey;  // allow byte encrypting... key based on sector volume file index
 	P_8 usekey[BLOCK_CACHE_COUNT]; // composite key
 	PLIST files; // when reopened file structures need to be updated also...
+   LOGICAL read_only;
 } PACKED;
 
 PREFIX_PACKED struct directory_entry
@@ -401,6 +402,7 @@ static void DumpDirectory( struct volume *vol )
 struct volume *sack_vfs_load_volume( CTEXTSTR filepath )
 {
 	struct volume *vol = New( struct volume );
+	vol->read_only = 0;
 	vol->dwSize = 0;
 	vol->disk = 0;
 	vol->volname = SaveText( filepath );
@@ -439,6 +441,7 @@ static void AddSalt( PTRSZVAL psv, POINTER *salt, size_t *salt_size )
 struct volume *sack_vfs_load_crypt_volume( CTEXTSTR filepath, CTEXTSTR userkey, CTEXTSTR devkey )
 {
 	struct volume *vol = New( struct volume );
+	vol->read_only = 0;
 	vol->dwSize = 0;
 	vol->disk = 0;
 	vol->volname = SaveText( filepath );
@@ -459,6 +462,35 @@ struct volume *sack_vfs_load_crypt_volume( CTEXTSTR filepath, CTEXTSTR userkey, 
 	vol->files = NULL;
 	ExpandVolume( vol );
 	if( !ValidateBAT( vol ) ) return NULL;
+	if( !l.default_volume )  l.default_volume = vol;
+	return vol;
+}
+
+struct volume *sack_vfs_use_crypt_volume( POINTER memory, size_t sz, CTEXTSTR userkey, CTEXTSTR devkey )
+{
+	struct volume *vol = New( struct volume );
+	vol->read_only = 1;
+	vol->dwSize = 0;
+	vol->disk = 0;
+	vol->volname = NULL;
+	vol->userkey = userkey;
+	vol->devkey = devkey;
+	{
+		_32 size = 4096 + 4096 * BLOCK_CACHE_COUNT + 16;
+		int n;
+		vol->entropy = SRG_CreateEntropy2( AddSalt, (PTRSZVAL)vol );
+		vol->key = (P_8)OpenSpace( NULL, NULL, &size );
+		for( n = 0; n < BLOCK_CACHE_COUNT; n++ )
+			vol->usekey[n] = vol->key + (n+1) * 4096;
+		vol->segkey = vol->key + 4096 * (n+1);
+		vol->curseg = BLOCK_CACHE_DIRECTORY;
+		vol->segment[BLOCK_CACHE_DIRECTORY] = 0;
+		SRG_GetEntropyBuffer( vol->entropy, (P_32)vol->key, 4096 * 8 );
+	}
+	vol->files = NULL;
+	vol->disk = (struct disk*)memory;
+	vol->dwSize = sz;
+	if( !ValidateBAT( vol ) ) { Release( vol ); return NULL; }
 	if( !l.default_volume )  l.default_volume = vol;
 	return vol;
 }
@@ -775,7 +807,7 @@ _32 CPROC sack_vfs_read( struct sack_vfs_file *file, char * data, size_t length 
 	return written;
 }
 
-_32 sack_vfs_truncate( struct sack_vfs_file *file ) { file->entry->filesize = file->fpi; return file->fpi; }
+_32 sack_vfs_truncate( struct sack_vfs_file *file ) { file->entry->filesize = file->fpi ^ file->dirent_key.filesize; return file->fpi; }
 
 int sack_vfs_close( struct sack_vfs_file *file ) { DeleteLink( &file->vol->files, file ); Release( file ); return 0; }
 
@@ -823,7 +855,11 @@ static struct file_system_interface sack_vfs_fsi = { sack_vfs_open
 
 PRIORITY_PRELOAD( Sack_VFS_Register, SQL_PRELOAD_PRIORITY )
 {
+#ifdef ALT_VFS_NAME
+	sack_register_filesystem_interface( SACK_VFS_FILESYSTEM_NAME ".runner", &sack_vfs_fsi );
+#else
 	sack_register_filesystem_interface( SACK_VFS_FILESYSTEM_NAME, &sack_vfs_fsi );
+#endif
 }
 
 SACK_VFS_NAMESPACE_END
