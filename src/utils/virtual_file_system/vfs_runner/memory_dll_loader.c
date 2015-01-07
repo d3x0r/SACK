@@ -117,10 +117,14 @@ POINTER LoadLibraryFromMemory( CTEXTSTR name, POINTER block, size_t block_len, i
 			PIMAGE_SECTION_HEADER source_section;
 			PIMAGE_IMPORT_DESCRIPTOR import_base;
 			PIMAGE_IMPORT_DESCRIPTOR real_import_base;
+			PIMAGE_SECTION_HEADER source_export_section;
 			PIMAGE_SECTION_HEADER source_import_section;
 			PIMAGE_SECTION_HEADER source_text_section = NULL;
 			PTRSZVAL dwSize = 0;
 			PTRSZVAL newSize;
+			PIMAGE_DATA_DIRECTORY dir = (PIMAGE_DATA_DIRECTORY)source_nt_header->OptionalHeader.DataDirectory;
+			PIMAGE_EXPORT_DIRECTORY exp_dir = (PIMAGE_EXPORT_DIRECTORY)dir[IMAGE_DIRECTORY_ENTRY_EXPORT].VirtualAddress;
+
 			source_section = (PIMAGE_SECTION_HEADER)Seek( source_memory, FPISections );
 			// compute size of total of sections
 			// mark a few known sections for later processing
@@ -129,6 +133,11 @@ POINTER LoadLibraryFromMemory( CTEXTSTR name, POINTER block, size_t block_len, i
 				newSize = (source_section[n].VirtualAddress) + source_section[n].SizeOfRawData;
 				if( newSize > dwSize )
 					dwSize = newSize;
+				if( (DWORD)exp_dir >= source_section[n].VirtualAddress 
+					&& (DWORD)exp_dir < ( source_section[n].VirtualAddress + source_section[n].SizeOfRawData ) )
+				{
+					source_export_section = source_section + n;
+				}
 				if( StrCmpEx( (char*)source_section[n].Name, WIDE(".text"), sizeof( source_section[n].Name ) ) == 0 )
 				{
 					//image_base = (POINTER)Seek( real_memory, source_section[n].VirtualAddress );
@@ -161,9 +170,8 @@ POINTER LoadLibraryFromMemory( CTEXTSTR name, POINTER block, size_t block_len, i
 					, (POINTER)Seek( source_memory, source_section[n].PointerToRawData )
 					, source_section[n].SizeOfRawData );
 			}
-
-			//------------- Done copying sections into system-block bounded things
 #if 0
+			//------------- Done copying sections into system-block bounded things
 				{
 					PIMAGE_DATA_DIRECTORY dir;
 					PIMAGE_EXPORT_DIRECTORY exp_dir;
@@ -174,13 +182,14 @@ POINTER LoadLibraryFromMemory( CTEXTSTR name, POINTER block, size_t block_len, i
 					//if( ( ord = ((PTRSZVAL)funcname & 0xFFFF ) ) == (PTRSZVAL)funcname )
 					{
 						char *dll_name = (char*) Seek( real_memory, exp_dir->Name );
-						void (*f)(void) = (void (*)(void))Seek( real_memory, exp_dir->AddressOfFunctions );
+						void (**f)(void) = (void (**)(void))Seek( real_memory, exp_dir->AddressOfFunctions );
 						char **names = (char**)Seek( real_memory, exp_dir->AddressOfNames );
 						_16 *ords = (_16*)Seek( real_memory, exp_dir->AddressOfNameOrdinals );
 						int n;
 						for( n = 0; n < exp_dir->NumberOfFunctions; n++ )
 						{
-							char *name = (char*)Seek( real_memory, names[n] );
+							//char *name = (char*)Seek( real_memory, names[n] );
+							//f[n] = ((PTRSZVAL)f[n] + source_export_section->VirtualAddress
 						}
 					}
 					//else
@@ -192,8 +201,6 @@ POINTER LoadLibraryFromMemory( CTEXTSTR name, POINTER block, size_t block_len, i
 				{
 					PIMAGE_DATA_DIRECTORY dir;
 					PIMAGE_IMPORT_DESCRIPTOR imp_des;
-					int n;
-					int ord;
 					dir = (PIMAGE_DATA_DIRECTORY)source_nt_header->OptionalHeader.DataDirectory;
 					imp_des = (PIMAGE_IMPORT_DESCRIPTOR)Seek( real_memory, dir[IMAGE_DIRECTORY_ENTRY_IMPORT].VirtualAddress );
 					if( imp_des != real_import_base )
@@ -212,7 +219,6 @@ POINTER LoadLibraryFromMemory( CTEXTSTR name, POINTER block, size_t block_len, i
 				for( n = 0; real_import_base[n].Characteristics; n++ )
 				{
 					char * dll_name = (char*) Seek( import_base, import_base[n].Name - source_import_section->VirtualAddress );
-					int f;
 					if( !IsMappedLibrary( dll_name ) )
 						Callback( dll_name );
 				}
@@ -228,7 +234,6 @@ POINTER LoadLibraryFromMemory( CTEXTSTR name, POINTER block, size_t block_len, i
 					PTRSZVAL *dwFunc;
 					PTRSZVAL *dwTargetFunc;
 					PIMAGE_IMPORT_BY_NAME import_desc;
-					char * function_name;
 					//char * function_name = (char*) Seek( import_base, import_base[n]. - source_import_section->VirtualAddress );
 					//lprintf( "thing %s", dll_name );
 #ifdef __WATCOMC__
@@ -260,7 +265,7 @@ POINTER LoadLibraryFromMemory( CTEXTSTR name, POINTER block, size_t block_len, i
 				if( StrCmpEx( (char*)source_section[0].Name, WIDE(".reloc"), sizeof( source_section[0].Name ) ) == 0 )
 				{
 					int num_reloc;
-					int section_offset = 0;
+					DWORD section_offset = 0;
 					IMAGE_BASE_RELOCATION *ibr = NULL;
 					IMAGE_BASE_RELOCATION *real_ibr = NULL;
 					while( section_offset < source_section[0].SizeOfRawData )
@@ -354,14 +359,15 @@ POINTER LoadLibraryFromMemory( CTEXTSTR name, POINTER block, size_t block_len, i
 			if( entry_point )
 			{
 				SuspendDeadstart();
-				entry_point(real_memory, real_memory, NULL, 0 );
 				if( level == 1 )
 					ResumeDeadstart();
+				entry_point(real_memory, real_memory, GetCommandLine(), 0 );
 			}
 		}
 		AddMappedLibrary( name, real_memory );
 	}
 	level--;
+	return 0;
 }
 
 #ifdef COMPILE_TEST

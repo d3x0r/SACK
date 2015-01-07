@@ -115,6 +115,12 @@ struct file_system_interface {
 	int (CPROC *flush )(void *kp);
 	int (CPROC *exists)( const char *file );
 	LOGICAL (CPROC*copy_write_buffer)(void );
+	struct find_cursor *(CPROC *find_create_cursor )( void );
+	int (CPROC *find_first)( const char *filemask, struct find_cursor *cursor );
+	int (CPROC *find_close)( int ffd );
+	int (CPROC *find_next)( int ffd, struct find_cursor *cursor );
+	char * (CPROC *find_get_name)( struct find_cursor *cursor );
+	size_t (CPROC *find_get_size)( struct find_cursor *cursor );
 	// ftell can be done with seek( file, 0, SEEK_CUR );
 };
 
@@ -158,6 +164,17 @@ FILESYS_PROC  int FILESYS_API  ScanFiles ( CTEXTSTR base
            , void CPROC Process( PTRSZVAL psvUser, CTEXTSTR name, int flags )
            , int flags 
            , PTRSZVAL psvUser );
+
+ FILESYS_PROC int FILESYS_API  ScanFilesExx ( CTEXTSTR base
+           , CTEXTSTR mask
+           , void **pInfo
+           , void CPROC Process( PTRSZVAL psvUser, CTEXTSTR name, int flags )
+           , int flags 
+           , PTRSZVAL psvUser 
+		   , LOGICAL begin_sub_path 
+		   , struct file_system_interface *fsi
+		   );
+
 FILESYS_PROC  void FILESYS_API  ScanDrives ( void (CPROC *Process)(PTRSZVAL user, CTEXTSTR letter, int flags)
 										  , PTRSZVAL user );
 // result is length of name filled into pResult if pResult == NULL && nResult = 0
@@ -340,6 +357,8 @@ FILESYS_PROC  FILE* FILESYS_API  sack_fopen ( INDEX group, CTEXTSTR filename, CT
 FILESYS_PROC  FILE* FILESYS_API  sack_fsopenEx ( INDEX group, CTEXTSTR filename, CTEXTSTR opts, int share_mode, struct file_system_interface *fsi );
 FILESYS_PROC  FILE* FILESYS_API  sack_fsopen ( INDEX group, CTEXTSTR filename, CTEXTSTR opts, int share_mode );
 FILESYS_PROC  struct file_system_interface * FILESYS_API sack_get_filesystem_interface( CTEXTSTR name );
+FILESYS_PROC  void FILESYS_API sack_set_default_filesystem_interface( struct file_system_interface *fsi );
+
 FILESYS_PROC  void FILESYS_API sack_register_filesystem_interface( CTEXTSTR name, struct file_system_interface *fsi );
 FILESYS_PROC  int FILESYS_API  sack_fclose ( FILE *file_file );
 FILESYS_PROC  size_t FILESYS_API  sack_fseek ( FILE *file_file, size_t pos, int whence );

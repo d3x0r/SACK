@@ -123,6 +123,7 @@ SYSTEM_PROC( generic_function, LoadFunctionEx )( CTEXTSTR library, CTEXTSTR func
   getcustomsybmol to resolve these 
   */
 SYSTEM_PROC( void, AddMappedLibrary)( CTEXTSTR libname, POINTER image_memory );
+SYSTEM_PROC( LOGICAL, IsMappedLibrary)( CTEXTSTR libname );
 
 #define LoadFunction(l,f) LoadFunctionEx(l,f DBG_SRC )
 SYSTEM_PROC( generic_function, LoadPrivateFunctionEx )( CTEXTSTR libname, CTEXTSTR funcname DBG_PASS );

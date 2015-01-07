@@ -1067,9 +1067,9 @@ static void BackupFile( const TEXTCHAR *source, int source_name_len, int n )
 	FILE *testfile;
 	INDEX group;
 #if  _MSC_VER >=1600 
-	testfile = sack_fsopen( group = GetFileGroup( WIDE( "system.logs" ), GetProgramPath() ), source, WIDE("rt"), _SH_DENYWR );
+	testfile = sack_fsopenEx( group = GetFileGroup( WIDE( "system.logs" ), GetProgramPath() ), source, WIDE("rt"), _SH_DENYWR, NULL );
 #else
-	testfile = sack_fopen( group = GetFileGroup( WIDE( "system.logs" ), GetProgramPath() ), source, WIDE("rt") );
+	testfile = sack_fopenEx( group = GetFileGroup( WIDE( "system.logs" ), GetProgramPath() ), source, WIDE("rt"), NULL );
 #endif
 	if( testfile )
 	{
@@ -1174,16 +1174,17 @@ void DoSystemLog( const TEXTCHAR *buffer )
 					fseek( l.file, 0, SEEK_END );
 				else
 #if  _MSC_VER >=1600 
-					l.file = sack_fsopen( flags.group_ok?GetFileGroup( WIDE( "system.logs" ), GetProgramPath() ):(INDEX)0, gFilename, WIDE("wt")
+					l.file = sack_fsopenEx( flags.group_ok?GetFileGroup( WIDE( "system.logs" ), GetProgramPath() ):(INDEX)0, gFilename, WIDE("wt")
 #ifdef _UNICODE 
 							WIDE(", ccs=UNICODE")
 #endif
-							, _SH_DENYWR );
+							, _SH_DENYWR, NULL );
 #else
-					l.file = sack_fopen( flags.group_ok?GetFileGroup( WIDE( "system.logs" ), GetProgramPath() ):(INDEX)0, gFilename, WIDE("wt") 
+					l.file = sack_fopenEx( flags.group_ok?GetFileGroup( WIDE( "system.logs" ), GetProgramPath() ):(INDEX)0, gFilename, WIDE("wt") 
 #ifdef _UNICODE 
 							WIDE(", ccs=UNICODE")
 #endif
+							, NULL
 							);
 #endif
 				}

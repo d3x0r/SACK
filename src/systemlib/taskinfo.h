@@ -54,7 +54,8 @@ typedef struct loaded_function_tag
 	void (CPROC*function)(void );
 	struct loaded_library_tag *library;
 	DeclareLink( struct loaded_function_tag );
-	TEXTCHAR name[];
+	CTEXTSTR name;  // can be an integer value... instead of a string...
+	TEXTCHAR _name[];
 } FUNCTION, *PFUNCTION;
 
 #ifdef WIN32
@@ -66,6 +67,7 @@ typedef struct loaded_library_tag
 {
 	PTRSZVAL nLibrary; // when unloading...
 	HLIBRARY library;
+	LOGICAL mapped;
 	PFUNCTION functions;
 	DeclareLink( struct loaded_library_tag );
 	TEXTCHAR *name;

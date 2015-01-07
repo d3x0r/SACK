@@ -30,6 +30,7 @@ SACK_VFS_NAMESPACE
 
 SACK_VFS_PROC struct volume * CPROC sack_vfs_load_volume( CTEXTSTR filepath );
 SACK_VFS_PROC struct volume * CPROC sack_vfs_load_crypt_volume( CTEXTSTR filepath, CTEXTSTR userkey, CTEXTSTR devkey );
+SACK_VFS_PROC void            CPROC sack_vfs_unload_volume( struct volume * vol );
 
 SACK_VFS_PROC struct sack_vfs_file * CPROC sack_vfs_openfile( struct volume *vol, CTEXTSTR filename );
 
