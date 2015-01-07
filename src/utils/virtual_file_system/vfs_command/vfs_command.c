@@ -81,8 +81,16 @@ void ExtractFileAs( CTEXTSTR filename, CTEXTSTR asfile )
 	}
 }
 
+static void CPROC ShowFile( PTRSZVAL psv, CTEXTSTR file, int flags )
+{
+	printf( "%s\n", file );
+}
+
 void GetDirectory( void )
 {
+	POINTER info = NULL;
+	while( ScanFilesExx( NULL, "*", &info, ShowFile, SFF_SUBCURSE|SFF_SUBPATHONLY, 0, FALSE, l.fsi ) );
+
 	//l.fsi->
 }
 

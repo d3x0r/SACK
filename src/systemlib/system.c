@@ -1263,6 +1263,21 @@ void InvokeLibraryLoad( void )
 	}
 }
 
+SYSTEM_PROC( LOGICAL, IsMappedLibrary)( CTEXTSTR libname )
+{
+	PLIBRARY library = l.libraries;
+
+	while( library )
+	{
+		if( StrCmp( library->name, libname ) == 0 )
+			break;
+		library = library->next;
+	}
+	if( library )
+		return TRUE;
+	return FALSE;
+}
+
 SYSTEM_PROC( void, AddMappedLibrary)( CTEXTSTR libname, POINTER image_memory )
 {
 	PLIBRARY library = l.libraries;
@@ -1281,6 +1296,7 @@ SYSTEM_PROC( void, AddMappedLibrary)( CTEXTSTR libname, POINTER image_memory )
 		library->name = library->full_name;
 		StrCpy( library->name, libname );
 		library->functions = NULL;
+		library->mapped = TRUE;
 		library->library = (HLIBRARY)image_memory;
 
 		InvokeLibraryLoad();
@@ -1318,6 +1334,7 @@ SYSTEM_PROC( generic_function, LoadFunctionExx )( CTEXTSTR libname, CTEXTSTR fun
 			library->name = library->full_name;
 			StrCpy( library->name, libname );
 		}
+		library->mapped = FALSE;
 		library->functions = NULL;
 		SuspendDeadstart();
 #ifdef _WIN32
@@ -1398,15 +1415,76 @@ SYSTEM_PROC( generic_function, LoadFunctionExx )( CTEXTSTR libname, CTEXTSTR fun
 		PFUNCTION function = library->functions;
 		while( function )
 		{
-			if( StrCmp( function->name, funcname ) == 0 )
-				break;
+			if( ((PTRSZVAL)function->name & 0xFFFF ) == (PTRSZVAL)function->name )
+				if( function->name == funcname )
+					break;
+				else
+					;
+			else
+				if( StrCmp( function->name, funcname ) == 0 )
+					break;
 			function = function->next;
 		}
 		if( !function )
 		{
 			int len;
-			function = NewPlus( FUNCTION, (len=(sizeof(TEXTCHAR)*( (_32)StrLen( funcname ) + 1 ) ) ) );
-			tnprintf( function->name, len, WIDE( "%s" ), funcname );
+			if( library->mapped )
+			{
+				PIMAGE_DOS_HEADER source_dos_header = (PIMAGE_DOS_HEADER)library->library;
+#define Seek(a,b) (((PTRSZVAL)a)+(b))
+				PIMAGE_NT_HEADERS source_nt_header = (PIMAGE_NT_HEADERS)Seek( library->library, source_dos_header->e_lfanew );
+				if( source_dos_header->e_magic != IMAGE_DOS_SIGNATURE )
+					lprintf( "Basic signature check failed; not a library" );
+				if( source_nt_header->Signature != IMAGE_NT_SIGNATURE )
+					lprintf( "Basic NT signature check failed; not a library" );
+				if( source_nt_header->FileHeader.SizeOfOptionalHeader )
+					if( source_nt_header->OptionalHeader.Magic != IMAGE_NT_OPTIONAL_HDR_MAGIC )
+						lprintf( "Optional header signature is incorrect..." );
+				{
+					PIMAGE_DATA_DIRECTORY dir;
+					PIMAGE_EXPORT_DIRECTORY exp_dir;
+					int n;
+					int ord;
+					dir = (PIMAGE_DATA_DIRECTORY)source_nt_header->OptionalHeader.DataDirectory;
+					exp_dir = (PIMAGE_EXPORT_DIRECTORY)Seek( library->library, dir[0].VirtualAddress );
+					{
+						void (**f)(void) = (void (**)(void))Seek( library->library, exp_dir->AddressOfFunctions );
+						char **names = (char**)Seek( library->library, exp_dir->AddressOfNames );
+						_16 *ords = (_16*)Seek( library->library, exp_dir->AddressOfNameOrdinals );
+						if( ( ord = ((PTRSZVAL)funcname & 0xFFFF ) ) == (PTRSZVAL)funcname )
+						{
+							return (generic_function)Seek( library->library, (PTRSZVAL)f[ord-exp_dir->Base] );
+						}
+						else
+						{
+							for( n = 0; n < exp_dir->NumberOfFunctions; n++ )
+							{
+								char *name = (char*)Seek( library->library, (PTRSZVAL)names[n] );
+								if( StrCmp( name, funcname ) == 0 )
+								{
+									//lprintf( "%s  %s is %d  %d = %p %p", library->name, name, n, ords[n], f[n], f[ords[n]] );									
+									return (generic_function)Seek( library->library, (PTRSZVAL)f[ords[n]] );
+								}
+							}
+						}
+					}
+				}
+				return NULL;
+			}
+			else
+			{
+				if( ( (PTRSZVAL)funcname & 0xFFFF ) == (PTRSZVAL)funcname )
+				{
+					function = NewPlus( FUNCTION, len=0 );
+					function->name = funcname;				
+				}
+				else
+				{
+					function = NewPlus( FUNCTION, (len=(sizeof(TEXTCHAR)*( (_32)StrLen( funcname ) + 1 ) ) ) );
+					function->name = function->_name;
+					tnprintf( function->_name, len, WIDE( "%s" ), funcname );
+				}
+			}
 			function->library = library;
 			function->references = 0;
 #ifdef _WIN32
@@ -1421,7 +1499,7 @@ SYSTEM_PROC( generic_function, LoadFunctionExx )( CTEXTSTR libname, CTEXTSTR fun
 			char *tmp;
 #endif
   			if( l.flags.bLog )
-  				lprintf( WIDE( "Get:%s" ), function->name );
+				lprintf( WIDE( "Get:%s" ), (((PTRSZVAL)function->name&0xFFFF)==(PTRSZVAL)function->name)?function->name:"ordinal" );
 			if( !(function->function = (generic_function)GetProcAddress( library->library
 #ifdef _UNICODE
 																						  , tmp = DupTextToChar( function->name )
@@ -1495,6 +1573,10 @@ SYSTEM_PROC( generic_function, LoadFunctionExx )( CTEXTSTR libname, CTEXTSTR fun
 			if( !l.pFunctionTree )
 				l.pFunctionTree = CreateBinaryTree();
 			//lprintf( WIDE("Adding function %p"), function->function );
+			if( (PTRSZVAL)function->name & 0xFF000000 )
+			{
+				int a =3;
+			}
 			AddBinaryNode( l.pFunctionTree, function, (PTRSZVAL)function->function );
 			LinkThing( library->functions, function );
 		}

@@ -1945,7 +1945,9 @@ PTRSZVAL CPROC ThreadProc( PTHREAD pThread )
 {
 	InitializeCriticalSec( &g.cs_timer_change );
 	g.pTimerThread = pThread;
+#ifndef __NO_IDLE__
 	AddIdleProc( ProcessTimers, (PTRSZVAL)0 );
+#endif
 #ifndef _WIN32
 	nice( -3 ); // allow ourselves a bit more priority...
 #endif

@@ -530,12 +530,14 @@ PRIORITY_PRELOAD( InitProcReg2, SYSLOG_PRELOAD_PRIORITY )
 PRIORITY_PRELOAD( InitProcreg, NAMESPACE_PRELOAD_PRIORITY )
 {
 	Init();
+#ifndef __NO_INTERFACE_SUPPORT__
 #ifndef __NO_DEFAULT_INTERFACES__
 	if( !l.flags.bReadConfiguration )
 	{
 		l.flags.bReadConfiguration = 1;
 		ReadConfiguration();
 	}
+#endif
 #endif
 #ifndef __NO_OPTIONS__
 	l.flags.bDisableMemoryLogging = SACK_GetProfileIntEx( GetProgramName(), WIDE("SACK/Process Registry/Disable Memory Logging"), 1, TRUE );
@@ -648,6 +650,7 @@ PTREEDEF GetClassTreeEx( PTREEDEF root, PTREEDEF _name_class, PTREEDEF alias, LO
 			CTEXTSTR name_class = (CTEXTSTR)_name_class;
 			size_t len = StrLen( name_class ) + 1;
 			PNAME new_root;
+			int retry = 0;
 			if( len > buflen )
 			{
 				buflen = len + 32;
@@ -715,8 +718,16 @@ PTREEDEF GetClassTreeEx( PTREEDEF root, PTREEDEF _name_class, PTREEDEF alias, LO
 							if( !new_root )
 							{
 								// if this happens it was probably added while adding...
+                        DebugBreak();
 								DestroyBinaryTree( tree );
-								continue;
+								if( retry < 2 )
+								{
+									retry++;
+									continue;
+								}
+								SystemLog( "Failed to register..." );
+                        lprintf( WIDE("name not found, adding.. [%s] %s"), start, class_root->self?class_root->self->name:"." );
+                        return NULL;
 							}
 							class_root = new_root;
 						}
@@ -1919,6 +1930,7 @@ PROCREG_PROC( void, SetInterfaceConfigFile )( TEXTCHAR *filename )
 	l.config_filename = StrDup( filename );
 }
 
+#ifndef __NO_INTERFACE_SUPPORT__
 
 static PTRSZVAL CPROC SetDefaultDirectory( PTRSZVAL psv, arg_list args )
 {
@@ -2058,9 +2070,9 @@ static PTRSZVAL CPROC SetApplicationName( PTRSZVAL psv, arg_list args )
 	sack_set_common_data_application( name );
 	return psv;
 }
-
+#endif
 //-----------------------------------------------------------------------
-
+#ifndef __NO_INTERFACE_SUPPORT__
 void ReadConfiguration( void )
 {
 	if( !l.flags.bInterfacesLoaded )
@@ -2159,7 +2171,7 @@ void ReadConfiguration( void )
 		ResumeDeadstart();
 	}
 }
-
+#endif
 //-----------------------------------------------------------------------
 
 POINTER GetInterfaceExx( CTEXTSTR pServiceName, LOGICAL ReadConfig DBG_PASS )
@@ -2173,6 +2185,7 @@ POINTER GetInterfaceExx( CTEXTSTR pServiceName, LOGICAL ReadConfig DBG_PASS )
 	{
 		InvokeDeadstart();
 	}
+#ifndef __NO_INTERFACE_SUPPORT__
 	if( ReadConfig && !reading_configuration )
 	{
 		reading_configuration = 1;
@@ -2181,6 +2194,7 @@ POINTER GetInterfaceExx( CTEXTSTR pServiceName, LOGICAL ReadConfig DBG_PASS )
 		ResumeDeadstart();
 		reading_configuration = 0;
 	}
+#endif
 	//lprintf( "Load interface [%s]", pServiceName );
 	if( pServiceName )
 	{

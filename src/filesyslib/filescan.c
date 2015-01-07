@@ -248,6 +248,8 @@ typedef struct myfinddata {
    struct finddata_t fd;
 #  endif
 # endif
+	struct find_cursor *cursor;
+
 	TEXTCHAR buffer[MAX_PATH_NAME];
 	TEXTCHAR basename[MAX_PATH_NAME];
 	TEXTCHAR findmask[MAX_PATH_NAME];
@@ -262,14 +264,16 @@ typedef struct myfinddata {
 #define findbasename(pInfo) ( ((PMFD)(*pInfo))->basename)
 #define findmask(pInfo)     ( ((PMFD)(*pInfo))->findmask)
 #define findinfo(pInfo)     (((PMFD)(*pInfo)))
+#define findcursor(pInfo)     ( ((PMFD)(*pInfo))->cursor)
 
- int  ScanFilesEx ( CTEXTSTR base
+ int  ScanFilesExx ( CTEXTSTR base
            , CTEXTSTR mask
            , void **pInfo
            , void CPROC Process( PTRSZVAL psvUser, CTEXTSTR name, int flags )
            , int flags 
            , PTRSZVAL psvUser 
 		   , LOGICAL begin_sub_path 
+		   , struct file_system_interface *fsi
 		   )
 {
 	PMFD pDataCurrent = (PMFD)(pInfo);
@@ -289,6 +293,7 @@ typedef struct myfinddata {
 		*pInfo = Allocate( sizeof( MFD ) );
 		pData = (PMFD)(*pInfo);
 		pData->current = NULL;
+		pData->cursor = NULL;
 		pData->prior = pDataCurrent;
 		if( pDataCurrent )
 		{
@@ -304,9 +309,9 @@ typedef struct myfinddata {
 
 		if( base )
 		{
-         TEXTSTR tmp;
+			TEXTSTR tmp;
 			StrCpyEx( findbasename(pInfo), tmp = ExpandPath( base ), MAX_PATH_NAME );
-         Release( tmp );
+			Release( tmp );
 			StrCpyEx( findmask(pInfo), mask, MAX_PATH_NAME );
 		}
 		else
@@ -329,11 +334,21 @@ typedef struct myfinddata {
 #else
 		snprintf( findmask, sizeof(findmask), WIDE("%s/*"), findbasename(pInfo) );
 #endif
-		findhandle(pInfo) = findfirst( findmask, finddata(pInfo) );
+		if( fsi )
+		{
+			if( !findcursor( pInfo ) )
+				findcursor( pInfo ) = fsi->find_create_cursor( );
+			findhandle(pInfo) = fsi->find_first( findmask, findcursor(pInfo) );
+		}
+		else
+			findhandle(pInfo) = findfirst( findmask, finddata(pInfo) );
 		if( findhandle(pInfo) == -1 )
 		{
 			PMFD prior = pData->prior;
-			findclose( findhandle(pInfo) );
+			if( fsi )
+				fsi->find_close( findhandle(pInfo) );
+			else
+				findclose( findhandle(pInfo) );
 			(*pData->root_info) = pData->prior;
 			Release( pData );
 			return prior?processed:0;
@@ -341,11 +356,19 @@ typedef struct myfinddata {
 	}
 	else
 	{
-		getnext:
-		if( findnext( findhandle(pInfo), finddata( pInfo ) ) )
+		int r;
+getnext:
+		if( fsi )
+			r = fsi->find_next( findhandle(pInfo), findcursor( pInfo ) );
+		else
+			r = findnext( findhandle(pInfo), finddata( pInfo ) );
+		if( r )
 		{
 			PMFD prior = pData->prior;
-			findclose( findhandle(pInfo) );
+			if( fsi )
+				fsi->find_close( findhandle(pInfo) );
+			else
+				findclose( findhandle(pInfo) );
 			(*pData->root_info) = pData->prior;
 			Release( pData );
 
@@ -372,6 +395,12 @@ typedef struct myfinddata {
 
 	if( !(flags & SFF_NAMEONLY) ) // if nameonly - have to rebuild the correct name.
 	{
+		if( fsi )
+		{
+			snprintf( pData->buffer, MAX_PATH_NAME, WIDE("%s/%s"), findbasename(pInfo), fsi->find_get_name( findcursor(pInfo) ) );
+		}
+		else
+		{
 #ifdef UNDER_CE
 		snprintf( pData->buffer, MAX_PATH_NAME, WIDE("%s/%s"), findbasename(pInfo), finddata(pInfo)->cFileName );
 #else
@@ -381,11 +410,22 @@ typedef struct myfinddata {
 		snprintf( pData->buffer, MAX_PATH_NAME, WIDE("%s/%s"), findbasename(pInfo), finddata(pInfo)->name );
 #  endif
 #endif
+		}
 	}
 	else
 	{
 		if( flags & SFF_SUBCURSE )
 		{
+			if( fsi )
+			{
+				snprintf( pData->buffer, MAX_PATH_NAME, WIDE("%s%s%s")
+					  , pData->prior?pData->prior->buffer:WIDE( "" )
+					  , pData->prior?WIDE( "/" ):WIDE( "" )
+					, fsi->find_get_name( findcursor(pInfo) ) 
+					);
+			}
+			else
+			{
 #ifdef UNDER_CE
 			snprintf( pData->buffer, MAX_PATH_NAME, WIDE("%s%s%s")
 					  , pData->prior?pData->prior->buffer:WIDE( "" )
@@ -404,9 +444,16 @@ typedef struct myfinddata {
 					  , finddata(pInfo)->name );
 #  endif
 #endif
+			}
 		}
 		else
 		{
+			if( fsi )
+			{
+				snprintf( pData->buffer, MAX_PATH_NAME, WIDE("%s"), fsi->find_get_name( findcursor(pInfo) ) );
+			}
+			else
+			{
 #ifdef UNDER_CE
 			snprintf( pData->buffer, MAX_PATH_NAME, WIDE("%s"), finddata(pInfo)->cFileName );
 #else
@@ -416,6 +463,7 @@ typedef struct myfinddata {
 			snprintf( pData->buffer, MAX_PATH_NAME, WIDE("%s"), finddata(pInfo)->name );
 #  endif
 #endif
+			}
 		}
 	}
 	pData->buffer[MAX_PATH_NAME-1] = 0; // force nul termination...
@@ -444,6 +492,12 @@ typedef struct myfinddata {
 			if( flags & SFF_NAMEONLY )
 			{
 				// even in name only - need to have this full buffer for subcurse.
+				if( fsi )
+				{
+					ofs = snprintf( tmpbuf, sizeof( tmpbuf ), WIDE( "%s/%s" ), findbasename(pInfo), fsi->find_get_name( findcursor(pInfo) ) );
+				}
+				else
+				{
 #ifdef UNDER_CE
 				ofs = snprintf( tmpbuf, sizeof( tmpbuf ), WIDE( "%s/%s" ), findbasename(pInfo), finddata(pInfo)->cFileName );
 #else
@@ -453,11 +507,12 @@ typedef struct myfinddata {
 				ofs = snprintf( tmpbuf, sizeof( tmpbuf ), WIDE( "%s/%s" ), findbasename(pInfo), finddata(pInfo)->name );
 #  endif
 #endif
-				processed |= ScanFilesEx( tmpbuf, findmask( pInfo ), (POINTER*)pData, Process, flags, psvUser, TRUE );
+				}
+				processed |= ScanFilesExx( tmpbuf, findmask( pInfo ), (POINTER*)pData, Process, flags, psvUser, TRUE, fsi );
 			}
 			else
 			{
-				processed |= ScanFilesEx( pData->buffer, findmask( pInfo ), (POINTER*)pData, Process, flags, psvUser, TRUE );
+				processed |= ScanFilesExx( pData->buffer, findmask( pInfo ), (POINTER*)pData, Process, flags, psvUser, TRUE, fsi );
 			}
 		}
 		if( !processed )
@@ -485,7 +540,17 @@ typedef struct myfinddata {
 	}
 	return (*pInfo)?1:0;
 }
-
+ int  ScanFilesEx ( CTEXTSTR base
+           , CTEXTSTR mask
+           , void **pInfo
+           , void CPROC Process( PTRSZVAL psvUser, CTEXTSTR name, int flags )
+           , int flags 
+           , PTRSZVAL psvUser 
+		   , LOGICAL begin_sub_path 
+		   )
+ {
+	 return ScanFilesExx( base, mask, pInfo, Process, flags, psvUser, begin_sub_path, NULL );
+ }
  int  ScanFiles ( CTEXTSTR base
            , CTEXTSTR mask
            , void **pInfo
@@ -493,7 +558,7 @@ typedef struct myfinddata {
            , int flags 
            , PTRSZVAL psvUser )
  {
-	 return ScanFilesEx( base, mask, pInfo, Process, flags, psvUser, FALSE );
+	 return ScanFilesExx( base, mask, pInfo, Process, flags, psvUser, FALSE, NULL );
  }
 
 

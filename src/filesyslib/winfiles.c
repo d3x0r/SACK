@@ -43,7 +43,7 @@ static struct winfile_local_tag {
 	PLIST groups;
 	PLIST handles;
 	PLIST file_system_interface;
-
+	struct file_system_interface *default_file_system_interface;
 	LOGICAL have_default;
 	struct {
 		BIT_FIELD bLogOpenClose : 1;
@@ -958,7 +958,8 @@ FILE * sack_fopenEx( INDEX group, CTEXTSTR filename, CTEXTSTR opts, struct file_
 	LIST_FORALL( l.files, idx, struct file *, file )
 	{
 		if( ( file->group == group )
-			&& ( StrCmp( file->name, filename ) == 0 ) )
+			&& ( StrCmp( file->name, filename ) == 0 ) 
+			&& ( file->fsi == fsi ) )
 		{
 			break;
 		}
@@ -1050,7 +1051,7 @@ FILE * sack_fopenEx( INDEX group, CTEXTSTR filename, CTEXTSTR opts, struct file_
 
 FILE*  sack_fopen ( INDEX group, CTEXTSTR filename, CTEXTSTR opts )
 {
-	return sack_fopenEx( group, filename, opts, NULL );
+	return sack_fopenEx( group, filename, opts, l.default_file_system_interface );
 }
 
 FILE*  sack_fsopenEx( INDEX group
@@ -1139,7 +1140,7 @@ FILE*  sack_fsopenEx( INDEX group
 
 FILE*  sack_fsopen( INDEX group, CTEXTSTR filename, CTEXTSTR opts, int share_mode )
 {
-	return sack_fsopenEx( group, filename, opts, share_mode, NULL );
+	return sack_fsopenEx( group, filename, opts, share_mode, l.default_file_system_interface );
 }
 
 size_t sack_fsize ( FILE *file_file )
@@ -1260,6 +1261,12 @@ TEXTSTR sack_fgets ( TEXTSTR buffer, size_t size,FILE *file_file )
 	//StrCpyEx( buffer, tmp_wbuf, size );
 	return buffer;
 #else
+	struct file *file;
+	file = FindFileByFILE( file_file );
+	if( file && file->fsi )
+	{
+
+	}
 	return fgets( buffer, size, file_file );
 #endif
 }
@@ -1401,6 +1408,11 @@ struct file_system_interface *sack_get_filesystem_interface( CTEXTSTR name )
 			return fit->fsi;
 	}
 	return NULL;
+}
+
+void sack_set_default_filesystem_interface( struct file_system_interface *fsi )
+{
+	l.default_file_system_interface = fsi;
 }
 
 void sack_register_filesystem_interface( CTEXTSTR name, struct file_system_interface *fsi )
