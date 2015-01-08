@@ -620,7 +620,8 @@ struct sack_vfs_file * CPROC sack_vfs_openfile( struct volume *vol, CTEXTSTR fil
 	struct sack_vfs_file *file = New( struct sack_vfs_file );
 	file->entry = ScanDirectory( vol, filename, &file->dirent_key );
 	if( !file->entry )
-		file->entry = GetNewDirectory( vol, filename );
+		if( vol->read_only ) { Release( file ); return NULL; }
+		else file->entry = GetNewDirectory( vol, filename );
 	if( vol->key )
 	{
 		//FPI offset = ( (PTRSZVAL)file->entry - (PTRSZVAL)vol->disk->directory );

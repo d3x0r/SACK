@@ -8,7 +8,7 @@ static struct vfs_command_local
 	struct volume *current_vol;
 } l;
 
-void StoreFileAs( CTEXTSTR filename, CTEXTSTR asfile )
+static void StoreFileAs( CTEXTSTR filename, CTEXTSTR asfile )
 {
 	FILE *in = sack_fopen( 0, filename, "rb" );
 	if( in )
@@ -25,7 +25,7 @@ void StoreFileAs( CTEXTSTR filename, CTEXTSTR asfile )
 	}
 }
 
-void _StoreFile( PTRSZVAL psv,  CTEXTSTR filename, int flags )
+static void _StoreFile( PTRSZVAL psv,  CTEXTSTR filename, int flags )
 {
 	FILE *in = sack_fopen( 0, filename, "rb" );
 	if( in )
@@ -42,13 +42,13 @@ void _StoreFile( PTRSZVAL psv,  CTEXTSTR filename, int flags )
 	}
 }
 
-void StoreFile( CTEXTSTR filemask )
+static void StoreFile( CTEXTSTR filemask )
 {
 	void *info = NULL;
 	while( ScanFiles( NULL, filemask, &info, _StoreFile, SFF_NAMEONLY, 0 ) );
 }
 
-void ExtractFile( CTEXTSTR filename )
+static void ExtractFile( CTEXTSTR filename )
 {
 	FILE *in = sack_fopenEx( 0, filename, "rb", l.fsi );
 	if( in )
@@ -65,7 +65,49 @@ void ExtractFile( CTEXTSTR filename )
 	}
 }
 
-void ExtractFileAs( CTEXTSTR filename, CTEXTSTR asfile )
+static void AppendFilesAs( CTEXTSTR filename1, CTEXTSTR filename2, CTEXTSTR outputname )
+{
+	FILE *file1;
+	size_t file1_size;
+	FILE *file2;
+	size_t file2_size;
+	FILE *file_out;
+	size_t file_out_size;
+
+	POINTER buffer;
+
+	file1 = sack_fopen( 0, filename1, "rb" );
+	if( !file1 ) { printf( "Failed to read file to append: %s", filename1 ); return; }
+	file1_size = sack_fsize( file1 );
+	file2 = sack_fopen( 0, filename2, "rb" );
+	if( !file2 ) { printf( "Failed to read file to append: %s", filename2 ); return; }
+	file2_size = sack_fsize( file2 );
+	file_out = sack_fopen( 0, outputname, "wb" );
+	if( !file_out ) { printf( "Failed to read file to append to: %s", outputname ); return; }
+	file_out_size = sack_fsize( file_out );
+
+	buffer = NewArray( _8, file1_size );
+	sack_fread( buffer, 1, file1_size, file1 );
+	sack_fwrite( buffer, 1, file1_size, file_out );
+	{
+		int fill = 4096 - ( file1_size & 0xFFF );
+		int n;
+		if( fill < 4096 )
+			for( n = 0; n < fill; n++ ) sack_fwrite( "", 1, 1, file_out );
+	}
+	Release( buffer );
+
+	buffer = NewArray( _8, file2_size );
+	sack_fread( buffer, 1, file2_size, file2 );
+	sack_fwrite( buffer, 1, file2_size, file_out );
+
+
+	sack_fclose( file1 );
+	sack_fclose( file2 );
+	sack_fclose( file_out );
+}
+
+static void ExtractFileAs( CTEXTSTR filename, CTEXTSTR asfile )
 {
 	FILE *in = sack_fopenEx( 0, filename, "rb", l.fsi );
 	if( in )
@@ -89,15 +131,14 @@ static void CPROC ShowFile( PTRSZVAL psv, CTEXTSTR file, int flags )
 	l.fsi->close( f );
 }
 
-void GetDirectory( void )
+static void GetDirectory( void )
 {
 	POINTER info = NULL;
 	while( ScanFilesExx( NULL, "*", &info, ShowFile, SFF_SUBCURSE|SFF_SUBPATHONLY, 0, FALSE, l.fsi ) );
-
 	//l.fsi->
 }
 
-void usage( void )
+static void usage( void )
 {
 	printf( "arguments are processed in order... commands may be appended on the same line...\n" );
 	printf( "   vfs <filename>                 : specify a unencrypted VFS file to use\n" );
@@ -175,6 +216,11 @@ SaneWinMain( argc, argv )
 		{
 			ExtractFileAs( argv[arg+1], argv[arg+2] );
 			arg += 2;
+		}
+		else if( StrCaseCmp( argv[arg], "append" ) == 0 )
+		{
+			AppendFilesAs( argv[arg+1], argv[arg+2], argv[arg+3] );
+			arg += 3;
 		}
 
 	}
