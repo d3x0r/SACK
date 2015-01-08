@@ -63,10 +63,12 @@ POINTER GetExtraData( POINTER block )
 			source_section = (PIMAGE_SECTION_HEADER)Seek( source_memory, FPISections );
 			for( n = 0; n < source_nt_header->FileHeader.NumberOfSections; n++ )
 			{
-				newSize = (source_section[n].VirtualAddress) + source_section[n].SizeOfRawData;
+				newSize = (source_section[n].PointerToRawData) + source_section[n].SizeOfRawData;
 				if( newSize > dwSize )
 					dwSize = newSize;
 			}
+			dwSize += 0xFFF;
+			dwSize &= ~0xFFF;
 			return (POINTER)Seek( source_memory, dwSize );
 		}
 	}
