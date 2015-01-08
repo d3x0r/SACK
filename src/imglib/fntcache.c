@@ -840,28 +840,28 @@ void OutputFontCache( void )
 		for( size = 0, pde = (PDICT_ENTRY)GetLeastNode( build.pPaths );
 	        pde;
 			  (size += StrLen( pde->word ) + 1), pde = (PDICT_ENTRY)GetGreaterNode( build.pPaths ) );
-		fprintf( out, WIDE("%%@%") _32f WIDE(",%") _size_f WIDE("\n"), GetNodeCount( build.pPaths ), size );
+		sack_fprintf( out, WIDE("%%@%") _32f WIDE(",%") _size_f WIDE("\n"), GetNodeCount( build.pPaths ), size );
 	}
 	if( build.pFamilies )
 	{
 		for( size = 0, pde = (PDICT_ENTRY)GetLeastNode( build.pFamilies );
    	     pde;
 			  (size += StrLen( pde->word ) + 1),pde = (PDICT_ENTRY)GetGreaterNode( build.pFamilies ) );
-		fprintf( out, WIDE("%%$%") _32f WIDE(",%") _size_f WIDE("\n"), GetNodeCount( build.pFamilies ), size );
+		sack_fprintf( out, WIDE("%%$%") _32f WIDE(",%") _size_f WIDE("\n"), GetNodeCount( build.pFamilies ), size );
 	}
 	if( build.pStyles )
 	{
 		for( size = 0,pde = (PDICT_ENTRY)GetLeastNode( build.pStyles );
    	     pde;
 			  (size += StrLen( pde->word ) + 1),pde = (PDICT_ENTRY)GetGreaterNode( build.pStyles ) );
-	   fprintf( out, WIDE("%%*%") _32f WIDE(",%") _size_f WIDE("\n"), GetNodeCount( build.pStyles ), size );
+	   sack_fprintf( out, WIDE("%%*%") _32f WIDE(",%") _size_f WIDE("\n"), GetNodeCount( build.pStyles ), size );
 	}
 	if( build.pFiles )
 	{
 		for( size = 0,pde = (PDICT_ENTRY)GetLeastNode( build.pFiles );
    	     pde;
 			  (size += StrLen( pde->word ) + 1),pde = (PDICT_ENTRY)GetGreaterNode( build.pFiles ) );
-	   fprintf( out, WIDE("%%&%") _32f WIDE(",%") _size_f WIDE("\n"), GetNodeCount( build.pFiles ), size );
+	   sack_fprintf( out, WIDE("%%&%") _32f WIDE(",%") _size_f WIDE("\n"), GetNodeCount( build.pFiles ), size );
 	}
 
 	// slightly complex loop to scan cache as it is, and
@@ -910,35 +910,35 @@ void OutputFontCache( void )
 				}
 			}
 		}
-		fprintf( out, WIDE("%%#%") _32f WIDE(",%") _32f WIDE(",%") _32f WIDE(",%") _32f WIDE("\n"), nStyles, nSizeFiles, nSizes, nAltFiles );
+		sack_fprintf( out, WIDE("%%#%") _32f WIDE(",%") _32f WIDE(",%") _32f WIDE(",%") _32f WIDE("\n"), nStyles, nSizeFiles, nSizes, nAltFiles );
 	}
 
 	for( pde = (PDICT_ENTRY)GetLeastNode( build.pPaths );
         pde;
 		  pde = (PDICT_ENTRY)GetGreaterNode( build.pPaths ) )
 	{
-      fprintf( out, WIDE("@%s\n"), pde->word );
+		sack_fprintf( out, WIDE("@%s\n"), pde->word );
 	}
 
 	for( pde = (PDICT_ENTRY)GetLeastNode( build.pFamilies );
         pde;
 		  pde = (PDICT_ENTRY)GetGreaterNode( build.pFamilies ) )
 	{
-      fprintf( out, WIDE("$%s\n"), pde->word );
+		sack_fprintf( out, WIDE("$%s\n"), pde->word );
 	}
 
 	for( pde = (PDICT_ENTRY)GetLeastNode( build.pStyles );
         pde;
 		  pde = (PDICT_ENTRY)GetGreaterNode( build.pStyles ) )
 	{
-		fprintf( out, WIDE("*%s\n"), pde->word );
+		sack_fprintf( out, WIDE("*%s\n"), pde->word );
 	}
 
 	for( pde = (PDICT_ENTRY)GetLeastNode( build.pFiles );
         pde;
 		  pde = (PDICT_ENTRY)GetGreaterNode( build.pFiles ) )
 	{
-		fprintf( out, WIDE("&%s\n"), pde->word );
+		sack_fprintf( out, WIDE("&%s\n"), pde->word );
 	}
 
 
@@ -955,7 +955,7 @@ void OutputFontCache( void )
 		TEXTCHAR outbuf[80];
 		int  newlen;
 		// should dump name also...
-		linelen = fprintf( out, WIDE("%") _32f WIDE(",%") _32f WIDE("")
+		linelen = sack_fprintf( out, WIDE("%") _32f WIDE(",%") _32f WIDE("")
 							  , pfe->name->ID
 							  , pfe->nStyles
 							  );
@@ -970,11 +970,11 @@ void OutputFontCache( void )
 								 , pfs->nFiles );
 			if( ( newlen + linelen ) >= 80 )
 			{
-				fprintf( out, WIDE("\n") );
+				sack_fprintf( out, WIDE("\n") );
 				linelen = 0;
 			}
 			linelen += newlen;
-			fputs( outbuf, out );
+			sack_fputs( outbuf, out );
 
 			if( pfs->flags.mono )
 			{
@@ -1005,11 +1005,11 @@ void OutputFontCache( void )
 
 				if( linelen + newlen >= 80 )
 				{
-					fprintf( out, WIDE("\n\\") );
+					sack_fprintf( out, WIDE("\n\\") );
 					linelen = 1;
 				}
 				linelen += newlen;
-				fputs( outbuf, out );
+				sack_fputs( outbuf, out );
 
 				LIST_FORALL( psf->sizes, idx, PSIZES, size )
 				{
@@ -1022,12 +1022,12 @@ void OutputFontCache( void )
 											 , size->height );
 					if( linelen + newlen >= 80 )
 					{
-						fprintf( out, WIDE("\n") );
+						sack_fprintf( out, WIDE("\n") );
 						linelen = newlen;
 					}
 					else
 						linelen += newlen;
-					fputs( outbuf, out );
+					sack_fputs( outbuf, out );
 				}
 
 				{
@@ -1040,18 +1040,18 @@ void OutputFontCache( void )
 											 , pasf->file->ID );
 						if( linelen + newlen >= 80 )
 						{
-							fprintf( out, WIDE("\n|") );
+							sack_fprintf( out, WIDE("\n|") );
 							linelen = newlen + 1;
 						}
 						else
 							linelen += newlen;
-						fputs( outbuf, out );
+						sack_fputs( outbuf, out );
 					}
 				}
-				linelen += fprintf( out, WIDE("^:") );
+				linelen += sack_fprintf( out, WIDE("^:") );
 			}
 		}
-		fprintf( out, WIDE("\n") );
+		sack_fprintf( out, WIDE("\n") );
 		linelen = 0;
 	}
 	sack_fclose( out );
@@ -1084,10 +1084,10 @@ void DumpLoadedFontCache( void )
 #endif
 	if( !out )
 		return;
-	fprintf( out, WIDE("%%@%") _32f WIDE(",%") _size_f WIDE("\n"), build.nPaths, SizeOfMemBlock( build.pPathNames ) );
-	fprintf( out, WIDE("%%$%") _32f WIDE(",%") _size_f WIDE("\n"), build.nFamilies, SizeOfMemBlock( build.pFamilyNames ) );
-	fprintf( out, WIDE("%%*%") _32f WIDE(",%") _size_f WIDE("\n"), build.nStyles, SizeOfMemBlock( build.pStyleNames ) );
-	fprintf( out, WIDE("%%&%") _32f WIDE(",%") _size_f WIDE("\n"), build.nFiles, SizeOfMemBlock( build.pFileNames ) );
+	sack_fprintf( out, WIDE("%%@%") _32f WIDE(",%") _size_f WIDE("\n"), build.nPaths, SizeOfMemBlock( build.pPathNames ) );
+	sack_fprintf( out, WIDE("%%$%") _32f WIDE(",%") _size_f WIDE("\n"), build.nFamilies, SizeOfMemBlock( build.pFamilyNames ) );
+	sack_fprintf( out, WIDE("%%*%") _32f WIDE(",%") _size_f WIDE("\n"), build.nStyles, SizeOfMemBlock( build.pStyleNames ) );
+	sack_fprintf( out, WIDE("%%&%") _32f WIDE(",%") _size_f WIDE("\n"), build.nFiles, SizeOfMemBlock( build.pFileNames ) );
 
 	{
 		INDEX fontidx, styleidx, idx;
@@ -1111,17 +1111,17 @@ void DumpLoadedFontCache( void )
 				}
 			}
 		}
-		fprintf( out, WIDE("%%#%") _32f WIDE(",%") _32f WIDE(",%") _32f WIDE(",%") _32f WIDE("\n"), nStyles, nSizeFiles, nSizes, nAltFiles );
+		sack_fprintf( out, WIDE("%%#%") _32f WIDE(",%") _32f WIDE(",%") _32f WIDE(",%") _32f WIDE("\n"), nStyles, nSizeFiles, nSizes, nAltFiles );
 	}
 
 	for( idx = 0; idx < build.nPaths; idx++ )
-      fprintf( out, WIDE("@%s\n"), build.pPathList[idx] );
+      sack_fprintf( out, WIDE("@%s\n"), build.pPathList[idx] );
 	for( idx = 0; idx < build.nFamilies; idx++ )
-      fprintf( out, WIDE("$%s\n"), build.pFamilyList[idx] );
+      sack_fprintf( out, WIDE("$%s\n"), build.pFamilyList[idx] );
 	for( idx = 0; idx < build.nStyles; idx++ )
-      fprintf( out, WIDE("*%s\n"), build.pStyleList[idx] );
+      sack_fprintf( out, WIDE("*%s\n"), build.pStyleList[idx] );
 	for( idx = 0; idx < build.nFiles; idx++ )
-      fprintf( out, WIDE("&%s\n"), build.pFileList[idx] );
+      sack_fprintf( out, WIDE("&%s\n"), build.pFileList[idx] );
 
 
    for( fontidx = 0; pfe = fg.pFontCache + fontidx, fontidx < fg.nFonts; fontidx++ )
@@ -1135,7 +1135,7 @@ void DumpLoadedFontCache( void )
 		if( pfe->flags.unusable )
 			continue;
 		// should dump name also...
-		linelen = fprintf( out, WIDE("%") _size_f WIDE(",%") _32f WIDE("")
+		linelen = sack_fprintf( out, WIDE("%") _size_f WIDE(",%") _32f WIDE("")
 						, IndexOf( build.pFamilyList, build.nFamilies, pfe->name )
                         , pfe->nStyles
 							  );
@@ -1149,11 +1149,11 @@ void DumpLoadedFontCache( void )
 								 );
 			if( ( linelen + newlen ) >= 80 )
 			{
-				fprintf( out, WIDE("\n") );
+				sack_fprintf( out, WIDE("\n") );
 				linelen = 0;
 			}
 			linelen += newlen;
-			fputs( outbuf, out );
+			sack_fputs( outbuf, out );
 			for( idx = 0; psf = pfs->appfiles + idx, idx < pfs->nFiles; idx++ )
 			{
 				INDEX idx;
@@ -1166,12 +1166,12 @@ void DumpLoadedFontCache( void )
 									 );
 				if( linelen + newlen >= 80 )
 				{
-					fprintf( out, WIDE("\n\\") );
+					sack_fprintf( out, WIDE("\n\\") );
 					linelen = newlen + 1;
 				}
 				else
 					linelen += newlen;
-				fputs( outbuf, out );
+				sack_fputs( outbuf, out );
 				for( idx = 0; size = ((PSIZES)psf->sizes) + idx, idx < psf->nSizes; idx++ )
 				{
 					if( size->width < 0 )
@@ -1183,12 +1183,12 @@ void DumpLoadedFontCache( void )
 											 , size->height );
 					if( linelen + newlen >= 80 )
 					{
-						fprintf( out, WIDE("\n") );
+						sack_fprintf( out, WIDE("\n") );
 						linelen = newlen;
 					}
 					else
 						linelen += newlen;
-					fputs( outbuf, out );
+					sack_fputs( outbuf, out );
 				}
 
 				{
@@ -1202,18 +1202,18 @@ void DumpLoadedFontCache( void )
 											 );
 						if( linelen + newlen >= 80 )
 						{
-							fprintf( out, WIDE("\n|") );
+							sack_fprintf( out, WIDE("\n|") );
 							linelen = newlen + 1;
 						}
 						else
 							linelen += newlen;
-						fputs( outbuf, out );
+						sack_fputs( outbuf, out );
 					}
 				}
-				linelen += fprintf( out, WIDE("^:") );
+				linelen += sack_fprintf( out, WIDE("^:") );
 			}
 		}
-		fprintf( out, WIDE("\n") );
+		sack_fprintf( out, WIDE("\n") );
 		linelen = 0;
 	}
 	sack_fclose( out );
@@ -1484,7 +1484,7 @@ void LoadAllFonts( void )
 			fg.pFontCache = NULL;
 		}
 
-		while( fgets( fgets_buf, sizeof( fgets_buf ), in ) )
+		while( sack_fgets( fgets_buf, sizeof( fgets_buf ), in ) )
 		{
 			TEXTCHAR *style, *flags, *next, *count;
 			PFONT_ENTRY pfe; // kept for contined things;

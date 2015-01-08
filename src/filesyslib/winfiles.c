@@ -1005,7 +1005,15 @@ FILE * sack_fopenEx( INDEX group, CTEXTSTR filename, CTEXTSTR opts, struct file_
 
 	if( fsi )
 	{
-		handle = (FILE*)fsi->open( file->fullname );
+		if( strchr( opts, 'r' ) )
+		{
+			if( fsi->exists( file->fullname ) )
+				handle = (FILE*)fsi->open( file->fullname );
+			else
+				handle = NULL;
+		}
+		else
+			handle = (FILE*)fsi->open( file->fullname );
 	}
 	else
 	{
@@ -1265,7 +1273,27 @@ TEXTSTR sack_fgets ( TEXTSTR buffer, size_t size,FILE *file_file )
 	file = FindFileByFILE( file_file );
 	if( file && file->fsi )
 	{
-
+		int n;
+		char *output = buffer;
+		size = size-1;
+		buffer[size] = 0;
+		for( n = 0; n < size; n++ )
+		{
+			if( file->fsi->read( file_file, output, 1 ) )
+			{
+				if( output[0] == '\n' )
+				{
+					output[1] = 0;
+					break;
+				}
+				output++;
+			}
+			else
+				break;
+		}
+		if( n )
+			return buffer;
+		return NULL;
 	}
 	return fgets( buffer, size, file_file );
 #endif
@@ -1422,6 +1450,41 @@ void sack_register_filesystem_interface( CTEXTSTR name, struct file_system_inter
 	fit->fsi = fsi;
 	AddLink( &l.file_system_interface, fit );
 }
+
+int sack_vfprintf( FILE *file_handle, const char *format, va_list args )
+{
+	PVARTEXT pvt = VarTextCreate();
+	PTEXT output;
+	struct file *file;
+	file = FindFileByFILE( (FILE*)file_handle );
+
+	if( file->fsi )
+	{
+		int r;
+		pvt = VarTextCreate();
+		vvtprintf( pvt, format, args );
+		output = VarTextGet( pvt );
+		r = file->fsi->write( file_handle, GetText( output ), GetTextSize( output ) );
+		LineRelease( output );
+		return r;
+	}	
+	else
+		return vfprintf( file_handle, format, args );
+}
+
+int sack_fprintf( FILE *file, const char *format, ... )
+{
+	va_list args;
+	va_start( args, format );
+	return sack_vfprintf( file, format, args );
+}
+
+int sack_fputs( const char *format,FILE *file )
+{
+	size_t len = strlen( format );
+	return sack_fwrite( format, 1, len, file );
+}
+
 
 
 FILESYS_NAMESPACE_END

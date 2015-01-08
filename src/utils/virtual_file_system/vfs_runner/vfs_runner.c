@@ -12,7 +12,7 @@ static struct vfs_runner_local
 	struct file_system_interface *fsi;
 }l;
 
-void LoadLibraryDependant( CTEXTSTR name )
+LOGICAL CPROC LoadLibraryDependant( CTEXTSTR name )
 {
 	if( l.fsi->exists( name ) )
 	{
@@ -28,10 +28,10 @@ void LoadLibraryDependant( CTEXTSTR name )
 				Release( data );
 			}
 			sack_fclose( file );
+			return TRUE;
 		}
-		else
-			LoadLibrary( name );
 	}
+	return FALSE;
 }
 
 
@@ -58,7 +58,8 @@ SaneWinMain( argc, argv )
 	struct volume *vol ;
 	l.fsi = sack_get_filesystem_interface( "sack_shmem.runner" );
 	sack_set_default_filesystem_interface( l.fsi );
-	vol = sack_vfs_load_crypt_volume( argv[1], REPLACE_ME_2, REPLACE_ME_3 );
+	SetExternalLoadLibrary( LoadLibraryDependant );
+	vol = sack_vfs_load_crypt_volume( "test.scvfs", REPLACE_ME_2, REPLACE_ME_3 );
 	if( vol )
 	{
 		FILE *file = sack_fopenEx( 0, "0", "rb", l.fsi );

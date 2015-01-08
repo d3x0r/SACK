@@ -2107,12 +2107,37 @@ void ReadConfiguration( void )
 			int success = FALSE;
 			if( !filepath )
 				filepath = WIDE("@");
+
 			if( l.config_filename )
 			{
 				success = ProcessConfigurationFile( pch, l.config_filename, 0 );
 				if( !success )
 					lprintf( WIDE("Failed to open custom interface configuration file:%s"), l.config_filename );
 				return;
+			}
+			if( !success )
+			{
+				CTEXTSTR dot;
+				loadname = NewArray( TEXTCHAR, (_32)(len = StrLen( GetProgramName() ) + StrLen( WIDE("interface.conf") ) + 3) );
+				tnprintf( loadname, len, WIDE("%s.%s"), GetProgramName(), WIDE("interface.conf") );
+				success = ProcessConfigurationFile( pch, loadname, 0 );
+				if( !success )
+					dot = GetProgramName();
+				while( !success )
+				{
+					dot = StrChr( dot + 1, '.' );
+					if( dot )
+					{
+						tnprintf( loadname, len, WIDE("%s.%s"), dot+1, WIDE("interface.conf") );
+						success = ProcessConfigurationFile( pch, loadname, 0 );
+					}
+					else
+						break;
+				}
+			}
+			if( !success )
+			{
+				success = ProcessConfigurationFile( pch, WIDE( "interface.conf" ), 0 );
 			}
 			if( !success )
 			{
@@ -2138,10 +2163,6 @@ void ReadConfiguration( void )
 			{
 				tnprintf( loadname, len, WIDE("%s/%s"), filepath, WIDE("interface.conf") );
 				success = ProcessConfigurationFile( pch, loadname, 0 );
-			}
-			if( !success )
-			{
-				success = ProcessConfigurationFile( pch, WIDE( "interface.conf" ), 0 );
 			}
 			if( !success )
 			{

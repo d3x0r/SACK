@@ -864,24 +864,24 @@ void InitLibrary( void )
 					);
 				if( file )
 				{
-					fprintf( file, WIDE("Option DSN=%s\n"), g.OptionDb.info.pDSN );
-					fprintf( file, WIDE("Option Use New Version=off\n") );
-					fprintf( file, WIDE("Option Use Version 4=on\n") );
-					fprintf( file, WIDE("Primary DSN=MySQL\n") );
-					fprintf( file, WIDE("#Primary User=\n") );
-					fprintf( file, WIDE("#Primary Password=\n") );
-					fprintf( file, WIDE("Backup DSN=MySQL2\n") );
-					fprintf( file, WIDE("#Backup User=\n") );
-					fprintf( file, WIDE("#Backup Password=\n") );
-					fprintf( file, WIDE("Log enable=No\n" ) );
-					fprintf( file, WIDE("LogFile enable=No\n" ) );
-					fprintf( file, WIDE("LogFile enable dump data=No\n" ) );
-					fprintf( file, WIDE("Log Option Connection=No\n" ) );
-					fprintf( file, WIDE("Fallback on failure=No\n") );
-					fprintf( file, WIDE("Require Connection=No\n") );
-					fprintf( file, WIDE("Require Primary Connection=Yes\n") );
-					fprintf( file, WIDE("Require Backup Connection=No\n") );
-					fclose( file );
+					sack_fprintf( file, WIDE("Option DSN=%s\n"), g.OptionDb.info.pDSN );
+					sack_fprintf( file, WIDE("Option Use New Version=off\n") );
+					sack_fprintf( file, WIDE("Option Use Version 4=on\n") );
+					sack_fprintf( file, WIDE("Primary DSN=MySQL\n") );
+					sack_fprintf( file, WIDE("#Primary User=\n") );
+					sack_fprintf( file, WIDE("#Primary Password=\n") );
+					sack_fprintf( file, WIDE("Backup DSN=MySQL2\n") );
+					sack_fprintf( file, WIDE("#Backup User=\n") );
+					sack_fprintf( file, WIDE("#Backup Password=\n") );
+					sack_fprintf( file, WIDE("Log enable=No\n" ) );
+					sack_fprintf( file, WIDE("LogFile enable=No\n" ) );
+					sack_fprintf( file, WIDE("LogFile enable dump data=No\n" ) );
+					sack_fprintf( file, WIDE("Log Option Connection=No\n" ) );
+					sack_fprintf( file, WIDE("Fallback on failure=No\n") );
+					sack_fprintf( file, WIDE("Require Connection=No\n") );
+					sack_fprintf( file, WIDE("Require Primary Connection=Yes\n") );
+					sack_fprintf( file, WIDE("Require Backup Connection=No\n") );
+					sack_fclose( file );
 				}
 				ProcessConfigurationFile( pch, WIDE("sql.config"), 0 );
 			}
