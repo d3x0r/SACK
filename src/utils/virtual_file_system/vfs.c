@@ -128,9 +128,7 @@ static void UpdateSegmentKey( struct volume *vol, enum block_cache_entries cache
 		int n;
 		P_8 usekey = vol->usekey[cache_idx];
 		for( n = 0; n < BLOCK_SIZE; n++ )
-		{
 			(*usekey++) = vol->key[n] ^ vol->segkey[n&(SHORTKEY_LENGTH-1)];
-		}
 	}
 }
 
@@ -183,6 +181,7 @@ static void ExpandVolume( struct volume *vol )
 	LOGICAL created;
 	struct disk* new_disk;
 	size_t oldsize = vol->dwSize;
+	if( vol->read_only ) return;
 	if( !vol->dwSize )
 	{
 		new_disk = (struct disk*)OpenSpaceExx( NULL, vol->volname, 0, &vol->dwSize, &created );
@@ -195,10 +194,8 @@ static void ExpandVolume( struct volume *vol )
 			created = 1;
 	}
 	
-	if( oldsize )
-	{
-		CloseSpace( vol->disk );
-	}
+	if( oldsize ) CloseSpace( vol->disk );
+
 	// a BAT plus the sectors it references... ( BLOCKS_PER_BAT + 1 ) * BLOCK_SIZE
 	vol->dwSize += BLOCKS_PER_SECTOR*BLOCK_SIZE;
 
@@ -640,7 +637,7 @@ struct sack_vfs_file * CPROC sack_vfs_openfile( struct volume *vol, CTEXTSTR fil
 
 struct sack_vfs_file * CPROC sack_vfs_open( CTEXTSTR filename ) { return sack_vfs_openfile( l.default_volume, filename ); }
 
-LOGICAL CPROC _sack_vfs_exists( struct volume *vol, CTEXTSTR file )
+int CPROC _sack_vfs_exists( struct volume *vol, CTEXTSTR file )
 {
 	struct directory_entry entkey;
 	struct directory_entry *ent = ScanDirectory( vol, file, &entkey );
@@ -648,7 +645,7 @@ LOGICAL CPROC _sack_vfs_exists( struct volume *vol, CTEXTSTR file )
 	return FALSE;
 }
 
-LOGICAL CPROC sack_vfs_exists( CTEXTSTR file ) { return _sack_vfs_exists( l.default_volume, file ); }
+int CPROC sack_vfs_exists( CTEXTSTR file ) { return _sack_vfs_exists( l.default_volume, file ); }
 
 size_t CPROC sack_vfs_tell( struct sack_vfs_file *file ) { return file->fpi; }
 
