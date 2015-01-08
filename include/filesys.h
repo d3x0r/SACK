@@ -164,17 +164,14 @@ FILESYS_PROC  int FILESYS_API  ScanFiles ( CTEXTSTR base
            , void CPROC Process( PTRSZVAL psvUser, CTEXTSTR name, int flags )
            , int flags 
            , PTRSZVAL psvUser );
-
- FILESYS_PROC int FILESYS_API  ScanFilesExx ( CTEXTSTR base
+FILESYS_PROC  int FILESYS_API  ScanFilesExx ( CTEXTSTR base
            , CTEXTSTR mask
            , void **pInfo
            , void CPROC Process( PTRSZVAL psvUser, CTEXTSTR name, int flags )
            , int flags 
-           , PTRSZVAL psvUser 
-		   , LOGICAL begin_sub_path 
-		   , struct file_system_interface *fsi
-		   );
-
+           , PTRSZVAL psvUser
+		   , LOGICAL begin_subpath
+		   , struct file_system_interface *fsi );
 FILESYS_PROC  void FILESYS_API  ScanDrives ( void (CPROC *Process)(PTRSZVAL user, CTEXTSTR letter, int flags)
 										  , PTRSZVAL user );
 // result is length of name filled into pResult if pResult == NULL && nResult = 0
@@ -369,6 +366,11 @@ FILESYS_PROC  size_t FILESYS_API  sack_fwrite ( CPOINTER buffer, size_t size, in
 FILESYS_PROC  TEXTSTR FILESYS_API  sack_fgets ( TEXTSTR  buffer, size_t size,FILE *file_file );
 FILESYS_PROC  int FILESYS_API  sack_fflush ( FILE *file );
 FILESYS_PROC  int FILESYS_API  sack_ftruncate ( FILE *file );
+
+FILESYS_PROC int FILESYS_API sack_vfprintf( FILE *file_handle, const char *format, va_list args );
+FILESYS_PROC int FILESYS_API sack_fprintf( FILE *file, const char *format, ... );
+FILESYS_PROC int FILESYS_API sack_fputs( const char *format, FILE *file );
+
 
 FILESYS_PROC  int FILESYS_API  sack_unlink ( INDEX group, CTEXTSTR filename );
 FILESYS_PROC  int FILESYS_API  sack_rmdir( INDEX group, CTEXTSTR filename );

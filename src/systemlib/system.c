@@ -1341,16 +1341,29 @@ SYSTEM_PROC( generic_function, LoadFunctionExx )( CTEXTSTR libname, CTEXTSTR fun
 		// with deadstart suspended, the library can safely register
 		// all of its preloads.  Then invoke will release suspend
 		// so final initializers in application can run.
-		library->library = LoadLibrary( library->name );
-		if( !library->library )
+		if( l.ExternalLoadLibrary )
 		{
-			library->library = LoadLibrary( library->full_name );
+			l.ExternalLoadLibrary( library->name );
+			if( l.libraries && StrCaseCmp( l.libraries->name, library->name ) == 0 )
+			{
+				Deallocate( PLIBRARY, library );
+				library = l.libraries;
+				goto get_function_name;
+			}
+		}
+
+		{
+			library->library = LoadLibrary( library->name );
 			if( !library->library )
 			{
-				_xlprintf( 2 DBG_RELAY)( WIDE("Attempt to load %s[%s](%s) failed: %d."), libname, library->full_name, funcname?funcname:WIDE("all"), GetLastError() );
-				ReleaseEx( library DBG_SRC );
-				ResumeDeadstart();
-				return NULL;
+				library->library = LoadLibrary( library->full_name );
+				if( !library->library )
+				{
+					_xlprintf( 2 DBG_RELAY)( WIDE("Attempt to load %s[%s](%s) failed: %d."), libname, library->full_name, funcname?funcname:WIDE("all"), GetLastError() );
+					ReleaseEx( library DBG_SRC );
+					ResumeDeadstart();
+					return NULL;
+				}
 			}
 		}
 #else
@@ -1358,9 +1371,9 @@ SYSTEM_PROC( generic_function, LoadFunctionExx )( CTEXTSTR libname, CTEXTSTR fun
 		// ANDROID This will always fail from the application manager.
 #ifdef UNICODE
 		{
-         char *tmpname = CStrDup( library->name );
+			char *tmpname = CStrDup( library->name );
 			library->library = dlopen( tmp, RTLD_LAZY|(bPrivate?RTLD_LOCAL: RTLD_GLOBAL) );
-         Release( tmpname );
+			Release( tmpname );
 		}
 #else
 		library->library = dlopen( library->name, RTLD_LAZY|(bPrivate?RTLD_LOCAL: RTLD_GLOBAL) );
@@ -1410,6 +1423,7 @@ SYSTEM_PROC( generic_function, LoadFunctionExx )( CTEXTSTR libname, CTEXTSTR fun
 		library->nLibrary = ++l.nLibrary;
 		LinkThing( l.libraries, library );
 	}
+	get_function_name:
 	if( funcname )
 	{
 		PFUNCTION function = library->functions;
@@ -1776,6 +1790,10 @@ LOGICAL IsSystemShuttingDown( void )
    return FALSE;
 }
 
+void SetExternalLoadLibrary( LOGICAL (CPROC*f)(const char *) )
+{
+	l.ExternalLoadLibrary = f;
+}
 
 SACK_SYSTEM_NAMESPACE_END
 

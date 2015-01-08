@@ -1,3 +1,4 @@
+#define NO_FILEOP_ALIAS
 #include <stdhdrs.h>
 #include <sack_vfs.h>
 
@@ -83,7 +84,9 @@ void ExtractFileAs( CTEXTSTR filename, CTEXTSTR asfile )
 
 static void CPROC ShowFile( PTRSZVAL psv, CTEXTSTR file, int flags )
 {
-	printf( "%s\n", file );
+	void *f = l.fsi->open( file + 2 );
+	printf( "%9d %s\n", l.fsi->size( f ), file );
+	l.fsi->close( f );
 }
 
 void GetDirectory( void )
@@ -94,10 +97,24 @@ void GetDirectory( void )
 	//l.fsi->
 }
 
+void usage( void )
+{
+	printf( "arguments are processed in order... commands may be appended on the same line...\n" );
+	printf( "   vfs <filename>                 : specify a unencrypted VFS file to use\n" );
+	printf( "   cvfs <filename> <key1> <key2>  : specify an encrypted VFS file to use; and keys to use\n" );
+	printf( "   dir                            : show current directory\n" );
+	printf( "   rm <filename>                  : delete file within VFS\n" );
+	printf( "   delete <filename>              : delete file within VFS\n" );
+	printf( "   store <filemask>               : store files that match the name in the VFS from local filesystem\n" );
+	printf( "   extract <filemask>             : extract files that match the name in the VFS to local filesystem\n" );
+	printf( "   storeas <filename> <as file>   : store file from <filename> into VFS as <as file>\n" );
+	printf( "   extractas <filename> <as file> : extract file <filename> from VFS as <as file>\n" );
+}
 
 SaneWinMain( argc, argv )
 {
 	int arg;
+	if( argc < 2 ) { usage(); return 0; }
 
 	l.fsi = sack_get_filesystem_interface( SACK_VFS_FILESYSTEM_NAME );
 	if( !l.fsi ) 
@@ -131,6 +148,12 @@ SaneWinMain( argc, argv )
 				printf( "Failed to load vfs: %s", argv[arg+1] );
 				return 2;
 			}
+			arg++;
+		}
+		else if( StrCaseCmp( argv[arg], "rm" ) == 0
+			|| StrCaseCmp( argv[arg], "delete" ) == 0 )
+		{
+			l.fsi->unlink( argv[arg+1] );
 			arg++;
 		}
 		else if( StrCaseCmp( argv[arg], "store" ) == 0 )

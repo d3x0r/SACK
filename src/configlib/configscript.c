@@ -712,7 +712,7 @@ static PTEXT get_line(PCONFIG_HANDLER pch /*FOLD00*/
 					{
 						if( !one_more_read )
 						{
-							if( readlen = fread( wbuffer, sizeof( wchar_t ), WORKSPACE-1, source ) )
+							if( readlen = sack_fread( wbuffer, sizeof( wchar_t ), WORKSPACE-1, source ) )
 							{
 								wbuffer[readlen] = 0;
 								newline = SegCreateFromWideLen( wbuffer, readlen );
@@ -730,7 +730,7 @@ static PTEXT get_line(PCONFIG_HANDLER pch /*FOLD00*/
 					{
 						if( !one_more_read )
 						{
-							if( readlen = fread( buffer, sizeof( char ), WORKSPACE-1, source ) )
+							if( readlen = sack_fread( buffer, sizeof( char ), WORKSPACE-1, source ) )
 							{
 								buffer[readlen] = 0;
 								newline = SegCreateFromCharLen( buffer, readlen );
@@ -2030,7 +2030,7 @@ static void TestUnicode( PCONFIG_HANDLER pch )
 		size_t len_read; // could be really short
 		size_t char_check;
 		int ascii_unicode = 1;
-		len_read = fread( charbuf, 1, 64, pch->file );
+		len_read = sack_fread( charbuf, 1, 64, pch->file );
 		if( ( ((_16*)charbuf)[0] == 0xFEFF )
 			|| ( ((_16*)charbuf)[0] == 0xFFFE )
 			|| ( ((_16*)charbuf)[0] == 0xFDEF ) )
@@ -2072,7 +2072,7 @@ static void TestUnicode( PCONFIG_HANDLER pch )
 		}
 	}
 
-	fseek( pch->file, return_pos, SEEK_SET );
+	sack_fseek( pch->file, return_pos, SEEK_SET );
 	// rewind 
 }
 		

@@ -90,6 +90,7 @@ extern
 	PLIBRARY libraries;
 	PTREEROOT pFunctionTree;
 	int nLibrary;
+	LOGICAL (CPROC*ExternalLoadLibrary)( const char *filename );
 } *local_systemlib;
 
 #define l (*local_systemlib)

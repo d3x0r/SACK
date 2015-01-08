@@ -216,12 +216,14 @@ POINTER LoadLibraryFromMemory( CTEXTSTR name, POINTER block, size_t block_len, i
 			{
 				int n;
 				// as long as charaacteristics is non zero it's not the end of the list.
+				SuspendDeadstart();
 				for( n = 0; real_import_base[n].Characteristics; n++ )
 				{
 					char * dll_name = (char*) Seek( import_base, import_base[n].Name - source_import_section->VirtualAddress );
 					if( !IsMappedLibrary( dll_name ) )
 						Callback( dll_name );
 				}
+				ResumeDeadstart();
 			}
 
 			if( import_base )
@@ -347,10 +349,7 @@ POINTER LoadLibraryFromMemory( CTEXTSTR name, POINTER block, size_t block_len, i
 			void(WINAPI*entry_point)(void*, DWORD, void*) = (void(WINAPI*)(void*,DWORD,void*))Seek( real_memory, source_nt_header->OptionalHeader.AddressOfEntryPoint );
 			if( entry_point )
 			{
-				SuspendDeadstart();
 				entry_point(real_memory, DLL_PROCESS_ATTACH, NULL );
-				if( level == 1 )
-					ResumeDeadstart();
 			}
 		}
 		else
@@ -358,10 +357,16 @@ POINTER LoadLibraryFromMemory( CTEXTSTR name, POINTER block, size_t block_len, i
 			void(WINAPI*entry_point)(HINSTANCE,HINSTANCE,LPSTR,int) = (void(WINAPI*)(HINSTANCE,HINSTANCE,LPSTR,int))Seek( real_memory, source_nt_header->OptionalHeader.AddressOfEntryPoint );
 			if( entry_point )
 			{
+
 				SuspendDeadstart();
 				if( level == 1 )
 					ResumeDeadstart();
-				entry_point(real_memory, real_memory, GetCommandLine(), 0 );
+				{
+					void (*f)(void) = (void(*)(void))LoadFunction( "bag.dll", "InvokeDeadstart" );
+					if( f )
+						f();
+				}
+				entry_point(real_memory, real_memory, "program.exe", 0 );
 			}
 		}
 		AddMappedLibrary( name, real_memory );
