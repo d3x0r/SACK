@@ -799,13 +799,12 @@ ImageFile*  LoadImageFileFromGroupEx ( INDEX group, CTEXTSTR filename DBG_PASS )
 	P_8 buf;
 	ImageFile* file = NULL;
 	FILE* fp;
-
 	fp = sack_fopen( group, filename, WIDE("rb"));
 	if (!fp)
 		return NULL;
 
 	size = sack_fseek (fp, 0, SEEK_END);
-	size = ftell (fp);
+	size = sack_ftell (fp);
 	sack_fseek (fp, 0, SEEK_SET);
 	buf = (_8*) AllocateEx( size + 1 DBG_RELAY );
 	sack_fread (buf, 1, size + 1, fp);

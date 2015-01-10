@@ -20,6 +20,8 @@
 
 FILESYS_NAMESPACE
 
+#include "filesys_local.h"
+
 #define MAX_PATH_NAME 512
 
 // DEBUG_COMPARE 1 == full debug
@@ -287,6 +289,7 @@ typedef struct myfinddata {
 	else
 		pDataCurrent = NULL;
 
+	lprintf( "Search in %s for %s", base?base:"(NULL)", mask?mask:"(*)" );
 	if( !*pInfo || begin_sub_path )
 	{
 		TEXTCHAR findmask[256];
@@ -549,7 +552,7 @@ getnext:
 		   , LOGICAL begin_sub_path 
 		   )
  {
-	 return ScanFilesExx( base, mask, pInfo, Process, flags, psvUser, begin_sub_path, NULL );
+	 return ScanFilesExx( base, mask, pInfo, Process, flags, psvUser, begin_sub_path, l.default_file_system_interface );
  }
  int  ScanFiles ( CTEXTSTR base
            , CTEXTSTR mask

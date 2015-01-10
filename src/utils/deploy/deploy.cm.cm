@@ -290,6 +290,10 @@ if( WIN32 )
                         loginfo.module 
                         seed_random.module 
                         sack_vfs.module 
+                        sack_vfs_runner.exe
+                        sack_vfs_runner_min.exe
+                        sack_vfs_runner_sfx.exe
+                        sack_vfs_command.exe
                     )
 		if( NOT BUILD_MONOLITHIC )
                 set( libfile_list ${libfile_list}  glew )

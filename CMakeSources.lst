@@ -467,6 +467,7 @@ set( SACK_PLUSPLUS_HEADERS ${SACK_PLUSPLUS_HEADERS} ${NETWORK_HEADERS} ${MSGSVR_
      ${SOURCES_ROOT}src/systraylib/resource.h
      ${SOURCES_ROOT}src/systraylib/msgid.h
      ${SOURCES_ROOT}src/filesyslib/filemon/monitor.h
+     ${SOURCES_ROOT}src/filesyslib/filesys_local.h
      ${SOURCES_ROOT}src/memlib/sharestruc.h
      ${SOURCES_ROOT}src/procreglib/registry.h
      ${SOURCES_ROOT}src/vectlib/vecstruc.h
