@@ -37,25 +37,7 @@ struct Group {
 	TEXTSTR base_path;
 };
 
-static struct winfile_local_tag {
-	CRITICALSECTION cs_files;
-	PLIST files;
-	PLIST groups;
-	PLIST handles;
-	PLIST file_system_interface;
-	struct file_system_interface *default_file_system_interface;
-	LOGICAL have_default;
-	struct {
-		BIT_FIELD bLogOpenClose : 1;
-		BIT_FIELD bInitialized : 1;
-	} flags;
-	TEXTSTR data_file_root;
-	TEXTSTR producer;
-	TEXTSTR application;
-
-} *winfile_local;
-
-#define l (*winfile_local)
+#include "filesys_local.h"
 
 static void UpdateLocalDataPath( void )
 {
@@ -109,8 +91,8 @@ static void LocalInit( void )
 			l.flags.bLogOpenClose = 0;
 			{
 #ifdef _WIN32
-            sack_set_common_data_producer( WIDE( "Freedom Collective" ) );
-            sack_set_common_data_application( GetProgramName() );
+				sack_set_common_data_producer( WIDE( "Freedom Collective" ) );
+				sack_set_common_data_application( GetProgramName() );
 
 #else
 				l.data_file_root = StrDup( WIDE( "~" ) );
@@ -285,7 +267,7 @@ TEXTSTR ExpandPath( CTEXTSTR path )
 
 	if( path )
 	{
-		if( !IsAbsolutePath( path ) )
+		if( !l.default_file_system_interface && !IsAbsolutePath( path ) )
 		{
 			if( ( path[0] == '.' ) && ( ( path[1] == 0 ) || ( path[1] == '/' ) || ( path[1] == '\\' ) ) )
 			{
@@ -976,14 +958,20 @@ FILE * sack_fopenEx( INDEX group, CTEXTSTR filename, CTEXTSTR opts, struct file_
 		file->files = NULL;
 		file->name = StrDup( filename );
 		file->fsi = fsi;
-		tmpname = ExpandPath( filename );
-		if( !fsi && !IsAbsolutePath( tmpname ) )
+		if( !fsi && !IsAbsolutePath( filename ) )
 		{
+			tmpname = ExpandPath( filename );
 			file->fullname = PrependBasePath( group, filegroup, tmpname );
 			Deallocate( TEXTCHAR*, tmpname );
 		}
 		else
-			file->fullname = tmpname;
+		{
+			if( fsi && group == 0 )
+				file->fullname = file->name;
+			else
+				file->fullname = PrependBasePath( group, filegroup, file->name );
+			//file->fullname = file->name;
+		}
 		file->group = group;
 		EnterCriticalSec( &l.cs_files );
 		AddLink( &l.files,file );

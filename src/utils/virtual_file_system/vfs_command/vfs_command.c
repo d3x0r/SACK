@@ -45,7 +45,7 @@ static void _StoreFile( PTRSZVAL psv,  CTEXTSTR filename, int flags )
 static void StoreFile( CTEXTSTR filemask )
 {
 	void *info = NULL;
-	while( ScanFiles( NULL, filemask, &info, _StoreFile, SFF_NAMEONLY, 0 ) );
+	while( ScanFiles( NULL, filemask, &info, _StoreFile, SFF_SUBPATHONLY, 0 ) );
 }
 
 static void ExtractFile( CTEXTSTR filename )

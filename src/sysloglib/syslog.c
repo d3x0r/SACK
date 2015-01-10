@@ -165,7 +165,8 @@ PRIORITY_ATEXIT( CleanSyslog, ATEXIT_PRIORITY_SYSLOG )
 	logtype = SYSLOG_NONE;
 	switch( _logtype )
 	{
-	case SYSLOG_FILE:
+	case SYSLOG_FILE:  // usually this is stderr ... don't do anything
+		break;
 	case SYSLOG_FILENAME:
 		fclose( l.file );
 		break;
@@ -517,7 +518,7 @@ void InitSyslog( int ignore_options )
 			SystemLogTime( SYSLOG_TIME_HIGH );
 		}
 #else
-#  ifdef _DEBUG
+#  if defined( _DEBUG ) || 1
 		{
 #    ifdef __LINUX__
 			logtype = SYSLOG_SOCKET_SYSLOGD;
@@ -1054,10 +1055,10 @@ static void FileSystemLog( CTEXTSTR message )
 		fputws( message, l.file );
 		fputws( WIDE("\n"), l.file );
 #else
-		fputs( message, l.file );
-		fputs( "\n", l.file );
+		sack_fputs( message, l.file );
+		sack_fputs( "\n", l.file );
 #endif
-		fflush( l.file );
+		sack_fflush( l.file );
 	}
 }
 
@@ -1369,7 +1370,7 @@ void SystemLogEx ( const TEXTCHAR *message DBG_PASS )
 
 void  SetSystemLog ( enum syslog_types type, const void *data )
 {
-	if( l.file )
+	if( l.file && ( logtype != SYSLOG_FILE ) )
 	{
 		fclose( l.file );
 		l.file = NULL;

@@ -1795,6 +1795,11 @@ void SetExternalLoadLibrary( LOGICAL (CPROC*f)(const char *) )
 	l.ExternalLoadLibrary = f;
 }
 
+void SetProgramName( CTEXTSTR filename )
+{
+	l.filename = filename;
+}
+
 SACK_SYSTEM_NAMESPACE_END
 
 
