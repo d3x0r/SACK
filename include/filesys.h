@@ -103,26 +103,27 @@ SFF_DIRECTORY  = 1, // is a directory...
 
 /* Extended external file system interface to be able to use external file systems */
 struct file_system_interface {
-	void* (CPROC *open)(const TEXTCHAR *);                                                  //filename
+	void* (CPROC *open)(PTRSZVAL psvInstance, const char *);                                                  //filename
 	int (CPROC *close)(void *);                                                 //file *
 	size_t (CPROC *read)(void *,char *, size_t);                    //file *, buffer, length (to read)
 	size_t (CPROC *write)(void*,const char *, size_t);                    //file *, buffer, length (to write)
 	size_t (CPROC *seek)( void *, size_t, int whence);
 	void  (CPROC *truncate)( void *);
-	void (CPROC *unlink)( const TEXTCHAR *);
+	void (CPROC *unlink)( PTRSZVAL psvInstance, const char *);
 	size_t (CPROC *size)( void *); // get file size
 	size_t (CPROC *tell)( void *); // get file current position
 	int (CPROC *flush )(void *kp);
-	int (CPROC *exists)( const char *file );
+	int (CPROC *exists)( PTRSZVAL psvInstance, const char *file );
 	LOGICAL (CPROC*copy_write_buffer)(void );
-	struct find_cursor *(CPROC *find_create_cursor )( void );
-	int (CPROC *find_first)( const char *filemask, struct find_cursor *cursor );
-	int (CPROC *find_close)( int ffd );
-	int (CPROC *find_next)( int ffd, struct find_cursor *cursor );
+	struct find_cursor *(CPROC *find_create_cursor )( PTRSZVAL psvInstance, const char *root, const char *filemask );
+	int (CPROC *find_first)( struct find_cursor *cursor );
+	int (CPROC *find_close)( struct find_cursor *cursor );
+	int (CPROC *find_next)( struct find_cursor *cursor );
 	char * (CPROC *find_get_name)( struct find_cursor *cursor );
 	size_t (CPROC *find_get_size)( struct find_cursor *cursor );
 	// ftell can be done with seek( file, 0, SEEK_CUR );
 };
+
 
 /* \ \ 
    Parameters
@@ -158,20 +159,18 @@ FILESYS_PROC  int FILESYS_API  CompareMask ( CTEXTSTR mask, CTEXTSTR name, int k
 //   Process is called with the full name of any matching files
 //   subcurse is a flag - set to go into all subdirectories looking for files.
 // There is no way to abort the scan... 
+FILESYS_PROC  int FILESYS_API  ScanFilesEx ( CTEXTSTR base
+           , CTEXTSTR mask
+           , void **pInfo
+           , void CPROC Process( PTRSZVAL psvUser, CTEXTSTR name, int flags )
+           , int flags 
+		   , PTRSZVAL psvUser, LOGICAL begin_sub_path, struct file_system_mounted_interface *mount );
 FILESYS_PROC  int FILESYS_API  ScanFiles ( CTEXTSTR base
            , CTEXTSTR mask
            , void **pInfo
            , void CPROC Process( PTRSZVAL psvUser, CTEXTSTR name, int flags )
            , int flags 
            , PTRSZVAL psvUser );
-FILESYS_PROC  int FILESYS_API  ScanFilesExx ( CTEXTSTR base
-           , CTEXTSTR mask
-           , void **pInfo
-           , void CPROC Process( PTRSZVAL psvUser, CTEXTSTR name, int flags )
-           , int flags 
-           , PTRSZVAL psvUser
-		   , LOGICAL begin_subpath
-		   , struct file_system_interface *fsi );
 FILESYS_PROC  void FILESYS_API  ScanDrives ( void (CPROC *Process)(PTRSZVAL user, CTEXTSTR letter, int flags)
 										  , PTRSZVAL user );
 // result is length of name filled into pResult if pResult == NULL && nResult = 0
@@ -254,6 +253,8 @@ FILESYS_PROC  TEXTSTR FILESYS_API  sack_prepend_path ( INDEX group, CTEXTSTR fil
 FILESYS_PROC INDEX FILESYS_API  GetFileGroup ( CTEXTSTR groupname, CTEXTSTR default_path );
 
 FILESYS_PROC TEXTSTR FILESYS_API GetFileGroupText ( INDEX group, TEXTSTR path, int path_chars );
+
+FILESYS_PROC TEXTSTR FILESYS_API ExpandPathEx( CTEXTSTR path, struct file_system_interface *fsi );
 
 FILESYS_PROC TEXTSTR FILESYS_API ExpandPath( CTEXTSTR path );
 
@@ -349,9 +350,21 @@ FILESYS_PROC  int FILESYS_API  sack_ilseek ( INDEX file_handle, size_t pos, int 
 FILESYS_PROC  int FILESYS_API  sack_iread ( INDEX file_handle, POINTER buffer, int size );
 FILESYS_PROC  int FILESYS_API  sack_iwrite ( INDEX file_handle, CPOINTER buffer, int size );
 
-FILESYS_PROC  FILE* FILESYS_API  sack_fopenEx( INDEX group, CTEXTSTR filename, CTEXTSTR opts, struct file_system_interface *fsi );
+/* internal (c library) file system is registered as prority 1000.... lower priorities are checked first for things like
+  ScanFiles(), fopen( ..., "r" ), ... exists(), */
+FILESYS_PROC struct file_system_mounted_interface * FILESYS_API sack_mount_filesystem( struct file_system_interface *, int priority, PTRSZVAL psvInstance, LOGICAL writable );
+/* sometimes you want scanfiles to only scan external files... 
+  so this is how to get that mount */
+FILESYS_PROC struct file_system_mounted_interface * FILESYS_API sack_get_default_mount( void );
+/* specify a mounted system to open... multiple volumes of the same type need a different handle */
+FILESYS_PROC  FILE* FILESYS_API  sack_fopenEx( INDEX group, CTEXTSTR filename, CTEXTSTR opts, struct file_system_mounted_interface *fsi );
+/* if mode is read, all mounted file systems are attempted... */
 FILESYS_PROC  FILE* FILESYS_API  sack_fopen ( INDEX group, CTEXTSTR filename, CTEXTSTR opts );
-FILESYS_PROC  FILE* FILESYS_API  sack_fsopenEx ( INDEX group, CTEXTSTR filename, CTEXTSTR opts, int share_mode, struct file_system_interface *fsi );
+/* specify a mounted system to open... multiple volumes of the same type need a different handle */
+FILESYS_PROC  FILE* FILESYS_API  sack_fsopenEx ( INDEX group, CTEXTSTR filename, CTEXTSTR opts, int share_mode, struct file_system_mounted_interface *fsi );
+/* if mode is read, all mounted file systems are attempted... 
+   if mode is write/create only the first writable file system is used...
+*/
 FILESYS_PROC  FILE* FILESYS_API  sack_fsopen ( INDEX group, CTEXTSTR filename, CTEXTSTR opts, int share_mode );
 FILESYS_PROC  struct file_system_interface * FILESYS_API sack_get_filesystem_interface( CTEXTSTR name );
 FILESYS_PROC  void FILESYS_API sack_set_default_filesystem_interface( struct file_system_interface *fsi );
@@ -361,6 +374,8 @@ FILESYS_PROC  int FILESYS_API  sack_fclose ( FILE *file_file );
 FILESYS_PROC  size_t FILESYS_API  sack_fseek ( FILE *file_file, size_t pos, int whence );
 FILESYS_PROC  size_t FILESYS_API  sack_ftell ( FILE *file_file );
 FILESYS_PROC  size_t FILESYS_API  sack_fsize ( FILE *file_file );
+FILESYS_PROC  LOGICAL FILESYS_API  sack_existsEx ( CTEXTSTR filename, struct file_system_mounted_interface *mount );
+FILESYS_PROC  LOGICAL FILESYS_API  sack_exists ( const char *file_file );
 FILESYS_PROC  size_t FILESYS_API  sack_fread ( POINTER buffer, size_t size, int count,FILE *file_file );
 FILESYS_PROC  size_t FILESYS_API  sack_fwrite ( CPOINTER buffer, size_t size, int count,FILE *file_file );
 FILESYS_PROC  TEXTSTR FILESYS_API  sack_fgets ( TEXTSTR  buffer, size_t size,FILE *file_file );
@@ -371,6 +386,7 @@ FILESYS_PROC int FILESYS_API sack_vfprintf( FILE *file_handle, const char *forma
 FILESYS_PROC int FILESYS_API sack_fprintf( FILE *file, const char *format, ... );
 FILESYS_PROC int FILESYS_API sack_fputs( const char *format, FILE *file );
 
+FILESYS_PROC  int FILESYS_API  sack_unlinkEx ( INDEX group, CTEXTSTR filename, struct file_system_mounted_interface *mount );
 
 FILESYS_PROC  int FILESYS_API  sack_unlink ( INDEX group, CTEXTSTR filename );
 FILESYS_PROC  int FILESYS_API  sack_rmdir( INDEX group, CTEXTSTR filename );

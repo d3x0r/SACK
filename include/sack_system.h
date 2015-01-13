@@ -118,6 +118,8 @@ SYSTEM_PROC( int, vpprintf )( PTASK_INFO task, CTEXTSTR format, va_list args );
 typedef void (CPROC*generic_function)(void);
 SYSTEM_PROC( generic_function, LoadFunctionExx )( CTEXTSTR library, CTEXTSTR function, LOGICAL bPrivate DBG_PASS);
 SYSTEM_PROC( generic_function, LoadFunctionEx )( CTEXTSTR library, CTEXTSTR function DBG_PASS);
+SYSTEM_PROC( void *, GetPrivateModuleHandle )( CTEXTSTR libname );
+
 /* 
   Add a custom loaded library; attach a name to the DLL space; this should allow
   getcustomsybmol to resolve these 

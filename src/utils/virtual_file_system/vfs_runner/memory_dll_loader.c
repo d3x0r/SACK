@@ -360,22 +360,7 @@ POINTER LoadLibraryFromMemory( CTEXTSTR name, POINTER block, size_t block_len, i
 		else
 		{
 			void(WINAPI*entry_point)(HINSTANCE,HINSTANCE,LPSTR,int) = (void(WINAPI*)(HINSTANCE,HINSTANCE,LPSTR,int))Seek( real_memory, source_nt_header->OptionalHeader.AddressOfEntryPoint );
-			if( entry_point )
-			{
-				/*
-				SuspendDeadstart();
-				if( level == 1 )
-					ResumeDeadstart();
-				*/
-				if( 0 )
-				{
-					void (*f)(void) = (void(*)(void))LoadFunction( "bag.dll", "InvokeDeadstart" );
-					if( f )
-						f();
-				}
-				printf( "Begin Program\n" );
-				entry_point(real_memory, real_memory, "program.exe", 0 );
-			}
+			return entry_point;
 		}
 		AddMappedLibrary( name, real_memory );
 	}

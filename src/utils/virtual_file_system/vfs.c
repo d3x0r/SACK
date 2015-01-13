@@ -36,13 +36,13 @@ enum block_cache_entries
 };
 
 PREFIX_PACKED struct volume {
-	CTEXTSTR volname;
+	const char * volname;
 	struct disk *disk;
 	//_32 dirents;  // constant 0
 	//_32 nameents; // constant 1
 	size_t dwSize;
-	CTEXTSTR userkey;
-	CTEXTSTR devkey;
+	const char * userkey;
+	const char * devkey;
 	enum block_cache_entries curseg;
 	BLOCKINDEX segment[BLOCK_CACHE_COUNT];// associated with usekey[n]
 	struct random_context *entropy;
@@ -72,7 +72,7 @@ struct disk
 	// bat[8192] == ... ( 0 + ( BLOCK_SIZE + BLOCKS_PER_BAT*BLOCK_SIZE ) * N >> 12 )
 	BLOCKINDEX BAT[BLOCKS_PER_BAT];
 	//struct directory_entry directory[BLOCK_SIZE/sizeof( struct directory_entry)]; // 256
-	//TEXTCHAR names[BLOCK_SIZE/sizeof(TEXTCHAR)];
+	//char  names[BLOCK_SIZE/sizeof(char)];
 	_8  block_data[BLOCKS_PER_BAT][BLOCK_SIZE];
 };
 
@@ -97,7 +97,7 @@ static int mytolower( int c ) {	if( c == '\\' ) return '/'; return tolower( c );
 
 // read the byte from namespace at offset; decrypt byte in-register
 // compare against the filename bytes.
-static int MaskStrCmp( struct volume *vol, CTEXTSTR filename, FPI name_offset )
+static int MaskStrCmp( struct volume *vol, const char * filename, FPI name_offset )
 {
 	if( vol->key )
 	{
@@ -115,7 +115,7 @@ static int MaskStrCmp( struct volume *vol, CTEXTSTR filename, FPI name_offset )
 	}
 	else
 	{
-		return StrCaseCmp( filename, (CTEXTSTR)(((P_8)vol->disk) + name_offset) );
+		return StrCaseCmp( filename, (const char *)(((P_8)vol->disk) + name_offset) );
 	}
 }
 
@@ -366,7 +366,7 @@ static void DumpDirectory( struct volume *vol )
 			if( !name_ofs ) return;  // end of directory			
 			if( !(next_entries[n].first_block ^ entkey->first_block ) ) continue;// if file is deleted; don't check it's name.
 			{
-				TEXTCHAR buf[256];
+				char buf[256];
 				P_8 name = TSEEK( P_8, vol, name_ofs, BLOCK_CACHE_NAMES );
 				int ch;
 				_8 c;
@@ -398,7 +398,7 @@ static void DumpDirectory( struct volume *vol )
 	while( 1 );
 }
 
-struct volume *sack_vfs_load_volume( CTEXTSTR filepath )
+struct volume *sack_vfs_load_volume( const char * filepath )
 {
 	struct volume *vol = New( struct volume );
 	vol->read_only = 0;
@@ -437,7 +437,7 @@ static void AddSalt( PTRSZVAL psv, POINTER *salt, size_t *salt_size )
 		(*salt_size) = 0;
 }
 
-struct volume *sack_vfs_load_crypt_volume( CTEXTSTR filepath, CTEXTSTR userkey, CTEXTSTR devkey )
+struct volume *sack_vfs_load_crypt_volume( const char * filepath, const char * userkey, const char * devkey )
 {
 	struct volume *vol = New( struct volume );
 	vol->read_only = 0;
@@ -465,7 +465,7 @@ struct volume *sack_vfs_load_crypt_volume( CTEXTSTR filepath, CTEXTSTR userkey, 
 	return vol;
 }
 
-struct volume *sack_vfs_use_crypt_volume( POINTER memory, size_t sz, CTEXTSTR userkey, CTEXTSTR devkey )
+struct volume *sack_vfs_use_crypt_volume( POINTER memory, size_t sz, const char * userkey, const char * devkey )
 {
 	struct volume *vol = New( struct volume );
 	vol->read_only = 1;
@@ -502,7 +502,7 @@ void sack_vfs_unload_volume( struct volume * vol )
 	if( l.default_volume == vol ) l.default_volume = NULL;
 }
 
-static struct directory_entry * ScanDirectory( struct volume *vol, CTEXTSTR filename, struct directory_entry *dirkey )
+static struct directory_entry * ScanDirectory( struct volume *vol, const char * filename, struct directory_entry *dirkey )
 {
 	int n;
 	int this_dir_block = 0;
@@ -514,12 +514,12 @@ static struct directory_entry * ScanDirectory( struct volume *vol, CTEXTSTR file
 		for( n = 0; n < ENTRIES; n++ )
 		{
 			struct directory_entry *entkey = ( vol->key)?((struct directory_entry *)vol->usekey[BLOCK_CACHE_DIRECTORY])+n:&l.zero_entkey;
-			CTEXTSTR testname;
+			const char * testname;
 			FPI name_ofs = next_entries[n].name_offset ^ entkey->name_offset;
 			if( !name_ofs )	return NULL;
 			// if file is deleted; don't check it's name.
 			if( !(next_entries[n].first_block ^ entkey->first_block ) ) continue;
-			testname = TSEEK( CTEXTSTR, vol, name_ofs, BLOCK_CACHE_NAMES );
+			testname = TSEEK( const char *, vol, name_ofs, BLOCK_CACHE_NAMES );
 			if( MaskStrCmp( vol, filename, name_ofs ) == 0 )
 			{
 				dirkey[0] = (*entkey);
@@ -537,7 +537,7 @@ static struct directory_entry * ScanDirectory( struct volume *vol, CTEXTSTR file
 }
 
 // this results in an absolute disk position
-static FPI SaveFileName( struct volume *vol, CTEXTSTR filename )
+static FPI SaveFileName( struct volume *vol, const char * filename )
 {
 	size_t n;
 	int this_name_block = 1;
@@ -560,7 +560,7 @@ static FPI SaveFileName( struct volume *vol, CTEXTSTR filename )
 							name[n] = filename[n] ^ vol->usekey[BLOCK_CACHE_NAMES][n + (name-(unsigned char*)names)];
 					}
 					else
-						memcpy( name, filename, ( namelen + 1 ) * sizeof( TEXTCHAR )  );
+						memcpy( name, filename, ( namelen + 1 ) );
 					return ((PTRSZVAL)name) - ((PTRSZVAL)vol->disk);
 				}
 			}
@@ -573,14 +573,14 @@ static FPI SaveFileName( struct volume *vol, CTEXTSTR filename )
 				name++;
 			}
 			else
-				name = name + StrLen( (TEXTCHAR*)name ) + 1;
+				name = name + StrLen( (const char*)name ) + 1;
 		}
 		this_name_block = GetNextBlock( vol, this_name_block, TRUE, TRUE );
 	}
 }
 
 
-static struct directory_entry * GetNewDirectory( struct volume *vol, CTEXTSTR filename )
+static struct directory_entry * GetNewDirectory( struct volume *vol, const char * filename )
 {
 	int n;
 	int this_dir_block = 0;
@@ -611,11 +611,11 @@ static struct directory_entry * GetNewDirectory( struct volume *vol, CTEXTSTR fi
 
 }
 
-struct sack_vfs_file * CPROC sack_vfs_openfile( struct volume *vol, CTEXTSTR filename )
+struct sack_vfs_file * CPROC sack_vfs_openfile( struct volume *vol, const char * filename )
 {
 	struct sack_vfs_file *file = New( struct sack_vfs_file );
 	if( filename[0] == '.' && filename[1] == '/' ) filename += 2;
-	lprintf( "sack_vfs open %s", filename );
+	lprintf( "sack_vfs open %s = %p", filename, file );
 	file->entry = ScanDirectory( vol, filename, &file->dirent_key );
 	if( !file->entry )
 		if( vol->read_only ) { Release( file ); return NULL; }
@@ -634,9 +634,9 @@ struct sack_vfs_file * CPROC sack_vfs_openfile( struct volume *vol, CTEXTSTR fil
 	return file;
 }
 
-struct sack_vfs_file * CPROC sack_vfs_open( CTEXTSTR filename ) { return sack_vfs_openfile( l.default_volume, filename ); }
+struct sack_vfs_file * CPROC sack_vfs_open( PTRSZVAL psvInstance, const char * filename ) { return sack_vfs_openfile( (struct volume*)psvInstance, filename ); }
 
-int CPROC _sack_vfs_exists( struct volume *vol, CTEXTSTR file )
+int CPROC _sack_vfs_exists( struct volume *vol, const char * file )
 {
 	struct directory_entry entkey;
 	struct directory_entry *ent;
@@ -647,7 +647,7 @@ int CPROC _sack_vfs_exists( struct volume *vol, CTEXTSTR file )
 	return FALSE;
 }
 
-int CPROC sack_vfs_exists( CTEXTSTR file ) { return _sack_vfs_exists( l.default_volume, file ); }
+int CPROC sack_vfs_exists( PTRSZVAL psvInstance, const char * file ) { return _sack_vfs_exists( (struct volume*)psvInstance, file ); }
 
 size_t CPROC sack_vfs_tell( struct sack_vfs_file *file ) { return file->fpi; }
 
@@ -811,7 +811,7 @@ size_t sack_vfs_truncate( struct sack_vfs_file *file ) { file->entry->filesize =
 
 int sack_vfs_close( struct sack_vfs_file *file ) { DeleteLink( &file->vol->files, file ); Release( file ); return 0; }
 
-void sack_vfs_unlink_file( struct volume *vol, CTEXTSTR filename )
+void CPROC sack_vfs_unlink_file( struct volume *vol, const char * filename )
 {
 	struct directory_entry entkey;
 	struct directory_entry *entry;
@@ -833,7 +833,7 @@ void sack_vfs_unlink_file( struct volume *vol, CTEXTSTR filename )
 	}
 }
 
-void sack_vfs_unlink( CTEXTSTR filename ) {	sack_vfs_unlink_file( l.default_volume, filename ); }
+void sack_vfs_unlink( const char * filename ) {	sack_vfs_unlink_file( l.default_volume, filename ); }
 
 int sack_vfs_flush( struct sack_vfs_file *file ) {	/* noop */	return 0; }
 
@@ -848,9 +848,10 @@ struct find_info
 	int thisent;
 };
 
-static struct find_info * CPROC sack_vfs_find_create_cursor( void )
+static struct find_info * CPROC sack_vfs_find_create_cursor(PTRSZVAL psvInst,const char *base,const char *mask )
 {
 	struct find_info *info = New( struct find_info );
+	info->vol = (struct volume *)psvInst;
 	return info;
 }
 
@@ -864,14 +865,14 @@ static int iterate_find( struct find_info *info )
 		for( n = info->thisent; n < ENTRIES; n++ )
 		{
 			struct directory_entry *entkey = ( info->vol->key)?((struct directory_entry *)info->vol->usekey[BLOCK_CACHE_DIRECTORY])+n:&l.zero_entkey;
-			CTEXTSTR testname;
+			const char * testname;
 			FPI name_ofs = next_entries[n].name_offset ^ entkey->name_offset;
 			if( !name_ofs )	
-				return 1;
+				return 0;
 			// if file is deleted; don't check it's name.
 			if( !(next_entries[n].first_block ^ entkey->first_block ) ) 
 				continue;
-			testname = TSEEK( CTEXTSTR, info->vol, name_ofs, BLOCK_CACHE_NAMES );
+			testname = TSEEK( const char *, info->vol, name_ofs, BLOCK_CACHE_NAMES );
 			if( info->vol->key )
 			{
 				int c;
@@ -885,17 +886,17 @@ static int iterate_find( struct find_info *info )
 			}
 			else
 			{
-				StrCpy( info->filename, (CTEXTSTR)(((P_8)info->vol->disk) + name_ofs) );
+				StrCpy( info->filename, (const char *)(((P_8)info->vol->disk) + name_ofs) );
 			}
 			info->thisent = n + 1;
-			return 0;
+			return 1;
 		}
 		info->this_dir_block = GetNextBlock( info->vol, info->this_dir_block, TRUE, TRUE );
 	}
 	while( 1 );
 }
 
-static int CPROC sack_vfs_find_first( char *filename, struct find_info *info )
+static int CPROC sack_vfs_find_first( struct find_info *info )
 {
 	info->this_dir_block = 0;
 	info->thisent = 0;
@@ -903,27 +904,28 @@ static int CPROC sack_vfs_find_first( char *filename, struct find_info *info )
 	return iterate_find( info );
 }
 
-static int CPROC sack_vfs_find_close( int fd ) { return 0; }
-static int CPROC sack_vfs_find_next( int fd, struct find_info *info ) { return iterate_find( info ); }
+static int CPROC sack_vfs_find_close( struct find_info *info ) { Release( info ); return 0; }
+static int CPROC sack_vfs_find_next( struct find_info *info ) { return iterate_find( info ); }
 static char * CPROC sack_vfs_find_get_name( struct find_info *info ) { return info->filename; }
 
-static struct file_system_interface sack_vfs_fsi = { sack_vfs_open
+static struct file_system_interface sack_vfs_fsi = { 
+													 sack_vfs_open
                                                    , sack_vfs_close
                                                    , sack_vfs_read
                                                    , sack_vfs_write
                                                    , sack_vfs_seek
                                                    , sack_vfs_truncate
-                                                   , sack_vfs_unlink
+                                                   , sack_vfs_unlink_file
                                                    , sack_vfs_size
                                                    , sack_vfs_tell
                                                    , sack_vfs_flush
                                                    , sack_vfs_exists
                                                    , sack_vfs_need_copy_write
-												   , (struct find_cursor*(CPROC*)(void))             sack_vfs_find_create_cursor
-												   , (int(CPROC*)(const char *,struct find_cursor*)) sack_vfs_find_first
-												   , (int(CPROC*)(int))                              sack_vfs_find_close
-												   , (int(CPROC*)(int,struct find_cursor*))          sack_vfs_find_next
-												   , (char*(CPROC*)(struct find_cursor*))            sack_vfs_find_get_name
+												   , (struct find_cursor*(CPROC*)(PTRSZVAL,const char *,const char *))             sack_vfs_find_create_cursor
+												   , (int(CPROC*)(struct find_cursor*))             sack_vfs_find_first
+												   , (int(CPROC*)(struct find_cursor*))             sack_vfs_find_close
+												   , (int(CPROC*)(struct find_cursor*))             sack_vfs_find_next
+												   , (char*(CPROC*)(struct find_cursor*))           sack_vfs_find_get_name
                                                    };
 
 PRIORITY_PRELOAD( Sack_VFS_Register, SQL_PRELOAD_PRIORITY )

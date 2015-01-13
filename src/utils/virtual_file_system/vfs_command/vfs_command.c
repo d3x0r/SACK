@@ -6,14 +6,15 @@ static struct vfs_command_local
 {
 	struct file_system_interface *fsi;
 	struct volume *current_vol;
+	struct file_system_mounted_interface *current_mount;
 } l;
 
 static void StoreFileAs( CTEXTSTR filename, CTEXTSTR asfile )
 {
-	FILE *in = sack_fopen( 0, filename, "rb" );
+	FILE *in = sack_fopenEx( 0, filename, "rb", sack_get_default_mount() );
 	if( in )
 	{
-		FILE *out = sack_fopenEx( 0, asfile, "wb", l.fsi );
+		FILE *out = sack_fopenEx( 0, asfile, "wb", l.current_mount );
 		size_t size = sack_fsize( in );
 		POINTER data = NewArray( _8, size );
 		sack_fread( data, 1, size, in );
@@ -27,10 +28,10 @@ static void StoreFileAs( CTEXTSTR filename, CTEXTSTR asfile )
 
 static void _StoreFile( PTRSZVAL psv,  CTEXTSTR filename, int flags )
 {
-	FILE *in = sack_fopen( 0, filename, "rb" );
+	FILE *in = sack_fopenEx( 0, filename, "rb", sack_get_default_mount() );
 	if( in )
 	{
-		FILE *out = sack_fopenEx( 0, filename, "wb", l.fsi );
+		FILE *out = sack_fopenEx( 0, filename, "wb", l.current_mount );
 		size_t size = sack_fsize( in );
 		POINTER data = NewArray( _8, size );
 		sack_fread( data, 1, size, in );
@@ -45,15 +46,15 @@ static void _StoreFile( PTRSZVAL psv,  CTEXTSTR filename, int flags )
 static void StoreFile( CTEXTSTR filemask )
 {
 	void *info = NULL;
-	while( ScanFiles( NULL, filemask, &info, _StoreFile, SFF_SUBPATHONLY, 0 ) );
+	while( ScanFilesEx( NULL, filemask, &info, _StoreFile, SFF_SUBPATHONLY, 0, FALSE, sack_get_default_mount() ) );
 }
 
 static void ExtractFile( CTEXTSTR filename )
 {
-	FILE *in = sack_fopenEx( 0, filename, "rb", l.fsi );
+	FILE *in = sack_fopenEx( 0, filename, "rb", l.current_mount );
 	if( in )
 	{
-		FILE *out = sack_fopen( 0, filename, "wb" );
+		FILE *out = sack_fopenEx( 0, filename, "wb", sack_get_default_mount() );
 		size_t size = sack_fsize( in );
 		POINTER data = NewArray( _8, size );
 		sack_fread( data, 1, size, in );
@@ -76,13 +77,13 @@ static void AppendFilesAs( CTEXTSTR filename1, CTEXTSTR filename2, CTEXTSTR outp
 
 	POINTER buffer;
 
-	file1 = sack_fopen( 0, filename1, "rb" );
+	file1 = sack_fopenEx( 0, filename1, "rb", sack_get_default_mount() );
 	if( !file1 ) { printf( "Failed to read file to append: %s", filename1 ); return; }
 	file1_size = sack_fsize( file1 );
-	file2 = sack_fopen( 0, filename2, "rb" );
+	file2 = sack_fopenEx( 0, filename2, "rb", sack_get_default_mount() );
 	if( !file2 ) { printf( "Failed to read file to append: %s", filename2 ); return; }
 	file2_size = sack_fsize( file2 );
-	file_out = sack_fopen( 0, outputname, "wb" );
+	file_out = sack_fopenEx( 0, outputname, "wb", sack_get_default_mount() );
 	if( !file_out ) { printf( "Failed to read file to append to: %s", outputname ); return; }
 	file_out_size = sack_fsize( file_out );
 
@@ -109,10 +110,10 @@ static void AppendFilesAs( CTEXTSTR filename1, CTEXTSTR filename2, CTEXTSTR outp
 
 static void ExtractFileAs( CTEXTSTR filename, CTEXTSTR asfile )
 {
-	FILE *in = sack_fopenEx( 0, filename, "rb", l.fsi );
+	FILE *in = sack_fopenEx( 0, filename, "rb", l.current_mount );
 	if( in )
 	{
-		FILE *out = sack_fopen( 0, asfile, "wb" );
+		FILE *out = sack_fopenEx( 0, asfile, "wb", sack_get_default_mount() );
 		size_t size = sack_fsize( in );
 		POINTER data = NewArray( _8, size );
 		sack_fread( data, 1, size, in );
@@ -126,7 +127,7 @@ static void ExtractFileAs( CTEXTSTR filename, CTEXTSTR asfile )
 
 static void CPROC ShowFile( PTRSZVAL psv, CTEXTSTR file, int flags )
 {
-	void *f = l.fsi->open( file + 2 );
+	void *f = l.fsi->open( (PTRSZVAL)psv, file + 2 );
 	printf( "%9d %s\n", l.fsi->size( f ), file );
 	l.fsi->close( f );
 }
@@ -134,7 +135,8 @@ static void CPROC ShowFile( PTRSZVAL psv, CTEXTSTR file, int flags )
 static void GetDirectory( void )
 {
 	POINTER info = NULL;
-	while( ScanFilesExx( NULL, "*", &info, ShowFile, SFF_SUBCURSE|SFF_SUBPATHONLY, 0, FALSE, l.fsi ) );
+	while( ScanFilesEx( NULL, "*", &info, ShowFile, SFF_SUBCURSE|SFF_SUBPATHONLY
+	                  , (PTRSZVAL)l.current_vol, FALSE, l.current_mount ) );
 	//l.fsi->
 }
 
@@ -177,6 +179,7 @@ SaneWinMain( argc, argv )
 				printf( "Failed to load vfs: %s", argv[arg+1] );
 				return 2;
 			}
+			l.current_mount = sack_mount_filesystem( l.fsi, 10, (PTRSZVAL)l.current_vol, 1 );
 			arg += 2;
 		}
 		else if( StrCaseCmp( argv[arg], "vfs" ) == 0 )
@@ -189,12 +192,13 @@ SaneWinMain( argc, argv )
 				printf( "Failed to load vfs: %s", argv[arg+1] );
 				return 2;
 			}
+			l.current_mount = sack_mount_filesystem( l.fsi, 10, (PTRSZVAL)l.current_vol, 1 );
 			arg++;
 		}
 		else if( StrCaseCmp( argv[arg], "rm" ) == 0
 			|| StrCaseCmp( argv[arg], "delete" ) == 0 )
 		{
-			l.fsi->unlink( argv[arg+1] );
+			l.fsi->unlink( (PTRSZVAL)l.current_vol, argv[arg+1] );
 			arg++;
 		}
 		else if( StrCaseCmp( argv[arg], "store" ) == 0 )
