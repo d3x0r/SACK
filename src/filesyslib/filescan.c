@@ -5,6 +5,7 @@
 #endif
 #endif
 #include <sack_types.h>
+#include <procreg.h>
 #include <stdio.h>
 #include <string.h>
 #if defined( _WIN32 ) && !defined( __TURBOC__ )
@@ -251,7 +252,10 @@ typedef struct myfinddata {
 #  endif
 # endif
 	struct find_cursor *cursor;
-
+	INDEX scanning_interface_index;
+	LOGICAL new_mount;
+	LOGICAL single_mount;
+	struct file_system_mounted_interface *scanning_mount;
 	TEXTCHAR buffer[MAX_PATH_NAME];
 	TEXTCHAR basename[MAX_PATH_NAME];
 	TEXTCHAR findmask[MAX_PATH_NAME];
@@ -268,14 +272,14 @@ typedef struct myfinddata {
 #define findinfo(pInfo)     (((PMFD)(*pInfo)))
 #define findcursor(pInfo)     ( ((PMFD)(*pInfo))->cursor)
 
- int  ScanFilesExx ( CTEXTSTR base
+ int  ScanFilesEx ( CTEXTSTR base
            , CTEXTSTR mask
            , void **pInfo
            , void CPROC Process( PTRSZVAL psvUser, CTEXTSTR name, int flags )
            , int flags 
            , PTRSZVAL psvUser 
 		   , LOGICAL begin_sub_path 
-		   , struct file_system_interface *fsi
+		   , struct file_system_mounted_interface *mount
 		   )
 {
 	PMFD pDataCurrent = (PMFD)(pInfo);
@@ -290,14 +294,59 @@ typedef struct myfinddata {
 		pDataCurrent = NULL;
 
 	lprintf( "Search in %s for %s", base?base:"(NULL)", mask?mask:"(*)" );
-	if( !*pInfo || begin_sub_path )
+	if( !*pInfo || begin_sub_path || ((PMFD)*pInfo)->new_mount )
 	{
 		TEXTCHAR findmask[256];
-		*pInfo = Allocate( sizeof( MFD ) );
 		pData = (PMFD)(*pInfo);
+		if( !pData )
+		{
+			*pInfo = Allocate( sizeof( MFD ) );
+			pData = (PMFD)(*pInfo);
+			if( !( pData->scanning_mount = mount ) )
+			{
+				if( !winfile_local )
+					SimpleRegisterAndCreateGlobal( winfile_local );
+
+				lprintf( "... %p", winfile_local );
+				pData->single_mount = FALSE;
+				pData->scanning_mount = (*winfile_local).mounted_file_systems;
+			}
+			else
+				pData->single_mount = TRUE;
+
+			if( !pData->scanning_mount )
+			{
+				Deallocate( PMFD, pData );
+				return 0;
+			}
+			if( pData->scanning_mount->fsi )
+			{
+				lprintf( "create cursor" );
+				pData->cursor = pData->scanning_mount->fsi->find_create_cursor( pData->scanning_mount->psvInstance, base, mask );
+			}
+			else
+			{
+				lprintf( "no cursor" );
+				pData->cursor = NULL;
+			}
+		}
+		else
+		{
+			if( pData->new_mount )
+			{
+				if( pData->scanning_mount->fsi )
+				{
+					lprintf( "create cursor (new mount)" );
+					pData->cursor = pData->scanning_mount->fsi->find_create_cursor( pData->scanning_mount->psvInstance, base, mask );
+				}
+				else
+					pData->cursor = NULL;
+			}
+		}
+		pData->new_mount = FALSE;
 		pData->current = NULL;
-		pData->cursor = NULL;
 		pData->prior = pDataCurrent;
+
 		if( pDataCurrent )
 		{
 			pData->root_info = pDataCurrent->root_info;
@@ -309,11 +358,10 @@ typedef struct myfinddata {
 		}
 
 		(*pData->root_info) = pData;
-
 		if( base )
 		{
 			TEXTSTR tmp;
-			StrCpyEx( findbasename(pInfo), tmp = ExpandPath( base ), MAX_PATH_NAME );
+			StrCpyEx( findbasename(pInfo), tmp = ExpandPathEx( base, pData->scanning_mount->fsi ), MAX_PATH_NAME );
 			Release( tmp );
 			StrCpyEx( findmask(pInfo), mask, MAX_PATH_NAME );
 		}
@@ -337,70 +385,91 @@ typedef struct myfinddata {
 #else
 		snprintf( findmask, sizeof(findmask), WIDE("%s/*"), findbasename(pInfo) );
 #endif
-		if( fsi )
-		{
-			if( !findcursor( pInfo ) )
-				findcursor( pInfo ) = fsi->find_create_cursor( );
-			findhandle(pInfo) = fsi->find_first( findmask, findcursor(pInfo) );
-		}
+		if( pData->scanning_mount->fsi )
+			if( pData->scanning_mount->fsi->find_first( findcursor(pInfo) ) )
+				findhandle(pInfo) = 0;
+			else
+				findhandle(pInfo) = -1;
 		else
 			findhandle(pInfo) = findfirst( findmask, finddata(pInfo) );
 		if( findhandle(pInfo) == -1 )
 		{
 			PMFD prior = pData->prior;
-			if( fsi )
-				fsi->find_close( findhandle(pInfo) );
+			if( pData->scanning_mount->fsi )
+				pData->scanning_mount->fsi->find_close( findcursor(pInfo) );
 			else
 				findclose( findhandle(pInfo) );
-			(*pData->root_info) = pData->prior;
-			Release( pData );
-			return prior?processed:0;
+			pData->scanning_mount = NextThing( pData->scanning_mount );
+			if( !pData->scanning_mount || pData->single_mount )
+			{
+				(*pData->root_info) = pData->prior;
+				Release( pData );
+				return prior?processed:0;
+			}
+			pData->new_mount = TRUE;
+			return 1;
 		}
 	}
 	else
 	{
 		int r;
 getnext:
-		if( fsi )
-			r = fsi->find_next( findhandle(pInfo), findcursor( pInfo ) );
+		if( pData->scanning_mount->fsi )
+			r = !pData->scanning_mount->fsi->find_next( findcursor( pInfo ) );
 		else
 			r = findnext( findhandle(pInfo), finddata( pInfo ) );
 		if( r )
 		{
 			PMFD prior = pData->prior;
-			if( fsi )
-				fsi->find_close( findhandle(pInfo) );
+			if( pData->scanning_mount->fsi )
+				pData->scanning_mount->fsi->find_close( findcursor(pInfo) );
 			else
 				findclose( findhandle(pInfo) );
-			(*pData->root_info) = pData->prior;
-			Release( pData );
-
-			if( prior )
-				prior->current = NULL;
-			if( !processed && !begin_sub_path )
+			pData->scanning_mount = NextThing( pData->scanning_mount );
+			if( !pData->scanning_mount || pData->single_mount )
 			{
-				//pInfo = (void**)&(prior->prior->current);
-				pData = prior;
-				if( pData )
-					goto getnext;
+				(*pData->root_info) = pData->prior;
+				Release( pData );
+				if( prior )
+					prior->current = NULL;
+				if( !processed && !begin_sub_path )
+				{
+					//pInfo = (void**)&(prior->prior->current);
+					pData = prior;
+					if( pData )
+						goto getnext;
+				}
+				return (*pInfo)?processed:0;
 			}
-			return (*pInfo)?processed:0;
+			pData->new_mount = TRUE;
+			return 1;
 		}
 	}
-#ifdef UNDER_CE
-	if( !StrCmp( WIDE("."), finddata(pInfo)->cFileName ) ||
-       !StrCmp( WIDE(".."), finddata(pInfo)->cFileName ) )
-#else
-   if( !StrCmp( WIDE("."), finddata(pInfo)->name ) ||
-       !StrCmp( WIDE(".."), finddata(pInfo)->name ) )
-#endif
+	if( pData->scanning_mount->fsi )
+	{
+		CTEXTSTR path = pData->scanning_mount->fsi->find_get_name( findcursor(pInfo) );
+		lprintf( "... %s", path );
+		if( !StrCmp( WIDE("."), path ) ||
+		    !StrCmp( WIDE(".."), path ) )
 		goto getnext;
-
+	}
+	else
+	{
+		lprintf( "... %s", finddata(pInfo)->name );
+#ifdef UNDER_CE
+		if( !StrCmp( WIDE("."), finddata(pInfo)->cFileName ) ||
+		    !StrCmp( WIDE(".."), finddata(pInfo)->cFileName ) )
+#else
+		if( !StrCmp( WIDE("."), finddata(pInfo)->name ) ||
+		    !StrCmp( WIDE(".."), finddata(pInfo)->name ) )
+#endif
+			goto getnext;
+	}
 	if( !(flags & SFF_NAMEONLY) ) // if nameonly - have to rebuild the correct name.
 	{
-		if( fsi )
+		if( pData->scanning_mount->fsi )
 		{
-			snprintf( pData->buffer, MAX_PATH_NAME, WIDE("%s/%s"), findbasename(pInfo), fsi->find_get_name( findcursor(pInfo) ) );
+			snprintf( pData->buffer, MAX_PATH_NAME, WIDE("%s/%s"), findbasename(pInfo), pData->scanning_mount->fsi->find_get_name( findcursor(pInfo) ) );
 		}
 		else
 		{
@@ -419,12 +488,12 @@ getnext:
 	{
 		if( flags & SFF_SUBCURSE )
 		{
-			if( fsi )
+			if( pData->scanning_mount->fsi )
 			{
 				snprintf( pData->buffer, MAX_PATH_NAME, WIDE("%s%s%s")
 					  , pData->prior?pData->prior->buffer:WIDE( "" )
 					  , pData->prior?WIDE( "/" ):WIDE( "" )
-					, fsi->find_get_name( findcursor(pInfo) ) 
+					, pData->scanning_mount->fsi->find_get_name( findcursor(pInfo) ) 
 					);
 			}
 			else
@@ -451,9 +520,9 @@ getnext:
 		}
 		else
 		{
-			if( fsi )
+			if( pData->scanning_mount->fsi )
 			{
-				snprintf( pData->buffer, MAX_PATH_NAME, WIDE("%s"), fsi->find_get_name( findcursor(pInfo) ) );
+				snprintf( pData->buffer, MAX_PATH_NAME, WIDE("%s"), pData->scanning_mount->fsi->find_get_name( findcursor(pInfo) ) );
 			}
 			else
 			{
@@ -495,9 +564,9 @@ getnext:
 			if( flags & SFF_NAMEONLY )
 			{
 				// even in name only - need to have this full buffer for subcurse.
-				if( fsi )
+				if( pData->scanning_mount->fsi )
 				{
-					ofs = snprintf( tmpbuf, sizeof( tmpbuf ), WIDE( "%s/%s" ), findbasename(pInfo), fsi->find_get_name( findcursor(pInfo) ) );
+					ofs = snprintf( tmpbuf, sizeof( tmpbuf ), WIDE( "%s/%s" ), findbasename(pInfo), pData->scanning_mount->fsi->find_get_name( findcursor(pInfo) ) );
 				}
 				else
 				{
@@ -511,11 +580,13 @@ getnext:
 #  endif
 #endif
 				}
-				processed |= ScanFilesExx( tmpbuf, findmask( pInfo ), (POINTER*)pData, Process, flags, psvUser, TRUE, fsi );
+				lprintf( "process sub..." );
+				processed |= ScanFilesEx( tmpbuf, findmask( pInfo ), (POINTER*)pData, Process, flags, psvUser, TRUE, pData->scanning_mount );
 			}
 			else
 			{
-				processed |= ScanFilesExx( pData->buffer, findmask( pInfo ), (POINTER*)pData, Process, flags, psvUser, TRUE, fsi );
+				lprintf( "process sub..." );
+				processed |= ScanFilesEx( pData->buffer, findmask( pInfo ), (POINTER*)pData, Process, flags, psvUser, TRUE, pData->scanning_mount );
 			}
 		}
 		if( !processed )
@@ -543,17 +614,6 @@ getnext:
 	}
 	return (*pInfo)?1:0;
 }
- int  ScanFilesEx ( CTEXTSTR base
-           , CTEXTSTR mask
-           , void **pInfo
-           , void CPROC Process( PTRSZVAL psvUser, CTEXTSTR name, int flags )
-           , int flags 
-           , PTRSZVAL psvUser 
-		   , LOGICAL begin_sub_path 
-		   )
- {
-	 return ScanFilesExx( base, mask, pInfo, Process, flags, psvUser, begin_sub_path, l.default_file_system_interface );
- }
  int  ScanFiles ( CTEXTSTR base
            , CTEXTSTR mask
            , void **pInfo
@@ -561,7 +621,7 @@ getnext:
            , int flags 
            , PTRSZVAL psvUser )
  {
-	 return ScanFilesExx( base, mask, pInfo, Process, flags, psvUser, FALSE, NULL );
+	 return ScanFilesEx( base, mask, pInfo, Process, flags, psvUser, FALSE, NULL );
  }
 
 

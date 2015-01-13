@@ -4,10 +4,11 @@
 #include <sack_vfs.h>
 
 struct file_system_interface *fsi;
+struct volume *volume;
 
 void test1( void )
 {
-	void*file = fsi->open( "apple" );
+	void*file = fsi->open( (PTRSZVAL)volume, "apple" );
 	if( file )
 	{
 		lprintf( "file size is now: %d", fsi->size( file ) );
@@ -26,14 +27,14 @@ void test2( void )
 	for( n = 0; n < 10000; n++ )
 	{
 		snprintf( buf, 256, "file.%d", n );
-		file = fsi->open( buf );
+		file = fsi->open( (PTRSZVAL)volume, buf );
 		fsi->close( file );
 	}
 }
 
 PRIORITY_PRELOAD( Sack_VFS_Register, SQL_PRELOAD_PRIORITY )
 {
-	sack_vfs_load_crypt_volume( ExpandPath( "*/sack.vault" ), "alkj109ad908a0a8asdf908na90na80a98d098ahkljwerklja", "0000000-0000-0000-000000-000000" );
+	volume = sack_vfs_load_crypt_volume( ExpandPath( "*/sack.vault" ), "alkj109ad908a0a8asdf908na90na80a98d098ahkljwerklja", "0000000-0000-0000-000000-000000" );
 	//sack_vfs_load_volume( ExpandPath( "*/sack.vault" ) );
 
 }
@@ -43,6 +44,7 @@ SaneWinMain( argc, argv )
 	SetSystemLog( SYSLOG_FILE, stdout );
 	{
 		fsi = sack_get_filesystem_interface( SACK_VFS_FILESYSTEM_NAME );
+		sack_mount_filesystem( fsi, 800, (PTRSZVAL)volume, 1 );
 		if( fsi )
 		{
 			//sack_vfs_load_crypt_volume( ExpandPath( "*/sack.vault" ), "alkj109ad908a0a8asdf908na90na80a98d098ahkljwerklja", "0000000-0000-0000-000000-000000" );

@@ -259,7 +259,7 @@ TEXTSTR ExpandPathVariable( CTEXTSTR path )
 	return tmp_path;
 }
 
-TEXTSTR ExpandPath( CTEXTSTR path )
+TEXTSTR ExpandPathEx( CTEXTSTR path, struct file_system_interface *fsi )
 {
 	TEXTSTR tmp_path = NULL;
 	if( l.flags.bLogOpenClose )
@@ -267,7 +267,7 @@ TEXTSTR ExpandPath( CTEXTSTR path )
 
 	if( path )
 	{
-		if( !l.default_file_system_interface && !IsAbsolutePath( path ) )
+		if( !fsi && !IsAbsolutePath( path ) )
 		{
 			if( ( path[0] == '.' ) && ( ( path[1] == 0 ) || ( path[1] == '/' ) || ( path[1] == '\\' ) ) )
 			{
@@ -356,6 +356,10 @@ TEXTSTR ExpandPath( CTEXTSTR path )
 	return tmp_path;
 }
 
+TEXTSTR ExpandPath( CTEXTSTR path )
+{
+	return ExpandPathEx( path, l.default_file_system_interface );
+}
 
 INDEX  SetGroupFilePath ( CTEXTSTR group, CTEXTSTR path )
 {
@@ -879,27 +883,44 @@ int sack_iwrite( INDEX file_handle, CPOINTER buffer, int size )
 
 
 
+int sack_unlinkEx( INDEX group, CTEXTSTR filename, struct file_system_mounted_interface *mount )
+{
+	while( mount )
+	{
+#ifdef __LINUX__
+		int okay;
+		TEXTSTR tmp = PrependBasePath( group, NULL, filename );
+#  ifdef UNICODE
+		char *tmpname = CStrDup( tmp );
+		okay = unlink( tmpname );
+		Deallocate( char*, tmpname );
+#  else
+		okay = unlink( filename );
+#  endif
+		Deallocate( TEXTCHAR*, tmp );
+		return !okay; // unlink returns TRUE is 0, else error...
+#else
+		int okay;
+		if( mount->fsi )
+		{
+			mount->fsi->unlink( mount->psvInstance, filename );
+			okay = TRUE;
+		}
+		else
+		{
+			TEXTSTR tmp = PrependBasePath( group, NULL, filename );
+			okay = DeleteFile(tmp);
+			Deallocate( TEXTCHAR*, tmp );
+		}
+		return !okay; // unlink returns TRUE is 0, else error...
+#endif
+	}
+	return 0;
+}
+
 int sack_unlink( INDEX group, CTEXTSTR filename )
 {
-#ifdef __LINUX__
-	int okay;
-	TEXTSTR tmp = PrependBasePath( group, NULL, filename );
-#ifdef UNICODE
-	char *tmpname = CStrDup( tmp );
-	okay = unlink( tmpname );
-   Deallocate( char*, tmpname );
-#else
-	okay = unlink( filename );
-#endif
-	Deallocate( TEXTCHAR*, tmp );
-	return !okay; // unlink returns TRUE is 0, else error...
-#else
-	int okay;
-	TEXTSTR tmp = PrependBasePath( group, NULL, filename );
-	okay = DeleteFile(tmp);
-	Deallocate( TEXTCHAR*, tmp );
-	return !okay; // unlink returns TRUE is 0, else error...
-#endif
+	return sack_unlinkEx( group, filename, l.mounted_file_systems );
 }
 
 int sack_rmdir( INDEX group, CTEXTSTR filename )
@@ -928,20 +949,21 @@ int sack_rmdir( INDEX group, CTEXTSTR filename )
 #undef open
 #undef fopen
 
-FILE * sack_fopenEx( INDEX group, CTEXTSTR filename, CTEXTSTR opts, struct file_system_interface *fsi )
+FILE * sack_fopenEx( INDEX group, CTEXTSTR filename, CTEXTSTR opts, struct file_system_mounted_interface *fsi )
 {
-	FILE *handle;
+	FILE *handle = NULL;
 	struct file *file;
 	INDEX idx;
 	LOGICAL memalloc = FALSE;
 
 	LocalInit();
 	EnterCriticalSec( &l.cs_files );
+	lprintf( "open %s %p %s (%d)", filename, fsi, opts, fsi->writeable );
 	LIST_FORALL( l.files, idx, struct file *, file )
 	{
 		if( ( file->group == group )
 			&& ( StrCmp( file->name, filename ) == 0 ) 
-			&& ( file->fsi == fsi ) )
+			&& ( file->fsi == fsi->fsi ) )
 		{
 			break;
 		}
@@ -957,7 +979,7 @@ FILE * sack_fopenEx( INDEX group, CTEXTSTR filename, CTEXTSTR opts, struct file_
 		file->handles = NULL;
 		file->files = NULL;
 		file->name = StrDup( filename );
-		file->fsi = fsi;
+		file->fsi = fsi->fsi;
 		if( !fsi && !IsAbsolutePath( filename ) )
 		{
 			tmpname = ExpandPath( filename );
@@ -967,9 +989,15 @@ FILE * sack_fopenEx( INDEX group, CTEXTSTR filename, CTEXTSTR opts, struct file_
 		else
 		{
 			if( fsi && group == 0 )
+			{
 				file->fullname = file->name;
+	lprintf( "full is %s", file->fullname );
+			}
 			else
+			{
 				file->fullname = PrependBasePath( group, filegroup, file->name );
+	lprintf( "full is %s %d", file->fullname, group );
+			}
 			//file->fullname = file->name;
 		}
 		file->group = group;
@@ -991,20 +1019,44 @@ FILE * sack_fopenEx( INDEX group, CTEXTSTR filename, CTEXTSTR opts, struct file_
 	if( l.flags.bLogOpenClose )
 		lprintf( WIDE( "Open File: [%s]" ), file->fullname );
 
-	if( fsi )
+	if( fsi && fsi->fsi )
 	{
 		if( strchr( opts, 'r' ) )
 		{
-			if( fsi->exists( file->fullname ) )
-				handle = (FILE*)fsi->open( file->fullname );
-			else
-				handle = NULL;
+			struct file_system_mounted_interface *mount = fsi;
+			while( !handle && mount )
+			{
+				if( mount->fsi )
+				{
+					file->fsi = mount?mount->fsi:NULL;
+					if( mount->fsi->exists( mount->psvInstance, file->fullname ) )
+						handle = (FILE*)mount->fsi->open( mount->psvInstance, file->fullname );
+				}
+				else
+					goto default_fopen;
+				mount = mount->next;
+			}
 		}
 		else
-			handle = (FILE*)fsi->open( file->fullname );
+		{
+			struct file_system_mounted_interface *mount = fsi;
+	lprintf( "full is %s", file->fullname );
+			while( !handle && mount )
+			{
+				file->fsi = mount?mount->fsi:NULL;
+				if( mount->fsi && mount->writeable )
+					handle = (FILE*)mount->fsi->open( mount->psvInstance, file->fullname );
+				else
+					goto default_fopen;
+				mount = mount->next;
+			}
+		}
 	}
-	else
+	if( !handle )
 	{
+default_fopen:
+		file->fsi = NULL;
+
 #ifdef __LINUX__
 #  ifdef UNICODE
 		char *tmpname = CStrDup( file->fullname );
@@ -1030,6 +1082,7 @@ FILE * sack_fopenEx( INDEX group, CTEXTSTR filename, CTEXTSTR opts, struct file_
 		handle = fopen( file->fullname, opts );
 #  endif
 #endif
+		lprintf( "native open %s", file->fullname );
 	}
 	if( !handle )
 	{
@@ -1047,16 +1100,26 @@ FILE * sack_fopenEx( INDEX group, CTEXTSTR filename, CTEXTSTR opts, struct file_
 
 FILE*  sack_fopen ( INDEX group, CTEXTSTR filename, CTEXTSTR opts )
 {
-	return sack_fopenEx( group, filename, opts, l.default_file_system_interface );
+	struct file_system_mounted_interface *mount = l.mounted_file_systems;
+	if( !strchr( opts, 'r' ) )
+		while( mount )
+		{
+			lprintf( "check mount %p %d", mount, mount->writeable );
+			if( mount->writeable )
+				break;
+			mount = mount->next;
+		}
+
+	return sack_fopenEx( group, filename, opts, mount );
 }
 
 FILE*  sack_fsopenEx( INDEX group
 					 , CTEXTSTR filename
 					 , CTEXTSTR opts
 					 , int share_mode
-					 , struct file_system_interface *fsi )
+					 , struct file_system_mounted_interface *fsi )
 {
-	FILE *handle;
+	FILE *handle = NULL;
 	struct file *file;
 	INDEX idx;
 	LocalInit();
@@ -1077,7 +1140,7 @@ FILE*  sack_fsopenEx( INDEX group
 		file->files = NULL;
 		file->name = StrDup( filename );
 		file->group = group;
-		file->fsi = fsi;
+		file->fsi = fsi?fsi->fsi:NULL;
 		if( !fsi )
 			file->fullname = PrependBasePath( group, filegroup, filename );
 		else
@@ -1088,9 +1151,16 @@ FILE*  sack_fsopenEx( INDEX group
 	}
 	if( fsi )
 	{
-		handle = (FILE*)fsi->open( file->fullname );
+			struct file_system_mounted_interface *mount = fsi;
+			while( !handle && mount && mount->fsi )
+			{
+				file->fsi = mount->fsi;
+				handle = (FILE*)mount->fsi->open( mount->psvInstance, file->fullname );
+				mount = mount->next;
+			}
+			file->fsi = mount?mount->fsi:NULL;
 	}
-	else
+	if( !handle )
 	{
 #ifdef __LINUX__
 #  ifdef UNICODE
@@ -1136,7 +1206,7 @@ FILE*  sack_fsopenEx( INDEX group
 
 FILE*  sack_fsopen( INDEX group, CTEXTSTR filename, CTEXTSTR opts, int share_mode )
 {
-	return sack_fsopenEx( group, filename, opts, share_mode, l.default_file_system_interface );
+	return sack_fsopenEx( group, filename, opts, share_mode, l.mounted_file_systems );
 }
 
 size_t sack_fsize ( FILE *file_file )
@@ -1287,16 +1357,31 @@ TEXTSTR sack_fgets ( TEXTSTR buffer, size_t size,FILE *file_file )
 #endif
 }
 
-LOGICAL sack_fexistsEx ( CTEXTSTR filename, struct file_system_interface *fsi )
+LOGICAL sack_existsEx ( CTEXTSTR filename, struct file_system_mounted_interface *fsi )
 {
-	if( fsi && fsi->exists )
+	if( fsi && fsi->fsi && fsi->fsi->exists )
 	{
 #ifdef UNICODE
 		lprintf( WIDE( "FAILED" ) );
-		return fsi->exists( (char *)filename );
+		return fsi->fsi->exists( fsi->psvInstance, (char *)filename );
 #else
-		return fsi->exists( filename );
+		return fsi->fsi->exists( fsi->psvInstance, filename );
 #endif
+	}
+	return FALSE;
+}
+
+LOGICAL sack_exists( CTEXTSTR filename )
+{
+	struct file_system_mounted_interface *mount = l.mounted_file_systems;
+	while( mount )
+	{
+		if( sack_existsEx( filename, mount ) )
+		{
+			l.last_find_mount = mount;
+			return TRUE;
+		}
+		mount = mount->next;
 	}
 	return FALSE;
 }
@@ -1437,6 +1522,79 @@ void sack_register_filesystem_interface( CTEXTSTR name, struct file_system_inter
 	fit->name = StrDup( name );
 	fit->fsi = fsi;
 	AddLink( &l.file_system_interface, fit );
+}
+
+
+static void * CPROC sack_filesys_open( PTRSZVAL psv, const char *filename );
+static int CPROC sack_filesys_close( void*file ) { return fclose(  (FILE*)file ); }
+static size_t CPROC sack_filesys_read( void*file, char*buf, size_t len ) { return fread( buf, 1, len, (FILE*)file ); }
+static size_t CPROC sack_filesys_write( void*file, const char*buf, size_t len ) { return fwrite( buf, 1, len, (FILE*)file ); }
+static size_t CPROC sack_filesys_seek( void*file, size_t pos, int whence) { return fseek( (FILE*)file, pos, whence ); }
+static void CPROC sack_filesys_truncate( void*file ) { sack_ftruncate( (FILE*)file ); }
+static void CPROC sack_filesys_unlink( PTRSZVAL psv, const char*filename ) { sack_unlink( 0, filename); }
+static size_t CPROC sack_filesys_size( void*file ) { return sack_fsize( (FILE*)file ); }
+static size_t CPROC sack_filesys_tell( void*file ) { return sack_ftell( (FILE*)file ); }
+static int CPROC sack_filesys_flush( void*file ) { return sack_fflush( (FILE*)file ); }
+static int CPROC sack_filesys_exists( PTRSZVAL psv, const char*file );
+//static int CPROC sack_filesys_( FILE*filename, ) { return ( ); }
+//static int CPROC sack_filesys_( FILE*filename, ) { return ( ); }
+//static int CPROC sack_filesys_( FILE*filename, ) { return ( ); }
+//static int CPROC sack_filesys_( FILE*filename, ) { return ( ); }
+
+static struct file_system_interface native_fsi = {
+	sack_filesys_open
+		, sack_filesys_close
+		, sack_filesys_read
+		, sack_filesys_write
+		, sack_filesys_seek
+		, sack_filesys_truncate
+		, sack_filesys_unlink
+		, sack_filesys_size
+		, sack_filesys_tell
+		, sack_filesys_flush
+		, sack_filesys_exists
+		, NULL // same as sack_filesys_copy_write_buffer() { return FALSE; }
+		, 
+};
+
+static void * CPROC sack_filesys_open( PTRSZVAL psv, const char *filename ) { return sack_fopenEx( 0, filename, "wb+", l.default_mount ); }
+static int CPROC sack_filesys_exists( PTRSZVAL psv, const char *filename ) { return sack_existsEx( filename, l.default_mount ); }
+
+struct file_system_mounted_interface *sack_get_default_mount( void ) { return l.default_mount; }
+
+struct file_system_mounted_interface *sack_mount_filesystem( struct file_system_interface *fsi, int priority, PTRSZVAL psvInstance, LOGICAL writable )
+{
+	struct file_system_mounted_interface *root = l.mounted_file_systems;
+	struct file_system_mounted_interface *mount = New( struct file_system_mounted_interface );
+	mount->priority = priority;
+	mount->psvInstance = psvInstance;
+	mount->writeable = writable;
+	mount->fsi = fsi;
+	if( !root || ( root->priority >= priority ) )
+	{
+		LinkThing( l.mounted_file_systems, mount );
+	}
+	else while( root )
+	{
+		if( root->priority >= priority )
+		{
+			LinkThing( root, mount );
+			break;
+		}
+		if( !NextThing( root ) )
+		{
+			LinkThingAfter( root, mount );
+			break;
+		}
+		root = NextThing( root );
+	}
+	return mount;
+}
+
+PRIORITY_PRELOAD( RegisterDefaultFileSystem, OSALOT_PRELOAD_PRIORITY - 1 )
+{
+	sack_register_filesystem_interface( "native", &native_fsi );
+	l.default_mount = sack_mount_filesystem( NULL, 1000, (PTRSZVAL)NULL, TRUE );
 }
 
 int sack_vfprintf( FILE *file_handle, const char *format, va_list args )

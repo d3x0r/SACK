@@ -1609,6 +1609,19 @@ SYSTEM_PROC( generic_function, LoadPrivateFunctionEx )( CTEXTSTR libname, CTEXTS
 	return LoadFunctionExx( libname, funcname, TRUE DBG_RELAY );
 }
 
+SYSTEM_PROC( void *, GetPrivateModuleHandle )( CTEXTSTR libname )
+{
+	PLIBRARY library = l.libraries;
+
+	while( library )
+	{
+		if( StrCaseCmp( library->name, libname ) == 0 )
+			return library->library;
+		library = library->next;
+	}
+	return NULL;
+}
+
 SYSTEM_PROC( generic_function, LoadFunctionEx )( CTEXTSTR libname, CTEXTSTR funcname DBG_PASS )
 {
 	return LoadFunctionExx( libname, funcname, FALSE DBG_RELAY );
