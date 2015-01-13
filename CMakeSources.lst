@@ -370,7 +370,6 @@ set( FILESYSTEM_SOURCES
 
 set( FILEMONITOR_SOURCES
   ${SOURCES_ROOT}src/filesyslib/filemon/allfiles.c
-  ${SOURCES_ROOT}src/filesyslib/winfiles.c
 )
 
 
