@@ -213,7 +213,7 @@ typedef struct HVIDEO_tag
 	PPBO_Info PBO;
 #  endif
 #endif
-	THREAD_ID thread;
+	PTHREAD thread;
 	struct {
 		S_32 x, y;
 		_32 b;

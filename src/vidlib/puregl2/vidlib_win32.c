@@ -1333,7 +1333,7 @@ WM_DROPFILES
 
 				CreateDrawingSurface (hVideo);
 				//hVideo->flags.bReady = TRUE;
-				WakeThreadID( hVideo->thread );
+				WakeThread( hVideo->thread );
 			}
 #ifdef LOG_OPEN_TIMING
 			//lprintf( WIDE( "Complete WM_CREATE" ) );

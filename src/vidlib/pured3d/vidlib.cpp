@@ -2769,7 +2769,7 @@ WM_DROPFILES
 
 				CreateDrawingSurface (hVideo);
 				//hVideo->flags.bReady = TRUE;
-				WakeThreadID( hVideo->thread );
+				WakeThread( hVideo->thread );
 			}
 #ifdef LOG_OPEN_TIMING
 			//lprintf( WIDE( "Complete WM_CREATE" ) );
@@ -3506,11 +3506,11 @@ BOOL  CreateWindowStuffSizedAt (PVIDEO hVideo, int x, int y,
 				hVideo->pWindowPos.y = y;
 				hVideo->pWindowPos.cx = wx;
 				hVideo->pWindowPos.cy = wy;
-				lprintf( WIDE( "%d %d" ), x, y );
+				//lprintf( WIDE( "%d %d" ), x, y );
 				CreateDrawingSurface (hVideo);
 
 				hVideo->flags.bReady = 1;
-				WakeThreadID( hVideo->thread );
+				WakeThread( hVideo->thread );
 			  //CreateWindowEx used to be here
 			}
 			else
@@ -4302,7 +4302,7 @@ LOGICAL DoOpenDisplay( PVIDEO hNextVideo )
 		if( hNextVideo )
 		{
 			_32 timeout = timeGetTime() + 500000;
-			hNextVideo->thread = GetMyThreadID();
+			hNextVideo->thread = MakeThread();
 			while (!hNextVideo->flags.bReady && timeout > timeGetTime())
 			{
 				// need to do this on the possibility that
