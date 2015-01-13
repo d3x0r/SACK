@@ -6,23 +6,11 @@ PRELOAD( loginfo )
 {
 	FILE *input[4];
 	TEXTCHAR buffer[4][256];
-	TEXTSTR file_name;
 
-	file_name = ExpandPath( WIDE("@/info/") WIDE("generator.txt") );
-	input[0] = sack_fopen( 0, file_name, WIDE("rt") );
-	Release( file_name );
-
-	file_name = ExpandPath( WIDE("@/info/") WIDE("type.txt") );
-	input[1] = sack_fopen( 0, file_name, WIDE("rt") );
-	Release( file_name );
-
-	file_name = ExpandPath( WIDE("@/info/") WIDE("ver.txt") );
-	input[2] = sack_fopen( 0, file_name, WIDE("rt") );
-	Release( file_name );
-
-	file_name = ExpandPath( WIDE("@/info/") WIDE("project.txt") );
-	input[3] = sack_fopen( 0, file_name, WIDE("rt") );
-	Release( file_name );
+	input[0] = sack_fopen( 0, WIDE("@/info/generator.txt"), WIDE("rt") );
+	input[1] = sack_fopen( 0, WIDE("@/info/type.txt"), WIDE("rt") );
+	input[2] = sack_fopen( 0, WIDE("@/info/ver.txt"), WIDE("rt") );
+	input[3] = sack_fopen( 0, WIDE("@/info/project.txt"), WIDE("rt") );
 
 	if( input[0] && input[1] && input[2] )
 	{
