@@ -54,13 +54,13 @@ struct my_file_data
 	CRITICALSECTION cs;
 	TEXTSTR filename;
 	int locktype;
-	struct file_system_interface *fsi;
+	struct file_system_mounted_interface *mount;
 };
 
 struct my_sqlite3_vfs
 {
 	sqlite3_vfs vfs;
-	struct file_system_interface *fsi;
+	struct file_system_mounted_interface *mount;
 };
 
 #define l local_sqlite_interface
@@ -342,7 +342,7 @@ int xOpen(sqlite3_vfs* vfs, const char *zName, sqlite3_file*file,
 	struct my_sqlite3_vfs *my_vfs = (struct my_sqlite3_vfs *)vfs;
 	struct my_file_data *my_file = (struct my_file_data*)file;
 	file->pMethods = &my_methods;
-	my_file->fsi = my_vfs->fsi;
+	my_file->mount = my_vfs->mount;
 	if( zName == NULL )
 		zName = "sql.tmp";
 #ifdef LOG_OPERATIONS
@@ -364,9 +364,9 @@ int xOpen(sqlite3_vfs* vfs, const char *zName, sqlite3_file*file,
 #endif
 
 
-			if( my_vfs->fsi )
+			if( my_vfs->mount )
 			{
-				my_file->file = sack_fsopenEx( 0, my_file->filename, WIDE("rb+"), _SH_DENYNO, my_vfs->fsi );//KWfopen( zName );
+				my_file->file = sack_fsopenEx( 0, my_file->filename, WIDE("rb+"), _SH_DENYNO, my_vfs->mount );//KWfopen( zName );
 				if( my_file->file )
 				{
 					InitializeCriticalSec( &my_file->cs );
@@ -397,16 +397,11 @@ int xDelete(sqlite3_vfs*vfs, const char *zName, int syncDir)
 #ifdef LOG_OPERATIONS
 	lprintf( "delete on %s (%s:%p)", zName, vfs->zName, my_vfs->fsi );
 #endif
-	if( my_vfs->fsi )
-		my_vfs->fsi->unlink( (TEXTCHAR*)zName );
-	else
-	{
 #ifdef UNICODE
 		sack_unlink( 0, (TEXTSTR)zName );
 #else
 		sack_unlink( 0, zName );
 #endif
-	}
 	return SQLITE_OK;
 }
 
@@ -448,7 +443,7 @@ static int xAccess(
 	//if( flags & SQLITE_ACCESS_EXISTS )
 	{
 		FILE *tmp;
-		if( my_vfs->fsi->exists( zPath ) )
+		if( sack_existsEx( zPath, my_vfs->mount ) )
 		{
 #ifdef LOG_OPERATIONS
 			//lprintf( "Open file: %s (vfs:%s)", zName, vfs->zName );
@@ -532,7 +527,7 @@ void InitVFS( CTEXTSTR name, struct file_system_interface *fsi )
 		new_vfs->vfs.xDelete = xDelete;
 		new_vfs->vfs.xAccess = xAccess;
 		new_vfs->vfs.xFullPathname = xFullPathname;
-		new_vfs->fsi = fsi;
+		new_vfs->mount = sack_mount_filesystem( fsi, 1500, 0, TRUE );
 		if( sqlite3_vfs_register( &new_vfs->vfs, 0 ) )
 		{
 
