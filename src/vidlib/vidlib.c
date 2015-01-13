@@ -3189,7 +3189,11 @@ WM_DROPFILES
 				}
 				if( thread == NULL )
 				{		
-// definatly add whatever thread made it to the WM_CREATE.			
+					HINSTANCE hInst;
+					hInst =  GetModuleHandle(_WIDE(TARGETNAME));
+					if( hInst == NULL )
+						hInst = GetPrivateModuleHandle( _WIDE(TARGETNAME) );
+				// definatly add whatever thread made it to the WM_CREATE.			
 					AddLink( &l.threads, me );
 					AddIdleProc( (int(CPROC*)(PTRSZVAL))ProcessDisplayMessages, 0 );
 					lprintf( WIDE( "No thread %x, adding hook and thread." ), GetCurrentThreadId() );
@@ -3198,7 +3202,7 @@ WM_DROPFILES
 					if( l.flags.bUseLLKeyhook )
 						AddLink( &l.ll_keyhooks,
 								  added = SetWindowsHookEx(WH_KEYBOARD_LL, (HOOKPROC)KeyHook2
-																  , GetModuleHandle(_WIDE(TARGETNAME)), 0 /*GetCurrentThreadId()*/
+																  , hInst, 0 /*GetCurrentThreadId()*/
 																  )
 								 );
 					else
@@ -3279,7 +3283,7 @@ WM_DROPFILES
 				hVideo->flags.bForceSurfaceUpdate = 0;
 				CreateDrawingSurface (hVideo);
 				hVideo->flags.bReady = TRUE;
-				WakeThreadID( hVideo->thread );
+				WakeThread( hVideo->thread );
 			}
 #ifdef LOG_OPEN_TIMING
 			//lprintf( WIDE( "Complete WM_CREATE" ) );
@@ -3310,6 +3314,10 @@ RENDER_PROC (BOOL, CreateWindowStuffSizedAt) (PVIDEO hVideo, int x, int y,
 	static HMODULE hMe;
 	if( hMe == NULL )
 		hMe = GetModuleHandle (_WIDE(TARGETNAME));
+	if( hMe == NULL )
+		hMe = GetPrivateModuleHandle( _WIDE(TARGETNAME) );
+	if( hMe == NULL )
+		hMe = GetModuleHandle( NULL );
 	//lprintf( WIDE( "-----Create WIndow Stuff----- %s %s" ), hVideo->flags.bLayeredWindow?WIDE( "layered" ):WIDE( "solid" )
 	//		 , hVideo->flags.bChildWindow?WIDE( "Child(tool)" ):WIDE( "user-selectable" ) );
 	//DebugBreak();
@@ -3978,9 +3986,7 @@ PTRSZVAL CPROC VideoThreadProc (PTHREAD thread)
 		MSG Msg;
 		while( !l.bExitThread && GetMessage (&Msg, NULL, 0, 0) )
 		{
-			//lprintf( "Dispatched... %d", Msg.message );
 			HandleMessage (Msg);
-			//lprintf( "Finish Dispatched... %d", Msg.message );
 		}
 	}
 	l.bThreadRunning = FALSE;
@@ -4047,6 +4053,10 @@ RENDER_PROC (int, InitDisplay) (void)
 
 		wc.lpfnWndProc = (WNDPROC) VideoWindowProc;
 		wc.hInstance = GetModuleHandle (_WIDE(TARGETNAME));
+		if( wc.hInstance == NULL )
+			wc.hInstance = GetPrivateModuleHandle( _WIDE(TARGETNAME) );
+		if( !wc.hInstance )
+			wc.hInstance = GetModuleHandle( NULL );
 		wc.hbrBackground = (HBRUSH) (COLOR_WINDOW + 1);
 #ifdef __cplusplus
 		wc.lpszClassName = WIDE( "VideoOutputClass++" );
@@ -4422,7 +4432,7 @@ static LOGICAL DoOpenDisplay( PVIDEO hNextVideo )
 		if( hNextVideo )
 		{
 			_32 timeout = timeGetTime() + 5000;
-			hNextVideo->thread = GetMyThreadID();
+			hNextVideo->thread = MakeThread();
 			while (!hNextVideo->flags.bReady && timeout > timeGetTime())
 			{
 				// need to do this on the possibility that
