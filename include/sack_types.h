@@ -40,6 +40,17 @@
 
 #endif
 
+#if !defined( __NO_THREAD_LOCAL__ ) && ( defined( _MSC_VER ) || defined( __WATCOMC__ ) )
+#  define HAS_TLS 1
+#  define ThreadLocal static __declspec(thread)
+#elif !defined( __NO_THREAD_LOCAL__ ) && ( defined( __GNUC__ ) )
+#  define HAS_TLS 1
+#  define ThreadLocal static __thread
+#else
+#  define ThreadLocal static
+#endif
+
+
 #ifdef __cplusplus_cli
 // these things define a type called 'Byte' 
 	// which causes confusion... so don't include vcclr for those guys.

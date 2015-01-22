@@ -35,15 +35,119 @@ static LOGICAL CPROC LoadLibraryDependant( CTEXTSTR name )
 			return TRUE;
 		}
 	}
+
+	// some DLLs have to be loaded with resource support from system... 
+	if( 0 )
+	{
+		CTEXTSTR altpaths[2] = { ".", "c:/windows/syswow64" };
+		TEXTCHAR othername[256];
+		int n;
+		for( n = 0; n < 2; n++ )
+		{
+			snprintf( othername, 256, "%s/%s", altpaths[n], name );
+			if( sack_exists( othername ) )
+			{
+				FILE *file = sack_fopenEx( 0, othername, "rb", NULL );
+				if( file )
+				{
+					size_t sz = sack_fsize( file );
+					if( sz )
+					{
+						POINTER data = NewArray( _8, sz );
+						sack_fread( data, 1, sz, file );
+						LoadLibraryFromMemory( name, data, sz, TRUE, LoadLibraryDependant );
+						Release( data );
+					}
+					sack_fclose( file );
+					return TRUE;
+				}
+			}
+		}
+	}
 	return FALSE;
 }
 
+void FixupMyTLS( void )
+{
+	#define Seek(a,b) (((PTRSZVAL)a)+(b))
+
+	HMODULE p = GetModuleHandle( NULL );
+	PIMAGE_DOS_HEADER source_dos_header = (PIMAGE_DOS_HEADER)p;
+	PIMAGE_NT_HEADERS source_nt_header = (PIMAGE_NT_HEADERS)Seek( p, source_dos_header->e_lfanew );
+	PIMAGE_DATA_DIRECTORY dir = (PIMAGE_DATA_DIRECTORY)source_nt_header->OptionalHeader.DataDirectory;
+	PIMAGE_TLS_DIRECTORY tls = (PIMAGE_TLS_DIRECTORY)Seek( p, dir[IMAGE_DIRECTORY_ENTRY_TLS].VirtualAddress );
+	int n;
+	if( dir[IMAGE_DIRECTORY_ENTRY_TLS].Size )
+	{
+		PLIST new_list = CreateList();
+		int count = dir[IMAGE_DIRECTORY_ENTRY_TLS].Size / sizeof( IMAGE_TLS_DIRECTORY );
+		if( count > 1 )
+			DebugBreak();
+		AddLink( &new_list, 0 );
+		for( n = 0; n < count; n++ )
+		{
+			POINTER data;
+			DWORD dwInit;
+			//size_t size_init = ( tls->EndAddressOfRawData - tls->StartAddressOfRawData );
+			//size_t size = size_init + tls->SizeOfZeroFill;
+			/*
+			printf( "%p %p %p(%d) %p\n"
+						, tls->AddressOfCallBacks
+						, tls->StartAddressOfRawData, tls->EndAddressOfRawData
+						, ( tls->EndAddressOfRawData - tls->StartAddressOfRawData ) + tls->SizeOfZeroFill
+						, tls->AddressOfIndex );
+				*/
+			dwInit = (*((DWORD*)tls->AddressOfIndex));
+			{
+				POINTER data;
+				{
+					_asm mov ecx, fs:[2ch];
+					_asm mov eax, dwInit;
+					//_asm mov edx, data;
+					_asm mov edx, [ecx+eax*4];
+					_asm mov data, edx;
+				}
+				new_list->pNode[0] = data;
+				(*((DWORD*)tls->AddressOfIndex)) = dwInit + 1;
+				{
+					_asm mov ecx, new_list;
+					_asm mov fs:[2ch], ecx;
+				}
+			}
+		}
+	}
+}
 
 PRIORITY_PRELOAD( XSaneWinMain, DEFAULT_PRELOAD_PRIORITY + 20 )//( argc, argv )
 {
 	TEXTSTR cmd = GetCommandLine();
 	int argc;
 	char **argv;
+#if 0
+	{
+		DWORD dwInit;
+		POINTER tls_list;
+		POINTER data;
+								{
+									//fs:[18h]; == fs:[0] in ds...
+							_asm mov ecx, fs:[2ch];
+							_asm mov tls_list, ecx;
+						}
+						dwInit = 0;
+						//while( (*tls_list) ) { tls_list++; dwInit++; }
+						//(*tls_list) = data;
+						DebugBreak();
+						LoadLibrary( "bag.dll" );
+						LoadLibrary( "bag.video.dll" );
+						LoadLibrary( "avutil-54.dll" );
+						{
+							_asm mov ecx, fs:[2ch];
+							_asm mov tls_list, ecx;
+						}
+
+	}
+#endif
+	//FixupMyTLS();
 	ParseIntoArgs( cmd, &argc, &argv );
 #ifdef STANDALONE_HEADER
 	{

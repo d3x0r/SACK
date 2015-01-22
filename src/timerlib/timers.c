@@ -78,7 +78,7 @@ namespace sack {
 #endif
 
 
-//#define LOG_CREATE_EVENT_OBJECT
+#define LOG_CREATE_EVENT_OBJECT
 //#define LOG_THREAD
 //#define LOG_SLEEPS
 
@@ -204,14 +204,6 @@ static struct {
 	PLIST thread_events;
 } *global_timer_structure;// = { 1000 };
 
-#if defined( _MSC_VER ) || defined( __WATCOMC__ )
-#define HAS_TLS 1
-#define ThreadLocal static __declspec(thread)
-#endif
-#if defined( __GNUC__ )
-#define HAS_TLS 1
-#define ThreadLocal static __thread
-#endif
 
 #if HAS_TLS
 ThreadLocal struct my_thread_info {
@@ -257,6 +249,7 @@ PRIORITY_PRELOAD( LowLevelInit, CONFIG_SCRIPT_PRELOAD_PRIORITY-1 )
 	{
 		// this may have initialized early?
 		g.timerID = 1000;
+		lprintf( "thread global will be %p %p", global_timer_structure, &global_timer_structure );
 	}
 }
 
@@ -264,11 +257,10 @@ PRELOAD( ConfigureTimers )
 {
 #ifndef __NO_OPTIONS__
 	g.flags.bLogCriticalSections = SACK_GetProfileInt( GetProgramName(), WIDE( "SACK/Memory Library/Log critical sections" ), 0 );
-	g.flags.bLogThreadCreate = SACK_GetProfileInt( GetProgramName(), WIDE( "SACK/Timers/Log Thread Create" ), 0 );
-	g.flags.bLogSleeps = SACK_GetProfileInt( GetProgramName(), WIDE( "SACK/Timers/Log Sleeps" ), 0 );
+	g.flags.bLogThreadCreate = 1||SACK_GetProfileInt( GetProgramName(), WIDE( "SACK/Timers/Log Thread Create" ), 0 );
+	g.flags.bLogSleeps = 1||SACK_GetProfileInt( GetProgramName(), WIDE( "SACK/Timers/Log Sleeps" ), 0 );
 	g.flags.bLogTimerDispatch = SACK_GetProfileInt( GetProgramName(), WIDE( "SACK/Timers/Log Timer Dispatch" ), 0 );
 #endif
-
 }
 
 //--------------------------------------------------------------------------
@@ -644,10 +636,16 @@ void  WakeThreadEx( PTHREAD thread DBG_PASS )
 				if( StrCmp( thread_event->name, name ) == 0 )
 					break;
 			}
-		}
 #ifdef LOG_CREATE_EVENT_OBJECT
-		lprintf( WIDE("Event opened is: %s"), name );
+			lprintf( WIDE("Event opened is: %s"), name );
 #endif
+		}
+		else
+		{
+#ifdef LOG_CREATE_EVENT_OBJECT
+			lprintf( WIDE("Event opened is thread."), name );
+#endif
+		}
 		if( !thread_event )
 		{
 			thread_event = New( THREAD_EVENT );
@@ -777,8 +775,11 @@ static void  InternalWakeableNamedSleepEx( CTEXTSTR name, _32 n, LOGICAL threade
 	{
 #ifdef HAS_TLS
 		pThread = MyThreadInfo.pThread;
+		lprintf( "thread will be %p %p", pThread, &MyThreadInfo );
+		lprintf( "pthread is %p", pThread );
 		if( !pThread )
 		{
+			lprintf( "had to init thread..." );
 			MakeThread();
 			pThread = MyThreadInfo.pThread;
 		}
@@ -1168,13 +1169,17 @@ static PTRSZVAL CPROC ThreadWrapper( PTHREAD pThread )
 	while( !pThread->hThread )
 		Relinquish();
 #endif
+	DeAttachThreadToLibraries( TRUE );
 	while( !pThread->flags.bReady )
 		Relinquish();
 #ifdef HAS_TLS
+	lprintf( "thread will be %p %p", MyThreadInfo.pThread, &MyThreadInfo );
+	lprintf( "thread will be %p %p", pThread, &MyThreadInfo.pThread );
 	MyThreadInfo.pThread = pThread;
 	MyThreadInfo.nThread =
 #endif
 		pThread->thread_ident = _GetMyThreadID();
+	//DebugBreak();
 	InitWakeup( pThread, NULL );
 #ifdef LOG_THREAD
 	Log1( WIDE("Set thread ident: %016"_64fx""), pThread->thread_ident );
@@ -1182,6 +1187,7 @@ static PTRSZVAL CPROC ThreadWrapper( PTHREAD pThread )
 	if( pThread->proc )
 		 result = pThread->proc( pThread );
 	//lprintf( WIDE("%s(%d):Thread is exiting... "), pThread->pFile, pThread->nLine );
+	DeAttachThreadToLibraries( FALSE );
 	UnmakeThread();
 	//lprintf( WIDE("%s(%d):Thread is exiting... "), pThread->pFile, pThread->nLine );
 #ifdef __WATCOMC__
@@ -1306,7 +1312,6 @@ PTHREAD  ThreadToEx( PTRSZVAL (CPROC*proc)(PTHREAD), PTRSZVAL param DBG_PASS )
 {
 	int success;
 	PTHREAD pThread;
-
 	while( LockedExchange( &g.lock_thread_create, 1 ) )
 		Relinquish();
 	do

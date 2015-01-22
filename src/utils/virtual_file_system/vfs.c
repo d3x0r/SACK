@@ -642,7 +642,7 @@ int CPROC _sack_vfs_exists( struct volume *vol, const char * file )
 	struct directory_entry *ent;
 	if( file[0] == '.' && file[1] == '/' ) file += 2;
 	ent = ScanDirectory( vol, file, &entkey );
-	lprintf( "sack_vfs exists %s %s", ent?"ya":"no", file );
+	//lprintf( "sack_vfs exists %s %s", ent?"ya":"no", file );
 	if( ent ) return TRUE;
 	return FALSE;
 }

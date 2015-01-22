@@ -46,6 +46,8 @@
 #else
 #endif
 
+//#define lprintf(f,...) printf(f "\n",##__VA_ARGS__)
+//#define _lprintf(n) lprintf
 
 #ifdef UNDER_CE
 #define LockedExchange InterlockedExchange
@@ -326,6 +328,8 @@ void InvokeDeadstart( void )
 	//if( !bInitialDone /*|| bDispatched*/ )
 	//   return;
 	InitLocal();
+	if( bInitialStarted )
+		return;
 	bInitialStarted = 1;
 	// allowing initial start to be set lets final resume do this invoke.
 	if( bSuspend )
@@ -421,6 +425,7 @@ void InvokeDeadstart( void )
 		else
 			UnlinkThing( proc );
 	}
+	bInitialStarted = 0;
 }
 
 void MarkRootDeadstartComplete( void )
@@ -434,7 +439,7 @@ PRIORITY_PRELOAD( InitDeadstartOptions, NAMESPACE_PRELOAD_PRIORITY+1 )
 {
 #ifdef DISABLE_DEBUG_REGISTER_AND_DISPATCH
 #  ifndef __NO_OPTIONS
-	l.flags.bLog = SACK_GetProfileIntEx( WIDE( "SACK/Deadstart" ), WIDE( "Logging Enabled?" ), 0, TRUE );
+	l.flags.bLog = 1|| SACK_GetProfileIntEx( WIDE( "SACK/Deadstart" ), WIDE( "Logging Enabled?" ), 0, TRUE );
 #  else
 	l.flags.bLog = 0;
 #  endif

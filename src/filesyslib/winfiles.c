@@ -955,20 +955,35 @@ FILE * sack_fopenEx( INDEX group, CTEXTSTR filename, CTEXTSTR opts, struct file_
 	struct file *file;
 	INDEX idx;
 	LOGICAL memalloc = FALSE;
-
+	LOGICAL single_mount = (fsi != NULL );
+	struct file_system_mounted_interface *mount;
 	LocalInit();
 	EnterCriticalSec( &l.cs_files );
-	lprintf( "open %s %p %s (%d)", filename, fsi, opts, fsi->writeable );
+
+	if( !fsi )
+		fsi = l.mounted_file_systems;
+
+	if( !strchr( opts, 'r' ) )
+		while( fsi )
+		{  // skip roms...
+			lprintf( "check mount %p %d", fsi, fsi->writeable );
+			if( fsi->writeable )
+				break;
+			fsi = fsi->next;
+		}
+
+	//lprintf( "open %s %p %s (%d)", filename, fsi, opts, fsi?fsi->writeable:1 );
 	LIST_FORALL( l.files, idx, struct file *, file )
 	{
 		if( ( file->group == group )
 			&& ( StrCmp( file->name, filename ) == 0 ) 
-			&& ( file->fsi == fsi->fsi ) )
+			&& ( file->fsi == (fsi?fsi->fsi:NULL) ) )
 		{
 			break;
 		}
 	}
 	LeaveCriticalSec( &l.cs_files );
+
 	if( !file )
 	{
 		TEXTSTR tmpname;
@@ -979,7 +994,7 @@ FILE * sack_fopenEx( INDEX group, CTEXTSTR filename, CTEXTSTR opts, struct file_
 		file->handles = NULL;
 		file->files = NULL;
 		file->name = StrDup( filename );
-		file->fsi = fsi->fsi;
+		file->fsi = fsi?fsi->fsi:NULL;
 		if( !fsi && !IsAbsolutePath( filename ) )
 		{
 			tmpname = ExpandPath( filename );
@@ -991,12 +1006,12 @@ FILE * sack_fopenEx( INDEX group, CTEXTSTR filename, CTEXTSTR opts, struct file_
 			if( fsi && group == 0 )
 			{
 				file->fullname = file->name;
-	lprintf( "full is %s", file->fullname );
+				//lprintf( "full is %s", file->fullname );
 			}
 			else
 			{
 				file->fullname = PrependBasePath( group, filegroup, file->name );
-	lprintf( "full is %s %d", file->fullname, group );
+				//lprintf( "full is %s %d", file->fullname, group );
 			}
 			//file->fullname = file->name;
 		}
@@ -1031,6 +1046,8 @@ FILE * sack_fopenEx( INDEX group, CTEXTSTR filename, CTEXTSTR opts, struct file_
 					file->fsi = mount?mount->fsi:NULL;
 					if( mount->fsi->exists( mount->psvInstance, file->fullname ) )
 						handle = (FILE*)mount->fsi->open( mount->psvInstance, file->fullname );
+					else if( single_mount )
+						return NULL;
 				}
 				else
 					goto default_fopen;
@@ -1040,7 +1057,7 @@ FILE * sack_fopenEx( INDEX group, CTEXTSTR filename, CTEXTSTR opts, struct file_
 		else
 		{
 			struct file_system_mounted_interface *mount = fsi;
-	lprintf( "full is %s", file->fullname );
+			//lprintf( "full is %s", file->fullname );
 			while( !handle && mount )
 			{
 				file->fsi = mount?mount->fsi:NULL;
@@ -1100,17 +1117,7 @@ default_fopen:
 
 FILE*  sack_fopen ( INDEX group, CTEXTSTR filename, CTEXTSTR opts )
 {
-	struct file_system_mounted_interface *mount = l.mounted_file_systems;
-	if( !strchr( opts, 'r' ) )
-		while( mount )
-		{
-			lprintf( "check mount %p %d", mount, mount->writeable );
-			if( mount->writeable )
-				break;
-			mount = mount->next;
-		}
-
-	return sack_fopenEx( group, filename, opts, mount );
+	return sack_fopenEx( group, filename, opts, NULL );
 }
 
 FILE*  sack_fsopenEx( INDEX group
@@ -1122,8 +1129,11 @@ FILE*  sack_fsopenEx( INDEX group
 	FILE *handle = NULL;
 	struct file *file;
 	INDEX idx;
+	LOGICAL single_mount = ( fsi != NULL );
 	LocalInit();
 	EnterCriticalSec( &l.cs_files );
+	if( !fsi )
+		fsi = l.mounted_file_systems;
 	LIST_FORALL( l.files, idx, struct file *, file )
 	{
 		if( StrCmp( file->name, filename ) == 0 )
@@ -1156,6 +1166,10 @@ FILE*  sack_fsopenEx( INDEX group
 			{
 				file->fsi = mount->fsi;
 				handle = (FILE*)mount->fsi->open( mount->psvInstance, file->fullname );
+				if( !handle && single_mount )
+				{
+					return NULL;
+				}
 				mount = mount->next;
 			}
 			file->fsi = mount?mount->fsi:NULL;
@@ -1206,7 +1220,7 @@ FILE*  sack_fsopenEx( INDEX group
 
 FILE*  sack_fsopen( INDEX group, CTEXTSTR filename, CTEXTSTR opts, int share_mode )
 {
-	return sack_fsopenEx( group, filename, opts, share_mode, l.mounted_file_systems );
+	return sack_fsopenEx( group, filename, opts, share_mode, NULL/*l.mounted_file_systems*/ );
 }
 
 size_t sack_fsize ( FILE *file_file )
@@ -1359,6 +1373,7 @@ TEXTSTR sack_fgets ( TEXTSTR buffer, size_t size,FILE *file_file )
 
 LOGICAL sack_existsEx ( CTEXTSTR filename, struct file_system_mounted_interface *fsi )
 {
+	FILE *tmp;
 	if( fsi && fsi->fsi && fsi->fsi->exists )
 	{
 #ifdef UNICODE
@@ -1367,6 +1382,11 @@ LOGICAL sack_existsEx ( CTEXTSTR filename, struct file_system_mounted_interface 
 #else
 		return fsi->fsi->exists( fsi->psvInstance, filename );
 #endif
+	}
+	else if( tmp = fopen( filename, "rb" ) )
+	{
+		fclose( tmp );
+		return TRUE;
 	}
 	return FALSE;
 }

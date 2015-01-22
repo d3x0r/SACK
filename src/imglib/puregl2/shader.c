@@ -36,7 +36,7 @@ PImageShaderTracker GetShaderInit( CTEXTSTR name, PTRSZVAL (CPROC*Setup)(void), 
 }
 
 
-void  SetShaderEnable( PImageShaderTracker tracker, void (CPROC*EnableShader)( PImageShaderTracker tracker,PTRSZVAL ), PTRSZVAL psv )
+void  SetShaderEnable( PImageShaderTracker tracker, void (CPROC*EnableShader)( PImageShaderTracker tracker,PTRSZVAL, va_list args ), PTRSZVAL psv )
 {
 	tracker->Enable = EnableShader;
 }
@@ -207,7 +207,7 @@ void EnableShader( PImageShaderTracker tracker, ... )
 	{
 		va_list args;
 		va_start( args, tracker );
-		tracker->Enable( tracker, tracker->psv_userdata );
+		tracker->Enable( tracker, tracker->psv_userdata, args );
 	}
 }
 
