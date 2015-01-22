@@ -73,12 +73,15 @@ POINTER GetExtraData( POINTER block )
 maybe it returns the library base... */
 POINTER LoadLibraryFromMemory( CTEXTSTR name, POINTER block, size_t block_len, int library, void (*Callback)(CTEXTSTR library) )
 {
+	static int generation;
 	PTRSZVAL source_memory_length = block_len;
 	POINTER source_memory = block;
 	POINTER real_memory;
 	static int level;
+	//if( level == 0 )
+	//	generation++;
 	level++;
-	lprintf( "Load %s (%d)\n", name, level );
+	//lprintf( "Load %s (%d:%d)\n", name, generation, level );
 	{
 		PIMAGE_DOS_HEADER source_dos_header = (PIMAGE_DOS_HEADER)source_memory;
 		PIMAGE_NT_HEADERS source_nt_header = (PIMAGE_NT_HEADERS)Seek( source_memory, source_dos_header->e_lfanew );
@@ -110,14 +113,11 @@ POINTER LoadLibraryFromMemory( CTEXTSTR name, POINTER block, size_t block_len, i
 		{
 			int n;
 			PIMAGE_DATA_DIRECTORY dir = (PIMAGE_DATA_DIRECTORY)source_nt_header->OptionalHeader.DataDirectory;
-			PIMAGE_EXPORT_DIRECTORY exp_dir = (PIMAGE_EXPORT_DIRECTORY)dir[IMAGE_DIRECTORY_ENTRY_EXPORT].VirtualAddress;
 			long FPISections = source_dos_header->e_lfanew
 				+ sizeof( DWORD ) + sizeof( IMAGE_FILE_HEADER )
 				+ source_nt_header->FileHeader.SizeOfOptionalHeader;
 			PIMAGE_SECTION_HEADER source_section;
-			PIMAGE_IMPORT_DESCRIPTOR import_base;
 			PIMAGE_IMPORT_DESCRIPTOR real_import_base;
-			PIMAGE_SECTION_HEADER source_export_section;
 			PIMAGE_SECTION_HEADER source_import_section = NULL;
 			PIMAGE_SECTION_HEADER source_text_section = NULL;
 			PTRSZVAL dwSize = 0;
@@ -130,11 +130,6 @@ POINTER LoadLibraryFromMemory( CTEXTSTR name, POINTER block, size_t block_len, i
 				newSize = (source_section[n].VirtualAddress) + source_section[n].SizeOfRawData;
 				if( newSize > dwSize )
 					dwSize = newSize;
-				if( (DWORD)exp_dir >= source_section[n].VirtualAddress 
-					&& (DWORD)exp_dir < ( source_section[n].VirtualAddress + source_section[n].SizeOfRawData ) )
-				{
-					source_export_section = source_section + n;
-				}
 				if( StrCmpEx( (char*)source_section[n].Name, WIDE(".text"), sizeof( source_section[n].Name ) ) == 0 )
 				{
 					//image_base = (POINTER)Seek( real_memory, source_section[n].VirtualAddress );
@@ -142,7 +137,7 @@ POINTER LoadLibraryFromMemory( CTEXTSTR name, POINTER block, size_t block_len, i
 				}
 				if( StrCmpEx( (char*)source_section[n].Name, WIDE(".idata"), sizeof( source_section[n].Name ) ) == 0 )
 				{
-					import_base = (PIMAGE_IMPORT_DESCRIPTOR)Seek( source_memory, source_section[n].PointerToRawData );
+					//import_base = (PIMAGE_IMPORT_DESCRIPTOR)Seek( source_memory, source_section[n].PointerToRawData );
 					source_import_section = source_section + n;
 				}
 				if( StrCmpEx( (char*)source_section[n].Name, WIDE(".rdata"), sizeof( source_section[n].Name ) ) == 0 )
@@ -154,7 +149,6 @@ POINTER LoadLibraryFromMemory( CTEXTSTR name, POINTER block, size_t block_len, i
 			}
 			// ------------- Go through the sections and move to expected virtual offsets
 			real_memory = VirtualAlloc( NULL, dwSize, MEM_COMMIT|MEM_RESERVE, PAGE_EXECUTE_READWRITE );
-			lprintf( "%s is at %p", name, real_memory );
 			if( source_import_section )
 				real_import_base = (PIMAGE_IMPORT_DESCRIPTOR)Seek( real_memory, source_import_section->VirtualAddress );
 			else
@@ -172,63 +166,39 @@ POINTER LoadLibraryFromMemory( CTEXTSTR name, POINTER block, size_t block_len, i
 					, (POINTER)Seek( source_memory, source_section[n].PointerToRawData )
 					, source_section[n].SizeOfRawData );
 			}
-#if 0
-			//------------- Done copying sections into system-block bounded things
+			{
+				PIMAGE_EXPORT_DIRECTORY exp_dir = (PIMAGE_EXPORT_DIRECTORY)Seek( real_memory, dir[IMAGE_DIRECTORY_ENTRY_EXPORT].VirtualAddress );
+				char *dll_name = (char*) Seek( real_memory, exp_dir->Name );
+				AddMappedLibrary( dll_name, real_memory );
+			}
+			{
+				PIMAGE_DATA_DIRECTORY dir;
+				PIMAGE_IMPORT_DESCRIPTOR imp_des;
+				dir = (PIMAGE_DATA_DIRECTORY)source_nt_header->OptionalHeader.DataDirectory;
+				imp_des = (PIMAGE_IMPORT_DESCRIPTOR)Seek( real_memory, dir[IMAGE_DIRECTORY_ENTRY_IMPORT].VirtualAddress );
+				if( imp_des != real_import_base )
 				{
-					PIMAGE_DATA_DIRECTORY dir;
-					PIMAGE_EXPORT_DIRECTORY exp_dir;
-					int n;
-					int ord;
-					dir = (PIMAGE_DATA_DIRECTORY)source_nt_header->OptionalHeader.DataDirectory;
-					exp_dir = (PIMAGE_EXPORT_DIRECTORY)Seek( real_memory, dir[IMAGE_DIRECTORY_ENTRY_EXPORT].VirtualAddress );
-					//if( ( ord = ((PTRSZVAL)funcname & 0xFFFF ) ) == (PTRSZVAL)funcname )
-					{
-						char *dll_name = (char*) Seek( real_memory, exp_dir->Name );
-						void (**f)(void) = (void (**)(void))Seek( real_memory, exp_dir->AddressOfFunctions );
-						char **names = (char**)Seek( real_memory, exp_dir->AddressOfNames );
-						_16 *ords = (_16*)Seek( real_memory, exp_dir->AddressOfNameOrdinals );
-						int n;
-						for( n = 0; n < exp_dir->NumberOfFunctions; n++ )
-						{
-							//char *name = (char*)Seek( real_memory, names[n] );
-							//f[n] = ((PTRSZVAL)f[n] + source_export_section->VirtualAddress
-						}
-					}
-					//else
-						for( n = 0; n < exp_dir->NumberOfFunctions; n++ )
-						{
-						}
+					lprintf( "2 import tables." );
 				}
-#endif
-				{
-					PIMAGE_DATA_DIRECTORY dir;
-					PIMAGE_IMPORT_DESCRIPTOR imp_des;
-					dir = (PIMAGE_DATA_DIRECTORY)source_nt_header->OptionalHeader.DataDirectory;
-					imp_des = (PIMAGE_IMPORT_DESCRIPTOR)Seek( real_memory, dir[IMAGE_DIRECTORY_ENTRY_IMPORT].VirtualAddress );
-					if( imp_des != real_import_base )
-					{
-						lprintf( "2 import tables." );
-					}
-					//if( ( ord = ((PTRSZVAL)funcname & 0xFFFF ) ) == (PTRSZVAL)funcname )
-				}
+			}
 
-
-
-			if( Callback && real_import_base )
+			if( Callback && real_import_base &&  dir[IMAGE_DIRECTORY_ENTRY_IMPORT].Size )
 			{
 				int n;
 				// as long as charaacteristics is non zero it's not the end of the list.
-				//SuspendDeadstart();
 				for( n = 0; real_import_base[n].Characteristics; n++ )
 				{
-					const char * dll_name = (const char*) Seek( real_import_base, real_import_base[n].Name - dir[IMAGE_DIRECTORY_ENTRY_IMPORT].VirtualAddress/*source_import_section->VirtualAddress*/ );
+					const char * dll_name;
+					dll_name = (const char*) Seek( real_import_base, real_import_base[n].Name - dir[IMAGE_DIRECTORY_ENTRY_IMPORT].VirtualAddress/*source_import_section->VirtualAddress*/ );
 					if( !IsMappedLibrary( dll_name ) )
+					{
+						//printf( "need to load %s\n", dll_name );
 						Callback( dll_name );
+					}
 				}
-				//ResumeDeadstart();
 			}
 
-			if( real_import_base )
+			if( real_import_base &&  dir[IMAGE_DIRECTORY_ENTRY_IMPORT].Size )
 			{
 				int n;
 				for( n = 0; real_import_base[n].Characteristics; n++ )
@@ -257,7 +227,7 @@ POINTER LoadLibraryFromMemory( CTEXTSTR name, POINTER block, size_t block_len, i
 						}
 						else
 						{
-							import_desc = (PIMAGE_IMPORT_BY_NAME)Seek( real_import_base, dwFunc[f] - dir[IMAGE_DIRECTORY_ENTRY_IMPORT].VirtualAddress );
+							import_desc = (PIMAGE_IMPORT_BY_NAME)Seek( real_memory, dwFunc[f] );
 							//printf( " sub thing %s\n", import_desc->Name );
 							dwTargetFunc[f] = (PTRSZVAL)LoadFunction( dll_name, import_desc->Name );
 						}
@@ -326,13 +296,65 @@ POINTER LoadLibraryFromMemory( CTEXTSTR name, POINTER block, size_t block_len, i
 					}
 				}
 			}
+
+			{
+				// thread local storage fixup
+				PIMAGE_TLS_DIRECTORY tls = (PIMAGE_TLS_DIRECTORY)Seek( real_memory, dir[IMAGE_DIRECTORY_ENTRY_TLS].VirtualAddress );
+				int n;
+				if( dir[IMAGE_DIRECTORY_ENTRY_TLS].Size )
+				{
+					lprintf( "processing TLS..." );
+					for( n = 0; n < dir[IMAGE_DIRECTORY_ENTRY_TLS].Size / sizeof( IMAGE_TLS_DIRECTORY ); n++ )
+					{
+						POINTER data;
+						DWORD dwInit;
+						PLIST prior_list;
+						POINTER *tls_list;
+						size_t size_init = ( tls->EndAddressOfRawData - tls->StartAddressOfRawData );
+						size_t size = size_init + tls->SizeOfZeroFill;
+						/*
+						printf( "%p %p %p(%d) %p\n"
+									, tls->AddressOfCallBacks
+									, tls->StartAddressOfRawData, tls->EndAddressOfRawData
+									, ( tls->EndAddressOfRawData - tls->StartAddressOfRawData ) + tls->SizeOfZeroFill
+									, tls->AddressOfIndex );
+							*/
+						data = NewArray( _8, size );
+						{
+							_asm mov ecx, fs:[2ch];
+							_asm mov tls_list, ecx;
+						}
+						dwInit = 0;
+						while( (*tls_list) ) { tls_list++; dwInit++; }
+						(*tls_list) = data;
+						DebugBreak();
+						LoadLibrary( "avutil-54.dll" );
+						{
+							_asm mov ecx, fs:[2ch];
+							_asm mov tls_list, ecx;
+						}
+						(*((DWORD*)tls->AddressOfIndex)) = dwInit;
+						//printf( "%p is %d\n", tls->AddressOfIndex, dwInit );
+						//data = LocalAlloc( 0, size );
+						//	035FA434  mov         ecx,dword ptr fs:[2Ch]  
+						//	035FA43B  mov         edx,dword ptr [ecx+eax*4]  
+
+						//TlsSetValue( dwInit, data );
+						//printf( "%d is %p\n", dwInit, data );
+						//printf( "and it was also %p\n", TlsGetValue( dwInit ));
+						memcpy( data, (POINTER)tls->StartAddressOfRawData, size_init );
+						memset( ((P_8)data) + size_init, 0, tls->SizeOfZeroFill );
+					}
+				}
+			}
+
 			if( source_text_section )
 			{
 				DWORD old_protect;
 				if( !VirtualAlloc( (POINTER)Seek( real_memory, source_text_section->VirtualAddress )
 					, source_text_section->SizeOfRawData
 					, MEM_COMMIT
-					,  PAGE_EXECUTE_READ ) )
+					, PAGE_EXECUTE_READ ) )
 				{
 					lprintf( "Couldn't commit written pages : %d", GetLastError() );
 				}
@@ -353,8 +375,9 @@ POINTER LoadLibraryFromMemory( CTEXTSTR name, POINTER block, size_t block_len, i
 			void(WINAPI*entry_point)(void*, DWORD, void*) = (void(WINAPI*)(void*,DWORD,void*))Seek( real_memory, source_nt_header->OptionalHeader.AddressOfEntryPoint );
 			if( entry_point )
 			{
-				printf( "Library Entry\n" );
+				printf( "Library Entry:%s\n", name );
 				entry_point(real_memory, DLL_PROCESS_ATTACH, NULL );
+				printf( "Library Entry Done:%s\n", name );
 			}
 		}
 		else
@@ -362,7 +385,7 @@ POINTER LoadLibraryFromMemory( CTEXTSTR name, POINTER block, size_t block_len, i
 			void(WINAPI*entry_point)(HINSTANCE,HINSTANCE,LPSTR,int) = (void(WINAPI*)(HINSTANCE,HINSTANCE,LPSTR,int))Seek( real_memory, source_nt_header->OptionalHeader.AddressOfEntryPoint );
 			return entry_point;
 		}
-		AddMappedLibrary( name, real_memory );
+		//AddMappedLibrary( name, real_memory );
 	}
 	level--;
 	return 0;

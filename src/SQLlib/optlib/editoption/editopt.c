@@ -58,14 +58,6 @@ static struct instance_local
 	int done3;
 };
 
-#if defined( _MSC_VER ) || defined( __WATCOMC__ )
-#define HAS_TLS 1
-#define ThreadLocal static __declspec(thread)
-#endif
-#if defined( __GNUC__ )
-#define HAS_TLS 1
-#define ThreadLocal static __thread
-#endif
 
 #if HAS_TLS
 ThreadLocal struct instance_local *option_thread;

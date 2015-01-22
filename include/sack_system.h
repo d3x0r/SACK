@@ -124,8 +124,9 @@ SYSTEM_PROC( void *, GetPrivateModuleHandle )( CTEXTSTR libname );
   Add a custom loaded library; attach a name to the DLL space; this should allow
   getcustomsybmol to resolve these 
   */
-SYSTEM_PROC( void, AddMappedLibrary)( CTEXTSTR libname, POINTER image_memory );
-SYSTEM_PROC( LOGICAL, IsMappedLibrary)( CTEXTSTR libname );
+SYSTEM_PROC( void, AddMappedLibrary )( CTEXTSTR libname, POINTER image_memory );
+SYSTEM_PROC( LOGICAL, IsMappedLibrary )( CTEXTSTR libname );
+SYSTEM_PROC( void, DeAttachThreadToLibraries )( LOGICAL attach );
 
 #define LoadFunction(l,f) LoadFunctionEx(l,f DBG_SRC )
 SYSTEM_PROC( generic_function, LoadPrivateFunctionEx )( CTEXTSTR libname, CTEXTSTR funcname DBG_PASS );

@@ -57,14 +57,6 @@ struct server_socket_state
 	PVP_APPLICATION application_instance;
 };
 
-#if defined( _MSC_VER ) || defined( __WATCOMC__ )
-#define HAS_TLS 1
-#define ThreadLocal static __declspec(thread)
-#endif
-#if defined( __GNUC__ )
-#define HAS_TLS 1
-#define ThreadLocal static __thread
-#endif
 
 #if HAS_TLS
 ThreadLocal struct my_network_state_info {
@@ -75,6 +67,8 @@ ThreadLocal struct my_network_state_info {
 	PTHREAD pThread;
 	THREAD_ID nThread;
 } ThreadNetworkState;
+#else
+#error requires thread local storage.
 #endif
 
 typedef struct vidlib_proxy_renderer

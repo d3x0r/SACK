@@ -57,19 +57,6 @@
 LOGGING_NAMESPACE
 #endif
 
-// Add thread local storage for next lprintf file/line...
-#if defined( _MSC_VER ) || defined( __WATCOMC__ )
-#define HAS_TLS 1
-#define ThreadLocal static __declspec(thread)
-#endif
-#if defined( GNUC )
-#define HAS_TLS 1
-#define ThreadLocal static __thread
-#endif
-
-#ifndef HAS_TLS
-#define ThreadLocal
-#endif
 
 struct syslog_local_data {
 int cannot_log;

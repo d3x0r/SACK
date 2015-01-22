@@ -20,6 +20,7 @@
 
 #ifdef WIN32
 #include <tlhelp32.h>
+#include <Psapi.h>
 #endif
 
 #ifdef __QNX__
@@ -1263,13 +1264,52 @@ void InvokeLibraryLoad( void )
 	}
 }
 
+#define Seek(a,b) (((PTRSZVAL)a)+(b))
+static void LoadExistingLibraries( void )
+{
+	int n = 256;
+
+	HMODULE *modules = NewArray( HMODULE, 256 );
+	DWORD needed;
+	EnumProcessModules( GetCurrentProcess(), modules, sizeof( HMODULE ) * 256, &needed ); 
+	if( needed / sizeof( HMODULE ) == n )
+		lprintf( "loaded module overflow" );
+	needed /= sizeof( HMODULE );
+	for( n = 0; n < needed; n++ )
+	{
+		POINTER real_memory = modules[n];
+		PIMAGE_DOS_HEADER source_dos_header = (PIMAGE_DOS_HEADER)real_memory;
+		PIMAGE_NT_HEADERS source_nt_header = (PIMAGE_NT_HEADERS)Seek( real_memory, source_dos_header->e_lfanew );
+		PIMAGE_DATA_DIRECTORY dir = (PIMAGE_DATA_DIRECTORY)source_nt_header->OptionalHeader.DataDirectory;
+		PIMAGE_EXPORT_DIRECTORY exp_dir = (PIMAGE_EXPORT_DIRECTORY)Seek( real_memory, dir[IMAGE_DIRECTORY_ENTRY_EXPORT].VirtualAddress );
+		char *dll_name = (char*) Seek( real_memory, exp_dir->Name );
+		if( exp_dir->Name > source_nt_header->OptionalHeader.SizeOfImage )
+		{
+			dll_name = "Invalid_Name";
+		}
+#if 0
+		if( dir[IMAGE_DIRECTORY_ENTRY_TLS].Size )
+		{
+			PIMAGE_TLS_DIRECTORY tls = (PIMAGE_TLS_DIRECTORY)Seek( real_memory, dir[IMAGE_DIRECTORY_ENTRY_TLS].VirtualAddress );
+			// existing library has TLS....
+			//lprintf( "library %s has TLS", dll_name );
+		}		
+#endif
+		AddMappedLibrary( dll_name, modules[n] );
+	}
+}
+
 SYSTEM_PROC( LOGICAL, IsMappedLibrary)( CTEXTSTR libname )
 {
 	PLIBRARY library = l.libraries;
-
+	if( !l.libraries )
+	{
+		LoadExistingLibraries();
+		library = l.libraries;
+	}
 	while( library )
 	{
-		if( StrCmp( library->name, libname ) == 0 )
+		if( StrCaseCmp( library->name, libname ) == 0 )
 			break;
 		library = library->next;
 	}
@@ -1281,10 +1321,18 @@ SYSTEM_PROC( LOGICAL, IsMappedLibrary)( CTEXTSTR libname )
 SYSTEM_PROC( void, AddMappedLibrary)( CTEXTSTR libname, POINTER image_memory )
 {
 	PLIBRARY library = l.libraries;
+	static int loading;
+	if( !l.libraries && !loading )
+	{
+		loading = 1;
+		LoadExistingLibraries();
+		library = l.libraries;
+		loading = 0;
+	}
 
 	while( library )
 	{
-		if( StrCmp( library->name, libname ) == 0 )
+		if( StrCaseCmp( library->name, libname ) == 0 )
 			break;
 		library = library->next;
 	}
@@ -1306,13 +1354,83 @@ SYSTEM_PROC( void, AddMappedLibrary)( CTEXTSTR libname, POINTER image_memory )
 
 }
 
+void DeAttachThreadToLibraries( LOGICAL attach )
+{
+	PLIBRARY library = l.libraries;
+	if( 0 )
+	while( library )
+	{
+		if( library->mapped )
+		{
+			PIMAGE_DOS_HEADER source_dos_header = (PIMAGE_DOS_HEADER)library->library;
+			PIMAGE_NT_HEADERS source_nt_header = (PIMAGE_NT_HEADERS)Seek( library->library, source_dos_header->e_lfanew );
+			PIMAGE_DATA_DIRECTORY dir = (PIMAGE_DATA_DIRECTORY)source_nt_header->OptionalHeader.DataDirectory;
+			void(WINAPI*entry_point)(void*, DWORD, void*) = (void(WINAPI*)(void*,DWORD,void*))Seek( library->library, source_nt_header->OptionalHeader.AddressOfEntryPoint );
+			{
+				// thread local storage fixup
+				PIMAGE_TLS_DIRECTORY tls = (PIMAGE_TLS_DIRECTORY)Seek( library->library, dir[IMAGE_DIRECTORY_ENTRY_TLS].VirtualAddress );
+				int n;
+				if( dir[IMAGE_DIRECTORY_ENTRY_TLS].Size )
+				{
+					for( n = 0; n < dir[IMAGE_DIRECTORY_ENTRY_TLS].Size / sizeof( IMAGE_TLS_DIRECTORY ); n++ )
+					{
+						POINTER data;
+						DWORD dwInit;
+						size_t size_init = ( tls->EndAddressOfRawData - tls->StartAddressOfRawData );
+						size_t size = size_init + tls->SizeOfZeroFill;
+						/*
+						printf( "something %d\n", dir[IMAGE_DIRECTORY_ENTRY_TLS].Size );
+						printf( "%p %p %p(%d) %p\n"
+									, tls->AddressOfCallBacks
+									, tls->StartAddressOfRawData, tls->EndAddressOfRawData
+									, ( tls->EndAddressOfRawData - tls->StartAddressOfRawData ) + tls->SizeOfZeroFill
+									, tls->AddressOfIndex );
+						*/
+						dwInit = (*((DWORD*)tls->AddressOfIndex));
+						if( attach )
+						{
+							data = NewArray( _8, size );
+#ifdef _MSC_VER
+#  ifdef __64__
+#  else
+							{
+								_asm mov ecx, fs:[2ch];
+								_asm mov eax, dwInit;
+								_asm mov edx, data;
+								_asm mov dword ptr [ecx+eax*4], edx;
+							}
+#  endif
+#endif
+							//TlsSetValue( dwInit, data );
+							memcpy( data, (POINTER)tls->StartAddressOfRawData, size_init );
+							memset( ((P_8)data) + size_init, 0, tls->SizeOfZeroFill );
+						}
+						else
+						{
+							data = TlsGetValue( dwInit );
+							Deallocate( POINTER, data );
+						}
+					}
+				}
+			}
+
+			entry_point( library->library, attach?DLL_THREAD_ATTACH:DLL_THREAD_DETACH, 0 );
+		}
+		library = library->next;
+	}
+}
+
 SYSTEM_PROC( generic_function, LoadFunctionExx )( CTEXTSTR libname, CTEXTSTR funcname, LOGICAL bPrivate  DBG_PASS )
 {
 	PLIBRARY library = l.libraries;
-
+	if( !l.libraries )
+	{
+		LoadExistingLibraries();
+		library = l.libraries;
+	}
 	while( library )
 	{
-		if( StrCmp( library->name, libname ) == 0 )
+		if( StrCaseCmp( library->name, libname ) == 0 )
 			break;
 		library = library->next;
 	}
@@ -1321,6 +1439,7 @@ SYSTEM_PROC( generic_function, LoadFunctionExx )( CTEXTSTR libname, CTEXTSTR fun
 	{
 		size_t maxlen = StrLen( l.load_path ) + 1 + StrLen( libname ) + 1;
 		library = NewPlus( LIBRARY, sizeof(TEXTCHAR)*((maxlen<0xFFFFFF)?(_32)maxlen:0) );
+		//lprintf( "New library %s", libname );
 		if( !IsAbsolutePath( libname ) )
 		{
 			library->name = library->full_name
@@ -1343,12 +1462,17 @@ SYSTEM_PROC( generic_function, LoadFunctionExx )( CTEXTSTR libname, CTEXTSTR fun
 		// so final initializers in application can run.
 		if( l.ExternalLoadLibrary )
 		{
+			PLIBRARY check;
+			lprintf( "trying external load...%s", library->name );
 			l.ExternalLoadLibrary( library->name );
-			if( l.libraries && StrCaseCmp( l.libraries->name, library->name ) == 0 )
+			for( check = l.libraries; check; check = check->next )
 			{
-				Deallocate( PLIBRARY, library );
-				library = l.libraries;
-				goto get_function_name;
+				if( StrCaseCmp( check->name, library->name ) == 0 )
+				{
+					Deallocate( PLIBRARY, library );
+					library = check;
+					goto get_function_name;
+				}
 			}
 		}
 
@@ -1476,6 +1600,25 @@ SYSTEM_PROC( generic_function, LoadFunctionExx )( CTEXTSTR libname, CTEXTSTR fun
 								char *name = (char*)Seek( library->library, (PTRSZVAL)names[n] );
 								if( StrCmp( name, funcname ) == 0 )
 								{
+									if( ( ((PTRSZVAL)f[ords[n]] ) < ( dir[0].VirtualAddress + dir[0].Size ) )
+										&& ( ((PTRSZVAL)f[ords[n]] ) > dir[0].VirtualAddress ) )
+									{
+										char *tmpname;
+										char *name = (char*)Seek( library->library, (PTRSZVAL)f[ords[n]] );
+										char *fname = name;
+										int len;
+										generic_function f;
+										while( fname[0] && fname[0] != '.' )
+											fname++;
+										if( fname[0] )
+											fname++;
+										tmpname = NewArray( char, len = ( fname - name ) + 5 );
+										snprintf( tmpname, len, "%*.*s.dll", (fname-name)-1,(fname-name)-1, name );
+										//lprintf( "%s:%s = %s:%s", library->name, funcname, tmpname, fname );
+										f = LoadFunction( tmpname, fname );
+										Deallocate( char *, tmpname );
+										return f;
+									}
 									//lprintf( "%s  %s is %d  %d = %p %p", library->name, name, n, ords[n], f[n], f[ords[n]] );									
 									return (generic_function)Seek( library->library, (PTRSZVAL)f[ords[n]] );
 								}
