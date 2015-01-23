@@ -212,7 +212,7 @@ POINTER LoadLibraryFromMemory( CTEXTSTR name, POINTER block, size_t block_len, i
 						dll_name = (const char*) Seek( real_import_base, real_import_base[n].Name - dir[IMAGE_DIRECTORY_ENTRY_IMPORT].VirtualAddress/*source_import_section->VirtualAddress*/ );
 					//char * function_name = (char*) Seek( import_base, import_base[n]. - source_import_section->VirtualAddress );
 					//printf( "thing %s\n", dll_name );
-#ifdef __WATCOMC__
+#if __WATCOMC__ < 1200
 					dwFunc = (PTRSZVAL*)Seek( real_import_base, real_import_base[n].OrdinalFirstThunk - dir[IMAGE_DIRECTORY_ENTRY_IMPORT].VirtualAddress );
 #else
 					dwFunc = (PTRSZVAL*)Seek( real_import_base, real_import_base[n].OriginalFirstThunk - dir[IMAGE_DIRECTORY_ENTRY_IMPORT].VirtualAddress );
@@ -413,6 +413,9 @@ PRIORITY_PRELOAD( NetworkLoaderTester, NAMESPACE_PRELOAD_PRIORITY + 1 )
 }
 #endif
 
+#if __WATCOMC__ < 1200
 PUBLIC( void, StupidUselessWatcomExport )( void )
 {
 }
+#endif
+
