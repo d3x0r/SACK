@@ -1,0 +1,44 @@
+
+/create nws_clientdb
+/wake nws_clientdb
+/tell nws_clientdb /odbc open access u p
+//mac ipstore from port zip time
+//create record
+//decl in record IP %%from
+//decl in record Port %%port
+//decl in record zip %%zip
+//decl in record lasttime %%time
+//decl in record _TABLE nws_ips
+//odbc store record
+//endmac
+
+/create nws_client
+/wake nws_client
+/tell nws_client /parse udpserver 51717
+
+//mac idle
+//decl zip
+//decl ip
+//decl reportline
+//decl textip
+//decl textport
+//label top
+//wait
+//getline %%reportline
+//if success
+	//head %%reportline %%ip
+	//getip %%ip %%textip
+   //getport %%ip %%textport
+   //head %%reportline %%zip
+	//if success
+	   //echo IP %%textip PORT %%textport ZIP %%zip Time %%reportline
+   	//echo hey - gonna like store this sucker!
+		//tell nws_clientdb /ipstore %%textip %%textport %%zip %%reportline 
+	//else
+	   //echo failed... IP %%textip PORT %%textport ZIP %%zip Time %%reportline
+   //endif
+//endif
+//goto top
+//endmac
+
+//idle

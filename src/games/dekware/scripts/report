@@ -1,0 +1,40 @@
+/decl maxhit 0
+/decl maxmana 0
+/decl maxmove 0
+/trigger dest setmax
+/trigger crea setmax you have &hitnow(&hitmax) hit, &mananow(&manamax) mana and &movenow(&movemax) movement points
+/decl maxhit %hitmax
+/decl maxmana %manamax
+/decl maxmove %movemax
+/endmac
+
+/decl curhit 0
+/decl curmana 0
+/decl curmove 0
+/decl lowhit  false
+/trigger dest prompt
+/trigger create prompt <&hit &mana &move>
+/decl skipeatdrink false
+/decl curhit %hit
+/decl curmana %mana
+/decl curmove %move
+/compare %curhit lessthan %maxhit
+/if success
+	/decl lowhit true
+/endif
+/compare %curhit is %maxhit
+/if success
+	/compare %lowhit is true
+   /if success
+   	/sound ding
+      /decl lowhit false
+   /endif
+/endif
+/endmac
+
+/dest repo
+/mac repo
+.:reports: I have %curhit/%maxhit hp, %curmana/%maxmana mana, %curmove/%maxmove move.
+/endmac
+
+

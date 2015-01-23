@@ -1,0 +1,350 @@
+/scr common.trig
+
+/scr gorgo.trig
+
+
+/decl hands blued-gauntlets
+
+/mac hands
+/compare %hands is blued-gauntlets
+/if success
+.remove blued-gauntlets
+.get ogre-gauntlets casket
+.wear ogre
+.put blued-gauntlets casket
+/decl hands ogre-gauntlets
+/else
+.remove ogre-gauntlets
+.get blued-gauntlets casket
+.wear blued
+.put ogre-gauntlets casket
+/decl hands blued-gauntlets
+/endif
+/endmac
+
+/decl belt spiked
+
+/mac belt
+/compare %belt is spiked
+/if success
+.remove spiked-belt
+.get rope casket
+.wear rope
+.put spiked-belt casket
+/decl belt rope
+/else
+.remove rope
+.get spiked-belt casket
+.wear belt
+.put rope casket
+/decl belt spiked
+/endif
+/endmac
+
+/decl armor black-plate
+/mac armor
+/compare %armor is black-plate
+/if success
+.remove black-plate
+.get maroon-robe casket
+.wear maroon-robe
+.put black-plate casket
+/decl armor maroon-robe
+/else
+.remove robe
+.get black-plate casket
+.wear black-plate
+.put robe casket
+/decl armor black-plate
+/endif
+/endmac
+
+/decl boots mountain-boots
+
+/mac boots
+/compare %boots is mountain-boots
+/if success
+.remove %boots
+.get bear-boots casket
+.wear bear-boots
+.put %boots casket
+/decl boots bear-boots
+/else
+.remove %boots
+.get mountain casket
+.wear mountain
+.put %boots casket
+/decl boots mountain-boots
+/endif
+/endmac
+
+/decl arms blued-sleeves
+/mac arms
+/compare %arms is blued-sleeves
+/if success
+.remove %arms
+.get black-bands casket
+.wear black-bands
+.put %arms casket
+/decl arms black-bands
+/else
+.remove %arms
+.get blued-sleeves casket
+.wear blued-sleeves
+.put %arms casket
+/decl arms blued-sleeves
+/endif
+/endmac
+
+/decl helm blued-helm
+/mac helm
+/compare %helm is blued-helm
+/if success
+.remove blued-helm
+.get dwarven-helm casket
+.wear helm
+.put blued-helm casket
+/decl helm dwarven-helm
+/else
+.remove dwarven-helm
+.get blued-helm casket
+.wear blued-helm
+.put dwarven-helm casket
+/decl helm blued-helm
+/endif
+/endmac
+
+/decl holding shard
+/mac hold
+/compare %holding is shard
+/if success
+.remove shard
+.get claw casket
+.hold claw
+.put shard casket
+/decl holding wolf-claw
+/else
+.remove %holding
+.get shard casket
+.hold shard
+.put %holding casket
+/decl holding shard
+/endif
+/endmac
+
+/mac reset
+/compare %boots is mountain-boots
+/if fail
+/boots
+/endif
+/compare %arms is blued-sleeves
+/if fail
+/arms
+/endif
+/compare %armor is black-plate
+/if fail
+/armor
+/endif
+/compare %hands is blued-gauntlets
+/if fail
+/hands
+/endif
+/compare %belt is spiked
+/if fail
+/belt
+/endif
+/compare %helm is blued-helm
+/if fail
+/helm
+/endif
+/compare %wrist is bracers
+/if fail
+/wrist
+/endif
+/compare %holding is shard
+/if fail
+/hold
+/endif
+
+/endmac
+
+/mac strong
+/compare %armor is black-plate
+/if success
+/armor
+/endif
+/compare %hands is blued-gauntlets
+/if success
+/hands
+/endif
+/compare %belt is spiked
+/if success
+/belt
+/endif
+/compare %helm is blued-helm
+/if success
+/helm
+/endif
+/compare %arms is blued-sleeves
+/if success
+/arms
+/endif
+/endmac
+
+/mac pummel
+.remove shard
+.get pummel casket
+.wield pummel
+/endmac
+
+/mac smash
+.remove pummel
+.hold shard
+.put pummel casket
+/endmac
+
+/decl wrist bracers
+
+/mac wrist
+/compare %wrist is bracers
+/if success
+	.remove bracer
+	.remove bracer
+	.get bracelet casket
+	.get bracelet casket
+	.wear bracelet
+	.wear bracelet
+	.put bracer casket
+	.put bracer casket
+	/decl wrist bracelets
+/else
+	.remove bracelet
+	.remove bracelet
+	.get bracer casket
+	.get bracer casket
+	.wear bracer
+	.wear bracer
+	.put bracelet casket
+	.put bracelet casket
+	/decl wrist bracers
+/endif
+/endmac
+
+/mac smart
+/compare %wrist is bracers
+/if success
+.remove bracer
+.remove bracer
+/endif
+/compare %wrist is bracelets 
+/if success
+.remove serpentine
+.remove serpentine
+/endif
+.get ordinary-bracelet bag
+.get ordinary-bracelet bag
+.wear bracelet
+.wear bracelet
+.get jeweled-ring bag
+.remove 2.silver
+.wear jeweled
+.remove apron
+.get forest-cloak bag
+.wear forest-cloak
+.put apron casket
+/endmac
+
+/mac dumb
+.remove bracelet
+.remove bracelet
+.put bracelet bag
+.put bracelet bag
+.remove jeweled
+.wear silver
+.remove cloak
+.wear apron
+.put cloak bag
+.put jeweled bag
+.put bracelet bag
+.put bracelet bag
+/compare %wrist is bracelets
+/if success
+.wear bracelet
+.wear bracelet
+/endif
+/compare %wrist is bracers
+/if success
+.wear bracer
+.wear bracer
+/endif
+/endmac
+
+
+/mac regen
+.remove %helm
+.remove amulet
+.get twig-helm casket
+.wear twig-helm
+.remove %holding
+.get withered casket
+.hold withered
+.remove skirt
+.get guards casket
+.wear guards
+/endmac
+
+/mac fight
+.remove guards
+.put guards casket
+.wear skirt
+.remove withered
+.put withered casket
+.hold %holding
+.remove twig-helm
+.wear amulet
+.wear %helm
+.put twig-helm casket
+/endmac
+
+
+/mac r
+.get recall casket
+.rec recall
+/endmac
+
+/mac sanc
+.get flare casket
+.quaff flare
+/endmac
+
+/mac pack
+    remove bags
+    put all.token bags
+    put all.bracelet bags
+    put all.ring bags
+    put shoes bags
+    put sleeves bags
+    put hood bags
+    put halo bags
+    put scarf bags
+    put halo bags
+    put dirty bags
+    put boots bags
+    put white bags
+    put firestone bags
+    remove scarf
+    put scarf bags
+    wear bags
+    remove sack
+    put ogre sack
+    put bullwhip sack
+    put tail sack
+    put all.beer sack
+    put robe sack
+    put cloak sack
+    put shard sack
+    /s
+    hold sack
+/endmac
+
+

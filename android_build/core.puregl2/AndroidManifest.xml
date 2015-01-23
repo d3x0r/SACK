@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+      package="org.d3x0r.sack.core.puregl2"
+      android:versionCode="1"
+      android:versionName="1.0">
+    <uses-sdk
+        android:minSdkVersion="14"
+        android:targetSdkVersion="19" />
+      <!-- application label only shows on final confirm screen for uninstall -->
+    <application android:label="@string/app_package" android:icon="@drawable/ic_launcher">
+        <activity android:name="org.d3x0r.sack.core.puregl2.EditOptions"
+                  android:taskAffinity="org.d3x0r.sack.core.puregl2.EditOptions"
+                  android:label="@string/app_name2"
+                  >
+                  <!--android:configChanges="keyboardHidden|orientation|screenSize" -->
+            <meta-data android:name="android.app.lib_name" android:value="EditOptions" />
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+    </application>
+    <!-- <uses-permission android:name="android.permission.INTERNET"/> -->
+</manifest>

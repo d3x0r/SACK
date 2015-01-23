@@ -1,0 +1,44 @@
+.TH XG 1
+.SH NAME
+xg \- canonicalize XML
+.SH SYNOPSIS
+.B xg
+[
+.B -P
+]
+[
+.B input.xml
+]
+.SH DESCRIPTION
+.I xg
+canonicalizes XML, read either from the standard input or
+from the file specified on the command line. It parses 
+external entities, processes internal DTD subset. It is
+the same for XML as
+.IR cpp(1)
+for C. 
+Command-line options:
+.IP -P 
+inhibits generation of 
+.B <?davidashen-net-xg-file 
+.I file-name
+.B ?>
+and
+.B <?davidashen-net-xg-pos 
+.I line col
+.B ?>
+processing instructions.
+.LP
+.I xg 
+is a thin glue around Expat by James Clark and GenX by Tim Bray.
+.SH EXAMPLES
+.TP
+.B xg x.xml > c.xml
+Converts x.xml into canonical XML in c.xml.
+.TP
+.B xslt style.xsl doc.xml | xg > result.xml
+Stores in result.xml a canonicalized result 
+of XSLT transformation style.xsl applied to doc.xml.
+.SH SEE ALSO
+.IR Expat (2), 
+.IR GenX (2). 

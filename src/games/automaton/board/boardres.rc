@@ -1,0 +1,189 @@
+//Microsoft Developer Studio generated resource script.
+//
+#include "brainres.h"
+
+#define APSTUDIO_READONLY_SYMBOLS
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 2 resource.
+//
+#include "windows.h"
+
+/////////////////////////////////////////////////////////////////////////////
+#undef APSTUDIO_READONLY_SYMBOLS
+
+/////////////////////////////////////////////////////////////////////////////
+// English (U.S.) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
+#ifdef _WIN32
+LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
+#pragma code_page(1252)
+#endif //_WIN32
+
+#ifdef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// TEXTINCLUDE
+//
+
+1 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "brainres.h\0"
+END
+
+2 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "#include ""windows.h""\r\n"
+    "\0"
+END
+
+3 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "\r\n"
+    "\0"
+END
+
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog
+//
+
+NEURONPROP DIALOGEX 0, 0, 189, 44
+STYLE WS_POPUP | WS_VISIBLE | WS_CAPTION
+EXSTYLE WS_EX_TOOLWINDOW | WS_EX_CLIENTEDGE
+FONT 8, "MS Sans Serif", 0, 0, 0x1
+BEGIN
+    CONTROL         "Slider1",SLD_THRESHOLD,"msctls_trackbar32",TBS_BOTH | 
+                    TBS_NOTICKS | WS_TABSTOP,0,0,189,17
+    EDITTEXT        EDT_THRESHOLD,41,18,25,12,ES_AUTOHSCROLL | ES_READONLY | 
+                    ES_NUMBER
+    EDITTEXT        EDT_CURRENT,41,32,25,12,ES_AUTOHSCROLL | ES_READONLY | 
+                    ES_NUMBER
+    PUSHBUTTON      "Delete",BTN_DELETE,148,19,41,12
+    LTEXT           "Current",IDC_STATIC,0,44,24,8
+    LTEXT           "Threshold",IDC_STATIC,0,20,32,8
+    CONTROL         "Digital",RDO_DIGITAL,"Button",BS_AUTORADIOBUTTON,69,20,
+                    33,10
+    CONTROL         "Analog",RDO_ANALOG,"Button",BS_AUTORADIOBUTTON,69,31,35,
+                    10
+    CONTROL         "Sigmoid",RDO_SIGMOID,"Button",BS_AUTORADIOBUTTON,105,21,
+                    39,8
+    DEFPUSHBUTTON   "&Done",BTN_DONE,148,32,41,12
+    LTEXT           "Current",IDC_STATIC,1,33,24,8
+END
+
+SYNAPSEPROP DIALOGEX 0, 0, 187, 36
+STYLE WS_POPUP | WS_VISIBLE | WS_CAPTION
+EXSTYLE WS_EX_TOOLWINDOW | WS_EX_CLIENTEDGE
+CAPTION "Synapse Properties"
+FONT 8, "MS Sans Serif", 0, 0, 0x1
+BEGIN
+    CONTROL         "Slider1",SLD_GAIN,"msctls_trackbar32",TBS_BOTH | 
+                    TBS_NOTICKS | WS_TABSTOP,2,0,185,16
+    EDITTEXT        EDT_GAIN,32,23,25,12,ES_AUTOHSCROLL | ES_READONLY
+    LTEXT           "Gain",TXT_MODE,8,25,21,8
+    DEFPUSHBUTTON   "&Done",BTN_DONE,146,23,41,12
+    GROUPBOX        "Set",TXT_SET,60,16,79,19,BS_CENTER
+    CONTROL         "Gain",RDO_GAIN,"Button",BS_AUTORADIOBUTTON,64,26,29,8
+    CONTROL         "Decay",RDO_DECAY,"Button",BS_AUTORADIOBUTTON,99,26,35,8
+END
+
+SIGMOIDCONSTANT DIALOGEX 0, 0, 197, 95
+STYLE DS_MODALFRAME | WS_POPUP | WS_VISIBLE | WS_CAPTION
+EXSTYLE WS_EX_CLIENTEDGE
+CAPTION "Modify Sigmoid Constant"
+FONT 8, "MS Sans Serif", 0, 0, 0x1
+BEGIN
+    DEFPUSHBUTTON   "&Done",BTN_DONE,154,80,41,12
+    CONTROL         "Custom1",VID_GRAPH,"VideoOutputClass",WS_TABSTOP,31,13,
+                    163,44
+    CONTROL         "Slider1",SLD_K,"msctls_trackbar32",TBS_BOTH | 
+                    TBS_NOTICKS | WS_TABSTOP,0,59,197,17
+    RTEXT           "100%",IDC_STATIC,1,13,24,8
+    RTEXT           "0%",IDC_STATIC,1,46,24,8
+    RTEXT           "50%",IDC_STATIC,1,31,24,8
+    LTEXT           "Output",IDC_STATIC,1,3,27,8
+    CTEXT           "<--- Input Value --->",IDC_STATIC,71,3,74,8
+END
+
+NEURONPROP1 DIALOGEX 0, 0, 189, 83
+STYLE WS_POPUP | WS_VISIBLE | WS_CAPTION
+EXSTYLE WS_EX_TOOLWINDOW | WS_EX_CLIENTEDGE
+FONT 8, "MS Sans Serif"
+BEGIN
+    EDITTEXT        EDT_THRESHOLD,41,57,25,12,ES_AUTOHSCROLL | ES_READONLY | 
+                    ES_NUMBER
+    EDITTEXT        EDT_CURRENT,41,71,25,12,ES_AUTOHSCROLL | ES_READONLY | 
+                    ES_NUMBER
+    PUSHBUTTON      "Delete",BTN_DELETE,148,58,41,12
+    LTEXT           "Current",IDC_STATIC,0,83,24,8
+    LTEXT           "Threshold",IDC_STATIC,0,60,32,8
+    CONTROL         "Digital",RDO_DIGITAL,"Button",BS_AUTORADIOBUTTON,69,60,
+                    33,10
+    CONTROL         "Analog",RDO_ANALOG,"Button",BS_AUTORADIOBUTTON,69,70,35,
+                    10
+    CONTROL         "Sigmoid",RDO_SIGMOID,"Button",BS_AUTORADIOBUTTON,105,60,
+                    39,8
+    DEFPUSHBUTTON   "&Done",BTN_DONE,148,71,41,12
+    LTEXT           "Current",IDC_STATIC,1,73,24,8
+    CONTROL         "Spin1",IDC_SPIN2,"msctls_updown32",UDS_ARROWKEYS,11,4,
+                    11,20
+    CONTROL         "Spin1",IDC_SPIN3,"msctls_updown32",UDS_ARROWKEYS,22,4,
+                    11,20
+    CONTROL         "Spin1",IDC_SPIN4,"msctls_updown32",UDS_SETBUDDYINT | 
+                    UDS_ARROWKEYS | UDS_HORZ,9,28,21,10
+    CONTROL         "Spin1",IDC_SPIN5,"msctls_updown32",UDS_ARROWKEYS,1,4,11,
+                    20
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// DESIGNINFO
+//
+
+#ifdef APSTUDIO_INVOKED
+GUIDELINES DESIGNINFO DISCARDABLE 
+BEGIN
+    "NEURONPROP", DIALOG
+    BEGIN
+        VERTGUIDE, 148
+    END
+
+    "SYNAPSEPROP", DIALOG
+    BEGIN
+        LEFTMARGIN, 2
+    END
+
+    "SIGMOIDCONSTANT", DIALOG
+    BEGIN
+        TOPMARGIN, 3
+        BOTTOMMARGIN, 92
+    END
+
+    "NEURONPROP1", DIALOG
+    BEGIN
+        VERTGUIDE, 148
+    END
+END
+#endif    // APSTUDIO_INVOKED
+
+#endif    // English (U.S.) resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+
+#ifndef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 3 resource.
+//
+
+
+/////////////////////////////////////////////////////////////////////////////
+#endif    // not APSTUDIO_INVOKED
+

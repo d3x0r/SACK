@@ -1,0 +1,43 @@
+# common = <path> this directory and all subdirectories are shipped to all
+#           connected clients - rules needed for TIME
+#
+# listen = <address> specifies allowed places to receive UDP broadcasts from
+#          if 0 or missing - any system can send broadcasts through here
+#
+# server = <address> address to connect to for client configuration....
+#
+# user = <login name>
+# incoming = where data from client is stored
+# outgoing = a single directory where data is sent to the client
+# allow = <addresses...> will only accpet connections from specified address
+
+common=/home/relay/common
+
+
+dekware=0
+
+user=hall1
+listen=172.18.100.2
+	incoming=/home/relay/barhall1/xyzzyx/data/trans/
+        outgoing=/home/relay/barhall1/xyzzyx/data/trans/win
+        allow=*
+
+user=hall2
+listen=172.18.100.2
+	incoming=/home/relay/barhall2/xyzzyx/data/trans/
+        outgoing=/home/relay/barhall2/xyzzyx/data/trans/win
+        allow=*
+
+user=hall3
+listen=172.18.100.2
+	incoming=/home/relay/barhall3/xyzzyx/data/trans/
+        outgoing=/home/relay/barhall3/xyzzyx/data/trans/win
+        allow=*
+
+user=hall4 
+listen=172.18.100.2
+	incoming=/home/relay/barhall4/xyzzyx/data/trans/
+        outgoing=/home/relay/barhall4/xyzzyx/data/trans/win
+        allow=*
+
+

@@ -1,0 +1,8 @@
+all: fakeall
+
+MYPATH=$(dir $(word $(words $(MAKEFILE_LIST)),$(MAKEFILE_LIST)))
+#$(warning makefiles = $(MYPATH) $(MAKEFILE_LIST) )
+include $(MYPATH)/makefile.common
+
+include $(SACK_BASE)/makefiles/makefile.many
+$(MYPATH)/makefile.many: ;

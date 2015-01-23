@@ -1,0 +1,53 @@
+<HTML>
+
+<HEAD>
+<TITLE> blah</TITLE>
+
+
+
+<script src="jquery-1.4.2.min.js"></script>
+
+<!-- <script src="jquery.slws.js"> This is missing js/silverlight.js bad copy </script> -->
+<script src="json2.js"> </script>
+<script type="text/javascript">var default_connect_address = "ws://localhost:4240/Sack/Vidlib/Proxy" </script>
+<script src="detect.js"> </script>
+<script src="uuid.js"> </script>
+<!--
+<script src="gildas-lormeau-zip.js/WebContent/inflate.js"></script>
+<script src="gildas-lormeau-zip.js/WebContent/deflate.js"></script>
+<script src="gildas-lormeau-zip.js/WebContent/zipzz.js"></script> 
+-->
+<script src="zlib.js-master/bin/zlib.min.js"></script>
+<!--<script src="Stuk-jszip-bf7ec8c/dist/jszip.min.js"></script>-->
+<!--<script src="node-v0.10.32/lib/zlib.js"></script>-->
+<!-- This is the actual working script; above are 'libraries' -->
+
+<script src="draw_string.js"> </script>
+<script src="render_client.js"> </script>
+
+<script type="text/javascript">
+   function DoOpenServer()
+   {
+       OpenServer( "control_canvas" );
+   }
+   DoOpenServer();
+</script>
+
+</HEAD>
+
+
+<BODY bgcolor = "#404040" >
+
+<div id="sse">
+   <a href="javascript:DoOpenServer()">Reconnect</a>                                      <br>
+   <a href="https://developer.mozilla.org/en/WebSockets/Writing_WebSocket_client_applications">More Information</a><br>
+   
+</div>
+
+
+<canvas id="control_canvas" width="1024" height="768"></canvas>
+
+</BODY>
+
+</HTML>
+

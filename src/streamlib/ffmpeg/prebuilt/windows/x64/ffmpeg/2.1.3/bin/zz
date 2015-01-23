@@ -1,0 +1,148 @@
+Contents of avcodec-55.dll 20094464 bytes
+
+File Header
+  Machine:                      8664 (unknown)
+  Number of Sections:           13
+  TimeDateStamp:                A0C8A0C0 Wrong time field -1597464384
+  PointerToSymbolTable:         00000000
+  NumberOfSymbols:              00000000
+  SizeOfOptionalHeader:         0x00F0 240
+  Characteristics:              222E
+    EXECUTABLE_IMAGE
+    LINE_NUMS_STRIPPED
+    LOCAL_SYMS_STRIPPED
+    DLL
+
+Optional Header
+  Magic                              0x20b        523
+  linker version                     2.24
+  size of code                       0xE2C000     14860288
+  size of initialized data           0x1329A00    20093440
+  size of uninitialized data         0x7E9800     8296448
+  entrypoint RVA                     0x1400       5120
+  base of code                       0x1000       4096
+  base of data                       0x6C2C0000   1814822912
+  image base                         0x0          0
+  section align                      0x1000       4096
+  file align                         0x200        512
+  required OS version                4.00
+  image version                      0.00
+  subsystem version                  5.02
+  Win32 Version                      0x0
+  size of image                      0x1B1B000    28422144
+  size of headers                    0x400        1024
+  checksum                           0x1330ADE
+  Subsystem                          0x3 (Windows character)
+  DLL flags                          0x140
+
+  stack reserve size                 0x200000     2097152
+  stack commit size                  0x0          0
+  heap reserve size                  0x1000       4096
+  heap commit size                   0x0          0
+  loader flags                       0x100000
+
+  RVAs & sizes                       0x0
+
+Data Directory
+248
+
+Section Table
+  01            VirtSize: 00000000  VirtAddr:  00000000 0x00000000
+    raw data offs: 00116 raw data size: 2019914798 (1 pages)
+    relocation offs: 14860176  relocations:   00049152
+    line # offs:     00004096  line #'s:      00000226
+    characteristics: 0x$00000400
+    
+
+  02            VirtSize: 00000000  VirtAddr:  1615855712 0x60500060
+    raw data offs: 00097 raw data size: 1952539694 (1 pages)
+    relocation offs: 00272208  relocations:   00010240
+    line # offs:     14864384  line #'s:      00000004
+    characteristics: 0x$00E2C400
+    
+
+  03            VirtSize: 00000000  VirtAddr:  -1067450304 0xc0600040
+    raw data offs: 24948 raw data size: 1633972782 (1 pages)
+    relocation offs: 04342980  relocations:   00017920
+    line # offs:     15138816  line #'s:      00000066
+    characteristics: 0x$00E6EC00
+      LNK_REMOVE
+
+  04            VirtSize: 00000000  VirtAddr:  1083179072 0x40900040
+    raw data offs: 6386785 raw data size: 1685025326 (1 pages)
+    relocation offs: 00030480  relocations:   00030720
+    line # offs:     19484672  line #'s:      00000000
+    characteristics: 0x$01293200
+      LNK_INFO  LNK_COMDAT  NRELOC_OVERFLOW
+
+  05            VirtSize: 00000000  VirtAddr:  1080033344 0x40600040
+    raw data offs: 24948 raw data size: 1633972270 (1 pages)
+    relocation offs: 00228888  relocations:   00032768
+    line # offs:     19517440  line #'s:      00000003
+    characteristics: 0x$0129AA00
+      LNK_INFO  LNK_REMOVE  NRELOC_OVERFLOW
+
+  06            VirtSize: 00000000  VirtAddr:  1076887616 0x40300040
+    raw data offs: 24948 raw data size: 1633974318 (1 pages)
+    relocation offs: 00292620  relocations:   00030720
+    line # offs:     19746816  line #'s:      00000004
+    characteristics: 0x$012D2A00
+      LNK_INFO  LNK_REMOVE  NRELOC_OVERFLOW
+
+  07            VirtSize: 00000000  VirtAddr:  1076887616 0x40300040
+    raw data offs: 00000 raw data size: 1936941614 (1 pages)
+    relocation offs: 08296384  relocations:   00000000
+    line # offs:     20041728  line #'s:      00000000
+    characteristics: 0x$00000000
+    
+
+  08            VirtSize: 00000000  VirtAddr:  -1067450240 0xc0600080
+    raw data offs: 24948 raw data size: 1633969454 (1 pages)
+    relocation offs: 00008897  relocations:   00009216
+    line # offs:     28340224  line #'s:      00000000
+    characteristics: 0x$0131A200
+      LNK_INFO  NRELOC_OVERFLOW
+
+  09            VirtSize: 00000000  VirtAddr:  1076887616 0x40300040
+    raw data offs: 24948 raw data size: 1633970478 (1 pages)
+    relocation offs: 00014000  relocations:   00014336
+    line # offs:     28352512  line #'s:      00000000
+    characteristics: 0x$0131C600
+      LNK_INFO  NRELOC_OVERFLOW
+
+  10            VirtSize: 00000000  VirtAddr:  -1070596032 0xc0300040
+    raw data offs: 00000 raw data size: 1414677294 (1 pages)
+    relocation offs: 00000088  relocations:   00000512
+    line # offs:     28368896  line #'s:      00000000
+    characteristics: 0x$0131FE00
+      LNK_INFO  LNK_REMOVE  LNK_COMDAT  NRELOC_OVERFLOW
+
+  11            VirtSize: 00000000  VirtAddr:  -1069547456 0xc0400040
+    raw data offs: 00000 raw data size: 1936487470 (1 pages)
+    relocation offs: 00000104  relocations:   00000512
+    line # offs:     28372992  line #'s:      00000000
+    characteristics: 0x$01320000
+      NRELOC_OVERFLOW
+
+  12            VirtSize: 00000000  VirtAddr:  -1067450304 0xc0600040
+    raw data offs: 00099 raw data size: 1920168494 (1 pages)
+    relocation offs: 00000872  relocations:   00001024
+    line # offs:     28377088  line #'s:      00000000
+    characteristics: 0x$01320200
+      LNK_INFO  NRELOC_OVERFLOW
+
+  13            VirtSize: 00000000  VirtAddr:  -1070596032 0xc0300040
+    raw data offs: 25455 raw data size: 1818587694 (1 pages)
+    relocation offs: 00038712  relocations:   00038912
+    line # offs:     28381184  line #'s:      00000000
+    characteristics: 0x$01320600
+      LNK_INFO  NRELOC_OVERFLOW
+
+Summary
+:	1379365206
+
+
+
+Export table in  section offset 0x0<=0x1000<=0x7865742e
+***Size of Export table is zero!
+

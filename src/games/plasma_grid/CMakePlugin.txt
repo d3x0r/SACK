@@ -1,0 +1,14 @@
+
+
+PROJECT( PlasmaGrid )
+
+ADD_DEFINITIONS( -DMAKE_RCOORD_SINGLE )
+include_directories( ../include )
+include_directories( ../../salty_random_generator )
+
+add_program( ${PROJECT_NAME}  plasma.c main.c grid_reader.c )
+
+#add_subdirectory( ../virtuality virtuality )
+#target_link_libraries( ${PROJECT_NAME} virtuality )
+my_target_link_libraries( ${PROJECT_NAME} ${SACK_LIBRARIES} )
+install_default_dest( ${PROJECT_NAME} )

@@ -1,0 +1,446 @@
+
+/decl self
+/decl ante 10
+
+/mac inlist who list
+/decl rescue %list
+/decl result false
+/decl testwho
+/label top
+/head %rescue %testwho
+/if fail
+	/result %result
+	/return
+/endif
+/compare %who is %testwho
+/if success
+	/decl result true
+/endif
+/goto top
+/endmac
+
+#/trigger crea eattell You whisper to
+#/endmac
+#/trigger opt eattell consume exact
+
+#/trigger crea eattell2 You can't seem to get your mouth
+#/endmac
+#/trigger opt eattell2 consume exact
+
+
+/trigger create showhelp P"\#\#"&who &type &chan:*name) help
+#/echo %who %type %chan %name
+./P%who WAGER (num) - make a bet.
+./P%who HAND - Shows your current hand.
+./P%who BET - shows what the current bet is.
+./P%who POT - shows the current size of the pot.
+./P%who FOLD - fold hand, and step away from the game.
+./P%who DISCARD - throw away card number 1,2,3... up to 3\; 4 keeping an ace.
+./P%who PLAYERS - list current players....
+/endmac
+/trigger opt showhelp consume anchor
+
+/mac nextplayer
+	/head %(pot)curlist %(pot)curplayer
+	/if fail
+		/decl in pot curlist %(pot)players
+		/head %(pot)curlist %(pot)curplayer
+		/if fail
+			.ooc damnit! we're screwed - lost player list!
+			/return
+		/endif
+	/endif
+/endmac
+
+/mac checkplayer who
+/endmac
+
+/mac checkbid
+	/compare %(%(pot)curplayer)curbet is %(pot)curbet
+	/if success
+		/echo %(pot)curplayer's bet is in.
+	/else
+		/decl newbet %(pot)curbet
+		/decr %newbet %(%(pot)curplayer)curbet
+		.say %(pot)curplayer, to call give me %newbet coins.
+		/echo %player owes %newbet coins.
+	/endif
+/endmac
+
+/trigger create placeante P"\#\#"&who &type &chan:*name) wager &num
+#/compare %who
+/compare %num is 0
+/if success
+	./P%who sorry 0 is never a valid amount.
+	/return
+/endif
+/compare %(pot)began is false
+/if success
+	/inlist %who %(pot)players
+	/getresult result
+	/compare %result is true
+	/if success
+		/compare %who is %self
+		/if success
+			/echo okay you're IN you're IN!
+		/else	
+			.give %num coins %who
+			./P%who, ok ok you're in you're in!
+			/return
+		/endif
+	/endif
+	/compare %num morethan %ante
+	/if success
+		/echo more
+		/compare %who is %self
+		/if success
+			/echo okay good enough - you're in....
+			/echo
+		/else
+			./P%who thank you for your generosity, but you've given too much.
+			/decr %num %ante
+			.give %num coins %who
+		/endif
+	/else   	
+		/compare %num lessthan %ante
+		/if success
+			/compare %who is %self
+			/if success
+				/echo you've gotta give yourself MORE than %num ...
+				/echo
+				/return
+			/endif
+			./P%who sorry - you have to place at least %ante coins.
+			.give %num coins %who
+			/return
+		/endif
+	/endif
+	.say %who is in.
+	/clock/tick
+	./P%who thanks for playing, the game will begin shortly.
+	/incr %(pot)total %ante
+	/decl player %who
+	/push %(pot)players %player
+	/inlist %(pot)players %player  # make sure the .end is at the END
+	/create %player
+	/wake %player
+	/decl in %player curbet 0
+/else
+	/compare %who is %(pot)curplayer
+	/if fail
+		/compare %who is %self
+		/if success
+			/return
+		/else
+			.give %num coins %who
+			./P%who sorry it's NOT your turn!
+			/return
+		/endif
+	/endif
+	/decl totalbet %num
+	/incr %totalbet %(%who)curbet
+	/inlist %who %(pot)players
+	/getresult result
+	/compare %result is true
+	/if success
+		/compare %(pot)curbet is 0
+		/if success
+			.say %who bets %num coins.
+			/decl in %who curbet %num
+			/decl in pot curbet %num
+			/incr %(pot)total %num
+			/nextplayer
+			/return
+		/endif
+		/compare %(pot)curbet morethan %totalbet
+		/if success
+			.give %num coins %who
+			./P%who sorry, the current bet is: %(pot)curbet
+		/endif
+		/compare %(pot)curbet lessthan %totalbet
+		/if success
+			.say %who raises the bet to %totalbet .
+			/decl in %who curbet %totalbet
+			/decl in pot curbet %totalbet
+			/incr %(pot)total %num
+			/nextplayer
+		/endif
+		/compare %(pot)curbet is %total
+			.say %who calls the bet.
+			/decl in %who curbet %totalbet
+			/incr %(pot)total %num
+			
+			/nextplayer
+		/endif
+
+	/endif
+/endif
+/endmac
+
+/trigger create discard  P"\#\#"&who &type &chan:*name) discard *these
+	/inlist %who %(pot)players
+	/getresult result
+	/compare %result is false
+	/if success
+		./P%who sorry, you're not part of this hand...
+		/return
+	/endif
+	/compare %(pot)began is false
+	/if success
+		./P%who The hand has not started yet...
+		/return
+	/endif
+	/tell %who/discard %these
+	./P%who your hand is now %(%who)hand
+/endmac
+
+/mac endhand
+/decl list %players
+/label top
+/head %players player
+/if success
+	/destroy %player
+/else
+	/destroy pot
+	/return
+/endif
+/goto top
+/endmac
+
+/trigger create showplayers P"\#\#"&who &type &chan:*name) players
+./P%who current players are: %(pot)players
+/endmac
+/trigger opt showplayers anchor
+
+/trigger create showhand P"\#\#"&who &type &chan:*name) hand
+	/inlist %who %(pot)players
+	/getresult result
+	/compare %result is false
+	/if success
+		./P%who sorry, you're not part of this hand...
+		/return
+	/endif
+	/compare %(pot)began is false
+	/if success
+		./P%who The hand has not started yet...
+		/return
+	/endif
+
+	./P%who your hand is %(%who)hand
+/endmac
+
+/mac bet coins
+.give %coins coins me
+/endmac
+
+/mac hand 
+	/compare %(pot)began is false
+	/if success
+		/echo the game hasn't started yet....
+		/echo
+		/return
+	/endif
+
+/echo your hand is: %(%self)hand
+/echo
+/endmac
+
+/trigger opt showhand anchor
+
+
+/trigger create showpot P"\#\#"&who &type &chan:*name) pot
+	/inlist %who %(pot)players
+	/getresult result
+	/compare %result is false
+	/if success
+		./P%who sorry, you're not part of this hand...
+		/return
+	/endif
+	./P%who the current pot is %(pot)total coins. 
+/endmac
+/trigger opt showpot anchor
+
+	
+/trigger create showbet P"\#\#"&who &type &chan:*name) bet
+	/inlist %who %(pot)players
+	/getresult result
+	/compare %result is false
+	/if success
+		./P%who sorry, you're not part of this hand...
+		/return
+	/endif
+./P%who Current bet is %(pot)curbet coins. You've bet %(%who)curbet coins.
+/endmac
+/trigger opt showpot anchor
+
+/dest showbets
+/mac showbets
+/echo Current bet is %(pot)curbet coins.  You've bet %(%self)curbet coins.
+/echo
+/endmac
+
+
+/mac clockdone
+/endmac
+
+/mac begingame
+/deck/shuffle
+/decl card 0
+/decl player
+/decl in pot curlist %(pot)players
+/head %(pot)curlist %player
+/decl in pot curplayer %player
+.say The game will now begin... table is closed.
+
+/label topcard
+	/compare %card lessthan 5
+	/if success	
+		/incr %card
+		/echo dealing to %(pot)players
+		/deck/dealto %(pot)players
+	/else
+		/decl in pot began true
+		/decl list %(pot)players
+		/label topname
+		/head %list %player
+		/if success
+			/execute /%player/showhand
+			/execute /%player/getresult hand
+			/compare %player is %self
+			/if success
+				/hand
+			/else
+				./P%who %player your hand is %(%player)hand
+			/endif
+			/goto topname
+		/endif
+		/return
+
+	/endif
+/goto topcard
+/endmac
+
+/decl reshowbet false
+
+/mac allbet
+/setresult false
+/decl list %(pot)players
+/decl player
+/label top
+/head %list %player
+/if fail
+	/return
+/endif
+/compare %(%player)curbet is %(pot)curbet
+/if success
+	/goto top
+/endif
+/endmac
+
+
+/mac showbet
+/label top
+/decl tocall %(pot)curbet
+/compare %tocall is 0
+/if success
+	/goto firstbet
+/endif
+/decr %tocall %(%(pot)curplayer)curbet
+/compare %tocall is 0
+/if success
+	/nextplayer
+	/goto top
+/endif
+/compare %(pot)curplayer is %self
+/if success
+/echo Bet to you is %tocall coins...
+/else
+./P%who %(pot)curplayer To call give %tocall coins.  To raise pay more.
+/endif
+/return
+/label firstbet
+/compare %(pot)curplayer is %self
+/if success
+/echo First bet is to YOU!
+/echo
+/else
+./P%who %(pot)curplayer First bet to you.... 
+/endif
+/endmac
+
+/mac endgame
+/dest %(pot)players
+/dest clock
+/dest pot
+/dest deck
+/endmac
+
+/mac poker your_name
+/decl self %your_name
+/make cards deck
+/dest pot
+/create pot
+/decl in pot players
+/decl in pot curlist 
+/decl in pot curplayer
+/decl in pot curbet 0
+/decl in pot began false
+/decl in pot total 0
+/trigger opt showhelp enable
+/trigger opt showbet enable
+/trigger opt showhand enable
+/trigger opt showpot enable
+
+.say who's up for some poker? give %ante gold ante.
+/create clock
+/wake clock
+/clock /decl gametime 3
+//decl started false
+//decl ticks 0
+//mac tick
+	//compare %%started is true
+	//if success
+		//return
+	//endif
+	//decl started true
+	//tell MOOSE .say the game will begin in %%gametime minutes.
+	//label top
+	//delay 10000
+	//compare %%(pot)began is false
+	//if success
+		//incr %%ticks
+		//compare %%ticks lessthan 6
+		//if success
+			//goto top
+		//endif
+		//decl ticks 0
+		//compare %%gametime morethan 1
+		//if success
+			//decr %%gametime 
+			//compare %%gametime is 1
+			//if success
+				//tell MOOSE .say game will begin in 1 minute.
+			//else
+				//tell MOOSE .say game will begin in %%gametime minutes.
+			//endif
+		//else
+			//tell MOOSE /begingame
+			//tell MOOSE /showbet
+		//endif
+	//else
+		//tell MOOSE /showbet
+	//endif
+	//goto top
+//endmac
+
+/endmac
+
+/mac endgame
+/dest %(pot)players
+/dest pot
+/dest clock
+/dest deck
+/endmac
+
+
+

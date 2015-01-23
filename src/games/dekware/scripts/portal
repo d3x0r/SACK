@@ -1,0 +1,66 @@
+
+/mac build_portal_room
+/create "Room of Portals"
+/"Room of Portals"/leave
+/enter "Room of Portals"
+
+/make_portal zombie "..." zombiemud.org:23 
+/make_portal fed2 "Federation 2 - rated #2 2007-11-07" fed2.ibgames.net:30003 
+/make_portal dsl "Dark and Shattered Lands #1 2007-11-07" dsl-mud.org:4000 
+/make_portal Fantasia "STS Classic TeleCom." 97.68.140.124
+
+
+/decl desc "Blackmud is a groovy mud with nifty things." 
+/make_portal blackmud %desc www.blackmud.com:2000
+
+
+/decl desc "Aetolia was rated most popular - needed at least one more portal..." 
+/make_portal Aetolia %desc 216.194.99.13
+
+/decl desc "public routing to cpnet" 
+/make_portal chem %desc cpnet01.rayline.net
+
+/decl desc "local routing to cpnet" 
+/make_portal chemx %desc cpnet01
+
+/decl desc "rayline hmm no telnet - please implement SSSH" 
+/make_portal rayline %desc rayline.net
+/dest build_portal_room
+/dest make_portal
+/endmac
+
+
+/mac make_portal which desc ...
+/"Room of Portals"/create %which
+/wake %which
+/desc %which %desc
+/tell %which/declare address %...
+
+//mac CloseTerm
+//echo returning you to portal room.
+//leave
+//endmac
+
+# on enter has basically two important parameters
+# but only works if the entity is alive itself...
+# %actor = entity which invoked this behavior ( caller of the macro... )
+# %me = entity performing this behavior...
+# the caller of this macro is the thing entering this.
+//on enter
+//tell %actor/mac doconnect
+//tell %actor/echo now connecting you to %%room\....
+//tell %actor/open mud tcp %address
+//tell %actor/if success
+//tell %actor/   parse telnet telnet
+//tell %actor/   parse ansi ansi In
+//tell %actor/else
+//tell %actor/   echo connection failed..
+//tell %actor/   leave
+//tell %actor/endif
+//tell %actor/dest doconnect
+//tell %actor/endmac
+//tell %actor/doconnect
+//endmac
+
+/endmac
+

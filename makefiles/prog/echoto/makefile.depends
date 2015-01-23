@@ -1,0 +1,14 @@
+
+
+ECHOTODEPENDS=$(SACK_BASE)/makefiles/prog/echoto/makefile.$(COMPILER) \
+	$(SACK_BASE)/makefiles/prog/echoto/echoto.c
+        
+$(SACK_BASE)/makefiles/$(RINTDEST)/echoto$(PROGEXT): $(ECHOTODEPENDS)
+	make -C $(SACK_BASE)/makefiles/prog/echoto -f makefile.$(COMPILER)  $(filter distclean,$(MAKECMDGOALS))
+	-cp $(SACK_BASE)/makefiles/prog/echoto/echoto$(PROGEXT) $@
+
+$(SACK_BASE)/makefiles/prog/echoto/%.c: ;
+$(SACK_BASE)/makefiles/prog/echoto/makefile.$(COMPILER): ;
+$(SACK_BASE)/makefiles/prog/echoto/makefile.depends: ;
+
+

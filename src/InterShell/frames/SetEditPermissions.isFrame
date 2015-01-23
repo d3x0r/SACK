@@ -1,0 +1,4 @@
+<control caption="C:\Develop\build\vs10\sack64m\debug_out\intershell\bin/../resources/frames/SetEditPermissions.isFrame" position="0,0" size="452,305" type="Frame">
+<control IDName="ListBox/InterShell/Button General/security/LISTBOX_SECURITY_MODULE" caption="(null)" position="19,23" size="180,205" type="ListBox"></control>
+<control IDName="Button/InterShell/Button General/security/EDIT_SECURITY" PrivateData="#ff354c59" caption="Edit Security" position="221,32" size="146,23" type="Button"></control>
+<control IDName="Button/core/BTN_OKAY" PrivateData="#ff354c59" caption="Done" position="301,207" size="73,21" type="Button"></control></control>

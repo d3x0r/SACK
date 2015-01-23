@@ -1,0 +1,53 @@
+/dest convert 
+/mac convert intime
+/decl time %intime
+/decl day
+/decl hour
+/decl minute
+
+/decl today %now
+/decl tmonth
+/decl tday
+/decl tyear
+/decl thour
+/decl tminute
+/decl tsecond 00
+/decl junk
+/decl return_time
+
+/head %time %day 2
+/head %time %hour 2
+/head %time %minute 2
+/head %today %tmonth 2
+/head %today %junk 1
+/head %today %tday 2
+/head %today %junk 1
+/head %today %tyear 4
+/head %today %junk 1
+/head %today %thour
+/head %today %junk 1
+/head %today %tminute
+
+/compare %tday is %day
+/if fail
+	/compare %tday lessthan %day
+   /if fail
+   	/compare %tday morethan %day
+      /if success
+      	/compare %day is 01
+         /if success
+         	/increment %tmonth
+            /compare %tmonth is 13
+            /if success
+            	/increment %tyear
+               /decl tmonth 01
+            /endif
+         /endif
+      /endif
+   /endif
+/endif
+
+/decl return_time %tmonth/%day/%tyear %hour:%minute:%tsecond
+/result %return_time
+
+/endmac
