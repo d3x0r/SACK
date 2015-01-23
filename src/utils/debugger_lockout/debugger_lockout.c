@@ -125,3 +125,9 @@ PRELOAD( SetupDebuggerLockout )
 	CheckDebugger();
 	AddTimer( 5000, TickDebugger, 0 );
 }
+
+#ifdef __WATCOMC__
+PUBLIC( void, ExportThis )( void )
+{
+}
+#endif

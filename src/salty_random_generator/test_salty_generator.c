@@ -70,6 +70,7 @@ int CalculateDistribution( struct random_context *ctx, int bits )
       for( m = 0; m < d->units; m++ )
 			lprintf( "%d,%d = %d ", n, m, d->follow_counters[n][m] );
 	}
+   return 0;
 }
 
 SaneWinMain( argc, argv )
