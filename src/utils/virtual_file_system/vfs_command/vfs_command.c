@@ -26,7 +26,7 @@ static void StoreFileAs( CTEXTSTR filename, CTEXTSTR asfile )
 	}
 }
 
-static void _StoreFile( PTRSZVAL psv,  CTEXTSTR filename, int flags )
+static void CPROC _StoreFile( PTRSZVAL psv,  CTEXTSTR filename, int flags )
 {
 	FILE *in = sack_fopenEx( 0, filename, "rb", sack_get_default_mount() );
 	if( in )
