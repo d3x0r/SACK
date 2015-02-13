@@ -102,18 +102,6 @@ static void LocalInit( void )
 	}
 }
 
-PRIORITY_PRELOAD( InitWinFileSysEarly, OSALOT_PRELOAD_PRIORITY - 1 )
-{
-	LocalInit();
-}
-
-#ifndef __NO_OPTIONS__
-PRELOAD( InitWinFileSys )
-{
-	l.flags.bLogOpenClose = SACK_GetProfileIntEx( WIDE( "SACK/filesys" ), WIDE( "Log open and close" ), l.flags.bLogOpenClose, TRUE );
-}
-#endif
-
 static void InitGroups( void )
 {
 	struct Group *group;
@@ -995,7 +983,7 @@ FILE * sack_fopenEx( INDEX group, CTEXTSTR filename, CTEXTSTR opts, struct file_
 		file->files = NULL;
 		file->name = StrDup( filename );
 		file->fsi = fsi?fsi->fsi:NULL;
-		if( !fsi && !IsAbsolutePath( filename ) )
+		if( !file->fsi && !IsAbsolutePath( filename ) )
 		{
 			tmpname = ExpandPath( filename );
 			file->fullname = PrependBasePath( group, filegroup, tmpname );
@@ -1172,7 +1160,7 @@ FILE*  sack_fsopenEx( INDEX group
 				}
 				mount = mount->next;
 			}
-			file->fsi = mount?mount->fsi:NULL;
+			//file->fsi = mount?mount->fsi:NULL;
 	}
 	if( !handle )
 	{
@@ -1577,15 +1565,43 @@ static struct file_system_interface native_fsi = {
 		, 
 };
 
+PRIORITY_PRELOAD( InitWinFileSysEarly, OSALOT_PRELOAD_PRIORITY - 1 )
+{
+	LocalInit();
+	sack_register_filesystem_interface( "native", &native_fsi );
+	l.default_mount = sack_mount_filesystem( "native", NULL, 1000, (PTRSZVAL)NULL, TRUE );
+}
+
+#ifndef __NO_OPTIONS__
+PRELOAD( InitWinFileSys )
+{
+	l.flags.bLogOpenClose = SACK_GetProfileIntEx( WIDE( "SACK/filesys" ), WIDE( "Log open and close" ), l.flags.bLogOpenClose, TRUE );
+}
+#endif
+
+
+
 static void * CPROC sack_filesys_open( PTRSZVAL psv, const char *filename ) { return sack_fopenEx( 0, filename, "wb+", l.default_mount ); }
 static int CPROC sack_filesys_exists( PTRSZVAL psv, const char *filename ) { return sack_existsEx( filename, l.default_mount ); }
 
 struct file_system_mounted_interface *sack_get_default_mount( void ) { return l.default_mount; }
 
-struct file_system_mounted_interface *sack_mount_filesystem( struct file_system_interface *fsi, int priority, PTRSZVAL psvInstance, LOGICAL writable )
+struct file_system_mounted_interface *sack_get_mounted_filesystem( char *name )
+{
+	struct file_system_mounted_interface *root = l.mounted_file_systems;
+	while( root )
+	{
+		if( StrCaseCmp( root->name, name ) == 0 ) break;
+		root = NextThing( root );
+	}
+	return root;
+}
+
+struct file_system_mounted_interface *sack_mount_filesystem( char *name, struct file_system_interface *fsi, int priority, PTRSZVAL psvInstance, LOGICAL writable )
 {
 	struct file_system_mounted_interface *root = l.mounted_file_systems;
 	struct file_system_mounted_interface *mount = New( struct file_system_mounted_interface );
+	mount->name = SaveText( name );
 	mount->priority = priority;
 	mount->psvInstance = psvInstance;
 	mount->writeable = writable;
@@ -1609,12 +1625,6 @@ struct file_system_mounted_interface *sack_mount_filesystem( struct file_system_
 		root = NextThing( root );
 	}
 	return mount;
-}
-
-PRIORITY_PRELOAD( RegisterDefaultFileSystem, OSALOT_PRELOAD_PRIORITY - 1 )
-{
-	sack_register_filesystem_interface( "native", &native_fsi );
-	l.default_mount = sack_mount_filesystem( NULL, 1000, (PTRSZVAL)NULL, TRUE );
 }
 
 int sack_vfprintf( FILE *file_handle, const char *format, va_list args )

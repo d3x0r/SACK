@@ -179,7 +179,7 @@ SaneWinMain( argc, argv )
 				printf( "Failed to load vfs: %s", argv[arg+1] );
 				return 2;
 			}
-			l.current_mount = sack_mount_filesystem( l.fsi, 10, (PTRSZVAL)l.current_vol, 1 );
+			l.current_mount = sack_mount_filesystem( "vfs", l.fsi, 10, (PTRSZVAL)l.current_vol, 1 );
 			arg += 2;
 		}
 		else if( StrCaseCmp( argv[arg], "vfs" ) == 0 )
@@ -192,7 +192,7 @@ SaneWinMain( argc, argv )
 				printf( "Failed to load vfs: %s", argv[arg+1] );
 				return 2;
 			}
-			l.current_mount = sack_mount_filesystem( l.fsi, 10, (PTRSZVAL)l.current_vol, 1 );
+			l.current_mount = sack_mount_filesystem( "vfs", l.fsi, 10, (PTRSZVAL)l.current_vol, 1 );
 			arg++;
 		}
 		else if( StrCaseCmp( argv[arg], "rm" ) == 0

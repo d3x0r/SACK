@@ -18,7 +18,7 @@
 #endif
 
 SQL_NAMESPACE
-static void InitVFS( CTEXTSTR name, struct file_system_interface *fsi );
+static void InitVFS( CTEXTSTR name, struct file_system_mounted_interface *fsi );
 
 struct sqlite_interface my_sqlite_interface = {
 	sqlite3_result_text
@@ -499,7 +499,7 @@ static int xFullPathname(
 	return SQLITE_OK;
 }
 
-void InitVFS( CTEXTSTR name, struct file_system_interface *fsi )
+void InitVFS( CTEXTSTR name, struct file_system_mounted_interface *mount )
 {
 	struct my_sqlite3_vfs *vfs;
 	INDEX idx;
@@ -527,7 +527,7 @@ void InitVFS( CTEXTSTR name, struct file_system_interface *fsi )
 		new_vfs->vfs.xDelete = xDelete;
 		new_vfs->vfs.xAccess = xAccess;
 		new_vfs->vfs.xFullPathname = xFullPathname;
-		new_vfs->mount = sack_mount_filesystem( fsi, 1500, 0, TRUE );
+		new_vfs->mount = mount;
 		if( sqlite3_vfs_register( &new_vfs->vfs, 0 ) )
 		{
 

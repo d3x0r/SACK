@@ -1197,9 +1197,9 @@ int OpenSQLConnectionEx( PODBC odbc DBG_PASS )
 					{
 #ifdef USE_SQLITE_INTERFACE
 #ifdef UNICODE
-						sqlite_iface->InitVFS( DupCStr( vfs_name ), sack_get_filesystem_interface( tmpvfsvfs ) );
+						sqlite_iface->InitVFS( DupCStr( vfs_name ), sack_get_mounted_filesystem( tmpvfsvfs ) );
 #else
-						sqlite_iface->InitVFS( vfs_name, sack_get_filesystem_interface( tmpvfsvfs ) );
+						sqlite_iface->InitVFS( vfs_name, sack_get_mounted_filesystem( tmpvfsvfs ) );
 #endif
 #endif
 					}
