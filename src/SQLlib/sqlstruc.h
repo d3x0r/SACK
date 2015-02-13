@@ -274,7 +274,7 @@ struct sqlite_interface
 	int (FIXREF2*sqlite3_config)(int,...);
 	int (FIXREF2*sqlite3_db_config)(sqlite3*, int op, ...);
 	// allow full definition of a VFS including the FS interface
-	void (*InitVFS)( CTEXTSTR name, struct file_system_interface *fsi );
+	void (*InitVFS)( CTEXTSTR name, struct file_system_mounted_interface *fsi );
 };
 
 #ifdef USE_SQLITE_INTERFACE

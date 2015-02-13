@@ -2,6 +2,7 @@
 struct file_system_mounted_interface 
 {
 	DeclareLink( struct file_system_mounted_interface );
+	const char *name;
 	int priority;
 	PTRSZVAL psvInstance;
 	struct file_system_interface *fsi;

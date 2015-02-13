@@ -44,7 +44,7 @@ SaneWinMain( argc, argv )
 	SetSystemLog( SYSLOG_FILE, stdout );
 	{
 		fsi = sack_get_filesystem_interface( SACK_VFS_FILESYSTEM_NAME );
-		sack_mount_filesystem( fsi, 800, (PTRSZVAL)volume, 1 );
+		sack_mount_filesystem( "test", fsi, 800, (PTRSZVAL)volume, 1 );
 		if( fsi )
 		{
 			//sack_vfs_load_crypt_volume( ExpandPath( "*/sack.vault" ), "alkj109ad908a0a8asdf908na90na80a98d098ahkljwerklja", "0000000-0000-0000-000000-000000" );

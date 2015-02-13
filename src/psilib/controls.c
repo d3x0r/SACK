@@ -571,6 +571,32 @@ void TryLoadingFrameImage( void )
 		if( g.BorderImage )
 		{
 			int MiddleSegmentWidth, MiddleSegmentHeight;
+
+#ifndef __NO_OPTIONS__
+			if( g.BorderImage->width & 1 )
+				g.BorderWidth = g.BorderImage->width / 2;
+			else
+				g.BorderWidth = (g.BorderImage->width-1) / 2;
+			if( g.BorderImage->height )
+				g.BorderHeight = g.BorderImage->height / 2;
+			else
+				g.BorderHeight = (g.BorderImage->height-1) / 2;
+
+			g.BorderWidth = SACK_GetProfileIntEx( GetProgramName()
+					, WIDE( "SACK/PSI/Frame border/Width" )
+					, g.BorderWidth, TRUE );
+			g.BorderHeight = SACK_GetProfileIntEx( GetProgramName()
+					, WIDE( "SACK/PSI/Frame border/Height" )
+					, g.BorderHeight, TRUE );
+
+			// overcompensate if the settings cause an underflow
+			if( g.BorderWidth > g.BorderImage->width )
+				g.BorderWidth = g.BorderImage->width / 4;
+			if( g.BorderHeight > g.BorderImage->height )
+				g.BorderHeight= g.BorderImage->height / 4;
+			MiddleSegmentWidth = g.BorderImage->width - (g.BorderWidth*2);
+			MiddleSegmentHeight = g.BorderImage->height - (g.BorderHeight*2);
+#else
 			if( g.BorderImage->width & 1 )
 				g.BorderWidth = g.BorderImage->width / 2;
 			else
@@ -581,6 +607,7 @@ void TryLoadingFrameImage( void )
 				g.BorderHeight = (g.BorderImage->height-1) / 2;
 			MiddleSegmentWidth = g.BorderImage->width - (g.BorderWidth*2);
 			MiddleSegmentHeight = g.BorderImage->height - (g.BorderHeight*2);
+#endif
 			g.BorderSegment[SEGMENT_TOP_LEFT] = MakeSubImage( g.BorderImage, 0, 0, g.BorderWidth, g.BorderHeight );
 			g.BorderSegment[SEGMENT_TOP] = MakeSubImage( g.BorderImage, g.BorderWidth, 0
 																	 , MiddleSegmentWidth, g.BorderHeight );
