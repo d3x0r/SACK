@@ -439,7 +439,7 @@ PRIORITY_PRELOAD( InitDeadstartOptions, NAMESPACE_PRELOAD_PRIORITY+1 )
 {
 #ifdef DISABLE_DEBUG_REGISTER_AND_DISPATCH
 #  ifndef __NO_OPTIONS
-	l.flags.bLog = 1|| SACK_GetProfileIntEx( WIDE( "SACK/Deadstart" ), WIDE( "Logging Enabled?" ), 0, TRUE );
+	l.flags.bLog = SACK_GetProfileIntEx( WIDE( "SACK/Deadstart" ), WIDE( "Logging Enabled?" ), 0, TRUE );
 #  else
 	l.flags.bLog = 0;
 #  endif
