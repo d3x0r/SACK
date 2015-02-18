@@ -1,0 +1,60 @@
+Libpng 1.6.17beta03 - February 17, 2015
+
+This is not intended to be a public release.  It will be replaced
+within a few weeks by a public version or by another test version.
+
+Files available for download:
+
+Source files with LF line endings (for Unix/Linux) and with a
+"configure" script
+
+   1.6.17beta03.tar.xz (LZMA-compressed, recommended)
+   1.6.17beta03.tar.gz
+
+Source files with CRLF line endings (for Windows), without the
+"configure" script
+
+   lp1617b03.7z  (LZMA-compressed, recommended)
+   lp1617b03.zip
+
+Other information:
+
+   1.6.17beta03-README.txt
+   1.6.17beta03-LICENSE.txt
+   libpng-1.6.17beta03-*.asc (armored detached GPG signatures)
+
+Changes since the last public release (1.6.16):
+
+Version 1.6.17beta01 [January 29, 2015]
+  Removed duplicate PNG_SAFE_LIMITS_SUPPORTED handling from pngconf.h
+  Corrected the width limit calculation in png_check_IHDR().
+  Removed user limits from pngfix. Also pass NULL pointers to
+    png_read_row to skip the unnecessary row de-interlace stuff.
+  Added testing of png_set_packing() to pngvalid.c
+  Regenerated configure scripts in the *.tar distributions with libtool-2.4.4
+  Implement previously untested cases of libpng transforms in pngvalid.c
+  Fixed byte order in 2-byte filler, in png_do_read_filler().
+  Made the check for out-of-range values in png_set_tRNS() detect
+    values that are exactly 2^bit_depth, and work on 16-bit platforms.
+  Merged some parts of libpng-1.6.17beta01 and libpng-1.7.0beta47.
+  Added #ifndef __COVERITY__ where needed in png.c, pngrutil.c and
+    pngset.c to avoid warnings about dead code.
+
+Version 1.6.17beta02 [February 7, 2015]
+  Work around one more Coverity-scan dead-code warning.
+  Do not build png_product2() when it is unused.
+
+Version 1.6.17beta03 [February 17, 2015]
+  Display user limits in the output from pngtest.
+  Eliminated the PNG_SAFE_LIMITS macro and restored the 1-million-column
+    and 1-million-row default limits in pnglibconf.dfa, that can be reset
+    by the user at build time or run time.  This provides a more robust
+    defense against DOS and as-yet undiscovered overflows.
+
+Send comments/corrections/commendations to png-mng-implement at lists.sf.net
+(subscription required; visit
+https://lists.sourceforge.net/lists/listinfo/png-mng-implement
+to subscribe)
+or to glennrp at users.sourceforge.net
+
+Glenn R-P

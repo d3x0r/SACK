@@ -69,6 +69,8 @@ typedef struct global_tag
 	S_32 BorderHeight;
 	Image BorderImage;
 	Image BorderSegment[9]; // really 8, but symetry is kept
+	Image FrameCaptionImage;
+	Image FrameCaptionFocusedImage;
 	Image StopButton;
 	Image StopButtonPressed;
 	PLIST shown_frames;

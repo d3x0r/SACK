@@ -34,6 +34,7 @@ typedef struct button {
 	S_32 topy; // top of the caption...
 	_32 _b; // prior button states...
 	Image pImage;
+	Image pImage_pressed;
 	CTEXTSTR DrawMethodName;
 	void (CPROC*DrawMethod)( PTRSZVAL, PSI_CONTROL );
 	PTRSZVAL DrawData;
@@ -159,23 +160,52 @@ static int CPROC ButtonDraw( PSI_CONTROL pc )
 		//ClearImageTo( pc->Surface, pb->color );
 
 		//lprintf( WIDE("drawing an image %p"), pb->pImage );
-		if( pb->pImage )
+		if( pb->buttonflags.pressed )
 		{
-			if( pc->flags.bDisable )
-				BlotScaledImageMultiShadedAlpha( pc->Surface, pb->pImage
-							  , ALPHA_TRANSPARENT
-							  , Color( 62, 62, 62 )
-							  , Color( 67,67,67 )
-							  , Color( 60, 60, 60 ) );
-			else
-				BlotScaledImageAlpha( pc->Surface, pb->pImage, ALPHA_TRANSPARENT );
-			if( pc->flags.bFocused )
+			if( pb->pImage )
 			{
-				_32 width, height;
-				GetImageSize( pb->pImage, &width, &height );
-				do_line( pc->Surface, 2, height - 2
-						 , width - 2, height - 2
-						 , basecolor(pc)[SHADE] );
+				if( pc->flags.bDisable )
+					BlotScaledImageMultiShadedAlpha( pc->Surface, pb->pImage
+								  , ALPHA_TRANSPARENT
+								  , Color( 62, 62, 62 )
+								  , Color( 67,67,67 )
+								  , Color( 60, 60, 60 ) );
+				else
+					BlotScaledImageAlpha( pc->Surface, pb->pImage, ALPHA_TRANSPARENT );
+				if( pc->flags.bFocused )
+				{
+					_32 width, height;
+					GetImageSize( pb->pImage, &width, &height );
+					do_line( pc->Surface, 2, height - 2
+							 , width - 2, height - 2
+							 , basecolor(pc)[SHADE] );
+				}
+			}
+		}
+		else
+		{
+			Image out = pb->pImage_pressed;
+			if( !out )
+				out = pb->pImage;
+
+			if( out )
+			{
+				if( pc->flags.bDisable )
+					BlotScaledImageMultiShadedAlpha( pc->Surface, out
+								  , ALPHA_TRANSPARENT
+								  , Color( 62, 62, 62 )
+								  , Color( 67,67,67 )
+								  , Color( 60, 60, 60 ) );
+				else
+					BlotScaledImageAlpha( pc->Surface, out, ALPHA_TRANSPARENT );
+				if( pc->flags.bFocused )
+				{
+					_32 width, height;
+					GetImageSize( pb->pImage, &width, &height );
+					do_line( pc->Surface, 2, height - 2
+							 , width - 2, height - 2
+							 , basecolor(pc)[SHADE] );
+				}
 			}
 		}
 		if( pc->caption.text )
@@ -637,6 +667,16 @@ PSI_PROC( PSI_CONTROL, SetButtonImage )( PSI_CONTROL pc, Image pImage )
 	return pc;
 }
 
+PSI_PROC( PSI_CONTROL, SetButtonImages )( PSI_CONTROL pc, Image pImage, Image pImage_pressed )
+{
+	ValidatedControlData( PBUTTON, IMAGE_BUTTON, pb, pc );
+	if( pb )
+	{
+		pb->pImage = pImage;
+		pb->pImage_pressed = pImage_pressed;
+	}
+	return pc;
+}
 //---------------------------------------------------------------------------
 
 void PressButton( PSI_CONTROL pc, int bPressed )
