@@ -559,6 +559,28 @@ void TryLoadingFrameImage( void )
 #endif
 		g.StopButtonPressed = LoadImageFileFromGroup( GetFileGroup( WIDE( "Images" ), WIDE( "./images" ) ), buffer );
 	}
+ 	if( !g.FrameCaptionImage )
+	{
+		TEXTCHAR buffer[256];
+#ifndef __NO_OPTIONS__
+		SACK_GetProfileStringEx( GetProgramName(), WIDE( "SACK/PSI/Frame caption background" ), WIDE(""), buffer, sizeof( buffer ), TRUE );
+#else
+		StrCpy( buffer, WIDE("") );
+#endif
+		if( buffer[0] )
+			g.FrameCaptionImage = LoadImageFileFromGroup( GetFileGroup( WIDE( "Images" ), WIDE( "./images" ) ), buffer );
+	}
+	if( !g.FrameCaptionFocusedImage )
+	{
+		TEXTCHAR buffer[256];
+#ifndef __NO_OPTIONS__
+		SACK_GetProfileStringEx( GetProgramName(), WIDE( "SACK/PSI/Frame caption focused background" ), WIDE(""), buffer, sizeof( buffer ), TRUE );
+#else
+		StrCpy( buffer, WIDE("") );
+#endif
+		if( buffer[0] )
+			g.FrameCaptionFocusedImage = LoadImageFileFromGroup( GetFileGroup( WIDE( "Images" ), WIDE( "./images" ) ), buffer );
+	}
  	if( !g.BorderImage )
 	{
 		TEXTCHAR buffer[256];

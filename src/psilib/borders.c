@@ -584,6 +584,7 @@ void DrawFrameCaption( PSI_CONTROL pc )
 		_32 width, height;
 		_32 xofs = ( ( FrameBorderXOfs(pc, pc->BorderType) ) );
 		_32 yofs = ( ( FrameCaptionYOfs(pc, pc->BorderType ) ) );
+		Image out = NULL;
 		h = CaptionHeight( pc, pc?GetText(pc->caption.text):NULL ) - 1;
 		if( h <= 0 ) // no caption to render...
 		{
@@ -598,12 +599,43 @@ void DrawFrameCaption( PSI_CONTROL pc )
 
 		if( pc->flags.bFocused )
 		{
-			//lprintf( WIDE("Draw focused caption on pcWindow") );
-			BlatColor( pc->Window
-						, xofs+1, yofs+1
-						, width - 2*(xofs+1)
-						, h
-						, basecolor(pc)[CAPTION] );
+			if( g.FrameCaptionFocusedImage || g.FrameCaptionImage )
+			{
+				out = g.FrameCaptionFocusedImage;
+				if( !out )
+					out = g.FrameCaptionImage;
+				{
+					S_32 outx = 0;
+					S_32 outy = 0;
+					_32 outw = width - 2 *xofs;
+					_32 outh = h+2;
+					_32 routw = width - 2 *xofs;
+					_32 routh = h+2;
+					w = width - (xofs + 2);
+					if( (h+2) < out->height )
+						outh = h+2;
+					else
+						routh = out->height;
+					if ( outw < out->width )
+					{
+						outx = out->width/2 - (outw)/2;
+					}
+					else
+					{
+						outw = out->width;						
+					}
+					BlotScaledImageSizedEx( pc->Window, out, xofs, yofs, routw, routh, outx, outy, outw, outh, ALPHA_TRANSPARENT, BLOT_COPY );
+				}
+			}
+			else
+			{
+				//lprintf( WIDE("Draw focused caption on pcWindow") );
+				BlatColor( pc->Window
+							, xofs+1, yofs+1
+							, width - 2*(xofs+1)
+							, h
+							, basecolor(pc)[CAPTION] );
+			}
 			PutStringFont( pc->Window
 							 , TEXT_INSET + xofs+2, (TEXT_INSET-2)+yofs+2 // Bad choice - but... works for now...
 							 , basecolor(pc)[SHADOW], 0
@@ -622,28 +654,60 @@ void DrawFrameCaption( PSI_CONTROL pc )
 			//                  , basecolor(pc)[CAPTIONTEXTCOLOR], 0
 			//                  , GetText( pc->caption.text ) );
 			//h += yofs;
-			w = width - (xofs+1);
-			do_hline( pc->Window
-					  , yofs, xofs, w
-					  , basecolor(pc)[SHADE] );
-			do_vline( pc->Window
-					  , xofs, yofs, yofs+h
-					  , basecolor(pc)[SHADE] );
-			do_hline( pc->Window
-					  , yofs+h, xofs, w
-					  , basecolor(pc)[HIGHLIGHT] );
-			do_vline( pc->Window
-					  , w, yofs, yofs+h
-					  , basecolor(pc)[HIGHLIGHT] );
+			if( !out )
+			{
+				w = width - (yofs+1);
+				do_hline( pc->Window
+						  , yofs, xofs, w
+						  , basecolor(pc)[SHADE] );
+				do_vline( pc->Window
+						  , xofs, yofs, yofs+h
+						  , basecolor(pc)[SHADE] );
+				do_hline( pc->Window
+						  , yofs+h, xofs, w
+						  , basecolor(pc)[HIGHLIGHT] );
+				do_vline( pc->Window
+						  , w, yofs, yofs+h
+						  , basecolor(pc)[HIGHLIGHT] );
+			}
 		}
 		else
 		{
 			//lprintf( WIDE("Draw unfocused caption on pcWindow") );
-			BlatColor( pc->Window
-						, xofs+1, yofs+1
-						, width - 2*(xofs+1)
-						, h
-						, basecolor(pc)[INACTIVECAPTION] );
+			if( g.FrameCaptionFocusedImage || g.FrameCaptionImage )
+			{
+				out = g.FrameCaptionFocusedImage;
+				if( !out )
+					out = g.FrameCaptionImage;
+				{
+					S_32 outx = 0;
+					S_32 outy = 0;
+					_32 outw = width - 2 *xofs;
+					_32 outh = h+2;
+					_32 routw = width - 2 *xofs;
+					_32 routh = h+2;
+					w = width - (xofs + 2);
+					if( (h+2) < out->height )
+						outh = h+2;
+					else
+						routh = out->height;
+					if ( outw < out->width )
+					{
+						outx = out->width/2 - (outw)/2;
+					}
+					else
+					{
+						outw = out->width;						
+					}
+					BlotScaledImageSizedEx( pc->Window, out, xofs, yofs, routw, routh, outx, outy, outw, outh, ALPHA_TRANSPARENT, BLOT_COPY );
+				}
+			}
+			else
+				BlatColor( pc->Window
+							, xofs+1, yofs+1
+							, width - 2*(xofs+1)
+							, h
+							, basecolor(pc)[INACTIVECAPTION] );
 			PutStringFont( pc->Window
 							 , TEXT_INSET + xofs+1, (TEXT_INSET-2)+yofs+1 // Bad choice - but... works for now...
 							 , basecolor(pc)[SHADOW], 0
@@ -661,19 +725,22 @@ void DrawFrameCaption( PSI_CONTROL pc )
 			//                  , basecolor(pc)[INACTIVECAPTIONTEXTCOLOR], 0
 			//                  , GetText( pc->caption.text ) );
 			//h += yofs;
-			w = width - (xofs+1);
-			do_hline( pc->Window
-					  , yofs, xofs, w
-					  , basecolor(pc)[HIGHLIGHT] );
-			do_vline( pc->Window
-					  , xofs, yofs, yofs+h
-					  , basecolor(pc)[HIGHLIGHT] );
-			do_hline( pc->Window
-					  , yofs+h, xofs, w
-					  , basecolor(pc)[SHADE] );
-			do_vline( pc->Window
-					  , w, yofs, yofs+h
-					  , basecolor(pc)[SHADE] );
+			if( !out )
+			{
+				w = width - (yofs+1);
+				do_hline( pc->Window
+						  , yofs, xofs, w
+						  , basecolor(pc)[HIGHLIGHT] );
+				do_vline( pc->Window
+						  , xofs, yofs, yofs+h
+						  , basecolor(pc)[HIGHLIGHT] );
+				do_hline( pc->Window
+						  , yofs+h, xofs, w
+						  , basecolor(pc)[SHADE] );
+				do_vline( pc->Window
+						  , w, yofs, yofs+h
+						  , basecolor(pc)[SHADE] );
+			}
 		}
 
 		button_left = w - (h + 3);
