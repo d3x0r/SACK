@@ -460,7 +460,7 @@ struct volume *sack_vfs_load_crypt_volume( const char * filepath, const char * u
 	}
 	vol->files = NULL;
 	ExpandVolume( vol );
-	if( !ValidateBAT( vol ) ) return NULL;
+	if( !ValidateBAT( vol ) ) { Release( vol->disk ); return NULL; }
 	if( !l.default_volume )  l.default_volume = vol;
 	return vol;
 }

@@ -212,7 +212,7 @@ POINTER LoadLibraryFromMemory( CTEXTSTR name, POINTER block, size_t block_len, i
 						dll_name = (const char*) Seek( real_import_base, real_import_base[n].Name - dir[IMAGE_DIRECTORY_ENTRY_IMPORT].VirtualAddress/*source_import_section->VirtualAddress*/ );
 					//char * function_name = (char*) Seek( import_base, import_base[n]. - source_import_section->VirtualAddress );
 					//printf( "thing %s\n", dll_name );
-#if __WATCOMC__ < 1200
+#if __WATCOMC__ && __WATCOMC__ < 1200
 					dwFunc = (PTRSZVAL*)Seek( real_import_base, real_import_base[n].OrdinalFirstThunk - dir[IMAGE_DIRECTORY_ENTRY_IMPORT].VirtualAddress );
 #else
 					dwFunc = (PTRSZVAL*)Seek( real_import_base, real_import_base[n].OriginalFirstThunk - dir[IMAGE_DIRECTORY_ENTRY_IMPORT].VirtualAddress );
@@ -310,6 +310,10 @@ POINTER LoadLibraryFromMemory( CTEXTSTR name, POINTER block, size_t block_len, i
 						DWORD dwInit;
 						PLIST prior_list;
 						POINTER *tls_list;
+#ifdef __WATCOMC__
+                  extern void **fn1( void );
+#pragma aux fn1 = "mov eax, fs:[2ch]";
+#endif
 						size_t size_init = ( tls->EndAddressOfRawData - tls->StartAddressOfRawData );
 						size_t size = size_init + tls->SizeOfZeroFill;
 						/*
@@ -320,19 +324,31 @@ POINTER LoadLibraryFromMemory( CTEXTSTR name, POINTER block, size_t block_len, i
 									, tls->AddressOfIndex );
 							*/
 						data = NewArray( _8, size );
+#ifdef __WATCOMC__
+                  tls_list = fn1();
+#elif defined( _MSC_VER )
 						{
 							_asm mov ecx, fs:[2ch];
 							_asm mov tls_list, ecx;
 						}
+#else
+#error need assembly to get this...
+#endif
 						dwInit = 0;
 						while( (*tls_list) ) { tls_list++; dwInit++; }
 						(*tls_list) = data;
 						DebugBreak();
 						LoadLibrary( "avutil-54.dll" );
+#ifdef __WATCOMC__
+                  tls_list = fn1();
+#elif defined( _MSC_VER )
 						{
 							_asm mov ecx, fs:[2ch];
 							_asm mov tls_list, ecx;
 						}
+#else
+#error need assembly to get this...
+#endif
 						(*((DWORD*)tls->AddressOfIndex)) = dwInit;
 						//printf( "%p is %d\n", tls->AddressOfIndex, dwInit );
 						//data = LocalAlloc( 0, size );

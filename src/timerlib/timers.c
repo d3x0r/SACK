@@ -257,8 +257,8 @@ PRELOAD( ConfigureTimers )
 {
 #ifndef __NO_OPTIONS__
 	g.flags.bLogCriticalSections = SACK_GetProfileInt( GetProgramName(), WIDE( "SACK/Memory Library/Log critical sections" ), 0 );
-	g.flags.bLogThreadCreate = 1||SACK_GetProfileInt( GetProgramName(), WIDE( "SACK/Timers/Log Thread Create" ), 0 );
-	g.flags.bLogSleeps = 1||SACK_GetProfileInt( GetProgramName(), WIDE( "SACK/Timers/Log Sleeps" ), 0 );
+	g.flags.bLogThreadCreate = SACK_GetProfileInt( GetProgramName(), WIDE( "SACK/Timers/Log Thread Create" ), 0 );
+	g.flags.bLogSleeps = SACK_GetProfileInt( GetProgramName(), WIDE( "SACK/Timers/Log Sleeps" ), 0 );
 	g.flags.bLogTimerDispatch = SACK_GetProfileInt( GetProgramName(), WIDE( "SACK/Timers/Log Timer Dispatch" ), 0 );
 #endif
 }
@@ -640,12 +640,12 @@ void  WakeThreadEx( PTHREAD thread DBG_PASS )
 			lprintf( WIDE("Event opened is: %s"), name );
 #endif
 		}
+#ifdef LOG_CREATE_EVENT_OBJECT
 		else
 		{
-#ifdef LOG_CREATE_EVENT_OBJECT
-			lprintf( WIDE("Event opened is thread."), name );
-#endif
+			lprintf( WIDE("Event opened is thread.") );
 		}
+#endif
 		if( !thread_event )
 		{
 			thread_event = New( THREAD_EVENT );
@@ -775,8 +775,8 @@ static void  InternalWakeableNamedSleepEx( CTEXTSTR name, _32 n, LOGICAL threade
 	{
 #ifdef HAS_TLS
 		pThread = MyThreadInfo.pThread;
-		lprintf( "thread will be %p %p", pThread, &MyThreadInfo );
-		lprintf( "pthread is %p", pThread );
+		//lprintf( "thread will be %p %p", pThread, &MyThreadInfo );
+		//lprintf( "pthread is %p", pThread );
 		if( !pThread )
 		{
 			lprintf( "had to init thread..." );

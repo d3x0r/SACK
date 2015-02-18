@@ -998,7 +998,10 @@ int CPROC FirstFrameMouse( PPHYSICAL_DEVICE pf, S_32 x, S_32 y, _32 b, int bCall
 				{
 					if ( y < ( pc->surface_rect.y - caption_height ) )
 					{  // very top edge
-						 if( x < pc->surface_rect.x + 10 ) // left side edge
+						int do_drag = 0;
+						if( g.BorderHeight > 10 )
+							do_drag = 1;
+						 if( x < pc->surface_rect.x + g.BorderWidth ) // left side edge
 						 {
 #ifdef DETAILED_MOUSE_DEBUG
 							 if( g.flags.bLogDetailedMouse )
@@ -1008,10 +1011,10 @@ int CPROC FirstFrameMouse( PPHYSICAL_DEVICE pf, S_32 x, S_32 y, _32 b, int bCall
 								pf->flags.bSizing_left = 1;
 								pf->flags.bSizing = TRUE;
 								result = 1;
-						 }
-						 else if( (S_64)x > ( ( pc->surface_rect.x 
-												+ pc->surface_rect.width ) - 10 ) ) // right side edge
-						 {
+						}
+						else if( (S_64)x > ( ( pc->surface_rect.x 
+												+ pc->surface_rect.width ) - g.BorderWidth ) ) // right side edge
+						{
 #ifdef DETAILED_MOUSE_DEBUG
 							 if( g.flags.bLogDetailedMouse )
 								 Log( WIDE("Setting size frame on top/right edge") );
@@ -1020,17 +1023,26 @@ int CPROC FirstFrameMouse( PPHYSICAL_DEVICE pf, S_32 x, S_32 y, _32 b, int bCall
 								pf->flags.bSizing_right = 1;
 								pf->flags.bSizing = TRUE;
 								result = 1;
-						 }
-						 else // center top edge
-						 {
+						}
+						else // center top edge
+						{
 #ifdef DETAILED_MOUSE_DEBUG
 							 if( g.flags.bLogDetailedMouse )
 								 Log( WIDE("Setting size frame on top edge") );
 #endif
-							 pf->flags.bSizing_top = 1;
-							 pf->flags.bSizing = TRUE;
-								result = 1;
-						 }
+							if( do_drag )
+							{
+								pf->flags.bDragging = 1;
+								pf->drag_x = x;
+								pf->drag_y = y;
+							}
+							else
+							{
+								pf->flags.bSizing_top = 1;
+								pf->flags.bSizing = TRUE;
+							}
+							result = 1;
+						}
 					}
 					else
 					{  // top within caption band
@@ -1100,9 +1112,12 @@ int CPROC FirstFrameMouse( PPHYSICAL_DEVICE pf, S_32 x, S_32 y, _32 b, int bCall
 					}
 				}
 				else if( (S_64)y >= ( ( pc->surface_rect.y 
-									 + pc->surface_rect.height ) - 10 ) ) // bottom side...
+									 + pc->surface_rect.height ) - g.BorderHeight ) ) // bottom side...
 				{  // very bottom band
-					if( x < ( pc->surface_rect.x + 10 ) ) // left side edge
+					int do_drag = 0;
+					if( g.BorderHeight > 10 )
+						do_drag = 1;
+					if( x < ( pc->surface_rect.x + g.BorderHeight ) ) // left side edge
 					{
 #ifdef DETAILED_MOUSE_DEBUG
 						if( g.flags.bLogDetailedMouse )
@@ -1114,7 +1129,7 @@ int CPROC FirstFrameMouse( PPHYSICAL_DEVICE pf, S_32 x, S_32 y, _32 b, int bCall
 						 result = 1;
 					}
 					else if( (S_64)x > ( ( pc->surface_rect.x 
-										 + pc->surface_rect.width ) - 10 ) )
+										 + pc->surface_rect.width ) - g.BorderHeight ) )
 					{
 #ifdef DETAILED_MOUSE_DEBUG
 						if( g.flags.bLogDetailedMouse )
@@ -1131,23 +1146,53 @@ int CPROC FirstFrameMouse( PPHYSICAL_DEVICE pf, S_32 x, S_32 y, _32 b, int bCall
 						if( g.flags.bLogDetailedMouse )
 							Log( WIDE("Setting size frame on bottom edge") );
 #endif
-						 pf->flags.bSizing_bottom = 1;
-						 pf->flags.bSizing = TRUE;
-						 result = 1;
+						if( do_drag )
+						{
+							pf->flags.bDragging = 1;
+							pf->drag_x = x;
+							pf->drag_y = y;
+						}
+						else
+						{
+							if( do_drag )
+							{
+								pf->flags.bDragging = 1;
+								pf->drag_x = x;
+								pf->drag_y = y;
+							}
+							else
+							{
+								pf->flags.bSizing_bottom = 1;
+								pf->flags.bSizing = TRUE;
+							}
+						}
+						result = 1;
 					}
 
 				}
 				else // between top and bottom border/caption
 				{
+					int do_drag = 0;
+					if( g.BorderHeight > 10 )
+						do_drag = 1;
 					if( x < pc->surface_rect.x ) // left side edge
 					{
 #ifdef DETAILED_MOUSE_DEBUG
 						if( g.flags.bLogDetailedMouse )
 							Log( WIDE("Setting size frame on left edge") );
 #endif
-						 pf->flags.bSizing_left = 1;
-						 pf->flags.bSizing = TRUE;
-						 result = 1;
+						if( do_drag )
+						{
+							pf->flags.bDragging = 1;
+							pf->drag_x = x;
+							pf->drag_y = y;
+						}
+						else
+						{
+							pf->flags.bSizing_left = 1;
+							pf->flags.bSizing = TRUE;
+						}
+						result = 1;
 					}
 					else if( (S_64)x >= ( ( pc->surface_rect.x
 										 + pc->surface_rect.width ) - 10 ) )// right side edge
@@ -1156,8 +1201,17 @@ int CPROC FirstFrameMouse( PPHYSICAL_DEVICE pf, S_32 x, S_32 y, _32 b, int bCall
 						if( g.flags.bLogDetailedMouse )
 							Log( WIDE("Setting size frame on right edge") );
 #endif
-						pf->flags.bSizing_right = 1;
-						pf->flags.bSizing = TRUE;
+						if( do_drag )
+						{
+							pf->flags.bDragging = 1;
+							pf->drag_x = x;
+							pf->drag_y = y;
+						}
+						else
+						{
+							pf->flags.bSizing_right = 1;
+							pf->flags.bSizing = TRUE;
+						}
 						result = 1;
 					}
 					else
