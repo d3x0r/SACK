@@ -611,6 +611,19 @@ void TryLoadingFrameImage( void )
 					, WIDE( "SACK/PSI/Frame border/Height" )
 					, g.BorderHeight, TRUE );
 
+			g.Border.bAnchorTop = SACK_GetProfileIntEx( GetProgramName()
+					, WIDE( "SACK/PSI/Frame border/Anchor Top" )
+					, 0, TRUE );
+			g.Border.bAnchorBottom = SACK_GetProfileIntEx( GetProgramName()
+					, WIDE( "SACK/PSI/Frame border/Anchor Bottom" )
+					, 0, TRUE );
+			g.Border.bAnchorLeft = SACK_GetProfileIntEx( GetProgramName()
+					, WIDE( "SACK/PSI/Frame border/Anchor Left" )
+					, 0, TRUE );
+			g.Border.bAnchorRight = SACK_GetProfileIntEx( GetProgramName()
+					, WIDE( "SACK/PSI/Frame border/Anchor Right" )
+					, 0, TRUE );
+
 			// overcompensate if the settings cause an underflow
 			if( g.BorderWidth > g.BorderImage->width )
 				g.BorderWidth = g.BorderImage->width / 4;

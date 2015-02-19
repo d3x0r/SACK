@@ -23,6 +23,7 @@ void DrawNormalFrameInset( PSI_CONTROL pc, Image window, int bInvert, int align 
 
 void CPROC DrawFancyFrame( PSI_CONTROL pc )
 {
+	int tmp;
 	Image window = pc->Window;
 //#undef ALPHA_TRANSPARENT
 //#define ALPHA_TRANSPARENT 1
@@ -36,23 +37,184 @@ void CPROC DrawFancyFrame( PSI_CONTROL pc )
 #ifdef DEBUG_BORDER_DRAWING
 	lprintf( "Drawing fancy border... no add of update region here..." );
 #endif
-	BlotScaledImageSizedToAlpha( window, g.BorderSegment[SEGMENT_TOP]
-								, pc->surface_rect.x, 0
-								, pc->surface_rect.width, g.BorderHeight
-								, ALPHA_TRANSPARENT );
-	BlotScaledImageSizedToAlpha( window, g.BorderSegment[SEGMENT_BOTTOM]
-								, pc->surface_rect.x, pc->surface_rect.y + pc->surface_rect.height
-								, pc->surface_rect.width, g.BorderHeight
-								, ALPHA_TRANSPARENT );
-	BlotScaledImageSizedToAlpha( window, g.BorderSegment[SEGMENT_LEFT]
-										, 0, g.BorderHeight
-										, g.BorderWidth
-										, window->height - ( g.BorderHeight * 2 )
-										, ALPHA_TRANSPARENT );
-	BlotScaledImageSizedToAlpha( window, g.BorderSegment[SEGMENT_RIGHT]
-										, pc->surface_rect.x + pc->surface_rect.width, g.BorderHeight
-										, g.BorderWidth, window->height - ( g.BorderHeight * 2 )
-										, ALPHA_TRANSPARENT );
+	switch( g.Border.bAnchorTop )
+	{
+	default:
+	case 0: // none, just scale
+		BlotScaledImageSizedToAlpha( window, g.BorderSegment[SEGMENT_TOP]
+									, pc->surface_rect.x, 0
+									, pc->surface_rect.width, g.BorderHeight
+									, ALPHA_TRANSPARENT );
+		break;
+	case 1: // left
+		tmp = g.BorderSegment[SEGMENT_TOP]->width;
+		if( pc->surface_rect.width < tmp )
+			tmp = pc->surface_rect.width;
+		BlotScaledImageSizedEx( window, g.BorderSegment[SEGMENT_TOP]
+									, pc->surface_rect.x, 0
+									, pc->surface_rect.width, g.BorderHeight
+									, 0, 0
+									, tmp, g.BorderHeight
+									, ALPHA_TRANSPARENT, BLOT_COPY );
+		
+		break;
+	case 2: // center
+		tmp = g.BorderSegment[SEGMENT_TOP]->width;
+		if( pc->surface_rect.width < tmp )
+			tmp = pc->surface_rect.width;
+		BlotScaledImageSizedEx( window, g.BorderSegment[SEGMENT_TOP]
+									, pc->surface_rect.x, 0
+									, pc->surface_rect.width, g.BorderHeight
+									, (g.BorderSegment[SEGMENT_TOP]->width - tmp )/2, 0
+									, tmp, g.BorderHeight
+									, ALPHA_TRANSPARENT, BLOT_COPY );
+		break;
+	case 3: // right
+		tmp = g.BorderSegment[SEGMENT_TOP]->width;
+		if( pc->surface_rect.width < tmp )
+			tmp = pc->surface_rect.width;
+		BlotScaledImageSizedEx( window, g.BorderSegment[SEGMENT_TOP]
+									, pc->surface_rect.x, 0
+									, pc->surface_rect.width, g.BorderHeight
+									, g.BorderSegment[SEGMENT_TOP]->width - tmp, 0
+									, tmp, g.BorderHeight
+									, ALPHA_TRANSPARENT, BLOT_COPY );
+		
+		break;
+	}
+	switch( g.Border.bAnchorBottom )
+	{
+	default:
+	case 0: // none, just scale
+		BlotScaledImageSizedToAlpha( window, g.BorderSegment[SEGMENT_BOTTOM]
+									, pc->surface_rect.x, pc->surface_rect.y + pc->surface_rect.height
+									, pc->surface_rect.width, g.BorderHeight
+									, ALPHA_TRANSPARENT );
+		break;
+	case 1: // left
+		tmp = g.BorderSegment[SEGMENT_BOTTOM]->width;
+		if( pc->surface_rect.width < tmp )
+			tmp = pc->surface_rect.width;
+		BlotScaledImageSizedEx( window, g.BorderSegment[SEGMENT_BOTTOM]
+									, pc->surface_rect.x, pc->surface_rect.y + pc->surface_rect.height
+									, pc->surface_rect.width, g.BorderHeight
+									, 0, 0
+									, tmp, g.BorderHeight
+									, ALPHA_TRANSPARENT, BLOT_COPY );
+		
+		break;
+	case 2: // center
+		tmp = g.BorderSegment[SEGMENT_BOTTOM]->width;
+		if( pc->surface_rect.width < tmp )
+			tmp = pc->surface_rect.width;
+		BlotScaledImageSizedEx( window, g.BorderSegment[SEGMENT_BOTTOM]
+									, pc->surface_rect.x, pc->surface_rect.y + pc->surface_rect.height
+									, pc->surface_rect.width, g.BorderHeight
+									, (g.BorderSegment[SEGMENT_BOTTOM]->width - tmp )/2, 0
+									, tmp, g.BorderHeight
+									, ALPHA_TRANSPARENT, BLOT_COPY );
+		break;
+	case 3: // right
+		tmp = g.BorderSegment[SEGMENT_BOTTOM]->width;
+		if( pc->surface_rect.width < tmp )
+			tmp = pc->surface_rect.width;
+		BlotScaledImageSizedEx( window, g.BorderSegment[SEGMENT_BOTTOM]
+									, pc->surface_rect.x, pc->surface_rect.y + pc->surface_rect.height
+									, pc->surface_rect.width, g.BorderHeight
+									, g.BorderSegment[SEGMENT_BOTTOM]->width - tmp, 0
+									, tmp, g.BorderHeight
+									, ALPHA_TRANSPARENT, BLOT_COPY );
+		
+		break;
+	}
+	switch( g.Border.bAnchorLeft )
+	{
+	default:
+	case 0: // none, just scale
+		BlotScaledImageSizedToAlpha( window, g.BorderSegment[SEGMENT_LEFT]
+											, 0, g.BorderHeight
+											, g.BorderWidth, window->height - ( g.BorderHeight * 2 )
+											, ALPHA_TRANSPARENT );
+		break;
+	case 1: // top
+		tmp = g.BorderSegment[SEGMENT_LEFT]->height;
+		if( ( window->height - 2 * g.BorderHeight ) < tmp )
+			tmp = ( window->height - 2 * g.BorderHeight );
+		BlotScaledImageSizedEx( window, g.BorderSegment[SEGMENT_LEFT]
+									, 0, g.BorderHeight
+									, g.BorderWidth, window->height - ( g.BorderHeight * 2 )
+									, 0, 0
+									, g.BorderWidth, tmp
+									, ALPHA_TRANSPARENT, BLOT_COPY );
+		
+		break;
+	case 2: // center
+		tmp = g.BorderSegment[SEGMENT_LEFT]->height;
+		if( ( window->height - 2 * g.BorderHeight ) < tmp )
+			tmp = ( window->height - 2 * g.BorderHeight );
+		BlotScaledImageSizedEx( window, g.BorderSegment[SEGMENT_LEFT]
+									, 0, g.BorderHeight
+									, g.BorderWidth, window->height - ( g.BorderHeight * 2 )
+									, 0, (g.BorderSegment[SEGMENT_LEFT]->height - tmp )/2
+									, tmp, g.BorderHeight
+									, ALPHA_TRANSPARENT, BLOT_COPY );
+		break;
+	case 3: // bottom
+		tmp = g.BorderSegment[SEGMENT_LEFT]->height;
+		if( ( window->height - 2 * g.BorderHeight ) < tmp )
+			tmp = ( window->height - 2 * g.BorderHeight );
+		BlotScaledImageSizedEx( window, g.BorderSegment[SEGMENT_LEFT]
+									, 0, g.BorderHeight
+									, g.BorderWidth, window->height - ( g.BorderHeight * 2 )
+									, 0, g.BorderSegment[SEGMENT_LEFT]->height - tmp
+									, tmp, g.BorderHeight
+									, ALPHA_TRANSPARENT, BLOT_COPY );		
+		break;
+	}
+	switch( g.Border.bAnchorRight )
+	{
+	default:
+	case 0: // none, just scale
+		BlotScaledImageSizedToAlpha( window, g.BorderSegment[SEGMENT_RIGHT]
+											, pc->surface_rect.x + pc->surface_rect.width, g.BorderHeight
+											, g.BorderWidth, window->height - ( g.BorderHeight * 2 )
+											, ALPHA_TRANSPARENT );
+		break;
+	case 1: // top
+		tmp = g.BorderSegment[SEGMENT_RIGHT]->height;
+		if( ( window->height - 2 * g.BorderHeight ) < tmp )
+			tmp = ( window->height - 2 * g.BorderHeight );
+		BlotScaledImageSizedEx( window, g.BorderSegment[SEGMENT_RIGHT]
+									, pc->surface_rect.x + pc->surface_rect.width, g.BorderHeight
+									, g.BorderWidth, window->height - ( 2 * g.BorderHeight )
+									, 0, 0
+									, g.BorderWidth, tmp
+									, ALPHA_TRANSPARENT, BLOT_COPY );
+		
+		break;
+	case 2: // center
+		tmp = g.BorderSegment[SEGMENT_RIGHT]->height;
+		if( ( window->height - 2 * g.BorderHeight ) < tmp )
+			tmp = ( window->height - 2 * g.BorderHeight );
+		BlotScaledImageSizedEx( window, g.BorderSegment[SEGMENT_RIGHT]
+									, pc->surface_rect.x + pc->surface_rect.width, g.BorderHeight
+									, g.BorderWidth, window->height - ( 2 * g.BorderHeight )
+									, 0, (g.BorderSegment[SEGMENT_RIGHT]->height - tmp )/2
+									, tmp, g.BorderHeight
+									, ALPHA_TRANSPARENT, BLOT_COPY );
+		break;
+	case 3: // bottom
+		tmp = g.BorderSegment[SEGMENT_RIGHT]->height;
+		if( ( window->height - 2 * g.BorderHeight ) < tmp )
+			tmp = ( window->height - 2 * g.BorderHeight );
+		BlotScaledImageSizedEx( window, g.BorderSegment[SEGMENT_RIGHT]
+									, pc->surface_rect.x + pc->surface_rect.width, g.BorderHeight
+									, g.BorderWidth, window->height - ( 2 * g.BorderHeight )
+									, 0, g.BorderSegment[SEGMENT_RIGHT]->height - tmp
+									, tmp, g.BorderHeight
+									, ALPHA_TRANSPARENT, BLOT_COPY );		
+		break;
+	}
 	BlotImageAlpha( window, g.BorderSegment[SEGMENT_TOP_LEFT]
 					  , 0, 0
 					  , ALPHA_TRANSPARENT );

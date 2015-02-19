@@ -126,9 +126,7 @@ ImageFile *ImagePngFile (_8 * buf, size_t size)
 	end_info = png_create_info_struct(png_ptr);
 	if (!end_info)
 	{
-#ifdef PNG_ROWBYTES_WORKS
 no_mem2:
-#endif
 		png_destroy_read_struct(&png_ptr, &info_ptr,
 		  (png_infopp)NULL);
 		return NULL;
@@ -215,13 +213,11 @@ no_mem2:
 		//    png_set_invert_alpha(png_ptr);
 		pImage = MakeImageFile( Width, Height );
 		{
-#ifdef PNG_ROWBYTES_WORKS
 			size_t rowbytes;
-#endif
 			int row;
 			png_bytep * const row_pointers = (png_bytep*const)NewArray( png_bytep, pImage->height );
-		 
-#ifdef PNG_ROWBYTES_WORKS
+			png_read_update_info( png_ptr, info_ptr );
+
 			rowbytes = png_get_rowbytes (png_ptr, info_ptr);
 
 			if (rowbytes != pImage->pwidth*4 )
@@ -234,7 +230,7 @@ no_mem2:
 					//Log( WIDE("We're okay as long as what it wants is less...(first number)") );
 				}
 			}
-#endif
+
 			for( row = 0; row < pImage->height; row++ )
 			{
 				if( pImage->flags & IF_FLAG_INVERTED )
