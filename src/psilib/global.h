@@ -41,7 +41,7 @@ extern
 	CDATA DefaultColors[14];
 
 //DOM-IGNORE-BEGIN
-typedef struct global_tag
+typedef struct psi_global_tag
 {
 #ifndef PSI_SERVICE
 #  ifndef FORCE_NO_INTERFACE
@@ -67,6 +67,12 @@ typedef struct global_tag
 	CDATA *defaultcolors;
 	S_32 BorderWidth;
 	S_32 BorderHeight;
+	struct psi_global_border_info {
+		BIT_FIELD bAnchorTop : 2; // 0 = none, 1=left, 2=center, 3=right
+		BIT_FIELD bAnchorBottom : 2; // 0 = none, 1=left, 2=center, 3=right
+		BIT_FIELD bAnchorLeft : 2; // 0 = none, 1=top, 2=center, 3=bottom
+		BIT_FIELD bAnchorRight : 2; // 0 = none, 1=top, 2=center, 3=bottom
+	} Border;
 	Image BorderImage;
 	Image BorderSegment[9]; // really 8, but symetry is kept
 	Image FrameCaptionImage;
