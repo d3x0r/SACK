@@ -1225,8 +1225,8 @@ int OpenSQLConnectionEx( PODBC odbc DBG_PASS )
 					//lprintf( "Success using SQLITE" );
 					// register some new handlers like now()
 					odbc->flags.bConnected = TRUE;
-					ExtendConnection( odbc );
 					odbc->flags.bSQLite_native = 1;
+					ExtendConnection( odbc );
 				}
 			}
 #endif
@@ -1244,7 +1244,7 @@ int OpenSQLConnectionEx( PODBC odbc DBG_PASS )
 		}
 	}
 	while( odbc->flags.bForceConnection && !odbc->flags.bConnected );
-   bOpening = FALSE;
+		bOpening = FALSE;
 	// already open, and all is good...
 	return TRUE;
 }
@@ -2323,8 +2323,9 @@ int __DoSQLCommandEx( PODBC odbc, PCOLLECT collection DBG_PASS )
 		int rc3;
 		const TEXTCHAR *tail;
 		char *tmp_cmd;
-	retry:
-		odbc->last_command_tick = timeGetTime();
+retry:
+		if( odbc->last_command_tick )
+			odbc->last_command_tick = timeGetTime();
 		tmp_cmd = DupTextToChar( GetText( cmd ) );
 		// can get back what was not used when parsing...
 #ifdef UNICODE
@@ -3140,7 +3141,7 @@ int __GetSQLResult( PODBC odbc, PCOLLECT collection, int bMore )
 		}
 		if( pvtData )
 		{
-			lprintf( WIDE( "%s" ), GetText( VarTextPeek( pvtData ) ) );
+			//lprintf( WIDE( "%s" ), GetText( VarTextPeek( pvtData ) ) );
 			VarTextDestroy( &pvtData );
 		}
 
@@ -3346,7 +3347,8 @@ int __DoSQLQueryEx( PODBC odbc, PCOLLECT collection, CTEXTSTR query DBG_PASS )
 	{
 		return FALSE;
 	}
-	odbc->last_command_tick = timeGetTime();
+	if( odbc->last_command_tick )
+		odbc->last_command_tick = timeGetTime();
 	if( odbc->flags.bThreadProtect )
 	{
 		EnterCriticalSec( &odbc->cs );

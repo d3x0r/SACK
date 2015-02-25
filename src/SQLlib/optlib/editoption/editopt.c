@@ -60,7 +60,7 @@ static struct instance_local
 
 
 #if HAS_TLS
-ThreadLocal struct instance_local *option_thread;
+DeclareThreadLocal struct instance_local *option_thread;
 #define l (*option_thread)
 #else
 struct instance_local *option_thread;
@@ -168,7 +168,7 @@ static void CPROC OptionSelectionChanged( PTRSZVAL psvUser, PCONTROL pc, PLISTIT
 			pnd->ID_Option = GetOptionIndexExx( (PODBC)psvUser, NULL, pnd->option_text, NULL, NULL, NULL, FALSE DBG_SRC );
 		GetOptionStringValueEx( (PODBC)psvUser, pnd->ID_Option, buffer, sizeof( buffer ) DBG_SRC );
 		StrCpyEx( l.last_value, buffer, sizeof(l.last_value)/sizeof(l.last_value[0]) );
-		SetCommonText( GetNearControl( pc, EDT_OPTIONVALUE ), buffer );
+		SetControlText( GetNearControl( pc, EDT_OPTIONVALUE ), buffer );
 	}
 	else
 	{
@@ -177,13 +177,13 @@ static void CPROC OptionSelectionChanged( PTRSZVAL psvUser, PCONTROL pc, PLISTIT
 			lprintf( WIDE("Set value to real value.") );
 			GetOptionStringValueEx( (PODBC)psvUser, pnd->ID_Value, buffer, sizeof( buffer ) DBG_SRC );
 			StrCpyEx( l.last_value, buffer, sizeof(l.last_value)/sizeof(l.last_value[0]) );
-			SetCommonText( GetNearControl( pc, EDT_OPTIONVALUE ), buffer );
+			SetControlText( GetNearControl( pc, EDT_OPTIONVALUE ), buffer );
 		}
 		else
 		{
 			lprintf( WIDE("Set to blank value - no value on branch.") );
 			l.last_value[0] = 0;
-			SetCommonText( GetNearControl( pc, EDT_OPTIONVALUE ), WIDE("") );
+			SetControlText( GetNearControl( pc, EDT_OPTIONVALUE ), WIDE("") );
 		}
 	}
 }
@@ -411,7 +411,7 @@ PUBLIC( int, EditOptions )
 #else
 int EditOptions
 #endif
-                  ( PODBC odbc )
+                  ( PODBC odbc, PSI_CONTROL parent )
 {
 	PCOMMON frame;// = LoadFrame( WIDE("edit.frame"), NULL, NULL, 0 );
 	int done = FALSE;
@@ -426,7 +426,7 @@ int EditOptions
 		frame = CreateOptionFrame( odbc, TRUE, &done );
 		InitOptionList( odbc, GetControl( frame, LST_OPTIONMAP ), LST_OPTIONMAP );
 
-		DisplayFrame( frame );
+		DisplayFrameOver( frame, parent );
 #ifndef EDITOPTION_PLUGIN
 		CommonWait( frame );
 		DestroyFrame( &frame );
@@ -475,7 +475,7 @@ SaneWinMain( argc, argv )
 	}
 	else
 		o = GetOptionODBC( NULL, 0 );
-	EditOptions( o );
+	EditOptions( o, NULL );
 	return 0;
 }
 EndSaneWinMain()

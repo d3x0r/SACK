@@ -2228,6 +2228,7 @@ POINTER GetInterfaceExx( CTEXTSTR pServiceName, LOGICAL ReadConfig DBG_PASS )
 			//lprintf( WIDE("And the laod proc resulted %p"), p );
 			return p; //load();
 		}
+#ifdef _DEBUG
 		else
 		{
 			if( l.flags.bInterfacesLoaded )
@@ -2240,6 +2241,7 @@ POINTER GetInterfaceExx( CTEXTSTR pServiceName, LOGICAL ReadConfig DBG_PASS )
 				}
 			}
 		}
+#endif
 	}
 	return NULL;
 }

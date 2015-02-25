@@ -1276,14 +1276,14 @@ void CPROC UpdateStatus( PTRSZVAL psvFrame )
 	SystemLog( msg );
 #ifdef __CAN_USE_CACHE_DIALOG__
    // in the positiion of image library, there is no controls to do...
-	SetCommonText( GetControl( (PCOMMON)psvFrame, TXT_TIME_STATUS ), msg );
+	SetControlText( GetControl( (PCOMMON)psvFrame, TXT_TIME_STATUS ), msg );
 #endif
 	snprintf( msg, sizeof( msg ), WIDE("Checked Fonts: %d")
 			 , fonts_checked
 			 );
 	SystemLog( msg );
 #ifdef __CAN_USE_CACHE_DIALOG__
-	SetCommonText( GetControl( (PCOMMON)psvFrame, TXT_COUNT_STATUS ), msg );
+	SetControlText( GetControl( (PCOMMON)psvFrame, TXT_COUNT_STATUS ), msg );
 #endif
 }
 

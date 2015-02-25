@@ -1476,7 +1476,7 @@ PTRSZVAL GetFileSize( int fd )
 					LeaveCriticalSecNoWake( &cs );
 				}
 #else
-            bOpening = 0;
+				bOpening = 0;
 #endif
 				return NULL;
 			}

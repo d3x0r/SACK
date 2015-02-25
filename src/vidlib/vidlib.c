@@ -272,9 +272,10 @@ void SafeSetFocus( HWND hWndSetTo )
 		//Detach the attached thread
 	}
 	//lprintf( WIDE( "Safe Set Focus %p" ), hWndSetTo );
-	SetFocus( hWndSetTo );
-	SetActiveWindow( hWndSetTo );
+	//ShowWindow( hWndSetTo, SW_SHOW );
 	SetForegroundWindow( hWndSetTo );
+	SetActiveWindow( hWndSetTo );
+	SetFocus( hWndSetTo );
 
 	if( dwThreadMe )
 	{
@@ -2302,7 +2303,7 @@ WM_DROPFILES
 					hVideo->flags.bFocused = 1;
 					{
 						if( l.flags.bLogFocus )
-							lprintf( WIDE("Got a losefocus for %p at %P"), hVideo, NULL );
+							lprintf( WIDE("Got a losefocus for %p"), hVideo );
 						if( FindLink( &l.pActiveList, hVideo ) != INVALID_INDEX )
 						{
 							if( hVideo && hVideo->pLoseFocus )
@@ -2479,9 +2480,10 @@ WM_DROPFILES
 					if( ( pwp->cx != hVideo->pWindowPos.cx )
 						|| ( pwp->cy != hVideo->pWindowPos.cy ) )
 					{
-						lprintf( WIDE( "Forced size of display to %dx%d back to %dx%d" ), pwp->cx, pwp->cy, hVideo->pWindowPos.cx, hVideo->pWindowPos.cy );
+						//lprintf( WIDE( "Forced size of display to %dx%d back to %dx%d" ), pwp->cx, pwp->cy, hVideo->pWindowPos.cx, hVideo->pWindowPos.cy );
 						pwp->cx = hVideo->pWindowPos.cx;
 						pwp->cy = hVideo->pWindowPos.cy;
+						pwp->flags |= SWP_NOSIZE;
 					}
 					//else
 					//	lprintf( "Target is correct." );
@@ -2646,7 +2648,7 @@ WM_DROPFILES
 			if( !pwp->hwndInsertAfter )
 			{
 				//WakeableSleep( 500 );
-				lprintf( WIDE( "..." ) );
+				//lprintf( WIDE( "..." ) );
 			}
 			lprintf( WIDE("Being inserted after %x %x"), pwp->hwndInsertAfter, hWnd );
 #endif
@@ -3660,6 +3662,7 @@ int CPROC VideoEventHandler( _32 MsgID, _32 *params, _32 paramlen )
 void HandleDestroyMessage( PVIDEO hVidDestroy )
 {
 	{
+		PVIDEO old_above, old_below;
 #ifdef LOG_DESTRUCTION
 		lprintf( WIDE("To destroy! %p %d"), 0 /*Msg.lParam*/, hVidDestroy->hWndOutput );
 #endif
@@ -3669,46 +3672,21 @@ void HandleDestroyMessage( PVIDEO hVidDestroy )
 		//if( hVidDestroy->flags.event_dispatched ) // wait... we can't go away yet...
 		//	return;
 		//EnableWindow( hVidDestroy->hWndOutput, FALSE );
-		SafeSetFocus( (HWND)GetDesktopWindow() );
-#ifdef asdfasdfsdfa
-		if( GetActiveWindow() == hVidDestroy->hWndOutput)
+		old_above = hVidDestroy->pAbove;
+		if( old_above )
 		{
-#ifdef LOG_DESTRUCTION
-			lprintf( WIDE("Set ourselves inactive...") );
+#ifdef LOG_ORDERING_REFOCUS
+			lprintf( "think setting focus to %p (%p %p)", old_above, hVidDestroy->hWndOutput, old_above->hWndOutput );
 #endif
-			//SetActiveWindow( l.hWndInstance );
-#ifdef LOG_DESTRUCTION
-			lprintf( WIDE("Set foreground to instance...") );
+			hVidDestroy->pAbove = NULL;
+			old_above->pBelow = hVidDestroy->pBelow;
+			SafeSetFocus( old_above->hWndOutput );
+#ifdef LOG_ORDERING_REFOCUS
+			lprintf( "think did set focus to %p (%p)", old_above, old_above->hWndOutput );
 #endif
 		}
-		if( GetFocus() == hVidDestroy->hWndOutput)
-		{
-#ifdef LOG_DESTRUCTION
-			lprintf( WIDE("Fixed focus away from ourselves before destroy.") );
-#endif
-			AttachThreadInput( GetWindowThreadProcessId(
-									GetForegroundWindow()
-									,NULL)
-					,GetCurrentThreadId()
-					,TRUE);
-
-			AttachThreadInput( GetWindowThreadProcessId(
-									GetDesktopWindow()
-									,NULL)
-					,GetCurrentThreadId()
-					,TRUE);
-//Detach the attached thread
-
-			SetFocus( GetDesktopWindow() );
-
-			AttachThreadInput(
-					 GetWindowThreadProcessId(
-							GetForegroundWindow(),NULL)
-					,GetCurrentThreadId()
-					,FALSE);
-		}
-#endif
-		//ShowWindow( hVidDestroy->hWndOutput, SW_HIDE );
+		else
+			SafeSetFocus( (HWND)GetDesktopWindow() );
 #ifdef LOG_DESTRUCTION
 		lprintf( WIDE("------------ DESTROY! -----------") );
 #endif
@@ -3800,7 +3778,7 @@ static void HandleMessage (MSG Msg)
 										  hVidCreate->pWindowPos.cx,
 										  hVidCreate->pWindowPos.cy);
 	}
-	else if (!Msg.hwnd && (Msg.message == (WM_USER + 513)))
+	else if (!Msg.hwnd && (Msg.message == (WM_USER_DESTROY_WINDOW)))
 	{
 		HandleDestroyMessage( (PVIDEO) Msg.lParam );
 	}
@@ -4016,6 +3994,7 @@ static void VideoLoadOptions( void )
 	else
 #endif
 		l.flags.bLayeredWindowDefault = 0;
+	l.flags.bLogFocus = 1;
 	l.flags.bLogWrites = SACK_GetOptionIntEx( option, GetProgramName(), WIDE( "SACK/Video Render/Log Video Output" ), 0, TRUE );
 	l.flags.bLogDisplayEnumTest = SACK_GetOptionIntEx( option, GetProgramName(), WIDE( "SACK/Video Render/Log Display Enumeration" ), 0, TRUE );
 	l.flags.bUseLLKeyhook = SACK_GetOptionIntEx( option, GetProgramName(), WIDE( "SACK/Video Render/Use Low Level Keyhook" ), 0, TRUE );
@@ -4630,7 +4609,7 @@ RENDER_PROC (void, CloseDisplay) (PVIDEO hVideo)
 		Log (WIDE( "Dispatching destroy and resulting..." ));
 #endif
 		//SendServiceEvent( l.pid, WM_USER + 513, &hVideo, sizeof( hVideo ) );
-		d = PostThreadMessage (l.dwThreadID, WM_USER + 513, 0, (LPARAM) hVideo);
+		d = PostThreadMessage (l.dwThreadID, WM_USER_DESTROY_WINDOW, 0, (LPARAM) hVideo);
 		if (!d)
 		{
 			Log (WIDE( "Failed to post create new window message..." ));

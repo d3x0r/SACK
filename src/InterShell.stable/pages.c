@@ -745,7 +745,7 @@ static void CPROC ListBoxThemeSelectionChanged( PTRSZVAL psv, PSI_CONTROL list, 
 
 	l.current_page_theme = n;
 
-	SetCommonText( GetNearControl( list, TXT_IMAGE_NAME ), (CTEXTSTR)GetLink( &l.current_page->backgrounds, n ) );
+	SetControlText( GetNearControl( list, TXT_IMAGE_NAME ), (CTEXTSTR)GetLink( &l.current_page->backgrounds, n ) );
 	SetColorWell( GetNearControl( list, CLR_BACKGROUND ), (CDATA)GetLink( &l.current_page->background_colors, n ) );
 }
 

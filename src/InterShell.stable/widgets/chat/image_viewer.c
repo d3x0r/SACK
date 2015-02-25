@@ -39,7 +39,7 @@ EasyRegisterControlWithBorder( CONTROL_NAME, sizeof( ImageViewer ), BORDER_CAPTI
 static int OnCreateCommon( CONTROL_NAME )( PSI_CONTROL pc )
 {
 	ImageViewer *pViewer = ControlData( ImageViewer *, pc );
-	SetCommonText( pc, "Image Viewer" );
+	SetControlText( pc, "Image Viewer" );
 	pViewer->zoom = 1000;
 }
 

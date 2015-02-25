@@ -1020,7 +1020,7 @@ static PTRSZVAL OnEditControl( TEXT_LABEL_NAME )( PTRSZVAL psv, PSI_CONTROL pare
 						buffer[o] = 0;
 					else
 						buffer[BUFSIZE-1] = 0;
-					SetCommonText( GetControl( frame, TXT_CONTROL_TEXT ), buffer );
+					SetControlText( GetControl( frame, TXT_CONTROL_TEXT ), buffer );
 				}
 				{
 					PSI_CONTROL list = GetControl( frame, LST_VARIABLES );
