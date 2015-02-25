@@ -11,8 +11,8 @@ SaneWinMain( argc, argv )
 		frame = CreateFrame( WIDE("blah"), 0, 0, 500, 500, BORDER_RESIZABLE|BORDER_NORMAL, NULL );
 	clock = MakeNamedControl( frame, WIDE("Basic Clock Widget"), 0, 0, 350, 350, -1 );
 	if( frame )
-		SetCommonText( frame, WIDE("CLock Test Widet") );
-	SetCommonText( clock, WIDE("CLock Test Widet") );
+		SetControlText( frame, WIDE("CLock Test Widet") );
+	SetControlText( clock, WIDE("CLock Test Widet") );
    if( !frame )
 		SetCommonBorder( clock,BORDER_RESIZABLE|BORDER_NORMAL );
 	DisplayFrame( frame?frame:clock );

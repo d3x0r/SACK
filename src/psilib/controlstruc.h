@@ -429,6 +429,8 @@ typedef struct common_control_frame
 		size_t fontdatalen;
 		/* Text of the control's caption. */
 		PTEXT text;
+		Image image;
+		int pad;  // how much above/below image
 	} caption;
 
 

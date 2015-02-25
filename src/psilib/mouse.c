@@ -1001,7 +1001,7 @@ int CPROC FirstFrameMouse( PPHYSICAL_DEVICE pf, S_32 x, S_32 y, _32 b, int bCall
 						int do_drag = 0;
 						if( g.BorderHeight > 10 )
 							do_drag = 1;
-						 if( x < pc->surface_rect.x + g.BorderWidth ) // left side edge
+						 if( x < pc->surface_rect.x ) // left side edge
 						 {
 #ifdef DETAILED_MOUSE_DEBUG
 							 if( g.flags.bLogDetailedMouse )
@@ -1013,7 +1013,7 @@ int CPROC FirstFrameMouse( PPHYSICAL_DEVICE pf, S_32 x, S_32 y, _32 b, int bCall
 								result = 1;
 						}
 						else if( (S_64)x > ( ( pc->surface_rect.x 
-												+ pc->surface_rect.width ) - g.BorderWidth ) ) // right side edge
+												+ pc->surface_rect.width ) ) ) // right side edge
 						{
 #ifdef DETAILED_MOUSE_DEBUG
 							 if( g.flags.bLogDetailedMouse )
@@ -1112,12 +1112,12 @@ int CPROC FirstFrameMouse( PPHYSICAL_DEVICE pf, S_32 x, S_32 y, _32 b, int bCall
 					}
 				}
 				else if( (S_64)y >= ( ( pc->surface_rect.y 
-									 + pc->surface_rect.height ) - g.BorderHeight ) ) // bottom side...
+									 + pc->surface_rect.height ) ) ) // bottom side...
 				{  // very bottom band
 					int do_drag = 0;
 					if( g.BorderHeight > 10 )
 						do_drag = 1;
-					if( x < ( pc->surface_rect.x + g.BorderHeight ) ) // left side edge
+					if( x < ( pc->surface_rect.x ) ) // left side edge
 					{
 #ifdef DETAILED_MOUSE_DEBUG
 						if( g.flags.bLogDetailedMouse )
@@ -1129,7 +1129,7 @@ int CPROC FirstFrameMouse( PPHYSICAL_DEVICE pf, S_32 x, S_32 y, _32 b, int bCall
 						 result = 1;
 					}
 					else if( (S_64)x > ( ( pc->surface_rect.x 
-										 + pc->surface_rect.width ) - g.BorderHeight ) )
+										 + pc->surface_rect.width ) ) )
 					{
 #ifdef DETAILED_MOUSE_DEBUG
 						if( g.flags.bLogDetailedMouse )
@@ -1195,7 +1195,7 @@ int CPROC FirstFrameMouse( PPHYSICAL_DEVICE pf, S_32 x, S_32 y, _32 b, int bCall
 						result = 1;
 					}
 					else if( (S_64)x >= ( ( pc->surface_rect.x
-										 + pc->surface_rect.width ) - 10 ) )// right side edge
+										 + pc->surface_rect.width ) ) )// right side edge
 					{
 #ifdef DETAILED_MOUSE_DEBUG
 						if( g.flags.bLogDetailedMouse )

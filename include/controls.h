@@ -985,8 +985,9 @@ PSI_PROC( void, GetCommonTextEx)( PSI_CONTROL pc, TEXTSTR  buffer, int buflen, i
 #define GetControlText( pc, buffer, buflen ) GetCommonTextEx( (PSI_CONTROL)(pc), buffer, buflen, FALSE )
 #define GetFrameText( pc, buffer, buflen ) GetCommonTextEx( (PSI_CONTROL)(pc), buffer, buflen, FALSE )
 
-PSI_PROC( void, SetCommonText )( PSI_CONTROL pc, CTEXTSTR text );
+//PSI_PROC( void, SetCommonText )( PSI_CONTROL pc, CTEXTSTR text );
 PSI_PROC( void, SetControlText )( PSI_CONTROL pc, CTEXTSTR text );
+PSI_PROC( void, SetControlCaptionImage )( PSI_CONTROL pc, Image image, int pad );
 PSI_PROC( void, SetFrameText )( PSI_CONTROL pc, CTEXTSTR text );
 
 // set focus to this control,

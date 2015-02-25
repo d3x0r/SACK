@@ -78,7 +78,7 @@ namespace sack {
 #endif
 
 
-#define LOG_CREATE_EVENT_OBJECT
+//#define LOG_CREATE_EVENT_OBJECT
 //#define LOG_THREAD
 //#define LOG_SLEEPS
 
@@ -206,7 +206,7 @@ static struct {
 
 
 #if HAS_TLS
-ThreadLocal struct my_thread_info {
+DeclareThreadLocal struct my_thread_info {
 	PTHREAD pThread;
 	THREAD_ID nThread;
 } MyThreadInfo;
@@ -1173,8 +1173,10 @@ static PTRSZVAL CPROC ThreadWrapper( PTHREAD pThread )
 	while( !pThread->flags.bReady )
 		Relinquish();
 #ifdef HAS_TLS
+#  ifdef LOG_THREAD
 	lprintf( "thread will be %p %p", MyThreadInfo.pThread, &MyThreadInfo );
 	lprintf( "thread will be %p %p", pThread, &MyThreadInfo.pThread );
+#  endif
 	MyThreadInfo.pThread = pThread;
 	MyThreadInfo.nThread =
 #endif
@@ -1436,8 +1438,8 @@ PTHREAD  ThreadToSimpleEx( PTRSZVAL (CPROC*proc)(POINTER), POINTER param DBG_PAS
 		while( !pThread->thread_ident )
 			Relinquish();
 #ifdef LOG_THREAD
-		Log3( WIDE("Created thread address: %p %016"_64fx" at %p")
-	             , pThread->proc, pThread->thread_ident, pThread );
+		lprintf( WIDE("Created thread address: %p %016"_64fx" at %p")
+		       , pThread->proc, pThread->thread_ident, pThread );
 #endif
 	}
 	else
@@ -1461,7 +1463,9 @@ void  EndThread( PTHREAD thread )
 #  endif
 #else
 		TerminateThread( thread->hThread, 0xD1E );
+#ifdef LOG_THREAD
 		lprintf( WIDE("Killing thread...") );
+#endif 
 		CloseHandle( thread->thread_event->hEvent );
 #endif
 	}
@@ -1552,7 +1556,7 @@ static void DoInsertTimer( PTIMER timer )
 	SetCriticalLogging( 0 );
 	g.flags.bLogCriticalSections = 0;
 	LeaveCriticalSec( &csGrab );
-   g.flags.bLogCriticalSections = bLock;
+	g.flags.bLogCriticalSections = bLock;
 	SetCriticalLogging( bLock );
 }
 
@@ -1562,10 +1566,10 @@ static PTRSZVAL CPROC find_timer( POINTER p, PTRSZVAL psvID )
 {
 	_32 timerID = (_32)psvID;
 	PTIMER timer = (PTIMER)p;
-   //lprintf( "Find to remove test %d==%d", timer->ID, timerID );
+	//lprintf( "Find to remove test %d==%d", timer->ID, timerID );
 	if( timer->ID == timerID )
 		return (PTRSZVAL)p;
-   return 0;
+	return 0;
 }
 
 static void  DoRemoveTimer( _32 timerID DBG_PASS )

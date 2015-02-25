@@ -42,12 +42,15 @@
 
 #if !defined( __NO_THREAD_LOCAL__ ) && ( defined( _MSC_VER ) || defined( __WATCOMC__ ) )
 #  define HAS_TLS 1
-#  define ThreadLocal static __declspec(thread)
+#  define DeclareThreadLocal static __declspec(thread)
+#  define DeclareThreadVar __declspec(thread)
 #elif !defined( __NO_THREAD_LOCAL__ ) && ( defined( __GNUC__ ) )
 #  define HAS_TLS 1
-#  define ThreadLocal static __thread
+#  define DeclareThreadLocal static __thread
+#  define DeclareThreadVar __thread
 #else
-#  define ThreadLocal static
+#  define DeclareThreadLocal static
+#  define DeclareThreadVar 
 #endif
 
 

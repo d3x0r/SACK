@@ -71,7 +71,7 @@ void LoadList( PCONTROL list, FILEOPENDATA *pfod )
    pLoading = list;
    // this may do nothing on say a unix system... but we may have
 	// drives - perhaps we could alias mount points to drive letters...
-   SetCommonText( GetNearControl( list, TXT_PATHNAME ), pfod->basepath );
+   SetControlText( GetNearControl( list, TXT_PATHNAME ), pfod->basepath );
 	if( !pfod->basepath[0] )
 	{
 		ScanDrives( AddFile, (PTRSZVAL)pfod );
@@ -147,7 +147,7 @@ void CPROC FileSingle( PTRSZVAL psv, PSI_CONTROL list, PLISTITEM hli )
 	if( hli )
 	{
 		GetListItemText( hli, name, sizeof( name ) );
-		SetCommonText( GetNearControl( list, TXT_PATHNAME ), name );
+		SetControlText( GetNearControl( list, TXT_PATHNAME ), name );
 	}
 }
 

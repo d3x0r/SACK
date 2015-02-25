@@ -460,6 +460,12 @@ static void SystemInit( void )
 			OSALOT_SetEnvironmentVariable( WIDE( "MY_WORK_PATH" ), filepath );
 #endif
 			l.flags.bInitialized = 1;
+
+			l.EnumProcessModules = (BOOL(WINAPI*)(HANDLE,HMODULE*,DWORD,LPDWORD))LoadFunction( "psapi.dll", "EnumProcessModules" );
+			if( !l.EnumProcessModules )
+				l.EnumProcessModules = (BOOL(WINAPI*)(HANDLE,HMODULE*,DWORD,LPDWORD))LoadFunction( "kernel32.dll", "EnumProcessModules" );
+			if( !l.EnumProcessModules )
+				l.EnumProcessModules = (BOOL(WINAPI*)(HANDLE,HMODULE*,DWORD,LPDWORD))LoadFunction( "kernel32.dll", "K32EnumProcessModules" );
 		}
 #endif
 	}
@@ -1271,7 +1277,12 @@ static void LoadExistingLibraries( void )
 
 	HMODULE *modules = NewArray( HMODULE, 256 );
 	DWORD needed;
-	EnumProcessModules( GetCurrentProcess(), modules, sizeof( HMODULE ) * 256, &needed ); 
+	if( !l.EnumProcessModules )
+	{
+      lprintf( "Failed to load EnumProcessModules" );
+		return;
+	}
+	l.EnumProcessModules( GetCurrentProcess(), modules, sizeof( HMODULE ) * 256, &needed );
 	if( needed / sizeof( HMODULE ) == n )
 		lprintf( "loaded module overflow" );
 	needed /= sizeof( HMODULE );

@@ -2587,7 +2587,7 @@ PROCEDURE RealCreateCommonExx( PSI_CONTROL *pResult
 	}
 	pc->flags.bSetBorderType = 0;
 
-	SetCommonText( pc, text );
+	SetControlText( pc, text );
 	if( pContainer )
 	{
 		LinkInNewControl( pContainer, NULL, pc );
@@ -3648,8 +3648,17 @@ PSI_PROC( Image,  GetControlSurface )( PSI_CONTROL pc )
 }
 
 //---------------------------------------------------------------------------
+PSI_PROC( void, SetControlCaptionImage )( PSI_CONTROL pc, Image image, int pad )
+{
+	if( pc )
+	{
+		pc->caption.image = image;
+		pc->caption.pad = pad;
+		SmudgeCommon( pc );
+	}
+}
 
-PSI_PROC( void, SetCommonText )( PSI_CONTROL pc, CTEXTSTR text )
+PSI_PROC( void, SetControlText )( PSI_CONTROL pc, CTEXTSTR text )
 {
 	if( !pc )
 		return;
@@ -4815,9 +4824,9 @@ void SetCommonKey( PSI_CONTROL pc
 
 //---------------------------------------------------------------------------
 
-void SetControlText(PSI_CONTROL pc, CTEXTSTR text )
+void SetCommonText(PSI_CONTROL pc, CTEXTSTR text )
 {
-	SetCommonText( pc, text );
+	SetControlText( pc, text );
 }
 
 #undef ControlType

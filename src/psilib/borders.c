@@ -310,9 +310,13 @@ PSI_PROC( int, CaptionHeight )( PSI_CONTROL pf, CTEXTSTR text )
     // should resemble something like text height + 3 (top) + 3 (1 bottom, 2 frameline)
     // pf itself may have a different font - which
    // will then switch the height...
-   if( text || ( pf &&
-                pf->caption.text &&
-					 !(pf->BorderType & (BORDER_NOCAPTION|BORDER_WITHIN)) ) )
+	if( pf->caption.image  )
+	{
+		return pf->caption.image->height + pf->caption.pad*2;
+	}
+	else if( text || ( pf &&
+	    pf->caption.text &&
+	    !(pf->BorderType & (BORDER_NOCAPTION|BORDER_WITHIN)) ) )
 	{
 		GetStringSizeFontEx( WIDE(" "), 1, NULL, NULL, GetCommonFont( pf ) );
 		return GetFontHeight( GetCommonFont(pf) ) + 10; // 5 above 5 below?
@@ -798,25 +802,32 @@ void DrawFrameCaption( PSI_CONTROL pc )
 							, h
 							, basecolor(pc)[CAPTION] );
 			}
-			PutStringFont( pc->Window
-							 , TEXT_INSET + xofs+2, (TEXT_INSET-2)+yofs+2 // Bad choice - but... works for now...
-							 , basecolor(pc)[SHADOW], 0
-							 , GetText( pc->caption.text )
-							 , GetCommonFont(pc)
-							 );
-			PutStringFont( pc->Window
-							 , TEXT_INSET + xofs+3, (TEXT_INSET-2)+yofs+3 // Bad choice - but... works for now...
-							 , basecolor(pc)[HIGHLIGHT], 0
-							 , GetText( pc->caption.text )
-							 , GetCommonFont(pc)
-							 );
+			if( pc->caption.image )
+			{
+				BlotImageAlpha( pc->Window, pc->caption.image, xofs + pc->caption.pad, yofs + pc->caption.pad, ALPHA_TRANSPARENT );
+			}
+			else
+			{
+				PutStringFont( pc->Window
+								 , TEXT_INSET + xofs+2, (TEXT_INSET-2)+yofs+2 // Bad choice - but... works for now...
+								 , basecolor(pc)[SHADOW], 0
+								 , GetText( pc->caption.text )
+								 , GetCommonFont(pc)
+								 );
+				PutStringFont( pc->Window
+								 , TEXT_INSET + xofs+3, (TEXT_INSET-2)+yofs+3 // Bad choice - but... works for now...
+								 , basecolor(pc)[HIGHLIGHT], 0
+								 , GetText( pc->caption.text )
+								 , GetCommonFont(pc)
+								 );
+			}
 			//      PutString( pc->Window
 			//                       // bias the text towards the top?
 			//                  , TEXT_INSET + xofs+1, (TEXT_INSET-2)+xofs+1 // Bad choice - but... works for now...
 			//                  , basecolor(pc)[CAPTIONTEXTCOLOR], 0
 			//                  , GetText( pc->caption.text ) );
 			//h += yofs;
-			if( !out )
+			if( !out ) // out is set when drawing a image...
 			{
 				w = width - (yofs+1);
 				do_hline( pc->Window

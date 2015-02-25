@@ -634,7 +634,7 @@ static void Cut( PEDIT pe, PTEXT *caption )
 	if( pe->flags.bSelectSet )
 		CutEditText( pe, caption );
 	else
-		SetCommonText( (PCONTROL)pe, NULL );
+		SetControlText( (PCONTROL)pe, NULL );
 
 }
 #endif

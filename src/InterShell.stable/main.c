@@ -702,10 +702,10 @@ void CPROC OnGlareSetSelect( PTRSZVAL psv, PSI_CONTROL list, PLISTITEM pli )
 	struct glare_set_edit *params = (struct glare_set_edit*)psv;
 	PGLARE_SET glare_set = (PGLARE_SET)GetItemData( pli );
 	params->current = glare_set;
-	SetCommonText( GetNearControl( list, EDIT_GLARESET_GLARE ), glare_set->glare );
-	SetCommonText( GetNearControl( list, EDIT_GLARESET_UP ), glare_set->up );
-	SetCommonText( GetNearControl( list, EDIT_GLARESET_DOWN ), glare_set->down );
-	SetCommonText( GetNearControl( list, EDIT_GLARESET_MASK ), glare_set->mask );
+	SetControlText( GetNearControl( list, EDIT_GLARESET_GLARE ), glare_set->glare );
+	SetControlText( GetNearControl( list, EDIT_GLARESET_UP ), glare_set->up );
+	SetControlText( GetNearControl( list, EDIT_GLARESET_DOWN ), glare_set->down );
+	SetControlText( GetNearControl( list, EDIT_GLARESET_MASK ), glare_set->mask );
 	SetCheckState( GetNearControl( list, CHECKBOX_GLARESET_MULTISHADE )
 		, glare_set->flags.bMultiShadeBackground );
 	SetCheckState( GetNearControl( list, CHECKBOX_GLARESET_SHADE )
@@ -4138,7 +4138,7 @@ PSI_CONTROL SetupSystemsListAndGlobalSingleFrame(void )
 				lprintf( WIDE("opening canvas at 0,0, %dx%d %d"), width, height, menu_surface.TypeID );
 				result_canvas = MakeControl( NULL, menu_surface.TypeID, 0, 0, width, height, 0 );
 			}
-			SetCommonText( result_canvas, g.single_frame_title );
+			SetControlText( result_canvas, g.single_frame_title );
 #ifndef __NO_OPTIONS__
 		}
 #endif
@@ -4654,7 +4654,7 @@ PSI_CONTROL OpenPageFrame( PPAGE_DATA page )
 			xofs += 25;
 			yofs += 25;
 			//SetCommonUserData( page_frame, (PTRSZVAL)page );
-			SetCommonText( page_frame, page->title?page->title:WIDE( "Default Page" ) );
+			SetControlText( page_frame, page->title?page->title:WIDE( "Default Page" ) );
 
 			SetCommonBorder( page_frame, BORDER_NORMAL|BORDER_RESIZABLE );
 

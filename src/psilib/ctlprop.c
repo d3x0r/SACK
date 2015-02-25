@@ -88,11 +88,11 @@ void CPROC SetControlIDProperty( PTRSZVAL psv, PSI_CONTROL list, PLISTITEM item 
 				snprintf( buffer, sizeof( buffer ), WIDE("%d + %d"), data->value, data->range );
 			else
 				snprintf( buffer, sizeof( buffer ), WIDE("%d"), data->value );
-			SetCommonText( edit, buffer );
+			SetControlText( edit, buffer );
 			{
 				TEXTCHAR buffer[256];
 				snprintf( buffer, sizeof( buffer ), WIDE("%s/%s/%s"), data->appname, data->_typename, data->resname );
-				SetCommonText( GetNearControl( list, EDT_IDNAME ), buffer );
+				SetControlText( GetNearControl( list, EDT_IDNAME ), buffer );
 			}
 		}
 	}
@@ -367,7 +367,7 @@ PSI_PROC( int, EditControlProperties )( PSI_CONTROL control )
 				_32 w, h, id;
 				static TEXTCHAR buffer[32000];
 				GetControlText( GetControl(pSheet, EDT_CAPTION ), buffer, sizeof( buffer ) );
-				SetCommonText( control, buffer );
+				SetControlText( control, buffer );
 				GetControlText( pc = GetControl(pSheet, EDT_X ), buffer, sizeof( buffer ) );
 				if( pc )
 					x = (S_32)IntCreateFromText( buffer );
@@ -522,7 +522,7 @@ PSI_PROC( int, EditFrameProperties )( PSI_CONTROL frame, S_32 x, S_32 y )
 				S_32 x, y;
 				_32 w, h, id;
 				GetControlText( GetControl(pf, EDT_CAPTION ), buffer, sizeof( buffer ) );
-				SetCommonText( frame, buffer );
+				SetControlText( frame, buffer );
 				GetControlText( GetControl(pf, EDT_X ), buffer, sizeof( buffer ) );
 				x = (S_32)IntCreateFromText( buffer );
 				GetControlText( GetControl(pf, EDT_Y), buffer, sizeof( buffer ) );

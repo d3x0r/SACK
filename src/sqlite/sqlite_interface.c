@@ -55,6 +55,7 @@ struct my_file_data
 	TEXTSTR filename;
 	int locktype;
 	struct file_system_mounted_interface *mount;
+	LOGICAL temp;
 };
 
 struct my_sqlite3_vfs
@@ -78,10 +79,19 @@ int xClose(sqlite3_file*file)
 {
 	struct my_file_data *my_file = (struct my_file_data*)file;
 	if( my_file->file )
+	{
 		sack_fclose( my_file->file );
 #ifdef LOG_OPERATIONS
-	lprintf( "Close %s", my_file->filename );
+		lprintf( "Close %s", my_file->filename );
 #endif
+	}
+	if( my_file->temp )
+	{
+		sack_unlinkEx( 0, my_file->filename, my_file->mount );
+#ifdef LOG_OPERATIONS
+		lprintf( "unlink temp file : %s", my_file->filename );
+#endif
+	}
 	return SQLITE_OK;
 }
 
@@ -96,7 +106,7 @@ int xRead(sqlite3_file*file, void*buffer, int iAmt, sqlite3_int64 iOfst)
 	if( ( actual = sack_fread( buffer, 1, iAmt, my_file->file ) ) == iAmt )
 	{
 #ifdef LOG_OPERATIONS
-		LogBinary( buffer, iAmt );
+		//LogBinary( buffer, iAmt );
 #endif
 		return SQLITE_OK;
 	}
@@ -114,7 +124,7 @@ int xWrite(sqlite3_file*file, const void*buffer, int iAmt, sqlite3_int64 iOfst)
 	size_t actual;
 #ifdef LOG_OPERATIONS
 	lprintf( "Write %s %d at %d", my_file->filename, iAmt, iOfst );
-	LogBinary( buffer, iAmt );
+	//LogBinary( buffer, iAmt );
 #endif
 	{
 		size_t filesize = sack_fsize( my_file->file );
@@ -249,15 +259,25 @@ int xFileControl(sqlite3_file*file, int op, void *pArg)
 {
 	struct my_file_data *my_file = (struct my_file_data*)file;
 #ifdef LOG_OPERATIONS
-	lprintf( WIDE("file control op: %d %p"), op, pArg );
+	lprintf( WIDE("file %s control op: %d %p"), my_file->filename, op, pArg );
 #endif
 	switch( op )
 	{
+	case SQLITE_FCNTL_HAS_MOVED:
+		{
+			int *val = (int*)pArg;
+			(*val)= 0;
+		}
+		break;
 	case SQLITE_FCNTL_LOCKSTATE:
 	case SQLITE_GET_LOCKPROXYFILE:
 	case SQLITE_SET_LOCKPROXYFILE:
 	case SQLITE_LAST_ERRNO:
+		break;
 	case SQLITE_FCNTL_SIZE_HINT:
+		//lprintf( "hint is %d", *(int*)pArg );
+		// might preallocate the file here...
+		break;
 	case SQLITE_FCNTL_CHUNK_SIZE:
 	case SQLITE_FCNTL_FILE_POINTER:
 	case SQLITE_FCNTL_SYNC_OMITTED:
@@ -266,7 +286,16 @@ int xFileControl(sqlite3_file*file, int op, void *pArg)
 	case SQLITE_FCNTL_OVERWRITE:
 	case SQLITE_FCNTL_VFSNAME:
 	case SQLITE_FCNTL_POWERSAFE_OVERWRITE:
+		break;
 	case SQLITE_FCNTL_PRAGMA:
+		{
+			char **files = (char**)pArg;
+			char *name = files[3];
+			
+			files[0] = sqlite3_mprintf( "%s", files[2] );
+			//xOpen( my_file->
+		}
+		break;
 	case SQLITE_FCNTL_BUSYHANDLER:
 	case SQLITE_FCNTL_TEMPFILENAME:
 		break;
@@ -341,10 +370,18 @@ int xOpen(sqlite3_vfs* vfs, const char *zName, sqlite3_file*file,
 {
 	struct my_sqlite3_vfs *my_vfs = (struct my_sqlite3_vfs *)vfs;
 	struct my_file_data *my_file = (struct my_file_data*)file;
+	static int temp_id;
+	char buf[32];
 	file->pMethods = &my_methods;
 	my_file->mount = my_vfs->mount;
 	if( zName == NULL )
-		zName = "sql.tmp";
+	{
+		snprintf( buf, 32, "sql-%d.tmp", temp_id++ );
+		my_file->temp = TRUE;
+		zName = buf;
+	}
+	else
+		my_file->temp = FALSE;
 #ifdef LOG_OPERATIONS
 	lprintf( "Open file: %s (vfs:%s)", zName, vfs->zName );
 #endif
@@ -395,12 +432,12 @@ int xDelete(sqlite3_vfs*vfs, const char *zName, int syncDir)
 {
 	struct my_sqlite3_vfs *my_vfs = (struct my_sqlite3_vfs *)vfs;
 #ifdef LOG_OPERATIONS
-	lprintf( "delete on %s (%s:%p)", zName, vfs->zName, my_vfs->fsi );
+	lprintf( "delete on %s (%s:%p)", zName, vfs->zName, my_vfs->mount );
 #endif
 #ifdef UNICODE
-		sack_unlink( 0, (TEXTSTR)zName );
+		sack_unlinkEx( 0, (TEXTSTR)zName, my_vfs->mount );
 #else
-		sack_unlink( 0, zName );
+		sack_unlinkEx( 0, zName, my_vfs->mount );
 #endif
 	return SQLITE_OK;
 }
@@ -436,7 +473,7 @@ static int xAccess(
   */
 #ifdef LOG_OPERATIONS
 	//lprintf( "Open file: %s (vfs:%s)", zName, vfs->zName );
-	lprintf( "Access on %s %s", zPath, pVfs->zName );
+	//lprintf( "Access on %s %s", zPath, pVfs->zName );
 #endif
 	if( flags==SQLITE_ACCESS_READWRITE ) eAccess = R_OK|W_OK;
 	if( flags==SQLITE_ACCESS_READ )			eAccess = R_OK;

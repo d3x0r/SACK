@@ -19,7 +19,7 @@ void CPROC AddItem( PTRSZVAL psvEdit, PCONTROL pc )
 	TEXTCHAR msg[256];
 	GetControlText( edit, msg, 256 );
 	AddListItem( GetNearControl( pc, LST_FIRST ), msg );
-	SetCommonText( pcText, msg );
+	SetControlText( pcText, msg );
 }
 
 

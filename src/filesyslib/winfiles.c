@@ -23,7 +23,7 @@ struct file{
 	PLIST handles; // HANDLE 's
 	PLIST files; // FILE *'s
 	INDEX group;
-	struct file_system_interface *fsi;
+	struct file_system_mounted_interface *mount;
 };
 
 struct file_interface_tracker
@@ -649,10 +649,10 @@ LOGICAL sack_set_eof ( HANDLE file_handle )
 	file = FindFileByFILE( (FILE*)file_handle );
 	if( file )
 	{
-		if( file->fsi )
+		if( file->mount )
 		{
-			file->fsi->truncate( (void*)file_handle );
-			lprintf( WIDE("result is %d"), file->fsi->size( (void*)file_handle ) );
+			file->mount->fsi->truncate( (void*)file_handle );
+			lprintf( WIDE("result is %d"), file->mount->fsi->size( (void*)file_handle ) );
 		}
 		else
 		{
@@ -682,10 +682,10 @@ int sack_ftruncate( FILE *file_file )
 	file = FindFileByFILE( file_file );
 	if( file )
 	{
-		if( file->fsi )
+		if( file->mount && file->mount->fsi )
 		{
-			file->fsi->truncate( (void*)file_file );
-			lprintf( WIDE("result is %d"), file->fsi->size( (void*)file_file ) );
+			file->mount->fsi->truncate( (void*)file_file );
+			lprintf( WIDE("result is %d"), file->mount->fsi->size( (void*)file_file ) );
 		}
 		else
 		{
@@ -937,27 +937,27 @@ int sack_rmdir( INDEX group, CTEXTSTR filename )
 #undef open
 #undef fopen
 
-FILE * sack_fopenEx( INDEX group, CTEXTSTR filename, CTEXTSTR opts, struct file_system_mounted_interface *fsi )
+FILE * sack_fopenEx( INDEX group, CTEXTSTR filename, CTEXTSTR opts, struct file_system_mounted_interface *mount )
 {
 	FILE *handle = NULL;
 	struct file *file;
 	INDEX idx;
 	LOGICAL memalloc = FALSE;
-	LOGICAL single_mount = (fsi != NULL );
-	struct file_system_mounted_interface *mount;
+	LOGICAL single_mount = (mount != NULL );
+	struct file_system_mounted_interface *test_mount;
 	LocalInit();
 	EnterCriticalSec( &l.cs_files );
 
-	if( !fsi )
-		fsi = l.mounted_file_systems;
+	if( !mount )
+		mount = l.mounted_file_systems;
 
 	if( !strchr( opts, 'r' ) )
-		while( fsi )
+		while( mount )
 		{  // skip roms...
-			lprintf( "check mount %p %d", fsi, fsi->writeable );
-			if( fsi->writeable )
+			lprintf( "check mount %p %d", mount, mount->writeable );
+			if( mount->writeable )
 				break;
-			fsi = fsi->next;
+			mount = mount->next;
 		}
 
 	//lprintf( "open %s %p %s (%d)", filename, fsi, opts, fsi?fsi->writeable:1 );
@@ -965,7 +965,7 @@ FILE * sack_fopenEx( INDEX group, CTEXTSTR filename, CTEXTSTR opts, struct file_
 	{
 		if( ( file->group == group )
 			&& ( StrCmp( file->name, filename ) == 0 ) 
-			&& ( file->fsi == (fsi?fsi->fsi:NULL) ) )
+			&& ( file->mount == mount ) )
 		{
 			break;
 		}
@@ -982,8 +982,8 @@ FILE * sack_fopenEx( INDEX group, CTEXTSTR filename, CTEXTSTR opts, struct file_
 		file->handles = NULL;
 		file->files = NULL;
 		file->name = StrDup( filename );
-		file->fsi = fsi?fsi->fsi:NULL;
-		if( !file->fsi && !IsAbsolutePath( filename ) )
+		file->mount = mount;
+		if( !file->mount->fsi && !IsAbsolutePath( filename ) )
 		{
 			tmpname = ExpandPath( filename );
 			file->fullname = PrependBasePath( group, filegroup, tmpname );
@@ -991,7 +991,7 @@ FILE * sack_fopenEx( INDEX group, CTEXTSTR filename, CTEXTSTR opts, struct file_
 		}
 		else
 		{
-			if( fsi && group == 0 )
+			if( mount && group == 0 )
 			{
 				file->fullname = file->name;
 				//lprintf( "full is %s", file->fullname );
@@ -1022,45 +1022,45 @@ FILE * sack_fopenEx( INDEX group, CTEXTSTR filename, CTEXTSTR opts, struct file_
 	if( l.flags.bLogOpenClose )
 		lprintf( WIDE( "Open File: [%s]" ), file->fullname );
 
-	if( fsi && fsi->fsi )
+	if( mount && mount->fsi )
 	{
 		if( strchr( opts, 'r' ) )
 		{
-			struct file_system_mounted_interface *mount = fsi;
-			while( !handle && mount )
+			struct file_system_mounted_interface *test_mount = mount;
+			while( !handle && test_mount )
 			{
-				if( mount->fsi )
+				if( test_mount->fsi )
 				{
-					file->fsi = mount?mount->fsi:NULL;
-					if( mount->fsi->exists( mount->psvInstance, file->fullname ) )
-						handle = (FILE*)mount->fsi->open( mount->psvInstance, file->fullname );
+					file->mount = test_mount;
+					if( test_mount->fsi->exists( test_mount->psvInstance, file->fullname ) )
+						handle = (FILE*)test_mount->fsi->open( test_mount->psvInstance, file->fullname );
 					else if( single_mount )
 						return NULL;
 				}
 				else
 					goto default_fopen;
-				mount = mount->next;
+				test_mount = test_mount->next;
 			}
 		}
 		else
 		{
-			struct file_system_mounted_interface *mount = fsi;
+			struct file_system_mounted_interface *test_mount = mount;
 			//lprintf( "full is %s", file->fullname );
-			while( !handle && mount )
+			while( !handle && test_mount )
 			{
-				file->fsi = mount?mount->fsi:NULL;
-				if( mount->fsi && mount->writeable )
-					handle = (FILE*)mount->fsi->open( mount->psvInstance, file->fullname );
+				file->mount = test_mount;
+				if( test_mount->fsi && test_mount->writeable )
+					handle = (FILE*)test_mount->fsi->open( test_mount->psvInstance, file->fullname );
 				else
 					goto default_fopen;
-				mount = mount->next;
+				test_mount = test_mount->next;
 			}
 		}
 	}
 	if( !handle )
 	{
 default_fopen:
-		file->fsi = NULL;
+		file->mount = NULL;
 
 #ifdef __LINUX__
 #  ifdef UNICODE
@@ -1112,19 +1112,21 @@ FILE*  sack_fsopenEx( INDEX group
 					 , CTEXTSTR filename
 					 , CTEXTSTR opts
 					 , int share_mode
-					 , struct file_system_mounted_interface *fsi )
+					 , struct file_system_mounted_interface *mount )
 {
 	FILE *handle = NULL;
 	struct file *file;
 	INDEX idx;
-	LOGICAL single_mount = ( fsi != NULL );
+	LOGICAL single_mount = ( mount != NULL );
 	LocalInit();
 	EnterCriticalSec( &l.cs_files );
-	if( !fsi )
-		fsi = l.mounted_file_systems;
+	if( !mount )
+		mount = l.mounted_file_systems;
 	LIST_FORALL( l.files, idx, struct file *, file )
 	{
-		if( StrCmp( file->name, filename ) == 0 )
+		if( ( file->group == group )
+			&& ( StrCmp( file->name, filename ) == 0 ) 
+			&& ( file->mount == mount ) )
 		{
 			break;
 		}
@@ -1138,8 +1140,8 @@ FILE*  sack_fsopenEx( INDEX group
 		file->files = NULL;
 		file->name = StrDup( filename );
 		file->group = group;
-		file->fsi = fsi?fsi->fsi:NULL;
-		if( !fsi )
+		file->mount = mount;
+		if( !mount || !mount->fsi )
 			file->fullname = PrependBasePath( group, filegroup, filename );
 		else
 			file->fullname = StrDup( filename );
@@ -1147,18 +1149,18 @@ FILE*  sack_fsopenEx( INDEX group
 		AddLink( &l.files,file );
 		LeaveCriticalSec( &l.cs_files );
 	}
-	if( fsi )
+	if( mount )
 	{
-			struct file_system_mounted_interface *mount = fsi;
-			while( !handle && mount && mount->fsi )
+			struct file_system_mounted_interface *test_mount = mount;
+			while( !handle && test_mount && test_mount->fsi )
 			{
-				file->fsi = mount->fsi;
-				handle = (FILE*)mount->fsi->open( mount->psvInstance, file->fullname );
+				file->mount = test_mount;
+				handle = (FILE*)test_mount->fsi->open( test_mount->psvInstance, file->fullname );
 				if( !handle && single_mount )
 				{
 					return NULL;
 				}
-				mount = mount->next;
+				test_mount = test_mount->next;
 			}
 			//file->fsi = mount?mount->fsi:NULL;
 	}
@@ -1215,8 +1217,8 @@ size_t sack_fsize ( FILE *file_file )
 {
 	struct file *file;
 	file = FindFileByFILE( file_file );
-	if( file && file->fsi )
-		return file->fsi->size( file_file );
+	if( file && file->mount && file->mount->fsi )
+		return file->mount->fsi->size( file_file );
 	{
 		size_t here = ftell( file_file );
 		size_t length;
@@ -1231,8 +1233,8 @@ size_t sack_ftell ( FILE *file_file )
 {
 	struct file *file;
 	file = FindFileByFILE( file_file );
-	if( file && file->fsi )
-		return file->fsi->seek( file_file, 0, SEEK_CUR );
+	if( file && file->mount && file->mount->fsi )
+		return file->mount->fsi->seek( file_file, 0, SEEK_CUR );
 	return ftell( file_file );
 }
 
@@ -1240,9 +1242,9 @@ size_t  sack_fseek ( FILE *file_file, size_t pos, int whence )
 {
 	struct file *file;
 	file = FindFileByFILE( file_file );
-	if( file && file->fsi )
+	if( file && file->mount && file->mount->fsi )
 	{
-		return file->fsi->seek( file_file, pos, whence );
+		return file->mount->fsi->seek( file_file, pos, whence );
 	}
 	if( fseek( file_file, pos, whence ) )
 		return -1;
@@ -1254,9 +1256,9 @@ int  sack_fflush ( FILE *file_file )
 {
 	struct file *file;
 	file = FindFileByFILE( file_file );
-	if( file && file->fsi )
+	if( file && file->mount && file->mount->fsi )
 	{
-		return file->fsi->flush( file_file );
+		return file->mount->fsi->flush( file_file );
 		//DeleteLink( &file->files, file_file );
 		//file->fsi->close( file_file );
 		//file_file = (FILE*)file->fsi->open( file->fullname );
@@ -1285,34 +1287,34 @@ int  sack_fclose ( FILE *file_file )
 	Deallocate( TEXTCHAR*, file );
 	DeleteLink( &files, file );
 	*/
-	if( file->fsi )
-		return file->fsi->close( file_file );
+	if( file->mount && file->mount->fsi )
+		return file->mount->fsi->close( file_file );
 	return fclose( file_file );
 }
  size_t  sack_fread ( POINTER buffer, size_t size, int count,FILE *file_file )
 {
 	struct file *file;
 	file = FindFileByFILE( file_file );
-	if( file->fsi )
-		return file->fsi->read( file_file, (char*)buffer, size * count );
+	if( file->mount && file->mount->fsi )
+		return file->mount->fsi->read( file_file, (char*)buffer, size * count );
 	return fread( buffer, size, count, file_file );
 }
  size_t  sack_fwrite ( CPOINTER buffer, size_t size, int count,FILE *file_file )
 {
 	struct file *file;
 	file = FindFileByFILE( file_file );
-	if( file && file->fsi )
+	if( file && file->mount && file->mount->fsi )
 	{
 		size_t result;
-		if( !file->fsi->copy_write_buffer || file->fsi->copy_write_buffer() )
+		if( !file->mount->fsi->copy_write_buffer || file->mount->fsi->copy_write_buffer() )
 		{
 			POINTER dupbuf = malloc( size*count + 3 );
 			memcpy( dupbuf, buffer, size*count );
-			result = file->fsi->write( file_file, (const char*)dupbuf, size * count );
+			result = file->mount->fsi->write( file_file, (const char*)dupbuf, size * count );
 			Deallocate( POINTER, dupbuf );
 		}
 		else
-			result = file->fsi->write( file_file, (const char*)buffer, size * count );
+			result = file->mount->fsi->write( file_file, (const char*)buffer, size * count );
 		return result;
 	}
 	return fwrite( (POINTER)buffer, size, count, file_file );
@@ -1331,7 +1333,7 @@ TEXTSTR sack_fgets ( TEXTSTR buffer, size_t size,FILE *file_file )
 #else
 	struct file *file;
 	file = FindFileByFILE( file_file );
-	if( file && file->fsi )
+	if( file && file->mount && file->mount->fsi )
 	{
 		int n;
 		char *output = buffer;
@@ -1339,7 +1341,7 @@ TEXTSTR sack_fgets ( TEXTSTR buffer, size_t size,FILE *file_file )
 		buffer[size] = 0;
 		for( n = 0; n < size; n++ )
 		{
-			if( file->fsi->read( file_file, output, 1 ) )
+			if( file->mount->fsi->read( file_file, output, 1 ) )
 			{
 				if( output[0] == '\n' )
 				{
@@ -1529,6 +1531,7 @@ void sack_register_filesystem_interface( CTEXTSTR name, struct file_system_inter
 	struct file_interface_tracker *fit = New( struct file_interface_tracker );
 	fit->name = StrDup( name );
 	fit->fsi = fsi;
+	LocalInit();
 	AddLink( &l.file_system_interface, fit );
 }
 
@@ -1634,13 +1637,13 @@ int sack_vfprintf( FILE *file_handle, const char *format, va_list args )
 	struct file *file;
 	file = FindFileByFILE( (FILE*)file_handle );
 
-	if( file->fsi )
+	if( file->mount && file->mount->fsi )
 	{
 		int r;
 		pvt = VarTextCreate();
 		vvtprintf( pvt, format, args );
 		output = VarTextGet( pvt );
-		r = file->fsi->write( file_handle, GetText( output ), GetTextSize( output ) );
+		r = file->mount->fsi->write( file_handle, GetText( output ), GetTextSize( output ) );
 		LineRelease( output );
 		return r;
 	}	
@@ -1657,8 +1660,12 @@ int sack_fprintf( FILE *file, const char *format, ... )
 
 int sack_fputs( const char *format,FILE *file )
 {
-	size_t len = strlen( format );
-	return sack_fwrite( format, 1, len, file );
+	if( format )
+	{
+		size_t len = strlen( format );
+		return sack_fwrite( format, 1, len, file );
+	}
+	return 0;
 }
 
 

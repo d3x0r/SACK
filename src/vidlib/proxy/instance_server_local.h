@@ -59,7 +59,7 @@ struct server_socket_state
 
 
 #if HAS_TLS
-ThreadLocal struct my_network_state_info {
+DeclareThreadLocal struct my_network_state_info {
 	struct server_socket_state *app;
 	struct {
 		BIT_FIELD during_connect : 1;
