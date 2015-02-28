@@ -21,6 +21,8 @@ static void CPROC _Key_KeystrokePaste( PCONSOLE_INFO pmdp )
       pmdp->KeystrokePaste( pmdp );
 }
 
+
+
 DECLTEXT( KeyStroke, WIDE("\x7f") ); // DECLTEXT implies 'static'
 
 #if defined( GCC ) || defined( __LINUX__ )
@@ -961,7 +963,7 @@ PSIKEYDEFINE ConsoleKeyDefs[] = { NONAMES
 */
 //----------------------------------------------------------------------------
 
-int CommandKeyUp( PUSER_INPUT_BUFFER pci )
+int CommandKeyUp( void * list, PUSER_INPUT_BUFFER pci )
 {
    RecallUserInput( pci, TRUE );
    return UPDATE_COMMAND;
@@ -969,7 +971,7 @@ int CommandKeyUp( PUSER_INPUT_BUFFER pci )
 
 //----------------------------------------------------------------------------
 
-int HandleKeyDown( PUSER_INPUT_BUFFER pci )
+int HandleKeyDown( void * list, PUSER_INPUT_BUFFER pci )
 {
    RecallUserInput( pci, FALSE );
    return UPDATE_COMMAND;
@@ -977,31 +979,31 @@ int HandleKeyDown( PUSER_INPUT_BUFFER pci )
 
 //----------------------------------------------------------------------------
 
-int KeyHome( PUSER_INPUT_BUFFER pci )
+int KeyHome( void * list, PUSER_INPUT_BUFFER pci )
 {
 	SetUserInputPosition( pci, 0, COMMAND_POS_SET );
-   return UPDATE_COMMAND; 
+	return UPDATE_COMMAND; 
 }
 
 //----------------------------------------------------------------------------
 
-int KeyEndCmd( PUSER_INPUT_BUFFER pci )
+int KeyEndCmd( PTRSZVAL list, PUSER_INPUT_BUFFER pci )
 {
 	SetUserInputPosition( pci, -1, COMMAND_POS_SET );
-   return UPDATE_COMMAND;
+	return UPDATE_COMMAND;
 }
 
 //----------------------------------------------------------------------------
 
-int KeyInsert( PUSER_INPUT_BUFFER pci )
+int KeyInsert( void * list, PUSER_INPUT_BUFFER pci )
 {
 	SetUserInputInsert( pci, -1 );
-   return UPDATE_COMMAND;
+	return UPDATE_COMMAND;
 }
 
 //----------------------------------------------------------------------------
 
-int KeyRight( PUSER_INPUT_BUFFER pci )
+int KeyRight( void * list, PUSER_INPUT_BUFFER pci )
 {
 	SetUserInputPosition( pci, 1, COMMAND_POS_CUR );
 	return UPDATE_COMMAND;
@@ -1009,7 +1011,7 @@ int KeyRight( PUSER_INPUT_BUFFER pci )
 
 //----------------------------------------------------------------------------
 
-int KeyLeft( PUSER_INPUT_BUFFER pci )
+int KeyLeft( void * list, PUSER_INPUT_BUFFER pci )
 {
 	SetUserInputPosition( pci, -1, COMMAND_POS_CUR );
 	return UPDATE_COMMAND;
@@ -1496,7 +1498,7 @@ void PSI_KeyPressHandler( PCONSOLE_INFO pdp
 			result = UPDATE_NOTHING; // already taken care of?!
 			break;
 		case COMMANDKEY:
-			result = ConsoleKeyDefs[key_index].op[mod].data.CommandKey( pdp->
+			result = ConsoleKeyDefs[key_index].op[mod].data.CommandKey( (PTRSZVAL)pdp, pdp->
 #ifdef __DEKWARE_PLUGIN__
 																				 common.
 #endif

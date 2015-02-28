@@ -584,8 +584,8 @@ void CPROC cInvertPixelsT0( PCDATA po, PCDATA  pi
 	//lprintf( WIDE("Doing image (%d,%d)-(%d,%d) (%d,%d)-(%d,%d)"), xs, ys, ws, hs, xd, yd, wd, hd );
 	//oo = 4*(pifDest->pwidth - ws);	  // w is how much we can copy...
 	//oi = 4*(pifSrc->pwidth - ws); // adding remaining width...
-	while( LockedExchange( &lock, 1 ) )
-		Relinquish();
+	//while( LockedExchange( &lock, 1 ) )
+	//	Relinquish();
 	{
 		switch( method )
 		{
@@ -656,7 +656,7 @@ void CPROC cInvertPixelsT0( PCDATA po, PCDATA  pi
 			break;
 		}
 	}
-	lock = 0;
+	//lock = 0;
 	//lprintf( "Image done.." );
 }
 // copy all of pifSrc to the destination - placing the upper left

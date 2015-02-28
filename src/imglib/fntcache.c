@@ -587,7 +587,7 @@ int OpenFontFile( CTEXTSTR name, POINTER *font_memory, FT_Face *face, int face_i
 #else
    lprintf( WIDE("!!!!!!!! PSI SHOULD NOT BE USING OPENFONTFILE !!!!!!!!!!!!") );
 #endif
-	if( *font_memory )
+	if( *font_memory && size < 0xd00000 )
 	{
 		POINTER p = NewArray( _8, size );
 		MemCpy( p, (*font_memory), size );
@@ -682,7 +682,9 @@ void CPROC ListFontFile( PTRSZVAL psv, CTEXTSTR name, int flags )
 	face_idx = 0;
 	do
 	{
-		error = OpenFontFile( name, NULL, &face, face_idx, FALSE );
+		POINTER font_memory = NULL;
+		error = OpenFontFile( name, &font_memory, &face, face_idx, FALSE );
+		Deallocate( POINTER, font_memory );
 		if( error == FT_Err_Unknown_File_Format )
 		{
 			//Log1( WIDE("Unsupported font: %s"), name );
@@ -744,7 +746,7 @@ void CPROC ListFontFile( PTRSZVAL psv, CTEXTSTR name, int flags )
 			pfs[3]->flags.mono = ( ( face->face_flags & FT_FACE_FLAG_FIXED_WIDTH ) != 0 );
 			pfs[3]->flags.italic = 1;
 			pfs[3]->flags.bold = 1;
-         Deallocate( TEXTSTR, style_name );
+			Deallocate( TEXTSTR, style_name );
 		}
 
 		if( face->face_flags & FT_FACE_FLAG_FIXED_SIZES &&

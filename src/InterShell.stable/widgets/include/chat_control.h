@@ -40,6 +40,7 @@ CHAT_CONTROL_PROC( PSI_CONTROL, ImageViewer_ShowImage )( Image image );
 
 CHAT_CONTROL_PROC( void, Chat_GetCurrentTime )( PCHAT_TIME timebuf );
 CHAT_CONTROL_PROC( void, Chat_ClearOldMessages )( PSI_CONTROL pc, int delete_time );
+CHAT_CONTROL_PROC( void, Chat_TypePastedInput )( PSI_CONTROL pc, PTEXT segment );
 
 
 #endif

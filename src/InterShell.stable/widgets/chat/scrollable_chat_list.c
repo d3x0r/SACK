@@ -661,7 +661,8 @@ static void SetupDefaultConfig( void )
 	{
 		l.decoration_name = WIDE("chat-decoration.png");
 		l.decoration = LoadImageFile( l.decoration_name );
-
+		l.button_pressed = LoadImageFile( "button_Down.png" );
+		l.button_normal = LoadImageFile( "button_Up.png" );
 		l.time_pad = 1;
 		l.side_pad = 5;
 		l.sent.text_color = BASE_COLOR_BLACK;
@@ -934,51 +935,51 @@ void Chat_EnqueImage( PSI_CONTROL pc, LOGICAL sent
 	}
 }
 
-void MeasureFrameWidth( Image window, S_32 *left, S_32 *right, LOGICAL received, LOGICAL complete )
+void MeasureFrameWidth( Image window, S_32 *left, S_32 *right, LOGICAL received, LOGICAL complete, int inset )
 {
 	if( received )
 	{
 		if( !complete )
 		{
 			(*left) = l.side_pad; // center? what is 2?
-			(*right) = window->width - l.side_pad;
+			(*right) = window->width - ( l.side_pad + inset );
 		}
 		else if( l.flags.received_justification == 0 )
 		{
 			(*left) = l.side_pad;
-			(*right) = window->width - ( l.side_pad + l.received.arrow_w ) - l.received.arrow_x_offset;
+			(*right) = window->width - ( l.side_pad + l.received.arrow_w + inset ) - l.received.arrow_x_offset;
 		}
 		else if( l.flags.received_justification == 1 )
 		{
 			(*left) = l.side_pad + l.received.arrow_w - l.received.arrow_x_offset;
-			(*right) = window->width - l.side_pad;
+			(*right) = window->width - ( l.side_pad + inset );
 		}
 		else if( l.flags.received_justification == 2 )
 		{
 			(*left) = 0; // center? what is 2?
-			(*right) = window->width;
+			(*right) = window->width - inset;
 		}
 	}
 	else
 	{
 		if( !complete )
 		{
-			(*left) = l.side_pad; // center? what is 2?
+			(*left) = l.side_pad + inset; // center? what is 2?
 			(*right) = window->width - l.side_pad;
 		}
 		else if( l.flags.sent_justification == 0 )
 		{
-			(*left) = l.side_pad - l.sent.arrow_x_offset;
+			(*left) = l.side_pad - l.sent.arrow_x_offset + inset;
 			(*right) = window->width - ( l.side_pad + l.sent.arrow_w ) - l.sent.arrow_x_offset;
 		}
 		else if( l.flags.sent_justification == 1 )
 		{
-			(*left) = l.side_pad + l.sent.arrow_w - l.sent.arrow_x_offset;
+			(*left) = l.side_pad + l.sent.arrow_w - l.sent.arrow_x_offset + inset;
 			(*right) = window->width - l.side_pad - l.sent.arrow_x_offset;
 		}
 		else if( l.flags.sent_justification == 2 )
 		{
-			(*left) = 0; // center? what is 2?
+			(*left) =  + inset; // center? what is 2?
 			(*right) = window->width;
 		}
 	}
@@ -991,15 +992,14 @@ _32 DrawMessageFrame( Image window, int y, int height, int inset, LOGICAL receiv
 	height +=  l.sent.BorderSegment[SEGMENT_TOP]->height + l.sent.BorderSegment[SEGMENT_BOTTOM]->height;
 	y -= l.sent.BorderSegment[SEGMENT_TOP]->height + l.sent.BorderSegment[SEGMENT_BOTTOM]->height;
 	//lprintf( WIDE("Draw at %d   %d  bias %d") , y, height, inset );
-	MeasureFrameWidth( window, &x_offset_left, &x_offset_right, received, complete );
+	MeasureFrameWidth( window, &x_offset_left, &x_offset_right, received, complete, inset );
 	if( received )
 	{
 		BlotScaledImageSizedToAlpha( window, l.received.BorderSegment[SEGMENT_TOP]
 											, x_offset_left + l.received.BorderSegment[SEGMENT_LEFT]->width
 											, y
 											, ( x_offset_right - x_offset_left ) - ( l.received.BorderSegment[SEGMENT_LEFT]->width
-																	 + l.received.BorderSegment[SEGMENT_RIGHT]->width
-																	 + inset )
+																	 + l.received.BorderSegment[SEGMENT_RIGHT]->width )
 											, l.received.BorderSegment[SEGMENT_TOP]->height
 											, ALPHA_TRANSPARENT );
 		BlotScaledImageSizedToAlpha( window, l.received.BorderSegment[SEGMENT_CENTER]
@@ -1007,7 +1007,6 @@ _32 DrawMessageFrame( Image window, int y, int height, int inset, LOGICAL receiv
 											, y + l.received.BorderSegment[SEGMENT_TOP]->height
 											, ( x_offset_right - x_offset_left ) - ( l.received.BorderSegment[SEGMENT_LEFT]->width
 																	 + l.received.BorderSegment[SEGMENT_RIGHT]->width
-																	 + inset
 																	 )
 											, height - ( l.received.BorderSegment[SEGMENT_TOP]->height
 															+ l.received.BorderSegment[SEGMENT_BOTTOM]->height )
@@ -1016,8 +1015,7 @@ _32 DrawMessageFrame( Image window, int y, int height, int inset, LOGICAL receiv
 											, x_offset_left + l.received.BorderSegment[SEGMENT_LEFT]->width
 											, y + height - l.received.BorderSegment[SEGMENT_BOTTOM]->height
 											, ( x_offset_right - x_offset_left ) - ( l.received.BorderSegment[SEGMENT_LEFT]->width
-																	 + l.received.BorderSegment[SEGMENT_RIGHT]->width
-																	 + inset)
+																	 + l.received.BorderSegment[SEGMENT_RIGHT]->width)
 											, l.received.BorderSegment[SEGMENT_TOP]->height
 											, ALPHA_TRANSPARENT );
 		BlotScaledImageSizedToAlpha( window, l.received.BorderSegment[SEGMENT_LEFT]
@@ -1027,7 +1025,7 @@ _32 DrawMessageFrame( Image window, int y, int height, int inset, LOGICAL receiv
 											, height - ( l.received.BorderSegment[SEGMENT_TOP]->height + l.received.BorderSegment[SEGMENT_BOTTOM]->height )
 											, ALPHA_TRANSPARENT );
 		BlotScaledImageSizedToAlpha( window, l.received.BorderSegment[SEGMENT_RIGHT]
-											, (x_offset_right )-( l.received.BorderSegment[SEGMENT_RIGHT]->width+ inset )
+											, (x_offset_right )-( l.received.BorderSegment[SEGMENT_RIGHT]->width )
 											, y + l.received.BorderSegment[SEGMENT_TOP]->height
 											, l.received.BorderSegment[SEGMENT_RIGHT]->width
 											, height - ( l.received.BorderSegment[SEGMENT_TOP]->height
@@ -1037,14 +1035,14 @@ _32 DrawMessageFrame( Image window, int y, int height, int inset, LOGICAL receiv
 						  , x_offset_left, y
 						  , ALPHA_TRANSPARENT );
 		BlotImageAlpha( window, l.received.BorderSegment[SEGMENT_TOP_RIGHT]
-							  , x_offset_right - ( l.received.BorderSegment[SEGMENT_RIGHT]->width+ inset )
+							  , x_offset_right - ( l.received.BorderSegment[SEGMENT_RIGHT]->width )
 							  , y
 						  , ALPHA_TRANSPARENT );
 		BlotImageAlpha( window, l.received.BorderSegment[SEGMENT_BOTTOM_LEFT]
 						  , x_offset_left , y + height - l.received.BorderSegment[SEGMENT_BOTTOM]->height
 						  , ALPHA_TRANSPARENT );
 		BlotImageAlpha( window, l.received.BorderSegment[SEGMENT_BOTTOM_RIGHT]
-						  , x_offset_right - ( l.received.BorderSegment[SEGMENT_RIGHT]->width+ inset )
+						  , x_offset_right - ( l.received.BorderSegment[SEGMENT_RIGHT]->width )
 						  , y + height - l.received.BorderSegment[SEGMENT_BOTTOM]->height
 						  , ALPHA_TRANSPARENT );
 		if( complete )
@@ -1065,24 +1063,22 @@ _32 DrawMessageFrame( Image window, int y, int height, int inset, LOGICAL receiv
 	else
 	{
 		BlotScaledImageSizedToAlpha( window, l.sent.BorderSegment[SEGMENT_TOP]
-											, x_offset_left + l.sent.BorderSegment[SEGMENT_LEFT]->width+ inset
+											, x_offset_left + l.sent.BorderSegment[SEGMENT_LEFT]->width
 												, y
 											, ( x_offset_right - x_offset_left ) - ( l.sent.BorderSegment[SEGMENT_LEFT]->width
-																	 + l.sent.BorderSegment[SEGMENT_RIGHT]->width 
-																	 + inset) , l.sent.BorderSegment[SEGMENT_TOP]->height
+																	 + l.sent.BorderSegment[SEGMENT_RIGHT]->width ) , l.sent.BorderSegment[SEGMENT_TOP]->height
 											, ALPHA_TRANSPARENT );
 		BlotScaledImageSizedToAlpha( window, l.sent.BorderSegment[SEGMENT_BOTTOM]
-											, x_offset_left + l.sent.BorderSegment[SEGMENT_LEFT]->width+ inset
+											, x_offset_left + l.sent.BorderSegment[SEGMENT_LEFT]->width
 												, y + height - l.sent.BorderSegment[SEGMENT_BOTTOM]->height
 											, x_offset_right - x_offset_left -( 
 																	  l.sent.BorderSegment[SEGMENT_LEFT]->width
-																	 + l.sent.BorderSegment[SEGMENT_RIGHT]->width
-																	 + inset)
+																	 + l.sent.BorderSegment[SEGMENT_RIGHT]->width)
 											, l.sent.BorderSegment[SEGMENT_TOP]->height
 											, ALPHA_TRANSPARENT );
 		if( height - ( l.sent.BorderSegment[SEGMENT_TOP]->height + l.sent.BorderSegment[SEGMENT_BOTTOM]->height ) )
 		BlotScaledImageSizedToAlpha( window, l.sent.BorderSegment[SEGMENT_LEFT]
-											, x_offset_left+ inset
+											, x_offset_left
 											, y + l.sent.BorderSegment[SEGMENT_TOP]->height
 											, l.sent.BorderSegment[SEGMENT_LEFT]->width
 											, height - ( l.sent.BorderSegment[SEGMENT_TOP]->height + l.sent.BorderSegment[SEGMENT_BOTTOM]->height )
@@ -1096,22 +1092,21 @@ _32 DrawMessageFrame( Image window, int y, int height, int inset, LOGICAL receiv
 											, ALPHA_TRANSPARENT );
 		if( height - ( l.sent.BorderSegment[SEGMENT_TOP]->height + l.sent.BorderSegment[SEGMENT_BOTTOM]->height ) )
 		BlotScaledImageSizedToAlpha( window, l.sent.BorderSegment[SEGMENT_CENTER]
-											, x_offset_left + l.sent.BorderSegment[SEGMENT_LEFT]->width+ inset
+											, x_offset_left + l.sent.BorderSegment[SEGMENT_LEFT]->width
 											, y + l.sent.BorderSegment[SEGMENT_TOP]->height
 											, ( x_offset_right - x_offset_left ) - ( l.sent.BorderSegment[SEGMENT_LEFT]->width
-																	 + l.sent.BorderSegment[SEGMENT_RIGHT]->width
-																	 + inset)
+																	 + l.sent.BorderSegment[SEGMENT_RIGHT]->width)
 											, height - ( l.sent.BorderSegment[SEGMENT_TOP]->height
 															+ l.sent.BorderSegment[SEGMENT_BOTTOM]->height )
 											, ALPHA_TRANSPARENT );
 		BlotImageAlpha( window, l.sent.BorderSegment[SEGMENT_TOP_LEFT]
-						  , x_offset_left + inset, y
+						  , x_offset_left, y
 						  , ALPHA_TRANSPARENT );
 		BlotImageAlpha( window, l.sent.BorderSegment[SEGMENT_TOP_RIGHT]
 						  , x_offset_right - ( l.sent.BorderSegment[SEGMENT_RIGHT]->width ), y
 						  , ALPHA_TRANSPARENT );
 		BlotImageAlpha( window, l.sent.BorderSegment[SEGMENT_BOTTOM_LEFT]
-						  , x_offset_left + inset, y + height - l.sent.BorderSegment[SEGMENT_BOTTOM]->height
+						  , x_offset_left, y + height - l.sent.BorderSegment[SEGMENT_BOTTOM]->height
 						  , ALPHA_TRANSPARENT );
 		BlotImageAlpha( window, l.sent.BorderSegment[SEGMENT_BOTTOM_RIGHT]
 						  , x_offset_right - ( l.sent.BorderSegment[SEGMENT_RIGHT]->width )
@@ -1144,7 +1139,7 @@ _32 UpdateContextExtents( Image window, PCHAT_LIST list, PCHAT_CONTEXT context )
 	S_32 x_offset_left, x_offset_right;	
 	S_32 frame_height;
 	S_32 _x_offset_left, _x_offset_right;	
-	MeasureFrameWidth( window, &x_offset_left, &x_offset_right, !context->sent, TRUE );
+	MeasureFrameWidth( window, &x_offset_left, &x_offset_right, !context->sent, TRUE, 0 );
 	_x_offset_left = x_offset_left;
 	_x_offset_right = x_offset_right;
 	if( context->sent )
@@ -1243,7 +1238,7 @@ void DrawAMessage( Image window, PCHAT_LIST list, PCHAT_CONTEXT context, PCHAT_M
 {
 	S_32 x_offset_left, x_offset_right;	
 	S_32 _x_offset_left, _x_offset_right;	
-	MeasureFrameWidth( window, &x_offset_left, &x_offset_right, !context->sent, TRUE );
+	MeasureFrameWidth( window, &x_offset_left, &x_offset_right, !context->sent, TRUE, 0 );
 	_x_offset_left = x_offset_left;
 	_x_offset_right = x_offset_right;
 	if( !msg->seen )
@@ -1464,6 +1459,129 @@ static void OnDisplayConnect( WIDE("@chat resources") )( struct display_app*app,
 	SetupDefaultConfig();	
 }
 
+static void DrawTextEntry( PSI_CONTROL pc, PCHAT_LIST list, LOGICAL update )
+{
+	if( !IsControlHidden( pc ) )
+	{
+		Image window = GetControlSurface( pc );
+		int lines, skip_lines;
+		int region_x, region_y, region_w, region_h;
+		int newfontheight;
+		skip_lines = 0;
+		lines = CountDisplayedLines( list->phb_Input );
+		if( !lines )
+			lines = 1;
+		if( lines > 3 )
+		{
+			skip_lines = lines - 3;
+			lines = 3;
+		}
+		newfontheight = GetFontHeight( list->sent_font );
+		if( !list->nFontHeight )
+			list->nFontHeight = newfontheight;
+		else if( list->nFontHeight != newfontheight 
+		       || ( list->command_height != newfontheight * lines )
+		       )
+		{
+			int cmd_size;
+			list->nFontHeight = newfontheight;
+			list->command_height = list->nFontHeight * lines ;
+			cmd_size = ( list->command_height + l.side_pad * 2 /* above and below input*/ 
+				+ l.sent.BorderSegment[SEGMENT_TOP]->height 
+				+ l.sent.BorderSegment[SEGMENT_BOTTOM]->height );
+			MoveSizeControl( list->send_button, list->message_window->width - 55
+				, list->message_window->height, 55, cmd_size );
+		}
+
+		region_x = 0;
+		region_y = window->height - ( list->command_height + l.side_pad + l.sent.BorderSegment[SEGMENT_BOTTOM]->height  + l.sent.BorderSegment[SEGMENT_TOP]->height);
+		region_w = window->width - 58;
+		region_h = list->command_height + l.sent.BorderSegment[SEGMENT_TOP]->height + l.sent.BorderSegment[SEGMENT_BOTTOM]->height;
+
+		if( update && list->colors.background_color )
+			BlatColor( window, region_x, region_y
+					, region_w, region_h, list->colors.background_color);
+		else
+			BlatColor( window, region_x, region_y
+					, region_w, region_h, GetControlColor( pc, NORMAL ) );
+		
+		DrawMessageFrame( window
+			, window->height - ( list->command_height + l.side_pad ) 
+			, list->command_height
+			, 58
+			, TRUE
+			, FALSE );
+
+		{
+			int nLine;
+			_32 cursor_pos = list->CommandInfo->CollectionIndex;
+			DISPLAYED_LINE *pCurrentLine;
+			PDATALIST *ppCurrentLineInfo;
+			PTEXT cursor_segs;
+			ppCurrentLineInfo = GetDisplayInfo( list->phb_Input );
+			for( cursor_segs = list->CommandInfo->CollectionBuffer; cursor_segs && cursor_segs->Prior; cursor_segs = cursor_segs->Prior )
+				cursor_pos += GetTextSize( cursor_segs->Prior );
+			for( nLine = 0; nLine < 3; nLine ++ )
+			{
+				pCurrentLine = (PDISPLAYED_LINE)GetDataItem( ppCurrentLineInfo, nLine );
+
+				if( nLine == 0 && IsControlFocused( list->pc ) &&
+					( ( !nLine && !pCurrentLine ) ||
+					( pCurrentLine && ( list->CommandInfo->CollectionIndex >= pCurrentLine->nFirstSegOfs &&
+						cursor_pos <= ( pCurrentLine->nFirstSegOfs + pCurrentLine->nToShow ) ) ) ) )
+				{
+					_32 w;
+					if( pCurrentLine )
+						GetStringSizeFontEx( GetText( pCurrentLine->start ) + pCurrentLine->nFirstSegOfs
+							, pCurrentLine->nToShow, &w, NULL, list->sent_font );
+					else
+						w = 0;
+					if( list->flags.bCursorOn )
+						do_vline( window, 2 + l.side_pad + l.sent.BorderSegment[SEGMENT_LEFT]->width + w
+							, window->height - ( l.side_pad + (l.sent.BorderSegment[SEGMENT_BOTTOM]->height ) + list->nFontHeight )
+							, window->height - ( l.side_pad + (l.sent.BorderSegment[SEGMENT_BOTTOM]->height ))
+							, BASE_COLOR_BLACK );
+					else
+						do_vline( window, 2 + l.side_pad + l.sent.BorderSegment[SEGMENT_LEFT]->width + w
+							, window->height - ( l.side_pad + (l.sent.BorderSegment[SEGMENT_BOTTOM]->height ) + list->nFontHeight )
+							, window->height - ( l.side_pad + (l.sent.BorderSegment[SEGMENT_BOTTOM]->height ))
+							, BASE_COLOR_WHITE );
+				}
+				if( !pCurrentLine )
+				{
+		#ifdef DEBUG_HISTORY_RENDER
+					lprintf( WIDE("No such line... %d"), nLine );
+		#endif
+					break;
+				}
+
+				if( pCurrentLine->start )
+				{
+					RECT upd;
+					RenderTextLine( list, window, pCurrentLine, &upd
+						, nLine
+						, list->sent_font
+						, window->height - ( l.side_pad + (l.sent.BorderSegment[SEGMENT_BOTTOM]->height ) + list->nFontHeight )
+						, l.side_pad + l.sent.BorderSegment[SEGMENT_TOP]->height
+						, l.side_pad + l.sent.BorderSegment[SEGMENT_LEFT]->width
+						, FALSE
+						, FALSE );  // cursor; to know where to draw the mark...
+				}
+				if( nLine == 0 )
+				{
+
+				}
+			}
+		}
+		if( update )
+		{
+			//SmudgeCommon( pc );
+			//UpdateFrame( pc, region_x, region_y, region_w, region_h );
+		}
+	}
+}
+
+
 static int OnDrawCommon( CONTROL_NAME )( PSI_CONTROL pc )
 {
 	PCHAT_LIST *ppList = ControlData( PCHAT_LIST*, pc );
@@ -1483,63 +1601,17 @@ static int OnDrawCommon( CONTROL_NAME )( PSI_CONTROL pc )
 
 	if( l.decoration )
 	{
-		skip_lines = 0;
-		lines = CountDisplayedLines( list->phb_Input );
-		if( !lines )
-			lines = 1;
-		if( lines > 3 )
-		{
-			skip_lines = lines - 3;
-			lines = 3;
-		}
-		list->nFontHeight = GetFontHeight( list->sent_font );
-		list->command_height = list->nFontHeight * lines ;
-			
-		DrawMessageFrame( window
-			, window->height - ( list->command_height + l.side_pad ) 
-			, list->command_height
-			, 0
-			, FALSE
-			, FALSE );
-
-		{
-			int nLine;
-			DISPLAYED_LINE *pCurrentLine;
-			PDATALIST *ppCurrentLineInfo;
-			ppCurrentLineInfo = GetDisplayInfo( list->phb_Input );
-			for( nLine = 0; nLine < 3; nLine ++ )
-			{
-				pCurrentLine = (PDISPLAYED_LINE)GetDataItem( ppCurrentLineInfo, nLine );
-				if( !pCurrentLine )
-				{
-		#ifdef DEBUG_HISTORY_RENDER
-					lprintf( WIDE("No such line... %d"), nLine );
-		#endif
-					break;
-				}
-				if( pCurrentLine->start )
-				{
-					RECT upd;
-					RenderTextLine( list, window, pCurrentLine, &upd
-						, nLine
-						, list->sent_font
-						, window->height - ( l.side_pad + (l.sent.BorderSegment[SEGMENT_BOTTOM]->height ) + list->nFontHeight )
-						, l.side_pad + l.sent.BorderSegment[SEGMENT_TOP]->height
-						, l.side_pad + l.sent.BorderSegment[SEGMENT_LEFT]->width
-						, FALSE
-						, FALSE );  // cursor; to know where to draw the mark...
-				}
-			}
-		}
+		DrawTextEntry( pc, list, FALSE );
 	}
 
 	if( l.decoration )
 	{
+		int cmd_size = ( list->command_height + l.side_pad * 2 /* above and below input*/ + l.sent.BorderSegment[SEGMENT_TOP]->height + l.sent.BorderSegment[SEGMENT_BOTTOM]->height) ;
 
-		ResizeImage( list->message_window, window->width, window->height 
-			- ( list->command_height + l.side_pad * 2 /* above and below input*/ + l.sent.BorderSegment[SEGMENT_TOP]->height + l.sent.BorderSegment[SEGMENT_BOTTOM]->height) );
-		list->display.message_top = 
-									list->message_window->height + list->control_offset;
+		ResizeImage( list->message_window, window->width, window->height - cmd_size );
+		list->display.message_top = list->message_window->height + list->control_offset;
+		MoveSizeControl( list->send_button, list->message_window->width - 55
+			, list->message_window->height, 55, cmd_size );
 		DrawMessages( list, list->message_window );
 	}
 	return 1;
@@ -1666,6 +1738,58 @@ static void CPROC DropAccept( PSI_CONTROL pc, CTEXTSTR path, S_32 x, S_32 y )
 	 list->InputDrop( list->psvInputDrop, path, x, y );
 }
 
+static int OnCommonFocus(CONTROL_NAME)(PSI_CONTROL control, LOGICAL bFocused )
+{
+	SmudgeCommon( control );
+	return 1;
+}
+
+static void SendTypedMessage( PTRSZVAL psvUnused, PSI_CONTROL pc )
+{
+	PCHAT_LIST list = (PCHAT_LIST)psvUnused;
+	KeyGetGatheredLine( list, list->CommandInfo );
+	SetCommonFocus( GetCommonParent( pc ) );
+	//SmudgeCommon( GetCommonParent( pc ) );
+}
+
+#ifdef _MSC_VER
+
+static int EvalExcept( int n )
+{
+	switch( n )
+	{
+	case 		STATUS_ACCESS_VIOLATION:
+			//lprintf( WIDE( "Access violation - OpenGL layer at this moment.." ) );
+	return EXCEPTION_EXECUTE_HANDLER;
+	default:
+			//lprintf( WIDE( "Filter unknown : %08X" ), n );
+
+		return EXCEPTION_CONTINUE_SEARCH;
+	}
+	// unreachable code.
+	//return EXCEPTION_CONTINUE_EXECUTION;
+}
+#endif
+
+static void CPROC cursorTick( PTRSZVAL psv )
+{
+	PCHAT_LIST list = (PCHAT_LIST)psv;
+	list->flags.bCursorOn = !list->flags.bCursorOn;
+#ifdef _MSC_VER
+		__try
+		{
+#endif
+	SmudgeCommon( list->pc );
+	//DrawTextEntry( list->pc, list, TRUE );
+#ifdef _MSC_VER
+			}
+			__except( EvalExcept( GetExceptionCode() ) )
+			{
+				lprintf( WIDE( "Caught exception in scrollable chat list control" ) );
+				;
+			}
+#endif
+}
 
 static int OnCreateCommon( CONTROL_NAME )( PSI_CONTROL pc )
 {
@@ -1676,6 +1800,8 @@ static int OnCreateCommon( CONTROL_NAME )( PSI_CONTROL pc )
 	(*ppList) = New( CHAT_LIST );
 	MemSet( (*ppList), 0, sizeof( CHAT_LIST ) );
 	list = (*ppList);
+	list->pc = pc;
+	list->cursor_timer = AddTimer( 500, cursorTick, (PTRSZVAL)list );
 	list->sent_font 
 		= list->received_font
 		= list->input_font 
@@ -1684,6 +1810,10 @@ static int OnCreateCommon( CONTROL_NAME )( PSI_CONTROL pc )
 		= RenderFontFileScaledEx( WIDE("msyh.ttf"), 9, 9, NULL, NULL, 2/*FONT_FLAG_8BIT*/, NULL, NULL );
 	//list->colors.background_color = BASE_COLOR_WHITE;
 	list->message_window = MakeSubImage( GetControlSurface( pc ), 0, 0, 1, 1 );
+	list->send_button = MakeNamedCaptionedControl( pc, IMAGE_BUTTON_NAME, list->message_window->width - 35, list->message_window->height - 25, 35, 25, -1, "Send" );
+	SetButtonPushMethod( list->send_button, SendTypedMessage, (PTRSZVAL)list );
+	SetCommonBorder( list->send_button, BORDER_NONE | BORDER_FIXED | BORDER_NOCAPTION );
+	SetButtonImages( list->send_button, l.button_normal, l.button_pressed );
 		list->pHistory = PSI_CreateHistoryRegion();
 		list->phlc_Input = PSI_CreateHistoryCursor( list->pHistory );
 		list->phb_Input = PSI_CreateHistoryBrowser( list->pHistory, PSIMeasureString, (PTRSZVAL)pc );
@@ -1728,8 +1858,10 @@ static void OnSizeCommon( CONTROL_NAME )( PSI_CONTROL pc, LOGICAL begin_sizing )
 			// fix input
 			if( l.sent.BorderSegment[SEGMENT_LEFT] )
 			{
-				list->phb_Input->nColumns = window->width - ( 2 * l.side_pad + l.sent.BorderSegment[SEGMENT_LEFT]->width + l.sent.BorderSegment[SEGMENT_RIGHT]->width );
-				list->phb_Input->nWidth = window->width - ( 2 * l.side_pad + l.sent.BorderSegment[SEGMENT_LEFT]->width + l.sent.BorderSegment[SEGMENT_RIGHT]->width );
+				list->phb_Input->nLineHeight = GetFontHeight( list->input_font );
+				list->phb_Input->nColumns 
+					= list->phb_Input->nWidth 
+					= window->width - ( 2 * l.side_pad + l.sent.BorderSegment[SEGMENT_LEFT]->width + l.sent.BorderSegment[SEGMENT_RIGHT]->width + 58 );
 			}
 			BuildDisplayInfoLines( list->phb_Input, list->input_font );
 			ReformatMessages( list );
@@ -1766,8 +1898,9 @@ static int OnKeyCommon( CONTROL_NAME )( PSI_CONTROL pc, _32 key )
 		{
 			Image window = GetControlSurface( pc );
 			//SetBrowserColumns( list->phb_Input, ... );
+			list->phb_Input->nLineHeight = GetFontHeight( list->input_font );
 			list->phb_Input->nColumns = window->width - ( 2 * l.side_pad + l.sent.BorderSegment[SEGMENT_LEFT]->width + l.sent.BorderSegment[SEGMENT_RIGHT]->width );
-			list->phb_Input->nWidth = window->width - ( 2 * l.side_pad + l.sent.BorderSegment[SEGMENT_LEFT]->width + l.sent.BorderSegment[SEGMENT_RIGHT]->width );
+			list->phb_Input->nWidth = window->width - ( 2 * l.side_pad + l.sent.BorderSegment[SEGMENT_LEFT]->width + l.sent.BorderSegment[SEGMENT_RIGHT]->width +  58 );
 		}
 
 		if( key & KEY_PRESSED )
@@ -1904,4 +2037,12 @@ void Chat_ClearOldMessages( PSI_CONTROL pc, int delete_time )
 
 void Chat_SetExpire( PSI_CONTROL pc, int delta_seconds )
 {
+}
+
+void Chat_TypePastedInput( PSI_CONTROL pc, PTEXT segment )
+{
+	PCHAT_LIST *ppList = ControlData( PCHAT_LIST*, pc );
+	PCHAT_LIST list = (*ppList);
+	Widget_WinLogicDoStroke( list, segment );
+	DrawTextEntry( pc, list, TRUE );
 }

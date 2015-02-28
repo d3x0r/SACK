@@ -2298,6 +2298,7 @@ PRIORITY_ATEXIT( CloseGlobalRegions, ATEXIT_PRIORITY_SHAREMEM + 1 )
 {
 	PLIST *global_reference;
 	INDEX idx;
+	return;
 	l.reference_count--;
 	if( !l.reference_count )
 		LIST_FORALL( l.global_spaces, idx, PLIST*, global_reference )

@@ -22,14 +22,14 @@ CORECON_PROC( int, KeyShift     )( P_32 pKeyState, LOGICAL bState );
 CORECON_PROC( int, KeyControl   )( P_32 pKeyState, LOGICAL bState );
 CORECON_PROC( int, KeyAlt       )( P_32 pKeyState, LOGICAL bState );
 
-CORECON_PROC( int, KeyLeft )( PUSER_INPUT_BUFFER pci );
-CORECON_PROC( int, KeyRight )( PUSER_INPUT_BUFFER pci );
-CORECON_PROC( int, KeyInsert )( PUSER_INPUT_BUFFER pci );
-//int KeyDelete( PUSER_INPUT_BUFFER pci );
-CORECON_PROC( int, CommandKeyUp )( PUSER_INPUT_BUFFER pci );
-CORECON_PROC( int, HandleKeyDown )(  PUSER_INPUT_BUFFER pci );
-CORECON_PROC( int, KeyHome )( PUSER_INPUT_BUFFER pci );
-CORECON_PROC( int, KeyEndCmd )( PUSER_INPUT_BUFFER pci );
+CORECON_PROC( int, KeyLeft )( void * list, PUSER_INPUT_BUFFER pci );
+CORECON_PROC( int, KeyRight )( void * list, PUSER_INPUT_BUFFER pci );
+CORECON_PROC( int, KeyInsert )( void * list, PUSER_INPUT_BUFFER pci );
+CORECON_PROC( int, CommandKeyUp )( void * list, PUSER_INPUT_BUFFER pci );
+CORECON_PROC( int, HandleKeyDown )(  void * list, PUSER_INPUT_BUFFER pci );
+CORECON_PROC( int, KeyHome )( void * list, PUSER_INPUT_BUFFER pci );
+CORECON_PROC( int, KeyEndCmd )( PTRSZVAL list, PUSER_INPUT_BUFFER pci );
+
 
 CORECON_PROC( int, KeyEndHst )( PHISTORY_BROWSER pht );
 CORECON_PROC( int, HistoryPageUp )( PHISTORY_BROWSER pht );
@@ -57,7 +57,7 @@ typedef struct KeyDefine {
       union {
           PTEXT pStroke; // this may be pKeyFunc()
           void (CPROC *ControlKey)( P_32 pKeyState, LOGICAL bState );
-          int (CPROC *CommandKey)( PUSER_INPUT_BUFFER pci );
+          int (CPROC *CommandKey)( PTRSZVAL list, PUSER_INPUT_BUFFER pci );
           int (CPROC *HistoryKey)( PHISTORY_BROWSER pct );
           int (CPROC *SpecialKey)( PCONSOLE_INFO pdp ); // PASTE
        } data;

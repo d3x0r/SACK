@@ -1965,7 +1965,7 @@ PTRSZVAL CPROC ThreadProc( PTHREAD pThread )
 	//Log( WIDE("Get first tick") );
 	g.last_tick = timeGetTime();//GetTickCount();
 	while( ProcessTimers( 1 ) > 0 );
-	Log( WIDE("Timer thread is exiting...") );
+	//Log( WIDE("Timer thread is exiting...") );
 	g.pTimerThread = NULL;
 	return 0;
 }

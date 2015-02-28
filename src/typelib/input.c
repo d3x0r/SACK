@@ -614,6 +614,26 @@ static PTEXT SplitLine( PTEXT pLine, size_t nPos )
 
 //----------------------------------------------------------------------
 
+PTEXT GetUserInputLine( PUSER_INPUT_BUFFER pci )
+{
+	PTEXT pReturn = NULL;
+	if( pci->CollectionIndex )
+	{
+		PTEXT tmp;
+		pReturn = pci->CollectionBuffer;
+		GetText(pReturn)[GetTextSize(pReturn)] = 0;
+		SetStart( pReturn );
+		tmp = BuildLine( pReturn );
+		LineRelease( pReturn );
+		pReturn = tmp;
+		// begin next collection in case more data is in the input...
+		pci->CollectionBuffer = SegCreate( BUILD_LINE_OUTPUT_SIZE );
+		SetTextSize( pci->CollectionBuffer, 0 );
+		pci->CollectionIndex = 0;
+	}
+	return pReturn;
+}
+
 static PTEXT GatherLineEx( PTEXT *pOutput, INDEX *pIndex, int bInsert, int bSaveCR, int bData, PTEXT pInput )
 #define GatherLine( out,idx,ins,cr,in) GatherLineEx( (out),(idx),(ins),(cr),(FALSE),(in))
 // if data - assume data is coming from a preformatted source
@@ -833,22 +853,21 @@ static PTEXT GatherLineEx( PTEXT *pOutput, INDEX *pIndex, int bInsert, int bSave
             // falls through .. past this and saves the return...
             if(0)
          case '\n':
+			 /*
             if( !pReturn )
             {
+				pReturn = GetGatheredLine( pOutput );
 					// transfer *pOutput to pReturn....
-               pReturn = *pOutput;
-               SetEnd( pReturn );
                output = GetText( pReturn );
                len = GetTextSize( pReturn );
                output[len] = character;
                SetTextSize( pReturn, ++len );
                // begin next collection in case more data is in the input...
-               *pOutput = SegCreate( BUILD_LINE_OUTPUT_SIZE );
-               SetTextSize( *pOutput, 0 );
                output = GetText( *pOutput );
                len = 0;
                break;
             }
+			*/
             // store carriage return... 
          default:
 	 defaultcase:

@@ -209,6 +209,15 @@ static void CPROC FrameRedraw( PTRSZVAL psvFrame, PRENDERER psvSelf )
 
 		UpdateCommonEx( pc, TRUE DBG_SRC );
 		pc->flags.bRestoring = 0;
+		{
+			PSI_CONTROL pc;
+			INDEX idx;
+			LIST_FORALL( pf->pending_dirty_controls, idx, PSI_CONTROL, pc )
+			{
+				SetLink( &pf->pending_dirty_controls, idx, 0 );
+			}
+			pf->flags.sent_redraw = 0;
+		}
 		DeleteUse( pc );
 	}
 	else

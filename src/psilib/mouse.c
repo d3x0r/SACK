@@ -335,6 +335,8 @@ void SetCommonFocus( PSI_CONTROL pc )
 				}
 				// but we can transfer focus to an internal thingy...
 				// might revisit uhmm something.
+				if( pf->pFocus )
+					pf->pFocus->flags.bFocused = FALSE;
 				pf->pFocus = pc;
 				pc->flags.bFocused = TRUE;
 #ifdef DETAILED_MOUSE_DEBUG

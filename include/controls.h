@@ -1305,6 +1305,9 @@ PSI_CONTROL PSIMakeImageButton( PSI_CONTROL parent, int x, int y, int w, int h, 
 #define MakeImageButton(f,x,y,w,h,id,c,a,p,d) SetButtonPushMethod( SetButtonAttributes( SetButtonImage( MakeControl(f,IMAGE_BUTTON,x,y,w,h,id),c),a),p,d)
 PSI_PROC( PSI_CONTROL, SetButtonImage )( PSI_CONTROL pc, Image image );
 
+// set up/down state images for button ( IMAGE_BUTTON_NAME )
+PSI_PROC( PSI_CONTROL, SetButtonImages )( PSI_CONTROL pc, Image normal_image, Image pressed_image );
+
 /* An all-in-one macro to create a Slider control, set the
    callback, and set direction options.
    Parameters
