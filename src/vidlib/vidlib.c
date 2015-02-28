@@ -5627,7 +5627,7 @@ LOGICAL RequiresDrawAll ( void )
 
 static LOGICAL CPROC AllowsAnyThreadToUpdate( void )
 {
-	return TRUE;
+	return FALSE;
 }
 
 void MarkDisplayUpdated( PRENDERER renerer )

@@ -637,6 +637,7 @@ struct sack_vfs_file * CPROC sack_vfs_openfile( struct volume *vol, const char *
 		memset( &file->dirent_key, 0, sizeof( struct directory_entry ) );
 	file->vol = vol;
 	file->fpi = 0;
+	file->delete_on_close = 0;
 	file->block = file->entry->first_block ^ file->dirent_key.first_block;
 	AddLink( &vol->files, file );
 	vol->lock = 0;
@@ -830,7 +831,7 @@ size_t CPROC sack_vfs_read( struct sack_vfs_file *file, char * data, size_t leng
 static void sack_vfs_unlink_file_entry( struct volume *vol, struct directory_entry *entry, struct directory_entry *entkey )
 {
 	int block, _block;
-	struct sack_vfs_file *file_found;
+	struct sack_vfs_file *file_found = NULL;
 	struct sack_vfs_file *file;
 	INDEX idx;
 	LIST_FORALL( vol->files, idx, struct sack_vfs_file *, file  )
@@ -860,7 +861,7 @@ static void sack_vfs_unlink_file_entry( struct volume *vol, struct directory_ent
 
 size_t CPROC sack_vfs_truncate( struct sack_vfs_file *file ) { file->entry->filesize = file->fpi ^ file->dirent_key.filesize; return file->fpi; }
 
-int CPROC sack_vfs_close( struct sack_vfs_file *file ) { DeleteLink( &file->vol->files, file ); if( file->delete_on_close ) sack_vfs_unlink_file_entry( file->vol, file->entry );  Release( file ); return 0; }
+int CPROC sack_vfs_close( struct sack_vfs_file *file ) { DeleteLink( &file->vol->files, file ); if( file->delete_on_close ) sack_vfs_unlink_file_entry( file->vol, file->entry, &file->dirent_key );  Release( file ); return 0; }
 
 void CPROC sack_vfs_unlink_file( PTRSZVAL psv, const char * filename )
 {

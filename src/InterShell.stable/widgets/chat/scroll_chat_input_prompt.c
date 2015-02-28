@@ -93,22 +93,23 @@ static void CPROC SetCurrentColor( PCHAT_LIST list, enum current_color_type type
 
 static void CPROC DrawString( Image window, SFTFont font, int x, int y, CDATA crText, RECT *r, CTEXTSTR s, int nShown, int nShow )
 {
-	//_32 width;
+	_32 width;
 	//lprintf( WIDE( "Adding string out : %p %s start:%d len:%d at %d,%d #%08lX #%08lX" ), console, s, nShown, nShow,x,y,r->left,r->top
 	//		 , console->psicon.crText, console->psicon.crBack );
-	if( 0 /*debug*/)
+	if( 1 /*debug*/)
 	{
 		_32 w, h;
-		GetStringSizeFontEx( s + nShown, nShow, &w, &h, font );
+		width = GetStringSizeFontEx( s + nShown, nShow, &w, &h, font );
 		r->right = r->left + w;
 		r->bottom = r->top + h;
-		lprintf( WIDE("Output string (%d-%d)  (%d-%d) %*.*s"), (*r).left, (*r).right, (*r).top, (*r).bottom, nShow, nShow, s + nShown );
+		//lprintf( WIDE("Output string (%d-%d)  (%d-%d) %*.*s"), (*r).left, (*r).right, (*r).top, (*r).bottom, nShow, nShow, s + nShown );
 	}
 	PutStringFontEx( window, x, y
 						, crText, 0
 						, s + nShown
 						, nShow
 						, font );
+	return width;
 }
 
 void RenderTextLine( 
@@ -201,7 +202,7 @@ void RenderTextLine(
 #ifdef DEBUG_HISTORY_RENDER
 				lprintf( WIDE("nShown < nLen... char %d len %d toshow %d"), nChar, nLen, pCurrentLine->nToShow );
 #endif
-				if( nChar + nLen > pCurrentLine->nToShow )
+				if( ( nChar + ( nLen - nShown ) ) > pCurrentLine->nToShow )
 					nShow = pCurrentLine->nToShow - nChar;
 				else
 				{
@@ -363,7 +364,7 @@ void RenderTextLine(
 			lprintf( WIDE("nShown >= nLen...") );
 #endif
 
-			nShown -= nLen;
+			nShown = 0;
 			pText = NEXTLINE( pText );
 		}
 		{

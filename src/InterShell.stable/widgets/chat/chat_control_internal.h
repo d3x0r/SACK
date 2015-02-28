@@ -24,6 +24,8 @@ typedef struct chat_list_tag
 		BIT_FIELD checked_drag : 1;
 		BIT_FIELD long_vertical_drag : 1;
 		BIT_FIELD long_horizontal_drag : 1;
+		BIT_FIELD bCursorOn : 1;
+		BIT_FIELD bSizing : 1; // prevent smudge while resizing
 	} flags;
 	PHISTORY_REGION pHistory;
 	PHISTORY_BROWSER phb_Input;
@@ -37,6 +39,7 @@ typedef struct chat_list_tag
 	void (CPROC*MessageSeen)( PTRSZVAL psv );
 	PTRSZVAL psvMessageSeen;
 	PHISTORY_LINE_CURSOR phlc_Input;
+	PSI_CONTROL send_button;
 	SFTFont input_font;
 	SFTFont date_font;
 	int nFontHeight;
@@ -57,6 +60,8 @@ typedef struct chat_list_tag
 		} colors;
 		SFTFont sent_font;
 		SFTFont received_font;
+		_32 cursor_timer;
+		PSI_CONTROL pc;
 } CHAT_LIST;
 typedef struct chat_list_tag *PCHAT_LIST;
 
@@ -101,6 +106,7 @@ struct scollable_list_local
 		BIT_FIELD sent_text_justification : 2;
 		BIT_FIELD received_text_justification : 2;
 	} flags;
+	Image button_pressed, button_normal;
 	struct chat_time_tag now;
 	int side_pad;
 	int time_pad;

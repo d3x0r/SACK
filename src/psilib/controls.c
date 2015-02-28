@@ -653,7 +653,6 @@ void TryLoadingFrameImage( void )
 			g.BorderSegment[SEGMENT_CENTER] = MakeSubImage( g.BorderImage
 																		 , g.BorderWidth, g.BorderHeight
 																		 , MiddleSegmentWidth, MiddleSegmentHeight );
-			SetBaseColor( NORMAL, getpixel( g.BorderSegment[SEGMENT_CENTER], 0, 0 ) );
 			g.BorderSegment[SEGMENT_RIGHT] = MakeSubImage( g.BorderImage
 																		, g.BorderWidth + MiddleSegmentWidth, g.BorderHeight
 																		, g.BorderWidth, MiddleSegmentHeight );
@@ -666,6 +665,26 @@ void TryLoadingFrameImage( void )
 			g.BorderSegment[SEGMENT_BOTTOM_RIGHT] = MakeSubImage( g.BorderImage
 																				 , g.BorderWidth + MiddleSegmentWidth, g.BorderHeight + MiddleSegmentHeight
 																				 , g.BorderWidth, g.BorderHeight );
+			if( SACK_GetProfileInt( WIDE( "SACK/PSI/Frame border" )
+					, WIDE( "Use center bsae colors" )
+					, 1 ) )
+			{
+#define TestAndSetBaseColor( c, s ) { CDATA src = s; if( src ) SetBaseColor( c, src ); }
+				TestAndSetBaseColor( HIGHLIGHT          , getpixel( g.BorderSegment[SEGMENT_CENTER], 0, 0 ) );
+				TestAndSetBaseColor( SHADE               , getpixel( g.BorderSegment[SEGMENT_CENTER], 0, 1 ) );
+				TestAndSetBaseColor( NORMAL              , getpixel( g.BorderSegment[SEGMENT_CENTER], 1, 0 ) );
+				TestAndSetBaseColor( SHADOW              , getpixel( g.BorderSegment[SEGMENT_CENTER], 1, 1 ) );
+				TestAndSetBaseColor( TEXTCOLOR           , getpixel( g.BorderSegment[SEGMENT_CENTER], 2, 0 ) );
+				TestAndSetBaseColor( CAPTIONTEXTCOLOR    , getpixel( g.BorderSegment[SEGMENT_CENTER], 3, 0 ) );
+				TestAndSetBaseColor( CAPTION             , getpixel( g.BorderSegment[SEGMENT_CENTER], 3, 1 ) );
+				TestAndSetBaseColor( INACTIVECAPTIONTEXTCOLOR, getpixel( g.BorderSegment[SEGMENT_CENTER], 4, 0 ) );
+				TestAndSetBaseColor( INACTIVECAPTION     , getpixel( g.BorderSegment[SEGMENT_CENTER], 4, 1 ) );
+				TestAndSetBaseColor( SELECT_TEXT         , getpixel( g.BorderSegment[SEGMENT_CENTER], 5, 0 ) );
+				TestAndSetBaseColor( SELECT_BACK         , getpixel( g.BorderSegment[SEGMENT_CENTER], 5, 1 ) );
+				TestAndSetBaseColor( EDIT_TEXT           , getpixel( g.BorderSegment[SEGMENT_CENTER], 6, 0 ) );
+				TestAndSetBaseColor( EDIT_BACKGROUND     , getpixel( g.BorderSegment[SEGMENT_CENTER], 6, 1 ) );
+				TestAndSetBaseColor( SCROLLBAR_BACK      , getpixel( g.BorderSegment[SEGMENT_CENTER], 7, 0 ) );
+			}
 		}
 	}
 }
@@ -2156,11 +2175,12 @@ void SmudgeCommonEx( PSI_CONTROL pc DBG_PASS )
 		PPHYSICAL_DEVICE device = frame?frame->device:NULL;
 		if( device )
 		{
-			AddLink( &device->pending_dirty_controls, pc );
+			if( FindLink( &device->pending_dirty_controls, pc ) == INVALID_INDEX )
+				AddLink( &device->pending_dirty_controls, pc );
 			if( !device->flags.sent_redraw )
 			{
 				//lprintf( WIDE("Send redraw to self.... draw controls in pending_dirty_controls") );
-				device->flags.sent_redraw = 1;
+				//device->flags.sent_redraw = 1;
 				Redraw( device->pActImg );
 			}
 		}

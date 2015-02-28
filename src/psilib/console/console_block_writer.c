@@ -46,9 +46,6 @@ void FormatTextToBlockEx( CTEXTSTR input, TEXTSTR *output, int* pixel_width, int
 	{
 		//console->common.pName = SegCreateFromText( "Auto Console" );
 		//Log( "Create frame!!" );
-		console->psicon.frame = NULL;
-
-		console->psicon.image = GetFrameSurface( console->psicon.frame );
 		console->nFontWidth = 1;
 		console->nFontHeight = 1;
 
@@ -108,22 +105,28 @@ void FormatTextToBlockEx( CTEXTSTR input, TEXTSTR *output, int* pixel_width, int
 					SetStart( prior );
 					prior->format.position.offset.spaces += (_16)console->pending_spaces;
 					prior->format.position.offset.tabs += (_16)console->pending_tabs;
-					que = BuildLine( prior );
-					if( !console->flags.bNewLine )
-						que->flags |= TF_NORETURN;
-					PSI_WinLogicWriteEx( console, que, 0 );
-					LineRelease( prior );
+					if( prior->Next || GetTextSize( prior ) )
+					{
+						que = BuildLine( prior );
+						if( !console->flags.bNewLine )
+							que->flags |= TF_NORETURN;
+						PSI_WinLogicWriteEx( console, que, 0 );
+						LineRelease( prior );
+					}
+					else
+						PSI_WinLogicWriteEx( console, prior, 0 );
 				}
-				else
-					PSI_WinLogicWriteEx( console, SegCreate( 0 ), 0 );
+				//else
+				//	PSI_WinLogicWriteEx( console, SegCreate( 0 ), 0 );
 
-				console->flags.bNewLine = 1;
+				//console->flags.bNewLine = 1;
 
 				// throw away the blank... don't really need it on the display
 				SegGrab( tmp );
-				console->pending_spaces = tmp->format.position.offset.spaces;
-				console->pending_tabs = tmp->format.position.offset.tabs;
-				LineRelease( tmp );
+				PSI_WinLogicWriteEx( console, tmp, 0 );
+				//console->pending_spaces = tmp->format.position.offset.spaces;
+				//console->pending_tabs = tmp->format.position.offset.tabs;
+				//LineRelease( tmp );
 				remainder = next;
 			}
 		}
@@ -136,13 +139,16 @@ void FormatTextToBlockEx( CTEXTSTR input, TEXTSTR *output, int* pixel_width, int
 		}
 		else
 		{
-			console->flags.bNewLine = 1;
+			//console->flags.bNewLine = 1;
 		}
 	}
 
 	// make sure we think we're showing the top 5 lines, not top 0
 
 	//console->pCurrentDisplay->nOffset = char_height - 1;
+	if( font )
+		console->pCurrentDisplay->nLineHeight = GetFontHeight( font );
+
 	BuildDisplayInfoLines( console->pCurrentDisplay, font );
 
 	console->CurrentLineInfo =
@@ -154,14 +160,17 @@ void FormatTextToBlockEx( CTEXTSTR input, TEXTSTR *output, int* pixel_width, int
 		int maxlen = 0;
 		int lines = 1;
 		PDISPLAYED_LINE pdl;
+
 		for( lines = 0; pdl = (PDISPLAYED_LINE)GetDataItem( console->CurrentMarkInfo, lines ) ; lines++ )
 		{
+			if( !pdl->start )
+				break;
 			len = pdl->nToShow;
 			if( pdl->nToShow > maxlen )
 				maxlen = len;
 			//lprintf( "line %d len %d", lines, len );
-			if( len == 0 )
-				break;
+			//if( len == 0 )
+			//	break;
 		}
 		//lprintf( "measured block in characters %d,%d", maxlen, lines );
 		console->mark_start.row = lines;

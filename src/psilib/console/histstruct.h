@@ -100,6 +100,7 @@ struct history_browser_cursor_tag {
 	INDEX nPageLines;
 	INDEX nFirstLines; // set as page lines... and cleared after first move.
 	INDEX nColumns; // rough character count/ depricated....
+	INDEX nLineHeight;
 	INDEX nWidth; // this is pixel size (using measure string)
 
 	PDATALIST DisplayLineInfo;

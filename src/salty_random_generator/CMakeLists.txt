@@ -19,6 +19,8 @@ install_mode_dest( ${PROJECT} )
 
 endif( 0 )
 
+if( BUILD_TESTS )
+
 set( PROJECT test_salty_generator )
 
 add_program( ${PROJECT}  test_salty_generator.c )
@@ -33,3 +35,4 @@ else( ANDROID )
   my_target_link_libraries( ${PROJECT} ${SACK_LIBRARIES} )#salty_generator)
 endif( ANDROID )
 install_mode_dest( ${PROJECT} )
+endif( BUILD_TESTS )

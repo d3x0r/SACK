@@ -1195,8 +1195,12 @@ int PSI_UpdateHistory( PCONSOLE_INFO pdp )
 		{
 			extern PSIKEYDEFINE ConsoleKeyDefs[];
 			lprintf( WIDE("key end command line now... please do renderings..") );
-			ConsoleKeyDefs[KEY_END].op[0].bFunction = COMMANDKEY;
-			ConsoleKeyDefs[KEY_END].op[0].data.CommandKey = KeyEndCmd;
+			{
+				int KeyEndCmd( PTRSZVAL list, PUSER_INPUT_BUFFER pci );
+
+				ConsoleKeyDefs[KEY_END].op[0].bFunction = COMMANDKEY;
+				ConsoleKeyDefs[KEY_END].op[0].data.CommandKey = KeyEndCmd;
+			}
 			pdp->flags.bHistoryShow = 0;
 			WinLogicCalculateHistory( pdp );
 			bUpdate = 1;

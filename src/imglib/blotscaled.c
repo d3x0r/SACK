@@ -643,8 +643,9 @@ void CPROC cBlotScaledMultiTImgAI( SCALED_BLOT_WORK_PARAMS
 		oo = 4*(pifDest->pwidth - (wd));;	  // w is how much we can copy...
 	}
 
-	while( LockedExchange( &lock, 1 ) )
-		Relinquish();
+	//while( LockedExchange( &lock, 1 ) )
+	//	Relinquish();
+
 	//Log8( WIDE("Do blot work...%d(%d),%d(%d) %d(%d) %d(%d)")
 	//	 , ws, FROMFIXED(ws), hs, FROMFIXED(hs) 
 	//	 , wd, FROMFIXED(wd), hd, FROMFIXED(hd) );
@@ -713,7 +714,7 @@ void CPROC cBlotScaledMultiTImgAI( SCALED_BLOT_WORK_PARAMS
 		}
 		break;
 	}
-	lock = 0;
+	//lock = 0;
 //	Log( WIDE("Blot done") );
 }
 

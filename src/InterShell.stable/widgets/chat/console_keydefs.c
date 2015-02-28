@@ -24,7 +24,35 @@ static void CPROC _Key_KeystrokePaste( PCONSOLE_INFO pmdp )
       pmdp->KeystrokePaste( pmdp );
 }
 
+int KeyLeft( PCHAT_LIST list, PUSER_INPUT_BUFFER pci );
+int KeyRight( PCHAT_LIST list, PUSER_INPUT_BUFFER pci );
+int KeyInsert( PCHAT_LIST list, PUSER_INPUT_BUFFER pci );
+int CommandKeyUp( PCHAT_LIST list, PUSER_INPUT_BUFFER pci );
+int HandleKeyDown(  PCHAT_LIST list, PUSER_INPUT_BUFFER pci );
+int KeyHome( PCHAT_LIST list, PUSER_INPUT_BUFFER pci );
+int KeyEndCmd( PTRSZVAL list, PUSER_INPUT_BUFFER pci );
+
 DECLTEXT( KeyStroke, WIDE("\x7f") ); // DECLTEXT implies 'static'
+
+//----------------------------------------------------------------------------
+
+int KeyGetGatheredLine( PCHAT_LIST list, PUSER_INPUT_BUFFER pci )
+{
+	PTEXT line = GetUserInputLine( pci );
+	if( line && GetTextSize( line ) )
+	{
+		list->phb_Input->pBlock->pLines[0].nLineLength = LineLengthExEx( list->CommandInfo->CollectionBuffer, FALSE, 8, NULL );
+		list->phb_Input->pBlock->pLines[0].pLine = list->CommandInfo->CollectionBuffer;
+		BuildDisplayInfoLines( list->phb_Input, list->input_font );
+		if( line )
+			list->InputData( list->psvInputData, line );
+	}
+	else
+		LineRelease( line );
+
+	return UPDATE_COMMAND; 
+}
+
 
 #if defined( GCC ) || defined( __LINUX__ )
 CORECON_EXPORT( PSIKEYDEFINE, ConsoleKeyDefs[256] ) =
@@ -289,8 +317,8 @@ CORECON_EXPORT( PSIKEYDEFINE, ConsoleKeyDefs[256] ) =
 { [KEY_BACKSPACE]={WIDE("back"),WIDE("backspace"),0,{{KEYDATA}} }
                       , [KEY_TAB]={WIDE("tab"),0,0,{{KEYDATA}} }
                       , [KEY_ENTER]={WIDE("return"), WIDE("enter"),0,{{KEYDATA}
-                                             ,{KEYDATA}
-                                             ,{KEYDATA}
+                                             ,{COMMANDKEY, (PTEXT)KeyGetGatheredLine}
+                                             ,{COMMANDKEY, (PTEXT)KeyGetGatheredLine)
                                              ,{KEYDATA}
                                              ,{KEYDATA}
                                              ,{KEYDATA}
@@ -591,8 +619,8 @@ PSIKEYDEFINE ConsoleKeyDefs[] = { NONAMES
                       , NONAMES, NONAMES
                       , {WIDE("clear"),0,0 }   // 0x0c
                       , {WIDE("return"), WIDE("enter"),0,{{KEYDATA}
-                                             ,{KEYDATA}
-                                             ,{KEYDATA}
+                                             ,{COMMANDKEY, (PTEXT)KeyGetGatheredLine}
+                                             ,{COMMANDKEY, (PTEXT)KeyGetGatheredLine}
                                              ,{KEYDATA}
                                              ,{KEYDATA}
                                              ,{KEYDATA}
@@ -964,7 +992,7 @@ PSIKEYDEFINE ConsoleKeyDefs[] = { NONAMES
 */
 //----------------------------------------------------------------------------
 
-int CommandKeyUp( PUSER_INPUT_BUFFER pci )
+static int CommandKeyUp( PCHAT_LIST list, PUSER_INPUT_BUFFER pci )
 {
    RecallUserInput( pci, TRUE );
    return UPDATE_COMMAND;
@@ -972,7 +1000,7 @@ int CommandKeyUp( PUSER_INPUT_BUFFER pci )
 
 //----------------------------------------------------------------------------
 
-int HandleKeyDown( PUSER_INPUT_BUFFER pci )
+static int HandleKeyDown( PCHAT_LIST list, PUSER_INPUT_BUFFER pci )
 {
    RecallUserInput( pci, FALSE );
    return UPDATE_COMMAND;
@@ -980,23 +1008,22 @@ int HandleKeyDown( PUSER_INPUT_BUFFER pci )
 
 //----------------------------------------------------------------------------
 
-int KeyHome( PUSER_INPUT_BUFFER pci )
+static int KeyHome( PCHAT_LIST list, PUSER_INPUT_BUFFER pci )
 {
 	SetUserInputPosition( pci, 0, COMMAND_POS_SET );
-   return UPDATE_COMMAND; 
+	return UPDATE_COMMAND; 
 }
 
-//----------------------------------------------------------------------------
 
-int KeyEndCmd( PUSER_INPUT_BUFFER pci )
+static int KeyEndCmd( PTRSZVAL list, PUSER_INPUT_BUFFER pci )
 {
 	SetUserInputPosition( pci, -1, COMMAND_POS_SET );
-   return UPDATE_COMMAND;
+	return UPDATE_COMMAND;
 }
 
 //----------------------------------------------------------------------------
 
-int KeyInsert( PUSER_INPUT_BUFFER pci )
+static int KeyInsert( PCHAT_LIST list, PUSER_INPUT_BUFFER pci )
 {
 	SetUserInputInsert( pci, -1 );
    return UPDATE_COMMAND;
@@ -1004,7 +1031,7 @@ int KeyInsert( PUSER_INPUT_BUFFER pci )
 
 //----------------------------------------------------------------------------
 
-int KeyRight( PUSER_INPUT_BUFFER pci )
+static int KeyRight( PCHAT_LIST list, PUSER_INPUT_BUFFER pci )
 {
 	SetUserInputPosition( pci, 1, COMMAND_POS_CUR );
 	return UPDATE_COMMAND;
@@ -1407,8 +1434,9 @@ void Widget_WinLogicDoStroke( PCHAT_LIST list, PTEXT stroke )
 			list->phb_Input->pBlock->pLines[0].flags.deleted = 0;
 			list->phb_Input->nLine = 1;
 		}
-		list->phb_Input->pBlock->pLines[0].nLineLength = LineLengthExEx( list->CommandInfo->CollectionBuffer, FALSE, 8, NULL );
 		list->phb_Input->pBlock->pLines[0].pLine = list->CommandInfo->CollectionBuffer;
+		SetStart( list->phb_Input->pBlock->pLines[0].pLine );
+		list->phb_Input->pBlock->pLines[0].nLineLength = LineLengthExEx( list->phb_Input->pBlock->pLines[0].pLine, FALSE, 8, NULL );
 		//if( !pdp->flags.bDirect && pdp->flags.bWrapCommand )
 		BuildDisplayInfoLines( list->phb_Input, list->input_font );
 	}
@@ -1437,14 +1465,6 @@ void Widget_KeyPressHandler( PCHAT_LIST list
 //cpg26dec2006    int result;
 	int bOutput = 0;
 	// check current keyboard override...
-   if( ConsoleKeyDefs[key_index].flags & KDF_CAPSKEY )
-   {
-      //if( event.dwControlKeyState & CAPSLOCK_ON )
-      //{
-      //   mod ^= KEYMOD_SHIFT;
-      //}
-   }
-
 #ifdef programmable_keys
 	if( pdp->Keyboard[key_index][mod].flags.bStroke ||
 		pdp->Keyboard[key_index][mod].flags.bMacro )
@@ -1493,7 +1513,7 @@ void Widget_KeyPressHandler( PCHAT_LIST list
 			result = UPDATE_NOTHING; // already taken care of?!
 			break;
 		case COMMANDKEY:
-			result = ConsoleKeyDefs[key_index].op[mod].data.CommandKey( list->CommandInfo );
+			result = ConsoleKeyDefs[key_index].op[mod].data.CommandKey( list, list->CommandInfo );
 			//SmudgeCommon( pdp->psicon.frame );
 			break;
 		case HISTORYKEY:

@@ -50,5 +50,5 @@ install_default_dest( ${PROJECT} )
 target_link_libraries( ${PROJECT} ${SACK_LIBRARIES} )
   SET_TARGET_PROPERTIES( ${PROJECT} PROPERTIES	FOLDER "Video Renderer"    )
 
-install(DIRECTORY webclient DESTINATION bin )
+#install(DIRECTORY webclient DESTINATION bin )
 
