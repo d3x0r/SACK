@@ -1087,7 +1087,8 @@ default_fopen:
 		handle = fopen( file->fullname, opts );
 #  endif
 #endif
-		lprintf( "native open %s", file->fullname );
+		if( l.flags.bLogOpenClose )
+			lprintf( "native opened %s", file->fullname );
 	}
 	if( !handle )
 	{

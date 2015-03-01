@@ -3994,7 +3994,7 @@ static void VideoLoadOptions( void )
 	else
 #endif
 		l.flags.bLayeredWindowDefault = 0;
-	l.flags.bLogFocus = 1;
+	l.flags.bLogFocus =  SACK_GetOptionIntEx( option, GetProgramName(), WIDE( "SACK/Video Render/Log Focus Changes" ), 0, TRUE );;
 	l.flags.bLogWrites = SACK_GetOptionIntEx( option, GetProgramName(), WIDE( "SACK/Video Render/Log Video Output" ), 0, TRUE );
 	l.flags.bLogDisplayEnumTest = SACK_GetOptionIntEx( option, GetProgramName(), WIDE( "SACK/Video Render/Log Display Enumeration" ), 0, TRUE );
 	l.flags.bUseLLKeyhook = SACK_GetOptionIntEx( option, GetProgramName(), WIDE( "SACK/Video Render/Use Low Level Keyhook" ), 0, TRUE );
