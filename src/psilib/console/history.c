@@ -747,11 +747,17 @@ struct PSI_console_word *PutSegmentOut( PHISTORY_LINE_CURSOR phc
 	}
 	else if( segment->flags & TF_FORMATEX )
 	{
+		// the only one that gets here is the set top of form?? 
+		//switch( segment->format.flags.format_op )
+
 		pCurrentLine->pLine = SegAppend( pCurrentLine->pLine, segment );
 		SetTopOfForm( phc );
 	}
 	else
-		Log( WIDE("no data in segment.") );
+	{
+		pCurrentLine->pLine = SegAppend( pCurrentLine->pLine, segment );
+		//Log( WIDE("no data in segment.") );
+	}
 	return word;
 }
 
@@ -1117,6 +1123,7 @@ _32 ComputeToShow( _32 colsize, _32 *col_offset, PTEXT segment, _32 nLen, _32 nO
 	if( ( nLenSize + (*col_offset ) ) > colsize || nLenHeight > phbr->nLineHeight )
 	{
 		_32 good_space_size;
+		LOGICAL has_good_space = FALSE;
 		_32 good_space = 0;
 		_32 nSpace;
 		_32 nSegSize, nSegHeight;
@@ -1129,6 +1136,7 @@ _32 ComputeToShow( _32 colsize, _32 *col_offset, PTEXT segment, _32 nLen, _32 nO
 				phbr->measureString( phbr->psvMeasure, GetText( segment ) + nShown
 					, nSpace - nShown, &nSegSize, &nSegHeight, font );
 				good_space_size = nSegSize;
+				has_good_space = TRUE;
 				good_space = nSpace; // include space in this part of the line...
 				result_bias = 1; // start next line past the \n
 				break;
@@ -1140,6 +1148,7 @@ _32 ComputeToShow( _32 colsize, _32 *col_offset, PTEXT segment, _32 nLen, _32 nO
 					, nSpace - nShown, &nSegSize, &nSegHeight, font );
 				if( ( (*col_offset) + nSegSize  ) < colsize )
 				{
+					has_good_space = TRUE;
 					good_space_size = nSegSize;
 					good_space = nSpace + 1; // include space in this part of the line...
 				}
@@ -1149,7 +1158,7 @@ _32 ComputeToShow( _32 colsize, _32 *col_offset, PTEXT segment, _32 nLen, _32 nO
 		}
 
 		// found a space, please show up to that.
-		if( good_space )
+		if( has_good_space )
 		{
 			(*col_offset) += good_space_size;
 			nShow = good_space - nShown;
