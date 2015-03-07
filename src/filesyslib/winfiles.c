@@ -685,7 +685,7 @@ int sack_ftruncate( FILE *file_file )
 		if( file->mount && file->mount->fsi )
 		{
 			file->mount->fsi->truncate( (void*)file_file );
-			lprintf( WIDE("result is %d"), file->mount->fsi->size( (void*)file_file ) );
+			//lprintf( WIDE("result is %d"), file->mount->fsi->size( (void*)file_file ) );
 		}
 		else
 		{
@@ -954,7 +954,7 @@ FILE * sack_fopenEx( INDEX group, CTEXTSTR filename, CTEXTSTR opts, struct file_
 	if( !strchr( opts, 'r' ) )
 		while( mount )
 		{  // skip roms...
-			lprintf( "check mount %p %d", mount, mount->writeable );
+			//lprintf( "check mount %p %d", mount, mount->writeable );
 			if( mount->writeable )
 				break;
 			mount = mount->next;

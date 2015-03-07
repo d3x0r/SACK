@@ -2035,7 +2035,7 @@ void Chat_ClearOldMessages( PSI_CONTROL pc, int delete_time )
 				else
 				{
 					if( !msg->seen )
-						continue;
+						break;
 					msg_time = AbsoluteSeconds( &msg->seen_time );
 				}
 				if( msg_time < old_limit )

@@ -1321,6 +1321,7 @@ add_subdirectory( data )
 add_subdirectory( include )
 add_subdirectory( src/utils/runner )
 add_subdirectory( src/utils/virtual_file_system )
+add_subdirectory( src/contrib/MatrixSSL/3.7.1 )
 
 if( BUILD_TESTS )
    

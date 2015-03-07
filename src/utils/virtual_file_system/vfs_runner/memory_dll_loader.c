@@ -1,6 +1,12 @@
 #include <stdhdrs.h>
 #include <deadstart.h>
 
+#ifdef WIN32
+#include <tlhelp32.h>
+#include <Psapi.h>
+#endif
+
+
 #include "self_compare.h"
 
 #define Seek(a,b) (((PTRSZVAL)a)+(b))
@@ -65,6 +71,70 @@ POINTER GetExtraData( POINTER block )
 			dwSize += 0xFFF;
 			dwSize &= ~0xFFF;
 			return (POINTER)Seek( source_memory, dwSize );
+		}
+	}
+}
+
+void DumpSystemMemory( POINTER p_match )
+{
+	{
+		DWORD nHeaps;
+		HANDLE pHeaps[1024];
+		HANDLE hHeap = GetProcessHeap();
+		PROCESS_HEAP_ENTRY entry;
+		size_t total = 0;
+		int nHeap;
+		int n = 0;
+		nHeaps = GetProcessHeaps( 1024, pHeaps );
+		{
+			int n = 256;
+			HMODULE *modules = NewArray( HMODULE, 256 );
+			DWORD needed;
+			EnumProcessModules( GetCurrentProcess(), modules, sizeof( HMODULE ) * 256, &needed );
+			if( needed / sizeof( HMODULE ) == n )
+				lprintf( "loaded module overflow" );
+			needed /= sizeof( HMODULE );
+			for( n = 0; n < needed; n++ )
+			{
+				POINTER real_memory = modules[n];
+				PIMAGE_DOS_HEADER source_dos_header = (PIMAGE_DOS_HEADER)real_memory;
+				PIMAGE_NT_HEADERS source_nt_header = (PIMAGE_NT_HEADERS)Seek( real_memory, source_dos_header->e_lfanew );
+				PIMAGE_DATA_DIRECTORY dir = (PIMAGE_DATA_DIRECTORY)source_nt_header->OptionalHeader.DataDirectory;
+				PIMAGE_EXPORT_DIRECTORY exp_dir = (PIMAGE_EXPORT_DIRECTORY)Seek( real_memory, dir[IMAGE_DIRECTORY_ENTRY_EXPORT].VirtualAddress );
+				char *dll_name = (char*) Seek( real_memory, exp_dir->Name );
+				MEMORY_BASIC_INFORMATION info;
+				PIMAGE_IMPORT_DESCRIPTOR imp_des = (PIMAGE_IMPORT_DESCRIPTOR)Seek( real_memory, dir[IMAGE_DIRECTORY_ENTRY_IMPORT].VirtualAddress );
+				if( dir[IMAGE_DIRECTORY_ENTRY_TLS].Size )
+					lprintf( "has TLS" );
+				VirtualQueryEx( GetCurrentProcess(), real_memory, &info, sizeof( info ) );
+				lprintf( "virtual block at %p %d %s", real_memory, info.RegionSize, dll_name );
+				LogBinary( real_memory, 16 );
+			}
+		}
+		for( nHeap = 0; nHeap < nHeaps; nHeap++ )
+		{
+			entry.lpData = NULL;
+			lprintf( "Begin New Heap walk... %d(%d) %p", nHeap, nHeaps, pHeaps[nHeap] );
+			while( HeapWalk( pHeaps[nHeap], &entry ) )
+			{
+				total += entry.cbData;
+				if( !p_match || p_match == entry.lpData )
+				{
+					if( entry.lpData && !(entry.wFlags & 2 ) && !IsBadReadPtr( entry.lpData, 16 ) )
+						LogBinary( entry.lpData, 16 );
+					if( entry.lpData )
+						lprintf( "heap chunk %d %d %p %d %d %08x", n++, total
+									, entry.lpData
+									, entry.cbData
+									, entry.cbOverhead
+									, entry.wFlags );
+					else
+					{
+						lprintf( "end of data?" );
+						break;
+					}
+				}
+			}
 		}
 	}
 }
@@ -335,10 +405,25 @@ POINTER LoadLibraryFromMemory( CTEXTSTR name, POINTER block, size_t block_len, i
 #error need assembly to get this...
 #endif
 						dwInit = 0;
-						while( (*tls_list) ) { tls_list++; dwInit++; }
-						(*tls_list) = data;
-						DebugBreak();
+						{
+							memcpy( data, (*tls_list), size );
+						DumpSystemMemory( *tls_list );
+						//while( (*tls_list) ) { tls_list++; dwInit++; }
+						//(*tls_list) = data;
+						//DebugBreak();
 						LoadLibrary( "avutil-54.dll" );
+						{
+							int n;
+							for( n = 0; n < size; n++ )
+							{
+								// byte 120 differed...
+								if( ((char*)data)[n] != ((char*)(*tls_list))[n] )
+								{
+									lprintf( "differed..." ); 
+								}
+							}
+						}
+						}
 #ifdef __WATCOMC__
                   tls_list = fn1();
 #elif defined( _MSC_VER )
