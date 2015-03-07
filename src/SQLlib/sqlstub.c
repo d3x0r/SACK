@@ -366,6 +366,7 @@ void ExtendConnection( PODBC odbc )
 		SQLQueryf( odbc, &result, WIDE( "PRAGMA journal_mode=WAL;" ) );
 		if( result )
 			lprintf( WIDE( "Journal is now %s" ), result );
+		SQLEndQuery( odbc );
 		//SQLQueryf( odbc, &result, WIDE( "PRAGMA journal_mode" ) );
 		//lprintf( WIDE( "Journal is now %s" ), result );
 	}
@@ -3419,6 +3420,7 @@ int __DoSQLQueryEx( PODBC odbc, PCOLLECT collection, CTEXTSTR query DBG_PASS )
 		char *sql_query = CStrDup( query );
 		const TEXTCHAR *tail;
 		// can get back what was not used when parsing...
+		retry:
 #ifdef UNICODE
 		rc3 = sqlite3_prepare16_v2( odbc->db, (void*)query, (int)(querylen) * sizeof( TEXTCHAR ), &collection->stmt, (const void**)&tail );
 #else
@@ -3428,6 +3430,13 @@ int __DoSQLQueryEx( PODBC odbc, PCOLLECT collection, CTEXTSTR query DBG_PASS )
 		{
 			const char *tmp;
 			TEXTSTR str_error;
+			if( rc3 == SQLITE_BUSY )
+			{
+				lprintf( "wait for lock..." );
+				DumpAllODBCInfo();
+				WakeableSleep( 200 );
+				goto retry;
+			}
 			//DebugBreak();
 			tmp = sqlite3_errmsg(odbc->db);
 			str_error = DupCharToText( tmp );

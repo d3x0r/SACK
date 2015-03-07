@@ -1279,7 +1279,7 @@ static void LoadExistingLibraries( void )
 	DWORD needed;
 	if( !l.EnumProcessModules )
 	{
-      lprintf( "Failed to load EnumProcessModules" );
+		lprintf( "Failed to load EnumProcessModules" );
 		return;
 	}
 	l.EnumProcessModules( GetCurrentProcess(), modules, sizeof( HMODULE ) * 256, &needed );
@@ -1298,14 +1298,6 @@ static void LoadExistingLibraries( void )
 		{
 			dll_name = "Invalid_Name";
 		}
-#if 0
-		if( dir[IMAGE_DIRECTORY_ENTRY_TLS].Size )
-		{
-			PIMAGE_TLS_DIRECTORY tls = (PIMAGE_TLS_DIRECTORY)Seek( real_memory, dir[IMAGE_DIRECTORY_ENTRY_TLS].VirtualAddress );
-			// existing library has TLS....
-			//lprintf( "library %s has TLS", dll_name );
-		}		
-#endif
 		AddMappedLibrary( dll_name, modules[n] );
 	}
 }
@@ -1464,6 +1456,7 @@ SYSTEM_PROC( generic_function, LoadFunctionExx )( CTEXTSTR libname, CTEXTSTR fun
 			library->name = library->full_name;
 			StrCpy( library->name, libname );
 		}
+		library->library = NULL;
 		library->mapped = FALSE;
 		library->functions = NULL;
 		SuspendDeadstart();
@@ -1471,22 +1464,26 @@ SYSTEM_PROC( generic_function, LoadFunctionExx )( CTEXTSTR libname, CTEXTSTR fun
 		// with deadstart suspended, the library can safely register
 		// all of its preloads.  Then invoke will release suspend
 		// so final initializers in application can run.
-		if( l.ExternalLoadLibrary )
+		if( l.ExternalLoadLibrary && !library->library )
 		{
 			PLIBRARY check;
-			lprintf( "trying external load...%s", library->name );
+			//lprintf( "trying external load...%s", library->name );
 			l.ExternalLoadLibrary( library->name );
 			for( check = l.libraries; check; check = check->next )
 			{
+				// result will be in the local list of libraries (duplicating this one)
+				// and will reference the same name(or a byte duplicate)
 				if( StrCaseCmp( check->name, library->name ) == 0 )
 				{
 					Deallocate( PLIBRARY, library );
 					library = check;
+					// loaded.... 
 					goto get_function_name;
 				}
 			}
 		}
 
+		if( !library->library )
 		{
 			library->library = LoadLibrary( library->name );
 			if( !library->library )

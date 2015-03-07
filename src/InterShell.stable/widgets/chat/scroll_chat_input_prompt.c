@@ -178,7 +178,7 @@ void RenderTextLine(
 		if( !pText )
 			lprintf( WIDE("Okay no text to show... end up filling line blank.") );
 #endif
-		while( pText )
+		while( pText && nChar < pCurrentLine->nToShow )
 		{
 			size_t nLen;
 			TEXTCHAR *text = GetText( pText );

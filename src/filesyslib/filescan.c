@@ -293,7 +293,7 @@ typedef struct myfinddata {
 	else
 		pDataCurrent = NULL;
 
-	lprintf( "Search in %s for %s", base?base:"(NULL)", mask?mask:"(*)" );
+	//lprintf( "Search in %s for %s", base?base:"(NULL)", mask?mask:"(*)" );
 	if( !*pInfo || begin_sub_path || ((PMFD)*pInfo)->new_mount )
 	{
 		TEXTCHAR findmask[256];
@@ -307,7 +307,7 @@ typedef struct myfinddata {
 				if( !winfile_local )
 					SimpleRegisterAndCreateGlobal( winfile_local );
 
-				lprintf( "... %p", winfile_local );
+				//lprintf( "... %p", winfile_local );
 				pData->single_mount = FALSE;
 				pData->scanning_mount = (*winfile_local).mounted_file_systems;
 			}
@@ -321,12 +321,12 @@ typedef struct myfinddata {
 			}
 			if( pData->scanning_mount->fsi )
 			{
-				lprintf( "create cursor" );
+				//lprintf( "create cursor" );
 				pData->cursor = pData->scanning_mount->fsi->find_create_cursor( pData->scanning_mount->psvInstance, base, mask );
 			}
 			else
 			{
-				lprintf( "no cursor" );
+				//lprintf( "no cursor" );
 				pData->cursor = NULL;
 			}
 		}
@@ -336,7 +336,7 @@ typedef struct myfinddata {
 			{
 				if( pData->scanning_mount->fsi )
 				{
-					lprintf( "create cursor (new mount)" );
+					//lprintf( "create cursor (new mount)" );
 					pData->cursor = pData->scanning_mount->fsi->find_create_cursor( pData->scanning_mount->psvInstance, base, mask );
 				}
 				else
@@ -448,14 +448,14 @@ getnext:
 	if( pData->scanning_mount->fsi )
 	{
 		CTEXTSTR path = pData->scanning_mount->fsi->find_get_name( findcursor(pInfo) );
-		lprintf( "... %s", path );
+		//lprintf( "... %s", path );
 		if( !StrCmp( WIDE("."), path ) ||
 		    !StrCmp( WIDE(".."), path ) )
 		goto getnext;
 	}
 	else
 	{
-		lprintf( "... %s", finddata(pInfo)->name );
+		//lprintf( "... %s", finddata(pInfo)->name );
 #ifdef UNDER_CE
 		if( !StrCmp( WIDE("."), finddata(pInfo)->cFileName ) ||
 		    !StrCmp( WIDE(".."), finddata(pInfo)->cFileName ) )

@@ -187,7 +187,11 @@ PRIORITY_PRELOAD( XSaneWinMain, DEFAULT_PRELOAD_PRIORITY + 20 )//( argc, argv )
 		char **argv;
 		ParseIntoArgs( cmd, &argc, &argv );
 		SetSystemLog( SYSLOG_FILE, stderr ); 
+#ifdef ALT_VFS_NAME
 		l.fsi = sack_get_filesystem_interface( "sack_shmem.runner" );
+#else
+		l.fsi = sack_get_filesystem_interface( "sack_shmem" );
+#endif
 		sack_set_default_filesystem_interface( l.fsi );
 		SetExternalLoadLibrary( LoadLibraryDependant );
 		SetProgramName( "program" );

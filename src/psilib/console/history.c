@@ -1127,6 +1127,8 @@ _32 ComputeToShow( _32 colsize, _32 *col_offset, PTEXT segment, _32 nLen, _32 nO
 		_32 good_space = 0;
 		_32 nSpace;
 		_32 nSegSize, nSegHeight;
+		_32 best_chars = 0;
+		_32 best_char_size;
 		TEXTCHAR *text = GetText( segment );
 
 		for( nSpace = nShown; nSpace < nLen; nSpace++ )
@@ -1141,7 +1143,7 @@ _32 ComputeToShow( _32 colsize, _32 *col_offset, PTEXT segment, _32 nLen, _32 nO
 				result_bias = 1; // start next line past the \n
 				break;
 			}
-			if( text[nSpace] == ' ' ) 
+			else if( text[nSpace] == ' ' || text[nSpace] == '\t' ) 
 			{
 				//lprintf( "measure string until space... %s (%s)", text, text + nSpace );
 				phbr->measureString( phbr->psvMeasure, GetText( segment ) + nShown
@@ -1155,6 +1157,20 @@ _32 ComputeToShow( _32 colsize, _32 *col_offset, PTEXT segment, _32 nLen, _32 nO
 				else
 					break;
 			}
+			else if( !best_chars )
+			{
+				phbr->measureString( phbr->psvMeasure, GetText( segment ) + nShown
+					, nSpace - nShown, &nSegSize, &nSegHeight, font );
+
+				if( ( (*col_offset) + nSegSize  ) >= colsize )
+				{
+					if( !nSpace )
+						return 0;
+					best_chars = nSpace;
+				}
+				else 
+					best_char_size = nSegSize;
+			}
 		}
 
 		// found a space, please show up to that.
@@ -1162,6 +1178,12 @@ _32 ComputeToShow( _32 colsize, _32 *col_offset, PTEXT segment, _32 nLen, _32 nO
 		{
 			(*col_offset) += good_space_size;
 			nShow = good_space - nShown;
+		}
+		else if( best_chars )
+		{
+			(*col_offset) += best_char_size;
+
+			nShow = best_chars - nShown;
 		}
 		else if( nOfs ) // if started after a line, wrap whole thing to next...
 		{
@@ -1257,7 +1279,7 @@ int SkipSomeLines( PHISTORY_BROWSER phbr, SFTFont font, PTEXT countseg, int line
 //----------------------------------------------------------------------------
 
 // colsize is the size of space the line can take up
-int CountLinesSpanned( PHISTORY_BROWSER phbr, PTEXT countseg, SFTFont font )
+int CountLinesSpanned( PHISTORY_BROWSER phbr, PTEXT countseg, SFTFont font, LOGICAL count_trailing_linefeeds )
 {
 	// always spans at least one line.
 	_32 colsize = phbr->nWidth;
@@ -1274,12 +1296,29 @@ int CountLinesSpanned( PHISTORY_BROWSER phbr, PTEXT countseg, SFTFont font )
 			_32 nLen = GetTextSize( countseg );
 			// part of this segment has already been skipped.
 			// ComputeNextOffset can do this.
+			if( !nLen )
+			{
+				// empty segment is linebreak....
+				if( !count_trailing_linefeeds && !countseg->Next )
+				{
+					while( countseg->Prior && !GetTextSize( countseg->Prior ) )
+					{
+						nLines--;
+						countseg = PRIORLINE( countseg );
+					}
+				}
+				else
+					nLines++;
+				//if( countseg->Prior || countseg->Next )
+				//	nLines++;
+			}
+			else
 			{
 				_32 text_size;
 				_32 text_lines;
 				phbr->measureString( phbr->psvMeasure, GetText( countseg ), nLen, &text_size, &text_lines, font );
 				if( ( text_lines > phbr->nLineHeight ) 
-					|| ( ( nChar + text_size ) > colsize ) )
+					|| ( ( col_offset + text_size ) > colsize ) )
 				{
 					_32 _nShown = nShown;
 					// this is the wrapping condition...
@@ -1291,7 +1330,7 @@ int CountLinesSpanned( PHISTORY_BROWSER phbr, PTEXT countseg, SFTFont font )
 							skip_char = 1;
 						else
 							skip_char = 0;
-						if( ( nShow == 0 ) && ( nShown < nLen ) )
+						if( ( nShow == 0 ) && ( nSegShown < nLen ) )
 							nShow++;
 						nSegShown += nShow;
 						nShown += nShow ;
@@ -1355,7 +1394,7 @@ int AlignHistory( PHISTORY_BROWSER phbr, S_32 nOffset, SFTFont font )
 				int n;
 				phbr->nLine--;
 				n = CountLinesSpanned( phbr
-					, phbr->pBlock->pLines[phbr->nLine-1].pLine, font );
+					, phbr->pBlock->pLines[phbr->nLine-1].pLine, font, FALSE );
 				//lprintf( "total span is what ? %d", n );
 				if( n )
 					phbr->nOffset = n-1;
@@ -1402,7 +1441,7 @@ int AlignHistory( PHISTORY_BROWSER phbr, S_32 nOffset, SFTFont font )
 				( nOffset > 0 ) )
 		{
 			n = CountLinesSpanned( phbr
-				, phbr->pBlock->pLines[phbr->nLine-1].pLine, font );
+				, phbr->pBlock->pLines[phbr->nLine-1].pLine, font, FALSE );
 			//lprintf( "fixing forward motion offset: %d this spans %d", nOffset, n );
 			if( n - phbr->nOffset > nOffset )
 			{
@@ -1478,7 +1517,7 @@ _32 GetBrowserDistance( PHISTORY_BROWSER phbr, SFTFont font )
 		for( ; n < pHistory->nLinesUsed; n++ )
 		{
 			nLines += CountLinesSpanned( phbr
-				, pHistory->pLines[n].pLine, font );
+				, pHistory->pLines[n].pLine, font, FALSE );
 		}
 	}
 	lprintf( WIDE("Browser is %")_size_f WIDE(" lines from end..."), nLines );
@@ -1549,9 +1588,9 @@ int GetCommandCursor( PHISTORY_BROWSER phbr
 	if( bWrapCommand )
 	{
 		if( !bEndOfStream )
-			lines = CountLinesSpanned( phbr, pCmd, font );
+			lines = CountLinesSpanned( phbr, pCmd, font, TRUE );
 		else
-			lines = CountLinesSpanned( phbr, pCmd, font );
+			lines = CountLinesSpanned( phbr, pCmd, font, TRUE );
 	}
 	else
 	{
@@ -1740,7 +1779,7 @@ void BuildDisplayInfoLines( PHISTORY_BROWSER phbr, SFTFont font )
 				int nShow;
 				int nWrapped = 0;
 
-				nLines = CountLinesSpanned( phbr, pText, font );
+				nLines = CountLinesSpanned( phbr, pText, font, FALSE );
 				// after counting the first (last visible) line
 				// figure out how much we need to overflow to show the
 				// last partial line...
@@ -1796,10 +1835,17 @@ void BuildDisplayInfoLines( PHISTORY_BROWSER phbr, SFTFont font )
 
 					nLen = GetTextSize( pText );
 					{
+						int trim_char;
 						// shown - show part of this segment... but not the whole segment...
-						while( nSegShown < nLen )
+						if( !nLen )
 						{
-							int trim_char;
+							trim_char = 0;
+							pText = NEXTLINE( pText );
+							nLen = GetTextSize( pText );
+							goto do_end_of_line;
+						}
+						else while( nSegShown < nLen )
+						{
 							trim_char = 0;
 							// nShow is now the number of characters we can show.
 							//lprintf( "Segment is %d", GetTextSize( pText ) );
@@ -1820,6 +1866,7 @@ void BuildDisplayInfoLines( PHISTORY_BROWSER phbr, SFTFont font )
 							if( ( nSegShown < nLen ) || ( trim_char ) )
 							{
 								//lprintf( "Wrapped line... reset nChar cause it's a new line of characters." );
+							do_end_of_line:
 								nWrapped++;
 								if( pLastSetLine )
 								{
@@ -1841,6 +1888,7 @@ void BuildDisplayInfoLines( PHISTORY_BROWSER phbr, SFTFont font )
 								// skip next leading spaces.
 								// (and can be more than the length of the first segment)
 								//nShown = ComputeNextOffset( pText, nShown );
+								//if( pText )
 								{
 									dl.nLine = nShown+start; // just has to be different
 									dl.nFirstSegOfs = nSegShown; // start of a new line here...
@@ -1855,6 +1903,8 @@ void BuildDisplayInfoLines( PHISTORY_BROWSER phbr, SFTFont font )
 																		  , &dl );
 									}
 								}
+								//else
+								//	pLastSetLine = NULL;
 							}
 						}
 					}

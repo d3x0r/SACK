@@ -86,9 +86,9 @@ void FormatTextToBlockEx( CTEXTSTR input, TEXTSTR *output, int* pixel_width, int
 		PTEXT tmp;
 		PTEXT lines = SegCreateFromText( input );
 
-		parsed = burst( lines );
+		parsed = lines;
 
-		LineRelease( lines );
+		//LineRelease( lines );
 
 		remainder = parsed;
 
@@ -123,6 +123,7 @@ void FormatTextToBlockEx( CTEXTSTR input, TEXTSTR *output, int* pixel_width, int
 
 				// throw away the blank... don't really need it on the display
 				SegGrab( tmp );
+				tmp->flags |= TF_NORETURN;
 				PSI_WinLogicWriteEx( console, tmp, 0 );
 				//console->pending_spaces = tmp->format.position.offset.spaces;
 				//console->pending_tabs = tmp->format.position.offset.tabs;
@@ -134,6 +135,7 @@ void FormatTextToBlockEx( CTEXTSTR input, TEXTSTR *output, int* pixel_width, int
 		{
 			PTEXT que = BuildLine( remainder );
 			LineRelease( remainder );
+			que->flags |= TF_NORETURN;
 			PSI_WinLogicWriteEx( console, que, 0 );
  			console->flags.bNewLine = 0;
 		}

@@ -846,32 +846,42 @@ int GetCharFromLine( PCONSOLE_INFO console, _32 cols
 	if( pLine && result )
 	{
 		PTEXT pText = pLine->start;
-		int nOfs = 0, nShown = pLine->nFirstSegOfs;
+		int nOfs = 0, nSegShown = pLine->nFirstSegOfs;
+		_32 seg_len;
+		_32 nShown = 0; 
 		_32 col_offset = 0;
+		nLen = pLine->nToShow ;// ComputeToShow( cols, &col_offset, pText, GetTextSize( pText ), nOfs, nShown, console->pCurrentDisplay );
 		while( pText )
 		{
 			// nOfs is the column position to start at...
 			// nShown is the amount of the first segment shown.
-			nLen = pLine->nToShow ;// ComputeToShow( cols, &col_offset, pText, GetTextSize( pText ), nOfs, nShown, console->pCurrentDisplay );
 			//nLen = GetTextSize( pText );
+			seg_len = GetTextSize( pText );
+			if( nShown >= nLen )
+				return FALSE;
+			if( !seg_len && !nChar )
+			{
+				(*result) = '\n';
+				return TRUE;
+			}
+
 			if( nChar < pText->format.position.offset.spaces )
 			{
 				*result = ' ';
 				return TRUE;
 			}
+			nShown += pText->format.position.offset.spaces;
 			nChar -= pText->format.position.offset.spaces;
-			if( nChar < nLen )
+			if( nChar < seg_len )
 			{
 				TEXTCHAR *text = GetText( pText );
-				*result = text[nChar + nShown];
+				*result = text[nChar + nSegShown];
 				return TRUE;
 			}
-			nChar -= nLen;
-			if( nLen == ( GetTextSize( pText ) + nShown ) )
-				pText = NEXTLINE( pText );
-			else
-				pText = NULL;
-			nShown = 0; // have shown nothing on this segment.
+			nChar -= seg_len;
+			nShown += seg_len;
+			pText = NEXTLINE( pText );
+			nSegShown = 0; // have shown nothing on this segment.
 		}
 	}
 	return FALSE;
@@ -914,14 +924,12 @@ TEXTCHAR *PSI_GetDataFromBlock( PCONSOLE_INFO pdp )
 				first = FALSE;
 				_priorline = pdl->nLine;
 			}
-			else if( _priorline != pdl->nLine || bBlock )
+
+			if( !pdl->nToShow || bBlock )
 			{
-				if( !first_char )
-				{
-					if( pdp->flags.bBuildDataWithCarriageReturn )
-						result[ofs++] = '\r';
-					result[ofs++] = '\n';
-				}
+				if( pdp->flags.bBuildDataWithCarriageReturn )
+					result[ofs++] = '\r';
+				result[ofs++] = '\n';
 				_priorline = pdl->nLine;
 			}
 			for( ;
