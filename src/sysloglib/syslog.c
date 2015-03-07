@@ -1423,7 +1423,7 @@ void  SetSystemLog ( enum syslog_types type, const void *data )
 }
 
 // information for the call to _real_lprintf file and line information...
-ThreadLocal struct next_lprint_info{
+DeclareThreadLocal struct next_lprint_info{
 	// please use this enter when resulting a function, and leave from said function.
 	// oh - but then we couldn't exist before crit sec code...
 	//CRITICALSECTION cs;
