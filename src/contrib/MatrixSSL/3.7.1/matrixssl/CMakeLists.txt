@@ -1,4 +1,4 @@
-
+	
 set( MatrixSSL_Sources
 		prf.c
 		sslv3.c
@@ -11,5 +11,18 @@ set( MatrixSSL_Sources
 		sslDecode.c
 sslEncode.c )
 
-add_library( MatrixSSL SHARED ${MatrixSSL_Sources} pscrypto core )
+# if SHARED; on windows, declspec...
+ADD_DEFINITIONS( -D_USRDLL )
 
+add_library( MatrixSSL SHARED ${MatrixSSL_Sources} )
+
+target_link_libraries( MatrixSSL mssl_crypto mssl_core )
+
+SET_TARGET_PROPERTIES( MatrixSSL PROPERTIES
+                  DEFINE_SYMBOL _USRDLL
+#                  COMPILE_FLAGS  "-D"
+                  COMPILE_DEFINITIONS "${LIBFLAGS}"
+                  FOLDER "Matrix SSL" 
+                  )
+
+install( TARGETS MatrixSSL DESTINATION bin )

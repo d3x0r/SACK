@@ -30,7 +30,7 @@
  */
 
 
-#include "../../include/sha1.h"
+#include "../../../include/sha1.h"
 
 #ifndef SHA1HashSize
 #define SHA1Context SHA1_CTX

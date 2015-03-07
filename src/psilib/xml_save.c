@@ -1,6 +1,6 @@
 #include <stdhdrs.h>
 #include <sharemem.h>
-#include <../src/genx/genx.h>
+#include <../src/contrib/genx/genx.h>
 #include "controlstruc.h"
 #include <psi.h>
 #include <filedotnet.h>
