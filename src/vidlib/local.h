@@ -61,7 +61,7 @@ extern
 	int _mouse_b, _mouse_y, _mouse_x;
 
 	int WindowBorder_X, WindowBorder_Y;
-#ifndef __ANDROID__
+#if defined( WIN32 )
 	ATOM aClass;		// keep reference of window class....
 	ATOM aClass2;      // keep reference of window class.... (opengl minimal)
 
@@ -75,7 +75,7 @@ extern
 	PLIST pInactiveList;
 	PLIST threads;
 	PTHREAD actual_thread; // this is the one that creates windows surfaces...
-#ifndef __ANDROID__
+#if defined( WIN32 )
 	DWORD dwThreadID;  // thread that receives events from windows queues...
 	DWORD dwEventThreadID; // thread that handles dispatch to application
 #endif

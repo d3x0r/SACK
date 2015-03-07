@@ -155,12 +155,30 @@ if( WIN32 )
 		set( VIDLIB_SOURCES ${VIDLIB_SOURCES} ${SOURCES_ROOT}src/vidlib/opengl.c )
 	endif( NOT __ARM__ )
         
+endif( WIN32 )
+
+if( UNIX )
+	#vidlib is a windows-specific driver
+        # vidlib.puregl and puregl2 are non windows specific; but are not
+        # included in monolithic build.
+	set( VIDLIB_SOURCES
+	  ${SOURCES_ROOT}src/vidlib/key.c
+	  ${SOURCES_ROOT}src/vidlib/keydefs.c
+#	  ${SOURCES_ROOT}src/vidlib/vidlib.c
+#	  ${SOURCES_ROOT}src/vidlib/xvidlib.c
+	)
+	set( ExtraRenderFlags "RENDER_LIBRARY_SOURCE;_OPENGL_ENABLED" )
+        
+	if( NOT __ARM__ )
+#		set( VIDLIB_SOURCES ${VIDLIB_SOURCES} ${SOURCES_ROOT}src/vidlib/opengl.c )
+	endif( NOT __ARM__ )
+        
+endif( UNIX )
 	if( FORCE_CXX )
 		set_source_files_properties(${VIDLIB_SOURCES} PROPERTIES LANGUAGE CXX )
 	endif( FORCE_CXX )
 	SET_SOURCE_FILES_PROPERTIES( ${VIDLIB_SOURCES} PROPERTIES 
 					FOLDER "Source Files\\Image Output Library" )
-endif( WIN32 )
 
 if( NOT __NO_ODBC__ OR USE_SQLITE )
 

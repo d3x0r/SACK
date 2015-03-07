@@ -668,12 +668,15 @@ typedef struct myfinddata {
 #define findbasename(pInfo) ( ((PMFD)(*pInfo))->basename)
 
 //---------------------------------------------------------------------------
-int  ScanFiles ( CTEXTSTR base
+int  ScanFilesEx ( CTEXTSTR base
 					, CTEXTSTR mask
 					, void **pInfo
 					, void CPROC Process( PTRSZVAL psvUser, CTEXTSTR name, int flags )
 					, int flags
-					, PTRSZVAL psvUser )
+					, PTRSZVAL psvUser
+		   , LOGICAL begin_sub_path 
+		   , struct file_system_mounted_interface *mount
+                  )
 {
 	//DIR *dir;
 	char name[256];
@@ -798,6 +801,16 @@ int  ScanFiles ( CTEXTSTR base
 	}
 	return !((*pInfo)==NULL);
 }
+
+ int  ScanFiles ( CTEXTSTR base
+           , CTEXTSTR mask
+           , void **pInfo
+           , void CPROC Process( PTRSZVAL psvUser, CTEXTSTR name, int flags )
+           , int flags 
+           , PTRSZVAL psvUser )
+ {
+	 return ScanFilesEx( base, mask, pInfo, Process, flags, psvUser, FALSE, NULL );
+ }
 
 //---------------------------------------------------------------------------
 
