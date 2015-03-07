@@ -101,6 +101,8 @@ SFF_DIRECTORY  = 1, // is a directory...
 		SFF_DRIVE      = 2, // this is a drive...
 };
 
+struct file_system_mounted_interface;
+
 /* Extended external file system interface to be able to use external file systems */
 struct file_system_interface {
 	void* (CPROC *open)(PTRSZVAL psvInstance, const char *);                                                  //filename
