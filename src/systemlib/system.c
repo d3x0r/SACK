@@ -1365,6 +1365,7 @@ void DeAttachThreadToLibraries( LOGICAL attach )
 	{
 		if( library->mapped )
 		{
+#ifdef WIN32
 			PIMAGE_DOS_HEADER source_dos_header = (PIMAGE_DOS_HEADER)library->library;
 			PIMAGE_NT_HEADERS source_nt_header = (PIMAGE_NT_HEADERS)Seek( library->library, source_dos_header->e_lfanew );
 			PIMAGE_DATA_DIRECTORY dir = (PIMAGE_DATA_DIRECTORY)source_nt_header->OptionalHeader.DataDirectory;
@@ -1418,6 +1419,7 @@ void DeAttachThreadToLibraries( LOGICAL attach )
 			}
 
 			entry_point( library->library, attach?DLL_THREAD_ATTACH:DLL_THREAD_DETACH, 0 );
+#endif
 		}
 		library = library->next;
 	}
@@ -1576,6 +1578,8 @@ SYSTEM_PROC( generic_function, LoadFunctionExx )( CTEXTSTR libname, CTEXTSTR fun
 			int len;
 			if( library->mapped )
 			{
+#ifdef WIN32
+
 				PIMAGE_DOS_HEADER source_dos_header = (PIMAGE_DOS_HEADER)library->library;
 #define Seek(a,b) (((PTRSZVAL)a)+(b))
 				PIMAGE_NT_HEADERS source_nt_header = (PIMAGE_NT_HEADERS)Seek( library->library, source_dos_header->e_lfanew );
@@ -1634,6 +1638,7 @@ SYSTEM_PROC( generic_function, LoadFunctionExx )( CTEXTSTR libname, CTEXTSTR fun
 						}
 					}
 				}
+#endif
 				return NULL;
 			}
 			else
