@@ -92,8 +92,10 @@ extern
 	int nLibrary;
 	LOGICAL (CPROC*ExternalLoadLibrary)( const char *filename );
 	// on XP this is in PSAPI.DLL later it's in Kernel32.DLL 
+#ifdef WIN32
 	BOOL (WINAPI* EnumProcessModules)( HANDLE hProcess, HMODULE *lphModule
 	                                 , DWORD cb, LPDWORD lpcbNeeded );
+#endif
 } *local_systemlib;
 
 #define l (*local_systemlib)
