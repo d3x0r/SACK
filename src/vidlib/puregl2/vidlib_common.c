@@ -1523,14 +1523,16 @@ void  OwnMouseEx (PVIDEO hVideo, _32 own DBG_PASS)
 {
 	if (own)
 	{
-		lprintf( WIDE("Capture is set on %p"),hVideo );
+		//lprintf( WIDE("Capture is set on %p %p"),l.hVirtualCaptured, hVideo );
 		if( hVideo->camera )
 		{
+		    lprintf( "set physical catpure here" );
 		}
 		else
 		{
 			if( !l.hVirtualCaptured )
 			{
+    				//lprintf( "no virtual capture; set capture on %p", hVideo );
 				l.hVirtualCaptured = hVideo;
 				l.hVirtualCapturedPrior = hVideo; // make sure to set this so it doesn't get reset to invalid
 				hVideo->flags.bCaptured = 1;
@@ -1540,7 +1542,7 @@ void  OwnMouseEx (PVIDEO hVideo, _32 own DBG_PASS)
 			{
 				if( l.hVirtualCaptured != hVideo )
 				{
-					lprintf( WIDE("Another window now wants to capture the mouse... the prior window will ahve the capture stolen.") );
+					//lprintf( WIDE("Another window now wants to capture the mouse... the prior window will ahve the capture stolen.") );
 					l.hVirtualCaptured = hVideo;
 					l.hVirtualCapturedPrior = hVideo; // make sure to set this so it doesn't get reset to invalid
 					hVideo->flags.bCaptured = 1;
@@ -1550,8 +1552,10 @@ void  OwnMouseEx (PVIDEO hVideo, _32 own DBG_PASS)
 				{
 					if( !hVideo->flags.bCaptured )
 					{
-						lprintf( WIDE("This should NEVER happen!") );
-						*(int*)0 = 0;
+						// mgiht be auto captured from display but not 
+						// captured by application....
+						//lprintf( WIDE("This should NEVER happen!") );
+						//*(int*)0 = 0;
 					}
 					// should already have the capture...
 				}
@@ -1562,12 +1566,15 @@ void  OwnMouseEx (PVIDEO hVideo, _32 own DBG_PASS)
 	{
 		if( l.hVirtualCaptured == hVideo )
 		{
-			lprintf( WIDE("No more capture.") );
-			//ReleaseCapture ();
-			hVideo->flags.bCaptured = 0;
-			l.hVirtualCaptured = NULL;
-			l.hVirtualCapturedPrior = hVideo; // make sure to set this so it doesn't get reset to invalid
-			l.flags.bVirtualManuallyCapturedMouse = 0;
+			if( hVideo->flags.bCaptured )
+			{
+				//lprintf( WIDE("No more capture.") );
+				//ReleaseCapture ();
+				hVideo->flags.bCaptured = 0;
+				l.hVirtualCaptured = NULL;
+				l.hVirtualCapturedPrior = hVideo; // make sure to set this so it doesn't get reset to invalid
+				l.flags.bVirtualManuallyCapturedMouse = 0;
+			}
 		}
 	}
 }
