@@ -1365,8 +1365,11 @@ PTHREAD  ThreadToEx( PTRSZVAL (CPROC*proc)(PTHREAD), PTRSZVAL param DBG_PASS )
 		//pThread->me = &g.threads;
 		//g.threads = pThread;
 		pThread->flags.bReady = 1;
-		while( !pThread->thread_event )
-			Relinquish();
+		{
+			int now = GetTickCount();
+			while( !pThread->thread_event && ( now + 250 ) > GetTickCount()  )
+				Relinquish();
+		}
 #ifdef LOG_THREAD
 		Log3( WIDE("Created thread address: %p %016"_64fx" at %p")
 		    , pThread->proc, pThread->thread_ident, pThread );

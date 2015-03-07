@@ -1,6 +1,7 @@
 #define NO_FILEOP_ALIAS
 #include <stdhdrs.h>
 #include <sack_vfs.h>
+#include <filesys.h>
 
 static struct vfs_command_local
 {

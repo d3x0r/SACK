@@ -42,5 +42,9 @@ endif( BUILD_TESTS )
 if( BUILD_EXTRAS )
 
 add_subdirectory( vfs_command )
-add_subdirectory( vfs_runner )
+
+if( WIN32 )
+   add_subdirectory( vfs_runner )
+endif( WIN32 )
+
 endif( BUILD_EXTRAS )
