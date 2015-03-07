@@ -10,7 +10,7 @@
 #define USE_SQLITE_INTERFACE
 #endif
 #define BUILDS_INTERFACE
-#include "../SQLlib/sqlstruc.h"
+#include "../../SQLlib/sqlstruc.h"
 #include "sqlite3.h"
 
 #ifndef UNICODE  // fix strings

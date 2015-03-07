@@ -1,6 +1,6 @@
 set_property(GLOBAL PROPERTY USE_FOLDERS On)
 set( CMAKE_INSTALL_MESSAGE "LAZY" )
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 3.0)
 
 project( SACK )
 
@@ -903,9 +903,9 @@ set( SACK_PLUSPLUS_SOURCES
 if( NOT __NO_CPLUSPLUS )
 if( NOT FORCE_CXX )
 set( cplusplus_sources )
-COPY_CPLUSPLUS( cplusplus_sources ${SACK_PLUSPLUS_SOURCES} src/sqlite/3.8.7.4/sqlite3.h include/sha1.h include/md5.h )
+COPY_CPLUSPLUS( cplusplus_sources ${SACK_PLUSPLUS_SOURCES} src/contrib/sqlite/3.8.7.4/sqlite3.h include/sha1.h include/md5.h )
 if( NEED_UUID )
-COPY_CPLUSPLUS( cplusplus_sources ${SACK_PLUSPLUS_SOURCES} src/uuid-1.6.2/uuid.h )
+COPY_CPLUSPLUS( cplusplus_sources ${SACK_PLUSPLUS_SOURCES} src/contrib/uuid-1.6.2/uuid.h )
 endif( NEED_UUID )
 
 set( cplusplus_sources 
@@ -1121,8 +1121,8 @@ endif( WATCOM )
         #set( FREEGLUT_GLES2 ON )
         #set( FREEGLUT_BUILD_DEMOS OFF )
         #set( ANDROID ON )
-        #add_subdirectory( src/freeglut/freeglut-SVN )
-    	#INCLUDE_DIRECTORIES( src/freeglut/freeglut-SVN/include )
+        #add_subdirectory( src/contrib/freeglut/freeglut-SVN )
+    	#INCLUDE_DIRECTORIES( src/contrib/freeglut/freeglut-SVN/include )
     #endif( __ANDROID__ )
 
 
@@ -1160,8 +1160,8 @@ IF(NOT FORCE_CXX AND EXISTS ${BULLET_SOURCE}/CMakeLists.txt AND NOT BUILD_UNICOD
               SET(OPENGL_gl_LIBRARY GLESv2)
               SET(OPENGL_glu_LIBRARY "" )
       else( __ANDROID__ OR __QNX__ )
-          add_subdirectory( src/freeglut/freeglut-2.8.0 )
-          INCLUDE_DIRECTORIES( src/freeglut/freeglut-2.8.0/include )
+          add_subdirectory( src/contrib/freeglut/freeglut-2.8.0 )
+          INCLUDE_DIRECTORIES( src/contrib/freeglut/freeglut-2.8.0/include )
           	IF (MSVC)
           		SET(GLUT_FOUND TRUE)
           		IF (CMAKE_CL_64)
@@ -1426,7 +1426,7 @@ if( __INCLUDE_INTERSHELL__ )
 add_subdirectory( src/InterShell )
 endif( __INCLUDE_INTERSHELL__ )
 
-install( FILES ${SOURCES_ROOT}src/snprintf_2.2/snprintf.h DESTINATION
+install( FILES ${SOURCES_ROOT}src/contrib/snprintf_2.2/snprintf.h DESTINATION
 include/SACK/snprintf-2.2 )
 
 

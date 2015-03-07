@@ -2,7 +2,7 @@
 if( NOT __NO_GUI__ )
 
 if( NEED_JPEG )
-SET( JBASEDIR src/jpeg-9 )
+SET( JBASEDIR src/contrib/jpeg-9 )
 SET( SYSDEPMEM jmemnobs.c )
 
 # library object files common to compression and decompression
@@ -43,7 +43,7 @@ endif( NEED_JPEG )
 if( NEED_PNG )
 
  if( NEED_ZLIB )
-  SET( ZBASEDIR src/zlib-1.2.7 )
+  SET( ZBASEDIR src/contrib/zlib-1.2.7 )
   include( ${ZBASEDIR}/CMakeLists.part )
 if( FORCE_CXX )
 #set_source_files_properties(${ZLIB_SOURCE} PROPERTIES LANGUAGE CXX )
@@ -52,7 +52,7 @@ source_group("Source Files\\zlib-1.2.7 Library" FILES ${ZLIB_SOURCE})
  endif( NEED_ZLIB )
 
 
- SET( PBASEDIR src/libpng-1.6.17beta03 )
+ SET( PBASEDIR src/contrib/libpng-1.6.17beta03 )
  include( ${PBASEDIR}/CMakeLists.part )
 
 if( FORCE_CXX )
@@ -65,7 +65,7 @@ endif( NEED_PNG )
 
 
 if( NEED_FREETYPE )
-SET( FBASEDIR src/freetype-2.5.0.1/src )
+SET( FBASEDIR src/contrib/freetype-2.5.0.1/src )
 
 Set( ExternalExtraDefinitions ${ExternalExtraDefinitions} FREETYPE_SOURCE FT2_BUILD_LIBRARY )
 
@@ -121,7 +121,7 @@ endif( NOT __NO_GUI__ )
 if( BUILD_EXTRAS )
   IF( NOT __ANDROID__ )
      # Android math.h puked when building this.
-     add_subdirectory( src/shapelib-1.3.0 )
+     add_subdirectory( src/contrib/shapelib-1.3.0 )
   ENDIF( NOT __ANDROID__ )
 endif( BUILD_EXTRAS )
 

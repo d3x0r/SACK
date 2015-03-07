@@ -11,10 +11,10 @@
   endif()
 
 set( SHA1_SOURCES
-  ${SOURCES_ROOT}src/sha1lib/sha1.c
+  ${SOURCES_ROOT}src/contrib/sha1lib/sha1.c
   )
 set( SHA2_SOURCES
-  ${SOURCES_ROOT}src/sha2lib/sha2.c
+  ${SOURCES_ROOT}src/contrib/sha2lib/sha2.c
   )
 
 set( RANDOM_SOURCES
@@ -107,9 +107,9 @@ SET_SOURCE_FILES_PROPERTIES( ${SYSTEM_LIBRARY_SOURCES} PROPERTIES
 		FOLDER "Source Files\\System Interface" )
 
 set ( EXPAT_SOURCES 
-  ${SOURCES_ROOT}src/sexpat/xmlparse.c
-  ${SOURCES_ROOT}src/sexpat/xmlrole.c
-  ${SOURCES_ROOT}src/sexpat/xmltok.c
+  ${SOURCES_ROOT}src/contrib/sexpat/xmlparse.c
+  ${SOURCES_ROOT}src/contrib/sexpat/xmlrole.c
+  ${SOURCES_ROOT}src/contrib/sexpat/xmltok.c
 )
 set( EXPAT_SOURCES_FLAGS XML_MIN_SIZE;SEXPAT_SOURCE )
 if( FORCE_CXX )
@@ -119,8 +119,8 @@ endif( FORCE_CXX )
 SOURCE_GROUP( "Source Files\\XML\\expat" FILES ${EXPAT_SOURCES} )
 
 set( GENX_SOURCES
-  ${SOURCES_ROOT}src/genx/charProps.c
-  ${SOURCES_ROOT}src/genx/genx.c
+  ${SOURCES_ROOT}src/contrib/genx/charProps.c
+  ${SOURCES_ROOT}src/contrib/genx/genx.c
 )
 SET_SOURCE_FILES_PROPERTIES( ${GENX_SOURCES} PROPERTIES 
 		FOLDER "Source Files\\XML\\Genx Library" )
@@ -185,12 +185,12 @@ if( NOT __NO_ODBC__ OR USE_SQLITE )
 
 
 if( USE_SQLITE )
-  SET( BAG_SQLITE_INTERFACE  ${SOURCES_ROOT}src/sqlite/sqlite_interface.c )
+  SET( BAG_SQLITE_INTERFACE  ${SOURCES_ROOT}src/contrib/sqlite/sqlite_interface.c )
   
 if( NOT SQLITE3_FOUND )
   SET( SQLITE_VERSION 3.8.7.4 )
-  SET( SQLITE_SOURCES ${SOURCES_ROOT}src/sqlite/${SQLITE_VERSION}/sqlite3.c )
-  include_directories( ${SOURCES_ROOT}src/sqlite/${SQLITE_VERSION} )
+  SET( SQLITE_SOURCES ${SOURCES_ROOT}src/contrib/sqlite/${SQLITE_VERSION}/sqlite3.c )
+  include_directories( ${SOURCES_ROOT}src/contrib/sqlite/${SQLITE_VERSION} )
   
   if( NOT USE_SQLITE_EXTERNAL AND BUILD_MONOLITHIC )
    # setup to include sqlite in the core libraries...
@@ -445,7 +445,7 @@ SET_PROPERTY(SOURCE ${VECTLIB_SOURCES}
 
 
 set( MD5_SOURCES
-  ${SOURCES_ROOT}src/md5lib/md5c.c
+  ${SOURCES_ROOT}src/contrib/md5lib/md5c.c
   )
 
 if( NOT __NO_NETWORK__ )
@@ -499,9 +499,9 @@ set( SACK_PLUSPLUS_HEADERS ${SACK_PLUSPLUS_HEADERS} ${NETWORK_HEADERS} ${MSGSVR_
         ${SOURCES_ROOT}src/psilib/console/keydefs.h
         ${SOURCES_ROOT}src/psilib/console/histstruct.h
         ${SOURCES_ROOT}src/psilib/console/WinLogic.h
-        ${SOURCES_ROOT}src/genx/genx.h
+        ${SOURCES_ROOT}src/contrib/genx/genx.h
         ${SOURCES_ROOT}src/imglib/local.h
-        ${SOURCES_ROOT}src/uuid-1.6.2/uuid.h
+        ${SOURCES_ROOT}src/contrib/uuid-1.6.2/uuid.h
 )
 
 set(BASE_SOURCES  ${BASE_SOURCES}
@@ -547,7 +547,7 @@ if( NOT __CLR__ )
    endif( __CLR__ )
 endif( NOT __CLR__ )
 
-  SET( SNPRINTF_SOURCES ${SOURCES_ROOT}src/snprintf_2.2/snprintf.c )
+  SET( SNPRINTF_SOURCES ${SOURCES_ROOT}src/contrib/snprintf_2.2/snprintf.c )
   set_source_files_properties( ${SNPRINTF_SOURCES} 
   				PROPERTIES
                                 COMPILE_DEFINITIONS "SNPRINTF_LONGLONG_SUPPORT;PREFER_PORTABLE_SNPRINTF"

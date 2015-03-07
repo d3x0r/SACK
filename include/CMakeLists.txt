@@ -3,12 +3,12 @@
 # if !(MAKE_DEV)
 
 SET( SACK_SEXPAT_HEADERS
-../src/sexpat/expat.h
-../src/sexpat/expat_external.h
+../src/contrib/sexpat/expat.h
+../src/contrib/sexpat/expat_external.h
 )
 
 SET( SACK_GENX_HEADERS
-../src/genx/genx.h
+../src/contrib/genx/genx.h
 )
 
 SET( SYS_IPC_HEADERS 
@@ -95,8 +95,8 @@ imglib/imagestruct.h
 )
 
 SET( ZLIB_HEADERS
-../src/zlib-1.2.7/zlib.h
-../src/zlib-1.2.7/zconf.h
+../src/contrib/zlib-1.2.7/zlib.h
+../src/contrib/zlib-1.2.7/zconf.h
 )
 
 
@@ -193,7 +193,7 @@ endif( NEED_JPEG )
 if( NEED_FREETYPE )
 INSTALL(
   DIRECTORY
-  	../src/freetype-2.5.0.1/include/
+  	../src/contrib/freetype-2.5.0.1/include/
   DESTINATION
   	include/${CMAKE_PROJECT_NAME}
 )

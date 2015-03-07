@@ -50,7 +50,7 @@
  #define OSX
  #define MATRIX_USE_FILE_SYSTEM
 #elif defined(_WIN32) /* Windows */
- #define WIN32
+ //#define WIN32
  #define HAVE_NATIVE_INT64 /* Windows will always have this */
  #define MATRIX_USE_FILE_SYSTEM
 #endif
