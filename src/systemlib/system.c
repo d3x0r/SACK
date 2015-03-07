@@ -1273,8 +1273,8 @@ void InvokeLibraryLoad( void )
 #define Seek(a,b) (((PTRSZVAL)a)+(b))
 static void LoadExistingLibraries( void )
 {
+#ifdef WIN32
 	int n = 256;
-
 	HMODULE *modules = NewArray( HMODULE, 256 );
 	DWORD needed;
 	if( !l.EnumProcessModules )
@@ -1300,6 +1300,7 @@ static void LoadExistingLibraries( void )
 		}
 		AddMappedLibrary( dll_name, modules[n] );
 	}
+#endif
 }
 
 SYSTEM_PROC( LOGICAL, IsMappedLibrary)( CTEXTSTR libname )
