@@ -105,7 +105,7 @@ CTEXTSTR GetSeqGUID( void )
 }
 #else
 #ifdef __INTERNAL_UUID__
-#include "../uuid-1.6.2/uuid.h"
+#include "../contrib/uuid-1.6.2/uuid.h"
 #else
 #include <uuid/uuid.h>
 #endif
