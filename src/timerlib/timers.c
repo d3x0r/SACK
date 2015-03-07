@@ -1459,7 +1459,7 @@ void  EndThread( PTHREAD thread )
 	{
 #ifdef __LINUX__
 #  ifndef __ANDROID__
-		pthread_cancel( thread->thread );
+		pthread_cancel( thread->hThread );
 #  endif
 #else
 		TerminateThread( thread->hThread, 0xD1E );
