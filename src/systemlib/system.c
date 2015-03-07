@@ -461,11 +461,13 @@ static void SystemInit( void )
 #endif
 			l.flags.bInitialized = 1;
 
+#  ifdef WIN32
 			l.EnumProcessModules = (BOOL(WINAPI*)(HANDLE,HMODULE*,DWORD,LPDWORD))LoadFunction( "psapi.dll", "EnumProcessModules" );
 			if( !l.EnumProcessModules )
 				l.EnumProcessModules = (BOOL(WINAPI*)(HANDLE,HMODULE*,DWORD,LPDWORD))LoadFunction( "kernel32.dll", "EnumProcessModules" );
 			if( !l.EnumProcessModules )
 				l.EnumProcessModules = (BOOL(WINAPI*)(HANDLE,HMODULE*,DWORD,LPDWORD))LoadFunction( "kernel32.dll", "K32EnumProcessModules" );
+#  endif
 		}
 #endif
 	}
