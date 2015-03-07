@@ -158,7 +158,7 @@ else( __ANDROID__ )
 	endif( NOT ${FREETYPE_FOUND} )  
 	#########  
 	find_package( OpenGL )
-	set( PLATFORM_LIBRARIES ${PLATFORM_LIBRARIES} ${OpenGL_LIBRARIES} )
+	set( PLATFORM_LIBRARIES ${PLATFORM_LIBRARIES} ${OPENGL_LIBRARIES} )
 	#########  
 	find_package( GLEW )
 	if( NOT ${GLEW_FOUND} )
