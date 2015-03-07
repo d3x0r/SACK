@@ -14,7 +14,7 @@
 #include "sqlite3.h"
 
 #ifndef UNICODE  // fix strings
-//#define LOG_OPERATIONS
+#define LOG_OPERATIONS
 #endif
 
 SQL_NAMESPACE
