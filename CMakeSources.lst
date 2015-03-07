@@ -426,16 +426,16 @@ if( NEED_UUID )
   add_definitions( -DUUID_SOURCE )
 endif( NEED_UUID )
 set( UUID_SOURCES
-  ${SOURCES_ROOT}src/uuid-1.6.2/uuid.c
-  ${SOURCES_ROOT}src/uuid-1.6.2/uuid_md5.c
-  ${SOURCES_ROOT}src/uuid-1.6.2/uuid_sha1.c
-  ${SOURCES_ROOT}src/uuid-1.6.2/uuid_dce.c
-  ${SOURCES_ROOT}src/uuid-1.6.2/uuid_mac.c
-  ${SOURCES_ROOT}src/uuid-1.6.2/uuid_prng.c
-  ${SOURCES_ROOT}src/uuid-1.6.2/uuid_str.c
-  ${SOURCES_ROOT}src/uuid-1.6.2/uuid_time.c
-  ${SOURCES_ROOT}src/uuid-1.6.2/uuid_ui128.c
-  ${SOURCES_ROOT}src/uuid-1.6.2/uuid_ui64.c
+  ${SOURCES_ROOT}src/contrib/uuid-1.6.2/uuid.c
+  ${SOURCES_ROOT}src/contrib/uuid-1.6.2/uuid_md5.c
+  ${SOURCES_ROOT}src/contrib/uuid-1.6.2/uuid_sha1.c
+  ${SOURCES_ROOT}src/contrib/uuid-1.6.2/uuid_dce.c
+  ${SOURCES_ROOT}src/contrib/uuid-1.6.2/uuid_mac.c
+  ${SOURCES_ROOT}src/contrib/uuid-1.6.2/uuid_prng.c
+  ${SOURCES_ROOT}src/contrib/uuid-1.6.2/uuid_str.c
+  ${SOURCES_ROOT}src/contrib/uuid-1.6.2/uuid_time.c
+  ${SOURCES_ROOT}src/contrib/uuid-1.6.2/uuid_ui128.c
+  ${SOURCES_ROOT}src/contrib/uuid-1.6.2/uuid_ui64.c
 )
 
 SET( VECTLIB_SOURCES src/vectlib/vectlib.c )

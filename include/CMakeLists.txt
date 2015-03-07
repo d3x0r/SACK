@@ -162,7 +162,7 @@ endif( NEED_ZLIB )
 if( NEED_UUID )
 INSTALL( 
   FILES
-    ../src/uuid-1.6.2/uuid.h
+    ../src/contrib/uuid-1.6.2/uuid.h
   DESTINATION
     include/${CMAKE_PROJECT_NAME}/uuid
 )
