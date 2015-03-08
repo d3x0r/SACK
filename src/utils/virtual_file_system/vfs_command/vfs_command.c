@@ -8,17 +8,21 @@ static struct vfs_command_local
 	struct file_system_interface *fsi;
 	struct volume *current_vol;
 	struct file_system_mounted_interface *current_mount;
+	LOGICAL verbose;
 } l;
 
 static void StoreFileAs( CTEXTSTR filename, CTEXTSTR asfile )
 {
 	FILE *in = sack_fopenEx( 0, filename, "rb", sack_get_default_mount() );
+	if( l.verbose ) printf( " Opened file %s = %p\n", filename, in );
 	if( in )
 	{
 		FILE *out = sack_fopenEx( 0, asfile, "wb", l.current_mount );
 		size_t size = sack_fsize( in );
 		POINTER data = NewArray( _8, size );
+		if( l.verbose ) printf( " Opened file %s = %p\n", asfile, out );
 		sack_fread( data, 1, size, in );
+		if( l.verbose ) printf( " read %d\n", size );
 		sack_fwrite( data, 1, size, out );
 		sack_fclose( in );
 		sack_ftruncate( out );
@@ -30,12 +34,15 @@ static void StoreFileAs( CTEXTSTR filename, CTEXTSTR asfile )
 static void CPROC _StoreFile( PTRSZVAL psv,  CTEXTSTR filename, int flags )
 {
 	FILE *in = sack_fopenEx( 0, filename, "rb", sack_get_default_mount() );
+	if( l.verbose ) printf( " Opened file %s = %p\n", filename, in );
 	if( in )
 	{
 		FILE *out = sack_fopenEx( 0, filename, "wb", l.current_mount );
 		size_t size = sack_fsize( in );
 		POINTER data = NewArray( _8, size );
+		if( l.verbose ) printf( " Opened file %s = %p\n", filename, out );
 		sack_fread( data, 1, size, in );
+		if( l.verbose ) printf( " read %d\n", size );
 		sack_fwrite( data, 1, size, out );
 		sack_fclose( in );
 		sack_ftruncate( out );
@@ -144,6 +151,7 @@ static void GetDirectory( void )
 static void usage( void )
 {
 	printf( "arguments are processed in order... commands may be appended on the same line...\n" );
+	printf( "   verbose                        : show operations; (some)debugging\n" );
 	printf( "   vfs <filename>                 : specify a unencrypted VFS file to use\n" );
 	printf( "   cvfs <filename> <key1> <key2>  : specify an encrypted VFS file to use; and keys to use\n" );
 	printf( "   dir                            : show current directory\n" );
@@ -153,6 +161,7 @@ static void usage( void )
 	printf( "   extract <filemask>             : extract files that match the name in the VFS to local filesystem\n" );
 	printf( "   storeas <filename> <as file>   : store file from <filename> into VFS as <as file>\n" );
 	printf( "   extractas <filename> <as file> : extract file <filename> from VFS as <as file>\n" );
+	printf( "   append <filename> <to file>    : store file from <filename> into VFS appended to <to file>\n" );
 }
 
 SaneWinMain( argc, argv )
@@ -170,6 +179,10 @@ SaneWinMain( argc, argv )
 	{
 		if( StrCaseCmp( argv[arg], "dir" ) == 0 )
 			GetDirectory();
+		else if( StrCaseCmp( argv[arg], "verbose" ) == 0 )
+		{
+			l.verbose = TRUE;
+		}
 		else if( StrCaseCmp( argv[arg], "cvfs" ) == 0 )
 		{
 			if( l.current_vol )
