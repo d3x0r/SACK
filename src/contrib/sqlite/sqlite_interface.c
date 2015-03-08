@@ -31,7 +31,9 @@ struct sqlite_interface my_sqlite_interface = {
 														 , sqlite3_errmsg
 														 , sqlite3_finalize
 														 , sqlite3_close
+#if ( SQLITE_VERSION_NUMBER > 3007013 )
 														 , sqlite3_close_v2
+#endif
                                            , sqlite3_prepare_v2
                                            , sqlite3_prepare16_v2
                                            , sqlite3_step
@@ -263,12 +265,17 @@ int xFileControl(sqlite3_file*file, int op, void *pArg)
 #endif
 	switch( op )
 	{
+#if ( SQLITE_VERSION_NUMBER > 3007013 )
+	case SQLITE_FCNTL_BUSYHANDLER:
+	case SQLITE_FCNTL_TEMPFILENAME:
+		break;
 	case SQLITE_FCNTL_HAS_MOVED:
 		{
 			int *val = (int*)pArg;
 			(*val)= 0;
 		}
 		break;
+#endif
 	case SQLITE_FCNTL_LOCKSTATE:
 	case SQLITE_GET_LOCKPROXYFILE:
 	case SQLITE_SET_LOCKPROXYFILE:
@@ -295,9 +302,6 @@ int xFileControl(sqlite3_file*file, int op, void *pArg)
 			files[0] = sqlite3_mprintf( "%s", files[2] );
 			//xOpen( my_file->
 		}
-		break;
-	case SQLITE_FCNTL_BUSYHANDLER:
-	case SQLITE_FCNTL_TEMPFILENAME:
 		break;
 	}
 	return SQLITE_OK;

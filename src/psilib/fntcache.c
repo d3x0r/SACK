@@ -4,7 +4,7 @@
 #define NO_FONT_GLOBAL_DECLARATION
 #include "global.h"
 #  ifdef __cplusplus
-#    include "../imglib/fntcache.c"
+#    include "../src/imglib/fntcache.c"
 #  else
 #    include "../imglib/fntcache.c"
 #  endif
