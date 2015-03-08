@@ -124,6 +124,8 @@ struct file_system_interface {
 	char * (CPROC *find_get_name)( struct find_cursor *cursor );
 	size_t (CPROC *find_get_size)( struct find_cursor *cursor );
 	// ftell can be done with seek( file, 0, SEEK_CUR );
+	// if is_directory is NULL; assume result is false (file system does not support directories)
+	LOGICAL (CPROC *is_directory)( const char *pathname );
 };
 
 
@@ -448,77 +450,3 @@ using namespace sack::filesys;
 
 #endif
 
-//-------------------------------------------------------------------
-// $Log: filesys.h,v $
-// Revision 1.21  2005/05/06 18:15:33  jim
-// Add ability to set file write time.
-//
-// Revision 1.20  2005/03/26 02:50:53  panther
-// Define a fancier function to get similar filenames
-//
-// Revision 1.19  2004/05/27 21:37:38  d3x0r
-// Syncpoint.
-//
-// Revision 1.18  2004/05/06 08:11:51  d3x0r
-// It's bad form to return the const char * cause there's too many others that take char * inut..
-//
-// Revision 1.17  2004/01/06 08:17:25  panther
-// const char * on pathchar funcs
-//
-// Revision 1.16  2003/08/21 14:54:47  panther
-// Update callback definitions
-//
-// Revision 1.15  2003/08/08 11:16:56  panther
-// Define SYSPATHCHAR based on system
-//
-// Revision 1.14  2003/04/21 19:59:43  panther
-// Option to return filename only
-//
-// Revision 1.13  2003/04/02 16:01:21  panther
-// Export CompareMask
-//
-// Revision 1.12  2003/03/25 08:38:11  panther
-// Add logging
-//
-// Revision 1.11  2003/02/21 16:28:13  panther
-// Added user flag to scanfiles
-//
-// Revision 1.10  2002/08/21 19:20:12  panther
-// Minor updates removing a define check unneeded, and set NULL on accesses
-// to LIST_FORALL
-//
-// Revision 1.9  2002/08/12 22:23:08  panther
-// Added support for 16 bit borland compiles.
-//
-//
-// $Log: filesys.h,v $
-// Revision 1.21  2005/05/06 18:15:33  jim
-// Add ability to set file write time.
-//
-// Revision 1.20  2005/03/26 02:50:53  panther
-// Define a fancier function to get similar filenames
-//
-// Revision 1.19  2004/05/27 21:37:38  d3x0r
-// Syncpoint.
-//
-// Revision 1.18  2004/05/06 08:11:51  d3x0r
-// It's bad form to return the const char * cause there's too many others that take char * inut..
-//
-// Revision 1.17  2004/01/06 08:17:25  panther
-// const char * on pathchar funcs
-//
-// Revision 1.16  2003/08/21 14:54:47  panther
-// Update callback definitions
-//
-// Revision 1.15  2003/08/08 11:16:56  panther
-// Define SYSPATHCHAR based on system
-//
-// Revision 1.14  2003/04/21 19:59:43  panther
-// Option to return filename only
-//
-// Revision 1.13  2003/04/02 16:01:21  panther
-// Export CompareMask
-//
-// Revision 1.12  2003/03/25 08:38:11  panther
-// Add logging
-//

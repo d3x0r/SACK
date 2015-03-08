@@ -16,11 +16,25 @@
 SACK_VFS_NAMESPACE
 #define PARANOID_INIT
 
-#define BLOCK_SIZE 4096
+//#define DEBUG_TRACE_LOG
+
+#ifdef DEBUG_TRACE_LOG
+#define LoG( a,... ) lprintf( a,##__VA_ARGS__ )
+#else
+#define LoG( a,... )
+#endif
+
+
+// 12 bits = 1 << 12 = 4096
+#define BLOCK_SIZE_BITS 12
+// BLOCKINDEX is either 4 or 8 bytes... sizeof( size_t )... 
+// all constants though should compile out to a single value... and just for grins went to 16 bit size_t and 0 shift... or 1 byte
+#define BLOCK_SHIFT (BLOCK_SIZE_BITS-(sizeof(BLOCKINDEX)==16?4:sizeof(BLOCKINDEX)==8?3:sizeof(BLOCKINDEX)==4?2:sizeof(BLOCKINDEX)==2?1:0) )
+#define BLOCK_SIZE (1<<BLOCK_SIZE_BITS)
 #define BLOCK_MASK (BLOCK_SIZE-1) 
 #define BLOCKS_PER_BAT (BLOCK_SIZE/sizeof(BLOCKINDEX))
 #define BLOCKS_PER_SECTOR (1 + (BLOCK_SIZE/sizeof(BLOCKINDEX)))
-// per-sector perumation; needs to be a power of 2
+// per-sector perumation; needs to be a power of 2 (in bytes)
 #define SHORTKEY_LENGTH 16
 
 typedef size_t BLOCKINDEX; // BLOCK_SIZE blocks...
@@ -116,6 +130,7 @@ static int MaskStrCmp( struct volume *vol, const char * filename, FPI name_offse
 	}
 	else
 	{
+		LoG( "doesn't volume always have a key?" );
 		return StrCaseCmp( filename, (const char *)(((P_8)vol->disk) + name_offset) );
 	}
 }
@@ -176,6 +191,7 @@ static LOGICAL ValidateBAT( struct volume *vol )
 	return TRUE;
 }
 
+
 // add some space to the volume....
 static void ExpandVolume( struct volume *vol )
 {
@@ -183,6 +199,7 @@ static void ExpandVolume( struct volume *vol )
 	struct disk* new_disk;
 	size_t oldsize = vol->dwSize;
 	if( vol->read_only ) return;
+	
 	if( !vol->dwSize )
 	{
 		new_disk = (struct disk*)OpenSpaceExx( NULL, vol->volname, 0, &vol->dwSize, &created );
@@ -260,7 +277,7 @@ static PTRSZVAL SEEK( struct volume *vol, FPI offset, enum block_cache_entries c
 
 static PTRSZVAL BSEEK( struct volume *vol, BLOCKINDEX block, enum block_cache_entries cache_index )
 {
-	BLOCKINDEX b = BLOCK_SIZE + (block >> 10) * (BLOCKS_PER_SECTOR*BLOCK_SIZE) + ( block & (BLOCKS_PER_BAT-1) ) * BLOCK_SIZE;
+	BLOCKINDEX b = BLOCK_SIZE + (block >> BLOCK_SHIFT) * (BLOCKS_PER_SECTOR*BLOCK_SIZE) + ( block & (BLOCKS_PER_BAT-1) ) * BLOCK_SIZE;
 	while( b >= vol->dwSize ) ExpandVolume( vol );
 	if( vol->key )
 	{
@@ -320,7 +337,7 @@ static BLOCKINDEX GetFreeBlock( struct volume *vol, LOGICAL init )
 
 static BLOCKINDEX GetNextBlock( struct volume *vol, BLOCKINDEX block, LOGICAL init, LOGICAL expand )
 {
-	BLOCKINDEX sector = block >> 10;
+	BLOCKINDEX sector = block >> BLOCK_SHIFT;
 	BLOCKINDEX new_block = 0;
 	BLOCKINDEX *this_BAT = TSEEK( BLOCKINDEX *, vol, sector * (BLOCKS_PER_SECTOR*BLOCK_SIZE), BLOCK_CACHE_FILE );
 	BLOCKINDEX seg;
@@ -520,11 +537,13 @@ static struct directory_entry * ScanDirectory( struct volume *vol, const char * 
 			FPI name_ofs = next_entries[n].name_offset ^ entkey->name_offset;
 			if( !name_ofs )	return NULL;
 			// if file is deleted; don't check it's name.
+			LoG( "%d name_ofs = %d(%d,%d) block = %d", n, name_ofs, next_entries[n].name_offset, entkey->name_offset, next_entries[n].first_block & entkey->first_block );
 			if( !(next_entries[n].first_block ^ entkey->first_block ) ) continue;
 			testname = TSEEK( const char *, vol, name_ofs, BLOCK_CACHE_NAMES );
 			if( MaskStrCmp( vol, filename, name_ofs ) == 0 )
 			{
 				dirkey[0] = (*entkey);
+				LoG( "return found entry: %d (%d:%d)", next_entries+n, dirkey->name_offset, dirkey->first_block );
 				return next_entries + n;
 			}
 		}
@@ -839,11 +858,12 @@ static void sack_vfs_unlink_file_entry( struct volume *vol, struct directory_ent
 	if( !file_found )
 	{
 		_block = block = entry->first_block ^ entkey->first_block;
+		LoG( "entry starts at %d", entkey->first_block );
 		entry->first_block = entkey->first_block; // zero the block... keep the name.
 		// wipe out file chain BAT
 		do
 		{
-			BLOCKINDEX *this_BAT = TSEEK( BLOCKINDEX*, vol, ( ( block >> 10 ) * ( BLOCKS_PER_SECTOR*BLOCK_SIZE) ), BLOCK_CACHE_FILE );
+			BLOCKINDEX *this_BAT = TSEEK( BLOCKINDEX*, vol, ( ( block >> BLOCK_SHIFT ) * ( BLOCKS_PER_SECTOR*BLOCK_SIZE) ), BLOCK_CACHE_FILE );
 			BLOCKINDEX _thiskey;
 			_thiskey = ( vol->key )?((BLOCKINDEX*)vol->usekey[BLOCK_CACHE_FILE])[_block & (BLOCKS_PER_BAT-1)]:0;
 			block = GetNextBlock( vol, block, FALSE, FALSE );

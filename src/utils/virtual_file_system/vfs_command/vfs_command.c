@@ -37,17 +37,20 @@ static void CPROC _StoreFile( PTRSZVAL psv,  CTEXTSTR filename, int flags )
 	if( l.verbose ) printf( " Opened file %s = %p\n", filename, in );
 	if( in )
 	{
-		FILE *out = sack_fopenEx( 0, filename, "wb", l.current_mount );
 		size_t size = sack_fsize( in );
-		POINTER data = NewArray( _8, size );
-		if( l.verbose ) printf( " Opened file %s = %p\n", filename, out );
-		sack_fread( data, 1, size, in );
-		if( l.verbose ) printf( " read %d\n", size );
-		sack_fwrite( data, 1, size, out );
-		sack_fclose( in );
-		sack_ftruncate( out );
-		sack_fclose( out );
-		Release( data );
+		if( l.verbose ) printf( " file size (%d)\n", size );
+		{
+			FILE *out = sack_fopenEx( 0, filename, "wb", l.current_mount );
+			POINTER data = NewArray( _8, size );
+			if( l.verbose ) printf( " Opened file %s = %p (%d)\n", filename, out, size );
+			sack_fread( data, 1, size, in );
+			if( l.verbose ) printf( " read %d\n", size );
+			sack_fwrite( data, 1, size, out );
+			sack_fclose( in );
+			sack_ftruncate( out );
+			sack_fclose( out );
+			Release( data );
+		}
 	}
 }
 
