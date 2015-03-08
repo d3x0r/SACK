@@ -89,7 +89,7 @@ source_group( pubkey FILES
 
 
 SET_TARGET_PROPERTIES( mssl_crypto PROPERTIES
-#                  COMPILE_FLAGS  "-D"
+                  COMPILE_FLAGS  "${SYS_C_FLAGS}"
                   COMPILE_DEFINITIONS "${LIBFLAGS}"
                   FOLDER "Matrix SSL/Crypto" 
                   )
