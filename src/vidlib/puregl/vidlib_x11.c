@@ -784,8 +784,8 @@ void DoDestroy (PRENDERER hVideo)
 		//hVideo->flags.bReady = FALSE;
       // unlink from the stack of windows...
 		UnlinkVideo (hVideo);
-		if( l.hCapturedLogical == hVideo )
-			l.hCapturedLogical = NULL;
+		if( l.hCapturedMouseLogical == hVideo )
+			l.hCapturedMouseLogical = NULL;
 		//Log (WIDE( "Cleared hVideo - is NOW !bReady" ));
 		if( !hVideo->flags.event_dispatched )
 		{
@@ -1883,8 +1883,8 @@ int CPROC InverseOpenGLMouse( struct display_camera *camera, PRENDERER hVideo, R
             for( check = l.top; check ;check = check->pAbove)
             {
                 VECTOR target_point;
-                if( l.hCapturedLogical )
-                    if( check != l.hCapturedLogical )
+                if( l.hCapturedMouseLogical )
+                    if( check != l.hCapturedMouseLogical )
                         continue;
                 if( check->flags.bHidden || (!check->flags.bShown) )
                     continue;
@@ -1923,7 +1923,7 @@ int CPROC InverseOpenGLMouse( struct display_camera *camera, PRENDERER hVideo, R
                     //  	 , check->pWindowPos.x+ check->pWindowPos.cx
                     //  	 , check->pWindowPos.y+ check->pWindowPos.cy );
 #if WIN32
-                    if( check == l.hCapturedLogical ||
+                    if( check == l.hCapturedMouseLogical ||
                        ( ( newx >= 0 && newx < (check->pWindowPos.cx ) )
                         && ( newy >= 0 && newy < (check->pWindowPos.cy ) ) ) )
 #endif
@@ -2960,8 +2960,8 @@ void  HideDisplay (PRENDERER hVideo)
 //#endif
 	if( hVideo )
 	{
-		if( l.hCapturedLogical == hVideo )
-			l.hCapturedLogical = NULL;
+		if( l.hCapturedMouseLogical == hVideo )
+			l.hCapturedMouseLogical = NULL;
 		hVideo->flags.bHidden = 1;
 		/* handle lose focus */
 	}
@@ -3122,18 +3122,18 @@ void  OwnMouseEx (PRENDERER hVideo, _32 own DBG_PASS)
 	if (own)
 	{
 		lprintf( WIDE("Capture is set on %p"),hVideo );
-		if( !l.hCapturedLogical )
+		if( !l.hCapturedMouseLogical )
 		{
-			l.hCapturedLogical = hVideo;
+			l.hCapturedMouseLogical = hVideo;
 			hVideo->flags.bCaptured = 1;
 			//SetCapture (hVideo->hWndOutput);
 		}
 		else
 		{
-			if( l.hCapturedLogical != hVideo )
+			if( l.hCapturedMouseLogical != hVideo )
 			{
 				lprintf( WIDE("Another window now wants to capture the mouse... the prior window will ahve the capture stolen.") );
-				l.hCapturedLogical = hVideo;
+				l.hCapturedMouseLogical = hVideo;
 				hVideo->flags.bCaptured = 1;
 				//SetCapture (hVideo->hWndOutput);
 			}
@@ -3150,12 +3150,12 @@ void  OwnMouseEx (PRENDERER hVideo, _32 own DBG_PASS)
 	}
 	else
 	{
-		if( l.hCapturedLogical == hVideo )
+		if( l.hCapturedMouseLogical == hVideo )
 		{
 			lprintf( WIDE("No more capture.") );
 			//ReleaseCapture ();
 			hVideo->flags.bCaptured = 0;
-			l.hCapturedLogical = NULL;
+			l.hCapturedMouseLogical = NULL;
 		}
 	}
 }
