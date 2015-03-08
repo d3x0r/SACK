@@ -238,23 +238,31 @@ int  GetMatchingFileName ( CTEXTSTR filemask, int flags, TEXTSTR pResult, int nR
 #endif
 
 typedef struct myfinddata {
-# ifdef _MSC_VER
-#define HANDLECAST (HANDLE)
+#ifdef WIN32
+#  ifdef _MSC_VER
+#define HANDLECAST HANDLE
 	intptr_t
-# else
+#  else
 #define HANDLECAST
 	int 
-# endif
-		handle;
-# ifdef UNDER_CE
-	WIN32_FIND_DATA fd;
-# else
-#  ifdef UNICODE
-	struct _wfinddata_t fd;
-#  else
-   struct finddata_t fd;
 #  endif
-# endif
+#else
+#  define HANDLECAST DIR*
+	DIR*
+#endif
+		handle;
+		
+#  ifdef WIN32
+#    ifdef UNDER_CE
+	WIN32_FIND_DATA fd;
+#    else
+#      ifdef UNICODE
+	struct _wfinddata_t fd;
+#    else
+	 struct finddata_t fd;
+#    endif
+#  endif
+#endif
 	struct find_cursor *cursor;
 	INDEX scanning_interface_index;
 	LOGICAL new_mount;
@@ -300,7 +308,7 @@ typedef struct myfinddata {
 	else
 		pDataCurrent = NULL;
 
-	lprintf( "Search in %s for %s", base?base:"(NULL)", mask?mask:"(*)" );
+	//lprintf( "Search in %s for %s   %d %d", base?base:"(NULL)", mask?mask:"(*)", (*pInfo)?((PMFD)*pInfo)->scanning_mount:0, (*pInfo)?((PMFD)*pInfo)->single_mount:0 );
 	if( !*pInfo || begin_sub_path || ((PMFD)*pInfo)->new_mount )
 	{
 		TEXTCHAR findmask[256];
@@ -396,23 +404,24 @@ typedef struct myfinddata {
 			if( pData->scanning_mount->fsi->find_first( findcursor(pInfo) ) )
 				findhandle(pInfo) = 0;
 			else
-				findhandle(pInfo) = -1;
+				findhandle(pInfo) = (HANDLECAST)-1;
 		else
 		{
 #if WIN32
 			findhandle(pInfo) = findfirst( findmask, finddata(pInfo) );
 #else
-			lprintf( "opendir %s", findbasename(pInfo) );
-			findhandle( pInfo ) = (int)opendir( findbasename(pInfo) );
+			//lprintf( "opendir %s", findbasename(pInfo) );
+			findhandle( pInfo ) = opendir( findbasename(pInfo) );
 			if( !findhandle(pInfo ) )
-				findhandle(pInfo) = -1;
+				findhandle(pInfo) = (HANDLECAST)-1;
 			else
 				de = readdir( (DIR*)findhandle( pInfo ) );
 #endif
 		}
-		if( findhandle(pInfo) == -1 )
+		if( findhandle(pInfo) == (HANDLECAST)-1 )
 		{
 			PMFD prior = pData->prior;
+			//lprintf( "first use of cursor or first open of directoy failed..." );
 			if( pData->scanning_mount->fsi )
 				pData->scanning_mount->fsi->find_close( findcursor(pInfo) );
 			else
@@ -429,6 +438,7 @@ typedef struct myfinddata {
 			{
 				(*pData->root_info) = pData->prior;
 				Release( pData );
+				lprintf( "%p %d", prior, processed );
 				return prior?processed:0;
 			}
 			pData->new_mount = TRUE;
@@ -439,6 +449,7 @@ typedef struct myfinddata {
 	{
 		int r;
 getnext:
+		//lprintf( "returning customer..." );
 		if( pData->scanning_mount->fsi )
 			r = !pData->scanning_mount->fsi->find_next( findcursor( pInfo ) );
 		else
@@ -447,11 +458,14 @@ getnext:
 			r = findnext( findhandle(pInfo), finddata( pInfo ) );
 #else
 			de = readdir( (DIR*)findhandle( pInfo ) );
+			//lprintf( "using %p got %p", findhandle( pInfo ), de );
+			r = (de == NULL);
 #endif
 		}
 		if( r )
 		{
 			PMFD prior = pData->prior;
+			//lprintf( "nothing left to find..." );
 			if( pData->scanning_mount->fsi )
 				pData->scanning_mount->fsi->find_close( findcursor(pInfo) );
 			else
@@ -463,8 +477,10 @@ getnext:
 #endif
 			}
 			pData->scanning_mount = NextThing( pData->scanning_mount );
+			//lprintf( "Step mount... %p %d", pData->scanning_mount, pData->single_mount );
 			if( !pData->scanning_mount || pData->single_mount )
 			{
+				//lprintf( "done with mounts?" );
 				(*pData->root_info) = pData->prior;
 				Release( pData );
 				if( prior )
@@ -568,6 +584,7 @@ getnext:
 					  , pData->prior?pData->prior->buffer:WIDE( "" )
 					  , pData->prior?WIDE( "/" ):WIDE( "" )
 					  , de->d_name );
+					  lprintf( "resulting is %s", pData->buffer );
 #endif
 			}
 		}
@@ -597,23 +614,27 @@ getnext:
 	}
 	pData->buffer[MAX_PATH_NAME-1] = 0; // force nul termination...
 
-	lprintf( "Check if %s is a directory...", pData->buffer );
+	//lprintf( "Check if %s is a directory...", pData->buffer );
 	if( ( flags & (SFF_DIRECTORIES|SFF_SUBCURSE) )
+	    && ( pData->scanning_mount->fsi && ( pData->scanning_mount->fsi->is_directory && pData->scanning_mount->fsi->is_directory( pData->buffer ) ) )
+	   || ( !pData->scanning_mount->fsi 
 #ifdef WIN32
 #  ifdef UNDER_CE
-		&& finddata(pInfo)->dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY
+		&& ( finddata(pInfo)->dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY )
 #  else
-		&& finddata(pInfo)->attrib & _A_SUBDIR
+		&& ( finddata(pInfo)->attrib & _A_SUBDIR )
 #  endif
 #else
 		&& IsPath( pData->buffer )
 #endif
-	  )
+	  ) )
 	{
+		//lprintf( "... it is?" );
 		if( flags & SFF_DIRECTORIES )
 		{
 			if( Process != NULL )
 			{
+				//lprintf( "Send %s", pData->buffer );
 				Process( psvUser, pData->buffer, SFF_DIRECTORY );
 				processed = 1;
 			}
@@ -633,22 +654,26 @@ getnext:
 				}
 				else
 				{
-#ifdef UNDER_CE
-				ofs = snprintf( tmpbuf, sizeof( tmpbuf ), WIDE( "%s/%s" ), findbasename(pInfo), finddata(pInfo)->cFileName );
-#else
-#  ifdef UNICODE
-				ofs = snwprintf( tmpbuf, sizeof( tmpbuf ), WIDE( "%s/%s" ), findbasename(pInfo), finddata(pInfo)->name );
+#ifdef WIN32
+#  ifdef UNDER_CE
+					ofs = snprintf( tmpbuf, sizeof( tmpbuf ), WIDE( "%s/%s" ), findbasename(pInfo), finddata(pInfo)->cFileName );
 #  else
-				ofs = snprintf( tmpbuf, sizeof( tmpbuf ), WIDE( "%s/%s" ), findbasename(pInfo), finddata(pInfo)->name );
+#    ifdef UNICODE
+					ofs = snwprintf( tmpbuf, sizeof( tmpbuf ), WIDE( "%s/%s" ), findbasename(pInfo), finddata(pInfo)->name );
+#    else
+					ofs = snprintf( tmpbuf, sizeof( tmpbuf ), WIDE( "%s/%s" ), findbasename(pInfo), finddata(pInfo)->name );
+#    endif
 #  endif
+#else	
+					ofs = snprintf( tmpbuf, sizeof( tmpbuf ), WIDE( "%s/%s" ), findbasename(pInfo), de->d_name );
 #endif
 				}
-				lprintf( "process sub..." );
+				//lprintf( "process sub... %s %s", tmpbuf, findmask(pInfo)  );
 				processed |= ScanFilesEx( tmpbuf, findmask( pInfo ), (POINTER*)pData, Process, flags, psvUser, TRUE, pData->scanning_mount );
 			}
 			else
 			{
-				lprintf( "process sub..." );
+				//lprintf( "process sub..." );
 				processed |= ScanFilesEx( pData->buffer, findmask( pInfo ), (POINTER*)pData, Process, flags, psvUser, TRUE, pData->scanning_mount );
 			}
 		}
@@ -657,20 +682,30 @@ getnext:
 		return (*pInfo)?1:0;
 	}
 	if( ( sendflags = SFF_DIRECTORY, ( ( flags & SFF_DIRECTORIES )
-#ifdef UNDER_CE
+#ifdef WIN32
+#  ifdef UNDER_CE
 												 && ( finddata(pInfo)->dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY )
-#else
+#  else
 												 && ( finddata(pInfo)->attrib & _A_SUBDIR )
+#  endif
+#else
+												 && ( IsPath( pData->buffer ) )
+
 #endif
 												) ) || ( sendflags = 0, CompareMask( findmask( pInfo )
-#ifdef UNDER_CE
+#ifdef WIN32
+#  ifdef UNDER_CE
 																							  , finddata(pInfo)->cFileName
-#else
+#  else
 																							  , finddata(pInfo)->name
+#  endif
+#else
+																							  , de->d_name
 #endif
 																								// yes this is silly - but it's correct...
 																							  , (flags & SFF_IGNORECASE)?0:0 ) ) )
 	{
+		//lprintf( "Send %s", pData->buffer );
 		if( Process != NULL )
 			Process( psvUser, pData->buffer, sendflags );
 		return (*pInfo)?1:0;
@@ -693,9 +728,10 @@ getnext:
  void  ScanDrives ( void (CPROC*Process)(PTRSZVAL user, CTEXTSTR letter, int flags)
 									, PTRSZVAL user )
 {
-#ifdef UNDER_CE
+#ifdef WIN32
+#  ifdef UNDER_CE
 	Process( user, WIDE(""), SFF_DRIVE );
-#else
+#  else
 	_32 drives;
 	int i;
 	drives = GetLogicalDrives();
@@ -710,181 +746,9 @@ getnext:
 				Process( user, name, SFF_DRIVE );
 		}
 	}
+#  endif
 #endif
 
 }
-#if 1
-#else
-
-//---------------------------------------------------------------------------
-typedef struct myfinddata {
-	int handle;
-	DIR *dir;
-	//struct finddata_t fd;
-	char buffer[MAX_PATH_NAME];
-	char basename[MAX_PATH_NAME];
-	struct myfinddata *current;
-	//struct myfinddata *prior;
-} MFD, *PMFD;
-
-#define finddir(pInfo) ( ((PMFD)(*pInfo))->dir)
-#define findbasename(pInfo) ( ((PMFD)(*pInfo))->basename)
-
-//---------------------------------------------------------------------------
-int  ScanFilesEx ( CTEXTSTR base
-					, CTEXTSTR mask
-					, void **pInfo
-					, void CPROC Process( PTRSZVAL psvUser, CTEXTSTR name, int flags )
-					, int flags
-					, PTRSZVAL psvUser
-		   , LOGICAL begin_sub_path 
-		   , struct file_system_mounted_interface *mount
-                  )
-{
-	//DIR *dir;
-	char name[256];
-	struct dirent *de;
-	char *_base = CStrDup( base );
-	char *_mask = CStrDup( mask );
-	//char basename[256];
-	// need to dup base - it might be in read-only space.
-	if( !*pInfo || begin_sub_path || ((PMFD)*pInfo)->new_mount )
-	{
-		if( !(*pInfo) )
-			(*pInfo) = New( MFD );
-		if( base )
-			strcpy( findbasename(pInfo), _base );
-		else
-		{
-			CTEXTSTR p = pathrchr( mask );
-			if( p )
-			{
-				strncpy( findbasename(pInfo), _mask, p - mask );
-				findbasename(pInfo)[p-mask] = 0;
-				mask = p + 1;
-			}
-			else
-			{
-				strcpy( findbasename(pInfo), "." );
-			}
-		}
-		//lprintf( "Open directory for scanning... %s %s", base, mask );
-		finddir( pInfo ) = opendir( findbasename(pInfo) );
-		//lprintf( "result of opendir on %s = %d", findbasename(pInfo), finddir( pInfo ) );
-		//*pInfo = (void*)dir;
-	}
-	else
-	{
-		//dir = (DIR*)*pInfo;
-	}
-	{
-		TEXTCHAR *p;
-		TEXTCHAR *tmppath = DupCStr( findbasename(pInfo) );
-		// result from pathrchr is within findbasename(pInfo)
-		// it's result si technically a CTEXTSTR since
-		// that is what is passed to pathrchr
-		if( ( p = (TEXTCHAR*)pathrchr( tmppath ) ) )
-		{
-			if( !p[1] )
-			{
-				p[0] = 0;
-			}
-		}
-		Release( tmppath );
-	}
-	if( finddir( pInfo ) )
-		while( ( de = readdir( finddir( pInfo ) ) ) )
-		{
-			char *de_d_name = de->d_name;
-			TEXTCHAR *_de_d_name = DupCStr( de_d_name );
-			struct stat filestat;
-			//lprintf( WIDE("Check: %s"), de_d_name );
-			// should figure a way to check file vs mask...
-			if( !strcmp( ".", de_d_name ) ||
-				!strcmp( "..", de_d_name ) )
-				continue;
-			sprintf( name, "%s/%s", findbasename(pInfo), de_d_name );
-#ifdef BCC32
-			if( stat( name, &filestat ) == -1 )
-				continue;
-#else
-			if( lstat( name, &filestat ) == -1 )
-			{
-				//lprintf( WIDE("We got problems with stat! (%s)"), name );
-				continue;
-			}
-			if( S_ISLNK( filestat.st_mode ) )
-			{
-				//lprintf( WIDE("A link: %s"), name );
-				// not following links...
-				continue;
-			}
-#endif
-			if( S_ISDIR(filestat.st_mode) )
-			{
-				if( flags & SFF_SUBCURSE )
-				{
-					TEXTCHAR *tmpresult;
-					void *data = NULL;
-					if( S_ISBLK( filestat.st_mode ) ||
-						S_ISCHR( filestat.st_mode ) )
-						continue;
-					tmpresult = NULL;
-		   			if( flags & SFF_DIRECTORIES ) 
-						if( Process )
-							Process( psvUser
-							       , tmpresult = DupCStr( (flags & SFF_NAMEONLY)?de_d_name:name )
-									 , SFF_DIRECTORY );
-					if( tmpresult )
-						Release( tmpresult );
-					while( ScanFiles( DupCStr( name ), mask, &data, Process, flags, psvUser ) );
-				}
-				continue;
-			}
-			if( CompareMask( mask, _de_d_name, (flags & SFF_IGNORECASE)?0:1 ) )
-			{
-				TEXTCHAR *tmpresult;
-				tmpresult = NULL;
-				if( Process )
-					Process( psvUser
-					       , tmpresult = DupCStr( (flags & SFF_NAMEONLY)?de_d_name:name )
-							 , 0 );
-				if( tmpresult )
-					Release( tmpresult );
-				return 1;
-			}
-		}
-		Release( _base );
-		Release( _mask );
-		if( finddir( pInfo ) )
-			closedir( finddir( pInfo ) );
-
-	{
-		Release( *pInfo );
-		*pInfo = NULL;
-	}
-	return !((*pInfo)==NULL);
-}
-
- int  ScanFiles ( CTEXTSTR base
-           , CTEXTSTR mask
-           , void **pInfo
-           , void CPROC Process( PTRSZVAL psvUser, CTEXTSTR name, int flags )
-           , int flags 
-           , PTRSZVAL psvUser )
- {
-	 return ScanFilesEx( base, mask, pInfo, Process, flags, psvUser, FALSE, NULL );
- }
-
-//---------------------------------------------------------------------------
-
-
- void  ScanDrives ( void(*Process)(PTRSZVAL user, CTEXTSTR letter, int flags)
-                                 , PTRSZVAL psv )
-{
-
-}
-//---------------------------------------------------------------------------
-#endif
 
 FILESYS_NAMESPACE_END
