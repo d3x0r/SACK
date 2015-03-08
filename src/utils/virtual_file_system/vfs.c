@@ -382,12 +382,6 @@ static void DumpDirectory( struct volume *vol )
 				for( ch = 0; c = (name[ch] ^ vol->usekey[BLOCK_CACHE_NAMES][( name_ofs & BLOCK_MASK ) +ch]); ch++ )
 					buf[ch] = c;
 				buf[ch] = c;
-				/*
-				lprintf( "Directory entry: %s  start %d length %d", buf
-					, next_entries[n].first_block ^ entkey->first_block
-					, next_entries[n].filesize ^ entkey->filesize
-					);
-				*/
 			}
 		}
 		next_dir_block = GetNextBlock( vol, this_dir_block, TRUE, TRUE );

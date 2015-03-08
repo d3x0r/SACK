@@ -1,7 +1,7 @@
 #ifndef LOADSAVE_EVOMENU_DEFINED
 #define LOADSAVE_EVOMENU_DEFINED
 #include "intershell_local.h"
-#include <../genx/genx.h>
+#include <genx/genx.h>
 #include <configscript.h>
 
 INTERSHELL_NAMESPACE

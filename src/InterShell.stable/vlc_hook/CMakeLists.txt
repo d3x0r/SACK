@@ -9,7 +9,7 @@ if( ${CMAKE_GENERATOR} MATCHES "Watcom WMake" )
  set( ExtraFlags "${ExtraFlags} -bd" )
 endif()
 
-include_directories( ../../libvlc/2.0.1/sdk/include )
+include_directories( ../../contrib/libvlc/2.0.1/sdk/include )
 
 set( SOURCES
 ${FIRST_GCC_LIBRARY_SOURCE} 
@@ -18,9 +18,9 @@ ${LAST_GCC_LIBRARY_SOURCE} )
 
 if( NOT VLC_PATH )
 if( MAKING_SACK_CORE )
-set( VLC_PATH ${SACK_SDK_ROOT_PATH}/src/libvlc/1.1.3 )
+set( VLC_PATH ${SACK_SDK_ROOT_PATH}/src/contrib/libvlc/2.0.1 )
 else( MAKING_SACK_CORE )
-set( VLC_PATH ${SACK_SDK_ROOT_PATH}/include/libvlc/1.1.3 )
+set( VLC_PATH ${SACK_SDK_ROOT_PATH}/include/libvlc/2.0.1 )
 endif( MAKING_SACK_CORE )
 endif( NOT VLC_PATH )
 OPTION( VLC_PATH "Path to which version of VLC interface to use" ${VLC_PATH} )

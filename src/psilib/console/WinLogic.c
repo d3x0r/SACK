@@ -872,14 +872,14 @@ int GetCharFromLine( PCONSOLE_INFO console, _32 cols
 			}
 			nShown += pText->format.position.offset.spaces;
 			nChar -= pText->format.position.offset.spaces;
-			if( nChar < seg_len )
+			if( (nChar + nSegShown) < seg_len )
 			{
 				TEXTCHAR *text = GetText( pText );
 				*result = text[nChar + nSegShown];
 				return TRUE;
 			}
-			nChar -= seg_len;
-			nShown += seg_len;
+			nChar -= seg_len - nSegShown;
+			nShown += seg_len - nSegShown;
 			pText = NEXTLINE( pText );
 			nSegShown = 0; // have shown nothing on this segment.
 		}
@@ -932,17 +932,21 @@ TEXTCHAR *PSI_GetDataFromBlock( PCONSOLE_INFO pdp )
 				result[ofs++] = '\n';
 				_priorline = pdl->nLine;
 			}
-			for( ;
-				 (S_64)col < (bBlock?(col_end)
-										 : ( line == line_end ? (col_end)
-																	 : pdp->nColumns ));
-				 col++ )
 			{
-				if( GetCharFromLine( pdp, pdp->nColumns, pdl, col, result + ofs ) )
+				int end_count = bBlock?(col_end)
+										 : ( line == line_end ? (col_end)
+												: ( pdl->nToShow - col_start ) );
+				for( ;
+					 (S_64)col < end_count;
+					 col++ )
 				{
-					first_char = FALSE;
-					ofs++;
+					if( GetCharFromLine( pdp, pdp->nColumns, pdl, col, result + ofs ) )
+					{
+						first_char = FALSE;
+						ofs++;
+					}
 				}
+				result[ofs++] = '\n';
 			}
 		}
 	}
