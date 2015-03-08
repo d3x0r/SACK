@@ -20,7 +20,7 @@ target_link_libraries( MatrixSSL mssl_crypto mssl_core )
 
 SET_TARGET_PROPERTIES( MatrixSSL PROPERTIES
                   DEFINE_SYMBOL _USRDLL
-#                  COMPILE_FLAGS  "-D"
+                  COMPILE_FLAGS  "${SYS_C_FLAGS}"
                   COMPILE_DEFINITIONS "${LIBFLAGS}"
                   FOLDER "Matrix SSL" 
                   )
