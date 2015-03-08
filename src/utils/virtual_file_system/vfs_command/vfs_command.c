@@ -182,6 +182,11 @@ SaneWinMain( argc, argv )
 		else if( StrCaseCmp( argv[arg], "verbose" ) == 0 )
 		{
 			l.verbose = TRUE;
+			{
+				int arg2;
+				for( arg2 = 1; arg2 < argc; arg2++ )
+					lprintf( "Arg %d = %s", arg2, argv[arg2] );
+			}
 		}
 		else if( StrCaseCmp( argv[arg], "cvfs" ) == 0 )
 		{
