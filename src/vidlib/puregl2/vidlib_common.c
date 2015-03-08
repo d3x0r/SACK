@@ -649,6 +649,8 @@ static void InvokeExtraInit( struct display_camera *camera, PTRANSFORM view_came
 						reference->Mouse3d = GetRegisteredProcedureExx( draw3d,(CTEXTSTR)name,LOGICAL,WIDE("ExtraMouse3d"),(PTRSZVAL,PRAY,S_32,S_32,_32));
 						reference->Key3d = GetRegisteredProcedureExx( draw3d,(CTEXTSTR)name,LOGICAL,WIDE("ExtraKey3d"),(PTRSZVAL,_32));
 					}
+					if( reference->Draw3d )
+					    camera->flags.bDrawablePlugin = 1;
 					AddLink( &camera->plugins, reference );
 				}
 

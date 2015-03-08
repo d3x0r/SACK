@@ -148,6 +148,7 @@ struct threads_tag
 		BIT_FIELD bRemovedWhileRunning : 1;
 		BIT_FIELD bLocal : 1;
 		BIT_FIELD bReady : 1;
+		BIT_FIELD bStarted : 1;
 	} flags;
 	//struct threads_tag *next, **me;
 	CTEXTSTR pFile;
@@ -308,7 +309,7 @@ PTRSZVAL closesem( POINTER p, PTRSZVAL psv )
 static PTRSZVAL threadrunning( POINTER p, PTRSZVAL psv )
 {
 	PTHREAD thread = (PTHREAD)p;
-	if( thread->hThread )
+	if( thread->hThread && thread->flags.bStarted )
 		return 1;
 	return 0;
 }
@@ -1169,6 +1170,7 @@ static PTRSZVAL CPROC ThreadWrapper( PTHREAD pThread )
 	while( !pThread->hThread )
 		Relinquish();
 #endif
+	pThread->flags.bStarted = 1;
 	DeAttachThreadToLibraries( TRUE );
 	while( !pThread->flags.bReady )
 		Relinquish();
@@ -1191,6 +1193,7 @@ static PTRSZVAL CPROC ThreadWrapper( PTHREAD pThread )
 	//lprintf( WIDE("%s(%d):Thread is exiting... "), pThread->pFile, pThread->nLine );
 	DeAttachThreadToLibraries( FALSE );
 	UnmakeThread();
+	pThread->hThread = NULL;
 	//lprintf( WIDE("%s(%d):Thread is exiting... "), pThread->pFile, pThread->nLine );
 #ifdef __WATCOMC__
 	return (void*)result;
@@ -1215,6 +1218,7 @@ static PTRSZVAL CPROC SimpleThreadWrapper( PTHREAD pThread )
 		Relinquish();
 	}
 #endif
+	pThread->flags.bStarted = 1;
 	while( !pThread->flags.bReady )
 		Relinquish();
 #ifdef HAS_TLS

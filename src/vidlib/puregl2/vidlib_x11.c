@@ -483,22 +483,19 @@ PTRSZVAL CPROC ProcessDisplayMessages( PTHREAD thread )
 	LoadOptions(); // loads camera config, and logging options...
 	SACK_Vidlib_OpenCameras();  // create logical camera structures
 	l.bThreadRunning = 1;
-	while( 1 )
+	while( !l.bExitThread )
 	{
 		did_one = NULL;
-
 		LIST_FORALL( l.cameras, idx, struct display_camera *, camera )
 		{
 			//lprintf( "Checking Thread %Lx", GetThreadID( MakeThread() ) );
 			GLWindow *x11_gl_window = camera->hVidCore->x11_gl_window;
-			if( !x11_gl_window )
+			if( !x11_gl_window && ( l.bottom ) )
 			{
 				x11_gl_window = createGLWindow( camera );  // opens the physical device
 			}
 			//lprintf( "is it %Lx?", GetThreadID( thread ) );
-			{if( x11_gl_window)
-			{
-			if( x11_gl_window->dpy )
+			if( x11_gl_window && x11_gl_window->dpy )
 			{
 				while( XPending( x11_gl_window->dpy ) > 0 )
 				{
@@ -519,13 +516,18 @@ PTRSZVAL CPROC ProcessDisplayMessages( PTHREAD thread )
 				// loop for each camera instead
 				ProcessGLDraw( TRUE );
 			}
-			}
-			}
+			
+			
 		}
 		//if( !did_one )
 		Relinquish();
 	}
 	return 1;
+}
+
+ATEXIT( VideoEndMessageThread )
+{
+    l.bExitThread = 1;
 }
 
 // init the thread;
