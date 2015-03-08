@@ -692,7 +692,7 @@ int sack_ftruncate( FILE *file_file )
 #ifdef _WIN32
 			;
 #else
-			ftruncate( file->fullname, sack_ftell( (FILE*)file_file ) );
+			truncate( file->fullname, sack_ftell( (FILE*)file_file ) );
 #endif
 		}
 		return TRUE;
