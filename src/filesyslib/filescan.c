@@ -232,6 +232,10 @@ int  GetMatchingFileName ( CTEXTSTR filemask, int flags, TEXTSTR pResult, int nR
 #  endif
 #endif
 
+#else
+
+
+#endif
 
 typedef struct myfinddata {
 # ifdef _MSC_VER
@@ -286,6 +290,9 @@ typedef struct myfinddata {
 	PMFD pData = (PMFD)(*pInfo);
 	int sendflags;
 	int processed = 0;
+#ifndef WIN32
+	struct dirent *de;
+#endif
 	if( begin_sub_path )
 	{
 		pInfo = (void**)&(pDataCurrent->current);
@@ -293,7 +300,7 @@ typedef struct myfinddata {
 	else
 		pDataCurrent = NULL;
 
-	//lprintf( "Search in %s for %s", base?base:"(NULL)", mask?mask:"(*)" );
+	lprintf( "Search in %s for %s", base?base:"(NULL)", mask?mask:"(*)" );
 	if( !*pInfo || begin_sub_path || ((PMFD)*pInfo)->new_mount )
 	{
 		TEXTCHAR findmask[256];
@@ -391,14 +398,32 @@ typedef struct myfinddata {
 			else
 				findhandle(pInfo) = -1;
 		else
+		{
+#if WIN32
 			findhandle(pInfo) = findfirst( findmask, finddata(pInfo) );
+#else
+			lprintf( "opendir %s", findbasename(pInfo) );
+			findhandle( pInfo ) = (int)opendir( findbasename(pInfo) );
+			if( !findhandle(pInfo ) )
+				findhandle(pInfo) = -1;
+			else
+				de = readdir( (DIR*)findhandle( pInfo ) );
+#endif
+		}
 		if( findhandle(pInfo) == -1 )
 		{
 			PMFD prior = pData->prior;
 			if( pData->scanning_mount->fsi )
 				pData->scanning_mount->fsi->find_close( findcursor(pInfo) );
 			else
+			{
+#ifdef WIN32
 				findclose( findhandle(pInfo) );
+#else
+				// but it failed... so ... don't close
+				//closedir( findhandle( pInfo ) );
+#endif
+			}
 			pData->scanning_mount = NextThing( pData->scanning_mount );
 			if( !pData->scanning_mount || pData->single_mount )
 			{
@@ -417,14 +442,26 @@ getnext:
 		if( pData->scanning_mount->fsi )
 			r = !pData->scanning_mount->fsi->find_next( findcursor( pInfo ) );
 		else
+		{
+#ifdef _WIN32
 			r = findnext( findhandle(pInfo), finddata( pInfo ) );
+#else
+			de = readdir( (DIR*)findhandle( pInfo ) );
+#endif
+		}
 		if( r )
 		{
 			PMFD prior = pData->prior;
 			if( pData->scanning_mount->fsi )
 				pData->scanning_mount->fsi->find_close( findcursor(pInfo) );
 			else
+			{
+#ifdef WIN32
 				findclose( findhandle(pInfo) );
+#else
+				closedir( (DIR*)findhandle(pInfo));
+#endif
+			}
 			pData->scanning_mount = NextThing( pData->scanning_mount );
 			if( !pData->scanning_mount || pData->single_mount )
 			{
@@ -455,13 +492,18 @@ getnext:
 	}
 	else
 	{
+#if WIN32 
 		//lprintf( "... %s", finddata(pInfo)->name );
-#ifdef UNDER_CE
+#  ifdef UNDER_CE
 		if( !StrCmp( WIDE("."), finddata(pInfo)->cFileName ) ||
 		    !StrCmp( WIDE(".."), finddata(pInfo)->cFileName ) )
-#else
+#  else
 		if( !StrCmp( WIDE("."), finddata(pInfo)->name ) ||
 		    !StrCmp( WIDE(".."), finddata(pInfo)->name ) )
+#  endif
+#else
+		if( !StrCmp( WIDE("."), de->d_name ) ||
+		    !StrCmp( WIDE(".."), de->d_name ) )
 #endif
 			goto getnext;
 	}
@@ -473,14 +515,18 @@ getnext:
 		}
 		else
 		{
-#ifdef UNDER_CE
-		snprintf( pData->buffer, MAX_PATH_NAME, WIDE("%s/%s"), findbasename(pInfo), finddata(pInfo)->cFileName );
-#else
-#  ifdef UNICODE
-		snwprintf( pData->buffer, MAX_PATH_NAME, WIDE("%s/%s"), findbasename(pInfo), finddata(pInfo)->name );
+#ifdef WIN32
+#  ifdef UNDER_CE
+			snprintf( pData->buffer, MAX_PATH_NAME, WIDE("%s/%s"), findbasename(pInfo), finddata(pInfo)->cFileName );
 #  else
-		snprintf( pData->buffer, MAX_PATH_NAME, WIDE("%s/%s"), findbasename(pInfo), finddata(pInfo)->name );
+#    ifdef UNICODE
+			snwprintf( pData->buffer, MAX_PATH_NAME, WIDE("%s/%s"), findbasename(pInfo), finddata(pInfo)->name );
+#    else
+			snprintf( pData->buffer, MAX_PATH_NAME, WIDE("%s/%s"), findbasename(pInfo), finddata(pInfo)->name );
+#    endif
 #  endif
+#else
+			snprintf( pData->buffer, MAX_PATH_NAME, WIDE("%s/%s"), findbasename(pInfo), de->d_name );
 #endif
 		}
 	}
@@ -498,23 +544,30 @@ getnext:
 			}
 			else
 			{
-#ifdef UNDER_CE
-			snprintf( pData->buffer, MAX_PATH_NAME, WIDE("%s%s%s")
-					  , pData->prior?pData->prior->buffer:WIDE( "" )
-					  , pData->prior?WIDE( "/" ):WIDE( "" )
-					  , finddata(pInfo)->cFileName );
-#else
-#  ifdef UNICODE
-			snwprintf( pData->buffer, MAX_PATH_NAME, WIDE("%s%s%s")
-					  , pData->prior?pData->prior->buffer:WIDE( "" )
-					  , pData->prior?WIDE( "/" ):WIDE( "" )
-					  , finddata(pInfo)->name );
+#if WIN32
+#  ifdef UNDER_CE
+				snprintf( pData->buffer, MAX_PATH_NAME, WIDE("%s%s%s")
+						  , pData->prior?pData->prior->buffer:WIDE( "" )
+						  , pData->prior?WIDE( "/" ):WIDE( "" )
+						  , finddata(pInfo)->cFileName );
 #  else
-			snprintf( pData->buffer, MAX_PATH_NAME, WIDE("%s%s%s")
+#    ifdef UNICODE
+				snwprintf( pData->buffer, MAX_PATH_NAME, WIDE("%s%s%s")
+						  , pData->prior?pData->prior->buffer:WIDE( "" )
+						  , pData->prior?WIDE( "/" ):WIDE( "" )
+						  , finddata(pInfo)->name );
+#    else
+				snprintf( pData->buffer, MAX_PATH_NAME, WIDE("%s%s%s")
+						  , pData->prior?pData->prior->buffer:WIDE( "" )
+						  , pData->prior?WIDE( "/" ):WIDE( "" )
+						  , finddata(pInfo)->name );
+#    endif
+#  endif
+#else
+				snprintf( pData->buffer, MAX_PATH_NAME, WIDE("%s%s%s")
 					  , pData->prior?pData->prior->buffer:WIDE( "" )
 					  , pData->prior?WIDE( "/" ):WIDE( "" )
-					  , finddata(pInfo)->name );
-#  endif
+					  , de->d_name );
 #endif
 			}
 		}
@@ -526,24 +579,34 @@ getnext:
 			}
 			else
 			{
-#ifdef UNDER_CE
-			snprintf( pData->buffer, MAX_PATH_NAME, WIDE("%s"), finddata(pInfo)->cFileName );
-#else
-#  ifdef UNICODE
-			snwprintf( pData->buffer, MAX_PATH_NAME, WIDE("%s"), finddata(pInfo)->name );
+#if WIN32
+#  ifdef UNDER_CE
+				snprintf( pData->buffer, MAX_PATH_NAME, WIDE("%s"), finddata(pInfo)->cFileName );
 #  else
-			snprintf( pData->buffer, MAX_PATH_NAME, WIDE("%s"), finddata(pInfo)->name );
+#    ifdef UNICODE
+				snwprintf( pData->buffer, MAX_PATH_NAME, WIDE("%s"), finddata(pInfo)->name );
+#    else
+				snprintf( pData->buffer, MAX_PATH_NAME, WIDE("%s"), finddata(pInfo)->name );
+#    endif
 #  endif
+#else
+				snprintf( pData->buffer, MAX_PATH_NAME, WIDE("%s"), de->d_name );
 #endif
 			}
 		}
 	}
 	pData->buffer[MAX_PATH_NAME-1] = 0; // force nul termination...
+
+	lprintf( "Check if %s is a directory...", pData->buffer );
 	if( ( flags & (SFF_DIRECTORIES|SFF_SUBCURSE) )
-#ifdef UNDER_CE
+#ifdef WIN32
+#  ifdef UNDER_CE
 		&& finddata(pInfo)->dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY
-#else
+#  else
 		&& finddata(pInfo)->attrib & _A_SUBDIR
+#  endif
+#else
+		&& IsPath( pData->buffer )
 #endif
 	  )
 	{
@@ -650,7 +713,7 @@ getnext:
 #endif
 
 }
-
+#if 1
 #else
 
 //---------------------------------------------------------------------------
@@ -681,13 +744,14 @@ int  ScanFilesEx ( CTEXTSTR base
 	//DIR *dir;
 	char name[256];
 	struct dirent *de;
-   char *_base = CStrDup( base );
-   char *_mask = CStrDup( mask );
+	char *_base = CStrDup( base );
+	char *_mask = CStrDup( mask );
 	//char basename[256];
 	// need to dup base - it might be in read-only space.
-	if( !*pInfo )
+	if( !*pInfo || begin_sub_path || ((PMFD)*pInfo)->new_mount )
 	{
-		(*pInfo) = New( MFD );
+		if( !(*pInfo) )
+			(*pInfo) = New( MFD );
 		if( base )
 			strcpy( findbasename(pInfo), _base );
 		else
@@ -704,18 +768,18 @@ int  ScanFilesEx ( CTEXTSTR base
 				strcpy( findbasename(pInfo), "." );
 			}
 		}
-      //lprintf( "Open directory for scanning... %s %s", base, mask );
+		//lprintf( "Open directory for scanning... %s %s", base, mask );
 		finddir( pInfo ) = opendir( findbasename(pInfo) );
-      //lprintf( "result of opendir on %s = %d", findbasename(pInfo), finddir( pInfo ) );
+		//lprintf( "result of opendir on %s = %d", findbasename(pInfo), finddir( pInfo ) );
 		//*pInfo = (void*)dir;
 	}
 	else
 	{
-      //dir = (DIR*)*pInfo;
+		//dir = (DIR*)*pInfo;
 	}
 	{
 		TEXTCHAR *p;
-      TEXTCHAR *tmppath = DupCStr( findbasename(pInfo) );
+		TEXTCHAR *tmppath = DupCStr( findbasename(pInfo) );
 		// result from pathrchr is within findbasename(pInfo)
 		// it's result si technically a CTEXTSTR since
 		// that is what is passed to pathrchr
@@ -726,13 +790,13 @@ int  ScanFilesEx ( CTEXTSTR base
 				p[0] = 0;
 			}
 		}
-      Release( tmppath );
+		Release( tmppath );
 	}
 	if( finddir( pInfo ) )
 		while( ( de = readdir( finddir( pInfo ) ) ) )
 		{
 			char *de_d_name = de->d_name;
-         TEXTCHAR *_de_d_name = DupCStr( de_d_name );
+			TEXTCHAR *_de_d_name = DupCStr( de_d_name );
 			struct stat filestat;
 			//lprintf( WIDE("Check: %s"), de_d_name );
 			// should figure a way to check file vs mask...
@@ -760,18 +824,18 @@ int  ScanFilesEx ( CTEXTSTR base
 			{
 				if( flags & SFF_SUBCURSE )
 				{
-               TEXTCHAR *tmpresult;
+					TEXTCHAR *tmpresult;
 					void *data = NULL;
 					if( S_ISBLK( filestat.st_mode ) ||
 						S_ISCHR( filestat.st_mode ) )
 						continue;
-               tmpresult = NULL;
-		   		if( flags & SFF_DIRECTORIES ) 
+					tmpresult = NULL;
+		   			if( flags & SFF_DIRECTORIES ) 
 						if( Process )
 							Process( psvUser
 							       , tmpresult = DupCStr( (flags & SFF_NAMEONLY)?de_d_name:name )
 									 , SFF_DIRECTORY );
-               if( tmpresult )
+					if( tmpresult )
 						Release( tmpresult );
 					while( ScanFiles( DupCStr( name ), mask, &data, Process, flags, psvUser ) );
 				}
@@ -780,20 +844,20 @@ int  ScanFilesEx ( CTEXTSTR base
 			if( CompareMask( mask, _de_d_name, (flags & SFF_IGNORECASE)?0:1 ) )
 			{
 				TEXTCHAR *tmpresult;
-            tmpresult = NULL;
+				tmpresult = NULL;
 				if( Process )
 					Process( psvUser
 					       , tmpresult = DupCStr( (flags & SFF_NAMEONLY)?de_d_name:name )
 							 , 0 );
 				if( tmpresult )
-               Release( tmpresult );
+					Release( tmpresult );
 				return 1;
 			}
 		}
-	Release( _base );
-   Release( _mask );
-	if( finddir( pInfo ) )
-		closedir( finddir( pInfo ) );
+		Release( _base );
+		Release( _mask );
+		if( finddir( pInfo ) )
+			closedir( finddir( pInfo ) );
 
 	{
 		Release( *pInfo );
@@ -824,38 +888,3 @@ int  ScanFilesEx ( CTEXTSTR base
 #endif
 
 FILESYS_NAMESPACE_END
-
-// $Log: filescan.c,v $
-// Revision 1.28  2005/03/26 02:49:53  panther
-// Well the windows filename simile matcher seems to work
-//
-// Revision 1.27  2005/01/27 07:25:47  panther
-// Linux - well as clean as it can be with libC sucking.
-//
-// Revision 1.26  2003/12/18 11:19:52  panther
-// Fix debug logging/check issue when doing RElease
-//
-// Revision 1.25  2003/12/16 23:09:46  panther
-// Fix mask test for 'FILE*' matching 'FILE'
-//
-// Revision 1.24  2003/11/04 11:39:37  panther
-// Use | or \t to seperate masks
-//
-// Revision 1.23  2003/09/26 14:20:41  panther
-// PSI DumpFontFile, fix hide/restore display
-//
-// Revision 1.22  2003/08/21 14:48:45  panther
-// remove makefile warning
-//
-// Revision 1.21  2003/04/21 20:02:31  panther
-// Support option to return file name only
-//
-// Revision 1.20  2003/04/07 15:25:38  panther
-// Close find handle
-//
-// Revision 1.19  2003/04/06 09:55:08  panther
-// Export compare mask
-//
-// Revision 1.18  2003/03/25 08:45:50  panther
-// Added CVS logging tag
-//
