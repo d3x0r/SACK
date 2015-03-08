@@ -251,7 +251,9 @@ struct sqlite_interface
 	const char* (FIXREF2*sqlite3_errmsg)(sqlite3*);
 	int (FIXREF2*sqlite3_finalize)(sqlite3_stmt *);
 	int (FIXREF2*sqlite3_close)(sqlite3*);
+#if ( SQLITE_VERSION_NUMBER > 3007013 )
 	int (FIXREF2*sqlite3_close_v2)(sqlite3*);
+#endif
 	int (FIXREF2*sqlite3_prepare_v2)(
 	  sqlite3 *db,            
 	  const char *zSql,       
