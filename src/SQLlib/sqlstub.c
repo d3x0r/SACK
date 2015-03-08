@@ -1410,7 +1410,10 @@ void BeginTransact( PODBC odbc )
 			}
 			odbc->last_command_tick = newtick;
 			//odbc->commit_timer = AddTimer( 100, CommitTimer, (PTRSZVAL)odbc );
-			odbc->auto_commit_thread = ThreadTo( CommitThread, (PTRSZVAL)odbc );
+			if( !odbc->auto_commit_thread )
+			{
+				odbc->auto_commit_thread = ThreadTo( CommitThread, (PTRSZVAL)odbc );
+			}
 			odbc->flags.bAutoTransact = 0;
 #ifdef USE_SQLITE
 			if( odbc->flags.bSQLite_native )
