@@ -41,7 +41,7 @@ void  SetShaderEnable( PImageShaderTracker tracker, void (CPROC*EnableShader)( P
 	tracker->Enable = EnableShader;
 }
 
-void  SetShaderAppendTristrip( PImageShaderTracker tracker, void (CPROC*AppendTriStrip)( struct simple_shader_op *op, int triangles, PTRSZVAL,va_list args ) )
+void  SetShaderAppendTristrip( PImageShaderTracker tracker, void (CPROC*AppendTriStrip)( struct image_shader_op *op, int triangles, PTRSZVAL,va_list args ) )
 {
 	tracker->AppendTristrip = AppendTriStrip;
 }
@@ -703,8 +703,7 @@ void AppendImageShaderOpTristrip( struct image_shader_op *op, int triangles, ...
 {
 	va_list args;
 	va_start( args, triangles );
-	op->tracker->AppendTristrip( op->tracker, triangles, op->psvKey, args );
-	
+	op->tracker->AppendTristrip( op, triangles, op->psvKey, args );	
 }
 
 
