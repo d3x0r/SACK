@@ -14,7 +14,7 @@
 #include <configscript.h>
 
 #include <filesys.h> // pathrchr
-#include <../sexpat/expat.h>
+#include <sexpat/expat.h>
 //#include <sexpat/sexpat.h>
 #include "intershell_local.h"
 #include "resource.h"

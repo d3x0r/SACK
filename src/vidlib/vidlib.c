@@ -2011,19 +2011,22 @@ int IsVidThread( void )
 
 void Redraw( PVIDEO hVideo )
 {
-	if( IsThisThread( hVideo->pThreadWnd ) )
-		//if( IsVidThread() )
+	if( hVideo )
 	{
+		if( IsThisThread( hVideo->pThreadWnd ) )
+			//if( IsVidThread() )
+		{
 #ifdef LOG_RECT_UPDATE
-		lprintf( WIDE( "..." ) );
+			lprintf( WIDE( "..." ) );
 #endif
-		SendApplicationDraw( hVideo );
-	}
-	else
-	{
-		if( l.flags.bLogWrites )
-			lprintf( WIDE( "Posting invalidate rect..." ) );
-		InvalidateRect( hVideo->hWndOutput, NULL, FALSE );
+			SendApplicationDraw( hVideo );
+		}
+		else
+		{
+			if( l.flags.bLogWrites )
+				lprintf( WIDE( "Posting invalidate rect..." ) );
+			InvalidateRect( hVideo->hWndOutput, NULL, FALSE );
+		}
 	}
 }
 

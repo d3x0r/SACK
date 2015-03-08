@@ -2177,7 +2177,7 @@ void SmudgeCommonEx( PSI_CONTROL pc DBG_PASS )
 		{
 			if( FindLink( &device->pending_dirty_controls, pc ) == INVALID_INDEX )
 				AddLink( &device->pending_dirty_controls, pc );
-			if( !device->flags.sent_redraw )
+			if( !device->flags.sent_redraw && device->pActImg )
 			{
 				//lprintf( WIDE("Send redraw to self.... draw controls in pending_dirty_controls") );
 				//device->flags.sent_redraw = 1;
