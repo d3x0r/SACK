@@ -302,6 +302,9 @@ NETWORK_PROC( PLIST, GetLocalAddresses )( void );
  */
 NETWORK_PROC( SOCKADDR *, DuplicateAddress )( SOCKADDR *pAddr ); // return a copy of this address...
 
+NETWORK_PROC( void, SackNetwork_SetSocketSecure )( PCLIENT lpClient );
+NETWORK_PROC( void, SackNetwork_AllowSecurityDowngrade )( PCLIENT lpClient );
+
 /* Transmission Control Protocol connection methods. This
    controls opening sockets that are based on TCP.        */
 _TCP_NAMESPACE
