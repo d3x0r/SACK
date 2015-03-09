@@ -35,7 +35,14 @@
 
 #ifndef _h_PS_ASN1
 #define _h_PS_ASN1
+
+
+#ifdef MATRIX_SSL_SOURCE
 #include "crypto/cryptoConfig.h"
+#else
+#include "../src/contrib/MatrixSSL/3.7.1/crypto/cryptoConfig.h"
+#endif
+
 
 /******************************************************************************/
 /******************************************************************************/

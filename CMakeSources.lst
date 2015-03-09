@@ -84,6 +84,7 @@ ADD_DEFINITIONS( -DNETWORK_SOURCE )
 endif( NEED_NETWORK )
 set( NETWORK_SOURCES
   ${SOURCES_ROOT}src/netlib/network.c
+  ${SOURCES_ROOT}src/netlib/ssl_layer.c
   ${SOURCES_ROOT}src/netlib/tcpnetwork.c
   ${SOURCES_ROOT}src/netlib/udpnetwork.c
   ${MORE_NETWORK_SOURCES}

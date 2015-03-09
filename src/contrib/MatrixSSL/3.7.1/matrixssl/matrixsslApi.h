@@ -41,8 +41,13 @@
 extern "C" {
 #endif
 
+#ifdef MATRIX_SSL_SOURCE
 #include "core/coreApi.h"
 #include "crypto/cryptoApi.h"
+#else
+#include "../src/contrib/MatrixSSL/3.7.1/core/coreApi.h"
+#include "../src/contrib/MatrixSSL/3.7.1/crypto/cryptoApi.h"
+#endif
 
 #include "matrixsslConfig.h"
 #include "matrixssllib.h"
