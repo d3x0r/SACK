@@ -342,7 +342,30 @@ set( SACK_PLUSPLUS_HEADERS ${SACK_PLUSPLUS_HEADERS}
      ${SOURCES_ROOT}src/netlib/html5.websocket/client/local.h
      ${SOURCES_ROOT}src/netlib/html5.websocket/json/json.h
      ${SOURCES_ROOT}src/netlib/html5.websocket/html5.websocket.common.h
+     
+     ${SOURCES_ROOT}src/contrib/MatrixSSL/3.7.1/matrixssl/matrixsslApi.h
+     ${SOURCES_ROOT}src/contrib/MatrixSSL/3.7.1/matrixssl/matrixsslConfig.h
+     ${SOURCES_ROOT}src/contrib/MatrixSSL/3.7.1/matrixssl/matrixssllib.h
+     ${SOURCES_ROOT}src/contrib/MatrixSSL/3.7.1/matrixssl/version.h
+     ${SOURCES_ROOT}src/contrib/MatrixSSL/3.7.1/core/coreApi.h
+     ${SOURCES_ROOT}src/contrib/MatrixSSL/3.7.1/core/osdep.h
+     ${SOURCES_ROOT}src/contrib/MatrixSSL/3.7.1/core/list.h
+     ${SOURCES_ROOT}src/contrib/MatrixSSL/3.7.1/core/psmalloc.h
+     ${SOURCES_ROOT}src/contrib/MatrixSSL/3.7.1/core/coreConfig.h
+     ${SOURCES_ROOT}src/contrib/MatrixSSL/3.7.1/crypto/cryptoApi.h
+     ${SOURCES_ROOT}src/contrib/MatrixSSL/3.7.1/crypto/cryptolib.h
+     ${SOURCES_ROOT}src/contrib/MatrixSSL/3.7.1/crypto/cryptoConfig.h
+     ${SOURCES_ROOT}src/contrib/MatrixSSL/3.7.1/crypto/symmetric/symmetric.h
+     ${SOURCES_ROOT}src/contrib/MatrixSSL/3.7.1/crypto/math/pstm.h
+     ${SOURCES_ROOT}src/contrib/MatrixSSL/3.7.1/crypto/digest/digest.h
+     ${SOURCES_ROOT}src/contrib/MatrixSSL/3.7.1/crypto/pubkey/pubkey.h
+     ${SOURCES_ROOT}src/contrib/MatrixSSL/3.7.1/crypto/keyformat/asn1.h
+     ${SOURCES_ROOT}src/contrib/MatrixSSL/3.7.1/crypto/keyformat/x509.h
+     ${SOURCES_ROOT}src/contrib/MatrixSSL/3.7.1/crypto/prng/prng.h
+     
      )
+
+
 endif( NOT __NO_NETWORK__ )
 
 if( NOT __NO_NETWORK__ )
