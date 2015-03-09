@@ -240,7 +240,7 @@ int  GetMatchingFileName ( CTEXTSTR filemask, int flags, TEXTSTR pResult, int nR
 typedef struct myfinddata {
 #ifdef WIN32
 #  ifdef _MSC_VER
-#define HANDLECAST HANDLE
+#define HANDLECAST intptr_t
 	intptr_t
 #  else
 #define HANDLECAST

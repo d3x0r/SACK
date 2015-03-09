@@ -5,6 +5,7 @@
 #include <timers.h>
 #include <network.h>
 
+#include "../contrib/MatrixSSL/3.7.1/matrixssl/matrixsslApi.h"
 
 // debugging flag for socket creation/closing
 //#define LOG_SOCKET_CREATION
@@ -190,10 +191,15 @@ struct NetworkClient
 	struct network_client_flags {
 		BIT_FIELD bAddedToEvents : 1;
 		BIT_FIELD bRemoveFromEvents : 1;
+		BIT_FIELD bSecure : 1;
+		BIT_FIELD bAllowDowngrade : 1;
 	} flags;
    // this is set to what the thread that's waiting for this event is.
 	struct peer_thread_info *this_thread;
 	int tcp_delay_count;
+	struct {
+      ssl_t *ssl_session;
+	} ssl;
 };
 typedef struct NetworkClient CLIENT;
 
@@ -304,11 +310,15 @@ SOCKADDR *AllocAddrEx( DBG_VOIDPASS );
 #define AllocAddr() AllocAddrEx( DBG_VOIDSRC )
 PCLIENT AddActive( PCLIENT pClient );
 
+
+#define IsValid(S)   ((S)!=INVALID_SOCKET)  
+#define IsInvalid(S) ((S)==INVALID_SOCKET)  
+
 #define CLIENT_DEFINED
 
+//----------------  ssl_layer.c --------------------
+void ssl_BeginClientSession( PCLIENT pc );
 
-#define IsValid(S)   ((S)!=INVALID_SOCKET)   //spv:980303
-#define IsInvalid(S) ((S)==INVALID_SOCKET)   //spv:980303
 
 SACK_NETWORK_NAMESPACE_END
 

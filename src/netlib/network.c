@@ -3071,5 +3071,36 @@ NETWORK_PROC( void, NetworkUnlock)( PCLIENT lpClient )
    NetworkUnlockEx( lpClient DBG_SRC );
 }
 
+NETWORK_PROC( void, SackNetwork_SetSocketSecure )( PCLIENT lpClient )
+{
+	if( lpClient )
+	{
+		lpClient->flags.bSecure = 1;
+		if( lpClient->dwFlags & CF_LISTEN )
+		{
+			// server side; begin accepting handshakes...
+			// should have some sort of in-read injected handling
+
+			// telnet protocols for instance... might be another stream handling system?
+		}
+		else
+		{
+			// this needs to be called in the onConnect callback of the socket.
+			// the OnConnect is called, then OnRead(NULL) which will begin READPENDING (unless there's data, which the secure
+			// handler should be reading first anyway.... otherwise; it's supposed to be a client handshake (but really everyone
+			// throws their hands up at the start... so this should be done in OnAccept() handling also.
+			if( ( lpClient->dwFlags & CF_CONNECTED ) && !(lpClient->dwFlags & CF_READPENDING ) )
+				ssl_BeginClientSession( lpClient );
+		}
+	}
+}
+
+
+NETWORK_PROC( void, SackNetwork_AllowSecurityDowngrade )( PCLIENT lpClient )
+{
+   if( lpClient )
+		lpClient->flags.bAllowDowngrade = 1;
+}
+
 SACK_NETWORK_NAMESPACE_END
 
