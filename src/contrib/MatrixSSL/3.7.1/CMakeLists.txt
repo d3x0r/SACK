@@ -22,4 +22,5 @@ INCLUDE_DIRECTORIES( . )
 add_subdirectory( core )
 add_subdirectory( crypto )
 add_subdirectory( matrixssl )
+add_subdirectory( apps )
 

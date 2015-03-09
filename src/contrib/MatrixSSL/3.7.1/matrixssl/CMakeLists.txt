@@ -12,7 +12,7 @@ set( MatrixSSL_Sources
 sslEncode.c )
 
 # if SHARED; on windows, declspec...
-ADD_DEFINITIONS( -D_USRDLL )
+ADD_DEFINITIONS( -D_USRDLL -DMATRIX_SSL_SOURCE )
 
 add_library( MatrixSSL SHARED ${MatrixSSL_Sources} )
 
@@ -25,4 +25,12 @@ SET_TARGET_PROPERTIES( MatrixSSL PROPERTIES
                   FOLDER "Matrix SSL" 
                   )
 
-install( TARGETS MatrixSSL DESTINATION bin )
+if( WIN32 )
+   install( TARGETS MatrixSSL LIBRARY DESTINATION bin ARCHIVE DESTINATION lib )
+else( WIN32 )
+   if( CMAKE_SIZEOF_VOID_P == 8 )
+      install( TARGETS MatrixSSL DESTINATION lib64 )
+   else( CMAKE_SIZEOF_VOID_P == 8 )
+      install( TARGETS MatrixSSL DESTINATION lib )
+   endif( CMAKE_SIZEOF_VOID_P == 8 )
+endif( WIN32 )
