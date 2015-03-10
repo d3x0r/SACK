@@ -68,6 +68,7 @@ sackcomm.h
 strlib.hpp
 symbits.h
 sack_system.h
+sack_vfs.h
 systray.h
 timers.h
 typelib.h

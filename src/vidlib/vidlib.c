@@ -3689,7 +3689,10 @@ void HandleDestroyMessage( PVIDEO hVidDestroy )
 #endif
 		}
 		else
-			SafeSetFocus( (HWND)GetDesktopWindow() );
+		{
+			if( !hVidDestroy->flags.bNoAutoFocus )
+				SafeSetFocus( (HWND)GetDesktopWindow() );
+		}
 #ifdef LOG_DESTRUCTION
 		lprintf( WIDE("------------ DESTROY! -----------") );
 #endif
@@ -4626,7 +4629,7 @@ RENDER_PROC (void, CloseDisplay) (PVIDEO hVideo)
 		hVideo->flags.bInDestroy = 1;
 #ifdef LOG_DESTRUCTION
 		while (hVideo->flags.bReady && !bEventThread )
-		{
+	{	
 			if( !logged )
 			{
 				lprintf( WIDE("Wait for window to go unready.") );

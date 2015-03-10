@@ -150,12 +150,12 @@ static void UpdateSegmentKey( struct volume *vol, enum block_cache_entries cache
 
 static LOGICAL ValidateBAT( struct volume *vol )
 {
+	BLOCKINDEX first_slab = 0;
+	BLOCKINDEX slab = vol->dwSize / ( BLOCK_SIZE );
+	BLOCKINDEX last_block = ( slab * BLOCKS_PER_BAT ) / BLOCKS_PER_SECTOR;
+	BLOCKINDEX n;
 	if( vol->key )
 	{
-		BLOCKINDEX first_slab = 0;
-		BLOCKINDEX slab = vol->dwSize / ( BLOCK_SIZE );
-		BLOCKINDEX last_block = ( slab * BLOCKS_PER_BAT ) / BLOCKS_PER_SECTOR;
-		BLOCKINDEX n;
 		for( n = first_slab; n < slab; n += BLOCKS_PER_SECTOR  )
 		{
 			int m;
@@ -172,10 +172,6 @@ static LOGICAL ValidateBAT( struct volume *vol )
 	}
 	else 
 	{
-		BLOCKINDEX first_slab = 0;
-		BLOCKINDEX slab = vol->dwSize / ( BLOCK_SIZE );
-		BLOCKINDEX last_block = ( slab * BLOCKS_PER_BAT ) / BLOCKS_PER_SECTOR;
-		BLOCKINDEX n;
 		for( n = first_slab; n < slab; n += BLOCKS_PER_SECTOR  )
 		{
 			int m;
@@ -516,10 +512,55 @@ void sack_vfs_unload_volume( struct volume * vol )
 		Release( file );
 	DeleteList( &vol->files );
 	Release( vol->disk );
-	Release( vol->key );
-	SRG_DestroyEntropy( &vol->entropy );
+	if( vol->key )
+	{
+		Release( vol->key );
+		SRG_DestroyEntropy( &vol->entropy );
+	}
 	Release( vol );
 }
+
+void sack_vfs_shrink_volume( struct volume * vol )
+{
+	int n;
+	int b = 0;
+	int found_free; // this block has free data; should be last BAT?
+	int last_block = 0;
+	int last_bat = 0;
+	BLOCKINDEX *current_BAT = TSEEK( BLOCKINDEX*, vol, 0, BLOCK_CACHE_FILE );
+	do
+	{
+		BLOCKINDEX check_val;
+		for( n = 0; n < BLOCKS_PER_BAT; n++ )
+		{
+			check_val = current_BAT[n];
+			if( vol->key )	check_val ^= ((BLOCKINDEX*)vol->usekey[BLOCK_CACHE_FILE])[n];
+			if( check_val )
+			{
+				last_bat = b;
+				last_block = n;
+			}
+			if( !check_val ) found_free = TRUE;
+		}
+		b++;
+		if( b * ( BLOCKS_PER_SECTOR*BLOCK_SIZE) < vol->dwSize )
+		{
+			current_BAT = TSEEK( BLOCKINDEX*, vol, b * ( BLOCKS_PER_SECTOR*BLOCK_SIZE), BLOCK_CACHE_FILE );
+		}
+		else
+			break;
+	}while( 1 );
+
+	{
+		FILE *file;
+		Release( vol->disk );
+		SetFileLength( vol->volname, last_bat * BLOCKS_PER_SECTOR * BLOCK_SIZE + ( last_block + 1 + 1 )* BLOCK_SIZE );
+		// setting 0 size will cause expand to do an initial open instead of expanding
+		vol->dwSize = 0;
+		//ExpandVolume( vol );
+	}
+}
+
 
 static struct directory_entry * ScanDirectory( struct volume *vol, const char * filename, struct directory_entry *dirkey )
 {

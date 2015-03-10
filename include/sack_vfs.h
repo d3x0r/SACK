@@ -32,8 +32,20 @@ SACK_VFS_PROC struct volume * CPROC sack_vfs_load_volume( CTEXTSTR filepath );
 SACK_VFS_PROC struct volume * CPROC sack_vfs_load_crypt_volume( CTEXTSTR filepath, CTEXTSTR userkey, CTEXTSTR devkey );
 SACK_VFS_PROC struct volume * CPROC sack_vfs_use_crypt_volume( POINTER filepath, size_t size, CTEXTSTR userkey, CTEXTSTR devkey );
 SACK_VFS_PROC void            CPROC sack_vfs_unload_volume( struct volume * vol );
+SACK_VFS_PROC void            CPROC sack_vfs_shrink_volume( struct volume * vol );
 
 SACK_VFS_PROC struct sack_vfs_file * CPROC sack_vfs_openfile( struct volume *vol, CTEXTSTR filename );
+SACK_VFS_PROC int CPROC sack_vfs_exists( PTRSZVAL psvInstance, const char * file );
+SACK_VFS_PROC int CPROC sack_vfs_close( struct sack_vfs_file *file );
+SACK_VFS_PROC size_t CPROC sack_vfs_tell( struct sack_vfs_file *file );
+SACK_VFS_PROC size_t CPROC sack_vfs_size( struct sack_vfs_file *file );
+SACK_VFS_PROC size_t CPROC sack_vfs_seek( struct sack_vfs_file *file, size_t pos, int whence );
+SACK_VFS_PROC size_t CPROC sack_vfs_write( struct sack_vfs_file *file, const char * data, size_t length );
+SACK_VFS_PROC size_t CPROC sack_vfs_read( struct sack_vfs_file *file, char * data, size_t length );
+SACK_VFS_PROC size_t CPROC sack_vfs_truncate( struct sack_vfs_file *file );
+// psv should be struct volume *vol;
+SACK_VFS_PROC void CPROC sack_vfs_unlink_file( PTRSZVAL psv, const char * filename );
+
 
 SACK_VFS_NAMESPACE_END
 
