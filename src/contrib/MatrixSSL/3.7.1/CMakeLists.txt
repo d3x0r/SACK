@@ -9,7 +9,7 @@ if( WIN32 )
   set( SYS_C_FLAGS  )
 else( WIN32 )
   set( OSDEP_DEFAULT "POSIX" )
-  set( LIBFLAGS _USRDLL )
+  set( LIBFLAGS  )
   set( SYS_C_FLAGS -fPIC )
 endif( WIN32 )
 
