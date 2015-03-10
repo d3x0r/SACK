@@ -1917,7 +1917,7 @@ PSPUBLIC void matrixSslAddRehandshakeCredits(ssl_t *ssl, int32 credits);
 */
 typedef int32 (*sslCertCb_t)(void *, psX509Cert_t *, int32);
 #ifndef USE_ONLY_PSK_CIPHER_SUITE	
-extern int32 matrixValidateCerts(psPool_t *pool, psX509Cert_t *subjectCerts,
+PSPUBLIC int32 matrixValidateCerts(psPool_t *pool, psX509Cert_t *subjectCerts,
 				psX509Cert_t *issuerCerts, char *expectedName,
 				psX509Cert_t **foundIssuer, void *pkiData, void *userPoolPtr);
 extern int32 matrixUserCertValidator(ssl_t *ssl, int32 alert, 

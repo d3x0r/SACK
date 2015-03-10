@@ -24,3 +24,8 @@ add_subdirectory( crypto )
 add_subdirectory( matrixssl )
 add_subdirectory( apps )
 
+if( BUILD_TESTS )
+add_subdirectory( crypto/test )
+add_subdirectory( matrixssl/test )
+endif( BUILD_TESTS )
+
