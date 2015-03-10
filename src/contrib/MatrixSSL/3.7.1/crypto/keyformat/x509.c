@@ -2088,7 +2088,7 @@ static int32 getExplicitVersion(unsigned char **pp, uint32 len, int32 expVal,
 		PS_CERT_AUTH_FAIL_DATE if date is out of range
 		PS_FAILURE on parse error
 */
-static int validateDateRange(psX509Cert_t *cert)
+static int32 validateDateRange(psX509Cert_t *cert)
 {
 #ifdef POSIX
 	struct tm	t;

@@ -104,7 +104,7 @@ void psCoreClose(void)
 
     @return 0 on successful match, nonzero on failure.
 */
-int memcmpct(const void *s1, const void *s2, size_t len)
+int32 memcmpct(const void *s1, const void *s2, size_t len)
 {
 	int		xor = 0;
 
