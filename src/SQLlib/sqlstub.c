@@ -361,6 +361,7 @@ void ExtendConnection( PODBC odbc )
 	}
 
 	//SQLCommandf( odbc, "PRAGMA read_uncommitted=True" );
+	if( !odbc->flags.bVFS )
 	{
 		CTEXTSTR result;
 		SQLQueryf( odbc, &result, WIDE( "PRAGMA journal_mode=WAL;" ) );
@@ -384,7 +385,7 @@ static void DumpODBCInfo( PODBC odbc )
 	}
 	if( !odbc )
 		return;
-   lprintf( WIDE( "odbc = %p" ), odbc );
+	lprintf( WIDE( "odbc = %p" ), odbc );
 #if defined( USE_SQLITE ) || defined( USE_SQLITE_INTERFACE )
 	lprintf( WIDE( "odbc->db = %p" ), odbc->db );
 #endif
@@ -1204,6 +1205,7 @@ int OpenSQLConnectionEx( PODBC odbc DBG_PASS )
 #endif
 #endif
 					}
+					odbc->flags.bVFS = 1;
 					rc3 = sqlite3_open_v2( tmp, &odbc->db, SQLITE_OPEN_READWRITE, vfs_name );
 					Deallocate( char *, vfs_name );
 				}

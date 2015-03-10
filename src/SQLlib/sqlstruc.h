@@ -126,6 +126,7 @@ struct odbc_handle_tag{
 		BIT_FIELD bAutoTransact : 1;
 		BIT_FIELD bThreadProtect : 1; // use enter/leave critical section on this connector (auto transact protector)
 		BIT_FIELD bAutoClose : 1; // don't leave the connection open 100%; open when required and close when idle
+		BIT_FIELD bVFS : 1;
 	} flags;
 	_32 last_command_tick;
 	_32 commit_timer;
