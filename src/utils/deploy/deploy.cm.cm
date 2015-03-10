@@ -294,6 +294,7 @@ if( WIN32 )
                         loginfo.module 
                         seed_random.module 
                         sack_vfs.module 
+                        MatrixSSL.dll
                     )
                     if( BUILD_EXTRAS )
 		SET( literal_libfile_list ${literal_libfile_list} 

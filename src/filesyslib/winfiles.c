@@ -796,6 +796,7 @@ INDEX sack_iopen( INDEX group, CTEXTSTR filename, int opts, ... )
 	EnterCriticalSec( &l.cs_files );
 	{
 		HANDLE *holder = New( HANDLE );
+		holder[0] = h;
 		AddLink( &l.handles, holder );
 		result = FindLink( &l.handles, holder );
 	}
@@ -810,9 +811,10 @@ int sack_iclose( INDEX file_handle )
 	int result;
 	EnterCriticalSec( &l.cs_files );
 	{
-		 HANDLE *holder = (HANDLE*)GetLink( &l.handles, file_handle );
-		 HANDLE handle = holder?holder[0]:INVALID_HANDLE_VALUE;
+		HANDLE *holder = (HANDLE*)GetLink( &l.handles, file_handle );
+		HANDLE handle = holder?holder[0]:INVALID_HANDLE_VALUE;
 		SetLink( &l.handles, file_handle, 0 );
+		Deallocate( HANDLE*, holder );
 		result = sack_close( handle );
 	}
 	LeaveCriticalSec( &l.cs_files );
@@ -886,13 +888,15 @@ int sack_unlinkEx( INDEX group, CTEXTSTR filename, struct file_system_mounted_in
 		okay = unlink( filename );
 #  endif
 		Deallocate( TEXTCHAR*, tmp );
-		return !okay; // unlink returns TRUE is 0, else error...
 #else
-		int okay;
+		int okay = 1;
 		if( mount->fsi )
 		{
-			mount->fsi->unlink( mount->psvInstance, filename );
-			okay = TRUE;
+			if( mount->fsi->exists( mount->psvInstance, filename ) )
+			{
+				mount->fsi->unlink( mount->psvInstance, filename );
+				okay = 0;
+			}
 		}
 		else
 		{
@@ -900,8 +904,10 @@ int sack_unlinkEx( INDEX group, CTEXTSTR filename, struct file_system_mounted_in
 			okay = DeleteFile(tmp);
 			Deallocate( TEXTCHAR*, tmp );
 		}
-		return !okay; // unlink returns TRUE is 0, else error...
 #endif
+		if( !okay )
+			return !okay;
+		mount = mount->next;
 	}
 	return 0;
 }

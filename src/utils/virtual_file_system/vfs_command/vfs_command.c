@@ -165,6 +165,7 @@ static void usage( void )
 	printf( "   storeas <filename> <as file>   : store file from <filename> into VFS as <as file>\n" );
 	printf( "   extractas <filename> <as file> : extract file <filename> from VFS as <as file>\n" );
 	printf( "   append <filename> <to file>    : store file from <filename> into VFS appended to <to file>\n" );
+	printf( "   shrink                         : remove extra space at the end of a volume.\n" );
 }
 
 SaneWinMain( argc, argv )
@@ -246,6 +247,11 @@ SaneWinMain( argc, argv )
 		else if( StrCaseCmp( argv[arg], "append" ) == 0 )
 		{
 			AppendFilesAs( argv[arg+1], argv[arg+2], argv[arg+3] );
+			arg += 3;
+		}
+		else if( StrCaseCmp( argv[arg], "shrink" ) == 0 )
+		{
+			sack_vfs_shrink_volume( l.current_vol );
 			arg += 3;
 		}
 
