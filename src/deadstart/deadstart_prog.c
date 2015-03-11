@@ -5,6 +5,10 @@
 
 SACK_DEADSTART_NAMESPACE
 
+
+#define paste(a,b) a##b
+#define paste2(a,b) paste(a,b)
+
 #undef PRELOAD
 #ifdef __WATCOMC__ 
 // this is really nice - to have a prioritized initializer list...
@@ -59,8 +63,10 @@ IMPORT_METHOD void CPROC RunExits( void );
 
 #if !defined( __ANDROID__ ) || defined( ANDROID_CONSOLE_UTIL )
 // this one is used when a library is loaded.
-PRELOAD( RunDeadstart )
+PRELOAD( _RunDeadstart )
 {
+	extern paste2( TARGET_LABEL,_RegisterStartups)( void );
+   paste2( TARGET_LABEL,_RegisterStartups)();
 	atexit( RunExits );
 	InvokeDeadstart(); // call everthing which is logged within SACK to dispatch back to registree's
 	MarkRootDeadstartComplete();
