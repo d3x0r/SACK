@@ -56,7 +56,7 @@ int KeyGetGatheredLine( PCHAT_LIST list, PUSER_INPUT_BUFFER pci )
 
 #if defined( GCC ) || defined( __LINUX__ )
 CORECON_EXPORT( PSIKEYDEFINE, ConsoleKeyDefs[256] ) =
-#ifdef __cplusplus
+#if defined( __cplusplus ) || 1
 {{0}
 ,{0}
 ,{0}
