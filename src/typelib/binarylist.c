@@ -159,9 +159,9 @@ int BalanceBinaryBranch( PTREENODE root )
  		   {
 			int left = check->lesser->children
 			 , right = check->greater->children;
-			if( left > right )
+			if( left > ( right * 2 ) )
 			{
-				if( left > 2+((left+right)*55)/100 )
+				//if( left > 2+((left+right)*55)/100 )
 				{
 		 			//Log2( WIDE("rotateing to left (%d/%d)"), left, right );
 					root = RotateToLeft( check );
@@ -170,9 +170,9 @@ int BalanceBinaryBranch( PTREENODE root )
 				//else
 				//	root = NULL;
 			}
-			else
+			else if( right > ( left * 2 ) )
 			{
-				if( right  > 2+((left+right)*55)/100 )
+				//if( right  > 2+((left+right)*55)/100 )
 				{
 		 			//Log2( WIDE("rotateing to right (%d/%d)"), right, left );
 					root = RotateToRight( check );

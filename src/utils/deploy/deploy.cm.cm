@@ -294,17 +294,24 @@ if( WIN32 )
                         loginfo.module 
                         seed_random.module 
                         sack_vfs.module 
-                        MatrixSSL.dll
                     )
+                    if( NOT MINGW )
+		SET( literal_libfile_list ${literal_libfile_list} 
+                        MatrixSSL.dll )
+                    endif( NOT MINGW )
+                        
                     if( BUILD_EXTRAS )
+		SET( literal_libfile_list ${literal_libfile_list} 
+                        sack_vfs_command.exe
+                        )
+                    if( NOT MINGW )
 		SET( literal_libfile_list ${literal_libfile_list} 
                         sack_vfs_runner.exe
                         sack_vfs_runner_min.exe
                         sack_vfs_runner_sfx.exe
-                        sack_vfs_command.exe
                         )
+		       endif( NOT MINGW )                    
                     endif( BUILD_EXTRAS )
-                    
 		if( NOT BUILD_MONOLITHIC )
                 set( libfile_list ${libfile_list}  glew )
 		endif( NOT BUILD_MONOLITHIC )

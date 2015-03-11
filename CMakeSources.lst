@@ -84,11 +84,16 @@ ADD_DEFINITIONS( -DNETWORK_SOURCE )
 endif( NEED_NETWORK )
 set( NETWORK_SOURCES
   ${SOURCES_ROOT}src/netlib/network.c
-  ${SOURCES_ROOT}src/netlib/ssl_layer.c
   ${SOURCES_ROOT}src/netlib/tcpnetwork.c
   ${SOURCES_ROOT}src/netlib/udpnetwork.c
   ${MORE_NETWORK_SOURCES}
 )
+
+if( NOT MINGW )
+set( NETWORK_SOURCES ${NETWORK_SOURCES} 
+  ${SOURCES_ROOT}src/netlib/ssl_layer.c
+)
+endif( NOT MINGW )
 SET_SOURCE_FILES_PROPERTIES( ${NETWORK_SOURCES} PROPERTIES 
 		FOLDER "Source Files\\Network Library" )
 endif( NOT __NO_NETWORK__ )

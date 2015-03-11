@@ -37,11 +37,11 @@
 
 SACK_NETWORK_NAMESPACE
 
-#define MAGIC_SOCKADDR_LENGTH (sizeof(SOCKADDR_IN)< 256?256:sizeof( SOCKADDR_IN))
+#define MAGIC_SOCKADDR_LENGTH ( sizeof(SOCKADDR_IN)< 256?256:sizeof( SOCKADDR_IN) )
 
 // this might have to be like sock_addr_len_t
-#define SOCKADDR_LENGTH(sa) ( (int)*(PTRSZVAL*)( ( (PTRSZVAL)(sa) ) - sizeof(PTRSZVAL) ) )
-#define SET_SOCKADDR_LENGTH(sa,size) ( ( *(PTRSZVAL*)( ( (PTRSZVAL)(sa) ) - sizeof(PTRSZVAL) ) ) = size )
+#define SOCKADDR_LENGTH(sa) ( (int)*(PTRSZVAL*)( ( (PTRSZVAL)(sa) ) - 2*sizeof(PTRSZVAL) ) )
+#define SET_SOCKADDR_LENGTH(sa,size) ( ( *(PTRSZVAL*)( ( (PTRSZVAL)(sa) ) - 2*sizeof(PTRSZVAL) ) ) = size )
 
 // used by the network thread dispatched network layer messages...
 #define SOCKMSG_UDP (WM_USER+1)  // messages for UDP use this window Message
@@ -129,6 +129,8 @@ struct peer_thread_info
 	PTHREAD thread;
 };
 
+typedef struct ssl_session *PSSL_SESSION;
+
 struct NetworkClient
 {
 	SOCKADDR *saClient;  //Dest Address
@@ -197,9 +199,7 @@ struct NetworkClient
    // this is set to what the thread that's waiting for this event is.
 	struct peer_thread_info *this_thread;
 	int tcp_delay_count;
-	struct {
-      ssl_t *ssl_session;
-	} ssl;
+	PSSL_SESSION ssl_session;
 };
 typedef struct NetworkClient CLIENT;
 
@@ -298,6 +298,8 @@ SOCKET OpenSocket( LOGICAL v4, LOGICAL bStream, LOGICAL bRaw, int another_offset
 int SystemCheck( void );
 #endif
 
+// internal functions
+const char * GetAddrName( SOCKADDR *addr );
 
 void TerminateClosedClientEx( PCLIENT pc DBG_PASS );
 #define TerminateClosedClient(pc) TerminateClosedClientEx(pc DBG_SRC)
@@ -317,7 +319,9 @@ PCLIENT AddActive( PCLIENT pClient );
 #define CLIENT_DEFINED
 
 //----------------  ssl_layer.c --------------------
-void ssl_BeginClientSession( PCLIENT pc );
+PSSL_SESSION ssl_InitSession( void );
+
+void ssl_BeginClientSession( PCLIENT pc, PSSL_SESSION ses );
 
 
 SACK_NETWORK_NAMESPACE_END

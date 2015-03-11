@@ -403,16 +403,16 @@ int xOpen(sqlite3_vfs* vfs, const char *zName, sqlite3_file*file,
 #define sack_fsopen(a,b,c,d) sack_fopen(a,b,c)
 #define sack_fsopenEx(a,b,c,d,fsi) sack_fopenEx(a,b,c, fsi)
 #endif
-
-
 			if( my_vfs->mount )
 			{
+            //lprintf( "try on mount..%s .%p", my_file->filename, my_vfs->mount );
 				my_file->file = sack_fsopenEx( 0, my_file->filename, WIDE("rb+"), _SH_DENYNO, my_vfs->mount );//KWfopen( zName );
 				if( my_file->file )
 				{
 					InitializeCriticalSec( &my_file->cs );
 					return SQLITE_OK;
 				}
+            //lprintf( "failed..." );
 			}
 			else
 			{
@@ -544,6 +544,7 @@ void InitVFS( CTEXTSTR name, struct file_system_mounted_interface *mount )
 {
 	struct my_sqlite3_vfs *vfs;
 	INDEX idx;
+   lprintf( "Register sqlite vfs called %s", name );
 	LIST_FORALL( l.registered_vfs, idx, struct my_sqlite3_vfs *, vfs )
 	{
 #ifdef UNICODE

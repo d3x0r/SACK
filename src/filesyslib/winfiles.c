@@ -957,7 +957,7 @@ FILE * sack_fopenEx( INDEX group, CTEXTSTR filename, CTEXTSTR opts, struct file_
 	if( !mount )
 		mount = l.mounted_file_systems;
 
-	if( !strchr( opts, 'r' ) )
+	if( !strchr( opts, 'r' ) && !strchr( opts, '+' ) )
 		while( mount )
 		{  // skip roms...
 			//lprintf( "check mount %p %d", mount, mount->writeable );
@@ -1030,7 +1030,7 @@ FILE * sack_fopenEx( INDEX group, CTEXTSTR filename, CTEXTSTR opts, struct file_
 
 	if( mount && mount->fsi )
 	{
-		if( strchr( opts, 'r' ) )
+		if( strchr( opts, 'r' ) && !strchr( opts, '+' ) )
 		{
 			struct file_system_mounted_interface *test_mount = mount;
 			while( !handle && test_mount )
@@ -1038,8 +1038,12 @@ FILE * sack_fopenEx( INDEX group, CTEXTSTR filename, CTEXTSTR opts, struct file_
 				if( test_mount->fsi )
 				{
 					file->mount = test_mount;
+					if( l.flags.bLogOpenClose )
+						lprintf( "Call mount to check if file exists %s", file->fullname );
 					if( test_mount->fsi->exists( test_mount->psvInstance, file->fullname ) )
+					{
 						handle = (FILE*)test_mount->fsi->open( test_mount->psvInstance, file->fullname );
+					}
 					else if( single_mount )
 						return NULL;
 				}
@@ -1056,7 +1060,11 @@ FILE * sack_fopenEx( INDEX group, CTEXTSTR filename, CTEXTSTR opts, struct file_
 			{
 				file->mount = test_mount;
 				if( test_mount->fsi && test_mount->writeable )
+				{
+					if( l.flags.bLogOpenClose )
+						lprintf( "Call mount to open file %s", file->fullname );
 					handle = (FILE*)test_mount->fsi->open( test_mount->psvInstance, file->fullname );
+				}
 				else
 					goto default_fopen;
 				test_mount = test_mount->next;
@@ -1607,6 +1615,11 @@ struct file_system_mounted_interface *sack_get_mounted_filesystem( char *name )
 	return root;
 }
 
+void sack_unmount_filesystem( struct file_system_mounted_interface *mount )
+{
+	UnlinkThing( mount );
+}
+
 struct file_system_mounted_interface *sack_mount_filesystem( char *name, struct file_system_interface *fsi, int priority, PTRSZVAL psvInstance, LOGICAL writable )
 {
 	struct file_system_mounted_interface *root = l.mounted_file_systems;
@@ -1616,6 +1629,7 @@ struct file_system_mounted_interface *sack_mount_filesystem( char *name, struct 
 	mount->psvInstance = psvInstance;
 	mount->writeable = writable;
 	mount->fsi = fsi;
+	//lprintf( "Create mount called %s ", name );
 	if( !root || ( root->priority >= priority ) )
 	{
 		LinkThing( l.mounted_file_systems, mount );

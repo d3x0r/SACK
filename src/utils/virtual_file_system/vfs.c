@@ -680,10 +680,10 @@ struct sack_vfs_file * CPROC sack_vfs_openfile( struct volume *vol, const char *
 	while( LockedExchange( &vol->lock, 1 ) )
 		Relinquish();
 	if( filename[0] == '.' && filename[1] == '/' ) filename += 2;
-	//lprintf( "sack_vfs open %s = %p on %s", filename, file, vol->volname );
+	LoG( "sack_vfs open %s = %p on %s", filename, file, vol->volname );
 	file->entry = ScanDirectory( vol, filename, &file->dirent_key );
 	if( !file->entry )
-		if( vol->read_only ) { vol->lock = 0; Release( file ); return NULL; }
+		if( vol->read_only ) { LoG( "Fail open: readonly" ); vol->lock = 0; Release( file ); return NULL; }
 		else file->entry = GetNewDirectory( vol, filename );
 	if( vol->key )
 		memcpy( &file->dirent_key, vol->usekey[BLOCK_CACHE_DIRECTORY] + ( (PTRSZVAL)file->entry & BLOCK_MASK ), sizeof( struct directory_entry ) );

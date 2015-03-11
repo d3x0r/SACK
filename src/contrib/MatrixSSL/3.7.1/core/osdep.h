@@ -62,7 +62,9 @@
  #define PSTM_X86_64
  #define PSTM_64BIT /* Supported by architecture */
 #elif defined(__i386__)
+#ifndef MINGW_SUX
  #define PSTM_X86
+#endif
 #elif defined(__arm__)
  #define PSTM_ARM
  //__aarch64__ /* 64 bit arm */

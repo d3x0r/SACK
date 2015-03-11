@@ -2315,7 +2315,7 @@ int __DoSQLCommandEx( PODBC odbc, PCOLLECT collection DBG_PASS )
 			//odbc->hidden_messages++
 			;
 		else
-			_lprintf(DBG_RElAY)( WIDE( "Do Command[%p]: %s" ), odbc, GetText( cmd ) );
+			_lprintf(DBG_RElAY)( WIDE( "Do Command[%p:%s]: %s" ), odbc, odbc->info.pDSN?odbc->info.pDSN:WIDE( "NoDSN?" ), GetText( cmd ) );
 	}
 
 #ifdef LOG_EVERYTHING
@@ -2383,7 +2383,7 @@ retry:
 				sqlite3_finalize( collection->stmt );
 				if( !odbc->flags.bNoLogging )
 				{
-					_lprintf(DBG_RElAY)( WIDE( "Database Busy, waiting on[%p]: %s" ), odbc, GetText( cmd ) );
+					_lprintf(DBG_RElAY)( WIDE( "Database Busy, waiting on[%p:%s]: %s" ), odbc, odbc->info.pDSN?odbc->info.pDSN:WIDE( "NoDSN?" ), GetText( cmd ) );
 					//DumpAllODBCInfo();
 				}
 				WakeableSleep( 25 );
@@ -2391,7 +2391,7 @@ retry:
 			default:
 				//  SQLITE_CONSTRAINT - statement like an insert with a key that already exists.
 				if( !odbc->flags.bNoLogging )
-					_lprintf(DBG_RELAY)( WIDE( "Unknown, unhandled SQLITE error: %s" ), sqlite3_errmsg(odbc->db ) );
+					_lprintf(DBG_RELAY)( WIDE( "[%s] Unknown, unhandled SQLITE error: %s" ), odbc->info.pDSN?odbc->info.pDSN:WIDE( "NoDSN?" ), sqlite3_errmsg(odbc->db ) );
 				//DebugBreak();
 				result_code = WM_SQL_RESULT_ERROR;
 				break;
@@ -4486,14 +4486,19 @@ retry:
 		queue = New( struct odbc_queue );
 		queue->name = StrDup( dsn );
 		queue->connections = CreateLinkQueue();
-      AddLink( &g.odbc_queues, queue );
-      goto retry;
+		AddLink( &g.odbc_queues, queue );
+		goto retry;
 	}
 }
 
 void SQLDropODBC( PODBC odbc )
 {
    EnqueLink( &odbc->queue->connections, odbc );
+}
+
+void SQLDropAndCloseODBC( PODBC odbc )
+{
+	CloseDatabase( odbc );
 }
 
 
