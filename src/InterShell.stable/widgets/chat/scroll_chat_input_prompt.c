@@ -91,7 +91,7 @@ static void CPROC SetCurrentColor( PCHAT_LIST list, enum current_color_type type
 }
 
 
-static void CPROC DrawString( Image window, SFTFont font, int x, int y, CDATA crText, RECT *r, CTEXTSTR s, int nShown, int nShow )
+static _32 CPROC DrawString( Image window, SFTFont font, int x, int y, CDATA crText, RECT *r, CTEXTSTR s, int nShown, int nShow )
 {
 	_32 width;
 	//lprintf( WIDE( "Adding string out : %p %s start:%d len:%d at %d,%d #%08lX #%08lX" ), console, s, nShown, nShow,x,y,r->left,r->top

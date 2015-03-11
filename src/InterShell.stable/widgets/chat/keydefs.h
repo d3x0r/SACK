@@ -22,20 +22,20 @@ CORECON_PROC( int, KeyShift     )( P_32 pKeyState, LOGICAL bState );
 CORECON_PROC( int, KeyControl   )( P_32 pKeyState, LOGICAL bState );
 CORECON_PROC( int, KeyAlt       )( P_32 pKeyState, LOGICAL bState );
 
-CORECON_PROC( int, KeyLeft )( PUSER_INPUT_BUFFER pci );
-CORECON_PROC( int, KeyRight )( PUSER_INPUT_BUFFER pci );
-CORECON_PROC( int, KeyInsert )( PUSER_INPUT_BUFFER pci );
+CORECON_PROC( int, KeyLeft )( PCHAT_LIST list, PUSER_INPUT_BUFFER pci );
+CORECON_PROC( int, KeyRight )( PCHAT_LIST list, PUSER_INPUT_BUFFER pci );
+CORECON_PROC( int, KeyInsert )( PCHAT_LIST list, PUSER_INPUT_BUFFER pci );
 //int KeyDelete( PUSER_INPUT_BUFFER pci );
-CORECON_PROC( int, CommandKeyUp )( PUSER_INPUT_BUFFER pci );
-CORECON_PROC( int, HandleKeyDown )(  PUSER_INPUT_BUFFER pci );
-CORECON_PROC( int, KeyHome )( PUSER_INPUT_BUFFER pci );
-CORECON_PROC( int, KeyEndCmd )( PUSER_INPUT_BUFFER pci );
+CORECON_PROC( int, CommandKeyUp )( PCHAT_LIST list, PUSER_INPUT_BUFFER pci );
+CORECON_PROC( int, HandleKeyDown )(  PCHAT_LIST list, PUSER_INPUT_BUFFER pci );
+CORECON_PROC( int, KeyHome )( PCHAT_LIST list, PUSER_INPUT_BUFFER pci );
+CORECON_PROC( int, KeyEndCmd )( PCHAT_LIST list, PUSER_INPUT_BUFFER pci );
 
-CORECON_PROC( int, KeyEndHst )( PHISTORY_BROWSER pht );
-CORECON_PROC( int, HistoryPageUp )( PHISTORY_BROWSER pht );
-CORECON_PROC( int, HistoryPageDown )( PHISTORY_BROWSER pht );
-CORECON_PROC( int, HistoryLineUp )( PHISTORY_BROWSER pht );
-CORECON_PROC( int, HistoryLineDown )( PHISTORY_BROWSER pht );
+CORECON_PROC( int, KeyEndHst )( PCHAT_LIST list, PHISTORY_BROWSER pht );
+CORECON_PROC( int, HistoryPageUp )( PCHAT_LIST list, PHISTORY_BROWSER pht );
+CORECON_PROC( int, HistoryPageDown )( PCHAT_LIST list, PHISTORY_BROWSER pht );
+CORECON_PROC( int, HistoryLineUp )( PCHAT_LIST list, PHISTORY_BROWSER pht );
+CORECON_PROC( int, HistoryLineDown )( PCHAT_LIST list, PHISTORY_BROWSER pht );
 //CPROC KeystrokePaste( PCONSOLE_INFO pht );
 
 enum {

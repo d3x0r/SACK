@@ -95,10 +95,10 @@ PRELOAD( InitNetworkGlobalOptions )
 {
 #ifndef __NO_OPTIONS__
 	g.flags.bLogProtocols = SACK_GetProfileIntEx( GetProgramName(), WIDE( "SACK/Network/Log Protocols" ), 0, TRUE );
-   g.flags.bShortLogReceivedData = SACK_GetProfileIntEx( WIDE( "SACK" ), WIDE( "Network/Log Network Received Data(64 byte max)" ), 0, TRUE );
-   g.flags.bLogReceivedData = SACK_GetProfileIntEx( WIDE( "SACK" ), WIDE( "Network/Log Network Received Data" ), 0, TRUE );
-   g.flags.bLogSentData = SACK_GetProfileIntEx( WIDE( "SACK" ), WIDE( "Network/Log Network Sent Data" ), g.flags.bLogReceivedData, TRUE );
-   g.flags.bLogNotices = SACK_GetProfileIntEx( WIDE( "SACK" ), WIDE( "Network/Log Network Notifications" ), 0, TRUE );
+	g.flags.bShortLogReceivedData = SACK_GetProfileIntEx( WIDE( "SACK" ), WIDE( "Network/Log Network Received Data(64 byte max)" ), 0, TRUE );
+	g.flags.bLogReceivedData = SACK_GetProfileIntEx( WIDE( "SACK" ), WIDE( "Network/Log Network Received Data" ), 0, TRUE );
+	g.flags.bLogSentData = SACK_GetProfileIntEx( WIDE( "SACK" ), WIDE( "Network/Log Network Sent Data" ), g.flags.bLogReceivedData, TRUE );
+	g.flags.bLogNotices = SACK_GetProfileIntEx( WIDE( "SACK" ), WIDE( "Network/Log Network Notifications" ), 0, TRUE );
 	g.dwReadTimeout = SACK_GetProfileIntEx( WIDE( "SACK" ), WIDE( "Network/Read wait timeout" ), 5000, TRUE );
 	g.dwConnectTimeout = SACK_GetProfileIntEx( WIDE( "SACK" ), WIDE( "Network/Connect timeout" ), 10000, TRUE );
 #else
@@ -190,9 +190,9 @@ NETWORK_PROC( int, GetMacAddress)(PCLIENT pc )//int get_mac_addr (char *device, 
    /* this code queries the arp table to figure out who the other side is */
 	//int fd;
 	struct arpreq arpr;
-   struct ifconf ifc;
+	struct ifconf ifc;
 	MemSet( &arpr, 0, sizeof( arpr ) );
-   lprintf( WIDE( "this is broken." ) );
+	lprintf( WIDE( "this is broken." ) );
 	MemCpy( &arpr.arp_pa, pc->saClient, sizeof( SOCKADDR ) );
 	arpr.arp_ha.sa_family = AF_INET;
 	{
@@ -296,15 +296,65 @@ void DumpLists( void )
 
 //----------------------------------------------------------------------------
 
+const char * GetAddrName( SOCKADDR *addr )
+{
+	char * tmp = ((char**)addr)[-1];
+	if( tmp )
+	{
+		if( !( (PTRSZVAL)tmp & 0xFFFF0000 ) )
+		{
+			lprintf( "corrupted sockaddr." );
+			DebugBreak();
+		}
+		else
+		{
+			char buf[256];
+
+			if( addr->sa_family == AF_INET )
+				snprintf( buf, 256, WIDE("%03d.%03d.%03d.%03d")
+						  ,*(((unsigned char *)addr)+4),
+						  *(((unsigned char *)addr)+5),
+						  *(((unsigned char *)addr)+6),
+						  *(((unsigned char *)addr)+7) );
+			else if( addr->sa_family == AF_INET6 )
+			{
+				snprintf( buf, 256, WIDE("%04x:%04x:%04x:%04x:%04x:%04x:%04x:%04x ")
+						 , ntohs(*(((unsigned short *)((unsigned char*)addr+8))))
+						 , ntohs(*(((unsigned short *)((unsigned char*)addr+10))))
+						 , ntohs(*(((unsigned short *)((unsigned char*)addr+12))))
+						 , ntohs(*(((unsigned short *)((unsigned char*)addr+14))))
+						 , ntohs(*(((unsigned short *)((unsigned char*)addr+16))))
+						 , ntohs(*(((unsigned short *)((unsigned char*)addr+18))))
+						 , ntohs(*(((unsigned short *)((unsigned char*)addr+20))))
+						 , ntohs(*(((unsigned short *)((unsigned char*)addr+22))))
+						 );
+			}
+			else
+				snprintf( buf, 256, "unknown protocol" );
+			
+			((char**)addr)[-1] = StrDup( buf );
+		}
+	}
+	return ((char**)addr)[-1];
+}
+
+void SetAddrName( SOCKADDR *addr, const char *name )
+{
+	((PTRSZVAL*)addr)[-1] = (PTRSZVAL)StrDup( name );
+}
+
+//---------------------------------------------------------------------------
+
+
 SOCKADDR *AllocAddrEx( DBG_VOIDPASS )
 {
-#define MAGIC_LENGTH sizeof(SOCKADDR_IN)< 256?256:sizeof( SOCKADDR_IN)
-	SOCKADDR *lpsaAddr=(SOCKADDR*)AllocateEx( MAGIC_SOCKADDR_LENGTH + sizeof(PTRSZVAL) DBG_RELAY );
+	SOCKADDR *lpsaAddr=(SOCKADDR*)AllocateEx( MAGIC_SOCKADDR_LENGTH + 2 * sizeof( PTRSZVAL ) DBG_RELAY );
 	MemSet( lpsaAddr, 0, MAGIC_SOCKADDR_LENGTH );
-   //initialize socket length to something identifiable?
-   ((PTRSZVAL*)lpsaAddr)[0] = 3;
-	lpsaAddr = (SOCKADDR*)( ( (PTRSZVAL)lpsaAddr ) + sizeof(PTRSZVAL) );
+	//initialize socket length to something identifiable?
+	((PTRSZVAL*)lpsaAddr)[0] = 3;
+	((PTRSZVAL*)lpsaAddr)[1] = 0; // string representation of address
 
+	lpsaAddr = (SOCKADDR*)( ( (PTRSZVAL)lpsaAddr ) + sizeof(PTRSZVAL) * 2 );
 	return lpsaAddr;
 }
 //----------------------------------------------------------------------------
@@ -2227,10 +2277,10 @@ NETWORK_PROC( _16, GetNetworkWord )(PCLIENT lpClient,int nWord)
 
 NETWORK_PROC( SOCKADDR *, DuplicateAddress )( SOCKADDR *pAddr ) // return a copy of this address...
 {
-	POINTER tmp = (POINTER)( ( (PTRSZVAL)pAddr ) - sizeof(PTRSZVAL) );
+	POINTER tmp = (POINTER)( ( (PTRSZVAL)pAddr ) - 2*sizeof(PTRSZVAL) );
 	SOCKADDR *dup = AllocAddr();
-	POINTER tmp2 = (POINTER)( ( (PTRSZVAL)dup ) - sizeof(PTRSZVAL) );
-	MemCpy( tmp2, tmp, MAGIC_SOCKADDR_LENGTH + sizeof(PTRSZVAL) );
+	POINTER tmp2 = (POINTER)( ( (PTRSZVAL)dup ) - 2*sizeof(PTRSZVAL) );
+	MemCpy( tmp2, tmp, MAGIC_SOCKADDR_LENGTH + 2*sizeof(PTRSZVAL) );
 	return dup;
 }
 
@@ -2303,7 +2353,7 @@ SOCKADDR *CreateAddress( _32 dwIP,_16 nHisPort)
 SOCKADDR *CreateRemote(CTEXTSTR lpName,_16 nHisPort)
 {
 	SOCKADDR_IN *lpsaAddr;
-   int conversion_success = FALSE;
+	int conversion_success = FALSE;
 #ifndef WIN32
 	PHOSTENT phe;
 	// a IP type name will never have a / in it, therefore
@@ -2312,6 +2362,7 @@ SOCKADDR *CreateRemote(CTEXTSTR lpName,_16 nHisPort)
 		return CreateUnixAddress( lpName );
 #endif
 	lpsaAddr=(SOCKADDR_IN*)AllocAddr();
+	SetAddrName( (SOCKADDR*)lpsaAddr, lpName );
 	if (!lpsaAddr)
 		return(NULL);
 
@@ -2362,7 +2413,7 @@ SOCKADDR *CreateRemote(CTEXTSTR lpName,_16 nHisPort)
 #endif
 	}
 #endif
-   if( !conversion_success )
+	if( !conversion_success )
 	{
 		if( lpName )
 		{
@@ -2467,10 +2518,11 @@ NETWORK_PROC( void, DumpAddrEx)( CTEXTSTR name, SOCKADDR *sa DBG_PASS )
 	{
 		LogBinary( sa, SOCKADDR_LENGTH( sa ) );
 		if( sa->sa_family == AF_INET )
-			lprintf( WIDE("%s: %03d %03d.%03d.%03d.%03d "), name,
+			lprintf( WIDE("%s: (%s) %03d %03d.%03d.%03d.%03d "), name
+					, ( ((PTRSZVAL*)sa)[-1] & 0xFFFF0000 )?( ((char**)sa)[-1] ) : "no name" 
 					  //*(((unsigned char *)sa)+0),
 					  //*(((unsigned char *)sa)+1),
-					  ntohs(*(((unsigned short *)((unsigned char*)sa+2))))
+					  , ntohs(*(((unsigned short *)((unsigned char*)sa+2))))
 					  ,*(((unsigned char *)sa)+4),
 					  *(((unsigned char *)sa)+5),
 					  *(((unsigned char *)sa)+6),
@@ -2478,8 +2530,9 @@ NETWORK_PROC( void, DumpAddrEx)( CTEXTSTR name, SOCKADDR *sa DBG_PASS )
 		else if( sa->sa_family == AF_INET6 )
 		{
 			lprintf( WIDE( "Socket address binary: %s" ), name );
-			lprintf( WIDE("%s: %03d %04x:%04x:%04x:%04x:%04x:%04x:%04x:%04x ")
+			lprintf( WIDE("%s: (%s) %03d %04x:%04x:%04x:%04x:%04x:%04x:%04x:%04x ")
 					 , name
+					, ( ((PTRSZVAL*)sa)[-1] & 0xFFFF0000 )?( ((char**)sa)[-1] ) : "no name" 
 					 , ntohs(*(((unsigned short *)((unsigned char*)sa+2))))
 					 , ntohs(*(((unsigned short *)((unsigned char*)sa+8))))
 					 , ntohs(*(((unsigned short *)((unsigned char*)sa+10))))
@@ -2502,7 +2555,7 @@ NETWORK_PROC( SOCKADDR *, SetAddressPort )( SOCKADDR *pAddr, _16 nDefaultPort )
 {
 	if( pAddr )
 		((SOCKADDR_IN *)pAddr)->sin_port = htons(nDefaultPort);
-   return pAddr;
+	return pAddr;
 }
 
 //----------------------------------------------------------------------------
@@ -2511,7 +2564,7 @@ NETWORK_PROC( SOCKADDR *, SetNonDefaultPort )( SOCKADDR *pAddr, _16 nDefaultPort
 {
 	if( pAddr && !((SOCKADDR_IN *)pAddr)->sin_port )
       ((SOCKADDR_IN *)pAddr)->sin_port = htons(nDefaultPort);
-   return pAddr;
+	return pAddr;
 }
 
 //----------------------------------------------------------------------------
@@ -2680,7 +2733,10 @@ void ReleaseAddress(SOCKADDR *lpsaAddr)
 {
 	// sockaddr is often skewed from what I would expect it. (contains its own length)
 	if( lpsaAddr )
-		Release ((POINTER)( ( (PTRSZVAL)lpsaAddr ) - sizeof(PTRSZVAL) ));
+	{
+		Release( ((POINTER*)( ( (PTRSZVAL)lpsaAddr ) - sizeof(PTRSZVAL) ))[0] );
+		Release ((POINTER)( ( (PTRSZVAL)lpsaAddr ) - 2 * sizeof(PTRSZVAL) ));
+	}
 }
 
 //----------------------------------------------------------------------------
@@ -3090,7 +3146,10 @@ NETWORK_PROC( void, SackNetwork_SetSocketSecure )( PCLIENT lpClient )
 			// handler should be reading first anyway.... otherwise; it's supposed to be a client handshake (but really everyone
 			// throws their hands up at the start... so this should be done in OnAccept() handling also.
 			if( ( lpClient->dwFlags & CF_CONNECTED ) && !(lpClient->dwFlags & CF_READPENDING ) )
-				ssl_BeginClientSession( lpClient );
+			{
+			 //  PSSL_SESSION ses = ssl_InitSession();
+			 //  ssl_BeginClientSession( lpClient, ses );
+			}
 		}
 	}
 }

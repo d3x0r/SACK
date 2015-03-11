@@ -3,6 +3,10 @@ set_property(GLOBAL PROPERTY USE_FOLDERS On)
 
 PROJECT( MatrixSSL )
 
+if( MINGW )
+ADD_DEFINITIONS( -DMINGW_SUX )
+endif( MINGW )
+
 if( WIN32 )
   set( OSDEP_DEFAULT "WIN32" )
   set( LIBFLAGS _USRDLL )

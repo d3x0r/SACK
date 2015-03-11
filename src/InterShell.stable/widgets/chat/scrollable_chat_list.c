@@ -1761,7 +1761,7 @@ static int OnCommonFocus(CONTROL_NAME)(PSI_CONTROL control, LOGICAL bFocused )
 	return 1;
 }
 
-static void SendTypedMessage( PTRSZVAL psvUnused, PSI_CONTROL pc )
+static void CPROC SendTypedMessage( PTRSZVAL psvUnused, PSI_CONTROL pc )
 {
 	PCHAT_LIST list = (PCHAT_LIST)psvUnused;
 	KeyGetGatheredLine( list, list->CommandInfo );

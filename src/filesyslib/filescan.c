@@ -243,7 +243,7 @@ typedef struct myfinddata {
 #define HANDLECAST intptr_t
 	intptr_t
 #  else
-#define HANDLECAST
+#define HANDLECAST int
 	int 
 #  endif
 #else

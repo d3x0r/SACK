@@ -154,6 +154,32 @@ void psDestroyMutex(psMutex_t *mutex)
     ENTROPY FUNCTIONS
 */
 /******************************************************************************/
+#ifdef MINGW_SUX
+#define PROV_RSA_FULL           1
+#define PROV_RSA_SIG            2
+#define PROV_DSS                3
+#define PROV_FORTEZZA           4
+#define PROV_MS_EXCHANGE        5
+#define PROV_SSL                6
+#define PROV_RSA_SCHANNEL       12
+#define PROV_DSS_DH             13
+#define PROV_EC_ECDSA_SIG       14
+#define PROV_EC_ECNRA_SIG       15
+#define PROV_EC_ECDSA_FULL      16
+#define PROV_EC_ECNRA_FULL      17
+#define PROV_DH_SCHANNEL        18
+#define PROV_SPYRUS_LYNKS       20
+#define PROV_RNG                21
+#define PROV_INTEL_SEC          22
+
+#define CRYPT_VERIFYCONTEXT     0xF0000000
+#define CRYPT_NEWKEYSET         0x00000008
+#define CRYPT_DELETEKEYSET      0x00000010
+#define CRYPT_MACHINE_KEYSET    0x00000020
+#define CRYPT_SILENT            0x00000040
+
+typedef ULONG_PTR HCRYPTPROV;
+#endif
 static HCRYPTPROV		hProv;	/* Crypto context for random bytes */
 
 int osdepEntropyOpen(void)
