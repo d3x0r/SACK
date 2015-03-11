@@ -11,7 +11,10 @@
 #define paste(a,b) a##b
 #define paste2(a,b) paste(a,b)
 
-static void paste2( TARGET_LABEL,_RegisterStartups)( void ) __attribute__((constructor)) __attribute__((used));
+//#ifndef (
+//static
+//#endif
+	void paste2( TARGET_LABEL,_RegisterStartups)( void ) __attribute__((constructor)) __attribute__((used));
 //PRIORITY_PRELOAD( RunStartups, 25 )
 // This becomes the only true contstructor...
 // this is loaded in the main program, and not in a library
