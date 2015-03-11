@@ -71,7 +71,7 @@ static int OnDrawCommon( CONTROL_NAME )( PSI_CONTROL pc )
 		);
 }
 
-#if !defined( __WATCOMC__ ) && !defined( MINGW_SUX )
+#if !defined( NO_TOUCH )
 static int OnTouchCommon( CONTROL_NAME )( PSI_CONTROL pc, PINPUT_POINT pPoints,int nPoints )
 {
 

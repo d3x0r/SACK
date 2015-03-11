@@ -421,3 +421,8 @@ endif( __QNX__ )
 
 		FILE( APPEND ${FILEOUT} "\n" )
 
+		FILE( APPEND ${FILEOUT} "if( UNIX )\n" )
+		FILE( APPEND ${FILEOUT} "link_directories( $" "{SACK_LIBRARY_DIR} )\n" )
+		FILE( APPEND ${FILEOUT} "endif( UNIX )\n" )
+		FILE( APPEND ${FILEOUT} "\n" )
+
