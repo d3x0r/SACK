@@ -3410,6 +3410,7 @@ RENDER_PROC (BOOL, CreateWindowStuffSizedAt) (PVIDEO hVideo, int x, int y,
 										| (hVideo->flags.bNoMouse?WS_EX_TRANSPARENT:0)
 #endif
 										| (hVideo->flags.bChildWindow?WS_EX_TOOLWINDOW:0)
+										| (hVideo->flags.bTopmost?WS_EX_TOPMOST:0)
 										// | WS_EX_NOPARENTNOTIFY
 #ifdef UNICODE
 									  , (LPWSTR)l.aClass
@@ -4527,6 +4528,7 @@ RENDER_PROC (PVIDEO, OpenDisplaySizedAt) (_32 attr, _32 wx, _32 wy, S_32 x, S_32
 		hNextVideo->flags.bLayeredWindow = 0;
 	hNextVideo->flags.bNoAutoFocus = (attr & DISPLAY_ATTRIBUTE_NO_AUTO_FOCUS)?TRUE:FALSE;
 	hNextVideo->flags.bChildWindow = (attr & DISPLAY_ATTRIBUTE_CHILD)?TRUE:FALSE;
+	hNextVideo->flags.bTopmost = (attr & DISPLAY_ATTRIBUTE_TOPMOST)?TRUE:FALSE;
 	hNextVideo->flags.bNoMouse = (attr & DISPLAY_ATTRIBUTE_NO_MOUSE)?TRUE:FALSE;
 	hNextVideo->pWindowPos.x = x;
 	hNextVideo->pWindowPos.y = y;
@@ -5051,9 +5053,9 @@ RENDER_PROC (void, MakeTopmost) (PVIDEO hVideo)
 	if( hVideo )
 	{
 		hVideo->flags.bTopmost = 1;
+		SetWindowLong( hVideo->hWndOutput, GWL_EXSTYLE, GetWindowLong( hVideo->hWndOutput, GWL_EXSTYLE ) | WS_EX_TOPMOST );
 		if( hVideo->flags.bShown )
 		{
-			SetWindowLong( hVideo->hWndOutput, GWL_EXSTYLE, GetWindowLong( hVideo->hWndOutput, GWL_EXSTYLE ) | WS_EX_TOPMOST );
 			//lprintf( WIDE( "Forcing topmost" ) );
 			SetWindowPos (hVideo->hWndOutput, HWND_TOPMOST, 0, 0, 0, 0,
 							  SWP_NOMOVE | SWP_NOSIZE);
