@@ -473,6 +473,8 @@ enum DisplayAttributes {
   DISPLAY_ATTRIBUTE_NO_MOUSE = 0x0400,
     // when created, the display does not attempt to set itself into focus, otherwise we try to focus self.
   DISPLAY_ATTRIBUTE_NO_AUTO_FOCUS = 0x0800,
+  // when created, set topmost as soon as possible
+  DISPLAY_ATTRIBUTE_TOPMOST = 0x1000,
 };
 
 
