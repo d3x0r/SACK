@@ -252,17 +252,17 @@ static int OnDrawCommon( EDIT_FIELD_NAME )( PSI_CONTROL pc )
 		do_line( pc->Surface, CursX
 				 , 1
 				 , CursX
-				 , pc->surface_rect.height
+				 , pc->surface_rect.height - 2
 				 , Color( 255,255,255 ) );
 		do_line( pc->Surface, CursX+1
 				 , 1
 				 , CursX+1
-				 , pc->surface_rect.height
+				 , pc->surface_rect.height - 2
 				 , Color( 0,0,0 ) );
 		do_line( pc->Surface, CursX-1
 				 , 1
 				 , CursX-1
-				 , pc->surface_rect.height
+				 , pc->surface_rect.height - 2
 				 , Color( 0,0,0 ) );
 	}
 	//else

@@ -666,7 +666,7 @@ void TryLoadingFrameImage( void )
 																				 , g.BorderWidth + MiddleSegmentWidth, g.BorderHeight + MiddleSegmentHeight
 																				 , g.BorderWidth, g.BorderHeight );
 			if( SACK_GetProfileInt( WIDE( "SACK/PSI/Frame border" )
-					, WIDE( "Use center bsae colors" )
+					, WIDE( "Use center base colors" )
 					, 1 ) )
 			{
 #define TestAndSetBaseColor( c, s ) { CDATA src = s; if( src ) SetBaseColor( c, src ); }
@@ -2688,7 +2688,7 @@ PSI_PROC( PSI_CONTROL, CreateFrame )( CTEXTSTR caption
 				);
 
 	// init close button here.
-	AddCaptionButton( pc, NULL, NULL, NULL );
+	AddCaptionButton( pc, NULL, NULL, 0, NULL );
 	//lprintf( WIDE("FRAME is %p"), pc );
 	return pc;
 }

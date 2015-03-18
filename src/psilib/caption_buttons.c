@@ -33,7 +33,7 @@ static void CPROC StopThisProgram( PSI_CONTROL pc )
 
 //---------------------------------------------------------------------------
 
-PCAPTION_BUTTON AddCaptionButton( PSI_CONTROL frame, Image normal, Image pressed, void (CPROC*event)(PSI_CONTROL) )
+PCAPTION_BUTTON AddCaptionButton( PSI_CONTROL frame, Image normal, Image pressed, int extra_pad, void (CPROC*event)(PSI_CONTROL) )
 {
 	if( !( frame->BorderType & BORDER_CAPTION_NO_CLOSE_BUTTON ) )
 	{
@@ -41,7 +41,7 @@ PCAPTION_BUTTON AddCaptionButton( PSI_CONTROL frame, Image normal, Image pressed
 			&& ( frame->BorderType & BORDER_CAPTION_CLOSE_BUTTON ) )
 		{
 			frame->flags.bCloseButtonAdded = 1;
-			AddCaptionButton( frame, g.StopButton, g.StopButtonPressed, StopThisProgram );
+			AddCaptionButton( frame, g.StopButton, g.StopButtonPressed, 2, StopThisProgram );
 		}
 	}
 	if( frame && event )
@@ -51,6 +51,7 @@ PCAPTION_BUTTON AddCaptionButton( PSI_CONTROL frame, Image normal, Image pressed
 		button->pressed = pressed;
 		button->pressed_event = event;
 		button->is_pressed = FALSE;
+		button->extra_pad = extra_pad;
 		AddLink( &frame->caption_buttons, button );
 		return button;
 	}

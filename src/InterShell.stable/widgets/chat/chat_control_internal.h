@@ -1,6 +1,4 @@
 
-
-
 // --- cheat
 #include "../../../psilib/console/consolestruc.h"
 #include "../../../psilib/console/history.h"
@@ -59,6 +57,7 @@ typedef struct chat_list_tag
 			CDATA background_color;
 		} colors;
 		SFTFont sent_font;
+		SFTFont sender_font;
 		SFTFont received_font;
 		_32 cursor_timer;
 		PSI_CONTROL pc;
@@ -110,6 +109,8 @@ struct scollable_list_local
 	struct chat_time_tag now;
 	int side_pad;
 	int time_pad;
+	int context_message_pad;
+	int context_sender_pad;
 } l;
 
 

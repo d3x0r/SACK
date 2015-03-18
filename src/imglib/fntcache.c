@@ -7,7 +7,7 @@
 //#line 2 "../imglib/psi_fntcache.c"
 #endif
 
-#define __CAN_USE_CACHE_DIALOG__
+//#define __CAN_USE_CACHE_DIALOG__
 #ifdef SACK_MONOLITHIC_BUILD
 #define __CAN_USE_TOPMOST__
 #endif

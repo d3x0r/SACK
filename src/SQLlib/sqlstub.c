@@ -361,7 +361,7 @@ void ExtendConnection( PODBC odbc )
 	}
 
 	//SQLCommandf( odbc, "PRAGMA read_uncommitted=True" );
-	if( !odbc->flags.bVFS )
+	//if( !odbc->flags.bVFS )
 	{
 		CTEXTSTR result;
 		SQLQueryf( odbc, &result, WIDE( "PRAGMA journal_mode=WAL;" ) );
@@ -4106,6 +4106,8 @@ void ConvertSQLDateEx( CTEXTSTR date
 	if( p[0] )
 	{
 		int add_zone = 1;
+		if( p[0] == ' ' )
+			p++;
 		if( p[0] == 'Z' )
 		{
 			p++;

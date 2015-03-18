@@ -72,6 +72,12 @@ SQL table create is in 'mkopttabs.sql'
 #include "makeopts.mysql"
 ;
 
+static int CPROC MyStrCaseCmp( const char *a, const char *b )
+{
+	lprintf( "compare %s with %s",a , b );
+	return StrCaseCmp( a, b );
+}
+
 SQLGETOPTION_PROC( POPTION_TREE_NODE, GetOptionIndexEx )( POPTION_TREE_NODE parent, const TEXTCHAR *file, const TEXTCHAR *pBranch, const TEXTCHAR *pValue, int bCreate DBG_PASS );
 #define GetOptionIndex(p,f,b,v) GetOptionIndexEx( p,f,b,v,FALSE DBG_SRC )
 SQLGETOPTION_PROC( void, CreateOptionDatabaseEx )( PODBC odbc, POPTION_TREE tree );
@@ -431,7 +437,11 @@ static POPTION_TREE_NODE GetOptionIndexExxx( PODBC odbc, POPTION_TREE_NODE paren
 	{
 		if( !_program )
          _program_length = StrLen( _program = GetProgramName() );
-		if( ( StrCaseCmp( file, DEFAULT_PUBLIC_KEY ) != 0 )
+		if( ( StrCaseCmp( file, DEFAULT_PUBLIC_KEY ) == 0 )
+			&& ( StrCaseCmpEx( pBranch, _program, _program_length ) == 0 ) )
+		{
+		}
+		else if( ( StrCaseCmp( file, DEFAULT_PUBLIC_KEY ) != 0 )
 			|| ( StrCaseCmpEx( pBranch, _program, _program_length ) != 0 ) )
 		{
 			program = file;
@@ -439,7 +449,9 @@ static POPTION_TREE_NODE GetOptionIndexExxx( PODBC odbc, POPTION_TREE_NODE paren
 		}
 		else
 		{
-				// default options were SACK_GetProfileXX( GetProgramName(), Branch, ... )
+			if( !program )
+				program = _program;
+			// default options were SACK_GetProfileXX( GetProgramName(), Branch, ... )
 			// so this should be that condition, with aw NULL file, which gwets promoted to DEFAULT_PUBLIC_KEY
 			// before being called, and section will already be programname, and pValue will
 			// just be the string default.
@@ -1475,7 +1487,7 @@ SQLGETOPTION_PROC( size_t, SACK_GetPrivateProfileStringExxx )( PODBC odbc
 		// maybe do an if( l.flags.bLogOptionsRead )
 		if( global_sqlstub_data->flags.bLogOptionConnection )
 			_lprintf(DBG_RELAY)( WIDE( "Getting option {%s}[%s]%s=%s" ), pINIFile, pSection, pOptname, pDefaultbuf );
-		opt_node = GetOptionIndexExx( odbc, OPTION_ROOT_VALUE, NULL, pINIFile, pSection, pOptname, FALSE DBG_RELAY );
+		opt_node = GetOptionIndexExx( odbc, OPTION_ROOT_VALUE, NULL, pINIFile, pSection, pOptname, TRUE DBG_RELAY );
 		if( !opt_node )
 		{
 			// this actually implies to delete the entry... but since it doesn't exist no worries...
