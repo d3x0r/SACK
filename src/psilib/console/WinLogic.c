@@ -924,6 +924,8 @@ TEXTCHAR *PSI_GetDataFromBlock( PCONSOLE_INFO pdp )
 				first = FALSE;
 				_priorline = pdl->nLine;
 			}
+			else
+				result[ofs++] = '\n';
 
 			if( !pdl->nToShow || bBlock )
 			{
@@ -946,7 +948,6 @@ TEXTCHAR *PSI_GetDataFromBlock( PCONSOLE_INFO pdp )
 						ofs++;
 					}
 				}
-				result[ofs++] = '\n';
 			}
 		}
 	}

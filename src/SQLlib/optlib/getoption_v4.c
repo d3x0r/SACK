@@ -115,6 +115,18 @@ CTEXTSTR New4ReadOptionNameTable( POPTION_TREE tree, CTEXTSTR name, CTEXTSTR tab
 
 //------------------------------------------------------------------------
 
+LOGICAL CPROC LogProcessNode( PTRSZVAL psvForeach, PTRSZVAL psvNodeData, int level )
+{
+	POPTION_TREE_NODE nodeval = (POPTION_TREE_NODE)psvNodeData;
+	lprintf( "%d %s", level, nodeval->name );
+	return TRUE;
+}
+
+void DumpFamilyTree( PFAMILYTREE tree )
+{
+	FamilyTreeForEach( tree, NULL, LogProcessNode, 0 );
+}
+
 //#define OPTION_ROOT_VALUE INVALID_INDEX
 #define OPTION_ROOT_VALUE 0
 
@@ -202,6 +214,7 @@ POPTION_TREE_NODE New4GetOptionIndexExxx( PODBC odbc, POPTION_TREE tree, POPTION
 #ifdef DETAILED_LOGGING
 		lprintf( "Find [%s]", namebuf );
 #endif
+		//DumpFamilyTree( tree->option_tree );
 		{
 			POPTION_TREE_NODE node = (POPTION_TREE_NODE)FamilyTreeFindChild( tree->option_tree, (PTRSZVAL)namebuf );
 			if( node )

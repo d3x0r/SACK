@@ -2960,7 +2960,7 @@ LOGICAL ParseStringVector( CTEXTSTR data, CTEXTSTR **pData, int *nData )
 	if( !data[0] )
 	{
 		*nData = 0;
-      return 0;
+		return 0;
 	}
 	//xlprintf(2100)( "ParseStringVector" );
 	//if( StrChr( data, ',' ) )

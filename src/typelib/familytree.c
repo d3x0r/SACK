@@ -138,6 +138,32 @@ LOGICAL FamilyTreeForEachChild( PFAMILYTREE root, PFAMILYNODE node
 	return TRUE;
 }
 
+// scans the whole tree to find a node
+LOGICAL FamilyTreeForEach( PFAMILYTREE root, PFAMILYNODE node
+			, LOGICAL (CPROC *ProcessNode)( PTRSZVAL psvForeach, PTRSZVAL psvNodeData, int level )
+			, PTRSZVAL psvUserData )
+{
+	static int level;
+	if( !node )
+		node = root->family;
+	else
+		node = node->child;
+	level++;
+	while( node )
+	{
+		LOGICAL process_result;
+		//lprintf( "node %p", node );
+		process_result = ProcessNode( psvUserData, (PTRSZVAL)node->userdata, level );
+		if( !process_result )
+			return process_result;
+		if( node->child )
+			FamilyTreeForEach( root, node, ProcessNode, psvUserData );
+		node = node->elder;
+	}
+	level--;
+	return TRUE;
+}
+
 static  PTRSZVAL CPROC DestroyNode(void* p,PTRSZVAL psvUser )
 {
 	PFAMILYTREE option_tree = (PFAMILYTREE)psvUser;

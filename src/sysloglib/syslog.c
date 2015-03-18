@@ -395,7 +395,7 @@ static void LoadOptions( void )
 										, ( logtype == SYSLOG_AUTO_FILE )
 										, TRUE ) )
 		{
-			logtype = SYSLOG_AUTO_FILE;
+			//logtype = SYSLOG_AUTO_FILE;
 			flags.bLogOpenAppend = 0;
 			flags.bLogOpenBackup = 1;
 			flags.bLogProgram = 1;
@@ -440,7 +440,7 @@ static void LoadOptions( void )
 		nLogLevel = SACK_GetProfileIntEx( GetProgramName(), WIDE( "SACK/Logging/Default Log Level (1001:all, 100:least)" ), nLogLevel, TRUE );
 
 		// use the defaults; they may be overriden by reading the options.
-		flags.bLogThreadID = SACK_GetProfileIntEx( GetProgramName(), WIDE( "SACK/Logging/Log Thread ID" ), flags.bLogThreadID, TRUE );
+		flags.bLogThreadID = 1 || SACK_GetProfileIntEx( GetProgramName(), WIDE( "SACK/Logging/Log Thread ID" ), flags.bLogThreadID, TRUE );
 		flags.bLogProgram = SACK_GetProfileIntEx( GetProgramName(), WIDE( "SACK/Logging/Log Program" ), flags.bLogProgram, TRUE );
 		flags.bLogSourceFile = SACK_GetProfileIntEx( GetProgramName(), WIDE( "SACK/Logging/Log Source File" ), flags.bLogSourceFile, TRUE );
 
@@ -487,7 +487,9 @@ void InitSyslog( int ignore_options )
 	if( !flags.bInitialized )
 #endif
 	{
-		logtype = SYSLOG_NONE;
+		logtype = SYSLOG_FILE;
+		l.file = stderr;
+			flags.bLogThreadID = 1;
 		hSock = INVALID_SOCKET;
 		l.hSyslogdSock = INVALID_SOCKET;
 		bCPUTickWorks = 1;
@@ -515,7 +517,8 @@ void InitSyslog( int ignore_options )
 			/* using SYSLOG_AUTO_FILE option does not require this to be open.
 			* it is opened on demand.
 			*/
-			logtype = SYSLOG_AUTO_FILE;
+
+			//logtype = SYSLOG_AUTO_FILE;
 			flags.bLogOpenBackup = 1;
 			flags.bUseDeltaTime = 1;
 			flags.bLogCPUTime = 1;
@@ -527,7 +530,7 @@ void InitSyslog( int ignore_options )
 			nLogLevel = LOG_NOISE + 1000; // default log EVERYTHING
 			flags.bLogOpenAppend = 0;
 			flags.bLogSourceFile = 1;
-			flags.bLogThreadID = 0;
+			flags.bLogThreadID = 1;
 			SetDefaultName( NULL, NULL, NULL );
 			//lprintf( WIDE("Syslog Initializing, debug mode, startup programname.log\n") );
 		}
@@ -1176,7 +1179,7 @@ void DoSystemLog( const TEXTCHAR *buffer )
 							);
 #endif
 				}
-				logtype = SYSLOG_AUTO_FILE;
+				//logtype = SYSLOG_AUTO_FILE;
 
 				if( !l.file )
 				{

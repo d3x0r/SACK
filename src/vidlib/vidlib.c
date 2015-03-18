@@ -515,10 +515,14 @@ RENDER_PROC (void, UpdateDisplayPortionEx)( PVIDEO hVideo
 
 						// SW_shownormal does extra stuff, that I think causes top level windows to fall behind other
 						// topmost windows.
+						if( hVideo->flags.bTopmost )
+							SetWindowPos (hVideo->hWndOutput, HWND_TOPMOST, 0, 0, 0, 0,
+										SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW );
+						else
 #ifdef UNDER_CE
-						ShowWindow (hVideo->hWndOutput, SW_SHOWNORMAL );
+							ShowWindow (hVideo->hWndOutput, SW_SHOWNORMAL );
 #else
-						ShowWindow (hVideo->hWndOutput, SW_SHOW );
+							ShowWindow (hVideo->hWndOutput, SW_SHOW );
 #endif
 
 #ifdef LOG_OPEN_TIMING
@@ -1886,6 +1890,7 @@ static void SendApplicationDraw( PVIDEO hVideo )
 #endif
 #endif
 				//if( !hVideo->flags.bShown || !hVideo->flags.bLayeredWindow )
+				if( !hVideo->flags.bDestroy )
 				{
 					//HDWP hDeferWindowPos = BeginDeferWindowPos( 1 );
 #ifdef NOISY_LOGGING
@@ -3028,6 +3033,11 @@ WM_DROPFILES
 		//lprintf( "Fall through to WM_PAINT..." );
 	case WM_PAINT:
 		hVideo = (PVIDEO) GetWindowLongPtr (hWnd, WD_HVIDEO);
+		if( hVideo->flags.bDestroy )
+		{
+			ValidateRect( hWnd, NULL );
+			Return 0;
+		}
 		if( l.flags.bLogWrites )
 			lprintf( WIDE("Paint Message! %p"), hVideo );
 		if( hVideo->flags.event_dispatched )
@@ -3804,9 +3814,11 @@ static void HandleMessage (MSG Msg)
 #endif
 		
 	}
-	else if( Msg.message == (WM_USER_SHOW_WINDOW ) )
+	else if( Msg.message == (WM_USER_SHOW_WINDOW) )
 	{
 		PVIDEO hVideo = (PVIDEO)Msg.lParam;
+		if(  hVideo->flags.bDestroy )
+			return;
 #ifdef LOG_SHOW_HIDE
 		lprintf( WIDE( "Handling SHOW_WINDOW message! %p" ), Msg.lParam );
 #endif
@@ -3832,6 +3844,9 @@ static void HandleMessage (MSG Msg)
 			l.flags.bPostedInvalidate = 1;
 			l.invalidated_window =  hVideo;
 			ShowWindow( hVideo->hWndOutput, SW_SHOW );
+			if( hVideo->flags.bTopmost )
+				SetWindowPos (hVideo->hWndOutput, HWND_TOPMOST, 0, 0, 0, 0,
+							SWP_NOMOVE | SWP_NOSIZE);
 		}
 	}
 	else if (Msg.message == WM_QUIT)
@@ -5038,6 +5053,7 @@ RENDER_PROC (void, MakeTopmost) (PVIDEO hVideo)
 		hVideo->flags.bTopmost = 1;
 		if( hVideo->flags.bShown )
 		{
+			SetWindowLong( hVideo->hWndOutput, GWL_EXSTYLE, GetWindowLong( hVideo->hWndOutput, GWL_EXSTYLE ) | WS_EX_TOPMOST );
 			//lprintf( WIDE( "Forcing topmost" ) );
 			SetWindowPos (hVideo->hWndOutput, HWND_TOPMOST, 0, 0, 0, 0,
 							  SWP_NOMOVE | SWP_NOSIZE);

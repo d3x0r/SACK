@@ -65,7 +65,7 @@ IMPORT_METHOD void CPROC RunExits( void );
 // this one is used when a library is loaded.
 PRELOAD( _RunDeadstart )
 {
-#   ifdef __LINUX__
+#   ifdef __GNUC__
 	{
 		// constructor order is not guaranteed by object order...
 		extern paste2( TARGET_LABEL,_RegisterStartups)( void );

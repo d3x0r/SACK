@@ -796,7 +796,8 @@ int CPROC FirstFrameMouse( PPHYSICAL_DEVICE pf, S_32 x, S_32 y, _32 b, int bCall
 				|| ( x > ( pc->pressed_caption_button->offset + ( caption_height ) ) )
 				)
 			{
-				lprintf( WIDE("outside of button...") );
+				if( g.flags.bLogDetailedMouse )
+					lprintf( WIDE("outside of button...") );
 				if( pc->pressed_caption_button->is_pressed )
 				{
 					pc->pressed_caption_button->is_pressed = 0;
@@ -809,7 +810,8 @@ int CPROC FirstFrameMouse( PPHYSICAL_DEVICE pf, S_32 x, S_32 y, _32 b, int bCall
 			}
 			else
 			{
-				lprintf( WIDE("inside of button...") );
+				if( g.flags.bLogDetailedMouse )
+					lprintf( WIDE("inside of button...") );
 				if( !pc->pressed_caption_button->is_pressed )
 				{
 					pc->pressed_caption_button->is_pressed = 1;

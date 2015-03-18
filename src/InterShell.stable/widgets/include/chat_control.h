@@ -27,11 +27,17 @@ CHAT_CONTROL_PROC( void, Chat_SetExpire )( PSI_CONTROL pc, int delta_seconds );
 CHAT_CONTROL_PROC( void, Chat_EnqueMessage )( PSI_CONTROL pc, LOGICAL sent
 							 , PCHAT_TIME sent_time
 							 , PCHAT_TIME received_time
+							 , PCHAT_TIME seen_time
+							 , Image sender_icon
+							 , CTEXTSTR sender
 							 , CTEXTSTR text
 							 , PTRSZVAL psvSeen );
 CHAT_CONTROL_PROC( void, Chat_EnqueImage )( PSI_CONTROL pc, LOGICAL sent
 							 , PCHAT_TIME sent_time
 							 , PCHAT_TIME received_time
+							 , PCHAT_TIME seen_time
+							 , Image sender_icon
+							 , CTEXTSTR sender
 							 , Image image
 							 , PTRSZVAL psvSeen );
 CHAT_CONTROL_PROC( void, Chat_ClearMessages )( PSI_CONTROL pc );

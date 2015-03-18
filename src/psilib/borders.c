@@ -297,7 +297,7 @@ PSI_PROC( int, FrameBorderX )( PSI_CONTROL pc, _32 BorderType )
       return 6;
         break;
     case BORDER_THIN_DENT:
-        return 2;
+        return 2*2;
     }
     // should actually compute this from facts known about pf
     return 8;
@@ -438,7 +438,7 @@ PSI_PROC( int, FrameBorderY )( PSI_CONTROL pc, _32 BorderType, CTEXTSTR caption 
 	case BORDER_DENT:
 		return result + 6;
 	case BORDER_THIN_DENT:
-		return result + 2;
+		return result + 4;
 	}
 	// should actually compute this from facts known about pf
 	return result + 4;
@@ -849,9 +849,9 @@ void DrawFrameCaption( PSI_CONTROL pc )
 			//lprintf( WIDE("Draw unfocused caption on pcWindow") );
 			if( g.FrameCaptionFocusedImage || g.FrameCaptionImage )
 			{
-				out = g.FrameCaptionFocusedImage;
+				out = g.FrameCaptionImage;
 				if( !out )
-					out = g.FrameCaptionImage;
+					out = g.FrameCaptionFocusedImage;
 				{
 					S_32 outx = 0;
 					S_32 outy = 0;
@@ -875,24 +875,31 @@ void DrawFrameCaption( PSI_CONTROL pc )
 					BlotScaledImageSizedEx( pc->Window, out, xofs, yofs, routw, routh, outx, outy, outw, outh, ALPHA_TRANSPARENT, BLOT_COPY );
 				}
 			}
+
+			if( pc->caption.image )
+			{
+				BlotImageAlpha( pc->Window, pc->caption.image, xofs + pc->caption.pad, yofs + pc->caption.pad, ALPHA_TRANSPARENT );
+			}
 			else
+			{
 				BlatColor( pc->Window
 							, xofs+1, yofs+1
 							, width - 2*(xofs+1)
 							, h
 							, basecolor(pc)[INACTIVECAPTION] );
-			PutStringFont( pc->Window
-							 , TEXT_INSET + xofs+1, (TEXT_INSET-2)+yofs+1 // Bad choice - but... works for now...
-							 , basecolor(pc)[SHADOW], 0
-							 , GetText( pc->caption.text )
-							 , GetCommonFont(pc)
-							 );
-			PutStringFont( pc->Window
-							 , TEXT_INSET + xofs+2, (TEXT_INSET-2)+yofs+2 // Bad choice - but... works for now...
-							 , basecolor(pc)[HIGHLIGHT], 0
-							 , GetText( pc->caption.text )
-							 , GetCommonFont(pc)
-							 );
+				PutStringFont( pc->Window
+									, TEXT_INSET + xofs+1, (TEXT_INSET-2)+yofs+1 // Bad choice - but... works for now...
+									, basecolor(pc)[SHADOW], 0
+									, GetText( pc->caption.text )
+									, GetCommonFont(pc)
+									);
+				PutStringFont( pc->Window
+									, TEXT_INSET + xofs+2, (TEXT_INSET-2)+yofs+2 // Bad choice - but... works for now...
+									, basecolor(pc)[HIGHLIGHT], 0
+									, GetText( pc->caption.text )
+									, GetCommonFont(pc)
+									);
+			}
 			//      PutString( pc->Window
 			//                  , TEXT_INSET + xofs+1, (TEXT_INSET-2)+xofs+1 // Bad choice - but... works for now...
 			//                  , basecolor(pc)[INACTIVECAPTIONTEXTCOLOR], 0
@@ -928,14 +935,22 @@ void DrawFrameCaption( PSI_CONTROL pc )
 				if( button->is_pressed )
 				{
 					if( button->pressed )
-						BlotScaledImageSizedToAlpha( pc->Window, button->pressed, button_left, yofs + 1, (h) - 2, (h) - 2, ALPHA_TRANSPARENT );
+						BlotScaledImageSizedToAlpha( pc->Window, button->pressed
+								, button_left+ button->extra_pad
+								, yofs + 1+ button->extra_pad
+								, (h) - 2 - ( 2*button->extra_pad)
+								, (h) - 2 - ( 2*button->extra_pad), ALPHA_TRANSPARENT );
 				}
 				else
 				{
 					if( button->normal )
-						BlotScaledImageSizedToAlpha( pc->Window, button->normal, button_left, yofs + 1, (h) - 2, (h) - 2, ALPHA_TRANSPARENT );
+						BlotScaledImageSizedToAlpha( pc->Window, button->normal
+								, button_left + button->extra_pad
+								, yofs + 1 + button->extra_pad
+								, (h) - 2 - ( 2*button->extra_pad)
+								, (h) - 2 - ( 2*button->extra_pad), ALPHA_TRANSPARENT );
 				}
-				button_left -= h;
+				button_left -= h - button->extra_pad*2;
 			}
 		}
 	}
@@ -1153,8 +1168,8 @@ void UpdateSurface( PSI_CONTROL pc )
 		}
 		if( ( pc->surface_rect.width != (width - right) ) || ( pc->surface_rect.height != (height-bottom) ) )
 		{
-			pc->surface_rect.width = width - right;
-			pc->surface_rect.height = height - bottom;
+			pc->surface_rect.width = width - (right);
+			pc->surface_rect.height = height - (bottom);
 			size_changed = TRUE;
 		}
 	}

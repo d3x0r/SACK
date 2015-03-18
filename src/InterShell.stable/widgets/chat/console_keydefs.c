@@ -38,7 +38,9 @@ DECLTEXT( KeyStroke, WIDE("\x7f") ); // DECLTEXT implies 'static'
 
 int KeyGetGatheredLine( PCHAT_LIST list, PUSER_INPUT_BUFFER pci )
 {
-	PTEXT line = GetUserInputLine( pci );
+	PTEXT tmp_input = GetUserInputLine( pci );
+	PTEXT line = BuildLine( tmp_input );
+	// input is in segments of 256 characters... collapse into a single line.
 	if( line && GetTextSize( line ) )
 	{
 		list->phb_Input->pBlock->pLines[0].nLineLength = LineLengthExEx( list->CommandInfo->CollectionBuffer, FALSE, 8, NULL );

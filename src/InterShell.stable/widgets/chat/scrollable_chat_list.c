@@ -60,10 +60,14 @@ typedef struct chat_message_tag *PCHAT_MESSAGE;
 typedef struct chat_context_tag
 {
 	LOGICAL sent;
-	int formatted_height;
+	Image sender_image;
+	TEXTSTR sender;
+	TEXTSTR formatted_sender;
+	int sender_height;
+	int formatted_height;  // has to include all message text and all tmiestamps and all image heights
 	_32 max_width; // how wide the formatted message was
 	_32 extra_width;
-	int message_y;
+	//int message_y;   // a single value for this makes no sense.
 	PLINKQUEUE messages; // queue of PCHAT_MESSAGE (search forward and backward ability)
 } CHAT_CONTEXT;
 typedef CHAT_CONTEXT *PCHAT_CONTEXT;
@@ -125,7 +129,6 @@ static int J2G( int year, int day_of_year )
 
 static int G2J( int year, int month, int day )
 {
-
 	int leap = (year % 4 == 0) && (year % 100 != 0 || year % 400 == 0);
 	int day_of_year = 0;
 	int extra = 0;
@@ -181,17 +184,15 @@ static CTEXTSTR FormatMessageTime( PCHAT_TIME now, PCHAT_TIME message_time )
 	timebuf = _timebuf[current_timebuf++];
 	current_timebuf &= 3;
 	for( yr = message_time->yr; yr < now->yr; yr++ )
-	{
 		now_day += IsLeap( yr )?366:365;
-	}
 
 	if( now_day != msg_day )
 	{
 		int del = now_day - msg_day;
 		if( del == 1 )
 		{
-			now_tick += ( 24 * 60 * 60 * 1000 );
-			if( now_tick - msg_tick > ( 24 * 60 * 60 * 1000 ) )
+			now_tick += del * ( 24 * 60 * 60 * 1000 );
+			if( now_tick - msg_tick > del * ( 24 * 60 * 60 * 1000  ) )
 			{
 				del = now_day - msg_day;
 				if( del == 1 )
@@ -214,7 +215,7 @@ static CTEXTSTR FormatMessageTime( PCHAT_TIME now, PCHAT_TIME message_time )
 		int del = now_tick - msg_tick;
 		int part;
 		if( part = ( del / ( 60 * 60 * 1000 ) ) )
-			snprintf( timebuf, 64, "%d%s ago", part, part==1?" hour":" hours" );
+			snprintf( timebuf, 64, "%d:%d %s ago", part, (del / ( 60*1000 ))%60, part==1?" hour":" hours" );
 		else if( part = ( del / ( 60 * 1000 ) ) )
 			snprintf( timebuf, 64, "%d%s ago", part, part==1?" minute":" minutes" );
 		else if( part = ( del / ( 1000 ) ) )
@@ -680,6 +681,8 @@ static void SetupDefaultConfig( void )
 		l.button_pressed = LoadImageFile( "button_Down.png" );
 		l.button_normal = LoadImageFile( "button_Up.png" );
 		l.time_pad = 1;
+		l.context_message_pad = 3;
+		l.context_sender_pad = 3;
 		l.side_pad = 5;
 		l.sent.text_color = BASE_COLOR_BLACK;
 		l.sent.back_x = 0;
@@ -720,7 +723,7 @@ static void SetupDefaultConfig( void )
 	}
 	else
 		ReuseImage( l.decoration );
-	ChopDecorations( );
+	ChopDecorations( );	
 }
 
 static void OnFinishInit( WIDE( "Chat Control" ) )( PSI_CONTROL canvas )
@@ -843,12 +846,13 @@ void Chat_ClearMessages( PSI_CONTROL pc )
 			PCHAT_MESSAGE pcm;
 			while( pcm = (PCHAT_MESSAGE)DequeLink( &pcc->messages ) )
 			{
-				if( pcm->formatted_text )
-					Release( pcm->formatted_text );
 				Release( pcm->text );
 				Release( pcm );
 			}
+			if( pcc->formatted_sender )
+				Release( pcc->formatted_sender );
 			DeleteLinkQueue( &pcc->messages );
+			Release( pcc->sender );
 			Release( pcc );
 		}
 	}
@@ -858,6 +862,9 @@ void Chat_ClearMessages( PSI_CONTROL pc )
 void Chat_EnqueMessage( PSI_CONTROL pc, LOGICAL sent
 							 , PCHAT_TIME sent_time
 							 , PCHAT_TIME received_time
+							 , PCHAT_TIME seen_time
+							 , Image sender_icon
+							 , CTEXTSTR sender
 							 , CTEXTSTR text
 							 , PTRSZVAL psvSeen )
 {
@@ -868,18 +875,19 @@ void Chat_EnqueMessage( PSI_CONTROL pc, LOGICAL sent
 		PCHAT_CONTEXT pcc;
 		PCHAT_MESSAGE pcm;
 		pcc = (PCHAT_CONTEXT)PeekQueueEx( chat_control->contexts, -1 );
-		if( !pcc || ( pcc->sent != sent ) )
+		if( !pcc || ( pcc->sent != sent || pcc->sender != sender ) )
 		{
 			pcc = New( CHAT_CONTEXT );
 			pcc->sent = sent;
+			pcc->formatted_sender = NULL;
+			pcc->sender = StrDup( sender );
+			pcc->sender_image = sender_icon;
 			pcc->max_width = 0;
 			pcc->extra_width = 0;
 			pcc->formatted_height = 0;
 			pcc->messages = NULL;
 			EnqueLink( &chat_control->contexts, pcc );
 		}
-
-
 		pcm = New( CHAT_MESSAGE );
 		if( received_time )
 			pcm->received_time = received_time[0];
@@ -889,15 +897,22 @@ void Chat_EnqueMessage( PSI_CONTROL pc, LOGICAL sent
 			pcm->sent_time = sent_time[0];
 		else
 			MemSet( &pcm->sent_time, 0, sizeof( pcm->sent_time ) );
-		pcm->seen = 0;
-		MemSet( &pcm->seen_time, 0, sizeof( pcm->seen_time ) );
+		if( seen_time )
+		{
+			pcm->seen = seen_time[0].yr?1:0;
+			pcm->seen_time = seen_time[0];
+		}
+		else
+		{
+			pcm->seen = 0;
+			MemSet( &pcm->seen_time, 0, sizeof( pcm->seen_time ) );
+		}
 		pcm->psvSeen = psvSeen;
 		pcm->image = NULL;
 		pcm->thumb_image = NULL;
 		pcm->text = StrDup( text );
 		pcm->_sent = sent;
 		pcm->formatted_text = NULL;
-		pcm->seen = 0;
 		EnqueLink( &pcc->messages, pcm );
 	}
 }
@@ -905,6 +920,9 @@ void Chat_EnqueMessage( PSI_CONTROL pc, LOGICAL sent
 void Chat_EnqueImage( PSI_CONTROL pc, LOGICAL sent
 							 , PCHAT_TIME sent_time
 							 , PCHAT_TIME received_time
+							 , PCHAT_TIME seen_time
+							 , Image sender_icon
+							 , CTEXTSTR sender
 							 , Image image
 							 , PTRSZVAL psvSeen )
 {
@@ -915,10 +933,13 @@ void Chat_EnqueImage( PSI_CONTROL pc, LOGICAL sent
 		PCHAT_CONTEXT pcc;
 		PCHAT_MESSAGE pcm;
 		pcc = (PCHAT_CONTEXT)PeekQueueEx( chat_control->contexts, -1 );
-		if( !pcc || ( pcc->sent != sent ) )
+		if( !pcc || ( pcc->sent != sent || pcc->sender != sender ) )
 		{
 			pcc = New( CHAT_CONTEXT );
 			pcc->sent = sent;
+			pcc->formatted_sender = NULL;
+			pcc->sender = StrDup( sender );
+			pcc->sender_image = sender_icon;
 			pcc->max_width = 0;
 			pcc->formatted_height = 0;
 			pcc->messages = NULL;
@@ -943,7 +964,7 @@ void Chat_EnqueImage( PSI_CONTROL pc, LOGICAL sent
 		MemSet( &pcm->seen_time, 0, sizeof( pcm->seen_time ) );
 		pcm->psvSeen = psvSeen;
 		pcm->text = NULL;
-		pcm->image = image;
+		pcm->image = StrDup( image );
 		pcm->thumb_image = MakeImageFile( 32 * image->width / image->height , 32 );
 		BlotScaledImage( pcm->thumb_image, pcm->image );
 		pcm->_sent = sent;
@@ -1177,7 +1198,20 @@ _32 UpdateContextExtents( Image window, PCHAT_LIST list, PCHAT_CONTEXT context )
 	}
 
 	context->formatted_height = 0;
-	context->message_y = 0;
+
+	if( context->sender )
+	{
+		_32 sender_line = l.context_sender_pad;
+		int max_width = width;// - ((msg->sent)?l.sent.arrow_w:l.received.arrow_w);
+		int max_height = 50;
+		if( !context->formatted_sender )
+		{
+			FormatTextToBlockEx( context->sender, &context->formatted_sender, &max_width, &max_height, list->sent_font );
+			context->sender_height = max_height;
+		}
+		context->formatted_height += context->sender_height + sender_line;
+	}
+
 	//lprintf( WIDE("BEgin draw messages...") );
 	for( message_idx = -1; msg = (PCHAT_MESSAGE)PeekQueueEx( context->messages, message_idx ); message_idx-- )
 	{
@@ -1193,7 +1227,6 @@ _32 UpdateContextExtents( Image window, PCHAT_LIST list, PCHAT_CONTEXT context )
 				context->max_width = max_width;
 
 			frame_height = msg->_formatted_height;
-			
 		}
 		else
 		{
@@ -1211,7 +1244,10 @@ _32 UpdateContextExtents( Image window, PCHAT_LIST list, PCHAT_CONTEXT context )
 					frame_height = msg->_formatted_height;
 				}
 		}
-		msg->_message_y = ( ((message_idx<-1)?l.side_pad:0) + frame_height );
+		frame_height += ((message_idx<-1)?l.context_message_pad:0);
+		//lprintf( "after format %d is %s", frame_height, msg->text );
+		msg->_message_y = frame_height;
+
 		if( context->sent )
 		{
 			CTEXTSTR timebuf;
@@ -1231,15 +1267,16 @@ _32 UpdateContextExtents( Image window, PCHAT_LIST list, PCHAT_CONTEXT context )
 		else
 		{
 			CTEXTSTR timebuf;
-			_32 w, h;
 			CTEXTSTR timebuf2;
 			_32 w2, h2;
+			CTEXTSTR timebuf3;
 
 			timebuf = FormatMessageTime( &l.now, &msg->sent_time ) ;
 			//GetStringSizeFont( timebuf, &w, &h, list->date_font );
 			timebuf2 = FormatMessageTime( &l.now, &msg->received_time ) ;
 			//GetStringSizeFont( timebuf2, &w2, &h2, list->date_font );
-			snprintf( msg->formatted_time, 256, "Sent: %s\nSeen: %s", timebuf, timebuf2 );
+			timebuf3 = FormatMessageTime( &l.now, &msg->seen_time ) ;
+			snprintf( msg->formatted_time, 256, "Sent: %s\nRcvd: %s\nSeen: %s", timebuf, timebuf2, timebuf3 );
 			GetStringSizeFont( msg->formatted_time, &w2, &h2, list->date_font );
 			msg->time_height = h2 + l.time_pad;
 			msg->_message_y += msg->time_height;
@@ -1248,14 +1285,17 @@ _32 UpdateContextExtents( Image window, PCHAT_LIST list, PCHAT_CONTEXT context )
 				context->extra_width = (w2) - context->max_width;
 		}
 		context->formatted_height += frame_height;
-		context->message_y += msg->_message_y;
+		//lprintf( "after format %d %d(%d,%d) is %s", context->formatted_height, msg->_message_y
+		//	, msg->time_height, msg->_formatted_height, msg->text );
 	}
 	return x_offset_right - x_offset_left;
 }
 
-void DrawAMessage( Image window, PCHAT_LIST list, PCHAT_CONTEXT context, PCHAT_MESSAGE msg )
+void DrawAMessage( Image window, PCHAT_LIST list
+				  , PCHAT_CONTEXT context, PCHAT_MESSAGE msg
+					, S_32 x_offset_left, S_32 x_offset_right
+				  )
 {
-	S_32 x_offset_left, x_offset_right;	
 	S_32 _x_offset_left, _x_offset_right;	
 	MeasureFrameWidth( window, &x_offset_left, &x_offset_right, !context->sent, TRUE, 0 );
 	_x_offset_left = x_offset_left;
@@ -1277,12 +1317,12 @@ void DrawAMessage( Image window, PCHAT_LIST list, PCHAT_CONTEXT context, PCHAT_M
 		x_offset_left += l.received.BorderSegment[SEGMENT_LEFT]->width ;
 		x_offset_right -= ( l.received.BorderSegment[SEGMENT_RIGHT]->width + l.received.arrow_w + l.received.arrow_x_offset ); 
 	}
-	//lprintf( WIDE("update next top by %d"), msg->message_y );
+	//lprintf( WIDE("update next top by %d (%d+%d)"), msg->_message_y, msg->time_height, msg->_formatted_height );
 	list->display.message_top -= msg->_message_y;
 	if( context->sent )
 	{
 		CTEXTSTR timebuf;
-		_32 w, h;
+		_32  h;
 		_32 max_width = context->extra_width + context->max_width;
 		timebuf = msg->formatted_time;
 		h = msg->time_height;
@@ -1348,6 +1388,8 @@ static void ReformatMessages( PCHAT_LIST list )
 	for( context_idx = -1; context = (PCHAT_CONTEXT)PeekQueueEx( list->contexts, context_idx ); context_idx-- )
 	{
 		context->max_width = 0;
+		Deallocate( TEXTSTR, context->formatted_sender );
+		context->formatted_sender = NULL;
 		for( message_idx = -1; msg = (PCHAT_MESSAGE)PeekQueueEx( context->messages, message_idx ); message_idx-- )
 		{
 			Deallocate( TEXTSTR, msg->formatted_text );
@@ -1365,50 +1407,106 @@ static void DrawMessages( PCHAT_LIST list, Image window )
 
 	for( context_idx = -1; context = (PCHAT_CONTEXT)PeekQueueEx( list->contexts, context_idx ); context_idx-- )
 	{
+		_32 debug_start_top;
 		_32 frame_size;
+		int frame_pad;
 		_32 max_width = UpdateContextExtents( window, list, context );
 
+		S_32 x_offset_left, x_offset_right;	
+		S_32 _x_offset_left, _x_offset_right;	
+		MeasureFrameWidth( window, &x_offset_left, &x_offset_right, !context->sent, TRUE, 0 );
+		_x_offset_left = x_offset_left;
+		_x_offset_right = x_offset_right;
+		if( context->sent )
+		{
+			x_offset_left += l.sent.BorderSegment[SEGMENT_LEFT]->width + l.sent.arrow_w + l.sent.arrow_x_offset;
+			x_offset_right -= l.sent.BorderSegment[SEGMENT_RIGHT]->width;
+		}
+		else
+		{
+			x_offset_left += l.received.BorderSegment[SEGMENT_LEFT]->width ;
+			x_offset_right -= ( l.received.BorderSegment[SEGMENT_RIGHT]->width + l.received.arrow_w + l.received.arrow_x_offset ); 
+		}
+
+		// between contexts...
 		if( context_idx < -1 )
 			list->display.message_top -= l.side_pad;
 
-		if( ( ( list->display.message_top - context->message_y ) >= window->height ) )
+		if( context->sent )
+			frame_pad = l.sent.BorderSegment[SEGMENT_BOTTOM]->height;
+		else
+			frame_pad = l.received.BorderSegment[SEGMENT_BOTTOM]->height;
+
+		if( ( ( list->display.message_top - ( frame_pad + context->formatted_height ) ) >= window->height ) )
 		{
-			list->display.message_top -= context->message_y;
+			if( context->sent )
+				frame_pad += l.sent.BorderSegment[SEGMENT_TOP]->height;
+			else
+				frame_pad += l.received.BorderSegment[SEGMENT_TOP]->height;
+			//lprintf( "Skip message is %d  (-%d", list->display.message_top, context->formatted_height );
+			list->display.message_top -= context->formatted_height + frame_pad;
 			continue;
 		}
-
-		frame_size = DrawMessageFrame( window, list->display.message_top - context->message_y
+		//lprintf( "message start is %d  (-%d", list->display.message_top, context->formatted_height );
+		frame_size = DrawMessageFrame( window
+			, list->display.message_top - context->formatted_height
 			, context->formatted_height
 			, max_width - ( context->extra_width + context->max_width - 10 ) 
 			, !context->sent, TRUE );
+
+		debug_start_top = list->display.message_top;
+
 
 		if( context->sent )
 			list->display.message_top -= l.sent.BorderSegment[SEGMENT_BOTTOM]->height;
 		else
 			list->display.message_top -= l.received.BorderSegment[SEGMENT_BOTTOM]->height;
 
+		if( context->sender )
+		{
+			_32 x;
+			if( context->sent )
+				x = x_offset_left 
+									+ ( ( x_offset_right - x_offset_left ) 
+									- ( context->extra_width + context->max_width ) );
+			else
+				x = x_offset_left ;
+			PutStringFontExx( window
+							,x
+							, list->display.message_top - context->formatted_height
+							, l.sent.text_color, 0
+							, context->formatted_sender
+							, StrLen( context->formatted_sender ), list->sender_font, 0, max_width );
+		}
+
 		//lprintf( WIDE("BEgin draw messages...") );
 		for( message_idx = -1; msg = (PCHAT_MESSAGE)PeekQueueEx( context->messages, message_idx ); message_idx-- )
 		{
+			//lprintf( "top is now %d (%d from start)", list->display.message_top, debug_start_top - list->display.message_top );
 			//lprintf( "check message %d", message_idx );
 			if( msg->formatted_text && 
-				 ( ( list->display.message_top - msg->_message_y ) >= window->height ) )
+				( ( list->display.message_top - msg->_message_y ) >= window->height ) )
 			{
+				//lprintf( "Skip a message %d (-%d)", list->display.message_top, msg->_message_y );
 				//lprintf( WIDE("have to skip message...") );
 				list->display.message_top -= msg->_message_y;
 				continue;
 			}
-			//lprintf( "formatted : %d %d  %d", msg->formatted_text, list->display.message_top, msg->message_y );
+			//lprintf( "formatted : %d %d  %d", msg->_formatted_height, list->display.message_top, msg->_message_y );
 			if( !msg->formatted_text || 
 				 ( ( ( list->display.message_top - msg->_message_y ) < window->height )
 				&& (list->display.message_top > l.side_pad ) ) )
-				DrawAMessage( window, list, context, msg );
+				DrawAMessage( window, list, context, msg, x_offset_left, x_offset_right );
 			if( list->display.message_top < l.side_pad )
 			{
 				//lprintf( WIDE("Done.") );
 				break;
 			}
 		}
+
+		if( context->sender )
+			list->display.message_top -= context->sender_height + l.context_sender_pad;
+
 		if( context->sent )
 			list->display.message_top -= l.sent.BorderSegment[SEGMENT_TOP]->height;
 		else
@@ -1707,18 +1805,38 @@ static int OnMouseCommon( CONTROL_NAME )( PSI_CONTROL pc, S_32 x, S_32 y, _32 b 
 					PCHAT_MESSAGE msg = NULL; // might have 0 contexts
 					for( context_idx = -1; context = (PCHAT_CONTEXT)PeekQueueEx( list->contexts, context_idx ); context_idx-- )
 					{
+						_32 frame_pad;
+
+						// between contexts...
+						if( context_idx < -1 )
+							list->display.message_top -= l.side_pad;
+
+						if( context->sent )
+						{
+							frame_pad = l.sent.BorderSegment[SEGMENT_BOTTOM]->height;
+							frame_pad += l.sent.BorderSegment[SEGMENT_TOP]->height;
+						}
+						else
+						{
+							frame_pad = l.received.BorderSegment[SEGMENT_BOTTOM]->height;
+							frame_pad += l.received.BorderSegment[SEGMENT_TOP]->height;
+						}
+
 						for( message_idx = -1; msg = (PCHAT_MESSAGE)PeekQueueEx( context->messages, message_idx ); message_idx-- )
 						{
 							// never displayed the message.
 							if( !msg->formatted_text )
 								break;
 							last_message_y = msg->_message_y;
-							tmp_top -= msg->_message_y;
-							total_offset += msg->_message_y;
+							//tmp_top -= msg->_message_y;
+							//total_offset += msg->_message_y;
 						}
 						if( msg )
 							break;
+						tmp_top -= context->formatted_height + frame_pad;
+						total_offset += context->formatted_height + frame_pad;
 					}
+
 					if( !msg && ( tmp_top > ( list->message_window->height - last_message_y ) ) )
 					{
 						list->control_offset = total_offset - last_message_y;//list->message_window->height;
@@ -1752,7 +1870,7 @@ static void CPROC DropAccept( PSI_CONTROL pc, CTEXTSTR path, S_32 x, S_32 y )
 {
 	PCHAT_LIST *ppList = ControlData( PCHAT_LIST*, pc );
 	PCHAT_LIST list = (*ppList);
-	 list->InputDrop( list->psvInputDrop, path, x, y );
+	list->InputDrop( list->psvInputDrop, path, x, y );
 }
 
 static int OnCommonFocus(CONTROL_NAME)(PSI_CONTROL control, LOGICAL bFocused )
@@ -1834,6 +1952,11 @@ static int OnCreateCommon( CONTROL_NAME )( PSI_CONTROL pc )
 		h = SACK_GetProfileInt( "widgets/Chat Control", "date font/height", 9 );
 		list->date_font 
 			= RenderFontFileScaledEx( buf, w, h, NULL, NULL, 2/*FONT_FLAG_8BIT*/, NULL, NULL );
+		SACK_GetProfileString( "widgets/Chat Control", "sender font", "arialbd.ttf", buf, 64 );
+		w = SACK_GetProfileInt( "widgets/Chat Control", "sender font/width", 12 );
+		h = SACK_GetProfileInt( "widgets/Chat Control", "sender font/height", 12 );
+		list->sender_font 
+			= RenderFontFileScaledEx( buf, w, h, NULL, NULL, 2/*FONT_FLAG_8BIT*/, NULL, NULL );
 	}
 	//list->colors.background_color = BASE_COLOR_WHITE;
 	list->message_window = MakeSubImage( GetControlSurface( pc ), 0, 0, 1, 1 );
@@ -1849,15 +1972,6 @@ static int OnCreateCommon( CONTROL_NAME )( PSI_CONTROL pc )
 	SetBrowserLines( list->phb_Input, 3 );
 	list->colors.crText = BASE_COLOR_BLACK;
 
-	//Chat_EnqueMessage( pc, 0, NULL, NULL, WIDE("1) some test text here\nwith full support of color and\n inline fonts?\n... Need a very very long line... mary had a little lamb its fleece was white as snow...") );
-	//Chat_EnqueMessage( pc, 0, NULL, NULL, WIDE("2) some test text here\nwith full support of color and\n inline fonts?\n... Need a very very long line... mary had a little lamb its fleece was white as snow...") );
-	//Chat_EnqueMessage( pc, 1, NULL, NULL, WIDE("3) some test text here\nwith full support of color and\n inline fonts?\n... Need a very very long line... mary had a little lamb its fleece was white as snow...") );
-	//Chat_EnqueMessage( pc, 0, NULL, NULL, WIDE("4) some test text here\nwith full support of color and\n inline fonts?\n... Need a very very long line... mary had a little lamb its fleece was white as snow...") );
-	//Chat_EnqueMessage( pc, 1, NULL, NULL, WIDE("5) some test text here\nwith full support of color and\n inline fonts?\n... Need a very very long line... mary had a little lamb its fleece was white as snow...") );
-	//Chat_EnqueMessage( pc, 0, NULL, NULL, WIDE("(no67) some test text here\nwith full support of color and\n inline fonts?\n... Need a very very long line... mary had a little lamb its fleece was white as snow...") );
-	//Chat_EnqueMessage( pc, 1, NULL, NULL, WIDE("8) some test text here\nwith full support of color and\n inline fonts?\n... Need a very very long line... mary had a little lamb its fleece was white as snow...") );
-	//Chat_EnqueMessage( pc, 1, NULL, NULL, WIDE("9) some test text here\nwith full support of color and\n inline fonts?\n... Need a very very long line... mary had a little lamb its fleece was white as snow...") );
-	//Chat_EnqueMessage( pc, 0, NULL, NULL, WIDE("10) some test text here\nwith full support of color and\n inline fonts?\n... Need a very very long line... mary had a little lamb its fleece was white as snow...") );
 	return 1;
 }
 
@@ -1969,8 +2083,8 @@ void Chat_GetCurrentTime( PCHAT_TIME timebuf )
 											 &LocalTime,
 											 &GmtTime );
 			// Local time expressed in terms of GMT bias.
-			timebuf->zhr = (S_8)( -( TimeZoneInfo.Bias / 60 ) );
-			timebuf->zmn = ( TimeZoneInfo.Bias % 60 );
+			timebuf->zhr = (S_8)( -( TimeZoneInfo.Bias / 60 + ( TimeZoneInfo.DaylightBias / 60 ) ) ) ;
+			timebuf->zmn = ( TimeZoneInfo.Bias % 60 ) + ( TimeZoneInfo.DaylightBias % 60 );
 
 			// GMT = LocalTime + TimeZoneInfo.Bias
 			// TimeZoneInfo.Bias is the difference between local time
@@ -2018,6 +2132,9 @@ void Chat_ClearOldMessages( PSI_CONTROL pc, int delete_time )
 		PCHAT_MESSAGE msg;
 		CHAT_TIME now;
 		S_64 old_limit;
+		//list->control_offset = 0;
+		list->display.message_top = list->message_window->height + list->control_offset;
+
 		Chat_GetCurrentTime( &now );
 		old_limit = AbsoluteSeconds( &now ) - delete_time;
 		//lprintf( "limit = %d", old_limit );
@@ -2029,14 +2146,14 @@ void Chat_ClearOldMessages( PSI_CONTROL pc, int delete_time )
 			{
 				S_64 msg_time ;
 				if( context->sent )
-				{
+				{ 
 					msg_time = AbsoluteSeconds( &msg->sent_time );
 				}
 				else
 				{
 					if( !msg->seen )
 						break;
-					msg_time = AbsoluteSeconds( &msg->seen_time );
+					msg_time =   AbsoluteSeconds( &msg->seen_time );
 				}
 				if( msg_time < old_limit )
 				{
@@ -2052,6 +2169,9 @@ void Chat_ClearOldMessages( PSI_CONTROL pc, int delete_time )
 			}
 			if( IsQueueEmpty( &context->messages ) )
 			{
+				if( context->formatted_sender )
+					Release( context->formatted_sender );
+				Release( context->sender );
 				Release( context );
 				DequeLink( &list->contexts );
 			}
