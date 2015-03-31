@@ -708,7 +708,16 @@ static PTEXT GatherLineEx( PTEXT *pOutput, INDEX *pIndex, int bInsert, int bSave
       output = GetText( *pOutput );
       len = GetTextSize( *pOutput );
    }
-
+   if( NEXTLINE( *pOutput ) && GetTextSize( NEXTLINE( *pOutput ) ) == 0 )
+   {
+	   PTEXT delseg = SegGrab( NEXTLINE( *pOutput ) );
+	   LineRelease( delseg );
+   }
+   if( PRIORLINE( *pOutput ) && GetTextSize( PRIORLINE( *pOutput ) ) == 0 )
+   {
+	   PTEXT delseg = SegGrab( PRIORLINE( *pOutput ) );
+	   LineRelease( delseg );
+   }
    while( pInput )
    {
       size = GetTextSize( pInput );
@@ -1113,11 +1122,19 @@ LOGICAL  SetUserInputPosition ( PUSER_INPUT_BUFFER pci, INDEX nPos, int whence )
 {
 	if( whence == SEEK_SET )
 	{
-		if( !PRIORLINE( pci->CollectionBuffer ) && !pci->CollectionIndex )
-			return FALSE;
-		while( PRIORLINE( pci->CollectionBuffer ) )
-			pci->CollectionBuffer = PRIORLINE( pci->CollectionBuffer );
-		pci->CollectionIndex = 0;
+		if( nPos == 0 )
+		{
+			if( !PRIORLINE( pci->CollectionBuffer ) && !pci->CollectionIndex )
+				return FALSE;
+			while( PRIORLINE( pci->CollectionBuffer ) )
+				pci->CollectionBuffer = PRIORLINE( pci->CollectionBuffer );
+			pci->CollectionIndex = 0;
+		}
+		if( nPos == -1 )
+		{
+			SetEnd( pci->CollectionBuffer );
+			pci->CollectionIndex = GetTextSize( pci->CollectionBuffer );
+		}
 	}
 	else if( whence == SEEK_CUR )
 	{

@@ -215,7 +215,7 @@ static CTEXTSTR FormatMessageTime( PCHAT_TIME now, PCHAT_TIME message_time )
 		int del = now_tick - msg_tick;
 		int part;
 		if( part = ( del / ( 60 * 60 * 1000 ) ) )
-			snprintf( timebuf, 64, "%d:%d %s ago", part, (del / ( 60*1000 ))%60, part==1?" hour":" hours" );
+			snprintf( timebuf, 64, "%d:%02d %s ago", part, (del / ( 60*1000 ))%60, part==1?" hour":" hours" );
 		else if( part = ( del / ( 60 * 1000 ) ) )
 			snprintf( timebuf, 64, "%d%s ago", part, part==1?" minute":" minutes" );
 		else if( part = ( del / ( 1000 ) ) )
@@ -676,50 +676,80 @@ static void SetupDefaultConfig( void )
 {
 	if( !l.decoration && !l.decoration_name )
 	{
-		l.decoration_name = WIDE("chat-decoration.png");
-		l.decoration = LoadImageFile( l.decoration_name );
-		l.button_pressed = LoadImageFile( "button_Down.png" );
-		l.button_normal = LoadImageFile( "button_Up.png" );
-		l.time_pad = 1;
-		l.context_message_pad = 3;
-		l.context_sender_pad = 3;
-		l.side_pad = 5;
-		l.sent.text_color = BASE_COLOR_BLACK;
-		l.sent.back_x = 0;
-		l.sent.back_y = 0;
-		l.sent.back_w = 73;
-		l.sent.back_h = 76;
-		l.sent.arrow_x = 0;
-		l.sent.arrow_y = 84;
-		l.sent.arrow_w = 10;
-		l.sent.arrow_h = 8;
-		l.sent.div_x1 = 10;
-		l.sent.div_x2 = 10 + 54;
-		l.sent.div_y1 = 10;
-		l.sent.div_y2 = 9 + 57;
-		l.sent.arrow_x_offset = -2;
-		l.sent.arrow_y_offset = -10;
+		TEXTCHAR buf[256];
+		SACK_GetProfileString( "widgets/Chat Control", "message decoration", "chat-decoration.png", buf, 256 );
+		l.decoration_name = StrDup( buf );
+		l.decoration = LoadImageFile( buf );
+		SACK_GetProfileString( "widgets/Chat Control", "send button pressed", "send_down.png", buf, 256 );
+		l.button_pressed = LoadImageFile( buf );
+		SACK_GetProfileString( "widgets/Chat Control", "send button normal", "send_up.png", buf, 256 );
+		l.button_normal = LoadImageFile( buf );
+
+		l.time_pad = SACK_GetProfileInt( "widgets/Chat Control", "time padding", 1 );
+		l.context_message_pad = SACK_GetProfileInt( "widgets/Chat Control", "context message padding", 3 );
+		l.context_sender_pad = SACK_GetProfileInt( "widgets/Chat Control", "context sender padding", 3 );
+		l.side_pad = SACK_GetProfileInt( "widgets/Chat Control", "side padding", 5 );
+		//l.sent.text_color = BASE_COLOR_BLACK;
+		{
+			PTEXT color = SegCreate( 32 );
+			PTEXT _color = color;
+			SetTextSize( color
+						  , SACK_GetProfileString( "widgets/Chat Control"
+														 , "sent message text color"
+														 , "$FF000000"
+														 , GetText( color )
+														 , 32 ) );
+			GetColorVar( &color, &l.sent.text_color );
+			LineRelease( _color );
+		}
+
+		l.sent.back_x = SACK_GetProfileInt( "widgets/Chat Control", "sent message background x", 0 );
+		l.sent.back_y = SACK_GetProfileInt( "widgets/Chat Control", "sent message background y", 0 );
+		l.sent.back_w = SACK_GetProfileInt( "widgets/Chat Control", "sent message background w", 73 );
+		l.sent.back_h = SACK_GetProfileInt( "widgets/Chat Control", "sent message background h", 76 );
+		l.sent.arrow_x = SACK_GetProfileInt( "widgets/Chat Control", "sent message arrow x", 0 );
+		l.sent.arrow_y = SACK_GetProfileInt( "widgets/Chat Control", "sent message arrow y", 84 );
+		l.sent.arrow_w = SACK_GetProfileInt( "widgets/Chat Control", "sent message arrow w", 10 );
+		l.sent.arrow_h = SACK_GetProfileInt( "widgets/Chat Control", "sent message arrow h", 8 );
+		l.sent.div_x1 = SACK_GetProfileInt( "widgets/Chat Control", "sent message background division inset left", 10 );
+		l.sent.div_x2 = SACK_GetProfileInt( "widgets/Chat Control", "sent message background division inset right", 10 + 54 );
+		l.sent.div_y1 = SACK_GetProfileInt( "widgets/Chat Control", "sent message background division inset top", 10 );
+		l.sent.div_y2 = SACK_GetProfileInt( "widgets/Chat Control", "sent message background division inset bottom", 9 + 57 );
+		l.sent.arrow_x_offset = SACK_GetProfileInt( "widgets/Chat Control", "sent message arrow x offset", -2 );
+		l.sent.arrow_y_offset = SACK_GetProfileInt( "widgets/Chat Control", "sent message arrow y offset", -10 );
 		//l.sent.font = RenderFontFileScaledEx( WIDE("msyh.ttf"), 18, 18, NULL, NULL, 2/*FONT_FLAG_8BIT*/, NULL, NULL );
-		l.flags.sent_justification = 0;
-		l.flags.sent_text_justification = 1;
-		l.received.text_color = BASE_COLOR_BLACK;
-		l.received.back_x = 83;
-		l.received.back_y = 0;
-		l.received.back_w = 76;
-		l.received.back_h = 77;
-		l.received.arrow_x = 147;
-		l.received.arrow_y = 86;
-		l.received.arrow_w = 12;
-		l.received.arrow_h = 7;
-		l.received.arrow_x_offset = +2;
-		l.received.arrow_y_offset = -10;
-		l.received.div_x1 = 92;
-		l.received.div_x2 = 92 + 52;
-		l.received.div_y1 = 9;
-		l.received.div_y2 = 9 + 59;
+		l.flags.sent_justification = SACK_GetProfileInt( "widgets/Chat Control", "sent message justification", 0 );
+		l.flags.sent_text_justification = SACK_GetProfileInt( "widgets/Chat Control", "sent message text justification", 1 );
+		{
+			PTEXT color = SegCreate( 32 );
+			PTEXT _color = color;
+			SetTextSize( color
+						  , SACK_GetProfileString( "widgets/Chat Control"
+														 , "received message text color"
+														 , "$FF000000"
+														 , GetText( color )
+														 , 32 ) );
+			GetColorVar( &color, &l.received.text_color );
+			LineRelease( _color );
+		}
+		//l.received.text_color = BASE_COLOR_BLACK;
+		l.received.back_x = SACK_GetProfileInt( "widgets/Chat Control", "received message background x", 83 );
+		l.received.back_y = SACK_GetProfileInt( "widgets/Chat Control", "received message background y", 0 );
+		l.received.back_w = SACK_GetProfileInt( "widgets/Chat Control", "received message background w", 76 );
+		l.received.back_h = SACK_GetProfileInt( "widgets/Chat Control", "received message background h", 77 );
+		l.received.arrow_x = SACK_GetProfileInt( "widgets/Chat Control", "received message arrow x", 147 );
+		l.received.arrow_y = SACK_GetProfileInt( "widgets/Chat Control", "received message arrow y", 86 );
+		l.received.arrow_w = SACK_GetProfileInt( "widgets/Chat Control", "received message arrow w", 12 );
+		l.received.arrow_h = SACK_GetProfileInt( "widgets/Chat Control", "received message arrow h", 7 );
+		l.received.arrow_x_offset = SACK_GetProfileInt( "widgets/Chat Control", "received message arrow x offset", +2 );
+		l.received.arrow_y_offset = SACK_GetProfileInt( "widgets/Chat Control", "received message arrow y offset", -10 );
+		l.received.div_x1 = SACK_GetProfileInt( "widgets/Chat Control", "received message background division inset left", 92 );
+		l.received.div_x2 = SACK_GetProfileInt( "widgets/Chat Control", "received message background division inset right", 92 + 52 );
+		l.received.div_y1 = SACK_GetProfileInt( "widgets/Chat Control", "received message background division inset top", 9 );
+		l.received.div_y2 = SACK_GetProfileInt( "widgets/Chat Control", "received message background division inset bottom", 9 + 59 );
 		//l.received.font = l.sent.font;
-		l.flags.received_justification = 1;
-		l.flags.received_text_justification = 0;
+		l.flags.received_justification = SACK_GetProfileInt( "widgets/Chat Control", "received message justification", 1 );
+		l.flags.received_text_justification = SACK_GetProfileInt( "widgets/Chat Control", "received message text justification", 0 );
 	}
 	else
 		ReuseImage( l.decoration );
@@ -1276,7 +1306,8 @@ _32 UpdateContextExtents( Image window, PCHAT_LIST list, PCHAT_CONTEXT context )
 			timebuf2 = FormatMessageTime( &l.now, &msg->received_time ) ;
 			//GetStringSizeFont( timebuf2, &w2, &h2, list->date_font );
 			timebuf3 = FormatMessageTime( &l.now, &msg->seen_time ) ;
-			snprintf( msg->formatted_time, 256, "Sent: %s\nRcvd: %s\nSeen: %s", timebuf, timebuf2, timebuf3 );
+			//snprintf( msg->formatted_time, 256, "Sent: %s\nRcvd: %s\nSeen: %s", timebuf, timebuf2, timebuf3 );
+			snprintf( msg->formatted_time, 256, "Sent: %s", timebuf);
 			GetStringSizeFont( msg->formatted_time, &w2, &h2, list->date_font );
 			msg->time_height = h2 + l.time_pad;
 			msg->_message_y += msg->time_height;
@@ -1616,38 +1647,74 @@ static void DrawTextEntry( PSI_CONTROL pc, PCHAT_LIST list, LOGICAL update )
 			, FALSE );
 
 		{
-			int nLine;
+			int nLine, nCursorLine, nDisplayLine;
 			_32 cursor_pos = list->CommandInfo->CollectionIndex;
 			DISPLAYED_LINE *pCurrentLine;
 			PDATALIST *ppCurrentLineInfo;
 			PTEXT cursor_segs;
+			PTEXT first_seg = list->CommandInfo->CollectionBuffer;
+			SetStart( first_seg );
 			ppCurrentLineInfo = GetDisplayInfo( list->phb_Input );
-			for( cursor_segs = list->CommandInfo->CollectionBuffer; cursor_segs && cursor_segs->Prior; cursor_segs = cursor_segs->Prior )
-				cursor_pos += GetTextSize( cursor_segs->Prior );
-			for( nLine = 0; nLine < 3; nLine ++ )
+			for( nLine = 0; ; nLine ++ )
 			{
 				pCurrentLine = (PDISPLAYED_LINE)GetDataItem( ppCurrentLineInfo, nLine );
+				if( !pCurrentLine || pCurrentLine->start == first_seg )
+					break;
+			}
+			for( cursor_segs = list->CommandInfo->CollectionBuffer; cursor_segs && cursor_segs->Prior; cursor_segs = cursor_segs->Prior )
+				cursor_pos += GetTextSize( cursor_segs->Prior );
 
-				if( nLine == 0 && IsControlFocused( list->pc ) &&
-					( ( !nLine && !pCurrentLine ) ||
-					( pCurrentLine && ( list->CommandInfo->CollectionIndex >= pCurrentLine->nFirstSegOfs &&
-						cursor_pos <= ( pCurrentLine->nFirstSegOfs + pCurrentLine->nToShow ) ) ) ) )
+			for( nCursorLine = nLine; nCursorLine >= 0; nCursorLine-- )
+			{
+				pCurrentLine = (PDISPLAYED_LINE)GetDataItem( ppCurrentLineInfo, nLine );
+				if( pCurrentLine && cursor_pos > pCurrentLine->nToShow )
+					cursor_pos -= pCurrentLine->nToShow;
+				else
+					break;
+			}
+			if( nCursorLine > 0 )
+				nDisplayLine = nCursorLine - 1;
+			else
+				nDisplayLine = 0;
+			for( nLine = nDisplayLine; nLine < (nDisplayLine+3); nLine ++ )
+			{
+				pCurrentLine = (PDISPLAYED_LINE)GetDataItem( ppCurrentLineInfo, nLine );
+				if( IsControlFocused( list->pc ) &&
+					( ( !nLine && !pCurrentLine ) || ( nLine == nCursorLine ) ) )
 				{
 					_32 w;
+					_32 total_w = 0;
 					if( pCurrentLine )
-						GetStringSizeFontEx( GetText( pCurrentLine->start ) + pCurrentLine->nFirstSegOfs
-							, pCurrentLine->nToShow, &w, NULL, list->sent_font );
+					{
+						PTEXT tmp;
+						_32 amount = cursor_pos;
+						_32 seg_amount;
+						_32 seg_start = pCurrentLine->nFirstSegOfs;
+						for( tmp = pCurrentLine->start; cursor_pos && tmp; tmp = NEXTLINE( tmp ) )
+						{
+							seg_amount = GetTextSize( tmp ) - seg_start;
+							if( cursor_pos > seg_amount )
+								amount = seg_amount;
+							else
+								amount = cursor_pos;
+							GetStringSizeFontEx( GetText( tmp ) + seg_start
+								, amount, &w, NULL, list->sent_font );
+							cursor_pos -= amount;
+							total_w += w;
+							seg_start = 0;
+						}
+					}
 					else
-						w = 0;
+						total_w = 0;
 					if( list->flags.bCursorOn )
-						do_vline( window, 2 + l.side_pad + l.sent.BorderSegment[SEGMENT_LEFT]->width + w
-							, window->height - ( l.side_pad + (l.sent.BorderSegment[SEGMENT_BOTTOM]->height ) + list->nFontHeight )
-							, window->height - ( l.side_pad + (l.sent.BorderSegment[SEGMENT_BOTTOM]->height ))
+						do_vline( window, 2 + l.side_pad + l.sent.BorderSegment[SEGMENT_LEFT]->width + total_w
+							, window->height - ( l.side_pad + (l.sent.BorderSegment[SEGMENT_BOTTOM]->height ) + list->nFontHeight * nLine )
+							, window->height - ( l.side_pad + (l.sent.BorderSegment[SEGMENT_BOTTOM]->height ) + list->nFontHeight * (nLine+1))
 							, BASE_COLOR_BLACK );
 					else
-						do_vline( window, 2 + l.side_pad + l.sent.BorderSegment[SEGMENT_LEFT]->width + w
-							, window->height - ( l.side_pad + (l.sent.BorderSegment[SEGMENT_BOTTOM]->height ) + list->nFontHeight )
-							, window->height - ( l.side_pad + (l.sent.BorderSegment[SEGMENT_BOTTOM]->height ))
+						do_vline( window, 2 + l.side_pad + l.sent.BorderSegment[SEGMENT_LEFT]->width + total_w
+							, window->height - ( l.side_pad + (l.sent.BorderSegment[SEGMENT_BOTTOM]->height ) + list->nFontHeight * nLine )
+							, window->height - ( l.side_pad + (l.sent.BorderSegment[SEGMENT_BOTTOM]->height ) + list->nFontHeight * (nLine+1))
 							, BASE_COLOR_WHITE );
 				}
 				if( !pCurrentLine )

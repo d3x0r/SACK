@@ -1496,6 +1496,7 @@ void Widget_KeyPressHandler( PCHAT_LIST list
 		{
 		case KEYDATA_DEFINED:
 			//Log( "Key data_defined" );
+				Widget_WinLogicDoStroke( list, (PTEXT)ConsoleKeyDefs[key_index].op[mod].data.pStroke );
 			{
 				//extern void CPROC PSI_WinLogicDoStroke( PCONSOLE_INFO pdp, PTEXT stroke );
 				//PSI_WinLogicDoStroke( pp, (PTEXT)&ConsoleKeyDefs[key_index].op[mod].data.pStroke );

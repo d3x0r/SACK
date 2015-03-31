@@ -1166,7 +1166,8 @@ _32 ComputeToShow( _32 colsize, _32 *col_offset, PTEXT segment, _32 nLen, _32 nO
 				{
 					if( !nSpace )
 						return 0;
-					best_chars = nSpace;
+					best_chars = (nSpace - 1);
+					break;
 				}
 				else 
 					best_char_size = nSegSize;
@@ -1211,8 +1212,11 @@ _32 ComputeToShow( _32 colsize, _32 *col_offset, PTEXT segment, _32 nLen, _32 nO
 			}
 			if( nSpace > nLen )
 			{
+				nShow = ( nSpace - 1 ) - nShown;
+				(*col_offset) += nSegSize;
+				// ran out of characters in segment... whole segment fits.
 				// it didn't fit, but now it fits?!
-				lprintf( WIDE("This should be a segfault or something") );
+				//lprintf( WIDE("This should be a segfault or something") );
 			}
 		}
 	 }
@@ -1307,8 +1311,8 @@ int CountLinesSpanned( PHISTORY_BROWSER phbr, PTEXT countseg, SFTFont font, LOGI
 						countseg = PRIORLINE( countseg );
 					}
 				}
-				else
-					nLines++;
+				//else
+				//	nLines++;
 				//if( countseg->Prior || countseg->Next )
 				//	nLines++;
 			}

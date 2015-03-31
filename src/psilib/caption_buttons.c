@@ -41,7 +41,7 @@ PCAPTION_BUTTON AddCaptionButton( PSI_CONTROL frame, Image normal, Image pressed
 			&& ( frame->BorderType & BORDER_CAPTION_CLOSE_BUTTON ) )
 		{
 			frame->flags.bCloseButtonAdded = 1;
-			AddCaptionButton( frame, g.StopButton, g.StopButtonPressed, 2, StopThisProgram );
+			AddCaptionButton( frame, g.StopButton, g.StopButtonPressed, g.StopButtonPad, StopThisProgram );
 		}
 	}
 	if( frame && event )
@@ -50,6 +50,7 @@ PCAPTION_BUTTON AddCaptionButton( PSI_CONTROL frame, Image normal, Image pressed
 		button->normal = normal;
 		button->pressed = pressed;
 		button->pressed_event = event;
+		button->flags.hidden = FALSE;
 		button->is_pressed = FALSE;
 		button->extra_pad = extra_pad;
 		AddLink( &frame->caption_buttons, button );
