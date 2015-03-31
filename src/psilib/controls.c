@@ -539,6 +539,13 @@ void TryLoadingFrameImage( void )
 {
 	if( g.flags.system_color_set )
 		return;
+#ifndef __NO_OPTIONS__
+	g.StopButtonPad = SACK_GetProfileInt( WIDE( "SACK/PSI")
+		, WIDE("Frame close button pad" )
+		, 2 );
+#else
+	g.StopButtonPad = 2;
+#endif
 	if( !g.StopButton )
 	{
 		TEXTCHAR buffer[256];

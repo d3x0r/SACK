@@ -931,7 +931,9 @@ void DrawFrameCaption( PSI_CONTROL pc )
 			PCAPTION_BUTTON button;
 			LIST_FORALL( pc->caption_buttons, idx, PCAPTION_BUTTON, button )
 			{
-				button->offset = button_left;
+				if( button->flags.hidden )
+					continue;
+				button->offset = button_left + button->extra_pad;
 				if( button->is_pressed )
 				{
 					if( button->pressed )

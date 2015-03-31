@@ -79,6 +79,7 @@ typedef struct psi_global_tag
 	Image FrameCaptionFocusedImage;
 	Image StopButton;
 	Image StopButtonPressed;
+	int   StopButtonPad;
 	PLIST shown_frames;
 	SFTFont default_font;
 }PSI_GLOBAL;

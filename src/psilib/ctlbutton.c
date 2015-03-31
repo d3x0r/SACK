@@ -162,20 +162,24 @@ static int CPROC ButtonDraw( PSI_CONTROL pc )
 		//lprintf( WIDE("drawing an image %p"), pb->pImage );
 		if( pb->buttonflags.pressed )
 		{
+			Image out = pb->pImage_pressed;
+			if( !out )
+				out = pb->pImage;
+
 			if( pb->pImage )
 			{
 				if( pc->flags.bDisable )
-					BlotScaledImageMultiShadedAlpha( pc->Surface, pb->pImage
+					BlotScaledImageMultiShadedAlpha( pc->Surface, out
 								  , ALPHA_TRANSPARENT
 								  , Color( 62, 62, 62 )
 								  , Color( 67,67,67 )
 								  , Color( 60, 60, 60 ) );
 				else
-					BlotScaledImageAlpha( pc->Surface, pb->pImage, ALPHA_TRANSPARENT );
+					BlotScaledImageAlpha( pc->Surface, out, ALPHA_TRANSPARENT );
 				if( pc->flags.bFocused )
 				{
 					_32 width, height;
-					GetImageSize( pb->pImage, &width, &height );
+					GetImageSize( out, &width, &height );
 					do_line( pc->Surface, 2, height - 2
 							 , width - 2, height - 2
 							 , basecolor(pc)[SHADE] );
@@ -184,9 +188,9 @@ static int CPROC ButtonDraw( PSI_CONTROL pc )
 		}
 		else
 		{
-			Image out = pb->pImage_pressed;
+			Image out = pb->pImage;
 			if( !out )
-				out = pb->pImage;
+				out = pb->pImage_pressed;
 
 			if( out )
 			{

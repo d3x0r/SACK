@@ -946,6 +946,9 @@ int CPROC FirstFrameMouse( PPHYSICAL_DEVICE pf, S_32 x, S_32 y, _32 b, int bCall
 			{
 				LIST_FORALL( pc->caption_buttons, idx, PCAPTION_BUTTON, button )
 				{
+					if( button->flags.hidden )
+						continue;
+
 					if( x > button->offset )
 					{
 						if( pc->pressed_caption_button && pc->pressed_caption_button == button )
