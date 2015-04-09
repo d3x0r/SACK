@@ -122,7 +122,7 @@ PRELOAD( InitMatrixSSL )
 
 ATEXIT( CloseMatrixSSL )
 {
-   if( l.flags.bInited )
+   if( sack_ssl_local && l.flags.bInited )
 		matrixSslClose();
 }
 

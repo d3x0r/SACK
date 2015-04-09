@@ -195,6 +195,7 @@ set( BULLET_SOURCE "${CMAKE_CURRENT_SOURCE_DIR}/../bullet" CACHE STRING "bullet 
 
 OPTION( SACK_BUILD_STATIC_LIBS "Enable building static versions of libraries" OFF )
 OPTION( BUILD_EXTRAS "Enable building extras" OFF )
+OPTION( INSTALL_EXTRAS "Enable installing extras; build anyway" ${BUILD_EXTRAS} )
 OPTION( BUILD_TESTS "Enable building test" OFF )
 if( NOT __LINUX__ )
 OPTION( __LINUX__ "Enable specific linux features (disable WIN32)" ${UNIX} )
@@ -1319,12 +1320,8 @@ endif( NOT __ANDROID__ )
 endif( NOT BUILD_MONOLITHIC AND NOT __NO_GUI__ )
 
 
-#add_subdirectory( src/libvlc/1.1.6 )
-# this installs VLC headers... shouldn't do this...
-#add_subdirectory( src/libvlc/2.0.1 )
-
 # parts of SDK ...
-set( INSTALL_FRAME_BORDER ${INTERFACE_OUTPUT_DIR}/images )
+set( INSTALL_FRAME_BORDER ${INTERFACE_OUTPUT_DIR}/images CACHE STRING "Option to install default images actually" )
 add_subdirectory( data )
 add_subdirectory( include )
 add_subdirectory( src/utils/runner )

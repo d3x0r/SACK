@@ -5,7 +5,7 @@
 #include <timers.h>
 #include <network.h>
 
-#include "../contrib/MatrixSSL/3.7.1/matrixssl/matrixsslApi.h"
+//#include "../contrib/MatrixSSL/3.7.1/matrixssl/matrixsslApi.h"
 
 // debugging flag for socket creation/closing
 //#define LOG_SOCKET_CREATION

@@ -365,8 +365,8 @@ void ExtendConnection( PODBC odbc )
 	{
 		CTEXTSTR result;
 		SQLQueryf( odbc, &result, WIDE( "PRAGMA journal_mode=WAL;" ) );
-		if( result )
-			lprintf( WIDE( "Journal is now %s" ), result );
+		//if( result )
+		//	lprintf( WIDE( "Journal is now %s" ), result );
 		SQLEndQuery( odbc );
 		//SQLQueryf( odbc, &result, WIDE( "PRAGMA journal_mode" ) );
 		//lprintf( WIDE( "Journal is now %s" ), result );

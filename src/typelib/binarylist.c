@@ -13,9 +13,10 @@
  * see also - include/typelib.h
  *
  */
-#include <sack_types.h>
-#include <sharemem.h>
-#include <logging.h>
+#include <stdhdrs.h>
+//#include <sack_types.h>
+//#include <sharemem.h>
+//#include <logging.h>
 
 //#define DEBUG_STEPPING
 #ifdef __cplusplus
@@ -33,7 +34,6 @@ struct treenode_tag {
 		BIT_FIELD bRoot:1;
 	} flags;
 	_32 children;
-
 	POINTER userdata;
 	PTRSZVAL key;
 	struct treenode_tag *lesser;
@@ -54,6 +54,7 @@ typedef struct treeroot_tag {
 		BIT_FIELD bNoDuplicate : 1;
 	} flags;
 	_32 children;
+	_32 lock;
 
 	GenericDestroy Destroy;
 	GenericCompare Compare;
@@ -146,7 +147,7 @@ PTREENODE RotateToLeft( PTREENODE node )
 // RotateToLeft - make left node root/current.
 // RotateToRight - make right node root/current
 
-int BalanceBinaryBranch( PTREENODE root )
+static int BalanceBinaryBranch( PTREENODE root )
 {
 	PTREENODE check;
 	int balances = 0;
@@ -156,10 +157,10 @@ int BalanceBinaryBranch( PTREENODE root )
    	if( ( check = root ) )
    	{
  	   	if( check->lesser && check->greater)
- 		   {
+ 		{
 			int left = check->lesser->children
 			 , right = check->greater->children;
-			if( left > ( right * 2 ) )
+			if( left && right && ( left > ( right * 2 ) ) )
 			{
 				//if( left > 2+((left+right)*55)/100 )
 				{
@@ -212,7 +213,10 @@ int BalanceBinaryBranch( PTREENODE root )
 void BalanceBinaryTree( PTREEROOT root )
 {
 	
+	while( LockedExchange( &root->lock, 1 ) )
+		Relinquish();
 	while( BalanceBinaryBranch( root->tree ) > 1 && 0);
+	root->lock = 0;
 	//Log( WIDE("=========") );;
 }
 

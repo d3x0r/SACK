@@ -346,7 +346,7 @@ TEXTSTR ExpandPathEx( CTEXTSTR path, struct file_system_interface *fsi )
 
 TEXTSTR ExpandPath( CTEXTSTR path )
 {
-	return ExpandPathEx( path, l.default_file_system_interface );
+	return ExpandPathEx( path, NULL );
 }
 
 INDEX  SetGroupFilePath ( CTEXTSTR group, CTEXTSTR path )
@@ -1586,8 +1586,10 @@ static struct file_system_interface native_fsi = {
 PRIORITY_PRELOAD( InitWinFileSysEarly, OSALOT_PRELOAD_PRIORITY - 1 )
 {
 	LocalInit();
-	sack_register_filesystem_interface( "native", &native_fsi );
-	l.default_mount = sack_mount_filesystem( "native", NULL, 1000, (PTRSZVAL)NULL, TRUE );
+	if( !sack_get_mounted_filesystem( "native" ) )
+		sack_register_filesystem_interface( "native", &native_fsi );
+	if( !l.default_mount )
+		l.default_mount = sack_mount_filesystem( "native", NULL, 1000, (PTRSZVAL)NULL, TRUE );
 }
 
 #ifndef __NO_OPTIONS__

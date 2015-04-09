@@ -229,15 +229,6 @@ if( BUILD_MONOLITHIC )
 endif( BUILD_MONOLITHIC )
 	        FILE( APPEND ${FILEOUT} "\n" )
 
-# begin Install_Sack macro; this handles optional second arg extension...
-		FILE( APPEND ${FILEOUT} "macro( INSTALL_SACK dest )\n" )
-		FILE( APPEND ${FILEOUT} "\n" )
-		FILE( APPEND ${FILEOUT} "set( BINARY_OUTPUT_DIR $" "{dest} )\n" )
-		FILE( APPEND ${FILEOUT} "if(  \"$" "{ARGN}\" STREQUAL \"\"  )\n" )
-		FILE( APPEND ${FILEOUT} "  set( LIBRARY_OUTPUT_DIR $" "{dest} )\n" )
-		FILE( APPEND ${FILEOUT} "else( \"$" "{ARGN}\" STREQUAL \"\" )\n" )                
-		FILE( APPEND ${FILEOUT} "  set( LIBRARY_OUTPUT_DIR $" "{ARGN} )\n" )
-		FILE( APPEND ${FILEOUT} "endif( \"$" "{ARGN}\" STREQUAL \"\" )\n" )
 
 ##############################################
 ############# BUILD INSTALL LISTS 
@@ -300,7 +291,7 @@ if( WIN32 )
                         MatrixSSL.dll )
                     endif( NOT MINGW )
                         
-                    if( BUILD_EXTRAS )
+                    if( INSTALL_EXTRAS )
 		SET( literal_libfile_list ${literal_libfile_list} 
                         sack_vfs_command.exe
                         )
@@ -311,7 +302,7 @@ if( WIN32 )
                         sack_vfs_runner_sfx.exe
                         )
 		       endif( NOT MINGW )                    
-                    endif( BUILD_EXTRAS )
+                    endif( INSTALL_EXTRAS )
 		if( NOT BUILD_MONOLITHIC )
                 set( libfile_list ${libfile_list}  glew )
 		endif( NOT BUILD_MONOLITHIC )
@@ -329,14 +320,14 @@ endif( __QNX__ )
 if( __ANDROID__ )
                 SET( libfile_list ${libfile_list} bag.video.frame.lock )
 else( __ANDROID__ )
-  if( BUILD_EXTRAS )
+  if( INSTALL_EXTRAS )
     if( NOT __NO_OPTIONS__ )
                 SET( progfile_list ${progfile_list} importini exportini )
     endif( NOT __NO_OPTIONS__ )
     if( NOT __NO_GUI__ )
                 SET( progfile_list ${progfile_list} DumpFontCache )
     endif( NOT __NO_GUI__ )
-  endif( BUILD_EXTRAS )
+  endif( INSTALL_EXTRAS )
 	if( NOT BUILD_MONOLITHIC )
                 SET( libfile_list ${libfile_list} bag.video )
 	endif( NOT BUILD_MONOLITHIC )
@@ -357,10 +348,47 @@ if( DIRECTX_SDK AND NOT WATCOM )
 		SET( libfile_list ${libfile_list} bag.image.pured3d10 )
 	endif( NOT BUILD_MONOLITHIC )
 endif( DIRECTX_SDK AND NOT WATCOM)
-
 ##############################################
 ############# END BUILD INSTALL LISTS 
+############# BUILD INSTALL SOURCE LISTS 
 ##############################################
+
+		foreach( lib ${ffmpeg_libraries} ${openal_libraries} )
+			FILE( APPEND ${FILEOUT} "SET( sack_ffmpeg_libraries $" "{sack_ffmpeg_libraries} $" "{SACK_BASE}/${SHARED_LIBPATH}/${lib} )\n" )
+		endforeach()
+
+		foreach( lib ${libfile_list}  )
+			FILE( APPEND ${FILEOUT} "SET( sack_libfile_list $" "{sack_libfile_list} $" "{SACK_BASE}/${SHARED_LIBPATH}/@CMAKE_SHARED_LIBRARY_PREFIX@${lib}@CMAKE_SHARED_LIBRARY_SUFFIX@ )\n" )
+		endforeach()
+		foreach( lib ${literal_libfile_list} )
+			FILE( APPEND ${FILEOUT} "SET( sack_literal_libfile_list $" "{sack_literal_libfile_list} $" "{SACK_BASE}/${SHARED_LIBPATH}/${lib} )\n" )
+		endforeach()
+		foreach( lib ${progfile_list} )
+			FILE( APPEND ${FILEOUT} "SET( sack_progfile_list $" "{sack_progfile_list} $" "{SACK_BASE}/${SHARED_BINPATH}/${lib}@CMAKE_EXECUTABLE_SUFFIX@ )\n" )
+		endforeach()
+
+		FILE( APPEND ${FILEOUT} "SET( sack_binary_list $" "{sack_ffmpeg_libraries}\n"
+                	       " $" "{sack_libfile_list}\n"
+                	       " $" "{sack_literal_libfile_list}\n"
+                	       " $" "{sack_progfile_list}\n"
+                	       " $" "{sack_binary_list}\n"
+                	       " )\n" )
+
+##############################################
+############# END BUILD INSTALL SOURCE LISTS 
+############# BUILD INSTALL MACRO
+##############################################
+
+
+# begin Install_Sack macro; this handles optional second arg extension...
+		FILE( APPEND ${FILEOUT} "macro( INSTALL_SACK dest )\n" )
+		FILE( APPEND ${FILEOUT} "\n" )
+		FILE( APPEND ${FILEOUT} "set( BINARY_OUTPUT_DIR $" "{dest} )\n" )
+		FILE( APPEND ${FILEOUT} "if(  \"$" "{ARGN}\" STREQUAL \"\"  )\n" )
+		FILE( APPEND ${FILEOUT} "  set( LIBRARY_OUTPUT_DIR $" "{dest} )\n" )
+		FILE( APPEND ${FILEOUT} "else( \"$" "{ARGN}\" STREQUAL \"\" )\n" )                
+		FILE( APPEND ${FILEOUT} "  set( LIBRARY_OUTPUT_DIR $" "{ARGN} )\n" )
+		FILE( APPEND ${FILEOUT} "endif( \"$" "{ARGN}\" STREQUAL \"\" )\n" )
 
 
 		foreach( lib ${ffmpeg_libraries} ${openal_libraries} )
@@ -391,11 +419,6 @@ if( NOT __NO_GUI__ )
 	if( INSTALL_FRAME_BORDER )
 			FILE( APPEND ${FILEOUT} "install( DIRECTORY $" "{SACK_BASE}/${INSTALL_FRAME_BORDER}/ DESTINATION $" "{dest}/images )\n" )
 	endif( INSTALL_FRAME_BORDER )
-		#FILE( APPEND ${FILEOUT} "install( PROGRAMS $" "{SACK_BASE}/${BINARY_OUTPUT_DIR}/images/frame_border.png DESTINATION $" "{dest}/images )\n" )
-		#FILE( APPEND ${FILEOUT} "install( PROGRAMS $" "{SACK_BASE}/${BINARY_OUTPUT_DIR}/images/dial1.png DESTINATION $" "{dest}/images )\n" )
-		#FILE( APPEND ${FILEOUT} "install( PROGRAMS $" "{SACK_BASE}/${BINARY_OUTPUT_DIR}/images/dial1a.png DESTINATION $" "{dest}/images )\n" )
-		#FILE( APPEND ${FILEOUT} "install( PROGRAMS $" "{SACK_BASE}/${BINARY_OUTPUT_DIR}/images/dial2.png DESTINATION $" "{dest}/images )\n" )
-		#FILE( APPEND ${FILEOUT} "install( PROGRAMS $" "{SACK_BASE}/${BINARY_OUTPUT_DIR}/images/dial2a.png DESTINATION $" "{dest}/images )\n" )
 endif( NOT __NO_GUI__ )
 		
 if( __QNX__ )

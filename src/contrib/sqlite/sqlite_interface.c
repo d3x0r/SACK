@@ -544,7 +544,7 @@ void InitVFS( CTEXTSTR name, struct file_system_mounted_interface *mount )
 {
 	struct my_sqlite3_vfs *vfs;
 	INDEX idx;
-   lprintf( "Register sqlite vfs called %s", name );
+	//lprintf( "Register sqlite vfs called %s", name );
 	LIST_FORALL( l.registered_vfs, idx, struct my_sqlite3_vfs *, vfs )
 	{
 #ifdef UNICODE

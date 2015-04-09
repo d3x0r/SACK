@@ -250,7 +250,7 @@ PRIORITY_PRELOAD( LowLevelInit, CONFIG_SCRIPT_PRELOAD_PRIORITY-1 )
 	{
 		// this may have initialized early?
 		g.timerID = 1000;
-		lprintf( "thread global will be %p %p", global_timer_structure, &global_timer_structure );
+		//lprintf( "thread global will be %p %p", global_timer_structure, &global_timer_structure );
 	}
 }
 
