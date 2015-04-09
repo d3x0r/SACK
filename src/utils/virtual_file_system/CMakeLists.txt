@@ -44,8 +44,8 @@ if( BUILD_EXTRAS )
 add_subdirectory( vfs_command )
 
 # some assembly required...
-if( WIN32 AND NOT MINGW )
+if( WIN32  )
    add_subdirectory( vfs_runner )
-endif( WIN32 AND NOT MINGW )
+endif( WIN32 )
 
 endif( BUILD_EXTRAS )

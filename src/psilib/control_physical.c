@@ -354,6 +354,10 @@ static void CPROC FrameFocusProc( PTRSZVAL psvFrame, PRENDERER loss )
 	}
 	if( !pc->flags.bHidden )
 	{
+		if( pc->DrawBorder )
+		{
+			pc->DrawBorder( pc );
+		}
 		if( !g.flags.always_draw )
 			DrawFrameCaption( pc );
 		else

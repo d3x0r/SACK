@@ -422,8 +422,10 @@ static struct ffmpeg_interface_local
 //---------------------------------------------------------------------------------------------
 
 
-PRELOAD( LoadInterface )
+static void InitFFMPEG( void )
 {
+	if( l.pdi && l.pii )
+		return;
 	l.pdi = GetDisplayInterface();
 	l.pii = GetImageInterface();
 	if( !l.pdi || !l.pii )
@@ -553,6 +555,10 @@ PRELOAD( LoadInterface )
    l.default_outstanding_video = SACK_GetProfileInt( WIDE("Stream Library"), WIDE("Default high water video"), 4 );
 }
 
+PRELOAD( LoadInterface )
+{
+	InitFFMPEG();
+}
 //---------------------------------------------------------------------------------------------
 
 #ifdef USE_OPENSL
@@ -1302,7 +1308,9 @@ int CPROC ffmpeg_write_packet(void *opaque, uint8_t *buf, int buf_size)
 int64_t CPROC ffmpeg_seek(void *opaque, int64_t offset, int whence)
 {
 	struct ffmpeg_file *file = 	(struct ffmpeg_file *)opaque;
+#ifdef DEBUG_LOW_LEVEL_PACKET_IO
 	lprintf( WIDE("Seek %lld  %lld %d %s"), offset, file->file_size- offset, whence,  (whence==AVSEEK_SIZE)?WIDE("size"):WIDE("") );
+#endif
 	if( whence == AVSEEK_SIZE )
 	{
 		if( ANDROID_MODE )
@@ -1373,7 +1381,7 @@ int64_t CPROC ffmpeg_seek(void *opaque, int64_t offset, int whence)
 						if( !file->ffmpeg_buffer )
 						{
 							if( !file->flags.is_last_block )
-							lprintf( WIDE("waiting...%s"), file->flags.is_last_block?WIDE("for last..."):WIDE("") );
+								lprintf( WIDE("waiting...%s"), file->flags.is_last_block?WIDE("for last..."):WIDE("") );
 							WakeableSleep(1000);
 						}
 						else
@@ -1494,7 +1502,7 @@ struct ffmpeg_file * ffmpeg_LoadFile( CTEXTSTR filename
 	// http://www.ffmpeg.org/doxygen/trunk/group__lavf__decoding.html
 	//av_dict_set(&options, WIDE("video_size"), WIDE("640x480"), 0);
 	//av_dict_set(&options, WIDE("pixel_format"), WIDE("rgb32"), 0);
-
+	InitFFMPEG();
 	file = New( struct ffmpeg_file );
 	MemSet( file, 0, sizeof( struct ffmpeg_file ) );
 	file->filename = StrDup( filename );
@@ -1519,7 +1527,7 @@ struct ffmpeg_file * ffmpeg_LoadFile( CTEXTSTR filename
  
 		// Allocate the AVIOContext:
 		// The fourth parameter (pStream) is a user parameter which will be passed to our callback functions
-		lprintf( WIDE("new avio alloc context...") );
+		//lprintf( WIDE("new avio alloc context...") );
 		file->ffmpeg_io = ffmpeg.avio_alloc_context(file->ffmpeg_buffer
 		                                           , file->ffmpeg_buffer_size  // internal Buffer and its size
 		                                           , 0                  // bWriteable (1=true,0=false)
@@ -1528,10 +1536,12 @@ struct ffmpeg_file * ffmpeg_LoadFile( CTEXTSTR filename
 		                                           , ffmpeg_write_packet                  // Write callback function (not used in this example)
 		                                           , ffmpeg_seek
 		                                           );
-		lprintf( WIDE("....") );
+		//lprintf( WIDE("....") );
 		// Allocate the AVFormatContext:
 		file->pFormatCtx = ffmpeg.avformat_alloc_context();
+#ifdef DEBUG_LOG_INFO
 		lprintf( WIDE("still good... %p %p"), file, file->pFormatCtx );
+#endif
 		// Set the IOContext; attaches here for the IO table...
 		file->pFormatCtx->pb = file->ffmpeg_io;
 #if __ANDROID__
@@ -1586,9 +1596,10 @@ struct ffmpeg_file * ffmpeg_LoadFile( CTEXTSTR filename
 		file->ffmpeg_buffer_size = 32000;
 #  endif
 #endif
-
+#ifdef DEBUG_LOW_LEVEL_PACKET_READ
 		lprintf( WIDE("Open vaulted movie...") );
 		lprintf( WIDE("buffer is %p ... vault is %d"), file->ffmpeg_buffer, file->file_device );
+#endif
 		if( file->ffmpeg_buffer || file->file_device )
 		{
 			AVProbeData probeData;
@@ -1596,26 +1607,35 @@ struct ffmpeg_file * ffmpeg_LoadFile( CTEXTSTR filename
 			size_t ulReadBytes = 0;
 			//memcpy( file->
 #ifdef WIN32
+#ifdef DEBUG_LOW_LEVEL_PACKET_READ
 			lprintf( WIDE("buffer is %d"), file->ffmpeg_buffer_size );
+#endif
 			file->ffmpeg_buffer = NewArray( _8, file->ffmpeg_buffer_size );
 			//file->ffmpeg_buffer_size = 0;
 			ulReadBytes = sack_fread(file->ffmpeg_buffer, 1, file->ffmpeg_buffer_size, file->file_device );
 			//ulReadBytes = file->ffmpeg_buffer_size;
+#ifdef DEBUG_LOW_LEVEL_PACKET_READ
 			lprintf( WIDE("did a read %d"), ulReadBytes );
+#endif
 			// Error Handling...
 			sack_fseek( file->file_device, 0, 0 );
 #endif
+#ifdef DEBUG_LOW_LEVEL_PACKET_READ
 			lprintf( WIDE("probe size is %d"), file->ffmpeg_buffer_size );
+#endif
 			// Now we set the ProbeData-structure for av_probe_input_format:
 			probeData.buf = file->ffmpeg_buffer;
 			probeData.buf_size = file->ffmpeg_buffer_size;//ulReadBytes;
 			probeData.filename = "";
+#ifdef DEBUG_LOG_INFO
 			LogBinary( probeData.buf, 256 );
- 
+#endif
 			// Determine the input-format:
 			file->pFormatCtx->iformat = 0;
 			//file->pFormatCtx->iformat = ffmpeg.av_probe_input_format(&probeData, 1);
+#ifdef DEBUG_LOG_INFO
 			lprintf( WIDE("format is %d"), file->pFormatCtx->iformat );
+#endif
 			file->pFormatCtx->flags = AVFMT_FLAG_CUSTOM_IO;
 		}
 		else
@@ -1624,7 +1644,9 @@ struct ffmpeg_file * ffmpeg_LoadFile( CTEXTSTR filename
 			Release( file );
 			return NULL;
 		}
+#ifdef DEBUG_LOG_INFO
 		lprintf( WIDE("do the open..") );
+#endif
 		err = ffmpeg.avformat_open_input( &file->pFormatCtx, "", NULL, &options );
 	}
 	else
@@ -1786,7 +1808,9 @@ struct ffmpeg_file * ffmpeg_LoadFile( CTEXTSTR filename
 			{
 				//lprintf( WIDE("This implies that pkt_pts should be correct...") );
 			}
-			if( strcmp( file->pFormatCtx->iformat->long_name, "FLV (Flash Video)" ) == 0 )
+			if( strcmp( file->pFormatCtx->iformat->long_name, "FLV (Flash Video)" ) == 0 
+				|| strcmp( file->pFormatCtx->iformat->long_name, "ASF (Advanced / Active Streaming Format)" ) == 0 
+				)
 			{
 				file->flags.force_pkt_pts_in_ms = 1;
 			}
@@ -2660,7 +2684,7 @@ static PTRSZVAL CPROC ProcessVideoFrame( PTHREAD thread )
 						lprintf( WIDE("Update Display.") );
 #endif
 						if( file->output )
-							UpdateDisplay( file->output );
+							Redraw( file->output );
 						else if( file->output_control )
 						{
 							if( file->post_video_render )
@@ -2819,13 +2843,17 @@ static PTRSZVAL CPROC ProcessFrames( PTHREAD thread )
 				while( ( !file->flags.need_video_frame || file->video_packets ) 
 					|| ( !file->flags.need_audio_frame || file->out_of_queue ) )
 				{
-					lprintf( WIDE("waiting for video and audio to end.... %d %d %d %d"), file->flags.need_video_frame, file->video_packets,  file->flags.need_audio_frame, file->out_of_queue );
+					//lprintf( WIDE("waiting for video and audio to end.... %d %d %d %d"), file->flags.need_video_frame, file->video_packets,  file->flags.need_audio_frame, file->out_of_queue );
 					WakeableSleep( 10 );
 				}
+#ifdef DEBUG_LOW_LEVEL_PACKET_IO
 				lprintf( WIDE("threads are both like empty") );
+#endif
 				if( !file->flags.sent_end_event )
 				{
+#ifdef DEBUG_LOW_LEVEL_PACKET_IO
 					lprintf( WIDE("Send end event...") );
+#endif
 					file->flags.sent_end_event = 1;
 					if( file->video_ended )
 						file->video_ended( file->psvEndedParam );

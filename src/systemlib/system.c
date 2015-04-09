@@ -1281,7 +1281,7 @@ static void LoadExistingLibraries( void )
 	DWORD needed;
 	if( !l.EnumProcessModules )
 	{
-		lprintf( "Failed to load EnumProcessModules" );
+		//lprintf( "Failed to load EnumProcessModules" );
 		return;
 	}
 	l.EnumProcessModules( GetCurrentProcess(), modules, sizeof( HMODULE ) * 256, &needed );
@@ -1315,7 +1315,7 @@ SYSTEM_PROC( LOGICAL, IsMappedLibrary)( CTEXTSTR libname )
 	}
 	while( library )
 	{
-		if( StrCaseCmp( library->name, libname ) == 0 )
+		if( library->library && StrCaseCmp( library->name, libname ) == 0 )
 			break;
 		library = library->next;
 	}
@@ -1430,7 +1430,9 @@ void DeAttachThreadToLibraries( LOGICAL attach )
 
 SYSTEM_PROC( generic_function, LoadFunctionExx )( CTEXTSTR libname, CTEXTSTR funcname, LOGICAL bPrivate  DBG_PASS )
 {
-	PLIBRARY library = l.libraries;
+	PLIBRARY library;
+	SystemInit();
+	library = l.libraries;
 	if( !l.libraries )
 	{
 		LoadExistingLibraries();
@@ -1464,6 +1466,8 @@ SYSTEM_PROC( generic_function, LoadFunctionExx )( CTEXTSTR libname, CTEXTSTR fun
 		library->library = NULL;
 		library->mapped = FALSE;
 		library->functions = NULL;
+		library->nLibrary = ++l.nLibrary;
+		LinkThing( l.libraries, library );
 		SuspendDeadstart();
 #ifdef _WIN32
 		// with deadstart suspended, the library can safely register
@@ -1478,9 +1482,10 @@ SYSTEM_PROC( generic_function, LoadFunctionExx )( CTEXTSTR libname, CTEXTSTR fun
 			{
 				// result will be in the local list of libraries (duplicating this one)
 				// and will reference the same name(or a byte duplicate)
-				if( StrCaseCmp( check->name, library->name ) == 0 )
+				if( check != library && StrCaseCmp( check->name, library->name ) == 0 )
 				{
-					Deallocate( PLIBRARY, library );
+					UnlinkThing( library );
+					Deallocate( PLIBRARY, library );					
 					library = check;
 					// loaded.... 
 					goto get_function_name;
@@ -1497,6 +1502,7 @@ SYSTEM_PROC( generic_function, LoadFunctionExx )( CTEXTSTR libname, CTEXTSTR fun
 				if( !library->library )
 				{
 					_xlprintf( 2 DBG_RELAY)( WIDE("Attempt to load %s[%s](%s) failed: %d."), libname, library->full_name, funcname?funcname:WIDE("all"), GetLastError() );
+					UnlinkThing( library );
 					ReleaseEx( library DBG_SRC );
 					ResumeDeadstart();
 					return NULL;
@@ -1557,8 +1563,6 @@ SYSTEM_PROC( generic_function, LoadFunctionExx )( CTEXTSTR libname, CTEXTSTR fun
 			InvokeDeadstart();
 		}
 		InvokeLibraryLoad();
-		library->nLibrary = ++l.nLibrary;
-		LinkThing( l.libraries, library );
 	}
 	get_function_name:
 	if( funcname )

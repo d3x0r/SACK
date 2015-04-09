@@ -871,6 +871,7 @@ void Chat_ClearMessages( PSI_CONTROL pc )
 	if( chat_control )
 	{
 		PCHAT_CONTEXT pcc;
+		chat_control->control_offset = 0;
 		while( pcc = (PCHAT_CONTEXT)DequeLink( &chat_control->contexts ) )
 		{
 			PCHAT_MESSAGE pcm;
