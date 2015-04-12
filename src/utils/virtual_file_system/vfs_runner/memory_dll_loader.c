@@ -90,7 +90,7 @@ void DumpSystemMemory( POINTER p_match )
 			int n = 256;
 			HMODULE *modules = NewArray( HMODULE, 256 );
 			DWORD needed;
-			EnumProcessModules( GetCurrentProcess(), modules, sizeof( HMODULE ) * 256, &needed );
+			//l.EnumProcessModules( GetCurrentProcess(), modules, sizeof( HMODULE ) * 256, &needed );
 			if( needed / sizeof( HMODULE ) == n )
 				lprintf( "loaded module overflow" );
 			needed /= sizeof( HMODULE );
@@ -402,7 +402,7 @@ POINTER LoadLibraryFromMemory( CTEXTSTR name, POINTER block, size_t block_len, i
 							_asm mov tls_list, ecx;
 						}
 #else
-#error need assembly to get this...
+//#error need assembly to get this...
 #endif
 						dwInit = 0;
 						{
@@ -432,7 +432,7 @@ POINTER LoadLibraryFromMemory( CTEXTSTR name, POINTER block, size_t block_len, i
 							_asm mov tls_list, ecx;
 						}
 #else
-#error need assembly to get this...
+//#error need assembly to get this...
 #endif
 						(*((DWORD*)tls->AddressOfIndex)) = dwInit;
 						//printf( "%p is %d\n", tls->AddressOfIndex, dwInit );

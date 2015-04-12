@@ -1634,13 +1634,16 @@ struct file_system_mounted_interface *sack_mount_filesystem( char *name, struct 
 	//lprintf( "Create mount called %s ", name );
 	if( !root || ( root->priority >= priority ) )
 	{
-		LinkThing( l.mounted_file_systems, mount );
+		if( !root )
+			LinkThing( l.mounted_file_systems, mount );
+		else
+			LinkThingBefore( root, mount );
 	}
 	else while( root )
 	{
 		if( root->priority >= priority )
 		{
-			LinkThing( root, mount );
+			LinkThingBefore( root, mount );
 			break;
 		}
 		if( !NextThing( root ) )
