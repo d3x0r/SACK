@@ -484,7 +484,7 @@ static void CPROC KillName( POINTER user, PTRSZVAL key )
 	else if( name->flags.bData )
 	{
 	}
-	DeleteFromSet( NAME, &l.Names, user );
+	//DeleteFromSet( NAME, &l.TreeNodes, user );
 }
 
 //---------------------------------------------------------------------------

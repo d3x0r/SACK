@@ -97,6 +97,7 @@ void FixupMyTLS( void )
 						, ( tls->EndAddressOfRawData - tls->StartAddressOfRawData ) + tls->SizeOfZeroFill
 						, tls->AddressOfIndex );
 				*/
+#if defined( _MSC_VER )
 			dwInit = (*((DWORD*)tls->AddressOfIndex));
 			{
 				POINTER data;
@@ -114,6 +115,7 @@ void FixupMyTLS( void )
 					_asm mov fs:[2ch], ecx;
 				}
 			}
+#endif
 		}
 	}
 }

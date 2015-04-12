@@ -89,11 +89,11 @@ set( NETWORK_SOURCES
   ${MORE_NETWORK_SOURCES}
 )
 
-if( NOT MINGW )
+#if( NOT MINGW )
 set( NETWORK_SOURCES ${NETWORK_SOURCES} 
   ${SOURCES_ROOT}src/netlib/ssl_layer.c
 )
-endif( NOT MINGW )
+#endif( NOT MINGW )
 SET_SOURCE_FILES_PROPERTIES( ${NETWORK_SOURCES} PROPERTIES 
 		FOLDER "Source Files\\Network Library" )
 endif( NOT __NO_NETWORK__ )
