@@ -46,6 +46,7 @@ enum block_cache_entries
 	, BLOCK_CACHE_NAMES
 	, BLOCK_CACHE_FILE
 	, BLOCK_CACHE_BAT
+	, BLOCK_CACHE_DATAKEY
 	, BLOCK_CACHE_COUNT
 };
 
@@ -55,6 +56,7 @@ PREFIX_PACKED struct volume {
 	//_32 dirents;  // constant 0
 	//_32 nameents; // constant 1
 	size_t dwSize;
+	const char * datakey;  // used for directory signatures
 	const char * userkey;
 	const char * devkey;
 	enum block_cache_entries curseg;
@@ -104,6 +106,7 @@ struct sack_vfs_file
 
 static struct {
 	struct directory_entry zero_entkey;
+	_8 zerokey[BLOCK_SIZE];
 } l;
 
 static BLOCKINDEX GetFreeBlock( struct volume *vol, LOGICAL init );
@@ -238,7 +241,7 @@ static void ExpandVolume( struct volume *vol )
 			vol->segment[BLOCK_CACHE_BAT] = n + 1;
 			if( ( n % (BLOCKS_PER_SECTOR) ) == 0 )	 UpdateSegmentKey( vol, BLOCK_CACHE_BAT );
 #ifdef PARANOID_INIT
-			else 	                 SRG_GetEntropyBuffer( vol->entropy, (P_32)vol->usekey[BLOCK_CACHE_BAT], BLOCK_SIZE * 8 );
+			else SRG_GetEntropyBuffer( vol->entropy, (P_32)vol->usekey[BLOCK_CACHE_BAT], BLOCK_SIZE * 8 );
 #else
 			else continue;
 #endif
@@ -418,13 +421,14 @@ static void DumpDirectory( struct volume *vol )
 struct volume *sack_vfs_load_volume( const char * filepath )
 {
 	struct volume *vol = New( struct volume );
-	vol->read_only = 0;
-	vol->dwSize = 0;
-	vol->disk = 0;
-	vol->lock = 0;
+	memset( vol, 0, sizeof( struct volume ) );
+	//vol->read_only = 0;
+	//vol->dwSize = 0;
+	//vol->disk = 0;
+	//vol->lock = 0;
 	vol->volname = SaveText( filepath );
-	vol->key = NULL;
-	vol->files = NULL;
+	//vol->key = NULL;
+	//vol->files = NULL;
 	ExpandVolume( vol );
 	if( !ValidateBAT( vol ) ) { vol->lock = 0; return NULL; }
 	return vol;
@@ -433,7 +437,13 @@ struct volume *sack_vfs_load_volume( const char * filepath )
 static void AddSalt( PTRSZVAL psv, POINTER *salt, size_t *salt_size )
 {
 	struct volume *vol = (struct volume *)psv;
-	if( vol->userkey )
+	if( vol->datakey )
+	{
+		(*salt_size) = BLOCK_SIZE;
+		(*salt) = (POINTER)vol->datakey;
+		vol->datakey = NULL;
+	}
+	else if( vol->userkey )
 	{
 		(*salt_size) = StrLen( vol->userkey );
 		(*salt) = (POINTER)vol->userkey;
@@ -454,20 +464,18 @@ static void AddSalt( PTRSZVAL psv, POINTER *salt, size_t *salt_size )
 		(*salt_size) = 0;
 }
 
-struct volume *sack_vfs_load_crypt_volume( const char * filepath, const char * userkey, const char * devkey )
+static void AssignKey( struct volume *vol, const char *key1, const char *key2 )
 {
-	struct volume *vol = New( struct volume );
-	vol->read_only = 0;
-	vol->dwSize = 0;
-	vol->disk = 0;
-	vol->lock = 0;
-	vol->volname = SaveText( filepath );
-	vol->userkey = userkey;
-	vol->devkey = devkey;
+	vol->userkey = key1;
+	vol->devkey = key2;
+	if( key1 || key2 )
 	{
 		FPI size = BLOCK_SIZE + BLOCK_SIZE * BLOCK_CACHE_COUNT + SHORTKEY_LENGTH;
 		int n;
-		vol->entropy = SRG_CreateEntropy2( AddSalt, (PTRSZVAL)vol );
+		if( !vol->entropy )
+			vol->entropy = SRG_CreateEntropy2( AddSalt, (PTRSZVAL)vol );
+		else
+			SRG_ResetEntropy( vol->entropy );
 		vol->key = (P_8)OpenSpace( NULL, NULL, &size );
 		for( n = 0; n < BLOCK_CACHE_COUNT; n++ )
 			vol->usekey[n] = vol->key + (n+1) * BLOCK_SIZE;
@@ -476,6 +484,21 @@ struct volume *sack_vfs_load_crypt_volume( const char * filepath, const char * u
 		vol->segment[BLOCK_CACHE_DIRECTORY] = 0;
 		SRG_GetEntropyBuffer( vol->entropy, (P_32)vol->key, BLOCK_SIZE * 8 );
 	}
+}
+
+struct volume *sack_vfs_load_crypt_volume( const char * filepath, const char * userkey, const char * devkey )
+{
+	struct volume *vol = New( struct volume );
+	vol->read_only = 0;
+	vol->dwSize = 0;
+	vol->disk = 0;
+	vol->lock = 0;
+	vol->volname = SaveText( filepath );
+	vol->datakey = NULL;
+	vol->userkey = userkey;
+	vol->devkey = devkey;
+	vol->entropy = NULL;
+	AssignKey( vol, userkey, devkey );
 	vol->files = NULL;
 	ExpandVolume( vol );
 	if( !ValidateBAT( vol ) ) { Release( vol->disk ); return NULL; }
@@ -490,20 +513,9 @@ struct volume *sack_vfs_use_crypt_volume( POINTER memory, size_t sz, const char 
 	vol->disk = 0;
 	vol->lock = 0;
 	vol->volname = NULL;
-	vol->userkey = userkey;
-	vol->devkey = devkey;
-	{
-		FPI size = BLOCK_SIZE + BLOCK_SIZE * BLOCK_CACHE_COUNT + SHORTKEY_LENGTH;
-		int n;
-		vol->entropy = SRG_CreateEntropy2( AddSalt, (PTRSZVAL)vol );
-		vol->key = (P_8)OpenSpace( NULL, NULL, &size );
-		for( n = 0; n < BLOCK_CACHE_COUNT; n++ )
-			vol->usekey[n] = vol->key + (n+1) * BLOCK_SIZE;
-		vol->segkey = vol->key + BLOCK_SIZE * (n+1);
-		vol->curseg = BLOCK_CACHE_DIRECTORY;
-		vol->segment[BLOCK_CACHE_DIRECTORY] = 0;
-		SRG_GetEntropyBuffer( vol->entropy, (P_32)vol->key, BLOCK_SIZE * 8 );
-	}
+	vol->datakey = NULL;
+	vol->entropy = NULL;
+	AssignKey( vol, userkey, devkey );
 	vol->files = NULL;
 	vol->disk = (struct disk*)memory;
 	vol->dwSize = sz;
@@ -568,6 +580,101 @@ void sack_vfs_shrink_volume( struct volume * vol )
 	}
 }
 
+LOGICAL sack_vfs_decrypt_volume( struct volume *vol )
+{
+	while( LockedExchange( &vol->lock, 1 ) ) Relinquish();
+	if( !vol->key ) return FALSE; // volume is already decrypted, cannot remove key
+	{
+		int n;
+		BLOCKINDEX slab = vol->dwSize / ( BLOCK_SIZE );
+		for( n = 0; n < slab; n++  )
+		{
+			int m;
+			BLOCKINDEX *block = (BLOCKINDEX*)(((P_8)vol->disk) + n * BLOCK_SIZE);
+			vol->segment[BLOCK_CACHE_BAT] = n + 1;
+			UpdateSegmentKey( vol, BLOCK_CACHE_BAT );
+			for( m = 0; m < BLOCKS_PER_BAT; m++ )
+				block[m] ^= ((BLOCKINDEX*)vol->usekey[BLOCK_CACHE_BAT])[m];
+		}
+	}
+	AssignKey( vol, NULL, NULL );
+	vol->lock = 0;
+	return TRUE;
+}
+
+LOGICAL sack_vfs_encrypt_volume( struct volume *vol, CTEXTSTR key1, CTEXTSTR key2 )
+{
+	while( LockedExchange( &vol->lock, 1 ) ) Relinquish();
+	if( vol->key ) return FALSE; // volume already has a key, cannot apply new key
+	AssignKey( vol, key1, key2 );
+	{
+		int n;
+		BLOCKINDEX slab = vol->dwSize / ( BLOCK_SIZE );
+		for( n = 0; n < slab; n++  )
+		{
+			int m;
+			BLOCKINDEX *block = (BLOCKINDEX*)(((P_8)vol->disk) + n * BLOCK_SIZE);
+			vol->segment[BLOCK_CACHE_BAT] = n + 1;
+			UpdateSegmentKey( vol, BLOCK_CACHE_BAT );
+			for( m = 0; m < BLOCKS_PER_BAT; m++ )
+				block[m] ^= ((BLOCKINDEX*)vol->usekey[BLOCK_CACHE_BAT])[m];
+		}
+	}
+	vol->lock = 0;
+	return TRUE;
+}
+
+const char *sack_vfs_get_signature( struct volume *vol )
+{
+	static char signature[257];
+	static const char *output = "0123456789ABCDEF";
+	while( LockedExchange( &vol->lock, 1 ) ) Relinquish();
+	{
+		static BLOCKINDEX datakey[BLOCKS_PER_BAT];
+		P_8 usekey = vol->key?vol->usekey[BLOCK_CACHE_DATAKEY]:l.zerokey;
+		signature[256] = 0;
+		memset( datakey, 0, sizeof( datakey ) );
+		{
+			{
+				int n;
+				int this_dir_block = 0;
+				int next_dir_block;
+				BLOCKINDEX *next_entries;
+				do
+				{
+					next_entries = BTSEEK( BLOCKINDEX *, vol, this_dir_block, BLOCK_CACHE_DATAKEY );
+					for( n = 0; n < BLOCKS_PER_BAT; n++ )
+						datakey[n] ^= next_entries[n] ^ ((BLOCKINDEX*)(((P_8)usekey)))[n];
+					
+					next_dir_block = GetNextBlock( vol, this_dir_block, TRUE, FALSE );
+					if( this_dir_block == next_dir_block )
+						DebugBreak();
+					if( next_dir_block == 0 )
+						DebugBreak();
+					this_dir_block = next_dir_block;
+				}
+				while( next_dir_block != ~0 );
+			}
+		}
+		if( !vol->entropy )
+			vol->entropy = SRG_CreateEntropy2( AddSalt, (PTRSZVAL)vol );
+		SRG_ResetEntropy( vol->entropy );
+		vol->curseg = BLOCK_CACHE_DIRECTORY;
+		vol->segment[vol->curseg] = 0;
+		vol->datakey = (const char *)datakey;
+		SRG_GetEntropyBuffer( vol->entropy, (P_32)usekey, BLOCK_SIZE * 8 );
+		{
+			int n;
+			for( n = 0; n < 128; n++ )
+			{
+				signature[n*2] = output[( usekey[n] >> 4 ) & 0xF];
+				signature[n*2+1] = output[usekey[n] & 0xF];
+			}
+		}
+	}
+	vol->lock = 0;
+	return signature;
+}
 
 static struct directory_entry * ScanDirectory( struct volume *vol, const char * filename, struct directory_entry *dirkey )
 {
@@ -954,6 +1061,8 @@ struct find_info
 	BLOCKINDEX this_dir_block;
 	char filename[BLOCK_SIZE];
 	struct volume *vol;
+	CTEXTSTR base;
+	size_t base_len;
 	size_t filenamelen;
 	int thisent;
 };
@@ -961,6 +1070,8 @@ struct find_info
 static struct find_info * CPROC sack_vfs_find_create_cursor(PTRSZVAL psvInst,const char *base,const char *mask )
 {
 	struct find_info *info = New( struct find_info );
+	info->base = base;
+	info->base_len = StrLen( base );
 	info->vol = (struct volume *)psvInst;
 	return info;
 }
@@ -992,11 +1103,17 @@ static int iterate_find( struct find_info *info )
 					info->filename[info->filenamelen++] = c;
 					name_ofs++;
 				}
-				info->filename[info->filenamelen] = c;
+				info->filename[info->filenamelen]	 = c;
+				if( ( info->base[0] != '.' && info->base_len != 1 )
+					&& StrCaseCmpEx( info->base, info->filename, info->base_len ) )
+					continue;
 			}
 			else
 			{
 				StrCpy( info->filename, (const char *)(((P_8)info->vol->disk) + name_ofs) );
+				if( ( info->base[0] != '.' && info->base_len != 1 )
+					&& StrCaseCmpEx( info->base, info->filename, info->base_len ) )
+					continue;
 			}
 			info->thisent = n + 1;
 			return 1;

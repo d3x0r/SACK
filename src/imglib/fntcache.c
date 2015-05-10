@@ -677,7 +677,7 @@ void CPROC ListFontFile( PTRSZVAL psv, CTEXTSTR name, int flags )
 	fonts_checked++;
 	//if( !InitFont() )
 	//	return;
-	//lprintf( WIDE("Try font: %s"), name );
+	lprintf( WIDE("Try font: %s"), name );
 	//#ifdef IMAGE_LIBRARY_SOURCE
 	face_idx = 0;
 	do

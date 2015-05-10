@@ -154,18 +154,23 @@ static void GetDirectory( void )
 static void usage( void )
 {
 	printf( "arguments are processed in order... commands may be appended on the same line...\n" );
-	printf( "   verbose                        : show operations; (some)debugging\n" );
-	printf( "   vfs <filename>                 : specify a unencrypted VFS file to use\n" );
-	printf( "   cvfs <filename> <key1> <key2>  : specify an encrypted VFS file to use; and keys to use\n" );
-	printf( "   dir                            : show current directory\n" );
-	printf( "   rm <filename>                  : delete file within VFS\n" );
-	printf( "   delete <filename>              : delete file within VFS\n" );
-	printf( "   store <filemask>               : store files that match the name in the VFS from local filesystem\n" );
-	printf( "   extract <filemask>             : extract files that match the name in the VFS to local filesystem\n" );
-	printf( "   storeas <filename> <as file>   : store file from <filename> into VFS as <as file>\n" );
-	printf( "   extractas <filename> <as file> : extract file <filename> from VFS as <as file>\n" );
-	printf( "   append <filename> <to file>    : store file from <filename> into VFS appended to <to file>\n" );
-	printf( "   shrink                         : remove extra space at the end of a volume.\n" );
+	printf( "   verbose                             : show operations; (some)debugging\n" );
+	printf( "   vfs <filename>                      : specify a unencrypted VFS file to use.\n" );
+	printf( "   cvfs <filename> <key1> <key2>       : specify an encrypted VFS file to use; and keys to use.\n" );
+	printf( "   dir                                 : show current directory.\n" );
+	printf( "   rm <filename>                       : delete file within VFS.\n" );
+	printf( "   delete <filename>                   : delete file within VFS.\n" );
+	printf( "   store <filemask>                    : store files that match the name in the VFS from local filesystem.\n" );
+	printf( "   extract <filemask>                  : extract files that match the name in the VFS to local filesystem.\n" );
+	printf( "   storeas <filename> <as file>        : store file from <filename> into VFS as <as file>.\n" );
+	printf( "   extractas <filename> <as file>      : extract file <filename> from VFS as <as file>.\n" );
+	printf( "   append <file 1> <file 2> <to file>  : store <file 1>+<file 2> as <to file> in native file system.\n" );
+	printf( "   shrink                              : remove extra space at the end of a volume.\n" );
+	printf( "   encrypt <key1> <key2>               : apply encryption keys to vfs.\n" );
+	printf( "   decrypt <key1> <key2>               : remove encryption keys from vfs.\n" );
+	printf( "   sign                                : get volume short signature.\n" );
+	printf( "   sign-encrypt <key1>                 : get volume short signature; use key1 and signature to encrypt volume.\n" );
+	printf( "   sign-to-header <filename> <varname> : get volume short signature; write a c header called filename, with a variable varname.\n" );
 }
 
 SaneWinMain( argc, argv )
@@ -254,7 +259,42 @@ SaneWinMain( argc, argv )
 			sack_vfs_shrink_volume( l.current_vol );
 			arg += 3;
 		}
-
+		else if( StrCaseCmp( argv[arg], "decrypt" ) == 0 )
+		{
+			if( !sack_vfs_decrypt_volume( l.current_vol ) )
+				printf( "Failed to decrypt volume.\n" );
+		}
+		else if( StrCaseCmp( argv[arg], "encrypt" ) == 0 )
+		{
+			if( !sack_vfs_encrypt_volume( l.current_vol, argv[arg+1], argv[arg+2] ) )
+				printf( "Failed to encrypt volume.\n" );
+			arg += 2;
+		}
+		else if( StrCaseCmp( argv[arg], "sign" ) == 0 )
+		{
+			const char *signature = sack_vfs_get_signature( l.current_vol );
+			printf( "%s\n", signature );
+		}
+		else if( StrCaseCmp( argv[arg], "sign-encrypt" ) == 0 )
+		{
+			const char *signature = sack_vfs_get_signature( l.current_vol );
+			if( !sack_vfs_encrypt_volume( l.current_vol, argv[arg+1], signature ) )
+				printf( "Failed to encrypt volume.\n" );
+			arg += 1;
+		}
+		else if( StrCaseCmp( argv[arg], "sign-to-header" ) == 0 )
+		{
+			const char *signature = sack_vfs_get_signature( l.current_vol );
+			FILE *output = sack_fopenEx( 0, argv[arg+1], "wb", sack_get_default_mount() );
+			if( !output )
+			{
+				printf( "Failed to open output header file: %s", argv[arg+1] );
+				return 2;
+			}
+			fprintf( output, "const char *%s = \"%s\";\n", argv[arg+2], signature );
+			fclose( output );
+			arg += 2;
+		}
 	}
 	return 0;
 }

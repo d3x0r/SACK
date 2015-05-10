@@ -713,7 +713,9 @@ enum GetNetworkLongAccessInternal{
 		
 };
 
-NETWORK_PROC( int, GetMacAddress)(PCLIENT pc );
+NETWORK_PROC( int, GetMacAddress)(PCLIENT pc, P_8 buf, size_t *buflen );//int get_mac_addr (char *device, unsigned char *buffer)
+//NETWORK_PROC( int, GetMacAddress)(PCLIENT pc );
+NETWORK_PROC( PLIST, GetMacAddresses)( void );//int get_mac_addr (char *device, unsigned char *buffer)
 
 NETWORK_PROC( void, RemoveClientExx )(PCLIENT lpClient, LOGICAL bBlockNofity, LOGICAL bLinger DBG_PASS );
 /* <combine sack::network::RemoveClientExx@PCLIENT@LOGICAL@LOGICAL bLinger>

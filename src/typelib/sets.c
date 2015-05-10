@@ -365,6 +365,7 @@ void DeleteFromSetExx( GENERICSET *pSet, void *unit, int unitsize, int max DBG_P
 		Log( WIDE("Failed to find node in set!") );
 }
 
+#if 0
 #undef DeleteFromSetEx
 PUBLIC( void, DeleteFromSetEx )( GENERICSET *pSet, void *unit, int unitsize, int max )
 {
@@ -373,8 +374,9 @@ PUBLIC( void, DeleteFromSetEx )( GENERICSET *pSet, void *unit, int unitsize, int
 
 void DeleteFromSet( GENERICSET *pSet, void *unit, int unitsize, int max )
 {
-	DeleteFromSetEx( pSet, unit, unitsize, max );
+	DeleteFromSetExx( pSet, unit, unitsize, max DBG_SRC );
 }
+#endif
 
 //----------------------------------------------------------------------------
 

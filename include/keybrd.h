@@ -147,6 +147,9 @@ RENDER_NAMESPACE_END
 #define KEY_DEL          46
 #define KEY_DELETE       KEY_DEL
 
+#define KEY_PRINT_SCREEN1  VK_PRINT
+#define KEY_PRINT_SCREEN2  VK_SNAPSHOT
+
 #define KEY_WINDOW_2     0x50 // windows keys keys
 #define KEY_WINDOW_1     0x5c // windows keys keys
 

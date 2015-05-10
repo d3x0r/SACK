@@ -458,6 +458,8 @@ include_directories(  ${SACK_BASE}/include )
 
 if( USING_OLD_MINGW )
   add_definitions( -DMINGW_SUX )
+  set( CMAKE_C_FLAGS ${CMAKE_C_FLAGS} -fshort-wchar )
+  set( CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} -fshort-wchar )
 endif()
 
 if( WIN32 )

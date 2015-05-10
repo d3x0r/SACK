@@ -751,6 +751,155 @@ static PSI_CONTROL FindControl( PSI_CONTROL pfc, PSI_CONTROL pc, int x, int y, i
 }
 
 //---------------------------------------------------------------------------
+#ifdef WIN32
+static void UpdateCursor( PSI_CONTROL pc, int x, int y, int caption_height, int frame_height )
+{
+	if( pc->BorderType & BORDER_RESIZABLE )
+	{
+				if( y < pc->surface_rect.y )
+				{
+					if ( y < ( pc->surface_rect.y - caption_height ) )
+					{  // very top edge
+						int do_drag = 0;
+						if( g.BorderHeight > 10 )
+							do_drag = 1;
+						 if( x < pc->surface_rect.x ) // left side edge
+						 {
+							 SetDisplayCursor( IDC_SIZENWSE );
+						}
+						else if( (S_64)x > ( ( pc->surface_rect.x 
+												+ pc->surface_rect.width ) ) ) // right side edge
+						{
+							SetDisplayCursor( IDC_SIZENESW );
+						}
+						else // center top edge
+						{
+							if( do_drag )
+							{
+								SetDisplayCursor( IDC_HAND );
+							}
+							else
+							{
+								SetDisplayCursor( IDC_SIZENS );
+							}
+						}
+					}
+					else
+					{  // top within caption band
+						 if( x < pc->surface_rect.x ) // left side edge
+						 {
+							 SetDisplayCursor( IDC_SIZENWSE );
+						}
+						else if( (S_64)x > ( pc->surface_rect.x 
+										+ pc->surface_rect.width ) )
+						{
+							SetDisplayCursor( IDC_SIZENESW );
+						}
+						else // center bottom edge
+						{
+							SetDisplayCursor( IDC_ARROW );
+						}
+					}
+				}
+				else if( (S_64)y >= ( ( pc->surface_rect.y 
+									 + pc->surface_rect.height ) ) ) // bottom side...
+				{  // very bottom band
+					int do_drag = 0;
+					if( g.BorderHeight > 10 )
+						do_drag = 1;
+					if( x < ( pc->surface_rect.x ) ) // left side edge
+					{
+						SetDisplayCursor( IDC_SIZENESW );
+					}
+					else if( (S_64)x > ( ( pc->surface_rect.x 
+										 + pc->surface_rect.width ) ) )
+					{
+						SetDisplayCursor( IDC_SIZENWSE );
+					}
+					else // center bottom edge
+					{
+#ifdef DETAILED_MOUSE_DEBUG
+						if( g.flags.bLogDetailedMouse )
+							Log( WIDE("Setting size frame on bottom edge") );
+#endif
+						if( do_drag )
+						{
+							SetDisplayCursor( IDC_HAND );
+						}
+						else
+						{
+							SetDisplayCursor( IDC_SIZENS );
+						}
+					}
+
+				}
+				else // between top and bottom border/caption
+				{
+					int do_drag = 0;
+					if( g.BorderHeight > 10 )
+						do_drag = 1;
+					if( x < pc->surface_rect.x ) // left side edge
+					{
+						if( do_drag )
+						{
+							SetDisplayCursor( IDC_HAND );
+						}
+						else
+						{
+							SetDisplayCursor( IDC_SIZEWE );
+						}
+					}
+					else if( (S_64)x >= ( ( pc->surface_rect.x
+										 + pc->surface_rect.width ) ) )// right side edge
+					{
+						if( do_drag )
+						{
+							SetDisplayCursor( IDC_HAND );
+						}
+						else
+						{
+							SetDisplayCursor( IDC_SIZEWE );
+						}
+					}
+					else
+					{
+						SetDisplayCursor( IDC_ARROW );
+					}
+				}
+	}
+	else
+	{
+			if( ( (S_64)y >= pc->surface_rect.y )
+				&& ( (S_64)y < ( pc->surface_rect.y
+									+ pc->surface_rect.height ) ) // bottom side...
+				&& ( (S_64)x >= pc->surface_rect.x ) // left side edge
+				&& ( (S_64)x < ( pc->surface_rect.x
+									+ pc->surface_rect.width ) ) )// right side edge
+			{
+				SetDisplayCursor( IDC_ARROW );
+			}
+			else
+			{
+				PCAPTION_BUTTON button = NULL;
+				if( ( y > frame_height )
+					&& ( y < ( frame_height + caption_height ) )
+					&& ( x < ( pc->surface_rect.x + pc->surface_rect.width ) ) 
+					)
+				{
+					SetDisplayCursor( IDC_ARROW );
+				}
+				if( !button && !( pc->BorderType & BORDER_NOMOVE ) && pc->device )
+				{
+					// otherwise set dragging... hmm
+					SetDisplayCursor( IDC_HAND );
+				}
+				else
+					SetDisplayCursor( IDC_ARROW );
+			}
+		}
+}
+#endif
+//---------------------------------------------------------------------------
 
 int CPROC FirstFrameMouse( PPHYSICAL_DEVICE pf, S_32 x, S_32 y, _32 b, int bCallOriginal )
 {
@@ -767,6 +916,12 @@ int CPROC FirstFrameMouse( PPHYSICAL_DEVICE pf, S_32 x, S_32 y, _32 b, int bCall
 #endif
 	// need to handle - click to raise window in display list...
 #if 0
+
+#ifdef WIN32
+	// set this early, so controls might have a chance to re-change the cursor
+	//UpdateCursor( pc, x, y, caption_height, frame_height );
+#endif
+
 	if( !pc->flags.bFocused )
 	{
 #ifdef DETAILED_MOUSE_DEBUG
@@ -780,6 +935,8 @@ int CPROC FirstFrameMouse( PPHYSICAL_DEVICE pf, S_32 x, S_32 y, _32 b, int bCall
 		return result;
 	}
 #endif
+
+
 	if( ( pf->_b & MK_LBUTTON ) &&
 		( b & MK_LBUTTON ) )
 	{
@@ -1618,6 +1775,7 @@ int InvokeMouseMethod( PSI_CONTROL pfc, S_32 x, S_32 y, _32 b )
 	if( g.flags.bLogDetailedMouse )
 		lprintf( WIDE("mouse method received on %p"), pfc );
 #endif
+
 	pCurrent = pf->pCurrent;
 	if( !HandleEditStateMouse( &pf->EditState, pfc, x, y, b ) )
 	{
@@ -1858,6 +2016,11 @@ int CPROC AltFrameMouse( PTRSZVAL psvCommon, S_32 x, S_32 y, _32 b )
 	}
 #endif
 	AddUse( (PSI_CONTROL)pc );
+	{
+		int caption_height = CaptionHeight( pc, GetText( pc->caption.text ) );
+		int frame_height = FrameBorderYOfs( pc, pc->BorderType, NULL );
+		UpdateCursor( pc, x, y, caption_height, frame_height );
+	}
 	if( pf->flags.bCaptured )
 	{
 #ifdef DETAILED_MOUSE_DEBUG

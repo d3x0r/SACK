@@ -21,7 +21,7 @@ typedef struct chat_time_tag *PCHAT_TIME;
 CHAT_CONTROL_PROC( void, Chat_SetMessageInputHandler )( PSI_CONTROL pc, void (CPROC *Handler)( PTRSZVAL psv, PTEXT input ), PTRSZVAL psv );
 CHAT_CONTROL_PROC( void, Chat_SetPasteInputHandler )( PSI_CONTROL pc, void (CPROC *Handler)( PTRSZVAL psv ), PTRSZVAL psv ); // app read clipboard
 CHAT_CONTROL_PROC( void, Chat_SetDropInputHandler )( PSI_CONTROL pc, void (CPROC *Handler)( PTRSZVAL psv, CTEXTSTR input, S_32 x, S_32 y ), PTRSZVAL psv );  // get filepath... called multiple times for multiselect
-CHAT_CONTROL_PROC( void, Chat_SetSeenCallback )( PSI_CONTROL pc, void (CPROC *Handler)( PTRSZVAL psv ) ); // psv comes from enque message/image
+CHAT_CONTROL_PROC( void, Chat_SetSeenCallback )( PSI_CONTROL pc, void (CPROC *Handler)( PTRSZVAL psv ), void (CPROC *DeleteHandler)( PTRSZVAL psv ) ); // psv comes from enque message/image
 CHAT_CONTROL_PROC( void, Chat_SetExpire )( PSI_CONTROL pc, int delta_seconds );
 
 CHAT_CONTROL_PROC( void, Chat_EnqueMessage )( PSI_CONTROL pc, LOGICAL sent

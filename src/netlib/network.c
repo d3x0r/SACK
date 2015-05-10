@@ -152,7 +152,102 @@ LOGICAL APIENTRY DllMain( HINSTANCE hModule,
 //    GetMacAddress( version cpg01032007 )
 //
 //----------------------------------------------------------------------------
-NETWORK_PROC( int, GetMacAddress)(PCLIENT pc )//int get_mac_addr (char *device, unsigned char *buffer)
+
+#define INCLUDE_MAC_SUPPORT
+
+NETWORK_PROC( int, GetMacAddress)(PCLIENT pc, P_8 buf, size_t *buflen )//int get_mac_addr (char *device, unsigned char *buffer)
+{
+#ifdef INCLUDE_MAC_SUPPORT
+#ifdef __LINUX__
+#ifdef __THIS_CODE_GETS_MY_MAC_ADDRESS___
+	int fd;
+	struct ifreq ifr;
+
+	fd = socket(PF_UNIX, SOCK_DGRAM, 0);
+	if (fd == -1)
+	{
+		lprintf(WIDE ("Unable to create socket for pclient: %p"), pc);
+		return -1;
+	}
+
+	strcpy (ifr.ifr_name, GetNetworkLong(pc,GNL_IP));
+
+	if (ioctl (fd, SIOCGIFFLAGS, &ifr) < 0)
+	{
+		close (fd);
+		return -1;
+	}
+
+	if (ioctl (fd, SIOCGIFHWADDR, &ifr) < 0)
+	{
+		close (fd);
+		return -1;
+	}
+
+	close (fd);
+
+	memcpy (pc->hwClient, ifr.ifr_hwaddr.sa_data, 6);
+
+	return 0;
+#endif
+   /* this code queries the arp table to figure out who the other side is */
+	//int fd;
+	struct arpreq arpr;
+	struct ifconf ifc;
+	MemSet( &arpr, 0, sizeof( arpr ) );
+	lprintf( WIDE( "this is broken." ) );
+	MemCpy( &arpr.arp_pa, pc->saClient, sizeof( SOCKADDR ) );
+	arpr.arp_ha.sa_family = AF_INET;
+	{
+		char buf[256];
+		ifc.ifc_len = sizeof( buf );
+		ifc.ifc_buf = buf;
+		ioctl( pc->Socket, SIOCGIFCONF, &ifc );
+		{
+         int i;
+			struct ifreq *IFR;
+			IFR = ifc.ifc_req;
+			for( i = ifc.ifc_len / sizeof( struct ifreq); --i >=0; IFR++ )
+			{
+				printf( WIDE( "IF: %s\n" ), IFR->ifr_name );
+				strcpy( arpr.arp_dev, WIDE( "eth0" ) );
+			}
+		}
+	}
+	DebugBreak();
+	if( ioctl( pc->Socket, SIOCGARP, &arpr ) < 0 )
+	{
+		lprintf( WIDE( "Error of some sort ... %s" ), strerror( errno ) );
+		DebugBreak();
+	}
+
+	return 0;
+#endif
+#ifdef WIN32
+    HRESULT hr;
+    ULONG   ulLen;
+	ulLen = (*buflen);
+    
+	//needs ws2_32.lib and iphlpapi.lib in the linker.
+	hr = SendARP ( GetNetworkLong(pc,GNL_MYIP), GetNetworkLong(pc,GNL_MYIP), (PULONG)buf, &ulLen);
+	(*buflen) = ulLen;
+//  The second parameter of SendARP is a PULONG, which is typedef'ed to a pointer to 
+//  an unsigned long.  The pc->hwClient is a pointer to an array of _8 (unsigned chars), 
+//  actually defined in netstruc.h as _8 hwClient[6]; Well, in the end, they are all
+//  just addresses, whether they be address to information of eight bits in length, or
+//  of (sizeof(unsigned)) in length.  Although this may, in the future, throw a warning.
+	//hr = SendARP (GetNetworkLong(pc,GNL_IP), 0, (PULONG)pc->hwClient, &ulLen);
+    //lprintf (WIDE("Return %08x, length %8d\n"), hr, ulLen);
+
+	return hr == S_OK;
+#endif
+#else
+	return 0;
+
+#endif
+}
+
+NETWORK_PROC( PLIST, GetMacAddresses)( void )//int get_mac_addr (char *device, unsigned char *buffer)
 {
 #ifdef INCLUDE_MAC_SUPPORT
 #ifdef __LINUX__
@@ -224,17 +319,17 @@ NETWORK_PROC( int, GetMacAddress)(PCLIENT pc )//int get_mac_addr (char *device, 
 
     HRESULT hr;
     ULONG   ulLen;
-	
+	_8 hwClient[6];
 	ulLen = 6;
     
 	//needs ws2_32.lib and iphlpapi.lib in the linker.
-//	hr = SendARP (GetNetworkLong(pc,GNL_IP), 0, (PULONG)pc->hwClient, &ulLen);
+	hr = SendARP (GetNetworkLong(NULL,GNL_IP), 0x100007f, (PULONG)&hwClient, &ulLen);
 //  The second parameter of SendARP is a PULONG, which is typedef'ed to a pointer to 
 //  an unsigned long.  The pc->hwClient is a pointer to an array of _8 (unsigned chars), 
 //  actually defined in netstruc.h as _8 hwClient[6]; Well, in the end, they are all
 //  just addresses, whether they be address to information of eight bits in length, or
 //  of (sizeof(unsigned)) in length.  Although this may, in the future, throw a warning.
-	hr = SendARP (GetNetworkLong(pc,GNL_IP), 0, (PULONG)pc->hwClient, &ulLen);
+	//hr = SendARP (GetNetworkLong(pc,GNL_IP), 0, (PULONG)pc->hwClient, &ulLen);
     lprintf (WIDE("Return %08x, length %8d\n"), hr, ulLen);
 
 	return 0;
@@ -2281,6 +2376,9 @@ NETWORK_PROC( SOCKADDR *, DuplicateAddress )( SOCKADDR *pAddr ) // return a copy
 	SOCKADDR *dup = AllocAddr();
 	POINTER tmp2 = (POINTER)( ( (PTRSZVAL)dup ) - 2*sizeof(PTRSZVAL) );
 	MemCpy( tmp2, tmp, MAGIC_SOCKADDR_LENGTH + 2*sizeof(PTRSZVAL) );
+	if( (POINTER)( ( (PTRSZVAL)pAddr ) - sizeof(PTRSZVAL) ) )
+		( (TEXTSTR*)( ( (PTRSZVAL)dup ) - sizeof(PTRSZVAL) ) )[0]
+				= StrDup( ((TEXTSTR*)( ( (PTRSZVAL)pAddr ) - sizeof(PTRSZVAL) ))[0] );
 	return dup;
 }
 

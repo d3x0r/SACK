@@ -67,6 +67,7 @@ Image CPROC GetInvertedImage( Image child_image );
 Image CPROC GetShadedImage( Image child_image, CDATA red, CDATA green, CDATA blue );
 Image CPROC GetTintedImage( Image child_image, CDATA color );
 
+void CPROC SetFontBias( SFTFont font, S_32 x, S_32 y );
 
 IMAGE_NAMESPACE_END
 

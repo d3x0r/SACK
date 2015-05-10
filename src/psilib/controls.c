@@ -4714,10 +4714,10 @@ PRENDERER GetFrameRenderer( PSI_CONTROL pcf )
 {
 	if( pcf )
 	{
-	PPHYSICAL_DEVICE pf = pcf->device;
-	//ValidatedControlData( PFRAME, CONTROL_FRAME, pf, pcf );
-	if( pf )
-		return pf->pActImg;
+		PPHYSICAL_DEVICE pf = GetFrame( pcf )->device;
+		//ValidatedControlData( PFRAME, CONTROL_FRAME, pf, pcf );
+		if( pf )
+			return pf->pActImg;
 	}
 	return NULL;
 }

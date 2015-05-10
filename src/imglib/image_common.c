@@ -128,21 +128,21 @@ _32 DOALPHA( _32 over, _32 in, _8 a )
 	aout = AlphaTable[a][AlphaVal( over )] << 24;
 
 	r = ( (( ((in & 0x00FF0000) >> 8)  *(a+1)) + ( ( (over & 0x00FF0000)>> 8)*(256-(a)))) );
-   if( r & 0xFF000000 )
+	if( r & 0xFF000000 )
 		r = 0x00FF0000;
-   else
+	else
 		r &= 0x00FF0000;  // trim low bits
 
 	g = ( (( ((in & 0x0000FF00) >> 8)  *(a+1)) + ( ( (over & 0x0000FF00)>> 8)*(256-(a)))) );
-   if( g & 0x00FF0000 )
+	if( g & 0x00FF0000 )
 		g = 0x0000FF00;
-   else
+	else
 		g &= 0x0000FF00;  // trim low bits
 
 	b = ( ((in & 0x000000FF )*(a+1)) + ( ( over & 0x000000FF)*(256-(a))) ) >> 8;
 	if( b & 0x0000FF00 )
-      b = 0x000000FF;
-   //else
+		b = 0x000000FF;
+	//else
 	//	b &= 0x000000FF;
 
 

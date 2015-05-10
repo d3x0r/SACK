@@ -1267,8 +1267,16 @@ void PutStringVerticalFontEx( ImageFile *pImage, S_32 x, S_32 y, CDATA color, CD
 	CDATA tmp1 = 0;
 	CDATA tmp2 = 0;
 	int ch;
+	S_32 bias_x;
+	S_32 bias_y;
 	if( !font )
 		font = &DEFAULTFONT;
+	bias_x = ( font->bias & 0xF );
+	bias_y = ( ( font->bias >> 4 ) & 0xF );
+	if( bias_x & 0x8 ) bias_x |= 0xFFFFFFF0;
+	if( bias_y & 0x8 ) bias_y |= 0xFFFFFFF0;
+	x += bias_x;
+	y += bias_y;
 	if( !pImage || !pc ) return;// y;
 	while( ch = Step( &pc, &nLen, &tmp1, &tmp2, &color, &background ) )
 	{
@@ -1289,8 +1297,16 @@ void PutStringInvertVerticalFontEx( ImageFile *pImage, S_32 x, S_32 y, CDATA col
 	CDATA tmp1 = 0;
 	CDATA tmp2 = 0;
 	int ch;
+	S_32 bias_x;
+	S_32 bias_y;
 	if( !font )
 		font = &DEFAULTFONT;
+	bias_x = ( font->bias & 0xF );
+	bias_y = ( ( font->bias >> 4 ) & 0xF );
+	if( bias_x & 0x8 ) bias_x |= 0xFFFFFFF0;
+	if( bias_y & 0x8 ) bias_y |= 0xFFFFFFF0;
+	x += bias_x;
+	y += bias_y;
 	if( !pImage || !pc ) return;// y;
 	while( ch = Step( &pc, &nLen, &tmp1, &tmp2, &color, &background ) )
 	{
@@ -1314,8 +1330,17 @@ void PutStringFontEx( ImageFile *pImage
 	CDATA tmp1 = 0;
 	CDATA tmp2 = 0;
 	int ch;
+	S_32 bias_x;
+	S_32 bias_y;
 	if( !font )
 		font = &DEFAULTFONT;
+	bias_x = ( font->bias & 0xF );
+	bias_y = ( ( font->bias >> 4 ) & 0xF );
+	if( bias_x & 0x8 ) bias_x |= 0xFFFFFFF0;
+	if( bias_y & 0x8 ) bias_y |= 0xFFFFFFF0;
+	x += bias_x;
+	y += bias_y;
+	_x = x;
 	if( !pImage || !pc ) return;// x;
 	{
 		while( ch = Step( &pc, &nLen, &tmp1, &tmp2, &color, &background ) )
@@ -1342,8 +1367,17 @@ void PutStringFontExx( ImageFile *pImage
 	CDATA tmp1 = 0;
 	CDATA tmp2 = 0;
 	CTEXTSTR start = pc;
+	S_32 bias_x;
+	S_32 bias_y;
 	if( !font )
 		font = &DEFAULTFONT;
+	bias_x = ( font->bias & 0xF );
+	bias_y = ( ( font->bias >> 4 ) & 0xF );
+	if( bias_x & 0x8 ) bias_x |= 0xFFFFFFF0;
+	if( bias_y & 0x8 ) bias_y |= 0xFFFFFFF0;
+	x += bias_x;
+	y += bias_y;
+	_x = x;
 	if( !pImage || !pc ) return;// x;
 	{
 		if( justification )
@@ -1399,8 +1433,17 @@ void PutStringInvertFontEx( ImageFile *pImage, S_32 x, S_32 y, CDATA color, CDAT
 	CDATA tmp1 = 0;
 	CDATA tmp2 = 0;
 	int ch;
+	S_32 bias_x;
+	S_32 bias_y;
 	if( !font )
 		font = &DEFAULTFONT;
+	bias_x = ( font->bias & 0xF );
+	bias_y = ( ( font->bias >> 4 ) & 0xF );
+	if( bias_x & 0x8 ) bias_x |= 0xFFFFFFF0;
+	if( bias_y & 0x8 ) bias_y |= 0xFFFFFFF0;
+	x += bias_x;
+	y += bias_y;
+	_x = x;
 	if( !pImage || !pc ) return;// x;
 	while( ch = Step( &pc, &nLen, &tmp1, &tmp2, &color, &background ) )
 	{
@@ -1420,9 +1463,17 @@ _32 PutMenuStringFontEx( ImageFile *pImage, S_32 x, S_32 y, CDATA color, CDATA b
 	int bUnderline;
 	CDATA tmp1 = 0;
 	CDATA tmp2 = 0;
+	S_32 bias_x;
+	S_32 bias_y;
 	int ch;
 	if( !UseFont )
 		UseFont = &DEFAULTFONT;
+	bias_x = ( UseFont->bias & 0xF );
+	bias_y = ( ( UseFont->bias >> 4 ) & 0xF );
+	if( bias_x & 0x8 ) bias_x |= 0xFFFFFFF0;
+	if( bias_y & 0x8 ) bias_y |= 0xFFFFFFF0;
+	x += bias_x;
+	y += bias_y;
 	bUnderline = FALSE;
 	while( ch = Step( &pc, &nLen, &tmp1, &tmp2, &color, &background ) )
 	{
@@ -1646,6 +1697,17 @@ _32 PutMenuStringFontEx( ImageFile *pImage, S_32 x, S_32 y, CDATA color, CDATA b
 	return DEFAULTFONT.height;
 }
 
+void SetFontBias( SFTFont font, S_32 x, S_32 y )
+{
+	if( font )
+	{
+		font->bias = ( x + ( y << 4 ) ) & 0xFF;
+		//font->bias_x = x;
+		//font->bias_y = y;
+	}
+}
+
+
 PRELOAD( InitColorDefaults )
 {
 	int n;
@@ -1692,7 +1754,6 @@ PRELOAD( InitColorDefaults )
 	color_defs[n++].color =BASE_COLOR_NICE_ORANGE;
 	color_defs[n].name = WIDE("purple");		
 	color_defs[n++].color =BASE_COLOR_PURPLE;
-
 }
 
 IMAGE_NAMESPACE_END

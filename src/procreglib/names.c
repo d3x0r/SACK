@@ -2265,12 +2265,13 @@ POINTER GetInterfaceDbg( CTEXTSTR pServiceName DBG_PASS )
 	return result;
 }
 
+#if 0
 #undef GetInterface
 PUBLIC( POINTER, GetInterface )( CTEXTSTR pServiceName )
 {
 	return GetInterfaceDbg( pServiceName DBG_SRC );
 }
-
+#endif
 //-----------------------------------------------------------------------
 
 PROCREG_PROC( void, DropInterface )( CTEXTSTR pServiceName, POINTER interface_drop )

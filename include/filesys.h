@@ -356,9 +356,9 @@ FILESYS_PROC  int FILESYS_API  sack_iwrite ( INDEX file_handle, CPOINTER buffer,
 
 /* internal (c library) file system is registered as prority 1000.... lower priorities are checked first for things like
   ScanFiles(), fopen( ..., "r" ), ... exists(), */
-FILESYS_PROC struct file_system_mounted_interface * FILESYS_API sack_mount_filesystem( char *name, struct file_system_interface *, int priority, PTRSZVAL psvInstance, LOGICAL writable );
+FILESYS_PROC struct file_system_mounted_interface * FILESYS_API sack_mount_filesystem( const char *name, struct file_system_interface *, int priority, PTRSZVAL psvInstance, LOGICAL writable );
 FILESYS_PROC void FILESYS_API sack_unmount_filesystem( struct file_system_mounted_interface *mount );
-FILESYS_PROC struct file_system_mounted_interface * FILESYS_API sack_get_mounted_filesystem( char *name );
+FILESYS_PROC struct file_system_mounted_interface * FILESYS_API sack_get_mounted_filesystem( const char *name );
 /* sometimes you want scanfiles to only scan external files... 
   so this is how to get that mount */
 FILESYS_PROC struct file_system_mounted_interface * FILESYS_API sack_get_default_mount( void );

@@ -10,8 +10,14 @@
 	_CONTAINER_NAMESPACE
 
 #    define TYPELIB_CALLTYPE CPROC
-#  if defined( _TYPELIBRARY_SOURCE_STEAL )
-#    define TYPELIB_PROC type TYPELIB_CALLTYPE name type CPROC name
+#  if defined( _TYPELIBRARY_SOURCE_STEAL ) 
+#    define TYPELIB_PROC extern
+#  elif defined( NO_EXPORTS )
+#    if defined( _TYPELIBRARY_SOURCE )
+#      define TYPELIB_PROC 
+#    else
+#      define TYPELIB_PROC extern
+#    endif
 #  elif defined( _TYPELIBRARY_SOURCE )
 #    define TYPELIB_PROC EXPORT_METHOD
 #  else
@@ -95,7 +101,7 @@ TYPELIB_PROC  INDEX TYPELIB_CALLTYPE        FindLink       ( PLIST *pList, POINT
    DeleteLink( &amp;list, a );
    
    </code>                                                     */
-TYPELIB_PROC  LOGICAL TYPELIB_CALLTYPE      DeleteLink     ( PLIST *pList, POINTER value );
+TYPELIB_PROC  LOGICAL TYPELIB_CALLTYPE      DeleteLink     ( PLIST *pList, CPOINTER value );
 /* Remove all links from a PLIST. */
 TYPELIB_PROC  void TYPELIB_CALLTYPE         EmptyList      ( PLIST *pList );
 

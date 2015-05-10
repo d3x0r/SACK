@@ -226,6 +226,12 @@ RENDER_PROC( int, HandleKeyEvents )( PKEYDEFINE pKeyDefs, _32 key )
 {
 	int keycode = KEY_CODE(key);
 	int keymod = KEY_MOD(key);
+	//l.flags.bLogKeyEvent = 1;
+#ifdef LOG_KEY_EVENTS
+   if( l.flags.bLogKeyEvent )
+		lprintf( "received key %08x %d(%x) %d(%x) %s %s", key, keycode, keycode, keymod,keymod
+			, IsKeyExtended( key )?"extended":"",IsKeyPressed( key )?"press":"release" );
+#endif
 #ifdef LOG_KEY_EVENTS
    if( l.flags.bLogKeyEvent )
 		lprintf( WIDE("Key event for %08lx ... %d %s %s %s")
@@ -266,9 +272,13 @@ RENDER_PROC( int, HandleKeyEvents )( PKEYDEFINE pKeyDefs, _32 key )
 #endif
 						if( keyfunc->data.extended_key_trigger( keyfunc->extended_key_psv
 																									  , key ) )
-                     return 1;
+						{
+							lprintf( "handled." );
+							return 1;
+						}
 					}
 				}
+				lprintf( "not handled" );
 				return 0;
 			}
 			else
@@ -285,19 +295,24 @@ RENDER_PROC( int, HandleKeyEvents )( PKEYDEFINE pKeyDefs, _32 key )
 					{
 #ifdef LOG_KEY_EVENTS
 						if( l.flags.bLogKeyEvent )
-							lprintf(WIDE( "extended key method configured" ) );
+							lprintf(WIDE( "key method configured %p" ), keyfunc->data.trigger );
 #endif
 						if( keyfunc->data.trigger( keyfunc->psv, key ) )
-                     return 1;
+						{
+							lprintf( "handled." );
+							return 1;
+						}
 					}
 				}
+				lprintf( "not handled" );
 				return 0;
 			}
 		}
 		if( l.flags.bLogKeyEvent )
 			lprintf( WIDE( "Probably handled..." ) );
+		lprintf( "not handled." );
 		// for consistancy better just say we handled this key
-		return 1;
+		return 0;
 	}
 	if( l.flags.bLogKeyEvent )
 		lprintf( WIDE( "not handled..." ) );

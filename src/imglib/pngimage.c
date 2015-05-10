@@ -67,7 +67,7 @@ void ImagePngRead (png_structp png, png_bytep data, png_size_t size)
 	} /* endif */
 }
 
-void NotSoFatalError( png_structp png_ptr, png_const_charp c )
+void PNGCBAPI NotSoFatalError( png_structp png_ptr, png_const_charp c )
 {
 	lprintf( WIDE("Error in PNG stuff: %s"), c );
 }
@@ -113,7 +113,7 @@ ImageFile *ImagePngFile (_8 * buf, size_t size)
 
 
 	png_set_error_fn( png_ptr, png_get_error_ptr( png_ptr )
-						 , (png_error_ptr)NotSoFatalError, (png_error_ptr)NotSoFatalError );
+						 , NotSoFatalError, NotSoFatalError );
 	//png_ptr->error_fn = NotSoFatalError;
 	info_ptr = png_create_info_struct(png_ptr);
 	if (!info_ptr)

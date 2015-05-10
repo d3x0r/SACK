@@ -1,0 +1,7 @@
+
+//#include "resource.h"
+DEFAULT_ICON ICON "ico100.ico"
+//PROXY_FULL ICON "pfull.ico"
+//PROXY_PRIMARY ICON "pprime.ico"
+//PROXY_BACKUP ICON "pback.ico"
+//PROXY_DOWN ICON "pdown.ico"

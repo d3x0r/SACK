@@ -305,7 +305,7 @@ static PTRSZVAL CPROC KillLink( PTRSZVAL value, INDEX i, POINTER *link )
 	return 0;
 }
 
- LOGICAL  DeleteLink ( PLIST *pList, POINTER value )
+ LOGICAL  DeleteLink ( PLIST *pList, CPOINTER value )
 {
 	if( ForAllLinks( pList, KillLink, (PTRSZVAL)value ) )
 		return TRUE;

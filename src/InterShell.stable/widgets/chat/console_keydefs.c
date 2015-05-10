@@ -24,19 +24,19 @@ static void CPROC _Key_KeystrokePaste( PCONSOLE_INFO pmdp )
       pmdp->KeystrokePaste( pmdp );
 }
 
-int KeyLeft( void * list, PUSER_INPUT_BUFFER pci );
-int KeyRight( void * list, PUSER_INPUT_BUFFER pci );
-int KeyInsert( void * list, PUSER_INPUT_BUFFER pci );
-int CommandKeyUp( void * list, PUSER_INPUT_BUFFER pci );
-int HandleKeyDown(  void * list, PUSER_INPUT_BUFFER pci );
-int KeyHome( void * list, PUSER_INPUT_BUFFER pci );
-int KeyEndCmd( PTRSZVAL list, PUSER_INPUT_BUFFER pci );
+//int KeyLeft( void * list, PUSER_INPUT_BUFFER pci );
+//int KeyRight( void * list, PUSER_INPUT_BUFFER pci );
+//int KeyInsert( void * list, PUSER_INPUT_BUFFER pci );
+//int CommandKeyUp( void * list, PUSER_INPUT_BUFFER pci );
+//int HandleKeyDown(  void * list, PUSER_INPUT_BUFFER pci );
+//int KeyHome( void * list, PUSER_INPUT_BUFFER pci );
+//int KeyEndCmd( PTRSZVAL list, PUSER_INPUT_BUFFER pci );
 
 DECLTEXT( KeyStroke, WIDE("\x7f") ); // DECLTEXT implies 'static'
 
 //----------------------------------------------------------------------------
 
-int KeyGetGatheredLine( PCHAT_LIST list, PUSER_INPUT_BUFFER pci )
+int CPROC KeyGetGatheredLine( PCHAT_LIST list, PUSER_INPUT_BUFFER pci )
 {
 	PTEXT tmp_input = GetUserInputLine( pci );
 	PTEXT line = BuildLine( tmp_input );
@@ -994,7 +994,7 @@ PSIKEYDEFINE ConsoleKeyDefs[] = { NONAMES
 */
 //----------------------------------------------------------------------------
 
-int CommandKeyUp( void * list, PUSER_INPUT_BUFFER pci )
+int CommandKeyUp( PCHAT_LIST list, PUSER_INPUT_BUFFER pci )
 {
    RecallUserInput( pci, TRUE );
    return UPDATE_COMMAND;
@@ -1002,7 +1002,7 @@ int CommandKeyUp( void * list, PUSER_INPUT_BUFFER pci )
 
 //----------------------------------------------------------------------------
 
-int HandleKeyDown( void * list, PUSER_INPUT_BUFFER pci )
+int HandleKeyDown( PCHAT_LIST list, PUSER_INPUT_BUFFER pci )
 {
    RecallUserInput( pci, FALSE );
    return UPDATE_COMMAND;
@@ -1010,14 +1010,14 @@ int HandleKeyDown( void * list, PUSER_INPUT_BUFFER pci )
 
 //----------------------------------------------------------------------------
 
-int KeyHome( void * list, PUSER_INPUT_BUFFER pci )
+int KeyHome( PCHAT_LIST list, PUSER_INPUT_BUFFER pci )
 {
 	SetUserInputPosition( pci, 0, COMMAND_POS_SET );
 	return UPDATE_COMMAND; 
 }
 
 
-int KeyEndCmd( PTRSZVAL list, PUSER_INPUT_BUFFER pci )
+int KeyEndCmd( PCHAT_LIST list, PUSER_INPUT_BUFFER pci )
 {
 	SetUserInputPosition( pci, -1, COMMAND_POS_SET );
 	return UPDATE_COMMAND;
@@ -1025,7 +1025,7 @@ int KeyEndCmd( PTRSZVAL list, PUSER_INPUT_BUFFER pci )
 
 //----------------------------------------------------------------------------
 
-int KeyInsert( void * list, PUSER_INPUT_BUFFER pci )
+int KeyInsert( PCHAT_LIST list, PUSER_INPUT_BUFFER pci )
 {
 	SetUserInputInsert( pci, -1 );
    return UPDATE_COMMAND;
@@ -1033,7 +1033,7 @@ int KeyInsert( void * list, PUSER_INPUT_BUFFER pci )
 
 //----------------------------------------------------------------------------
 
-int KeyRight( void * list, PUSER_INPUT_BUFFER pci )
+int KeyRight( PCHAT_LIST list, PUSER_INPUT_BUFFER pci )
 {
 	SetUserInputPosition( pci, 1, COMMAND_POS_CUR );
 	return UPDATE_COMMAND;
@@ -1041,7 +1041,7 @@ int KeyRight( void * list, PUSER_INPUT_BUFFER pci )
 
 //----------------------------------------------------------------------------
 
-int KeyLeft( void * list, PUSER_INPUT_BUFFER pci )
+int KeyLeft( PCHAT_LIST list, PUSER_INPUT_BUFFER pci )
 {
 	SetUserInputPosition( pci, -1, COMMAND_POS_CUR );
 	return UPDATE_COMMAND;
@@ -1382,6 +1382,8 @@ int Widget_DoStroke( PCHAT_LIST list, PTEXT stroke )
       {
          switch( key.data.data[0] = stroke->data.data[i] )
          {
+		 case '\n':
+			 continue;
          case '\r':
             // output is always prefix linefed...
             key.data.data[0] = '\n'; // carriage return = linefeed

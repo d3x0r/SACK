@@ -516,7 +516,7 @@ HANDLE sack_open( INDEX group, CTEXTSTR filename, int opts, ... )
 #ifdef UNICODE
 		char *tmpfile = CStrDup( file->fullname );
 		handle = open( tmpfile, opts );
-      Deallocate( char *, tmpfile );
+		Deallocate( char *, tmpfile );
 #else
 		handle = open( file->fullname, opts );
 #endif
@@ -1606,7 +1606,7 @@ static int CPROC sack_filesys_exists( PTRSZVAL psv, const char *filename ) { ret
 
 struct file_system_mounted_interface *sack_get_default_mount( void ) { return l.default_mount; }
 
-struct file_system_mounted_interface *sack_get_mounted_filesystem( char *name )
+struct file_system_mounted_interface *sack_get_mounted_filesystem( const char *name )
 {
 	struct file_system_mounted_interface *root = l.mounted_file_systems;
 	while( root )
@@ -1622,7 +1622,7 @@ void sack_unmount_filesystem( struct file_system_mounted_interface *mount )
 	UnlinkThing( mount );
 }
 
-struct file_system_mounted_interface *sack_mount_filesystem( char *name, struct file_system_interface *fsi, int priority, PTRSZVAL psvInstance, LOGICAL writable )
+struct file_system_mounted_interface *sack_mount_filesystem( const char *name, struct file_system_interface *fsi, int priority, PTRSZVAL psvInstance, LOGICAL writable )
 {
 	struct file_system_mounted_interface *root = l.mounted_file_systems;
 	struct file_system_mounted_interface *mount = New( struct file_system_mounted_interface );
@@ -1634,10 +1634,14 @@ struct file_system_mounted_interface *sack_mount_filesystem( char *name, struct 
 	//lprintf( "Create mount called %s ", name );
 	if( !root || ( root->priority >= priority ) )
 	{
-		if( !root )
+		if( !root || root == l.mounted_file_systems )
+		{
 			LinkThing( l.mounted_file_systems, mount );
+		}
 		else
+		{
 			LinkThingBefore( root, mount );
+		}
 	}
 	else while( root )
 	{

@@ -98,7 +98,7 @@ SACK_NAMESPACE
 #define DEADSTART_CALLTYPE CPROC
 
 #  if defined( _TYPELIBRARY_SOURCE_STEAL )
-#    define DEADSTART_PROC type DEADSTART_CALLTYPE name type CPROC name
+#    define DEADSTART_PROC extern
 #  elif defined( _TYPELIBRARY_SOURCE )
 #    define DEADSTART_PROC EXPORT_METHOD
 #  else

@@ -73,7 +73,7 @@ extern "C" {
 	 Platform independent socket defines for convenience
  */
 #ifndef SOCKET
-#  ifndef __WATCOMC__
+#  ifndef WIN32
 	typedef int32 SOCKET;
 #  endif
 #endif

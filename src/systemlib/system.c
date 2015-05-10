@@ -1295,7 +1295,7 @@ static void LoadExistingLibraries( void )
 		PIMAGE_NT_HEADERS source_nt_header = (PIMAGE_NT_HEADERS)Seek( real_memory, source_dos_header->e_lfanew );
 		PIMAGE_DATA_DIRECTORY dir = (PIMAGE_DATA_DIRECTORY)source_nt_header->OptionalHeader.DataDirectory;
 		PIMAGE_EXPORT_DIRECTORY exp_dir = (PIMAGE_EXPORT_DIRECTORY)Seek( real_memory, dir[IMAGE_DIRECTORY_ENTRY_EXPORT].VirtualAddress );
-		char *dll_name = (char*) Seek( real_memory, exp_dir->Name );
+		const char *dll_name = (const char*) Seek( real_memory, exp_dir->Name );
 		if( exp_dir->Name > source_nt_header->OptionalHeader.SizeOfImage )
 		{
 			dll_name = "Invalid_Name";
@@ -1460,8 +1460,12 @@ SYSTEM_PROC( generic_function, LoadFunctionExx )( CTEXTSTR libname, CTEXTSTR fun
 		}
 		else
 		{
-			library->name = library->full_name;
-			StrCpy( library->name, libname );
+			StrCpy( library->full_name, libname );
+			library->name = pathrchr( library->full_name );
+			if( library->name )
+				library->name++;
+			else
+				library->name = library->full_name;
 		}
 		library->library = NULL;
 		library->mapped = FALSE;
@@ -1482,7 +1486,7 @@ SYSTEM_PROC( generic_function, LoadFunctionExx )( CTEXTSTR libname, CTEXTSTR fun
 			{
 				// result will be in the local list of libraries (duplicating this one)
 				// and will reference the same name(or a byte duplicate)
-				if( check != library && StrCaseCmp( check->name, library->name ) == 0 )
+				if( check != library && StrCaseCmp( check->full_name, library->full_name ) == 0 )
 				{
 					UnlinkThing( library );
 					Deallocate( PLIBRARY, library );					
@@ -1501,7 +1505,8 @@ SYSTEM_PROC( generic_function, LoadFunctionExx )( CTEXTSTR libname, CTEXTSTR fun
 				library->library = LoadLibrary( library->full_name );
 				if( !library->library )
 				{
-					_xlprintf( 2 DBG_RELAY)( WIDE("Attempt to load %s[%s](%s) failed: %d."), libname, library->full_name, funcname?funcname:WIDE("all"), GetLastError() );
+					if( l.flags.bLog )
+						_xlprintf( 2 DBG_RELAY)( WIDE("Attempt to load %s[%s](%s) failed: %d."), libname, library->full_name, funcname?funcname:WIDE("all"), GetLastError() );
 					UnlinkThing( library );
 					ReleaseEx( library DBG_SRC );
 					ResumeDeadstart();
@@ -1523,7 +1528,8 @@ SYSTEM_PROC( generic_function, LoadFunctionExx )( CTEXTSTR libname, CTEXTSTR fun
 #endif
 		if( !library->library )
 		{
-			_xlprintf( 2 DBG_RELAY)( WIDE("Attempt to load %s%s(%s) failed: %s."), bPrivate?"(local)":"(global)", libname, funcname?funcname:"all", dlerror() );
+			if( l.flags.bLog )
+				_xlprintf( 2 DBG_RELAY)( WIDE("Attempt to load %s%s(%s) failed: %s."), bPrivate?"(local)":"(global)", libname, funcname?funcname:"all", dlerror() );
 #  endif
 #ifdef UNICODE
 			{
@@ -1720,7 +1726,8 @@ SYSTEM_PROC( generic_function, LoadFunctionExx )( CTEXTSTR libname, CTEXTSTR fun
 #endif
 			if( !function->function )
 			{
-				_xlprintf( 2 DBG_RELAY)( WIDE("Attempt to get function %s from %s failed. %d"), funcname, libname, GetLastError() );
+				if( l.flags.bLog )
+					_xlprintf( 2 DBG_RELAY)( WIDE("Attempt to get function %s from %s failed. %d"), funcname, libname, GetLastError() );
 				ReleaseEx( function DBG_SRC );
 				return NULL;
 			}
@@ -1860,7 +1867,7 @@ SYSTEM_PROC( int, UnloadFunctionEx )( generic_function *f DBG_PASS )
 
 //-------------------------------------------------------------------------
 
-#ifndef __ANDROID__
+#if !defined( __ARM__ )
 SYSTEM_PROC( PTHREAD, SpawnProcess )( CTEXTSTR filename, va_list args )
 {
 	PTRSZVAL (CPROC *newmain)( PTHREAD pThread );

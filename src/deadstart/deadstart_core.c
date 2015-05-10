@@ -695,7 +695,7 @@ SACK_NAMESPACE
 
 // linked into BAG to provide a common definition for function Exit()
 // this then invokes an exit in the mainline program (if available)
-EXPORT_METHOD	void BAG_Exit( int code )
+void BAG_Exit( int code )
 {
 #ifndef __cplusplus_cli
 	InvokeExits();

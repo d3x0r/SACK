@@ -425,15 +425,21 @@ enum ButtonFlags {
 // mask to test to see if some button (physical mouse, not logical)
 // is currently pressed...
 #define MK_SOMEBUTTON       (MK_LBUTTON|MK_RBUTTON|MK_MBUTTON)
-/* test to see if any button is clicked */
+// test to see if any button is clicked */
 #define MAKE_SOMEBUTTONS(b)     ((b)&(MK_SOMEBUTTON))
+// test to see if a specific button is clicked 
+#define BUTTON_STILL_DOWN(b,button)     ((b)&(button))
 // test a button variable to see if no buttons are currently pressed
 // NOBUTTON, NOBUTTONS may be confusing, consider renaming these....
 #define MAKE_NOBUTTONS(b)     ( !((b) & MK_SOMEBUTTON ) )
 // break of some button
 #define BREAK_NEWBUTTON(b,_b) ((((b)^(_b))&(_b))&MK_SOMEBUTTON)
+// break a specific button (the last up of the button)
+#define BREAK_A_BUTTON(b,_b,button) ((((b)^(_b))&(_b))&(button))
 // make of some button (the first down of a button)
 #define MAKE_NEWBUTTON(b,_b) ((((b)^(_b))&(b))&MK_SOMEBUTTON)
+// make a specific button (the first down of the button)
+#define MAKE_A_BUTTON(b,_b,button) ((((b)^(_b))&(b))&(button))
 // test current b vs prior _b to see if the  last button pressed is
 // now not pressed...
 #define BREAK_LASTBUTTON(b,_b)  ( BREAK_NEWBUTTON(b,_b) && MAKE_NOBUTTONS(b) )
@@ -1603,6 +1609,8 @@ struct render_interface_tag
       RENDER_PROC_PTR( void, SuspendSystemSleep )( int bool_suspend_enable );
 	RENDER_PROC_PTR( LOGICAL, RenderIsInstanced )( void );
 	RENDER_PROC_PTR( LOGICAL, VidlibRenderAllowsCopy )( void );
+	RENDER_PROC_PTR( void, SetDisplayCursor )( CTEXTSTR nCursor );
+
 };
 
 #ifdef DEFINE_DEFAULT_RENDER_INTERFACE
@@ -1739,6 +1747,8 @@ typedef int check_this_variable;
 #define SetDisplayFullScreen    REND_PROC_ALIAS_VOID( SetDisplayFullScreen )
 #define SuspendSystemSleep      REND_PROC_ALIAS_VOID( SuspendSystemSleep )
 #define RenderIsInstanced()       ((USE_RENDER_INTERFACE)?((USE_RENDER_INTERFACE)->_RenderIsInstanced)?(USE_RENDER_INTERFACE)->_RenderIsInstanced():0:0)
+
+#define SetDisplayCursor           REND_PROC_ALIAS(SetDisplayCursor)
 #endif
 
 	_INTERFACE_NAMESPACE_END

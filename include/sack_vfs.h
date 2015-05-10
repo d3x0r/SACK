@@ -33,6 +33,10 @@ SACK_VFS_PROC struct volume * CPROC sack_vfs_load_crypt_volume( CTEXTSTR filepat
 SACK_VFS_PROC struct volume * CPROC sack_vfs_use_crypt_volume( POINTER filepath, size_t size, CTEXTSTR userkey, CTEXTSTR devkey );
 SACK_VFS_PROC void            CPROC sack_vfs_unload_volume( struct volume * vol );
 SACK_VFS_PROC void            CPROC sack_vfs_shrink_volume( struct volume * vol );
+SACK_VFS_PROC LOGICAL         CPROC sack_vfs_decrypt_volume( struct volume *vol );
+SACK_VFS_PROC LOGICAL         CPROC sack_vfs_encrypt_volume( struct volume *vol, CTEXTSTR key1, CTEXTSTR key2 );
+SACK_VFS_PROC const char *    CPROC sack_vfs_get_signature( struct volume *vol );
+
 
 SACK_VFS_PROC struct sack_vfs_file * CPROC sack_vfs_openfile( struct volume *vol, CTEXTSTR filename );
 SACK_VFS_PROC int CPROC sack_vfs_exists( PTRSZVAL psvInstance, const char * file );

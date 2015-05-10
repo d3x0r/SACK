@@ -1,8 +1,10 @@
+#ifndef CHAT_CONTROL_INTERNALS_DEFINED
+#define CHAT_CONTROL_INTERNALS_DEFINED
 
 // --- cheat
-#include "../../../psilib/console/consolestruc.h"
-#include "../../../psilib/console/history.h"
-#include "../../../psilib/console/histstruct.h"
+#include "consolestruc.h"
+#include "history.h"
+#include "histstruct.h"
 
 // ----- common, everyone needs...
 
@@ -24,6 +26,8 @@ typedef struct chat_list_tag
 		BIT_FIELD long_horizontal_drag : 1;
 		BIT_FIELD bCursorOn : 1;
 		BIT_FIELD bSizing : 1; // prevent smudge while resizing
+		BIT_FIELD in_command : 1;
+		BIT_FIELD allow_command_popup : 1;
 	} flags;
 	PHISTORY_REGION pHistory;
 	PHISTORY_BROWSER phb_Input;
@@ -36,12 +40,16 @@ typedef struct chat_list_tag
 	PTRSZVAL psvInputDrop;
 	void (CPROC*MessageSeen)( PTRSZVAL psv );
 	PTRSZVAL psvMessageSeen;
+	void (CPROC*MessageDeleted)( PTRSZVAL psvSeen );
 	PHISTORY_LINE_CURSOR phlc_Input;
 	PSI_CONTROL send_button;
 	SFTFont input_font;
 	SFTFont date_font;
 	int nFontHeight;
-	int command_height; // total rendered height, including skip and frame
+	int command_height; // height of text in input area
+	int command_size;   // total rendered height, including skip and frame
+	int command_lines; // how many lines of text are showing.
+	int command_skip_lines; // how many lines of the input are skipped
 	SFTFont message_font;
 		struct
 		{
@@ -61,6 +69,7 @@ typedef struct chat_list_tag
 		SFTFont received_font;
 		_32 cursor_timer;
 		PSI_CONTROL pc;
+		PMENU popup_text_entry;
 } CHAT_LIST;
 typedef struct chat_list_tag *PCHAT_LIST;
 
@@ -138,3 +147,5 @@ void Widget_KeyPressHandler( PCHAT_LIST list
 						  , _8 mod
 						  , PTEXT characters
 						  );
+
+#endif

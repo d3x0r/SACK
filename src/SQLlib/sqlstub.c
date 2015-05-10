@@ -364,10 +364,13 @@ void ExtendConnection( PODBC odbc )
 	//if( !odbc->flags.bVFS )
 	{
 		CTEXTSTR result;
+		int n = odbc->flags.bNoLogging;
+		odbc->flags.bNoLogging = 1;
 		SQLQueryf( odbc, &result, WIDE( "PRAGMA journal_mode=WAL;" ) );
 		//if( result )
 		//	lprintf( WIDE( "Journal is now %s" ), result );
 		SQLEndQuery( odbc );
+		odbc->flags.bNoLogging = n;
 		//SQLQueryf( odbc, &result, WIDE( "PRAGMA journal_mode" ) );
 		//lprintf( WIDE( "Journal is now %s" ), result );
 	}
@@ -615,6 +618,14 @@ static PTRSZVAL CPROC SetBackupDSN( PTRSZVAL psv, arg_list args )
 }
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+static PTRSZVAL CPROC SetConnString( PTRSZVAL psv, arg_list args )
+{
+	PARAM( args, CTEXTSTR, pUser );
+	StrCpyEx( g.Primary.info.pConnString, pUser, sizeof( g.Primary.info.pConnString ) / sizeof( TEXTCHAR ) );
+	return psv;
+}
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 static PTRSZVAL CPROC SetUser( PTRSZVAL psv, arg_list args )
 {
 	PARAM( args, CTEXTSTR, pUser );
@@ -834,6 +845,7 @@ void InitLibrary( void )
 			AddConfigurationMethod( pch, WIDE("Option Use Version 4=%b"), SetOptionDSNVersion4 );
 			AddConfigurationMethod( pch, WIDE("Primary DSN=%m"), SetPrimaryDSN );
 			AddConfigurationMethod( pch, WIDE("Primary User=%m"), SetUser );
+			AddConfigurationMethod( pch, WIDE("Primary Connection String=%m"), SetConnString );
 			AddConfigurationMethod( pch, WIDE("Primary Password=%m"), SetPassword );
 			AddConfigurationMethod( pch, WIDE("Backup DSN=%m"), SetBackupDSN );
 			AddConfigurationMethod( pch, WIDE("Backup User=%m"), SetBackupUser );
@@ -1015,10 +1027,10 @@ int OpenSQLConnectionEx( PODBC odbc DBG_PASS )
 #ifdef LOG_EVERYTHING
 			lprintf( WIDE("Begin ODBC Driver Connect... (may take a LONG time.)") );
 #endif
-			for( variation = 0; variation < 2; variation++ )
+			for( variation = 0; variation < 3; variation++ )
 			{
 				VarTextEmpty( pvt );
-				if( variation == 0 )
+				if( variation == 0 && odbc->info.pConnString[0] == 0 )
 					vtprintf( pvt
 							  , WIDE("DSN=%s%s%s%s%s")
 							  , odbc->info.pDSN
@@ -1027,7 +1039,18 @@ int OpenSQLConnectionEx( PODBC odbc DBG_PASS )
 							  , odbc->info.pPASSWORD[0]?WIDE(";PWD="):WIDE("")
 							  , odbc->info.pPASSWORD[0]?odbc->info.pPASSWORD:WIDE("")
 							  );
-				else
+				else if( variation == 1 )
+					vtprintf( pvt
+							  , WIDE("DSN=%s%s%s%s%s%s%s")
+							  , odbc->info.pDSN
+							  , odbc->info.pConnString[0]?WIDE(";DBQ="):WIDE("")
+							  , odbc->info.pConnString[0]?odbc->info.pConnString:WIDE("")
+							  , odbc->info.pID[0]?WIDE(";UID="):WIDE("")
+							  , odbc->info.pID[0]?odbc->info.pID:WIDE("")
+							  , odbc->info.pPASSWORD[0]?WIDE(";PWD="):WIDE("")
+							  , odbc->info.pPASSWORD[0]?odbc->info.pPASSWORD:WIDE("")
+							  );
+				else if( variation == 2 )
 					vtprintf( pvt
 							  , WIDE("DRIVER=Microsoft Access Driver (*.mdb); UID=admin; UserCommitSync=Yes; Threads=30; SafeTransactions=0; PageTimeout=5; MaxScanRows=8; MaxBufferSize=2048; FIL=MS Access; DriverId=25; DefaultDir=.; DBQ=%s; ")
 							  , odbc->info.pDSN
@@ -1036,6 +1059,8 @@ int OpenSQLConnectionEx( PODBC odbc DBG_PASS )
 								//, odbc->info.pPASSWORD[0]?WIDE(";PWD="):WIDE("")
 								//, odbc->info.pPASSWORD[0]?odbc->info.pPASSWORD:WIDE("")
 							  );
+				else 
+					continue;
 
 				pConnect = VarTextGet( pvt );
 				if( g.flags.bDeadstartCompleted && (!g.flags.bNoLog) && (~odbc->flags.bNoLogging) )
@@ -1059,6 +1084,7 @@ int OpenSQLConnectionEx( PODBC odbc DBG_PASS )
 				lprintf( WIDE("How long was that?") );
 #endif
 				LineRelease( pConnect );
+				lprintf( "rc == %d", rc );
 				if( rc != SQL_SUCCESS && rc != SQL_SUCCESS_WITH_INFO )
 				{
 					//PTEXT result;
@@ -2315,7 +2341,7 @@ int __DoSQLCommandEx( PODBC odbc, PCOLLECT collection DBG_PASS )
 			//odbc->hidden_messages++
 			;
 		else
-			_lprintf(DBG_RElAY)( WIDE( "Do Command[%p:%s]: %s" ), odbc, odbc->info.pDSN?odbc->info.pDSN:WIDE( "NoDSN?" ), GetText( cmd ) );
+			_lprintf(DBG_RELAY)( WIDE( "Do Command[%p:%s]: %s" ), odbc, odbc->info.pDSN?odbc->info.pDSN:WIDE( "NoDSN?" ), GetText( cmd ) );
 	}
 
 #ifdef LOG_EVERYTHING
@@ -2383,7 +2409,7 @@ retry:
 				sqlite3_finalize( collection->stmt );
 				if( !odbc->flags.bNoLogging )
 				{
-					_lprintf(DBG_RElAY)( WIDE( "Database Busy, waiting on[%p:%s]: %s" ), odbc, odbc->info.pDSN?odbc->info.pDSN:WIDE( "NoDSN?" ), GetText( cmd ) );
+					_lprintf(DBG_RELAY)( WIDE( "Database Busy, waiting on[%p:%s]: %s" ), odbc, odbc->info.pDSN?odbc->info.pDSN:WIDE( "NoDSN?" ), GetText( cmd ) );
 					//DumpAllODBCInfo();
 				}
 				WakeableSleep( 25 );
@@ -3412,7 +3438,9 @@ int __DoSQLQueryEx( PODBC odbc, PCOLLECT collection, CTEXTSTR query DBG_PASS )
 			//odbc->hidden_messages++
 			;
       else
-			_lprintf(DBG_RELAY)( WIDE( "Do Command[%p]: %s" ), odbc, query );
+			_lprintf(DBG_RELAY)( WIDE( "Do Command[%p:%s]: %s" ), odbc
+					, odbc->info.pDSN?odbc->info.pDSN:WIDE( "NoDSN?" )
+					, query );
 	}
 
 	//lprintf( DBG_FILELINEFMT WIDE( "Query: %s" ) DBG_RELAY, GetText( query ) );
@@ -3422,7 +3450,6 @@ int __DoSQLQueryEx( PODBC odbc, PCOLLECT collection, CTEXTSTR query DBG_PASS )
 #if defined( USE_SQLITE ) || defined( USE_SQLITE_INTERFACE )
 	if( odbc->flags.bSQLite_native )
 	{
-		char *sql_query = CStrDup( query );
 		const TEXTCHAR *tail;
 		// can get back what was not used when parsing...
 		retry:
@@ -3457,7 +3484,6 @@ int __DoSQLQueryEx( PODBC odbc, PCOLLECT collection, CTEXTSTR query DBG_PASS )
 			}
 			in_error = 1;
 		}
-		Release( sql_query );
 		// here don't step, wait for the GetResult to step. (fetch row)
 	}
 #endif

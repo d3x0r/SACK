@@ -1,0 +1,3 @@
+Chain reaction game
+just a small demo game, can make a large animated board
+with all computer players and watch interesting formations.

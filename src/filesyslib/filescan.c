@@ -77,20 +77,20 @@ try_mask:
 		}
 		if( !keepcase && name[n]>= 'a' && name[n] <= 'z' )
 			namech = name[n] - ('a' - 'A');
+		else if( name[n] == '/' )
+			namech = '\\';
 		else
 			namech = name[n];
 
 		if( !keepcase && mask[m]>= 'a' && mask[m] <= 'z' )
 			maskch = mask[m] - ('a' - 'A');
+		if( mask[m] == '/' )
+			maskch = '\\';
 		else
 			maskch = mask[m];
 
-		if( mask[m] == '/' )
-			maskch = '\\';
-		if( name[n] == '/' )
-         namech = '\\';
 
-      if( matchone )
+		if( matchone )
 		{
 			matchone--;
 			n++;
@@ -106,8 +106,8 @@ try_mask:
 #endif
 		 	if( anymatch )
 		 	{
-			 	wasanymatch = n;
-			 	wasmaskmatch = m;
+			 	wasanymatch = n+1;
+			 	wasmaskmatch = m+1;
 			 	anymatch = 0;
 			}
 		 	n++;
@@ -133,8 +133,8 @@ try_mask:
 #if ( DEBUG_COMPARE < 2 )
 			lprintf( WIDE(" yes. reset to anymatch.") );
 #endif
-			n = wasanymatch;
-			m = wasmaskmatch;
+			n = wasanymatch - 1;
+			m = wasmaskmatch - 1;
 			anymatch = 1;
 			n++;
 		}
@@ -296,6 +296,7 @@ typedef struct myfinddata {
 {
 	PMFD pDataCurrent = (PMFD)(pInfo);
 	PMFD pData = (PMFD)(*pInfo);
+	TEXTSTR tmp_base = NULL;
 	int sendflags;
 	int processed = 0;
 #ifndef WIN32
@@ -332,12 +333,15 @@ typedef struct myfinddata {
 			if( !pData->scanning_mount )
 			{
 				Deallocate( PMFD, pData );
+				if( tmp_base )
+					Release( tmp_base );
 				return 0;
 			}
 			if( pData->scanning_mount->fsi )
 			{
 				//lprintf( "create cursor" );
-				pData->cursor = pData->scanning_mount->fsi->find_create_cursor( pData->scanning_mount->psvInstance, base, mask );
+				tmp_base = ExpandPathEx( base, pData->scanning_mount->fsi );
+				pData->cursor = pData->scanning_mount->fsi->find_create_cursor( pData->scanning_mount->psvInstance, tmp_base, mask );
 			}
 			else
 			{
@@ -352,7 +356,8 @@ typedef struct myfinddata {
 				if( pData->scanning_mount->fsi )
 				{
 					//lprintf( "create cursor (new mount)" );
-					pData->cursor = pData->scanning_mount->fsi->find_create_cursor( pData->scanning_mount->psvInstance, base, mask );
+					tmp_base = ExpandPathEx( base, pData->scanning_mount->fsi );
+					pData->cursor = pData->scanning_mount->fsi->find_create_cursor( pData->scanning_mount->psvInstance, tmp_base, mask );
 				}
 				else
 					pData->cursor = NULL;
@@ -439,9 +444,13 @@ typedef struct myfinddata {
 				(*pData->root_info) = pData->prior;
 				Release( pData );
 				lprintf( "%p %d", prior, processed );
+				if( tmp_base )
+					Release( tmp_base );
 				return prior?processed:0;
 			}
 			pData->new_mount = TRUE;
+				if( tmp_base )
+					Release( tmp_base );
 			return 1;
 		}
 	}
@@ -492,9 +501,13 @@ getnext:
 					if( pData )
 						goto getnext;
 				}
+				if( tmp_base )
+					Release( tmp_base );
 				return (*pInfo)?processed:0;
 			}
 			pData->new_mount = TRUE;
+			if( tmp_base )
+				Release( tmp_base );
 			return 1;
 		}
 	}
@@ -679,6 +692,8 @@ getnext:
 		}
 		if( !processed )
 			goto getnext;
+		if( tmp_base )
+			Release( tmp_base );
 		return (*pInfo)?1:0;
 	}
 	if( ( sendflags = SFF_DIRECTORY, ( ( flags & SFF_DIRECTORIES )
@@ -697,7 +712,7 @@ getnext:
 #  ifdef UNDER_CE
 																							  , finddata(pInfo)->cFileName
 #  else
-																							  , finddata(pInfo)->name
+																							  , pData->buffer
 #  endif
 #else
 																							  , de->d_name
@@ -708,8 +723,12 @@ getnext:
 		//lprintf( "Send %s", pData->buffer );
 		if( Process != NULL )
 			Process( psvUser, pData->buffer, sendflags );
+		if( tmp_base )
+			Release( tmp_base );
 		return (*pInfo)?1:0;
 	}
+	if( tmp_base )
+		Release( tmp_base );
 	return (*pInfo)?1:0;
 }
  int  ScanFiles ( CTEXTSTR base

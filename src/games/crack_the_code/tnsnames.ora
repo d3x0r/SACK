@@ -1,0 +1,10 @@
+EMS322.QA.COM=
+  (DESCRIPTION =
+    (ADDRESS_LIST =
+      (ADDRESS = (PROTOCOL = TCP)(HOST = 10.106.0.1)(PORT = 1521))
+    )
+    (CONNECT_DATA =
+      (SID = ems)
+      (SERVER = DEDICATED)
+    )
+  )

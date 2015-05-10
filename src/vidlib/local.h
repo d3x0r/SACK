@@ -57,6 +57,10 @@ extern
 		//---------- see comment above
 	} flags;
 	PRENDERER mouse_last_vid;
+#if defined( WIN32 )
+	LPCTSTR new_cursor;
+	LPCTSTR old_cursor;
+#endif
 	int mouse_b, mouse_y, mouse_x;
 	int _mouse_b, _mouse_y, _mouse_x;
 

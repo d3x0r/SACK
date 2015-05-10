@@ -1828,12 +1828,18 @@ is_deadstart_complete( void );
 #endif
 
 /* Define a routine to call for exit().  This triggers specific code to handle shutdown event registration */
-#ifdef SACK_BAG_CORE_EXPORTS
+#ifndef NO_EXPORTS
+#  ifdef SACK_BAG_CORE_EXPORTS
 EXPORT_METHOD
-#else
+#  else
 IMPORT_METHOD
+#  endif
+#else
+#  ifndef SACK_BAG_CORE_EXPORTS
+	extern
+#  endif
 #endif
-		void BAG_Exit( int code );
+		void CPROC BAG_Exit( int code );
 #ifndef NO_SACK_EXIT_OVERRIDE
 #define exit(n) BAG_Exit(n)
 #endif

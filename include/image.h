@@ -1903,7 +1903,7 @@ IMAGE_PROC_PTR( void, PutStringFontExx )( Image pImage
 IMAGE_PROC_PTR( void, ResetImageBuffers )( Image image, LOGICAL image_only );
 	IMAGE_PROC_PTR(  LOGICAL, PngImageFile )( Image image, P_8 *buf, size_t *size );
 	IMAGE_PROC_PTR(  LOGICAL, JpgImageFile )( Image image, P_8 *buf, size_t *size, int Q );
-
+	IMAGE_PROC_PTR(  void, SetFontBias )( SFTFont font, S_32 x, S_32 y );
 } IMAGE_INTERFACE, *PIMAGE_INTERFACE;
 
 
@@ -2040,6 +2040,7 @@ IMAGE_PROC_PTR( void, ResetImageBuffers )( Image image, LOGICAL image_only );
 #define ResetImageBuffers                      if((USE_IMAGE_INTERFACE)->_ResetImageBuffers) PROC_ALIAS( ResetImageBuffers )
 #define PngImageFile                    PROC_ALIAS( PngImageFile )
 #define JpgImageFile                    PROC_ALIAS( JpgImageFile )
+#define SetFontBias                     PROC_ALIAS( SetFontBias )
 //#define global_font_data         (*PROC_ALIAS(global_font_data))
 #endif
 

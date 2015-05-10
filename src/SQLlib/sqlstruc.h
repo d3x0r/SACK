@@ -95,6 +95,7 @@ typedef struct database_info_tag
 	CTEXTSTR pDSN;
 	TEXTCHAR pID[64];
 	TEXTCHAR pPASSWORD[64];
+	TEXTCHAR pConnString[256];
 } DB_INFO, *PDB_INFO;
 
 struct odbc_handle_tag{

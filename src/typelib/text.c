@@ -2708,31 +2708,32 @@ char * WcharConvertExx ( const wchar_t *wch, size_t len DBG_PASS )
 	// ... etc
 	size_t convertedChars = 0;
 	size_t  sizeInBytes;
-#if defined( _MSC_VER)
-	errno_t err;
-#else
-	int err;
-#endif
 	char  tmp[2];
 	char    *ch;
 	char    *_ch;
 	const wchar_t *_wch = wch;
 	sizeInBytes = 1; // start with 1 for the ending nul
-	err = 0;
-#if defined( _MSC_VER )
 	_ch = ch = tmp;
 	{
-		int n;
+		size_t n;
 		for( n = 0; n < len; n++ )
 		{
+			lprintf( "wch = %04x", wch[0] );
 			if( !( wch[0] & 0xFF80 ) )
+			{
+				lprintf( "1 byte encode..." );
 				sizeInBytes++;
+			}
 			else if( !( wch[0] & 0xF800 ) )
+			{
+				lprintf( "2 byte encode..." );
 				sizeInBytes += 2;
+			}
 			else if( ( ( wch[0] & 0xFC00 ) >= 0xD800 )
 				&& ( ( wch[0] & 0xFC00 ) <= 0xDF00 ) )
 			{
 				int longer_value = 0x10000 + ( ( ( wch[0] & 0x3ff ) << 10 ) | ( ( wch[1] & 0x3ff ) ) );
+				lprintf( "3 or 4 byte encode..." );
 				if( !(longer_value & 0xFFFF ) )
 					sizeInBytes+= 4;
 				else
@@ -2740,12 +2741,14 @@ char * WcharConvertExx ( const wchar_t *wch, size_t len DBG_PASS )
 				wch++;
 			}
 			else if( !( wch[0] & 0xF000 ) )
+			{
+				lprintf( "3 byte ..." );
 				sizeInBytes += 3;
-			else if( wch[0] & 0x80 )
-				sizeInBytes += 2; // need one extra byte for high val chars
+			}
 			else 
 			{
 				// just encode the 16 bits as it is.
+				lprintf( " 3 byte encode?" );
 				sizeInBytes+= 3;
 			}
 			wch++;
@@ -2753,23 +2756,11 @@ char * WcharConvertExx ( const wchar_t *wch, size_t len DBG_PASS )
 	}
 	wch = _wch;
 	_ch = ch = NewArray( char, sizeInBytes);
-	//if( !WideCharToMultiByte( 65001/*CP_UTF8*/, 0, wch, len + 1, ch, sizeInBytes, 0, 0 ) )
-	//	;
-
 	{
-		int n;
+		size_t n;
 		for( n = 0; n < len; n++ )
 		{
-			//err = wcstombs_s(&convertedChars, 
-		//					ch, 2/*sizeInBytes*/,
-		//						  wch, 1 );
-			//if( err == 42 )
 			{
-				/*if( !( wch[0] & 0xFF80 ) )
-				{
-					(*ch++) = 0 | ( ((unsigned char*)wch)[0] & 0x7F );
-				}
-				else */
 				if( !( wch[0] & 0xFF80 ) )
 				{
 					(*ch++) = ((unsigned char*)wch)[0];
@@ -2794,17 +2785,17 @@ char * WcharConvertExx ( const wchar_t *wch, size_t len DBG_PASS )
 					if( !(longer_value & 0xFFFF ) )
 					{
 						// 16 bit encoding (shouldn't be hit 
-						(*ch++) = 0xE0 | ( longer_value >> 12 );
-						(*ch++) = 0x80 | ( ( longer_value >> 6 ) & 0x3f );
-						(*ch++) = 0x80 | ( ( longer_value >> 0 ) & 0x3f );
+						(*ch++) = 0xE0 | (char)( longer_value >> 12 );
+						(*ch++) = 0x80 | (char)( ( longer_value >> 6 ) & 0x3f );
+						(*ch++) = 0x80 | (char)( ( longer_value >> 0 ) & 0x3f );
 					}
 					else if( !( longer_value & 0xFFE00000 ) )
 					{
 						// 21 bit encoding ... 
-						(*ch++) = 0xF0 | ( longer_value >> 18 );
-						(*ch++) = 0x80 | ( ( longer_value >> 12 ) & 0x3f );
-						(*ch++) = 0x80 | ( ( longer_value >> 6 ) & 0x3f );
-						(*ch++) = 0x80 | ( ( longer_value >> 0 ) & 0x3f );
+						(*ch++) = 0xF0 | (char)( longer_value >> 18 );
+						(*ch++) = 0x80 | (char)( ( longer_value >> 12 ) & 0x3f );
+						(*ch++) = 0x80 | (char)( ( longer_value >> 6 ) & 0x3f );
+						(*ch++) = 0x80 | (char)( ( longer_value >> 0 ) & 0x3f );
 					}
 					/*  ** functionally removed from spec .....
 					else if( !( longer_value & 0xFC000000 ) )
@@ -2831,9 +2822,7 @@ char * WcharConvertExx ( const wchar_t *wch, size_t len DBG_PASS )
 						// too long to encode.
 					}
 				}
-
 				else if( !( wch[0] & 0xF000 ) )
-
 				{
 					(*ch++) = 0xE0 | ((unsigned char*)wch)[1] >> 4; 
 					(*ch++) = 0x80 | ( ( ((unsigned char*)wch)[1] & 0xF ) << 2 ) | ( ( ((unsigned char*)wch)[0] ) >> 6 );
@@ -2841,26 +2830,17 @@ char * WcharConvertExx ( const wchar_t *wch, size_t len DBG_PASS )
 				}
 				else
 				{
+					lprintf( " 3 byte encode?" );
 						(*ch++) = 0xE0 | (  wch[0] >> 12 );
 						(*ch++) = 0x80 | ( (  wch[0] >> 6 ) & 0x3f );
 						(*ch++) = 0x80 | ( (  wch[0] >> 0 ) & 0x3f );
 				}
 			}
-			//else
-			//	ch++;
 			wch++;
 		}
 	}
 	(*ch) = 0;
 	ch = _ch;
-#else
-	_ch = ch = NewArray( char, sizeInBytes);
-	convertedChars = wcstombs( ch, wch, sizeInBytes);
-	err = ( convertedChars == -1 );
-#endif
-	if (err != 0)
-		lprintf(WIDE( "wcstombs_s  failed!\n" ));
-
 	return ch;
 }
 
@@ -2881,21 +2861,21 @@ wchar_t * CharWConvertExx ( const char *wch, size_t len DBG_PASS )
 	// ... etc
 	size_t convertedChars = 0;
 	size_t  sizeInBytes;
-#if defined( _MSC_VER)
-	errno_t err;
-#else
-	int err;
-#endif
 	wchar_t   *ch;
 	wchar_t   *_ch;
-	sizeInBytes = ((len + 1) * sizeof( char ) );
-	err = 0;
-	_ch = ch = NewArray( wchar_t, sizeInBytes);
-#if defined( _MSC_VER )
+	if( sizeof( wchar_t ) != 2 )
 	{
-		int n;
+		MessageBox( NULL, "fucked.", "fucked.", MB_OK );
+		(*((int*)0)) = 0;
+
+	}
+	sizeInBytes = ((len + 1) * sizeof( char ) );
+	_ch = ch = NewArray( wchar_t, sizeInBytes);
+	{
+		size_t n;
 		for( n = 0; n < len; n++ )
 		{
+			lprintf( "first char is %d (%08x)", wch[0] );
 			if( ( wch[0] & 0xE0 ) == 0xC0 )
 			{
 				ch[0] = ( ( (wchar_t)wch[0] & 0x1F ) << 6 ) | ( (wchar_t)wch[1] & 0x3f );
@@ -2903,47 +2883,32 @@ wchar_t * CharWConvertExx ( const char *wch, size_t len DBG_PASS )
 			}
 			else if( ( wch[0] & 0xF0 ) == 0xE0 )
 			{
-				ch[0] = ( ( (wchar_t)wch[0] & 0xF ) << 12 ) | ( ( (wchar_t)wch[1] & 0x3F ) << 6 ) | ( (wchar_t)wch[2] & 0x3f );
+				ch[0] = ( ( (wchar_t)wch[0] & 0xF ) << 12 ) 
+					| ( ( (wchar_t)wch[1] & 0x3F ) << 6 ) 
+					| ( (wchar_t)wch[2] & 0x3f );
 				wch += 3;
 			}
 			else if( ( wch[0] & 0xF0 ) == 0xF0 )
 			{
-				ch[0] = ( ( (wchar_t)wch[0] & 0x7 ) << 18 ) 
-						| ( ( (wchar_t)wch[1] & 0x3F ) << 12 ) 
-						| ( (wchar_t)wch[2] & 0x3f ) << 6
-						| ( (wchar_t)wch[3] & 0x3f );
-				wch += 3;
+				_32 literal_char =  ( ( (wchar_t)wch[0] & 0x7 ) << 18 ) 
+				                 | ( ( (wchar_t)wch[1] & 0x3F ) << 12 ) 
+				                 | ( (wchar_t)wch[2] & 0x3f ) << 6
+				                 | ( (wchar_t)wch[3] & 0x3f );
+				lprintf( "literal char is %d (%08x", literal_char, literal_char );
+				ch[0] = ((wchar_t*)literal_char)[0];
+				ch[1] = ((wchar_t*)literal_char)[1];
+				ch++;
+				wch += 4;
 			}
 			else
 			{
-				err = mbstowcs_s(&convertedChars, 
-								ch, sizeof( wchar_t ),
-									  wch, 1 );
-				if( err == 42 )
-				{
-					if( wch[0] & 0xF0 == 0xE0 )
-					{
-						ch[0] = ( ( (wchar_t)wch[0] & 0xF ) << 12 ) | ( ( (wchar_t)wch[1] & 0x3F ) << 6 ) | ( (wchar_t)wch[2] & 0x3f );
-						wch += 3;
-					}
-					else
-					{
-						lprintf( WIDE("unhandled unicode conversion") );
-					}
-				}
-				else
-					wch++;
+				ch[0] = wch[0] & 0x7f;
+				wch++;
 			}
 			ch++;
 		}
 		ch = _ch;
 	}
-#else
-	convertedChars = mbstowcs( ch, wch, sizeInBytes);
-   err = ( convertedChars == -1 );
-#endif
-	if (err != 0)
-		lprintf(WIDE( "wcstombs_s  failed!\n" ));
 
 	return ch;
 }
@@ -3018,6 +2983,12 @@ unsigned int GetUtfChar( CTEXTSTR *from )
 {
 	unsigned int result = (unsigned char)(*from)[0];
 	if( !result ) return result;
+	if( sizeof( wchar_t ) != 2 )
+	{
+		MessageBox( NULL, "fucked.", "fucked.", MB_OK );
+		(*((int*)0)) = 0;
+
+	}
 #ifdef _UNICODE
 	if( ( ( (*from)[0] & 0xFC00 ) >= 0xD800 )
 		&& ( ( (*from)[0] & 0xFC00 ) <= 0xDF00 ) )
@@ -3042,7 +3013,10 @@ unsigned int GetUtfChar( CTEXTSTR *from )
 			else
 			{
 				result = 0;
-				lprintf( "a 2 byte code with improper continuation encodings following it was found." );
+				lprintf( "a 2 byte code with improper continuation encodings following it was found. %02x %02x" 
+						, (*from)[0] 
+						, (*from)[1] 
+						);
 				(*from)++;
 			}
 		}
@@ -3056,7 +3030,11 @@ unsigned int GetUtfChar( CTEXTSTR *from )
 			else
 			{
 				result = 0;
-				lprintf( "a 3 byte code with improper continuation encodings following it was found." );
+				lprintf( "a 3 byte code with improper continuation encodings following it was found. %02x %02x %02x"
+					, (*from)[0] 
+					, (*from)[1] 
+					, (*from)[2] 
+					);
 				(*from)++;
 			}
 		}
@@ -3125,7 +3103,6 @@ static int Step( CTEXTSTR *pc, size_t *nLen )
 		{
 			while( ch && ( ch != WIDE( '\x9C' ) ) )
 			{
-				int code;
 				ch = GetUtfChar( pc );
 				if( nLen )
 					(*nLen) -= (*pc) - _pc;

@@ -252,6 +252,9 @@
 #  endif /* other system, !OS/2 */
 #endif /* !Windows/x86 */
 
+#ifndef PNG_DLL_EXPORT
+#define PNG_DLL_EXPORT
+#endif
 /* Now do all the defaulting . */
 #ifndef PNGCAPI
 #  define PNGCAPI

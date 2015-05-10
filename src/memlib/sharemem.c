@@ -234,6 +234,7 @@ struct global_memory_tag global_memory_data = { 0x10000 * 0x08, 1/* disable debu
 PRIORITY_PRELOAD( Deadstart_finished_enough, GLOBAL_INIT_PRELOAD_PRIORITY + 1 )
 {
    g.deadstart_finished = 1;
+   //g.bLogAllocate = 1;
 }
 
 PRIORITY_PRELOAD( InitGlobal, DEFAULT_PRELOAD_PRIORITY )

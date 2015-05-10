@@ -732,10 +732,14 @@ FILEMONITOR_PROC( PCHANGEHANDLER, AddFileChangeCallback )( PMONITOR monitor
 															 , CHANGEHANDLER HandleChange
 															 , PTRSZVAL psv )
 {
+	if( l.flags.bLog )
+		lprintf( "add change handler is %p %p", monitor, mask );
 	if( monitor && HandleChange )
 	{
 		PCHANGECALLBACK Change = GetFromSet( CHANGECALLBACK, &l.change_callback_set );
 		EnterCriticalSec( &monitor->cs );
+		if( l.flags.bLog )
+			lprintf( "adding change handler %s", mask?mask:"(null-mask)" );
 		Change->mask           = StrDup( mask );
 		Change->currentchange  = NULL;
 		Change->PendingChanges = NULL;

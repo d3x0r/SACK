@@ -23,7 +23,7 @@ endif()
 
 set( __ARM__ @__ARM__@ )
 if( __ARM__ )
-ADD_DEFINITIONS( __ARM__ ON )
+ADD_DEFINITIONS( -D__ARM__=1 )
 endif( __ARM__ )
 
 set( __NO_ODBC__ @__NO_ODBC__@ )
@@ -139,6 +139,9 @@ endif( __LINUX64__ )
 		FILE( APPEND ${FILEOUT} "endif( NOT USE_OPTIONS )\n" )
 if( USING_OLD_MINGW )
 		FILE( APPEND ${FILEOUT} "add_definitions( -DMINGW_SUX )\n" )
+		FILE( APPEND ${FILEOUT} "set( CMAKE_C_FLAGS \"$" "{CMAKE_C_FLAGS} -fshort-wchar\" )\n")
+		FILE( APPEND ${FILEOUT} "set( CMAKE_CXX_FLAGS \"$" "{CMAKE_CXX_FLAGS} -fshort-wchar\" )\n")
+
 endif( USING_OLD_MINGW )
 		FILE( APPEND ${FILEOUT} "set( __NO_GUI__ @__NO_GUI__@ )\n" )
 if( __NO_GUI__ )
@@ -285,11 +288,10 @@ if( WIN32 )
                         loginfo.module 
                         seed_random.module 
                         sack_vfs.module 
+                        debugger_lockout.module
                     )
-                    if( NOT MINGW )
 		SET( literal_libfile_list ${literal_libfile_list} 
-                        MatrixSSL.dll )
-                    endif( NOT MINGW )
+                        ${CMAKE_SHARED_LIBRARY_PREFIX}MatrixSSL${CMAKE_SHARED_LIBRARY_SUFFIX} )
                         
                     if( INSTALL_EXTRAS )
 		SET( literal_libfile_list ${literal_libfile_list} 

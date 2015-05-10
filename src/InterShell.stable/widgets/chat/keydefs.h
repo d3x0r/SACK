@@ -2,6 +2,8 @@
 #define __KEYS_DEFINED__
 
 // included by consolestruc.h - please use this if you want to include ME
+//#include "chat_control_internal.h"
+typedef struct chat_list_tag *PCHAT_LIST;
 
 // return values from Func( PUSER_INPUT_BUFFER )
 enum {
@@ -57,7 +59,7 @@ typedef struct KeyDefine {
       union {
           PTEXT pStroke; // this may be pKeyFunc()
           void (CPROC *ControlKey)( P_32 pKeyState, LOGICAL bState );
-          int (CPROC *CommandKey)( PUSER_INPUT_BUFFER pci );
+          int (CPROC *CommandKey)( PCHAT_LIST list, PUSER_INPUT_BUFFER pci );
           int (CPROC *HistoryKey)( PHISTORY_BROWSER pct );
           int (CPROC *SpecialKey)( PCONSOLE_INFO pdp ); // PASTE
        } data;
@@ -102,6 +104,7 @@ CORECON_PROC( void, PSI_KeyPressHandler )( PCONSOLE_INFO pdp
 												 , _8 mod
 												 , PTEXT characters
 												 );
+int CPROC KeyGetGatheredLine( PCHAT_LIST list, PUSER_INPUT_BUFFER pci );
 
 #endif
 // $Log: keydefs.h,v $

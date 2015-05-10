@@ -1524,37 +1524,22 @@ LRESULT CALLBACK
 		KBDLLHOOKSTRUCT *kbhook = (KBDLLHOOKSTRUCT*)lParam;
 		HWND hWndFocus = GetFocus ();
 		//HWND hWndFore = GetForegroundWindow();
-		ATOM aThisClass;
+		//ATOM aThisClass;
 		//LogBinary( kbhook, sizeof( *kbhook ) );
 		//lprintf( WIDE( "Received key to %p %p" ), hWndFocus, hWndFore );
 		//lprintf( WIDE( "Received key %08x %08x" ), wParam, lParam );
-		aThisClass = (ATOM) GetClassLong (hWndFocus, GCW_ATOM);
 
 		if( l.flags.bLogKeyEvent )
+			if( kbhook )
 			lprintf( WIDE( "KeyHook2 %d %08lx %d %d %d %d %p" )
 					 , code, wParam
 					 , kbhook->vkCode, kbhook->scanCode, kbhook->flags, kbhook->time, kbhook->dwExtraInfo );
-
-		/*
-		if (aThisClass != l.aClass && hWndFocus != l.hWndInstance )
-		{
-			//aThisClass = (ATOM) GetClassLong (hWndFore, GCW_ATOM);
-			//if (aThisClass != l.aClass && hWndFocus != l.hWndInstance )
+			else
 			{
-				PTHREAD thread = MakeThread();
-				INDEX idx;
-				PTHREAD check_thread;
-				LIST_FORALL( l.threads, idx, PTHREAD, check_thread )
-				{
-					if( check_thread == thread )
-					{
-						//lprintf( WIDE( "Chained to next hook..." ) );
-						return CallNextHookEx ( (HHOOK)GetLink( &l.ll_keyhooks, idx ), code, wParam, lParam);
-					}
-				}
+				lprintf( "kbhook data is NULL!" );
+				return 0;
 			}
-		}
-		*/
+
 		//lprintf( WIDE("Keyhook mesasage... %08x %08x"), wParam, lParam );
 		//lprintf( WIDE("hWndFocus is %p"), hWndFocus );
 		if( hWndFocus == l.hWndInstance )
@@ -1743,7 +1728,7 @@ LRESULT CALLBACK
 		{
 			dispatch_handled = HandleKeyEvents( KeyDefs, key );
 		}
-		//lprintf( WIDE( "code:%d handled:%d" ), code, dispatch_handled );
+		lprintf( WIDE( "code:%d handled:%d" ), code, dispatch_handled );
 		// do we REALLY have to call the next hook?!
 		// I mean windows will just fuck us in the next layer....
 		if( ( code < 0 )|| !dispatch_handled )
@@ -2986,6 +2971,12 @@ WM_DROPFILES
 			{
 				hVideo->pMouseCallback (hVideo->dwMouseData,
 												l.mouse_x, l.mouse_y, l.mouse_b);
+			}
+			if( l.new_cursor )
+			{
+				SetCursor (LoadCursor (NULL, l.new_cursor) );
+				l.old_cursor = l.new_cursor;
+				l.new_cursor = 0;
 			}
 			l._mouse_x = l.mouse_x;
 			l._mouse_y = l.mouse_y;
@@ -4834,7 +4825,7 @@ RENDER_PROC (void, MoveSizeDisplay) (PVIDEO hVideo, S_32 x, S_32 y, S_32 w,
 				 , SWP_NOZORDER|SWP_NOACTIVATE|moveflags );
 	if( hVideo->flags.bLayeredWindow && !(moveflags & SWP_NOSIZE ) )
 	{
-		SendApplicationDraw( hVideo );
+		Redraw( hVideo );
 	}
 }
 
@@ -5659,6 +5650,11 @@ void MarkDisplayUpdated( PRENDERER renerer )
 
 }
 
+void CPROC SetDisplayCursor( CTEXTSTR nCursor )
+{
+	if( l.old_cursor != nCursor )
+		l.new_cursor = nCursor;
+}
 
 #include <render.h>
 
@@ -5740,6 +5736,10 @@ static RENDER_INTERFACE VidInterface = { InitDisplay
 													, AllowsAnyThreadToUpdate
 													, Vidlib_SetDisplayFullScreen
 													, Vidlib_SuspendSystemSleep
+													, NULL /* is instanced */
+													, NULL /* render allows copy (not remote network render) */
+													, SetDisplayCursor 
+
 };
 
 #undef GetDisplayInterface
@@ -5818,7 +5818,8 @@ PRIORITY_PRELOAD( VideoRegisterInterface, VIDLIB_PRELOAD_PRIORITY )
 #  endif
 #endif
 		, GetDisplayInterface, DropDisplayInterface );
-	BindEventToKey( NULL, KEY_F4, KEY_MOD_RELEASE|KEY_MOD_ALT, DefaultExit, 0 );
+	if( SACK_GetProfileInt( "SACK/Video Render", "enable alt-f4 exit", 0 ) )
+		BindEventToKey( NULL, KEY_F4, KEY_MOD_RELEASE|KEY_MOD_ALT, DefaultExit, 0 );
 	//EnableLoggingOutput( TRUE );
 	VideoLoadOptions();
 }

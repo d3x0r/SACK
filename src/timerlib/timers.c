@@ -203,6 +203,8 @@ static struct {
 	_32 lock_thread_create;
 	// should be a short list... 10 maybe 15...
 	PLIST thread_events;
+
+	CRITICALSECTION csGrab;
 } *global_timer_structure;// = { 1000 };
 
 
@@ -248,6 +250,7 @@ PRIORITY_PRELOAD( LowLevelInit, CONFIG_SCRIPT_PRELOAD_PRIORITY-1 )
 		SimpleRegisterAndCreateGlobal( global_timer_structure );
 	if( !g.timerID )
 	{
+		InitializeCriticalSec( &g.csGrab );
 		// this may have initialized early?
 		g.timerID = 1000;
 		//lprintf( "thread global will be %p %p", global_timer_structure, &global_timer_structure );
@@ -1488,21 +1491,14 @@ HANDLE GetThreadHandle( PTHREAD thread )
 #endif
 
 //--------------------------------------------------------------------------
-static CRITICALSECTION csGrab;
-static int first_grab = 1;
 
 static void DoInsertTimer( PTIMER timer )
 {
 	PTIMER check;
 	BIT_FIELD bLock = g.flags.bLogCriticalSections;
-	if( first_grab )
-	{
-		InitializeCriticalSec( &csGrab );
-		first_grab = 0;
-	}
 	SetCriticalLogging( 0 );
 	g.flags.bLogCriticalSections = 0;
-	EnterCriticalSec( &csGrab );
+	EnterCriticalSec( &g.csGrab );
 	g.flags.bLogCriticalSections = bLock;
 	SetCriticalLogging( bLock );
 	if( !(check = g.timers) )
@@ -1518,7 +1514,7 @@ static void DoInsertTimer( PTIMER timer )
 #endif
 		SetCriticalLogging( 0 );
 		g.flags.bLogCriticalSections = 0;
-		LeaveCriticalSec( &csGrab );
+		LeaveCriticalSec( &g.csGrab );
 		g.flags.bLogCriticalSections = bLock;
 		SetCriticalLogging( bLock );
 		return;
@@ -1562,7 +1558,7 @@ static void DoInsertTimer( PTIMER timer )
 		Log( WIDE("Fatal! Didn't add the timer!") );
 	SetCriticalLogging( 0 );
 	g.flags.bLogCriticalSections = 0;
-	LeaveCriticalSec( &csGrab );
+	LeaveCriticalSec( &g.csGrab );
 	g.flags.bLogCriticalSections = bLock;
 	SetCriticalLogging( bLock );
 }
@@ -1581,7 +1577,7 @@ static PTRSZVAL CPROC find_timer( POINTER p, PTRSZVAL psvID )
 
 static void  DoRemoveTimer( _32 timerID DBG_PASS )
 {
-	EnterCriticalSec( &csGrab );
+	EnterCriticalSec( &g.csGrab );
 	{
 		PTIMER timer = g.timers;
 		PTRSZVAL psvTimerResult = ForAllInSet( TIMER, &g.timer_pool, find_timer, (PTRSZVAL)timerID );
@@ -1610,7 +1606,7 @@ static void  DoRemoveTimer( _32 timerID DBG_PASS )
 		else
 			_lprintf(DBG_RELAY)( WIDE("Failed to find timer to grab") );
 	}
-	LeaveCriticalSec( &csGrab );
+	LeaveCriticalSec( &g.csGrab );
 }
 
 //--------------------------------------------------------------------------
@@ -1670,7 +1666,7 @@ static void InsertTimer( PTIMER timer DBG_PASS )
 	}
 	else
 	{
-		EnterCriticalSec( &csGrab );
+		EnterCriticalSec( &g.csGrab );
 		// have to assume that we're away in callback
 		// in order to get here... there's no other way
 		// for this routine to be called and BE the timer thread.
@@ -1686,7 +1682,7 @@ static void InsertTimer( PTIMER timer DBG_PASS )
 #endif
 			WakeThread(g.pTimerThread);
 		}
-		LeaveCriticalSec( &csGrab );
+		LeaveCriticalSec( &g.csGrab );
 	}
 }
 
@@ -1788,7 +1784,7 @@ static int CPROC ProcessTimers( PTRSZVAL psvForce )
 
 		SetCriticalLogging( 0 );
 		g.flags.bLogCriticalSections = 0;
-		while( ( EnterCriticalSec( &csGrab ), timer = g.timers ) &&
+		while( ( EnterCriticalSec( &g.csGrab ), timer = g.timers ) &&
 				( (S_32)( newtick - g.last_tick ) >= timer->delta ) )
 		{
 			g.flags.bLogCriticalSections = bLock;
@@ -1806,7 +1802,7 @@ static int CPROC ProcessTimers( PTRSZVAL psvForce )
 			GrabTimer( timer );
 			SetCriticalLogging( 0 );
 			g.flags.bLogCriticalSections = 0;
-			LeaveCriticalSec( &csGrab );
+			LeaveCriticalSec( &g.csGrab );
 			g.flags.bLogCriticalSections = bLock;
 			SetCriticalLogging( bLock );
 			g.last_tick += timer->delta;
@@ -1907,7 +1903,7 @@ static int CPROC ProcessTimers( PTRSZVAL psvForce )
 		}
 		SetCriticalLogging( 0 );
 		g.flags.bLogCriticalSections = 0;
-		LeaveCriticalSec( &csGrab );
+		LeaveCriticalSec( &g.csGrab );
 		g.flags.bLogCriticalSections = bLock;
 		SetCriticalLogging( bLock );
 		if( timer )
@@ -2141,7 +2137,7 @@ static void InternalRescheduleTimerEx( PTIMER timer, _32 delay )
 void  RescheduleTimerEx( _32 ID, _32 delay )
 {
 	PTIMER timer;
-	EnterCriticalSec( &csGrab );
+	EnterCriticalSec( &g.csGrab );
 	if( !ID )
 	{
 		timer =g.current_timer;
@@ -2161,7 +2157,7 @@ void  RescheduleTimerEx( _32 ID, _32 delay )
 		}
 	}
 	InternalRescheduleTimerEx( timer, delay );
-	LeaveCriticalSec( &csGrab );
+	LeaveCriticalSec( &g.csGrab );
 }
 
 //--------------------------------------------------------------------------
@@ -2169,7 +2165,7 @@ void  RescheduleTimerEx( _32 ID, _32 delay )
 void  RescheduleTimer( _32 ID )
 {
 	PTIMER timer = g.timers;
-	EnterCriticalSec( &csGrab );
+	EnterCriticalSec( &g.csGrab );
 	while( timer && timer->ID != ID )
 		timer = timer->next;
 	if( !timer )
@@ -2181,7 +2177,7 @@ void  RescheduleTimer( _32 ID )
 	{
 		InternalRescheduleTimerEx( timer, timer->frequency );
 	}
-	LeaveCriticalSec( &csGrab );
+	LeaveCriticalSec( &g.csGrab );
 }
 
 //--------------------------------------------------------------------------
@@ -2204,7 +2200,7 @@ static void OnDisplayResume( WIDE("@Internal Timers") _WIDE(TARGETNAME))( void )
 void  ChangeTimerEx( _32 ID, _32 initial, _32 frequency )
 {
 	PTIMER timer = g.timers;
-	EnterCriticalSec( &csGrab );
+	EnterCriticalSec( &g.csGrab );
 	while( timer && timer->ID != ID )
 		timer = timer->next;
 	if( timer )
@@ -2212,7 +2208,7 @@ void  ChangeTimerEx( _32 ID, _32 initial, _32 frequency )
 		timer->frequency = frequency;
 		InternalRescheduleTimerEx( timer, initial );
 	}
-	LeaveCriticalSec( &csGrab );
+	LeaveCriticalSec( &g.csGrab );
 }
 
 //--------------------------------------------------------------------------

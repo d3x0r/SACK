@@ -1,0 +1,606 @@
+<?xml version="1.0" encoding="utf-8"?>
+<game>
+  <prizeGroups>
+    <prizeGroup>
+      <prizes>
+        <prize>
+          <remaining>25</remaining>
+          <value>1</value>
+          <desc/>
+        </prize>
+        <prize>
+          <remaining>9</remaining>
+          <value>2</value>
+          <desc/>
+        </prize>
+        <prize>
+          <remaining>1</remaining>
+          <value>3</value>
+          <desc/>
+        </prize>
+        <prize>
+          <remaining>1</remaining>
+          <value>4</value>
+          <desc/>
+        </prize>
+        <prize>
+          <remaining>4</remaining>
+          <value>5</value>
+          <desc/>
+        </prize>
+        <prize>
+          <remaining>64</remaining>
+          <value>6</value>
+          <desc/>
+        </prize>
+        <prize>
+          <remaining>5</remaining>
+          <value>7</value>
+          <desc/>
+        </prize>
+        <prize>
+          <remaining>47</remaining>
+          <value>8</value>
+          <desc/>
+        </prize>
+        <prize>
+          <remaining>7</remaining>
+          <value>9</value>
+          <desc/>
+        </prize>
+        <prize>
+          <remaining>8</remaining>
+          <value>10</value>
+          <desc/>
+        </prize>
+        <prize>
+          <remaining>2</remaining>
+          <value>11</value>
+          <desc/>
+        </prize>
+      </prizes>
+    </prizeGroup>
+  </prizeGroups>
+  <extraPrizes>0</extraPrizes>
+  <playerLog>
+    <player>
+      <timestamp>Thu Apr 30 17:21:52 GMT-0700 2015</timestamp>
+      <cardNum>10444882</cardNum>
+      <playerName>Samuel Pena</playerName>
+      <prizeNum>8</prizeNum>
+      <prizeDesc>1 Ticket</prizeDesc>
+    </player>
+    <player>
+      <timestamp>Thu Apr 30 17:22:13 GMT-0700 2015</timestamp>
+      <cardNum>10444882</cardNum>
+      <playerName>Samuel Pena</playerName>
+      <prizeNum>2</prizeNum>
+      <prizeDesc>$15</prizeDesc>
+    </player>
+    <player>
+      <timestamp>Thu Apr 30 17:22:27 GMT-0700 2015</timestamp>
+      <cardNum>10444882</cardNum>
+      <playerName>Samuel Pena</playerName>
+      <prizeNum>1</prizeNum>
+      <prizeDesc>$10</prizeDesc>
+    </player>
+    <player>
+      <timestamp>Thu Apr 30 17:22:53 GMT-0700 2015</timestamp>
+      <cardNum>74792</cardNum>
+      <playerName>Eliseo Aguilera</playerName>
+      <prizeNum>6</prizeNum>
+      <prizeDesc>5 Tickets</prizeDesc>
+    </player>
+    <player>
+      <timestamp>Thu Apr 30 17:23:09 GMT-0700 2015</timestamp>
+      <cardNum>74792</cardNum>
+      <playerName>Eliseo Aguilera</playerName>
+      <prizeNum>8</prizeNum>
+      <prizeDesc>1 Ticket</prizeDesc>
+    </player>
+    <player>
+      <timestamp>Thu Apr 30 17:26:31 GMT-0700 2015</timestamp>
+      <cardNum>18206</cardNum>
+      <playerName>Anna Ginn</playerName>
+      <prizeNum>3</prizeNum>
+      <prizeDesc>$20</prizeDesc>
+    </player>
+    <player>
+      <timestamp>Thu Apr 30 17:26:50 GMT-0700 2015</timestamp>
+      <cardNum>18206</cardNum>
+      <playerName>Anna Ginn</playerName>
+      <prizeNum>7</prizeNum>
+      <prizeDesc>Coffee</prizeDesc>
+    </player>
+    <player>
+      <timestamp>Thu Apr 30 17:27:29 GMT-0700 2015</timestamp>
+      <cardNum>105346</cardNum>
+      <playerName>Marketing Test</playerName>
+      <prizeNum>7</prizeNum>
+      <prizeDesc>Coffee</prizeDesc>
+    </player>
+    <player>
+      <timestamp>Thu Apr 30 17:27:52 GMT-0700 2015</timestamp>
+      <cardNum>105346</cardNum>
+      <playerName>Marketing Test</playerName>
+      <prizeNum>11</prizeNum>
+      <prizeDesc>Buffet</prizeDesc>
+    </player>
+    <player>
+      <timestamp>Thu Apr 30 17:28:17 GMT-0700 2015</timestamp>
+      <cardNum>105346</cardNum>
+      <playerName>Marketing Test</playerName>
+      <prizeNum>8</prizeNum>
+      <prizeDesc>1 Ticket</prizeDesc>
+    </player>
+    <player>
+      <timestamp>Fri May 1 00:36:12 GMT-0700 2015</timestamp>
+      <cardNum>15039298</cardNum>
+      <playerName>SITHAI</playerName>
+      <prizeNum>6</prizeNum>
+      <prizeDesc>5 Tickets</prizeDesc>
+    </player>
+    <player>
+      <timestamp>Fri May 1 00:36:44 GMT-0700 2015</timestamp>
+      <cardNum>15039298</cardNum>
+      <playerName>SITHAI</playerName>
+      <prizeNum>6</prizeNum>
+      <prizeDesc>5 Tickets</prizeDesc>
+    </player>
+    <player>
+      <timestamp>Fri May 1 00:37:02 GMT-0700 2015</timestamp>
+      <cardNum>15039298</cardNum>
+      <playerName>SITHAI</playerName>
+      <prizeNum>6</prizeNum>
+      <prizeDesc>5 Tickets</prizeDesc>
+    </player>
+    <player>
+      <timestamp>Fri May 1 00:37:26 GMT-0700 2015</timestamp>
+      <cardNum>15039298</cardNum>
+      <playerName>SITHAI</playerName>
+      <prizeNum>8</prizeNum>
+      <prizeDesc>1 Ticket</prizeDesc>
+    </player>
+    <player>
+      <timestamp>Fri May 1 00:37:47 GMT-0700 2015</timestamp>
+      <cardNum>15039298</cardNum>
+      <playerName>SITHAI</playerName>
+      <prizeNum>3</prizeNum>
+      <prizeDesc>$20</prizeDesc>
+    </player>
+    <player>
+      <timestamp>Fri May 1 00:38:21 GMT-0700 2015</timestamp>
+      <cardNum>15039298</cardNum>
+      <playerName>SITHAI</playerName>
+      <prizeNum>8</prizeNum>
+      <prizeDesc>1 Ticket</prizeDesc>
+    </player>
+    <player>
+      <timestamp>Fri May 1 00:43:11 GMT-0700 2015</timestamp>
+      <cardNum>15032115</cardNum>
+      <playerName>ELISEO</playerName>
+      <prizeNum>6</prizeNum>
+      <prizeDesc>5 Tickets</prizeDesc>
+    </player>
+    <player>
+      <timestamp>Fri May 1 00:43:46 GMT-0700 2015</timestamp>
+      <cardNum>15506802</cardNum>
+      <playerName>TABLE</playerName>
+      <prizeNum>5</prizeNum>
+      <prizeDesc>$5 Food</prizeDesc>
+    </player>
+    <player>
+      <timestamp>Fri May 1 00:45:34 GMT-0700 2015</timestamp>
+      <cardNum>15005255</cardNum>
+      <playerName>ANNA</playerName>
+      <prizeNum>6</prizeNum>
+      <prizeDesc>5 Tickets</prizeDesc>
+    </player>
+    <player>
+      <timestamp>Fri May 1 00:49:07 GMT-0700 2015</timestamp>
+      <cardNum>15506802</cardNum>
+      <playerName>TABLE</playerName>
+      <prizeNum>9</prizeNum>
+      <prizeDesc>Latte</prizeDesc>
+    </player>
+    <player>
+      <timestamp>Fri May 1 00:55:11 GMT-0700 2015</timestamp>
+      <cardNum>15506802</cardNum>
+      <playerName>TABLE</playerName>
+      <prizeNum>6</prizeNum>
+      <prizeDesc>5 Tickets</prizeDesc>
+    </player>
+    <player>
+      <timestamp>Fri May 1 00:55:30 GMT-0700 2015</timestamp>
+      <cardNum>15506802</cardNum>
+      <playerName>TABLE</playerName>
+      <prizeNum>8</prizeNum>
+      <prizeDesc>1 Ticket</prizeDesc>
+    </player>
+    <player>
+      <timestamp>Fri May 1 09:01:11 GMT-0700 2015</timestamp>
+      <cardNum>118290</cardNum>
+      <playerName>Socorro Lopez</playerName>
+      <prizeNum>8</prizeNum>
+      <prizeDesc>1 Ticket</prizeDesc>
+    </player>
+    <player>
+      <timestamp>Fri May 1 09:02:15 GMT-0700 2015</timestamp>
+      <cardNum>118290</cardNum>
+      <playerName>Socorro Lopez</playerName>
+      <prizeNum>8</prizeNum>
+      <prizeDesc>1 Ticket</prizeDesc>
+    </player>
+    <player>
+      <timestamp>Fri May 1 09:03:05 GMT-0700 2015</timestamp>
+      <cardNum>118290</cardNum>
+      <playerName>Socorro Lopez</playerName>
+      <prizeNum>7</prizeNum>
+      <prizeDesc>Coffee</prizeDesc>
+    </player>
+    <player>
+      <timestamp>Fri May 1 09:04:21 GMT-0700 2015</timestamp>
+      <cardNum>42643</cardNum>
+      <playerName>Francisca Gutierrez</playerName>
+      <prizeNum>1</prizeNum>
+      <prizeDesc>$10</prizeDesc>
+    </player>
+    <player>
+      <timestamp>Fri May 1 09:05:07 GMT-0700 2015</timestamp>
+      <cardNum>42643</cardNum>
+      <playerName>Francisca Gutierrez</playerName>
+      <prizeNum>1</prizeNum>
+      <prizeDesc>$10</prizeDesc>
+    </player>
+    <player>
+      <timestamp>Fri May 1 09:06:00 GMT-0700 2015</timestamp>
+      <cardNum>42643</cardNum>
+      <playerName>Francisca Gutierrez</playerName>
+      <prizeNum>6</prizeNum>
+      <prizeDesc>5 Tickets</prizeDesc>
+    </player>
+    <player>
+      <timestamp>Fri May 1 10:09:13 GMT-0700 2015</timestamp>
+      <cardNum>10445185</cardNum>
+      <playerName>Randy Allen</playerName>
+      <prizeNum>8</prizeNum>
+      <prizeDesc>1 Ticket</prizeDesc>
+    </player>
+    <player>
+      <timestamp>Fri May 1 10:51:02 GMT-0700 2015</timestamp>
+      <cardNum>10445201</cardNum>
+      <playerName>Patricia Melom</playerName>
+      <prizeNum>8</prizeNum>
+      <prizeDesc>1 Ticket</prizeDesc>
+    </player>
+    <player>
+      <timestamp>Fri May 1 10:58:27 GMT-0700 2015</timestamp>
+      <cardNum>10126545</cardNum>
+      <playerName>Vern Hodson</playerName>
+      <prizeNum>7</prizeNum>
+      <prizeDesc>Coffee</prizeDesc>
+    </player>
+    <player>
+      <timestamp>Fri May 1 10:58:56 GMT-0700 2015</timestamp>
+      <cardNum>10126545</cardNum>
+      <playerName>Vern Hodson</playerName>
+      <prizeNum>3</prizeNum>
+      <prizeDesc>$20</prizeDesc>
+    </player>
+    <player>
+      <timestamp>Fri May 1 11:27:49 GMT-0700 2015</timestamp>
+      <cardNum>10021652</cardNum>
+      <playerName>Joseph Vera</playerName>
+      <prizeNum>6</prizeNum>
+      <prizeDesc>5 Tickets</prizeDesc>
+    </player>
+    <player>
+      <timestamp>Fri May 1 11:28:40 GMT-0700 2015</timestamp>
+      <cardNum>10021652</cardNum>
+      <playerName>Joseph Vera</playerName>
+      <prizeNum>8</prizeNum>
+      <prizeDesc>1 Ticket</prizeDesc>
+    </player>
+    <player>
+      <timestamp>Fri May 1 11:42:43 GMT-0700 2015</timestamp>
+      <cardNum>159453</cardNum>
+      <playerName>Joyce Lewis</playerName>
+      <prizeNum>8</prizeNum>
+      <prizeDesc>1 Ticket</prizeDesc>
+    </player>
+    <player>
+      <timestamp>Fri May 1 11:43:09 GMT-0700 2015</timestamp>
+      <cardNum>159453</cardNum>
+      <playerName>Joyce Lewis</playerName>
+      <prizeNum>7</prizeNum>
+      <prizeDesc>Coffee</prizeDesc>
+    </player>
+    <player>
+      <timestamp>Fri May 1 11:43:33 GMT-0700 2015</timestamp>
+      <cardNum>159453</cardNum>
+      <playerName>Joyce Lewis</playerName>
+      <prizeNum>8</prizeNum>
+      <prizeDesc>1 Ticket</prizeDesc>
+    </player>
+    <player>
+      <timestamp>Fri May 1 11:53:25 GMT-0700 2015</timestamp>
+      <cardNum>85646</cardNum>
+      <playerName>Kea Franco</playerName>
+      <prizeNum>8</prizeNum>
+      <prizeDesc>1 Ticket</prizeDesc>
+    </player>
+    <player>
+      <timestamp>Fri May 1 12:00:32 GMT-0700 2015</timestamp>
+      <cardNum>159454</cardNum>
+      <playerName>Stephen Lewis Sr</playerName>
+      <prizeNum>8</prizeNum>
+      <prizeDesc>1 Ticket</prizeDesc>
+    </player>
+    <player>
+      <timestamp>Fri May 1 12:00:54 GMT-0700 2015</timestamp>
+      <cardNum>159454</cardNum>
+      <playerName>Stephen Lewis Sr</playerName>
+      <prizeNum>8</prizeNum>
+      <prizeDesc>1 Ticket</prizeDesc>
+    </player>
+    <player>
+      <timestamp>Fri May 1 12:01:20 GMT-0700 2015</timestamp>
+      <cardNum>159454</cardNum>
+      <playerName>Stephen Lewis Sr</playerName>
+      <prizeNum>8</prizeNum>
+      <prizeDesc>1 Ticket</prizeDesc>
+    </player>
+    <player>
+      <timestamp>Fri May 1 12:02:14 GMT-0700 2015</timestamp>
+      <cardNum>106324</cardNum>
+      <playerName>Olga Kellogg</playerName>
+      <prizeNum>10</prizeNum>
+      <prizeDesc>10 Tickets</prizeDesc>
+    </player>
+    <player>
+      <timestamp>Fri May 1 12:02:48 GMT-0700 2015</timestamp>
+      <cardNum>106324</cardNum>
+      <playerName>Olga Kellogg</playerName>
+      <prizeNum>6</prizeNum>
+      <prizeDesc>5 Tickets</prizeDesc>
+    </player>
+    <player>
+      <timestamp>Fri May 1 12:09:50 GMT-0700 2015</timestamp>
+      <cardNum>29523</cardNum>
+      <playerName>Trudy Givens</playerName>
+      <prizeNum>2</prizeNum>
+      <prizeDesc>$15</prizeDesc>
+    </player>
+    <player>
+      <timestamp>Fri May 1 12:10:09 GMT-0700 2015</timestamp>
+      <cardNum>29523</cardNum>
+      <playerName>Trudy Givens</playerName>
+      <prizeNum>8</prizeNum>
+      <prizeDesc>1 Ticket</prizeDesc>
+    </player>
+    <player>
+      <timestamp>Fri May 1 12:10:36 GMT-0700 2015</timestamp>
+      <cardNum>29523</cardNum>
+      <playerName>Trudy Givens</playerName>
+      <prizeNum>8</prizeNum>
+      <prizeDesc>1 Ticket</prizeDesc>
+    </player>
+    <player>
+      <timestamp>Fri May 1 12:13:03 GMT-0700 2015</timestamp>
+      <cardNum>4944</cardNum>
+      <playerName>Kristi CribbsWise</playerName>
+      <prizeNum>6</prizeNum>
+      <prizeDesc>5 Tickets</prizeDesc>
+    </player>
+    <player>
+      <timestamp>Fri May 1 12:15:16 GMT-0700 2015</timestamp>
+      <cardNum>15004624</cardNum>
+      <playerName>HAROLD</playerName>
+      <prizeNum>8</prizeNum>
+      <prizeDesc>1 Ticket</prizeDesc>
+    </player>
+    <player>
+      <timestamp>Fri May 1 12:15:42 GMT-0700 2015</timestamp>
+      <cardNum>15004624</cardNum>
+      <playerName>HAROLD</playerName>
+      <prizeNum>6</prizeNum>
+      <prizeDesc>5 Tickets</prizeDesc>
+    </player>
+    <player>
+      <timestamp>Fri May 1 12:16:09 GMT-0700 2015</timestamp>
+      <cardNum>15004624</cardNum>
+      <playerName>HAROLD</playerName>
+      <prizeNum>2</prizeNum>
+      <prizeDesc>$15</prizeDesc>
+    </player>
+    <player>
+      <timestamp>Fri May 1 12:16:38 GMT-0700 2015</timestamp>
+      <cardNum>15004624</cardNum>
+      <playerName>HAROLD</playerName>
+      <prizeNum>6</prizeNum>
+      <prizeDesc>5 Tickets</prizeDesc>
+    </player>
+    <player>
+      <timestamp>Fri May 1 12:17:00 GMT-0700 2015</timestamp>
+      <cardNum>15004624</cardNum>
+      <playerName>HAROLD</playerName>
+      <prizeNum>6</prizeNum>
+      <prizeDesc>5 Tickets</prizeDesc>
+    </player>
+    <player>
+      <timestamp>Fri May 1 12:17:24 GMT-0700 2015</timestamp>
+      <cardNum>15004624</cardNum>
+      <playerName>HAROLD</playerName>
+      <prizeNum>6</prizeNum>
+      <prizeDesc>5 Tickets</prizeDesc>
+    </player>
+    <player>
+      <timestamp>Fri May 1 12:17:43 GMT-0700 2015</timestamp>
+      <cardNum>15004624</cardNum>
+      <playerName>HAROLD</playerName>
+      <prizeNum>8</prizeNum>
+      <prizeDesc>1 Ticket</prizeDesc>
+    </player>
+    <player>
+      <timestamp>Fri May 1 12:18:03 GMT-0700 2015</timestamp>
+      <cardNum>15004624</cardNum>
+      <playerName>HAROLD</playerName>
+      <prizeNum>6</prizeNum>
+      <prizeDesc>5 Tickets</prizeDesc>
+    </player>
+    <player>
+      <timestamp>Fri May 1 12:18:30 GMT-0700 2015</timestamp>
+      <cardNum>15004624</cardNum>
+      <playerName>HAROLD</playerName>
+      <prizeNum>8</prizeNum>
+      <prizeDesc>1 Ticket</prizeDesc>
+    </player>
+    <player>
+      <timestamp>Fri May 1 12:18:50 GMT-0700 2015</timestamp>
+      <cardNum>15004624</cardNum>
+      <playerName>HAROLD</playerName>
+      <prizeNum>1</prizeNum>
+      <prizeDesc>$10</prizeDesc>
+    </player>
+    <player>
+      <timestamp>Fri May 1 12:19:33 GMT-0700 2015</timestamp>
+      <cardNum>15001359</cardNum>
+      <playerName>DONNA</playerName>
+      <prizeNum>10</prizeNum>
+      <prizeDesc>10 Tickets</prizeDesc>
+    </player>
+    <player>
+      <timestamp>Fri May 1 12:20:01 GMT-0700 2015</timestamp>
+      <cardNum>15001359</cardNum>
+      <playerName>DONNA</playerName>
+      <prizeNum>1</prizeNum>
+      <prizeDesc>$10</prizeDesc>
+    </player>
+    <player>
+      <timestamp>Fri May 1 12:20:27 GMT-0700 2015</timestamp>
+      <cardNum>15001359</cardNum>
+      <playerName>DONNA</playerName>
+      <prizeNum>9</prizeNum>
+      <prizeDesc>Latte</prizeDesc>
+    </player>
+    <player>
+      <timestamp>Fri May 1 12:20:57 GMT-0700 2015</timestamp>
+      <cardNum>15001359</cardNum>
+      <playerName>DONNA</playerName>
+      <prizeNum>3</prizeNum>
+      <prizeDesc>$20</prizeDesc>
+    </player>
+    <player>
+      <timestamp>Fri May 1 12:21:23 GMT-0700 2015</timestamp>
+      <cardNum>15001360</cardNum>
+      <playerName>LINDA</playerName>
+      <prizeNum>1</prizeNum>
+      <prizeDesc>$10</prizeDesc>
+    </player>
+    <player>
+      <timestamp>Fri May 1 12:21:46 GMT-0700 2015</timestamp>
+      <cardNum>15001360</cardNum>
+      <playerName>LINDA</playerName>
+      <prizeNum>6</prizeNum>
+      <prizeDesc>5 Tickets</prizeDesc>
+    </player>
+    <player>
+      <timestamp>Fri May 1 12:22:07 GMT-0700 2015</timestamp>
+      <cardNum>15001360</cardNum>
+      <playerName>LINDA</playerName>
+      <prizeNum>8</prizeNum>
+      <prizeDesc>1 Ticket</prizeDesc>
+    </player>
+    <player>
+      <timestamp>Fri May 1 12:23:10 GMT-0700 2015</timestamp>
+      <cardNum>15002940</cardNum>
+      <playerName>GONZALO</playerName>
+      <prizeNum>6</prizeNum>
+      <prizeDesc>5 Tickets</prizeDesc>
+    </player>
+    <player>
+      <timestamp>Fri May 1 12:23:41 GMT-0700 2015</timestamp>
+      <cardNum>15253826</cardNum>
+      <playerName>STEVEN</playerName>
+      <prizeNum>9</prizeNum>
+      <prizeDesc>Latte</prizeDesc>
+    </player>
+    <player>
+      <timestamp>Fri May 1 12:25:40 GMT-0700 2015</timestamp>
+      <cardNum>15001374</cardNum>
+      <playerName>JUDY</playerName>
+      <prizeNum>8</prizeNum>
+      <prizeDesc>1 Ticket</prizeDesc>
+    </player>
+    <player>
+      <timestamp>Fri May 1 12:26:05 GMT-0700 2015</timestamp>
+      <cardNum>15001374</cardNum>
+      <playerName>JUDY</playerName>
+      <prizeNum>6</prizeNum>
+      <prizeDesc>5 Tickets</prizeDesc>
+    </player>
+    <player>
+      <timestamp>Fri May 1 12:26:34 GMT-0700 2015</timestamp>
+      <cardNum>15001374</cardNum>
+      <playerName>JUDY</playerName>
+      <prizeNum>6</prizeNum>
+      <prizeDesc>5 Tickets</prizeDesc>
+    </player>
+    <player>
+      <timestamp>Fri May 1 12:26:58 GMT-0700 2015</timestamp>
+      <cardNum>15001374</cardNum>
+      <playerName>JUDY</playerName>
+      <prizeNum>8</prizeNum>
+      <prizeDesc>1 Ticket</prizeDesc>
+    </player>
+    <player>
+      <timestamp>Fri May 1 12:27:24 GMT-0700 2015</timestamp>
+      <cardNum>15466690</cardNum>
+      <playerName>MARKO</playerName>
+      <prizeNum>1</prizeNum>
+      <prizeDesc>$10</prizeDesc>
+    </player>
+    <player>
+      <timestamp>Fri May 1 12:27:42 GMT-0700 2015</timestamp>
+      <cardNum>15466690</cardNum>
+      <playerName>MARKO</playerName>
+      <prizeNum>2</prizeNum>
+      <prizeDesc>$15</prizeDesc>
+    </player>
+    <player>
+      <timestamp>Fri May 1 12:27:59 GMT-0700 2015</timestamp>
+      <cardNum>15466690</cardNum>
+      <playerName>MARKO</playerName>
+      <prizeNum>8</prizeNum>
+      <prizeDesc>1 Ticket</prizeDesc>
+    </player>
+    <player>
+      <timestamp>Fri May 1 12:28:26 GMT-0700 2015</timestamp>
+      <cardNum>15466690</cardNum>
+      <playerName>MARKO</playerName>
+      <prizeNum>8</prizeNum>
+      <prizeDesc>1 Ticket</prizeDesc>
+    </player>
+    <player>
+      <timestamp>Fri May 1 12:28:57 GMT-0700 2015</timestamp>
+      <cardNum>15190913</cardNum>
+      <playerName>VERN</playerName>
+      <prizeNum>2</prizeNum>
+      <prizeDesc>$15</prizeDesc>
+    </player>
+    <player>
+      <timestamp>Fri May 1 12:29:22 GMT-0700 2015</timestamp>
+      <cardNum>15190913</cardNum>
+      <playerName>VERN</playerName>
+      <prizeNum>8</prizeNum>
+      <prizeDesc>1 Ticket</prizeDesc>
+    </player>
+    <player>
+      <timestamp>Fri May 1 12:30:33 GMT-0700 2015</timestamp>
+      <cardNum>15190913</cardNum>
+      <playerName>VERN</playerName>
+      <prizeNum>6</prizeNum>
+      <prizeDesc>5 Tickets</prizeDesc>
+    </player>
+  </playerLog>
+</game>

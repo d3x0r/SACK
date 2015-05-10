@@ -242,8 +242,16 @@ static void CPROC FrameRedraw( PTRSZVAL psvFrame, PRENDERER psvSelf )
 					break;
 				}
 				updated = FALSE;
+#ifdef DEBUG_UPDAATE_DRAW
+				if( g.flags.bLogDebugUpdate )
+					lprintf( "scanning list of dirty controls..." );
+#endif
 				LIST_FORALL( pf->pending_dirty_controls, idx, PSI_CONTROL, pc )
 				{
+#ifdef DEBUG_UPDAATE_DRAW
+					if( g.flags.bLogDebugUpdate )
+						lprintf( "updating dirty control %p", pc );
+#endif
 					updated = TRUE;
 					UpdateCommonEx( pc, TRUE DBG_SRC );
 					SetLink( &pf->pending_dirty_controls, idx, 0 );

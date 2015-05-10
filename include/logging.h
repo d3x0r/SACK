@@ -264,7 +264,7 @@ enum system_logging_option_list {
 # if defined( DO_LOGGING )
 #  define vlprintf      _vxlprintf(LOG_NOISE DBG_SRC)
 #  define lprintf       _xlprintf(LOG_NOISE DBG_SRC)
-#  define _lprintf(DBG_VOIDRELAY)       _xlprintf(LOG_NOISE DBG_RELAY)
+#  define _lprintf(file_line,...)       _xlprintf(LOG_NOISE file_line,##__VA_ARGS__)
 #  define xlprintf(level)       _xlprintf(level DBG_SRC)
 #  define vxlprintf(level)       _vxlprintf(level DBG_SRC)
 # else

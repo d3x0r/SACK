@@ -47,7 +47,7 @@ typedef struct font_tag
      for change.... */
 	_32 characters;
    _8 flags;
-   _8 junk;
+   _8 bias;
    TEXTCHAR *name;
    PCHARACTER character[1];
 } FONT, *PFONT;

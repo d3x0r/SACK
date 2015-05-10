@@ -1310,6 +1310,7 @@ int CountLinesSpanned( PHISTORY_BROWSER phbr, PTEXT countseg, SFTFont font, LOGI
 						nLines--;
 						countseg = PRIORLINE( countseg );
 					}
+					return nLines;
 				}
 				//else
 				//	nLines++;

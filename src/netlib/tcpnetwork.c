@@ -575,7 +575,7 @@ static PCLIENT InternalTCPClientAddrExxx(SOCKADDR *lpAddr,
 						WakeableSleep( 3000 );
 						pResult->pWaiting = NULL;
 						if( pResult->dwFlags & CF_CLOSING )
-                     return NULL;
+							return NULL;
 					}
 					else
 					{
@@ -597,6 +597,20 @@ static PCLIENT InternalTCPClientAddrExxx(SOCKADDR *lpAddr,
 					pResult->dwFlags &= ~CF_CONNECT_WAITING;
 					pResult = NULL;
 					goto LeaveNow;
+				}
+				{
+			#ifdef __LINUX__
+					socklen_t
+			#else
+						int
+			#endif
+						nLen = MAGIC_SOCKADDR_LENGTH;
+					if( !pResult->saSource )
+						pResult->saSource = AllocAddr();
+					if( getsockname( pResult->Socket, pResult->saSource, &nLen ) )
+					{
+						lprintf( WIDE("getsockname errno = %d"), errno );
+					}
 				}
 				//lprintf( WIDE("Connect did complete... returning to application"));
 			}

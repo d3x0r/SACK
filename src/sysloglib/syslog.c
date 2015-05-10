@@ -487,9 +487,9 @@ void InitSyslog( int ignore_options )
 	if( !flags.bInitialized )
 #endif
 	{
-		logtype = SYSLOG_FILE;
-		l.file = stderr;
-			flags.bLogThreadID = 1;
+		//logtype = SYSLOG_FILE;
+		//l.file = stderr;
+		flags.bLogThreadID = 1;
 		hSock = INVALID_SOCKET;
 		l.hSyslogdSock = INVALID_SOCKET;
 		bCPUTickWorks = 1;
@@ -518,7 +518,7 @@ void InitSyslog( int ignore_options )
 			* it is opened on demand.
 			*/
 
-			//logtype = SYSLOG_AUTO_FILE;
+			logtype = SYSLOG_AUTO_FILE;
 			flags.bLogOpenBackup = 1;
 			flags.bUseDeltaTime = 1;
 			flags.bLogCPUTime = 1;
@@ -1194,6 +1194,7 @@ void DoSystemLog( const TEXTCHAR *buffer )
 						// can't open the logging file, stop trying now, will save us trouble in the future
 						logtype = SYSLOG_NONE;
 				}
+				logtype = SYSLOG_AUTO_FILE;
 			}
 		}
 		FileSystemLog( buffer );

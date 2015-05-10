@@ -8,6 +8,10 @@
 #define ANDROID_MODE 0
 #endif
 
+#ifdef __WATCOMC__
+#pragma enum int 
+#endif
+
 //#define DEBUG_LOW_LEVEL_PACKET_IO
 //#define DEBUG_LOW_LEVEL_PACKET_READ
 //#define DEBUG_VIDEO_PACKET_READ

@@ -281,8 +281,12 @@ static void ReadChanges( PMONITOR monitor )
 					}
 					{
 						PCHANGECALLBACK Change;
+						if( l.flags.bLog )
+							lprintf( WIDE( "checking handlers %p" ), monitor->ChangeHandlers );
 						for( Change = monitor->ChangeHandlers; Change; Change = Change->next )
 						{
+							if( l.flags.bLog )
+								lprintf( WIDE( "checking handlers %p %s %s" ), Change->mask, Change->mask?Change->mask:"*", a_name );
 							if( !Change->mask ||
 								CompareMask( Change->mask
 											  , a_name
