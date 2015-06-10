@@ -153,7 +153,7 @@ Bool ZGraphicUserManager::KeyUp( UShort KeySym )
   return(false);
 }
 
-Bool ZGraphicUserManager::MouseMove ( Short Relative_x, Short Relative_y, UShort Absolute_x, UShort Absolute_y)
+Bool ZGraphicUserManager::MouseMove ( float Relative_x, float Relative_y, float Absolute_x, float Absolute_y)
 {
   Bool res;
   ZMemSize i;
@@ -194,7 +194,7 @@ Bool ZGraphicUserManager::MouseMove ( Short Relative_x, Short Relative_y, UShort
   return(res);
 }
 
-Bool ZGraphicUserManager::MouseButtonClick  (UShort nButton, Short Absolute_x, Short Absolute_y)
+Bool ZGraphicUserManager::MouseButtonClick  (UShort nButton, float Absolute_x, float Absolute_y)
 {
   ULong i;
 
@@ -217,7 +217,7 @@ Bool ZGraphicUserManager::MouseButtonClick  (UShort nButton, Short Absolute_x, S
   return(true);
 }
 
-Bool ZGraphicUserManager::MouseButtonRelease(UShort nButton, Short Absolute_x, Short Absolute_y)
+Bool ZGraphicUserManager::MouseButtonRelease(UShort nButton, float Absolute_x, float Absolute_y)
 {
 
   FirstFrame->MouseButtonRelease(nButton, Absolute_x, Absolute_y);
@@ -234,7 +234,7 @@ Bool ZGraphicUserManager::MouseButtonRelease(UShort nButton, Short Absolute_x, S
   return true;
 }
 
-void ZGraphicUserManager::Render( PTRSZVAL psvInit )
+void ZGraphicUserManager::Render( ZRender_Interface *render, PTRSZVAL psvInit )
 {
   Frame_Dimensions Dimensions;
 
@@ -246,7 +246,7 @@ void ZGraphicUserManager::Render( PTRSZVAL psvInit )
   Dimensions.Depth = 0;
 
   // OpenGL Setup for gui
-
+#if 0
   glEnable(GL_TEXTURE_2D);
 
   glMatrixMode(GL_PROJECTION);
@@ -256,16 +256,18 @@ void ZGraphicUserManager::Render( PTRSZVAL psvInit )
   glOrtho(FirstFrame->Dimensions.Position_x, FirstFrame->Dimensions.Width, FirstFrame->Dimensions.Height , FirstFrame->Dimensions.Position_y,-100.0, 500.0);
   glMatrixMode(GL_MODELVIEW);
   glLoadIdentity();
+#endif
 
   //glEnable (GL_BLEND); glBlendFunc (GL_SRC_ALPHA, GL_SRC_ALPHA);
   //glEnable (GL_BLEND); glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-  FirstFrame->Render(&Dimensions, psvInit);
+  FirstFrame->Render(render, &Dimensions, psvInit);
 }
 
-void ZFrame::Render(Frame_Dimensions * ParentPosition, PTRSZVAL psvInit)
+void ZFrame::Render(ZRender_Interface *render, Frame_Dimensions * ParentPosition, PTRSZVAL psvInit)
 {
-
-  ZVector3f P1,P2,P3,P4;
+	struct {
+		ZVector3f P1,P2,P3,P4;
+	}P;
   ZListItem * Item;
   ZFrame * Frame;
 
@@ -286,12 +288,23 @@ void ZFrame::Render(Frame_Dimensions * ParentPosition, PTRSZVAL psvInit)
     if (Flag_Show_Frame)
     {
 
-      P1.x = EffectivePosition.Position_x; P1.y = EffectivePosition.Position_y; P1.z = EffectivePosition.Position_z;
-      P2.x = EffectivePosition.Position_x + EffectivePosition.Width ; P2.y = EffectivePosition.Position_y ; P2.z = EffectivePosition.Position_z + EffectivePosition.Depth;
-      P3.x = EffectivePosition.Position_x + EffectivePosition.Width ; P3.y = EffectivePosition.Position_y + EffectivePosition.Height; P3.z = EffectivePosition.Position_z + EffectivePosition.Depth;
-      P4.x = EffectivePosition.Position_x; P4.y = EffectivePosition.Position_y + EffectivePosition.Height; P4.z = EffectivePosition.Position_z + EffectivePosition.Depth;
+      P.P1.x = EffectivePosition.Position_x; P.P1.y = EffectivePosition.Position_y; P.P1.z = EffectivePosition.Position_z + EffectivePosition.Depth;
+      P.P2.x = EffectivePosition.Position_x + EffectivePosition.Width ; P.P2.y = EffectivePosition.Position_y ; P.P2.z = EffectivePosition.Position_z + EffectivePosition.Depth;
+      P.P3.x = EffectivePosition.Position_x + EffectivePosition.Width ; P.P3.y = EffectivePosition.Position_y + EffectivePosition.Height; P.P3.z = EffectivePosition.Position_z + EffectivePosition.Depth;
+      P.P4.x = EffectivePosition.Position_x; P.P4.y = EffectivePosition.Position_y + EffectivePosition.Height; P.P4.z = EffectivePosition.Position_z + EffectivePosition.Depth;
 
       ULong TextureRef = GuiManager->TextureManager->GetTextureEntry(this->TextureNum)->OpenGl_TextureRef[psvInit];
+	  float coords[18];
+	  float tex_coords[12];
+		tex_coords[0] = 0.0; tex_coords[1] = 0.0;   coords[0] = P.P1.x; coords[1] = P.P1.y; coords[2] = P.P1.z; 
+		tex_coords[2] = 1.0f; tex_coords[3] = 0.0;  coords[3] = P.P2.x; coords[4] = P.P2.y; coords[5] = P.P2.z; 
+		tex_coords[4] = 1.0f; tex_coords[5] = 1.0f; coords[6] = P.P3.x; coords[7] = P.P3.y; coords[8] = P.P3.z; 
+		tex_coords[6] = 1.0f; tex_coords[7] = 1.0f; coords[9] = P.P3.x; coords[10] = P.P3.y; coords[11] = P.P3.z; 
+		tex_coords[8] = 0.0; tex_coords[9] = 1.0f;  coords[12] = P.P4.x; coords[13] = P.P4.y; coords[14] = P.P4.z; 
+		tex_coords[10] = 0.0; tex_coords[11] = 0.0; coords[15] = P.P1.x; coords[16] = P.P1.y; coords[17] = P.P1.z; 
+		//lprintf( "%3d %g,%g,%g %g,%g,%g", TextureRef, P.P1.x, P.P1.y, P.P1.z, P.P3.x, P.P3.y, P.P3.z );
+	  render->gui_shader->Draw( TextureRef, &DrawColor.r, coords, tex_coords );
+	  /*
       glBindTexture(GL_TEXTURE_2D,TextureRef );
       glBegin(GL_TRIANGLES);
         glColor3f(DrawColor.r, DrawColor.v, DrawColor.b);
@@ -302,6 +315,7 @@ void ZFrame::Render(Frame_Dimensions * ParentPosition, PTRSZVAL psvInit)
         glTexCoord2f(0.0,1.0);glVertex3f(P4.x, P4.y , P4.z);
         glTexCoord2f(0.0,0.0);glVertex3f(P1.x, P1.y , P1.z);
       glEnd();
+	  */
     }
 
 
@@ -314,7 +328,7 @@ void ZFrame::Render(Frame_Dimensions * ParentPosition, PTRSZVAL psvInit)
       while (Item)
       {
         Frame = (ZFrame *)Item->GetObject();
-        if (Frame) Frame->Render(&EffectivePosition, psvInit);
+        if (Frame) Frame->Render(render, &EffectivePosition, psvInit);
 
         Item = SubFrameList.GetNext(Item);
       }
@@ -324,7 +338,7 @@ void ZFrame::Render(Frame_Dimensions * ParentPosition, PTRSZVAL psvInit)
 
 }
 
-Bool ZFrame::MouseMove ( Short Relative_x, Short Relative_y, UShort Absolute_x, UShort Absolute_y)
+Bool ZFrame::MouseMove ( float Relative_x, float Relative_y, float Absolute_x, float Absolute_y)
 {
   ZListItem * Item;
   ZFrame * Frame;
@@ -353,7 +367,7 @@ Bool ZFrame::MouseMove ( Short Relative_x, Short Relative_y, UShort Absolute_x, 
   return true;
 }
 
-Bool ZFrame::MouseButtonClick  (UShort nButton, Short Absolute_x, Short Absolute_y)
+Bool ZFrame::MouseButtonClick  (UShort nButton, float Absolute_x, float Absolute_y)
 {
   ZListItem * Item;
   ZFrame * Frame;
@@ -396,7 +410,7 @@ Bool ZFrame::MouseButtonClick  (UShort nButton, Short Absolute_x, Short Absolute
   return true;
 }
 
-Bool ZFrame::MouseButtonRelease(UShort nButton, Short Absolute_x, Short Absolute_y)
+Bool ZFrame::MouseButtonRelease(UShort nButton, float Absolute_x, float Absolute_y)
 {
   ZListItem * Item;
   ZFrame * Frame;

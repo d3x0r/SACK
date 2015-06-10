@@ -36,7 +36,8 @@ class ZMatrix
 	int nTime;
 	double s[4];
 	double q[4];
-	double gl_m[4][4];
+	double gl_md[4][4];
+	float gl_mf[4][4];
 
 public:
 	double m[4][4];
@@ -171,6 +172,25 @@ public:
 	   #undef i
 	}
 
+	inline void ApplyRotation( ZVector3f &dest, ZVector3f &src )
+	{
+	   #define i 0
+	   dest.x = (float)(s[i] * ( m[vRight]  [i] * src.x +
+				 m[vUp]     [i] * src.y +
+				 m[vForward][i] * src.z ));
+	   #undef i
+	   #define i 1
+	   dest.y = (float)(s[i] * ( m[vRight]  [i] * src.x +
+				 m[vUp]     [i] * src.y +
+				 m[vForward][i] * src.z ));
+	   #undef i
+	   #define i 2
+	   dest.z = (float)(s[i] * ( m[vRight]  [i] * src.x +
+				 m[vUp]     [i] * src.y +
+				 m[vForward][i] * src.z ));
+	   #undef i
+	}
+
 	
 		inline void RotateAround( ZVector3d p, double amount )
 		{
@@ -255,13 +275,24 @@ public:
 	inline void Apply( double *v_out, double *v_in )
 	{
 		ApplyRotation( v_out, v_in );
-		add3( v_out, v_in, m[3] );
+		add3( v_out, v_out, m[3] );
 	}
 
 	inline void Apply( ZVector3d &v_out, ZVector3d &v_in )
 	{
 		ApplyRotation( v_out, v_in );
-		add3( v_out, v_in, m[3] );
+		add3( v_out, v_out, m[3] );
+	}
+	inline void Apply( ZVector3f &v_out, ZVector3f &v_in )
+	{
+		ApplyRotation( v_out, v_in );
+		add3( v_out, v_out, m[3] );
+	}
+	inline void ApplyInverse( ZVector3f &v_out, ZVector3f &v_in )
+	{
+		ZVector3f v;
+		sub3( v, v_in, m[3] );  // more then rotate....
+		ApplyInverseRotation( v_out, v );
 	}
 
 	inline void Apply( ZVector3d &v )
@@ -390,12 +421,33 @@ private:
 		v_out[2] = v_in[2] + v_in2[2];
 		//v_out[3] = v_in[3] + v_in2[3];
 	}
+	inline void add3( float v_out[4], float v_in[4], float v_in2[4] )
+	{
+		v_out[0] = v_in[0] + v_in2[0];
+		v_out[1] = v_in[1] + v_in2[1];
+		v_out[2] = v_in[2] + v_in2[2];
+		//v_out[3] = v_in[3] + v_in2[3];
+	}
+	inline void add3( float v_out[4], float v_in[4], double v_in2[4] )
+	{
+		v_out[0] = (float)(v_in[0] + v_in2[0]);
+		v_out[1] = (float)(v_in[1] + v_in2[1]);
+		v_out[2] = (float)(v_in[2] + v_in2[2]);
+		//v_out[3] = v_in[3] + v_in2[3];
+	}
 	inline void sub( double v_out[4], double v_in[4], double v_in2[4] )
 	{
 		v_out[0] = v_in[0] - v_in2[0];
 		v_out[1] = v_in[1] - v_in2[1];
 		v_out[2] = v_in[2] - v_in2[2];
 		v_out[3] = v_in[3] - v_in2[3];
+	}
+	inline void sub3( float v_out[4], float v_in[4], double v_in2[4] )
+	{
+		v_out[0] = (float)(v_in[0] - v_in2[0]);
+		v_out[1] = (float)(v_in[1] - v_in2[1]);
+		v_out[2] = (float)(v_in[2] - v_in2[2]);
+		//v_out[3] = v_in[3] - v_in2[3];
 	}
 
  void Rotate ( double dAngle, double vaxis1[4], double vaxis2[4] )
@@ -432,6 +484,24 @@ public:
 				 m[i][vForward] * src->z;
 		#undef i
 	}
+	inline void ApplyInverseRotation( ZVector3f *dest, ZVector3f *src )
+	{
+		#define i 0
+		dest->x = (float)(m[i][vRight]   * src->x +
+				 m[i][vUp]      * src->y +
+				 m[i][vForward] * src->z);
+		#undef i
+		#define i 1
+		dest->y = (float)(m[i][vRight]   * src->x +
+				 m[i][vUp]      * src->y +
+				 m[i][vForward] * src->z);
+		#undef i
+		#define i 2
+		dest->z = (float)(m[i][vRight]   * src->x +
+				 m[i][vUp]      * src->y +
+				 m[i][vForward] * src->z);
+		#undef i
+	}
 	inline void ApplyInverseRotation( ZVector3d &dest, ZVector3d &src )
 	{
 		#define i 0
@@ -450,8 +520,32 @@ public:
 				 m[i][vForward] * src.z;
 		#undef i
 	}
+	inline void ApplyInverseRotation( ZVector3f &dest, ZVector3f &src )
+	{
+		#define i 0
+		dest.x = (float)(m[i][vRight]   * src.x +
+				 m[i][vUp]      * src.y +
+				 m[i][vForward] * src.z);
+		#undef i
+		#define i 1
+		dest.y = (float)(m[i][vRight]   * src.x +
+				 m[i][vUp]      * src.y +
+				 m[i][vForward] * src.z );
+		#undef i
+		#define i 2
+		dest.z = (float)(m[i][vRight]   * src.x +
+				 m[i][vUp]      * src.y +
+				 m[i][vForward] * src.z);
+		#undef i
+	}
 private:
 	inline void Invert( double v[3] )
+	{
+		v[0] = -v[0];
+		v[1] = -v[1];
+		v[2] = -v[2];
+	}
+	inline void Invert( float v[3] )
 	{
 		v[0] = -v[0];
 		v[1] = -v[1];
@@ -460,49 +554,134 @@ private:
 
 public:
 
-	double *glMatrix( void )
+	double *glMatrixd( void )
 	{
 		
 		// ugly but perhaps there will be some optimization if I
 		// do this linear like... sure it's a lot of code, but at
 		// least there's no work to loop and multiply...
-		gl_m[0][0] = m[0][0];
-		gl_m[0][1] = m[1][0];
-		gl_m[0][2] = m[2][0];
-		//gl_m[0][3] = m[3][0];
-		gl_m[0][3] = m[0][3];
+		gl_md[0][0] = m[0][0];
+		gl_md[0][1] = m[1][0];
+		gl_md[0][2] = m[2][0];
+		//gl_md[0][3] = m[3][0];
+		gl_md[0][3] = m[0][3];
 
-		gl_m[1][0] = m[0][1];
-		gl_m[1][1] = m[1][1];
-		gl_m[1][2] = m[2][1];
-		//gl_m[1][3] = m[3][1];
-		gl_m[1][3] = m[1][3];
+		gl_md[1][0] = m[0][1];
+		gl_md[1][1] = m[1][1];
+		gl_md[1][2] = m[2][1];
+		//gl_md[1][3] = m[3][1];
+		gl_md[1][3] = m[1][3];
 
 		// z was inverted of what it should have been...
-		gl_m[2][0] = m[0][2];
-		gl_m[2][1] = m[1][2];
-		gl_m[2][2] = m[2][2];
-		//gl_m[2][3] = m[3][2];
-		gl_m[2][3] = m[2][3];
+		gl_md[2][0] = m[0][2];
+		gl_md[2][1] = m[1][2];
+		gl_md[2][2] = m[2][2];
+		//gl_md[2][3] = m[3][2];
+		gl_md[2][3] = m[2][3];
 
-		//gl_m[3][0] = m[0][3];
-		//gl_m[3][1] = m[1][3];
-		//gl_m[3][2] = m[2][3];
-		//gl_m[3][3] = m[3][3];
+		//gl_md[3][0] = m[0][3];
+		//gl_md[3][1] = m[1][3];
+		//gl_md[3][2] = m[2][3];
+		//gl_md[3][3] = m[3][3];
 		 // okay apparently opengl applies
 		 // this origin, and then rotates according to the
 		 // above matrix... so I need to undo having the correct
 		// bias on the translation.
-		 //ApplyInverseRotation( pt, gl_m[3], m[3] );
+		 //ApplyInverseRotation( pt, gl_md[3], m[3] );
 		//Invert( m[2] );
-		ApplyInverseRotation( (ZVector3d*)gl_m[3], (ZVector3d*)m[3] );
+		ApplyInverseRotation( (ZVector3d*)gl_md[3], (ZVector3d*)m[3] );
 		//Invert( m[2] );
-		Invert( gl_m[3] );
+		Invert( gl_md[3] );
 
-		gl_m[3][3] = m[3][3];
-		return (double*)gl_m;
+		gl_md[3][3] = m[3][3];
+		return (double*)gl_md;
 	}
 
+	float *glMatrixf( void )
+	{
+		
+		// ugly but perhaps there will be some optimization if I
+		// do this linear like... sure it's a lot of code, but at
+		// least there's no work to loop and multiply...
+		gl_mf[0][0] = (float)m[0][0];
+		gl_mf[0][1] = (float)m[1][0];
+		gl_mf[0][2] = (float)m[2][0];
+		//gl_mf[0][3] = m[3][0];
+		gl_mf[0][3] = (float)m[0][3];
+
+		gl_mf[1][0] = (float)m[0][1];
+		gl_mf[1][1] = (float)m[1][1];
+		gl_mf[1][2] = (float)m[2][1];
+		//gl_mf[1][3] = m[3][1];
+		gl_mf[1][3] = (float)m[1][3];
+
+		// z was inverted of what it should have been...
+		gl_mf[2][0] = (float)m[0][2];
+		gl_mf[2][1] = (float)m[1][2];
+		gl_mf[2][2] = (float)m[2][2];
+		//gl_mf[2][3] = m[3][2];
+		gl_mf[2][3] = (float)m[2][3];
+
+		//gl_mf[3][0] = m[0][3];
+		//gl_mf[3][1] = m[1][3];
+		//gl_mf[3][2] = m[2][3];
+		//gl_mf[3][3] = m[3][3];
+		 // okay apparently opengl applies
+		 // this origin, and then rotates according to the
+		 // above matrix... so I need to undo having the correct
+		// bias on the translation.
+		 //ApplyInverseRotation( pt, gl_mf[3], m[3] );
+		//Invert( m[2] );
+		ApplyInverseRotation( (ZVector3f*)gl_mf[3], (ZVector3f*)m[3] );
+		//Invert( m[2] );
+		Invert( gl_mf[3] );
+
+		gl_mf[3][3] = (float)m[3][3];
+		return (float*)gl_mf;
+	}
+
+	void glMatrixf( float gl_mf[4][4] )
+	{
+		
+		// ugly but perhaps there will be some optimization if I
+		// do this linear like... sure it's a lot of code, but at
+		// least there's no work to loop and multiply...
+		gl_mf[0][0] = (float)m[0][0];
+		gl_mf[0][1] = (float)m[1][0];
+		gl_mf[0][2] = (float)m[2][0];
+		//gl_mf[0][3] = m[3][0];
+		gl_mf[0][3] = (float)m[0][3];
+
+		gl_mf[1][0] = (float)m[0][1];
+		gl_mf[1][1] = (float)m[1][1];
+		gl_mf[1][2] = (float)m[2][1];
+		//gl_mf[1][3] = m[3][1];
+		gl_mf[1][3] = (float)m[1][3];
+
+		// z was inverted of what it should have been...
+		gl_mf[2][0] = (float)m[0][2];
+		gl_mf[2][1] = (float)m[1][2];
+		gl_mf[2][2] = (float)m[2][2];
+		//gl_mf[2][3] = m[3][2];
+		gl_mf[2][3] = (float)m[2][3];
+
+		//gl_mf[3][0] = m[0][3];
+		//gl_mf[3][1] = m[1][3];
+		//gl_mf[3][2] = m[2][3];
+		//gl_mf[3][3] = m[3][3];
+		 // okay apparently opengl applies
+		 // this origin, and then rotates according to the
+		 // above matrix... so I need to undo having the correct
+		// bias on the translation.
+		 //ApplyInverseRotation( pt, gl_mf[3], m[3] );
+		//Invert( m[2] );
+		ApplyInverseRotation( (ZVector3f*)gl_mf[3], (ZVector3f*)m[3] );
+		//Invert( m[2] );
+		Invert( gl_mf[3] );
+
+		gl_mf[3][3] = (float)m[3][3];
+		//return (float*)gl_mf;
+	}
 
 
 	inline double &x()

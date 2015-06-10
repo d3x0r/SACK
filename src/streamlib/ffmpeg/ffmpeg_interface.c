@@ -88,7 +88,9 @@
 #define lib_swscale WIDE("libswscale.so")
 #define lib_resample WIDE("libswresample.so")
 #endif
+//------------ Interface ---------------------
 
+#include <gsm.h>
 
 //------------ Interface ---------------------
 
@@ -193,7 +195,11 @@ static struct openal_interface
 #define setup_func2(lib, a,b,c) openal.b=(a(ALC_APIENTRY*)c)LoadFunction( lib, _WIDE(#b) )
 #define declare_func3(a,b,c) a (AL_APIENTRY *b) c
 #define setup_func3(lib, a,b,c) openal.b=(a(AL_APIENTRY*)c)LoadFunction( lib, _WIDE(#b) )
-	declare_func2( ALCdevice *, alcOpenDevice, (POINTER) );
+	declare_func2( ALCdevice *, alcOpenDevice, (CPOINTER) );
+	declare_func2( ALCdevice* ,alcCaptureOpenDevice, (const ALCchar *devicename, ALCuint frequency, ALCenum format, ALCsizei buffersize) );
+	declare_func2( void       ,alcCaptureStart, (ALCdevice *device) );
+	declare_func2( void       ,alcCaptureStop, (ALCdevice *device) );
+	declare_func2( void       ,alcCaptureSamples, (ALCdevice *device, ALCvoid *buffer, ALCsizei samples) );
 	declare_func2( ALCboolean, alcCloseDevice, (ALCdevice *device) );
 	declare_func2( ALCcontext *, alcCreateContext, (ALCdevice *,POINTER) );
 	declare_func2( void, alcDestroyContext, (ALCcontext *context) );
@@ -201,6 +207,7 @@ static struct openal_interface
 	declare_func2( ALCboolean, alcMakeContextCurrent, (ALCcontext *context) );
 	declare_func2( ALCboolean , alcIsExtensionPresent, (ALCdevice *device, const ALCchar *extname));
 	declare_func2( const ALCchar*, alcGetString, (ALCdevice *device, ALCenum param) );
+	declare_func2( void          , alcGetIntegerv, (ALCdevice *device, ALCenum param, ALCsizei size, ALCint *values) );
 	declare_func3( void, alBufferData,(ALuint buffer, ALenum format, const ALvoid *data, ALsizei size, ALsizei freq));
 	declare_func3( ALenum, alGetError, (void) );
 	declare_func3( void ,  alGenSources, (ALsizei n, ALuint *sources) );
@@ -524,13 +531,18 @@ static void InitFFMPEG( void )
 
 #ifndef USE_OPENSL
 
-	setup_func2( lib_openal, ALCdevice *, alcOpenDevice, (POINTER) );
+	setup_func2( lib_openal, ALCdevice *, alcOpenDevice, (CPOINTER) );
+	setup_func2( lib_openal, ALCdevice* ,alcCaptureOpenDevice, (const ALCchar *devicename, ALCuint frequency, ALCenum format, ALCsizei buffersize) );
+	setup_func2( lib_openal, void       ,alcCaptureStart, (ALCdevice *device) );
+	setup_func2( lib_openal, void       ,alcCaptureStop, (ALCdevice *device) );
+	setup_func2( lib_openal, void       ,alcCaptureSamples, (ALCdevice *device, ALCvoid *buffer, ALCsizei samples) );
 	setup_func2( lib_openal, ALCboolean, alcCloseDevice, (ALCdevice *device) );
 	setup_func2( lib_openal, ALCcontext *, alcCreateContext, (ALCdevice *,POINTER) );
 	setup_func2( lib_openal, ALCboolean, alcMakeContextCurrent, (ALCcontext *context) );
 	setup_func2( lib_openal, void, alcDestroyContext, (ALCcontext *context) );
 	setup_func2( lib_openal, ALCboolean , alcIsExtensionPresent, (ALCdevice *device, const ALCchar *extname));
 	setup_func2( lib_openal, const ALCchar*, alcGetString, (ALCdevice *device, ALCenum param) );
+	setup_func2( lib_openal, void          , alcGetIntegerv, (ALCdevice *device, ALCenum param, ALCsizei size, ALCint *values) );
 	setup_func3( lib_openal, void, alBufferData,(ALuint buffer, ALenum format, const ALvoid *data, ALsizei size, ALsizei freq));
 	setup_func3( lib_openal, ALenum, alGetError, (void) );
 	setup_func3( lib_openal, void,  alGenSources, (ALsizei n, ALuint *sources) );
@@ -3175,6 +3187,532 @@ void ffmpeg_AdjustVideo( struct ffmpeg_file *file, int frames )
 	//lprintf( "Frame adjust: %d", frames );
 
 	file->video_adjust_ticks -= frames;
+}
+
+void audio_GetCaptureDevices( PLIST *ppList )
+{
+	const ALchar *pDeviceList;
+	InitFFMPEG();
+
+	pDeviceList = openal.alcGetString(NULL, ALC_CAPTURE_DEVICE_SPECIFIER);
+	if (pDeviceList)
+	{
+		//ALFWprintf("\nAvailable Capture Devices are:-\n");
+
+		while (*pDeviceList)
+		{
+			//ALFWprintf("%s\n", pDeviceList);
+	         AddLink( ppList, StrDup( pDeviceList ) );
+			pDeviceList += strlen(pDeviceList) + 1;
+		}
+	}
+}
+
+void audio_GetPlaybackDevices( PLIST *ppList )
+{
+	const ALchar *pDeviceList;
+	InitFFMPEG();
+	//pDeviceList = openal.alcGetString(NULL, ALC_DEFAULT_DEVICE_SPECIFIER);
+
+	pDeviceList = openal.alcGetString(NULL, ALC_DEVICE_SPECIFIER);
+	if (pDeviceList)
+	{
+		//ALFWprintf("\nAvailable Capture Devices are:-\n");
+
+		while (*pDeviceList)
+		{
+			//ALFWprintf("%s\n", pDeviceList);
+	         AddLink( ppList, StrDup( pDeviceList ) );
+			pDeviceList += strlen(pDeviceList) + 1;
+		}
+	}
+}
+
+//---------------------------------------------------------------------
+// voice I/O
+//---------------------------------------------------------------------
+
+#define DEFAULT_SAMPLE_RATE (44100 / 4)
+
+#define DEFAULT_SAMPLE_SEGMENTS ( ( DEFAULT_SAMPLE_RATE + 159 ) / 160 )
+
+struct audio_device {
+	ALCdevice *device;
+	ALCcontext *alc_context;
+	ALuint al_source;
+	int frame_size;
+	short *input_data;
+	PTRSZVAL psvCallback;
+	struct al_buffer buffer;
+	void (CPROC*callback)( PTRSZVAL, POINTER data, size_t );
+
+	gsm gsm_inst;
+	_8 *compress_buffer;
+	size_t compress_segments;
+	gsm_signal compress_partial_buffer[160];
+	int compress_partial_buffer_idx;
+
+	// playback buffer management
+	_64 al_last_buffer_reclaim;
+	int al_format;
+	PLINKQUEUE al_free_buffer_queue; // queue of struct al_buffer
+	PLINKQUEUE al_used_buffer_queue; // queue of struct al_buffer
+	PLINKQUEUE al_pending_buffer_queue; // queue of struct al_buffer
+	PLINKQUEUE al_reque_buffer_queue; // queue of struct al_buffer
+	int pending_queue;
+	int in_queue;
+	int max_in_queue;
+	int out_of_queue;
+	struct {
+		BIT_FIELD paused : 1;
+		BIT_FIELD capturing : 1;
+	} flags;
+	PTHREAD audioThread;
+};
+
+static PTRSZVAL CPROC audio_ReadCaptureDevice( PTHREAD thread )
+{
+	struct audio_device *ad = (struct audio_device*)GetThreadParam( thread );
+	while( 1 )
+	{
+		int val;
+		int skip_sleep;
+		if( !ad->flags.paused )
+		{
+			if( !ad->flags.capturing )
+			{
+				openal.alcCaptureStart(ad->device);
+				ad->flags.capturing = 1;
+			}
+			openal.alcGetIntegerv(ad->device, ALC_CAPTURE_SAMPLES, 1, &val);
+			lprintf( "capture samples is %d", val );
+			if( val > 0 )
+			{
+				if( val > ad->frame_size )
+				{
+					skip_sleep = 1;
+					val = ad->frame_size;
+				}
+				else
+					skip_sleep = 0;
+				openal.alcCaptureSamples( ad->device, ad->input_data, val );
+				{
+					int n;
+					n = 0;
+					if( ad->compress_partial_buffer_idx )
+					{
+						for( n = n; n < val; n++ )
+						{
+							ad->compress_partial_buffer[ad->compress_partial_buffer_idx++] 
+								= ((gsm_signal*)ad->input_data)[n];
+							if( ad->compress_partial_buffer_idx == 160 )
+							{
+								//lprintf( "prior encode %d %d", n, p * 33 );
+								gsm_encode( ad->gsm_inst
+								          , ad->compress_partial_buffer
+										  , ad->compress_buffer + (ad->compress_segments * 33) );
+								ad->compress_segments++;
+								n++; // did use this sample
+								ad->compress_partial_buffer_idx = 0;
+								break;
+							}
+						}
+					}
+					for( n = n; n < val; n += 160 )
+					{
+						if( ( val - n ) >= 160 )
+						{
+							//lprintf( "full block encode %d %d", n, p * 33 );
+							gsm_encode( ad->gsm_inst
+							          , ((gsm_signal*)ad->input_data) + n
+							          , ad->compress_buffer + (ad->compress_segments * 33) );
+							ad->compress_segments++;
+							if( ad->compress_segments == DEFAULT_SAMPLE_SEGMENTS )
+							{
+								if( ad->callback )
+									ad->callback( ad->psvCallback
+									            , ad->compress_buffer
+									            , ad->compress_segments * 33 );
+								ad->compress_segments = 0;
+							}
+						}
+						else 
+						{
+							//lprintf( "%d remain", datalen - n );
+							break;
+						}
+					}
+					for( n = n; n < val; n++ )
+					{
+						ad->compress_partial_buffer[ad->compress_partial_buffer_idx++] 
+							= ((gsm_signal*)ad->input_data)[n];
+						if( ad->compress_partial_buffer_idx == 160 )
+						{
+							//lprintf( "end block encode %d %d", n, p * 33 );
+							gsm_encode( ad->gsm_inst
+							          , ((gsm_signal*)ad->compress_partial_buffer) + n
+							          , ad->compress_buffer + (ad->compress_segments * 33) );
+							ad->compress_segments++;
+							ad->compress_partial_buffer_idx = 0;
+						}
+					}
+				}
+				if( ad->compress_segments > (DEFAULT_SAMPLE_SEGMENTS / 4) )
+				{
+					if( ad->callback )
+						ad->callback( ad->psvCallback
+						            , ad->compress_buffer
+						            , ad->compress_segments * 33 );
+					ad->compress_segments = 0;
+				}
+				if( !skip_sleep )
+					WakeableSleep( 50 );
+			}
+			else
+			{
+				// was configured by default to have 10 buffers a second... so.. wait 0.1 seconds
+				WakeableSleep( 80 );
+			}
+		}
+		else // if( paused )... 
+		{
+			if( ad->flags.capturing)
+			{
+				openal.alcCaptureStop(ad->device);
+				ad->flags.capturing = 0;
+			}
+			WakeableSleep( 250 );
+		}
+	}
+}
+
+struct audio_device *audio_OpenCaptureDevice( CTEXTSTR devname, void (CPROC*callback)( PTRSZVAL psvInst, POINTER data, size_t ), PTRSZVAL psvInst )
+{
+	struct audio_device *ad = New( struct audio_device );
+	MemSet( ad, 0, sizeof( struct audio_device ) );
+	InitFFMPEG();
+
+	ad->device = openal.alcCaptureOpenDevice( devname, DEFAULT_SAMPLE_RATE, AL_FORMAT_MONO16, ad->frame_size = DEFAULT_SAMPLE_RATE/10 );
+	if( ad->device )
+	{
+		ad->gsm_inst = gsm_create();
+		ad->compress_buffer = NewArray( _8, 33 * DEFAULT_SAMPLE_SEGMENTS );
+		ad->psvCallback = psvInst;
+		ad->callback = callback;
+		ad->input_data = NewArray( short, ad->frame_size );
+		ThreadTo( audio_ReadCaptureDevice, (PTRSZVAL)ad );
+	}
+	return ad;
+}
+
+void audio_SuspendCapture( struct audio_device *device )
+{
+	device->flags.paused = 1;
+}
+
+void audio_ResumeCapture( struct audio_device *device )
+{
+	device->flags.paused = 0;
+}
+
+
+static PTRSZVAL CPROC ProcessPlaybackAudioFrame( PTHREAD thread )
+{
+	struct audio_device * file = (struct audio_device*)GetThreadParam( thread );
+	int frameFinished;
+#ifdef DEBUG_LOG_INFO
+	lprintf(WIDE(" This thread is playing audio for %s"), file->filename );
+#endif
+	while( 1 )
+	{
+		// reclaim processed buffers...
+		int processed = 0;
+#ifdef USE_OPENSL
+		int bufID = 0;
+#else
+		ALuint bufID = 0;
+#endif
+		
+		EnterCriticalSec( &l.cs_audio_out );
+#ifdef USE_OPENSL
+		{
+			SLresult result;
+			if( file->flags.paused )
+			{
+				int stopped = 0;
+				SLuint32 playState;
+				do
+				{
+					result = (*file->bqPlayerPlay)->GetPlayState(file->bqPlayerPlay, &playState);
+					if( playState == SL_PLAYSTATE_PLAYING && !stopped )
+					{
+						stopped = 1;
+						lprintf( WIDE("Stop playback and clear buffers...") );
+						result = (*file->bqPlayerPlay)->SetPlayState(file->bqPlayerPlay,
+																					SL_PLAYSTATE_STOPPED );
+						result = (*file->bqPlayerBufferQueue)->Clear(file->bqPlayerBufferQueue );
+						{
+							struct al_buffer *buffer;
+							while( buffer = (struct al_buffer*)DequeLink( &file->al_used_buffer_queue ) )
+							{
+								// out of queue count remains unchanged because requeue should
+								// put them back onto the card.
+								EnqueLink( &file->al_reque_buffer_queue, buffer );
+							}
+						}
+
+					}
+					Relinquish();
+				}
+				while( playState == SL_PLAYSTATE_PLAYING );
+			}
+		}
+#endif
+
+#ifndef USE_OPENSL
+		if( file->device )
+		{
+			openal.alcMakeContextCurrent(file->alc_context);
+
+			//lprintf( WIDE("make current...") );
+			if( file->flags.paused )
+			{
+				int stopped = 0;
+				int state;
+				do
+				{
+					openal.alGetSourcei(file->al_source, AL_SOURCE_STATE, &state);
+					if(state==AL_PLAYING && !stopped)
+					{
+						stopped = 1;
+						openal.alSourceStop(file->al_source);
+					}
+					Relinquish();
+				}
+				while( state==AL_PLAYING );
+			}
+			do
+			{
+				openal.alGetSourcei(file->al_source, AL_BUFFERS_PROCESSED, &processed);
+				if( processed )
+				{
+	#ifdef DEBUG_AUDIO_PACKET_READ
+					//if( file->flags.paused || file->flags.need_audio_dequeue )
+					lprintf( WIDE("Found %d processed buffers... %d  %d"), processed, file->in_queue, file->out_of_queue );
+	#endif
+					while (processed--) {
+						struct al_buffer *buffer;
+						buffer = (struct al_buffer *)DequeLink( &file->al_used_buffer_queue );
+						openal.alSourceUnqueueBuffers(file->al_source, 1, &bufID);
+						file->out_of_queue--;
+						if( !file->flags.paused )
+						{
+							//file->audioSamplesPlayed += buffer->samples;
+							//file->audioSamplesPending -= buffer->samples;
+	#ifdef DEBUG_AUDIO_PACKET_READ
+							lprintf( WIDE("Samples : %d  %d %d"), buffer->samples, file->audioSamplesPlayed, file->audioSamplesPending );
+	#endif
+							if( buffer->buffer != bufID )
+							{
+								lprintf( WIDE("audio queue out of sync") );
+								//DebugBreak();
+							}
+	#ifdef DEBUG_AUDIO_PACKET_READ
+							lprintf( WIDE("release audio buffer.. %p"), buffer->samplebuf );
+	#endif
+							ffmpeg.av_free( buffer->samplebuf );
+							//LogTime(file, FALSE, WIDE("audio deque"), 1 DBG_SRC );
+							EnqueLink( &file->al_free_buffer_queue, buffer );
+							file->in_queue++;
+							if( file->in_queue > file->max_in_queue )
+								file->max_in_queue = file->in_queue;
+						}
+						else
+						{
+							//lprintf( WIDE("Keeping the buffer to requeue...") );
+							EnqueLink( &file->al_reque_buffer_queue, buffer );
+						}
+					}
+					//lprintf( WIDE("save reclaim tick...") );
+					//file->al_last_buffer_reclaim = ffmpeg.av_gettime();
+					// audio got a new play; after a resume, so now wake video thread
+				}
+				else
+				{
+					//if( file->flags.paused || file->flags.need_audio_dequeue )
+	#ifdef DEBUG_AUDIO_PACKET_READ
+					lprintf( WIDE("Found %d processed buffers... %d  %d"), 0, file->in_queue, file->out_of_queue );
+	#endif
+					Relinquish();
+				}
+			} while( ( file->flags.paused && file->out_of_queue ) );
+	#endif
+		}
+
+		//if( file->flags.close_processing )
+		//	break;
+
+		LeaveCriticalSec( &l.cs_audio_out );
+
+		// need to do this always not just if packet; will always be a packet...
+		{
+			//lprintf( WIDE("(moved all fom in(file/avail) to out(openal) in : %d  out: %d   max : %d"), file->in_queue, file->out_of_queue, file->max_in_queue );
+		}
+	}
+	lprintf(WIDE(" This thread is no longer playing playback audio") );
+	return 0;
+}
+
+static void GetPlaybackAudioBuffer( struct audio_device * file, POINTER data, size_t sz
+#ifdef USE_OPENSL
+                           , int samples
+#else
+								  , ALuint samples
+#endif
+								  )
+{
+#ifdef USE_OPENSL
+	SLresult result;
+#else
+	ALenum error;
+#endif
+	struct al_buffer * buffer;
+	if( !( buffer = (struct al_buffer*)DequeLink( &file->al_free_buffer_queue ) ) )
+	{
+		buffer = New( struct al_buffer );
+#ifdef USE_OPENSL
+		buffer->buffer = NewArray( _8, sz );
+		MemCpy( buffer->buffer, data, sz );
+#else
+		openal.alGenBuffers( 1, &buffer->buffer );
+#endif
+	}
+	else
+	{
+		file->in_queue--;
+	}
+	buffer->samplebuf = data;
+	buffer->size = sz;
+	buffer->samples = samples;
+
+#ifdef DEBUG_AUDIO_PACKET_READ
+	//lprintf( WIDE("use buffer (%d)  %p  for %d(%d)"), file->in_queue, buffer, sz, samples );
+#endif
+
+#ifdef USE_OPENSL
+	if( file->flags.use_soft_queue )
+	{
+		//lprintf( WIDE("just pend this in the soft queue....") );
+		EnqueLink( &file->al_pending_buffer_queue, buffer );
+		file->pending_queue++;
+	}
+	else if( file->bqPlayerBufferQueue )
+	{
+		result = (*file->bqPlayerBufferQueue)->Enqueue(file->sound_device->bqPlayerBufferQueue, data, sz );
+		if( result  )
+		{
+			if( result == SL_RESULT_BUFFER_INSUFFICIENT )
+			{
+				lprintf( WIDE("overflow driver, enable soft queue...") );
+				file->flags.use_soft_queue = 1;
+				EnqueLink( &file->al_pending_buffer_queue, buffer );
+				file->pending_queue++;
+			}
+			else
+				lprintf( WIDE("failed to enqueue: %d"), result );
+		}
+		else
+		{
+			EnqueLink( &file->al_used_buffer_queue, buffer );
+			file->out_of_queue++;
+		}
+	}
+	else
+	{
+		Release( buffer->buffer );
+		EnqueLink( &file->al_free_buffer_queue, buffer );
+		file->in_queue++;
+	}
+	if( file->videoFrame )
+		SetAudioPlay( file );
+#else
+	EnterCriticalSec( &l.cs_audio_out );
+	openal.alcMakeContextCurrent(file->alc_context);
+	openal.alBufferData(buffer->buffer, file->al_format, data, sz, DEFAULT_SAMPLE_RATE );
+	openal.alSourceQueueBuffers(file->al_source, 1, &buffer->buffer); // expects array, so address of buffer int
+	if(( error = openal.alGetError()) != AL_NO_ERROR)
+	{
+			lprintf( WIDE("error adding audio buffer to play.... %d"), error );
+	}
+	EnqueLink( &file->al_used_buffer_queue, buffer );
+	file->out_of_queue++;
+
+	{
+		int val;
+		openal.alGetSourcei(file->al_source, AL_SOURCE_STATE, &val);
+		if(val != AL_PLAYING)
+		{
+			openal.alSourcePlay(file->al_source);
+			if(( error = openal.alGetError()) != AL_NO_ERROR)
+		{	
+				lprintf( WIDE("error to play.... %d"), error );
+			}
+		}
+	}
+	LeaveCriticalSec( &l.cs_audio_out );
+#endif
+	if( !file->audioThread )
+		file->audioThread = ThreadTo( ProcessPlaybackAudioFrame, (PTRSZVAL)file );
+}
+
+
+struct audio_device *audio_OpenPlaybackDevice( CTEXTSTR devname )
+{
+	struct audio_device *ad = New( struct audio_device );
+	MemSet( ad, 0, sizeof( struct audio_device ) );
+	InitFFMPEG();
+	ad->device = openal.alcOpenDevice( devname );
+	if( ad->device )
+	{
+		ad->gsm_inst = gsm_create();
+		ad->al_format = AL_FORMAT_MONO16;
+		ad->alc_context = openal.alcCreateContext(ad->device, NULL);
+		if( openal.alcMakeContextCurrent(ad->alc_context) )
+		{
+			openal.alGenSources((ALuint)1, &ad->al_source);
+			// check for errors
+			openal.alSourcef(ad->al_source, AL_PITCH, 1);
+			// check for errors
+			openal.alSourcef(ad->al_source, AL_GAIN, 1);
+			// check for errors
+			openal.alSource3f(ad->al_source, AL_POSITION, 0, 0, 0);
+			// check for errors
+			openal.alSource3f(ad->al_source, AL_VELOCITY, 0, 0, 0);
+			// check for errors
+			openal.alSourcei(ad->al_source, AL_LOOPING, AL_FALSE);
+			// check for errros
+		}
+	}
+	return ad;
+}
+
+void audio_PlaybackBuffer( struct audio_device *ad, POINTER data, size_t datalen )
+{
+	int n;
+	short *decompress_buffer;
+	if( datalen % 33 )
+	{
+		lprintf( "Invalid bufffer received" );
+		return;
+	}
+	datalen /= 33;
+	decompress_buffer = NewArray( short, datalen * 160 );
+	for( n = 0; n < datalen; n ++ )
+	{
+		gsm_decode( ad->gsm_inst, ((gsm_byte*)data) + n*33, decompress_buffer + n * 160 );
+	}
+	GetPlaybackAudioBuffer( ad, decompress_buffer, n * 320, n * 160 );
+	Deallocate( short *, decompress_buffer );
 }
 
 _FFMPEG_INTERFACE_NAMESPACE_END

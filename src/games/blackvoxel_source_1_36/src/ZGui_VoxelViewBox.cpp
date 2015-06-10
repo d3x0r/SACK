@@ -27,7 +27,7 @@
 #include <GL/glew.h>
 #include "ZGui_InventoryBox.h"
 
-void ZVoxelViewBox::Render(Frame_Dimensions * ParentPosition, PTRSZVAL psvInit)
+void ZVoxelViewBox::Render(ZRender_Interface *render, Frame_Dimensions * ParentPosition, PTRSZVAL psvInit)
 {
 
   ZVector3f TopLeft, BottomRight;
@@ -94,7 +94,7 @@ void ZVoxelViewBox::Render(Frame_Dimensions * ParentPosition, PTRSZVAL psvInit)
       while (Item)
       {
         Frame = (ZFrame *)Item->GetObject();
-        if (Frame) Frame->Render(&EffectivePosition, psvInit );
+        if (Frame) Frame->Render(render, &EffectivePosition, psvInit );
 
         Item = SubFrameList.GetNext(Item);
       }

@@ -47,7 +47,6 @@ extern KEYDEFINE KeyDefs[];
 #define WM_USER_HIDE_WINDOW  WM_USER+515
 #define WM_USER_SHUTDOWN     WM_USER+516
 #define WM_USER_MOUSE_CHANGE     WM_USER+517
-#define WM_USER_OPEN_CAMERAS    WM_USER+518
 
 #define WM_RUALIVE 5000 // lparam = pointer to alive variable expected to set true
 
@@ -471,7 +470,7 @@ WM_DROPFILES
 					hVideo->flags.bFocused = 0;
 					// clear keyboard state...
 					{
-					if( !l.flags.bUseLLKeyhook )
+						if( !l.flags.bUseLLKeyhook )
 							MemSet( &l.kbd, 0, sizeof( l.kbd ) );
 						MemSet( &hVideo->kbd, 0, sizeof( hVideo->kbd ) );
 					}
@@ -1496,14 +1495,11 @@ void HandleMessage (MSG Msg)
                                 hVidCreate->pWindowPos.cx,
                                 hVidCreate->pWindowPos.cy);
 	}
-#if 0
 	else if( !Msg.hwnd && (Msg.message == (	WM_USER_OPEN_CAMERAS ) ) )
 	{
-		if( !l.cameras )
-			OpenCameras(); // returns the forward camera
+		SACK_Vidlib_OpenCameras(); // returns the forward camera
 		l.flags.bUpdateWanted = 1;
 	}
-#endif
 	else if (!Msg.hwnd && (Msg.message == (WM_USER + 513)))
 	{
       HandleDestroyMessage( (PVIDEO) Msg.lParam );
@@ -1748,7 +1744,7 @@ PTRSZVAL CPROC VideoThreadProc (PTHREAD thread)
 	l.actual_thread = thread;
 	l.dwThreadID = GetCurrentThreadId ();
 	l.bThreadRunning = TRUE;
-	SACK_Vidlib_OpenCameras();
+	//SACK_Vidlib_OpenCameras();
 #ifdef LOG_STARTUP
 	Log( WIDE("Registered Idle, and starting message loop") );
 #endif

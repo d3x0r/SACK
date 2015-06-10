@@ -56,9 +56,9 @@ class ZEventConsumer : public ZObject
 #undef KeyDown
     virtual Bool KeyDown( UShort KeySym )  = 0;
     virtual Bool KeyUp( UShort KeySym )    = 0;
-    virtual Bool MouseMove ( Short Relative_x, Short Relative_y, UShort Absolute_x, UShort Absolute_y) = 0;
-    virtual Bool MouseButtonClick  (UShort nButton, Short Absolute_x, Short Absolute_y) = 0;
-    virtual Bool MouseButtonRelease(UShort nButton, Short Absolute_x, Short Absolute_y) = 0;
+    virtual Bool MouseMove ( float Relative_x, float Relative_y, float Absolute_x, float Absolute_y) = 0;
+    virtual Bool MouseButtonClick  (UShort nButton, float Absolute_x, float Absolute_y) = 0;
+    virtual Bool MouseButtonRelease(UShort nButton, float Absolute_x, float Absolute_y) = 0;
 
 };
 

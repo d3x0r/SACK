@@ -174,7 +174,7 @@ class ZActor
     virtual void Action_Jump() {}
     virtual void Action_GoUp() {}
     virtual void Action_GoDown() {}
-    virtual void Action_MouseMove( Long Delta_x, Long Delta_y) {}
+    virtual void Action_MouseMove( float Delta_x, float Delta_y) {}
     virtual void Action_MouseButtonClick( ULong Button) {}
     virtual void Action_MouseButtonRelease( ULong Button) {}
     virtual bool Action_StillEvents( bool * MouseMatrix, UByte * KeyboardMatrix);

@@ -81,7 +81,8 @@
 
   typedef struct { double x,y,z,w; } ZVector4d;
   typedef struct { double x,y; } ZVector2d;
-  typedef struct { float  x,y,z; } ZVector3f;
+  typedef class { public: float  x,y,z;   inline operator float* ()  {	  return &x;  } } ZVector3f;
+  typedef union { struct { float r,g,b,a; }; struct {float x,y,z,w; }; } ZVector4f;
   typedef struct { float  x,y; }   ZVector2f;
   typedef struct { Long   x,y; } ZVector2L;
   typedef struct { float Position_x, Position_y, Position_z, Width, Height, Depth; } ZBox3f;

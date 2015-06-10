@@ -66,10 +66,10 @@ static void OnFirstDraw3d( WIDE( "@00 PUREGL Image Library" ) )( PTRSZVAL psv )
 	}
 	else
 	{
-		l.simple_shader = GetShaderInit( WIDE("Simple Shader"), SetupSuperSimpleShader, InitSuperSimpleShader );
-		l.simple_texture_shader = GetShaderInit( WIDE("Simple Texture"), SetupSimpleTextureShader, InitSimpleTextureShader );
-		l.simple_shaded_texture_shader = GetShaderInit( WIDE("Simple Shaded Texture"), SetupSimpleShadedTextureShader, InitSimpleShadedTextureShader );
-		l.simple_multi_shaded_texture_shader = GetShaderInit( WIDE("Simple MultiShaded Texture"), SetupSimpleMultiShadedTextureShader, InitSimpleMultiShadedTextureShader );
+		l.simple_shader = GetShaderInit( WIDE("Simple Shader"), SetupSuperSimpleShader, InitSuperSimpleShader, 0 );
+		l.simple_texture_shader = GetShaderInit( WIDE("Simple Texture"), SetupSimpleTextureShader, InitSimpleTextureShader, 0 );
+		l.simple_shaded_texture_shader = GetShaderInit( WIDE("Simple Shaded Texture"), SetupSimpleShadedTextureShader, InitSimpleShadedTextureShader, 0 );
+		l.simple_multi_shaded_texture_shader = GetShaderInit( WIDE("Simple MultiShaded Texture"), SetupSimpleMultiShadedTextureShader, InitSimpleMultiShadedTextureShader, 0 );
 		//l.simple_inverse_texture_shader = GetShader( WIDE("Simple Inverse Texture"), InitSimpleShadedTextureShader );
 	}
 }
@@ -217,8 +217,8 @@ int ReloadOpenGlTexture( Image child_image, int option )
 					return 0;
 				}
 
-            //lprintf( WIDE("texture is %p %p %d"), image, image_data, image_data->glIndex );
-            image_data->flags.updated = 1;
+				//lprintf( WIDE("texture is %p %p %d"), image, image_data, image_data->glIndex );
+				image_data->flags.updated = 1;
 			}
 			if( image_data->flags.updated )
 			{
@@ -255,6 +255,22 @@ int ReloadOpenGlTexture( Image child_image, int option )
 				if( err = glGetError() )
 				{
 					lprintf( WIDE( "gen text error %d" ), err );
+				}
+				if( 0)
+				{
+					_8 *data;
+					size_t datasize;
+					static int n;
+					TEXTCHAR buf[16];
+					FILE *file;
+					PngImageFile( image, &data, &datasize );
+					snprintf( buf, 12, "%d.png", n++ );
+					file = sack_fopen( 0, buf, "wb" );
+					if( file )
+					{
+						sack_fwrite( data, 1, datasize, file );
+						sack_fclose( file );
+					}
 				}
 				image_data->flags.updated = 0;
 			}
@@ -453,15 +469,6 @@ void  BlatColor ( Image pifDest, S_32 x, S_32 y, _32 w, _32 h, CDATA color )
 			struct image_shader_op *op = BeginImageShaderOp( l.simple_shader, pifDest, _color );
 
 			AppendImageShaderOpTristrip( op, 2, v[vi] );
-		}
-		//glDrawArrays( GL_TRIANGLE_STRIP, 0, 4 );
-		CheckErr();
-		if( 0)
-		{
-			int n;
-			for( n = 0; n < 4; n++ )
-            lprintf( WIDE("point %g,%g,%g"), v[vi][n][0], v[vi][n][1], v[vi][n][2] );
-			lprintf( WIDE("Drew triangle strip, %08x"), color );
 		}
 	}
 	else

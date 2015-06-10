@@ -200,7 +200,7 @@ asm(                                       \
 	: "%rax", "cc")
 
 /******************************************************************************/
-#elif defined(PSTM_ARM)
+#elif defined(PSTM_ARM_USE_ASM)
 /* ARMv4 code */
 /* The 'ITE CS' opcode is Thumb2. Remove for non Thumb asm. */
 
@@ -217,8 +217,8 @@ asm(                                \
 	" ADDS   r0,r0,%0         \n\t" \
 	" ITE CS                  \n\t" \
 	" MOVCS  %0,#1            \n\t" \
-	" MOVCC  %0,#0            \n\t" \
-	" UMLAL  r0,%0,%3,%4      \n\t" \
+	/*" MOVCC  %0,#0            \n\t" \
+	" UMLAL  r0,%0,%3,%4      \n\t" */\
 	" STR    r0,%1            \n\t" \
 	:"=r"(cy),"=m"(_c[0])\
 	:"0"(cy),"r"(mu),"r"(*tmpm++),"1"(_c[0])\

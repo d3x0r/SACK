@@ -71,6 +71,8 @@
  //__thumb__ /* Thumb mode */
 #elif defined(__mips__)
  #define PSTM_MIPS
+#else
+ #error architecture undefined.
 #endif
 #endif /* GNUC/CLANG */
 

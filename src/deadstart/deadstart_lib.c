@@ -1,5 +1,5 @@
 
-//#define DISABLE_DEBUG_REGISTER_AND_DISPATCH
+#define DISABLE_DEBUG_REGISTER_AND_DISPATCH
 
 #if defined( __GNUC__ )
 #ifndef __cplusplus
@@ -30,8 +30,8 @@ static int Registered;
 void paste2( TARGET_LABEL,_RegisterStartups)( void )
 {
 #define DeclareList(n) paste2(n,TARGET_LABEL)
-   extern struct rt_init DeclareList( begin_deadstart_ );
-   extern struct rt_init DeclareList( end_deadstart_ );
+	extern struct rt_init DeclareList( begin_deadstart_ );
+	extern struct rt_init DeclareList( end_deadstart_ );
 	struct rt_init *begin = &DeclareList( begin_deadstart_ );
 	struct rt_init *end = &DeclareList( end_deadstart_ );
 	struct rt_init *current;
@@ -40,7 +40,7 @@ void paste2( TARGET_LABEL,_RegisterStartups)( void )
 	return;
 #endif
 	Registered=1;
-   //cygwin_dll_init();
+	//cygwin_dll_init();
 	if( begin[0].scheduled )
       return;
 	if( (begin+1) < end )
@@ -50,7 +50,7 @@ void paste2( TARGET_LABEL,_RegisterStartups)( void )
 			if( !current[0].scheduled )
 			{
 				RegisterPriorityStartupProc( current->routine, current->funcname, current->priority, NULL, current->file, current->line );
-            current[0].scheduled = 1;
+				current[0].scheduled = 1;
 			}
 			else
 			{
@@ -60,7 +60,7 @@ void paste2( TARGET_LABEL,_RegisterStartups)( void )
 			}
 		}
 	}
-   // should be setup in such a way that this ignores all external invokations until the core app runs.
+	// should be setup in such a way that this ignores all external invokations until the core app runs.
 	//InvokeDeadstart();
 }
 #pragma GCC visibility pop

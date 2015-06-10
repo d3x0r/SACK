@@ -2,6 +2,7 @@
 #define USE_IMAGE_INTERFACE l.pii
 #define USE_RENDER_INTERFACE l.pdi
 #endif
+//#define DEBUG_TIME_FORMATTING 1
 #define USES_INTERSHELL_INTERFACE
 #define DEFINES_INTERSHELL_INTERFACE
 #define CHAT_CONTROL_MAIN_SOURCE
@@ -175,6 +176,7 @@ static CTEXTSTR FormatMessageTime( CTEXTSTR time_type, PCHAT_TIME now, PCHAT_TIM
 		 - ( message_time->zhr * 60 * 60 * 1000 + message_time->zmn * 60 *1000 )
 		 ;
 	int yr;
+#if DEBUG_TIME_FORMATTING
 	lprintf( "now is %d msg is %d  now is %d  msg is %d", now_day, msg_day, now_tick, msg_tick );
 	lprintf( "now is %04d/%02d/%02d %02d:%02d:%02d %02d  %02d"
 		, now->yr, now->mo, now->dy, now->hr, now->mn, now->sc, now->zhr, now->zmn );
@@ -183,6 +185,7 @@ static CTEXTSTR FormatMessageTime( CTEXTSTR time_type, PCHAT_TIME now, PCHAT_TIM
 		, message_time->yr, message_time->mo, message_time->dy
 		, message_time->hr, message_time->mn, message_time->sc
 		, message_time->zhr, message_time->zmn );
+#endif
 	timebuf = _timebuf[current_timebuf++];
 	current_timebuf &= 3;
 	for( yr = message_time->yr; yr < now->yr; yr++ )
@@ -205,7 +208,9 @@ static CTEXTSTR FormatMessageTime( CTEXTSTR time_type, PCHAT_TIME now, PCHAT_TIM
 				if( del == 1 )
 					goto day_del1;
 				snprintf( timebuf, 64, "%d days ago", del );
+#if DEBUG_TIME_FORMATTING
 				lprintf( "result is %s", timebuf );
+#endif
 				return timebuf;
 			}
 			else
@@ -214,7 +219,9 @@ static CTEXTSTR FormatMessageTime( CTEXTSTR time_type, PCHAT_TIME now, PCHAT_TIM
 		if( del > 0 )
 		{
 			// in the future... 
+#if DEBUG_TIME_FORMATTING
 			lprintf( "timestamp is in the future." );
+#endif
 			snprintf( timebuf, 64, "after now" );
 			return timebuf;
 		}
@@ -239,7 +246,9 @@ normal_tick_diff:
 	}
 	else
 		snprintf( timebuf, 64, "now" );
+#if DEBUG_TIME_FORMATTING
 	lprintf( "result is %s", timebuf );
+#endif
 	return timebuf;
 }
 
@@ -1677,26 +1686,53 @@ static void DrawTextEntry( PSI_CONTROL pc, PCHAT_LIST list, LOGICAL update )
 		{
 			int nLine, nCursorLine, nDisplayLine;
 			_32 cursor_pos = list->CommandInfo->CollectionIndex;
+			_32 counter;
 			DISPLAYED_LINE *pCurrentLine;
 			PDATALIST *ppCurrentLineInfo;
 			PTEXT cursor_segs;
 			PTEXT first_seg = list->CommandInfo->CollectionBuffer;
 			SetStart( first_seg );
 			ppCurrentLineInfo = GetDisplayInfo( list->phb_Input );
-			for( nLine = 0; ; nLine ++ )
+			for( nLine = 0, counter = 0; ; nLine ++ )
 			{
 				pCurrentLine = (PDISPLAYED_LINE)GetDataItem( ppCurrentLineInfo, nLine );
-				if( !pCurrentLine || pCurrentLine->start == first_seg )
+				if( !pCurrentLine
+					|| ( pCurrentLine->nFirstSegOfs == 0 && pCurrentLine->start == first_seg ) )
 					break;
 			}
-			for( cursor_segs = list->CommandInfo->CollectionBuffer; cursor_segs && cursor_segs->Prior; cursor_segs = cursor_segs->Prior )
-				cursor_pos += GetTextSize( cursor_segs->Prior );
+			for( cursor_segs = list->CommandInfo->CollectionBuffer; cursor_segs; cursor_segs = cursor_segs->Prior )
+			{
+				if( cursor_segs == list->CommandInfo->CollectionBuffer )
+					continue;
+				cursor_pos += GetTextSize( cursor_segs );
+			}
 
 			for( nCursorLine = nLine; nCursorLine >= 0; nCursorLine-- )
 			{
-				pCurrentLine = (PDISPLAYED_LINE)GetDataItem( ppCurrentLineInfo, nLine );
+				pCurrentLine = (PDISPLAYED_LINE)GetDataItem( ppCurrentLineInfo, nCursorLine );
 				if( pCurrentLine && cursor_pos > pCurrentLine->nToShow )
+				{
+					PTEXT seg = pCurrentLine->start;
+					int ofs; 
+					ofs = 0;
+					for( ; seg; seg = NEXTLINE( seg ) )
+					{
+						CTEXTSTR data = GetText( pCurrentLine->start );
+						size_t len = GetTextSize( pCurrentLine->start );
+						size_t seglen = len - pCurrentLine->nFirstSegOfs;
+						if( seglen < pCurrentLine->nToShow )
+						{
+
+						}
+						//else
+							//for( ; 
+							//	( ofs + pCurrentLine->nToShow + pCurrentLine->nFirstSegOfs ) < len &&
+							//	data[pCurrentLine->nToShow + pCurrentLine->nFirstSegOfs + ofs] == ' ';
+							//	ofs++ );
+					}
+					cursor_pos -= ofs;
 					cursor_pos -= pCurrentLine->nToShow;
+				}
 				else
 					break;
 			}
@@ -2265,9 +2301,9 @@ void Chat_ClearOldMessages( PSI_CONTROL pc, int delete_time )
 
 		Chat_GetCurrentTime( &now );
 		old_limit = AbsoluteSeconds( &now ) - delete_time;
-		lprintf( "now stamp is %d/%d/%d %d:%d:%d  %d %d"
-			, now.mo, now.dy, now.yr, now.hr, now.mn, now.sc, now.zhr, now.zmn );
-		lprintf( "limit = %d", old_limit );
+		//lprintf( "now stamp is %d/%d/%d %d:%d:%d  %d %d"
+		//	, now.mo, now.dy, now.yr, now.hr, now.mn, now.sc, now.zhr, now.zmn );
+		//lprintf( "limit = %d", old_limit );
 		while( context = (PCHAT_CONTEXT)PeekQueueEx( list->contexts, 0 ) )
 		{
 			//y = list->message_window->height - y;
@@ -2278,22 +2314,22 @@ void Chat_ClearOldMessages( PSI_CONTROL pc, int delete_time )
 				if( context->sent )
 				{ 
 					msg_time = AbsoluteSeconds( &msg->sent_time );
-					lprintf( "seen stamp is %d/%d/%d %d:%d:%d  %d %d"
-						, msg->sent_time.mo, msg->sent_time.dy, msg->sent_time.yr
-						, msg->sent_time.hr, msg->sent_time.mn, msg->sent_time.sc
-						, msg->sent_time.zhr, msg->sent_time.zmn );
+					//lprintf( "seen stamp is %d/%d/%d %d:%d:%d  %d %d"
+					//	, msg->sent_time.mo, msg->sent_time.dy, msg->sent_time.yr
+					//	, msg->sent_time.hr, msg->sent_time.mn, msg->sent_time.sc
+					//	, msg->sent_time.zhr, msg->sent_time.zmn );
 				}
 				else
 				{
 					if( !msg->seen )
 						break;
 					msg_time =   AbsoluteSeconds( &msg->seen_time );
-					lprintf( "seen stamp is %d/%d/%d %d:%d:%d  %d %d"
-						, msg->seen_time.mo, msg->seen_time.dy, msg->seen_time.yr
-						, msg->seen_time.hr, msg->seen_time.mn, msg->seen_time.sc
-						, msg->seen_time.zhr, msg->seen_time.zmn );
+					//lprintf( "seen stamp is %d/%d/%d %d:%d:%d  %d %d"
+					//	, msg->seen_time.mo, msg->seen_time.dy, msg->seen_time.yr
+					//	, msg->seen_time.hr, msg->seen_time.mn, msg->seen_time.sc
+					//	, msg->seen_time.zhr, msg->seen_time.zmn );
 				}
-				lprintf( "(check old message) %lld - %lld = %lld", msg_time, old_limit, old_limit - msg_time );
+				//lprintf( "(check old message) %lld - %lld = %lld", msg_time, old_limit, old_limit - msg_time );
 				if( msg_time < old_limit )
 				{
 					if( msg->formatted_text )

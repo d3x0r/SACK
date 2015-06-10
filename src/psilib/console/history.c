@@ -1177,6 +1177,8 @@ _32 ComputeToShow( _32 colsize, _32 *col_offset, PTEXT segment, _32 nLen, _32 nO
 		// found a space, please show up to that.
 		if( has_good_space )
 		{
+			//while( text[good_space] == ' ' )
+			//	good_space++;
 			(*col_offset) += good_space_size;
 			nShow = good_space - nShown;
 		}

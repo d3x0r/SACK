@@ -248,7 +248,9 @@ else( BUILD_MONOLITHIC )
 
 # bag.image is memory only; non platform specific utility
                 SET( libfile_list ${libfile_list} bag bag.externals bag.image bag.psi )
-
+   if( WIN32 )
+                SET( libfile_list ${libfile_list} dl )
+   endif( WIN32 )
    if( NOT __NO_CPLUSPLUS )
                 set( libfile_list ${libfile_list} @BAG_PLUSPLUS@ @BAG_PSI_PLUSPLUS@ )
    endif( NOT __NO_CPLUSPLUS )
@@ -288,7 +290,6 @@ if( WIN32 )
                         loginfo.module 
                         seed_random.module 
                         sack_vfs.module 
-                        debugger_lockout.module
                     )
 		SET( literal_libfile_list ${literal_libfile_list} 
                         ${CMAKE_SHARED_LIBRARY_PREFIX}MatrixSSL${CMAKE_SHARED_LIBRARY_SUFFIX} )

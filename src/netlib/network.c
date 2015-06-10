@@ -287,6 +287,7 @@ NETWORK_PROC( PLIST, GetMacAddresses)( void )//int get_mac_addr (char *device, u
 	struct arpreq arpr;
 	struct ifconf ifc;
 	MemSet( &arpr, 0, sizeof( arpr ) );
+#if 0
 	lprintf( WIDE( "this is broken." ) );
 	MemCpy( &arpr.arp_pa, pc->saClient, sizeof( SOCKADDR ) );
 	arpr.arp_ha.sa_family = AF_INET;
@@ -312,6 +313,7 @@ NETWORK_PROC( PLIST, GetMacAddresses)( void )//int get_mac_addr (char *device, u
 		lprintf( WIDE( "Error of some sort ... %s" ), strerror( errno ) );
 		DebugBreak();
 	}
+#endif
 
 	return 0;
 #endif
@@ -2028,7 +2030,8 @@ int NetworkQuit(void)
 	}
 	while( g.ActiveClients )
 	{
-		lprintf( WIDE("Remove active client %p"), g.ActiveClients );
+		if( g.flags.bLogNotices )
+			lprintf( WIDE("Remove active client %p"), g.ActiveClients );
 		InternalRemoveClient( g.ActiveClients );
 	}
 	g.bQuit = TRUE;

@@ -96,6 +96,9 @@ static RENDER_INTERFACE VidInterface = { NULL //InitDisplay
 									   , PureGL2_Vidlib_AllowsAnyThreadToUpdate
 									   , NULL // SetDisplayFullScreen
 									   , PureGL2_Vidlib_SuspendSystemSleep
+									   , NULL //PureGL2_Vidlib_RenderIsInstanced
+									   , NULL // PureGL2_Vidlib_VidlibRenderAllowsCopy
+									   , PureGL2_Vidlib_SetDisplayCursor
 };
 
 RENDER3D_INTERFACE Render3d = {

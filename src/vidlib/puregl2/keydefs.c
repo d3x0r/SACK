@@ -298,7 +298,8 @@ RENDER_PROC( int, HandleKeyEvents )( PKEYDEFINE pKeyDefs, _32 key )
 
 int DispatchKeyEvent( PRENDERER hVideo, _32 key )
 {
-
+	PRENDERER hVidOriginal = hVideo;
+	_32 keyOriginal = key;
    int dispatch_handled;
    int keymod = 0;
 
@@ -428,6 +429,11 @@ int DispatchKeyEvent( PRENDERER hVideo, _32 key )
 				hVideo->flags.key_dispatched = 0;
 			}
 			hVideo->flags.event_dispatched = 0;
+			if( !dispatch_handled 
+				&& l.hVidVirtualFocused )
+			{
+				dispatch_handled = hVidOriginal->pKeyProc( hVidOriginal->dwKeyData, keyOriginal );
+			}
 		}
 		else  // no keyproc on the hrenderer; might be mouse-based; but give global a shot...
 		{

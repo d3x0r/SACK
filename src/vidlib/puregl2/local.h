@@ -94,6 +94,7 @@ IMAGE_NAMESPACE_END
 
 RENDER_NAMESPACE
 
+#define WM_USER_OPEN_CAMERAS    WM_USER+518
 
 #define CheckErr()  				{    \
 					GLenum err = glGetError();  \
@@ -344,6 +345,9 @@ extern
 	PVIDEO hCameraCapturedPrior; // reset on unused event
 	PVIDEO hVirtualCaptured;
 	PVIDEO hVirtualCapturedPrior; // reset on unused event
+
+	PVIDEO hCapturedMousePhysical;
+
    struct plugin_reference *hPluginKeyCapture; // used to track focus of key events to plugin modules
 	// kbd.key == KeyboardState
 	KEYBOARD kbd;
@@ -424,6 +428,7 @@ void DoDestroy (PVIDEO hVideo);
 LOGICAL  CreateWindowStuffSizedAt (PVIDEO hVideo, int x, int y,
                                               int wx, int wy);
 void CPROC PureGL2_Vidlib_SuspendSystemSleep( int suspend );
+void CPROC PureGL2_Vidlib_SetDisplayCursor( CTEXTSTR cursor );
 LOGICAL CPROC PureGL2_Vidlib_AllowsAnyThreadToUpdate( void );
 void OpenCamera( struct display_camera *camera );
 

@@ -57,6 +57,15 @@ static const char *gles_simple_p_multi_shader =
         "		;\n" 
 				 "}\n" ;
 
+struct private_mst_shader_texture_data
+{
+	int texture;
+	struct shader_buffer *vert_pos;
+	struct shader_buffer *vert_color_r;
+	struct shader_buffer *vert_color_g;
+	struct shader_buffer *vert_color_b;
+	struct shader_buffer *vert_texture_uv;
+};
 
 struct private_mst_shader_data
 {
@@ -65,26 +74,22 @@ struct private_mst_shader_data
 	int r_color_attrib;
 	int g_color_attrib;
 	int b_color_attrib;
+	PLIST vert_data;
 };
 
 
-static void CPROC SimpleMultiShadedTextureEnable( PImageShaderTracker tracker, PTRSZVAL psv, va_list args )
+static void CPROC SimpleMultiShadedTextureOutput( PImageShaderTracker tracker, PTRSZVAL psv, PTRSZVAL psvKey, int from, int to )
 {
-	float *verts = va_arg( args, float *);
-	int texture = va_arg( args, int );
-	float *texture_verts = va_arg( args, float *);
-	float *r_color = va_arg( args, float *);
-	float *g_color = va_arg( args, float *);
-	float *b_color = va_arg( args, float *);
 
 	struct private_mst_shader_data *data = (struct private_mst_shader_data *)psv;
-
+	struct private_mst_shader_texture_data *texture = (struct private_mst_shader_texture_data *)psvKey;
+	
 	glEnableVertexAttribArray(0);	CheckErr();
-	glVertexAttribPointer( 0, 3, GL_FLOAT, FALSE, 0, verts );  
+	glVertexAttribPointer( 0, 3, GL_FLOAT, FALSE, 0, texture->vert_pos->data );  
 	CheckErr();
 	
 	glEnableVertexAttribArray(data->texture_attrib);	CheckErr();
-	glVertexAttribPointer( data->texture_attrib, 2, GL_FLOAT, FALSE, 0, texture_verts );  
+	glVertexAttribPointer( data->texture_attrib, 2, GL_FLOAT, FALSE, 0, texture->vert_pos->data );  
 	CheckErr();
 
 	glUniform1i(data->texture, 0); //Texture unit 0 is for base images.
@@ -92,30 +97,43 @@ static void CPROC SimpleMultiShadedTextureEnable( PImageShaderTracker tracker, P
 	//When rendering an objectwith this program.
 	glActiveTexture(GL_TEXTURE0 + 0);
 	CheckErr();
-	glBindTexture(GL_TEXTURE_2D, texture);
+	glBindTexture(GL_TEXTURE_2D, texture->texture);
 	CheckErr();
 	//glBindSampler(0, linearFiltering);
 	CheckErr();
 
-	glUniform4fv( data->r_color_attrib, 1, r_color );
+	glUniform4fv( data->r_color_attrib, 1, texture->vert_color_r->data );
 	CheckErr();
-	glUniform4fv( data->g_color_attrib, 1, g_color );
+	glUniform4fv( data->g_color_attrib, 1, texture->vert_color_g->data );
 	CheckErr();
-	glUniform4fv( data->b_color_attrib, 1, b_color );
+	glUniform4fv( data->b_color_attrib, 1, texture->vert_color_b->data );
 	CheckErr();
 
+		glDrawArrays( GL_TRIANGLES, from, to - from );
 
 }
 
+static void CPROC SimpleMultiShadedTextureReset( PImageShaderTracker tracker, PTRSZVAL psv, PTRSZVAL psvKey )
+{
+	struct private_mst_shader_texture_data *texture = (struct private_mst_shader_texture_data *)psvKey;
 
-PTRSZVAL SetupSimpleMultiShadedTextureShader( void )
+	struct private_mst_shader_data *data = (struct private_mst_shader_data *)psv;
+
+	texture->vert_pos->used = 0;
+	texture->vert_texture_uv->used = 0;
+	texture->vert_color_r->used = 0;
+	texture->vert_color_g->used = 0;
+	texture->vert_color_b->used = 0;
+}
+
+PTRSZVAL SetupSimpleMultiShadedTextureShader( PTRSZVAL psv )
 {
 	struct private_mst_shader_data *data = New(struct private_mst_shader_data );
 	return (PTRSZVAL)data;
 }
 
 
-void InitSimpleMultiShadedTextureShader( PImageShaderTracker tracker, PTRSZVAL psvInst )
+void InitSimpleMultiShadedTextureShader( PTRSZVAL psvInst, PImageShaderTracker tracker )
 {
 	GLint result;
 	const char *v_codeblocks[2];

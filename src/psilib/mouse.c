@@ -898,6 +898,8 @@ static void UpdateCursor( PSI_CONTROL pc, int x, int y, int caption_height, int 
 			}
 		}
 }
+#else
+#define UpdateCursor(a,...)
 #endif
 //---------------------------------------------------------------------------
 

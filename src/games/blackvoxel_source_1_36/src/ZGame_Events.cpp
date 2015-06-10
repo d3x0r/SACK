@@ -236,7 +236,7 @@ Bool ZGame_Events::KeyUp( UShort KeySym )
   return false;
 }
 
-Bool ZGame_Events::MouseMove ( Short Relative_x, Short Relative_y, UShort Absolute_x, UShort Absolute_y)
+Bool ZGame_Events::MouseMove ( float Relative_x, float Relative_y, float Absolute_x, float Absolute_y)
 {
   ZActor * Actor;
 
@@ -254,7 +254,7 @@ Bool ZGame_Events::MouseMove ( Short Relative_x, Short Relative_y, UShort Absolu
   return(true);
 }
 
-Bool ZGame_Events::MouseButtonClick  (UShort nButton, Short Absolute_x, Short Absolute_y)
+Bool ZGame_Events::MouseButtonClick  (UShort nButton, float Absolute_x, float Absolute_y)
 {
   ZActor * Actor;
 
@@ -271,7 +271,7 @@ Bool ZGame_Events::MouseButtonClick  (UShort nButton, Short Absolute_x, Short Ab
   return(true);
 }
 
-Bool ZGame_Events::MouseButtonRelease(UShort nButton, Short Absolute_x, Short Absolute_y)
+Bool ZGame_Events::MouseButtonRelease(UShort nButton, float Absolute_x, float Absolute_y)
 {
   ZActor * Actor;
 

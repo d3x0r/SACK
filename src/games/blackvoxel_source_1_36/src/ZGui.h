@@ -54,6 +54,8 @@
 #  include "ZEventManager.h"
 #endif
 
+#include "ZRender_Interface.h"
+
 /*
 struct Frame_Dimensions
 {
@@ -70,6 +72,9 @@ typedef ZBox3f Frame_Dimensions;
 
 class ZGraphicUserManager;
 class ZGame;
+
+#define SclX(a) (GameEnv->ScreenResolution.x * ((a)/1920.0))
+#define SclY(a) (GameEnv->ScreenResolution.y * ((a)/1080.0))
 
 
 class ZScreen : public ZObject
@@ -203,7 +208,7 @@ class ZFrame : public ZObject
     }
 
 
-    virtual void Render(Frame_Dimensions * ParentPosition, PTRSZVAL psvInit);
+    virtual void Render(ZRender_Interface *render, Frame_Dimensions * ParentPosition, PTRSZVAL psvInit);
     virtual void SetTexture(ULong TextureNum) {this->TextureNum = TextureNum; }
     virtual void SetPosition(float x, float y) {Dimensions.Position_x = x; Dimensions.Position_y = y;}
     virtual void SetDragPosition(float x, float y) { DragAbsolutePosition.x = x; DragAbsolutePosition.y = y; }
@@ -219,11 +224,11 @@ class ZFrame : public ZObject
 
     virtual Bool KeyDown( UShort KeySym ) { return true; }
     virtual Bool KeyUp( UShort KeySym )   { return true; }
-    virtual Bool MouseMove ( Short Relative_x, Short Relative_y, UShort Absolute_x, UShort Absolute_y);
+    virtual Bool MouseMove ( float Relative_x, float Relative_y, float Absolute_x, float Absolute_y);
 
-    virtual Bool MouseButtonClick  (UShort nButton, Short Absolute_x, Short Absolute_y);
+    virtual Bool MouseButtonClick  (UShort nButton, float Absolute_x, float Absolute_y);
 
-    virtual Bool MouseButtonRelease(UShort nButton, Short Absolute_x, Short Absolute_y);
+    virtual Bool MouseButtonRelease(UShort nButton, float Absolute_x, float Absolute_y);
 
 
     virtual void GetFocus() {}
@@ -300,16 +305,16 @@ class ZGraphicUserManager : public ZEventConsumer
 
     void RemoveAllFrames(); // Clear Screen
 
-    void Render( PTRSZVAL psvInit );
+    void Render( ZRender_Interface *render, PTRSZVAL psvInit );
 
 
     // Event Input
 
     virtual Bool KeyDown( UShort KeySym );
     virtual Bool KeyUp( UShort KeySym );
-    virtual Bool MouseMove ( Short Relative_x, Short Relative_y, UShort Absolute_x, UShort Absolute_y);
-    virtual Bool MouseButtonClick  (UShort nButton, Short Absolute_x, Short Absolute_y);
-    virtual Bool MouseButtonRelease(UShort nButton, Short Absolute_x, Short Absolute_y);
+    virtual Bool MouseMove ( float Relative_x, float Relative_y, float Absolute_x, float Absolute_y);
+    virtual Bool MouseButtonClick  (UShort nButton, float Absolute_x, float Absolute_y);
+    virtual Bool MouseButtonRelease(UShort nButton, float Absolute_x, float Absolute_y);
 
 };
 

@@ -67,9 +67,9 @@ class ZGame_Events : public ZEventConsumer
 
     virtual Bool KeyDown( UShort KeySym );
     virtual Bool KeyUp( UShort KeySym );
-    virtual Bool MouseMove (Short Relative_x, Short Relative_y, UShort Absolute_x, UShort Absolute_y);
-    virtual Bool MouseButtonClick  (UShort nButton, Short Absolute_x, Short Absolute_y);
-    virtual Bool MouseButtonRelease(UShort nButton, Short Absolute_x, Short Absolute_y);
+    virtual Bool MouseMove (float Relative_x, float Relative_y, float Absolute_x, float Absolute_y);
+    virtual Bool MouseButtonClick  (UShort nButton, float Absolute_x, float Absolute_y);
+    virtual Bool MouseButtonRelease(UShort nButton, float Absolute_x, float Absolute_y);
 
     virtual void SetEventManager(ZEventManager * EventManager) { this->EventManager = EventManager; }
     virtual void SetGameEnv(ZGame * GameEnv) {this->GameEnv = GameEnv; }

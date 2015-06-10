@@ -269,7 +269,7 @@ static UShort IntFaceStateTable[][8] =
 };
 
 
-void SectorUpdateFaceCulling(ZVoxelWorld *world, ZVoxelSector *Sector, bool Isolated)
+void ZVoxelCuller_Basic::SectorUpdateFaceCulling(ZVoxelWorld *world, ZVoxelSector *Sector, bool Isolated)
 {
   ZVoxelSector * SectorTable[27];
   ZVoxelType ** VoxelTypeTable;
@@ -422,7 +422,7 @@ void SectorUpdateFaceCulling(ZVoxelWorld *world, ZVoxelSector *Sector, bool Isol
 }
 
 
-ULong SectorUpdateFaceCulling_Partial(ZVoxelWorld *world, ZVoxelSector *Sector, UByte FacesToDraw, bool Isolated)
+ULong ZVoxelCuller_Basic::SectorUpdateFaceCulling_Partial(ZVoxelWorld *world, ZVoxelSector *Sector, UByte FacesToDraw, bool Isolated)
 {
   ZVoxelSector * SectorTable[27];
   ZVoxelType ** VoxelTypeTable;
@@ -1162,6 +1162,7 @@ void ZRender_Basic::Render( bool use_external_matrix )
 
    if( !use_external_matrix )
    {
+#if 0
 	   glMatrixMode(GL_PROJECTION);
 	   glLoadIdentity();
 
@@ -1179,13 +1180,13 @@ void ZRender_Basic::Render( bool use_external_matrix )
 
     glMatrixMode(GL_MODELVIEW);
     //glLoadIdentity();
-	glLoadMatrixd( Camera->orientation.glMatrix() );
+	glLoadMatrixd( Camera->orientation.glMatrixd() );
     //glRotatef(-Camera->Roll  , 0.0, 0.0, 1.0);
     //glRotatef(-Camera->Pitch , 1.0, 0.0, 0.0);
     //glRotatef(180-Camera->Yaw, 0.0, 1.0, 0.0);
 
     //glTranslatef(-(float)Camera->x,-(float)Camera->y,-(float)Camera->z);
-
+#endif
   // Clearing FrameBuffer and Z-Buffer
     glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
    }
@@ -1459,100 +1460,9 @@ void ZRender_Basic::Render( bool use_external_matrix )
     // ***************************
     // Réticule
     // ***************************
-
-
-
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-
-    gluOrtho2D(0, 1440, 900.0 , 0.0);
-    glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
-				{ int x; if( x = glGetError() ) 
-					printf( "glerror(%d): %d\n", __LINE__, x );}
-
-    if (BvProp_CrossHairType==1 && BvProp_DisplayCrossHair)
-    {
-      glDisable(GL_TEXTURE_2D);
-      glBegin(GL_POLYGON);
-        glColor3f(1.0,1.0,1.0);
-        glVertex3f(720.0f-1.0f, 450.0f-20.0f , 0.0f);
-        glVertex3f(720.0f+1.0f, 450.0f-20.0f , 0.0f);
-        glVertex3f(720.0f+1.0f, 450.0f-10.0f , 0.0f);
-        glVertex3f(720.0f-1.0f, 450.0f-10.0f , 0.0f);
-      glEnd();
-				{ int x; if( x = glGetError() ) 
-					printf( "glerror(%d): %d\n", __LINE__, x );}
-
-      glBegin(GL_POLYGON);
-        glColor3f(1.0,1.0,1.0);
-        glVertex3f(720.0f-1.0f, 450.0f+10.0f , 0.0f);
-        glVertex3f(720.0f+1.0f, 450.0f+10.0f , 0.0f);
-        glVertex3f(720.0f+1.0f, 450.0f+20.0f , 0.0f);
-        glVertex3f(720.0f-1.0f, 450.0f+20.0f , 0.0f);
-      glEnd();
-
-      glBegin(GL_POLYGON);
-        glColor3f(1.0,1.0,1.0);
-        glVertex3f(720.0f-20.0f, 450.0f-1.0f , 0.0f);
-        glVertex3f(720.0f-10.0f, 450.0f-1.0f , 0.0f);
-        glVertex3f(720.0f-10.0f, 450.0f+1.0f , 0.0f);
-        glVertex3f(720.0f-20.0f, 450.0f+1.0f , 0.0f);
-      glEnd();
-
-      glBegin(GL_POLYGON);
-        glColor3f(1.0,1.0,1.0);
-        glVertex3f(720.0f+20.0f, 450.0f+1.0f , 0.0f);
-        glVertex3f(720.0f+10.0f, 450.0f+1.0f , 0.0f);
-        glVertex3f(720.0f+10.0f, 450.0f-1.0f , 0.0f);
-        glVertex3f(720.0f+20.0f, 450.0f-1.0f , 0.0f);
-      glEnd();
-
-      glColor3f(1.0,1.0,1.0);
-      glEnable(GL_TEXTURE_2D);
-    }
-
-				{ int x; if( x = glGetError() ) 
-					printf( "glerror(%d): %d\n", __LINE__, x );}
+	DrawReticule();
     // Voile coloré
-
-    if (Camera->ColoredVision.Activate)
-    {
-      glDisable(GL_TEXTURE_2D);
-      glDisable(GL_DEPTH_TEST);
-      glColor4f(Camera->ColoredVision.Red,Camera->ColoredVision.Green,Camera->ColoredVision.Blue,Camera->ColoredVision.Opacity);
-      glBegin(GL_POLYGON);
-        glVertex3f(0.0f   , 0.0f   , 0.0f);
-        glVertex3f(1440.0f, 0.0f   , 0.0f);
-        glVertex3f(1440.0f, 900.0f , 0.0f);
-        glVertex3f(0.0f   , 900.0f , 0.0f);
-      glEnd();
-      glColor3f(1.0,1.0,1.0);
-      glEnable(GL_TEXTURE_2D);
-      glEnable(GL_DEPTH_TEST);
-    }
-				{ int x; if( x = glGetError() ) 
-					printf( "glerror(%d): %d\n", __LINE__, x );}
-
-/*
-    if (Camera->ColoredVision.Activate)
-    {
-      glDisable(GL_TEXTURE_2D);
-      glDisable(GL_DEPTH_TEST);
-      glColor4f(Camera->ColoredVision.Red,Camera->ColoredVision.Green,Camera->ColoredVision.Blue,Camera->ColoredVision.Opacity);
-      glBegin(GL_POLYGON);
-        glVertex3f(0.0f   , 0.0f   , 0.0f);
-        glVertex3f(1440.0f, 0.0f   , 0.0f);
-        glVertex3f(1440.0f, 900.0f , 0.0f);
-        glVertex3f(0.0f   , 900.0f , 0.0f);
-      glEnd();
-      glColor3f(1.0,1.0,1.0);
-      glEnable(GL_TEXTURE_2D);
-      glEnable(GL_DEPTH_TEST);
-    }
-*/
-
-
+	DrawColorOverlay();
 
     Timer.End();
 
@@ -2014,29 +1924,4 @@ void ZRender_Basic::MakeSectorRenderingData_Sorted(ZVoxelSector * Sector)
   }
 }
 
-#if 0
-void ZRender_Basic::ComputeAndSetAspectRatio(double VerticalFOV, double PixelAspectRatio, ZVector2L & ViewportResolution)
-{
-  double FocusDistance = 50.0;
-  VerticalFOV = 63.597825649;
-  PixelAspectRatio = 1.0;
-
-  double Frustum_V;
-  double Frustum_H;
-  double Aspect_Ratio;
-
-  Aspect_Ratio = (ViewportResolution.x / ViewportResolution.y) * PixelAspectRatio;
-
-  // FOV Limitation to safe values.
-
-  if (VerticalFOV < 5.0 ) VerticalFOV = 5.0;
-  if (VerticalFOV > 160.0 ) VerticalFOV = 160.0;
-
-  Frustum_V = tan(VerticalFOV / 2.0) * FocusDistance;
-  Frustum_H = Frustum_V * Aspect_Ratio;
-
-  glFrustum(Frustum_H, -Frustum_H, -Frustum_V, Frustum_V, FocusDistance, 1000000.0); // Official Way
-
-}
-#endif
 

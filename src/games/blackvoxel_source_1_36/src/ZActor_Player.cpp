@@ -205,39 +205,17 @@ void ZActor_Player::SetPosition( ZVector3d &NewLocation )
   // printf("Camera.y: %lf\n", Camera.y);
 }
 
-void ZActor_Player::Action_MouseMove(Long Delta_x, Long Delta_y)
+void ZActor_Player::Action_MouseMove(float Delta_x, float Delta_y)
 {
+	Delta_x *= 300;
+	Delta_y *= 300;
   if (ActorMode == 0 || ActorMode == 3)
   {
     double MouseRatio;
 
     MouseRatio = GameEnv->Settings_Hardware->Setting_MouseFactor;
 
-	ViewDirection.Rotate( -Delta_x/(3*MouseRatio), -Delta_y/(3*MouseRatio), 0 );
-	/*
-    ViewDirection.yaw+=Delta_x/(3*MouseRatio);
-    if (ViewDirection.yaw >= 360.0) ViewDirection.yaw -= 360.0;
-    if (ViewDirection.yaw <0 ) ViewDirection.yaw += 360.0;
-
-    ViewDirection.pitch-=Delta_y/(3*MouseRatio);
-    if (ViewDirection.pitch >= 360.0) ViewDirection.pitch -= 360.0;
-    if (ViewDirection.pitch <0 ) ViewDirection.pitch += 360.0;
-    if (ViewDirection.pitch >= 360.0) ViewDirection.pitch -= 360.0;
-    if (ViewDirection.pitch <0 ) ViewDirection.pitch += 360.0;
-    ViewDirection.roll = 0.0;
-
-    // Pitch clip
-    if (ViewDirection.pitch >=90.0 && ViewDirection.pitch < 180.0) ViewDirection.pitch = 90.0;
-    if (ViewDirection.pitch <270.0 && ViewDirection.pitch >=180.0) ViewDirection.pitch = 270.0;
-    */
-//    printf("Pitch: %lf\n", ViewDirection.pitch);
-
-	//Camera.orientation = ViewDirection;
-	/*
-    Camera.Yaw = ViewDirection.yaw;
-    Camera.Pitch = ViewDirection.pitch;
-    Camera.Roll = ViewDirection.roll;
-	*/
+	ViewDirection.Rotate( -Delta_x/(MouseRatio), -Delta_y/(MouseRatio), 0 );
   }
 
   if (ActorMode == 1)
@@ -246,35 +224,12 @@ void ZActor_Player::Action_MouseMove(Long Delta_x, Long Delta_y)
 
     MouseRatio = GameEnv->Settings_Hardware->Setting_MouseFactor;
 
-	/*
-    ViewDirection.roll+=Delta_x/(6*MouseRatio);
-    if (ViewDirection.roll >=90.0 && ViewDirection.roll < 180.0) ViewDirection.roll = 90;
-    if (ViewDirection.roll <270.0 && ViewDirection.roll >=180.0) ViewDirection.roll = 270;
-    if (ViewDirection.roll >= 360.0) ViewDirection.roll -= 360.0;
-    if (ViewDirection.roll <0.0 ) ViewDirection.roll += 360.0;
-	*/
-	ViewDirection.Rotate( Delta_y/(6*MouseRatio) //* sin(ViewDirection.roll/57.295779513)
-					, Delta_y/(6*MouseRatio) //* cos(ViewDirection.roll/57.295779513)
-					, Delta_x/(6*MouseRatio) );
+	ViewDirection.Rotate( Delta_y/(2*MouseRatio) //* sin(ViewDirection.roll/57.295779513)
+					, Delta_y/(2*MouseRatio) //* cos(ViewDirection.roll/57.295779513)
+					, Delta_x/(2*MouseRatio) );
 
 // Clip limit
 
-
-
-
-	/*
-    ViewDirection.pitch+=Delta_y/(6*MouseRatio) * cos(ViewDirection.roll/57.295779513);
-    ViewDirection.yaw  +=Delta_y/(6*MouseRatio) * sin(ViewDirection.roll/57.295779513);
-    if (ViewDirection.pitch >= 360.0) ViewDirection.pitch -= 360.0;
-    if (ViewDirection.pitch <0.0 ) ViewDirection.pitch += 360.0;
-    if (ViewDirection.yaw >= 360.0) ViewDirection.yaw -= 360.0;
-    if (ViewDirection.yaw <0.0 ) ViewDirection.yaw += 360.0;
-	*/
-
-    // ViewDirection.yaw = 0.0;
-
-
-	//Camera.orientation = ViewDirection;
   }
 
 
@@ -289,15 +244,15 @@ void ZActor_Player::Action_MouseMove(Long Delta_x, Long Delta_y)
     MouseRatio = GameEnv->Settings_Hardware->Setting_MouseFactor;
 
     if (!IsOnGround) 
-		ViewDirection.RotateRoll( Delta_x/(6*MouseRatio)*PlaneCommandResponsiveness );
+		ViewDirection.RotateRoll( Delta_x/(2*MouseRatio)*PlaneCommandResponsiveness );
 		//ViewDirection.roll+=Delta_x/(6*MouseRatio)*PlaneCommandResponsiveness;
     //
-	ViewDirection.RotatePitch( Delta_y/(6*MouseRatio) * PlaneCommandResponsiveness );
+	ViewDirection.RotatePitch( Delta_y/(2*MouseRatio) * PlaneCommandResponsiveness );
 
     if (IsOnGround) 
 	{
 		if (PlaneSpeed > 500.0) 
-			ViewDirection.RotateYaw( Delta_x/(64.0*MouseRatio) );
+			ViewDirection.RotateYaw( Delta_x/(32*MouseRatio) );
 	}
 	/*
     ViewDirection.pitch+=Delta_y/(6*MouseRatio) * cos(ViewDirection.roll/57.295779513) * PlaneCommandResponsiveness;

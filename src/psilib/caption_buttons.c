@@ -53,18 +53,29 @@ PCAPTION_BUTTON AddCaptionButton( PSI_CONTROL frame, Image normal, Image pressed
 		button->flags.hidden = FALSE;
 		button->is_pressed = FALSE;
 		button->extra_pad = extra_pad;
+		button->pc = frame;
 		AddLink( &frame->caption_buttons, button );
 		return button;
 	}
 	return NULL;
 }
 
+void SetCaptionButtonImages( struct physical_device_caption_button *caption_button, Image normal, Image pressed )
+{
+	if( caption_button )
+	{
+		caption_button->pressed = pressed;
+		caption_button->normal = normal;
+		SmudgeCommon( caption_button->pc );
+	}
+}
 
 void HideCaptionButton ( struct physical_device_caption_button *caption_button )
 {
 	if( caption_button )
 	{
 		caption_button->flags.hidden = TRUE;
+		SmudgeCommon( caption_button->pc );
 		
 	}
 }
@@ -73,6 +84,7 @@ void ShowCaptionButton ( struct physical_device_caption_button *caption_button )
 	if( caption_button )
 	{
 		caption_button->flags.hidden = FALSE;
+		SmudgeCommon( caption_button->pc );
 	}
 }
 //---------------------------------------------------------------------------

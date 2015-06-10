@@ -60,8 +60,10 @@ public:
 
    // if not internal, then is meant to cull the outside edges of the sector
 	 void CullSector( ZVoxelSector *sector, bool internal, int interesting_faces );
-	// void CullSectorInternal( ZVoxelSector *sector );
-	// void CullSectorEdges( ZVoxelSector *sector );
+	 void CullSectorInternal( ZVoxelSector *sector );
+	 void CullSectorEdges( ZVoxelSector *sector );
+	ULong SectorUpdateFaceCulling_Partial(ZVoxelWorld *world, ZVoxelSector *Sector, UByte FacesToDraw, bool Isolated);
+	 void SectorUpdateFaceCulling(ZVoxelWorld *world, ZVoxelSector *Sector, bool Isolated);
 
 	void CullSingleVoxel( ZVoxelSector *_Sector, ULong Offset );
 	 void CullSingleVoxel( int x, int y, int z );
@@ -108,7 +110,7 @@ public:
 
       Frustum_V = 0.0;
       Frustum_H = 0.0;
-      Aspect_Ratio = 0.0;
+      //Aspect_Ratio = 0.0;
       Frustum_CullingLimit = 0.0;
     }
 private:
@@ -121,6 +123,7 @@ public:
 	 }
 
     void Render( bool use_external_matrix );
+	void FreeDisplayData(ZVoxelSector * Sector);
 };
 
 

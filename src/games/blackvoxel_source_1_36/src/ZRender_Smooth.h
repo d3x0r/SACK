@@ -51,11 +51,52 @@ extern GLuint TextureName[1024];
 
 class ZGame;
 
+struct ZRender_Smooth_Shader_Op
+{
+	struct ZRender_Smooth_Shader_Op *next;
+	struct ZRender_Smooth_Shader_Op **me;
+	int texture;
+	struct shader_buffer *texture_uv;
+	struct shader_buffer *coords;
+	void AddVertex( float a, float b, float *v )
+	{
+		float n[2];
+		n[0] = a; n[1] = b;
+		ImageAppendShaderData( texture_uv, n );
+		ImageAppendShaderData( coords, v );
+	}
+	~ZRender_Smooth_Shader_Op()
+	{
+		Deallocate( float *, texture_uv->data );
+		Deallocate( struct shader_buffer *, texture_uv );
+		Deallocate( float *, coords->data );
+		Deallocate( struct shader_buffer *, coords );
+	}
+};
+
+struct ZRender_Smooth_Shader_List
+{
+	  struct ZRender_Smooth_Shader_Op *display_ops;
+	  struct ZRender_Smooth_Shader_Op *GetList( int texture );
+	  ~ZRender_Smooth_Shader_List()
+	  {
+		  struct ZRender_Smooth_Shader_Op *current;
+		  struct ZRender_Smooth_Shader_Op *next = display_ops;
+		  while( current = next )
+		  {
+			  next = current->next;
+			  delete current;
+		  }
+	  }
+};
+
 class ZRender_Smooth_displaydata : public ZObject
 {
   public:
-	  struct image_shader_op *DisplayList_Regular[6];
-	  struct image_shader_op *DisplayList_Transparent[6];
+	  struct ZRender_Smooth_Shader_List displaylist[6];
+
+	  //struct image_shader_op *DisplayList_Regular[6];
+	  //struct image_shader_op *DisplayList_Transparent[6];
     //GLint DisplayList_Regular[6];
     //GLint DisplayList_Transparent[6];
 
@@ -63,8 +104,7 @@ class ZRender_Smooth_displaydata : public ZObject
     {
 		for( int i = 0; i < 6; i++ )
 		{
-		  DisplayList_Regular[i] = 0;
-		  DisplayList_Transparent[i] = 0;
+			displaylist[i].display_ops = NULL;
 		}
 
     }
@@ -72,6 +112,8 @@ class ZRender_Smooth_displaydata : public ZObject
     {
 		for( int i = 0; i < 6; i++ )
 		{
+			//displaylist[i]	
+			//struct ZRender_Smooth_Shader_List *next = &displaylist[i];
 			  //if (DisplayList_Regular[i])     glDeleteLists(DisplayList_Regular[i], 1);
 			  //DisplayList_Regular[i] = 0;
 			  //if (DisplayList_Transparent[i]) glDeleteLists(DisplayList_Transparent[i], 1);
@@ -91,9 +133,11 @@ public:
 	 void InitFaceCullData( ZVoxelSector *sector );
 
    // if not internal, then is meant to cull the outside edges of the sector
-	 void CullSector( ZVoxelSector *sector, bool internal, int interesting_faces );
-	// void CullSectorInternal( ZVoxelSector *sector );
-	// void CullSectorEdges( ZVoxelSector *sector );
+	void SectorUpdateFaceCulling(ZVoxelWorld *world, ZVoxelSector *Sector, bool Isolated);
+	 ULong SectorUpdateFaceCulling_Partial(ZVoxelWorld *world, ZVoxelSector *Sector, UByte FacesToDraw, bool Isolated);
+	void CullSector( ZVoxelSector *sector, bool internal, int interesting_faces );
+	 void CullSectorInternal( ZVoxelSector *sector );
+	 void CullSectorEdges( ZVoxelSector *sector );
 
 	 void CullSingleVoxel( ZVoxelSector *sector, ULong offset );
 	 void CullSingleVoxel( int x, int y, int z );
@@ -138,11 +182,12 @@ public:
 
       Frustum_V = 0.0;
       Frustum_H = 0.0;
-      Aspect_Ratio = 0.0;
+      //Aspect_Ratio = 0.0;
       Frustum_CullingLimit = 0.0;
     }
 private:
-	void EmitFaces				( ZVoxelType ** VoxelTypeTable, UShort &VoxelType, UShort &prevVoxelType, ULong info
+	void EmitFaces				(ZRender_Smooth_Shader_List *displaylist 
+	                          ,  ZVoxelType ** VoxelTypeTable, UShort &VoxelType, UShort &prevVoxelType, ULong info
 							  , Long x, Long y, Long z
 							  , Long Sector_Display_x, Long Sector_Display_y, Long Sector_Display_z );
     void MakeSectorRenderingData(ZVoxelSector * Sector);
@@ -153,6 +198,7 @@ public:
 	 {
        return voxelCuller;
 	 }
+	void FreeDisplayData(ZVoxelSector * Sector);
 };
 
 

@@ -43,11 +43,20 @@
 #  include "ZRender_Sorter.h"
 #endif
 
+#  include "ZRender_Shader_Simple.h"
+#  include "ZRender_Shader_Gui_Texture.h"
+#  include "ZRender_Shader_Simple_Texture.h"
+
 #include "ZActor_Player.h"
 #include "ZVoxelCuller.h"
 #include "GL/glew.h"
 extern GLuint TextureName[1024];
 
+	#define CheckErr()  				{    \
+					GLenum err = glGetError();  \
+					if( err )                   \
+						lprintf( WIDE("err=%d (%") _cstring_f WIDE(")"),err, gluErrorString( err ) ); \
+				}                               
 
 
 class ZRender_Interface_displaydata : public ZObject
@@ -89,6 +98,7 @@ class ZRender_Interface
 public:
 	PTRSZVAL current_gl_camera;
     ZCamera     * Camera;
+    float *Aspect_Ratio;
 protected:
 	ZActor      * Actor;  // where the camera came from really...
     ZRayCast_out * PointedVoxel;
@@ -111,7 +121,7 @@ protected:
 
     // Display Dimension and aspect ratio
 
-    ZVector2L ViewportResolution;
+    ZVector2f ViewportResolution;
     double    VerticalFOV;
     double    FocusDistance;
     double    PixelAspectRatio;
@@ -120,7 +130,6 @@ protected:
     // Computed by render()
     double Frustum_V;
     double Frustum_H;
-    double Aspect_Ratio;
     double Frustum_CullingLimit;
     ZVoxelCuller *voxelCuller;
 
@@ -135,6 +144,10 @@ protected:
     bool  BvProp_DisplayVoxelSelector;
 
     ZRender_Sorter RenderSorter;
+
+	ZRender_Shader_Simple *simple_shader;
+	ZRender_Shader_Gui_Texture *gui_shader;
+	ZRender_Shader_Simple_Texture *simple_texture_shader;
 
     ZRender_Interface()
     {
@@ -166,7 +179,7 @@ protected:
 
       Frustum_V = 0.0;
       Frustum_H = 0.0;
-      Aspect_Ratio = 0.0;
+      //Aspect_Ratio = 0.0;
       Frustum_CullingLimit = 0.0;
     }
 
@@ -177,7 +190,7 @@ protected:
     void SetVoxelTypeManager( ZVoxelTypeManager * Manager );
     void SetTextureManager  ( ZTextureManager * Manager ) { this->TextureManager = Manager; }
     void SetPointedVoxel    ( ZRayCast_out * Pvoxel)         { this->PointedVoxel = Pvoxel; }
-    void SetViewportResolution(ZVector2L &Resolution) { ViewportResolution = Resolution; }
+    void SetViewportResolution(ZVector2f &Resolution) { ViewportResolution = Resolution; }
     void SetVerticalFOV(double VFov)                  { VerticalFOV = VFov; }
     void SetPixelAspectRatio(double AspectRatio = 1.0){ PixelAspectRatio = AspectRatio; }
     void SetSectorCullingOptimisationFactor(double CullingOptimisationFactor = 1.0) { Optimisation_FCullingFactor = CullingOptimisationFactor; }
@@ -190,15 +203,17 @@ protected:
     Bool LoadTexturesToGPU(PTRSZVAL psvInit);
 
 
-    void Render_DebugLine       ( ZVector3d & Start, ZVector3d & End);
+    void Render_DebugLine       ( ZVector3f & Start, ZVector3f & End);
 	void Render_EmptySector(int x, int y, int z, float r, float g, float b);
 
 	void Render_VoxelSelector   (ZVoxelCoords * SelectedVoxel, float r, float g, float b);
 	void EmitFaces				( ZVoxelType ** VoxelTypeTable, UShort &VoxelType, UShort &prevVoxelType, ULong info
 							  , Long x, Long y, Long z
 							  , Long Sector_Display_x, Long Sector_Display_y, Long Sector_Display_z );
-    void MakeSectorRenderingData(ZVoxelSector * Sector);
-    void MakeSectorRenderingData_Sorted(ZVoxelSector * Sector);
+
+    virtual void MakeSectorRenderingData(ZVoxelSector * Sector) = 0;
+    virtual void MakeSectorRenderingData_Sorted(ZVoxelSector * Sector) = 0;
+    virtual void FreeDisplayData(ZVoxelSector * Sector) = 0;
     virtual void Render( bool use_external_matrix ) = 0;
 	virtual ZVoxelCuller *GetCuller( ) = 0;
 
@@ -220,7 +235,6 @@ protected:
 
     void SetGameEnv( ZGame * GameEnv ) { this->GameEnv = GameEnv;  }
 
-    void FreeDisplayData(ZVoxelSector * Sector);
 
     // void RenderSector2(ZVoxelSector * Sector);
 
@@ -252,10 +266,9 @@ protected:
     }
 
 
-
-
-
     void ComputeAndSetAspectRatio(double VerticalFOV, double PixelAspectRatio, ZVector2L & ViewportResolution);
+	void DrawReticule( void );
+	void DrawColorOverlay( void );
 
 };
 

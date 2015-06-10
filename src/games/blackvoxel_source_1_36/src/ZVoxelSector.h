@@ -350,7 +350,7 @@ public:
       Flag_NotStandardSize = NotStandardSize;
     }
 
-    inline void SetCube(Long x, Long y, Long z, UShort CubeValue)
+    inline void SetCube(Long x, Long y, Long z, UByte CubeValue)
     {
       Long Offset;
 
@@ -359,7 +359,7 @@ public:
       Data.OtherInfos[Offset]=0;
     }
 
-    inline void SetCube_WithExtension(Long x, Long y, Long z, UShort CubeValue, ZMemSize Extension)
+    inline void SetCube_WithExtension(Long x, Long y, Long z, UByte CubeValue, ZMemSize Extension)
     {
       Long Offset;
 
@@ -396,7 +396,7 @@ public:
       }
     }
 
-    void Fill(UShort VoxelType)
+    void Fill(UByte VoxelType)
     {
       ZMemSize i;
 

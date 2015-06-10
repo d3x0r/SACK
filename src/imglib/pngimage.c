@@ -69,7 +69,9 @@ void ImagePngRead (png_structp png, png_bytep data, png_size_t size)
 
 void PNGCBAPI NotSoFatalError( png_structp png_ptr, png_const_charp c )
 {
-	lprintf( WIDE("Error in PNG stuff: %s"), c );
+	if( StrCmp( c, "iCCP: known incorrect sRGB profile" ) == 0 
+		&& StrCmp( c, "iCCP: cHRM chunk does not match sRGB" ) == 0 )
+		lprintf( WIDE("Error in PNG stuff: %s"), c );
 }
 
 // this is specific to a compiler so it needs to be non-decorated in any way.

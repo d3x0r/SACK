@@ -1,6 +1,6 @@
 /// This font cache keeps fonts in char format.
 
-
+//#define DEBUG_OPENFONTFILE
 #define IMAGE_LIBRARY_SOURCE
 
 #ifdef _PSI_INCLUSION_
@@ -520,7 +520,32 @@ int OpenFontFile( CTEXTSTR name, POINTER *font_memory, FT_Face *face, int face_i
 #else
 			OpenSpace( NULL, name, &size );
 #endif
+#ifdef DEBUG_OPENFONTFILE
+		lprintf( "open space result is %p %d", (*font_memory), size );
+#endif
+		if( !(*font_memory) )
+		{
+			FILE *file;
+#ifdef DEBUG_OPENFONTFILE
+			lprintf( "open by memory map failed for %s", name );
+#endif
+			file = sack_fopen( 0, name, "rb" );
+			if( file )				
+			{
+#ifdef DEBUG_OPENFONTFILE
+				lprintf( "did manage to open the file. %p", file );
+#endif
+				size = sack_fsize( file );
+				(*font_memory) = NewArray( _8, size );
+				sack_fread( (*font_memory), 1, size, file );
+				sack_fclose( file );
+			}
+		}
+
 	}
+#ifdef DEBUG_OPENFONTFILE
+	lprintf( "fallback is %d", fallback_to_cache );
+#endif
 #ifndef _PSI_INCLUSION_
 	if( !(*font_memory) && fallback_to_cache )
 	{
@@ -539,8 +564,16 @@ int OpenFontFile( CTEXTSTR name, POINTER *font_memory, FT_Face *face, int face_i
 			PFONT_STYLE pfs;
 			_32 s;
 			pfe = fg.pFontCache + idx;
+#ifdef DEBUG_OPENFONTFILE
+			lprintf( "check font %d", idx );
+#endif
 			if( pfe->flags.unusable )
+			{
+#ifdef DEBUG_OPENFONTFILE
+				lprintf( "was marked unusable." );
+#endif
 				continue;
+			}
 			for( s = 0; s < pfe->nStyles; s++ )
 			{
 				PSHORT_SIZE_FILE file;
@@ -549,12 +582,18 @@ int OpenFontFile( CTEXTSTR name, POINTER *font_memory, FT_Face *face, int face_i
 				for( f = 0; f < pfs->nFiles; f++ )
 				{
 					file = ((PSHORT_SIZE_FILE)pfs->files) + f;
+#ifdef DEBUG_OPENFONTFILE
+					lprintf( "file is %s vs %s", file->file, base_name );
+#endif
 					if( StrCaseCmp( (TEXTCHAR*)file->file, base_name ) == 0 )
 					{
 						//lprintf( "Found font file matchint %s", file->file );
 						temp_filename_len = (StrLen( (TEXTCHAR*)file->path ) + StrLen( (TEXTCHAR*)file->file ) + 2);
 						temp_filename = NewArray( TEXTCHAR, temp_filename_len );
 						snprintf( temp_filename, temp_filename_len, WIDE("%s/%s"), (TEXTCHAR*)file->path, (TEXTCHAR*)file->file );
+#ifdef DEBUG_OPENFONTFILE
+						lprintf( "full path is %s", temp_filename );
+#endif
 						break;
 					}
 					if( StrCaseCmp( base_name, (TEXTCHAR*)pfe->name ) == 0 )
@@ -564,6 +603,9 @@ int OpenFontFile( CTEXTSTR name, POINTER *font_memory, FT_Face *face, int face_i
 							temp_filename_len = (StrLen( (TEXTCHAR*)file->path ) + StrLen( (TEXTCHAR*)file->file ) + 2);
 							temp_filename = NewArray( TEXTCHAR, temp_filename_len );
 							snprintf( temp_filename, temp_filename_len, WIDE("%s/%s"), (TEXTCHAR*)file->path, (TEXTCHAR*)file->file );
+#ifdef DEBUG_OPENFONTFILE
+							lprintf( "full path is %s", temp_filename );
+#endif
 							break;
 						}
 					}
@@ -582,18 +624,39 @@ int OpenFontFile( CTEXTSTR name, POINTER *font_memory, FT_Face *face, int face_i
 #else
 				OpenSpace( NULL, temp_filename, &size );
 #endif
+			if( !(*font_memory) )
+			{
+				FILE *file;
+#ifdef DEBUG_OPENFONTFILE
+				lprintf( "open by memory map failed for %s", temp_filename );
+#endif
+				file = sack_fopen( 0, temp_filename, "rb" );
+				if( file )				
+				{
+#ifdef DEBUG_OPENFONTFILE
+					lprintf( "did manage to open the file. %p", file );
+#endif
+					size = sack_fsize( file );
+					(*font_memory) = NewArray( _8, size );
+					sack_fread( (*font_memory), 1, size, file );
+					sack_fclose( file );
+				}
+			}
+
 		}
 	}
 #else
-   lprintf( WIDE("!!!!!!!! PSI SHOULD NOT BE USING OPENFONTFILE !!!!!!!!!!!!") );
+	lprintf( WIDE("!!!!!!!! PSI SHOULD NOT BE USING OPENFONTFILE !!!!!!!!!!!!") );
 #endif
-	if( *font_memory && size < 0xd00000 )
+	if( *font_memory && size < 0xd000000 )
 	{
 		POINTER p = NewArray( _8, size );
 		MemCpy( p, (*font_memory), size );
 		Deallocate( POINTER, (*font_memory) );
 		(*font_memory) = p;
-
+#ifdef DEBUG_OPENFONTFILE
+		lprintf( "re-copied the font memory." );
+#endif
 		//lprintf( WIDE("Using memory mapped space...") );
 		error = FT_New_Memory_Face( fg.library
 										  , (FT_Byte*)(*font_memory)
@@ -605,6 +668,9 @@ int OpenFontFile( CTEXTSTR name, POINTER *font_memory, FT_Face *face, int face_i
 	{
 		char *file = DupTextToChar( name );
 		//lprintf( WIDE("Using file access font... for %s"), name );
+#ifdef DEBUG_OPENFONTFILE
+		lprintf( "using FT_New_Face direct file access... (should never happen now)" );
+#endif
 		error = FT_New_Face( fg.library
 								 , file
 								 , face_idx
@@ -613,6 +679,8 @@ int OpenFontFile( CTEXTSTR name, POINTER *font_memory, FT_Face *face, int face_i
 		{
 			char *file2 = DupTextToChar( temp_filename );
 			error = FT_New_Face( fg.library
+
+
 									 , file2
 									 , face_idx
 									 , face );
@@ -621,10 +689,12 @@ int OpenFontFile( CTEXTSTR name, POINTER *font_memory, FT_Face *face, int face_i
 		if( error )
 		{
 			logged_error = 1;
+#ifdef DEBUG_OPENFONTFILE
 			lprintf( WIDE("Failed to open font %s or %s Result %d")
 					 , name?name:WIDE("<nofile>")
 					 , temp_filename?temp_filename:WIDE("<nofile>")
 					 , error );
+#endif
 		}
 		Deallocate( char *, file );
 	}
@@ -677,7 +747,9 @@ void CPROC ListFontFile( PTRSZVAL psv, CTEXTSTR name, int flags )
 	fonts_checked++;
 	//if( !InitFont() )
 	//	return;
+#ifdef DEBUG_OPENFONTFILE
 	lprintf( WIDE("Try font: %s"), name );
+#endif
 	//#ifdef IMAGE_LIBRARY_SOURCE
 	face_idx = 0;
 	do
@@ -1299,7 +1371,7 @@ void CPROC ScanDrive( PTRSZVAL user, TEXTCHAR *letter, int flags )
 	if( letter[0] != 'c' && letter[0] != 'C' )
 		return;
 	while( ScanFiles( base
-						 , WIDE("*.ttf\t*.fon\t*.TTF\t*.pcf.gz\t*.pf?\t*.fnt\t*.psf.gz")
+						 , WIDE("*.ttf\t*.ttc\t*.fon\t*.TTF\t*.pcf.gz\t*.pf?\t*.fnt\t*.psf.gz")
 						 , &data
 						 , ListFontFile
 						 , SFF_SUBCURSE, 0 ) );
@@ -1321,7 +1393,9 @@ void BuildFontCache( void )
 	MakeTextControl( status, 5, 45, 240, 19, TXT_COUNT_STATUS, WIDE(""), 0 );
 
 #endif
+#ifdef DEBUG_OPENFONTFILE
 	lprintf( WIDE("Building cache...") );
+#endif
 	StartTime = 0;
 #ifdef __CAN_USE_CACHE_DIALOG__
 	{
@@ -1347,9 +1421,9 @@ void BuildFontCache( void )
 #endif
 
 	// .psf.gz doesn't load directly.... 
-	while( ScanFiles( WIDE("."), WIDE("*.ttf\t*.fon\t*.TTF\t*.pcf.gz\t*.pf?\t*.fnt\t*.psf.gz"), &data
+	while( ScanFiles( WIDE("."), WIDE("*.ttf\t*.ttc\t*.fon\t*.TTF\t*.pcf.gz\t*.pf?\t*.fnt\t*.psf.gz"), &data
 						 , ListFontFile, SFF_SUBCURSE, 0 ) );
-	while( ScanFiles( WIDE("%resources%"), WIDE("*.ttf\t*.fon\t*.TTF\t*.pcf.gz\t*.pf?\t*.fnt\t*.psf.gz"), &data
+	while( ScanFiles( WIDE("%resources%"), WIDE("*.ttf\t*.ttc\t*.fon\t*.TTF\t*.pcf.gz\t*.pf?\t*.fnt\t*.psf.gz"), &data
 						 , ListFontFile, SFF_SUBCURSE, 0 ) );
 
 	// scan windows/fonts directory
@@ -1368,7 +1442,7 @@ void BuildFontCache( void )
 		size_t len;
 		TEXTSTR tmp = NewArray( TEXTCHAR, len = StrLen( name ) + 10 );
 		snprintf( tmp, len * sizeof( TEXTCHAR ), WIDE( "%s\\fonts" ), name );
-		while( ScanFiles( tmp, WIDE("*.ttf\t*.fon\t*.TTF\t*.pcf.gz\t*.pf?\t*.fnt\t*.psf.gz"), &data
+		while( ScanFiles( tmp, WIDE("*.ttf\t*.ttc\t*.fon\t*.TTF\t*.pcf.gz\t*.pf?\t*.fnt\t*.psf.gz"), &data
 							 , ListFontFile, SFF_SUBCURSE, 0 ) );
                 Deallocate( TEXTSTR, tmp );
             }
@@ -1461,7 +1535,8 @@ void LoadAllFonts( void )
 #else
 		tmpfiletime = GetFileWriteTime( WIDE("Fonts.Cache") );
 #endif
-		if( fontcachetime == tmpfiletime )
+		//lprintf( "font cache is %p", in );
+		if( tmpfiletime && fontcachetime == tmpfiletime )
 		{
 			sack_fclose( in );
 			return;  // already read.
@@ -1495,7 +1570,7 @@ void LoadAllFonts( void )
 			buf = fgets_buf;
 			len = StrLen( buf );
 			buf[len-1] = 0; // kill \n on line.
-			//Log2( WIDE("Process: (%d)%s"), ++line, buf );
+			//lprintf( WIDE("Process: (%d)%s"), ++line, buf );
 			switch( buf[0] )
 			{
             size_t len;
@@ -1818,47 +1893,3 @@ void UnloadAllFonts( void )
 
 IMAGE_NAMESPACE_END
 
-
-// $Log: fntcache.c,v $
-// Revision 1.14  2005/03/23 02:43:07  panther
-// Okay probably a couple more badly initialized 'unusable' flags.. but font rendering/picking seems to work again.
-//
-// Revision 1.13  2004/12/15 03:00:19  panther
-// Begin coding to only show valid, renderable fonts in dialog, and update cache, turns out that we'll have to postprocess the cache to remove unused dictionary entries
-//
-// Revision 1.12  2004/10/24 20:09:47  d3x0r
-// Sync to psilib2... stable enough to call it mainstream.
-//
-// Revision 1.3  2004/10/13 11:13:53  d3x0r
-// Looks like this is cleaning up very nicely... couple more rough edges and it'll be good to go.
-//
-// Revision 1.2  2004/10/07 04:37:16  d3x0r
-// Okay palette and listbox seem to nearly work... controls draw, now about that mouse... looks like my prior way of cheating is harder to step away from than I thought.
-//
-// Revision 1.1  2004/09/19 19:22:31  d3x0r
-// Begin version 2 psilib...
-//
-// Revision 1.11  2004/04/26 09:47:26  d3x0r
-// Cleanup some C++ problems, and standard C issues even...
-//
-// Revision 1.10  2003/11/29 00:10:28  panther
-// Minor fixes for typecast equation
-//
-// Revision 1.9  2003/11/28 18:43:56  panther
-// Fix LIST_ENDFORALL
-//
-// Revision 1.8  2003/09/26 16:44:48  panther
-// Extend font test program
-//
-// Revision 1.7  2003/09/25 09:47:15  panther
-// Clean up for LCC compilation
-//
-// Revision 1.6  2003/08/27 07:58:39  panther
-// Lots of fixes from testing null pointers in listbox, font generation exception protection
-//
-// Revision 1.5  2003/08/21 13:34:42  panther
-// include font render project with windows since there's now freetype
-//
-// Revision 1.4  2003/03/25 08:45:56  panther
-// Added CVS logging tag
-//

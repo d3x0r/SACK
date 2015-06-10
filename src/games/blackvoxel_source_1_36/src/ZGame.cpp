@@ -313,7 +313,12 @@ bool ZGame::Init_GuiManager(ZLog * InitLog)
 
   GuiManager.SetTextureManager(&TextureManager);
   GuiManager.SetEventManager(&EventManager);
-  GuiManager.SetScreenDimensions(0,0,(float)ScreenResolution.x,(float)ScreenResolution.y);
+
+  	  ScreenResolution.x = 2.0f;
+	  ScreenResolution.y = 2.0f;
+
+  GuiManager.SetScreenDimensions(-1,-1,(float)2.0,(float)2.0);
+  //GuiManager.SetScreenDimensions(0,0,(float)ScreenResolution.x,(float)ScreenResolution.y);
   EventManager.AddConsumer_ToTail(&GuiManager);
 
   Initialized_GuiManager = true;
@@ -338,8 +343,8 @@ bool ZGame::Init_TileSetsAndFonts(ZLog * InitLog)
   Font_1->SetTextureManager(&TextureManager);
   Font_1->SetTextureNum(3);
   Font_1->SetTextureSize(128,128);
-  Font_1->SetTileSlotSize(8,8);
-  Font_1->SetTileSize(8,8);
+  Font_1->SetTileSlotSize(8.0,8.0);
+  Font_1->SetTileSize(2*(8.0f/1920.0f),2*(8.0f/1080.0f));
   Font_1->SetTileOffset(0,0);
   Font_1->SetTilesPerLine(16);
   Font_1->ComputeTileCoords();
@@ -351,7 +356,7 @@ bool ZGame::Init_TileSetsAndFonts(ZLog * InitLog)
   GuiTileset->SetTextureNum(7);
   GuiTileset->SetTextureSize(512,512);
   GuiTileset->SetTileSlotSize(32,32);
-  GuiTileset->SetTileSize(32,32);
+  GuiTileset->SetTileSize(2*(32.0f/1920.0f),2*(32.0f/1080.0f));
   GuiTileset->SetTileOffset(0,0);
   GuiTileset->SetTilesPerLine(16);
   GuiTileset->ComputeTileCoords();
@@ -497,8 +502,8 @@ bool ZGame::Init_Renderer(ZLog * InitLog, PTRSZVAL psvInit )
   //ZRender_Basic Basic_Renderer;
 
 
-  Basic_Renderer = new ZRender_Basic( World );
-  //Basic_Renderer = new ZRender_Smooth( World );
+  //Basic_Renderer = new ZRender_Basic( World );
+  Basic_Renderer = new ZRender_Smooth( World );
 
   Basic_Renderer->SetGameEnv(this);
   Basic_Renderer->Init();

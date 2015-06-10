@@ -7,7 +7,7 @@
 
 IMAGE_NAMESPACE
 
-PImageShaderTracker GetShaderInit( CTEXTSTR name, PTRSZVAL (CPROC*Setup)(void), void (CPROC*Init)(PImageShaderTracker,PTRSZVAL) )
+PImageShaderTracker GetShaderInit( CTEXTSTR name, PTRSZVAL (CPROC*Setup)(PTRSZVAL), void (CPROC*Init)(PTRSZVAL,PImageShaderTracker), PTRSZVAL psvSetup )
 {
 	PImageShaderTracker tracker;
 	INDEX idx;
@@ -25,10 +25,11 @@ PImageShaderTracker GetShaderInit( CTEXTSTR name, PTRSZVAL (CPROC*Setup)(void), 
 		tracker->name = StrDup( name );
 		tracker->Init = Init;
 		tracker->Setup = Setup;
+		tracker->psvSetup = psvSetup;
 		if( tracker->Setup )
-			tracker->psv_userdata =	tracker->Setup( );
+			tracker->psvInit =	tracker->Setup( tracker->psvSetup );
 		if( tracker->Init )
-			tracker->Init( tracker, tracker->psv_userdata );
+			tracker->Init( tracker->psvInit, tracker );
 		AddLink( &l.glActiveSurface->shaders, tracker );
 		return tracker;
 	}
@@ -46,11 +47,15 @@ void  SetShaderAppendTristrip( PImageShaderTracker tracker, void (CPROC*AppendTr
 	tracker->AppendTristrip = AppendTriStrip;
 }
 
-void CPROC  SetShaderFlush( PImageShaderTracker tracker, void (CPROC*FlushShader)( PImageShaderTracker tracker, PTRSZVAL, PTRSZVAL, int, int  ) )
+void CPROC  SetShaderOutput( PImageShaderTracker tracker, void (CPROC*FlushShader)( PImageShaderTracker tracker, PTRSZVAL, PTRSZVAL, int, int  ) )
 {
-	tracker->Flush = FlushShader;
+	tracker->Output = FlushShader;
 }
-void CPROC  SetShaderOpInit( PImageShaderTracker tracker, PTRSZVAL (CPROC*InitOp)( PImageShaderTracker tracker, PTRSZVAL, va_list args  ) )
+void CPROC  SetShaderReset( PImageShaderTracker tracker, void (CPROC*FlushShader)( PImageShaderTracker tracker, PTRSZVAL, PTRSZVAL  ) )
+{
+	tracker->Reset = FlushShader;
+}
+void CPROC  SetShaderOpInit( PImageShaderTracker tracker, PTRSZVAL (CPROC*InitOp)( PImageShaderTracker tracker, PTRSZVAL, int *existing_verts, va_list args  ) )
 {
 	tracker->InitShaderOp = InitOp;
 }
@@ -78,44 +83,12 @@ void FlushShaders( struct glSurfaceData *glSurface )
 	struct image_shader_op *op;
 	INDEX idx;
 	INDEX idx2;
-	int depth_enabled = 0;
+	GLboolean depth_enabled;
+	glGetBooleanv( GL_DEPTH_TEST, &depth_enabled );
 	LIST_FORALL( glSurface->shader_local.image_shader_operations, idx, struct image_shader_image_buffer *, image_shader_op )
 	{
-		LIST_FORALL( image_shader_op->output, idx2, struct image_shader_op *, op )
-		{
-			//EnableShader( op->tracker );
-
-			lprintf( WIDE( "Shader %") _string_f WIDE( " %d -> %d  %d" ), op->tracker->name, op->from, op->to, op->to - op->from );
-			if( op->depth_enabled )
-			{
-				if( !depth_enabled )
-				{
-					depth_enabled = 1;
-					glEnable( GL_DEPTH_TEST );
-				}
-			}
-			else
-			{
-				if( depth_enabled )
-				{
-					depth_enabled = 0;
-					glDisable( GL_DEPTH_TEST );
-				}
-			}
-
-			if( op->tracker->Flush )
-				op->tracker->Flush( op->tracker, op->tracker->psv_userdata, op->psvKey, op->from, op->to );
-			glDrawArrays( GL_TRIANGLES, op->from, op->to );
-
-			//glDrawArrays( 
-			Release( op );
-			SetLink( &glSurface->shader_local.shader_operations, idx, 0 );
-		}
-	}
-	LIST_FORALL( glSurface->shader_local.shader_operations, idx, struct image_shader_op *, op )
-	{
-		lprintf( WIDE( "Shader %") _string_f WIDE( " %d -> %d  %d" ), op->tracker->name, op->from, op->to, op->to - op->from );
-		if( op->depth_enabled )
+		// target image has a translation....
+		if( image_shader_op->depth )
 		{
 			if( !depth_enabled )
 			{
@@ -131,11 +104,34 @@ void FlushShaders( struct glSurfaceData *glSurface )
 				glDisable( GL_DEPTH_TEST );
 			}
 		}
-		if( op->tracker->Flush )
-			op->tracker->Flush( op->tracker, op->tracker->psv_userdata, op->psvKey, op->from, op->to );
+		LIST_FORALL( image_shader_op->output, idx2, struct image_shader_op *, op )
+		{
+			//EnableShader( op->tracker );
+			//lprintf( WIDE( "Shader %") _string_f WIDE( " %d -> %d  %d" ), op->tracker->name, op->from, op->to, op->to - op->from );
+
+			if( op->tracker->Output )
+				op->tracker->Output( op->tracker, op->tracker->psvInit, op->psvKey, op->from, op->to );
+			if( image_shader_op->tracker->Reset )
+					image_shader_op->tracker->Reset( op->tracker, op->tracker->psvInit, op->psvKey );
+			//glDrawArrays( GL_TRIANGLES, op->from, op->to );
+
+			//glDrawArrays( 
+			Release( op );
+			SetLink( &glSurface->shader_local.image_shader_operations, idx, 0 );
+		}
+	}
+	
+	LIST_FORALL( glSurface->shader_local.shader_operations, idx, struct image_shader_op *, op )
+	{
+		lprintf( WIDE( "Shader %") _string_f WIDE( " %d -> %d  %d" ), op->tracker->name, op->from, op->to, op->to - op->from );
+		if( op->tracker->Output )
+			op->tracker->Output( op->tracker, op->tracker->psvInit, op->psvKey, op->from, op->to );
+		if( op->tracker->Reset )
+			op->tracker->Reset( op->tracker, op->tracker->psvInit, op->psvKey );
 		Release( op );
 		SetLink( &glSurface->shader_local.shader_operations, idx, 0 );
 	}
+	
 	glSurface->shader_local.last_operation = NULL;
 }
 
@@ -163,7 +159,7 @@ void EnableShader( PImageShaderTracker tracker, ... )
 			return;
 		}
 		if( tracker->Init )
-			tracker->Init( tracker, tracker->psv_userdata );
+			tracker->Init( tracker->psvInit, tracker );
 		if( !tracker->glProgramId )
 		{
 			lprintf( WIDE("Shader initialization failed to produce a program; marking shader broken so we don't retry") );
@@ -176,7 +172,7 @@ void EnableShader( PImageShaderTracker tracker, ... )
 	glUseProgram( tracker->glProgramId );
 	CheckErrf( WIDE("Failed glUseProgram (%s)"), tracker->name );
 
-	if( tracker->flags.set_modelview )
+	if( tracker->flags.set_modelview && tracker->modelview >= 0 )
 	{
 		//glUseProgram( tracker->glProgramId );
 		//CheckErr();
@@ -195,19 +191,26 @@ void EnableShader( PImageShaderTracker tracker, ... )
 			l.flags.worldview_read = 1;
 		}
 		//PrintMatrix( l.worldview );
-		glUniformMatrix4fv( tracker->worldview, 1, GL_FALSE, (RCOORD*)l.worldview );
-		CheckErrf( WIDE(" (%s)"), tracker->name );
+		if( tracker->worldview >=0 )
+		{
+			glUniformMatrix4fv( tracker->worldview, 1, GL_FALSE, (RCOORD*)l.worldview );
+			CheckErrf( WIDE(" (%s)"), tracker->name );
+		}
 				
 		//PrintMatrix( l.glActiveSurface->M_Projection );
-		glUniformMatrix4fv( tracker->projection, 1, GL_FALSE, (RCOORD*)l.glActiveSurface->M_Projection );
-		CheckErr();
+		if( tracker->projection >=0 )
+		{
+			glUniformMatrix4fv( tracker->projection, 1, GL_FALSE, (RCOORD*)l.glActiveSurface->M_Projection );
+			CheckErr();
+		}
 		tracker->flags.set_matrix = 1;
+
 	}
 	if( tracker->Enable )
 	{
 		va_list args;
 		va_start( args, tracker );
-		tracker->Enable( tracker, tracker->psv_userdata, args );
+		tracker->Enable( tracker, tracker->psvInit, args );
 	}
 }
 
@@ -222,9 +225,9 @@ void AppendShaderTristripQuad( struct image_shader_op *op, ... )
 		va_list args;
 		va_start( args, op );
 		//struct image_shader_op *op = GetShaderOp( 
-		l.glActiveSurface->shader_local.last_operation = op;
+		//l.glActiveSurface->shader_local.last_operation = op;
 		op->tracker->AppendTristrip( op, 2, op->psvKey, args );
-		l.glActiveSurface->shader_local.last_operation = NULL;
+		//l.glActiveSurface->shader_local.last_operation = NULL;
 	}
 }
 
@@ -237,9 +240,9 @@ void AppendShaderTristrip( struct image_shader_op * op, int triangles, ... )
 	{
 		va_list args;
 		va_start( args, triangles );
-		l.glActiveSurface->shader_local.last_operation = op;
+		//l.glActiveSurface->shader_local.last_operation = op;
 		op->tracker->AppendTristrip( op, triangles, op->psvKey, args );
-		l.glActiveSurface->shader_local.last_operation = NULL;
+		//l.glActiveSurface->shader_local.last_operation = NULL;
 	}
 }
 
@@ -487,7 +490,8 @@ void SetShaderModelView( PImageShaderTracker tracker, RCOORD *matrix )
 		glUniformMatrix4fv( tracker->modelview, 1, GL_FALSE, matrix );
 		CheckErrf( WIDE("SetModelView for (%s)"), tracker->name );
 
-		//tracker->flags.set_modelview = 1;
+		// modelview already set for shader... so do not set it on enable?
+		tracker->flags.set_modelview = 0;
 	}
 }
 
@@ -525,49 +529,6 @@ static void ExpandShaderBuffer( struct shader_buffer *buffer )
 // and how much of those shaders are used in order...
 void AppendShaderData( struct image_shader_op *op, struct shader_buffer *buffer, float *data )
 {
-	//GLboolean depth_value;
-	//glGetBooleanv( GL_DEPTH_TEST, &depth_value );
-
-	/*
-	//lprintf( WIDE("append to %p %p  %d"), tracker, psvKey, depth_value );
-	if( !( op = l.glActiveSurface->shader_local.last_operation ) )
-	{
-		l.glActiveSurface->shader_local.last_operation = op = New( struct image_shader_op );
-		op->tracker = tracker;
-		op->psvKey = 0;//tracker->psv_userdata;
-		op->from = 0;
-		op->to = 0;
-		op->depth_enabled = depth_value;
-		AddLink( &l.glActiveSurface->shader_local.shader_operations, op );
-	}
-	else if( op->tracker == tracker && 
-			 op->psvKey == tracker->psv_userdata && 
-			 op->depth_enabled == depth_value
-			 )
-	{
-		// last operation is just being extended.
-	}
-	else
-	{
-		INDEX idx;
-		struct image_shader_op *last_use;
-		struct image_shader_op *found_use = NULL;
-		LIST_FORALL( l.glActiveSurface->shader_local.shader_operations, idx, struct image_shader_op *, last_use )
-		{
-			// if it's found, have to keep going, because we want to find the last one
-			if( last_use->tracker == tracker && last_use->psvKey == tracker->psv_userdata )
-				found_use = last_use;
-		}
-		op = New( struct image_shader_op );
-		op->tracker = tracker;
-		op->psvKey = tracker->psv_userdata;
-		op->from = found_use?found_use->to : 0;
-		op->to = found_use?found_use->to : 0;
-		op->depth_enabled = depth_value;
-		AddLink( &l.glActiveSurface->shader_local.shader_operations, op );
-		l.glActiveSurface->shader_local.last_operation = op;
-	}
-	*/
 	if( buffer->used == buffer->avail )
 		ExpandShaderBuffer( buffer );
 	//lprintf( WIDE( "Set position %p" ), buffer->data + buffer->dimensions * buffer->used );
@@ -575,16 +536,7 @@ void AppendShaderData( struct image_shader_op *op, struct shader_buffer *buffer,
 			, data
 			, sizeof( float ) * buffer->dimensions );
 	buffer->used++;
-	// only increment when the point buffer is referenced
-	//if( op->point_buffer == buffer )
 	op->to = buffer->used;
-	/*
-	lprintf( WIDE("%") _string_f WIDE(" buffer %p %p is used %d(%d)  %d" )
-					, tracker->name
-					, buffer, buffer->data
-					, buffer->used, buffer->avail
-					, op->to );
-	*/
 }
 
 size_t AppendShaderBufferData( struct shader_buffer *buffer, float *data )
@@ -610,7 +562,7 @@ static struct image_shader_op * GetShaderOp(PImageShaderTracker tracker, PTRSZVA
 		LIST_FORALL( l.glActiveSurface->shader_local.tracked_shader_operations, idx, struct image_shader_op *, last_use )
 		{
 			// if it's found, have to keep going, because we want to find the last one
-			if( last_use->tracker == tracker && last_use->psvKey == tracker->psv_userdata )
+			if( last_use->tracker == tracker && last_use->psvKey == tracker->psvInit )
 			{
 				found_use = last_use;
 				break;
@@ -623,7 +575,7 @@ static struct image_shader_op * GetShaderOp(PImageShaderTracker tracker, PTRSZVA
 			op->psvKey = psvKey;
 			op->from = found_use?found_use->to : 0;
 			op->to = found_use?found_use->to : 0;
-			op->depth_enabled = 0;
+			//glGetBooleanv( GL_DEPTH_TEST, &op->depth_enabled );
 			AddLink( &l.glActiveSurface->shader_local.tracked_shader_operations, op );
 		}
 		else
@@ -645,48 +597,56 @@ struct image_shader_op * BeginShaderOp(PImageShaderTracker tracker, ... )
 
 	va_list args;
 	PTRSZVAL psvKey;
+	int existing;
 	va_start( args, tracker );
-	psvKey = tracker->InitShaderOp( tracker, tracker->psv_userdata, args );
+	psvKey = tracker->InitShaderOp( tracker, tracker->psvInit, &existing, args );
 	shader_op  = GetShaderOp( tracker, psvKey );
 	return shader_op;
 }
 
 struct image_shader_op * BeginImageShaderOp(PImageShaderTracker tracker, Image target, ... )
 {
-	INDEX idx;
 	struct image_shader_op *isibo;
 	struct image_shader_image_buffer *image_shader_op;
-	LIST_FORALL( l.glActiveSurface->shader_local.image_shader_operations, idx, struct image_shader_image_buffer *, image_shader_op )
-	{
-		if( image_shader_op->tracker == tracker && image_shader_op->target == target )
-			break;
-	}
-	if( !image_shader_op )
+	GLboolean depth;
+	glGetBooleanv(GL_DEPTH_TEST, &depth ); 
+
+	if( l.glActiveSurface->shader_local.last_operation 
+		&& l.glActiveSurface->shader_local.last_operation->tracker == tracker
+		&& l.glActiveSurface->shader_local.last_operation->target == target
+		&& l.glActiveSurface->shader_local.last_operation->depth == depth
+		)
+		image_shader_op = l.glActiveSurface->shader_local.last_operation;
+	else
 	{
 		image_shader_op = New( struct image_shader_image_buffer );
+		if( l.glActiveSurface->shader_local.last_operation )
+			l.glActiveSurface->shader_local.last_operation->last_op = NULL;
 		image_shader_op->target = target;
 		image_shader_op->tracker = tracker;
+		image_shader_op->depth = depth;
 		image_shader_op->output = NULL;
+		image_shader_op->last_op = NULL;
 		AddLink( &l.glActiveSurface->shader_local.image_shader_operations, image_shader_op );
+		l.glActiveSurface->shader_local.last_operation = image_shader_op;
 	}
 	{
 		va_list args;
 		PTRSZVAL psvKey;
+		int existing_verts;
 		va_start( args, target );
-		psvKey = tracker->InitShaderOp( tracker, tracker->psv_userdata, args );
-		LIST_FORALL( image_shader_op->output, idx, struct image_shader_op *, isibo )
-		{		
-			if( isibo->psvKey == psvKey )
-				break;
-		}
-		if( !isibo )
+		psvKey = tracker->InitShaderOp( tracker, tracker->psvInit, &existing_verts, args );
+		if( image_shader_op->last_op &&
+			image_shader_op->last_op->psvKey == psvKey )
+			isibo = image_shader_op->last_op;
+		else
 		{
 			isibo = New( struct image_shader_op );
-			isibo->from = 0;
-			isibo->to = 0;
+			isibo->from = existing_verts;
+			isibo->to = existing_verts;
 			isibo->tracker = tracker;
-			isibo->depth_enabled = 1;
 			isibo->psvKey = psvKey;
+			image_shader_op->last_op = isibo;
 			AddLink( &image_shader_op->output, isibo );
 		}
 		//shader_op  = GetShaderOp( tracker, psvKey );

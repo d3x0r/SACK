@@ -77,6 +77,59 @@ static void ExtractFile( CTEXTSTR filename )
 	}
 }
 
+#ifdef VIRUS_SCANNER_PARANOIA
+#define Seek(a,b) (((PTRSZVAL)a)+(b))
+
+void SetExtraData( POINTER block, size_t length )
+{
+	//PTRSZVAL source_memory_length = block_len;
+	POINTER source_memory = block;
+
+	{
+		PIMAGE_DOS_HEADER source_dos_header = (PIMAGE_DOS_HEADER)source_memory;
+		PIMAGE_NT_HEADERS source_nt_header = (PIMAGE_NT_HEADERS)Seek( source_memory, source_dos_header->e_lfanew );
+		if( source_dos_header->e_magic != IMAGE_DOS_SIGNATURE )
+			//lprintf( "Basic signature check failed; not a library" );
+			return;
+
+
+		if( source_nt_header->Signature != IMAGE_NT_SIGNATURE )
+			//lprintf( "Basic NT signature check failed; not a library" );
+			return;
+
+		if( source_nt_header->FileHeader.SizeOfOptionalHeader )
+		{
+			if( source_nt_header->OptionalHeader.Magic != IMAGE_NT_OPTIONAL_HDR_MAGIC )
+			{
+				//lprintf( "Optional header signature is incorrect..." );
+				return;
+			}
+		}
+		{
+			int n;
+			long FPISections = source_dos_header->e_lfanew
+				+ sizeof( DWORD ) + sizeof( IMAGE_FILE_HEADER )
+				+ source_nt_header->FileHeader.SizeOfOptionalHeader;
+			PIMAGE_SECTION_HEADER source_section = (PIMAGE_SECTION_HEADER)Seek( source_memory, FPISections );
+			PTRSZVAL dwSize = 0;
+			PTRSZVAL newSize;
+			source_section = (PIMAGE_SECTION_HEADER)Seek( source_memory, FPISections );
+			for( n = 0; n < source_nt_header->FileHeader.NumberOfSections; n++ )
+			{
+				newSize = (source_section[n].PointerToRawData) + source_section[n].SizeOfRawData;
+				if( newSize > dwSize )
+					dwSize = newSize;
+			}
+			dwSize += 0xFFF;
+			dwSize &= ~0xFFF;
+			//printf( "size is %d (%08x)\n", dwSize, dwSize );
+			return;// (POINTER)Seek( source_memory, dwSize );
+		}
+	}
+}
+#endif
+
+
 static void AppendFilesAs( CTEXTSTR filename1, CTEXTSTR filename2, CTEXTSTR outputname )
 {
 	FILE *file1;
@@ -107,6 +160,8 @@ static void AppendFilesAs( CTEXTSTR filename1, CTEXTSTR filename2, CTEXTSTR outp
 		if( fill < 4096 )
 			for( n = 0; n < fill; n++ ) sack_fwrite( "", 1, 1, file_out );
 	}
+	//SetExtraData( buffer, file2_size );
+
 	Release( buffer );
 
 	buffer = NewArray( _8, file2_size );
@@ -167,7 +222,7 @@ static void usage( void )
 	printf( "   append <file 1> <file 2> <to file>  : store <file 1>+<file 2> as <to file> in native file system.\n" );
 	printf( "   shrink                              : remove extra space at the end of a volume.\n" );
 	printf( "   encrypt <key1> <key2>               : apply encryption keys to vfs.\n" );
-	printf( "   decrypt <key1> <key2>               : remove encryption keys from vfs.\n" );
+	printf( "   decrypt                             : remove encryption keys from vfs.\n" );
 	printf( "   sign                                : get volume short signature.\n" );
 	printf( "   sign-encrypt <key1>                 : get volume short signature; use key1 and signature to encrypt volume.\n" );
 	printf( "   sign-to-header <filename> <varname> : get volume short signature; write a c header called filename, with a variable varname.\n" );

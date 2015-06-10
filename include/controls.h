@@ -999,6 +999,7 @@ PSI_PROC( int, IsControlFocused )( PSI_CONTROL pc );
 PSI_PROC( int, IsControlEnabled)( PSI_CONTROL pc );
 
 PSI_PROC( struct physical_device_caption_button *, AddCaptionButton )( PSI_CONTROL frame, Image normal, Image pressed, int extra_pad, void (CPROC*event)(PSI_CONTROL) );
+PSI_PROC( void, SetCaptionButtonImages )( struct physical_device_caption_button *, Image normal, Image pressed );
 PSI_PROC( void, HideCaptionButton )( struct physical_device_caption_button * );
 PSI_PROC( void, ShowCaptionButton )( struct physical_device_caption_button * );
 /*

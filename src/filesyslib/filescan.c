@@ -28,7 +28,7 @@ FILESYS_NAMESPACE
 // DEBUG_COMPARE 1 == full debug
 // DEBUG_COMPARE 2 == quieter debug
 #ifdef _DEBUG
-#define DEBUG_COMPARE 3
+#define DEBUG_COMPARE 5
 #else
 #define DEBUG_COMPARE 999
 #endif
@@ -57,10 +57,10 @@ try_mask:
 	{
 		if( mask[m] == '\t' || mask[m] == '|' )
 		{
-			//Log1( WIDE("Found mask seperator - skipping to next mask :%s"), name );
+			lprintf( WIDE("Found mask seperator - skipping to next mask :%s"), mask + m + 1 );
 			n = 0;
 			m++;
-         continue;
+			continue;
 		}
 		while( mask[m] == '*' )
 		{
@@ -73,7 +73,7 @@ try_mask:
          //Log( WIDE("Match any one character") );
 #endif
 			matchone++;
-         m++;
+			m++;
 		}
 		if( !keepcase && name[n]>= 'a' && name[n] <= 'z' )
 			namech = name[n] - ('a' - 'A');
@@ -147,15 +147,15 @@ try_mask:
 		}
 	}while( name[n] );
 	// 0 or more match a *
-   // so auto match remaining *
+	// so auto match remaining *
 	while( mask[m] && mask[m] == '*' )
-      m++;
+		m++;
 #if ( DEBUG_COMPARE < 3 )
 	lprintf( WIDE("Skipping to next mask") );
 #endif
 	if( mask[m] &&
-	    ( mask[m] != '\t' &&
-		   mask[m] != '|' ) )
+		 ( mask[m] != '\t' &&
+			mask[m] != '|' ) )
 	{
 		int mask_m = m;
 		while( mask[m] )
@@ -170,9 +170,9 @@ try_mask:
 		}
 		if( mask[m] )
 			goto try_mask;
-      m = mask_m;
+		m = mask_m;
 	}
-   //lprintf( WIDE("Result: %d %c %d"), matchone, mask[m], name[n] );
+	//lprintf( WIDE("Result: %d %c %d"), matchone, mask[m], name[n] );
 	// match ???? will not match abc 
 	// a??? abc not match
 	if( !matchone && (!mask[m] || mask[m] == '\t' || mask[m] == '|' ) && !name[n] )
@@ -732,11 +732,11 @@ getnext:
 	return (*pInfo)?1:0;
 }
  int  ScanFiles ( CTEXTSTR base
-           , CTEXTSTR mask
-           , void **pInfo
-           , void CPROC Process( PTRSZVAL psvUser, CTEXTSTR name, int flags )
-           , int flags 
-           , PTRSZVAL psvUser )
+                , CTEXTSTR mask
+                , void **pInfo
+                , void CPROC Process( PTRSZVAL psvUser, CTEXTSTR name, int flags )
+                , int flags 
+                , PTRSZVAL psvUser )
  {
 	 return ScanFilesEx( base, mask, pInfo, Process, flags, psvUser, FALSE, NULL );
  }

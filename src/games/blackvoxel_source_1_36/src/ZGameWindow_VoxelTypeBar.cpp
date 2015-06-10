@@ -38,15 +38,15 @@ void ZGameWindow_VoxelTypeBar::Show()
 
   // Running position computing
 
-  Ip.x = 18.0f; Ip.y = 25.0f;
+  Ip.x = SclX(18.0f); Ip.y = SclY(25.0f);
   Rp.x = Ip.x; Rp.y = Ip.y;
 
   // Main Window
 
   ZVector2f MainWindow_Pos,MainWindow_Size;
-  MainWindow_Size.x = 48.0f; MainWindow_Size.y = 600.0f;
-  MainWindow_Pos.x = ((float)GameEnv->ScreenResolution.x - MainWindow_Size.x);
-  MainWindow_Pos.y = ((float)GameEnv->ScreenResolution.y - MainWindow_Size.y) / 2.0f;
+  MainWindow_Size.x = SclX(48.0f); MainWindow_Size.y = SclY(600.0f);
+  MainWindow_Pos.x = (((float)2.0f - MainWindow_Size.x));
+  MainWindow_Pos.y = (((float)2.0f - MainWindow_Size.y) / 2.0f);
 
   MainWindow.SetPosition( MainWindow_Pos.x, MainWindow_Pos.y);
   MainWindow.SetSize(MainWindow_Size.x,MainWindow_Size.y);
@@ -69,15 +69,15 @@ void ZGameWindow_VoxelTypeBar::Show()
     MainInventory[Indice].SetVoxelTypeManager(&GameEnv->VoxelTypeManager);
     if (y!=6)
     {
-      MainInventory[Indice].SetPosition(8.0f, Rp.y );
-      MainInventory[Indice].SetSize(32.0f,32.0f);
-      Rp.y += 32.0f + 6.0f;
+      MainInventory[Indice].SetPosition(SclX(8.0f), Rp.y );
+      MainInventory[Indice].SetSize(SclX(32.0f),SclY(32.0f));
+      Rp.y += SclY(32.0f + 6.0f);
     }
     else
     {
-      MainInventory[Indice].SetPosition(-24.0f, Rp.y );
-      MainInventory[Indice].SetSize(64.0f,64.0f);
-      Rp.y += 64.0f + 6.0f;
+      MainInventory[Indice].SetPosition(SclX(-24.0f), Rp.y );
+      MainInventory[Indice].SetSize(SclX(64.0f),SclY(64.0f));
+      Rp.y += SclY(64.0f + 6.0f);
     }
     MainInventory[Indice].SetTileStyle(GameEnv->TileSetStyles->GetStyle(ZGame::FONTSIZE_1));
     MainInventory[Indice].SetVoxelType(&Entry->VoxelType);

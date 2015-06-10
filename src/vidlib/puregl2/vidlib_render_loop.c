@@ -71,7 +71,6 @@ void MygluPerspective(GLfloat fovy, GLfloat aspect, GLfloat zNear, GLfloat zFar)
 
 void WantRender3D( void )
 {
-	struct plugin_reference *reference;
 	if( l.flags.bLogRenderTiming )
 		lprintf( WIDE("Begin Want Render") );
 
@@ -444,7 +443,7 @@ LOGICAL ProcessGLDraw( LOGICAL draw_all )
 			//lprintf( "Calling 3d callback...%p", proc );
 			if( proc( l.origin ) )
 			{
-            //lprintf( "update call indicates it would like to draw..." );
+				//lprintf( "update call indicates it would like to draw..." );
 				l.flags.bUpdateWanted = TRUE;
 			}
 		}

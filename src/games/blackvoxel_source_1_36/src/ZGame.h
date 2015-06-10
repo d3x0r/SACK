@@ -379,7 +379,9 @@ class ZGame
 #endif
   int display_index;
   PTRANSFORM sack_camera[6];  // this is used for mouse collision... need to update this..
-  ZVector2L ScreenResolution;   // Taille réelle de la zone d'affichage.
+  PMatrix sack_projection[6];  // this is used for mouse collision... need to update this..
+  float *sack_aspect[6];
+  ZVector2f ScreenResolution;   // Taille réelle de la zone d'affichage.
   ZVector2L HardwareResolution; // Resolution qui est demandée à SDL.
   ZVector2L DesktopResolution;  // Résolution du bureau.
   double    VFov;               // Vertical Fov;

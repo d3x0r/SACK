@@ -87,7 +87,7 @@ class ZActor_Player : public ZActor
 
     virtual ~ZActor_Player();
     virtual void SetPosition( ZVector3d &NewLocation );
-    virtual void Action_MouseMove( Long Delta_x, Long Delta_y);
+    virtual void Action_MouseMove( float Delta_x, float Delta_y);
     virtual void Action_MouseButtonClick( ULong Button);
     virtual void Action_MouseButtonRelease( ULong Button);
     virtual bool Action_StillEvents( bool * MouseMatrix, UByte * KeyboardMatrix);

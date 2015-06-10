@@ -45,7 +45,7 @@
 #ifndef Z_ZTEXTUREMANAGER_H
 #  include "ZTextureManager.h"
 #endif
-
+#include "ZRender_Interface.h"
 class ZTileSet;
 
 class ZTileStyle : public ZObject
@@ -102,8 +102,8 @@ class ZTileSet : public ZObject
 
     //
     ULong Texture_Width, Texture_Height;
-    ULong TileSlot_Width, TileSlot_Height;
-    ULong Tile_Width,Tile_Height;
+    float TileSlot_Width, TileSlot_Height;
+    float Tile_Width,Tile_Height;
     ULong TileOffset_x, TileOffset_y;
     ULong TilesPerLine;
 
@@ -116,8 +116,8 @@ class ZTileSet : public ZObject
 
     // Prepare tiling
     void SetTextureSize(ULong Width, ULong Height);
-    void SetTileSlotSize(ULong Width, ULong Height);
-    void SetTileSize(ULong Width, ULong Height);
+    void SetTileSlotSize(float Width, float Height);
+    void SetTileSize(float Width, float Height);
     void SetTilesPerLine(ULong TilesPerLine);
     void SetTileOffset(ULong x, ULong y);
     void ComputeTileCoords();
@@ -127,8 +127,8 @@ class ZTileSet : public ZObject
     float GetTileWidth (UByte TileNum) { return( CoordTable[TileNum].Tile_Width ); }
     float GetTileHeight(UByte TileNum) { return( CoordTable[TileNum].Tile_Height); }
 
-    void  RenderTile( PTRSZVAL psvInit, ZVector3f * TopLeft, ZVector3f * BottomRight, UByte TileNum, ZColor3f * Color = 0);
-    void  RenderFont(PTRSZVAL psvInit, ZTileStyle const * TileStyle , ZBox3f const * DrawBox, char const * TextToRender, ZColor3f * Color );
+    void  RenderTile( ZRender_Interface *render, PTRSZVAL psvInit, ZVector3f * TopLeft, ZVector3f * BottomRight, UByte TileNum, ZColor3f * Color = 0);
+    void  RenderFont(ZRender_Interface *render, PTRSZVAL psvInit, ZTileStyle const * TileStyle , ZBox3f const * DrawBox, char const * TextToRender, ZColor3f * Color );
     void  GetFontRenderSize(ZTileStyle const * TileStyle , char const * TextToRender, ZVector2f * OutSize);
     ULong GetTilePixel(UByte TileNum, ULong x, ULong y);
 };

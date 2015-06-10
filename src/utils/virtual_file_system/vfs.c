@@ -24,6 +24,12 @@ SACK_VFS_NAMESPACE
 #define LoG( a,... )
 #endif
 
+/**************
+  VFS_VERSION
+     used to track migration of keys and keying methods.  
+  0x100 = version 1; SHORTKEY_LENGTH = 16
+ **************/
+#define VFS_VERSION     0x100
 
 // 12 bits = 1 << 12 = 4096
 #define BLOCK_SIZE_BITS 12
@@ -65,7 +71,6 @@ PREFIX_PACKED struct volume {
 	P_8 key;  // allow byte encrypting...
 	P_8 segkey;  // allow byte encrypting... key based on sector volume file index
 	P_8 usekey[BLOCK_CACHE_COUNT]; // composite key
-	_32 key_lock[BLOCK_CACHE_COUNT]; // locks for keys 
 	PLIST files; // when reopened file structures need to be updated also...
 	LOGICAL read_only;
 	_32 lock;
@@ -230,7 +235,6 @@ static void ExpandVolume( struct volume *vol )
 		}
 		vol->disk = new_disk;
 	}
-	//while( LockedExchange( &vol->key_lock[BLOCK_CACHE_BAT], 1 ) ) Relinquish();
 	if( vol->key )
 	{
 		BLOCKINDEX first_slab = oldsize / ( BLOCK_SIZE );
@@ -250,7 +254,6 @@ static void ExpandVolume( struct volume *vol )
 	}
 	else if( !oldsize ) memset( vol->disk, 0, vol->dwSize );
 	else if( oldsize ) memset( ((P_8)vol->disk) + oldsize, 0, vol->dwSize - oldsize );
-	//vol->key_lock[BLOCK_CACHE_BAT] = 0;
 
 	if( !oldsize )
 	{
@@ -350,14 +353,12 @@ static BLOCKINDEX GetNextBlock( struct volume *vol, BLOCKINDEX block, LOGICAL in
 	if( vol->key )
 	{
 		seg = ( ((PTRSZVAL)this_BAT - (PTRSZVAL)vol->disk) / BLOCK_SIZE ) + 1;
-		//while( LockedExchange( &vol->key_lock[BLOCK_CACHE_FILE], 1 ) ) Relinquish();
 		if( seg != vol->segment[BLOCK_CACHE_FILE] )
 		{
 			vol->segment[BLOCK_CACHE_FILE] = seg;
 			UpdateSegmentKey( vol, BLOCK_CACHE_FILE );
 		}
 		check_val ^= ((BLOCKINDEX*)vol->usekey[BLOCK_CACHE_FILE])[block & (BLOCKS_PER_BAT-1)];
-		//vol->key_lock[BLOCK_CACHE_FILE] = 0;
 	}
 	if( check_val == ~0 )
 	{
@@ -422,13 +423,7 @@ struct volume *sack_vfs_load_volume( const char * filepath )
 {
 	struct volume *vol = New( struct volume );
 	memset( vol, 0, sizeof( struct volume ) );
-	//vol->read_only = 0;
-	//vol->dwSize = 0;
-	//vol->disk = 0;
-	//vol->lock = 0;
 	vol->volname = SaveText( filepath );
-	//vol->key = NULL;
-	//vol->files = NULL;
 	ExpandVolume( vol );
 	if( !ValidateBAT( vol ) ) { vol->lock = 0; return NULL; }
 	return vol;
@@ -570,14 +565,10 @@ void sack_vfs_shrink_volume( struct volume * vol )
 			break;
 	}while( 1 );
 
-	{
-		FILE *file;
-		Release( vol->disk );
-		SetFileLength( vol->volname, last_bat * BLOCKS_PER_SECTOR * BLOCK_SIZE + ( last_block + 1 + 1 )* BLOCK_SIZE );
-		// setting 0 size will cause expand to do an initial open instead of expanding
-		vol->dwSize = 0;
-		//ExpandVolume( vol );
-	}
+	Release( vol->disk );
+	SetFileLength( vol->volname, last_bat * BLOCKS_PER_SECTOR * BLOCK_SIZE + ( last_block + 1 + 1 )* BLOCK_SIZE );
+	// setting 0 size will cause expand to do an initial open instead of expanding
+	vol->dwSize = 0;
 }
 
 LOGICAL sack_vfs_decrypt_volume( struct volume *vol )
@@ -585,7 +576,7 @@ LOGICAL sack_vfs_decrypt_volume( struct volume *vol )
 	while( LockedExchange( &vol->lock, 1 ) ) Relinquish();
 	if( !vol->key ) return FALSE; // volume is already decrypted, cannot remove key
 	{
-		int n;
+		size_t n;
 		BLOCKINDEX slab = vol->dwSize / ( BLOCK_SIZE );
 		for( n = 0; n < slab; n++  )
 		{
@@ -608,7 +599,7 @@ LOGICAL sack_vfs_encrypt_volume( struct volume *vol, CTEXTSTR key1, CTEXTSTR key
 	if( vol->key ) return FALSE; // volume already has a key, cannot apply new key
 	AssignKey( vol, key1, key2 );
 	{
-		int n;
+		size_t n;
 		BLOCKINDEX slab = vol->dwSize / ( BLOCK_SIZE );
 		for( n = 0; n < slab; n++  )
 		{
@@ -1104,14 +1095,16 @@ static int iterate_find( struct find_info *info )
 					name_ofs++;
 				}
 				info->filename[info->filenamelen]	 = c;
-				if( ( info->base[0] != '.' && info->base_len != 1 )
+				if( info->base
+					&& ( info->base[0] != '.' && info->base_len != 1 )
 					&& StrCaseCmpEx( info->base, info->filename, info->base_len ) )
 					continue;
 			}
 			else
 			{
 				StrCpy( info->filename, (const char *)(((P_8)info->vol->disk) + name_ofs) );
-				if( ( info->base[0] != '.' && info->base_len != 1 )
+				if( info->base
+					&& ( info->base[0] != '.' && info->base_len != 1 )
 					&& StrCaseCmpEx( info->base, info->filename, info->base_len ) )
 					continue;
 			}

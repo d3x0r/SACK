@@ -1,0 +1,226 @@
+changeset:   1806:fc704c9b84bf
+user:        Panther
+date:        Thu Nov 20 05:03:28 2014 -0800
+files:       src/freeglut/freeglut-2.8.0/CMakeLists.txt src/games/ChainReact/chain.h src/streamlib/ffmpeg/openal-soft-1.15.1/Alc/alcConfig.c src/vidlib/vidlib.c
+description:
+some more mingw/gcc fixes...
+
+
+diff -r b1b50f99f447 -r fc704c9b84bf src/streamlib/ffmpeg/openal-soft-1.15.1/Alc/alcConfig.c
+--- a/src/streamlib/ffmpeg/openal-soft-1.15.1/Alc/alcConfig.c	Thu Nov 20 04:10:57 2014 -0800
++++ b/src/streamlib/ffmpeg/openal-soft-1.15.1/Alc/alcConfig.c	Thu Nov 20 05:03:28 2014 -0800
+@@ -36,6 +36,7 @@
+ #include "alMain.h"
+ 
+ #ifdef _WIN32
++#include <shlwapi.h>
+ #include <shellapi.h>
+ #include <shlobj.h>
+ #endif
+
+changeset:   1768:efa309b469a1
+user:        Panther
+date:        Sun Nov 02 00:20:25 2014 -0700
+files:       src/InterShell.stable/widgets/chat/chat_control.h src/InterShell.stable/widgets/include/chat_control.h src/SQLlib/optlib/editoption/editopt.c src/SQLlib/sqlstub.c src/filesyslib/winfiles.c src/imglib/puregl2/shader.c src/imglib/puregl2/shaders.h src/imglib/puregl2/simple_multi_shaded_texture_shader.c src/imglib/puregl2/simple_shader.c src/imglib/puregl2/simple_texture_shader.c src/psilib/control_physical.c src/sqlite/sqlite_interface.c src/streamlib/ffmpeg/openal-soft-1.15.1/CMakeLists.txt src/sysloglib/syslog.c src/timerlib/timers.c src/utils/deploy/deploy.cm.cm src/vidlib/proxy/CMakeLists.txt src/vidlib/proxy/instance_server.c src/vidlib/proxy/instance_server_local.h src/vidlib/proxy/server.c
+description:
+ALlos set_eof to lookup the file handle...
+some (reversions?) to puregl shaders...
+Fixes fo watcom compile; function defintiion mismatches
+fix thread local usage for watcom
+
+
+diff -r 5a9d3075f7e7 -r efa309b469a1 src/streamlib/ffmpeg/openal-soft-1.15.1/CMakeLists.txt
+--- a/src/streamlib/ffmpeg/openal-soft-1.15.1/CMakeLists.txt	Wed Oct 29 14:25:20 2014 -0700
++++ b/src/streamlib/ffmpeg/openal-soft-1.15.1/CMakeLists.txt	Sun Nov 02 00:20:25 2014 -0700
+@@ -286,7 +286,11 @@
+     SET(EXTRA_LIBS m ${EXTRA_LIBS})
+     SET(CMAKE_REQUIRED_LIBRARIES ${CMAKE_REQUIRED_LIBRARIES} m)
+ ENDIF()
+-
++if( WIN32 )
++message( "WIN32" )
++    SET(EXTRA_LIBS winmm ${EXTRA_LIBS})
++    SET(PKG_CONFIG_LIBS ${PKG_CONFIG_LIBS} -lwinmm)
++endif( WIN32 )
+ 
+ CHECK_SYMBOL_EXISTS(aligned_alloc    stdlib.h HAVE_ALIGNED_ALLOC)
+ CHECK_SYMBOL_EXISTS(posix_memalign   stdlib.h HAVE_POSIX_MEMALIGN)
+
+changeset:   1764:d727e865b5ac
+user:        Panther
+date:        Mon Oct 27 00:57:28 2014 -0700
+files:       CMakeLists.txt cmake_all/CMakeBuild.txt include/controls.h src/streamlib/ffmpeg/openal-soft-1.15.1/CMakeLists.txt src/streamlib/ffmpeg/openal-soft-1.15.1/cmake/CheckCCompilerFlag.cmake src/streamlib/ffmpeg/openal-soft-1.15.1/cmake/CheckSharedFunctionExists.cmake
+description:
+Cmake cleanup; fix GCC compiler test.
+
+
+diff -r 7740207d6dcd -r d727e865b5ac src/streamlib/ffmpeg/openal-soft-1.15.1/CMakeLists.txt
+--- a/src/streamlib/ffmpeg/openal-soft-1.15.1/CMakeLists.txt	Mon Oct 27 00:35:10 2014 -0700
++++ b/src/streamlib/ffmpeg/openal-soft-1.15.1/CMakeLists.txt	Mon Oct 27 00:57:28 2014 -0700
+@@ -172,7 +172,7 @@
+         ENDFOREACH(flag_var)
+     ENDIF()
+ ELSE()
+-    if( GCC )
++    if( CMAKE_COMPILER_IS_GNUCC )
+       ADD_DEFINITIONS(-Winline -Wall)
+       CHECK_C_COMPILER_FLAG(-Wextra HAVE_W_EXTRA)
+     IF(HAVE_W_EXTRA)
+@@ -198,7 +198,7 @@
+ 
+     CHECK_C_SOURCE_COMPILES("int foo() __attribute__((destructor));
+                              int main() {return 0;}" HAVE_GCC_DESTRUCTOR)
+-    endif( GCC )
++    endif( CMAKE_COMPILER_IS_GNUCC )
+ ENDIF()
+ 
+ # Set visibility/export options if available
+diff -r 7740207d6dcd -r d727e865b5ac src/streamlib/ffmpeg/openal-soft-1.15.1/cmake/CheckCCompilerFlag.cmake
+--- a/src/streamlib/ffmpeg/openal-soft-1.15.1/cmake/CheckCCompilerFlag.cmake	Mon Oct 27 00:35:10 2014 -0700
++++ b/src/streamlib/ffmpeg/openal-soft-1.15.1/cmake/CheckCCompilerFlag.cmake	Mon Oct 27 00:57:28 2014 -0700
+@@ -13,7 +13,7 @@
+ #  CMAKE_REQUIRED_LIBRARIES = list of libraries to link
+ 
+ MACRO(CHECK_C_COMPILER_FLAG FLAG VAR)
+-  IF("${VAR}" MATCHES "^${VAR}$")
++  IF( VAR MATCHES "^${VAR}$" )
+     SET(MACRO_CHECK_FUNCTION_DEFINITIONS
+       "${FLAG} ${CMAKE_REQUIRED_FLAGS}")
+     IF(CMAKE_REQUIRED_LIBRARIES)
+@@ -55,5 +55,5 @@
+         "${OUTPUT}\n"
+         "Source file was:\n${SOURCE}\n")
+     ENDIF(${VAR})
+-  ENDIF("${VAR}" MATCHES "^${VAR}$")
++  ENDIF(VAR MATCHES "^${VAR}$" )
+ ENDMACRO(CHECK_C_COMPILER_FLAG)
+diff -r 7740207d6dcd -r d727e865b5ac src/streamlib/ffmpeg/openal-soft-1.15.1/cmake/CheckSharedFunctionExists.cmake
+--- a/src/streamlib/ffmpeg/openal-soft-1.15.1/cmake/CheckSharedFunctionExists.cmake	Mon Oct 27 00:35:10 2014 -0700
++++ b/src/streamlib/ffmpeg/openal-soft-1.15.1/cmake/CheckSharedFunctionExists.cmake	Mon Oct 27 00:57:28 2014 -0700
+@@ -34,7 +34,7 @@
+ #  License text for the above reference.)
+ 
+ MACRO(CHECK_SHARED_FUNCTION_EXISTS SYMBOL FILES LIBRARY LOCATION VARIABLE)
+-  IF("${VARIABLE}" MATCHES "^${VARIABLE}$")
++  IF(VARIABLE MATCHES "^${VARIABLE}$")
+     SET(CMAKE_CONFIGURABLE_FILE_CONTENT "/* */\n")
+     SET(MACRO_CHECK_SYMBOL_EXISTS_FLAGS ${CMAKE_REQUIRED_FLAGS})
+     IF(CMAKE_REQUIRED_LIBRARIES)
+@@ -88,5 +88,5 @@
+         "${OUTPUT}\nFile ${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/CMakeTmp/CheckSymbolExists.c:\n"
+         "${CMAKE_CONFIGURABLE_FILE_CONTENT}\n")
+     ENDIF(${VARIABLE})
+-  ENDIF("${VARIABLE}" MATCHES "^${VARIABLE}$")
++  ENDIF(VARIABLE MATCHES "^${VARIABLE}$")
+ ENDMACRO(CHECK_SHARED_FUNCTION_EXISTS)
+
+changeset:   1763:7740207d6dcd
+user:        Panther
+date:        Mon Oct 27 00:35:10 2014 -0700
+files:       src/SQLlib/optlib/getoption.c src/filesyslib/winfiles.c src/psilib/console/history.h src/psilib/resource.h src/streamlib/ffmpeg/CMakeLists.txt src/streamlib/ffmpeg/openal-soft-1.15.1/CMakeLists.txt
+description:
+Some fixups for building on android
+
+
+diff -r bfc31daa1b57 -r 7740207d6dcd src/streamlib/ffmpeg/openal-soft-1.15.1/CMakeLists.txt
+--- a/src/streamlib/ffmpeg/openal-soft-1.15.1/CMakeLists.txt	Sun Oct 26 12:29:40 2014 -0700
++++ b/src/streamlib/ffmpeg/openal-soft-1.15.1/CMakeLists.txt	Mon Oct 27 00:35:10 2014 -0700
+@@ -78,9 +78,9 @@
+ 
+ OPTION(WERROR  "Treat compile warnings as errors"      OFF)
+ 
+-OPTION(UTILS  "Build and install utility programs"  ON)
++OPTION(UTILS  "Build and install utility programs"  ${UTILS})
+ 
+-OPTION(EXAMPLES  "Build and install example programs"  ON)
++OPTION(EXAMPLES  "Build and install example programs"  ${EXAMPLES})
+ 
+ OPTION(ALSOFT_CONFIG "Install alsoft.conf sample configuration file" ON)
+ 
+
+changeset:   1717:3420cdb9a50a
+user:        Panther
+date:        Fri Sep 26 05:03:17 2014 -0700
+files:       CMakeLists.txt CMakeSources.lst data/interface.conf.puregl.vc data/interface.conf.puregl.vc.unicode include/logging.h include/msgprotocol.h include/sack_types.h include/sharemem.h include/stdhdrs.h src/InterShell.stable/widgets/chat/scrollable_chat_list.c src/SQLlib/optlib/editoption/editopt.c src/SQLlib/optlib/optionutil_new.c src/SQLlib/optlib/optionutil_v4.c src/SQLlib/sqlwrap.c src/freeglut/freeglut-2.8.0/CMakeLists.txt src/msgsvr/client/client_events.c src/msgsvr/client/client_output.c src/psilib/controls.c src/psilib/xml_load.c src/streamlib/ffmpeg/ffmpeg_interface.c src/streamlib/ffmpeg/openal-soft-1.15.1/Alc/alcConfig.c src/streamlib/ffmpeg/openal-soft-1.15.1/Alc/alcReverb.c src/streamlib/ffmpeg/openal-soft-1.15.1/CMakeLists.txt src/streamlib/ffmpeg/openal-soft-1.15.1/include/AL/alc.h src/timerlib/timers.c src/typelib/typecode.c src/utils/application_delay/application_delay.c src/utils/loginfo/loginfo.c src/vidlib/proxy/CMakeLists.txt src/vidlib/proxy/server.c src/vidlib/proxy/webclient/render_client.js src/vidlib/puregl2/vidlib_common.c src/vidlib/puregl2/vidlib_render_loop.c
+description:
+some relwithdebuginfo fixes.
+some watcom fixes.
+
+
+diff -r 5a9c287c89cd -r 3420cdb9a50a src/streamlib/ffmpeg/openal-soft-1.15.1/Alc/alcConfig.c
+--- a/src/streamlib/ffmpeg/openal-soft-1.15.1/Alc/alcConfig.c	Thu Sep 25 22:30:05 2014 -0700
++++ b/src/streamlib/ffmpeg/openal-soft-1.15.1/Alc/alcConfig.c	Fri Sep 26 05:03:17 2014 -0700
+@@ -35,7 +35,8 @@
+ 
+ #include "alMain.h"
+ 
+-#ifdef _WIN32_IE
++#ifdef _WIN32
++#include <shellapi.h>
+ #include <shlobj.h>
+ #endif
+ 
+diff -r 5a9c287c89cd -r 3420cdb9a50a src/streamlib/ffmpeg/openal-soft-1.15.1/Alc/alcReverb.c
+--- a/src/streamlib/ffmpeg/openal-soft-1.15.1/Alc/alcReverb.c	Thu Sep 25 22:30:05 2014 -0700
++++ b/src/streamlib/ffmpeg/openal-soft-1.15.1/Alc/alcReverb.c	Fri Sep 26 05:03:17 2014 -0700
+@@ -1030,15 +1030,19 @@
+ // Update the early and late 3D panning gains.
+ static ALvoid Update3DPanning(const ALCdevice *Device, const ALfloat *ReflectionsPan, const ALfloat *LateReverbPan, ALfloat Gain, ALverbState *State)
+ {
+-    ALfloat earlyPan[3] = { ReflectionsPan[0], ReflectionsPan[1],
+-                            ReflectionsPan[2] };
+-    ALfloat latePan[3] = { LateReverbPan[0], LateReverbPan[1],
+-                           LateReverbPan[2] };
++	ALfloat earlyPan[3];
++	ALfloat latePan[3];
+     ALfloat ambientGain;
+     ALfloat dirGain;
+     ALfloat length;
+     ALuint index;
++	 latePan[0] = LateReverbPan[0];
++	 latePan[1] = LateReverbPan[1];
++    latePan[2] = LateReverbPan[2];
+ 
++	earlyPan[0] = ReflectionsPan[0];
++	earlyPan[1] = ReflectionsPan[1];
++	earlyPan[2] = ReflectionsPan[2];
+     Gain *= ReverbBoost;
+ 
+     /* Attenuate reverb according to its coverage (dirGain=0 will give
+diff -r 5a9c287c89cd -r 3420cdb9a50a src/streamlib/ffmpeg/openal-soft-1.15.1/CMakeLists.txt
+--- a/src/streamlib/ffmpeg/openal-soft-1.15.1/CMakeLists.txt	Thu Sep 25 22:30:05 2014 -0700
++++ b/src/streamlib/ffmpeg/openal-soft-1.15.1/CMakeLists.txt	Fri Sep 26 05:03:17 2014 -0700
+@@ -831,7 +831,7 @@
+     TARGET_LINK_LIBRARIES(openal-info ${LIBNAME})
+ 
+     ADD_EXECUTABLE(makehrtf utils/makehrtf.c)
+-    IF(HAVE_LIBM)
++    IF(HAVE_LIBM AND GCC)
+         TARGET_LINK_LIBRARIES(makehrtf m)
+     ENDIF()
+ 
+diff -r 5a9c287c89cd -r 3420cdb9a50a src/streamlib/ffmpeg/openal-soft-1.15.1/include/AL/alc.h
+--- a/src/streamlib/ffmpeg/openal-soft-1.15.1/include/AL/alc.h	Thu Sep 25 22:30:05 2014 -0700
++++ b/src/streamlib/ffmpeg/openal-soft-1.15.1/include/AL/alc.h	Fri Sep 26 05:03:17 2014 -0700
+@@ -21,6 +21,20 @@
+  #define ALC_APIENTRY
+ #endif
+ 
++#ifdef __WATCOMC__
++#define cosf  cos
++#define powf  pow
++#define log10f log10
++#define sqrtf sqrt
++#define sinf  sin
++#define tanf tan
++#define atanf atan
++#define atan2f atan2
++#define fabsf fabs
++#define asinf  asin
++#define acosf  acos
++#define floorf floor
++#endif
+ 
+ /** Deprecated macro. */
+ #define ALCAPI                                   ALC_API
+

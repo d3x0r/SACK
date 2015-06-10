@@ -8,6 +8,7 @@ set( FFMPEG_SOURCES_ROOT ${SOURCES_ROOT}src/streamlib/ffmpeg/ )
 set( FFMPEG_SOURCES ${FFMPEG_SOURCES_ROOT}ffmpeg_interface.c )
 INCLUDE_DIRECTORIES( ${FFMPEG_SOURCES_ROOT}prebuilt/ffmpeg/2.1.3/include  )
 INCLUDE_DIRECTORIES( ${FFMPEG_SOURCES_ROOT}openal-soft-1.15.1/include  )
+INCLUDE_DIRECTORIES( ${FFMPEG_SOURCES_ROOT}../../contrib/gsm-1.0-pl13/inc )
 
 
 
@@ -25,9 +26,9 @@ if( WIN32 )
   endif( __64__ )
 # portable projects won't need this anyway.
 if( MAKING_SACK_CORE )
-  set( UTILS OFF)
-  set( EXAMPLES OFF)
-  add_subdirectory( ${FFMPEG_SOURCES_ROOT}openal-soft-1.15.1 openal )
+#  set( UTILS OFF)
+#  set( EXAMPLES OFF)
+#  add_subdirectory( ${FFMPEG_SOURCES_ROOT}openal-soft-1.15.1 openal )
 endif( MAKING_SACK_CORE )
 
 endif( WIN32 )
@@ -40,7 +41,7 @@ if( __ANDROID__ )
 
 # portable projects won't need this anyway.
 if( MAKING_SACK_CORE )
-  add_subdirectory( ${FFMPEG_SOURCES_ROOT}openal-soft-1.15.1 openal )
+#  add_subdirectory( ${FFMPEG_SOURCES_ROOT}openal-soft-1.15.1 openal )
 endif( MAKING_SACK_CORE )
 
 endif( __ANDROID__ )

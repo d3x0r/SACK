@@ -35,32 +35,31 @@ ULong ZScreen_Main::ProcessScreen(ZGame * GameEnv )
 	  GameEnv->prior_page_up = GameEnv->page_up;
 	  GameEnv->GuiManager.RemoveAllFrames();
 
-
     TitleBackground.SetPosition(0,0);
     TitleBackground.SetSize( (float)GameEnv->ScreenResolution.x, (float)GameEnv->ScreenResolution.y );
     TitleBackground.SetTexture(0);
     TitleBackground.SetZPosition(50.0f);
     GameEnv->GuiManager.AddFrame(&TitleBackground);
 
-    Title_Size.x = 1000.0f; Title_Size.y = 100.0f;
-    Title.SetPosition(GameEnv->ScreenResolution.x / 2.0f - Title_Size.x / 2.0f , GameEnv->ScreenResolution.y / 8.0f );
+    Title_Size.x = SclX(1000.0f); Title_Size.y = SclY(100.0f);
+    Title.SetPosition(1-Title_Size.x / 2.0f, GameEnv->ScreenResolution.y / 8.0f );
     Title.SetSize(Title_Size.x,Title_Size.y);
     Title.SetTexture(1);
     Title.SetZPosition(49.0f);
     TitleBackground.AddFrame(&Title);
 
-    Version_Size.x = 53.0*8.0; Version_Size.y = 8.0;
+    Version_Size.x = SclX(53.0*8.0); Version_Size.y = SclY(8.0);
     Frame_Version.SetPosition(GameEnv->ScreenResolution.x - Version_Size.x , GameEnv->ScreenResolution.y - Version_Size.y );
-    Frame_Version.SetSize(53.0*8.0+1.0,100.0);
+    Frame_Version.SetSize(SclX(53.0*8.0+1.0),SclY(100.0));
     Frame_Version.SetZPosition(49.0f);
     Frame_Version.SetDisplayText((char *)COMPILEOPTION_VERSIONSTRING);
     Frame_Version.TextureNum = 3;
     Frame_Version.SetStyle(GameEnv->TileSetStyles->GetStyle(0));
     TitleBackground.AddFrame(&Frame_Version);
 
-    PlayGame_Size.x = 9.0*32.0 + 1.0; PlayGame_Size.y = 8.0*4.0;
-    Frame_PlayGame.SetPosition(GameEnv->ScreenResolution.x / 2.0f - PlayGame_Size.x / 2.0f, GameEnv->ScreenResolution.y / 1.64f - 32.0f );
-    Frame_PlayGame.SetSize(PlayGame_Size.x+128.0f,PlayGame_Size.y);
+    PlayGame_Size.x = SclX(9.0*32.0 + 1.0); PlayGame_Size.y = SclY(32.0);
+    Frame_PlayGame.SetPosition(GameEnv->ScreenResolution.x / 2.0f - PlayGame_Size.x / 2.0f, GameEnv->ScreenResolution.y / 1.64f - SclY(32.0f) );
+    Frame_PlayGame.SetSize(PlayGame_Size.x+SclX(128.0f),PlayGame_Size.y);
     Frame_PlayGame.SetZPosition(49.0f);
     Frame_PlayGame.SetDisplayText((char *)"PLAY GAME");
     Frame_PlayGame.TextureNum = 3;
@@ -70,7 +69,7 @@ ULong ZScreen_Main::ProcessScreen(ZGame * GameEnv )
 	Frame_Options.SetDisplayText((char *)"OPTIONS");
     Frame_Options.SetStyle(GameEnv->TileSetStyles->GetStyle(1));
     Frame_Options.GetTextDisplaySize(&Options_Size);
-    Frame_Options.SetPosition(GameEnv->ScreenResolution.x / 2.0f - Options_Size.x / 2.0f, GameEnv->ScreenResolution.y / 1.64f + 32.0f );
+    Frame_Options.SetPosition(GameEnv->ScreenResolution.x / 2.0f - Options_Size.x / 2.0f, GameEnv->ScreenResolution.y / 1.64f + SclY(32.0f) );
     Frame_Options.SetSize(Options_Size.x+1.0f,Options_Size.y);
     Frame_Options.SetZPosition(49.0f);
 
@@ -81,7 +80,7 @@ ULong ZScreen_Main::ProcessScreen(ZGame * GameEnv )
     Frame_Quit.SetDisplayText((char *)"QUIT");
     Frame_Quit.SetStyle(GameEnv->TileSetStyles->GetStyle(1));
     Frame_Quit.GetTextDisplaySize(&Frame_Size);
-    Frame_Quit.SetPosition(GameEnv->ScreenResolution.x / 2.0f - Frame_Size.x / 2.0f, GameEnv->ScreenResolution.y / 1.64f + 96.0f  );
+    Frame_Quit.SetPosition(GameEnv->ScreenResolution.x / 2.0f - Frame_Size.x / 2.0f, GameEnv->ScreenResolution.y / 1.64f + SclY(96.0f)  );
     Frame_Quit.SetSize(Frame_Size.x+1.0f,Frame_Size.y);
     Frame_Quit.SetZPosition(49.0f);
 

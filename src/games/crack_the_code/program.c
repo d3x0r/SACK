@@ -16,13 +16,16 @@
 
 static CTEXTSTR create_tracking = 
 	"create table ctc_player_tracking "
-	"(plrid int(11)"
+	"( swipe_id int(11) auto_increment"
+	", plrid int(11)"
 	", system_name varchar(128)"
 	", player_name varchar(128)"
 	", prize_id varchar(12)"
 	", prize_name varchar(64)"
 	", swipe_at_literal varchar(64)"
 	", swipe_at date"
+	", swipe_at_sort datetime"
+	", PRIMARY KEY(`swipe_id`)"
 	", INDEX plrkey (plrid)"
 	", INDEX prizekey (prize_id)"
 	", INDEX syskey(system_name))";
@@ -115,6 +118,8 @@ static struct fantasy_football_local
 	TEXTSTR player_name;
 	int allow_swipe;
 	int in_replay;
+	LOGICAL million_claimed;
+	LOGICAL store_xml;
 	PLIST xml_players;
 	struct {
 		genxWriter w;
@@ -266,7 +271,8 @@ static void WriteXML( void )
 		struct loaded_player *player;
 		LIST_FORALL( ffl.xml_players, idx, struct loaded_player *, player )
 		{
-			if( big_prize_claimed 
+			if( !player->timestamp
+				|| big_prize_claimed 
 				|| StrCmp( player->prizeNum, "1000000" ) != 0 )
 			{
 				Release( player->cardNum );
@@ -503,10 +509,33 @@ void XMLCALL start_tags( void *UserData
 	//lprintf( WIDE("begin a tag %s with..."), name );
 	if( StrCmp( name, "player" ) == 0 )
 	{
-		struct loaded_player *load = New( struct loaded_player );
-		AddLink( &ffl.xml_players, load );
-		MemSet( load, NULL, sizeof( struct loaded_player ) );
-		userdata->loading = load;
+		LOGICAL make_new;
+		make_new = TRUE;
+		if( userdata->loading )
+		{
+			if( StrCmp( userdata->loading->prizeNum, "1000000" ) == 0 )
+			{
+				if( ffl.million_claimed )
+				{
+					Release( userdata->loading->cardNum );
+					Release( userdata->loading->playerName );
+					Release( userdata->loading->prizeDesc );
+					Release( userdata->loading->prizeNum );
+					Release( userdata->loading->timestamp );
+					MemSet( userdata->loading, 0, sizeof( struct loaded_player ) );
+					make_new = FALSE;
+				}
+			}
+		}
+		// don't store internally the million dollar player....
+		// otherwise he will get written back out
+		if( make_new )
+		{
+			struct loaded_player *load = New( struct loaded_player );
+			AddLink( &ffl.xml_players, load );
+			MemSet( load, NULL, sizeof( struct loaded_player ) );
+			userdata->loading = load;
+		}
 	}
 	if( StrCmp( name, "cardNum" ) == 0 )
 	{
@@ -571,22 +600,53 @@ void XMLCALL end_tags( void *UserData
 		userdata->entries++;
 		if( userdata->entries > userdata->skip_entries )
 		{
-			SQLCommandf( ffl.user_tracking
-				, "insert into ctc_player_tracking (plrid,system_name,swipe_at,prize_id,prize_name,player_name,swipe_at_literal) values ('%*.*s','%s','%04d%02d%02d','%s','%s','%s','%s')"
-				, userdata->cardlen
-				, userdata->cardlen
-				, userdata->card
-				, ffl.sysname
-				, userdata->swipe_at.wYear
-				, userdata->swipe_at.wMonth
-				, userdata->swipe_at.wDay 
-				, userdata->loading->prizeNum
-				, userdata->loading->prizeDesc
-				, userdata->loading->playerName
-				, userdata->loading->timestamp
-				);
+			LOGICAL store_new;
+			store_new = TRUE;
+			if( userdata->loading && StrCmp( userdata->loading->prizeNum, "1000000" ) == 0 )
+			{
+				if( ffl.million_claimed )
+					store_new = FALSE;
+				else
+					ffl.million_claimed = TRUE;
+			}
+			if( store_new )
+				SQLCommandf( ffl.user_tracking
+					, "insert into ctc_player_tracking (plrid,system_name,swipe_at,swipe_at_sort,prize_id,prize_name,player_name,swipe_at_literal) values ('%*.*s','%s','%04d%02d%02d','%04d%02d%02d%02d%02d%02d','%s','%s','%s','%s')"
+					, userdata->cardlen
+					, userdata->cardlen
+					, userdata->card
+					, ffl.sysname
+					, userdata->swipe_at.wYear
+					, userdata->swipe_at.wMonth
+					, userdata->swipe_at.wDay 
+
+					, userdata->swipe_at.wYear
+					, userdata->swipe_at.wMonth
+					, userdata->swipe_at.wDay
+					, userdata->swipe_at.wHour
+					, userdata->swipe_at.wMinute
+					, userdata->swipe_at.wSecond
+
+					, userdata->loading->prizeNum
+					, userdata->loading->prizeDesc
+					, userdata->loading->playerName
+					, userdata->loading->timestamp
+					);
+			else
+			{
+				Release( userdata->loading->timestamp );
+				userdata->loading->timestamp = NULL;
+			}
 		}
 	}
+	else if( StrCmp( name, "playerLog" ) == 0 )
+	{
+		if( !userdata->loading 
+			&& !userdata->loading->timestamp )
+			ffl.store_xml = FALSE;
+	}
+
+
 }
 
 CTEXTSTR months[12] = { "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" };
@@ -617,7 +677,6 @@ void handle_data (void *userData,
 	case lps_prizeNum:
 		userdata->loading->prizeNum = StrDup( tmp );
 		break;
-
 	case lps_remaining:
 		userdata->loading_prize->remaining = StrDup( tmp );
 		break;
@@ -680,6 +739,9 @@ void handle_data (void *userData,
 		userdata->swipe_at.wYear = year;
 		userdata->swipe_at.wMonth = month;
 		userdata->swipe_at.wDay = day;
+		userdata->swipe_at.wHour = hr;
+		userdata->swipe_at.wMinute = mn;
+		userdata->swipe_at.wSecond = sc;
 
 		if( userdata->now.wYear == year 
 			&& userdata->now.wMonth == month 
@@ -723,6 +785,7 @@ void ParseXML( POINTER buffer, size_t size, int *first_swipe, int *today_swipes,
 	userdata.swiped_today = 0;
 	userdata.entries = 0;
 	userdata.card = NULL;
+	userdata.loading = NULL;
 	// don't skip entries on a system anymore...
 	// each XML will be read entirely.
 	if( 0 )
@@ -753,27 +816,15 @@ void ParseXML( POINTER buffer, size_t size, int *first_swipe, int *today_swipes,
 	XML_ParserFree( userdata.xp );
 	userdata.xp = 0;
 
-	if( bQuery )
 	{
 		CTEXTSTR *results = NULL;
-		if( SQLRecordQueryf( ffl.user_tracking, NULL, &results, NULL
-			, "select count(*) from ctc_player_tracking where plrid='%s'"
-			, ffl.player_id ) 
-			&& results )
-		{
-			if( results[0] && results[0][0] != '0' )
-				(*first_swipe) = 0;
-			else
-				(*first_swipe) = 1;
-		}
-		SQLEndQuery( ffl.user_tracking );
-
 		if( SQLRecordQueryf( ffl.user_tracking, NULL, &results, NULL
 			, "select plrid,player_name,prize_id,prize_name,swipe_at_literal from ctc_player_tracking where prize_id='1000000'"
 			) 
 			&& results )
 		{
 			struct loaded_player *player = New( struct loaded_player );
+			//ffl.million_claimed = TRUE;
 			player->cardNum = StrDup( results[0] );
 			player->playerName = StrDup( results[1] );
 			player->prizeNum = StrDup( results[2] );
@@ -782,21 +833,43 @@ void ParseXML( POINTER buffer, size_t size, int *first_swipe, int *today_swipes,
 			AddLink( &ffl.xml_players, player );
 		}
 		SQLEndQuery( ffl.user_tracking );
-		if( SQLRecordQueryf( ffl.user_tracking, NULL, &results, NULL
-			, "select count(*) from ctc_player_tracking where plrid='%s' and swipe_at=%04d%02d%02d"
-			, ffl.player_id
-			, userdata.now.wYear
-			, userdata.now.wMonth
-			, userdata.now.wDay
-			) 
-			&& results )
+	}
+	if( bQuery )
+	{
+		CTEXTSTR *results = NULL;
+		if( ffl.player_id )
 		{
-			if( results[0] )
-				(*today_swipes) = atoi( results[0] );
-			else
-				(*today_swipes) = 0;
+			if( SQLRecordQueryf( ffl.user_tracking, NULL, &results, NULL
+				, "select count(*) from ctc_player_tracking where plrid='%s'"
+				, ffl.player_id ) 
+				&& results )
+			{
+				if( results[0] && results[0][0] != '0' )
+					(*first_swipe) = 0;
+				else
+					(*first_swipe) = 1;
+			}
+			SQLEndQuery( ffl.user_tracking );
 		}
-		SQLEndQuery( ffl.user_tracking );
+
+		if( ffl.player_id )
+		{
+			if( SQLRecordQueryf( ffl.user_tracking, NULL, &results, NULL
+				, "select count(*) from ctc_player_tracking where plrid='%s' and swipe_at=%04d%02d%02d"
+				, ffl.player_id
+				, userdata.now.wYear
+				, userdata.now.wMonth
+				, userdata.now.wDay
+				) 
+				&& results )
+			{
+				if( results[0] )
+					(*today_swipes) = atoi( results[0] );
+				else
+					(*today_swipes) = 0;
+			}
+			SQLEndQuery( ffl.user_tracking );
+		}
 	}
 	//lprintf( WIDE("Parse done...") );
 	//return l.frame;
@@ -808,7 +881,8 @@ static void ReadXML( int *first, int *today, LOGICAL bQuery )
 	PTRSZVAL size;
 	TEXTSTR delete_filename = NULL;
 	TEXTCHAR filename[MAX_PATH]; // assume this is the name until later
-	//SHGetFolderPath( NULL, CSIDL_DESKTOP, NULL, SHGFP_TYPE_CURRENT, path );
+	
+	ffl.store_xml = TRUE; // assume we want to write XML at the end.
 
 	snprintf( filename, MAX_PATH, "%s/Crack the Code Game State.xml", ffl.path );
 	// enter critical section!
@@ -976,7 +1050,10 @@ static int CanSwipe( void )
 	SQLEndQuery( NULL );
 
 	ReadXML( &first_swipe, &today_swipe, TRUE );
-	WriteXML();
+	if( ffl.store_xml )
+	{
+		WriteXML();
+	}
 
 	if( first_swipe )
 	{
@@ -1203,6 +1280,10 @@ static int CPROC ChandleHandler(PTRSZVAL psv
 			int a = 0;
 			int b = 0;
 			ReadXML( &a, &b, FALSE );
+			if( ffl.store_xml )
+			{
+				WriteXML();
+			}
 		}
 	}
 	return TRUE;
@@ -1224,6 +1305,17 @@ SaneWinMain( argc, argv )
 	NetworkStart();
 	ffl.sysname = GetSystemName();
 	{
+		CTEXTSTR *results;
+		if( !SQLRecordQueryf( ffl.user_tracking, NULL, &results, NULL
+			, "select swipe_id from ctc_player_tracking limit 1"
+			) 
+			|| !results )
+		{
+			SQLCommandf( ffl.user_tracking, "drop table ctc_player_tracking" );
+		}
+	}
+
+	{
 		PTABLE table = GetFieldsInSQL( create_tracking, FALSE );
 		CheckODBCTable( ffl.user_tracking, table, CTO_MERGE );
 		DestroySQLTable( table );
@@ -1231,14 +1323,31 @@ SaneWinMain( argc, argv )
 	}
 
 	SHGetFolderPath( NULL, CSIDL_DESKTOP, NULL, SHGFP_TYPE_CURRENT, ffl.path );
-	lprintf( "Open monitor on %s", ffl.path );
+
+
+	{
+		CTEXTSTR *results;
+		if( SQLRecordQueryf( ffl.user_tracking, NULL, &results, NULL
+			, "select count(*) from ctc_player_tracking where prize_id='1000000'"
+			) 
+			&& results )
+		{
+			if( results[0][0] != '0' )
+				ffl.million_claimed = TRUE;
+		}
+		SQLEndQuery( ffl.user_tracking );
+	}
 
 	{
 		int first_swipe, today_swipe;
+		// read existing
 		ReadXML( &first_swipe, &today_swipe, TRUE );
 		WriteXML();
 	}
 
+	
+
+	lprintf( "Open monitor on %s", ffl.path );
 	ffl.file_monitor = MonitorFiles( ffl.path, 500 );
 	SetFileLogging( ffl.file_monitor, TRUE );
 	AddFileChangeCallback( ffl.file_monitor, NULL, ChandleHandler, 0 );

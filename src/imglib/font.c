@@ -82,7 +82,11 @@ PFONT GetDefaultFont( void )
 	return &DEFAULTFONT;
 }
 
+#if __3D__
+#define CharPlotAlpha(pRealImage,x,y,color) ( pRealImage->reverse_interface? pRealImage->reverse_interface->_plotalpha[0]( (Image)pRealImage->reverse_interface_instance, x, y, color ) : plot( pRealImage, x, y, color ) )
+#else
 #define CharPlotAlpha(pRealImage,x,y,color) ( pRealImage->reverse_interface? pRealImage->reverse_interface->_plotalpha[0]( (Image)pRealImage->reverse_interface_instance, x, y, color ) : plotalpha( pRealImage, x, y, color ) )
+#endif
 
 //---------------------------------------------------------------------------
 void CharPlotAlpha8( Image pRealImage, S_32 x, S_32 y, _32 data, CDATA fore, CDATA back )
@@ -560,7 +564,7 @@ static _32 PutCharacterFontX ( ImageFile *pImage
 				}
 
 				op = BeginImageShaderOp( GetShader( WIDE("Simple Shaded Texture") ), pifDest, pifSrc->glActiveSurface, _color  );
-				AppendImageShaderOpTristrip( op, 2, v2[vi], texture_v );
+				AppendImageShaderOpTristrip( op, 2, v[vi], texture_v );
 			}
 			// Back Face
 #  endif  // ifdef OPENGL2

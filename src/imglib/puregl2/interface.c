@@ -161,14 +161,17 @@ IMAGE_3D_INTERFACE Image3dInterface = {
 		EnableShader,
 		SetShaderEnable,
 		SetShaderModelView,
+		BeginShaderOp,
 		AppendShaderTristripQuad,
 		SetShaderAppendTristrip,
-		SetShaderFlush,
+		SetShaderOutput,
+		SetShaderReset,
 		AppendShaderTristrip,
 		//BeginShaderOp,
 		//ClearShaderOp,
-      //AppendShaderOpTristrop
-
+        //AppendShaderOpTristrop
+		CreateShaderBuffer,
+		AppendShaderBufferData,
 };
 
 #undef GetImageInterface

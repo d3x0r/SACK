@@ -262,10 +262,13 @@ ELSE()
 ENDIF()
 
 SET(SSE_SWITCH "")
-CHECK_C_COMPILER_FLAG(-msse HAVE_MSSE_SWITCH)
-IF(HAVE_MSSE_SWITCH)
-    SET(SSE_SWITCH "-msse")
-ENDIF()
+if( GCC )
+   CHECK_C_COMPILER_FLAG(-msse HAVE_MSSE_SWITCH)
+   IF(HAVE_MSSE_SWITCH)
+      SET(SSE_SWITCH "-msse")
+   ENDIF()
+endif( GCC )
+
 
 CHECK_C_SOURCE_COMPILES("int foo(const char *str, ...) __attribute__((format(printf, 1, 2)));
                          int main() {return 0;}" HAVE_GCC_FORMAT)
@@ -427,6 +430,7 @@ ENDIF()
 
 # Check for a 64-bit type
 CHECK_INCLUDE_FILE(stdint.h HAVE_STDINT_H)
+message( "thing ${HAVE_STDINT_H}" )
 IF(NOT HAVE_STDINT_H)
     IF(HAVE_WINDOWS_H)
         CHECK_C_SOURCE_COMPILES("\#define _WIN32_WINNT 0x0501

@@ -55,9 +55,9 @@
 
     void ZTileSet::SetTextureSize(ULong Width, ULong Height)  {Texture_Width = Width; Texture_Height = Height;}
 
-    void ZTileSet::SetTileSlotSize(ULong Width, ULong Height) {TileSlot_Width = Width; TileSlot_Height = Height;}
+    void ZTileSet::SetTileSlotSize(float Width, float Height) {TileSlot_Width = Width; TileSlot_Height = Height;}
 
-    void ZTileSet::SetTileSize(ULong Width, ULong Height)     {Tile_Width = Width, Tile_Height = Height;}
+    void ZTileSet::SetTileSize(float Width, float Height)     {Tile_Width = Width, Tile_Height = Height;}
 
     void ZTileSet::SetTilesPerLine(ULong TilesPerLine)        {this->TilesPerLine = TilesPerLine;}
 
@@ -66,14 +66,15 @@
 
     void ZTileSet::ComputeTileCoords()
     {
-      ULong i, x1,y1,x2,y2;
+      ULong i;
+	  float x1,y1,x2,y2;
 
       for (i=0;i<256;i++)
       {
         x1 = (i % TilesPerLine) * TileSlot_Width  + TileOffset_x;
         y1 = (i / TilesPerLine) * TileSlot_Height + TileOffset_y;
-        x2 = x1 + Tile_Width;
-        y2 = y1 + Tile_Height;
+        x2 = x1 + TileSlot_Width;
+        y2 = y1 + TileSlot_Height;
 
         CoordTable[i].TopLeft_x     = (float)x1 / (float)Texture_Width;
         CoordTable[i].TopLeft_y     = (float)y1 / (float)Texture_Height;
@@ -97,15 +98,15 @@
       return(Image->GetPixel(Image_x,Image_y));
     }
 
-    void ZTileSet::RenderTile( PTRSZVAL psvInit, ZVector3f * TopLeft, ZVector3f * BottomRight, UByte TileNum, ZColor3f * Color)
+    void ZTileSet::RenderTile( ZRender_Interface *render, PTRSZVAL psvInit, ZVector3f * TopLeft, ZVector3f * BottomRight, UByte TileNum, ZColor3f * Color)
     {
       TileCoord * Coord;
 
       Coord = &CoordTable[TileNum];
 
       if(!Color) Color = &DefaultDrawColor;
-
-      glBindTexture(GL_TEXTURE_2D,TextureManager->GetTextureEntry(TextureNum)->OpenGl_TextureRef[psvInit] );
+	  ULong textureRef = TextureManager->GetTextureEntry(TextureNum)->OpenGl_TextureRef[psvInit];
+      //glBindTexture(GL_TEXTURE_2D,TextureManager->GetTextureEntry(TextureNum)->OpenGl_TextureRef[psvInit] );
       glColor3f(Color->r, Color->v, Color->b);
       glBegin(GL_TRIANGLES);
        glTexCoord2f(Coord->TopLeft_x      , Coord->TopLeft_y     ); glVertex3f(TopLeft->x    , TopLeft->y , TopLeft->z);
@@ -118,7 +119,7 @@
     }
 
 
-    void ZTileSet::RenderFont(PTRSZVAL psvInit, ZTileStyle const * TileStyle , ZBox3f const * DrawBox, char const * TextToRender, ZColor3f * Color=0)
+    void ZTileSet::RenderFont(ZRender_Interface *render, PTRSZVAL psvInit, ZTileStyle const * TileStyle , ZBox3f const * DrawBox, char const * TextToRender, ZColor3f * Color=0)
     {
       float x,y, xp,yp, DimX, DimY, LimitX;// LimitY;
       ZColor3f DrawColor;
@@ -136,13 +137,14 @@
       LimitX = x + DrawBox->Width ;
       //LimitY = y + DrawBox->Height;
 
-      glBindTexture(GL_TEXTURE_2D,TextureManager->GetTextureEntry(TileSet->TextureNum)->OpenGl_TextureRef[psvInit] );
-      glColor3f(Color->r, Color->v, Color->b);
+      //glBindTexture(GL_TEXTURE_2D,TextureManager->GetTextureEntry(TileSet->TextureNum)->OpenGl_TextureRef[psvInit] );
+      //glColor3f(Color->r, Color->v, Color->b);
       for (i=0; (c = (UByte)(TextToRender[i])) ;i++)
       {
         Coord = &TileSet->CoordTable[c];
         DimX = Coord->Tile_Width * TileStyle->HSizeFactor;
         DimY = Coord->Tile_Height* TileStyle->VSizeFactor;
+		//lprintf( "%g %g", TileStyle->HSizeFactor, TileStyle->VSizeFactor );
         xp = x + DimX;
         yp = y + DimY;
         if (xp > LimitX)
@@ -152,6 +154,21 @@
           xp = x + DimX;
           yp = y + DimY;
         }
+		{
+		ULong TextureRef = TextureManager->GetTextureEntry(TileSet->TextureNum)->OpenGl_TextureRef[psvInit];
+		float coords[18];
+		float tex_coords[12];
+		tex_coords[0] = Coord->TopLeft_x; tex_coords[1] = Coord->TopLeft_y;   coords[0] = x; coords[1] = y; coords[2] = DrawBox->Position_z; 
+		tex_coords[2] = Coord->BottomRight_x; tex_coords[3] = Coord->TopLeft_y;  coords[3] = xp; coords[4] = y; coords[5] = DrawBox->Position_z; 
+		tex_coords[4] = Coord->BottomRight_x; tex_coords[5] = Coord->BottomRight_y; coords[6] = xp; coords[7] = yp; coords[8] = DrawBox->Position_z; 
+		tex_coords[6] = Coord->BottomRight_x; tex_coords[7] = Coord->BottomRight_y; coords[9] = xp; coords[10] = yp; coords[11] = DrawBox->Position_z; 
+		tex_coords[8] = Coord->TopLeft_x; tex_coords[9] = Coord->BottomRight_y;  coords[12] = x; coords[13] = yp; coords[14] = DrawBox->Position_z; 
+		tex_coords[10] = Coord->TopLeft_x; tex_coords[11] = Coord->TopLeft_y; coords[15] = x; coords[16] = y; coords[17] = DrawBox->Position_z; 
+		//	lprintf( "pos %3d %c %g,%g,%g %g,%g,%g  %gx%g   %gx%g", TextureRef, c, x*1920.0, y*1080.0, 0.0, xp*1920.0, yp*1080.0, DrawBox->Position_z, (xp - x ) * 1920, ( yp-y) * 1080, (Coord->BottomRight_x -Coord->TopLeft_x) *Texture_Width, (Coord->BottomRight_y -Coord->TopLeft_y) *Texture_Height  );
+		//	lprintf( "tex %3d %g,%g,%g %g,%g,%g", TextureRef, Coord->TopLeft_x, Coord->TopLeft_y, 0.0, Coord->BottomRight_x, Coord->BottomRight_y, 0.0 );
+		  render->gui_shader->Draw( TextureRef, &Color->r, coords, tex_coords );
+		}
+#if 0
         glBegin(GL_TRIANGLES);
           glTexCoord2f(Coord->TopLeft_x     , Coord->TopLeft_y    ); glVertex3f(x , y , DrawBox->Position_z);
           glTexCoord2f(Coord->BottomRight_x , Coord->TopLeft_y    ); glVertex3f(xp, y , DrawBox->Position_z);
@@ -160,11 +177,11 @@
           glTexCoord2f(Coord->TopLeft_x     , Coord->BottomRight_y    ); glVertex3f(x , yp, DrawBox->Position_z);
           glTexCoord2f(Coord->TopLeft_x     , Coord->TopLeft_y    ); glVertex3f(x , y , DrawBox->Position_z);
         glEnd();
-
+#endif
         x += DimX + TileStyle->CharSpacing_Sup;
 
       }
-      glColor3f(1.0,1.0,1.0);
+      //glColor3f(1.0,1.0,1.0);
     }
 
 

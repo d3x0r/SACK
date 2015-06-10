@@ -715,8 +715,13 @@ void OpenCamera( struct display_camera *camera )
 			camera->hVidCore->dwMouseData = (PTRSZVAL)camera;
 			camera->hVidCore->pKeyProc = OpenGLKey;
 			camera->hVidCore->dwKeyData = (PTRSZVAL)camera;
-
 		}
+		else if( camera->hVidCore->flags.bReady )
+		{
+			// already open, and valid.
+			return;
+		}
+
 
 		/* CreateWindowEx */
 #ifdef __QNX__
@@ -1181,10 +1186,22 @@ void  SetMousePosition (PVIDEO hVid, S_32 x, S_32 y)
 	if( !hVid )
 	{
 		int newx, newy;
-		lprintf( WIDE("Moving Mouse Not Implemented") );
-		InverseOpenGLMouse( hVid->camera, hVid, (RCOORD)x, (RCOORD)y, &newx, &newy );
-		lprintf( WIDE("%d,%d (should)became %d,%d"), x, y, newx, newy );
-		//SetCursorPos( newx, newy );
+		hVid = l.mouse_last_vid;
+			
+		//lprintf( WIDE("TAGHERE") );
+		if( hVid )
+		{
+			//InverseOpenGLMouse( hVid->camera, hVid, (RCOORD)x, (RCOORD)y, &newx, &newy );
+			newx = x + hVid->pWindowPos.x;
+			newy = y + hVid->pWindowPos.y;
+		}
+		else
+		{
+			newx = x;
+			newy = y;
+		}
+		//lprintf( WIDE("%d,%d became %d,%d"), x, y, newx, newy );
+		SetCursorPos( newx, newy );
 	}
 	else
 	{
@@ -1433,6 +1450,10 @@ void  RestoreDisplay (PVIDEO hVideo)
 }
 void RestoreDisplayEx(PVIDEO hVideo DBG_PASS )
 {
+#ifdef WIN32
+	PostThreadMessage (l.dwThreadID, WM_USER_OPEN_CAMERAS, 0, 0 );
+#endif
+
 	if( hVideo )
 	{
 		if( hVideo->flags.bHidden )
@@ -1526,6 +1547,16 @@ void  OwnMouseEx (PVIDEO hVideo, _32 own DBG_PASS)
 	if (own)
 	{
 		//lprintf( WIDE("Capture is set on %p %p"),l.hVirtualCaptured, hVideo );
+		if( !hVideo )
+		{
+			hVideo = l.mouse_last_vid;
+			l.hCapturedMousePhysical = hVideo;
+			hVideo->flags.bCaptured = 1;
+#ifdef WIN32
+			SetCapture (hVideo->hWndOutput);
+#endif
+		}
+		else
 		if( hVideo->camera )
 		{
 		    lprintf( "set physical catpure here" );
@@ -1566,16 +1597,24 @@ void  OwnMouseEx (PVIDEO hVideo, _32 own DBG_PASS)
 	}
 	else
 	{
-		if( l.hVirtualCaptured == hVideo )
+		if( !hVideo )
 		{
-			if( hVideo->flags.bCaptured )
+			l.hCapturedMousePhysical = NULL;
+			ReleaseCapture();
+		}
+		else
+		{
+			if( l.hVirtualCaptured == hVideo )
 			{
-				//lprintf( WIDE("No more capture.") );
-				//ReleaseCapture ();
-				hVideo->flags.bCaptured = 0;
-				l.hVirtualCaptured = NULL;
-				l.hVirtualCapturedPrior = hVideo; // make sure to set this so it doesn't get reset to invalid
-				l.flags.bVirtualManuallyCapturedMouse = 0;
+				if( hVideo->flags.bCaptured )
+				{
+					//lprintf( WIDE("No more capture.") );
+					//ReleaseCapture ();
+					hVideo->flags.bCaptured = 0;
+					l.hVirtualCaptured = NULL;
+					l.hVirtualCapturedPrior = hVideo; // make sure to set this so it doesn't get reset to invalid
+					l.flags.bVirtualManuallyCapturedMouse = 0;
+				}
 			}
 		}
 	}
@@ -1999,6 +2038,8 @@ PRIORITY_PRELOAD( VideoRegisterInterface, VIDLIB_PRELOAD_PRIORITY )
 
 #ifndef __ANDROID__
 	BindEventToKey( NULL, KEY_F4, KEY_MOD_RELEASE|KEY_MOD_ALT, DefaultExit, 0 );
+	BindEventToKey( NULL, KEY_SCROLL_LOCK, 0, EnableRotation, 0 );
+	BindEventToKey( NULL, KEY_F12, 0, EnableRotation, 0 );
 #endif
 	//EnableLoggingOutput( TRUE );
 }
@@ -2065,6 +2106,13 @@ void CPROC PureGL2_Vidlib_SuspendSystemSleep( int suspend )
 #endif
 }
 
+void CPROC PureGL2_Vidlib_SetDisplayCursor( CTEXTSTR cursor )
+{
+	/* suppose we should do something about the cursor? */
+#ifdef WIN32
+	SetCursor( (HCURSOR)cursor );
+#endif
+}
 
 RENDER_NAMESPACE_END
 

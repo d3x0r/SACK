@@ -329,9 +329,11 @@ PTEXT SegCreateFromWideLenEx( const wchar_t *text, size_t nSize DBG_PASS )
 		MemCpy( pTemp->data.data, text, sizeof( TEXTCHAR ) * ( nSize + 1 ) );
 #else
 		TEXTSTR text_string = WcharConvertLen( text, nSize );
-		pTemp = SegCreateEx( nSize DBG_RELAY );
+		int outlen;
+		for( outlen = 0; text_string[outlen]; outlen++ );
+		pTemp = SegCreateEx( outlen DBG_RELAY );
 		// include nul on copy
-		MemCpy( pTemp->data.data, text_string, sizeof( TEXTCHAR ) * ( nSize + 1 ) );
+		MemCpy( pTemp->data.data, text_string, sizeof( TEXTCHAR ) * ( outlen + 1 ) );
 		Deallocate( TEXTSTR, text_string );
 #endif
 		return pTemp;
@@ -2742,13 +2744,13 @@ char * WcharConvertExx ( const wchar_t *wch, size_t len DBG_PASS )
 			}
 			else if( !( wch[0] & 0xF000 ) )
 			{
-				lprintf( "3 byte ..." );
+				//lprintf( "3 byte ..." );
 				sizeInBytes += 3;
 			}
 			else 
 			{
 				// just encode the 16 bits as it is.
-				lprintf( " 3 byte encode?" );
+				//lprintf( " 3 byte encode?" );
 				sizeInBytes+= 3;
 			}
 			wch++;
@@ -2830,7 +2832,7 @@ char * WcharConvertExx ( const wchar_t *wch, size_t len DBG_PASS )
 				}
 				else
 				{
-					lprintf( " 3 byte encode?" );
+					//lprintf( " 3 byte encode?" );
 						(*ch++) = 0xE0 | (  wch[0] >> 12 );
 						(*ch++) = 0x80 | ( (  wch[0] >> 6 ) & 0x3f );
 						(*ch++) = 0x80 | ( (  wch[0] >> 0 ) & 0x3f );
@@ -2863,19 +2865,13 @@ wchar_t * CharWConvertExx ( const char *wch, size_t len DBG_PASS )
 	size_t  sizeInBytes;
 	wchar_t   *ch;
 	wchar_t   *_ch;
-	if( sizeof( wchar_t ) != 2 )
-	{
-		MessageBox( NULL, "fucked.", "fucked.", MB_OK );
-		(*((int*)0)) = 0;
-
-	}
 	sizeInBytes = ((len + 1) * sizeof( char ) );
 	_ch = ch = NewArray( wchar_t, sizeInBytes);
 	{
 		size_t n;
 		for( n = 0; n < len; n++ )
 		{
-			lprintf( "first char is %d (%08x)", wch[0] );
+			//lprintf( "first char is %d (%08x)", wch[0] );
 			if( ( wch[0] & 0xE0 ) == 0xC0 )
 			{
 				ch[0] = ( ( (wchar_t)wch[0] & 0x1F ) << 6 ) | ( (wchar_t)wch[1] & 0x3f );
@@ -2894,7 +2890,7 @@ wchar_t * CharWConvertExx ( const char *wch, size_t len DBG_PASS )
 				                 | ( ( (wchar_t)wch[1] & 0x3F ) << 12 ) 
 				                 | ( (wchar_t)wch[2] & 0x3f ) << 6
 				                 | ( (wchar_t)wch[3] & 0x3f );
-				lprintf( "literal char is %d (%08x", literal_char, literal_char );
+				//lprintf( "literal char is %d (%08x", literal_char, literal_char );
 				ch[0] = ((wchar_t*)literal_char)[0];
 				ch[1] = ((wchar_t*)literal_char)[1];
 				ch++;
@@ -2983,12 +2979,6 @@ unsigned int GetUtfChar( CTEXTSTR *from )
 {
 	unsigned int result = (unsigned char)(*from)[0];
 	if( !result ) return result;
-	if( sizeof( wchar_t ) != 2 )
-	{
-		MessageBox( NULL, "fucked.", "fucked.", MB_OK );
-		(*((int*)0)) = 0;
-
-	}
 #ifdef _UNICODE
 	if( ( ( (*from)[0] & 0xFC00 ) >= 0xD800 )
 		&& ( ( (*from)[0] & 0xFC00 ) <= 0xDF00 ) )
@@ -3013,10 +3003,10 @@ unsigned int GetUtfChar( CTEXTSTR *from )
 			else
 			{
 				result = 0;
-				lprintf( "a 2 byte code with improper continuation encodings following it was found. %02x %02x" 
-						, (*from)[0] 
-						, (*from)[1] 
-						);
+				//lprintf( "a 2 byte code with improper continuation encodings following it was found. %02x %02x" 
+				//		, (*from)[0] 
+				//		, (*from)[1] 
+				//		);
 				(*from)++;
 			}
 		}
@@ -3030,11 +3020,11 @@ unsigned int GetUtfChar( CTEXTSTR *from )
 			else
 			{
 				result = 0;
-				lprintf( "a 3 byte code with improper continuation encodings following it was found. %02x %02x %02x"
-					, (*from)[0] 
-					, (*from)[1] 
-					, (*from)[2] 
-					);
+				//lprintf( "a 3 byte code with improper continuation encodings following it was found. %02x %02x %02x"
+				//	, (*from)[0] 
+				//	, (*from)[1] 
+				//	, (*from)[2] 
+				//	);
 				(*from)++;
 			}
 		}
@@ -3051,7 +3041,7 @@ unsigned int GetUtfChar( CTEXTSTR *from )
 			else
 			{
 				result = 0;
-				lprintf( "a 4 byte code with improper continuation encodings following it was found." );
+				//lprintf( "a 4 byte code with improper continuation encodings following it was found." );
 				(*from)++;
 			}
 		}

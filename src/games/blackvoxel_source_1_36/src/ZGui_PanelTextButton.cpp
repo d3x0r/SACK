@@ -26,7 +26,7 @@
 #include "ZGui_PanelTextButton.h"
 #include <GL/glew.h>
 
-void ZPanelTextButton::Render(Frame_Dimensions * ParentPosition, PTRSZVAL psvInit )
+void ZPanelTextButton::Render(ZRender_Interface *render, Frame_Dimensions * ParentPosition, PTRSZVAL psvInit )
 {
 
   ZVector3f P1,P2,P3,P4;
@@ -130,7 +130,7 @@ void ZPanelTextButton::Render(Frame_Dimensions * ParentPosition, PTRSZVAL psvIni
       while (Item)
       {
         Frame = (ZFrame *)Item->GetObject();
-        if (Frame) Frame->Render(&EffectivePosition, psvInit );
+        if (Frame) Frame->Render(render, &EffectivePosition, psvInit );
 
         Item = SubFrameList.GetNext(Item);
       }

@@ -234,15 +234,15 @@ void PrintFontTable( CTEXTSTR name, PFONT font )
 			  WIDE( "       __%s\n")
 			  WIDE("#endif\n")
 			  WIDE( "= { \n%d, %d, %d, %d, 0, \"%s\", {")
-			  , font->characters
-				, name
-			 , name
-				, font->height 
-				, font->baseline
-				, font->characters
-				, font->flags
-           , name
-				);
+	       , font->characters
+	       , name
+	       , name
+	       , font->height 
+	       , font->baseline
+	       , font->characters
+	       , font->flags
+	       , name
+	       );
 
 	for( i = 0; i < font->characters; i++ )
 	{

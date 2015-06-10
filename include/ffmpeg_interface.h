@@ -89,6 +89,21 @@ FFMPEG_INTERFACE_EXPORT void FFMPEG_INTERFACEAPI ffmpeg_SeekFile( struct ffmpeg_
 // frames is the number of frames to delay or retard the video stream.
 FFMPEG_INTERFACE_EXPORT void FFMPEG_INTERFACEAPI ffmpeg_AdjustVideo( struct ffmpeg_file *file, int frames );
 
+// Get the list of available audio devices.
+// PLIST list = NULL; // make sure to init list to NULL.
+// audio_GetDevices( &list );
+//  list is filled with CTEXTSTR that are available device names.
+FFMPEG_INTERFACE_EXPORT void FFMPEG_INTERFACEAPI audio_GetCaptureDevices( PLIST *ppList );
+FFMPEG_INTERFACE_EXPORT void FFMPEG_INTERFACEAPI audio_GetPlaybackDevices( PLIST *ppList );
+
+FFMPEG_INTERFACE_EXPORT struct audio_device * FFMPEG_INTERFACEAPI audio_OpenCaptureDevice( CTEXTSTR devname, void (CPROC*callback)( PTRSZVAL psvInst, POINTER data, size_t ), PTRSZVAL psvInst );
+FFMPEG_INTERFACE_EXPORT struct audio_device * FFMPEG_INTERFACEAPI audio_OpenPlaybackDevice( CTEXTSTR devname );
+FFMPEG_INTERFACE_EXPORT void FFMPEG_INTERFACEAPI audio_PlaybackBuffer( struct audio_device *ad, POINTER data, size_t samples );
+
+FFMPEG_INTERFACE_EXPORT void FFMPEG_INTERFACEAPI audio_SuspendCapture( struct audio_device *device );
+FFMPEG_INTERFACE_EXPORT void FFMPEG_INTERFACEAPI audio_ResumeCapture( struct audio_device *device );
+
+
 _FFMPEG_INTERFACE_NAMESPACE_END
 SACK_NAMESPACE_END
 #ifdef __cplusplus

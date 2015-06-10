@@ -247,7 +247,7 @@ static CTEXTSTR DoSaveNameEx( CTEXTSTR stripped, size_t len DBG_PASS )
 #if USE_CUSTOM_ALLOCER
 		EnterCriticalSec( &l.csName );
 #else
-		while( !LockedExchange( &l.simple_lock, 1 ) )
+		while( LockedExchange( &l.simple_lock, 1 ) )
 			Relinquish();
 #endif
 	}

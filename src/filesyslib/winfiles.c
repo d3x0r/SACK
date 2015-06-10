@@ -69,14 +69,14 @@ static void UpdateLocalDataPath( void )
 void sack_set_common_data_producer( CTEXTSTR name )
 {
 	l.producer = StrDup( name );
-   UpdateLocalDataPath();
+	UpdateLocalDataPath();
 
 }
 
 void sack_set_common_data_application( CTEXTSTR name )
 {
-   l.application = StrDup( name );
-   UpdateLocalDataPath();
+	l.application = StrDup( name );
+	UpdateLocalDataPath();
 }
 
 static void LocalInit( void )
@@ -626,6 +626,7 @@ struct file *FindFileByFILE( FILE *file_file )
 {
 	struct file *file;
 	INDEX idx;
+	LocalInit();
 	EnterCriticalSec( &l.cs_files );
 	LIST_FORALL( l.files, idx, struct file *, file )
 	{
@@ -657,7 +658,7 @@ LOGICAL sack_set_eof ( HANDLE file_handle )
 		else
 		{
 #ifdef _WIN32
-         ;
+			;
 #else
 			truncate( file->fullname, sack_ftell( (FILE*)file_handle ) );
 #endif
@@ -697,7 +698,7 @@ int sack_ftruncate( FILE *file_file )
 		}
 		return TRUE;
 	}
-   return FALSE;
+	return FALSE;
 }
 
 
@@ -925,7 +926,7 @@ int sack_rmdir( INDEX group, CTEXTSTR filename )
 #ifdef UNICODE
 	char *tmpname = CStrDup( tmp );
 	okay = rmdir( tmpname );
-   Deallocate( char*, tmpname );
+	Deallocate( char*, tmpname );
 #else
 	okay = rmdir( filename );
 #endif
@@ -966,7 +967,8 @@ FILE * sack_fopenEx( INDEX group, CTEXTSTR filename, CTEXTSTR opts, struct file_
 			mount = mount->next;
 		}
 
-	//lprintf( "open %s %p %s (%d)", filename, fsi, opts, fsi?fsi->writeable:1 );
+	if( l.flags.bLogOpenClose )
+		lprintf( "open %s %p(%s) %s (%d)", filename, mount, mount->name, opts, mount?mount->writeable:1 );
 	LIST_FORALL( l.files, idx, struct file *, file )
 	{
 		if( ( file->group == group )
@@ -1000,12 +1002,14 @@ FILE * sack_fopenEx( INDEX group, CTEXTSTR filename, CTEXTSTR opts, struct file_
 			if( mount && group == 0 )
 			{
 				file->fullname = file->name;
-				//lprintf( "full is %s", file->fullname );
+				if( l.flags.bLogOpenClose )
+					lprintf( "full is %s", file->fullname );
 			}
 			else
 			{
 				file->fullname = PrependBasePath( group, filegroup, file->name );
-				//lprintf( "full is %s %d", file->fullname, group );
+				if( l.flags.bLogOpenClose )
+					lprintf( "full is %s %d", file->fullname, group );
 			}
 			//file->fullname = file->name;
 		}
@@ -1039,7 +1043,7 @@ FILE * sack_fopenEx( INDEX group, CTEXTSTR filename, CTEXTSTR opts, struct file_
 				{
 					file->mount = test_mount;
 					if( l.flags.bLogOpenClose )
-						lprintf( "Call mount to check if file exists %s", file->fullname );
+						lprintf( "Call mount %s to check if file exists %s", test_mount->name, file->fullname );
 					if( test_mount->fsi->exists( test_mount->psvInstance, file->fullname ) )
 					{
 						handle = (FILE*)test_mount->fsi->open( test_mount->psvInstance, file->fullname );
@@ -1062,7 +1066,7 @@ FILE * sack_fopenEx( INDEX group, CTEXTSTR filename, CTEXTSTR opts, struct file_
 				if( test_mount->fsi && test_mount->writeable )
 				{
 					if( l.flags.bLogOpenClose )
-						lprintf( "Call mount to open file %s", file->fullname );
+						lprintf( "Call mount %s to open file %s", test_mount->name, file->fullname );
 					handle = (FILE*)test_mount->fsi->open( test_mount->psvInstance, file->fullname );
 				}
 				else
@@ -1084,7 +1088,7 @@ default_fopen:
 		Deallocate( char*, tmpname );
 		Deallocate( char*, tmpopts );
 #  else
-      handle = fopen( file->fullname, opts );
+		handle = fopen( file->fullname, opts );
 #  endif
 #else
 #  ifdef _STRSAFE_H_INCLUDED_
@@ -1366,7 +1370,10 @@ TEXTSTR sack_fgets ( TEXTSTR buffer, size_t size,FILE *file_file )
 				output++;
 			}
 			else
+			{
+				output[0] = 0;
 				break;
+			}
 		}
 		if( n )
 			return buffer;
@@ -1442,7 +1449,7 @@ size_t GetSizeofFile( TEXTCHAR *name, P_32 unused )
 	size_t size;
 #ifdef __LINUX__
 #  ifdef UNICODE
-   char *tmpname = CStrDup( name );
+	char *tmpname = CStrDup( name );
 	int hFile = open( tmpname,		  // open MYFILE.TXT
 						  O_RDONLY );			 // open for reading
 	Deallocate( char*, tmpname );
@@ -1486,7 +1493,7 @@ _32 GetFileTimeAndSize( CTEXTSTR name
 	_32 extra_size;
 #ifdef __LINUX__
 #  ifdef UNICODE
-   char *tmpname = CStrDup( name );
+	char *tmpname = CStrDup( name );
 	int hFile = open( tmpname,		  // open MYFILE.TXT
 						  O_RDONLY );			 // open for reading
 	Deallocate( char*, tmpname );

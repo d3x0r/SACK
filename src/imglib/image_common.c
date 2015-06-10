@@ -79,6 +79,7 @@ int bGLColorMode = 0; // this gets set if we're working with BGR native or RGB n
 
 ASM_IMAGE_NAMESPACE
 extern unsigned char AlphaTable[256][256];
+//extern unsigned char ScalarAlphaTable[256][256];
 
 //---------------------------------------------------------------------------
 // a(alpha) parameter value 0 : in is clear, over opaque

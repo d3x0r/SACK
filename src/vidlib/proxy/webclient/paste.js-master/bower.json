@@ -1,0 +1,21 @@
+{
+  "name": "paste.js",
+  "version": "0.0.4",
+  "authors": [
+    "Michael Yin <layerssss@gmail.com>"
+  ],
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests",
+    "paste.coffee",
+    "Makefile",
+    "index.html"
+  ],
+  "dependencies": {
+    "jquery": "~2.1.0"
+  }
+}

@@ -19,6 +19,70 @@ INSTALL_SACK( bin )
 include_directories( ${SACK_INCLUDE_DIR} )
 LINK_DIRECTORIES( ${SACK_LIBRARY_DIR} )
 
+SET( BV_TYPE_SOURCES 
+	src/z/ZGlobal_Settings.cpp
+	src/z/ZType_ZMatrix.cpp
+	src/z/ZBitmapImage.cpp
+	src/z/ZFastRandom.cpp
+	src/z/ZGenericCanva.cpp
+	src/z/ZGenericCanva_2.cpp
+	src/z/ZLinearInterpolator.cpp
+	src/z/ZMemPool.cpp
+	src/z/ZMemPool_Optimized.cpp
+	src/z/ZObject_Array.cpp
+	src/z/ZObject_Lists.cpp
+	src/z/ZSimpleFile.cpp
+	src/z/ZStream_File.cpp
+	src/z/ZStream_SpecialRamStream.cpp
+	src/z/ZString.cpp
+	src/z/ZBitmapImage.cpp
+	src/z/ZFastRandom.cpp
+	src/z/ZGenericCanva.cpp
+	src/z/ZGenericCanva_2.cpp
+	src/z/ZLinearInterpolator.cpp
+	src/z/ZMemPool.cpp
+	src/z/ZMemPool_Optimized.cpp
+	src/z/ZObject_Array.cpp
+	src/z/ZObject_Lists.cpp
+	src/z/ZSimpleFile.cpp
+	src/z/ZStream_File.cpp
+	src/z/ZStream_SpecialRamStream.cpp
+	src/z/ZString.cpp
+)
+
+set( BV_TYPE_HEADERS
+	src/z/ZBitmapImage.h
+	src/z/ZFastBit_Array.h
+	src/z/ZFastRandom.h
+	src/z/ZGeneralObject.h
+	src/z/ZGenericCanva.h
+	src/z/ZGenericCanva_2.h
+	src/z/ZGenericList.h
+	src/z/ZGenericTable.h
+	src/z/ZGlobal_Settings.h
+	src/z/ZLinearInterpolator.h
+	src/z/ZMemPool.h
+	src/z/ZMemPool_Optimized.h
+	src/z/ZObject.h
+	src/z/ZObject_Array.h
+	src/z/ZObject_Lists.h
+	src/z/ZSimpleFile.h
+	src/z/ZStreams.h
+	src/z/ZStream_File.h
+	src/z/ZStream_SpecialRamStream.h
+	src/z/ZString.h
+	src/z/ZTypes.h
+	src/z/ZType_ZMatrix.h
+	src/z/ZType_ZPolar3d.h
+	src/z/ZType_ZPolar3d_CrossFunc.h
+	src/z/ZType_ZVector3d.h
+	src/z/ZType_ZVector3d_CrossFunc.h
+	src/z/ZType_ZVector3L.h
+	src/z/ZType_ZVector3L_CrossFunc.h
+	src/z/ZType_ZVoxelRef.h
+	src/z/ZVar.h 
+)
+
 
 
 set( SOURCES 
@@ -59,6 +123,10 @@ src/ZOs_Specific_Various.cpp
 src/ZRender_Interface.cpp
 src/ZRender_Basic.cpp
 src/ZRender_Smooth.cpp
+src/ZRender_Shader_Interface.cpp
+src/ZRender_Shader_Simple.cpp
+src/ZRender_Shader_Simple_Texture.cpp
+src/ZRender_Shader_Gui_Texture.cpp
 src/ZScreen_ChooseOption.cpp
 src/ZScreen_Loading.cpp
 src/ZScreen_Main.cpp
@@ -121,34 +189,7 @@ src/ZWorldGenesis.cpp
 src/ZWorldInfo.cpp
 src/ZWorld_Stat.cpp
 
-src/z/ZGlobal_Settings.cpp
-src/z/ZType_ZMatrix.cpp
-src/z/ZBitmapImage.cpp
-src/z/ZFastRandom.cpp
-src/z/ZGenericCanva.cpp
-src/z/ZGenericCanva_2.cpp
-src/z/ZLinearInterpolator.cpp
-src/z/ZMemPool.cpp
-src/z/ZMemPool_Optimized.cpp
-src/z/ZObject_Array.cpp
-src/z/ZObject_Lists.cpp
-src/z/ZSimpleFile.cpp
-src/z/ZStream_File.cpp
-src/z/ZStream_SpecialRamStream.cpp
-src/z/ZString.cpp
-src/z/ZBitmapImage.cpp
-src/z/ZFastRandom.cpp
-src/z/ZGenericCanva.cpp
-src/z/ZGenericCanva_2.cpp
-src/z/ZLinearInterpolator.cpp
-src/z/ZMemPool.cpp
-src/z/ZMemPool_Optimized.cpp
-src/z/ZObject_Array.cpp
-src/z/ZObject_Lists.cpp
-src/z/ZSimpleFile.cpp
-src/z/ZStream_File.cpp
-src/z/ZStream_SpecialRamStream.cpp
-src/z/ZString.cpp
+${BV_TYPE_SOURCES}
 )
 
 set( HEADERS 
@@ -279,38 +320,10 @@ src/ZWorldConvert.h
 src/ZWorldGenesis.h
 src/ZWorldInfo.h
 src/ZWorld_Stat.h
-src/z/ZBitmapImage.h
-src/z/ZFastBit_Array.h
-src/z/ZFastRandom.h
-src/z/ZGeneralObject.h
-src/z/ZGenericCanva.h
-src/z/ZGenericCanva_2.h
-src/z/ZGenericList.h
-src/z/ZGenericTable.h
-src/z/ZGlobal_Settings.h
-src/z/ZLinearInterpolator.h
-src/z/ZMemPool.h
-src/z/ZMemPool_Optimized.h
-src/z/ZObject.h
-src/z/ZObject_Array.h
-src/z/ZObject_Lists.h
-src/z/ZSimpleFile.h
-src/z/ZStreams.h
-src/z/ZStream_File.h
-src/z/ZStream_SpecialRamStream.h
-src/z/ZString.h
-src/z/ZTypes.h
-src/z/ZType_ZMatrix.h
-src/z/ZType_ZPolar3d.h
-src/z/ZType_ZPolar3d_CrossFunc.h
-src/z/ZType_ZVector3d.h
-src/z/ZType_ZVector3d_CrossFunc.h
-src/z/ZType_ZVector3L.h
-src/z/ZType_ZVector3L_CrossFunc.h
-src/z/ZType_ZVoxelRef.h
-src/z/ZVar.h 
-
+${BV_TYPE_HEADERS}
 )
+
+SET_SOURCE_FILES_PROPERTIES( ${BV_TYPE_SOURCES} PROPERTIES FOLDER "Source Files\\Types" )
 
 SOURCE_GROUP(Headers FILES ${HEADERS})
 OPTION( COMPILEOPTION_ALLOWSAVEPLAYERSTATE "Allow Save Player State" ON )

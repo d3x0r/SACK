@@ -82,7 +82,7 @@ class ZPanelTextButton : public ZFrame
     AddFrame(&ButtonText);
   };
 
-  virtual void Render(Frame_Dimensions * ParentPosition, PTRSZVAL psvInit);
+  virtual void Render(ZRender_Interface *render, Frame_Dimensions * ParentPosition, PTRSZVAL psvInit);
 
 
 };

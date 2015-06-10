@@ -32,7 +32,7 @@
 
 
 
-void ZFrame_FontFrame::Render2(Frame_Dimensions * ParentPosition, PTRSZVAL psvInit )
+void ZFrame_FontFrame::Render2(ZRender_Interface *render, Frame_Dimensions * ParentPosition, PTRSZVAL psvInit )
 {
   Frame_Dimensions Position;
 
@@ -101,7 +101,7 @@ void ZFrame_FontFrame::Render2(Frame_Dimensions * ParentPosition, PTRSZVAL psvIn
       while (Item)
       {
         Frame = (ZFrame *)Item->GetObject();
-        if (Frame) Frame->Render(&Position, psvInit);
+        if (Frame) Frame->Render(render, &Position, psvInit);
 
         Item = SubFrameList.GetNext(Item);
       }
@@ -130,7 +130,7 @@ void ZFrame_FontFrame::GetTextDisplaySize(ZVector2f * OutSize)
 
 
 
-void ZFrame_FontFrame::Render(Frame_Dimensions * ParentPosition, PTRSZVAL psvInit)
+void ZFrame_FontFrame::Render(ZRender_Interface *render, Frame_Dimensions * ParentPosition, PTRSZVAL psvInit)
 {
 
   ZListItem * Item;
@@ -148,7 +148,7 @@ void ZFrame_FontFrame::Render(Frame_Dimensions * ParentPosition, PTRSZVAL psvIni
     {
       if (TileStyle)
         if (TileStyle->TileSet)
-          TileStyle->TileSet->RenderFont(psvInit,TileStyle, &EffectivePosition, this->TextToDisplay, &DrawColor );
+          TileStyle->TileSet->RenderFont(render, psvInit,TileStyle, &EffectivePosition, this->TextToDisplay, &DrawColor );
     }
 
 
@@ -162,7 +162,7 @@ void ZFrame_FontFrame::Render(Frame_Dimensions * ParentPosition, PTRSZVAL psvIni
       while (Item)
       {
         Frame = (ZFrame *)Item->GetObject();
-        if (Frame) Frame->Render(&EffectivePosition, psvInit);
+        if (Frame) Frame->Render(render, &EffectivePosition, psvInit);
 
         Item = SubFrameList.GetNext(Item);
       }

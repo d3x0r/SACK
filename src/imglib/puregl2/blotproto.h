@@ -34,7 +34,7 @@ static _32 _XXr, _XXg, _XXb, aout, atmp, atmp2;
 #endif
 #define DOALPHA2( over, in, a ) (  (atmp=(a)),                                             \
 (!(atmp))?(over):((atmp)>=255)?((in)| 0xFF000000UL):(               \
-   (atmp2=256U-atmp),(atmp++),(aout = ((_32)AlphaTable[atmp][AlphaVal( over )]) << 24),                                \
+   (atmp2=256U-atmp),(atmp++),(aout = ((_32)ScalarAlphaTable[atmp][AlphaVal( over )]) << 24),                                \
    (_XXr = (((RedVal(in))   *(atmp)) + ((RedVal(over))  *((atmp2)))) >> 8 ),         \
    (_XXg = (((GreenVal(in)) *(atmp)) + ((GreenVal(over))*((atmp2)))) >> 8 ),            \
    (_XXb = (((BlueVal(in))  *(atmp)) + ((BlueVal(over)) *((atmp2)))) >> 8 ),         \

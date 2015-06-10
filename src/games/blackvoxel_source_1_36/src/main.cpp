@@ -175,7 +175,11 @@ double FrameTime;
 static PTRSZVAL OnInit3d( "BlackVoxel" )(PMatrix projection, PTRANSFORM camera, RCOORD *identity_depth, RCOORD *aspect )
 {
 	Ge->display_index++;
+	// worldview; external to modelview.
 	Ge->sack_camera[Ge->display_index-1] = camera;
+	// projection matrix to update.
+	Ge->sack_projection[Ge->display_index-1] = projection;
+	Ge->sack_aspect[Ge->display_index-1] = aspect;
 	return Ge->display_index;
 }
 
@@ -192,6 +196,7 @@ static void OnFirstDraw3d( "BlackVoxel" )( PTRSZVAL psvInit )
 			= Ge->ScreenResolution.y = h;
 		Ge->Initialized_GraphicMode = true;
 		Ge->Init_Glew( Ge->InitLog.Sec(1040) );
+		glDisable( GL_DEPTH_TEST );
 	    result = Ge->Init_GuiManager(Ge->InitLog.Sec(1090));         if (!result) return;
 		result = Ge->Init_TileSetsAndFonts(Ge->InitLog.Sec(1100));   if (!result) return;
     
@@ -252,9 +257,8 @@ static LOGICAL OnUpdate3d( "BlackVoxel" )( PTRANSFORM origin )
 		if( Ge->Basic_Renderer->Camera )
 		{
 			for( int n = 0; n < 16; n++ )
-				((float*)origin)[n] = Ge->Basic_Renderer->Camera->orientation.m[0][n];
+				((float*)origin)[n] = (float)Ge->Basic_Renderer->Camera->orientation.m[0][n];
 		}
-
 				ReadableDisplayCounter += FrameTime;
 				if (Ge->GameWindow_DisplayInfos
 					&& Ge->VoxelProcessor
@@ -387,25 +391,25 @@ static void OnDraw3d( "BlackVoxel" )( PTRSZVAL psvInit )
 		break;
 	}
 
+	Ge->Basic_Renderer->Aspect_Ratio = Ge->sack_aspect[psvInit-1];
 
 	if( Ge->Game_Run  )
 	{
 		// Rendering
 		if( Ge && Ge->Basic_Renderer )
 		{
-	if( psvInit == 2 );
-            Ge->GameWindow_Advertising->Advertising_Actions((double)FrameTime);
-	if( psvInit == 2 );
-            Ge->ToolManager->ProcessAndDisplay();
-				Ge->Basic_Renderer->Render( true );
+			if( psvInit == 2 )
+				Ge->GameWindow_Advertising->Advertising_Actions((double)FrameTime);
+			if( psvInit == 2 )
+				Ge->ToolManager->ProcessAndDisplay();
+			Ge->Basic_Renderer->Render( true );
 		//if( Ge && Ge->Gui )
 		}
 	}
 	if( psvInit == 1 )
-	Ge->GuiManager.Render( psvInit - 1 );
-	            Timer.End();
+		Ge->GuiManager.Render( Ge->Basic_Renderer, psvInit - 1 );
+	Timer.End();
 	Timer_Draw.End();
-
 }
 
 static LOGICAL OnKey3d( "BlackVoxel" )( PTRSZVAL psvInit, _32 key )
@@ -434,19 +438,25 @@ static LOGICAL OnKey3d( "BlackVoxel" )( PTRSZVAL psvInit, _32 key )
 			return used;
 }
 
-static LOGICAL OnMouse3d( "BlackVoxel" )( PTRSZVAL psvInit, PRAY mouse_ray, S_32 MouseX, S_32 MouseY, _32 b ) 
+static LOGICAL OnMouse3d( "BlackVoxel" )( PTRSZVAL psvInit, PRAY mouse_ray, S_32 _MouseX, S_32 _MouseY, _32 b ) 
 {
 	//Ge->EventManager.ConsumerList
 	{
 		  ZListItem * Item;
 
 		  static int in_mouse;
-			static S_32 _x, _y;
+			static float _x, _y;
 			static _32 _b;
-			int delx, dely;
+			float MouseX = (float)_MouseX;
+			float MouseY = (float)_MouseY;
+			float delx, dely;
 			if( in_mouse )
 				return 0;
 			in_mouse = 1;
+			MouseX = MouseX / (Ge->HardwareResolution.x/2.0f) - 1.0f;
+			MouseY = MouseY / (Ge->HardwareResolution.y/2.0f) - 1.0f;
+			lprintf( "--------------------------" );
+			lprintf( "mouse event %g,%g", MouseX, MouseY );
 			delx = _x - MouseX;
 			dely = _y - MouseY;
 			_x = MouseX;
@@ -491,12 +501,14 @@ static LOGICAL OnMouse3d( "BlackVoxel" )( PTRSZVAL psvInit, PRAY mouse_ray, S_32
 					Ge->Mouse_captured = true;
 					OwnMouse( NULL, TRUE );
 				}
-				SetMousePosition( NULL, _x = Ge->ScreenResolution.x/2, _y = Ge->ScreenResolution.y/2 );
+				SetMousePosition( NULL, Ge->HardwareResolution.x/2, Ge->HardwareResolution.y/2 );
+				_x = 0;
+				_y = 0;
 			}
 			else
 			{
-				_x = MouseX;
-				_y = MouseY;
+				_x = 0;//MouseX;
+				_y = 0;//MouseY;
 				if( Ge->Mouse_captured )
 				{
 					Ge->Mouse_captured = false;
@@ -739,7 +751,7 @@ SaneWinMain( argc, argv )
 
 				// Rendering
 				GameEnv.Basic_Renderer->Render( false );
-				GameEnv.GuiManager.Render( 0 );
+				GameEnv.GuiManager.Render( GameEnv.Basic_Renderer, 0 );
 
 				// Swapping OpenGL Surfaces.
 

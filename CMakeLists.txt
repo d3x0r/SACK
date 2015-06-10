@@ -398,6 +398,7 @@ set(  CMAKE_C_FLAGS_RELWITHDEBINFO "${CMAKE_C_FLAGS_RELWITHDEBINFO} -D_DEBUG_INF
 # here, blank/empty is as good as saying 'here'
 SET( SOURCES_ROOT ${CMAKE_CURRENT_SOURCE_DIR}/ )
 include( CMakeSources.lst )
+add_subdirectory( src/contrib/gsm-1.0-pl13 )
 
 
 # expat is a 'standard' library.  ripped a copy for ease, it's also incredibly simple.
@@ -664,6 +665,8 @@ SET_TARGET_PROPERTIES(sack_bag PROPERTIES
                   COMPILE_DEFINITIONS "SACK_BAG_EXPORTS;${ExtraDefinitions};${ExternalExtraDefinitions};${PSIExtraDefinitions};TARGET_LABEL=sack_bag;TARGETNAME=\"${CMAKE_SHARED_LIBRARY_PREFIX}sack_bag${CMAKE_SHARED_LIBRARY_SUFFIX}\";${ExtraRenderFlags}"
                   LINK_FLAGS "${extra_link_flags}"
 )
+target_link_libraries( sack_bag gsm-1.0-pl13 )
+
 if( SACK_BUILD_STATIC_LIBS )
 add_library( sack_bag_static ${SACK_SOURCES} )
 SET_TARGET_PROPERTIES(sack_bag_static PROPERTIES
@@ -671,6 +674,7 @@ SET_TARGET_PROPERTIES(sack_bag_static PROPERTIES
                   COMPILE_DEFINITIONS "SACK_BAG_EXPORTS;${ExtraDefinitions};${ExternalExtraDefinitions};${PSIExtraDefinitions};TARGET_LABEL=sack_bag;TARGETNAME=\"${CMAKE_SHARED_LIBRARY_PREFIX}sack_bag${CMAKE_SHARED_LIBRARY_SUFFIX}\";${ExtraRenderFlags}"
                   LINK_FLAGS "${extra_link_flags}"
 )
+target_link_libraries( sack_bag_static gsm-1.0-pl13 )
 endif( SACK_BUILD_STATIC_LIBS )
 
 if( NOT __NO_CPLUSPLUS )
@@ -682,6 +686,7 @@ SET_TARGET_PROPERTIES(${SACK_BAG_PLUSPLUS} PROPERTIES
                   COMPILE_DEFINITIONS "SACK_BAG_EXPORTS;${ExtraDefinitions};${ExternalExtraDefinitions};${PSIExtraDefinitions};TARGET_LABEL=sack_bag_plusplus;TARGETNAME=\"${CMAKE_SHARED_LIBRARY_PREFIX}${SACK_BAG_PLUSPLUS}${CMAKE_SHARED_LIBRARY_SUFFIX}\";${ExtraRenderFlags}"
                   LINK_FLAGS "${extra_link_flags}"
 )
+target_link_libraries( ${SACK_BAG_PLUSPLUS} gsm-1.0-pl13 )
 
 if( SACK_BUILD_STATIC_LIBS )
 add_library( ${SACK_BAG_PLUSPLUS}_static ${cplusplus_sources} )
@@ -690,6 +695,7 @@ SET_TARGET_PROPERTIES(${SACK_BAG_PLUSPLUS}_static PROPERTIES
                   COMPILE_DEFINITIONS "SACK_BAG_EXPORTS;${ExtraDefinitions};${ExternalExtraDefinitions};${PSIExtraDefinitions};TARGET_LABEL=sack_bag_plusplus;TARGETNAME=\"${CMAKE_SHARED_LIBRARY_PREFIX}${SACK_BAG_PLUSPLUS}${CMAKE_SHARED_LIBRARY_SUFFIX}\";${ExtraRenderFlags}"
                   LINK_FLAGS "${extra_link_flags}"
 )
+target_link_libraries( ${SACK_BAG_PLUSPLUS}_static gsm-1.0-pl13 )
 endif( SACK_BUILD_STATIC_LIBS )
 
 endif( NOT FORCE_CXX )
@@ -878,6 +884,7 @@ add_library( bag SHARED
     ${BAG_SQLITE_SOURCES}
   ${LAST_GCC_LIBRARY_SOURCE}  
 )
+target_link_libraries( bag gsm-1.0-pl13 )
 
 if( __CLR__ )
 set( ExtraFlags ${ExtraFlags} /CLR )
@@ -925,6 +932,7 @@ set( psi_cplusplus_sources )
 COPY_CPLUSPLUS( psi_cplusplus_sources ${PSI_SOURCES} )
 
 add_library( ${BAG_PLUSPLUS} SHARED ${cplusplus_sources} )
+target_link_libraries( ${BAG_PLUSPLUS} gsm-1.0-pl13 )
 SET_TARGET_PROPERTIES(${BAG_PLUSPLUS} PROPERTIES
                   DEFINE_SYMBOL SACK_BAG_EXPORTS
                   COMPILE_FLAGS  "${ExtraFlags}"
@@ -1316,7 +1324,6 @@ endif( NOT __ANDROID__ )
 
 endif( NOT BUILD_MONOLITHIC AND NOT __NO_GUI__ )
 
-
 # parts of SDK ...
 set( INSTALL_FRAME_BORDER ${INTERFACE_OUTPUT_DIR}/images CACHE STRING "Option to install default images actually" )
 add_subdirectory( data )
@@ -1328,7 +1335,8 @@ add_subdirectory( src/contrib/MatrixSSL/3.7.1 )
 #endif( NOT MINGW )
 
 if( BUILD_TESTS )
-   
+   add_subdirectory( src/streamlib/ffmpeg/audio_test )
+
    #add_subdirectory( src/bench/mem )
 
  if( NOT __NO_GUI__ AND NOT __NO_MSGSVR__ )
@@ -1389,8 +1397,8 @@ if( NOT __ANDROID__ AND NOT __NO_MSGSVR__ )
 endif( NOT __ANDROID__ AND NOT __NO_MSGSVR__ )
 if( WIN32 )
    add_subdirectory( src/utils/application_delay )
-endif( WIN32 )
    add_subdirectory( src/utils/debugger_lockout )
+endif( WIN32 )
    add_subdirectory( src/salty_random_generator )
 if( NOT UNIX )
   #   This doesn't build under watcom either...

@@ -217,6 +217,7 @@ struct physical_device_caption_button
 	struct {
 		BIT_FIELD hidden : 1;
 	} flags;
+	PSI_CONTROL pc;
 };
 typedef struct physical_device_caption_button CAPTION_BUTTON;
 typedef struct physical_device_caption_button *PCAPTION_BUTTON;

@@ -1748,7 +1748,7 @@ typedef int check_this_variable;
 #define SuspendSystemSleep      REND_PROC_ALIAS_VOID( SuspendSystemSleep )
 #define RenderIsInstanced()       ((USE_RENDER_INTERFACE)?((USE_RENDER_INTERFACE)->_RenderIsInstanced)?(USE_RENDER_INTERFACE)->_RenderIsInstanced():0:0)
 
-#define SetDisplayCursor           REND_PROC_ALIAS(SetDisplayCursor)
+#define SetDisplayCursor           {if(USE_RENDER_INTERFACE)REND_PROC_ALIAS(SetDisplayCursor);}
 #endif
 
 	_INTERFACE_NAMESPACE_END

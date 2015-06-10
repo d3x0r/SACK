@@ -4515,7 +4515,8 @@ LOGICAL DoOpenDisplay( PVIDEO hNextVideo )
 #ifdef NOISY_LOGGING
 					lprintf( WIDE("Sleeping until the window is created.") );
 #endif
-					WakeableSleep( SLEEP_FOREVER );
+					//WakeableSleep( SLEEP_FOREVER );
+					WakeableSleep( 250 );
 					//Relinquish();
 				}
 			}

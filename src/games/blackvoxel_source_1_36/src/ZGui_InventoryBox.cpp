@@ -27,7 +27,7 @@
 #include <GL/glew.h>
 #include "SDL2/SDL.h"
 
-void ZInventoryBox::Render(Frame_Dimensions * ParentPosition, PTRSZVAL psvInit)
+void ZInventoryBox::Render(ZRender_Interface *render, Frame_Dimensions * ParentPosition, PTRSZVAL psvInit)
 {
 
   ZVector3f TopLeft, BottomRight;
@@ -108,12 +108,12 @@ void ZInventoryBox::Render(Frame_Dimensions * ParentPosition, PTRSZVAL psvInit)
         ZColor3f BkColor;
         Color.r = 255.0f; Color.v = 255.0f; Color.b = 255.0f;
         BkColor.r = 0.0f; BkColor.v = 0.0f; BkColor.b = 0.0f;
-        TileStyle->TileSet->RenderFont(psvInit, TileStyle, &FontBox, QuantityText.String, &Color );
+        TileStyle->TileSet->RenderFont(render, psvInit, TileStyle, &FontBox, QuantityText.String, &Color );
         FontBox.Position_z -= 1.0f;
         FontBox.Position_x -= 1.0f;
         FontBox.Position_y -= 1.0f;
 
-        TileStyle->TileSet->RenderFont(psvInit, TileStyle, &FontBox, QuantityText.String, &BkColor );
+        TileStyle->TileSet->RenderFont(render, psvInit, TileStyle, &FontBox, QuantityText.String, &BkColor );
       }
     }
 
@@ -127,7 +127,7 @@ void ZInventoryBox::Render(Frame_Dimensions * ParentPosition, PTRSZVAL psvInit)
       while (Item)
       {
         Frame = (ZFrame *)Item->GetObject();
-		if (Frame) Frame->Render(&EffectivePosition, psvInit);
+		if (Frame) Frame->Render(render, &EffectivePosition, psvInit);
 
         Item = SubFrameList.GetNext(Item);
       }
