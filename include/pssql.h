@@ -1437,6 +1437,34 @@ PSSQL_PROC( CTEXTSTR, GetSeqGUID )( void );
    not be released or overwritten.  This tring is the constant 0 guid */
 PSSQL_PROC( CTEXTSTR, GuidZero )( void );
 
+/* convert a string GUID to a binary representation of 16 bytes.
+   litte_endian will byte-swap the grouped portions of numbers in a guid so they can be printed appropriately*/
+
+PSSQL_PROC( P_8, GetGUIDBinaryEx )( CTEXTSTR guid, LOGICAL litte_endian );
+#define GetGUIDBinary(g) GetGUIDBinaryEx(g, TRUE )
+
+struct guid_binary {
+	union {
+		struct {
+			_8 bytes[16];
+			_8 zero[2];
+		} b;
+		struct {
+			_32 l1;
+			_16 w1;
+			_16 w2;
+			_16 w3;
+			_64 ll1;
+		} d;
+	} u;
+};
+
+// snprintf( buf, 256, guid_format, guid_param_pass(&guid_binary) )
+// snprintf( buf, 256, guid_format, guid_param_pass(binary_buffer_result) )
+#define guid_format WIDE("%08")_32fx WIDE("-%04")_16fx WIDE("-%04")_16fx WIDE("-%04")_16fx WIDE("-%012")_64fx
+#define guid_param_pass(n) ((struct guid_binary*)(n))->u.d.l1,((struct guid_binary*)(n))->u.d.w1,((struct guid_binary*)(n))->u.d.w2,((struct guid_binary*)(n))->u.d.w3,((struct guid_binary*)(n))->u.d.ll1
+
+
 /* some internal stub-proxy linkage for generating remote
    responders..
    

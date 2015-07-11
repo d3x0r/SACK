@@ -65,8 +65,10 @@ typedef struct startup_proc_tag {
 	int priority;
 	void (CPROC*proc)(void);
 	CTEXTSTR func;
+#ifdef _DEBUG
 	CTEXTSTR file;
 	int line;
+#endif
 } STARTUP_PROC, *PSTARTUP_PROC;
 
 typedef struct shutdown_proc_tag {
@@ -75,8 +77,10 @@ typedef struct shutdown_proc_tag {
 	int priority;
 	void (CPROC*proc)(void);
 	CTEXTSTR func;
+#ifdef _DEBUG
 	CTEXTSTR file;
 	int line;
+#endif
 } SHUTDOWN_PROC, *PSHUTDOWN_PROC;
 
 struct deadstart_local_data_
@@ -208,7 +212,7 @@ void EnqueStartupProc( PSTARTUP_PROC *root, PSTARTUP_PROC proc )
 
 // parameter 4 is just used so the external code is not killed
 // we don't actually do anything with this?
-void RegisterPriorityStartupProc( void (CPROC*proc)(void), CTEXTSTR func,int priority, void *use_label, CTEXTSTR file,int line )
+void RegisterPriorityStartupProc( void (CPROC*proc)(void), CTEXTSTR func,int priority, void *use_label DBG_PASS )
 {
 	int use_proc;
 	InitLocal();
@@ -219,7 +223,7 @@ void RegisterPriorityStartupProc( void (CPROC*proc)(void), CTEXTSTR func,int pri
 		(1
 #endif
 		&& l.flags.bLog ))
-		lprintf( WIDE("Register %s@%s(%d) %d"), func,file,line, priority);
+		lprintf( WIDE("Register %s@") DBG_FILELINEFMT_MIN WIDE(" %d"), func DBG_RELAY, priority);
 	if( nProcs == 1024 )
 	{
 		for( use_proc = 0; use_proc < 1024; use_proc++ )
@@ -236,8 +240,10 @@ void RegisterPriorityStartupProc( void (CPROC*proc)(void), CTEXTSTR func,int pri
 
 	procs[use_proc].proc = proc;
 	procs[use_proc].func = func;
-	procs[use_proc].file = file;
-	procs[use_proc].line = line;
+#ifdef _DEBUG
+	procs[use_proc].file = pFile;
+	procs[use_proc].line = nLine;
+#endif
 	procs[use_proc].priority = priority;
 	procs[use_proc].bUsed = 1;
 	procs[use_proc].next = NULL; // initialize so it doesn't try unlink in requeue common routine.
@@ -258,7 +264,7 @@ void RegisterPriorityStartupProc( void (CPROC*proc)(void), CTEXTSTR func,int pri
 	{
 #define ONE_MACRO(a,b) a,b
 #ifdef _DEBUG
-		_xlprintf(LOG_NOISE,file,line)( WIDE( "Initial done, not suspended, dispatch immediate." ) );
+		_xlprintf(LOG_NOISE,pFile,nLine)( WIDE( "Initial done, not suspended, dispatch immediate." ) );
 #endif
 		InvokeDeadstart();
 	}
@@ -374,7 +380,11 @@ void InvokeDeadstart( void )
 #endif
 		&& l.flags.bLog ))
 		{
+#ifdef _DEBUG
 			lprintf( WIDE("Dispatch %s@%s(%d)p:%d "), proc->func,proc->file,proc->line, proc->priority );
+#else
+			lprintf( WIDE("Dispatch %s@p:%d "), proc->func, proc->priority );
+#endif
 		}
 		{
 			bDispatched = 1;
@@ -451,7 +461,7 @@ PRIORITY_PRELOAD( InitDeadstartOptions, NAMESPACE_PRELOAD_PRIORITY+1 )
 
 // parameter 4 is just used so the external code is not killed
 // we don't actually do anything with this?
-void RegisterPriorityShutdownProc( void (CPROC*proc)(void), CTEXTSTR func, int priority,void *use_label, CTEXTSTR file,int line )
+void RegisterPriorityShutdownProc( void (CPROC*proc)(void), CTEXTSTR func, int priority,void *use_label DBG_PASS )
 {
 	InitLocal();
 	if( LOG_ALL ||
@@ -463,13 +473,13 @@ void RegisterPriorityShutdownProc( void (CPROC*proc)(void), CTEXTSTR func, int p
 		  && l.flags.bLog ))
 		lprintf( WIDE("Exit Proc %s(%p) from %s(%d) registered...")
 				 , func
-				 , proc
-				 , file
-				 , line );
+				 , proc DBG_RELAY );
 	shutdown_procs[nShutdownProcs].proc = proc;
 	shutdown_procs[nShutdownProcs].func = func;
-	shutdown_procs[nShutdownProcs].file = file;
-	shutdown_procs[nShutdownProcs].line = line;
+#ifdef _DEBUG
+	shutdown_procs[nShutdownProcs].file = pFile;
+	shutdown_procs[nShutdownProcs].line = nLine;
+#endif
 	shutdown_procs[nShutdownProcs].bUsed = 1;
 	shutdown_procs[nShutdownProcs].priority = priority;
 	{

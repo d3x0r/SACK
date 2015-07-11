@@ -1830,6 +1830,8 @@ void BuildDisplayInfoLines( PHISTORY_BROWSER phbr, SFTFont font )
 						dl.nFirstSegOfs = 0; // start of a new line here...
 						dl.start = pText; // text in history that started this...
 						dl.nToShow = 0;
+						dl.nLineStart = 0;
+						dl.nLineEnd = -1;
 						//lprintf( "Adding line to display: %p (%d) %d", dl.start, dl.nOfs, dl.nLine );
 						if( nLinesShown + nLines > 0 )
 						{
@@ -1875,18 +1877,13 @@ void BuildDisplayInfoLines( PHISTORY_BROWSER phbr, SFTFont font )
 								//lprintf( "Wrapped line... reset nChar cause it's a new line of characters." );
 							do_end_of_line:
 								nWrapped++;
-								if( pLastSetLine )
-								{
-									//lprintf( "Setting prior toshow to nChar...%d", nChar );
-									pLastSetLine->nToShow = nChar - trim_char;
-									pLastSetLine->nPixelEnd = col_offset;
-								}
-								else
-								{
-									//lprintf( "Setting this toshow to nChar...%d", nChar );
-									dl.nToShow = nChar - trim_char;
-									dl.nPixelEnd = col_offset;
-								}
+
+								//lprintf( "Setting prior toshow to nChar...%d", nChar );
+								pLastSetLine->nToShow = nChar - trim_char;
+								pLastSetLine->nPixelEnd = col_offset;
+								pLastSetLine->nLineEnd = pLastSetLine->nLineStart + ( nChar ) - 1;
+								dl.nLineEnd = pLastSetLine->nLineEnd;
+								dl.nLineStart = dl.nLineEnd + 1;
 
 								// begin a new line output
 								nChar = 0;
@@ -1922,6 +1919,7 @@ void BuildDisplayInfoLines( PHISTORY_BROWSER phbr, SFTFont font )
 				{
 					//lprintf( "Fixing up last line set for number of chars to show. %d", nChar );
 					pLastSetLine->nToShow += nChar;
+					pLastSetLine->nLineEnd = pLastSetLine->nLineStart + ( nChar - 1 );
 					pLastSetLine->nPixelEnd = col_offset;
 					nLinesShown += nLines;
 				}
@@ -1934,7 +1932,7 @@ void BuildDisplayInfoLines( PHISTORY_BROWSER phbr, SFTFont font )
 				dl.start = NULL;
 				dl.nLine = 0;
 				dl.nToShow = 0;
-
+				dl.nLineStart = dl.nLineEnd = 0;
 				nLines = 1;
 
 				nChar = 0;
@@ -1956,6 +1954,7 @@ void BuildDisplayInfoLines( PHISTORY_BROWSER phbr, SFTFont font )
 						if( USS_LT( (dl.nFirstSegOfs + nLen), _32, phbr->nOffset, int ) )
 						{
 							lprintf( WIDE("Skipping segement, it's before the offset...") );
+							dl.nLineEnd += nLen;
 							dl.nFirstSegOfs += nLen;
 						}
 						else
@@ -1995,26 +1994,6 @@ void BuildDisplayInfoLines( PHISTORY_BROWSER phbr, SFTFont font )
 		lprintf( WIDE("No column defined for browser! please Fix me!") );
 	//clear_remaining_lines:
 	//lprintf( "Clearning lines %d to %d", nLinesShown, nLineCount );
-	if( 0 && nLinesShown < nLineCount )
-	{
-		DISPLAYED_LINE dl;
-		dl.nLine = 0; // minus 1 since it was auto incremented already
-		dl.nFirstSegOfs = 0; // start of a new line here...
-		dl.start = NULL; // text in history that started this...
-		dl.nToShow = 0;
-		dl.nPixelEnd = 0;
-		while( nLinesShown < nLineCount )
-		{
-			// going to begin a new line...
-			// setup the line info for the new line...
-			//lprintf( "Adding line to display: %p (%d) %d", dl.start, dl.nOfs, dl.nLine );
-			//lprintf( WIDE("Set line %d"), nLinesShown  );
-			SetDataItem( CurrentLineInfo
-						  , nLinesShown
-						  , &dl );
-			nLinesShown++;
-		}
-	}
 	LeaveCriticalSec( &phbr->cs );
 }
 

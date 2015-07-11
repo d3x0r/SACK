@@ -968,9 +968,21 @@ void EncodeBinaryConfig( TEXTSTR *encode, POINTER data, size_t length )
 
 int DoDecodeBinary( PTEXT *start, POINTER *binary_buffer, size_t *buflen )
 {
+	static int *reverse;
+	static int reverse1[256];
+	static int reverse2[256];
 	size_t failsafe_len;
 	CTEXTSTR charset;
 	POINTER failsafe_buffer;
+	if( reverse1['B'] == 0 )
+	{
+		int c;
+		for( c = 0; charset2[c]; c++ )
+		{
+			reverse1[charset1[c]] = c;
+			reverse2[charset2[c]] = c;
+		}
+	}
 	if( !buflen )
 		buflen = &failsafe_len;
 	if( !binary_buffer )
@@ -978,10 +990,12 @@ int DoDecodeBinary( PTEXT *start, POINTER *binary_buffer, size_t *buflen )
 
 	if( GetText( *start )[0] == '{' )
 	{
+		reverse = reverse1;
 		charset = charset1;
 	}
 	else if( GetText( *start )[0] == '[' )
 	{
+		reverse = reverse2;
 		charset = charset2;
 	}
 	else
@@ -1027,13 +1041,13 @@ int DoDecodeBinary( PTEXT *start, POINTER *binary_buffer, size_t *buflen )
 		// HANLDE_BURST_EXPLOIT converts .0, .1, .2 into .-+ characters... and sets 'ch'
 		// to the character to find.
 		HANDLE_BURST_PECULIARITY_WITH_DECIMALS_AND_NUMBER_COLLATION();
-		convert.base.data1 = (x=StrChr( charset, ch ))?(_32)(x-charset):0;
+		convert.base.data1 = reverse[ch];//(x=StrChr( charset, ch ))?(_32)(x-charset):0;
 		HANDLE_BURST_PECULIARITY_WITH_DECIMALS_AND_NUMBER_COLLATION();
-		convert.base.data2 = (x=StrChr( charset, ch ))?(_32)(x-charset):0;
+		convert.base.data2 = reverse[ch];//(x=StrChr( charset, ch ))?(_32)(x-charset):0;
 		HANDLE_BURST_PECULIARITY_WITH_DECIMALS_AND_NUMBER_COLLATION();
-		convert.base.data3 = (x=StrChr( charset, ch ))?(_32)(x-charset):0;
+		convert.base.data3 = reverse[ch];//(x=StrChr( charset, ch ))?(_32)(x-charset):0;
 		HANDLE_BURST_PECULIARITY_WITH_DECIMALS_AND_NUMBER_COLLATION();
-		convert.base.data4 = (x=StrChr( charset, ch ))?(_32)(x-charset):0;
+		convert.base.data4 = reverse[ch];//(x=StrChr( charset, ch ))?(_32)(x-charset):0;
 		q = (char*)buflen;
 		q[0] = convert.bin.bytes[0];
 		q[1] = convert.bin.bytes[1];
@@ -1045,13 +1059,13 @@ int DoDecodeBinary( PTEXT *start, POINTER *binary_buffer, size_t *buflen )
 		while( p[0] && len )
 		{
 			HANDLE_BURST_PECULIARITY_WITH_DECIMALS_AND_NUMBER_COLLATION();
-			convert.base.data1 = (x=StrChr( charset, ch ))?(_32)(x-charset):0;
+			convert.base.data1 = reverse[ch];//(x=StrChr( charset, ch ))?(_32)(x-charset):0;
 			HANDLE_BURST_PECULIARITY_WITH_DECIMALS_AND_NUMBER_COLLATION();
-			convert.base.data2 = (x=StrChr( charset, ch ))?(_32)(x-charset):0;
+			convert.base.data2 = reverse[ch];//(x=StrChr( charset, ch ))?(_32)(x-charset):0;
 			HANDLE_BURST_PECULIARITY_WITH_DECIMALS_AND_NUMBER_COLLATION();
-			convert.base.data3 = (x=StrChr( charset, ch ))?(_32)(x-charset):0;
+			convert.base.data3 = reverse[ch];//(x=StrChr( charset, ch ))?(_32)(x-charset):0;
 			HANDLE_BURST_PECULIARITY_WITH_DECIMALS_AND_NUMBER_COLLATION();
-			convert.base.data4 = (x=StrChr( charset, ch ))?(_32)(x-charset):0;
+			convert.base.data4 = reverse[ch];//(x=StrChr( charset, ch ))?(_32)(x-charset):0;
 			if( len && len-- )
 				(q++)[0] = convert.bin.bytes[0];
 			if( len && len-- )

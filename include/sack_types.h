@@ -658,6 +658,7 @@ typedef int pid_t;
 #define FILELINE_VOIDRELAY   pFile, nLine
 /* specify a consistant macro to format file and line information for printf formated strings. */
 #define FILELINE_FILELINEFMT WIDE("%s(%") _32f WIDE("): ")
+#define FILELINE_FILELINEFMT_MIN WIDE("%s(%") _32f WIDE(")")
 #define FILELINE_NULL        , NULL, 0
 #define FILELINE_VOIDNULL    NULL, 0
 /* define static parameters which are the declaration's current file and line, for stubbing in where debugging is being stripped. 
@@ -706,6 +707,10 @@ typedef int pid_t;
    
    in NDEBUG mode, pass nothing */
 #define DBG_FILELINEFMT
+/* <combine sack::DBG_PASS>
+   
+   in NDEBUG mode, pass nothing */
+#define DBG_FILELINEFMT_MIN
 /* <combine sack::DBG_PASS>
    
    in NDEBUG mode, pass nothing
@@ -947,6 +952,10 @@ typedef int pid_t;
 #define DBG_FILELINEFMT FILELINE_FILELINEFMT
 /* <combine sack::DBG_PASS>
    
+   in _DEBUG mode, pass FILELINE_FILELINEFMT_MIN */
+#define DBG_FILELINEFMT_MIN FILELINE_FILELINEFMT_MIN
+/* <combine sack::DBG_PASS>
+   
    in _DEBUG mode, pass FILELINE_VARSRC */
 #define DBG_VARSRC      FILELINE_VARSRC
 
@@ -1142,20 +1151,20 @@ typedef X_16             TEXTCHAR;
    string.                                                */
 #define _cWIDE(s)  s
 // constant text string content
-typedef const X_8     *CTEXTSTR; 
+typedef const char     *CTEXTSTR;
 /* A non constant array of TEXTCHAR. A pointer to TEXTCHAR. A
    pointer to non-constant characters. (A non-static string
    probably)                                                  */
-typedef PX_8            TEXTSTR;
+typedef char           *TEXTSTR;
 #if defined( __LINUX__ ) && defined( __cplusplus )
 // pointer to constant text string content
-typedef TEXTSTR const *PCTEXTSTR; 
+typedef TEXTSTR const  *PCTEXTSTR;
 #else
 // char const *const *
 typedef CTEXTSTR const *PCTEXTSTR;
 #endif
 /* a text 8 bit character  */
-typedef X_8             TEXTCHAR;
+typedef char            TEXTCHAR;
 #endif
 
 

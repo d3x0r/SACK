@@ -34,6 +34,14 @@ LOGICAL CPROC JpgImageFile( Image image, _8 **buf, size_t *size, int Q);
 
 #ifdef __cplusplus 
 }// namespace loader
+#ifdef _D3D_DRIVER
+using namespace sack::image::d3d::loader;
+#elif defined( _D3D10_DRIVER )
+using namespace sack::image::d3d10::loader;
+#elif defined( _D3D11_DRIVER )
+using namespace sack::image::d3d11::loader;
+#endif
+
 #endif
 IMAGE_NAMESPACE_END
 

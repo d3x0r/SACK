@@ -3234,7 +3234,7 @@ void audio_GetPlaybackDevices( PLIST *ppList )
 
 #define DEFAULT_SAMPLE_RATE (44100 / 4)
 
-#define DEFAULT_SAMPLE_SEGMENTS ( ( DEFAULT_SAMPLE_RATE + 159 ) / 160 )
+#define DEFAULT_SAMPLE_SEGMENTS ( ( (DEFAULT_SAMPLE_RATE) + 159 ) / 160 )
 
 struct audio_device {
 	ALCdevice *device;
@@ -3244,7 +3244,7 @@ struct audio_device {
 	short *input_data;
 	PTRSZVAL psvCallback;
 	struct al_buffer buffer;
-	void (CPROC*callback)( PTRSZVAL, POINTER data, size_t );
+	void (CPROC*callback)( PTRSZVAL, int max_level, POINTER data, size_t );
 
 	gsm gsm_inst;
 	_8 *compress_buffer;
@@ -3268,6 +3268,9 @@ struct audio_device {
 		BIT_FIELD capturing : 1;
 	} flags;
 	PTHREAD audioThread;
+	int max_sample_level;
+	int input_trigger_level;
+	_32 last_compress_block_time;
 };
 
 static PTRSZVAL CPROC audio_ReadCaptureDevice( PTHREAD thread )
@@ -3275,6 +3278,9 @@ static PTRSZVAL CPROC audio_ReadCaptureDevice( PTHREAD thread )
 	struct audio_device *ad = (struct audio_device*)GetThreadParam( thread );
 	while( 1 )
 	{
+		int sample;
+		int sampleval;
+		int max_sample_level;
 		int val;
 		int skip_sleep;
 		if( !ad->flags.paused )
@@ -3285,7 +3291,7 @@ static PTRSZVAL CPROC audio_ReadCaptureDevice( PTHREAD thread )
 				ad->flags.capturing = 1;
 			}
 			openal.alcGetIntegerv(ad->device, ALC_CAPTURE_SAMPLES, 1, &val);
-			lprintf( "capture samples is %d", val );
+			//lprintf( "capture samples is %d", val );
 			if( val > 0 )
 			{
 				if( val > ad->frame_size )
@@ -3308,10 +3314,24 @@ static PTRSZVAL CPROC audio_ReadCaptureDevice( PTHREAD thread )
 							if( ad->compress_partial_buffer_idx == 160 )
 							{
 								//lprintf( "prior encode %d %d", n, p * 33 );
-								gsm_encode( ad->gsm_inst
-								          , ad->compress_partial_buffer
-										  , ad->compress_buffer + (ad->compress_segments * 33) );
-								ad->compress_segments++;
+								for( max_sample_level = 0, sample = 0; sample < 160; sample++ )
+								{
+									sampleval = ad->compress_partial_buffer[sample]; if( sampleval < 0 ) sampleval = -sampleval;
+									if( sampleval > max_sample_level )
+										max_sample_level = sampleval;
+								}
+								//lprintf( "block max sample is %d", max_sample_level );
+								if( max_sample_level > ad->max_sample_level )
+									ad->max_sample_level = max_sample_level;
+								if( max_sample_level > ad->input_trigger_level
+									|| ad->last_compress_block_time > ( timeGetTime() - 1000 ) )
+								{
+									ad->last_compress_block_time = timeGetTime();
+									gsm_encode( ad->gsm_inst
+											  , ad->compress_partial_buffer
+											  , ad->compress_buffer + (ad->compress_segments * 33) );
+									ad->compress_segments++;
+								}
 								n++; // did use this sample
 								ad->compress_partial_buffer_idx = 0;
 								break;
@@ -3323,17 +3343,33 @@ static PTRSZVAL CPROC audio_ReadCaptureDevice( PTHREAD thread )
 						if( ( val - n ) >= 160 )
 						{
 							//lprintf( "full block encode %d %d", n, p * 33 );
-							gsm_encode( ad->gsm_inst
-							          , ((gsm_signal*)ad->input_data) + n
-							          , ad->compress_buffer + (ad->compress_segments * 33) );
-							ad->compress_segments++;
+							for( max_sample_level = 0, sample = 0; sample < 160; sample++ )
+							{
+								sampleval = ((gsm_signal*)ad->input_data)[n + sample]; if( sampleval < 0 ) sampleval = -sampleval;
+								if( sampleval > max_sample_level )
+									max_sample_level = sampleval;
+							}
+							if( max_sample_level > ad->max_sample_level )
+								ad->max_sample_level = max_sample_level;
+							//lprintf( "block max sample is %d", max_sample_level );
+							if( max_sample_level > ad->input_trigger_level
+								|| ad->last_compress_block_time > ( timeGetTime() - 1000 ) )
+							{
+								ad->last_compress_block_time = timeGetTime();
+								gsm_encode( ad->gsm_inst
+										  , ((gsm_signal*)ad->input_data) + n
+										  , ad->compress_buffer + (ad->compress_segments * 33) );
+								ad->compress_segments++;
+							}
 							if( ad->compress_segments == DEFAULT_SAMPLE_SEGMENTS )
 							{
 								if( ad->callback )
 									ad->callback( ad->psvCallback
+												, ad->max_sample_level
 									            , ad->compress_buffer
 									            , ad->compress_segments * 33 );
 								ad->compress_segments = 0;
+								ad->max_sample_level = 0;
 							}
 						}
 						else 
@@ -3348,22 +3384,38 @@ static PTRSZVAL CPROC audio_ReadCaptureDevice( PTHREAD thread )
 							= ((gsm_signal*)ad->input_data)[n];
 						if( ad->compress_partial_buffer_idx == 160 )
 						{
+							for( max_sample_level = 0, sample = 0; sample < 160; sample++ )
+							{
+								sampleval = ((gsm_signal*)ad->input_data)[n + sample]; if( sampleval < 0 ) sampleval = -sampleval;
+								if( sampleval > max_sample_level )
+									max_sample_level = sampleval;
+							}
+							//lprintf( "block max sample is %d", max_sample_level );
 							//lprintf( "end block encode %d %d", n, p * 33 );
-							gsm_encode( ad->gsm_inst
-							          , ((gsm_signal*)ad->compress_partial_buffer) + n
-							          , ad->compress_buffer + (ad->compress_segments * 33) );
-							ad->compress_segments++;
+							if( max_sample_level > ad->max_sample_level )
+								ad->max_sample_level = max_sample_level;
+							if( max_sample_level > ad->input_trigger_level
+								|| ad->last_compress_block_time > ( timeGetTime() - 1000 ) )
+							{
+								ad->last_compress_block_time = timeGetTime();
+								gsm_encode( ad->gsm_inst
+										  , ((gsm_signal*)ad->compress_partial_buffer) + n
+										  , ad->compress_buffer + (ad->compress_segments * 33) );
+								ad->compress_segments++;
+							}
 							ad->compress_partial_buffer_idx = 0;
 						}
 					}
 				}
-				if( ad->compress_segments > (DEFAULT_SAMPLE_SEGMENTS / 4) )
+				if( ad->compress_segments > (DEFAULT_SAMPLE_SEGMENTS * 2 ) )
 				{
 					if( ad->callback )
 						ad->callback( ad->psvCallback
+									, ad->max_sample_level
 						            , ad->compress_buffer
 						            , ad->compress_segments * 33 );
 					ad->compress_segments = 0;
+					ad->max_sample_level = 0;
 				}
 				if( !skip_sleep )
 					WakeableSleep( 50 );
@@ -3386,7 +3438,7 @@ static PTRSZVAL CPROC audio_ReadCaptureDevice( PTHREAD thread )
 	}
 }
 
-struct audio_device *audio_OpenCaptureDevice( CTEXTSTR devname, void (CPROC*callback)( PTRSZVAL psvInst, POINTER data, size_t ), PTRSZVAL psvInst )
+struct audio_device *audio_OpenCaptureDevice( CTEXTSTR devname, void (CPROC*callback)( PTRSZVAL psvInst, int max_level, POINTER data, size_t ), PTRSZVAL psvInst )
 {
 	struct audio_device *ad = New( struct audio_device );
 	MemSet( ad, 0, sizeof( struct audio_device ) );
@@ -3396,7 +3448,7 @@ struct audio_device *audio_OpenCaptureDevice( CTEXTSTR devname, void (CPROC*call
 	if( ad->device )
 	{
 		ad->gsm_inst = gsm_create();
-		ad->compress_buffer = NewArray( _8, 33 * DEFAULT_SAMPLE_SEGMENTS );
+		ad->compress_buffer = NewArray( _8, 33 * DEFAULT_SAMPLE_SEGMENTS * 2 );
 		ad->psvCallback = psvInst;
 		ad->callback = callback;
 		ad->input_data = NewArray( short, ad->frame_size );
@@ -3407,12 +3459,14 @@ struct audio_device *audio_OpenCaptureDevice( CTEXTSTR devname, void (CPROC*call
 
 void audio_SuspendCapture( struct audio_device *device )
 {
-	device->flags.paused = 1;
+	if( device )
+		device->flags.paused = 1;
 }
 
 void audio_ResumeCapture( struct audio_device *device )
 {
-	device->flags.paused = 0;
+	if( device )
+		device->flags.paused = 0;
 }
 
 
@@ -3520,7 +3574,6 @@ static PTRSZVAL CPROC ProcessPlaybackAudioFrame( PTHREAD thread )
 	#ifdef DEBUG_AUDIO_PACKET_READ
 							lprintf( WIDE("release audio buffer.. %p"), buffer->samplebuf );
 	#endif
-							ffmpeg.av_free( buffer->samplebuf );
 							//LogTime(file, FALSE, WIDE("audio deque"), 1 DBG_SRC );
 							EnqueLink( &file->al_free_buffer_queue, buffer );
 							file->in_queue++;
@@ -3543,7 +3596,7 @@ static PTRSZVAL CPROC ProcessPlaybackAudioFrame( PTHREAD thread )
 	#ifdef DEBUG_AUDIO_PACKET_READ
 					lprintf( WIDE("Found %d processed buffers... %d  %d"), 0, file->in_queue, file->out_of_queue );
 	#endif
-					Relinquish();
+					WakeableSleep( 250 );
 				}
 			} while( ( file->flags.paused && file->out_of_queue ) );
 	#endif
@@ -3551,7 +3604,6 @@ static PTRSZVAL CPROC ProcessPlaybackAudioFrame( PTHREAD thread )
 
 		//if( file->flags.close_processing )
 		//	break;
-
 		LeaveCriticalSec( &l.cs_audio_out );
 
 		// need to do this always not just if packet; will always be a packet...
@@ -3591,7 +3643,6 @@ static void GetPlaybackAudioBuffer( struct audio_device * file, POINTER data, si
 	{
 		file->in_queue--;
 	}
-	buffer->samplebuf = data;
 	buffer->size = sz;
 	buffer->samples = samples;
 
@@ -3702,7 +3753,7 @@ void audio_PlaybackBuffer( struct audio_device *ad, POINTER data, size_t datalen
 	short *decompress_buffer;
 	if( datalen % 33 )
 	{
-		lprintf( "Invalid bufffer received" );
+		lprintf( "Invalid bufffer received %d (%d:%d)", datalen, datalen/33, datalen%33 );
 		return;
 	}
 	datalen /= 33;
@@ -3713,6 +3764,12 @@ void audio_PlaybackBuffer( struct audio_device *ad, POINTER data, size_t datalen
 	}
 	GetPlaybackAudioBuffer( ad, decompress_buffer, n * 320, n * 160 );
 	Deallocate( short *, decompress_buffer );
+}
+
+void audio_SetInputLevel( struct audio_device *ad, int level )
+{
+	if( ad )
+		ad->input_trigger_level = level;
 }
 
 _FFMPEG_INTERFACE_NAMESPACE_END

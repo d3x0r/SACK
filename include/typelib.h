@@ -2685,7 +2685,7 @@ enum CommandPositionOps {
 /* Updates the current input position, for things like input,
    etc. Some external process indicates where in the line to set
    the cursor position.                                          */
-TYPELIB_PROC  LOGICAL TYPELIB_CALLTYPE  SetUserInputPosition ( PUSER_INPUT_BUFFER pci, INDEX nPos, int whence );
+TYPELIB_PROC  LOGICAL TYPELIB_CALLTYPE  SetUserInputPosition ( PUSER_INPUT_BUFFER pci, int nPos, int whence );
 
 // bInsert < 0 toggle insert.  bInsert == 0 clear isnert(set overwrite) else
 // set insert (clear overwrite )

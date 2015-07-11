@@ -45,7 +45,7 @@ static const TEXTCHAR sDebugWndClassLocks[] =         { '\x1B','\x64','\x3B','\x
 static const TEXTCHAR sDebugWndNameLocks[] =          { '\x22','\x38','\x3D','\x43','\x65','\xAA','\x14','\x1F','\xDE','\x4D','\xA2','\xC0','\x3C','\xC1','\xE7','\x0E','\x6F','\xCD','\x72','\xC9','\x40','\x3C','\x8F','\x0B','\x03','\x7E','\x4B','\xC9','\xE4','\xB2','\x32','\xA9','\x16','\x67','\x6C' };
 static const TEXTCHAR sAddTimerExx[] =                { '\x10','\x5E','\x50','\x37','\x69','\xEE','\xB1','\x5A','\x42','\xBD','\x8A','\xCF','\x44','\xA2','\xDA','\xB7','\x05' };
 
-static const TEXTCHAR sACK_GetProfileString[] = { 0 };
+//static const TEXTCHAR sACK_GetProfileString[] = { 0 };
 
 #if 0
 // allow application to hook into anti-debugging?
@@ -383,12 +383,21 @@ PUBLIC( const char *, dlerror )( void )
 }
 
 static void CPROC name(void); 
+#ifdef _MSC_VER
    static int CPROC schedule_name(void);   
 	static __declspec(allocate(_STARTSEG_)) int (CPROC*x_name)(void) = schedule_name; 
-	int CPROC schedule_name(void) {                 
-	RegisterPriorityStartupProc( name,TOSTR(name),100,x_name,"dl.c",__LINE__ );
-	return 0; 
-	}                                       \
+	int CPROC schedule_name(void) {
+		RegisterPriorityStartupProc( name,TOSTR(name),100,x_name,"dl.c",__LINE__ );
+		return 0;
+	}
+#endif
+#ifdef __WATCOMC__
+   static void schedule_name(void);
+	static struct rt_init __based(__segname("XI")) name_ctor_label={0,(DEADSTART_PRELOAD_PRIORITY-32),schedule_name};
+	void schedule_name(void) {
+		RegisterPriorityStartupProc( name,TOSTR(name),100,&name_ctor_label,"dl.c",__LINE__ );
+	}
+#endif
 	/*static __declspec(allocate(_STARTSEG_)) void (CPROC*pointer_##name)(void) = pastejunk(schedule_,name);*/ \
 static void CPROC name(void)
 {

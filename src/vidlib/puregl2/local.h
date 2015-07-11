@@ -107,23 +107,6 @@ RENDER_NAMESPACE
 					lprintf( "err=%d "f,err,##__VA_ARGS__ ); \
 				}                               
 
-#ifdef _WIN32
-#ifdef MINGW_SUX
-typedef struct tagUPDATELAYEREDWINDOWINFO {
-    _32               cbSize;
-    HDC                 hdcDst;
-    POINT CONST         *pptDst;
-    SIZE CONST          *psize;
-    HDC                 hdcSrc;
-    POINT CONST         *pptSrc;
-    COLORREF            crKey;
-    BLENDFUNCTION CONST *pblend;
-    DWORD               dwFlags;
-    RECT CONST          *prcDirty;
-} UPDATELAYEREDWINDOWINFO;
-
-#endif
-#endif
 
 typedef LOGICAL (CPROC *Update3dProc)(PTRANSFORM);
 

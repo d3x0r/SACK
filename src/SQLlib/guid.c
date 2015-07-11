@@ -142,6 +142,77 @@ CTEXTSTR GetSeqGUID( void )
 }
 #endif
 
+P_8 GetGUIDBinaryEx( CTEXTSTR guid, LOGICAL little_endian )
+{
+	static _8 buf[18];
+	static _8 char_lookup[256];
+	int n;
+   int b;
+	if( char_lookup['1'] == 0 )
+	{
+		buf[16] = 0;
+      buf[17] = 0;
+		for( n = '0'; n <= '9'; n++ )
+		{
+         char_lookup[n] = n - '0';
+		}
+		for( n = 'a'; n <= 'f'; n++ )
+		{
+         char_lookup[n] = 10 + n - 'a';
+		}
+		for( n = 'A'; n <= 'F'; n++ )
+		{
+         char_lookup[n] = 10 + n - 'A';
+		}
+      char_lookup['-'] = -1;
+	}
+	for( b = n = 0; guid[n]; n++ )
+	{
+		if( char_lookup[guid[n]] < 0 )
+			continue;
+      if( !( b & 1 ) )
+			buf[b / 2] = char_lookup[guid[n]] << 4;
+      else
+			buf[b / 2] |= char_lookup[guid[n]];
+      b++;
+	}
+	if( little_endian )
+	{
+		_8 tmp;
+		tmp = buf[0];
+		buf[0] = buf[3];
+		buf[3] = tmp;
+		tmp = buf[1];
+		buf[1] = buf[2];
+      buf[2] = tmp;
+
+		tmp = buf[4];
+		buf[4] = buf[5];
+      buf[5] = tmp;
+
+		tmp = buf[6];
+		buf[6] = buf[7];
+      buf[7] = tmp;
+
+		tmp = buf[8];
+		buf[8] = buf[9];
+      buf[9] = tmp;
+
+		tmp = buf[10];
+		buf[10] = buf[15];
+      buf[15] = tmp;
+
+		tmp = buf[11];
+		buf[11] = buf[14];
+      buf[14] = tmp;
+
+		tmp = buf[12];
+		buf[12] = buf[13];
+      buf[13] = tmp;
+	}
+   return buf;
+}
+
 CTEXTSTR GuidZero( void )
 {
 	return WIDE("00000000-0000-0000-0000-000000000000");

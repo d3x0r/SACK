@@ -1275,8 +1275,13 @@ void PutStringVerticalFontEx( ImageFile *pImage, S_32 x, S_32 y, CDATA color, CD
 	S_32 bias_y;
 	if( !font )
 		font = &DEFAULTFONT;
-	bias_x = ( font->bias & 0xF );
-	bias_y = ( ( font->bias >> 4 ) & 0xF );
+	if( pImage->flags & IF_FLAG_FINAL_RENDER )
+	{
+		bias_x = ( font->bias & 0xF );
+		bias_y = ( ( font->bias >> 4 ) & 0xF );
+	}
+	else
+		bias_x = bias_y = 0;
 	if( bias_x & 0x8 ) bias_x |= 0xFFFFFFF0;
 	if( bias_y & 0x8 ) bias_y |= 0xFFFFFFF0;
 	x += bias_x;
@@ -1305,8 +1310,13 @@ void PutStringInvertVerticalFontEx( ImageFile *pImage, S_32 x, S_32 y, CDATA col
 	S_32 bias_y;
 	if( !font )
 		font = &DEFAULTFONT;
-	bias_x = ( font->bias & 0xF );
-	bias_y = ( ( font->bias >> 4 ) & 0xF );
+	if( pImage->flags & IF_FLAG_FINAL_RENDER )
+	{
+		bias_x = ( font->bias & 0xF );
+		bias_y = ( ( font->bias >> 4 ) & 0xF );
+	}
+	else
+		bias_x = bias_y = 0;
 	if( bias_x & 0x8 ) bias_x |= 0xFFFFFFF0;
 	if( bias_y & 0x8 ) bias_y |= 0xFFFFFFF0;
 	x += bias_x;
@@ -1338,8 +1348,13 @@ void PutStringFontEx( ImageFile *pImage
 	S_32 bias_y;
 	if( !font )
 		font = &DEFAULTFONT;
-	bias_x = ( font->bias & 0xF );
-	bias_y = ( ( font->bias >> 4 ) & 0xF );
+	if( pImage->flags & IF_FLAG_FINAL_RENDER )
+	{
+		bias_x = ( font->bias & 0xF );
+		bias_y = ( ( font->bias >> 4 ) & 0xF );
+	}
+	else
+		bias_x = bias_y = 0;
 	if( bias_x & 0x8 ) bias_x |= 0xFFFFFFF0;
 	if( bias_y & 0x8 ) bias_y |= 0xFFFFFFF0;
 	x += bias_x;
@@ -1375,8 +1390,13 @@ void PutStringFontExx( ImageFile *pImage
 	S_32 bias_y;
 	if( !font )
 		font = &DEFAULTFONT;
-	bias_x = ( font->bias & 0xF );
-	bias_y = ( ( font->bias >> 4 ) & 0xF );
+	if( pImage->flags & IF_FLAG_FINAL_RENDER )
+	{
+		bias_x = ( font->bias & 0xF );
+		bias_y = ( ( font->bias >> 4 ) & 0xF );
+	}
+	else
+		bias_x = bias_y = 0;
 	if( bias_x & 0x8 ) bias_x |= 0xFFFFFFF0;
 	if( bias_y & 0x8 ) bias_y |= 0xFFFFFFF0;
 	x += bias_x;
@@ -1441,8 +1461,13 @@ void PutStringInvertFontEx( ImageFile *pImage, S_32 x, S_32 y, CDATA color, CDAT
 	S_32 bias_y;
 	if( !font )
 		font = &DEFAULTFONT;
-	bias_x = ( font->bias & 0xF );
-	bias_y = ( ( font->bias >> 4 ) & 0xF );
+	if( pImage->flags & IF_FLAG_FINAL_RENDER )
+	{
+		bias_x = ( font->bias & 0xF );
+		bias_y = ( ( font->bias >> 4 ) & 0xF );
+	}
+	else
+		bias_x = bias_y = 0;
 	if( bias_x & 0x8 ) bias_x |= 0xFFFFFFF0;
 	if( bias_y & 0x8 ) bias_y |= 0xFFFFFFF0;
 	x += bias_x;
@@ -1472,8 +1497,13 @@ _32 PutMenuStringFontEx( ImageFile *pImage, S_32 x, S_32 y, CDATA color, CDATA b
 	int ch;
 	if( !UseFont )
 		UseFont = &DEFAULTFONT;
-	bias_x = ( UseFont->bias & 0xF );
-	bias_y = ( ( UseFont->bias >> 4 ) & 0xF );
+	if( pImage->flags & IF_FLAG_FINAL_RENDER )
+	{
+		bias_x = ( UseFont->bias & 0xF );
+		bias_y = ( ( UseFont->bias >> 4 ) & 0xF );
+	}
+	else
+		bias_x = bias_y = 0;
 	if( bias_x & 0x8 ) bias_x |= 0xFFFFFFF0;
 	if( bias_y & 0x8 ) bias_y |= 0xFFFFFFF0;
 	x += bias_x;
@@ -1610,8 +1640,8 @@ _32 PutMenuStringFontEx( ImageFile *pImage, S_32 x, S_32 y, CDATA color, CDATA b
 		else
 			*width = 0;
 	}
-	if( !max_width && !(*width) )
-		(*height) = 0; // zero length is also zero height.
+	//if( !max_width && !(*width) )
+	//	(*height) = 0; // zero length is also zero height.
 	if( max_width > *width )
 		*width = max_width;
 	return *width;
@@ -1695,6 +1725,10 @@ _32 PutMenuStringFontEx( ImageFile *pImage, S_32 x, S_32 y, CDATA color, CDATA b
 {
 	if( font )
 	{
+		if( !font->height )
+		{
+			InternalRenderFontCharacter( NULL, font, ' ' );
+		}
 		//lprintf( WIDE("Resulting with %d height"), font->height );
 		return font->height;
 	}

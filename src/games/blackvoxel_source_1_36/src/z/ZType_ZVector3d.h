@@ -335,7 +335,7 @@ class ZVector3d
   {
     double radconv = 57.295779513;
     double xp1,zp1,yp1;
-    yaw /= radconv;
+    yaw /= radconv;////
     pitch /= radconv;
     roll /= radconv;
 

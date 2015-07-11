@@ -231,6 +231,22 @@ typedef struct ControlRegistration_tag *PCONTROL_REGISTRATION;
    /psi/control/\<name\>/rtti/draw=(PSI_CONTROL)@int@_@draw                           */
 #define OnDrawCommon(name)  \
 	__DefineRegistryMethod(PSI_ROOT_REGISTRY,_OnDrawCommon,WIDE("control"),name WIDE("/rtti"),WIDE("draw"),int,(PSI_CONTROL), __LINE__)
+/* Event given to a frame control when it needs to draw.
+   Example
+   <code lang="c#">
+   static void OnDrawCaption(name)( PSI_CONTROL control, Image caption )
+   {
+      // draw (or nto) to a control.
+      // return TRUE to update, otherwise FALSE, and update will not be performed.
+      // but then, child controls also do not draw, because their parent is not dirty?
+   }
+   </code>
+   Internal
+   Registers under
+   
+   /psi/control/\<name\>/rtti/draw_caption=(PSI_CONTROL,Image)@void@_@draw                           */
+#define OnDrawCaption(name)  \
+	__DefineRegistryMethod(PSI_ROOT_REGISTRY,_OnDrawCaption,WIDE("control"),name WIDE("/rtti"),WIDE("draw_caption"),void,(PSI_CONTROL, Image), __LINE__)
 /* Event given to a control when it needs to draw its decorations after children have updated.
    Example
    <code lang="c#">
@@ -593,6 +609,11 @@ typedef struct ControlRegistration_tag *PCONTROL_REGISTRATION;
    /psi/control/\<name\>/rtti/border_measure=(PSI_CONTROL,int*,int*,int*,int*)@void@_@touch_event */
 #define OnMeasureCustomBorder(name)  \
 	__DefineRegistryMethod(PSI_ROOT_REGISTRY,_OnMeasureCustomBorder,WIDE("control"),name WIDE("/rtti"),WIDE("border_draw"),void,(PSI_CONTROL,int*,int*,int*,int*), __LINE__)
+
+
+// static LOGICAL OnDropAccept(WIDE(""))(PSI_CONTROL pc_canvas,CTEXTSTR filepath,int x,int y)
+#define OnControlDropAccept(name)  \
+	__DefineRegistryMethod(PSI_ROOT_REGISTRY,_OnControlDropAccept,WIDE("control"),name WIDE("/rtti"),WIDE("drop_accept"),LOGICAL,(PSI_CONTROL,CTEXTSTR,S_32,S_32), __LINE__)
 
 // just a passing thought.
 //#define OnEditFrameBegin( name )

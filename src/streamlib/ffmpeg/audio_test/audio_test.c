@@ -13,7 +13,7 @@ static struct {
 	PLINKQUEUE compressed_queue;
 } test_local;
 
-static void CPROC callback( PTRSZVAL psv, POINTER data, size_t datalen )
+static void CPROC callback( PTRSZVAL psv, int max_level, POINTER data, size_t datalen )
 {
 	struct compressed_phrase *phrase = New( struct compressed_phrase );
 	phrase->phrase_len = datalen;

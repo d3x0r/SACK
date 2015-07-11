@@ -183,11 +183,11 @@ SACK_NAMESPACE
                to be optimized because it's hard for the compiler
                to identify that they are refernced by other names
                indirectly.
-   file\ :     usually __FILE__ of the code doing this
+   file\ :     usually DBG_PASS of the code doing this
                registration.
-   line :      usually __LINE__ of the code doing this
+   line :      usually DBG_PASS of the code doing this
                registration.                                      */
-DEADSTART_PROC  void DEADSTART_CALLTYPE  RegisterPriorityStartupProc( void(CPROC*)(void), CTEXTSTR,int,void* unused, CTEXTSTR,int);
+DEADSTART_PROC  void DEADSTART_CALLTYPE  RegisterPriorityStartupProc( void(CPROC*)(void), CTEXTSTR,int,void* unused DBG_PASS);
 /* Used by ATEXIT and PRIORITY_ATEXIT macros to register a
    shutdown routine at a specific priority. Higher number
    priorities are scheduled to run before lower number
@@ -207,11 +207,11 @@ DEADSTART_PROC  void DEADSTART_CALLTYPE  RegisterPriorityStartupProc( void(CPROC
                to be optimized because it's hard for the compiler
                to identify that they are refernced by other names
                indirectly.
-   file\ :     usually __FILE__ of the code doing this
+   file\ :     usually DBG_PASS of the code doing this
                registration.
-   line :      usually __LINE__ of the code doing this
+   line :      usually DBG_PASS of the code doing this
                registration.                                      */
-DEADSTART_PROC  void DEADSTART_CALLTYPE  RegisterPriorityShutdownProc( void(CPROC*)(void), CTEXTSTR,int,void* unused, CTEXTSTR,int);
+DEADSTART_PROC  void DEADSTART_CALLTYPE  RegisterPriorityShutdownProc( void(CPROC*)(void), CTEXTSTR,int,void* unused DBG_PASS);
 /* This routine is used internally when LoadFunction is called.
    After MarkDeadstartComplete is called, any call to a
    RegisterPriorityStartupProc will call the startup routine
@@ -278,7 +278,7 @@ DEADSTART_PROC  void DEADSTART_CALLTYPE  DispelDeadstart ( void );
 #define PRIORITY_PRELOAD(name,priority) static void CPROC name(void); \
    static class pastejunk(schedule_,name) {   \
      public:pastejunk(schedule_,name)() {    \
-	RegisterPriorityStartupProc( name,TOSTR(name),priority,(void*)this,WIDE__FILE__,__LINE__ );\
+	RegisterPriorityStartupProc( name,TOSTR(name),priority,(void*)this DBG_SRC);\
 	  }  \
 	} pastejunk(do_schedule_,name);     \
 	static void name(void)
@@ -300,7 +300,7 @@ DEADSTART_PROC  void DEADSTART_CALLTYPE  DispelDeadstart ( void );
 #define ATEXIT_PRIORITY(name,priority) static void CPROC name(void); \
    static class pastejunk(schedule_,name) {   \
      public:pastejunk(schedule_,name)() {    \
-	RegisterPriorityShutdownProc( name,TOSTR(name),priority,(void*)this,WIDE__FILE__,__LINE__ );\
+	RegisterPriorityShutdownProc( name,TOSTR(name),priority,(void*)this DBG_SRC );\
 	  }  \
 	} pastejunk(do_schedule_,name);     \
 	static void name(void)
@@ -321,7 +321,7 @@ DEADSTART_PROC  void DEADSTART_CALLTYPE  DispelDeadstart ( void );
 #define PRIORITY_ATEXIT(name,priority) static void CPROC name(void); \
    static class pastejunk(shutdown_,name) {   \
 	public:pastejunk(shutdown_,name)() {    \
-   RegisterPriorityShutdownProc( name,TOSTR(name),priority,(void*)this,WIDE__FILE__,__LINE__ );\
+   RegisterPriorityShutdownProc( name,TOSTR(name),priority,(void*)this DBG_SRC );\
 	/*name(); / * call on destructor of static object.*/ \
 	  }  \
 	} do_shutdown_##name;     \
@@ -398,13 +398,13 @@ struct rt_init // structure placed in XI/YI segment
 #define PRIORITY_PRELOAD(name,priority) static void pastejunk(schedule_,name)(void); static void CPROC name(void); \
 	static struct rt_init __based(__segname("XI")) pastejunk(name,_ctor_label)={0,(DEADSTART_PRELOAD_PRIORITY-1),pastejunk(schedule_,name)}; \
 	static void pastejunk(schedule_,name)(void) {                 \
-	RegisterPriorityStartupProc( name,TOSTR(name),priority,&pastejunk(name,_ctor_label),WIDE__FILE__,__LINE__ );\
+	RegisterPriorityStartupProc( name,TOSTR(name),priority,&pastejunk(name,_ctor_label) DBG_SRC );\
 	}                                       \
 	void name(void)
 #define ATEXIT_PRIORITY(name,priority) static void pastejunk(schedule_exit_,name)(void); static void CPROC name(void); \
 	static struct rt_init __based(__segname("XI")) pastejunk(name,_dtor_label)={0,69,pastejunk(schedule_exit_,name)}; \
 	static void pastejunk(schedule_exit_,name)(void) {                                              \
-	RegisterPriorityShutdownProc( name,TOSTR(name),priority,&name##_dtor_label,WIDE__FILE__,__LINE__ );\
+	RegisterPriorityShutdownProc( name,TOSTR(name),priority,&name##_dtor_label DBG_SRC );\
 	}                                       \
 	void name(void)
 
@@ -460,7 +460,9 @@ struct rt_init // structure placed in XI/YI segment
 // this ends up being nicely aligned for 64 bit platforms
 // specially with the packed attributes
 	 __type_rtn  routine;      // - routine (rtn)
+#ifdef _DEBUG
 	 CTEXTSTR file;
+#endif
 	 CTEXTSTR funcname;
 	 struct rt_init *junk;
 #ifdef __LINUX64__
@@ -476,23 +478,29 @@ struct rt_init // structure placed in XI/YI segment
 
 #define ATEXIT_PRIORITY PRIORITY_ATEXIT
 
+#ifdef _DEBUG
+#  define PASS_FILENAME ,WIDE__FILE__
+#else
+#  define PASS_FILENAME
+#endif
+
 #define PRIORITY_PRELOAD(name,pr) static void name(void); \
 	RTINIT_STATIC struct rt_init pastejunk(name,_ctor_label) \
 	  __attribute__((section("deadstart_list"))) __attribute__((used)) \
 	={0,0,pr INIT_PADDING    \
 	 ,__LINE__,name         \
-	 ,WIDE__FILE__        \
+	 PASS_FILENAME        \
 	,TOSTR(name)        \
 	JUNKINIT(name)}; \
 	void name(void) __attribute__((used));  \
 	void name(void)
 
-typedef void(*atexit_priority_proc)(void (*)(void),CTEXTSTR,int,CTEXTSTR,int);
+typedef void(*atexit_priority_proc)(void (*)(void),CTEXTSTR,int DBG_PASS);
 #define PRIORITY_ATEXIT(name,priority) static void name(void); \
 static void pastejunk(atexit,name)(void) __attribute__((constructor));  \
 void pastejunk(atexit,name)(void)                                                  \
 {                                                                        \
-	RegisterPriorityShutdownProc(name,TOSTR(name),priority,NULL,WIDE__FILE__,__LINE__);                          \
+	RegisterPriorityShutdownProc(name,TOSTR(name),priority,NULL DBG_SRC);                          \
 }                                                                          \
 void name(void)
 
@@ -562,7 +570,7 @@ struct rt_init // structure placed in XI/YI segment
 #endif
 
 
-typedef void(*atexit_priority_proc)(void (*)(void),CTEXTSTR,int,CTEXTSTR,int);
+typedef void(*atexit_priority_proc)(void (*)(void),CTEXTSTR,int DBG_PASS);
 #define ATEXIT_PRIORITY(name,priority) static void name(void); static void atexit##name(void) __attribute__((constructor));  \
 	void atexit_failed##name(void(*f)(void),int i,CTEXTSTR s1,CTEXTSTR s2,int n) { lprintf( WIDE("Failed to load atexit_priority registerar from core program.") );} \
 void atexit##name(void)                                                  \
@@ -571,20 +579,25 @@ void atexit##name(void)                                                  \
 	mod=LoadLibrary(myname);if(mod){\
    typedef void (*x)(void);void(*rsp)( x,const CTEXTSTR,int,const CTEXTSTR,int); \
 	if((rsp=((void(*)(void(*)(void),const CTEXTSTR,int,const CTEXTSTR,int))(GetProcAddress( mod, WIDE("RegisterPriorityShutdownProc"))))))\
-	 {rsp( name,TOSTR(name),priority,WIDE__FILE__,__LINE__ );}\
-	 else atexit_failed##name(name,priority,TOSTR(name),WIDE__FILE__,__LINE__);        \
+	 {rsp( name,TOSTR(name),priority DBG_SRC);}\
+	 else atexit_failed##name(name,priority,TOSTR(name) DBG_SRC);        \
 	}\
      FreeLibrary( mod); \
 	}             \
 void name( void)
 
+#ifdef _DEBUG
+#  define PASS_FILENAME ,WIDE__FILE__
+#else
+#  define PASS_FILENAME
+#endif
 
 #define PRIORITY_PRELOAD(name,pr) static void name(void); \
 	RTINIT_STATIC struct pastejunk(rt_init name,_ctor_label) \
 	  __attribute__((section("deadstart_list"))) \
 	={0,0,pr INIT_PADDING    \
 	 ,__LINE__,name         \
-	 ,WIDE__FILE__        \
+	 PASS_FILENAME        \
 	,TOSTR(name)        \
 	JUNKINIT(name)}; \
 	static void name(void)
@@ -658,7 +671,7 @@ void name( void)
    static int CPROC pastejunk(schedule_,name)(void);   \
 	static __declspec(allocate(_STARTSEG_)) int (CPROC*pastejunk(TARGET_LABEL,pastejunk( pastejunk(x_,name),__LINE__)))(void) = pastejunk(schedule_,name); \
 	int CPROC pastejunk(schedule_,name)(void) {                 \
-	RegisterPriorityStartupProc( name,TOSTR(name),priority,pastejunk(TARGET_LABEL,pastejunk( pastejunk(x_,name),__LINE__)),WIDE__FILE__,__LINE__ );\
+	RegisterPriorityStartupProc( name,TOSTR(name),priority,pastejunk(TARGET_LABEL,pastejunk( pastejunk(x_,name),__LINE__)) DBG_SRC );\
 	return 0; \
 	}                                       \
 	/*static __declspec(allocate(_STARTSEG_)) void (CPROC*pointer_##name)(void) = pastejunk(schedule_,name);*/ \
@@ -669,14 +682,14 @@ void name( void)
    static void name(void)
 #define ATEXIT(name) PRIORITY_ATEXIT(name,ATEXIT_PRIORITY_DEFAULT)
 
-typedef void(*atexit_priority_proc)(void (*)(void),int,CTEXTSTR,CTEXTSTR,int);
+typedef void(*atexit_priority_proc)(void (*)(void),int,CTEXTSTR DBG_PASS);
 
 
 #define PRIORITY_ATEXIT(name,priority) static void CPROC name(void); \
    static int schedule_atexit_##name(void);   \
 	static __declspec(allocate(_STARTSEG_)) void (CPROC*pastejunk(TARGET_LABEL,pastejunk( x_##name,__LINE__)))(void) = (void(CPROC*)(void))schedule_atexit_##name; \
 	static int schedule_atexit_##name(void) {                 \
-	RegisterPriorityShutdownProc( name,TOSTR(name),priority,pastejunk(TARGET_LABEL,pastejunk( x_##name,__LINE__)),WIDE__FILE__,__LINE__ );\
+	RegisterPriorityShutdownProc( name,TOSTR(name),priority,pastejunk(TARGET_LABEL,pastejunk( x_##name,__LINE__)) DBG_SRC );\
 	return 0; \
 	}                                       \
 	static void CPROC name(void)

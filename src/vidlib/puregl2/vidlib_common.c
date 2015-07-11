@@ -81,7 +81,7 @@ extern KEYDEFINE KeyDefs[];
 
 void  EnableLoggingOutput( LOGICAL bEnable )
 {
-   l.flags.bLogWrites = bEnable;
+	l.flags.bLogWrites = bEnable;
 }
 
 void  UpdateDisplayPortionEx( PVIDEO hVideo
@@ -89,11 +89,11 @@ void  UpdateDisplayPortionEx( PVIDEO hVideo
                                           , _32 w, _32 h DBG_PASS)
 {
 
-   if( hVideo )
+	if( hVideo )
 		hVideo->flags.bShown = 1;
 	l.flags.bUpdateWanted = 1;
 	if( l.wake_callback )
-      l.wake_callback();
+		l.wake_callback();
 }
 
 //----------------------------------------------------------------------------
@@ -134,32 +134,32 @@ UnlinkVideo (PVIDEO hVideo)
 void
 FocusInLevel (PVIDEO hVideo)
 {
-   lprintf( WIDE( "Focus IN level" ) );
-   if (hVideo->pPrior)
-   {
-      hVideo->pPrior->pNext = hVideo->pNext;
-      if (hVideo->pNext)
-         hVideo->pNext->pPrior = hVideo->pPrior;
+	lprintf( WIDE( "Focus IN level" ) );
+	if (hVideo->pPrior)
+	{
+		hVideo->pPrior->pNext = hVideo->pNext;
+		if (hVideo->pNext)
+			hVideo->pNext->pPrior = hVideo->pPrior;
 
-      hVideo->pPrior = NULL;
-
-      if (hVideo->pAbove)
-      {
-         hVideo->pNext = hVideo->pAbove->pBelow;
-         hVideo->pAbove->pBelow->pPrior = hVideo;
-         hVideo->pAbove->pBelow = hVideo;
-      }
-      else        // nothing points to this - therefore we must find the start
-      {
-         PVIDEO pCur = hVideo->pPrior;
-         while (pCur->pPrior)
-            pCur = pCur->pPrior;
-         pCur->pPrior = hVideo;
-         hVideo->pNext = pCur;
-       }
 		hVideo->pPrior = NULL;
-   }
-   // else we were the first in this level's chain...
+
+		if (hVideo->pAbove)
+		{
+			hVideo->pNext = hVideo->pAbove->pBelow;
+			hVideo->pAbove->pBelow->pPrior = hVideo;
+			hVideo->pAbove->pBelow = hVideo;
+		}
+		else		  // nothing points to this - therefore we must find the start
+		{
+			PVIDEO pCur = hVideo->pPrior;
+			while (pCur->pPrior)
+				pCur = pCur->pPrior;
+			pCur->pPrior = hVideo;
+			hVideo->pNext = pCur;
+		}
+		hVideo->pPrior = NULL;
+	}
+	// else we were the first in this level's chain...
 }
 
 //----------------------------------------------------------------------------
@@ -254,7 +254,7 @@ void  PutDisplayAbove (PVIDEO hVideo, PVIDEO hAbove)
 
 void  PutDisplayIn (PVIDEO hVideo, PVIDEO hIn)
 {
-   lprintf( WIDE( "Relate hVideo as a child of hIn..." ) );
+	lprintf( WIDE( "Relate hVideo as a child of hIn..." ) );
 }
 
 //----------------------------------------------------------------------------
@@ -285,11 +285,11 @@ LOGICAL CreateDrawingSurface (PVIDEO hVideo)
 
 void DoDestroy (PVIDEO hVideo)
 {
-   if (hVideo)
-   {
-      if (hVideo->pWindowClose)
-      {
-         hVideo->pWindowClose (hVideo->dwCloseData);
+	if (hVideo)
+	{
+		if (hVideo->pWindowClose)
+		{
+			hVideo->pWindowClose (hVideo->dwCloseData);
 		}
 
 		if( hVideo->over )
@@ -306,10 +306,10 @@ void DoDestroy (PVIDEO hVideo)
 		lprintf( WIDE( "In DoDestroy, destroyed a good bit already..." ) );
 #endif
 
-      // this will be cleared at the next statement....
-      // which indicates we will be ready to be released anyhow...
+		// this will be cleared at the next statement....
+		// which indicates we will be ready to be released anyhow...
 		//hVideo->flags.bReady = FALSE;
-      // unlink from the stack of windows...
+		// unlink from the stack of windows...
 		UnlinkVideo (hVideo);
 		if( l.hVirtualCaptured == hVideo )
 		{
@@ -336,7 +336,7 @@ void DoDestroy (PVIDEO hVideo)
 		}
 		else
 			hVideo->flags.bReady = 0; // leave as much as we can if in a key...
-   }
+	}
 }
 
 //----------------------------------------------------------------------------
@@ -348,7 +348,7 @@ void LoadOptions( void )
 	//int some_height;
 	//HostSystem_InitDisplayInfo();
 #ifndef __ANDROID__
-   // these come in courtesy of the android system...
+	// these come in courtesy of the android system...
 	l.default_display_x = 1024;
 	l.default_display_y = 768;
 #endif
@@ -365,7 +365,7 @@ void LoadOptions( void )
 			l.scale = 1;
 	}
 	else
-		l.scale = 1.0 / l.scale;
+		l.scale = 1.0f / l.scale;
 	//lprintf( "LoadOptions" );
 	if( !l.cameras )
 	{
@@ -373,7 +373,7 @@ void LoadOptions( void )
 		_32 screen_w, screen_h;
 		int nDisplays = SACK_GetProfileIntEx( GetProgramName(), WIDE("SACK/Video Render/Number of Displays"), l.flags.bView360?6:1, TRUE );
 		int n;
-      lprintf( WIDE("Loading %d displays"), nDisplays );
+		lprintf( WIDE("Loading %d displays"), nDisplays );
 		l.flags.bForceUnaryAspect = SACK_GetProfileIntEx( GetProgramName(), WIDE("SACK/Video Render/Force Aspect 1.0"), (nDisplays==1)?0:1, TRUE );
 		GetDisplaySizeEx( 0, NULL, NULL, &screen_w, &screen_h );
 		switch( nDisplays )
@@ -397,7 +397,7 @@ void LoadOptions( void )
 			struct display_camera *camera = New( struct display_camera );
 			MemSet( camera, 0, sizeof( *camera ) );
 			camera->nCamera = n + 1;
-         camera->depth = 30000.0f;
+			camera->depth = 30000.0f;
 			camera->origin_camera = CreateTransform();
 
 			tnprintf( tmp, sizeof( tmp ), WIDE("SACK/Video Render/Display %d/Display is topmost"), n+1 );
@@ -467,7 +467,7 @@ void LoadOptions( void )
 				GetDisplaySizeEx( camera->display, &camera->x, &camera->y, &camera->w, &camera->h );
 			}
 
-			camera->identity_depth = camera->w/2;
+			camera->identity_depth = camera->w/2.0f;
 			if( l.flags.bForceUnaryAspect )
 				camera->aspect = 1.0;
 			else
@@ -503,14 +503,14 @@ void LoadOptions( void )
 #  define LAYERED_DEFAULT 0
 #else
 		// opengl output to layered (transparent) windows is impracticle, and requires an extra move from video memory, or render to
-      // conventional memroy and then a push to video memory;  tiny surfaces may work (those things... toolbar widgets)
+		// conventional memroy and then a push to video memory;  tiny surfaces may work (those things... toolbar widgets)
 #  define LAYERED_DEFAULT 0
 #endif
 		l.flags.bLayeredWindowDefault = SACK_GetOptionIntEx( option, GetProgramName(), WIDE( "SACK/Video Render/Default windows are layered" ), LAYERED_DEFAULT, TRUE )?TRUE:FALSE;
 		l.flags.bLogWrites = SACK_GetOptionIntEx( option, GetProgramName(), WIDE("SACK/Video Render/Log Video Output"), 0, TRUE );
 	}
 #else
-   l.flags.bLogRenderTiming = 0;
+	l.flags.bLogRenderTiming = 0;
 	l.flags.bView360 = 0;
 
 	l.scale = 1.0 / 10;
@@ -521,7 +521,7 @@ void LoadOptions( void )
 		_32 screen_w, screen_h;
 		int nDisplays = 1;
 		int n;
-      lprintf( WIDE("Loading %d displays"), nDisplays );
+		lprintf( WIDE("Loading %d displays"), nDisplays );
 		l.flags.bForceUnaryAspect = 0;
 		GetDisplaySizeEx( 0, NULL, NULL, &screen_w, &screen_h );
 		//lprintf( "Set camera 0 to 1" );
@@ -533,7 +533,7 @@ void LoadOptions( void )
 			struct display_camera *camera = New( struct display_camera );
 			MemSet( camera, 0, sizeof( *camera ) );
 			camera->nCamera = n + 1;
-         camera->depth = 30000.0f;
+			camera->depth = 30000.0f;
 			camera->origin_camera = CreateTransform();
 
 			camera->flags.topmost = 0;
@@ -590,7 +590,7 @@ void LoadOptions( void )
 
 		CreateTransformMotion( l.origin ); // some things like rotate rel
 
-      // spin so we can see if the display is SOMEWHERE
+		// spin so we can see if the display is SOMEWHERE
 		//SetRotation( l.origin, _Y );
 
 	}
@@ -650,11 +650,11 @@ static void InvokeExtraInit( struct display_camera *camera, PTRANSFORM view_came
 						reference->Key3d = GetRegisteredProcedureExx( draw3d,(CTEXTSTR)name,LOGICAL,WIDE("ExtraKey3d"),(PTRSZVAL,_32));
 					}
 					if( reference->Draw3d )
-					    camera->flags.bDrawablePlugin = 1;
+						 camera->flags.bDrawablePlugin = 1;
 					AddLink( &camera->plugins, reference );
 				}
 
-            // update the psv for the new init.
+				// update the psv for the new init.
 				reference->psv = psvInit;
 			}
 		}
@@ -740,12 +740,12 @@ void OpenCamera( struct display_camera *camera )
 
 #ifdef __ANDROID__
 		if( l.displayWindow )
-         camera->hVidCore->flags.bReady = 1;
+			camera->hVidCore->flags.bReady = 1;
 #endif
 #ifdef LOG_OPEN_TIMING
 		lprintf( WIDE( "Created Real window...Stuff.. %d,%d %dx%d" ),camera->x,camera->y,camera->w,camera->h );
 #endif
-      // trigger first draw logic for camera
+		// trigger first draw logic for camera
 		camera->flags.first_draw = 1;
 		camera->flags.opening = 0;
 		// extra init iterates through registered plugins and
@@ -781,8 +781,10 @@ struct display_camera *SACK_Vidlib_OpenCameras( void )
 // when a library is loaded later, invoke it's Init3d with existing cameras
 static void OnLibraryLoad( WIDE("Video Render PureGL 2") )( void )
 {
+#  if defined( WIN32 )
 	if( l.bThreadRunning )
-		SACK_Vidlib_OpenCameras();
+		PostThreadMessage( l.dwThreadID, WM_USER_OPEN_CAMERAS, 0, 0);
+#  endif
 }
 #endif
 
@@ -857,7 +859,7 @@ LOGICAL  CreateWindowStuffSizedAt (PVIDEO hVideo, int x, int y,
 
 LOGICAL DoOpenDisplay( PVIDEO hNextVideo )
 {
-   // starts our message thread if there is one...
+	// starts our message thread if there is one...
 	if( !l.top )
 		l.hVidVirtualFocused = hNextVideo;
 
@@ -894,7 +896,7 @@ PVIDEO  OpenDisplaySizedAt (_32 attr, _32 wx, _32 wy, S_32 x, S_32 y) // if nati
 	MemSet (hNextVideo, 0, sizeof (VIDEO));
 	InitializeCriticalSec( &hNextVideo->cs );
 
-   lprintf( WIDE("(don't know from where)CreateWindow at %d,%d %dx%d"), x, y, wx, wy );
+	lprintf( WIDE("(don't know from where)CreateWindow at %d,%d %dx%d"), x, y, wx, wy );
 #ifdef _OPENGL_ENABLED
 	hNextVideo->_prior_fracture = -1;
 #endif
@@ -928,8 +930,8 @@ PVIDEO  OpenDisplaySizedAt (_32 attr, _32 wx, _32 wy, S_32 x, S_32 y) // if nati
 
 	if( DoOpenDisplay( hNextVideo ) )
 	{
-      lprintf( WIDE("New bottom is %p"), l.bottom );
-      return hNextVideo;
+		lprintf( WIDE("New bottom is %p"), l.bottom );
+		return hNextVideo;
 	}
 	Deallocate( PRENDERER, hNextVideo );
 	return NULL;
@@ -972,10 +974,10 @@ PVIDEO  OpenDisplayAboveSizedAt (_32 attr, _32 wx, _32 wy,
 PVIDEO  OpenDisplayAboveUnderSizedAt (_32 attr, _32 wx, _32 wy,
                                                S_32 x, S_32 y, PVIDEO parent, PVIDEO barrier)
 {
-   PVIDEO newvid = OpenDisplaySizedAt (attr, wx, wy, x, y);
-   if( barrier )
-   {
-	   // use initial SW_RESTORE instead of SW_NORMAL
+	PVIDEO newvid = OpenDisplaySizedAt (attr, wx, wy, x, y);
+	if( barrier )
+	{
+		// use initial SW_RESTORE instead of SW_NORMAL
 		newvid->flags.bOpenedBehind = 1;
 		newvid->under = barrier;
 
@@ -1036,7 +1038,7 @@ void  CloseDisplay (PVIDEO hVideo)
 #ifdef USE_IPC_MESSAGE_QUEUE_TO_GATHER_MOUSE_EVENTS
 	SendServiceEvent( 0, l.dwMsgBase + MSG_DispatchPending, NULL, 0 );
 #endif
-   return;
+	return;
 }
 
 //----------------------------------------------------------------------------
@@ -1078,7 +1080,7 @@ void  SizeDisplayRel (PVIDEO hVideo, S_32 delw, S_32 delh)
 
 #ifdef LOG_RESIZE
 		Log2 (WIDE( "Resized display to %d,%d" ), hVideo->pWindowPos.cx,
-            hVideo->pWindowPos.cy);
+		hVideo->pWindowPos.cy);
 #endif
 #ifdef LOG_ORDERING_REFOCUS
 		lprintf( WIDE( "size display relative" ) );
@@ -1100,7 +1102,7 @@ void  MoveDisplay (PVIDEO hVideo, S_32 x, S_32 y)
 		{
 			hVideo->pWindowPos.x = x;
 			hVideo->pWindowPos.y = y;
-			Translate( hVideo->transform, x, y, 0.0 );
+			Translate( hVideo->transform, (RCOORD)x, (RCOORD)y, 0.0 );
 			if( hVideo->flags.bShown )
 			{
 				// layered window requires layered output to be called to move the display.
@@ -1114,12 +1116,12 @@ void  MoveDisplay (PVIDEO hVideo, S_32 x, S_32 y)
 
 void  MoveDisplayRel (PVIDEO hVideo, S_32 x, S_32 y)
 {
-   if (x || y)
-   {
+	if (x || y)
+	{
 		hVideo->pWindowPos.x += x;
 		hVideo->pWindowPos.y += y;
 		Translate( hVideo->transform, hVideo->pWindowPos.x, hVideo->pWindowPos.y, 0 );
-   }
+	}
 }
 
 //----------------------------------------------------------------------------
@@ -1127,22 +1129,22 @@ void  MoveDisplayRel (PVIDEO hVideo, S_32 x, S_32 y)
 void  MoveSizeDisplay (PVIDEO hVideo, S_32 x, S_32 y, S_32 w,
                                      S_32 h)
 {
-   S_32 cx, cy;
-   hVideo->pWindowPos.x = x;
+	S_32 cx, cy;
+	hVideo->pWindowPos.x = x;
 	hVideo->pWindowPos.y = y;
-   cx = w;
-   cy = h;
-   if (cx < 50)
-      cx = 50;
-   if (cy < 20)
+	cx = w;
+	cy = h;
+	if (cx < 50)
+		cx = 50;
+	if (cy < 20)
 		cy = 20;
-   hVideo->pWindowPos.cx = cx;
-   hVideo->pWindowPos.cy = cy;
+	hVideo->pWindowPos.cx = cx;
+	hVideo->pWindowPos.cy = cy;
 #ifdef LOG_DISPLAY_RESIZE
 	lprintf( WIDE( "move and size display." ) );
 #endif
-   // updates window translation
-   CreateDrawingSurface( hVideo );
+	// updates window translation
+	CreateDrawingSurface( hVideo );
 }
 
 //----------------------------------------------------------------------------
@@ -1151,32 +1153,32 @@ void  MoveSizeDisplayRel (PVIDEO hVideo, S_32 delx, S_32 dely,
                                         S_32 delw, S_32 delh)
 {
 	S_32 cx, cy;
-   hVideo->pWindowPos.x += delx;
-   hVideo->pWindowPos.y += dely;
-   cx = hVideo->pWindowPos.cx + delw;
-   cy = hVideo->pWindowPos.cy + delh;
-   if (cx < 50)
-      cx = 50;
-   if (cy < 20)
+	hVideo->pWindowPos.x += delx;
+	hVideo->pWindowPos.y += dely;
+	cx = hVideo->pWindowPos.cx + delw;
+	cy = hVideo->pWindowPos.cy + delh;
+	if (cx < 50)
+		cx = 50;
+	if (cy < 20)
 		cy = 20;
-   hVideo->pWindowPos.cx = cx;
-   hVideo->pWindowPos.cy = cy;
+	hVideo->pWindowPos.cx = cx;
+	hVideo->pWindowPos.cy = cy;
 //fdef LOG_DISPLAY_RESIZE
 	lprintf( WIDE( "move and size relative %d,%d %d,%d" ), delx, dely, delw, delh );
 //ndif
-   CreateDrawingSurface( hVideo );
+	CreateDrawingSurface( hVideo );
 }
 
 //----------------------------------------------------------------------------
 
 void  UpdateDisplayEx (PVIDEO hVideo DBG_PASS )
 {
-   // copy hVideo->lpBuffer to hVideo->hDCOutput
-   if (hVideo )
-   {
-      UpdateDisplayPortionEx (hVideo, 0, 0, 0, 0 DBG_RELAY);
-   }
-   return;
+	// copy hVideo->lpBuffer to hVideo->hDCOutput
+	if (hVideo )
+	{
+		UpdateDisplayPortionEx (hVideo, 0, 0, 0, 0 DBG_RELAY);
+	}
+	return;
 }
 
 //----------------------------------------------------------------------------
@@ -1201,7 +1203,9 @@ void  SetMousePosition (PVIDEO hVid, S_32 x, S_32 y)
 			newy = y;
 		}
 		//lprintf( WIDE("%d,%d became %d,%d"), x, y, newx, newy );
+#if defined( WIN32 )
 		SetCursorPos( newx, newy );
+#endif
 	}
 	else
 	{
@@ -1314,7 +1318,7 @@ void  SetRedrawHandler (PVIDEO hVideo,
 		//lprintf( WIDE("Sending redraw for %p"), hVideo );
 		if( hVideo->flags.bShown )
 		{
-         l.flags.bUpdateWanted = 1;
+			l.flags.bUpdateWanted = 1;
 			if( l.wake_callback )
 				l.wake_callback();
 		}
@@ -1339,9 +1343,9 @@ void  SetLoseFocusHandler (PVIDEO hVideo,
 {
 	hVideo->dwLoseFocus = dwUser;
 	hVideo->pLoseFocus = pLoseFocus;
-   // window will need the initial set focus if it is focused.
+	// window will need the initial set focus if it is focused.
 	if( pLoseFocus && hVideo == l.hVidVirtualFocused )
-      pLoseFocus( dwUser, l.hVidVirtualFocused );
+		pLoseFocus( dwUser, l.hVidVirtualFocused );
 }
 
 //----------------------------------------------------------------------------
@@ -1351,7 +1355,7 @@ void  SetApplicationTitle (const TEXTCHAR *pTitle)
 	l.gpTitle = pTitle;
 	if (l.cameras)
 	{
-      //DebugBreak();
+		//DebugBreak();
 		//SetWindowText((((struct display_camera *)GetLink( &l.cameras, 0 ))->hWndInstance), l.gpTitle);
 	}
 }
@@ -1364,7 +1368,7 @@ void  SetRendererTitle (PVIDEO hVideo, const TEXTCHAR *pTitle)
 	//if (l.hWndInstance)
 	{
 		if( hVideo->pTitle )
-         Deallocate( POINTER, hVideo->pTitle );
+			Deallocate( POINTER, hVideo->pTitle );
 		hVideo->pTitle = StrDupEx( pTitle DBG_SRC );
 	}
 }
@@ -1498,28 +1502,28 @@ LOGICAL  DisplayIsValid (PVIDEO hVid)
 
 void  SetDisplaySize (_32 width, _32 height)
 {
-   SizeDisplay (l.hVideoPool, width, height);
+	SizeDisplay (l.hVideoPool, width, height);
 }
 
 //----------------------------------------------------------------------------
 
 ImageFile * GetDisplayImage (PVIDEO hVideo)
 {
-   return hVideo->pImage;
+	return hVideo->pImage;
 }
 
 //----------------------------------------------------------------------------
 
 PKEYBOARD  GetDisplayKeyboard (PVIDEO hVideo)
 {
-   return &hVideo->kbd;
+	return &hVideo->kbd;
 }
 
 //----------------------------------------------------------------------------
 
 LOGICAL  HasFocus (PRENDERER hVideo)
 {
-   return hVideo->flags.bFocused;
+	return hVideo->flags.bFocused;
 }
 
 //----------------------------------------------------------------------------
@@ -1527,12 +1531,12 @@ LOGICAL  HasFocus (PRENDERER hVideo)
 #if ACTIVE_MESSAGE_IMPLEMENTED
 int  SendActiveMessage (PRENDERER dest, PACTIVEMESSAGE msg)
 {
-   return 0;
+	return 0;
 }
 
 PACTIVEMESSAGE  CreateActiveMessage (int ID, int size,...)
 {
-   return NULL;
+	return NULL;
 }
 
 void  SetDefaultHandler (PRENDERER hVideo,
@@ -1559,13 +1563,13 @@ void  OwnMouseEx (PVIDEO hVideo, _32 own DBG_PASS)
 		else
 		if( hVideo->camera )
 		{
-		    lprintf( "set physical catpure here" );
+			lprintf( "set physical catpure here" );
 		}
 		else
 		{
 			if( !l.hVirtualCaptured )
 			{
-    				//lprintf( "no virtual capture; set capture on %p", hVideo );
+				//lprintf( "no virtual capture; set capture on %p", hVideo );
 				l.hVirtualCaptured = hVideo;
 				l.hVirtualCapturedPrior = hVideo; // make sure to set this so it doesn't get reset to invalid
 				hVideo->flags.bCaptured = 1;
@@ -1600,7 +1604,9 @@ void  OwnMouseEx (PVIDEO hVideo, _32 own DBG_PASS)
 		if( !hVideo )
 		{
 			l.hCapturedMousePhysical = NULL;
+#if defined( WIN32 )
 			ReleaseCapture();
+#endif
 		}
 		else
 		{
@@ -1624,7 +1630,7 @@ void  OwnMouseEx (PVIDEO hVideo, _32 own DBG_PASS)
 void
 NoProc (void)
 {
-   // empty do nothing prodecudure for unimplemented features
+	// empty do nothing prodecudure for unimplemented features
 }
 
 //----------------------------------------------------------------------------
@@ -1636,14 +1642,14 @@ NoProc (void)
 
 int  BeginCalibration (_32 nPoints)
 {
-   return 1;
+	return 1;
 }
 
 //----------------------------------------------------------------------------
 void  SyncRender( PVIDEO hVideo )
 {
-   // sync has no consequence...
-   return;
+	// sync has no consequence...
+	return;
 }
 
 //----------------------------------------------------------------------------
@@ -1656,7 +1662,7 @@ void  ForceDisplayFocus ( PRENDERER pRender )
 		if( l.hVidVirtualFocused )
 		{
 			if( l.hVidVirtualFocused->pLoseFocus )
-            l.hVidVirtualFocused->pLoseFocus( l.hVidVirtualFocused->dwLoseFocus, l.hVidVirtualFocused );
+				l.hVidVirtualFocused->pLoseFocus( l.hVidVirtualFocused->dwLoseFocus, l.hVidVirtualFocused );
 		}
 		l.hVidVirtualFocused = pRender;
 	}
@@ -1679,7 +1685,7 @@ void  ForceDisplayFocus ( PRENDERER pRender )
  void  ForceDisplayBack ( PRENDERER pRender )
 {
 	// uhmm...
-   lprintf( WIDE( "Force display backward." ) );
+	lprintf( WIDE( "Force display backward." ) );
 
 }
 //----------------------------------------------------------------------------
@@ -1687,8 +1693,8 @@ void  ForceDisplayFocus ( PRENDERER pRender )
 #undef UpdateDisplay
 void  UpdateDisplay (PRENDERER hVideo )
 {
-   //DebugBreak();
-   UpdateDisplayEx( hVideo DBG_SRC );
+	//DebugBreak();
+	UpdateDisplayEx( hVideo DBG_SRC );
 }
 
 void  DisableMouseOnIdle (PVIDEO hVideo, LOGICAL bEnable )
@@ -1715,7 +1721,7 @@ void  DisableMouseOnIdle (PVIDEO hVideo, LOGICAL bEnable )
 			if( hVideo->idle_timer_id )
 			{
 				//KillTimer( hVideo->hWndOutput, hVideo->idle_timer_id );
-            hVideo->idle_timer_id = 0;
+				hVideo->idle_timer_id = 0;
 			}
 		}
 	}
@@ -1727,7 +1733,7 @@ void  DisableMouseOnIdle (PVIDEO hVideo, LOGICAL bEnable )
 	if( hVideo )
 	{
 		if( level < 0 )
-         level = 0;
+			level = 0;
 		if( level > 254 )
 			level = 254;
 		hVideo->fade_alpha = 255 - level;
@@ -1750,18 +1756,18 @@ LOGICAL RequiresDrawAll ( void )
 
 void MarkDisplayUpdated( PRENDERER r )
 {
-   l.flags.bUpdateWanted = 1;
+	l.flags.bUpdateWanted = 1;
 	if( r )
-      r->flags.bUpdated = 1;
+		r->flags.bUpdated = 1;
 	if( l.wake_callback )
 		l.wake_callback();
 }
 
 static LOGICAL CPROC DefaultExit( PTRSZVAL psv, _32 keycode )
 {
-   lprintf( WIDE( "Default Exit..." ) );
+	lprintf( WIDE( "Default Exit..." ) );
 	BAG_Exit(0);
-   return 1;
+	return 1;
 }
 
 static LOGICAL CPROC EnableRotation( PTRSZVAL psv, _32 keycode )
@@ -1791,7 +1797,7 @@ static LOGICAL CPROC EnableRotation( PTRSZVAL psv, _32 keycode )
 		lprintf( WIDE("lock rotate") );
 	else
 		lprintf(WIDE("unlock rotate") );
-   return 1;
+	return 1;
 }
 
 static LOGICAL CPROC CameraForward( PTRSZVAL psv, _32 keycode )
@@ -1806,13 +1812,13 @@ static LOGICAL CPROC CameraForward( PTRSZVAL psv, _32 keycode )
 			else
 				Forward( l.origin, SPEED_CONSTANT );
 		}
-      else
+		else
 			Forward( l.origin, 0.0 );
-      UpdateMouseRays( l.mouse_x, l.mouse_y );
+		UpdateMouseRays( l.mouse_x, l.mouse_y );
 //      return 1;
 	}
 //   return 0;
-   return 1;
+	return 1;
 }
 
 static LOGICAL CPROC CameraLeft( PTRSZVAL psv, _32 keycode )
@@ -1830,28 +1836,28 @@ static LOGICAL CPROC CameraLeft( PTRSZVAL psv, _32 keycode )
 				Right( l.origin, -SPEED_CONSTANT );
 			}
 		}
-      else
+		else
 			Right( l.origin, 0.0 );
-      UpdateMouseRays( l.mouse_x, l.mouse_y );
+		UpdateMouseRays( l.mouse_x, l.mouse_y );
 //      return 1;
 	}
 //   return 0;
-   return 1;
+	return 1;
 }
 
 static LOGICAL CPROC CameraRight( PTRSZVAL psv, _32 keycode )
 {
 	if( l.flags.bRotateLock )
 	{
-      if( IsKeyPressed( keycode ) )
+		if( IsKeyPressed( keycode ) )
 			Right( l.origin, SPEED_CONSTANT );
-      else
+		else
 			Right( l.origin, 0.0 );
-//      return 1;
-      UpdateMouseRays( l.mouse_x, l.mouse_y );
+//		return 1;
+		UpdateMouseRays( l.mouse_x, l.mouse_y );
 	}
-//   return 0;
-   return 1;
+//	return 0;
+	return 1;
 }
 
 static LOGICAL CPROC CameraRollRight( PTRSZVAL psv, _32 keycode )
@@ -1864,13 +1870,13 @@ static LOGICAL CPROC CameraRollRight( PTRSZVAL psv, _32 keycode )
 			scale( tmp, _Z, -1.0 );
 			SetRotation( l.origin, tmp );
 		}
-      else
+		else
 			SetRotation( l.origin, _0 );
-//      return 1;
-      UpdateMouseRays( l.mouse_x, l.mouse_y );
+//		return 1;
+		UpdateMouseRays( l.mouse_x, l.mouse_y );
 	}
-//   return 0;
-   return 1;
+//	return 0;
+	return 1;
 }
 
 static LOGICAL CPROC CameraRollLeft( PTRSZVAL psv, _32 keycode )
@@ -1885,10 +1891,10 @@ static LOGICAL CPROC CameraRollLeft( PTRSZVAL psv, _32 keycode )
 		}
 		else
 			SetRotation( l.origin, _0 );
-//      return 1;
+//		return 1;
 		UpdateMouseRays( l.mouse_x, l.mouse_y );
 	}
-//   return 0;
+//	return 0;
 	return 1;
 }
 
@@ -1905,23 +1911,23 @@ static LOGICAL CPROC CameraDown( PTRSZVAL psv, _32 keycode )
 		}
 		else
 			Up( l.origin, 0.0 );
-      UpdateMouseRays( l.mouse_x, l.mouse_y );
-//      return 1;
+		UpdateMouseRays( l.mouse_x, l.mouse_y );
+//		return 1;
 	}
-//   return 0;
-   return 1;
+//	return 0;
+	return 1;
 }
 
 int IsTouchDisplay( void )
 {
-   return 0;
+	return 0;
 }
 
 LOGICAL IsDisplayHidden( PVIDEO video )
 {
-   if( video )
+	if( video )
 		return video->flags.bHidden;
-   return 0;
+	return 0;
 }
 
 static LOGICAL OnKey3d( WIDE("Video Render Common") )( PTRSZVAL psv, _32 key )
@@ -1987,35 +1993,35 @@ PRIORITY_PRELOAD( VideoRegisterInterface, VIDLIB_PRELOAD_PRIORITY )
 		lprintf( WIDE("Regstering video interface...") );
 #ifdef _OPENGL_DRIVER
 	RegisterInterface( 
-	   WIDE("puregl2.render")
-	   , GetDisplayInterface, DropDisplayInterface );
+		WIDE("puregl2.render")
+		, GetDisplayInterface, DropDisplayInterface );
 	RegisterInterface( 
-	   WIDE("puregl2.render.3d")
-	   , GetDisplay3dInterface, DropDisplay3dInterface );
+		WIDE("puregl2.render.3d")
+		, GetDisplay3dInterface, DropDisplay3dInterface );
 #endif
 #ifdef _D3D_DRIVER
 	RegisterInterface( 
-	   WIDE("d3d2.render")
-	   , GetDisplayInterface, DropDisplayInterface );
+		WIDE("d3d2.render")
+		, GetDisplayInterface, DropDisplayInterface );
 	RegisterInterface( 
-	   WIDE("d3d2.render.3d")
-	   , GetDisplay3dInterface, DropDisplay3dInterface );
+		WIDE("d3d2.render.3d")
+		, GetDisplay3dInterface, DropDisplay3dInterface );
 #endif
 #ifdef _D3D10_DRIVER
 	RegisterInterface( 
-	   WIDE("d3d10.render")
-	   , GetDisplayInterface, DropDisplayInterface );
+		WIDE("d3d10.render")
+		, GetDisplayInterface, DropDisplayInterface );
 	RegisterInterface( 
-	   WIDE("d3d10.render.3d")
-	   , GetDisplay3dInterface, DropDisplay3dInterface );
+		WIDE("d3d10.render.3d")
+		, GetDisplay3dInterface, DropDisplay3dInterface );
 #endif
 #ifdef _D3D11_DRIVER
 	RegisterInterface( 
-	   WIDE("d3d11.render")
-	   , GetDisplayInterface, DropDisplayInterface );
+		WIDE("d3d11.render")
+		, GetDisplayInterface, DropDisplayInterface );
 	RegisterInterface( 
-	   WIDE("d3d11.render.3d")
-	   , GetDisplay3dInterface, DropDisplay3dInterface );
+		WIDE("d3d11.render.3d")
+		, GetDisplay3dInterface, DropDisplay3dInterface );
 #endif
 	l.gl_image_interface = (PIMAGE_INTERFACE)GetInterface( WIDE("image") );
 
@@ -2032,7 +2038,7 @@ PRIORITY_PRELOAD( VideoRegisterInterface, VIDLIB_PRELOAD_PRIORITY )
 
 	//LoadOptions();
 #ifdef __QNX__
-   // gets handles to low level device information
+	// gets handles to low level device information
 	InitQNXDisplays();
 #endif
 
@@ -2056,7 +2062,7 @@ PSPRITE_METHOD  EnableSpriteMethod (PRENDERER render, void(CPROC*RenderSprites)(
 	psm->RenderSprites = RenderSprites;
 	psm->psv = psv;
 	AddLink( &render->sprites, psm );
-   return psm; // the sprite should assign this...
+	return psm; // the sprite should assign this...
 }
 
 // this is a magic routine, and should only be called by sprite itself
@@ -2066,9 +2072,9 @@ PSPRITE_METHOD  EnableSpriteMethod (PRENDERER render, void(CPROC*RenderSprites)(
 static void CPROC SavePortion( PSPRITE_METHOD psm, _32 x, _32 y, _32 w, _32 h )
 {
 	struct saved_location location;
-   location.x = x;
-   location.y = y;
-   location.w = w;
+	location.x = x;
+	location.y = y;
+	location.w = w;
 	location.h = h;
 	//lprintf( "Save Portion %d,%d %d,%d", x, y, w, h );
 	EnqueData( &psm->saved_spots, &location );
@@ -2077,7 +2083,7 @@ static void CPROC SavePortion( PSPRITE_METHOD psm, _32 x, _32 y, _32 w, _32 h )
 
 PRELOAD( InitSetSavePortion )
 {
-   //SetSavePortion( SavePortion );
+	//SetSavePortion( SavePortion );
 }
 
 void LockRenderer( PRENDERER render )

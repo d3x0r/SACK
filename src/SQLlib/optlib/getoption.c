@@ -996,7 +996,7 @@ LOGICAL GetOptionIntValue( POPTION_TREE_NODE optval, int *result_value DBG_PASS 
 		if( value[0] == 'y' || value[0] == 'Y' || ( value[0] == 't' || value[0] == 'T' ) )
 			*result_value = 1;
 		else
-			*result_value = IntCreateFromText( value );
+			*result_value = (int)IntCreateFromText( value );
 		return TRUE;
 	}
 	return FALSE;
@@ -1605,7 +1605,7 @@ SQLGETOPTION_PROC( S_32, SACK_GetPrivateProfileIntExx )( PODBC odbc, CTEXTSTR pS
 	{
 		if( buffer[0] == 'Y' || buffer[0] == 'y' )
 			return 1;
-		return IntCreateFromText( buffer );
+		return (S_32)IntCreateFromText( buffer );
 	}
 	return nDefault;
 }

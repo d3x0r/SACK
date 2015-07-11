@@ -1163,7 +1163,7 @@ RENDER_PROC( PSPRITE_METHOD, EnableSpriteMethod )(PRENDERER render, void(CPROC*R
 
 /* signature for callback method to pass to
    WinShell_AcceptDroppedFiles.             */
-typedef void (CPROC*dropped_file_acceptor)(PTRSZVAL psv, CTEXTSTR filename, S_32 x, S_32 y );
+typedef LOGICAL (CPROC*dropped_file_acceptor)(PTRSZVAL psv, CTEXTSTR filename, S_32 x, S_32 y );
 /* Adds a callback to call when a file is dropped. Each callback
    can return 0 that it did not accept the file, or 1 that it
    did. once the file is accepted by a handler, it is not passed
@@ -1748,7 +1748,7 @@ typedef int check_this_variable;
 #define SuspendSystemSleep      REND_PROC_ALIAS_VOID( SuspendSystemSleep )
 #define RenderIsInstanced()       ((USE_RENDER_INTERFACE)?((USE_RENDER_INTERFACE)->_RenderIsInstanced)?(USE_RENDER_INTERFACE)->_RenderIsInstanced():0:0)
 
-#define SetDisplayCursor           {if(USE_RENDER_INTERFACE)REND_PROC_ALIAS(SetDisplayCursor);}
+#define SetDisplayCursor(n)           {if((USE_RENDER_INTERFACE)&&(USE_RENDER_INTERFACE)->_SetDisplayCursor)REND_PROC_ALIAS(SetDisplayCursor)(n);}
 #endif
 
 	_INTERFACE_NAMESPACE_END

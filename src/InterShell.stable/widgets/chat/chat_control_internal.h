@@ -3,8 +3,8 @@
 
 // --- cheat
 #include "consolestruc.h"
-#include "history.h"
-#include "histstruct.h"
+#include "../../../psilib/console/history.h"
+#include "../../../psilib/console/histstruct.h"
 
 // ----- common, everyone needs...
 
@@ -29,27 +29,32 @@ typedef struct chat_list_tag
 		BIT_FIELD in_command : 1;
 		BIT_FIELD allow_command_popup : 1;
 	} flags;
-	PHISTORY_REGION pHistory;
-	PHISTORY_BROWSER phb_Input;
-	PUSER_INPUT_BUFFER CommandInfo;
+	struct {
+		PHISTORY_REGION pHistory;
+		PHISTORY_BROWSER phb_Input;
+		PUSER_INPUT_BUFFER CommandInfo;
+		int command_lines; // how many lines of text are formatted
+		int command_skip_lines; // how many lines of the input are skipped
+		int command_mark_start;
+		int command_mark_end;
+		int control_key_state;
+	} input;
 	void (CPROC*InputData)( PTRSZVAL psv, PTEXT input );
 	PTRSZVAL psvInputData;
 	void (CPROC*InputPaste)( PTRSZVAL psv );
 	PTRSZVAL psvInputPaste;
-	void (CPROC*InputDrop)( PTRSZVAL psv, CTEXTSTR input, S_32 x, S_32 y );
+	LOGICAL (CPROC*InputDrop)( PTRSZVAL psv, CTEXTSTR input, S_32 x, S_32 y );
 	PTRSZVAL psvInputDrop;
 	void (CPROC*MessageSeen)( PTRSZVAL psv );
 	PTRSZVAL psvMessageSeen;
 	void (CPROC*MessageDeleted)( PTRSZVAL psvSeen );
-	PHISTORY_LINE_CURSOR phlc_Input;
+	//PHISTORY_LINE_CURSOR phlc_Input;
 	PSI_CONTROL send_button;
 	SFTFont input_font;
 	SFTFont date_font;
 	int nFontHeight;
 	int command_height; // height of text in input area
 	int command_size;   // total rendered height, including skip and frame
-	int command_lines; // how many lines of text are showing.
-	int command_skip_lines; // how many lines of the input are skipped
 	SFTFont message_font;
 		struct
 		{
@@ -135,8 +140,8 @@ void RenderTextLine(
 	, int nFirstLine
 	, int nMinLine
 	, int left_pad
-	, LOGICAL mark_applies
-	, LOGICAL allow_segment_coloring
+	, int mark_start
+	, int mark_end
 						);
 
 //----- console_keydefs.c
@@ -147,5 +152,14 @@ void Widget_KeyPressHandler( PCHAT_LIST list
 						  , _8 mod
 						  , PTEXT characters
 						  );
+void Widget_KeyPressHandlerRelease( PCHAT_LIST list
+						  , _8 key_index
+						  , _8 mod
+						  , PTEXT characters
+						  );
+
+int GetInputCursorIndex( PCHAT_LIST list, int x, int y );
+void GetInputCursorPos( PCHAT_LIST list, int *x, int *y );
+
 
 #endif

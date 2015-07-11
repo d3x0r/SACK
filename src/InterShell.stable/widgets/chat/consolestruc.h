@@ -35,7 +35,7 @@
 #include "space.h"
 #endif
 
-#include "history.h"  // history_track
+#include "../../../psilib/console/history.h"  // history_track
 
 PSI_CONSOLE_NAMESPACE
 

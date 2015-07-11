@@ -10,23 +10,23 @@
  & (~(MY_MASK_MASK(n,_mask_size))) )                                                                           \
 	| MY_MASK_MASK_VAL(n,_mask_size,val) )
 
-   int offset;
+	int offset;
 	_8 buffer[100];
+	static _32 seed = 0;
 
 void getsalt( PTRSZVAL psv, POINTER *salt, size_t *salt_size )
 {
-	static _32 seed = 0;
 	(*salt) = &seed;
 	(*salt_size) = sizeof( seed );
 	//printf( "return seed\n" );
-   //offset = 0;
-   //LogBinary( buffer, 20 );
+	//offset = 0;
+	//LogBinary( buffer, 20 );
 }
 
 struct distribution
 {
-   int bits;
-   int units;// = 1 << bits;
+	int bits;
+	int units;// = 1 << bits;
 	int *unit_counters;// = NewArray( int, units );
 	int **follow_counters;// = NewArray( int*, units );
 };
@@ -36,63 +36,71 @@ int CalculateDistribution( struct random_context *ctx, int bits )
 	struct distribution *d = New( struct distribution );
 	int n;
 	d->bits = bits;
-   d->units = 1 << bits;
+	d->units = 1 << bits;
 	d->unit_counters = NewArray( int, d->units );
 	d->follow_counters = NewArray( int*, d->units );
-   MemSet( d->unit_counters, 0, sizeof( int ) * d->units );
-	for( n = 0; n < d->units; n++ )
-	{
-      d->follow_counters[n] = NewArray( int, d->units );
-		MemSet( d->follow_counters[n], 0, sizeof( int ) * d->units );
-	}
+	MemSet( d->unit_counters, 0, sizeof( int ) * d->units );
+	if( bits < 10 )
+		for( n = 0; n < d->units; n++ )
+		{
+			d->follow_counters[n] = NewArray( int, d->units );
+			MemSet( d->follow_counters[n], 0, sizeof( int ) * d->units );
+		}
 
 	{
 		int prior = 0;
-      S_64 prior_value;
-		for( n = 0; n < 100000; n ++ )
+		S_64 prior_value;
+		for( n = 0; n < 2000000000; n ++ )
 		{
 			S_64 value = SRG_GetEntropy( ctx, bits, 0 );
 			d->unit_counters[value]++;
-         if( prior )
-				d->follow_counters[prior_value][value]++;
+			if( bits < 10 )
+				if( prior )
+					d->follow_counters[prior_value][value]++;
 			prior = 1;
-         prior_value = value;
+			prior_value = value;
 		}
 	}
 
 	for( n = 0; n < d->units; n ++ )
 	{
-      lprintf( "%d = %d ", n, d->unit_counters[n] );
+		lprintf( "%d = %d ", n, d->unit_counters[n] );
 	}
+	if( bits < 10 )
 	for( n = 0; n < d->units; n ++ )
 	{
 		int m;
-      for( m = 0; m < d->units; m++ )
+		for( m = 0; m < d->units; m++ )
 			lprintf( "%d,%d = %d ", n, m, d->follow_counters[n][m] );
 	}
-   return 0;
+	return 0;
 }
 
 SaneWinMain( argc, argv )
 {
-   struct random_context *entropy = SRG_CreateEntropy( getsalt, 0 );
+	struct random_context *entropy = SRG_CreateEntropy2( getsalt, 0 );
 	int n;
+	_32 opts = 0;
+	seed = GetTickCount();
+	SetSyslogOptions( &opts );
+	SystemLogTime( 0 );
 
-   CalculateDistribution( entropy, 1 );
-   CalculateDistribution( entropy, 2 );
-   CalculateDistribution( entropy, 3 );
-   CalculateDistribution( entropy, 4 );
+	CalculateDistribution( entropy, 2 );
+	CalculateDistribution( entropy, 7 );
+	//CalculateDistribution( entropy, 6 );
+	//CalculateDistribution( entropy, 8 );
+	CalculateDistribution( entropy, 24 );
 
 	for( n = 0; n < 1000; n++ )
 	{
 		int d1 = ( SRG_GetEntropy( entropy, 3, 0 ) ) ;
 		int d2 = ( SRG_GetEntropy( entropy, 3, 0 )  ) ;
 
-      //lprintf( "%08x %08x", (~(MY_MASK_MASK(offset,3))), MY_MASK_MASK_VAL(offset,3,d1) );
-      //SET_MASK( buffer, offset, 3, d1 );
-      //offset += 3;
-      //lprintf( "%08x %08x", (~(MY_MASK_MASK(offset,3))), MY_MASK_MASK_VAL(offset,3,d2) );
-      //SET_MASK( buffer, offset, 3, d2 );
+		//lprintf( "%08x %08x", (~(MY_MASK_MASK(offset,3))), MY_MASK_MASK_VAL(offset,3,d1) );
+		//SET_MASK( buffer, offset, 3, d1 );
+		//offset += 3;
+		//lprintf( "%08x %08x", (~(MY_MASK_MASK(offset,3))), MY_MASK_MASK_VAL(offset,3,d2) );
+		//SET_MASK( buffer, offset, 3, d2 );
 		//offset += 3;
 		d1 = ( d1 % 6 ) + 1;
 		d2 = ( d2 % 6 ) + 1;

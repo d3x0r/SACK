@@ -39,6 +39,7 @@ endif( WATCOM )
 endmacro( build_resource ) 
 
 set( SOURCES_ROOT ${CMAKE_CURRENT_SOURCE_DIR}/../../../../ )
+set( NO_SSL ON )
 include( ${CMAKE_CURRENT_SOURCE_DIR}/../../../../CMakeSources.lst )
 
 set( BASE_SOURCES ../reboot.c )

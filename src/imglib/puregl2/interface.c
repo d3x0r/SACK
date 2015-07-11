@@ -151,6 +151,16 @@ IMAGE_INTERFACE RealImageInterface = {
                                      , DumpFontFile
                                      , Render3dText
 									 , TransferSubImages
+									 , NULL //IMAGE_PROC_PTR( Image, GetNativeImage )( Image pImageTo );
+									 , GetTintedImage
+									, GetShadedImage 
+									, IsImageTargetFinal
+									, NULL
+									, PutStringFontExx
+									 , NULL  // reset image buffers... proxy layer
+									 , PngImageFile
+                                     , JpgImageFile
+									 , SetFontBias
 };
 
 

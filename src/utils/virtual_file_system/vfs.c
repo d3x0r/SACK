@@ -61,7 +61,7 @@ PREFIX_PACKED struct volume {
 	struct disk *disk;
 	//_32 dirents;  // constant 0
 	//_32 nameents; // constant 1
-	size_t dwSize;
+	PTRSZVAL dwSize;
 	const char * datakey;  // used for directory signatures
 	const char * userkey;
 	const char * devkey;
@@ -465,7 +465,7 @@ static void AssignKey( struct volume *vol, const char *key1, const char *key2 )
 	vol->devkey = key2;
 	if( key1 || key2 )
 	{
-		FPI size = BLOCK_SIZE + BLOCK_SIZE * BLOCK_CACHE_COUNT + SHORTKEY_LENGTH;
+		PTRSZVAL size = BLOCK_SIZE + BLOCK_SIZE * BLOCK_CACHE_COUNT + SHORTKEY_LENGTH;
 		int n;
 		if( !vol->entropy )
 			vol->entropy = SRG_CreateEntropy2( AddSalt, (PTRSZVAL)vol );

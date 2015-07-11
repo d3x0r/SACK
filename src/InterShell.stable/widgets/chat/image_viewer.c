@@ -32,6 +32,7 @@ struct image_viewer {
 	int x_click, y_click;
 	int rotation;
 	_32 b;
+	int done;
 };
 
 EasyRegisterControlWithBorder( CONTROL_NAME, sizeof( ImageViewer ), BORDER_CAPTION_CLOSE_BUTTON|BORDER_FIXED|BORDER_NORMAL|BORDER_RESIZABLE );
@@ -39,8 +40,10 @@ EasyRegisterControlWithBorder( CONTROL_NAME, sizeof( ImageViewer ), BORDER_CAPTI
 static int OnCreateCommon( CONTROL_NAME )( PSI_CONTROL pc )
 {
 	ImageViewer *pViewer = ControlData( ImageViewer *, pc );
-	SetControlText( pc, "Image Viewer" );
+	SetControlText( pc, "Image Viewer (Escape to Exit)" );
 	pViewer->zoom = 1000;
+	//AddCaptionButton( pc, NULL, NULL, 0, NULL );
+	return 1;
 }
 
 static int OnDrawCommon( CONTROL_NAME )( PSI_CONTROL pc )
@@ -53,22 +56,28 @@ static int OnDrawCommon( CONTROL_NAME )( PSI_CONTROL pc )
 		pViewer->xofs = ( surface->width / 2 ) * 1000;
 	if( (pViewer->yofs / 1000) > (surface->height / 2) )
 		pViewer->yofs = ( surface->height / 2 ) * 1000;
-	if( pViewer->xofs + ( pViewer->image->width * pViewer->zoom ) < ((surface->width/2)*1000) )
-		pViewer->xofs = ( surface->width / 2 ) * 1000 - pViewer->image->width * pViewer->zoom;
-	if( pViewer->yofs + ( pViewer->image->height * pViewer->zoom ) < ((surface->height/2)*1000) )
-		pViewer->yofs = ( surface->height / 2 ) * 1000 - pViewer->image->height * pViewer->zoom;
-
+	if(  pViewer->image )
+	{
+		if( pViewer->xofs + ( pViewer->image->width * pViewer->zoom ) < ((surface->width/2)*1000) )
+			pViewer->xofs = ( surface->width / 2 ) * 1000 - pViewer->image->width * pViewer->zoom;
+		if( pViewer->yofs + ( pViewer->image->height * pViewer->zoom ) < ((surface->height/2)*1000) )
+			pViewer->yofs = ( surface->height / 2 ) * 1000 - pViewer->image->height * pViewer->zoom;
+	}
 
 	ClearImageTo( surface, BASE_COLOR_BLACK );
-	BlotScaledImageSized( surface, pViewer->image
-		, ( pViewer->xofs ) / 1000
-		, ( pViewer->yofs ) / 1000
-		, ( pViewer->image->width * pViewer->zoom ) / 1000
-		, ( pViewer->image->height * pViewer->zoom ) / 1000
-		, 0, 0
-		, pViewer->image->width
-		, pViewer->image->height
-		);
+	if(  pViewer->image )
+	{
+		BlotScaledImageSized( surface, pViewer->image
+			, ( pViewer->xofs ) / 1000
+			, ( pViewer->yofs ) / 1000
+			, ( pViewer->image->width * pViewer->zoom ) / 1000
+			, ( pViewer->image->height * pViewer->zoom ) / 1000
+			, 0, 0
+			, pViewer->image->width
+			, pViewer->image->height
+			);
+	}
+	return 1;
 }
 
 #if !defined( NO_TOUCH )
@@ -116,7 +125,7 @@ static int OnMouseCommon( CONTROL_NAME )( PSI_CONTROL pc, S_32 x, S_32 y, _32 b 
 		int here_x = (  ( x *1000 / pViewer->zoom ) * 1000 - (pViewer->xofs/ pViewer->zoom ) * 1000 ) / 1000;
 		int here_y = (  ( y *1000 / pViewer->zoom ) * 1000 - (pViewer->yofs/ pViewer->zoom ) * 1000 ) / 1000;
 
-		pViewer->zoom *= 2;
+		pViewer->zoom = pViewer->zoom * 4 / 3;
 		if( pViewer->zoom > 1000000 )	
 			pViewer->zoom = 1000000;
 		
@@ -129,7 +138,7 @@ static int OnMouseCommon( CONTROL_NAME )( PSI_CONTROL pc, S_32 x, S_32 y, _32 b 
 		int here_x = (  ( x *1000 / pViewer->zoom ) * 1000 - (pViewer->xofs/ pViewer->zoom ) * 1000 ) / 1000;
 		int here_y = (  ( y *1000 / pViewer->zoom ) * 1000 - (pViewer->yofs/ pViewer->zoom ) * 1000 ) / 1000;
 
-		pViewer->zoom /= 2;
+		pViewer->zoom = pViewer->zoom * 3 / 4;
 		if( pViewer->zoom == 0 )
 			pViewer->zoom = 1;
 
@@ -139,6 +148,7 @@ static int OnMouseCommon( CONTROL_NAME )( PSI_CONTROL pc, S_32 x, S_32 y, _32 b 
 	}
 
 	pViewer->b = b;
+	return 1;
 }
 
 static int OnKeyCommon( CONTROL_NAME )( PSI_CONTROL pc, _32 key )
@@ -154,17 +164,60 @@ static int OnKeyCommon( CONTROL_NAME )( PSI_CONTROL pc, _32 key )
 	return 0;
 }
 
-PSI_CONTROL ImageViewer_ShowImage( Image image )
+static void CPROC DoneButton( PTRSZVAL psv, PCOMMON pc )
+{
+	PSI_CONTROL pc_frame = (PSI_CONTROL)GetParentControl( pc );
+	DestroyFrame( &pc_frame );
+}
+
+PSI_CONTROL ImageViewer_ShowImage( PSI_CONTROL parent, Image image )
 {
 	PSI_CONTROL pc;
 	ImageViewer *pViewer;
 	int x = 10;
 	int y = 10;
 	_32 w, h;
+	_32 show_w, show_h;
 	GetDisplaySize( &w, &h );
-	pc = MakeNamedControl( NULL, CONTROL_NAME, x, y, image->width, image->height, -1 );
+	if( image->width < w / 2 )
+	{
+		show_w = image->width;
+		if( image->height < h - 200 )
+		{
+			show_h = image->height;
+		}
+		else
+		{
+			show_h = h - 250;
+			show_w = show_h * image->width / image->height;
+		}
+	}
+	else
+	{
+		show_w = w / 2;
+		show_h = show_w * image->height / image->width;
+		if( show_h < h - 250 )
+		{
+			show_h = image->height;
+		}
+		else
+		{
+			show_h = h - 250;
+			show_w = show_h * image->width / image->height;
+		}
+	}
+	pc = MakeNamedControl( NULL, CONTROL_NAME, x, y, show_w, show_h, -1 );
 	pViewer = ControlData( ImageViewer *, pc );
+	{
+		PSI_CONTROL done_button;
+		done_button = MakeButton( pc, -10, -10, 1, 1, IDCANCEL, WIDE(""), 0, 0, 0  );
+		SetButtonPushMethod( done_button, DoneButton, 0 );
+	}
+	//AddCommonButtons( pc, &pViewer->done, NULL );
+	//HideCommon( GetControl( pc, IDCANCEL ) );
+	pViewer->zoom = 1000 * show_w / image->width;
 	pViewer->image = image;
+	//DisplayFrameOver( pc, parent );
 	DisplayFrame( pc );
-	
+	return pc;
 }

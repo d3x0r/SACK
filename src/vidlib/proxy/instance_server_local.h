@@ -36,6 +36,7 @@ typedef struct vidlib_proxy_application
 	PLIST images;
 	TEXTSTR client_id; // client identification... arbitrary length data
 	PLIST local_instances;
+	struct server_socket_state *network_state;
 } *PVP_APPLICATION;
 
 typedef struct vidlib_proxy_application_instance

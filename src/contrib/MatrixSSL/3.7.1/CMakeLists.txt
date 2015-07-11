@@ -9,7 +9,7 @@ endif( MINGW )
 
 if( WIN32 )
   set( OSDEP_DEFAULT "WIN32" )
-  set( LIBFLAGS _USRDLL )
+#  set( LIBFLAGS _USRDLL )
   set( SYS_C_FLAGS  )
 else( WIN32 )
   set( OSDEP_DEFAULT "POSIX" )

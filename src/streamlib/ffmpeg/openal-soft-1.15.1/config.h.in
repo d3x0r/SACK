@@ -89,8 +89,10 @@
 /* Define if we have GCC's format attribute */
 #cmakedefine HAVE_GCC_FORMAT
 
+#ifndef HAVE_STDINT_H
 /* Define if we have stdint.h */
 #cmakedefine HAVE_STDINT_H
+#endif
 
 /* Define if we have windows.h */
 #cmakedefine HAVE_WINDOWS_H

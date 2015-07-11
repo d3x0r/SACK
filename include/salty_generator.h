@@ -1,4 +1,4 @@
-
+#include <sack_types.h>
 #ifdef SALTY_RANDOM_GENERATOR_SOURCE
 #define SRG_EXPORT EXPORT_METHOD
 #else

@@ -1,24 +1,10 @@
 #include <stdhdrs.h>
 #include <deadstart.h>
 #include <procreg.h>
-#include "../src/contrib/MatrixSSL/3.7.1/matrixssl/matrixsslApi.h"
+#include <sqlgetoption.h>
+#include "../contrib/MatrixSSL/3.7.1/matrixssl/matrixsslApi.h"
 
 #define ALLOW_ANON_CONNECTIONS	1
-#define USE_HEADER_KEYS
-#define ID_RSA
-
-#include "../src/contrib/MatrixSSL/3.7.1/sampleCerts/RSA/ALL_RSA_CAS.h"
-#include "../src/contrib/MatrixSSL/3.7.1/sampleCerts/EC/ALL_EC_CAS.h"
-#include "../src/contrib/MatrixSSL/3.7.1/sampleCerts/ECDH_RSA/ALL_ECDH-RSA_CAS.h"
-#ifdef ID_RSA
-#define EXAMPLE_RSA_KEYS
-#include "../src/contrib/MatrixSSL/3.7.1/sampleCerts/RSA/1024_RSA.h"
-#include "../src/contrib/MatrixSSL/3.7.1/sampleCerts/RSA/1024_RSA_KEY.h"
-#include "../src/contrib/MatrixSSL/3.7.1/sampleCerts/RSA/2048_RSA.h"
-#include "../src/contrib/MatrixSSL/3.7.1/sampleCerts/RSA/2048_RSA_KEY.h"
-#include "../src/contrib/MatrixSSL/3.7.1/sampleCerts/RSA/4096_RSA.h"
-#include "../src/contrib/MatrixSSL/3.7.1/sampleCerts/RSA/4096_RSA_KEY.h"
-#endif
 
 #include "netstruc.h"
 
@@ -37,28 +23,27 @@ static struct sack_MatrixSSL_local
 } *sack_ssl_local;
 #define l (*sack_ssl_local)
 
-#ifdef USE_HEADER_KEYS
-static int32 loadRsaKeys( sslKeys_t *keys )
+static int32 loadRsaKeys( sslKeys_t *keys, LOGICAL client )
 {
-	uint32 key_len = 1024/*g_key_len*/;
+	uint32 priv_key_len;
+	uint32 pub_key_len;
 	unsigned char *CAstream = NULL;
 	int32 CAstreamLen;
 	int32 rc;
+	TEXTCHAR buf[256];
+	unsigned char *priv_key;
+	unsigned char *pub_key;
+	FILE *file;
+	size_t size;
 	{
 	/*
 		In-memory based keys
 		Build the CA list first for potential client auth usage
 	*/
-		CAstreamLen = 0;
-#ifdef USE_RSA_CIPHER_SUITE
-		CAstreamLen += sizeof(RSACAS);
-#ifdef USE_ECC_CIPHER_SUITE
-		CAstreamLen += sizeof(ECDHRSACAS);
-#endif
-#endif
-#ifdef USE_ECC_CIPHER_SUITE
-		CAstreamLen += sizeof(ECCAS);
-#endif
+		SACK_GetProfileString( "SSL/Cert", "filename", "mycert.pem", buf, 256 );
+		file = sack_fopen( GetFileGroup( "ssl certs", "./certs" ), buf, "rb" );
+		size = sack_fsize( file );
+		CAstreamLen = size;
 		if (CAstreamLen > 0) {
 			CAstream = (unsigned char*)psMalloc(NULL, CAstreamLen);
 		} else {
@@ -66,36 +51,39 @@ static int32 loadRsaKeys( sslKeys_t *keys )
 		}
 
 		CAstreamLen = 0;
-	#ifdef USE_RSA_CIPHER_SUITE
-		memcpy(CAstream, RSACAS, sizeof(RSACAS));
-		CAstreamLen += sizeof(RSACAS);
-	#ifdef USE_ECC_CIPHER_SUITE
-		memcpy(CAstream + CAstreamLen, ECDHRSACAS, sizeof(ECDHRSACAS));
-		CAstreamLen += sizeof(ECDHRSACAS);
-	#endif
-	#endif
-	#ifdef USE_ECC_CIPHER_SUITE
-		memcpy(CAstream + CAstreamLen, ECCAS, sizeof(ECCAS));
-		CAstreamLen += sizeof(ECCAS);
-	#endif
+		CAstreamLen += sack_fread( CAstream, 1, size, file );
+		sack_fclose( file );
 	}
 
-	if (key_len == 1024) {
-		lprintf("Using 1024 bit RSA private key");
-		rc = matrixSslLoadRsaKeysMem(keys, RSA1024, sizeof(RSA1024),
-			RSA1024KEY, sizeof(RSA1024KEY), CAstream, CAstreamLen);
-	} else if (key_len == 2048) {
-		lprintf("Using 2048 bit RSA private key");
-		rc = matrixSslLoadRsaKeysMem(keys, RSA2048, sizeof(RSA2048),
-			RSA2048KEY, sizeof(RSA2048KEY), CAstream, CAstreamLen);
-	} else if (key_len == 4096) {
-		lprintf("Using 4096 bit RSA private key");
-		rc = matrixSslLoadRsaKeysMem(keys, RSA4096, sizeof(RSA4096),
-			RSA4096KEY, sizeof(RSA4096KEY), CAstream, CAstreamLen);
-    } else {
-		rc = -1;
-		psAssert((key_len == 1024) || (key_len == 2048) || (key_len == 4096));
+	{
+	/*
+		In-memory based keys
+		Build the CA list first for potential client auth usage
+	*/
+		SACK_GetProfileString( "SSL/Public Key", "filename", "myprivkey.pem", buf, 256 );
+		file = sack_fopen( GetFileGroup( "ssl certs", "./certs" ), buf, "rb" );
+		pub_key_len = sack_fsize( file );
+		pub_key = NewArray( _8, pub_key_len );
+
+		sack_fread( pub_key, 1, pub_key_len, file );
+		sack_fclose( file );
 	}
+	{
+	/*
+		In-memory based keys
+		Build the CA list first for potential client auth usage
+	*/
+		SACK_GetProfileString( "SSL/Private Key", "filename", "mykey.pem", buf, 256 );
+		file = sack_fopen( GetFileGroup( "ssl certs", "./certs" ), buf, "rb" );
+		priv_key_len = sack_fsize( file );
+		priv_key = NewArray( _8, priv_key_len );
+
+		sack_fread( priv_key, 1, priv_key_len, file );
+		sack_fclose( file );
+	}
+
+	rc = matrixSslLoadRsaKeysMem(keys, pub_key, pub_key_len,
+			priv_key, priv_key_len, CAstream, CAstreamLen);
 
 	if (rc < 0) {
 		lprintf("No certificate material loaded.  Exiting");
@@ -108,7 +96,6 @@ static int32 loadRsaKeys( sslKeys_t *keys )
 
 	return rc;
 }
-#endif
 
 
 PRELOAD( InitMatrixSSL )
@@ -133,7 +120,7 @@ struct ssl_session {
 };
 
 
-PSSL_SESSION ssl_InitSession( void )
+PSSL_SESSION ssl_InitSession( LOGICAL client )
 {
 	PSSL_SESSION ses = New( struct ssl_session );
 	if (matrixSslNewKeys(&ses->keys, NULL) < 0) {
@@ -143,7 +130,7 @@ PSSL_SESSION ssl_InitSession( void )
 	}
 
 	matrixSslNewSessionId(&ses->sid, NULL);
-	loadRsaKeys( ses->keys );
+	loadRsaKeys( ses->keys, client );
 	// PreSharedKey
 	//matrixSslLoadPsk( ses->keys, key, sizeof key, id, sizeof( id ) );
 	return ses;

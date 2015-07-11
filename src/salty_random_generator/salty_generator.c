@@ -129,7 +129,8 @@ void SRG_GetEntropyBuffer( struct random_context *ctx, _32 *buffer, _32 bits )
 			ctx->bits_used += get_bits;
 			if( partial_bits )
 			{
-				tmp |= partial_tmp << get_bits;
+				tmp = partial_tmp | ( tmp << partial_bits );
+				partial_bits = 0;
 			}
 			(*buffer++) = tmp;
 			bits -= get_bits;

@@ -407,20 +407,13 @@ static void ComputeImageData( ImageFile *pImage )
 		{
 			if( !( pImage->flags & IF_FLAG_EXTERN_COLORS ) )
 				Deallocate( PCOLOR, pImage->image );
-			pImage->height = pImage->real_height =  height;
-			pImage->width = pImage->real_width =
-				pImage->pwidth = width;
-			pImage->image = (PCOLOR)AllocateEx( sizeof( COLOR ) * width * height DBG_RELAY);
-			pImage->eff_maxx = ( pImage->real_width - 1 );
-			pImage->eff_maxy = ( pImage->real_height - 1 );
-			pImage->eff_x = 0;
-			pImage->eff_y = 0;
-
 			pImage->flags &= ~IF_FLAG_EXTERN_COLORS;
+
 			pImage->height = pImage->real_height =  height;
 			pImage->width = pImage->real_width =
 				pImage->pwidth = width;
 			pImage->image = (PCOLOR)AllocateEx( sizeof( COLOR ) * width * height DBG_RELAY);
+
 			pImage->eff_maxx =  pImage->x + ( pImage->real_width - 1 );
 			pImage->eff_maxy =  pImage->y + ( pImage->real_height - 1 );
 			pImage->eff_x = pImage->x;

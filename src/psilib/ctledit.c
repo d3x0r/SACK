@@ -992,9 +992,10 @@ PSI_CONTROL CPROC MakeEditControl( PSI_CONTROL pFrame, int attr
 										 , nID, caption );
 }
 
-void CPROC GrabFilename( PSI_CONTROL pc, CTEXTSTR name, S_32 x, S_32 y )
+LOGICAL CPROC GrabFilename( PSI_CONTROL pc, CTEXTSTR name, S_32 x, S_32 y )
 {
 	SetControlText( pc, name );
+	return TRUE;
 }
 
 int CPROC InitEditControl( PSI_CONTROL pc )

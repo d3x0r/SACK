@@ -48,6 +48,7 @@ typedef struct chat_message_tag
 	TEXTSTR text;
 	Image image;
 	Image thumb_image;
+	_32 thumb_image_left;
 	TEXTSTR formatted_text;
 	size_t formatted_text_len;
 	int _formatted_height;
@@ -873,7 +874,7 @@ void Chat_SetPasteInputHandler( PSI_CONTROL pc, void (CPROC *Handler)( PTRSZVAL 
 }
 
 
-void Chat_SetDropInputHandler( PSI_CONTROL pc, void (CPROC *Handler)( PTRSZVAL psv, CTEXTSTR path, S_32 x, S_32 y ), PTRSZVAL psv )
+void Chat_SetDropInputHandler( PSI_CONTROL pc, LOGICAL (CPROC *Handler)( PTRSZVAL psv, CTEXTSTR path, S_32 x, S_32 y ), PTRSZVAL psv )
 {
 	PCHAT_LIST *ppList = (ControlData( PCHAT_LIST*, pc ));
 	PCHAT_LIST chat_control = (*ppList);
@@ -997,6 +998,7 @@ void Chat_EnqueImage( PSI_CONTROL pc, LOGICAL sent
 			pcc->sender = StrDup( sender );
 			pcc->sender_image = sender_icon;
 			pcc->max_width = 0;
+			pcc->extra_width = 0;
 			pcc->formatted_height = 0;
 			pcc->messages = NULL;
 			EnqueLink( &chat_control->contexts, pcc );
@@ -1279,7 +1281,7 @@ _32 UpdateContextExtents( Image window, PCHAT_LIST list, PCHAT_CONTEXT context )
 			int max_width = width;// - ((msg->sent)?l.sent.arrow_w:l.received.arrow_w);
 			int max_height = 9999;
 			FormatTextToBlockEx( msg->text, &msg->formatted_text, &max_width, &max_height, list->sent_font );
-			if( max_width > ( context->max_width + context->extra_width ) )
+			if( (_32)max_width > ( context->max_width + context->extra_width ) )
 			{
 				context->extra_width = 0;
 			}
@@ -1302,7 +1304,6 @@ _32 UpdateContextExtents( Image window, PCHAT_LIST list, PCHAT_CONTEXT context )
 					msg->_message_y = + msg->_formatted_height;
 					if( USS_GT( msg->thumb_image->width, int, context->max_width, _32 ) )
 						context->max_width = msg->thumb_image->width;
-
 					frame_height = msg->_formatted_height;
 				}
 		}
@@ -1321,7 +1322,7 @@ _32 UpdateContextExtents( Image window, PCHAT_LIST list, PCHAT_CONTEXT context )
 			msg->time_height = h + l.time_pad;
 			msg->_message_y += msg->time_height;
 			frame_height += msg->time_height;
-			if( w > ( x_offset_right - x_offset_left) )
+			if( (S_32)w > ( x_offset_right - x_offset_left) )
 				x_offset_left -= ( w ) - (x_offset_right - x_offset_left);
 			if( w > context->max_width )
 				context->extra_width = w - context->max_width;
@@ -1329,9 +1330,9 @@ _32 UpdateContextExtents( Image window, PCHAT_LIST list, PCHAT_CONTEXT context )
 		else
 		{
 			CTEXTSTR timebuf;
-			CTEXTSTR timebuf2;
+			//CTEXTSTR timebuf2;
 			_32 w2, h2;
-			CTEXTSTR timebuf3;
+			//CTEXTSTR timebuf3;
 
 			timebuf = FormatMessageTime( "sent time", &l.now, &msg->sent_time ) ;
 			//GetStringSizeFont( timebuf, &w, &h, list->date_font );
@@ -1341,8 +1342,8 @@ _32 UpdateContextExtents( Image window, PCHAT_LIST list, PCHAT_CONTEXT context )
 			//snprintf( msg->formatted_time, 256, "Sent: %s\nRcvd: %s\nSeen: %s", timebuf, timebuf2, timebuf3 );
 			snprintf( msg->formatted_time, 256, "Sent: %s", timebuf);
 			GetStringSizeFont( msg->formatted_time, &w2, &h2, list->date_font );
-			if( w2 < context->sender_width )
-				w2 = context->sender_width;
+			if( w2 < (_32)context->sender_width )
+				w2 = (_32)context->sender_width;
 			msg->time_height = h2 + l.time_pad;
 			msg->_message_y += msg->time_height;
 			frame_height += msg->time_height;
@@ -1401,7 +1402,7 @@ void DrawAMessage( Image window, PCHAT_LIST list
 
 		if( msg->thumb_image )
 			BlotImage( window, msg->thumb_image
-							, x_offset_left + ( ( x_offset_right - x_offset_left ) 
+						, msg->thumb_image_left = x_offset_left + ( ( x_offset_right - x_offset_left ) 
 								- ( max_width ) )
 							, h + list->display.message_top //+ l.received.BorderSegment[SEGMENT_TOP]->height 
 							);
@@ -1416,9 +1417,11 @@ void DrawAMessage( Image window, PCHAT_LIST list
 	else
 	{
 		CTEXTSTR timebuf;
-		_32 w, h;
-		CTEXTSTR timebuf2;
-		_32 w2, h2;
+		//_32 w;
+		_32 h;
+		//CTEXTSTR timebuf2;
+		//_32 w2;
+		//_32 h2;
 		_32 max_width = context->max_width;
 		timebuf = msg->formatted_time;
 		h = msg->time_height;
@@ -1431,7 +1434,7 @@ void DrawAMessage( Image window, PCHAT_LIST list
 
 		if( msg->thumb_image )
 			BlotImage( window, msg->thumb_image
-							, x_offset_left 
+							, msg->thumb_image_left = x_offset_left 
 							, h + list->display.message_top //+ l.received.BorderSegment[SEGMENT_TOP]->height
 							);
 		if( msg->formatted_text )
@@ -1579,44 +1582,83 @@ static void DrawMessages( PCHAT_LIST list, Image window )
 	}
 }
 
-static PCHAT_MESSAGE FindMessage( PCHAT_LIST list, int y )
+static PCHAT_MESSAGE FindMessage( PCHAT_LIST list, int x, int y )
 {
-	int message_top = list->message_window->height + list->control_offset;		
+	int message_top = list->message_window->height + list->control_offset;
 	int context_idx;
 	PCHAT_CONTEXT context;
 	int message_idx;
+	LOGICAL found = FALSE;
 	PCHAT_MESSAGE msg = NULL;
-	if( y >= ( list->message_window->height - list->command_height ) )
+	if( y >= ( list->message_window->height ) )
 		return NULL; // in command area.
 
+	//y = list->message_window->height - y;
+	//lprintf( "y to check is %d  message_top is %d", y, message_top );
 	for( context_idx = -1; context = (PCHAT_CONTEXT)PeekQueueEx( list->contexts, context_idx ); context_idx-- )
 	{
-		//y = list->message_window->height - y;
-		//lprintf( WIDE("BEgin draw messages...") );
-		for( message_idx = -1; msg = (PCHAT_MESSAGE)PeekQueueEx( context->messages, message_idx ); message_idx-- )
+		//lprintf( WIDE("BEgin find messages... context %d"), context_idx );
+		if( context_idx < -1 )
+			message_top -= l.side_pad;
+
+		if( context->sent )
+			message_top -= l.sent.BorderSegment[SEGMENT_BOTTOM]->height;
+		else
+			message_top -= l.received.BorderSegment[SEGMENT_BOTTOM]->height;
+
+		if( ( message_top - context->formatted_height ) <= y )
 		{
-			//lprintf( "check message %d", message_idx );
-			if( msg->formatted_text )
+			int check_message_top = message_top;
+			for( message_idx = -1; msg = (PCHAT_MESSAGE)PeekQueueEx( context->messages, message_idx ); message_idx-- )
 			{
-				//lprintf( WIDE("have to skip message...") );
-				message_top -= msg->_message_y;
-				if( ( message_top - msg->_message_y ) >= list->message_window->height )
-					continue;
+				//lprintf( "check message %d", message_idx );
+				if( msg->formatted_text )
+				{
+					//lprintf( WIDE("is a text skip message...") );
+					check_message_top -= msg->_message_y;
+					//if( ( check_message_top - msg->_message_y ) >= list->message_window->height )
+					//{
+						// message is below drawing area
+					//	continue;
+					//}
+				}
+				else if( msg->thumb_image )
+				{
+					check_message_top -= msg->thumb_image->height + msg->time_height + l.side_pad;
+					//if( ( check_message_top - msg->thumb_image->height + (2*l.side_pad) ) >= list->message_window->height )
+					//	continue;
+				}
+				if( y >= ( check_message_top ) )
+				{
+					found = TRUE;
+					if( msg->thumb_image )
+						if( x < msg->thumb_image_left || x > ( msg->thumb_image_left + msg->thumb_image->width ) )
+							msg = NULL; // didn't click ON the image, so clear return.
+					break;
+				}
+				if( check_message_top < l.side_pad )
+				{
+					//lprintf( WIDE("Done.") );
+					msg = NULL;
+					break;
+				}
 			}
-			else if( msg->thumb_image )
-			{
-				message_top -= msg->thumb_image->height + (2*l.side_pad);
-				if( ( message_top - msg->thumb_image->height + (2*l.side_pad) ) >= list->message_window->height )
-					continue;
-			}
-			if( y > ( message_top ) )
+			if( msg || found )
 				break;
-			if( message_top < l.side_pad )
-			{
-				//lprintf( WIDE("Done.") );
-				break;
-			}
 		}
+		else
+		{
+			//lprintf( "Skip based on context" );
+			message_top -= context->formatted_height;
+		}
+
+		if( context->sender )
+			message_top -= context->sender_height + l.context_sender_pad;
+
+		if( context->sent )
+			message_top -= l.sent.BorderSegment[SEGMENT_TOP]->height;
+		else
+			message_top -= l.received.BorderSegment[SEGMENT_TOP]->height;
 	}
 	return msg;
 
@@ -1627,6 +1669,150 @@ static void OnDisplayConnect( WIDE("@chat resources") )( struct display_app*app,
 	SetupDefaultConfig();	
 }
 
+int GetInputCursorIndex( PCHAT_LIST list, int x, int y )
+{
+	int nLine, nCursorLine;
+	_32 cursor_pos = 0;
+	_32 counter;
+	DISPLAYED_LINE *pCurrentLine;
+	PDATALIST *ppCurrentLineInfo;
+	PTEXT first_seg = list->input.CommandInfo->CollectionBuffer;
+	SetStart( first_seg );
+	ppCurrentLineInfo = GetDisplayInfo( list->input.phb_Input );
+	for( nLine = 0, counter = 0; ; nLine ++ )
+	{
+		pCurrentLine = (PDISPLAYED_LINE)GetDataItem( ppCurrentLineInfo, nLine );
+		if( !pCurrentLine
+			|| ( pCurrentLine->nFirstSegOfs == 0 && pCurrentLine->start == first_seg ) )
+			break;
+	}
+	if( y > nLine )
+		return 0;
+
+	for( nCursorLine = nLine; nCursorLine >= 0; nCursorLine-- )
+	{
+		pCurrentLine = (PDISPLAYED_LINE)GetDataItem( ppCurrentLineInfo, nCursorLine );
+		//if( pCurrentLine && cursor_pos > pCurrentLine->nToShow )
+		if( nCursorLine == y )
+		{
+			if( (INDEX)x < pCurrentLine->nToShow )
+				cursor_pos += x;
+			else
+				cursor_pos += pCurrentLine->nToShow;
+			break;
+		}
+		else
+		{
+			{					
+				PTEXT seg = pCurrentLine->start;
+				int ofs = 0; 
+				int checklen = pCurrentLine->nToShow;
+				int summed_len = 0;
+				int first_ofs = pCurrentLine->nFirstSegOfs;
+				for( ; seg; seg = NEXTLINE( seg ) )
+				{
+					size_t len = GetTextSize( seg );
+					size_t seglen = len - first_ofs;
+					if( ( summed_len + seglen ) < pCurrentLine->nToShow )
+					{
+						first_ofs = 0;
+						checklen -= seglen;
+						summed_len += seglen;
+					}
+					else
+					{
+						if( GetText( seg )[first_ofs + checklen] == '\n' )
+							ofs++;
+						break;
+					}
+				}
+				cursor_pos += ofs;
+			}
+			cursor_pos += pCurrentLine->nToShow;
+		}
+	}
+	return cursor_pos;
+}
+
+void GetInputCursorPos( PCHAT_LIST list, int *x, int *y )
+{
+	int nLine, nCursorLine;
+	_32 cursor_pos = list->input.CommandInfo->CollectionIndex;
+	_32 counter;
+	DISPLAYED_LINE *pCurrentLine;
+	PDATALIST *ppCurrentLineInfo;
+	PTEXT cursor_segs;
+	PTEXT first_seg = list->input.CommandInfo->CollectionBuffer;
+	SetStart( first_seg );
+	ppCurrentLineInfo = GetDisplayInfo( list->input.phb_Input );
+	for( cursor_segs = list->input.CommandInfo->CollectionBuffer; cursor_segs; cursor_segs = cursor_segs->Prior )
+	{
+		if( cursor_segs == list->input.CommandInfo->CollectionBuffer )
+			continue;
+		cursor_pos += GetTextSize( cursor_segs );
+	}
+
+	for( nLine = 0, counter = 0; ; nLine ++ )
+	{
+		pCurrentLine = (PDISPLAYED_LINE)GetDataItem( ppCurrentLineInfo, nLine );
+		if( nLine == 0 && cursor_pos > pCurrentLine->nLineEnd )
+		{
+			(*y) = nLine;
+			(*x) = cursor_pos - pCurrentLine->nLineStart;
+			return;
+		}
+		if( cursor_pos >= pCurrentLine->nLineStart && cursor_pos <= pCurrentLine->nLineEnd )
+		{
+			(*y) = nLine;
+			(*x) = cursor_pos - pCurrentLine->nLineStart;
+			return;
+		}
+		if( !pCurrentLine
+			|| ( pCurrentLine->nFirstSegOfs == 0 && pCurrentLine->start == first_seg ) )
+			break;
+	}
+
+	for( nCursorLine = nLine; nCursorLine >= 0; nCursorLine-- )
+	{
+		pCurrentLine = (PDISPLAYED_LINE)GetDataItem( ppCurrentLineInfo, nCursorLine );
+		if( pCurrentLine && ( ( cursor_pos > pCurrentLine->nToShow )
+					|| ( nCursorLine && cursor_pos == pCurrentLine->nToShow ) ) )
+		{					
+			PTEXT seg = pCurrentLine->start;
+			int ofs = pCurrentLine->nToShow; 
+			int checklen = ofs;
+			int summed_len = 0;
+			int first_ofs = pCurrentLine->nFirstSegOfs;
+			int skiplen = pCurrentLine->nToShow;
+			for( ; seg; seg = NEXTLINE( seg ) )
+			{
+				size_t len = GetTextSize( seg );
+				size_t seglen = len - first_ofs;
+				if( ( summed_len + seglen ) < pCurrentLine->nToShow )
+				{
+					first_ofs = 0;
+					checklen -= seglen;
+					skiplen -= seglen;
+					summed_len += seglen;
+				}
+				else
+				{
+					if( GetText( seg )[first_ofs + checklen] == '\n' )
+						ofs++;
+					break;
+				}
+			}
+			if( ofs > cursor_pos )
+				break;
+			cursor_pos -= ofs;
+		}
+		else
+			break;
+	}
+	(*x) = cursor_pos;
+	(*y) = nCursorLine;
+}
+
 static void DrawTextEntry( PSI_CONTROL pc, PCHAT_LIST list, LOGICAL update )
 {
 	if( !IsControlHidden( pc ) )
@@ -1635,28 +1821,48 @@ static void DrawTextEntry( PSI_CONTROL pc, PCHAT_LIST list, LOGICAL update )
 		//int lines, list->command_skip_lines;
 		int region_x, region_y, region_w, region_h;
 		int newfontheight;
-		list->command_skip_lines = 0;
 
-		list->command_lines = CountDisplayedLines( list->phb_Input );
+		list->input.command_lines = CountDisplayedLines( list->input.phb_Input );
 
-		if( list->command_lines > 3 )
+		if( list->input.command_lines <= 0 )
 		{
-			list->command_skip_lines = list->command_lines - 3;
-			list->command_lines = 3;
+			//list->input.command_skip_lines = 0;
+			list->input.command_lines = 1;
 		}
-		else if( list->command_lines <= 0 )
-			list->command_lines = 1;
+		else 
+		{
+			if( list->input.command_skip_lines > list->input.command_lines )
+			{
+				if( list->input.command_lines > 3 )
+				{
+					//list->input.command_skip_lines = list->input.command_lines - 3;
+					list->input.command_lines = 3;
+				}
+				else
+				{
+					//list->input.command_skip_lines = 0;
+				}
+			}
+			else if( ( list->input.command_lines - list->input.command_skip_lines ) > 3 )
+			{
+				//list->input.command_skip_lines = list->input.command_lines - 3;
+				list->input.command_lines = 3;
+			}
+		}
 
 		newfontheight = GetFontHeight( list->sent_font );
 		if( !list->nFontHeight )
+		{
 			list->nFontHeight = newfontheight;
+			list->command_height = newfontheight;
+		}
 		else if( list->nFontHeight != newfontheight 
-		       || ( list->command_height != newfontheight * list->command_lines )
+		       || ( list->command_height != newfontheight * list->input.command_lines )
 		       )
 		{
 			int cmd_size;
 			list->nFontHeight = newfontheight;
-			list->command_height = list->nFontHeight * list->command_lines ;
+			list->command_height = list->nFontHeight * list->input.command_lines ;
 			cmd_size = ( list->command_height + l.side_pad * 2 /* above and below input*/ 
 				+ l.sent.BorderSegment[SEGMENT_TOP]->height 
 				+ l.sent.BorderSegment[SEGMENT_BOTTOM]->height );
@@ -1685,14 +1891,14 @@ static void DrawTextEntry( PSI_CONTROL pc, PCHAT_LIST list, LOGICAL update )
 
 		{
 			int nLine, nCursorLine, nDisplayLine;
-			_32 cursor_pos = list->CommandInfo->CollectionIndex;
+			_32 cursor_pos = list->input.CommandInfo->CollectionIndex;
 			_32 counter;
 			DISPLAYED_LINE *pCurrentLine;
 			PDATALIST *ppCurrentLineInfo;
 			PTEXT cursor_segs;
-			PTEXT first_seg = list->CommandInfo->CollectionBuffer;
+			PTEXT first_seg = list->input.CommandInfo->CollectionBuffer;
 			SetStart( first_seg );
-			ppCurrentLineInfo = GetDisplayInfo( list->phb_Input );
+			ppCurrentLineInfo = GetDisplayInfo( list->input.phb_Input );
 			for( nLine = 0, counter = 0; ; nLine ++ )
 			{
 				pCurrentLine = (PDISPLAYED_LINE)GetDataItem( ppCurrentLineInfo, nLine );
@@ -1700,9 +1906,9 @@ static void DrawTextEntry( PSI_CONTROL pc, PCHAT_LIST list, LOGICAL update )
 					|| ( pCurrentLine->nFirstSegOfs == 0 && pCurrentLine->start == first_seg ) )
 					break;
 			}
-			for( cursor_segs = list->CommandInfo->CollectionBuffer; cursor_segs; cursor_segs = cursor_segs->Prior )
+			for( cursor_segs = list->input.CommandInfo->CollectionBuffer; cursor_segs; cursor_segs = cursor_segs->Prior )
 			{
-				if( cursor_segs == list->CommandInfo->CollectionBuffer )
+				if( cursor_segs == list->input.CommandInfo->CollectionBuffer )
 					continue;
 				cursor_pos += GetTextSize( cursor_segs );
 			}
@@ -1710,37 +1916,22 @@ static void DrawTextEntry( PSI_CONTROL pc, PCHAT_LIST list, LOGICAL update )
 			for( nCursorLine = nLine; nCursorLine >= 0; nCursorLine-- )
 			{
 				pCurrentLine = (PDISPLAYED_LINE)GetDataItem( ppCurrentLineInfo, nCursorLine );
-				if( pCurrentLine && cursor_pos > pCurrentLine->nToShow )
-				{
-					PTEXT seg = pCurrentLine->start;
-					int ofs; 
-					ofs = 0;
-					for( ; seg; seg = NEXTLINE( seg ) )
-					{
-						CTEXTSTR data = GetText( pCurrentLine->start );
-						size_t len = GetTextSize( pCurrentLine->start );
-						size_t seglen = len - pCurrentLine->nFirstSegOfs;
-						if( seglen < pCurrentLine->nToShow )
-						{
-
-						}
-						//else
-							//for( ; 
-							//	( ofs + pCurrentLine->nToShow + pCurrentLine->nFirstSegOfs ) < len &&
-							//	data[pCurrentLine->nToShow + pCurrentLine->nFirstSegOfs + ofs] == ' ';
-							//	ofs++ );
-					}
-					cursor_pos -= ofs;
-					cursor_pos -= pCurrentLine->nToShow;
-				}
-				else
+				if( !pCurrentLine )
 					break;
+				if( cursor_pos > pCurrentLine->nLineEnd )
+					continue;
+				cursor_pos -= pCurrentLine->nLineStart;
+				break;
 			}
-			if( nCursorLine > 0 )
-				nDisplayLine = nCursorLine - 1;
+			if( nCursorLine >= 0 )
+				nDisplayLine = nCursorLine;
 			else
 				nDisplayLine = 0;
-			for( nLine = nDisplayLine; nLine < (nDisplayLine+3); nLine ++ )
+			if( ( nDisplayLine - list->input.command_skip_lines ) < 0 )
+				list->input.command_skip_lines = nDisplayLine;
+			if( ( nDisplayLine - list->input.command_skip_lines ) > 2 )
+				list->input.command_skip_lines = nCursorLine - 2;
+			for( nLine = list->input.command_skip_lines; nLine < (list->input.command_skip_lines+3); nLine ++ )
 			{
 				pCurrentLine = (PDISPLAYED_LINE)GetDataItem( ppCurrentLineInfo, nLine );
 				if( IsControlFocused( list->pc ) &&
@@ -1772,13 +1963,13 @@ static void DrawTextEntry( PSI_CONTROL pc, PCHAT_LIST list, LOGICAL update )
 						total_w = 0;
 					if( list->flags.bCursorOn )
 						do_vline( window, 2 + l.side_pad + l.sent.BorderSegment[SEGMENT_LEFT]->width + total_w
-							, window->height - ( l.side_pad + (l.sent.BorderSegment[SEGMENT_BOTTOM]->height ) + list->nFontHeight * nLine )
-							, window->height - ( l.side_pad + (l.sent.BorderSegment[SEGMENT_BOTTOM]->height ) + list->nFontHeight * (nLine+1))
+						, window->height - ( l.side_pad + (l.sent.BorderSegment[SEGMENT_BOTTOM]->height ) + list->nFontHeight * ( nLine - list->input.command_skip_lines ) )
+							, window->height - ( l.side_pad + (l.sent.BorderSegment[SEGMENT_BOTTOM]->height ) + list->nFontHeight * (( nLine - list->input.command_skip_lines )+1))
 							, BASE_COLOR_BLACK );
 					else
 						do_vline( window, 2 + l.side_pad + l.sent.BorderSegment[SEGMENT_LEFT]->width + total_w
-							, window->height - ( l.side_pad + (l.sent.BorderSegment[SEGMENT_BOTTOM]->height ) + list->nFontHeight * nLine )
-							, window->height - ( l.side_pad + (l.sent.BorderSegment[SEGMENT_BOTTOM]->height ) + list->nFontHeight * (nLine+1))
+							, window->height - ( l.side_pad + (l.sent.BorderSegment[SEGMENT_BOTTOM]->height ) + list->nFontHeight * ( nLine - list->input.command_skip_lines ) )
+							, window->height - ( l.side_pad + (l.sent.BorderSegment[SEGMENT_BOTTOM]->height ) + list->nFontHeight * (( nLine - list->input.command_skip_lines )+1))
 							, BASE_COLOR_WHITE );
 				}
 				if( !pCurrentLine )
@@ -1793,17 +1984,14 @@ static void DrawTextEntry( PSI_CONTROL pc, PCHAT_LIST list, LOGICAL update )
 				{
 					RECT upd;
 					RenderTextLine( list, window, pCurrentLine, &upd
-						, nLine
+						, nLine - list->input.command_skip_lines
 						, list->sent_font
 						, window->height - ( l.side_pad + (l.sent.BorderSegment[SEGMENT_BOTTOM]->height ) + list->nFontHeight )
 						, l.side_pad + l.sent.BorderSegment[SEGMENT_TOP]->height
 						, l.side_pad + l.sent.BorderSegment[SEGMENT_LEFT]->width
-						, FALSE
-						, FALSE );  // cursor; to know where to draw the mark...
-				}
-				if( nLine == 0 )
-				{
-
+						, list->input.command_mark_start
+						, list->input.command_mark_end
+						);  // cursor; to know where to draw the mark...
 				}
 			}
 		}
@@ -1836,9 +2024,9 @@ static int OnDrawCommon( CONTROL_NAME )( PSI_CONTROL pc )
 
 	if( l.decoration )
 	{
-		cmd_size = ( list->command_height + l.side_pad * 2 /* above and below input*/ + l.sent.BorderSegment[SEGMENT_TOP]->height + l.sent.BorderSegment[SEGMENT_BOTTOM]->height) ;
+		list->command_size = ( list->command_height + l.side_pad * 2 /* above and below input*/ + l.sent.BorderSegment[SEGMENT_TOP]->height + l.sent.BorderSegment[SEGMENT_BOTTOM]->height) ;
 
-		ResizeImage( list->message_window, window->width, window->height - cmd_size );
+		ResizeImage( list->message_window, window->width, window->height - list->command_size );
 		list->display.message_top = list->message_window->height + list->control_offset;
 	}
 	else
@@ -1856,9 +2044,60 @@ static int OnDrawCommon( CONTROL_NAME )( PSI_CONTROL pc )
 		//ResizeImage( list->message_window, window->width, window->height - cmd_size );
 		//list->display.message_top = list->message_window->height + list->control_offset;
 		MoveSizeControl( list->send_button, list->message_window->width - 55
-			, list->message_window->height, 55, cmd_size );
+			, list->message_window->height, 55, list->command_size );
 		DrawMessages( list, list->message_window );
 	}
+
+	{
+		_32 mid = list->message_window->width / 2;
+		if( list->display.message_top < 0 )
+		{
+			int arrow;
+			int row;
+			for( arrow = 0; arrow < 3; arrow++ )
+			{
+				for( row = 0; row < 6; row++ )
+				{
+					do_hline( window, arrow * 10 + row, 7 - row, 7 + row, BASE_COLOR_BLACK );
+					do_hline( window, arrow * 10 + row, ( list->message_window->width - 7 ) - row, ( list->message_window->width - 7 ) + row, BASE_COLOR_BLACK );
+				}
+			}
+#if 0
+			//do_hline( window, 7, 5, list->message_window->width - 10, BASE_COLOR_BLACK );
+			do_hline( window, 6, 5, list->message_window->width - 10, BASE_COLOR_BLACK );
+			do_hline( window, 5, 5, list->message_window->width - 10, BASE_COLOR_BLACK );
+			do_hline( window, 4, mid - 3, mid + 3, BASE_COLOR_BLACK );
+			do_hline( window, 3, mid - 2, mid + 2, BASE_COLOR_BLACK );
+			do_hline( window, 2, mid - 1, mid + 1, BASE_COLOR_BLACK );
+			do_hline( window, 1, mid, mid, BASE_COLOR_BLACK );
+#endif
+		}
+		if( list->control_offset )
+		{
+			int arrow;
+			int row;
+			int base = list->message_window->height - ( 20 );
+			for( arrow = 0; arrow < 3; arrow++ )
+			{
+				for( row = 0; row < 6; row++ )
+				{
+					do_hline( window, arrow * 10 + ( base - row ), 7 - row, 7 + row, BASE_COLOR_BLACK );
+					do_hline( window, arrow * 10 + ( base - row ), ( list->message_window->width - 7 ) - row, ( list->message_window->width - 7 ) + row, BASE_COLOR_BLACK );
+				}
+			}
+#if 0
+			//do_hline( window, list->message_window->height - 7, 5, list->message_window->width - 10, BASE_COLOR_BLACK );
+			do_hline( window, list->message_window->height - 6, 5, list->message_window->width - 10, BASE_COLOR_BLACK );
+			do_hline( window, list->message_window->height - 5, 5, list->message_window->width - 10, BASE_COLOR_BLACK );
+			do_hline( window, list->message_window->height - 4, mid - 3, mid + 3, BASE_COLOR_BLACK );
+			do_hline( window, list->message_window->height - 3, mid - 2, mid + 2, BASE_COLOR_BLACK );
+			do_hline( window, list->message_window->height - 2, mid - 1, mid + 1, BASE_COLOR_BLACK );
+			do_hline( window, list->message_window->height - 1, mid, mid, BASE_COLOR_BLACK );
+#endif
+		}
+	}
+
+
 	return 1;
 }
 
@@ -1868,6 +2107,19 @@ static int OnMouseCommon( CONTROL_NAME )( PSI_CONTROL pc, S_32 x, S_32 y, _32 b 
 	PCHAT_LIST list = (*ppList);
 	if( !list )
 		return 1;
+	if( MAKE_A_BUTTON( b, list->_b, MK_SCROLL_DOWN ) )
+	{
+		if( list->control_offset > ( list->nFontHeight * 3 ) )
+			list->control_offset -= list->nFontHeight * 3;
+		else
+			list->control_offset = 0;
+		SmudgeCommon( pc );
+	}
+	else if( MAKE_A_BUTTON( b, list->_b, MK_SCROLL_UP ) )
+	{
+		list->control_offset += list->nFontHeight * 3;
+		SmudgeCommon( pc );
+	}
 	if( MAKE_A_BUTTON( b, list->_b, MK_LBUTTON ) )
 	{
 		list->flags.begin_button = 1;
@@ -1884,12 +2136,12 @@ static int OnMouseCommon( CONTROL_NAME )( PSI_CONTROL pc, S_32 x, S_32 y, _32 b 
 			// did not find a drag motion while the button was down... this is a tap
 			{
 				// go through the drawn things, was it a click on a message?
-				PCHAT_MESSAGE msg = FindMessage( list, list->first_y );
+				PCHAT_MESSAGE msg = FindMessage( list, list->first_x, list->first_y );
 				if( msg )
 				{
 					if( msg->image )
 					{
-						ImageViewer_ShowImage( msg->image );
+						ImageViewer_ShowImage( pc, msg->image );
 					}
 				}
 			}
@@ -1966,9 +2218,9 @@ static int OnMouseCommon( CONTROL_NAME )( PSI_CONTROL pc, S_32 x, S_32 y, _32 b 
 						total_offset += context->formatted_height + frame_pad;
 					}
 
-					if( !msg && ( tmp_top > ( list->message_window->height - last_message_y ) ) )
+					if( !msg && ( tmp_top > ( list->message_window->height - 50/*last_message_y*/ ) ) )
 					{
-						list->control_offset = total_offset - last_message_y;//list->message_window->height;
+						list->control_offset = total_offset - 50 /*last_message_y*/;//list->message_window->height;
 					}
 				}
 				list->first_y = y;
@@ -2028,11 +2280,11 @@ static void CPROC PSIMeasureString( PTRSZVAL psv, CTEXTSTR s, int nShow, _32 *w,
 }
 
 
-static void CPROC DropAccept( PSI_CONTROL pc, CTEXTSTR path, S_32 x, S_32 y )
+static LOGICAL CPROC DropAccept( PSI_CONTROL pc, CTEXTSTR path, S_32 x, S_32 y )
 {
 	PCHAT_LIST *ppList = ControlData( PCHAT_LIST*, pc );
 	PCHAT_LIST list = (*ppList);
-	list->InputDrop( list->psvInputDrop, path, x, y );
+	return list->InputDrop( list->psvInputDrop, path, x, y );
 }
 
 static int OnCommonFocus(CONTROL_NAME)(PSI_CONTROL control, LOGICAL bFocused )
@@ -2044,7 +2296,7 @@ static int OnCommonFocus(CONTROL_NAME)(PSI_CONTROL control, LOGICAL bFocused )
 static void CPROC SendTypedMessage( PTRSZVAL psvUnused, PSI_CONTROL pc )
 {
 	PCHAT_LIST list = (PCHAT_LIST)psvUnused;
-	KeyGetGatheredLine( list, list->CommandInfo );
+	KeyGetGatheredLine( list, list->input.CommandInfo );
 	SetCommonFocus( GetCommonParent( pc ) );
 	//SmudgeCommon( GetCommonParent( pc ) );
 }
@@ -2076,7 +2328,8 @@ static void CPROC cursorTick( PTRSZVAL psv )
 		__try
 		{
 #endif
-	SmudgeCommon( list->pc );
+	if( !IsControlHidden( list->pc ) )
+		SmudgeCommon( list->pc );
 	//DrawTextEntry( list->pc, list, TRUE );
 #ifdef _MSC_VER
 			}
@@ -2129,11 +2382,11 @@ static int OnCreateCommon( CONTROL_NAME )( PSI_CONTROL pc )
 	SetCommonBorder( list->send_button, BORDER_NONE | BORDER_FIXED | BORDER_NOCAPTION );
 	SetButtonImages( list->send_button, l.button_normal, l.button_pressed );
 
-	list->pHistory = PSI_CreateHistoryRegion();
-	list->phlc_Input = PSI_CreateHistoryCursor( list->pHistory );
-	list->phb_Input = PSI_CreateHistoryBrowser( list->pHistory, PSIMeasureString, (PTRSZVAL)pc );
-	list->CommandInfo = CreateUserInputBuffer();
-	SetBrowserLines( list->phb_Input, 3 );
+	list->input.pHistory = PSI_CreateHistoryRegion();
+	//list->phlc_Input = PSI_CreateHistoryCursor( list->pHistory );
+	list->input.phb_Input = PSI_CreateHistoryBrowser( list->input.pHistory, PSIMeasureString, (PTRSZVAL)pc );
+	list->input.CommandInfo = CreateUserInputBuffer();
+	SetBrowserLines( list->input.phb_Input, 3 );
 	list->colors.crText = BASE_COLOR_BLACK;
 
 	return 1;
@@ -2164,12 +2417,12 @@ static void OnSizeCommon( CONTROL_NAME )( PSI_CONTROL pc, LOGICAL begin_sizing )
 			// fix input
 			if( l.sent.BorderSegment[SEGMENT_LEFT] )
 			{
-				list->phb_Input->nLineHeight = GetFontHeight( list->input_font );
-				list->phb_Input->nColumns 
-					= list->phb_Input->nWidth 
+				list->input.phb_Input->nLineHeight = GetFontHeight( list->input_font );
+				list->input.phb_Input->nColumns 
+					= list->input.phb_Input->nWidth 
 					= window->width - ( 2 * l.side_pad + l.sent.BorderSegment[SEGMENT_LEFT]->width + l.sent.BorderSegment[SEGMENT_RIGHT]->width + 58 );
 			}
-			BuildDisplayInfoLines( list->phb_Input, list->input_font );
+			BuildDisplayInfoLines( list->input.phb_Input, list->input_font );
 			ReformatMessages( list );
 		}
 	}
@@ -2203,16 +2456,20 @@ static int OnKeyCommon( CONTROL_NAME )( PSI_CONTROL pc, _32 key )
 			stroke.data.size = 0;
 		{
 			Image window = GetControlSurface( pc );
-			//SetBrowserColumns( list->phb_Input, ... );
-			list->phb_Input->nLineHeight = GetFontHeight( list->input_font );
-			list->phb_Input->nColumns = window->width - ( 2 * l.side_pad + l.sent.BorderSegment[SEGMENT_LEFT]->width + l.sent.BorderSegment[SEGMENT_RIGHT]->width );
-			list->phb_Input->nWidth = window->width - ( 2 * l.side_pad + l.sent.BorderSegment[SEGMENT_LEFT]->width + l.sent.BorderSegment[SEGMENT_RIGHT]->width +  58 );
+			//SetBrowserColumns( list->input.phb_Input, ... );
+			list->input.phb_Input->nLineHeight = GetFontHeight( list->input_font );
+			list->input.phb_Input->nColumns = window->width - ( 2 * l.side_pad + l.sent.BorderSegment[SEGMENT_LEFT]->width + l.sent.BorderSegment[SEGMENT_RIGHT]->width );
+			list->input.phb_Input->nWidth = window->width - ( 2 * l.side_pad + l.sent.BorderSegment[SEGMENT_LEFT]->width + l.sent.BorderSegment[SEGMENT_RIGHT]->width +  58 );
 		}
 
 		if( key & KEY_PRESSED )
 		{
 			Widget_KeyPressHandler( list, (_8)(KEY_CODE(key)&0xFF), (_8)KEY_MOD(key), (PTEXT)&stroke );
 			SmudgeCommon( pc );
+		}
+		else
+		{
+			Widget_KeyPressHandlerRelease( list, (_8)(KEY_CODE(key)&0xFF), (_8)KEY_MOD(key), (PTEXT)&stroke );
 		}
 		//LeaveCriticalSec( &list->Lock );
 	}

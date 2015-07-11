@@ -134,6 +134,21 @@ typedef struct {
 } GLWindow;
 #endif
 
+#if defined( MINGW_SUX ) && !defined( __ANDROID__ ) && !defined( __QNX__ )
+typedef struct tagUPDATELAYEREDWINDOWINFO {
+    DWORD               cbSize;
+    HDC                 hdcDst;
+    POINT CONST         *pptDst;
+    SIZE CONST          *psize;
+    HDC                 hdcSrc;
+    POINT CONST         *pptSrc;
+    COLORREF            crKey;
+    BLENDFUNCTION CONST *pblend;
+    DWORD               dwFlags;
+    RECT CONST          *prcDirty;
+} UPDATELAYEREDWINDOWINFO;
+#endif
+
 #if defined( __ANDROID__ ) || defined( __LINUX__ )
 typedef struct WindowPos
 {
@@ -210,7 +225,10 @@ typedef struct HVIDEO_tag
 	HDC hDCFakeWindow;
 	HDC hDCFakeBitmap; // compatible dc with window, not the window, and selected bitmap
 	HBITMAP hOldFakeBm;
-	PPBO_Info PBO;
+	//PPBO_Info PBO;
+	UPDATELAYEREDWINDOWINFO ULWInfo;
+	SIZE size;  // window size passed to ULWInfo
+	POINT topPos;// window pos passed to ULWInfo
 #  endif
 #endif
 	PTHREAD thread;

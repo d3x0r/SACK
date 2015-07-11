@@ -122,8 +122,8 @@ void RenderTextLine(
 	, int nFirstLine
 	, int nMinLine
 	, int left_pad
-	, LOGICAL mark_applies
-	, LOGICAL allow_segment_coloring
+	, int mark_start
+	, int mark_end
 						)
 {
 	// left and right are relative... to the line segment only...
@@ -134,6 +134,7 @@ void RenderTextLine(
 		int nChar;
 		PTEXT pText;
 		int nShow, nShown;
+		int nTotalShown = 0;
 #ifdef DEBUG_HISTORY_RENDER
 		lprintf( WIDE("Get display line %d"), nLine );
 #endif
@@ -171,8 +172,6 @@ void RenderTextLine(
 			}
 		}
 
-		if( allow_segment_coloring )
-			SetCurrentColor( list, COLOR_DEFAULT, NULL );
 		nShown = pCurrentLine->nFirstSegOfs;
 #ifdef DEBUG_HISTORY_RENDER
 		if( !pText )
@@ -190,8 +189,6 @@ void RenderTextLine(
 				continue;
 			}
 #endif
-			if( allow_segment_coloring )
-				SetCurrentColor( list, COLOR_SEGMENT, pText );
 
 			nLen = GetTextSize( pText );
 #ifdef DEBUG_HISTORY_RENDER
@@ -216,99 +213,7 @@ void RenderTextLine(
 					//lprintf( WIDE("nothing to show...") );
 					break;
 				}
-#if 0
-				if( list->flags.bMarking &&
-					mark_applies )
-				{
-					if( !list->flags.bMarkingBlock )
-					{
-						if( ( nLine ) > list->mark_start.row
-						 ||( nLine ) < list->mark_end.row )
-						{
-							// line above or below the marked area...
-							if( allow_segment_coloring )
-								SetCurrentColor( list, COLOR_SEGMENT, pText );
-							//SetCurrentColor( crThisText, crThisBack );
-						}
-						else
-						{
-							if( list->mark_start.row == list->mark_end.row )
-							{
-								if( nChar >= list->mark_start.col &&
-									nChar < list->mark_end.col )
-								{
-									if( nChar + nShow > list->mark_end.col )
-										nShow = list->mark_end.col - nChar;
-									if( allow_segment_coloring )
-										SetCurrentColor( list, COLOR_MARK, pText );
-									//SetCurrentColor( list->crMark
-									//  				, list->crMarkBackground );
-								}
-								else if( nChar >= list->mark_end.col )
-								{
-									if( allow_segment_coloring )
-										SetCurrentColor( list, COLOR_SEGMENT, pText );
-									//SetCurrentColor( crThisText, crThisBack );
-								}
-								else if( nChar + nShow > list->mark_start.col )
-								{
-									nShow = list->mark_start.col - nChar;
-								}
-							}
-							else
-							{
-								if( nLine == list->mark_start.row )
-								{
-									if( nChar >= list->mark_start.col )
-									{
-										if( allow_segment_coloring )
-											SetCurrentColor( list,  COLOR_MARK, pText );
-										//SetCurrentColor( list->crMark
-										//					, list->crMarkBackground );
-									}
-									else if( nChar + nShow > list->mark_start.col )
-									{
-										// current segment up to the next part...
-										nShow = list->mark_start.col - nChar;
-									}
-								}
-								if( ( nLine ) < list->mark_start.row
-								 &&( nLine ) > list->mark_end.row )
-								{
-									if( allow_segment_coloring )
-										SetCurrentColor( list, COLOR_MARK, pText );
-									//SetCurrentColor( list->crMark
-									//					, list->crMarkBackground );
-								}
-								if( ( nLine ) == list->mark_end.row )
-								{
-									if( nChar >= list->mark_end.col )
-									{
-										if( allow_segment_coloring )
-											SetCurrentColor( list, COLOR_SEGMENT, pText );
-										//SetCurrentColor( crThisText, crThisBack );
-									}
-									else if( nChar + nShow > list->mark_end.col )
-									{
-										nShow = list->mark_end.col - nChar;
-										if( allow_segment_coloring )
-											SetCurrentColor( list, COLOR_MARK, pText );
-										//SetCurrentColor( list->crMark
-										//					, list->crMarkBackground );
-									}
-									else if( nChar < list->mark_end.col )
-									{
-										if( allow_segment_coloring )
-											SetCurrentColor( list,  COLOR_MARK, pText );
-										//SetCurrentColor( list->crMark
-										//					, list->crMarkBackground );
-									}
-								}
-							}
-						}
-					}
-				}
-#endif
+
 				//lprintf( WIDE("Some stats %d %d %d"), nChar, nShow, nShown );
 				if( nChar )
 				{
@@ -339,22 +244,12 @@ void RenderTextLine(
 				(*r).right = l.side_pad + pCurrentLine->nPixelEnd;
 				if( (*r).bottom > nMinLine )
 				{
-#ifdef DEBUG_HISTORY_RENDER
-					lprintf( WIDE("And finally we can show some text... %s %d"), text, y );
-#endif
 					(*r).left = x;
 					//lprintf( WIDE("putting string %s at %d,%d (left-right) %d,%d"), text, x, y, (*r).left, (*r).right );
 					DrawString( window, font, x, y, list->colors.crText, r, text, nShown, nShow );
-					//if( nLine == 0 )  // only keep the (last) line's end.
-					//	list->nNextCharacterBegin = (*r).right;
 
 					//DrawString( text );
-					//lprintf( WIDE("putting string %s at %d,%d (left-right) %d,%d"), text, x, y, (*r).left, (*r).right );
 				}
-#ifdef DEBUG_HISTORY_RENDER
-				else
-					lprintf( WIDE("Hmm bottom < minline?") );
-#endif
 				// fill to the end of the line...
 				//nLen -= nShow;
 				nShown += nShow;
@@ -367,22 +262,6 @@ void RenderTextLine(
 			nShown = 0;
 			pText = NEXTLINE( pText );
 		}
-		{
-			x = (*r).left = (*r).right;
-			(*r).right = window->width;
-			// if soething left to fill, blank fill it...
-			if( (*r).left < (*r).right )
-			{
-#ifdef DEBUG_HISTORY_RENDER
-				lprintf( WIDE("Fill empty to right (%d-%d)  (%d-%d)"), (*r).left, (*r).right, (*r).top, (*r).bottom );
-#endif
-				// we're going to do text output transparent
-				//if( list->FillConsoleRect )
-				//	list->FillConsoleRect( pdp, r, FILL_DISPLAY_BACK );
-				//FillConsoleRect();
-			}
-		}
-		nLine++;
 	}
 	//lprintf( WIDE(WIDE("(*(*r)...bottom nMin %d %d")), (*r)..bottom, nMinLine );
 	if( (*r).bottom > nMinLine )

@@ -433,12 +433,21 @@ void GetMyInterface( void )
 #else
 	if( !g.default_font )
 	{
+		TEXTCHAR buffer[256];
+
 		_32 w, h;
+		int bias_x, bias_y;
 		GetFileGroup( WIDE( "Resources" ), WIDE( "@/../Resources" ) );
-		GetDisplaySize( &w, &h );
+		//GetDisplaySize( &w, &h );
 		//g.default_font = RenderFontFileScaledEx( WIDE("%resources%/fonts/rod.ttf"), 20, 20, NULL, NULL, 0*2/*FONT_FLAG_8BIT*/, NULL, NULL );
 		//g.default_font = RenderFontFileScaledEx( WIDE("rod.ttf"), 18, 18, NULL, NULL, 2/*FONT_FLAG_8BIT*/, NULL, NULL );
-		g.default_font = RenderFontFileScaledEx( WIDE("msyh.ttf"), 18, 18, NULL, NULL, 2/*FONT_FLAG_8BIT*/, NULL, NULL );
+		SACK_GetProfileString( WIDE("SACK/PSI/Font"), WIDE("Default File"), WIDE("msyh.ttf"), buffer, 256 );
+		w = SACK_GetProfileInt( WIDE( "SACK/PSI/Font" ), WIDE( "Default Width" ), 18 );
+		h = SACK_GetProfileInt( WIDE( "SACK/PSI/Font" ), WIDE( "Default Height" ), 18 );
+		g.default_font = RenderFontFileScaledEx( buffer, w, h, NULL, NULL, 2/*FONT_FLAG_8BIT*/, NULL, NULL );
+		bias_x = SACK_GetProfileInt( WIDE( "SACK/PSI/Font" ), WIDE( "Bias X" ), 0 );
+		bias_y = SACK_GetProfileInt( WIDE( "SACK/PSI/Font" ), WIDE( "Bias Y" ), 2 );
+		SetFontBias( g.default_font, bias_x, bias_y );
 	}
 #endif
 }
@@ -533,7 +542,134 @@ PRIORITY_PRELOAD( InitPSILibrary, PSI_PRELOAD_PRIORITY )
 	}
 }
 
+PFrameBorder PSI_CreateBorder( Image image, int width, int height, int anchors, LOGICAL defines_colors )
+{
 
+ 	//if( !g.BorderImage )
+	if( image )
+	{
+		PFrameBorder border;
+		INDEX idx;
+		LIST_FORALL( g.borders, idx, PFrameBorder, border )
+		{
+			if( border->BorderImage == image )
+				return border;
+		}
+		border = New( FrameBorder );
+		border->defaultcolors = DefaultColors;
+		border->BorderImage = image;
+		if( border->BorderImage )
+		{
+			int MiddleSegmentWidth, MiddleSegmentHeight;
+
+			/*
+			if( border->BorderImage->width & 1 )
+				border->BorderWidth = border->BorderImage->width / 2;
+			else
+				border->BorderWidth = (border->BorderImage->width-1) / 2;
+			if( border->BorderImage->height )
+				border->BorderHeight = border->BorderImage->height / 2;
+			else
+				border->BorderHeight = (border->BorderImage->height-1) / 2;
+			*/
+			border->BorderWidth = width;
+			border->BorderHeight = height;
+
+			border->Border.bAnchorTop = ( ( anchors & BORDER_ANCHOR_TOP_MASK ) >> BORDER_ANCHOR_TOP_SHIFT );
+			border->Border.bAnchorLeft = ( ( anchors & BORDER_ANCHOR_LEFT_MASK ) >> BORDER_ANCHOR_LEFT_SHIFT );
+			border->Border.bAnchorRight = ( ( anchors & BORDER_ANCHOR_RIGHT_MASK ) >> BORDER_ANCHOR_RIGHT_SHIFT );
+			border->Border.bAnchorBottom = ( ( anchors & BORDER_ANCHOR_BOTTOM_MASK ) >> BORDER_ANCHOR_BOTTOM_SHIFT );
+
+			// overcompensate if the settings cause an underflow
+			if( border->BorderWidth > border->BorderImage->width )
+				border->BorderWidth = border->BorderImage->width / 3;
+			if( border->BorderHeight > border->BorderImage->height )
+				border->BorderHeight= border->BorderImage->height / 3;
+			MiddleSegmentWidth = border->BorderImage->width - (border->BorderWidth*2);
+			MiddleSegmentHeight = border->BorderImage->height - (border->BorderHeight*2);
+
+			border->BorderSegment[SEGMENT_TOP_LEFT] = MakeSubImage( border->BorderImage, 0, 0, border->BorderWidth, border->BorderHeight );
+			border->BorderSegment[SEGMENT_TOP] = MakeSubImage( border->BorderImage, border->BorderWidth, 0
+																	 , MiddleSegmentWidth, border->BorderHeight );
+			border->BorderSegment[SEGMENT_TOP_RIGHT] = MakeSubImage( border->BorderImage, border->BorderWidth + MiddleSegmentWidth, 0, border->BorderWidth, border->BorderHeight );
+			border->BorderSegment[SEGMENT_LEFT] = MakeSubImage( border->BorderImage
+																	  , 0, border->BorderHeight
+																	  , border->BorderWidth, MiddleSegmentHeight );
+			border->BorderSegment[SEGMENT_CENTER] = MakeSubImage( border->BorderImage
+																		 , border->BorderWidth, border->BorderHeight
+																		 , MiddleSegmentWidth, MiddleSegmentHeight );
+			border->BorderSegment[SEGMENT_RIGHT] = MakeSubImage( border->BorderImage
+																		, border->BorderWidth + MiddleSegmentWidth, border->BorderHeight
+																		, border->BorderWidth, MiddleSegmentHeight );
+			border->BorderSegment[SEGMENT_BOTTOM_LEFT] = MakeSubImage( border->BorderImage
+																				, 0, border->BorderHeight + MiddleSegmentHeight
+																				, border->BorderWidth, border->BorderHeight );
+			border->BorderSegment[SEGMENT_BOTTOM] = MakeSubImage( border->BorderImage
+																		 , border->BorderWidth, border->BorderHeight + MiddleSegmentHeight
+																	 , MiddleSegmentWidth, border->BorderHeight );
+			border->BorderSegment[SEGMENT_BOTTOM_RIGHT] = MakeSubImage( border->BorderImage
+																				 , border->BorderWidth + MiddleSegmentWidth, border->BorderHeight + MiddleSegmentHeight
+																				 , border->BorderWidth, border->BorderHeight );
+			if( 1 /*SACK_GetProfileInt( WIDE( "SACK/PSI/Frame border" )
+					, WIDE( "Use center base colors" )
+					, 1 )*/ )
+			{
+				CDATA *old_colors = border->defaultcolors;
+				border->defaultcolors = (CDATA*)Allocate( sizeof( DefaultColors ) );
+				MemCpy( border->defaultcolors, old_colors, sizeof( DefaultColors ) );
+				if( border->BorderSegment[SEGMENT_CENTER]->height >= 2 
+					&& border->BorderSegment[SEGMENT_CENTER]->width >= 7
+					&& defines_colors )
+				{
+#define TestAndSetBaseColor( c, s ) { CDATA src = s; if( src ) border->defaultcolors[c] = src; }
+					TestAndSetBaseColor( HIGHLIGHT          , getpixel( border->BorderSegment[SEGMENT_CENTER], 0, 0 ) );
+					TestAndSetBaseColor( SHADE               , getpixel( border->BorderSegment[SEGMENT_CENTER], 0, 1 ) );
+					TestAndSetBaseColor( NORMAL              , getpixel( border->BorderSegment[SEGMENT_CENTER], 1, 0 ) );
+					TestAndSetBaseColor( SHADOW              , getpixel( border->BorderSegment[SEGMENT_CENTER], 1, 1 ) );
+					TestAndSetBaseColor( TEXTCOLOR           , getpixel( border->BorderSegment[SEGMENT_CENTER], 2, 0 ) );
+					TestAndSetBaseColor( CAPTIONTEXTCOLOR    , getpixel( border->BorderSegment[SEGMENT_CENTER], 3, 0 ) );
+					TestAndSetBaseColor( CAPTION             , getpixel( border->BorderSegment[SEGMENT_CENTER], 3, 1 ) );
+					TestAndSetBaseColor( INACTIVECAPTIONTEXTCOLOR, getpixel( border->BorderSegment[SEGMENT_CENTER], 4, 0 ) );
+					TestAndSetBaseColor( INACTIVECAPTION     , getpixel( border->BorderSegment[SEGMENT_CENTER], 4, 1 ) );
+					TestAndSetBaseColor( SELECT_TEXT         , getpixel( border->BorderSegment[SEGMENT_CENTER], 5, 0 ) );
+					TestAndSetBaseColor( SELECT_BACK         , getpixel( border->BorderSegment[SEGMENT_CENTER], 5, 1 ) );
+					TestAndSetBaseColor( EDIT_TEXT           , getpixel( border->BorderSegment[SEGMENT_CENTER], 6, 0 ) );
+					TestAndSetBaseColor( EDIT_BACKGROUND     , getpixel( border->BorderSegment[SEGMENT_CENTER], 6, 1 ) );
+					TestAndSetBaseColor( SCROLLBAR_BACK      , getpixel( border->BorderSegment[SEGMENT_CENTER], 7, 0 ) );
+				}
+				else
+					TestAndSetBaseColor( NORMAL              , getpixel( border->BorderSegment[SEGMENT_CENTER], 0, 0 ) );
+
+			}
+		}
+		AddLink( &g.borders, border );
+		return border;
+	}
+	return NULL;
+}
+
+void PSI_SetFrameBorder( PSI_CONTROL pc, PFrameBorder border )
+{
+	pc->border = border;
+	if( !( pc->BorderType & BORDER_USER_PROC ) )
+		pc->DrawBorder = (pc->border&&pc->border->BorderImage)?DrawFancyFrame:DrawNormalFrame;
+	UpdateSurface( pc );
+}
+
+//#define basecolor(pc) ((pc)?((pc)->border?(pc)->border->defaultcolors:(pc)->basecolors):(g.DefaultBorder?g.DefaultBorder->defaultcolors:DefaultColors))
+CDATA *basecolor( PSI_CONTROL pc )
+{
+	if( pc )
+		if ((pc)->border)
+			return (pc)->border->defaultcolors;
+		else
+			return (pc)->basecolors;
+	else
+		if (g.DefaultBorder)
+			return g.DefaultBorder->defaultcolors;
+		else
+			return DefaultColors;
+}
 
 void TryLoadingFrameImage( void )
 {
@@ -588,125 +724,75 @@ void TryLoadingFrameImage( void )
 		if( buffer[0] )
 			g.FrameCaptionFocusedImage = LoadImageFileFromGroup( GetFileGroup( WIDE( "Images" ), WIDE( "./images" ) ), buffer );
 	}
- 	if( !g.BorderImage )
+ 	if( !g.DefaultBorder )
 	{
 		TEXTCHAR buffer[256];
+		Image border_image;
+		int width, height;
+		int anchors;
 #ifndef __NO_OPTIONS__
-		SACK_GetProfileStringEx( GetProgramName(), WIDE( "SACK/PSI/Frame border image" ), WIDE("frame_border.png"), buffer, sizeof( buffer ), TRUE );
+		SACK_GetProfileStringEx( GetProgramName(), WIDE( "SACK/PSI/Frame border image" ), WIDE("frame2.png"), buffer, sizeof( buffer ), TRUE );
 #else
 		StrCpy( buffer, WIDE("frame_border.png") );
 #endif
-		g.BorderImage = LoadImageFileFromGroup( GetFileGroup( WIDE( "Images" ), WIDE( "./images" ) ), buffer );
-		if( g.BorderImage )
-		{
-			int MiddleSegmentWidth, MiddleSegmentHeight;
-
+		border_image = LoadImageFileFromGroup( GetFileGroup( WIDE( "Images" ), WIDE( "./images" ) ), buffer );
 #ifndef __NO_OPTIONS__
-			if( g.BorderImage->width & 1 )
-				g.BorderWidth = g.BorderImage->width / 2;
-			else
-				g.BorderWidth = (g.BorderImage->width-1) / 2;
-			if( g.BorderImage->height )
-				g.BorderHeight = g.BorderImage->height / 2;
-			else
-				g.BorderHeight = (g.BorderImage->height-1) / 2;
-
-			g.BorderWidth = SACK_GetProfileIntEx( GetProgramName()
+			width = SACK_GetProfileIntEx( GetProgramName()
 					, WIDE( "SACK/PSI/Frame border/Width" )
-					, g.BorderWidth, TRUE );
-			g.BorderHeight = SACK_GetProfileIntEx( GetProgramName()
+					, 0, TRUE );
+			height = SACK_GetProfileIntEx( GetProgramName()
 					, WIDE( "SACK/PSI/Frame border/Height" )
-					, g.BorderHeight, TRUE );
-
-			g.Border.bAnchorTop = SACK_GetProfileIntEx( GetProgramName()
+					, 0, TRUE );
+			anchors = 0;
+			anchors |= SACK_GetProfileIntEx( GetProgramName()
 					, WIDE( "SACK/PSI/Frame border/Anchor Top" )
-					, 0, TRUE );
-			g.Border.bAnchorBottom = SACK_GetProfileIntEx( GetProgramName()
+					, 0, TRUE )<<BORDER_ANCHOR_TOP_SHIFT;
+			anchors |= SACK_GetProfileIntEx( GetProgramName()
 					, WIDE( "SACK/PSI/Frame border/Anchor Bottom" )
-					, 0, TRUE );
-			g.Border.bAnchorLeft = SACK_GetProfileIntEx( GetProgramName()
+					, 0, TRUE )<<BORDER_ANCHOR_BOTTOM_SHIFT;
+			anchors |= SACK_GetProfileIntEx( GetProgramName()
 					, WIDE( "SACK/PSI/Frame border/Anchor Left" )
-					, 0, TRUE );
-			g.Border.bAnchorRight = SACK_GetProfileIntEx( GetProgramName()
+					, 0, TRUE )<<BORDER_ANCHOR_LEFT_SHIFT;
+			anchors |= SACK_GetProfileIntEx( GetProgramName()
 					, WIDE( "SACK/PSI/Frame border/Anchor Right" )
-					, 0, TRUE );
+					, 0, TRUE )<<BORDER_ANCHOR_RIGHT_SHIFT;
 
 			// overcompensate if the settings cause an underflow
-			if( g.BorderWidth > g.BorderImage->width )
-				g.BorderWidth = g.BorderImage->width / 4;
-			if( g.BorderHeight > g.BorderImage->height )
-				g.BorderHeight= g.BorderImage->height / 4;
-			MiddleSegmentWidth = g.BorderImage->width - (g.BorderWidth*2);
-			MiddleSegmentHeight = g.BorderImage->height - (g.BorderHeight*2);
+			if( !width || (2*width) >= border_image->width )
+				width = border_image->width / 3;
+			if( !height || (2*height) >= border_image->height )
+				height = border_image->height / 3;
 #else
-			if( g.BorderImage->width & 1 )
-				g.BorderWidth = g.BorderImage->width / 2;
+			if( border_image->width & 1 )
+				width = border_image->width / 2;
 			else
-				g.BorderWidth = (g.BorderImage->width-1) / 2;
-			if( g.BorderImage->height )
-				g.BorderHeight = g.BorderImage->height / 2;
+				width = (border_image->width-1) / 2;
+			if( border_image->height )
+				height = border_image->height / 2;
 			else
-				g.BorderHeight = (g.BorderImage->height-1) / 2;
-			MiddleSegmentWidth = g.BorderImage->width - (g.BorderWidth*2);
-			MiddleSegmentHeight = g.BorderImage->height - (g.BorderHeight*2);
+				height = (border_image->height-1) / 2;
 #endif
-			g.BorderSegment[SEGMENT_TOP_LEFT] = MakeSubImage( g.BorderImage, 0, 0, g.BorderWidth, g.BorderHeight );
-			g.BorderSegment[SEGMENT_TOP] = MakeSubImage( g.BorderImage, g.BorderWidth, 0
-																	 , MiddleSegmentWidth, g.BorderHeight );
-			g.BorderSegment[SEGMENT_TOP_RIGHT] = MakeSubImage( g.BorderImage, g.BorderWidth + MiddleSegmentWidth, 0, g.BorderWidth, g.BorderHeight );
-			g.BorderSegment[SEGMENT_LEFT] = MakeSubImage( g.BorderImage
-																	  , 0, g.BorderHeight
-																	  , g.BorderWidth, MiddleSegmentHeight );
-			g.BorderSegment[SEGMENT_CENTER] = MakeSubImage( g.BorderImage
-																		 , g.BorderWidth, g.BorderHeight
-																		 , MiddleSegmentWidth, MiddleSegmentHeight );
-			g.BorderSegment[SEGMENT_RIGHT] = MakeSubImage( g.BorderImage
-																		, g.BorderWidth + MiddleSegmentWidth, g.BorderHeight
-																		, g.BorderWidth, MiddleSegmentHeight );
-			g.BorderSegment[SEGMENT_BOTTOM_LEFT] = MakeSubImage( g.BorderImage
-																				, 0, g.BorderHeight + MiddleSegmentHeight
-																				, g.BorderWidth, g.BorderHeight );
-			g.BorderSegment[SEGMENT_BOTTOM] = MakeSubImage( g.BorderImage
-																		 , g.BorderWidth, g.BorderHeight + MiddleSegmentHeight
-																	 , MiddleSegmentWidth, g.BorderHeight );
-			g.BorderSegment[SEGMENT_BOTTOM_RIGHT] = MakeSubImage( g.BorderImage
-																				 , g.BorderWidth + MiddleSegmentWidth, g.BorderHeight + MiddleSegmentHeight
-																				 , g.BorderWidth, g.BorderHeight );
-			if( SACK_GetProfileInt( WIDE( "SACK/PSI/Frame border" )
-					, WIDE( "Use center base colors" )
-					, 1 ) )
-			{
-#define TestAndSetBaseColor( c, s ) { CDATA src = s; if( src ) SetBaseColor( c, src ); }
-				TestAndSetBaseColor( HIGHLIGHT          , getpixel( g.BorderSegment[SEGMENT_CENTER], 0, 0 ) );
-				TestAndSetBaseColor( SHADE               , getpixel( g.BorderSegment[SEGMENT_CENTER], 0, 1 ) );
-				TestAndSetBaseColor( NORMAL              , getpixel( g.BorderSegment[SEGMENT_CENTER], 1, 0 ) );
-				TestAndSetBaseColor( SHADOW              , getpixel( g.BorderSegment[SEGMENT_CENTER], 1, 1 ) );
-				TestAndSetBaseColor( TEXTCOLOR           , getpixel( g.BorderSegment[SEGMENT_CENTER], 2, 0 ) );
-				TestAndSetBaseColor( CAPTIONTEXTCOLOR    , getpixel( g.BorderSegment[SEGMENT_CENTER], 3, 0 ) );
-				TestAndSetBaseColor( CAPTION             , getpixel( g.BorderSegment[SEGMENT_CENTER], 3, 1 ) );
-				TestAndSetBaseColor( INACTIVECAPTIONTEXTCOLOR, getpixel( g.BorderSegment[SEGMENT_CENTER], 4, 0 ) );
-				TestAndSetBaseColor( INACTIVECAPTION     , getpixel( g.BorderSegment[SEGMENT_CENTER], 4, 1 ) );
-				TestAndSetBaseColor( SELECT_TEXT         , getpixel( g.BorderSegment[SEGMENT_CENTER], 5, 0 ) );
-				TestAndSetBaseColor( SELECT_BACK         , getpixel( g.BorderSegment[SEGMENT_CENTER], 5, 1 ) );
-				TestAndSetBaseColor( EDIT_TEXT           , getpixel( g.BorderSegment[SEGMENT_CENTER], 6, 0 ) );
-				TestAndSetBaseColor( EDIT_BACKGROUND     , getpixel( g.BorderSegment[SEGMENT_CENTER], 6, 1 ) );
-				TestAndSetBaseColor( SCROLLBAR_BACK      , getpixel( g.BorderSegment[SEGMENT_CENTER], 7, 0 ) );
-			}
-		}
+			g.DefaultBorder = PSI_CreateBorder( border_image, width, height, anchors
+					, SACK_GetProfileInt( "SACK/psi/Frame Border", "Has Control theme colors", 0 ) );
 	}
 }
 
 static void OnDisplayConnect( WIDE( "@00 PSI Core" ) )( struct display_app*app, struct display_app_local ***pppLocal )
 {
-	if( g.BorderImage )
+	PFrameBorder border;
+	INDEX idx;
+	GetMyInterface();
+	ReuseImage( g.StopButton );
+	ReuseImage( g.StopButtonPressed );
+	LIST_FORALL( g.borders, idx, PFrameBorder, border )
 	{
-		int n;
-		ReuseImage( g.StopButton );
-		ReuseImage( g.StopButtonPressed );
-		ReuseImage( g.BorderImage );
-		for( n = 0; n < 9; n++ )
 		{
-			ReuseImage( g.BorderSegment[n] );
+			int n;
+			ReuseImage( border->BorderImage );
+			for( n = 0; n < 9; n++ )
+			{
+				ReuseImage( border->BorderSegment[n] );
+			}
 		}
 	}
 }
@@ -761,21 +847,21 @@ PSI_PROC( void, AlignBaseToWindows )( void )
 		GetMyInterface();
 #define Swap(i)    ( (tmp = i),( sys_r = ((tmp) & 0xFF)), (sys_g = ((tmp>>8) & 0xFF)),(sys_b = ((tmp >>16) & 0xFF)),(sys_a = 0xFF),AColor(sys_r,sys_g,sys_b,sys_a) )
 	g.flags.system_color_set = 1;
-	 g.defaultcolors[HIGHLIGHT        ] =  Swap(GetSysColor( COLOR_3DHIGHLIGHT));
+	 DefaultColors[HIGHLIGHT        ] =  Swap(GetSysColor( COLOR_3DHIGHLIGHT));
 	//if( !g.BorderImage )
-	g.defaultcolors[NORMAL           ] =  Swap(GetSysColor(COLOR_3DFACE ));
-	g.defaultcolors[SHADE            ] =  Swap(GetSysColor(COLOR_3DSHADOW ));
-	g.defaultcolors[SHADOW           ] =  Swap(GetSysColor(COLOR_3DDKSHADOW ));
-	g.defaultcolors[TEXTCOLOR        ] =  Swap(GetSysColor(COLOR_BTNTEXT ));
-	g.defaultcolors[CAPTION          ] =  Swap(GetSysColor(COLOR_ACTIVECAPTION ));
-	g.defaultcolors[CAPTIONTEXTCOLOR] =  Swap(GetSysColor( COLOR_CAPTIONTEXT));
-	g.defaultcolors[INACTIVECAPTION ] =  Swap(GetSysColor(COLOR_INACTIVECAPTION ));    
-	g.defaultcolors[INACTIVECAPTIONTEXTCOLOR]=Swap(GetSysColor(COLOR_INACTIVECAPTIONTEXT ));
-	g.defaultcolors[SELECT_BACK      ] =  Swap(GetSysColor(COLOR_HIGHLIGHT ));
-	g.defaultcolors[SELECT_TEXT      ] =  Swap(GetSysColor(COLOR_HIGHLIGHTTEXT ));
-	g.defaultcolors[EDIT_BACKGROUND ] =  Swap(GetSysColor(COLOR_WINDOW ));
-	g.defaultcolors[EDIT_TEXT       ] =  Swap(GetSysColor(COLOR_WINDOWTEXT ));
-	g.defaultcolors[SCROLLBAR_BACK  ] =  Swap(GetSysColor(COLOR_SCROLLBAR ));
+	DefaultColors[NORMAL           ] =  Swap(GetSysColor(COLOR_3DFACE ));
+	DefaultColors[SHADE            ] =  Swap(GetSysColor(COLOR_3DSHADOW ));
+	DefaultColors[SHADOW           ] =  Swap(GetSysColor(COLOR_3DDKSHADOW ));
+	DefaultColors[TEXTCOLOR        ] =  Swap(GetSysColor(COLOR_BTNTEXT ));
+	DefaultColors[CAPTION          ] =  Swap(GetSysColor(COLOR_ACTIVECAPTION ));
+	DefaultColors[CAPTIONTEXTCOLOR] =  Swap(GetSysColor( COLOR_CAPTIONTEXT));
+	DefaultColors[INACTIVECAPTION ] =  Swap(GetSysColor(COLOR_INACTIVECAPTION ));    
+	DefaultColors[INACTIVECAPTIONTEXTCOLOR]=Swap(GetSysColor(COLOR_INACTIVECAPTIONTEXT ));
+	DefaultColors[SELECT_BACK      ] =  Swap(GetSysColor(COLOR_HIGHLIGHT ));
+	DefaultColors[SELECT_TEXT      ] =  Swap(GetSysColor(COLOR_HIGHLIGHTTEXT ));
+	DefaultColors[EDIT_BACKGROUND ] =  Swap(GetSysColor(COLOR_WINDOW ));
+	DefaultColors[EDIT_TEXT       ] =  Swap(GetSysColor(COLOR_WINDOWTEXT ));
+	DefaultColors[SCROLLBAR_BACK  ] =  Swap(GetSysColor(COLOR_SCROLLBAR ));
 #endif
     // No base to set to - KDE/Gnome/E/?
 }
@@ -785,12 +871,12 @@ PSI_PROC( void, AlignBaseToWindows )( void )
 PSI_PROC( void, SetBaseColor )( INDEX idx, CDATA c )
 {
 	//lprintf( WIDE("Color %d was %08X and is now %08X"), idx, defaultcolor[idx], c );
-	g.defaultcolors[idx] = c;
+	DefaultColors[idx] = c;
 }
 
 PSI_PROC( CDATA, GetBaseColor )( INDEX idx )
 {
-	return g.defaultcolors[idx] ;
+	return DefaultColors[idx] ;
 }
 
 //---------------------------------------------------------------------------
@@ -800,10 +886,10 @@ PSI_PROC( void, SetControlColor )( PSI_CONTROL pc, INDEX idx, CDATA c )
 	//lprintf( WIDE("Color %d was %08X and is now %08X"), idx, basecolor(pc)[idx], c );
 	if( pc )
 	{
-		if( basecolor(pc) == g.defaultcolors )
+		if( basecolor(pc) == DefaultColors )
 		{
 			pc->basecolors = NewArray( CDATA, sizeof( DefaultColors ) / sizeof( CDATA ) );
-			MemCpy( pc->basecolors, g.defaultcolors, sizeof( DefaultColors ) );
+			MemCpy( pc->basecolors, DefaultColors, sizeof( DefaultColors ) );
 		}
 		basecolor(pc)[idx] = c;
 	}
@@ -1651,7 +1737,7 @@ void SetUpdateRegionEx( PSI_CONTROL pc, S_32 rx, S_32 ry, _32 rw, _32 rh DBG_PAS
 Image CopyOriginalSurfaceEx( PCONTROL pc, Image use_image DBG_PASS )
 {
 	Image copy;
-	if( !pc || !g.flags.allow_copy_from_render )
+	if( !pc || !g.flags.allow_copy_from_render || !pc->parent || ( pc->BorderType & BORDER_FRAME ) )
 	{
 		return NULL;
 	}
@@ -2583,16 +2669,25 @@ PROCEDURE RealCreateCommonExx( PSI_CONTROL *pResult
 	pc->CaptionChanged = GetRegisteredProcedureExx(root,(CTEXTSTR)NULL,void,WIDE("caption_changed"),(PSI_CONTROL));
 	pc->ChangeFocus    = GetRegisteredProcedureExx(root,(CTEXTSTR)NULL,void,WIDE("focus_changed"),(PSI_CONTROL,LOGICAL));
 	pc->AddedControl   = GetRegisteredProcedureExx(root,(CTEXTSTR)NULL,void,WIDE("add_control"),(PSI_CONTROL,PSI_CONTROL));
-	AddCommonAcceptDroppedFiles( pc, GetRegisteredProcedureExx(root,(CTEXTSTR)NULL,void,WIDE("drop_accept"),(PSI_CONTROL,CTEXTSTR,S_32,S_32)) );
+	AddCommonAcceptDroppedFiles( pc, GetRegisteredProcedureExx(root,(CTEXTSTR)NULL,LOGICAL,WIDE("drop_accept"),(PSI_CONTROL,CTEXTSTR,S_32,S_32)) );
 	pc->Resize         = GetRegisteredProcedureExx(root,(CTEXTSTR)NULL,void,WIDE("resize"),(PSI_CONTROL,LOGICAL));
 	pc->Move         = GetRegisteredProcedureExx(root,(CTEXTSTR)NULL,void,WIDE("position_changing"),(PSI_CONTROL,LOGICAL));
 	pc->Rescale        = GetRegisteredProcedureExx(root,(CTEXTSTR)NULL,void,WIDE("rescale"),(PSI_CONTROL));
 	pc->BorderDrawProc = GetRegisteredProcedureExx(root,(CTEXTSTR)NULL,void,WIDE("border_draw"),(PSI_CONTROL,Image));
+
+	if( !pContainer || ( ExtraBorderType & BORDER_FRAME ) )
+	{
+		// define default border.
+		if( !g.flags.system_color_set )
+			TryLoadingFrameImage();
+		pc->border = g.DefaultBorder;
+	}
+
 	if( pc->BorderDrawProc )
 	{
 		pc->BorderMeasureProc = GetRegisteredProcedureExx(root,(CTEXTSTR)NULL,void,WIDE("border_measure"),(PSI_CONTROL,int*,int*,int*,int*));
 		pc->BorderType = BORDER_USER_PROC | ( BorderType & ~BORDER_TYPE );
-      SetDrawBorder( pc );  // sets real draw proc
+		SetDrawBorder( pc );  // sets real draw proc
 	}
 	else
 	{
@@ -2603,6 +2698,10 @@ PROCEDURE RealCreateCommonExx( PSI_CONTROL *pResult
 	//pc->PosChanging    = GetRegisteredProcedureExx(root,(CTEXTSTR)NULL,void,WIDE("position_changing"),(PSI_CONTROL,LOGICAL));
 	pc->BeginEdit      = GetRegisteredProcedureExx(root,(CTEXTSTR)NULL,void,WIDE("begin_frame_edit"),(PSI_CONTROL));
 	pc->EndEdit        = GetRegisteredProcedureExx(root,(CTEXTSTR)NULL,void,WIDE("end_frame_edit"),(PSI_CONTROL));
+	pc->DrawCaption    = GetRegisteredProcedureExx(root,(CTEXTSTR)NULL,void,WIDE("draw_caption"),(PSI_CONTROL,Image));
+	if( pc->DrawCaption )
+		pc->pCaptionImage = MakeSubImage( pc->Window, 0, 0, 0, 0 ); // this will get resized later
+
 	// creates
 	pc->flags.bInitial = 1;
 	pc->flags.bDirty = 1;
@@ -2677,7 +2776,7 @@ PSI_PROC( PSI_CONTROL, CreateFrame )( CTEXTSTR caption
 #ifdef USE_INTERFACES
 	GetMyInterface(); // macro with builtin quickcheck
 #endif
-	pc = CreateCommonExx( (BorderTypeFlags & BORDER_WITHIN)?hAbove:NULL
+	pc = CreateCommonExx( hAbove//(BorderTypeFlags & BORDER_WITHIN)?hAbove:NULL
 							  , NULL, CONTROL_FRAME
 							  , x, y
 							  , w, h
@@ -2820,6 +2919,7 @@ PSI_PROC( void, DisplayFrameOverOnUnder )( PSI_CONTROL pc, PSI_CONTROL over, PRE
 #endif
 		pc->flags.bInitial = FALSE;
 		pf = OpenPhysicalDevice( pc, over, pActImg, under );
+      pc->parent = over;
 #ifdef DEBUG_UPDAATE_DRAW
 		if( g.flags.bLogDebugUpdate )
 			lprintf( WIDE("-------- device opened") );
@@ -3073,6 +3173,7 @@ PSI_PROC( void, SizeCommon )( PSI_CONTROL pc, _32 width, _32 height )
 	if( pc && pc->Resize )
 		pc->Resize( pc, TRUE );
 	//if( pc->nType )
+	if( pc )
 	{
 		PPHYSICAL_DEVICE pFrame = GetFrame(pc)->device;
 		//ValidatedControlData( PFRAME, CONTROL_FRAME, pFrame, GetFrame( pc ) );
@@ -3129,10 +3230,7 @@ PSI_PROC( void, SizeCommon )( PSI_CONTROL pc, _32 width, _32 height )
 			old.height += 2*SPOT_SIZE;
 		}
 
-		{
-			extern void UpdateSurface( PSI_CONTROL pc );
-			UpdateSurface( pc );
-		}
+		UpdateSurface( pc );
 
 		if( pFrame && !pFrame->flags.bNoUpdate )
 		{

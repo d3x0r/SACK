@@ -243,7 +243,7 @@ static P_8 EncodeImage( size_t ID, Image image, LOGICAL bmp, size_t *outsize )
 					static int n;
 					FILE *out;
 					tnprintf( tmpname, 32, WIDE("blah%d.png"), ID );
-					out = sack_fopen( 0, tmpname, WIDE("wb") );
+					out = sack_fopenEx( 0, tmpname, WIDE("wb"), sack_get_mounted_filesystem( "native" ) );
 					fwrite( buf, 1, *outsize, out );
 					fclose( out );
 				}
@@ -648,6 +648,23 @@ void SendTCPMessageV( struct server_socket_state *state, LOGICAL websock, enum p
 	va_list args;
 	va_start( args, message );
 	SendTCPMessage( state, websock, message, args );
+}
+
+void SetActiveDisplay( struct vidlib_proxy_application *app )
+{
+	ThreadNetworkState.app = app->network_state;
+	{
+		INDEX idx; 
+		struct vidlib_proxy_application_instance *inst;
+		LIST_FORALL( app->local_instances, idx, struct vidlib_proxy_application_instance *, inst )
+		{
+			if( inst->ppLocal )
+			{
+				(*inst->ppLocal) = inst->pLocal;
+			}
+		}
+	}
+
 }
 
 void InvokeNewDisplay( struct vidlib_proxy_application *app )
@@ -1098,7 +1115,7 @@ static void WebSockEvent( PCLIENT pc, PTRSZVAL psv, POINTER buffer, int msglen )
 					client->application_instance = New( struct vidlib_proxy_application );
 					MemSet( client->application_instance, 0, sizeof( struct vidlib_proxy_application ) );
 					client->application_instance->client_id = StrDup( message->data.client_ident.client_id );
-
+					client->application_instance->network_state = client;
 					InvokeNewDisplay( client->application_instance );
 					AddLink( &l.applications, client->application_instance );
 				}
@@ -3232,6 +3249,17 @@ static IMAGE_INTERFACE InstanceProxyImageInterface = {
 , NULL //IMAGE_PROC_PTR( void, Render3dImage )( Image pImage, PCVECTOR o, LOGICAL render_pixel_scaled );
 , NULL // IMAGE_PROC_PTR( void, DumpFontFile )( CTEXTSTR name, SFTFont font_to_dump );
 , NULL //IMAGE_PROC_PTR( void, Render3dText )( CTEXTSTR string, int characters, CDATA color, SFTFont font, VECTOR o, LOGICAL render_pixel_scaled );
+, NULL // IMAGE_PROC_PTR( void, TransferSubImages )( Image pImageTo, Image pImageFrom );
+, NULL // IMAGE_PROC_PTR( Image, GetNativeImage )( Image pImageTo );
+, NULL // IMAGE_PROC_PTR( Image, GetTintedImage )( Image child_image, CDATA color );
+, NULL // IMAGE_PROC_PTR( Image, GetShadedImage )( Image child_image, CDATA red, CDATA green, CDATA blue );
+, NULL // IMAGE_PROC_PTR( LOGICAL, IsImageTargetFinal )( Image image );
+, NULL // IMAGE_PROC_PTR( Image, ReuseImage )( Image image );
+, NULL // IMAGE_PROC_PTR( void, PutStringFontExx )( Image pImage
+, NULL // IMAGE_PROC_PTR( void, ResetImageBuffers )( Image image, LOGICAL image_only );
+, NULL // 	IMAGE_PROC_PTR(  LOGICAL, PngImageFile )( Image image, P_8 *buf, size_t *size );
+, NULL // 	IMAGE_PROC_PTR(  LOGICAL, JpgImageFile )( Image image, P_8 *buf, size_t *size, int Q );
+, NULL // SetFontBias
 
 };
 
@@ -3378,6 +3406,7 @@ static void InitImageInterface( void )
 	InstanceProxyImageInterface._ReuseImage = VidlibProxy_ReuseImage;
 	InstanceProxyImageInterface._PutStringFontExx = VidlibProxy_PutStringFontExx;
 	InstanceProxyImageInterface._ResetImageBuffers = (void(CPROC*)(Image,LOGICAL))ClearImageBuffers;
+	InstanceProxyImageInterface._SetFontBias = l.real_interface->_SetFontBias;
 }
 
 static IMAGE_3D_INTERFACE Proxy3dImageInterface = {

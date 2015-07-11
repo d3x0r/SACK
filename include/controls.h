@@ -422,6 +422,9 @@ enum {
 #define PCOMMON PSI_CONTROL
 #define PCONTROL PSI_CONTROL
 #endif
+
+typedef struct frame_border *PFrameBorder;
+
 /* <combine sack::PSI>
    
    A handle to a PSI control or frame. The User's data is stored
@@ -497,6 +500,29 @@ enum BorderOptionTypes {
  BORDER_NO_EXTRA_INIT           =  0x010000, // control is private to psi library(used for scrollbars in listboxes, etc) and as such does not call 'extra init'
  BORDER_CAPTION_CLOSE_BUTTON    =  0x020000, //add a close button to the caption bar (has to have text, and a caption)
  BORDER_CAPTION_NO_CLOSE_BUTTON =  0x040000, //do not allow a close button on the caption bar (has to have text, and a caption)
+};
+
+enum BorderAnchorFlags {
+	BORDER_ANCHOR_TOP_MIN    = 1,
+	BORDER_ANCHOR_TOP_CENTER = 2,
+	BORDER_ANCHOR_TOP_MAX    = 3,
+	BORDER_ANCHOR_TOP_MASK   = 3,
+	BORDER_ANCHOR_TOP_SHIFT  = 0,
+	BORDER_ANCHOR_LEFT_MIN    = 4,
+	BORDER_ANCHOR_LEFT_CENTER = 8,
+	BORDER_ANCHOR_LEFT_MAX    = 12,
+	BORDER_ANCHOR_LEFT_MASK   = 0x0c,
+	BORDER_ANCHOR_LEFT_SHIFT  = 2,
+	BORDER_ANCHOR_RIGHT_MIN    = 0x10,
+	BORDER_ANCHOR_RIGHT_CENTER = 0x20,
+	BORDER_ANCHOR_RIGHT_MAX    = 0x30,
+	BORDER_ANCHOR_RIGHT_MASK   = 0x30,
+	BORDER_ANCHOR_RIGHT_SHIFT  = 4,
+	BORDER_ANCHOR_BOTTOM_MIN    = 0x40,
+	BORDER_ANCHOR_BOTTOM_CENTER = 0x80,
+	BORDER_ANCHOR_BOTTOM_MAX    = 0xC0,
+	BORDER_ANCHOR_BOTTOM_MASK   = 0xC0,
+	BORDER_ANCHOR_BOTTOM_SHIFT  = 6
 };
 
 // these are the indexes for base color
@@ -892,6 +918,8 @@ PSI_PROC( PTRSZVAL, GetCommonUserData )( PSI_CONTROL pf );
 PSI_PROC( void, SetCommonUserData )( PSI_CONTROL pf, PTRSZVAL psv );
 #define SetFrameUserData(pf,d) SetCommonUserData( (PSI_CONTROL)pf,d )
 
+PSI_PROC( PFrameBorder, PSI_CreateBorder )( Image image, int width, int height, int anchors, LOGICAL defines_colors );
+PSI_PROC( void, PSI_SetFrameBorder )( PSI_CONTROL pc, PFrameBorder border );
 
 PSI_PROC( void, BeginUpdate )( PSI_CONTROL pc );
 PSI_PROC( void, EndUpdate )( PSI_CONTROL pc );
@@ -989,6 +1017,8 @@ PSI_PROC( void, GetCommonTextEx)( PSI_CONTROL pc, TEXTSTR  buffer, int buflen, i
 PSI_PROC( void, SetControlText )( PSI_CONTROL pc, CTEXTSTR text );
 PSI_PROC( void, SetControlCaptionImage )( PSI_CONTROL pc, Image image, int pad );
 PSI_PROC( void, SetFrameText )( PSI_CONTROL pc, CTEXTSTR text );
+// this is used to set the height of the caption bar when OnDrawCaption is defined for a control
+PSI_PROC( void, SetCaptionHeight )( PSI_CONTROL pc, int height );
 
 // set focus to this control,
 // it's container which needs to be updated
@@ -1147,13 +1177,14 @@ PSI_PROC( void, AdoptCommon )( PSI_CONTROL pFoster, PSI_CONTROL pElder, PSI_CONT
 PSI_PROC( void, SetCommonDraw )( PSI_CONTROL pf, int (CPROC*Draw)( PSI_CONTROL pc ) );
 PSI_PROC( void, SetCommonDrawDecorations )( PSI_CONTROL pc, void(CPROC*DrawDecorations)(PSI_CONTROL) );
 PSI_PROC( void, SetCommonKey )( PSI_CONTROL pf, int (CPROC*Key)(PSI_CONTROL,_32) );
-PSI_PROC( void, SetCommonMouse)( PSI_CONTROL pc, int (CPROC*MouseMethod)(PSI_CONTROL, S_32 x, S_32 y, _32 b ) );
+typedef int (CPROC*psi_mouse_callback)(PSI_CONTROL, S_32 x, S_32 y, _32 b );
+PSI_PROC( void, SetCommonMouse)( PSI_CONTROL pc, psi_mouse_callback MouseMethod );
 PSI_PROC( void, AddCommonDraw )( PSI_CONTROL pf, int (CPROC*Draw)( PSI_CONTROL pc ) );
 PSI_PROC( void, AddCommonKey )( PSI_CONTROL pf, int (CPROC*Key)(PSI_CONTROL,_32) );
 PSI_PROC( void, AddCommonMouse)( PSI_CONTROL pc, int (CPROC*MouseMethod)(PSI_CONTROL, S_32 x, S_32 y, _32 b ) );
 
-PSI_PROC( void, SetCommonAcceptDroppedFiles)( PSI_CONTROL pc, void (CPROC*AcceptDroppedFilesMethod)(PSI_CONTROL, CTEXTSTR file, S_32 x, S_32 y ) );
-PSI_PROC( void, AddCommonAcceptDroppedFiles)( PSI_CONTROL pc, void (CPROC*AcceptDroppedFilesMethod)(PSI_CONTROL, CTEXTSTR file, S_32 x, S_32 y ) );
+PSI_PROC( void, SetCommonAcceptDroppedFiles)( PSI_CONTROL pc, LOGICAL (CPROC*AcceptDroppedFilesMethod)(PSI_CONTROL, CTEXTSTR file, S_32 x, S_32 y ) );
+PSI_PROC( void, AddCommonAcceptDroppedFiles)( PSI_CONTROL pc, LOGICAL (CPROC*AcceptDroppedFilesMethod)(PSI_CONTROL, CTEXTSTR file, S_32 x, S_32 y ) );
 
 PSI_PROC( void, SetCommonSave)( PSI_CONTROL pc, void (CPROC*)(int PSI_CONTROL) );
 #define SetControlSave(pc,mm)   SetCommonSave((PSI_CONTROL)pc,(void (CPROC*)(int, PSI_CONTROL))mm)
@@ -2417,6 +2448,19 @@ PSI_PROC_PTR( void, UpdateCommonEx )( PSI_CONTROL pc, int bDraw );
 };
 /* Type that is a pointer to a control interface. */
 typedef struct control_interface_tag *PCONTROL_INTERFACE;
+
+//------------------------ Progress Bar --------------------------------------
+#define PROGRESS_BAR_CONTROL_NAME  WIDE( "Progress Bar" )
+// Set Range of progress bar (maximum value)
+PSI_PROC( void, ProgressBar_SetRange )( PSI_CONTROL pc, int range );
+// Set progress of progress bar (maximum value)
+PSI_PROC( void, ProgressBar_SetProgress )( PSI_CONTROL pc, int progress );
+// Set Colors for progress bar
+PSI_PROC( void, ProgressBar_SetColors )( PSI_CONTROL pc, CDATA background, CDATA foreground );
+// Enable/Disable showing text as a percentage on progress bar.
+PSI_PROC( void, ProgressBar_EnableText )( PSI_CONTROL pc, LOGICAL enable );
+
+
 
 /* Gets the interface. */
 PCONTROL_INTERFACE GetControlInterface( void );

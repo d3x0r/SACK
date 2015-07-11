@@ -49,7 +49,11 @@ void paste2( TARGET_LABEL,_RegisterStartups)( void )
 		{
 			if( !current[0].scheduled )
 			{
+#ifdef _DEBUG
 				RegisterPriorityStartupProc( current->routine, current->funcname, current->priority, NULL, current->file, current->line );
+#else
+				RegisterPriorityStartupProc( current->routine, current->funcname, current->priority, NULL );
+#endif
 				current[0].scheduled = 1;
 			}
 			else

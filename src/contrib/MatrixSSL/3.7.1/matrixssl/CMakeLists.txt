@@ -12,9 +12,10 @@ set( MatrixSSL_Sources
 sslEncode.c )
 
 # if SHARED; on windows, declspec...
-ADD_DEFINITIONS( -D_USRDLL -DMATRIX_SSL_SOURCE )
+# ADD_DEFINITIONS( -D_USRDLL )
+ADD_DEFINITIONS( -DMATRIX_SSL_SOURCE )
 
-add_library( MatrixSSL SHARED ${MatrixSSL_Sources} )
+add_library( MatrixSSL ${MatrixSSL_Sources} )
 
 target_link_libraries( MatrixSSL mssl_crypto mssl_core )
 

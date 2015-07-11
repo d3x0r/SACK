@@ -848,15 +848,6 @@ static void CPROC BannerTimeout( PTRSZVAL ppsv )
 }
 
 //--------------------------------------------------------------------------
-/*
-void CPROC DrawButton( PTRSZVAL psv, PCONTROL pc )
-{
-	Image Surface = GetControlSurface( pc );
-	ClearImageTo( pb->common.common.Surface, GetBaseColor( NORMAL ) );
-	DrawStrong( banner->font,
-}
-*/
-//--------------------------------------------------------------------------
 
 void SetBanner2OptionsEx( PBANNER *ppBanner, _32 flags, _32 extra  )
 {

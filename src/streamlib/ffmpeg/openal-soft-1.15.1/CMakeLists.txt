@@ -430,7 +430,6 @@ ENDIF()
 
 # Check for a 64-bit type
 CHECK_INCLUDE_FILE(stdint.h HAVE_STDINT_H)
-message( "thing ${HAVE_STDINT_H}" )
 IF(NOT HAVE_STDINT_H)
     IF(HAVE_WINDOWS_H)
         CHECK_C_SOURCE_COMPILES("\#define _WIN32_WINNT 0x0501
@@ -445,6 +444,8 @@ IF(NOT HAVE_STDINT_H)
             ENDIF()
         ENDIF()
     ENDIF()
+ELSE()
+    ADD_DEFINITIONS( -DHAVE_STDINT_H )
 ENDIF()
 
 # Windows needs winmm for timeGetTime, even if the backend is disabled
@@ -621,8 +622,11 @@ ENDIF()
 
 # Check DSound/MMSystem backend
 IF(DSOUND)
+    INCLUDE_DIRECTORIES( ${DXSDK}/include )
     CHECK_INCLUDE_FILE(dsound.h HAVE_DSOUND_H)
+    message( "HAVE = ${HAVE_DSOUND_H}" )
     IF(HAVE_DSOUND_H)
+       message( "HAVE_DSOUND_H" )
         CHECK_SHARED_FUNCTION_EXISTS(DirectSoundCreate "dsound.h" dsound "" HAVE_LIBDSOUND)
         IF(HAVE_LIBDSOUND OR HAVE_DLFCN_H OR WIN32)
             SET(HAVE_DSOUND 1)

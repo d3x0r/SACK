@@ -270,7 +270,7 @@ void CPROC do_hlinec( ImageFile *pImage, int y, int xfrom, int xto, CDATA color 
    int len;
    if( !pImage || !pImage->image ) return;
 
-   if( y < pImage->y || y >= (pImage->y + pImage->height ))
+   if( y < 0 || y >= (pImage->height ))
    {
       //Log4( WIDE("hline failed: %d<%d or %d>%d"), y, pImage->y, y, pImage->y+pImage->height );
       return;
@@ -282,16 +282,16 @@ void CPROC do_hlinec( ImageFile *pImage, int y, int xfrom, int xto, CDATA color 
       xto = xfrom;
       xfrom = tmp;
    }
-   if( xto < pImage->x || xfrom >= (pImage->x + pImage->width))
+   if( xto < 0 || xfrom >= (pImage->width))
    {
       //Log4( WIDE("hline(2) failed: %d<%d or %d>%d"), xto, pImage->x, xfrom, pImage->x + pImage->width );
       return;
    }
 
-   if( xfrom < pImage->x )
-      xfrom = pImage->x;
-   if( xto >= pImage->x + pImage->width )
-      xto = pImage->x + pImage->width - 1;
+   if( xfrom < 0 )
+      xfrom = 0;
+   if( xto >= pImage->width )
+      xto = pImage->width - 1;
 
    len = (xto - xfrom) + 1;
    po = IMG_ADDRESS(pImage,xfrom,y);
@@ -311,7 +311,7 @@ void CPROC do_vlinec( ImageFile *pImage, int x, int yfrom, int yto, CDATA color 
 	//cpg26dec2006 Warning! W124: Comparison result always 0
 	if( !pImage || !pImage->image /*|| pImage->height < 0*/ ) return;
 
-   if( x < pImage->x || x >= (pImage->x + pImage->width ))
+   if( x < 0 || x >= (pImage->width ))
       return;
 
    if( yfrom > yto )
@@ -320,13 +320,13 @@ void CPROC do_vlinec( ImageFile *pImage, int x, int yfrom, int yto, CDATA color 
       yto = yfrom;
       yfrom = tmp;
    }
-   if( yto < pImage->y || yfrom >= (pImage->y + pImage->height))
+   if( yto < 0 || yfrom >= (pImage->height))
       return;
 
-   if( yfrom < pImage->y )
-      yfrom = pImage->y;
-   if( yto >= pImage->y + pImage->height )
-      yto = pImage->y + pImage->height-1;
+   if( yfrom < 0 )
+      yfrom = 0;
+   if( yto >= pImage->height )
+      yto = pImage->height-1;
 
    len = (yto - yfrom) + 1;
    oo = pImage->pwidth;
@@ -348,7 +348,7 @@ void CPROC do_hlineAlphac( ImageFile *pImage, int y, int xfrom, int xto, CDATA c
    int len;
    int alpha = AlphaVal( color );
    if( !pImage || !pImage->image ) return;
-   if( y < pImage->y || y >= (pImage->y + pImage->height) )
+   if( y < 0 || y >= (pImage->height) )
       return;
    if( xfrom > xto )
    {
@@ -356,13 +356,13 @@ void CPROC do_hlineAlphac( ImageFile *pImage, int y, int xfrom, int xto, CDATA c
       xto = xfrom;
       xfrom = tmp;
    }
-   if( xto < pImage->x || xfrom >= (pImage->x + pImage->width))
+   if( xto < 0 || xfrom >= (pImage->width))
       return;
 
-   if( xfrom < pImage->x )
-      xfrom = pImage->x;
-   if( xto >= pImage->x + pImage->width )
-      xto = pImage->x + pImage->width - 1;
+   if( xfrom < 0 )
+      xfrom = 0;
+   if( xto >= pImage->width )
+      xto = pImage->width - 1;
    len = (xto - xfrom) + 1;
    po = (CDATA*)IMG_ADDRESS(pImage,xfrom,y);
    while( len )
@@ -381,7 +381,7 @@ void CPROC do_vlineAlphac( ImageFile *pImage, int x, int yfrom, int yto, CDATA c
    int alpha = AlphaVal( color );
    if( !pImage || !pImage->image ) return;
 
-   if( x < pImage->x || x >= (pImage->x + pImage->width) )
+   if( x < 0 || x >= (pImage->width) )
       return;
 
    if( yfrom > yto )
@@ -390,7 +390,7 @@ void CPROC do_vlineAlphac( ImageFile *pImage, int x, int yfrom, int yto, CDATA c
       yto = yfrom;
       yfrom = tmp;
    }
-   if( yto < pImage->y || yfrom >= (pImage->y + pImage->height))
+   if( yto < 0 || yfrom >= (pImage->height))
       return;
    if( yfrom < pImage->y )
       yfrom = pImage->y;

@@ -130,7 +130,7 @@ static int CPROC ButtonDraw( PSI_CONTROL pc )
 	if( !pb )
 	{
 		ValidatedControlData( PBUTTON, CUSTOM_BUTTON, pb2, pc );
-      //lprintf( WIDE("Is not a NORMAL_BUTTON") );
+		//lprintf( WIDE("Is not a NORMAL_BUTTON") );
 		if( pb2 )
 			pb = pb2;
 		else
@@ -249,10 +249,19 @@ static int CPROC ButtonDraw( PSI_CONTROL pc )
 
 static void CPROC ButtonCaptionChange( PSI_CONTROL pc )
 {
-	PBUTTON pb;
 	_32 height;
 	SFTFont font;
-	pb = (PBUTTON)pc;
+	ValidatedControlData( PBUTTON, NORMAL_BUTTON, pb, pc );
+	if( !pb )
+	{
+		ValidatedControlData( PBUTTON, CUSTOM_BUTTON, pb2, pc );
+		pb = pb2;
+	}
+	if( !pb )
+	{
+		ValidatedControlData( PBUTTON, IMAGE_BUTTON, pb2, pc );
+		pb = pb2;
+	}
 	font = GetFrameFont( pc );
 	GetStringSizeFont( GetText( pc->caption.text ), &pb->centx, &height, font );
 	pb->centx/=2;
@@ -265,7 +274,7 @@ static void CPROC ButtonCaptionChange( PSI_CONTROL pc )
 void InvokeButton( PSI_CONTROL pc )
 {
 	if( pc->nType == NORMAL_BUTTON ||
-       pc->nType == CUSTOM_BUTTON ||
+	    pc->nType == CUSTOM_BUTTON ||
 		pc->nType == IMAGE_BUTTON ||
 		pc->nType == RADIO_BUTTON 
 	  )
@@ -399,7 +408,7 @@ static void ToggleButtonCheck( PSI_CONTROL pCom )
 								{
 									bChanged = RADIO_CALL_CHECKED;
 									pcheck->flags.bChecked = TRUE;
-                           SmudgeCommon( pcCheck );
+									SmudgeCommon( pcCheck );
 								}
 							}
 							else
@@ -408,14 +417,14 @@ static void ToggleButtonCheck( PSI_CONTROL pCom )
 								{
 									bChanged = RADIO_CALL_UNCHECKED;
 									pcheck->flags.bChecked = FALSE;
-                           SmudgeCommon( pcCheck );
+									SmudgeCommon( pcCheck );
 								}
 							}
 						}
 						if( pc->flags.bCallAll ||
 						    ( pc->flags.bCallChecked && bChanged == RADIO_CALL_CHECKED ) ||
 						    ( pc->flags.bCallUnchecked && bChanged == RADIO_CALL_UNCHECKED ) )
-	      			{
+						{
 							if( pc->ClickMethod )
 								pc->ClickMethod( pc->ClickData, pCom );
 						}
@@ -436,7 +445,7 @@ static void ToggleButtonCheck( PSI_CONTROL pCom )
 
 static int CPROC ButtonKeyProc( PSI_CONTROL pc, _32 key )
 {
-   //printf( WIDE("Key: %08x\n"), key );
+	//printf( WIDE("Key: %08x\n"), key );
 	if( key & 0x80000000 )
 	{
 		int keymod = KEY_MOD( key );
@@ -480,7 +489,7 @@ static PSI_CONTROL CONTROL_PROPERTIES( Button )( PSI_CONTROL pc )
 		}
 		// maybe a list box or some junk like that....
 	}
-   return page;
+	return page;
 }
 
 
@@ -581,7 +590,7 @@ void CPROC ButtonLoad( PSI_CONTROL pc, CTEXTSTR line )
 CONTROL_PROC_DEF_EX( NORMAL_BUTTON, BUTTON, Button, (void) )
 {
 	ValidatedControlData( PBUTTON, NORMAL_BUTTON, pb, pc );
-   Init();
+	Init();
 	if( pb )
 	{
 		// this bit of code needs to go away...
@@ -598,10 +607,10 @@ CONTROL_PROC_DEF_EX( NORMAL_BUTTON, BUTTON, Button, (void) )
 
 int CPROC ConfigureCustomDrawnButton( PSI_CONTROL pc )
 {
-   ValidatedControlData( PBUTTON, CUSTOM_BUTTON, pb, pc );
-   //ARG( _32, attr );
+	ValidatedControlData( PBUTTON, CUSTOM_BUTTON, pb, pc );
+	//ARG( _32, attr );
 	//FP_ARG( void, DrawMethod,(PTRSZVAL psv, PCONTROL pc) );
-   //FP_ARG( void, PushMethod,(PTRSZVAL psv, PCONTROL pc) );
+	//FP_ARG( void, PushMethod,(PTRSZVAL psv, PCONTROL pc) );
 	//ARG( PTRSZVAL, Data );
 	Init();
 #if 0
@@ -649,7 +658,7 @@ int CPROC ConfigureImageButton( PSI_CONTROL pc )
 	if( pb )
 	{
 		//if( attr & BUTTON_NO_BORDER )
-      //   SetCommonBorder( pc, BORDER_NONE );
+		//   SetCommonBorder( pc, BORDER_NONE );
 		//pb->ClickMethod = PushMethod;
 		//pb->ClickData = Data;
 		//pb->pImage = pImage;
@@ -761,7 +770,7 @@ static int CPROC DrawCheckButton( PSI_CONTROL pc )
 			BlatColorAlpha( pchk->pCheckSurface, 0, 0, pc->surface_rect.width, pc->surface_rect.height, basecolor(pc)[SHADE] );
 		//ClearImageTo( pc->Surface, basecolor(pc)[NORMAL] );
 	}
-   if( pchk->pCheckWindow )
+	if( pchk->pCheckWindow )
 		DrawThinFrameInvertedImage( pc, pchk->pCheckWindow );
 
 	// this disables also...
@@ -815,7 +824,7 @@ static int CPROC CheckKeyProc( PSI_CONTROL pc, _32 key )
 		if( ( ( key & 0xFF ) == KEY_SPACE ) ||
 		    ( ( key & 0xFF ) == KEY_ENTER ) )
 		{
-         ToggleButtonCheck( pc );
+			ToggleButtonCheck( pc );
 			return 1;
 		}
 	}
@@ -859,7 +868,7 @@ static int CPROC MouseCheckButton( PSI_CONTROL pCom, S_32 x, S_32 y, _32 b )
 		if( (pc->_b & MK_LBUTTON ) )
 		{
 			pc->flags.pressed = FALSE;
-         ToggleButtonCheck( pCom );
+			ToggleButtonCheck( pCom );
 		}
 	}
 	pc->_b = b;
@@ -918,7 +927,7 @@ int CPROC ConfigureCheckButton( PSI_CONTROL pControl )
 	Init();
 	if( pc )
 	{
-      _32 height = GetFontHeight( GetCommonFont( pControl ) );
+		_32 height = GetFontHeight( GetCommonFont( pControl ) );
 		pc->pCheckWindow = MakeSubImage( pControl->Surface, 1, 1, (height-2), (height-2) );
 		pc->pCheckSurface = MakeSubImage( pc->pCheckWindow, 1, 1, (height-4), (height-4) );
 		//pc->ClickMethod = CheckProc;
@@ -926,7 +935,7 @@ int CPROC ConfigureCheckButton( PSI_CONTROL pControl )
 		//pc->ClickData = psv;
 		//pc->groupid = GroupID;
 		/*
-	   if( !( attr & RADIO_CALL_CHANGED ) )
+		if( !( attr & RADIO_CALL_CHANGED ) )
 			pc->flags.bCallAll = 1;
 		else
 		{
@@ -1004,7 +1013,7 @@ PCONTROL SetButtonAttributes( PCONTROL pCom, int attr )
 	if( attr & BUTTON_NO_BORDER )
 		SetCommonBorder( pCom, BORDER_NONE );
 	//else
-	//   SetCommonBorder( pc, BORDER_DEFAULT_FOR_BUTTON ); // LOL - someday
+	//	SetCommonBorder( pc, BORDER_DEFAULT_FOR_BUTTON ); // LOL - someday
 	{
 		ValidatedControlData( PCHECK, RADIO_BUTTON, pc, pCom );
 		if( pc )
@@ -1095,13 +1104,13 @@ normal_button = { NORMAL_BUTTON_NAME
 					 , NULL // destroy ( I have no private dynamic data == NULL )
 					 ,NULL //, GetButtonPropertyPage
 					 ,NULL //, ApplyButtonPropertyPage
-                , ButtonText // save...
+					 , ButtonText // save...
 					 , NULL // ButtonLoadProc
 },
 image_button = { IMAGE_BUTTON_NAME
 					, { {73, 21}, sizeof( BUTTON ), BORDER_THIN|BORDER_NOCAPTION }
 					, ConfigureImageButton// init
-               , NULL
+					, NULL
 					, ButtonDraw
 					, ButtonMouse
 					, ButtonKeyProc
@@ -1121,20 +1130,20 @@ custom_button = { CUSTOM_BUTTON_NAME
 					 , NULL
 					 , NULL
 					 , NULL
-                , ButtonText // save...
+					 , ButtonText // save...
 
 },
 radio_button = { RADIO_BUTTON_NAME
 					, { {73, 21}, sizeof( CHECK ) + 100, BORDER_NONE|BORDER_NOCAPTION}
 					, ConfigureCheckButton// init
-               , NULL
+					, NULL
 					, DrawCheckButton
 					, MouseCheckButton
 					, CheckKeyProc
 					, DestroyCheckButton
 					, NULL
 					, NULL
-               , RadioButtonText
+					, RadioButtonText
 };
 
 

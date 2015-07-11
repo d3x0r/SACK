@@ -103,7 +103,7 @@ else( __ANDROID__ )
       set( NEED_PNG ON )
       set( NEED_ZLIB ON )
       set( NEED_FREETYPE ON )
-        set( SOCKET_LIBRARIES wsock32 ws2_32 iphlpapi MatrixSSL )
+        set( SOCKET_LIBRARIES MatrixSSL ws2_32 iphlpapi )
         set( WIN_SYS_LIBS winmm rpcrt4 )
         if( WATCOM )
 	        set( PLATFORM_LIBRARIES ${PLATFORM_LIBRARIES} shfolder psapi )
@@ -119,7 +119,7 @@ else( __ANDROID__ )
 	if( NOT __NO_ODBC__ )
 		set( PLATFORM_LIBRARIES ${PLATFORM_LIBRARIES} odbc )
 	endif( NOT __NO_ODBC__ )
-	set( PLATFORM_LIBRARIES ${PLATFORM_LIBRARIES} MatrixSSL )
+	set( PLATFORM_LIBRARIES ${PLATFORM_LIBRARIES} )
         set( USE_INTERNAL_STANDARDLIBS 0 )
        if( GCC )
            if( __64__ )
@@ -399,6 +399,7 @@ set(  CMAKE_C_FLAGS_RELWITHDEBINFO "${CMAKE_C_FLAGS_RELWITHDEBINFO} -D_DEBUG_INF
 SET( SOURCES_ROOT ${CMAKE_CURRENT_SOURCE_DIR}/ )
 include( CMakeSources.lst )
 add_subdirectory( src/contrib/gsm-1.0-pl13 )
+add_subdirectory( src/contrib/libvlc/2.0.1 )
 
 
 # expat is a 'standard' library.  ripped a copy for ease, it's also incredibly simple.
@@ -666,6 +667,7 @@ SET_TARGET_PROPERTIES(sack_bag PROPERTIES
                   LINK_FLAGS "${extra_link_flags}"
 )
 target_link_libraries( sack_bag gsm-1.0-pl13 )
+target_link_libraries( sack_bag MatrixSSL )
 
 if( SACK_BUILD_STATIC_LIBS )
 add_library( sack_bag_static ${SACK_SOURCES} )
@@ -687,6 +689,7 @@ SET_TARGET_PROPERTIES(${SACK_BAG_PLUSPLUS} PROPERTIES
                   LINK_FLAGS "${extra_link_flags}"
 )
 target_link_libraries( ${SACK_BAG_PLUSPLUS} gsm-1.0-pl13 )
+target_link_libraries( ${SACK_BAG_PLUSPLUS} MatrixSSL )
 
 if( SACK_BUILD_STATIC_LIBS )
 add_library( ${SACK_BAG_PLUSPLUS}_static ${cplusplus_sources} )
@@ -885,6 +888,7 @@ add_library( bag SHARED
   ${LAST_GCC_LIBRARY_SOURCE}  
 )
 target_link_libraries( bag gsm-1.0-pl13 )
+target_link_libraries( bag MatrixSSL )
 
 if( __CLR__ )
 set( ExtraFlags ${ExtraFlags} /CLR )
@@ -933,6 +937,7 @@ COPY_CPLUSPLUS( psi_cplusplus_sources ${PSI_SOURCES} )
 
 add_library( ${BAG_PLUSPLUS} SHARED ${cplusplus_sources} )
 target_link_libraries( ${BAG_PLUSPLUS} gsm-1.0-pl13 )
+target_link_libraries( ${BAG_PLUSPLUS} MatrixSSL )
 SET_TARGET_PROPERTIES(${BAG_PLUSPLUS} PROPERTIES
                   DEFINE_SYMBOL SACK_BAG_EXPORTS
                   COMPILE_FLAGS  "${ExtraFlags}"
@@ -1330,9 +1335,8 @@ add_subdirectory( data )
 add_subdirectory( include )
 add_subdirectory( src/utils/runner )
 add_subdirectory( src/utils/virtual_file_system )
-#if( NOT MINGW )
+
 add_subdirectory( src/contrib/MatrixSSL/3.7.1 )
-#endif( NOT MINGW )
 
 if( BUILD_TESTS )
    add_subdirectory( src/streamlib/ffmpeg/audio_test )

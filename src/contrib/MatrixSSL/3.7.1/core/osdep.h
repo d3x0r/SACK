@@ -238,10 +238,18 @@ extern void		osdepEntropyClose(void);
 	Export or import functions for Windows DLLs	
 */
 #ifdef WIN32
-	#ifndef _USRDLL
-	#define PSPUBLIC extern __declspec(dllimport)
+	#ifdef _USRDLL
+	#  ifndef MATRIX_SSL_SOURCE
+	#    define PSPUBLIC extern __declspec(dllimport)
+	#  else
+	#    define PSPUBLIC extern __declspec(dllexport)
+	#  endif
 	#else
-	#define PSPUBLIC extern __declspec(dllexport)
+	#  ifndef MATRIX_SSL_SOURCE
+	#    define PSPUBLIC 
+	#  else
+	#    define PSPUBLIC extern 
+	#  endif
 	#endif
 #else
 	#define PSPUBLIC extern

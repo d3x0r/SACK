@@ -33,8 +33,8 @@ endif(SNPRINTF_SOURCES)
 
 
 SET( SQLITE_VERSION 3.8.7.4 )
-SET( SQLITE_SOURCES ${BAG_SQLITE_INTERFACE} ${SOURCES_ROOT}/src/sqlite/${SQLITE_VERSION}/sqlite3.c )
-include_directories( ${SOURCES_ROOT}/src/sqlite/${SQLITE_VERSION} )
+SET( SQLITE_SOURCES ${BAG_SQLITE_INTERFACE} ${SOURCES_ROOT}/src/contrib/sqlite/${SQLITE_VERSION}/sqlite3.c )
+include_directories( ${SOURCES_ROOT}/src/contrib/sqlite/${SQLITE_VERSION} )
 
 set(BASE_SOURCES
 ${FIRST_GCC_PROGRAM_SOURCE} 

@@ -32,6 +32,8 @@
 
 #include <timers.h>
 #include <psi/namespaces.h>
+#include <controls.h>
+
 
 PSI_NAMESPACE
 
@@ -39,6 +41,7 @@ PSI_NAMESPACE
 extern
 #endif
 	CDATA DefaultColors[14];
+
 
 //DOM-IGNORE-BEGIN
 typedef struct psi_global_tag
@@ -64,6 +67,9 @@ typedef struct psi_global_tag
 		BIT_FIELD system_color_set : 1; // don't use fancy border... unless it's also set externally
 		BIT_FIELD allow_copy_from_render : 1;
 	} flags;
+	PLIST borders; 
+	PFrameBorder DefaultBorder;
+#if 0
 	CDATA *defaultcolors;
 	S_32 BorderWidth;
 	S_32 BorderHeight;
@@ -75,6 +81,7 @@ typedef struct psi_global_tag
 	} Border;
 	Image BorderImage;
 	Image BorderSegment[9]; // really 8, but symetry is kept
+#endif
 	Image FrameCaptionImage;
 	Image FrameCaptionFocusedImage;
 	Image StopButton;
@@ -98,8 +105,8 @@ enum {
 	  , SEGMENT_BOTTOM_RIGHT
      // border segment index's
 };
-#define defaultcolor g.defaultcolors
-#define basecolor(pc) ((pc)?((pc)->basecolors):(g.defaultcolors))
+//#define defaultcolor g.defaultcolors
+//#define basecolor(pc) ((pc)?((pc)->border?(pc)->border->defaultcolors:(pc)->basecolors):(g.DefaultBorder?g.DefaultBorder->defaultcolors:DefaultColors))
 
 #if !defined( CONTROL_BASE ) && (defined( SOURCE_PSI2 ) || defined( __cplusplus_cli ))
 extern
@@ -138,7 +145,7 @@ PSI_GLOBAL g
 #endif
   { 0 }
   // none of these should be 0 (black) may be 1 (nearest black)
-  , DefaultColors };
+  , 0 };
 
 #endif
 //DOM-IGNORE-END
@@ -147,7 +154,15 @@ PSI_GLOBAL g
 extern
 #endif
 	void GetMyInterface( void );
+
+// --------- borders.c --------------
+void UpdateSurface( PSI_CONTROL pc );
+void CPROC DrawFancyFrame( PSI_CONTROL pc );
+void CPROC DrawNormalFrame( PSI_CONTROL pc );
+
 PSI_NAMESPACE_END
+
+
 
 #endif
 // $Log: global.h,v $

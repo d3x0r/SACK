@@ -47,11 +47,10 @@ struct client_world_tracker
 
 struct worldscape_client
 {
-	struct bitset worlds;
+	//struct bitset worlds;
 	_32 tracker_count;
-	PCLIENT_WORLD_TRACKER world_trackers;
-	SERVICE_ROUTE pid;
-	PCLIENT pc; // websocket that connected here
+	//SERVICE_ROUTE pid;
+	//PCLIENT pc; // websocket that connected here
 };
 
 typedef struct json_context *PJC;
@@ -67,11 +66,17 @@ typedef struct world_server_mesasge_simple_array {
 	POINTER pData;
 } WorldServerMessageSimpleArray, *PWorldServerMessageSimpleArray;
 
+typedef struct world_server_world {
+	CTEXTSTR name;
+   PLIST clients; // list of websockets connected to this world
+	CLIENT_WORLD_TRACKER world_tracker; // lines, textures and sectors...
+} WorldServerWorld, *PWorldServerWorld;
 
 static struct worldscape_server_local
 {
 	_32 SrvrMsgBase;
-	PLIST clients; // list of PWORLDSCAPE_CLIENTs
+	PLIST clients; // list of PNETWORK 
+   PLIST worlds; // list of PWorldServerWOrlds
 	PCLASSROOT server_opcodes;
 	PJC pjc_world_server;
 	PJCO pjco_world_server_message; // for WorldServerMessage
@@ -1032,6 +1037,7 @@ static void WorldServerListWorlds( PWORLDSCAPE_CLIENT client, PWorldServerMessag
 {
 	WorldServerMessageReplyWorlds reply;
 	reply.opcode = "List World Reply";
+
    reply.world_names =
    LIST_FORALL(
 }
@@ -1138,6 +1144,7 @@ PRELOAD( RegisterFlatlandService )
 
 	//PWSTR result;
 	//PeerCreatePeerName( NULL, "test.singular", &result );
+#if 0
 	if( !( l.SrvrMsgBase = RegisterService( WORLD_SCAPE_INTERFACE_NAME
 						, functions
 						, sizeof( functions ) / sizeof( functions[0] ) ) ) )
@@ -1154,6 +1161,7 @@ PRELOAD( RegisterFlatlandService )
 			return;                                             
 		}
 	}
+#endif
 }
 //#endif
 

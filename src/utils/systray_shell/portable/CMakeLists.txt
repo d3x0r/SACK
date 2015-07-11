@@ -61,6 +61,7 @@ endif( __ANDROID__ )
 
 
 set( USE_SQLITE ON )
+set( NO_SSL ON )
 include( ../../../../CMakeSources.lst )
 
 if( NOT WATCOM )

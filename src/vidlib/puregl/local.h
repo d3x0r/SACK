@@ -39,23 +39,6 @@ RENDER_NAMESPACE
 					if( err )                   \
 					lprintf( "err=%d "f,err,##__VA_ARGS__ ); \
 				}                               
-#ifndef __ANDROID__
-#ifdef MINGW_SUX
-typedef struct tagUPDATELAYEREDWINDOWINFO {
-    _32               cbSize;
-    HDC                 hdcDst;
-    POINT CONST         *pptDst;
-    SIZE CONST          *psize;
-    HDC                 hdcSrc;
-    POINT CONST         *pptSrc;
-    COLORREF            crKey;
-    BLENDFUNCTION CONST *pblend;
-    DWORD               dwFlags;
-    RECT CONST          *prcDirty;
-} UPDATELAYEREDWINDOWINFO;
-
-#endif
-#endif
 
 typedef LOGICAL (CPROC *Update3dProc)(PTRANSFORM);
 
@@ -69,8 +52,8 @@ struct plugin_reference
 	void (CPROC *ExtraDraw3d)(PTRSZVAL,PTRANSFORM camera);
 	void (CPROC *Draw3d)(PTRSZVAL);
 	LOGICAL (CPROC *Mouse3d)(PTRSZVAL,PRAY,S_32,S_32,_32);
-   void (CPROC *ExtraClose3d)(PTRSZVAL);
-   LOGICAL (CPROC *Key3d)(PTRSZVAL,_32);
+	void (CPROC *ExtraClose3d)(PTRSZVAL);
+	LOGICAL (CPROC *Key3d)(PTRSZVAL,_32);
 };
 
 struct display_camera

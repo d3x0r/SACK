@@ -996,30 +996,104 @@ PSIKEYDEFINE ConsoleKeyDefs[] = { NONAMES
 
 int CommandKeyUp( PCHAT_LIST list, PUSER_INPUT_BUFFER pci )
 {
-   RecallUserInput( pci, TRUE );
-   return UPDATE_COMMAND;
+	int x, y;
+	int cursorpos;
+	GetInputCursorPos( list, &x, &y );
+	cursorpos = GetInputCursorIndex( list, x, y + 1 );
+	SetUserInputPosition( pci, cursorpos, COMMAND_POS_SET );
+   
+	return UPDATE_COMMAND;
 }
 
 //----------------------------------------------------------------------------
 
 int HandleKeyDown( PCHAT_LIST list, PUSER_INPUT_BUFFER pci )
 {
-   RecallUserInput( pci, FALSE );
-   return UPDATE_COMMAND;
+	int x, y;
+	int cursorpos;
+	GetInputCursorPos( list, &x, &y );
+	if( y )
+	{
+		cursorpos = GetInputCursorIndex( list, x, y - 1 );
+		SetUserInputPosition( pci, cursorpos, COMMAND_POS_SET );
+	}
+	else
+		SetUserInputPosition( pci, -1, COMMAND_POS_SET );
+	return UPDATE_COMMAND;
+}
+
+//----------------------------------------------------------------------------
+
+static size_t GetInputIndex(  PUSER_INPUT_BUFFER pci )
+{
+			PTEXT start = pci->CollectionBuffer;
+			size_t index = 0;
+			SetStart( start );
+			while( start != pci->CollectionBuffer )
+			{
+				index += GetTextSize( start );
+				start = NEXTLINE( start );
+			}
+			index += pci->CollectionIndex;
+			return index;
 }
 
 //----------------------------------------------------------------------------
 
 int KeyHome( PCHAT_LIST list, PUSER_INPUT_BUFFER pci )
 {
+	size_t old_index;
+	if( list->input.control_key_state & KEY_MOD_SHIFT )
+	{
+		if( list->input.command_mark_start == list->input.command_mark_end )
+		{
+			size_t index = GetInputIndex( pci );
+			old_index = index;
+			list->input.command_mark_start = list->input.command_mark_end = index;
+		}
+	}
+	else
+	{
+		list->input.command_mark_start = list->input.command_mark_end = 0;
+	}
 	SetUserInputPosition( pci, 0, COMMAND_POS_SET );
+	if( list->input.control_key_state & KEY_MOD_SHIFT )
+	{
+		size_t index = GetInputIndex( pci );
+		if( index < list->input.command_mark_start )
+			list->input.command_mark_start = index;
+		else if( index != old_index )
+			list->input.command_mark_end = index;
+	}
 	return UPDATE_COMMAND; 
 }
 
 
 int KeyEndCmd( PCHAT_LIST list, PUSER_INPUT_BUFFER pci )
 {
+	size_t old_index;
+	if( list->input.control_key_state & KEY_MOD_SHIFT )
+	{
+		if( list->input.command_mark_start == list->input.command_mark_end )
+		{
+			size_t index = GetInputIndex( pci );
+			old_index = index;
+			list->input.command_mark_start = list->input.command_mark_end = index;
+		}
+	}
+	else
+	{
+		list->input.command_mark_start = list->input.command_mark_end = 0;
+	}
 	SetUserInputPosition( pci, -1, COMMAND_POS_SET );
+	if( list->input.control_key_state & KEY_MOD_SHIFT )
+	{
+		size_t index = GetInputIndex( pci );
+		if( index > list->input.command_mark_end )
+			list->input.command_mark_start = index;
+		else if( index != old_index )
+			list->input.command_mark_start = index;
+	}
 	return UPDATE_COMMAND;
 }
 
@@ -1035,7 +1109,29 @@ int KeyInsert( PCHAT_LIST list, PUSER_INPUT_BUFFER pci )
 
 int KeyRight( PCHAT_LIST list, PUSER_INPUT_BUFFER pci )
 {
+	size_t old_index;
+	if( list->input.control_key_state & KEY_MOD_SHIFT )
+	{
+		if( list->input.command_mark_start == list->input.command_mark_end )
+		{
+			size_t index = GetInputIndex( pci );
+			old_index = index;
+			list->input.command_mark_start = list->input.command_mark_end = index;
+		}
+	}
+	else
+	{
+		list->input.command_mark_start = list->input.command_mark_end = 0;
+	}
 	SetUserInputPosition( pci, 1, COMMAND_POS_CUR );
+	if( list->input.control_key_state & KEY_MOD_SHIFT )
+	{
+		size_t index = GetInputIndex( pci );
+		if( index > list->input.command_mark_end )
+			list->input.command_mark_start = index;
+		else if( index != old_index )
+			list->input.command_mark_start = index;
+	}
 	return UPDATE_COMMAND;
 }
 
@@ -1043,7 +1139,30 @@ int KeyRight( PCHAT_LIST list, PUSER_INPUT_BUFFER pci )
 
 int KeyLeft( PCHAT_LIST list, PUSER_INPUT_BUFFER pci )
 {
+	size_t old_index;
+	if( list->input.control_key_state & KEY_MOD_SHIFT )
+	{
+		if( list->input.command_mark_start == list->input.command_mark_end )
+		{
+			size_t index = GetInputIndex( pci );
+			old_index = index;
+			list->input.command_mark_start = list->input.command_mark_end = index;
+		}
+	}
+	else
+	{
+		list->input.command_mark_start = list->input.command_mark_end = 0;
+	}
+
 	SetUserInputPosition( pci, -1, COMMAND_POS_CUR );
+	if( list->input.control_key_state & KEY_MOD_SHIFT )
+	{
+		size_t index = GetInputIndex( pci );
+		if( index < list->input.command_mark_start )
+			list->input.command_mark_start = index;
+		else if( index != old_index )
+			list->input.command_mark_end = index;
+	}
 	return UPDATE_COMMAND;
 }
 
@@ -1479,15 +1598,6 @@ void Widget_KeyPressHandler( PCHAT_LIST list
 			PSI_WinLogicDoStroke(pdp, pdp->Keyboard[key_index][mod].data.stroke);
 			SmudgeCommon( pdp->psicon.frame );
 		}
-#ifdef __DEKWARE_PLUGIN__
-		else if( pdp->Keyboard[key_index][mod].flags.bMacro )
-		{
-			if( pdp->common.Owner->pRecord != pdp->Keyboard[key_index][mod].data.macro )
-				InvokeMacro( pdp->common.Owner
-							  , pdp->Keyboard[key_index][mod].data.macro
-							  , NULL );
-		}
-#endif
 	}
 	else // key was not overridden
 #endif
@@ -1525,7 +1635,7 @@ void Widget_KeyPressHandler( PCHAT_LIST list
 			//result = ConsoleKeyDefs[key_index].op[mod].data.HistoryKey( list->pHistoryDisplay );
 			break;
 		case CONTROLKEY:
-			//ConsoleKeyDefs[key_index].op[mod].data.ControlKey( &pdp->dwControlKeyState, TRUE );
+			ConsoleKeyDefs[key_index].op[mod].data.ControlKey( &list->input.control_key_state, TRUE );
 			result = UPDATE_NOTHING;
 			break;
 		case SPECIALKEY:
@@ -1555,6 +1665,75 @@ void Widget_KeyPressHandler( PCHAT_LIST list
 			}
 
 			bOutput = TRUE;
+			break;
+		case UPDATE_HISTORY:
+			{
+				/*
+				extern int CPROC PSI_UpdateHistory( PCONSOLE_INFO pdp );
+				if( PSI_UpdateHistory( pdp ) )
+				{
+					extern void CPROC PSI_RenderConsole( PCONSOLE_INFO pdp );
+					PSI_RenderConsole( pdp );
+				}
+				*/
+			}
+			break;
+		case UPDATE_DISPLAY:
+			{
+				/*
+				extern void CPROC PSI_ConsoleCalculate( PCONSOLE_INFO pdp );
+				PSI_ConsoleCalculate( pdp );
+				*/
+			}
+			break;
+		}
+	}
+}
+
+//----------------------------------------------------------------------------
+
+void Widget_KeyPressHandlerRelease( PCHAT_LIST list
+						  , _8 key_index
+						  , _8 mod
+						  , PTEXT characters
+						  )
+{
+//cpg26dec2006 console\keydefs.c(1409): Warning! W202: Symbol 'result' has been defined, but not referenced
+//cpg26dec2006    int result;
+	int bOutput = 0;
+	// check current keyboard override...
+#ifdef programmable_keys
+	if( pdp->Keyboard[key_index][mod].flags.bStroke ||
+		pdp->Keyboard[key_index][mod].flags.bMacro )
+	{
+	}
+	else // key was not overridden
+#endif
+	{
+		int result = 0;
+		//Log1( WIDE("Keyfunc = %d"), KeyDefs[key_index].op[mod].bFunction );
+		switch( ConsoleKeyDefs[key_index].op[mod].bFunction )
+		{
+		case KEYDATA_DEFINED:
+			result = UPDATE_NOTHING; // already taken care of?!
+			break;
+		case KEYDATA:
+			result = UPDATE_NOTHING; // already taken care of?!
+			break;
+		case COMMANDKEY:
+			break;
+		case HISTORYKEY:
+			break;
+		case CONTROLKEY:
+			ConsoleKeyDefs[key_index].op[mod].data.ControlKey( &list->input.control_key_state, FALSE );
+			result = UPDATE_NOTHING;
+			break;
+		case SPECIALKEY:
+			break;
+		}
+		switch( result )
+		{
+		case UPDATE_COMMAND:
 			break;
 		case UPDATE_HISTORY:
 			{

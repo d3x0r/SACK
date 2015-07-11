@@ -90,9 +90,11 @@ set( NETWORK_SOURCES
 )
 
 #if( NOT MINGW )
+if( NOT NO_SSL )
 set( NETWORK_SOURCES ${NETWORK_SOURCES} 
   ${SOURCES_ROOT}src/netlib/ssl_layer.c
 )
+endif( NOT NO_SSL )
 #endif( NOT MINGW )
 SET_SOURCE_FILES_PROPERTIES( ${NETWORK_SOURCES} PROPERTIES 
 		FOLDER "Source Files\\Network Library" )
@@ -293,6 +295,7 @@ set( PSI_SOURCES
   ${SOURCES_ROOT}src/psilib/calctl/clock.c
   ${SOURCES_ROOT}src/psilib/calctl/analog.c
   ${SOURCES_ROOT}src/psilib/controls.c
+  ${SOURCES_ROOT}src/psilib/progress_bar.c
   ${SOURCES_ROOT}src/psilib/caption_buttons.c
   ${SOURCES_ROOT}src/psilib/control_physical.c
   ${SOURCES_ROOT}src/psilib/ctlbutton.c

@@ -78,6 +78,8 @@ struct displayed_line_info_tag
 	 INDEX nFirstSegOfs;	 // offset into start which begins this line.
 	 INDEX nToShow; // length of data we intend to show...
 	 INDEX nPixelEnd; // how long measure resulted this should be at...
+	 INDEX nLineStart; // absolute character that is the start line character index
+	 INDEX nLineEnd; // absolute character that is the last line character index
 };
 
 //----------------------------------------------------------------------------

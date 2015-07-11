@@ -84,7 +84,7 @@ try_mask:
 
 		if( !keepcase && mask[m]>= 'a' && mask[m] <= 'z' )
 			maskch = mask[m] - ('a' - 'A');
-		if( mask[m] == '/' )
+		else if( mask[m] == '/' )
 			maskch = '\\';
 		else
 			maskch = mask[m];

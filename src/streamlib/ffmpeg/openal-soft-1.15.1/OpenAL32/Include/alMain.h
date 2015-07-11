@@ -10,7 +10,7 @@
 #ifdef HAVE_FENV_H
 #include <fenv.h>
 #endif
-
+#include "config.h"
 #include "AL/al.h"
 #include "AL/alc.h"
 #include "AL/alext.h"

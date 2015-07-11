@@ -64,6 +64,7 @@ _PSI_NAMESPACE
 #define PROP_HEIGHT 240
 #define PROP_PAD 5
 
+
 /* \Internal event callback definition. Request an additional
 	page to add to the control property edit dialog.           */
 typedef PSI_CONTROL (CPROC*GetControlPropSheet)( PSI_CONTROL );
@@ -103,6 +104,11 @@ enum HotspotLocations {
 	usually pointing to an internal function, but may be used for
 	a control to draw a custom border.                            */
 typedef void (CPROC*_DrawBorder)        ( struct common_control_frame * );
+/* \Event callback definition. Draw caption, set with OnCaptionDraw().
+    Use SetCaptionHeight() when creating the frame to set the height of the
+	custom caption.
+*/
+typedef void (CPROC*_DrawCaption)        ( struct common_control_frame *, Image );
 /* \Internal event callback definition. This is called when the
 	control needs to draw itself. This happens when SmudgeCommon
 	is called on the control or on a parent of the control.      */
@@ -145,7 +151,7 @@ typedef void (CPROC*_BeginEdit)         ( struct common_control_frame * );
 typedef void (CPROC*_EndEdit)           ( struct common_control_frame * );
 /* \Internal event callback definition. A file has been dropped
 	on the control.                                              */
-typedef void (CPROC*_AcceptDroppedFiles)( struct common_control_frame *, CTEXTSTR filename, S_32 x, S_32 y );
+typedef LOGICAL (CPROC*_AcceptDroppedFiles)( struct common_control_frame *, CTEXTSTR filename, S_32 x, S_32 y );
 
 
 #define DeclMethod( name ) int n##name; _##name *name
@@ -221,6 +227,23 @@ struct physical_device_caption_button
 };
 typedef struct physical_device_caption_button CAPTION_BUTTON;
 typedef struct physical_device_caption_button *PCAPTION_BUTTON;
+
+
+typedef struct frame_border {
+	CDATA *defaultcolors;
+	S_32 BorderWidth;
+	S_32 BorderHeight;
+	struct psi_global_border_info {
+		BIT_FIELD bAnchorTop : 2; // 0 = none, 1=left, 2=center, 3=right
+		BIT_FIELD bAnchorBottom : 2; // 0 = none, 1=left, 2=center, 3=right
+		BIT_FIELD bAnchorLeft : 2; // 0 = none, 1=top, 2=center, 3=bottom
+		BIT_FIELD bAnchorRight : 2; // 0 = none, 1=top, 2=center, 3=bottom
+	} Border;
+	Image BorderImage;
+	Image BorderSegment[9]; // really 8, but symetry is kept
+
+} FrameBorder;
+
 
 struct physical_device_interface
 {
@@ -501,6 +524,7 @@ typedef struct common_control_frame
 	//DeclSingleMethod( PosChanging );
 	DeclSingleMethod( BeginEdit );
 	DeclSingleMethod( EndEdit );
+	DeclSingleMethod( DrawCaption );
 	DeclMethod( AcceptDroppedFiles );
 	/* Pointer to common button data. Common buttons are the Okay
 		and Cancel buttons that are commonly on dialogs.           */
@@ -516,8 +540,11 @@ typedef struct common_control_frame
 	/* when registered this gets set as where the control's events and rtti are registered.
 		 This will seperate /psi/control and /psi++/control without other flags to switch on */
 	PLIST caption_buttons;  // extra controls that are stuffed on the caption bar.
+	PFrameBorder border;
 	PCAPTION_BUTTON pressed_caption_button;  // the current button pressed
 	PCLASSROOT class_root; 
+	int nCaptionHeight;
+	Image pCaptionImage;
 	int nExtra; // size above common required...
 } FR_CT_COMMON, *PCONTROL;
 //DOM-IGNORE-END
@@ -626,6 +653,8 @@ void DeleteWaitEx( PSI_CONTROL *pc DBG_PASS );
 _MOUSE_NAMESPACE_END
 USE_MOUSE_NAMESPACE
 
+int FrameCaptionYOfs( PSI_CONTROL pc, _32 BorderType );
+
 void DrawFrameCaption( PSI_CONTROL pc );
 
 PPHYSICAL_DEVICE OpenPhysicalDevice( PSI_CONTROL pc, PSI_CONTROL over, PRENDERER pActImg, PSI_CONTROL under );
@@ -633,7 +662,9 @@ void TryLoadingFrameImage( void );
 Image CopyOriginalSurfaceEx( PCONTROL pc, Image use_image DBG_PASS );
 #define CopyOriginalSurface(pc,i) CopyOriginalSurfaceEx(pc,i DBG_SRC )
 
-#define PCOMMON PSI_CONTROL
+//#define PCOMMON PSI_CONTROL
+
+CDATA *basecolor( PSI_CONTROL pc );
 
 PSI_NAMESPACE_END
 

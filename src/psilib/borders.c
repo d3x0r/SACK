@@ -10,9 +10,13 @@
 #define USE_INTERFACE_MANAGER
 
 #include "controlstruc.h"
+#include "global.h"
 #include <psi.h>
 
 PSI_NAMESPACE
+
+//---------------------------------------------------------------------------
+	
 //---------------------------------------------------------------------------
 
 void DrawNormalFrameInset( PSI_CONTROL pc, Image window, int bInvert, int align )
@@ -25,6 +29,7 @@ void CPROC DrawFancyFrame( PSI_CONTROL pc )
 {
 	int tmp;
 	Image window = pc->Window;
+	PFrameBorder border = pc->border;
 //#undef ALPHA_TRANSPARENT
 //#define ALPHA_TRANSPARENT 1
 	if( pc->flags.bInitial || pc->flags.bHidden )
@@ -37,196 +42,198 @@ void CPROC DrawFancyFrame( PSI_CONTROL pc )
 #ifdef DEBUG_BORDER_DRAWING
 	lprintf( "Drawing fancy border... no add of update region here..." );
 #endif
-	switch( g.Border.bAnchorTop )
+
+	switch( border->Border.bAnchorTop )
 	{
 	default:
 	case 0: // none, just scale
-		BlotScaledImageSizedToAlpha( window, g.BorderSegment[SEGMENT_TOP]
+		BlotScaledImageSizedToAlpha( window, border->BorderSegment[SEGMENT_TOP]
 									, pc->surface_rect.x, 0
-									, pc->surface_rect.width, g.BorderHeight
+									, pc->surface_rect.width, border->BorderHeight
 									, ALPHA_TRANSPARENT );
 		break;
 	case 1: // left
-		tmp = g.BorderSegment[SEGMENT_TOP]->width;
+		tmp = border->BorderSegment[SEGMENT_TOP]->width;
 		if( pc->surface_rect.width < tmp )
 			tmp = pc->surface_rect.width;
-		BlotScaledImageSizedEx( window, g.BorderSegment[SEGMENT_TOP]
+		BlotScaledImageSizedEx( window, border->BorderSegment[SEGMENT_TOP]
 									, pc->surface_rect.x, 0
-									, pc->surface_rect.width, g.BorderHeight
+									, pc->surface_rect.width, border->BorderHeight
 									, 0, 0
-									, tmp, g.BorderHeight
+									, tmp, border->BorderHeight
 									, ALPHA_TRANSPARENT, BLOT_COPY );
 		
 		break;
 	case 2: // center
-		tmp = g.BorderSegment[SEGMENT_TOP]->width;
+		tmp = border->BorderSegment[SEGMENT_TOP]->width;
 		if( pc->surface_rect.width < tmp )
 			tmp = pc->surface_rect.width;
-		BlotScaledImageSizedEx( window, g.BorderSegment[SEGMENT_TOP]
+		BlotScaledImageSizedEx( window, border->BorderSegment[SEGMENT_TOP]
 									, pc->surface_rect.x, 0
-									, pc->surface_rect.width, g.BorderHeight
-									, (g.BorderSegment[SEGMENT_TOP]->width - tmp )/2, 0
-									, tmp, g.BorderHeight
+									, pc->surface_rect.width, border->BorderHeight
+									, (border->BorderSegment[SEGMENT_TOP]->width - tmp )/2, 0
+									, tmp, border->BorderHeight
 									, ALPHA_TRANSPARENT, BLOT_COPY );
 		break;
 	case 3: // right
-		tmp = g.BorderSegment[SEGMENT_TOP]->width;
+		tmp = border->BorderSegment[SEGMENT_TOP]->width;
 		if( pc->surface_rect.width < tmp )
 			tmp = pc->surface_rect.width;
-		BlotScaledImageSizedEx( window, g.BorderSegment[SEGMENT_TOP]
+		BlotScaledImageSizedEx( window, border->BorderSegment[SEGMENT_TOP]
 									, pc->surface_rect.x, 0
-									, pc->surface_rect.width, g.BorderHeight
-									, g.BorderSegment[SEGMENT_TOP]->width - tmp, 0
-									, tmp, g.BorderHeight
+									, pc->surface_rect.width, border->BorderHeight
+									, border->BorderSegment[SEGMENT_TOP]->width - tmp, 0
+									, tmp, border->BorderHeight
 									, ALPHA_TRANSPARENT, BLOT_COPY );
 		
 		break;
 	}
-	switch( g.Border.bAnchorBottom )
+	switch( border->Border.bAnchorBottom )
 	{
 	default:
 	case 0: // none, just scale
-		BlotScaledImageSizedToAlpha( window, g.BorderSegment[SEGMENT_BOTTOM]
+		BlotScaledImageSizedToAlpha( window, border->BorderSegment[SEGMENT_BOTTOM]
 									, pc->surface_rect.x, pc->surface_rect.y + pc->surface_rect.height
-									, pc->surface_rect.width, g.BorderHeight
+									, pc->surface_rect.width, border->BorderHeight
 									, ALPHA_TRANSPARENT );
 		break;
 	case 1: // left
-		tmp = g.BorderSegment[SEGMENT_BOTTOM]->width;
+		tmp = border->BorderSegment[SEGMENT_BOTTOM]->width;
 		if( pc->surface_rect.width < tmp )
 			tmp = pc->surface_rect.width;
-		BlotScaledImageSizedEx( window, g.BorderSegment[SEGMENT_BOTTOM]
+		BlotScaledImageSizedEx( window, border->BorderSegment[SEGMENT_BOTTOM]
 									, pc->surface_rect.x, pc->surface_rect.y + pc->surface_rect.height
-									, pc->surface_rect.width, g.BorderHeight
+									, pc->surface_rect.width, border->BorderHeight
 									, 0, 0
-									, tmp, g.BorderHeight
+									, tmp, border->BorderHeight
 									, ALPHA_TRANSPARENT, BLOT_COPY );
 		
 		break;
 	case 2: // center
-		tmp = g.BorderSegment[SEGMENT_BOTTOM]->width;
+		tmp = border->BorderSegment[SEGMENT_BOTTOM]->width;
 		if( pc->surface_rect.width < tmp )
 			tmp = pc->surface_rect.width;
-		BlotScaledImageSizedEx( window, g.BorderSegment[SEGMENT_BOTTOM]
+		BlotScaledImageSizedEx( window, border->BorderSegment[SEGMENT_BOTTOM]
 									, pc->surface_rect.x, pc->surface_rect.y + pc->surface_rect.height
-									, pc->surface_rect.width, g.BorderHeight
-									, (g.BorderSegment[SEGMENT_BOTTOM]->width - tmp )/2, 0
-									, tmp, g.BorderHeight
+									, pc->surface_rect.width, border->BorderHeight
+									, (border->BorderSegment[SEGMENT_BOTTOM]->width - tmp )/2, 0
+									, tmp, border->BorderHeight
 									, ALPHA_TRANSPARENT, BLOT_COPY );
 		break;
 	case 3: // right
-		tmp = g.BorderSegment[SEGMENT_BOTTOM]->width;
+		tmp = border->BorderSegment[SEGMENT_BOTTOM]->width;
 		if( pc->surface_rect.width < tmp )
 			tmp = pc->surface_rect.width;
-		BlotScaledImageSizedEx( window, g.BorderSegment[SEGMENT_BOTTOM]
+		BlotScaledImageSizedEx( window, border->BorderSegment[SEGMENT_BOTTOM]
 									, pc->surface_rect.x, pc->surface_rect.y + pc->surface_rect.height
-									, pc->surface_rect.width, g.BorderHeight
-									, g.BorderSegment[SEGMENT_BOTTOM]->width - tmp, 0
-									, tmp, g.BorderHeight
+									, pc->surface_rect.width, border->BorderHeight
+									, border->BorderSegment[SEGMENT_BOTTOM]->width - tmp, 0
+									, tmp, border->BorderHeight
 									, ALPHA_TRANSPARENT, BLOT_COPY );
 		
 		break;
 	}
-	switch( g.Border.bAnchorLeft )
+	switch( border->Border.bAnchorLeft )
 	{
 	default:
 	case 0: // none, just scale
-		BlotScaledImageSizedToAlpha( window, g.BorderSegment[SEGMENT_LEFT]
-											, 0, g.BorderHeight
-											, g.BorderWidth, window->height - ( g.BorderHeight * 2 )
+		BlotScaledImageSizedToAlpha( window, border->BorderSegment[SEGMENT_LEFT]
+											, 0, border->BorderHeight
+											, border->BorderWidth, window->height - ( border->BorderHeight * 2 )
 											, ALPHA_TRANSPARENT );
 		break;
 	case 1: // top
-		tmp = g.BorderSegment[SEGMENT_LEFT]->height;
-		if( ( window->height - 2 * g.BorderHeight ) < tmp )
-			tmp = ( window->height - 2 * g.BorderHeight );
-		BlotScaledImageSizedEx( window, g.BorderSegment[SEGMENT_LEFT]
-									, 0, g.BorderHeight
-									, g.BorderWidth, window->height - ( g.BorderHeight * 2 )
+		tmp = border->BorderSegment[SEGMENT_LEFT]->height;
+		if( ( window->height - 2 * border->BorderHeight ) < tmp )
+			tmp = ( window->height - 2 * border->BorderHeight );
+		BlotScaledImageSizedEx( window, border->BorderSegment[SEGMENT_LEFT]
+									, 0, border->BorderHeight
+									, border->BorderWidth, window->height - ( border->BorderHeight * 2 )
 									, 0, 0
-									, g.BorderWidth, tmp
+									, border->BorderWidth, tmp
 									, ALPHA_TRANSPARENT, BLOT_COPY );
 		
 		break;
 	case 2: // center
-		tmp = g.BorderSegment[SEGMENT_LEFT]->height;
-		if( ( window->height - 2 * g.BorderHeight ) < tmp )
-			tmp = ( window->height - 2 * g.BorderHeight );
-		BlotScaledImageSizedEx( window, g.BorderSegment[SEGMENT_LEFT]
-									, 0, g.BorderHeight
-									, g.BorderWidth, window->height - ( g.BorderHeight * 2 )
-									, 0, (g.BorderSegment[SEGMENT_LEFT]->height - tmp )/2
-									, tmp, g.BorderHeight
+		tmp = border->BorderSegment[SEGMENT_LEFT]->height;
+		if( ( window->height - 2 * border->BorderHeight ) < tmp )
+			tmp = ( window->height - 2 * border->BorderHeight );
+		BlotScaledImageSizedEx( window, border->BorderSegment[SEGMENT_LEFT]
+									, 0, border->BorderHeight
+									, border->BorderWidth, window->height - ( border->BorderHeight * 2 )
+									, 0, (border->BorderSegment[SEGMENT_LEFT]->height - tmp )/2
+									, tmp, border->BorderHeight
 									, ALPHA_TRANSPARENT, BLOT_COPY );
 		break;
 	case 3: // bottom
-		tmp = g.BorderSegment[SEGMENT_LEFT]->height;
-		if( ( window->height - 2 * g.BorderHeight ) < tmp )
-			tmp = ( window->height - 2 * g.BorderHeight );
-		BlotScaledImageSizedEx( window, g.BorderSegment[SEGMENT_LEFT]
-									, 0, g.BorderHeight
-									, g.BorderWidth, window->height - ( g.BorderHeight * 2 )
-									, 0, g.BorderSegment[SEGMENT_LEFT]->height - tmp
-									, tmp, g.BorderHeight
+		tmp = border->BorderSegment[SEGMENT_LEFT]->height;
+		if( ( window->height - 2 * border->BorderHeight ) < tmp )
+			tmp = ( window->height - 2 * border->BorderHeight );
+		BlotScaledImageSizedEx( window, border->BorderSegment[SEGMENT_LEFT]
+									, 0, border->BorderHeight
+									, border->BorderWidth, window->height - ( border->BorderHeight * 2 )
+									, 0, border->BorderSegment[SEGMENT_LEFT]->height - tmp
+									, tmp, border->BorderHeight
 									, ALPHA_TRANSPARENT, BLOT_COPY );		
 		break;
 	}
-	switch( g.Border.bAnchorRight )
+	switch( border->Border.bAnchorRight )
 	{
 	default:
 	case 0: // none, just scale
-		BlotScaledImageSizedToAlpha( window, g.BorderSegment[SEGMENT_RIGHT]
-											, pc->surface_rect.x + pc->surface_rect.width, g.BorderHeight
-											, g.BorderWidth, window->height - ( g.BorderHeight * 2 )
+		BlotScaledImageSizedToAlpha( window, border->BorderSegment[SEGMENT_RIGHT]
+											, pc->surface_rect.x + pc->surface_rect.width, border->BorderHeight
+											, border->BorderWidth, window->height - ( border->BorderHeight * 2 )
 											, ALPHA_TRANSPARENT );
 		break;
 	case 1: // top
-		tmp = g.BorderSegment[SEGMENT_RIGHT]->height;
-		if( ( window->height - 2 * g.BorderHeight ) < tmp )
-			tmp = ( window->height - 2 * g.BorderHeight );
-		BlotScaledImageSizedEx( window, g.BorderSegment[SEGMENT_RIGHT]
-									, pc->surface_rect.x + pc->surface_rect.width, g.BorderHeight
-									, g.BorderWidth, window->height - ( 2 * g.BorderHeight )
+		tmp = border->BorderSegment[SEGMENT_RIGHT]->height;
+		if( ( window->height - 2 * border->BorderHeight ) < tmp )
+			tmp = ( window->height - 2 * border->BorderHeight );
+		BlotScaledImageSizedEx( window, border->BorderSegment[SEGMENT_RIGHT]
+									, pc->surface_rect.x + pc->surface_rect.width, border->BorderHeight
+									, border->BorderWidth, window->height - ( 2 * border->BorderHeight )
 									, 0, 0
-									, g.BorderWidth, tmp
+									, border->BorderWidth, tmp
 									, ALPHA_TRANSPARENT, BLOT_COPY );
 		
 		break;
 	case 2: // center
-		tmp = g.BorderSegment[SEGMENT_RIGHT]->height;
-		if( ( window->height - 2 * g.BorderHeight ) < tmp )
-			tmp = ( window->height - 2 * g.BorderHeight );
-		BlotScaledImageSizedEx( window, g.BorderSegment[SEGMENT_RIGHT]
-									, pc->surface_rect.x + pc->surface_rect.width, g.BorderHeight
-									, g.BorderWidth, window->height - ( 2 * g.BorderHeight )
-									, 0, (g.BorderSegment[SEGMENT_RIGHT]->height - tmp )/2
-									, tmp, g.BorderHeight
+		tmp = border->BorderSegment[SEGMENT_RIGHT]->height;
+		if( ( window->height - 2 * border->BorderHeight ) < tmp )
+			tmp = ( window->height - 2 * border->BorderHeight );
+		BlotScaledImageSizedEx( window, border->BorderSegment[SEGMENT_RIGHT]
+									, pc->surface_rect.x + pc->surface_rect.width, border->BorderHeight
+									, border->BorderWidth, window->height - ( 2 * border->BorderHeight )
+									, 0, (border->BorderSegment[SEGMENT_RIGHT]->height - tmp )/2
+									, tmp, border->BorderHeight
 									, ALPHA_TRANSPARENT, BLOT_COPY );
 		break;
 	case 3: // bottom
-		tmp = g.BorderSegment[SEGMENT_RIGHT]->height;
-		if( ( window->height - 2 * g.BorderHeight ) < tmp )
-			tmp = ( window->height - 2 * g.BorderHeight );
-		BlotScaledImageSizedEx( window, g.BorderSegment[SEGMENT_RIGHT]
-									, pc->surface_rect.x + pc->surface_rect.width, g.BorderHeight
-									, g.BorderWidth, window->height - ( 2 * g.BorderHeight )
-									, 0, g.BorderSegment[SEGMENT_RIGHT]->height - tmp
-									, tmp, g.BorderHeight
+		tmp = border->BorderSegment[SEGMENT_RIGHT]->height;
+		if( ( window->height - 2 * border->BorderHeight ) < tmp )
+			tmp = ( window->height - 2 * border->BorderHeight );
+		BlotScaledImageSizedEx( window, border->BorderSegment[SEGMENT_RIGHT]
+									, pc->surface_rect.x + pc->surface_rect.width, border->BorderHeight
+									, border->BorderWidth, window->height - ( 2 * border->BorderHeight )
+									, 0, border->BorderSegment[SEGMENT_RIGHT]->height - tmp
+									, tmp, border->BorderHeight
 									, ALPHA_TRANSPARENT, BLOT_COPY );		
 		break;
 	}
-	BlotImageAlpha( window, g.BorderSegment[SEGMENT_TOP_LEFT]
+	BlotImageAlpha( window, border->BorderSegment[SEGMENT_TOP_LEFT]
 					  , 0, 0
 					  , ALPHA_TRANSPARENT );
-	BlotImageAlpha( window, g.BorderSegment[SEGMENT_TOP_RIGHT]
-					  , g.BorderWidth + pc->surface_rect.width, 0
+	BlotImageAlpha( window, border->BorderSegment[SEGMENT_TOP_RIGHT]
+					  , border->BorderWidth + pc->surface_rect.width, 0
 					  , ALPHA_TRANSPARENT );
-	BlotImageAlpha( window, g.BorderSegment[SEGMENT_BOTTOM_LEFT]
-					  , 0, window->height - g.BorderHeight
+	BlotImageAlpha( window, border->BorderSegment[SEGMENT_BOTTOM_LEFT]
+					  , 0, window->height - border->BorderHeight
 					  , ALPHA_TRANSPARENT );
-	BlotImageAlpha( window, g.BorderSegment[SEGMENT_BOTTOM_RIGHT]
-					  , g.BorderWidth + pc->surface_rect.width, window->height - g.BorderHeight
+	BlotImageAlpha( window, border->BorderSegment[SEGMENT_BOTTOM_RIGHT]
+					  , border->BorderWidth + pc->surface_rect.width, window->height - border->BorderHeight
 					  , ALPHA_TRANSPARENT );
+	//lprintf( "Finished fancy border draw." );
 }
 
 //---------------------------------------------------------------------------
@@ -241,7 +248,7 @@ PSI_PROC( int, FrameBorderXOfs )( PSI_CONTROL pc, _32 BorderType )
     case BORDER_NORMAL:
 		 if( pc && pc->DrawBorder == DrawFancyFrame )
 		 {
-          return g.BorderWidth;
+          return pc->border->BorderWidth;
 		 }
 		 /*
 		 if( BorderType & BORDER_RESIZABLE )
@@ -250,7 +257,7 @@ PSI_PROC( int, FrameBorderXOfs )( PSI_CONTROL pc, _32 BorderType )
 		 }
 		 else
 		 */
-			 return g.BorderImage?g.BorderHeight:4;
+			 return (pc->border&&pc->border->BorderImage)?pc->border->BorderHeight:4;
 	 case BORDER_THINNER:
 		 return 2;
 	 case BORDER_THIN:
@@ -279,14 +286,14 @@ PSI_PROC( int, FrameBorderX )( PSI_CONTROL pc, _32 BorderType )
     case BORDER_NORMAL:
 		 if( pc && pc->DrawBorder == DrawFancyFrame )
 		 {
-          return g.BorderWidth*2;
+          return pc->border->BorderWidth*2;
 		 }
 		 /*
         if( BorderType & BORDER_RESIZABLE )
             return 16;
         else
 		*/
-            return g.BorderImage?g.BorderWidth * 2:8;
+            return (pc->border&&pc->border->BorderImage)?pc->border->BorderWidth * 2:8;
     case BORDER_THINNER:
       return 4;
     case BORDER_THIN:
@@ -310,7 +317,11 @@ PSI_PROC( int, CaptionHeight )( PSI_CONTROL pf, CTEXTSTR text )
     // should resemble something like text height + 3 (top) + 3 (1 bottom, 2 frameline)
     // pf itself may have a different font - which
    // will then switch the height...
-	if( pf->caption.image  )
+	if( pf->DrawCaption )
+	{
+		return pf->nCaptionHeight;
+	}
+	else if( pf->caption.image  )
 	{
 		return pf->caption.image->height + pf->caption.pad*2;
 	}
@@ -330,7 +341,8 @@ PSI_PROC( int, CaptionHeight )( PSI_CONTROL pf, CTEXTSTR text )
 PSI_PROC( int, FrameBorderYOfs )( PSI_CONTROL pc, _32 BorderType, CTEXTSTR caption )
 {
 	int result = 0;
-	if( !(BorderType & BORDER_NOCAPTION ) && caption )
+	if( !(BorderType & BORDER_NOCAPTION ) && 
+		( pc->DrawBorder || caption ) )
 		result += CaptionHeight( pc, caption );
 
 	//if( !pf )
@@ -342,14 +354,14 @@ PSI_PROC( int, FrameBorderYOfs )( PSI_CONTROL pc, _32 BorderType, CTEXTSTR capti
 	case BORDER_NORMAL:
 		if( pc && pc->DrawBorder == DrawFancyFrame )
 		{
-			return result + g.BorderHeight;
+			return result + pc->border->BorderHeight;
 		}
 		/*
 		if( BorderType & BORDER_RESIZABLE )
 			return result + 8;
 		else
 		*/
-			return result + ( ( (g.BorderImage?g.BorderHeight:4)* 3 ) / 4 );
+			return result + ( ( ( (pc->border&&pc->border->BorderImage)?pc->border->BorderHeight:4)* 3 ) / 4 );
 	case BORDER_THINNER:
 		return result + 2;
 	case BORDER_THIN:
@@ -365,7 +377,7 @@ PSI_PROC( int, FrameBorderYOfs )( PSI_CONTROL pc, _32 BorderType, CTEXTSTR capti
 	return result + 2;
 }
 
-PSI_PROC( int, FrameCaptionYOfs )( PSI_CONTROL pc, _32 BorderType )
+int FrameCaptionYOfs( PSI_CONTROL pc, _32 BorderType )
 {
 	int result = 0;
 
@@ -378,14 +390,14 @@ PSI_PROC( int, FrameCaptionYOfs )( PSI_CONTROL pc, _32 BorderType )
 	case BORDER_NORMAL:
 		if( pc && pc->DrawBorder == DrawFancyFrame )
 		{
-			return result + g.BorderHeight;
+			return result + pc->border->BorderHeight;
 		}
 		/*
 		if( BorderType & BORDER_RESIZABLE )
 			return result + 8;
 		else
 		*/
-			return result + ( ( (g.BorderImage?g.BorderHeight:4)* 3 ) / 4 );
+			return result + ( ( ((pc->border&&pc->border->BorderImage)?pc->border->BorderHeight:4)* 3 ) / 4 );
 	case BORDER_THINNER:
 		return result + 2;
 	case BORDER_THIN:
@@ -406,7 +418,8 @@ PSI_PROC( int, FrameCaptionYOfs )( PSI_CONTROL pc, _32 BorderType )
 PSI_PROC( int, FrameBorderY )( PSI_CONTROL pc, _32 BorderType, CTEXTSTR caption )
 {
 	int result = 0;
-	if( !(BorderType & BORDER_NOCAPTION ) && caption )
+	if( !(BorderType & BORDER_NOCAPTION ) && 
+		( pc->DrawBorder || caption ) )
 		result += CaptionHeight( pc, caption );
 	//if( !pf )
 	//  return CaptionHeight( pf, NULL ) + 8;
@@ -417,7 +430,7 @@ PSI_PROC( int, FrameBorderY )( PSI_CONTROL pc, _32 BorderType, CTEXTSTR caption 
 	case BORDER_NORMAL:
 		if( pc && pc->DrawBorder == DrawFancyFrame )
 		{
-			return result + g.BorderHeight*2;
+			return result + pc->border->BorderHeight*2;
 		}
 		/*
 		if( BorderType & BORDER_RESIZABLE )
@@ -427,7 +440,7 @@ PSI_PROC( int, FrameBorderY )( PSI_CONTROL pc, _32 BorderType, CTEXTSTR caption 
 		else
 		*/
 		{
-			return result + ((g.BorderImage?g.BorderHeight:4) * 7 / 4 );
+			return result + (((pc->border&&pc->border->BorderImage)?pc->border->BorderHeight:4) * 7 / 4 );
 		}
 	case BORDER_THINNER:
 		return result + 4;
@@ -762,171 +775,176 @@ void DrawFrameCaption( PSI_CONTROL pc )
 #endif
 #define TEXT_INSET 5
 		GetImageSize( pc->Window, &width, &height );
-
-		if( pc->flags.bFocused )
+		w = width - (xofs + 2);
+		if( pc->DrawCaption )
 		{
-			if( g.FrameCaptionFocusedImage || g.FrameCaptionImage )
-			{
-				out = g.FrameCaptionFocusedImage;
-				if( !out )
-					out = g.FrameCaptionImage;
-				{
-					S_32 outx = 0;
-					S_32 outy = 0;
-					_32 outw = width - 2 *xofs;
-					_32 outh = h+2;
-					_32 routw = width - 2 *xofs;
-					_32 routh = h+2;
-					w = width - (xofs + 2);
-					if( (h+2) < out->height )
-						outh = h+2;
-					else
-						routh = out->height;
-					if ( outw < out->width )
-					{
-						outx = out->width/2 - (outw)/2;
-					}
-					else
-					{
-						outw = out->width;						
-					}
-					BlotScaledImageSizedEx( pc->Window, out, xofs, yofs, routw, routh, outx, outy, outw, outh, ALPHA_TRANSPARENT, BLOT_COPY );
-				}
-			}
-			else
-			{
-				//lprintf( WIDE("Draw focused caption on pcWindow") );
-				BlatColor( pc->Window
-							, xofs+1, yofs+1
-							, width - 2*(xofs+1)
-							, h
-							, basecolor(pc)[CAPTION] );
-			}
-			if( pc->caption.image )
-			{
-				BlotImageAlpha( pc->Window, pc->caption.image, xofs + pc->caption.pad, yofs + pc->caption.pad, ALPHA_TRANSPARENT );
-			}
-			else
-			{
-				PutStringFont( pc->Window
-								 , TEXT_INSET + xofs+2, (TEXT_INSET-2)+yofs+2 // Bad choice - but... works for now...
-								 , basecolor(pc)[SHADOW], 0
-								 , GetText( pc->caption.text )
-								 , GetCommonFont(pc)
-								 );
-				PutStringFont( pc->Window
-								 , TEXT_INSET + xofs+3, (TEXT_INSET-2)+yofs+3 // Bad choice - but... works for now...
-								 , basecolor(pc)[HIGHLIGHT], 0
-								 , GetText( pc->caption.text )
-								 , GetCommonFont(pc)
-								 );
-			}
-			//      PutString( pc->Window
-			//                       // bias the text towards the top?
-			//                  , TEXT_INSET + xofs+1, (TEXT_INSET-2)+xofs+1 // Bad choice - but... works for now...
-			//                  , basecolor(pc)[CAPTIONTEXTCOLOR], 0
-			//                  , GetText( pc->caption.text ) );
-			//h += yofs;
-			if( !out ) // out is set when drawing a image...
-			{
-				w = width - (yofs+1);
-				do_hline( pc->Window
-						  , yofs, xofs, w
-						  , basecolor(pc)[SHADE] );
-				do_vline( pc->Window
-						  , xofs, yofs, yofs+h
-						  , basecolor(pc)[SHADE] );
-				do_hline( pc->Window
-						  , yofs+h, xofs, w
-						  , basecolor(pc)[HIGHLIGHT] );
-				do_vline( pc->Window
-						  , w, yofs, yofs+h
-						  , basecolor(pc)[HIGHLIGHT] );
-			}
+			//lprintf( "Draw custom caption" );
+			pc->DrawCaption( pc, pc->pCaptionImage );
 		}
 		else
 		{
-			//lprintf( WIDE("Draw unfocused caption on pcWindow") );
-			if( g.FrameCaptionFocusedImage || g.FrameCaptionImage )
+			if( pc->flags.bFocused )
 			{
-				out = g.FrameCaptionImage;
-				if( !out )
-					out = g.FrameCaptionFocusedImage;
+				if( g.FrameCaptionFocusedImage || g.FrameCaptionImage )
 				{
-					S_32 outx = 0;
-					S_32 outy = 0;
-					_32 outw = width - 2 *xofs;
-					_32 outh = h+2;
-					_32 routw = width - 2 *xofs;
-					_32 routh = h+2;
-					w = width - (xofs + 2);
-					if( (h+2) < out->height )
-						outh = h+2;
-					else
-						routh = out->height;
-					if ( outw < out->width )
+					out = g.FrameCaptionFocusedImage;
+					if( !out )
+						out = g.FrameCaptionImage;
 					{
-						outx = out->width/2 - (outw)/2;
+						S_32 outx = 0;
+						S_32 outy = 0;
+						_32 outw = width - 2 *xofs;
+						_32 outh = h+2;
+						_32 routw = width - 2 *xofs;
+						_32 routh = h+2;
+						if( (h+2) < out->height )
+							outh = h+2;
+						else
+							routh = out->height;
+						if ( outw < out->width )
+						{
+							outx = out->width/2 - (outw)/2;
+						}
+						else
+						{
+							outw = out->width;						
+						}
+						BlotScaledImageSizedEx( pc->Window, out, xofs, yofs, routw, routh, outx, outy, outw, outh, ALPHA_TRANSPARENT, BLOT_COPY );
 					}
-					else
-					{
-						outw = out->width;						
-					}
-					BlotScaledImageSizedEx( pc->Window, out, xofs, yofs, routw, routh, outx, outy, outw, outh, ALPHA_TRANSPARENT, BLOT_COPY );
 				}
-			}
-
-			if( pc->caption.image )
-			{
-				BlotImageAlpha( pc->Window, pc->caption.image, xofs + pc->caption.pad, yofs + pc->caption.pad, ALPHA_TRANSPARENT );
+				else
+				{
+					//lprintf( WIDE("Draw focused caption on pcWindow") );
+					BlatColor( pc->Window
+								, xofs+1, yofs+1
+								, width - 2*(xofs+1)
+								, h
+								, basecolor(pc)[CAPTION] );
+				}
+				if( pc->caption.image )
+				{
+					BlotImageAlpha( pc->Window, pc->caption.image, xofs + pc->caption.pad, yofs + pc->caption.pad, ALPHA_TRANSPARENT );
+				}
+				else
+				{
+					PutStringFont( pc->Window
+									 , TEXT_INSET + xofs+2, (TEXT_INSET-2)+yofs+2 // Bad choice - but... works for now...
+									 , basecolor(pc)[SHADOW], 0
+									 , GetText( pc->caption.text )
+									 , GetCommonFont(pc)
+									 );
+					PutStringFont( pc->Window
+									 , TEXT_INSET + xofs+3, (TEXT_INSET-2)+yofs+3 // Bad choice - but... works for now...
+									 , basecolor(pc)[HIGHLIGHT], 0
+									 , GetText( pc->caption.text )
+									 , GetCommonFont(pc)
+									 );
+				}
+				//      PutString( pc->Window
+				//                       // bias the text towards the top?
+				//                  , TEXT_INSET + xofs+1, (TEXT_INSET-2)+xofs+1 // Bad choice - but... works for now...
+				//                  , basecolor(pc)[CAPTIONTEXTCOLOR], 0
+				//                  , GetText( pc->caption.text ) );
+				//h += yofs;
+				if( !out ) // out is set when drawing a image...
+				{
+					w = width - (yofs+1);
+					do_hline( pc->Window
+							  , yofs, xofs, w
+							  , basecolor(pc)[SHADE] );
+					do_vline( pc->Window
+							  , xofs, yofs, yofs+h
+							  , basecolor(pc)[SHADE] );
+					do_hline( pc->Window
+							  , yofs+h, xofs, w
+							  , basecolor(pc)[HIGHLIGHT] );
+					do_vline( pc->Window
+							  , w, yofs, yofs+h
+							  , basecolor(pc)[HIGHLIGHT] );
+				}
 			}
 			else
 			{
-				BlatColor( pc->Window
-							, xofs+1, yofs+1
-							, width - 2*(xofs+1)
-							, h
-							, basecolor(pc)[INACTIVECAPTION] );
-				PutStringFont( pc->Window
-									, TEXT_INSET + xofs+1, (TEXT_INSET-2)+yofs+1 // Bad choice - but... works for now...
-									, basecolor(pc)[SHADOW], 0
-									, GetText( pc->caption.text )
-									, GetCommonFont(pc)
-									);
-				PutStringFont( pc->Window
-									, TEXT_INSET + xofs+2, (TEXT_INSET-2)+yofs+2 // Bad choice - but... works for now...
-									, basecolor(pc)[HIGHLIGHT], 0
-									, GetText( pc->caption.text )
-									, GetCommonFont(pc)
-									);
-			}
-			//      PutString( pc->Window
-			//                  , TEXT_INSET + xofs+1, (TEXT_INSET-2)+xofs+1 // Bad choice - but... works for now...
-			//                  , basecolor(pc)[INACTIVECAPTIONTEXTCOLOR], 0
-			//                  , GetText( pc->caption.text ) );
-			//h += yofs;
-			if( !out )
-			{
-				w = width - (yofs+1);
-				do_hline( pc->Window
-						  , yofs, xofs, w
-						  , basecolor(pc)[HIGHLIGHT] );
-				do_vline( pc->Window
-						  , xofs, yofs, yofs+h
-						  , basecolor(pc)[HIGHLIGHT] );
-				do_hline( pc->Window
-						  , yofs+h, xofs, w
-						  , basecolor(pc)[SHADE] );
-				do_vline( pc->Window
-						  , w, yofs, yofs+h
-						  , basecolor(pc)[SHADE] );
+				//lprintf( WIDE("Draw unfocused caption on pcWindow") );
+				if( g.FrameCaptionFocusedImage || g.FrameCaptionImage )
+				{
+					out = g.FrameCaptionImage;
+					if( !out )
+						out = g.FrameCaptionFocusedImage;
+					{
+						S_32 outx = 0;
+						S_32 outy = 0;
+						_32 outw = width - 2 *xofs;
+						_32 outh = h+2;
+						_32 routw = width - 2 *xofs;
+						_32 routh = h+2;
+						w = width - (xofs + 2);
+						if( (h+2) < out->height )
+							outh = h+2;
+						else
+							routh = out->height;
+						if ( outw < out->width )
+						{
+							outx = out->width/2 - (outw)/2;
+						}
+						else
+						{
+							outw = out->width;						
+						}
+						BlotScaledImageSizedEx( pc->Window, out, xofs, yofs, routw, routh, outx, outy, outw, outh, ALPHA_TRANSPARENT, BLOT_COPY );
+					}
+				}
+
+				if( pc->caption.image )
+				{
+					BlotImageAlpha( pc->Window, pc->caption.image, xofs + pc->caption.pad, yofs + pc->caption.pad, ALPHA_TRANSPARENT );
+				}
+				else
+				{
+					BlatColor( pc->Window
+								, xofs+1, yofs+1
+								, width - 2*(xofs+1)
+								, h
+								, basecolor(pc)[INACTIVECAPTION] );
+					PutStringFont( pc->Window
+										, TEXT_INSET + xofs+1, (TEXT_INSET-2)+yofs+1 // Bad choice - but... works for now...
+										, basecolor(pc)[SHADOW], 0
+										, GetText( pc->caption.text )
+										, GetCommonFont(pc)
+										);
+					PutStringFont( pc->Window
+										, TEXT_INSET + xofs+2, (TEXT_INSET-2)+yofs+2 // Bad choice - but... works for now...
+										, basecolor(pc)[HIGHLIGHT], 0
+										, GetText( pc->caption.text )
+										, GetCommonFont(pc)
+										);
+				}
+				//      PutString( pc->Window
+				//                  , TEXT_INSET + xofs+1, (TEXT_INSET-2)+xofs+1 // Bad choice - but... works for now...
+				//                  , basecolor(pc)[INACTIVECAPTIONTEXTCOLOR], 0
+				//                  , GetText( pc->caption.text ) );
+				//h += yofs;
+				if( !out )
+				{
+					w = width - (yofs+1);
+					do_hline( pc->Window
+							  , yofs, xofs, w
+							  , basecolor(pc)[HIGHLIGHT] );
+					do_vline( pc->Window
+							  , xofs, yofs, yofs+h
+							  , basecolor(pc)[HIGHLIGHT] );
+					do_hline( pc->Window
+							  , yofs+h, xofs, w
+							  , basecolor(pc)[SHADE] );
+					do_vline( pc->Window
+							  , w, yofs, yofs+h
+							  , basecolor(pc)[SHADE] );
+				}
 			}
 		}
-
 		button_left = w - (h + 3);
 		if( pc->device )
 		{
-			PPHYSICAL_DEVICE pf = pc->device;
 			INDEX idx;
 			PCAPTION_BUTTON button;
 			LIST_FORALL( pc->caption_buttons, idx, PCAPTION_BUTTON, button )
@@ -1024,7 +1042,6 @@ static void CPROC DrawCustomBorder( PSI_CONTROL pc )
 }
 
 //---------------------------------------------------------------------------
-void UpdateSurface( PSI_CONTROL pc );
 
 void CPROC SetDrawBorder( PSI_CONTROL pc )
 {
@@ -1058,8 +1075,8 @@ void CPROC SetDrawBorder( PSI_CONTROL pc )
 				extern void TryLoadingFrameImage( void );
 				if( !g.flags.system_color_set )
 				{
-					TryLoadingFrameImage();
-					pc->DrawBorder = g.BorderImage?DrawFancyFrame:DrawNormalFrame;
+					//TryLoadingFrameImage();
+					pc->DrawBorder = (pc->border&&pc->border->BorderImage)?DrawFancyFrame:DrawNormalFrame;
 				}
 				else
 					pc->DrawBorder = DrawNormalFrame;
@@ -1162,6 +1179,11 @@ void UpdateSurface( PSI_CONTROL pc )
 		top = FrameBorderYOfs(pc, border, GetText(pc->caption.text));
 		right = FrameBorderX(pc, border);
 		bottom = FrameBorderY(pc, border, GetText(pc->caption.text));
+		if( pc->DrawCaption )
+		{
+			MoveImage( pc->pCaptionImage, left - 1, FrameCaptionYOfs( pc, border ) );
+			ResizeImage( pc->pCaptionImage, ( width - right ) + 2, pc->nCaptionHeight );
+		}
 		if( pc->surface_rect.x != left || pc->surface_rect.y != top )
 		{
 			pc->surface_rect.x = left;
@@ -1237,6 +1259,16 @@ PSI_PROC( void, PSI_SetCustomBorder )( PSI_CONTROL pc, void (CPROC*proc)(PSI_CON
       pc->BorderType = BORDER_USER_PROC;
 	}
 }
+
+void SetCaptionHeight( PSI_CONTROL pc, int height )
+{
+	if( pc )
+	{
+		pc->nCaptionHeight = height;
+		UpdateSurface( pc );
+	}
+}
+
 
 PSI_NAMESPACE_END
 

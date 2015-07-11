@@ -1,7 +1,10 @@
+
+#include "global.h"
 #include "controlstruc.h"
 #include <psi.h>
 
 #include "mouse.h"
+
 //#define DEBUG_FOCUS
 //#define HOTSPOT_DEBUG
 //#define DEBUG_ADD_DELETEUSE
@@ -761,7 +764,7 @@ static void UpdateCursor( PSI_CONTROL pc, int x, int y, int caption_height, int 
 					if ( y < ( pc->surface_rect.y - caption_height ) )
 					{  // very top edge
 						int do_drag = 0;
-						if( g.BorderHeight > 10 )
+						if( pc->border && ( pc->border->BorderHeight > 10 ) )
 							do_drag = 1;
 						 if( x < pc->surface_rect.x ) // left side edge
 						 {
@@ -797,7 +800,19 @@ static void UpdateCursor( PSI_CONTROL pc, int x, int y, int caption_height, int 
 						}
 						else // center bottom edge
 						{
-							SetDisplayCursor( IDC_ARROW );
+							INDEX idx;
+							PCAPTION_BUTTON button = NULL;
+							LIST_FORALL( pc->caption_buttons, idx, PCAPTION_BUTTON, button )
+							{
+								if( x > button->offset )
+									break;
+							}
+							if( button )
+							{
+								SetDisplayCursor( IDC_ARROW );
+							}
+							else
+								SetDisplayCursor( IDC_HAND );
 						}
 					}
 				}
@@ -805,7 +820,7 @@ static void UpdateCursor( PSI_CONTROL pc, int x, int y, int caption_height, int 
 									 + pc->surface_rect.height ) ) ) // bottom side...
 				{  // very bottom band
 					int do_drag = 0;
-					if( g.BorderHeight > 10 )
+					if( pc->border && ( pc->border->BorderHeight > 10 ) )
 						do_drag = 1;
 					if( x < ( pc->surface_rect.x ) ) // left side edge
 					{
@@ -836,7 +851,7 @@ static void UpdateCursor( PSI_CONTROL pc, int x, int y, int caption_height, int 
 				else // between top and bottom border/caption
 				{
 					int do_drag = 0;
-					if( g.BorderHeight > 10 )
+					if( pc->border && ( pc->border->BorderHeight > 10 ) )
 						do_drag = 1;
 					if( x < pc->surface_rect.x ) // left side edge
 					{
@@ -881,8 +896,8 @@ static void UpdateCursor( PSI_CONTROL pc, int x, int y, int caption_height, int 
 			else
 			{
 				PCAPTION_BUTTON button = NULL;
-				if( ( y > frame_height )
-					&& ( y < ( frame_height + caption_height ) )
+				if( ( y < frame_height )
+					&& ( y > ( frame_height - caption_height ) )
 					&& ( x < ( pc->surface_rect.x + pc->surface_rect.width ) ) 
 					)
 				{
@@ -950,7 +965,7 @@ int CPROC FirstFrameMouse( PPHYSICAL_DEVICE pf, S_32 x, S_32 y, _32 b, int bCall
 		if( pc->pressed_caption_button )
 		{
 			if( ( x < pc->pressed_caption_button->offset )
-				|| ( y >= ( frame_height + caption_height ) )
+				|| ( y >= ( frame_height - caption_height ) )
 				|| ( y < frame_height ) 
 				|| ( x > ( pc->pressed_caption_button->offset + ( caption_height ) ) )
 				)
@@ -959,12 +974,13 @@ int CPROC FirstFrameMouse( PPHYSICAL_DEVICE pf, S_32 x, S_32 y, _32 b, int bCall
 					lprintf( WIDE("outside of button...") );
 				if( pc->pressed_caption_button->is_pressed )
 				{
+					int y = FrameCaptionYOfs( pc, pc->BorderType );
 					pc->pressed_caption_button->is_pressed = 0;
 					DrawFrameCaption( pc );
 					UpdateDisplayPortion( pf->pActImg
-												, pc->surface_rect.x, 0
-												, pc->surface_rect.width
-												, pc->surface_rect.y );
+												, pc->surface_rect.x - 1, y
+												, pc->surface_rect.width + 2
+												, pc->surface_rect.y - y );
 				}
 			}
 			else
@@ -973,12 +989,13 @@ int CPROC FirstFrameMouse( PPHYSICAL_DEVICE pf, S_32 x, S_32 y, _32 b, int bCall
 					lprintf( WIDE("inside of button...") );
 				if( !pc->pressed_caption_button->is_pressed )
 				{
+					int y = FrameCaptionYOfs( pc, pc->BorderType );
 					pc->pressed_caption_button->is_pressed = 1;
 					DrawFrameCaption( pc );
 					UpdateDisplayPortion( pf->pActImg
-												, pc->surface_rect.x, 0
-												, pc->surface_rect.width
-												, pc->surface_rect.y );
+												, pc->surface_rect.x - 1, y
+												, pc->surface_rect.width + 2
+												, pc->surface_rect.y - y );
 				}
 			}
 		}
@@ -1100,8 +1117,8 @@ int CPROC FirstFrameMouse( PPHYSICAL_DEVICE pf, S_32 x, S_32 y, _32 b, int bCall
 			INDEX idx;
 			PCAPTION_BUTTON button;
 			if( ( x < ( pc->surface_rect.x + pc->surface_rect.width ) ) // left side edge
-				&& ( y > frame_height ) // left side edge
-				&& ( y < ( caption_height + frame_height ) ) )
+				&& ( y < frame_height ) // left side edge
+				&& ( y >= ( frame_height - caption_height ) ) )
 			{
 				LIST_FORALL( pc->caption_buttons, idx, PCAPTION_BUTTON, button )
 				{
@@ -1112,27 +1129,30 @@ int CPROC FirstFrameMouse( PPHYSICAL_DEVICE pf, S_32 x, S_32 y, _32 b, int bCall
 					{
 						if( pc->pressed_caption_button && pc->pressed_caption_button == button )
 						{
+							int y = FrameCaptionYOfs( pc, pc->BorderType );
 							button->is_pressed = FALSE;
 							DrawFrameCaption( pc );
 							UpdateDisplayPortion( pf->pActImg
-														, pc->surface_rect.x, 0
-														, pc->surface_rect.width
-														, pc->surface_rect.y );
+														, pc->surface_rect.x - 1, y
+														, pc->surface_rect.width + 2
+														, pc->surface_rect.y - y );
 							button->pressed_event( pc );
+							break;
 						}
 					}
 				}
 			}
-			if( pc->pressed_caption_button )
+			if( !pc->flags.bDestroy && pc->pressed_caption_button )
 			{
 				if( pc->pressed_caption_button->pressed )
 				{
+					int y = FrameCaptionYOfs( pc, pc->BorderType );
 					pc->pressed_caption_button->is_pressed = FALSE;
 					DrawFrameCaption( pc );
 					UpdateDisplayPortion( pf->pActImg
-												, pc->surface_rect.x, 0
-												, pc->surface_rect.width
-												, pc->surface_rect.y );
+												, pc->surface_rect.x - 1, y
+												, pc->surface_rect.width + 2
+												, pc->surface_rect.y - y );
 				}
 				pc->pressed_caption_button = NULL;
 			}
@@ -1165,7 +1185,7 @@ int CPROC FirstFrameMouse( PPHYSICAL_DEVICE pf, S_32 x, S_32 y, _32 b, int bCall
 					if ( y < ( pc->surface_rect.y - caption_height ) )
 					{  // very top edge
 						int do_drag = 0;
-						if( g.BorderHeight > 10 )
+						if( pc->border && ( pc->border->BorderHeight > 10 ) )
 							do_drag = 1;
 						 if( x < pc->surface_rect.x ) // left side edge
 						 {
@@ -1248,6 +1268,8 @@ int CPROC FirstFrameMouse( PPHYSICAL_DEVICE pf, S_32 x, S_32 y, _32 b, int bCall
 									INDEX idx;
 									LIST_FORALL( pc->caption_buttons, idx, PCAPTION_BUTTON, button )
 									{
+										if( button->flags.hidden )
+											continue;
 										if( x > button->offset )
 										{
 											on_button = TRUE;
@@ -1258,12 +1280,13 @@ int CPROC FirstFrameMouse( PPHYSICAL_DEVICE pf, S_32 x, S_32 y, _32 b, int bCall
 									{
 										if( !button->is_pressed )
 										{
+											int y = FrameCaptionYOfs( pc, pc->BorderType );
 											pc->pressed_caption_button = button;
 											button->is_pressed = TRUE;
 											DrawFrameCaption( pc );
-											UpdateDisplayPortion( pf->pActImg, pc->surface_rect.x, 0
-																		, pc->surface_rect.width
-																		, pc->surface_rect.y );
+											UpdateDisplayPortion( pf->pActImg, pc->surface_rect.x - 1, y
+																		, pc->surface_rect.width + 2
+																		, pc->surface_rect.y - y );
 										}
 									}
 								}
@@ -1281,7 +1304,7 @@ int CPROC FirstFrameMouse( PPHYSICAL_DEVICE pf, S_32 x, S_32 y, _32 b, int bCall
 									 + pc->surface_rect.height ) ) ) // bottom side...
 				{  // very bottom band
 					int do_drag = 0;
-					if( g.BorderHeight > 10 )
+					if( pc->border && ( pc->border->BorderHeight > 10 ) )
 						do_drag = 1;
 					if( x < ( pc->surface_rect.x ) ) // left side edge
 					{
@@ -1339,7 +1362,7 @@ int CPROC FirstFrameMouse( PPHYSICAL_DEVICE pf, S_32 x, S_32 y, _32 b, int bCall
 				else // between top and bottom border/caption
 				{
 					int do_drag = 0;
-					if( g.BorderHeight > 10 )
+					if( pc->border && ( pc->border->BorderHeight > 10 ) )
 						do_drag = 1;
 					if( x < pc->surface_rect.x ) // left side edge
 					{
@@ -1415,14 +1438,16 @@ int CPROC FirstFrameMouse( PPHYSICAL_DEVICE pf, S_32 x, S_32 y, _32 b, int bCall
 			else
 			{
 				PCAPTION_BUTTON button = NULL;
-				if( ( y > frame_height )
-					&& ( y < ( frame_height + caption_height ) )
+				if( ( y < frame_height )
+					&& ( y >= ( frame_height - caption_height ) )
 					&& ( x < ( pc->surface_rect.x + pc->surface_rect.width ) ) 
 					)
 				{
 					INDEX idx;
 					LIST_FORALL( pc->caption_buttons, idx, PCAPTION_BUTTON, button )
 					{
+						if( button->flags.hidden )
+							continue;
 						if( x > button->offset )
 						{
 							break;
@@ -1430,12 +1455,13 @@ int CPROC FirstFrameMouse( PPHYSICAL_DEVICE pf, S_32 x, S_32 y, _32 b, int bCall
 					}
 					if( button )
 					{
+						int y = FrameCaptionYOfs( pc, pc->BorderType );
 						pc->pressed_caption_button = button;
 						button->is_pressed = TRUE;
 						DrawFrameCaption( pc );
-						UpdateDisplayPortion( pf->pActImg, pc->surface_rect.x, 0
-													, pc->surface_rect.width
-													, pc->surface_rect.y );
+						UpdateDisplayPortion( pf->pActImg, pc->surface_rect.x - 1, y
+													, pc->surface_rect.width + 2
+													, pc->surface_rect.y - y );
 					}
 				}
 				if( !button && !( pc->BorderType & BORDER_NOMOVE ) && pc->device )
@@ -1468,6 +1494,8 @@ int CPROC FirstFrameMouse( PPHYSICAL_DEVICE pf, S_32 x, S_32 y, _32 b, int bCall
 			INDEX idx;
 			LIST_FORALL( pc->caption_buttons, idx, PCAPTION_BUTTON, button )
 			{
+				if( button->flags.hidden )
+					continue;
 				if( x > button->offset )
 				{
 					on_button = TRUE;
@@ -1478,12 +1506,13 @@ int CPROC FirstFrameMouse( PPHYSICAL_DEVICE pf, S_32 x, S_32 y, _32 b, int bCall
 			{
 				if( !button->is_pressed )
 				{
+					int y = FrameCaptionYOfs( pc, pc->BorderType );
 					pc->pressed_caption_button = button;
 					button->is_pressed = TRUE;
 					DrawFrameCaption( pc );
-					UpdateDisplayPortion( pf->pActImg, pc->surface_rect.x, 0
-												, pc->surface_rect.width
-												, pc->surface_rect.y );
+					UpdateDisplayPortion( pf->pActImg, pc->surface_rect.x - 1, y
+												, pc->surface_rect.width + 2
+												, pc->surface_rect.y - y );
 				}
 			}
 		}

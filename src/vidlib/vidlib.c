@@ -295,10 +295,10 @@ void IssueUpdateLayeredEx( PVIDEO hVideo, LOGICAL bContent, S_32 x, S_32 y, _32 
 {
 								if( l.UpdateLayeredWindow )
 								{
-									SIZE size;// = new Win32.Size(bitmap.Width, bitmap.Height);
+									//SIZE size;// = new Win32.Size(bitmap.Width, bitmap.Height);
 
 									static POINT pointSource;// = new Win32.Point(0, 0);
-									POINT topPos;/// = new Win32.Point(Left, Top);
+									//POINT topPos;/// = new Win32.Point(Left, Top);
 									// DEFINED in WinGDI.h
 									BLENDFUNCTION blend;// = new Win32.BLENDFUNCTION();
 									blend.BlendOp				 = AC_SRC_OVER;
@@ -315,40 +315,41 @@ void IssueUpdateLayeredEx( PVIDEO hVideo, LOGICAL bContent, S_32 x, S_32 y, _32 
 										blend.SourceConstantAlpha = 255;//opacity;
 									blend.BlendFlags			 = 0;
 									blend.AlphaFormat			= AC_SRC_ALPHA;
-									size.cx = hVideo->pWindowPos.cx;
-									size.cy = hVideo->pWindowPos.cy;
-									topPos.x = hVideo->pWindowPos.x;
-									topPos.y = hVideo->pWindowPos.y;
+
+									hVideo->size.cx = hVideo->pWindowPos.cx;
+									hVideo->size.cy = hVideo->pWindowPos.cy;
+									hVideo->topPos.x = hVideo->pWindowPos.x;
+									hVideo->topPos.y = hVideo->pWindowPos.y;
 									// no way to specify just the x/y w/h of the portion we want
 									// to update...
 									if( l.flags.bLogWrites )
-										lprintf( WIDE( "layered... begin update. %d %d %d %d" ), size.cx, size.cy, topPos.x, topPos.y );
+										lprintf( WIDE( "layered... begin update. %d %d %d %d" ), hVideo->size.cx, hVideo->size.cy, hVideo->topPos.x, hVideo->topPos.y );
 									if( bContent
 										&& l.UpdateLayeredWindowIndirect
 										&& ( x || y || w != hVideo->pWindowPos.cx || h != hVideo->pWindowPos.cy ) )
 									{
 										// this is Vista+ function.
 										RECT rc_dirty;
-										UPDATELAYEREDWINDOWINFO ULWInfo;
+										//UPDATELAYEREDWINDOWINFO ULWInfo;
 										rc_dirty.top = y;
 										rc_dirty.left = x;
 										rc_dirty.right = x + w;
 										rc_dirty.bottom = y + h;
-										ULWInfo.cbSize = sizeof(UPDATELAYEREDWINDOWINFO);
-										ULWInfo.hdcDst = bContent?hVideo->hDCOutput:NULL;
-										ULWInfo.pptDst = bContent?&topPos:NULL;
-										ULWInfo.psize = bContent?&size:NULL;
-										ULWInfo.hdcSrc = bContent?hVideo->hDCBitmap:NULL;
-										ULWInfo.pptSrc = bContent?&pointSource:NULL;
-										ULWInfo.crKey = 0;
-										ULWInfo.pblend = &blend;
-										ULWInfo.dwFlags = ULW_ALPHA;
-										ULWInfo.prcDirty = bContent?&rc_dirty:NULL;
+										hVideo->ULWInfo.cbSize = sizeof(UPDATELAYEREDWINDOWINFO);
+										hVideo->ULWInfo.hdcDst = bContent?hVideo->hDCOutput:NULL;
+										hVideo->ULWInfo.pptDst = bContent?&hVideo->topPos:NULL;
+										hVideo->ULWInfo.psize = bContent?&hVideo->size:NULL;
+										hVideo->ULWInfo.hdcSrc = bContent?hVideo->hDCBitmap:NULL;
+										hVideo->ULWInfo.pptSrc = bContent?&pointSource:NULL;
+										hVideo->ULWInfo.crKey = 0;
+										hVideo->ULWInfo.pblend = &blend;
+										hVideo->ULWInfo.dwFlags = ULW_ALPHA;
+										hVideo->ULWInfo.prcDirty = bContent?&rc_dirty:NULL;
 //#ifdef LOG_RECT_UPDATE
 										if( l.flags.bLogWrites )
 											_lprintf(DBG_RELAY)( WIDE( "using indirect (with dirty rect %d %d %d %d)" ), x, y, w, h );
 //#endif
-										if( !l.UpdateLayeredWindowIndirect( hVideo->hWndOutput, &ULWInfo ) )
+										if( !l.UpdateLayeredWindowIndirect( hVideo->hWndOutput, &hVideo->ULWInfo ) )
 											lprintf( WIDE( "Error using UpdateLayeredWindowIndirect: %d" ), GetLastError() );
 									}
 									else
@@ -357,8 +358,8 @@ void IssueUpdateLayeredEx( PVIDEO hVideo, LOGICAL bContent, S_32 x, S_32 y, _32 
 										l.UpdateLayeredWindow(
 																	 hVideo->hWndOutput
 																	, bContent?(HDC)hVideo->hDCOutput:NULL
-																	, bContent?&topPos:NULL
-																	, bContent?&size:NULL
+																	, bContent?&hVideo->topPos:NULL
+																	, bContent?&hVideo->size:NULL
 																	, bContent?(hVideo->flags.bLayeredWindow&&hVideo->flags.bFullScreen && !hVideo->flags.bNotFullScreen)?(HDC)hVideo->hDCBitmapFullScreen:hVideo->hDCBitmap:NULL
 																	, bContent?&pointSource:NULL
 																	, 0 // color key
@@ -981,54 +982,6 @@ RENDER_PROC (void, PutDisplayIn) (PVIDEO hVideo, PVIDEO hIn)
 
 //----------------------------------------------------------------------------
 
-// will remake the image (uses same image structure, swaps bitmap data)
-Image CreateImageDIB( _32 w, _32 h, Image original, HBITMAP *phBM, HDC *pHDC)
-{
-	BITMAPINFO bmInfo;
-	HBITMAP tmp;
-	Image result;
-	HDC tmpdc;
-	if( !phBM )
-		phBM = &tmp;
-	if( !pHDC )
-		pHDC = &tmpdc;
-
-	bmInfo.bmiHeader.biSize = sizeof (BITMAPINFOHEADER);
-	bmInfo.bmiHeader.biWidth = w; // size of window...
-	bmInfo.bmiHeader.biHeight = h;
-	bmInfo.bmiHeader.biPlanes = 1;
-	bmInfo.bmiHeader.biBitCount = 32;	// 24, 16, ...
-	bmInfo.bmiHeader.biCompression = BI_RGB;
-	bmInfo.bmiHeader.biSizeImage = 0;	// zero for BI_RGB
-	bmInfo.bmiHeader.biXPelsPerMeter = 0;
-	bmInfo.bmiHeader.biYPelsPerMeter = 0;
-	bmInfo.bmiHeader.biClrUsed = 0;
-	bmInfo.bmiHeader.biClrImportant = 0;
-	{
-		PCOLOR pBuffer;
-		(*phBM) = CreateDIBSection (NULL, &bmInfo, DIB_RGB_COLORS, (void **) &pBuffer, NULL,	// hVideo (hMemView)
-											 0); // offset DWORD multiple
-		//lprintf( WIDE("New drawing surface, remaking the image, dispatch draw event...") );
-		if (!(*phBM))
-		{
-			//DWORD dwError = GetLastError();
-			// this is normal if window minimizes...
-			if (bmInfo.bmiHeader.biWidth || bmInfo.bmiHeader.biHeight)  // both are zero on minimization
-			{
-				lprintf( WIDE( "Failed to create image %d,%d" ), w, h );
-				MessageBox (NULL, WIDE("Failed to create Window DIB"),
-								WIDE("ERROR"), MB_OK);
-			}
-			return NULL;
-		}
-		//lprintf( "Remake Image to %p %dx%d", pBuffer, bmInfo.bmiHeader.biWidth,
-		//					 bmInfo.bmiHeader.biHeight );
-		result =
-			RemakeImage ( original, pBuffer, bmInfo.bmiHeader.biWidth,
-							 bmInfo.bmiHeader.biHeight);
-	}
-	return result;
-}
 
 BOOL CreateDrawingSurface (PVIDEO hVideo)
 {
@@ -3409,7 +3362,7 @@ RENDER_PROC (BOOL, CreateWindowStuffSizedAt) (PVIDEO hVideo, int x, int y,
 									  , (LPSTR)l.aClass
 #endif
 									  , (l.gpTitle&&l.gpTitle[0])?l.gpTitle:hVideo->pTitle
-									  , (hVideo->hWndContainer)?WS_CHILD:(hVideo->flags.bFull ? (WS_SYSMENU|WS_POPUP) : (WINDOW_STYLE))
+									  , (hVideo->hWndContainer)?WS_CHILD:(hVideo->flags.bFull ? (WS_SYSMENU|WS_POPUP|WS_MAXIMIZEBOX|WS_MINIMIZEBOX) : (WINDOW_STYLE))
 									  , x, y
 									  , hVideo->flags.bFull ?wx:(wx + l.WindowBorder_X)
 									  , hVideo->flags.bFull ?wy:(wy + l.WindowBorder_Y)

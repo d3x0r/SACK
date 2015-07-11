@@ -60,6 +60,9 @@ static const char *gles_simple_p_multi_shader =
 struct private_mst_shader_texture_data
 {
 	int texture;
+	float *next_r;
+	float *next_g;
+	float *next_b;
 	struct shader_buffer *vert_pos;
 	struct shader_buffer *vert_color_r;
 	struct shader_buffer *vert_color_g;
@@ -70,10 +73,10 @@ struct private_mst_shader_texture_data
 struct private_mst_shader_data
 {
 	int texture_attrib;
-	int texture;
-	int r_color_attrib;
-	int g_color_attrib;
-	int b_color_attrib;
+	int texture_uniform;
+	int r_color_uniform;
+	int g_color_uniform;
+	int b_color_uniform;
 	PLIST vert_data;
 };
 
@@ -92,7 +95,7 @@ static void CPROC SimpleMultiShadedTextureOutput( PImageShaderTracker tracker, P
 	glVertexAttribPointer( data->texture_attrib, 2, GL_FLOAT, FALSE, 0, texture->vert_pos->data );  
 	CheckErr();
 
-	glUniform1i(data->texture, 0); //Texture unit 0 is for base images.
+	glUniform1i(data->texture_uniform, 0); //Texture unit 0 is for base images.
  
 	//When rendering an objectwith this program.
 	glActiveTexture(GL_TEXTURE0 + 0);
@@ -102,11 +105,11 @@ static void CPROC SimpleMultiShadedTextureOutput( PImageShaderTracker tracker, P
 	//glBindSampler(0, linearFiltering);
 	CheckErr();
 
-	glUniform4fv( data->r_color_attrib, 1, texture->vert_color_r->data );
+	glUniform4fv( data->r_color_uniform, 1, texture->vert_color_r->data );
 	CheckErr();
-	glUniform4fv( data->g_color_attrib, 1, texture->vert_color_g->data );
+	glUniform4fv( data->g_color_uniform, 1, texture->vert_color_g->data );
 	CheckErr();
-	glUniform4fv( data->b_color_attrib, 1, texture->vert_color_b->data );
+	glUniform4fv( data->b_color_uniform, 1, texture->vert_color_b->data );
 	CheckErr();
 
 		glDrawArrays( GL_TRIANGLES, from, to - from );
@@ -121,14 +124,107 @@ static void CPROC SimpleMultiShadedTextureReset( PImageShaderTracker tracker, PT
 
 	texture->vert_pos->used = 0;
 	texture->vert_texture_uv->used = 0;
-	texture->vert_color_r->used = 0;
-	texture->vert_color_g->used = 0;
-	texture->vert_color_b->used = 0;
+}
+
+static struct private_mst_shader_texture_data *GetImageMstBuffer( struct private_mst_shader_data *data, int image )
+{
+	INDEX idx;
+	struct private_mst_shader_texture_data *texture;
+	LIST_FORALL( data->vert_data, idx, struct private_mst_shader_texture_data *, texture )
+	{
+		if( texture->texture == image )
+			break;
+	}
+	if( !texture )
+	{
+		texture = New( struct private_mst_shader_texture_data );
+		texture->texture = image;
+		texture->vert_pos = CreateShaderBuffer( 3, 8, 16 );
+		texture->vert_color_r = CreateShaderBuffer( 4, 8, 16 );
+		texture->vert_color_g = CreateShaderBuffer( 4, 8, 16 );
+		texture->vert_color_b = CreateShaderBuffer( 4, 8, 16 );
+		texture->vert_texture_uv = CreateShaderBuffer( 2, 8, 16 );
+		AddLink( &data->vert_data, texture );
+	}
+	return texture;
+}
+
+
+static PTRSZVAL CPROC SimpleMultiShadedTextureShader_OpInit( PImageShaderTracker tracker, PTRSZVAL psv, int *existing_verts, va_list args )
+{
+	struct private_mst_shader_data *data = (struct private_mst_shader_data *)psv;
+	int texture = va_arg( args, int );
+	float *r = va_arg( args, float * );
+	float *g = va_arg( args, float * );
+	float *b = va_arg( args, float * );
+	struct private_mst_shader_texture_data *text_buffer = GetImageMstBuffer( data, texture );
+	text_buffer->next_r = r;
+	text_buffer->next_g = g;
+	text_buffer->next_b = b;
+
+	*existing_verts = text_buffer->vert_pos->used;
+	return (PTRSZVAL)text_buffer;
+}
+
+
+static void CPROC SimpleMultiShadedTexture_AppendTristrip( struct image_shader_op *op, int triangles, PTRSZVAL psv, va_list args )
+{
+	//struct private_mst_shader_data *data = (struct private_mst_shader_data *)psv;
+	float *verts = va_arg( args, float *);
+	float *texture_verts = va_arg( args, float *);
+	int tri;
+	struct private_mst_shader_texture_data *text_buffer = (struct private_mst_shader_texture_data *)psv;//GetImageBuffer( data, texture );
+	for( tri = 0; tri < triangles; tri++ )
+	{
+		if( !( tri & 1 ) )
+		{
+			// 0,1,2 
+			// 2,3,4
+			// 4,5,6
+			// 0, 2, 4, 6
+			AppendShaderData( op, text_buffer->vert_pos, verts + ( tri +  0 ) * 3 );
+			AppendShaderData( op, text_buffer->vert_color_r, text_buffer->next_r);
+			AppendShaderData( op, text_buffer->vert_color_g, text_buffer->next_g);
+			AppendShaderData( op, text_buffer->vert_color_b, text_buffer->next_b);
+			AppendShaderData( op, text_buffer->vert_texture_uv, texture_verts + 2 * (tri + 0 ));
+			AppendShaderData( op, text_buffer->vert_pos, verts + ( tri + 1 ) * 3 );
+			AppendShaderData( op, text_buffer->vert_color_r, text_buffer->next_r);
+			AppendShaderData( op, text_buffer->vert_color_g, text_buffer->next_g);
+			AppendShaderData( op, text_buffer->vert_color_b, text_buffer->next_b);
+			AppendShaderData( op, text_buffer->vert_texture_uv, texture_verts + 2 * (tri + 1 ));
+			AppendShaderData( op, text_buffer->vert_pos, verts + ( tri + 2 ) * 3 );
+			AppendShaderData( op, text_buffer->vert_color_r, text_buffer->next_r);
+			AppendShaderData( op, text_buffer->vert_color_g, text_buffer->next_g);
+			AppendShaderData( op, text_buffer->vert_color_b, text_buffer->next_b);
+			AppendShaderData( op, text_buffer->vert_texture_uv, texture_verts + 2 * (tri + 2 ));
+		}
+		else
+		{
+			// 2,1,3
+			// 4,3,5
+			AppendShaderData( op, text_buffer->vert_pos, verts + ( (tri-1) + 2 ) * 3 );
+			AppendShaderData( op, text_buffer->vert_color_r, text_buffer->next_r);
+			AppendShaderData( op, text_buffer->vert_color_g, text_buffer->next_g);
+			AppendShaderData( op, text_buffer->vert_color_b, text_buffer->next_b);
+			AppendShaderData( op, text_buffer->vert_texture_uv, texture_verts + 2 * ((tri-1) + 2 ));
+			AppendShaderData( op, text_buffer->vert_pos, verts + ( (tri-1) + 1 ) * 3 );
+			AppendShaderData( op, text_buffer->vert_color_r, text_buffer->next_r);
+			AppendShaderData( op, text_buffer->vert_color_g, text_buffer->next_g);
+			AppendShaderData( op, text_buffer->vert_color_b, text_buffer->next_b);
+			AppendShaderData( op, text_buffer->vert_texture_uv, texture_verts + 2 * ((tri-1) + 1 ));
+			AppendShaderData( op, text_buffer->vert_pos, verts + ( (tri-1) + 3 ) * 3 );
+			AppendShaderData( op, text_buffer->vert_color_r, text_buffer->next_r);
+			AppendShaderData( op, text_buffer->vert_color_g, text_buffer->next_g);
+			AppendShaderData( op, text_buffer->vert_color_b, text_buffer->next_b);
+			AppendShaderData( op, text_buffer->vert_texture_uv, texture_verts + 2 * ((tri-1) + 3 ));
+		}
+	}
 }
 
 PTRSZVAL SetupSimpleMultiShadedTextureShader( PTRSZVAL psv )
 {
 	struct private_mst_shader_data *data = New(struct private_mst_shader_data );
+	data->vert_data = NULL;
 	return (PTRSZVAL)data;
 }
 
@@ -142,6 +238,10 @@ void InitSimpleMultiShadedTextureShader( PTRSZVAL psvInst, PImageShaderTracker t
 	struct image_shader_attribute_order attribs[] = { { 0, "vPosition" }, { 1, "in_TexCoord" } };
 
 	//SetShaderEnable( tracker, SimpleMultiShadedTextureEnable, (PTRSZVAL)data );
+	SetShaderAppendTristrip( tracker, SimpleMultiShadedTexture_AppendTristrip );
+	SetShaderOutput( tracker, SimpleMultiShadedTextureOutput );
+	SetShaderReset( tracker, SimpleMultiShadedTextureReset );
+	SetShaderOpInit( tracker, SimpleMultiShadedTextureShader_OpInit );
 
 	if( result = glGetError() )
 	{
@@ -158,13 +258,13 @@ void InitSimpleMultiShadedTextureShader( PTRSZVAL psvInst, PImageShaderTracker t
 		{
 			data = New( struct private_mst_shader_data );
 		}
-		data->r_color_attrib = glGetUniformLocation(tracker->glProgramId, "multishade_r" );
+		data->r_color_uniform = glGetUniformLocation(tracker->glProgramId, "multishade_r" );
 		CheckErr();
-		data->g_color_attrib = glGetUniformLocation(tracker->glProgramId, "multishade_g" );
+		data->g_color_uniform = glGetUniformLocation(tracker->glProgramId, "multishade_g" );
 		CheckErr();
-		data->b_color_attrib = glGetUniformLocation(tracker->glProgramId, "multishade_b" );
+		data->b_color_uniform = glGetUniformLocation(tracker->glProgramId, "multishade_b" );
 		CheckErr();
-		data->texture = glGetUniformLocation(tracker->glProgramId, "tex");
+		data->texture_uniform = glGetUniformLocation(tracker->glProgramId, "tex");
 		CheckErr();
 		data->texture_attrib =  glGetAttribLocation(tracker->glProgramId, "in_texCoord" );
 		CheckErr();

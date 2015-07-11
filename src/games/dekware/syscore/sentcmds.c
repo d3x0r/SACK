@@ -356,7 +356,6 @@ int CPROC CMD_TRACE( PSENTIENT ps, PTEXT parameters )
 		}
 		else
 			ps->CurrentMacro->state.flags.bTrace ^= 1;
-
 	}
 	else
 	{

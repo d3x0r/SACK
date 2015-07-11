@@ -79,9 +79,9 @@ void CPROC RefreshFrame( PTRSZVAL psv )
 		NATIVE output;
 		output = pndd->neuron->get();// &base, &range, &level );
 		snprintf( number, sizeof( number ), WIDE("%g"), output );
-		SetCommonText( GetControl( pndd->frame, TEXT_VALUE1 ), number );
+		SetControlText( GetControl( pndd->frame, TEXT_VALUE1 ), number );
 		snprintf( number, sizeof( number ), WIDE("%g"), pndd->neuron->threshold() );
-		SetCommonText( GetControl( pndd->frame, TEXT_VALUE2 ), number );
+		SetControlText( GetControl( pndd->frame, TEXT_VALUE2 ), number );
 	}
 	LIST_FORALL( l.synapses, idx, PDIALOG_DATA, pndd )
 	{
@@ -89,7 +89,7 @@ void CPROC RefreshFrame( PTRSZVAL psv )
 		NATIVE gain;
 		pndd->synapse->get( &gain, NULL, NULL );// &base, &range, &level );
 		snprintf( number, sizeof( number ), WIDE("%g"), gain );
-		SetCommonText( GetControl( pndd->frame, TEXT_VALUE1 ), number );
+		SetControlText( GetControl( pndd->frame, TEXT_VALUE1 ), number );
 	}
 	LeaveCriticalSec( &l.cs );
 }

@@ -1952,7 +1952,7 @@ static PTRSZVAL CPROC SetOptionDefault( PTRSZVAL psv, arg_list args )
 	if( key[0] != '/' && key[0] != '\\' )
 	{
 		if( l.flags.bTraceInterfaceLoading )
-			lprintf( WIDE( "Set Option %s / [%s] = [%s}" ), GetProgramName(), key, value );
+			lprintf( WIDE( "Default Option %s / [%s] = [%s}" ), GetProgramName(), key, value );
 		key = SubstituteNameVars( key );
 		SACK_GetProfileStringEx( GetProgramName(), key, value, buf, sizeof( buf ), TRUE );
 		Release( key );
@@ -1969,7 +1969,7 @@ static PTRSZVAL CPROC SetOptionDefault( PTRSZVAL psv, arg_list args )
 		optname = SubstituteNameVars( optname );
 		optpath = SubstituteNameVars( optpath );
 		if( l.flags.bTraceInterfaceLoading )
-			lprintf( WIDE( "Set Option [%s]/[%s]/[%s] = [%s}" ), key, optpath, optname, value );
+			lprintf( WIDE( "Default Option [%s]/[%s]/[%s] = [%s}" ), key, optpath, optname, value );
 
 		SACK_GetPrivateProfileStringEx( optpath, optname, value, buf, sizeof( buf ), key, TRUE );
 		Release( optname );
@@ -1978,6 +1978,44 @@ static PTRSZVAL CPROC SetOptionDefault( PTRSZVAL psv, arg_list args )
 #endif
 	return psv;
 }
+static PTRSZVAL CPROC SetOptionSet( PTRSZVAL psv, arg_list args )
+{
+#ifndef __NO_OPTIONS__
+	PARAM( args, TEXTSTR, key );
+	PARAM( args, CTEXTSTR, value );
+	TEXTCHAR buf[256];
+	if( l.flags.bFindEndif || l.flags.bFindElse )
+		return psv;
+	if( key[0] != '/' && key[0] != '\\' )
+	{
+		if( l.flags.bTraceInterfaceLoading )
+			lprintf( WIDE( "Set Option %s / [%s] = [%s}" ), GetProgramName(), key, value );
+		key = SubstituteNameVars( key );
+		SACK_WriteProfileStringEx( GetProgramName(), key, value, key, TRUE );
+		Release( key );
+	}
+	else
+	{
+		TEXTSTR optpath = (TEXTSTR)pathchr( key + 1 );
+		TEXTSTR optname = (TEXTSTR)pathrchr( key );
+		optname[0] = 0;
+		optname++;
+		optpath[0] = 0;
+		optpath++;
+
+		optname = SubstituteNameVars( optname );
+		optpath = SubstituteNameVars( optpath );
+		if( l.flags.bTraceInterfaceLoading )
+			lprintf( WIDE( "Set Option [%s]/[%s]/[%s] = [%s}" ), key, optpath, optname, value );
+
+		SACK_WritePrivateProfileStringEx( optpath, optname, value, key, TRUE );
+		Release( optname );
+		Release( optpath );
+	}
+#endif
+	return psv;
+}
+
 static PTRSZVAL CPROC TestOption( PTRSZVAL psv, arg_list args )
 {
 #ifndef __NO_OPTIONS__
@@ -2083,6 +2121,7 @@ void ReadConfiguration( void )
 		AddConfigurationMethod( pch, WIDE( "Application=%m" ), SetApplicationName );
 		AddConfigurationMethod( pch, WIDE( "enable trace=%b" ), SetTrace );
 		AddConfigurationMethod( pch, WIDE( "option default %m=%m" ), SetOptionDefault );
+		AddConfigurationMethod( pch, WIDE( "option set %m=%m" ), SetOptionSet );
 		AddConfigurationMethod( pch, WIDE( "start directory \"%m\"" ), SetDefaultDirectory );
 		AddConfigurationMethod( pch, WIDE( "include \"%m\"" ), IncludeAdditional );
 		AddConfigurationMethod( pch, WIDE( "if %m==%m" ), TestOption );

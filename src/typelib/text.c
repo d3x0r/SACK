@@ -2029,7 +2029,7 @@ void VarTextInitEx( PVARTEXT pvt DBG_PASS )
 	pvt->collect_text = GetText( pvt->collect );
 	pvt->collect_used = 0;
 	pvt->collect_avail = initial;
-   pvt->expand_by = expand;
+	pvt->expand_by = expand;
 	return pvt;
 
 }
@@ -2091,7 +2091,7 @@ void VarTextAddCharacterEx( PVARTEXT pvt, TEXTCHAR c DBG_PASS )
 		if( pvt->collect_used >= pvt->collect_avail )
 		{
 			//lprintf( WIDE("Expanding segment to make sure we have room to extend...(old %d)"), pvt->collect->data.size );
-			pvt->collect = SegExpandEx( pvt->collect, COLLECT_LEN DBG_RELAY );
+			pvt->collect = SegExpandEx( pvt->collect, pvt->collect_avail * 2 DBG_RELAY );
 			pvt->collect_avail = pvt->collect->data.size;
 			pvt->collect_text = GetText( pvt->collect );
 		}
@@ -2111,25 +2111,13 @@ void VarTextAddDataEx( PVARTEXT pvt, CTEXTSTR block, size_t length DBG_PASS )
 		_32 n;
 		for( n = 0; n < length; n++ )
 		{
-			int c = block[n];
-			if( c == '\b' )
+			pvt->collect_text[pvt->collect_used++] = block[n];
+			if( pvt->collect_used >= pvt->collect_avail )
 			{
-				if( pvt->collect_used )
-				{
-					pvt->collect_used--;
-					pvt->collect_text[pvt->collect_used] = 0;
-				}
-			}
-			else
-			{
-				pvt->collect_text[pvt->collect_used++] = c;
-				if( pvt->collect_used >= pvt->collect_avail )
-				{
-					//lprintf( WIDE("Expanding segment to make sure we have room to extend...(old %d)"), pvt->collect->data.size );
-					pvt->collect = SegExpandEx( pvt->collect, COLLECT_LEN DBG_RELAY );
-					pvt->collect_avail = pvt->collect->data.size;
-					pvt->collect_text = GetText( pvt->collect );
-				}
+				//lprintf( WIDE("Expanding segment to make sure we have room to extend...(old %d)"), pvt->collect->data.size );
+				pvt->collect = SegExpandEx( pvt->collect, COLLECT_LEN DBG_RELAY );
+				pvt->collect_avail = pvt->collect->data.size;
+				pvt->collect_text = GetText( pvt->collect );
 			}
 		}
 	}

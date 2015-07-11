@@ -9,18 +9,6 @@
 
 RENDER_NAMESPACE
 #ifdef MINGW_SUX
-typedef struct tagUPDATELAYEREDWINDOWINFO {
-    DWORD               cbSize;
-    HDC                 hdcDst;
-    POINT CONST         *pptDst;
-    SIZE CONST          *psize;
-    HDC                 hdcSrc;
-    POINT CONST         *pptSrc;
-    COLORREF            crKey;
-    BLENDFUNCTION CONST *pblend;
-    DWORD               dwFlags;
-    RECT CONST          *prcDirty;
-} UPDATELAYEREDWINDOWINFO;
 
 typedef HANDLE HTOUCHINPUT;
 #define WM_TOUCH 0x0240

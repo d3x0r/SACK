@@ -31,12 +31,12 @@ void ZRender_Shader_Simple::DrawFilledRect( ZVector3f p[4], ZVector4f &c )
 	if( !box_buffer )
 		box_buffer = ImageCreateShaderBuffer( 3, 24, 8 );
 	box_buffer->used = 0;
-	ImageAppendShaderData( box_buffer, &p[0] );
-	ImageAppendShaderData( box_buffer, &p[1] );
-	ImageAppendShaderData( box_buffer, &p[2] );
-	ImageAppendShaderData( box_buffer, &p[2] );
-	ImageAppendShaderData( box_buffer, &p[3] );
-	ImageAppendShaderData( box_buffer, &p[0] );
+	ImageAppendShaderData( box_buffer, (float*)&p[0] );
+	ImageAppendShaderData( box_buffer, (float*)&p[1] );
+	ImageAppendShaderData( box_buffer, (float*)&p[2] );
+	ImageAppendShaderData( box_buffer, (float*)&p[2] );
+	ImageAppendShaderData( box_buffer, (float*)&p[3] );
+	ImageAppendShaderData( box_buffer, (float*)&p[0] );
 
 	CheckErr();
 	ImageEnableShader( shader );
@@ -55,8 +55,8 @@ void ZRender_Shader_Simple::DrawFilledRect( ZVector3f p[4], ZVector4f &c )
 void ZRender_Shader_Simple::DrawLine( ZVector3f *p1, ZVector3f *p2, ZVector4f *c )
 {
 	box_buffer->used = 0;
-	ImageAppendShaderData( box_buffer, p1 );
-	ImageAppendShaderData( box_buffer, p2 );
+	ImageAppendShaderData( box_buffer, (float*)p1 );
+	ImageAppendShaderData( box_buffer, (float*)p2 );
 	CheckErr();
 	ImageEnableShader( shader );
 	CheckErr();
@@ -77,32 +77,32 @@ void ZRender_Shader_Simple::DrawBox( ZVector3f *p1, ZVector3f *p2, ZVector3f *p3
 	if( !box_buffer )
 		box_buffer = ImageCreateShaderBuffer( 3, 24, 8 );
 	box_buffer->used = 0;
-	ImageAppendShaderData( box_buffer, p1 );
-	ImageAppendShaderData( box_buffer, p2 );
-	ImageAppendShaderData( box_buffer, p2 );
-	ImageAppendShaderData( box_buffer, p3 );
-	ImageAppendShaderData( box_buffer, p3 );
-	ImageAppendShaderData( box_buffer, p4 );
-	ImageAppendShaderData( box_buffer, p4 );
-	ImageAppendShaderData( box_buffer, p1 );
+	ImageAppendShaderData( box_buffer, (float*)p1 );
+	ImageAppendShaderData( box_buffer,  (float*)p2 );
+	ImageAppendShaderData( box_buffer,  (float*)p2 );
+	ImageAppendShaderData( box_buffer,  (float*)p3 );
+	ImageAppendShaderData( box_buffer,  (float*)p3 );
+	ImageAppendShaderData( box_buffer,  (float*)p4 );
+	ImageAppendShaderData( box_buffer,  (float*)p4 );
+	ImageAppendShaderData( box_buffer,  (float*)p1 );
 
-	ImageAppendShaderData( box_buffer, p5 );
-	ImageAppendShaderData( box_buffer, p6 );
-	ImageAppendShaderData( box_buffer, p6 );
-	ImageAppendShaderData( box_buffer, p7 );
-	ImageAppendShaderData( box_buffer, p7 );
-	ImageAppendShaderData( box_buffer, p8 );
-	ImageAppendShaderData( box_buffer, p8 );
-	ImageAppendShaderData( box_buffer, p5 );
+	ImageAppendShaderData( box_buffer,  (float*)p5 );
+	ImageAppendShaderData( box_buffer,  (float*)p6 );
+	ImageAppendShaderData( box_buffer,  (float*)p6 );
+	ImageAppendShaderData( box_buffer,  (float*)p7 );
+	ImageAppendShaderData( box_buffer,  (float*)p7 );
+	ImageAppendShaderData( box_buffer,  (float*)p8 );
+	ImageAppendShaderData( box_buffer,  (float*)p8 );
+	ImageAppendShaderData( box_buffer,  (float*)p5 );
 
-	ImageAppendShaderData( box_buffer, p1 );
-	ImageAppendShaderData( box_buffer, p5 );
-	ImageAppendShaderData( box_buffer, p2 );
-	ImageAppendShaderData( box_buffer, p6 );
-	ImageAppendShaderData( box_buffer, p3 );
-	ImageAppendShaderData( box_buffer, p7 );
-	ImageAppendShaderData( box_buffer, p4 );
-	ImageAppendShaderData( box_buffer, p8 );
+	ImageAppendShaderData( box_buffer,  (float*)p1 );
+	ImageAppendShaderData( box_buffer,  (float*)p5 );
+	ImageAppendShaderData( box_buffer,  (float*)p2 );
+	ImageAppendShaderData( box_buffer,  (float*)p6 );
+	ImageAppendShaderData( box_buffer,  (float*)p3 );
+	ImageAppendShaderData( box_buffer,  (float*)p7 );
+	ImageAppendShaderData( box_buffer,  (float*)p4 );
+	ImageAppendShaderData( box_buffer,  (float*)p8 );
 
 	CheckErr();
 	ImageEnableShader( shader );

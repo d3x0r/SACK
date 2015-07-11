@@ -1383,7 +1383,7 @@ int InitSpace( const TEXTCHAR *command_line )
 		LineRelease( temp );
 		AddMacroCommand( global.script, cmd);
 
-		vtprintf( pvt, WIDE("/echo failed to open script: %%...") );
+		vtprintf( pvt, WIDE("/echo failed to open script: %%scriptpath/%%...") );
 		cmd = burst( temp = VarTextGet( pvt ) );
 		LineRelease( temp );
 		AddMacroCommand( global.script, cmd);
@@ -2300,10 +2300,10 @@ void Startup( TEXTCHAR *lpCmdLine )
 			//SetThreadPriority( GetCurrentThread(), THREAD_PRIORITY_IDLE );
 			SetPriorityClass( GetCurrentProcess(), dwPriority );
 		}
-		if( b95 )
-			Log( WIDE("Running on a windows 9x type system...") );
-		else
-			Log( WIDE("Running on a windows NT type system...") );
+		//if( b95 )
+		//	Log( WIDE("Running on a windows 9x type system...") );
+		//else
+		//	Log( WIDE("Running on a windows NT type system...") );
 		{
 			TEXTCHAR pMyLoadPath[256];
 			TEXTCHAR *truncname;
@@ -2355,13 +2355,13 @@ void Startup( TEXTCHAR *lpCmdLine )
 			global.PLAYER = CreateAwareness( global.THE_VOID );
 			UnlockAwareness( global.PLAYER );
 
-			//DoCommandf( PLAYER, WIDE("/debug") );
+			//DoCommandf( global.PLAYER, WIDE("/debug") );
 			//DoCommandf( global.PLAYER, WIDE("/echo /script macros") );
 			DoCommandf( global.PLAYER, WIDE("/script macros") );
 		}
-		Log( WIDE("Start one sentience...") );
+		//Log( WIDE("Start one sentience...") );
 		WakeAThread( NULL );
-		Log( WIDE("Who Am I?") );
+		//Log( WIDE("Who Am I?") );
 		pMainThread = MakeThread();
 		Began = TRUE;
 	}

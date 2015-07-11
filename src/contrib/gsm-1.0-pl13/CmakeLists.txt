@@ -1,6 +1,10 @@
 
 INCLUDE_DIRECTORIES( inc )
 
+if( __LINUX__ )
+	ADD_DEFINITIONS( -fPIC )
+endif( __LINUX__ )
+
 set( SRC src )
 set( TLS tls )
 set( GSM_SOURCES 	${SRC}/add.c		

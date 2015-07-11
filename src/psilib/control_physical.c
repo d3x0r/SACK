@@ -14,18 +14,20 @@
 
 PSI_NAMESPACE
 
-static void CPROC FileDroppedOnFrame( PTRSZVAL psvControl, CTEXTSTR filename, S_32 x, S_32 y )
+static LOGICAL CPROC FileDroppedOnFrame( PTRSZVAL psvControl, CTEXTSTR filename, S_32 x, S_32 y )
 {
+	LOGICAL found = 0;
 	PSI_CONTROL frame = (PSI_CONTROL)psvControl;
 	if( frame )
 	{
 		x -= frame->surface_rect.x;
 		y -= frame->surface_rect.y;
 		{
-			int found = 0;
 			PSI_CONTROL current;
 			for( current = frame->child; current; current = current->next )
 			{
+				if( current->flags.bHidden )
+					continue;
 				if( ( x < current->original_rect.x ) || 
 					( y < current->original_rect.y ) || 
 					( SUS_GT( x, S_32, ( current->original_rect.x + current->original_rect.width ) , _32 ) ) || 
@@ -33,18 +35,18 @@ static void CPROC FileDroppedOnFrame( PTRSZVAL psvControl, CTEXTSTR filename, S_
 				{
 					continue;
 				}
-				found = 1;
-				FileDroppedOnFrame( (PTRSZVAL)current, filename
+				found = FileDroppedOnFrame( (PTRSZVAL)current, filename
 						, x - (current->original_rect.x )
 						, y - (current->original_rect.y ) );
 			}
 			if( !found )
 			{
-				InvokeMethod( frame, AcceptDroppedFiles, (frame, filename, x, y ) );
+				InvokeResultingMethod( found, frame, AcceptDroppedFiles, (frame, filename, x, y ) );
 			}
 			///////////////
 		}
 	}
+	return found;
 }
 
 //---------------------------------------------------------------------------
@@ -362,7 +364,7 @@ static void CPROC FrameFocusProc( PTRSZVAL psvFrame, PRENDERER loss )
 	}
 	if( !pc->flags.bHidden )
 	{
-		if( pc->DrawBorder )
+		if( !g.flags.always_draw && pc->DrawBorder )
 		{
 			pc->DrawBorder( pc );
 		}
@@ -583,7 +585,7 @@ PPHYSICAL_DEVICE OpenPhysicalDevice( PSI_CONTROL pc, PSI_CONTROL over, PRENDERER
 		pc->device = device;
 		device->nIDDefaultOK = BTN_OKAY;
 		device->nIDDefaultCancel = BTN_CANCEL;
-		TryLoadingFrameImage();
+		//TryLoadingFrameImage();
 		if( under )
 			under = GetFrame( under );
 		if( over )
@@ -684,9 +686,9 @@ PPHYSICAL_DEVICE OpenPhysicalDevice( PSI_CONTROL pc, PSI_CONTROL over, PRENDERER
 		// readjusts surface (again) after adoption.
 		//lprintf( WIDE("------------------- COMMON BORDER RE-SET on draw -----------------") );
 
-
-		if( g.BorderImage )
+		if( pc->border && pc->border->BorderImage )
 			SetCommonTransparent( pc, TRUE );
+
 		SetDrawBorder( pc );
 
 		if( device->pActImg )

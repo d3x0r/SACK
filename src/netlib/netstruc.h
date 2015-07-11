@@ -319,7 +319,7 @@ PCLIENT AddActive( PCLIENT pClient );
 #define CLIENT_DEFINED
 
 //----------------  ssl_layer.c --------------------
-PSSL_SESSION ssl_InitSession( void );
+PSSL_SESSION ssl_InitSession( LOGICAL client );
 
 void ssl_BeginClientSession( PCLIENT pc, PSSL_SESSION ses );
 

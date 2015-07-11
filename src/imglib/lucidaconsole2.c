@@ -3412,7 +3412,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[13]; 
                   XXX_____} };
 
 
-struct { unsigned short height, baseline;unsigned int chars; unsigned char flags, junk;
+struct { unsigned short height, baseline;unsigned int chars; unsigned char flags, bias;
          char *fontname;
          PCHARACTER character[256]; }
 #ifdef __cplusplus
@@ -3421,7 +3421,7 @@ struct { unsigned short height, baseline;unsigned int chars; unsigned char flags
        _LucidaConsole13by8
 #endif
 = { 
-13, 12, 256, 0, 0, "LucidaConsoleRegularfixed14By14", {  (PCHARACTER)&_char_0
+13, 12, 256, 0, 0xA0, "LucidaConsoleRegularfixed14By14", {  (PCHARACTER)&_char_0
  ,(PCHARACTER)&_char_1
  ,(PCHARACTER)&_char_2
  ,(PCHARACTER)&_char_3

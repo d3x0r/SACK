@@ -96,7 +96,7 @@ FFMPEG_INTERFACE_EXPORT void FFMPEG_INTERFACEAPI ffmpeg_AdjustVideo( struct ffmp
 FFMPEG_INTERFACE_EXPORT void FFMPEG_INTERFACEAPI audio_GetCaptureDevices( PLIST *ppList );
 FFMPEG_INTERFACE_EXPORT void FFMPEG_INTERFACEAPI audio_GetPlaybackDevices( PLIST *ppList );
 
-FFMPEG_INTERFACE_EXPORT struct audio_device * FFMPEG_INTERFACEAPI audio_OpenCaptureDevice( CTEXTSTR devname, void (CPROC*callback)( PTRSZVAL psvInst, POINTER data, size_t ), PTRSZVAL psvInst );
+FFMPEG_INTERFACE_EXPORT struct audio_device * FFMPEG_INTERFACEAPI audio_OpenCaptureDevice( CTEXTSTR devname, void (CPROC*callback)( PTRSZVAL psvInst, int max_level, POINTER data, size_t ), PTRSZVAL psvInst );
 FFMPEG_INTERFACE_EXPORT struct audio_device * FFMPEG_INTERFACEAPI audio_OpenPlaybackDevice( CTEXTSTR devname );
 FFMPEG_INTERFACE_EXPORT void FFMPEG_INTERFACEAPI audio_PlaybackBuffer( struct audio_device *ad, POINTER data, size_t samples );
 

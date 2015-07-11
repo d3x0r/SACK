@@ -9,6 +9,9 @@
 #undef IMAGE_SOURCE
 #include <image.h>
 #include "../fntglobal.h"
+#define REQUIRE_GLUINT
+#include "../image_common.h"
+
 #include "local.h"
 
 IMAGE_NAMESPACE
@@ -150,7 +153,16 @@ IMAGE_INTERFACE RealImageInterface = {
                                      , DumpFontFile
 									 , Render3dText
 									 , TransferSubImages
-									 , 
+									 , NULL //IMAGE_PROC_PTR( Image, GetNativeImage )( Image pImageTo );
+									 , NULL //GetTintedImage
+									, NULL //GetShadedImage 
+									, IsImageTargetFinal
+									, NULL
+									, PutStringFontExx
+												 , NULL  // reset image buffers... proxy layer
+												 , PngImageFile
+                                     , JpgImageFile
+									 , SetFontBias
 };
 
 #undef GetImageInterface

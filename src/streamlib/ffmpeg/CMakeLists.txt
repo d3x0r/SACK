@@ -1,15 +1,31 @@
 
 
+ cmake_policy(SET CMP0054 NEW)
 
 #set( project ffmpeg_interface )
 
 ADD_DEFINITIONS( -DFFMPEG_INTERFACE_SOURCE )
 set( FFMPEG_SOURCES_ROOT ${SOURCES_ROOT}src/streamlib/ffmpeg/ )
 set( FFMPEG_SOURCES ${FFMPEG_SOURCES_ROOT}ffmpeg_interface.c )
+set( FFMPEG_CPP_SOURCES ${CMAKE_BINARY_DIR}/src/streamlib/ffmpeg/ffmpeg_interface.cpp )
 INCLUDE_DIRECTORIES( ${FFMPEG_SOURCES_ROOT}prebuilt/ffmpeg/2.1.3/include  )
 INCLUDE_DIRECTORIES( ${FFMPEG_SOURCES_ROOT}openal-soft-1.15.1/include  )
-INCLUDE_DIRECTORIES( ${FFMPEG_SOURCES_ROOT}../../contrib/gsm-1.0-pl13/inc )
-
+#INCLUDE_DIRECTORIES( ${FFMPEG_SOURCES_ROOT}../../contrib/gsm-1.0-pl13/inc )
+message( ${CMAKE_C_COMPILER_ID} )
+if( CMAKE_C_COMPILER_ID STREQUAL "GNU" )
+  set_source_files_properties( ${FFMPEG_CPP_SOURCES} PROPERTIES COMPILE_FLAGS "-I${FFMPEG_SOURCES_ROOT}../../contrib/gsm-1.0-pl13/inc" )
+  set_source_files_properties( ${FFMPEG_SOURCES} PROPERTIES COMPILE_FLAGS "-I${FFMPEG_SOURCES_ROOT}../../contrib/gsm-1.0-pl13/inc" )
+endif()
+if( CMAKE_C_COMPILER_ID STREQUAL "MSVC" )
+  set_source_files_properties( ${FFMPEG_CPP_SOURCES} PROPERTIES COMPILE_FLAGS "/I${FFMPEG_SOURCES_ROOT}../../contrib/gsm-1.0-pl13/inc" )
+  set_source_files_properties( ${FFMPEG_SOURCES} PROPERTIES COMPILE_FLAGS "/I${FFMPEG_SOURCES_ROOT}../../contrib/gsm-1.0-pl13/inc" )
+endif()
+if( CMAKE_C_COMPILER_ID STREQUAL "OpenWatcom" )
+  STRING( REPLACE "/" "\\" STRING1 "${FFMPEG_SOURCES_ROOT}../../contrib/gsm-1.0-pl13/inc" )
+  message( "blah = ${STRING1}" )
+  set_source_files_properties( ${FFMPEG_CPP_SOURCES} PROPERTIES COMPILE_FLAGS "/I${STRING1}" )
+  set_source_files_properties( ${FFMPEG_SOURCES} PROPERTIES COMPILE_FLAGS "/I${STRING1}" )
+endif()
 
 
 if( WIN32 )
@@ -24,12 +40,12 @@ if( WIN32 )
     set( ffmpeg_libraries avcodec-56.dll avdevice-56.dll avfilter-5.dll avformat-56.dll avutil-54.dll postproc-53.dll swresample-1.dll swscale-3.dll )
     #set( openal_libraries OpenAL32.dll )
   endif( __64__ )
-# portable projects won't need this anyway.
-if( MAKING_SACK_CORE )
-#  set( UTILS OFF)
-#  set( EXAMPLES OFF)
-#  add_subdirectory( ${FFMPEG_SOURCES_ROOT}openal-soft-1.15.1 openal )
-endif( MAKING_SACK_CORE )
+  # portable projects won't need this anyway.
+  if( MAKING_SACK_CORE )
+    set( UTILS OFF)
+    set( EXAMPLES OFF)
+    add_subdirectory( ${FFMPEG_SOURCES_ROOT}openal-soft-1.15.1 openal )
+  endif( MAKING_SACK_CORE )
 
 endif( WIN32 )
 
@@ -39,10 +55,10 @@ if( __ANDROID__ )
 #  set( openal_libraries libopenal.so )
 #  set( openal_libraries libOpenSLES.so )
 
-# portable projects won't need this anyway.
-if( MAKING_SACK_CORE )
-#  add_subdirectory( ${FFMPEG_SOURCES_ROOT}openal-soft-1.15.1 openal )
-endif( MAKING_SACK_CORE )
+  # portable projects won't need this anyway.
+  if( MAKING_SACK_CORE )
+  #  add_subdirectory( ${FFMPEG_SOURCES_ROOT}openal-soft-1.15.1 openal )
+  endif( MAKING_SACK_CORE )
 
 endif( __ANDROID__ )
 
