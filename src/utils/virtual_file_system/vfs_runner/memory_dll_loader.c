@@ -398,8 +398,11 @@ POINTER LoadLibraryFromMemory( CTEXTSTR name, POINTER block, size_t block_len, i
                   tls_list = fn1();
 #elif defined( _MSC_VER )
 						{
+#  ifdef __64__
+#  else
 							_asm mov ecx, fs:[2ch];
 							_asm mov tls_list, ecx;
+#  endif
 						}
 #else
 //#error need assembly to get this...
@@ -428,8 +431,11 @@ POINTER LoadLibraryFromMemory( CTEXTSTR name, POINTER block, size_t block_len, i
                   tls_list = fn1();
 #elif defined( _MSC_VER )
 						{
+#  ifdef __64__
+#  else
 							_asm mov ecx, fs:[2ch];
 							_asm mov tls_list, ecx;
+#  endif
 						}
 #else
 //#error need assembly to get this...

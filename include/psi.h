@@ -615,6 +615,11 @@ typedef struct ControlRegistration_tag *PCONTROL_REGISTRATION;
 #define OnControlDropAccept(name)  \
 	__DefineRegistryMethod(PSI_ROOT_REGISTRY,_OnControlDropAccept,WIDE("control"),name WIDE("/rtti"),WIDE("drop_accept"),LOGICAL,(PSI_CONTROL,CTEXTSTR,S_32,S_32), __LINE__)
 
+// static void OnControlRollover(WIDE(""))(PSI_CONTROL pc_canvas,LOGICAL enter)
+// enter is a boolean if true mouse entered control else mouse left control
+#define OnControlRollover(name)  \
+	__DefineRegistryMethod(PSI_ROOT_REGISTRY,_OnControlRollover,WIDE("control"),name WIDE("/rtti"),WIDE("rollover"),void,(PSI_CONTROL,LOGICAL), __LINE__)
+
 // just a passing thought.
 //#define OnEditFrameBegin( name )
 //	DefineRegistryMethod(PSI_ROOT_REGISTRY,EditFrameBegin,"common",name,"frame_edit_begin",void,(PSI_CONTROL))

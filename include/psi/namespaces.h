@@ -47,6 +47,11 @@
 #   define USE_FONTS_NAMESPACE using namespace font; 
 #   define USE_PSI_FONTS_NAMESPACE using namespace sack::PSI::font; 
 
+#   define _COMBOBOX_NAMESPACE namespace listbox {
+#   define _COMBOBOX_NAMESPACE_END } 
+#   define USE_COMBOBOX_NAMESPACE using namespace listbox; 
+#   define USE_PSI_COMBOBOX_NAMESPACE using namespace sack::PSI::listbox; 
+
 #   define _LISTBOX_NAMESPACE namespace listbox {
 #   define _LISTBOX_NAMESPACE_END } 
 #   define USE_LISTBOX_NAMESPACE using namespace listbox; 
@@ -126,6 +131,11 @@
 #   define _FONTS_NAMESPACE_END 
 #   define USE_FONTS_NAMESPACE
 #   define USE_PSI_FONTS_NAMESPACE
+
+#   define _COMBOBOX_NAMESPACE 
+#   define _COMBOBOX_NAMESPACE_END 
+#   define USE_COMBOBOX_NAMESPACE
+#   define USE_PSI_COMBOBOX_NAMESPACE
 
 #   define _LISTBOX_NAMESPACE 
 #   define _LISTBOX_NAMESPACE_END 

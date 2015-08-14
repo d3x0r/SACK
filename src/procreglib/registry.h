@@ -166,9 +166,9 @@ DeclareSet( NAME );
 
 typedef struct namespace_tag
 {
-   _32 nextname;
+	_32 nextname;
 	TEXTCHAR buffer[NAMESPACE_SIZE];
-   DeclareLink( struct namespace_tag );
+	DeclareLink( struct namespace_tag );
 } NAMESPACE, *PNAMESPACE;
 
 PROCREG_NAMESPACE_END

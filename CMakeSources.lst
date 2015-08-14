@@ -40,6 +40,7 @@ set(UNSORTED_SOURCES
   ${SOURCES_ROOT}src/fractionlib/fractions.c
   ${SOURCES_ROOT}src/configlib/configscript.c
   ${SOURCES_ROOT}src/procreglib/names.c
+  ${SOURCES_ROOT}src/translationlib/translate.c
   ${SOURCES_ROOT}src/deadstart/deadstart_core.c
 )
 
@@ -299,7 +300,10 @@ set( PSI_SOURCES
   ${SOURCES_ROOT}src/psilib/caption_buttons.c
   ${SOURCES_ROOT}src/psilib/control_physical.c
   ${SOURCES_ROOT}src/psilib/ctlbutton.c
+
+  ${SOURCES_ROOT}src/psilib/ctlcombo.c
   ${SOURCES_ROOT}src/psilib/ctledit.c
+  ${SOURCES_ROOT}src/psilib/ctlimage.c
   ${SOURCES_ROOT}src/psilib/ctllistbox.c
   ${SOURCES_ROOT}src/psilib/ctlmisc.c
   ${SOURCES_ROOT}src/psilib/ctlprop.c
@@ -307,6 +311,7 @@ set( PSI_SOURCES
   ${SOURCES_ROOT}src/psilib/ctlsheet.c
   ${SOURCES_ROOT}src/psilib/ctlslider.c
   ${SOURCES_ROOT}src/psilib/ctltext.c
+  ${SOURCES_ROOT}src/psilib/ctltooltip.c
   ${SOURCES_ROOT}src/psilib/fileopen.c
   ${SOURCES_ROOT}src/psilib/fntdlg.c
 #  ${SOURCES_ROOT}src/psilib/loadsave.c
@@ -536,6 +541,7 @@ set( SACK_PLUSPLUS_HEADERS ${SACK_PLUSPLUS_HEADERS} ${NETWORK_HEADERS} ${MSGSVR_
         ${SOURCES_ROOT}src/vidlib/local.h
         ${SOURCES_ROOT}src/vidlib/glext.h
         ${SOURCES_ROOT}src/psilib/controlstruc.h
+        ${SOURCES_ROOT}src/psilib/ctllistbox.h
         ${SOURCES_ROOT}src/psilib/global.h
         ${SOURCES_ROOT}src/psilib/calctl/local.h
         ${SOURCES_ROOT}src/psilib/mouse.h

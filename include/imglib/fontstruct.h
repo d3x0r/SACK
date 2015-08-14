@@ -23,13 +23,13 @@ typedef struct font_char_tag
 	S_16 ascent; // ascent can be negative also..
 	S_16 descent;
 
-   /* *** this bit of structure is for dyanmic rendering on surfaces *** */
-   // data is byte aligned - count of bytes is (size/8) for next line...
-   struct ImageFile_tag *cell;
+	/* *** this bit of structure is for dyanmic rendering on surfaces *** */
+	// data is byte aligned - count of bytes is (size/8) for next line...
+	struct ImageFile_tag *cell;
 	RCOORD x1, x2, y1, y2;
 	struct font_char_tag *next_in_line; // NULL at end of line
 
-	 unsigned char data[1];
+	unsigned char data[1];
 } CHARACTER, *PCHARACTER;
 
 typedef struct font_tag
@@ -42,14 +42,14 @@ typedef struct font_tag
 	 // filled with the background color.
 	 // the bottom is ( y + baseline - descent ) - if this is
 	// less than height the remainder must be background filled.
-   _16 baseline;
+	_16 baseline;
 	/* if 0 - characters will be 1 - old font - please compensate
-     for change.... */
+	   for change.... */
 	_32 characters;
-   _8 flags;
-   _8 bias;
-   TEXTCHAR *name;
-   PCHARACTER character[1];
+	_8 flags;
+	_8 bias;
+	TEXTCHAR *name;
+	PCHARACTER character[1];
 } FONT, *PFONT;
 
 enum FontFlags {
@@ -57,8 +57,9 @@ enum FontFlags {
 	FONT_FLAG_2BIT = 1,
 	FONT_FLAG_8BIT = 2,
 	FONT_FLAG_ITALIC = 0x10,
-   FONT_FLAG_BOLD   = 0x20,
-   FONT_FLAG_UPDATED = 0x40, // a character has been added to it since this was last cleared
+	FONT_FLAG_BOLD   = 0x20,
+	FONT_FLAG_UPDATED = 0x40, // a character has been added to it since this was last cleared
+	FONT_FLAG_COLOR = 0x80, // font is a full color font
 };
 
 typedef struct font_renderer_tag *PFONT_RENDERER;
@@ -69,16 +70,4 @@ IMAGE_NAMESPACE_END
 
 
 #endif
-// $Log: fontstruct.h,v $
-// Revision 1.10  2003/10/07 00:04:49  panther
-// Fix default font.  Add bit size flag to font
-//
-// Revision 1.9  2003/10/06 23:03:45  panther
-// Modify character offset to signed...
-//
-// Revision 1.8  2003/09/26 13:48:03  panther
-// Add name to font internal... build font using freetype tools
-//
-// Revision 1.7  2003/03/25 08:45:51  panther
-// Added CVS logging tag
-//
+

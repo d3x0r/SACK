@@ -69,6 +69,22 @@ Image CPROC GetTintedImage( Image child_image, CDATA color );
 
 void CPROC SetFontBias( SFTFont font, S_32 x, S_32 y );
 
+SlicedImage MakeSlicedImage( Image source, _32 left, _32 right, _32 top, _32 bottom, LOGICAL output_center );
+SlicedImage MakeSlicedImageComplex( Image source
+										, _32 top_left_x, _32 top_left_y, _32 top_left_width, _32 top_left_height
+										, _32 top_x, _32 top_y, _32 top_width, _32 top_height
+										, _32 top_right_x, _32 top_right_y, _32 top_right_width, _32 top_right_height
+										, _32 left_x, _32 left_y, _32 left_width, _32 left_height
+										, _32 center_x, _32 center_y, _32 center_width, _32 center_height
+										, _32 right_x, _32 right_y, _32 right_width, _32 right_height
+										, _32 bottom_left_x, _32 bottom_left_y, _32 bottom_left_width, _32 bottom_left_height
+										, _32 bottom_x, _32 bottom_y, _32 bottom_width, _32 bottom_height
+										, _32 bottom_right_x, _32 bottom_right_y, _32 bottom_right_width, _32 bottom_right_height
+										, LOGICAL output_center );
+void UnmakeSlicedImage( SlicedImage image );
+void BlotSlicedImageEx( Image dest, SlicedImage source, S_32 x, S_32 y, _32 width, _32 height, int alpha, enum BlotOperation op, ... );
+
+
 IMAGE_NAMESPACE_END
 
 #endif

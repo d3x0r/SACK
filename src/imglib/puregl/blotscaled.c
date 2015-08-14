@@ -519,7 +519,8 @@ void CPROC cBlotScaledMultiTImgAI( SCALED_BLOT_WORK_PARAMS
    //    , ws, FROMFIXED(ws), hs, FROMFIXED(hs) 
 	//    , wd, FROMFIXED(wd), hd, FROMFIXED(hd) );
 
-	if( pifDest->flags & IF_FLAG_FINAL_RENDER )
+	if( ( pifDest->flags & IF_FLAG_FINAL_RENDER )
+		&& !( pifDest->flags & IF_FLAG_IN_MEMORY ) )
 	{
 		int updated = 0;
 		Image topmost_parent;

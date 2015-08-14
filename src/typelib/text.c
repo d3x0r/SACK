@@ -63,7 +63,7 @@ PRELOAD( AllocateDefaults )
 	blank = (PTEXT)SegCreateFromText( WIDE(" ") );
 }
 //#define newline (*newline)
-//#define blank   (*blank)
+//#define blank	(*blank)
 //#else
 //__declspec( dllexport ) TEXT newline = { TF_STATIC, NULL, NULL, {1,1},{0,WIDE("")}};
 //__declspec( dllexport ) TEXT blank = { TF_STATIC, NULL, NULL, {1,1},{1,WIDE(" ")}};
@@ -73,30 +73,30 @@ static PLIST pTextExtensions;
 
 PTEXT SegCreateEx( size_t size DBG_PASS )
 {
-   PTEXT pTemp;
+	PTEXT pTemp;
 #if defined( _MSC_VER )
 	//if( size > 0x8000 )
 	//	_asm int 3;
 #endif
-   pTemp = (PTEXT)AllocateEx( sizeof(TEXT) + (size
+	pTemp = (PTEXT)AllocateEx( sizeof(TEXT) + (size
 #ifdef _MSC_VER 
-	   + 1
+		+ 1
 #endif
-	   )*sizeof(TEXTCHAR)
-	   DBG_RELAY ); // good thing [1] is already counted.
-   MemSet( pTemp, 0, sizeof(TEXT) + (size*sizeof(TEXTCHAR)) );
-   pTemp->format.flags.prior_background = 1;
-   pTemp->format.flags.prior_foreground = 1;
-   pTemp->data.size = size; // physical space IS one more....
-   return pTemp;
+		)*sizeof(TEXTCHAR)
+		DBG_RELAY ); // good thing [1] is already counted.
+	MemSet( pTemp, 0, sizeof(TEXT) + (size*sizeof(TEXTCHAR)) );
+	pTemp->format.flags.prior_background = 1;
+	pTemp->format.flags.prior_foreground = 1;
+	pTemp->data.size = size; // physical space IS one more....
+	return pTemp;
 }
 
 //---------------------------------------------------------------------------
 
 PTEXT GetIndirect(PTEXT segment )
 {
-   if( !segment )
-      return NULL;
+	if( !segment )
+		return NULL;
 	if( (segment->flags&TF_APPLICATION) )
 	{
 		INDEX idx;
@@ -105,26 +105,26 @@ PTEXT GetIndirect(PTEXT segment )
 		{
 			if( pte->bits & segment->flags )
 			{
-            // size is used as a pointer...
+				// size is used as a pointer...
 				segment = pte->TextOf( pte->psvData, (POINTER)segment->data.size );
 				break;
 			}
 		}
 		if( !pte )
-         return NULL;
+			return NULL;
 		return segment;
 	}
-   // if it's not indirect... don't result..
+	// if it's not indirect... don't result..
 	if( !(segment->flags&TF_INDIRECT) )
-      return NULL;
-   return (PTEXT)(segment->data.size);
+		return NULL;
+	return (PTEXT)(segment->data.size);
 }
 
 //---------------------------------------------------------------------------
 
 TEXTSTR GetText( PTEXT segment )
 {
-   while( segment )
+	while( segment )
 	{
 		if( segment->flags & (TF_INDIRECT|TF_APPLICATION) )
 		{
@@ -166,11 +166,11 @@ size_t GetTextSize( PTEXT segment )
 
 _32 GetTextFlags( PTEXT segment )
 {
-   if( !segment )
-      return 0;
-   if( segment->flags & (TF_INDIRECT|TF_APPLICATION) )
-      return GetTextFlags( GetIndirect( segment ) );
-   return segment->flags;
+	if( !segment )
+		return 0;
+	if( segment->flags & (TF_INDIRECT|TF_APPLICATION) )
+		return GetTextFlags( GetIndirect( segment ) );
+	return segment->flags;
 }
 
 //---------------------------------------------------------------------------
@@ -179,14 +179,14 @@ void SegCopyFormat( PTEXT to_this, PTEXT copy_this )
 {
 	if( to_this && copy_this )
 	{
-      if( copy_this && !( copy_this->flags & TF_FORMATPOS ) )
+		if( copy_this && !( copy_this->flags & TF_FORMATPOS ) )
 		{
 			to_this->format.position.offset.tabs = copy_this->format.position.offset.tabs;
 			to_this->format.position.offset.spaces = copy_this->format.position.offset.spaces;
 		}
 		else
 		{
-         // copy absolute positioning...
+			// copy absolute positioning...
 		}
 	}
 }
@@ -230,45 +230,45 @@ PTEXT SegDuplicateEx( PTEXT pText DBG_PASS )
 
 PTEXT LineDuplicateEx( PTEXT pText DBG_PASS )
 {
-   PTEXT pt;
-   pt = pText;
-   while( pt )
-   {
-      if( !(pt->flags&TF_STATIC) )
-         HoldEx( (P_8)pt DBG_RELAY  );
-      if( (pt->flags & TF_INDIRECT ) || (pt->flags&TF_APPLICATION) )
+	PTEXT pt;
+	pt = pText;
+	while( pt )
+	{
+		if( !(pt->flags&TF_STATIC) )
+			HoldEx( (P_8)pt DBG_RELAY  );
+		if( (pt->flags & TF_INDIRECT ) || (pt->flags&TF_APPLICATION) )
 			LineDuplicateEx( GetIndirect( pt ) DBG_RELAY );
-      pt = NEXTLINE( pt );
-   }
-   return pText;
+		pt = NEXTLINE( pt );
+	}
+	return pText;
 }
 
 //---------------------------------------------------------------------------
 
 PTEXT TextDuplicateEx( PTEXT pText, int bSingle DBG_PASS )
 {
-   PTEXT pt;
-   PTEXT pDup = NULL, pNew;
-   pt = pText;
-   while( pt )
-   {
-      if( (pt->flags & TF_INDIRECT ) && !(pt->flags&TF_APPLICATION) )
-      {
-         pNew = SegCreateIndirectEx(
-                     TextDuplicateEx(
-                           GetIndirect( pt ), bSingle DBG_RELAY ) DBG_RELAY );
+	PTEXT pt;
+	PTEXT pDup = NULL, pNew;
+	pt = pText;
+	while( pt )
+	{
+		if( (pt->flags & TF_INDIRECT ) && !(pt->flags&TF_APPLICATION) )
+		{
+			pNew = SegCreateIndirectEx(
+			            TextDuplicateEx(
+			                  GetIndirect( pt ), bSingle DBG_RELAY ) DBG_RELAY );
 			pNew->format.position = pt->format.position;
-         pNew->flags |= pt->flags&(IS_DATA_FLAGS);
-         pNew->flags |= TF_DEEP;
-      }
-      else
-         pNew = SegDuplicateEx( pt DBG_RELAY );
-      pDup = SegAppend( pDup, pNew );
-      if( bSingle )
-         break;
-      pt = NEXTLINE( pt );
-   }
-   return pDup;
+			pNew->flags |= pt->flags&(IS_DATA_FLAGS);
+			pNew->flags |= TF_DEEP;
+		}
+		else
+			pNew = SegDuplicateEx( pt DBG_RELAY );
+		pDup = SegAppend( pDup, pNew );
+		if( bSingle )
+			break;
+		pt = NEXTLINE( pt );
+	}
+	return pDup;
 }
 
 //---------------------------------------------------------------------------
@@ -313,7 +313,7 @@ PTEXT SegCreateFromCharLenEx( const char *text, size_t len DBG_PASS )
 
 PTEXT SegCreateFromCharEx( const char *text DBG_PASS )
 {
-   return SegCreateFromCharLenEx( text, strlen( text ) DBG_RELAY );
+	return SegCreateFromCharLenEx( text, strlen( text ) DBG_RELAY );
 }
 
 //---------------------------------------------------------------------------
@@ -345,7 +345,7 @@ PTEXT SegCreateFromWideLenEx( const wchar_t *text, size_t nSize DBG_PASS )
 
 PTEXT SegCreateFromWideEx( const wchar_t *text DBG_PASS )
 {
-   return SegCreateFromWideLenEx( text, wcslen( text ) DBG_RELAY );
+	return SegCreateFromWideLenEx( text, wcslen( text ) DBG_RELAY );
 }
 
 //---------------------------------------------------------------------------
@@ -382,39 +382,39 @@ pResult->data.data[31] = 0;
 
 PTEXT SegCreateFromFloatEx( float value DBG_PASS )
 {
-   PTEXT pResult;
-   pResult = SegCreateEx( 32 DBG_RELAY);
+	PTEXT pResult;
+	pResult = SegCreateEx( 32 DBG_RELAY);
 #ifdef _UNICODE
 	pResult->data.size = swprintf( pResult->data.data, 32, WIDE("%f"), value );
 #else
 	pResult->data.size = snprintf( pResult->data.data, 32, WIDE("%f"), value );
 #endif
-   pResult->data.data[31] = 0;
-   return pResult;
+	pResult->data.data[31] = 0;
+	return pResult;
 }
 
 //---------------------------------------------------------------------------
 
 PTEXT SegCreateIndirectEx( PTEXT pText DBG_PASS )
 {
-   PTEXT pSeg;
-   pSeg = SegCreateEx( -1 DBG_RELAY ); // no data content for indirect...
-   pSeg->flags |= TF_INDIRECT;
-   pSeg->data.size = (PTRSZVAL)pText;
-   return pSeg;
+	PTEXT pSeg;
+	pSeg = SegCreateEx( -1 DBG_RELAY ); // no data content for indirect...
+	pSeg->flags |= TF_INDIRECT;
+	pSeg->data.size = (PTRSZVAL)pText;
+	return pSeg;
 }
 
 //---------------------------------------------------------------------------
 
 PTEXT SegBreak(PTEXT segment)  // remove leading segments.
-{    // return leading segments!  might be ORPHANED if not handled.
-   PTEXT temp;
-   if( !segment )
-      return NULL;
-   if((temp=PRIORLINE(segment)))
-      SETNEXTLINE(temp,NULL);
-   SETPRIORLINE(segment,NULL);
-   return(temp);
+{	 // return leading segments!  might be ORPHANED if not handled.
+	PTEXT temp;
+	if( !segment )
+		return NULL;
+	if((temp=PRIORLINE(segment)))
+		SETNEXTLINE(temp,NULL);
+	SETPRIORLINE(segment,NULL);
+	return(temp);
 }
 
 INDEX  GetSegmentSpaceEx ( PTEXT segment, size_t position, int nTabs, INDEX *tabs)
@@ -517,9 +517,9 @@ PTEXT SegExpandEx(PTEXT source, INDEX nSize DBG_PASS)
 	if( source )
 	{
 		MemCpy( temp->data.data, source->data.data, sizeof( TEXTCHAR)*(GetTextSize( source ) + 1) );
-   		temp->flags = source->flags;
+		temp->flags = source->flags;
 		temp->format = source->format;
-   		SegSubst( temp, source );
+		SegSubst( temp, source );
 		SegRelease( source );
 	}
 	return temp;
@@ -529,24 +529,24 @@ PTEXT SegExpandEx(PTEXT source, INDEX nSize DBG_PASS)
 
 void LineReleaseEx(PTEXT line DBG_PASS )
 {
-   PTEXT temp;
+	PTEXT temp;
 
-   if( !line )
-      return;
+	if( !line )
+		return;
 
-   SetStart(line);
-   while(line)
-   {
-      temp=NEXTLINE(line);
-      if( !(line->flags&TF_STATIC) )
-      {
+	SetStart(line);
+	while(line)
+	{
+		temp=NEXTLINE(line);
+		if( !(line->flags&TF_STATIC) )
+		{
 			if( (( line->flags & (TF_INDIRECT|TF_DEEP) ) == (TF_INDIRECT|TF_DEEP) ) )
 				if( !(line->flags & TF_APPLICATION) ) // if indirect, don't want to release application content
 					LineReleaseEx( GetIndirect( line ) DBG_RELAY );
-         ReleaseEx( line DBG_RELAY );
-      }
-      line=temp;
-   }
+			ReleaseEx( line DBG_RELAY );
+		}
+		line=temp;
+	}
 }
 
 //---------------------------------------------------------------------------
@@ -567,8 +567,8 @@ PTEXT SegConcatEx(PTEXT output,PTEXT input,S_32 offset,size_t length DBG_PASS )
 //#define min(a,b) (((a)<(b))?(a):(b))
 		len = min( GetTextSize( input ) - offset, length-idx );
 		MemCpy( GetText(output) + idx,
-		        GetText(input) + offset,
-		        sizeof( TEXTCHAR ) * ( len + 1 ) );
+				  GetText(input) + offset,
+				  sizeof( TEXTCHAR ) * ( len + 1 ) );
 		idx += len;
 		offset = 0;
 		input=NEXTLINE(input);
@@ -616,7 +616,7 @@ PTEXT SegDelete( PTEXT segment )
 PTEXT SegInsert( PTEXT what, PTEXT before )
 {
 	PTEXT that_start = what ,
-         that_end= what;
+			that_end= what;
 	SetStart( that_start );
 	SetEnd( that_end );
 	if( before )
@@ -634,7 +634,7 @@ PTEXT SegInsert( PTEXT what, PTEXT before )
 PTEXT SegSubst( PTEXT _this, PTEXT that )
 {
 	PTEXT that_start = that ,
-         that_end= that;
+			that_end= that;
 	SetStart( that_start );
 	SetEnd( that_end );
 
@@ -674,11 +674,11 @@ PTEXT SegSplitEx( PTEXT *pLine, INDEX nPos  DBG_PASS)
 	there->format.position.offset.tabs = 0;
 
 	MemCpy( GetText( here ), GetText( *pLine ), sizeof(TEXTCHAR)*nPos );
-    GetText( here )[nPos] = 0;
+	GetText( here )[nPos] = 0;
 	if( nLen - nPos )
 	{
 		MemCpy( GetText( there ), GetText( *pLine ) + nPos, sizeof(TEXTCHAR)*(nLen - nPos) );
-        GetText( there )[nLen-nPos] = 0;
+		GetText( there )[nLen-nPos] = 0;
 	}
 
 	SETNEXTLINE( PRIORLINE( *pLine ), here );
@@ -734,24 +734,24 @@ PTEXT TextParse( PTEXT input, CTEXTSTR punctuation, CTEXTSTR filter_space, int b
 {
 //#define DBG_OVERRIDE DBG_SRC
 #define DBG_OVERRIDE DBG_RELAY
-   /* takes a line of input and creates a line equivalent to it, but
-      burst into its block peices.*/
-   VARTEXT out;
-   PTEXT outdata=(PTEXT)NULL,
-         word;
+	/* takes a line of input and creates a line equivalent to it, but
+	   burst into its block peices.*/
+	VARTEXT out;
+	PTEXT outdata=(PTEXT)NULL,
+	      word;
 	TEXTSTR tempText;
-   int has_minus = -1;
+	int has_minus = -1;
 	int has_plus = -1;
 
-   _32 index;
-   INDEX size;
+	_32 index;
+	INDEX size;
 
-   TEXTCHAR character;
-   _32 elipses = FALSE,
-      spaces = 0, tabs = 0;
+	TEXTCHAR character;
+	_32 elipses = FALSE,
+	   spaces = 0, tabs = 0;
 
-   if (!input)        // if nothing new to process- return nothing processed.
-      return((PTEXT)NULL);
+	if (!input)        // if nothing new to process- return nothing processed.
+		return((PTEXT)NULL);
 
 	VarTextInitEx( &out DBG_OVERRIDE );
 
@@ -774,40 +774,40 @@ PTEXT TextParse( PTEXT input, CTEXTSTR punctuation, CTEXTSTR filter_space, int b
 		size = GetTextSize(input);
 		if( input->format.position.offset.spaces || input->format.position.offset.tabs )
 		{
-      		word = VarTextGetEx( &out DBG_OVERRIDE );
-      		if( word )
-      		{
+			word = VarTextGetEx( &out DBG_OVERRIDE );
+			if( word )
+			{
 				SET_SPACES();
-      			outdata = SegAppend( outdata, word );
-      		}
+				outdata = SegAppend( outdata, word );
+			}
 		}
 		spaces += input->format.position.offset.spaces;
 		tabs += input->format.position.offset.tabs;
-      //Log1( WIDE("Assuming %d spaces... "), spaces );
-      for (index=0;(character = tempText[index]),
+		//Log1( WIDE("Assuming %d spaces... "), spaces );
+		for (index=0;(character = tempText[index]),
                    (index < size); index++) // while not at the
                                          // end of the line.
-      {
-         if( elipses && character != '.' )
-         {
-         	if( VarTextEndEx( &out DBG_OVERRIDE ) )
-         	{
-         		PTEXT word = VarTextGetEx( &out DBG_OVERRIDE );
-         		if( word )
-         		{
+		{
+			if( elipses && character != '.' )
+			{
+				if( VarTextEndEx( &out DBG_OVERRIDE ) )
+				{
+					PTEXT word = VarTextGetEx( &out DBG_OVERRIDE );
+					if( word )
+					{
 						SET_SPACES();
-      	      	outdata = SegAppend( outdata, word );
-      	      }
-      	      //else
-      	      //	Log( WIDE("VarTextGet Failed to result.") );
-         	}
-            elipses = FALSE;
-         }
-         else if( elipses ) // elipses and character is . - continue
-         {
-         	VarTextAddCharacterEx( &out, character DBG_OVERRIDE );
-            continue;
-         }
+						outdata = SegAppend( outdata, word );
+					}
+					//else
+					//	Log( WIDE("VarTextGet Failed to result.") );
+				}
+				elipses = FALSE;
+			}
+			else if( elipses ) // elipses and character is . - continue
+			{
+				VarTextAddCharacterEx( &out, character DBG_OVERRIDE );
+				continue;
+			}
 		if( StrChr( filter_space, character ) )
 		{
 			goto is_a_space;
@@ -816,44 +816,44 @@ PTEXT TextParse( PTEXT input, CTEXTSTR punctuation, CTEXTSTR filter_space, int b
 		{
 			if( ( word = VarTextGetEx( &out DBG_OVERRIDE ) ) )
 			{
-            	outdata = SegAppend( outdata, word );
+				outdata = SegAppend( outdata, word );
 				SET_SPACES();
 				VarTextAddCharacterEx( &out, character DBG_OVERRIDE );
 				word = VarTextGetEx( &out DBG_OVERRIDE );
-            	outdata = SegAppend( outdata, word );
-            }
-            else
-            {
+				outdata = SegAppend( outdata, word );
+			}
+			else
+			{
 				VarTextAddCharacterEx( &out, character DBG_OVERRIDE );
 				word = VarTextGetEx( &out DBG_OVERRIDE );
 				SET_SPACES();
-            	outdata = SegAppend( outdata, word );
-            }
+				outdata = SegAppend( outdata, word );
+			}
 		}
-        else switch(character)
+		else switch(character)
 		{
 		case '\n':
-            if( ( word = VarTextGetEx( &out DBG_OVERRIDE ) ) )
-            {
+			if( ( word = VarTextGetEx( &out DBG_OVERRIDE ) ) )
+			{
 					SET_SPACES();
-            	outdata = SegAppend( outdata, word );
-            }
-            outdata = SegAppend( outdata, SegCreate( 0 ) ); // add a line-break packet
-            break;
-			case ' ':
-				if( bSpaces )
-				{
+				outdata = SegAppend( outdata, word );
+			}
+			outdata = SegAppend( outdata, SegCreate( 0 ) ); // add a line-break packet
+			break;
+		case ' ':
+			if( bSpaces )
+			{
 			is_a_space:
-					if( ( word = VarTextGetEx( &out DBG_OVERRIDE ) ) )
-					{
-						SET_SPACES();
-						outdata = SegAppend( outdata, word );
-					}
-					spaces++;
-					break;
+				if( ( word = VarTextGetEx( &out DBG_OVERRIDE ) ) )
+				{
+					SET_SPACES();
+					outdata = SegAppend( outdata, word );
 				}
+				spaces++;
+				break;
+			}
 				if(0) {
-				case '\t':
+		case '\t':
 					if( bTabs )
 					{
 						if( ( word = VarTextGetEx( &out DBG_OVERRIDE ) ) )
@@ -864,13 +864,13 @@ PTEXT TextParse( PTEXT input, CTEXTSTR punctuation, CTEXTSTR filter_space, int b
 						if( spaces )
 						{
 						//lprintf( WIDE("Input stream has mangled spaces and tabs.") );
-                     spaces = 0; // assume that the tab takes care of appropriate spacing
+							spaces = 0; // assume that the tab takes care of appropriate spacing
 						}
 						tabs++;
 						break;
 					}
 				} else if(0) {
-				case '\r': // a space space character...
+		case '\r': // a space space character...
 					if( ( word = VarTextGetEx( &out DBG_OVERRIDE ) ) )
 					{
 						SET_SPACES();
@@ -878,13 +878,13 @@ PTEXT TextParse( PTEXT input, CTEXTSTR punctuation, CTEXTSTR filter_space, int b
 					}
 					break;
 				} else if(0) {
-				case '.': // handle multiple periods grouped (elipses)
-					//goto NormalPunctuation;
-					{
-						TEXTCHAR c;
-						if( ( !elipses &&
-							  ( c = NextChar() ) &&
-							  ( c == '.' ) ) )
+		case '.': // handle multiple periods grouped (elipses)
+				//goto NormalPunctuation;
+				{
+					TEXTCHAR c;
+					if( ( !elipses &&
+						  ( c = NextChar() ) &&
+						  ( c == '.' ) ) )
 						{
 							if( ( word = VarTextGetEx( &out DBG_OVERRIDE ) ) )
 							{
@@ -913,11 +913,11 @@ PTEXT TextParse( PTEXT input, CTEXTSTR punctuation, CTEXTSTR filter_space, int b
 					if( !has_minus )
 					{
 						VarTextAddCharacterEx( &out, '-' DBG_OVERRIDE );
-                  break;
+						break;
 					}
 				case '+':
 				{
-               int c;
+					int c;
 					if( has_plus == -1 )
 						if( !punctuation || StrChr( punctuation, '-' ) )
 							has_plus = 1;
@@ -926,7 +926,7 @@ PTEXT TextParse( PTEXT input, CTEXTSTR punctuation, CTEXTSTR filter_space, int b
 					if( !has_plus )
 					{
 						VarTextAddCharacterEx( &out, '-' DBG_OVERRIDE );
-                  break;
+						break;
 					}
 					if( ( c = NextChar() ) &&
 						( c >= '0' && c <= '9' ) )
@@ -941,52 +941,52 @@ PTEXT TextParse( PTEXT input, CTEXTSTR punctuation, CTEXTSTR filter_space, int b
 						break;
 					}
 				}
-//         NormalPunctuation:
-            if( ( word = VarTextGetEx( &out DBG_OVERRIDE ) ) )
-            {
-            	outdata = SegAppend( outdata, word );
+//			NormalPunctuation:
+				if( ( word = VarTextGetEx( &out DBG_OVERRIDE ) ) )
+				{
+					outdata = SegAppend( outdata, word );
 					SET_SPACES();
-               VarTextAddCharacterEx( &out, character DBG_OVERRIDE );
+					VarTextAddCharacterEx( &out, character DBG_OVERRIDE );
 					word = VarTextGetEx( &out DBG_OVERRIDE );
-            	outdata = SegAppend( outdata, word );
-            }
-            else
-            {
-               VarTextAddCharacterEx( &out, character DBG_OVERRIDE );
+					outdata = SegAppend( outdata, word );
+				}
+				else
+				{
+					VarTextAddCharacterEx( &out, character DBG_OVERRIDE );
 					word = VarTextGetEx( &out DBG_OVERRIDE );
 					SET_SPACES();
-            	outdata = SegAppend( outdata, word );
-            }
+					outdata = SegAppend( outdata, word );
+				}
 				break;
 				}
 			default:
-            if( elipses )
-            {
-            	if( ( word = VarTextGetEx( &out DBG_OVERRIDE ) ) )
-            	{
-            		outdata = SegAppend( outdata, word );
+				if( elipses )
+				{
+					if( ( word = VarTextGetEx( &out DBG_OVERRIDE ) ) )
+					{
+						outdata = SegAppend( outdata, word );
 						SET_SPACES();
-            	}
-               elipses = FALSE;
-            }
-            VarTextAddCharacterEx( &out, character DBG_OVERRIDE );
-            break;
-         }
-      }
-      input=NEXTLINE(input);
-   }
+					}
+					elipses = FALSE;
+				}
+				VarTextAddCharacterEx( &out, character DBG_OVERRIDE );
+				break;
+			}
+		}
+		input=NEXTLINE(input);
+	}
 
-   if( ( word = VarTextGetEx( &out DBG_OVERRIDE ) ) ) // any generic outstanding data?
-   {
-   	outdata = SegAppend( outdata, word );
+	if( ( word = VarTextGetEx( &out DBG_OVERRIDE ) ) ) // any generic outstanding data?
+	{
+		outdata = SegAppend( outdata, word );
 		SET_SPACES();
-   }
+	}
 
-   SetStart(outdata);
+	SetStart(outdata);
 
-   VarTextEmptyEx( &out DBG_OVERRIDE );
+	VarTextEmptyEx( &out DBG_OVERRIDE );
 
-   return(outdata);
+	return(outdata);
 }
 
 
@@ -996,36 +996,36 @@ PTEXT burstEx( PTEXT input DBG_PASS )
 {
 //#define DBG_OVERRIDE DBG_SRC
 //#define DBG_OVERRIDE DBG_RELAY
-   /* takes a line of input and creates a line equivalent to it, but
-      burst into its block peices.*/
-   VARTEXT out;
-   PTEXT outdata=(PTEXT)NULL,
-         word;
-   TEXTSTR tempText;
+	/* takes a line of input and creates a line equivalent to it, but
+		burst into its block peices.*/
+	VARTEXT out;
+	PTEXT outdata=(PTEXT)NULL,
+			word;
+	TEXTSTR tempText;
 
-   _32 index;
-   size_t size;
+	_32 index;
+	size_t size;
 
-   TEXTCHAR character;
-   _32 elipses = FALSE,
-      spaces = 0, tabs = 0;
+	TEXTCHAR character;
+	_32 elipses = FALSE,
+		spaces = 0, tabs = 0;
 
-	if (!input)        // if nothing new to process- return nothing processed.
+	if (!input)		  // if nothing new to process- return nothing processed.
 		return((PTEXT)NULL);
 
 	VarTextInitEx( &out DBG_OVERRIDE );
 
-   while (input)  // while there is data to process...
-   {
+	while (input)  // while there is data to process...
+	{
 		if( input->flags & TF_INDIRECT )
 		{
 
-      		word = VarTextGetEx( &out DBG_OVERRIDE );
-      		if( word )
+			word = VarTextGetEx( &out DBG_OVERRIDE );
+			if( word )
 			{
 				SET_SPACES();
-      			outdata = SegAppend( outdata, word );
-      		}
+				outdata = SegAppend( outdata, word );
+			}
 			outdata = SegAppend( outdata, burst( GetIndirect( input ) ) );
 			input = NEXTLINE( input );
 			continue;
@@ -1034,235 +1034,235 @@ PTEXT burstEx( PTEXT input DBG_PASS )
 		size = GetTextSize(input);
 		if( input->format.position.offset.spaces || input->format.position.offset.tabs )
 		{
-      		word = VarTextGetEx( &out DBG_OVERRIDE );
-      		if( word )
-      		{
+			word = VarTextGetEx( &out DBG_OVERRIDE );
+			if( word )
+			{
 				SET_SPACES();
-      			outdata = SegAppend( outdata, word );
-      		}
+				outdata = SegAppend( outdata, word );
+			}
 		}
 		spaces += input->format.position.offset.spaces;
 		tabs += input->format.position.offset.tabs;
 		//Log1( WIDE("Assuming %d spaces... "), spaces );
 		for (index=0;(character = tempText[index]),
-                   (index < size); index++) // while not at the
-                                         // end of the line.
-      {
-         if( elipses && character != '.' )
-         {
-         	if( VarTextEndEx( &out DBG_OVERRIDE ) )
-         	{
-         		PTEXT word = VarTextGetEx( &out DBG_OVERRIDE );
-         		if( word )
-         		{
+		             (index < size); index++) // while not at the
+		                                      // end of the line.
+		{
+			if( elipses && character != '.' )
+			{
+				if( VarTextEndEx( &out DBG_OVERRIDE ) )
+				{
+					PTEXT word = VarTextGetEx( &out DBG_OVERRIDE );
+					if( word )
+					{
 						SET_SPACES();
-      	      	outdata = SegAppend( outdata, word );
-      	      }
-      	      //else
-      	      //	Log( WIDE("VarTextGet Failed to result.") );
-         	}
-            elipses = FALSE;
-         }
-         else if( elipses ) // elipses and character is . - continue
-         {
-         	VarTextAddCharacterEx( &out, character DBG_OVERRIDE );
-            continue;
-         }
+						outdata = SegAppend( outdata, word );
+					}
+					//else
+					//	Log( WIDE("VarTextGet Failed to result.") );
+				}
+				elipses = FALSE;
+			}
+			else if( elipses ) // elipses and character is . - continue
+			{
+				VarTextAddCharacterEx( &out, character DBG_OVERRIDE );
+				continue;
+			}
 
-         switch(character)
-         {
-         case '\n':
-            if( ( word = VarTextGetEx( &out DBG_OVERRIDE ) ) )
-            {
+			switch(character)
+			{
+			case '\n':
+				if( ( word = VarTextGetEx( &out DBG_OVERRIDE ) ) )
+				{
 					SET_SPACES();
-            	outdata = SegAppend( outdata, word );
-            }
-            outdata = SegAppend( outdata, SegCreate( 0 ) ); // add a line-break packet
-            break;
-         case ' ':
-            if( ( word = VarTextGetEx( &out DBG_OVERRIDE ) ) )
-            {
+					outdata = SegAppend( outdata, word );
+				}
+				outdata = SegAppend( outdata, SegCreate( 0 ) ); // add a line-break packet
+				break;
+			case ' ':
+				if( ( word = VarTextGetEx( &out DBG_OVERRIDE ) ) )
+				{
 					SET_SPACES();
-            	outdata = SegAppend( outdata, word );
-            }
-            spaces++;
-            break;
-         case '\t':
-            if( ( word = VarTextGetEx( &out DBG_OVERRIDE ) ) )
-            {
+					outdata = SegAppend( outdata, word );
+				}
+				spaces++;
+				break;
+			case '\t':
+				if( ( word = VarTextGetEx( &out DBG_OVERRIDE ) ) )
+				{
 					SET_SPACES();
-            	outdata = SegAppend( outdata, word );
+					outdata = SegAppend( outdata, word );
 				}
 				if( spaces )
 				{
 				//lprintf( WIDE("Input stream has mangled spaces and tabs.") );
-               spaces = 0;
+					spaces = 0;
 				}
-            tabs++;
-            break;
-         case '\r': // a space space character...
-            if( ( word = VarTextGetEx( &out DBG_OVERRIDE ) ) )
-            {
+				tabs++;
+				break;
+			case '\r': // a space space character...
+				if( ( word = VarTextGetEx( &out DBG_OVERRIDE ) ) )
+				{
 					SET_SPACES();
-            	outdata = SegAppend( outdata, word );
-            }
-            break;
-         case '.': // handle multiple periods grouped (elipses)
-            //goto NormalPunctuation;
-            {
-               TEXTCHAR c;
-               if( ( !elipses &&
-                     ( c = NextChar() ) &&
-                     ( c == '.' ) ) )
-               {
-                  if( ( word = VarTextGetEx( &out DBG_OVERRIDE ) ) )
-                  {
-                  	outdata = SegAppend( outdata, word );
+					outdata = SegAppend( outdata, word );
+				}
+				break;
+			case '.': // handle multiple periods grouped (elipses)
+				//goto NormalPunctuation;
+				{
+					TEXTCHAR c;
+					if( ( !elipses &&
+							( c = NextChar() ) &&
+							( c == '.' ) ) )
+					{
+						if( ( word = VarTextGetEx( &out DBG_OVERRIDE ) ) )
+						{
+							outdata = SegAppend( outdata, word );
 							SET_SPACES();
-                  }
-                  VarTextAddCharacterEx( &out, '.' DBG_OVERRIDE );
-                  elipses = TRUE;
-                  break;
-               }
-               if( ( c = NextChar() ) &&
-                   ( c >= '0' && c <= '9' ) )
-               {
-                  // gather together as a floating point number...
-                  VarTextAddCharacterEx( &out, character DBG_OVERRIDE );
-                  break;
-               }
-            }
+						}
+						VarTextAddCharacterEx( &out, '.' DBG_OVERRIDE );
+						elipses = TRUE;
+						break;
+					}
+					if( ( c = NextChar() ) &&
+						 ( c >= '0' && c <= '9' ) )
+					{
+						// gather together as a floating point number...
+						VarTextAddCharacterEx( &out, character DBG_OVERRIDE );
+						break;
+					}
+				}
 			case '-':  // work seperations flaming-long-sword
 			case '+':
 				{
-               int c;
+					int c;
 					if( ( c = NextChar() ) &&
 						( c >= '0' && c <= '9' ) )
 					{
 						if( ( word = VarTextGetEx( &out DBG_OVERRIDE ) ) )
-                  {
-                  	outdata = SegAppend( outdata, word );
+						{
+							outdata = SegAppend( outdata, word );
 							SET_SPACES();
-                  }
+						}
 						// gather together as a sign indication on a number.
 						VarTextAddCharacterEx( &out, character DBG_OVERRIDE );
 						break;
 					}
 				}
-         case '\'': // single quote bound
-         case '\"': // double quote bound
-         case '\\': // escape next thingy... unusable in c processor
+			case '\'': // single quote bound
+			case '\"': // double quote bound
+			case '\\': // escape next thingy... unusable in c processor
 
-         case '(': // expression bounders
-         case '{':
-         case '[':
-         case '<':
+			case '(': // expression bounders
+			case '{':
+			case '[':
+			case '<':
 
-         case ')': // expression closers
-         case '}':
-         case ']':
-         case '>':
+			case ')': // expression closers
+			case '}':
+			case ']':
+			case '>':
 
-         case ':':  // internet addresses
-         case '@':  // email addresses
-         case '%':
-         case '/':
-         case ',':
-         case ';':
-         case '!':
-         case '?':
-         case '=':
-         case '*':
-         case '&':
-         case '$':
-         case '^':
-         case '~':
-         case '#':
-         case '`':
-//         NormalPunctuation:
-            if( ( word = VarTextGetEx( &out DBG_OVERRIDE ) ) )
-            {
-            	outdata = SegAppend( outdata, word );
+			case ':':  // internet addresses
+			case '@':  // email addresses
+			case '%':
+			case '/':
+			case ',':
+			case ';':
+			case '!':
+			case '?':
+			case '=':
+			case '*':
+			case '&':
+			case '$':
+			case '^':
+			case '~':
+			case '#':
+			case '`':
+//			NormalPunctuation:
+				if( ( word = VarTextGetEx( &out DBG_OVERRIDE ) ) )
+				{
+					outdata = SegAppend( outdata, word );
 					SET_SPACES();
-               VarTextAddCharacterEx( &out, character DBG_OVERRIDE );
+					VarTextAddCharacterEx( &out, character DBG_OVERRIDE );
 					word = VarTextGetEx( &out DBG_OVERRIDE );
-            	outdata = SegAppend( outdata, word );
-            }
-            else
-            {
-               VarTextAddCharacterEx( &out, character DBG_OVERRIDE );
+					outdata = SegAppend( outdata, word );
+				}
+				else
+				{
+					VarTextAddCharacterEx( &out, character DBG_OVERRIDE );
 					word = VarTextGetEx( &out DBG_OVERRIDE );
 					SET_SPACES();
-            	outdata = SegAppend( outdata, word );
-            }
-            break;
+					outdata = SegAppend( outdata, word );
+				}
+				break;
 
-         default:
-            if( elipses )
-            {
-            	if( ( word = VarTextGetEx( &out DBG_OVERRIDE ) ) )
-            	{
-            		outdata = SegAppend( outdata, word );
+			default:
+				if( elipses )
+				{
+					if( ( word = VarTextGetEx( &out DBG_OVERRIDE ) ) )
+					{
+						outdata = SegAppend( outdata, word );
 						SET_SPACES();
-            	}
-               elipses = FALSE;
-            }
-            VarTextAddCharacterEx( &out, character DBG_OVERRIDE );
-            break;
-         }
-      }
-      input=NEXTLINE(input);
-   }
+					}
+					elipses = FALSE;
+				}
+				VarTextAddCharacterEx( &out, character DBG_OVERRIDE );
+				break;
+			}
+		}
+		input=NEXTLINE(input);
+	}
 
-   if( ( word = VarTextGetEx( &out DBG_OVERRIDE ) ) ) // any generic outstanding data?
-   {
-   	outdata = SegAppend( outdata, word );
+	if( ( word = VarTextGetEx( &out DBG_OVERRIDE ) ) ) // any generic outstanding data?
+	{
+		outdata = SegAppend( outdata, word );
 		SET_SPACES();
-   }
+	}
 
-   SetStart(outdata);
+	SetStart(outdata);
 
-   VarTextEmptyEx( &out DBG_OVERRIDE );
+	VarTextEmptyEx( &out DBG_OVERRIDE );
 
-   return(outdata);
+	return(outdata);
 }
 
 //---------------------------------------------------------------------------
 #undef LineLengthExx
 size_t LineLengthExx( PTEXT pt, LOGICAL bSingle, PTEXT pEOL )
 {
-   return LineLengthExEx( pt, bSingle, 8, pEOL );
+	return LineLengthExEx( pt, bSingle, 8, pEOL );
 }
 
 size_t LineLengthExEx( PTEXT pt, LOGICAL bSingle, int nTabsize, PTEXT pEOL )
 {
-   int   TopSingle = bSingle;
-   PTEXT pStack[32];
-   int   nStack;
-   int   skipspaces = ( PRIORLINE(pt) != NULL );
-   size_t length = 0;
-   nStack = 0;
-   while( pt )
-   {
-      if( pt->flags & TF_BINARY )
-      {
-         pt = NEXTLINE( pt );
+	int	TopSingle = bSingle;
+	PTEXT pStack[32];
+	int	nStack;
+	int	skipspaces = ( PRIORLINE(pt) != NULL );
+	size_t length = 0;
+	nStack = 0;
+	while( pt )
+	{
+		if( pt->flags & TF_BINARY )
+		{
+			pt = NEXTLINE( pt );
 			if( bSingle )
-            break;
-         continue;
-      }
+				break;
+			continue;
+		}
 
-      if( !(pt->flags & ( IS_DATA_FLAGS | TF_INDIRECT)) &&
-          !pt->data.size
-        )
+		if( !(pt->flags & ( IS_DATA_FLAGS | TF_INDIRECT)) &&
+			 !pt->data.size
+		  )
 		{
 			if( pEOL )
 				length += pEOL->data.size;
 			else
 				length += 2; // full binary \r\n insertion assumed
 		}
-      else
-      {
+		else
+		{
 			if( skipspaces )
 				skipspaces = FALSE;
 			else
@@ -1271,50 +1271,50 @@ size_t LineLengthExEx( PTEXT pt, LOGICAL bSingle, int nTabsize, PTEXT pEOL )
 					length += GetSegmentSpace( pt, length, nTabsize ); // not-including NULL.
 			}
 
-         if( pt->flags&TF_INDIRECT )
-         {
-            bSingle = FALSE; // will be restored when we get back to top seg.
+			if( pt->flags&TF_INDIRECT )
+			{
+				bSingle = FALSE; // will be restored when we get back to top seg.
 				pStack[nStack++] = pt;
-            pt = GetIndirect( pt );
-            //if( nStack >= 32 )
-            //   DebugBreak();
-            continue;
-         }
+				pt = GetIndirect( pt );
+				//if( nStack >= 32 )
+				//	DebugBreak();
+				continue;
+			}
 			else
 				length += GetTextSize( pt ); // not-including NULL.
 
 stack_resume:
-         if( pt->flags&TF_TAG )
-            length += 2;
-         if( pt->flags&TF_PAREN )
-            length += 2;
-         if( pt->flags&TF_BRACE )
-            length += 2;
-         if( pt->flags&TF_BRACKET )
-            length += 2;
-         if( pt->flags&TF_QUOTE )
-            length += 2;
-         if( pt->flags&TF_SQUOTE )
-            length += 2;
+			if( pt->flags&TF_TAG )
+				length += 2;
+			if( pt->flags&TF_PAREN )
+				length += 2;
+			if( pt->flags&TF_BRACE )
+				length += 2;
+			if( pt->flags&TF_BRACKET )
+				length += 2;
+			if( pt->flags&TF_QUOTE )
+				length += 2;
+			if( pt->flags&TF_SQUOTE )
+				length += 2;
 
-      }
-      if( bSingle )
-      {
-         bSingle = FALSE;
-         break;
-      }
-      pt = NEXTLINE( pt );
-   }
-   if( nStack )
-   {
-      pt = pStack[--nStack];
+		}
+		if( bSingle )
+		{
+			bSingle = FALSE;
+			break;
+		}
+		pt = NEXTLINE( pt );
+	}
+	if( nStack )
+	{
+		pt = pStack[--nStack];
 		if( !nStack )
-         bSingle = TopSingle;
-      goto stack_resume;
-   }
-//   if( length > 60000 )
-//      _asm int 3;
-   return length;
+			bSingle = TopSingle;
+		goto stack_resume;
+	}
+//	if( length > 60000 )
+//		_asm int 3;
+	return length;
 }
 
 #undef LineLengthEx
@@ -1332,16 +1332,16 @@ INDEX LineLengthEx( PTEXT pt, LOGICAL bSingle )
 #undef BuildLineExx
 PTEXT BuildLineExx( PTEXT pt, LOGICAL bSingle, PTEXT pEOL DBG_PASS )
 {
-   return BuildLineExEx( pt, bSingle, 8, pEOL DBG_RELAY );
+	return BuildLineExEx( pt, bSingle, 8, pEOL DBG_RELAY );
 }
 
 PTEXT BuildLineExEx( PTEXT pt, LOGICAL bSingle, int nTabsize, PTEXT pEOL DBG_PASS )
 {
 	TEXTSTR buf;
-	int   TopSingle = bSingle;
+	int	TopSingle = bSingle;
 	PTEXT pStack[32];
-	int   nStack, firstadded;
-	int   skipspaces = ( PRIORLINE(pt) != NULL );
+	int	nStack, firstadded;
+	int	skipspaces = ( PRIORLINE(pt) != NULL );
 	PTEXT pOut;
 	PTRSZVAL ofs;
 
@@ -1382,10 +1382,10 @@ PTEXT BuildLineExEx( PTEXT pt, LOGICAL bSingle, int nTabsize, PTEXT pEOL DBG_PAS
 		{
 			if( ( !pt->format.flags.prior_foreground &&
 				  !pt->format.flags.default_foreground &&
-               pt->format.flags.foreground != pOut->format.flags.foreground ) ||
-             ( !pt->format.flags.prior_background &&
+					pt->format.flags.foreground != pOut->format.flags.foreground ) ||
+				 ( !pt->format.flags.prior_background &&
 				  !pt->format.flags.default_background &&
-               pt->format.flags.background != pOut->format.flags.background )
+					pt->format.flags.background != pOut->format.flags.background )
 			  )
 			{
 				PTEXT pSplit;
@@ -1402,8 +1402,8 @@ PTEXT BuildLineExEx( PTEXT pt, LOGICAL bSingle, int nTabsize, PTEXT pEOL DBG_PAS
 					// new segments takes on the new attributes...
 					pOut->format.flags.foreground = pt->format.flags.foreground;
 					pOut->format.flags.background = pt->format.flags.background;
-            		//Log2( WIDE("Split at %d result %d"), ofs, GetTextSize( pOut ) );
-            		buf = GetText( pOut );
+						//Log2( WIDE("Split at %d result %d"), ofs, GetTextSize( pOut ) );
+						buf = GetText( pOut );
 					ofs = 0;
 				}
 				else
@@ -1414,10 +1414,10 @@ PTEXT BuildLineExEx( PTEXT pt, LOGICAL bSingle, int nTabsize, PTEXT pEOL DBG_PAS
 			}
 		}
 
-      if( !(pt->flags& (TF_INDIRECT|IS_DATA_FLAGS)) &&
-          !pt->data.size
-        )
-      {
+		if( !(pt->flags& (TF_INDIRECT|IS_DATA_FLAGS)) &&
+			 !pt->data.size
+		  )
+		{
 			if( pEOL )
 			{
 				MemCpy( buf + ofs, pEOL->data.data, sizeof( TEXTCHAR )*(pEOL->data.size + 1) );
@@ -1428,9 +1428,9 @@ PTEXT BuildLineExEx( PTEXT pt, LOGICAL bSingle, int nTabsize, PTEXT pEOL DBG_PAS
 				buf[ofs++] = '\r';
 				buf[ofs++] = '\n';
 			}
-      }
-      else
-      {
+		}
+		else
+		{
 			if( skipspaces )
 			{
 				skipspaces = FALSE;
@@ -1445,71 +1445,71 @@ PTEXT BuildLineExEx( PTEXT pt, LOGICAL bSingle, int nTabsize, PTEXT pEOL DBG_PAS
 				}
 			}
 
-      	// at this point spaces before tags, and after tags
-      	// which used to be expression level parsed are not
-      	// reconstructed correctly...
-         if( pt->flags&TF_TAG )
-            buf[ofs++] = '<';
-         if( pt->flags&TF_PAREN )
-            buf[ofs++] = '(';
-         if( pt->flags&TF_BRACE )
-            buf[ofs++] = '{';
-         if( pt->flags&TF_BRACKET )
-            buf[ofs++] = '[';
-         if( pt->flags&TF_QUOTE )
-            buf[ofs++] = '\"';
-         if( pt->flags&TF_SQUOTE )
-            buf[ofs++] = '\'';
+			// at this point spaces before tags, and after tags
+			// which used to be expression level parsed are not
+			// reconstructed correctly...
+			if( pt->flags&TF_TAG )
+				buf[ofs++] = '<';
+			if( pt->flags&TF_PAREN )
+				buf[ofs++] = '(';
+			if( pt->flags&TF_BRACE )
+				buf[ofs++] = '{';
+			if( pt->flags&TF_BRACKET )
+				buf[ofs++] = '[';
+			if( pt->flags&TF_QUOTE )
+				buf[ofs++] = '\"';
+			if( pt->flags&TF_SQUOTE )
+				buf[ofs++] = '\'';
 
-         if( pt->flags&TF_INDIRECT )
+			if( pt->flags&TF_INDIRECT )
 			{
-            bSingle = FALSE; // will be restored when we get back to top.
+				bSingle = FALSE; // will be restored when we get back to top.
 				pStack[nStack++] = pt;
-            pt = GetIndirect( pt );
-            //if( nStack >= 32 )
-            //   DebugBreak();
-            continue;
-         }
-         else
-         {
+				pt = GetIndirect( pt );
+				//if( nStack >= 32 )
+				//	DebugBreak();
+				continue;
+			}
+			else
+			{
 				size_t len;
 				MemCpy( buf+ofs, GetText( pt ), sizeof( TEXTCHAR) * (len = GetTextSize( pt ))+1 );
-         		ofs += len;
-         }
+					ofs += len;
+			}
 
 stack_resume:
-         if( pt->flags&TF_SQUOTE )
-            buf[ofs++] = '\'';
-         if( pt->flags&TF_QUOTE )
-            buf[ofs++] = '\"';
-         if( pt->flags&TF_BRACKET )
-            buf[ofs++] = ']';
-         if( pt->flags&TF_BRACE )
-            buf[ofs++] = '}';
-         if( pt->flags&TF_PAREN )
-            buf[ofs++] = ')';
-         if( pt->flags&TF_TAG )
-            buf[ofs++] = '>';
-      }
-      if( bSingle )
-      {
-         bSingle = FALSE;
-         break;
-      }
-      pt = NEXTLINE( pt );
-   }
-   if( nStack )
+			if( pt->flags&TF_SQUOTE )
+				buf[ofs++] = '\'';
+			if( pt->flags&TF_QUOTE )
+				buf[ofs++] = '\"';
+			if( pt->flags&TF_BRACKET )
+				buf[ofs++] = ']';
+			if( pt->flags&TF_BRACE )
+				buf[ofs++] = '}';
+			if( pt->flags&TF_PAREN )
+				buf[ofs++] = ')';
+			if( pt->flags&TF_TAG )
+				buf[ofs++] = '>';
+		}
+		if( bSingle )
+		{
+			bSingle = FALSE;
+			break;
+		}
+		pt = NEXTLINE( pt );
+	}
+	if( nStack )
 	{
 		pt = pStack[--nStack];
 		if( !nStack )
-         bSingle = TopSingle;
-      goto stack_resume;
-   }
+			bSingle = TopSingle;
+		goto stack_resume;
+	}
 
-   if( !pOut ) // have to return length instead of new text seg...
-      return (PTEXT)ofs;
-   SetStart( pOut ); // if formatting was inserted into the stream...
-   return pOut;
+	if( !pOut ) // have to return length instead of new text seg...
+		return (PTEXT)ofs;
+	SetStart( pOut ); // if formatting was inserted into the stream...
+	return pOut;
 }
 
 #undef BuildLineEx
@@ -1521,14 +1521,14 @@ PTEXT BuildLineEx( PTEXT pt, int bSingle DBG_PASS )
 
 PTEXT FlattenLine( PTEXT pLine )
 {
-    PTEXT pCur, p;
-    pCur = pLine;
-    // all indirected segments get promoted to
-    // the first level...
-    while( pCur )
-    {
-        if( pCur->flags & TF_STATIC )
-        {
+	 PTEXT pCur, p;
+	 pCur = pLine;
+	 // all indirected segments get promoted to
+	 // the first level...
+	 while( pCur )
+	 {
+		  if( pCur->flags & TF_STATIC )
+		  {
 			  p = SegDuplicate( pCur );
 			  if( p )
 			  {
@@ -1544,20 +1544,20 @@ PTEXT FlattenLine( PTEXT pLine )
 					SegGrab( pCur );
 					LineRelease( pCur );
 					pCur = next;
-               continue;
+					continue;
 			  }
 		  }
-        if( pCur->flags & TF_INDIRECT )
-        {
-            if( pCur->flags & TF_DEEP )
-            {
-                p = FlattenLine( GetIndirect( pCur ) );
-                pCur->flags &= ~TF_DEEP;
-            }
-            else
-            {
-                p = TextDuplicate( GetIndirect( pCur ), FALSE );
-            }
+		  if( pCur->flags & TF_INDIRECT )
+		  {
+				if( pCur->flags & TF_DEEP )
+				{
+					 p = FlattenLine( GetIndirect( pCur ) );
+					 pCur->flags &= ~TF_DEEP;
+				}
+				else
+				{
+					 p = TextDuplicate( GetIndirect( pCur ), FALSE );
+				}
 				if( p )
 				{
 					SegSubst( pCur, p );
@@ -1572,37 +1572,37 @@ PTEXT FlattenLine( PTEXT pLine )
 					PTEXT next = NEXTLINE( pCur );
 					SegGrab( pCur );
 					LineRelease( pCur );
-               pCur = next;
+					pCur = next;
 				}
-            continue;
+				continue;
 
-        }
-        pCur = NEXTLINE( pCur );
-    }
-    return pLine;
+		  }
+		  pCur = NEXTLINE( pCur );
+	 }
+	 return pLine;
 }
 
 //----------------------------------------------------------------------------
 
 POINTER GetApplicationPointer( PTEXT text )
 {
-   // okay indirects up to application data are okay.
+	// okay indirects up to application data are okay.
 	while( ( text->flags & TF_INDIRECT ) && !(text->flags & TF_APPLICATION) )
-      return GetApplicationPointer( (PTEXT)text->data.size );
+		return GetApplicationPointer( (PTEXT)text->data.size );
 	if( text->flags & TF_APPLICATION )
 		return (POINTER)text->data.size;
-   return NULL;
+	return NULL;
 }
 
 //----------------------------------------------------------------------------
 
 void SetApplicationPointer( PTEXT text, POINTER p)
 {
-   // sets only this segment.
+	// sets only this segment.
 	if( text )
 	{
 		text->flags |= TF_APPLICATION;
-      text->data.size = (PTRSZVAL)p;
+		text->data.size = (PTRSZVAL)p;
 	}
 }
 
@@ -1616,21 +1616,21 @@ void RegisterTextExtension( _32 flags, PTEXT(CPROC*TextOf)(PTRSZVAL,POINTER), PT
 	pte->psvData = psvData;
 	AddLink( &pTextExtensions, pte );
 #if 0
-   if( text && ( text->flags & TF_APPLICATION ) )
+	if( text && ( text->flags & TF_APPLICATION ) )
 	{
 		INDEX idx;
-      PTEXT_EXENSTION pte;
+		PTEXT_EXENSTION pte;
 		LIST_FORALL( pTextExtension, idx, PTEXT_EXTENSION, pte )
 		{
 			if( pte->flags & text->flags )
 			{
 				text = pte->TextOf( text );
-            break;
+				break;
 			}
 		}
 	}
 #endif
-   return;
+	return;
 }
 
 //---------------------------------------------------------------------------
@@ -1640,7 +1640,7 @@ int TextIs( PTEXT pText, CTEXTSTR string )
 	CTEXTSTR data = GetText( pText );
 	if( data )
 		return !StrCmp( data, string );
-   return 0;
+	return 0;
 }
 
 //---------------------------------------------------------------------------
@@ -1650,7 +1650,7 @@ int TextLike( PTEXT pText, CTEXTSTR string )
 	CTEXTSTR data = GetText( pText );
 	if( data )
 		return !StrCaseCmp( data, string );
-   return 0;
+	return 0;
 }
 
 //---------------------------------------------------------------------------
@@ -1664,7 +1664,7 @@ int TextSimilar( PTEXT pText, CTEXTSTR string )
 		size_t len2 = string ? StrLen( string ) : 0;
 		return !StrCaseCmpEx( data, string, textmin( len1, len2 ) );
 	}
-   return 0;
+	return 0;
 }
 //---------------------------------------------------------------------------
 
@@ -1678,7 +1678,7 @@ int SameText( PTEXT l1, PTEXT l2 )
 		return 1;
 	else if( d2 )
 		return -1;
-   return 0;
+	return 0;
 }
 //---------------------------------------------------------------------------
 
@@ -1695,7 +1695,7 @@ int LikeText( PTEXT l1, PTEXT l2 )
 		return 1;
 	else if( d2 )
 		return -1;
-   return 0;
+	return 0;
 }
 
 //---------------------------------------------------------------------------
@@ -1704,59 +1704,59 @@ int CompareStrings( PTEXT pt1, int single1
                   , PTEXT pt2, int single2
                   , int bExact )
 {
-   while( pt1 && pt2 )
-   {
-      while( pt1 &&
-             pt1->flags && ( pt1->flags & TF_BINARY ) )
-         pt1 = NEXTLINE( pt1 );
-      while( pt2 &&
-             pt2->flags && ( pt2->flags & TF_BINARY ) )
-         pt2 = NEXTLINE( pt2 );
-      if( !pt1 && pt2 )
-         return FALSE;
-      if( pt1 && !pt2 )
-         return FALSE;
-      if( bExact )
-      {
-         if( SameText( pt1, pt2 ) != 0 )
-            return FALSE;
-      }
-      else
-      {
-         // Like returns string compare function literal...
-         if( LikeText( pt1, pt2 ) != 0 )
-            return FALSE;
-      }
-      if( !single1 )
-      {
-         pt1 = NEXTLINE( pt1 );
-         if( pt1 &&
-             !GetTextSize( pt1 ) && !(pt1->flags & IS_DATA_FLAGS))
-            pt1 = NULL;
-      }
-      else
-         pt1 = NULL;
-      if( !single2 )
-      {
-         pt2 = NEXTLINE( pt2 );
-         if( pt2 &&
-             !GetTextSize( pt2 ) &&
-             !(pt2->flags & IS_DATA_FLAGS))
-            pt2 = NULL;
-      }
-      else
-         pt2 = NULL;
-   }
-   if( !pt1 && !pt2 )
-      return TRUE;
-   return FALSE;
+	while( pt1 && pt2 )
+	{
+		while( pt1 &&
+				 pt1->flags && ( pt1->flags & TF_BINARY ) )
+			pt1 = NEXTLINE( pt1 );
+		while( pt2 &&
+				 pt2->flags && ( pt2->flags & TF_BINARY ) )
+			pt2 = NEXTLINE( pt2 );
+		if( !pt1 && pt2 )
+			return FALSE;
+		if( pt1 && !pt2 )
+			return FALSE;
+		if( bExact )
+		{
+			if( SameText( pt1, pt2 ) != 0 )
+				return FALSE;
+		}
+		else
+		{
+			// Like returns string compare function literal...
+			if( LikeText( pt1, pt2 ) != 0 )
+				return FALSE;
+		}
+		if( !single1 )
+		{
+			pt1 = NEXTLINE( pt1 );
+			if( pt1 &&
+				 !GetTextSize( pt1 ) && !(pt1->flags & IS_DATA_FLAGS))
+				pt1 = NULL;
+		}
+		else
+			pt1 = NULL;
+		if( !single2 )
+		{
+			pt2 = NEXTLINE( pt2 );
+			if( pt2 &&
+				 !GetTextSize( pt2 ) &&
+				 !(pt2->flags & IS_DATA_FLAGS))
+				pt2 = NULL;
+		}
+		else
+			pt2 = NULL;
+	}
+	if( !pt1 && !pt2 )
+		return TRUE;
+	return FALSE;
 }
 
 //--------------------------------------------------------------------------
 
 S_64 IntCreateFromText( CTEXTSTR p )
 {
-   //CTEXTSTR p;
+	//CTEXTSTR p;
 	int s;
 	int begin;
 	S_64 num;
@@ -1814,68 +1814,68 @@ S_64 IntCreateFromSeg( PTEXT pText )
 
 double FloatCreateFromText( CTEXTSTR p, CTEXTSTR *vp )
 {
-   int s, begin, bDec = FALSE;
-   double num;
-   double base = 1;
-   double temp;
-   if( !p )
-   {
-	   if( vp )
-		   (*vp) = p;
-       return 0;
-   }
-   s = 0;
-   num = 0;
-   begin = TRUE;
-   while( *p )
-   {
-      if( *p == '-' && begin )
-      {
-         s++;
-      }
-      else if( *p < '0' || *p > '9' )
-      {
-         if( *p == '.' )
-         {
-            bDec = TRUE;
-            base = 0.1;
-         }
-         else
-            break;
-      }
-      else
-      {
-         if( bDec )
-         {
-            temp = *p - '0';
-            num += base * temp;
-            base /= 10;
-         }
-         else
-         {
-            num *= 10;
-            num += *p - '0';
-         }
-      }
-      begin = FALSE;
-      p++;
-   }
-   if( vp )
-	   (*vp) = p;
-   if( s )
-      num *= -1;
-   return num;
+	int s, begin, bDec = FALSE;
+	double num;
+	double base = 1;
+	double temp;
+	if( !p )
+	{
+		if( vp )
+			(*vp) = p;
+		 return 0;
+	}
+	s = 0;
+	num = 0;
+	begin = TRUE;
+	while( *p )
+	{
+		if( *p == '-' && begin )
+		{
+			s++;
+		}
+		else if( *p < '0' || *p > '9' )
+		{
+			if( *p == '.' )
+			{
+				bDec = TRUE;
+				base = 0.1;
+			}
+			else
+				break;
+		}
+		else
+		{
+			if( bDec )
+			{
+				temp = *p - '0';
+				num += base * temp;
+				base /= 10;
+			}
+			else
+			{
+				num *= 10;
+				num += *p - '0';
+			}
+		}
+		begin = FALSE;
+		p++;
+	}
+	if( vp )
+		(*vp) = p;
+	if( s )
+		num *= -1;
+	return num;
 }
 
 //--------------------------------------------------------------------------
 
 double FloatCreateFromSeg( PTEXT pText )
 {
-   CTEXTSTR p;
-   p = GetText( pText );
-   if( !p )
-      return FALSE;
-   return FloatCreateFromText( p, NULL );
+	CTEXTSTR p;
+	p = GetText( pText );
+	if( !p )
+		return FALSE;
+	return FloatCreateFromText( p, NULL );
 }
 
 //--------------------------------------------------------------------------
@@ -2017,7 +2017,7 @@ void VarTextInitEx( PVARTEXT pvt DBG_PASS )
 #endif
 	pvt->collect_used = 0;
 	pvt->collect_avail = COLLECT_LEN;
-   pvt->expand_by = 32;
+	pvt->expand_by = 32;
 }
 
  PVARTEXT  VarTextCreateExEx ( _32 initial, _32 expand DBG_PASS )
@@ -2096,6 +2096,21 @@ void VarTextAddCharacterEx( PVARTEXT pvt, TEXTCHAR c DBG_PASS )
 			pvt->collect_text = GetText( pvt->collect );
 		}
 	}
+}
+
+void VarTextAddRuneEx( PVARTEXT pvt, TEXTRUNE c DBG_PASS )
+{
+	int chars;
+	int n;
+#ifdef _UNICODE
+	wchar_t output[3];
+	chars = ConvertToUTF16( output, c );
+#else
+	char output[6];
+	chars = ConvertToUTF8( output, c );
+#endif
+	for( n = 0; n < chars; n++ )
+		VarTextAddCharacterEx( pvt, output[n] DBG_RELAY );
 }
 
 //---------------------------------------------------------------------------
@@ -2199,11 +2214,11 @@ PTEXT VarTextGetEx( PVARTEXT pvt DBG_PASS )
 		return NULL;
 	if( pvt && pvt->collect_used ) // otherwise ofs will be 0...
 	{
-      SetTextSize( pvt->collect, pvt->collect_used );
-      //VarTextAddCharacterEx( pvt, 0 DBG_RELAY );
+		SetTextSize( pvt->collect, pvt->collect_used );
+		//VarTextAddCharacterEx( pvt, 0 DBG_RELAY );
 		return pvt->collect;
 	}
-   return NULL;
+	return NULL;
 }
 
 //---------------------------------------------------------------------------
@@ -2285,7 +2300,7 @@ INDEX vvtprintf( PVARTEXT pvt, CTEXTSTR format, va_list args )
 		if( !len ) // nothign to add... we'll get stuck looping if this is not checked.
 			return 0;
 #ifdef __GNUC__
-      va_end( tmp_args );
+		va_end( tmp_args );
 #endif
 		// allocate +1 for length with NUL
 		if( ((_32)len+1) >= (pvt->collect_avail-pvt->collect_used) )
@@ -2341,13 +2356,13 @@ INDEX vvtprintf( PVARTEXT pvt, CTEXTSTR format, va_list args )
 	{
 		do {
 			if( strcmp( format, "%s" ) == 0 && pvt->collect_used==7)
-            DebugBreak();
+				DebugBreak();
 			len = vsnprintf( pvt->collect_text + pvt->collect_used
 								, pvt->collect_avail - pvt->collect_used
 								, format, args );
 			if( len < 0 )
 				VarTextExpand( pvt, pvt->expand_by );
-			//                VarTextExpandEx( pvt, 32 DBG_SRC );
+			//					 VarTextExpandEx( pvt, 32 DBG_SRC );
 		} while( len < 0 );
 		//Log1( WIDE("Print Length: %d"), len );
 	}
@@ -2364,14 +2379,14 @@ INDEX vtprintfEx( PVARTEXT pvt , CTEXTSTR format, ... )
 {
 	va_list args;
 	va_start( args, format );
-    return vvtprintf( pvt, format, args );
+	 return vvtprintf( pvt, format, args );
 }
 
 //---------------------------------------------------------------------------
 //---------------------------------------------------------------------------
 //
 // PTEXT DumpText( PTEXT somestring )
-//    PTExT (single data segment with full description \r in text)
+//	 PTExT (single data segment with full description \r in text)
 //
 //---------------------------------------------------------------------------
 //---------------------------------------------------------------------------
@@ -2414,15 +2429,15 @@ static void BuildTextFlags( PVARTEXT vt, PTEXT pSeg )
 		vtprintf( vt, WIDE( "<> " ) );
 	if( pSeg->flags & TF_INDIRECT )
 		vtprintf( vt, WIDE( "Indirect " ) );
-   /*
+	/*
 	if( pSeg->flags & TF_SINGLE )
 	vtprintf( vt, WIDE( "single " ) );
-   */
+	*/
 	if( pSeg->flags & TF_FORMATREL )
-      vtprintf( vt, WIDE( "format x,y(REL) " ) );
+		vtprintf( vt, WIDE( "format x,y(REL) " ) );
 	if( pSeg->flags & TF_FORMATABS )
-      vtprintf( vt, WIDE( "format x,y " ) );
-   else
+		vtprintf( vt, WIDE( "format x,y " ) );
+	else
 		vtprintf( vt, WIDE( "format spaces " ) );
 
 	if( pSeg->flags & TF_COMPLETE )
@@ -2470,9 +2485,9 @@ static void BuildTextFlags( PVARTEXT vt, PTEXT pSeg )
 	
 	if( pSeg->flags & TF_FORMATEX )
 		vtprintf( vt, WIDE( "format extended(%s) length:%d" )
-		           , Ops[ pSeg->format.flags.format_op
-		                - FORMAT_OP_CLEAR_END_OF_LINE ] 
-		           , GetTextSize( pSeg ) );
+					  , Ops[ pSeg->format.flags.format_op
+							 - FORMAT_OP_CLEAR_END_OF_LINE ] 
+					  , GetTextSize( pSeg ) );
 	else
 		vtprintf( vt, WIDE( "Fore:%d Back:%d length:%d" )
 					, pSeg->format.flags.foreground
@@ -2533,7 +2548,7 @@ TEXTSTR ConvertAsciiEbdic( TEXTSTR text, INDEX length )
 			text[n] = a2e[(unsigned)text[n]];
 		}
 	}
-   return text;
+	return text;
 }
 
 /*
@@ -2569,7 +2584,7 @@ TEXTSTR ConvertEbcdicAscii( TEXTSTR text, INDEX length )
 			text[n] = e2a[(unsigned)text[n]];
 		}
 	}
-   return text;
+	return text;
 }
 //---------------------------------------------------------------------------
 
@@ -2587,7 +2602,7 @@ static int MeasureTextURI( CTEXTSTR text, INDEX length, int skip_slash )
 {
 	// compute how long it should be.
 	INDEX i;
-   int out_length = 0;
+	int out_length = 0;
 	for( i = 0; i < length && text[i]; i++ )
 	{
 		if( skip_slash && text[i] == '/' )
@@ -2641,7 +2656,7 @@ static int MeasureURIText( CTEXTSTR text, INDEX length )
 	{
 		if( text[i] == '%' )
 		{
-         i += 2;
+			i += 2;
 			out_length++;
 		}
 		else 
@@ -2687,6 +2702,87 @@ TEXTSTR ConvertURIText( CTEXTSTR text, INDEX length )
 
 //---------------------------------------------------------------------------
 
+int ConvertToUTF16( wchar_t *output, TEXTRUNE rune )
+{
+	if( !( rune & 0xFFFF0000 ) )
+	{
+		if( rune < 0xD800 || rune >= 0xE000 )
+		{
+			output[0] = rune;
+			return 1;
+		}
+		else
+			return 0; // invalid rune specified.
+	}
+	else
+	{
+		rune -= 0x10000;
+		if( !( rune & 0xFFFFF ) )
+		{
+			output[0] = 0xD800 + ( ( rune & 0xFFC00 ) >> 10 );
+			output[1] = 0xDC00 + ( ( rune & 0x003FF ) );
+			return 2;
+		}
+	}
+	return 0; // invalid rune.
+}
+
+int ConvertToUTF8( char *output, TEXTRUNE rune )
+{
+	if( !( rune & 0xFFFFFF80 ) )
+	{
+		// 7 bits
+		(*output++) = rune;
+		return 1;
+	}
+	else if( !( rune & 0xFFFFF800 ) )
+	{
+		// 11 bits
+		(*output++) = 0xC0 | ( ( ( rune & 0x7C ) >> 6 ) & 0xFF ); 
+		(*output++) = 0x80 | ( rune & 0x3F );
+		return 2;
+	}
+	else if( !( rune & 0xFFFF0000 ) )
+	{
+		// 16 bits
+		(*output++) = 0xE0 | ( ( ( rune & 0xF000 ) >> 12 ) & 0xFF ); 
+		(*output++) = 0x80 | ( ( ( rune & 0x0FC0 ) >> 6 ) & 0xFF );
+		(*output++) = 0x80 | ( ( ( rune & 0x003F ) ) );
+		return 3;
+	}
+	else if( !( rune & 0xFFE00000 ) )
+	{
+		// 21 bits
+		(*output++) = 0xF0 | ( ( ( rune & 0x1C0000 ) >> 15 ) & 0xFF ); 
+		(*output++) = 0x80 | ( ( ( rune & 0x03F000 ) >> 12 ) & 0xFF );
+		(*output++) = 0x80 | ( ( ( rune & 0x000FC0 ) >> 6 ) & 0xFF );
+		(*output++) = 0x80 | ( ( ( rune & 0x00003F ) ) );
+		return 4;
+	}
+	else if( !( rune & 0xFC000000 ) )
+	{
+		// 26 bits
+		(*output++) = 0xF8 | ( ( ( rune & 0x3000000 ) >> 24 ) & 0xFF ); 
+		(*output++) = 0x80 | ( ( ( rune & 0x0FC0000 ) >> 18 ) & 0xFF );
+		(*output++) = 0x80 | ( ( ( rune & 0x003F000 ) >> 12 ) & 0xFF );
+		(*output++) = 0x80 | ( ( ( rune & 0x0000FC0 ) >> 6 ) & 0xFF );
+		(*output++) = 0x80 | ( ( ( rune & 0x000003F ) ) );
+		return 5;
+	}
+	else if( !( rune & 0x80000000 ) )
+	{
+		// 32 bits
+		(*output++) = 0xFC | ( ( ( rune & 0x40000000 ) >> 30 ) & 0xFF ); 
+		(*output++) = 0x80 | ( ( ( rune & 0x3F000000 ) >> 24 ) & 0xFF );
+		(*output++) = 0x80 | ( ( ( rune & 0x00FC0000 ) >> 18 ) & 0xFF );
+		(*output++) = 0x80 | ( ( ( rune & 0x0003F000 ) >> 12 ) & 0xFF );
+		(*output++) = 0x80 | ( ( ( rune & 0x00000FC0 ) >> 6 ) & 0xFF );
+		(*output++) = 0x80 | ( ( ( rune & 0x0000003F ) ) );
+		return 6;
+	}
+	// invalid rune (out of range)
+	return 0;
+}
 
 char * WcharConvertExx ( const wchar_t *wch, size_t len DBG_PASS )
 {
@@ -2699,8 +2795,8 @@ char * WcharConvertExx ( const wchar_t *wch, size_t len DBG_PASS )
 	size_t convertedChars = 0;
 	size_t  sizeInBytes;
 	char  tmp[2];
-	char    *ch;
-	char    *_ch;
+	char	 *ch;
+	char	 *_ch;
 	const wchar_t *_wch = wch;
 	sizeInBytes = 1; // start with 1 for the ending nul
 	_ch = ch = tmp;
@@ -2836,9 +2932,9 @@ char * WcharConvertExx ( const wchar_t *wch, size_t len DBG_PASS )
 
 char * WcharConvertEx ( const wchar_t *wch DBG_PASS )
 {
-   size_t len;
+	size_t len;
 	for( len = 0; wch[len]; len++ );
-   return WcharConvertExx( wch, len DBG_RELAY );
+	return WcharConvertExx( wch, len DBG_RELAY );
 }
 
 wchar_t * CharWConvertExx ( const char *wch, size_t len DBG_PASS )
@@ -2851,7 +2947,7 @@ wchar_t * CharWConvertExx ( const char *wch, size_t len DBG_PASS )
 	// ... etc
 	size_t convertedChars = 0;
 	size_t  sizeInBytes;
-	wchar_t   *ch;
+	wchar_t	*ch;
 	wchar_t   *_ch;
 	sizeInBytes = ((len + 1) * sizeof( char ) );
 	_ch = ch = NewArray( wchar_t, sizeInBytes);
@@ -2901,7 +2997,7 @@ wchar_t * CharWConvertEx ( const char *wch DBG_PASS )
 {
 	int len;
 	for( len = 0; wch[len]; len++ );
-   return CharWConvertExx( wch, len DBG_RELAY );
+	return CharWConvertExx( wch, len DBG_RELAY );
 }
 
 LOGICAL ParseStringVector( CTEXTSTR data, CTEXTSTR **pData, int *nData )
@@ -2963,7 +3059,7 @@ LOGICAL ParseStringVector( CTEXTSTR data, CTEXTSTR **pData, int *nData )
 	return FALSE;
 }
 
-unsigned int GetUtfChar( CTEXTSTR *from )
+TEXTRUNE GetUtfChar( CTEXTSTR *from )
 {
 	unsigned int result = (unsigned char)(*from)[0];
 	if( !result ) return result;
@@ -3056,6 +3152,14 @@ unsigned int GetUtfChar( CTEXTSTR *from )
 	return result;
 }
 
+TEXTRUNE GetUtfCharIndexed( CTEXTSTR pc, size_t *n )
+{
+	CTEXTSTR orig = pc + n[0];
+	CTEXTSTR tmp = orig;
+	TEXTRUNE result = GetUtfChar( &tmp );
+	n[0] += tmp - orig;
+	return result;
+}
 
 // Return the integer character from the string
 // using utf-8 or utf-16 decoding appropriately.  No more extended-ascii.
@@ -3147,7 +3251,7 @@ LOGICAL ParseIntVector( CTEXTSTR data, int **pData, int *nData )
 	if( !data[0] )
 	{
 		*nData = 0;
-      return 0;
+		return 0;
 	}
 	//xlprintf(2100)( "ParseIntVector" );
 	//if( StrChr( data, ',' ) )

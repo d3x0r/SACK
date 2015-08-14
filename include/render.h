@@ -1610,6 +1610,7 @@ struct render_interface_tag
 	RENDER_PROC_PTR( LOGICAL, RenderIsInstanced )( void );
 	RENDER_PROC_PTR( LOGICAL, VidlibRenderAllowsCopy )( void );
 	RENDER_PROC_PTR( void, SetDisplayCursor )( CTEXTSTR nCursor );
+	RENDER_PROC_PTR( LOGICAL, IsDisplayRedrawForced )( PRENDERER renderer );
 
 };
 
@@ -1749,6 +1750,7 @@ typedef int check_this_variable;
 #define RenderIsInstanced()       ((USE_RENDER_INTERFACE)?((USE_RENDER_INTERFACE)->_RenderIsInstanced)?(USE_RENDER_INTERFACE)->_RenderIsInstanced():0:0)
 
 #define SetDisplayCursor(n)           {if((USE_RENDER_INTERFACE)&&(USE_RENDER_INTERFACE)->_SetDisplayCursor)REND_PROC_ALIAS(SetDisplayCursor)(n);}
+#define IsDisplayRedrawForced(r)    ((USE_RENDER_INTERFACE)?((USE_RENDER_INTERFACE)->_IsDisplayRedrawForced)?(USE_RENDER_INTERFACE)->_IsDisplayRedrawForced(r):0:0)
 #endif
 
 	_INTERFACE_NAMESPACE_END

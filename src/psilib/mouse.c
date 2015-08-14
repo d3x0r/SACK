@@ -460,6 +460,21 @@ void ReleaseCommonUse( PSI_CONTROL pc )
 	pc->NotInUse = 0;
 }
 
+static void InvokeRollover( PPHYSICAL_DEVICE pf, PSI_CONTROL pc )
+{
+	if( pf->pCurrent && pc != pf->pCurrent )
+	{
+		if( pf->pCurrent->Rollover )
+			pf->pCurrent->Rollover( pf->pCurrent, FALSE );
+	}
+	if( pc != pf->pCurrent )
+	{
+		if( pc && pc->Rollover )
+			pc->Rollover( pc, TRUE );
+		pf->pCurrent = pc;
+	}
+}
+
 
 //---------------------------------------------------------------------------
 #ifdef __cplusplus 
@@ -482,7 +497,10 @@ static void OwnCommonMouse( PSI_CONTROL pc, int bOwn )
 		{
 			//_lprintf(DBG_VOIDRELAY)( WIDE( "Own Common Mouse performed on %p %s" ), pc, bOwn?WIDE( "OWN" ):WIDE( "release" ) );
 			if( bOwn )
-				pf->pCurrent = pc;
+			{
+				//pf->pCurrent = pc;
+				InvokeRollover( pf, pc );
+			}
 			pf->flags.bCurrentOwns = bOwn;
 			pf->flags.bApplicationOwned = bOwn;
 			OwnMouse( pf->pActImg, bOwn );
@@ -667,8 +685,7 @@ static PSI_CONTROL FindControl( PSI_CONTROL pfc, PSI_CONTROL pc, int x, int y, i
 #endif
 			//bias[0] = _bias[0];
 			//bias[1] = _bias[1];
-			pf->pCurrent = pc;
-
+			InvokeRollover( pf, pc );
 			if( MAKE_FIRSTBUTTON( b, pf->_b ) )
 			{
 #ifdef DETAILED_MOUSE_DEBUG
@@ -759,198 +776,186 @@ static void UpdateCursor( PSI_CONTROL pc, int x, int y, int caption_height, int 
 {
 	if( pc->BorderType & BORDER_RESIZABLE )
 	{
-				if( y < pc->surface_rect.y )
-				{
-					if ( y < ( pc->surface_rect.y - caption_height ) )
-					{  // very top edge
-						int do_drag = 0;
-						if( pc->border && ( pc->border->BorderHeight > 10 ) )
-							do_drag = 1;
-						 if( x < pc->surface_rect.x ) // left side edge
-						 {
-							 SetDisplayCursor( IDC_SIZENWSE );
-						}
-						else if( (S_64)x > ( ( pc->surface_rect.x 
-												+ pc->surface_rect.width ) ) ) // right side edge
-						{
-							SetDisplayCursor( IDC_SIZENESW );
-						}
-						else // center top edge
-						{
-							if( do_drag )
-							{
-								SetDisplayCursor( IDC_HAND );
-							}
-							else
-							{
-								SetDisplayCursor( IDC_SIZENS );
-							}
-						}
-					}
-					else
-					{  // top within caption band
-						 if( x < pc->surface_rect.x ) // left side edge
-						 {
-							 SetDisplayCursor( IDC_SIZENWSE );
-						}
-						else if( (S_64)x > ( pc->surface_rect.x 
-										+ pc->surface_rect.width ) )
-						{
-							SetDisplayCursor( IDC_SIZENESW );
-						}
-						else // center bottom edge
-						{
-							INDEX idx;
-							PCAPTION_BUTTON button = NULL;
-							LIST_FORALL( pc->caption_buttons, idx, PCAPTION_BUTTON, button )
-							{
-								if( x > button->offset )
-									break;
-							}
-							if( button )
-							{
-								SetDisplayCursor( IDC_ARROW );
-							}
-							else
-								SetDisplayCursor( IDC_HAND );
-						}
-					}
-				}
-				else if( (S_64)y >= ( ( pc->surface_rect.y 
-									 + pc->surface_rect.height ) ) ) // bottom side...
-				{  // very bottom band
-					int do_drag = 0;
-					if( pc->border && ( pc->border->BorderHeight > 10 ) )
-						do_drag = 1;
-					if( x < ( pc->surface_rect.x ) ) // left side edge
-					{
-						SetDisplayCursor( IDC_SIZENESW );
-					}
-					else if( (S_64)x > ( ( pc->surface_rect.x 
-										 + pc->surface_rect.width ) ) )
-					{
-						SetDisplayCursor( IDC_SIZENWSE );
-					}
-					else // center bottom edge
-					{
-#ifdef DETAILED_MOUSE_DEBUG
-						if( g.flags.bLogDetailedMouse )
-							Log( WIDE("Setting size frame on bottom edge") );
-#endif
-						if( do_drag )
-						{
-							SetDisplayCursor( IDC_HAND );
-						}
-						else
-						{
-							SetDisplayCursor( IDC_SIZENS );
-						}
-					}
-
-				}
-				else // between top and bottom border/caption
-				{
-					int do_drag = 0;
-					if( pc->border && ( pc->border->BorderHeight > 10 ) )
-						do_drag = 1;
+		if( y < pc->surface_rect.y )
+		{
+			if ( y < ( pc->surface_rect.y - caption_height ) )
+			{  // very top edge
+				int do_drag = 0;
+				if( pc->border && ( pc->border->BorderHeight > 10 ) )
+					do_drag = 1;
 					if( x < pc->surface_rect.x ) // left side edge
 					{
-						if( do_drag )
-						{
-							SetDisplayCursor( IDC_HAND );
-						}
-						else
-						{
-							SetDisplayCursor( IDC_SIZEWE );
-						}
-					}
-					else if( (S_64)x >= ( ( pc->surface_rect.x
-										 + pc->surface_rect.width ) ) )// right side edge
+						SetDisplayCursor( IDC_SIZENWSE );
+				}
+				else if( (S_64)x > ( ( pc->surface_rect.x 
+										+ pc->surface_rect.width ) ) ) // right side edge
+				{
+					SetDisplayCursor( IDC_SIZENESW );
+				}
+				else // center top edge
+				{
+					if( do_drag )
 					{
-						if( do_drag )
-						{
-							SetDisplayCursor( IDC_HAND );
-						}
-						else
-						{
-							SetDisplayCursor( IDC_SIZEWE );
-						}
+						SetDisplayCursor( IDC_HAND );
 					}
 					else
+					{
+						SetDisplayCursor( IDC_SIZENS );
+					}
+				}
+			}
+			else
+			{  // top within caption band
+					if( x < pc->surface_rect.x ) // left side edge
+					{
+						SetDisplayCursor( IDC_SIZENWSE );
+				}
+				else if( (S_64)x > ( pc->surface_rect.x 
+								+ pc->surface_rect.width ) )
+				{
+					SetDisplayCursor( IDC_SIZENESW );
+				}
+				else // center bottom edge
+				{
+					INDEX idx;
+					PCAPTION_BUTTON button = NULL;
+					LIST_FORALL( pc->caption_buttons, idx, PCAPTION_BUTTON, button )
+					{
+						if( x > button->offset )
+							break;
+					}
+					if( button )
 					{
 						SetDisplayCursor( IDC_ARROW );
 					}
+					else
+						SetDisplayCursor( IDC_HAND );
 				}
-	}
-	else
-	{
-			if( ( (S_64)y >= pc->surface_rect.y )
-				&& ( (S_64)y < ( pc->surface_rect.y
-									+ pc->surface_rect.height ) ) // bottom side...
-				&& ( (S_64)x >= pc->surface_rect.x ) // left side edge
-				&& ( (S_64)x < ( pc->surface_rect.x
-									+ pc->surface_rect.width ) ) )// right side edge
-			{
-				SetDisplayCursor( IDC_ARROW );
 			}
-			else
+		}
+		else if( (S_64)y >= ( ( pc->surface_rect.y 
+								+ pc->surface_rect.height ) ) ) // bottom side...
+		{  // very bottom band
+			int do_drag = 0;
+			if( pc->border && ( pc->border->BorderHeight > 10 ) )
+				do_drag = 1;
+			if( x < ( pc->surface_rect.x ) ) // left side edge
 			{
-				PCAPTION_BUTTON button = NULL;
-				if( ( y < frame_height )
-					&& ( y > ( frame_height - caption_height ) )
-					&& ( x < ( pc->surface_rect.x + pc->surface_rect.width ) ) 
-					)
+				SetDisplayCursor( IDC_SIZENESW );
+			}
+			else if( (S_64)x > ( ( pc->surface_rect.x 
+									+ pc->surface_rect.width ) ) )
+			{
+				SetDisplayCursor( IDC_SIZENWSE );
+			}
+			else // center bottom edge
+			{
+#ifdef DETAILED_MOUSE_DEBUG
+				if( g.flags.bLogDetailedMouse )
+					Log( WIDE("Setting size frame on bottom edge") );
+#endif
+				if( do_drag )
 				{
-					SetDisplayCursor( IDC_ARROW );
-				}
-				if( !button && !( pc->BorderType & BORDER_NOMOVE ) && pc->device )
-				{
-					// otherwise set dragging... hmm
 					SetDisplayCursor( IDC_HAND );
 				}
 				else
-					SetDisplayCursor( IDC_ARROW );
+				{
+					SetDisplayCursor( IDC_SIZENS );
+				}
+			}
+
+		}
+		else // between top and bottom border/caption
+		{
+			int do_drag = 0;
+			if( pc->border && ( pc->border->BorderHeight > 10 ) )
+				do_drag = 1;
+			if( x < pc->surface_rect.x ) // left side edge
+			{
+				if( do_drag )
+				{
+					SetDisplayCursor( IDC_HAND );
+				}
+				else
+				{
+					SetDisplayCursor( IDC_SIZEWE );
+				}
+			}
+			else if( (S_64)x >= ( ( pc->surface_rect.x
+									+ pc->surface_rect.width ) ) )// right side edge
+			{
+				if( do_drag )
+				{
+					SetDisplayCursor( IDC_HAND );
+				}
+				else
+				{
+					SetDisplayCursor( IDC_SIZEWE );
+				}
+			}
+			else
+			{
+				SetDisplayCursor( IDC_ARROW );
 			}
 		}
+	}
+	else
+	{
+		if( ( (S_64)y >= pc->surface_rect.y )
+			&& ( (S_64)y < ( pc->surface_rect.y
+								+ pc->surface_rect.height ) ) // bottom side...
+			&& ( (S_64)x >= pc->surface_rect.x ) // left side edge
+			&& ( (S_64)x < ( pc->surface_rect.x
+								+ pc->surface_rect.width ) ) )// right side edge
+		{
+			SetDisplayCursor( IDC_ARROW );
+		}
+		else
+		{
+			PCAPTION_BUTTON button = NULL;
+			if( ( y < frame_height )
+				&& ( y > ( frame_height - caption_height ) )
+				&& ( x < ( pc->surface_rect.x + pc->surface_rect.width ) ) 
+				)
+			{
+				SetDisplayCursor( IDC_ARROW );
+			}
+			if( !button && !( pc->BorderType & BORDER_NOMOVE ) && pc->device )
+			{
+				// otherwise set dragging... hmm
+				SetDisplayCursor( IDC_HAND );
+			}
+			else
+				SetDisplayCursor( IDC_ARROW );
+		}
+	}
 }
 #else
 #define UpdateCursor(a,...)
 #endif
 //---------------------------------------------------------------------------
+static void UpdateCaption( PPHYSICAL_DEVICE pf, PSI_CONTROL pc )
+{
+	int y = FrameCaptionYOfs( pc, pc->BorderType );
+	DrawFrameCaption( pc );
+	UpdateDisplayPortion( pf->pActImg
+								, pc->surface_rect.x - 1, y
+								, pc->surface_rect.width + 2
+								, pc->surface_rect.y - y );
+}
 
-int CPROC FirstFrameMouse( PPHYSICAL_DEVICE pf, S_32 x, S_32 y, _32 b, int bCallOriginal )
+
+static int CPROC FirstFrameMouse( PPHYSICAL_DEVICE pf, S_32 x, S_32 y, _32 b, int bCallOriginal )
 {
 	PSI_CONTROL pc = pf->common;
 	extern void DumpFrameContents( PSI_CONTROL pc );
 	int result = 0;
 	int caption_height = CaptionHeight( pc, GetText( pc->caption.text ) );
 	int frame_height = FrameBorderYOfs( pc, pc->BorderType, NULL );
-	//DumpFrameContents( pc );
-	//lprintf( WIDE("FFM") );
+
 #if defined DETAILED_MOUSE_DEBUG //|| defined EDIT_MOUSE_DEBUG
 	if( g.flags.bLogDetailedMouse )
 		lprintf( WIDE("Mouse Event: %p %d %d %d"), pf, x, y, b );
-#endif
-	// need to handle - click to raise window in display list...
-#if 0
-
-#ifdef WIN32
-	// set this early, so controls might have a chance to re-change the cursor
-	//UpdateCursor( pc, x, y, caption_height, frame_height );
-#endif
-
-	if( !pc->flags.bFocused )
-	{
-#ifdef DETAILED_MOUSE_DEBUG
-		if( g.flags.bLogDetailedMouse )
-			lprintf( WIDE("Frame not focused? don't process dragging, or edit state filtering...") );
-#endif
-		InvokeResultingMethod( result, pc, _MouseMethod, (pc
-																		, x - pc->surface_rect.x
-																		, y - pc->surface_rect.y
-																		, b ) );
-		return result;
-	}
 #endif
 
 
@@ -1107,6 +1112,12 @@ int CPROC FirstFrameMouse( PPHYSICAL_DEVICE pf, S_32 x, S_32 y, _32 b, int bCall
 		if( ( x > pc->surface_rect.x && x < ( pc->surface_rect.x + pc->surface_rect.width ) )
 			&& ( y > pc->surface_rect.y && y < ( pc->surface_rect.y + pc->surface_rect.height ) ) )
 		{
+			if( pc->hover_caption_button )
+			{
+				pc->hover_caption_button->flags.rollover = 0;
+				pc->hover_caption_button = NULL;
+				UpdateCaption( pf, pc );
+			}
 			InvokeResultingMethod( result, pc, _MouseMethod, (pc
 													 , x - pc->surface_rect.x
 													 , y - pc->surface_rect.y
@@ -1114,6 +1125,7 @@ int CPROC FirstFrameMouse( PPHYSICAL_DEVICE pf, S_32 x, S_32 y, _32 b, int bCall
 		}
 		else
 		{
+			LOGICAL do_update = FALSE;
 			INDEX idx;
 			PCAPTION_BUTTON button;
 			if( ( x < ( pc->surface_rect.x + pc->surface_rect.width ) ) // left side edge
@@ -1124,45 +1136,65 @@ int CPROC FirstFrameMouse( PPHYSICAL_DEVICE pf, S_32 x, S_32 y, _32 b, int bCall
 				{
 					if( button->flags.hidden )
 						continue;
-
 					if( x > button->offset )
 					{
+						if( pc->hover_caption_button != button )
+						{
+							if( pc->hover_caption_button )
+								pc->hover_caption_button->flags.rollover = 0;
+							button->flags.rollover = 1;
+							pc->hover_caption_button = button;
+							do_update = TRUE;
+						}
+
 						if( pc->pressed_caption_button && pc->pressed_caption_button == button )
 						{
-							int y = FrameCaptionYOfs( pc, pc->BorderType );
 							button->is_pressed = FALSE;
-							DrawFrameCaption( pc );
-							UpdateDisplayPortion( pf->pActImg
-														, pc->surface_rect.x - 1, y
-														, pc->surface_rect.width + 2
-														, pc->surface_rect.y - y );
+							do_update = TRUE;
 							button->pressed_event( pc );
-							break;
 						}
+						break;
 					}
+				}
+				if( !button )
+				{
+					if( pc->hover_caption_button )
+					{
+						pc->hover_caption_button->flags.rollover = 0;
+						pc->hover_caption_button = NULL;
+						do_update = 1;
+					}
+				}
+			}
+			else
+			{
+				if( pc->hover_caption_button )
+				{
+					pc->hover_caption_button->flags.rollover = 0;
+					pc->hover_caption_button = NULL;
+					do_update = 1;
 				}
 			}
 			if( !pc->flags.bDestroy && pc->pressed_caption_button )
 			{
 				if( pc->pressed_caption_button->pressed )
 				{
-					int y = FrameCaptionYOfs( pc, pc->BorderType );
 					pc->pressed_caption_button->is_pressed = FALSE;
-					DrawFrameCaption( pc );
-					UpdateDisplayPortion( pf->pActImg
-												, pc->surface_rect.x - 1, y
-												, pc->surface_rect.width + 2
-												, pc->surface_rect.y - y );
+					do_update = TRUE;
 				}
 				pc->pressed_caption_button = NULL;
 			}
+			if( do_update )
+			{
+				UpdateCaption( pf, pc );
+			}
 		}
-		 pf->flags.bDragging = 0;
-		 pf->flags.bSizing = 0;
-		 pf->flags.bSizing_top = 0;
-		 pf->flags.bSizing_left = 0;
-		 pf->flags.bSizing_right = 0;
-		 pf->flags.bSizing_bottom = 0;
+		pf->flags.bDragging = 0;
+		pf->flags.bSizing = 0;
+		pf->flags.bSizing_top = 0;
+		pf->flags.bSizing_left = 0;
+		pf->flags.bSizing_right = 0;
+		pf->flags.bSizing_bottom = 0;
 	}
 	else if( !(pf->_b & MK_LBUTTON )
 				&& ( b & MK_LBUTTON ) ) // check first down on dialog to drag
@@ -1450,6 +1482,12 @@ int CPROC FirstFrameMouse( PPHYSICAL_DEVICE pf, S_32 x, S_32 y, _32 b, int bCall
 							continue;
 						if( x > button->offset )
 						{
+							if( button != pc->hover_caption_button )
+							{
+								if( pc->hover_caption_button )
+								{
+								}
+							}
 							break;
 						}
 					}
@@ -2144,7 +2182,8 @@ int CPROC AltFrameMouse( PTRSZVAL psvCommon, S_32 x, S_32 y, _32 b )
 			pf->CurrentBias.x -= pf->pCurrent->rect.x;
 			pf->CurrentBias.y -= pf->pCurrent->rect.y;
 			pf->CurrentBias.flags.bias_is_surface = 1;
-			pf->pCurrent = pf->pCurrent->parent;
+			//pf->pCurrent = pf->pCurrent->parent;
+			InvokeRollover( pf, pf->pCurrent->parent );
 			goto retry1;
 		}
 	}
@@ -2156,7 +2195,8 @@ int CPROC AltFrameMouse( PTRSZVAL psvCommon, S_32 x, S_32 y, _32 b )
 					, x - pf->CurrentBias.x
 					, y - pf->CurrentBias.y );
 #endif
-		pf->pCurrent = pc;
+		//pf->pCurrent = pc;
+		InvokeRollover( pf, pc );
 		if( (S_64)x < pc->surface_rect.x ||
 			(S_64)y < pc->surface_rect.y ||
 			(S_64)x > pc->surface_rect.x + pc->surface_rect.width ||
@@ -2230,7 +2270,8 @@ int CPROC AltFrameMouse( PTRSZVAL psvCommon, S_32 x, S_32 y, _32 b )
 						pf->CurrentBias.x -= pf->pCurrent->rect.x;
 						pf->CurrentBias.y -= pf->pCurrent->rect.y;
 						pf->CurrentBias.flags.bias_is_surface = 1;
-						pf->pCurrent = pf->pCurrent->parent;
+						//pf->pCurrent = pf->pCurrent->parent;
+						InvokeRollover( pf, pf->pCurrent->parent );
 					}
 					goto retry;
 				}
@@ -2276,7 +2317,8 @@ int CPROC AltFrameMouse( PTRSZVAL psvCommon, S_32 x, S_32 y, _32 b )
 					}
 					pf->CurrentBias.x -= pf->pCurrent->rect.x;
 					pf->CurrentBias.y -= pf->pCurrent->rect.y;
-					pf->pCurrent = pf->pCurrent->parent;
+					//pf->pCurrent = pf->pCurrent->parent;
+					InvokeRollover( pf, pf->pCurrent->parent );
 					goto retry3;
 				}
 				if( pc->BorderType & BORDER_WANTMOUSE )
@@ -2345,7 +2387,8 @@ void CaptureCommonMouse( PSI_CONTROL pc, LOGICAL bCapture )
 	{
 		PSI_CONTROL _pc;
 		pd->flags.bCaptured = bCapture;
-		pd->pCurrent = pc;
+		//pd->pCurrent = pc;
+		InvokeRollover( pd, pc );
 		pd->CurrentBias.x = 0;
 		pd->CurrentBias.y = 0;
 		for( _pc = pc; _pc; _pc = _pc->parent )
@@ -2354,8 +2397,8 @@ void CaptureCommonMouse( PSI_CONTROL pc, LOGICAL bCapture )
 			pd->CurrentBias.y += _pc->surface_rect.y;
 			if( _pc->parent )
 			{
-				pd->CurrentBias.x += _pc->surface_rect.x;
-				pd->CurrentBias.y += _pc->surface_rect.y;
+				pd->CurrentBias.x += _pc->rect.x;
+				pd->CurrentBias.y += _pc->rect.y;
 			}
 		}
 

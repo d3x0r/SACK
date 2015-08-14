@@ -293,9 +293,9 @@ if( WIN32 )
                         seed_random.module 
                         sack_vfs.module 
                     )
-		SET( literal_libfile_list ${literal_libfile_list} 
-                        ${CMAKE_SHARED_LIBRARY_PREFIX}MatrixSSL${CMAKE_SHARED_LIBRARY_SUFFIX} )
-                        
+		#SET( literal_libfile_list ${literal_libfile_list} 
+                #        ${CMAKE_SHARED_LIBRARY_PREFIX}MatrixSSL${CMAKE_SHARED_LIBRARY_SUFFIX} )
+                #        
                     if( INSTALL_EXTRAS )
 		SET( literal_libfile_list ${literal_libfile_list} 
                         sack_vfs_command.exe

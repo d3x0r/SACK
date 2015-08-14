@@ -281,7 +281,7 @@ void UpdateButtonExx( PMENU_BUTTON button, int bEndingEdit DBG_PASS )
 		}
 		else
 		{
-			HideCommon( QueryGetControl( button ) );
+			HideControl( QueryGetControl( button ) );
 			//bShow = 0;
 		}
 		snprintf( rootname
@@ -310,7 +310,7 @@ void UpdateButtonExx( PMENU_BUTTON button, int bEndingEdit DBG_PASS )
 		}
 		else
 		{
-			HideCommon( QueryGetControl( button ) );
+			HideControl( QueryGetControl( button ) );
 		}
 	}
 	// if the button doesn't have a purpose, then
@@ -324,7 +324,7 @@ void UpdateButtonExx( PMENU_BUTTON button, int bEndingEdit DBG_PASS )
 	}
 	else
 	{
-		HideCommon( QueryGetControl( button ) );
+		HideControl( QueryGetControl( button ) );
 		}
 		*/
 }
@@ -473,7 +473,7 @@ void HidePageExx( PSI_CONTROL pc_canvas DBG_PASS )
 			//lprintf( WIDE( "Hiding a page... hiding all controls... controls have the option to cause themselves to show... " ) );
 			LIST_FORALL( page->controls, idx, PMENU_BUTTON, control )
 			{
-				HideCommon( QueryGetControl( control ) );
+				HideControl( QueryGetControl( control ) );
 			}
 		}
 		//_lprintf(DBG_RELAY)( WIDE( "page set to %p" ), NULL );

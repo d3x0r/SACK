@@ -11,35 +11,10 @@
 #include <keybrd.h>
 #include <psi.h>
 
+#include "ctllistbox.h"
+
 PSI_LISTBOX_NAMESPACE
 
-//typedef struct listitem_tag *PLISTITEM;
-
-struct listitem_tag
-{
-	TEXTCHAR *text;
-	PSI_CONTROL within_list;
-	PTRSZVAL data;
-	// top == -1 if not show, or not shown yet
-	// else top == pixel offset of the top of the item
-	S_32 top; // top of the item in the listbox...
-				// makes for quick rendering of custom items
-				// also can use this to push current down
-				// when inserting sorted items...
-	_32 height; // height of the line...
-	int nLevel; // level of the tree item...
-	Image icon;
-	struct {
-		_32 bSelected :1;
-		_32 bFocused  :1;
-		_32 bOpen : 1; // if open, show any items after this +1 level...
-	} flags;
-	PMENU pPopup;
-	void (CPROC*MenuProc)(PTRSZVAL,struct listitem_tag*,_32);
-	PTRSZVAL psvContextMenu;
-	PLISTITEM next, prior;
-};
-typedef struct listitem_tag LISTITEM;
 
 typedef struct listcolumn_tag LISTCOL, *PLISTCOL;
 struct listcolumn_tag
@@ -403,7 +378,7 @@ static void UpdateScrollForList//Ex
 				pli = pli->next;
 		}
 	}
-	//_xlprintf(LOG_ALWAYS DBG_RELAY)( WIDE("Set scroll params %d %d %d %d"), 0, current, onview, count );
+	//lprintf( WIDE("Set scroll params %d %d %d %d"), 0, current, onview, count );
 	SetScrollParams( plb->pcScroll, 0, current, onview, count );
 }
 
@@ -505,10 +480,14 @@ static int OnDrawCommon( LISTBOX_CONTROL_NAME )( PSI_CONTROL pc )
 			 plb->current == pli )
 			do_line( pSurface, x + 1, y + h-2, w - 6, y + h - 2, basecolor(pc)[SHADE] );
 		y += h;
-		//xlprintf(LOG_ALWAYS)( "y is %ld and height is %ld", y , pc->surface_rect.height );
-		if( SUS_LT( y, int, pc->surface_rect.height, IMAGE_SIZE_COORDINATE )  ) // probably is only partially shown...
+		//xlprintf(LOG_ALWAYS)( "y is %ld and height is %ld", y , pSurface->height );
+		if( SUS_LT( y, int, pSurface->height, IMAGE_SIZE_COORDINATE )  ) // probably is only partially shown...
 		{
-			plb->lastshown = pli;
+			if( plb->lastshown != pli )
+			{
+				plb->lastshown = pli;
+				UpdateScrollForList( pc );
+			}
 		}
 		if( plb->flags.bTree && pli->flags.bOpen )
 			pli = pli->next;
@@ -1736,6 +1715,8 @@ static void OnSizeCommon( LISTBOX_CONTROL_NAME )( PSI_CONTROL pc, LOGICAL begin_
 		S_32 width = 15;
 		ScaleCoords( (PSI_CONTROL)pc, &width, NULL );
 		// resize the scrollbar accordingly...
+		ResizeImage( plb->ListSurface, pc->surface_rect.width - width
+												 , pc->surface_rect.height );
 		MoveSizeCommon( plb->pcScroll , pc->surface_rect.width-width, 0
 						  , width, pc->surface_rect.height
 						  );

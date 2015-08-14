@@ -1166,7 +1166,9 @@ typedef CTEXTSTR const *PCTEXTSTR;
 /* a text 8 bit character  */
 typedef char            TEXTCHAR;
 #endif
-
+/* a character rune.  Strings should be interpreted as UTF-8 or 16 depending on UNICODE compile option.
+   GetUtfChar() from strings.  */
+typedef _32             TEXTRUNE;
 
 
 //typedef enum { FALSE, TRUE } LOGICAL; // smallest information

@@ -2410,7 +2410,13 @@ TYPELIB_PROC  PTEXT TYPELIB_CALLTYPE  FlattenLine ( PTEXT pLine );
    for loop wrapper.                                          */
 #define FORALLTEXT(start,var)  for(var=start;var; var=NEXTLINE(var))
 
-TYPELIB_PROC unsigned int TYPELIB_CALLTYPE GetUtfChar( CTEXTSTR *from );
+/* returns number of characters filled into output.  Output needs to be at maximum 6 chars */
+TYPELIB_PROC int TYPELIB_CALLTYPE ConvertToUTF8( char *output, TEXTRUNE rune );
+/* returns number of wchar filled into output.  Output needs to be at maximum 2 wchar. */
+TYPELIB_PROC int TYPELIB_CALLTYPE ConvertToUTF16( wchar_t *output, TEXTRUNE rune );
+
+TYPELIB_PROC TEXTRUNE TYPELIB_CALLTYPE GetUtfChar( CTEXTSTR *from );
+TYPELIB_PROC TEXTRUNE TYPELIB_CALLTYPE GetUtfCharIndexed( CTEXTSTR from, size_t *index );
 
 TYPELIB_PROC size_t TYPELIB_CALLTYPE GetDisplayableCharacterCount( CTEXTSTR string, size_t max_bytes );
 TYPELIB_PROC CTEXTSTR TYPELIB_CALLTYPE GetDisplayableCharactersAtCount( CTEXTSTR string, size_t character_index );
@@ -2550,6 +2556,7 @@ TYPELIB_PROC  void TYPELIB_CALLTYPE  VarTextEmptyEx( PVARTEXT pvt DBG_PASS);
    c :         character to add
    DBG_PASS :  optional debug information         */
 TYPELIB_PROC  void TYPELIB_CALLTYPE  VarTextAddCharacterEx( PVARTEXT pvt, TEXTCHAR c DBG_PASS );
+TYPELIB_PROC  void TYPELIB_CALLTYPE  VarTextAddRuneEx( PVARTEXT pvt, TEXTRUNE c DBG_PASS );
 /* Adds a single character to a PVARTEXT collector.
    
    
@@ -2559,6 +2566,15 @@ TYPELIB_PROC  void TYPELIB_CALLTYPE  VarTextAddCharacterEx( PVARTEXT pvt, TEXTCH
    VarTextAddCharacter( pvt, 'a' );
    </code>                                          */
 #define VarTextAddCharacter(pvt,c) VarTextAddCharacterEx( (pvt),(c) DBG_SRC )
+/* Adds a single rune to a PVARTEXT collector. (may be multiple characters convert to UTF8)
+   
+   
+   Example
+   <code lang="c++">
+   PVARTEXT pvt = VarTextCreate();
+   VarTextAddRune( pvt, 'a' );
+   </code>                                          */
+#define VarTextAddRune(pvt,c) VarTextAddRuneEx( (pvt),(c) DBG_SRC )
 /* Adds a length of data to the vartext. This allows strings
    with nuls included to be added.
    
@@ -2823,7 +2839,7 @@ typedef int (CPROC *GenericCompare)( PTRSZVAL oldnode,PTRSZVAL newnode );
 /* Signature for the user callback passed to CreateBinaryTreeEx
    that will be called for each node removed from the binary
    list.                                                        */
-typedef void (CPROC *GenericDestroy)( POINTER user, PTRSZVAL key);
+typedef void (CPROC *GenericDestroy)( CPOINTER user, PTRSZVAL key);
 
 /* when adding a node if Compare is NULL the default method of a
    basic unsigned integer compare on the key value is done. if
@@ -2961,8 +2977,8 @@ TYPELIB_PROC  void TYPELIB_CALLTYPE  BalanceBinaryTree( PTREEROOT root );
    <link DBG_PASS>
                         */
 TYPELIB_PROC  int TYPELIB_CALLTYPE  AddBinaryNodeEx( PTREEROOT root
-                                    , POINTER userdata
-											  , PTRSZVAL key DBG_PASS );
+                                                   , CPOINTER userdata
+                                                   , PTRSZVAL key DBG_PASS );
 /* Adds a user pointer identified by key to a binary list.
    
    
@@ -3012,21 +3028,21 @@ TYPELIB_PROC  void TYPELIB_CALLTYPE  RemoveBinaryNode( PTREEROOT root, POINTER u
    
    void f( void )
    {
-      POINTER mydata = FindInBinaryTree( tree, 5 );
+      CPOINTER mydata = FindInBinaryTree( tree, 5 );
       if( mydata )
       {
           // found '5' as the key in the tree
       }
    }
    </code>                                          */
-TYPELIB_PROC  POINTER TYPELIB_CALLTYPE  FindInBinaryTree( PTREEROOT root, PTRSZVAL key );
+TYPELIB_PROC  CPOINTER TYPELIB_CALLTYPE  FindInBinaryTree( PTREEROOT root, PTRSZVAL key );
 
 
 // result of fuzzy routine is 0 = match.  100 = inexact match
 // 1 = no match, actual may be larger
 // -1 = no match, actual may be lesser
 // 100 = inexact match- checks nodes near for better match.
-TYPELIB_PROC  POINTER TYPELIB_CALLTYPE  LocateInBinaryTree( PTREEROOT root, PTRSZVAL key
+TYPELIB_PROC  CPOINTER TYPELIB_CALLTYPE  LocateInBinaryTree( PTREEROOT root, PTRSZVAL key
 														, int (CPROC*fuzzy)( PTRSZVAL psv, PTRSZVAL node_key ) );
 
 
@@ -3075,54 +3091,54 @@ TYPELIB_PROC  void TYPELIB_CALLTYPE  RemoveCurrentNode(PTREEROOT root );
    
    </code>                                                                    */
 TYPELIB_PROC  void TYPELIB_CALLTYPE  DumpTree( PTREEROOT root 
-                          , int (*Dump)( POINTER user, PTRSZVAL key ) );
+                          , int (*Dump)( CPOINTER user, PTRSZVAL key ) );
 
 
 /* See Also
    <link GetChildNode> */
-TYPELIB_PROC  POINTER TYPELIB_CALLTYPE  GetLeastNodeEx( PTREEROOT root, POINTER *cursor );
+TYPELIB_PROC  CPOINTER TYPELIB_CALLTYPE  GetLeastNodeEx( PTREEROOT root, POINTER *cursor );
 /* See Also
    <link GetChildNode> */
-TYPELIB_PROC  POINTER TYPELIB_CALLTYPE  GetLeastNode( PTREEROOT root );
+TYPELIB_PROC  CPOINTER TYPELIB_CALLTYPE  GetLeastNode( PTREEROOT root );
 /* See Also
    <link GetChildNode> */
-TYPELIB_PROC  POINTER TYPELIB_CALLTYPE  GetGreatestNodeEx( PTREEROOT root, POINTER *cursor );
+TYPELIB_PROC  CPOINTER TYPELIB_CALLTYPE  GetGreatestNodeEx( PTREEROOT root, POINTER *cursor );
 /* See Also
    <link GetChildNode> */
-TYPELIB_PROC  POINTER TYPELIB_CALLTYPE  GetGreatestNode( PTREEROOT root );
+TYPELIB_PROC  CPOINTER TYPELIB_CALLTYPE  GetGreatestNode( PTREEROOT root );
 /* See Also
    <link GetChildNode> */
-TYPELIB_PROC  POINTER TYPELIB_CALLTYPE  GetLesserNodeEx( PTREEROOT root, POINTER *cursor );
+TYPELIB_PROC  CPOINTER TYPELIB_CALLTYPE  GetLesserNodeEx( PTREEROOT root, POINTER *cursor );
 /* See Also
    <link GetChildNode> */
-TYPELIB_PROC  POINTER TYPELIB_CALLTYPE  GetLesserNode( PTREEROOT root );
+TYPELIB_PROC  CPOINTER TYPELIB_CALLTYPE  GetLesserNode( PTREEROOT root );
 /* See Also
    <link GetChildNode> */
-TYPELIB_PROC  POINTER TYPELIB_CALLTYPE  GetGreaterNodeEx( PTREEROOT root, POINTER *cursor );
+TYPELIB_PROC  CPOINTER TYPELIB_CALLTYPE  GetGreaterNodeEx( PTREEROOT root, POINTER *cursor );
 /* See Also
    <link GetChildNode> */
-TYPELIB_PROC  POINTER TYPELIB_CALLTYPE  GetGreaterNode( PTREEROOT root );
+TYPELIB_PROC  CPOINTER TYPELIB_CALLTYPE  GetGreaterNode( PTREEROOT root );
 /* \Returns the node that is set as 'current' in the tree. There
    is a cursor within the tree that can be used for browsing.
    See Also
    <link GetChildNode>                                           */
-TYPELIB_PROC  POINTER TYPELIB_CALLTYPE  GetCurrentNodeEx( PTREEROOT root, POINTER *cursor );
+TYPELIB_PROC  CPOINTER TYPELIB_CALLTYPE  GetCurrentNodeEx( PTREEROOT root, POINTER *cursor );
 /* \Returns the node that is set as 'current' in the tree. There
    is a cursor within the tree that can be used for browsing.
    See Also
    <link GetChildNode>                                           */
-TYPELIB_PROC  POINTER TYPELIB_CALLTYPE  GetCurrentNode( PTREEROOT root );
+TYPELIB_PROC  CPOINTER TYPELIB_CALLTYPE  GetCurrentNode( PTREEROOT root );
 
 /* This sets the current node cursor to the root of the node.
    See Also
    <link GetChildNode>                                        */
-TYPELIB_PROC  POINTER TYPELIB_CALLTYPE  GetRootNode( PTREEROOT root );
+TYPELIB_PROC  CPOINTER TYPELIB_CALLTYPE  GetRootNode( PTREEROOT root );
 /* See Also
    <link GetChildNode> */
-TYPELIB_PROC  POINTER TYPELIB_CALLTYPE  GetParentNodeEx( PTREEROOT root, POINTER *cursor );
+TYPELIB_PROC  CPOINTER TYPELIB_CALLTYPE  GetParentNodeEx( PTREEROOT root, POINTER *cursor );
 /* See Also
    <link GetChildNode> */
-TYPELIB_PROC  POINTER TYPELIB_CALLTYPE  GetParentNode( PTREEROOT root );
+TYPELIB_PROC  CPOINTER TYPELIB_CALLTYPE  GetParentNode( PTREEROOT root );
 /* While browsing the tree after a find operation move to the
    next child node, direction 0 is lesser direction !0 is
    greater.
@@ -3184,16 +3200,16 @@ TYPELIB_PROC  POINTER TYPELIB_CALLTYPE  GetParentNode( PTREEROOT root );
    }
    
    </code>                                                                            */
-TYPELIB_PROC  POINTER TYPELIB_CALLTYPE  GetChildNode( PTREEROOT root, int direction );
+TYPELIB_PROC  CPOINTER TYPELIB_CALLTYPE  GetChildNode( PTREEROOT root, int direction );
 /* See Also
    <link GetChildNode> */
-TYPELIB_PROC  POINTER TYPELIB_CALLTYPE  GetChildNodeEx( PTREEROOT root, POINTER *cursor, int direction );
+TYPELIB_PROC  CPOINTER TYPELIB_CALLTYPE  GetChildNodeEx( PTREEROOT root, POINTER *cursor, int direction );
 /* See Also
    <link GetChildNode> */
-TYPELIB_PROC  POINTER TYPELIB_CALLTYPE  GetPriorNodeEx( PTREEROOT root, POINTER *cursor );
+TYPELIB_PROC  CPOINTER TYPELIB_CALLTYPE  GetPriorNodeEx( PTREEROOT root, POINTER *cursor );
 /* See Also
    <link GetChildNode> */
-TYPELIB_PROC  POINTER TYPELIB_CALLTYPE  GetPriorNode( PTREEROOT root );
+TYPELIB_PROC  CPOINTER TYPELIB_CALLTYPE  GetPriorNode( PTREEROOT root );
 
 /* \Returns the total number of nodes in the tree.
    

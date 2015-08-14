@@ -91,7 +91,7 @@ static void CPROC SetCurrentColor( PCHAT_LIST list, enum current_color_type type
 }
 
 
-static _32 CPROC DrawString( Image window, SFTFont font, int x, int y, CDATA crText, RECT *r, CTEXTSTR s, int nShown, int nShow )
+static _32 CPROC DrawString( Image window, SFTFont font, int x, int y, CDATA crText, CDATA crBack, RECT *r, CTEXTSTR s, int nShown, int nShow )
 {
 	_32 width;
 	//lprintf( WIDE( "Adding string out : %p %s start:%d len:%d at %d,%d #%08lX #%08lX" ), console, s, nShown, nShow,x,y,r->left,r->top
@@ -105,7 +105,7 @@ static _32 CPROC DrawString( Image window, SFTFont font, int x, int y, CDATA crT
 		//lprintf( WIDE("Output string (%d-%d)  (%d-%d) %*.*s"), (*r).left, (*r).right, (*r).top, (*r).bottom, nShow, nShow, s + nShown );
 	}
 	PutStringFontEx( window, x, y
-						, crText, 0
+						, crText, crBack
 						, s + nShown
 						, nShow
 						, font );
@@ -134,7 +134,7 @@ void RenderTextLine(
 		int nChar;
 		PTEXT pText;
 		int nShow, nShown;
-		int nTotalShown = 0;
+		int nTotalShown = pCurrentLine->nLineStart;
 #ifdef DEBUG_HISTORY_RENDER
 		lprintf( WIDE("Get display line %d"), nLine );
 #endif
@@ -246,12 +246,45 @@ void RenderTextLine(
 				{
 					(*r).left = x;
 					//lprintf( WIDE("putting string %s at %d,%d (left-right) %d,%d"), text, x, y, (*r).left, (*r).right );
-					DrawString( window, font, x, y, list->colors.crText, r, text, nShown, nShow );
+					if( nTotalShown < mark_start )
+					{
+						if( nTotalShown + nShow > mark_start )
+						{
+							nShow = mark_start - ( nTotalShown );
+							DrawString( window, font, x, y
+							          , list->colors.crText
+									  , 0
+									  , r, text, nShown, nShow );
+						}
+						else
+							DrawString( window, font, x, y, list->colors.crText, 0, r, text, nShown, nShow );
+
+					}
+					else if( nTotalShown < mark_end )
+					{
+						if( nTotalShown + nShow > mark_end )
+						{
+							nShow = mark_end - ( nTotalShown );
+							DrawString( window, font, x, y
+									, list->colors.crMark
+									, list->colors.crMarkBackground
+									, r, text, nShown, nShow );
+						}
+						else
+							DrawString( window, font, x, y
+									, list->colors.crMark
+									, list->colors.crMarkBackground
+									, r, text, nShown, nShow );
+
+					}
+					else
+						DrawString( window, font, x, y, list->colors.crText, 0, r, text, nShown, nShow );
 
 					//DrawString( text );
 				}
 				// fill to the end of the line...
 				//nLen -= nShow;
+				nTotalShown += nShow;
 				nShown += nShow;
 				nChar += nShow;
 			}

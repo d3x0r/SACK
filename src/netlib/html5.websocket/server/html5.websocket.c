@@ -104,14 +104,14 @@ static LOGICAL ComputeReplyKey2( PVARTEXT pvt_output, HTML5WebSocket socket, PTE
 			_8 extra[8];
 		} buf;
 
-		buf.result1[0] = ( number1 & 0xFF000000 ) >> 24;
-		buf.result1[1] = ( number1 & 0xFF0000 ) >> 16;
-		buf.result1[2] = ( number1 & 0xFF00 ) >> 8;
-		buf.result1[3] = ( number1 & 0xFF ) >> 0;
-		buf.result2[0] = ( number2 & 0xFF000000 ) >> 24;
-		buf.result2[1] = ( number2 & 0xFF0000 ) >> 16;
-		buf.result2[2] = ( number2 & 0xFF00 ) >> 8;
-		buf.result2[3] = ( number2 & 0xFF ) >> 0;
+		buf.result1[0] = (_8)(( number1 & 0xFF000000 ) >> 24);
+		buf.result1[1] = (_8)(( number1 & 0xFF0000 ) >> 16);
+		buf.result1[2] = (_8)(( number1 & 0xFF00 ) >> 8);
+		buf.result1[3] = (_8)(( number1 & 0xFF ) >> 0);
+		buf.result2[0] = (_8)(( number2 & 0xFF000000 ) >> 24);
+		buf.result2[1] = (_8)(( number2 & 0xFF0000 ) >> 16);
+		buf.result2[2] = (_8)(( number2 & 0xFF00 ) >> 8);
+		buf.result2[3] = (_8)(( number2 & 0xFF ) >> 0);
 		{
 			int n;
 			// override text_content with....

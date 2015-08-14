@@ -6,6 +6,8 @@
 #include <idle.h>
 #define IMAGE_LIBRARY_SOURCE
 #include <ft2build.h>
+#include <../src/contrib/freetype-2.6/include/tttables.h>
+//#include <tttags.h>
 #ifdef FT_BEGIN_HEADER
 
 #ifdef _OPENGL_DRIVER
@@ -84,9 +86,6 @@ void PrintLeadin( int bits )
 	fprintf( output, WIDE( "\n") );
 	fprintf( output, WIDE( "#define EXTRA_STRUCT  struct ImageFile_tag *cell; RCOORD x1, x2, y1, y2; struct font_char_tag *next_in_line;\n") );
 	fprintf( output, WIDE( "#define EXTRA_INIT  ,0,0,0,0,0,0\n") );
-
-
-
 
 	fprintf( output, WIDE("typedef char CHARACTER, *PCHARACTER;\n") );
 }
@@ -1032,6 +1031,226 @@ void RenderGreyChar( PFONT font
 	}
 }
 
+void RenderColorChar( PFONT font
+						 , INDEX idx
+						 , FT_Bitmap *bitmap
+						 , FT_Glyph_Metrics *metrics
+						 , FT_Int left_ofs
+						 , FT_Int width
+						 )
+{
+	//lprintf( WIDE("Rending char %d bits %d"), idx, bits );
+	/*
+	 Log2( WIDE("Character: %d(%c)"), idx, idx>32&&idx<127?idx:0 );
+	 //Log1( WIDE("Font Height %d"), font->height );
+	 //Log5( WIDE("Bitmap information: (%d by %d) %d %d %d")
+	 //	 , bitmap->width
+	//	 , bitmap->rows
+	//	 , bitmap->pitch
+	//	 , bitmap->pixel_mode
+	//	 , bitmap->palette
+	//	 );
+	Log2( WIDE("Metrics: height %d bearing Y %d"), metrics->height, metrics->horiBearingY );
+	Log2( WIDE("Metrics: width %d bearing X %d"), metrics->width, metrics->horiBearingX );
+	Log2( WIDE("Metrics: advance %d %d"), metrics->horiAdvance, metrics->vertAdvance );
+	*/
+	if( bitmap->width > 1000 ||
+	    bitmap->width < 0 ||
+	    bitmap->rows > 1000 ||
+	    bitmap->rows < 0 )
+	{
+		Log3( WIDE("Failing character %") _size_f WIDE(" rows: %d  width: %d"), idx, bitmap->width, bitmap->rows );
+		font->character[idx] = NULL;
+		return;
+	}
+
+	{
+		PCHARACTER character = NewPlus( CHARACTER,
+												  + ( bitmap->rows
+													  * (bitmap->width*4) )
+												  + 512 );
+		INDEX bit, line, linetop, linebottom;
+		INDEX charleft, charright;
+		INDEX lines;
+
+		char *data, *chartop;
+		//lprintf( "character %c(%d) is %dx%d = %d", idx, idx, bitmap->width, bitmap->rows, ( bitmap->rows
+		//											  * (bitmap->width+(bits==8?0:bits==2?3:7)/(8/bits)) )
+		//										  + 512 );
+		font->flags |= FONT_FLAG_UPDATED;
+		font->character[idx] = character;
+		font->character[idx]->next_in_line = NULL;
+		font->character[idx]->cell = NULL;
+		if( !character )
+		{
+			Log( WIDE("Failed to allocate character") );
+			Log2( WIDE("rows: %d width: %d"), bitmap->rows, bitmap->width );
+			return;
+		}
+		character->width = width /*CEIL(metrics->horiAdvance)*/;
+		if( !bitmap->rows && !bitmap->width )
+		{
+			//Log( WIDE("No physical data for this...") );
+			character->ascent = 0;
+			character->descent = 0;
+			character->offset = 0;
+			character->size = 0;
+			return;
+		}
+
+		if( CEIL( metrics->width ) != bitmap->width )
+		{
+			Log4( WIDE("%") _size_f WIDE("(%c) metric and bitmap width mismatch : %d %d")
+					, idx, (int)((idx>=32 && idx<=127)?idx:'.')
+					, CEIL( metrics->width ), bitmap->width );
+		}
+		if( CEIL( metrics->height ) != bitmap->rows )
+		{
+			Log4( WIDE("%") _size_f WIDE("(%c) metric and bitmap height mismatch : %d %d")
+					, idx, (int)((idx>=32 && idx<=127)?idx:'.')
+					, CEIL( metrics->height ), bitmap->rows );
+			metrics->height = TOSCALED( bitmap->rows );
+		}
+
+		character->ascent = CEIL(metrics->horiBearingY);
+		if( metrics->height )
+			character->descent = -CEIL(metrics->height - metrics->horiBearingY) + 1;
+		else
+			character->descent = CEIL( metrics->horiBearingY ) - font->height + 1;
+		character->offset = CEIL(metrics->horiBearingX);
+		character->size = bitmap->width;
+
+		//lprintf( "heights %d %d %d", font->height, bitmap->rows, CEIL(metrics->height) );
+		//if( 0 )
+		//	lprintf( WIDE("(%") _size_f WIDE("(%c)) Character parameters: %d %d %d %d %d")
+		//			 , idx, (char)(idx< 32 ? ' ':idx)
+		//			 , character->width
+		//			 , character->offset
+		//			 , character->size
+		//			 , character->ascent
+		//			 , character->descent );
+
+		// for all horizontal lines which are blank - decrement ascent...
+		chartop = NULL;
+		data = (char*)bitmap->buffer;
+
+		linetop = 0;
+		linebottom = character->ascent - character->descent;
+		//Log2( WIDE("Linetop: %d linebottom: %d"), linetop, linebottom );
+
+		lines = character->ascent - character->descent;
+		// reduce ascent to character data minimum....
+		for( line = linetop; line <= linebottom; line++ )
+		{
+			data = (char*)bitmap->buffer + line * bitmap->pitch;
+			for( bit = 0; bit < character->size; bit++ )
+			{
+				if( data[0] || data[1] || data[2] )
+					break;
+			}
+			if( bit == character->size )
+			{
+				//Log( WIDE("Dropping a line...") );
+				character->ascent--;
+			}
+			else
+			{
+				linetop = line;
+				chartop = data;
+				break;
+			}
+		}
+		if( line == linebottom + 1 )
+		{
+			character->size = 0;
+			//Log( WIDE("No character data usable...") );
+			return;
+		}
+
+		for( line = linebottom; line > linetop; line-- )
+		{
+			data = (char*)bitmap->buffer + line * bitmap->pitch;
+			for( bit = 0; bit < character->size; bit++ )
+			{
+				if( data[0] || data[1] || data[2] )
+					break;
+			}
+			if( bit == character->size )
+			{
+				//Log( WIDE("Dropping a line...") );
+				character->descent++;
+			}
+			else
+			{
+				break;
+			}
+		}
+
+		linebottom = linetop + character->ascent - character->descent;
+		// find character left offset...
+		charleft = character->size;
+		for( line = linetop; line <= linebottom; line++ )
+		{
+			data = (char*)bitmap->buffer + (line) * bitmap->pitch;
+			for( bit = 0; bit < character->size; bit++ )
+			{
+				if( data[0] || data[1] || data[2] )
+				{
+					if( bit < charleft )
+						charleft = bit;
+				}
+			}
+			if( bit < character->size )
+				break;
+		}
+
+		// find character right extent
+		charright = 0;
+		for( line = linetop; line <= linebottom; line++ )
+		{
+			data = (char*)bitmap->buffer + (line) * bitmap->pitch;
+			for( bit = charleft; bit < character->size; bit++ )
+			{
+				if( data[0] || data[1] || data[2] )
+					if( bit > charright )
+						charright = bit;
+			}
+		}
+		charright ++; // add one back in... so we have a delta between left and right
+		//Log2( WIDE("Reduced char right size %d to %d"), charright, charright - charleft );
+
+		character->offset = (_8)charleft;
+		character->size = (_8)(charright - charleft);
+
+		{
+			unsigned char *outdata;
+			// now - to copy the pixels...
+			for( line = linetop; line <= linebottom; line++ )
+			{
+				outdata = character->data +
+					((line - linetop) * ((character->size*4) ));
+				data = (char*)bitmap->buffer + (line) * bitmap->pitch;
+				for( bit = 0; bit < ( character->size ); bit++)
+					outdata[bit] = 0;
+				for( bit = 0; bit < (character->size); bit++ )
+				{
+					//int grey = data[0] || data[1] || data[2];
+					//printf( WIDE("(%02x)"), grey );
+					{
+						outdata[bit + 0] = data[0];
+						outdata[bit + 1] = data[1];
+						outdata[bit + 2] = data[2];
+					}
+					//else
+					//	printf( WIDE("_") );
+				}
+				//printf( WIDE("\n") );
+			}
+		}
+		character->offset += left_ofs;
+	}
+}
+
 
 static void KillSpaces( TEXTCHAR *string )
 {
@@ -1050,10 +1269,21 @@ static void KillSpaces( TEXTCHAR *string )
 
 extern int InitFont( void );
 
+/* test if a face is full-color */
+LOGICAL IsColorEmojiFont( FT_Face face ) {
+	static const uint32_t tag = FT_MAKE_TAG('C', 'B', 'D', 'T');
+	FT_ULong length = 0;
+	FT_Load_Sfnt_Table( face, tag, 0, NULL, &length);
+	if (length) {
+		//std::cout << font_file_ << " is color font" << std::endl;
+		return TRUE;
+	}
+	return FALSE;
+}
+
 // everything eventually comes to here to render a font...
 // this should therefore cache this information with the fonts
 // it has created...
-
 
 void InternalRenderFontCharacter( PFONT_RENDERER renderer, PFONT font, INDEX idx )
 {
@@ -1098,8 +1328,14 @@ void InternalRenderFontCharacter( PFONT_RENDERER renderer, PFONT font, INDEX idx
 			return;
 
 				{
-					int ascent = CEIL(face->glyph->metrics.horiBearingY);
-					int descent;
+					//int ascent = CEIL(face->glyph->metrics.horiBearingY);
+					int ascent = CEIL( face->size->metrics.ascender );
+					int descent = CEIL( face->size->metrics.descender );
+					int height = CEIL( face->size->metrics.height );
+					renderer->font->height = height;
+					renderer->font->baseline = ascent +
+							( ( height - ( ascent - descent ) ) / 2 );
+#if 0
 					if( face->glyph->metrics.height )
 					{
 						descent = -CEIL(face->glyph->metrics.height - face->glyph->metrics.horiBearingY) + 1;
@@ -1108,7 +1344,9 @@ void InternalRenderFontCharacter( PFONT_RENDERER renderer, PFONT font, INDEX idx
 					{
 						descent = CEIL( face->glyph->metrics.horiBearingY ) /*- font->height + */ + 1;
 					}
-
+#endif
+#if 0
+					lprintf( "descent is %d", descent );
 					if( ( face->glyph->linearVertAdvance>>16 ) > renderer->font->height )
 					{
 						renderer->font->height = (short)(face->glyph->linearVertAdvance>>16);
@@ -1147,7 +1385,9 @@ void InternalRenderFontCharacter( PFONT_RENDERER renderer, PFONT font, INDEX idx
 						if( 0 )
 							lprintf( WIDE("Result baseline %c(%d %x) %d  %d   %d,%d"), idx, idx, idx, renderer->font->height, renderer->font->baseline, renderer->max_ascent, renderer->min_descent );
 					}
+#endif
 				}
+#if 0
 				{
 					if( ( face->glyph->linearVertAdvance>>16 ) > renderer->font->height )
 					{
@@ -1201,6 +1441,7 @@ void InternalRenderFontCharacter( PFONT_RENDERER renderer, PFONT font, INDEX idx
 							lprintf( WIDE("Result baseline %c(%d %x) %d  %d   %d,%d"), idx, idx, idx, renderer->font->height, renderer->font->baseline, renderer->max_ascent, renderer->min_descent );
 					}
 				}
+#endif
 		//lprintf( "advance and height... %d %d", ( face->glyph->linearVertAdvance>>16 ), renderer->font->height );
 			switch( face->glyph->format )
 			{
@@ -1227,7 +1468,17 @@ void InternalRenderFontCharacter( PFONT_RENDERER renderer, PFONT font, INDEX idx
 					 Log3( WIDE("bitmap height: %d ascent: %d descent: %d"), face->height>>6, face->ascender>>6, face->descender>>6);
 					 */
 				//Log( WIDE("Bitmap") );
-				if( ( renderer->flags & 3 ) == 0 )
+				if( renderer->flags & FONT_FLAG_COLOR )
+				{
+					RenderColorChar( renderer->font
+								 , idx
+								 , &face->glyph->bitmap
+								 , &face->glyph->metrics
+								 , face->glyph->bitmap_left // left offset?
+								 , face->glyph->linearHoriAdvance>>16
+									  );
+				}
+				else if( ( renderer->flags & 3 ) == 0 )
 				{
 					RenderMonoChar( renderer->font
 								 , idx
@@ -1537,6 +1788,8 @@ try_another_default:
 		{
 			//lprintf( "memopen %s", renderer->file );
 			error = OpenFontFile( renderer->file, &renderer->font_memory, &renderer->face, face_idx, TRUE );
+			if( IsColorEmojiFont( renderer->face ) )
+				renderer->flags |= FONT_FLAG_COLOR;
 #if rotation_was_italic
 			if( renderer->flags & FONT_FLAG_ITALIC )
 			{

@@ -27,13 +27,15 @@ enum JSON_ObjectElementTypes
    JSON_Element_CharArray,
    JSON_Element_Float,
    JSON_Element_Double,
+   JSON_Element_Array,  // result will fill a PLIST
    JSON_Element_Object,
    JSON_Element_ObjectPointer,
    JSON_Element_List,
    JSON_Element_Text,  // ptext type
    JSON_Element_PTRSZVAL,  
    JSON_Element_PTRSZVAL_BLANK_0,
-   JSON_Element_UserRoutine,
+	JSON_Element_UserRoutine,
+	JSON_Element_Raw_Object, // unparsed object remainder.  Includes bounding { } object indicator for re-parsing
    //JSON_Element_StaticText,  // text type; doesn't happen very often.
 };
 

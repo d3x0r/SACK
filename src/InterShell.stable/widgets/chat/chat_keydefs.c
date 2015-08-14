@@ -32,7 +32,7 @@ static void CPROC _Key_KeystrokePaste( PCONSOLE_INFO pmdp )
 //int KeyHome( void * list, PUSER_INPUT_BUFFER pci );
 //int KeyEndCmd( PTRSZVAL list, PUSER_INPUT_BUFFER pci );
 
-DECLTEXT( KeyStroke, WIDE("\x7f") ); // DECLTEXT implies 'static'
+DECLTEXT( KeyStrokeDelete, WIDE("\x7f") ); // DECLTEXT implies 'static'
 
 //----------------------------------------------------------------------------
 
@@ -41,6 +41,7 @@ int CPROC KeyGetGatheredLine( PCHAT_LIST list, PUSER_INPUT_BUFFER pci )
 	PTEXT tmp_input = GetUserInputLine( pci );
 	PTEXT line = BuildLine( tmp_input );
 	// input is in segments of 256 characters... collapse into a single line.
+	list->input.command_mark_start = list->input.command_mark_end = 0;
 	if( line && GetTextSize( line ) )
 	{
 		list->input.phb_Input->pBlock->pLines[0].nLineLength = LineLengthExEx( list->input.CommandInfo->CollectionBuffer, FALSE, 8, NULL );
@@ -352,7 +353,7 @@ CORECON_EXPORT( PSIKEYDEFINE, ConsoleKeyDefs[256] ) =
                       //, {"execute"}
                       //, {"snapshot"}
                       , [KEY_GREY_INSERT]={WIDE("insert"), 0, 0, {{COMMANDKEY, (PTEXT)KeyInsert}}}
-                      , [KEY_GREY_DELETE]={WIDE("delete"), 0, 0, {{KEYDATA_DEFINED, (PTEXT)&KeyStroke}}}
+                      , [KEY_GREY_DELETE]={WIDE("delete"), 0, 0, {{KEYDATA_DEFINED, (PTEXT)&KeyStrokeDelete}}}
                       , {"help"}
                       , [KEY_0]={WIDE("0"), 0, 0, {{KEYDATA}
                                     ,{KEYDATA}}}      //0x30
@@ -669,13 +670,13 @@ PSIKEYDEFINE ConsoleKeyDefs[] = { NONAMES
                                               ,{KEYDATA}} } //0x20
                       , {WIDE("prior"), WIDE("pgup"), 0, {{HISTORYKEY,(PTEXT)HistoryPageUp}} }
                       , {WIDE("next"), WIDE("pgdn"), 0, {{HISTORYKEY,(PTEXT)HistoryPageDown}} }
-                      , {WIDE("end"), 0, 0, {{COMMANDKEY, (PTEXT)KeyEndCmd}}}
-                      , {WIDE("home"), 0, 0, {{COMMANDKEY, (PTEXT)KeyHome}}}
-                      , {WIDE("left"), 0, 0, {{COMMANDKEY, (PTEXT)KeyLeft}}}
+                      , {WIDE("end"), 0, 0, {{COMMANDKEY, (PTEXT)KeyEndCmd},{COMMANDKEY, (PTEXT)KeyEndCmd}}}
+                      , {WIDE("home"), 0, 0, {{COMMANDKEY, (PTEXT)KeyHome},{COMMANDKEY, (PTEXT)KeyHome}}}
+                      , {WIDE("left"), 0, 0, {{COMMANDKEY, (PTEXT)KeyLeft},{COMMANDKEY, (PTEXT)KeyLeft}}}
 
                       , {WIDE("up") , 0, 0, { {COMMANDKEY, (PTEXT)CommandKeyUp}
                                        , {HISTORYKEY, (PTEXT)HistoryLineUp}}}
-                      , {WIDE("right"), 0, 0, {{COMMANDKEY, (PTEXT)KeyRight}}}
+                      , {WIDE("right"), 0, 0, {{COMMANDKEY, (PTEXT)KeyRight},{COMMANDKEY, (PTEXT)KeyRight}}}
                       , {WIDE("down"), 0, 0, {{COMMANDKEY, (PTEXT)HandleKeyDown}
                                        , {HISTORYKEY, (PTEXT)HistoryLineDown}}}
                       , {WIDE("select")}
@@ -683,7 +684,7 @@ PSIKEYDEFINE ConsoleKeyDefs[] = { NONAMES
                       , {WIDE("execute")}
                       , {WIDE("snapshot")}
                       , {WIDE("insert"), 0, 0, {{COMMANDKEY, (PTEXT)KeyInsert}}}
-                      , {WIDE("delete"), 0, 0, {{KEYDATA_DEFINED, (PTEXT)&KeyStroke}}}
+                      , {WIDE("delete"), 0, 0, {{KEYDATA_DEFINED, (PTEXT)&KeyStrokeDelete}}}
                       , {WIDE("help")}
                       , {WIDE("0"), 0, 0, {{KEYDATA}
                                     ,{KEYDATA}}}      //0x30
@@ -1109,7 +1110,7 @@ int KeyInsert( PCHAT_LIST list, PUSER_INPUT_BUFFER pci )
 
 int KeyRight( PCHAT_LIST list, PUSER_INPUT_BUFFER pci )
 {
-	size_t old_index;
+	size_t old_index = list->input.command_mark_end;
 	if( list->input.control_key_state & KEY_MOD_SHIFT )
 	{
 		if( list->input.command_mark_start == list->input.command_mark_end )
@@ -1128,7 +1129,7 @@ int KeyRight( PCHAT_LIST list, PUSER_INPUT_BUFFER pci )
 	{
 		size_t index = GetInputIndex( pci );
 		if( index > list->input.command_mark_end )
-			list->input.command_mark_start = index;
+			list->input.command_mark_end = index;
 		else if( index != old_index )
 			list->input.command_mark_start = index;
 	}
@@ -1139,7 +1140,7 @@ int KeyRight( PCHAT_LIST list, PUSER_INPUT_BUFFER pci )
 
 int KeyLeft( PCHAT_LIST list, PUSER_INPUT_BUFFER pci )
 {
-	size_t old_index;
+	size_t old_index = list->input.command_mark_start;
 	if( list->input.control_key_state & KEY_MOD_SHIFT )
 	{
 		if( list->input.command_mark_start == list->input.command_mark_end )
@@ -1495,6 +1496,14 @@ int Widget_DoStroke( PCHAT_LIST list, PTEXT stroke )
    int bOutput = FALSE;
    DECLTEXT( key, WIDE(" ") );
    //Log1( WIDE("Do Stroke with %c"), stroke->data.data[0] );
+   if( list->input.command_mark_start != list->input.command_mark_end )
+   {
+	   int n;
+	   SetUserInputPosition( list->input.CommandInfo, list->input.command_mark_start, COMMAND_POS_SET );
+	   for( n = 0; n < ( list->input.command_mark_end - list->input.command_mark_start ); n++ )
+		   GatherUserInput( list->input.CommandInfo, &KeyStrokeDelete );
+	   list->input.command_mark_start = list->input.command_mark_end = 0;
+   }
    while( stroke )
    {
       for( i = 0; i < stroke->data.size; i++ )

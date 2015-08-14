@@ -223,13 +223,13 @@
       png_destroy_read_struct( &png, NULL, NULL );
       goto Exit;
     }
-
+#if defined( PNG_SETJMP_SUPPORTED ) 
     if ( ft_setjmp( png_jmpbuf( png ) ) )
     {
       error = FT_THROW( Invalid_File_Format );
       goto DestroyExit;
     }
-
+#endif
     png_set_read_fn( png, &stream, read_data_from_FT_Stream );
 
     png_read_info( png, info );

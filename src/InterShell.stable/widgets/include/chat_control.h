@@ -47,6 +47,10 @@ CHAT_CONTROL_PROC( PSI_CONTROL, ImageViewer_ShowImage )( PSI_CONTROL parent, Ima
 CHAT_CONTROL_PROC( void, Chat_GetCurrentTime )( PCHAT_TIME timebuf );
 CHAT_CONTROL_PROC( void, Chat_ClearOldMessages )( PSI_CONTROL pc, int delete_time );
 CHAT_CONTROL_PROC( void, Chat_TypePastedInput )( PSI_CONTROL pc, PTEXT segment );
+CHAT_CONTROL_PROC( void, Chat_SetSendButtonImages )( PSI_CONTROL pc, Image normal, Image pressed, Image rollover, Image focused );
+CHAT_CONTROL_PROC( void, Chat_SetSendButtonText )( PSI_CONTROL pc, CTEXTSTR text );
+CHAT_CONTROL_PROC( void, Chat_SetSendButtonSize )( PSI_CONTROL pc, _32 width, _32 height );
+CHAT_CONTROL_PROC( void, Chat_SetSendButtonOffset )( PSI_CONTROL pc, S_32 x, S_32 y );
 
 
 #endif

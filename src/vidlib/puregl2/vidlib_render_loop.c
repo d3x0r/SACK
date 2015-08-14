@@ -127,7 +127,17 @@ void Render3D( struct display_camera *camera )
 	//lprintf( "Called init for camera.." );
 	{
 		PRENDERER hVideo = camera->hVidCore;
-
+#ifdef quat_logging
+		//RCOORD q[4];
+		//MATRIX m2;
+		//GetRotationMatrix( l.origin, q );
+		//SetRotationMatrix( (PTRANSFORM)&m2, q );
+		//PrintMatrix( l.origin->m );
+		//PrintMatrix( m2 );
+		//lprintf( "q = %.5g,%.5g,%.5g,%.5g %g"
+		//	, q[0], q[1], q[2], q[3]
+		//	, q[0]*q[0] + q[1]*q[1] + q[2]*q[2] + q[3]*q[3] );
+#endif
 		ApplyTranslationT( VectorConst_I, camera->origin_camera, l.origin );
 
 		LIST_FORALL( camera->plugins, idx, struct plugin_reference *, reference )

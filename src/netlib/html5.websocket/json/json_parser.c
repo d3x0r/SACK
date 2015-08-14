@@ -239,18 +239,18 @@ static void FillDataToElement( struct json_context_object_element *element
 }
 
 LOGICAL json_parse_message_format( struct json_context_object *format
-                           , CTEXTSTR msg
-						   , size_t msglen
-									, POINTER *_msg_output )
+                                 , CTEXTSTR msg
+                                 , size_t msglen
+                                 , POINTER *_msg_output )
 {
 	/* I guess this is a good parser */
 	PLIST elements = NULL;
 	struct json_context_object_element *element;
 	size_t n = 0; // character index;
 	int word;
-	TEXTCHAR c;
+	TEXTRUNE c;
 	LOGICAL status = TRUE;
-	TEXTCHAR quote = 0;
+	TEXTRUNE quote = 0;
 	LOGICAL escape = FALSE;
 	LOGICAL use_char = FALSE;
 	PLINKSTACK element_lists = NULL;
@@ -284,7 +284,7 @@ LOGICAL json_parse_message_format( struct json_context_object *format
 
 //	static CTEXTSTR keyword[3] = { "false", "null", "true" };
 
-	while( status && ( n < msglen ) && ( c = msg[n] ) )
+	while( status && ( n < msglen ) && ( c = GetUtfCharIndexed( msg, &n ) ) )
 	{
 		switch( c )
 		{
@@ -304,7 +304,7 @@ LOGICAL json_parse_message_format( struct json_context_object *format
 					elements = format->members;
 					PushLink( &element_lists, elements );
 					first_token = 0;
-					n++;
+					//n++;
 				}
 				else
 				{
@@ -329,7 +329,7 @@ LOGICAL json_parse_message_format( struct json_context_object *format
 									PushLink( &context_stack, old_context );
 									format = element->object;
 									elements = element->object->members;
-									n++;
+									//n++;
 									break;
 								}
 								else
@@ -362,7 +362,7 @@ LOGICAL json_parse_message_format( struct json_context_object *format
 					elements = format->members;
 					PushLink( &element_lists, elements );
 					first_token = 0;
-					n++;
+					//n++;
 				}
 				else
 				{
@@ -378,7 +378,7 @@ LOGICAL json_parse_message_format( struct json_context_object *format
 						{
 							if( ( element->count_offset != JSON_NO_OFFSET ) || element->count )
 							{
-								n++;
+								//n++;
 								break;
 							}
 							else
@@ -415,7 +415,7 @@ LOGICAL json_parse_message_format( struct json_context_object *format
 					if( !element )
 						status = FALSE;
 				}
-				n++;
+				//n++;
 			}
 			else
 			{
@@ -435,7 +435,7 @@ LOGICAL json_parse_message_format( struct json_context_object *format
 					elements = old_context->elements;
 					Release( old_context );
 				}
-				n++;
+				//n++;
 			}
 			else
 			{
@@ -472,7 +472,7 @@ LOGICAL json_parse_message_format( struct json_context_object *format
 			{
 				lprintf( WIDE("bad context; fault parsing '%c' unexpected %") _size_f, c, n );// fault
 			}
-			n++;
+			//n++;
 			break;
 
 		default:
@@ -487,7 +487,7 @@ LOGICAL json_parse_message_format( struct json_context_object *format
 				{
 					// collect a string
 					int escape = 0;
-					while( ( c = msg[++n] ) && ( n < msglen ) )
+					while( ( n < msglen ) && ( c = GetUtfCharIndexed( msg, &n ) ) )
 					{
 						if( c == '\\' )
 						{
@@ -502,7 +502,7 @@ LOGICAL json_parse_message_format( struct json_context_object *format
 								VarTextAddCharacter( val.pvt_collector, '\"' );
 							else
 							{
-								n++;
+								//n++;
 								break;
 							}
 						}
@@ -538,7 +538,7 @@ LOGICAL json_parse_message_format( struct json_context_object *format
 										int ofs;
 										for( ofs = 0; ofs < 4; ofs++ )
 										{
-											c = msg[++n];
+											c = GetUtfCharIndexed( msg, &n );
 											hex_char *= 16;
 											if( c >= '0' && c <= '9' )
 												hex_char += c - '0';
@@ -554,7 +554,7 @@ LOGICAL json_parse_message_format( struct json_context_object *format
 														 , msg + n + 1
 														 );// fault
 										}
-										VarTextAddCharacter( val.pvt_collector, (TEXTCHAR)hex_char );
+										VarTextAddCharacter( val.pvt_collector, (TEXTRUNE)hex_char );
 									}
 									break;
 								default:
@@ -581,7 +581,7 @@ LOGICAL json_parse_message_format( struct json_context_object *format
 			case '\r':
 			case '\n':
 				// skip whitespace
-				n++;
+				//n++;
 				break;
 
 		//----------------------------------------------------------
@@ -591,14 +591,14 @@ LOGICAL json_parse_message_format( struct json_context_object *format
 					word = 1;
 				else
 					lprintf( WIDE("fault parsing '%c' unexpected at %")_size_f, c, n );// fault
-				n++;
+				//n++;
 				break;
 			case 'r':
 				if( word == 1 )
 					word = 2;
 				else
 					lprintf( WIDE("fault parsing '%c' unexpected %")_size_f, c, n );// fault
-				n++;
+				//n++;
 				break;
 			case 'u':
 				if( word == 2 )
@@ -607,7 +607,7 @@ LOGICAL json_parse_message_format( struct json_context_object *format
 					word = 22;
 				else
 					lprintf( WIDE("fault parsing '%c' unexpected %")_size_f, c, n );// fault
-				n++;
+				//n++;
 				break;
 			case 'e':
 				if( word == 3 )
@@ -622,14 +622,14 @@ LOGICAL json_parse_message_format( struct json_context_object *format
 				}
 				else
 					lprintf( WIDE("fault parsing '%c' unexpected %")_size_f, c, n );// fault
-				n++;
+				//n++;
 				break;
 			case 'n':
 				if( word == 0 )
 					word = 21;
 				else
 					lprintf( WIDE("fault parsing '%c' unexpected %")_size_f, c, n );// fault
-				n++;
+				//n++;
 				break;
 			case 'l':
 				if( word == 22 )
@@ -643,28 +643,28 @@ LOGICAL json_parse_message_format( struct json_context_object *format
 					word = 13;
 				else
 					lprintf( WIDE("fault parsing '%c' unexpected %")_size_f, c, n );// fault
-				n++;
+				//n++;
 				break;
 			case 'f':
 				if( word == 0 )
 					word = 11;
 				else
 					lprintf( WIDE("fault parsing '%c' unexpected %")_size_f, c, n );// fault
-				n++;
+				//n++;
 				break;
 			case 'a':
 				if( word == 11 )
 					word = 12;
 				else
 					lprintf( WIDE("fault parsing '%c' unexpected %")_size_f, c, n );// fault
-				n++;
+				//n++;
 				break;
 			case 's':
 				if( word == 13 )
 					word = 14;
 				else
 					lprintf( WIDE("fault parsing '%c' unexpected %") _size_f, c, n );// fault
-				n++;
+				//n++;
             break;
 		//
  	 	//----------------------------------------------------------
@@ -678,7 +678,7 @@ LOGICAL json_parse_message_format( struct json_context_object *format
                // keep it set to determine what sort of value is ready.
 					val.float_result = 0;
 					VarTextAddCharacter( val.pvt_collector, c );
-					while( ( c = msg[++n] ) && ( n < msglen ) )
+					while( ( n < msglen ) && ( c = GetUtfCharIndexed( msg, &n) ) )
 					{
 						// leading zeros should be forbidden.
 						if( ( c >= '0' && c <= '9' )
@@ -721,7 +721,7 @@ LOGICAL json_parse_message_format( struct json_context_object *format
 						 )
 				{
 					// do nothing; white space is allowed.
-					n++;
+					//n++;
 				}
 				else
 				{
@@ -732,7 +732,7 @@ LOGICAL json_parse_message_format( struct json_context_object *format
 							 , c
 							 , msg + n + 1
 							 );// fault
-					n++;
+					//n++;
 				}
 				break; // default
 			}

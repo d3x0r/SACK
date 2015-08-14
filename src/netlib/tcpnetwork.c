@@ -270,7 +270,6 @@ NETWORK_PROC( PCLIENT, CPPOpenTCPListenerAddrExx )( SOCKADDR *pAddr
 	if( WSAAsyncSelect( pListen->Socket, g.ghWndNetwork,
                        SOCKMSG_TCP, FD_ACCEPT|FD_CLOSE ) )
 	{
-		DebugBreak();
 		lprintf( WIDE("Windows AsynchSelect failed: %d"), WSAGetLastError() );
 		InternalRemoveClientEx( pListen, TRUE, FALSE );
 		NetworkUnlock( pListen );
@@ -291,15 +290,9 @@ NETWORK_PROC( PCLIENT, CPPOpenTCPListenerAddrExx )( SOCKADDR *pAddr
 #endif
 
    if (!pAddr || 
-		 bind(pListen->Socket ,pAddr
-#ifdef WIN32
-			  ,sizeof(SOCKADDR)
-#else
-			  ,(pAddr->sa_family==AF_INET)?sizeof(struct sockaddr):110
-#endif
-			  ))
+		 bind(pListen->Socket ,pAddr, SOCKADDR_LENGTH( pAddr ) ) )
 	{
-		_lprintf(DBG_RELAY)( WIDE("Cant bind to address..:%d"), WSAGetLastError() );
+		_lprintf(DBG_RELAY)( WIDE("Cannot bind to address..:%d"), WSAGetLastError() );
 		InternalRemoveClientEx( pListen, TRUE, FALSE );
 		NetworkUnlock( pListen );
 		return NULL;
@@ -368,6 +361,9 @@ NETWORK_PROC( PCLIENT, CPPOpenTCPListenerExx )(_16 wPort
 	SOCKADDR *lpMyAddr = CreateLocal(wPort);
 	PCLIENT pc = CPPOpenTCPListenerAddrExx( lpMyAddr, NotifyCallback, psvConnect DBG_RELAY );
 	ReleaseAddress( lpMyAddr );
+	lpMyAddr = CreateSockAddress( ":::", wPort );
+	pc->pcOther = CPPOpenTCPListenerAddrExx( lpMyAddr, NotifyCallback, psvConnect DBG_RELAY );
+	Release( lpMyAddr );
 	return pc;
 }
 
@@ -395,7 +391,7 @@ NETWORK_PROC( PCLIENT, OpenTCPListenerEx )(_16 wPort, cNotifyCallback NotifyCall
 }
 //----------------------------------------------------------------------------
 
-static PCLIENT InternalTCPClientAddrExxx(SOCKADDR *lpAddr,
+static PCLIENT InternalTCPClientAddrFromAddrExxx(SOCKADDR *lpAddr, SOCKADDR *pFromAddr, 
 													  int bCPP,
 													  cppReadComplete  pReadComplete,
 													  PTRSZVAL psvRead,
@@ -463,6 +459,27 @@ static PCLIENT InternalTCPClientAddrExxx(SOCKADDR *lpAddr,
 #else
 			fcntl( pResult->Socket, F_SETFL, O_NONBLOCK );
 #endif
+			if( pFromAddr )
+			{
+				
+				LOGICAL opt = 1;
+				err = setsockopt( pResult->Socket, SOL_SOCKET, SO_REUSEADDR, (const char *)&opt, sizeof( opt ) );
+				if( err )
+				{
+					_32 dwError = WSAGetLastError();
+					lprintf( "Failed to set socket option REUSEADDR : %d", dwError );
+				}
+				pResult->saSource = DuplicateAddress( pFromAddr );
+				//DumpAddr( "source", pResult->saSource );
+				if( ( err = bind( pResult->Socket, pResult->saSource
+								, SOCKADDR_LENGTH( pResult->saSource ) ) ) )
+				{
+					_32 dwError;
+					dwError = WSAGetLastError();
+					lprintf( "Error binding connecting socket to source address... continuing with connect : %d", dwError );
+				}
+			}
+
 			pResult->saClient = DuplicateAddress( lpAddr );
 
 			// set up callbacks before asynch select...
@@ -642,7 +659,7 @@ NETWORK_PROC( PCLIENT, CPPOpenTCPClientAddrExxx )(SOCKADDR *lpAddr,
 																  PTRSZVAL psvConnect
 																  DBG_PASS  )
 {
-	return InternalTCPClientAddrExxx( lpAddr, TRUE
+	return InternalTCPClientAddrFromAddrExxx( lpAddr, NULL, TRUE
 											 , pReadComplete, psvRead
 											 , CloseCallback, psvClose
 											 , WriteComplete, psvWrite
@@ -661,27 +678,63 @@ NETWORK_PROC( PCLIENT, CPPOpenTCPClientAddrExx )(SOCKADDR *lpAddr,
              PTRSZVAL psvConnect
 																)
 {
-	return InternalTCPClientAddrExxx( lpAddr, TRUE
+	return InternalTCPClientAddrFromAddrExxx( lpAddr, NULL, TRUE
 											 , pReadComplete, psvRead
 											 , CloseCallback, psvClose
 											 , WriteComplete, psvWrite
 											 , pConnectComplete, psvConnect DBG_SRC );
 }
 //----------------------------------------------------------------------------
-NETWORK_PROC( PCLIENT, OpenTCPClientAddrExxx )(SOCKADDR *lpAddr,
-															  cReadComplete     pReadComplete,
-															  cCloseCallback    CloseCallback,
-															  cWriteComplete    WriteComplete,
-															  cConnectCallback  pConnectComplete
+NETWORK_PROC( PCLIENT, OpenTCPClientAddrExxx )(SOCKADDR *lpAddr
+															  , cReadComplete     pReadComplete
+															  , cCloseCallback    CloseCallback
+															  , cWriteComplete    WriteComplete
+															  , cConnectCallback  pConnectComplete
                                                DBG_PASS
 															 )
 {
-	return InternalTCPClientAddrExxx( lpAddr, FALSE
+	return InternalTCPClientAddrFromAddrExxx( lpAddr, NULL, FALSE
 											 , (cppReadComplete)pReadComplete, 0
 											 , (cppCloseCallback)CloseCallback, 0
 											 , (cppWriteComplete)WriteComplete, 0
 											 , (cppConnectCallback)pConnectComplete, 0 DBG_RELAY );
 }
+
+NETWORK_PROC( PCLIENT, OpenTCPClientAddrFromAddrEx )(SOCKADDR *lpAddr, SOCKADDR *pFromAddr
+															  , cReadComplete     pReadComplete
+															  , cCloseCallback    CloseCallback
+															  , cWriteComplete    WriteComplete
+															  , cConnectCallback  pConnectComplete
+                                               DBG_PASS
+															 )
+{
+	
+	return InternalTCPClientAddrFromAddrExxx( lpAddr, pFromAddr, FALSE
+											 , (cppReadComplete)pReadComplete, 0
+											 , (cppCloseCallback)CloseCallback, 0
+											 , (cppWriteComplete)WriteComplete, 0
+											 , (cppConnectCallback)pConnectComplete, 0 DBG_RELAY );
+}
+
+NETWORK_PROC( PCLIENT, OpenTCPClientAddrFromEx )(SOCKADDR *lpAddr, int port
+															  , cReadComplete     pReadComplete															  , cCloseCallback    CloseCallback
+															  , cWriteComplete    WriteComplete
+															  , cConnectCallback  pConnectComplete
+                                               DBG_PASS
+															 )
+{
+	PCLIENT result;
+	SOCKADDR *pFromAddr = CreateSockAddress( NULL, port );
+	result = InternalTCPClientAddrFromAddrExxx( lpAddr, pFromAddr, FALSE
+											 , (cppReadComplete)pReadComplete, 0
+											 , (cppCloseCallback)CloseCallback, 0
+											 , (cppWriteComplete)WriteComplete, 0
+											 , (cppConnectCallback)pConnectComplete, 0 DBG_RELAY );
+	ReleaseAddress( pFromAddr );
+	return result;
+}
+
+
 #undef OpenTCPClientAddrExx
 NETWORK_PROC( PCLIENT, OpenTCPClientAddrExx )(SOCKADDR *lpAddr, 
              cReadComplete     pReadComplete,

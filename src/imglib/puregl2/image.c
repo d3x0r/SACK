@@ -416,7 +416,8 @@ void  BlatColor ( Image pifDest, S_32 x, S_32 y, _32 w, _32 h, CDATA color )
 		h = r.height;
 	}
 
-	if( pifDest->flags & IF_FLAG_FINAL_RENDER )
+	if( ( pifDest->flags & IF_FLAG_FINAL_RENDER )
+		&& !( pifDest->flags & IF_FLAG_IN_MEMORY ) )
 	{
 		VECTOR v[2][4];
 		float _color[4];
@@ -536,7 +537,8 @@ void  BlatColorAlpha ( Image pifDest, S_32 x, S_32 y, _32 w, _32 h, CDATA color 
 		h = r.height;
 	}
 
-	if( pifDest->flags & IF_FLAG_FINAL_RENDER )
+	if( ( pifDest->flags & IF_FLAG_FINAL_RENDER )
+		&& !( pifDest->flags & IF_FLAG_IN_MEMORY ) )
 	{
 		VECTOR v[2][4];
 		float _color[4];

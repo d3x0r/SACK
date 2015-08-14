@@ -531,7 +531,7 @@ void json_add_float_value_array( struct json_context *context, CTEXTSTR name, fl
 	}
 	else
 	{
-		vtprintf( context->pvt, WIDE("\"%s\":[")
+		vtprintf( context->pvt, WIDE("%*.*s\"%s\":[")
 				  , context->levels, context->levels, tab_filler
 				  , name );
 		for( n = 0; n < nValues; n++ )
@@ -556,7 +556,8 @@ void json_add_double_value_array( struct json_context *context, CTEXTSTR name, d
 	}
 	else
 	{
-		vtprintf( context->pvt, WIDE("\"%s\":[")
+		vtprintf( context->pvt, WIDE("%*.*s\"%s\":[")
+				  , context->levels, context->levels, tab_filler
 				  , name );
 		for( n = 0; n < nValues; n++ )
 			vtprintf( context->pvt, WIDE("%s%g"), (n==0)?WIDE(""):WIDE(","), pValues[nValues] );
@@ -1090,6 +1091,28 @@ TEXTSTR json_build_message( struct json_context_object *object
 										);
 			else
 				json_add_uint_8_value( context, member->name, *(_8*)(((PTRSZVAL)msg)+member->offset) );
+			break;
+		case JSON_Element_Float:
+			if( member->count )
+				json_add_float_value_array( context, member->name, (float*)(((PTRSZVAL)msg)+member->offset), member->count );
+			else if( member->count_offset != JSON_NO_OFFSET )
+				json_add_float_value_array( context, member->name
+										, *(float**)(((PTRSZVAL)msg)+member->offset)
+										, *(size_t*)(((PTRSZVAL)msg)+member->count_offset)
+										);
+			else
+				json_add_float_value( context, member->name, *(float*)(((PTRSZVAL)msg)+member->offset) );
+			break;
+		case JSON_Element_Double:
+			if( member->count )
+				json_add_double_value_array( context, member->name, (double*)(((PTRSZVAL)msg)+member->offset), member->count );
+			else if( member->count_offset != JSON_NO_OFFSET )
+				json_add_double_value_array( context, member->name
+										, *(double**)(((PTRSZVAL)msg)+member->offset)
+										, *(size_t*)(((PTRSZVAL)msg)+member->count_offset)
+										);
+			else
+				json_add_float_value( context, member->name, *(double*)(((PTRSZVAL)msg)+member->offset) );
 			break;
 
 		case JSON_Element_String:

@@ -1114,7 +1114,7 @@ struct password_info *PromptForPassword( PUSER *result_user, INDEX *result_login
 	}	
 
 	// Hide Canvas
-	HideCommon( l.frame );
+	HideControl( l.frame );
 	l.flags.matched = 0;
 
 	//Reset Message
@@ -1142,7 +1142,7 @@ struct password_info *PromptForPassword( PUSER *result_user, INDEX *result_login
 		// Reset Flag & Hide Canvas
 		l.flags.first_loop = 0;
 		l.flags.matched = 0;
-		HideCommon( l.frame );
+		HideControl( l.frame );
 
 		//Reset Message
 		snprintf( l.cPassPop2, MESSAGE_SIZE, WIDE("%s"), WIDE("Your password has expired! Please enter a new password and press enter.") );
@@ -3695,7 +3695,7 @@ static void OnKeyPressEvent( WIDE("SQL Users/User Report") )( PTRSZVAL psv )
 
 	l.done = l.okay = 0;			
 	CommonLoop( &l.done, &l.okay );	
-	HideCommon( l.frame );
+	HideControl( l.frame );
 
 	FontFromColumns( printer, NULL, NULL, 100, NULL );
 	//ReadPasswordFile();

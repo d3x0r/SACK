@@ -72,6 +72,7 @@ IF_FLAG_USER3          = 0x40000, /* An extra flag that can be used by users of 
 IF_FLAG_FINAL_RENDER   = 0x00200, // output should render to opengl target (with transform); also used with proxy
 IF_FLAG_UPDATED        = 0x00400, // set when a operation has changed the surface of a local image; requires update to remote device(s)
 IF_FLAG_HAS_PUTSTRING  = 0x00800, // set when a operation has changed the surface of a local image; requires update to remote device(s)
+IF_FLAG_IN_MEMORY      = 0x01000, // is an in-memory image; that is the surface can be written to directly with pixel ops (putstring)
 	};
 //#define _DRAWPOINT_X 0
 //#define _DRAWPOINT_Y 1
@@ -173,6 +174,29 @@ private:
 #endif
 #endif
 //DOM-IGNORE-END
+};
+
+enum SlicedImageSection {
+	SLICED_IMAGE_TOP_LEFT,
+	SLICED_IMAGE_TOP,
+	SLICED_IMAGE_TOP_RIGHT,
+	SLICED_IMAGE_LEFT,
+	SLICED_IMAGE_CENTER,
+	SLICED_IMAGE_RIGHT,
+	SLICED_IMAGE_BOTTOM_LEFT,
+	SLICED_IMAGE_BOTTOM,
+	SLICED_IMAGE_BOTTOM_RIGHT,
+};
+
+struct SlicedImageFile {
+	struct ImageFile_tag *image;
+	struct ImageFile_tag *slices[9];
+	_32 left, right, top, bottom;
+	_32 center_w, center_h;
+	_32 right_w;
+	_32 bottom_h;
+	LOGICAL output_center;
+	LOGICAL extended_slice;
 };
 
 /* The basic structure. This is referenced by applications as '<link sack::image::Image, Image>'

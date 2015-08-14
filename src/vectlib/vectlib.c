@@ -1539,13 +1539,37 @@ y = (Qxz-Qzx)*s
 z = (Qyx-Qxy)*s
 */
 	RCOORD t = pt->m[0][0] + pt->m[1][1] + pt->m[2][2];
-	RCOORD r = sqrt(1+t);
-	RCOORD s = ((RCOORD)0.5)/r;
-	quat[0] = ((RCOORD)0.5)*r;
-	quat[1] = (pt->m[2][1]-pt->m[1][2])*s;
-	quat[2] = (pt->m[0][2]-pt->m[2][0])*s;
-	quat[3] = (pt->m[1][0]-pt->m[0][1])*s;
+	if( t > 0 )
+	{
+		RCOORD r = sqrt(1+t);
+		RCOORD s = ((RCOORD)0.5)/r;
+		quat[0] = s;
+		quat[1] = (pt->m[2][1]-pt->m[1][2])*s;
+		quat[2] = (pt->m[0][2]-pt->m[2][0])*s;
+		quat[3] = (pt->m[1][0]-pt->m[0][1])*s;
+	}
+	else if ((pt->m[0][0] > pt->m[1][1])&&(pt->m[0][0] > pt->m[2][2])) { 
+		float S = sqrt(1.0 + pt->m[0][0] - pt->m[1][1] - pt->m[2][2]) * 2; // S=4*qx 
+		quat[0] = (pt->m[2][1] - pt->m[1][2]) / S;
+		quat[1] = 0.25 * S;
+		quat[2] = (pt->m[0][1] + pt->m[1][0]) / S; 
+		quat[3] = (pt->m[0][2] + pt->m[2][0]) / S; 
+	} else if (pt->m[1][1] > pt->m[2][2]) { 
+		float S = sqrt(1.0 + pt->m[1][1] - pt->m[0][0] - pt->m[2][2]) * 2; // S=4*qy
+		quat[0] = (pt->m[0][2] - pt->m[2][0]) / S;
+		quat[1] = (pt->m[0][1] + pt->m[1][0]) / S; 
+		quat[2] = 0.25 * S;
+		quat[3] = (pt->m[1][2] + pt->m[2][1]) / S; 
+	} else { 
+		float S = sqrt(1.0 + pt->m[2][2] - pt->m[0][0] - pt->m[1][1]) * 2; // S=4*qz
+		quat[0] = (pt->m[1][0] - pt->m[0][1]) / S;
+		quat[1] = (pt->m[0][2] + pt->m[2][0]) / S;
+		quat[2] = (pt->m[1][2] + pt->m[2][1]) / S;
+		quat[3] = 0.25 * S;
+	}
 
+	{
+	}
 }
 
 #ifdef WORKING_REVERSE_ANGLE_CODE

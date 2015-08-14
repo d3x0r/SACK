@@ -34,7 +34,7 @@ struct treenode_tag {
 		BIT_FIELD bRoot:1;
 	} flags;
 	_32 children;
-	POINTER userdata;
+	CPOINTER userdata;
 	PTRSZVAL key;
 	struct treenode_tag *lesser;
 	struct treenode_tag *greater;
@@ -64,8 +64,8 @@ typedef struct treeroot_tag {
 
 static TREENODE TreeNodeSet;
 
-POINTER GetLesserNodeExx( PTREEROOT root, PTREENODE *from );
-POINTER GetGreaterNodeExx( PTREEROOT root, PTREENODE *from );
+CPOINTER GetLesserNodeExx( PTREEROOT root, PTREENODE *from );
+CPOINTER GetGreaterNodeExx( PTREEROOT root, PTREENODE *from );
 
 //---------------------------------------------------------------------------
 
@@ -271,17 +271,17 @@ int HangBinaryNode( PTREEROOT root, PTREENODE node )
 			while( check && !check->flags.bRoot )
 			{
 				check->children -= (node->children + 1);
-            check = check->parent;
+				check = check->parent;
 			}
-         if( check )
+			if( check )
 				check->children -= (node->children + 1);
-         DeleteFromSet( TREENODE, &TreeNodeSet, node );
-         //Release( node );
+			DeleteFromSet( TREENODE, &TreeNodeSet, node );
+			//Release( node );
 
 		 
 		 return 0;
 		}
-      else
+		else
 		{
 			int leftchildren = 0, rightchildren = 0;
 			if( check->lesser )
@@ -314,14 +314,14 @@ int HangBinaryNode( PTREEROOT root, PTREENODE node )
 			}
 		}
 	}
-   return 1;
+	return 1;
 }
 
 //---------------------------------------------------------------------------
 
 int AddBinaryNodeEx( PTREEROOT root
-						, POINTER userdata
-						, PTRSZVAL key DBG_PASS )
+                   , CPOINTER userdata
+                   , PTRSZVAL key DBG_PASS )
 {
 	PTREENODE node;
 	if( !root )
@@ -343,7 +343,7 @@ int AddBinaryNode( PTREEROOT root
 						, POINTER userdata
 					  , PTRSZVAL key )
 {
-   return AddBinaryNodeEx( root, userdata, key DBG_SRC );
+	return AddBinaryNodeEx( root, userdata, key DBG_SRC );
 }
 //---------------------------------------------------------------------------
 
@@ -360,7 +360,7 @@ static void RehangBranch( PTREEROOT root, PTREENODE node )
 		{
 			RehangBranch( root, node->lesser );
 		}
-      node->children = 0;
+		node->children = 0;
 		//lprintf( "putting self node back in tree %p", node );
 		HangBinaryNode( root, node );
 	}
@@ -427,8 +427,8 @@ static void NativeRemoveBinaryNode( PTREEROOT root, PTREENODE node )
 			}
 			else
 			{
-            // hmm same key different data...
-            break;
+				// hmm same key different data...
+				break;
 			}
 		}
 	}
@@ -452,7 +452,7 @@ void DestroyBinaryTree( PTREEROOT root )
 {
 	while( root->tree )
 		NativeRemoveBinaryNode( root, root->tree );
-   DeleteFromSet( TREEROOT, &treepool, root );
+	DeleteFromSet( TREEROOT, &treepool, root );
 }
 
 //---------------------------------------------------------------------------
@@ -486,7 +486,7 @@ PTREEROOT CreateBinaryTreeEx( GenericCompare Compare
 
 //---------------------------------------------------------------------------
 int maxlevel = 0;
-void DumpNode( PTREENODE node, int level, int (*DumpMethod)( POINTER user, PTRSZVAL key ) )
+void DumpNode( PTREENODE node, int level, int (*DumpMethod)( CPOINTER user, PTRSZVAL key ) )
 {
 	int print;
 	if( !node )
@@ -497,7 +497,7 @@ void DumpNode( PTREENODE node, int level, int (*DumpMethod)( POINTER user, PTRSZ
 	if( DumpMethod )
 		print = DumpMethod( node->userdata, node->key );
 	else
-      print = TRUE;
+		print = TRUE;
 	//else
 	if( print )
 		lprintf( WIDE("[%3d] %p Node has %3")_32f WIDE(" children (%p %3")_32f WIDE(",%p %3")_32f WIDE("). %10") _PTRSZVALfs
@@ -514,7 +514,7 @@ void DumpNode( PTREENODE node, int level, int (*DumpMethod)( POINTER user, PTRSZ
 //---------------------------------------------------------------------------
 
 void DumpTree( PTREEROOT root 
-				 , int (*Dump)( POINTER user, PTRSZVAL key ) )
+				 , int (*Dump)( CPOINTER user, PTRSZVAL key ) )
 {
 	maxlevel = 0;
 	lprintf( WIDE("Tree %p has %")_32f WIDE(" nodes. %p is root"), root, root->children, root->tree );
@@ -524,7 +524,7 @@ void DumpTree( PTREEROOT root
 
 //---------------------------------------------------------------------------
 
-POINTER FindInBinaryTree( PTREEROOT root, PTRSZVAL key )
+CPOINTER FindInBinaryTree( PTREEROOT root, PTRSZVAL key )
 {
 	PTREENODE node;
 	if( !root )
@@ -597,7 +597,7 @@ int CPROC TextMatchLocate( PTRSZVAL key1, PTRSZVAL key2 )
 // 1 = no match, actual may be larger
 // -1 = no match, actual may be lesser
 // 100 = inexact match- checks nodes near for better match.
-POINTER LocateInBinaryTree( PTREEROOT root, PTRSZVAL key
+CPOINTER LocateInBinaryTree( PTREEROOT root, PTRSZVAL key
 								  , int (CPROC*fuzzy)( PTRSZVAL psv, PTRSZVAL node_key )
 
 								  )
@@ -683,15 +683,15 @@ POINTER LocateInBinaryTree( PTREEROOT root, PTRSZVAL key
 
 //---------------------------------------------------------------------------
 
-POINTER GetCurrentNodeEx( PTREEROOT root, POINTER *cursor )
+CPOINTER GetCurrentNodeEx( PTREEROOT root, POINTER *cursor )
 {
 	if( !root || !(*cursor) )
 		return NULL;
-   return (*(struct treenode_tag **)cursor)->userdata;
+	return (*(struct treenode_tag **)cursor)->userdata;
 }
-POINTER GetCurrentNode( PTREEROOT root )
+CPOINTER GetCurrentNode( PTREEROOT root )
 {
-   return GetCurrentNodeEx( root, (POINTER*)&root->current );
+	return GetCurrentNodeEx( root, (POINTER*)&root->current );
 }
 
 //---------------------------------------------------------------------------
@@ -700,7 +700,7 @@ void RemoveLastFoundNode( PTREEROOT root )
 {
 	if( !root || !root->lastfound )
 		return;
-   NativeRemoveBinaryNode( root, root->lastfound );
+	NativeRemoveBinaryNode( root, root->lastfound );
 }
 
 //---------------------------------------------------------------------------
@@ -710,17 +710,17 @@ void RemoveCurrentNodeEx( PTREEROOT root, POINTER *cursor )
 	if( !root || !(*cursor) )
 		return;
 	NativeRemoveBinaryNode( root, (PTREENODE)(*cursor) );
-   (*cursor) = NULL;
+	(*cursor) = NULL;
 }
 
 void RemoveCurrentNode( PTREEROOT root )
 {
-   RemoveCurrentNodeEx( root, (POINTER*)&root->current );
+	RemoveCurrentNodeEx( root, (POINTER*)&root->current );
 }
 
 //---------------------------------------------------------------------------
 
-POINTER GetGreaterNodeExx( PTREEROOT root, PTREENODE *from )
+CPOINTER GetGreaterNodeExx( PTREEROOT root, PTREENODE *from )
 {
 	if( !root || !(*from) ) return 0;
 
@@ -780,17 +780,17 @@ POINTER GetGreaterNodeExx( PTREEROOT root, PTREENODE *from )
 	return (*from)->userdata;
 }
 
-POINTER GetGreaterNodeEx( PTREEROOT root, POINTER *cursor )
+CPOINTER GetGreaterNodeEx( PTREEROOT root, POINTER *cursor )
 {
-   return GetGreaterNodeExx( root, (PTREENODE*)cursor );
+	return GetGreaterNodeExx( root, (PTREENODE*)cursor );
 }
-POINTER GetGreaterNode( PTREEROOT root )
+CPOINTER GetGreaterNode( PTREEROOT root )
 {
-   return GetGreaterNodeExx( root, &root->current );
+	return GetGreaterNodeExx( root, &root->current );
 }
 //---------------------------------------------------------------------------
 
-POINTER GetLesserNodeExx( PTREEROOT root, PTREENODE *from )
+CPOINTER GetLesserNodeExx( PTREEROOT root, PTREENODE *from )
 {
 	if( !root || !(*from) ) return 0;
 
@@ -850,18 +850,18 @@ POINTER GetLesserNodeExx( PTREEROOT root, PTREENODE *from )
 	return (*from)->userdata;
 }
 
-POINTER GetLesserNodeEx( PTREEROOT root, POINTER *cursor )
+CPOINTER GetLesserNodeEx( PTREEROOT root, POINTER *cursor )
 {
-   return GetLesserNodeExx( root, (PTREENODE*)cursor );
+	return GetLesserNodeExx( root, (PTREENODE*)cursor );
 }
-POINTER GetLesserNode( PTREEROOT root )
+CPOINTER GetLesserNode( PTREEROOT root )
 {
-   return GetLesserNodeExx( root, &root->current );
+	return GetLesserNodeExx( root, &root->current );
 }
 
 //---------------------------------------------------------------------------
 
-POINTER GetLeastNodeEx( PTREEROOT root, POINTER *cursor )
+CPOINTER GetLeastNodeEx( PTREEROOT root, POINTER *cursor )
 {
 	if( !root ) return 0;
 	(*(struct treenode_tag **)cursor) = root->tree;
@@ -873,13 +873,13 @@ POINTER GetLeastNodeEx( PTREEROOT root, POINTER *cursor )
 	return 0;
 }
 
-POINTER GetLeastNode( PTREEROOT root )
+CPOINTER GetLeastNode( PTREEROOT root )
 {
-   return GetLeastNodeEx( root, (POINTER*)&root->current );
+	return GetLeastNodeEx( root, (POINTER*)&root->current );
 }
 //---------------------------------------------------------------------------
 
-POINTER GetGreatestNodeEx( PTREEROOT root, POINTER *cursor )
+CPOINTER GetGreatestNodeEx( PTREEROOT root, POINTER *cursor )
 {
 	if( !root ) return 0;
 	root->prior = NULL;
@@ -890,14 +890,14 @@ POINTER GetGreatestNodeEx( PTREEROOT root, POINTER *cursor )
 		return (*(struct treenode_tag **)cursor)->userdata;
 	return 0;
 }
-POINTER GetGreatestNode( PTREEROOT root )
+CPOINTER GetGreatestNode( PTREEROOT root )
 {
-   return GetGreatestNodeEx( root, (POINTER*)&root->current );
+	return GetGreatestNodeEx( root, (POINTER*)&root->current );
 }
 
 //---------------------------------------------------------------------------
 
-POINTER GetRootNodeEx( PTREEROOT root, POINTER *cursor )
+CPOINTER GetRootNodeEx( PTREEROOT root, POINTER *cursor )
 {
 	if( !root ) return 0;
 	root->prior = NULL;
@@ -906,14 +906,14 @@ POINTER GetRootNodeEx( PTREEROOT root, POINTER *cursor )
 		return (*(struct treenode_tag **)cursor)->userdata;
 	return 0;
 }
-POINTER GetRootNode( PTREEROOT root )
+CPOINTER GetRootNode( PTREEROOT root )
 {
-   return GetRootNodeEx( root, (POINTER*)&root->current );
+	return GetRootNodeEx( root, (POINTER*)&root->current );
 }
 
 //---------------------------------------------------------------------------
 
-POINTER GetParentNodeEx( PTREEROOT root, POINTER *cursor )
+CPOINTER GetParentNodeEx( PTREEROOT root, POINTER *cursor )
 {
 	if( !root ) return 0;
 	if( (*(struct treenode_tag **)cursor) )
@@ -926,14 +926,14 @@ POINTER GetParentNodeEx( PTREEROOT root, POINTER *cursor )
 	}
 	return 0;
 }
-POINTER GetParentNode( PTREEROOT root )
+CPOINTER GetParentNode( PTREEROOT root )
 {
-   return GetParentNodeEx( root, (POINTER*)&root->current );
+	return GetParentNodeEx( root, (POINTER*)&root->current );
 }
 
 //---------------------------------------------------------------------------
 
-POINTER GetChildNodeEx( PTREEROOT root, POINTER *cursor, int direction )
+CPOINTER GetChildNodeEx( PTREEROOT root, POINTER *cursor, int direction )
 {
 	if( !root ) return 0;
 	if( (*(struct treenode_tag **)cursor) )
@@ -952,18 +952,18 @@ POINTER GetChildNodeEx( PTREEROOT root, POINTER *cursor, int direction )
 }
 
 
-POINTER GetChildNode( PTREEROOT root, int direction )
+CPOINTER GetChildNode( PTREEROOT root, int direction )
 {
-   return GetChildNodeEx( root, (POINTER*)&root->current, direction );
+	return GetChildNodeEx( root, (POINTER*)&root->current, direction );
 }
 
 //---------------------------------------------------------------------------
 
-POINTER GetPriorNodeEx( PTREEROOT root, POINTER *cursor )
+CPOINTER GetPriorNodeEx( PTREEROOT root, POINTER *cursor )
 {
 	PTREENODE cur;
 	if( !root ) return 0;
-   cur = (*(struct treenode_tag **)cursor);
+	cur = (*(struct treenode_tag **)cursor);
 	(*(struct treenode_tag **)cursor) = root->prior;
 	root->prior = cur;
 	if( (*(struct treenode_tag **)cursor) )
@@ -971,16 +971,16 @@ POINTER GetPriorNodeEx( PTREEROOT root, POINTER *cursor )
 	return 0;
 }
 
-POINTER GetPriorNode( PTREEROOT root )
+CPOINTER GetPriorNode( PTREEROOT root )
 {
-   return GetPriorNodeEx( root, (POINTER*)&root->current );
+	return GetPriorNodeEx( root, (POINTER*)&root->current );
 }
 
 //---------------------------------------------------------------------------
 
 _32 GetNodeCount( PTREEROOT root )
 {
-   return root->children;
+	return root->children;
 }
 
 //---------------------------------------------------------------------------

@@ -94,7 +94,7 @@ SACK_NETWORK_NAMESPACE
 PRELOAD( InitNetworkGlobalOptions )
 {
 #ifndef __NO_OPTIONS__
-	g.flags.bLogProtocols = SACK_GetProfileIntEx( GetProgramName(), WIDE( "SACK/Network/Log Protocols" ), 0, TRUE );
+	g.flags.bLogProtocols = SACK_GetProfileIntEx( WIDE("SACK"), WIDE( "Network/Log Protocols" ), 0, TRUE );
 	g.flags.bShortLogReceivedData = SACK_GetProfileIntEx( WIDE( "SACK" ), WIDE( "Network/Log Network Received Data(64 byte max)" ), 0, TRUE );
 	g.flags.bLogReceivedData = SACK_GetProfileIntEx( WIDE( "SACK" ), WIDE( "Network/Log Network Received Data" ), 0, TRUE );
 	g.flags.bLogSentData = SACK_GetProfileIntEx( WIDE( "SACK" ), WIDE( "Network/Log Network Sent Data" ), g.flags.bLogReceivedData, TRUE );
@@ -392,6 +392,13 @@ void DumpLists( void )
 
 
 //----------------------------------------------------------------------------
+
+LOGICAL IsAddressV6( SOCKADDR *addr )
+{
+	if( addr->sa_family == AF_INET6 && SOCKADDR_LENGTH( addr ) == 28 )
+		return TRUE;
+	return FALSE;
+}
 
 const char * GetAddrName( SOCKADDR *addr )
 {

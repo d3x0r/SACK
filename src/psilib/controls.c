@@ -447,7 +447,8 @@ void GetMyInterface( void )
 		g.default_font = RenderFontFileScaledEx( buffer, w, h, NULL, NULL, 2/*FONT_FLAG_8BIT*/, NULL, NULL );
 		bias_x = SACK_GetProfileInt( WIDE( "SACK/PSI/Font" ), WIDE( "Bias X" ), 0 );
 		bias_y = SACK_GetProfileInt( WIDE( "SACK/PSI/Font" ), WIDE( "Bias Y" ), 2 );
-		SetFontBias( g.default_font, bias_x, bias_y );
+		lprintf( "default font %p %d,%d", g.default_font, bias_x, bias_y );
+		//SetFontBias( g.default_font, bias_x, bias_y );
 	}
 #endif
 }
@@ -736,6 +737,8 @@ void TryLoadingFrameImage( void )
 		StrCpy( buffer, WIDE("frame_border.png") );
 #endif
 		border_image = LoadImageFileFromGroup( GetFileGroup( WIDE( "Images" ), WIDE( "./images" ) ), buffer );
+		if( border_image )
+		{
 #ifndef __NO_OPTIONS__
 			width = SACK_GetProfileIntEx( GetProgramName()
 					, WIDE( "SACK/PSI/Frame border/Width" )
@@ -774,6 +777,7 @@ void TryLoadingFrameImage( void )
 #endif
 			g.DefaultBorder = PSI_CreateBorder( border_image, width, height, anchors
 					, SACK_GetProfileInt( "SACK/psi/Frame Border", "Has Control theme colors", 0 ) );
+		}
 	}
 }
 
@@ -1883,7 +1887,8 @@ static void DoUpdateCommonEx( PPENDING_RECT upd, PSI_CONTROL pc, int bDraw, int 
 							 , pc->flags.bParentCleaned
 							 , pc->flags.bTransparent );
 #endif
-				if( !g.flags.always_draw && !IsImageTargetFinal( pc->Window ) && g.flags.allow_copy_from_render )
+				if( !g.flags.always_draw && !IsImageTargetFinal( pc->Window ) 
+					&& g.flags.allow_copy_from_render )
 				{
 					if( ( ((pc->parent&&!pc->device) && pc->parent->flags.bDirty ) || pc->flags.bParentCleaned ) && pc->flags.bTransparent )//&& pc->flags.bFirstCleaning )
 					{
@@ -2674,7 +2679,7 @@ PROCEDURE RealCreateCommonExx( PSI_CONTROL *pResult
 	pc->Move         = GetRegisteredProcedureExx(root,(CTEXTSTR)NULL,void,WIDE("position_changing"),(PSI_CONTROL,LOGICAL));
 	pc->Rescale        = GetRegisteredProcedureExx(root,(CTEXTSTR)NULL,void,WIDE("rescale"),(PSI_CONTROL));
 	pc->BorderDrawProc = GetRegisteredProcedureExx(root,(CTEXTSTR)NULL,void,WIDE("border_draw"),(PSI_CONTROL,Image));
-
+	pc->Rollover = GetRegisteredProcedureExx(root,(CTEXTSTR)NULL,void,WIDE("rollover"),(PSI_CONTROL,LOGICAL));
 	if( !pContainer || ( ExtraBorderType & BORDER_FRAME ) )
 	{
 		// define default border.
@@ -2794,7 +2799,7 @@ PSI_PROC( PSI_CONTROL, CreateFrame )( CTEXTSTR caption
 				);
 
 	// init close button here.
-	AddCaptionButton( pc, NULL, NULL, 0, NULL );
+	AddCaptionButton( pc, NULL, NULL, NULL, 0, NULL );
 	//lprintf( WIDE("FRAME is %p"), pc );
 	return pc;
 }
@@ -3014,7 +3019,7 @@ PSI_PROC( void, DisplayFrameOn )( PSI_CONTROL pc, PRENDERER pActImg )
 
 //---------------------------------------------------------------------------
 
-PSI_PROC( void, HideCommon )( PSI_CONTROL pc )
+PSI_PROC( void, HideControl )( PSI_CONTROL pc )
 {
 	/* should additionally wrap this with a critical section */
 	static int levels;
@@ -3066,7 +3071,7 @@ PSI_PROC( void, HideCommon )( PSI_CONTROL pc )
 		for( child = pc->child; child; child = child->next )
 		{
 			/* hide all children, which will trigger /dev/null update */
-			HideCommon( child );
+			HideControl( child );
 		}
 	}
 	if( hidden )
@@ -4793,14 +4798,22 @@ void GetPhysicalCoordinate( PSI_CONTROL relative_to, S_32 *_x, S_32 *_y, int inc
 {
 	S_32 x = (*_x);
 	S_32 y = (*_y);
+	S_32 wx, wy;
+	PSI_CONTROL frame = GetFrame( relative_to );
+	if( frame->device && frame->device->pActImg )
+		GetDisplayPosition( frame->device->pActImg, &wx, &wy, NULL, NULL );
+	x += wx;
+	y += wy;
 	while( relative_to )
 	{
 		if( include_surface )
 			x += relative_to->surface_rect.x;
-		x += relative_to->rect.x;
+		if( relative_to->parent )
+			x += relative_to->rect.x;
 		if( include_surface )
 			y += relative_to->surface_rect.y;
-		y += relative_to->rect.y;
+		if( relative_to->parent )
+			y += relative_to->rect.y;
 		relative_to = relative_to->parent;
 		include_surface = 1;
 	}

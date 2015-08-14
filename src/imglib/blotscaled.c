@@ -57,12 +57,12 @@ typedef struct rect_tag {
 #define ScaleLoopStart int errx, erry; \
 	_32 x, y;							\
 	PCDATA _pi = pi;				  \
-	erry = i_erry;					 \
+	erry = i_erry/2;					 \
 	y = 0;								\
 	while( y < hd )					\
 	{									 \
 		/* move first line.... */ \
-		errx = i_errx;				\
+		errx = i_errx/2;				\
 		x = 0;						  \
 		pi = _pi;					  \
 		while( x < wd )			  \

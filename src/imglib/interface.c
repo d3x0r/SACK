@@ -162,6 +162,10 @@ IMAGE_INTERFACE RealImageInterface = {
 												 , PngImageFile
                                      , JpgImageFile
 									 , SetFontBias
+									 , MakeSlicedImage
+									 , MakeSlicedImageComplex
+									 , UnmakeSlicedImage
+									 , BlotSlicedImageEx
 };
 
 #undef GetImageInterface

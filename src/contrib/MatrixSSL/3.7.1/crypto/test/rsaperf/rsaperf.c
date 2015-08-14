@@ -54,7 +54,9 @@
 /* Another pass with different keys */
 /* #define INCLUDE_SECOND_SET */
 
+#ifndef WIN32
 #include <unistd.h> /* sleep */
+#endif
 #include "crypto/cryptoApi.h"
 
 typedef void pkaCmdInfo_t;
@@ -346,7 +348,11 @@ int main(int argc, char **argv)
 	}
 	// TIME SANITY
 	psGetTime(&start, NULL);
+#ifdef WIN32
+	Sleep( 1000 );
+#else
 	sleep(1);
+#endif
 	psGetTime(&end, NULL);
 	printf("Time sanity " TIME_UNITS "\n", psDiffMsecs(start, end, NULL));
 

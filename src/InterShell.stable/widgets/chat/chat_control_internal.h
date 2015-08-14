@@ -35,6 +35,7 @@ typedef struct chat_list_tag
 		PUSER_INPUT_BUFFER CommandInfo;
 		int command_lines; // how many lines of text are formatted
 		int command_skip_lines; // how many lines of the input are skipped
+		int command_mark_cursor_down;
 		int command_mark_start;
 		int command_mark_end;
 		int control_key_state;
@@ -50,11 +51,16 @@ typedef struct chat_list_tag
 	void (CPROC*MessageDeleted)( PTRSZVAL psvSeen );
 	//PHISTORY_LINE_CURSOR phlc_Input;
 	PSI_CONTROL send_button;
+	_32 send_button_width;  // if 0, is 55
+	_32 send_button_height; // if 0, sizes to the height of the input area
+	S_32 send_button_x_offset;
+	S_32 send_button_y_offset;
 	SFTFont input_font;
 	SFTFont date_font;
 	int nFontHeight;
 	int command_height; // height of text in input area
 	int command_size;   // total rendered height, including skip and frame
+	int send_button_size; // separate from 
 	SFTFont message_font;
 		struct
 		{

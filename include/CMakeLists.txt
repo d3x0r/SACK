@@ -71,6 +71,7 @@ sack_system.h
 sack_vfs.h
 systray.h
 timers.h
+translation.h
 typelib.h
 vectlib.h
 vectypes.h

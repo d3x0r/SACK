@@ -493,7 +493,9 @@ IMAGE_NAMESPACE
 	while( LockedExchange( &lock, 1 ) )
 		Relinquish();
 
-	if( pifDest->flags & IF_FLAG_FINAL_RENDER )
+	if( ( pifDest->flags & IF_FLAG_FINAL_RENDER )
+		&& !( pifDest->flags & IF_FLAG_IN_MEMORY ) )
+
 	{
 		Image topmost_parent;
 

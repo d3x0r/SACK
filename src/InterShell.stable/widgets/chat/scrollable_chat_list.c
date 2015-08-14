@@ -1401,10 +1401,11 @@ void DrawAMessage( Image window, PCHAT_LIST list
 						, StrLen( timebuf ), list->date_font, 0, max_width );
 
 		if( msg->thumb_image )
-			BlotImage( window, msg->thumb_image
+			BlotImageAlpha( window, msg->thumb_image
 						, msg->thumb_image_left = x_offset_left + ( ( x_offset_right - x_offset_left ) 
 								- ( max_width ) )
 							, h + list->display.message_top //+ l.received.BorderSegment[SEGMENT_TOP]->height 
+							, ALPHA_TRANSPARENT
 							);
 		if( msg->formatted_text )
 			PutStringFontExx( window, x_offset_left 
@@ -1433,9 +1434,10 @@ void DrawAMessage( Image window, PCHAT_LIST list
 						, StrLen( timebuf ), list->date_font, 0, context->max_width );
 
 		if( msg->thumb_image )
-			BlotImage( window, msg->thumb_image
+			BlotImageAlpha( window, msg->thumb_image
 							, msg->thumb_image_left = x_offset_left 
 							, h + list->display.message_top //+ l.received.BorderSegment[SEGMENT_TOP]->height
+							, ALPHA_TRANSPARENT
 							);
 		if( msg->formatted_text )
 			PutStringFontExx( window, x_offset_left 
@@ -1632,7 +1634,8 @@ static PCHAT_MESSAGE FindMessage( PCHAT_LIST list, int x, int y )
 				{
 					found = TRUE;
 					if( msg->thumb_image )
-						if( x < msg->thumb_image_left || x > ( msg->thumb_image_left + msg->thumb_image->width ) )
+						if( SUS_LT( x, int, msg->thumb_image_left, _32 ) 
+							|| SUS_GT( x, int, ( msg->thumb_image_left + msg->thumb_image->width ), _32 ) )
 							msg = NULL; // didn't click ON the image, so clear return.
 					break;
 				}
@@ -1802,7 +1805,7 @@ void GetInputCursorPos( PCHAT_LIST list, int *x, int *y )
 					break;
 				}
 			}
-			if( ofs > cursor_pos )
+			if( SUS_GT( ofs, int, cursor_pos, _32 ) )
 				break;
 			cursor_pos -= ofs;
 		}
@@ -1854,25 +1857,53 @@ static void DrawTextEntry( PSI_CONTROL pc, PCHAT_LIST list, LOGICAL update )
 		if( !list->nFontHeight )
 		{
 			list->nFontHeight = newfontheight;
-			list->command_height = newfontheight;
+			list->command_height = newfontheight * list->input.command_lines;
+			list->send_button_size = ( /*list->command_height */
+				list->nFontHeight
+				+ l.side_pad * 2 /* above and below input*/ 
+				+ l.sent.BorderSegment[SEGMENT_TOP]->height 
+				+ l.sent.BorderSegment[SEGMENT_BOTTOM]->height );
+			MoveSizeControl( list->send_button, list->message_window->width - ( ( list->send_button_width?list->send_button_width:55 ) + l.side_pad )
+									+ list->send_button_x_offset
+				, window->height - ( ( list->send_button_height
+									?list->send_button_height
+									:list->send_button_size ) + l.side_pad ) /*list->message_window->height + l.side_pad*/
+					+ list->send_button_y_offset
+				, list->send_button_width?list->send_button_width:55
+				, list->send_button_height?list->send_button_height:(list->send_button_size - l.side_pad * 2 ) );
 		}
 		else if( list->nFontHeight != newfontheight 
 		       || ( list->command_height != newfontheight * list->input.command_lines )
 		       )
 		{
-			int cmd_size;
 			list->nFontHeight = newfontheight;
 			list->command_height = list->nFontHeight * list->input.command_lines ;
-			cmd_size = ( list->command_height + l.side_pad * 2 /* above and below input*/ 
+			list->send_button_size = ( /*list->command_height */
+				list->nFontHeight
+				+ l.side_pad /** 2*/ /* above and below input*/ 
 				+ l.sent.BorderSegment[SEGMENT_TOP]->height 
 				+ l.sent.BorderSegment[SEGMENT_BOTTOM]->height );
-			MoveSizeControl( list->send_button, list->message_window->width - 55
-				, list->message_window->height, 55, cmd_size );
+
+			MoveSizeControl( list->send_button
+						, list->message_window->width - ( ( list->send_button_width?list->send_button_width:55 ) + l.side_pad )
+									+ list->send_button_x_offset
+				, window->height - ( ( list->send_button_height
+									?list->send_button_height
+									:list->send_button_size ) + l.side_pad ) /*list->message_window->height + l.side_pad*/
+					+ list->send_button_y_offset
+				, list->send_button_width?list->send_button_width:55
+				, list->send_button_height?list->send_button_height:(list->send_button_size - l.side_pad * 2 ) );
+#if 0
+			MoveSizeControl( list->send_button, list->message_window->width - 60
+				, window->height - ( list->send_button_size ) /*list->message_window->height + l.side_pad*/
+				, 55
+				, list->send_button_size - l.side_pad * 2 );
+#endif
 		}
 
 		region_x = 0;
 		region_y = window->height - ( list->command_height + l.side_pad + l.sent.BorderSegment[SEGMENT_BOTTOM]->height  + l.sent.BorderSegment[SEGMENT_TOP]->height);
-		region_w = window->width - 58;
+		region_w = window->width - ( list->send_button_width?list->send_button_width:55 + l.side_pad );
 		region_h = list->command_height + l.sent.BorderSegment[SEGMENT_TOP]->height + l.sent.BorderSegment[SEGMENT_BOTTOM]->height;
 
 		if( update && list->colors.background_color )
@@ -1885,7 +1916,7 @@ static void DrawTextEntry( PSI_CONTROL pc, PCHAT_LIST list, LOGICAL update )
 		DrawMessageFrame( window
 			, window->height - ( list->command_height + l.side_pad ) 
 			, list->command_height
-			, 58
+			, ( list->send_button_width?list->send_button_width:55 ) + l.side_pad
 			, TRUE
 			, FALSE );
 
@@ -1926,12 +1957,17 @@ static void DrawTextEntry( PSI_CONTROL pc, PCHAT_LIST list, LOGICAL update )
 			if( nCursorLine >= 0 )
 				nDisplayLine = nCursorLine;
 			else
+			{
 				nDisplayLine = 0;
+				nCursorLine = 0;
+			}
 			if( ( nDisplayLine - list->input.command_skip_lines ) < 0 )
 				list->input.command_skip_lines = nDisplayLine;
 			if( ( nDisplayLine - list->input.command_skip_lines ) > 2 )
 				list->input.command_skip_lines = nCursorLine - 2;
-			for( nLine = list->input.command_skip_lines; nLine < (list->input.command_skip_lines+3); nLine ++ )
+			for( nLine = list->input.command_skip_lines; 
+				 nLine < (list->input.command_skip_lines+list->input.command_lines); 
+				 nLine ++ )
 			{
 				pCurrentLine = (PDISPLAYED_LINE)GetDataItem( ppCurrentLineInfo, nLine );
 				if( IsControlFocused( list->pc ) &&
@@ -1983,6 +2019,7 @@ static void DrawTextEntry( PSI_CONTROL pc, PCHAT_LIST list, LOGICAL update )
 				if( pCurrentLine->start )
 				{
 					RECT upd;
+					//lprintf( "mark begin %d end %d", list->input.command_mark_start, list->input.command_mark_end );
 					RenderTextLine( list, window, pCurrentLine, &upd
 						, nLine - list->input.command_skip_lines
 						, list->sent_font
@@ -2025,7 +2062,6 @@ static int OnDrawCommon( CONTROL_NAME )( PSI_CONTROL pc )
 	if( l.decoration )
 	{
 		list->command_size = ( list->command_height + l.side_pad * 2 /* above and below input*/ + l.sent.BorderSegment[SEGMENT_TOP]->height + l.sent.BorderSegment[SEGMENT_BOTTOM]->height) ;
-
 		ResizeImage( list->message_window, window->width, window->height - list->command_size );
 		list->display.message_top = list->message_window->height + list->control_offset;
 	}
@@ -2043,8 +2079,20 @@ static int OnDrawCommon( CONTROL_NAME )( PSI_CONTROL pc )
 
 		//ResizeImage( list->message_window, window->width, window->height - cmd_size );
 		//list->display.message_top = list->message_window->height + list->control_offset;
-		MoveSizeControl( list->send_button, list->message_window->width - 55
-			, list->message_window->height, 55, list->command_size );
+		MoveSizeControl( list->send_button, list->message_window->width - ( ( list->send_button_width?list->send_button_width:55 ) + l.side_pad )
+								+ list->send_button_x_offset
+			, window->height - ( ( list->send_button_height
+								?list->send_button_height
+								:list->send_button_size ) + l.side_pad ) /*list->message_window->height + l.side_pad*/
+				+ list->send_button_y_offset
+			, list->send_button_width?list->send_button_width:55
+			, list->send_button_height?list->send_button_height:(list->send_button_size - l.side_pad * 2 ) );
+		/*
+		MoveSizeControl( list->send_button, list->message_window->width - 60
+			, list->message_window->height + l.side_pad
+			, 55
+			, list->command_size - l.side_pad * 2 );
+		*/
 		DrawMessages( list, list->message_window );
 	}
 
@@ -2096,9 +2144,41 @@ static int OnDrawCommon( CONTROL_NAME )( PSI_CONTROL pc )
 #endif
 		}
 	}
-
-
 	return 1;
+}
+
+_32 GetChatInputCursor( PCHAT_LIST list, int x, int y )
+{
+	PDATALIST *ppCurrentLineInfo = GetDisplayInfo( list->input.phb_Input );
+	int nLine = list->input.command_skip_lines + ( list->input.command_lines - ( 1 + y / list->nFontHeight ) ); 
+	{
+		PDISPLAYED_LINE pCurrentLine = (PDISPLAYED_LINE)GetDataItem( ppCurrentLineInfo, nLine );
+		if( pCurrentLine )
+		{
+			PTEXT tmp;
+			//_32 amount = cursor_pos;
+			_32 line_index = 0;
+			_32 line_length = pCurrentLine->nToShow;
+			_32 seg_start = pCurrentLine->nFirstSegOfs;
+			for( tmp = pCurrentLine->start; tmp; tmp = NEXTLINE( tmp ) )
+			{
+				CTEXTSTR text = GetText( tmp );
+				_32 len = GetTextSize( tmp );
+				_32 ch;
+				_32 ch_width, ch_height;
+				for( ch = seg_start; ch < len && line_index < line_length; ch++, line_index++ )
+				{
+					GetStringRenderSizeFontEx( GetText( tmp ) + ch, 1, &ch_width, &ch_height, NULL, list->sent_font );
+					if( SUS_LT( x, int, ch_width / 2, _32 ) )
+						return pCurrentLine->nLineStart + line_index;
+					x -= ch_width;
+				}
+				seg_start = 0;
+			}
+			return pCurrentLine->nLineStart + (pCurrentLine->nToShow);
+		}
+	}
+	return INVALID_INDEX;
 }
 
 static int OnMouseCommon( CONTROL_NAME )( PSI_CONTROL pc, S_32 x, S_32 y, _32 b )
@@ -2107,6 +2187,7 @@ static int OnMouseCommon( CONTROL_NAME )( PSI_CONTROL pc, S_32 x, S_32 y, _32 b 
 	PCHAT_LIST list = (*ppList);
 	if( !list )
 		return 1;
+
 	if( MAKE_A_BUTTON( b, list->_b, MK_SCROLL_DOWN ) )
 	{
 		if( list->control_offset > ( list->nFontHeight * 3 ) )
@@ -2128,6 +2209,33 @@ static int OnMouseCommon( CONTROL_NAME )( PSI_CONTROL pc, S_32 x, S_32 y, _32 b 
 		list->flags.checked_drag = 0;
 		list->flags.long_vertical_drag = 0;
 		list->flags.long_horizontal_drag = 0;
+		{
+			Image window = GetControlSurface( pc );
+
+			if( y > ( window->height - ( l.sent.BorderSegment[SEGMENT_BOTTOM]->height
+				+ l.sent.BorderSegment[SEGMENT_TOP]->height
+				+ list->command_height + l.side_pad ) ) )
+			{
+				int command_y = y - ( window->height - ( l.sent.BorderSegment[SEGMENT_BOTTOM]->height
+						+ list->command_height + l.side_pad ) );
+				int command_x = x - ( l.side_pad + l.sent.BorderSegment[SEGMENT_LEFT]->width );
+				int cursor = GetChatInputCursor( list, command_x, command_y );
+				list->flags.in_command = 1;
+				list->input.command_mark_cursor_down = cursor;
+				SetUserInputPosition( list->input.CommandInfo, cursor, COMMAND_POS_SET );
+				//lprintf(" below command.... : %d,%d  at %d"
+				//		, command_x
+				//		, command_y
+				//		, cursor );
+				SmudgeCommon( pc );
+				//list->flags.allow_command_popup = 1;
+			}
+			else
+			{
+				list->flags.in_command = 0;
+				//list->flags.allow_command_popup = 0;
+			}
+		}
 	}
 	else if( BREAK_A_BUTTON( b, list->_b, MK_LBUTTON ) )
 	{
@@ -2149,7 +2257,35 @@ static int OnMouseCommon( CONTROL_NAME )( PSI_CONTROL pc, S_32 x, S_32 y, _32 b 
 	}
 	else if( BUTTON_STILL_DOWN( b, MK_LBUTTON ) )
 	{
-		if( !list->flags.checked_drag )
+		if( list->flags.in_command )
+		{
+			Image window = GetControlSurface( pc );
+			int command_y = y - ( window->height - ( l.sent.BorderSegment[SEGMENT_BOTTOM]->height
+					+ list->command_height + l.side_pad ) );
+			int command_x = x - ( l.side_pad + l.sent.BorderSegment[SEGMENT_LEFT]->width );
+			int cursor = GetChatInputCursor( list, command_x, command_y );
+			int start = list->input.command_mark_start;
+			int end = list->input.command_mark_end;
+			SetUserInputPosition( list->input.CommandInfo, cursor, COMMAND_POS_SET );
+			if( cursor != list->input.command_mark_cursor_down )
+			{
+				if( cursor > list->input.command_mark_cursor_down )
+				{
+					list->input.command_mark_start = list->input.command_mark_cursor_down;
+					list->input.command_mark_end = cursor + 1;
+				}
+				else
+				{
+					list->input.command_mark_end = list->input.command_mark_cursor_down;
+					list->input.command_mark_start = cursor;
+				}				
+			}
+			else
+				list->input.command_mark_start = list->input.command_mark_end = 0;
+			if( list->input.command_mark_start != start || list->input.command_mark_end != end )
+				SmudgeCommon( pc );
+		}
+		else if( !list->flags.checked_drag )
 		{
 			// some buttons still down  ... delta Y is more than 4 pixels
 			if( ( y - list->first_y )*( y - list->first_y ) > 16 )
@@ -2241,7 +2377,7 @@ static int OnMouseCommon( CONTROL_NAME )( PSI_CONTROL pc, S_32 x, S_32 y, _32 b 
 			+ l.sent.BorderSegment[SEGMENT_TOP]->height
 			+ list->command_height + l.side_pad ) ) )
 		{
-			lprintf(" below command...." );
+			//lprintf(" below command...." );
 			list->flags.allow_command_popup = 1;
 		}
 		else
@@ -2388,7 +2524,8 @@ static int OnCreateCommon( CONTROL_NAME )( PSI_CONTROL pc )
 	list->input.CommandInfo = CreateUserInputBuffer();
 	SetBrowserLines( list->input.phb_Input, 3 );
 	list->colors.crText = BASE_COLOR_BLACK;
-
+	list->colors.crMark = BASE_COLOR_WHITE;
+	list->colors.crMarkBackground = BASE_COLOR_BLUE;
 	return 1;
 }
 
@@ -2420,7 +2557,8 @@ static void OnSizeCommon( CONTROL_NAME )( PSI_CONTROL pc, LOGICAL begin_sizing )
 				list->input.phb_Input->nLineHeight = GetFontHeight( list->input_font );
 				list->input.phb_Input->nColumns 
 					= list->input.phb_Input->nWidth 
-					= window->width - ( 2 * l.side_pad + l.sent.BorderSegment[SEGMENT_LEFT]->width + l.sent.BorderSegment[SEGMENT_RIGHT]->width + 58 );
+					= window->width - ( 2 * l.side_pad + l.sent.BorderSegment[SEGMENT_LEFT]->width + l.sent.BorderSegment[SEGMENT_RIGHT]->width 
+							+ ( list->send_button_width?list->send_button_width:55 + l.side_pad ) );
 			}
 			BuildDisplayInfoLines( list->input.phb_Input, list->input_font );
 			ReformatMessages( list );
@@ -2459,7 +2597,8 @@ static int OnKeyCommon( CONTROL_NAME )( PSI_CONTROL pc, _32 key )
 			//SetBrowserColumns( list->input.phb_Input, ... );
 			list->input.phb_Input->nLineHeight = GetFontHeight( list->input_font );
 			list->input.phb_Input->nColumns = window->width - ( 2 * l.side_pad + l.sent.BorderSegment[SEGMENT_LEFT]->width + l.sent.BorderSegment[SEGMENT_RIGHT]->width );
-			list->input.phb_Input->nWidth = window->width - ( 2 * l.side_pad + l.sent.BorderSegment[SEGMENT_LEFT]->width + l.sent.BorderSegment[SEGMENT_RIGHT]->width +  58 );
+			list->input.phb_Input->nWidth = window->width - ( 2 * l.side_pad + l.sent.BorderSegment[SEGMENT_LEFT]->width + l.sent.BorderSegment[SEGMENT_RIGHT]->width 
+						+ ( list->send_button_width?list->send_button_width:55 + l.side_pad ) );
 		}
 
 		if( key & KEY_PRESSED )
@@ -2625,4 +2764,37 @@ void Chat_TypePastedInput( PSI_CONTROL pc, PTEXT segment )
 	PCHAT_LIST list = (*ppList);
 	Widget_WinLogicDoStroke( list, segment );
 	DrawTextEntry( pc, list, TRUE );
+}
+
+void Chat_SetSendButtonText( PSI_CONTROL pc, CTEXTSTR text )
+{
+	PCHAT_LIST *ppList = ControlData( PCHAT_LIST*, pc );
+	PCHAT_LIST list = (*ppList);
+	SetControlText( list->send_button, text );
+}
+
+
+void Chat_SetSendButtonImages( PSI_CONTROL pc, Image normal, Image pressed, Image rollover, Image focused )
+{
+	PCHAT_LIST *ppList = ControlData( PCHAT_LIST*, pc );
+	PCHAT_LIST list = (*ppList);
+	SetButtonImages( list->send_button, normal, pressed );
+	SetButtonFocusedImages( list->send_button, focused, pressed );
+	SetButtonRolloverImages( list->send_button, rollover, pressed );
+}
+
+void Chat_SetSendButtonSize( PSI_CONTROL pc, _32 width, _32 height )
+{
+	PCHAT_LIST *ppList = ControlData( PCHAT_LIST*, pc );
+	PCHAT_LIST list = (*ppList);
+	list->send_button_width = width;
+	list->send_button_height = height;
+}
+
+void Chat_SetSendButtonOffset( PSI_CONTROL pc, S_32 x, S_32 y )
+{
+	PCHAT_LIST *ppList = ControlData( PCHAT_LIST*, pc );
+	PCHAT_LIST list = (*ppList);
+	list->send_button_x_offset = x;
+	list->send_button_y_offset = y;
 }

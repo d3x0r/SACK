@@ -12,8 +12,9 @@
 #include "grid_reader.h" 
 
 #define patch  1025
+//#define patch 65
 //1025  
-//257
+//#define patch 257
 
 struct slider_panel
 {
@@ -99,12 +100,12 @@ void CPROC DrawPlasma( PTRSZVAL psv, PRENDERER render )
 		{
 			RCOORD here = data[ h * surface->width + w ];
 			if( here > max )
-				max = data[ h * surface->width + w ];
+				max = here;
 			if( here < min )
-				min = data[ h * surface->width + w ];
+				min = here;
 			if( here <= 0.01 )
-				plot( surface, w, h, ColorAverage( BASE_COLOR_LIGHTBLUE,
-												 BASE_COLOR_WHITE, here * 1000, 250 ) );
+				plot( surface, w, h, ColorAverage( BASE_COLOR_WHITE,
+												 BASE_COLOR_BLACK, here * 1000, 250 ) );
 			else if( here <= 0.25 )
 				plot( surface, w, h, ColorAverage( BASE_COLOR_BLACK,
 												 BASE_COLOR_LIGHTBLUE, (here) * 1000, 250 ) );
@@ -118,8 +119,8 @@ void CPROC DrawPlasma( PTRSZVAL psv, PRENDERER render )
 				plot( surface, w, h, ColorAverage( BASE_COLOR_LIGHTRED,
 												 BASE_COLOR_WHITE, (here-0.75) * 1000, 250 ) );
 			else //if( here <= 4.0 / 4 )
-				plot( surface, w, h, ColorAverage( BASE_COLOR_BLACK,
-												 BASE_COLOR_RED, (here-0.99) * 10000, 100 ) );
+				plot( surface, w, h, ColorAverage( BASE_COLOR_WHITE,
+												 BASE_COLOR_BLACK, (here-0.99) * 10000, 100 ) );
 			//lprintf( "%d,%d  %g", w, h, data[ h * surface->width + w ] );
 		}
 	}
@@ -149,6 +150,7 @@ static int CPROC KeyPlasma( PTRSZVAL psv, _32 key )
 		PlasmaRender( l.plasma, coords );
 		Redraw( l.render );
 	}
+	return 1;
 }
 
 
@@ -272,10 +274,10 @@ SaneWinMain( argc, argv )
 		struct slider_panel *panel = MakeSliderFrame();
 		DisplayFrame( panel->frame );
 	}
-	coords[0] = 1.0;
-	coords[1] = 0.0;
-	coords[2] = 0.0;
-	coords[3] = 1.0;
+	coords[0] = 200.0;
+	coords[1] = -200.0;
+	coords[2] = 200.0;
+	coords[3] = -200.0;
 	l.plasma = PlasmaCreate( coords, 0.5/*patch * 2*/, patch, patch );
 	UpdateDisplay( l.render );
 	//RestoreDisplay( l.render );

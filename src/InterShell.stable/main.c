@@ -1032,7 +1032,7 @@ void FixupButtonEx( PMENU_BUTTON button DBG_PASS )
 		if( !show )
 		{
 			/* this doesn't matter... */
-			HideCommon( pc_button );
+			HideControl( pc_button );
 #ifndef __NO_ANIMATION__
 			if( button->decal_animation )
 			{
@@ -1376,7 +1376,7 @@ static LOGICAL InvokeButtonCreate( PSI_CONTROL pc_canvas, PMENU_BUTTON button, L
 		{
 			lprintf( WIDE("Button type '%s' returned 1 as a result."), button->pTypeName );
 		}
-		HideCommon( QueryGetControl( button ) );
+		HideControl( QueryGetControl( button ) );
 
 		g.CurrentlyCreatingButton = NULL;
 	}
@@ -1407,7 +1407,7 @@ static LOGICAL InvokeButtonCreate( PSI_CONTROL pc_canvas, PMENU_BUTTON button, L
 				if( !button->psvUser )
 				{
 					lprintf( WIDE( "User Create failed (return psv=0), hiding control." ) );
-					HideCommon( button->control.control );
+					HideControl( button->control.control );
 					DestroyCommon( &button->control.control );
 					button->flags.bListbox = 0;
 				}
@@ -2217,36 +2217,36 @@ void SetCommonButtonControls( PSI_CONTROL frame )
 	if( !configure_key_dispatch.button
 		|| configure_key_dispatch.button->flags.bInvisible ) // nothing for this to do... nothing ocmmon about it.
 	{
-		HideCommon( GetControl( frame, LST_BUTTON_STYLE ) );
-		HideCommon( GetControl( frame, BTN_PICKFONT ) );
-		HideCommon( GetControl( frame, LABEL_TEXT_COLOR) );
-		HideCommon( GetControl( frame, LABEL_BACKGROUND_COLOR) );
-		HideCommon( GetControl( frame, LABEL_RING_COLOR) );
-		HideCommon( GetControl( frame, LABEL_RING_HIGHLIGHT_COLOR ) );
+		HideControl( GetControl( frame, LST_BUTTON_STYLE ) );
+		HideControl( GetControl( frame, BTN_PICKFONT ) );
+		HideControl( GetControl( frame, LABEL_TEXT_COLOR) );
+		HideControl( GetControl( frame, LABEL_BACKGROUND_COLOR) );
+		HideControl( GetControl( frame, LABEL_RING_COLOR) );
+		HideControl( GetControl( frame, LABEL_RING_HIGHLIGHT_COLOR ) );
 
-		HideCommon( GetControl( frame, CLR_TEXT_COLOR) );
-		HideCommon( GetControl( frame, CLR_RING_BACKGROUND) );
-		HideCommon( GetControl( frame, CLR_BACKGROUND) );
-		HideCommon( GetControl( frame, CLR_RING_HIGHLIGHT) );
+		HideControl( GetControl( frame, CLR_TEXT_COLOR) );
+		HideControl( GetControl( frame, CLR_RING_BACKGROUND) );
+		HideControl( GetControl( frame, CLR_BACKGROUND) );
+		HideControl( GetControl( frame, CLR_RING_HIGHLIGHT) );
 
-		HideCommon( GetControl( frame, TXT_IMAGE_NAME ) );
-		HideCommon( GetControl( frame, TXT_IMAGE_V_MARGIN ) );
-		HideCommon( GetControl( frame, TXT_IMAGE_H_MARGIN ) );
+		HideControl( GetControl( frame, TXT_IMAGE_NAME ) );
+		HideControl( GetControl( frame, TXT_IMAGE_V_MARGIN ) );
+		HideControl( GetControl( frame, TXT_IMAGE_H_MARGIN ) );
 #ifndef __NO_ANIMATION__
-		HideCommon( GetControl( frame, TXT_ANIMATION_NAME ) );
+		HideControl( GetControl( frame, TXT_ANIMATION_NAME ) );
 #endif
-		HideCommon( GetControl( frame, TXT_CONTROL_TEXT ) );
-		HideCommon( GetControl( frame, CHK_NOPRESS ) );
+		HideControl( GetControl( frame, TXT_CONTROL_TEXT ) );
+		HideControl( GetControl( frame, CHK_NOPRESS ) );
 
-		//HideCommon( GetControl( frame, LST_PAGES ) );
+		//HideControl( GetControl( frame, LST_PAGES ) );
 
-		HideCommon( GetControl( frame, LIST_ALLOW_SHOW ) );
-		HideCommon( GetControl( frame, LIST_DISALLOW_SHOW ) );
-		HideCommon( GetControl( frame, LIST_SYSTEMS ) );
-		HideCommon( GetControl( frame, LIST_ALLOW_SHOW ) );
-		HideCommon( GetControl( frame, BTN_ADD_SYSTEM ) );
-		HideCommon( GetControl( frame, BTN_ADD_SYSTEM_TO_DISALLOW ) );
-		HideCommon( GetControl( frame, BTN_ADD_SYSTEM_TO_ALLOW ) );
+		HideControl( GetControl( frame, LIST_ALLOW_SHOW ) );
+		HideControl( GetControl( frame, LIST_DISALLOW_SHOW ) );
+		HideControl( GetControl( frame, LIST_SYSTEMS ) );
+		HideControl( GetControl( frame, LIST_ALLOW_SHOW ) );
+		HideControl( GetControl( frame, BTN_ADD_SYSTEM ) );
+		HideControl( GetControl( frame, BTN_ADD_SYSTEM_TO_DISALLOW ) );
+		HideControl( GetControl( frame, BTN_ADD_SYSTEM_TO_ALLOW ) );
 
 		//return;
 	}
@@ -2272,7 +2272,7 @@ void SetCommonButtonControls( PSI_CONTROL frame )
 			}
 		}
 		else
-			HideCommon( GetControl( frame, LST_BUTTON_STYLE ) );
+			HideControl( GetControl( frame, LST_BUTTON_STYLE ) );
 
 		if( configure_key_dispatch.button->font_preset_name )
 			configure_key_dispatch.new_font_name = StrDup( configure_key_dispatch.button->font_preset_name );
@@ -3881,7 +3881,7 @@ void BeginEditingPage( PPAGE_DATA page )
 	InvokeBeginEditMode();
 	LIST_FORALL( page->controls, idx, PMENU_BUTTON, button )
 	{
-		HideCommon( QueryGetControl( button ) );
+		HideControl( QueryGetControl( button ) );
 		InvokeEditBegin( button );
 	}
 }

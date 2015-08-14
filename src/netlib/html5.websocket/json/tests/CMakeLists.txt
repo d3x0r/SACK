@@ -9,7 +9,7 @@ set(BASE_SOURCES
 
 add_program(${project} ${BASE_SOURCES} )
 SET_TARGET_PROPERTIES(${project} PROPERTIES
-                  FOLDER utils/tests
+                  FOLDER tests
 )
 install_default_dest( ${project} )
 

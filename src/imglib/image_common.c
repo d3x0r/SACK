@@ -11,6 +11,7 @@
 #endif
 
 #include <stdhdrs.h>
+#include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
@@ -495,7 +496,7 @@ static void SmearFlag( Image image, int flag )
 	pOrphan->pParent = pFoster;
 	pFoster->pChild = pOrphan;
 	pOrphan->pYounger = NULL; // otherwise would be undefined
-	SmearFlag( pOrphan, IF_FLAG_FINAL_RENDER );
+	SmearFlag( pOrphan, IF_FLAG_FINAL_RENDER | IF_FLAG_IN_MEMORY );
 	// compute new image bounds within the parent...
 	ComputeImageData( pOrphan );
 }
@@ -514,7 +515,7 @@ static void SmearFlag( Image image, int flag )
 	if( pImage )
 	{
 		p->pwidth = pImage->pwidth;
-		p->flags |= (pImage->flags & IF_FLAG_FINAL_RENDER);
+		p->flags |= (pImage->flags & ( IF_FLAG_FINAL_RENDER | IF_FLAG_IN_MEMORY ) );
 		p->reverse_interface = pImage->reverse_interface;
 	}
 	else
@@ -667,7 +668,7 @@ static void SmearFlag( Image image, int flag )
 	{
 		if( image_common_local.tint_cache )
 		{
-			POINTER node = FindInBinaryTree( image_common_local.tint_cache, (PTRSZVAL)pif );
+			CPOINTER node = FindInBinaryTree( image_common_local.tint_cache, (PTRSZVAL)pif );
 			struct shade_cache_image *ci = (struct shade_cache_image *)node;
 			struct shade_cache_element *ce;
 			if( node )
@@ -685,7 +686,7 @@ static void SmearFlag( Image image, int flag )
 		}
 		if( image_common_local.shade_cache )
 		{
-			POINTER node = FindInBinaryTree( image_common_local.shade_cache, (PTRSZVAL)pif );
+			CPOINTER node = FindInBinaryTree( image_common_local.shade_cache, (PTRSZVAL)pif );
 			struct shade_cache_image *ci = (struct shade_cache_image *)node;
 			struct shade_cache_element *ce;
 			if( node )
@@ -1500,7 +1501,7 @@ Image GetInvertedImage( Image child_image )
 	for( image = child_image; image && image->pParent; image = image->pParent );
 
 	{
-		POINTER node = FindInBinaryTree( image_common_local.shade_cache, (PTRSZVAL)image );
+		CPOINTER node = FindInBinaryTree( image_common_local.shade_cache, (PTRSZVAL)image );
 		struct shade_cache_image *ci = (struct shade_cache_image *)node;
 		struct shade_cache_element *ce;
 		if( node )
@@ -1569,7 +1570,7 @@ Image GetShadedImage( Image child_image, CDATA red, CDATA green, CDATA blue )
 	for( image = child_image; image && image->pParent; image = image->pParent );
 
 	{
-		POINTER node = FindInBinaryTree( image_common_local.shade_cache, (PTRSZVAL)image );
+		CPOINTER node = FindInBinaryTree( image_common_local.shade_cache, (PTRSZVAL)image );
 		struct shade_cache_image *ci = (struct shade_cache_image *)node;
 		struct shade_cache_element *ce;
 
@@ -1639,7 +1640,7 @@ Image GetTintedImage( Image child_image, CDATA color )
 	for( image = child_image; image && image->pParent; image = image->pParent );
 
 	{
-		POINTER node = FindInBinaryTree( image_common_local.tint_cache, (PTRSZVAL)image );
+		CPOINTER node = FindInBinaryTree( image_common_local.tint_cache, (PTRSZVAL)image );
 		struct shade_cache_image *ci = (struct shade_cache_image *)node;
 		struct shade_cache_element *ce;
 
@@ -1721,9 +1722,324 @@ void TransferSubImages( Image pImageTo, Image pImageFrom )
 LOGICAL IsImageTargetFinal( Image image )
 {
 	if( image )
-		return ( image->flags & IF_FLAG_FINAL_RENDER ) != 0;
+		if( image->flags & IF_FLAG_FINAL_RENDER )
+			if( !( image->flags & IF_FLAG_IN_MEMORY ) )
+				return 1;
 	return 0;
 }
+
+SlicedImage MakeSlicedImage( Image source, _32 left, _32 right, _32 top, _32 bottom, LOGICAL output_center ) 
+{
+	SlicedImage result = New( struct SlicedImageFile );
+	result->image = source;
+	result->extended_slice = FALSE;
+	result->left = left;
+	result->right = right;
+	result->right_w = source->width - right;
+	result->center_w = right - left;
+	result->top = top;
+	result->bottom = bottom;
+	result->bottom_h = source->height - bottom;
+	result->center_h = bottom - top;
+	result->output_center = output_center;
+	result->slices[SLICED_IMAGE_TOP_LEFT] = MakeSubImage( source, 0, 0, left, top );
+	result->slices[SLICED_IMAGE_TOP] = MakeSubImage( source, left, 0, result->center_w, top );
+	result->slices[SLICED_IMAGE_TOP_RIGHT] = MakeSubImage( source, right, 0, result->right_w, top );
+	result->slices[SLICED_IMAGE_LEFT] = MakeSubImage( source, 0, top, left, bottom-top );
+	result->slices[SLICED_IMAGE_CENTER] = MakeSubImage( source, left, top, result->center_w, result->center_h );
+	result->slices[SLICED_IMAGE_RIGHT] = MakeSubImage( source, right, top, result->right_w, result->center_h );
+	result->slices[SLICED_IMAGE_BOTTOM_LEFT] = MakeSubImage( source, 0, bottom, left, result->bottom_h );
+	result->slices[SLICED_IMAGE_BOTTOM] = MakeSubImage( source, left, bottom, result->center_w, result->bottom_h );
+	result->slices[SLICED_IMAGE_BOTTOM_RIGHT] = MakeSubImage( source, right, bottom, result->right_w, result->bottom_h );
+	return result;
+}
+
+SlicedImage MakeSlicedImageComplex( Image source
+										, _32 top_left_x, _32 top_left_y, _32 top_left_width, _32 top_left_height
+										, _32 top_x, _32 top_y, _32 top_width, _32 top_height
+										, _32 top_right_x, _32 top_right_y, _32 top_right_width, _32 top_right_height
+										, _32 left_x, _32 left_y, _32 left_width, _32 left_height
+										, _32 center_x, _32 center_y, _32 center_width, _32 center_height
+										, _32 right_x, _32 right_y, _32 right_width, _32 right_height
+										, _32 bottom_left_x, _32 bottom_left_y, _32 bottom_left_width, _32 bottom_left_height
+										, _32 bottom_x, _32 bottom_y, _32 bottom_width, _32 bottom_height
+										, _32 bottom_right_x, _32 bottom_right_y, _32 bottom_right_width, _32 bottom_right_height
+										, LOGICAL output_center ) 
+{
+	SlicedImage result = New( struct SlicedImageFile );
+	result->image = source;
+	result->output_center = output_center;
+	result->extended_slice = TRUE;
+	result->slices[SLICED_IMAGE_TOP_LEFT] = MakeSubImage( source, top_left_x, top_left_y, top_left_width, top_left_height );
+	result->slices[SLICED_IMAGE_TOP] = MakeSubImage( source, top_x, top_y, top_width, top_height );
+	result->slices[SLICED_IMAGE_TOP_RIGHT] = MakeSubImage( source, top_right_x, top_right_y, top_right_width, top_right_height );
+	result->slices[SLICED_IMAGE_LEFT] = MakeSubImage( source, left_x, left_y, left_width, left_height );
+	result->slices[SLICED_IMAGE_CENTER] = MakeSubImage( source, center_x, center_y, center_width, center_height );
+	result->slices[SLICED_IMAGE_RIGHT] = MakeSubImage( source, right_x, right_y, right_width, right_height );
+	result->slices[SLICED_IMAGE_BOTTOM_LEFT] = MakeSubImage( source, bottom_left_x, bottom_left_y, bottom_left_width, bottom_left_height );
+	result->slices[SLICED_IMAGE_BOTTOM] = MakeSubImage( source, bottom_x, bottom_y, bottom_width, bottom_height );
+	result->slices[SLICED_IMAGE_BOTTOM_RIGHT] = MakeSubImage( source, bottom_right_x, bottom_right_y, bottom_right_width, bottom_right_height );
+	return result;
+}
+
+void UnmakeSlicedImage( SlicedImage image )
+{
+	int n;
+	for( n = 0; n < 9; n++ )
+		UnmakeImageFile( image->slices[n] );
+	UnmakeImageFile( image->image );
+	Deallocate( SlicedImage, image );
+}
+
+void BlotSlicedImageEx( Image dest, SlicedImage source, S_32 x, S_32 y, _32 w, _32 h, int alpha, enum BlotOperation op, ... )
+{
+	va_list args;
+	CDATA c1,c2,c3;
+	va_start( args, op );
+	c1 = va_arg( args, CDATA );
+	c2 = va_arg( args, CDATA );
+	c3 = va_arg( args, CDATA );
+	if( source->extended_slice )
+	{
+		BlotImageEx( dest, source->slices[SLICED_IMAGE_TOP_LEFT], 0, 0, alpha, op, c1, c2, c3 );
+		BlotImageEx( dest, source->slices[SLICED_IMAGE_TOP_RIGHT], dest->width - source->slices[SLICED_IMAGE_TOP_RIGHT]->width, 0, alpha, op, c1, c2, c3 );
+		BlotImageEx( dest, source->slices[SLICED_IMAGE_BOTTOM_LEFT], 0, dest->height - source->slices[SLICED_IMAGE_BOTTOM_LEFT]->height, alpha, op, c1, c2, c3 );
+		BlotImageEx( dest, source->slices[SLICED_IMAGE_BOTTOM_RIGHT]
+		        , dest->width - source->slices[SLICED_IMAGE_BOTTOM_RIGHT]->width
+		        , dest->height - source->slices[SLICED_IMAGE_BOTTOM_RIGHT]->height
+		        , alpha, op, c1, c2, c3 );
+		BlotScaledImageSizedEx( dest, source->slices[SLICED_IMAGE_TOP]
+		        , source->slices[SLICED_IMAGE_TOP]->real_x, 0
+		        , dest->width - ( source->image->width - source->slices[SLICED_IMAGE_TOP]->width )
+		        , source->slices[SLICED_IMAGE_TOP]->height
+		        , 0, 0
+		        , source->slices[SLICED_IMAGE_TOP]->width, source->slices[SLICED_IMAGE_TOP]->height
+		        , alpha, op, c1, c2, c3  );
+		BlotScaledImageSizedEx( dest, source->slices[SLICED_IMAGE_BOTTOM]
+		        , source->slices[SLICED_IMAGE_BOTTOM]->real_x, dest->height - source->slices[SLICED_IMAGE_BOTTOM]->height
+		        , dest->width - ( source->image->width - source->slices[SLICED_IMAGE_BOTTOM]->width )
+		        , source->slices[SLICED_IMAGE_BOTTOM]->height
+		        , 0, 0
+		        , source->slices[SLICED_IMAGE_BOTTOM]->width, source->slices[SLICED_IMAGE_BOTTOM]->height
+		        , alpha, op, c1, c2, c3  );
+		BlotScaledImageSizedEx( dest, source->slices[SLICED_IMAGE_LEFT]
+		        , 0, source->slices[SLICED_IMAGE_LEFT]->real_y
+		        , source->slices[SLICED_IMAGE_LEFT]->width
+		        , dest->height - ( source->image->height - source->slices[SLICED_IMAGE_LEFT]->height )
+		        , 0, 0
+		        , source->slices[SLICED_IMAGE_LEFT]->width, source->slices[SLICED_IMAGE_LEFT]->height
+		        , alpha, op, c1, c2, c3  );
+		BlotScaledImageSizedEx( dest, source->slices[SLICED_IMAGE_RIGHT]
+		        , dest->width - source->slices[SLICED_IMAGE_RIGHT]->width, source->slices[SLICED_IMAGE_RIGHT]->real_y
+		        , source->slices[SLICED_IMAGE_RIGHT]->width
+		        , dest->height - ( source->image->height - source->slices[SLICED_IMAGE_RIGHT]->height )
+		        , 0, 0
+		        , source->slices[SLICED_IMAGE_RIGHT]->width, source->slices[SLICED_IMAGE_RIGHT]->height
+		        , alpha, op, c1, c2, c3  );
+		BlotScaledImageSizedEx( dest, source->slices[SLICED_IMAGE_CENTER]
+		        , source->slices[SLICED_IMAGE_CENTER]->real_x, source->slices[SLICED_IMAGE_CENTER]->real_y
+		        , dest->width - ( source->image->width - source->slices[SLICED_IMAGE_CENTER]->width )
+		        , dest->height - ( source->image->height - source->slices[SLICED_IMAGE_CENTER]->height )
+		        , 0, 0
+		        , source->slices[SLICED_IMAGE_CENTER]->width, source->slices[SLICED_IMAGE_CENTER]->height
+				, alpha, op, c1, c2, c3  );
+	}
+	else
+	{
+		if( ( w >= ( source->left + ( source->right_w ) ) )
+			&& ( h >= ( source->left + ( source->bottom_h ) ) ) )
+		{
+			_32 center_w = w - ( source->left + source->right_w );
+			_32 center_h = h - ( source->top + source->bottom_h );
+			BlotImageEx( dest, source->slices[SLICED_IMAGE_TOP_LEFT], 0, 0, alpha, op, c1, c2, c3 );
+			if( center_w )
+				BlotScaledImageSizedEx( dest, source->slices[SLICED_IMAGE_TOP]
+						, source->left, 0
+						, center_w, source->top
+						, 0, 0
+						, source->center_w, source->top
+						, alpha, op, c1, c2, c3  );
+			BlotImageEx( dest, source->slices[SLICED_IMAGE_TOP_RIGHT], source->left + center_w, 0, alpha, op, c1, c2, c3 );
+
+			if( center_h )
+			{
+				BlotScaledImageSizedEx( dest, source->slices[SLICED_IMAGE_LEFT]
+						, 0, source->top
+						, source->left, center_h
+						, 0, 0
+						, source->left, source->center_h
+						, alpha, op, c1, c2, c3  );
+				if( source->output_center && center_w )
+					BlotScaledImageSizedEx( dest, source->slices[SLICED_IMAGE_CENTER]
+							, source->left, source->top
+							, center_w, center_h
+							, 0, 0
+							, source->center_w, source->center_h
+							, alpha, op, c1, c2, c3  );
+				BlotScaledImageSizedEx( dest, source->slices[SLICED_IMAGE_RIGHT]
+						, source->left + center_w, source->top
+						, source->right_w, center_h
+						, 0, 0
+						, source->right_w, source->center_h
+						, alpha, op, c1, c2, c3  );
+			}
+
+			BlotImageEx( dest, source->slices[SLICED_IMAGE_BOTTOM_LEFT], 0, source->top + center_h, alpha, op, c1, c2, c3 );
+			if( center_w )
+				BlotScaledImageSizedEx( dest, source->slices[SLICED_IMAGE_BOTTOM]
+						, source->left, source->top + center_h
+						, center_w, source->bottom_h
+						, 0, 0
+						, source->center_w, source->bottom_h
+						, alpha, op, c1, c2, c3  );
+			BlotImageEx( dest, source->slices[SLICED_IMAGE_BOTTOM_RIGHT]
+					, source->left + center_w, source->top + center_h
+					, alpha, op, c1, c2, c3 );
+		}
+		else if( w >= ( source->left + ( source->right_w ) ) )
+		{
+			// less height available
+			_32 center_w = w - ( source->left + ( source->right_w ) );
+			_32 h1 = ( ( source->top ) * h ) / ( source->top + source->bottom_h );
+			_32 h2 = h - h1;
+
+			BlotScaledImageSizedEx( dest, source->slices[SLICED_IMAGE_TOP_LEFT]
+					, 0, 0 
+					, source->left, h1
+					, 0, 0
+					, source->left, source->top
+					, alpha, op, c1, c2, c3 
+					);
+			if( center_w )
+				BlotScaledImageSizedEx( dest, source->slices[SLICED_IMAGE_TOP]
+						, source->left, 0
+						, center_w, source->top
+						, 0, 0
+						, source->center_w, source->top
+						, alpha, op, c1, c2, c3 );
+			BlotScaledImageSizedEx( dest, source->slices[SLICED_IMAGE_TOP_RIGHT]
+					, source->left + center_w, 0 
+					, source->right_w, h1
+					, 0, 0
+					, source->right_w, source->top
+					, alpha, op, c1, c2, c3 
+					);
+
+			BlotScaledImageSizedEx( dest, source->slices[SLICED_IMAGE_BOTTOM_LEFT]
+					, 0, h1 
+					, source->left, h2
+					, 0, 0
+					, source->left, source->bottom_h
+						, alpha, op, c1, c2, c3 
+					);
+			if( center_w )
+				BlotScaledImageSizedEx( dest, source->slices[SLICED_IMAGE_BOTTOM]
+						, source->left, h1
+						, center_w, h2
+						, 0, 0
+						, source->center_w, source->bottom_h
+						, alpha, op, c1, c2, c3  );
+			BlotScaledImageSizedEx( dest, source->slices[SLICED_IMAGE_BOTTOM_RIGHT]
+					, source->left + center_w, h1
+					, source->right_w, h2
+					, 0, 0
+					, source->right_w, source->bottom_h
+					, alpha, op, c1, c2, c3 
+					);
+		}
+		else if( h >= ( source->left + ( source->right_w ) ) )
+		{
+			// less height available
+			_32 center_h = h - ( source->top + ( source->bottom_h ) );
+			_32 w1 = ( ( source->left ) * w ) / ( source->left + source->right_w );
+			_32 w2 = w - w1;
+
+			BlotScaledImageSizedEx( dest, source->slices[SLICED_IMAGE_TOP_LEFT]
+					, 0, 0 
+					, w1, source->top
+					, 0, 0
+					, source->left, source->top
+					, alpha, op, c1, c2, c3 
+					);
+			BlotScaledImageSizedEx( dest, source->slices[SLICED_IMAGE_TOP_RIGHT]
+					, w1, 0 
+					, w2, source->top
+					, 0, 0
+					, source->right_w, source->top
+					, alpha, op, c1, c2, c3 
+					);
+
+			if( center_h )
+			{
+				BlotScaledImageSizedEx( dest, source->slices[SLICED_IMAGE_LEFT]
+						, 0, source->top
+						, w1, center_h
+						, 0, 0
+						, source->left, source->center_h
+						, alpha, op, c1, c2, c3  );
+				BlotScaledImageSizedEx( dest, source->slices[SLICED_IMAGE_RIGHT]
+						, w1, source->top
+						, w2, center_h
+						, 0, 0
+						, source->right_w, source->center_h
+						, alpha, op, c1, c2, c3  );
+			}
+
+			BlotScaledImageSizedEx( dest, source->slices[SLICED_IMAGE_BOTTOM_LEFT]
+					, 0, source->top + center_h 
+					, w1, source->bottom_h
+					, 0, 0
+					, source->left, source->bottom_h
+					, alpha, op, c1, c2, c3 
+					);
+			BlotScaledImageSizedEx( dest, source->slices[SLICED_IMAGE_BOTTOM_RIGHT]
+					, w1, source->top + center_h
+					, w2, source->bottom_h
+					, 0, 0
+					, source->right_w, source->bottom_h
+					, alpha, op, c1, c2, c3 
+					);
+		}
+		else
+		{
+			_32 h1 = ( ( source->top ) * h ) / ( source->top + source->bottom_h );
+			_32 h2 = h - h1;
+			_32 w1 = ( ( source->left ) * w ) / ( source->left + source->right_w );
+			_32 w2 = w - w1;
+
+			BlotScaledImageSizedEx( dest, source->slices[SLICED_IMAGE_TOP_LEFT]
+					, 0, 0 
+					, w1, h1
+					, 0, 0
+					, source->left, source->top
+					, alpha, op, c1, c2, c3 
+					);
+			BlotScaledImageSizedEx( dest, source->slices[SLICED_IMAGE_TOP_RIGHT]
+					, w1, 0 
+					, w2, h1
+					, 0, 0
+					, source->right_w, source->top
+					, alpha, op, c1, c2, c3 
+					);
+
+			BlotScaledImageSizedEx( dest, source->slices[SLICED_IMAGE_BOTTOM_LEFT]
+					, 0, h1
+					, w1, h2
+					, 0, 0
+					, source->left, source->bottom_h
+					, alpha, op, c1, c2, c3 
+					);
+			BlotScaledImageSizedEx( dest, source->slices[SLICED_IMAGE_BOTTOM_RIGHT]
+					, w1, h1
+					, w2, h2
+					, 0, 0
+					, source->right_w, source->bottom_h
+					, alpha, op, c1, c2, c3 
+					);
+		}
+	}
+}
+
 
 #ifdef __cplusplus_cli
 // provide a trigger point for onload code

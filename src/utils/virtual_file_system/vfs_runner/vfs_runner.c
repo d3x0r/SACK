@@ -101,6 +101,8 @@ void FixupMyTLS( void )
 			dwInit = (*((DWORD*)tls->AddressOfIndex));
 			{
 				POINTER data;
+#  ifdef __64__
+#  else
 				{
 					_asm mov ecx, fs:[2ch];
 					_asm mov eax, dwInit;
@@ -114,6 +116,7 @@ void FixupMyTLS( void )
 					_asm mov ecx, new_list;
 					_asm mov fs:[2ch], ecx;
 				}
+#  endif
 			}
 #endif
 		}

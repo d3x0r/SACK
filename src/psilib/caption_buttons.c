@@ -24,7 +24,7 @@ static void CPROC StopThisProgram( PSI_CONTROL pc )
 			if( button )
 				InvokeButton( button );
 			else
-				HideCommon( pc );
+				HideControl( pc );
 		}
 	}
 	else
@@ -33,7 +33,7 @@ static void CPROC StopThisProgram( PSI_CONTROL pc )
 
 //---------------------------------------------------------------------------
 
-PCAPTION_BUTTON AddCaptionButton( PSI_CONTROL frame, Image normal, Image pressed, int extra_pad, void (CPROC*event)(PSI_CONTROL) )
+PCAPTION_BUTTON AddCaptionButton( PSI_CONTROL frame, Image normal, Image pressed, Image highlight, int extra_pad, void (CPROC*event)(PSI_CONTROL) )
 {
 	if( !( frame->BorderType & BORDER_CAPTION_NO_CLOSE_BUTTON ) )
 	{
@@ -41,7 +41,10 @@ PCAPTION_BUTTON AddCaptionButton( PSI_CONTROL frame, Image normal, Image pressed
 			&& ( frame->BorderType & BORDER_CAPTION_CLOSE_BUTTON ) )
 		{
 			frame->flags.bCloseButtonAdded = 1;
-			AddCaptionButton( frame, (!event&&normal)?normal:g.StopButton, (!event&&normal)?normal:g.StopButtonPressed, (!event&&normal)?extra_pad:g.StopButtonPad, StopThisProgram );
+			AddCaptionButton( frame, (!event&&normal)?normal:g.StopButton
+							, (!event&&pressed)?pressed:g.StopButtonPressed
+							, (!event&&highlight)?highlight:NULL
+							, (!event&&normal)?extra_pad:g.StopButtonPad, StopThisProgram );
 		}
 		else if( !event && frame->flags.bCloseButtonAdded )
 		{
@@ -56,8 +59,10 @@ PCAPTION_BUTTON AddCaptionButton( PSI_CONTROL frame, Image normal, Image pressed
 		PCAPTION_BUTTON button = New( CAPTION_BUTTON );
 		button->normal = normal;
 		button->pressed = pressed;
+		button->highlight = highlight;
 		button->pressed_event = event;
 		button->flags.hidden = FALSE;
+		button->flags.rollover = FALSE;
 		button->is_pressed = FALSE;
 		button->extra_pad = extra_pad;
 		button->pc = frame;

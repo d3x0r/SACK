@@ -245,6 +245,7 @@ typedef struct boundry_rectangle_tag
    }
    </code>                                                   */
 typedef struct ImageFile_tag *Image;
+typedef struct SlicedImageFile *SlicedImage;
 
 #if defined( IMAGE_STRUCTURE_DEFINED )
 #if defined(__cplusplus_cli ) && !defined( IMAGE_SOURCE )
@@ -1904,6 +1905,21 @@ IMAGE_PROC_PTR( void, ResetImageBuffers )( Image image, LOGICAL image_only );
 	IMAGE_PROC_PTR(  LOGICAL, PngImageFile )( Image image, P_8 *buf, size_t *size );
 	IMAGE_PROC_PTR(  LOGICAL, JpgImageFile )( Image image, P_8 *buf, size_t *size, int Q );
 	IMAGE_PROC_PTR(  void, SetFontBias )( SFTFont font, S_32 x, S_32 y );
+	IMAGE_PROC_PTR( SlicedImage, MakeSlicedImage )( Image source, _32 left, _32 right, _32 top, _32 bottom, LOGICAL output_center );
+	IMAGE_PROC_PTR( SlicedImage, MakeSlicedImageComplex )( Image source
+										, _32 top_left_x, _32 top_left_y, _32 top_left_width, _32 top_left_height
+										, _32 top_x, _32 top_y, _32 top_width, _32 top_height
+										, _32 top_right_x, _32 top_right_y, _32 top_right_width, _32 top_right_height
+										, _32 left_x, _32 left_y, _32 left_width, _32 left_height
+										, _32 center_x, _32 center_y, _32 center_width, _32 center_height
+										, _32 right_x, _32 right_y, _32 right_width, _32 right_height
+										, _32 bottom_left_x, _32 bottom_left_y, _32 bottom_left_width, _32 bottom_left_height
+										, _32 bottom_x, _32 bottom_y, _32 bottom_width, _32 bottom_height
+										, _32 bottom_right_x, _32 bottom_right_y, _32 bottom_right_width, _32 bottom_right_height
+										, LOGICAL output_center );
+	IMAGE_PROC_PTR( void, UnmakeSlicedImage )( SlicedImage image );
+	IMAGE_PROC_PTR( void, BlotSlicedImageEx )( Image dest, SlicedImage source, S_32 x, S_32 y, _32 width, _32 height, int alpha, enum BlotOperation op, ... );
+
 } IMAGE_INTERFACE, *PIMAGE_INTERFACE;
 
 
@@ -2041,6 +2057,10 @@ IMAGE_PROC_PTR( void, ResetImageBuffers )( Image image, LOGICAL image_only );
 #define PngImageFile                    PROC_ALIAS( PngImageFile )
 #define JpgImageFile                    PROC_ALIAS( JpgImageFile )
 #define SetFontBias                     PROC_ALIAS( SetFontBias )
+#define MakeSlicedImage                 PROC_ALIAS( MakeSlicedImage )
+#define MakeSlicedImageComplex          PROC_ALIAS( MakeSlicedImageComplex )
+#define UnmakeSlicedImage                 PROC_ALIAS( UnmakeSlicedImage )
+#define BlotSlicedImageEx               PROC_ALIAS( BlotSlicedImageEx )
 //#define global_font_data         (*PROC_ALIAS(global_font_data))
 #endif
 
@@ -2323,6 +2343,12 @@ IMAGE_PROC  void IMAGE_API  FlipImageEx ( Image pif DBG_PASS );
    BlotImageAlpha( output, source, 200, 200 );
    </code>                                                      */
 #define BlotImage( pd, ps, x, y ) BlotImageEx( pd, ps, x, y, 0, BLOT_COPY )
+
+/* Output a sliced image to an image surface
+  sliced images scale center portions, but copy output corner images 
+  */
+#define BlotSlicedImage( pd, ps, x, y, w, h ) BlotSlicedImageEx( pd, ps, x, y, w, h, ALPHA_TRANSPARENT, BLOT_COPY )
+
 /* Copy one image to another at the specified coordinate in the
    destination.
    Parameters

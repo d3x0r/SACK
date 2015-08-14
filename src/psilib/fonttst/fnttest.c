@@ -129,7 +129,8 @@ SaneWinMain( argc, argv )
 			}
 		}
 		// yeah - you can use dumpfontfile to produce a header which is a font...
-		DumpFontFile( argv[1], font );
+		if( StrCaseCmp( argv[1], "null" ) )
+			DumpFontFile( argv[1], font );
 	}
 	psvFont = (PTRSZVAL)font;
 	{

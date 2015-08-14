@@ -21,7 +21,7 @@ struct json_context_object_element
 struct json_context_object
 {
 	struct json_context *context;
-	PLIST members;   // list of members of this object
+	PLIST members;   // list of members of this object struct json_context_object_element *
 	int is_array; // if set is an array format, otherwise is an object format.
 	size_t object_size;
 	size_t offset;

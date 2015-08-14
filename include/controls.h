@@ -880,8 +880,7 @@ PSI_PROC( void, DisplayFrameUnder )( PSI_CONTROL pc, PSI_CONTROL under );
 PSI_PROC( void, DisplayFrameOver )( PSI_CONTROL pc, PSI_CONTROL over );
 PSI_PROC( void, DisplayFrameOn )( PSI_CONTROL pc, PRENDERER pActImg );
 PSI_PROC( void, DisplayFrame)( PSI_CONTROL pf );
-PSI_PROC( void, HideFrame )( PSI_CONTROL pf );
-PSI_PROC( void, HideCommon )( PSI_CONTROL pf );
+PSI_PROC( void, HideControl )( PSI_CONTROL pf );
 PSI_PROC( LOGICAL, IsControlHidden )( PSI_CONTROL pc );
 
 PSI_PROC( void, RevealCommonEx )( PSI_CONTROL pf DBG_PASS );
@@ -1028,7 +1027,7 @@ PSI_PROC( void, EnableControl)( PSI_CONTROL pc, int bEnable );
 PSI_PROC( int, IsControlFocused )( PSI_CONTROL pc );
 PSI_PROC( int, IsControlEnabled)( PSI_CONTROL pc );
 
-PSI_PROC( struct physical_device_caption_button *, AddCaptionButton )( PSI_CONTROL frame, Image normal, Image pressed, int extra_pad, void (CPROC*event)(PSI_CONTROL) );
+PSI_PROC( struct physical_device_caption_button *, AddCaptionButton )( PSI_CONTROL frame, Image normal, Image pressed, Image highlight, int extra_pad, void (CPROC*event)(PSI_CONTROL) );
 PSI_PROC( void, SetCaptionButtonImages )( struct physical_device_caption_button *, Image normal, Image pressed );
 PSI_PROC( void, HideCaptionButton )( struct physical_device_caption_button * );
 PSI_PROC( void, ShowCaptionButton )( struct physical_device_caption_button * );
@@ -1337,8 +1336,29 @@ PSI_CONTROL PSIMakeImageButton( PSI_CONTROL parent, int x, int y, int w, int h, 
 #define MakeImageButton(f,x,y,w,h,id,c,a,p,d) SetButtonPushMethod( SetButtonAttributes( SetButtonImage( MakeControl(f,IMAGE_BUTTON,x,y,w,h,id),c),a),p,d)
 PSI_PROC( PSI_CONTROL, SetButtonImage )( PSI_CONTROL pc, Image image );
 
-// set up/down state images for button ( IMAGE_BUTTON_NAME )
+// set up/down state images for button ( NORMAL_BUTTON or IMAGE_BUTTON_NAME )
 PSI_PROC( PSI_CONTROL, SetButtonImages )( PSI_CONTROL pc, Image normal_image, Image pressed_image );
+
+// set up/down state images for button ( NORMAL_BUTTON or IMAGE_BUTTON_NAME )
+PSI_PROC( PSI_CONTROL, SetButtonSlicedImages )( PSI_CONTROL pc, SlicedImage normal_image, SlicedImage pressed_image );
+
+// set up/down state images for button with mouse rollover ( NORMAL_BUTTON or IMAGE_BUTTON_NAME )
+PSI_PROC( PSI_CONTROL, SetButtonRolloverImages )( PSI_CONTROL pc, Image pRollover, Image pRollover_pressed );
+
+// set up/down state images for button with mouse rollover ( NORMAL_BUTTON or IMAGE_BUTTON_NAME )
+PSI_PROC( PSI_CONTROL, SetButtonSlicedRolloverImages )( PSI_CONTROL pc, SlicedImage pRollover, SlicedImage pRollover_pressed );
+
+// set an offset for button caption text (left/right bias for non-symetric backgrounds)
+PSI_PROC( PSI_CONTROL, SetButtonTextOffset )( PSI_CONTROL pc, S_32 x, S_32 y );
+
+// set up/down state images for button for focused state; overrides drawing focus underline.
+//  ( NORMAL_BUTTON or IMAGE_BUTTON_NAME )
+PSI_PROC( PSI_CONTROL, SetButtonFocusedImages )( PSI_CONTROL pc, Image pImage, Image pImage_pressed );
+
+// set up/down state images for button for focused state; overrides drawing focus underline.
+//  ( NORMAL_BUTTON or IMAGE_BUTTON_NAME )
+PSI_PROC( PSI_CONTROL, SetButtonSlicedFocusedImages )( PSI_CONTROL pc, SlicedImage pImage, SlicedImage pImage_pressed );
+
 
 /* An all-in-one macro to create a Slider control, set the
    callback, and set direction options.
@@ -1777,9 +1797,28 @@ USE_FONTS_NAMESPACE
 
 PSI_PROC( void, DumpFrameContents )( PSI_CONTROL pc );
 
+//------- common between combobox and listbox
+typedef struct listitem_tag *PLISTITEM;
+
+typedef void (CPROC*SelectionChanged )( PTRSZVAL psvUser, PSI_CONTROL pc, PLISTITEM hli );
+
+/* PopupEvent will be called just before the menu pops up, and just after it is hidden, 
+  LOGICAL parameter is TRUE on show, and FALSE on hide.*/
+PSI_PROC( void, SetComboBoxPopupEventCallback )( PSI_CONTROL pc, void (CPROC*PopupEvent)( PTRSZVAL,LOGICAL ), PTRSZVAL psvEvent );
+PSI_PROC( void, SetComboBoxSelectedItem )( PSI_CONTROL pc, PLISTITEM hli );
+
+
+//------- ComboBox Control --------
+_COMBOBOX_NAMESPACE
+
+PSI_PROC( PLISTITEM, AddComboBoxItem )( PSI_CONTROL pc, CTEXTSTR text );
+PSI_PROC( void, SetComboBoxSelChangeHandler )( PSI_CONTROL pc, SelectionChanged proc, PTRSZVAL psvUser );
+PSI_PROC( void, ResetComboBox )( PSI_CONTROL pc );
+
+_COMBOBOX_NAMESPACE_END
+USE_COMBOBOX_NAMESPACE
 //------- ListBox Control --------
 _LISTBOX_NAMESPACE
-typedef struct listitem_tag *PLISTITEM;
 #define LISTOPT_TREE   2
 #define LISTOPT_SORT   1
 CONTROL_PROC( ListBox, (void) );
@@ -1816,7 +1855,6 @@ PSI_PROC( void, SetCurrentItem)( PSI_CONTROL pc, PLISTITEM hli );
 PSI_PROC( PLISTITEM, FindListItem)( PSI_CONTROL pc, CTEXTSTR text );
 PSI_PROC( PLISTITEM, GetNthTreeItem )( PSI_CONTROL pc, PLISTITEM pli, int level, int idx );
 PSI_PROC( PLISTITEM, GetNthItem )( PSI_CONTROL pc, int idx );
-typedef void (CPROC*SelectionChanged )( PTRSZVAL psvUser, PSI_CONTROL pc, PLISTITEM hli );
 PSI_PROC( void, SetSelChangeHandler)( PSI_CONTROL pc, SelectionChanged proc, PTRSZVAL psvUser );
 typedef void (CPROC*DoubleClicker)( PTRSZVAL psvUser, PSI_CONTROL pc, PLISTITEM hli );
 PSI_PROC( void, SetDoubleClickHandler)( PSI_CONTROL pc, DoubleClicker proc, PTRSZVAL psvUser );
@@ -2092,362 +2130,11 @@ PSI_PROC( size_t, _SQLPromptINIValue )(
 												CTEXTSTR filename
 											  );
 
-/* This namespace is not completely implemented (if at all). At
-   the start it looked good, and a lot of it was a
-   copy-insert-modify of the existing functions, it wasn't that
-   much work to lay out. But then looking at the content of the
-   interface, and realizing that each individual registered
-   component needed to have custom methods associated with it,
-   it will be a different sort of project to support dynamic
-   remote controls... so we look at how WPF did it, and that is
-   a solution, I suppose.                                       */
-_PSI_INTERFACE_NAMESPACE
+//------------------------ Image Display -------------------------------------
 
-// hmm upon loading the thing from disk, need to query the callbacks of the application to
-	// request the correct ptrszvals...
-#ifndef __NO_MSGSVR__
-enum {
-    MSG_ControlInit = MSG_EventUser
-     , MSG_ButtonDraw
-    , MSG_ButtonClick
-};
-#endif
+#define IMAGE_DISPLAY_CONTROL_NAME WIDE( "Image Display" )
+PSI_PROC( void, SetImageControlImage )( PSI_CONTROL pc, Image show_image );
 
-
-/* Quick wrapper to make consistant call method signatures for
-   interface methods.                                          */
-#define PSI_PROC_PTR( type, name ) type (CPROC*name)
-/* Begin a basic interface to PSI to consider extending PSI
-   across a message service.                                */
-struct control_interface_tag
-{
-
-PSI_PROC_PTR( PRENDER_INTERFACE, SetControlInterface)( PRENDER_INTERFACE DisplayInterface );
-/* <combine sack::PSI::SetControlImageInterface@PIMAGE_INTERFACE>
-   
-   \ \                                                            */
-PSI_PROC_PTR( PIMAGE_INTERFACE, SetControlImageInterface )( PIMAGE_INTERFACE DisplayInterface );
-
-/* <combine sack::PSI::AlignBaseToWindows>
-   
-   \ \                                     */
-PSI_PROC_PTR( void, AlignBaseToWindows)( void );
-PSI_PROC_PTR( void, SetBaseColor )( INDEX idx, CDATA c );
-/* <combine sack::PSI::GetBaseColor@INDEX>
-   
-   \ \                                     */
-PSI_PROC_PTR( CDATA, GetBaseColor )( INDEX idx );
-
-/* <combine sack::PSI::CreateFrame@CTEXTSTR@int@int@int@int@_32@PSI_CONTROL>
-   
-   \ \                                                                       */
-PSI_PROC_PTR( PSI_CONTROL, CreateFrame)( CTEXTSTR caption, int x, int y
-                                        , int w, int h
-                                        , _32 BorderFlags
-                                        , PSI_CONTROL hAbove );
-
-PSI_PROC_PTR( PSI_CONTROL, CreateFrameFromRenderer )( CTEXTSTR caption
-                                                         , _32 BorderTypeFlags
-                                                         , PRENDERER pActImg );
-/* <combine sack::PSI::DestroyCommonEx@PSI_CONTROL *ppc>
-   
-   \ \                                                   */
-PSI_PROC_PTR( void, DestroyFrameEx)( PSI_CONTROL pf DBG_PASS );
-
-/* <combine sack::PSI::FrameBorderX@_32>
-   
-   \ \                                   */
-PSI_PROC_PTR( int, FrameBorderX )( _32 flags );
-/* <combine sack::PSI::FrameBorderXOfs@_32>
-   
-   \ \                                      */
-PSI_PROC_PTR( int, FrameBorderXOfs )( _32 flags );
-/* <combine sack::PSI::FrameBorderY@PSI_CONTROL@_32@CTEXTSTR>
-   
-   \ \                                                        */
-PSI_PROC_PTR( int, FrameBorderY )( _32 flags, CTEXTSTR caption );
-/* <combine sack::PSI::FrameBorderYOfs@PSI_CONTROL@_32@CTEXTSTR>
-   
-   \ \                                                           */
-PSI_PROC_PTR( int, FrameBorderYOfs )( _32 flags, CTEXTSTR caption );
-/* <combine sack::PSI::DisplayFrame@PSI_CONTROL>
-   
-   \ \                                           */
-PSI_PROC_PTR( void, DisplayFrame)( PSI_CONTROL pf );
-/* <combine sack::PSI::SizeCommon@PSI_CONTROL@_32@_32>
-   
-   \ \                                                 */
-PSI_PROC_PTR( void, SizeCommon)( PSI_CONTROL pf, _32 w, _32 h );
-/* <combine sack::PSI::SizeCommonRel@PSI_CONTROL@_32@_32>
-   
-   \ \                                                    */
-PSI_PROC_PTR( void, SizeCommonRel)( PSI_CONTROL pf, _32 w, _32 h );
-PSI_PROC_PTR( void, MoveCommon)( PSI_CONTROL pf, S_32 x, S_32 y );
-/* <combine sack::PSI::MoveCommonRel@PSI_CONTROL@S_32@S_32>
-   
-   \ \                                                      */
-PSI_PROC_PTR( void, MoveCommonRel)( PSI_CONTROL pf, S_32 x, S_32 y );
-/* <combine sack::PSI::MoveSizeCommon@PSI_CONTROL@S_32@S_32@_32@_32>
-   
-   \ \                                                               */
-PSI_PROC_PTR( void, MoveSizeCommon)( PSI_CONTROL pf, S_32 x, S_32 y, _32 w, _32 h );
-PSI_PROC_PTR( void, MoveSizeCommonRel)( PSI_CONTROL pf, S_32 x, S_32 y, _32 w, _32 h );
-/* <combine sack::PSI::GetControl@PSI_CONTROL@int>
-   
-   \ \                                             */
-PSI_PROC_PTR( PSI_CONTROL, GetControl)( PSI_CONTROL pf, int ID );
-/* <combine sack::PSI::GetCommonUserData@PSI_CONTROL>
-   
-   \ \                                                */
-PSI_PROC_PTR( PTRSZVAL, GetFrameUserData )( PSI_CONTROL pf );
-PSI_PROC_PTR( void, SetFrameUserData )( PSI_CONTROL pf, PTRSZVAL psv );
-/* <combine sack::PSI::UpdateFrameEx@PSI_CONTROL@int@int@int@int h>
-   
-   \ \                                                              */
-PSI_PROC_PTR( void, UpdateFrame )( PSI_CONTROL pf
-                                            , int x, int y
-                                            , int w, int h );
-/* <combine sack::PSI::_mouse::SetFrameMousePosition@PSI_CONTROL@int@int>
-   
-   \ \                                                                    */
-PSI_PROC_PTR( void, SetFrameMousePosition )( PSI_CONTROL frame, int x, int y );
-
-/* <combine sack::PSI::GetFrame@PSI_CONTROL>
-   
-   \ \                                       */
-PSI_PROC_PTR( PSI_CONTROL, GetFrame)( PSI_CONTROL pc );
-/* <combine sack::PSI::GetNearControl@PSI_CONTROL@int>
-   
-   \ \                                                 */
-PSI_PROC_PTR( PSI_CONTROL, GetNearControl)( PSI_CONTROL pc, int ID );
-/* <combine sack::PSI::GetCommonTextEx@PSI_CONTROL@TEXTSTR@int@int>
-   
-   \ \                                                              */
-PSI_PROC_PTR( void, GetControlTextEx)( PSI_CONTROL pc, TEXTSTR buffer, int buflen, int bCString );
-/* <combine sack::PSI::SetControlText@PSI_CONTROL@CTEXTSTR>
-   
-   \ \                                                      */
-PSI_PROC_PTR( void, SetControlText)( PSI_CONTROL pc, CTEXTSTR text );
-/* <combine sack::PSI::SetCommonFocus@PSI_CONTROL>
-   
-   \ \                                             */
-PSI_PROC_PTR( void, SetControlFocus)( PSI_CONTROL pf, PSI_CONTROL pc );
-/* <combine sack::PSI::EnableControl@PSI_CONTROL@int>
-   
-   \ \                                                */
-PSI_PROC_PTR( void, EnableControl)( PSI_CONTROL pc, int bEnable );
-/* <combine sack::PSI::IsControlEnabled@PSI_CONTROL>
-   
-   \ \                                               */
-PSI_PROC_PTR( int, IsControlEnabled)( PSI_CONTROL pc );
-/* <combine sack::PSI::GetControlSurface@PSI_CONTROL>
-   
-   \ \                                                */
-PSI_PROC_PTR( Image,GetControlSurface)( PSI_CONTROL pc );
-PSI_PROC_PTR( void, SetCommonDraw )( PSI_CONTROL pf, void (CPROC*Draw)( PTRSZVAL, PSI_CONTROL pc ), PTRSZVAL psv );
-PSI_PROC_PTR( void, SetCommonKey )( PSI_CONTROL pf, void (CPROC*Key)(PTRSZVAL,_32), PTRSZVAL psv );
-PSI_PROC_PTR( void, SetCommonMouse)( PSI_CONTROL pc, void (CPROC*MouseMethod)(PTRSZVAL, S_32 x, S_32 y, _32 b ),PTRSZVAL psv );
-
-/* <combine sack::PSI::UpdateControlEx@PSI_CONTROL pc>
-   
-   \ \                                                 */
-PSI_PROC_PTR( void, UpdateControlEx)( PSI_CONTROL pc DBG_PASS);
-/* <combine sack::PSI::GetControlID@PSI_CONTROL>
-   
-   \ \                                           */
-PSI_PROC_PTR( int, GetControlID)( PSI_CONTROL pc );
-
-PSI_PROC_PTR( void, DestroyControlEx)( PSI_CONTROL pc DBG_PASS );
-/* <combine sack::PSI::SetNoFocus@PSI_CONTROL>
-   
-   \ \                                         */
-PSI_PROC_PTR( void, SetNoFocus)( PSI_CONTROL pc );
-/* <combine sack::PSI::ControlExtraData@PSI_CONTROL>
-   
-   \ \                                               */
-PSI_PROC_PTR( void*, ControlExtraData)( PSI_CONTROL pc );
-/* <combine sack::PSI::OrphanCommon@PSI_CONTROL>
-   
-   \ \                                           */
-PSI_PROC_PTR( void, OrphanCommon )( PSI_CONTROL pc );
-/* <combine sack::PSI::AdoptCommon@PSI_CONTROL@PSI_CONTROL@PSI_CONTROL>
-   
-   \ \                                                                  */
-PSI_PROC_PTR( void, AdoptCommon )( PSI_CONTROL pFoster, PSI_CONTROL pElder, PSI_CONTROL pOrphan );
-
-/* <combine sack::PSI::AddCommonButtonsEx@PSI_CONTROL@int *@CTEXTSTR@int *@CTEXTSTR>
-   
-   \ \                                                                               */
-PSI_PROC_PTR( void, AddCommonButtonsEx)( PSI_CONTROL pf
-                                , int *done, CTEXTSTR donetext
-                                , int *okay, CTEXTSTR okaytext );
-/* <combine sack::PSI::AddCommonButtons@PSI_CONTROL@int *@int *>
-   
-   \ \                                                           */
-PSI_PROC_PTR( void, AddCommonButtons)( PSI_CONTROL pf, int *done, int *okay );
-
-PSI_PROC_PTR( void, CommonLoop)( int *done, int *okay ); 
-/* <combine sack::PSI::ProcessControlMessages>
-   
-   \ \                                         */
-PSI_PROC_PTR( void, ProcessControlMessages)(void);
-
-/* <combine sack::PSI::button::PressButton@PSI_CONTROL@int>
-   
-   \ \                                                      */
-PSI_PROC_PTR( void, PressButton)( PSI_CONTROL pc, int bPressed );
-/* <combine sack::PSI::button::IsButtonPressed@PSI_CONTROL>
-   
-   \ \                                                      */
-PSI_PROC_PTR( int, IsButtonPressed)( PSI_CONTROL pc );
-
-/* <combine sack::PSI::button::GetCheckState@PSI_CONTROL>
-   
-   \ \                                                    */
-PSI_PROC_PTR( int, GetCheckState)( PSI_CONTROL pc );
-/* <combine sack::PSI::button::SetCheckState@PSI_CONTROL@int>
-   
-   \ \                                                        */
-PSI_PROC_PTR( void, SetCheckState)( PSI_CONTROL pc, int nState );
-
-/* <combine sack::PSI::text::SetTextControlColors@PSI_CONTROL@CDATA@CDATA>
-   
-   \ \                                                                     */
-PSI_PROC_PTR( void, SetTextControlColors )( PSI_CONTROL pc, CDATA fore, CDATA back );
-
-/* <combine sack::PSI::slider::SetSliderValues@PSI_CONTROL@int@int@int>
-   
-   \ \                                                                  */
-PSI_PROC_PTR( void, SetSliderValues)( PSI_CONTROL pc, int min, int current, int max );
-
-/* <combine sack::PSI::colorwell::PickColor@CDATA *@CDATA@PSI_CONTROL>
-   
-   \ \                                                                 */
-PSI_PROC_PTR( int, PickColor)( CDATA *result, CDATA original, PSI_CONTROL pAbove );
-/* <combine sack::PSI::font::PickFont@S_32@S_32@P_32@POINTER *@PSI_CONTROL>
-   
-   \ \                                                                      */
-PSI_PROC_PTR( SFTFont, PickFont)( S_32 x, S_32 y
-                                  , P_32 size, POINTER *pFontData
-                                  , PSI_CONTROL pAbove );
-/* <combine sack::PSI::listbox::ResetList@PSI_CONTROL>
-   
-   \ \                                                 */
-PSI_PROC_PTR( void, ResetList)( PSI_CONTROL pc );
-/* <combine sack::PSI::listbox::InsertListItem@PSI_CONTROL@PLISTITEM@CTEXTSTR>
-   
-   \ \                                                                         */
-PSI_PROC_PTR( PLISTITEM, InsertListItem)( PSI_CONTROL pc, PLISTITEM prior, CTEXTSTR text );
-/* <combine sack::PSI::listbox::InsertListItemEx@PSI_CONTROL@PLISTITEM@int@CTEXTSTR>
-   
-   \ \                                                                               */
-PSI_PROC_PTR( PLISTITEM, InsertListItemEx)( PSI_CONTROL pc, PLISTITEM prior, int nLevel, CTEXTSTR text );
-PSI_PROC_PTR( PLISTITEM, AddListItem)( PSI_CONTROL pc, CTEXTSTR text );
-/* <combine sack::PSI::listbox::AddListItemEx@PSI_CONTROL@int@CTEXTSTR>
-   
-   \ \                                                                  */
-PSI_PROC_PTR( PLISTITEM, AddListItemEx)( PSI_CONTROL pc, int nLevel, CTEXTSTR text );
-/* <combine sack::PSI::listbox::DeleteListItem@PSI_CONTROL@PLISTITEM>
-   
-   \ \                                                                */
-PSI_PROC_PTR( void, DeleteListItem)( PSI_CONTROL pc, PLISTITEM hli );
-/* <combine sack::PSI::listbox::SetItemData@PLISTITEM@PTRSZVAL>
-   
-   \ \                                                          */
-PSI_PROC_PTR( void, SetItemData)( PLISTITEM hli, PTRSZVAL psv );
-/* <combine sack::PSI::listbox::GetItemData@PLISTITEM>
-   
-   \ \                                                 */
-PSI_PROC_PTR( PTRSZVAL, GetItemData)( PLISTITEM hli );
-/* <combine sack::PSI::listbox::GetItemText@PLISTITEM@int@TEXTSTR>
-   
-   \ \                                                             */
-PSI_PROC_PTR( void, GetItemText)( PLISTITEM hli, TEXTSTR buffer, int bufsize );
-/* <combine sack::PSI::listbox::GetSelectedItem@PSI_CONTROL>
-   
-   \ \                                                       */
-PSI_PROC_PTR( PLISTITEM, GetSelectedItem)( PSI_CONTROL pc );
-PSI_PROC_PTR( void, SetSelectedItem)( PSI_CONTROL pc, PLISTITEM hli );
-/* <combine sack::PSI::listbox::SetCurrentItem@PSI_CONTROL@PLISTITEM>
-   
-   \ \                                                                */
-PSI_PROC_PTR( void, SetCurrentItem)( PSI_CONTROL pc, PLISTITEM hli );
-/* <combine sack::PSI::listbox::FindListItem@PSI_CONTROL@CTEXTSTR>
-   
-   \ \                                                             */
-PSI_PROC_PTR( PLISTITEM, FindListItem)( PSI_CONTROL pc, CTEXTSTR text );
-/* <combine sack::PSI::listbox::GetNthItem@PSI_CONTROL@int>
-   
-   \ \                                                      */
-PSI_PROC_PTR( PLISTITEM, GetNthItem )( PSI_CONTROL pc, int idx );
-/* <combine sack::PSI::listbox::SetSelChangeHandler@PSI_CONTROL@SelectionChanged@PTRSZVAL>
-   
-   \ \                                                                                     */
-PSI_PROC_PTR( void, SetSelChangeHandler)( PSI_CONTROL pc, SelectionChanged proc, PTRSZVAL psvUser );
-PSI_PROC_PTR( void, SetDoubleClickHandler)( PSI_CONTROL pc, DoubleClicker proc, PTRSZVAL psvUser );
-
-#ifdef __LINUX__
-PSI_PROC_PTR(PSI_CONTROL, MakeGridBox)( PSI_CONTROL pf, int options, int x, int y, int w, int h,
-                                 int viewport_x, int viewport_y, int total_x, int total_y,
-                                 int row_thickness, int column_thickness, PTRSZVAL nID );
-#endif
-/* <combine sack::PSI::popup::CreatePopup>
-   
-   \ \                                     */
-PSI_PROC_PTR( PMENU, CreatePopup)( void );
-/* <combine sack::PSI::popup::DestroyPopup@PMENU>
-   
-   \ \                                            */
-PSI_PROC_PTR( void, DestroyPopup)( PMENU pm );
-/* <combine sack::PSI::popup::GetPopupData@PMENU@int>
-   
-   \ \                                                */
-PSI_PROC_PTR( void *,GetPopupData)( PMENU pm, int item );
-/* <combine sack::PSI::popup::AppendPopupItem@PMENU@int@PTRSZVAL@CPOINTER>
-   
-   \ \                                                                     */
-PSI_PROC_PTR( PMENUITEM, AppendPopupItem)( PMENU pm, int type, PTRSZVAL dwID, CPOINTER pData );
-PSI_PROC_PTR( PMENUITEM, CheckPopupItem)( PMENU pm, _32 dwID, _32 state );
-/* <combine sack::PSI::popup::DeletePopupItem@PMENU@_32@_32>
-   
-   \ \                                                       */
-PSI_PROC_PTR( PMENUITEM, DeletePopupItem)( PMENU pm, _32 dwID, _32 state );
-PSI_PROC_PTR( int, TrackPopup)( PMENU hMenuSub, PSI_CONTROL parent );
-PSI_PROC_PTR( int, PSI_OpenFile)( CTEXTSTR basepath, CTEXTSTR types, CTEXTSTR result );
-/* <combine sack::PSI::PSI_OpenFile@CTEXTSTR@CTEXTSTR@TEXTSTR>
-   
-   \ \                                                         */
-PSI_PROC_PTR( int, PSI_OpenFileEx)( CTEXTSTR basepath, CTEXTSTR types, CTEXTSTR result, int Create );
-/* <combine sack::PSI::scrollbar::SetScrollParams@PSI_CONTROL@int@int@int@int>
-   
-   \ \                                                                         */
-PSI_PROC_PTR( void, SetScrollParams)( PSI_CONTROL pc, int min, int cur, int range, int max );
-PSI_PROC_PTR( PSI_CONTROL, MakeScrollBar)( PSI_CONTROL pf, int x, int y, int w, int h, PTRSZVAL nID, int flags );
-/* <combine sack::PSI::scrollbar::SetScrollUpdateMethod@PSI_CONTROL@void __cdecl*UpdateProcPTRSZVAL psv\, int type\, int current@PTRSZVAL>
-   
-   \ \                                                                                                                                     */
-PSI_PROC_PTR( void, SetScrollUpdateMethod)( PSI_CONTROL pc
-                    , void (CPROC*UpdateProc)(PTRSZVAL psv, int type, int current)
-                    , PTRSZVAL data );
-/* <combine sack::PSI::scrollbar::MoveScrollBar@PSI_CONTROL@int>
-   
-   \ \                                                           */
-PSI_PROC_PTR( void, MoveScrollBar )( PSI_CONTROL pc, int type );
-/* <combine sack::PSI::SimpleMessageBox@PSI_CONTROL@CTEXTSTR@CTEXTSTR>
-   
-   \ \                                                                 */
-PSI_PROC_PTR( void, SimpleMessageBox )( PSI_CONTROL parent, CTEXTSTR title, CTEXTSTR content );
-/* <combine sack::PSI::HideFrame@PSI_CONTROL>
-   
-   \ \                                        */
-PSI_PROC_PTR( void, HideFrame )( PSI_CONTROL pf );
-/* <combine sack::PSI::UpdateCommonEx@PSI_CONTROL@int bDraw>
-   
-   \ \                                                       */
-PSI_PROC_PTR( void, UpdateCommonEx )( PSI_CONTROL pc, int bDraw );
-};
-/* Type that is a pointer to a control interface. */
-typedef struct control_interface_tag *PCONTROL_INTERFACE;
 
 //------------------------ Progress Bar --------------------------------------
 #define PROGRESS_BAR_CONTROL_NAME  WIDE( "Progress Bar" )
@@ -2461,286 +2148,8 @@ PSI_PROC( void, ProgressBar_SetColors )( PSI_CONTROL pc, CDATA background, CDATA
 PSI_PROC( void, ProgressBar_EnableText )( PSI_CONTROL pc, LOGICAL enable );
 
 
-
-/* Gets the interface. */
-PCONTROL_INTERFACE GetControlInterface( void );
-/* Releases an interface when you are done with it. */
-void DropControlInterface( void );
-
-#ifdef USE_CONTROL_INTERFACE
-
-#define ALIAS_WRAPPER(name)   ( (USE_CONTROL_INTERFACE)->(name))
-
-#define SetControlInterface         ALIAS_WRAPPER(SetControlInterface)
-#define SetControlImageInterface    ALIAS_WRAPPER(SetControlImageInterface)
-
-#define AlignBaseToWindows          ALIAS_WRAPPER(AlignBaseToWindows)
-// see indexes above.
-#define SetBaseColor                ALIAS_WRAPPER(SetBaseColor)
-#define GetBaseColor                ALIAS_WRAPPER(GetBaseColor)
-
-//-------- Frame and generic control functions --------------
-#define CreateFrame                 ALIAS_WRAPPER(CreateFrame)
-
-                           
-#define DestroyFrameEx                ALIAS_WRAPPER(DestroyFrameEx)
-#define DisplayFrame                ALIAS_WRAPPER(DisplayFrame)
-#define HideFrame                   ALIAS_WRAPPER(HideFrame)
-#define SizeFrame                   ALIAS_WRAPPER(SizeFrame)
-#define MoveFrame                   ALIAS_WRAPPER(MoveFrame)
-#define MoveSizeFrame               ALIAS_WRAPPER(MoveSizeFrame)
-#define SizeFrameRel                ALIAS_WRAPPER(SizeFrameRel)
-#define MoveFrameRel                ALIAS_WRAPPER(MoveFrameRel)
-#define MoveSizeFrameRel            ALIAS_WRAPPER(MoveSizeFrameRel)
-#define GetControl                  ALIAS_WRAPPER(GetControl)
-#define UpdateFrameEx                 ALIAS_WRAPPER(UpdateFrameEx)
-#define SetFrameMousePosition       ALIAS_WRAPPED(SetFrameMousePosition)
-//PSI_PROC_PTR void SetDefaultOkayID( PSI_CONTROL pFrame, int nID );
-//PSI_PROC_PTR void SetDefaultCancelID( PSI_CONTROL pFrame, int nID );
-
-//-------- Generic control functions --------------
-#define GetFrame                    ALIAS_WRAPPER(GetFrame)
-#define GetNearControl              ALIAS_WRAPPER(GetNearControl)
-#define GetControlTextEx            ALIAS_WRAPPER(GetControlTextEx)
-#define SetControlText              ALIAS_WRAPPER(SetControlText)
-#define SetControlFocus             ALIAS_WRAPPER(SetControlFocus)
-#define EnableControl               ALIAS_WRAPPER(EnableControl)
-#define IsControlEnabled            ALIAS_WRAPPER(IsControlEnabled)
-#define GetControlSurface           ALIAS_WRAPPER(GetControlSurface)
-#define SetFrameDraw                ALIAS_WRAPPER(SetFrameDraw)
-#define SetFrameMouse               ALIAS_WRAPPER(SetFrameMouse)
-#define SetFrameKey                 ALIAS_WRAPPER(SetFrameKey)
-#define SetControlDraw              ALIAS_WRAPPER(SetControlDraw)
-#define SetControlMouse             ALIAS_WRAPPER(SetControlMouse)
-#define UpdateControl               ALIAS_WRAPPER(UpdateControl)
-#define UpdateControlEx             ALIAS_WRAPPER(UpdateControlEx)
-#define GetControlID                ALIAS_WRAPPER(GetControlID)
-
-#define DestroyControlEx            ALIAS_WRAPPER(DestroyControlEx)
-#define SetNoFocus                  ALIAS_WRAPPER(SetNoFocus)
-#define ControlExtraData            ALIAS_WRAPPER(ControlExtraData)
-#define OrphanCommon                ALIAS_WRAPPER(OrphanCommon)
-#define AdoptCommon                 ALIAS_WRAPPER(AdoptCommon)
-//------ General Utilities ------------
-#define AddCommonButtonsEx          ALIAS_WRAPPER(AddCommonButtonsEx)
-#define AddCommonButtons            ALIAS_WRAPPER(AddCommonButtons)
-
-#define CommonLoop                  ALIAS_WRAPPER(CommonLoop)
-#define ProcessControlMessages      ALIAS_WRAPPER(ProcessControlMessages)
-//------ BUTTONS ------------
-#define MakeButton                  ALIAS_WRAPPER(MakeButton)
-#define MakeImageButton             ALIAS_WRAPPER(MakeImageButton)
-#define MakeCustomDrawnButton       ALIAS_WRAPPER(MakeCustomDrawnButton)
-#define PressButton                 ALIAS_WRAPPER(PressButton)
-#define IsButtonPressed             ALIAS_WRAPPER(IsButtonPressed)
-
-#define MakeCheckButton             ALIAS_WRAPPER(MakeCheckButton)
-#define MakeRadioButton             ALIAS_WRAPPER(MakeRadioButton)
-#define GetCheckState               ALIAS_WRAPPER(GetCheckState)
-#define SetCheckState               ALIAS_WRAPPER(SetCheckState)
-
-//------ Static Text -----------
-#define MakeTextControl             ALIAS_WRAPPER(MakeTextControl)
-#define SetTextControlColors        ALIAS_WRAPPER(SetTextControlColors)
-//------- Edit Control ---------
-#define MakeEditControl             ALIAS_WRAPPER(MakeEditControl)
-// Use GetContrcolText/SetControlText
-
-//------- Slider Control --------
-#define MakeSlider                  ALIAS_WRAPPER(MakeSlider)
-#define SetSliderValues             ALIAS_WRAPPER(SetSliderValues)
-
-//------- Color Control --------
-// common dialog to get a color... returns TRUE if *result is set
-// if result is NULL color is not returned, but still can set presets...
-#define PickColor                   ALIAS_WRAPPER(PickColor)
-//------- SFTFont Control --------
-#define PickFont                    ALIAS_WRAPPER(PickFont)
-
-//------- ListBox Control --------
-#define MakeListBox                 ALIAS_WRAPPER(MakeListBox)
-
-                           
-#define ResetList                   ALIAS_WRAPPER(ResetList)
-#define InsertListItem              ALIAS_WRAPPER(InsertListItem)
-#define InsertListItemEx            ALIAS_WRAPPER(InsertListItemEx)
-#define AddListItem                 ALIAS_WRAPPER(AddListItem)
-#define AddListItemEx               ALIAS_WRAPPER(AddListItemEx)
-#define DeleteListItem              ALIAS_WRAPPER(DeleteListItem)
-#define SetItemData                 ALIAS_WRAPPER(SetItemData)
-#define GetItemData                 ALIAS_WRAPPER(GetItemData)
-#define GetItemText                 ALIAS_WRAPPER(GetItemText)
-#define GetSelectedItem             ALIAS_WRAPPER(GetSelectedItem)
-#define SetSelectedItem             ALIAS_WRAPPER(SetSelectedItem)
-#define SetCurrentItem              ALIAS_WRAPPER(SetCurrentItem)
-#define FindListItem                ALIAS_WRAPPER(FindListItem)
-#define GetNthItem                  ALIAS_WRAPPER(GetNthItem)
-#define SetSelChangeHandler         ALIAS_WRAPPER(SetSelChangeHandler )
-#define SetDoubleClickHandler       ALIAS_WRAPPER(SetDoubleClickHandler)
-//------- GridBox Control --------
-#define MakeGridBox                 ALIAS_WRAPPER(MakeGridBox)
-    //------- Popup Menus ------------
-// popup interface.... these are mimics of windows... 
-#define CreatePopup                 ALIAS_WRAPPER(CreatePopup)
-#define DestroyPopup                ALIAS_WRAPPER(DestroyPopup)
-#define GetPopupData                ALIAS_WRAPPER(GetPopupData)
-#define AppendPopupItem             ALIAS_WRAPPER(AppendPopupItem)
-#define CheckPopupItem              ALIAS_WRAPPER(CheckPopupItem)
-#define DeletePopupItem             ALIAS_WRAPPER(DeletePopupItem)
-#define TrackPopup                  ALIAS_WRAPPER(TrackPopup)
-//------- Color Control --------
-// these are basic basic file selection dialogs... 
-// the concept is valid, and they should be common like controls...
-#define PSI_OpenFile                ALIAS_WRAPPER(PSI_OpenFile)
-// this may be used for save I think....
-#define PSI_OpenFileEx              ALIAS_WRAPPER(PSI_OpenFileEx)
-//------- Scroll Control --------
-#define SetScrollParams             ALIAS_WRAPPER(SetScrollParams)
-#define MakeScrollBar               ALIAS_WRAPPER(MakeScrollBar)
-#define SetScrollUpdateMethod       ALIAS_WRAPPER(SetScrollUpdateMethod)
-
-#endif
-
-
-#ifdef BASE_CONTROL_MESSAGE_ID
-// need to define BASE_IMAGE_MESSAGE_ID before hand to determine what the base message is.
-#define MSG_ID(method)  ( ( offsetof( struct control_interface_tag, method ) / sizeof( void (CPROC*)(void) ) ) + BASE_CONTROL_MESSAGE_ID + MSG_EventUser )
-
-#define MSG_SetControlInterface         MSG_ID(SetControlInterface)
-#define MSG_SetControlImageInterface    MSG_ID(SetControlImageInterface)
-
-#define MSG_AlignBaseToWindows          MSG_ID(AlignBaseToWindows)
-// see indexes above.
-#define MSG_SetBaseColor                MSG_ID(SetBaseColor)
-#define MSG_GetBaseColor                MSG_ID(GetBaseColor)
-
-//-------- Frame and generic control functions --------------
-#define MSG_CreateFrame                 MSG_ID(CreateFrame)
-
-                           
-#define MSG_DestroyFrameEx                MSG_ID(DestroyFrameEx)
-#define MSG_DisplayFrame                MSG_ID(DisplayFrame)
-#define MSG_HideFrame                   MSG_ID(HideFrame)
-#define MSG_SizeCommon                   MSG_ID(SizeCommon)
-#define MSG_MoveCommon                   MSG_ID(MoveCommon)
-#define MSG_MoveSizeCommon               MSG_ID(MoveSizeCommon)
-#define MSG_SizeCommonRel                   MSG_ID(SizeCommonRel)
-#define MSG_MoveCommonRel                   MSG_ID(MoveCommonRel)
-#define MSG_MoveSizeCommonRel               MSG_ID(MoveSizeCommonRel)
-#define MSG_GetControl                  MSG_ID(GetControl)
-#define MSG_UpdateFrame                 MSG_ID(UpdateFrame)
-#define MSG_SetFrameMousePosition       MSG_ID(SetFrameMousePosition)
-//PSI_PROC_PTR void SetDefaultOkayID( PSI_CONTROL pFrame, int nID );
-//PSI_PROC_PTR void SetDefaultCancelID( PSI_CONTROL pFrame, int nID );
-
-//-------- Generic control functions --------------
-#define MSG_GetFrame                    MSG_ID(GetFrame)
-#define MSG_GetNearControl              MSG_ID(GetNearControl)
-#define MSG_GetControlTextEx            MSG_ID(GetControlTextEx)
-#define MSG_SetControlText              MSG_ID(SetControlText)
-#define MSG_SetControlFocus             MSG_ID(SetControlFocus)
-#define MSG_EnableControl               MSG_ID(EnableControl)
-#define MSG_IsControlEnabled            MSG_ID(IsControlEnabled)
-#define MSG_GetControlSurface           MSG_ID(GetControlSurface)
-#define MSG_SetFrameDraw                MSG_ID(SetFrameDraw)
-#define MSG_SetFrameMouse               MSG_ID(SetFrameMouse)
-#define MSG_SetFrameKey                 MSG_ID(SetFrameKey)
-#define MSG_SetControlDraw              MSG_ID(SetControlDraw)
-#define MSG_SetControlMouse             MSG_ID(SetControlMouse)
-#define MSG_UpdateControl               MSG_ID(UpdateControl)
-#define MSG_UpdateControlEx             MSG_ID(UpdateControlEx)
-#define MSG_GetControlID                MSG_ID(GetControlID)
-
-#define MSG_DestroyControlEx            MSG_ID(DestroyControlEx)
-#define MSG_SetNoFocus                  MSG_ID(SetNoFocus)
-#define MSG_ControlExtraData            MSG_ID(ControlExtraData)
-#define MSG_OrphanCommon                MSG_ID(OrphanCommon)
-#define MSG_AdoptCommon                 MSG_ID(AdoptCommon)
-
-//------ General Utilities ------------
-#define MSG_AddCommonButtonsEx          MSG_ID(AddCommonButtonsEx)
-#define MSG_AddCommonButtons            MSG_ID(AddCommonButtons)
-
-#define MSG_CommonLoop                  MSG_ID(CommonLoop)
-#define MSG_ProcessControlMessages      MSG_ID(ProcessControlMessages)
-//------ BUTTONS ------------
-#define MSG_MakeButton                  MSG_ID(MakeButton)
-#define MSG_MakeImageButton             MSG_ID(MakeImageButton)
-#define MSG_MakeCustomDrawnButton       MSG_ID(MakeCustomDrawnButton)
-#define MSG_PressButton                 MSG_ID(PressButton)
-#define MSG_IsButtonPressed             MSG_ID(IsButtonPressed)
-
-#define MSG_MakeCheckButton             MSG_ID(MakeCheckButton)
-#define MSG_MakeRadioButton             MSG_ID(MakeRadioButton)
-#define MSG_GetCheckState               MSG_ID(GetCheckState)
-#define MSG_SetCheckState               MSG_ID(SetCheckState)
-
-//------ Static Text -----------
-#define MSG_MakeTextControl             MSG_ID(MakeTextControl)
-#define MSG_SetTextControlColors        MSG_ID(SetTextControlColors)
-
-//------- Edit Control ---------
-#define MSG_MakeEditControl             MSG_ID(MakeEditControl)
-// Use GetContrcolText/SetControlText
-
-//------- Slider Control --------
-#define MSG_MakeSlider                  MSG_ID(MakeSlider)
-#define MSG_SetSliderValues             MSG_ID(SetSliderValues)
-
-//------- Color Control --------
-// common dialog to get a color... returns TRUE if *result is set
-// if result is NULL color is not returned, but still can set presets...
-#define MSG_PickColor                   MSG_ID(PickColor)
-//------- SFTFont Control --------
-#define MSG_PickFont                    MSG_ID(PickFont)
-
-//------- ListBox Control --------
-#define MSG_MakeListBox                 MSG_ID(MakeListBox)
-
-                           
-#define MSG_ResetList                   MSG_ID(ResetList)
-#define MSG_InsertListItem              MSG_ID(InsertListItem)
-#define MSG_InsertListItemEx            MSG_ID(InsertListItemEx)
-#define MSG_AddListItem                 MSG_ID(AddListItem)
-#define MSG_AddListItemEx               MSG_ID(AddListItemEx)
-#define MSG_DeleteListItem              MSG_ID(DeleteListItem)
-#define MSG_SetItemData                 MSG_ID(SetItemData)
-#define MSG_GetItemData                 MSG_ID(GetItemData)
-#define MSG_GetItemText                 MSG_ID(GetItemText)
-#define MSG_GetSelectedItem             MSG_ID(GetSelectedItem)
-#define MSG_SetSelectedItem             MSG_ID(SetSelectedItem)
-#define MSG_SetCurrentItem              MSG_ID(SetCurrentItem)
-#define MSG_FindListItem                MSG_ID(FindListItem)
-#define MSG_GetNthItem                  MSG_ID(GetNthItem)
-#define MSG_SetSelChangeHandler         MSG_ID(SetSelChangeHandler)
-#define MSG_SetDoubleClickHandler       MSG_ID(SetDoubleClickHandler)
-//------- GridBox Control --------
-#define MSG_MakeGridBox                 MSG_ID(MakeGridBox)
-    //------- Popup Menus ------------
-// popup interface.... these are mimics of windows... 
-#define MSG_CreatePopup                 MSG_ID(CreatePopup)
-#define MSG_DestroyPopup                MSG_ID(DestroyPopup)
-#define MSG_GetPopupData                MSG_ID(GetPopupData)
-#define MSG_AppendPopupItem             MSG_ID(AppendPopupItem)
-#define MSG_CheckPopupItem              MSG_ID(CheckPopupItem)
-#define MSG_DeletePopupItem             MSG_ID(DeletePopupItem)
-#define MSG_TrackPopup                  MSG_ID(TrackPopup)
-//------- Color Control --------
-// these are basic basic file selection dialogs... 
-// the concept is valid, and they should be common like controls...
-#define MSG_PSI_OpenFile                MSG_ID(PSI_OpenFile)
-// this may be used for save I think....
-#define MSG_PSI_OpenFileEx              MSG_ID(PSI_OpenFileEx)
-//------- Scroll Control --------
-#define MSG_SetScrollParams             MSG_ID(SetScrollParams)
-#define MSG_MakeScrollBar               MSG_ID(MakeScrollBar)
-#define MSG_SetScrollUpdateMethod       MSG_ID(SetScrollUpdateMethod)
-
-#endif
-_PSI_INTERFACE_NAMESPACE_END
-
-
 #define GetFrameSurface GetControlSurface
+
 
 PSI_NAMESPACE_END
 

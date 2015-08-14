@@ -208,7 +208,7 @@ no_mem2:
 
 		if( !(color_type & PNG_COLOR_MASK_ALPHA ) )
 		{
-			lprintf( WIDE( "missing alpha in color, so add color" ) );
+			//lprintf( WIDE( "missing alpha in color, so add color" ) );
 			png_set_filler(png_ptr, 0xFF, PNG_FILLER_AFTER);
 		}
 		// else

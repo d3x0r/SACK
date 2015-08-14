@@ -173,14 +173,14 @@ enum order_type {
 };
 
 static _32 PutCharacterFontX ( ImageFile *pImage
-									  , S_32 x, S_32 y
-									  , CDATA color, CDATA background
-									  , _32 c, PFONT UseFont
-									  , enum order_type order
-									  , S_32 (*StepX)(S_32 base1,S_32 delta1,S_32 delta2)
-									  , S_32 (*StepY)(S_32 base1,S_32 delta1,S_32 delta2)
-                              , LOGICAL internal_render
-									  )
+                             , S_32 x, S_32 y
+                             , CDATA color, CDATA background
+                             , _32 c, PFONT UseFont
+                             , enum order_type order
+                             , S_32 (*StepX)(S_32 base1,S_32 delta1,S_32 delta2)
+                             , S_32 (*StepY)(S_32 base1,S_32 delta1,S_32 delta2)
+                             , LOGICAL internal_render
+                             )
 {
 	int bit, col, inc;
 	int line;
@@ -202,7 +202,9 @@ static _32 PutCharacterFontX ( ImageFile *pImage
 	pchar = UseFont->character[c];
 	if( !pchar ) return 0;
 
-	if( !UseFont->character[c]->cell && ( pImage->flags & IF_FLAG_FINAL_RENDER ) )
+	if( !UseFont->character[c]->cell 
+		&& ( pImage->flags & IF_FLAG_FINAL_RENDER )
+		&& !( pImage->flags & IF_FLAG_IN_MEMORY ) )
 	{
 		Image image = AllocateCharacterSpaceByFont( pImage, UseFont, UseFont->character[c] );
 		// it's the same characteristics... so we should just pass same step XY
@@ -214,7 +216,8 @@ static _32 PutCharacterFontX ( ImageFile *pImage
 			PutCharacterFontX( image, 0, 0, BASE_COLOR_WHITE, 0, c, UseFont, OrderPoints, StepXNormal, StepYNormal, TRUE );
 	}
 
-	if( pImage->flags & IF_FLAG_FINAL_RENDER )
+	if( ( pImage->flags & IF_FLAG_FINAL_RENDER )
+		&& !( pImage->flags & IF_FLAG_IN_MEMORY ) )
 	{
 		int orientation = 0;
 		S_32 xd;

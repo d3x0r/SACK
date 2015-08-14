@@ -580,7 +580,7 @@ void UnshowMenu( PMENU pm )
 		Log1( WIDE("This menu doesn't have a parent? but this selection is %08")_PTRSZVALfx WIDE(""), pm->selection );
 	}
 #endif
-	HideCommon( pm->image );
+	HideControl( pm->image );
 	pm->flags.showing = 0;
 	//UnmakeImageFile( pm->surface );
 	//pm->surface = NULL;

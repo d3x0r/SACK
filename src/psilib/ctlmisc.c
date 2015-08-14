@@ -93,9 +93,9 @@ static void CPROC OkayClicked( PTRSZVAL psv, PSI_CONTROL pc )
 			PSI_CONTROL pf = GetFrame( pc );
 			DestroyFrame( &pf );
 		}
+		Release( query_state );
 	}
 	//Release( query_state->result );
-	Release( query_state );
 }
 
 static void CPROC CancelClicked( PTRSZVAL psv, PSI_CONTROL pc )
@@ -109,9 +109,9 @@ static void CPROC CancelClicked( PTRSZVAL psv, PSI_CONTROL pc )
 			PSI_CONTROL pf = GetFrame( pc );
 			DestroyFrame( &pf );
 		}
+		Release( query_state );
 	}
 	//Release( query_state->result );
-	Release( query_state );
 }
 
 int SimpleUserQueryEx( TEXTSTR result, int reslen, CTEXTSTR question, PSI_CONTROL pAbove, void (CPROC*query_success_callback)(PTRSZVAL, LOGICAL), PTRSZVAL query_user_data )
@@ -140,6 +140,7 @@ int SimpleUserQueryEx( TEXTSTR result, int reslen, CTEXTSTR question, PSI_CONTRO
 	DisplayFrame( pf );
 	SetCommonFocus( query_state->edit );
 
+	query_state->query_success = query_success_callback;
 	if( !query_success_callback )
 	{
 		int okay;

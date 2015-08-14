@@ -2369,6 +2369,7 @@ void AddConfigurationEx( PCONFIG_HANDLER pch, CTEXTSTR format, USER_CONFIG_HANDL
 	pWord = pLine;
 	while( pWord )
 	{
+		TEXTRUNE ch;
 		if( g.flags.bLogTrace )
 			lprintf( WIDE("Evaluating %s ... "), GetText( pWord ) );
 		if( flags.vartag )

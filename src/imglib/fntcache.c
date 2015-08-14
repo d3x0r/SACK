@@ -263,9 +263,9 @@ int UniqueStrCmp( TEXTCHAR *s1, INDEX s1_length, TEXTCHAR *s2 )
 
 //-------------------------------------------------------------------------
 
-void CPROC DestroyDictEntry( POINTER psvEntry, PTRSZVAL key )
+void CPROC DestroyDictEntry( CPOINTER psvEntry, PTRSZVAL key )
 {
-   Deallocate( POINTER, psvEntry );
+   Deallocate( POINTER, (POINTER)psvEntry );
 }
 
 //-------------------------------------------------------------------------
@@ -348,7 +348,7 @@ PFONT_ENTRY AddFontEntry( PDICT_ENTRY name )
 	if( !build.pFontCache )
 	{
 		build.pFontCache = CreateBinaryTreeEx( MyStrCmp
-														 , (void(CPROC *)(POINTER,PTRSZVAL))DestroyFontEntry );
+														 , (void(CPROC *)(CPOINTER,PTRSZVAL))DestroyFontEntry );
 	}
 
 	pfe = (PFONT_ENTRY)FindInBinaryTree( build.pFontCache, (PTRSZVAL)name->word );

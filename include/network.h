@@ -295,6 +295,16 @@ NETWORK_PROC( LOGICAL, IsThisAddressMe )( SOCKADDR *addr, _16 myport );
  *  Get the list of SOCKADDR addresses that are on this box (for this name)
  */
 NETWORK_PROC( PLIST, GetLocalAddresses )( void );
+
+/* 
+ * Return the text of a socket's IP address
+ */
+NETWORK_PROC( const char *, GetAddrName )( SOCKADDR *addr );
+/* 
+ * test an address to see if it is v6 (switch connect From behavior at application level)
+ */
+NETWORK_PROC( LOGICAL, IsAddressV6 )( SOCKADDR *addr );
+
 /*
  *  Duplicate a sockaddr appropriately for the specified network.
  *  SOCKADDR has in(near) it the size of the address block, so this
@@ -391,6 +401,22 @@ NETWORK_PROC( PCLIENT, CPPOpenTCPClientAddrExxx )(SOCKADDR *lpAddr,
 																  cppConnectCallback pConnectComplete,  PTRSZVAL DBG_PASS );
 #define CPPOpenTCPClientAddrExx(a,b,c,d,e,f,g,h,i) CPPOpenTCPClientAddrExxx(a,b,c,d,e,f,g,h,i DBG_SRC )
 #endif
+
+NETWORK_PROC( PCLIENT, OpenTCPClientAddrFromAddrEx )(SOCKADDR *lpAddr, SOCKADDR *pFromAddr
+															  , cReadComplete     pReadComplete
+															  , cCloseCallback    CloseCallback
+															  , cWriteComplete    WriteComplete
+															  , cConnectCallback  pConnectComplete
+                                               DBG_PASS
+															 );
+#define OpenTCPClientAddrFromAddr( a,f,r,cl,wr,cc ) OpenTCPClientAddrFromAddrEx( a,f,r,cl,wr,cc DBG_SRC )
+NETWORK_PROC( PCLIENT, OpenTCPClientAddrFromEx )(SOCKADDR *lpAddr, int port
+															  , cReadComplete     pReadComplete															  , cCloseCallback    CloseCallback
+															  , cWriteComplete    WriteComplete
+															  , cConnectCallback  pConnectComplete
+                                               DBG_PASS
+															 );
+#define OpenTCPClientAddrFrom( a,f,r,cl,wr,cc ) OpenTCPClientAddrFromEx( a,f,r,cl,wr,cc DBG_SRC )
 /* Opens a socket which connects to an already existing,
    listening, socket.
    Parameters

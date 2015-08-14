@@ -130,7 +130,6 @@ void CPROC DrawFancyFrame( PSI_CONTROL pc )
 									, border->BorderSegment[SEGMENT_BOTTOM]->width - tmp, 0
 									, tmp, border->BorderHeight
 									, ALPHA_TRANSPARENT, BLOT_COPY );
-		
 		break;
 	}
 	switch( border->Border.bAnchorLeft )
@@ -942,7 +941,7 @@ void DrawFrameCaption( PSI_CONTROL pc )
 				}
 			}
 		}
-		button_left = w - (h + 3);
+		button_left = w - (h /* + 3 */);
 		if( pc->device )
 		{
 			INDEX idx;
@@ -965,6 +964,14 @@ void DrawFrameCaption( PSI_CONTROL pc )
 				{
 					if( button->normal )
 						BlotScaledImageSizedToAlpha( pc->Window, button->normal
+								, button_left + button->extra_pad
+								, yofs + 1 + button->extra_pad
+								, (h) - 2 - ( 2*button->extra_pad)
+								, (h) - 2 - ( 2*button->extra_pad), ALPHA_TRANSPARENT );
+				}
+				if( button->flags.rollover && button->highlight )
+				{
+					BlotScaledImageSizedToAlpha( pc->Window, button->highlight
 								, button_left + button->extra_pad
 								, yofs + 1 + button->extra_pad
 								, (h) - 2 - ( 2*button->extra_pad)
@@ -1181,8 +1188,10 @@ void UpdateSurface( PSI_CONTROL pc )
 		bottom = FrameBorderY(pc, border, GetText(pc->caption.text));
 		if( pc->DrawCaption )
 		{
-			MoveImage( pc->pCaptionImage, left - 1, FrameCaptionYOfs( pc, border ) );
-			ResizeImage( pc->pCaptionImage, ( width - right ) + 2, pc->nCaptionHeight );
+			MoveImage( pc->pCaptionImage, left, FrameCaptionYOfs( pc, border ) );
+			ResizeImage( pc->pCaptionImage, ( width - right ), pc->nCaptionHeight );
+			//MoveImage( pc->pCaptionImage, left - 1, FrameCaptionYOfs( pc, border ) );
+			//ResizeImage( pc->pCaptionImage, ( width - right ) + 2, pc->nCaptionHeight );
 		}
 		if( pc->surface_rect.x != left || pc->surface_rect.y != top )
 		{

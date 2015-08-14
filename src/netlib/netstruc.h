@@ -190,6 +190,7 @@ struct NetworkClient
 	PendingBuffer *lpFirstPending,*lpLastPending; // outgoing buffers
 	_32    LastEvent; // GetTickCount() of last event...
 	DeclareLink( struct NetworkClient );
+	PCLIENT pcOther; // listeners opened with port only have two connections, one IPV4 one IPV6
 	struct network_client_flags {
 		BIT_FIELD bAddedToEvents : 1;
 		BIT_FIELD bRemoveFromEvents : 1;

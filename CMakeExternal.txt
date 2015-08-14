@@ -65,9 +65,9 @@ endif( NEED_PNG )
 
 
 if( NEED_FREETYPE )
-SET( FBASEDIR src/contrib/freetype-2.5.0.1/src )
+SET( FBASEDIR src/contrib/freetype-2.6/src )
 
-Set( ExternalExtraDefinitions ${ExternalExtraDefinitions} FREETYPE_SOURCE FT2_BUILD_LIBRARY )
+Set( ExternalExtraDefinitions ${ExternalExtraDefinitions} FREETYPE_SOURCE FT2_BUILD_LIBRARY FT_CONFIG_OPTION_USE_PNG )
 
 SET( FT_SRCS autofit/autofit.c 
      base/ftbase.c 
@@ -103,7 +103,8 @@ SET( FT_SRCS autofit/autofit.c
      base/ftsystem.c 
      base/fttype1.c 
      base/ftwinfnt.c 
-     base/ftxf86.c  )
+     #base/ftxf86.c 
+     )
 
 include_directories( ${FBASEDIR}/../include )
 FOREACH( SRC ${FT_SRCS} )

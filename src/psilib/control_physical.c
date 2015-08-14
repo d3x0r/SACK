@@ -134,6 +134,8 @@ static void CPROC FrameRedraw( PTRSZVAL psvFrame, PRENDERER psvSelf )
 
 	pc->flags.bShown = 1;
 	GetCurrentDisplaySurface(pf);
+	if( !pc->flags.bDirty && IsDisplayRedrawForced( pf->pActImg ) )
+		pc->flags.bDirty = 1;
 	if( g.flags.always_draw || pc->flags.bDirty || pc->flags.bResizedDirty )
 	{
 		pc->flags.bDirty = 1;

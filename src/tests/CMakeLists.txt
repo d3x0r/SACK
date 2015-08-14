@@ -124,3 +124,8 @@ add_program( ${project} test_wakeable_sleep.c )
 SET_TARGET_PROPERTIES(${project} PROPERTIES FOLDER tests )
 install_default_dest( ${project} )
 
+set( project test_connect_from )
+add_program( ${project} test_connect_from.c )
+SET_TARGET_PROPERTIES(${project} PROPERTIES FOLDER tests )
+install_default_dest( ${project} )
+

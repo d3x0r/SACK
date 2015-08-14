@@ -40,7 +40,7 @@ EasyRegisterControlWithBorder( CONTROL_NAME, sizeof( ImageViewer ), BORDER_CAPTI
 static int OnCreateCommon( CONTROL_NAME )( PSI_CONTROL pc )
 {
 	ImageViewer *pViewer = ControlData( ImageViewer *, pc );
-	SetControlText( pc, "Image Viewer (Escape to Exit)" );
+	SetControlText( pc, "Image Viewer (Escape to Exit; Scroll Wheel Zooms; Click&Drag Pan)" );
 	pViewer->zoom = 1000;
 	//AddCaptionButton( pc, NULL, NULL, 0, NULL );
 	return 1;
@@ -65,9 +65,17 @@ static int OnDrawCommon( CONTROL_NAME )( PSI_CONTROL pc )
 	}
 
 	ClearImageTo( surface, BASE_COLOR_BLACK );
+	{
+		int n;
+		int c = BASE_COLOR_WHITE;
+		for( n = 0; n < surface->width; n += 20 )
+			do_vline( surface, n, 0, surface->height, c );
+		for( n = 0; n < surface->height; n += 20 )
+			do_hline( surface, n, 0, surface->width, c );
+	}
 	if(  pViewer->image )
 	{
-		BlotScaledImageSized( surface, pViewer->image
+		BlotScaledImageSizedEx( surface, pViewer->image
 			, ( pViewer->xofs ) / 1000
 			, ( pViewer->yofs ) / 1000
 			, ( pViewer->image->width * pViewer->zoom ) / 1000
@@ -75,6 +83,8 @@ static int OnDrawCommon( CONTROL_NAME )( PSI_CONTROL pc )
 			, 0, 0
 			, pViewer->image->width
 			, pViewer->image->height
+			, ALPHA_TRANSPARENT
+			, BLOT_COPY
 			);
 	}
 	return 1;
@@ -198,7 +208,7 @@ PSI_CONTROL ImageViewer_ShowImage( PSI_CONTROL parent, Image image )
 		show_h = show_w * image->height / image->width;
 		if( show_h < h - 250 )
 		{
-			show_h = image->height;
+			//show_h = image->height;
 		}
 		else
 		{
@@ -206,6 +216,8 @@ PSI_CONTROL ImageViewer_ShowImage( PSI_CONTROL parent, Image image )
 			show_w = show_h * image->width / image->height;
 		}
 	}
+	x = (w - show_w ) / 2;
+	y = ( h - show_h ) / 2;
 	pc = MakeNamedControl( NULL, CONTROL_NAME, x, y, show_w, show_h, -1 );
 	pViewer = ControlData( ImageViewer *, pc );
 	{

@@ -254,7 +254,7 @@ static CTEXTSTR DoSaveNameEx( CTEXTSTR stripped, size_t len DBG_PASS )
 	if( l.flags.bIndexNameTable )
 	{
 		POINTER p;
-		p = FindInBinaryTree( l.NameIndex, (PTRSZVAL)stripped );
+		p = (POINTER)FindInBinaryTree( l.NameIndex, (PTRSZVAL)stripped );
 		if( p )
 		{
 			// otherwise it will be single threaded?
@@ -443,33 +443,7 @@ CTEXTSTR SaveText( CTEXTSTR text )
 
 //---------------------------------------------------------------------------
 
-CTEXTSTR TranslateText( CTEXTSTR text )
-{
-	return NULL;
-}
-
-//---------------------------------------------------------------------------
-
-void LoadTranslation( CTEXTSTR translation_name, CTEXTSTR filename )
-{
-	//FILE *input = sack_fopen( l.translations, filename, "rb" );
-}
-
-//---------------------------------------------------------------------------
-
-void SaveNames( void )
-{
-}
-
-//---------------------------------------------------------------------------
-
-void RecoverNames( void )
-{
-}
-
-//---------------------------------------------------------------------------
-
-static void CPROC KillName( POINTER user, PTRSZVAL key )
+static void CPROC KillName( CPOINTER user, PTRSZVAL key )
 {
 	PNAME name = (PNAME)user;
 	if( name->tree.Tree )
@@ -1672,7 +1646,7 @@ PROCREG_PROC( PTRSZVAL, CreateRegisteredDataTypeEx)( PCLASSROOT root
 				{
 					POINTER p;
 					// look up prior instance...
-					if( !( p = FindInBinaryTree( pDataDef->instances.Tree, (PTRSZVAL)instancename ) ) )
+					if( !( p = (POINTER)FindInBinaryTree( pDataDef->instances.Tree, (PTRSZVAL)instancename ) ) )
 					{
 #ifdef DEBUG_GLOBAL_REGISTRATION
 						lprintf( WIDE( "Allocating new struct data :%" )_32f, pDataDef->size );

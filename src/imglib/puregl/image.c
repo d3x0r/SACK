@@ -289,7 +289,8 @@ void  BlatColor ( Image pifDest, S_32 x, S_32 y, _32 w, _32 h, CDATA color )
 		h = r.height;
 	}
 
-	if( pifDest->flags & IF_FLAG_FINAL_RENDER )
+	if( ( pifDest->flags & IF_FLAG_FINAL_RENDER
+		&& !( pifDest->flags & IF_FLAG_IN_MEMORY ) ) )
 	{
 		VECTOR v1[2], v2[2];
 		VECTOR v3[2], v4[2];
@@ -421,7 +422,8 @@ void  BlatColorAlpha ( ImageFile *pifDest, S_32 x, S_32 y, _32 w, _32 h, CDATA c
 		h = r.height;
 	}
 
-	if( pifDest->flags & IF_FLAG_FINAL_RENDER )
+	if( ( pifDest->flags & IF_FLAG_FINAL_RENDER )
+		&& !( pifDest->flags & IF_FLAG_IN_MEMORY ) )
 	{
 		VECTOR v1[2], v2[2];
 		VECTOR v3[2], v4[2];
@@ -532,7 +534,8 @@ void CPROC cplotraw( ImageFile *pi, S_32 x, S_32 y, CDATA c )
 #ifdef _INVERT_IMAGE
    //y = (pi->real_height-1) - y;
 #endif
-	if( pi->flags & IF_FLAG_FINAL_RENDER )
+	if( ( pi->flags & IF_FLAG_FINAL_RENDER )
+			&& !( pi->flags & IF_FLAG_IN_MEMORY ) )
 	{
 		BlatColor( pi, x, y, 1, 1, c );
 	}
@@ -552,7 +555,8 @@ void CPROC cplot( ImageFile *pi, S_32 x, S_32 y, CDATA c )
 #ifdef _INVERT_IMAGE
      // y = ( pi->real_height - 1 )- y;
 #endif
-		if( pi->flags & IF_FLAG_FINAL_RENDER )
+		if( ( pi->flags & IF_FLAG_FINAL_RENDER )
+			&& !( pi->flags & IF_FLAG_IN_MEMORY ) )
 		{
 			BlatColor( pi, x, y, 1, 1, c );
 		}
@@ -575,7 +579,8 @@ CDATA CPROC cgetpixel( ImageFile *pi, S_32 x, S_32 y )
 #ifdef _INVERT_IMAGE
       //y = (pi->real_height-1) - y;
 #endif
-		if( pi->flags & IF_FLAG_FINAL_RENDER )
+		if( ( pi->flags & IF_FLAG_FINAL_RENDER )
+			&& !( pi->flags & IF_FLAG_IN_MEMORY ) )
 		{
 			lprintf( WIDE( "get pixel option on opengl surface" ) );
 		}
@@ -599,7 +604,8 @@ void CPROC cplotalpha( ImageFile *pi, S_32 x, S_32 y, CDATA c )
 #ifdef _INVERT_IMAGE
       //y = ( pi->height - 1 )- y;
 #endif
-		if( pi->flags & IF_FLAG_FINAL_RENDER )
+		if( ( pi->flags & IF_FLAG_FINAL_RENDER )
+			&& !( pi->flags & IF_FLAG_IN_MEMORY ) )
 		{
 			BlatColor( pi, x, y, 1, 1, c );
 		}

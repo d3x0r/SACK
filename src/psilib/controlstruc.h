@@ -216,12 +216,14 @@ struct physical_device_caption_button
 {
 	Image normal;
 	Image pressed;
+	Image highlight;
 	void (CPROC*pressed_event)( PSI_CONTROL pc );
 	LOGICAL is_pressed;
 	int extra_pad;
 	_32 offset;
 	struct {
 		BIT_FIELD hidden : 1;
+		BIT_FIELD rollover : 1;
 	} flags;
 	PSI_CONTROL pc;
 };
@@ -496,7 +498,8 @@ typedef struct common_control_frame
 	// maybe I can get pointers to this....
 
 	_32 BorderType;
-   void (CPROC*BorderDrawProc)(PSI_CONTROL,Image);
+	void (CPROC*BorderDrawProc)( PSI_CONTROL, Image );
+	void (CPROC*Rollover)( PSI_CONTROL, LOGICAL );
 	void (CPROC*BorderMeasureProc)( PSI_CONTROL, int *x_offset, int *y_offset, int *right_inset, int *bottom_inset );
 	// also declare a method above of the same name...
 	int draw_result;
@@ -541,6 +544,7 @@ typedef struct common_control_frame
 		 This will seperate /psi/control and /psi++/control without other flags to switch on */
 	PLIST caption_buttons;  // extra controls that are stuffed on the caption bar.
 	PFrameBorder border;
+	PCAPTION_BUTTON hover_caption_button;  // the current button pressed
 	PCAPTION_BUTTON pressed_caption_button;  // the current button pressed
 	PCLASSROOT class_root; 
 	int nCaptionHeight;

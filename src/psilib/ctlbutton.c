@@ -27,14 +27,26 @@ typedef struct button {
 	PTRSZVAL ClickData;
 	_32 attr;
 	struct {
-		_32 pressed:1;
+		BIT_FIELD pressed : 1;
+		BIT_FIELD rollover : 1;
 	}buttonflags;
 	CDATA color;
 	_32 centx; // offset from center to draw...
+	S_32 ofs_x, ofs_y; // offset from center to draw...
 	S_32 topy; // top of the caption...
 	_32 _b; // prior button states...
 	Image pImage;
 	Image pImage_pressed;
+	Image pImage_focused;
+	Image pImage_focused_pressed;
+	Image pImage_rollover;
+	Image pImage_rollover_pressed;
+	SlicedImage pSlicedImage;
+	SlicedImage pSlicedImage_pressed;
+	SlicedImage pSlicedImage_focused;
+	SlicedImage pSlicedImage_focused_pressed;
+	SlicedImage pSlicedImage_rollover;
+	SlicedImage pSlicedImage_rollover_pressed;
 	CTEXTSTR DrawMethodName;
 	void (CPROC*DrawMethod)( PTRSZVAL, PSI_CONTROL );
 	PTRSZVAL DrawData;
@@ -74,12 +86,14 @@ static int Init( void )
 
 //---------------------------------------------------------------------------
 
-	void DrawButtonCaption( PSI_CONTROL pc, PBUTTON pb, int xofs, int yofs, CDATA color, _32 *yout, _32 *maxwout, SFTFont font )
+void DrawButtonCaption( PSI_CONTROL pc, PBUTTON pb, int xofs, int yofs, CDATA color, _32 *yout, _32 *maxwout, SFTFont font )
 {
 	_32 y = 0;
 	_32 w, h, maxw = 0;
 	TEXTCHAR *start = GetText( pc->caption.text ), *end;
 	//lprintf( WIDE("Drawing button caption: %s"), start );
+	if( !start )
+		return;
 	GetStringSizeFontEx( start, 1, NULL, &h, font );
 	while( start )
 	{
@@ -105,7 +119,7 @@ static int Init( void )
 		if( w > maxw )
 			maxw = w;
 		PutStringFontEx( pc->Surface
-							, xofs - w/2, y + yofs
+							, pb->ofs_x + xofs - w/2, pb->ofs_y + y + yofs
 							, color, 0
 							, start, end-start
 							, font );
@@ -156,59 +170,167 @@ static int CPROC ButtonDraw( PSI_CONTROL pc )
 	if( pc->DrawBorder ) pc->DrawBorder(pc);
 	if( !pb->DrawMethod )
 	{
+		LOGICAL skip_line = FALSE;
 		BlatColorAlpha( pc->Surface, 0, 0, pc->surface_rect.width, pc->surface_rect.height, pb->color );
 		//ClearImageTo( pc->Surface, pb->color );
 
 		//lprintf( WIDE("drawing an image %p"), pb->pImage );
 		if( pb->buttonflags.pressed )
 		{
-			Image out = pb->pImage_pressed;
-			if( !out )
-				out = pb->pImage;
-
-			if( pb->pImage )
+			if( pb->pSlicedImage_pressed )
 			{
-				if( pc->flags.bDisable )
-					BlotScaledImageMultiShadedAlpha( pc->Surface, out
-								  , ALPHA_TRANSPARENT
-								  , Color( 62, 62, 62 )
-								  , Color( 67,67,67 )
-								  , Color( 60, 60, 60 ) );
-				else
-					BlotScaledImageAlpha( pc->Surface, out, ALPHA_TRANSPARENT );
+				SlicedImage out = NULL;
 				if( pc->flags.bFocused )
 				{
-					_32 width, height;
-					GetImageSize( out, &width, &height );
-					do_line( pc->Surface, 2, height - 2
-							 , width - 2, height - 2
-							 , basecolor(pc)[SHADE] );
+					out = pb->pSlicedImage_focused_pressed;
+					if( out ) skip_line = TRUE;
+				}
+				if( !out )
+					out = pb->pSlicedImage_pressed;
+				if( !out )
+					out = pb->pSlicedImage;
+
+				if( out )
+				{
+					if( pc->flags.bDisable )
+						BlotSlicedImageEx( pc->Surface, out, 0, 0, pc->Surface->width, pc->Surface->height
+									  , ALPHA_TRANSPARENT
+									  , BLOT_MULTISHADE
+									  , Color( 62, 62, 62 )
+									  , Color( 67,67,67 )
+									  , Color( 60, 60, 60 ) );
+					else
+						BlotSlicedImage( pc->Surface, out, 0, 0, pc->Surface->width, pc->Surface->height );
+#if 0
+					if( !skip_line && pc->flags.bFocused )
+					{
+						_32 width, height;
+						GetImageSize( pc->Surface, &width, &height );
+						do_line( pc->Surface, 2, height - 2
+								 , width - 2, height - 2
+								 , basecolor(pc)[SHADE] );
+					}
+#endif
+				}
+			}
+			else
+			{
+				Image out = NULL;
+				if( pc->flags.bFocused )
+				{
+					out = pb->pImage_focused_pressed;
+					if( out ) skip_line = TRUE;
+				}
+				if( !out )
+					out = pb->pImage_pressed;
+				if( !out )
+					out = pb->pImage;
+
+				if( out )
+				{
+					if( pc->flags.bDisable )
+						BlotScaledImageMultiShadedAlpha( pc->Surface, out
+									  , ALPHA_TRANSPARENT
+									  , Color( 62, 62, 62 )
+									  , Color( 67,67,67 )
+									  , Color( 60, 60, 60 ) );
+					else
+						BlotScaledImageAlpha( pc->Surface, out, ALPHA_TRANSPARENT );
+#if 0
+					if( !skip_line && pc->flags.bFocused )
+					{
+						_32 width, height;
+						GetImageSize( out, &width, &height );
+						do_line( pc->Surface, 2, height - 2
+								 , width - 2, height - 2
+								 , basecolor(pc)[SHADE] );
+					}
+#endif
 				}
 			}
 		}
 		else
 		{
-			Image out = pb->pImage;
-			if( !out )
-				out = pb->pImage_pressed;
-
-			if( out )
+			if( pb->pSlicedImage_pressed )
 			{
-				if( pc->flags.bDisable )
-					BlotScaledImageMultiShadedAlpha( pc->Surface, out
-								  , ALPHA_TRANSPARENT
-								  , Color( 62, 62, 62 )
-								  , Color( 67,67,67 )
-								  , Color( 60, 60, 60 ) );
-				else
-					BlotScaledImageAlpha( pc->Surface, out, ALPHA_TRANSPARENT );
-				if( pc->flags.bFocused )
+				SlicedImage out = NULL;
+				if( pb->buttonflags.rollover )
 				{
-					_32 width, height;
-					GetImageSize( pb->pImage, &width, &height );
-					do_line( pc->Surface, 2, height - 2
-							 , width - 2, height - 2
-							 , basecolor(pc)[SHADE] );
+					out = pb->pSlicedImage_rollover;
+					if( pc->flags.bFocused && out ) skip_line = TRUE;
+				}
+				if( !out && pc->flags.bFocused )
+				{
+					out = pb->pSlicedImage_focused;
+					if( out ) skip_line = TRUE;
+				}
+				if( !out )
+					out = pb->pSlicedImage;
+				if( !out )
+					out = pb->pSlicedImage_pressed;
+
+				if( out )
+				{
+					if( pc->flags.bDisable )
+						BlotSlicedImageEx( pc->Surface, out, 0, 0, pc->Surface->width, pc->Surface->height
+									  , ALPHA_TRANSPARENT
+									  , BLOT_MULTISHADE
+									  , Color( 62, 62, 62 )
+									  , Color( 67,67,67 )
+									  , Color( 60, 60, 60 ) );
+					else
+						BlotSlicedImage( pc->Surface, out, 0, 0, pc->Surface->width, pc->Surface->height );
+#if 0
+					if( pc->flags.bFocused )
+					{
+						_32 width, height;
+						GetImageSize( pc->Surface, &width, &height );
+						do_line( pc->Surface, 2, height - 2
+								 , width - 2, height - 2
+								 , basecolor(pc)[SHADE] );
+					}
+#endif
+				}
+			}
+			else
+			{
+				Image out = NULL;
+				LOGICAL skip_line = FALSE;
+				if( pb->buttonflags.rollover )
+				{
+					out = pb->pImage_rollover;
+					if( pc->flags.bFocused && out ) skip_line = TRUE;
+				}
+				if( !out && pc->flags.bFocused )
+				{
+					out = pb->pImage_focused;
+					if( out ) skip_line = TRUE;
+				}
+				if( !out )
+					out = pb->pImage;
+				if( !out )
+					out = pb->pImage_pressed;
+
+				if( out )
+				{
+					if( pc->flags.bDisable )
+						BlotScaledImageMultiShadedAlpha( pc->Surface, out
+									  , ALPHA_TRANSPARENT
+									  , Color( 62, 62, 62 )
+									  , Color( 67,67,67 )
+									  , Color( 60, 60, 60 ) );
+					else
+						BlotScaledImageAlpha( pc->Surface, out, ALPHA_TRANSPARENT );
+#if 0
+					if( !skip_line && pc->flags.bFocused )
+					{
+						_32 width, height;
+						GetImageSize( pb->pImage, &width, &height );
+						do_line( pc->Surface, 2, height - 2
+								 , width - 2, height - 2
+								 , basecolor(pc)[SHADE] );
+					}
+#endif
 				}
 			}
 		}
@@ -226,8 +348,22 @@ static int CPROC ButtonDraw( PSI_CONTROL pc )
 				DrawButtonCaption( pc, pb, x, 0, basecolor(pc)[TEXTCOLOR], &y, &maxw, font );
 				if( pc->flags.bFocused )
 				{
-					do_hline( pc->Surface, y-1, x-maxw/2-1, x+maxw/2+1, basecolor(pc)[SHADE] );
-					do_hline( pc->Surface, y, x-maxw/2, x+maxw/2, basecolor(pc)[HIGHLIGHT] );
+					LOGICAL handled = FALSE;
+					if( pb->buttonflags.pressed )
+					{
+						if( pb->pImage_focused_pressed )
+							handled = TRUE;
+					}
+					else
+					{
+						if( pb->pImage_focused )
+							handled = TRUE;
+					}
+					if( !skip_line && !handled )
+					{
+						do_hline( pc->Surface, y-1, x-maxw/2-1, x+maxw/2+1, basecolor(pc)[SHADE] );
+						do_hline( pc->Surface, y, x-maxw/2, x+maxw/2, basecolor(pc)[HIGHLIGHT] );
+					}
 				}
 			}
 			else
@@ -382,6 +518,47 @@ static int CPROC ButtonMouse( PSI_CONTROL pc, S_32 x, S_32 y, _32 b )
 	}
 	pb->_b = b;
 	return 1;
+}
+
+//---------------------------------------------------------------------------
+
+static void HandleRollover( PSI_CONTROL pc, LOGICAL enter )
+{
+	ValidatedControlData( PBUTTON, NORMAL_BUTTON, pb, pc );
+	if( !pb )
+	{
+		ValidatedControlData( PBUTTON, CUSTOM_BUTTON, pb2, pc );
+		//lprintf( WIDE("Is not a NORMAL_BUTTON") );
+		if( pb2 )
+			pb = pb2;
+		else
+		{
+			ValidatedControlData( PBUTTON, IMAGE_BUTTON, pb2, pc );
+			//lprintf( WIDE("Is not a CUSTOM_BUTTON") );
+			if( pb2 )
+				pb = pb2;
+			else
+			{
+				//lprintf( WIDE("Is not a IMAGE_BUTTON") );
+				return;
+			}
+		}
+	}
+	if( pb->buttonflags.rollover != enter )
+	{
+		pb->buttonflags.rollover = enter;
+		SmudgeCommon( pc );
+	}
+}
+
+static void OnControlRollover( NORMAL_BUTTON_NAME )( PSI_CONTROL pc, LOGICAL enter )
+{
+	HandleRollover( pc, enter );
+}
+
+static void OnControlRollover( IMAGE_BUTTON_NAME )( PSI_CONTROL pc, LOGICAL enter )
+{
+	HandleRollover( pc, enter );
 }
 
 //---------------------------------------------------------------------------
@@ -673,23 +850,144 @@ int CPROC ConfigureImageButton( PSI_CONTROL pc )
 PSI_PROC( PSI_CONTROL, SetButtonImage )( PSI_CONTROL pc, Image pImage )
 {
 	ValidatedControlData( PBUTTON, IMAGE_BUTTON, pb, pc );
+	if( !pb )
+	{
+		ValidatedControlData( PBUTTON, NORMAL_BUTTON, pb2, pc );
+		pb = pb2;
+	}
 	if( pb )
 	{
 		pb->pImage = pImage;
+		pb->pSlicedImage = NULL;
 	}
 	return pc;
+}
+
+PSI_PROC( PSI_CONTROL, SetButtonSlicedImages )( PSI_CONTROL pc, SlicedImage normal_image, SlicedImage pressed_image )
+{
+	ValidatedControlData( PBUTTON, IMAGE_BUTTON, pb, pc );
+	if( !pb )
+	{
+		ValidatedControlData( PBUTTON, NORMAL_BUTTON, pb2, pc );
+		pb = pb2;
+	}
+	if( pb )
+	{
+		pb->pImage = NULL;
+		pb->pImage_pressed = NULL;
+		pb->pSlicedImage = normal_image;
+		pb->pSlicedImage_pressed = pressed_image;
+	}
+	return pc;
+
 }
 
 PSI_PROC( PSI_CONTROL, SetButtonImages )( PSI_CONTROL pc, Image pImage, Image pImage_pressed )
 {
 	ValidatedControlData( PBUTTON, IMAGE_BUTTON, pb, pc );
+	if( !pb )
+	{
+		ValidatedControlData( PBUTTON, NORMAL_BUTTON, pb2, pc );
+		pb = pb2;
+	}
 	if( pb )
 	{
 		pb->pImage = pImage;
 		pb->pImage_pressed = pImage_pressed;
+		pb->pSlicedImage = NULL;
+		pb->pSlicedImage_pressed = NULL;
 	}
 	return pc;
 }
+
+
+PSI_PROC( PSI_CONTROL, SetButtonRolloverImages )( PSI_CONTROL pc, Image pRollover, Image pRollover_pressed )
+{
+	ValidatedControlData( PBUTTON, IMAGE_BUTTON, pb, pc );
+	if( !pb )
+	{
+		ValidatedControlData( PBUTTON, NORMAL_BUTTON, pb2, pc );
+		pb = pb2;
+	}
+	if( pb )
+	{
+		pb->pImage_rollover = pRollover;
+		pb->pImage_rollover_pressed = pRollover_pressed;
+		pb->pSlicedImage_rollover = NULL;
+		pb->pSlicedImage_rollover_pressed = NULL;
+	}
+	return pc;
+}
+
+PSI_PROC( PSI_CONTROL, SetButtonSlicedRolloverImages )( PSI_CONTROL pc, SlicedImage pRollover, SlicedImage pRollover_pressed )
+{
+	ValidatedControlData( PBUTTON, IMAGE_BUTTON, pb, pc );
+	if( !pb )
+	{
+		ValidatedControlData( PBUTTON, NORMAL_BUTTON, pb2, pc );
+		pb = pb2;
+	}
+	if( pb )
+	{
+		pb->pSlicedImage_rollover = pRollover;
+		pb->pSlicedImage_rollover_pressed = pRollover_pressed;
+		pb->pImage_rollover = NULL;
+		pb->pImage_rollover_pressed = NULL;
+	}
+	return pc;
+}
+
+PSI_PROC( PSI_CONTROL, SetButtonFocusedImages )( PSI_CONTROL pc, Image pImage, Image pImage_pressed )
+{
+	ValidatedControlData( PBUTTON, IMAGE_BUTTON, pb, pc );
+	if( !pb )
+	{
+		ValidatedControlData( PBUTTON, NORMAL_BUTTON, pb2, pc );
+		pb = pb2;
+	}
+	if( pb )
+	{
+		pb->pImage_focused = pImage;
+		pb->pImage_focused_pressed = pImage_pressed;
+		pb->pSlicedImage_focused = NULL;
+		pb->pSlicedImage_focused_pressed = NULL;
+	}
+	return pc;
+}
+
+PSI_PROC( PSI_CONTROL, SetButtonSlicedFocusedImages )( PSI_CONTROL pc, SlicedImage pImage, SlicedImage pImage_pressed )
+{
+	ValidatedControlData( PBUTTON, IMAGE_BUTTON, pb, pc );
+	if( !pb )
+	{
+		ValidatedControlData( PBUTTON, NORMAL_BUTTON, pb2, pc );
+		pb = pb2;
+	}
+	if( pb )
+	{
+		pb->pImage_focused = NULL;
+		pb->pImage_focused_pressed = NULL;
+		pb->pSlicedImage_focused = pImage;
+		pb->pSlicedImage_focused_pressed = pImage_pressed;
+	}
+	return pc;
+}
+PSI_PROC( PSI_CONTROL, SetButtonTextOffset )( PSI_CONTROL pc, S_32 x, S_32 y )
+{
+	ValidatedControlData( PBUTTON, IMAGE_BUTTON, pb, pc );
+	if( !pb )
+	{
+		ValidatedControlData( PBUTTON, NORMAL_BUTTON, pb2, pc );
+		pb = pb2;
+	}
+	if( pb )
+	{
+		pb->ofs_x = x;
+		pb->ofs_y = y;
+	}
+	return pc;
+}
+
 //---------------------------------------------------------------------------
 
 void PressButton( PSI_CONTROL pc, int bPressed )
@@ -855,7 +1153,7 @@ static int CPROC MouseCheckButton( PSI_CONTROL pCom, S_32 x, S_32 y, _32 b )
 		pc->_b = 0; // pretend no mouse buttons..
 		return 1;
 	}
-	if( b && MK_LBUTTON )
+	if( b & MK_LBUTTON )
 	{
 		if( !(pc->_b & MK_LBUTTON ) )
 		{
@@ -1102,8 +1400,8 @@ normal_button = { NORMAL_BUTTON_NAME
 					 , ButtonMouse
 					 , ButtonKeyProc
 					 , NULL // destroy ( I have no private dynamic data == NULL )
-					 ,NULL //, GetButtonPropertyPage
-					 ,NULL //, ApplyButtonPropertyPage
+					 , NULL //, GetButtonPropertyPage
+					 , NULL //, ApplyButtonPropertyPage
 					 , ButtonText // save...
 					 , NULL // ButtonLoadProc
 },
