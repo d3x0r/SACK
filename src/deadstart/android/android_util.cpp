@@ -210,8 +210,19 @@ extern "C" int AndroidGetKeyText( AInputEvent *event )
     jobject lNativeActivity = engine.app->activity->clazz; 
 	jclass ClassNativeActivity = lJNIEnv->GetObjectClass(lNativeActivity);
 
-	jmethodID MethodSetFlags = lJNIEnv->GetMethodID(      ClassNativeActivity, "getKeyText", "(JJIIIIIII)I");
-   lprintf( "..." );
+	jmethodID MethodSetFlags = lJNIEnv->GetMethodID(      ClassNativeActivity, "getKeyText", "(JJIIIIIIII)I");
+	lprintf( "AndroidGetKeyText (event: dt:%"PRIu64" et:%"PRIu64" act:%d keycod:%d repeat:%d meta:%d dev:%d scan:%d flags:%d source:%d"
+													 , AKeyEvent_getDownTime(event)
+													 , AKeyEvent_getEventTime(event)
+													 , AKeyEvent_getAction(event)
+													 , AKeyEvent_getKeyCode(event)
+													 , AKeyEvent_getRepeatCount(event)
+													 , AKeyEvent_getMetaState(event)
+													 , AInputEvent_getDeviceId(event)
+													 , AKeyEvent_getScanCode(event)
+													 , AKeyEvent_getFlags(event)
+													 , AInputEvent_getSource(event)
+			 );
 		if( MethodSetFlags )
 			result = lJNIEnv->CallIntMethod( lNativeActivity,  MethodSetFlags
 													 , AKeyEvent_getDownTime(event)
@@ -223,6 +234,7 @@ extern "C" int AndroidGetKeyText( AInputEvent *event )
 													 , AInputEvent_getDeviceId(event)
 													 , AKeyEvent_getScanCode(event)
 													 , AKeyEvent_getFlags(event)
+													 , AInputEvent_getSource(event)
 													 );
 		else
 		{

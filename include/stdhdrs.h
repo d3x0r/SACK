@@ -190,6 +190,11 @@
 #  endif
 #endif
 
+#ifdef __ANDROID_OLD_PLATFORM_SUPPORT__
+extern __sighandler_t bsd_signal(int, __sighandler_t);
+
+#endif
+
 // moved into timers - please linnk vs timers to get Sleep...
 //#define Sleep(n) (usleep((n)*1000))
 #define Relinquish() sched_yield()

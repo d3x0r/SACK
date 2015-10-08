@@ -721,7 +721,7 @@ CTEXTSTR PickBoardName( PODBC odbc, int bMustExist )
 			if( ( pc = GetControl( frame, BTN_CREATENAME) ) != NULL )
 			{
 				if( bMustExist )
-					HideCommon( pc );
+					HideControl( pc );
 				else
 					SetButtonPushMethod( pc, CreateNewBoardName, (PTRSZVAL)newname );
 			}

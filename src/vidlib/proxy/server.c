@@ -1613,17 +1613,17 @@ static LOGICAL CPROC VidlibProxy_HasFocus		 ( PRENDERER  r )
 	return TRUE;
 }
 
-static TEXTCHAR CPROC VidlibProxy_GetKeyText		 ( int key )
+static const TEXTCHAR* CPROC VidlibProxy_GetKeyText		 ( int key )
 { 
 	int c;
-	char ch[5];
+	static char ch[5];
 #ifdef __LINUX__
 	{
 		int used = 0;
 		CTEXTSTR text = SACK_Vidlib_GetKeyText( IsKeyPressed( key ), KEY_CODE( key ), &used );
 		if( used && text )
 		{
-			return text[0];
+			return text;
 		}
 	}
    return 0;
@@ -1655,7 +1655,7 @@ static TEXTCHAR CPROC VidlibProxy_GetKeyText		 ( int key )
 		return 0;
 	}
 	//printf( WIDE("Key Translated: %d(%c)\n"), ch[0], ch[0] );
-	return ch[0];
+	return ch;
 #endif
 }
 

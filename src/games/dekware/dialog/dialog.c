@@ -83,7 +83,7 @@ static int ObjectMethod( WIDE("psi_control"), WIDE("hide"), WIDE("Hide Control (
 	PCOMMON pc = pct->control.pc;
 	if( pc )
 	{
-		HideCommon( pc );
+		HideControl( pc );
 	}
 	return 1;
 }

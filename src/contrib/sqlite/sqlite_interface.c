@@ -544,7 +544,6 @@ void InitVFS( CTEXTSTR name, struct file_system_mounted_interface *mount )
 {
 	struct my_sqlite3_vfs *vfs;
 	INDEX idx;
-	//lprintf( "Register sqlite vfs called %s", name );
 	LIST_FORALL( l.registered_vfs, idx, struct my_sqlite3_vfs *, vfs )
 	{
 #ifdef UNICODE
@@ -560,6 +559,7 @@ void InitVFS( CTEXTSTR name, struct file_system_mounted_interface *mount )
 	{
 		sqlite3_vfs *default_vfs = sqlite3_vfs_find(NULL);
 		struct my_sqlite3_vfs *new_vfs;
+		//lprintf( "Register sqlite vfs called %s", name );
 		new_vfs = New( struct my_sqlite3_vfs );
 		MemCpy( &new_vfs->vfs, default_vfs, sizeof( sqlite3_vfs ) );
 		new_vfs->vfs.pAppData = 0;

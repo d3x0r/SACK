@@ -277,7 +277,7 @@ PSI_PROC( int, EditControlProperties )( PSI_CONTROL control )
 							 , PROP_WIDTH + 20
 							 , PROP_HEIGHT + 20 + 25, BORDER_NORMAL, GetFrame( control ) );
 		{
-         static int bAnotherLayer;
+			static int bAnotherLayer;
 			PCONTROL pc = MakeSheetControl( pf
 													, 5, 5
 													, PROP_WIDTH+10, PROP_HEIGHT + 10
@@ -286,15 +286,15 @@ PSI_PROC( int, EditControlProperties )( PSI_CONTROL control )
 			{
 				bAnotherLayer++;
 				pSheet = ParseXMLFrame( control_property_frame_xml, sizeof( control_property_frame_xml ) );
-            if( !pSheet )
+				if( !pSheet )
 					pSheet = LoadXMLFrame( WIDE("Common Edit.Frame") );
-            //DumpFrameContents( pSheet );
+				//DumpFrameContents( pSheet );
 				bAnotherLayer--;
 			}
-         if( pSheet )
+			if( pSheet )
 			{
-            //lprintf( "****************" );
-            InitFrameControls( pSheet, control );
+				//lprintf( "****************" );
+				InitFrameControls( pSheet, control );
 			}
 			else
 			{

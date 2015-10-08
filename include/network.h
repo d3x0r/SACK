@@ -242,9 +242,9 @@ NETWORK_PROC( void, SetCPPNetworkCloseCallback )( PCLIENT, cppCloseCallback, PTR
 
  // wwords is BYTES and wClients=16 is defaulted to 16
 #ifdef __LINUX__
-NETWORK_PROC( LOGICAL, NetworkWait )(POINTER unused,_16 wClients,int wUserData);
+NETWORK_PROC( LOGICAL, NetworkWait )(POINTER unused,_32 wClients,int wUserData);
 #else
-NETWORK_PROC( LOGICAL, NetworkWait )(HWND hWndNotify,_16 wClients,int wUserData);
+NETWORK_PROC( LOGICAL, NetworkWait )(HWND hWndNotify,_32 wClients,int wUserData);
 #endif
 /* <combine sack::network::NetworkWait@HWND@_16@int>
    

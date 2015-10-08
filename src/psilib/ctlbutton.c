@@ -585,8 +585,8 @@ static void ToggleButtonCheck( PSI_CONTROL pCom )
 								{
 									bChanged = RADIO_CALL_CHECKED;
 									pcheck->flags.bChecked = TRUE;
-									SmudgeCommon( pcCheck );
 								}
+								SmudgeCommon( pcCheck );
 							}
 							else
 							{

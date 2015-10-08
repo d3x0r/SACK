@@ -19,10 +19,10 @@ RENDER_NAMESPACE
 
 // key_events has this
 
-TEXTCHAR  GetKeyText (int key)
+const TEXTCHAR*  GetKeyText (int key)
 {
-	int c;
-	char ch[5];
+	static int c;
+	static char ch[5];
 	if( key & KEY_MOD_DOWN )
 		return 0;
 	key ^= 0x80000000;
@@ -51,7 +51,7 @@ TEXTCHAR  GetKeyText (int key)
 		return 0;
 	}
 	//printf( WIDE("Key Translated: %d(%c)\n"), ch[0], ch[0] );
-	return ch[0];
+	return ch;
 }
 
 #ifdef USE_KEYHOOK

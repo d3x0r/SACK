@@ -2417,6 +2417,8 @@ TYPELIB_PROC int TYPELIB_CALLTYPE ConvertToUTF16( wchar_t *output, TEXTRUNE rune
 
 TYPELIB_PROC TEXTRUNE TYPELIB_CALLTYPE GetUtfChar( CTEXTSTR *from );
 TYPELIB_PROC TEXTRUNE TYPELIB_CALLTYPE GetUtfCharIndexed( CTEXTSTR from, size_t *index );
+TYPELIB_PROC TEXTRUNE TYPELIB_CALLTYPE GetPriorUtfChar( CTEXTSTR *from );
+TYPELIB_PROC TEXTRUNE TYPELIB_CALLTYPE GetPriorUtfCharIndexed( CTEXTSTR from, size_t *index );
 
 TYPELIB_PROC size_t TYPELIB_CALLTYPE GetDisplayableCharacterCount( CTEXTSTR string, size_t max_bytes );
 TYPELIB_PROC CTEXTSTR TYPELIB_CALLTYPE GetDisplayableCharactersAtCount( CTEXTSTR string, size_t character_index );
@@ -2752,6 +2754,10 @@ TYPELIB_PROC  void TYPELIB_CALLTYPE  EnqueUserInputHistory ( PUSER_INPUT_BUFFER 
    
    </code>                                                                                               */
 TYPELIB_PROC  PTEXT TYPELIB_CALLTYPE  GatherUserInput ( PUSER_INPUT_BUFFER pci, PTEXT stroke );
+
+/* delete 1 character at current user input index */
+TYPELIB_PROC  void TYPELIB_CALLTYPE  DeleteUserInput( PUSER_INPUT_BUFFER pci );
+
 
 /* Converts ascii character set to ebcidc. */
 TYPELIB_PROC TEXTSTR TYPELIB_CALLTYPE  ConvertAsciiEbdic( TEXTSTR text, INDEX length );

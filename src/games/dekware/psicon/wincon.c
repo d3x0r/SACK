@@ -215,13 +215,14 @@ VOID KeyEventProc(PCONSOLE_INFO pdp, KEY_EVENT_RECORD event)
 		for( ; event.wRepeatCount; event.wRepeatCount-- )
 		{
 			BYTE KeyState[256];
-			DECLTEXT( key, WIDE("						 ") );
+			DECLTEXTSZ( key, 16 );
 			GetKeyboardState( KeyState );
 			SetTextSize( &key, ToAscii( event.wVirtualKeyCode
 											  , event.wVirtualScanCode
 											  , KeyState
 											  , (unsigned short*)key.data.data
 											  , 0 ) );
+			key.data.data[key.data.size] = 0;
 			KeyPressHandler( pdp, event.wVirtualKeyCode, mod, (PTEXT)&key );
 		}
 	}

@@ -1418,12 +1418,15 @@ PKEY_BUTTON MakeKeyExx( PCOMMON frame
 		result->frame_down = frame_down;
 		result->mask = mask;
 		//result->background.alpha = 0;
+#if 0
+      // background is a CDATA
 		if( flags & KEY_BACKGROUND_IMAGE )
 		{
 			result->flags.background_image = 1;
 			result->background.image = (Image)background;
 		}
 		else
+#endif
 		{
 			result->flags.background_image = 0;
 			result->background.color = background;

@@ -4524,9 +4524,21 @@ void SQLDropODBC( PODBC odbc )
    EnqueLink( &odbc->queue->connections, odbc );
 }
 
-void SQLDropAndCloseODBC( PODBC odbc )
+void SQLDropAndCloseODBC( CTEXTSTR dsn )
 {
-	CloseDatabase( odbc );
+	INDEX idx;
+	struct odbc_queue *queue;
+retry:
+	LIST_FORALL( g.odbc_queues, idx, struct odbc_queue*, queue )
+	{
+		if( StrCaseCmp( dsn, queue->name ) == 0 )
+		{
+			PODBC odbc;
+			while( odbc = (PODBC)DequeLink( &queue->connections ) )
+				CloseDatabase( odbc );
+			break;
+		}
+	}
 }
 
 

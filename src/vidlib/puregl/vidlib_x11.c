@@ -2289,10 +2289,10 @@ PRIORITY_ATEXIT( RemoveKeyHook, 100 )
    xlprintf(LOG_ALWAYS)( "Send events to threads appropriately to shut down here please!" );
 }
 
-TEXTCHAR  GetKeyText (int key)
+const TEXTCHAR*  GetKeyText (int key)
 {
    int c;
-	char ch[5];
+	static char ch[5];
 	if( key & KEY_MOD_DOWN )
       return 0;
 	key ^= 0x80000000;
@@ -2323,7 +2323,7 @@ TEXTCHAR  GetKeyText (int key)
       return 0;
    }
    //printf( WIDE("Key Translated: %d(%c)\n"), ch[0], ch[0] );
-   return ch[0];
+   return ch;
 }
 
 //----------------------------------------------------------------------------

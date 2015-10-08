@@ -6,7 +6,7 @@
 #include "Android_local.h"
 
 RENDER_NAMESPACE
-#define DEBUG_TOUCH_INPUTS
+//#define DEBUG_TOUCH_INPUTS
 
 	static struct touch_event_state_static
 {

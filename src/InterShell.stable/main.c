@@ -4626,7 +4626,7 @@ void DisplayMenuCanvas( PSI_CONTROL pc_canvas, PRENDERER under, _32 width, _32 h
 
 #ifndef UNDER_CE
 #ifdef WIN32
-	//(((PRENDERER)g.mem_lock)[0]) = canvas->renderer[0];
+	(((PRENDERER)g.mem_lock)[0]) = canvas->renderer[0];
 #endif
 #endif
 
@@ -5035,7 +5035,7 @@ void AddGlareLayer( PCanvasData canvas, Image image )
 		AttachFrameToRenderer( canvas->edit_glare_frame, canvas->edit_glare );
 		SetRedrawHandler( canvas->edit_glare, DrawEditGlare, (PTRSZVAL)canvas );
 		SetMouseHandler( canvas->edit_glare, MouseEditGlare, (PTRSZVAL)canvas );
-		//lprintf( "MAKE TOPMOST" );
+		//lprintf( "MAKE yT" );
 		MakeTopmost( canvas->edit_glare );
 		//lprintf( "Is it topmost?" );
 		// just create that thing, don't show it yet...
@@ -5228,7 +5228,9 @@ PRIORITY_PRELOAD( ProgramLock, DEFAULT_PRELOAD_PRIORITY+2 )
 		exit(0);
 	}
 	else
+	{
 		lprintf( WIDE("opened lock %p %s"), g.mem_lock, lockname );
+	}
 #endif
 }
 #endif

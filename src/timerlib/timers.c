@@ -214,10 +214,10 @@ static struct {
 
 
 #if HAS_TLS
-DeclareThreadLocal struct my_thread_info {
+struct my_thread_info {
 	PTHREAD pThread;
 	THREAD_ID nThread;
-} *_MyThreadInfo;
+};
 #define MyThreadInfo (*_MyThreadInfo)
 #endif
 
@@ -247,11 +247,11 @@ DeclareThreadLocal struct my_thread_info {
 
 void  RemoveTimerEx( _32 ID DBG_PASS );
 
-static void InitTLS( void )
+static struct my_thread_info* GetThreadTLS( void )
 {
+	struct my_thread_info* _MyThreadInfo;
 #if defined( WIN32 )
-	if( !_MyThreadInfo && 
-		!( _MyThreadInfo = (struct my_thread_info*)TlsGetValue( global_timer_structure->my_thread_info_tls ) ) )
+	if( !( _MyThreadInfo = (struct my_thread_info*)TlsGetValue( global_timer_structure->my_thread_info_tls ) ) )
 	{
 		int old = SetAllocateLogging( FALSE );
 		TlsSetValue( global_timer_structure->my_thread_info_tls, _MyThreadInfo = New( struct my_thread_info ) );
@@ -260,14 +260,14 @@ static void InitTLS( void )
 		_MyThreadInfo->pThread = 0;
 	}
 #elif defined( __LINUX__ )
-	if( !_MyThreadInfo && 
-		!( _MyThreadInfo = (struct my_thread_info*)pthread_getspecific( global_timer_structure->my_thread_info_tls ) ) )
+	if( !( _MyThreadInfo = (struct my_thread_info*)pthread_getspecific( global_timer_structure->my_thread_info_tls ) ) )
 	{
 		pthread_setspecific( global_timer_structure->my_thread_info_tls, _MyThreadInfo = New( struct my_thread_info ) );
 		_MyThreadInfo->nThread = 0;
 		_MyThreadInfo->pThread = 0;
 	}
 #endif
+	return _MyThreadInfo;
 }
 
 // this priorirty is also relative to a secondary init for procreg/names.c
@@ -813,7 +813,7 @@ static void  InternalWakeableNamedSleepEx( CTEXTSTR name, _32 n, LOGICAL threade
 	else
 	{
 #ifdef HAS_TLS
-		if( !_MyThreadInfo ) InitTLS();
+		struct my_thread_info* _MyThreadInfo = GetThreadTLS();
 		pThread = MyThreadInfo.pThread;
 		//lprintf( "thread will be %p %p", pThread, &MyThreadInfo );
 		//lprintf( "pthread is %p", pThread );
@@ -1055,7 +1055,11 @@ static void ContinueSignal( int sig )
 PRIORITY_PRELOAD( IgnoreSignalContinue, GLOBAL_INIT_PRELOAD_PRIORITY-1 )
 {
 	//lprintf( "register handler for sigusr1" );
+#if defined __ANDROID_OLD_PLATFORM_SUPPORT__
+	bsd_signal( SIGUSR1, ContinueSignal );
+#else
 	signal( SIGUSR1, ContinueSignal );
+#endif
 }
 
 static void AlarmSignal( int sig )
@@ -1071,7 +1075,11 @@ static void TimerWakeableSleep( _32 n )
 #ifndef USE_PIPE_SEMS
 		if( !g.flags.set_timer_signal )
 		{
+#  if defined __ANDROID_OLD_PLATFORM_SUPPORT__
+			bsd_signal( SIGALRM, AlarmSignal );
+#  else
 			signal( SIGALRM, AlarmSignal );
+#  endif
 			g.flags.set_timer_signal = 1;
 		}
 		if( n != SLEEP_FOREVER )
@@ -1136,7 +1144,7 @@ PTRSZVAL CPROC ThreadProc( PTHREAD pThread );
 int  IsThisThreadEx( PTHREAD pThreadTest DBG_PASS )
 {
 	PTHREAD pThread;
-	if( !_MyThreadInfo ) InitTLS();
+	struct my_thread_info* _MyThreadInfo = GetThreadTLS();
 	pThread
 #ifdef HAS_TLS
 		= MyThreadInfo.pThread;
@@ -1153,7 +1161,7 @@ int  IsThisThreadEx( PTHREAD pThreadTest DBG_PASS )
 static int NotTimerThread( void )
 {
 	PTHREAD pThread;
-	if( !_MyThreadInfo ) InitTLS();
+	struct my_thread_info* _MyThreadInfo = GetThreadTLS();
 	pThread
 #ifdef HAS_TLS
 		= MyThreadInfo.pThread;
@@ -1170,7 +1178,7 @@ static int NotTimerThread( void )
 void  UnmakeThread( void )
 {
 	PTHREAD pThread;
-	if( !_MyThreadInfo ) InitTLS();
+	struct my_thread_info* _MyThreadInfo = GetThreadTLS();
 	pThread
 #ifdef HAS_TLS
 		= MyThreadInfo.pThread;
@@ -1207,9 +1215,14 @@ static PTRSZVAL CPROC ThreadWrapper( PTHREAD pThread )
 #endif
 {
 	PTRSZVAL result = 0;
+	struct my_thread_info* _MyThreadInfo = GetThreadTLS();
 #ifdef __LINUX__
 	//lprintf( "register handler for sigusr1 (for thread)" );
+#  if defined __ANDROID_OLD_PLATFORM_SUPPORT__
+	bsd_signal( SIGUSR1, ContinueSignal );
+#  else
 	signal( SIGUSR1, ContinueSignal );
+#  endif
 #endif
 #ifdef _WIN32
 	while( !pThread->hThread )
@@ -1220,7 +1233,6 @@ static PTRSZVAL CPROC ThreadWrapper( PTHREAD pThread )
 	while( !pThread->flags.bReady )
 		Relinquish();
 #ifdef HAS_TLS
-	if( !_MyThreadInfo ) InitTLS();
 #  ifdef LOG_THREAD
 	lprintf( "thread will be %p %p", MyThreadInfo.pThread, &MyThreadInfo );
 	lprintf( "thread will be %p %p", pThread, &MyThreadInfo.pThread );
@@ -1256,6 +1268,7 @@ static void *SimpleThreadWrapper( PTHREAD pThread )
 static PTRSZVAL CPROC SimpleThreadWrapper( PTHREAD pThread )
 #endif
 {
+	struct my_thread_info* _MyThreadInfo = GetThreadTLS();
 	PTRSZVAL result = 0;
 #ifdef _WIN32
 	while( !pThread->hThread )
@@ -1268,7 +1281,6 @@ static PTRSZVAL CPROC SimpleThreadWrapper( PTHREAD pThread )
 	while( !pThread->flags.bReady )
 		Relinquish();
 #ifdef HAS_TLS
-	if( !_MyThreadInfo ) InitTLS();
 	MyThreadInfo.pThread = pThread;
 	MyThreadInfo.nThread =
 #endif
@@ -1294,7 +1306,7 @@ static PTRSZVAL CPROC SimpleThreadWrapper( PTHREAD pThread )
 PTHREAD  MakeThread( void )
 {
 #ifdef HAS_TLS
-	if( !_MyThreadInfo ) InitTLS();
+	struct my_thread_info* _MyThreadInfo = GetThreadTLS();
 	if( MyThreadInfo.pThread )
 		return MyThreadInfo.pThread;
 	MyThreadInfo.nThread = _GetMyThreadID();
@@ -1344,7 +1356,7 @@ THREAD_ID GetThreadID( PTHREAD thread )
 THREAD_ID GetThisThreadID( void )
 {
 #if HAS_TLS
-	if( !_MyThreadInfo ) InitTLS();
+	struct my_thread_info* _MyThreadInfo = GetThreadTLS();
 	if( !MyThreadInfo.nThread )
 	{
 		MyThreadInfo.nThread = _GetMyThreadID();
@@ -2424,7 +2436,7 @@ void  DeleteCriticalSec( PCRITICALSECTION pcs )
 HANDLE  GetWakeEvent( void )
 {
 #if HAS_TLS
-	if( !_MyThreadInfo ) InitTLS();
+	struct my_thread_info* _MyThreadInfo = GetThreadTLS();
 	if( !MyThreadInfo.pThread )
 		MakeThread();
 	return MyThreadInfo.pThread->thread_event->hEvent;

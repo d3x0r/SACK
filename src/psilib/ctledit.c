@@ -644,14 +644,18 @@ static int OnKeyCommon( EDIT_FIELD_NAME )( PSI_CONTROL pc, _32 key )
 	ValidatedControlData( PEDIT, EDIT_FIELD, pe, pc );
 	int used_key = 0;
 	int updated = 0;
-	TEXTCHAR ch;
+	const TEXTCHAR *ch;
+	LOGICAL handled = FALSE;
 	if( !pe || pe->flags.bReadOnly )
+	{
 		return 0;
-	if( KEY_CODE(key) == KEY_TAB )
+	}
+	if( KEY_CODE(key) == KEY_TAB ) {
 		return 0;
+	}
 	if( key & KEY_PRESSED )
 	{
-		if( key & KEY_CONTROL_DOWN )
+		if( key & KEY_CONTROL_DOWN && !( key & (KEY_ALT_DOWN|KEY_SHIFT_DOWN) )  )
 		{
 			switch( KEY_CODE( key ) )
 			{
@@ -659,19 +663,23 @@ static int OnKeyCommon( EDIT_FIELD_NAME )( PSI_CONTROL pc, _32 key )
 			case KEY_C:
 				Copy( pe, &pc->caption.text );
 				SmudgeCommon( pc );
+				handled = TRUE;
 				break;
 			case KEY_X:
 				Cut( pe, &pc->caption.text );
 				SmudgeCommon( pc );
+				handled = TRUE;
 				break;
 			case KEY_V:
 				Paste( pe, &pc->caption.text );
 				SmudgeCommon( pc );
+				handled = TRUE;
 				break;
 #endif
 			}
 		}
-		else switch( KEY_CODE( key ) )
+		if( !handled )
+		switch( KEY_CODE( key ) )
 		{
 		case KEY_LEFT:
 			{
@@ -817,7 +825,6 @@ static int OnKeyCommon( EDIT_FIELD_NAME )( PSI_CONTROL pc, _32 key )
 			SmudgeCommon( pc );
 			used_key = 1;
 			break;
-#endif
 		case KEY_DELETE:
 			if( pe->flags.bSelectSet )
 			{
@@ -836,6 +843,7 @@ static int OnKeyCommon( EDIT_FIELD_NAME )( PSI_CONTROL pc, _32 key )
 				SmudgeCommon( pc );
 			used_key = 1;
 			break;
+#endif
 		case KEY_BACKSPACE:
 			//Log( WIDE("Backspace?!") );
 			if( pe->flags.bSelectSet )
@@ -869,16 +877,15 @@ static int OnKeyCommon( EDIT_FIELD_NAME )( PSI_CONTROL pc, _32 key )
 			used_key = 1;
 			break;
 		default:
-			//Log2( WIDE("Got Key: %08x(%c)"), key, key & 0xFF );
 			ch = GetKeyText( key );
 			if( ch )
 			{
-				if( (unsigned char)ch == 0xFF )
+				if( (unsigned char)ch[0] == 0xFF )
 					ch = 0;
 				if( pe->flags.bSelectSet )
 					CutEditText( pe, &pc->caption.text );
 				pe->cursor_pos_byte = GetDisplayableCharacterBytes( GetText( pc->caption.text ), pe->cursor_pos );
-				InsertAChar( pe, &pc->caption.text, ch );
+				TypeIntoEditControl( pc, ch );
 				pe->cursor_pos = GetDisplayableCharacterCount( GetText( pc->caption.text ), pe->cursor_pos_byte );
 				SmudgeCommon( pc );
 				//printf( WIDE("Key: %d(%c)\n"), ch,ch );

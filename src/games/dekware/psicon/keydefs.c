@@ -1000,20 +1000,20 @@ int DoStroke( PCONSOLE_INFO pdp, PTEXT stroke )
 {
    INDEX i;
    int bOutput = FALSE;
-   DECLTEXT( key, WIDE(" ") );
+   DECLTEXT( key, WIDE("                    ") );
    //Log1( WIDE("Do Stroke with %c"), stroke->data.data[0] );
    while( stroke )
    {
       for( i = 0; i < stroke->data.size; i++ )
       {
-         switch( key.data.data[0] = stroke->data.data[i] )
+         switch( key.data.data[i] = stroke->data.data[i] )
          {
          case '\r':
             // output is always prefix linefed...
-            key.data.data[0] = '\n'; // carriage return = linefeed
+            key.data.data[i] = '\n'; // carriage return = linefeed
             goto normal_process;  // do not output return... extra lines otherwise
          case 9:
-            key.data.data[0] = ' ';
+            key.data.data[i] = ' ';
          case 27:
          case '\b':
             //pdp->bUpdateToEnd = FALSE; // need update ALL not just to end
@@ -1024,7 +1024,7 @@ int DoStroke( PCONSOLE_INFO pdp, PTEXT stroke )
                if( pdp->flags.bDirect && pdp->flags.bCharMode )
                {
                   PTEXT newseg = TextDuplicate( stroke, FALSE );
-                  if( stroke->data.data[0] == '\r' )
+                  if( stroke->data.data[i] == '\r' )
                   {
                      newseg->flags &= ~TF_NORETURN;
                      newseg->data.size = 0;
@@ -1043,6 +1043,8 @@ int DoStroke( PCONSOLE_INFO pdp, PTEXT stroke )
                }
                else
                {
+				   key.data.data[i+1] = 0;
+				   key.data.size = i+1;
 						if( ( pLine =
 							  GatherCommand( pdp->
 #ifdef __DEKWARE_PLUGIN__

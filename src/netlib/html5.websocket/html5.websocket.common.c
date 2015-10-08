@@ -5,6 +5,11 @@
 #define WEBSOCKET_COMMON_SOURCE
 #include "html5.websocket.common.h"
 
+#ifdef __ANDROID_OLD_PLATFORM_SUPPORT__
+#define rand lrand48
+#endif
+
+
 void SendWebSocketMessage( PCLIENT pc, int opcode, int final, int do_mask, P_8 payload, size_t length )
 {
 	P_8 msgout;

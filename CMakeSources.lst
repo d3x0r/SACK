@@ -228,8 +228,12 @@ if( NOT SQLITE3_FOUND )
    set( ExtraDefinitions "${ExtraDefinitions};USE_SQLITE;USE_SQLITE_INTERFACE" )
   endif()
 else( NOT SQLITE3_FOUND )
+  include_directories( ${SQLITE3_INCLUDE_DIR} )
+  
   set( ExtraDefinitions "${ExtraDefinitions};USE_SQLITE;SYSTEM_SQLITE" )
+  
 endif( NOT SQLITE3_FOUND )
+
 
 endif( USE_SQLITE )
 

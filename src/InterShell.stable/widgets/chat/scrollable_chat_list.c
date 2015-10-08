@@ -11,6 +11,7 @@
 #include <controls.h>
 #include <psi.h>
 #include <sqlgetoption.h>
+#include <translation.h>
 #include <psi/console.h> // text formatter
 
 #include "../include/buttons.h"
@@ -56,6 +57,7 @@ typedef struct chat_message_tag
 	LOGICAL _sent; // if not sent, is received message - determine justification and decoration
 	TEXTCHAR formatted_time[256];
 	int time_height;
+	LOGICAL deleted;
 } CHAT_MESSAGE;
 typedef struct chat_message_tag *PCHAT_MESSAGE;
 
@@ -72,6 +74,7 @@ typedef struct chat_context_tag
 	_32 extra_width;
 	//int message_y;   // a single value for this makes no sense.
 	PLINKQUEUE messages; // queue of PCHAT_MESSAGE (search forward and backward ability)
+	LOGICAL deleted;
 } CHAT_CONTEXT;
 typedef CHAT_CONTEXT *PCHAT_CONTEXT;
 
@@ -162,23 +165,15 @@ static CTEXTSTR FormatMessageTime( CTEXTSTR time_type, PCHAT_TIME now, PCHAT_TIM
 	static TEXTCHAR _timebuf[4][64];
 	static int current_timebuf;
 	TEXTCHAR *timebuf;
-	int now_day = G2J( now->yr, now->mo, now->dy );
-	int msg_day = G2J( message_time->yr, message_time->mo, message_time->dy );
-	int now_tick = now->hr * ( 60 * 60 * 1000 )
-		 + now->mn * ( 60 * 1000 )
-		 + now->sc * ( 1000)
-		 + now->ms
-		 - ( now->zhr * 60 * 60 * 1000 + now->zmn * 60 *1000 )
-		 ;
-	int msg_tick = message_time->hr * ( 60 * 60 * 1000 )
-		 + message_time->mn * ( 60 * 1000 )
-		 + message_time->sc * ( 1000)
-		 + message_time->ms
-		 - ( message_time->zhr * 60 * 60 * 1000 + message_time->zmn * 60 *1000 )
-		 ;
-	int yr;
+	S_64 absolute_day = AbsoluteSeconds( now );
+	S_64 absolute_msg_day = AbsoluteSeconds( message_time );
+	S_64 delta = absolute_day - absolute_msg_day;
+	LOGICAL neg = (delta < 0 )? 1 : 0;
+	if( neg )
+		delta = -delta;
 #if DEBUG_TIME_FORMATTING
-	lprintf( "now is %d msg is %d  now is %d  msg is %d", now_day, msg_day, now_tick, msg_tick );
+	lprintf( "now is %" _64fs " msg is %" _64fs " delta %" _64fs 
+				, absolute_day, absolute_msg_day, delta );
 	lprintf( "now is %04d/%02d/%02d %02d:%02d:%02d %02d  %02d"
 		, now->yr, now->mo, now->dy, now->hr, now->mn, now->sc, now->zhr, now->zmn );
 	lprintf( "%s is %04d/%02d/%02d %02d:%02d:%02d %02d %02d"
@@ -189,231 +184,31 @@ static CTEXTSTR FormatMessageTime( CTEXTSTR time_type, PCHAT_TIME now, PCHAT_TIM
 #endif
 	timebuf = _timebuf[current_timebuf++];
 	current_timebuf &= 3;
-	for( yr = message_time->yr; yr < now->yr; yr++ )
-		now_day += IsLeap( yr )?366:365;
 
-	if( ( msg_day - now_day ) == 1 )
+	if( delta >= ( 60*60*24 ) )
 	{
-		msg_day -= 1;
-		msg_tick += ( 24 * 60 * 60 * 1000 );
+		int part = delta / ( 60 * 60 * 24 );
+		snprintf( timebuf, 64, "%s%d %s ago", neg?"-":"", part, part==1?"day":"days" );
 	}
-	if( now_day != msg_day )
+	else if( delta >= ( 60 * 60 ) )
 	{
-		int del = msg_day - now_day;
-		if( del == 1 )
-		{
-			now_tick += del * ( 24 * 60 * 60 * 1000 );
-			if( ( msg_tick - now_tick ) > ( 24 * 60 * 60 * 1000  ) )
-			{
-				del = now_day - msg_day;
-				if( del == 1 )
-					goto day_del1;
-				snprintf( timebuf, 64, "%d days ago", del );
-#if DEBUG_TIME_FORMATTING
-				lprintf( "result is %s", timebuf );
-#endif
-				return timebuf;
-			}
-			else
-				goto normal_tick_diff;
-		}
-		if( del > 0 )
-		{
-			// in the future... 
-#if DEBUG_TIME_FORMATTING
-			lprintf( "timestamp is in the future." );
-#endif
-			snprintf( timebuf, 64, "after now" );
-			return timebuf;
-		}
-day_del1:
-		del = now_day - msg_day;
-		snprintf( timebuf, 64, "%d%s ago", del, del == 1?" day":" days" );
+		int part = ( delta / ( 60 * 60 ) );
+		snprintf( timebuf, 64, "%s%d %s ago"
+			, neg?"-":""
+			, part, part==1?" hour":" hours" );
 	}
-	else if( now_tick != msg_tick )
-	{
-		int del;
-		int part;
-normal_tick_diff:
-		del = now_tick - msg_tick;
-		if( part = ( del / ( 60 * 60 * 1000 ) ) )
-			snprintf( timebuf, 64, "%d:%02d %s ago", part, (del / ( 60*1000 ))%60, part==1?" hour":" hours" );
-		else if( part = ( del / ( 60 * 1000 ) ) )
-			snprintf( timebuf, 64, "%d%s ago", part, part==1?" minute":" minutes" );
-		else if( part = ( del / ( 1000 ) ) )
-			snprintf( timebuf, 64, "%d%s ago", part, part==1?" second":" seconds" );
-		else
-			snprintf( timebuf, 64, "now" );
-	}
+	else if( delta >= 60 ) {
+		int part = delta / 60;
+		snprintf( timebuf, 64, "%s%d%s ago", neg?"-":"", part, part==1?" minute":" minutes" );
+	}	
+	else if( delta )
+		snprintf( timebuf, 64, "%s%d%s ago", neg?"-":"", (int)delta, delta==1?" second":" seconds" );
 	else
 		snprintf( timebuf, 64, "now" );
 #if DEBUG_TIME_FORMATTING
 	lprintf( "result is %s", timebuf );
 #endif
 	return timebuf;
-}
-
-// can track up to 4 timestamp deltas ....
-static CTEXTSTR FormatMessageTime2( PCHAT_TIME now, PCHAT_TIME message_time )
-{
-	static TEXTCHAR _timebuf[4][64];
-	static int current_timebuf;
-	TEXTCHAR *timebuf;
-	int now_day = G2J( now->yr, now->mo, now->dy );
-	int msg_day = G2J( message_time->yr, message_time->mo, message_time->dy );
-	timebuf = _timebuf[current_timebuf++];
-	current_timebuf &= 3;
-
-	//snprintf( timebuf, 64, "%02d:%02d:%02d)", message_time->hr, message_time->mn, message_time->sc );
-	//timebuf += 8;
-#define TIMEBUF_OFS 0
-	if( now->yr != message_time->yr )
-	{
-		int del = now->yr - message_time->yr;
-		if( del == 1 )
-		{
-			int mo = now->mo + 12;
-			if( ( mo - message_time->mo ) < 12 )
-			{
-				del = mo - message_time->mo;
-				if( del == 1 )
-					goto month_del1;
-				snprintf( timebuf, 64, "%d months ago", del );
-				return timebuf - TIMEBUF_OFS;
-			}
-		}
-		if( del < 0 )
-		{
-			// in the future... 
-			snprintf( timebuf, 64, "after now" );
-			return timebuf - TIMEBUF_OFS;
-		}
-		snprintf( timebuf, 64, "%d%s ago", del, del == 1?" year":" years" );
-	}
-	else if( now->mo != message_time->mo )
-	{
-		int del;
-		del = now->mo - message_time->mo;
-		if( del == 1 )
-		{
-			int dayz;
-			int dy;
-		month_del1:
-			dy = now->dy + ( dayz = GetDays( message_time->yr, message_time->mo ) );
-			if( ( dy - message_time->dy ) < GetDays( message_time->yr, message_time->mo ) )
-			{
-				del = dy - message_time->dy;
-				if( del == 1 )
-					goto day_del1;
-				snprintf( timebuf, 64, "%d days ago", del );
-				return timebuf - TIMEBUF_OFS;
-			}
-			else
-				del = dy / dayz;
-		}
-		if( del < 0 )
-		{
-			// in the future... 
-			snprintf( timebuf, 64, "after now" );
-			return timebuf - TIMEBUF_OFS;
-		}
-		snprintf( timebuf, 64, "%d%s ago", del, del == 1?" day":" days" );
-	}
-	else if( now->dy != message_time->dy )
-	{
-		int del;
-		del = now->dy - message_time->dy;
-		if( del == 1 )
-		{
-			int hr;
-		day_del1:
-			hr = now->hr + 24 - now->zhr;
-			if( ( hr - ( message_time->hr - message_time->zhr ) ) < 24 )
-			{
-				del = hr - ( message_time->hr - message_time->zhr );
-				if( del == 1 )
-					goto hr_del1;
-				snprintf( timebuf, 64, "%d hours ago", del );
-				return timebuf - TIMEBUF_OFS;
-			}
-			else
-				del = hr / 24;
-		}
-		if( del < 0 )
-		{
-			// in the future... 
-			snprintf( timebuf, 64, "after now" );
-			return timebuf - TIMEBUF_OFS;
-		}
-		snprintf( timebuf, 64, "%d%s ago", del, del == 1?" day":" days" );
-	}
-	else if( ( now->hr - now->zhr ) != ( message_time->hr - message_time->zhr ) )
-	{
-		int del;
-		del = ( now->hr - now->zhr ) - ( message_time->hr - message_time->zhr );
-		if( del == 1 )
-		{
-			int mn;
-		hr_del1:
-			mn = ( now->mn - now->zmn ) + 60;
-			if( ( mn - ( message_time->mn - message_time->zmn ) ) < 60 )
-			{
-				del = mn - ( message_time->mn - message_time->zmn );
-				if( del == 1 )
-					goto mn_del1;
-				snprintf( timebuf, 64, "%d minutes ago", del );
-				return timebuf - TIMEBUF_OFS;
-			}
-			else
-				del = mn / 60;
-		}
-		if( del < 0 )
-		{
-			// in the future... 
-			snprintf( timebuf, 64, "%d hours after now", -del );
-			return timebuf;
-		}
-		snprintf( timebuf, 64, "%d%s ago", del, del == 1?" hour":" hours" );
-	}
-	else if( now->mn != message_time->mn )
-	{
-		int del = ( now->mn - now->zmn ) - ( message_time->mn - message_time->zmn );
-		if( del == 1 )
-		{
-			int sc;
-		mn_del1:
-			sc = now->sc + 60;
-			if( ( sc - message_time->sc ) < 60 )
-			{
-				del = sc - message_time->sc;
-				snprintf( timebuf, 64, "%d seconds ago", del );
-				return timebuf - TIMEBUF_OFS;
-			}
-		}
-		if( del < 0 )
-		{
-			// in the future... 
-			snprintf( timebuf, 64, "%d %s after now", -del, (del == -1)?"minute":"minutes" );
-			return timebuf;
-		}
-		snprintf( timebuf, 64, "%d%s ago", del, del == 1?" minute":" minutes" );
-	}
-	else if( now->sc != message_time->sc )
-	{
-		int del = now->sc - message_time->sc;
-		if( del < 0 )
-		{
-			// in the future... 
-			snprintf( timebuf, 64, "%d %s after now", -del, (del == -1)?"second":"seconds" );
-			return timebuf - TIMEBUF_OFS;
-		}
-		snprintf( timebuf, 64, "%d%s ago", del, del == 1?" second":" seconds" );
-	}
-	else
-		snprintf( timebuf, 64, "now" );
-
-
-	return timebuf - TIMEBUF_OFS;
 }
 
 static void ChopDecorations( void )
@@ -467,6 +262,54 @@ static void ChopDecorations( void )
 			int n;
 			for( n = 0; n < 9; n++ )
 				ReuseImage( l.received.BorderSegment[n] );
+		}
+		if( l.decoration && !l.send.BorderSegment[SEGMENT_TOP_LEFT] )
+		{
+			int MiddleSegmentWidth, MiddleSegmentHeight;
+			_32 BorderWidth = l.send.div_x1 - l.send.back_x;
+			_32 BorderWidth2 = ( l.send.back_x  + l.send.back_w ) - l.send.div_x2;
+			_32 BorderHeight = l.send.div_y1 - l.send.back_y;
+
+			MiddleSegmentWidth = l.send.div_x2 - l.send.div_x1;
+			MiddleSegmentHeight = l.send.div_y2 - l.send.div_y1;
+			l.send.BorderSegment[SEGMENT_TOP_LEFT] = MakeSubImage( l.decoration
+																				  , l.send.back_x, l.send.back_y
+																				  , BorderWidth, BorderHeight );
+			l.send.BorderSegment[SEGMENT_TOP] = MakeSubImage( l.decoration
+																			, l.send.back_x + BorderWidth, l.send.back_y
+																			, MiddleSegmentWidth, BorderHeight );
+			l.send.BorderSegment[SEGMENT_TOP_RIGHT] = MakeSubImage( l.decoration
+																					, l.send.back_x + BorderWidth + MiddleSegmentWidth, l.send.back_y + 0
+																					, BorderWidth2, BorderHeight );
+			//-------------------
+			// middle row segments
+			l.send.BorderSegment[SEGMENT_LEFT] = MakeSubImage( l.decoration
+																	  , l.send.back_x + 0, l.send.back_y + BorderHeight
+																	  , BorderWidth, MiddleSegmentHeight );
+			l.send.BorderSegment[SEGMENT_CENTER] = MakeSubImage( l.decoration
+																		 , l.send.back_x + BorderWidth, l.send.back_y + BorderHeight
+																		 , MiddleSegmentWidth, MiddleSegmentHeight );
+			l.send.BorderSegment[SEGMENT_RIGHT] = MakeSubImage( l.decoration
+																		, l.send.back_x + BorderWidth + MiddleSegmentWidth, l.send.back_y + BorderHeight
+																		, BorderWidth2, MiddleSegmentHeight );
+			//-------------------
+			// lower segments
+			BorderHeight = l.send.back_h - (l.send.div_y2 - l.send.back_y);
+			l.send.BorderSegment[SEGMENT_BOTTOM_LEFT] = MakeSubImage( l.decoration
+																				, l.send.back_x + 0, l.send.back_y + BorderHeight + MiddleSegmentHeight
+																				, BorderWidth, l.send.back_h - ( BorderHeight + MiddleSegmentHeight ) );
+			l.send.BorderSegment[SEGMENT_BOTTOM] = MakeSubImage( l.decoration
+																		 , l.send.back_x + BorderWidth, l.send.back_y + BorderHeight + MiddleSegmentHeight
+																	 , MiddleSegmentWidth, l.send.back_h - ( BorderHeight + MiddleSegmentHeight ) );
+			l.send.BorderSegment[SEGMENT_BOTTOM_RIGHT] = MakeSubImage( l.decoration
+																				 , l.send.back_x + BorderWidth + MiddleSegmentWidth, l.send.back_y + BorderHeight + MiddleSegmentHeight
+																						, BorderWidth2, l.send.back_h - ( BorderHeight + MiddleSegmentHeight ) );
+		}
+		else
+		{
+			int n;
+			for( n = 0; n < 9; n++ )
+				ReuseImage( l.send.BorderSegment[n] );
 		}
 		if( l.decoration && !l.sent.BorderSegment[SEGMENT_TOP_LEFT] )
 		{
@@ -728,6 +571,15 @@ static void SetupDefaultConfig( void )
 			LineRelease( _color );
 		}
 
+		l.send.back_x = SACK_GetProfileInt( "widgets/Chat Control", "send message background x", 0 );
+		l.send.back_y = SACK_GetProfileInt( "widgets/Chat Control", "send message background y", 95 );
+		l.send.back_w = SACK_GetProfileInt( "widgets/Chat Control", "send message background w", 159 );
+		l.send.back_h = SACK_GetProfileInt( "widgets/Chat Control", "send message background h", 39 );
+		l.send.div_x1 = SACK_GetProfileInt( "widgets/Chat Control", "send message background division inset left", 10 );
+		l.send.div_x2 = SACK_GetProfileInt( "widgets/Chat Control", "send message background division inset right", 10 + 136 );
+		l.send.div_y1 = SACK_GetProfileInt( "widgets/Chat Control", "send message background division inset top", 95 + 10 );
+		l.send.div_y2 = SACK_GetProfileInt( "widgets/Chat Control", "send message background division inset bottom", 95 + 10 + 22 );
+
 		l.sent.back_x = SACK_GetProfileInt( "widgets/Chat Control", "sent message background x", 0 );
 		l.sent.back_y = SACK_GetProfileInt( "widgets/Chat Control", "sent message background y", 0 );
 		l.sent.back_w = SACK_GetProfileInt( "widgets/Chat Control", "sent message background w", 73 );
@@ -890,6 +742,14 @@ void Chat_SetSeenCallback( PSI_CONTROL pc, void (CPROC *Handler)( PTRSZVAL psv )
 	chat_control->MessageDeleted = DeleteHandler;
 }
 
+void Chat_SetSeenImageCallback( PSI_CONTROL pc, void (CPROC *Handler)( PTRSZVAL psv, Image ), void (CPROC *DeleteHandler)( PTRSZVAL psv, Image ) )
+{
+	PCHAT_LIST *ppList = (ControlData( PCHAT_LIST*, pc ));
+	PCHAT_LIST chat_control = (*ppList);
+	chat_control->ImageSeen = Handler;
+	chat_control->ImageDeleted = DeleteHandler;
+}
+
 void Chat_ClearMessages( PSI_CONTROL pc )
 {
 	PCHAT_LIST *ppList = (ControlData( PCHAT_LIST*, pc ));
@@ -943,6 +803,7 @@ void Chat_EnqueMessage( PSI_CONTROL pc, LOGICAL sent
 			pcc->extra_width = 0;
 			pcc->formatted_height = 0;
 			pcc->messages = NULL;
+			pcc->deleted = 0;
 			EnqueLink( &chat_control->contexts, pcc );
 		}
 		pcm = New( CHAT_MESSAGE );
@@ -964,6 +825,7 @@ void Chat_EnqueMessage( PSI_CONTROL pc, LOGICAL sent
 			pcm->seen = 0;
 			MemSet( &pcm->seen_time, 0, sizeof( pcm->seen_time ) );
 		}
+		pcm->deleted = FALSE;
 		pcm->psvSeen = psvSeen;
 		pcm->image = NULL;
 		pcm->thumb_image = NULL;
@@ -1001,6 +863,7 @@ void Chat_EnqueImage( PSI_CONTROL pc, LOGICAL sent
 			pcc->extra_width = 0;
 			pcc->formatted_height = 0;
 			pcc->messages = NULL;
+			pcc->deleted = 0;
 			EnqueLink( &chat_control->contexts, pcc );
 		}
 		if( pcm = (PCHAT_MESSAGE)PeekQueueEx( pcc->messages, -1 ) )
@@ -1023,10 +886,11 @@ void Chat_EnqueImage( PSI_CONTROL pc, LOGICAL sent
 		pcm->psvSeen = psvSeen;
 		pcm->text = NULL;
 		pcm->image = image;
-		pcm->thumb_image = MakeImageFile( 32 * image->width / image->height , 32 );
+		pcm->thumb_image = MakeImageFile( 96 * image->width / image->height , 96 );
 		BlotScaledImage( pcm->thumb_image, pcm->image );
 		pcm->_sent = sent;
 		pcm->formatted_text = NULL;
+		pcm->deleted = 0;
 		EnqueLink( &pcc->messages, pcm );
 	}
 }
@@ -1079,6 +943,69 @@ void MeasureFrameWidth( Image window, S_32 *left, S_32 *right, LOGICAL received,
 			(*right) = window->width;
 		}
 	}
+}
+
+_32 DrawSendTextFrame( Image window, int y, int height, int inset )
+{
+	S_32 x_offset_left;
+	S_32 x_offset_right;
+	height +=  l.send.BorderSegment[SEGMENT_TOP]->height + l.send.BorderSegment[SEGMENT_BOTTOM]->height;
+	y -= l.send.BorderSegment[SEGMENT_TOP]->height + l.send.BorderSegment[SEGMENT_BOTTOM]->height;
+	//lprintf( WIDE("Draw at %d   %d  bias %d") , y, height, inset );
+	MeasureFrameWidth( window, &x_offset_left, &x_offset_right, TRUE, FALSE, inset );
+	{
+		BlotScaledImageSizedToAlpha( window, l.send.BorderSegment[SEGMENT_TOP]
+											, x_offset_left + l.send.BorderSegment[SEGMENT_LEFT]->width
+											, y
+											, ( x_offset_right - x_offset_left ) - ( l.send.BorderSegment[SEGMENT_LEFT]->width
+																	 + l.send.BorderSegment[SEGMENT_RIGHT]->width )
+											, l.send.BorderSegment[SEGMENT_TOP]->height
+											, ALPHA_TRANSPARENT );
+		BlotScaledImageSizedToAlpha( window, l.send.BorderSegment[SEGMENT_CENTER]
+											, x_offset_left + l.send.BorderSegment[SEGMENT_LEFT]->width
+											, y + l.send.BorderSegment[SEGMENT_TOP]->height
+											, ( x_offset_right - x_offset_left ) - ( l.send.BorderSegment[SEGMENT_LEFT]->width
+																	 + l.send.BorderSegment[SEGMENT_RIGHT]->width
+																	 )
+											, height - ( l.send.BorderSegment[SEGMENT_TOP]->height
+															+ l.send.BorderSegment[SEGMENT_BOTTOM]->height )
+											, ALPHA_TRANSPARENT );
+		BlotScaledImageSizedToAlpha( window, l.send.BorderSegment[SEGMENT_BOTTOM]
+											, x_offset_left + l.send.BorderSegment[SEGMENT_LEFT]->width
+											, y + height - l.send.BorderSegment[SEGMENT_BOTTOM]->height
+											, ( x_offset_right - x_offset_left ) - ( l.send.BorderSegment[SEGMENT_LEFT]->width
+																	 + l.send.BorderSegment[SEGMENT_RIGHT]->width)
+											, l.send.BorderSegment[SEGMENT_TOP]->height
+											, ALPHA_TRANSPARENT );
+		BlotScaledImageSizedToAlpha( window, l.send.BorderSegment[SEGMENT_LEFT]
+											, x_offset_left
+											, y + l.send.BorderSegment[SEGMENT_TOP]->height
+											, l.send.BorderSegment[SEGMENT_LEFT]->width
+											, height - ( l.send.BorderSegment[SEGMENT_TOP]->height + l.send.BorderSegment[SEGMENT_BOTTOM]->height )
+											, ALPHA_TRANSPARENT );
+		BlotScaledImageSizedToAlpha( window, l.send.BorderSegment[SEGMENT_RIGHT]
+											, (x_offset_right )-( l.send.BorderSegment[SEGMENT_RIGHT]->width )
+											, y + l.send.BorderSegment[SEGMENT_TOP]->height
+											, l.send.BorderSegment[SEGMENT_RIGHT]->width
+											, height - ( l.send.BorderSegment[SEGMENT_TOP]->height
+															+ l.send.BorderSegment[SEGMENT_BOTTOM]->height )
+											, ALPHA_TRANSPARENT );
+		BlotImageAlpha( window, l.send.BorderSegment[SEGMENT_TOP_LEFT]
+						  , x_offset_left, y
+						  , ALPHA_TRANSPARENT );
+		BlotImageAlpha( window, l.send.BorderSegment[SEGMENT_TOP_RIGHT]
+							  , x_offset_right - ( l.send.BorderSegment[SEGMENT_RIGHT]->width )
+							  , y
+						  , ALPHA_TRANSPARENT );
+		BlotImageAlpha( window, l.send.BorderSegment[SEGMENT_BOTTOM_LEFT]
+						  , x_offset_left , y + height - l.send.BorderSegment[SEGMENT_BOTTOM]->height
+						  , ALPHA_TRANSPARENT );
+		BlotImageAlpha( window, l.send.BorderSegment[SEGMENT_BOTTOM_RIGHT]
+						  , x_offset_right - ( l.send.BorderSegment[SEGMENT_RIGHT]->width )
+						  , y + height - l.send.BorderSegment[SEGMENT_BOTTOM]->height
+						  , ALPHA_TRANSPARENT );
+	}
+	return height;
 }
 
 _32 DrawMessageFrame( Image window, int y, int height, int inset, LOGICAL received, LOGICAL complete )
@@ -1276,6 +1203,8 @@ _32 UpdateContextExtents( Image window, PCHAT_LIST list, PCHAT_CONTEXT context )
 	//lprintf( WIDE("BEgin draw messages...") );
 	for( message_idx = -1; msg = (PCHAT_MESSAGE)PeekQueueEx( context->messages, message_idx ); message_idx-- )
 	{
+		if( msg->deleted )
+			continue;
 		if( !msg->formatted_text && msg->text )
 		{
 			int max_width = width;// - ((msg->sent)?l.sent.arrow_w:l.received.arrow_w);
@@ -1369,8 +1298,14 @@ void DrawAMessage( Image window, PCHAT_LIST list
 	if( !msg->seen )
 	{
 		Chat_GetCurrentTime( &msg->seen_time );
-		if( list->MessageSeen )
-			list->MessageSeen( msg->psvSeen );
+		if( msg->image )
+		{
+			if( list->ImageSeen )
+				list->ImageSeen( msg->psvSeen, msg->image );
+		}
+		else
+			if( list->MessageSeen )
+				list->MessageSeen( msg->psvSeen );
 		msg->seen = 1;
 	}
 	if( context->sent )
@@ -1552,6 +1487,8 @@ static void DrawMessages( PCHAT_LIST list, Image window )
 		//lprintf( WIDE("BEgin draw messages...") );
 		for( message_idx = -1; msg = (PCHAT_MESSAGE)PeekQueueEx( context->messages, message_idx ); message_idx-- )
 		{
+			if( msg->deleted )
+				continue;
 			//lprintf( "top is now %d (%d from start)", list->display.message_top, debug_start_top - list->display.message_top );
 			//lprintf( "check message %d", message_idx );
 			if( msg->formatted_text && 
@@ -1858,9 +1795,9 @@ static void DrawTextEntry( PSI_CONTROL pc, PCHAT_LIST list, LOGICAL update )
 		{
 			list->nFontHeight = newfontheight;
 			list->command_height = newfontheight * list->input.command_lines;
-			list->send_button_size = ( /*list->command_height */
-				list->nFontHeight
-				+ l.side_pad * 2 /* above and below input*/ 
+			list->send_button_size = ( newfontheight /*list->command_height */
+				//list->nFontHeight
+				+ l.side_pad /** 2 /* above and below input*/ 
 				+ l.sent.BorderSegment[SEGMENT_TOP]->height 
 				+ l.sent.BorderSegment[SEGMENT_BOTTOM]->height );
 			MoveSizeControl( list->send_button, list->message_window->width - ( ( list->send_button_width?list->send_button_width:55 ) + l.side_pad )
@@ -1870,7 +1807,7 @@ static void DrawTextEntry( PSI_CONTROL pc, PCHAT_LIST list, LOGICAL update )
 									:list->send_button_size ) + l.side_pad ) /*list->message_window->height + l.side_pad*/
 					+ list->send_button_y_offset
 				, list->send_button_width?list->send_button_width:55
-				, list->send_button_height?list->send_button_height:(list->send_button_size - l.side_pad * 2 ) );
+				, list->send_button_height?list->send_button_height:(list->send_button_size ) );
 		}
 		else if( list->nFontHeight != newfontheight 
 		       || ( list->command_height != newfontheight * list->input.command_lines )
@@ -1878,8 +1815,8 @@ static void DrawTextEntry( PSI_CONTROL pc, PCHAT_LIST list, LOGICAL update )
 		{
 			list->nFontHeight = newfontheight;
 			list->command_height = list->nFontHeight * list->input.command_lines ;
-			list->send_button_size = ( /*list->command_height */
-				list->nFontHeight
+			list->send_button_size = ( list->nFontHeight /*list->command_height */
+				//list->nFontHeight
 				+ l.side_pad /** 2*/ /* above and below input*/ 
 				+ l.sent.BorderSegment[SEGMENT_TOP]->height 
 				+ l.sent.BorderSegment[SEGMENT_BOTTOM]->height );
@@ -1892,7 +1829,7 @@ static void DrawTextEntry( PSI_CONTROL pc, PCHAT_LIST list, LOGICAL update )
 									:list->send_button_size ) + l.side_pad ) /*list->message_window->height + l.side_pad*/
 					+ list->send_button_y_offset
 				, list->send_button_width?list->send_button_width:55
-				, list->send_button_height?list->send_button_height:(list->send_button_size - l.side_pad * 2 ) );
+				, list->send_button_height?list->send_button_height:(list->send_button_size - l.side_pad ) );
 #if 0
 			MoveSizeControl( list->send_button, list->message_window->width - 60
 				, window->height - ( list->send_button_size ) /*list->message_window->height + l.side_pad*/
@@ -1913,12 +1850,10 @@ static void DrawTextEntry( PSI_CONTROL pc, PCHAT_LIST list, LOGICAL update )
 			BlatColor( window, region_x, region_y
 					, region_w, region_h, GetControlColor( pc, NORMAL ) );
 		
-		DrawMessageFrame( window
+		DrawSendTextFrame( window
 			, window->height - ( list->command_height + l.side_pad ) 
 			, list->command_height
-			, ( list->send_button_width?list->send_button_width:55 ) + l.side_pad
-			, TRUE
-			, FALSE );
+			, ( list->send_button_width?list->send_button_width:55 ) + l.side_pad );
 
 		{
 			int nLine, nCursorLine, nDisplayLine;
@@ -2083,10 +2018,10 @@ static int OnDrawCommon( CONTROL_NAME )( PSI_CONTROL pc )
 								+ list->send_button_x_offset
 			, window->height - ( ( list->send_button_height
 								?list->send_button_height
-								:list->send_button_size ) + l.side_pad ) /*list->message_window->height + l.side_pad*/
+								:list->send_button_size )  ) /*list->message_window->height + l.side_pad*/
 				+ list->send_button_y_offset
 			, list->send_button_width?list->send_button_width:55
-			, list->send_button_height?list->send_button_height:(list->send_button_size - l.side_pad * 2 ) );
+			, list->send_button_height?list->send_button_height:(list->send_button_size - l.side_pad  ) );
 		/*
 		MoveSizeControl( list->send_button, list->message_window->width - 60
 			, list->message_window->height + l.side_pad
@@ -2249,7 +2184,9 @@ static int OnMouseCommon( CONTROL_NAME )( PSI_CONTROL pc, S_32 x, S_32 y, _32 b 
 				{
 					if( msg->image )
 					{
-						ImageViewer_ShowImage( pc, msg->image );
+						PSI_CONTROL pc_viewer = ImageViewer_ShowImage( pc, msg->image, list->PopupEvent, list->psvPopup );
+						ImageViewer_SetAutoCloseHandler( pc_viewer, list->OnImageAutoClose, list->psvImageAutoClose );
+
 					}
 				}
 			}
@@ -2513,7 +2450,7 @@ static int OnCreateCommon( CONTROL_NAME )( PSI_CONTROL pc )
 	}
 	//list->colors.background_color = BASE_COLOR_WHITE;
 	list->message_window = MakeSubImage( GetControlSurface( pc ), 0, 0, 1, 1 );
-	list->send_button = MakeNamedCaptionedControl( pc, IMAGE_BUTTON_NAME, list->message_window->width - 35, list->message_window->height - 25, 35, 25, -1, "Send" );
+	list->send_button = MakeNamedCaptionedControl( pc, IMAGE_BUTTON_NAME, list->message_window->width - 35, list->message_window->height - 25, 35, 25, -1, TranslateText( "Send" ) );
 	SetButtonPushMethod( list->send_button, SendTypedMessage, (PTRSZVAL)list );
 	SetCommonBorder( list->send_button, BORDER_NONE | BORDER_FIXED | BORDER_NOCAPTION );
 	SetButtonImages( list->send_button, l.button_normal, l.button_pressed );
@@ -2577,38 +2514,121 @@ static int OnKeyCommon( CONTROL_NAME )( PSI_CONTROL pc, _32 key )
 	// opened sentience...
 	if( list )
 	{
-		TEXTCHAR character = GetKeyText( key );
-		DECLTEXT( stroke, WIDE(" ") ); // single character ...
+		DECLTEXT( stroke, WIDE("           ") ); // single character ...
 		//Log1( "Key: %08x", key );
 		if( !list || !l.decoration ) // not a valid window handle/device path
 			return 0;
 		//EnterCriticalSec( &list->Lock );
+		if( ( key & KEY_PRESSED ) 
+			&& KEY_CODE( key ) == KEY_V 
+			&& ( key & KEY_CONTROL_DOWN )
+			&& !( key & ( KEY_SHIFT_DOWN | KEY_ALT_DOWN ) ) )
+		{
+			if( list->InputPaste )
+				list->InputPaste( list->psvInputPaste );
+		}
+		else switch( KEY_CODE( key ) )
+		{
+		case KEY_HOME:
+			list->input.control_key_state = ( key & ( KEY_SHIFT_DOWN|KEY_CONTROL_DOWN|KEY_ALT_DOWN ) ) >> 28;
+			if( key & KEY_PRESSED ) {
+				Chat_KeyHome( list, list->input.CommandInfo );
+				SmudgeCommon( pc );
+			}
+			break;
+		case KEY_END:
+			list->input.control_key_state = ( key & ( KEY_SHIFT_DOWN|KEY_CONTROL_DOWN|KEY_ALT_DOWN ) ) >> 28;
+			if( key & KEY_PRESSED ) {
+				Chat_KeyEndCmd( list, list->input.CommandInfo );
+				SmudgeCommon( pc );
+			}
+			break;
+		case KEY_LEFT:
+			list->input.control_key_state = ( key & ( KEY_SHIFT_DOWN|KEY_CONTROL_DOWN|KEY_ALT_DOWN ) ) >> 28;
+			if( key & KEY_PRESSED ) {
+				Chat_KeyLeft( list, list->input.CommandInfo );
+				SmudgeCommon( pc );
+			}
+			break;
+		case KEY_RIGHT:
+			list->input.control_key_state = ( key & ( KEY_SHIFT_DOWN|KEY_CONTROL_DOWN|KEY_ALT_DOWN ) ) >> 28;
+			if( key & KEY_PRESSED ) {
+				Chat_KeyRight( list, list->input.CommandInfo );
+				SmudgeCommon( pc );
+			}
+			break;
+		case KEY_UP:
+			list->input.control_key_state = ( key & ( KEY_SHIFT_DOWN|KEY_CONTROL_DOWN|KEY_ALT_DOWN ) ) >> 28;
+			if( key & KEY_PRESSED ) {
+				Chat_CommandKeyUp( list, list->input.CommandInfo );
+				SmudgeCommon( pc );
+			}
+			break;
+		case KEY_DOWN:
+			list->input.control_key_state = ( key & ( KEY_SHIFT_DOWN|KEY_CONTROL_DOWN|KEY_ALT_DOWN ) ) >> 28;
+			if( key & KEY_PRESSED ) {
+				Chat_HandleKeyDown( list, list->input.CommandInfo );
+				SmudgeCommon( pc );
+			}
+			break;
+		case KEY_DELETE:
+			{
+				DECLTEXT( KeyStrokeDelete, WIDE("\x7f") ); // DECLTEXT implies 'static'
+				if( key & KEY_PRESSED ) {
+					DeleteUserInput( list->input.CommandInfo );
+					ReformatInput( list );
+					SmudgeCommon( pc );
+				}
+			}
+			break;
+		case KEY_BACKSPACE:
+			{
+				DECLTEXT( KeyStrokeBackspace, WIDE("\x08") ); // DECLTEXT implies 'static'
+				if( key & KEY_PRESSED ) {
+					Widget_WinLogicDoStroke( list, (PTEXT)&KeyStrokeBackspace );
+					SmudgeCommon( pc );
+				}
+			}
+			break;
+		case KEY_ENTER:
+			if( key & ( KEY_SHIFT_DOWN | KEY_CONTROL_DOWN ) )
+			{
+				KeyGetGatheredLine( list, list->input.CommandInfo );
+				SmudgeCommon( pc );
+				break;
+			}
+			// else fall through.
+		default:
+			// here is where we evaluate the curent keystroke....
+			{
+				const TEXTCHAR* character = GetKeyText( key );
+				if( character )
+				{
+					int n;
+					for( n = 0; character[n]; n++ )
+						stroke.data.data[n] = character[n];
+					stroke.data.data[n] = character[n];
+					stroke.data.size = n;
+				}
+				else
+					stroke.data.size = 0;
+				{
+					Image window = GetControlSurface( pc );
+					//SetBrowserColumns( list->input.phb_Input, ... );
+					list->input.phb_Input->nLineHeight = GetFontHeight( list->input_font );
+					list->input.phb_Input->nColumns = window->width - ( 2 * l.side_pad + l.sent.BorderSegment[SEGMENT_LEFT]->width + l.sent.BorderSegment[SEGMENT_RIGHT]->width );
+					list->input.phb_Input->nWidth = window->width - ( 2 * l.side_pad + l.sent.BorderSegment[SEGMENT_LEFT]->width + l.sent.BorderSegment[SEGMENT_RIGHT]->width 
+								+ ( list->send_button_width?list->send_button_width:55 + l.side_pad ) );
+				}
 
-		// here is where we evaluate the curent keystroke....
-		if( character )
-		{
-			stroke.data.data[0] = character;
-			stroke.data.size = 1;
-		}
-		else
-			stroke.data.size = 0;
-		{
-			Image window = GetControlSurface( pc );
-			//SetBrowserColumns( list->input.phb_Input, ... );
-			list->input.phb_Input->nLineHeight = GetFontHeight( list->input_font );
-			list->input.phb_Input->nColumns = window->width - ( 2 * l.side_pad + l.sent.BorderSegment[SEGMENT_LEFT]->width + l.sent.BorderSegment[SEGMENT_RIGHT]->width );
-			list->input.phb_Input->nWidth = window->width - ( 2 * l.side_pad + l.sent.BorderSegment[SEGMENT_LEFT]->width + l.sent.BorderSegment[SEGMENT_RIGHT]->width 
-						+ ( list->send_button_width?list->send_button_width:55 + l.side_pad ) );
-		}
-
-		if( key & KEY_PRESSED )
-		{
-			Widget_KeyPressHandler( list, (_8)(KEY_CODE(key)&0xFF), (_8)KEY_MOD(key), (PTEXT)&stroke );
-			SmudgeCommon( pc );
-		}
-		else
-		{
-			Widget_KeyPressHandlerRelease( list, (_8)(KEY_CODE(key)&0xFF), (_8)KEY_MOD(key), (PTEXT)&stroke );
+				if( key & KEY_PRESSED )
+				{
+					Widget_WinLogicDoStroke( list, (PTEXT)&stroke );
+					//Widget_KeyPressHandler( list, (_8)(KEY_CODE(key)&0xFF), (_8)KEY_MOD(key), (PTEXT)&stroke );
+					SmudgeCommon( pc );
+				}
+			}
+			break;
 		}
 		//LeaveCriticalSec( &list->Lock );
 	}
@@ -2692,6 +2712,7 @@ void Chat_ClearOldMessages( PSI_CONTROL pc, int delete_time )
 		PCHAT_MESSAGE msg;
 		CHAT_TIME now;
 		S_64 old_limit;
+		int c;
 		//list->control_offset = 0;
 		list->display.message_top = list->message_window->height + list->control_offset;
 
@@ -2700,11 +2721,12 @@ void Chat_ClearOldMessages( PSI_CONTROL pc, int delete_time )
 		//lprintf( "now stamp is %d/%d/%d %d:%d:%d  %d %d"
 		//	, now.mo, now.dy, now.yr, now.hr, now.mn, now.sc, now.zhr, now.zmn );
 		//lprintf( "limit = %d", old_limit );
-		while( context = (PCHAT_CONTEXT)PeekQueueEx( list->contexts, 0 ) )
+		for( c = 0; context = (PCHAT_CONTEXT)PeekQueueEx( list->contexts, c ); c++ )
 		{
+			int n;
 			//y = list->message_window->height - y;
 			//lprintf( WIDE("BEgin draw messages...") );
-			while( msg = (PCHAT_MESSAGE)PeekQueueEx( context->messages, 0 ) )
+			for( n = 0; msg = (PCHAT_MESSAGE)PeekQueueEx( context->messages, n ); n++ )
 			{
 				S_64 msg_time ;
 				if( context->sent )
@@ -2726,28 +2748,38 @@ void Chat_ClearOldMessages( PSI_CONTROL pc, int delete_time )
 					//	, msg->seen_time.zhr, msg->seen_time.zmn );
 				}
 				//lprintf( "(check old message) %lld - %lld = %lld", msg_time, old_limit, old_limit - msg_time );
-				if( msg_time < old_limit )
+				if( msg->deleted || ( msg_time < old_limit ) )
 				{
-					if( msg->formatted_text )
-						Release( msg->formatted_text );
-					Release( msg->text );
-					Release( msg );
-					DequeLink( &context->messages );
+					if( n == 0 )
+					{
+						if( msg->formatted_text )
+							Release( msg->formatted_text );
+						Release( msg->text );
+						Release( msg );
+						DequeLink( &context->messages );
+						n--;
+					}
+					else
+						msg->deleted = TRUE;
 					deleted++;
 				}
-				else
-					break;
+				//else
+				//    break;
 			}
 			if( IsQueueEmpty( &context->messages ) )
 			{
-				if( context->formatted_sender )
-					Release( context->formatted_sender );
-				Release( context->sender );
-				Release( context );
-				DequeLink( &list->contexts );
+				if( c == 0 )
+				{
+					if( context->formatted_sender )
+						Release( context->formatted_sender );
+					Release( context->sender );
+					Release( context );
+					DequeLink( &list->contexts );
+					c--;
+				}
 			}
-			else
-				break;
+			//else
+			//	break;
 		}
 		if( deleted )
 			SmudgeCommon( pc );
@@ -2783,6 +2815,23 @@ void Chat_SetSendButtonImages( PSI_CONTROL pc, Image normal, Image pressed, Imag
 	SetButtonRolloverImages( list->send_button, rollover, pressed );
 }
 
+void Chat_SetSendButtonSlicedImages( PSI_CONTROL pc, SlicedImage normal, SlicedImage pressed, SlicedImage rollover, SlicedImage focused )
+{
+	PCHAT_LIST *ppList = ControlData( PCHAT_LIST*, pc );
+	PCHAT_LIST list = (*ppList);
+	SetButtonSlicedImages( list->send_button, normal, pressed );
+	SetButtonSlicedFocusedImages( list->send_button, focused, pressed );
+	SetButtonSlicedRolloverImages( list->send_button, rollover, pressed );
+}
+
+void Chat_SetSendButtonTextOffset( PSI_CONTROL pc, S_32 x, S_32 y )
+{
+	PCHAT_LIST *ppList = ControlData( PCHAT_LIST*, pc );
+	PCHAT_LIST list = (*ppList);
+	SetButtonTextOffset( list->send_button, x, y );
+}
+
+
 void Chat_SetSendButtonSize( PSI_CONTROL pc, _32 width, _32 height )
 {
 	PCHAT_LIST *ppList = ControlData( PCHAT_LIST*, pc );
@@ -2798,3 +2847,20 @@ void Chat_SetSendButtonOffset( PSI_CONTROL pc, S_32 x, S_32 y )
 	list->send_button_x_offset = x;
 	list->send_button_y_offset = y;
 }
+
+void Chat_SetImageViewerPopupCallback( PSI_CONTROL pc, void (CPROC*PopupEvent)( PTRSZVAL,LOGICAL ), PTRSZVAL psvEvent )
+{
+	PCHAT_LIST *ppList = ControlData( PCHAT_LIST*, pc );
+	PCHAT_LIST list = (*ppList);
+	list->PopupEvent = PopupEvent;
+	list->psvPopup = psvEvent;
+}
+
+void Chat_SetImageViewerAutoCloseHandler( PSI_CONTROL pc, void (CPROC*Event)( PTRSZVAL ), PTRSZVAL psvEvent )
+{
+	PCHAT_LIST *ppList = ControlData( PCHAT_LIST*, pc );
+	PCHAT_LIST list = (*ppList);
+	list->OnImageAutoClose = Event;
+	list->psvImageAutoClose = psvEvent;
+}
+

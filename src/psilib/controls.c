@@ -447,7 +447,7 @@ void GetMyInterface( void )
 		g.default_font = RenderFontFileScaledEx( buffer, w, h, NULL, NULL, 2/*FONT_FLAG_8BIT*/, NULL, NULL );
 		bias_x = SACK_GetProfileInt( WIDE( "SACK/PSI/Font" ), WIDE( "Bias X" ), 0 );
 		bias_y = SACK_GetProfileInt( WIDE( "SACK/PSI/Font" ), WIDE( "Bias Y" ), 2 );
-		lprintf( "default font %p %d,%d", g.default_font, bias_x, bias_y );
+		//lprintf( "default font %p %d,%d", g.default_font, bias_x, bias_y );
 		//SetFontBias( g.default_font, bias_x, bias_y );
 	}
 #endif
@@ -2609,7 +2609,10 @@ PROCEDURE RealCreateCommonExx( PSI_CONTROL *pResult
 				y = ScaleValue( &_pc->scaley, y );
 				h = ScaleValue( &_pc->scaley, h );
 				pc->flags.bScaled = 1; // its own scaler will be 1:1 since it's alredy scaled...
-				break;
+				if( _pc->device 
+					|| ( _pc->nType == CONTROL_FRAME && !(_pc->BorderType & BORDER_WITHIN ) ) )
+					break;
+				//break;
 			}
 	}
 	if( pIDName )
@@ -2781,7 +2784,7 @@ PSI_PROC( PSI_CONTROL, CreateFrame )( CTEXTSTR caption
 #ifdef USE_INTERFACES
 	GetMyInterface(); // macro with builtin quickcheck
 #endif
-	pc = CreateCommonExx( hAbove//(BorderTypeFlags & BORDER_WITHIN)?hAbove:NULL
+	pc = CreateCommonExx( NULL // hAbove//(BorderTypeFlags & BORDER_WITHIN)?hAbove:NULL
 							  , NULL, CONTROL_FRAME
 							  , x, y
 							  , w, h
@@ -3937,6 +3940,11 @@ PSI_CONTROL CreateCommonExxx( PSI_CONTROL pContainer
 			_xlprintf(1 DBG_RELAY )( WIDE("Failed to init the control - destroying it.") );
 			DestroyCommon( &pResult );
 		}
+		else
+		{
+			if( pResult->BorderType & BORDER_CAPTION_CLOSE_BUTTON )
+				AddCaptionButton( pResult, NULL, NULL, NULL, 0, NULL );
+		}
 	}
 	if( pResult ) // no point in doing anything extra if the initial init fails.
 		{
@@ -4039,7 +4047,7 @@ PSI_CONTROL MakePrivateControl( PSI_CONTROL pFrame
 								 , x, y
 								 , w, h
 								 , nID, NULL
-								 , BORDER_NO_EXTRA_INIT
+								 , BORDER_NO_EXTRA_INIT|BORDER_FIXED
 								 , NULL, NULL DBG_SRC );
 }
 

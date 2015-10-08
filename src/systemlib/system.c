@@ -35,6 +35,7 @@
 #include <stdio.h>
 #include <string.h>
 extern char **environ;
+#include <elf.h>
 #endif
 
 
@@ -1303,6 +1304,45 @@ static void LoadExistingLibraries( void )
 		AddMappedLibrary( dll_name, modules[n] );
 	}
 #endif
+#ifdef __LINUX__
+	{
+		FILE *maps;
+      char buf[256];
+		maps = sack_fopenEx( 0, "/proc/self/maps", "rt", sack_get_mounted_filesystem( "native" ) );
+		while( maps && sack_fgets( buf, 256, maps ) )
+		{
+			char *libpath = strchr( buf, '/' );
+			char *split = strchr( buf, '-' );
+			if( libpath && split )
+			{
+				char *dll_name = strrchr( libpath, '/' );
+				size_t start, end;
+				char perms[8];
+				size_t offset;
+				int scanned;
+				offset = strlen( buf );
+				if( offset < 2 )
+               continue;
+            buf[offset-1] = 0;
+				scanned = sscanf( buf, "%zx-%zx %s %zx", &start, &end, perms, &offset );
+				if( scanned == 4 && offset == 0 )
+				{
+					if( ( perms[2] == 'x' )
+					   && ( ( end - start ) > 4 ) )
+						if( ( ((unsigned char*)start)[0] == ELFMAG0 )
+                     && ( ((unsigned char*)start)[1] == ELFMAG1 )
+                     && ( ((unsigned char*)start)[2] == ELFMAG2 )
+						   && ( ((unsigned char*)start)[3] == ELFMAG3 ) )
+						{
+							//lprintf( "Add library %s %p", dll_name + 1, start );
+							AddMappedLibrary( dll_name + 1, (POINTER)start );
+						}
+				}
+			}
+		}
+      sack_fclose( maps );
+	}
+#endif
 }
 
 SYSTEM_PROC( LOGICAL, IsMappedLibrary)( CTEXTSTR libname )
@@ -1543,6 +1583,7 @@ SYSTEM_PROC( generic_function, LoadFunctionExx )( CTEXTSTR libname, CTEXTSTR fun
 			if( !library->library )
 			{
 				_xlprintf( 2 DBG_RELAY)( WIDE("Attempt to load  %s%s(%s) failed: %s."), bPrivate?WIDE("(local)"):WIDE("(global)"), library->full_name, funcname?funcname:WIDE("all"), dlerror() );
+            UnlinkThing( library );
 				ReleaseEx( library DBG_SRC );
 				ResumeDeadstart();
 				return NULL;

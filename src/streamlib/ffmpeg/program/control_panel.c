@@ -72,7 +72,7 @@ void HideMediaPanel( struct my_button *media )
 	}
 	if( panel )
 	{
-		HideCommon( panel->panel );
+		HideControl( panel->panel );
 	}
 }
 

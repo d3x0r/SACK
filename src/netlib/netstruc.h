@@ -221,7 +221,7 @@ typedef struct client_slab_tag {
 
 // global network data goes here...
 LOCATION struct network_global_data{
-	int     nMaxClients;
+	_32     nMaxClients;
 	int     nUserData;     // number of longs.
 	P_8     pUserData;
 	PLIST   ClientSlabs;

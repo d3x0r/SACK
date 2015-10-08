@@ -18,6 +18,7 @@ _PSI_NAMESPACE
 //---------------------------------------------------------------------------
 
 // default_width, default_height,
+
 #define CONTROL_PROC_DEF( controltype, type, name, _args )                  \
 	int CPROC Init##name( PSI_CONTROL pControl );  \
 	int CPROC Config##name( PSI_CONTROL pc ) { return Init##name(pc); } \
@@ -152,6 +153,7 @@ typedef void (CPROC*_EndEdit)           ( struct common_control_frame * );
 /* \Internal event callback definition. A file has been dropped
 	on the control.                                              */
 typedef LOGICAL (CPROC*_AcceptDroppedFiles)( struct common_control_frame *, CTEXTSTR filename, S_32 x, S_32 y );
+typedef void (CPROC*_HoverEventCallback)           ( struct common_control_frame * );
 
 
 #define DeclMethod( name ) int n##name; _##name *name
@@ -528,6 +530,7 @@ typedef struct common_control_frame
 	DeclSingleMethod( BeginEdit );
 	DeclSingleMethod( EndEdit );
 	DeclSingleMethod( DrawCaption );
+	DeclSingleMethod( HoverEventCallback );
 	DeclMethod( AcceptDroppedFiles );
 	/* Pointer to common button data. Common buttons are the Okay
 		and Cancel buttons that are commonly on dialogs.           */
@@ -543,6 +546,7 @@ typedef struct common_control_frame
 	/* when registered this gets set as where the control's events and rtti are registered.
 		 This will seperate /psi/control and /psi++/control without other flags to switch on */
 	PLIST caption_buttons;  // extra controls that are stuffed on the caption bar.
+	S_32 caption_button_x_ofs, caption_button_y_ofs;
 	PFrameBorder border;
 	PCAPTION_BUTTON hover_caption_button;  // the current button pressed
 	PCAPTION_BUTTON pressed_caption_button;  // the current button pressed

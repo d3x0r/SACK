@@ -70,6 +70,7 @@ struct local_puregl_image_data_tag {
 	PImageShaderTracker simple_shaded_texture_shader;
 	PImageShaderTracker simple_multi_shaded_texture_shader;
 	PImageShaderTracker simple_inverse_texture_shader;
+   int glslVersion;
 } local_puregl_image_data;
 #define l local_puregl_image_data
 

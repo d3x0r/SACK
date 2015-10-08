@@ -82,7 +82,8 @@ static void CPROC CheckFiles( PTRSZVAL psv )
 					var = New( struct variable_tracker );
 					var->var_content = StrDup( buf );
 					var->var_name = StrDup( tmp_name );
-					lprintf( WIDE("Newvar %s=%s"), tmp_name, buf );
+					if( l.flags.bLog )
+						lprintf( WIDE("Newvar %s=%s"), tmp_name, buf );
 					var->variable = CreateLabelVariable( tmp_name, LABEL_TYPE_STRING, &var->var_content );
 					SetLink( &file->vars, var_idx, var );
 				}
@@ -92,7 +93,8 @@ static void CPROC CheckFiles( PTRSZVAL psv )
 					{
 						Release( var->var_content );
 						var->var_content = StrDup( buf );
-						lprintf( WIDE("Change var %s=%s"), var->var_name, buf );
+						if( l.flags.bLog )
+							lprintf( WIDE("Change var %s=%s"), var->var_name, buf );
  						LabelVariableChanged( var->variable );
 					}
 				}

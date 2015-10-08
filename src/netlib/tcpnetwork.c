@@ -361,9 +361,13 @@ NETWORK_PROC( PCLIENT, CPPOpenTCPListenerExx )(_16 wPort
 	SOCKADDR *lpMyAddr = CreateLocal(wPort);
 	PCLIENT pc = CPPOpenTCPListenerAddrExx( lpMyAddr, NotifyCallback, psvConnect DBG_RELAY );
 	ReleaseAddress( lpMyAddr );
-	lpMyAddr = CreateSockAddress( ":::", wPort );
-	pc->pcOther = CPPOpenTCPListenerAddrExx( lpMyAddr, NotifyCallback, psvConnect DBG_RELAY );
-	Release( lpMyAddr );
+	if( pc )
+	{
+      // have to have the base one open or pcOther cannot be set.
+		lpMyAddr = CreateSockAddress( ":::", wPort );
+		pc->pcOther = CPPOpenTCPListenerAddrExx( lpMyAddr, NotifyCallback, psvConnect DBG_RELAY );
+		Release( lpMyAddr );
+	}
 	return pc;
 }
 
@@ -1114,7 +1118,9 @@ NETWORK_PROC( size_t, doReadExx2)(PCLIENT lpClient,POINTER lpBuffer,size_t nByte
 		//				, lpClient->Socket);
 		if( lpClient->dwFlags & CF_READREADY )
 		{
+#ifdef LOG_PENDING
 			lprintf( WIDE("Data already present for read...") );
+#endif
 			FinishPendingRead( lpClient DBG_SRC );
 		}
 #ifdef __LINUX__

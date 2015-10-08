@@ -69,6 +69,11 @@
  #define PSTM_ARM
  //__aarch64__ /* 64 bit arm */
  //__thumb__ /* Thumb mode */
+#elif defined(__aarch64__)
+ #define PSTM_AARCH64
+ #define PSTM_64BIT
+ //__aarch64__ /* 64 bit arm */
+ //__thumb__ /* Thumb mode */
 #elif defined(__mips__)
  #define PSTM_MIPS
 #else
@@ -84,7 +89,7 @@
 /* Detect endian */
 #if defined __LITTLE_ENDIAN__ || defined __i386__ || defined __x86_64__ || \
 	defined _M_X64 || defined _M_IX86 || \
-	defined __ARMEL__ || defined __MIPSEL__
+	defined __ARMEL__ || defined __AARCH64EL__ || defined __MIPSEL__
  #define __ORDER_LITTLE_ENDIAN__ 1234
  #define __BYTE_ORDER__ __ORDER_LITTLE_ENDIAN__
 #endif

@@ -515,7 +515,7 @@ LOGICAL json_parse_message_format( struct json_context_object *format
 								case '/':
 								case '\\':
 								case '"':
-									VarTextAddCharacter( val.pvt_collector, c );
+									VarTextAddRune( val.pvt_collector, c );
 									break;
 								case 't':
 									VarTextAddCharacter( val.pvt_collector, '\t' );
@@ -554,7 +554,7 @@ LOGICAL json_parse_message_format( struct json_context_object *format
 														 , msg + n + 1
 														 );// fault
 										}
-										VarTextAddCharacter( val.pvt_collector, (TEXTRUNE)hex_char );
+										VarTextAddRune( val.pvt_collector, (TEXTRUNE)hex_char );
 									}
 									break;
 								default:
@@ -569,7 +569,7 @@ LOGICAL json_parse_message_format( struct json_context_object *format
 									escape = 0;
 							}
 							else
-								VarTextAddCharacter( val.pvt_collector, c );
+								VarTextAddRune( val.pvt_collector, c );
 						}
 					}
 					val.result_value = VALUE_STRING;
@@ -677,7 +677,7 @@ LOGICAL json_parse_message_format( struct json_context_object *format
 					// always reset this here....
                // keep it set to determine what sort of value is ready.
 					val.float_result = 0;
-					VarTextAddCharacter( val.pvt_collector, c );
+					VarTextAddRune( val.pvt_collector, c );
 					while( ( n < msglen ) && ( c = GetUtfCharIndexed( msg, &n) ) )
 					{
 						// leading zeros should be forbidden.
@@ -687,12 +687,12 @@ LOGICAL json_parse_message_format( struct json_context_object *format
 							|| ( c == '+' )
 						  )
 						{
-							VarTextAddCharacter( val.pvt_collector, c );
+							VarTextAddRune( val.pvt_collector, c );
 						}
 						else if( ( c =='e' ) || ( c == 'E' ) || ( c == '.' ) )
 						{
 							val.float_result = 1;
-							VarTextAddCharacter( val.pvt_collector, c );
+							VarTextAddRune( val.pvt_collector, c );
 						}
 						else
 						{

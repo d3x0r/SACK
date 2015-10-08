@@ -72,6 +72,61 @@ static const char *gles_simple_p_shader_shaded_texture =
 	 "   gl_FragColor = out_Color * texture2D( tex, out_texCoord );\n"
      "}\n" ;
 
+static const char *gles_simple_v_shader_1_30 =
+  // "precision mediump float;\n"
+  // "precision mediump int;\n"
+     "attribute vec4 vPosition;\n" 
+	 "attribute vec2 in_texCoord;\n" 
+	 "uniform mat4 modelView;\n" 
+	 "uniform mat4 worldView;\n" 
+	 "uniform mat4 Projection;\n" 
+	 " varying vec2 out_texCoord;\n" 
+    "void main() {\n"
+    "  gl_Position = Projection * worldView * modelView * vPosition;\n" 
+	 "out_texCoord = in_texCoord;\n" 
+    "}\n"; 
+
+static const char *gles_simple_p_shader_1_30 =
+    // "precision mediump float;\n" 
+   //"precision mediump float;\n"
+	//"precision mediump int;\n"
+	 " varying vec2 out_texCoord;\n" 
+	 " uniform sampler2D tex;\n" 
+	 "void main() {\n"
+	 "   gl_FragColor = texture2D( tex, out_texCoord );\n"
+     "}\n" ;
+
+
+//const char *gles_
+static const char *gles_simple_v_shader_shaded_texture_1_30 =
+   //"precision mediump float;\n"
+	//"precision mediump int;\n"
+     "attribute vec4 vPosition;\n" 
+	  "attribute vec2 in_texCoord;\n" 
+	  "attribute vec4 in_Color;\n"
+	  "uniform mat4 modelView;\n" 
+	  "uniform mat4 worldView;\n" 
+	  "uniform mat4 Projection;\n" 
+	  "varying vec2 out_texCoord;\n" 
+	  "varying vec4 out_Color;\n" 
+	  "\n" 
+    "void main() {\n"
+    "  gl_Position = Projection * worldView * modelView * vPosition;\n" 
+	  " out_texCoord = in_texCoord;\n" 
+	  " out_Color = in_Color;\n" 
+    "}"; 
+
+static const char *gles_simple_p_shader_shaded_texture_1_30 =
+    // "precision mediump float;\n" 
+   //"precision mediump float;\n"
+  // "precision mediump int;\n"
+	 " varying vec4 out_Color;\n" 
+	 " varying vec2 out_texCoord;\n" 
+	 " uniform sampler2D tex;\n" 
+	 "void main() {\n"
+	 "   gl_FragColor = out_Color * texture2D( tex, out_texCoord );\n"
+     "}\n" ;
+
 struct private_shader_texture_data
 {
 	int texture;
@@ -221,10 +276,20 @@ void InitSimpleTextureShader( PTRSZVAL psv_data, PImageShaderTracker tracker )
 	SetShaderOpInit( tracker, SimpleTextureShader_OpInit );
 	SetShaderAppendTristrip( tracker, SimpleTexture_AppendTristrip );
 
-	v_codeblocks[0] = gles_simple_v_shader;
-	v_codeblocks[1] = NULL;
-	p_codeblocks[0] = gles_simple_p_shader;
-	p_codeblocks[1] = NULL;
+	if( l.glslVersion < 140 )
+	{
+		v_codeblocks[0] = gles_simple_v_shader_1_30;
+		v_codeblocks[1] = NULL;
+		p_codeblocks[0] = gles_simple_p_shader_1_30;
+		p_codeblocks[1] = NULL;
+	}
+	else
+	{
+		v_codeblocks[0] = gles_simple_v_shader;
+		v_codeblocks[1] = NULL;
+		p_codeblocks[0] = gles_simple_p_shader;
+		p_codeblocks[1] = NULL;
+	}
 	if( CompileShaderEx( tracker, v_codeblocks, 1, p_codeblocks, 1, attribs, 2 ) )
 	{
 		if( !data )
@@ -358,11 +423,20 @@ void InitSimpleShadedTextureShader( PTRSZVAL psv, PImageShaderTracker tracker )
 	SetShaderReset( tracker, SimpleTextureReset2 );
 	SetShaderOpInit( tracker, SimpleTextureShader_OpInit2 );
 
-	v_codeblocks[0] = gles_simple_v_shader_shaded_texture;
-	v_codeblocks[1] = NULL;
-	p_codeblocks[0] = gles_simple_p_shader_shaded_texture;
-	p_codeblocks[1] = NULL;
-
+	if( l.glslVersion < 140 )
+	{
+		v_codeblocks[0] = gles_simple_v_shader_shaded_texture_1_30;
+		v_codeblocks[1] = NULL;
+		p_codeblocks[0] = gles_simple_p_shader_shaded_texture_1_30;
+		p_codeblocks[1] = NULL;
+	}
+	else
+	{
+		v_codeblocks[0] = gles_simple_v_shader_shaded_texture;
+		v_codeblocks[1] = NULL;
+		p_codeblocks[0] = gles_simple_p_shader_shaded_texture;
+		p_codeblocks[1] = NULL;
+	}
 	if( CompileShaderEx( tracker, v_codeblocks, 1, p_codeblocks, 1, attribs, 3 ) )
 	{
 		data->color_attrib = glGetAttribLocation(tracker->glProgramId, "in_Color" );

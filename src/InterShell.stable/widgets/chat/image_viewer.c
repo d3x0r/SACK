@@ -33,9 +33,16 @@ struct image_viewer {
 	int rotation;
 	_32 b;
 	int done;
+	PSI_CONTROL parent;
+	PSI_CONTROL self;
+	PRENDERER popup_renderer;
+	void (CPROC*PopupEvent)( PTRSZVAL,LOGICAL );
+	PTRSZVAL psvPopup;
+	void (CPROC*OnAutoClose)( PTRSZVAL );
+	PTRSZVAL psvAutoClose;
 };
 
-EasyRegisterControlWithBorder( CONTROL_NAME, sizeof( ImageViewer ), BORDER_CAPTION_CLOSE_BUTTON|BORDER_FIXED|BORDER_NORMAL|BORDER_RESIZABLE );
+EasyRegisterControlWithBorder( CONTROL_NAME, sizeof( ImageViewer ), BORDER_CAPTION_CLOSE_IS_DONE|BORDER_CAPTION_CLOSE_BUTTON|BORDER_FIXED|BORDER_NORMAL|BORDER_RESIZABLE );
 
 static int OnCreateCommon( CONTROL_NAME )( PSI_CONTROL pc )
 {
@@ -167,7 +174,22 @@ static int OnKeyCommon( CONTROL_NAME )( PSI_CONTROL pc, _32 key )
 	{
 		if( KEY_CODE( key ) == KEY_ESCAPE )
 		{
-			DestroyFrame( &pc );
+			ImageViewer *pViewer = ControlData( ImageViewer *, pc );
+			if( pViewer )
+			{
+				SetCommonFocus( pViewer->parent );
+				if( IsControlHidden( GetFrame( pViewer->parent ) ) )
+					RevealCommon( GetFrame( pViewer->parent ) ); 
+			}
+			{
+				void (CPROC*PopupEvent)( PTRSZVAL,LOGICAL );
+				PTRSZVAL psvPopup;
+				PopupEvent = pViewer->PopupEvent;
+				psvPopup = pViewer->psvPopup;
+				DestroyFrame( &pc );
+				if( PopupEvent )
+					PopupEvent( psvPopup, FALSE );
+			}
 			return 1;
 		}
 	}
@@ -177,10 +199,48 @@ static int OnKeyCommon( CONTROL_NAME )( PSI_CONTROL pc, _32 key )
 static void CPROC DoneButton( PTRSZVAL psv, PCOMMON pc )
 {
 	PSI_CONTROL pc_frame = (PSI_CONTROL)GetParentControl( pc );
+	ImageViewer *pViewer = ControlData( ImageViewer *, pc_frame );
+	void (CPROC*PopupEvent)( PTRSZVAL,LOGICAL );
+	PTRSZVAL psvPopup;
+	PopupEvent = pViewer->PopupEvent;
+	psvPopup = pViewer->psvPopup;
 	DestroyFrame( &pc_frame );
+	if( PopupEvent )
+		PopupEvent( psvPopup, FALSE );
 }
 
-PSI_CONTROL ImageViewer_ShowImage( PSI_CONTROL parent, Image image )
+static void CPROC HandleLoseFocus( PTRSZVAL dwUser, PRENDERER pGain )
+{
+	ImageViewer *pViewer = ( ImageViewer *)dwUser;
+	//lprintf( "combobox - HandleLoseFocus %p is gaining (we're losing) else we're gaining", pGain );
+	if( pGain && pGain != pViewer->popup_renderer )
+	{
+		void (CPROC*Event)( PTRSZVAL ) = pViewer->OnAutoClose;
+		PTRSZVAL psvEvent = pViewer->psvAutoClose;
+		void (CPROC*PopupEvent)( PTRSZVAL,LOGICAL );
+		PTRSZVAL psvPopup;
+		PopupEvent = pViewer->PopupEvent;
+		psvPopup = pViewer->psvPopup;
+		DestroyControl( pViewer->self );
+		if( PopupEvent )
+			PopupEvent( psvPopup, FALSE );
+		if( Event )
+			Event( psvEvent );
+	}
+}
+
+void ImageViewer_SetAutoCloseHandler( PSI_CONTROL pc, void (CPROC*Event)( PTRSZVAL ), PTRSZVAL psvEvent )
+{
+	ImageViewer *pViewer;
+	pViewer = ControlData( ImageViewer *, pc );
+	pViewer->OnAutoClose = Event;
+	pViewer->psvAutoClose = psvEvent;
+}
+
+
+PSI_CONTROL ImageViewer_ShowImage( PSI_CONTROL parent, Image image
+								  , void (CPROC*PopupEvent)( PTRSZVAL,LOGICAL ), PTRSZVAL psvEvent 
+								  )
 {
 	PSI_CONTROL pc;
 	ImageViewer *pViewer;
@@ -189,10 +249,10 @@ PSI_CONTROL ImageViewer_ShowImage( PSI_CONTROL parent, Image image )
 	_32 w, h;
 	_32 show_w, show_h;
 	GetDisplaySize( &w, &h );
-	if( image->width < w / 2 )
+	if( SUS_LT( image->width, int, w / 2, _32 ) )
 	{
 		show_w = image->width;
-		if( image->height < h - 200 )
+		if( SUS_LT( image->height, int, h - 200, _32 ) )
 		{
 			show_h = image->height;
 		}
@@ -227,9 +287,19 @@ PSI_CONTROL ImageViewer_ShowImage( PSI_CONTROL parent, Image image )
 	}
 	//AddCommonButtons( pc, &pViewer->done, NULL );
 	//HideCommon( GetControl( pc, IDCANCEL ) );
+	pViewer->PopupEvent = PopupEvent;
+	pViewer->psvPopup = psvEvent;
 	pViewer->zoom = 1000 * show_w / image->width;
 	pViewer->image = image;
+	pViewer->parent = parent;
+	pViewer->self = pc;
 	//DisplayFrameOver( pc, parent );
+	if( PopupEvent )
+		PopupEvent( psvEvent, TRUE );
 	DisplayFrame( pc );
+	{
+		pViewer->popup_renderer = GetFrameRenderer( pc );
+		SetLoseFocusHandler( pViewer->popup_renderer, HandleLoseFocus, (PTRSZVAL)pViewer );
+	}
 	return pc;
 }

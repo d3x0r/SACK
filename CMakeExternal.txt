@@ -126,3 +126,40 @@ if( BUILD_EXTRAS )
   ENDIF( NOT __ANDROID__ )
 endif( BUILD_EXTRAS )
 
+if( NEED_FUSE )
+	set( FUSEBASEDIR src/contrib/fuse-2.9.4 )
+	EXECUTE_PROCESS(COMMAND cmake -E copy_if_different ${CMAKE_SOURCE_DIR}/${FUSEBASEDIR}/include/config.h.android ${CMAKE_BINARY_DIR}/${FUSEBASEDIR}/include/config.h )        
+	set( FUSE_MOUNT_SOURCES 
+			${FUSEBASEDIR}/lib/mount.c
+			${FUSEBASEDIR}/lib/mount_util.c )
+	#set( FUSE_MOUNT_SOURCES 
+	#		${FUSEBASEDIR}/lib/mount_bsd.c )
+	set( FUSE_SOURCES    
+			${FUSEBASEDIR}/lib/mount_util.h
+			${FUSEBASEDIR}/lib/fuse.c
+			${FUSEBASEDIR}/lib/fuse_i.h
+			${FUSEBASEDIR}/lib/fuse_kern_chan.c
+			${FUSEBASEDIR}/lib/fuse_loop.c
+			${FUSEBASEDIR}/lib/fuse_loop_mt.c
+			${FUSEBASEDIR}/lib/fuse_lowlevel.c
+			${FUSEBASEDIR}/lib/fuse_misc.h
+			${FUSEBASEDIR}/lib/fuse_mt.c
+			${FUSEBASEDIR}/lib/fuse_opt.c
+			${FUSEBASEDIR}/lib/fuse_session.c
+			${FUSEBASEDIR}/lib/fuse_signals.c
+			${FUSEBASEDIR}/lib/buffer.c
+			${FUSEBASEDIR}/lib/cuse_lowlevel.c
+			${FUSEBASEDIR}/lib/helper.c
+			${FUSEBASEDIR}/lib/modules/subdir.c
+			${FUSEBASEDIR}/lib/ulockmgr.c
+			${FUSE_MOUNT_SOURCES}
+		)	
+	Set( ExternalExtraDefinitions ${ExternalExtraDefinitions} FUSE_SOURCE 
+        	_FILE_OFFSET_BITS=64 
+                _REENTRANT 
+                FUSE_USE_VERSION=26 
+                FUSERMOUNT_DIR=\".\"
+                )
+        SET_SOURCE_FILES_PROPERTIES( ${FUSE_SOURCES} PROPERTIES COMPILE_FLAGS -I${CMAKE_BINARY_DIR}/${FUSEBASEDIR}/include )
+        INCLUDE_DIRECTORIES( ${FUSEBASEDIR}/include )
+endif( NEED_FUSE )

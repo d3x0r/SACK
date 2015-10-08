@@ -47,8 +47,12 @@ typedef struct chat_list_tag
 	LOGICAL (CPROC*InputDrop)( PTRSZVAL psv, CTEXTSTR input, S_32 x, S_32 y );
 	PTRSZVAL psvInputDrop;
 	void (CPROC*MessageSeen)( PTRSZVAL psv );
+	void (CPROC*ImageSeen)( PTRSZVAL psv, Image image );
 	PTRSZVAL psvMessageSeen;
 	void (CPROC*MessageDeleted)( PTRSZVAL psvSeen );
+	void (CPROC*ImageDeleted)( PTRSZVAL psvSeen, Image image );
+	void (CPROC*PopupEvent)( PTRSZVAL,LOGICAL );
+	PTRSZVAL psvPopup;
 	//PHISTORY_LINE_CURSOR phlc_Input;
 	PSI_CONTROL send_button;
 	_32 send_button_width;  // if 0, is 55
@@ -81,6 +85,8 @@ typedef struct chat_list_tag
 		_32 cursor_timer;
 		PSI_CONTROL pc;
 		PMENU popup_text_entry;
+	void (CPROC*OnImageAutoClose)( PTRSZVAL );
+	PTRSZVAL psvImageAutoClose;
 } CHAT_LIST;
 typedef struct chat_list_tag *PCHAT_LIST;
 
@@ -95,6 +101,14 @@ struct scollable_list_local
 	PRENDER_INTERFACE pdi;
 	CTEXTSTR decoration_name;
 	Image decoration;
+	struct {
+		S_32 back_x, back_y;
+		_32 back_w, back_h;
+		S_32 div_x1, div_x2;
+		S_32 div_y1, div_y2;
+		Image BorderSegment[9];
+		CDATA text_color;
+	} send;
 	struct {
 		S_32 back_x, back_y;
 		_32 back_w, back_h;
@@ -131,6 +145,7 @@ struct scollable_list_local
 	int time_pad;
 	int context_message_pad;
 	int context_sender_pad;
+
 } l;
 
 
@@ -163,6 +178,7 @@ void Widget_KeyPressHandlerRelease( PCHAT_LIST list
 						  , _8 mod
 						  , PTEXT characters
 						  );
+void ReformatInput( PCHAT_LIST list );
 
 int GetInputCursorIndex( PCHAT_LIST list, int x, int y );
 void GetInputCursorPos( PCHAT_LIST list, int *x, int *y );

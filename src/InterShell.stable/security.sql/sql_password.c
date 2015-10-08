@@ -34,7 +34,7 @@ enum {
 
 PRIORITY_PRELOAD( RegisterUserPasswordControls, DEFAULT_PRELOAD_PRIORITY - 2 )
 {
-	CTEXTSTR permission_tokens = WIDE("CREATE TABLE `permission_tokens` (")
+	CTEXTSTR permission_tokens = WIDE("CREATE TABLE `sqlp_permission_tokens` (")
 	WIDE("`permission_id` int(11) NOT NULL AUTO_INCREMENT,")
 	WIDE("`name` varchar(100) NOT NULL DEFAULT '',")
 	WIDE("`log` int(11) NOT NULL DEFAULT '0',")
@@ -285,17 +285,17 @@ PSQL_PASSWORD GetButtonSecurity( PTRSZVAL button, int bCreate )
 void ResolveToken( PTOKEN *ppToken, CTEXTSTR *target, CTEXTSTR permission )
 {
 	{
-		int n;
+		INDEX n;
 		PTOKEN token;
-      if( (*target) )
+		if( (*target) )
 			Release( (POINTER)*target );
-      lprintf( WIDE("New permission is %s"), permission );
+		lprintf( WIDE("New permission is %s"), permission );
 		if( permission && permission[0] )
 		{
 			(*target) = StrDup( permission );
 			LIST_FORALL( g.tokens, n, PTOKEN , token )
 			{
-            lprintf( WIDE("is [%s]==[%s]"), permission, token->name );
+				lprintf( WIDE("is [%s]==[%s]"), permission, token->name );
 				if( StrCaseCmp( permission, token->name ) == 0 )
 				{
 					(*ppToken) = token;
@@ -319,7 +319,7 @@ static PTRSZVAL CPROC AddButtonSecurity( PTRSZVAL psv, arg_list args )
 	//lprintf( WIDE("load context %p(%p)"), pls, last_loading );
 	if( pls )
 	{
-		int n;
+		INDEX n;
 		PTOKEN token;		
 		LIST_FORALL( g.tokens, n, PTOKEN , token )
 		{
@@ -367,7 +367,7 @@ static void OnAddSecurityContextToken( WIDE("SQL Password") )( PTRSZVAL context,
 	//lprintf( WIDE("load context %p(%p)"), pls, context );
 	if( pls )
 	{
-		int n;
+		INDEX n;
 		PTOKEN token;		
 		LIST_FORALL( g.tokens, n, PTOKEN , token )
 		{
@@ -387,7 +387,7 @@ static void OnGetSecurityContextTokens( WIDE("SQL Password") )( PTRSZVAL context
 	PSQL_PASSWORD pls = GetButtonSecurity( context, TRUE );
 	EmptyList( list );
 	{
-		int n;
+		INDEX n;
 		PTOKEN token;
 		LIST_FORALL( g.tokens, n, PTOKEN , token )
 		{
@@ -411,12 +411,12 @@ static void OnSaveSecurityContext( WIDE("SQL Password") )( FILE *file, PTRSZVAL 
    //lprintf( WIDE("save context %p"), pls );
 	if( pls )
 	{
-		int n;
+		INDEX n;
 		PTOKEN token;
 		LIST_FORALL( g.tokens, n, PTOKEN , token )
 		{
 			if( TESTFLAG( pls->permissions, n ) )
-            fprintf( file, WIDE("%sSQL password security=%s\n"), InterShell_GetSaveIndent(), token->name );
+				fprintf( file, WIDE("%sSQL password security=%s\n"), InterShell_GetSaveIndent(), token->name );
 		}
 		if( pls->required_token && pls->required_token[0] )
 		{
@@ -432,7 +432,6 @@ static void OnSaveSecurityContext( WIDE("SQL Password") )( FILE *file, PTRSZVAL 
 static PTRSZVAL TestSecurityContext( WIDE("SQL Password") )( PTRSZVAL button )
 {	
 	TEXTSTR current_user;
-	PTRSZVAL result;
 	PSQL_PASSWORD pls = GetButtonSecurity( button, FALSE );
 	if( pls )
 	{
@@ -534,7 +533,7 @@ static void OnEditSecurityContext( WIDE("SQL Password") )( PTRSZVAL button )
 				list = GetControl( frame, PERMISSIONS );
 				if( list )
 				{
-					int n;
+					INDEX n;
 					PTOKEN token;
 					SetDoubleClickHandler( list, OnItemDoubleClickPermission, 0 );
 					LIST_FORALL( g.tokens, n, PTOKEN , token )
@@ -545,7 +544,7 @@ static void OnEditSecurityContext( WIDE("SQL Password") )( PTRSZVAL button )
 				list = GetControl( frame, REQUIRED_PERMISSIONS );
 				if( list )
 				{
-					int n;
+					INDEX n;
 					PTOKEN token;
 					SetDoubleClickHandler( list, OnItemDoubleClickRequired, 0 );
 
@@ -573,7 +572,7 @@ static void OnEditSecurityContext( WIDE("SQL Password") )( PTRSZVAL button )
 					list = GetControl( frame, REQUIRED_PERMISSIONS );
 					if( list )
 					{
-						int n;
+						INDEX n;
 						PTOKEN token;
 						PLISTITEM pli;
 						LIST_FORALL( g.tokens, n, PTOKEN , token )
@@ -670,12 +669,11 @@ void UnloadUserCache( void )
 {
 	PUSER user;
 	PGROUP group;
-	PTOKEN token;
-	INDEX idx, idx2, idx3;
+	INDEX idx2, idx3;
 
-   //
+	//
 	// don't unload tokens, they are not reloaded.
-   //
+	//
 
 	LIST_FORALL( g.groups, idx2, PGROUP, group )
 	{
@@ -709,7 +707,7 @@ void ReloadUserCache( PODBC odbc )
 		; result_group
 		; FetchSQLRecord( odbc, &result_group ) )
 	{
-		INDEX group_id = IntCreateFromText( result_group[0] );
+		INDEX group_id = (INDEX)IntCreateFromText( result_group[0] );
 		PGROUP group = FindGroup( group_id, result_group[1] );
 	}
 
@@ -720,7 +718,7 @@ void ReloadUserCache( PODBC odbc )
 		 ; result_user
 		  ; FetchSQLRecord( odbc, &result_user ) )
 	{
-		INDEX user_id = IntCreateFromText( result_user[0] );
+		INDEX user_id = (INDEX)IntCreateFromText( result_user[0] );
 		PUSER user = FindUser( user_id );
 		PushSQLQueryEx( odbc );
 
@@ -795,7 +793,7 @@ void ReloadUserCache( PODBC odbc )
 			 ; result_group
 			  ; FetchSQLRecord( odbc, &result_group ) )
 		{
-			INDEX group_id = IntCreateFromText( result_group[0] );
+			INDEX group_id = (INDEX)IntCreateFromText( result_group[0] );
 			PGROUP group = FindGroup( group_id, result_group[1] );
 			if( !group->tokens )
 			{
@@ -804,7 +802,7 @@ void ReloadUserCache( PODBC odbc )
 					 ; result_token
 					  ; FetchSQLRecord( odbc, &result_token ) )
 				{
-					INDEX token_id = IntCreateFromText( result_token[0] );
+					INDEX token_id = (INDEX)IntCreateFromText( result_token[0] );
 					PTOKEN token = FindToken( token_id, result_token[1] );
 					//lprintf( WIDE("Adding token %s to group %s"), token->name, group->name );
 					AddLink( &group->tokens, token );

@@ -896,7 +896,7 @@ enum DisplayAttributes {
        Returns
        char that the key represents. (should implement a method to
        get back the UNICODE character).                            */
-    RENDER_PROC( TEXTCHAR, GetKeyText)             ( int key );
+    RENDER_PROC( const TEXTCHAR *, GetKeyText)             ( int key );
     /* Simple check to see if a key is in a pressed state.
        Parameters
        display :  display to check the key state in
@@ -1384,7 +1384,7 @@ struct render_interface_tag
     /* <combine sack::image::render::GetKeyText@int>
        
        \ \                                           */
-    RENDER_PROC_PTR( TEXTCHAR, GetKeyText)           ( int key );
+    RENDER_PROC_PTR( const TEXTCHAR *, GetKeyText)           ( int key );
     /* <combine sack::image::render::IsKeyDown@PRENDERER@int>
        
        \ \                                                    */

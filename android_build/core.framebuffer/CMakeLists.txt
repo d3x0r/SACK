@@ -16,6 +16,8 @@ else( NOT SACK_SDK_ROOT_PATH )
 set(SACK_SDK_ROOT_PATH ${SACK_SDK_ROOT_PATH} CACHE STRING "SACK SDK Root" )
 endif( NOT SACK_SDK_ROOT_PATH )
 
+include( ${SACK_SDK_ROOT_PATH}/CMakePackage )
+
 add_custom_target( update
        WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
 )
@@ -58,8 +60,11 @@ endmacro( install_resources )
 
 install_resources( package/assets )
 
-
-ainstall( ${SACK_SDK_ROOT_PATH}/lib * INSTALL_LIST package/libs/armeabi )
+if( __64__ )
+  ainstall( ${SACK_SDK_ROOT_PATH}/lib * INSTALL_LIST package/libs/arm64-v8a )
+else( __64__ )
+  ainstall( ${SACK_SDK_ROOT_PATH}/lib * INSTALL_LIST package/libs/armeabi )
+endif( __64__ )
 
 ##########################################
 ###  Remove unused libraries 

@@ -4133,39 +4133,39 @@ PRIORITY_ATEXIT( RemoveKeyHook, 100 )
 }
 #endif
 
-TEXTCHAR  GetKeyText (int key)
+const TEXTCHAR*  GetKeyText (int key)
 {
-   int c;
-	TEXTCHAR ch[5];
+	static int c;
+	static TEXTCHAR ch[5];
 	if( key & KEY_MOD_DOWN )
-      return 0;
+		return 0;
 	key ^= 0x80000000;
 
    c =  
 #ifndef UNDER_CE
-      ToAscii (key & 0xFF, ((key & 0xFF0000) >> 16) | (key & 0x80000000),
-               l.kbd.key, (unsigned short *) ch, 0);
+		ToAscii (key & 0xFF, ((key & 0xFF0000) >> 16) | (key & 0x80000000),
+		        l.kbd.key, (unsigned short *) ch, 0);
 #else
 	   key;
 #endif
-   if (!c)
-   {
-      // check prior key bindings...
-      //printf( WIDE("no translation\n") );
-      return 0;
-   }
-   else if (c == 2)
-   {
-      //printf( WIDE("Key Translated: %d %d\n"), ch[0], ch[1] );
-      return 0;
-   }
-   else if (c < 0)
-   {
-      //printf( WIDE("Key Translation less than 0\n") );
-      return 0;
-   }
-   //printf( WIDE("Key Translated: %d(%c)\n"), ch[0], ch[0] );
-   return ch[0];
+	if (!c)
+	{
+		// check prior key bindings...
+		//printf( WIDE("no translation\n") );
+		return 0;
+	}
+	else if (c == 2)
+	{
+		//printf( WIDE("Key Translated: %d %d\n"), ch[0], ch[1] );
+		return 0;
+	}
+	else if (c < 0)
+	{
+		//printf( WIDE("Key Translation less than 0\n") );
+		return 0;
+	}
+	//printf( WIDE("Key Translated: %d(%c)\n"), ch[0], ch[0] );
+	return ch;
 }
 
 //----------------------------------------------------------------------------

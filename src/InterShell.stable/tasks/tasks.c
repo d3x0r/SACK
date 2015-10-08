@@ -28,7 +28,7 @@ static struct {
 	//PSI_CONTROL frame; // this should be the same as the global frame (to hide when launching task)
 	struct {
 		_32 bExit : 4; // this needs to be set someday... it comes from intershell_main
-		_32 wait_for_caller : 1;
+		_32 wait_for_network_drive : 1;
 		BIT_FIELD bSentLaunchComplete : 1;
 	} flags;
 	PLIST tasks_that_hid_main_canvas;
@@ -47,8 +47,8 @@ enum {
 	  , CHECKBOX_RESTART
 	  , CHECKBOX_ONE_TIME_LAUNCH
 	  , CHECKBOX_EXCLUSIVE
-	  , CHECKBOX_LAUNCH_CALLER_READY
-	  , CHECKBOX_CALLER_WAIT
+	  , CHECKBOX_LAUNCH_NETWORK_READY
+	  , CHECKBOX_NETWORK_WAIT
 	  , CHECKBOX_CAPTURE_OUTPUT // dos prompt, get the input and do something with it...
 	  , LISTBOX_ALLOW_RUN_ON
 	  , LISTBOX_DISALLOW_RUN_ON
@@ -380,8 +380,8 @@ PRELOAD( RegisterTaskControls )
 	EasyRegisterResource( WIDE("InterShell/tasks"), CHECKBOX_EXCLUSIVE			 , RADIO_BUTTON_NAME );
 	EasyRegisterResource( WIDE("InterShell/tasks"), CHECKBOX_WAIT_FOR_TASK		 , RADIO_BUTTON_NAME );
 	EasyRegisterResource( WIDE("InterShell/tasks"), CHECKBOX_BACKGROUND			, RADIO_BUTTON_NAME );
-	EasyRegisterResource( WIDE("InterShell/tasks"), CHECKBOX_LAUNCH_CALLER_READY, RADIO_BUTTON_NAME );
-	EasyRegisterResource( WIDE("InterShell/tasks"), CHECKBOX_CALLER_WAIT		  , RADIO_BUTTON_NAME );
+	EasyRegisterResource( WIDE("InterShell/tasks"), CHECKBOX_LAUNCH_NETWORK_READY, RADIO_BUTTON_NAME );
+	EasyRegisterResource( WIDE("InterShell/tasks"), CHECKBOX_NETWORK_WAIT		  , RADIO_BUTTON_NAME );
 	EasyRegisterResource( WIDE("InterShell/tasks"), CHECKBOX_ONE_TIME_LAUNCH	 , RADIO_BUTTON_NAME );
 	EasyRegisterResource( WIDE("InterShell/tasks"), CHECKBOX_ONE_TIME_CLICK_STOP, RADIO_BUTTON_NAME );
 	EasyRegisterResource( WIDE("InterShell/tasks"), CHECKBOX_CAPTURE_OUTPUT	  , RADIO_BUTTON_NAME );
@@ -637,7 +637,7 @@ void EditTaskProperties( PTRSZVAL psv, PSI_CONTROL parent_frame, LOGICAL bVisual
 		SetCheckState( GetControl( frame, CHECKBOX_EXCLUSIVE ), pTask->flags.bExclusive );
 		SetCheckState( GetControl( frame, CHECKBOX_WAIT_FOR_TASK ), pTask->flags.bWaitForTask );
 		SetCheckState( GetControl( frame, CHECKBOX_BACKGROUND ), pTask->flags.bBackground );
-		SetCheckState( GetControl( frame, CHECKBOX_LAUNCH_CALLER_READY ), pTask->flags.bLaunchWhenCallerUp );
+		SetCheckState( GetControl( frame, CHECKBOX_LAUNCH_NETWORK_READY ), pTask->flags.bLaunchWhenNetworkDriveUp );
 		SetCheckState( GetControl( frame, CHECKBOX_ONE_TIME_LAUNCH ), pTask->flags.bOneLaunch );
 		SetCheckState( GetControl( frame, CHECKBOX_ONE_TIME_CLICK_STOP ), pTask->flags.bOneLaunchClickStop );
 		SetCheckState( GetControl( frame, CHECKBOX_CAPTURE_OUTPUT ), pTask->flags.bCaptureOutput );
@@ -702,8 +702,8 @@ void EditTaskProperties( PTRSZVAL psv, PSI_CONTROL parent_frame, LOGICAL bVisual
 			if( checkbox ) pTask->flags.bWaitForTask = GetCheckState( checkbox );
 			checkbox = GetControl( frame, CHECKBOX_BACKGROUND );
 			if( checkbox ) pTask->flags.bBackground = GetCheckState( checkbox );
-			checkbox = GetControl( frame, CHECKBOX_LAUNCH_CALLER_READY );
-			if( checkbox ) pTask->flags.bLaunchWhenCallerUp = GetCheckState( checkbox );
+			checkbox = GetControl( frame, CHECKBOX_LAUNCH_NETWORK_READY );
+			if( checkbox ) pTask->flags.bLaunchWhenNetworkDriveUp = GetCheckState( checkbox );
 			checkbox = GetControl( frame, CHECKBOX_ONE_TIME_LAUNCH );
 			if( checkbox ) pTask->flags.bOneLaunch = GetCheckState( checkbox );
 			checkbox = GetControl( frame, CHECKBOX_ONE_TIME_CLICK_STOP );
@@ -1434,20 +1434,20 @@ static void OnInterShellShutdown( WIDE("DOKillSpawnedPrograms") )(void)
 }
 
 //---------------------------------------------------------------------------
-PTRSZVAL CPROC WaitForCallerThread( PTHREAD thread );
+PTRSZVAL CPROC WaitForNetworkThread( PTHREAD thread );
 
-int LaunchAutoTasks( int bCaller )
+int LaunchNetworkTasks( int bWaitForNetworkDrive )
 {
 	int launched = 0;
 	INDEX idx;
 	PLOAD_TASK task;
 
-	if( bCaller )
+	if( bWaitForNetworkDrive )
 	{
-		// if caller, but no tasks require caller, don't do anything.
+		// if network, but no tasks require network, don't do anything.
 		LIST_FORALL( l.autoload, idx, PLOAD_TASK, task )
 		{
-			if( task->flags.bLaunchWhenCallerUp )
+			if( task->flags.bLaunchWhenNetworkDriveUp )
 			{
 				break;
 			}
@@ -1457,13 +1457,13 @@ int LaunchAutoTasks( int bCaller )
 	}
 
 #ifdef WIN32
-	if( bCaller && !l.flags.wait_for_caller )
+	if( bWaitForNetworkDrive && !l.flags.wait_for_network_drive )
 	{
 		FILE *file;
 		static TEXTCHAR DefaultFilePath[256];
 		if( !DefaultFilePath[0] )
-			SACK_GetProfileStringEx( GetProgramName(), WIDE("InterShell/Tasks/Wait File Path"), WIDE("f:/config.sys"), DefaultFilePath, sizeof( DefaultFilePath ), TRUE );
-		// we're not waiitng for caller in a banner-type mode...
+			SACK_GetProfileStringEx( GetProgramName(), WIDE("InterShell/Tasks/Wait File Path"), WIDE("o:/config.sys"), DefaultFilePath, sizeof( DefaultFilePath ), TRUE );
+		// we're not waiitng for network in a banner-type mode...
 		// therefore we need to launch these ourselves...
 		if( ( file = sack_fopen( 0, DefaultFilePath, WIDE("rb") ) ) )
 		{
@@ -1472,15 +1472,15 @@ int LaunchAutoTasks( int bCaller )
 		}
 		else
 		{
-			ThreadTo( WaitForCallerThread, 0 );
-			return 0; // bCaller mode tasks - and caller is not up.
+			ThreadTo( WaitForNetworkThread, 0 );
+			return 0; // bWaitForNetworkDrive mode tasks - and network is not up.
 		}
 	}
 #endif
 	LIST_FORALL( l.autoload, idx, PLOAD_TASK, task )
 	{
-		if( ( bCaller && ( task->flags.bLaunchWhenCallerUp ) )
-			|| ( !bCaller && !( task->flags.bLaunchWhenCallerUp ) ) )
+		if( ( bWaitForNetworkDrive && ( task->flags.bLaunchWhenNetworkDriveUp ) )
+			|| ( !bWaitForNetworkDrive && !( task->flags.bLaunchWhenNetworkDriveUp ) ) )
 		{
 			launched = 1;
 			RunATask( task, (task->flags.bWaitForTask||task->flags.bExclusive )&&!task->flags.bBackground, FALSE );
@@ -1492,16 +1492,16 @@ int LaunchAutoTasks( int bCaller )
 }
 
 #ifdef _WIN32
-PTRSZVAL CPROC WaitForCallerThread( PTHREAD thread )
+PTRSZVAL CPROC WaitForNetworkThread( PTHREAD thread )
 {
 	static int bWaiting;
 	PBANNER banner = NULL;
 	PLOAD_TASK task;
 	INDEX idx;
-	// if we don't have any auto caller tasks, don't bother with this either.
+	// if we don't have any network drive tasks, don't bother with this either.
 	LIST_FORALL( l.autoload, idx, PLOAD_TASK, task )
 	{
-		if( task->flags.bLaunchWhenCallerUp )
+		if( task->flags.bLaunchWhenNetworkDriveUp )
 		{
 			if( task->flags.bDisallowedRun )
 			{
@@ -1540,7 +1540,7 @@ PTRSZVAL CPROC WaitForCallerThread( PTHREAD thread )
 			fclose( file );
 			if( GetThreadParam( thread ) )
 				RemoveBanner2Ex( &banner DBG_SRC );
-			LaunchAutoTasks( 1 );
+			LaunchNetworkTasks( 1 );
 			break;
 		}
 		WakeableSleep( 1000 );
@@ -1551,16 +1551,16 @@ PTRSZVAL CPROC WaitForCallerThread( PTHREAD thread )
 	return 0;
 }
 #else
-PTRSZVAL CPROC WaitForCallerThread( PTHREAD thread )
+PTRSZVAL CPROC WaitForNetworkDriveThread( PTHREAD thread )
 {
 	// shrug - in a linux world, how do we know?
 	return 0;
 }
 #endif
 
-static PTRSZVAL CPROC AutoTaskStarter( PTHREAD thread )
+static PTRSZVAL CPROC NetworkTaskStarter( PTHREAD thread )
 {
-	LaunchAutoTasks( 0 );
+	LaunchNetworkTasks( 0 );
 	return 0;
 }
 
@@ -1568,12 +1568,12 @@ static void OnFinishAllInit( WIDE("tasks") )( void )
 {
 	PLOAD_TASK tmp;
 	// for consistancy for all task buttons, set the task name in the PLOAD_TASK
-	// to the button text.  Other tasks have their own names (auto task/auto caller task)
+	// to the button text.  Other tasks have their own names (auto task/auto network drive task)
 	for( tmp = l.tasklist; tmp; tmp = tmp->next )
 	{
 	}
-	ThreadTo( AutoTaskStarter, 0 );
-	ThreadTo( WaitForCallerThread, 1 );
+	ThreadTo( NetworkTaskStarter, 0 );
+	ThreadTo( WaitForNetworkThread, 1 );
 }
 
 static LOGICAL CPROC PressDosKey( PTRSZVAL psv, _32 key )
@@ -1991,7 +1991,7 @@ static void OnInterShellShutdown( WIDE("Task") )( void )
 
 //---------------------------------------------------------------------------
 
-PTRSZVAL CPROC CreateNewAutoTask( PTRSZVAL psv, arg_list args )
+PTRSZVAL CPROC CreateNewNetworkTask( PTRSZVAL psv, arg_list args )
 {
 	PLOAD_TASK pTask = CreateTask(NULL);
 	pTask->flags.bExclusive = 0;
@@ -2052,10 +2052,10 @@ PTRSZVAL CPROC CreatePowerShellISECommand( PTRSZVAL psv, arg_list args )
 
 //---------------------------------------------------------------------------
 
-PTRSZVAL CPROC CreateNewAutoCallerTask( PTRSZVAL psv, arg_list args )
+PTRSZVAL CPROC CreateNewWaitTask( PTRSZVAL psv, arg_list args )
 {
 	PLOAD_TASK pTask = CreateTask(NULL);
-	pTask->flags.bLaunchWhenCallerUp = 1;
+	pTask->flags.bLaunchWhenNetworkDriveUp = 1;
 	pTask->flags.bAutoLaunch = 1;
 	pTask->flags.bExclusive = 0;
 	AddLink( &l.autoload, pTask );
@@ -2066,10 +2066,10 @@ PTRSZVAL CPROC CreateNewAutoCallerTask( PTRSZVAL psv, arg_list args )
 	return (PTRSZVAL)pTask;
 }
 
-PTRSZVAL CPROC SetWaitForCaller( PTRSZVAL psv, arg_list args )
+PTRSZVAL CPROC SetWaitForNetwork( PTRSZVAL psv, arg_list args )
 {
 	PARAM( args, LOGICAL, yes_no );
-	l.flags.wait_for_caller = yes_no;
+	l.flags.wait_for_network_drive = yes_no;
 	return psv;
 }
 
@@ -2096,8 +2096,8 @@ PTRSZVAL CPROC AddPrependPath( PTRSZVAL psv, arg_list args )
 static void OnLoadCommon( WIDE("Tasks") )( PCONFIG_HANDLER pch )
 {
 	/* standard tasks, these will get task_info prefix to compliment task done suffix */
-	AddConfigurationMethod( pch, WIDE("auto caller task"), CreateNewAutoCallerTask );
-	AddConfigurationMethod( pch, WIDE("auto task"), CreateNewAutoTask );
+	AddConfigurationMethod( pch, WIDE("auto network task"), CreateNewNetworkTask );
+	AddConfigurationMethod( pch, WIDE("auto task"), CreateNewNetworkTask );
 	AddConfigurationMethod( pch, WIDE("Command Shell"), CreateShellCommand );
 	AddConfigurationMethod( pch, WIDE("Windows Shell"), CreateWinShellCommand );
 	AddConfigurationMethod( pch, WIDE("Power Shell"), CreatePowerShellCommand );
@@ -2106,7 +2106,7 @@ static void OnLoadCommon( WIDE("Tasks") )( PCONFIG_HANDLER pch )
 
 	AddConfigurationMethod( pch, WIDE("<path more=\"%m\"}"), AddAdditionalPath );
 	AddConfigurationMethod( pch, WIDE("<path less=\"%m\">"), AddPrependPath );
-	AddConfigurationMethod( pch, WIDE("wait for caller? %b"), SetWaitForCaller );
+	AddConfigurationMethod( pch, WIDE("wait for network? %b"), SetWaitForNetwork );
 }
 
 
@@ -2198,7 +2198,7 @@ static void OnSaveControl( WIDE("Task") )( FILE *file, PTRSZVAL psv )
 
 static void OnSaveCommon( WIDE("Tasks") )( FILE *file )
 {
-		int bWroteAutoCaller = FALSE;
+		int bWroteAutoNetwork = FALSE;
 		int bWroteAuto = FALSE;
 		if( l.shell )
 		{
@@ -2230,10 +2230,10 @@ static void OnSaveCommon( WIDE("Tasks") )( FILE *file )
 			PLOAD_TASK pTask;
 			LIST_FORALL( l.autoload, idx, PLOAD_TASK, pTask )
 			{
-				if( pTask->flags.bLaunchWhenCallerUp )
+				if( pTask->flags.bLaunchWhenNetworkDriveUp )
 				{
-					bWroteAutoCaller = TRUE;
-					fprintf( file, WIDE("auto caller task\n") );
+					bWroteAutoNetwork = TRUE;
+					fprintf( file, WIDE("auto network task\n") );
 				}
 				else
 				{
@@ -2244,25 +2244,11 @@ static void OnSaveCommon( WIDE("Tasks") )( FILE *file )
 				fprintf( file, WIDE("\n\n") );
 			}
 		}
-		if( !bWroteAutoCaller )
-		{
-			fprintf( file, WIDE("#auto caller task\n") );
-			fprintf( file, WIDE("#  define a standard task here with program=, path=, and optional args=\n") );
-			fprintf( file, WIDE("#  auto caller tasks run when the caller comes up - good time for synctime.\n") );
-			fprintf( file, WIDE("\n\n") );
-		}
-		if( !bWroteAuto )
-		{
-			fprintf( file, WIDE("#auto task\n") );
-			fprintf( file, WIDE("#  define a standard task here with program=, path=, and optional args=\n") );
-			fprintf( file, WIDE("#  auto tasks run as soon before the menu displays.\n") );
-			fprintf( file, WIDE("\n\n") );
-		}
 		if( l.more_path )
 			fprintf( file, WIDE( "<path more=\"%s\">\n" ), l.more_path );
 		if( l.less_path )
 			fprintf( file, WIDE( "<path less=\"%s\">\n" ), l.less_path );
-		fprintf( file, WIDE( "wait for caller? %s\n\n" ), l.flags.wait_for_caller?WIDE("yes"):WIDE("no") );
+		fprintf( file, WIDE( "wait for network? %s\n\n" ), l.flags.wait_for_network_drive?WIDE("yes"):WIDE("no") );
 
 }
 
@@ -2270,7 +2256,7 @@ static void OnSaveCommon( WIDE("Tasks") )( FILE *file )
 // property methods for tasks which are auto load/invisible.
 
 
-void CPROC EditAutoTaskProperties( PTRSZVAL psv, PSI_CONTROL button )
+void CPROC EditNetworkTaskProperties( PTRSZVAL psv, PSI_CONTROL button )
 {
 	PLISTITEM pli = GetSelectedItem( GetNearControl( button, LISTBOX_AUTO_TASKS ) );
 	if( pli )
@@ -2280,13 +2266,13 @@ void CPROC EditAutoTaskProperties( PTRSZVAL psv, PSI_CONTROL button )
 		EditTaskProperties( (PTRSZVAL)task, button, FALSE );
 		snprintf( buf, sizeof( buf ), WIDE("%s%s%s")
 				  , task->pName
-				  , task->flags.bLaunchWhenCallerUp?WIDE("[CALLER]"):WIDE("")
+				  , task->flags.bLaunchWhenNetworkDriveUp?WIDE("[NETWORK]"):WIDE("")
 				  , task->flags.bRestart?WIDE("[RESTART]"):WIDE("") );
 		SetItemText( pli, buf );
 	}
 }
 
-void CPROC CreateAutoTaskProperties( PTRSZVAL psv, PSI_CONTROL button )
+void CPROC CreateNetworkTaskProperties( PTRSZVAL psv, PSI_CONTROL button )
 {
 	PLOAD_TASK task;
 	task = CreateTask( NULL );
@@ -2298,14 +2284,14 @@ void CPROC CreateAutoTaskProperties( PTRSZVAL psv, PSI_CONTROL button )
 		TEXTCHAR buf[256];
 		snprintf( buf, sizeof( buf ), WIDE("%s%s%s")
 				  , task->pName
-				  , task->flags.bLaunchWhenCallerUp?WIDE("[CALLER]"):WIDE("")
+				  , task->flags.bLaunchWhenNetworkDriveUp?WIDE("[NETWORK]"):WIDE("")
 				  , task->flags.bRestart?WIDE("[RESTART]"):WIDE("") );
 		SetItemData( AddListItem( GetNearControl( button, LISTBOX_AUTO_TASKS ), buf ), (PTRSZVAL)task );
 	}
 	AddLink( &l.autoload, task );
 }
 
-void CPROC DestroyAutoTaskProperties( PTRSZVAL psv, PSI_CONTROL button )
+void CPROC DestroyNetworkTaskProperties( PTRSZVAL psv, PSI_CONTROL button )
 {
 	PSI_CONTROL list;
 	PLISTITEM pli = GetSelectedItem( list = GetNearControl( button, LISTBOX_AUTO_TASKS ) );
@@ -2326,9 +2312,9 @@ static void OnGlobalPropertyEdit( WIDE("Tasks") )( PSI_CONTROL parent )
 		int okay = 0;
 		int done = 0;
 		SetCommonButtons( frame, &done, &okay );
-		SetButtonPushMethod( GetControl( frame, BUTTON_EDIT_TASK_PROPERTIES ), EditAutoTaskProperties, 0 );
-		SetButtonPushMethod( GetControl( frame, BUTTON_CREATE_AUTO_TASK ), CreateAutoTaskProperties, 0 );
-		SetButtonPushMethod( GetControl( frame, BUTTON_DESTROY_AUTO_TASK ), DestroyAutoTaskProperties, 0 );
+		SetButtonPushMethod( GetControl( frame, BUTTON_EDIT_TASK_PROPERTIES ), EditNetworkTaskProperties, 0 );
+		SetButtonPushMethod( GetControl( frame, BUTTON_CREATE_AUTO_TASK ), CreateNetworkTaskProperties, 0 );
+		SetButtonPushMethod( GetControl( frame, BUTTON_DESTROY_AUTO_TASK ), DestroyNetworkTaskProperties, 0 );
 		{
 			PSI_CONTROL list = GetControl( frame, LISTBOX_AUTO_TASKS );
 			if( list )
@@ -2346,23 +2332,23 @@ static void OnGlobalPropertyEdit( WIDE("Tasks") )( PSI_CONTROL parent )
 				{
 					snprintf( buf, sizeof( buf ), WIDE("%s%s%s")
 							  , task->pName
-							  , task->flags.bLaunchWhenCallerUp?WIDE("[CALLER]"):WIDE("")
+							  , task->flags.bLaunchWhenNetworkDriveUp?WIDE("[NETWORK]"):WIDE("")
 							  , task->flags.bRestart?WIDE("[RESTART]"):WIDE("") );
 					SetItemData( AddListItem( list, buf ), (PTRSZVAL)task );
 				}
 			}
-			SetCheckState( GetControl( frame, CHECKBOX_CALLER_WAIT ), l.flags.wait_for_caller );
+			SetCheckState( GetControl( frame, CHECKBOX_NETWORK_WAIT ), l.flags.wait_for_network_drive );
 		}
 		DisplayFrameOver( frame, parent );
 		CommonWait( frame );
 		if( okay )
 		{
 			// command shell properties
-			// wait for caller flag
-			// auto caller tasks
+			// wait for network flag
+			// auto network tasks
 			// auto tasks
 			{
-				l.flags.wait_for_caller = GetCheckState( GetControl( frame, CHECKBOX_CALLER_WAIT ) );
+				l.flags.wait_for_network_drive = GetCheckState( GetControl( frame, CHECKBOX_NETWORK_WAIT ) );
 			}
 		}
 		DestroyFrame( &frame );

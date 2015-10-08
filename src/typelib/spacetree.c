@@ -11,6 +11,10 @@
 
 #include "spacetree.h"
 
+#ifdef __ANDROID_OLD_PLATFORM_SUPPORT__
+#define rand lrand48
+#endif
+
 SPACETREE_NAMESPACE
 
 static CRITICALSECTION csSpace;

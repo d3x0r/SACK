@@ -133,17 +133,18 @@ static void CPROC TaskEnded( PTRSZVAL psv, PTASK_INFO task )
 		PTASK_INFO tmp_task;
 		CTEXTSTR *args;
 		CTEXTSTR executable_name;
-		args = NewArray( CTEXTSTR, 3 );
-		args[0] = WIDE("pskill");
+		args = NewArray( CTEXTSTR, 4 );
+		args[0] = WIDE("taskkill");
+		args[1] = WIDE("/IM");
 		executable_name = pathrchr( l.video_application );
 		if( executable_name )
 			executable_name++;
 		else
 			executable_name = l.video_application;
-		args[1] = executable_name;
-		args[2] = NULL;
+		args[2] = executable_name;
+		args[3] = NULL;
 		l.flags.kill_complete = 0;
-		tmp_task = LaunchPeerProgram( WIDE("pskill"), NULL, args, KilTaskOutput, KillTaskEnded, 0 );
+		tmp_task = LaunchPeerProgram( args[0], NULL, args, KilTaskOutput, KillTaskEnded, 0 );
 		if( tmp_task )
 		{
 			l.launch_thread = MakeThread();

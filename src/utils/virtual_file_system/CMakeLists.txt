@@ -17,7 +17,7 @@ if( NOT __ANDROID__ )
   )
 endif( NOT __ANDROID__ )
 
-target_link_libraries( ${PROJECT} ${SACK_LIBRARIES} )
+target_link_libraries( ${PROJECT} ${SACK_CORE_LIBRARY} )
 install_mode_dest( ${PROJECT} )
 
 if( BUILD_TESTS ) 
@@ -37,6 +37,18 @@ SET_TARGET_PROPERTIES(${PROJECT} PROPERTIES
 target_link_libraries( ${PROJECT} ${SACK_LIBRARIES} sack_vfs.module )
 install_mode_dest( ${PROJECT} )
 
+if( NEED_FUSE OR FUSE_FOUND )
+	sack_add_executable( sack_vfs.fuse.test fuse_private.c )
+	target_link_libraries( sack_vfs.fuse.test ${SACK_LIBRARIES} ${FUSE_LIBRARIES} sack_vfs.module )
+	install_mode_dest( sack_vfs.fuse.test )
+        #SET_PROPERTY( sack_vfs.fuse.test APPEND PROPERTY 
+        #	COMPILE_DEFINITIONS "
+	SET_TARGET_PROPERTIES(sack_vfs.fuse.test PROPERTIES
+                  
+                  FOLDER utils/tests
+	)
+endif( NEED_FUSE OR FUSE_FOUND )
+
 endif( BUILD_TESTS ) 
 
 if( BUILD_EXTRAS )
@@ -44,8 +56,8 @@ if( BUILD_EXTRAS )
 add_subdirectory( vfs_command )
 
 # some assembly required...
-if( WIN32  )
+#if( WIN32 )
    add_subdirectory( vfs_runner )
-endif( WIN32 )
+#endif( WIN32 )
 
 endif( BUILD_EXTRAS )

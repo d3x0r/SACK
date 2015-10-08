@@ -32,9 +32,14 @@ typedef struct combobox COMBOBOX, *PCOMBOBOX;
 static void CPROC HandleLoseFocus( PTRSZVAL dwUser, PRENDERER pGain )
 {
 	PCOMBOBOX pcbx = (PCOMBOBOX)dwUser;
-	if( pGain != pcbx->popup_renderer )
+	lprintf( "combobox - HandleLoseFocus %p is gaining (we're losing) else we're gaining", pGain );
+	if( pGain && pGain != pcbx->popup_renderer )
 	{
 		HideControl( pcbx->popup_frame );
+		if( pcbx->OnSelect )
+			pcbx->OnSelect( pcbx->psvOnSelect, pcbx->self, NULL );
+		if( pcbx->OnPopup )
+			pcbx->OnPopup( pcbx->psvPopup, FALSE );
 	}
 }
 
@@ -46,10 +51,8 @@ static void CPROC ExpandButtonEvent(PTRSZVAL psvCbx, PSI_CONTROL pc )
 	SizeControl( pcbx->popup_frame_listbox, pcbx->popup_width, pcbx->popup_height );
 	GetPhysicalCoordinate( pcbx->self, &x, &y, FALSE );
 	MoveFrame( pcbx->popup_frame, x, y );
-	lprintf( "Send popup event before show..." );
 	if( pcbx->OnPopup )
 		pcbx->OnPopup( pcbx->psvPopup, TRUE );
-	lprintf( "Sent popup event before show..." );
 	DisplayFrameOver( pcbx->popup_frame, pc );
 	if( !pcbx->first_show )
 	{
@@ -71,13 +74,12 @@ static void PopupSelected( PTRSZVAL psvCbx, PSI_CONTROL pc, PLISTITEM hli )
 	GetItemText( hli, 256, buf );
 	SetControlText( pcbx->edit, (CTEXTSTR)buf );
 	
+	if( pcbx->OnPopup )
+		pcbx->OnPopup( pcbx->psvPopup, FALSE );
+
 	if( pcbx->OnSelect )
 		pcbx->OnSelect( pcbx->psvOnSelect, pcbx->self, hli );
 
-	lprintf( "Send popup event before hide..." );
-	if( pcbx->OnPopup )
-		pcbx->OnPopup( pcbx->psvPopup, FALSE );
-	lprintf( "Sent popup event after hide..." );
 }
 
 static void ExpandButtonDraw( PTRSZVAL psv, PSI_CONTROL pc)

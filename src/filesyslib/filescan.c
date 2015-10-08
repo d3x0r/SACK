@@ -269,6 +269,7 @@ typedef struct myfinddata {
 	LOGICAL single_mount;
 	struct file_system_mounted_interface *scanning_mount;
 	TEXTCHAR buffer[MAX_PATH_NAME];
+	TEXTCHAR file_buffer[MAX_PATH_NAME];
 	TEXTCHAR basename[MAX_PATH_NAME];
 	TEXTCHAR findmask[MAX_PATH_NAME];
 	struct myfinddata *current;
@@ -381,7 +382,7 @@ typedef struct myfinddata {
 		if( base )
 		{
 			TEXTSTR tmp;
-			StrCpyEx( findbasename(pInfo), tmp = ExpandPathEx( base, pData->scanning_mount->fsi ), MAX_PATH_NAME );
+			StrCpyEx( findbasename(pInfo), tmp = ExpandPathEx( base, pData->scanning_mount?pData->scanning_mount->fsi:NULL ), MAX_PATH_NAME );
 			Release( tmp );
 			StrCpyEx( findmask(pInfo), mask, MAX_PATH_NAME );
 		}
@@ -405,7 +406,7 @@ typedef struct myfinddata {
 #else
 		snprintf( findmask, sizeof(findmask), WIDE("%s/*"), findbasename(pInfo) );
 #endif
-		if( pData->scanning_mount->fsi )
+		if( pData->scanning_mount?pData->scanning_mount->fsi:NULL )
 			if( pData->scanning_mount->fsi->find_first( findcursor(pInfo) ) )
 				findhandle(pInfo) = 0;
 			else
@@ -427,7 +428,7 @@ typedef struct myfinddata {
 		{
 			PMFD prior = pData->prior;
 			//lprintf( "first use of cursor or first open of directoy failed..." );
-			if( pData->scanning_mount->fsi )
+			if( pData->scanning_mount && pData->scanning_mount->fsi )
 				pData->scanning_mount->fsi->find_close( findcursor(pInfo) );
 			else
 			{
@@ -442,7 +443,9 @@ typedef struct myfinddata {
 			if( !pData->scanning_mount || pData->single_mount )
 			{
 				(*pData->root_info) = pData->prior;
-				Release( pData );
+				if( !begin_sub_path ) {
+					Release( pData ); pInfo[0] = NULL;
+				}
 				lprintf( "%p %d", prior, processed );
 				if( tmp_base )
 					Release( tmp_base );
@@ -459,7 +462,7 @@ typedef struct myfinddata {
 		int r;
 getnext:
 		//lprintf( "returning customer..." );
-		if( pData->scanning_mount->fsi )
+		if( pData->scanning_mount?pData->scanning_mount->fsi:NULL )
 			r = !pData->scanning_mount->fsi->find_next( findcursor( pInfo ) );
 		else
 		{
@@ -511,7 +514,7 @@ getnext:
 			return 1;
 		}
 	}
-	if( pData->scanning_mount->fsi )
+	if( pData->scanning_mount?pData->scanning_mount->fsi:NULL )
 	{
 		CTEXTSTR path = pData->scanning_mount->fsi->find_get_name( findcursor(pInfo) );
 		//lprintf( "... %s", path );
@@ -538,9 +541,10 @@ getnext:
 	}
 	if( !(flags & SFF_NAMEONLY) ) // if nameonly - have to rebuild the correct name.
 	{
-		if( pData->scanning_mount->fsi )
+		if( pData->scanning_mount?pData->scanning_mount->fsi:NULL )
 		{
-			snprintf( pData->buffer, MAX_PATH_NAME, WIDE("%s/%s"), findbasename(pInfo), pData->scanning_mount->fsi->find_get_name( findcursor(pInfo) ) );
+			snprintf( pData->file_buffer, MAX_PATH_NAME, WIDE("%s"), pData->scanning_mount->fsi->find_get_name( findcursor(pInfo) ) );
+			snprintf( pData->buffer, MAX_PATH_NAME, WIDE("%s/%s"), findbasename(pInfo), pData->file_buffer );
 		}
 		else
 		{
@@ -551,10 +555,12 @@ getnext:
 #    ifdef UNICODE
 			snwprintf( pData->buffer, MAX_PATH_NAME, WIDE("%s/%s"), findbasename(pInfo), finddata(pInfo)->name );
 #    else
-			snprintf( pData->buffer, MAX_PATH_NAME, WIDE("%s/%s"), findbasename(pInfo), finddata(pInfo)->name );
+			snprintf( pData->file_buffer, MAX_PATH_NAME, WIDE("%s"), finddata(pInfo)->name );
+			snprintf( pData->buffer, MAX_PATH_NAME, WIDE("%s/%s"), findbasename(pInfo), pData->file_buffer );
 #    endif
 #  endif
 #else
+			snprintf( pData->file_buffer, MAX_PATH_NAME, WIDE("%s"), de->d_name );
 			snprintf( pData->buffer, MAX_PATH_NAME, WIDE("%s/%s"), findbasename(pInfo), de->d_name );
 #endif
 		}
@@ -563,7 +569,7 @@ getnext:
 	{
 		if( flags & SFF_SUBCURSE )
 		{
-			if( pData->scanning_mount->fsi )
+			if( pData->scanning_mount?pData->scanning_mount->fsi:NULL )
 			{
 				snprintf( pData->buffer, MAX_PATH_NAME, WIDE("%s%s%s")
 					  , pData->prior?pData->prior->buffer:WIDE( "" )
@@ -603,7 +609,7 @@ getnext:
 		}
 		else
 		{
-			if( pData->scanning_mount->fsi )
+			if( pData->scanning_mount?pData->scanning_mount->fsi:NULL )
 			{
 				snprintf( pData->buffer, MAX_PATH_NAME, WIDE("%s"), pData->scanning_mount->fsi->find_get_name( findcursor(pInfo) ) );
 			}
@@ -629,8 +635,8 @@ getnext:
 
 	//lprintf( "Check if %s is a directory...", pData->buffer );
 	if( ( flags & (SFF_DIRECTORIES|SFF_SUBCURSE) )
-	    && ( pData->scanning_mount->fsi && ( pData->scanning_mount->fsi->is_directory && pData->scanning_mount->fsi->is_directory( pData->buffer ) ) )
-	   || ( !pData->scanning_mount->fsi 
+	    && ( pData->scanning_mount && pData->scanning_mount->fsi && ( pData->scanning_mount->fsi->is_directory && pData->scanning_mount->fsi->is_directory( pData->buffer ) ) )
+	   || ( !(pData->scanning_mount?pData->scanning_mount->fsi:NULL)
 #ifdef WIN32
 #  ifdef UNDER_CE
 		&& ( finddata(pInfo)->dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY )
@@ -661,7 +667,7 @@ getnext:
 			if( flags & SFF_NAMEONLY )
 			{
 				// even in name only - need to have this full buffer for subcurse.
-				if( pData->scanning_mount->fsi )
+				if( pData->scanning_mount && pData->scanning_mount->fsi )
 				{
 					ofs = snprintf( tmpbuf, sizeof( tmpbuf ), WIDE( "%s/%s" ), findbasename(pInfo), pData->scanning_mount->fsi->find_get_name( findcursor(pInfo) ) );
 				}
@@ -712,7 +718,7 @@ getnext:
 #  ifdef UNDER_CE
 																							  , finddata(pInfo)->cFileName
 #  else
-																							  , pData->buffer
+																							  , pData->file_buffer
 #  endif
 #else
 																							  , de->d_name

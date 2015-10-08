@@ -198,7 +198,7 @@ void SACK_Vidlib_ProcessKeyState( int pressed, int key_index, int *used )
 	int mod = keymap_local.flags.bShifted?1:0;
 	{
 		int result = 0;
-		lprintf( WIDE("Keyfunc = %d %d  %d   %d"), pressed, key_index, mod, LinuxKeyDefs[key_index].op[mod].bFunction );
+		//lprintf( WIDE("Keyfunc = %d %d  %d   %d"), pressed, key_index, mod, LinuxKeyDefs[key_index].op[mod].bFunction );
 		if( LinuxKeyDefs[key_index].flags == KDF_NODEFINE )
 			switch( LinuxKeyDefs[key_index].op[0].bFunction )
 			{

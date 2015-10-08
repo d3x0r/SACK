@@ -80,14 +80,19 @@ int SQLCommandf( PODBC odbc, CTEXTSTR fmt, ... )
 {
 	int result;
 	PTEXT cmd;
-	PVARTEXT pvt = VarTextCreateExx( 4096, 16384 );
+	PVARTEXT pvt = VarTextCreateExx( 4096, 16384 * 16 );
 	va_list args;
 	va_start( args, fmt );
 	vvtprintf( pvt, fmt, args );
 	cmd = VarTextGet( pvt );
-	VarTextDestroy( &pvt );
-	result = SQLCommandEx( odbc, GetText( cmd ) DBG_ARGS(SQLCommandf) );
-	LineRelease( cmd );
+	if( cmd )
+	{
+		VarTextDestroy( &pvt );
+		result = SQLCommandEx( odbc, GetText( cmd ) DBG_ARGS(SQLCommandf) );
+		LineRelease( cmd );
+	}
+	else
+		lprintf( "ERROR: Sql format failed: %s", fmt );
 	return result;
 }
 

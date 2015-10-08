@@ -115,6 +115,11 @@ struct state_flags{
  LOGICAL bSyslogdLogging;
 
 	PLINKQUEUE buffers;
+#if defined( WIN32 )
+	DWORD next_lprintf_tls;
+#elif defined( __LINUX__ )
+	pthread_key_t next_lprintf_tls;
+#endif
 };
 
 #ifdef __ANDROID__
@@ -292,7 +297,7 @@ _64 GetCPUTick(void )
 		l.lasttick = tick;
 		return tick;
 #endif
-#elif defined( __GNUC__ ) && !defined( __arm__ )
+#elif defined( __GNUC__ ) && !defined( __arm__ ) && !defined( __aarch64__ )
 		union {
 			_64 tick;
 			PREFIX_PACKED struct { _32 low, high; } PACKED parts;
@@ -483,12 +488,17 @@ void InitSyslog( int ignore_options )
 	}
 
 	SimpleRegisterAndCreateGlobal( syslog_local );
-
+	
 	if( !flags.bInitialized )
 #endif
 	{
 		//logtype = SYSLOG_FILE;
 		//l.file = stderr;
+#if defined( WIN32 )
+		syslog_local->next_lprintf_tls = TlsAlloc();
+#elif defined( __LINUX__ )
+		pthread_key_create( &g.next_lprintf_tls, NULL );
+#endif
 		flags.bLogThreadID = 1;
 		hSock = INVALID_SOCKET;
 		l.hSyslogdSock = INVALID_SOCKET;
@@ -1427,14 +1437,31 @@ void  SetSystemLog ( enum syslog_types type, const void *data )
 }
 
 // information for the call to _real_lprintf file and line information...
-DeclareThreadLocal struct next_lprint_info{
+struct next_lprint_info{
 	// please use this enter when resulting a function, and leave from said function.
 	// oh - but then we couldn't exist before crit sec code...
 	//CRITICALSECTION cs;
 	_32 nLevel;
 	CTEXTSTR pFile;
 	int nLine;
-} next_lprintf;
+};
+#define next_lprintf (*_next_lprintf)
+static struct next_lprint_info *GetNextInfo( void )
+{
+	struct next_lprint_info *next;
+#if defined( WIN32 )
+	if( !( next = (struct next_lprint_info*)TlsGetValue( syslog_local->next_lprintf_tls ) ) )
+	{
+		TlsSetValue( syslog_local->next_lprintf_tls, next = New( struct next_lprint_info ) );
+	}
+#elif defined( __LINUX__ )
+	if( !( next = (struct next_lprint_info*)pthread_getspecific( syslog_local->next_lprintf_tls ) ) )
+	{
+		pthread_setspecific( syslog_local->next_lprintf_tls, next = New( struct next_lprint_info ) );
+	}
+#endif
+	return next;
+}
 
 static INDEX CPROC _null_vlprintf ( CTEXTSTR format, va_list args )
 {
@@ -1446,6 +1473,8 @@ static INDEX CPROC _null_vlprintf ( CTEXTSTR format, va_list args )
 static INDEX CPROC _real_vlprintf ( CTEXTSTR format, va_list args )
 {
    // this can be used to force logging early to stdout
+	struct next_lprint_info *_next_lprintf = GetNextInfo();
+
 	if( cannot_log )
 		return 0;
 	if( logtype != SYSLOG_NONE )
@@ -1515,29 +1544,31 @@ static INDEX CPROC _real_vlprintf ( CTEXTSTR format, va_list args )
 			CTEXTSTR p;
 #endif
 			_32 nLine;
+#ifdef _DEBUG
 			if( flags.bLogSourceFile && ( pFile = next_lprintf.pFile ) )
 			{
 				if( flags.bProtectLoggedFilenames )
 					if( IsBadReadPtr( pFile, 2 ) )
                   pFile = WIDE("(Unloaded file?)");
-#ifndef _LOG_FULL_FILE_NAMES
+#   ifndef _LOG_FULL_FILE_NAMES
 				for( p = pFile + StrLen(pFile) -1;p > pFile;p-- )
 					if( p[0] == '/' || p[0] == '\\' )
 					{
 						pFile = p+1;break;
 					}
-#endif
+#   endif
 				nLine = next_lprintf.nLine;
-#ifdef UNDER_CE
+#   ifdef UNDER_CE
 				tnprintf( buffer + ofs, 4095 - ofs, WIDE("%s(%") _32f WIDE("):")
 									, pFile, nLine );
 				ofs += StrLen( buffer + ofs );
-#else
+#   else
 				tnprintf( buffer + ofs, 4095 - ofs, WIDE("%s(%") _32f WIDE("):")
 									, pFile, nLine );
 				ofs += StrLen( buffer + ofs );
-#endif
+#   endif
 			}
+#endif
 #ifdef UNICODE
 			vswprintf( buffer + ofs, 4095 - ofs, format, args );
 #else
@@ -1574,15 +1605,9 @@ static INDEX CPROC _null_lprintf( CTEXTSTR f, ... )
 
 RealVLogFunction  _vxlprintf ( _32 level DBG_PASS )
 {
+	struct next_lprint_info *_next_lprintf;
 	//EnterCriticalSec( &next_lprintf.cs );
-#ifndef __STATIC_GLOBALS__
-	if( !syslog_local )
-	{
-		InitSyslog( 1 );
-	}
-#else
-   InitSyslog( 1 );
-#endif
+	_next_lprintf = GetNextInfo();
 #if _DEBUG
 	next_lprintf.pFile = pFile;
 	next_lprintf.nLine = nLine;
@@ -1602,6 +1627,7 @@ RealVLogFunction  _vxlprintf ( _32 level DBG_PASS )
 
 RealLogFunction _xlprintf( _32 level DBG_PASS )
 {
+	struct next_lprint_info *_next_lprintf;
 	//EnterCriticalSec( &next_lprintf.cs );
 #ifndef __STATIC_GLOBALS__
 	if( !syslog_local )
@@ -1616,6 +1642,7 @@ RealLogFunction _xlprintf( _32 level DBG_PASS )
 		opening = 0;
 	}
 #endif
+	_next_lprintf = GetNextInfo();
 #if _DEBUG
 	next_lprintf.pFile = pFile;
 	next_lprintf.nLine = nLine;

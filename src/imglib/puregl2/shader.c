@@ -346,7 +346,8 @@ int CompileShaderEx( PImageShaderTracker tracker
 			GLsizei final;
 			char *buffer;
 			//We failed to compile.
-			lprintf(WIDE("Vertex shader 'program A' failed compilation.\n"));
+			lprintf(WIDE("Vertex shader %s:'program A' failed compilation.\n")
+					 , tracker->name );
 			//Attempt to get the length of our error log.
 #ifdef USE_GLES2
 			lprintf( WIDE("length starts at %d"), length );
@@ -404,7 +405,8 @@ int CompileShaderEx( PImageShaderTracker tracker
 			GLsizei final;
 			char *buffer;
 			//We failed to compile.
-			lprintf(WIDE("Vertex shader 'program B' failed compilation.\n"));
+			lprintf(WIDE("Vertex shader %s:'program B' failed compilation.\n")
+					 , tracker->name );
 			//Attempt to get the length of our error log.
 #ifdef USE_GLES2
 			glGetShaderiv(tracker->glFragProgramId, GL_INFO_LOG_LENGTH, &length);

@@ -9,7 +9,10 @@ struct file_system_mounted_interface
 	LOGICAL writeable;
 };
 
-static struct winfile_local_tag {
+#ifndef WINFILE_COMMON_SOURCE
+extern
+#endif
+ struct winfile_local_tag {
 	CRITICALSECTION cs_files;
 	PLIST files;
 	PLIST groups;
@@ -30,7 +33,6 @@ static struct winfile_local_tag {
 	TEXTSTR application;
 
 } *winfile_local;
-
 
 
 #define l (*winfile_local)

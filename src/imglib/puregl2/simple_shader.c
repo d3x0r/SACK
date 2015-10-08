@@ -17,7 +17,7 @@
 IMAGE_NAMESPACE
 
 //const char *gles_
-	static const char *gles_simple_v_shader =
+static const char *gles_simple_v_shader =
 	"precision mediump float;\n"
 	"precision mediump int;\n"
 	"uniform mat4 modelView;\n" 
@@ -34,8 +34,31 @@ IMAGE_NAMESPACE
 static const char *gles_simple_p_shader =
 	"precision mediump float;\n"
 	"precision mediump int;\n"
-	"attribute  vec4 ex_Color;\n"
-	// "varying vec4 out_Color;" 
+	//"uniform  vec4 in_Color;\n"
+	"varying vec4 ex_Color;"
+	"void main(void) {"
+	"  gl_FragColor = ex_Color;"
+	"}" ;
+
+static const char *gles_simple_v_shader_1_30 =
+	//"precision mediump float;\n"
+	//"precision mediump int;\n"
+	"uniform mat4 modelView;\n" 
+	"uniform mat4 worldView;\n" 
+	"uniform mat4 Projection;\n" 
+	"attribute vec4 vPosition;" 
+	"attribute vec4 in_Color;\n"
+	"varying vec4 ex_Color;\n"
+	"void main(void) {"
+	"  gl_Position = Projection * worldView * modelView * vPosition;" 
+	"  ex_Color = in_Color;"
+	"}"; 
+
+static const char *gles_simple_p_shader_1_30 =
+	//"precision mediump float;\n"
+	//"precision mediump int;\n"
+	//"uniform  vec4 in_Color;\n"
+	"varying vec4 ex_Color;"
 	"void main(void) {"
 	"  gl_FragColor = ex_Color;"
 	"}" ;
@@ -151,11 +174,21 @@ void InitSuperSimpleShader( PTRSZVAL psv, PImageShaderTracker tracker )
 	struct simple_shader_data *data = (struct simple_shader_data *)psv;
 	const char *v_codeblocks[2];
 	const char *p_codeblocks[2];
-	
-	v_codeblocks[0] = gles_simple_v_shader;
-	v_codeblocks[1] = NULL;
-	p_codeblocks[0] = gles_simple_p_shader;
-	p_codeblocks[1] = NULL;
+
+	if( l.glslVersion < 140 )
+	{
+		v_codeblocks[0] = gles_simple_v_shader_1_30;
+		v_codeblocks[1] = NULL;
+		p_codeblocks[0] = gles_simple_p_shader_1_30;
+		p_codeblocks[1] = NULL;
+	}
+	else
+	{
+		v_codeblocks[0] = gles_simple_v_shader;
+		v_codeblocks[1] = NULL;
+		p_codeblocks[0] = gles_simple_p_shader;
+		p_codeblocks[1] = NULL;
+	}
 	if( CompileShader( tracker, v_codeblocks, 1, p_codeblocks, 1 ) )
 	{
 		data->color_attrib = glGetAttribLocation(tracker->glProgramId, "in_Color" );

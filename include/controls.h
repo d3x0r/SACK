@@ -500,6 +500,7 @@ enum BorderOptionTypes {
  BORDER_NO_EXTRA_INIT           =  0x010000, // control is private to psi library(used for scrollbars in listboxes, etc) and as such does not call 'extra init'
  BORDER_CAPTION_CLOSE_BUTTON    =  0x020000, //add a close button to the caption bar (has to have text, and a caption)
  BORDER_CAPTION_NO_CLOSE_BUTTON =  0x040000, //do not allow a close button on the caption bar (has to have text, and a caption)
+ BORDER_CAPTION_CLOSE_IS_DONE   =  0x080000, //add a close button to the caption bar (has to have text, and a caption)
 };
 
 enum BorderAnchorFlags {
@@ -1028,9 +1029,10 @@ PSI_PROC( int, IsControlFocused )( PSI_CONTROL pc );
 PSI_PROC( int, IsControlEnabled)( PSI_CONTROL pc );
 
 PSI_PROC( struct physical_device_caption_button *, AddCaptionButton )( PSI_CONTROL frame, Image normal, Image pressed, Image highlight, int extra_pad, void (CPROC*event)(PSI_CONTROL) );
-PSI_PROC( void, SetCaptionButtonImages )( struct physical_device_caption_button *, Image normal, Image pressed );
+PSI_PROC( void, SetCaptionButtonImages )( struct physical_device_caption_button *, Image normal, Image pressed, Image rollover );
 PSI_PROC( void, HideCaptionButton )( struct physical_device_caption_button * );
 PSI_PROC( void, ShowCaptionButton )( struct physical_device_caption_button * );
+PSI_PROC( void, SetCaptionButtonOffset )( PSI_CONTROL frame, S_32 x, S_32 y );
 /*
 
 
@@ -2134,6 +2136,11 @@ PSI_PROC( size_t, _SQLPromptINIValue )(
 
 #define IMAGE_DISPLAY_CONTROL_NAME WIDE( "Image Display" )
 PSI_PROC( void, SetImageControlImage )( PSI_CONTROL pc, Image show_image );
+
+//------------------------ Tool Tip Hover-over -------------------------------------
+
+#define TOOL_TIP_CONTROL_NAME WIDE( "Tool Tip Display" )
+PSI_PROC( void, SetControlHoverTip )( PSI_CONTROL pc, CTEXTSTR text );
 
 
 //------------------------ Progress Bar --------------------------------------

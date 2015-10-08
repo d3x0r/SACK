@@ -59,6 +59,8 @@ DEFINE_DEFAULT( __ARM__ OFF )
 SET( __ARM__ ${__ARM__} CACHE BOOL "Enable ARM specific features" )
 DEFINE_DEFAULT( __ANDROID__ OFF )
 SET( __ANDROID__ ${__ANDROID__} CACHE BOOL "Enable Android specific features" )
+DEFINE_DEFAULT( __ANDROID_OLD_PLATFORM_SUPPORT__ OFF )
+SET( __ANDROID_OLD_PLATFORM_SUPPORT__ ${__ANDROID_OLD_PLATFORM_SUPPORT__} CACHE BOOL "Enable Android specific features" )
 DEFINE_DEFAULT( __LINUX__ OFF )
 SET( __LINUX__ ${__LINUX__} CACHE BOOL "Enable Linux specific features" )
 
@@ -67,6 +69,7 @@ if( __LINUX__ AND __64__ )
 else( __LINUX__ AND __64__ )
 	set( linux64_default OFF )
 endif( __LINUX__ AND __64__ )
+
 DEFINE_DEFAULT( __LINUX64__   ${linux64_default} )
 SET( __LINUX64__ ${__LINUX64__} CACHE BOOL "Enable Linux-x64 specific features" )
 
@@ -83,6 +86,11 @@ DEFINE_DEFAULT( ALLOW_IMAGE_INTERFACES OFF )
 DEFINE_DEFAULT( __ANDROID__ OFF )
 OPTION( __ANDROID__ "Enable Android Behvaviors" ${__ANDROID__} )
 if( __ANDROID__ )
+	message( "if you're using a latest NDK you might want to set __ANDROID_OLD_PLATFORM_SUPPORT__" )
+	ADD_DEFINITIONS( -DANDROID_NDK_TARGET_PLATFORM=${ANDROID_NDK_TARGET_PLATFORM} )
+	if( __ANDROID_OLD_PLATFORM_SUPPORT__ )
+        	ADD_DEFINITIONS( -D__ANDROID_OLD_PLATFORM_SUPPORT__ )
+	endif( __ANDROID_OLD_PLATFORM_SUPPORT__ )
 	SET( __LINUX__ ON )
 	SET( __ARM__ ON )
 	SET( BUILD_MONOLITHIC OFF )
@@ -93,9 +101,18 @@ if( __ANDROID__ )
 	DEFINE_DEFAULT( BUILD_MONOLITHIC OFF )
 	DEFINE_DEFAULT( __NO_ODBC__ ON )
         DEFINE_DEFAULT( NEED_UUID ON )
+        if( OFF )
+        	# FUSE on android is generally root required access.
+		FIND_PATH( FUSE_REQUIRED_INCLUDES PATHS ${SYSROOT}/usr/include NAMES sys/statvfs.h linux/fuse.h )
+        
+        	if( FUSE_REQUIRED_INCLUDES )
+	        	set( NEED_FUSE ON )
+	        endif( FUSE_REQUIRED_INCLUDES )
+	        set( NEED_FUSE ON )
+        endif( OFF )
         set( OPENGL_LIBRARY EGL GLESv2 )
         #set( OPENGL_LIBRARY GL )
-	set( PLATFORM_LIBRARIES ${PLATFORM_LIBRARIES} android log )
+	set( PLATFORM_LIBRARIES ${PLATFORM_LIBRARIES} android log m )
 else( __ANDROID__ )
   if( WIN32 )
       set( WIN32 ON )
@@ -111,6 +128,7 @@ else( __ANDROID__ )
         set( OPENGL_LIBRARY opengl32 )
   else()
      if( UNIX )
+     	set( CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/makefiles/cmake" )
         set( __LINUX__ ON )
 	set( CMAKE_EXE_LINKER_FLAGS "-Wl,--as-needed" )
 	set( CMAKE_SHARED_LINKER_FLAGS "-Wl,--as-needed" )
@@ -152,10 +170,12 @@ else( __ANDROID__ )
             #########
             find_package( Freetype )
             # Freetype Find if not found is blank; but does not work for if( NOT )
+            message( "fretype is ${FREETYPE_FOUND}" )
             if( NOT ${FREETYPE_FOUND} )
-            	DEFINE_DEFAULT( NEED_FREETYPE ON )
+                DEFINE_DEFAULT( NEED_FREETYPE ON )
             else( NOT ${FREETYPE_FOUND} )
-            	set( PLATFORM_LIBRARIES ${PLATFORM_LIBRARIES} ${FREETYPE_LIBRARIES} )
+                set( PLATFORM_LIBRARIES ${PLATFORM_LIBRARIES} ${FREETYPE_LIBRARIES} )
+                include_directories( ${FREETYPE_INCLUDE_DIRS} )
             endif( NOT ${FREETYPE_FOUND} )
             #########
             find_package( OpenGL )
@@ -175,7 +195,16 @@ else( __ANDROID__ )
             #message( "Platform_libs:"${PLATFORM_LIBRARIES} )
         endif( NOT __NO_GUI__ )
 #	find_package( uuid )
-#	find_package( Sqlite )
+	include( makefiles/cmake/FindSqlite.cmake )
+        find_package( FUSE )
+        if( NOT ${FUSE_FOUND} )
+        	set( NEED_FUSE ON )
+        endif( NOT ${FUSE_FOUND} )
+        
+	find_package( Sqlite )
+        if( NOT ${SQLITE3_FOUND} )
+        	set( NEED_SQLITE ON )
+        endif( NOT ${SQLITE3_FOUND} )
 	find_package( Threads REQUIRED )
      else()
         Message( "Not WIN32, not UNIX" )
@@ -243,6 +272,10 @@ if( MSVC )
   endif( FORCE_MSVCRT )
   #add_definitions( -D_CRT_SECURE_NO_WARNINGS -wd4995 -wd4996 )
   add_definitions( -wd4996 )
+  
+  SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MP8")
+  SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /MP8")
+  
   if( __CLR__ )
     set( INTERFACE_OUTPUT_DIR . )
     set( BUILD_UNICODE ON )
@@ -377,13 +410,17 @@ if( __LINUX__ )
    add_definitions( -D__LINUX__ )
 endif( __LINUX__ )
 if( __LINUX64__ )
-   add_definitions( -D__LINUX64__ -D__64__ )
+   set( __64__ ON )
+   add_definitions( -D__LINUX64__ )
 endif( __LINUX64__ )
 
+if( __64__ )
+   add_definitions( -D__64__ )
+endif( __64__ )
 
 
 # this is where external image libraries are added for windows native builds
-if( NEED_JPEG OR NEED_PNG OR NEED_FREETYPE )
+if( NEED_JPEG OR NEED_PNG OR NEED_FREETYPE OR NEED_FUSE )
 include( CMakeExternal.txt )
 endif()
 
@@ -608,6 +645,7 @@ set( C_SOURCES
     ${ZLIB_SOURCE}
     ${PNG_SOURCE}
     ${FREETYPE_SOURCE}
+    ${FUSE_SOURCES}
     ${EXPAT_SOURCES}
 )
 if( NEED_UUID )
@@ -856,6 +894,7 @@ if( NOT NEED_JPEG )
   endif( NOT FORCE_CXX )
   endif( NOT __NO_CPLUSPLUS )
 endif() 
+
 if( NOT NEED_FREETYPE )
   my_target_link_libraries( sack_bag ${Freetype_LIBRARIES}  )
   if( SACK_BUILD_STATIC_LIBS )
@@ -1006,6 +1045,7 @@ add_library( bag.externals SHARED
     ${PNG_SOURCE}
     ${FREETYPE_SOURCE}
     ${EXPAT_SOURCES}
+    ${FUSE_SOURCES}
     ${BAG_EXTERNAL_MORE_SOURCES}
 )
 SET_TARGET_PROPERTIES(bag.externals PROPERTIES

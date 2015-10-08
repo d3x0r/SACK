@@ -13,7 +13,7 @@
  */
 
 #include "pngpriv.h"
-
+#define atof(a)  ((float)strtod(a,NULL))
 #if defined(PNG_READ_SUPPORTED) || defined(PNG_WRITE_SUPPORTED)
 
 png_uint_32 PNGAPI

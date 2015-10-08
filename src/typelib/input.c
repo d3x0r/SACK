@@ -182,7 +182,7 @@ static PTEXT GatherLineEx( PTEXT *pOutput, INDEX *pIndex, int bInsert, int bSave
 			if( bInsert )
 			{
 				// creates a new segment inbetween here.....
-				*pOutput = SplitLine( *pOutput, len = *pIndex );
+				*pOutput = SplitLine( *pOutput, len );
 				 output = GetText( *pOutput );
 			}
 			else
@@ -213,15 +213,15 @@ static PTEXT GatherLineEx( PTEXT *pOutput, INDEX *pIndex, int bInsert, int bSave
 		{
 			switch( character = GetText( pInput )[pos] )
 			{
-			case '\x1b':
+			case '\x1b': // escape; clear all text
 				if( !bData )
 				{
-					SetEnd( *pOutput );
-					SetStart( *pOutput )
+					SetEnd( *pOutput );  
+					SetStart( *pOutput )  // no semicolon; include the following in the loop.
 					{
 						SetTextSize( *pOutput, 0 );
 					}
-					SetTextSize( *pOutput, 0 );
+					SetTextSize( *pOutput, 0 ); // and set the first segment's length.
 					output = GetText( *pOutput );
 					len = 0;
 				}
@@ -329,7 +329,24 @@ static PTEXT GatherLineEx( PTEXT *pOutput, INDEX *pIndex, int bInsert, int bSave
 				{
 					if( len )
 					{
-						SetTextSize( *pOutput, --len );
+						GetPriorUtfCharIndexed( pOutput[0]->data.data, &len );
+						if( len )
+							SetTextSize( *pOutput, len );
+						else
+						{
+							if( PRIORLINE( *pOutput ) )
+							{
+								*pOutput = PRIORLINE( *pOutput );
+								LineRelease( SegGrab( NEXTLINE( *pOutput ) ) );
+								len = GetTextSize( *pOutput );
+							}
+							else
+							{
+								*pOutput = NEXTLINE( *pOutput );
+								LineRelease( SegGrab( PRIORLINE( *pOutput ) ) );
+								len = 0;
+							}
+						}
 					}
 					else
 					{
@@ -338,9 +355,19 @@ static PTEXT GatherLineEx( PTEXT *pOutput, INDEX *pIndex, int bInsert, int bSave
 							*pOutput = PRIORLINE( *pOutput );
 							len = GetTextSize( *pOutput );
 						}
+						else
+						{
+							*pOutput = NEXTLINE( *pOutput );
+							LineRelease( SegGrab( PRIORLINE( *pOutput ) ) );
+							len = 0;
+						}
 
 						if( len )
-							SetTextSize( *pOutput, --len );
+						{
+							GetPriorUtfCharIndexed( pOutput[0]->data.data, &len );
+							SetTextSize( *pOutput, len );
+							//SetTextSize( *pOutput, --len );
+						}
 					}
 				}
 				break;
@@ -553,6 +580,74 @@ void EnqueUserInputHistory( PUSER_INPUT_BUFFER pci, PTEXT pHistory )
 
 //----------------------------------------------------------------------------
 
+void DeleteUserInput( PUSER_INPUT_BUFFER pci )
+{
+#if 0
+	PTEXT pLine = GatherLine( &pci->CollectionBuffer
+							, &pci->CollectionIndex
+							, pci->CollectionInsert
+							, TRUE
+							, stroke );
+#endif
+	PTEXT pNext;
+	size_t cursor = pci->CollectionIndex;
+	size_t maxlen;
+	size_t charlen;
+	size_t len = pci->CollectionIndex;
+	// this will slide from the middle to the end...
+	// if bInsert - then prior to entrying this switch
+	// the data was split and THIS segment is set to zero.
+	pNext = pci->CollectionBuffer;
+	while( pNext && cursor == ( maxlen = GetTextSize( pNext ) ) )
+	{
+		pNext = NEXTLINE( pNext );
+		len = cursor = 0;
+	}
+	if( pNext )
+	{
+		GetUtfCharIndexed( pNext->data.data, &len );
+		charlen = len - cursor;
+		if( ( maxlen - charlen ) > 0 )
+		{
+			MemCpy( pNext->data.data + cursor
+					, pNext->data.data + len
+					, ( maxlen - len ) + 1 );
+			SetTextSize( pNext, ( maxlen - charlen ) );
+		}
+		else
+		{
+			PTEXT remaining;
+			if( pNext == pci->CollectionBuffer )
+			{
+				if( remaining = NEXTLINE( pNext ) )
+				{
+					SegUnlink( pNext );
+					LineRelease( pNext );
+					pci->CollectionBuffer = remaining;
+					pci->CollectionIndex = 0;
+				}
+				else if( remaining = PRIORLINE( pNext ) )
+				{
+					SegUnlink( pNext );
+					LineRelease( pNext );
+					pci->CollectionBuffer = remaining;
+					pci->CollectionIndex = GetTextSize( remaining );
+				}
+				else
+				{
+					// empty line already
+				}
+			}
+			else
+			{
+				SegUnlink( pNext );
+				LineRelease( pNext );
+			}
+
+		}
+	}
+}
+
 PTEXT GatherUserInput( PUSER_INPUT_BUFFER pci, PTEXT stroke )
 {
 	PTEXT pLine = GatherLine( &pci->CollectionBuffer
@@ -675,6 +770,72 @@ LOGICAL  SetUserInputPosition ( PUSER_INPUT_BUFFER pci, int nPos, int whence )
 
 		totalpos += pci->CollectionIndex;
 		SetStart( start );
+		if( nPos > 0 )
+		{
+			size_t tmp;
+			size_t total = 0;
+			size_t start;
+			size_t cursor = pci->CollectionIndex;
+			PTEXT curseg = pci->CollectionBuffer;
+			TEXTRUNE ch;
+			start = cursor;
+			if( cursor == curseg->data.size ) 
+			{
+				curseg = NEXTLINE( curseg );
+				if( !curseg )
+					return FALSE;
+				start = cursor = 0;
+			}
+			for( tmp = 0; tmp < nPos; tmp++ )
+			{
+				if( cursor < curseg->data.size )
+					ch = GetUtfCharIndexed( curseg->data.data, &cursor );
+				else
+					ch = 0;
+				if( !ch || ( cursor == curseg->data.size ) )
+				{
+					total += cursor - start;
+					curseg = NEXTLINE( curseg );
+					start = cursor = 0;
+					if( !ch )  // didn't get a character, need to try this one again...
+						tmp--;
+				}
+			}
+			nPos = total + ( cursor - start );
+		}
+		else
+		{
+			int tmp;
+			int total = 0;
+			int start;
+			int cursor = pci->CollectionIndex;
+			PTEXT curseg = pci->CollectionBuffer;
+			TEXTRUNE ch;
+			start = cursor;
+			for( tmp = 0; tmp > nPos; tmp-- )
+			{
+				if( cursor == 0 )
+				{
+					curseg = PRIORLINE( curseg );
+					if( curseg )
+						start = cursor = curseg->data.size;
+				}
+				if( !curseg )
+					break;
+				ch = GetPriorUtfCharIndexed( curseg->data.data, (size_t*)&cursor );
+				if( !cursor )
+				{
+					total += cursor - start;
+					curseg = PRIORLINE( curseg );
+					if( curseg )
+						start = cursor = curseg->data.size;
+					else 
+						break;
+				}
+			}
+			nPos = total + ( cursor - start );
+
+		}
 
 		if( ( totalpos + nPos ) > 0 )
 		{

@@ -572,11 +572,11 @@ PTRSZVAL CPROC RenderFacet(  POBJECT po
 					image_v[l*2+0] = v[l][0] / pf->image->width;
 					image_v[l*2+1] = v[l][2] / pf->image->height;
 				}
-				ImageEnableShader( ImageGetShader( "Simple Texture", NULL ), v, ReloadTexture( pf->image, 4 ), image_v );
+				ImageEnableShader( ImageGetShader( "Simple Texture" ), v, ReloadTexture( pf->image, 4 ), image_v );
 			}
 			else
 			{
-				ImageEnableShader( ImageGetShader( "Simple Shader", NULL ), v, gl_color );
+				ImageEnableShader( ImageGetShader( "Simple Shader" ), v, gl_color );
 			}
 			if( points == 4 )
 				glDrawArrays( GL_QUADS, 0, points );
@@ -643,7 +643,7 @@ PTRSZVAL CPROC RenderFacet(  POBJECT po
 				gl_color[2] = 1.0;
 				gl_color[3] = 1.0;
 			}
-			ImageEnableShader( ImageGetShader( "Simple Shader", NULL ), v, gl_color);
+			ImageEnableShader( ImageGetShader( "Simple Shader" ), v, gl_color);
 			glDrawArrays( GL_LINE_STRIP, 0, points+1 );
 			Release( v );
 		}

@@ -54,7 +54,7 @@ void CPROC DrawFancyFrame( PSI_CONTROL pc )
 		break;
 	case 1: // left
 		tmp = border->BorderSegment[SEGMENT_TOP]->width;
-		if( pc->surface_rect.width < tmp )
+		if( SUS_LT( pc->surface_rect.width, IMAGE_SIZE_COORDINATE, tmp, int ) )
 			tmp = pc->surface_rect.width;
 		BlotScaledImageSizedEx( window, border->BorderSegment[SEGMENT_TOP]
 									, pc->surface_rect.x, 0
@@ -66,7 +66,7 @@ void CPROC DrawFancyFrame( PSI_CONTROL pc )
 		break;
 	case 2: // center
 		tmp = border->BorderSegment[SEGMENT_TOP]->width;
-		if( pc->surface_rect.width < tmp )
+		if( SUS_LT( pc->surface_rect.width, IMAGE_SIZE_COORDINATE, tmp, int ) )
 			tmp = pc->surface_rect.width;
 		BlotScaledImageSizedEx( window, border->BorderSegment[SEGMENT_TOP]
 									, pc->surface_rect.x, 0
@@ -77,7 +77,7 @@ void CPROC DrawFancyFrame( PSI_CONTROL pc )
 		break;
 	case 3: // right
 		tmp = border->BorderSegment[SEGMENT_TOP]->width;
-		if( pc->surface_rect.width < tmp )
+		if( SUS_LT( pc->surface_rect.width, IMAGE_SIZE_COORDINATE, tmp, int ) )
 			tmp = pc->surface_rect.width;
 		BlotScaledImageSizedEx( window, border->BorderSegment[SEGMENT_TOP]
 									, pc->surface_rect.x, 0
@@ -99,7 +99,7 @@ void CPROC DrawFancyFrame( PSI_CONTROL pc )
 		break;
 	case 1: // left
 		tmp = border->BorderSegment[SEGMENT_BOTTOM]->width;
-		if( pc->surface_rect.width < tmp )
+		if( SUS_LT( pc->surface_rect.width, IMAGE_SIZE_COORDINATE, tmp, int ) )
 			tmp = pc->surface_rect.width;
 		BlotScaledImageSizedEx( window, border->BorderSegment[SEGMENT_BOTTOM]
 									, pc->surface_rect.x, pc->surface_rect.y + pc->surface_rect.height
@@ -111,7 +111,7 @@ void CPROC DrawFancyFrame( PSI_CONTROL pc )
 		break;
 	case 2: // center
 		tmp = border->BorderSegment[SEGMENT_BOTTOM]->width;
-		if( pc->surface_rect.width < tmp )
+		if( SUS_LT( pc->surface_rect.width, IMAGE_SIZE_COORDINATE, tmp, int ) )
 			tmp = pc->surface_rect.width;
 		BlotScaledImageSizedEx( window, border->BorderSegment[SEGMENT_BOTTOM]
 									, pc->surface_rect.x, pc->surface_rect.y + pc->surface_rect.height
@@ -122,7 +122,7 @@ void CPROC DrawFancyFrame( PSI_CONTROL pc )
 		break;
 	case 3: // right
 		tmp = border->BorderSegment[SEGMENT_BOTTOM]->width;
-		if( pc->surface_rect.width < tmp )
+		if( SUS_LT( pc->surface_rect.width, IMAGE_SIZE_COORDINATE, tmp, int ) )
 			tmp = pc->surface_rect.width;
 		BlotScaledImageSizedEx( window, border->BorderSegment[SEGMENT_BOTTOM]
 									, pc->surface_rect.x, pc->surface_rect.y + pc->surface_rect.height
@@ -764,7 +764,7 @@ void DrawFrameCaption( PSI_CONTROL pc )
 		_32 yofs = ( ( FrameCaptionYOfs(pc, pc->BorderType ) ) );
 		Image out = NULL;
 		h = CaptionHeight( pc, pc?GetText(pc->caption.text):NULL ) - 1;
-		if( h <= 0 ) // no caption to render...
+		if( h <= 0 ) // no caption to...
 		{
 			//lprintf( WIDE("But... there's no caption to render.") );
 			return;
@@ -941,7 +941,7 @@ void DrawFrameCaption( PSI_CONTROL pc )
 				}
 			}
 		}
-		button_left = w - (h /* + 3 */);
+		button_left = w - (h /* + 3 */ - 2) + pc->caption_button_x_ofs;
 		if( pc->device )
 		{
 			INDEX idx;
@@ -956,7 +956,7 @@ void DrawFrameCaption( PSI_CONTROL pc )
 					if( button->pressed )
 						BlotScaledImageSizedToAlpha( pc->Window, button->pressed
 								, button_left+ button->extra_pad
-								, yofs + 1+ button->extra_pad
+								, yofs + 1+ button->extra_pad + pc->caption_button_y_ofs
 								, (h) - 2 - ( 2*button->extra_pad)
 								, (h) - 2 - ( 2*button->extra_pad), ALPHA_TRANSPARENT );
 				}
@@ -965,7 +965,7 @@ void DrawFrameCaption( PSI_CONTROL pc )
 					if( button->normal )
 						BlotScaledImageSizedToAlpha( pc->Window, button->normal
 								, button_left + button->extra_pad
-								, yofs + 1 + button->extra_pad
+								, yofs + 1 + button->extra_pad + pc->caption_button_y_ofs
 								, (h) - 2 - ( 2*button->extra_pad)
 								, (h) - 2 - ( 2*button->extra_pad), ALPHA_TRANSPARENT );
 				}
@@ -973,7 +973,7 @@ void DrawFrameCaption( PSI_CONTROL pc )
 				{
 					BlotScaledImageSizedToAlpha( pc->Window, button->highlight
 								, button_left + button->extra_pad
-								, yofs + 1 + button->extra_pad
+								, yofs + 1 + button->extra_pad + pc->caption_button_y_ofs
 								, (h) - 2 - ( 2*button->extra_pad)
 								, (h) - 2 - ( 2*button->extra_pad), ALPHA_TRANSPARENT );
 				}

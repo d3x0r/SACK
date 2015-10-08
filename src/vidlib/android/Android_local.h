@@ -106,7 +106,7 @@ void SACK_Vidlib_ToggleInputDevice( void );
 int SACK_Vidlib_GetStatusMetric( void );
 int SACK_Vidlib_GetKeyboardMetric( void );
 
-TEXTCHAR  AndroidANW_GetKeyText(int key);
+const TEXTCHAR * AndroidANW_GetKeyText(int key);
 
 // ANdroid_nativewindow.c
 void SACK_Vidlib_SetSleepSuspend( void(*)(int));

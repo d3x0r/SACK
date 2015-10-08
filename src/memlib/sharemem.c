@@ -252,13 +252,16 @@ PRIORITY_PRELOAD( InitGlobal, DEFAULT_PRELOAD_PRIORITY )
 #endif
 }
 
-#ifdef __LINUX__
-#  if defined __ARM__ || defined __ANDROID__
-#    define XCHG(p,val)  LockedExchange( p, val )
-#  else
-inline _32 DoXchg( PV_32 p, _32 val ){  __asm__( WIDE("lock xchg (%2),%0"):WIDE( "=a" )(val):WIDE( "0" )(val),WIDE( "c" )(p) ); return val; }
-#    define XCHG(p,val)  DoXchg(p,val)
+#ifdef __GNUC__
+#  ifndef __ATOMIC_RELAXED
+#    define __ATOMIC_RELAXED 0
 #  endif
+//#  if defined __ARM__ || defined __ANDROID__
+//#    define XCHG(p,val)  LockedExchange( p, val )
+//#  else
+//inline _32 DoXchg( PV_32 p, _32 val ){  __asm__( WIDE("lock xchg (%2),%0"):WIDE( "=a" )(val):WIDE( "0" )(val),WIDE( "c" )(p) ); return val; }
+#    define XCHG(p,val)  __atomic_exchange_n(p,val,__ATOMIC_RELAXED)
+//#  endif
 #else
 #  define XCHG(p,val)  LockedExchange( p, val )
 #endif
@@ -278,43 +281,7 @@ inline _32 DoXchg( PV_32 p, _32 val ){  __asm__( WIDE("lock xchg (%2),%0"):WIDE(
 #else
 #  if defined( __LINUX__ ) || defined( __LINUX64__ ) 
 //DoXchg( p, val );
-#    if defined( __ARM__ )
-	_32 result;
-#define __thumb____whatever 0
-#       if __thumb____whatever
-   _32 tmp;
-// assembly courtesy of ....
-//http://lab.etfto.gov.br/~ccm/GPL_WAP54G/tools-src/gnu-20010422/libstdc++-v3/config/cpu/arm/bits/atomicity.h
-	__asm__ __volatile__ (
-								"ldr     %0, 4f \n\t"
-								"bx      %0 \n\t"
-								".align 0 \n"
-								"4:\t"
-								".word   0f \n\t"
-								".code 32\n"
-								"0:\t"
-								"swp     %0, %3, [%2] \n\t"
-								"ldr     %1, 1f \n\t"
-								"bx      %1 \n"
-								"1:\t"
-								".word   2f \n\t"
-								".code 16 \n"
-								"2:\n"
-								: "=&l"(result), "=&r"(tmp)
-								: "r"(p), "r"(val)
-								: "memory");
-	return result;
-#       else
-	__asm__ __volatile__("swp %0, %2, [%1];" \
-								: "=&r" (result)        \
-								: "r"(p), "r" (val)           \
-								: "memory");
-	return result;
-#       endif
-#    else /* not arm (intel?) */
-	__asm__( WIDE("lock xchg (%2),%0"):"=a"(val):"0"(val),"c"(p) );
-	return val;
-#    endif
+   return __atomic_exchange_n(p,val,__ATOMIC_RELAXED);
 #  else /* some other system, not windows, not linux... */
 	{
 #warning compiling C fallback locked exchange.  This is NOT atomic, and needs to be
@@ -345,6 +312,10 @@ inline _32 DoXchg( PV_32 p, _32 val ){  __asm__( WIDE("lock xchg (%2),%0"):WIDE(
 #endif
 	return prior;
 #else
+#  if defined __GNUC__
+#     if !defined( __ANDROID__ ) || ( ANDROID_NDK_TARGET_PLATFORM > 16 )
+	return __atomic_exchange_n(p,val,__ATOMIC_RELAXED);
+#else
 	{
 		// swp is the instruction....
       // going to have to set IRQ, PIRQ on arm...
@@ -352,6 +323,16 @@ inline _32 DoXchg( PV_32 p, _32 val ){  __asm__( WIDE("lock xchg (%2),%0"):WIDE(
 		*p = val;
 		return prior;
 	}
+#endif
+#  else
+	{
+		// swp is the instruction....
+      // going to have to set IRQ, PIRQ on arm...
+		_64 prior = *p;
+		*p = val;
+		return prior;
+	}
+#  endif
 #endif
 }
 
@@ -793,7 +774,7 @@ void InitSharedMemory( void )
 #ifdef _WIN32
 		GetSystemInfo( &g.si );
 #else
-		g.pagesize = getpagesize();
+		g.pagesize = sysconf(_SC_PAGESIZE);
 #endif
 #ifdef VERBOSE_LOGGING
 		if( !g.bDisableDebug )

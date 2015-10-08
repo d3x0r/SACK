@@ -5,8 +5,11 @@
 /enter "Room of Portals"
 
 /make_portal zombie "..." zombiemud.org:23 
+
 /make_portal fed2 "Federation 2 - rated #2 2007-11-07" fed2.ibgames.net:30003 
+
 /make_portal dsl "Dark and Shattered Lands #1 2007-11-07" dsl-mud.org:4000 
+
 /make_portal Fantasia "STS Classic TeleCom." 97.68.140.124
 
 
@@ -15,16 +18,10 @@
 
 
 /decl desc "Aetolia was rated most popular - needed at least one more portal..." 
-/make_portal Aetolia %desc 216.194.99.13
+/make_portal Aetolia %desc aetolia.com
 
-/decl desc "public routing to cpnet" 
-/make_portal chem %desc cpnet01.rayline.net
 
-/decl desc "local routing to cpnet" 
-/make_portal chemx %desc cpnet01
 
-/decl desc "rayline hmm no telnet - please implement SSSH" 
-/make_portal rayline %desc rayline.net
 /dest build_portal_room
 /dest make_portal
 /endmac

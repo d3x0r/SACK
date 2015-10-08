@@ -26,7 +26,9 @@ struct event_data
    int key_pressed;
 	int count;
 	int key_val;
-   int key_mods;
+	int key_scan;
+	int key_mods;
+   const char *character;
 };
 
 /**
@@ -70,6 +72,7 @@ struct engine {
 	int nPoints;
 	int did_finish_once;
 	int key_text;
+	const char * key_characters;
 	CTEXTSTR data_path;
 	int resumed;
 
@@ -82,4 +85,6 @@ struct engine {
 		int msgpipe[2];
       struct event_data *current_event;
 	}events;
+	int is_64;
+   LOGICAL ignore_NDK_key_input;
 };

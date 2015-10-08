@@ -1176,6 +1176,7 @@ PSSQL_PROC( int, PushSQLQueryEx )(PODBC);
 PSSQL_PROC( PODBC, ConnectToDatabase )( CTEXTSTR dsn );
 PSSQL_PROC( PODBC, SQLGetODBC )( CTEXTSTR dsn );
 PSSQL_PROC( void, SQLDropODBC )( PODBC odbc );
+PSSQL_PROC( void, SQLDropAndCloseODBC )( CTEXTSTR dsn );
 
 #endif
 // default parameter to require is the global flag RequireConnection from sql.config....

@@ -10,7 +10,7 @@ SET_TARGET_PROPERTIES(${PROJECT} PROPERTIES
                   FOLDER utils/vfs
 )
 
-target_link_libraries( ${PROJECT} sack_vfs.module ${SACK_LIBRARIES} )
+target_link_libraries( ${PROJECT} sack_vfs.module ${SACK_CORE_LIBRARY} )
 install_mode_dest( ${PROJECT} )
 
 add_subdirectory( portable )

@@ -19,10 +19,20 @@ if( NOT MAKING_SACK_CORE )
 
   include( ${SACK_SDK_ROOT_PATH}/CMakePackage )
 
+include( GNUInstallDirs )
+
+if( NOT BINDIR )
+  set( BINDIR bin )
+endif( NOT BINDIR )
+
 if( __ANDROID__ )
   INSTALL_SACK( lib )
 else( __ANDROID__ )
-  INSTALL_SACK( bin )
+	if( __LINUX__ )
+		INSTALL_SACK( ${CMAKE_INSTALL_BINDIR} ${CMAKE_INSTALL_LIBDIR} ${CMAKE_INSTALL_DATADIR}/images )
+	else( __LINUX__ )
+		INSTALL_SACK( ${CMAKE_INSTALL_BINDIR} ${CMAKE_INSTALL_BINDIR} resources/images )
+	endif( __LINUX__ )
 endif( __ANDROID__ )
 
   include_directories( ${SACK_INCLUDE_DIR} )

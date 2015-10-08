@@ -5,5 +5,6 @@ public class NativeStaticLib {
 
    public native static void update_keyboard_size( int size );
    public native static void setDataPath( String package_name );
- 
+   public native static int  sendKeyEvent( int pressed, int keyval, int keymod, int keyscan, String key );
+   public native static void disableNdkKeyInput( );
 }

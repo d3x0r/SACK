@@ -29,12 +29,6 @@ TARGET_LINK_LIBRARIES( ${PROJECT_NAME} ${SACK_LIBRARIES} ${BULLET_LIBRARIES} ${P
 
 set_target_properties( ${PROJECT_NAME} PROPERTIES FOLDER "apps" )
 
-#configure_file( project.interface.conf.cm ${CMAKE_BINARY_DIR}/${PROJECT_NAME}.interface.conf.tmp )
-#EXECUTE_PROCESS(COMMAND cmake -E copy_if_different ${CMAKE_BINARY_DIR}/${PROJECT_NAME}.interface.conf.tmp ${CMAKE_BINARY_DIR}/${PROJECT_NAME}.interface.conf )
-#install( FILES ${CMAKE_BINARY_DIR}/${PROJECT_NAME}.interface.conf DESTINATION bin )
-
-#LIST( GET systray_shell_targets 0 shell_target )
-#install( FILES ${shell_target}  DESTINATION bin RENAME ${PROJECT_NAME}.exe )
 
 
 # get the system libraries..

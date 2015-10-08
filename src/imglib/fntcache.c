@@ -507,10 +507,10 @@ int OpenFontFile( CTEXTSTR name, POINTER *font_memory, FT_Face *face, int face_i
 			end[0] = ']';
 		}
 		else
-			font_style = WIDE("regular");
+			font_style = (TEXTCHAR*)WIDE("regular");
 	}
 	else
-		font_style = WIDE("regular");
+		font_style = (TEXTCHAR*)WIDE("regular");
 
 	if( !(*font_memory) )
 	{
@@ -583,7 +583,7 @@ int OpenFontFile( CTEXTSTR name, POINTER *font_memory, FT_Face *face, int face_i
 				{
 					file = ((PSHORT_SIZE_FILE)pfs->files) + f;
 #ifdef DEBUG_OPENFONTFILE
-					lprintf( "file is %s vs %s", file->file, base_name );
+					lprintf( "file is %s %s vs %s", pfs->name, file->file, base_name );
 #endif
 					if( StrCaseCmp( (TEXTCHAR*)file->file, base_name ) == 0 )
 					{
@@ -1423,8 +1423,11 @@ void BuildFontCache( void )
 	// .psf.gz doesn't load directly.... 
 	while( ScanFiles( WIDE("."), WIDE("*.ttf\t*.ttc\t*.fon\t*.TTF\t*.pcf.gz\t*.pf?\t*.fnt\t*.psf.gz"), &data
 						 , ListFontFile, SFF_SUBCURSE, 0 ) );
+#ifndef __ANDROID__
+
 	while( ScanFiles( WIDE("%resources%"), WIDE("*.ttf\t*.ttc\t*.fon\t*.TTF\t*.pcf.gz\t*.pf?\t*.fnt\t*.psf.gz"), &data
 						 , ListFontFile, SFF_SUBCURSE, 0 ) );
+#endif
 
 	// scan windows/fonts directory
 #ifndef __NO_OPTIONS__
@@ -1432,30 +1435,32 @@ void BuildFontCache( void )
 #endif
 	{
 #ifdef HAVE_ENVIRONMENT
-            CTEXTSTR name
+		CTEXTSTR name
 #ifdef WIN32
-                = OSALOT_GetEnvironmentVariable( WIDE( "windir" ) );
+			= OSALOT_GetEnvironmentVariable( WIDE( "windir" ) );
 #else
-            = WIDE("/usr/share/fonts");
+#  ifdef __ANDROID__
+		   = WIDE("/system/fonts");
+#  else
+		   = WIDE("/usr/share/fonts");
+#  endif
 #endif
-            {
-		size_t len;
-		TEXTSTR tmp = NewArray( TEXTCHAR, len = StrLen( name ) + 10 );
-		snprintf( tmp, len * sizeof( TEXTCHAR ), WIDE( "%s\\fonts" ), name );
-		while( ScanFiles( tmp, WIDE("*.ttf\t*.ttc\t*.fon\t*.TTF\t*.pcf.gz\t*.pf?\t*.fnt\t*.psf.gz"), &data
-							 , ListFontFile, SFF_SUBCURSE, 0 ) );
-                Deallocate( TEXTSTR, tmp );
-            }
+			{
+				size_t len;
+#ifdef WIN32
+				TEXTSTR tmp = NewArray( TEXTCHAR, len = StrLen( name ) + 10 );
+				snprintf( tmp, len * sizeof( TEXTCHAR ), WIDE( "%s\\fonts" ), name );
+#else
+				CTEXTSTR tmp = name;
+#endif
+				while( ScanFiles( tmp, WIDE("*.ttf\t*.ttc\t*.fon\t*.TTF\t*.pcf.gz\t*.pf?\t*.fnt\t*.psf.gz"), &data
+									 , ListFontFile, SFF_SUBCURSE, 0 ) );
+#ifdef WIN32
+				Deallocate( TEXTSTR, tmp );
+#endif
+			}
 #endif
 	}
-#ifdef __LINUX__	                     	
-	//while( ScanFiles( WIDE("/."), WIDE("*.ttf\t*.fon\t*.TTF\t*.pcf.gz\t*.pf?\t*.fnt\t*.psf.gz"), &data
-	//					 , ListFontFile, SFF_SUBCURSE, 0 ) );
-#else
-	//ScanDrives( ScanDrive, (PTRSZVAL)NULL );
-	//while( ScanFiles( WIDE("/."), WIDE("*.ttf\t*.fon\t*.TTF\t*.pcf.gz\t*.pf?\t*.fnt\t*.psf.gz"), &data
-	//					 , ListFontFile, SFF_SUBCURSE, 0 ) );
-#endif
 
 	SetIDs( build.pPaths );
 	SetIDs( build.pFamilies );

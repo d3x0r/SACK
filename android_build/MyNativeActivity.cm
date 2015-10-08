@@ -6,7 +6,8 @@ import org.d3x0r.sack.core.NativeStaticLib;
 import android.view.WindowManager;
 import android.app.NativeActivity;
 import android.util.Log;
-
+//import android.os.Build;
+//import android.os.Build.VERSION_CODES;
 //import android.internal.widget;
 import android.view.View;
 import android.view.ViewGroup;
@@ -17,13 +18,66 @@ import android.view.InputEvent;
 import android.view.KeyEvent;
 import android.view.KeyCharacterMap;
 import android.view.KeyCharacterMap.KeyData;
-public class @activity@ extends NativeActivity {
+
+
+public class @activity@ extends NativeActivity implements KeyEvent.Callback  {
 // think I might have to catch landscape event here for some android revisions
   private static String TAG = "@activity@";
   public @activity@() {
     super();
+    Log.d( "MyNativeActivity", "version " + android.os.Build.VERSION.SDK_INT );
     
   }
+
+
+  public boolean onKeyDown(int keyCode, KeyEvent event)
+  {
+  	Log.d( "MyNativeActivity", "Key down event!" + event.getUnicodeChar() );
+        int keymod = event.getMetaState();
+        keymod = ( ( keymod & ( KeyEvent.META_SHIFT_RIGHT_ON | KeyEvent.META_SHIFT_LEFT_ON | KeyEvent.META_SHIFT_ON ) ) != 0 ? 1 : 0 )
+               | ( ( keymod & ( KeyEvent.META_CTRL_RIGHT_ON | KeyEvent.META_CTRL_LEFT_ON | KeyEvent.META_CTRL_ON ) ) != 0 ? 2 : 0 )
+               | ( ( keymod & ( KeyEvent.META_ALT_RIGHT_ON | KeyEvent.META_ALT_LEFT_ON | KeyEvent.META_ALT_ON ) ) != 0 ? 4 : 0 );
+        String chars = String.valueOf((char)event.getUnicodeChar());
+        
+        NativeStaticLib.sendKeyEvent( 1, event.getKeyCode(), event.getScanCode(), keymod, chars );
+        return true;
+  }
+
+  public boolean onKeyLongPress(int keyCode, KeyEvent event)
+  {
+	  /* must have returned 'true' from OnKeyDown AND called startTracking() on the event.  
+             Since we won't do this ever, this will never get called.*/
+        return false;
+  }
+
+  public boolean onKeyMultiple (int keyCode, int count, KeyEvent event)
+  {
+  	
+  	Log.d( "MyNativeActivity", "Key Multiple!" + event.getCharacters()  );
+        int keymod = event.getMetaState();
+        keymod = ( ( keymod & ( KeyEvent.META_SHIFT_RIGHT_ON | KeyEvent.META_SHIFT_LEFT_ON | KeyEvent.META_SHIFT_ON ) ) != 0 ? 1 : 0 )
+               | ( ( keymod & ( KeyEvent.META_CTRL_RIGHT_ON | KeyEvent.META_CTRL_LEFT_ON | KeyEvent.META_CTRL_ON ) ) != 0 ? 2 : 0 )
+               | ( ( keymod & ( KeyEvent.META_ALT_RIGHT_ON | KeyEvent.META_ALT_LEFT_ON | KeyEvent.META_ALT_ON ) ) != 0 ? 4 : 0 );
+        
+        NativeStaticLib.sendKeyEvent( 1, event.getKeyCode(), event.getScanCode(), keymod, event.getCharacters() );
+        return true;
+  }
+
+  public boolean onKeyUp (int keyCode, KeyEvent event)
+  {
+  	Log.d( "MyNativeActivity", "Got Key Up!" + event.getUnicodeChar()  );
+  	Log.d( "MyNativeActivity", "Got Key Up!" + event.getCharacters()  );
+        int keymod = event.getMetaState();
+        String chars = String.valueOf((char)event.getUnicodeChar());
+        keymod = ( ( keymod & ( KeyEvent.META_SHIFT_RIGHT_ON | KeyEvent.META_SHIFT_LEFT_ON | KeyEvent.META_SHIFT_ON ) ) != 0 ? 1 : 0 )
+               | ( ( keymod & ( KeyEvent.META_CTRL_RIGHT_ON | KeyEvent.META_CTRL_LEFT_ON | KeyEvent.META_CTRL_ON ) ) != 0 ? 2 : 0 )
+               | ( ( keymod & ( KeyEvent.META_ALT_RIGHT_ON | KeyEvent.META_ALT_LEFT_ON | KeyEvent.META_ALT_ON ) ) != 0 ? 4 : 0 );
+        
+        NativeStaticLib.sendKeyEvent( 0, event.getKeyCode(), event.getScanCode(), keymod, chars );
+        return true;
+  }
+
+
   
   int keyboard_height;
   int action_bar_height;
@@ -65,6 +119,14 @@ public class @activity@ extends NativeActivity {
         protected void onCreate(Bundle savedInstanceState)
         {
                 System.loadLibrary( "@activity@" );
+                 Log.d( "MyNativeActivity", "check to disable ndk key input"  );
+
+	    if( android.os.Build.VERSION.SDK_INT >= 18 /*android.os.Build.VERSION_CODES.JELLY_BEAN_MR2*/ )
+            {
+                 Log.d( "MyNativeActivity", "Yes do disable; but it can't link?"  );
+    		NativeStaticLib.disableNdkKeyInput();
+                 Log.d( "MyNativeActivity", "Yes did disable; but it can't link?"  );
+                }
                  String path = getApplicationContext().getFilesDir().toString();
 			//                 getApplicationContext().getPackageName();
 	       	Log.d( "org.d3x0r.sack.karway.mynative", "set package name:" + path );
@@ -129,12 +191,14 @@ public class @activity@ extends NativeActivity {
      }
 
 	int prior_key; 
-    public int getKeyText (long downTime, long eventTime, int action, int code, int repeat, int metaState, int deviceId, int scancode, int flags) {
+    public int getKeyText (long downTime, long eventTime, int action, int code, int repeat, int metaState, int deviceId, int scancode, int flags, int source) {
 	    KeyEvent key;
             Log.v( "org.d3x0r.sack.karway.mynative", "got to having a key...." );
-            key = new KeyEvent( downTime, eventTime, action, code, repeat, metaState, deviceId, scancode, flags );
+            key = new KeyEvent( downTime, eventTime, action, code, repeat, metaState, deviceId, scancode, flags, source );
 	    int result = key.getUnicodeChar();
             Log.v( "org.d3x0r.sack.karway.mynative", "key immediate result is " + result );
+	    String s_result = key.getCharacters();
+            Log.v( "org.d3x0r.sack.karway.mynative", "key immediate result is " + s_result );
             if( ( result &  KeyCharacterMap.COMBINING_ACCENT ) != 0 )
             {
             	prior_key = result &  KeyCharacterMap.COMBINING_ACCENT_MASK;

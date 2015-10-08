@@ -71,8 +71,8 @@
 
 /******************************************************************************/
 
-#if defined PSTM_X86 || defined PSTM_X86_64 || defined PSTM_ARM || \
-    defined PSTM_MIPS
+#if defined PSTM_X86 || defined PSTM_X86_64 || defined PSTM_ARM || defined PTSM_AARCH64 \
+    || defined PSTM_MIPS
  #define PSTM_ASM_CONFIG_STR "Y"
 #else
  #define PSTM_ASM_CONFIG_STR "N"

@@ -2017,7 +2017,7 @@ void VarTextInitEx( PVARTEXT pvt DBG_PASS )
 #endif
 	pvt->collect_used = 0;
 	pvt->collect_avail = COLLECT_LEN;
-	pvt->expand_by = 32;
+	pvt->expand_by = 0;
 }
 
  PVARTEXT  VarTextCreateExEx ( _32 initial, _32 expand DBG_PASS )
@@ -2248,6 +2248,33 @@ INDEX vvtprintf( PVARTEXT pvt, CTEXTSTR format, va_list args )
 	INDEX len;
 	int tries = 0;
 #if defined( UNDER_CE ) || defined( _MSC_VER )// this might be unicode...
+#  ifdef USE_UCRT
+	{
+		va_list tmp_args;
+		va_copy( tmp_args, args );
+#    ifdef _UNICODE
+#       define vsnprintf vswprintf
+#    endif
+		// len returns number of characters (not NUL)
+		len = vsnprintf( NULL, 0, format
+							, args
+							);
+		if( !len ) // nothign to add... we'll get stuck looping if this is not checked.
+			return 0;
+		va_end( tmp_args );
+		// allocate +1 for length with NUL
+		if( ((_32)len+1) >= (pvt->collect_avail-pvt->collect_used) )
+		{
+			// expand when we need more room.
+			VarTextExpand( pvt, ((len+1)<pvt->expand_by)?pvt->expand_by:(len+1+pvt->expand_by)  );
+		}
+#ifdef VERBOSE_DEBUG_VARTEXT
+		Log3( WIDE("Print Length: %d into %d after %s"), len, pvt->collect_used, pvt->collect_text );
+#endif
+		// include NUL in the limit of characters able to print...
+		vsnprintf( pvt->collect_text + pvt->collect_used, len+1, format, args );
+	}
+#  else
 	while( 1 )
 	{
 		size_t destlen;
@@ -2264,10 +2291,10 @@ INDEX vvtprintf( PVARTEXT pvt, CTEXTSTR format, va_list args )
 			tries++;
 			if( tries == 100 )
 			{
-				lprintf( WIDE( "Single buffer expanded more then %d" ), tries * ( (256<pvt->expand_by)?pvt->expand_by:(256+pvt->expand_by) ) );
+				lprintf( WIDE( "Single buffer expanded more then %d" ), tries * ( (pvt->expand_by)?pvt->expand_by:(16384+pvt->expand_by) ) );
 				return 0; // didn't add any
 			}
-			VarTextExpand( pvt, (256<pvt->expand_by)?pvt->expand_by:(256+pvt->expand_by)  );
+			VarTextExpand( pvt, (pvt->expand_by)?pvt->expand_by:(16384)  );
 			continue;
 		}
 		len = StrLen( pvt->collect_text + pvt->collect_used );
@@ -2275,7 +2302,7 @@ INDEX vvtprintf( PVARTEXT pvt, CTEXTSTR format, va_list args )
 		break;
 	}
 	return len;
-
+#  endif
 #elif defined( __GNUC__ )
 	{
 #ifdef __GNUC__
@@ -2306,7 +2333,7 @@ INDEX vvtprintf( PVARTEXT pvt, CTEXTSTR format, va_list args )
 		if( ((_32)len+1) >= (pvt->collect_avail-pvt->collect_used) )
 		{
 			// expand when we need more room.
-			VarTextExpand( pvt, (len+1<pvt->expand_by)?pvt->expand_by:(len+1+pvt->expand_by)  );
+			VarTextExpand( pvt, ((len+1)<pvt->expand_by)?pvt->expand_by:(len+1+pvt->expand_by)  );
 		}
 #ifdef VERBOSE_DEBUG_VARTEXT
 		Log3( WIDE("Print Length: %d into %d after %s"), len, pvt->collect_used, pvt->collect_text );
@@ -2361,7 +2388,7 @@ INDEX vvtprintf( PVARTEXT pvt, CTEXTSTR format, va_list args )
 								, pvt->collect_avail - pvt->collect_used
 								, format, args );
 			if( len < 0 )
-				VarTextExpand( pvt, pvt->expand_by );
+				VarTextExpand( pvt, pvt->expand_by?pvt->expand_by:4096 );
 			//					 VarTextExpandEx( pvt, 32 DBG_SRC );
 		} while( len < 0 );
 		//Log1( WIDE("Print Length: %d"), len );
@@ -2379,7 +2406,7 @@ INDEX vtprintfEx( PVARTEXT pvt , CTEXTSTR format, ... )
 {
 	va_list args;
 	va_start( args, format );
-	 return vvtprintf( pvt, format, args );
+	return vvtprintf( pvt, format, args );
 }
 
 //---------------------------------------------------------------------------
@@ -2708,7 +2735,7 @@ int ConvertToUTF16( wchar_t *output, TEXTRUNE rune )
 	{
 		if( rune < 0xD800 || rune >= 0xE000 )
 		{
-			output[0] = rune;
+			output[0] = (wchar_t)rune;
 			return 1;
 		}
 		else
@@ -2719,8 +2746,8 @@ int ConvertToUTF16( wchar_t *output, TEXTRUNE rune )
 		rune -= 0x10000;
 		if( !( rune & 0xFFFFF ) )
 		{
-			output[0] = 0xD800 + ( ( rune & 0xFFC00 ) >> 10 );
-			output[1] = 0xDC00 + ( ( rune & 0x003FF ) );
+			output[0] = 0xD800 + (wchar_t)( ( rune & 0xFFC00 ) >> 10 );
+			output[1] = 0xDC00 + (wchar_t)( ( rune & 0x003FF ) );
 			return 2;
 		}
 	}
@@ -2732,7 +2759,7 @@ int ConvertToUTF8( char *output, TEXTRUNE rune )
 	if( !( rune & 0xFFFFFF80 ) )
 	{
 		// 7 bits
-		(*output++) = rune;
+		(*output++) = (char)rune;
 		return 1;
 	}
 	else if( !( rune & 0xFFFFF800 ) )
@@ -2804,26 +2831,26 @@ char * WcharConvertExx ( const wchar_t *wch, size_t len DBG_PASS )
 		size_t n;
 		for( n = 0; n < len; n++ )
 		{
-			lprintf( "wch = %04x", wch[0] );
+			//lprintf( "wch = %04x", wch[0] );
 			if( !( wch[0] & 0xFF80 ) )
 			{
-				lprintf( "1 byte encode..." );
+				//lprintf( "1 byte encode..." );
 				sizeInBytes++;
 			}
 			else if( !( wch[0] & 0xF800 ) )
 			{
-				lprintf( "2 byte encode..." );
+				//lprintf( "2 byte encode..." );
 				sizeInBytes += 2;
 			}
 			else if( ( ( wch[0] & 0xFC00 ) >= 0xD800 )
 				&& ( ( wch[0] & 0xFC00 ) <= 0xDF00 ) )
 			{
 				int longer_value = 0x10000 + ( ( ( wch[0] & 0x3ff ) << 10 ) | ( ( wch[1] & 0x3ff ) ) );
-				lprintf( "3 or 4 byte encode..." );
+				//lprintf( "3 or 4 byte encode..." );
 				if( !(longer_value & 0xFFFF ) )
-					sizeInBytes+= 4;
+					sizeInBytes+= 3;
 				else
-					sizeInBytes+= 5;
+					sizeInBytes+= 4;
 				wch++;
 			}
 			else if( !( wch[0] & 0xF000 ) )
@@ -3075,7 +3102,7 @@ TEXTRUNE GetUtfChar( CTEXTSTR *from )
 		(*from)++;
 	}
 #else
-	if( (*from)[0] * 0x80 )
+	if( (*from)[0] & 0x80 )
 	{
 		if( ( (*from)[0] & 0xE0 ) == 0xC0 )
 		{
@@ -3160,6 +3187,55 @@ TEXTRUNE GetUtfCharIndexed( CTEXTSTR pc, size_t *n )
 	n[0] += tmp - orig;
 	return result;
 }
+
+TEXTRUNE GetPriorUtfChar( CTEXTSTR *from )
+{
+	unsigned int result = (unsigned char)(*from)[-1];
+	if( !result ) return result;
+#ifdef _UNICODE
+	if( ( ( (*from)[0] & 0xFC00 ) >= 0xD800 )
+		&& ( ( (*from)[0] & 0xFC00 ) <= 0xDF00 ) )
+	{
+		result = 0x10000 + ( ( ( (*from)[0] & 0x3ff ) << 10 ) | ( ( (*from)[1] & 0x3ff ) ) );
+		(*from) += 2;
+	}
+	else 
+	{
+		(*from)++;
+	}
+#else
+	if( (*from)[-1] & 0x80 )
+	{
+		CTEXTSTR end;
+		while( ( (*from)[-1] & 0xC0 ) == 0x80 )
+			(*from)--;
+		(*from)--;
+		end = (*from);
+		result = GetUtfChar( from );
+		(*from) = end;
+	}
+	else
+	{
+		result = (unsigned char)(*from)[-1];
+		(*from)--;
+	}
+#endif
+	return result;
+}
+
+TEXTRUNE GetPriorUtfCharIndexed( CTEXTSTR pc, size_t *n )
+{
+	if( *n )
+	{
+		CTEXTSTR orig = pc + n[0];
+		CTEXTSTR tmp = orig;
+		TEXTRUNE result = GetPriorUtfChar( &tmp );
+		n[0] += tmp - orig;
+		return result;
+	}
+	return 0;
+}
+
 
 // Return the integer character from the string
 // using utf-8 or utf-16 decoding appropriately.  No more extended-ascii.

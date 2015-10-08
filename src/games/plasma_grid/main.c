@@ -10,6 +10,7 @@
 #include <salty_generator.h>
 #include "plasma.h"
 #include "grid_reader.h" 
+#include "dds_image.h"
 
 #define patch  1025
 //#define patch 65
@@ -92,17 +93,17 @@ void CPROC DrawPlasma( PTRSZVAL psv, PRENDERER render )
 		virtual_surface = 0;
 	if( !data )
 		return;
+
 	for( h = 0; h < surface->height; h++ )
 	{
 		output = _output + ( surface->height - h - 1 ) * surface->pwidth;
 
 		for( w = 0; w < surface->width; w++ )
 		{
-			RCOORD here = data[ h * surface->width + w ];
-			if( here > max )
-				max = here;
-			if( here < min )
-				min = here;
+			RCOORD here = data[ h * patch + w ];
+			plot( surface, w, h, ColorAverage( BASE_COLOR_BLACK,
+												 BASE_COLOR_RED, (here) * 1000, 1000 ) );
+#if 0
 			if( here <= 0.01 )
 				plot( surface, w, h, ColorAverage( BASE_COLOR_WHITE,
 												 BASE_COLOR_BLACK, here * 1000, 250 ) );
@@ -121,6 +122,7 @@ void CPROC DrawPlasma( PTRSZVAL psv, PRENDERER render )
 			else //if( here <= 4.0 / 4 )
 				plot( surface, w, h, ColorAverage( BASE_COLOR_WHITE,
 												 BASE_COLOR_BLACK, (here-0.99) * 10000, 100 ) );
+#endif
 			//lprintf( "%d,%d  %g", w, h, data[ h * surface->width + w ] );
 		}
 	}
@@ -143,12 +145,27 @@ static int CPROC KeyPlasma( PTRSZVAL psv, _32 key )
 	if( IsKeyPressed( key ) )
 	{
 		RCOORD coords[4];
-		coords[0] = SRG_GetEntropy( l.entropy, 5, FALSE ) / 132.0 + 0.5;
-		coords[1] = SRG_GetEntropy( l.entropy, 5, FALSE ) / 132.0 + 0.5;
-		coords[2] = SRG_GetEntropy( l.entropy, 5, FALSE ) / 132.0 + 0.5;
-		coords[3] = SRG_GetEntropy( l.entropy, 5, FALSE ) / 132.0 + 0.5;
-		PlasmaRender( l.plasma, coords );
-		Redraw( l.render );
+		if( KEY_CODE( key ) == KEY_W )
+		{
+			RCOORD *data = PlasmaReadSurface( l.plasma, l.ofs_x, l.ofs_y, 0 );
+			lprintf( "begin render" );
+			WriteImage( "plasma.dds", data, patch-1, patch-1, patch );
+		}
+		else if( KEY_CODE( key ) == KEY_R )
+		{
+			//RCOORD *data = PlasmaReadSurface( l.plasma, l.ofs_x, l.ofs_y, 0 );
+			//lprintf( "begin render" );
+			ReadImage( "TerrainNormal_Height.dds" );
+		}
+		else
+		{
+			coords[0] = SRG_GetEntropy( l.entropy, 5, FALSE ) / 132.0 + 0.5;
+			coords[1] = SRG_GetEntropy( l.entropy, 5, FALSE ) / 132.0 + 0.5;
+			coords[2] = SRG_GetEntropy( l.entropy, 5, FALSE ) / 132.0 + 0.5;
+			coords[3] = SRG_GetEntropy( l.entropy, 5, FALSE ) / 132.0 + 0.5;
+			PlasmaRender( l.plasma, coords );
+			Redraw( l.render );
+		}
 	}
 	return 1;
 }

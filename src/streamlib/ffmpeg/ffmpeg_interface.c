@@ -3234,7 +3234,11 @@ void audio_GetPlaybackDevices( PLIST *ppList )
 
 #define DEFAULT_SAMPLE_RATE (44100 / 4)
 
-#define DEFAULT_SAMPLE_SEGMENTS ( ( (DEFAULT_SAMPLE_RATE) + 159 ) / 160 )
+#define DEFAULT_SAMPLE_TIME_LENGTH 100
+#define DEFAULT_SAMPLE_SEGMENTS ( ( ( ( DEFAULT_SAMPLE_TIME_LENGTH * DEFAULT_SAMPLE_RATE )  \
+                                    / 1000 )  \
+                                  + 159 )     \
+                                / 160 ) 
 
 struct audio_device {
 	ALCdevice *device;
@@ -3596,7 +3600,9 @@ static PTRSZVAL CPROC ProcessPlaybackAudioFrame( PTHREAD thread )
 	#ifdef DEBUG_AUDIO_PACKET_READ
 					lprintf( WIDE("Found %d processed buffers... %d  %d"), 0, file->in_queue, file->out_of_queue );
 	#endif
+					LeaveCriticalSec( &l.cs_audio_out );
 					WakeableSleep( 250 );
+					EnterCriticalSec( &l.cs_audio_out );
 				}
 			} while( ( file->flags.paused && file->out_of_queue ) );
 	#endif

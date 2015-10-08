@@ -89,6 +89,7 @@ static void ReadEvent( void )
 			{
 
             int used = 0;
+            engine.key_characters = event->character;
 				if( event->count > 1 )
 				{
 					int n;
@@ -99,10 +100,15 @@ static void ReadEvent( void )
 					}
 				}
 				else
-					used = BagVidlibPureglSendKeyEvents( (event->key_pressed==AKEY_EVENT_ACTION_DOWN)?1:0, event->key_val, event->key_mods );
+				{
+					//used = BagVidlibPureglSendKeyEvents( (event->key_pressed==AKEY_EVENT_ACTION_DOWN)?1:0, event->key_val, event->key_mods );
+               lprintf( "Send key event..." );
+					used = BagVidlibPureglSendKeyEvents( event->key_pressed, event->key_val, event->key_mods );
+				}
 			}
 			engine.events.current_event = NULL;
-         event->finished = 1;
+			event->finished = 1;
+         sched_yield();
 		}
 }
 
@@ -140,7 +146,7 @@ static void* post_events( void*param )
 
 	while( 1 )
 	{
-		lprintf( "read from %d", engine.events.msgpipe[0] );
+		//lprintf( "read from %d", engine.events.msgpipe[0] );
       ReadEvent();
 	}
    return 0;
@@ -348,13 +354,17 @@ static int32_t engine_handle_input(struct android_app* app, AInputEvent* event)
 		return 1;
 		}
 	case AINPUT_EVENT_TYPE_KEY:
+      lprintf( "ignore is %d %p", engine->ignore_NDK_key_input, engine );
+		if( !engine->ignore_NDK_key_input )
 		{
 			int32_t key_val = AKeyEvent_getKeyCode(event);
 			//int32_t key_char = AKeyEvent_getKeyChar(event);
 			int32_t key_mods = AKeyEvent_getMetaState( event );
 			int32_t key_pressed = AKeyEvent_getAction( event );
 			int realmod = 0;
-         //lprintf( "key char is %d (%c)", key_char, key_char );
+			lprintf( "key char is val:%d mod:%d pressed:%d"
+                 , key_val,  key_mods, key_pressed  );
+
 			if( ( key_mods & 0x3000 ) == 0x3000 )
 				realmod |= KEY_MOD_CTRL;
 			if( ( key_mods & 0x12 ) == 0x12 )
@@ -375,6 +385,7 @@ static int32_t engine_handle_input(struct android_app* app, AInputEvent* event)
 				struct event_data my_event;
 				struct event_data *sent_event = &my_event;
 				my_event.type = 1;
+            my_event.character = (char*)&engine->key_text;
 				my_event.key_val = key_val;
 				my_event.key_mods = key_mods;
 				my_event.key_pressed = key_pressed;
@@ -393,8 +404,9 @@ static int32_t engine_handle_input(struct android_app* app, AInputEvent* event)
 
 				//return used;
 			}
-			break;
+			return 1;
 		}
+      break;
 	default:
 		LOGI( "Unhandled Motion Event ignored..." );
 		break;
@@ -519,7 +531,8 @@ extern int AndroidGetStatusMetric( void );
 
 char * AndroidGetCurrentKeyText( void )
 {
-   return (char*)&engine.key_text;
+   lprintf( "returning keys (%s)", engine.key_characters );
+   return (char*)engine.key_characters;
 }
 
 
@@ -570,11 +583,28 @@ static int findself( void )
 		maps = fopen( "/proc/self/maps", "rt" );
 		while( maps && fgets( buf, 256, maps ) )
 		{
-			unsigned long start;
-			unsigned long end;
-			sscanf( buf, "%lx", &start );
-			sscanf( buf+9, "%lx", &end );
+			unsigned long long start;
+			unsigned long long end;
+			char *libpath = strchr( buf, '/' );
+			char *split = strchr( buf, '-' );
+         if( !libpath )
+            continue;
+			if( ( split - buf ) > 8 )
+			{
+            engine.is_64 = 1;
+				sscanf( buf, "%llx", &start );
+				sscanf( split+1, "%llx", &end );
+			}
+			else
+			{
+            start = end = 0;
+				sscanf( buf, "%lx", &start );
+				sscanf( split+1, "%lx", &end );
+			}
 			//LOGI( "Map includes: %s", buf );
+         //LOGI( "strchr is %p %p", buf, split );
+			//LOGI( "I am %p looking between %10.10s %p %p %p and %10.10s %p %p %p", findself
+			//	 , buf, start, split + 1, end );
 			if( ((unsigned long)findself >= start ) && ((unsigned long)findself <= end ) )
 			{
             const char *filepath;
@@ -583,8 +613,8 @@ static int findself( void )
 				fclose( maps );
 				maps = NULL;
 
-				if( strlen( buf ) > 49 )
-				mypath = strdup( buf + 49 );
+				if( libpath )
+					mypath = strdup( libpath );
 				myext = strrchr( mypath, '.' );
 				myname = strrchr( mypath, '/' );
 				if( myname )
@@ -604,6 +634,7 @@ static int findself( void )
             return 1;
 			}
 		}
+      LOGI( "Finished processing" );
 		if( maps )
 			fclose( maps );
 	}
@@ -887,7 +918,7 @@ static void engine_handle_cmd(struct android_app* app, int32_t cmd) {
 		// first resume is not valid until gained focus (else resume during lock screen)
 		//case APP_CMD_RESUME:
 		// resume physics from now
-		LOGI( "Gain focus" );
+		//LOGI( "Gain focus" );
       engine->have_focus = 1;
       if( engine->state.opened )
 			engine->state.animating = 1;
@@ -913,7 +944,7 @@ static void engine_handle_cmd(struct android_app* app, int32_t cmd) {
       engine->resumed = 0;
 		break;
 	case APP_CMD_RESUME:
-		lprintf( "Resume..." );
+		//lprintf( "Resume..." );
 		if( BagVidlibPureglResumeDisplay )
 			BagVidlibPureglResumeDisplay();
       engine->resumed = 1;
@@ -956,7 +987,7 @@ int LooperProcessEvents( PTRSZVAL psvMode )
 		// to draw the next frame of animation.
 		while ((ident=ALooper_pollAll((psvMode || engine.state.animating) ? 0 : -1, NULL, &events, (void**)&source)) >= 0)
 		{
-         lprintf( "in looper..." );
+         //lprintf( "in looper..." );
 			// Process this event.
 			if (source != NULL)
 			{
@@ -980,7 +1011,7 @@ int LooperProcessEvents( PTRSZVAL psvMode )
 				ANativeActivity_finish(engine.app->activity);
 			}
 		}
-      lprintf( "left looper loop %d", ident );
+      //lprintf( "left looper loop %d", ident );
 		if (engine.state.animating) {
 				// Drawing is throttled to the screen update rate, so there
 			// is no need to do timing here.
@@ -1012,7 +1043,9 @@ void android_main(struct android_app* state) {
 	// Make sure glue isn't stripped.
 	app_dummy();
 
-	memset(&engine, 0, sizeof(engine));
+	// engine as global data will be 0 filled initially.
+   // don't do that.
+	//memset(&engine, 0, sizeof(engine));
 
 	engine.data_path = data_path;
 	engine.events = queue;
@@ -1028,12 +1061,6 @@ void android_main(struct android_app* state) {
 	engine.app = state;
 
    LOGI( "BEGIN ANDROID_MAIN" );
-	// Prepare to monitor accelerometer
- 	//engine.sensorManager = ASensorManager_getInstance();
-	//engine.accelerometerSensor = ASensorManager_getDefaultSensor(engine.sensorManager,
-	//			ASENSOR_TYPE_ACCELEROMETER);
-	//engine.sensorEventQueue = ASensorManager_createEventQueue(engine.sensorManager,
-	//			state->looper, LOOPER_ID_USER, NULL, NULL);
 
 	if (state->savedState != NULL) {
 		// We are starting with a previous saved state; restore from it.
@@ -1079,6 +1106,7 @@ extern "C"
 
 	}
 
+
 	JNIEXPORT void JNICALL
 
 		//Java_InterShell_1console_update_1keyboard_1size
@@ -1112,13 +1140,60 @@ extern "C"
 		Java_org_d3x0r_sack_core_NativeStaticLib_setDataPath(JNIEnv * env, jobject obj, jstring package)
 	{
 		//LOGI( "SETTING PACKAGE: %s", package );
-		// there is a release function for this... so this will be always valid.
+		// there is a release func	tion for this... so this will be always valid.
 		// restart should change this?
       if( !engine.data_path )
 			engine.data_path = (*env)->GetStringUTFChars( env, package , NULL );
 		//LOGI( "resulted with : %s", engine.data_path );
 
 	}
+
+	JNIEXPORT void JNICALL
+		Java_org_d3x0r_sack_core_NativeStaticLib_disableNdkKeyInput(JNIEnv * env, jobject obj )
+	{
+      lprintf( "Setting ignore to TRUE  %p", &engine );
+      engine.ignore_NDK_key_input = TRUE;
+	}
+
+	JNIEXPORT void JNICALL
+		Java_org_d3x0r_sack_core_NativeStaticLib_sendKeyEvent(JNIEnv * env, jobject obj
+																			  , jint key_pressed
+																			  , jint key_val
+																			  , jint key_scan
+																			  , jint key_mods
+																			  , jstring keydata)
+	{
+      CTEXTSTR keystr;
+		// there is a release function for this... so this will be always valid.
+		// restart should change this?
+      
+		keystr = (*env)->GetStringUTFChars( env, keydata, NULL );
+		LOGI( "Key stroke with %d %d %d %d  %s", key_pressed, key_val, key_scan, key_mods, keystr );
+
+		{
+			struct event_data my_event;
+			struct event_data *sent_event = &my_event;
+
+			my_event.type = 1;
+			my_event.key_val = key_val;
+         my_event.key_scan = key_scan;
+			my_event.key_mods = key_mods;
+			my_event.key_pressed = key_pressed;
+			my_event.character = keystr;
+			my_event.count = 1;
+
+			my_event.finished = 0;
+
+			write( engine.events.msgpipe[1], &sent_event, sizeof( sent_event ) );
+			while( !my_event.finished )
+				sched_yield();
+		}
+
+      (*env)->ReleaseStringUTFChars( env, keydata, keystr );
+		//LOGI( "resulted with : %s", engine.data_path );
+
+	}
+
 
 	JNIEXPORT jint JNICALL
 		Java_org_d3x0r_sack_core_NativeStaticLib_loadSharedLibrary(JNIEnv * env, jobject obj, jstring library )

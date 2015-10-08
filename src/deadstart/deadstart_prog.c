@@ -68,7 +68,7 @@ PRELOAD( _RunDeadstart )
 #   ifdef __GNUC__
 	{
 		// constructor order is not guaranteed by object order...
-		extern paste2( TARGET_LABEL,_RegisterStartups)( void );
+		extern void paste2( TARGET_LABEL,_RegisterStartups)( void );
 		paste2( TARGET_LABEL, _RegisterStartups)();
 	}
 #   endif

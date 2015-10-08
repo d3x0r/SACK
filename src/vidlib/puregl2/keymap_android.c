@@ -52,7 +52,8 @@ typedef struct AndroidKeymapKeyDefine {
 
 
 PSIKEYDEFINE AndroidKeyDefs[256] =
-                     { [AKEYCODE_DEL]={WIDE("back"),WIDE("backspace"),0,KEYDATA("\b","\b") }
+                     { [0]={WIDE("wide key"),WIDE("wide key"),0,KEYDATA("","") }
+                      ,[AKEYCODE_DEL]={WIDE("back"),WIDE("backspace"),0,KEYDATA("\b","\b") }
                       , [KEY_TAB]={WIDE("tab"),0,0,KEYDATA("\t","\t") }
                       , [AKEYCODE_ENTER]={WIDE("return"), WIDE("enter"),0,KEYDATA8("\n") }
                       //, [AKEYCODE_PAUSE]={WIDE("pause"),0,KDF_NODEFINE }
@@ -160,10 +161,10 @@ static struct keymap_state
 
 //----------------------------------------------------------------------------
 
-TEXTCHAR  GetKeyText (int key)
+const TEXTCHAR * GetKeyText (int key)
 {
    if( l.current_key_text )
-		return l.current_key_text[0];
+		return l.current_key_text;
    return 0;
 }
 

@@ -177,7 +177,7 @@ void RenderTextLine(
 		if( !pText )
 			lprintf( WIDE("Okay no text to show... end up filling line blank.") );
 #endif
-		while( pText && nChar < pCurrentLine->nToShow )
+		while( pText && SUS_LT( nChar, int, pCurrentLine->nToShow, INDEX ) )
 		{
 			size_t nLen;
 			TEXTCHAR *text = GetText( pText );
@@ -194,7 +194,7 @@ void RenderTextLine(
 #ifdef DEBUG_HISTORY_RENDER
 			lprintf( WIDE("start: %d  len: %d"), nShown, nLen );
 #endif
-			while( nShown < nLen )
+			while( SUS_LT( nShown, int, nLen, size_t ) )
 			{
 #ifdef DEBUG_HISTORY_RENDER
 				lprintf( WIDE("nShown < nLen... char %d len %d toshow %d"), nChar, nLen, pCurrentLine->nToShow );

@@ -256,12 +256,12 @@ GLWindow * createGLWindow(struct display_camera *camera)
 #endif
 
 
-TEXTCHAR  GetKeyText (int key)
+const TEXTCHAR*  GetKeyText (int key)
 {
 	int used = 0;
 	CTEXTSTR result = SACK_Vidlib_GetKeyText( IsKeyPressed( key ), KEY_CODE( key ), &used );
 	if( used )
-		return result[0];
+		return result;
 	return 0;
 }
 
@@ -324,7 +324,9 @@ void InvokeMouseEvent( PRENDERER hVideo, GLWindow *x11_gl_window  )
             toggle = 1-toggle;
             x11_gl_window->mouse_x = hVideo->WindowPos.cx/2;
             x11_gl_window->mouse_y = hVideo->WindowPos.cy/2;
-            //lprintf( WIDE("Set curorpos..") );
+				lprintf( WIDE("Set curorpos.. %d,%d")
+						 , x11_gl_window->mouse_x, x11_gl_window->mouse_y
+						 );
             XWarpPointer( x11_gl_window->dpy, None
                          , XRootWindow( x11_gl_window->dpy, 0)
                          , 0, 0, 0, 0
@@ -497,9 +499,9 @@ PTRSZVAL CPROC ProcessDisplayMessages( PTHREAD thread )
 			//lprintf( "is it %Lx?", GetThreadID( thread ) );
 			if( x11_gl_window && x11_gl_window->dpy )
 			{
+				did_one = camera;
 				while( XPending( x11_gl_window->dpy ) > 0 )
 				{
-					did_one = camera;
 					XNextEvent(x11_gl_window->dpy, &event);
 					//if( l.flags.bLogMessageDispatch )
 					//	lprintf( WIDE("(E)Got message:%d"), event.type );
@@ -519,8 +521,10 @@ PTRSZVAL CPROC ProcessDisplayMessages( PTHREAD thread )
 			
 			
 		}
-		//if( !did_one )
-		Relinquish();
+		if( !did_one )
+			WakeableSleep( 1000 );
+      else
+			Relinquish();
 	}
 	return 1;
 }

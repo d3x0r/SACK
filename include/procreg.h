@@ -649,7 +649,7 @@ PROCREG_PROC( int, ReleaseRegisteredFunctionEx )( PCLASSROOT root
 	static returntype __DefineRegistryMethod(task,name,classtype,classbase,methodname,returntype,argtypes,line)
 
 #define DefineRegistryMethod(task,name,classtype,classbase,methodname,returntype,argtypes)  \
-	CPROC __DefineRegistryMethod(task,name,classtype,classbase,methodname,returntype,argtypes,__LINE__)
+	__DefineRegistryMethod(task,name,classtype,classbase,methodname,returntype,argtypes,__LINE__)
 
 // this macro is used for ___DefineRegistryMethodP. Because this is used with complex names
 // an extra define wrapper of priority_preload must be used to fully resolve paramters.

@@ -237,8 +237,8 @@ int CPROC KeyEventProc( PCOMMON pc, _32 key )
 	// opened sentience...
 	if( console )
 	{
-		TEXTCHAR character = GetKeyText( key );
-		DECLTEXT( stroke, WIDE(" ") ); // single character ...
+		const TEXTCHAR *character = GetKeyText( key );
+		DECLTEXT( stroke, WIDE("                                       ") ); // single character ...
 //cpg27dec2006 console\psicon.c(232): Warning! W202: Symbol 'bOutput' has been defined, but not referenced
 //cpg27dec2006 		int bOutput = FALSE;
 		//Log1( "Key: %08x", key );
@@ -251,8 +251,10 @@ int CPROC KeyEventProc( PCOMMON pc, _32 key )
 		// here is where we evaluate the curent keystroke....
 		if( character )
 		{
-			stroke.data.data[0] = character;
-			stroke.data.size = 1;
+			int n;
+         for( n = 0; character[n]; n++ )
+				stroke.data.data[n] = character[n];
+			stroke.data.size = n;
 		}
 		else
 			stroke.data.size = 0;

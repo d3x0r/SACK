@@ -488,7 +488,7 @@ static void OwnCommonMouse( PSI_CONTROL pc, int bOwn )
 	PPHYSICAL_DEVICE pf = pfc->device;
 //#ifdef DETAILED_MOUSE_DEBUG
 //	if( g.flags.bLogDetailedMouse )
-//		lprintf( WIDE( "Own Common Mouse called on %p %s" ), pc, bOwn?WIDE( "OWN" ):WIDE( "release" ) );
+		//lprintf( WIDE( "Own Common Mouse called on %p %s" ), pc, bOwn?WIDE( "OWN" ):WIDE( "release" ) );
 //#endif
 	if( pf )
 	{
@@ -1184,17 +1184,20 @@ static int CPROC FirstFrameMouse( PPHYSICAL_DEVICE pf, S_32 x, S_32 y, _32 b, in
 				}
 				pc->pressed_caption_button = NULL;
 			}
-			if( do_update )
+			if( do_update && !pc->flags.bDestroy )
 			{
 				UpdateCaption( pf, pc );
 			}
 		}
-		pf->flags.bDragging = 0;
-		pf->flags.bSizing = 0;
-		pf->flags.bSizing_top = 0;
-		pf->flags.bSizing_left = 0;
-		pf->flags.bSizing_right = 0;
-		pf->flags.bSizing_bottom = 0;
+		if( !pc->flags.bDestroy )
+		{
+			pf->flags.bDragging = 0;
+			pf->flags.bSizing = 0;
+			pf->flags.bSizing_top = 0;
+			pf->flags.bSizing_left = 0;
+			pf->flags.bSizing_right = 0;
+			pf->flags.bSizing_bottom = 0;
+		}
 	}
 	else if( !(pf->_b & MK_LBUTTON )
 				&& ( b & MK_LBUTTON ) ) // check first down on dialog to drag
@@ -1522,6 +1525,10 @@ static int CPROC FirstFrameMouse( PPHYSICAL_DEVICE pf, S_32 x, S_32 y, _32 b, in
 	else // unhandled mouse button transition/state
 	{
 		int on_button = 0;
+		if( BREAK_LASTBUTTON( b, pf->_b ) )
+		{
+			OwnCommonMouse( pc, 0 );
+		}
 #ifdef DETAILED_MOUSE_DEBUG
 		if( g.flags.bLogDetailedMouse )
 			Log( WIDE("release button drag frame on caption") );
@@ -2168,7 +2175,9 @@ int CPROC AltFrameMouse( PTRSZVAL psvCommon, S_32 x, S_32 y, _32 b )
 		}
 	retry1:
 		// mouseincurrent invokes mouse...
-		if( pf->pCurrent && !( result = InvokeMouseMethod( pc, x, y, b ) ) )
+		if( pf->pCurrent 
+			&& !( result = InvokeMouseMethod( pc, x, y, b ) )
+			&& !pc->flags.bDestroy )
 		{
 #ifdef DETAILED_MOUSE_DEBUG
 			if( g.flags.bLogDetailedMouse )

@@ -49,6 +49,7 @@ IMAGE_NAMESPACE
 static void OnFirstDraw3d( WIDE( "@00 PUREGL Image Library" ) )( PTRSZVAL psv )
 {
 	GLboolean tmp;
+   CTEXTSTR val;
 	l.glActiveSurface = (struct glSurfaceData *)psv;
 
 #if !defined( USE_GLES2 )
@@ -60,6 +61,13 @@ static void OnFirstDraw3d( WIDE( "@00 PUREGL Image Library" ) )( PTRSZVAL psv )
 	tmp = 123;
 	glGetBooleanv( GL_SHADER_COMPILER, &tmp );
 	lprintf( WIDE("Shader Compiler = %d"), tmp );
+	{
+      int high, low;
+		val = glGetString(GL_SHADING_LANGUAGE_VERSION);
+		sscanf( val, "%d.%d", &high, &low );
+      l.glslVersion = high * 100 + low;
+	}
+	lprintf( "Shader Version:%s", glGetString(GL_SHADING_LANGUAGE_VERSION) );
 	if( !tmp )
 	{
 		lprintf( WIDE("No Shader Compiler") );

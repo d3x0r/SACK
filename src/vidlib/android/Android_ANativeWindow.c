@@ -1,6 +1,7 @@
 #define DEBUG_CREATE_SURFACE
 //#define DEBUG_OUTPUT
 //#define DEBUG_SCREEN_CHANGES
+//#define DEBUG_SCREEN_OUTPUT
 
 #include "Android_local.h"
 
@@ -691,15 +692,21 @@ static void CPROC AndroidANW_UpdateDisplayPortionEx( PRENDERER r, S_32 x, S_32 y
 			if( a == 0 )
 			{
 				//lprintf( "buffer stride result is %d    %d", buffer.stride, a );
+#ifdef DEBUG_SCREEN_OUTPUT
 				lprintf( "---V Update screen %p %p %d,%d  %d,%d   %d,%d   %d,%d"
 						 , r, l.top, out_x, out_y, out_y+width, out_y+height
 						 , bounds.left, bounds.top, bounds.right, bounds.bottom
 						 );
+#endif
 				//lprintf( "the only one..." );
 				UpdateDisplayPortionRecurse( &buffer, l.top, out_x, out_y, width, height );
+#ifdef DEBUG_SCREEN_OUTPUT
 				lprintf( "---^ And the final unlock...." );
+#endif
 				ANativeWindow_unlockAndPost(l.displayWindow);
-            lprintf( "is there a lock state there?" );
+#ifdef DEBUG_SCREEN_OUTPUT
+				lprintf( "is there a lock state there?" );
+#endif
 				break;
 			}
 			else

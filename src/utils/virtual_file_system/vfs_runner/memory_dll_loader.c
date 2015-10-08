@@ -6,18 +6,21 @@
 #include <Psapi.h>
 #endif
 
+#ifdef __LINUX__
+#include <elf.h>
+#endif
 
 #include "self_compare.h"
 
 #define Seek(a,b) (((PTRSZVAL)a)+(b))
 
 #ifdef WIN32
-#ifndef IMAGE_REL_BASED_ABSOLUTE
-#define  IMAGE_REL_BASED_ABSOLUTE 0
-#endif
-#ifndef IMAGE_REL_BASED_DIR64
-#define IMAGE_REL_BASED_DIR64 10
-#endif
+# ifndef IMAGE_REL_BASED_ABSOLUTE
+#    define  IMAGE_REL_BASED_ABSOLUTE 0
+#  endif
+#  ifndef IMAGE_REL_BASED_DIR64
+#    define IMAGE_REL_BASED_DIR64 10
+#  endif
 
 PTRSZVAL ConvertVirtualToPhysical( PIMAGE_SECTION_HEADER sections, int nSections, PTRSZVAL base )
 {
@@ -139,10 +142,10 @@ void DumpSystemMemory( POINTER p_match )
 	}
 }
 
-/* This returns the entry point to the library 
-maybe it returns the library base... */
 POINTER LoadLibraryFromMemory( CTEXTSTR name, POINTER block, size_t block_len, int library, void (*Callback)(CTEXTSTR library) )
 {
+/* This returns the entry point to the library 
+maybe it returns the library base... */
 	static int generation;
 	PTRSZVAL source_memory_length = block_len;
 	POINTER source_memory = block;
@@ -524,5 +527,128 @@ PRIORITY_PRELOAD( NetworkLoaderTester, NAMESPACE_PRELOAD_PRIORITY + 1 )
 PUBLIC( void, StupidUselessWatcomExport )( void )
 {
 }
+
 #endif
 
+#ifdef __LINUX__
+
+#define PAGE_MASK 0xFFF
+
+#ifdef __64__
+#  define ElfN_Ehdr Elf64_Ehdr
+#  define ElfN_Phdr Elf64_Phdr
+#else
+#  define ElfN_Ehdr Elf32_Ehdr
+#  define ElfN_Phdr Elf32_Phdr
+#endif
+
+
+POINTER LoadLibraryFromMemory( CTEXTSTR name, POINTER block, size_t block_len, int library, void (*Callback)(CTEXTSTR library) )
+{
+	ElfN_Ehdr *elf = (ElfN_Ehdr*)block;
+	ElfN_Phdr *p;
+   void *realMemory;
+   int n;
+   POINTER entry_point;
+	if( ( elf->e_ident[EI_MAG0] != ELFMAG0 )
+	  || ( elf->e_ident[EI_MAG1] != ELFMAG1 )
+	  || ( elf->e_ident[EI_MAG2] != ELFMAG2 )
+	  || ( elf->e_ident[EI_MAG3] != ELFMAG3 ) )
+		return NULL;
+#if defined( __64__ )
+	if( elf->e_ident[EI_CLASS] != ELFCLASS64 )
+		return NULL;
+#else
+	if( elf->e_ident[EI_CLASS] != ELFCLASS32 )
+		return NULL;
+#endif
+#if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
+	if( elf->e_ident[EI_DATA] != ELFDATA2LSB )
+		return NULL;
+#endif
+#if __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
+	if( elf->e_ident[EI_DATA] != ELFDATA2MSB )
+		return NULL;
+#endif
+	switch( elf->e_type )
+	{
+	case ET_REL:
+		lprintf( "relocatable file" );
+		break;
+	case ET_EXEC:
+		lprintf( "executable (different entry point arguments)" );
+		break;
+	case ET_DYN:
+		lprintf( "shared object (different entry point arguments)" );
+		break;
+	case ET_CORE:
+		lprintf( "unsupported: core file" );
+		return NULL;
+	default:
+		lprintf( "unsupported: unknown object type" );
+		return NULL;
+	}
+	entry_point = (POINTER)( (PTRSZVAL)elf->e_entry + (PTRSZVAL)block );
+	p = (ElfN_Phdr*)( (PTRSZVAL)block + elf->e_phoff );
+	// transfer code in memory-file to virtual address space.
+	{
+		size_t minVirt;
+		size_t newSize;
+		size_t maxVirt = 0;
+      void *realMemory;
+		for( n = 0; n < elf->e_phnum; n++ )
+		{
+			switch( p->p_type )
+			{
+			case PT_INTERP:
+            // cannot load a program; already have a program.
+            return NULL;
+			case PT_LOAD:
+				{
+					if( n == 0 )
+						minVirt = p[n].p_vaddr;
+					else
+						if( p[n].p_vaddr < minVirt )
+                     minVirt = p[n].p_vaddr;
+					newSize = p[n].p_vaddr + p[n].p_memsz;
+					if( newSize > maxVirt )
+                  maxVirt = newSize;
+					break;
+				}
+			}
+		}
+#if 0
+		realMemory = mmap( NULL
+							  , ( maxVirt - minVirt ) + ( minVirt & PAGE_MASK )
+							  , 
+							  , MAP_PRIVATE | MAP_ANONYMOUS
+							  , -1, 0 );
+
+		for( n = 0; n < elf->e_phnum; n++ )
+		{
+			switch( p->p_type )
+			{
+			case PT_LOAD:
+				{
+					mmap( ( (PTRSZVAL)realMemory + ( p[n].p_vaddr - minVirt ) ) & ~PAGE_MASK
+						 , p[n].p_memsz + ( ( (PTRSZVAL)realMemory + ( p[n].p_vaddr - minVirt ) ) & PAGE_MASK )
+						 , p[n].p_flags
+						 , MAP_PRIVATE | MAP_ANONYMOUS
+						 , -1, 0 );
+					memcpy( (void*)((PTRSZVAL)realMemory + ( p[n].p_vaddr - minVirt ) )
+							, (void*)((PTRSZVAL)block + p[n].p_offset )
+							, p[n].p_filesz );
+					break;
+				}
+			}
+		}
+		munmap( realMemory, maxVirt - minVirt );
+#endif
+	}
+	// do relocations as required
+	{
+
+	}
+
+}
+#endif

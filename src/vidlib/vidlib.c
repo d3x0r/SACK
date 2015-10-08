@@ -661,7 +661,7 @@ RENDER_PROC (void, UpdateDisplayPortionEx)( PVIDEO hVideo
 							}
 
 							if( l.flags.bLogWrites )
-								lprintf( WIDE( "Output %d,%d %d,%d" ), x, y, w, h);
+								_lprintf(DBG_RELAY)( WIDE( "Output %d,%d %d,%d" ), x, y, w, h);
 
 #ifndef NO_TRANSPARENCY
 							if( hVideo->flags.bLayeredWindow )
@@ -1030,7 +1030,8 @@ BOOL CreateDrawingSurface (PVIDEO hVideo)
 		bmInfo.bmiHeader.biYPelsPerMeter = 0;
 		bmInfo.bmiHeader.biClrUsed = 0;
 		bmInfo.bmiHeader.biClrImportant = 0;
-
+		if( l.flags.bLogWrites )
+			lprintf( "Create new DIB section.." );
 		hBmNew = CreateDIBSection (NULL, &bmInfo, DIB_RGB_COLORS, (void **) &pBuffer, NULL,	// hVideo (hMemView)
 											0); // offset DWORD multiple
 
@@ -1080,6 +1081,7 @@ BOOL CreateDrawingSurface (PVIDEO hVideo)
 			hVideo->pImage =
 				RemakeImage( hVideo->pImage, pBuffer, bmInfo.bmiHeader.biWidth,
 								 bmInfo.bmiHeader.biHeight);
+			hVideo->pImage->flags |= IF_FLAG_FINAL_RENDER | IF_FLAG_IN_MEMORY;
 			if (!hVideo->hDCBitmap) // first time ONLY...
 				hVideo->hDCBitmap = CreateCompatibleDC ((HDC)hVideo->hDCOutput);
 			hPriorBm = SelectObject ((HDC)hVideo->hDCBitmap, hBmNew);
@@ -2633,14 +2635,18 @@ WM_DROPFILES
 				 pwp->cy != hVideo->pWindowPos.cy ) ) ||
 			  hVideo->flags.bForceSurfaceUpdate )
 			{
-				hVideo->flags.bForceSurfaceUpdate = 0;
 				hVideo->pWindowPos.cx = pwp->cx;
 				hVideo->pWindowPos.cy = pwp->cy;
 #ifdef LOG_DISPLAY_RESIZE
 				lprintf( WIDE( "Resize happened, recreate drawing surface..." ) );
 #endif
-				CreateDrawingSurface (hVideo);
+				CreateDrawingSurface( hVideo );
+				// make sure this is set so a query can see if draw is required
+				// even if the surface didn't change size or the pointer.
+				hVideo->flags.bForceSurfaceUpdate = 1;
+				SendApplicationDraw( hVideo );
 				// ??
+				hVideo->flags.bForceSurfaceUpdate = 0;
 			}
 			LeaveCriticalSec( &hVideo->cs );
 
@@ -3034,6 +3040,10 @@ WM_DROPFILES
 	case WM_SYSCOMMAND:
 		switch (wParam)
 		{
+		case SC_RESTORE:
+			hVideo = (PVIDEO) GetWindowLongPtr (hWnd, WD_HVIDEO);
+			SendApplicationDraw( hVideo );
+			break;
 		case SC_KEYMENU:
 			if( lParam != ' ' )
 				return 0;
@@ -3239,10 +3249,11 @@ WM_DROPFILES
 				hVideo->hWndOutput = hWnd;
 				hVideo->pThreadWnd = MakeThread();
 
-				hVideo->flags.bForceSurfaceUpdate = 0;
 				CreateDrawingSurface (hVideo);
+				hVideo->flags.bForceSurfaceUpdate = 0;
 				hVideo->flags.bReady = TRUE;
-				WakeThread( hVideo->thread );
+				if( hVideo->thread ) // if someone is waiting...
+					WakeThread( hVideo->thread );
 			}
 #ifdef LOG_OPEN_TIMING
 			//lprintf( WIDE( "Complete WM_CREATE" ) );
@@ -4093,39 +4104,42 @@ PRIORITY_ATEXIT( RemoveKeyHook, 100 )
 }
 #endif
 
-RENDER_PROC (TEXTCHAR, GetKeyText) (int key)
+RENDER_PROC (const TEXTCHAR *, GetKeyText) (int key)
 {
 	int c;
-	char ch[5];
-	if( key & KEY_MOD_DOWN )
-		return 0;
-	key ^= 0x80000000;
+	WCHAR wch[15];
+	static char *ch;
 
+	//if( key & KEY_MOD_DOWN )
+	//return 0;
+	key ^= 0x80000000;
+	//LogBinary( l.kbd.key, 256 );
 	c =  
 #ifndef UNDER_CE
-		ToAscii (key & 0xFF, ((key & 0xFF0000) >> 16) | (key & 0x80000000),
-					l.kbd.key, (unsigned short *) ch, 0);
+		ToUnicode (key & 0xFF, ((key & 0xFF0000) >> 16) | (key & 0x80000000),
+					l.kbd.key,  wch, 15, 0);
+	if( c > 0 )
+	{
+		if( ch )
+			Deallocate( char *, ch );
+		wch[c] = 0;
+		ch = WcharConvertExx( wch, c DBG_SRC );
+	}
+	else
+		return 0;
+		//ToAscii (key & 0xFF, ((key & 0xFF0000) >> 16) | (key & 0x80000000),
+		//			l.kbd.key, (unsigned short *) ch, 0);
 #else
 		key;
 #endif
 	if (!c)
 	{
 		// check prior key bindings...
-		//printf( WIDE("no translation\n") );
-		return 0;
-	}
-	else if (c == 2)
-	{
-		//printf( WIDE("Key Translated: %d %d\n"), ch[0], ch[1] );
-		return 0;
-	}
-	else if (c < 0)
-	{
-		//printf( WIDE("Key Translation less than 0\n") );
+		lprintf( WIDE("no translation\n") );
 		return 0;
 	}
 	//printf( WIDE("Key Translated: %d(%c)\n"), ch[0], ch[0] );
-	return ch[0];
+	return ch;
 }
 
 void CPROC Vidlib_SetDisplayFullScreen( PRENDERER hVideo, int target_display )
@@ -4638,14 +4652,12 @@ RENDER_PROC (void, SizeDisplay) (PVIDEO hVideo, _32 w, _32 h)
 	if( hVideo->flags.bLayeredWindow )
 	{
 		// need to remake image surface too...
+		hVideo->flags.bForceSurfaceUpdate = 1;
 		SetWindowPos (hVideo->hWndOutput, hVideo->pWindowPos.hwndInsertAfter
 					, 0, 0
 					, hVideo->flags.bFull ?w:(w+l.WindowBorder_X)
 					, hVideo->flags.bFull ?h:(h + l.WindowBorder_Y)
 					, SWP_NOMOVE|SWP_NOACTIVATE);
-		CreateDrawingSurface (hVideo);
-		if( hVideo->flags.bShown )
-			UpdateDisplay( hVideo );
 	}
 	else
 	{
@@ -4769,7 +4781,8 @@ RENDER_PROC (void, MoveSizeDisplay) (PVIDEO hVideo, S_32 x, S_32 y, S_32 w,
 #ifdef LOG_DISPLAY_RESIZE
 	lprintf( WIDE( "move and size display." ) );
 #endif
-	hVideo->flags.bForceSurfaceUpdate = 1;
+	if( !( moveflags & SWP_NOSIZE ) )
+		hVideo->flags.bForceSurfaceUpdate = 1;
 	SetWindowPos (hVideo->hWndOutput, hVideo->pWindowPos.hwndInsertAfter
 				, hVideo->pWindowPos.x
 				, hVideo->pWindowPos.y
@@ -5603,6 +5616,13 @@ void MarkDisplayUpdated( PRENDERER renerer )
 
 }
 
+LOGICAL IsDisplayRedrawForced( PRENDERER renderer )
+{
+	if( renderer )
+		return renderer->flags.bForceSurfaceUpdate;
+	return FALSE;
+}
+
 void CPROC SetDisplayCursor( CTEXTSTR nCursor )
 {
 	if( l.old_cursor != nCursor )
@@ -5692,7 +5712,7 @@ static RENDER_INTERFACE VidInterface = { InitDisplay
 													, NULL /* is instanced */
 													, NULL /* render allows copy (not remote network render) */
 													, SetDisplayCursor 
-
+													, IsDisplayRedrawForced
 };
 
 #undef GetDisplayInterface

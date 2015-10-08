@@ -265,7 +265,7 @@ static int RenderRelationLines( PSI_CONTROL pc, Image surface, PLISTITEM pli, in
 		{
 			do_hline( surface, y, x, x + ((pli->height*1.75)/2)-1, basecolor(pc)[SHADE] );
 			do_vline( surface, x, ymin, y, basecolor(pc)[SHADE] );
-		}
+		}	
 	}
 	pliNextUpLevel = pli;
 

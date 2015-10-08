@@ -17,7 +17,7 @@ typedef struct task_tag
 		//BIT_FIELD bImage : 1;
 		//BIT_FIELD bUpdated : 1; // key modified...
 		BIT_FIELD bLaunchAt : 1;
-		BIT_FIELD bLaunchWhenCallerUp : 1;
+		BIT_FIELD bLaunchWhenNetworkDriveUp : 1;
 		BIT_FIELD bAutoLaunch : 1;
 		BIT_FIELD bExclusive : 1;
 		BIT_FIELD bOneLaunch : 1;  // not same as exclusive, can launch in parallel with other things.
@@ -63,7 +63,7 @@ void DestroyTask( PLOAD_TASK *ppTask );
 
 //void CPROC RunATask( PTRSZVAL psv );
 //void KillSpawnedPrograms( void );
-int LaunchAutoTasks( int bCaller );
+int LaunchAutoTasks( int bNetwork );
 
 
 

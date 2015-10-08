@@ -52,7 +52,8 @@ typedef struct AndroidKeymapKeyDefine {
 
 
 PSIKEYDEFINE AndroidKeyDefs[256] =
-                     { [AKEYCODE_DEL]={WIDE("back"),WIDE("backspace"),0,KEYDATA("\b","\b") }
+                     { [0]={WIDE("wide key"),WIDE("wide key"),0,KEYDATA("","") }
+                      ,[AKEYCODE_DEL]={WIDE("back"),WIDE("backspace"),0,KEYDATA("\b","\b") }
                       , [KEY_TAB]={WIDE("tab"),0,0,KEYDATA("\t","\t") }
                       , [AKEYCODE_ENTER]={WIDE("return"), WIDE("enter"),0,KEYDATA8("\n") }
                       //, [AKEYCODE_PAUSE]={WIDE("pause"),0,KDF_NODEFINE }
@@ -165,10 +166,10 @@ static struct keymap_state
 
 //----------------------------------------------------------------------------
 
-TEXTCHAR  AndroidANW_GetKeyText(int key)
+const TEXTCHAR * AndroidANW_GetKeyText(int key)
 {
    if( keymap_local.current_key_text )
-		return keymap_local.current_key_text[0];
+		return keymap_local.current_key_text;
    return 0;
 }
 
@@ -181,7 +182,7 @@ int SACK_Vidlib_SendKeyEvents( int pressed, int key_index, int key_mods )
 	int mod = keymap_local.flags.bShifted?1:0;
 	{
 		int result = 0;
-		//Log1( WIDE("Keyfunc = %d"), KeyDefs[key_index].op[mod].bFunction );
+		Log1( WIDE("Keyfunc = %d"), AndroidKeyDefs[key_index].op[mod].bFunction );
 		switch( AndroidKeyDefs[key_index].op[mod].bFunction )
 		{
 #undef KEYSHIFT
@@ -198,7 +199,7 @@ int SACK_Vidlib_SendKeyEvents( int pressed, int key_index, int key_mods )
 			{
 				//keymap_local.current_key_text = AndroidKeyDefs[key_index].op[mod].pStroke;
 				keymap_local.current_key_text = keymap_local.get_key_text();
-				//lprintf( "key text becomes :%s", keymap_local.current_key_text );
+				lprintf( "key text becomes :%s", keymap_local.current_key_text );
 			}
 			used = 1;
 			bOutput = 1;
@@ -216,7 +217,7 @@ int SACK_Vidlib_SendKeyEvents( int pressed, int key_index, int key_mods )
 					| ( key_index & 0xFF ) << 16
 					| ( key_index )
 					;
-            //lprintf( "send app key %08x", normal_key );
+            lprintf( "send app key %08x", normal_key );
 				used |= l.hVidVirtualFocused->key_callback( l.hVidVirtualFocused->psv_key_callback, normal_key );
 			}
 		}
@@ -248,12 +249,15 @@ int SACK_Vidlib_GetStatusMetric( void )
 	return 50;
 }
 
-int SACK_Vidlib_NewGetKeyText( void )
+
+/*
+ char * SACK_Vidlib_NewGetKeyText( void )
 {
 	if(  keymap_local.get_key_text )
 		return keymap_local.get_key_text( );
 	return ;
 }
+*/
 
 void SACK_Vidlib_ShowInputDevice( void )
 {

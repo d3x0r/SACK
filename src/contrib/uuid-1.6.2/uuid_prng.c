@@ -52,6 +52,17 @@ struct prng_st {
     long   cnt; /* time resolution compensation counter */
 };
 
+#ifdef __ANDROID_OLD_PLATFORM_SUPPORT__
+static __inline__ void my_srand(unsigned int __s) {
+    srand48(__s);
+}
+static __inline__ int my_rand(void) {
+    return (int)lrand48();
+}
+#define rand()  my_rand()
+#define srand(a) my_srand(a)
+#endif
+
 prng_rc_t prng_create(prng_t **prng)
 {
 #if !defined(WIN32)

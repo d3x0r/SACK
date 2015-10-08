@@ -1,3 +1,4 @@
+#define WINFILE_COMMON_SOURCE
 #define FIX_RELEASE_COM_COLLISION
 #include <stdhdrs.h>
 #undef DeleteList
@@ -273,6 +274,14 @@ TEXTSTR ExpandPathEx( CTEXTSTR path, struct file_system_interface *fsi )
 				CTEXTSTR here;
 				size_t len;
 				here = GetProgramPath();
+				tmp_path = NewArray( TEXTCHAR, len = ( StrLen( here ) + StrLen( path ) ) );
+				snprintf( tmp_path, len, WIDE( "%s/%s" ), here, path + 2 );
+			}
+			else if( ( path[0] == '~' ) && ( ( path[1] == '/' ) || ( path[1] == '\\' ) ) )
+			{
+				CTEXTSTR here;
+				size_t len;
+				here = OSALOT_GetEnvironmentVariable("HOME");
 				tmp_path = NewArray( TEXTCHAR, len = ( StrLen( here ) + StrLen( path ) ) );
 				snprintf( tmp_path, len, WIDE( "%s/%s" ), here, path + 2 );
 			}
@@ -1001,7 +1010,7 @@ FILE * sack_fopenEx( INDEX group, CTEXTSTR filename, CTEXTSTR opts, struct file_
 		{
 			if( mount && group == 0 )
 			{
-				file->fullname = file->name;
+				file->fullname = StrDup( file->name );
 				if( l.flags.bLogOpenClose )
 					lprintf( "full is %s", file->fullname );
 			}
@@ -1022,6 +1031,7 @@ FILE * sack_fopenEx( INDEX group, CTEXTSTR filename, CTEXTSTR opts, struct file_
 	{
 		if( memalloc )
 		{
+			DeleteLink( &l.files, file );
 			Deallocate( TEXTCHAR*, file->name );
 			Deallocate( TEXTCHAR*, file->fullname );
 			Deallocate( struct file *, file );

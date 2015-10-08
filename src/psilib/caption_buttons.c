@@ -13,7 +13,8 @@ PSI_NAMESPACE
 static void CPROC StopThisProgram( PSI_CONTROL pc )
 {
 	PSI_CONTROL button;
-	if( pc->device && pc->parent  && ( !(pc->BorderType & BORDER_WITHIN ) ) )
+	if( ( pc->device && pc->parent  && ( !(pc->BorderType & BORDER_WITHIN ) ) )
+		|| ( pc->BorderType & BORDER_CAPTION_CLOSE_IS_DONE ) )
 	{
 		button = GetControl( pc, pc->device->nIDDefaultCancel );
 		if( button )
@@ -72,12 +73,13 @@ PCAPTION_BUTTON AddCaptionButton( PSI_CONTROL frame, Image normal, Image pressed
 	return NULL;
 }
 
-void SetCaptionButtonImages( struct physical_device_caption_button *caption_button, Image normal, Image pressed )
+void SetCaptionButtonImages( struct physical_device_caption_button *caption_button, Image normal, Image pressed, Image rollover )
 {
 	if( caption_button )
 	{
 		caption_button->pressed = pressed;
 		caption_button->normal = normal;
+		caption_button->highlight = rollover;
 		if( caption_button->pc->device )
 		{
 			int y = FrameCaptionYOfs( caption_button->pc, caption_button->pc->BorderType );
@@ -123,6 +125,16 @@ void ShowCaptionButton ( struct physical_device_caption_button *caption_button )
 }
 //---------------------------------------------------------------------------
 
+void SetCaptionButtonOffset( PSI_CONTROL frame, S_32 x, S_32 y )
+{
+	if( frame )
+	{
+		frame->caption_button_x_ofs = x;
+		frame->caption_button_y_ofs = y;
+	}
+}
+
+//---------------------------------------------------------------------------
 
 PSI_NAMESPACE_END
 

@@ -455,7 +455,7 @@ int DispatchKeyEvent( PRENDERER hVideo, _32 key )
 	//	lprintf( WIDE( "Failed to find active window..." ) );
 
 	// dispatch a mouse event!
-   lprintf( WIDE("Missing dispatch for no key method to mouse event") );
+   //lprintf( WIDE("Missing dispatch for no key method to mouse event") );
    return dispatch_handled;
 }
 

@@ -2089,7 +2089,16 @@ void SetFontRendererData( SFTFont font, POINTER pResult, size_t size )
 
 SFTFont RenderFontFileScaledEx( CTEXTSTR file, _32 width, _32 height, PFRACTION width_scale, PFRACTION height_scale, _32 flags, size_t * size, POINTER *pFontData )
 {
-	SFTFont font = InternalRenderFontFile( file, (S_16)(width&0x7FFF), (S_16)(height&0x7FFF), width_scale, height_scale, flags );
+	POINTER save_data;
+	size_t save_size;
+	SFTFont font;
+	if( !pFontData )
+	{
+		// save this anyway so we can get font data later.
+		pFontData = &save_data;
+		size = &save_size;
+	}
+	font = InternalRenderFontFile( file, (S_16)(width&0x7FFF), (S_16)(height&0x7FFF), width_scale, height_scale, flags );
 	if( font && size && pFontData )
 	{
 		size_t chars;
@@ -2123,6 +2132,14 @@ SFTFont RenderScaledFontEx( CTEXTSTR name, _32 width, _32 height, PFRACTION widt
 	SFTFont font;
 	PFONT_ENTRY pfe;
 	INDEX family_idx;
+	POINTER save_data;
+	size_t save_size;
+	if( !pFontData )
+	{
+		// save this anyway so we can get font data later.
+		pFontData = &save_data;
+		pnFontDataSize = &save_size;
+	}
 
 	LoadAllFonts(); // load cache data so we can resolve user data
 	for( family_idx = 0; family_idx < fg.nFonts; family_idx++ )

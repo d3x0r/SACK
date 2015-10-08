@@ -44,7 +44,7 @@
 //for GetMacAddress
 #ifdef __LINUX__
 #include <net/if.h>
-#include <sys/timeb.h>
+//#include <sys/timeb.h>
 
 //*******************8
 #include <unistd.h>
@@ -959,7 +959,7 @@ void HandleEvent( PCLIENT pClient )
 						pClient->dwFlags &= ~CF_CONNECTING;
 						if( pClient->connect.ThisConnected )
 						{
-                     if( g.flags.bLogNotices )
+							if( g.flags.bLogNotices )
 								lprintf( WIDE( "Post connect to application %p  error:%d" ), pClient, wError );
 							if( pClient->dwFlags & CF_CPPCONNECT )
 								pClient->connect.CPPThisConnected( pClient->psvConnect, wError );
@@ -1791,7 +1791,10 @@ int CPROC ProcessNetworkMessages( struct peer_thread_info *thread, PTRSZVAL unus
 						FinishPendingRead( pc DBG_SRC );
 						if( pc->dwFlags & CF_TOCLOSE )
 						{
-							lprintf( WIDE( "Pending read failed - reset connection." ) );
+#ifdef LOG_NOTICES
+							if( g.flags.bLogNotices )
+								lprintf( WIDE( "Pending read failed - reset connection." ) );
+#endif
 							InternalRemoveClientEx( pc, FALSE, FALSE );
 							TerminateClosedClient( pc );
 						}
@@ -1969,7 +1972,11 @@ static PTRSZVAL CPROC NetworkThreadProc( PTHREAD thread )
 	//}
 	//Relinquish();
 	g.uPendingTimer = AddTimer( 5000, PendingTimer, 0 );
+#if defined( __ANDROID__ ) && defined( __ANDROID_OLD_PLATFORM_SUPPORT__ )
+	bsd_signal( SIGPIPE, SIG_IGN );
+#else
 	signal( SIGPIPE, SIG_IGN );
+#endif
 	while( !g.pThreads )
 	{
 		Relinquish(); // wait for pThread to be done
@@ -2098,7 +2105,7 @@ LOGICAL NetworkAlive( void )
 
 //----------------------------------------------------------------------------
 
-void ReallocClients( _16 wClients, int nUserData )
+void ReallocClients( _32 wClients, int nUserData )
 {
 	P_8 pUserData;
 	PCLIENT_SLAB pClientSlab;
@@ -2141,8 +2148,6 @@ void ReallocClients( _16 wClients, int nUserData )
    // keep the max of specified data..
 	if( nUserData < g.nUserData )
 		nUserData = g.nUserData;
-	if( wClients < MAX_NETCLIENTS )
-		wClients = MAX_NETCLIENTS;
 
 	if( nUserData > g.nUserData || wClients > MAX_NETCLIENTS )
 	{
@@ -2178,9 +2183,9 @@ void ReallocClients( _16 wClients, int nUserData )
 }
 
 #ifdef __LINUX__
-NETWORK_PROC( LOGICAL, NetworkWait )(POINTER unused,_16 wClients,int wUserData)
+NETWORK_PROC( LOGICAL, NetworkWait )(POINTER unused,_32 wClients,int wUserData)
 #else
-NETWORK_PROC( LOGICAL, NetworkWait )(HWND hWndNotify,_16 wClients,int wUserData)
+NETWORK_PROC( LOGICAL, NetworkWait )(HWND hWndNotify,_32 wClients,int wUserData)
 #endif
 {
 	// want to start the thead; clear quit.
@@ -2499,7 +2504,10 @@ SOCKADDR *CreateRemote(CTEXTSTR lpName,_16 nHisPort)
 #endif
 	}
 	else 	if( lpName &&
-		( lpName[0] >= '0' && lpName[0] <= '9' )
+				( ( lpName[0] >= '0' && lpName[0] <= '9' )
+				 || ( lpName[0] >= 'a' && lpName[0] <= 'f' )
+             || ( lpName[0] >= 'A' && lpName[0] <= 'F' )
+				 || lpName[0] == ':' )
 				&& StrChr( lpName, ':' )!=StrRChr( lpName, ':' ) )
 	{
 #ifdef UNICODE
@@ -2694,25 +2702,32 @@ NETWORK_PROC( SOCKADDR *,CreateSockAddress)( CTEXTSTR name, _16 nDefaultPort )
 		//Log1( WIDE("Found ':' assuming %s is IP:PORT"), name );
 		*port = 0;
 		port++;
-		if( isdigit( *port ) )
+		if( port[0] )  // a trailing : could be IPV6 abbreviation.
 		{
-			wPort = (short)IntCreateFromText( port );
+			if( isdigit( *port ) )
+			{
+				wPort = (short)IntCreateFromText( port );
+			}
+			else
+			{
+				struct servent *se;
+				char *tmp2 = CStrDup( port );
+				se = getservbyname( tmp2, NULL );
+				Release( tmp2 );
+				if( !se )
+				{
+					Log1( WIDE("Could not resolve \"%s\" as a valid service name"), port);
+					Release( tmp2 );
+					//return NULL;
+               wPort = nDefaultPort;
+				}
+            else
+					wPort = htons(se->s_port);
+				//Log1( WIDE("port alpha - name resolve to %d"), wPort );
+			}
 		}
 		else
-		{
-			struct servent *se;
-			char *tmp2 = CStrDup( port );
-			se = getservbyname( tmp2, NULL );
-			Release( tmp2 );
-			if( !se )
-			{
-				Log1( WIDE("Could not resolve \"%s\" as a valid service name"), port);
-				if( bTmpName ) Release( tmp );
-				return NULL;
-			}
-			wPort = htons(se->s_port);
-					//Log1( WIDE("port alpha - name resolve to %d"), wPort );
-		}
+         wPort = nDefaultPort;
 		sa = CreateRemote( name, wPort );
 		if( port )
 		{

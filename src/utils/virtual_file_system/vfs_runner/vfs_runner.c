@@ -13,7 +13,12 @@ static struct vfs_runner_local
 	struct file_system_interface *fsi;
 	struct file_system_mounted_interface *rom;
 	struct file_system_mounted_interface *ram;
+#if _WIN32
 	int(WINAPI*entry_point)(HINSTANCE,HINSTANCE,LPSTR,int);
+#endif
+#if __LINUX__
+	int(*linux_entry_point)( int argc, char **argv, char **env );
+#endif
 }l;
 
 static LOGICAL CPROC LoadLibraryDependant( CTEXTSTR name )
@@ -69,6 +74,7 @@ static LOGICAL CPROC LoadLibraryDependant( CTEXTSTR name )
 
 void FixupMyTLS( void )
 {
+#if _WIN32
 	#define Seek(a,b) (((PTRSZVAL)a)+(b))
 
 	HMODULE p = GetModuleHandle( NULL );
@@ -121,10 +127,12 @@ void FixupMyTLS( void )
 #endif
 		}
 	}
+#endif
 }
 
 PRIORITY_PRELOAD( XSaneWinMain, DEFAULT_PRELOAD_PRIORITY + 20 )//( argc, argv )
 {
+#if _WIN32 
 	TEXTSTR cmd = GetCommandLine();
 	int argc;
 	char **argv;
@@ -218,14 +226,21 @@ PRIORITY_PRELOAD( XSaneWinMain, DEFAULT_PRELOAD_PRIORITY + 20 )//( argc, argv )
 		}
 	}
 #endif
+#endif
    //return 0;
 }
 
-
+#if __LINUX__
+int main( int argc, char **argv, char **envp )
+{
+	return l.linux_entry_point( argc, argv, envp );
+}
+#endif
+#if _WIN32
 SaneWinMain(argc,argv)
 {
 	return l.entry_point( 0, 0, GetCommandLine(), 1 );
 }
 EndSaneWinMain()
-
+#endif
 
