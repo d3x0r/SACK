@@ -1,3 +1,4 @@
+#define NO_UNICODE_C
 #ifdef SACK_CORE_BUILD
 #define MD5_SOURCE
 #endif
@@ -120,7 +121,7 @@ static LOGICAL ComputeReplyKey2( PVARTEXT pvt_output, HTML5WebSocket socket, PTE
 			TEXTCHAR *content = GetText( text_content );
 			for( n = 0; n < 8; n++ )
 			{
-				buf.extra[n] = content[n];
+				buf.extra[n] = ((char*)content)[n];
 			}
 		}
 		{
@@ -278,7 +279,7 @@ static void CPROC read_complete( PCLIENT pc, POINTER buffer, size_t length )
 								size_t len;
 
 								TEXTCHAR *resultval = NewArray( TEXTCHAR, len = ( GetTextSize( value ) + sizeof(guid)/sizeof(TEXTCHAR)));
-								snprintf( resultval, len, WIDE("%s%s")
+								tnprintf( resultval, len, WIDE("%s%s")
 									, GetText(value)
 									, guid );
 								{

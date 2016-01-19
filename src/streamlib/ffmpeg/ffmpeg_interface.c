@@ -3202,7 +3202,7 @@ void audio_GetCaptureDevices( PLIST *ppList )
 		while (*pDeviceList)
 		{
 			//ALFWprintf("%s\n", pDeviceList);
-	         AddLink( ppList, StrDup( pDeviceList ) );
+			AddLink( ppList, DupCStr( pDeviceList ) );
 			pDeviceList += strlen(pDeviceList) + 1;
 		}
 	}
@@ -3222,7 +3222,7 @@ void audio_GetPlaybackDevices( PLIST *ppList )
 		while (*pDeviceList)
 		{
 			//ALFWprintf("%s\n", pDeviceList);
-	         AddLink( ppList, StrDup( pDeviceList ) );
+	         AddLink( ppList, DupCStr( pDeviceList ) );
 			pDeviceList += strlen(pDeviceList) + 1;
 		}
 	}
@@ -3445,10 +3445,18 @@ static PTRSZVAL CPROC audio_ReadCaptureDevice( PTHREAD thread )
 struct audio_device *audio_OpenCaptureDevice( CTEXTSTR devname, void (CPROC*callback)( PTRSZVAL psvInst, int max_level, POINTER data, size_t ), PTRSZVAL psvInst )
 {
 	struct audio_device *ad = New( struct audio_device );
+#ifdef UNICODE
+	char *_devname = CStrDup( devname );
+#  define devname _devname
+#endif
 	MemSet( ad, 0, sizeof( struct audio_device ) );
 	InitFFMPEG();
 
 	ad->device = openal.alcCaptureOpenDevice( devname, DEFAULT_SAMPLE_RATE, AL_FORMAT_MONO16, ad->frame_size = DEFAULT_SAMPLE_RATE/10 );
+#ifdef UNICODE
+	Deallocate( char *, _devname  );
+#  undef devname
+#endif
 	if( ad->device )
 	{
 		ad->gsm_inst = gsm_create();
@@ -3759,7 +3767,7 @@ void audio_PlaybackBuffer( struct audio_device *ad, POINTER data, size_t datalen
 	short *decompress_buffer;
 	if( datalen % 33 )
 	{
-		lprintf( "Invalid bufffer received %d (%d:%d)", datalen, datalen/33, datalen%33 );
+		lprintf( WIDE("Invalid bufffer received %d (%d:%d)"), datalen, datalen/33, datalen%33 );
 		return;
 	}
 	datalen /= 33;

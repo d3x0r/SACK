@@ -18,7 +18,7 @@
 #define CheckErrf(f,...)  				{    \
 					GLenum err = glGetError();  \
 					if( err )                   \
-					lprintf( WIDE("err=%d ")f,err,##__VA_ARGS__ ); \
+					lprintf( WIDE("err=%d ") f,err,##__VA_ARGS__ ); \
 				}                               
 #else
 #define CheckErr()  				{    \

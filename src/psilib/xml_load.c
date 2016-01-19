@@ -84,15 +84,15 @@ void XMLCALL start_tags( void *UserData
 		{
 			border_set = TRUE;
 			//border = (int)IntCreateFromText( p[1] );
-			sscanf( p[1], WIDE("%") _32fx, &border );
+			tscanf( p[1], WIDE("%") _32fx, &border );
 		}
 		else if( strcmp( p[0], WIDE("size") ) == 0 )
 		{
-			sscanf( p[1], WIDE("%") _32f WIDE(",") WIDE("%") _32f, &width, &height );
+			tscanf( p[1], WIDE("%") _32f WIDE(",") WIDE("%") _32f, &width, &height );
 		}
 		else if( StrCmp( p[0], WIDE("position") ) == 0 )
 		{
-			sscanf( p[1], WIDE("%") _32f WIDE(",") WIDE("%") _32f, &x, &y );
+			tscanf( p[1], WIDE("%") _32f WIDE(",") WIDE("%") _32f, &x, &y );
 		}
 		else if( strcmp( p[0], WIDE("caption") ) == 0 )
 		{
@@ -246,9 +246,6 @@ PSI_CONTROL LoadXMLFrameOverExx( PSI_CONTROL parent, CTEXTSTR file, LOGICAL crea
 	PTRSZVAL size;
 	TEXTSTR delete_filename = NULL;
 	TEXTSTR filename = (TEXTSTR)file; // assume this is the name until later
-#ifdef UNDER_CE
-	_32 zz;
-#endif
 	PSI_CONTROL frame;
 #  ifdef USE_INTERFACES
 	if( !g.MyImageInterface )
@@ -267,58 +264,41 @@ PSI_CONTROL LoadXMLFrameOverExx( PSI_CONTROL parent, CTEXTSTR file, LOGICAL crea
 	current_loading.nLine = nLine;
 #endif
 	size = 0;
-#ifdef UNDER_CE
+//#ifdef UNDER_CE
 	{
 		FILE *file_read = sack_fopen( 0, file, "rt" );
 		if( file_read )
 		{
-			sack_fseek( file_read, 0, SEEK_END );
-			zz = ftell( file_read );
-			sack_fseek( file_read, 0, SEEK_SET );
-
-			size = zz;
-			buffer = Allocate( zz );
-			fread( buffer, 1, zz, file );
+			size = sack_fsize( file_read );
+			buffer = Allocate( size );
+			fread( buffer, 1, size, file_read );
 			sack_fclose( file_read );
-			lprintf( WIDE( "loaded font blob %s %d %p" ), file, zz, buffer );
+			lprintf( WIDE( "loaded font blob %s %d %p" ), file, size, buffer );
 		}
+		else
+			buffer = NULL;
 	}
-#else
-	buffer = OpenSpace( NULL, file, &size );
-#endif
+//#else
+//	buffer = OpenSpace( NULL, file, &size );
+//#endif
 	if( !buffer || !size )
 	{
 		// attempt secondary open within frames/*
-#ifdef UNDER_CE
-		int len;
-#endif
 		size = 0;
-#ifdef UNDER_CE
 		{
 			INDEX group;
 			FILE *file_read = sack_fopen( group = GetFileGroup( WIDE( "PSI Frames" ), WIDE( "./frames" ) ), file, "rt" );
-			delete_filename =
-				filename = sack_prepend_path( group, file );
 			if( file_read )
 			{
-				sack_fseek( file_read, 0, SEEK_END );
-				zz = ftell( file_read );
-				sack_fseek( file_read, 0, SEEK_SET );
-
-				size = zz;
-				buffer = Allocate( zz );
-				sack_fread( buffer, 1, zz, file_read );
+				size = sack_fsize( file_read );
+				buffer = Allocate( size );
+				sack_fread( buffer, 1, size, file_read );
 				sack_fclose( file_read );
 				//lprintf( "loaded font blob %s %d %p", file, zz, buffer );
 			}
+			else
+				buffer = NULL;
 		}
-#else
-		{
-			buffer = OpenSpace( NULL, delete_filename = filename = sack_prepend_path( GetFileGroup( WIDE( "PSI Frames" ), WIDE( "./frames" ) ), file ), &size );
-		}
-#endif
-      //if( !buffer || !size )
-		//	file = _file; // restore filenaem to mark on the dialog, else use new filename cuase we loaded success
 	}
 	if( buffer && size )
 	{

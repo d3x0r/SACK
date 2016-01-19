@@ -65,11 +65,11 @@ string( TOLOWER "${CMAKE_BINARY_DIR}" cmake_binary_dir_lower )
   string (REPLACE ";" " " FAKE_ARGN2 "${FAKE_ARGN1}")
   
   if( EXISTS ${PROJECT_SOURCE} )
-if( UNIX )
+if( UNIX OR HOST_UNIX )
    set( SCRIPTNAME makeit.sh )
-else( UNIX )
+else( UNIX OR HOST_UNIX )
    set( SCRIPTNAME makeit.bat )
-endif( UNIX )
+endif( UNIX OR HOST_UNIX )
 
 
 if( __ANDROID__ )  
@@ -109,20 +109,20 @@ endif( __ANDROID__ )
 
 if( EXISTS ${PROJECT_SOURCE} )
 
-  if( UNIX )
+  if( UNIX OR HOST_UNIX )
   add_custom_target( Build${PROJECT} ALL
           COMMAND chmod 755 ${SCRIPTNAME}
           COMMAND ./${SCRIPTNAME}
 	  WORKING_DIRECTORY ${BUILD}
           ${ADD_SOURCES}
   )
-  else( UNIX )  
+  else( UNIX OR HOST_UNIX )  
   add_custom_target( Build${PROJECT} ALL
           COMMAND ${SCRIPTNAME}
 	  WORKING_DIRECTORY ${BUILD}
           ${ADD_SOURCES}
   )
-  endif( UNIX )
+  endif( UNIX OR HOST_UNIX )
 
 endif( EXISTS ${PROJECT_SOURCE} )
 

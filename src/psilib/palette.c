@@ -265,15 +265,15 @@ SLIDER_UPDATE( SetGreenLevel, (PTRSZVAL psv, PCONTROL pc, int val) )
 static void LoadPresets( PPICK_COLOR_DATA ppcd )
 {
 	FILE *file;
-	Fopen( file, WIDE("Palette.Presets"), WIDE("rt") );
+	file = sack_fopen( 0, WIDE("Palette.Presets"), WIDE("rt") );
 	if( file )
 	{
 		int i;
 		TEXTCHAR buf[64];
-		for( i = 0; i < 36 && fgets( buf, 64, file ); i++ )
+		for( i = 0; i < 36 && sack_fgets( buf, 64, file ); i++ )
 		{
 			int red, green, blue, alpha;
-			if( sscanf( buf, WIDE("%d,%d,%d,%d\n"), &red, &green, &blue, &alpha ) == 4 )
+			if( tscanf( buf, WIDE("%d,%d,%d,%d\n"), &red, &green, &blue, &alpha ) == 4 )
 			{
 				ppcd->Presets[i] = AColor( red, green, blue, alpha );
 			}
@@ -282,7 +282,7 @@ static void LoadPresets( PPICK_COLOR_DATA ppcd )
 				ppcd->Presets[i] = 0;
 			}
 		}
-		fclose( file );
+		sack_fclose( file );
 	}
 	else
 	{
@@ -299,7 +299,7 @@ static void LoadPresets( PPICK_COLOR_DATA ppcd )
 static void SavePresets( PPICK_COLOR_DATA ppcd )
 {
 	FILE *file;
-	Fopen( file, WIDE("Palette.Presets"), WIDE("wt") );
+	file = sack_fopen( 0, WIDE("Palette.Presets"), WIDE("wt") );
 	if( file )
 	{
 		int i;
@@ -309,14 +309,9 @@ static void SavePresets( PPICK_COLOR_DATA ppcd )
 			  , green = GreenVal( ppcd->Presets[i] )
 			  , blue = BlueVal( ppcd->Presets[i] )
 			  , alpha = AlphaVal( ppcd->Presets[i] );
-#ifdef UNICODE
-			fwprintf
-#else
-			fprintf
-#endif
-				( file, WIDE("%d,%d,%d,%d\n"), red, green, blue, alpha );
+			sack_fprintf( file, "%d,%d,%d,%d\n", red, green, blue, alpha );
 		}
-		fclose( file );
+		sack_fclose( file );
 	}
 }
 

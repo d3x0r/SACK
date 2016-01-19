@@ -71,6 +71,7 @@ typedef struct loaded_library_tag
 	PFUNCTION functions;
 	DeclareLink( struct loaded_library_tag );
 	TEXTCHAR *name;
+	int loading;
 	TEXTCHAR full_name[];
 } LIBRARY, *PLIBRARY;
 

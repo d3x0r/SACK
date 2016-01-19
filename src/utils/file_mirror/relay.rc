@@ -1,7 +1,7 @@
 #include <windows.h>
 #include "resource.h"
 
-ICO_RELAY ICON "relay.ico"
+ICO_RELAY ICON "RELAY.ICO"
 ICO_RELAY_DOWN ICON "relay_down.ico"
 ICO_RELAY_SCAN ICON "relay_scan.ico"
 

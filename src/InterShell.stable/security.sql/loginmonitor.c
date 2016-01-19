@@ -19,7 +19,7 @@
 #include "../widgets/include/banner.h"
 #include "../intershell_registry.h"
 #include "global.h"
-#include <Psapi.h>
+#include <psapi.h>
 
 //--------------------------------------------------------------------------------
 // Local Struct

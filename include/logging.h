@@ -357,11 +357,20 @@ enum SyslogTimeSpecifications {
 /* Specify how time is logged. */
 SYSLOG_PROC void SYSLOG_API SystemLogTime( _32 enable );
 
+#ifndef NO_LOGGING
+
 #define OutputLogString(s) SystemLog(s)
 /* Depricated. Logs a format string that takes 0 parameters.
    See Also
    <link sack::logging::lprintf, lprintf>                    */
 #define Log(s)                                   SystemLog( s )
+#else
+#define OutputLogString(s) 
+/* Depricated. Logs a format string that takes 0 parameters.
+   See Also
+   <link sack::logging::lprintf, lprintf>                    */
+#define Log(s)
+#endif
 /* Depricated. Logs a format string that takes 1 parameter.
    See Also
    <link sack::logging::lprintf, lprintf>                    */

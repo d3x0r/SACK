@@ -192,11 +192,11 @@ void WriteAnimationButton( CTEXTSTR leader, FILE *file, PTRSZVAL psv )
 {
 	PANIMATION_INFO info = (PANIMATION_INFO)psv;
 
-	fprintf( file, WIDE("Animation name =%s\n" ), info->animation_name?info->animation_name:"" );
-	fprintf( file, WIDE("Animation X =%d\n" ), info->x );
-	fprintf( file, WIDE("Animation Y =%d\n" ), info->y );
-	fprintf( file, WIDE("Animation W =%d\n" ), info->w );
-	fprintf( file, WIDE("Animation H =%d\n" ), info->h );
+	sack_fprintf( file, WIDE("Animation name =%s\n" ), info->animation_name?info->animation_name:"" );
+	sack_fprintf( file, WIDE("Animation X =%d\n" ), info->x );
+	sack_fprintf( file, WIDE("Animation Y =%d\n" ), info->y );
+	sack_fprintf( file, WIDE("Animation W =%d\n" ), info->w );
+	sack_fprintf( file, WIDE("Animation H =%d\n" ), info->h );
 
 }
 

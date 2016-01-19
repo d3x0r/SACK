@@ -495,8 +495,8 @@ static PSI_CONTROL OnGetControl( WIDE("Crossfade Media Mount") )( PTRSZVAL psv )
 static void OnSaveControl( WIDE("Crossfade Media Mount") )( FILE* file, PTRSZVAL psv )
 {
 	MyValidatedControlData( PMY_CONTROL, control, (PSI_CONTROL)psv );
-	fprintf( file, WIDE("Crossfade Server Address=%s\n"), control->send_to?control->send_to:WIDE("") );
-	fprintf( file, WIDE("Crossfade Send From Address=%s\n"), control->send_from?control->send_from:WIDE("") );
+	sack_fprintf( file, WIDE("Crossfade Server Address=%s\n"), control->send_to?control->send_to:WIDE("") );
+	sack_fprintf( file, WIDE("Crossfade Send From Address=%s\n"), control->send_from?control->send_from:WIDE("") );
 }
 
 static PTRSZVAL CPROC SetApplicationName( PTRSZVAL psv, arg_list args )

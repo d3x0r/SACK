@@ -1,3 +1,4 @@
+#define NO_UNICODE_C
 #define PSI_HTML5_CANVAS_SOURCE
 
 #include <stdhdrs.h>

@@ -1,3 +1,4 @@
+//#define DEBUG_LIBRARY_LOADING
 #define NO_UNICODE_C
 #define SYSTEM_CORE_SOURCE
 #define FIX_RELEASE_COM_COLLISION
@@ -20,7 +21,7 @@
 
 #ifdef WIN32
 #include <tlhelp32.h>
-#include <Psapi.h>
+#include <psapi.h>
 #endif
 
 #ifdef __QNX__
@@ -463,11 +464,11 @@ static void SystemInit( void )
 			l.flags.bInitialized = 1;
 
 #  ifdef WIN32
-			l.EnumProcessModules = (BOOL(WINAPI*)(HANDLE,HMODULE*,DWORD,LPDWORD))LoadFunction( "psapi.dll", "EnumProcessModules" );
+			l.EnumProcessModules = (BOOL(WINAPI*)(HANDLE,HMODULE*,DWORD,LPDWORD))LoadFunction( WIDE("psapi.dll"), WIDE("EnumProcessModules"));
 			if( !l.EnumProcessModules )
-				l.EnumProcessModules = (BOOL(WINAPI*)(HANDLE,HMODULE*,DWORD,LPDWORD))LoadFunction( "kernel32.dll", "EnumProcessModules" );
+				l.EnumProcessModules = (BOOL(WINAPI*)(HANDLE,HMODULE*,DWORD,LPDWORD))LoadFunction(WIDE("kernel32.dll"), WIDE("EnumProcessModules"));
 			if( !l.EnumProcessModules )
-				l.EnumProcessModules = (BOOL(WINAPI*)(HANDLE,HMODULE*,DWORD,LPDWORD))LoadFunction( "kernel32.dll", "K32EnumProcessModules" );
+				l.EnumProcessModules = (BOOL(WINAPI*)(HANDLE,HMODULE*,DWORD,LPDWORD))LoadFunction(WIDE("kernel32.dll"), WIDE("K32EnumProcessModules") );
 #  endif
 		}
 #endif
@@ -740,7 +741,9 @@ PTRSZVAL CPROC WaitForTaskEnd( PTHREAD pThread )
 #ifdef WIN32
 static int DumpError( void )
 {
+#ifdef _DEBUG
 	lprintf( WIDE("Failed create process:%d"), GetLastError() );
+#endif
 	return 0;
 }
 #endif
@@ -1026,10 +1029,14 @@ int TryShellExecute( PTASK_INFO task, CTEXTSTR path, CTEXTSTR program, PTEXT cmd
 			switch( (int)execinfo.hInstApp )
 			{
 			case 42:
+#ifdef _DEBUG
 				lprintf( WIDE( "No association picked : %d (gle:%d)" ), (int)execinfo.hInstApp , GetLastError() );
+#endif
 				break;
 			}
+#ifdef _DEBUG
 			lprintf( WIDE( "sucess with shellexecute of(%d) %s " ), execinfo.hInstApp, program );
+#endif
 			task->pi.hProcess = execinfo.hProcess;
 			task->pi.hThread = 0;
 			return TRUE;
@@ -1287,7 +1294,7 @@ static void LoadExistingLibraries( void )
 	}
 	l.EnumProcessModules( GetCurrentProcess(), modules, sizeof( HMODULE ) * 256, &needed );
 	if( needed / sizeof( HMODULE ) == n )
-		lprintf( "loaded module overflow" );
+		lprintf( WIDE("loaded module overflow") );
 	needed /= sizeof( HMODULE );
 	for( n = 0; n < needed; n++ )
 	{
@@ -1301,7 +1308,18 @@ static void LoadExistingLibraries( void )
 		{
 			dll_name = "Invalid_Name";
 		}
-		AddMappedLibrary( dll_name, modules[n] );
+#ifdef UNICODE
+		{
+			TEXTSTR _dll_name = DupCStr( dll_name );
+#define dll_name _dll_name
+#endif
+			AddMappedLibrary( dll_name, modules[n] );
+#ifdef UNICODE
+			Deallocate( TEXTSTR, _dll_name );
+#undef dll_name 
+
+		}
+#endif
 	}
 #endif
 #ifdef __LINUX__
@@ -1501,7 +1519,7 @@ SYSTEM_PROC( generic_function, LoadFunctionExx )( CTEXTSTR libname, CTEXTSTR fun
 		else
 		{
 			StrCpy( library->full_name, libname );
-			library->name = pathrchr( library->full_name );
+			library->name = (char*)pathrchr( library->full_name );
 			if( library->name )
 				library->name++;
 			else
@@ -1510,9 +1528,9 @@ SYSTEM_PROC( generic_function, LoadFunctionExx )( CTEXTSTR libname, CTEXTSTR fun
 		library->library = NULL;
 		library->mapped = FALSE;
 		library->functions = NULL;
+		library->loading++;
 		library->nLibrary = ++l.nLibrary;
 		LinkThing( l.libraries, library );
-		SuspendDeadstart();
 #ifdef _WIN32
 		// with deadstart suspended, the library can safely register
 		// all of its preloads.  Then invoke will release suspend
@@ -1520,8 +1538,18 @@ SYSTEM_PROC( generic_function, LoadFunctionExx )( CTEXTSTR libname, CTEXTSTR fun
 		if( l.ExternalLoadLibrary && !library->library )
 		{
 			PLIBRARY check;
+#  ifdef UNICODE
+			char *libname = CStrDup( library->name );
+#  else
+#        define libname library->name
+#  endif
 			//lprintf( "trying external load...%s", library->name );
-			l.ExternalLoadLibrary( library->name );
+			l.ExternalLoadLibrary( libname );
+#  ifdef UNICODE
+			Deallocate( char*, libname );
+#  else
+#        undef libname
+#  endif
 			for( check = l.libraries; check; check = check->next )
 			{
 				// result will be in the local list of libraries (duplicating this one)
@@ -1536,19 +1564,30 @@ SYSTEM_PROC( generic_function, LoadFunctionExx )( CTEXTSTR libname, CTEXTSTR fun
 				}
 			}
 		}
-
+		library->loading--;
+	}
+		SuspendDeadstart();
 		if( !library->library )
 		{
-			library->library = LoadLibrary( library->name );
+#  ifdef DEBUG_LIBRARY_LOADING
+			lprintf( "trying load...%s", library->full_name );
+#  endif
+			library->library = LoadLibrary( library->full_name );
 			if( !library->library )
 			{
-				library->library = LoadLibrary( library->full_name );
+#  ifdef DEBUG_LIBRARY_LOADING
+				lprintf( "trying load...%s", library->name );
+#  endif
+				library->library = LoadLibrary( library->name );
 				if( !library->library )
 				{
-					if( l.flags.bLog )
-						_xlprintf( 2 DBG_RELAY)( WIDE("Attempt to load %s[%s](%s) failed: %d."), libname, library->full_name, funcname?funcname:WIDE("all"), GetLastError() );
-					UnlinkThing( library );
-					ReleaseEx( library DBG_SRC );
+					if( !library->loading )
+					{
+						if( l.flags.bLog )
+							_xlprintf( 2 DBG_RELAY)( WIDE("Attempt to load %s[%s](%s) failed: %d."), libname, library->full_name, funcname?funcname:WIDE("all"), GetLastError() );
+						UnlinkThing( library );
+						ReleaseEx( library DBG_SRC );
+					}
 					ResumeDeadstart();
 					return NULL;
 				}
@@ -1557,29 +1596,29 @@ SYSTEM_PROC( generic_function, LoadFunctionExx )( CTEXTSTR libname, CTEXTSTR fun
 #else
 #  ifndef __ANDROID__
 		// ANDROID This will always fail from the application manager.
-#ifdef UNICODE
+#    ifdef UNICODE
 		{
 			char *tmpname = CStrDup( library->name );
 			library->library = dlopen( tmp, RTLD_LAZY|(bPrivate?RTLD_LOCAL: RTLD_GLOBAL) );
 			Release( tmpname );
 		}
-#else
+#    else
 		library->library = dlopen( library->name, RTLD_LAZY|(bPrivate?RTLD_LOCAL: RTLD_GLOBAL) );
-#endif
+#    endif
 		if( !library->library )
 		{
 			if( l.flags.bLog )
 				_xlprintf( 2 DBG_RELAY)( WIDE("Attempt to load %s%s(%s) failed: %s."), bPrivate?"(local)":"(global)", libname, funcname?funcname:"all", dlerror() );
 #  endif
-#ifdef UNICODE
+#  ifdef UNICODE
 			{
 				char *tmpname = CStrDup( library->full_name );
 				library->library = dlopen( tmpname, RTLD_LAZY|(bPrivate?RTLD_LOCAL: RTLD_GLOBAL) );
 				ReleaseEx( tmpname DBG_SRC );
 			}
-#else
+#  else
 			library->library = dlopen( library->full_name, RTLD_LAZY|(bPrivate?RTLD_LOCAL:RTLD_GLOBAL) );
-#endif
+#  endif
 			if( !library->library )
 			{
 				_xlprintf( 2 DBG_RELAY)( WIDE("Attempt to load  %s%s(%s) failed: %s."), bPrivate?WIDE("(local)"):WIDE("(global)"), library->full_name, funcname?funcname:WIDE("all"), dlerror() );
@@ -1588,9 +1627,7 @@ SYSTEM_PROC( generic_function, LoadFunctionExx )( CTEXTSTR libname, CTEXTSTR fun
 				ResumeDeadstart();
 				return NULL;
 			}
-#  ifndef __ANDROID__
 		}
-#  endif
 #endif
 #ifdef __cplusplus_cli
 		{
@@ -1610,7 +1647,7 @@ SYSTEM_PROC( generic_function, LoadFunctionExx )( CTEXTSTR libname, CTEXTSTR fun
 			InvokeDeadstart();
 		}
 		InvokeLibraryLoad();
-	}
+	//}
 	get_function_name:
 	if( funcname )
 	{
@@ -1635,15 +1672,15 @@ SYSTEM_PROC( generic_function, LoadFunctionExx )( CTEXTSTR libname, CTEXTSTR fun
 #ifdef WIN32
 
 				PIMAGE_DOS_HEADER source_dos_header = (PIMAGE_DOS_HEADER)library->library;
-#define Seek(a,b) (((PTRSZVAL)a)+(b))
+#  define Seek(a,b) (((PTRSZVAL)a)+(b))
 				PIMAGE_NT_HEADERS source_nt_header = (PIMAGE_NT_HEADERS)Seek( library->library, source_dos_header->e_lfanew );
 				if( source_dos_header->e_magic != IMAGE_DOS_SIGNATURE )
-					lprintf( "Basic signature check failed; not a library" );
+					lprintf( WIDE("Basic signature check failed; not a library") );
 				if( source_nt_header->Signature != IMAGE_NT_SIGNATURE )
-					lprintf( "Basic NT signature check failed; not a library" );
+					lprintf(WIDE("Basic NT signature check failed; not a library") );
 				if( source_nt_header->FileHeader.SizeOfOptionalHeader )
 					if( source_nt_header->OptionalHeader.Magic != IMAGE_NT_OPTIONAL_HDR_MAGIC )
-						lprintf( "Optional header signature is incorrect..." );
+						lprintf(WIDE("Optional header signature is incorrect...") );
 				{
 					PIMAGE_DATA_DIRECTORY dir;
 					PIMAGE_EXPORT_DIRECTORY exp_dir;
@@ -1664,7 +1701,17 @@ SYSTEM_PROC( generic_function, LoadFunctionExx )( CTEXTSTR libname, CTEXTSTR fun
 							for( n = 0; n < exp_dir->NumberOfFunctions; n++ )
 							{
 								char *name = (char*)Seek( library->library, (PTRSZVAL)names[n] );
-								if( StrCmp( name, funcname ) == 0 )
+								int result;
+#  ifdef UNICODE
+								TEXTCHAR *_name = DupCStr( name );
+#    define name _name
+#  endif
+								result = StrCmp( name, funcname );
+#  ifdef UNICODE
+								Deallocate( TEXTCHAR *,_name );
+#    undef name _name
+#  endif
+								if( result == 0 )
 								{
 									if( ( ((PTRSZVAL)f[ords[n]] ) < ( dir[0].VirtualAddress + dir[0].Size ) )
 										&& ( ((PTRSZVAL)f[ords[n]] ) > dir[0].VirtualAddress ) )
@@ -1672,6 +1719,10 @@ SYSTEM_PROC( generic_function, LoadFunctionExx )( CTEXTSTR libname, CTEXTSTR fun
 										char *tmpname;
 										char *name = (char*)Seek( library->library, (PTRSZVAL)f[ords[n]] );
 										char *fname = name;
+#  ifdef UNICODE
+										TEXTCHAR *_tmp_fname;
+										TEXTCHAR *_tmp_func;
+#  endif
 										int len;
 										generic_function f;
 										while( fname[0] && fname[0] != '.' )
@@ -1681,7 +1732,19 @@ SYSTEM_PROC( generic_function, LoadFunctionExx )( CTEXTSTR libname, CTEXTSTR fun
 										tmpname = NewArray( char, len = ( fname - name ) + 5 );
 										snprintf( tmpname, len, "%*.*s.dll", (fname-name)-1,(fname-name)-1, name );
 										//lprintf( "%s:%s = %s:%s", library->name, funcname, tmpname, fname );
+#  ifdef UNICODE
+										_tmp_fname = DupCStr(tmpname);
+										_tmp_func = DupCStr(fname);
+#    define tmpname _tmp_fname
+#    define fname    _tmp_func
+#  endif
 										f = LoadFunction( tmpname, fname );
+#  ifdef UNICODE
+										Deallocate( TEXTCHAR *, _tmp_fname );
+										Deallocate( TEXTCHAR *, _tmp_func );
+#    undef tmpname 
+#    undef fname    
+#  endif
 										Deallocate( char *, tmpname );
 										return f;
 									}
@@ -1712,59 +1775,59 @@ SYSTEM_PROC( generic_function, LoadFunctionExx )( CTEXTSTR libname, CTEXTSTR fun
 			function->library = library;
 			function->references = 0;
 #ifdef _WIN32
-#ifdef __cplusplus_cli
+#  ifdef __cplusplus_cli
 			char *procname = CStrDup( function->name );
 			if( l.flags.bLog )
 				lprintf( WIDE( "Get:%s" ), procname );
 			if( !(function->function = (generic_function)GetProcAddress( library->library, procname )) )
-#else
-#ifdef _UNICODE
+#  else
+#    ifdef _UNICODE
 			{
 			char *tmp;
-#endif
+#    endif
   			if( l.flags.bLog )
 				lprintf( WIDE( "Get:%s" ), (((PTRSZVAL)function->name&0xFFFF)==(PTRSZVAL)function->name)?function->name:"ordinal" );
 			if( !(function->function = (generic_function)GetProcAddress( library->library
-#ifdef _UNICODE
+#    ifdef _UNICODE
 																						  , tmp = DupTextToChar( function->name )
-#else
+#    else
 																						  , function->name
-#endif
+#    endif
 																						  )) )
-#endif
+#  endif
 			{
 				TEXTCHAR tmpname[128];
-#ifdef UNICODE
+#  ifdef UNICODE
 				snwprintf( tmpname, sizeof( tmpname ), WIDE("_%s"), funcname );
-#else
+#  else
 				snprintf( tmpname, sizeof( tmpname ), WIDE("_%s"), funcname );
-#endif
-#ifdef __cplusplus_cli
+#  endif
+#  ifdef __cplusplus_cli
 				char *procname = CStrDup( tmpname );
 				if( l.flags.bLog )
 					lprintf( WIDE( "Get:%s" ), procname );
 				function->function = (generic_function)GetProcAddress( library->library, procname );
 				ReleaseEx( procname DBG_SRC );
-#else
+#  else
 				if( l.flags.bLog )
 					lprintf( WIDE( "Get:%s" ), function->name );
 				function->function = (generic_function)GetProcAddress( library->library
-#ifdef _UNICODE
+#    ifdef _UNICODE
 																					  , WcharConvert( tmpname )
-#else
+#    else
 																					  , tmpname
-#endif
+#    endif
 																					  );
-#endif
+#  endif
 			}
-#ifdef __cplusplus_cli
+#  ifdef __cplusplus_cli
 			ReleaseEx( procname DBG_SRC );
-#else
-#ifdef _UNICODE
+#  else
+#    ifdef _UNICODE
 			Deallocate( char *, tmp );
 			}
-#endif
-#endif
+#    endif
+#  endif
 			if( !function->function )
 			{
 				if( l.flags.bLog )
@@ -1773,15 +1836,15 @@ SYSTEM_PROC( generic_function, LoadFunctionExx )( CTEXTSTR libname, CTEXTSTR fun
 				return NULL;
 			}
 #else
-#ifdef UNICODE
+#  ifdef UNICODE
 			{
 				char *tmpname = CStrDup( function->name );
 				library->library = dlsym( library->library, tmpname );
 				ReleaseEx( tmpname DBG_SRC );
 			}
-#else
+#  else
          function->function = (generic_function)dlsym( library->library, function->name );
-#endif
+#  endif
  			if( !(function->function) )
 			{
 				char tmpname[128];
@@ -1908,7 +1971,7 @@ SYSTEM_PROC( int, UnloadFunctionEx )( generic_function *f DBG_PASS )
 
 //-------------------------------------------------------------------------
 
-#if !defined( __ARM__ )
+#if !defined( __ANDROID__ )
 SYSTEM_PROC( PTHREAD, SpawnProcess )( CTEXTSTR filename, va_list args )
 {
 	PTRSZVAL (CPROC *newmain)( PTHREAD pThread );
@@ -2021,6 +2084,7 @@ void SetExternalLoadLibrary( LOGICAL (CPROC*f)(const char *) )
 
 void SetProgramName( CTEXTSTR filename )
 {
+	SystemInit();
 	l.filename = filename;
 }
 

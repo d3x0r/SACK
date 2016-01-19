@@ -126,7 +126,7 @@ void CPROC do_linec( ImageFile *pImage, int x1, int y1
 		scale( v[vi][3], v[vi][3], l.scale );
 
 		{
-			struct image_shader_image_buffer_op *op;
+			struct image_shader_op *op;
 			op = BeginImageShaderOp( GetShader( WIDE("Simple Shader") ), pImage, _color  );
 			AppendImageShaderOpTristrip( op, 2, v[vi] );
 		}
@@ -288,7 +288,7 @@ void CPROC do_lineAlphac( ImageFile *pImage, int x1, int y1
 		scale( v[vi][3], v[vi][3], l.scale );
 
 		{
-			struct image_shader_image_buffer_op *op;
+			struct image_shader_op *op;
 			op = BeginImageShaderOp( GetShader( WIDE("Simple Shader") ), pImage, _color  );
 			AppendImageShaderOpTristrip( op, 2, v[vi] );
 		}

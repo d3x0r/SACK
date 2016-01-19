@@ -141,7 +141,7 @@ static void OnSaveCommon( WIDE("File Variables") )( FILE *output )
 	LIST_FORALL( l.files, idx, struct input_file*, file )
 	{
 		if( !file->flags.bDeleted )
-			fprintf( output, WIDE("file variable input \"%s\" \"%s\"\n"), file->varname, EscapeMenuString( file->filename ) );
+			sack_fprintf( output, WIDE("file variable input \"%s\" \"%s\"\n"), file->varname, EscapeMenuString( file->filename ) );
 	}
 }
 

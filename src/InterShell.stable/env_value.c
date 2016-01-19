@@ -137,9 +137,9 @@ static PTRSZVAL OnConfigureControl( WIDE( "InterShell/Set Environment" ) )( PTRS
 static void OnSaveControl( WIDE( "InterShell/Set Environment" ) )( FILE *file, PTRSZVAL psv )
 {
 	PSETVAR pSetVar = (PSETVAR)psv;
-	fprintf( file, WIDE( "Set Environment User=%s\n" ), pSetVar->bUser?WIDE("yes"):WIDE("no") );
-	fprintf( file, WIDE( "Set Environment text name=%s\n" ), EscapeMenuString( pSetVar->varname ) );
-	fprintf( file, WIDE( "Set Environment text value=%s\n" ), EscapeMenuString( pSetVar->newval ) );
+	sack_fprintf( file, WIDE( "Set Environment User=%s\n" ), pSetVar->bUser?WIDE("yes"):WIDE("no") );
+	sack_fprintf( file, WIDE( "Set Environment text name=%s\n" ), EscapeMenuString( pSetVar->varname ) );
+	sack_fprintf( file, WIDE( "Set Environment text value=%s\n" ), EscapeMenuString( pSetVar->newval ) );
 }
 
 static void OnCloneControl( WIDE( "InterShell/Set Environment" ) )( PTRSZVAL psvNew, PTRSZVAL psvOld )

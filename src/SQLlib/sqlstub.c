@@ -171,6 +171,17 @@ PRIORITY_PRELOAD( InitGlobalData, SQL_PRELOAD_PRIORITY )
 
 }
 
+ATEXIT_PRIORITY( CloseConnections, ATEXIT_PRIORITY_SYSLOG - 3 )
+{
+	PODBC odbc;
+	INDEX idx;
+	LIST_FORALL( global_sqlstub_data->pOpenODBC, idx, PODBC, odbc  )
+	{
+		CloseDatabaseEx( odbc, FALSE );
+
+	}
+}
+
 #if defined( USE_SQLITE ) || defined( USE_SQLITE_INTERFACE )
 static void GetNowFunc(sqlite3_context*onwhat,int n,sqlite3_value**something)
 {
@@ -187,7 +198,7 @@ static void GetCurUser(sqlite3_context*onwhat,int n,sqlite3_value**something)
 {
 	CTEXTSTR str = OSALOT_GetEnvironmentVariable( WIDE("USERNAME") );
 	static TEXTCHAR tmp[256];
-	snprintf( tmp, 256, WIDE("%s@127.0.0.1"), str );
+	tnprintf( tmp, 256, WIDE("%s@127.0.0.1"), str );
 #ifdef _UNICODE
 	{
 		char *tmp_str = WcharConvert( tmp );
@@ -221,7 +232,7 @@ static void SQLiteGetLastInsertID(sqlite3_context*onwhat,int n,sqlite3_value**so
 {
 	static TEXTCHAR str[20];
 	PODBC odbc = (PODBC)sqlite3_user_data(onwhat);
-	snprintf( str, sizeof( str ), WIDE( "%Ld" ), sqlite3_last_insert_rowid( odbc->db ) );
+	tnprintf( str, sizeof( str ), WIDE( "%") _64fs, sqlite3_last_insert_rowid( odbc->db ) );
 #ifdef _UNICODE
 	{
 		char *tmp_str = WcharConvert( str );
@@ -653,7 +664,7 @@ static PTRSZVAL CPROC SetFallback( PTRSZVAL psv, arg_list args )
 static PTRSZVAL CPROC SetRequirePrimaryConnection( PTRSZVAL psv, arg_list args )
 {
 	PARAM( args, LOGICAL, bRequired );
-   g.Primary.flags.bForceConnection = bRequired;
+	g.Primary.flags.bForceConnection = bRequired;
 	return psv;
 }
 
@@ -794,7 +805,7 @@ LOGICAL EnsureLogOpen( PODBC odbc )
 			{
 				// this should be an option...
 				if( attempt )
-					snprintf( logname, sizeof( logname ), WIDE( "sql%d.log" ), attempt );
+					tnprintf( logname, sizeof( logname ), WIDE( "sql%d.log" ), attempt );
 				else
 					StrCpyEx( logname, WIDE("sql.log"), sizeof( logname ) );
 				attempt++;
@@ -862,7 +873,7 @@ void InitLibrary( void )
 			//AddConfigurationFilter( pch, TranslateINICrypt );
 			{
 				TEXTCHAR tmp[256];
-				snprintf( tmp, 256, WIDE("%s.sql.config"), GetProgramName() );
+				tnprintf( tmp, 256, WIDE("%s.sql.config"), GetProgramName() );
 				success = ProcessConfigurationFile( pch, tmp, 0 );
 			}
 
@@ -878,23 +889,23 @@ void InitLibrary( void )
 					);
 				if( file )
 				{
-					sack_fprintf( file, WIDE("Option DSN=%s\n"), g.OptionDb.info.pDSN );
-					sack_fprintf( file, WIDE("Option Use New Version=off\n") );
-					sack_fprintf( file, WIDE("Option Use Version 4=on\n") );
-					sack_fprintf( file, WIDE("Primary DSN=MySQL\n") );
-					sack_fprintf( file, WIDE("#Primary User=\n") );
-					sack_fprintf( file, WIDE("#Primary Password=\n") );
-					sack_fprintf( file, WIDE("Backup DSN=MySQL2\n") );
-					sack_fprintf( file, WIDE("#Backup User=\n") );
-					sack_fprintf( file, WIDE("#Backup Password=\n") );
-					sack_fprintf( file, WIDE("Log enable=No\n" ) );
-					sack_fprintf( file, WIDE("LogFile enable=No\n" ) );
-					sack_fprintf( file, WIDE("LogFile enable dump data=No\n" ) );
-					sack_fprintf( file, WIDE("Log Option Connection=No\n" ) );
-					sack_fprintf( file, WIDE("Fallback on failure=No\n") );
-					sack_fprintf( file, WIDE("Require Connection=No\n") );
-					sack_fprintf( file, WIDE("Require Primary Connection=Yes\n") );
-					sack_fprintf( file, WIDE("Require Backup Connection=No\n") );
+					sack_fprintf( file, "Option DSN=%s\n", g.OptionDb.info.pDSN );
+					sack_fprintf( file, "Option Use New Version=off\n" );
+					sack_fprintf( file, "Option Use Version 4=on\n" );
+					sack_fprintf( file, "Primary DSN=MySQL\n" );
+					sack_fprintf( file, "#Primary User=\n" );
+					sack_fprintf( file, "#Primary Password=\n" );
+					sack_fprintf( file, "Backup DSN=MySQL2\n" );
+					sack_fprintf( file, "#Backup User=\n" );
+					sack_fprintf( file, "#Backup Password=\n" );
+					sack_fprintf( file, "Log enable=No\n"  );
+					sack_fprintf( file, "LogFile enable=No\n"  );
+					sack_fprintf( file, "LogFile enable dump data=No\n"  );
+					sack_fprintf( file, "Log Option Connection=No\n"  );
+					sack_fprintf( file, "Fallback on failure=No\n" );
+					sack_fprintf( file, "Require Connection=No\n" );
+					sack_fprintf( file, "Require Primary Connection=Yes\n" );
+					sack_fprintf( file, "Require Backup Connection=No\n" );
 					sack_fclose( file );
 				}
 				ProcessConfigurationFile( pch, WIDE("sql.config"), 0 );
@@ -967,8 +978,8 @@ int OpenSQLConnectionEx( PODBC odbc DBG_PASS )
 		if( g.flags.bDeadstartCompleted )
 		{
 			TEXTCHAR msg[80];
-			snprintf( msg, sizeof( msg )/sizeof(TEXTCHAR), WIDE( "Connecting to [%s]%*.*s" ), odbc->info.pDSN, 3+state, 3+state,WIDE( "........." ) );
-			msg[79] = 0; // stupid snprintf, this is going to SUCK.  What the hell microsoft?!
+			tnprintf( msg, sizeof( msg )/sizeof(TEXTCHAR), WIDE( "Connecting to [%s]%*.*s" ), odbc->info.pDSN, 3+state, 3+state,WIDE( "........." ) );
+			msg[79] = 0; // stupid tnprintf, this is going to SUCK.  What the hell microsoft?!
 			if( g.feedback_handler )
 			{
 				//_lprintf(DBG_VOIDRELAY)( WIDE( "%s" ), msg );
@@ -1001,7 +1012,7 @@ int OpenSQLConnectionEx( PODBC odbc DBG_PASS )
 
 		if( !odbc->hdbc && !odbc->flags.bSkipODBC )
 		{
-         RETCODE rc;
+			RETCODE rc;
 #ifdef LOG_EVERYTHING
 			lprintf( WIDE("get hdbc") );
 #endif
@@ -1084,7 +1095,7 @@ int OpenSQLConnectionEx( PODBC odbc DBG_PASS )
 				lprintf( WIDE("How long was that?") );
 #endif
 				LineRelease( pConnect );
-				lprintf( "rc == %d", rc );
+				lprintf( WIDE("rc == %d"), rc );
 				if( rc != SQL_SUCCESS && rc != SQL_SUCCESS_WITH_INFO )
 				{
 					//PTEXT result;
@@ -1224,11 +1235,19 @@ int OpenSQLConnectionEx( PODBC odbc DBG_PASS )
 					if( vfs_name )
 					{
 #ifdef USE_SQLITE_INTERFACE
-#ifdef UNICODE
-						sqlite_iface->InitVFS( DupCStr( vfs_name ), sack_get_mounted_filesystem( tmpvfsvfs ) );
-#else
+#  ifdef UNICODE
+						TEXTCHAR *_vfs_name = DupCStr( vfs_name );
+						char *_tmpvfsvfs = CStrDup( tmpvfsvfs );
+#    define vfs_name _vfs_name
+#    define tmpvfsvfs _tmpvfsvfs 
+#  endif
 						sqlite_iface->InitVFS( vfs_name, sack_get_mounted_filesystem( tmpvfsvfs ) );
-#endif
+#  ifdef UNICODE
+						Deallocate( TEXTCHAR *,_vfs_name );
+						Deallocate( char *, _tmpvfsvfs );
+#    undef vfs_name 
+#    undef tmpvfsvsf 
+#  endif
 #endif
 					}
 					odbc->flags.bVFS = 1;
@@ -1979,13 +1998,17 @@ void DestroyCollectorEx( PCOLLECT pCollect DBG_PASS )
 
 //----------------------------------------------------------------------
 
-PODBC ConnectToDatabaseExx( CTEXTSTR DSN, LOGICAL bRequireConnection DBG_PASS )
+PODBC ConnectToDatabaseLogin( CTEXTSTR DSN, CTEXTSTR user, CTEXTSTR pass, LOGICAL bRequireConnection DBG_PASS )
 {
 	PODBC pODBC;
 	InitLibrary();
 	pODBC = New( ODBC );
 	AddLink( &g.pOpenODBC, pODBC );
 	MemSet( pODBC, 0, sizeof( ODBC ) );
+	if( user )
+		StrCpy( pODBC->info.pID, user );
+	if( pass )
+		StrCpy( pODBC->info.pPASSWORD, pass );
 	pODBC->info.pDSN = StrDup( DSN );
 	pODBC->flags.bForceConnection = bRequireConnection;
 	// source ID is not known...
@@ -1993,6 +2016,11 @@ PODBC ConnectToDatabaseExx( CTEXTSTR DSN, LOGICAL bRequireConnection DBG_PASS )
 	//CreateCollector( 0, pODBC, FALSE );
 	OpenSQLConnectionEx( pODBC DBG_RELAY );
 	return pODBC;
+}
+
+PODBC ConnectToDatabaseExx( CTEXTSTR DSN, LOGICAL bRequireConnection DBG_PASS )
+{
+	return ConnectToDatabaseLogin( DSN, NULL, NULL, bRequireConnection DBG_RELAY );
 }
 
 #undef ConnectToDatabaseEx
@@ -2133,7 +2161,7 @@ int DumpInfoEx( PODBC odbc, PVARTEXT pvt, SQLSMALLINT type, SQLHANDLE *handle, L
 			}
 			else if( native == 2006 || native == 2003 )
 			{
-            if( odbc->flags.bConnected )
+				if( odbc->flags.bConnected )
 					if( g.feedback_handler ) g.feedback_handler( WIDE("SQL Connection Lost...\nWaiting for reconnect...") );
 				_lprintf(DBG_RELAY)( WIDE( "[%s] This is 'connection lost' (not tempoary)" ), odbc->info.pDSN );
 
@@ -2142,7 +2170,7 @@ int DumpInfoEx( PODBC odbc, PVARTEXT pvt, SQLSMALLINT type, SQLHANDLE *handle, L
 					if( type == SQL_HANDLE_STMT )
 					{
 						RETCODE rc2 = SQLFreeHandle( type, *handle );
-                  (*handle) = 0;
+						(*handle) = 0;
 						lprintf( WIDE( "Result of free (Stmt) : %d" ), rc2 );
 					}
 					FailConnection( odbc );
@@ -2246,7 +2274,7 @@ void CloseDatabaseEx( PODBC odbc, LOGICAL ReleaseConnection )
 		int err = sqlite3_close( odbc->db );
 		if( err )
 		{
-         lprintf( WIDE("sqlite3 returned %d on close..."), err );
+			lprintf( WIDE("sqlite3 returned %d on close..."), err );
 		}
 	}
 	else
@@ -2261,15 +2289,16 @@ void CloseDatabaseEx( PODBC odbc, LOGICAL ReleaseConnection )
 		odbc->hdbc = NULL;
 	}
 #endif
-   if( ReleaseConnection )
+	DeleteLink( &g.pOpenODBC, odbc );
+	if( ReleaseConnection )
 		Release( odbc );
-   else
+	else
 		odbc->flags.bConnected = FALSE;
 }
 
 void CloseDatabase( PODBC odbc )
 {
-   CloseDatabaseEx( odbc, TRUE );
+	CloseDatabaseEx( odbc, TRUE );
 }
 
 //-----------------------------------------------------------------------
@@ -2367,11 +2396,9 @@ retry:
 #endif
 		if( rc3 )
 		{
-			TEXTSTR tmp_delete;
 			TEXTSTR str_error = DupCharToText( sqlite3_errmsg(odbc->db) );
 			_lprintf(DBG_RELAY)( WIDE( "Result of prepare failed? %s at char %")_size_f WIDE("[%s] in [%s]" ), str_error, tail - GetText( cmd ), tail, GetText(cmd) );
 			vtprintf( collection->pvt_errorinfo, str_error );
-			//Release( tmp_delete );
 			Release( str_error );
 			Release( tmp_cmd );
 			if( EnsureLogOpen(odbc ) )
@@ -2458,7 +2485,7 @@ retry:
 		{
 			rc = SQLExecDirect( collection->hstmt,
 #ifdef _UNICODE 
-                            (SQLWCHAR*)GetText( cmd )
+									 (SQLWCHAR*)GetText( cmd )
 #else
 									 (SQLCHAR*)GetText( cmd )
 #endif
@@ -2466,10 +2493,10 @@ retry:
 		}
 			if( rc != SQL_SUCCESS && rc != SQL_SUCCESS_WITH_INFO )
 			{
-            // DumpInfo will do the logging... shouldn't need to re-log it.
+				// DumpInfo will do the logging... shouldn't need to re-log it.
 				retry = DumpInfo( odbc, collection->pvt_errorinfo, SQL_HANDLE_STMT, &collection->hstmt, odbc->flags.bNoLogging );
 				//cmd = VarTextPeek( collection->pvt_errorinfo );
-            //DebugBreak();
+				//DebugBreak();
 				//lprintf( WIDE("ODBC Command excecution failed(1)....%s"), cmd?GetText( cmd ):WIDE("NO ERROR RESULT") );
 				if( EnsureLogOpen( odbc ) )
 				{
@@ -2510,10 +2537,10 @@ SQLPROXY_PROC( int, SQLCommandEx )( PODBC odbc, CTEXTSTR command DBG_PASS )
 {
 	PODBC use_odbc;
 	if( !IsSQLOpenEx( odbc DBG_RELAY ) )
-      return 0;
+		return 0;
 	if( !( use_odbc = odbc ) )
 	{
-      use_odbc = g.odbc;
+		use_odbc = g.odbc;
 	}
 	if( use_odbc )
 	{
@@ -2538,7 +2565,7 @@ SQLPROXY_PROC( int, SQLCommandEx )( PODBC odbc, CTEXTSTR command DBG_PASS )
 
 int DoSQLCommandEx( CTEXTSTR command DBG_PASS )
 {
-   return SQLCommandEx( NULL, command DBG_RELAY );
+	return SQLCommandEx( NULL, command DBG_RELAY );
 }
 
 //-----------------------------------------------------------------------
@@ -2551,15 +2578,15 @@ void __GetSQLTypes( PODBC odbc, PCOLLECT collection )
 	if( odbc->flags.bSQLite_native )
 	{
 		lprintf( WIDE("Someone's getting types - haven't figured this one out yet...") );
-      /*
+		/*
 		if( collection->stmt )
 		{
 			sqlite3_finalize( collection->stmt );
 			collection->stmt = NULL;
 		}
-      */
+		*/
 		GenerateResponce( collection, WM_SQL_RESULT_NO_DATA );
-      return;
+		return;
 	}
 #endif
 #ifdef USE_ODBC
@@ -2596,12 +2623,12 @@ void __GetSQLTypes( PODBC odbc, PCOLLECT collection )
 
 int GetSQLTypes( void )
 {
-   if( !OpenSQL( DBG_VOIDSRC ) )
-   {
-      return FALSE;
-   }
-   __GetSQLTypes( g.odbc, g.odbc->collection );
-   return g.odbc->collection->responce == WM_SQL_RESULT_SUCCESS?TRUE:0;
+	if( !OpenSQL( DBG_VOIDSRC ) )
+	{
+		return FALSE;
+	}
+	__GetSQLTypes( g.odbc, g.odbc->collection );
+	return g.odbc->collection->responce == WM_SQL_RESULT_SUCCESS?TRUE:0;
 }
 
 //-----------------------------------------------------------------------
@@ -2613,7 +2640,7 @@ SQLPROXY_PROC( int, FetchSQLTypes )( PODBC odbc )
 		__GetSQLTypes( odbc, odbc->collection );
 		return odbc->collection->responce == WM_SQL_RESULT_SUCCESS?TRUE:0;
 	}
-   return 0;
+	return 0;
 }
 
 //-----------------------------------------------------------------------
@@ -2632,7 +2659,7 @@ SQLPROXY_PROC( int, FetchSQLTypes )( PODBC odbc )
 SQLPROXY_PROC( int, FetchSQLError )( PODBC odbc, CTEXTSTR *result )
 {
 	if( !result )
-      return 0;
+		return 0;
 	if( !odbc )
 	{
 		odbc = g.odbc;
@@ -2666,49 +2693,49 @@ SQLPROXY_PROC( int, GetSQLError )( CTEXTSTR *result )
 	if( !g.odbc )
 		if( !OpenSQL( DBG_VOIDSRC ) )
 		{
-         if( result ) (*result) = NULL;
+			if( result ) (*result) = NULL;
 			return 0;
 		}
-   return FetchSQLError( g.odbc, result );
+	return FetchSQLError( g.odbc, result );
 }
 
 //-----------------------------------------------------------------------
 
 void __GetSQLError( PODBC odbc, PCOLLECT collection )
 {
-   GenerateResponce( collection, WM_SQL_RESULT_DATA );
+	GenerateResponce( collection, WM_SQL_RESULT_DATA );
 }
 
 //-----------------------------------------------------------------------
 
 CTEXTSTR Deblobify( TEXTCHAR *data, int len )
 {
-   static TEXTCHAR table[256];
-   TEXTCHAR *result;
+	static TEXTCHAR table[256];
+	TEXTCHAR *result;
 	TEXTCHAR *output = NewArray( TEXTCHAR, len + 1 );
 
 	if( !table['1'] )
 	{
 		int n;
-      for( n = 0; n <= 9; n++ )
+		for( n = 0; n <= 9; n++ )
 			table['0'+n] = (char)n;
 		for( n = 0; n < 6; n++ )
 		{
-         table['a'+n] = (char)(10 + n);
+			table['a'+n] = (char)(10 + n);
 			table['A'+n] = (char)(10 + n);
 		}
 	}
-   result = output;
+	result = output;
 	while( data[0] && data[1] && len )
 	{
 		output[0] = (char)(( table[(int)data[0]] << 4 ) + table[(int)data[1]]);
 		data += 2;
 		output++;
-      len--;
+		len--;
 	}
-   // add a nul terminator...
-   output[0] = 0;
-   return result;
+	// add a nul terminator...
+	output[0] = 0;
+	return result;
 }
 
 //-----------------------------------------------------------------------
@@ -2786,11 +2813,11 @@ int __GetSQLResult( PODBC odbc, PCOLLECT collection, int bMore )
 			case SQLITE_LOCKED:
 				lprintf( WIDE("Database locked, waiting...") );
 				WakeableSleep( 100 );
-            goto retry;
+				goto retry;
 				break;
 			case SQLITE_ROW:
 			case SQLITE_DONE:
-            break;
+				break;
 			case SQLITE_CORRUPT:
 				lprintf( WIDE("Database is corrupt: %s"), sqlite3_errmsg(odbc->db ) );
 				break;
@@ -2811,7 +2838,7 @@ int __GetSQLResult( PODBC odbc, PCOLLECT collection, int bMore )
 			// the next query will have cleared these to NULL;
 			if( !collection->coltypes )
 			{
-	            //lprintf( "making types for %d columns", collection->columns + 1 );
+					//lprintf( "making types for %d columns", collection->columns + 1 );
 				collection->coltypes = NewArray( SQLSMALLINT, ( collection->columns + 1 ) );
 			}
 			if( !collection->colsizes )
@@ -2851,7 +2878,7 @@ int __GetSQLResult( PODBC odbc, PCOLLECT collection, int bMore )
 						}
 #endif
 #if ( defined( USE_SQLITE ) || defined( USE_SQLITE_INTERFACE ) ) && defined( USE_ODBC )
-                  else
+						else
 #endif
 #ifdef USE_ODBC
 						{
@@ -2860,10 +2887,10 @@ int __GetSQLResult( PODBC odbc, PCOLLECT collection, int bMore )
 													 ,
 #ifdef _UNICODE 
 													  (SQLWCHAR*)colname
-                                         , sizeof(colname)
+													  , sizeof(colname)
 #else
 													  (SQLCHAR*)colname
-                                         , sizeof(colname)
+													  , sizeof(colname)
 #endif
 													 , (SQLSMALLINT*)&namelen
 													 , collection->coltypes + idx - 1 // data type short int
@@ -2880,7 +2907,7 @@ int __GetSQLResult( PODBC odbc, PCOLLECT collection, int bMore )
 								result_cmd = WM_SQL_RESULT_ERROR;
 								break;
 							}
-                     //lprintf( "col %s is %d %d", colname, collection->colsizes[idx-1], collection->coltypes[idx-1] );
+							//lprintf( "col %s is %d %d", colname, collection->colsizes[idx-1], collection->coltypes[idx-1] );
 							colname[namelen] = 0; // always nul terminate this.
 							collection->fields[idx-1] = StrDup( colname );
 						}
@@ -2899,7 +2926,7 @@ int __GetSQLResult( PODBC odbc, PCOLLECT collection, int bMore )
 				lprintf( WIDE("no data") );
 				VarTextDestroy( &pvtData );
 			}
-								         
+											
 			result_cmd = WM_SQL_RESULT_NO_DATA;
 			collection->flags.bTemporary = 1;
 			collection->flags.bEndOfFile = 1;
@@ -2929,7 +2956,7 @@ int __GetSQLResult( PODBC odbc, PCOLLECT collection, int bMore )
 			 ( ( rc = SQLFetch( collection->hstmt ) ) == SQL_SUCCESS )
 			  )
 #endif
-         )
+			)
 		{
 			int idx;
 			int first = 1;
@@ -3038,9 +3065,9 @@ int __GetSQLResult( PODBC odbc, PCOLLECT collection, int bMore )
 
 					// hvaing this cast as a UINTEGER for colsize comparison
 					// breaks -1 being less than colsize... so test negative special and
-               // do the same thing as < colsize
+					// do the same thing as < colsize
 					if( ( ResultLen & 0x8000000 )
-							   || ( (SQLUINTEGER)ResultLen < colsize ) )
+								|| ( (SQLUINTEGER)ResultLen < colsize ) )
 					{
 						if( (int)ResultLen < 0 )
 							byResult[0] = 0;
@@ -3177,7 +3204,7 @@ int __GetSQLResult( PODBC odbc, PCOLLECT collection, int bMore )
 			VarTextDestroy( &pvtData );
 		}
 
-      /* these were temporary for collectiong other meta information */
+		/* these were temporary for collectiong other meta information */
 		if( tmpResult )
 		{
 			Release( tmpResult );
@@ -3269,7 +3296,7 @@ int FetchSQLRecord( PODBC odbc, CTEXTSTR **result )
 //-----------------------------------------------------------------------
 SQLPROXY_PROC( int, FetchSQLResult )( PODBC odbc, CTEXTSTR *result )
 {
-   if( result )
+	if( result )
 		(*result) = NULL;
 	if( !odbc )
 		odbc = g.odbc;
@@ -3400,7 +3427,7 @@ int __DoSQLQueryEx( PODBC odbc, PCOLLECT collection, CTEXTSTR query DBG_PASS )
 	}
 #endif
 #if ( defined( USE_SQLITE ) || defined( USE_SQLITE_INTERFACE ) ) && defined( USE_ODBC )
-   else
+	else
 #endif
 #ifdef USE_ODBC
 	{
@@ -3437,7 +3464,7 @@ int __DoSQLQueryEx( PODBC odbc, PCOLLECT collection, CTEXTSTR query DBG_PASS )
 		if( odbc->flags.bNoLogging )
 			//odbc->hidden_messages++
 			;
-      else
+		else
 			_lprintf(DBG_RELAY)( WIDE( "Do Command[%p:%s]: %s" ), odbc
 					, odbc->info.pDSN?odbc->info.pDSN:WIDE( "NoDSN?" )
 					, query );
@@ -3464,7 +3491,7 @@ int __DoSQLQueryEx( PODBC odbc, PCOLLECT collection, CTEXTSTR query DBG_PASS )
 			TEXTSTR str_error;
 			if( rc3 == SQLITE_BUSY )
 			{
-				lprintf( "wait for lock..." );
+				lprintf( WIDE("wait for lock...") );
 				DumpAllODBCInfo();
 				WakeableSleep( 200 );
 				goto retry;
@@ -3565,7 +3592,7 @@ int __DoSQLQueryEx( PODBC odbc, PCOLLECT collection, CTEXTSTR query DBG_PASS )
 	/*
 	*/
 #if defined( USE_SQLITE ) || defined( USE_SQLITE_INTERFACE )
-   if( odbc->flags.bSQLite_native )
+	if( odbc->flags.bSQLite_native )
 		collection->columns = (SQLSMALLINT)sqlite3_column_count(collection->stmt);
 #endif
 #if ( defined( USE_SQLITE ) || defined( USE_SQLITE_INTERFACE ) ) && defined( USE_ODBC )
@@ -3606,15 +3633,15 @@ int __DoSQLQueryEx( PODBC odbc, PCOLLECT collection, CTEXTSTR query DBG_PASS )
 
 void PopODBCExx( PODBC odbc, LOGICAL bAllowNonPush DBG_PASS )
 {
-   //lprintf( WIDE( "pop sql %p" ), odbc );
+	//lprintf( WIDE( "pop sql %p" ), odbc );
 	if( !odbc )
 		odbc = g.odbc;
 	if( odbc )
 	{
-      // pop odbc should pop util a push?
+		// pop odbc should pop util a push?
 		while( odbc->collection && odbc->collection->flags.bTemporary
 				// if it is end of file, it is probable, that it was also the
-            // result of a push...
+				// result of a push...
 				&& !odbc->collection->flags.bPushed
 			  )
 			DestroyCollector( odbc->collection );
@@ -3638,10 +3665,10 @@ void SQLEndQuery( PODBC odbc )
 	if( odbc )
 	{
 
-      // pop odbc should pop util a push?
+		// pop odbc should pop util a push?
 		while( odbc->collection && odbc->collection->flags.bTemporary
 				// if it is end of file, it is probable, that it was also the
-            // result of a push...
+				// result of a push...
 				&& !odbc->collection->flags.bPushed
 			  )
 		{
@@ -3656,7 +3683,7 @@ void SQLEndQuery( PODBC odbc )
 		}
 		if( odbc->collection )//&& odbc->collection->flags.bPushed )
 		{
-         //lprintf( WIDE( "Should have ended with a pop not a EndQuery DebugBreak()" ) );
+			//lprintf( WIDE( "Should have ended with a pop not a EndQuery DebugBreak()" ) );
 			//DebugBreak();
 #ifdef LOG_COLLECTOR_STATES
 			lprintf( WIDE( "End Query forces temporary and end of recordset. (more like a seek(end)" ) );
@@ -3665,7 +3692,7 @@ void SQLEndQuery( PODBC odbc )
 			odbc->collection->flags.bEndOfFile = 1;
 		}
 	}
-//   PopODBCExx( odbc, TRUE );
+//	PopODBCExx( odbc, TRUE );
 }
 
 //-----------------------------------------------------------------------
@@ -3753,7 +3780,7 @@ int SQLQueryEx( PODBC odbc, CTEXTSTR query, CTEXTSTR *result DBG_PASS )
 	do
 	{
 		if( !IsSQLOpen( odbc ) )
-         return FALSE;
+			return FALSE;
 
 		if( !( use_odbc = odbc ) )
 		{
@@ -3834,12 +3861,12 @@ int IsSQLOpenEx( PODBC odbc DBG_PASS )
 {
 	if( !odbc )
 	{
-      //lprintf( "open default..." );
+		//lprintf( "open default..." );
 		OpenSQL( DBG_VOIDRELAY );
 		odbc = g.odbc;
 	}
 	else
-      OpenSQLConnectionEx( odbc DBG_RELAY );
+		OpenSQLConnectionEx( odbc DBG_RELAY );
 #if defined( USE_SQLITE ) || defined( USE_SQLITE_INTERFACE )
 	if( odbc && odbc->flags.bSQLite_native )
 		if( odbc && odbc->db )
@@ -3860,7 +3887,7 @@ int IsSQLOpenEx( PODBC odbc DBG_PASS )
 #undef IsSQLOpen
 int IsSQLOpen( PODBC odbc )
 {
-   return IsSQLOpenEx( odbc DBG_SRC );
+	return IsSQLOpenEx( odbc DBG_SRC );
 }
 
 //-----------------------------------------------------------------------
@@ -3874,7 +3901,7 @@ int IsSQLReady( void )
 int PushSQLQueryExEx( PODBC odbc DBG_PASS )
 //#define PushSQLQeuryEx(odbc) PushSQLQueryExEx(odbc DBG_SRC )
 {
-   //_lprintf(DBG_RELAY)( "push sql %p", odbc );
+	//_lprintf(DBG_RELAY)( "push sql %p", odbc );
 	if( !odbc )
 		odbc = g.odbc;
 	if( odbc && odbc->collection )
@@ -3904,14 +3931,14 @@ int PushSQLQueryExEx( PODBC odbc DBG_PASS )
 
 int PushSQLQuery( void )
 {
-   return PushSQLQueryEx( g.odbc );
+	return PushSQLQueryEx( g.odbc );
 }
 
 #undef PushSQLQueryEx
 int PushSQLQueryEx( PODBC odbc )
 #define PushSQLQueryEx(odbc) PushSQLQueryExEx(odbc DBG_SRC )
 {
-   return PushSQLQueryExEx( odbc DBG_SRC );
+	return PushSQLQueryExEx( odbc DBG_SRC );
 }
 
 
@@ -3925,13 +3952,13 @@ int PushSQLQueryEx( PODBC odbc )
 // insert values into said table.
 
 static struct {
-   struct {
-      BIT_FIELD  batch  : 1;
-   } flags;
-   PVARTEXT pvt_insert;
-   PVARTEXT pvt_columns;
-   PVARTEXT pvt_values;
-   PLIST values;
+	struct {
+		BIT_FIELD  batch  : 1;
+	} flags;
+	PVARTEXT pvt_insert;
+	PVARTEXT pvt_columns;
+	PVARTEXT pvt_values;
+	PLIST values;
 } sql_insert;
 
  int  SQLInsertFlush ( PODBC odbc )
@@ -3995,7 +4022,7 @@ static struct {
 		int first;
 		char *varname;
 		char *varval;
-      int making_columns;
+		int making_columns;
 		const TEXTCHAR *open_quote_string, *close_quote_string;
 		first = 1;
 		// once I thought values for access were [ ] enclosed...
@@ -4019,14 +4046,14 @@ static struct {
 				vtprintf( sql_insert.pvt_insert, WIDE("Insert into `%s`"), table );
 		}
 		first = 1;
-      making_columns = 0;
+		making_columns = 0;
 		for( varname = va_arg( args, char * );
 			varname;
 			varname = va_arg( args, char * ) )
 		{
 			if( making_columns || !sql_insert.flags.batch || !VarTextPeek( sql_insert.pvt_columns ) )
 			{
-            making_columns = 1;
+				making_columns = 1;
 				vtprintf( sql_insert.pvt_columns, WIDE( "%s%s" ), first?WIDE( "" ):WIDE( "," ), varname );
 			}
 
@@ -4079,9 +4106,9 @@ static struct {
 // insert values into said table.
  int  SQLInsert ( PODBC odbc, CTEXTSTR table, ... )
 {
-   va_list args;
+	va_list args;
 	va_start( args, table );
-   return vSQLInsert( odbc, table, args );
+	return vSQLInsert( odbc, table, args );
 }
 
 #endif
@@ -4094,8 +4121,8 @@ void ConvertSQLDateEx( CTEXTSTR date
                      , int *year, int *month, int *day
                      , int *hour, int *minute, int *second
                      , int *msec, S_32 *nsec
-					 , int *zone_ofs_hr, int *zone_ofs_mn
-					 )
+                     , int *zone_ofs_hr, int *zone_ofs_mn
+                     )
 {
 	CTEXTSTR p;
 	int n, cnt;
@@ -4111,7 +4138,6 @@ void ConvertSQLDateEx( CTEXTSTR date
 	natoi( n, p, 2 ); if( day ) *day = n;
 	if( p[0] )
 	{
-		CTEXTSTR np;
 		if( p[0]== 'T' || p[0] == ' ' || p[0] == '-'  ) p++;
 		natoi( n, p, 2 ); if( hour ) *hour = n;
 		if( p[0]==':' ) p++;
@@ -4180,7 +4206,7 @@ void CPROC Timer( PTRSZVAL psv )
 	{
 		//VarTextEmpty( g.TimerCollect.pvt_out );
 		g.flags.bNoLog = 1;
-      // this is a command... this is only a command...
+		// this is a command... this is only a command...
 		__DoSQLQuery( g.odbc, &g.TimerCollect, WIDE("select 0") );
 
 		if( g.TimerCollect.responce != WM_SQL_RESULT_DATA )
@@ -4190,7 +4216,7 @@ void CPROC Timer( PTRSZVAL psv )
 		}
 		else
 		{
-         // setup for next tick
+			// setup for next tick
 		}
 		g.flags.bNoLog = 0;
 	}
@@ -4200,53 +4226,53 @@ void CPROC Timer( PTRSZVAL psv )
 
 static void LoadTasks( void )
 {
-   int n;
-   for( n = 1; ;n++ )
-   {
-      TEXTCHAR taskid[32];
-      TEXTCHAR updatetask[256];
+	int n;
+	for( n = 1; ;n++ )
+	{
+		TEXTCHAR taskid[32];
+		TEXTCHAR updatetask[256];
 
-		snprintf( taskid, sizeof( taskid ), WIDE("Task%d"), n );
-      updatetask[0] = 0;
-      //OptGetPrivateProfileString( WIDE("Recovery Update"), taskid, WIDE(""), updatetask, sizeof( updatetask ), SQL_INI );
-      if( updatetask[0] )
-      {
-         PUPDATE_TASK task = (PUPDATE_TASK)Allocate( sizeof( UPDATE_TASK ) );
-         lprintf( WIDE("Task: \'%s\'"), updatetask );
+		tnprintf( taskid, sizeof( taskid ), WIDE("Task%d"), n );
+		updatetask[0] = 0;
+		//OptGetPrivateProfileString( WIDE("Recovery Update"), taskid, WIDE(""), updatetask, sizeof( updatetask ), SQL_INI );
+		if( updatetask[0] )
+		{
+			PUPDATE_TASK task = (PUPDATE_TASK)Allocate( sizeof( UPDATE_TASK ) );
+			lprintf( WIDE("Task: \'%s\'"), updatetask );
 			StrCpyEx( task->name, updatetask, sizeof( task->name ) );
-         task->PrimaryRecovered = (void(CPROC *)(PODBC,PODBC))LoadFunction( task->name, WIDE("_PrimaryRecovered") );
-         // it better never be  a post _ which implies register convention
-         //if( !task->PrimaryRecovered )
-         // task->PrimaryRecovered = (void(CPROC *)(PODBC,PODBC))LoadFunction( task->name, WIDE("PrimaryRecovered_") );
-         if( !task->PrimaryRecovered )
-            task->PrimaryRecovered = (void(CPROC *)(PODBC,PODBC))LoadFunction( task->name, WIDE("PrimaryRecovered") );
-         if( !task->PrimaryRecovered )
-         {
-            lprintf( WIDE("Failure to get task from plugin: %s"), updatetask );
-            //MessageBox( NULL, WIDE("Failure to load plugin!"), WIDE("Update Task Error"), MB_OK );
-            //Release( task );
-         }
-         task->CheckTables = (void(CPROC *)(PODBC))LoadFunction( task->name, WIDE("_CheckTables") );
-         // it better never be  a post _ which implies register convention
-         //if( !task->CheckTables )
-         // task->CheckTables = (void(CPROC *)(PODBC))LoadFunction( task->name, WIDE("CheckTables_") );
-         if( !task->CheckTables )
-            task->CheckTables = (void(CPROC *)(PODBC))LoadFunction( task->name, WIDE("CheckTables") );
-         if( !task->CheckTables )
-         {
-            lprintf( WIDE("Failure to get task from plugin: %s"), updatetask );
-            //MessageBox( NULL, WIDE("Failure to load plugin!"), WIDE("Update Task Error"), MB_OK );
-            //Release( task );
-         }
+			task->PrimaryRecovered = (void(CPROC *)(PODBC,PODBC))LoadFunction( task->name, WIDE("_PrimaryRecovered") );
+			// it better never be  a post _ which implies register convention
+			//if( !task->PrimaryRecovered )
+			// task->PrimaryRecovered = (void(CPROC *)(PODBC,PODBC))LoadFunction( task->name, WIDE("PrimaryRecovered_") );
+			if( !task->PrimaryRecovered )
+				task->PrimaryRecovered = (void(CPROC *)(PODBC,PODBC))LoadFunction( task->name, WIDE("PrimaryRecovered") );
+			if( !task->PrimaryRecovered )
+			{
+				lprintf( WIDE("Failure to get task from plugin: %s"), updatetask );
+				//MessageBox( NULL, WIDE("Failure to load plugin!"), WIDE("Update Task Error"), MB_OK );
+				//Release( task );
+			}
+			task->CheckTables = (void(CPROC *)(PODBC))LoadFunction( task->name, WIDE("_CheckTables") );
+			// it better never be  a post _ which implies register convention
+			//if( !task->CheckTables )
+			// task->CheckTables = (void(CPROC *)(PODBC))LoadFunction( task->name, WIDE("CheckTables_") );
+			if( !task->CheckTables )
+				task->CheckTables = (void(CPROC *)(PODBC))LoadFunction( task->name, WIDE("CheckTables") );
+			if( !task->CheckTables )
+			{
+				lprintf( WIDE("Failure to get task from plugin: %s"), updatetask );
+				//MessageBox( NULL, WIDE("Failure to load plugin!"), WIDE("Update Task Error"), MB_OK );
+				//Release( task );
+			}
 
-         LinkThing( g.UpdateTasks, task );
-      }
-      else
-      {
-         lprintf( WIDE("Task: %s"), updatetask );
-         break;
-      }
-   }
+			LinkThing( g.UpdateTasks, task );
+		}
+		else
+		{
+			lprintf( WIDE("Task: %s"), updatetask );
+			break;
+		}
+	}
 }
 
 //--------------------------------------------------------------------------
@@ -4286,7 +4312,7 @@ int CPROC SQLServiceHandler( PSERVICE_ROUTE SourceRouteID
 	// respond to command after processing
 	// success/failure information only applies.
 	// no data ever results from this?
-   if( result_length )
+	if( result_length )
 		(*result_length) = (_32)INVALID_INDEX; // by default
 	{
 		// do stuff here
@@ -4317,9 +4343,9 @@ int CPROC SQLServiceHandler( PSERVICE_ROUTE SourceRouteID
 				}
 
 					// also destroy all odbc connectors created
-                  // by this colient!
+						// by this colient!
 			} //while( ( pCollector = FindCollection( NULL, SourceRouteID ) ) );
-         return TRUE;
+			return TRUE;
 		case WM_SQL_COMMAND:
 			lprintf( WIDE("Do SQL Command...") );
 			// application will get a timeout on this message.
@@ -4329,14 +4355,14 @@ int CPROC SQLServiceHandler( PSERVICE_ROUTE SourceRouteID
 			return TRUE;
 		case WM_SQL_QUERY:
 			lprintf( WIDE("Do SQL Query...") );
-         // query will be already on the collector...
-         pCollector->flags.bBuildResultArray = 0;
+			// query will be already on the collector...
+			pCollector->flags.bBuildResultArray = 0;
 			__DoSQLQuery( g.odbc, Collect( pCollector, params, param_length ), NULL );
 			return TRUE;
 		case WM_SQL_QUERY_RECORD:
 			lprintf( WIDE("Do SQL Query...") );
 			// query will be already on the collector...
-         pCollector->flags.bBuildResultArray = 1;
+			pCollector->flags.bBuildResultArray = 1;
 			__DoSQLQuery( g.odbc, Collect( pCollector, params, param_length ), NULL );
 			return TRUE;
 		case WM_SQL_GET_ERROR:
@@ -4384,14 +4410,14 @@ void SQLBeginService( void )
 //int main( void )
 {
 	InitLibrary();
-   // provide task interface
+	// provide task interface
 #ifndef __NO_MSGSVR__
 	RegisterServiceHandler( WIDE("SQL"), SQLServiceHandler );
 #endif
-   // load local schedulable tasks...
+	// load local schedulable tasks...
 	LoadTasks();
-   // should probably add some options about what exactly
-   // we would wish to log... but for now, and for testing
+	// should probably add some options about what exactly
+	// we would wish to log... but for now, and for testing
 	// purposes, we log both query and command strings.
 #ifdef __HAVE_ICON___
 	RegisterIcon( PROXY_DOWN );
@@ -4400,7 +4426,7 @@ void SQLBeginService( void )
 	{
 		// this COULD be a timerproc...
 		// but the main app isn't doing anything so
-      // I guess it can do the SQL-alive probing.
+		// I guess it can do the SQL-alive probing.
 		Timer(0);
 #ifdef _DEBUG
 		// one second wake mode...
@@ -4420,41 +4446,41 @@ void SQLBeginService( void )
 
 void SQLSetUserData( PODBC odbc, PTRSZVAL psvUser )
 {
-   odbc->psvUser = psvUser;
+	odbc->psvUser = psvUser;
 }
 //-------------------------------------------------------------------------
 
 PTRSZVAL SQLGetUserData( PODBC odbc )
 {
-   return odbc->psvUser;
+	return odbc->psvUser;
 }
 
 struct day_type_offset
 {
 	CTEXTSTR type;
-   CTEXTSTR result;
+	CTEXTSTR result;
 };
 
 CTEXTSTR GetSQLOffsetDate( PODBC odbc, CTEXTSTR BeginOfDayType, int default_begin )
 {
 	TEXTCHAR result[80];
 	TEXTCHAR offset[25];
-   TEXTCHAR default_val[12];
+	TEXTCHAR default_val[12];
 	int hours, minutes;
 	INDEX idx;
 	struct day_type_offset *dto;
 	LIST_FORALL( g.date_offsets, idx, struct day_type_offset *, dto )
 	{
 		if( StrCaseCmp( dto->type, BeginOfDayType ) == 0 )
-         return dto->result;
+			return dto->result;
 	}
 	{
 		dto = New( struct day_type_offset );
 		dto->type = StrDup( BeginOfDayType );
 		if( default_begin > 100 )
-			snprintf( default_val, sizeof( default_val ), WIDE( "%d:%02d" ), default_begin / 100, default_begin % 100 );
+			tnprintf( default_val, sizeof( default_val ), WIDE( "%d:%02d" ), default_begin / 100, default_begin % 100 );
 		else
-         snprintf( default_val, sizeof( default_val ), WIDE( "%d" ), default_begin );
+			tnprintf( default_val, sizeof( default_val ), WIDE( "%d" ), default_begin );
 #ifndef __NO_OPTIONS__
 		SACK_GetProfileString( WIDE( "SACK/SQL/Day Offset" ), BeginOfDayType, default_val, offset, sizeof( offset ) );
 #else
@@ -4462,17 +4488,17 @@ CTEXTSTR GetSQLOffsetDate( PODBC odbc, CTEXTSTR BeginOfDayType, int default_begi
 #endif
 		if( StrChr( offset, ':' ) )
 		{
-			sscanf( offset, WIDE( "%d:%d" ), &hours, &minutes );
+			tscanf( offset, WIDE( "%d:%d" ), &hours, &minutes );
 		}
 		else
 		{
 			minutes = 0;
-			sscanf( offset, WIDE( "%d" ), &hours );
+			tscanf( offset, WIDE( "%d" ), &hours );
 		}
 
-		snprintf( result, sizeof( result ), WIDE( "cast(date_add(now(),interval -%d minute) as date)" ), hours*60+minutes );
+		tnprintf( result, sizeof( result ), WIDE( "cast(date_add(now(),interval -%d minute) as date)" ), hours*60+minutes );
 		dto->result = StrDup( result );
-      AddLink( &g.date_offsets, dto );
+		AddLink( &g.date_offsets, dto );
 	}
 	return dto->result;
 }
@@ -4480,16 +4506,16 @@ CTEXTSTR GetSQLOffsetDate( PODBC odbc, CTEXTSTR BeginOfDayType, int default_begi
 #undef PopODBCEx
 void PopODBCEx( PODBC odbc )
 {
-   PopODBCExx( odbc, FALSE DBG_SRC );
+	PopODBCExx( odbc, FALSE DBG_SRC );
 }
 
 #undef PopODBC
 void PopODBC( void )
 {
-   PopODBCEx( NULL );
+	PopODBCEx( NULL );
 }
 
-PODBC SQLGetODBC( CTEXTSTR dsn )
+PODBC SQLGetODBCEx( CTEXTSTR dsn, CTEXTSTR user, CTEXTSTR pass )
 {
 	INDEX idx;
 	struct odbc_queue *queue;
@@ -4504,7 +4530,7 @@ retry:
 				odbc->queue = queue;
 
 			if( !odbc )
-				odbc = ConnectToDatabase( dsn );
+				odbc = ConnectToDatabaseLogin( dsn, user, pass, FALSE DBG_SRC );
 			if( odbc )
 				odbc->queue = queue;
 			return odbc;
@@ -4519,16 +4545,22 @@ retry:
 	}
 }
 
+
+
+PODBC SQLGetODBC( CTEXTSTR dsn )
+{
+	return SQLGetODBCEx( dsn, NULL, NULL );
+}
+
 void SQLDropODBC( PODBC odbc )
 {
-   EnqueLink( &odbc->queue->connections, odbc );
+	EnqueLink( &odbc->queue->connections, odbc );
 }
 
 void SQLDropAndCloseODBC( CTEXTSTR dsn )
 {
 	INDEX idx;
 	struct odbc_queue *queue;
-retry:
 	LIST_FORALL( g.odbc_queues, idx, struct odbc_queue*, queue )
 	{
 		if( StrCaseCmp( dsn, queue->name ) == 0 )

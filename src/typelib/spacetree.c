@@ -1,3 +1,4 @@
+#define NO_UNICODE_C
 //#define NO_LOGGING
 //#define HANG_DEBUG
 //#define FIND_DEBUG

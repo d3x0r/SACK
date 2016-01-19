@@ -129,8 +129,6 @@ struct peer_thread_info
 	PTHREAD thread;
 };
 
-typedef struct ssl_session *PSSL_SESSION;
-
 struct NetworkClient
 {
 	SOCKADDR *saClient;  //Dest Address
@@ -197,10 +195,10 @@ struct NetworkClient
 		BIT_FIELD bSecure : 1;
 		BIT_FIELD bAllowDowngrade : 1;
 	} flags;
-   // this is set to what the thread that's waiting for this event is.
+	// this is set to what the thread that's waiting for this event is.
 	struct peer_thread_info *this_thread;
 	int tcp_delay_count;
-	PSSL_SESSION ssl_session;
+	struct ssl_session *ssl_session;
 };
 typedef struct NetworkClient CLIENT;
 
@@ -318,11 +316,6 @@ PCLIENT AddActive( PCLIENT pClient );
 #define IsInvalid(S) ((S)==INVALID_SOCKET)  
 
 #define CLIENT_DEFINED
-
-//----------------  ssl_layer.c --------------------
-PSSL_SESSION ssl_InitSession( LOGICAL client );
-
-void ssl_BeginClientSession( PCLIENT pc, PSSL_SESSION ses );
 
 
 SACK_NETWORK_NAMESPACE_END

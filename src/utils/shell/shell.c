@@ -23,7 +23,7 @@ void CPROC ended( PTRSZVAL psv, PTASK_INFO task )
 SaneWinMain( argc, argv )
 {
    int nowait = 0;
-	int pos = 0;
+	int task_monitor = 0;
 	int noinput = 0;
 	if( argc < 2 )
 	{
@@ -44,8 +44,8 @@ SaneWinMain( argc, argv )
 		{
 			if( StrCaseCmp( argv[offset]+1, WIDE("nowait") ) == 0 )
             nowait = 1;
-			if( StrCaseCmp( argv[offset]+1, WIDE("pos") ) == 0 )
-            pos = 1;
+			if( StrCaseCmp( argv[offset]+1, WIDE("taskmon") ) == 0 )
+            task_monitor = 1;
 			if( StrCaseCmp( argv[offset]+1, WIDE("noin") ) == 0 )
             noinput = 1;
 			if( StrCaseCmp( argv[offset]+1, WIDE("local") ) == 0 )
@@ -96,7 +96,7 @@ SaneWinMain( argc, argv )
             nowait = 1;
 		}
 	}
-   if( pos )
+   if( task_monitor )
 		SendMessage( FindWindow( WIDE("TaskMonClass"), WIDE("Task Completion Monitor") ), WM_USER+500, 0, 0 );
    fprintf( stdout, WIDE("Shell Completed.") );
    return 0;

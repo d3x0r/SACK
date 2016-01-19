@@ -209,7 +209,8 @@ int HandleArgs( int argc, TEXTCHAR **argv )
 	else
 	{
 		int n = 0;
-      int o = 0;
+		int o = 0;
+      lprintf( "text is [%s]", l.text );
 		for( n = 0; l.text[n]; n++ )
 		{
 			if( l.text[n] < 32 )
@@ -223,6 +224,7 @@ int HandleArgs( int argc, TEXTCHAR **argv )
 				l.text[o++] = l.text[n];
 		}
 		l.text[o++] = l.text[n];
+      lprintf( "text is [%s]", l.text );
 
 	}
    return 1;

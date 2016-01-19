@@ -50,15 +50,15 @@ void WriteCommonData( PSI_CONTROL pc )
 		l.current_context->pc = pc;
 		genxAddText(l.current_context->w, (constUtf8)"\n");
 		genxStartElement( l.current_context->eControl );
-		snprintf( buf, sizeof( buf ), PSI_ROOT_REGISTRY WIDE("/control/%d"), pc->nType );
+		tnprintf( buf, sizeof( buf ), PSI_ROOT_REGISTRY WIDE("/control/%d"), pc->nType );
 		genxAddAttribute( l.current_context->aType, (constUtf8)GetRegisteredValue( buf, WIDE("Type") ) );
-		snprintf( buf, sizeof( buf ), WIDE("%") _32f WIDE(",") WIDE("%") _32f, pc->original_rect.x, pc->original_rect.y );
+		tnprintf( buf, sizeof( buf ), WIDE("%") _32f WIDE(",") WIDE("%") _32f, pc->original_rect.x, pc->original_rect.y );
 		genxAddAttribute( l.current_context->aPosition, (constUtf8)buf );
-		snprintf( buf, sizeof( buf ), WIDE("%") _32f WIDE(",") WIDE("%") _32f, pc->original_rect.width, pc->original_rect.height );
+		tnprintf( buf, sizeof( buf ), WIDE("%") _32f WIDE(",") WIDE("%") _32f, pc->original_rect.width, pc->original_rect.height );
 		genxAddAttribute( l.current_context->aSize, (constUtf8)buf );
 		if( pc->flags.bSetBorderType )
 		{
-			snprintf( buf, sizeof( buf ), WIDE("%") _32fx WIDE(""), pc->BorderType );
+			tnprintf( buf, sizeof( buf ), WIDE("%") _32fx WIDE(""), pc->BorderType );
 			genxAddAttribute( l.current_context->aBorder, (constUtf8)buf );
 		}
 
@@ -76,7 +76,7 @@ void WriteCommonData( PSI_CONTROL pc )
 		}
 		if( pc->flags.bEditLoaded )
 		{
-			snprintf( buf, sizeof( buf ), WIDE("%d"), pc->flags.bNoEdit );
+			tnprintf( buf, sizeof( buf ), WIDE("%d"), pc->flags.bNoEdit );
 			genxAddAttribute( l.current_context->aEdit, (constUtf8)buf);
 		}
 
@@ -87,10 +87,10 @@ void WriteCommonData( PSI_CONTROL pc )
 		// call the control's custom data stuff...
 		// which should start another tag within the control?
 		{
-			int (CPROC *Save)(PCONTROL,PVARTEXT);
+			int (CPROC *Save)(PSI_CONTROL,PVARTEXT);
 			TEXTCHAR id[32];
 			PVARTEXT out = VarTextCreate();
-			snprintf( id, sizeof( id ), PSI_ROOT_REGISTRY WIDE("/control/%d/rtti"), pc->nType );
+			tnprintf( id, sizeof( id ), PSI_ROOT_REGISTRY WIDE("/control/%d/rtti"), pc->nType );
 			if( ( Save=GetRegisteredProcedure( id, int, save,(PSI_CONTROL,PVARTEXT)) ) )
 			{
 				PTEXT data;
@@ -118,7 +118,7 @@ void WriteCommonData( PSI_CONTROL pc )
 		if( l.current_context->nChildren )
 		{
 			l.current_context->pc = pc;
-			snprintf( buf, sizeof( buf ), WIDE("%") _32f WIDE(""), l.current_context->nChildren );
+			tnprintf( buf, sizeof( buf ), WIDE("%") _32f WIDE(""), l.current_context->nChildren );
 			genxAddAttribute( l.current_context->aChildren, (constUtf8)buf );
 			l.current_context->nChildren = 0;
 		}

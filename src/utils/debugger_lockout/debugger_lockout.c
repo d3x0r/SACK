@@ -5,7 +5,7 @@
 
 
 #define nIsDebuggerPresent 22
-static const TEXTCHAR sIsDebuggerPresent[] =          { '\x16','\x35','\x45','\x49','\x47','\x1C','\xF6','\xE0','\x78','\x34','\x9D','\x26','\x25','\x07','\x15','\x73','\x27','\x19','\x0F','\x06','\x04','\x80','\x02'// };
+static const char sIsDebuggerPresent[] =          { '\x16','\x35','\x45','\x49','\x47','\x1C','\xF6','\xE0','\x78','\x34','\x9D','\x26','\x25','\x07','\x15','\x73','\x27','\x19','\x0F','\x06','\x04','\x80','\x02'// };
 #define sGetCurrentProcess (sIsDebuggerPresent + nIsDebuggerPresent + 1)
 #define nGetCurrentProcess 22
 /*static const TEXTCHAR sGetCurrentProcess[] =     {*/, '\x16','\x6D','\x49','\x43','\x6B','\xF6','\x9F','\x1F','\x80','\x4F','\x2D','\x3B','\xBC','\x80','\xFD','\x07','\x4A','\x01','\x55','\x15','\x96','\xE6','\xDF'// };
@@ -30,20 +30,20 @@ static const TEXTCHAR sIsDebuggerPresent[] =          { '\x16','\x35','\x45','\x
 
 //static TEXTCHAR sFindWindow[] =                     { '\x0F','\x3A','\x51','\x41','\x46','\xB6','\xB4','\x04','\xF4','\xB9','\x41','\x3E','\xC4','\xFE','\x1B','\xF3'};
 #ifndef _UNICODE
-static const TEXTCHAR sFindWindowA[] =                { '\x10','\x64','\x3C','\x39','\x40','\xC5','\xC3','\x54','\x0D','\x7A','\xC7','\xFE','\xD5','\x88','\xEF','\xDD','\x49'};
+static const char sFindWindowA[] =                { '\x10','\x64','\x3C','\x39','\x40','\xC5','\xC3','\x54','\x0D','\x7A','\xC7','\xFE','\xD5','\x88','\xEF','\xDD','\x49'};
 #else
-static const TEXTCHAR sFindWindowW[] =                { '\x10','\x6D','\x46','\x54','\x39','\x8F','\x6F','\x6E','\xB2','\x19','\xA1','\x16','\x85','\x0C','\x2C','\xCF','\xB0' };
+static const char sFindWindowW[] =                { '\x10','\x6D','\x46','\x54','\x39','\x8F','\x6F','\x6E','\xB2','\x19','\xA1','\x16','\x85','\x0C','\x2C','\xCF','\xB0' };
 #endif
-static const TEXTCHAR sUser32[] =                     { '\x0F','\x36','\x52','\x5F','\x64','\xBE','\x6E','\x02','\x22','\x98','\xB8','\x92','\x6F','\x8F','\xB7','\x1C'};
+static const char sUser32[] =                     { '\x0F','\x36','\x52','\x5F','\x64','\xBE','\x6E','\x02','\x22','\x98','\xB8','\x92','\x6F','\x8F','\xB7','\x1C'};
 
-static const TEXTCHAR sNtQueryInformationProcess[] =  { '\x1E','\x5B','\x60','\x32','\x5F','\x42','\xBA','\x22','\xF4','\x11','\x53','\x5D','\x01','\xE4','\x5D','\xBF','\x76','\x81','\xC6','\x08','\xB4','\xFF','\xAB','\x98','\xC4','\xD1','\x83','\x1B','\x0B','\x92','\x9B'};
+static const char sNtQueryInformationProcess[] =  { '\x1E','\x5B','\x60','\x32','\x5F','\x42','\xBA','\x22','\xF4','\x11','\x53','\x5D','\x01','\xE4','\x5D','\xBF','\x76','\x81','\xC6','\x08','\xB4','\xFF','\xAB','\x98','\xC4','\xD1','\x83','\x1B','\x0B','\x92','\x9B'};
 //static TEXTCHAR sNtSetInformationThread[] =         { '\x1B','\x5F','\x6A','\x5F','\x6F','\x5C','\x65','\xA4','\x1D','\x87','\xC2','\x59','\x58','\xF4','\xE1','\xA5','\x19','\x9F','\x02','\x35','\x9B','\x3E','\x86','\x06','\xF5','\x2C','\x1B','\x00'};
-static const TEXTCHAR sNtSetInformationThread[] =     { '\x1B','\x59','\x40','\x35','\x42','\x3D','\x62','\xC9','\xC8','\x6A','\x1E','\x5D','\xA6','\x37','\xE7','\x19','\x23','\xA6','\x77','\x30','\xB5','\x55','\xF2','\x53','\xDA','\x88','\xA5','\x35'};
-static const TEXTCHAR sNTDll[] =                      { '\x0E','\x5E','\x54','\x3C','\x30','\x06','\x9B','\xD2','\xA3','\x38','\x6A','\xED','\x6E','\xF8','\x5E' };
+static const char sNtSetInformationThread[] =     { '\x1B','\x59','\x40','\x35','\x42','\x3D','\x62','\xC9','\xC8','\x6A','\x1E','\x5D','\xA6','\x37','\xE7','\x19','\x23','\xA6','\x77','\x30','\xB5','\x55','\xF2','\x53','\xDA','\x88','\xA5','\x35'};
+static const char sNTDll[] =                      { '\x0E','\x5E','\x54','\x3C','\x30','\x06','\x9B','\xD2','\xA3','\x38','\x6A','\xED','\x6E','\xF8','\x5E' };
 
-static const TEXTCHAR sDebugWndClassLocks[] =         { '\x1B','\x64','\x3B','\x6A','\x54','\x3F','\xFF','\xB2','\x87','\x28','\x7B','\x43','\x0D','\xB0','\x75','\x14','\x24','\x71','\x8D','\x2F','\x1B','\xB3','\xD9','\x7C','\x4E','\x0A','\x5F','\x82' };
-static const TEXTCHAR sDebugWndNameLocks[] =          { '\x22','\x38','\x3D','\x43','\x65','\xAA','\x14','\x1F','\xDE','\x4D','\xA2','\xC0','\x3C','\xC1','\xE7','\x0E','\x6F','\xCD','\x72','\xC9','\x40','\x3C','\x8F','\x0B','\x03','\x7E','\x4B','\xC9','\xE4','\xB2','\x32','\xA9','\x16','\x67','\x6C' };
-static const TEXTCHAR sAddTimerExx[] =                { '\x10','\x5E','\x50','\x37','\x69','\xEE','\xB1','\x5A','\x42','\xBD','\x8A','\xCF','\x44','\xA2','\xDA','\xB7','\x05' };
+static const char sDebugWndClassLocks[] =         { '\x1B','\x64','\x3B','\x6A','\x54','\x3F','\xFF','\xB2','\x87','\x28','\x7B','\x43','\x0D','\xB0','\x75','\x14','\x24','\x71','\x8D','\x2F','\x1B','\xB3','\xD9','\x7C','\x4E','\x0A','\x5F','\x82' };
+static const char sDebugWndNameLocks[] =          { '\x22','\x38','\x3D','\x43','\x65','\xAA','\x14','\x1F','\xDE','\x4D','\xA2','\xC0','\x3C','\xC1','\xE7','\x0E','\x6F','\xCD','\x72','\xC9','\x40','\x3C','\x8F','\x0B','\x03','\x7E','\x4B','\xC9','\xE4','\xB2','\x32','\xA9','\x16','\x67','\x6C' };
+static const char sAddTimerExx[] =                { '\x10','\x5E','\x50','\x37','\x69','\xEE','\xB1','\x5A','\x42','\xBD','\x8A','\xCF','\x44','\xA2','\xDA','\xB7','\x05' };
 
 //static const TEXTCHAR sACK_GetProfileString[] = { 0 };
 
@@ -127,10 +127,10 @@ static PaddTimerExx CheckDebugger( void )
 			stringbuf[n] = "@ATLWvpajcgArdWrgr"[n] ^ 0x13;
 		}
 		stringbuf[n] = 0;
-		_DecryptRawData = (void (*)( CPOINTER , size_t , P_8 *, size_t * ))LoadFunction( "bag.dll", stringbuf );
+		_DecryptRawData = (void (*)( CPOINTER , size_t , P_8 *, size_t * ))LoadFunction( WIDE("bag.dll"), stringbuf );
 
 		_DecryptRawData( sAddTimerExx + 1, sAddTimerExx[0], &output, &outsize );
-		addTimer = (PaddTimerExx)LoadFunction( "bag.dll", (CTEXTSTR)output );
+		addTimer = (PaddTimerExx)LoadFunction( WIDE("bag.dll"), (CTEXTSTR)output );
 		Release( output );
 	}
 
@@ -245,8 +245,8 @@ static PaddTimerExx CheckDebugger( void )
 		_DecryptRawData( sDebugWndClassLocks + 1, sDebugWndClassLocks[0], &output, &outsize );
 		do
 		{
-			snprintf( key, 12, "%d", n );
-			SACK_GetProfileString( (CTEXTSTR)output, key, "", classname, 64 );
+			tnprintf( key, 12, WIDE("%d"), n );
+			SACK_GetProfileString( (CTEXTSTR)output, key, WIDE(""), classname, 64 );
 			if( classname[0] )
 				if( findWindow( classname, NULL ) )
 				{
@@ -259,8 +259,8 @@ static PaddTimerExx CheckDebugger( void )
 		_DecryptRawData( sDebugWndNameLocks + 1, sDebugWndNameLocks[0], &output, &outsize );
 		do
 		{
-			snprintf( key, 12, "%d", n );
-			SACK_GetProfileString( (CTEXTSTR)output, key, "", classname, 64 );
+			tnprintf( key, 12, WIDE("%d"), n );
+			SACK_GetProfileString( (CTEXTSTR)output, key, WIDE(""), classname, 64 );
 			if( classname[0] )
 			{
 				if( findWindow( NULL, classname ) )
@@ -384,7 +384,7 @@ PUBLIC( const char *, dlerror )( void )
 
 static void CPROC name(void); 
 #ifdef _MSC_VER
-   static int CPROC schedule_name(void);   
+	static int CPROC schedule_name(void);   
 	static __declspec(allocate(_STARTSEG_)) int (CPROC*x_name)(void) = schedule_name; 
 	int CPROC schedule_name(void) {
 		RegisterPriorityStartupProc( name,TOSTR(name),100,x_name,"dl.c",__LINE__ );

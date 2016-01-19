@@ -98,7 +98,7 @@ static void OnLoadControl( WIDE("page/send page change") )( PCONFIG_HANDLER pch,
 static void OnSaveControl( WIDE("page/send page change") )( FILE *file, PTRSZVAL psv )
 {
 	struct sendbutton *button = (struct sendbutton *)psv;
-	fprintf( file, WIDE("send page='%s'\n"), button->page );
+	sack_fprintf( file, WIDE("send page='%s'\n"), button->page );
 }
 
 PUBLIC( void, ExportedSymbolToMakeWatcomHappy )( void )

@@ -248,13 +248,13 @@ static void CPROC FrameRedraw( PTRSZVAL psvFrame, PRENDERER psvSelf )
 				updated = FALSE;
 #ifdef DEBUG_UPDAATE_DRAW
 				if( g.flags.bLogDebugUpdate )
-					lprintf( "scanning list of dirty controls..." );
+					lprintf( WIDE( "scanning list of dirty controls..." ) );
 #endif
 				LIST_FORALL( pf->pending_dirty_controls, idx, PSI_CONTROL, pc )
 				{
 #ifdef DEBUG_UPDAATE_DRAW
 					if( g.flags.bLogDebugUpdate )
-						lprintf( "updating dirty control %p", pc );
+						lprintf( WIDE( "updating dirty control %p"), pc );
 #endif
 					updated = TRUE;
 					UpdateCommonEx( pc, TRUE DBG_SRC );
@@ -593,31 +593,16 @@ PPHYSICAL_DEVICE OpenPhysicalDevice( PSI_CONTROL pc, PSI_CONTROL over, PRENDERER
 		if( over )
 			over = GetFrame( over );
 		else
-			if( pc->parent )
+			if( pc->stack_parent )
 			{
-				over = pc->parent;
-				{
-					PSI_CONTROL parent;
-					for( parent = pc->parent; parent; parent = parent->parent )
-					{
-						if( parent->device )
-						{
-							if( IsMeOrInMe( parent->device->pFocus, pc ) )
-							{
-								//lprintf( "!!!!!!!!!!!! FIXED THE FOCUS!!!!!!!!!!" );
-								//parent->device->pFocus = NULL;
-								break;
-							}
-						}
-					}
-				}
+				over = pc->stack_parent;
 				//DebugBreak();
 				//OrphanCommon( pc );
 				// some other method to save this?
 				// for now I can guess...
 				// pc->device->EditState.parent = parent ?
 				// leave it otherwise linked into the stack of controls...
-				pc->parent = NULL;
+				pc->stack_parent = NULL;
 			}
 		if( !pActImg )
 		{
@@ -628,7 +613,7 @@ PPHYSICAL_DEVICE OpenPhysicalDevice( PSI_CONTROL pc, PSI_CONTROL over, PRENDERER
 					 , pc->rect.width
 					 , pc->rect.height );
 #endif
-         //lprintf( WIDE("Original show - extending frame bounds...") );
+			//lprintf( WIDE("Original show - extending frame bounds...") );
 			pc->original_rect.width += FrameBorderX(pc, pc->BorderType);
 			pc->original_rect.height += FrameBorderY(pc, pc->BorderType, GetText( pc->caption.text ) );
 			// apply scale to rect from original...
@@ -761,7 +746,7 @@ void DetachFrameFromRenderer(PSI_CONTROL pc )
 PSI_PROC( PSI_CONTROL, AttachFrameToRenderer )( PSI_CONTROL pc, PRENDERER pActImg )
 {
 	OpenPhysicalDevice( pc
-							, pc?pc->parent:NULL
+							, pc?pc->stack_parent:NULL
 							, pActImg, NULL );
 	return pc;
 }

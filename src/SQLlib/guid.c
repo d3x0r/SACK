@@ -47,7 +47,7 @@ CTEXTSTR GetGUID( void )
 	//CoCreateGuid( &guid );
 	//UuidCreate( &guid );
 	UuidCreate( &guid );
-	snprintf( text_guid, 37, WIDE("%08lx-%04x-%04x-")
+	tnprintf( text_guid, 37, WIDE("%08lx-%04x-%04x-")
 			  , guid.Data1
 			  , guid.Data2
 			  , guid.Data3
@@ -60,7 +60,7 @@ CTEXTSTR GetGUID( void )
 			text_guid[18 + (n*2) + x] = '-';
 			x++;
 		}
-		snprintf( text_guid + 18 + (n*2) + x, 3, WIDE("%02x"), guid.Data4[n] );
+		tnprintf( text_guid + 18 + (n*2) + x, 3, WIDE("%02x"), guid.Data4[n] );
 	}
 	//lprintf( "Created GUid {%s}", text_guid );
 	//lprintf( "My Conversion: %s", text_guid );
@@ -82,7 +82,7 @@ CTEXTSTR GetSeqGUID( void )
 	//CoCreateGuid( &guid );
 	//UuidCreate( &guid );
 	UuidCreateSequential( &guid );
-	snprintf( text_guid, 37, WIDE("%08lx-%04x-%04x-")
+	tnprintf( text_guid, 37, WIDE("%08lx-%04x-%04x-")
 			  , guid.Data1
 			  , guid.Data2
 			  , guid.Data3
@@ -95,7 +95,7 @@ CTEXTSTR GetSeqGUID( void )
 			text_guid[18 + (n*2) + x] = '-';
 			x++;
 		}
-		snprintf( text_guid + 18 + (n*2) + x, 3, WIDE("%02x"), guid.Data4[n] );
+		tnprintf( text_guid + 18 + (n*2) + x, 3, WIDE("%02x"), guid.Data4[n] );
 	}
 	//lprintf( "Created GUid {%s}", text_guid );
 	//lprintf( "My Conversion: %s", text_guid );

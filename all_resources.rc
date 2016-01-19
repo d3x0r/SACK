@@ -63,7 +63,7 @@ ICO_DEFAULT             ICON                    "src/systraylib/default.ico"
 PROXY_PRIMARY           ICON                    "src/SQLlib/pri.ico"
 PROXY_FULL              ICON                    "src/SQLlib/both.ico"
 PROXY_DOWN              ICON                    "src/SQLlib/disc.ico"
-PROXY_BACKUP            ICON                    "src/SQLlib/bck.ico"
+PROXY_BACKUP            ICON                    "src/SQLlib/BCK.ico"
 #endif    // English (U.S.) resources
 /////////////////////////////////////////////////////////////////////////////
 

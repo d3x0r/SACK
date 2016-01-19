@@ -1,18 +1,10 @@
 #ifndef KEYPAD_ISP_PUBLIC_DEFINED
 #define KEYPAD_ISP_PUBLIC_DEFINED 
 
-#if !defined(__STATIC__) && !defined(__UNIX__)
 #ifdef KEYPAD_ISP_SOURCE
 #define KEYPAD_ISP_PROC(type,name) EXPORT_METHOD type CPROC name
 #else
 #define KEYPAD_ISP_PROC(type,name) IMPORT_METHOD type CPROC name
-#endif
-#else
-#ifdef KEYPAD_ISP_SOURCE
-#define KEYPAD_ISP_PROC(type,name) type CPROC name
-#else
-#define KEYPAD_ISP_PROC(type,name) extern type CPROC name
-#endif
 #endif
 
 #ifdef INTERSHELL_CORE_BUILD

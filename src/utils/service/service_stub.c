@@ -1,7 +1,5 @@
 #include <stdhdrs.h>
-#ifdef _MSC_VER
-#include <WinSvc.h>
-#endif
+#include <winsvc.h>
 
 // so we get the correct import/export attributes on the function
 #include <service_hook.h>

@@ -9,7 +9,7 @@
  *   RemoveTimer( AddTimer( tick_frequency, timer_callback, user_data ) );
  *
  */
-
+//#define ENABLE_CRITICALSEC_LOGGING
 
 // this is a method replacement to use PIPEs instead of SEMAPHORES
 // replacement code only affects linux.
@@ -22,6 +22,8 @@
 // no semtimedop; no semctl, etc
 //#include <sys/sem.h>
 #endif
+
+#define NO_UNICODE_C
 
 #ifdef USE_PIPE_SEMS
 #define _NO_SEMTIMEDOP_
@@ -179,7 +181,9 @@ static struct {
 		BIT_FIELD insert_while_away : 1;
 		BIT_FIELD set_timer_signal : 1;
 		BIT_FIELD bExited : 1;
+#ifdef ENABLE_CRITICALSEC_LOGGING
 		BIT_FIELD bLogCriticalSections : 1;
+#endif
 		BIT_FIELD bLogSleeps : 1;
 		BIT_FIELD bLogTimerDispatch : 1;
 		BIT_FIELD bLogThreadCreate : 1;
@@ -251,6 +255,8 @@ static struct my_thread_info* GetThreadTLS( void )
 {
 	struct my_thread_info* _MyThreadInfo;
 #if defined( WIN32 )
+	if( !global_timer_structure )
+		SimpleRegisterAndCreateGlobal( global_timer_structure );
 	if( !( _MyThreadInfo = (struct my_thread_info*)TlsGetValue( global_timer_structure->my_thread_info_tls ) ) )
 	{
 		int old = SetAllocateLogging( FALSE );
@@ -294,7 +300,9 @@ PRIORITY_PRELOAD( LowLevelInit, CONFIG_SCRIPT_PRELOAD_PRIORITY-1 )
 PRELOAD( ConfigureTimers )
 {
 #ifndef __NO_OPTIONS__
+#  ifdef ENABLE_CRITICALSEC_LOGGING
 	g.flags.bLogCriticalSections = SACK_GetProfileInt( GetProgramName(), WIDE( "SACK/Memory Library/Log critical sections" ), 0 );
+#  endif
 	g.flags.bLogThreadCreate = SACK_GetProfileInt( GetProgramName(), WIDE( "SACK/Timers/Log Thread Create" ), 0 );
 	g.flags.bLogSleeps = SACK_GetProfileInt( GetProgramName(), WIDE( "SACK/Timers/Log Sleeps" ), 0 );
 	g.flags.bLogTimerDispatch = SACK_GetProfileInt( GetProgramName(), WIDE( "SACK/Timers/Log Timer Dispatch" ), 0 );
@@ -397,7 +405,7 @@ static void InitWakeup( PTHREAD thread, CTEXTSTR event_name )
 	{
 		PTHREAD_EVENT thread_event;
 		TEXTCHAR name[64];
-		snprintf( name, 64, WIDE("%s:%08lX:%08lX"), event_name, (_32)(thread->thread_ident >> 32)
+		tnprintf( name, 64, WIDE("%s:%08lX:%08lX"), event_name, (_32)(thread->thread_ident >> 32)
 				  , (_32)(thread->thread_ident & 0xFFFFFFFF) );
 		name[sizeof(name)/sizeof(name[0])-1] = 0;
 #ifdef LOG_CREATE_EVENT_OBJECT
@@ -666,7 +674,7 @@ void  WakeThreadEx( PTHREAD thread DBG_PASS )
 		TEXTCHAR name[64];
 		if( !(thread_event = thread->thread_event ) )
 		{
-			snprintf( name, sizeof(name), WIDE("%s:%08lX:%08lX")
+			tnprintf( name, sizeof(name), WIDE("%s:%08lX:%08lX")
 					  , thread->thread_event_name, (_32)(thread->thread_ident >> 32)
 					  , (_32)(thread->thread_ident & 0xFFFFFFFF));
 			name[sizeof(name)/sizeof(name[0])-1] = 0;
@@ -696,10 +704,12 @@ void  WakeThreadEx( PTHREAD thread DBG_PASS )
 		if( thread_event->hEvent )
 		{
 			//lprintf( WIDE("event opened successfully... %d"), WaitForSingleObject( hEvent, 0 ) );
+#ifndef NO_LOGGING
 			if( g.flags.bLogSleeps )
 				_xlprintf(1 DBG_RELAY )( WIDE("About to wake on %d Thread event created...%016llx")
 											  , thread->thread_event->hEvent
 											  , thread->thread_ident );
+#endif
 			if( !SetEvent( thread_event->hEvent ) )
 				 lprintf( WIDE("Set event FAILED..%d"), GetLastError() );
 			Relinquish(); // may or may not execute other thread before this...
@@ -819,7 +829,7 @@ static void  InternalWakeableNamedSleepEx( CTEXTSTR name, _32 n, LOGICAL threade
 		//lprintf( "pthread is %p", pThread );
 		if( !pThread )
 		{
-			lprintf( "had to init thread..." );
+			//lprintf( WIDE("had to init thread...") );
 			MakeThread();
 			pThread = MyThreadInfo.pThread;
 		}
@@ -833,9 +843,13 @@ static void  InternalWakeableNamedSleepEx( CTEXTSTR name, _32 n, LOGICAL threade
 	if( pThread )
 	{
 #ifdef _WIN32
+#ifndef NO_LOGGING
 		if( g.flags.bLogSleeps )
 			_xlprintf(1 DBG_RELAY )( WIDE("About to sleep on %d Thread event created...%s:%016llx")
-										  , pThread->thread_event->hEvent, pThread->thread_event_name, pThread->thread_ident );
+										  , pThread->thread_event->hEvent
+										  , pThread->thread_event_name
+										  , pThread->thread_ident );
+#endif
 		if( WaitForSingleObject( pThread->thread_event->hEvent
 									  , n==SLEEP_FOREVER?INFINITE:(n) ) != WAIT_TIMEOUT )
 		{
@@ -1229,7 +1243,7 @@ static PTRSZVAL CPROC ThreadWrapper( PTHREAD pThread )
 		Relinquish();
 #endif
 	pThread->flags.bStarted = 1;
-	DeAttachThreadToLibraries( TRUE );
+	//DeAttachThreadToLibraries( TRUE );
 	while( !pThread->flags.bReady )
 		Relinquish();
 #ifdef HAS_TLS
@@ -1249,7 +1263,7 @@ static PTRSZVAL CPROC ThreadWrapper( PTHREAD pThread )
 	if( pThread->proc )
 		 result = pThread->proc( pThread );
 	//lprintf( WIDE("%s(%d):Thread is exiting... "), pThread->pFile, pThread->nLine );
-	DeAttachThreadToLibraries( FALSE );
+	//DeAttachThreadToLibraries( FALSE );
 	UnmakeThread();
 	pThread->hThread = NULL;
 	//lprintf( WIDE("%s(%d):Thread is exiting... "), pThread->pFile, pThread->nLine );
@@ -1553,12 +1567,16 @@ HANDLE GetThreadHandle( PTHREAD thread )
 static void DoInsertTimer( PTIMER timer )
 {
 	PTIMER check;
+#ifdef ENABLE_CRITICALSEC_LOGGING
 	BIT_FIELD bLock = g.flags.bLogCriticalSections;
 	SetCriticalLogging( 0 );
 	g.flags.bLogCriticalSections = 0;
+#endif
 	EnterCriticalSec( &g.csGrab );
+#ifdef ENABLE_CRITICALSEC_LOGGING
 	g.flags.bLogCriticalSections = bLock;
 	SetCriticalLogging( bLock );
+#endif
 	if( !(check = g.timers) )
 	{
 #ifdef LOG_INSERTS
@@ -1570,11 +1588,15 @@ static void DoInsertTimer( PTIMER timer )
 #ifdef LOG_INSERTS
 		Log( WIDE("Done with addition") );
 #endif
+#ifdef ENABLE_CRITICALSEC_LOGGING
 		SetCriticalLogging( 0 );
 		g.flags.bLogCriticalSections = 0;
+#endif
 		LeaveCriticalSec( &g.csGrab );
+#ifdef ENABLE_CRITICALSEC_LOGGING
 		g.flags.bLogCriticalSections = bLock;
 		SetCriticalLogging( bLock );
+#endif
 		return;
 	}
 	while( check )
@@ -1614,11 +1636,15 @@ static void DoInsertTimer( PTIMER timer )
 #endif
 	if( !check )
 		Log( WIDE("Fatal! Didn't add the timer!") );
+#ifdef ENABLE_CRITICALSEC_LOGGING
 	SetCriticalLogging( 0 );
 	g.flags.bLogCriticalSections = 0;
+#endif
 	LeaveCriticalSec( &g.csGrab );
+#ifdef ENABLE_CRITICALSEC_LOGGING
 	g.flags.bLogCriticalSections = bLock;
 	SetCriticalLogging( bLock );
+#endif
 }
 
 //--------------------------------------------------------------------------
@@ -1775,7 +1801,9 @@ static int CPROC ProcessTimers( PTRSZVAL psvForce )
 	if( global_timer_structure )
 	{
 	PTIMER timer;
+#ifdef ENABLE_CRITICALSEC_LOGGING
 	BIT_FIELD bLock = g.flags.bLogCriticalSections;
+#endif
 	_32 newtick;
 
 	if( g.flags.bExited )
@@ -1840,13 +1868,17 @@ static int CPROC ProcessTimers( PTRSZVAL psvForce )
 		//if( timers )
 		//	Log1( WIDE("timer delta: %ud"), timers->delta );
 
+#ifdef ENABLE_CRITICALSEC_LOGGING
 		SetCriticalLogging( 0 );
 		g.flags.bLogCriticalSections = 0;
+#endif
 		while( ( EnterCriticalSec( &g.csGrab ), timer = g.timers ) &&
 				( (S_32)( newtick - g.last_tick ) >= timer->delta ) )
 		{
+#ifdef ENABLE_CRITICALSEC_LOGGING
 			g.flags.bLogCriticalSections = bLock;
 			SetCriticalLogging( bLock );
+#endif
 #ifdef LOG_LATENCY
 #ifdef _DEBUG
 			_xlprintf( 1, timer->pFile, timer->nLine )( WIDE("Tick: %u Last: %u  delta: %u Timerdelta: %u")
@@ -1858,11 +1890,15 @@ static int CPROC ProcessTimers( PTRSZVAL psvForce )
 #endif
 			// also enters csGrab... should be ok.
 			GrabTimer( timer );
+#ifdef ENABLE_CRITICALSEC_LOGGING
 			SetCriticalLogging( 0 );
 			g.flags.bLogCriticalSections = 0;
+#endif
 			LeaveCriticalSec( &g.csGrab );
+#ifdef ENABLE_CRITICALSEC_LOGGING
 			g.flags.bLogCriticalSections = bLock;
 			SetCriticalLogging( bLock );
+#endif
 			g.last_tick += timer->delta;
 			if( timer->callback )
 			{
@@ -1959,11 +1995,15 @@ static int CPROC ProcessTimers( PTRSZVAL psvForce )
 				timer = NULL;
 			}
 		}
+#ifdef ENABLE_CRITICALSEC_LOGGING
 		SetCriticalLogging( 0 );
 		g.flags.bLogCriticalSections = 0;
+#endif
 		LeaveCriticalSec( &g.csGrab );
+#ifdef ENABLE_CRITICALSEC_LOGGING
 		g.flags.bLogCriticalSections = bLock;
 		SetCriticalLogging( bLock );
+#endif
 		if( timer )
 		{
 #ifdef LOG_LATENCY
@@ -2276,9 +2316,11 @@ LOGICAL  EnterCriticalSecEx( PCRITICALSECTION pcs DBG_PASS )
 {
 	int d;
 	THREAD_ID prior = 0;
+#ifdef ENABLE_CRITICALSEC_LOGGING
 #ifdef _DEBUG
 	if( global_timer_structure && g.flags.bLogCriticalSections )
 		_lprintf( DBG_RELAY )( WIDE("Enter critical section %p %")_64fx, pcs, GetMyThreadID() );
+#endif
 #endif
 	do
 	{
@@ -2304,23 +2346,29 @@ LOGICAL  EnterCriticalSecEx( PCRITICALSECTION pcs DBG_PASS )
 		{
 			if( pcs->dwThreadID )
 			{
-#ifdef _DEBUG
+#ifdef ENABLE_CRITICALSEC_LOGGING
+#  ifdef _DEBUG
 				if( global_timer_structure && g.flags.bLogCriticalSections )
 					lprintf( WIDE("Failed to enter section... sleeping...") );
+#  endif
 #endif
 
 				WakeableNamedThreadSleepEx( WIDE("sack.critsec"), SLEEP_FOREVER DBG_RELAY );
-#ifdef _DEBUG
+#ifdef ENABLE_CRITICALSEC_LOGGING
+#  ifdef _DEBUG
 				if( global_timer_structure && g.flags.bLogCriticalSections )
 					lprintf( WIDE("Allowed to retry section entry, woken up...") );
+#  endif
 #endif
 			}
-#ifdef _DEBUG
+#ifdef ENABLE_CRITICALSEC_LOGGING
+#  ifdef _DEBUG
 			else
 			{
 				if( global_timer_structure && g.flags.bLogCriticalSections )
 					lprintf( WIDE("Lock Released while we logged?") );
 			}
+#  endif
 #endif
 		}
 		// after waking up, this will re-aquire a lock, and
@@ -2340,16 +2388,20 @@ LOGICAL  LeaveCriticalSecEx( PCRITICALSECTION pcs DBG_PASS )
 #ifdef _DEBUG
 	_32 curtick = timeGetTime();//GetTickCount();
 #endif
+#ifdef ENABLE_CRITICALSEC_LOGGING
 	if( global_timer_structure && g.flags.bLogCriticalSections )
 		_xlprintf( LOG_NOISE DBG_RELAY )( WIDE("Begin leave critical section %p %") _64fx, pcs, GetMyThreadID() );
+#endif
 	while( LockedExchange( &pcs->dwUpdating, 1 ) 
 #ifdef _DEBUG
 			&& ( (curtick+2000) > timeGetTime() )//GetTickCount() )
 #endif
 	)
 	{
+#ifdef ENABLE_CRITICALSEC_LOGGING
 		if( global_timer_structure && g.flags.bLogCriticalSections )
 			_lprintf( DBG_RELAY )( WIDE("On leave - section is updating, wait...") );
+#endif
 		Relinquish();
 	}
 #ifdef _DEBUG
@@ -2362,8 +2414,10 @@ LOGICAL  LeaveCriticalSecEx( PCRITICALSECTION pcs DBG_PASS )
 #endif
 	if( !( pcs->dwLocks & ~SECTION_LOGGED_WAIT ) )
 	{
+#ifdef ENABLE_CRITICALSEC_LOGGING
 		if( global_timer_structure && g.flags.bLogCriticalSections )
 			_lprintf( DBG_RELAY )( WIDE("Leaving a blank critical section") );
+#endif
 		pcs->dwUpdating = 0;
 		return FALSE;
 	}
@@ -2375,8 +2429,10 @@ LOGICAL  LeaveCriticalSecEx( PCRITICALSECTION pcs DBG_PASS )
 		pcs->nLine = nLine;
 #endif
 		pcs->dwLocks--;
+#ifdef ENABLE_CRITICALSEC_LOGGING
 		if( global_timer_structure && g.flags.bLogCriticalSections )
 			lprintf( WIDE("Remaining locks... %08") _32fx, pcs->dwLocks );
+#endif
 		if( !( pcs->dwLocks & ~(SECTION_LOGGED_WAIT) ) )
 		{
 			pcs->dwLocks = 0;
@@ -2390,8 +2446,10 @@ LOGICAL  LeaveCriticalSecEx( PCRITICALSECTION pcs DBG_PASS )
 				THREAD_ID wake = pcs->dwThreadWaiting;
 				//pcs->dwThreadWaiting = 0;
 				pcs->dwUpdating = 0;
+#ifdef ENABLE_CRITICALSEC_LOGGING
 				if( global_timer_structure && g.flags.bLogCriticalSections )
 					_lprintf( DBG_RELAY )( WIDE("%8")_64fx WIDE(" Waking a thread which is waiting..."), wake );
+#endif
 				// don't clear waiting... so the proper thread can
 				// allow itself to claim section...
 				WakeNamedThreadSleeperEx( WIDE("sack.critsec"), pcs->dwThreadWaiting DBG_RELAY );
@@ -2405,19 +2463,21 @@ LOGICAL  LeaveCriticalSecEx( PCRITICALSECTION pcs DBG_PASS )
 	}
 	else
 	{
+#ifdef ENABLE_CRITICALSEC_LOGGING
 		if( global_timer_structure && g.flags.bLogCriticalSections )
 		{
 			_lprintf( DBG_RELAY )( WIDE("Sorry - you can't leave a section owned by %016")_64fx WIDE(" locks:%08" )_32fx
-#ifdef DEBUG_CRITICAL_SECTIONS
+#  ifdef DEBUG_CRITICAL_SECTIONS
 										 WIDE(  "%s(%d)...")
-#endif
+#  endif
 										, pcs->dwThreadID
 										, pcs->dwLocks
-#ifdef DEBUG_CRITICAL_SECTIONS
+#  ifdef DEBUG_CRITICAL_SECTIONS
 										, (pcs->pFile)?(pcs->pFile):WIDE("Unknown"), pcs->nLine
-#endif
+#  endif
 										);
 		}
+#endif
 		pcs->dwUpdating = 0;
 		return FALSE;
 	}

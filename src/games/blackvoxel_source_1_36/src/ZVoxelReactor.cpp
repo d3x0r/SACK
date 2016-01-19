@@ -281,7 +281,7 @@ ZVoxelReactor::ZVoxelReactor()
 
   // Active Table
 
-  ActiveTable = new ULong[2048];
+  //ActiveTable = new ULong[2048];
 
   if( !Random2 )
   {
@@ -330,7 +330,7 @@ ZVoxelReactor::ZVoxelReactor()
 
 ZVoxelReactor::~ZVoxelReactor()
 {
-  if (ActiveTable) {delete ActiveTable; }
+  //if (ActiveTable) {delete ActiveTable; }
   if (DummySector) {delete DummySector; DummySector = 0;}
 }
 
@@ -564,19 +564,21 @@ void ZVoxelReactor::ProcessSectors( double LastLoopTime )
       Sy = Sector->Pos_y - 1;
       Sz = Sector->Pos_z - 1;
 
-      for (x = 0; x <= 2; x++)
-        for (y = 0; y <= 2; y++)
-          for (z = 0; z <= 2; z++)
+      Sector->near_sector[n]->ModifTracker.SetActualCycleNum(CycleNum);
+      for (x = 0; x < 6; x++)
+        //for (y = 0; y <= 2; y++)
+          //for (z = 0; z <= 2; z++)
           {
-            MainOffset = x + (y << 2) + (z << 4);
-            if (!(SectorTable[MainOffset] = World->FindSector(Sx + x, Sy + y, Sz + z))) SectorTable[MainOffset] = DummySector;
-            SectorTable[MainOffset]->ModifTracker.SetActualCycleNum(CycleNum);
+            //MainOffset = x + (y << 2) + (z << 4);
+				 //if (!(SectorTable[MainOffset] = World->FindSector(Sx + x, Sy + y, Sz + z))) SectorTable[MainOffset] = DummySector;
+             if( Sector->near_sector[n] )
+					 Sector->near_sector[n]->ModifTracker.SetActualCycleNum(CycleNum);
           }
 
       // Make the sector table
 		register UShort * DisplayData, * VoxelP;
       VoxelP = DisplayData = Sector->Data.Data;
-      ZFastBit_Array_64k * ActiveTable = VoxelTypeManager->ActiveTable;
+      //ZFastBit_Array_64k * ActiveTable = VoxelTypeManager->ActiveTable;
       bool                 IsActiveVoxels = false;
       bool                 IsLowActivityVoxels = false;
       bool                 IsMovedVoxels  = false;
@@ -593,8 +595,8 @@ void ZVoxelReactor::ProcessSectors( double LastLoopTime )
         for (x = 0; x < ZVOXELBLOCSIZE_X; x++)
           for (y = 0; y < ZVOXELBLOCSIZE_Y; y++)
           {
-			VoxelType = (*VoxelP);
-            if (ActiveTable->Get(VoxelType))
+            VoxelType = (*VoxelP);
+            if (VoxelTypeManager->VoxelTable[VoxelType].IsActive))
             {
               if (!Sector->ModifTracker.Get( MainOffset ) ) // If voxel is already processed, don't process it once more in the same cycle.
               {

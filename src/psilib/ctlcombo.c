@@ -11,6 +11,8 @@
 
 #include "ctllistbox.h"
 
+PSI_COMBOBOX_NAMESPACE
+
 struct combobox {
 	_32 data;
 	LOGICAL first_item;
@@ -32,7 +34,7 @@ typedef struct combobox COMBOBOX, *PCOMBOBOX;
 static void CPROC HandleLoseFocus( PTRSZVAL dwUser, PRENDERER pGain )
 {
 	PCOMBOBOX pcbx = (PCOMBOBOX)dwUser;
-	lprintf( "combobox - HandleLoseFocus %p is gaining (we're losing) else we're gaining", pGain );
+	lprintf( WIDE("combobox - HandleLoseFocus %p is gaining (we're losing) else we're gaining") , pGain );
 	if( pGain && pGain != pcbx->popup_renderer )
 	{
 		HideControl( pcbx->popup_frame );
@@ -220,3 +222,4 @@ void SetComboBoxSelectedItem( PSI_CONTROL pc, PLISTITEM hli )
 	}
 }
 
+PSI_COMBOBOX_NAMESPACE_END

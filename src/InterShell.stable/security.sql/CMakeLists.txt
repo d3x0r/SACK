@@ -34,7 +34,7 @@ my_target_link_libraries( ${project} ${SACK_LIBRARIES} sack_widgets keypad.isp )
 
 if( WIN32 )
 	# used for EnumProcesses
-	target_link_libraries( ${project} Psapi )
+	target_link_libraries( ${project} psapi )
 endif( WIN32 )
 
 install_plugin( ${project}  ) 

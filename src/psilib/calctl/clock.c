@@ -68,7 +68,7 @@ static PTEXT GetTime( PCLOCK_CONTROL clock, int bNewline ) /*FOLD00*/
 			static int prior_milli;
 			if( clock->flags.bHighTime && ( last_second == st.wSecond || ( ( last_second+1)%60 == st.wSecond && prior_milli ) ) )
 			{
-				timenow->data.size = snprintf( timenow->data.data, 80*sizeof(TEXTCHAR), WIDE("%02d/%02d/%d%c%02d:%02d:%02d.%03d%s")
+				timenow->data.size = tnprintf( timenow->data.data, 80*sizeof(TEXTCHAR), WIDE("%02d/%02d/%d%c%02d:%02d:%02d.%03d%s")
 													  , st.wMonth, st.wDay, st.wYear
 													  , bNewline?'\n':' '
 													  , st.wHour
@@ -80,7 +80,7 @@ static PTEXT GetTime( PCLOCK_CONTROL clock, int bNewline ) /*FOLD00*/
 			}
 			else
 			{
-				timenow->data.size = snprintf( timenow->data.data, 80*sizeof(TEXTCHAR), WIDE("%02d/%02d/%d%c%02d:%02d:%02d%s")
+				timenow->data.size = tnprintf( timenow->data.data, 80*sizeof(TEXTCHAR), WIDE("%02d/%02d/%d%c%02d:%02d:%02d%s")
 													  , st.wMonth, st.wDay, st.wYear
 													  , bNewline?'\n':' '
 													  , clock->flags.bAmPm?(st.wHour == 0?12:(st.wHour > 12?st.wHour-12:st.wHour)):st.wHour

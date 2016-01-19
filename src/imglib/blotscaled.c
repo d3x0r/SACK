@@ -10,10 +10,6 @@
  *
  */
 
-
-
-
-
 #define NO_TIMING_LOGGING
 #ifndef NO_TIMING_LOGGING
 #include <stdhdrs.h>
@@ -57,6 +53,7 @@ typedef struct rect_tag {
 #define ScaleLoopStart int errx, erry; \
 	_32 x, y;							\
 	PCDATA _pi = pi;				  \
+	PCDATA __pi = pi;				  \
 	erry = i_erry/2;					 \
 	y = 0;								\
 	while( y < hd )					\
@@ -86,6 +83,11 @@ typedef struct rect_tag {
 		{											  \
 			erry -= (signed)dhd;							 \
 			_pi = (CDATA*)(((char*)_pi) + srcpwidth); /* go to next line start*/\
+			{ \
+				int psvDel = ( __pi - _pi ); \
+				psvDel /= (-srcpwidth/sizeof(CDATA)); \
+				if( psvDel > dhs ) return; \
+			} \
 		}											  \
 	}
 

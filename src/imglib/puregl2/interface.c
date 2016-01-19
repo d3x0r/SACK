@@ -12,7 +12,8 @@
 #include "../fntglobal.h"
 #include "local.h"
 #include "shaders.h"
-
+#include "../pngimage.h"
+#include "../jpgimage.h"
 IMAGE_NAMESPACE
 
 IMAGE_INTERFACE RealImageInterface = {

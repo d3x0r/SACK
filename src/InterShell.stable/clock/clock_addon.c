@@ -167,26 +167,26 @@ static PTRSZVAL OnConfigureControl( WIDE("Clock") )( PTRSZVAL psv, PSI_CONTROL p
 static void OnSaveControl( WIDE( "Clock" ) )( FILE *file,PTRSZVAL psv )
 {
 	PCLOCK_INFO info = (PCLOCK_INFO)psv;
-	fprintf( file, WIDE("%sClock color=%s\n")
+	sack_fprintf( file, WIDE("%sClock color=%s\n")
 			 , InterShell_GetSaveIndent()
 	       , FormatColor( info->color )
 			 );
-	fprintf( file, WIDE("%sClock back color=%s\n")
+	sack_fprintf( file, WIDE("%sClock back color=%s\n")
 			 , InterShell_GetSaveIndent()
 	       , FormatColor( info->backcolor )
 			 );
-	fprintf( file, WIDE("%sClock background image=%s\n" ), InterShell_GetSaveIndent(), info->image_name?info->image_name:WIDE("") );
-	fprintf( file, WIDE("%sClock is analog?%s\n"), InterShell_GetSaveIndent(), info->flags.bAnalog?WIDE("Yes"):WIDE("No") );
-	fprintf( file, WIDE("%sClock is military time?%s\n"), InterShell_GetSaveIndent(), (!info->flags.bAmPm)?WIDE("Yes"):WIDE("No") );
-	fprintf( file, WIDE("%sClock show date?%s\n"), InterShell_GetSaveIndent(), info->flags.bDate?WIDE("Yes"):WIDE("No") );
-	fprintf( file, WIDE("%sClock is single line?%s\n"), InterShell_GetSaveIndent(), info->flags.bSingleLine?WIDE("Yes"):WIDE("No") );
-	fprintf( file, WIDE("%sClock show day of week?%s\n"), InterShell_GetSaveIndent(), info->flags.bDayOfWeek?WIDE("Yes"):WIDE("No") );
+	sack_fprintf( file, WIDE("%sClock background image=%s\n" ), InterShell_GetSaveIndent(), info->image_name?info->image_name:WIDE("") );
+	sack_fprintf( file, WIDE("%sClock is analog?%s\n"), InterShell_GetSaveIndent(), info->flags.bAnalog?WIDE("Yes"):WIDE("No") );
+	sack_fprintf( file, WIDE("%sClock is military time?%s\n"), InterShell_GetSaveIndent(), (!info->flags.bAmPm)?WIDE("Yes"):WIDE("No") );
+	sack_fprintf( file, WIDE("%sClock show date?%s\n"), InterShell_GetSaveIndent(), info->flags.bDate?WIDE("Yes"):WIDE("No") );
+	sack_fprintf( file, WIDE("%sClock is single line?%s\n"), InterShell_GetSaveIndent(), info->flags.bSingleLine?WIDE("Yes"):WIDE("No") );
+	sack_fprintf( file, WIDE("%sClock show day of week?%s\n"), InterShell_GetSaveIndent(), info->flags.bDayOfWeek?WIDE("Yes"):WIDE("No") );
 
-	fprintf( file, WIDE("%sClock analog image=%s\n" ), InterShell_GetSaveIndent(), info->analog_image_name?info->analog_image_name:WIDE("images/Clock.png") );
+	sack_fprintf( file, WIDE("%sClock analog image=%s\n" ), InterShell_GetSaveIndent(), info->analog_image_name?info->analog_image_name:WIDE("images/Clock.png") );
 	{
 		TEXTSTR out;
 		EncodeBinaryConfig( &out, &info->image_desc, sizeof( info->image_desc ) );
-		fprintf( file, WIDE("%sClock analog description=%s\n" ), InterShell_GetSaveIndent(), out );
+		sack_fprintf( file, WIDE("%sClock analog description=%s\n" ), InterShell_GetSaveIndent(), out );
 		Release( out );
 	}
 

@@ -424,14 +424,14 @@ static void OnSaveCommon( WIDE( "Common Fonts" ) )( FILE *out )
 			if( theme_preset->fontdata && theme_preset->fontdatalen )
 			{
 				EncodeBinaryConfig( &data, theme_preset->fontdata, theme_preset->fontdatalen );
-				fprintf( out, WIDE("font preset %s=%s\n")
+				sack_fprintf( out, WIDE("font preset %s=%s\n")
 						 , theme_preset->name
 						 , data );
 				Release( data );
 			}
 			// if there's no data, don't bother saving anything.
 			//else
-			//	fprintf( out, WIDE("font preset %s={}\n"), theme_preset->name );
+			//	sack_fprintf( out, WIDE("font preset %s={}\n"), theme_preset->name );
 		}
 	}
 }

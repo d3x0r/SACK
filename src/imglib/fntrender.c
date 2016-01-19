@@ -95,7 +95,7 @@ int PrintChar( int bits, int charnum, PCHARACTER character, int height )
 	int  outwidth;
 	TEXTCHAR charid[64];
 	char *data = (char*)character->data;
-	snprintf( charid, sizeof( charid ), WIDE("_char_%d"), charnum );
+	tnprintf( charid, sizeof( charid ), WIDE("_char_%d"), charnum );
 
 	#define LINEPAD WIDE("                  ")
 	if( bits == 8 )
@@ -583,7 +583,7 @@ void RenderMonoChar( PFONT font
 	    bitmap->rows > 1000 ||
 	    bitmap->rows < 0 )
 	{
-		Log3( WIDE("Failing character %") _size_f WIDE(" rows: %")_32f WIDE("  width: %") _32f, idx, bitmap->width, bitmap->rows );
+		Log3( WIDE("Failing character %") _size_f WIDE(" rows: %") _32f WIDE("  width: %") _32f, idx, bitmap->width, bitmap->rows );
 		font->character[idx] = NULL;
 		return;
 	}
@@ -1301,7 +1301,7 @@ void InternalRenderFontCharacter( PFONT_RENDERER renderer, PFONT font, INDEX idx
 		if( !renderer )
 		{
 			lprintf( WIDE("Couldn't find by font either...") );
-			DebugBreak();
+			//DebugBreak();
 			return;
 		}
 	}
@@ -1564,6 +1564,7 @@ static SFTFont DoInternalRenderFontFile( PFONT_RENDERER renderer )
 			{
 				Log1( WIDE("Fault setting char size - %d"), error );
 			}
+			font->character[0] = NULL;
 			font->height = 0; //CEIL(face->size->metrics.height);
 			font->name = StrDup( renderer->fontname );
 			InternalRenderFontCharacter( renderer, NULL, 0 );
@@ -1847,7 +1848,7 @@ try_another_default:
 			{
 				TEXTSTR tmp1 = CharWConvert( face->family_name?face->family_name:"No-Name" );
 				TEXTSTR tmp2 = CharWConvert( face->style_name?face->style_name:"normal" );
-				snprintf( renderer->fontname, 256, WIDE("%s%s%s%dBy%d")
+				tnprintf( renderer->fontname, 256, WIDE("%s%s%s%dBy%d")
 						  , tmp1
 						  , tmp2
 						  , (face->face_flags & FT_FACE_FLAG_FIXED_WIDTH)?WIDE("fixed"):WIDE("")
@@ -1857,7 +1858,7 @@ try_another_default:
 				Deallocate( TEXTSTR, tmp2 );
 			}
 #else
-			snprintf( renderer->fontname, 256, WIDE("%s%s%s%dBy%d")
+			tnprintf( renderer->fontname, 256, WIDE("%s%s%s%dBy%d")
 					  , face->family_name?face->family_name:WIDE("No-Name")
 					  , face->style_name?face->style_name:WIDE("normal")
 					  , (face->face_flags & FT_FACE_FLAG_FIXED_WIDTH)?WIDE("fixed"):WIDE("")
@@ -1977,7 +1978,7 @@ SFTFont InternalRenderFont( _32 nFamily
 		nStyle < pfe->nStyles &&
 		nFile < pfe->styles[nStyle].nFiles )
 	{
-	snprintf( name, sizeof( name ), WIDE("%s/%s")
+	tnprintf( name, sizeof( name ), WIDE("%s/%s")
 			  , pfe->styles[nStyle].files[nFile].path
 			  , pfe->styles[nStyle].files[nFile].file );
 
@@ -1986,7 +1987,7 @@ SFTFont InternalRenderFont( _32 nFamily
 	{
 		if( nAlt )
 		{
-			snprintf( name, sizeof( name ), WIDE("%s/%s")
+			tnprintf( name, sizeof( name ), WIDE("%s/%s")
 					  , pfe->styles[nStyle].files[nFile].pAlternate[nAlt-1].path
 					  , pfe->styles[nStyle].files[nFile].pAlternate[nAlt-1].file );
 		}

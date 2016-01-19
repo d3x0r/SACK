@@ -47,7 +47,7 @@ SQLGETOPTION_PROC( void, EnumOptionsEx )( PODBC odbc, POPTION_TREE_NODE parent
 		POPTION_TREE_NODE tmp_node = New( struct sack_option_tree_family_node );
 		// any existing query needs to be saved...
 		PushSQLQueryEx( odbc ); // any subqueries will of course clean themselves up.
-		snprintf( query
+		tnprintf( query
 				  , sizeof( query )
 				  , WIDE( "select node_id,m.name_id,value_id,n.name" )
 					WIDE( " from option_map as m" )
@@ -63,7 +63,7 @@ SQLGETOPTION_PROC( void, EnumOptionsEx )( PODBC odbc, POPTION_TREE_NODE parent
 			CTEXTSTR optname;
 			POPTION_TREE_NODE tmp_node = New( OPTION_TREE_NODE );
 			popodbc = 1;
-			sscanf( result, WIDE("%lu,%lu,%lu"), &tmp_node->id, &tmp_node->name_id, &tmp_node->value_id );
+			tscanf( result, WIDE("%lu,%lu,%lu"), &tmp_node->id, &tmp_node->name_id, &tmp_node->value_id );
 			optname = strrchr( result, ',' );
 			if( optname )
 				optname++;

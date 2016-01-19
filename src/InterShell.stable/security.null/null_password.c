@@ -97,7 +97,7 @@ static void OnSaveSecurityContext( WIDE("NULL Password") )( FILE *file, PTRSZVAL
 		LIST_FORALL( g.permissions, n, struct sql_token *, token )
 		{
 			if( TESTFLAG( pls->permissions, n ) )
-            fprintf( file, WIDE("%sSQL password security=%s\n"), InterShell_GetSaveIndent(), token->name );
+            sack_fprintf( file, WIDE("%sSQL password security=%s\n"), InterShell_GetSaveIndent(), token->name );
 		}
 	}
 }

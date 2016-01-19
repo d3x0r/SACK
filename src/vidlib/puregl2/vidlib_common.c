@@ -1563,7 +1563,7 @@ void  OwnMouseEx (PVIDEO hVideo, _32 own DBG_PASS)
 		else
 		if( hVideo->camera )
 		{
-			lprintf( "set physical catpure here" );
+			lprintf( WIDE("set physical capture here") );
 		}
 		else
 		{

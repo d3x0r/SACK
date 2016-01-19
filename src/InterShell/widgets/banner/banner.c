@@ -651,7 +651,7 @@ int CreateBanner2Extended( PRENDERER parent, PBANNER *ppBanner, CTEXTSTR text, i
 			FormatTextToBlock( text, &result, 30, 20 );
          // formatter returns a newline at the start of the block (first line doesn't have NO_RETURN flag probably...)
 			for( skip_newline = result; skip_newline && skip_newline[0] && skip_newline[0] == '\n'; skip_newline++ );
-			SetCommonText( banner->frame, skip_newline );
+			SetControlText( banner->frame, skip_newline );
 			Release( result );
 		}
 	}
@@ -818,7 +818,7 @@ void SetBanner2Text( PBANNER banner, TEXTCHAR *text )
 		FormatTextToBlock( text, &result, 30, 20 );
 		// formatter returns a newline at the start of the block (first line doesn't have NO_RETURN flag probably...)
 		for( skip_newline = result; skip_newline && skip_newline[0] && skip_newline[0] == '\n'; skip_newline++ );
-		SetCommonText( banner->frame, skip_newline );
+		SetControlText( banner->frame, skip_newline );
 		Release( result );
 	}
 }

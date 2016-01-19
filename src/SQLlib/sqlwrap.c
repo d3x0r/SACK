@@ -92,7 +92,7 @@ int SQLCommandf( PODBC odbc, CTEXTSTR fmt, ... )
 		LineRelease( cmd );
 	}
 	else
-		lprintf( "ERROR: Sql format failed: %s", fmt );
+		lprintf( WIDE("ERROR: Sql format failed: %s"), fmt );
 	return result;
 }
 

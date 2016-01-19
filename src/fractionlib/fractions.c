@@ -1,6 +1,7 @@
 
 #include <stdhdrs.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <logging.h>
 
 #include "fractions.h"
@@ -16,20 +17,20 @@
 	if( x->denominator < 0 )
 	{
 		if( x->numerator > -x->denominator )
-			return snprintf( string, 31, WIDE("-%d %d/%d")
+			return tnprintf( string, 31, WIDE("-%d %d/%d")
 						, x->numerator / (-x->denominator)
 						, x->numerator % (-x->denominator), -x->denominator );
 		else
-			return snprintf( string, 31, WIDE("-%d/%d"), x->numerator, -x->denominator );
+			return tnprintf( string, 31, WIDE("-%d/%d"), x->numerator, -x->denominator );
 	}
 	else
 	{
 		if( x->numerator > x->denominator )
-			return snprintf( string, 31, WIDE("%d %d/%d")
+			return tnprintf( string, 31, WIDE("%d %d/%d")
 						, x->numerator / x->denominator
 						, x->numerator % x->denominator, x->denominator );
 		else
-			return snprintf( string, 31, WIDE("%d/%d"), x->numerator, x->denominator );
+			return tnprintf( string, 31, WIDE("%d/%d"), x->numerator, x->denominator );
 	}
 }
 
@@ -38,11 +39,11 @@
  int  sLogCoords ( TEXTCHAR *string, PCOORDPAIR pcp )
 {
 	TEXTCHAR *start = string;
-	string += snprintf( string, 2*sizeof(TEXTCHAR), WIDE("(") );
+	string += tnprintf( string, 2*sizeof(TEXTCHAR), WIDE("(") );
 	string += sLogFraction( string, &pcp->x );
-	string += snprintf( string, 2*sizeof(TEXTCHAR), WIDE(",") );
+	string += tnprintf( string, 2*sizeof(TEXTCHAR), WIDE(",") );
 	string += sLogFraction( string, &pcp->y );
-	string += snprintf( string, 2*sizeof(TEXTCHAR), WIDE(")") );
+	string += tnprintf( string, 2*sizeof(TEXTCHAR), WIDE(")") );
 	return (int)(string - start);
 }
 
@@ -50,11 +51,11 @@
 {
 	TEXTCHAR buffer[256];
 	TEXTCHAR *string = buffer;
-	string += snprintf( string, 2*sizeof(TEXTCHAR), WIDE("(") );
+	string += tnprintf( string, 2*sizeof(TEXTCHAR), WIDE("(") );
 	string += sLogFraction( string, &pcp->x );
-	string += snprintf( string, 2*sizeof(TEXTCHAR), WIDE(",") );
+	string += tnprintf( string, 2*sizeof(TEXTCHAR), WIDE(",") );
 	string += sLogFraction( string, &pcp->y );
-	string += snprintf( string, 2*sizeof(TEXTCHAR), WIDE(")") );
+	string += tnprintf( string, 2*sizeof(TEXTCHAR), WIDE(")") );
 	Log( buffer );
 }
 

@@ -452,14 +452,14 @@ static void OnSaveCommon( WIDE( "@00 Plugins" ) )( FILE *file )
 	{
 		INDEX idx;
 		CTEXTSTR system;
-  		fprintf( file, WIDE( "<plugin filemask=\'%s\'>\n" ), EscapeMenuString( plugin->plugin_full_name ) );
+  		sack_fprintf( file, WIDE( "<plugin filemask=\'%s\'>\n" ), EscapeMenuString( plugin->plugin_full_name ) );
 		LIST_FORALL( plugin->pNoLoadOn, idx, CTEXTSTR, system )
 		{
-			fprintf( file, WIDE( "<plugin_no_load system=\'%s\'>\n" ), EscapeMenuString( system ) );
+			sack_fprintf( file, WIDE( "<plugin_no_load system=\'%s\'>\n" ), EscapeMenuString( system ) );
 		}
 		LIST_FORALL( plugin->pLoadOn, idx, CTEXTSTR, system )
 		{
-			fprintf( file, WIDE( "<plugin_load system=\'%s\'>\n" ), EscapeMenuString( system ) );
+			sack_fprintf( file, WIDE( "<plugin_load system=\'%s\'>\n" ), EscapeMenuString( system ) );
 		}
 	}
 }

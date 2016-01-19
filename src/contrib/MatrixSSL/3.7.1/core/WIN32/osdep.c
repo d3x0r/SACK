@@ -62,6 +62,33 @@ void osdepTimeClose(void)
 {
 }
 
+/* FILETIME of Jan 1 1970 00:00:00. */
+static const unsigned __int64 epoch = ((unsigned __int64) 116444736000000000ULL);
+
+/*
+ * timezone information is stored outside the kernel so tzp isn't used anymore.
+ *
+ * Note: this function is not for Win32 high precision timing purpose. See
+ * elapsed_time().
+ */
+int
+gettimeofday(psTime_t * tp, struct timezone * tzp)
+{
+    FILETIME    file_time;
+    SYSTEMTIME  system_time;
+    ULARGE_INTEGER ularge;
+
+    GetSystemTime(&system_time);
+    SystemTimeToFileTime(&system_time, &file_time);
+    ularge.LowPart = file_time.dwLowDateTime;
+    ularge.HighPart = file_time.dwHighDateTime;
+
+    tp->tv_sec = (long) ((ularge.QuadPart - epoch) / 10000000L);
+    tp->tv_usec = (long) (system_time.wMilliseconds * 1000);
+
+    return 0;
+}
+
 /*
     PScore Public API implementations
 */
@@ -70,31 +97,30 @@ int32 psGetTime(psTime_t *t, void *userPtr)
 	psTime_t	lt;
     __int64		diff;
 	int32			d;
-
 	if (t == NULL) {
-		QueryPerformanceCounter(&lt);
-		diff = lt.QuadPart - hiresStart.QuadPart;
-		d = (int32)((diff * 1000) / hiresFreq.QuadPart);
-		return d;
+		gettimeofday( &lt, NULL );
+		//QueryPerformanceCounter(&lt);
+		return lt.tv_sec;
 	}
 
-	QueryPerformanceCounter(t);
-	diff = t->QuadPart - hiresStart.QuadPart;
-	d = (int32)((diff * 1000) / hiresFreq.QuadPart);
-	return d;
+	gettimeofday( t, NULL );
+	//QueryPerformanceCounter(t);
+	//diff = t->QuadPart/* - hiresStart.QuadPart*/;
+	//d = (int32)((diff * 1000) / hiresFreq.QuadPart);
+	return t->tv_sec;
 }
 
 int32 psDiffMsecs(psTime_t then, psTime_t now, void *userPtr) 
 {
     __int64	diff;
 
-	diff = now.QuadPart - then.QuadPart;
-	return (int32)((diff*1000) / hiresFreq.QuadPart);
+	diff = now.tv_sec - then.tv_sec;
+	return (int32)((diff*1000));
 }
 
 int32 psCompareTime(psTime_t a, psTime_t b, void *userPtr)
 {
-	if (a.QuadPart <= b.QuadPart) {
+	if (a.tv_sec <= b.tv_sec) {
 		return 1;
 	}
 	return 0;

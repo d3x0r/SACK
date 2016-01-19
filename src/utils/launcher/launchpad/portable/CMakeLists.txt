@@ -82,11 +82,12 @@ ${LAST_GCC_PROGRAM_SOURCE}
 )
 
 if( MINGW )
-
-SET(CMAKE_RC_COMPILER_INIT "windres")
-SET(CMAKE_RC_COMPILER "windres")
-SET(CMAKE_RC_COMPILE_OBJECT "windres <FLAGS> <DEFINES> -O coff -o <OBJECT> <SOURCE>")
-ENABLE_LANGUAGE(RC)
+	if( NOT HOST_UNIX )
+		SET(CMAKE_RC_COMPILER_INIT "windres")
+		SET(CMAKE_RC_COMPILER "windres")
+		SET(CMAKE_RC_COMPILE_OBJECT "windres <FLAGS> <DEFINES> -O coff -o <OBJECT> <SOURCE>")
+		ENABLE_LANGUAGE(RC)
+	endif( NOT HOST_UNIX )
 elseif( WATCOM )
 string( REPLACE ".rc" ".res" WATCOM_RESOURCES ${RESOURCES} )
 SET( CMAKE_RC_COMPILER "rc" )
@@ -149,7 +150,7 @@ if( MSVC )
 SET( ExtraSources ${SOURCES_ROOT}src/systemlib/args.c )
 endif( MSVC )
 
-SET( SQLITE_VERSION 3.8.7.4 )
+SET( SQLITE_VERSION 3.9.2 )
 SET( SQLITE_SOURCES ${BAG_SQLITE_INTERFACE} ${SOURCES_ROOT}src/sqlite/${SQLITE_VERSION}/sqlite3.c )
 include_directories( ${SOURCES_ROOT}src/sqlite/${SQLITE_VERSION} )
 
@@ -198,14 +199,6 @@ ${LAST_GCC_PROGRAM_SOURCE}
     ${SOURCES_ROOT}src/deadstart/deadstart_core.c 
 )
 
-if( MINGW )
-
-SET(CMAKE_RC_COMPILER_INIT "windres")
-SET(CMAKE_RC_COMPILER "windres")
-SET(CMAKE_RC_COMPILE_OBJECT "windres <FLAGS> <DEFINES> -O coff -o <OBJECT> <SOURCE>")
-ENABLE_LANGUAGE(RC)
-
-endif()
 
 
 sack_add_executable(${project} ${BASE_SOURCES} )

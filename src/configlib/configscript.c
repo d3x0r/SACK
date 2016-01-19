@@ -1,4 +1,4 @@
-//#define NO_UNICODE_C
+#define NO_UNICODE_C
 #ifdef _MSC_VER
 //#define NO_CRT_SECURE_WARNINGS
 #endif
@@ -224,7 +224,6 @@ typedef struct configscript_global_tag {
 	} flags;
 } GLOBAL;
 
-//#ifdef __STATIC__
 #ifndef __STATIC_GLOBALS__
 static GLOBAL *global_config_data;
 #define g (*global_config_data)
@@ -2104,7 +2103,7 @@ CONFIGSCR_PROC( int, ProcessConfigurationFile )( PCONFIG_HANDLER pch, CTEXTSTR n
 	if( !pch->file && !absolute_path )
 	{
 		TEXTCHAR pathname[255];
-		snprintf( pathname, sizeof( pathname ), WIDE("./%s"), name );
+		tnprintf( pathname, sizeof( pathname ), WIDE("./%s"), name );
 #	ifdef _MSC_VER
 		pathname[sizeof(pathname)/sizeof(pathname[0])-1]=0;
 #	endif
@@ -2113,7 +2112,7 @@ CONFIGSCR_PROC( int, ProcessConfigurationFile )( PCONFIG_HANDLER pch, CTEXTSTR n
 	if( !pch->file && !absolute_path )
 	{
 		TEXTCHAR pathname[255];
-		snprintf( pathname, sizeof( pathname ), WIDE("@/%s"), name );
+		tnprintf( pathname, sizeof( pathname ), WIDE("@/%s"), name );
 #	ifdef _MSC_VER
 		pathname[sizeof(pathname)/sizeof(pathname[0])-1]=0;
 #	endif
@@ -2123,7 +2122,7 @@ CONFIGSCR_PROC( int, ProcessConfigurationFile )( PCONFIG_HANDLER pch, CTEXTSTR n
 	if( !pch->file && !absolute_path )
 	{
 		TEXTCHAR pathname[255];
-		snprintf( pathname, sizeof( pathname ), WIDE("*/%s"), name );
+		tnprintf( pathname, sizeof( pathname ), WIDE("*/%s"), name );
 #	ifdef _MSC_VER
 		pathname[sizeof(pathname)/sizeof(pathname[0])-1]=0;
 #	endif
@@ -2132,7 +2131,7 @@ CONFIGSCR_PROC( int, ProcessConfigurationFile )( PCONFIG_HANDLER pch, CTEXTSTR n
 	if( !pch->file && !absolute_path )
 	{
 		TEXTCHAR pathname[255];
-		snprintf( pathname, sizeof( pathname ), WIDE("/etc/%s"), name );
+		tnprintf( pathname, sizeof( pathname ), WIDE("/etc/%s"), name );
 #  ifdef _MSC_VER
 		pathname[sizeof(pathname)/sizeof(pathname[0])-1]=0;
 #  endif
@@ -2656,9 +2655,7 @@ CONFIGSCR_PROC( void, SetConfigurationUnhandled )( PCONFIG_HANDLER pch
 CONFIGSCR_PROC( PCONFIG_HANDLER, CreateConfigurationEvaluator )( void )
 {
 	PCONFIG_HANDLER pch;
-#ifdef __STATIC__
 	DoInit();
-#endif
 
 	if( g.flags.bDisableMemoryLogging )
 	{
@@ -2908,7 +2905,7 @@ void ExpandConfigString( TEXTSTR out, CTEXTSTR in )
 CTEXTSTR FormatColor( CDATA color )
 {
 	static TEXTCHAR color_buf[14];
-	snprintf( color_buf, sizeof( color_buf ), WIDE("$%02X%02X%02X%02X")
+	tnprintf( color_buf, sizeof( color_buf ), WIDE("$%02X%02X%02X%02X")
 			, (int)AlphaVal( color )
 			, (int)RedVal( color )
 			, (int)GreenVal( color )

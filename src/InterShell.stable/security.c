@@ -224,7 +224,7 @@ void InterShell_SaveSecurityInformation( FILE *file, PTRSZVAL psv )
 
 static void OnSaveCommon( WIDE( "@10 EditSecurity" ) )( FILE *file )
 {
-	fprintf( file, WIDE( "Begin Edit Permissions\n" ) );
+	sack_fprintf( file, WIDE( "Begin Edit Permissions\n" ) );
 	InterShell_SaveSecurityInformation( file, (PTRSZVAL)InterShell_GetCurrentSavingCanvas() );
 }
 

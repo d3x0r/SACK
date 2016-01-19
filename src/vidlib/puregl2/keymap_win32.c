@@ -51,7 +51,16 @@ const TEXTCHAR*  GetKeyText (int key)
 		return 0;
 	}
 	//printf( WIDE("Key Translated: %d(%c)\n"), ch[0], ch[0] );
+#ifdef UNICODE
+	{
+		static wchar_t *out;
+		if( out ) Deallocate( wchar_t *, out );
+		out = DupCStr( ch );
+		return out;
+	}
+#else
 	return ch;
+#endif
 }
 
 #ifdef USE_KEYHOOK

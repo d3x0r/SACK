@@ -357,7 +357,7 @@ static void OnDraw3d( "Seg Renderer" )( PTRSZVAL psvInit )
 	}
 }
 
-static LOGICAL OnMouse3d( "Virtuality" )( PTRSZVAL psvInit, PRAY mouse, _32 b )
+static LOGICAL OnMouse3d( "Virtuality" )( PTRSZVAL psvInit, PRAY mouse, S_32 x, S_32 y, _32 b )
 {
 	return 0;
 }

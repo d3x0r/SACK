@@ -29,6 +29,7 @@ static struct page_cycle_local {
 
 static void CPROC change( PTRSZVAL psv )
 {
+	PPAGE_DATA page = ShellGetCurrentPage( (PSI_CONTROL)psv );
 	if( l.flags.allow_cycle )
 	{
 		CTEXTSTR name;
@@ -45,7 +46,30 @@ static void CPROC change( PTRSZVAL psv )
 					return;
 		}
 		if( !l.flags.bDisableChange )
-			ShellSetCurrentPage( (PSI_CONTROL)psv, WIDE("next") );
+		{
+			int found = FALSE;
+			INDEX idx;
+			struct page_delay *delay;
+			LIST_FORALL( l.delays, idx, struct page_delay *, delay )
+			{
+				if( !found && page->title && delay->page_name && StrCaseCmp( page->title, delay->page_name ) == 0 )
+				{
+					found = TRUE;
+					continue;
+				}
+				else if( !found && !page->title && !delay->page_name )
+				{
+					found = TRUE;
+					continue;
+				}
+				if( found && delay->delay )
+				{
+					ShellSetCurrentPage( (PSI_CONTROL)psv, delay->page_name );
+					return;
+				}
+			}
+			ShellSetCurrentPage( (PSI_CONTROL)psv, WIDE("first") );
+		}
 	}
 }
 
@@ -76,7 +100,6 @@ static int OnChangePage( WIDE("Page Cycler") )( PSI_CONTROL pc_canvas )
 	INDEX idx;
 	struct page_delay *delay;
 
-	//lprintf( WIDE("new page = %s"), page->title );
 	LIST_FORALL( l.delays, idx, struct page_delay *, delay )
 	{
 		if( page->title )
@@ -84,7 +107,8 @@ static int OnChangePage( WIDE("Page Cycler") )( PSI_CONTROL pc_canvas )
 			if( StrCaseCmp( page->title, delay->page_name ) == 0 )
 			{
 				//lprintf( WIDE("Compare ok - schedule %d"), delay->delay );
-				RescheduleTimerEx( l.timer, delay->delay );
+				if( delay->delay )
+					RescheduleTimerEx( l.timer, delay->delay );
 				break;
 			}
 		}
@@ -101,10 +125,15 @@ static int OnChangePage( WIDE("Page Cycler") )( PSI_CONTROL pc_canvas )
 		delay = New( struct page_delay );
 		delay->delay = l.delay;
 		if( page->title )
+		{
 			delay->page_name = StrDup( page->title );
+			delay->delay = SACK_GetPrivateProfileInt( WIDE("Page Cycler/pages"), delay->page_name, l.delay, WIDE("page_changer.ini") );
+		}
 		else
+		{
+			delay->delay = SACK_GetPrivateProfileInt( WIDE("Page Cycler/pages"), "First", l.delay, WIDE("page_changer.ini") );
 			delay->page_name = NULL;
-		delay->delay = SACK_GetPrivateProfileInt( WIDE("Page Cycler/pages"), delay->page_name, l.delay, WIDE("page_changer.ini") );
+		}
 		AddLink( &l.delays, delay );
 		//lprintf( WIDE("Compare ok - schedule %d"), l.delay );
 		RescheduleTimerEx( l.timer, l.delay );

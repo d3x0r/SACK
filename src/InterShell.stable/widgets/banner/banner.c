@@ -604,7 +604,9 @@ int CreateBanner2Extended( PRENDERER parent, PBANNER *ppBanner, CTEXTSTR text, i
 		{
 			TEXTSTR result = NULL;
 			TEXTSTR skip_newline;
-			FormatTextToBlock( text, &result, 30, 20 );
+			int text_width = banner_local.w - banner_local.w/10;
+			int text_height = banner_local.h - banner_local.h/10;
+			FormatTextToBlockEx( text, &result, &text_width, &text_height, banner_local.custom_font );
          // formatter returns a newline at the start of the block (first line doesn't have NO_RETURN flag probably...)
 			for( skip_newline = result; skip_newline && skip_newline[0] && skip_newline[0] == '\n'; skip_newline++ );
 			banner->frame = MakeCaptionedControl( NULL, banner_control.TypeID
@@ -648,7 +650,9 @@ int CreateBanner2Extended( PRENDERER parent, PBANNER *ppBanner, CTEXTSTR text, i
 		{
 			TEXTSTR result = NULL;
 			TEXTSTR skip_newline;
-			FormatTextToBlock( text, &result, 30, 20 );
+			int text_width = banner_local.w - banner_local.w/10;
+			int text_height = banner_local.h - banner_local.h/10;
+			FormatTextToBlockEx( text, &result, &text_width, &text_height, banner_local.custom_font );
          // formatter returns a newline at the start of the block (first line doesn't have NO_RETURN flag probably...)
 			for( skip_newline = result; skip_newline && skip_newline[0] && skip_newline[0] == '\n'; skip_newline++ );
 			SetControlText( banner->frame, skip_newline );
@@ -815,7 +819,10 @@ void SetBanner2Text( PBANNER banner, TEXTCHAR *text )
 	{
 		TEXTSTR result = NULL;
 		TEXTSTR skip_newline;
-		FormatTextToBlock( text, &result, 30, 20 );
+		int text_width = banner_local.w - banner_local.w/10;
+		int text_height = banner_local.h - banner_local.h/10;
+		FormatTextToBlockEx( text, &result, &text_width, &text_height, banner_local.custom_font );
+		//FormatTextToBlock( text, &result, 30, 20 );
 		// formatter returns a newline at the start of the block (first line doesn't have NO_RETURN flag probably...)
 		for( skip_newline = result; skip_newline && skip_newline[0] && skip_newline[0] == '\n'; skip_newline++ );
 		SetControlText( banner->frame, skip_newline );

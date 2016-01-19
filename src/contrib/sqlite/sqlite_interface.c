@@ -484,6 +484,10 @@ static int xAccess(
 	//if( flags & SQLITE_ACCESS_EXISTS )
 	{
 		FILE *tmp;
+#ifdef UNICODE
+		CTEXTSTR _zPath = DupCStr(zPath);
+#       define zPath _zPath
+#endif
 		if( sack_existsEx( zPath, my_vfs->mount ) )
 		{
 #ifdef LOG_OPERATIONS

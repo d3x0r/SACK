@@ -136,7 +136,8 @@ JSON_EMITTER_PROC( void, json_dispose_message )( struct json_context_object *for
                                              );
 
 #ifdef __cplusplus
-} } SACK_NAMESPACE_END 
+} } SACK_NAMESPACE_END
+using namespace sack::network::json;
 #endif
 
 #endif

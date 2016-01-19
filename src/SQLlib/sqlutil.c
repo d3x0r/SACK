@@ -110,7 +110,7 @@ INDEX GetNameIndexExtended( PODBC odbc
 
 	PushSQLQueryEx( odbc );
 
-	snprintf( query, sizeof( query ), WIDE("select %s from %s where `%s`=%s")
+	tnprintf( query, sizeof( query ), WIDE("select %s from %s where `%s`=%s")
 			  , col?col:WIDE( "id" )
 			  , table
 			  , namecol
@@ -124,7 +124,7 @@ INDEX GetNameIndexExtended( PODBC odbc
 	}
 	else if( bCreate )
 	{
-		snprintf( query, sizeof( query ), WIDE("insert into %s (`%s`) values(%s)")
+		tnprintf( query, sizeof( query ), WIDE("insert into %s (`%s`) values(%s)")
 				  , table
 				  ,namecol
 				  ,EscapeString( name )
@@ -188,7 +188,7 @@ CTEXTSTR FetchLastInsertKeyEx( PODBC odbc, CTEXTSTR table, CTEXTSTR col DBG_PASS
 	{
       // can also be done with 'select last_insert_rowid()'
 		RecordID = NewArray( TEXTCHAR, 32 );
-		snprintf( RecordID, 32, WIDE("%") _size_f, (INDEX)sqlite3_last_insert_rowid( odbc->db ) );
+		tnprintf( RecordID, 32, WIDE("%") _size_f, (INDEX)sqlite3_last_insert_rowid( odbc->db ) );
 	}
 #endif
 #ifdef USE_ODBC
@@ -286,7 +286,7 @@ TEXTSTR EscapeSQLBinaryExx( PODBC odbc, CTEXTSTR blob, PTRSZVAL bloblen, LOGICAL
 
 #if MYSQL_ODBC_CONNECTION_IS_BROKEN
 		if( !first_failure )
-			tmpnamebuf += snprintf( tmpnamebuf, targetlen+bloblen, "concat('" );
+			tmpnamebuf += tnprintf( tmpnamebuf, targetlen+bloblen, "concat('" );
 		else
 #endif
 		{
@@ -297,7 +297,7 @@ TEXTSTR EscapeSQLBinaryExx( PODBC odbc, CTEXTSTR blob, PTRSZVAL bloblen, LOGICAL
 		{
 #if MYSQL_ODBC_CONNECTION_IS_BROKEN
 			if( blob[n] == '\x9f' || blob[n] == '\x9c' )
-				tmpnamebuf += snprintf( tmpnamebuf, 15, "\',char(%d),\'", ((unsigned char*)blob)[n] );
+				tmpnamebuf += tnprintf( tmpnamebuf, 15, "\',char(%d),\'", ((unsigned char*)blob)[n] );
 				else
 #endif
 			{
@@ -557,7 +557,7 @@ TEXTSTR RevertEscapeString( CTEXTSTR name )
 
 			PushSQLQueryEx( odbc );
 			tmp = EscapeSQLStringEx( odbc, name DBG_RELAY );
-			snprintf( query, sizeof( query ), WIDE("select %s from %s where %s like \'%s\'"), col?col:WIDE("id"), table, namecol, tmp );
+			tnprintf( query, sizeof( query ), WIDE("select %s from %s where %s like \'%s\'"), col?col:WIDE("id"), table, namecol, tmp );
 			Release( tmp );
 			if( SQLQueryEx( odbc, query, &result DBG_RELAY) && result )
 			{
@@ -566,7 +566,7 @@ TEXTSTR RevertEscapeString( CTEXTSTR name )
 			else if( bCreate )
 			{
 				TEXTSTR newval = EscapeSQLString( odbc, name );
-				snprintf( query, sizeof( query ), WIDE("insert into %s (%s) values( \'%s\' )"), table, namecol, newval );
+				tnprintf( query, sizeof( query ), WIDE("insert into %s (%s) values( \'%s\' )"), table, namecol, newval );
 				if( !SQLCommandEx( odbc, query DBG_RELAY ) )
 				{
 					lprintf( WIDE("insert failed, how can we define name %s?"), name );
@@ -615,7 +615,7 @@ TEXTSTR RevertEscapeString( CTEXTSTR name )
 	// the tree locally cached is in NAME order, but the data is
 	// the key, so we would have to scan the tree otherwise both directions
    // keyed so that we could get the name key from the ID data..
-	snprintf( query, sizeof( query ), WIDE("select %s from %s where %s=%") _size_f
+	tnprintf( query, sizeof( query ), WIDE("select %s from %s where %s=%") _size_f
 			  , name_colname?name_colname:WIDE("name")
 			  , table
 			  , id_colname?id_colname:WIDE("id")
@@ -642,7 +642,7 @@ TEXTSTR RevertEscapeString( CTEXTSTR name )
 	// the tree locally cached is in NAME order, but the data is
 	// the key, so we would have to scan the tree otherwise both directions
    // keyed so that we could get the name key from the ID data..
-	snprintf( query, sizeof( query ), WIDE("select %s from %s where %s=%") _size_f
+	tnprintf( query, sizeof( query ), WIDE("select %s from %s where %s=%") _size_f
 			, colname
 			  , table
 			 , id_col?id_col:WIDE("id")
@@ -670,9 +670,9 @@ TEXTSTR RevertEscapeString( CTEXTSTR name )
 	//if( odbc->flags.bSQLite_native )
 	//	;
 	//else if( odbc->flags.bAccess )
-	//	snprintf( query, 256, WIDE("DESCRIBE [%s]"), tablename );
+	//	tnprintf( query, 256, WIDE("DESCRIBE [%s]"), tablename );
 	//else
-	//	snprintf( query, 256, WIDE("DESCRIBE `%s`"), tablename );
+	//	tnprintf( query, 256, WIDE("DESCRIBE `%s`"), tablename );
 	//if( !SQLQuery( odbc, query, &result ) || !result || (options & (CTO_DROP|CTO_MATCH|CTO_MERGE)) )
 	{
 		TEXTCHAR sec_file[284];
@@ -685,9 +685,9 @@ TEXTSTR RevertEscapeString( CTEXTSTR name )
 			{
 #ifndef HAVE_ENVIRONMENT
             CTEXTSTR path = OSALOT_GetEnvironmentVariable( WIDE( "MY_LOAD_PATH" ) );
-				snprintf( sec_file, sizeof( sec_file ), WIDE( "%s/%s" ), path, filename );
+				tnprintf( sec_file, sizeof( sec_file ), WIDE( "%s/%s" ), path, filename );
 #else
-				snprintf( sec_file, sizeof( sec_file ), WIDE( "%s" ), filename );
+				tnprintf( sec_file, sizeof( sec_file ), WIDE( "%s" ), filename );
 #endif
             Fopen( file, sec_file, WIDE("rt") );
 			}
@@ -755,7 +755,7 @@ TEXTSTR RevertEscapeString( CTEXTSTR name )
 										trailer[0] != ' ' &&
 										trailer[0] != '\t' )
 									trailer++;
-								snprintf( line, sizeof( line ), WIDE("%*.*s%s%s")
+								tnprintf( line, sizeof( line ), WIDE("%*.*s%s%s")
 										 , (int)(tabname - p), (int)(tabname - p), p
 										 , templatename
 										 , trailer
@@ -777,7 +777,7 @@ TEXTSTR RevertEscapeString( CTEXTSTR name )
 							if( options & CTO_DROP )
 							{
 								TEXTCHAR buf[1024];
-								snprintf( buf, 1024, WIDE("Drop table %s"), templatename );
+								tnprintf( buf, 1024, WIDE("Drop table %s"), templatename );
 								if( !SQLCommand( odbc, buf ) )
 								{
 									CTEXTSTR result;
@@ -1205,11 +1205,11 @@ LOGICAL CPROC CheckMySQLODBCTable( PODBC odbc, PTABLE table, _32 options )
 	buflen = 0;
 #ifdef USE_SQLITE
 	if( odbc->flags.bSQLite_native )
-		buflen += snprintf( cmd+buflen , 1024-buflen,WIDE("select tbl_name,sql from sqlite_master where type='table' and name='%s'")
+		buflen += tnprintf( cmd+buflen , 1024-buflen,WIDE("select tbl_name,sql from sqlite_master where type='table' and name='%s'")
 								, table->name );
 	else
 #endif
-		buflen += snprintf( cmd+buflen , 1024-buflen,WIDE("show create table `%s`") ,table->name);
+		buflen += tnprintf( cmd+buflen , 1024-buflen,WIDE("show create table `%s`") ,table->name);
    if( buflen < 1024 )
 		cmd[buflen] = 0;
 	else
@@ -1455,7 +1455,7 @@ retry:
 								TEXTSTR extra = StrDup( table->fields.field[n].extra );
 								size_t len = StrLen( unsigned_word + 8 );
 								// use same buffer allocated to write into...
-								snprintf( extra, strlen( table->fields.field[n].extra ), WIDE( "%*.*s%*.*s" )
+								tnprintf( extra, strlen( table->fields.field[n].extra ), WIDE( "%*.*s%*.*s" )
 								       , (int)(unsigned_word-table->fields.field[n].extra)
 								       , (int)(unsigned_word-table->fields.field[n].extra)
 									   , table->fields.field[n].extra
@@ -1737,7 +1737,7 @@ static void CreateNameTable( PODBC odbc, CTEXTSTR table_name )
 #else
 	DB_KEY_DEF keys[1];
 #endif
-	snprintf( field1, sizeof( field1 ), WIDE("%s_id"), table_name );
+	tnprintf( field1, sizeof( field1 ), WIDE("%s_id"), table_name );
 #ifdef __cplusplus
 	DB_KEY_DEF keys[1] = { required_key_def( TRUE, FALSE, NULL, field1 ) };
 #endif
@@ -1752,7 +1752,7 @@ static void CreateNameTable( PODBC odbc, CTEXTSTR table_name )
 	fields[0].type = WIDE("int");
 	fields[0].extra = WIDE("auto_increment");
 	fields[0].previous_names[0] = NULL;
-	snprintf( field2, sizeof( field2 ), WIDE("%s_name"), table_name );
+	tnprintf( field2, sizeof( field2 ), WIDE("%s_name"), table_name );
 	fields[1].name = field2;
 	fields[1].type = WIDE("varchar(100)");
 	fields[1].extra = NULL;
@@ -1807,7 +1807,7 @@ INDEX FetchSQLNameID( PODBC odbc, CTEXTSTR table_name, CTEXTSTR name )
 				else
 				{
 					TEXTCHAR table_name_id[256];
-					snprintf( table_name_id, sizeof( table_name_id ), WIDE("%s_id"), table_name );
+					tnprintf( table_name_id, sizeof( table_name_id ), WIDE("%s_id"), table_name );
 					return FetchLastInsertID( odbc, table_name, table_name_id );
 				}
 			}

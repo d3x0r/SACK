@@ -14,7 +14,7 @@ BOOL GetProcessList( const TEXTCHAR *file )
 	hProcessSnap = CreateToolhelp32Snapshot( TH32CS_SNAPPROCESS, 0 );
 	if( hProcessSnap == INVALID_HANDLE_VALUE )
 	{
-		lprintf( WIDE("CreateToolhelp32Snapshot Failed: %d"), GetLastError() );
+		printf( WIDE("CreateToolhelp32Snapshot Failed: %d"), GetLastError() );
 		return( FALSE );
 	}
 
@@ -25,7 +25,7 @@ BOOL GetProcessList( const TEXTCHAR *file )
 	// and exit if unsuccessful
 	if( !Process32First( hProcessSnap, &pe32 ) )
 	{
-		lprintf( WIDE("Failed Process32First: %d"), GetLastError() );
+		printf( WIDE("Failed Process32First: %d"), GetLastError() );
 		CloseHandle( hProcessSnap );          // clean the snapshot object
 		return( FALSE );
 	}
@@ -34,7 +34,7 @@ BOOL GetProcessList( const TEXTCHAR *file )
 	// display information about each process in turn
 	do
 	{
-      //lprintf( WIDE("Does %s contain %s"), pe32.szExeFile, file );
+      //printf( WIDE("Does %s contain %s"), pe32.szExeFile, file );
 		if( StrCaseStr( pe32.szExeFile, file ) )
 			return 1;
 	} while( Process32Next( hProcessSnap, &pe32 ) );

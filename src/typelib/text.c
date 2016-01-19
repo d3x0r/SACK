@@ -2130,7 +2130,7 @@ void VarTextAddDataEx( PVARTEXT pvt, CTEXTSTR block, size_t length DBG_PASS )
 			if( pvt->collect_used >= pvt->collect_avail )
 			{
 				//lprintf( WIDE("Expanding segment to make sure we have room to extend...(old %d)"), pvt->collect->data.size );
-				pvt->collect = SegExpandEx( pvt->collect, COLLECT_LEN DBG_RELAY );
+				pvt->collect = SegExpandEx( pvt->collect, pvt->collect_avail * 2 + COLLECT_LEN DBG_RELAY );
 				pvt->collect_avail = pvt->collect->data.size;
 				pvt->collect_text = GetText( pvt->collect );
 			}

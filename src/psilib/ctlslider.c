@@ -14,7 +14,7 @@ typedef struct slider_tag
 	}flags;
 	int min, max, current;	
 	int _x, _y, _b; // prior button state;
-	void (CPROC*SliderUpdated)( PTRSZVAL psvUser, PCONTROL pc, int val );
+	void (CPROC*SliderUpdated)( PTRSZVAL psvUser, PSI_CONTROL pc, int val );
    PTRSZVAL psvUser;
 } SLIDER, *PSLIDER;
 
@@ -230,7 +230,7 @@ static int OnMouseCommon( SLIDER_CONTROL_NAME )( PSI_CONTROL pc, S_32 x, S_32 y,
 
 //---------------------------------------------------------------------------
 
-PCONTROL SetSliderOptions( PCONTROL pc, int attr )
+PSI_CONTROL SetSliderOptions( PSI_CONTROL pc, int attr )
 {
 	ValidatedControlData( PSLIDER, SLIDER_CONTROL, ps, pc );
 	if( ps )
@@ -244,7 +244,7 @@ PCONTROL SetSliderOptions( PCONTROL pc, int attr )
     return pc;
 }
 
-PCONTROL SetSliderUpdateHandler( PCONTROL pc, SliderUpdateProc SliderUpdated, PTRSZVAL psvUser )
+PSI_CONTROL SetSliderUpdateHandler( PSI_CONTROL pc, SliderUpdateProc SliderUpdated, PTRSZVAL psvUser )
 {
 	ValidatedControlData( PSLIDER, SLIDER_CONTROL, ps, pc );
 	if( ps )
@@ -259,7 +259,7 @@ PCONTROL SetSliderUpdateHandler( PCONTROL pc, SliderUpdateProc SliderUpdated, PT
 
 #undef MakeSlider
 static int OnCreateCommon( SLIDER_CONTROL_NAME )( PSI_CONTROL pc )
-//CONTROL_PROC_DEF( SLIDER_CONTROL, SLIDER, Slider, (void)/* (CPROC*SliderUpdated)(PTRSZVAL psv, PCONTROL pc, int val), PTRSZVAL psv)*/ )
+//CONTROL_PROC_DEF( SLIDER_CONTROL, SLIDER, Slider, (void)/* (CPROC*SliderUpdated)(PTRSZVAL psv, PSI_CONTROL pc, int val), PTRSZVAL psv)*/ )
 {
 	ValidatedControlData( PSLIDER, SLIDER_CONTROL, ps, pc );
 	if( ps )
@@ -270,7 +270,7 @@ static int OnCreateCommon( SLIDER_CONTROL_NAME )( PSI_CONTROL pc )
 		ps->current = 50;
 		//if( args )
 		{
-			//FP_ARG( void CPROC, SliderUpdated,(PTRSZVAL psv, PCONTROL pc, int val));
+			//FP_ARG( void CPROC, SliderUpdated,(PTRSZVAL psv, PSI_CONTROL pc, int val));
 			//ARG( PTRSZVAL, psv );
          //ARG( _32, attr );
 			//ps->SliderUpdated = SliderUpdated;
@@ -285,7 +285,7 @@ static int OnCreateCommon( SLIDER_CONTROL_NAME )( PSI_CONTROL pc )
 
 //---------------------------------------------------------------------------
 
-void SetSliderValues( PCONTROL pc, int min, int current, int max )
+void SetSliderValues( PSI_CONTROL pc, int min, int current, int max )
 {	
 	if( pc )
 	{
@@ -293,6 +293,10 @@ void SetSliderValues( PCONTROL pc, int min, int current, int max )
 		if( ps )
 		{
 			ps->min = min;
+			if( current > max )
+				current = max;
+			if( current < min ) 
+				current = min;
 			ps->current = current;
 			ps->max = max;
 			if( ps->SliderUpdated )

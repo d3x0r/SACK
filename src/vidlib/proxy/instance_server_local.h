@@ -2,6 +2,8 @@
 #include <network.h>
 #include "protocol.h"
 
+
+
 typedef struct vidlib_proxy_image
 {
 	int x, y, w, h;

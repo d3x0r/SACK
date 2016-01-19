@@ -300,7 +300,7 @@ void PromptAll( void )
 		extra = StrChr( name, ',' );
 		if( extra )
 		{
-			DoSQLCommandf( WIDE("insert into drawing (place,name,bingoday,whenstamp,account_number,card_number,session) values (%d,'%*.*s',%04d%02d%02d,%04d%02d%02d%02d%02d%02d,'%s','%s',current_session())")
+			DoSQLCommandf( WIDE("insert into tp_drawing (place,name,bingoday,whenstamp,account_number,card_number,session) values (%d,'%*.*s',%04d%02d%02d,%04d%02d%02d%02d%02d%02d,'%s','%s',current_session())")
 							 , idx + 1
 							 , (extra-name), (extra-name)
 							 , name
@@ -323,7 +323,7 @@ void PromptAll( void )
 		}
 		else
 		{
-			DoSQLCommandf( WIDE("insert into drawing (place,name,bingoday,whenstamp,session) values (%d,'%*.*s',%04d%02d%02d,%04d%02d%02d%02d%02d%02d,current_session())")
+			DoSQLCommandf( WIDE("insert into tp_drawing (place,name,bingoday,whenstamp,session) values (%d,'%*.*s',%04d%02d%02d,%04d%02d%02d%02d%02d%02d,current_session())")
                       , idx + 1
 							 , (extra-name), (extra-name), name
 							 , st.wYear, st.wMonth, st.wDay
@@ -359,7 +359,7 @@ void PromptAll( void )
 
 }
 
-CTEXTSTR DrawCreate = WIDE("CREATE TABLE if not exists `drawing` (                               ")
+CTEXTSTR DrawCreate = WIDE("CREATE TABLE if not exists `tp_drawing` (                               ")
 					 WIDE("  `drawing_id` int(10) unsigned NOT NULL auto_increment,")
 					 WIDE("  `first_name` varchar(45) default NULL,                       ")
 					 WIDE("  `last_name` varchar(45) default NULL,                        ")
@@ -384,14 +384,14 @@ void Init( void )
    /*
 	DoSQLCommand( DrawCreate );
    */
-	SACK_GetProfileString( WIDE("Top Player Picker"), WIDE("player source pathname"), WIDE("\\\\172.17.2.200\\c\\players.txt"), filenamebuf, sizeof( filenamebuf ) );
+	SACK_GetProfileString( WIDE("Top Player Picker"), WIDE("player source pathname"), WIDE("\\\\127.0.0.1\\c$\\players.txt"), filenamebuf, sizeof( filenamebuf ) );
 
 	ReadPlayerFile( filenamebuf );
 
    if( SACK_GetProfileInt( WIDE("Top Player Picker"), WIDE("select places claimed (resume from picked)"), 0 ) )
 	{
       CTEXTSTR *results;
-		if( DoSQLRecordQueryf( NULL, &results, NULL, WIDE("select max(place) from drawing where place>0 and bingoday=%s and session=current_session()")
+		if( DoSQLRecordQueryf( NULL, &results, NULL, WIDE("select max(place) from tp_drawing where place>0 and bingoday=%s and session=current_session()")
 									,GetSQLOffsetDate( NULL, WIDE("Bingoday"), 500 ) ) && results )
 		{
 			l.first_place = results[0]?atoi( results[0] ):0;

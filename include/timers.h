@@ -14,7 +14,7 @@
 
 #if defined( _WIN32 )
 // on windows, we add a function that returns HANDLE
-#include <stdhdrs.h>
+#  include <stdhdrs.h>
 #endif
 #include <sack_types.h>
 #include <sharemem.h>

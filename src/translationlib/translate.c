@@ -3,6 +3,7 @@
 #define TRANSLATION_SOURCE
 #include <translation.h>
 
+TRANSLATION_NAMESPACE 
 
 struct translation {
 	TEXTSTR name;
@@ -39,7 +40,7 @@ static struct translation_local_tag
 PRELOAD( InitTrasnlationLocal )
 {
 	SimpleRegisterAndCreateGlobal( _translate_local );
-	translate_local.index = CreateBinaryTreeEx( (GenericCompare)StrCmp, NULL );
+	translate_local.index = CreateBinaryTreeEx( (GenericCompare)(int (MEM_API *)(CTEXTSTR , CTEXTSTR ))StrCmp, NULL );
 }
 
 //---------------------------------------------------------------------------
@@ -155,7 +156,7 @@ void SaveTranslationDataToFile( FILE *output )
 
 void SaveTranslationData( void )
 {
-	FILE *output = sack_fopen( 0, "strings.dat", "wb" );
+	FILE *output = sack_fopen( 0, WIDE("strings.dat"), WIDE("wb") );
 	if( !output )
 		return;
 	SaveTranslationDataToFile( output );
@@ -273,7 +274,7 @@ void LoadTranslationDataFromFile( FILE *input )
 void LoadTranslationData( void )
 {
 	FILE *input;
-	input = sack_fopen( 0, "strings.dat", "rb" );
+	input = sack_fopen( 0, WIDE("strings.dat"), WIDE("rb") );
 	if( input )
 	{
 		LoadTranslationDataFromFile( input );
@@ -391,9 +392,10 @@ PLIST GetTranslationStrings( struct translation *translation )
 
 //---------------------------------------------------------------------------
 
-PLIST GetTranslationIndexStrings( struct translation *translation )
+PLIST GetTranslationIndexStrings( void )
 {
 	return translate_local.index_list;
 }
 
+TRANSLATION_NAMESPACE_END
 

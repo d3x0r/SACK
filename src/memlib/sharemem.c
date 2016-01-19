@@ -97,16 +97,19 @@ namespace sack {
 #undef lprintf
 #undef _lprintf
 
-#ifdef _DEBUG
-#  define lprintf( f, ... ) { TEXTCHAR buf[256]; tnprintf( buf, 256, f,##__VA_ARGS__ ); SystemLogFL( buf FILELINE_SRC ); }
-#  define _lprintf2( f, ... ) { TEXTCHAR buf[256]; tnprintf( buf, 256, FILELINE_FILELINEFMT f,_pFile,_nLine,##__VA_ARGS__ ); SystemLogFL( buf FILELINE_SRC ); } }
-#  define _lprintf( a ) {const TEXTCHAR *_pFile = pFile; int _nLine = nLine; _lprintf2
+#ifndef NO_LOGGING
+#  ifdef _DEBUG
+#    define lprintf( f, ... ) { TEXTCHAR buf[256]; tnprintf( buf, 256, f,##__VA_ARGS__ ); SystemLogFL( buf FILELINE_SRC ); }
+#    define _lprintf2( f, ... ) { TEXTCHAR buf[256]; tnprintf( buf, 256, FILELINE_FILELINEFMT f,_pFile,_nLine,##__VA_ARGS__ ); SystemLogFL( buf FILELINE_SRC ); } }
+#    define _lprintf( a ) {const TEXTCHAR *_pFile = pFile; int _nLine = nLine; _lprintf2
+#  else
+#    define lprintf( f, ... ) { TEXTCHAR buf[256]; tnprintf( buf, 256, f,##__VA_ARGS__ ); SystemLog( buf ); }
+#    define _lprintf2( f, ... ) { TEXTCHAR buf[256]; tnprintf( buf, 256, f,##__VA_ARGS__ ); SystemLog( buf ); } }
+#    define _lprintf( a ) { _lprintf2
+#  endif
 #else
-#  define lprintf( f, ... ) { TEXTCHAR buf[256]; tnprintf( buf, 256, f,##__VA_ARGS__ ); SystemLog( buf ); }
-#  define _lprintf2( f, ... ) { TEXTCHAR buf[256]; tnprintf( buf, 256, f,##__VA_ARGS__ ); SystemLog( buf ); } }
-#  define _lprintf( a ) { _lprintf2
+#  define lprintf( f,... )
 #endif
-
 
 // last entry in space tracking array will ALWAYS be
 // another space tracking array (if used)
@@ -208,9 +211,14 @@ struct global_memory_tag global_memory_data = { 0x10000 * 0x08, 1/* disable debu
 #define g global_memory_data
 #endif
 
-#define ODSEx(s,pFile,nLine) SystemLogFL( s DBG_RELAY )
+#ifndef NO_LOGGING
+#  define ODSEx(s,pFile,nLine) SystemLogFL( s DBG_RELAY )
 //#define ODSEx(s,pFile,nLine) SystemLog( s )
-#define ODS(s)  SystemLog(s)
+#  define ODS(s)  SystemLog(s)
+#else
+#  define ODSEx(s,file,line)
+#  define ODS(s)
+#endif
 
 #define MAGIC_SIZE sizeof( void* )
 
@@ -390,12 +398,13 @@ S_32  EnterCriticalSecNoWaitEx ( PCRITICALSECTION pcs, THREAD_ID *prior DBG_PASS
 	//static int nEntry;
 
 	dwCurProc = GetMyThreadID();
-
+#ifndef NO_LOGGING
 	if( g.bLogCritical > 0 && g.bLogCritical < 2 )
 		_lprintf( DBG_RELAY )( WIDE(" [%16")_64fx WIDE("] Attempt enter critical Section %p %08") _32fx
 									, dwCurProc
 									, pcs
 									, pcs->dwLocks );
+#endif
 	// need to aquire lock on section...
    // otherwise our old mechanism allowed an enter in another thread
    // to falsely identify the section as its own while the real owner
@@ -411,13 +420,17 @@ S_32  EnterCriticalSecNoWaitEx ( PCRITICALSECTION pcs, THREAD_ID *prior DBG_PASS
 #ifdef DEBUG_CRITICAL_SECTIONS
 	if( pcs->bCollisions > 1 )
 	{
+#  ifndef NO_LOGGING
 		if( g.bLogCritical > 0 && g.bLogCritical < 2 )
 			_lprintf(DBG_RELAY)( WIDE("Section is was updating %") _32f WIDE(" cycles"), pcs->bCollisions );
+#  endif
 		pcs->bCollisions = 0;
 	}
+#  ifndef NO_LOGGING
 	else
 		if( g.bLogCritical > 0 && g.bLogCritical < 2 )
 			_lprintf(DBG_RELAY)( WIDE("Locked....for enter") );
+#  endif
 #endif
 
 	if( !pcs->dwThreadID )
@@ -511,6 +524,7 @@ S_32  EnterCriticalSecNoWaitEx ( PCRITICALSECTION pcs, THREAD_ID *prior DBG_PASS
 		if( g.bLogCritical > 0 && g.bLogCritical < 2 )
 			lprintf( WIDE("Locks are %08")_32fx, pcs->dwLocks );
 #ifdef DEBUG_CRITICAL_SECTIONS
+#  ifndef NO_LOGGING
 		if( ( pcs->dwLocks & 0xFFFFF ) > 1 )
 		{
 			if( pFile != __FILE__ )
@@ -519,6 +533,7 @@ S_32  EnterCriticalSecNoWaitEx ( PCRITICALSECTION pcs, THREAD_ID *prior DBG_PASS
 					_xlprintf( 1 DBG_RELAY )( WIDE("!!!!  %p  Multiple Double entery! %")_32fx, pcs, pcs->dwLocks );
 			}
 		}
+#  endif
 		pcs->pFile = pFile;
 		pcs->nLine = nLine;
 #endif
@@ -583,8 +598,10 @@ S_32  EnterCriticalSecNoWaitEx ( PCRITICALSECTION pcs, THREAD_ID *prior DBG_PASS
 		//else
 		//	pcs->dwThreadWaiting = dwCurProc;
 		pcs->dwUpdating = 0;
+#  ifndef NO_LOGGING
 		if( g.bLogCritical > 0 && g.bLogCritical < 2 )
 			_lprintf(DBG_RELAY)( WIDE( "Unlocked... for enter" ) );
+#  endif
 		//nEntry--;
 	}
 	//lprintf( WIDE("Enter section : %"PRIdFAST64"\n"),tick2-tick );
@@ -601,8 +618,10 @@ static LOGICAL LeaveCriticalSecNoWakeEx( PCRITICALSECTION pcs DBG_PASS )
 	THREAD_ID dwCurProc = GetMyThreadID();
 	while( XCHG( &pcs->dwUpdating, 1 ) )
 		Relinquish();
+#  ifndef NO_LOGGING
 	if( g.bLogCritical > 0 && g.bLogCritical < 2 )
 		_lprintf(DBG_RELAY)( WIDE("Locked %p for leaving..."), pcs );
+#  endif
 	if( !( pcs->dwLocks & ~SECTION_LOGGED_WAIT ) )
 	{
 		if( g.bLogCritical > 0 && g.bLogCritical < 2 )
@@ -662,8 +681,10 @@ static LOGICAL LeaveCriticalSecNoWakeEx( PCRITICALSECTION pcs DBG_PASS )
 	// will flag - SECTION_LOGGED_WAIT
 	//Relinquish();
 	pcs->dwUpdating = 0;
+#  ifndef NO_LOGGING
 	if( g.bLogCritical > 0 && g.bLogCritical < 2 )
 		_lprintf(DBG_RELAY)( WIDE( "Unocked %p for leaving..." ), pcs );
+#  endif
 	return TRUE;
 }
 #else
@@ -1081,7 +1102,9 @@ PTRSZVAL GetFileSize( int fd )
 						lprintf( WIDE("Region didn't exist... and no size... return") );
                   return NULL;
 					}
+#   ifdef DEBUG_SHARED_REGION_CREATE
 					lprintf( WIDE("Shared region didn't already exist...: %s"), filename );
+#   endif
 					fd = open("/dev/ashmem", O_RDWR);
 					if( fd < 0 )
 					{
@@ -1308,7 +1331,7 @@ PTRSZVAL GetFileSize( int fd )
 		if( !hMem )
 		{
 			hFile = CreateFile( pWhere, GENERIC_READ|GENERIC_WRITE
-									,FILE_SHARE_READ|FILE_SHARE_WRITE//|FILE_SHARE_DELETE
+									,FILE_SHARE_READ|FILE_SHARE_WRITE|FILE_SHARE_DELETE
 									,NULL // default security
 									,(dwSize&&(*dwSize)) ? OPEN_ALWAYS : OPEN_EXISTING
 									,FILE_ATTRIBUTE_NORMAL //|FILE_ATTRIBUTE_TEMPORARY
@@ -1341,7 +1364,7 @@ PTRSZVAL GetFileSize( int fd )
 					return NULL;
 				}
 				hFile = CreateFile( pWhere, GENERIC_READ
-										,FILE_SHARE_READ//|FILE_SHARE_DELETE
+										,FILE_SHARE_READ|FILE_SHARE_DELETE
 										,NULL // default security
 										,OPEN_ALWAYS
 										,FILE_ATTRIBUTE_NORMAL //|FILE_ATTRIBUTE_TEMPORARY
@@ -1745,10 +1768,12 @@ POINTER HeapAllocateEx( PMEM pHeap, PTRSZVAL dwSize DBG_PASS )
 #endif
 		pc->dwOwners = 1;
 		pc->dwSize = dwSize;
+#ifndef NO_LOGGING
 		if( g.bLogAllocate )
 		{
 			_lprintf(DBG_RELAY)( WIDE( "alloc %p(%p) %" ) _PTRSZVALfs, pc, pc->byData, dwSize );
 		}
+#endif
 		return pc->byData;
 	}
 	else
@@ -1865,7 +1890,9 @@ POINTER HeapAllocateEx( PMEM pHeap, PTRSZVAL dwSize DBG_PASS )
 				// and let's just have a couple more to spaere.
 				if( ExpandSpace( pMem, dwSize + (CHUNK_SIZE*4) + MEM_SIZE + 8 * MAGIC_SIZE ) )
 				{
+#ifndef NO_LOGGING
 					_lprintf(DBG_RELAY)( WIDE("Creating a new expanded space... %d"), dwSize + (CHUNK_SIZE*4) + MEM_SIZE + 8 * MAGIC_SIZE );
+#endif
 					goto search_for_free_memory;
 				}
 			}
@@ -1880,10 +1907,12 @@ POINTER HeapAllocateEx( PMEM pHeap, PTRSZVAL dwSize DBG_PASS )
 			return NULL;
 		}
 		//#if DBG_AVAILABLE
+#ifndef NO_LOGGING
 		if( g.bLogAllocate )
 		{
 			_xlprintf( 2 DBG_RELAY )( WIDE("Allocate : %p(%p) - %") _PTRSZVALfs WIDE(" bytes") , pc->byData, pc, pc->dwSize );
 		}
+#endif
 		//#endif
 
 #if defined( _DEBUG ) //|| !defined( __NO_WIN32API__ )
@@ -2096,7 +2125,9 @@ POINTER ReleaseEx ( POINTER pData DBG_PASS )
 				extern int  MemChk ( POINTER p, PTRSZVAL val, size_t sz );
 				if( g.bLogAllocate )
 				{
-			_lprintf(DBG_RELAY)( WIDE( "Release %p(%p)" ), pc, pc->byData );
+#ifndef NO_LOGGING
+					_lprintf(DBG_RELAY)( WIDE( "Release %p(%p)" ), pc, pc->byData );
+#endif
 				}
 #ifdef ENABLE_NATIVE_MALLOC_PROTECTOR
 				if( !MemChk( pc->LeadProtect, LEAD_PROTECT_TAG, sizeof( pc->LeadProtect ) ) ||
@@ -2114,7 +2145,9 @@ POINTER ReleaseEx ( POINTER pData DBG_PASS )
 			{
 				if( g.bLogAllocate && g.bLogAllocateWithHold )
 				{
+#ifndef NO_LOGGING
 					_lprintf(DBG_RELAY)( WIDE( "Release(holding) %p(%p)" ), pc, pc->byData );
+#endif
 				}
 			}
 			return pData;
@@ -2136,7 +2169,9 @@ POINTER ReleaseEx ( POINTER pData DBG_PASS )
 			pMem = GrabMem( pc->pRoot );
 			if( !pMem )
 			{
+#ifndef NO_LOGGING
 				_lprintf( DBG_RELAY )( WIDE("ERROR: Chunk to free does not reference a heap!") );
+#endif
 				DebugDumpHeapMemEx( pc->pRoot, 1 );
 				DebugBreak();
 			}
@@ -2153,8 +2188,10 @@ POINTER ReleaseEx ( POINTER pData DBG_PASS )
 			}
 			if( !pMemSpace )
 			{
-#ifdef _DEBUG
+#ifndef NO_LOGGING
+#  ifdef _DEBUG
 				_lprintf( DBG_RELAY )( WIDE("This Block is NOT within the managed heap! : %p" ), pData );
+#  endif
 #endif
 				lprintf( WIDE("this may not be an error.  This could be an old block from not using customallocer...") );
 				DebugDumpHeapMemEx( pc->pRoot, 1 );
@@ -2165,18 +2202,21 @@ POINTER ReleaseEx ( POINTER pData DBG_PASS )
 			pCurMem = (PMEM)pMemSpace->pMem;
 			if( g.bLogAllocate )
 			{
-#ifdef _DEBUG
+#ifndef NO_LOGGING
+#  ifdef _DEBUG
 				if( !g.bDisableDebug )
 					_xlprintf( 2 DBG_RELAY)( WIDE("Release  : %p(%p) - %") _PTRSZVALfs WIDE(" bytes %s(%d)"), pc->byData, pc, pc->dwSize, BLOCK_FILE(pc), BLOCK_LINE(pc) );
 				else
 					_xlprintf( 2 DBG_RELAY )( WIDE("Release  : %p(%p) - %") _PTRSZVALfs WIDE(" bytes"), pc->byData, pc, pc->dwSize );
+#  endif
 #endif
 			}
 			if( pData && pc )
 			{
 				if( !pc->dwOwners )
 				{
-#ifdef _DEBUG
+#ifndef NO_LOGGING
+#  ifdef _DEBUG
 					if( !g.bDisableDebug &&
 						!(pCurMem->dwFlags & HEAP_FLAG_NO_DEBUG ) )
 						_xlprintf( 2
@@ -2185,9 +2225,10 @@ POINTER ReleaseEx ( POINTER pData DBG_PASS )
 									)( WIDE("Block is already Free! %p ")
 									, pc );
 					else
-#endif
+#  endif
 						// CRITICAL ERROR!
 						_xlprintf( 2 DBG_RELAY)( WIDE("Block is already Free! %p "), pc );
+#endif
 					DropMem( pMem );
 					return pData;
 				}
@@ -2369,8 +2410,10 @@ POINTER ReleaseEx ( POINTER pData DBG_PASS )
 		{
 			PMALLOC_CHUNK pc = (PMALLOC_CHUNK)((char*)pData - MALLOC_CHUNK_SIZE);
 			//_lprintf( DBG_RELAY )( "holding block %p", pc );
+#ifndef NO_LOGGING
 			if( g.bLogAllocate && g.bLogAllocateWithHold )
 				_xlprintf( 2 DBG_RELAY)( WIDE("Hold	 : %p - %") _PTRSZVALfs WIDE(" bytes"),pc, pc->dwSize );
+#endif
 			pc->dwOwners++;
 		}
 		else
@@ -2378,10 +2421,12 @@ POINTER ReleaseEx ( POINTER pData DBG_PASS )
 			PCHUNK pc = (PCHUNK)((char*)pData - CHUNK_SIZE);
 			PMEM pMem = GrabMem( pc->pRoot );
 
+#ifndef NO_LOGGING
 			if( g.bLogAllocate )
 			{
 				_xlprintf( 2 DBG_RELAY)( WIDE("Hold	 : %p - %") _PTRSZVALfs WIDE(" bytes"),pc, pc->dwSize );
 			}
+#endif
 			if( !pc->dwOwners )
 			{
 				lprintf( WIDE("Held block has already been released!  too late to hold it!") );
@@ -2442,6 +2487,7 @@ void  DebugDumpHeapMemEx ( PMEM pHeap, LOGICAL bVerbose )
 				if( !pc->dwOwners )
 				{
 					nTotalFree += pc->dwSize;
+#ifndef NO_LOGGING
 					if( bVerbose )
 					{
 						CTEXTSTR pFile =  !IsBadReadPtr( BLOCK_FILE(pc), 1 )
@@ -2453,10 +2499,12 @@ void  DebugDumpHeapMemEx ( PMEM pHeap, LOGICAL bVerbose )
 																 pc->pPrior,
 																 pc->next );
 					}
+#endif
 				}
 				else
 				{
 					nTotalUsed += pc->dwSize;
+#ifndef NO_LOGGING
 					if( bVerbose )
 					{
 						CTEXTSTR pFile =  !IsBadReadPtr( BLOCK_FILE(pc), 1 )
@@ -2467,6 +2515,7 @@ void  DebugDumpHeapMemEx ( PMEM pHeap, LOGICAL bVerbose )
 																 pc, pc->dwSize, pc->dwSize,
 																 pc->pPrior );
 					}
+#endif
 				}
 				_pc = pc;
 				pc = (PCHUNK)(pc->byData + pc->dwSize );
@@ -2746,18 +2795,20 @@ void  DebugDumpHeapMemEx ( PMEM pHeap, LOGICAL bVerbose )
 					{
 						if( BLOCK_TAG(pc) != BLOCK_TAG_ID )
 						{
+#ifndef NO_LOGGING
 							lprintf( WIDE("memory block: %p %08x insted of %08x"), pc->byData, BLOCK_TAG(pc), BLOCK_TAG_ID );
 							if( !(pMemCheck->dwFlags & HEAP_FLAG_NO_DEBUG ) )
 							{
 								CTEXTSTR file = BLOCK_FILE(pc);
-#ifdef _WIN32
+#  ifdef _WIN32
 								if( IsBadReadPtr( file, 4 ) )
 									file = WIDE("(corrupt)");
-#endif
+#  endif
 								_xlprintf( 2, file, BLOCK_LINE(pc) )( WIDE("Application overflowed allocated memory.") );
 							}
 							else
 								ODS( WIDE("Application overflowed allocated memory.") );
+#endif
 
 							DebugDumpHeapMemEx( pHeap, 1 );
 							DebugBreak();

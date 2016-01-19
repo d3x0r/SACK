@@ -1,3 +1,7 @@
+// this builds a full library path so working directory can be mis-placed
+// however if using packed filesystem need relative path to search
+//#define REQUIRE_FULLPATH
+
 
 // InterShell Modular Interface Layout Konsole
 //
@@ -1116,7 +1120,7 @@ void CPROC InterShell_DisablePageUpdate( PSI_CONTROL pc_canvas, LOGICAL bDisable
 	PCanvasData canvas = GetCanvas( pc_canvas );
 	PPAGE_DATA current_page;
 	PMENU_BUTTON control;
-	lprintf( WIDE( "------- %s Page Updates ----------" ), bDisable?WIDE( "DISABLE" ):WIDE( "ENABLE" ) );
+	//lprintf( WIDE( "------- %s Page Updates ----------" ), bDisable?WIDE( "DISABLE" ):WIDE( "ENABLE" ) );
 	g.flags.bPageUpdateDisabled = bDisable;
 
 	//IJ 05.15.2007
@@ -1152,7 +1156,7 @@ void CPROC InterShell_DisablePageUpdate( PSI_CONTROL pc_canvas, LOGICAL bDisable
 	}
 	else
 	{
- 		lprintf( "disable update..." );
+ 		//lprintf( "disable update..." );
 		if( ( current_page = ShellGetCurrentPage( pc_canvas ) ) )
 		{
 			LIST_FORALL( current_page->controls, idx, PMENU_BUTTON, control )
@@ -2773,7 +2777,7 @@ void CPROC DrawEditGlare( PTRSZVAL psv, Image surface )
 		{
 			// should use X to capture an image of the current menu config
 			// then during editing we do not have to redraw all controls all the time..
-			ClearImageTo( surface, 0x20101010 );
+			BlatColorAlpha( surface, 0, 0, surface->width, surface->height, 0x20101010 );
 
 			{
 				PMENU_BUTTON button;
@@ -2953,8 +2957,10 @@ void CPROC DrawEditGlare( PTRSZVAL psv, Image surface )
 
 static int OnDrawCommon( WIDE( "Menu Canvas" ) )( PSI_CONTROL pf )
 {
-	//lprintf( "got Draw..." );
-	//lprintf( WIDE( "----------g.flags.bPageUpdateDisabled %d" ), g.flags.bPageUpdateDisabled );
+#ifdef DEBUG_BACKGROUND_UPDATE
+	lprintf( "got Draw..." );
+	lprintf( WIDE( "----------g.flags.bPageUpdateDisabled %d" ), g.flags.bPageUpdateDisabled );
+#endif
 	if( !g.flags.bPageUpdateDisabled )
 	{
 		ValidatedControlData( PCanvasData, menu_surface.TypeID, canvas, pf );
@@ -3026,7 +3032,12 @@ static int OnDrawCommon( WIDE( "Menu Canvas" ) )( PSI_CONTROL pf )
 		if( current_page )
 		{
 			if( !current_page->background_image && current_page->background )
-				current_page->background_image = LoadImageFileFromGroup( GetFileGroup( WIDE("Image Resources"), NULL ), (TEXTCHAR*)current_page->background );
+			{
+				current_page->background_image = LoadImageFileFromGroup( 0, (TEXTCHAR*)current_page->background );
+#ifdef DEBUG_BACKGROUND_UPDATE
+				lprintf( "Loaded image is %p %s", current_page->background_image, current_page->background );
+#endif
+			}
 			if( current_page->background_color )
 				ClearImageTo( surface, current_page->background_color );
 			if( current_page->background_image )
@@ -3846,7 +3857,7 @@ void CPROC AbortConfigureKeys( PSI_CONTROL pc, _32 keycode )
 	ValidatedControlData( PCanvasData, menu_surface.TypeID, canvas, pc );
 	if( canvas->flags.bEditMode )
 	{
-		lprintf( WIDE("Disallow frame updates now..") );
+		//lprintf( WIDE("Disallow frame updates now..") );
 		canvas->flags.bEditMode = FALSE;
 
 #ifdef USE_EDIT_GLARE
@@ -3857,7 +3868,7 @@ void CPROC AbortConfigureKeys( PSI_CONTROL pc, _32 keycode )
 		canvas->nSelected = 0;
 		SaveButtonConfig( pc, g.config_filename );
 		EndEditingPage( pc, canvas->current_page );
-		lprintf( WIDE("And having enabled them... then...") );
+		//lprintf( WIDE("And having enabled them... then...") );
 	}
 	InvokeEndEditMode();
 	if( g.psv_edit_security )
@@ -4129,13 +4140,13 @@ PSI_CONTROL SetupSystemsListAndGlobalSingleFrame(void )
 				g.default_page_y = SACK_GetProfileInt( GetProgramName(), WIDE( "Intershell Layout/Y Position" ), 0 );
 				g.default_page_width = SACK_GetProfileInt( GetProgramName(), WIDE( "Intershell Layout/Width" ), width );
 				g.default_page_height = SACK_GetProfileInt( GetProgramName(), WIDE( "Intershell Layout/Height" ), height );
-				lprintf( WIDE("opening canvas at %d,%d %dx%d"), g.default_page_x, g.default_page_y, g.default_page_width, g.default_page_height );
+				//lprintf( WIDE("opening canvas at %d,%d %dx%d"), g.default_page_x, g.default_page_y, g.default_page_width, g.default_page_height );
 				result_canvas = MakeControl( NULL, menu_surface.TypeID, g.default_page_x, g.default_page_y, g.default_page_width, g.default_page_height, 0 );
 			}
 			else
 #endif
 			{
-				lprintf( WIDE("opening canvas at 0,0, %dx%d %d"), width, height, menu_surface.TypeID );
+				//lprintf( WIDE("opening canvas at 0,0, %dx%d %d"), width, height, menu_surface.TypeID );
 				result_canvas = MakeControl( NULL, menu_surface.TypeID, 0, 0, width, height, 0 );
 			}
 			SetControlText( result_canvas, g.single_frame_title );
@@ -4503,7 +4514,7 @@ static int OnKeyCommon( WIDE("Menu Canvas") )( PSI_CONTROL pc, _32 key )
 		{
 			if( ( KEY_CODE( key ) == KEY_C ) )
 			{
-				ConfigureKeys( pc, key );
+				//ConfigureKeys( pc, key );
 				return TRUE;
 			}
 		}
@@ -4597,8 +4608,9 @@ void DisplayMenuCanvas( PSI_CONTROL pc_canvas, PRENDERER under, _32 width, _32 h
 #ifdef USE_EDIT_GLARE
 			Image image = GetControlSurface( g.single_frame );
 #endif
-			lprintf( WIDE("Opening display at %d,%d %d,%d"), x, y, width, height );
-			canvas->renderer = OpenDisplayUnderSizedAt( (!g.flags.bTopmost)?under:NULL, g.flags.bTransparent?DISPLAY_ATTRIBUTE_LAYERED:0
+			//lprintf( WIDE("Opening display at %d,%d %d,%d"), x, y, width, height );
+			canvas->renderer = OpenDisplayUnderSizedAt( (!g.flags.bTopmost)?under:NULL
+																	, g.flags.bTransparent?DISPLAY_ATTRIBUTE_LAYERED:0
 																	, width, height, x, y );
 			{
 				_32 c_w, c_h;
@@ -4611,8 +4623,8 @@ void DisplayMenuCanvas( PSI_CONTROL pc_canvas, PRENDERER under, _32 width, _32 h
                MoveFrame( pc_canvas, x, y );
 			}
 #ifndef NO_TOUCH
-			lprintf( WIDE("Overriding touch handler, this is deprecated, and should get it as a control event instead of from renderer") );
-			SetTouchHandler( canvas->renderer, HandleTouch, (PTRSZVAL)canvas );
+			//lprintf( WIDE("Overriding touch handler, this is deprecated, and should get it as a control event instead of from renderer") );
+			//SetTouchHandler( canvas->renderer, HandleTouch, (PTRSZVAL)canvas );
 #endif
 			GetControlText( pc_canvas, title, 256 );
 
@@ -4823,13 +4835,17 @@ static PTRSZVAL OnCreateMenuButton( WIDE( "InterShell/Show Names" ) )( PMENU_BUT
 	return (PTRSZVAL)button;
 }
 
+void DoEditOptions( void )
+{
+	int (*EditOptions)( PODBC odbc, PSI_CONTROL parent );
+	EditOptions = (int (*)( PODBC odbc,PSI_CONTROL ))LoadFunction( "EditOptions.plugin", "EditOptions" );
+	if( EditOptions )
+		EditOptions( NULL, NULL );
+}
 //------------------------------------------------------
 static void OnKeyPressEvent( WIDE( "InterShell/Edit Options" ) )( PTRSZVAL psv )
 {
-	int (*EditOptions)( PODBC odbc );
-	EditOptions = (int (*)( PODBC odbc ))LoadFunction( "EditOptions.plugin", "EditOptions" );
-	if( EditOptions )
-		EditOptions( NULL );
+	DoEditOptions();
 }
 
 static PTRSZVAL OnCreateMenuButton( WIDE( "InterShell/Edit Options" ) )( PMENU_BUTTON button )
@@ -5085,7 +5101,14 @@ int restart( void )
 			//WakeableSleep( 250 );
 			if( g.flags.bTopmost )
 			{
-				MakeTopmost( canvas->renderer );
+            lprintf( "Displaying... topmost also" );
+				if( g.flags.bAbsoluteTopmost )
+				{
+               lprintf( "displaying absolute topmost" );
+					MakeAbsoluteTopmost( canvas->renderer );
+				}
+            else
+					MakeTopmost( canvas->renderer );
 			}
 		}
 		else
@@ -5106,8 +5129,12 @@ int restart( void )
 			PBANNER banner = NULL;
 			// this has to wait... until...
 			// the first rendering pass is done... cause we're behind it...
-			lprintf( WIDE( " ---------- remove banner --------" ) ) ;//
+			//lprintf( WIDE( " ---------- remove banner --------" ) ) ;//
 			RemoveBanner2Ex( &banner DBG_SRC );
+		}
+		if( g.flags.bForceConfigure )
+		{
+			ConfigureKeys( pc_canvas, 0 );
 		}
 		if( !g.flags.bTerminateStayResident )
 			while( !g.flags.bExit )
@@ -5194,8 +5221,8 @@ PRIORITY_PRELOAD( ProgramLock, DEFAULT_PRELOAD_PRIORITY+2 )
 								  , application_title
 								  , sizeof( application_title ), TRUE );
 	g.single_frame_title = SaveText( application_title );
-	SetGroupFilePath( WIDE("PSI Frames"), WIDE("%resources%/frames") );
-	SetGroupFilePath( WIDE("Resources"), resource_path );
+	GetFileGroup( WIDE("Resources"), resource_path );
+	GetFileGroup( WIDE("PSI Frames"), WIDE("%resources%/frames") );
 	SetCurrentPath( resource_path );
 #endif
 
@@ -5339,7 +5366,8 @@ void CPROC LoadAPlugin( PTRSZVAL psv, CTEXTSTR name, int flags )
 
 void LoadInterShellPlugins( CTEXTSTR mypath, CTEXTSTR mask, CTEXTSTR extra_path )
 {
-	TEXTCHAR filename[256];
+	TEXTCHAR _filename[256];
+	TEXTSTR filename = _filename;
 	POINTER info = NULL;
 	int bLocalPath = 0;
 	TEXTCHAR *tmp_path = ExpandPath( mask );
@@ -5351,19 +5379,25 @@ void LoadInterShellPlugins( CTEXTSTR mypath, CTEXTSTR mask, CTEXTSTR extra_path 
 	}
 	//lprintf( WIDE( "Read line from file: %s" ), tmp_path );
 	//lprintf( WIDE( "Read line from file: %s" ), mask );
+#ifdef REQUIRE_FULLPATH
 	if( !IsAbsolutePath( tmp_path ) )
-		snprintf( filename, sizeof( filename ), WIDE( "%s/%s" ), mypath, tmp_path );
+		snprintf( filename, 256, WIDE( "%s/%s" ), mypath, tmp_path );
 	else
-		snprintf( filename, sizeof( filename ), WIDE( "%s" ), tmp_path );
+#endif
+		snprintf( filename, 256, WIDE( "%s" ), tmp_path );
 
 	// save conversion
 	ext = (TEXTCHAR*)pathrchr( filename );
 	if( ext )
+	{
 		ext[0] = 0;
+		ext++;
+	}
 	else
 	{
 		ext = filename;
-		StrCpyEx( filename, WIDE( "." ), sizeof( filename ) );
+		filename = ".";
+		//StrCpyEx( filename, WIDE( "." ), sizeof( filename ) );
 	}
 	//lprintf( WIDE( "Scanning as [%s] [%s] [%s]" ), filename, ext+1, extra_path?extra_path:"" );
 	{
@@ -5374,7 +5408,7 @@ void LoadInterShellPlugins( CTEXTSTR mypath, CTEXTSTR mask, CTEXTSTR extra_path 
 			AddTmpPath( tmp );
 			Release( tmp );
 		}
-		while( ScanFiles( filename, ext+1, &info, LoadAPlugin, 0, 0 ) );
+		while( ScanFiles( filename, ext, &info, LoadAPlugin, 0, 0 ) );
 		OSALOT_SetEnvironmentVariable( WIDE("PATH"), old_environ );
 		Release( (POINTER)old_environ );
 	}
@@ -5394,7 +5428,8 @@ PTRSZVAL CPROC MenuThread( PTHREAD thread )
 #ifdef __cplusplus
 	extern "C"
 #endif
-PUBLIC( int, Main)( int argc, TEXTCHAR **argv, int bConsole )
+PUBLIC( int, Main)( int argc, TEXTCHAR **argv, int bConsole,struct volume* (CPROC *load)( CTEXTSTR filepath, CTEXTSTR userkey, CTEXTSTR devkey )
+				,void (CPROC*unload)(struct volume *) )
 {
 #endif
 #ifndef __ANDROID__
@@ -5426,6 +5461,10 @@ PUBLIC( int, Main)( int argc, TEXTCHAR **argv, int bConsole )
 					g.flags.bTerminateStayResident = 1; // return to caller from main instead of exit and idle.
 				else if( StrCaseCmp( argv[n]+1, WIDE("names" ) ) == 0 )
 					g.flags.bLogNames = 1;
+				else if( StrCaseCmp( argv[n]+1, WIDE("edit" ) ) == 0 )
+					g.flags.bForceConfigure = 1;
+				else if( StrCaseCmp( argv[n]+1, WIDE("Options" ) ) == 0 )
+					DoEditOptions();
 			}
 			else
 			{
@@ -5683,6 +5722,7 @@ static void InitInterShell()
 {
 #ifndef __NO_OPTIONS__
 	g.flags.bTopmost = SACK_GetProfileIntEx( GetProgramName(), WIDE("Intershell Layout/Display Topmost"), 0, TRUE );
+	g.flags.bAbsoluteTopmost = SACK_GetProfileIntEx( GetProgramName(), WIDE("Intershell Layout/Display Force Topmost"), 0, TRUE );
 	g.flags.bTransparent = SACK_GetProfileIntEx( GetProgramName(), WIDE("Intershell Layout/Display is transparent"), 1, TRUE );
 	g.flags.bTerminateStayResident = SACK_GetProfileIntEx( GetProgramName(), WIDE("Intershell/TSR"), 0, TRUE );
 #endif

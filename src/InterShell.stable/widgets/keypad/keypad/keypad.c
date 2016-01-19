@@ -556,9 +556,9 @@ static PSI_CONTROL OnGetControl( WIDE( "Keypad 2" ) )(PTRSZVAL psv )
 static void OnSaveControl( WIDE( "Keypad 2" ) )( FILE *file, PTRSZVAL psv )
 {
 	PPAGE_KEYPAD keypad = (PPAGE_KEYPAD)psv;
-	fprintf( file, WIDE( "%sKeypad type='%s'\n" ), InterShell_GetSaveIndent(), keypad->keypad_type?keypad->keypad_type:WIDE(".") );
+	sack_fprintf( file, WIDE( "%sKeypad type='%s'\n" ), InterShell_GetSaveIndent(), keypad->keypad_type?keypad->keypad_type:WIDE(".") );
 	KeypadWriteConfig( file, InterShell_GetSaveIndent(), keypad->keypad );
-	//fprintf( file, "Keypad Option Go-Clear=%s", GetKeypadGoClear( keypad->keypad ) );
+	//sack_fprintf( file, "Keypad Option Go-Clear=%s", GetKeypadGoClear( keypad->keypad ) );
 }
 
 static PTRSZVAL CPROC MySetKeypadType( PTRSZVAL psv, arg_list args )
@@ -716,9 +716,9 @@ static PSI_CONTROL OnGetControl( WIDE( "Keyboard 2" ) )(PTRSZVAL psv )
 static void OnSaveControl( WIDE( "Keyboard 2" ) )( FILE *file, PTRSZVAL psv )
 {
 	PPAGE_KEYPAD keypad = (PPAGE_KEYPAD)psv;
-	fprintf( file, WIDE( "Keypad type='%s'\n" ), keypad->keypad_type?keypad->keypad_type:WIDE(".") );
+	sack_fprintf( file, WIDE( "Keypad type='%s'\n" ), keypad->keypad_type?keypad->keypad_type:WIDE(".") );
 	KeypadWriteConfig( file, InterShell_GetSaveIndent(), keypad->keypad );
-	//fprintf( file, "Keypad Option Go-Clear=%s", GetKeypadGoClear( keypad->keypad ) );
+	//sack_fprintf( file, "Keypad Option Go-Clear=%s", GetKeypadGoClear( keypad->keypad ) );
 }
 
 static void OnLoadControl( WIDE( "Keyboard 2" ) )( PCONFIG_HANDLER pch, PTRSZVAL psv )
@@ -833,10 +833,10 @@ static void OnSaveControl( WIDE( "Keypad Hotkey 2" ) )( FILE *file, PTRSZVAL psv
 	{
 
 		if( hotkey->flags.bNegative )
-			fprintf( file, WIDE( "%shotkey is negative sign\n" ), InterShell_GetSaveIndent() );
+			sack_fprintf( file, WIDE( "%shotkey is negative sign\n" ), InterShell_GetSaveIndent() );
 		else
-			fprintf( file, WIDE( "%shotkey value=%Ld\n" ), InterShell_GetSaveIndent(), hotkey->value );
-		fprintf( file, WIDE( "%shotkey target keypad type=%s\n"), InterShell_GetSaveIndent(), hotkey->keypad_type );
+			sack_fprintf( file, WIDE( "%shotkey value=%Ld\n" ), InterShell_GetSaveIndent(), hotkey->value );
+		sack_fprintf( file, WIDE( "%shotkey target keypad type=%s\n"), InterShell_GetSaveIndent(), hotkey->keypad_type );
 	}
 }
 

@@ -6,7 +6,7 @@ PROJECT( InterShell )
 
 if( MINGW ) 
 # trigger no-touch
-add_definitions( -DMINGW_SUX ) 
+#add_definitions( -DMINGW_SUX ) 
 endif()
 
 if( NOT MAKING_SACK_CORE )
@@ -179,6 +179,8 @@ if( NOT __CLR__ )
 add_subdirectory( deploy )
 endif( NOT __CLR__ )
 if( WIN32 )
+add_subdirectory( countdown_timer )
+add_subdirectory( eqube/cashball )
 add_subdirectory( app_mount )
 add_subdirectory( windows_shell )
 add_subdirectory( crossfade_support )

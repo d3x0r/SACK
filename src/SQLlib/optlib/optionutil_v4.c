@@ -78,7 +78,7 @@ void New4EnumOptions( PODBC odbc
 		parent->expansion_tick = timeGetTime();
 		// any existing query needs to be saved...
 		PushSQLQueryEx( odbc ); // any subqueries will of course clean themselves up.
-		snprintf( query
+		tnprintf( query
 			  , sizeof( query )
 			  , WIDE( "select option_id,n.name,n.name_id " )
 				WIDE( "from " )OPTION4_MAP WIDE( " as m " )
@@ -184,7 +184,7 @@ static void New4FixOrphanedBranches( void )
 	SetLink( &options, (PTRSZVAL)IntCreateFromText( result2 ) + 1, 0 );
 	SetLink( &options2, (PTRSZVAL)IntCreateFromText( result2 ) + 1, 0 );
 
-	for( SQLRecordQuery( og.Option, WIDE( "select option_id,parent_option_id from " )OPTION4_MAP, NULL, &result, NULL );
+	for( SQLRecordQuery( og.Option, WIDE( "select option_id,parent_option_id from " ) OPTION4_MAP, NULL, &result, NULL );
 		  result;
 		  FetchSQLRecord( og.Option, &result ) )
 	{

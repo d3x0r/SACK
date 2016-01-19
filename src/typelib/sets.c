@@ -284,7 +284,7 @@ INDEX GetMemberIndex(GENERICSET **ppSet, POINTER unit, int unitsize, int max )
 			PTRSZVAL n = nUnit - ( ((PTRSZVAL)(pSet->bUsed)) + ofs );
 			if( n % unitsize )
 			{
-				Log2( WIDE("Error in set member alignment! %")_PTRSZVALfs WIDE(" of %d"), n % unitsize, unitsize );
+				lprintf( WIDE("Error in set member alignment! %") _PTRSZVALfs WIDE(" of %d"), n % unitsize, unitsize );
 				DebugBreak();
 				return INVALID_INDEX;
 			}
@@ -311,7 +311,7 @@ int MemberValidInSet( GENERICSET *pSet, void *unit, int unitsize, int max )
 			PTRSZVAL n = nUnit - ( ((PTRSZVAL)(pSet->bUsed)) + ofs );
 			if( n % unitsize )
 			{
-				Log2( WIDE("Error in set member alignment! %")_PTRSZVALfs WIDE(" of %d"), n % unitsize, unitsize );
+				lprintf( WIDE("Error in set member alignment! %") _PTRSZVALfs WIDE(" of %d"), n % unitsize, unitsize );
 				DebugBreak();
 				return FALSE;
 			}

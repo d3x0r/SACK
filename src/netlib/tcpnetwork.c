@@ -364,7 +364,7 @@ NETWORK_PROC( PCLIENT, CPPOpenTCPListenerExx )(_16 wPort
 	if( pc )
 	{
       // have to have the base one open or pcOther cannot be set.
-		lpMyAddr = CreateSockAddress( ":::", wPort );
+		lpMyAddr = CreateSockAddress( WIDE(":::"), wPort );
 		pc->pcOther = CPPOpenTCPListenerAddrExx( lpMyAddr, NotifyCallback, psvConnect DBG_RELAY );
 		Release( lpMyAddr );
 	}
@@ -471,7 +471,7 @@ static PCLIENT InternalTCPClientAddrFromAddrExxx(SOCKADDR *lpAddr, SOCKADDR *pFr
 				if( err )
 				{
 					_32 dwError = WSAGetLastError();
-					lprintf( "Failed to set socket option REUSEADDR : %d", dwError );
+					lprintf( WIDE("Failed to set socket option REUSEADDR : %d"), dwError );
 				}
 				pResult->saSource = DuplicateAddress( pFromAddr );
 				//DumpAddr( "source", pResult->saSource );
@@ -480,7 +480,7 @@ static PCLIENT InternalTCPClientAddrFromAddrExxx(SOCKADDR *lpAddr, SOCKADDR *pFr
 				{
 					_32 dwError;
 					dwError = WSAGetLastError();
-					lprintf( "Error binding connecting socket to source address... continuing with connect : %d", dwError );
+					lprintf( WIDE("Error binding connecting socket to source address... continuing with connect : %d"), dwError );
 				}
 			}
 
@@ -867,7 +867,7 @@ size_t FinishPendingRead(PCLIENT lpClient DBG_PASS )  // only time this should b
 	if( !( lpClient->dwFlags & CF_READPENDING ) )
 	{
 		//lpClient->dwFlags |= CF_READREADY; // read ready is set if FinishPendingRead returns 0; and it's from the core read...
-		lprintf( WIDE( "Finish pending - return, no pending read. %08x" ), lpClient->dwFlags );
+		//lprintf( WIDE( "Finish pending - return, no pending read. %08x" ), lpClient->dwFlags );
 	}
 
 	do

@@ -4,12 +4,13 @@ ASM_IMAGE_NAMESPACE
 _32 DOALPHA( _32 over, _32 in, _8 a );
 ASM_IMAGE_NAMESPACE_END
 
-IMAGE_NAMESPACE
-
 #if !defined( _D3D_DRIVER ) && !defined( _D3D10_DRIVER ) && !defined( _D3D11_DRIVER )
 #if defined( REQUIRE_GLUINT ) //&& !defined( _OPENGL_DRIVER )
 typedef unsigned int GLuint;
 #endif
+
+IMAGE_NAMESPACE
+
 
 #if defined( __3D__ )
 // this is actually specific, and is not common, but common needs it in CLR

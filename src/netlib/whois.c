@@ -49,7 +49,7 @@ LOGICAL DoWhois( CTEXTSTR pHost, CTEXTSTR pServer, PVARTEXT pvtResult )
 		static TEXTCHAR buf[4096];
 		int  l;
 
-		l = snprintf( buf, sizeof( buf ), WIDE("%s\n"), pHost );
+		l = tnprintf( buf, sizeof( buf ), WIDE("%s\n"), pHost );
 
 		if( send( S, (char*)buf, l, 0 ) != l )
 		{

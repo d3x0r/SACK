@@ -23,44 +23,44 @@
 
 // may consider changing this to P_16 for unicode...
 #ifdef UNICODE
-# ifndef NO_UNICODE_C
-#  define strrchr          wcsrchr
-#  define strchr           wcschr
-#  define strncpy          wcsncpy
-# ifdef strcpy
-#  undef strcpy
-# endif
-#  define strcpy           wcscpy
-#  define strcmp           wcscmp
+#  ifndef NO_UNICODE_C
+#    define strrchr          wcsrchr
+#    define strchr           wcschr
+#    define strncpy          wcsncpy
+#    ifdef strcpy
+#      undef strcpy
+#    endif
+#    define strcpy           wcscpy
+#    define strcmp           wcscmp
 
-#ifndef __LINUX__
+#    ifndef __LINUX__
 // linux also translates 'i' to 'case' in typelib.h
-#  define stricmp          wcsicmp
-#  define strnicmp         wcsnicmp
+#      define stricmp          wcsicmp
+#      define strnicmp         wcsnicmp
 //#  define strlen           mbrlen
-#endif
-#  define strlen           wcslen
+#    endif
+#    define strlen           wcslen
 
-#ifdef WIN32
-#  define stat(a,b)        _wstat(a,b)
-#else
-#endif
-#  define printf           wprintf
-#  define fprintf          fwprintf
-#  define fputs            fputws
-#  define fgets            fgetws
-#  define atoi             _wtoi
-#  ifdef __WATCOMC__
-#    undef atof
-#  endif
-#  define atof             _wtof
+#    ifdef WIN32
+#      define stat(a,b)        _wstat(a,b)
+#    else
+#    endif
+#    define printf           wprintf
+#    define fprintf          fwprintf
+#    define fputs            fputws
+#    define fgets            fgetws
+#    define atoi             _wtoi
+#    ifdef __WATCOMC__
+#      undef atof
+#    endif
+//#    define atof             _wtof
 
-#  ifdef _MSC_VER
-#    ifndef __cplusplus_cli
-#   define fprintf   fwprintf
-#   define atoi      _wtoi
+#    ifdef _MSC_VER
+#      ifndef __cplusplus_cli
+#        define fprintf   fwprintf
+#        define atoi      _wtoi
 // define sprintf here.
-#       endif
+#      endif
 #    endif
 #    if defined( _ARM_ ) && defined( WIN32 )
 // len should be passed as character count. this was the wrongw ay to default this.
@@ -68,7 +68,7 @@
 //#define snprintf StringCbPrintf
 #    endif
 #  else
-#  define atoi             wtoi
+//#    define atoi             wtoi
 
 #  endif
 #else // not unicode...
@@ -105,13 +105,8 @@
 #        include <snprintf-2.2/snprintf.h>
 #      endif // SACK_CORE_BUILD
 #    else // SUFFER_WITH_WARNININGS
-#      if defined( _UNICODE ) && !defined( NO_UNICODE_C )
-#        define snprintf _snwprintf
-#        define vsnprintf _vsnwprintf
-#      else
-#        define snprintf _snprintf
-#        define vsnprintf _vsnprintf
-#      endif
+#      define snprintf _snprintf
+#      define vsnprintf _vsnprintf
 #      if defined( _UNICODE )
 #        define tnprintf _snwprintf
 #        define vtnprintf _vsnwprintf
@@ -123,10 +118,12 @@
 #    endif// suffer_with_warnings
 
 #    if defined( _UNICODE ) && !defined( NO_UNICODE_C )
-#    define sscanf swscanf_s
+#    define tscanf swscanf_s
 #    else
-#    define sscanf sscanf_s
+#    define tscanf sscanf_s
 #    endif
+#    define scanf sscanf_s
+#    define swcanf swscanf_s
 
 #  endif // _MSC_VER
 
@@ -138,7 +135,7 @@
 #        if !defined( NO_UNICODE_C )
 #           define snprintf   swprintf
 #           define vsnprintf  vswprintf
-#           define sscanf     swscanf
+//#           define sscanf     swscanf
 #        else
 #        endif
 #      else
@@ -146,6 +143,11 @@
 #        define vtnprintf vsnprintf
 //#        define snprintf snprintf
 //#        define vsnprintf vsnprintf
+#    if defined( _UNICODE ) && !defined( NO_UNICODE_C )
+#    define tscanf swscanf
+#    else
+#    define tscanf sscanf
+#    endif
 #      endif
 
 #endif // __GNUC__

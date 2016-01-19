@@ -1175,6 +1175,8 @@ PSSQL_PROC( int, PushSQLQueryEx )(PODBC);
 // no application support for username/password, sorry, trust thy odbc layer, please
 PSSQL_PROC( PODBC, ConnectToDatabase )( CTEXTSTR dsn );
 PSSQL_PROC( PODBC, SQLGetODBC )( CTEXTSTR dsn );
+PSSQL_PROC( PODBC, SQLGetODBCEx )( CTEXTSTR dsn, CTEXTSTR user, CTEXTSTR pass );
+
 PSSQL_PROC( void, SQLDropODBC )( PODBC odbc );
 PSSQL_PROC( void, SQLDropAndCloseODBC )( CTEXTSTR dsn );
 

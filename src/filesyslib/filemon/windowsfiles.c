@@ -25,7 +25,7 @@ void ScanDirectory( PMONITOR monitor )
 	HANDLE hFile;
 	TEXTCHAR match[256];
 	WIN32_FIND_DATA FindFileData;
-	snprintf( match, sizeof(match), WIDE("%s/*.*"), monitor->directory );
+	tnprintf( match, sizeof(match), WIDE("%s/*.*"), monitor->directory );
 	hFile = FindFirstFile( match, &FindFileData );
 	if( l.flags.bLog )
 		lprintf( WIDE( "Scan directory: %s" ), match );
@@ -286,7 +286,7 @@ static void ReadChanges( PMONITOR monitor )
 						for( Change = monitor->ChangeHandlers; Change; Change = Change->next )
 						{
 							if( l.flags.bLog )
-								lprintf( WIDE( "checking handlers %p %s %s" ), Change->mask, Change->mask?Change->mask:"*", a_name );
+								lprintf( WIDE( "checking handlers %p %s %s" ), Change->mask, Change->mask?Change->mask: WIDE("*"), a_name );
 							if( !Change->mask ||
 								CompareMask( Change->mask
 											  , a_name
@@ -637,7 +637,7 @@ FILEMONITOR_PROC( PMONITOR, MonitorFilesEx )( CTEXTSTR directory, int scan_delay
 	if( monitor->hChange == INVALID_HANDLE_VALUE )
 	{
 		TEXTCHAR msg[128];
-		snprintf( msg, sizeof(msg), WIDE("Cannot monitor directory: %s"), monitor->directory );
+		tnprintf( msg, sizeof(msg), WIDE("Cannot monitor directory: %s"), monitor->directory );
 		// probably log something like we didn't have a good directory?
 		// this needs to be a visible failure - likely a
 		// configuration error...

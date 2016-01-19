@@ -829,7 +829,7 @@ PTRSZVAL CPROC SetMenuRowCols( PTRSZVAL psv, arg_list args )
 			InvokePageChange( canvas->pc_canvas );
 		}
 	}
-	lprintf( WIDE("Page %p gets rows/cols %d/%d"), canvas->current_page, (_32)rows, (_32)cols );
+	//lprintf( WIDE("Page %p gets rows/cols %d/%d"), canvas->current_page, (_32)rows, (_32)cols );
 	button_space = 0;
 	button_rows = (_32)rows;
 	button_cols = (_32)cols;
@@ -1076,8 +1076,7 @@ void LoadButtonConfig( PSI_CONTROL pc_canvas, TEXTSTR filename )
 				FILE *out;
 				// modifies filename here; but this is !forceload, and later the filename is forceload, so it will be original.
 				filename = alt_filename;
-				out = sack_fopen( GetFileGroup( WIDE("Resources"), NULL )
-									 , alt_filename, WIDE("wb")
+				out = sack_fopen( 0, alt_filename, WIDE("wb")
 #ifdef _UNICODE
 									  WIDE(", ccs=UNICODE")
 #endif
@@ -1247,27 +1246,27 @@ void DumpCommonButton( FILE *file, PMENU_BUTTON button )
 				snprintf( theme, 12, WIDE(".%d"), idx );
 			else
 				theme[0] = 0;
-			fprintf( file, WIDE("%scolor%s=%s\n"), InterShell_GetSaveIndent(), theme, FormatColor( colors->color ) );
-			fprintf( file, WIDE("%ssecondary color%s=%s\n"), InterShell_GetSaveIndent(), theme, FormatColor( colors->secondary_color ) );
-			fprintf( file, WIDE("%shighlight color%s=%s\n"), InterShell_GetSaveIndent(), theme, FormatColor( colors->highlight_color ) );
-			fprintf( file, WIDE("%stext color%s=%s\n"), InterShell_GetSaveIndent(), theme, FormatColor( colors->textcolor ) );
+			sack_fprintf( file, WIDE("%scolor%s=%s\n"), InterShell_GetSaveIndent(), theme, FormatColor( colors->color ) );
+			sack_fprintf( file, WIDE("%ssecondary color%s=%s\n"), InterShell_GetSaveIndent(), theme, FormatColor( colors->secondary_color ) );
+			sack_fprintf( file, WIDE("%shighlight color%s=%s\n"), InterShell_GetSaveIndent(), theme, FormatColor( colors->highlight_color ) );
+			sack_fprintf( file, WIDE("%stext color%s=%s\n"), InterShell_GetSaveIndent(), theme, FormatColor( colors->textcolor ) );
 		}
 
 		if( button->text && StrLen( button->text ) )
-			fprintf( file, WIDE("%stext=%s\n"), InterShell_GetSaveIndent(), EscapeMenuString( button->text ) );
+			sack_fprintf( file, WIDE("%stext=%s\n"), InterShell_GetSaveIndent(), EscapeMenuString( button->text ) );
 
-		fprintf( file, WIDE("%sbutton is %s\n"), InterShell_GetSaveIndent(), EscapeMenuString( ((PGLARE_SET)GetLink( button->glare_set->theme_set, 0 ))->name ) );
+		sack_fprintf( file, WIDE("%sbutton is %s\n"), InterShell_GetSaveIndent(), EscapeMenuString( ((PGLARE_SET)GetLink( button->glare_set->theme_set, 0 ))->name ) );
 		if( button->flags.bNoPress )
-			fprintf( file, WIDE("%sbutton unpressable\n"), InterShell_GetSaveIndent() );
+			sack_fprintf( file, WIDE("%sbutton unpressable\n"), InterShell_GetSaveIndent() );
 		if( button->pImage[0] )
 		{
-			fprintf( file, WIDE("%simage=%s\n"), InterShell_GetSaveIndent(), EscapeMenuString( button->pImage ) );
-			fprintf( file, WIDE("%simage_margin=%d,%d\n" ), InterShell_GetSaveIndent(), button->decal_horiz_margin, button->decal_vert_margin );
+			sack_fprintf( file, WIDE("%simage=%s\n"), InterShell_GetSaveIndent(), EscapeMenuString( button->pImage ) );
+			sack_fprintf( file, WIDE("%simage_margin=%d,%d\n" ), InterShell_GetSaveIndent(), button->decal_horiz_margin, button->decal_vert_margin );
 		}
 		if( button->pPageName )
-			fprintf( file, WIDE("%snext page=%s\n"), InterShell_GetSaveIndent(), button->pPageName );
+			sack_fprintf( file, WIDE("%snext page=%s\n"), InterShell_GetSaveIndent(), button->pPageName );
 		if( button->font_preset_name )
-			fprintf( file, WIDE("%sfont name=%s\n"), InterShell_GetSaveIndent(), button->font_preset_name );
+			sack_fprintf( file, WIDE("%sfont name=%s\n"), InterShell_GetSaveIndent(), button->font_preset_name );
 	}
 }
 
@@ -1297,7 +1296,7 @@ void DumpGeneric( FILE *file, PMENU_BUTTON button )
 			CTEXTSTR line;
 			LIST_FORALL( button->extra_config, idx, CTEXTSTR, line )
 			{
-				fprintf( file, WIDE( "%s%s\n" ), InterShell_GetSaveIndent(), EscapeMenuString( line ) );
+				sack_fprintf( file, WIDE( "%s%s\n" ), InterShell_GetSaveIndent(), EscapeMenuString( line ) );
 			}
 		}
 		if( button->flags.bListbox )
@@ -1305,7 +1304,7 @@ void DumpGeneric( FILE *file, PMENU_BUTTON button )
 			int multi;
 			int lazy;
 			GetListboxMultiSelectEx( button->control.control, &multi, &lazy );
-			fprintf( file, WIDE( "%smulti select?%s lazy?%s\n" )
+			sack_fprintf( file, WIDE( "%smulti select?%s lazy?%s\n" )
                  , InterShell_GetSaveIndent()
 					 , multi?WIDE( "yes" ):WIDE( "no" )
 					 , multi?(lazy?WIDE( "yes" ):WIDE( "no" )):WIDE( "no" )
@@ -1338,7 +1337,7 @@ void DumpGeneric( FILE *file, PMENU_BUTTON button )
 		{
 			if( button && button->flags.bCustom && button->flags.bConfigured )
 			{
-				fprintf( file, WIDE( "auto generic parameters\n" ) );
+				sack_fprintf( file, WIDE( "auto generic parameters\n" ) );
 				DumpCommonButton( file, button );
 			}
 		}
@@ -1348,7 +1347,7 @@ void DumpGeneric( FILE *file, PMENU_BUTTON button )
 				PTEXT name;
 				LIST_FORALL( button->show_on, idx, PTEXT, name )
 				{
-					fprintf( file, WIDE("%sAllow show on %s\n" ), InterShell_GetSaveIndent(), GetText(name) );
+					sack_fprintf( file, WIDE("%sAllow show on %s\n" ), InterShell_GetSaveIndent(), GetText(name) );
 				}
 		}
 		if( button->no_show_on )
@@ -1357,7 +1356,7 @@ void DumpGeneric( FILE *file, PMENU_BUTTON button )
 			PTEXT name;
 			LIST_FORALL( button->no_show_on, idx, PTEXT, name )
 			{
-				fprintf( file, WIDE("%sDisallow show on %s\n" ), InterShell_GetSaveIndent(), GetText(name) );
+				sack_fprintf( file, WIDE("%sDisallow show on %s\n" ), InterShell_GetSaveIndent(), GetText(name) );
 			}
 		}
 		PopLink( &l.current_button );
@@ -1421,7 +1420,7 @@ void XML_DumpGeneric( genxWriter w, PMENU_BUTTON button )
 				LIST_FORALL( button->show_on, idx, PTEXT, name )
 				{
 					AddAttr( show, "%s", GetText( name ) );
-					//fprintf( w, WIDE("Allow show on %s\n" ), GetText(name) );
+					//sack_fprintf( w, WIDE("Allow show on %s\n" ), GetText(name) );
 				}
 			}
 			if( button->no_show_on )
@@ -1431,7 +1430,7 @@ void XML_DumpGeneric( genxWriter w, PMENU_BUTTON button )
 				LIST_FORALL( button->no_show_on, idx, PTEXT, name )
 				{
 					AddAttr( hide, "%s", GetText( name ) );
-					//fprintf( w, WIDE("Disallow show on %s\n" ), GetText(name) );
+					//sack_fprintf( w, WIDE("Disallow show on %s\n" ), GetText(name) );
 				}
 			}
 		}
@@ -1484,14 +1483,14 @@ void SaveAPage( FILE *file, PPAGE_DATA page )
 	INDEX idx;
 
 	if( page->title )
-		fprintf( file, WIDE("page titled %s\n"), page->title );
+		sack_fprintf( file, WIDE("page titled %s\n"), page->title );
 
-	fprintf( file, WIDE("page layout %d by %d\n"), page->grid.nPartsX, page->grid.nPartsY );
-	fprintf( file, WIDE("%sbackground color %s\n")
+	sack_fprintf( file, WIDE("page layout %d by %d\n"), page->grid.nPartsX, page->grid.nPartsY );
+	sack_fprintf( file, WIDE("%sbackground color %s\n")
 			 , (CDATA)GetLink( &page->background_colors, 0 )?"":"#"
 			 , FormatColor( (CDATA)GetLink( &page->background_colors, 0 ) )
 			 );
-	fprintf( file, WIDE("%sbackground image %s\n")
+	sack_fprintf( file, WIDE("%sbackground image %s\n")
 			 , (CTEXTSTR)GetLink( &page->backgrounds, 0 )?((CTEXTSTR)GetLink( &page->backgrounds, 0 ))[0]?WIDE(""):WIDE("#"):WIDE("#")
 			 , (CTEXTSTR)GetLink( &page->backgrounds, 0 )?EscapeMenuString( (TEXTSTR)GetLink( &page->backgrounds, 0 ) ):WIDE("") );
 	{
@@ -1502,7 +1501,7 @@ void SaveAPage( FILE *file, PPAGE_DATA page )
 		{
 			if( !idx )
 				continue;
-			fprintf( file, WIDE("background color(%d) %s\n")
+			sack_fprintf( file, WIDE("background color(%d) %s\n")
 					 , idx
 					 , FormatColor( (CDATA)GetLink( &page->background_colors, idx ) )
 					 );
@@ -1513,7 +1512,7 @@ void SaveAPage( FILE *file, PPAGE_DATA page )
 			if( !idx )
 				continue;
 			background_image = (CTEXTSTR)GetLink( &page->backgrounds, idx );
-			fprintf( file, WIDE("background image(%d) %s\n")
+			sack_fprintf( file, WIDE("background image(%d) %s\n")
 					 , idx
 					 , background_image?EscapeMenuString( background_image ):WIDE("") );
 		}
@@ -1521,15 +1520,13 @@ void SaveAPage( FILE *file, PPAGE_DATA page )
 	InvokeSavePage( file, page );
 	LIST_FORALL( page->controls, idx, PMENU_BUTTON, button )
 	{
-		fprintf( file
+		sack_fprintf( file
 				 , WIDE("control generic %s at %")_64fs WIDE(",%")_64fs WIDE(" sized %")_64f WIDE(",%")_64f WIDE("\n")
 				 , button->pTypeName
 				 , button->x, button->y
 				 , button->w, button->h );
-		fflush( file );
 		DumpGeneric( file, button );
-		fprintf( file, WIDE("control done\n\n") );
-		fflush( file );
+		sack_fprintf( file, WIDE("control done\n\n") );
 	}
 }
 
@@ -1644,7 +1641,7 @@ void SaveCanvasConfiguration( FILE *file, PSI_CONTROL pc_canvas )
 	if( canvas )
 	{
       /* now saved on a per-page basis... parts are page specific */
-		//fprintf( file, WIDE("page layout %d by %d\n"), canvas->nPartsX/8, canvas->nPartsY/8 );
+		//sack_fprintf( file, WIDE("page layout %d by %d\n"), canvas->nPartsX/8, canvas->nPartsY/8 );
 		{
 			INDEX pageidx;
 			PPAGE_DATA page;
@@ -1653,7 +1650,7 @@ void SaveCanvasConfiguration( FILE *file, PSI_CONTROL pc_canvas )
 				SaveAPage( file, page );
 			}
 		}
-		fprintf( file, WIDE( "Canvas Done\n" ) );
+		sack_fprintf( file, WIDE( "Canvas Done\n" ) );
 	}
 }
 
@@ -1675,7 +1672,7 @@ void SaveCanvasConfiguration_XML( genxWriter w, PSI_CONTROL pc_canvas )
 			}
 		}
 		genxEndElement( w );
-		//fprintf( file, WIDE( "Canvas Done\n" ) );
+		//sack_fprintf( file, WIDE( "Canvas Done\n" ) );
 	}
 }
 #endif
@@ -1709,11 +1706,11 @@ void SaveButtonConfig( PSI_CONTROL pc_canvas, TEXTCHAR *filename )
 	}
 	RenameConfig( filename, filename, strlen( filename ), 1 );
 
-	file = sack_fopen( GetFileGroup( WIDE("Resources"), NULL ), filename, WIDE("wt") );
+	file = sack_fopen( 0, filename, WIDE("wt") );
 	if( file )
 	{
-       //fprintf( file, WIDE("[config]\n") ); // make this look like an INI so some standard tools work.
-		//fprintf( file, WIDE("\n\n") );
+       //sack_fprintf( file, WIDE("[config]\n") ); // make this look like an INI so some standard tools work.
+		//sack_fprintf( file, WIDE("\n\n") );
 		g.current_saving_canvas = canvas;
 
 		{
@@ -1738,13 +1735,13 @@ void SaveButtonConfig( PSI_CONTROL pc_canvas, TEXTCHAR *filename )
 			{
 				TEXTSTR setname = StrDup( EscapeMenuString( glare_set->name ) );
 				if( glare_set->flags.bShadeBackground )
-					fprintf( file, WIDE( "%s button mono shade\n" ), setname );
+					sack_fprintf( file, WIDE( "%s button mono shade\n" ), setname );
 				if( glare_set->flags.bMultiShadeBackground )
-					fprintf( file, WIDE( "%s button multi shade\n" ), setname );
-				fprintf( file, WIDE("%s button glare=%s\n"), setname, fn(glare_set->glare) );
-				fprintf( file, WIDE("%s button up=%s\n"), setname, fn(glare_set->up) );
-				fprintf( file, WIDE("%s button down=%s\n"), setname, fn(glare_set->down) );
-				fprintf( file, WIDE("%s button mask=%s\n"), setname, fn(glare_set->mask) );
+					sack_fprintf( file, WIDE( "%s button multi shade\n" ), setname );
+				sack_fprintf( file, WIDE("%s button glare=%s\n"), setname, fn(glare_set->glare) );
+				sack_fprintf( file, WIDE("%s button up=%s\n"), setname, fn(glare_set->up) );
+				sack_fprintf( file, WIDE("%s button down=%s\n"), setname, fn(glare_set->down) );
+				sack_fprintf( file, WIDE("%s button mask=%s\n"), setname, fn(glare_set->mask) );
 				{
 					INDEX idx2;
 					PGLARE_SET theme_glare_set;
@@ -1755,26 +1752,26 @@ void SaveButtonConfig( PSI_CONTROL pc_canvas, TEXTCHAR *filename )
 							continue;
 						snprintf( tmp, 256, WIDE("%s.%d"), EscapeMenuString( glare_set->name ), idx2 );
 						if( theme_glare_set->flags.bShadeBackground )
-							fprintf( file, WIDE( "%s button mono shade\n" ), tmp );
+							sack_fprintf( file, WIDE( "%s button mono shade\n" ), tmp );
 						if( theme_glare_set->flags.bMultiShadeBackground )
-							fprintf( file, WIDE( "%s button multi shade\n" ), tmp );
-						fprintf( file, WIDE("%s button glare=%s\n"), tmp, fn(theme_glare_set->glare) );
-						fprintf( file, WIDE("%s button up=%s\n"), tmp, fn(theme_glare_set->up) );
-						fprintf( file, WIDE("%s button down=%s\n"), tmp, fn(theme_glare_set->down) );
-						fprintf( file, WIDE("%s button mask=%s\n"), tmp, fn(theme_glare_set->mask) );
+							sack_fprintf( file, WIDE( "%s button multi shade\n" ), tmp );
+						sack_fprintf( file, WIDE("%s button glare=%s\n"), tmp, fn(theme_glare_set->glare) );
+						sack_fprintf( file, WIDE("%s button up=%s\n"), tmp, fn(theme_glare_set->up) );
+						sack_fprintf( file, WIDE("%s button down=%s\n"), tmp, fn(theme_glare_set->down) );
+						sack_fprintf( file, WIDE("%s button mask=%s\n"), tmp, fn(theme_glare_set->mask) );
 					}
 				}
 				Deallocate( TEXTSTR, setname );
-				fprintf( file, WIDE("\n") );
+				sack_fprintf( file, WIDE("\n") );
 			}
-			fprintf( file, WIDE("\n") );
+			sack_fprintf( file, WIDE("\n") );
 		}
 		{
 			CTEXTSTR line;
 			INDEX idx;
 			LIST_FORALL( l.unhandled_global_lines, idx, CTEXTSTR, line )
 			{
-				fprintf( file, WIDE("%s\n" ), EscapeMenuString( line ) );
+				sack_fprintf( file, WIDE("%s\n" ), EscapeMenuString( line ) );
 			}
 		}
 
@@ -1784,9 +1781,9 @@ void SaveButtonConfig( PSI_CONTROL pc_canvas, TEXTCHAR *filename )
 		// someday this config file should be encrypted or something
       // since it is meant to be machine readable only.
 		//if( g.flags.bNoEditSet )
-		fprintf( file, WIDE( "Allow Edit? %s\n" ), g.flags.bNoEdit?WIDE( "No" ):WIDE( "Yes" ) );
+		sack_fprintf( file, WIDE( "Allow Edit? %s\n" ), g.flags.bNoEdit?WIDE( "No" ):WIDE( "Yes" ) );
 		//if( g.flags.bAllowMultiSet )
-		fprintf( file, WIDE( "Allow Multi Run? %s\n" ), g.flags.bAllowMultiLaunch?WIDE( "Yes" ):WIDE( "No" ) );
+		sack_fprintf( file, WIDE( "Allow Multi Run? %s\n" ), g.flags.bAllowMultiLaunch?WIDE( "Yes" ):WIDE( "No" ) );
 
 
 		// -- additional code for XML output...
@@ -1796,9 +1793,9 @@ void SaveButtonConfig( PSI_CONTROL pc_canvas, TEXTCHAR *filename )
 		genxEndDocument( w );
 		{
 			PTEXT text = VarTextGet( pvt );
-			fprintf( file, WIDE( "# Begin XML Expirament\n# " ) );
+			sack_fprintf( file, WIDE( "# Begin XML Expirament\n# " ) );
 			//fwrite( GetText( text ), sizeof( TEXTCHAR ), GetTextSize( text ), file );
-			fprintf( file, WIDE( "\n\n" ) );
+			sack_fprintf( file, WIDE( "\n\n" ) );
 			LineRelease( text );
 		}
 		VarTextDestroy( &pvt );
@@ -1816,7 +1813,19 @@ void SaveButtonConfig( PSI_CONTROL pc_canvas, TEXTCHAR *filename )
 		{
 			PTRSZVAL size = 0;
 			TEXTSTR tmpname = ExpandPath( filename );
+			FILE *readfile;
 			POINTER mem = OpenSpace( NULL, tmpname, &size );
+			if( !mem )
+			{
+				readfile = sack_fopen( 0, tmpname, "rt" );
+				if( readfile )
+				{
+					mem = NewArray( _8, size = sack_fsize( readfile ) );
+					sack_fread( mem, 1, size, readfile );
+					sack_fclose( readfile );
+				}
+			}
+
 			if( mem && size )
 			{
 				PODBC odbc = GetOptionODBC( g.configuration_dsn, g.configuration_version );
@@ -1856,6 +1865,7 @@ void SaveButtonConfig( PSI_CONTROL pc_canvas, TEXTCHAR *filename )
 					}
 					if( mem2 )
 						CloseSpace( mem2 );
+#if 0
 					{
 						// okay, we're allowed to update, so make sure our current local file is
 						// updated to match, or the second changes thinks it's invalid.
@@ -1866,10 +1876,11 @@ void SaveButtonConfig( PSI_CONTROL pc_canvas, TEXTCHAR *filename )
 													);
 						if( new_sql )
 						{
-							fwrite( mem, size, 1, new_sql );
-							fclose( new_sql );
+							sack_fwrite( mem, size, 1, new_sql );
+							sack_fclose( new_sql );
 						}
 					}
+#endif
 					SACK_WriteProfileBlobOdbc( odbc
 						                       , TASK_PREFIX WIDE("/configuration"), name_only, (TEXTCHAR*)mem, size );
 				}

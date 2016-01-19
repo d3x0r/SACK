@@ -238,6 +238,7 @@ typedef struct HVIDEO_tag
 	} mouse;
 
 	_32 idle_timer_id;
+	_32 top_force_timer_id;
 	MouseCallback pMouseCallback;
 	PTRSZVAL  dwMouseData;
 	HideAndRestoreCallback pHideCallback;

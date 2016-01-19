@@ -359,7 +359,7 @@ LOGICAL CreateDrawingSurface (PVIDEO hVideo)
 	if( !hVideo->transform )
 	{
 		TEXTCHAR name[64];
-		snprintf( name, sizeof( name ), WIDE( "render.display.%p" ), hVideo );
+		tnprintf( name, sizeof( name ), WIDE( "render.display.%p" ), hVideo );
 		lprintf( WIDE( "making initial transform" ) );
 		hVideo->transform = hVideo->pImage->transform = CreateTransformMotion( CreateNamedTransform( name ) );
 	}
@@ -2973,14 +2973,14 @@ static void LoadOptions( void )
 			int custom_pos;
 			struct display_camera *camera = New( struct display_camera );
 			MemSet( camera, 0, sizeof( *camera ) );
-			snprintf( tmp, sizeof( tmp ), WIDE("SACK/Video Render/Display %d/Display is topmost"), n+1 );
-         camera->flags.topmost = SACK_GetOptionIntEx( option, GetProgramName(), tmp, 0, TRUE );
-			snprintf( tmp, sizeof( tmp ), WIDE("SACK/Video Render/Display %d/Use Custom Position"), n+1 );
+			tnprintf( tmp, sizeof( tmp ), WIDE("SACK/Video Render/Display %d/Display is topmost"), n+1 );
+			camera->flags.topmost = SACK_GetOptionIntEx( option, GetProgramName(), tmp, 0, TRUE );
+			tnprintf( tmp, sizeof( tmp ), WIDE("SACK/Video Render/Display %d/Use Custom Position"), n+1 );
 			custom_pos = SACK_GetOptionIntEx( option, GetProgramName(), tmp, l.flags.bView360?1:0, TRUE );
 			if( custom_pos )
 			{
 				camera->display = -1;
-				snprintf( tmp, sizeof( tmp ), WIDE("SACK/Video Render/Display %d/Position/x"), n+1 );
+				tnprintf( tmp, sizeof( tmp ), WIDE("SACK/Video Render/Display %d/Position/x"), n+1 );
 				camera->x = SACK_GetOptionIntEx( option, GetProgramName(), tmp, (
 					nDisplays==4
 						?n==0?0:n==1?400:n==2?0:n==3?400:0
@@ -2989,7 +2989,7 @@ static void LoadOptions( void )
 					:nDisplays==1
 						?0
 					:0), TRUE );
-				snprintf( tmp, sizeof( tmp ), WIDE("SACK/Video Render/Display %d/Position/y"), n+1 );
+				tnprintf( tmp, sizeof( tmp ), WIDE("SACK/Video Render/Display %d/Position/y"), n+1 );
 				camera->y = SACK_GetOptionIntEx( option, GetProgramName(), tmp, (
 					nDisplays==4
 						?n==0?0:n==1?0:n==2?300:n==3?300:0
@@ -2998,7 +2998,7 @@ static void LoadOptions( void )
 					:nDisplays==1
 						?0
 					:0), TRUE );
-				snprintf( tmp, sizeof( tmp ), WIDE("SACK/Video Render/Display %d/Position/width"), n+1 );
+				tnprintf( tmp, sizeof( tmp ), WIDE("SACK/Video Render/Display %d/Position/width"), n+1 );
 				camera->w = SACK_GetOptionIntEx( option, GetProgramName(), tmp, (
 					nDisplays==4
 						?400
@@ -3007,7 +3007,7 @@ static void LoadOptions( void )
 					:nDisplays==1
 						?800
 					:0), TRUE );
-				snprintf( tmp, sizeof( tmp ), WIDE("SACK/Video Render/Display %d/Position/height"), n+1 );
+				tnprintf( tmp, sizeof( tmp ), WIDE("SACK/Video Render/Display %d/Position/height"), n+1 );
 				camera->h = SACK_GetOptionIntEx( option, GetProgramName(), tmp, (
 					nDisplays==4
 						?300
@@ -3031,7 +3031,7 @@ static void LoadOptions( void )
 			}
 			else
 			{
-				snprintf( tmp, sizeof( tmp ), WIDE("SACK/Video Render/Display %d/Use Display"), n+1 );
+				tnprintf( tmp, sizeof( tmp ), WIDE("SACK/Video Render/Display %d/Use Display"), n+1 );
 				camera->display = SACK_GetOptionIntEx( option, GetProgramName(), tmp, nDisplays>1?n+1:0, TRUE );
 				GetDisplaySizeEx( camera->display, &camera->x, &camera->y, &camera->w, &camera->h );
 			}
@@ -3047,7 +3047,7 @@ static void LoadOptions( void )
 			switch( nDisplays )
 			{
 			default:
-				snprintf( tmp, sizeof( tmp ), WIDE("SACK/Video Render/Display %d/Camera Type"), n+1 );
+				tnprintf( tmp, sizeof( tmp ), WIDE("SACK/Video Render/Display %d/Camera Type"), n+1 );
 				camera->type = SACK_GetOptionIntEx( option, GetProgramName(), tmp, 2, TRUE );
 				if( !default_camera )
 					default_camera = camera;
@@ -3594,10 +3594,10 @@ static struct display_camera *OpenCameras( void )
 			camera->viewport[1] = y;
 			camera->viewport[2] = (int)w;
 			camera->viewport[3] = (int)h;
-         if( !idx )
-				snprintf( window_name, 128, WIDE("%s:3D View"), GetProgramName() );
-         else
-				snprintf( window_name, 128, WIDE("%s:3D View(%d)"), GetProgramName(), idx );
+			if( !idx )
+				tnprintf( window_name, 128, WIDE("%s:3D View"), GetProgramName() );
+			else
+				tnprintf( window_name, 128, WIDE("%s:3D View(%d)"), GetProgramName(), idx );
 
 			camera->hWndInstance = CreateWindowEx (0
 	#ifndef NO_DRAG_DROP
@@ -3619,7 +3619,10 @@ static struct display_camera *OpenCameras( void )
 			lprintf( WIDE( "Created Real window...Stuff.." ) );
 	#endif
 			camera->hVidCore->hWndOutput = (HWND)camera->hWndInstance;
-			EnableOpenGL( camera->hVidCore );
+			{
+				extern int EnableOpenGL( PVIDEO hWnd );
+				EnableOpenGL( camera->hVidCore );
+			}
 			ShowWindow( camera->hWndInstance, SW_SHOWNORMAL );
 			camera->hVidCore->flags.bTopmost = camera->flags.topmost;
 			if( camera->flags.topmost )
@@ -4369,7 +4372,16 @@ const TEXTCHAR*  GetKeyText (int key)
       return 0;
    }
    //printf( WIDE("Key Translated: %d(%c)\n"), ch[0], ch[0] );
+#ifdef UNICODE
+   {
+	   static wchar_t *out;
+	   if( out ) Deallocate( wchar_t *, out );
+	   out = DupCStr( ch );
+	   return out;
+   }
+#else
    return ch;
+#endif
 }
 
 //----------------------------------------------------------------------------
@@ -5190,7 +5202,7 @@ void  GetDisplaySizeEx ( int nDisplay
 			for( v_test = 0; !found && ( v_test < 2 ); v_test++ )
 			{
             // go ahead and try to find V devices too... not sure what they are, but probably won't get to use them.
-				snprintf( teststring, 20, WIDE( "\\\\.\\DISPLAY%s%d" ), (v_test==1)?"V":"", nDisplay );
+				tnprintf( teststring, 20, WIDE( "\\\\.\\DISPLAY%s%d" ), (v_test==1)?"V":"", nDisplay );
 				for( i = 0;
 					 !found && EnumDisplayDevices( NULL // all devices
 														  , i

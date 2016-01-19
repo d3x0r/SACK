@@ -542,7 +542,7 @@ static void Paste( PEDIT pe, PTEXT *caption )
 				wchar_t *pData = (wchar_t*)GlobalLock( hData );
 				{
 					TEXTCHAR *_utf_8;
-					TEXTCHAR *utf_8 = WcharConvert( pData );
+					TEXTCHAR *utf_8 = DupWideToText( pData );
 					_utf_8 = utf_8;
 					while( utf_8 && utf_8[0] )
 					{
@@ -593,7 +593,7 @@ static void Copy( PEDIT pe, PTEXT *caption )
 		HGLOBAL mem;
 		EmptyClipboard();
 		{
-			wchar_t *unicode = CharWConvert( data );
+			wchar_t *unicode = DupTextToWide( data );
 			int c;
 			HGLOBAL mem;
 			for( c = 0; unicode[c]; c++ );
@@ -634,7 +634,7 @@ static void Cut( PEDIT pe, PTEXT *caption )
 	if( pe->flags.bSelectSet )
 		CutEditText( pe, caption );
 	else
-		SetControlText( (PCONTROL)pe, NULL );
+		SetControlText( (PSI_CONTROL)pe, NULL );
 
 }
 #endif
@@ -868,12 +868,12 @@ static int OnKeyCommon( EDIT_FIELD_NAME )( PSI_CONTROL pc, _32 key )
 			break;
 #ifndef __ANDROID__
 		case KEY_ESCAPE:
-			InvokeDefault( (PCONTROL)pc, INV_CANCEL );
+			InvokeDefault( (PSI_CONTROL)pc, INV_CANCEL );
 			used_key = 1;
 			break;
 #endif
 		case KEY_ENTER:
-			InvokeDefault( (PCONTROL)pc, INV_OKAY );
+			InvokeDefault( (PSI_CONTROL)pc, INV_OKAY );
 			used_key = 1;
 			break;
 		default:
@@ -954,7 +954,7 @@ static void OnChangeCaption( EDIT_FIELD_NAME )( PSI_CONTROL pc )
 
 //---------------------------------------------------------------------------
 
-static int OnCommonFocus( EDIT_FIELD_NAME )( PCONTROL pc, LOGICAL bFocused )
+static int OnCommonFocus( EDIT_FIELD_NAME )( PSI_CONTROL pc, LOGICAL bFocused )
 {
 	ValidatedControlData( PEDIT, EDIT_FIELD, pe, pc );
 	if( pe )

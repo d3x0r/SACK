@@ -496,7 +496,7 @@ typedef struct common_control_frame
 	/* pointer to the first child control in this one. */
 	/* pointer to the next control within this control's parent. */
 	/* pointer to the control that contains this control. */
-	struct common_control_frame *child, *parent, *next, *prior;
+	struct common_control_frame *child, *parent, *next, *prior, *stack_parent, *stack_child;
 	// maybe I can get pointers to this....
 
 	_32 BorderType;
@@ -554,7 +554,7 @@ typedef struct common_control_frame
 	int nCaptionHeight;
 	Image pCaptionImage;
 	int nExtra; // size above common required...
-} FR_CT_COMMON, *PCONTROL;
+} FR_CT_COMMON;
 //DOM-IGNORE-END
 
 //---------------------------------------------------------------------------
@@ -667,7 +667,7 @@ void DrawFrameCaption( PSI_CONTROL pc );
 
 PPHYSICAL_DEVICE OpenPhysicalDevice( PSI_CONTROL pc, PSI_CONTROL over, PRENDERER pActImg, PSI_CONTROL under );
 void TryLoadingFrameImage( void );
-Image CopyOriginalSurfaceEx( PCONTROL pc, Image use_image DBG_PASS );
+Image CopyOriginalSurfaceEx( PSI_CONTROL pc, Image use_image DBG_PASS );
 #define CopyOriginalSurface(pc,i) CopyOriginalSurfaceEx(pc,i DBG_SRC )
 
 //#define PCOMMON PSI_CONTROL

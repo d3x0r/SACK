@@ -410,17 +410,17 @@ LoopBreakpoint:
 				 TEXTSTR tmp;
 #endif
 				 if( Entry[i].dwAvgTime )
-					 snprintf( Avg, sizeof( Avg ),WIDE("%7") _32f, Entry[i].dwAvgTime );
+					 tnprintf( Avg, sizeof( Avg ),WIDE("%7") _32f, Entry[i].dwAvgTime );
 				 else
-					 snprintf( Avg, sizeof( Avg ),WIDE("    ***") );
+					 tnprintf( Avg, sizeof( Avg ),WIDE("    ***") );
 				 if( Entry[i].dwMinTime )
-					 snprintf( Min,sizeof(Min), WIDE("%7") _32f, Entry[i].dwMinTime );
+					 tnprintf( Min,sizeof(Min), WIDE("%7") _32f, Entry[i].dwMinTime );
 				 else
-					 snprintf( Min, sizeof( Min ),WIDE("    ***") );
+					 tnprintf( Min, sizeof( Min ),WIDE("    ***") );
 				 if( Entry[i].dwMaxTime )
-					 snprintf( Max, sizeof( Max), WIDE("%7") _32f, Entry[i].dwMaxTime );
+					 tnprintf( Max, sizeof( Max), WIDE("%7") _32f, Entry[i].dwMaxTime );
 				 else
-					 snprintf( Max, sizeof( Max ),WIDE("    ***") );
+					 tnprintf( Max, sizeof( Max ),WIDE("    ***") );
 
 				 vtprintf( pvtResult, WIDE("%3d %5d %s %s %s %4") _32f WIDE(" %5d %15.15s %s\n"),
 							 i + 1,

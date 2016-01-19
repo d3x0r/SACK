@@ -46,7 +46,7 @@ void CPROC MarkImageUpdated( Image child_image )
 	{
 		if( image_common_local.tint_cache )
 		{
-			POINTER node = FindInBinaryTree( image_common_local.tint_cache, (PTRSZVAL)image );
+			CPOINTER node = FindInBinaryTree( image_common_local.tint_cache, (PTRSZVAL)image );
 			struct shade_cache_image *ci = (struct shade_cache_image *)node;
 			struct shade_cache_element *ce;
 			if( node )
@@ -60,7 +60,7 @@ void CPROC MarkImageUpdated( Image child_image )
 		}
 		if( image_common_local.shade_cache )
 		{
-			POINTER node = FindInBinaryTree( image_common_local.shade_cache, (PTRSZVAL)image );
+			CPOINTER node = FindInBinaryTree( image_common_local.shade_cache, (PTRSZVAL)image );
 			struct shade_cache_image *ci = (struct shade_cache_image *)node;
 			struct shade_cache_element *ce;
 			if( node )

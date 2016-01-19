@@ -306,7 +306,7 @@ static PTRSZVAL OnCreateMenuButton( WIDE("Windows/Set Permashell") )( PMENU_BUTT
 static void OnSaveControl( WIDE("Windows/Set Permashell") )( FILE *file, PTRSZVAL psv )
 {
 	struct SetShellButton *my_button = (struct SetShellButton*)psv;
-	fprintf( file, WIDE("Set Shell To:%s\n"), EscapeMenuString( my_button->shell ) );
+	sack_fprintf( file, WIDE("Set Shell To:%s\n"), EscapeMenuString( my_button->shell ) );
 }
 
 static PTRSZVAL CPROC SetButtonShell( PTRSZVAL psv, arg_list args )

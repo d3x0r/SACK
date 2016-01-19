@@ -375,7 +375,7 @@ MEM_PROC  POINTER MEM_API  AllocateEx ( PTRSZVAL nSize DBG_PASS );
    type :  type to allocate for. Passes the name of the type so
            the allocator can do a registered procedure lookup and
            invok an initializer for the type.                     */
-#define NewObject(type) ((type*)FancyAllocate(sizeof(type),#type DBG_SRC))
+//#define NewObject(type) ((type*)FancyAllocate(sizeof(type),#type DBG_SRC))
 #ifdef __cplusplus
 /* A 'safe' release macro. casts the block to the type to
    release. Makes sure the pointer being released is the type

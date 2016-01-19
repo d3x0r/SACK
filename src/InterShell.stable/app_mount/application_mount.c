@@ -465,10 +465,10 @@ static PSI_CONTROL OnGetControl( WIDE("Application Mount") )( PTRSZVAL psv )
 static void OnSaveControl( WIDE("Application Mount") )( FILE* file, PTRSZVAL psv )
 {
 	MyValidatedControlData( PMY_CONTROL, control, (PSI_CONTROL)psv );
-	fprintf( file, WIDE("Application Title=%s\n"), control->app_window_name?control->app_window_name:WIDE("") );
-	fprintf( file, WIDE("Application Class=%s\n"), control->app_class_name?control->app_class_name:WIDE("") );
-	fprintf( file, WIDE("Application Server Address=%s\n"), control->send_to?control->send_to:WIDE("") );
-	fprintf( file, WIDE("Application Send From Address=%s\n"), control->send_from?control->send_from:WIDE("") );
+	sack_fprintf( file, WIDE("Application Title=%s\n"), control->app_window_name?control->app_window_name:WIDE("") );
+	sack_fprintf( file, WIDE("Application Class=%s\n"), control->app_class_name?control->app_class_name:WIDE("") );
+	sack_fprintf( file, WIDE("Application Server Address=%s\n"), control->send_to?control->send_to:WIDE("") );
+	sack_fprintf( file, WIDE("Application Send From Address=%s\n"), control->send_from?control->send_from:WIDE("") );
 }
 
 static PTRSZVAL CPROC SetApplicationName( PTRSZVAL psv, arg_list args )

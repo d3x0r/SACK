@@ -233,6 +233,8 @@ void ZVoxelWorld::RemoveSector( ZVoxelSector * Sector )
   Long x,y,z,Offset;
   ZVoxelSector * SectorPointer;
 
+  for( x = 0; x < 6; x++ )
+	  if( Sector->near_sectors[x] != null ) Sector->near_sectors[x].near_sectors[x^1] = null;
   // Finding sector in hash
 
   x = (Sector->Pos_x % Size_x) & 0xff;

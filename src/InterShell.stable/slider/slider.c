@@ -204,24 +204,24 @@ static PTRSZVAL OnConfigureControl( WIDE("Slider") )( PTRSZVAL psv, PSI_CONTROL 
 static void OnSaveControl( WIDE( "Slider" ) )( FILE *file,PTRSZVAL psv )
 {
 	PSLIDER_INFO info = (PSLIDER_INFO)psv;
-	fprintf( file, WIDE("Slider color=$%02X%02X%02X%02X\n")
+	sack_fprintf( file, WIDE("Slider color=$%02X%02X%02X%02X\n")
 			 , AlphaVal( info->color )
 			 , RedVal( info->color )
 			 , GreenVal( info->color )
 			 , BlueVal( info->color )
 			 );
-	fprintf( file, WIDE("Slider back color=$%02X%02X%02X%02X\n")
+	sack_fprintf( file, WIDE("Slider back color=$%02X%02X%02X%02X\n")
 			 , AlphaVal( info->backcolor )
 			 , RedVal( info->backcolor )
 			 , GreenVal( info->backcolor )
 			 , BlueVal( info->backcolor )
 			 );
-	fprintf( file, WIDE("Slider background image=%s\n" ), info->image_name?info->image_name:WIDE("") );
-	fprintf( file, WIDE("Slider is horizontal?%s\n"), info->flags.bHorizontal?WIDE("Yes"):WIDE("No") );
-	fprintf( file, WIDE("Slider is draggable?%s\n"), info->flags.bDragging?WIDE("Yes"):WIDE("No") );
-	fprintf( file, WIDE("Slider min value=%d\n"), info->min);
-	fprintf( file, WIDE("Slider max value=%d\n"), info->max);
-	fprintf( file, WIDE("Slider current value=%d\n"), info->current);
+	sack_fprintf( file, WIDE("Slider background image=%s\n" ), info->image_name?info->image_name:WIDE("") );
+	sack_fprintf( file, WIDE("Slider is horizontal?%s\n"), info->flags.bHorizontal?WIDE("Yes"):WIDE("No") );
+	sack_fprintf( file, WIDE("Slider is draggable?%s\n"), info->flags.bDragging?WIDE("Yes"):WIDE("No") );
+	sack_fprintf( file, WIDE("Slider min value=%d\n"), info->min);
+	sack_fprintf( file, WIDE("Slider max value=%d\n"), info->max);
+	sack_fprintf( file, WIDE("Slider current value=%d\n"), info->current);
 
 
 	InterShell_SaveCommonButtonParameters( file );

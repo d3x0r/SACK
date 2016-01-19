@@ -149,7 +149,7 @@ CAPTIONED_CONTROL_PROC_DEF( STATIC_TEXT, TEXTCONTROL, TextControl, (int attr) )
 
 //---------------------------------------------------------------------------
 
-PSI_PROC( void, SetTextControlColors )( PCONTROL pc, CDATA fore, CDATA back )
+PSI_PROC( void, SetTextControlColors )( PSI_CONTROL pc, CDATA fore, CDATA back )
 {
 	ValidatedControlData( PTEXTCONTROL, STATIC_TEXT, ptc, pc );
 	if( (!ptc) )

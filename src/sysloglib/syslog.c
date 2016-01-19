@@ -123,12 +123,13 @@ struct state_flags{
 };
 
 #ifdef __ANDROID__
-#  if !USE_CUSTOM_ALLOCER
-#    define __STATIC_GLOBALS__
-#  endif //!USE_CUSTOM_ALLOCER
+//#  if !USE_CUSTOM_ALLOCER
+//#    define __STATIC_GLOBALS__
+//#  endif //!USE_CUSTOM_ALLOCER
 #endif
 
 #ifndef __STATIC_GLOBALS__
+#warning Yes
 struct syslog_local_data *syslog_local;
 #define l (*syslog_local)
 #else
@@ -362,9 +363,11 @@ void SetDefaultName( CTEXTSTR path, CTEXTSTR name, CTEXTSTR extra )
 		filename = StrDup( name );
 	}
 	if( !filepath )
-		filepath = ExpandPath( WIDE("*") );
+		filepath = ExpandPath( WIDE("*/") );
 	if( !filename )
-      filename = StrDup( GetProgramName() );
+		filename = StrDup( GetProgramName() );
+	if( !filename )
+      filename = "org.d3x0r.sack";
 	// this has to come from C heap.. my init isn't done yet probably and
    // sharemem will just fail.  (it's probably trying to log... )
 	newpath = (TEXTCHAR*)malloc( len = sizeof(TEXTCHAR)*(9 + StrLen( filepath ) + StrLen( filename ) + (extra?StrLen(extra):0) + 5) );
@@ -486,25 +489,32 @@ void InitSyslog( int ignore_options )
 #endif
 		return;
 	}
-
 	SimpleRegisterAndCreateGlobal( syslog_local );
-	
+ 	
 	if( !flags.bInitialized )
 #endif
 	{
 		//logtype = SYSLOG_FILE;
 		//l.file = stderr;
 #if defined( WIN32 )
+#   if defined( __STATIC_GLOBALS__ )
+		syslog_local.next_lprintf_tls = TlsAlloc();
+#   else
 		syslog_local->next_lprintf_tls = TlsAlloc();
+#   endif
 #elif defined( __LINUX__ )
-		pthread_key_create( &g.next_lprintf_tls, NULL );
+#   if defined( __STATIC_GLOBALS__ )
+		pthread_key_create( &syslog_local.next_lprintf_tls, NULL );
+#   else
+		pthread_key_create( &syslog_local->next_lprintf_tls, NULL );
+#   endif
 #endif
 		flags.bLogThreadID = 1;
 		hSock = INVALID_SOCKET;
 		l.hSyslogdSock = INVALID_SOCKET;
 		bCPUTickWorks = 1;
 		nLogLevel = LOG_NOISE-1; // default log EVERYTHING
-
+#
 #ifdef __ANDROID__
 		{
 			logtype = SYSLOG_SYSTEM;
@@ -541,7 +551,7 @@ void InitSyslog( int ignore_options )
 			flags.bLogOpenAppend = 0;
 			flags.bLogSourceFile = 1;
 			flags.bLogThreadID = 1;
-			SetDefaultName( NULL, NULL, NULL );
+			//SetDefaultName( NULL, NULL, NULL );
 			//lprintf( WIDE("Syslog Initializing, debug mode, startup programname.log\n") );
 		}
 #  else
@@ -558,7 +568,9 @@ void InitSyslog( int ignore_options )
 		LoadOptions();
 #else
 	flags.bOptionsLoaded = 1;
+#  ifndef __ANDROID__
 	SetDefaultName( NULL, NULL, NULL );
+#  endif
 #endif
 }
 
@@ -1100,6 +1112,8 @@ void DoSystemLog( const TEXTCHAR *buffer )
 #ifndef __STATIC_GLOBALS__
 	if( !syslog_local )
 	{
+
+__android_log_print( ANDROID_LOG_INFO, "org.d3x0r.sack.core", "DoSystemLog" );
 		InitSyslog( 1 );
 		if( logtype == SYSLOG_AUTO_FILE && !l.file )
 		{
@@ -1224,11 +1238,14 @@ void DoSystemLog( const TEXTCHAR *buffer )
 			char *string = CStrDup( buffer );
 			if( !program_string )
 				program_string = CStrDup( GetProgramName() );
+			if( !program_string )
+            program_string = "com.unknown.app";
 			__android_log_print( ANDROID_LOG_INFO, program_string, string );
 			Release( string );
 		}
 #    else
 		OutputDebugString( buffer );
+		OutputDebugString( "\n" );
 #    endif
 #  endif
 	} 
@@ -1248,7 +1265,17 @@ void SystemLogFL( const TEXTCHAR *message FILELINE_PASS )
 #ifndef __STATIC_GLOBALS__
 	if( !syslog_local )
 	{
+		if( !lock )
+			lock =1 ;
+		else
+			return;
+	{
+		char tmp[256];
+		snprintf( tmp, 256, "SystemLogFL %s", message );
+		__android_log_print( ANDROID_LOG_INFO, "org.d3x0r.sack.core", tmp );
+	}
 		InitSyslog( 1 );
+      lock = 0;
 	}
 #endif
 	if( cannot_log )
@@ -1450,14 +1477,30 @@ static struct next_lprint_info *GetNextInfo( void )
 {
 	struct next_lprint_info *next;
 #if defined( WIN32 )
+#   if defined( __STATIC_GLOBALS__ )
+	if( !( next = (struct next_lprint_info*)TlsGetValue( syslog_local.next_lprintf_tls ) ) )
+#   else
 	if( !( next = (struct next_lprint_info*)TlsGetValue( syslog_local->next_lprintf_tls ) ) )
+#   endif
 	{
+#   if defined( __STATIC_GLOBALS__ )
+		TlsSetValue( syslog_local.next_lprintf_tls, next = New( struct next_lprint_info ) );
+#   else
 		TlsSetValue( syslog_local->next_lprintf_tls, next = New( struct next_lprint_info ) );
+#   endif
 	}
 #elif defined( __LINUX__ )
-	if( !( next = (struct next_lprint_info*)pthread_getspecific( syslog_local->next_lprintf_tls ) ) )
+#   if defined( __STATIC_GLOBALS__ )
+	if( !( next = (struct next_lprint_info*)pthread_getspecific( syslog_local.next_lprintf_tls ) ) )
+#   else
+		if( !( next = (struct next_lprint_info*)pthread_getspecific( syslog_local->next_lprintf_tls ) ) )
+#   endif
 	{
+#   if defined( __STATIC_GLOBALS__ )
+		pthread_setspecific( syslog_local.next_lprintf_tls, next = New( struct next_lprint_info ) );
+#   else
 		pthread_setspecific( syslog_local->next_lprintf_tls, next = New( struct next_lprint_info ) );
+#   endif
 	}
 #endif
 	return next;

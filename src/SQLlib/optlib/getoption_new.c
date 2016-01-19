@@ -146,7 +146,7 @@ POPTION_TREE_NODE NewGetOptionIndexExxx( PODBC odbc, POPTION_TREE tree, POPTION_
 			if( !bIKnowItDoesntExist )
 			{
 				PushSQLQueryExEx(tree->odbc DBG_RELAY );
-				snprintf( query, sizeof( query )
+				tnprintf( query, sizeof( query )
 						  , WIDE( "select option_id from " )OPTION_MAP WIDE( " where parent_option_id=%")_size_f WIDE(" and name_id=%" ) _size_f
 						  , parent->id
 						  , IDName );
@@ -159,7 +159,7 @@ POPTION_TREE_NODE NewGetOptionIndexExxx( PODBC odbc, POPTION_TREE tree, POPTION_
 					// this is the only place where ID must be set explicit...
 						// otherwise our root node creation failes if said root is gone.
 					//lprintf( WIDE( "New entry... create it..." ) );
-						snprintf( query, sizeof( query ), WIDE( "Insert into " )OPTION_MAP WIDE( "(`parent_option_id`,`name_id`) values (%ld,%lu)" ), parent->id, IDName );
+						tnprintf( query, sizeof( query ), WIDE( "Insert into " )OPTION_MAP WIDE( "(`parent_option_id`,`name_id`) values (%ld,%lu)" ), parent->id, IDName );
 					OpenWriter( tree );
 					if( SQLCommand( tree->odbc_writer, query ) )
 					{
@@ -236,7 +236,7 @@ size_t NewGetOptionStringValue( PODBC odbc, POPTION_TREE_NODE optval, TEXTCHAR *
 	}
 
 #if 0
-	snprintf( query, sizeof( query ), WIDE( "select override_value_id from " )OPTION_EXCEPTION WIDE( " " )
+	tnprintf( query, sizeof( query ), WIDE( "select override_value_id from " )OPTION_EXCEPTION WIDE( " " )
             WIDE( "where ( apply_from<=now() or apply_from=0 )" )
             WIDE( "and ( apply_until>now() or apply_until=0 )" )
             WIDE( "and ( system_id=%d or system_id=0 )" )
@@ -255,7 +255,7 @@ size_t NewGetOptionStringValue( PODBC odbc, POPTION_TREE_NODE optval, TEXTCHAR *
 #endif
 
 	PushSQLQueryEx( odbc );
-	snprintf( query, sizeof( query ), WIDE( "select string from " )OPTION_VALUES WIDE( " where option_id=%ld" ), optval->id );
+	tnprintf( query, sizeof( query ), WIDE( "select string from " )OPTION_VALUES WIDE( " where option_id=%ld" ), optval->id );
 	// have to push here, the result of the prior is kept outstanding
 	// if this was not pushed, the prior result would evaporate.
 	buffer[0] = 0;
@@ -323,11 +323,11 @@ LOGICAL NewCreateValue( POPTION_TREE tree, POPTION_TREE_NODE value, CTEXTSTR pVa
 	TEXTSTR newval = EscapeSQLBinaryOpt( tree->odbc_writer, pValue, StrLen( pValue ), TRUE );
 	LOGICAL retval = TRUE;
 	if( pValue == NULL )
-		snprintf( insert, sizeof( insert ), WIDE( "insert into " )OPTION_BLOBS WIDE( " (`option_id`,`binary` ) values (%lu,'')" )
+		tnprintf( insert, sizeof( insert ), WIDE( "insert into " )OPTION_BLOBS WIDE( " (`option_id`,`binary` ) values (%lu,'')" )
 				  , value->id
 				  );
 	else
-		snprintf( insert, sizeof( insert ), WIDE( "insert into " )OPTION_VALUES WIDE( " (`option_id`,`string` ) values (%lu,%s)" )
+		tnprintf( insert, sizeof( insert ), WIDE( "insert into " )OPTION_VALUES WIDE( " (`option_id`,`string` ) values (%lu,%s)" )
 				  , value->id
 				  , pValue?newval:WIDE( "NULL" )
 				  );

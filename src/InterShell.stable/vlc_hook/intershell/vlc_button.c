@@ -120,7 +120,7 @@ static void OnSaveControl( WIDE("VLC/Player button") )( FILE *file, PTRSZVAL psv
 {
 	struct player_button *play = (struct player_button *)psv;
 	if( play->url_name )
-		fprintf( file, WIDE("Play Media:%s\n"), play->url_name );
+		sack_fprintf( file, WIDE("Play Media:%s\n"), play->url_name );
 }
 
 

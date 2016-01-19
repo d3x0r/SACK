@@ -7,6 +7,8 @@
 #include <image.h>
 #include "fntglobal.h"
 #include "image_common.h"
+#include "pngimage.h"
+#include "jpgimage.h"
 IMAGE_NAMESPACE
 
 extern void CPROC MarkImageUpdated( Image child_image );
@@ -185,13 +187,12 @@ static POINTER CPROC _ImageGetImageInterface( void )
 static void CPROC _ImageDropImageInterface( POINTER p )
 {
 }
-#ifndef __STATIC__
+
 #if !(defined( SACK_BAG_EXPORTS ) && defined( __LINUX__ ))
  void  DropImageInterface ( PIMAGE_INTERFACE p )
 {
    _ImageDropImageInterface(p );
 }
-#endif
 #endif
 
 #ifdef __WATCOM_CPLUSPLUS__

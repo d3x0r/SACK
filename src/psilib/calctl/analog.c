@@ -243,7 +243,7 @@ void MakeClockAnalogEx( PSI_CONTROL pc, CTEXTSTR imagename, struct clock_image_t
 				int minute_hand_center, minute_hand_width, minute_hand_pivot;
 				int hour_hand_center, hour_hand_width, hour_hand_pivot;
 				TEXTCHAR tmp[256];
-				snprintf( tmp, sizeof( tmp ), WIDE( "Analog Clock/%s" ), imagename );
+				tnprintf( tmp, sizeof( tmp ), WIDE( "Analog Clock/%s" ), imagename );
 #ifdef __NO_OPTIONS__
 #define SACK_GetProfileInt(a,b,c) (c)
 #endif

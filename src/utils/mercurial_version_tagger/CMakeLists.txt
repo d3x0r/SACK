@@ -70,9 +70,9 @@ if( NEED_UUID )
 set( MORE_SYSTEM_SOURCE ${MORE_SYSTEM_SOURCES} ${UUID_SOURCES} )
 endif( NEED_UUID )
 
-SET( SQLITE_VERSION 3.8.7.4 )
-SET( SQLITE_SOURCES ${BAG_SQLITE_INTERFACE} ${SOURCES_ROOT}sqlite/${SQLITE_VERSION}/sqlite3.c )
-include_directories( ${SOURCES_ROOT}sqlite/${SQLITE_VERSION} )
+SET( SQLITE_VERSION 3.9.2 )
+SET( SQLITE_SOURCES ${BAG_SQLITE_INTERFACE} ${SOURCES_ROOT}contrib/sqlite/${SQLITE_VERSION}/sqlite3.c )
+include_directories( ${SOURCES_ROOT}contrib/sqlite/${SQLITE_VERSION} )
 
   if( ${CMAKE_COMPILER_IS_GNUCC} ) 
   SET( FIRST_GCC_LIBRARY_SOURCE ${SOURCES_ROOT}deadstart/deadstart_list.c ) 
@@ -137,11 +137,9 @@ SET_PROPERTY(TARGET ${project} APPEND PROPERTY
 SET_TARGET_PROPERTIES(${project} PROPERTIES
                   FOLDER utils
 )
-if( WIN32 )
-target_link_libraries( ${project} odbc32 winmm ${SACK_PLATFORM_LIBRARIES} )
-else( WIN32 )
-target_link_libraries( ${project}  ${SACK_PLATFORM_LIBRARIES}  )
-endif( WIN32 )
+set( LIBS ${SACK_PLATFORM_LIBRARIES} )
+LIST( REMOVE_ITEM LIBS MatrixSSL )
+target_link_libraries( ${project} ${LIBS} )
 
 install( TARGETS ${project} DESTINATION . )
 

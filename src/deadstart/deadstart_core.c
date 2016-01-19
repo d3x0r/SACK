@@ -320,12 +320,9 @@ static void CtrlC( int signal )
 #  endif
 #endif
 
-//#ifdef WIN32
-
 // wow no such thing as static-izing this... it's
 // always retrieved with dynamic function loading, therefore
 // MUST be exported if at all possible.
-// !defined( __STATIC__ ) &&
 // this one is used when a library is loaded.
 void InvokeDeadstart( void )
 {

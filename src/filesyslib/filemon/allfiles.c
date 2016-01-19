@@ -185,7 +185,7 @@ FILEMONITOR_PROC( PFILEMON, AddMonitoredFile )( PCHANGEHANDLER Change, CTEXTSTR 
 			base = monitor->directory;
 			newfile = GetFromSet( FILEMON, &l.filemon_set );
 			//Log2( WIDE("Making a new file (not watched): %s/%s"), base, name );
-			snprintf( newfile->name, sizeof(newfile->name), WIDE("%s/"), base );
+			tnprintf( newfile->name, sizeof(newfile->name), WIDE("%s/"), base );
 			pos = strlen( newfile->name );
 			newfile->filename = newfile->name + pos;
 			StrCpyEx( newfile->filename, name, (sizeof( newfile->name )/sizeof(TEXTCHAR)) - pos );
@@ -492,7 +492,7 @@ static int DispatchChangesInternal( PMONITOR monitor, LOGICAL bExternalSource )
 				}
 				changed++;
 				Change->currentchange->ScannedAt = 0;
-				snprintf( fullname, sizeof( fullname ), WIDE("%s") SYSPATHCHAR WIDE("%s"), monitor->directory, Change->currentchange->filename );
+				tnprintf( fullname, sizeof( fullname ), WIDE("%s") SYSPATHCHAR WIDE("%s"), monitor->directory, Change->currentchange->filename );
 				if( l.flags.bLog ) lprintf( WIDE("Report %s for a change (%s,%s)")
 												  , fullname
 												  , Change->currentchange->flags.bToDelete?"deleted":""
@@ -733,13 +733,13 @@ FILEMONITOR_PROC( PCHANGEHANDLER, AddFileChangeCallback )( PMONITOR monitor
 															 , PTRSZVAL psv )
 {
 	if( l.flags.bLog )
-		lprintf( "add change handler is %p %p", monitor, mask );
+		lprintf(WIDE("add change handler is %p %p"), monitor, mask );
 	if( monitor && HandleChange )
 	{
 		PCHANGECALLBACK Change = GetFromSet( CHANGECALLBACK, &l.change_callback_set );
 		EnterCriticalSec( &monitor->cs );
 		if( l.flags.bLog )
-			lprintf( "adding change handler %s", mask?mask:"(null-mask)" );
+			lprintf( WIDE("adding change handler %s"), mask?mask: WIDE("(null-mask)") );
 		Change->mask           = StrDup( mask );
 		Change->currentchange  = NULL;
 		Change->PendingChanges = NULL;

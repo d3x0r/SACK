@@ -171,16 +171,24 @@ static int CPROC DrawCharacterSize( PCOMMON pc )
 	_32 width, height;
 	PFONT_DIALOG pfd = (PFONT_DIALOG)GetFrameUserData( GetFrame( pc ) );
 	Image surface = GetControlSurface( pc );
-	lprintf( WIDE("Drawing character size control...") );
+	//lprintf( WIDE("Drawing character size control...") );
 	ClearImageTo( surface, Color( 92, 91, 42 ) );
 	if( pfd->width_scale )
-		x = (surface->width - (width = ScaleValue( pfd->width_scale, pfd->nSliderWidth ) ) ) / 2;
+		(width = ScaleValue( pfd->width_scale, pfd->nSliderWidth ) );
 	else 
-		x = (surface->width - (width = pfd->nSliderWidth) ) / 2;
-	if( pfd->height_scale )
-		y = (surface->height - (height = ScaleValue( pfd->height_scale, pfd->nSliderHeight) ) ) / 2;
+		(width = pfd->nSliderWidth);
+	if( width <= surface->width )
+		x = (surface->width - width )/ 2;
 	else
-		y = (surface->height - (height = pfd->nSliderHeight) ) / 2;
+		x = 0;
+	if( pfd->height_scale )
+		(height = ScaleValue( pfd->height_scale, pfd->nSliderHeight) );
+	else
+		(height = pfd->nSliderHeight);
+	if( height < surface->height )
+		y = (surface->height - height )/ 2;
+	else
+		y = 0;
 	BlatColor( surface, x, y
 				, width
 				, height, Color( 0, 0, 0 ) );
@@ -312,12 +320,12 @@ static void CPROC StyleSelected( PTRSZVAL psv, PSI_CONTROL pc, PLISTITEM pli )
 				if( pfd->flags.show_mono_only ||
 					pfd->flags.show_prop_only )
 				{
-					snprintf( entry, 12, WIDE("%dx%d")
+					tnprintf( entry, 12, WIDE("%dx%d")
 							  , size->width, size->height );
 				}
 				else
 				{
-					snprintf( entry, 12, WIDE("%dx%d%s")
+					tnprintf( entry, 12, WIDE("%dx%d%s")
 							  , size->width, size->height
 							  , (pfs->flags.mono)?WIDE("(m)"):WIDE("") );
 				}
@@ -770,7 +778,7 @@ SFTFont PickScaledFontWithUpdate( S_32 x, S_32 y
 						StrCpyEx( pResult->names + offset, fdData.pFontStyle->name, l2+1 );
 						offset += l2 + 1;
 
-						offset += snprintf( pResult->names + offset*sizeof(TEXTCHAR), l3+l4+2, WIDE("%s/%s")
+						offset += tnprintf( pResult->names + offset*sizeof(TEXTCHAR), l3+l4+2, WIDE("%s/%s")
 											  , fdData.pSizeFile->path
 											  , fdData.pSizeFile->file
 											  );

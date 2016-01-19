@@ -114,7 +114,7 @@ TEXTCHAR *GetResourceIDName( CTEXTSTR pTypeName, int ID )
 		TEXTCHAR rootname[256];
 		CTEXTSTR name2;
 		PCLASSROOT data2 = NULL;
-		snprintf( rootname, sizeof(rootname),PSI_ROOT_REGISTRY WIDE("/resources/%s/%s"), name, pTypeName );
+		tnprintf( rootname, sizeof(rootname),PSI_ROOT_REGISTRY WIDE("/resources/%s/%s"), name, pTypeName );
 		//lprintf( WIDE("newroot = %s"), rootname );
 		for( name2 = GetFirstRegisteredName( rootname, &data2 );
 			 name2;
@@ -128,9 +128,9 @@ TEXTCHAR *GetResourceIDName( CTEXTSTR pTypeName, int ID )
 				size_t len;
 				TEXTCHAR *result = NewArray( TEXTCHAR, len = strlen( pTypeName ) + strlen( name ) + strlen( name2 ) + 3 + 20 );
 				if( value == ID )
-					snprintf( result, len*sizeof(TEXTCHAR), WIDE("%s/%s/%s"), name, pTypeName, name2 );
+					tnprintf( result, len*sizeof(TEXTCHAR), WIDE("%s/%s/%s"), name, pTypeName, name2 );
 				else
-					snprintf( result, len*sizeof(TEXTCHAR), WIDE("%s/%s/%s+%d"), name, pTypeName, name2, ID-value );
+					tnprintf( result, len*sizeof(TEXTCHAR), WIDE("%s/%s/%s+%d"), name, pTypeName, name2, ID-value );
 				return result;
 			}
 		}
@@ -155,7 +155,7 @@ int GetResourceID( PSI_CONTROL parent, CTEXTSTR name, _32 nIDDefault )
 			//TEXTCHAR rootname[256];
 			CTEXTSTR name2;
 			PCLASSROOT data2 = NULL;
-			//snprintf( rootname, sizeof(rootname),PSI_ROOT_REGISTRY "/resources/%s", name );
+			//tnprintf( rootname, sizeof(rootname),PSI_ROOT_REGISTRY "/resources/%s", name );
 			//lprintf( WIDE("newroot = %s"), rootname );
 			for( name2 = GetFirstRegisteredName( (CTEXTSTR)data, &data2 );
 				 name2;
@@ -164,7 +164,7 @@ int GetResourceID( PSI_CONTROL parent, CTEXTSTR name, _32 nIDDefault )
 				TEXTCHAR rootname[256];
 				int nResult;
 				//lprintf( WIDE("Found Name %s"), name2 );
-				snprintf( rootname, sizeof( rootname ), PSI_ROOT_REGISTRY WIDE("/resources/%s/%s"), name, name2 );
+				tnprintf( rootname, sizeof( rootname ), PSI_ROOT_REGISTRY WIDE("/resources/%s/%s"), name, name2 );
 				if( GetRegisteredStaticIntValue( NULL, rootname, name, &nResult ) )
 				{
 					return nResult;
@@ -195,7 +195,7 @@ int GetResourceID( PSI_CONTROL parent, CTEXTSTR name, _32 nIDDefault )
 			int result;
 			int range;
 			TEXTCHAR buffer[256];
-			snprintf( buffer, sizeof( buffer ), PSI_ROOT_REGISTRY WIDE( "/resources/%s" ), name );
+			tnprintf( buffer, sizeof( buffer ), PSI_ROOT_REGISTRY WIDE( "/resources/%s" ), name );
 			range = (int)(long)GetRegisteredValueExx( (PCLASSROOT)PSI_ROOT_REGISTRY WIDE("/resources"), name, WIDE("range"), TRUE );
 			result = (int)(long)GetRegisteredValueExx( (PCLASSROOT)PSI_ROOT_REGISTRY WIDE("/resources"), name, WIDE("value"), TRUE )/* + offset*/;
 			if( !result && !range && ( nIDDefault != -1 ) )
@@ -253,7 +253,7 @@ int DoRegisterControl( PCONTROL_REGISTRATION pcr, int nSize )
 		// okay do this so we get our names right?
 		InitPSILibrary();
 		//pcr->TypeID = ControlID;
-		snprintf( namebuf2, sizeof( namebuf2 ), PSI_ROOT_REGISTRY WIDE("/control/%s")
+		tnprintf( namebuf2, sizeof( namebuf2 ), PSI_ROOT_REGISTRY WIDE("/control/%s")
 				  , pcr->name );
 		root = GetClassRoot( namebuf2 );
 		pcr->TypeID = (int)(long)GetRegisteredValueExx( root, NULL, WIDE("Type"), TRUE );
@@ -270,15 +270,15 @@ int DoRegisterControl( PCONTROL_REGISTRATION pcr, int nSize )
 			}
 
 			pcr->TypeID = ControlID;
-			snprintf( namebuf, sizeof( namebuf ), PSI_ROOT_REGISTRY WIDE("/control/%") _32f
+			tnprintf( namebuf, sizeof( namebuf ), PSI_ROOT_REGISTRY WIDE("/control/%") _32f
 					  , ControlID );
 			root = RegisterClassAlias( namebuf2, namebuf );
 			RegisterValueExx( root, NULL, WIDE("Type"), FALSE, pcr->name );
 			RegisterValueExx( root, NULL, WIDE("Type"), TRUE, (CTEXTSTR)(PTRSZVAL)ControlID );
-			snprintf( namebuf, sizeof( namebuf ), PSI_ROOT_REGISTRY_OTHER WIDE("/control/%") _32f
+			tnprintf( namebuf, sizeof( namebuf ), PSI_ROOT_REGISTRY_OTHER WIDE("/control/%") _32f
 					  , ControlID );
 			root = RegisterClassAlias( namebuf2, namebuf );
-			snprintf( namebuf, sizeof( namebuf ), PSI_ROOT_REGISTRY_OTHER WIDE("/control/%s")
+			tnprintf( namebuf, sizeof( namebuf ), PSI_ROOT_REGISTRY_OTHER WIDE("/control/%s")
 				, pcr->name );
 			root = RegisterClassAlias( namebuf2, namebuf );
 			ControlID++; // new control type registered...
@@ -287,7 +287,7 @@ int DoRegisterControl( PCONTROL_REGISTRATION pcr, int nSize )
 		else
 		{
 			//char longbuf[128];
-			//snprintf( longbuf, sizeof( longbuf ), PSI_ROOT_REGISTRY "/control/%s/rtti", pcr->name );
+			//tnprintf( longbuf, sizeof( longbuf ), PSI_ROOT_REGISTRY "/control/%s/rtti", pcr->name );
 			//if( CheckClassRoot( longbuf ) )
 			{
 				//lprintf( "Aborting second registration fo same type." );
@@ -469,15 +469,15 @@ PRIORITY_PRELOAD( InitPSILibrary, PSI_PRELOAD_PRIORITY )
 		TEXTCHAR namebuf[64], namebuf2[64];
 
 #define REG(name) {   \
-			snprintf( namebuf, sizeof( namebuf ), PSI_ROOT_REGISTRY WIDE("/control/%d"), name ); \
-			snprintf( namebuf2, sizeof( namebuf2 ), PSI_ROOT_REGISTRY WIDE("/control/%s"), name##_NAME );             \
+			tnprintf( namebuf, sizeof( namebuf ), PSI_ROOT_REGISTRY WIDE("/control/%d"), name ); \
+			tnprintf( namebuf2, sizeof( namebuf2 ), PSI_ROOT_REGISTRY WIDE("/control/%s"), name##_NAME );             \
 			RegisterClassAlias( namebuf2, namebuf );  \
 			RegisterValue( namebuf2, WIDE("Type"), name##_NAME ); \
 			RegisterIntValue( namebuf2, WIDE("Type"), name ); \
 		}
 #define REG2(name,number) {   \
-			snprintf( namebuf, sizeof( namebuf ), PSI_ROOT_REGISTRY WIDE("/control/%d"), number ); \
-			snprintf( namebuf2, sizeof( namebuf2 ), PSI_ROOT_REGISTRY WIDE("/control/%s"), name );             \
+			tnprintf( namebuf, sizeof( namebuf ), PSI_ROOT_REGISTRY WIDE("/control/%d"), number ); \
+			tnprintf( namebuf2, sizeof( namebuf2 ), PSI_ROOT_REGISTRY WIDE("/control/%s"), name );             \
 			RegisterClassAlias( namebuf2, namebuf );  \
 			RegisterValue( namebuf2, WIDE("Type"), name ); \
 			RegisterIntValue( namebuf2, WIDE("Type"), number ); \
@@ -519,7 +519,7 @@ PRIORITY_PRELOAD( InitPSILibrary, PSI_PRELOAD_PRIORITY )
 					TEXTCHAR root[256];
 					TEXTCHAR old_root[256];
 #define TASK_PREFIX WIDE( "core" )
-					snprintf( root, sizeof( root )
+					tnprintf( root, sizeof( root )
 							  , PSI_ROOT_REGISTRY WIDE("/resources/%s/") TASK_PREFIX WIDE("/%s")
 							  , resource_names[n].type_name
 							  , resource_names[n].resource_name );
@@ -529,8 +529,8 @@ PRIORITY_PRELOAD( InitPSILibrary, PSI_PRELOAD_PRIORITY )
 					RegisterIntValue( root
 										 , WIDE("range")
 										 , resource_names[n].resource_name_range );
-					snprintf( root, sizeof( root ), PSI_ROOT_REGISTRY WIDE("/resources/%s/") TASK_PREFIX WIDE(""), resource_names[n].type_name );
-					snprintf( old_root, sizeof( old_root ), PSI_ROOT_REGISTRY WIDE("/resources/") TASK_PREFIX WIDE("/%s"), resource_names[n].type_name );
+					tnprintf( root, sizeof( root ), PSI_ROOT_REGISTRY WIDE("/resources/%s/") TASK_PREFIX WIDE(""), resource_names[n].type_name );
+					tnprintf( old_root, sizeof( old_root ), PSI_ROOT_REGISTRY WIDE("/resources/") TASK_PREFIX WIDE("/%s"), resource_names[n].type_name );
 					RegisterIntValue( root
 										 , resource_names[n].resource_name
 										 , resource_names[n].resource_name_id );
@@ -776,7 +776,7 @@ void TryLoadingFrameImage( void )
 				height = (border_image->height-1) / 2;
 #endif
 			g.DefaultBorder = PSI_CreateBorder( border_image, width, height, anchors
-					, SACK_GetProfileInt( "SACK/psi/Frame Border", "Has Control theme colors", 0 ) );
+					, SACK_GetProfileInt( WIDE("SACK/psi/Frame Border"), WIDE( "Has Control theme colors" ), 0 ) );
 		}
 	}
 }
@@ -1738,7 +1738,7 @@ void SetUpdateRegionEx( PSI_CONTROL pc, S_32 rx, S_32 ry, _32 rw, _32 rh DBG_PAS
 
 //---------------------------------------------------------------------------
 
-Image CopyOriginalSurfaceEx( PCONTROL pc, Image use_image DBG_PASS )
+Image CopyOriginalSurfaceEx( PSI_CONTROL pc, Image use_image DBG_PASS )
 {
 	Image copy;
 	if( !pc || !g.flags.allow_copy_from_render || !pc->parent || ( pc->BorderType & BORDER_FRAME ) )
@@ -2557,9 +2557,9 @@ PROCEDURE RealCreateCommonExx( PSI_CONTROL *pResult
 	}
 #endif
 	if( pTypeName )
-		snprintf( mydef, sizeof( mydef ), PSI_ROOT_REGISTRY WIDE("/control/%s"), pTypeName );
+		tnprintf( mydef, sizeof( mydef ), PSI_ROOT_REGISTRY WIDE("/control/%s"), pTypeName );
 	else
-		snprintf( mydef, sizeof( mydef ), PSI_ROOT_REGISTRY WIDE("/control/%") _32f , nType );
+		tnprintf( mydef, sizeof( mydef ), PSI_ROOT_REGISTRY WIDE("/control/%") _32f , nType );
 	root = GetClassRoot( mydef );
 	if( pTypeName )
 		nType = (int)(long)GetRegisteredValueExx( root, NULL, WIDE("type"), TRUE );
@@ -2667,7 +2667,7 @@ PROCEDURE RealCreateCommonExx( PSI_CONTROL *pResult
 
 	// from here forward, root and mydef reference the RTTI of the control...
 	//
-	snprintf( mydef, sizeof( mydef ), PSI_ROOT_REGISTRY WIDE("/control/%") _32f WIDE("/rtti"), nType );
+	tnprintf( mydef, sizeof( mydef ), PSI_ROOT_REGISTRY WIDE("/control/%") _32f WIDE("/rtti"), nType );
 	root = GetClassRoot( mydef );
 	SetCommonDraw( pc, GetRegisteredProcedureExx(root,(CTEXTSTR)NULL,int,WIDE("draw"),(PSI_CONTROL)));
 	SetCommonDrawDecorations( pc, GetRegisteredProcedureExx(root,(CTEXTSTR)NULL,void,WIDE("decoration_draw"),(PSI_CONTROL)));
@@ -2927,7 +2927,13 @@ PSI_PROC( void, DisplayFrameOverOnUnder )( PSI_CONTROL pc, PSI_CONTROL over, PRE
 #endif
 		pc->flags.bInitial = FALSE;
 		pf = OpenPhysicalDevice( pc, over, pActImg, under );
-      pc->parent = over;
+		pc->stack_parent = over;
+		pc->stack_child = under;
+		if( under )
+			under->stack_parent = pc;
+		if( over )
+			over->stack_child = pc;
+
 #ifdef DEBUG_UPDAATE_DRAW
 		if( g.flags.bLogDebugUpdate )
 			lprintf( WIDE("-------- device opened") );
@@ -3200,12 +3206,12 @@ PSI_PROC( void, SizeCommon )( PSI_CONTROL pc, _32 width, _32 height )
 			//lprintf( WIDE("Enlarging size...") );
 			if( pc->BorderType == BORDER_USER_PROC )
 			{
-            int left, top, right, bottom;
+				int left, top, right, bottom;
 				if( pc->BorderMeasureProc )
 				{
 					pc->BorderMeasureProc( pc, &left, &top, &right, &bottom );
 					width += left + right;
-               height += top + bottom;
+					height += top + bottom;
 				}
 			}
 			else
@@ -3950,9 +3956,9 @@ PSI_CONTROL CreateCommonExxx( PSI_CONTROL pContainer
 		{
 			TEXTCHAR mydef[256];
 			if( pTypeName )
-				snprintf( mydef, sizeof( mydef ), PSI_ROOT_REGISTRY WIDE("/control/%s/rtti/extra init"), pTypeName );
+				tnprintf( mydef, sizeof( mydef ), PSI_ROOT_REGISTRY WIDE("/control/%s/rtti/extra init"), pTypeName );
 			else
-				snprintf( mydef, sizeof( mydef ), PSI_ROOT_REGISTRY WIDE("/control/%") _32f WIDE("/rtti/extra init"), nType );
+				tnprintf( mydef, sizeof( mydef ), PSI_ROOT_REGISTRY WIDE("/control/%") _32f WIDE("/rtti/extra init"), nType );
 			if( !(ExtraBorderType & BORDER_NO_EXTRA_INIT ) )
 			{
 				int (CPROC *CustomInit)(PSI_CONTROL);
@@ -4158,6 +4164,15 @@ void DestroyCommonExx( PSI_CONTROL *ppc, int level DBG_PASS )
 		PSI_CONTROL pc = *ppc;
 		// need to get what frame this control is in before unlinking it from the frame!
 		PSI_CONTROL pFrame = GetFrame( pc );
+		if( pFrame )
+		{
+			if( pFrame->stack_parent )
+				pFrame->stack_parent->stack_child = pFrame->stack_child;
+			if( pFrame->stack_child )
+				pFrame->stack_child->stack_parent = pFrame->stack_parent;
+			pFrame->stack_parent = NULL;
+			pFrame->stack_child = NULL;
+		}
 		if( !pc->flags.bDestroy )
 		{
 			if( pc->device )
@@ -4218,7 +4233,7 @@ void DestroyCommonExx( PSI_CONTROL *ppc, int level DBG_PASS )
 					TEXTCHAR mydef[256];
 					CTEXTSTR name;
 					PCLASSROOT data = NULL;
-					snprintf( mydef, sizeof( mydef ), WIDE("psi/control/rtti/extra destroy") );
+					tnprintf( mydef, sizeof( mydef ), WIDE("psi/control/rtti/extra destroy") );
 					for( name = GetFirstRegisteredName( mydef, &data );
 						 name;
 						  name = GetNextRegisteredName( &data ) )
@@ -4234,7 +4249,7 @@ void DestroyCommonExx( PSI_CONTROL *ppc, int level DBG_PASS )
 						}
 					}
 
-					snprintf( mydef, sizeof( mydef ), PSI_ROOT_REGISTRY WIDE("/control/%d/rtti/extra destroy"), pc->nType );
+					tnprintf( mydef, sizeof( mydef ), PSI_ROOT_REGISTRY WIDE("/control/%d/rtti/extra destroy"), pc->nType );
 					for( name = GetFirstRegisteredName( mydef, &data );
 						 name;
 						  name = GetNextRegisteredName( &data ) )
@@ -4428,7 +4443,7 @@ void AddCommonButtonsEx( PSI_CONTROL pf
 		int w = pf->rect.width;//FrameBorderX( pf->BorderType );
 		int h = pf->rect.height;//FrameBorderY( pf, pf->BorderType, NULL );
 		PCOMMON_BUTTON_DATA pcbd;
-		PCONTROL pc;
+		PSI_CONTROL pc;
 		int x, x2;
 		int y;
 		//  lprintf( WIDE("Buttons will be added at... %d, %d")
@@ -4538,7 +4553,7 @@ PSI_PROC( PSI_CONTROL, GetFrame )( PSI_CONTROL pc )
 {
 	while( pc )
 	{
-		if( (!pc->parent || (pc->device) || (!pc->Window->pParent) ) && !pc->flags.bDestroy )
+		if( ( !pc->parent || (pc->device) || (!pc->Window->pParent) ) && !pc->flags.bDestroy )
 			return pc;
 		pc = pc->parent;
 	}
@@ -4772,7 +4787,7 @@ PSI_PROC( void, AdoptCommon )( PSI_CONTROL pFoster, PSI_CONTROL pElder, PSI_CONT
 
 //---------------------------------------------------------------------------
 
-PCONTROL CreateControlExx( PSI_CONTROL pFrame
+PSI_CONTROL CreateControlExx( PSI_CONTROL pFrame
 								  , _32 attr
 								  , int x, int y
 								  , int w, int h
@@ -4810,6 +4825,11 @@ void GetPhysicalCoordinate( PSI_CONTROL relative_to, S_32 *_x, S_32 *_y, int inc
 	PSI_CONTROL frame = GetFrame( relative_to );
 	if( frame->device && frame->device->pActImg )
 		GetDisplayPosition( frame->device->pActImg, &wx, &wy, NULL, NULL );
+	else
+	{
+		wx = 0;
+		wy = 0;
+	}
 	x += wx;
 	y += wy;
 	while( relative_to )
@@ -4984,14 +5004,14 @@ INDEX ControlType( PSI_CONTROL pc )
 }
 //---------------------------------------------------------------------------
 
-void SetCommonTransparent( PCONTROL pc, LOGICAL bTransparent )
+void SetCommonTransparent( PSI_CONTROL pc, LOGICAL bTransparent )
 {
 	if( pc )
 	{
 		// if we are setting to transparent NO, then remove OriginalImage
 		if( !(pc->flags.bTransparent = bTransparent ) )
 		{
-			lprintf( WIDE( "Turning off tansparency, so we don't need the background image now" ) );
+			//lprintf( WIDE( "Turning off tansparency, so we don't need the background image now" ) );
 			if( pc->OriginalSurface )
 			{
 				lprintf( WIDE("Early destruction of original surface image...") );
@@ -5047,7 +5067,7 @@ PSI_PROC( void, GetFrameSize )( PSI_CONTROL pf, _32 *w, _32 *h )
 CTEXTSTR GetControlTypeName( PSI_CONTROL pc )
 {
 	TEXTCHAR mydef[32];
-	snprintf( mydef, sizeof( mydef ), PSI_ROOT_REGISTRY WIDE("/control/%d"), pc->nType );
+	tnprintf( mydef, sizeof( mydef ), PSI_ROOT_REGISTRY WIDE("/control/%d"), pc->nType );
 	return GetRegisteredValueExx( mydef, NULL, WIDE("type"), FALSE );
 }
 

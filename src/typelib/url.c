@@ -57,7 +57,7 @@ static void AppendBuffer( CTEXTSTR *output, CTEXTSTR seperator, CTEXTSTR input )
 		if( seperator )
 			len += StrLen( seperator );
 		newout = NewArray( TEXTCHAR, len );
-		snprintf( newout, len, WIDE("%s%s%s"), (*output), seperator?seperator:WIDE(""), tmpbuf );
+		tnprintf( newout, len, WIDE("%s%s%s"), (*output), seperator?seperator:WIDE(""), tmpbuf );
 		Release( (POINTER)*output );
 		(*output) = newout;
 		Release( (POINTER)tmpbuf );

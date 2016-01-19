@@ -174,14 +174,14 @@ static void CPROC OptionSelectionChanged( PTRSZVAL psvUser, PCONTROL pc, PLISTIT
 	{
 		if( pnd->ID_Value )
 		{
-			lprintf( WIDE("Set value to real value.") );
+			//lprintf( WIDE("Set value to real value.") );
 			GetOptionStringValueEx( (PODBC)psvUser, pnd->ID_Value, buffer, sizeof( buffer ) DBG_SRC );
 			StrCpyEx( l.last_value, buffer, sizeof(l.last_value)/sizeof(l.last_value[0]) );
 			SetControlText( GetNearControl( pc, EDT_OPTIONVALUE ), buffer );
 		}
 		else
 		{
-			lprintf( WIDE("Set to blank value - no value on branch.") );
+			//lprintf( WIDE("Set to blank value - no value on branch.") );
 			l.last_value[0] = 0;
 			SetControlText( GetNearControl( pc, EDT_OPTIONVALUE ), WIDE("") );
 		}

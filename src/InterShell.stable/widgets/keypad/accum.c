@@ -242,7 +242,7 @@ PACCUMULATOR GetAccumulator( CTEXTSTR name, _32 flags )
 		}
 		if( !pHeap )
 		{
-			fprintf( stderr, WIDE("Abort! Could not allocate accumulators!") );
+			lprintf( stderr, WIDE("Abort! Could not allocate accumulators!") );
 			exit(1);
 		}
 	}

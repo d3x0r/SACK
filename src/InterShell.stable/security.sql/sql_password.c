@@ -416,13 +416,13 @@ static void OnSaveSecurityContext( WIDE("SQL Password") )( FILE *file, PTRSZVAL 
 		LIST_FORALL( g.tokens, n, PTOKEN , token )
 		{
 			if( TESTFLAG( pls->permissions, n ) )
-				fprintf( file, WIDE("%sSQL password security=%s\n"), InterShell_GetSaveIndent(), token->name );
+				sack_fprintf( file, WIDE("%sSQL password security=%s\n"), InterShell_GetSaveIndent(), token->name );
 		}
 		if( pls->required_token && pls->required_token[0] )
 		{
 			fprintf( file, WIDE("%sSQL password required login=%s\n"), InterShell_GetSaveIndent(), pls->required_token );
 			if( pls->override_required_token && pls->override_required_token[0] )
-				fprintf( file, WIDE("%sSQL password required login override=%s\n"), InterShell_GetSaveIndent(), pls->override_required_token );
+				sack_fprintf( file, WIDE("%sSQL password required login override=%s\n"), InterShell_GetSaveIndent(), pls->override_required_token );
 		}
 	}
 }

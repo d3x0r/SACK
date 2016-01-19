@@ -2142,7 +2142,7 @@ int CPROC AltFrameMouse( PTRSZVAL psvCommon, S_32 x, S_32 y, _32 b )
 		return result;
 	}
 	if( g.flags.bLogDetailedMouse )
-		lprintf( "to test %d,%d  %d,%d", x, y, pf->CurrentBias.x, pf->CurrentBias.y );
+		lprintf( WIDE("to test %d,%d  %d,%d"), x, y, pf->CurrentBias.x, pf->CurrentBias.y );
 	if( !pf->flags.bSizing 
 		&& !pf->flags.bDragging
 		&& !pc->pressed_caption_button

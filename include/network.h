@@ -277,7 +277,7 @@ NETWORK_PROC( SOCKADDR *, SetNonDefaultPort )( SOCKADDR *pAddr, _16 nDefaultPort
  *
  */
 NETWORK_PROC( SOCKADDR *, CreateSockAddress )( CTEXTSTR name, _16 nDefaultPort );
-NETWORK_PROC( SOCKADDR *, CreateRemote )(CTEXTSTR lpName,_16 nHisPort);
+NETWORK_PROC( SOCKADDR *, CreateRemote )( CTEXTSTR lpName,_16 nHisPort);
 NETWORK_PROC( SOCKADDR *, CreateLocal )(_16 nMyPort);
 NETWORK_PROC( int, GetAddressParts )( SOCKADDR *pAddr, _32 *pdwIP, _16 *pwPort );
 NETWORK_PROC( void, ReleaseAddress )(SOCKADDR *lpsaAddr); // release a socket resource that has been created by an above routine
@@ -752,6 +752,15 @@ NETWORK_PROC( void, RemoveClientExx )(PCLIENT lpClient, LOGICAL bBlockNofity, LO
    
    \ \                                                                      */
 #define RemoveClient(c) RemoveClientEx(c, FALSE, FALSE )
+
+
+/* Begin an SSL Connection.  This ends up replacing ReadComplete callback with an inbetween layer*/
+NETWORK_PROC( LOGICAL, ssl_BeginClientSession )( PCLIENT pc );
+
+/* use this to send on SSL Connection instead of SendTCP. */
+LOGICAL ssl_Send( PCLIENT pc, POINTER buffer, size_t length );
+
+
 
 
 /* User Datagram Packet connection methods. This controls

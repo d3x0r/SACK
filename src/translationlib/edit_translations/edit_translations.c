@@ -4,6 +4,10 @@
 #include <controls.h>
 #include <translation.h>
 
+SACK_NAMESPACE
+/* Namespace of custom math routines.  Contains operators
+for Vectors and fractions. */
+_TRANSLATION_NAMESPACE
 
 static struct local
 {
@@ -25,7 +29,7 @@ static struct local
 static void AddTranslation( PTRSZVAL psv, PSI_CONTROL pc )
 {
 	TEXTCHAR name[256];
-	if( SimpleUserQuery( name, 256, "Enter Translation Name", NULL ) )
+	if( SimpleUserQuery( name, 256, WIDE("Enter Translation Name"), NULL ) )
 	{
 		PLISTITEM pli;
 		PTranslation translation = CreateTranslation( name );
@@ -43,7 +47,7 @@ static void FillBaseInformation( void )
 
 		translations = GetTranslations();
 		ResetComboBox( l.pc_translations );
-		AddComboBoxItem( l.pc_translations, "Native" );
+		AddComboBoxItem( l.pc_translations, WIDE("Native") );
 		LIST_FORALL( translations, idx, PTranslation, translation )
 		{
 			CTEXTSTR name = GetTranslationName( translation );
@@ -71,7 +75,7 @@ static void UpdateTranslation( PTRSZVAL psv, PSI_CONTROL pc )
 	{
 		PVARTEXT pvt = VarTextCreate();
 		PTEXT out;
-		vtprintf( pvt, "%s\t%s", GetLink( &l.index_strings, l.selected_string ), buf );
+		vtprintf( pvt, WIDE("%s\t%s"), GetLink( &l.index_strings, l.selected_string ), buf );
 		out = VarTextGet( pvt );
 		SetItemText( l.pli_selected_string, GetText( out ) );
 		LineRelease( out );
@@ -100,8 +104,8 @@ static void UpdateTranslatedStrings( void )
 		PLISTITEM pli;
 		if( translation_strings )
 		{
-			translation_string = GetLink( &translation_strings, idx );
-			vtprintf( pvt, "%s\t%s", string, translation_string );
+			translation_string = (CTEXTSTR)GetLink( &translation_strings, idx );
+			vtprintf( pvt, WIDE("%s\t%s"), string, translation_string );
 			out = VarTextGet( pvt );
 			pli = AddListItem( l.pc_translation_text, GetText( out ) );
 			SetItemData( pli, (PTRSZVAL)idx );
@@ -130,9 +134,8 @@ static void CPROC TranslationSelected( PTRSZVAL psv, PSI_CONTROL pc, PLISTITEM p
 static void AddTranslatable( PTRSZVAL psv, PSI_CONTROL pc )
 {
 	TEXTCHAR name[256];
-	if( SimpleUserQuery( name, 256, "Enter Translatable String", NULL ) )
+	if( SimpleUserQuery( name, 256, WIDE("Enter Translatable String"), NULL ) )
 	{
-		PLISTITEM pli;
 		TranslateText( name );
 		UpdateTranslatedStrings();
 	}
@@ -158,23 +161,20 @@ static void InitFrame( void )
 {
 	if( !l.frame )
 	{
-		PLISTITEM pli;
-		PTranslation translation;
-		INDEX idx;
 		PLIST translations;
-		l.frame = CreateFrame( "Edit Translations", 0, 0, 900, 500, 0, NULL );
+		l.frame = CreateFrame( WIDE("Edit Translations"), 0, 0, 900, 500, 0, NULL );
 		l.pc_translations = MakeNamedControl( l.frame, COMBOBOX_CONTROL_NAME, 5, 5, 250, 21, 0 );
 		SetComboBoxSelChangeHandler( l.pc_translations, TranslationSelected, 0 );
-		l.pc_add_translation = MakeNamedCaptionedControl( l.frame, NORMAL_BUTTON_NAME, 260, 5, 120, 21, 0, "Add Translation" );
+		l.pc_add_translation = MakeNamedCaptionedControl( l.frame, NORMAL_BUTTON_NAME, 260, 5, 120, 21, 0, WIDE("Add Translation") );
 		SetButtonPushMethod( l.pc_add_translation, AddTranslation, 0 );
-		l.pc_add_translatable = MakeNamedCaptionedControl( l.frame, NORMAL_BUTTON_NAME, 385, 5, 120, 21, 0, "Add Translatable" );
+		l.pc_add_translatable = MakeNamedCaptionedControl( l.frame, NORMAL_BUTTON_NAME, 385, 5, 120, 21, 0, WIDE("Add Translatable") );
 		SetButtonPushMethod( l.pc_add_translatable, AddTranslatable, 0 );
-		l.pc_save_translation = MakeNamedCaptionedControl( l.frame, NORMAL_BUTTON_NAME, 510, 5, 60, 21, 0, "Save" );
+		l.pc_save_translation = MakeNamedCaptionedControl( l.frame, NORMAL_BUTTON_NAME, 510, 5, 60, 21, 0, WIDE("Save") );
 		SetButtonPushMethod( l.pc_save_translation, SaveTranslation, 0 );
-		l.pc_load_translation = MakeNamedCaptionedControl( l.frame, NORMAL_BUTTON_NAME, 575, 5, 60, 21, 0, "Reload" );
+		l.pc_load_translation = MakeNamedCaptionedControl( l.frame, NORMAL_BUTTON_NAME, 575, 5, 60, 21, 0, WIDE("Reload") );
 		SetButtonPushMethod( l.pc_load_translation, LoadTranslation, 0 );
 		l.pc_edit_translated_text = MakeNamedControl( l.frame, EDIT_FIELD_NAME, 5, 31, 820, 21, 0 );
-		l.pc_update_text = MakeNamedCaptionedControl( l.frame, NORMAL_BUTTON_NAME, 830, 31, 60, 21, 0, "Update" );
+		l.pc_update_text = MakeNamedCaptionedControl( l.frame, NORMAL_BUTTON_NAME, 830, 31, 60, 21, 0, WIDE("Update") );
 		SetButtonPushMethod( l.pc_update_text, UpdateTranslation, 0 );
 		l.pc_translation_text = MakeNamedControl( l.frame, LISTBOX_CONTROL_NAME, 5, 57, 890, 400, 0 );
 		SetSelChangeHandler( l.pc_translation_text, SelectString, 0 );
@@ -210,7 +210,13 @@ int EditTranslations
 			WakeableSleep( 1000000 );
 		}
 	}
+	return 0;
 }
+
+/* Namespace of custom math routines.  Contains operators
+for Vectors and fractions. */
+  _TRANSLATION_NAMESPACE_END
+SACK_NAMESPACE_END
 
 #ifndef EDITTRANSLATION_PLUGIN
 

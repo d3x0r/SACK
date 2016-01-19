@@ -9,7 +9,7 @@
 #include <controls.h>
 #include <idle.h>
 //#ifndef __cplusplus_cli
-#include	<Windowsx.H>
+#include	<windowsx.h>
 #include <sqlgetoption.h>
 //#endif
 
@@ -180,7 +180,7 @@ PTRSZVAL CPROC RegisterAndCreate( PTHREAD thread )
 			TEXTCHAR byBuf[256];
 			if( GetLastError() != ERROR_CLASS_ALREADY_EXISTS )
 			{
-				snprintf( byBuf, sizeof( byBuf ), WIDE("RegisterClassError: %08x %d"), GetModuleHandle( NULL ), GetLastError() );
+				tnprintf( byBuf, sizeof( byBuf ), WIDE("RegisterClassError: %08x %d"), GetModuleHandle( NULL ), GetLastError() );
 				MessageBox( NULL, byBuf, WIDE("BAD"), MB_OK );
 				return FALSE;   // stop thread
 			}
@@ -193,7 +193,7 @@ PTRSZVAL CPROC RegisterAndCreate( PTHREAD thread )
 		//if( (PTRSZVAL)icon < 0x10000)
 		//	snprintf( wndname, sizeof( wndname ), WIDE("AlertAgentIcon:%d"), icon );
 		//else
-		snprintf( wndname, sizeof( wndname ), WIDE("AlertAgentIcon:%s"), GetProgramName() );
+		tnprintf( wndname, sizeof( wndname ), WIDE("AlertAgentIcon:%s"), GetProgramName() );
       /*
 		{
 			HWND prior = NULL;
@@ -489,7 +489,7 @@ void ChangeIconEx( CTEXTSTR icon DBG_PASS )
 	if( !nid.hIcon )
 	{
 		TEXTCHAR msg[128];
-		snprintf( msg, sizeof( msg ), DBG_FILELINEFMT WIDE("Failed to load icon") DBG_RELAY );
+		tnprintf( msg, sizeof( msg ), DBG_FILELINEFMT WIDE("Failed to load icon") DBG_RELAY );
 		MessageBox( NULL, msg, WIDE("Systray Library"), MB_OK );
 	}
 	Shell_NotifyIcon( NIM_MODIFY, &nid );
@@ -517,7 +517,7 @@ void TerminateIcon( void )
 	int attempt = 0;
 	HWND hWndOld;
 	TEXTCHAR iconwindow[256];
-	snprintf( iconwindow, sizeof( iconwindow ), WIDE( "AlertAgentIcon:%s" ), GetProgramName() );
+	tnprintf( iconwindow, sizeof( iconwindow ), WIDE( "AlertAgentIcon:%s" ), GetProgramName() );
 	while( ( hWndOld = FindWindow( WIDE("AlertAgentIcon"), iconwindow ) ) && ( attempt < 5 ) )
 	{
 		if( l.flags.bLog )

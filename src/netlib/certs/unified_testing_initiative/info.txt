@@ -1,0 +1,7 @@
+
+The Unified Testing Initiative (UTI) Root Key Certificate may be used
+only by member companies of the Java Verified Program or companies who
+have signed the Sun Microsystems, Inc Authorization to use the Unified
+Testing Initiative (UTI) Root Key Certificate for Java Verified
+Applications contract. Please click that you acknowledge that you have
+read this and accept these terms. 

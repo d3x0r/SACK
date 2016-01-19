@@ -39,7 +39,7 @@ typedef struct chat_time_tag *PCHAT_TIME;
 
 
 
-typedef struct chat_message_tag
+typedef struct chat_widget_message
 {
 	CHAT_TIME received_time; // the time the message was received
 	CHAT_TIME sent_time; // the time the message was sent
@@ -59,7 +59,7 @@ typedef struct chat_message_tag
 	int time_height;
 	LOGICAL deleted;
 } CHAT_MESSAGE;
-typedef struct chat_message_tag *PCHAT_MESSAGE;
+typedef struct chat_widget_message *PCHAT_MESSAGE;
 
 typedef struct chat_context_tag
 {
@@ -641,68 +641,68 @@ static void OnFinishInit( WIDE( "Chat Control" ) )( PSI_CONTROL canvas )
 static void OnSaveCommon( WIDE( "Chat Control" ) )( FILE *file )
 {
 
-	fprintf( file, WIDE("%sChat Control Sent Arrow Area=%d,%d %u,%u\n")
+	sack_fprintf( file, WIDE("%sChat Control Sent Arrow Area=%d,%d %u,%u\n")
 			 , InterShell_GetSaveIndent()
 			 , l.sent.arrow_x
 			 , l.sent.arrow_y
 			 , l.sent.arrow_w
 			 , l.sent.arrow_h );
-	fprintf( file, WIDE("%sChat Control Sent Arrow Offset=%d,%d\n")
+	sack_fprintf( file, WIDE("%sChat Control Sent Arrow Offset=%d,%d\n")
 			 , InterShell_GetSaveIndent()
 			 , l.sent.arrow_x_offset
 			 , l.sent.arrow_y_offset );
 
-	fprintf( file, WIDE("%sChat Control Received Arrow Area=%d,%d %u,%u\n")
+	sack_fprintf( file, WIDE("%sChat Control Received Arrow Area=%d,%d %u,%u\n")
 			 , InterShell_GetSaveIndent()
 			 , l.received.arrow_x
 			 , l.received.arrow_y
 			 , l.received.arrow_w
 			 , l.received.arrow_h );
-	fprintf( file, WIDE("%sChat Control Received Arrow Offset=%d,%d\n")
+	sack_fprintf( file, WIDE("%sChat Control Received Arrow Offset=%d,%d\n")
 			 , InterShell_GetSaveIndent()
 			 , l.received.arrow_x_offset
 			 , l.received.arrow_y_offset );
 
-	fprintf( file, WIDE("%sChat Control Sent Background Area=%d,%d %u,%u\n")
+	sack_fprintf( file, WIDE("%sChat Control Sent Background Area=%d,%d %u,%u\n")
 			 , InterShell_GetSaveIndent()
 			 , l.sent.back_x
 			 , l.sent.back_y
 			 , l.sent.back_w
 			 , l.sent.back_h );
-	fprintf( file, WIDE("%sChat Control Received Background Area=%d,%d %u,%u\n")
+	sack_fprintf( file, WIDE("%sChat Control Received Background Area=%d,%d %u,%u\n")
 			 , InterShell_GetSaveIndent()
 			 , l.received.back_x
 			 , l.received.back_y
 			 , l.received.back_w
 			 , l.received.back_h );
-	fprintf( file, WIDE("%sChat Control Sent Background Dividers=%d,%d,%d,%d\n")
+	sack_fprintf( file, WIDE("%sChat Control Sent Background Dividers=%d,%d,%d,%d\n")
 			 , InterShell_GetSaveIndent()
 			 , l.sent.div_x1
 			 , l.sent.div_x2
 			 , l.sent.div_y1
 			 , l.sent.div_y2 );
-	fprintf( file, WIDE("%sChat Control Received Background Dividers=%d,%d,%d,%d\n")
+	sack_fprintf( file, WIDE("%sChat Control Received Background Dividers=%d,%d,%d,%d\n")
 			 , InterShell_GetSaveIndent()
 			 , l.received.div_x1
 			 , l.received.div_x2
 			 , l.received.div_y1
 			 , l.received.div_y2 );
-	fprintf( file, WIDE("%sChat Control Background Image=%s\n")
+	sack_fprintf( file, WIDE("%sChat Control Background Image=%s\n")
 			 , InterShell_GetSaveIndent()
 			 , l.decoration_name );
-	fprintf( file, WIDE("%sChat Control Side Pad=%d\n")
+	sack_fprintf( file, WIDE("%sChat Control Side Pad=%d\n")
 			 , InterShell_GetSaveIndent()
 			 , l.side_pad );
-	fprintf( file, WIDE("%sChat Control Received Decoration Justification=%d\n")
+	sack_fprintf( file, WIDE("%sChat Control Received Decoration Justification=%d\n")
 			 , InterShell_GetSaveIndent()
 			, l.flags.received_justification );
-	fprintf( file, WIDE("%sChat Control Sent Decoration Justification=%d\n")
+	sack_fprintf( file, WIDE("%sChat Control Sent Decoration Justification=%d\n")
 			 , InterShell_GetSaveIndent()
 			, l.flags.sent_justification );
-	fprintf( file, WIDE("%sChat Control Received Text Justification=%d\n")
+	sack_fprintf( file, WIDE("%sChat Control Received Text Justification=%d\n")
 			 , InterShell_GetSaveIndent()
 			, l.flags.received_text_justification );
-	fprintf( file, WIDE("%sChat Control Sent Text Justification=%d\n")
+	sack_fprintf( file, WIDE("%sChat Control Sent Text Justification=%d\n")
 			 , InterShell_GetSaveIndent()
 			, l.flags.sent_text_justification );
 }
@@ -776,7 +776,7 @@ void Chat_ClearMessages( PSI_CONTROL pc )
 }
 
 
-void Chat_EnqueMessage( PSI_CONTROL pc, LOGICAL sent
+PCHAT_MESSAGE  Chat_EnqueMessage( PSI_CONTROL pc, LOGICAL sent
 							 , PCHAT_TIME sent_time
 							 , PCHAT_TIME received_time
 							 , PCHAT_TIME seen_time
@@ -833,10 +833,11 @@ void Chat_EnqueMessage( PSI_CONTROL pc, LOGICAL sent
 		pcm->_sent = sent;
 		pcm->formatted_text = NULL;
 		EnqueLink( &pcc->messages, pcm );
+		return pcm;
 	}
 }
 
-void Chat_EnqueImage( PSI_CONTROL pc, LOGICAL sent
+PCHAT_MESSAGE Chat_EnqueImage( PSI_CONTROL pc, LOGICAL sent
 							 , PCHAT_TIME sent_time
 							 , PCHAT_TIME received_time
 							 , PCHAT_TIME seen_time
@@ -881,8 +882,16 @@ void Chat_EnqueImage( PSI_CONTROL pc, LOGICAL sent
 			pcm->sent_time = sent_time[0];
 		else
 			MemSet( &pcm->sent_time, 0, sizeof( pcm->sent_time ) );
-		pcm->seen = 0;
-		MemSet( &pcm->seen_time, 0, sizeof( pcm->seen_time ) );
+		if( seen_time )
+		{
+			pcm->seen = seen_time[0].yr?1:0;
+			pcm->seen_time = seen_time[0];
+		}
+		else
+		{
+			pcm->seen = 0;
+			MemSet( &pcm->seen_time, 0, sizeof( pcm->seen_time ) );
+		}
 		pcm->psvSeen = psvSeen;
 		pcm->text = NULL;
 		pcm->image = image;
@@ -892,6 +901,7 @@ void Chat_EnqueImage( PSI_CONTROL pc, LOGICAL sent
 		pcm->formatted_text = NULL;
 		pcm->deleted = 0;
 		EnqueLink( &pcc->messages, pcm );
+		return pcm;
 	}
 }
 
@@ -1245,8 +1255,15 @@ _32 UpdateContextExtents( Image window, PCHAT_LIST list, PCHAT_CONTEXT context )
 			CTEXTSTR timebuf;
 			_32 w, h;
 			_32 max_width = context->max_width;
-			timebuf = FormatMessageTime( "sent time", &l.now, &msg->sent_time ) ;
-			snprintf( msg->formatted_time, 256, "Sent: %s", timebuf );
+			if( msg->sent_time.yr == 0 )
+			{
+				snprintf( msg->formatted_time, 256, "Sending..." );
+			}
+			else
+			{
+				timebuf = FormatMessageTime( "sent time", &l.now, &msg->sent_time ) ;
+				snprintf( msg->formatted_time, 256, "Sent: %s", timebuf );
+			}
 			GetStringSizeFont(  msg->formatted_time, &w, &h, list->date_font );
 			msg->time_height = h + l.time_pad;
 			msg->_message_y += msg->time_height;
@@ -1415,10 +1432,13 @@ static void DrawMessages( PCHAT_LIST list, Image window )
 		_32 debug_start_top;
 		_32 frame_size;
 		int frame_pad;
-		_32 max_width = UpdateContextExtents( window, list, context );
+		_32 max_width;
 
 		S_32 x_offset_left, x_offset_right;	
 		S_32 _x_offset_left, _x_offset_right;	
+		if( context->deleted )
+			continue;
+		max_width = UpdateContextExtents( window, list, context );
 		MeasureFrameWidth( window, &x_offset_left, &x_offset_right, !context->sent, TRUE, 0 );
 		_x_offset_left = x_offset_left;
 		_x_offset_right = x_offset_right;
@@ -1537,6 +1557,8 @@ static PCHAT_MESSAGE FindMessage( PCHAT_LIST list, int x, int y )
 	for( context_idx = -1; context = (PCHAT_CONTEXT)PeekQueueEx( list->contexts, context_idx ); context_idx-- )
 	{
 		//lprintf( WIDE("BEgin find messages... context %d"), context_idx );
+		if( context->deleted )
+			continue;
 		if( context_idx < -1 )
 			message_top -= l.side_pad;
 
@@ -1551,6 +1573,8 @@ static PCHAT_MESSAGE FindMessage( PCHAT_LIST list, int x, int y )
 			for( message_idx = -1; msg = (PCHAT_MESSAGE)PeekQueueEx( context->messages, message_idx ); message_idx-- )
 			{
 				//lprintf( "check message %d", message_idx );
+				if( msg->deleted )
+					continue;
 				if( msg->formatted_text )
 				{
 					//lprintf( WIDE("is a text skip message...") );
@@ -2650,31 +2674,51 @@ void Chat_GetCurrentTime( PCHAT_TIME timebuf )
 
 	{
 		// Get the local system time.
+
 		SYSTEMTIME LocalTime = { 0 };
+
 		SYSTEMTIME GmtTime = { 0 };
+
 		GetSystemTime( &LocalTime );
+
 		{
+			DWORD dwType;
+			DWORD dwValue;
+			DWORD dwSize = sizeof( dwValue );
+			HKEY hTemp;
+			DWORD dwStatus;
+
+			dwStatus = RegOpenKeyEx( HKEY_LOCAL_MACHINE
+			                       , "SYSTEM\\CurrentControlSet\\Control\\TimeZoneInformation", 0
+			                       , KEY_READ, &hTemp );
+
+			if( (dwStatus == ERROR_SUCCESS) && hTemp )
+			{
+				dwSize = sizeof( dwValue );
+				dwStatus = RegQueryValueEx(hTemp, "ActiveTimeBias", 0
+				                          , &dwType
+				                          , (PBYTE)&dwValue
+				                          , &dwSize );
+
+				RegCloseKey( hTemp );
+			}
+			else
+				dwValue = 0;
+			//HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\TimeZoneInformation
 			// Get the timezone info.
-			TIME_ZONE_INFORMATION TimeZoneInfo;
-			GetTimeZoneInformation( &TimeZoneInfo );
+			//TIME_ZONE_INFORMATION TimeZoneInfo;
+			//GetTimeZoneInformation( &TimeZoneInfo );
 
 			// Convert local time to UTC.
-			TzSpecificLocalTimeToSystemTime( &TimeZoneInfo,
-											 &LocalTime,
-											 &GmtTime );
+			//TzSpecificLocalTimeToSystemTime( &TimeZoneInfo,
+			//								 &LocalTime,
+			//								 &GmtTime );
 			// Local time expressed in terms of GMT bias.
-			timebuf->zhr = (S_8)( -( TimeZoneInfo.Bias / 60 + ( TimeZoneInfo.DaylightBias / 60 ) ) ) ;
-			timebuf->zmn = ( TimeZoneInfo.Bias % 60 ) + ( TimeZoneInfo.DaylightBias % 60 );
-
-			// GMT = LocalTime + TimeZoneInfo.Bias
-			// TimeZoneInfo.Bias is the difference between local time
-			// and GMT in minutes.
+			{
+			timebuf->zhr = (S_8)( -( (int)dwValue/60 ) ) ;
+			timebuf->zmn = ( dwValue % 60 );
+			}
 		}
-		//csLocalTimeInGmt.Format( _T("%ld:%ld:%ld + %2.1f Hrs"),
-		//                         GmtTime.wHour,
-		///                        GmtTime.wMinute,
-		//                       GmtTime.wSecond,
-		//                      TimeZoneDifference );
 	}
 	// latest information...
 	// DYNAMIC_TIME_ZONE_INFORMATION  tzi;
@@ -2731,6 +2775,9 @@ void Chat_ClearOldMessages( PSI_CONTROL pc, int delete_time )
 				S_64 msg_time ;
 				if( context->sent )
 				{ 
+					// if hasn't been sent yet...
+					if( msg->sent_time.yr == 0 )
+						continue;
 					msg_time = AbsoluteSeconds( &msg->sent_time );
 					//lprintf( "seen stamp is %d/%d/%d %d:%d:%d  %d %d"
 					//	, msg->sent_time.mo, msg->sent_time.dy, msg->sent_time.yr
@@ -2777,6 +2824,8 @@ void Chat_ClearOldMessages( PSI_CONTROL pc, int delete_time )
 					DequeLink( &list->contexts );
 					c--;
 				}
+				else
+					context->deleted = TRUE;
 			}
 			//else
 			//	break;
@@ -2862,5 +2911,13 @@ void Chat_SetImageViewerAutoCloseHandler( PSI_CONTROL pc, void (CPROC*Event)( PT
 	PCHAT_LIST list = (*ppList);
 	list->OnImageAutoClose = Event;
 	list->psvImageAutoClose = psvEvent;
+}
+
+void Chat_UpdateMessageSendTime( PSI_CONTROL pc
+													, struct chat_widget_message *msg
+													, PCHAT_TIME time )
+{
+	msg->sent_time = time[0];
+	SmudgeCommon( pc );
 }
 

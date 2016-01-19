@@ -25,7 +25,12 @@ using namespace sack::image::loader;
 IMAGE_NAMESPACE_END
 
 
-static IMAGE_INTERFACE InstanceProxyImageInterface;
+#ifndef __cplusplus
+static 
+#else
+extern
+#endif
+IMAGE_INTERFACE InstanceProxyImageInterface;
 
 
 static void FormatColor( PVARTEXT pvt, CPOINTER data )
@@ -671,7 +676,7 @@ void InvokeNewDisplay( struct vidlib_proxy_application *app )
 {
 	void (CPROC *NewDisplayConnected)(struct vidlib_proxy_application *,struct vidlib_proxy_application_local ***);
 	PCLASSROOT data = NULL;
-	PCLASSROOT event_root = GetClassRootEx( WIDE( "/sack/render/remote display" ), WIDE( "connect" ) );
+	PCLASSROOT event_root = GetClassRootEx( (PCLASSROOT)WIDE( "/sack/render/remote display" ), WIDE( "connect" ) );
 	CTEXTSTR name;
 	ThreadNetworkState.flags.during_connect = 1;
 	//DumpRegisteredNamesFrom( WIDE( "/sack/render" ) );
@@ -716,7 +721,7 @@ static void SendCompressedBuffer( PCLIENT pc, PVPImage image )
 #ifdef _UNICODE
 			encoded_data = CStrDup( (CTEXTSTR)image->websock_buffer );
 			// do not include the NULL...
-			compress2( output, &destlen, encoded_data, CStrLen( encoded_data ), Z_BEST_COMPRESSION );
+			compress2( output, &destlen, (const Bytef*)encoded_data, CStrLen( encoded_data ), Z_BEST_COMPRESSION );
 			Deallocate( char *, encoded_data );
 #else
 			// this is includnig the close ] of the buffer to this state...
@@ -748,7 +753,7 @@ static void SendCompressedBuffer( PCLIENT pc, PVPImage image )
 				struct json_context_object *cto;
 				cto = (struct json_context_object *)GetLink( &l.messages, outmsg->message_id );
 				if( !cto )
-					cto = WebSockInitJson( outmsg->message_id );
+					cto = WebSockInitJson( (enum proxy_message_id)outmsg->message_id );
 				json_msg = json_build_message( cto, outmsg );
 				WebSocketSendText( pc, json_msg, StrLen( json_msg ) );
 				Release( output );
@@ -1068,7 +1073,7 @@ static void WebSockEvent( PCLIENT pc, PTRSZVAL psv, POINTER buffer, int msglen )
 	ThreadNetworkState.app = client;
 
 #ifdef _UNICODE
-	buf = CharWConvertExx( buffer, msglen DBG_SRC );
+	buf = CharWConvertExx( (char*)buffer, msglen DBG_SRC );
 	lprintf( WIDE("Received:%*.*S"), msglen,msglen,buffer );
 	if( json_parse_message( l.json_reply_context, buf, msglen, &json_object, &msg ) )
 	//lprintf( WIDE("Received:%*.*") _cstring_f, msglen,msglen,buffer );
@@ -1575,7 +1580,16 @@ static const TEXTCHAR * CPROC VidlibProxy_GetKeyText		 ( int key )
 		return 0;
 	}
 	//printf( WIDE("Key Translated: %d(%c)\n"), ch[0], ch[0] );
+#ifdef UNICODE
+	{
+		static wchar_t *out;
+		if( out ) Deallocate( wchar_t *, out );
+		out = DupCStr( ch );
+		return out;
+	}
+#else
 	return ch;
+#endif
 #endif
 }
 
@@ -2396,7 +2410,7 @@ static void CPROC VidlibProxy_BlotImageSizedEx( Image pDest, Image pIF, S_32 x, 
 			TEXTSTR json_msg = json_build_message( cto, outmsg );
 			if( image->render_id != INVALID_INDEX )
 			{
-				PVPRENDER r = GetLink( &ThreadNetworkState.app->application_instance->renderers, image->render_id );
+				PVPRENDER r = (PVPRENDER)GetLink( &ThreadNetworkState.app->application_instance->renderers, image->render_id );
 				if( !r || !r->flags.open )
 					AppendJSON( image, json_msg, ((P_8)outmsg)-4, sendlen, TRUE );
 				else
@@ -2644,7 +2658,7 @@ static void CPROC VidlibProxy_BlotScaledImageSizedEx( Image pifDest, Image pifSr
 			TEXTSTR json_msg = json_build_message( cto, outmsg );
 			if( image->render_id != INVALID_INDEX )
 			{
-				PVPRENDER r = GetLink( &ThreadNetworkState.app->application_instance->renderers, image->render_id );
+				PVPRENDER r = (PVPRENDER)GetLink( &ThreadNetworkState.app->application_instance->renderers, image->render_id );
 				if( !r || !r->flags.open )
 				{
 					AppendJSON( image, json_msg, ((P_8)outmsg)-4, sendlen, TRUE );
@@ -2759,7 +2773,7 @@ DIMAGE_DATA_PROC( void,do_line,	  ( Image pifDest, S_32 x, S_32 y, S_32 xto, S_3
 			TEXTSTR json_msg = json_build_message( cto, outmsg );
 			if( image->render_id != INVALID_INDEX )
 			{
-				PVPRENDER r = GetLink( &ThreadNetworkState.app->application_instance->renderers, image->render_id );
+				PVPRENDER r = (PVPRENDER)GetLink( &ThreadNetworkState.app->application_instance->renderers, image->render_id );
 				if( !r || !r->flags.open )
 				{
 					AppendJSON( image, json_msg, ((P_8)outmsg)-4, sendlen, TRUE );
@@ -3139,8 +3153,10 @@ IMAGE_PROC_PTR( void, Render3dImage )( Image pImage, PCVECTOR o, LOGICAL render_
 IMAGE_PROC_PTR( void, DumpFontFile )( CTEXTSTR name, SFTFont font_to_dump );
 IMAGE_PROC_PTR( void, Render3dText )( CTEXTSTR string, int characters, CDATA color, SFTFont font, VECTOR o, LOGICAL render_pixel_scaled );
 
-
-static IMAGE_INTERFACE InstanceProxyImageInterface = {
+#ifndef __cplusplus
+static 
+#endif
+	IMAGE_INTERFACE InstanceProxyImageInterface = {
 	VidlibProxy_SetStringBehavior,
 		VidlibProxy_SetBlotMethod,
 		VidlibProxy_BuildImageFileEx,

@@ -33,11 +33,11 @@ enum player_controls {
 void UpdatePlayerDialog( void )
 {
 	TEXTCHAR txt[64];
-	SetCommonText( GetControl( g.Player, TXT_PLAYER ), g.pCurrentPlayer->name );
+	SetControlText( GetControl( g.Player, TXT_PLAYER ), g.pCurrentPlayer->name );
 	snprintf( txt, sizeof( txt ), WIDE("$%ld"), g.pCurrentPlayer->Cash );
-	SetCommonText( GetControl( g.Player, TXT_CASH ), txt );
+	SetControlText( GetControl( g.Player, TXT_CASH ), txt );
 	snprintf( txt, sizeof( txt ), WIDE("$%ld"), g.pCurrentPlayer->NetValue );
-	SetCommonText( GetControl( g.Player, TXT_VALUE ), txt );
+	SetControlText( GetControl( g.Player, TXT_VALUE ), txt );
 	UpdateCommon( g.Player );
 }
 

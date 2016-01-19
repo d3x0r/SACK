@@ -8,7 +8,8 @@
 #include <psi.h>
 #include <sqlgetoption.h>
 #include <psi/console.h> // text formatter
-
+#include <imglib/fontstruct.h>
+#include <translation.h>
 #include "../include/buttons.h"
 
 #include "../../intershell_registry.h"
@@ -47,7 +48,20 @@ EasyRegisterControlWithBorder( CONTROL_NAME, sizeof( ImageViewer ), BORDER_CAPTI
 static int OnCreateCommon( CONTROL_NAME )( PSI_CONTROL pc )
 {
 	ImageViewer *pViewer = ControlData( ImageViewer *, pc );
-	SetControlText( pc, "Image Viewer (Escape to Exit; Scroll Wheel Zooms; Click&Drag Pan)" );
+	if( !l.image_help_font )
+	{
+		TEXTCHAR buf[256];
+		int w, h;
+		SACK_GetProfileString( "widgets/Image Viewer", "Help Font Name", "arial", buf, 256 );
+		w = SACK_GetProfileInt( "widgets/Image Viewer", "Help Font Width", 14 );
+		h = SACK_GetProfileInt( "widgets/Image Viewer", "Help Font Height", 12 );
+		l.image_help_font = RenderFontFile( buf, w, h, FONT_FLAG_8BIT );
+		l.image_grid_background_color = AColor( 32, 32, 32, 255 );
+		l.image_grid_color = AColor( 48, 48, 48, 255 );
+		l.help_text_background = AColor( 0, 0, 0, 64 );
+		l.help_text_color = BASE_COLOR_WHITE;
+	}
+	SetControlText( pc, TranslateText( "Image Viewer" )/* (Scroll Wheel Zooms; Click&Drag Pan)" )*/ );
 	pViewer->zoom = 1000;
 	//AddCaptionButton( pc, NULL, NULL, 0, NULL );
 	return 1;
@@ -71,10 +85,10 @@ static int OnDrawCommon( CONTROL_NAME )( PSI_CONTROL pc )
 			pViewer->yofs = ( surface->height / 2 ) * 1000 - pViewer->image->height * pViewer->zoom;
 	}
 
-	ClearImageTo( surface, BASE_COLOR_BLACK );
+	ClearImageTo( surface, l.image_grid_background_color );
 	{
 		int n;
-		int c = BASE_COLOR_WHITE;
+		int c = l.image_grid_color;
 		for( n = 0; n < surface->width; n += 20 )
 			do_vline( surface, n, 0, surface->height, c );
 		for( n = 0; n < surface->height; n += 20 )
@@ -93,6 +107,15 @@ static int OnDrawCommon( CONTROL_NAME )( PSI_CONTROL pc )
 			, ALPHA_TRANSPARENT
 			, BLOT_COPY
 			);
+		{
+			CTEXTSTR message = TranslateText( "Escape to Exit\nScroll Wheel Zooms\nClick&Drag Pan" );
+			_32 w, h;
+			GetStringSizeFont( message, &w, &h, l.image_help_font );
+			BlatColorAlpha( surface, 0, 0, w + 15, h + 6, l.help_text_background );
+			PutStringFont( surface, 5, 3, l.help_text_color, 0
+						, message
+						, l.image_help_font );
+		}
 	}
 	return 1;
 }
@@ -243,39 +266,56 @@ PSI_CONTROL ImageViewer_ShowImage( PSI_CONTROL parent, Image image
 								  )
 {
 	PSI_CONTROL pc;
+	_32 zoom;
 	ImageViewer *pViewer;
 	int x = 10;
 	int y = 10;
 	_32 w, h;
 	_32 show_w, show_h;
 	GetDisplaySize( &w, &h );
-	if( SUS_LT( image->width, int, w / 2, _32 ) )
+	if( SUS_LT( image->width, int, w * 3 / 4, _32 ) )
 	{
 		show_w = image->width;
-		if( SUS_LT( image->height, int, h - 200, _32 ) )
+		if( SUS_LT( image->height, int, h * 3 / 4, _32 ) )
 		{
 			show_h = image->height;
 		}
 		else
 		{
-			show_h = h - 250;
+			show_h = h * 3 / 4;
 			show_w = show_h * image->width / image->height;
 		}
 	}
 	else
 	{
-		show_w = w / 2;
+		show_w = w * 3 / 4;
 		show_h = show_w * image->height / image->width;
-		if( show_h < h - 250 )
+		if( show_h < ( ( h * 3 ) / 4 ) )
 		{
 			//show_h = image->height;
 		}
 		else
 		{
-			show_h = h - 250;
+			show_h = ( h * 3 ) / 4;
 			show_w = show_h * image->width / image->height;
 		}
 	}
+	if( show_w < 250 )
+	{
+		show_h = ( show_h * 250 ) / show_w;
+		show_w = 250;
+
+	}
+	if( show_h < 250 )
+	{
+		show_w = ( show_w * 250 ) / show_h;
+		show_h = 250;
+	}
+	zoom = 1000 * show_w / image->width;
+
+	show_w = ( image->width * zoom ) / 1000;
+	show_h = ( image->height * zoom ) / 1000;
+
 	x = (w - show_w ) / 2;
 	y = ( h - show_h ) / 2;
 	pc = MakeNamedControl( NULL, CONTROL_NAME, x, y, show_w, show_h, -1 );
@@ -289,7 +329,7 @@ PSI_CONTROL ImageViewer_ShowImage( PSI_CONTROL parent, Image image
 	//HideCommon( GetControl( pc, IDCANCEL ) );
 	pViewer->PopupEvent = PopupEvent;
 	pViewer->psvPopup = psvEvent;
-	pViewer->zoom = 1000 * show_w / image->width;
+	pViewer->zoom = zoom;
 	pViewer->image = image;
 	pViewer->parent = parent;
 	pViewer->self = pc;

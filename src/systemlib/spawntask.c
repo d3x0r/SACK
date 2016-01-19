@@ -418,7 +418,7 @@ SYSTEM_PROC( PTASK_INFO, LaunchPeerProgramExx )( CTEXTSTR program, CTEXTSTR path
 				if( ( CreateProcess( NULL //program
 										 , GetText( cmdline )
 										 , NULL, NULL, TRUE
-										 , 0//CREATE_NEW_PROCESS_GROUP
+										 , OutputHandler?CREATE_NO_WINDOW:0//CREATE_NEW_PROCESS_GROUP
 										 , NULL
 										 , expanded_working_path
 										 , &task->si
@@ -426,7 +426,7 @@ SYSTEM_PROC( PTASK_INFO, LaunchPeerProgramExx )( CTEXTSTR program, CTEXTSTR path
 					( CreateProcess( program
 										, GetText( cmdline )
 										, NULL, NULL, TRUE
-										, 0//CREATE_NEW_PROCESS_GROUP
+										, OutputHandler?CREATE_NO_WINDOW:0//CREATE_NEW_PROCESS_GROUP
 										, NULL
 										, expanded_working_path
 										, &task->si
@@ -434,7 +434,7 @@ SYSTEM_PROC( PTASK_INFO, LaunchPeerProgramExx )( CTEXTSTR program, CTEXTSTR path
 					( CreateProcess( program
 										, NULL // GetText( cmdline )
 										, NULL, NULL, TRUE
-										, 0//CREATE_NEW_PROCESS_GROUP
+										, OutputHandler?CREATE_NO_WINDOW:0//CREATE_NEW_PROCESS_GROUP
 										, NULL
 										, expanded_working_path
 										, &task->si
@@ -443,7 +443,7 @@ SYSTEM_PROC( PTASK_INFO, LaunchPeerProgramExx )( CTEXTSTR program, CTEXTSTR path
 					( CreateProcess( NULL//WIDE( "cmd.exe" )
 										, GetText( final_cmdline )
 										, NULL, NULL, TRUE
-										, 0//CREATE_NEW_PROCESS_GROUP
+										, OutputHandler?CREATE_NO_WINDOW:0//CREATE_NEW_PROCESS_GROUP
 										, NULL
 										, expanded_working_path
 										, &task->si

@@ -24,7 +24,7 @@ SACK_DEADSTART_NAMESPACE
 #    define PRELOAD(name) static void _##name(void); \
     public ref class name {   \
 	public:name() { _##name(); \
-		System::Console::WriteLine( /*lprintf( */gcnew System::String( WIDE("Startups.ADSF.. ") ) ); \
+		System::Console::WriteLine( gcnew System::String( WIDE("Startups... ") ) ); \
 	  }  \
 	}/* do_schedul_##name*/;     \
 	static void _##name(void)

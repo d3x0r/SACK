@@ -11,7 +11,8 @@
 #include "../fntglobal.h"
 #define REQUIRE_GLUINT
 #include "../image_common.h"
-
+#include "../pngimage.h"
+#include "../jpgimage.h"
 #include "local.h"
 
 IMAGE_NAMESPACE

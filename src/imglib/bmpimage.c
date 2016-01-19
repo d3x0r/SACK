@@ -113,7 +113,7 @@ typedef struct {
 #endif
 
 /* compare _MSC_VER to some constant when you fail to compile here... and this will define missing structure */
-#if UNDER_CE || ( (__WATCOMC__ <= 1250 ) || defined __LINUX__ ) && !defined( _MSC_VER ) && !defined( __CYGWIN__ ) && !defined( _WINGDI_H) 
+#if UNDER_CE || ( (__WATCOMC__ <= 1250 ) || defined __LINUX__ ) && !defined( _MSC_VER ) && !defined( __CYGWIN__ ) && !defined( _WINGDI_H) && !defined( _WINGDI_ )
 //#if (WINVER >= 0x0500)
 //typedef long    FXPT2DOT30;
 #if 0

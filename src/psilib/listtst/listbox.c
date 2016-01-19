@@ -29,14 +29,7 @@ PSI_CONTROL CreateListTester( PSI_CONTROL parent )
 	int n;
 	_32 used, free, blocks, freeblocks;
    	PCOMMON pf;
-	//SetSystemLog( SYSLOG_FILE, stdout );
-	//SetBlotMethod( BLOT_MMX );
-//#ifdef __STATIC__
-	//SetControlImageInterface( GetImageInterface() );
-	//SetControlInterface( GetDisplayInterface() );
-//#endif
 	GetMemStats( &free, &used, &blocks, &freeblocks );
-	//SetCriticalLogging( 2 );
 
 	printf( WIDE("Mem Stats: %") _32f WIDE(" %") _32f WIDE(" %") _32f WIDE(" %") _32f WIDE("\n")
 			, used, free, blocks, freeblocks );

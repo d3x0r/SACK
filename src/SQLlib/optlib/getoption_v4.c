@@ -72,7 +72,7 @@ CTEXTSTR New4ReadOptionNameTable( POPTION_TREE tree, CTEXTSTR name, CTEXTSTR tab
 
 			PushSQLQueryEx( tree->odbc );
 			tmp = EscapeSQLStringEx( tree->odbc, name DBG_RELAY );
-			snprintf( query, sizeof( query ), WIDE("select %s from %s where %s like '%s'"), col?col:WIDE("id"), table, namecol, tmp );
+			tnprintf( query, sizeof( query ), WIDE("select %s from %s where %s like '%s'"), col?col:WIDE("id"), table, namecol, tmp );
 			Release( tmp );
 			if( SQLQueryEx( tree->odbc, query, &result DBG_RELAY) && result )
 			{
@@ -82,7 +82,7 @@ CTEXTSTR New4ReadOptionNameTable( POPTION_TREE tree, CTEXTSTR name, CTEXTSTR tab
 			else if( bCreate )
 			{
 				TEXTSTR newval = EscapeSQLString( tree->odbc, name );
-				snprintf( query, sizeof( query ), WIDE("insert into %s (%s,%s) values( '%s','%s' )")
+				tnprintf( query, sizeof( query ), WIDE("insert into %s (%s,%s) values( '%s','%s' )")
 						  , table, col, namecol, IDName = GetSeqGUID(), newval );
 				OpenWriterEx( tree DBG_RELAY );
 				if( !SQLCommandEx( tree->odbc_writer, query DBG_RELAY ) )
@@ -118,7 +118,7 @@ CTEXTSTR New4ReadOptionNameTable( POPTION_TREE tree, CTEXTSTR name, CTEXTSTR tab
 LOGICAL CPROC LogProcessNode( PTRSZVAL psvForeach, PTRSZVAL psvNodeData, int level )
 {
 	POPTION_TREE_NODE nodeval = (POPTION_TREE_NODE)psvNodeData;
-	lprintf( "%d %s", level, nodeval->name );
+	lprintf( WIDE("%d %s"), level, nodeval->name );
 	return TRUE;
 }
 
@@ -252,7 +252,7 @@ POPTION_TREE_NODE New4GetOptionIndexExxx( PODBC odbc, POPTION_TREE tree, POPTION
 			if( !bIKnowItDoesntExist )
 			{
 				PushSQLQueryExEx(tree->odbc DBG_RELAY );
-				snprintf( query, sizeof( query )
+				tnprintf( query, sizeof( query )
 						  , WIDE( "select option_id from " )OPTION4_MAP WIDE( " where parent_option_id='%s' and name_id='%s'" )
 						  , parent->guid
 						  , IDName );
@@ -265,7 +265,7 @@ POPTION_TREE_NODE New4GetOptionIndexExxx( PODBC odbc, POPTION_TREE tree, POPTION
 					// this is the only place where ID must be set explicit...
 						// otherwise our root node creation failes if said root is gone.
 					//lprintf( WIDE( "New entry... create it..." ) );
-					snprintf( query, sizeof( query ), WIDE( "Insert into " )OPTION4_MAP WIDE( "(`option_id`,`parent_option_id`,`name_id`) values ('%s','%s','%s')" )
+					tnprintf( query, sizeof( query ), WIDE( "Insert into " )OPTION4_MAP WIDE( "(`option_id`,`parent_option_id`,`name_id`) values ('%s','%s','%s')" )
 							  , ID = GetSeqGUID(), parent->guid, IDName );
 					OpenWriter( tree );
 					if( SQLCommand( tree->odbc_writer, query ) )
@@ -350,7 +350,7 @@ size_t New4GetOptionStringValue( PODBC odbc, POPTION_TREE_NODE optval, TEXTCHAR 
 	}
 
 #if 0
-	snprintf( query, sizeof( query ), WIDE( "select override_value_id from " )OPTION4_EXCEPTION WIDE( " " )
+	tnprintf( query, sizeof( query ), WIDE( "select override_value_id from " )OPTION4_EXCEPTION WIDE( " " )
             WIDE( "where ( apply_from<=now() or apply_from=0 )" )
             WIDE( "and ( apply_until>now() or apply_until=0 )" )
             WIDE( "and ( system_id=%d or system_id=0 )" )
@@ -369,7 +369,7 @@ size_t New4GetOptionStringValue( PODBC odbc, POPTION_TREE_NODE optval, TEXTCHAR 
 #endif
 
 	PushSQLQueryEx( odbc );
-	snprintf( query, sizeof( query ), WIDE( "select string from " )OPTION4_VALUES WIDE( " where option_id='%s' order by segment" ), optval->guid );
+	tnprintf( query, sizeof( query ), WIDE( "select string from " )OPTION4_VALUES WIDE( " where option_id='%s' order by segment" ), optval->guid );
 	// have to push here, the result of the prior is kept outstanding
 	// if this was not pushed, the prior result would evaporate.
 	buffer[0] = 0;
@@ -442,7 +442,7 @@ LOGICAL New4CreateValue( POPTION_TREE tree, POPTION_TREE_NODE value, CTEXTSTR pV
 
 	if( pValue == NULL )
 	{
-		snprintf( insert, sizeof( insert ), WIDE( "delete from " )OPTION4_VALUES WIDE( " where `option_id`='%s'" )
+		tnprintf( insert, sizeof( insert ), WIDE( "delete from " )OPTION4_VALUES WIDE( " where `option_id`='%s'" )
 				  , value->guid
 				  );
 		value->value = NULL;
@@ -455,7 +455,7 @@ LOGICAL New4CreateValue( POPTION_TREE tree, POPTION_TREE_NODE value, CTEXTSTR pV
 		while( len > 95)
 		{
 			newval = EscapeSQLBinaryOpt( tree->odbc_writer, pValue + offset, 95, TRUE );
-			snprintf( insert, sizeof( insert ), WIDE( "replace into " )OPTION4_VALUES WIDE( " (`option_id`,`string`,`segment` ) values ('%s',%s,%d)" )
+			tnprintf( insert, sizeof( insert ), WIDE( "replace into " )OPTION4_VALUES WIDE( " (`option_id`,`string`,`segment` ) values ('%s',%s,%d)" )
 					  , value->guid
 					  , newval
 					  , segment
@@ -476,7 +476,7 @@ LOGICAL New4CreateValue( POPTION_TREE tree, POPTION_TREE_NODE value, CTEXTSTR pV
 			segment++;
 		}
 		newval = EscapeSQLBinaryOpt( tree->odbc_writer, pValue + offset, len, TRUE );
-		snprintf( insert, sizeof( insert ), WIDE( "replace into " )OPTION4_VALUES WIDE( " (`option_id`,`string`,`segment` ) values ('%s',%s,%d)" )
+		tnprintf( insert, sizeof( insert ), WIDE( "replace into " )OPTION4_VALUES WIDE( " (`option_id`,`string`,`segment` ) values ('%s',%s,%d)" )
 				  , value->guid
 				  , newval
 				  , segment
@@ -485,7 +485,7 @@ LOGICAL New4CreateValue( POPTION_TREE tree, POPTION_TREE_NODE value, CTEXTSTR pV
 		if( SQLCommand( tree->odbc_writer, insert ) )
 		{
 		}
-		snprintf( insert, sizeof( insert ), WIDE( "delete from " )OPTION4_VALUES WIDE( " where `option_id`='%s' and segment > %d" )
+		tnprintf( insert, sizeof( insert ), WIDE( "delete from " )OPTION4_VALUES WIDE( " where `option_id`='%s' and segment > %d" )
 				  , value->guid
 				  , segment
 				  );
@@ -515,7 +515,7 @@ int ResolveOptionName( POPTION_TREE options, CTEXTSTR parent_id, CTEXTSTR option
 	if( StrCaseCmp( parent_id, WIDE("00000000-0000-0000-0000-000000000000") ) == 0 )
 	{
 		output_buffer[0] = 0;
-		return snprintf( output_buffer, output_buffer_size, WIDE("%s"), option_name );
+		return tnprintf( output_buffer, output_buffer_size, WIDE("%s"), option_name );
 	}
 	PushSQLQueryEx( options->odbc ); 
 	for( SQLRecordQueryf( options->odbc, NULL, &results, NULL
@@ -528,7 +528,7 @@ int ResolveOptionName( POPTION_TREE options, CTEXTSTR parent_id, CTEXTSTR option
 		offset = ResolveOptionName( options, results[0], results[1], results[2], results[3]
 					, output_buffer, output_buffer_size );
 		PopODBCEx( options->odbc ); 
-		return offset + snprintf( output_buffer + offset, output_buffer_size - offset, WIDE("/%s"), option_name );
+		return offset + tnprintf( output_buffer + offset, output_buffer_size - offset, WIDE("/%s"), option_name );
 	}
 	return 0;
 }

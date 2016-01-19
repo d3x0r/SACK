@@ -213,7 +213,11 @@ extern void		osdepEntropyClose(void);
 	Make psTime_t an opaque time value.
 */
 #ifdef WIN32
-	typedef LARGE_INTEGER psTime_t;
+	//typedef LARGE_INTEGER psTime_t;
+	typedef struct {
+		long tv_sec;
+		long tv_usec;
+	} psTime_t;
 #endif
 #ifdef VXWORKS
 	typedef struct {

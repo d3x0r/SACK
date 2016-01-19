@@ -27,8 +27,12 @@ IMAGE_NAMESPACE_END
 using namespace sack::image::loader;
 #endif
 
-
-static IMAGE_INTERFACE ProxyImageInterface;
+#ifndef __cplusplus
+static 
+#else 
+extern
+#endif
+IMAGE_INTERFACE ProxyImageInterface;
 
 
 static void FormatColor( PVARTEXT pvt, CPOINTER data )
@@ -177,14 +181,14 @@ static struct json_context_object *WebSockInitJson( enum proxy_message_id messag
 		{
 			int ofs_inner;
 			struct json_context_object *cto_data_member;
-			cto_data_member = json_add_object_member_list( cto_data, WIDE("data"), ofs = ofs + sizeof(_32), 0, 0 );
+			cto_data_member = json_add_object_member_list( cto_data, WIDE("data"), ofs = ofs + sizeof(_32), (enum JSON_ObjectElementTypes)0, 0 );
 			json_add_object_member( cto_data_member, WIDE("c"), ofs_inner = 0, JSON_Element_Integer_32, 0 );
 			json_add_object_member( cto_data_member, WIDE("x"), ofs_inner = ofs_inner + sizeof(_32), JSON_Element_Integer_32, 0 );
 			json_add_object_member( cto_data_member, WIDE("y"), ofs_inner = ofs_inner + sizeof(S_32), JSON_Element_Integer_32, 0 );
 			json_add_object_member( cto_data_member, WIDE("w"), ofs_inner = ofs_inner + sizeof(S_32), JSON_Element_Integer_32, 0 );
 			json_add_object_member( cto_data_member, WIDE("h"), ofs_inner = ofs_inner + sizeof(_32), JSON_Element_Unsigned_Integer_32, 0 );
 			json_add_object_member( cto_data_member, WIDE("a"), ofs_inner = ofs_inner + sizeof(_32), JSON_Element_Integer_32, 0 );
-			cto_data_member = json_add_object_member_list( cto_data, WIDE("colors"), ofs = ofs + sizeof(PLIST), 0, 0 );
+			cto_data_member = json_add_object_member_list( cto_data, WIDE("colors"), ofs = ofs + sizeof(PLIST), (enum JSON_ObjectElementTypes)0, 0 );
 			json_add_object_member( cto_data_member, WIDE("color"), ofs_inner = 0, JSON_Element_Unsigned_Integer_32, 0 );
 			json_add_object_member( cto_data, WIDE("image_id"), ofs = ofs + sizeof(PLIST), JSON_Element_PTRSZVAL, 0 );
 		}
@@ -935,7 +939,7 @@ static void SendCompressedBuffer( PCLIENT pc, PVPImage image )
 				struct json_context_object *cto;
 				cto = (struct json_context_object *)GetLink( &l.messages, outmsg->message_id );
 				if( !cto )
-					cto = WebSockInitJson( outmsg->message_id );
+					cto = WebSockInitJson( (enum proxy_message_id)outmsg->message_id );
 				json_msg = json_build_message( cto, outmsg );
 				WebSocketSendText( pc, json_msg, StrLen( json_msg ) );
 				Release( output );
@@ -1198,7 +1202,7 @@ static void WebSockEvent( PCLIENT pc, PTRSZVAL psv, POINTER buffer, int msglen )
 	struct server_proxy_client *client= (struct server_proxy_client *)psv;
 	struct json_context_object *json_object;
 #ifdef _UNICODE
-	CTEXTSTR buf = CharWConvertExx( buffer, msglen DBG_SRC );
+	CTEXTSTR buf = CharWConvertExx( (char*)buffer, msglen DBG_SRC );
 	if( json_parse_message( l.json_reply_context, buf, msglen, &json_object, &msg ) )
 	//lprintf( WIDE("Received:%*.*") _cstring_f, msglen,msglen,buffer );
 #else
@@ -1655,7 +1659,16 @@ static const TEXTCHAR* CPROC VidlibProxy_GetKeyText		 ( int key )
 		return 0;
 	}
 	//printf( WIDE("Key Translated: %d(%c)\n"), ch[0], ch[0] );
+#ifdef UNICODE
+	{
+		static wchar_t *out;
+		if( out ) Deallocate( wchar_t *, out );
+		out = DupCStr( ch );
+		return out;
+	}
+#else
 	return ch;
+#endif
 #endif
 }
 
@@ -3242,8 +3255,10 @@ IMAGE_PROC_PTR( void, Render3dImage )( Image pImage, PCVECTOR o, LOGICAL render_
 IMAGE_PROC_PTR( void, DumpFontFile )( CTEXTSTR name, SFTFont font_to_dump );
 IMAGE_PROC_PTR( void, Render3dText )( CTEXTSTR string, int characters, CDATA color, SFTFont font, VECTOR o, LOGICAL render_pixel_scaled );
 
-
-static IMAGE_INTERFACE ProxyImageInterface = {
+#ifndef __cplusplus
+static 
+#endif
+IMAGE_INTERFACE ProxyImageInterface = {
 	VidlibProxy_SetStringBehavior,
 		VidlibProxy_SetBlotMethod,
 		VidlibProxy_BuildImageFileEx,

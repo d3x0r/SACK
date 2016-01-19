@@ -572,7 +572,7 @@ static int
   	  	  if( (dwBaud != 57600ul) && (dwBaud != 38400ul) )
   	  	  {
       		 static TEXTCHAR buf[64];
-      		 snprintf( buf, sizeof( buf ), WIDE("Invalid Baud rate %08x"), dwBaud );
+      		 tnprintf( buf, sizeof( buf ), WIDE("Invalid Baud rate %08x"), dwBaud );
 	   		 if ( ppErr )
    	   			*ppErr = buf;
 			  return -15;
@@ -621,7 +621,7 @@ static int
       if ( HIWORD(dwBaud) )
       {
       	static TEXTCHAR buf[64];
-      	snprintf( buf, sizeof( buf ), WIDE("Invalid Baud rate %08x"), dwBaud );
+      	tnprintf( buf, sizeof( buf ), WIDE("Invalid Baud rate %08x"), dwBaud );
 	   	 if ( ppErr )
    	   	*ppErr = buf;
           return -15;
@@ -1285,7 +1285,7 @@ void DumpTermios( struct termios *opts )
 #ifndef __LINUX__
 			nCommError = SackGetCommError ( iCommId, &pComTrack->cs );
 #endif
-      snprintf ( cOut, sizeof( cOut ), WIDE("SackCommReadBuffer: read %d chars, error=%d")
+      tnprintf ( cOut, sizeof( cOut ), WIDE("SackCommReadBuffer: read %d chars, error=%d")
                , nCharsRead, nCommError );
       xlprintf(LOG_NOISE)( WIDE("%s"), cOut );
 #ifndef __LINUX__

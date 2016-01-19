@@ -232,24 +232,24 @@ static PTRSZVAL OnConfigureControl( CONTROL_NAME )( PTRSZVAL psv, PSI_CONTROL pa
 static void OnSaveControl( CONTROL_NAME )( FILE *file,PTRSZVAL psv )
 {
 	PSLIDER_INFO info = (PSLIDER_INFO)psv;
-	fprintf( file, WIDE("Seek Slider color=$%02X%02X%02X%02X\n")
+	sack_fprintf( file, WIDE("Seek Slider color=$%02X%02X%02X%02X\n")
 			 , AlphaVal( info->color )
 			 , RedVal( info->color )
 			 , GreenVal( info->color )
 			 , BlueVal( info->color )
 			 );
-	fprintf( file, WIDE("Seek Slider back color=$%02X%02X%02X%02X\n")
+	sack_fprintf( file, WIDE("Seek Slider back color=$%02X%02X%02X%02X\n")
 			 , AlphaVal( info->backcolor )
 			 , RedVal( info->backcolor )
 			 , GreenVal( info->backcolor )
 			 , BlueVal( info->backcolor )
 			 );
-	fprintf( file, WIDE("Seek Slider background image=%s\n" ), info->image_name?info->image_name:WIDE("") );
-	fprintf( file, WIDE("Seek Slider is horizontal?%s\n"), info->flags.bHorizontal?WIDE("Yes"):WIDE("No") );
-	fprintf( file, WIDE("Seek Slider is draggable?%s\n"), info->flags.bDragging?WIDE("Yes"):WIDE("No") );
-	fprintf( file, WIDE("Seek Slider min value=%d\n"), info->min);
-	fprintf( file, WIDE("Seek Slider max value=%d\n"), info->max);
-	fprintf( file, WIDE("Seek Slider current value=%d\n"), info->current);
+	sack_fprintf( file, WIDE("Seek Slider background image=%s\n" ), info->image_name?info->image_name:WIDE("") );
+	sack_fprintf( file, WIDE("Seek Slider is horizontal?%s\n"), info->flags.bHorizontal?WIDE("Yes"):WIDE("No") );
+	sack_fprintf( file, WIDE("Seek Slider is draggable?%s\n"), info->flags.bDragging?WIDE("Yes"):WIDE("No") );
+	sack_fprintf( file, WIDE("Seek Slider min value=%d\n"), info->min);
+	sack_fprintf( file, WIDE("Seek Slider max value=%d\n"), info->max);
+	sack_fprintf( file, WIDE("Seek Slider current value=%d\n"), info->current);
 
 
 	InterShell_SaveCommonButtonParameters( file );

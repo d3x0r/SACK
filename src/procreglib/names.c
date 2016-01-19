@@ -572,6 +572,27 @@ static PTREEDEF AddClassTree( PTREEDEF class_root, TEXTCHAR *name, PTREEROOT roo
 
 //---------------------------------------------------------------------------
 
+static CTEXTSTR  my_pathchr ( CTEXTSTR path )
+{
+	CTEXTSTR end1, end2;
+	end1 = StrChr( path, (int)'\\' );
+	end2 = StrChr( path, (int)'/' );
+	if( end1 && end2 )
+	{
+		if( end1 < end2 )
+			return end1;
+	  return end2;
+	}
+	else if( end1 )
+		return end1;
+	else if( end2 )
+	  return end2;
+   return NULL;
+}
+
+//---------------------------------------------------------------------------
+
+
 // if name_class is NULL then root is returned.
 // if name_class is not NULL then if name_class references
 // PTREEDEF structure, then name_class is returned.
@@ -632,16 +653,16 @@ PTREEDEF GetClassTreeEx( PTREEDEF root, PTREEDEF _name_class, PTREEDEF alias, LO
 			start = (TEXTCHAR*)name_class;
 			do
 			{
-				end = (TEXTCHAR*)pathchr( start );
+				end = (TEXTCHAR*)my_pathchr( start );
 				do
 				{
 					if( end == start )
 					{
 						start = start+1;
-						end = (TEXTCHAR*)pathchr( start );
+						end = (TEXTCHAR*)my_pathchr( start );
 						continue;
 					}
-					if( !end || ((pathchr(end+1) - end) != 1) )
+					if( !end || ((my_pathchr(end+1) - end) != 1) )
 						break;
 					end++;
 				}
@@ -692,16 +713,18 @@ PTREEDEF GetClassTreeEx( PTREEDEF root, PTREEDEF _name_class, PTREEDEF alias, LO
 							if( !new_root )
 							{
 								// if this happens it was probably added while adding...
-                        DebugBreak();
+								DebugBreak();
 								DestroyBinaryTree( tree );
 								if( retry < 2 )
 								{
 									retry++;
 									continue;
 								}
-								SystemLog( "Failed to register..." );
-                        lprintf( WIDE("name not found, adding.. [%s] %s"), start, class_root->self?class_root->self->name:"." );
-                        return NULL;
+#ifndef NO_LOGGING
+								SystemLog( WIDE("Failed to register...") );
+								lprintf( WIDE("name not found, adding.. [%s] %s"), start, class_root->self?class_root->self->name:WIDE(".") );
+#endif
+								return NULL;
 							}
 							class_root = new_root;
 						}
@@ -880,6 +903,7 @@ PROCREG_PROC( LOGICAL, RegisterFunctionExx )( PCLASSROOT root
 				else
 				{
 					TEXTSTR s1, s2;
+#ifndef NO_LOGGING
 					CTEXTSTR file = GetRegisteredValue( (CTEXTSTR)&oldname->tree, WIDE( "Source File" ) );
 					int line = (int)(PTRSZVAL)GetRegisteredValueEx( (CTEXTSTR)&oldname->tree, WIDE( "Source Line" ), TRUE );
 					_xlprintf( 2 DBG_RELAY)( WIDE("proc %s/%s regisry by %s of %s(%s) conflicts with %s(%d):%s(%s)...")
@@ -899,6 +923,7 @@ PROCREG_PROC( LOGICAL, RegisterFunctionExx )( PCLASSROOT root
 					Release( s2 );
 					// perhaps it's same in a different library...
 					Log( WIDE("All is not well - found same function name in tree with different address. (ignoring second) ") );
+#endif
 				}
 				DeleteFromSet( NAME, &l.NameSet, newname );
 				return TRUE;
@@ -961,6 +986,7 @@ PROCREG_PROC( LOGICAL, RegisterFunctionExx )( CTEXTSTR root
 
 //---------------------------------------------------------------------------
 
+#if 0
 int ReleaseRegisteredFunctionEx( PCLASSROOT root, CTEXTSTR name_class
 							 , CTEXTSTR public_name
 							 )
@@ -980,6 +1006,7 @@ int ReleaseRegisteredFunctionEx( PCLASSROOT root, CTEXTSTR name_class
 	}
 	return 0;
 }
+#endif
 
 //---------------------------------------------------------------------------
 
@@ -1021,7 +1048,7 @@ PROCREG_PROC( int, RegisterProcedureEx )( CTEXTSTR name_class
    return RegisterProcedureExx( NULL, name_class, public_name, returntype, library, name, args DBG_RELAY );
 }
 
-
+#if 0
 PROCREG_PROC( PROCEDURE, ReadRegisteredProcedureEx )( PCLASSROOT root
                                                     , CTEXTSTR returntype
                                                     , CTEXTSTR parms
@@ -1048,7 +1075,7 @@ PROCREG_PROC( PROCEDURE, ReadRegisteredProcedureEx )( PCLASSROOT root
 	}
 	return NULL;
 }
-
+#endif
 //---------------------------------------------------------------------------
 // can use the return type and args to validate the correct
 // type of routine is called...
@@ -1079,6 +1106,7 @@ PROCREG_PROC( PROCEDURE, GetRegisteredProcedureExxx )( PCLASSROOT root, PCLASSRO
 		//oldname = (PNAME)FindInBinaryTree( class_root->Tree, (PTRSZVAL)DressName( buf, name ) );
 		if( oldname )
 		{
+#if 0
 			PROCEDURE proc = oldname->data.proc.proc;
 			if( !proc && ( oldname->data.proc.library && oldname->data.proc.procname ) )
 			{
@@ -1092,6 +1120,7 @@ PROCREG_PROC( PROCEDURE, GetRegisteredProcedureExxx )( PCLASSROOT root, PCLASSRO
 				}
 				oldname->data.proc.proc = proc;
 			}
+#endif
 			return oldname->data.proc.proc;
 		}
 		//else
@@ -1693,12 +1722,8 @@ PROCREG_PROC( PTRSZVAL, CreateRegisteredDataType)( CTEXTSTR classname
 																 , CTEXTSTR name
 																 , CTEXTSTR instancename )
 {
-//#ifdef __STATIC__
-//	return CreateRegisteredDataTypeEx( NULL, classname, name, instancename );
-//#else
 	Init();
 	return CreateRegisteredDataTypeEx( l.Names, classname, name, instancename );
-//#endif
 }
 
 //---------------------------------------------------------------------------
@@ -1740,6 +1765,7 @@ LOGICAL RegisterInterface( CTEXTSTR servicename, POINTER(CPROC*load)(void), void
 }
 
 //-----------------------------------------------------------------------
+#ifndef __NO_INTERFACE_SUPPORT__
 
 static PTRSZVAL CPROC HandleLibrary( PTRSZVAL psv, arg_list args )
 {
@@ -1904,7 +1930,6 @@ PROCREG_PROC( void, SetInterfaceConfigFile )( TEXTCHAR *filename )
 	l.config_filename = StrDup( filename );
 }
 
-#ifndef __NO_INTERFACE_SUPPORT__
 
 static PTRSZVAL CPROC SetDefaultDirectory( PTRSZVAL psv, arg_list args )
 {

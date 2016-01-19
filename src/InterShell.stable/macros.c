@@ -480,12 +480,12 @@ void WriteMacroButton( CTEXTSTR leader, FILE *file, PTRSZVAL psv )
 		PMACRO_ELEMENT element;
 		for( element = button->elements; element; element = NextThing( element ) )
 		{
-			fprintf( file, WIDE( "%s%sMacro Element \'%s\'\n" ), InterShell_GetSaveIndent(), leader?leader:WIDE( "" ), element->button->pTypeName );
+			sack_fprintf( file, WIDE( "%s%sMacro Element \'%s\'\n" ), InterShell_GetSaveIndent(), leader?leader:WIDE( "" ), element->button->pTypeName );
 	  		DumpGeneric( file, element->button ); /* begins another sub configuration... */
-			fprintf( file, WIDE( "%s%smacro element done\n" ), InterShell_GetSaveIndent(), leader?leader:WIDE( "" ) );
-			//fprintf( file, WIDE( "%sMacro Element Text \'%s\'\n" ), leader?leader:WIDE( "" ), element->button->text );
+			sack_fprintf( file, WIDE( "%s%smacro element done\n" ), InterShell_GetSaveIndent(), leader?leader:WIDE( "" ) );
+			//sack_fprintf( file, WIDE( "%sMacro Element Text \'%s\'\n" ), leader?leader:WIDE( "" ), element->button->text );
 		}
-		fprintf( file, WIDE( "%s%smacro element list done\n" ), InterShell_GetSaveIndent(), leader?leader:WIDE( "" ) );
+		sack_fprintf( file, WIDE( "%s%smacro element list done\n" ), InterShell_GetSaveIndent(), leader?leader:WIDE( "" ) );
 	}
 }
 
@@ -587,9 +587,9 @@ void InvokeShutdownMacro( void )
 
 static void OnSaveCommon( WIDE( "Startup Macro" ) )( FILE *file )
 {
-	fprintf( file, WIDE( "\n" ) );
+	sack_fprintf( file, WIDE( "\n" ) );
 	WriteMacroButton( WIDE( "Startup " ), file, (PTRSZVAL)&l.startup );
-	fprintf( file, WIDE( "\n" ) );
+	sack_fprintf( file, WIDE( "\n" ) );
 	WriteMacroButton( WIDE( "Shutdown " ), file, (PTRSZVAL)&l.shutdown );
 }
 

@@ -1,4 +1,4 @@
 #include <windows.h>
 #include "resource.h"
 
-ICO_REBOOT ICON "Reboot.ICO" 
+ICO_REBOOT ICON "reboot.ico" 

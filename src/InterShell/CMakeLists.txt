@@ -60,7 +60,6 @@ security.c
 sprites.c      
 text_label.c
 env_value.c
-page_animator.c
 ${LAST_GCC_LIBRARY_SOURCE}
 )
 

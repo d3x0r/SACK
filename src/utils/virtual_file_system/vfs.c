@@ -13,6 +13,7 @@
 #include <procreg.h>
 #include <salty_generator.h>
 #include <sack_vfs.h>
+#include <sqlgetoption.h>
 
 SACK_VFS_NAMESPACE
 #define PARANOID_INIT
@@ -349,6 +350,8 @@ static void AssignKey( struct volume *vol, const char *key1, const char *key2 )
 		vol->segment[BLOCK_CACHE_DIRECTORY] = 0;
 		SRG_GetEntropyBuffer( vol->entropy, (P_32)vol->key, BLOCK_SIZE * 8 );
 	}
+	else
+		vol->key = NULL;
 }
 
 struct volume *sack_vfs_load_crypt_volume( const char * filepath, const char * userkey, const char * devkey )
@@ -489,6 +492,8 @@ const char *sack_vfs_get_signature( struct volume *vol )
 {
 	static char signature[257];
 	static const char *output = "0123456789ABCDEF";
+	if( !vol )
+		return NULL;
 	while( LockedExchange( &vol->lock, 1 ) ) Relinquish();
 	{
 		static BLOCKINDEX datakey[BLOCKS_PER_BAT];
@@ -741,7 +746,7 @@ static void MaskBlock( struct volume *vol, P_8 usekey, P_8 block, BLOCKINDEX blo
 	if( vol->key )
 		for( n = 0; n < length; n++ ) (*block++) = (*data++) ^ (*usekey++);
 	else
-		memcpy( block + block_ofs, data, length );
+		memcpy( block, data, length );
 }
 
 size_t CPROC sack_vfs_write( struct sack_vfs_file *file, const char * data, size_t length )
@@ -1021,10 +1026,27 @@ static struct file_system_interface sack_vfs_fsi = {
 PRIORITY_PRELOAD( Sack_VFS_Register, CONFIG_SCRIPT_PRELOAD_PRIORITY - 2 )
 {
 #ifdef ALT_VFS_NAME
-	sack_register_filesystem_interface( SACK_VFS_FILESYSTEM_NAME ".runner", &sack_vfs_fsi );
+#   define DEFAULT_VFS_NAME SACK_VFS_FILESYSTEM_NAME ".runner"
 #else
-	sack_register_filesystem_interface( SACK_VFS_FILESYSTEM_NAME, &sack_vfs_fsi );
+#   define DEFAULT_VFS_NAME SACK_VFS_FILESYSTEM_NAME 
 #endif
+	sack_register_filesystem_interface( DEFAULT_VFS_NAME, &sack_vfs_fsi );
+}
+
+PRIORITY_PRELOAD( Sack_VFS_RegisterDefaultFilesystem, SQL_PRELOAD_PRIORITY + 1 )
+{
+	if( SACK_GetProfileInt( GetProgramName(), "SACK/VFS/Mount VFS", 0 ) )
+	{
+		struct volume *vol;
+		TEXTCHAR volfile[256];
+		TEXTSTR tmp;
+		SACK_GetProfileString( GetProgramName(), "SACK/VFS/File", "*/../assets.svfs", volfile, 256 );
+		tmp = ExpandPath( volfile );
+		vol = sack_vfs_load_volume( tmp );
+		Deallocate( TEXTSTR, tmp );
+		sack_mount_filesystem( "sack_shmem", sack_get_filesystem_interface( DEFAULT_VFS_NAME )
+		                     , 900, (PTRSZVAL)vol, TRUE );
+	}
 }
 
 SACK_VFS_NAMESPACE_END

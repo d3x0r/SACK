@@ -84,7 +84,7 @@ static PTRSZVAL OnInit3d( WIDE( "@00 PUREGL Image Library" ) )( PMatrix projecti
 	glSurface->identity_depth = pIdentity_depty;
 	glSurface->aspect = aspect;
 	MemSet( &glSurface->shader, 0, sizeof( glSurface->shader ) );
-lprintf( "Init library..." );
+	lprintf( WIDE("Init library...") );
 	AddLink( &l.glSurface, glSurface );
 	{
 		INDEX idx;
@@ -989,7 +989,7 @@ void Render3dText( CTEXTSTR string, int characters, CDATA color, SFTFont font, P
 
 	// closed loop to get the top imgae size.
 	//lprintf( WIDE( "use regular texture %p (%d,%d)" ), pifSrc, pifSrc->width, pifSrc->height );
-	GetStringSizeFontEx( string, characters, &output.real_width, &output.real_height, font );
+	GetStringSizeFontEx( string, characters, (_32*)&output.real_width, (_32*)&output.real_height, font );
 	SetImageTransformRelation( &output, IMAGE_TRANSFORM_RELATIVE_CENTER, NULL );
 	ApplyRotationT( l.camera, output.transform, VectorConst_I );
 	{

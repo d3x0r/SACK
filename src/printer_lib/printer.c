@@ -1,3 +1,4 @@
+#define NO_UNICODE_C
 #include <stdhdrs.h>
 #include <winspool.h>
 #include <image.h>

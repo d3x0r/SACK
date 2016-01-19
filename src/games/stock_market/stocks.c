@@ -85,12 +85,12 @@ void CPROC AddSome( PTRSZVAL psv, PCONTROL button )
 		TEXTCHAR shares[10];
 		pc = GetControl( g.BuyStocks, TXT_SHARES );
 		snprintf( shares, 10, WIDE("%ld"), buy.shares );
-		SetCommonText( pc, shares );
+		SetControlText( pc, shares );
 		pc = GetControl( g.BuyStocks, TXT_TOTAL );
 		snprintf( shares, 10, WIDE("$%ld"), buy.shares * buy.value );
-		SetCommonText( pc, shares );
+		SetControlText( pc, shares );
 		snprintf( shares, 10, WIDE("(%ld)"), buy.have_shares + buy.shares );
-		SetCommonText( GetControl( g.BuyStocks, TXT_WILLHAVE ), shares );
+		SetControlText( GetControl( g.BuyStocks, TXT_WILLHAVE ), shares );
 	}
 }
 
@@ -117,19 +117,19 @@ void BuySomeStock( PSTOCK pStock, _32 max_shares )
 	PSTOCKACCOUNT pAccount;
 	buy.shares = 0;
 	buy.gain = 1;
-	SetCommonText( GetControl( g.BuyStocks, TXT_STOCK ), pStock->name );
+	SetControlText( GetControl( g.BuyStocks, TXT_STOCK ), pStock->name );
 	buy.value = GetStockValue( pStock, FALSE );
 	snprintf( txt, 10, WIDE("$%ld"), buy.value );
-	SetCommonText( GetControl( g.BuyStocks, TXT_PRICE ), txt );
-	SetCommonText( GetControl( g.BuyStocks, TXT_SHARES ), WIDE("0") );
-	SetCommonText( GetControl( g.BuyStocks, TXT_TOTAL ), WIDE("$0") );
+	SetControlText( GetControl( g.BuyStocks, TXT_PRICE ), txt );
+	SetControlText( GetControl( g.BuyStocks, TXT_SHARES ), WIDE("0") );
+	SetControlText( GetControl( g.BuyStocks, TXT_TOTAL ), WIDE("$0") );
 	snprintf( txt, 10, WIDE("$%ld"), buy.cash = g.pCurrentPlayer->Cash );
-	SetCommonText( GetControl( g.BuyStocks, TXT_CASH ), txt );
+	SetControlText( GetControl( g.BuyStocks, TXT_CASH ), txt );
 	pAccount = GetStockAccount( &g.pCurrentPlayer->portfolio, pStock );
 	snprintf( txt, 10, WIDE("%ld"), buy.have_shares = (pAccount?pAccount->shares:0) );
-	SetCommonText( GetControl( g.BuyStocks, TXT_YOUHAVE ), txt );
+	SetControlText( GetControl( g.BuyStocks, TXT_YOUHAVE ), txt );
 	snprintf( txt, 10, WIDE("(%ld)"), buy.have_shares + buy.shares );
-	SetCommonText( GetControl( g.BuyStocks, TXT_WILLHAVE ), txt );
+	SetControlText( GetControl( g.BuyStocks, TXT_WILLHAVE ), txt );
 	SetCheckState( GetControl( g.BuyStocks, CHK_SUBTRACT ), 0 );
 	buy.max_shares = max_shares;
 	DisableSheet( g.Panel, PANEL_BUY, FALSE );
@@ -161,7 +161,7 @@ void UpdateTarget( void )
 											  + (sell.value[n]-1) )
 					                  / sell.value[n] );
 			pc = (PCOMMON)GetSheetControl( pStocks, SHT_STOCK + n, TXT_SELL_TARGET );
-			SetCommonText( pc, text );
+			SetControlText( pc, text );
 			n++;
 		}
 	}
@@ -191,23 +191,23 @@ void CPROC AddSomeSell( PTRSZVAL psv, PCONTROL button )
       PCONTROL pc;
 		snprintf( text, 16, WIDE("$%ld"), sell.total );
 		pc = GetControl( g.SellStocks, TXT_TOTAL );
-		SetCommonText( pc, text );
+		SetControlText( pc, text );
 
 		snprintf( text, 16, WIDE("%ld"), sell.sell[ID] );
 		pc = GetControl( sheet, TXT_SELL );
-		SetCommonText( pc, text );
+		SetControlText( pc, text );
 
 		snprintf( text, 16, WIDE("$%ld"), sell.sell[ID] * sell.value[ID] );
 		pc = GetControl( sheet, TXT_SELL_VALUE );
-		SetCommonText( pc, text );
+		SetControlText( pc, text );
 
 		snprintf( text, 16, WIDE("%ld"), sell.owned[ID] - sell.sell[ID] );
 		pc = GetControl( sheet, TXT_REMAIN );
-		SetCommonText( pc, text );
+		SetControlText( pc, text );
 
 		snprintf( text, 16, WIDE("$%ld"), (sell.owned[ID] - sell.sell[ID]) * sell.value[ID] );
 		pc = GetControl( sheet, TXT_REMAIN_VALUE );
-		SetCommonText( pc, text );
+		SetControlText( pc, text );
 	}
 
 }
@@ -272,31 +272,31 @@ void StockSellStart( PORTFOLIO portfolio, _32 target, int bForced )
 
 		snprintf( text, 16, WIDE("%ld"), sell.owned[n] );
 		pc = (PCOMMON)GetSheetControl( pStocks, SHT_STOCK + n, TXT_SHARES );
-		SetCommonText( pc, text );
+		SetControlText( pc, text );
 		pc = (PCOMMON)GetSheetControl( pStocks, SHT_STOCK + n, TXT_REMAIN );
-		SetCommonText( pc, text );
+		SetControlText( pc, text );
 
 		snprintf( text, 16, WIDE("$%ld"), sell.owned[n] * sell.value[n] );
 		pc = (PCOMMON)GetSheetControl( pStocks, SHT_STOCK + n, TXT_SHARES_VALUE );
-		SetCommonText( pc, text );
+		SetControlText( pc, text );
 		pc = (PCOMMON)GetSheetControl( pStocks, SHT_STOCK + n, TXT_REMAIN_VALUE );
-		SetCommonText( pc, text );
+		SetControlText( pc, text );
 
 		sell.sell[n] = 0;
 		pc = (PCOMMON)GetSheetControl( pStocks, SHT_STOCK + n, TXT_SELL );
-		SetCommonText( pc, WIDE("0") );
+		SetControlText( pc, WIDE("0") );
 		pc = (PCOMMON)GetSheetControl( pStocks, SHT_STOCK + n, TXT_SELL_TARGET );
-		SetCommonText( pc, NULL );
+		SetControlText( pc, NULL );
 		pc = (PCOMMON)GetSheetControl( pStocks, SHT_STOCK + n, TXT_SELL_VALUE );
-		SetCommonText( pc, WIDE("$0") );
+		SetControlText( pc, WIDE("$0") );
       n++;
 	}
    sell.gain = 1;
 	sell.target = target;
 	sell.total = 0;
    snprintf( text, 16, WIDE("$%ld"), target );
-   SetCommonText( GetControl( g.SellStocks, TXT_TARGET ), text );
-   SetCommonText( GetControl( g.SellStocks, TXT_TOTAL ), WIDE("$0") );
+   SetControlText( GetControl( g.SellStocks, TXT_TARGET ), text );
+   SetControlText( GetControl( g.SellStocks, TXT_TOTAL ), WIDE("$0") );
 	SetCheckState( GetControl( g.BuyStocks, CHK_SUBTRACT ), 0 );
 	if( target )
 		UpdateTarget();

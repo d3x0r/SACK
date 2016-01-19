@@ -64,7 +64,7 @@ typedef struct {
 	int centx;
 	int groupid; // if is not zero - will work as a radio button
 	CTEXTSTR ClickMethodName;
-	void (CPROC*ClickMethod)( PTRSZVAL, PCONTROL );
+	void (CPROC*ClickMethod)( PTRSZVAL, PSI_CONTROL );
 	PTRSZVAL ClickData;
 	Image pCheckWindow;
 	Image pCheckSurface;
@@ -426,7 +426,7 @@ void InvokeButton( PSI_CONTROL pc )
 			TEXTCHAR mydef[256];
 			CTEXTSTR name;
 			PCLASSROOT data = NULL;
-			snprintf( mydef, sizeof( mydef ), PSI_ROOT_REGISTRY WIDE("/control/rtti/%d/extra click"), pc->nType );
+			tnprintf( mydef, sizeof( mydef ), PSI_ROOT_REGISTRY WIDE("/control/rtti/%d/extra click"), pc->nType );
 			for( name = GetFirstRegisteredName( mydef, &data );
 				 name;
 				  name = GetNextRegisteredName( &data ) )
@@ -662,7 +662,7 @@ static PSI_CONTROL CONTROL_PROPERTIES( Button )( PSI_CONTROL pc )
 		for( name = GetFirstRegisteredName( PSI_ROOT_REGISTRY WIDE("/control/Button/Click"), &data ); name; name = GetNextRegisteredName( &data ) )
 		{
 			PLISTITEM pli = AddListItem( pList, name );
-			SetItemData( pli, (PTRSZVAL)GetRegisteredProcedure( PSI_ROOT_REGISTRY WIDE("/control/Button/Click"), int, name, (PTRSZVAL, PCONTROL) ) );
+			SetItemData( pli, (PTRSZVAL)GetRegisteredProcedure( PSI_ROOT_REGISTRY WIDE("/control/Button/Click"), int, name, (PTRSZVAL, PSI_CONTROL) ) );
 		}
 		// maybe a list box or some junk like that....
 	}
@@ -689,7 +689,7 @@ CTEXTSTR GetMethodName( POINTER Method, CTEXTSTR type, CTEXTSTR method )
 	TEXTCHAR buffer[256];
 	if( !Method )
 		return NULL;
-	snprintf( buffer, sizeof( buffer ), PSI_ROOT_REGISTRY WIDE("/methods/%s/%s"), type, method );
+	tnprintf( buffer, sizeof( buffer ), PSI_ROOT_REGISTRY WIDE("/methods/%s/%s"), type, method );
 	for( name = GetFirstRegisteredName( buffer, &data );
 		 name;
 		  name = GetNextRegisteredName( &data ) )
@@ -710,17 +710,17 @@ CTEXTSTR GetMethodName( POINTER Method, CTEXTSTR type, CTEXTSTR method )
 	return name;
 }
 
-CTEXTSTR GetClickMethodName( void (CPROC*ClickMethod)(PTRSZVAL psv, PCONTROL pc) )
+CTEXTSTR GetClickMethodName( void (CPROC*ClickMethod)(PTRSZVAL psv, PSI_CONTROL pc) )
 {
 	return (CTEXTSTR)GetMethodName( (POINTER)ClickMethod, WIDE("Button"), WIDE("Click") );
 }
 
-CTEXTSTR GetDrawMethodName( void (CPROC*DrawMethod)(PTRSZVAL psv, PCONTROL pc) )
+CTEXTSTR GetDrawMethodName( void (CPROC*DrawMethod)(PTRSZVAL psv, PSI_CONTROL pc) )
 {
 	return GetMethodName( (POINTER)DrawMethod, WIDE("Button"), WIDE("Draw") );
 }
 
-CTEXTSTR GetCheckMethodName( void (CPROC*CheckMethod)(PTRSZVAL psv, PCONTROL pc) )
+CTEXTSTR GetCheckMethodName( void (CPROC*CheckMethod)(PTRSZVAL psv, PSI_CONTROL pc) )
 {
 	return GetMethodName( (POINTER)CheckMethod, WIDE("Button"), WIDE("Check") );
 }
@@ -786,7 +786,7 @@ int CPROC ConfigureCustomDrawnButton( PSI_CONTROL pc )
 {
 	ValidatedControlData( PBUTTON, CUSTOM_BUTTON, pb, pc );
 	//ARG( _32, attr );
-	//FP_ARG( void, DrawMethod,(PTRSZVAL psv, PCONTROL pc) );
+	//FP_ARG( void, DrawMethod,(PTRSZVAL psv, PSI_CONTROL pc) );
 	//FP_ARG( void, PushMethod,(PTRSZVAL psv, PCONTROL pc) );
 	//ARG( PTRSZVAL, Data );
 	Init();
@@ -828,7 +828,7 @@ int CPROC ConfigureImageButton( PSI_CONTROL pc )
 {
 	//ARG( Image, pImage );
 	//ARG( _32, attr );
-	//FP_ARG( void CPROC,PushMethod,(PTRSZVAL psv, PCONTROL pc) );
+	//FP_ARG( void CPROC,PushMethod,(PTRSZVAL psv, PSI_CONTROL pc) );
 	//ARG( PTRSZVAL, Data );
 	ValidatedControlData( PBUTTON, IMAGE_BUTTON, pb, pc );
 	Init();
@@ -1191,7 +1191,7 @@ static void CPROC DestroyCheckButton( PSI_CONTROL pc )
 
 //---------------------------------------------------------------------------
 
-PCONTROL SetButtonGroupID(PCONTROL pControl, int nGroupID )
+PSI_CONTROL SetButtonGroupID(PSI_CONTROL pControl, int nGroupID )
 {
 	ValidatedControlData( PCHECK, RADIO_BUTTON, pc, pControl );
 	if( pc )
@@ -1200,8 +1200,8 @@ PCONTROL SetButtonGroupID(PCONTROL pControl, int nGroupID )
 	}
 	return pControl;
 }
-PCONTROL SetCheckButtonHandler( PCONTROL pControl
-														, void (CPROC*CheckProc)(PTRSZVAL psv, PCONTROL pc)
+PSI_CONTROL SetCheckButtonHandler( PSI_CONTROL pControl
+														, void (CPROC*CheckProc)(PTRSZVAL psv, PSI_CONTROL pc)
 														, PTRSZVAL psv )
 {
 	ValidatedControlData( PCHECK, RADIO_BUTTON, pc, pControl );
@@ -1273,7 +1273,7 @@ void SetCheckState( PSI_CONTROL pc, int nState )
 }
 
 //---------------------------------------------------------------------------
-void GetButtonPushMethod( PCONTROL pc, ButtonPushMethod *method, PTRSZVAL *psv )
+void GetButtonPushMethod( PSI_CONTROL pc, ButtonPushMethod *method, PTRSZVAL *psv )
 {
 	ValidatedControlData( PBUTTON, NORMAL_BUTTON, pb, pc );
 	if( !pb )
@@ -1305,7 +1305,7 @@ void GetButtonPushMethod( PCONTROL pc, ButtonPushMethod *method, PTRSZVAL *psv )
 
 }
 
-PCONTROL SetButtonAttributes( PCONTROL pCom, int attr )
+PSI_CONTROL SetButtonAttributes( PSI_CONTROL pCom, int attr )
 {
 	// BUTTON_ flags...
 	if( attr & BUTTON_NO_BORDER )

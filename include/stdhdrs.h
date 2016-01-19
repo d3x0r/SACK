@@ -28,18 +28,18 @@
 
 #if _MSC_VER > 100000
 // I don't use these limit anyway... so not having them should be harmless
-#include <stdint.h>
+#  include <stdint.h>
 #endif
 
 #ifndef WINVER
-#define WINVER 0x0601
+#  define WINVER 0x0601
 #endif
 
 #if !defined(__LINUX__)
 #  ifndef STRICT
 #    define STRICT
 #  endif
-#define WIN32_LEAN_AND_MEAN
+#  define WIN32_LEAN_AND_MEAN
 
 // #define NOGDICAPMASKS             // CC_*, LC_*, PC_*, CP_*, TC_*, RC_                          
 // #define NOVIRTUALKEYCODES         // VK_*                                                       
@@ -52,7 +52,7 @@
 // #define NOSYSCOMMANDS             // SC_*                                                       
 // #define NORASTEROPS               // Binary and Tertiary raster ops                             
 // #define NOSHOWWINDOW              // SW_*                                                       
-#define OEMRESOURCE               // OEM Resource values                                        
+#  define OEMRESOURCE               // OEM Resource values
 // #define NOATOM                    // Atom Manager routines                                      
 #  ifndef _INCLUDE_CLIPBOARD
 #    define NOCLIPBOARD               // Clipboard routines
@@ -100,37 +100,37 @@
 
 // INCLUDE WINDOWS.H
 #  ifdef __WATCOMC__
-#undef _WINDOWS_
+#    undef _WINDOWS_
 #  endif
 
 #  ifdef UNDER_CE
 // just in case windows.h also fails after undef WIN32
 // these will be the correct order for primitives we require.
-#include <excpt.h>
-#include <windef.h>
-#include <winnt.h>
-#include <winbase.h>
-#include <wingdi.h>
-#include <wtypes.h>
-#include <winuser.h>
-#undef WIN32
+#    include <excpt.h>
+#    include <windef.h>
+#    include <winnt.h>
+#    include <winbase.h>
+#    include <wingdi.h>
+#    include <wtypes.h>
+#    include <winuser.h>
+#    undef WIN32
 #  endif
-#define _WINSOCKAPI_
-#include <windows.h>
-#undef _WINSOCKAPI_
+#  define _WINSOCKAPI_
+#  include <windows.h>
+#  undef _WINSOCKAPI_
 
-#include <windowsx.h>
+#  include <windowsx.h>
 // we like timeGetTime() instead of GetTickCount()
-#include <mmsystem.h>
+#  include <mmsystem.h>
 
-#ifndef NO_SHLWAPI
-#include <shlwapi.h>
-#include <shellapi.h>
-#endif
+#  ifndef NO_SHLWAPI
+#    include <shlwapi.h>
+#    include <shellapi.h>
+#  endif
 
-#ifdef NEED_V4W
-#include <vfw.h>
-#endif
+#  ifdef NEED_V4W
+#    include <vfw.h>
+#  endif
 
 // incldue this first so we avoid a conflict.
 // hopefully this comes from sack system?
@@ -143,6 +143,14 @@
 //#pragma pragnoteonly("GetFunctionAddress is lazy and has no library cleanup - needs to be a lib func")
 //#define GetFunctionAddress( lib, proc ) GetProcAddress( LoadLibrary( lib ), (proc) )
 
+#ifdef __cplusplus
+#  ifdef __GNUC__
+#    ifndef min
+#      warning had to hack in a min() def
+#      define min(a,b) ((a)<(b))?(a):(b)
+#    endif
+#  endif
+#endif
 
 #  ifdef __cplusplus_cli
 # include <vcclr.h>
@@ -206,25 +214,18 @@ extern __sighandler_t bsd_signal(int, __sighandler_t);
 
 /* Define a min(a,b) macro when the compiler lacks it. */
 #ifndef min
-#define min(a,b) (((a)<(b))?(a):(b))
+#  define min(a,b) (((a)<(b))?(a):(b))
 #endif
 /* Why not add the max macro, also? */
 #ifndef max
-#define max(a,b) (((a)>(b))?(a):(b))
+#  define max(a,b) (((a)>(b))?(a):(b))
 #endif
 
-#ifdef __LINUX64__
-//typedef unsigned long HANDLE;
-#else
-//typedef void *HANDLE;
-#endif
 
 #endif
 #if defined( _MSC_VER )|| defined(__LCC__) || defined( __WATCOMC__ ) || defined( __GNUC__ )
-//#ifndef __cplusplus_cli
-#include "loadsock.h"
-//#endif
-#include <malloc.h>               // _heapmin() included here
+#  include "loadsock.h"
+#  include <malloc.h>               // _heapmin() included here
 #else
 //#include "loadsock.h"
 #endif
@@ -262,7 +263,7 @@ extern __sighandler_t bsd_signal(int, __sighandler_t);
 #      define SaneWinMain(a,b) int main( int a, char **argv_real ) { int n; TEXTCHAR **b; b = NewArray( TEXTSTR, a + 1 ); for( n = 0; n < a; n++ ) b[n] = DupCharToText( argv_real[n] ); b[n] = NULL; {
 #      define EndSaneWinMain() } }
 #    else
-#      define SaneWinMain(a,b) int APIENTRY WinMain( HINSTANCE hInst, HINSTANCE hPrev, TEXTSTR lpCmdLine, int nCmdShow ) { int a; TEXTCHAR **b; ParseIntoArgs( GetCommandLine(), &a, &b ); {
+#      define SaneWinMain(a,b) int APIENTRY WinMain( HINSTANCE hInst, HINSTANCE hPrev, LPSTR lpCmdLine, int nCmdShow ) { int a; TEXTCHAR **b; ParseIntoArgs( GetCommandLine(), &a, &b ); {
 #      define EndSaneWinMain() } }
 #    endif
 #  else

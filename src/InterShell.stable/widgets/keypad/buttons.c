@@ -523,7 +523,7 @@ PTHEME LoadButtonThemeByNameEx( CTEXTSTR name, int theme_id, CDATA default_color
 	if ( StrCmpEx( szBuffer, WIDE( "NULL" ), 4 ) )
 	{
 		theme->buttons.iMask = LoadImageFileFromGroup( GetFileGroup( WIDE("Button Resources"), WIDE("%Resources%/images") ), szBuffer );
-		xlprintf(LOG_NOISE+1)( WIDE(" LoadImageFile returned a pointer to %p ") , theme->buttons.iMask );
+		//xlprintf(LOG_NOISE+1)( WIDE(" LoadImageFile returned a pointer to %p ") , theme->buttons.iMask );
 	}
 
 	else
@@ -538,12 +538,12 @@ PTHEME LoadButtonThemeByNameEx( CTEXTSTR name, int theme_id, CDATA default_color
 	if (StrCmpEx(szBuffer, WIDE("NULL"), 4)  )
 	{
 		theme->buttons.iGlare = LoadImageFileFromGroup( GetFileGroup( WIDE("Button Resources"), WIDE("%Resources%/images") ), szBuffer );
-		xlprintf(LOG_NOISE+1)( WIDE(" LoadImageFile returned a pointer to %p ") , theme->buttons.iGlare );
+		//xlprintf(LOG_NOISE+1)( WIDE(" LoadImageFile returned a pointer to %p ") , theme->buttons.iGlare );
 	}
 
 	else
 	{
-		xlprintf(LOG_NOISE+1)( WIDE("setting an image file to null") );
+		//xlprintf(LOG_NOISE+1)( WIDE("setting an image file to null") );
 		theme->buttons.iGlare = NULL;
 	}
 
@@ -554,7 +554,7 @@ PTHEME LoadButtonThemeByNameEx( CTEXTSTR name, int theme_id, CDATA default_color
 	if (StrCmpEx(szBuffer, WIDE("NULL"), 4)  )
 	{
 		theme->buttons.iPressed = LoadImageFileFromGroup( GetFileGroup( WIDE("Button Resources"), WIDE("%Resources%/images") ), szBuffer );
-		xlprintf(LOG_NOISE+1)( WIDE(" LoadImageFile returned a pointer to %p ") , theme->buttons.iPressed );
+		//xlprintf(LOG_NOISE+1)( WIDE(" LoadImageFile returned a pointer to %p ") , theme->buttons.iPressed );
 	}
 
 	else

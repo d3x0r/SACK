@@ -601,11 +601,11 @@ static void OnSaveControl( WIDE("Ping Status Graph") )( FILE *file, PTRSZVAL psv
 	{
 		TARGET_ADDRESS target = (TARGET_ADDRESS)line->target;
 		if( line->type->parent )
-			fprintf( file, WIDE("graph line server:\'%s\' status:\'%s\' sub: \'%s\' color:$%")_32fX WIDE("\n"), target->name, line->type->parent->name, line->type->name, line->color );
+			sack_fprintf( file, WIDE("graph line server:\'%s\' status:\'%s\' sub: \'%s\' color:$%")_32fX WIDE("\n"), target->name, line->type->parent->name, line->type->name, line->color );
 		else
-			fprintf( file, WIDE("graph line server:\'%s\' status:\'%s\' color:$%")_32fX WIDE("\n"), target->name, line->type->name, line->color );
+			sack_fprintf( file, WIDE("graph line server:\'%s\' status:\'%s\' color:$%")_32fX WIDE("\n"), target->name, line->type->name, line->color );
 	}
-	fprintf( file, WIDE("graph timespan:%ld\n"), graph->timespan );
+	sack_fprintf( file, WIDE("graph timespan:%ld\n"), graph->timespan );
 }
 
 static void OnLoadCommon( WIDE("Ping Status Graph Targets") )( PCONFIG_HANDLER pch )
@@ -619,7 +619,7 @@ static void OnSaveCommon( WIDE("Ping Status Graph Targets") )( FILE *file )
 	TARGET_ADDRESS target;
 	LIST_FORALL( l.targets, idx, TARGET_ADDRESS, target )
 	{
-		fprintf( file, WIDE("ping target=%s\n"), target->name );
+		sack_fprintf( file, WIDE("ping target=%s\n"), target->name );
 	}
 }
 

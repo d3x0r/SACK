@@ -145,6 +145,11 @@ struct scollable_list_local
 	int time_pad;
 	int context_message_pad;
 	int context_sender_pad;
+	SFTFont image_help_font;
+	CDATA image_grid_background_color;
+	CDATA image_grid_color;
+	CDATA help_text_background;
+	CDATA help_text_color;
 
 } l;
 

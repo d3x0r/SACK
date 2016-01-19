@@ -381,7 +381,7 @@ static int OnCreateCommon(BUTTON_NAME)( PCOMMON pc )
 		S_32 x = 0;
 		S_32 y = 0;
 		GetPhysicalCoordinate( pc, &x, &y, FALSE );
-		HideCommon( pc ); // hide this control - we'll show it when we finish the proper init...
+		HideControl( pc ); // hide this control - we'll show it when we finish the proper init...
 		button->real_x = x;
 		button->real_y = y;
 		button->button = pc;
@@ -1509,7 +1509,7 @@ void DestroyKey( PKEY_BUTTON *key )
 
 void HideKey( PKEY_BUTTON pKey )
 {
-	HideCommon( pKey->button );
+	HideControl( pKey->button );
 }
 
 void ShowKey( PKEY_BUTTON pKey )

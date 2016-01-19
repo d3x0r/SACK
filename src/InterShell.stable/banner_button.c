@@ -229,16 +229,16 @@ static void OnSaveControl( MAKE_BANNER_MESSAGE )( FILE *file, PTRSZVAL psvBanner
 	PBANNER_BUTTON banner = (PBANNER_BUTTON)psvBanner;
 	ExpandConfigString( buffer, banner->text );
 	ExpandConfigString( buffer2, buffer );
-	fprintf( file, WIDE( "%sbanner text=%s\n" ), InterShell_GetSaveIndent(), buffer2 );
-	fprintf( file, WIDE( "%sbanner timeout=%d\n" ), InterShell_GetSaveIndent(), banner->delay );
-	fprintf( file, WIDE( "%sbanner continue=%s\n" ), InterShell_GetSaveIndent(), banner->flags.allow_continue?WIDE( "yes" ):WIDE( "no" ) );
-	fprintf( file, WIDE( "%sbanner force delay=%s\n" ), InterShell_GetSaveIndent(), banner->flags.forced_delay?WIDE( "yes" ):WIDE( "no" ) );
-	fprintf( file, WIDE( "%sbanner topmost=%s\n" ), InterShell_GetSaveIndent(), banner->flags.bTopmost?WIDE( "yes" ):WIDE( "no" ) );
-	fprintf( file, WIDE( "%sbanner yes or no=%s\n" ), InterShell_GetSaveIndent(), banner->flags.yes_no?WIDE( "yes" ):WIDE( "no" ) );
-	fprintf( file, WIDE( "%sbanner explorer=%s\n" ), InterShell_GetSaveIndent(), banner->flags.explorer?WIDE( "yes" ):WIDE( "no" ) );
-	fprintf( file, WIDE( "%sbanner okay or cancel=%s\n" ), InterShell_GetSaveIndent(), banner->flags.okay_cancel?WIDE( "yes" ):WIDE( "no" ) );
-	fprintf( file, WIDE( "%sbanner skip if button highlight=%s\n" ), InterShell_GetSaveIndent(), banner->flags.skip_if_lit?WIDE( "yes" ):WIDE( "no" ) );
-	fprintf( file, WIDE( "%sbanner skip if button normal=%s\n" ), InterShell_GetSaveIndent(), banner->flags.skip_if_unlit?WIDE( "yes" ):WIDE( "no" ) );
+	sack_fprintf( file, WIDE( "%sbanner text=%s\n" ), InterShell_GetSaveIndent(), buffer2 );
+	sack_fprintf( file, WIDE( "%sbanner timeout=%d\n" ), InterShell_GetSaveIndent(), banner->delay );
+	sack_fprintf( file, WIDE( "%sbanner continue=%s\n" ), InterShell_GetSaveIndent(), banner->flags.allow_continue?WIDE( "yes" ):WIDE( "no" ) );
+	sack_fprintf( file, WIDE( "%sbanner force delay=%s\n" ), InterShell_GetSaveIndent(), banner->flags.forced_delay?WIDE( "yes" ):WIDE( "no" ) );
+	sack_fprintf( file, WIDE( "%sbanner topmost=%s\n" ), InterShell_GetSaveIndent(), banner->flags.bTopmost?WIDE( "yes" ):WIDE( "no" ) );
+	sack_fprintf( file, WIDE( "%sbanner yes or no=%s\n" ), InterShell_GetSaveIndent(), banner->flags.yes_no?WIDE( "yes" ):WIDE( "no" ) );
+	sack_fprintf( file, WIDE( "%sbanner explorer=%s\n" ), InterShell_GetSaveIndent(), banner->flags.explorer?WIDE( "yes" ):WIDE( "no" ) );
+	sack_fprintf( file, WIDE( "%sbanner okay or cancel=%s\n" ), InterShell_GetSaveIndent(), banner->flags.okay_cancel?WIDE( "yes" ):WIDE( "no" ) );
+	sack_fprintf( file, WIDE( "%sbanner skip if button highlight=%s\n" ), InterShell_GetSaveIndent(), banner->flags.skip_if_lit?WIDE( "yes" ):WIDE( "no" ) );
+	sack_fprintf( file, WIDE( "%sbanner skip if button normal=%s\n" ), InterShell_GetSaveIndent(), banner->flags.skip_if_unlit?WIDE( "yes" ):WIDE( "no" ) );
 }
 
 

@@ -4,6 +4,7 @@
 #include <sqlgetoption.h>
 #include "http.h"
 
+
 HTTP_NAMESPACE
 
 
@@ -12,8 +13,12 @@ struct HttpField {
 	PTEXT value;
 };
 
+enum ReadChunkState {
+	READ_VALUE, READ_VALUE_CR, READ_VALUE_LF, READ_CR, READ_LF, READ_BYTES
+};
+
 struct HttpState {
-   // add input into pvt_collector
+	// add input into pvt_collector
 	PVARTEXT pvt_collector;
 	PTEXT partial;  // an accumulator that moves data from collector into whatever we've got leftover
 
@@ -32,7 +37,14 @@ struct HttpState {
 	int numeric_code;
 	int response_version;
 	TEXTSTR text_code;
-   PCLIENT request_socket; // when a request comes in to the server, it is kept in a new http state, this is set for Send Response
+	PCLIENT request_socket; // when a request comes in to the server, it is kept in a new http state, this is set for Send Response
+
+	LOGICAL ssl;
+	PVARTEXT pvtOut; // this is filled with a request ready to go out; used for HTTPS
+	LOGICAL read_chunks;
+	size_t read_chunk_byte;
+	size_t read_chunk_length;
+	enum ReadChunkState read_chunk_state;
 };
 
 struct HttpServer {
@@ -137,6 +149,7 @@ int ProcessHttp( PCLIENT pc, struct HttpState *pHttpState )
 		// we always start without having a line yet, because all input is already merged
 		bLine = 0;
 		{
+			//lprintf( "%s", GetText( pCurrent ) );
 			size = GetTextSize( pCurrent );
 			c = GetText( pCurrent );
 			if( bLine < 4 )
@@ -223,7 +236,7 @@ int ProcessHttp( PCLIENT pc, struct HttpState *pHttpState )
 											pHttpState->numeric_code = HTTP_STATE_RESULT_CONTENT; // initialize to assume it's incomplete; NOT OK.  (requests should be OK)
 											lprintf( WIDE("probably shouldn't post final until content length is also received...") );
 										}
-										for( tmp = NEXTLINE( request ); tmp; tmp = next )
+										for( tmp = request; tmp; tmp = next )
 										{
 											//lprintf( WIDE( "word %s" ), GetText( tmp ) );
 											next = NEXTLINE( tmp );
@@ -335,14 +348,25 @@ int ProcessHttp( PCLIENT pc, struct HttpState *pHttpState )
 			{
 				if( TextLike( field->name, WIDE( "content-length" ) ) )
 				{
-               // down convert from S_64
+					// down convert from S_64
 					pHttpState->content_length = (int)IntCreateFromSeg( field->value );
+				}
+				if( TextLike( field->name, WIDE( "Transfer-Encoding" ) ) )
+				{
+					if( TextLike( field->value, "chunked" ) )
+					{
+						pHttpState->content_length = 0xFFFFFFF;
+						pHttpState->read_chunks = TRUE;
+						pHttpState->read_chunk_state = READ_VALUE;
+						pHttpState->read_chunk_length = 0;
+
+					}
 				}
 				if( TextLike( field->name, WIDE( "Expect" ) ) )
 				{
 					if( TextLike( field->value, WIDE( "100-continue" ) ) )
 					{
-                  if( l.flags.bLogReceived )
+						if( l.flags.bLogReceived )
 							lprintf( WIDE("Generating 100-continue response...") );
 						SendTCP( pc, "HTTP/1.1 100 Continue\r\n\r\n", 25 );
 					}
@@ -352,7 +376,8 @@ int ProcessHttp( PCLIENT pc, struct HttpState *pHttpState )
 			GatherHttpData( pHttpState );
 		}
 	}
-	if( pHttpState->final )
+	if( pHttpState->final && 
+		( pHttpState->content_length && ( GetTextSize( pHttpState->partial ) >= pHttpState->content_length ) ) )
 	{
 		if( pHttpState->numeric_code == 500 )
 			return HTTP_STATE_INTERNAL_SERVER_ERROR;
@@ -369,9 +394,107 @@ int ProcessHttp( PCLIENT pc, struct HttpState *pHttpState )
 	return HTTP_STATE_RESULT_NOTHING;
 }
 
-void AddHttpData( struct HttpState *pHttpState, POINTER buffer, size_t size )
+LOGICAL AddHttpData( struct HttpState *pHttpState, POINTER buffer, size_t size )
 {
-	VarTextAddData( pHttpState->pvt_collector, (CTEXTSTR)buffer, size );
+	if( pHttpState->read_chunks )
+	{
+		P_8 buf = (P_8)buffer;
+		int ofs = 0;
+		while( ofs < size )
+		{
+			switch( pHttpState->read_chunk_state )
+			{
+			case READ_VALUE:
+				if( buf[ofs] >= '0' && buf[ofs] <= '9' )
+				{
+					pHttpState->read_chunk_length *= 16;
+					pHttpState->read_chunk_length += buf[ofs] - '0';
+				}
+				else if( buf[ofs] >= 'a' && buf[ofs] <= 'f' )
+				{
+					pHttpState->read_chunk_length *= 16;
+					pHttpState->read_chunk_length += buf[ofs] - 'a' + 10;
+				}
+				else if( buf[ofs] >= 'A' && buf[ofs] <= 'F' )
+				{
+					pHttpState->read_chunk_length *= 16;
+					pHttpState->read_chunk_length += buf[ofs] - 'A' + 10;
+				}
+				else if( buf[ofs] == '\r' )
+				{
+					pHttpState->read_chunk_state = READ_VALUE_LF;
+				}
+				else
+				{
+					lprintf( "Chunk Processing Error expected \\n, found %d(%c)", buf[ofs], buf[ofs] );
+					RemoveClient( pHttpState->request_socket );
+					return FALSE;
+				}
+				break;
+			case READ_VALUE_LF:
+				if( buf[ofs] == '\n' )
+				{
+					if( pHttpState->read_chunk_length == 0 )
+						pHttpState->read_chunk_state = READ_CR;
+					else
+						pHttpState->read_chunk_state = READ_BYTES;
+				}
+				else
+				{
+					lprintf( "Chunk Processing Error expected \\n, found %d(%c)", buf[ofs], buf[ofs] );
+					RemoveClient( pHttpState->request_socket );
+					return FALSE;
+				}
+				break;
+			case READ_CR:
+				if( buf[ofs] == '\r' )
+				{
+					pHttpState->read_chunk_state = READ_LF;
+				}
+				else
+				{
+					lprintf( "Chunk Processing Error expected \\r, found %d(%c)", buf[ofs], buf[ofs] );
+					RemoveClient( pHttpState->request_socket );
+					return FALSE;
+				}
+				break;
+			case READ_LF:
+				if( buf[ofs] == '\n' )
+				{
+					if( pHttpState->read_chunk_length )
+					{
+						pHttpState->read_chunk_length = 0;
+						pHttpState->read_chunk_state = READ_VALUE;
+					}
+					else
+					{
+						pHttpState->content_length = GetTextSize( VarTextPeek( pHttpState->pvt_collector ) );
+						return TRUE;
+					}
+				}
+				else
+				{
+					lprintf( "Chunk Processing Error expected \\n, found %d(%c)", buf[ofs], buf[ofs] );
+					RemoveClient( pHttpState->request_socket );
+					return FALSE;
+				}
+				break;
+			case READ_BYTES:
+				VarTextAddData( pHttpState->pvt_collector, (CTEXTSTR)(buf + ofs), 1 );
+				pHttpState->read_chunk_byte++;
+				if( pHttpState->read_chunk_byte == pHttpState->read_chunk_length )
+					pHttpState->read_chunk_state = READ_CR;
+				break;
+			}
+			ofs++;
+		}
+		return FALSE;
+	}
+	else
+	{
+		VarTextAddData( pHttpState->pvt_collector, (CTEXTSTR)buffer, size );
+		return TRUE;
+	}
 }
 
 struct HttpState *CreateHttpState( void )
@@ -422,7 +545,6 @@ void EndHttp( struct HttpState *pHttpState )
 		}
 		EmptyList( &pHttpState->fields );
 	}
-
 }
 
 PTEXT GetHttpContent( struct HttpState *pHttpState )
@@ -459,7 +581,7 @@ PTEXT GetHttpField( struct HttpState *pHttpState, CTEXTSTR name )
 	LIST_FORALL( pHttpState->fields, idx, struct HttpField *, field )
 	{
 		if( StrCaseCmp( GetText( field->name ), name ) == 0 )
-         return field->value;
+			return field->value;
 	}
 	return NULL;
 }
@@ -481,7 +603,7 @@ void DestroyHttpState( struct HttpState *pHttpState )
 	VarTextDestroy( &pHttpState->pvt_collector );
 	if( pHttpState->buffer )
 		Release( pHttpState->buffer );
-   Release( pHttpState );
+	Release( pHttpState );
 }
 
 void SendHttpResponse ( struct HttpState *pHttpState, PCLIENT pc, int numeric, CTEXTSTR text, CTEXTSTR content_type, PTEXT body )
@@ -502,7 +624,7 @@ void SendHttpResponse ( struct HttpState *pHttpState, PCLIENT pc, int numeric, C
 					:WIDE("text/plain; charset=utf-8")  );
 	}
 	else
-      vtprintf( pvt_message, WIDE( "%s\r\n" ), GetText( body ) );
+		vtprintf( pvt_message, WIDE( "%s\r\n" ), GetText( body ) );
 	vtprintf( pvt_message, WIDE( "Server: SACK Core Library 2.x\r\n" )  );
 
 
@@ -512,15 +634,15 @@ void SendHttpResponse ( struct HttpState *pHttpState, PCLIENT pc, int numeric, C
 	//offset += snprintf( message + offset, sizeof( message ) - offset, WIDE( "%s" ),  "Body");
 	if( l.flags.bLogReceived )
 	{
-      lprintf( WIDE("Sending response...") );
+		lprintf( WIDE("Sending response...") );
 		LogBinary( GetText( header ), GetTextSize( header ) );
-      if( content_type )
+		if( content_type )
 			LogBinary( GetText( body ), GetTextSize( body ) );
 	}
 	if( !pc )
-      pc = pHttpState->request_socket;
+		pc = pHttpState->request_socket;
 	SendTCP( pc, GetText( header ), GetTextSize( header ) );
-   if( content_type )
+	if( content_type )
 		SendTCP( pc, GetText( body ), GetTextSize( body ) );
 }
 
@@ -550,10 +672,30 @@ void SendHttpMessage ( struct HttpState *pHttpState, PCLIENT pc, PTEXT body )
 
 static void CPROC HttpReader( PCLIENT pc, POINTER buffer, size_t size )
 {
+	struct HttpState *state = (struct HttpState *)GetNetworkLong( pc, 2 );
 	if( !buffer )
 	{
-		buffer = Allocate( 4096 );
-		SetNetworkLong( pc, 1, (PTRSZVAL)buffer );
+		struct HttpState *state = (struct HttpState *)GetNetworkLong( pc, 2 );
+		if( state && state->ssl )
+		{
+			Deallocate( POINTER, (POINTER)GetNetworkLong( pc, 1 ) );
+			SetNetworkLong( pc, 1, 0 );
+			{
+				PTEXT send = VarTextGet( state->pvtOut );
+				if( l.flags.bLogReceived )
+				{
+					lprintf( WIDE("Sending Request...") );
+					LogBinary( GetText( send ), GetTextSize( send ) );
+				}
+				ssl_Send( pc, GetText( send ), GetTextSize( send ) );
+				LineRelease( send );
+			}
+		}
+		else
+		{
+			buffer = Allocate( 4096 );
+			SetNetworkLong( pc, 1, (PTRSZVAL)buffer );
+		}
 	}
 	else
 	{
@@ -563,20 +705,31 @@ static void CPROC HttpReader( PCLIENT pc, POINTER buffer, size_t size )
 			lprintf( WIDE("Received web request...") );
 			LogBinary( buffer, size );
 		}
-		AddHttpData( state, buffer, size );
-		if( ProcessHttp( pc, state ) )
-		{
-			RemoveClient( pc );
-			return;
-		}
+		if( AddHttpData( state, buffer, size ) )
+			if( ProcessHttp( pc, state ) )
+			{
+				RemoveClient( pc );
+				return;
+			}
 	}
-	ReadTCP( pc, buffer, 4096 );
+
+	// read is handled by the SSL layer instead of here.  Just trust that someone will give us data later
+	if( buffer && ( state && !state->ssl ) )
+	{
+		ReadTCP( pc, buffer, 4096 );
+	}
 }
 
 static void CPROC HttpReaderClose( PCLIENT pc )
 {
-	Release( (POINTER)GetNetworkLong( pc, 1 ) );
-   ((PCLIENT*)GetNetworkLong( pc, 0 ))[0] = 0;
+	POINTER buf = (POINTER)GetNetworkLong( pc, 1 );
+	if( buf )
+		Release( buf );
+	{
+		PCLIENT *ppc = (PCLIENT*)GetNetworkLong( pc, 0 );
+		if( ppc )
+			ppc[0] = NULL;
+	}
 }
 
 HTTPState PostHttpQuery( PTEXT address, PTEXT url, PTEXT content )
@@ -591,13 +744,13 @@ HTTPState PostHttpQuery( PTEXT address, PTEXT url, PTEXT content )
 	if( pc )
 	{
 		PTEXT send = VarTextGet( pvtOut );
-		SetNetworkCloseCallback( pc, HttpReaderClose );
 		SetNetworkLong( pc, 0, (PTRSZVAL)&pc );
 		SetNetworkLong( pc, 2, (PTRSZVAL)state );
+		SetNetworkCloseCallback( pc, HttpReaderClose );
 		if( l.flags.bLogReceived )
 		{
 			lprintf( WIDE("Sending POST...") );
-         LogBinary( GetText( send ), GetTextSize( send ) );
+			LogBinary( GetText( send ), GetTextSize( send ) );
 		}
 		SendTCP( pc, GetText( send ), GetTextSize( send ) );
 		LineRelease( send );
@@ -616,12 +769,12 @@ PTEXT PostHttp( PTEXT address, PTEXT url, PTEXT content )
 	if( state )
 	{
 		PTEXT result = GetHttpContent( state );
-      if( result )
+		if( result )
 			Hold( result );
 		DestroyHttpState( state );
-      return result;
+		return result;
 	}
-   return NULL;
+	return NULL;
 }
 
 HTTPState GetHttpQuery( PTEXT address, PTEXT url )
@@ -638,9 +791,9 @@ HTTPState GetHttpQuery( PTEXT address, PTEXT url )
 		if( pc )
 		{
 			PTEXT send = VarTextGet( pvtOut );
-			SetNetworkCloseCallback( pc, HttpReaderClose );
 			SetNetworkLong( pc, 0, (PTRSZVAL)&pc );
 			SetNetworkLong( pc, 2, (PTRSZVAL)state );
+			SetNetworkCloseCallback( pc, HttpReaderClose );
 			if( l.flags.bLogReceived )
 			{
 				lprintf( WIDE("Sending POST...") );
@@ -656,11 +809,59 @@ HTTPState GetHttpQuery( PTEXT address, PTEXT url )
 		VarTextDestroy( &pvtOut );
 		return state;
 	}
-   return NULL;
+	return NULL;
 }
 
-PTEXT GetHttp( PTEXT address, PTEXT url )
+HTTPState GetHttpsQuery( PTEXT address, PTEXT url )
 {
+	if( !address )
+		return NULL;
+	{
+		struct HttpState *state = CreateHttpState();
+		static PCLIENT pc;
+		pc = OpenTCPClient( GetText( address ), 443, NULL );
+		if( pc )
+		{
+			SetNetworkLong( pc, 0, (PTRSZVAL)&pc );
+			SetNetworkLong( pc, 2, (PTRSZVAL)state );
+			SetNetworkCloseCallback( pc, HttpReaderClose );
+			SetNetworkReadComplete( pc, HttpReader );
+			state->ssl = TRUE;
+			state->pvtOut = VarTextCreate();
+
+			vtprintf( state->pvtOut, WIDE( "GET %s HTTP/1.1\r\n" ), GetText( url ) );
+			vtprintf( state->pvtOut, WIDE( "host: %s\r\n" ), GetText( address ) );
+			vtprintf( state->pvtOut, WIDE( "\r\n\r\n" ) );
+			if( ssl_BeginClientSession( pc ) )
+			{
+				_32 now = GetTickCount();
+				while( pc && now > ( GetTickCount() - 120000 ) )
+				{
+					WakeableSleep( 100 );
+				}
+			}
+			else
+				RemoveClient( pc );
+			VarTextDestroy( &state->pvtOut );
+			if( !pc )
+				return state;
+		}
+		else
+		{
+			RemoveClient( pc );
+			DestroyHttpState( state );
+		}
+	}
+	return NULL;
+}
+
+PTEXT GetHttp( PTEXT address, PTEXT url, LOGICAL secure )
+{
+	if( secure )
+		return GetHttps( address, url );
+	else
+
+	{
 	HTTPState state = GetHttpQuery( address, url );
 	if( state )
 	{
@@ -668,10 +869,24 @@ PTEXT GetHttp( PTEXT address, PTEXT url )
 		if( result )
 			Hold( result );
 		DestroyHttpState( state );
-      return result;
-	}
-   return NULL;
+		return result;
+	}}
+	return NULL;
 }
+PTEXT GetHttps( PTEXT address, PTEXT url )
+{
+	HTTPState state = GetHttpsQuery( address, url );
+	if( state )
+	{
+		PTEXT result = GetHttpContent( state );
+		if( result )
+			Hold( result );
+		DestroyHttpState( state );
+		return result;
+	}
+	return NULL;
+}
+
 //---------- SERVER --------------------------------------------
 
 static LOGICAL InvokeMethod( PCLIENT pc, struct HttpServer *server, struct HttpState *pHttpState )
@@ -784,7 +999,7 @@ struct HttpServer *CreateHttpServerEx( CTEXTSTR interface_address, CTEXTSTR Targ
 	server->handle_request = handle_request;
 	server->psvRequest = psv;
 	server->site = StrDup( site );
-	snprintf( class_name, sizeof( class_name ), WIDE( "SACK/Http/Methods/%s%s%s" )
+	tnprintf( class_name, sizeof( class_name ), WIDE( "SACK/Http/Methods/%s%s%s" )
 			  , TargetName?TargetName:WIDE("")
 			  , ( TargetName && site )?WIDE( "/" ):WIDE( "" )
 			  , site?site:WIDE( "" ) );
@@ -807,18 +1022,18 @@ struct HttpServer *CreateHttpServerEx( CTEXTSTR interface_address, CTEXTSTR Targ
 PTEXT GetHTTPField( struct HttpState *pHttpState, CTEXTSTR name )
 {
 	INDEX idx;
-   struct HttpField *field;
+	struct HttpField *field;
 	LIST_FORALL( pHttpState->fields, idx, struct HttpField *, field )
 	{
 		if( TextLike( field->name, name ) )
-         return field->value;
+			return field->value;
 	}
 	return NULL;
 }
 
 PTEXT GetHttpResource( struct HttpState *pHttpState )
 {
-   return pHttpState->resource;
+	return pHttpState->resource;
 }
 
 

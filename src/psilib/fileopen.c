@@ -26,7 +26,7 @@ void RedrawTemplate( PTRSZVAL psv )
 	
 }
 
-PCONTROL pLoading;
+PSI_CONTROL pLoading;
 
 void CPROC AddFile( PTRSZVAL user, CTEXTSTR pathname, int flags )
 {
@@ -37,7 +37,7 @@ void CPROC AddFile( PTRSZVAL user, CTEXTSTR pathname, int flags )
    if( flags & SFF_DRIVE )
    {
       TEXTCHAR buffer[10];
-      snprintf( buffer, sizeof( buffer ), WIDE("-%c-"), pathname[0] );
+      tnprintf( buffer, sizeof( buffer ), WIDE("-%c-"), pathname[0] );
       newitem = AddListItem( pLoading, buffer );
       SetItemData( newitem, (PTRSZVAL)flags );
    }
@@ -51,7 +51,7 @@ void CPROC AddFile( PTRSZVAL user, CTEXTSTR pathname, int flags )
 		if( flags & SFF_DIRECTORY )
 		{
 			TEXTCHAR buffer[256];
-			snprintf( buffer, sizeof( buffer ), WIDE("%s/"), name );
+			tnprintf( buffer, sizeof( buffer ), WIDE("%s/"), name );
 			newitem = AddListItem( pLoading, buffer );
 			SetItemData( newitem, (PTRSZVAL)flags );
 
@@ -64,7 +64,7 @@ void CPROC AddFile( PTRSZVAL user, CTEXTSTR pathname, int flags )
    }
 }
 
-void LoadList( PCONTROL list, FILEOPENDATA *pfod )
+void LoadList( PSI_CONTROL list, FILEOPENDATA *pfod )
 {
    void *stuff = NULL;
    while( pLoading ) Idle();
@@ -86,7 +86,7 @@ void LoadList( PCONTROL list, FILEOPENDATA *pfod )
 	pLoading = 0;
 }
 
-void CPROC FileDouble( PTRSZVAL psv, PCONTROL pc, PLISTITEM hli )
+void CPROC FileDouble( PTRSZVAL psv, PSI_CONTROL pc, PLISTITEM hli )
 {
    _32 flags;
    TEXTCHAR name[256];
@@ -128,7 +128,7 @@ void CPROC FileDouble( PTRSZVAL psv, PCONTROL pc, PLISTITEM hli )
          else
 			{
             name[strlen(name)-1] = 0;
-            snprintf( pfod->basepath, sizeof(pfod->basepath), WIDE("%s/%s"), pfod->basepath, name );
+            tnprintf( pfod->basepath, sizeof(pfod->basepath), WIDE("%s/%s"), pfod->basepath, name );
          }
          LoadList( pc, pfod );
       }
@@ -157,7 +157,7 @@ int PSI_PickFile( PSI_CONTROL parent, CTEXTSTR basepath, CTEXTSTR types, TEXTSTR
 	// the current working directory...
 	S_32 x, y;
 	PSI_CONTROL frame;
-	PCONTROL pcList;
+	PSI_CONTROL pcList;
 	FILEOPENDATA fod;
 
 	GetMousePosition( &x, &y );
@@ -191,7 +191,7 @@ ReLoop:
 		if( !(flags & (SFF_DRIVE|SFF_DIRECTORY) ) )
 		{
 			GetControlText( GetControl( frame, TXT_PATHNAME ), fod.currentname, 280 );
-			snprintf( result, result_len, WIDE("%s/%s"), fod.basepath, fod.currentname );
+			tnprintf( result, result_len, WIDE("%s/%s"), fod.basepath, fod.currentname );
 			DestroyCommon( &frame );
 			return 1;
 		}

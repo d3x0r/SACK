@@ -806,14 +806,15 @@ static _32 PutCharacterFontX ( ImageFile *pImage
 			CharDatax = CharData8;
 			inc = (pchar->size);
 		}
-		if( background &0xFFFFFF )
+		//lprintf( "Output Character %c %d %d", c, pchar->ascent, pchar->descent );
+		if( background /*&0xFFFFFFFF*/ )
 		{
-			for( line = 0; line < UseFont->baseline - pchar->ascent; line++ )
+			for( line = 0; line < ((S_16)UseFont->baseline - pchar->ascent); line++ )
 			{
 				for( col = 0; col < pchar->width; col++ )
 					CharPlotAlpha( pImage, StepX(x,col,line), StepY(y,line,col), background );
 			}
-			for(; line <= UseFont->baseline - pchar->descent; line++ )
+			for(; line <= ((S_16)UseFont->baseline - pchar->descent); line++ )
 			{
 				dataline = data;
 				col = 0;

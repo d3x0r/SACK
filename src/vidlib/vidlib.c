@@ -70,9 +70,9 @@
 //#define LOG_MOUSE_HIDE_IDLE
 //#define LOG_OPENGL_CONTEXT
 #include <vidlib/vidstruc.h>
-#include "VidLib.H"
+#include "vidlib.h"
 
-#include "Keybrd.h"
+#include "keybrd.h"
 
 static int stop;
 //HWND	  hWndLastFocus;
@@ -1031,7 +1031,7 @@ BOOL CreateDrawingSurface (PVIDEO hVideo)
 		bmInfo.bmiHeader.biClrUsed = 0;
 		bmInfo.bmiHeader.biClrImportant = 0;
 		if( l.flags.bLogWrites )
-			lprintf( "Create new DIB section.." );
+			lprintf( WIDE( "Create new DIB section..") );
 		hBmNew = CreateDIBSection (NULL, &bmInfo, DIB_RGB_COLORS, (void **) &pBuffer, NULL,	// hVideo (hMemView)
 											0); // offset DWORD multiple
 
@@ -1056,7 +1056,7 @@ BOOL CreateDrawingSurface (PVIDEO hVideo)
 								 bmInfo.bmiHeader.biHeight);
 			if (!hVideo->hDCBitmapFullScreen) 
 				hVideo->hDCBitmapFullScreen = CreateCompatibleDC ((HDC)hVideo->hDCOutput);
-			hPriorBm = SelectObject ((HDC)hVideo->hDCBitmapFullScreen, hBmNew);
+			hPriorBm = (HBITMAP)SelectObject ((HDC)hVideo->hDCBitmapFullScreen, hBmNew);
 			if (hVideo->hBmFullScreen && hVideo->hWndOutput)
 			{
 				// if we had an old one, we'll want to delete it.
@@ -1084,7 +1084,7 @@ BOOL CreateDrawingSurface (PVIDEO hVideo)
 			hVideo->pImage->flags |= IF_FLAG_FINAL_RENDER | IF_FLAG_IN_MEMORY;
 			if (!hVideo->hDCBitmap) // first time ONLY...
 				hVideo->hDCBitmap = CreateCompatibleDC ((HDC)hVideo->hDCOutput);
-			hPriorBm = SelectObject ((HDC)hVideo->hDCBitmap, hBmNew);
+			hPriorBm = (HBITMAP)SelectObject ((HDC)hVideo->hDCBitmap, hBmNew);
 			if (hVideo->hBm && hVideo->hWndOutput)
 			{
 				// if we had an old one, we'll want to delete it.
@@ -1491,7 +1491,7 @@ LRESULT CALLBACK
 					 , kbhook->vkCode, kbhook->scanCode, kbhook->flags, kbhook->time, kbhook->dwExtraInfo );
 			else
 			{
-				lprintf( "kbhook data is NULL!" );
+				lprintf( WIDE("kbhook data is NULL!") );
 				return 0;
 			}
 
@@ -2472,9 +2472,12 @@ WM_DROPFILES
 							lprintf( WIDE( "Just make sure we're the TOP TOP TOP window.... (more than1?!)" ) );
 #endif
 							pwp->hwndInsertAfter = HWND_TOPMOST;
+							//pwp->hwndInsertAfter = MoveWindowStack( hVideo, HWND_TOPMOST, 1 );
 						}
 						else
+						{
 							Return 0;
+						}
 					}
 					else
 						Return 0;
@@ -2567,7 +2570,7 @@ WM_DROPFILES
 				}
 			}
 		}
-		Return 1;
+		Return 0;
 		//break;
 #endif
 #if 0
@@ -2659,11 +2662,13 @@ WM_DROPFILES
 			//// don't save always, only parts are valid at times.
 			//hVideo->pWindowPos = *pwp; // save always....!!!
 
-			if( (!(pwp->flags & SWP_NOZORDER ))
-				&& ( !hVideo->pWindowPos.hwndInsertAfter )
-				&& hVideo->flags.bTopmost 
+			if( (!(pwp->flags & SWP_NOZORDER))
+				&& (!hVideo->pWindowPos.hwndInsertAfter)
+				&& hVideo->flags.bTopmost
 				)
+			{
 				hVideo->pWindowPos.hwndInsertAfter = HWND_TOPMOST;
+			}
 			{
 				RECT pwp2;
 				RECT pwp3;
@@ -3020,17 +3025,17 @@ WM_DROPFILES
 					l.flags.bPostedInvalidate = 0;
 					UpdateDisplayPortion (hVideo, 0, 0, 0, 0);
 					if( l.flags.bPostedInvalidate )
-						lprintf( "triggered to draw too soon!" );
+						lprintf( WIDE("triggered to draw too soon!") );
 					l.flags.bPostedInvalidate = 0;
 				}
 				else if( l.invalidated_window )
-					lprintf( " failed %d %p %p", l.flags.bPostedInvalidate, l.invalidated_window, hVideo );
+					lprintf( WIDE( " failed %d %p %p"), l.flags.bPostedInvalidate, l.invalidated_window, hVideo );
 			//InvalidateRect( hVideo->hWndOutput, NULL, FALSE );
 		}
 		//lprintf( "redraw... WM_PAINT" );
 		ValidateRect (hWnd, NULL);
 				if( l.flags.bPostedInvalidate )
-					lprintf( "triggered to draw too soon!" );
+					lprintf( WIDE( "triggered to draw too soon!") );
 		//lprintf( "redraw... WM_PAINT" );
 		/// allow a second invalidate to post.
 #ifdef NOISY_LOGGING
@@ -3115,6 +3120,17 @@ WM_DROPFILES
 		}
 		break;
 	case WM_TIMER:
+		{
+			hVideo = (PVIDEO)GetWindowLongPtr( hWnd, WD_HVIDEO );
+			if( hVideo && hVideo->top_force_timer_id == wParam )
+			{
+				if( hVideo->flags.bAbsoluteTopmost )
+				{
+					if( GetTopWindow( NULL ) != hVideo->hWndOutput )
+						SetWindowPos( hVideo->hWndOutput, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE );
+				}
+			}
+		}
 		if( l.flags.mouse_on && l.last_mouse_update )
 		{
 #ifdef LOG_MOUSE_HIDE_IDLE
@@ -3161,7 +3177,7 @@ WM_DROPFILES
 					HINSTANCE hInst;
 					hInst =  GetModuleHandle(_WIDE(TARGETNAME));
 					if( hInst == NULL )
-						hInst = GetPrivateModuleHandle( _WIDE(TARGETNAME) );
+						hInst = (HMODULE)GetPrivateModuleHandle( _WIDE(TARGETNAME) );
 				// definatly add whatever thread made it to the WM_CREATE.			
 					AddLink( &l.threads, me );
 					AddIdleProc( (int(CPROC*)(PTRSZVAL))ProcessDisplayMessages, 0 );
@@ -3285,7 +3301,7 @@ RENDER_PROC (BOOL, CreateWindowStuffSizedAt) (PVIDEO hVideo, int x, int y,
 	if( hMe == NULL )
 		hMe = GetModuleHandle (_WIDE(TARGETNAME));
 	if( hMe == NULL )
-		hMe = GetPrivateModuleHandle( _WIDE(TARGETNAME) );
+		hMe = (HMODULE)GetPrivateModuleHandle( _WIDE(TARGETNAME) );
 	if( hMe == NULL )
 		hMe = GetModuleHandle( NULL );
 	//lprintf( WIDE( "-----Create WIndow Stuff----- %s %s" ), hVideo->flags.bLayeredWindow?WIDE( "layered" ):WIDE( "solid" )
@@ -3781,12 +3797,15 @@ static void HandleMessage (MSG Msg)
 		//ShowWindow( ((PVIDEO)Msg.lParam)->hWndOutput, SW_RESTORE );
 		//lprintf( WIDE( "Handling SHOW_WINDOW message! %p" ), Msg.lParam );
 		if( hVideo->flags.bTopmost )
+		{
+			lprintf( "Got a posted show - set to topmost.." );
 			SetWindowPos( hVideo->hWndOutput
-							, HWND_TOPMOST
-							, 0, 0, 0, 0,
-							 SWP_NOMOVE
-							 | SWP_NOSIZE
-							);
+				, HWND_TOPMOST
+				, 0, 0, 0, 0,
+				SWP_NOMOVE
+				| SWP_NOSIZE
+				);
+		}
 		if( hVideo->flags.bShown )
 		{
 			hVideo->flags.bRestoring = 1;
@@ -3945,7 +3964,7 @@ PTRSZVAL CPROC VideoThreadProc (PTHREAD thread)
 		}
 	}
 	l.bThreadRunning = FALSE;
-	lprintf( WIDE( "Video Exited volentarily" ) );
+	//lprintf( WIDE( "Video Exited volentarily" ) );
 	//ExitThread( 0 );
 	return 0;
 }
@@ -4008,9 +4027,9 @@ RENDER_PROC (int, InitDisplay) (void)
 			 ;
 
 		wc.lpfnWndProc = (WNDPROC) VideoWindowProc;
-		wc.hInstance = GetModuleHandle (_WIDE(TARGETNAME));
+		wc.hInstance = (HINSTANCE)GetModuleHandle (_WIDE(TARGETNAME));
 		if( wc.hInstance == NULL )
-			wc.hInstance = GetPrivateModuleHandle( _WIDE(TARGETNAME) );
+			wc.hInstance = (HMODULE)GetPrivateModuleHandle( _WIDE(TARGETNAME) );
 		if( !wc.hInstance )
 			wc.hInstance = GetModuleHandle( NULL );
 		wc.hbrBackground = (HBRUSH) (COLOR_WINDOW + 1);
@@ -4097,8 +4116,8 @@ PRIORITY_ATEXIT( RemoveKeyHook, 100 )
 			{
 				Relinquish();
 			}
-			if( l.bThreadRunning )
-				lprintf( WIDE( "Had to give up waiting for video thread to exit..." ) );
+			//if( l.bThreadRunning )
+			//  lprintf( WIDE( "Had to give up waiting for video thread to exit..." ) );
 		}
 	}
 }
@@ -4109,6 +4128,10 @@ RENDER_PROC (const TEXTCHAR *, GetKeyText) (int key)
 	int c;
 	WCHAR wch[15];
 	static char *ch;
+#ifdef UNICODE
+	static wchar_t *out;
+	Deallocate( wchar_t *, out );
+#endif
 
 	//if( key & KEY_MOD_DOWN )
 	//return 0;
@@ -4139,7 +4162,12 @@ RENDER_PROC (const TEXTCHAR *, GetKeyText) (int key)
 		return 0;
 	}
 	//printf( WIDE("Key Translated: %d(%c)\n"), ch[0], ch[0] );
+#ifdef UNICODE
+	out = DupCStr( ch );
+	return out;
+#else
 	return ch;
+#endif
 }
 
 void CPROC Vidlib_SetDisplayFullScreen( PRENDERER hVideo, int target_display )
@@ -5031,9 +5059,10 @@ RENDER_PROC (void, MakeAbsoluteTopmost) (PVIDEO hVideo)
 	{
 		hVideo->flags.bTopmost = 1;
 		hVideo->flags.bAbsoluteTopmost = 1;
+		SetWindowLong( hVideo->hWndOutput, GWL_EXSTYLE, GetWindowLong( hVideo->hWndOutput, GWL_EXSTYLE ) | WS_EX_TOPMOST );
+		hVideo->top_force_timer_id = SetTimer( hVideo->hWndOutput, 100, 100, NULL );
 		if( hVideo->flags.bShown )
 		{
-			lprintf( WIDE( "Forcing topmost" ) );
 			SetWindowPos (hVideo->hWndOutput, HWND_TOPMOST, 0, 0, 0, 0,
 							  SWP_NOMOVE | SWP_NOSIZE);
 		}
@@ -5268,7 +5297,7 @@ RENDER_PROC (void, GetDisplaySizeEx) ( int nDisplay
 			for( v_test = 0; !found && ( v_test < 2 ); v_test++ )
 			{
 				// go ahead and try to find V devices too... not sure what they are, but probably won't get to use them.
-				snprintf( teststring, 20, WIDE( "\\\\.\\DISPLAY%s%d" ), (v_test==1)?"V":"", nDisplay );
+				tnprintf( teststring, 20, WIDE( "\\\\.\\DISPLAY%s%d" ), (v_test==1)?WIDE("V"):WIDE(""), nDisplay );
 				for( i = 0;
 					 !found && EnumDisplayDevices( NULL // all devices
 														  , i
@@ -5543,7 +5572,6 @@ RENDER_PROC (void, DisableMouseOnIdle) (PVIDEO hVideo, LOGICAL bEnable )
 	{
 		if( bEnable )
 		{
-			SetTimer( (HWND)hVideo->hWndOutput, 100, 100, NULL );
 			if( !hVideo->idle_timer_id )
 				hVideo->idle_timer_id = SetTimer( hVideo->hWndOutput, 100, 100, NULL );
 			l.last_mouse_update = timeGetTime(); // prime the hider.
@@ -5791,7 +5819,7 @@ PRIORITY_PRELOAD( VideoRegisterInterface, VIDLIB_PRELOAD_PRIORITY )
 #  endif
 #endif
 		, GetDisplayInterface, DropDisplayInterface );
-	if( SACK_GetProfileInt( "SACK/Video Render", "enable alt-f4 exit", 0 ) )
+	if( SACK_GetProfileInt( WIDE("SACK/Video Render"), WIDE("enable alt-f4 exit"), 0 ) )
 		BindEventToKey( NULL, KEY_F4, KEY_MOD_RELEASE|KEY_MOD_ALT, DefaultExit, 0 );
 	//EnableLoggingOutput( TRUE );
 	VideoLoadOptions();

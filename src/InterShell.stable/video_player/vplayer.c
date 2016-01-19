@@ -111,7 +111,7 @@ void LaunchProcess()
 				for( info = l.files; info; info = NextLink( info ) )
 				{
 					if( info->flags.bUsed )
-						fprintf( file, WIDE("%s/%s\n"), l.base_video_play_path, info->name );
+						sack_fprintf( file, WIDE("%s/%s\n"), l.base_video_play_path, info->name );
 				}
 				fclose( file );
 			}
@@ -129,7 +129,7 @@ void LaunchProcess()
 				for( info = l.files; info; info = NextLink( info ) )
 				{
 					if( info->flags.bUsed )
-						fprintf( file, WIDE("%s/%s\n"), l.base_video_path, info->name );
+						sack_fprintf( file, WIDE("%s/%s\n"), l.base_video_path, info->name );
 				}
 				fclose( file );
 			}
@@ -664,7 +664,7 @@ static PTRSZVAL OnConfigureControl( WIDE("Video Playlist Manager/Select Property
 static void OnSaveControl( WIDE("Video Playlist Manager/Select Property"))( FILE *file, PTRSZVAL psv )
 {
 	struct property_button *button = (struct property_button*)psv;
-	fprintf( file, WIDE("Property ID=%d\n"), button->ID );
+	sack_fprintf( file, WIDE("Property ID=%d\n"), button->ID );
 }
 
 PTRSZVAL CPROC ReloadID( PTRSZVAL psv, arg_list args )

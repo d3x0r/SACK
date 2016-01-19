@@ -488,7 +488,7 @@ static int MenuMouse( PMENU pm, S_32 x, S_32 y, _32 b )
 		if( x < 0 || x >= pm->width ||
 		    y < 0 || y >= pm->height )
 		{
-			Log2( WIDE("Aborting Menu %")_32fs WIDE(" %")_32fs WIDE(""), x, y );
+			Log2( WIDE("Aborting Menu %") _32fs WIDE(" %") _32fs WIDE(""), x, y );
 			pm->flags.abort = TRUE;
 			UnshowMenu( pm );
 		}
@@ -498,7 +498,7 @@ static int MenuMouse( PMENU pm, S_32 x, S_32 y, _32 b )
     {
 		if( pmi && !pmi->flags.bSubMenu )
 		{
-			Log1( WIDE("Returning Selection: %08")_PTRSZVALfx WIDE(""), pmi->value.ID );
+			Log1( WIDE("Returning Selection: %08") _PTRSZVALfx WIDE(""), pmi->value.ID );
 			pm->selection = pmi->value.ID;
 			UnshowMenu( pm );
 			last_buttons = b;
@@ -598,7 +598,7 @@ int CPROC FocusChanged( PSI_CONTROL pc, LOGICAL bFocus )
 {
 	ValidatedControlData( PMENU, menu.TypeID, pm, pc );
 #define LosingFocus  (!pc->flags.bFocused )
-	Log1( WIDE("Losing focus callback? %08")_32fx WIDE(""), bFocus );
+	Log1( WIDE("Losing focus callback? %08") _32fx WIDE(""), bFocus );
 	if( !pm )
 	{
 		// if bFocus - refuse, if losefocus, accept.
@@ -617,7 +617,7 @@ int CPROC FocusChanged( PSI_CONTROL pc, LOGICAL bFocus )
 	if( bFocus )
 	{
 		PSI_CONTROL child;
-		Log1( WIDE("Menu selection = %")_PTRSZVALfs WIDE(""), pm->selection );
+		Log1( WIDE("Menu selection = %") _PTRSZVALfs WIDE(""), pm->selection );
 		if( pm->selection != -1 || pm->flags.abort )
 		{
 			if( pm->parent && pm->flags.abort )

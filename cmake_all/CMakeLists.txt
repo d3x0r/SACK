@@ -66,11 +66,7 @@ if( __ANDROID__ )
    DEFINE_DEFAULT( BUILD_EXTRAS ON )
 else( __ANDROID_ )
    DEFINE_DEFAULT( __ARM__ OFF )
-if( UNIX )
    DEFINE_DEFAULT( BUILD_MONOLITHIC OFF )
-else( UNIX )
-   DEFINE_DEFAULT( BUILD_MONOLITHIC ON )
-endif( UNIX )
    DEFINE_DEFAULT( BUILD_EXTRAS OFF )
 endif( __ANDROID__ )
 
@@ -162,7 +158,7 @@ endif( BUILD_UNICODE )
 
 SET( SACK_REQUIREMENTS -DNEED_FREETYPE=${NEED_FREETYPE} -DNEED_JPEG=${NEED_JPEG} -DNEED_PNG=${NEED_PNG} -DNEED_ZLIB=${NEED_ZLIB} )
 if( UNIX )
-message( "Not win32, but MINGW=\"${MINGW}\" maybe android? ; not passing need_externals" )
+message( "Not win32 (${WIN32}), UNIX(${UNIX}) but MINGW=\"${MINGW}\" maybe android? ; not passing need_externals" )
 set( SACK_REQUIREMENTS -DNEED_UUID=ON )
 endif( UNIX )
 
@@ -223,11 +219,16 @@ set( EXTRA_FLAGS  -DSACK_SDK_ROOT_PATH=${SACK_SDK_ROOT_PATH} ${D__ANDROID__} )
 BuildProject( ${PROJECT} ${PROJECT} ${CMAKE_CURRENT_LIST_DIR}/../src/InterShell.stable INTERSHELL_SDK_ROOT_PATH ${EXTRA_FLAGS} )
 add_dependencies( ${LAST_TARGET} Buildcore Buildbinary )
 
-
-set( PROJECT intershell2 )
+set( PROJECT intershell_Package )
 set( EXTRA_FLAGS  -DSACK_SDK_ROOT_PATH=${SACK_SDK_ROOT_PATH} ${D__ANDROID__} )
-BuildProject( ${PROJECT} ${PROJECT} ${CMAKE_CURRENT_LIST_DIR}/../src/InterShell INTERSHELL2_SDK_ROOT_PATH ${EXTRA_FLAGS} )
-add_dependencies( ${LAST_TARGET} Buildcore Buildbinary )
+BuildProject( ${PROJECT} ${PROJECT} ${CMAKE_CURRENT_LIST_DIR}/../src/InterShell.stable/package INTERSHELL_PACKAGE_ROOT_PATH ${EXTRA_FLAGS} -DINTERSHELL_SDK_ROOT_PATH=${INTERSHELL_SDK_ROOT_PATH} )
+add_dependencies( ${LAST_TARGET} Buildcore Buildintershell )
+
+
+#set( PROJECT intershell2 )
+#set( EXTRA_FLAGS  -DSACK_SDK_ROOT_PATH=${SACK_SDK_ROOT_PATH} ${D__ANDROID__} )
+#BuildProject( ${PROJECT} ${PROJECT} ${CMAKE_CURRENT_LIST_DIR}/../src/InterShell INTERSHELL2_SDK_ROOT_PATH ${EXTRA_FLAGS} )
+#add_dependencies( ${LAST_TARGET} Buildcore Buildbinary )
 
 if( NOT __ANDROID__ )
   set( PROJECT mercurial_version_tagger )

@@ -37,7 +37,8 @@
 #include "shaders.h"
 #include "blotproto.h"
 #include "../image_common.h"
-
+#include "../pngimage.h"
+#include "../jpgimage.h"
 
 
 ASM_IMAGE_NAMESPACE
@@ -49,7 +50,7 @@ IMAGE_NAMESPACE
 static void OnFirstDraw3d( WIDE( "@00 PUREGL Image Library" ) )( PTRSZVAL psv )
 {
 	GLboolean tmp;
-   CTEXTSTR val;
+	const GLubyte * val;
 	l.glActiveSurface = (struct glSurfaceData *)psv;
 
 #if !defined( USE_GLES2 )
@@ -62,12 +63,12 @@ static void OnFirstDraw3d( WIDE( "@00 PUREGL Image Library" ) )( PTRSZVAL psv )
 	glGetBooleanv( GL_SHADER_COMPILER, &tmp );
 	lprintf( WIDE("Shader Compiler = %d"), tmp );
 	{
-      int high, low;
+		int high, low;
 		val = glGetString(GL_SHADING_LANGUAGE_VERSION);
-		sscanf( val, "%d.%d", &high, &low );
-      l.glslVersion = high * 100 + low;
+		sscanf( (const char*)val, "%d.%d", &high, &low );
+		l.glslVersion = high * 100 + low;
 	}
-	lprintf( "Shader Version:%s", glGetString(GL_SHADING_LANGUAGE_VERSION) );
+	lprintf( WIDE("Shader Version:%s"), glGetString(GL_SHADING_LANGUAGE_VERSION) );
 	if( !tmp )
 	{
 		lprintf( WIDE("No Shader Compiler") );
@@ -272,8 +273,8 @@ int ReloadOpenGlTexture( Image child_image, int option )
 					TEXTCHAR buf[16];
 					FILE *file;
 					PngImageFile( image, &data, &datasize );
-					snprintf( buf, 12, "%d.png", n++ );
-					file = sack_fopen( 0, buf, "wb" );
+					tnprintf( buf, 12, WIDE("%d.png"), n++ );
+					file = sack_fopen( 0, buf, WIDE("wb") );
 					if( file )
 					{
 						sack_fwrite( data, 1, datasize, file );
@@ -1123,7 +1124,7 @@ void Render3dText( CTEXTSTR string, int characters, CDATA color, SFTFont font, P
 
 	// closed loop to get the top imgae size.
 	//lprintf( WIDE( "use regular texture %p (%d,%d)" ), pifSrc, pifSrc->width, pifSrc->height );
-	GetStringSizeFontEx( string, characters, &output.real_width, &output.real_height, font );
+	GetStringSizeFontEx( string, characters, (_32*)&output.real_width, (_32*)&output.real_height, font );
 	SetImageTransformRelation( &output, IMAGE_TRANSFORM_RELATIVE_CENTER, NULL );
 	ApplyRotationT( l.camera, output.transform, VectorConst_I );
 	{

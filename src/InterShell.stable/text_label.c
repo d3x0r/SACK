@@ -786,19 +786,19 @@ static PSI_CONTROL OnGetControl( TEXT_LABEL_NAME )( PTRSZVAL psv )
 static void OnSaveControl( TEXT_LABEL_NAME )( FILE *file,PTRSZVAL psv )
 {
 	PPAGE_LABEL title = (PPAGE_LABEL)psv;
-	fprintf( file, WIDE("%scolor=%s\n"), InterShell_GetSaveIndent(), FormatColor( title->color ) );
-	fprintf( file, WIDE("%sbackground color=%s\n"), InterShell_GetSaveIndent(), FormatColor( title->back_color ) );
-	fprintf( file, WIDE( "%salign center?%s\n" ), InterShell_GetSaveIndent(), title->flags.bCenter?WIDE( "on" ):WIDE( "off" ) );
-	fprintf( file, WIDE( "%salign right?%s\n" ), InterShell_GetSaveIndent(), title->flags.bRight?WIDE( "on" ):WIDE( "off" ) );
-	fprintf( file, WIDE( "%salign scroll?%s\n" ), InterShell_GetSaveIndent(), title->flags.bScroll?WIDE( "on" ):WIDE( "off" ) );
-	fprintf( file, WIDE( "%salign vertical?%s\n" ), InterShell_GetSaveIndent(), title->flags.bVertical?WIDE( "on" ):WIDE( "off" ) );
-	fprintf( file, WIDE( "%salign inverted?%s\n" ), InterShell_GetSaveIndent(), title->flags.bInverted?WIDE( "on" ):WIDE( "off" ) );
+	sack_fprintf( file, WIDE("%scolor=%s\n"), InterShell_GetSaveIndent(), FormatColor( title->color ) );
+	sack_fprintf( file, WIDE("%sbackground color=%s\n"), InterShell_GetSaveIndent(), FormatColor( title->back_color ) );
+	sack_fprintf( file, WIDE( "%salign center?%s\n" ), InterShell_GetSaveIndent(), title->flags.bCenter?WIDE( "on" ):WIDE( "off" ) );
+	sack_fprintf( file, WIDE( "%salign right?%s\n" ), InterShell_GetSaveIndent(), title->flags.bRight?WIDE( "on" ):WIDE( "off" ) );
+	sack_fprintf( file, WIDE( "%salign scroll?%s\n" ), InterShell_GetSaveIndent(), title->flags.bScroll?WIDE( "on" ):WIDE( "off" ) );
+	sack_fprintf( file, WIDE( "%salign vertical?%s\n" ), InterShell_GetSaveIndent(), title->flags.bVertical?WIDE( "on" ):WIDE( "off" ) );
+	sack_fprintf( file, WIDE( "%salign inverted?%s\n" ), InterShell_GetSaveIndent(), title->flags.bInverted?WIDE( "on" ):WIDE( "off" ) );
 	if( title->preset_name )
 	{
-		fprintf( file, WIDE("%sfont name=%s\n"), InterShell_GetSaveIndent(),title->preset_name );
+		sack_fprintf( file, WIDE("%sfont name=%s\n"), InterShell_GetSaveIndent(),title->preset_name );
 	}
 	if( title->button->text )
-		fprintf( file, WIDE("%slabel=%s\n"), InterShell_GetSaveIndent(), EscapeMenuString( title->button->text ) );
+		sack_fprintf( file, WIDE("%slabel=%s\n"), InterShell_GetSaveIndent(), EscapeMenuString( title->button->text ) );
 }
 
 
@@ -1187,8 +1187,8 @@ static PTRSZVAL OnConfigureControl( WIDE( "InterShell/Set Variable" ) )( PTRSZVA
 static void OnSaveControl( WIDE( "InterShell/Set Variable" ) )( FILE *file, PTRSZVAL psv )
 {
 	PSETVAR pSetVar = (PSETVAR)psv;
-	fprintf( file, WIDE( "set variable text name=%s\n" ), EscapeMenuString( pSetVar->varname ) );
-	fprintf( file, WIDE( "set variable text value=%s\n" ), EscapeMenuString( pSetVar->newval ) );
+	sack_fprintf( file, WIDE( "set variable text name=%s\n" ), EscapeMenuString( pSetVar->varname ) );
+	sack_fprintf( file, WIDE( "set variable text value=%s\n" ), EscapeMenuString( pSetVar->newval ) );
 }
 
 static void OnCloneControl( WIDE( "InterShell/Set Variable" ) )( PTRSZVAL psvNew, PTRSZVAL psvOld )

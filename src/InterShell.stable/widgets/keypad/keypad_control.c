@@ -2444,22 +2444,22 @@ void KeypadSetC_KeyTextColor( PSI_CONTROL pc_keypad, CDATA color )
 void KeypadWriteConfig( FILE *file, CTEXTSTR indent, PSI_CONTROL pc_keypad )
 {
 	ValidatedControlData( PKEYPAD, keypad_control.TypeID, keypad, pc_keypad );
-	fprintf( file, WIDE( "%skeypad background=%s\n" ), indent, FormatColor( keypad->background_color ) );
-	fprintf( file, WIDE( "%skeypad display background=%s\n" ), indent, FormatColor( keypad->display_background_color ) );
-	fprintf( file, WIDE( "%skeypad display text color=%s\n" ), indent, FormatColor( keypad->display_text_color ) );
-	fprintf( file, WIDE( "%skeypad color numkey=%s\n" ), indent, FormatColor( keypad->numkey_color ) );
-	fprintf( file, WIDE( "%skeypad color enterkey=%s\n" ), indent, FormatColor( keypad->enterkey_color ) );
-	fprintf( file, WIDE( "%skeypad color cancelkey=%s\n" ), indent, FormatColor( keypad->cancelkey_color ) );
-	fprintf( file, WIDE( "%skeypad color capskey=%s\n" ), indent, FormatColor( keypad->capskey_color ) );
-	fprintf( file, WIDE( "%skeypad color numkey text=%s\n" ), indent, FormatColor( keypad->numkey_text_color ) );
-	fprintf( file, WIDE( "%skeypad color enterkey text=%s\n" ), indent, FormatColor( keypad->enterkey_text_color ) );
-	fprintf( file, WIDE( "%skeypad color cancelkey text=%s\n" ), indent, FormatColor( keypad->cancelkey_text_color ) );
-	fprintf( file, WIDE( "%skeypad style=%ld\n" ), indent, keypad->style );
+	sack_fprintf( file, WIDE( "%skeypad background=%s\n" ), indent, FormatColor( keypad->background_color ) );
+	sack_fprintf( file, WIDE( "%skeypad display background=%s\n" ), indent, FormatColor( keypad->display_background_color ) );
+	sack_fprintf( file, WIDE( "%skeypad display text color=%s\n" ), indent, FormatColor( keypad->display_text_color ) );
+	sack_fprintf( file, WIDE( "%skeypad color numkey=%s\n" ), indent, FormatColor( keypad->numkey_color ) );
+	sack_fprintf( file, WIDE( "%skeypad color enterkey=%s\n" ), indent, FormatColor( keypad->enterkey_color ) );
+	sack_fprintf( file, WIDE( "%skeypad color cancelkey=%s\n" ), indent, FormatColor( keypad->cancelkey_color ) );
+	sack_fprintf( file, WIDE( "%skeypad color capskey=%s\n" ), indent, FormatColor( keypad->capskey_color ) );
+	sack_fprintf( file, WIDE( "%skeypad color numkey text=%s\n" ), indent, FormatColor( keypad->numkey_text_color ) );
+	sack_fprintf( file, WIDE( "%skeypad color enterkey text=%s\n" ), indent, FormatColor( keypad->enterkey_text_color ) );
+	sack_fprintf( file, WIDE( "%skeypad color cancelkey text=%s\n" ), indent, FormatColor( keypad->cancelkey_text_color ) );
+	sack_fprintf( file, WIDE( "%skeypad style=%ld\n" ), indent, keypad->style );
 	if( keypad->display_format )
 	{
 		TEXTCHAR outbuf[256];
 		ExpandConfigString( outbuf, keypad->display_format );
-		fprintf( file, WIDE( "%skeypad formatting='%s'\n" ), indent, outbuf );
+		sack_fprintf( file, WIDE( "%skeypad formatting='%s'\n" ), indent, outbuf );
 	}
 }
 

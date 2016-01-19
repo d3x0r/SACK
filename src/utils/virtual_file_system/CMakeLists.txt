@@ -1,3 +1,4 @@
+if( NOT __CLR__ )
 
 set( PROJECT sack_vfs.module )
 
@@ -61,3 +62,4 @@ add_subdirectory( vfs_command )
 #endif( WIN32 )
 
 endif( BUILD_EXTRAS )
+endif( NOT __CLR__ )

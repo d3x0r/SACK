@@ -229,21 +229,21 @@ RENDER_PROC( int, HandleKeyEvents )( PKEYDEFINE pKeyDefs, _32 key )
 	//l.flags.bLogKeyEvent = 1;
 #ifdef LOG_KEY_EVENTS
    if( l.flags.bLogKeyEvent )
-		lprintf( "received key %08x %d(%x) %d(%x) %s %s", key, keycode, keycode, keymod,keymod
-			, IsKeyExtended( key )?"extended":"",IsKeyPressed( key )?"press":"release" );
+		lprintf( WIDE("received key %08x %d(%x) %d(%x) %s %s"), key, keycode, keycode, keymod,keymod
+			, IsKeyExtended( key )?WIDE("extended"): WIDE( ""),IsKeyPressed( key )? WIDE( "press"): WIDE( "release") );
 #endif
 #ifdef LOG_KEY_EVENTS
    if( l.flags.bLogKeyEvent )
 		lprintf( WIDE("Key event for %08lx ... %d %s %s %s")
 				 , key
 				 , keycode
-				 , keymod&1?"SHIFT":"", keymod&2?"CTRL":"", keymod&4?"ALT":"" );
+				 , keymod&1? WIDE( "SHIFT"): WIDE( ""), keymod&2? WIDE( "CTRL"): WIDE( ""), keymod&4? WIDE( "ALT"): WIDE( "") );
 #endif
 	if( pKeyDefs[keycode].mod[keymod].flags.bFunction )
 	{
 #ifdef LOG_KEY_EVENTS
    if( l.flags.bLogKeyEvent )
-		lprintf( WIDE("And there is a function... key is %s"), IsKeyPressed( key )?"Pressed":"Released" );
+		lprintf( WIDE("And there is a function... key is %s"), IsKeyPressed( key )? WIDE( "Pressed"): WIDE( "Released") );
 #endif
 		if( pKeyDefs[keycode].mod[keymod].flags.bAll ||
 			( IsKeyPressed( key ) && !pKeyDefs[keycode].mod[keymod].flags.bRelease) ||
@@ -273,12 +273,12 @@ RENDER_PROC( int, HandleKeyEvents )( PKEYDEFINE pKeyDefs, _32 key )
 						if( keyfunc->data.extended_key_trigger( keyfunc->extended_key_psv
 																									  , key ) )
 						{
-							lprintf( "handled." );
+							lprintf( WIDE("handled.") );
 							return 1;
 						}
 					}
 				}
-				lprintf( "not handled" );
+				lprintf( WIDE("not handled") );
 				return 0;
 			}
 			else
@@ -299,18 +299,18 @@ RENDER_PROC( int, HandleKeyEvents )( PKEYDEFINE pKeyDefs, _32 key )
 #endif
 						if( keyfunc->data.trigger( keyfunc->psv, key ) )
 						{
-							lprintf( "handled." );
+							lprintf( WIDE("handled.") );
 							return 1;
 						}
 					}
 				}
-				lprintf( "not handled" );
+				lprintf( WIDE( "not handled") );
 				return 0;
 			}
 		}
 		if( l.flags.bLogKeyEvent )
 			lprintf( WIDE( "Probably handled..." ) );
-		lprintf( "not handled." );
+		lprintf( WIDE( "not handled.") );
 		// for consistancy better just say we handled this key
 		return 0;
 	}

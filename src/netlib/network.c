@@ -14,6 +14,7 @@
 //
 //  DEBUG FLAGS IN netstruc.h
 //
+#define FIX_RELEASE_COM_COLLISION
 #define NO_UNICODE_C
 #include <stdhdrs.h>
 #include <stddef.h>
@@ -66,6 +67,7 @@
 #else
 #include <tchar.h>
 #endif
+#include <wincrypt.h>
 #include <iphlpapi.h>
 #endif
 
@@ -407,7 +409,7 @@ const char * GetAddrName( SOCKADDR *addr )
 	{
 		if( !( (PTRSZVAL)tmp & 0xFFFF0000 ) )
 		{
-			lprintf( "corrupted sockaddr." );
+			lprintf( WIDE("corrupted sockaddr.") );
 			DebugBreak();
 		}
 		else
@@ -415,14 +417,14 @@ const char * GetAddrName( SOCKADDR *addr )
 			char buf[256];
 
 			if( addr->sa_family == AF_INET )
-				snprintf( buf, 256, WIDE("%03d.%03d.%03d.%03d")
+				snprintf( buf, 256, "%03d.%03d.%03d.%03d"
 						  ,*(((unsigned char *)addr)+4),
 						  *(((unsigned char *)addr)+5),
 						  *(((unsigned char *)addr)+6),
 						  *(((unsigned char *)addr)+7) );
 			else if( addr->sa_family == AF_INET6 )
 			{
-				snprintf( buf, 256, WIDE("%04x:%04x:%04x:%04x:%04x:%04x:%04x:%04x ")
+				snprintf( buf, 256, "%04x:%04x:%04x:%04x:%04x:%04x:%04x:%04x "
 						 , ntohs(*(((unsigned short *)((unsigned char*)addr+8))))
 						 , ntohs(*(((unsigned short *)((unsigned char*)addr+10))))
 						 , ntohs(*(((unsigned short *)((unsigned char*)addr+12))))
@@ -436,7 +438,7 @@ const char * GetAddrName( SOCKADDR *addr )
 			else
 				snprintf( buf, 256, "unknown protocol" );
 			
-			((char**)addr)[-1] = StrDup( buf );
+			((char**)addr)[-1] = strdup( buf );
 		}
 	}
 	return ((char**)addr)[-1];
@@ -444,7 +446,7 @@ const char * GetAddrName( SOCKADDR *addr )
 
 void SetAddrName( SOCKADDR *addr, const char *name )
 {
-	((PTRSZVAL*)addr)[-1] = (PTRSZVAL)StrDup( name );
+	((PTRSZVAL*)addr)[-1] = (PTRSZVAL)strdup( name );
 }
 
 //---------------------------------------------------------------------------
@@ -610,7 +612,7 @@ void TerminateClosedClientEx( PCLIENT pc DBG_PASS )
 				lpNext = pc->lpFirstPending -> lpNext;
 
 				if( pc->lpFirstPending->s.bDynBuffer )
-					Release( pc->lpFirstPending->buffer.p );
+					Deallocate( POINTER, pc->lpFirstPending->buffer.p );
 
 				if( pc->lpFirstPending != &pc->FirstWritePending )
 				{
@@ -619,7 +621,7 @@ void TerminateClosedClientEx( PCLIENT pc DBG_PASS )
 						lprintf( WIDE(WIDE( "Data queued...Deleting in remove." )) );
 					}
 #endif
-					Release(pc->lpFirstPending);
+					Deallocate( PendingBuffer*, pc->lpFirstPending);
 				}
 				else
 				{
@@ -1059,9 +1061,9 @@ void HandleEvent( PCLIENT pClient )
 		DWORD dwError = WSAGetLastError();
 		if( dwError == 10038 )
 		{
-         // no longer a socket, probably in a closed or closing state.
+			// no longer a socket, probably in a closed or closing state.
 		}
-      else
+		else
 			lprintf( WIDE( "Event enum failed... do what? close socket? %d %d" ), pClient->Socket, dwError );
 	}
 	pClient->dwFlags &= ~CF_PROCESSING;
@@ -1590,7 +1592,7 @@ PTRSZVAL CPROC NetworkThreadProc( PTHREAD thread )
 	if( !g.root_thread )
 #  endif
 	{
-		Release( g.pUserData ); // should be first one pointed to...
+		Deallocate( P_8, g.pUserData ); // should be first one pointed to...
 		{
 			INDEX idx;
 			PCLIENT_SLAB slab;
@@ -2004,12 +2006,14 @@ static PTRSZVAL CPROC NetworkThreadProc( PTHREAD thread )
 		PCLIENT_SLAB slab;
 		LIST_FORALL( g.ClientSlabs, idx, PCLIENT_SLAB, slab )
 		{
-         Release( slab );
+         Deallocate( PCLIENT_SLAB, slab );
 		}
 	}
+#ifdef LOG_NETWORK_EVENT_THREAD
 	lprintf( WIDE("Exiting network thread...") );
-	DeleteList( &g.ClientSlabs );
-	Release( g.pUserData );
+#endif
+	DeleteListEx( &g.ClientSlabs DBG_SRC );
+	Deallocate( P_8, g.pUserData );
 	g.pUserData = NULL;
 	g.pThreads = NULL; // confirm thread exit.
 	g.flags.bNetworkReady = FALSE;
@@ -2033,10 +2037,9 @@ struct peer_thread_info *IsNetworkThread( void )
 //----------------------------------------------------------------------------
 int NetworkQuit(void)
 {
-#ifndef __STATIC__
 	if( !global_network_data )
 		return 0;
-#endif
+
 	if( g.uPendingTimer )
 	{
 		RemoveTimer( g.uPendingTimer );
@@ -2134,8 +2137,8 @@ void ReallocClients( _32 wClients, int nUserData )
 		size_t n;
 		//Log1( WIDE("Creating %d Client Resources"), MAX_NETCLIENTS );
 		pClientSlab = NULL;
-		pClientSlab = (PCLIENT_SLAB)Allocate( n = my_offsetof(&pClientSlab,client[wClients - MAX_NETCLIENTS] ) );
-		MemSet( pClientSlab, 0, n ); // can't clear the lpUserData Address!!!
+		pClientSlab = (PCLIENT_SLAB)NewArray( CLIENT_SLAB, wClients - MAX_NETCLIENTS );
+		MemSet( pClientSlab, 0, (wClients - MAX_NETCLIENTS)*sizeof(CLIENT_SLAB) ); // can't clear the lpUserData Address!!!
 		pClientSlab->count = wClients - MAX_NETCLIENTS;
 		for( n = 0; n < pClientSlab->count; n++ )
 		{
@@ -2156,7 +2159,7 @@ void ReallocClients( _32 wClients, int nUserData )
 		_32 n;
 		int tot = 0;
 		//g.nUserData = nUserData;
-		pUserData = (P_8)Allocate( nUserData * sizeof( PTRSZVAL ) * wClients );
+		pUserData = (P_8)NewArray( _8, nUserData * sizeof( PTRSZVAL ) * wClients );
 		MemSet( pUserData, 0, nUserData * sizeof( PTRSZVAL ) * wClients );
 		LIST_FORALL( g.ClientSlabs, idx, PCLIENT_SLAB, slab )
 		{
@@ -2174,7 +2177,7 @@ void ReallocClients( _32 wClients, int nUserData )
 			}
 		}
 		if( g.pUserData )
-			Release( g.pUserData );
+			Deallocate( P_8, g.pUserData );
 		g.pUserData = pUserData;
 	}
 	MAX_NETCLIENTS = wClients;
@@ -2392,8 +2395,8 @@ NETWORK_PROC( SOCKADDR *, DuplicateAddress )( SOCKADDR *pAddr ) // return a copy
 	POINTER tmp2 = (POINTER)( ( (PTRSZVAL)dup ) - 2*sizeof(PTRSZVAL) );
 	MemCpy( tmp2, tmp, MAGIC_SOCKADDR_LENGTH + 2*sizeof(PTRSZVAL) );
 	if( (POINTER)( ( (PTRSZVAL)pAddr ) - sizeof(PTRSZVAL) ) )
-		( (TEXTSTR*)( ( (PTRSZVAL)dup ) - sizeof(PTRSZVAL) ) )[0]
-				= StrDup( ((TEXTSTR*)( ( (PTRSZVAL)pAddr ) - sizeof(PTRSZVAL) ))[0] );
+		( (char**)( ( (PTRSZVAL)dup ) - sizeof(PTRSZVAL) ) )[0]
+				= strdup( ((char**)( ( (PTRSZVAL)pAddr ) - sizeof(PTRSZVAL) ))[0] );
 	return dup;
 }
 
@@ -2434,7 +2437,7 @@ NETWORK_PROC( SOCKADDR *,CreateUnixAddress)( CTEXTSTR path )
 	lpsaAddr->sun_family = PF_UNIX;
 #ifdef UNICODE
 	strncpy( lpsaAddr->sun_path, tmp_path, 107 );
-   Release( tmp_path );
+   Deallocate( char*, tmp_path );
 #else
 	strncpy( lpsaAddr->sun_path, path, 107 );
 #endif
@@ -2463,10 +2466,14 @@ SOCKADDR *CreateAddress( _32 dwIP,_16 nHisPort)
 
 //---------------------------------------------------------------------------
 
-SOCKADDR *CreateRemote(CTEXTSTR lpName,_16 nHisPort)
+SOCKADDR *CreateRemote( CTEXTSTR lpName,_16 nHisPort)
 {
 	SOCKADDR_IN *lpsaAddr;
 	int conversion_success = FALSE;
+#ifdef UNICODE
+	char *_lpName = CStrDup( lpName );
+#  define lpName _lpName 
+#endif
 #ifndef WIN32
 	PHOSTENT phe;
 	// a IP type name will never have a / in it, therefore
@@ -2475,9 +2482,14 @@ SOCKADDR *CreateRemote(CTEXTSTR lpName,_16 nHisPort)
 		return CreateUnixAddress( lpName );
 #endif
 	lpsaAddr=(SOCKADDR_IN*)AllocAddr();
-	SetAddrName( (SOCKADDR*)lpsaAddr, lpName );
-	if (!lpsaAddr)
+	if( !lpsaAddr )
+	{
+#ifdef UNICODE
+		Deallocate( char *, _lpName );
+#endif
 		return(NULL);
+	}
+	SetAddrName( (SOCKADDR*)lpsaAddr, lpName );
 
 	// if it's a numeric name... attempt to use as an address.
 #ifdef __LINUX__
@@ -2493,7 +2505,7 @@ SOCKADDR *CreateRemote(CTEXTSTR lpName,_16 nHisPort)
 			lpsaAddr->sin_family       = AF_INET;         // InetAddress Type.
 			conversion_success = TRUE;
 		}
-		Release( tmp );
+		Deallocate( char *, tmp );
 #else
 		if( inet_pton( AF_INET, lpName, (struct in6_addr*)&lpsaAddr->sin_addr ) > 0 )
 		{
@@ -2518,7 +2530,7 @@ SOCKADDR *CreateRemote(CTEXTSTR lpName,_16 nHisPort)
 			lpsaAddr->sin_family       = AF_INET6;         // InetAddress Type.
 			conversion_success = TRUE;
 		}
-		Release( tmp );
+		Deallocate( char *, tmp );
 #else
 		if( inet_pton( AF_INET6, lpName, (struct in6_addr*)&lpsaAddr->sin_addr ) > 0 )
 		{
@@ -2538,13 +2550,7 @@ SOCKADDR *CreateRemote(CTEXTSTR lpName,_16 nHisPort)
 				struct addrinfo *result;
 				struct addrinfo *test;
 				int error;
-#ifdef _UNICODE
-				char *tmp = WcharConvert( lpName );
-				error = getaddrinfo( tmp, NULL, NULL, (struct addrinfo**)&result );
-				Deallocate( char*, tmp );
-#else
 				error = getaddrinfo( lpName, NULL, NULL, (struct addrinfo**)&result );
-#endif
 				if( error == 0 )
 				{
 					for( test = result; test; test = test->ai_next )
@@ -2570,8 +2576,8 @@ SOCKADDR *CreateRemote(CTEXTSTR lpName,_16 nHisPort)
 					{
  						// could not find the name in the host file.
 						Log1( WIDE("Could not Resolve to %s"), lpName );
-						Release(lpsaAddr);
-						Release( tmp );
+						Deallocate(SOCKADDR_IN*, lpsaAddr);
+						Deallocate( char*, tmp );
 						return(NULL);
 					}
 					else
@@ -2605,7 +2611,7 @@ SOCKADDR *CreateRemote(CTEXTSTR lpName,_16 nHisPort)
 			}
 			else
 			{
-				Release( tmp );
+				Deallocate( char *, tmp );
 				SET_SOCKADDR_LENGTH( lpsaAddr, 16 );
 				lpsaAddr->sin_family = AF_INET;         // InetAddress Type.
 				memcpy( &lpsaAddr->sin_addr.S_un.S_addr,           // save IP address from host entry.
@@ -2618,8 +2624,13 @@ SOCKADDR *CreateRemote(CTEXTSTR lpName,_16 nHisPort)
 		{
 			lpsaAddr->sin_family      = AF_INET;         // InetAddress Type.
 			lpsaAddr->sin_addr.S_un.S_addr = 0;
+			SET_SOCKADDR_LENGTH( lpsaAddr, 16 );
 		}
 	}
+#ifdef UNICODE
+	Deallocate( char *, _lpName );
+#  undef lpName 
+#endif
 	// put in his(destination) port number...
 	lpsaAddr->sin_port         = htons(nHisPort);
 	return((SOCKADDR*)lpsaAddr);
@@ -2685,17 +2696,21 @@ NETWORK_PROC( SOCKADDR *, SetNonDefaultPort )( SOCKADDR *pAddr, _16 nDefaultPort
 
 //----------------------------------------------------------------------------
 
-NETWORK_PROC( SOCKADDR *,CreateSockAddress)( CTEXTSTR name, _16 nDefaultPort )
+NETWORK_PROC( SOCKADDR *,CreateSockAddress)(CTEXTSTR name, _16 nDefaultPort )
 {
 // blah... should process a ip:port - but - default port?!
 	_32 bTmpName = 0;
-	TEXTSTR tmp;
+	char * tmp;
 	SOCKADDR *sa = NULL;
-	TEXTCHAR *port;
+	char *port;
 	_16 wPort;
-	if( name && ( port = (TEXTSTR)StrRChr( (TEXTSTR)name, ':' ) ) )
+#ifdef UNICODE
+	char *_name = CStrDup( name );
+#  define name _name
+#endif
+	if( name && ( port = (char*)strrchr( name, ':' ) ) )
 	{
-		tmp = StrDup( name );
+		tmp = strdup( name );
 		bTmpName = 1;
 		port = tmp + (port-name);
 		name = tmp;
@@ -2706,20 +2721,22 @@ NETWORK_PROC( SOCKADDR *,CreateSockAddress)( CTEXTSTR name, _16 nDefaultPort )
 		{
 			if( isdigit( *port ) )
 			{
-				wPort = (short)IntCreateFromText( port );
+				wPort = (short)atoi( port );
 			}
 			else
 			{
 				struct servent *se;
-				char *tmp2 = CStrDup( port );
-				se = getservbyname( tmp2, NULL );
-				Release( tmp2 );
+				se = getservbyname( port, NULL );
 				if( !se )
 				{
-					Log1( WIDE("Could not resolve \"%s\" as a valid service name"), port);
-					Release( tmp2 );
+#ifdef UNICODE
+#define FMT WIDE("S")
+#else
+#define FMT WIDE("s")
+#endif
+					Log1( WIDE("Could not resolve \"%" ) FMT WIDE("\" as a valid service name"), port );
 					//return NULL;
-               wPort = nDefaultPort;
+					wPort = nDefaultPort;
 				}
             else
 					wPort = htons(se->s_port);
@@ -2728,6 +2745,9 @@ NETWORK_PROC( SOCKADDR *,CreateSockAddress)( CTEXTSTR name, _16 nDefaultPort )
 		}
 		else
          wPort = nDefaultPort;
+#ifdef UNICODE
+#  undef name
+#endif
 		sa = CreateRemote( name, wPort );
 		if( port )
 		{
@@ -2739,7 +2759,10 @@ NETWORK_PROC( SOCKADDR *,CreateSockAddress)( CTEXTSTR name, _16 nDefaultPort )
 		//Log1( WIDE("%s does not have a ':'"), name );
 		sa = CreateRemote( name, nDefaultPort );
 	}
-	if( bTmpName ) Release( tmp );
+#ifdef UNICODE
+	Deallocate( char *, _name );
+#endif
+	if( bTmpName ) Deallocate( char*, tmp );
 	return sa;
 }
 
@@ -2857,8 +2880,9 @@ void ReleaseAddress(SOCKADDR *lpsaAddr)
 	// sockaddr is often skewed from what I would expect it. (contains its own length)
 	if( lpsaAddr )
 	{
-		Release( ((POINTER*)( ( (PTRSZVAL)lpsaAddr ) - sizeof(PTRSZVAL) ))[0] );
-		Release ((POINTER)( ( (PTRSZVAL)lpsaAddr ) - 2 * sizeof(PTRSZVAL) ));
+		/* strdup is used for the addr part so use free instead of release */
+		free( ((POINTER*)( ( (PTRSZVAL)lpsaAddr ) - sizeof(PTRSZVAL) ))[0] );
+		Deallocate(POINTER, (POINTER)( ( (PTRSZVAL)lpsaAddr ) - 2 * sizeof(PTRSZVAL) ));
 	}
 }
 

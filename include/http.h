@@ -71,8 +71,10 @@ HTTP_EXPORT /* Add another bit of data to the block. After adding data,
    Parameters
    pHttpState :  state to add data to
    buffer :      pointer to some data bytes
-   size :        length of data bytes                            */
-void HTTPAPI AddHttpData( HTTPState pHttpState, POINTER buffer, size_t size );
+   size :        length of data bytes                            
+   Returns: TRUE if content is added... if collecting chunked encoding may return FALSE.
+   */
+LOGICAL HTTPAPI AddHttpData( HTTPState pHttpState, POINTER buffer, size_t size );
 /* \returns TRUE if completed until content-length if
    content-length is not specified, data is still collected, but
    the status never results TRUE.
@@ -162,12 +164,16 @@ struct HttpServer *CreateHttpServerEx( CTEXTSTR interface_address, CTEXTSTR Targ
 /* results with just the content of the message; no access to other information avaialble */
 HTTP_EXPORT PTEXT HTTPAPI PostHttp( PTEXT site, PTEXT resource, PTEXT content );
 /* results with just the content of the message; no access to other information avaialble */
-HTTP_EXPORT PTEXT HTTPAPI GetHttp( PTEXT site, PTEXT resource );
+HTTP_EXPORT PTEXT HTTPAPI GetHttp( PTEXT site, PTEXT resource, LOGICAL secure );
+/* results with just the content of the message; no access to other information avaialble */
+HTTP_EXPORT PTEXT HTTPAPI GetHttps( PTEXT address, PTEXT url );
 
 /* results with the http state of the message response; Allows getting other detailed information about the result */
 HTTP_EXPORT HTTPState  HTTPAPI PostHttpQuery( PTEXT site, PTEXT resource, PTEXT content );
 /* results with the http state of the message response; Allows getting other detailed information about the result */
 HTTP_EXPORT HTTPState  HTTPAPI GetHttpQuery( PTEXT site, PTEXT resource );
+/* results with the http state of the message response; Allows getting other detailed information about the result */
+HTTP_EXPORT HTTPState HTTPAPI GetHttpsQuery( PTEXT site, PTEXT resource );
 
 #define CreateHttpServer(interface_address,site,psv) CreateHttpServerEx( interface_address,NULL,site,NULL,psv )
 #define CreateHttpServer2(interface_address,site,default_handler,psv) CreateHttpServerEx( interface_address,NULL,site,default_handler,psv )
