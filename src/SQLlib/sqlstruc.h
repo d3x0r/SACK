@@ -279,6 +279,16 @@ struct sqlite_interface
 	int (FIXREF2*sqlite3_db_config)(sqlite3*, int op, ...);
 	// allow full definition of a VFS including the FS interface
 	void (*InitVFS)( CTEXTSTR name, struct file_system_mounted_interface *fsi );
+	sqlite3_backup *( FIXREF2*sqlite3_backup_init)(
+			  sqlite3 *pDest,                        /* Destination database handle */
+			  const char *zDestName,                 /* Destination database name */
+			  sqlite3 *pSource,                      /* Source database handle */
+			  const char *zSourceName                /* Source database name */
+				);
+	int ( FIXREF2*sqlite3_backup_step)(sqlite3_backup *p, int nPage);
+	int ( FIXREF2*sqlite3_backup_remaining)(sqlite3_backup *p);
+	//int ( FIXREF2*sqlite3_backup_pagecount)(sqlite3_backup *p);
+	int ( FIXREF2*sqlite3_backup_finish)(sqlite3_backup *p);
 };
 
 #ifdef USE_SQLITE_INTERFACE
@@ -315,6 +325,10 @@ PRIORITY_PRELOAD( LoadSQLiteInterface, SQL_PRELOAD_PRIORITY-1 )
 #    define sqlite3_column_count         (FIXDEREF2 (sqlite_iface->sqlite3_column_count))
 #    define sqlite3_config               (FIXDEREF2 (sqlite_iface->sqlite3_config))
 #    define sqlite3_db_config            (FIXDEREF2 (sqlite_iface->sqlite3_db_config))
+#    define sqlite3_backup_init          (FIXDEREF2 (sqlite_iface->sqlite3_backup_init))
+#    define sqlite3_backup_step          (FIXDEREF2 (sqlite_iface->sqlite3_backup_step))
+#    define sqlite3_backup_finish        (FIXDEREF2 (sqlite_iface->sqlite3_backup_finish))
+#    define sqlite3_backup_remaining     (FIXDEREF2 (sqlite_iface->sqlite3_backup_remaining))
 #  endif
 #endif
 

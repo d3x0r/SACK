@@ -129,7 +129,6 @@ struct state_flags{
 #endif
 
 #ifndef __STATIC_GLOBALS__
-#warning Yes
 struct syslog_local_data *syslog_local;
 #define l (*syslog_local)
 #else
@@ -1112,8 +1111,6 @@ void DoSystemLog( const TEXTCHAR *buffer )
 #ifndef __STATIC_GLOBALS__
 	if( !syslog_local )
 	{
-
-__android_log_print( ANDROID_LOG_INFO, "org.d3x0r.sack.core", "DoSystemLog" );
 		InitSyslog( 1 );
 		if( logtype == SYSLOG_AUTO_FILE && !l.file )
 		{
@@ -1269,13 +1266,8 @@ void SystemLogFL( const TEXTCHAR *message FILELINE_PASS )
 			lock =1 ;
 		else
 			return;
-	{
-		char tmp[256];
-		snprintf( tmp, 256, "SystemLogFL %s", message );
-		__android_log_print( ANDROID_LOG_INFO, "org.d3x0r.sack.core", tmp );
-	}
 		InitSyslog( 1 );
-      lock = 0;
+		lock = 0;
 	}
 #endif
 	if( cannot_log )

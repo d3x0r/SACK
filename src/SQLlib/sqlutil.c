@@ -15,7 +15,7 @@ static GLOBAL *global_sqlstub_data;
 #define g (*global_sqlstub_data)
 PRIORITY_PRELOAD( InitGlobalSqlUtil, GLOBAL_INIT_PRELOAD_PRIORITY )
 {
-   SimpleRegisterAndCreateGlobal( global_sqlstub_data );
+	SimpleRegisterAndCreateGlobal( global_sqlstub_data );
 }
 
 #ifdef __cplusplus
@@ -31,12 +31,12 @@ struct params
 
 static int CPROC MyParmCmp( PTRSZVAL s1, PTRSZVAL s2 )
 {
-   struct params *p1 = (struct params*)s1;
+	struct params *p1 = (struct params*)s1;
 	struct params *p2 = (struct params*)s2;
-   if( p1->odbc == p2->odbc )
+	if( p1->odbc == p2->odbc )
 		return StrCaseCmp( p1->name, p2->name );
 	else
-      return 1;
+		return 1;
 }
 static int CPROC MyStrCmp( PTRSZVAL s1, PTRSZVAL s2 )
 {
@@ -1850,15 +1850,15 @@ CTEXTSTR FetchSQLName( PODBC odbc, CTEXTSTR table_name, INDEX iName )
 		{
 			if( !result )
 			{
-            return NULL;
+				return NULL;
 			}
 			else
 			{
-            return StrDup( result );
+				return StrDup( result );
 			}
 		}
 	}
-   return NULL;
+	return NULL;
 
 }
 
@@ -1867,19 +1867,32 @@ INDEX GetSQLNameID( CTEXTSTR table_name, CTEXTSTR name )
 	if( !g.odbc )
 		OpenSQL( DBG_VOIDSRC );
 	if( !g.odbc )
-      return INVALID_INDEX;
-   return FetchSQLNameID( g.odbc, table_name, name );
+		return INVALID_INDEX;
+	return FetchSQLNameID( g.odbc, table_name, name );
 }
 CTEXTSTR GetSQLName( CTEXTSTR table_name, INDEX iName )
 {
 	if( !g.odbc )
 		OpenSQL( DBG_VOIDSRC );
 	if( !g.odbc )
-      return NULL;
-   return FetchSQLName( g.odbc, table_name, iName );
+		return NULL;
+	return FetchSQLName( g.odbc, table_name, iName );
 }
 
-
+LOGICAL BackupDatabase( PODBC source, PODBC dest )
+{
+	if( source->flags.bSQLite_native && dest->flags.bSQLite_native ) {
+		sqlite3_backup *sb = sqlite3_backup_init( dest->db, "main", source->db, "main" );
+		if( sb )
+		{
+			sqlite3_backup_step( sb, 1 );
+			sqlite3_backup_step( sb, sqlite3_backup_remaining( sb ) );
+			sqlite3_backup_finish( sb );
+			return TRUE;
+		}
+		return FALSE;
+	}
+}
 
 SQL_NAMESPACE_END
 

@@ -12,7 +12,7 @@ static struct {
 	int lines;
 	int columns;
 	int display;
-   int timeout;
+	int timeout;
 	struct flags_tag
 	{
 		BIT_FIELD bYesNo : 1;
@@ -26,7 +26,7 @@ static struct {
 int HandleArgs( int argc, TEXTCHAR **argv )
 {
 
-   PVARTEXT pvt = NULL;
+	PVARTEXT pvt = NULL;
 	int arg = 1;
 	if( argc == 1 )
 	{
@@ -53,9 +53,9 @@ int HandleArgs( int argc, TEXTCHAR **argv )
 					  WIDE( "   - the prior command shows how to include showing quotes" )
 					 , WIDE( "Usage" )
 					 , MB_OK );
-      return 0;
+		return 0;
 	}
-   // default to topmost.
+	// default to topmost.
 	l.flags.bTop = 1;
 
 	while( arg < argc )
@@ -68,9 +68,9 @@ int HandleArgs( int argc, TEXTCHAR **argv )
 				arg++;
 				if( arg < argc )
 				{
-               PTEXT tmp2;
+					PTEXT tmp2;
 					PTEXT tmp = SegCreateFromText( argv[arg] );
-               tmp2 = tmp;
+					tmp2 = tmp;
 					GetColorVar( &tmp, &l.back_color );
 					LineRelease( tmp2 );
 				}
@@ -80,9 +80,9 @@ int HandleArgs( int argc, TEXTCHAR **argv )
 				arg++;
 				if( arg < argc )
 				{
-               PTEXT tmp2;
+					PTEXT tmp2;
 					PTEXT tmp = SegCreateFromText( argv[arg] );
-               tmp2 = tmp;
+					tmp2 = tmp;
 					GetColorVar( &tmp, &l.text_color );
 					LineRelease( tmp2 );
 				}
@@ -106,9 +106,9 @@ int HandleArgs( int argc, TEXTCHAR **argv )
 				if( arg < argc )
 				{
 #ifdef UNICODE
-               l.columns = _wtoi( argv[arg] );
+					l.columns = _wtoi( argv[arg] );
 #else
-               l.columns = atoi( argv[arg] );
+					l.columns = atoi( argv[arg] );
 #endif
 				}
 			}
@@ -118,9 +118,9 @@ int HandleArgs( int argc, TEXTCHAR **argv )
 				if( arg < argc )
 				{
 #ifdef UNICODE
-               l.display = _wtoi( argv[arg] );
+					l.display = _wtoi( argv[arg] );
 #else
-               l.display = atoi( argv[arg] );
+					l.display = atoi( argv[arg] );
 #endif
 				}
 			}
@@ -130,19 +130,19 @@ int HandleArgs( int argc, TEXTCHAR **argv )
 				if( arg < argc )
 				{
 #ifdef UNICODE
-               l.timeout = _wtoi( argv[arg] );
+					l.timeout = _wtoi( argv[arg] );
 #else
-               l.timeout = atoi( argv[arg] );
+					l.timeout = atoi( argv[arg] );
 #endif
 				}
 			}
 			else if( StrCaseCmp( argv[arg]+1, WIDE( "dead" ) ) == 0 )
 			{
-            l.flags.bDead = 1;
+				l.flags.bDead = 1;
 			}
 			else if( StrCaseCmp( argv[arg]+1, WIDE( "alpha" ) ) == 0 )
 			{
-            l.flags.bAlpha = 1;
+				l.flags.bAlpha = 1;
 			}
 			else if( StrCaseCmp( argv[arg]+1, WIDE( "file" ) ) == 0 )
 			{
@@ -150,7 +150,7 @@ int HandleArgs( int argc, TEXTCHAR **argv )
 				arg++;
 				if( arg < argc )
 				{
-               POINTER p;
+					POINTER p;
 					l.file = argv[arg];
 					p = OpenSpace( NULL, l.file, &l.text_size );
 					if( p )
@@ -158,21 +158,21 @@ int HandleArgs( int argc, TEXTCHAR **argv )
 						l.text = NewArray( TEXTCHAR, l.text_size + 1 );
 						MemCpy( l.text, p, l.text_size );
 						l.text[l.text_size] = 0;
-                  Release( p );
+						Release( p );
 					}
 				}
 			}
 			else if( StrCaseCmp( argv[arg]+1, WIDE( "notop" ) ) == 0 )
 			{
-            l.flags.bTop = 0;
+				l.flags.bTop = 0;
 			}
 			else if( StrCaseCmp( argv[arg]+1, WIDE( "yesno" ) ) == 0 )
 			{
-            l.flags.bYesNo = 1;
+				l.flags.bYesNo = 1;
 			}
 			else if( StrCaseCmp( argv[arg]+1, WIDE( "okcancel" ) ) == 0 )
 			{
-            l.flags.bOkayCancel = 1;
+				l.flags.bOkayCancel = 1;
 			}
 			else
 			{
@@ -190,27 +190,27 @@ int HandleArgs( int argc, TEXTCHAR **argv )
 			if( !pvt )
 			{
 				pvt = VarTextCreate();
-            vtprintf( pvt, WIDE( "%s" ), argv[arg] );
+				vtprintf( pvt, WIDE( "%s" ), argv[arg] );
 			}
-         else
-            vtprintf( pvt, WIDE( "\n%s" ), argv[arg] );
+			else
+				vtprintf( pvt, WIDE( "\n%s" ), argv[arg] );
 		}
-      arg++;
+		arg++;
 	}
 	if( pvt )
 	{
-      l.text = StrDup( GetText( VarTextPeek( pvt ) ) );
+		l.text = StrDup( GetText( VarTextPeek( pvt ) ) );
 	}
 
 	if( !l.text )
 	{
-      l.text = WIDE( "INVALID COMMAND LINE\nARGUMENTS" ) ;
+		l.text = WIDE( "INVALID COMMAND LINE\nARGUMENTS" ) ;
 	}
 	else
 	{
 		int n = 0;
 		int o = 0;
-      lprintf( "text is [%s]", l.text );
+		lprintf( "text is [%s]", l.text );
 		for( n = 0; l.text[n]; n++ )
 		{
 			if( l.text[n] < 32 )
@@ -224,23 +224,23 @@ int HandleArgs( int argc, TEXTCHAR **argv )
 				l.text[o++] = l.text[n];
 		}
 		l.text[o++] = l.text[n];
-      lprintf( "text is [%s]", l.text );
+		lprintf( "text is [%s]", l.text );
 
 	}
-   return 1;
+	return 1;
 }
 
 SaneWinMain( argc, argv )
 {
-   int result;
+	int result;
 	PBANNER banner = NULL;
 	if( !HandleArgs( argc, argv ) )
-      return 0;
+		return 0;
 
 	if( !l.back_color )
-      l.back_color = 0xFF000000;
+		l.back_color = 0xFF000000;
 	if( !l.text_color )
-      l.text_color = 0xFFFFFFFF;
+		l.text_color = 0xFFFFFFFF;
 
 	result = CreateBanner2Extended( NULL, &banner, l.text
 											, (l.flags.bYesNo?BANNER_OPTION_YESNO:0)
@@ -259,10 +259,10 @@ SaneWinMain( argc, argv )
 
 	{
 		int result2 = WaitForBanner2( banner );
-      lprintf( WIDE( "result is %d" ), result,result2 );
+		lprintf( WIDE( "result is %d" ), result,result2 );
 		return result;
 	}
 
-   return 0;
+	return 0;
 }
 EndSaneWinMain()

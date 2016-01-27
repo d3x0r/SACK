@@ -667,6 +667,7 @@ LOGICAL IsRootDeadstartComplete( void )
 #endif
 }
 
+#ifndef __STATIC__
 #ifndef __WATCOMC__
 #if !defined( __cplusplus_cli )
 #if !defined( NO_DEADSTART_DLLMAIN ) && !defined( BUILD_PORTABLE_EXECUTABLE )
@@ -691,6 +692,7 @@ void RootDestructor( void )
 	InvokeExits();
 }
 #  endif
+#endif
 #endif
 #endif
 #endif

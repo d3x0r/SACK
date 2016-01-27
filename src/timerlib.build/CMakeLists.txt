@@ -21,6 +21,10 @@ set( THIS_LAST_GCC_SOURCES ../deadstart/deadstart_lib.c
           ../deadstart/deadstart_end.c )
 endif( GCC OR __ANDROID__ )
   
+if( WIN32 )
+	set( MORE_TIMER_SOURCES ../systemlib/oswin.c )
+endif( WIN32 )
+
 set( TIMERLIB_SOURCES     ${THIS_FIRST_GCC_SOURCES}
     ../timerlib/timers.c
     ../memlib/sharemem.c 
@@ -40,6 +44,7 @@ set( TIMERLIB_SOURCES     ${THIS_FIRST_GCC_SOURCES}
     ../systemlib/system.c
     ../systemlib/taskinfo.h
     ../deadstart/deadstart_core.c 
+	${MORE_TIMER_SOURCES}
     ${THIS_LAST_GCC_SOURCES} )
     
 set( TIMERLIB_PP_SOURCES )

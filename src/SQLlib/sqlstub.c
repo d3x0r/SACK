@@ -3538,7 +3538,7 @@ int __DoSQLQueryEx( PODBC odbc, PCOLLECT collection, CTEXTSTR query DBG_PASS )
 #ifdef LOG_EVERYTHING
 		lprintf( WIDE( "new handle... %p" ), collection->hstmt );
 #endif
-		if( /*odbc->flags.bSQLite && */StrCmp( query, WIDE("show tables") ) == 0 )
+		if( StrCmp( query, WIDE("show tables") ) == 0 )
 		{
 			rc = SQLTables( collection->hstmt, NULL, 0, NULL, 0, NULL, 0, NULL, 0 );
 		}

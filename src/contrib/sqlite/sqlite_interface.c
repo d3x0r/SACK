@@ -45,6 +45,10 @@ struct sqlite_interface my_sqlite_interface = {
                                            , sqlite3_config
 															 , sqlite3_db_config
 															 , InitVFS
+															 , sqlite3_backup_init
+															 , sqlite3_backup_step
+															 , sqlite3_backup_remaining
+															 , sqlite3_backup_finish
 };
 
 

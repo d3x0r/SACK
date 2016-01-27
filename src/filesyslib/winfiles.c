@@ -1531,31 +1531,42 @@ LOGICAL sack_exists( CTEXTSTR filename )
 	return FALSE;
 }
 
-int  sack_rename ( CTEXTSTR file_source, CTEXTSTR new_name )
+int  sack_renameEx ( CTEXTSTR file_source, CTEXTSTR new_name, struct file_system_mounted_interface *mount )
 {
 	int status;
-	TEXTSTR tmp_src = ExpandPath( file_source );
-	TEXTSTR tmp_dst = ExpandPath( new_name );
+	if( mount->fsi )
+	{
+		return mount->fsi->rename( mount->psvInstance, file_source, new_name );
+	}
+	else
+	{
+		TEXTSTR tmp_src = ExpandPath( file_source );
+		TEXTSTR tmp_dst = ExpandPath( new_name );
 #ifdef WIN32
-	status = MoveFile( tmp_src, tmp_dst );
+		status = MoveFile( tmp_src, tmp_dst );
 #else
 #  ifdef UNICODE
-	{
-		char *tmpnames = CStrDup( tmp_src );
-		char *tmpnamed = CStrDup( tmp_dst );
-		status = rename( tmpnames, tmpnamed );
-		Deallocate( char*, tmpnames );
-		Deallocate( char*, tmpnamed );
-	}
+		{
+			char *tmpnames = CStrDup( tmp_src );
+			char *tmpnamed = CStrDup( tmp_dst );
+			status = rename( tmpnames, tmpnamed );
+			Deallocate( char*, tmpnames );
+			Deallocate( char*, tmpnamed );
+		}
 #  else
-	status = rename( tmp_src, tmp_dst );
+		status = rename( tmp_src, tmp_dst );
 #  endif
 #endif
-	Deallocate( TEXTSTR, tmp_src );
-	Deallocate( TEXTSTR, tmp_dst );
+		Deallocate( TEXTSTR, tmp_src );
+		Deallocate( TEXTSTR, tmp_dst );
+	}
 	return status;
 }
 
+int  sack_rename( CTEXTSTR file_source, CTEXTSTR new_name )
+{
+	return sack_renameEx( file_source, new_name, l.default_mount );
+}
 
 size_t GetSizeofFile( TEXTCHAR *name, P_32 unused )
 {
