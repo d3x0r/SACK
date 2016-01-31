@@ -2842,21 +2842,21 @@ char * WcharConvertExx ( const wchar_t *wch, size_t len DBG_PASS )
 				//lprintf( "2 byte encode..." );
 				sizeInBytes += 2;
 			}
-			else if( ( ( wch[0] & 0xFC00 ) >= 0xD800 )
-				&& ( ( wch[0] & 0xFC00 ) <= 0xDF00 ) )
+			else if( (  ( ( wch[0] & 0xFC00 ) >= 0xD800 )
+					   && ( ( wch[0] & 0xFC00 ) < 0xDC00 ) )
+					 && ( ( ( wch[1] & 0xFC00 ) >= 0xDC00 )
+					   && ( ( wch[1] & 0xFC00 ) < 0xE000 ) )
+					 )
 			{
 				int longer_value = 0x10000 + ( ( ( wch[0] & 0x3ff ) << 10 ) | ( ( wch[1] & 0x3ff ) ) );
 				//lprintf( "3 or 4 byte encode..." );
-				if( !(longer_value & 0xFFFF ) )
-					sizeInBytes+= 3;
-				else
-					sizeInBytes+= 4;
+				if( !(longer_value & 0xFFFF0000 ) )
+					sizeInBytes += 3;
+				else if( ( longer_value >= 0xF0000 ) && ( longer_value < 0xF0800 ) ) // hack a way to encode D800-DFFF
+					sizeInBytes += 2;
+            else
+					sizeInBytes += 4;
 				wch++;
-			}
-			else if( !( wch[0] & 0xF000 ) )
-			{
-				//lprintf( "3 byte ..." );
-				sizeInBytes += 3;
 			}
 			else 
 			{
@@ -2889,23 +2889,31 @@ char * WcharConvertExx ( const wchar_t *wch, size_t len DBG_PASS )
 					(*ch++) = 0xC0 | ( ( ((unsigned char*)wch)[1] & 0x7 ) << 2 ) | ( ( ((unsigned char*)wch)[0] ) >> 6 ); 
 					(*ch++) = 0x80 | ( ((unsigned char*)wch)[0] & 0x3F );
 				}
-				else if( ( ( wch[0] & 0xFC00 ) >= 0xD800 )
-					&& ( ( wch[0] & 0xFC00 ) <= 0xDF00 ) )
+				else if( (  ( ( wch[0] & 0xFC00 ) >= 0xD800 )
+							 && ( ( wch[0] & 0xFC00 ) < 0xDC00 ) )
+						  && ( ( ( wch[1] & 0xFC00 ) >= 0xDC00 )
+								&& ( ( wch[1] & 0xFC00 ) < 0xE000 ) )
+					 )
 				{
 					_32 longer_value;
 					longer_value = 0x10000 + ( ( ( wch[0] & 0x3ff ) << 10 ) | ( ( wch[1] & 0x3ff ) ) );
+					if( ( longer_value >= 0xF0000 ) && ( longer_value < 0xF0800 ) ) // hack a way to encode D800-DFFF
+					{
+                  longer_value = ( longer_value - 0xF0000 ) + 0xD800;
+						sizeInBytes += 2;
+					}
 					wch++;
 					if( !(longer_value & 0xFFFF ) )
 					{
 						// 16 bit encoding (shouldn't be hit 
-						(*ch++) = 0xE0 | (char)( longer_value >> 12 );
+						(*ch++) = 0xE0 | (char)( ( longer_value >> 12 ) & 0x0F );
 						(*ch++) = 0x80 | (char)( ( longer_value >> 6 ) & 0x3f );
 						(*ch++) = 0x80 | (char)( ( longer_value >> 0 ) & 0x3f );
 					}
 					else if( !( longer_value & 0xFFE00000 ) )
 					{
 						// 21 bit encoding ... 
-						(*ch++) = 0xF0 | (char)( longer_value >> 18 );
+						(*ch++) = 0xF0 | (char)( ( longer_value >> 18 ) & 0x07 );
 						(*ch++) = 0x80 | (char)( ( longer_value >> 12 ) & 0x3f );
 						(*ch++) = 0x80 | (char)( ( longer_value >> 6 ) & 0x3f );
 						(*ch++) = 0x80 | (char)( ( longer_value >> 0 ) & 0x3f );
@@ -2935,18 +2943,12 @@ char * WcharConvertExx ( const wchar_t *wch, size_t len DBG_PASS )
 						// too long to encode.
 					}
 				}
-				else if( !( wch[0] & 0xF000 ) )
-				{
-					(*ch++) = 0xE0 | ((unsigned char*)wch)[1] >> 4; 
-					(*ch++) = 0x80 | ( ( ((unsigned char*)wch)[1] & 0xF ) << 2 ) | ( ( ((unsigned char*)wch)[0] ) >> 6 );
-					(*ch++) = 0x80 |  ( ((unsigned char*)wch)[0] & 0x3F );
-				}
 				else
 				{
-					//lprintf( " 3 byte encode?" );
-						(*ch++) = 0xE0 | (  wch[0] >> 12 );
-						(*ch++) = 0x80 | ( (  wch[0] >> 6 ) & 0x3f );
-						(*ch++) = 0x80 | ( (  wch[0] >> 0 ) & 0x3f );
+					   //lprintf( " 3 byte encode?  16 bits" );
+						(*ch++) = 0xE0 | ( ( wch[0] >> 12 ) & 0x0F ); // mask just in case of stupid compiles that tread wchar as signed?
+						(*ch++) = 0x80 | ( ( wch[0] >> 6 ) & 0x3f );
+						(*ch++) = 0x80 | ( ( wch[0] >> 0 ) & 0x3f );
 				}
 			}
 			wch++;
@@ -3002,8 +3004,8 @@ wchar_t * CharWConvertExx ( const char *wch, size_t len DBG_PASS )
 				                 | ( (wchar_t)wch[2] & 0x3f ) << 6
 				                 | ( (wchar_t)wch[3] & 0x3f );
 				//lprintf( "literal char is %d (%08x", literal_char, literal_char );
-				ch[0] = ((wchar_t*)literal_char)[0];
-				ch[1] = ((wchar_t*)literal_char)[1];
+				ch[0] = ((wchar_t*)&literal_char)[0];
+				ch[1] = ((wchar_t*)&literal_char)[1];
 				ch++;
 				wch += 4;
 			}

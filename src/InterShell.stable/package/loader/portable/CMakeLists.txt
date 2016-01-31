@@ -19,7 +19,7 @@ string( REGEX REPLACE "library clbrdll.lib" "" CMAKE_C_STANDARD_LIBRARIES "${CMA
 string( REGEX REPLACE "library plbrdll.lib" "" CMAKE_C_STANDARD_LIBRARIES "${CMAKE_C_STANDARD_LIBRARIES}" )
 endif( WATCOM )
 
-set( SOURCES_ROOT M:/sack )
+set( SOURCES_ROOT ../../../../.. )
 
 if( WIN32 )
   set( NET_SOURCES    ${SOURCES_ROOT}/src/netlib/network.c 

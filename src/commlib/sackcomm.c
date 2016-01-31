@@ -158,7 +158,7 @@ int WriteComm( int nCom, POINTER buffer, _32 nSize )
 	return -1;
 }
 //-----------------------------------------------------------------------
-int OpenComm( CTEXTSTR name, int nInQueue, int nOutQueue )
+PTRSZVAL OpenComm( CTEXTSTR name, int nInQueue, int nOutQueue )
 {
    LocalInit();
 	if( gbLog )
@@ -181,7 +181,7 @@ int OpenComm( CTEXTSTR name, int nInQueue, int nOutQueue )
 		SetCommTimeouts(hCom, &timeout);
 		if( gbLog )
 			Log2( WIDE("Result: %p %d"), hCom, GetLastError() );
-		return (int)hCom;
+		return (PTRSZVAL)hCom;
 	}
 }
 //-----------------------------------------------------------------------
@@ -250,7 +250,7 @@ int WriteComm( int nCom, POINTER buffer, _32 nSize )
 }
 
 //-----------------------------------------------------------------------
-int OpenComm( CTEXTSTR name, int nInQueue, int nOutQueue )
+PTRSZVAL OpenComm( CTEXTSTR name, int nInQueue, int nOutQueue )
 {
    LocalInit();
 	if( gbLog )
@@ -823,7 +823,7 @@ void DumpTermios( struct termios *opts )
 		}
 		else
 		{
-			int iCommId = OpenComm( szPort, uiRcvQ, uiSendQ );
+			PTRSZVAL iCommId = OpenComm( szPort, uiRcvQ, uiSendQ );
 			if( gbLog )
 				lprintf( WIDE("attempted to open: %s result %d"), szPort, iCommId );
 			if( iCommId >= 0 )

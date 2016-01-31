@@ -120,8 +120,8 @@ TEXTCHAR *GetResourceIDName( CTEXTSTR pTypeName, int ID )
 			 name2;
 			  name2 = GetNextRegisteredName( &data2 ) )
 		{
-			int value = (int)(long)(GetRegisteredValueExx( data2, name2, WIDE("value"), TRUE ));
-			int range = (int)(long)(GetRegisteredValueExx( data2, name2, WIDE("range"), TRUE ));
+			int value = (int)(PTRSZVAL)(GetRegisteredValueExx( data2, name2, WIDE("value"), TRUE ));
+			int range = (int)(PTRSZVAL)(GetRegisteredValueExx( data2, name2, WIDE("range"), TRUE ));
 			//lprintf( WIDE("Found Name %s"), name2 );
 			if( (value <= ID) && ((value+range) > ID) )
 			{
@@ -196,8 +196,8 @@ int GetResourceID( PSI_CONTROL parent, CTEXTSTR name, _32 nIDDefault )
 			int range;
 			TEXTCHAR buffer[256];
 			tnprintf( buffer, sizeof( buffer ), PSI_ROOT_REGISTRY WIDE( "/resources/%s" ), name );
-			range = (int)(long)GetRegisteredValueExx( (PCLASSROOT)PSI_ROOT_REGISTRY WIDE("/resources"), name, WIDE("range"), TRUE );
-			result = (int)(long)GetRegisteredValueExx( (PCLASSROOT)PSI_ROOT_REGISTRY WIDE("/resources"), name, WIDE("value"), TRUE )/* + offset*/;
+			range = (int)(PTRSZVAL)GetRegisteredValueExx( (PCLASSROOT)PSI_ROOT_REGISTRY WIDE("/resources"), name, WIDE("range"), TRUE );
+			result = (int)(PTRSZVAL)GetRegisteredValueExx( (PCLASSROOT)PSI_ROOT_REGISTRY WIDE("/resources"), name, WIDE("value"), TRUE )/* + offset*/;
 			if( !result && !range && ( nIDDefault != -1 ) )
 			{
 				RegisterIntValue( buffer, WIDE("value"), nIDDefault );
@@ -256,7 +256,7 @@ int DoRegisterControl( PCONTROL_REGISTRATION pcr, int nSize )
 		tnprintf( namebuf2, sizeof( namebuf2 ), PSI_ROOT_REGISTRY WIDE("/control/%s")
 				  , pcr->name );
 		root = GetClassRoot( namebuf2 );
-		pcr->TypeID = (int)(long)GetRegisteredValueExx( root, NULL, WIDE("Type"), TRUE );
+		pcr->TypeID = (int)(PTRSZVAL)GetRegisteredValueExx( root, NULL, WIDE("Type"), TRUE );
 		if( !pcr->TypeID && (StrCaseCmp( pcr->name, WIDE("FRAME") )!=0) )
 		{
 			ControlID = (_32)(PTRSZVAL)GetRegisteredValueExx( WIDE("PSI/Controls"), NULL, WIDE("User Type ID"), TRUE);
@@ -2562,7 +2562,7 @@ PROCEDURE RealCreateCommonExx( PSI_CONTROL *pResult
 		tnprintf( mydef, sizeof( mydef ), PSI_ROOT_REGISTRY WIDE("/control/%") _32f , nType );
 	root = GetClassRoot( mydef );
 	if( pTypeName )
-		nType = (int)(long)GetRegisteredValueExx( root, NULL, WIDE("type"), TRUE );
+		nType = (int)(PTRSZVAL)GetRegisteredValueExx( root, NULL, WIDE("type"), TRUE );
 	else
 		pTypeName = GetRegisteredValueExx( root, NULL, WIDE("type"), FALSE );
 
@@ -2594,7 +2594,7 @@ PROCEDURE RealCreateCommonExx( PSI_CONTROL *pResult
 	pc->flags.bTransparent = 1;
 #endif
 	pc->flags.bParentCleaned = 1;
-	BorderType = (int)(long)GetRegisteredValueExx( root, NULL, WIDE("border"), TRUE );
+	BorderType = (int)(PTRSZVAL)GetRegisteredValueExx( root, NULL, WIDE("border"), TRUE );
 	BorderType |= ExtraBorderType;
 	//lprintf( WIDE("BorderType is %08x"), BorderType );
 	if( !(BorderType & BORDER_FIXED) )

@@ -680,7 +680,7 @@ PTRSZVAL CPROC WaitForTaskEnd( PTHREAD pThread )
 #ifdef _WIN32
          // vista++ so this won't work for XP support...
 			static BOOL (WINAPI *MyCancelSynchronousIo)( HANDLE hThread ) = (BOOL(WINAPI*)(HANDLE))-1;
-			if( (int)MyCancelSynchronousIo == -1 )
+			if( (PTRSZVAL)MyCancelSynchronousIo == (PTRSZVAL)-1 )
 				MyCancelSynchronousIo = (BOOL(WINAPI*)(HANDLE))LoadFunction( WIDE( "kernel32.dll" ), WIDE( "CancelSynchronousIo" ) );
 			if( MyCancelSynchronousIo )
 			{
@@ -693,7 +693,7 @@ PTRSZVAL CPROC WaitForTaskEnd( PTHREAD pThread )
 			else
 			{
 				static BOOL (WINAPI *MyCancelIoEx)( HANDLE hFile,LPOVERLAPPED ) = (BOOL(WINAPI*)(HANDLE,LPOVERLAPPED))-1;
-				if( (int)MyCancelIoEx == -1 )
+				if( (PTRSZVAL)MyCancelIoEx == (PTRSZVAL)-1 )
 					MyCancelIoEx = (BOOL(WINAPI*)(HANDLE,LPOVERLAPPED))LoadFunction( WIDE( "kernel32.dll" ), WIDE( "CancelIoEx" ) );
 				if( MyCancelIoEx )
 					MyCancelIoEx( task->hStdOut.handle, NULL );
@@ -1024,18 +1024,18 @@ int TryShellExecute( PTASK_INFO task, CTEXTSTR path, CTEXTSTR program, PTEXT cmd
 	execinfo.nShow = SW_SHOWNORMAL;
 	if( ShellExecuteEx( &execinfo ) )
 	{
-		if( (int)execinfo.hInstApp > 32)
+		if( (PTRSZVAL)execinfo.hInstApp > 32)
 		{
-			switch( (int)execinfo.hInstApp )
+			switch( (PTRSZVAL)execinfo.hInstApp )
 			{
 			case 42:
 #ifdef _DEBUG
-				lprintf( WIDE( "No association picked : %d (gle:%d)" ), (int)execinfo.hInstApp , GetLastError() );
+				lprintf( WIDE( "No association picked : %p (gle:%d)" ), (PTRSZVAL)execinfo.hInstApp , GetLastError() );
 #endif
 				break;
 			}
 #ifdef _DEBUG
-			lprintf( WIDE( "sucess with shellexecute of(%d) %s " ), execinfo.hInstApp, program );
+			lprintf( WIDE( "sucess with shellexecute of(%p) %s " ), execinfo.hInstApp, program );
 #endif
 			task->pi.hProcess = execinfo.hProcess;
 			task->pi.hThread = 0;
@@ -1043,10 +1043,10 @@ int TryShellExecute( PTASK_INFO task, CTEXTSTR path, CTEXTSTR program, PTEXT cmd
 		}
 		else
 		{
-			switch( (int)execinfo.hInstApp )
+			switch( (PTRSZVAL)execinfo.hInstApp )
 			{
 			default:
-				lprintf( WIDE( "Shell exec error : %d (gle:%d)" ), (int)execinfo.hInstApp , GetLastError() );
+				lprintf( WIDE( "Shell exec error : %p (gle:%d)" ), (PTRSZVAL)execinfo.hInstApp , GetLastError() );
 				break;
 			}
 			return FALSE;
@@ -1628,6 +1628,7 @@ SYSTEM_PROC( generic_function, LoadFunctionExx )( CTEXTSTR libname, CTEXTSTR fun
 				return NULL;
 			}
 		}
+   }
 #endif
 #ifdef __cplusplus_cli
 		{

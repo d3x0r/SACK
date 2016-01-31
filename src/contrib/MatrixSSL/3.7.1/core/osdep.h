@@ -186,9 +186,11 @@ extern void		osdepEntropyClose(void);
 	#endif
 #endif /* POSIX */
 #ifdef WIN32
-	#include <windows.h>
-	#define strcasecmp lstrcmpiA
-	#define snprintf _snprintf
+   #include <windows.h>
+   #ifndef __GNUC__
+	   #define strcasecmp lstrcmpiA
+      #define snprintf _snprintf
+   #endif
 	typedef signed long int32;
 	typedef unsigned long uint32;
 	typedef signed short int16;

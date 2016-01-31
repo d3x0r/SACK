@@ -3,7 +3,7 @@
 
 #ifdef WIN32
 #include <tlhelp32.h>
-#include <Psapi.h>
+#include <psapi.h>
 #endif
 
 #ifdef __LINUX__

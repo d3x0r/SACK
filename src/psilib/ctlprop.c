@@ -115,7 +115,7 @@ int FillControlIDList( CTEXTSTR root, PSI_CONTROL listbox, PSI_CONTROL pc, int l
 	{
 		if( !NameIsAlias( &data ) )
 		{
-			int value = (int)(long)GetRegisteredValueExx( (CTEXTSTR)data, name, WIDE("value"), TRUE );
+			int value = (int)(PTRSZVAL)GetRegisteredValueExx( (CTEXTSTR)data, name, WIDE("value"), TRUE );
 			if( value )
 			{
 				struct list_item_data *itemdata = (struct list_item_data*)Allocate( sizeof( *itemdata ) );
@@ -123,9 +123,9 @@ int FillControlIDList( CTEXTSTR root, PSI_CONTROL listbox, PSI_CONTROL pc, int l
 				itemdata->_typename = pc->pTypeName;
 				itemdata->resname = name;
 				/* ETHICALITY DISCLAIMED: this is an okay conversion, cause we're asking for an INT type anyhow...*/
-				itemdata->value = (int)(long)GetRegisteredValueExx( (CTEXTSTR)data, name, WIDE("value"), TRUE );
+				itemdata->value = (int)(PTRSZVAL)GetRegisteredValueExx( (CTEXTSTR)data, name, WIDE("value"), TRUE );
 				/* ETHICALITY DISCLAIMED: this is an okay conversion, cause we're asking for an INT type anyhow...*/
-				itemdata->range = (int)(long)GetRegisteredValueExx( (CTEXTSTR)data, name, WIDE("range"), TRUE );
+				itemdata->range = (int)(PTRSZVAL)GetRegisteredValueExx( (CTEXTSTR)data, name, WIDE("range"), TRUE );
 				//lprintf( WIDE("Found Name %s"), name2 );
 				SetItemData( AddListItemEx( listbox, level, name ), (PTRSZVAL)itemdata );
 				status = TRUE;

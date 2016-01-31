@@ -94,6 +94,11 @@ typedef _32 (CPROC *PaddTimerExx)( _32 start, _32 frequency
 static PaddTimerExx CheckDebugger( void )
 {
 #ifdef WIN32
+#  ifdef __GNUC__
+#    define LIBNAME "libbag.dll"
+#  else
+#    define LIBNAME "bag.dll"
+#  endif
 	// would have done most of these... but sequence does resemeble this all in 1 I found while gathering intel.
 	// implemented based on http://index-of.es/exploit/Anti-Debugging%208211%20A%20Developers%20View.pdf
 	// 
@@ -127,10 +132,10 @@ static PaddTimerExx CheckDebugger( void )
 			stringbuf[n] = "@ATLWvpajcgArdWrgr"[n] ^ 0x13;
 		}
 		stringbuf[n] = 0;
-		_DecryptRawData = (void (*)( CPOINTER , size_t , P_8 *, size_t * ))LoadFunction( WIDE("bag.dll"), stringbuf );
+		_DecryptRawData = (void (*)( CPOINTER , size_t , P_8 *, size_t * ))LoadFunction( WIDE(LIBNAME), stringbuf );
 
 		_DecryptRawData( sAddTimerExx + 1, sAddTimerExx[0], &output, &outsize );
-		addTimer = (PaddTimerExx)LoadFunction( WIDE("bag.dll"), (CTEXTSTR)output );
+		addTimer = (PaddTimerExx)LoadFunction( WIDE(LIBNAME), (CTEXTSTR)output );
 		Release( output );
 	}
 
@@ -397,6 +402,15 @@ static void CPROC name(void);
 	void schedule_name(void) {
 		RegisterPriorityStartupProc( name,TOSTR(name),100,&name_ctor_label,"dl.c",__LINE__ );
 	}
+#endif
+#ifdef __GNUC__
+	static void schedule_name(void) __attribute__((constructor)) __attribute__((used));
+#  ifdef _DEBUG
+#     define EXTRA ,"dl.c",__LINE__
+#  else
+#     define EXTRA
+#  endif
+	void schedule_name(void) { RegisterPriorityStartupProc( name,TOSTR(name),100,schedule_name EXTRA ); }
 #endif
 	/*static __declspec(allocate(_STARTSEG_)) void (CPROC*pointer_##name)(void) = pastejunk(schedule_,name);*/ \
 static void CPROC name(void)

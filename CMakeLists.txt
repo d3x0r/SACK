@@ -3,6 +3,9 @@ set( CMAKE_INSTALL_MESSAGE "LAZY" )
 cmake_minimum_required(VERSION 3.0)
 
 project( SACK )
+message( WIN32=${WIN32} )
+message( UNIX=${UNIX} )
+message( CMAKE_SYSTEM_NAME=${CMAKE_SYSTEM_NAME} )
 
 SET( MAKING_SACK_CORE ON )
 SET( SACK_SDK_ROOT_PATH ${CMAKE_CURRENT_SOURCE_DIR} )
@@ -31,6 +34,10 @@ set( CMAKE_MODULE_PATH ${SACK_SOURCE_DIR}/makefiles/cmake )
 
 
 include( DefaultInstall )
+
+if( NOT CMAKE_CONFIGURATION_TYPES )
+	set( CMAKE_CONFIGURATION_TYPES Debug Release )
+endif( NOT CMAKE_CONFIGURATION_TYPES )
 
 DEFINE_DEFAULT( CMAKE_BUILD_TYPE Release )
 set( CMAKE_BUILD_TYPE ${CMAKE_BUILD_TYPE} CACHE STRING "Cached cmake build type"  )
@@ -114,13 +121,16 @@ if( __ANDROID__ )
         #set( OPENGL_LIBRARY GL )
 	set( PLATFORM_LIBRARIES ${PLATFORM_LIBRARIES} android log m )
 else( __ANDROID__ )
-  if( WIN32 )
+  if( WIN32 OR ${CMAKE_SYSTEM_NAME} STREQUAL "Windows" )
       set( WIN32 ON )
       set( NEED_JPEG ON )
       set( NEED_PNG ON )
       set( NEED_ZLIB ON )
       set( NEED_FREETYPE ON )
-        set( SOCKET_LIBRARIES MatrixSSL ws2_32 iphlpapi )
+      if( NOT __CLR__ )
+        set( SOCKET_LIBRARIES MatrixSSL  )
+      endif( NOT __CLR__ )
+        set( SOCKET_LIBRARIES ${SOCKET_LIBRARIES} ws2_32 iphlpapi )
         set( WIN_SYS_LIBS winmm rpcrt4 )
         if( WATCOM )
 	        set( PLATFORM_LIBRARIES ${PLATFORM_LIBRARIES} shfolder psapi )
@@ -241,7 +251,12 @@ OPTION( __ANDROID__ "Enable Android Behvaviors" 0 )
 OPTION( ALLOW_IMAGE_INTERFACES "monolithic build, by default, forces direct linking to video/image interfaces; allow proxy" 0 )
 OPTION( BUILD_ANDROID_CONSOLE_APPS "Enable building programs as command-line executable" ${__ANDROID__} )
 OPTION( USE_OPTIONS "Use Option Code all internal option usage (and don't include option code)" 1 )
-OPTION( USING_OLD_MINGW "MinGW Has NO UpdateLayeredWindow" ${MINGW} )
+if( HOST_UNIX )
+   	#cross compiling mingw isn't so lame.
+	OPTION( USING_OLD_MINGW "MinGW Has NO UpdateLayeredWindow" OFF )
+else( HOST_UNIX )
+	OPTION( USING_OLD_MINGW "MinGW Has NO UpdateLayeredWindow" ${MINGW} )
+endif( HOST_UNIX )
 OPTION( USE_SACK_CUSTOM_MEMORY_ALLOCATION "Enable alternative memory allocator; affects locks on queues" 0 )
 OPTION( USE_SQLITE "Use SQLITE (also links static internal)" 1 )
 OPTION( USE_SQLITE_EXTERNAL "Use SQLITE (build as external module, included when off)" 0 )
@@ -277,6 +292,7 @@ if( MSVC )
   SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /MP8")
   
   if( __CLR__ )
+    add_definitions( -D__CLR__ )
     set( INTERFACE_OUTPUT_DIR . )
     set( BUILD_UNICODE ON )
     string( REPLACE "/EHsc" "" CMAKE_CXX_FLAGS_INIT ${CMAKE_CXX_FLAGS_INIT} )
@@ -435,6 +451,7 @@ set(  CMAKE_C_FLAGS_RELWITHDEBINFO "${CMAKE_C_FLAGS_RELWITHDEBINFO} -D_DEBUG_INF
 # here, blank/empty is as good as saying 'here'
 SET( SOURCES_ROOT ${CMAKE_CURRENT_SOURCE_DIR}/ )
 include( CMakeSources.lst )
+
 add_subdirectory( src/contrib/gsm-1.0-pl13 )
 add_subdirectory( src/contrib/libvlc/2.0.1 )
 
@@ -508,12 +525,16 @@ endif(WIN32)
 
 if( WIN32)
 if( MINGW )
-if( NOT ${Android} )
-SET(CMAKE_RC_COMPILER_INIT "windres")
-SET(CMAKE_RC_COMPILER "windres")
-SET(CMAKE_RC_COMPILE_OBJECT "windres <FLAGS> <DEFINES> -O coff -o <OBJECT> <SOURCE>")
-ENABLE_LANGUAGE(RC)
-endif( NOT ${Android} )
+if( NOT Android )
+	if( HOST_UNIX )
+        else( HOST_UNIX )
+		SET(CMAKE_RC_COMPILER_INIT "windres")
+		SET(CMAKE_RC_COMPILER "windres")
+		SET(CMAKE_RC_COMPILE_OBJECT "windres <FLAGS> <DEFINES> -O coff -o <OBJECT> <SOURCE>")
+	endif( HOST_UNIX )
+                
+	ENABLE_LANGUAGE(RC)
+endif( NOT Android )
 elseif( WATCOM )
 string( REPLACE "/" "\\" WATCOM_PROJECT_BINARY_DIR ${PROJECT_BINARY_DIR} )
 string( REPLACE "/" "\\" WATCOM_CMAKE_CURRENT_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR} )
@@ -553,7 +574,6 @@ FOREACH(SOURCE ${SACK_PLUSPLUS_HEADERS})
        #EXECUTE_PROCESS(COMMAND ${CMAKE_COMMAND} -E copy_if_different ${SOURCE} ${CMAKE_BINARY_DIR}/${BASENAME} )
 
    else()
-         message( "blah  ${SOURCE} ${SOURCES_ROOT}" )
    endif()
 ENDFOREACH(SOURCE)
 
@@ -705,7 +725,10 @@ SET_TARGET_PROPERTIES(sack_bag PROPERTIES
                   LINK_FLAGS "${extra_link_flags}"
 )
 target_link_libraries( sack_bag gsm-1.0-pl13 )
-target_link_libraries( sack_bag MatrixSSL )
+if( NOT __CLR__ )
+	target_link_libraries( sack_bag MatrixSSL )
+endif( NOT __CLR__ )
+        
 
 if( SACK_BUILD_STATIC_LIBS )
 add_library( sack_bag_static ${SACK_SOURCES} )
@@ -727,7 +750,9 @@ SET_TARGET_PROPERTIES(${SACK_BAG_PLUSPLUS} PROPERTIES
                   LINK_FLAGS "${extra_link_flags}"
 )
 target_link_libraries( ${SACK_BAG_PLUSPLUS} gsm-1.0-pl13 )
-target_link_libraries( ${SACK_BAG_PLUSPLUS} MatrixSSL )
+if( NOT __CLR__ )
+	target_link_libraries( ${SACK_BAG_PLUSPLUS} MatrixSSL )
+endif( NOT __CLR__ )
 
 if( SACK_BUILD_STATIC_LIBS )
 add_library( ${SACK_BAG_PLUSPLUS}_static ${cplusplus_sources} )
@@ -763,10 +788,10 @@ if( WATCOM )
   endif( NOT __NO_CPLUSPLUS )
 
 elseif( MINGW )
-  ADD_DEPENDENCIES( sack_bag generate_foo )
-  if( SACK_BUILD_STATIC_LIBS )
-    ADD_DEPENDENCIES( sack_bag_static generate_foo )
-  endif( SACK_BUILD_STATIC_LIBS )
+  #ADD_DEPENDENCIES( sack_bag generate_foo )
+  #if( SACK_BUILD_STATIC_LIBS )
+  #  ADD_DEPENDENCIES( sack_bag_static generate_foo )
+  #endif( SACK_BUILD_STATIC_LIBS )
   #ADD_DEPENDENCIES( sack_bag all_resources.res )
   #SET_TARGET_PROPERTIES(sack_bag PROPERTIES LINK_FLAGS "all_resources.res")
 endif()
@@ -927,10 +952,12 @@ add_library( bag SHARED
   ${LAST_GCC_LIBRARY_SOURCE}  
 )
 target_link_libraries( bag gsm-1.0-pl13 )
-target_link_libraries( bag MatrixSSL )
+if( NOT __CLR__ )
+	target_link_libraries( bag MatrixSSL )
+endif( NOT __CLR__ )
 
 if( __CLR__ )
-set( ExtraFlags ${ExtraFlags} /CLR )
+#set( ExtraFlags ${ExtraFlags} /CLR )
 endif( __CLR__ )
 
 SET_TARGET_PROPERTIES(bag PROPERTIES 
@@ -958,10 +985,13 @@ set( SACK_PLUSPLUS_SOURCES
 
 if( NOT __NO_CPLUSPLUS )
 if( NOT FORCE_CXX )
-set( cplusplus_sources )
-COPY_CPLUSPLUS( cplusplus_sources ${SACK_PLUSPLUS_SOURCES} src/contrib/sqlite/3.8.7.4/sqlite3.h include/sha1.h include/md5.h )
+   set( cplusplus_sources )
+   COPY_CPLUSPLUS( cplusplus_sources ${SACK_PLUSPLUS_SOURCES} include/sha1.h include/md5.h )
+   if( NEED_SQLITE )
+      COPY_CPLUSPLUS( cplusplus_sources ${SACK_PLUSPLUS_SOURCES} src/contrib/sqlite/${SQLITE_VERSION}/sqlite3.h )
+   endif( NEED_SQLITE )
 if( NEED_UUID )
-COPY_CPLUSPLUS( cplusplus_sources ${SACK_PLUSPLUS_SOURCES} src/contrib/uuid-1.6.2/uuid.h )
+   COPY_CPLUSPLUS( cplusplus_sources ${SACK_PLUSPLUS_SOURCES} src/contrib/uuid-1.6.2/uuid.h )
 endif( NEED_UUID )
 
 set( cplusplus_sources 
@@ -976,7 +1006,10 @@ COPY_CPLUSPLUS( psi_cplusplus_sources ${PSI_SOURCES} )
 
 add_library( ${BAG_PLUSPLUS} SHARED ${cplusplus_sources} )
 target_link_libraries( ${BAG_PLUSPLUS} gsm-1.0-pl13 )
-target_link_libraries( ${BAG_PLUSPLUS} MatrixSSL )
+if( NOT __CLR__ )
+	target_link_libraries( ${BAG_PLUSPLUS} MatrixSSL )
+endif( NOT __CLR__ )
+
 SET_TARGET_PROPERTIES(${BAG_PLUSPLUS} PROPERTIES
                   DEFINE_SYMBOL SACK_BAG_EXPORTS
                   COMPILE_FLAGS  "${ExtraFlags}"
@@ -1046,6 +1079,7 @@ add_library( bag.externals SHARED
     ${FREETYPE_SOURCE}
     ${EXPAT_SOURCES}
     ${FUSE_SOURCES}
+    ${BAG_EXTERNAL_SQLITE_SOURCES}
     ${BAG_EXTERNAL_MORE_SOURCES}
 )
 SET_TARGET_PROPERTIES(bag.externals PROPERTIES
@@ -1233,8 +1267,10 @@ IF(NOT FORCE_CXX AND EXISTS ${BULLET_SOURCE}/CMakeLists.txt AND NOT BUILD_UNICOD
           	 	#INCLUDE_DIRECTORIES(${BULLET_PHYSICS_SOURCE_DIR}/Glut)
           	ENDIF()
       endif( __ANDROID__ OR __QNX__ )
-
-      add_subdirectory( ${BULLET_SOURCE} bullet )
+      if( EXISTS ${BULLET_SOURCE} )
+	      add_subdirectory( ${BULLET_SOURCE} bullet )
+      endif( EXISTS ${BULLET_SOURCE} )
+              
       # this should be applied to bullet too; but I like the static lib right now.
       #SET( BUILD_SHARED_LIBS ON )
       SET( INSTALL_EXTRA_LIBS ON )
@@ -1276,7 +1312,7 @@ endif( NOT __QNX__ AND NOT __ANDROID__ )
   	add_subdirectory( src/vidlib/android )
   endif( __ANDROID__ )
   if( DIRECTX_SDK )
-    if( WIN32 AND NOT CMAKE_COMPILER_IS_GNUCC AND NOT WATCOM AND NOT __NO_GUI__ )
+    if( WIN32 AND NOT CMAKE_C_COMPILER_ID STREQUAL "GNU" AND NOT WATCOM AND NOT __NO_GUI__ )
       add_subdirectory( src/vidlib/pured3d )
       add_subdirectory( src/imglib/pured3d )
       add_subdirectory( src/imglib/pured3d2 )
@@ -1286,7 +1322,7 @@ endif( NOT __QNX__ AND NOT __ANDROID__ )
         add_subdirectory( src/imglib/pured3d11 )
       endif( WIN8_SDK )
 
-    endif( WIN32 AND NOT CMAKE_COMPILER_IS_GNUCC AND NOT WATCOM AND NOT __NO_GUI__ )
+    endif( WIN32 AND NOT CMAKE_C_COMPILER_ID STREQUAL "GNU" AND NOT WATCOM AND NOT __NO_GUI__ )
   endif( DIRECTX_SDK )
 
 set(DIRECTX_SDK "" CACHE STRING "directx sdk path to build d3d parts") 
@@ -1376,7 +1412,9 @@ add_subdirectory( include )
 add_subdirectory( src/utils/runner )
 add_subdirectory( src/utils/virtual_file_system )
 
-add_subdirectory( src/contrib/MatrixSSL/3.7.1 )
+if( NOT __CLR__ )
+	add_subdirectory( src/contrib/MatrixSSL/3.7.1 )
+endif( NOT __CLR__ )
 
 if( BUILD_TESTS )
    add_subdirectory( src/streamlib/ffmpeg/audio_test )
@@ -1441,7 +1479,9 @@ if( NOT __ANDROID__ AND NOT __NO_MSGSVR__ )
 endif( NOT __ANDROID__ AND NOT __NO_MSGSVR__ )
 if( WIN32 )
    add_subdirectory( src/utils/application_delay )
-   add_subdirectory( src/utils/debugger_lockout )
+   if( NOT __CLR__ )
+     add_subdirectory( src/utils/debugger_lockout )
+   endif( NOT __CLR__ )
 endif( WIN32 )
    add_subdirectory( src/salty_random_generator )
 if( NOT UNIX )

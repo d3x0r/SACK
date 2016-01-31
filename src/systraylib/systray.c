@@ -339,7 +339,7 @@ int RegisterIconEx( CTEXTSTR user_icon DBG_PASS )
 	nid.uCallbackMessage = WM_USERICONMSG;
 
 
-	if( (int)icon & 0xFFFF0000 )
+	if( (PTRSZVAL)icon & 0xFFFF0000 )
 	{
 		nid.hIcon = (HICON)LoadImage( NULL, icon, IMAGE_ICON
 									, 0, 0
@@ -455,7 +455,7 @@ void ChangeIconEx( CTEXTSTR icon DBG_PASS )
 	nid.uID = 0;
 	nid.uFlags = NIF_ICON|NIF_MESSAGE;
 	nid.uCallbackMessage = WM_USERICONMSG;
-	if( (int)icon & 0xFFFF0000 )
+	if( (PTRSZVAL)icon & 0xFFFF0000 )
 	{
 		nid.hIcon = (HICON)LoadImage( GetModuleHandle(NULL), icon, IMAGE_ICON
 								, 0, 0

@@ -5,18 +5,18 @@ SET( HOST_UNIX ON )
 SET(CMAKE_SYSTEM_NAME Windows )
 SET(CMAKE_SYSTEM_VERSION 7)
 
-SET(TARGET_CC /usr/bin/i686-w64-mingw32-gcc -static-libgcc -static)
-SET(TARGET_CXX /usr/bin/i686-w64-mingw32-g++ -static-libgcc -static)
+#SET( TARGET_CC /usr/bin/i686-w64-mingw32-gcc -static-libgcc -static)
+#SET( TARGET_CXX /usr/bin/i686-w64-mingw32-g++ -static-libgcc -static)
+SET( TARGET_CC /usr/bin/i686-w64-mingw32-gcc )
+SET( TARGET_CXX /usr/bin/i686-w64-mingw32-g++ )
 SET( TARGET_RC /usr/bin/i686-w64-mingw32-windres )
-SET( CMAKE_RC_COMPILER_INIT ${TARGET_RC} )
+
+#SET( CMAKE_RC_COMPILER_INIT ${TARGET_RC} )
 SET( CMAKE_RC_COMPILER ${TARGET_RC} )
-#SET(TARGET_CC /usr/bin/x86_64-w64-mingw32-gcc )
-#SET(TARGET_CXX /usr/bin/x86_64-w64-mingw32-g++ )
-#SET( TARGET_RC /usr/bin/x86_64-w64-mingw32-windres )
-
-
-SET(CMAKE_C_COMPILER ${TARGET_CC})
-SET(CMAKE_CXX_COMPILER ${TARGET_CXX})
+SET( CMAKE_C_FLAGS -static-libgcc )
+SET( CMAKE_C_COMPILER ${TARGET_CC} )
+SET( CMAKE_CXX_FLAGS -static-libgcc )
+SET( CMAKE_CXX_COMPILER ${TARGET_CXX} )
 
 # search for programs in the build host directories
 SET(CMAKE_FIND_ROOT_PATH_MODE_PROGRAM NEVER)

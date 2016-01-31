@@ -409,7 +409,7 @@
 #  define LITERAL_LIB_IMPORT_METHOD __declspec(dllimport)
 # else
 // MRT:  This is needed.  Need to see what may be defined wrong and fix it.
-#  if defined( __LINUX__ ) /* || defined( __STATIC__ ) && !defined( __cplusplus_cli ) */
+#  if defined( __LINUX__ ) || defined( __STATIC__ ) /*&& !defined( __cplusplus_cli ) */
 #    define EXPORT_METHOD
 #    define IMPORT_METHOD extern
 #    define LITERAL_LIB_EXPORT_METHOD 
@@ -445,7 +445,7 @@ SACK_NAMESPACE
 
 #ifndef __LINUX__
 //#include <sys/types.h>
-typedef int pid_t;
+//typedef int pid_t;
 #endif
 
 #ifdef BCC16

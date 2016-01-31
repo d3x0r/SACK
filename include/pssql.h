@@ -28,7 +28,7 @@
  *  I strongly recommend passing NULL always to the field names, and
  *  using sensible enumerators that follow the query definition.
  *
- *  (c)Freedom Collective (Jim Buckeyne <2000-2006)
+ *  (c)Freedom Collective (Jim Buckeyne 2000-2016)
  *
  */
 
@@ -1562,6 +1562,16 @@ PSSQL_PROC( void, SetSQLAutoClose )( PODBC odbc, LOGICAL bEnable );
    Negative time may be used to indicate that the day begins
    before the day ends (-2 would be day end at 10pm).            */
 PSSQL_PROC( CTEXTSTR, GetSQLOffsetDate )( PODBC odbc, CTEXTSTR BeginOfDayType, int default_begin );
+
+/* Performs a low level backup of one database to another.  This API supports
+   sqlite3 connections ONLY.
+   Parameters
+   source :            original database to copy from
+   dest :    database to copy to
+
+   */
+PSSQL_PROC( LOGICAL, BackupDatabase )( PODBC source, PODBC dest );
+
 
 SQL_NAMESPACE_END
 #ifdef __cplusplus

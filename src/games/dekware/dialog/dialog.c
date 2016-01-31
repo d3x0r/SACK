@@ -167,7 +167,7 @@ static PTEXT CPROC SetCaption( PTRSZVAL psv
 		if( pc )
 		{
 			PTEXT line = BuildLine( newvalue );
-			SetCommonText( pc, GetText( line ) );
+			SetControlText( pc, GetText( line ) );
          LineRelease( line );
 		}
 	}

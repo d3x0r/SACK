@@ -126,6 +126,7 @@ struct file_system_interface {
 	// ftell can be done with seek( file, 0, SEEK_CUR );
 	// if is_directory is NULL; assume result is false (file system does not support directories)
 	LOGICAL (CPROC *is_directory)( const char *pathname );
+	LOGICAL (CPROC *rename )( PTRSZVAL psvInstance, const char *original_name, const char *new_name );
 };
 
 
@@ -396,6 +397,7 @@ FILESYS_PROC  int FILESYS_API  sack_unlinkEx ( INDEX group, CTEXTSTR filename, s
 
 FILESYS_PROC  int FILESYS_API  sack_unlink ( INDEX group, CTEXTSTR filename );
 FILESYS_PROC  int FILESYS_API  sack_rmdir( INDEX group, CTEXTSTR filename );
+FILESYS_PROC  int FILESYS_API  sack_renameEx ( CTEXTSTR file_source, CTEXTSTR new_name, struct file_system_mounted_interface *mount );
 FILESYS_PROC  int FILESYS_API  sack_rename ( CTEXTSTR file_source, CTEXTSTR new_name );
 
 FILESYS_PROC  void FILESYS_API sack_set_common_data_application( CTEXTSTR name );

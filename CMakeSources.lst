@@ -215,16 +215,25 @@ if( USE_SQLITE )
   SET( BAG_SQLITE_INTERFACE  ${SOURCES_ROOT}src/contrib/sqlite/sqlite_interface.c )
   
 if( NOT SQLITE3_FOUND )
-  SET( SQLITE_VERSION 3.8.7.4 )
+  SET( SQLITE_VERSION 3.9.2 )
   SET( SQLITE_SOURCES ${SOURCES_ROOT}src/contrib/sqlite/${SQLITE_VERSION}/sqlite3.c )
   include_directories( ${SOURCES_ROOT}src/contrib/sqlite/${SQLITE_VERSION} )
   
   if( NOT USE_SQLITE_EXTERNAL AND BUILD_MONOLITHIC )
    # setup to include sqlite in the core libraries...
-   set( BAG_SQLITE_SOURCES ${SQLITE_SOURCES} )
+   if( __CLR__ )
+     messge( FATAL_ERROR "Monolithic build with sqlite and /CLR will fail." )
+   else( __CLR__ )
+     set( BAG_SQLITE_SOURCES ${SQLITE_SOURCES} )
+   endif( __CLR__ )
    set( ExtraDefinitions "${ExtraDefinitions};USE_SQLITE;SQLITE_SOURCE;USE_SQLITE_INTERFACE" )
   else()
-   set( BAG_SQLITE_SOURCES ${SQLITE_SOURCES} )
+   if( __CLR__ )
+   message( "SOURCES SET TO EXTERNAL" )
+     set( BAG_EXTERNAL_SQLITE_SOURCES ${SQLITE_SOURCES} )
+   else( __CLR__ )
+     set( BAG_SQLITE_SOURCES ${SQLITE_SOURCES} )
+   endif( __CLR__ )
    set( ExtraDefinitions "${ExtraDefinitions};USE_SQLITE;USE_SQLITE_INTERFACE" )
   endif()
 else( NOT SQLITE3_FOUND )
@@ -288,9 +297,9 @@ set( PSI_MORE_CONTROLS
   ${SOURCES_ROOT}src/psilib/console/regaccess.c
   ${SOURCES_ROOT}src/psilib/console/WinLogic.c
   ${SOURCES_ROOT}src/psilib/console/console_block_writer.c
-  ${SOURCES_ROOT}src/psilib/console/history.h
-  ${SOURCES_ROOT}src/psilib/console/histstruct.h
-  ${SOURCES_ROOT}src/psilib/console/consolestruc.h
+#  ${SOURCES_ROOT}src/psilib/console/history.h
+#  ${SOURCES_ROOT}src/psilib/console/histstruct.h
+#  ${SOURCES_ROOT}src/psilib/console/consolestruc.h
 )
 
 

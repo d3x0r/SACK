@@ -205,9 +205,6 @@ typedef struct service_client_tag
 	PEVENTHANDLER handler;
 	DeclareLink( struct service_client_tag );
 } SERVICE_CLIENT, *PSERVICE_CLIENT;
-#ifdef _WIN32
-#define pid_t _32
-#endif
 
 typedef  struct sleeper_tag
 {

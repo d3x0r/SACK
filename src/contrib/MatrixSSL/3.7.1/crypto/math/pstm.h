@@ -36,6 +36,8 @@
 #define _h_PSTMATH
 #ifndef DISABLE_PSTM
 
+#include <stdint.h>
+
 /* Define this here to avoid including circular limits.h on some platforms */
 #ifndef CHAR_BIT
 #define CHAR_BIT	8
@@ -76,8 +78,8 @@
 	#ifndef __GNUC__
 	#error "64bit digits requires GCC"
 	#endif
-	typedef unsigned long		pstm_digit;
-	typedef unsigned long		pstm_word __attribute__ ((mode(TI)));
+	typedef uint64_t		pstm_digit;
+	typedef uint64_t		pstm_word __attribute__ ((mode(TI)));
 	#define DIGIT_BIT			64
 	
 #else
