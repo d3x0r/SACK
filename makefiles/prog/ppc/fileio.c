@@ -121,6 +121,15 @@ PFILEDEP FindDependFile( PFILEDEP root, char *filename )
 }
 //----------------------------------------------------------------------
 
+LOGICAL AlreadyLoaded( char *filename )
+{
+	if( FindDependFile( FileDependancyRoot, filename ) )
+		return TRUE;
+   return FALSE;
+}
+
+//----------------------------------------------------------------------
+
 PFILEDEP AddDepend( PFILEDEP root, char *filename )
 {
 	PFILEDEP pfd = root;

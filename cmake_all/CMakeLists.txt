@@ -219,10 +219,12 @@ set( EXTRA_FLAGS  -DSACK_SDK_ROOT_PATH=${SACK_SDK_ROOT_PATH} ${D__ANDROID__} )
 BuildProject( ${PROJECT} ${PROJECT} ${CMAKE_CURRENT_LIST_DIR}/../src/InterShell.stable INTERSHELL_SDK_ROOT_PATH ${EXTRA_FLAGS} )
 add_dependencies( ${LAST_TARGET} Buildcore Buildbinary )
 
-set( PROJECT intershell_Package )
-set( EXTRA_FLAGS  -DSACK_SDK_ROOT_PATH=${SACK_SDK_ROOT_PATH} ${D__ANDROID__} )
-BuildProject( ${PROJECT} ${PROJECT} ${CMAKE_CURRENT_LIST_DIR}/../src/InterShell.stable/package INTERSHELL_PACKAGE_ROOT_PATH ${EXTRA_FLAGS} -DINTERSHELL_SDK_ROOT_PATH=${INTERSHELL_SDK_ROOT_PATH} )
-add_dependencies( ${LAST_TARGET} Buildcore Buildintershell )
+if( NOT __LINUX__ AND NOT __ANDROID__ )
+  set( PROJECT intershell_Package )
+  set( EXTRA_FLAGS  -DSACK_SDK_ROOT_PATH=${SACK_SDK_ROOT_PATH} ${D__ANDROID__} )
+  BuildProject( ${PROJECT} ${PROJECT} ${CMAKE_CURRENT_LIST_DIR}/../src/InterShell.stable/package INTERSHELL_PACKAGE_ROOT_PATH ${EXTRA_FLAGS} -DINTERSHELL_SDK_ROOT_PATH=${INTERSHELL_SDK_ROOT_PATH} )
+  add_dependencies( ${LAST_TARGET} Buildcore Buildintershell )
+endif( NOT __LINUX__ AND NOT __ANDROID__ )
 
 
 #set( PROJECT intershell2 )

@@ -27,6 +27,7 @@ typedef struct global_tag
 		_32 keep_comments : 1;
 		_32 keep_includes : 1;
 		_32 bWriteLineInfo : 1;
+		_32 load_once : 1;
 	} flags;
 	int bDebugLog;
 	char pExecPath[256];

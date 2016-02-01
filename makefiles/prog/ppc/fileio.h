@@ -15,6 +15,7 @@ int OpenNewInputFile( char *name, char *pFile, int nLine, int bDepend, int bNext
 void CloseInputFileEx( DBG_VOIDPASS );
 #define CloseInputFile() CloseInputFileEx( DBG_VOIDSRC )
 
+LOGICAL AlreadyLoaded( char *filename );
 
 void SetIfBegin( void );
 void ClearIfBegin( void );

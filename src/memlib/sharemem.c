@@ -64,6 +64,11 @@
 #include <linux/ashmem.h>
 #endif
 
+#ifdef _MSC_VER 
+//>= 900
+#include <crtdbg.h>
+#include <new.h>
+#endif
 
 #ifdef __cplusplus
 namespace sack {
@@ -249,7 +254,6 @@ PRIORITY_PRELOAD( Deadstart_finished_enough, GLOBAL_INIT_PRELOAD_PRIORITY + 1 )
 PRIORITY_PRELOAD( InitGlobal, DEFAULT_PRELOAD_PRIORITY )
 {
 #ifndef __NO_OPTIONS__
-   int tmp;
 	g.bLogCritical = SACK_GetProfileIntEx( GetProgramName(), WIDE( "SACK/Memory Library/Log critical sections" ), g.bLogCritical, TRUE );
 	g.bLogAllocate = SACK_GetProfileIntEx( GetProgramName(), WIDE( "SACK/Memory Library/Enable Logging" ), g.bLogAllocate, TRUE );
 	if( g.bLogAllocate )
@@ -2946,9 +2950,6 @@ void  DebugDumpHeapMemEx ( PMEM pHeap, LOGICAL bVerbose )
 
 #ifdef _MSC_VER 
 //>= 900
-#include <crtdbg.h>
-#include <new.h>
-
 
 _CRT_ALLOC_HOOK prior_hook;
 
@@ -2975,9 +2976,9 @@ lineNumber)
 			);
 		break;
 	case _HOOK_FREE:
-		lprintf( WIDE( "CRT Free: %p[%d](%d) %s(%d)" )
+		lprintf( WIDE( "CRT Free: %p[%"_PTRSZVALfs"](%d) %s(%d)" )
 			, userData
-			, userData
+			, (PTRSZVAL)userData
 			, size
 			, filename, lineNumber
 			);

@@ -139,7 +139,7 @@ static int G2J( int year, int month, int day )
 	int day_of_year = 0;
 	int extra = 0;
 	int day_of_month = 0;
-	if (leap && month >= 2)
+	if (leap && month > 2)
 		extra = 1;
 	return month_total[month-1] + day + extra;
 }

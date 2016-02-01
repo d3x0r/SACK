@@ -172,6 +172,12 @@ DDSCAPS2_CUBEMAP_NEGATIVEZ = 0x8000, //	Required when these surfaces are stored 
 DDSCAPS2_VOLUME = 0x200000, //	Required for a volume texture.	
 };
 
+
+#ifdef __LINUX__
+#define DWORD _32
+#define UINT _32
+#endif
+
 typedef struct _DDS_PIXELFORMAT {
   DWORD dwSize;
   DWORD dwFlags;

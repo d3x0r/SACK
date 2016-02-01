@@ -258,7 +258,11 @@ int ProcessInclude( int bNext )
 			{
 				fprintf( stddbg, WIDE("attempting: \"%s\"\n"), basename );
 			}
-
+			if( g.flags.load_once )
+			{
+				if( AlreadyLoaded( Workname ) )
+               return TRUE;
+			}
 			if( !OpenNewInputFile( Workname, GetCurrentFileName(), GetCurrentLine(), g.bAutoDepend, bNext ) )
 			{
 				PTEXT pPath;
@@ -271,6 +275,11 @@ int ProcessInclude( int bNext )
 						fprintf( stddbg, WIDE("attempting \"%s\"\n") , Workname );
 					}
                /*1234*/
+					if( g.flags.load_once )
+					{
+						if( AlreadyLoaded( Workname ) )
+							return TRUE;
+					}
 					if( OpenNewInputFile( Workname, GetCurrentFileName(), GetCurrentLine(), TRUE, bNext ) )
 					{
 						if( idx )
@@ -314,6 +323,11 @@ int ProcessInclude( int bNext )
 						, GetCurrentFileName(), GetCurrentLine() );
 				g.ErrorCount++;
 				return TRUE;
+			}
+			if( g.flags.load_once )
+			{
+				if( AlreadyLoaded( basename ) )
+               return TRUE;
 			}
 			if( ProcessSystemIncludeFile( basename, FALSE, bNext ) )
             return TRUE;
@@ -1073,7 +1087,8 @@ void usage( void )
 	printf( WIDE("    -p                  keep includes in output (don't output content of include)\n") );
 	printf( WIDE("    -f                  force / into \\\n") );
    printf( WIDE("    -F                  force \\ into /\n") );
-   printf( WIDE("    -[Oo]<file>         specify the output filename\n") );
+	printf( WIDE("    -[Oo]<file>         specify the output filename\n") );
+   printf( WIDE("    -once               only load any include once\n") );
 	printf( WIDE("    -[Zz]               debug info mode. ( 1, 2, 4 )\n") );
 	printf( WIDE("  Any option prefixed with a - will force the option off...\n") );
 	printf( WIDE("  Option L is by default on. (line info with #line keyword)\n") );
@@ -1426,6 +1441,10 @@ int main( char argc, char **argv, char **env )
 							if( ispathchr( *tmp ) )
 								*tmp = 0; // terminate prior;
 							AddLink( g.pSysIncludePath, SegCreateFromText( arg ) );
+						}
+						else if( strcmp( argv[i]+n, "once" ) == 0 )
+						{
+                     g.flags.load_once = 1;
 						}
 						else if( argv[i][n] == 'M' )
 						{

@@ -1627,8 +1627,10 @@ SYSTEM_PROC( generic_function, LoadFunctionExx )( CTEXTSTR libname, CTEXTSTR fun
 				ResumeDeadstart();
 				return NULL;
 			}
+#  ifndef __ANDROID__
 		}
-   }
+#  endif
+}
 #endif
 #ifdef __cplusplus_cli
 		{
