@@ -1,0 +1,3 @@
+<control border="4400" caption="Page Cycling Properties" position="0,0" size="300,150" type="Frame">
+<control IDName="CheckButton/InterShell/Page Cycle/CHECKBOX_ENABLE" caption="Enable" position="10,20" size="280,18" type="CheckButton"></control>
+<control IDName="Button/core/BTN_OKAY" PrivateData="#d75b6263" caption="Done" position="230,120" size="60,20" type="Button"></control></control>
