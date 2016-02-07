@@ -15,6 +15,7 @@ _IMAGE_NAMESPACE
 
 #ifndef FONT_CACHE_STRUCTS
 
+
 /* Describes an alternate file location for this font. During
    the building of the cache, the same fonts may exist on a
    system multiple times.                                     */
@@ -151,6 +152,49 @@ typedef struct font_entry_tag
    PFONT_STYLE  styles; // array of nStyles
 } FONT_ENTRY, *PFONT_ENTRY;
 
+#else
+typedef struct cache_build_tag
+{
+	struct {
+		_32 initialized : 1;
+		_32 show_mono_only : 1;
+		_32 show_prop_only : 1;
+	} flags;
+	// this really has no sorting
+	// just a list of FONT_ENTRYs
+	//SHA1Context Sha1Build;
+	// PDICTs... (scratch build)
+	PTREEROOT pPaths;
+	PTREEROOT pFiles;
+	PTREEROOT pFamilies;
+	PTREEROOT pStyles;
+	PTREEROOT pFontCache;
+
+   // when we read the cache from disk - use these....
+	_32 nPaths;
+	TEXTCHAR* *pPathList;
+	TEXTCHAR *pPathNames; // slab of ALL names?
+	_32 nFiles;
+	TEXTCHAR* *pFileList;
+	TEXTCHAR *pFileNames; // slab of ALL names?
+	_32 nStyles;
+	TEXTCHAR* *pStyleList;
+	TEXTCHAR *pStyleNames; // slab of ALL names?
+	_32 nFamilies;
+	TEXTCHAR* *pFamilyList;
+	TEXTCHAR *pFamilyNames; // slab of ALL names?
+
+	PFONT_STYLE pStyleSlab;
+	_32 nStyle;
+	PAPP_SIZE_FILE pSizeFileSlab;
+	_32 nSizeFile;
+	PSIZES pSizeSlab;
+   _32 nSize;
+	PALT_SIZE_FILE pAltSlab;
+   _32 nAlt;
+
+} CACHE_BUILD, *PCACHE_BUILD;
+
 #endif
 
 #if defined( NO_FONT_GLOBAL )
@@ -222,7 +266,11 @@ typedef struct font_global_tag
 	} flags;
 	PTHREAD font_status_open_thread; 
 	PTHREAD font_status_timer_thread;
+	_64 fontcachetime;
+	struct cache_build_tag *_build;
+   TEXTCHAR font_cache_path[256];
 } FONT_GLOBAL;
+#define build _build[0]
 #endif
 
 /* These are symbols used for 'magic' in PFONTDATA and
@@ -263,7 +311,7 @@ struct font_data_tag {
    /* these is a list of names to create the font if the indexes
       are different. Think all names are concated together with a
       single '\\0' between and a double '\\0\\0' at the end.      */
-   TEXTCHAR names[];
+   TEXTCHAR names[1];
 };
 // defines FONTDATA for internal usage.
 typedef struct font_data_tag  FONTDATA;
@@ -288,7 +336,7 @@ typedef struct render_font_data_tag {
       as 1, 2, or 8 bits.                                          */
 	_32 flags;
    /* this is the filename that was used to create the font.  The filename is relative to where the image service is running from. */
-	TEXTCHAR filename[];
+	TEXTCHAR filename[1];
 } RENDER_FONTDATA;
 
 /* internal function to load fonts */

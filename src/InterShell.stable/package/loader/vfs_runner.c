@@ -20,8 +20,6 @@ static struct vfs_runner_local
 	struct volume* user_mirror_fs;
 	struct volume* rom_fs;
 	struct file_system_mounted_interface *resource_mount;
-	struct file_system_mounted_interface *user_mount;
-	struct file_system_mounted_interface *user_mirror_mount;
 	struct file_system_mounted_interface *core_mount;
 }l;
 
@@ -360,20 +358,16 @@ PRIORITY_PRELOAD( XSaneWinMain, DEFAULT_PRELOAD_PRIORITY + 20 )//( argc, argv )
 	}
 
 	l.rom = sack_mount_filesystem( "self", l.fsi, 900, (PTRSZVAL)l.rom_fs, FALSE );
+
+	if( 0 )
 	{
-		TEXTCHAR tmpnam[256];
-		TEXTCHAR tmpkey[17];
-		tmpkey[0] = 0;
-		GetModuleFileName( NULL, tmpnam, 256 );
-		//lprintf( "Opening default with %s %s", tmpnam, tmpkey );
-		//if( !( l.core_fs = sack_vfs_load_crypt_volume( ExpandPath( "*/asset.svfs" ), tmpnam, tmpkey ) ) )
 		if( !( l.core_fs = sack_vfs_load_volume( ExpandPath( "*/asset.svfs" ) ) ) )
 		{
 			MessageBox( NULL, "Failed to load application data.", "Failed Initialization", MB_OK );
 			exit(0);
 		}
+		l.core_mount = sack_mount_filesystem( "sack_shmem", sack_get_filesystem_interface( "sack_shmem.runner" ), 900, (PTRSZVAL)l.core_fs, TRUE );
 	}
-	l.core_mount = sack_mount_filesystem( "sack_shmem", sack_get_filesystem_interface( "sack_shmem.runner" ), 900, (PTRSZVAL)l.core_fs, TRUE );
 
 #if 0
 	if( !(l.resource_fs = resload( CMAKE_BUILD_TYPE, CPACK_PACKAGE_VERSION_PATCH ) ) )
@@ -382,9 +376,9 @@ PRIORITY_PRELOAD( XSaneWinMain, DEFAULT_PRELOAD_PRIORITY + 20 )//( argc, argv )
 		exit(0);
 	}
 	l.resource_mount = sack_mount_filesystem( "resource_vfs"
-				, l.fsi
-				, 950
-				, (PTRSZVAL)l.resource_fs, 0 );
+														 , l.fsi
+														 , 950
+														 , (PTRSZVAL)l.resource_fs, 0 );
 #endif
 
 #ifndef _DEBUG
@@ -392,6 +386,7 @@ PRIORITY_PRELOAD( XSaneWinMain, DEFAULT_PRELOAD_PRIORITY + 20 )//( argc, argv )
 	//LoadFunction( "libdl.dll", NULL );
 #endif
 #ifdef _WIN32
+   if( 0 )
 	{
 		HMODULE hMod;
 		if( !( hMod = LoadLibrary( "openAL32.dll" ) ) )

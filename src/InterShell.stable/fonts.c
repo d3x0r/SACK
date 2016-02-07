@@ -423,11 +423,12 @@ static void OnSaveCommon( WIDE( "Common Fonts" ) )( FILE *out )
 			TEXTCHAR *data;
 			if( theme_preset->fontdata && theme_preset->fontdatalen )
 			{
-				EncodeBinaryConfig( &data, theme_preset->fontdata, theme_preset->fontdatalen );
+            TEXTSTR tmp;
+				//EncodeBinaryConfig( &data, theme_preset->fontdata, theme_preset->fontdatalen );
 				sack_fprintf( out, WIDE("font preset %s=%s\n")
 						 , theme_preset->name
-						 , data );
-				Release( data );
+						 , tmp = EscapeMenuString( theme_preset->fontdata )/*data*/ );
+				//Release( data );
 			}
 			// if there's no data, don't bother saving anything.
 			//else
@@ -440,18 +441,27 @@ static void OnSaveCommon( WIDE( "Common Fonts" ) )( FILE *out )
 static PTRSZVAL CPROC RecreateFont( PTRSZVAL psv, arg_list args )
 {
 	PARAM( args, CTEXTSTR, name );
-	PARAM( args, size_t, length );
-	PARAM( args, POINTER, data );
+	//PARAM( args, size_t, length );
+	PARAM( args, CTEXTSTR, data );
+	size_t length;
+	if( data[0] == '[' )
+	{
+		POINTER pData;
+		DecodeBinaryConfig( data, &pData, &length );
+      data = (CTEXTSTR)pData;
+	}
+	else
+      length = StrLen( data ) + 1;
 #ifdef DEBUG_FONT_CREATION
 	lprintf( "RecreateFont..." );
 #endif
-	CreateACanvasFont( InterShell_GetCurrentLoadingCanvas(), name, NULL, data, length );
+	CreateACanvasFont( InterShell_GetCurrentLoadingCanvas(), name, NULL, (POINTER)data, length );
 	return 0;
 }
 
 static void OnLoadCommon( WIDE( "Common Fonts" ) )( PCONFIG_HANDLER pch )
 {
-	AddConfigurationMethod( pch, WIDE("font preset %m=%B"), RecreateFont );
+	AddConfigurationMethod( pch, WIDE("font preset %m=%m"), RecreateFont );
 }
 
 static void OnThemeAdded( WIDE( "Fonts" ) )( int theme_id )

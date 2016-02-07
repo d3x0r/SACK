@@ -16,7 +16,7 @@
 #include <sqlgetoption.h>
 
 SACK_VFS_NAMESPACE
-#define PARANOID_INIT
+//#define PARANOID_INIT
 
 //#define DEBUG_TRACE_LOG
 
@@ -878,6 +878,7 @@ static int iterate_find( struct find_info *info ) {
 		info->this_dir_block = vfs_GetNextBlock( info->vol, info->this_dir_block, FALSE, FALSE );
 	}
 	while( info->this_dir_block != ~0 );
+	return 0;
 }
 
 static int CPROC sack_vfs_find_first( struct find_info *info ) {

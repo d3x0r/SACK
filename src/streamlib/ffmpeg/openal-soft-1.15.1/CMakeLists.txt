@@ -263,13 +263,13 @@ ELSE()
 ENDIF()
 
 SET(SSE_SWITCH "")
-if( GCC )
+if( CMAKE_COMPILER_IS_GNUCC )
    CHECK_C_COMPILER_FLAG(-msse HAVE_MSSE_SWITCH)
    IF(HAVE_MSSE_SWITCH OR HOST_UNIX )
       SET(SSE_SWITCH "-msse")
    ELSE()
    ENDIF()
-endif( GCC )
+endif( CMAKE_COMPILER_IS_GNUCC )
 
 
 CHECK_C_SOURCE_COMPILES("int foo(const char *str, ...) __attribute__((format(printf, 1, 2)));

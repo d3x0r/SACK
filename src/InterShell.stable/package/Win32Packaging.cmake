@@ -112,13 +112,13 @@ endforeach()
 FILE( GLOB PLUGIN_LIST ${INTERSHELL_SDK_ROOT_PATH}/Resources/Images/* )
 foreach( EXTRA ${PLUGIN_LIST} )
     get_filename_component( libname ${EXTRA} NAME )
-	append_vfs_arg( ${EXTRA} Resources/Images/${libname} 1 )
+	append_vfs_arg( ${EXTRA} ./Images/${libname} 1 )
 endforeach()
 
 FILE( GLOB PLUGIN_LIST ${INTERSHELL_SDK_ROOT_PATH}/Resources/frames/* )
 foreach( EXTRA ${PLUGIN_LIST} )
     get_filename_component( libname ${EXTRA} NAME )
-	append_vfs_arg( ${EXTRA} Resources/frames/${libname} 1 )
+	append_vfs_arg( ${EXTRA} ./frames/${libname} 1 )
 endforeach()
 
 

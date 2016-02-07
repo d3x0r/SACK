@@ -168,7 +168,7 @@ int UpdateSampleFont( PFONT_DIALOG pfd )
 static int CPROC DrawCharacterSize( PCOMMON pc )
 {
 	int x, y;
-	_32 width, height;
+	S_32 width, height;
 	PFONT_DIALOG pfd = (PFONT_DIALOG)GetFrameUserData( GetFrame( pc ) );
 	Image surface = GetControlSurface( pc );
 	//lprintf( WIDE("Drawing character size control...") );
@@ -445,8 +445,11 @@ static void CPROC FillFamilyList( PFONT_DIALOG pfd )
 			pliSelect = AddListItem( pc, WIDE("DEFAULT") );
 	}
 	if( !pliSelect )
+	{
+      lprintf( "attempt select %d", pfd->pFontEntry?((_32)(pfd->pFontEntry - fg.pFontCache)):0 );
 		pliSelect = GetNthItem( pc
 									 , pfd->pFontEntry?((_32)(pfd->pFontEntry - fg.pFontCache)):0 );
+	}
 	SetSelectedItem( pc, pliSelect );
    DisableUpdateListBox( pc, FALSE );
 }
@@ -589,19 +592,67 @@ SFTFont PickScaledFontWithUpdate( S_32 x, S_32 y
 		&& ( (*pFontDataSize) < sizeof( FONTDATA ) + 4096 ) )
 	{
 		PFONTDATA pResult = (PFONTDATA)(*pFontData);
+		if( ( pResult->magic != MAGIC_PICK_FONT ) && ( pResult->magic != MAGIC_RENDER_FONT ) )
+		{
+			if( strncmp( (char*)pResult, "pick,", 5 ) == 0 )
+			{
+				PFONTDATA pfd = New( FONTDATA );
+            lprintf( "Recover pick font data..." );
+				pfd->magic = MAGIC_PICK_FONT;
+				{
+					int family, style, file, width, height, flags;
+					sscanf( (((char*)pResult) + 5), "%d,%d,%d,%d,%d,%d"
+							, &family, &style, &file
+							, &width, &height, &flags );
+               lprintf( "%d,%d,%d,%d", family, style, file, flags );
+					pfd->nWidth = width;
+					pfd->nHeight = height;
+					pfd->flags = flags;
+					pfd->nFamily = family;
+					pfd->nStyle = style;
+					pfd->nFile = file;
+				}
+            pResult = pfd;
+			}
+			else
+			{
+				PRENDER_FONTDATA prfd;
+				CTEXTSTR tail = StrRChr( (TEXTSTR)pResult, ',' );
+				if( tail )
+					tail++;
+				else
+					tail = "";
+				prfd = NewPlus( RENDER_FONTDATA, (StrLen( tail ) + 1)*sizeof(TEXTCHAR) );
+				StrCpy( prfd->filename, tail );
+				prfd->magic = MAGIC_RENDER_FONT;
+				{
+					int width, height, flags;
+					sscanf( (char*)pResult, "%d,%d,%d", &width, &height, &flags );
+					prfd->nWidth = width;
+					prfd->nHeight = height;
+					prfd->flags = flags;
+				}
+				pResult = (PFONTDATA)prfd;
+			}
+		}
 		if( pResult->magic == MAGIC_PICK_FONT )
 		{
-			if( pResult->nFamily < fg.pFontCache->nStyles )
+			if( pResult->nFamily < fg.nFonts )
 			{
 				fdData.pFontEntry = fg.pFontCache + pResult->nFamily;
-				fdData.pFontStyle = fdData.pFontEntry->styles + pResult->nStyle;
-				fdData.pSizeFile = fdData.pFontStyle->files + pResult->nFile;
+				if( pResult->nStyle < fdData.pFontEntry->nStyles )
+				{
+					fdData.pFontStyle = fdData.pFontEntry->styles + pResult->nStyle;
+               if( pResult->nFile < fdData.pFontStyle->nFiles )
+						fdData.pSizeFile = fdData.pFontStyle->files + pResult->nFile;
+				}
 				fdData.flags.render_depth = pResult->flags;
 			}
 		}
 		else
 		{
 			PRENDER_FONTDATA pResult = (PRENDER_FONTDATA)(*pFontData);
+         lprintf( "wasn't a pick font stuct..." );
 			fdData.flags.render_depth = pResult->flags;
 			fdData.filename = pResult->filename;
 		}
@@ -759,8 +810,22 @@ SFTFont PickScaledFontWithUpdate( S_32 x, S_32 y
 							+ (l2=StrLen( fdData.pFontStyle->name ))
 							+ (l3=StrLen( fdData.pSizeFile->path ))
 							+ (l4=StrLen( fdData.pSizeFile->file ))
-							+ 4, offset;
-						PFONTDATA pResult = (PFONTDATA)Allocate( resultsize );
+							+ 4;
+                  TEXTCHAR buf[128];
+						PFONTDATA pResult;// = (PFONTDATA)Allocate( resultsize );
+						snprintf( buf, 256, "pick,%d,%d,%d,%d,%d,%d,%s/%s"
+								  , (fdData.pFontEntry - fg.pFontCache)
+								  , fdData.pFontStyle - fdData.pFontEntry->styles
+								  , fdData.pSizeFile - fdData.pFontStyle->files
+								  , fdData.nWidth
+								  , fdData.nHeight
+								  , fdData.flags.render_depth
+								  , fdData.pSizeFile->path
+								  , fdData.pSizeFile->file
+								  );
+                  resultsize = StrLen( buf );
+						pResult = (PFONTDATA)StrDup( buf );
+                  /*
 						pResult->magic = MAGIC_PICK_FONT;
 						pResult->cachefile_time = fontcachetime;
 						pResult->nFamily = (_32)(fdData.pFontEntry - fg.pFontCache);
@@ -783,6 +848,8 @@ SFTFont PickScaledFontWithUpdate( S_32 x, S_32 y
 											  , fdData.pSizeFile->file
 											  );
 
+                  */
+
 						//if( *pFontData )
 						//{
 						// unsafe to do, but we result in a memory leak otherwise...
@@ -795,6 +862,16 @@ SFTFont PickScaledFontWithUpdate( S_32 x, S_32 y
 					}
 					else
 					{
+						TEXTCHAR buf[256];
+						snprintf( buf, 256, "%d,%d,%d,%s"
+								  , fdData.nWidth
+								  , fdData.nHeight
+								  , fdData.flags.render_depth
+                           , fdData.filename
+								  );
+						*pFontData = (POINTER)StrDup( buf );
+                  *pFontDataSize = strlen( buf ) + 1;
+                  /*
                   size_t chars;
 						size_t resultsize = sizeof(RENDER_FONTDATA)
 							+ (chars=StrLen( fdData.filename ) + 1)*sizeof(TEXTCHAR);
@@ -811,8 +888,9 @@ SFTFont PickScaledFontWithUpdate( S_32 x, S_32 y
 						//}
 						*pFontData = (POINTER)pResult;
 						if( pFontDataSize )
-							*pFontDataSize = resultsize;
-						SetFontRendererData( fdData.pFont, pResult, resultsize );
+						*pFontDataSize = resultsize;
+                  */
+						SetFontRendererData( fdData.pFont, *pFontData, *pFontDataSize );
 					}
 				}
 			}

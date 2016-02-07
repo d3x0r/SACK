@@ -44,7 +44,10 @@ struct HttpState {
 	LOGICAL read_chunks;
 	size_t read_chunk_byte;
 	size_t read_chunk_length;
+	size_t read_chunk_total_length;
 	enum ReadChunkState read_chunk_state;
+	_32 last_read_tick;
+	PTHREAD waiter;
 };
 
 struct HttpServer {
@@ -359,7 +362,7 @@ int ProcessHttp( PCLIENT pc, struct HttpState *pHttpState )
 						pHttpState->read_chunks = TRUE;
 						pHttpState->read_chunk_state = READ_VALUE;
 						pHttpState->read_chunk_length = 0;
-
+                  pHttpState->read_chunk_total_length = 0;
 					}
 				}
 				if( TextLike( field->name, WIDE( "Expect" ) ) )
@@ -396,6 +399,7 @@ int ProcessHttp( PCLIENT pc, struct HttpState *pHttpState )
 
 LOGICAL AddHttpData( struct HttpState *pHttpState, POINTER buffer, size_t size )
 {
+   pHttpState->last_read_tick = GetTickCount();
 	if( pHttpState->read_chunks )
 	{
 		P_8 buf = (P_8)buffer;
@@ -422,6 +426,10 @@ LOGICAL AddHttpData( struct HttpState *pHttpState, POINTER buffer, size_t size )
 				}
 				else if( buf[ofs] == '\r' )
 				{
+					pHttpState->read_chunk_total_length += pHttpState->read_chunk_length;
+					if( l.flags.bLogReceived ) {
+						lprintf( "Chunck will be %d", pHttpState->read_chunk_length );
+					}
 					pHttpState->read_chunk_state = READ_VALUE_LF;
 				}
 				else
@@ -469,6 +477,8 @@ LOGICAL AddHttpData( struct HttpState *pHttpState, POINTER buffer, size_t size )
 					else
 					{
 						pHttpState->content_length = GetTextSize( VarTextPeek( pHttpState->pvt_collector ) );
+						if( pHttpState->waiter )
+							WakeThread( pHttpState->waiter );
 						return TRUE;
 					}
 				}
@@ -487,6 +497,9 @@ LOGICAL AddHttpData( struct HttpState *pHttpState, POINTER buffer, size_t size )
 				break;
 			}
 			ofs++;
+		}
+		if( l.flags.bLogReceived ) {
+			lprintf( "chunk read is %d of %d", pHttpState->read_chunk_byte, pHttpState->read_chunk_total_length );
 		}
 		return FALSE;
 	}
@@ -549,7 +562,15 @@ void EndHttp( struct HttpState *pHttpState )
 
 PTEXT GetHttpContent( struct HttpState *pHttpState )
 {
-	if( pHttpState->final )
+	if( pHttpState->read_chunks )
+	{
+		/* did a timeout happen? */
+		if( pHttpState->content_length == pHttpState->read_chunk_total_length )
+			return pHttpState->content;
+		return NULL;
+	}
+
+	if( pHttpState->content_length )
 		return pHttpState->content;
 	return NULL;
 }
@@ -702,8 +723,8 @@ static void CPROC HttpReader( PCLIENT pc, POINTER buffer, size_t size )
 		struct HttpState *state = (struct HttpState *)GetNetworkLong( pc, 2 );
 		if( l.flags.bLogReceived )
 		{
-			lprintf( WIDE("Received web request...") );
-			LogBinary( buffer, size );
+			lprintf( WIDE("Received web request... %d"), size );
+			//LogBinary( buffer, size );
 		}
 		if( AddHttpData( state, buffer, size ) )
 			if( ProcessHttp( pc, state ) )
@@ -822,22 +843,22 @@ HTTPState GetHttpsQuery( PTEXT address, PTEXT url )
 		pc = OpenTCPClient( GetText( address ), 443, NULL );
 		if( pc )
 		{
+         state->last_read_tick = GetTickCount();
 			SetNetworkLong( pc, 0, (PTRSZVAL)&pc );
 			SetNetworkLong( pc, 2, (PTRSZVAL)state );
 			SetNetworkCloseCallback( pc, HttpReaderClose );
 			SetNetworkReadComplete( pc, HttpReader );
 			state->ssl = TRUE;
 			state->pvtOut = VarTextCreate();
-
 			vtprintf( state->pvtOut, WIDE( "GET %s HTTP/1.1\r\n" ), GetText( url ) );
 			vtprintf( state->pvtOut, WIDE( "host: %s\r\n" ), GetText( address ) );
 			vtprintf( state->pvtOut, WIDE( "\r\n\r\n" ) );
 			if( ssl_BeginClientSession( pc ) )
 			{
-				_32 now = GetTickCount();
-				while( pc && now > ( GetTickCount() - 120000 ) )
+				state->waiter = MakeThread();
+				while( pc && ( state->last_read_tick > ( GetTickCount() - 20000 ) ) )
 				{
-					WakeableSleep( 100 );
+					WakeableSleep( 1000 );
 				}
 			}
 			else

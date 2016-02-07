@@ -609,7 +609,6 @@ void LoadButtonTheme( void )
 		color_defs[3].color = BASE_COLOR_RED;
 		color_defs[3].name = WIDE("red");		
 
-		lprintf( "normal butto theme..." );
 		{
 			PTHEME theme = LoadButtonThemeByName( WIDE("Normal Button"), 0 );
 			SetLink( &l.theme_list, 0, theme );

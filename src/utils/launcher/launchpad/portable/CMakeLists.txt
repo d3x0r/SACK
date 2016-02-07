@@ -150,7 +150,7 @@ if( MSVC )
 SET( ExtraSources ${SOURCES_ROOT}src/systemlib/args.c )
 endif( MSVC )
 
-SET( SQLITE_VERSION 3.9.2 )
+SET( SQLITE_VERSION 3.10.2 )
 SET( SQLITE_SOURCES ${BAG_SQLITE_INTERFACE} ${SOURCES_ROOT}src/sqlite/${SQLITE_VERSION}/sqlite3.c )
 include_directories( ${SOURCES_ROOT}src/sqlite/${SQLITE_VERSION} )
 

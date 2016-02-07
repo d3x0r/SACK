@@ -22,7 +22,7 @@ static struct countdown_timer_local
 	TEXTCHAR password[256];
 } cashball_local;
 
-EasyRegisterControl( "Cashball", 0 );
+EasyRegisterControlWithBorder( "Cashball", 0, BORDER_NONE );
 
 static void InitView()
 {
@@ -117,7 +117,7 @@ PRELOAD( InitCountdownTimer )
 	{
 		DECLTEXTSZ( tmp, 32 );
 		PTEXT updateable;
-		SetTextSize( (PTEXT)&tmp, SACK_GetProfileString( GetProgramName(), "Cashball/Background Color", "$80FFFFFF", GetText( (PTEXT)&tmp ), 32 ) );
+		SetTextSize( (PTEXT)&tmp, SACK_GetProfileString( GetProgramName(), "Cashball/Background Color", "0", GetText( (PTEXT)&tmp ), 32 ) );
 		updateable = (PTEXT)&tmp;
 		if( !GetColorVar( &updateable, &cashball_local.background ) )
 			cashball_local.background = 0xFFFFFFFF;

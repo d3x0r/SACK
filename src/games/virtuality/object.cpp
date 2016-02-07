@@ -247,7 +247,7 @@ POBJECT CreateScaledInstance( BASIC_PLANE *pDefs, int nDefs, RCOORD fSize,
    //  137614708677114, 148679|train@object.c(179):1973 3375 444 8325 537 68497 46228 3920 39 -137614708676916 0 0
 
 
-	lprintf( WIDE("%7Ld %7Ld %7Ld %7Ld %7Ld %7Ld %7Ld %7Ld %7Ld %7Ld %7Ld %7Ld")
+	lprintf( WIDE("%7"_64fs" %7"_64fs" %7"_64fs" %7"_64fs" %7"_64fs" %7"_64fs" %7"_64fs" %7"_64fs" %7"_64fs" %7"_64fs" %7"_64fs" %7"_64fs )
 			 , ticks[1]-ticks[0]
 			 , ticks[2]-ticks[1]
 			 , ticks[3]-ticks[2]

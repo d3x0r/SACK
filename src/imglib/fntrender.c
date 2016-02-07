@@ -308,8 +308,8 @@ void DumpFontFile( CTEXTSTR name, SFTFont font_to_dump )
 
 struct font_renderer_tag {
 	TEXTCHAR *file;
-	S_16 nWidth;
-	S_16 nHeight;
+	S_32 nWidth;
+	S_32 nHeight;
 	FRACTION width_scale;
 	FRACTION height_scale;
 	_32 flags; // whether to render 1(0/1), 2(2), 8(3) bits, ...
@@ -536,8 +536,8 @@ Image AllocateCharacterSpaceByFont( Image image, SFTFont font, PCHARACTER charac
 		{
 			renderer = New( FONT_RENDERER );
 			MemSet( renderer, 0, sizeof( FONT_RENDERER ) );
-			renderer->nWidth = (S_16)0;
-			renderer->nHeight = (S_16)0;
+			renderer->nWidth = 0;
+			renderer->nHeight = 0;
 			renderer->flags = 0 | FONT_FLAG_MONO;
 			renderer->file = NULL;
 			renderer->font = font;
@@ -679,7 +679,7 @@ void RenderMonoChar( PFONT font
 				}
 				if( bit == character->size )
 				{
-					Log( WIDE("Dropping a line...") );
+					//Log( WIDE("Dropping a line...") );
 					character->ascent--;
 				}
 				else
@@ -819,9 +819,9 @@ void RenderGreyChar( PFONT font
 	Log2( WIDE("Metrics: width %d bearing X %d"), metrics->width, metrics->horiBearingX );
 	Log2( WIDE("Metrics: advance %d %d"), metrics->horiAdvance, metrics->vertAdvance );
 	*/
-	if( bitmap->width > 1000 ||
+	if( bitmap->width > 2000 ||
 	    bitmap->width < 0 ||
-	    bitmap->rows > 1000 ||
+	    bitmap->rows > 2000 ||
 	    bitmap->rows < 0 )
 	{
 		Log3( WIDE("Failing character %") _size_f WIDE(" rows: %d  width: %d"), idx, bitmap->width, bitmap->rows );
@@ -1719,8 +1719,8 @@ SFTFont InternalRenderFontFile( CTEXTSTR file
 
 	// with the current freetype library which has been grabbed
 	// width and height more than these cause errors.
-	if( nWidth > 227 ) nWidth = 227;
-	if( nHeight > 227 ) nHeight = 227;
+	if( nWidth > 255 ) nWidth = 255;
+	//if( nHeight > 227 ) nHeight = 227;
 
 try_another_default:	
 	if( !file || bDefaultFile )
@@ -1757,8 +1757,8 @@ try_another_default:
 			renderer = New( FONT_RENDERER );
 			MemSet( renderer, 0, sizeof( FONT_RENDERER ) );
 
-			renderer->nWidth = (S_16)nWidth;
-			renderer->nHeight = (S_16)nHeight;
+			renderer->nWidth = nWidth;
+			renderer->nHeight = nHeight;
 
 			if( width_scale)
 				renderer->width_scale = width_scale[0];
@@ -1893,24 +1893,90 @@ int RecheckCache( CTEXTSTR entry, _32 *pe
 
 SFTFont RenderScaledFontData( PFONTDATA pfd, PFRACTION width_scale, PFRACTION height_scale )
 {
+   LOGICAL delete_pfd = FALSE;
 #define fname(base) base
 #define sname(base) fname(base) + (StrLen(base)+1)
 #define fsname(base) sname(base) + StrLen(sname(base)+1)
-	extern _64 fontcachetime;
 	if( !pfd )
 		return NULL;
 
 	LoadAllFonts(); // load cache data so we can resolve user data
+	if( pfd->magic != MAGIC_PICK_FONT && pfd->magic != MAGIC_RENDER_FONT )
+	{
+      lprintf( "Attempt to decode %s", pfd );
+		delete_pfd = TRUE;
+		if( strncmp( (char*)pfd, "pick,", 4 ) == 0 )
+		{
+         PFONTDATA newpfd;
+			newpfd = NewPlus( FONTDATA, 256 );
+
+			newpfd->magic = MAGIC_PICK_FONT;
+			{
+				int family, style, file, width, height, flags;
+				char *buf = newpfd->names;
+				int ofs;
+            //lprintf( "Attempting scan of %s", (((char*)pfd) + 5) );
+				sscanf( ( ((char*)pfd) + 5), "%d,%d,%d,%d,%d,%d"
+						, &family, &style, &file
+						, &width, &height, &flags );
+            //lprintf( "%d,%d,%d,%d,%d,%d", family, style, file, width, height, flags );
+				if( family < fg.nFonts )
+				{
+               lprintf( "family %s", fg.pFontCache[family].name );
+					ofs = snprintf( buf, 256, "%s", fg.pFontCache[family].name );
+					ofs += 1;
+					if( style < fg.pFontCache[family].nStyles )
+					{
+                  lprintf( "style %s", fg.pFontCache[family].styles[style].name );
+						ofs += snprintf( buf + ofs, 256-ofs,"%s", fg.pFontCache[family].styles[style].name );
+						ofs += 1;
+						if( file < fg.pFontCache[family].styles[style].nFiles )
+						{
+                     lprintf( "file %s", fg.pFontCache[family].styles[style].files[file].file );
+							ofs += snprintf( buf + ofs, 256-ofs,"%s", fg.pFontCache[family].styles[style].files[file].file );
+						}
+					}
+				}
+				else
+               lprintf( "overflow, will be invalid." );
+				newpfd->nWidth = width;
+				newpfd->nHeight = height;
+				newpfd->flags = flags;
+				newpfd->nFamily = family;
+				newpfd->nStyle = style;
+				newpfd->nFile = file;
+            pfd = newpfd;
+			}
+		}
+		else
+		{
+         PRENDER_FONTDATA prfd;
+			CTEXTSTR tail = StrRChr( (TEXTSTR)pfd, ',' );
+			if( tail )
+				tail++;
+			else
+				tail = "";
+			prfd = NewPlus( RENDER_FONTDATA, (StrLen( tail ) + 1)*sizeof(TEXTCHAR) );
+			StrCpy( prfd->filename, tail );
+			prfd->magic = MAGIC_RENDER_FONT;
+			{
+				int width, height, flags;
+				sscanf( (char*)pfd, "%d,%d,%d", &width, &height, &flags );
+				prfd->nWidth = width;
+				prfd->nHeight = height;
+				prfd->flags = flags;
+			}
+         pfd = (PFONTDATA)prfd;
+		}
+	}
 	if( pfd->magic == MAGIC_PICK_FONT )
 	{
 		CTEXTSTR name1 = pfd->names;
 		CTEXTSTR name2 = pfd->names + StrLen( pfd->names ) + 1;
 		CTEXTSTR name3 = name2 + StrLen( name2 ) + 1;
 
-
 		// picked from the current cache... otherwise search for it in this cache.
-		if( pfd->cachefile_time == fontcachetime ||
-			RecheckCache( name1/*fname(pfd->names)*/, &pfd->nFamily
+		if( RecheckCache( name1/*fname(pfd->names)*/, &pfd->nFamily
 							, name2/*sname(pfd->names)*/, &pfd->nStyle
 							, name3/*fsname(pfd->names)*/, &pfd->nFile ) )
 		{
@@ -1922,16 +1988,18 @@ SFTFont RenderScaledFontData( PFONTDATA pfd, PFRACTION width_scale, PFRACTION he
 																 , width_scale
 																 , height_scale
 																 , pfd->flags );
-			pfd->cachefile_time = fontcachetime;
+			if( delete_pfd )
+            Deallocate( PFONTDATA, pfd );
 			return return_font;
 		}
-		lprintf( WIDE("[%s][%s][%s] %d %d"), name1, name2, name3, pfd->cachefile_time, fontcachetime );
+		//lprintf( WIDE("[%s][%s][%s]"), name1, name2, name3 );
 	}
 	else if( pfd->magic == MAGIC_RENDER_FONT )
 	{
 		PRENDER_FONTDATA prfd = (PRENDER_FONTDATA)pfd;
 		PFONT_ENTRY pfe = NULL;
 		int family_idx;
+      SFTFont result_font;
 		for( family_idx = 0; SUS_LT( family_idx, int, fg.nFonts, _32 ); family_idx++ )
 		{
 			pfe = fg.pFontCache + family_idx;
@@ -1939,19 +2007,22 @@ SFTFont RenderScaledFontData( PFONTDATA pfd, PFRACTION width_scale, PFRACTION he
 				break;
 		}
 		if( pfe )
-			return InternalRenderFont( family_idx, 0, 0
+         result_font = InternalRenderFont( family_idx, 0, 0
 											 , prfd->nWidth
 											 , prfd->nHeight
 											 , width_scale
 											 , height_scale
 											 , prfd->flags );
 		else
-			return InternalRenderFontFile( prfd->filename
+			result_font = InternalRenderFontFile( prfd->filename
 												  , prfd->nWidth
 												  , prfd->nHeight
 												  , width_scale
 												  , height_scale
 												  , prfd->flags );
+		if( delete_pfd )
+			Deallocate( PFONTDATA, pfd );
+      return result_font;
 	}
 	LogBinary( pfd, 32 );
 	lprintf( WIDE("Font parameters are no longer valid.... could not be found in cache issue font dialog here?") );
@@ -2099,10 +2170,16 @@ SFTFont RenderFontFileScaledEx( CTEXTSTR file, _32 width, _32 height, PFRACTION 
 		pFontData = &save_data;
 		size = &save_size;
 	}
-	font = InternalRenderFontFile( file, (S_16)(width&0x7FFF), (S_16)(height&0x7FFF), width_scale, height_scale, flags );
+	font = InternalRenderFontFile( file, (width&0x7FFF), (height&0x7FFF), width_scale, height_scale, flags );
 	if( font && size && pFontData )
 	{
 		size_t chars;
+		TEXTCHAR buf[256];
+		(*size) = snprintf( buf, 256, "%d,%d,%d,%s", width, height, flags, file );
+      (*size) += 1; // save the null in the binary.
+		(*pFontData) = StrDup( buf );
+		SetFontRendererData( font, (*pFontData), (*size ) );
+      /*
 		PRENDER_FONTDATA pResult = NewPlus( RENDER_FONTDATA, (*size) =
 																			  (chars = StrLen( file ) + 1)*sizeof(TEXTCHAR) );
 		(*size) += sizeof( RENDER_FONTDATA );
@@ -2113,6 +2190,7 @@ SFTFont RenderFontFileScaledEx( CTEXTSTR file, _32 width, _32 height, PFRACTION 
 		StrCpyEx( pResult->filename, file, chars );
 		(*pFontData) = (POINTER)pResult;
 		SetFontRendererData( font, pResult, (*size) );
+      */
 	}
 	return font;
 }
@@ -2161,10 +2239,16 @@ SFTFont RenderScaledFontEx( CTEXTSTR name, _32 width, _32 height, PFRACTION widt
 														 , flags );
 		{
 			size_t chars;
+			TEXTCHAR buf[256];
+			(*pnFontDataSize) = snprintf( buf, 256, "%d,%d,%d,%s", width, height, flags, name );
+			(*pnFontDataSize) += 1; // save the null in the binary.
+			(*pFontData) = StrDup( buf );
+			SetFontRendererData( return_font, (*pFontData), (*pnFontDataSize) );
+         /*
 			PRENDER_FONTDATA pResult = NewPlus( RENDER_FONTDATA, (*pnFontDataSize)
 																					= 
 																 (chars = StrLen( name ) + 1)*sizeof(TEXTCHAR) );
-			(*pnFontDataSize) += sizeof( RENDER_FONTDATA );
+			(*pnFontDataSizec) += sizeof( RENDER_FONTDATA );
 			pResult->magic = MAGIC_RENDER_FONT;
 			pResult->nHeight = height;
 			pResult->nWidth = width;
@@ -2172,6 +2256,7 @@ SFTFont RenderScaledFontEx( CTEXTSTR name, _32 width, _32 height, PFRACTION widt
 			StrCpyEx( pResult->filename, name, chars );
 			(*pFontData) = (POINTER)pResult;
 			SetFontRendererData( return_font, pResult, (*pnFontDataSize) );
+         */
 		}
 		return return_font;
 	}
@@ -2184,6 +2269,12 @@ SFTFont RenderScaledFontEx( CTEXTSTR name, _32 width, _32 height, PFRACTION widt
 										  , flags );
 	{
 		size_t chars;
+		TEXTCHAR buf[256];
+		(*pnFontDataSize) = snprintf( buf, 256, "%d,%d,%d,%s", width, height, flags, name );
+		(*pnFontDataSize) += 1; // save the null in the binary.
+		(*pFontData) = StrDup( buf );
+		SetFontRendererData( font, (*pFontData), (*pnFontDataSize ) );
+      /*
 		PRENDER_FONTDATA pResult = NewPlus( RENDER_FONTDATA, (*pnFontDataSize) =
 																			   (chars = StrLen( name ) + 1)*sizeof(TEXTCHAR) );
 		(*pnFontDataSize) += sizeof( RENDER_FONTDATA );
@@ -2194,6 +2285,7 @@ SFTFont RenderScaledFontEx( CTEXTSTR name, _32 width, _32 height, PFRACTION widt
 		StrCpyEx( pResult->filename, name, chars );
 		(*pFontData) = (POINTER)pResult;
 		SetFontRendererData( font, pResult, (*pnFontDataSize) );
+      */
 	}
 	return font;
 }
@@ -2252,9 +2344,9 @@ void RerenderFont( SFTFont font, S_32 width, S_32 height, PFRACTION width_scale,
 			renderer->nLinesUsed = 0;
 
 			if( width )
-				renderer->nWidth = (S_16)width;
+				renderer->nWidth = width;
 			if( height )
-				renderer->nHeight = (S_16)height;
+				renderer->nHeight = height;
 
 			if( width_scale)
 				renderer->width_scale = width_scale[0];

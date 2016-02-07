@@ -434,6 +434,7 @@ void GetMyInterface( void )
 	if( !g.default_font )
 	{
 		TEXTCHAR buffer[256];
+      CTEXTSTR default_name;
 
 		_32 w, h;
 		int bias_x, bias_y;
@@ -441,12 +442,18 @@ void GetMyInterface( void )
 		//GetDisplaySize( &w, &h );
 		//g.default_font = RenderFontFileScaledEx( WIDE("%resources%/fonts/rod.ttf"), 20, 20, NULL, NULL, 0*2/*FONT_FLAG_8BIT*/, NULL, NULL );
 		//g.default_font = RenderFontFileScaledEx( WIDE("rod.ttf"), 18, 18, NULL, NULL, 2/*FONT_FLAG_8BIT*/, NULL, NULL );
-		SACK_GetProfileString( WIDE("SACK/PSI/Font"), WIDE("Default File"), WIDE("msyh.ttf"), buffer, 256 );
+		if( sack_exists( "c:/windows/fonts/msyh.ttf" ) )
+			default_name = WIDE("mysh.ttf");
+      else if( sack_exists( "c:/windows/fonts/msyh.ttc" ) )
+			default_name = WIDE("mysh.ttc");
+		else
+         default_name = WIDE("arialbd.ttf");
+		SACK_GetProfileString( WIDE("SACK/PSI/Font"), WIDE("Default File"), default_name, buffer, 256 );
 		w = SACK_GetProfileInt( WIDE( "SACK/PSI/Font" ), WIDE( "Default Width" ), 18 );
 		h = SACK_GetProfileInt( WIDE( "SACK/PSI/Font" ), WIDE( "Default Height" ), 18 );
 		g.default_font = RenderFontFileScaledEx( buffer, w, h, NULL, NULL, 2/*FONT_FLAG_8BIT*/, NULL, NULL );
 		bias_x = SACK_GetProfileInt( WIDE( "SACK/PSI/Font" ), WIDE( "Bias X" ), 0 );
-		bias_y = SACK_GetProfileInt( WIDE( "SACK/PSI/Font" ), WIDE( "Bias Y" ), 2 );
+		bias_y = SACK_GetProfileInt( WIDE( "SACK/PSI/Font" ), WIDE( "Bias Y" ), 0 );
 		//lprintf( "default font %p %d,%d", g.default_font, bias_x, bias_y );
 		//SetFontBias( g.default_font, bias_x, bias_y );
 	}

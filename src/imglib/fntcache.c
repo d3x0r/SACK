@@ -56,50 +56,6 @@
 
 IMAGE_NAMESPACE
 
-typedef struct cache_build_tag
-{
-	struct {
-		_32 initialized : 1;
-		_32 show_mono_only : 1;
-		_32 show_prop_only : 1;
-	} flags;
-	// this really has no sorting
-	// just a list of FONT_ENTRYs
-	//SHA1Context Sha1Build;
-	// PDICTs... (scratch build)
-	PTREEROOT pPaths;
-	PTREEROOT pFiles;
-	PTREEROOT pFamilies;
-	PTREEROOT pStyles;
-	PTREEROOT pFontCache;
-
-   // when we read the cache from disk - use these....
-	_32 nPaths;
-	TEXTCHAR* *pPathList;
-	TEXTCHAR *pPathNames; // slab of ALL names?
-	_32 nFiles;
-	TEXTCHAR* *pFileList;
-	TEXTCHAR *pFileNames; // slab of ALL names?
-	_32 nStyles;
-	TEXTCHAR* *pStyleList;
-	TEXTCHAR *pStyleNames; // slab of ALL names?
-	_32 nFamilies;
-	TEXTCHAR* *pFamilyList;
-	TEXTCHAR *pFamilyNames; // slab of ALL names?
-
-	PFONT_STYLE pStyleSlab;
-	_32 nStyle;
-	PAPP_SIZE_FILE pSizeFileSlab;
-	_32 nSizeFile;
-	PSIZES pSizeSlab;
-   _32 nSize;
-	PALT_SIZE_FILE pAltSlab;
-   _32 nAlt;
-
-} CACHE_BUILD, *PCACHE_BUILD;
-
-_64 fontcachetime;
-static CACHE_BUILD build;
 
 //-------------------------------------------------------------------------
 
@@ -111,6 +67,24 @@ PRIORITY_PRELOAD( CreateFontCacheGlobal, IMAGE_PRELOAD_PRIORITY + 1 )
 #endif
 {
 	SimpleRegisterAndCreateGlobal( global_font_data );
+	if( !fg._build )
+	{
+		fg._build = New( struct cache_build_tag );
+		memset( fg._build, 0, sizeof( struct cache_build_tag ) );
+#ifndef __NO_OPTIONS__
+		SACK_GetProfileString( GetProgramName(), "SACK/Image Library/Font Cache Path"
+#else
+	   strcpy( fg.font_cache_path
+#endif
+#ifdef WIN32
+									, "*/../../Fonts.Cache"
+#else
+									, "Fonts.Cache"
+#endif
+#ifndef __NO_OPTIONS__
+				               , fg.font_cache_path, 256 );
+#endif
+	}
 	if( !fg.library )
 	{
 		int error;
@@ -132,33 +106,6 @@ PRIORITY_PRELOAD( CreateFontCacheGlobal, IMAGE_PRELOAD_PRIORITY + 1 )
 }
 #endif
 
-//-------------------------------------------------------------------------
-#if 0
-#if !defined( NO_FONT_GLOBAL_DECLARATION ) || defined(__LINUX__)
-EXPORT_METHOD int InitFont( void )
-{
-	if( !&fg )
-	{
-		lprintf( WIDE("Image interface has not been loaded... bailing on InitFont()explain why %p is NULL!"), &fg );
-		return 0;
-	}
-	if( !fg.library )
-	{
-//#ifdef IMAGE_LIBRARY_SOURCE
-		int error = FT_Init_FreeType( &fg.library );
-		if( error )
-		{
-			Log1( WIDE("Free type init failed: %d"), error );
-			return 0;
-		}
-//#endif
-	}
-   return 1;
-}
-#else
-//IMPORT_METHOD int InitFont(void);
-#endif
-#endif
 //-------------------------------------------------------------------------
 
 void LogSHA1Ex( TEXTCHAR *leader, PSIZE_FILE file DBG_PASS)
@@ -248,7 +195,7 @@ int UniqueStrCmp( TEXTCHAR *s1, INDEX s1_length, TEXTCHAR *s2 )
 		if( ( numstart = SANECAST StrChr( s1, '[' ) ) )
 		{
 			numstart[0] = 0;
-			num = IntCreateFromText( numstart+1 );
+			num = (int)IntCreateFromText( numstart+1 );
 			StrCpyEx( name, s1, 256 );
 			tnprintf( s1, sizeof( name ), WIDE("%s[%d]"), name, num+1 );
 		}
@@ -317,8 +264,8 @@ PDICT_ENTRY AddPath( CTEXTSTR filepath, PDICT_ENTRY *file )
 		save = p[0];
 		p[0] = 0;
 	}
-	ppe = AddDictEntry( &build.pPaths, tmp );
-	*file = AddDictEntry( &build.pFiles, filename );
+	ppe = AddDictEntry( &fg.build.pPaths, tmp );
+	*file = AddDictEntry( &fg.build.pFiles, filename );
 	p[0] = save; // restore character.
 	Deallocate( TEXTSTR, tmp );
 	return ppe;
@@ -345,13 +292,13 @@ void SetIDs( PTREEROOT root )
 PFONT_ENTRY AddFontEntry( PDICT_ENTRY name )
 {
 	PFONT_ENTRY pfe;
-	if( !build.pFontCache )
+	if( !fg.build.pFontCache )
 	{
-		build.pFontCache = CreateBinaryTreeEx( MyStrCmp
+		fg.build.pFontCache = CreateBinaryTreeEx( MyStrCmp
 														 , (void(CPROC *)(CPOINTER,PTRSZVAL))DestroyFontEntry );
 	}
 
-	pfe = (PFONT_ENTRY)FindInBinaryTree( build.pFontCache, (PTRSZVAL)name->word );
+	pfe = (PFONT_ENTRY)FindInBinaryTree( fg.build.pFontCache, (PTRSZVAL)name->word );
 	if( !pfe )
 	{
 		pfe = New( FONT_ENTRY );
@@ -359,7 +306,7 @@ PFONT_ENTRY AddFontEntry( PDICT_ENTRY name )
 		pfe->name = name;
 		pfe->nStyles = 0;
 		pfe->styles = NULL;
-		AddBinaryNode( build.pFontCache, pfe, (PTRSZVAL)name->word );
+		AddBinaryNode( fg.build.pFontCache, pfe, (PTRSZVAL)name->word );
 	}
 	return pfe;
 }
@@ -773,14 +720,14 @@ void CPROC ListFontFile( PTRSZVAL psv, CTEXTSTR name, int flags )
 
 		{
 			TEXTSTR name = DupCharToText( face->family_name?face->family_name:"no-name");
-			pFamilyEntry = AddDictEntry( &build.pFamilies
+			pFamilyEntry = AddDictEntry( &fg.build.pFamilies
 												, name
 												);
 			Deallocate( TEXTSTR, name );
 		}
 		{
 			TEXTSTR name = DupCharToText( face->style_name );
-			pStyle = AddDictEntry( &build.pStyles
+			pStyle = AddDictEntry( &fg.build.pStyles
 										, name );
 			Deallocate( TEXTSTR, name );
 		}
@@ -801,19 +748,19 @@ void CPROC ListFontFile( PTRSZVAL psv, CTEXTSTR name, int flags )
 			TEXTCHAR buffer[256];
 			
 			tnprintf( buffer, sizeof( buffer ), WIDE("%s+Italic"), style_name );
-			pStyle = AddDictEntry( &build.pStyles, buffer );
+			pStyle = AddDictEntry( &fg.build.pStyles, buffer );
 			pfs[1] = AddFontStyle( pfe, pStyle );
 			pfs[1]->flags.mono = ( ( face->face_flags & FT_FACE_FLAG_FIXED_WIDTH ) != 0 );
 			pfs[1]->flags.italic = 1;
 
 			tnprintf( buffer, sizeof( buffer ), WIDE("%s+Bold"), style_name );
-			pStyle = AddDictEntry( &build.pStyles, buffer );
+			pStyle = AddDictEntry( &fg.build.pStyles, buffer );
 			pfs[2] = AddFontStyle( pfe, pStyle );
 			pfs[2]->flags.mono = ( ( face->face_flags & FT_FACE_FLAG_FIXED_WIDTH ) != 0 );
 			pfs[2]->flags.bold = 1;
 
 			tnprintf( buffer, sizeof( buffer ), WIDE("%s+Bold-Italic"), style_name );
-			pStyle = AddDictEntry( &build.pStyles, buffer );
+			pStyle = AddDictEntry( &fg.build.pStyles, buffer );
 			pfs[3] = AddFontStyle( pfe, pStyle );
 			pfs[3]->flags.mono = ( ( face->face_flags & FT_FACE_FLAG_FIXED_WIDTH ) != 0 );
 			pfs[3]->flags.italic = 1;
@@ -893,49 +840,45 @@ void OutputFontCache( void )
 	PFONT_ENTRY pfe;
 	PDICT_ENTRY pde;
 	size_t size;
-#ifdef _WIN32
-	out = sack_fopen( 0, WIDE("*/../../Fonts.Cache"), WIDE("wt") );
-#else
-	out = sack_fopen( 0, WIDE("Fonts.Cache"), WIDE("wt") );
-#endif
+	out = sack_fopen( 0, fg.font_cache_path, WIDE("wt") );
 	if( !out )
 		return; // no point.
-//	for( pfe = (PFONT_ENTRY)GetLeastNode( build.pFontCache );
+//	for( pfe = (PFONT_ENTRY)GetLeastNode( fg.build.pFontCache );
 //		  pfe;
-//		  pfe = (PFONT_ENTRY)GetGreaterNode( build.pFontCache ) )
+//		  pfe = (PFONT_ENTRY)GetGreaterNode( fg.build.pFontCache ) )
 //	{
 //		if( pfe->flags.unusable )
- //        RemoveBinaryNode( build.pFontCache, pfe, pfe->name->word );
+ //        RemoveBinaryNode( fg.build.pFontCache, pfe, pfe->name->word );
  //  }
 
 
-	if( build.pPaths )
+	if( fg.build.pPaths )
 	{
-		for( size = 0, pde = (PDICT_ENTRY)GetLeastNode( build.pPaths );
+		for( size = 0, pde = (PDICT_ENTRY)GetLeastNode( fg.build.pPaths );
 	        pde;
-			  (size += StrLen( pde->word ) + 1), pde = (PDICT_ENTRY)GetGreaterNode( build.pPaths ) );
-		sack_fprintf( out, "%%@%" c_32f ",%" c_size_f "\n", GetNodeCount( build.pPaths ), size );
+			  (size += StrLen( pde->word ) + 1), pde = (PDICT_ENTRY)GetGreaterNode( fg.build.pPaths ) );
+		sack_fprintf( out, "%%@%" c_32f ",%" c_size_f "\n", GetNodeCount( fg.build.pPaths ), size );
 	}
-	if( build.pFamilies )
+	if( fg.build.pFamilies )
 	{
-		for( size = 0, pde = (PDICT_ENTRY)GetLeastNode( build.pFamilies );
+		for( size = 0, pde = (PDICT_ENTRY)GetLeastNode( fg.build.pFamilies );
    	     pde;
-			  (size += StrLen( pde->word ) + 1),pde = (PDICT_ENTRY)GetGreaterNode( build.pFamilies ) );
-		sack_fprintf( out, "%%$%" c_32f ",%" c_size_f "\n", GetNodeCount( build.pFamilies ), size );
+			  (size += StrLen( pde->word ) + 1),pde = (PDICT_ENTRY)GetGreaterNode( fg.build.pFamilies ) );
+		sack_fprintf( out, "%%$%" c_32f ",%" c_size_f "\n", GetNodeCount( fg.build.pFamilies ), size );
 	}
-	if( build.pStyles )
+	if( fg.build.pStyles )
 	{
-		for( size = 0,pde = (PDICT_ENTRY)GetLeastNode( build.pStyles );
+		for( size = 0,pde = (PDICT_ENTRY)GetLeastNode( fg.build.pStyles );
    	     pde;
-			  (size += StrLen( pde->word ) + 1),pde = (PDICT_ENTRY)GetGreaterNode( build.pStyles ) );
-	   sack_fprintf( out, "%%*%" c_32f ",%" c_size_f "\n", GetNodeCount( build.pStyles ), size );
+			  (size += StrLen( pde->word ) + 1),pde = (PDICT_ENTRY)GetGreaterNode( fg.build.pStyles ) );
+	   sack_fprintf( out, "%%*%" c_32f ",%" c_size_f "\n", GetNodeCount( fg.build.pStyles ), size );
 	}
-	if( build.pFiles )
+	if( fg.build.pFiles )
 	{
-		for( size = 0,pde = (PDICT_ENTRY)GetLeastNode( build.pFiles );
+		for( size = 0,pde = (PDICT_ENTRY)GetLeastNode( fg.build.pFiles );
    	     pde;
-			  (size += StrLen( pde->word ) + 1),pde = (PDICT_ENTRY)GetGreaterNode( build.pFiles ) );
-	   sack_fprintf( out, "%%&%" c_32f ",%" c_size_f "\n", GetNodeCount( build.pFiles ), size );
+			  (size += StrLen( pde->word ) + 1),pde = (PDICT_ENTRY)GetGreaterNode( fg.build.pFiles ) );
+	   sack_fprintf( out, "%%&%" c_32f ",%" c_size_f "\n", GetNodeCount( fg.build.pFiles ), size );
 	}
 
 	// slightly complex loop to scan cache as it is, and
@@ -945,9 +888,9 @@ void OutputFontCache( void )
 		_32 nSizeFiles = 0;
 		_32 nAltFiles = 0;
 		_32 nSizes = 0;
-		for( pfe = (PFONT_ENTRY)GetLeastNode( build.pFontCache );
+		for( pfe = (PFONT_ENTRY)GetLeastNode( fg.build.pFontCache );
 			  pfe;
-			  pfe = (PFONT_ENTRY)GetGreaterNode( build.pFontCache ) )
+			  pfe = (PFONT_ENTRY)GetGreaterNode( fg.build.pFontCache ) )
 		{
 			INDEX idx;
 			PFONT_STYLE pfs;
@@ -987,39 +930,39 @@ void OutputFontCache( void )
 		sack_fprintf( out, "%%#%" c_32f ",%" c_32f ",%" c_32f ",%" c_32f "\n", nStyles, nSizeFiles, nSizes, nAltFiles );
 	}
 
-	for( pde = (PDICT_ENTRY)GetLeastNode( build.pPaths );
+	for( pde = (PDICT_ENTRY)GetLeastNode( fg.build.pPaths );
         pde;
-		  pde = (PDICT_ENTRY)GetGreaterNode( build.pPaths ) )
+		  pde = (PDICT_ENTRY)GetGreaterNode( fg.build.pPaths ) )
 	{
 		sack_fprintf( out, "@%s\n", pde->word );
 	}
 
-	for( pde = (PDICT_ENTRY)GetLeastNode( build.pFamilies );
+	for( pde = (PDICT_ENTRY)GetLeastNode( fg.build.pFamilies );
         pde;
-		  pde = (PDICT_ENTRY)GetGreaterNode( build.pFamilies ) )
+		  pde = (PDICT_ENTRY)GetGreaterNode( fg.build.pFamilies ) )
 	{
 		sack_fprintf( out, "$%s\n", pde->word );
 	}
 
-	for( pde = (PDICT_ENTRY)GetLeastNode( build.pStyles );
+	for( pde = (PDICT_ENTRY)GetLeastNode( fg.build.pStyles );
         pde;
-		  pde = (PDICT_ENTRY)GetGreaterNode( build.pStyles ) )
+		  pde = (PDICT_ENTRY)GetGreaterNode( fg.build.pStyles ) )
 	{
 		sack_fprintf( out, "*%s\n", pde->word );
 	}
 
-	for( pde = (PDICT_ENTRY)GetLeastNode( build.pFiles );
+	for( pde = (PDICT_ENTRY)GetLeastNode( fg.build.pFiles );
         pde;
-		  pde = (PDICT_ENTRY)GetGreaterNode( build.pFiles ) )
+		  pde = (PDICT_ENTRY)GetGreaterNode( fg.build.pFiles ) )
 	{
 		sack_fprintf( out, "&%s\n", pde->word );
 	}
 
 
 
-	for( pfe = (PFONT_ENTRY)GetLeastNode( build.pFontCache );
+	for( pfe = (PFONT_ENTRY)GetLeastNode( fg.build.pFontCache );
 		  pfe;
-        pfe = (PFONT_ENTRY)GetGreaterNode( build.pFontCache ) )
+        pfe = (PFONT_ENTRY)GetGreaterNode( fg.build.pFontCache ) )
 	{
 		int linelen;
 		int mono = 2;
@@ -1152,17 +1095,13 @@ void DumpLoadedFontCache( void )
 	FILE *out;
 	PFONT_ENTRY pfe;
 	_32 fontidx, idx;
-#ifdef _WIN32
-	out = sack_fopen( 0, WIDE("*/../../Fonts.Cache1"), WIDE("wt") );
-#else
-	out = sack_fopen( 0, WIDE("Fonts.Cache1"), WIDE("wt") );
-#endif
+	out = sack_fopen( 0, fg.font_cache_path, WIDE("wt") );
 	if( !out )
 		return;
-	sack_fprintf( out,"%%@%" c_32f ",%" c_size_f "\n", build.nPaths, SizeOfMemBlock( build.pPathNames ) );
-	sack_fprintf( out,"%%$%" c_32f ",%" c_size_f "\n", build.nFamilies, SizeOfMemBlock( build.pFamilyNames ) );
-	sack_fprintf( out,"%%*%" c_32f ",%" c_size_f "\n", build.nStyles, SizeOfMemBlock( build.pStyleNames ) );
-	sack_fprintf( out,"%%&%" c_32f ",%" c_size_f "\n", build.nFiles, SizeOfMemBlock( build.pFileNames ) );
+	sack_fprintf( out,"%%@%" c_32f ",%" c_size_f "\n", fg.build.nPaths, SizeOfMemBlock( fg.build.pPathNames ) );
+	sack_fprintf( out,"%%$%" c_32f ",%" c_size_f "\n", fg.build.nFamilies, SizeOfMemBlock( fg.build.pFamilyNames ) );
+	sack_fprintf( out,"%%*%" c_32f ",%" c_size_f "\n", fg.build.nStyles, SizeOfMemBlock( fg.build.pStyleNames ) );
+	sack_fprintf( out,"%%&%" c_32f ",%" c_size_f "\n", fg.build.nFiles, SizeOfMemBlock( fg.build.pFileNames ) );
 
 	{
 		INDEX fontidx, styleidx, idx;
@@ -1189,14 +1128,14 @@ void DumpLoadedFontCache( void )
 		sack_fprintf( out, "%%#%" c_32f ",%" c_32f ",%" c_32f ",%" c_32f "\n", nStyles, nSizeFiles, nSizes, nAltFiles );
 	}
 
-	for( idx = 0; idx < build.nPaths; idx++ )
-      sack_fprintf( out, "@%s\n", build.pPathList[idx] );
-	for( idx = 0; idx < build.nFamilies; idx++ )
-      sack_fprintf( out, "$%s\n", build.pFamilyList[idx] );
-	for( idx = 0; idx < build.nStyles; idx++ )
-      sack_fprintf( out, "*%s\n", build.pStyleList[idx] );
-	for( idx = 0; idx < build.nFiles; idx++ )
-      sack_fprintf( out, "&%s\n", build.pFileList[idx] );
+	for( idx = 0; idx < fg.build.nPaths; idx++ )
+      sack_fprintf( out, "@%s\n", fg.build.pPathList[idx] );
+	for( idx = 0; idx < fg.build.nFamilies; idx++ )
+      sack_fprintf( out, "$%s\n", fg.build.pFamilyList[idx] );
+	for( idx = 0; idx < fg.build.nStyles; idx++ )
+      sack_fprintf( out, "*%s\n", fg.build.pStyleList[idx] );
+	for( idx = 0; idx < fg.build.nFiles; idx++ )
+      sack_fprintf( out, "&%s\n", fg.build.pFileList[idx] );
 
 
    for( fontidx = 0; pfe = fg.pFontCache + fontidx, fontidx < fg.nFonts; fontidx++ )
@@ -1211,14 +1150,14 @@ void DumpLoadedFontCache( void )
 			continue;
 		// should dump name also...
 		linelen = sack_fprintf( out, WIDE("%") _size_f WIDE(",%") _32f WIDE("")
-						, IndexOf( build.pFamilyList, build.nFamilies, pfe->name )
+						, IndexOf( fg.build.pFamilyList, fg.build.nFamilies, pfe->name )
                         , pfe->nStyles
 							  );
 		for( styleidx = 0; styleidx < pfe->nStyles; styleidx++ )
 		{
 			pfs = (PFONT_STYLE)pfe->styles + styleidx;
 			newlen = tnprintf( outbuf, sizeof( outbuf ), WIDE("!%") _size_f WIDE("*%s,%") _32f WIDE("")
-								 , IndexOf( build.pStyleList, build.nStyles, pfs->name )
+								 , IndexOf( fg.build.pStyleList, fg.build.nStyles, pfs->name )
 								 , pfs->flags.mono?"m":""
 								 , pfs->nFiles
 								 );
@@ -1236,8 +1175,8 @@ void DumpLoadedFontCache( void )
 				newlen = tnprintf( outbuf, sizeof( outbuf ), WIDE("@%") _32f WIDE(",%") _32f WIDE(",%") _size_f WIDE(":%") _size_f
                             , psf->nAlternate
                             , psf->nSizes
-									 , IndexOf( build.pPathList, build.nPaths, psf->path )
-									 , IndexOf( build.pFileList, build.nFiles, psf->file )
+									 , IndexOf( fg.build.pPathList, fg.build.nPaths, psf->path )
+									 , IndexOf( fg.build.pFileList, fg.build.nFiles, psf->file )
 									 );
 				if( linelen + newlen >= 80 )
 				{
@@ -1272,8 +1211,8 @@ void DumpLoadedFontCache( void )
 					for( idx = 0; pasf = ((PALT_SIZE_FILE)psf->pAlternate) + idx, idx < psf->nAlternate; idx++ )
 					{
 						newlen = tnprintf( outbuf, sizeof( outbuf ), WIDE("^%") _size_f WIDE(":%") _size_f 
-											 , IndexOf( build.pPathList, build.nPaths, pasf->path )
-											 , IndexOf( build.pFileList, build.nFiles, pasf->file )
+											 , IndexOf( fg.build.pPathList, fg.build.nPaths, pasf->path )
+											 , IndexOf( fg.build.pFileList, fg.build.nFiles, pasf->file )
 											 );
 						if( linelen + newlen >= 80 )
 						{
@@ -1297,33 +1236,33 @@ void DumpLoadedFontCache( void )
 #endif  // _DEBUG
 //-------------------------------------------------------------------------
 
-#define SafeRelease(n)  if(build.n) { Deallocate( POINTER, build.n ); build.n = NULL; }
+#define SafeRelease(n)  if(fg.build.n) { Deallocate( POINTER, fg.build.n ); fg.build.n = NULL; }
 void UnloadFontBuilder( void )
 {
-	if( build.pFontCache )
+	if( fg.build.pFontCache )
 	{
-		DestroyBinaryTree( build.pFontCache );
-		build.pFontCache = NULL;
+		DestroyBinaryTree( fg.build.pFontCache );
+		fg.build.pFontCache = NULL;
 	}
-	if( build.pPaths )
+	if( fg.build.pPaths )
 	{
-		DestroyBinaryTree( build.pPaths );
-		build.pPaths = NULL;
+		DestroyBinaryTree( fg.build.pPaths );
+		fg.build.pPaths = NULL;
 	}
-	if( build.pFamilies )
+	if( fg.build.pFamilies )
 	{
-		DestroyBinaryTree( build.pFamilies );
-		build.pFamilies = NULL;
+		DestroyBinaryTree( fg.build.pFamilies );
+		fg.build.pFamilies = NULL;
 	}
-	if( build.pStyles )
+	if( fg.build.pStyles )
 	{
-		DestroyBinaryTree( build.pStyles );
-		build.pStyles = NULL;
+		DestroyBinaryTree( fg.build.pStyles );
+		fg.build.pStyles = NULL;
 	}
-	if( build.pFiles )
+	if( fg.build.pFiles )
 	{
-		DestroyBinaryTree( build.pFiles );
-		build.pFiles = NULL;
+		DestroyBinaryTree( fg.build.pFiles );
+		fg.build.pFiles = NULL;
 	}
 }
 
@@ -1463,10 +1402,10 @@ void BuildFontCache( void )
 #endif
 	}
 
-	SetIDs( build.pPaths );
-	SetIDs( build.pFamilies );
-	SetIDs( build.pStyles );
-	SetIDs( build.pFiles );
+	SetIDs( fg.build.pPaths );
+	SetIDs( fg.build.pFamilies );
+	SetIDs( fg.build.pStyles );
+	SetIDs( fg.build.pFiles );
 	OutputFontCache();
 	// delete all memory associated with building the cache.
 	UnloadFontBuilder();
@@ -1503,21 +1442,13 @@ void LoadAllFonts( void )
       // if it was loaded, don't re-load it.
 		return;
 	}
-#ifdef _WIN32
-	in = sack_fopen( 0, WIDE("*/../../Fonts.Cache"), WIDE("rt") );
-#else
-	in = sack_fopen( 0, WIDE("Fonts.Cache"), WIDE("rt") );
-#endif
+	in = sack_fopen( 0, fg.font_cache_path, WIDE("rt") );
 	if( !in )
 	{
 		fg.flags.bScanningFonts = 1;
 		BuildFontCache(); // destroys the trees used to create the cache...
 		fg.flags.bScanningFonts = 0;
-#ifdef _WIN32
-		in = sack_fopen( 0, WIDE("*/../../Fonts.Cache"), WIDE("rt") );
-#else
-		in = sack_fopen( 0, WIDE("Fonts.Cache"), WIDE("rt") );
-#endif
+		in = sack_fopen( 0, fg.font_cache_path, WIDE("rt") );
 	}
 	if( in )
 	{
@@ -1536,18 +1467,14 @@ void LoadAllFonts( void )
 		//_32 line = 0;
 		_32 nFont = 0; // which font we're currently reading for.
 		_64 tmpfiletime;
-#ifdef _WIN32
-		tmpfiletime = GetFileWriteTime( WIDE("*/../../Fonts.Cache") );
-#else
-		tmpfiletime = GetFileWriteTime( WIDE("Fonts.Cache") );
-#endif
+		tmpfiletime = GetFileWriteTime( fg.font_cache_path );
 		//lprintf( "font cache is %p", in );
-		if( tmpfiletime && fontcachetime == tmpfiletime )
+		if( tmpfiletime && fg.fontcachetime == tmpfiletime )
 		{
 			sack_fclose( in );
 			return;  // already read.
 		}
-		fontcachetime = tmpfiletime;
+		fg.fontcachetime = tmpfiletime;
 
 		SafeRelease( pPathNames );
 		SafeRelease( pFamilyNames );
@@ -1584,28 +1511,28 @@ void LoadAllFonts( void )
 				switch( buf[1] )
 				{
 				case '@':
-					build.nPaths = IntCreateFromText( buf + 2 );
-					build.pPathNames = NewArray( TEXTCHAR, IntCreateFromText( strchr( buf, ',' ) + 1 ) );
-					build.pPathList = NewArray( TEXTCHAR*, build.nPaths );
+					fg.build.nPaths = (_32)IntCreateFromText( buf + 2 );
+					fg.build.pPathNames = NewArray( TEXTCHAR, IntCreateFromText( strchr( buf, ',' ) + 1 ) );
+					fg.build.pPathList = NewArray( TEXTCHAR*, fg.build.nPaths );
 					break;
 				case '$':
-					build.nStyle = 0;
-					build.nFamilies = IntCreateFromText( buf + 2 );
-					build.pFamilyNames = NewArray( TEXTCHAR, IntCreateFromText( strchr( buf, ',' ) + 1 ) );
-					build.pFamilyList = NewArray( TEXTCHAR*, build.nFamilies );
+					fg.build.nStyle = 0;
+					fg.build.nFamilies = (_32)IntCreateFromText( buf + 2 );
+					fg.build.pFamilyNames = NewArray( TEXTCHAR, IntCreateFromText( strchr( buf, ',' ) + 1 ) );
+					fg.build.pFamilyList = NewArray( TEXTCHAR*, fg.build.nFamilies );
 
-					fg.nFonts     = build.nFamilies;
-					fg.pFontCache = NewArray( FONT_ENTRY, build.nFamilies );
+					fg.nFonts     = fg.build.nFamilies;
+					fg.pFontCache = NewArray( FONT_ENTRY, fg.build.nFamilies );
 					break;
 				case '*':
-					build.nStyles = IntCreateFromText( buf + 2 );
-					build.pStyleNames = NewArray( TEXTCHAR, IntCreateFromText( strchr( buf, ',' ) + 1 ) );
-					build.pStyleList = NewArray( TEXTCHAR*, build.nStyles );
+					fg.build.nStyles = (_32)IntCreateFromText( buf + 2 );
+					fg.build.pStyleNames = NewArray( TEXTCHAR, IntCreateFromText( strchr( buf, ',' ) + 1 ) );
+					fg.build.pStyleList = NewArray( TEXTCHAR*, fg.build.nStyles );
 					break;
 				case '&':
-					build.nFiles = IntCreateFromText( buf + 2 );
-					build.pFileNames = NewArray( TEXTCHAR, IntCreateFromText( strchr( buf, ',' ) + 1 ) );
-					build.pFileList = NewArray( TEXTCHAR*, build.nFiles );
+					fg.build.nFiles = (int)IntCreateFromText( buf + 2 );
+					fg.build.pFileNames = NewArray( TEXTCHAR, IntCreateFromText( strchr( buf, ',' ) + 1 ) );
+					fg.build.pFileList = NewArray( TEXTCHAR*, fg.build.nFiles );
 					break;
 				case '#':
 					{
@@ -1621,18 +1548,18 @@ void LoadAllFonts( void )
 #endif
 						if( tscanf( buf + 2, WIDE("%d,%d,%d,%d"), &nStyles, &nSizeFiles, &nSizes, &nAltFiles ) == 4 )
 						{
-							build.nStyle = 0;
-							build.pStyleSlab = NewArray( FONT_STYLE, nStyles );
-							MemSet( build.pStyleSlab, 0, sizeof( FONT_STYLE ) * nStyles );
-							build.nSizeFile = 0;
-							build.pSizeFileSlab = NewArray( APP_SIZE_FILE, nSizeFiles );
-							MemSet( build.pSizeFileSlab, 0, sizeof( APP_SIZE_FILE ) * nSizeFiles );
-							build.nSize = 0;
-							build.pSizeSlab = NewArray( SIZES, nSizes );
-							MemSet( build.pSizeSlab, 0, sizeof( SIZES ) * nSizes );
-							build.nAlt = 0;
-							build.pAltSlab = NewArray( ALT_SIZE_FILE, nAltFiles );
-							MemSet( build.pAltSlab, 0, sizeof( ALT_SIZE_FILE ) * nAltFiles );
+							fg.build.nStyle = 0;
+							fg.build.pStyleSlab = NewArray( FONT_STYLE, nStyles );
+							MemSet( fg.build.pStyleSlab, 0, sizeof( FONT_STYLE ) * nStyles );
+							fg.build.nSizeFile = 0;
+							fg.build.pSizeFileSlab = NewArray( APP_SIZE_FILE, nSizeFiles );
+							MemSet( fg.build.pSizeFileSlab, 0, sizeof( APP_SIZE_FILE ) * nSizeFiles );
+							fg.build.nSize = 0;
+							fg.build.pSizeSlab = NewArray( SIZES, nSizes );
+							MemSet( fg.build.pSizeSlab, 0, sizeof( SIZES ) * nSizes );
+							fg.build.nAlt = 0;
+							fg.build.pAltSlab = NewArray( ALT_SIZE_FILE, nAltFiles );
+							MemSet( fg.build.pAltSlab, 0, sizeof( ALT_SIZE_FILE ) * nAltFiles );
 						}
 						else
 						{
@@ -1647,30 +1574,30 @@ void LoadAllFonts( void )
 				break;
 			case '@':
 				{
-					build.pPathList[PathID] = build.pPathNames + PathOfs;
+					fg.build.pPathList[PathID] = fg.build.pPathNames + PathOfs;
 					PathOfs += (len=StrLen( buf + 1 ) + 1);
-					StrCpyEx( build.pPathList[PathID++], buf + 1, len );
+					StrCpyEx( fg.build.pPathList[PathID++], buf + 1, len );
 				}
 				break;
 			case '$':
 				{
-					build.pFamilyList[FamilyID] = build.pFamilyNames + FamilyOfs;
+					fg.build.pFamilyList[FamilyID] = fg.build.pFamilyNames + FamilyOfs;
 					FamilyOfs += (len=StrLen( buf + 1 ) + 1);
-					StrCpyEx( build.pFamilyList[FamilyID++], buf + 1, len );
+					StrCpyEx( fg.build.pFamilyList[FamilyID++], buf + 1, len );
 				}
 				break;
 			case '*':
 				{
-					build.pStyleList[StyleID] = build.pStyleNames + StyleOfs;
+					fg.build.pStyleList[StyleID] = fg.build.pStyleNames + StyleOfs;
 					StyleOfs += (len=StrLen( buf + 1 ) + 1);
-					StrCpyEx( build.pStyleList[StyleID++], buf + 1, len );
+					StrCpyEx( fg.build.pStyleList[StyleID++], buf + 1, len );
 				}
 				break;
 			case '&':
 				{
-					build.pFileList[FileID] = build.pFileNames + FileOfs;
+					fg.build.pFileList[FileID] = fg.build.pFileNames + FileOfs;
 					FileOfs += (len=StrLen( buf + 1 ) + 1);
-					StrCpyEx( build.pFileList[FileID++], buf + 1, len );
+					StrCpyEx( fg.build.pFileList[FileID++], buf + 1, len );
 				}
 				break;
 			default:
@@ -1685,14 +1612,14 @@ void LoadAllFonts( void )
 						*(count++) = 0;
 					pfe = fg.pFontCache + nFont++;
 					{
-						_32 nStyles = IntCreateFromText( count );
+						_32 nStyles = (_32)IntCreateFromText( count );
 						pfe->flags.unusable = 0;
 						pfe->nStyles = 0; // use this to count...
-						pfe->styles = (PLIST)(build.pStyleSlab + build.nStyle);
-						build.nStyle += nStyles;
+						pfe->styles = (PLIST)(fg.build.pStyleSlab + fg.build.nStyle);
+						fg.build.nStyle += nStyles;
 						//MemSet( pfe->styles, 0, nStyles * sizeof( FONT_STYLE ) );
 					}
-					pfe->name = (PDICT_ENTRY)build.pFamilyList[IntCreateFromText( family )];
+					pfe->name = (PDICT_ENTRY)fg.build.pFamilyList[IntCreateFromText( family )];
            			// add all the files/sizes associated on this line...
 				}
 				if( 0 )
@@ -1727,12 +1654,12 @@ void LoadAllFonts( void )
 						}
 						flags++;
 					}
-					pfs->name = (PDICT_ENTRY)build.pStyleList[IntCreateFromText( style )];
+					pfs->name = (PDICT_ENTRY)fg.build.pStyleList[IntCreateFromText( style )];
 
 					pfs->nFiles = 0;
-					pfs->appfiles = build.pSizeFileSlab + build.nSizeFile;
+					pfs->appfiles = fg.build.pSizeFileSlab + fg.build.nSizeFile;
 					// demote from S_64 to _32
-					build.nSizeFile += (_32)IntCreateFromText( count );
+					fg.build.nSizeFile += (_32)IntCreateFromText( count );
 					if(0)
 					{
 			case '\\':
@@ -1769,15 +1696,15 @@ void LoadAllFonts( void )
 
 								psfCurrent = pfs->appfiles + pfs->nFiles++;
 	
-								psfCurrent->path =build.pPathList[IntCreateFromText( PathID )];
-								psfCurrent->file =build.pFileList[IntCreateFromText(file)];
+								psfCurrent->path =fg.build.pPathList[IntCreateFromText( PathID )];
+								psfCurrent->file =fg.build.pFileList[IntCreateFromText(file)];
 								psfCurrent->nSizes = 0;
-								psfCurrent->sizes = build.pSizeSlab + build.nSize;
-								build.nSize += (_32)IntCreateFromText( count2 );
+								psfCurrent->sizes = fg.build.pSizeSlab + fg.build.nSize;
+								fg.build.nSize += (_32)IntCreateFromText( count2 );
 									//Allocate( sizeof( SIZES ) * IntCreateFromText( count2 ) );
 								psfCurrent->nAlternate = 0;
-								psfCurrent->pAlternate = build.pAltSlab + build.nAlt;
-								build.nAlt += (_32)IntCreateFromText( count );
+								psfCurrent->pAlternate = fg.build.pAltSlab + fg.build.nAlt;
+								fg.build.nAlt += (_32)IntCreateFromText( count );
 							}
 							//Allocate( sizeof( ALT_SIZE_FILE ) * IntCreateFromText(count) );
 
@@ -1797,7 +1724,7 @@ void LoadAllFonts( void )
 								width++;
 								// safe to play with these as numbers
 								// even without proper null terimination...
-								nWidth = IntCreateFromText( width );
+								nWidth = (S_16)IntCreateFromText( width );
 								if( nWidth >= 0 )
 								{
 									height = strchr( width, ',' );
@@ -1806,7 +1733,7 @@ void LoadAllFonts( void )
 										Log( WIDE("Fatality - Cache loses!") );
 									}
 									height++;
-									nHeight = IntCreateFromText( height );
+									nHeight = (S_16)IntCreateFromText( height );
 								}
 								else
 								{
@@ -1832,8 +1759,8 @@ void LoadAllFonts( void )
 								*(file++) = 0;
 								if( next )
 									*(next++) = 0;
-								pasf->path =(PDICT_ENTRY)build.pPathList[IntCreateFromText(PathID)];
-								pasf->file =(PDICT_ENTRY)build.pFileList[IntCreateFromText(file)];
+								pasf->path =(PDICT_ENTRY)fg.build.pPathList[IntCreateFromText(PathID)];
+								pasf->file =(PDICT_ENTRY)fg.build.pFileList[IntCreateFromText(file)];
 							}
 							if( PathID )
 							{
@@ -1863,29 +1790,6 @@ void LoadAllFonts( void )
 #ifdef _DEBUG
 		//DumpLoadedFontCache();
 #endif
-		/*
-       // need to keep this so we might re-generate the cache with further validations
-		if( build.pPathList )
-		{
-			Deallocate( POINTER, build.pPathList );
-			build.pPathList = NULL;
-		}
-		if( build.pFamilyList )
-		{
-			Deallocate( POINTER, build.pFamilyList );
-			build.pFamilyList = NULL;
-		}
-		if( build.pStyleList )
-		{
-			Deallocate( POINTER, build.pStyleList );
-			build.pStyleList = NULL;
-		}
-		if( build.pFileList )
-		{
-			Deallocate( POINTER, build.pFileList );
-			build.pFileList = NULL;
-		}
-      */
 		Defragment( (POINTER*)&fg.pFontCache );
 		//DebugDumpMemFile( WIDE("cache.loaded") );
 	}

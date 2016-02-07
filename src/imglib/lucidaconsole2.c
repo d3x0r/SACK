@@ -13,7 +13,7 @@ namespace image {
 #define EXTRA_STRUCT  struct ImageFile_tag *cell; RCOORD x1, x2, y1, y2; struct font_char_tag *next_in_line;
 #define EXTRA_INIT  0,0,0,0,0,0
 typedef char CHARACTER, *PCHARACTER;
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; } _char_0 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; } _char_0 =
 {  6,  8,  1, 0,  9,  1, EXTRA_INIT , { 
                   XXXXXX__,
                   X____X__,
@@ -26,7 +26,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; }
                   XXXXXX__} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; } _char_1 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; } _char_1 =
 {  6,  8,  1, 0,  9,  1, EXTRA_INIT , { 
                   XXXXXX__,
                   X____X__,
@@ -39,7 +39,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; }
                   XXXXXX__} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; } _char_2 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; } _char_2 =
 {  6,  8,  1, 0,  9,  1, EXTRA_INIT , { 
                   XXXXXX__,
                   X____X__,
@@ -52,7 +52,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; }
                   XXXXXX__} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; } _char_3 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; } _char_3 =
 {  6,  8,  1, 0,  9,  1, EXTRA_INIT , { 
                   XXXXXX__,
                   X____X__,
@@ -65,7 +65,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; }
                   XXXXXX__} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; } _char_4 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; } _char_4 =
 {  6,  8,  1, 0,  9,  1, EXTRA_INIT , { 
                   XXXXXX__,
                   X____X__,
@@ -78,7 +78,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; }
                   XXXXXX__} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; } _char_5 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; } _char_5 =
 {  6,  8,  1, 0,  9,  1, EXTRA_INIT , { 
                   XXXXXX__,
                   X____X__,
@@ -91,7 +91,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; }
                   XXXXXX__} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; } _char_6 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; } _char_6 =
 {  6,  8,  1, 0,  9,  1, EXTRA_INIT , { 
                   XXXXXX__,
                   X____X__,
@@ -104,7 +104,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; }
                   XXXXXX__} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; } _char_7 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; } _char_7 =
 {  6,  8,  1, 0,  9,  1, EXTRA_INIT , { 
                   XXXXXX__,
                   X____X__,
@@ -117,7 +117,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; }
                   XXXXXX__} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; } _char_8 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; } _char_8 =
 {  6,  8,  1, 0,  9,  1, EXTRA_INIT , { 
                   XXXXXX__,
                   X____X__,
@@ -130,7 +130,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; }
                   XXXXXX__} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; } _char_9 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; } _char_9 =
 {  6,  8,  1, 0,  9,  1, EXTRA_INIT , { 
                   XXXXXX__,
                   X____X__,
@@ -143,7 +143,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; }
                   XXXXXX__} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; } _char_10 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; } _char_10 =
 {  6,  8,  1, 0,  9,  1, EXTRA_INIT , { 
                   XXXXXX__,
                   X____X__,
@@ -156,7 +156,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; }
                   XXXXXX__} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; } _char_11 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; } _char_11 =
 {  6,  8,  1, 0,  9,  1, EXTRA_INIT , { 
                   XXXXXX__,
                   X____X__,
@@ -169,7 +169,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; }
                   XXXXXX__} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; } _char_12 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; } _char_12 =
 {  6,  8,  1, 0,  9,  1, EXTRA_INIT , { 
                   XXXXXX__,
                   X____X__,
@@ -182,7 +182,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; }
                   XXXXXX__} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; } _char_13 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; } _char_13 =
 {  6,  8,  1, 0,  9,  1, EXTRA_INIT , { 
                   XXXXXX__,
                   X____X__,
@@ -195,7 +195,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; }
                   XXXXXX__} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; } _char_14 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; } _char_14 =
 {  6,  8,  1, 0,  9,  1, EXTRA_INIT , { 
                   XXXXXX__,
                   X____X__,
@@ -208,7 +208,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; }
                   XXXXXX__} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; } _char_15 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; } _char_15 =
 {  6,  8,  1, 0,  9,  1, EXTRA_INIT , { 
                   XXXXXX__,
                   X____X__,
@@ -221,7 +221,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; }
                   XXXXXX__} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; } _char_16 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; } _char_16 =
 {  6,  8,  1, 0,  9,  1, EXTRA_INIT , { 
                   XXXXXX__,
                   X____X__,
@@ -234,7 +234,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; }
                   XXXXXX__} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; } _char_17 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; } _char_17 =
 {  6,  8,  1, 0,  9,  1, EXTRA_INIT , { 
                   XXXXXX__,
                   X____X__,
@@ -247,7 +247,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; }
                   XXXXXX__} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; } _char_18 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; } _char_18 =
 {  6,  8,  1, 0,  9,  1, EXTRA_INIT , { 
                   XXXXXX__,
                   X____X__,
@@ -260,7 +260,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; }
                   XXXXXX__} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; } _char_19 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; } _char_19 =
 {  6,  8,  1, 0,  9,  1, EXTRA_INIT , { 
                   XXXXXX__,
                   X____X__,
@@ -273,7 +273,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; }
                   XXXXXX__} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; } _char_20 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; } _char_20 =
 {  6,  8,  1, 0,  9,  1, EXTRA_INIT , { 
                   XXXXXX__,
                   X____X__,
@@ -286,7 +286,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; }
                   XXXXXX__} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; } _char_21 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; } _char_21 =
 {  6,  8,  1, 0,  9,  1, EXTRA_INIT , { 
                   XXXXXX__,
                   X____X__,
@@ -299,7 +299,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; }
                   XXXXXX__} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; } _char_22 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; } _char_22 =
 {  6,  8,  1, 0,  9,  1, EXTRA_INIT , { 
                   XXXXXX__,
                   X____X__,
@@ -312,7 +312,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; }
                   XXXXXX__} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; } _char_23 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; } _char_23 =
 {  6,  8,  1, 0,  9,  1, EXTRA_INIT , { 
                   XXXXXX__,
                   X____X__,
@@ -325,7 +325,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; }
                   XXXXXX__} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; } _char_24 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; } _char_24 =
 {  6,  8,  1, 0,  9,  1, EXTRA_INIT , { 
                   XXXXXX__,
                   X____X__,
@@ -338,7 +338,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; }
                   XXXXXX__} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; } _char_25 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; } _char_25 =
 {  6,  8,  1, 0,  9,  1, EXTRA_INIT , { 
                   XXXXXX__,
                   X____X__,
@@ -351,7 +351,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; }
                   XXXXXX__} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; } _char_26 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; } _char_26 =
 {  6,  8,  1, 0,  9,  1, EXTRA_INIT , { 
                   XXXXXX__,
                   X____X__,
@@ -364,7 +364,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; }
                   XXXXXX__} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; } _char_27 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; } _char_27 =
 {  6,  8,  1, 0,  9,  1, EXTRA_INIT , { 
                   XXXXXX__,
                   X____X__,
@@ -377,7 +377,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; }
                   XXXXXX__} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; } _char_28 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; } _char_28 =
 {  6,  8,  1, 0,  9,  1, EXTRA_INIT , { 
                   XXXXXX__,
                   X____X__,
@@ -390,7 +390,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; }
                   XXXXXX__} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; } _char_29 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; } _char_29 =
 {  6,  8,  1, 0,  9,  1, EXTRA_INIT , { 
                   XXXXXX__,
                   X____X__,
@@ -403,7 +403,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; }
                   XXXXXX__} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; } _char_30 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; } _char_30 =
 {  6,  8,  1, 0,  9,  1, EXTRA_INIT , { 
                   XXXXXX__,
                   X____X__,
@@ -416,7 +416,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; }
                   XXXXXX__} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; } _char_31 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; } _char_31 =
 {  6,  8,  1, 0,  9,  1, EXTRA_INIT , { 
                   XXXXXX__,
                   X____X__,
@@ -429,11 +429,11 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; }
                   XXXXXX__} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT } _char_32 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT } _char_32 =
 {  0,  8,  0, 0,  0,  0, EXTRA_INIT };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; } _char_33 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; } _char_33 =
 {  1,  8,  4, 0, 11,  1, EXTRA_INIT , { 
                   X_______,
                   X_______,
@@ -448,7 +448,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; 
                   X_______} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[4]; } _char_34 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[4]; } _char_34 =
 {  5,  8,  2, 0, 11,  8, EXTRA_INIT , { 
                   X__XX___,
                   X__XX___,
@@ -456,7 +456,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[4]; }
                   X__X____} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; } _char_35 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; } _char_35 =
 {  8,  8,  0, 0, 11,  1, EXTRA_INIT , { 
                   ____X_X_,
                   ___X__X_,
@@ -471,7 +471,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; 
                   _X__X___} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[12]; } _char_36 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[12]; } _char_36 =
 {  5,  8,  2, 0, 11,  0, EXTRA_INIT , { 
                   __X_____,
                   XXXXX___,
@@ -487,7 +487,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[12]; 
                   __X_____} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; } _char_37 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; } _char_37 =
 {  8,  8,  0, 0, 11,  1, EXTRA_INIT , { 
                   _XX___XX,
                   X_XX__X_,
@@ -502,7 +502,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; 
                   X____XX_} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; } _char_38 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; } _char_38 =
 {  8,  8,  1, 0, 11,  1, EXTRA_INIT , { 
                   ___XX___,
                   __X__X__,
@@ -517,7 +517,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; 
                   _XXXX_XX} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[4]; } _char_39 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[4]; } _char_39 =
 {  2,  8,  3, 0, 11,  8, EXTRA_INIT , { 
                   XX______,
                   XX______,
@@ -525,7 +525,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[4]; }
                   _X______} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[13]; } _char_40 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[13]; } _char_40 =
 {  5,  8,  3, 0, 12,  0, EXTRA_INIT , { 
                   __XXX___,
                   _XX_____,
@@ -542,7 +542,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[13]; 
                   ___XX___} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[13]; } _char_41 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[13]; } _char_41 =
 {  5,  8,  1, 0, 12,  0, EXTRA_INIT , { 
                   XX______,
                   __X_____,
@@ -559,7 +559,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[13]; 
                   XX______} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[6]; } _char_42 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[6]; } _char_42 =
 {  6,  8,  1, 0, 11,  6, EXTRA_INIT , { 
                   ___X____,
                   X__X_X__,
@@ -569,7 +569,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[6]; }
                   _X__X___} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[8]; } _char_43 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[8]; } _char_43 =
 {  7,  8,  1, 0,  8,  1, EXTRA_INIT , { 
                   ___X____,
                   ___X____,
@@ -581,7 +581,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[8]; }
                   ___X____} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[4]; } _char_44 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[4]; } _char_44 =
 {  1,  8,  4, 0,  3,  0, EXTRA_INIT , { 
                   X_______,
                   X_______,
@@ -589,18 +589,18 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[4]; }
                   X_______} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[1]; } _char_45 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[1]; } _char_45 =
 {  6,  8,  1, 0,  5,  5, EXTRA_INIT , { 
                   XXXXXX__} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[2]; } _char_46 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[2]; } _char_46 =
 {  1,  8,  4, 0,  3,  2, EXTRA_INIT , { 
                   X_______,
                   X_______} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[13]; } _char_47 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[13]; } _char_47 =
 {  7,  8,  1, 0, 11, -1, EXTRA_INIT , { 
                   ______X_,
                   _____X__,
@@ -617,7 +617,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[13]; 
                   X_______} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; } _char_48 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; } _char_48 =
 {  6,  8,  1, 0, 11,  1, EXTRA_INIT , { 
                   _XXX____,
                   _X__X___,
@@ -632,7 +632,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; 
                   _XXX____} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; } _char_49 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; } _char_49 =
 {  7,  8,  1, 0, 11,  1, EXTRA_INIT , { 
                   ___X____,
                   XXXX____,
@@ -647,7 +647,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; 
                   XXXXXXX_} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; } _char_50 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; } _char_50 =
 {  6,  8,  1, 0, 11,  1, EXTRA_INIT , { 
                   _XXXX___,
                   X___XX__,
@@ -662,7 +662,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; 
                   XXXXXX__} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; } _char_51 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; } _char_51 =
 {  5,  8,  2, 0, 11,  1, EXTRA_INIT , { 
                   XXXX____,
                   ___XX___,
@@ -677,7 +677,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; 
                   XXXX____} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; } _char_52 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; } _char_52 =
 {  7,  8,  1, 0, 11,  1, EXTRA_INIT , { 
                   ___XX___,
                   ___XX___,
@@ -692,7 +692,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; 
                   ____X___} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; } _char_53 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; } _char_53 =
 {  5,  8,  2, 0, 11,  1, EXTRA_INIT , { 
                   XXXXX___,
                   X_______,
@@ -707,7 +707,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; 
                   XXXX____} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; } _char_54 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; } _char_54 =
 {  6,  8,  1, 0, 11,  1, EXTRA_INIT , { 
                   __XXXX__,
                   _X___X__,
@@ -722,7 +722,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; 
                   _XXXX___} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; } _char_55 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; } _char_55 =
 {  6,  8,  1, 0, 11,  1, EXTRA_INIT , { 
                   XXXXXX__,
                   _____X__,
@@ -737,7 +737,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; 
                   _X______} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; } _char_56 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; } _char_56 =
 {  6,  8,  1, 0, 11,  1, EXTRA_INIT , { 
                   _XXXX___,
                   XX__XX__,
@@ -752,7 +752,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; 
                   _XXXX___} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; } _char_57 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; } _char_57 =
 {  6,  8,  1, 0, 11,  1, EXTRA_INIT , { 
                   _XXX____,
                   XX__X___,
@@ -767,7 +767,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; 
                   XXXX____} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[8]; } _char_58 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[8]; } _char_58 =
 {  1,  8,  4, 0,  8,  1, EXTRA_INIT , { 
                   X_______,
                   X_______,
@@ -779,7 +779,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[8]; }
                   X_______} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[10]; } _char_59 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[10]; } _char_59 =
 {  2,  8,  4, 0,  8, -1, EXTRA_INIT , { 
                   XX______,
                   XX______,
@@ -793,7 +793,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[10]; 
                   X_______} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[7]; } _char_60 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[7]; } _char_60 =
 {  7,  8,  1, 0,  7,  1, EXTRA_INIT , { 
                   _____XX_,
                   ___XX___,
@@ -804,7 +804,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[7]; }
                   ______X_} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[4]; } _char_61 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[4]; } _char_61 =
 {  7,  8,  1, 0,  6,  3, EXTRA_INIT , { 
                   XXXXXXX_,
                   ________,
@@ -812,7 +812,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[4]; }
                   XXXXXXX_} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[7]; } _char_62 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[7]; } _char_62 =
 {  7,  8,  1, 0,  7,  1, EXTRA_INIT , { 
                   XX______,
                   __XX____,
@@ -823,7 +823,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[7]; }
                   X_______} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; } _char_63 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; } _char_63 =
 {  6,  8,  1, 0, 11,  1, EXTRA_INIT , { 
                   XXXXX___,
                   X___XX__,
@@ -838,7 +838,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; 
                   __X_____} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; } _char_64 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; } _char_64 =
 {  8,  8,  1, 0, 11,  1, EXTRA_INIT , { 
                   __XXXX__,
                   _XX__XX_,
@@ -853,7 +853,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; 
                   __XXX___} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; } _char_65 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; } _char_65 =
 {  8,  8,  0, 0,  9,  1, EXTRA_INIT , { 
                   ___XX___,
                   ___XX___,
@@ -866,7 +866,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; }
                   X______X} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; } _char_66 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; } _char_66 =
 {  6,  8,  2, 0,  9,  1, EXTRA_INIT , { 
                   XXXXX___,
                   X___XX__,
@@ -879,7 +879,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; }
                   XXXXX___} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; } _char_67 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; } _char_67 =
 {  7,  8,  1, 0,  9,  1, EXTRA_INIT , { 
                   __XXXXX_,
                   _XX___X_,
@@ -892,7 +892,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; }
                   __XXXXX_} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; } _char_68 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; } _char_68 =
 {  7,  8,  1, 0,  9,  1, EXTRA_INIT , { 
                   XXXXX___,
                   X___XX__,
@@ -905,7 +905,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; }
                   XXXXX___} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; } _char_69 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; } _char_69 =
 {  6,  8,  2, 0,  9,  1, EXTRA_INIT , { 
                   XXXXXX__,
                   X_______,
@@ -918,7 +918,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; }
                   XXXXXX__} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; } _char_70 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; } _char_70 =
 {  6,  8,  2, 0,  9,  1, EXTRA_INIT , { 
                   XXXXXX__,
                   X_______,
@@ -931,7 +931,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; }
                   X_______} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; } _char_71 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; } _char_71 =
 {  7,  8,  1, 0,  9,  1, EXTRA_INIT , { 
                   __XXXXX_,
                   _XX_____,
@@ -944,7 +944,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; }
                   __XXXXX_} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; } _char_72 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; } _char_72 =
 {  6,  8,  1, 0,  9,  1, EXTRA_INIT , { 
                   X____X__,
                   X____X__,
@@ -957,7 +957,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; }
                   X____X__} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; } _char_73 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; } _char_73 =
 {  6,  8,  1, 0,  9,  1, EXTRA_INIT , { 
                   XXXXXX__,
                   ___X____,
@@ -970,7 +970,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; }
                   XXXXXX__} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; } _char_74 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; } _char_74 =
 {  5,  8,  1, 0,  9,  1, EXTRA_INIT , { 
                   _XXXX___,
                   ____X___,
@@ -983,7 +983,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; }
                   XXXX____} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; } _char_75 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; } _char_75 =
 {  6,  8,  1, 0,  9,  1, EXTRA_INIT , { 
                   X___XX__,
                   X___X___,
@@ -996,7 +996,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; }
                   X____X__} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; } _char_76 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; } _char_76 =
 {  6,  8,  2, 0,  9,  1, EXTRA_INIT , { 
                   X_______,
                   X_______,
@@ -1009,7 +1009,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; }
                   XXXXXX__} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; } _char_77 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; } _char_77 =
 {  7,  8,  1, 0,  9,  1, EXTRA_INIT , { 
                   XX___XX_,
                   XX___XX_,
@@ -1022,7 +1022,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; }
                   X_____X_} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; } _char_78 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; } _char_78 =
 {  6,  8,  1, 0,  9,  1, EXTRA_INIT , { 
                   XX___X__,
                   XX___X__,
@@ -1035,7 +1035,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; }
                   X___XX__} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; } _char_79 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; } _char_79 =
 {  7,  8,  1, 0,  9,  1, EXTRA_INIT , { 
                   __XXX___,
                   XX___X__,
@@ -1048,7 +1048,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; }
                   __XXX___} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; } _char_80 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; } _char_80 =
 {  6,  8,  2, 0,  9,  1, EXTRA_INIT , { 
                   XXXXX___,
                   X___XX__,
@@ -1061,7 +1061,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; }
                   X_______} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; } _char_81 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; } _char_81 =
 {  7,  8,  1, 0,  9, -1, EXTRA_INIT , { 
                   __XXX___,
                   XX___X__,
@@ -1076,7 +1076,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; 
                   ______X_} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; } _char_82 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; } _char_82 =
 {  6,  8,  2, 0,  9,  1, EXTRA_INIT , { 
                   XXXX____,
                   X__XX___,
@@ -1089,7 +1089,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; }
                   X___XX__} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; } _char_83 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; } _char_83 =
 {  6,  8,  1, 0,  9,  1, EXTRA_INIT , { 
                   _XXXX___,
                   X_______,
@@ -1102,7 +1102,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; }
                   XXXXX___} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; } _char_84 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; } _char_84 =
 {  8,  8,  1, 0,  9,  1, EXTRA_INIT , { 
                   XXXXXXXX,
                   ____X___,
@@ -1115,7 +1115,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; }
                   ____X___} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; } _char_85 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; } _char_85 =
 {  6,  8,  1, 0,  9,  1, EXTRA_INIT , { 
                   X____X__,
                   X____X__,
@@ -1128,7 +1128,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; }
                   _XXXX___} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; } _char_86 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; } _char_86 =
 {  8,  8,  0, 0,  9,  1, EXTRA_INIT , { 
                   XX_____X,
                   _X_____X,
@@ -1141,7 +1141,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; }
                   ___XX___} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; } _char_87 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; } _char_87 =
 {  8,  8,  0, 0,  9,  1, EXTRA_INIT , { 
                   X______X,
                   X______X,
@@ -1154,7 +1154,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; }
                   _XX__XX_} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; } _char_88 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; } _char_88 =
 {  8,  8,  0, 0,  9,  1, EXTRA_INIT , { 
                   _X____XX,
                   _XX___X_,
@@ -1167,7 +1167,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; }
                   XX____XX} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; } _char_89 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; } _char_89 =
 {  7,  8,  1, 0,  9,  1, EXTRA_INIT , { 
                   X_____X_,
                   XX___XX_,
@@ -1180,7 +1180,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; }
                   ___X____} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; } _char_90 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; } _char_90 =
 {  7,  8,  1, 0,  9,  1, EXTRA_INIT , { 
                   XXXXXXX_,
                   _____XX_,
@@ -1193,7 +1193,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; }
                   XXXXXXX_} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[13]; } _char_91 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[13]; } _char_91 =
 {  4,  8,  3, 0, 11, -1, EXTRA_INIT , { 
                   XXXX____,
                   X_______,
@@ -1210,7 +1210,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[13]; 
                   XXXX____} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[13]; } _char_92 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[13]; } _char_92 =
 {  6,  8,  1, 0, 11, -1, EXTRA_INIT , { 
                   X_______,
                   X_______,
@@ -1227,7 +1227,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[13]; 
                   _____X__} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[13]; } _char_93 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[13]; } _char_93 =
 {  4,  8,  2, 0, 11, -1, EXTRA_INIT , { 
                   XXXX____,
                   ___X____,
@@ -1244,7 +1244,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[13]; 
                   XXXX____} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[8]; } _char_94 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[8]; } _char_94 =
 {  7,  8,  1, 0, 10,  3, EXTRA_INIT , { 
                   ___X____,
                   __XX____,
@@ -1256,17 +1256,17 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[8]; }
                   X____XX_} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[1]; } _char_95 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[1]; } _char_95 =
 {  8,  8,  0, 0,  0,  0, EXTRA_INIT , { 
                   XXXXXXXX} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[1]; } _char_96 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[1]; } _char_96 =
 {  2,  8,  3, 0, 11, 11, EXTRA_INIT , { 
                   XX______} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[8]; } _char_97 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[8]; } _char_97 =
 {  7,  8,  1, 0,  8,  1, EXTRA_INIT , { 
                   XXXXX___,
                   X___XX__,
@@ -1278,7 +1278,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[8]; }
                   _XXX_XX_} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; } _char_98 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; } _char_98 =
 {  6,  8,  1, 0, 11,  1, EXTRA_INIT , { 
                   X_______,
                   X_______,
@@ -1293,7 +1293,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; 
                   X_XXX___} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[8]; } _char_99 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[8]; } _char_99 =
 {  6,  8,  1, 0,  8,  1, EXTRA_INIT , { 
                   __XXXX__,
                   XX______,
@@ -1305,7 +1305,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[8]; }
                   __XXXX__} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; } _char_100 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; } _char_100 =
 {  6,  8,  1, 0, 11,  1, EXTRA_INIT , { 
                   _____X__,
                   _____X__,
@@ -1320,7 +1320,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; 
                   _XXX_X__} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[8]; } _char_101 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[8]; } _char_101 =
 {  6,  8,  1, 0,  8,  1, EXTRA_INIT , { 
                   _XXXX___,
                   XX__XX__,
@@ -1332,7 +1332,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[8]; }
                   _XXXXX__} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; } _char_102 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; } _char_102 =
 {  7,  8,  1, 0, 11,  1, EXTRA_INIT , { 
                   ___XXXX_,
                   __X_____,
@@ -1347,7 +1347,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; 
                   __X_____} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; } _char_103 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; } _char_103 =
 {  6,  8,  1, 0,  8, -2, EXTRA_INIT , { 
                   _XXX_X__,
                   XX__XX__,
@@ -1362,7 +1362,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; 
                   XXXXX___} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; } _char_104 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; } _char_104 =
 {  6,  8,  2, 0, 11,  1, EXTRA_INIT , { 
                   X_______,
                   X_______,
@@ -1377,7 +1377,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; 
                   X____X__} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; } _char_105 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; } _char_105 =
 {  4,  8,  1, 0, 11,  1, EXTRA_INIT , { 
                   ___X____,
                   ___X____,
@@ -1392,7 +1392,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; 
                   ___X____} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[14]; } _char_106 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[14]; } _char_106 =
 {  5,  8,  1, 0, 11, -2, EXTRA_INIT , { 
                   ____X___,
                   ____X___,
@@ -1410,7 +1410,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[14]; 
                   XXXX____} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; } _char_107 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; } _char_107 =
 {  6,  8,  2, 0, 11,  1, EXTRA_INIT , { 
                   X_______,
                   X_______,
@@ -1425,7 +1425,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; 
                   X___XX__} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; } _char_108 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; } _char_108 =
 {  4,  8,  1, 0, 11,  1, EXTRA_INIT , { 
                   XXXX____,
                   ___X____,
@@ -1440,7 +1440,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; 
                   ___X____} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[8]; } _char_109 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[8]; } _char_109 =
 {  7,  8,  1, 0,  8,  1, EXTRA_INIT , { 
                   X_XX_XX_,
                   XX_XX_X_,
@@ -1452,7 +1452,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[8]; }
                   X__X__X_} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[8]; } _char_110 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[8]; } _char_110 =
 {  6,  8,  2, 0,  8,  1, EXTRA_INIT , { 
                   X_XXX___,
                   XX__XX__,
@@ -1464,7 +1464,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[8]; }
                   X____X__} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[8]; } _char_111 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[8]; } _char_111 =
 {  7,  8,  1, 0,  8,  1, EXTRA_INIT , { 
                   _XXXX___,
                   XX___X__,
@@ -1476,7 +1476,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[8]; }
                   _XXXX___} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; } _char_112 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; } _char_112 =
 {  6,  8,  2, 0,  8, -2, EXTRA_INIT , { 
                   X_XXX___,
                   XX__XX__,
@@ -1491,7 +1491,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; 
                   X_______} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; } _char_113 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; } _char_113 =
 {  6,  8,  1, 0,  8, -2, EXTRA_INIT , { 
                   _XXX_X__,
                   XX__XX__,
@@ -1506,7 +1506,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; 
                   _____X__} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[8]; } _char_114 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[8]; } _char_114 =
 {  5,  8,  2, 0,  8,  1, EXTRA_INIT , { 
                   X_XXX___,
                   XX__X___,
@@ -1518,7 +1518,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[8]; }
                   X_______} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[8]; } _char_115 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[8]; } _char_115 =
 {  6,  8,  2, 0,  8,  1, EXTRA_INIT , { 
                   _XXXXX__,
                   X_______,
@@ -1530,7 +1530,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[8]; }
                   XXXXX___} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; } _char_116 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; } _char_116 =
 {  7,  8,  1, 0,  9,  1, EXTRA_INIT , { 
                   __X_____,
                   XXXXXXX_,
@@ -1543,7 +1543,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; }
                   ___XXXX_} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[8]; } _char_117 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[8]; } _char_117 =
 {  6,  8,  2, 0,  8,  1, EXTRA_INIT , { 
                   X____X__,
                   X____X__,
@@ -1555,7 +1555,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[8]; }
                   XXXX_X__} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[8]; } _char_118 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[8]; } _char_118 =
 {  7,  8,  1, 0,  8,  1, EXTRA_INIT , { 
                   X_____X_,
                   X____X__,
@@ -1567,7 +1567,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[8]; }
                   __XX____} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[8]; } _char_119 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[8]; } _char_119 =
 {  8,  8,  0, 0,  8,  1, EXTRA_INIT , { 
                   X______X,
                   XX_XX__X,
@@ -1579,7 +1579,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[8]; }
                   _XX__XX_} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[8]; } _char_120 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[8]; } _char_120 =
 {  7,  8,  1, 0,  8,  1, EXTRA_INIT , { 
                   XX___X__,
                   _X__XX__,
@@ -1591,7 +1591,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[8]; }
                   X____XX_} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; } _char_121 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; } _char_121 =
 {  7,  8,  1, 0,  8, -2, EXTRA_INIT , { 
                   X_____X_,
                   XX___X__,
@@ -1606,7 +1606,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; 
                   XX______} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[8]; } _char_122 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[8]; } _char_122 =
 {  6,  8,  1, 0,  8,  1, EXTRA_INIT , { 
                   XXXXXX__,
                   ____XX__,
@@ -1618,7 +1618,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[8]; }
                   XXXXXX__} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[13]; } _char_123 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[13]; } _char_123 =
 {  5,  8,  2, 0, 11, -1, EXTRA_INIT , { 
                   __XXX___,
                   __X_____,
@@ -1635,7 +1635,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[13]; 
                   __XXX___} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[14]; } _char_124 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[14]; } _char_124 =
 {  1,  8,  4, 0, 11, -2, EXTRA_INIT , { 
                   X_______,
                   X_______,
@@ -1653,7 +1653,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[14]; 
                   X_______} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[13]; } _char_125 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[13]; } _char_125 =
 {  5,  8,  2, 0, 11, -1, EXTRA_INIT , { 
                   XX______,
                   _XX_____,
@@ -1670,14 +1670,14 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[13]; 
                   XXX_____} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[3]; } _char_126 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[3]; } _char_126 =
 {  7,  8,  1, 0,  6,  4, EXTRA_INIT , { 
                   XXX___X_,
                   X__X__X_,
                   X___XXX_} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; } _char_127 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; } _char_127 =
 {  6,  8,  1, 0,  9,  1, EXTRA_INIT , { 
                   XXXXXX__,
                   X____X__,
@@ -1690,7 +1690,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; }
                   XXXXXX__} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; } _char_128 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; } _char_128 =
 {  6,  8,  1, 0,  9,  1, EXTRA_INIT , { 
                   XXXXXX__,
                   X____X__,
@@ -1703,7 +1703,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; }
                   XXXXXX__} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; } _char_129 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; } _char_129 =
 {  6,  8,  1, 0,  9,  1, EXTRA_INIT , { 
                   XXXXXX__,
                   X____X__,
@@ -1716,7 +1716,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; }
                   XXXXXX__} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; } _char_130 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; } _char_130 =
 {  6,  8,  1, 0,  9,  1, EXTRA_INIT , { 
                   XXXXXX__,
                   X____X__,
@@ -1729,7 +1729,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; }
                   XXXXXX__} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; } _char_131 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; } _char_131 =
 {  6,  8,  1, 0,  9,  1, EXTRA_INIT , { 
                   XXXXXX__,
                   X____X__,
@@ -1742,7 +1742,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; }
                   XXXXXX__} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; } _char_132 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; } _char_132 =
 {  6,  8,  1, 0,  9,  1, EXTRA_INIT , { 
                   XXXXXX__,
                   X____X__,
@@ -1755,7 +1755,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; }
                   XXXXXX__} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; } _char_133 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; } _char_133 =
 {  6,  8,  1, 0,  9,  1, EXTRA_INIT , { 
                   XXXXXX__,
                   X____X__,
@@ -1768,7 +1768,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; }
                   XXXXXX__} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; } _char_134 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; } _char_134 =
 {  6,  8,  1, 0,  9,  1, EXTRA_INIT , { 
                   XXXXXX__,
                   X____X__,
@@ -1781,7 +1781,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; }
                   XXXXXX__} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; } _char_135 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; } _char_135 =
 {  6,  8,  1, 0,  9,  1, EXTRA_INIT , { 
                   XXXXXX__,
                   X____X__,
@@ -1794,7 +1794,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; }
                   XXXXXX__} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; } _char_136 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; } _char_136 =
 {  6,  8,  1, 0,  9,  1, EXTRA_INIT , { 
                   XXXXXX__,
                   X____X__,
@@ -1807,7 +1807,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; }
                   XXXXXX__} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; } _char_137 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; } _char_137 =
 {  6,  8,  1, 0,  9,  1, EXTRA_INIT , { 
                   XXXXXX__,
                   X____X__,
@@ -1820,7 +1820,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; }
                   XXXXXX__} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; } _char_138 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; } _char_138 =
 {  6,  8,  1, 0,  9,  1, EXTRA_INIT , { 
                   XXXXXX__,
                   X____X__,
@@ -1833,7 +1833,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; }
                   XXXXXX__} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; } _char_139 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; } _char_139 =
 {  6,  8,  1, 0,  9,  1, EXTRA_INIT , { 
                   XXXXXX__,
                   X____X__,
@@ -1846,7 +1846,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; }
                   XXXXXX__} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; } _char_140 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; } _char_140 =
 {  6,  8,  1, 0,  9,  1, EXTRA_INIT , { 
                   XXXXXX__,
                   X____X__,
@@ -1859,7 +1859,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; }
                   XXXXXX__} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; } _char_141 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; } _char_141 =
 {  6,  8,  1, 0,  9,  1, EXTRA_INIT , { 
                   XXXXXX__,
                   X____X__,
@@ -1872,7 +1872,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; }
                   XXXXXX__} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; } _char_142 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; } _char_142 =
 {  6,  8,  1, 0,  9,  1, EXTRA_INIT , { 
                   XXXXXX__,
                   X____X__,
@@ -1885,7 +1885,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; }
                   XXXXXX__} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; } _char_143 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; } _char_143 =
 {  6,  8,  1, 0,  9,  1, EXTRA_INIT , { 
                   XXXXXX__,
                   X____X__,
@@ -1898,7 +1898,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; }
                   XXXXXX__} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; } _char_144 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; } _char_144 =
 {  6,  8,  1, 0,  9,  1, EXTRA_INIT , { 
                   XXXXXX__,
                   X____X__,
@@ -1911,7 +1911,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; }
                   XXXXXX__} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; } _char_145 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; } _char_145 =
 {  6,  8,  1, 0,  9,  1, EXTRA_INIT , { 
                   XXXXXX__,
                   X____X__,
@@ -1924,7 +1924,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; }
                   XXXXXX__} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; } _char_146 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; } _char_146 =
 {  6,  8,  1, 0,  9,  1, EXTRA_INIT , { 
                   XXXXXX__,
                   X____X__,
@@ -1937,7 +1937,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; }
                   XXXXXX__} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; } _char_147 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; } _char_147 =
 {  6,  8,  1, 0,  9,  1, EXTRA_INIT , { 
                   XXXXXX__,
                   X____X__,
@@ -1950,7 +1950,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; }
                   XXXXXX__} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; } _char_148 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; } _char_148 =
 {  6,  8,  1, 0,  9,  1, EXTRA_INIT , { 
                   XXXXXX__,
                   X____X__,
@@ -1963,7 +1963,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; }
                   XXXXXX__} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; } _char_149 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; } _char_149 =
 {  6,  8,  1, 0,  9,  1, EXTRA_INIT , { 
                   XXXXXX__,
                   X____X__,
@@ -1976,7 +1976,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; }
                   XXXXXX__} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; } _char_150 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; } _char_150 =
 {  6,  8,  1, 0,  9,  1, EXTRA_INIT , { 
                   XXXXXX__,
                   X____X__,
@@ -1989,7 +1989,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; }
                   XXXXXX__} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; } _char_151 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; } _char_151 =
 {  6,  8,  1, 0,  9,  1, EXTRA_INIT , { 
                   XXXXXX__,
                   X____X__,
@@ -2002,7 +2002,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; }
                   XXXXXX__} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; } _char_152 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; } _char_152 =
 {  6,  8,  1, 0,  9,  1, EXTRA_INIT , { 
                   XXXXXX__,
                   X____X__,
@@ -2015,7 +2015,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; }
                   XXXXXX__} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; } _char_153 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; } _char_153 =
 {  6,  8,  1, 0,  9,  1, EXTRA_INIT , { 
                   XXXXXX__,
                   X____X__,
@@ -2028,7 +2028,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; }
                   XXXXXX__} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; } _char_154 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; } _char_154 =
 {  6,  8,  1, 0,  9,  1, EXTRA_INIT , { 
                   XXXXXX__,
                   X____X__,
@@ -2041,7 +2041,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; }
                   XXXXXX__} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; } _char_155 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; } _char_155 =
 {  6,  8,  1, 0,  9,  1, EXTRA_INIT , { 
                   XXXXXX__,
                   X____X__,
@@ -2054,7 +2054,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; }
                   XXXXXX__} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; } _char_156 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; } _char_156 =
 {  6,  8,  1, 0,  9,  1, EXTRA_INIT , { 
                   XXXXXX__,
                   X____X__,
@@ -2067,7 +2067,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; }
                   XXXXXX__} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; } _char_157 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; } _char_157 =
 {  6,  8,  1, 0,  9,  1, EXTRA_INIT , { 
                   XXXXXX__,
                   X____X__,
@@ -2080,7 +2080,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; }
                   XXXXXX__} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; } _char_158 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; } _char_158 =
 {  6,  8,  1, 0,  9,  1, EXTRA_INIT , { 
                   XXXXXX__,
                   X____X__,
@@ -2093,7 +2093,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; }
                   XXXXXX__} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; } _char_159 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; } _char_159 =
 {  6,  8,  1, 0,  9,  1, EXTRA_INIT , { 
                   XXXXXX__,
                   X____X__,
@@ -2106,11 +2106,11 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; }
                   XXXXXX__} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT } _char_160 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT } _char_160 =
 {  0,  8,  0, 0,  0,  0, EXTRA_INIT };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; } _char_161 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; } _char_161 =
 {  1,  8,  4, 0,  8, -2, EXTRA_INIT , { 
                   X_______,
                   ________,
@@ -2125,7 +2125,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; 
                   X_______} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; } _char_162 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; } _char_162 =
 {  6,  8,  2, 0, 11,  1, EXTRA_INIT , { 
                   ___X____,
                   __XXX___,
@@ -2140,7 +2140,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; 
                   ___X____} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; } _char_163 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; } _char_163 =
 {  5,  8,  2, 0, 11,  1, EXTRA_INIT , { 
                   ___XX___,
                   __X_____,
@@ -2155,7 +2155,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; 
                   XXXXX___} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[8]; } _char_164 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[8]; } _char_164 =
 {  7,  8,  1, 0,  9,  2, EXTRA_INIT , { 
                   X_____X_,
                   _XXXXX__,
@@ -2167,7 +2167,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[8]; }
                   X_____X_} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; } _char_165 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; } _char_165 =
 {  8,  8,  1, 0, 11,  1, EXTRA_INIT , { 
                   X_____XX,
                   XX____X_,
@@ -2182,7 +2182,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; 
                   ___X____} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[13]; } _char_166 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[13]; } _char_166 =
 {  1,  8,  4, 0, 11, -1, EXTRA_INIT , { 
                   X_______,
                   X_______,
@@ -2199,7 +2199,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[13]; 
                   X_______} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[13]; } _char_167 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[13]; } _char_167 =
 {  5,  8,  2, 0, 11, -1, EXTRA_INIT , { 
                   _XXXX___,
                   XX______,
@@ -2216,12 +2216,12 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[13]; 
                   XXXX____} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[1]; } _char_168 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[1]; } _char_168 =
 {  4,  8,  2, 0, 11, 11, EXTRA_INIT , { 
                   X__X____} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; } _char_169 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; } _char_169 =
 {  7,  8,  1, 0, 11,  1, EXTRA_INIT , { 
                   __XXX___,
                   _X__XX__,
@@ -2236,7 +2236,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; 
                   __XXX___} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[6]; } _char_170 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[6]; } _char_170 =
 {  5,  8,  2, 0, 11,  6, EXTRA_INIT , { 
                   XXXX____,
                   ___X____,
@@ -2246,7 +2246,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[6]; }
                   XXXXX___} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[6]; } _char_171 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[6]; } _char_171 =
 {  6,  8,  1, 0,  8,  3, EXTRA_INIT , { 
                   __X__X__,
                   _XX_XX__,
@@ -2256,7 +2256,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[6]; }
                   __X__X__} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[4]; } _char_172 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[4]; } _char_172 =
 {  8,  8,  0, 0,  6,  3, EXTRA_INIT , { 
                   XXXXXXXX,
                   _______X,
@@ -2264,12 +2264,12 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[4]; }
                   _______X} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[1]; } _char_173 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[1]; } _char_173 =
 {  6,  8,  1, 0,  5,  5, EXTRA_INIT , { 
                   XXXXXX__} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[7]; } _char_174 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[7]; } _char_174 =
 {  6,  8,  1, 0, 11,  5, EXTRA_INIT , { 
                   _XXX____,
                   XX__X___,
@@ -2280,19 +2280,19 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[7]; }
                   _XXXX___} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[1]; } _char_175 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[1]; } _char_175 =
 {  8,  8,  0, 0, 11, 11, EXTRA_INIT , { 
                   XXXXXXXX} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[3]; } _char_176 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[3]; } _char_176 =
 {  3,  8,  3, 0, 11,  9, EXTRA_INIT , { 
                   XXX_____,
                   X_X_____,
                   XXX_____} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[8]; } _char_177 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[8]; } _char_177 =
 {  7,  8,  1, 0,  8,  1, EXTRA_INIT , { 
                   ___X____,
                   ___X____,
@@ -2304,7 +2304,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[8]; }
                   XXXXXXX_} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[6]; } _char_178 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[6]; } _char_178 =
 {  4,  8,  2, 0, 11,  6, EXTRA_INIT , { 
                   XXX_____,
                   ___X____,
@@ -2314,7 +2314,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[6]; }
                   XXXX____} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[6]; } _char_179 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[6]; } _char_179 =
 {  4,  8,  3, 0, 11,  6, EXTRA_INIT , { 
                   XXXX____,
                   ___X____,
@@ -2324,12 +2324,12 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[6]; }
                   XXXX____} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[1]; } _char_180 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[1]; } _char_180 =
 {  1,  8,  4, 0, 11, 11, EXTRA_INIT , { 
                   X_______} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; } _char_181 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; } _char_181 =
 {  6,  8,  2, 0,  8, -2, EXTRA_INIT , { 
                   X____X__,
                   X____X__,
@@ -2344,7 +2344,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; 
                   X_______} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[13]; } _char_182 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[13]; } _char_182 =
 {  6,  8,  1, 0, 11, -1, EXTRA_INIT , { 
                   _XXXXX__,
                   XXXX_X__,
@@ -2361,13 +2361,13 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[13]; 
                   ___X_X__} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[2]; } _char_183 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[2]; } _char_183 =
 {  1,  8,  4, 0,  5,  4, EXTRA_INIT , { 
                   X_______,
                   X_______} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[4]; } _char_184 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[4]; } _char_184 =
 {  3,  8,  3, 0,  1, -2, EXTRA_INIT , { 
                   _X______, // <---- baseline
                   _X______,
@@ -2375,7 +2375,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[4]; }
                   XXX_____} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[6]; } _char_185 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[6]; } _char_185 =
 {  3,  8,  2, 0, 11,  6, EXTRA_INIT , { 
                   __X_____,
                   XXX_____,
@@ -2385,7 +2385,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[6]; }
                   __X_____} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[6]; } _char_186 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[6]; } _char_186 =
 {  5,  8,  2, 0, 11,  6, EXTRA_INIT , { 
                   _XXX____,
                   XX_XX___,
@@ -2395,7 +2395,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[6]; }
                   _XXX____} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[6]; } _char_187 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[6]; } _char_187 =
 {  6,  8,  1, 0,  8,  3, EXTRA_INIT , { 
                   X__X____,
                   _X__X___,
@@ -2405,7 +2405,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[6]; }
                   X__X____} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; } _char_188 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; } _char_188 =
 {  8,  8,  0, 0, 11,  1, EXTRA_INIT , { 
                   XX___X__,
                   _X___X__,
@@ -2420,7 +2420,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; 
                   XX____X_} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; } _char_189 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; } _char_189 =
 {  8,  8,  0, 0, 11,  1, EXTRA_INIT , { 
                   XX___X__,
                   _X___X__,
@@ -2435,7 +2435,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; 
                   X___XXXX} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[22]; } _char_190 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[22]; } _char_190 =
 {  9,  8,  0, 0, 11,  1, EXTRA_INIT , { 
                   XXXX___X,X_______,
                   ___X___X,________,
@@ -2450,7 +2450,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[22]; 
                   _X_____X,________} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; } _char_191 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; } _char_191 =
 {  6,  8,  1, 0,  8, -2, EXTRA_INIT , { 
                   ___X____,
                   ________,
@@ -2465,7 +2465,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; 
                   _XXXXX__} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; } _char_192 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; } _char_192 =
 {  8,  8,  0, 0, 11,  1, EXTRA_INIT , { 
                   ___X____,
                   ____X___,
@@ -2480,7 +2480,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; 
                   X______X} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; } _char_193 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; } _char_193 =
 {  8,  8,  0, 0, 11,  1, EXTRA_INIT , { 
                   ____XX__,
                   ________,
@@ -2495,7 +2495,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; 
                   X______X} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; } _char_194 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; } _char_194 =
 {  8,  8,  0, 0, 11,  1, EXTRA_INIT , { 
                   ___XXX__,
                   __X_____,
@@ -2510,7 +2510,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; 
                   X______X} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; } _char_195 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; } _char_195 =
 {  8,  8,  0, 0, 11,  1, EXTRA_INIT , { 
                   __XXXX__,
                   ________,
@@ -2525,7 +2525,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; 
                   XX_____X} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; } _char_196 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; } _char_196 =
 {  8,  8,  0, 0, 11,  1, EXTRA_INIT , { 
                   __X__X__,
                   ________,
@@ -2540,7 +2540,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; 
                   X_____XX} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; } _char_197 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; } _char_197 =
 {  8,  8,  0, 0, 11,  1, EXTRA_INIT , { 
                   ___XX___,
                   ___XX___,
@@ -2555,7 +2555,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; 
                   X_____XX} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; } _char_198 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; } _char_198 =
 {  8,  8,  1, 0,  9,  1, EXTRA_INIT , { 
                   ___XXXX_,
                   ___XX___,
@@ -2568,7 +2568,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; }
                   X___XXXX} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[12]; } _char_199 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[12]; } _char_199 =
 {  7,  8,  1, 0,  9, -2, EXTRA_INIT , { 
                   __XXXXX_,
                   _XX___X_,
@@ -2584,7 +2584,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[12]; 
                   ___XX___} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; } _char_200 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; } _char_200 =
 {  6,  8,  2, 0, 11,  1, EXTRA_INIT , { 
                   _XX_____,
                   ________,
@@ -2599,7 +2599,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; 
                   XXXXXX__} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; } _char_201 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; } _char_201 =
 {  6,  8,  2, 0, 11,  1, EXTRA_INIT , { 
                   ___X____,
                   __X_____,
@@ -2614,7 +2614,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; 
                   XXXXXX__} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; } _char_202 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; } _char_202 =
 {  6,  8,  2, 0, 11,  1, EXTRA_INIT , { 
                   _XXX____,
                   ____X___,
@@ -2629,7 +2629,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; 
                   XXXXXX__} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; } _char_203 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; } _char_203 =
 {  6,  8,  2, 0, 11,  1, EXTRA_INIT , { 
                   _X__X___,
                   ________,
@@ -2644,7 +2644,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; 
                   XXXXXX__} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; } _char_204 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; } _char_204 =
 {  6,  8,  1, 0, 11,  1, EXTRA_INIT , { 
                   __XX____,
                   ________,
@@ -2659,7 +2659,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; 
                   XXXXXX__} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; } _char_205 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; } _char_205 =
 {  6,  8,  1, 0, 11,  1, EXTRA_INIT , { 
                   ___XX___,
                   ________,
@@ -2674,7 +2674,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; 
                   XXXXXX__} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; } _char_206 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; } _char_206 =
 {  6,  8,  1, 0, 11,  1, EXTRA_INIT , { 
                   __XXX___,
                   _X______,
@@ -2689,7 +2689,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; 
                   XXXXXX__} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; } _char_207 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; } _char_207 =
 {  6,  8,  1, 0, 11,  1, EXTRA_INIT , { 
                   _X__X___,
                   ________,
@@ -2704,7 +2704,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; 
                   XXXXXX__} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; } _char_208 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; } _char_208 =
 {  8,  8,  1, 0,  9,  1, EXTRA_INIT , { 
                   _XXXXX__,
                   _X___XX_,
@@ -2717,7 +2717,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; }
                   _XXXXX__} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; } _char_209 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; } _char_209 =
 {  6,  8,  1, 0, 11,  1, EXTRA_INIT , { 
                   _XXXX___,
                   ________,
@@ -2732,7 +2732,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; 
                   X___XX__} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; } _char_210 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; } _char_210 =
 {  7,  8,  1, 0, 11,  1, EXTRA_INIT , { 
                   __XX____,
                   ________,
@@ -2747,7 +2747,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; 
                   __XXX___} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; } _char_211 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; } _char_211 =
 {  7,  8,  1, 0, 11,  1, EXTRA_INIT , { 
                   ___XX___,
                   ________,
@@ -2762,7 +2762,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; 
                   __XXX___} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; } _char_212 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; } _char_212 =
 {  7,  8,  1, 0, 11,  1, EXTRA_INIT , { 
                   __XXX___,
                   ________,
@@ -2777,7 +2777,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; 
                   __XXX___} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; } _char_213 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; } _char_213 =
 {  7,  8,  1, 0, 11,  1, EXTRA_INIT , { 
                   _XXXX___,
                   ________,
@@ -2792,7 +2792,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; 
                   __XXX___} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; } _char_214 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; } _char_214 =
 {  7,  8,  1, 0, 11,  1, EXTRA_INIT , { 
                   _X___X__,
                   ________,
@@ -2807,7 +2807,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; 
                   __XXX___} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[8]; } _char_215 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[8]; } _char_215 =
 {  7,  8,  1, 0,  8,  1, EXTRA_INIT , { 
                   X_______,
                   X____X__,
@@ -2819,7 +2819,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[8]; }
                   X_____X_} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; } _char_216 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; } _char_216 =
 {  7,  8,  1, 0,  9,  1, EXTRA_INIT , { 
                   __XXX_X_,
                   XX___X__,
@@ -2832,7 +2832,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; }
                   X_XXX___} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; } _char_217 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; } _char_217 =
 {  6,  8,  1, 0, 11,  1, EXTRA_INIT , { 
                   __X_____,
                   ________,
@@ -2847,7 +2847,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; 
                   _XXXX___} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; } _char_218 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; } _char_218 =
 {  6,  8,  1, 0, 11,  1, EXTRA_INIT , { 
                   ___X____,
                   __X_____,
@@ -2862,7 +2862,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; 
                   _XXXX___} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; } _char_219 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; } _char_219 =
 {  6,  8,  1, 0, 11,  1, EXTRA_INIT , { 
                   _XXX____,
                   ____X___,
@@ -2877,7 +2877,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; 
                   _XXXX___} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; } _char_220 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; } _char_220 =
 {  6,  8,  1, 0, 11,  1, EXTRA_INIT , { 
                   _X__X___,
                   ________,
@@ -2892,7 +2892,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; 
                   _XXXX___} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; } _char_221 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; } _char_221 =
 {  7,  8,  1, 0, 11,  1, EXTRA_INIT , { 
                   ___XX___,
                   ________,
@@ -2907,7 +2907,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; 
                   ___X____} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; } _char_222 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; } _char_222 =
 {  6,  8,  2, 0,  9,  1, EXTRA_INIT , { 
                   X_______,
                   XXXXX___,
@@ -2920,7 +2920,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; }
                   X_______} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; } _char_223 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; } _char_223 =
 {  6,  8,  2, 0, 11,  1, EXTRA_INIT , { 
                   _XXX____,
                   X__XX___,
@@ -2935,7 +2935,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; 
                   X_XXX___} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; } _char_224 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; } _char_224 =
 {  7,  8,  1, 0, 11,  1, EXTRA_INIT , { 
                   __X_____,
                   ___X____,
@@ -2950,7 +2950,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; 
                   _XXX_XX_} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; } _char_225 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; } _char_225 =
 {  7,  8,  1, 0, 11,  1, EXTRA_INIT , { 
                   ____X___,
                   ___X____,
@@ -2965,7 +2965,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; 
                   _XXX_XX_} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; } _char_226 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; } _char_226 =
 {  7,  8,  1, 0, 11,  1, EXTRA_INIT , { 
                   __XXX___,
                   _X__XX__,
@@ -2980,7 +2980,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; 
                   _XXX_XX_} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; } _char_227 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; } _char_227 =
 {  7,  8,  1, 0, 11,  1, EXTRA_INIT , { 
                   _XX_____,
                   _X_XX___,
@@ -2995,7 +2995,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; 
                   _XXX_XX_} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; } _char_228 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; } _char_228 =
 {  6,  8,  1, 0, 11,  1, EXTRA_INIT , { 
                   __X_X___,
                   ________,
@@ -3010,7 +3010,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; 
                   XXX_XX__} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; } _char_229 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; } _char_229 =
 {  7,  8,  1, 0, 11,  1, EXTRA_INIT , { 
                   __XXX___,
                   __X_X___,
@@ -3025,7 +3025,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; 
                   _XXX__X_} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[8]; } _char_230 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[8]; } _char_230 =
 {  8,  8,  1, 0,  8,  1, EXTRA_INIT , { 
                   XXX_XXX_,
                   __XXX_XX,
@@ -3037,7 +3037,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[8]; }
                   XXX_XXXX} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; } _char_231 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; } _char_231 =
 {  6,  8,  1, 0,  8, -2, EXTRA_INIT , { 
                   __XXXX__,
                   XX______,
@@ -3052,7 +3052,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; 
                   __XXX___} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; } _char_232 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; } _char_232 =
 {  6,  8,  1, 0, 11,  1, EXTRA_INIT , { 
                   _XX_____,
                   ___X____,
@@ -3067,7 +3067,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; 
                   _XXXXX__} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; } _char_233 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; } _char_233 =
 {  6,  8,  1, 0, 11,  1, EXTRA_INIT , { 
                   ___XX___,
                   __XX____,
@@ -3082,7 +3082,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; 
                   _XXXXX__} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; } _char_234 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; } _char_234 =
 {  6,  8,  1, 0, 11,  1, EXTRA_INIT , { 
                   __XX____,
                   _X__X___,
@@ -3097,7 +3097,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; 
                   _XXXXX__} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; } _char_235 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; } _char_235 =
 {  6,  8,  1, 0, 11,  1, EXTRA_INIT , { 
                   __X_X___,
                   ________,
@@ -3112,7 +3112,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; 
                   _XXXXX__} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; } _char_236 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; } _char_236 =
 {  4,  8,  1, 0, 11,  1, EXTRA_INIT , { 
                   __X_____,
                   ___X____,
@@ -3127,7 +3127,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; 
                   ___X____} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; } _char_237 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; } _char_237 =
 {  5,  8,  1, 0, 11,  1, EXTRA_INIT , { 
                   ___XX___,
                   __XX____,
@@ -3142,7 +3142,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; 
                   ___X____} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; } _char_238 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; } _char_238 =
 {  6,  8,  1, 0, 11,  1, EXTRA_INIT , { 
                   __XXX___,
                   _X__XX__,
@@ -3157,7 +3157,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; 
                   ___X____} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[10]; } _char_239 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[10]; } _char_239 =
 {  6,  8,  1, 0, 10,  1, EXTRA_INIT , { 
                   __X__X__,
                   ________,
@@ -3171,7 +3171,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[10]; 
                   ___X____} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; } _char_240 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; } _char_240 =
 {  7,  8,  1, 0, 11,  1, EXTRA_INIT , { 
                   XX__X___,
                   __XX____,
@@ -3186,7 +3186,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; 
                   _XXXX___} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; } _char_241 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; } _char_241 =
 {  6,  8,  2, 0, 11,  1, EXTRA_INIT , { 
                   _XX_X___,
                   ___XX___,
@@ -3201,7 +3201,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; 
                   X____X__} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; } _char_242 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; } _char_242 =
 {  7,  8,  1, 0, 11,  1, EXTRA_INIT , { 
                   __X_____,
                   ___X____,
@@ -3216,7 +3216,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; 
                   _XXXX___} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; } _char_243 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; } _char_243 =
 {  7,  8,  1, 0, 11,  1, EXTRA_INIT , { 
                   ____X___,
                   ___X____,
@@ -3231,7 +3231,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; 
                   _XXXX___} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; } _char_244 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; } _char_244 =
 {  7,  8,  1, 0, 11,  1, EXTRA_INIT , { 
                   __XXX___,
                   _X__XX__,
@@ -3246,7 +3246,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; 
                   _XXXX___} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; } _char_245 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; } _char_245 =
 {  7,  8,  1, 0, 11,  1, EXTRA_INIT , { 
                   _XX_____,
                   _X_XX___,
@@ -3261,7 +3261,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; 
                   _XXXX___} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; } _char_246 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; } _char_246 =
 {  7,  8,  1, 0, 11,  1, EXTRA_INIT , { 
                   _X__X___,
                   ________,
@@ -3276,7 +3276,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; 
                   _XXXX___} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[8]; } _char_247 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[8]; } _char_247 =
 {  7,  8,  1, 0,  8,  1, EXTRA_INIT , { 
                   ___X____,
                   ________,
@@ -3288,7 +3288,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[8]; }
                   ___X____} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[8]; } _char_248 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[8]; } _char_248 =
 {  7,  8,  1, 0,  8,  1, EXTRA_INIT , { 
                   _XXXX_X_,
                   XX___X__,
@@ -3300,7 +3300,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[8]; }
                   XXXXX___} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; } _char_249 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; } _char_249 =
 {  6,  8,  2, 0, 11,  1, EXTRA_INIT , { 
                   _XX_____,
                   __XX____,
@@ -3315,7 +3315,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; 
                   XXXX_X__} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; } _char_250 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; } _char_250 =
 {  6,  8,  2, 0, 11,  1, EXTRA_INIT , { 
                   ___XX___,
                   __X_____,
@@ -3330,7 +3330,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; 
                   XXXX_X__} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; } _char_251 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; } _char_251 =
 {  6,  8,  2, 0, 11,  1, EXTRA_INIT , { 
                   __XX____,
                   _X__X___,
@@ -3345,7 +3345,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[11]; 
                   XXXX_X__} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[10]; } _char_252 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[10]; } _char_252 =
 {  6,  8,  2, 0, 10,  1, EXTRA_INIT , { 
                   _X__X___,
                   ________,
@@ -3359,7 +3359,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[10]; 
                   XXXX_X__} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[14]; } _char_253 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[14]; } _char_253 =
 {  7,  8,  1, 0, 11, -2, EXTRA_INIT , { 
                   ____X___,
                   ___X____,
@@ -3377,7 +3377,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[14]; 
                   XX______} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[14]; } _char_254 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[14]; } _char_254 =
 {  6,  8,  2, 0, 11, -2, EXTRA_INIT , { 
                   X_______,
                   X_______,
@@ -3395,7 +3395,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[14]; 
                   X_______} };
 
 
-static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[13]; } _char_255 =
+static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[13]; } _char_255 =
 {  8,  8,  1, 0, 10, -2, EXTRA_INIT , { 
                   __X__X__,
                   ________,

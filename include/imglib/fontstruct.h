@@ -16,10 +16,10 @@ IMAGE_NAMESPACE
 
 typedef struct font_char_tag
 {
-	_8 size;   // size of the character data (length of bitstream)
-	_8 width;  // width to adjust position by (returned from putchar)
-	S_8 offset; // minor width adjustment (leadin)
-	_8 junk;   // I lost this junk padding?!
+	_16 size;   // size of the character data (length of bitstream)
+	_16 width;  // width to adjust position by (returned from putchar)
+	S_16 offset; // minor width adjustment (leadin)
+	_16 junk;   // I lost this junk padding?!
 	S_16 ascent; // ascent can be negative also..
 	S_16 descent;
 

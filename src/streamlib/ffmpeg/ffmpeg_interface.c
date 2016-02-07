@@ -419,6 +419,8 @@ static struct ffmpeg_interface_local
 	PRENDER_INTERFACE pdi;
 	PIMAGE_INTERFACE pii;
 	PLIST files;
+	LOGICAL initialized_video;
+   LOGICAL initialized_audio;
 	CRITICALSECTION cs_audio_out;
 	int x_ofs, y_ofs;
 	int default_outstanding_audio;
@@ -433,15 +435,68 @@ static struct ffmpeg_interface_local
 //---------------------------------------------------------------------------------------------
 
 
-static void InitFFMPEG( void )
+static void InitFFMPEG_audio( void )
 {
-	if( l.pdi && l.pii )
+	if( l.initialized_audio )
 		return;
+   l.initialized_audio = TRUE;
+
+	InitializeCriticalSec( &l.cs_audio_out );
+
+	setup_func( lib_psi, Image,GetControlSurface, ( PSI_CONTROL pc ) );
+	setup_func( lib_psi, void, GetFrameSize, ( PSI_CONTROL pf, _32 *w, _32 *h ) );
+	setup_func( lib_psi, void, UpdateFrameEx, ( PSI_CONTROL pc, int x, int y, int w, int h DBG_PASS ) );
+
+#ifndef USE_OPENSL
+
+	setup_func2( lib_openal, ALCdevice *, alcOpenDevice, (CPOINTER) );
+	setup_func2( lib_openal, ALCdevice* ,alcCaptureOpenDevice, (const ALCchar *devicename, ALCuint frequency, ALCenum format, ALCsizei buffersize) );
+	setup_func2( lib_openal, void       ,alcCaptureStart, (ALCdevice *device) );
+	setup_func2( lib_openal, void       ,alcCaptureStop, (ALCdevice *device) );
+	setup_func2( lib_openal, void       ,alcCaptureSamples, (ALCdevice *device, ALCvoid *buffer, ALCsizei samples) );
+	setup_func2( lib_openal, ALCboolean, alcCloseDevice, (ALCdevice *device) );
+	setup_func2( lib_openal, ALCcontext *, alcCreateContext, (ALCdevice *,POINTER) );
+	setup_func2( lib_openal, ALCboolean, alcMakeContextCurrent, (ALCcontext *context) );
+	setup_func2( lib_openal, void, alcDestroyContext, (ALCcontext *context) );
+	setup_func2( lib_openal, ALCboolean , alcIsExtensionPresent, (ALCdevice *device, const ALCchar *extname));
+	setup_func2( lib_openal, const ALCchar*, alcGetString, (ALCdevice *device, ALCenum param) );
+	setup_func2( lib_openal, void          , alcGetIntegerv, (ALCdevice *device, ALCenum param, ALCsizei size, ALCint *values) );
+	setup_func3( lib_openal, void, alBufferData,(ALuint buffer, ALenum format, const ALvoid *data, ALsizei size, ALsizei freq));
+	setup_func3( lib_openal, ALenum, alGetError, (void) );
+	setup_func3( lib_openal, void,  alGenSources, (ALsizei n, ALuint *sources) );
+	setup_func3( lib_openal, void, alSourcef, (ALuint source, ALenum param, ALfloat value) );
+	setup_func3( lib_openal, void, alSource3f, (ALuint source, ALenum param, ALfloat value1, ALfloat value2, ALfloat value3) );
+	setup_func3( lib_openal, void, alSourcefv, (ALuint source, ALenum param, const ALfloat *values) );
+	setup_func3( lib_openal, void, alSourcei, (ALuint source, ALenum param, ALint value) );
+	setup_func3( lib_openal, void, alSource3i, (ALuint source, ALenum param, ALint value1, ALint value2, ALint value3) );
+	setup_func3( lib_openal, void, alSourceiv, (ALuint source, ALenum param, const ALint *values) );
+	setup_func3( lib_openal, void, alGenBuffers, (ALsizei n, ALuint *buffers) );
+	setup_func3( lib_openal, void, alSourceQueueBuffers, (ALuint source, ALsizei nb, const ALuint *buffers) );
+	setup_func3( lib_openal, void, alSourceUnqueueBuffers, (ALuint source, ALsizei nb, ALuint *buffers) );
+	setup_func3( lib_openal, void, alGetSourcef,(ALuint source, ALenum param, ALfloat *value));
+	setup_func3( lib_openal, void, alGetSource3f,(ALuint source, ALenum param, ALfloat *value1, ALfloat *value2, ALfloat *value3));
+	setup_func3( lib_openal, void, alGetSourcefv,(ALuint source, ALenum param, ALfloat *values));
+	setup_func3( lib_openal, void, alGetSourcei,(ALuint source,  ALenum param, ALint *value));
+	setup_func3( lib_openal, void, alGetSource3i,(ALuint source, ALenum param, ALint *value1, ALint *value2, ALint *value3));
+	setup_func3( lib_openal, void, alGetSourceiv,(ALuint source,  ALenum param, ALint *values));
+	setup_func3( lib_openal, void, alSourcePlay, (ALuint source) );
+	setup_func3( lib_openal, void, alSourceStop, (ALuint source) );
+	setup_func3( lib_openal, void, alDeleteSources, (ALsizei n, const ALuint *sources) );
+	setup_func3( lib_openal, void, alDeleteBuffers, (ALsizei n, const ALuint *buffers) );
+#endif
+}
+
+static void InitFFMPEG_video( void )
+{
+	if( l.initialized_video )
+		return;
+	l.initialized_video = TRUE;
+
 	l.pdi = GetDisplayInterface();
 	l.pii = GetImageInterface();
 	if( !l.pdi || !l.pii )
 		return;
-	InitializeCriticalSec( &l.cs_audio_out );
+
 	setup_func( lib_util, AVFrame*, av_frame_alloc, (	void ) )
 				  ; else return;
 	setup_func( lib_util, void, av_frame_free, (AVFrame **frame) );
@@ -529,52 +584,11 @@ static void InitFFMPEG( void )
 
 	ffmpeg.av_register_all();
 
-#ifndef USE_OPENSL
-
-	setup_func2( lib_openal, ALCdevice *, alcOpenDevice, (CPOINTER) );
-	setup_func2( lib_openal, ALCdevice* ,alcCaptureOpenDevice, (const ALCchar *devicename, ALCuint frequency, ALCenum format, ALCsizei buffersize) );
-	setup_func2( lib_openal, void       ,alcCaptureStart, (ALCdevice *device) );
-	setup_func2( lib_openal, void       ,alcCaptureStop, (ALCdevice *device) );
-	setup_func2( lib_openal, void       ,alcCaptureSamples, (ALCdevice *device, ALCvoid *buffer, ALCsizei samples) );
-	setup_func2( lib_openal, ALCboolean, alcCloseDevice, (ALCdevice *device) );
-	setup_func2( lib_openal, ALCcontext *, alcCreateContext, (ALCdevice *,POINTER) );
-	setup_func2( lib_openal, ALCboolean, alcMakeContextCurrent, (ALCcontext *context) );
-	setup_func2( lib_openal, void, alcDestroyContext, (ALCcontext *context) );
-	setup_func2( lib_openal, ALCboolean , alcIsExtensionPresent, (ALCdevice *device, const ALCchar *extname));
-	setup_func2( lib_openal, const ALCchar*, alcGetString, (ALCdevice *device, ALCenum param) );
-	setup_func2( lib_openal, void          , alcGetIntegerv, (ALCdevice *device, ALCenum param, ALCsizei size, ALCint *values) );
-	setup_func3( lib_openal, void, alBufferData,(ALuint buffer, ALenum format, const ALvoid *data, ALsizei size, ALsizei freq));
-	setup_func3( lib_openal, ALenum, alGetError, (void) );
-	setup_func3( lib_openal, void,  alGenSources, (ALsizei n, ALuint *sources) );
-	setup_func3( lib_openal, void, alSourcef, (ALuint source, ALenum param, ALfloat value) );
-	setup_func3( lib_openal, void, alSource3f, (ALuint source, ALenum param, ALfloat value1, ALfloat value2, ALfloat value3) );
-	setup_func3( lib_openal, void, alSourcefv, (ALuint source, ALenum param, const ALfloat *values) );
-	setup_func3( lib_openal, void, alSourcei, (ALuint source, ALenum param, ALint value) );
-	setup_func3( lib_openal, void, alSource3i, (ALuint source, ALenum param, ALint value1, ALint value2, ALint value3) );
-	setup_func3( lib_openal, void, alSourceiv, (ALuint source, ALenum param, const ALint *values) );
-	setup_func3( lib_openal, void, alGenBuffers, (ALsizei n, ALuint *buffers) );
-	setup_func3( lib_openal, void, alSourceQueueBuffers, (ALuint source, ALsizei nb, const ALuint *buffers) );
-	setup_func3( lib_openal, void, alSourceUnqueueBuffers, (ALuint source, ALsizei nb, ALuint *buffers) );
-	setup_func3( lib_openal, void, alGetSourcef,(ALuint source, ALenum param, ALfloat *value));
-	setup_func3( lib_openal, void, alGetSource3f,(ALuint source, ALenum param, ALfloat *value1, ALfloat *value2, ALfloat *value3));
-	setup_func3( lib_openal, void, alGetSourcefv,(ALuint source, ALenum param, ALfloat *values));
-	setup_func3( lib_openal, void, alGetSourcei,(ALuint source,  ALenum param, ALint *value));
-	setup_func3( lib_openal, void, alGetSource3i,(ALuint source, ALenum param, ALint *value1, ALint *value2, ALint *value3));
-	setup_func3( lib_openal, void, alGetSourceiv,(ALuint source,  ALenum param, ALint *values));
-	setup_func3( lib_openal, void, alSourcePlay, (ALuint source) );
-	setup_func3( lib_openal, void, alSourceStop, (ALuint source) );
-	setup_func3( lib_openal, void, alDeleteSources, (ALsizei n, const ALuint *sources) );
-	setup_func3( lib_openal, void, alDeleteBuffers, (ALsizei n, const ALuint *buffers) );
-#endif
 
    l.default_outstanding_audio = SACK_GetProfileInt( WIDE("Stream Library"), WIDE("Default high water audio"), 12 );
    l.default_outstanding_video = SACK_GetProfileInt( WIDE("Stream Library"), WIDE("Default high water video"), 4 );
 }
 
-PRELOAD( LoadInterface )
-{
-	InitFFMPEG();
-}
 //---------------------------------------------------------------------------------------------
 
 #ifdef USE_OPENSL
@@ -1518,7 +1532,8 @@ struct ffmpeg_file * ffmpeg_LoadFile( CTEXTSTR filename
 	// http://www.ffmpeg.org/doxygen/trunk/group__lavf__decoding.html
 	//av_dict_set(&options, WIDE("video_size"), WIDE("640x480"), 0);
 	//av_dict_set(&options, WIDE("pixel_format"), WIDE("rgb32"), 0);
-	InitFFMPEG();
+	InitFFMPEG_video();
+	InitFFMPEG_audio();
 	file = New( struct ffmpeg_file );
 	MemSet( file, 0, sizeof( struct ffmpeg_file ) );
 	file->filename = StrDup( filename );
@@ -3192,7 +3207,7 @@ void ffmpeg_AdjustVideo( struct ffmpeg_file *file, int frames )
 void audio_GetCaptureDevices( PLIST *ppList )
 {
 	const ALchar *pDeviceList;
-	InitFFMPEG();
+	InitFFMPEG_audio();
 
 	pDeviceList = openal.alcGetString(NULL, ALC_CAPTURE_DEVICE_SPECIFIER);
 	if (pDeviceList)
@@ -3211,7 +3226,7 @@ void audio_GetCaptureDevices( PLIST *ppList )
 void audio_GetPlaybackDevices( PLIST *ppList )
 {
 	const ALchar *pDeviceList;
-	InitFFMPEG();
+	InitFFMPEG_audio();
 	//pDeviceList = openal.alcGetString(NULL, ALC_DEFAULT_DEVICE_SPECIFIER);
 
 	pDeviceList = openal.alcGetString(NULL, ALC_DEVICE_SPECIFIER);
@@ -3450,7 +3465,7 @@ struct audio_device *audio_OpenCaptureDevice( CTEXTSTR devname, void (CPROC*call
 #  define devname _devname
 #endif
 	MemSet( ad, 0, sizeof( struct audio_device ) );
-	InitFFMPEG();
+	InitFFMPEG_audio();
 
 	ad->device = openal.alcCaptureOpenDevice( devname, DEFAULT_SAMPLE_RATE, AL_FORMAT_MONO16, ad->frame_size = DEFAULT_SAMPLE_RATE/10 );
 #ifdef UNICODE
@@ -3735,7 +3750,7 @@ struct audio_device *audio_OpenPlaybackDevice( CTEXTSTR devname )
 {
 	struct audio_device *ad = New( struct audio_device );
 	MemSet( ad, 0, sizeof( struct audio_device ) );
-	InitFFMPEG();
+	InitFFMPEG_audio();
 	ad->device = openal.alcOpenDevice( devname );
 	if( ad->device )
 	{

@@ -238,7 +238,7 @@ TEXTSTR ExpandPathVariable( CTEXTSTR path )
 						 ((end + 1)[0] == '/' || (end + 1)[0] == '\\') ? (end + 2) : (end + 1) );
 
 				Deallocate( TEXTCHAR*, tmp_path );
-				tmp_path = ExpandPath( newest_path );
+				tmp_path = ExpandPathVariable( newest_path );
 				Deallocate( TEXTCHAR*, newest_path );
 			
 				if( l.flags.bLogOpenClose )
@@ -1007,7 +1007,12 @@ FILE * sack_fopenEx( INDEX group, CTEXTSTR filename, CTEXTSTR opts, struct file_
 
 		if( StrChr( filename, '%' ) )
 		{
-			tmpname = ExpandPath( filename );
+			tmpname = ExpandPathVariable( filename );
+			filename = tmpname;
+		}
+      if( (filename[0] == '@') || (filename[0] == '*') || (filename[0] == '~') )
+		{
+			tmpname = ExpandPathEx( filename, NULL );
 			filename = tmpname;
 		}
 		file->handles = NULL;
@@ -1489,34 +1494,23 @@ TEXTSTR sack_fgets ( TEXTSTR buffer, size_t size,FILE *file_file )
 #endif
 }
 
-LOGICAL sack_existsEx ( CTEXTSTR filename, struct file_system_mounted_interface *fsi )
+LOGICAL sack_existsEx ( const char *filename, struct file_system_mounted_interface *fsi )
 {
 	FILE *tmp;
-#ifdef UNICODE
-	char *_filename = CStrDup( filename );
-#  define filename _filename
-#endif
 	if( fsi && fsi->fsi && fsi->fsi->exists )
 	{
 		int result = fsi->fsi->exists( fsi->psvInstance, filename );
-#ifdef UNICODE
-		Deallocate( char *, _filename );
-#endif
 		return result;
 	}
 	else if( tmp = fopen( filename, "rb" ) )
 	{
-#ifdef UNICODE
-		Deallocate( char *, _filename );
-#  undef filename
-#endif
 		fclose( tmp );
 		return TRUE;
 	}
 	return FALSE;
 }
 
-LOGICAL sack_exists( CTEXTSTR filename )
+LOGICAL sack_exists( const char * filename )
 {
 	struct file_system_mounted_interface *mount = l.mounted_file_systems;
 	while( mount )
@@ -1534,7 +1528,7 @@ LOGICAL sack_exists( CTEXTSTR filename )
 int  sack_renameEx ( CTEXTSTR file_source, CTEXTSTR new_name, struct file_system_mounted_interface *mount )
 {
 	int status;
-	if( mount->fsi )
+	if( mount && mount->fsi )
 	{
 		return mount->fsi->rename( mount->psvInstance, file_source, new_name );
 	}

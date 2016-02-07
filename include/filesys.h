@@ -381,7 +381,7 @@ FILESYS_PROC  int FILESYS_API  sack_fclose ( FILE *file_file );
 FILESYS_PROC  size_t FILESYS_API  sack_fseek ( FILE *file_file, size_t pos, int whence );
 FILESYS_PROC  size_t FILESYS_API  sack_ftell ( FILE *file_file );
 FILESYS_PROC  size_t FILESYS_API  sack_fsize ( FILE *file_file );
-FILESYS_PROC  LOGICAL FILESYS_API  sack_existsEx ( CTEXTSTR filename, struct file_system_mounted_interface *mount );
+FILESYS_PROC  LOGICAL FILESYS_API  sack_existsEx ( const char * filename, struct file_system_mounted_interface *mount );
 FILESYS_PROC  LOGICAL FILESYS_API  sack_exists ( const char *file_file );
 FILESYS_PROC  size_t FILESYS_API  sack_fread ( POINTER buffer, size_t size, int count,FILE *file_file );
 FILESYS_PROC  size_t FILESYS_API  sack_fwrite ( CPOINTER buffer, size_t size, int count,FILE *file_file );
