@@ -12,7 +12,7 @@
 #include "../sqlstruc.h"
 
 SQL_NAMESPACE
-extern GLOBAL *global_sqlstub_data;
+extern struct pssql_global *global_sqlstub_data;
 SQL_NAMESPACE_END
 
 SACK_OPTION_NAMESPACE

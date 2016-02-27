@@ -2708,31 +2708,32 @@ static void CPROC VidlibProxy_MarkImageDirty ( Image pImage )
 }
 
 #define DIMAGE_DATA_PROC(type,name,args)  static type (CPROC VidlibProxy2_##name)args;static type (CPROC* VidlibProxy_##name)args = VidlibProxy2_##name; type (CPROC VidlibProxy2_##name)args
+#define IMAGE_DATA_PROC(type,name,args)  static type (CPROC VidlibProxy_##name)args
 
-DIMAGE_DATA_PROC( void,plot,		( Image pi, S_32 x, S_32 y, CDATA c ))
+IMAGE_DATA_PROC( void,plot,		( Image pi, S_32 x, S_32 y, CDATA c ))
 {
 	if( ((PVPImage)pi)->render_id != INVALID_INDEX )
 	{
 	}
 	else
 	{
-		l.real_interface->_plot[0]( ((PVPImage)pi)->image, x, y, c );
+		l.real_interface->_plot( ((PVPImage)pi)->image, x, y, c );
 		VidlibProxy_MarkImageDirty( pi );
 	}
 }
 
-DIMAGE_DATA_PROC( void,plotalpha, ( Image pi, S_32 x, S_32 y, CDATA c ))
+IMAGE_DATA_PROC( void,plotalpha, ( Image pi, S_32 x, S_32 y, CDATA c ))
 {
 	if( ((PVPImage)pi)->render_id != INVALID_INDEX )
 	{
 	}
 	else
 	{
-		l.real_interface->_plot[0]( ((PVPImage)pi)->image, x, y, c );
+		l.real_interface->_plot( ((PVPImage)pi)->image, x, y, c );
 	}
 }
 
-DIMAGE_DATA_PROC( CDATA,getpixel, ( Image pi, S_32 x, S_32 y ))
+IMAGE_DATA_PROC( CDATA,getpixel, ( Image pi, S_32 x, S_32 y ))
 {
 	if( ((PVPImage)pi)->render_id != INVALID_INDEX )
 	{
@@ -2748,7 +2749,7 @@ DIMAGE_DATA_PROC( CDATA,getpixel, ( Image pi, S_32 x, S_32 y ))
 	return 0;
 }
 
-DIMAGE_DATA_PROC( void,do_line,	  ( Image pifDest, S_32 x, S_32 y, S_32 xto, S_32 yto, CDATA color ))
+IMAGE_DATA_PROC( void,do_line,	  ( Image pifDest, S_32 x, S_32 y, S_32 xto, S_32 yto, CDATA color ))
 {
 	PVPImage image = (PVPImage)pifDest;
 	if( image->render_id != INVALID_INDEX )
@@ -2794,35 +2795,35 @@ DIMAGE_DATA_PROC( void,do_line,	  ( Image pifDest, S_32 x, S_32 y, S_32 xto, S_3
 	}
 	else
 	{
-		l.real_interface->_do_line[0]( image->image, x, y, xto, yto, color );
+		l.real_interface->_do_line( image->image, x, y, xto, yto, color );
 	}
 	((PVPImage)image)->image->flags |= IF_FLAG_UPDATED;
 }
 
-DIMAGE_DATA_PROC( void,do_lineAlpha,( Image pBuffer, S_32 x, S_32 y, S_32 xto, S_32 yto, CDATA color))
+IMAGE_DATA_PROC( void,do_lineAlpha,( Image pBuffer, S_32 x, S_32 y, S_32 xto, S_32 yto, CDATA color))
 {
-	VidlibProxy2_do_line( pBuffer, x, y, xto, yto, color );
+	VidlibProxy_do_line( pBuffer, x, y, xto, yto, color );
 }
 
 
-DIMAGE_DATA_PROC( void,do_hline,	  ( Image pImage, S_32 y, S_32 xfrom, S_32 xto, CDATA color ))
+IMAGE_DATA_PROC( void,do_hline,	  ( Image pImage, S_32 y, S_32 xfrom, S_32 xto, CDATA color ))
 {
-	VidlibProxy2_do_line( pImage, xfrom, y, xto, y, color );
+	VidlibProxy_do_line( pImage, xfrom, y, xto, y, color );
 }
 
-DIMAGE_DATA_PROC( void,do_vline,	  ( Image pImage, S_32 x, S_32 yfrom, S_32 yto, CDATA color ))
+IMAGE_DATA_PROC( void,do_vline,	  ( Image pImage, S_32 x, S_32 yfrom, S_32 yto, CDATA color ))
 {
-	VidlibProxy2_do_line( pImage, x, yfrom, x, yto, color );
+	VidlibProxy_do_line( pImage, x, yfrom, x, yto, color );
 }
 
-DIMAGE_DATA_PROC( void,do_hlineAlpha,( Image pImage, S_32 y, S_32 xfrom, S_32 xto, CDATA color ))
+IMAGE_DATA_PROC( void,do_hlineAlpha,( Image pImage, S_32 y, S_32 xfrom, S_32 xto, CDATA color ))
 {
-	VidlibProxy2_do_line( pImage, xfrom, y, xto, y, color );
+	VidlibProxy_do_line( pImage, xfrom, y, xto, y, color );
 }
 
-DIMAGE_DATA_PROC( void,do_vlineAlpha,( Image pImage, S_32 x, S_32 yfrom, S_32 yto, CDATA color ))
+IMAGE_DATA_PROC( void,do_vlineAlpha,( Image pImage, S_32 x, S_32 yfrom, S_32 yto, CDATA color ))
 {
-	VidlibProxy2_do_line( pImage, x, yfrom, x, yto, color );
+	VidlibProxy_do_line( pImage, x, yfrom, x, yto, color );
 }
 
 static SFTFont CPROC VidlibProxy_GetDefaultFont ( void )
@@ -2935,7 +2936,7 @@ static SFTFont CPROC VidlibProxy_LoadFont ( SFTFont font )
 	Internal
 	Interface index 47												  */	IMAGE_PROC_PTR( SFTFont, AcceptTransferredFont )	  ( DataState state );
 
-DIMAGE_DATA_PROC( CDATA, ColorAverage,( CDATA c1, CDATA c2
+IMAGE_DATA_PROC( CDATA, ColorAverage,( CDATA c1, CDATA c2
 													, int d, int max ))
 {
 	return c1;
@@ -3172,15 +3173,15 @@ static
 		, VidlibProxy_BlotImageEx
 		, VidlibProxy_BlotImageSizedEx
 		, VidlibProxy_BlotScaledImageSizedEx
-		, &VidlibProxy_plot
-		, &VidlibProxy_plotalpha
-		, &VidlibProxy_getpixel
-		, &VidlibProxy_do_line
-		, &VidlibProxy_do_lineAlpha
-		, &VidlibProxy_do_hline
-		, &VidlibProxy_do_vline
-		, &VidlibProxy_do_hlineAlpha
-		, &VidlibProxy_do_vlineAlpha
+		, VidlibProxy_plot
+		, VidlibProxy_plotalpha
+		, VidlibProxy_getpixel
+		, VidlibProxy_do_line
+		, VidlibProxy_do_lineAlpha
+		, VidlibProxy_do_hline
+		, VidlibProxy_do_vline
+		, VidlibProxy_do_hlineAlpha
+		, VidlibProxy_do_vlineAlpha
 		, VidlibProxy_GetDefaultFont
 		, VidlibProxy_GetFontHeight
 		, VidlibProxy_GetStringSizeFontEx
@@ -3201,7 +3202,7 @@ static
 		, NULL//VidlibProxy_ContinueTransferData
 		, NULL//VidlibProxy_DecodeTransferredImage
 		, NULL//VidlibProxy_AcceptTransferredFont
-		, &VidlibProxy_ColorAverage
+		, VidlibProxy_ColorAverage
 		, NULL//VidlibProxy_SyncImage
 		, VidlibProxy_GetImageSurface
 		, NULL//VidlibProxy_IntersectRectangle

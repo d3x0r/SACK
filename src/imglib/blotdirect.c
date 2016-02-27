@@ -9,6 +9,7 @@
  *  consult doc/image.html
  *
  */
+#define FORCE_COLOR_MACROS
 
 #define IMAGE_LIBRARY_SOURCE
 
@@ -55,7 +56,7 @@ namespace image {
 //---------------------------------------------------------------------------
 //---------------------------------------------------------------------------
 
-void CPROC cCopyPixelsT0( PCDATA po, PCDATA  pi
+static void CopyPixelsT0( PCDATA po, PCDATA  pi
 								  , S_32 oo, S_32 oi
 								  , _32 ws, _32 hs
 									)
@@ -67,7 +68,7 @@ void CPROC cCopyPixelsT0( PCDATA po, PCDATA  pi
 
 //---------------------------------------------------------------------------
 
- void CPROC cCopyPixelsT1( PCDATA po, PCDATA  pi
+static void CopyPixelsT1( PCDATA po, PCDATA  pi
 								  , S_32 oo, S_32 oi
 								  , _32 ws, _32 hs
 									)
@@ -83,7 +84,7 @@ void CPROC cCopyPixelsT0( PCDATA po, PCDATA  pi
 
 //---------------------------------------------------------------------------
 
- void CPROC cCopyPixelsTA( PCDATA po, PCDATA  pi
+static void CopyPixelsTA( PCDATA po, PCDATA  pi
 								  , S_32 oo, S_32 oi
 								  , _32 ws, _32 hs
 								  , _32 nTransparent )
@@ -101,7 +102,7 @@ void CPROC cCopyPixelsT0( PCDATA po, PCDATA  pi
 
 //---------------------------------------------------------------------------
 
- void CPROC cCopyPixelsTImgA( PCDATA po, PCDATA  pi
+static void CopyPixelsTImgA( PCDATA po, PCDATA  pi
 								  , S_32 oo, S_32 oi
 								  , _32 ws, _32 hs
 								  , _32 nTransparent )
@@ -119,7 +120,7 @@ void CPROC cCopyPixelsT0( PCDATA po, PCDATA  pi
 }
 //---------------------------------------------------------------------------
 
- void CPROC cCopyPixelsTImgAI( PCDATA po, PCDATA  pi
+static void CopyPixelsTImgAI( PCDATA po, PCDATA  pi
 								  , S_32 oo, S_32 oi
 								  , _32 ws, _32 hs
 								  , _32 nTransparent )
@@ -144,7 +145,7 @@ void CPROC cCopyPixelsT0( PCDATA po, PCDATA  pi
 //---------------------------------------------------------------------------
 //---------------------------------------------------------------------------
 
-void CPROC cInvertPixelsT0( PCDATA po, PCDATA  pi
+static void InvertPixelsT0( PCDATA po, PCDATA  pi
 								  , S_32 oo, S_32 oi
 								  , _32 ws, _32 hs
 									)
@@ -156,7 +157,7 @@ void CPROC cInvertPixelsT0( PCDATA po, PCDATA  pi
 
 //---------------------------------------------------------------------------
 
- void CPROC cInvertPixelsT1( PCDATA po, PCDATA  pi
+static void InvertPixelsT1( PCDATA po, PCDATA  pi
 								  , S_32 oo, S_32 oi
 								  , _32 ws, _32 hs
 									)
@@ -172,7 +173,7 @@ void CPROC cInvertPixelsT0( PCDATA po, PCDATA  pi
 
 //---------------------------------------------------------------------------
 
- void CPROC cInvertPixelsTA( PCDATA po, PCDATA  pi
+static void InvertPixelsTA( PCDATA po, PCDATA  pi
 								  , S_32 oo, S_32 oi
 								  , _32 ws, _32 hs
 								  , _32 nTransparent )
@@ -190,7 +191,7 @@ void CPROC cInvertPixelsT0( PCDATA po, PCDATA  pi
 
 //---------------------------------------------------------------------------
 
- void CPROC cInvertPixelsTImgA( PCDATA po, PCDATA  pi
+static void InvertPixelsTImgA( PCDATA po, PCDATA  pi
 								  , S_32 oo, S_32 oi
 								  , _32 ws, _32 hs
 								  , _32 nTransparent )
@@ -208,7 +209,7 @@ void CPROC cInvertPixelsT0( PCDATA po, PCDATA  pi
 }
 //---------------------------------------------------------------------------
 
- void CPROC cInvertPixelsTImgAI( PCDATA po, PCDATA  pi
+static void InvertPixelsTImgAI( PCDATA po, PCDATA  pi
 								  , S_32 oo, S_32 oi
 								  , _32 ws, _32 hs
 								  , _32 nTransparent )
@@ -233,7 +234,7 @@ void CPROC cInvertPixelsT0( PCDATA po, PCDATA  pi
 //---------------------------------------------------------------------------
 //---------------------------------------------------------------------------
 
- void CPROC cCopyPixelsShadedT0( PCDATA po, PCDATA  pi
+static void CopyPixelsShadedT0( PCDATA po, PCDATA  pi
 									 , S_32 oo, S_32 oi
 									 , _32 ws, _32 hs
 									 , CDATA c )
@@ -246,7 +247,7 @@ void CPROC cInvertPixelsT0( PCDATA po, PCDATA  pi
 }
 
 //---------------------------------------------------------------------------
- void CPROC cCopyPixelsShadedT1( PCDATA po, PCDATA  pi
+static void CopyPixelsShadedT1( PCDATA po, PCDATA  pi
 									 , S_32 oo, S_32 oi
 									 , _32 ws, _32 hs
 									 , CDATA c )
@@ -261,7 +262,7 @@ void CPROC cInvertPixelsT0( PCDATA po, PCDATA  pi
 }
 //---------------------------------------------------------------------------
 
- void CPROC cCopyPixelsShadedTA( PCDATA po, PCDATA  pi
+static void CopyPixelsShadedTA( PCDATA po, PCDATA  pi
 									 , S_32 oo, S_32 oi
 									 , _32 ws, _32 hs
 									 , _32 nTransparent
@@ -278,7 +279,7 @@ void CPROC cInvertPixelsT0( PCDATA po, PCDATA  pi
 }
 
 //---------------------------------------------------------------------------
- void CPROC cCopyPixelsShadedTImgA( PCDATA po, PCDATA  pi
+static void CopyPixelsShadedTImgA( PCDATA po, PCDATA  pi
 									 , S_32 oo, S_32 oi
 									 , _32 ws, _32 hs
 									 , _32 nTransparent
@@ -298,7 +299,7 @@ void CPROC cInvertPixelsT0( PCDATA po, PCDATA  pi
 }
 
 //---------------------------------------------------------------------------
- void CPROC cCopyPixelsShadedTImgAI( PCDATA po, PCDATA  pi
+static void CopyPixelsShadedTImgAI( PCDATA po, PCDATA  pi
 									 , S_32 oo, S_32 oi
 									 , _32 ws, _32 hs
 									 , _32 nTransparent
@@ -323,7 +324,7 @@ void CPROC cInvertPixelsT0( PCDATA po, PCDATA  pi
 
 //---------------------------------------------------------------------------
 
- void CPROC cCopyPixelsMultiT0( PCDATA po, PCDATA  pi
+static void CopyPixelsMultiT0( PCDATA po, PCDATA  pi
 									 , S_32 oo, S_32 oi
 									 , _32 ws, _32 hs
 									 , CDATA r, CDATA g, CDATA b )
@@ -340,7 +341,7 @@ void CPROC cInvertPixelsT0( PCDATA po, PCDATA  pi
 }
 
 //---------------------------------------------------------------------------
- void CPROC cCopyPixelsMultiT1( PCDATA po, PCDATA  pi
+static void CopyPixelsMultiT1( PCDATA po, PCDATA  pi
 									 , S_32 oo, S_32 oi
 									 , _32 ws, _32 hs
 									 , CDATA r, CDATA g, CDATA b )
@@ -357,7 +358,7 @@ void CPROC cInvertPixelsT0( PCDATA po, PCDATA  pi
 	EndLoop
 }
 //---------------------------------------------------------------------------
- void CPROC cCopyPixelsMultiTA( PCDATA po, PCDATA  pi
+static void CopyPixelsMultiTA( PCDATA po, PCDATA  pi
 									 , S_32 oo, S_32 oi
 									 , _32 ws, _32 hs
 									 , _32 nTransparent
@@ -374,7 +375,7 @@ void CPROC cInvertPixelsT0( PCDATA po, PCDATA  pi
 	EndLoop
 }
 //---------------------------------------------------------------------------
- void CPROC cCopyPixelsMultiTImgA( PCDATA po, PCDATA  pi
+static void CopyPixelsMultiTImgA( PCDATA po, PCDATA  pi
 									 , S_32 oo, S_32 oi
 									 , _32 ws, _32 hs
 									 , _32 nTransparent
@@ -395,7 +396,7 @@ void CPROC cInvertPixelsT0( PCDATA po, PCDATA  pi
 	EndLoop
 }
 //---------------------------------------------------------------------------
- void CPROC cCopyPixelsMultiTImgAI( PCDATA po, PCDATA  pi
+static void CopyPixelsMultiTImgAI( PCDATA po, PCDATA  pi
 									 , S_32 oo, S_32 oi
 									 , _32 ws, _32 hs
 									 , _32 nTransparent

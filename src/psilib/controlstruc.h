@@ -438,6 +438,8 @@ typedef struct common_control_frame
 		BIT_FIELD bSetBorderType : 1;
 		// set when the close button has been added to caption_buttons (standardized)
 		BIT_FIELD bCloseButtonAdded : 1;
+		// set while initially opening a display; is a carry-over for bInitial
+		BIT_FIELD bOpeningFrameDisplay : 1;
 	} flags;
 
 

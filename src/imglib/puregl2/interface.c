@@ -18,7 +18,7 @@ IMAGE_NAMESPACE
 
 IMAGE_INTERFACE RealImageInterface = {
   SetStringBehavior
-, SetBlotMethod
+, NULL //SetBlotMethod
 
 , BuildImageFileEx               
 , MakeImageFileEx                
@@ -37,31 +37,17 @@ IMAGE_INTERFACE RealImageInterface = {
    , BlotScaledImageSizedEx         
 
    //, &plotraw                        
-#ifdef STUPID_NO_DATA_EXPORTS
-   , &_plot                           
-   , &_plotalpha                      
-   , &_getpixel
+   , plot
+   , plotalpha
+   , getpixel
 
-   , &_do_line                        
-   , &_do_lineAlpha                   
+   , do_line
+   , do_lineAlpha
 
-   , &_do_hline                       
-   , &_do_vline                       
-   , &_do_hlineAlpha                  
-   , &_do_vlineAlpha
-#else
-   , &plot                           
-   , &plotalpha                      
-   , &getpixel
-
-   , &do_line                        
-   , &do_lineAlpha                   
-
-   , &do_hline                       
-   , &do_vline                       
-   , &do_hlineAlpha                  
-   , &do_vlineAlpha
-#endif
+   , do_hline
+   , do_vline
+   , do_hlineAlpha
+   , do_vlineAlpha
    , GetDefaultFont
    , GetFontHeight
    , GetStringSizeFontEx
@@ -230,7 +216,7 @@ PRIORITY_PRELOAD( ImageRegisterInterface, IMAGE_PRELOAD_PRIORITY )
 		l.scale = 1.0f / l.scale;
 
 	// this initializes some of the interface methods
-	SetBlotMethod( BLOT_C );
+	//SetBlotMethod( BLOT_C );
 	RealImageInterface._IsImageTargetFinal = IsImageTargetFinal;
 }
 

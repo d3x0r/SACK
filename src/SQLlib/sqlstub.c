@@ -155,7 +155,10 @@ struct update_task_def
    DeclareLink( struct update_task_def );
 };
 
-GLOBAL *global_sqlstub_data;
+struct pssql_global *global_sqlstub_data;
+#ifdef g
+#  undef g
+#endif
 #define g (*global_sqlstub_data)
 
 //----------------------------------------------------------------------

@@ -7,13 +7,49 @@
 #define __MAX_PATH__ 256
 
 
+typedef struct file_tracking_tag
+{
+	int nLine;
+	char name[__MAX_PATH__]; // if I use malloc this dynamic member failed ...
+	char longname[__MAX_PATH__]; // if I use malloc this dynamic member failed ...
+	FILE *file;
+	PTEXT line; // last line read...
+	PTEXT pParsed; // last line parsed
+	PTEXT pNextWord; // next token to be used...
+	struct file_tracking_tag *prior; // stack...
+	struct file_dependancy_tag *pFileDep;
+	int  bBlockComment; // state remains multi-lines
+	int nIfLevel; // level of ifs started when this file is opened.
 
-int OpenInputFile( char *file );
+				  // -- state tracking per file --
+				  /*
+				  int nState;
+
+				  int nIfLevels;  // count up and down always...
+				  int nIfLevelElse; // what level to find the else on...
+				  */
+} FILETRACK, *PFILETRACK;
+
+
+typedef struct file_dependancy_tag
+{
+	char full_name[__MAX_PATH__];
+	char base_name[__MAX_PATH__];
+	struct file_dependancy_tag *pDependedBy  // what file included this
+		, *pDependsOn // first file this one depends on
+		, *pAlso;  // next file which pDepended by depends on
+} FILEDEP, *PFILEDEP;
+
+
+void SetCurrentPath( char *path );
+int OpenInputFile( char *basename, char *file );
 int OpenOutputFile( char *newfile );
 int OpenStdOutputFile( void );
-int OpenNewInputFile( char *name, char *pFile, int nLine, int bDepend, int bNext );
+int OpenNewInputFile( char *basename, char *name, char *pFile, int nLine, int bDepend, int bNext );
 void CloseInputFileEx( DBG_VOIDPASS );
 #define CloseInputFile() CloseInputFileEx( DBG_VOIDSRC )
+
+PFILEDEP AddFileDepend( PFILETRACK pft, char *basename, char *filename );
 
 LOGICAL AlreadyLoaded( char *filename );
 
@@ -34,6 +70,7 @@ PTEXT *GetCurrentTextLine( void );
 PTEXT StepCurrentWord( void );
 PTEXT GetNextWord( void );
 void  SetCurrentWord( PTEXT word );
+char *pathrchr( char *path );
 
 PTEXT ReadLineEx( int Append DBG_PASS );
 #define ReadLine(a) ReadLineEx(a DBG_SRC)

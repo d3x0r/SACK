@@ -694,6 +694,7 @@ void CPROC DrawThinFrame( PSI_CONTROL pc )
 	_32 height = window->height;
 	if( /*pc->flags.bInitial ||*/ pc->flags.bHidden ) 
 		return;
+	//lprintf( "Draw thin frame: %08x %08x  %d %d", basecolor(pc)[SHADOW], basecolor(pc)[HIGHLIGHT], width, height );
 	do_hline( window, 0, 0, width-1, basecolor(pc)[HIGHLIGHT] );
 	do_vline( window, 0, 0, height-1, basecolor(pc)[HIGHLIGHT] );
 	do_vline( window, width -1, 0, height-1, basecolor(pc)[SHADOW] );
@@ -707,6 +708,7 @@ void CPROC DrawThinFrameInverted( PSI_CONTROL pc )
 	_32 width = window->width;
 	_32 height = window->height;
 	if( /*pc->flags.bInitial ||*/ pc->flags.bHidden ) return;
+	//lprintf( "Draw thin frame Inverted: %08x %08x  %d %d", basecolor(pc)[SHADOW], basecolor(pc)[HIGHLIGHT], width, height );
 	do_hline( window, 0, 0, width-1, basecolor(pc)[SHADOW] );
 	do_vline( window, 0, 0, height-1, basecolor(pc)[SHADOW] );
 	do_vline( window, width -1, 0, height-1, basecolor(pc)[HIGHLIGHT] );

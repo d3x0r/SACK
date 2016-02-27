@@ -50,17 +50,17 @@
 #     ifdef IMAGE_LIBRARY_SOURCE
 #        define IMAGE_PROC  EXPORT_METHOD
 // this sometimes needs an extra 'extern'
-#           ifdef IMAGE_MAIN
-#        define IMAGE_PROC_D EXPORT_METHOD
-#           else
-#        define IMAGE_PROC_D extern EXPORT_METHOD
-#           endif
+//#           ifdef IMAGE_MAIN
+//#        define IMAGE_PROC_D EXPORT_METHOD
+//#           else
+//#        define IMAGE_PROC_D extern EXPORT_METHOD
+//#           endif
 #     else
 /* Define the linkage type of the routine... probably
    __declspec(dllimport) if not building the library. */
 #        define IMAGE_PROC IMPORT_METHOD
 // this sometimes needs an extra 'extern'
-#        define IMAGE_PROC_D  IMPORT_METHOD
+//#        define IMAGE_PROC_D  IMPORT_METHOD
 #     endif
 
 #if defined( _WIN32 ) && !defined( _OPENGL_DRIVER ) && !defined( _D3D_DRIVER ) && !defined( _D3D10_DRIVER ) && !defined( _D3D11_DRIVER )
@@ -425,7 +425,7 @@ ALPHA_TRANSPARENT_MAX = 0x2FF
           // as n increases, the color slowly goes from WHITE to BLACK.
       }
       </code>                                                                        */
-   IMAGE_PROC_D  CDATA (IMAGE_API *ColorAverage)( CDATA c1, CDATA c2, int d, int max );
+   IMAGE_PROC  CDATA ColorAverage( CDATA c1, CDATA c2, int d, int max );
 
    /* Creates an image from user defined parts. The buffer used is
       from the user. This was used by the video library, but
@@ -798,7 +798,7 @@ ALPHA_TRANSPARENT_MAX = 0x2FF
    Color :  color to put at the coordinate. image will be set
             exactly to this color, and whatever the alpha of the
             color is.                                            */
-   IMAGE_PROC_D  void (IMAGE_API *plot)       ( Image pi, S_32 x, S_32 y, CDATA c );
+   IMAGE_PROC  void plot       ( Image pi, S_32 x, S_32 y, CDATA c );
    /* A function pointer to the function which sets a pixel in an
       image at a specified x, y coordinate.
       Parameters
@@ -807,7 +807,7 @@ ALPHA_TRANSPARENT_MAX = 0x2FF
       Y :      y coordinate to get pixel color
       Color :  color to put at the coordinate. Alpha blending will be
                done.                                                  */
-   IMAGE_PROC_D  void (IMAGE_API *plotalpha)  ( Image pi, S_32 x, S_32 y, CDATA c );
+   IMAGE_PROC  void plotalpha  ( Image pi, S_32 x, S_32 y, CDATA c );
    /* A function pointer to the function which gets a pixel from an
       image at a specified x, y coordinate.
       Parameters
@@ -817,12 +817,12 @@ ALPHA_TRANSPARENT_MAX = 0x2FF
       
       Returns
       CDATA color in the Image at the specified coordinate.         */
-   IMAGE_PROC_D  CDATA (IMAGE_API *getpixel)  ( Image pi, S_32 x, S_32 y );
+   IMAGE_PROC  CDATA getpixel  ( Image pi, S_32 x, S_32 y );
 //-------------------------------
 // Line functions  (lineasm.asm) // should include a line.c ... for now core was assembly...
 //-------------------------------
-   IMAGE_PROC_D  void (IMAGE_API *do_line)      ( Image pBuffer, S_32 x, S_32 y, S_32 xto, S_32 yto, CDATA color );  // d is color data...
-   IMAGE_PROC_D  void (IMAGE_API *do_lineAlpha) ( Image pBuffer, S_32 x, S_32 y, S_32 xto, S_32 yto, CDATA color);  // d is color data...
+   IMAGE_PROC  void do_line      ( Image pBuffer, S_32 x, S_32 y, S_32 xto, S_32 yto, CDATA color );  // d is color data...
+   IMAGE_PROC  void do_lineAlpha ( Image pBuffer, S_32 x, S_32 y, S_32 xto, S_32 yto, CDATA color);  // d is color data...
 
    /* This is a function pointer that references a function to do
       optimized horizontal lines. The function pointer is updated
@@ -836,7 +836,7 @@ ALPHA_TRANSPARENT_MAX = 0x2FF
       color :   the color of the line. This color will be set to the
                 surface, the alpha result will be the alpha of this
                 color.                                                 */
-   IMAGE_PROC_D  void (IMAGE_API *do_hline)      ( Image pImage, S_32 y, S_32 xfrom, S_32 xto, CDATA color );
+   IMAGE_PROC  void do_hline      ( Image pImage, S_32 y, S_32 xfrom, S_32 xto, CDATA color );
    /* This is a function pointer that references a function to do
       optimized vertical lines. The function pointer is updated
       when SetBlotMethod() is called.
@@ -851,7 +851,7 @@ ALPHA_TRANSPARENT_MAX = 0x2FF
       color :   the color of the line. This color will be set to the
                 surface, the alpha result will be the alpha of this
                 color.                                               */
-   IMAGE_PROC_D  void (IMAGE_API *do_vline)      ( Image pImage, S_32 x, S_32 yfrom, S_32 yto, CDATA color );
+   IMAGE_PROC  void do_vline      ( Image pImage, S_32 x, S_32 yfrom, S_32 yto, CDATA color );
    /* This is a function pointer that references a function to do
       optimized horizontal lines with alpha blending. The function
       pointer is updated when SetBlotMethod() is called.
@@ -863,7 +863,7 @@ ALPHA_TRANSPARENT_MAX = 0x2FF
       x_to :    X coordinate to draw to
       color :   the color of the line (alpha component of the color
                 will be applied)                                    */
-   IMAGE_PROC_D  void (IMAGE_API *do_hlineAlpha) ( Image pImage, S_32 y, S_32 xfrom, S_32 xto, CDATA color );
+   IMAGE_PROC  void do_hlineAlpha ( Image pImage, S_32 y, S_32 xfrom, S_32 xto, CDATA color );
    /* This is a function pointer that references a function to do
       optimized vertical lines with alpha blending. The function
       pointer is updated when SetBlotMethod() is called.
@@ -877,7 +877,7 @@ ALPHA_TRANSPARENT_MAX = 0x2FF
       y_to :    Y coordinate to draw to
       color :   the color of the line (alpha component of the color
                 will be applied)                                    */
-   IMAGE_PROC_D  void (IMAGE_API *do_vlineAlpha) ( Image pImage, S_32 x, S_32 yfrom, S_32 yto, CDATA color );
+   IMAGE_PROC  void do_vlineAlpha ( Image pImage, S_32 x, S_32 yfrom, S_32 yto, CDATA color );
 	/* routine which iterates through the points along a lone from
 	   x,y to xto,yto, calling a user function at each point.
 	   Parameters
@@ -910,9 +910,9 @@ ALPHA_TRANSPARENT_MAX = 0x2FF
 	       do_lineExV( image, 10, 10, 80, 80, BASE_COLOR_BLACK, MyPlotter );
 	   }
 	   </code>                                                               */
-	IMAGE_PROC_D  void (IMAGE_API *do_lineExV)    ( Image pImage, S_32 x, S_32 y
-									, S_32 xto, S_32 yto, CDATA color
-		                            , void (*func)( Image pif, S_32 x, S_32 y, int d ) );
+	IMAGE_PROC  void do_lineExV    ( Image pImage, S_32 x, S_32 y
+									, S_32 xto, S_32 yto, PTRSZVAL color
+		                            , void (*func)( Image pif, S_32 x, S_32 y, PTRSZVAL d ) );
    /* \Returns the correct SFTFont pointer to the default font. In all
       font functions, NULL may be used as the font, and this is the
       font that will be used.
@@ -1520,7 +1520,7 @@ _INTERFACE_NAMESPACE
 #define IMAGE_PROC_PTR(type,name) type (CPROC*_##name)
 /* Macro to build function pointer entries in the image
    interface.                                           */
-#define DIMAGE_PROC_PTR(type,name) type (CPROC**_##name)
+//#define DIMAGE_PROC_PTR(type,name) type (CPROC**_##name)
 /* This defines the interface call table. each function
    available in the API is reflected in this interface. It
    provdes a function table so applications don't have to be
@@ -1610,24 +1610,24 @@ typedef struct image_interface_tag
 
 
 /*Internal
-   Interface index 21*/   DIMAGE_PROC_PTR( void,plot)      ( Image pi, S_32 x, S_32 y, CDATA c );
+   Interface index 21*/   IMAGE_PROC_PTR( void,plot)      ( Image pi, S_32 x, S_32 y, CDATA c );
 /*Internal
-   Interface index 22*/   DIMAGE_PROC_PTR( void,plotalpha) ( Image pi, S_32 x, S_32 y, CDATA c );
+   Interface index 22*/   IMAGE_PROC_PTR( void,plotalpha) ( Image pi, S_32 x, S_32 y, CDATA c );
 /*Internal
-   Interface index 23*/   DIMAGE_PROC_PTR( CDATA,getpixel) ( Image pi, S_32 x, S_32 y );
+   Interface index 23*/   IMAGE_PROC_PTR( CDATA,getpixel) ( Image pi, S_32 x, S_32 y );
 /*Internal
-   Interface index 24*/   DIMAGE_PROC_PTR( void,do_line)     ( Image pBuffer, S_32 x, S_32 y, S_32 xto, S_32 yto, CDATA color );  // d is color data...
+   Interface index 24*/   IMAGE_PROC_PTR( void,do_line)     ( Image pBuffer, S_32 x, S_32 y, S_32 xto, S_32 yto, CDATA color );  // d is color data...
 /*Internal
-   Interface index 25*/   DIMAGE_PROC_PTR( void,do_lineAlpha)( Image pBuffer, S_32 x, S_32 y, S_32 xto, S_32 yto, CDATA color);  // d is color data...
+   Interface index 25*/   IMAGE_PROC_PTR( void,do_lineAlpha)( Image pBuffer, S_32 x, S_32 y, S_32 xto, S_32 yto, CDATA color);  // d is color data...
 
 /*Internal
-   Interface index 26*/   DIMAGE_PROC_PTR( void,do_hline)     ( Image pImage, S_32 y, S_32 xfrom, S_32 xto, CDATA color );
+   Interface index 26*/   IMAGE_PROC_PTR( void,do_hline)     ( Image pImage, S_32 y, S_32 xfrom, S_32 xto, CDATA color );
 /*Internal
-   Interface index 27*/   DIMAGE_PROC_PTR( void,do_vline)     ( Image pImage, S_32 x, S_32 yfrom, S_32 yto, CDATA color );
+   Interface index 27*/   IMAGE_PROC_PTR( void,do_vline)     ( Image pImage, S_32 x, S_32 yfrom, S_32 yto, CDATA color );
 /*Internal
-   Interface index 28*/   DIMAGE_PROC_PTR( void,do_hlineAlpha)( Image pImage, S_32 y, S_32 xfrom, S_32 xto, CDATA color );
+   Interface index 28*/   IMAGE_PROC_PTR( void,do_hlineAlpha)( Image pImage, S_32 y, S_32 xfrom, S_32 xto, CDATA color );
 /*Internal
-   Interface index 29*/   DIMAGE_PROC_PTR( void,do_vlineAlpha)( Image pImage, S_32 x, S_32 yfrom, S_32 yto, CDATA color );
+   Interface index 29*/   IMAGE_PROC_PTR( void,do_vlineAlpha)( Image pImage, S_32 x, S_32 yfrom, S_32 yto, CDATA color );
 
 /* <combine sack::image::GetDefaultFont>
    
@@ -1712,7 +1712,7 @@ typedef struct image_interface_tag
    Internal
    Interface index 47                                      */   IMAGE_PROC_PTR( SFTFont, AcceptTransferredFont )     ( DataState state );
 /*Internal
-   Interface index 48*/   DIMAGE_PROC_PTR( CDATA, ColorAverage )( CDATA c1, CDATA c2
+   Interface index 48*/   IMAGE_PROC_PTR( CDATA, ColorAverage )( CDATA c1, CDATA c2
                                               , int d, int max );
 /* <combine sack::image::SyncImage>
    
@@ -1966,7 +1966,7 @@ IMAGE_PROC_PTR( void, ResetImageBuffers )( Image image, LOGICAL image_only );
 #define GetStringRenderSizeFontEx          PROC_ALIAS(GetStringRenderSizeFontEx )
 #define LoadImageFileFromGroupEx          PROC_ALIAS(LoadImageFileFromGroupEx )
 #define SetStringBehavior                  PROC_ALIAS(SetStringBehavior )
-#define SetBlotMethod                      PROC_ALIAS(SetBlotMethod )
+#define SetBlotMethod                      //PROC_ALIAS(SetBlotMethod )
 #define BuildImageFileEx                   PROC_ALIAS(BuildImageFileEx )
 #define MakeImageFileEx                    PROC_ALIAS(MakeImageFileEx )
 #define MakeSubImageEx                     PROC_ALIAS(MakeSubImageEx )
@@ -2160,7 +2160,7 @@ IMAGE_PROC_PTR( void, ResetImageBuffers )( Image image, LOGICAL image_only );
 #define PLEVEL_ALIAS(name)      (*PASTELEVEL(USE_IMAGE_LEVEL,name))
 #  endif
 #define SetStringBehavior                  LEVEL_ALIAS(SetStringBehavior )
-#define SetBlotMethod                      LEVEL_ALIAS(SetBlotMethod )
+#define SetBlotMethod                      //LEVEL_ALIAS(SetBlotMethod )
 #define BuildImageFileEx                   LEVEL_ALIAS(BuildImageFileEx )
 #define MakeImageFileEx                    LEVEL_ALIAS(MakeImageFileEx )
 #define MakeSubImageEx                     LEVEL_ALIAS(MakeSubImageEx )
@@ -2175,16 +2175,16 @@ IMAGE_PROC_PTR( void, ResetImageBuffers )( Image image, LOGICAL image_only );
 #define BlotImageSizedEx                   LEVEL_ALIAS(BlotImageSizedEx )
 #define BlotImageEx                        LEVEL_ALIAS(BlotImageEx )
 #define BlotScaledImageSizedEx             LEVEL_ALIAS(BlotScaledImageSizedEx )
-#define plot                               PLEVEL_ALIAS(plot )
-#define plotalpha                          PLEVEL_ALIAS(plotalpha )
+#define plot                               LEVEL_ALIAS(plot )
+#define plotalpha                          LEVEL_ALIAS(plotalpha )
 #error 566
-#define getpixel                           PLEVEL_ALIAS(getpixel )
-#define do_line                            PLEVEL_ALIAS(do_line )
-#define do_lineAlpha                       PLEVEL_ALIAS(do_lineAlpha )
-#define do_hline                           PLEVEL_ALIAS(do_hline )
-#define do_vline                           PLEVEL_ALIAS(do_vline )
-#define do_hlineAlpha                      PLEVEL_ALIAS(do_hlineAlpha )
-#define do_vlineAlpha                      PLEVEL_ALIAS(do_vlineAlpha )
+#define getpixel                           LEVEL_ALIAS(getpixel )
+#define do_line                            LEVEL_ALIAS(do_line )
+#define do_lineAlpha                       LEVEL_ALIAS(do_lineAlpha )
+#define do_hline                           LEVEL_ALIAS(do_hline )
+#define do_vline                           LEVEL_ALIAS(do_vline )
+#define do_hlineAlpha                      LEVEL_ALIAS(do_hlineAlpha )
+#define do_vlineAlpha                      LEVEL_ALIAS(do_vlineAlpha )
 #define GetDefaultFont                     LEVEL_ALIAS(GetDefaultFont )
 #define GetFontHeight                      LEVEL_ALIAS(GetFontHeight )
 #define GetStringSizeFontEx                LEVEL_ALIAS(GetStringSizeFontEx )

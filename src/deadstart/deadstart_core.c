@@ -55,7 +55,7 @@
 
 SACK_DEADSTART_NAMESPACE
 
-#undef PRELOAD
+//#undef PRELOAD
 
 EXPORT_METHOD void RunDeadstart( void );
 
@@ -97,7 +97,7 @@ struct deadstart_local_data_
 	int bSuspend;
 #define bSuspend l.bSuspend
 	int bDispatched;
-#define bDispatched l.bDispatched
+//#define bDispatched l.bDispatched
 
 	PSHUTDOWN_PROC shutdown_proc_schedule;
 #define shutdown_proc_schedule l.shutdown_proc_schedule
@@ -342,7 +342,7 @@ void InvokeDeadstart( void )
 		return;
 	}
 #ifdef WIN32
-	if( !bInitialDone && !bDispatched )
+	if( !bInitialDone && !l.bDispatched )
 	{
 #  ifndef UNDER_CE
 		if( GetConsoleWindow() )
@@ -384,7 +384,7 @@ void InvokeDeadstart( void )
 #endif
 		}
 		{
-			bDispatched = 1;
+			l.bDispatched = 1;
 			if( proc->proc
 #ifndef __LINUX__
 #if  __WATCOMC__ >= 1280
@@ -400,7 +400,7 @@ void InvokeDeadstart( void )
 				proc->proc();
 			}
 			proc->bUsed = 0;
-			bDispatched = 0;
+			l.bDispatched = 0;
 		}
 		// look to see if anything new was scheduled.  Grab the list, add it to the one's we're processing.
 		{
@@ -632,14 +632,14 @@ void BAG_Exit( int code )
 }
 
 // legacy linking code - might still be usin this for linux...
-int is_deadstart_complete( void )
+LOGICAL is_deadstart_complete( void )
 {
 	//extern _32 deadstart_complete;
 #ifndef __STATIC_GLOBALS__
 	if( deadstart_local_data )
 		return bInitialDone;//deadstart_complete;
 #endif
-	return 0;
+	return FALSE;
 }
 
 SACK_NAMESPACE_END

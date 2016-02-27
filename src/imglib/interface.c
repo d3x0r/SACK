@@ -9,6 +9,7 @@
 #include "image_common.h"
 #include "pngimage.h"
 #include "jpgimage.h"
+#include "local.h"
 IMAGE_NAMESPACE
 
 extern void CPROC MarkImageUpdated( Image child_image );
@@ -21,7 +22,7 @@ void CPROC Nothing( void )
 
 IMAGE_INTERFACE RealImageInterface = {
   SetStringBehavior
-, SetBlotMethod
+, NULL//SetBlotMethod
 
 , BuildImageFileEx               
 , MakeImageFileEx                
@@ -39,32 +40,20 @@ IMAGE_INTERFACE RealImageInterface = {
    , BlotImageSizedEx               
    , BlotScaledImageSizedEx         
 
-   //, &plotraw                        
-#ifdef STUPID_NO_DATA_EXPORTS
-   , &_plot                           
-   , &_plotalpha                      
-   , &_getpixel
+	//, &plotraw
 
-   , &_do_line                        
-   , &_do_lineAlpha                   
+   , plot
+   , plotalpha
+   , getpixel
 
-   , &_do_hline                       
-   , &_do_vline                       
-   , &_do_hlineAlpha                  
-   , &_do_vlineAlpha
-#else
-   , &plot                           
-   , &plotalpha                      
-   , &getpixel
+   , do_line
+   , do_lineAlpha
 
-   , &do_line                        
-   , &do_lineAlpha                   
+   , do_hline
+   , do_vline
+   , do_hlineAlpha
+	, do_vlineAlpha
 
-   , &do_hline                       
-   , &do_vline                       
-   , &do_hlineAlpha                  
-   , &do_vlineAlpha
-#endif
    , GetDefaultFont
    , GetFontHeight
    , GetStringSizeFontEx
@@ -89,11 +78,7 @@ IMAGE_INTERFACE RealImageInterface = {
                                  , NULL // contin transfer
                                  , NULL // decode image
                                  , NULL // accept font
-#ifdef STUPID_NO_DATA_EXPORTS
-												 , &_ColorAverage
-#else
-												 , &ColorAverage
-#endif
+  										 , ColorAverage
                                  , SyncImage
                                 , GetImageSurface
                                 , IntersectRectangle
@@ -234,7 +219,7 @@ PRIORITY_PRELOAD( ImageRegisterInterface, IMAGE_PRELOAD_PRIORITY )
 //   and the related changes may not exist in assembly objects.
 //   The only safe method is C anyhow.  AND it's not that slow
 //   what with modern compilers and all.
-   SetBlotMethod( BLOT_C );
+   //SetBlotMethod( BLOT_C );
 //#else
 	// cleans up declarations.
 //   SetBlotMethod( BLOT_C );
@@ -244,53 +229,3 @@ PRIORITY_PRELOAD( ImageRegisterInterface, IMAGE_PRELOAD_PRIORITY )
 int link_interface_please;
 IMAGE_NAMESPACE_END
 
-
-// $Log: interface.c,v $
-// Revision 1.27  2005/04/13 18:29:14  jim
-// Export DecodeMemoryToImage in interface.
-//
-// Revision 1.26  2005/04/05 11:56:04  panther
-// Adding sprite support - might have added an extra draw callback...
-//
-// Revision 1.25  2005/01/26 06:51:58  panther
-// Make image interface declaration static (private)
-//
-// Revision 1.24  2005/01/18 10:48:19  panther
-// Define image interface export so there's no conflict between image and display_image
-//
-// Revision 1.23  2004/10/25 10:39:58  d3x0r
-// Linux compilation cleaning requirements...
-//
-// Revision 1.22  2004/10/04 20:08:38  d3x0r
-// Minor adjustments for static linking
-//
-// Revision 1.21  2004/06/21 07:47:13  d3x0r
-// Account for newly moved structure files.
-//
-// Revision 1.20  2004/03/04 01:09:50  d3x0r
-// Modifications to force slashes to wlib.  Updates to Interfaces to be gotten from common interface manager.
-//
-// Revision 1.19  2003/09/19 16:40:35  panther
-// Implement Adopt and Orphan sub image - for up coming Sheet Control
-//
-// Revision 1.18  2003/09/18 12:14:49  panther
-// MergeRectangle Added.  Seems Control edit near done (fixing move/size errors)
-//
-// Revision 1.17  2003/09/15 17:06:37  panther
-// Fixed to image, display, controls, support user defined clipping , nearly clearing correct portions of frame when clearing hotspots...
-//
-// Revision 1.16  2003/08/30 10:05:01  panther
-// Fix clipping blotted images beyond dest boundries
-//
-// Revision 1.15  2003/07/24 15:21:34  panther
-// Changes to make watcom happy
-//
-// Revision 1.14  2003/04/24 00:03:49  panther
-// Added ColorAverage to image... Fixed a couple macros
-//
-// Revision 1.13  2003/03/29 15:52:53  panther
-// Add DropImageInterface
-//
-// Revision 1.12  2003/03/25 08:45:51  panther
-// Added CVS logging tag
-//

@@ -34,7 +34,7 @@
 #    define strcmp           wcscmp
 
 #    ifndef __LINUX__
-// linux also translates 'i' to 'case' in typelib.h
+// linux also translates 'i' to 'case' in sack_typelib.h
 #      define stricmp          wcsicmp
 #      define strnicmp         wcsnicmp
 //#  define strlen           mbrlen

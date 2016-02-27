@@ -11,7 +11,7 @@
 
 SQL_NAMESPACE
 
-static GLOBAL *global_sqlstub_data;
+static struct pssql_global *global_sqlstub_data;
 #define g (*global_sqlstub_data)
 PRIORITY_PRELOAD( InitGlobalSqlUtil, GLOBAL_INIT_PRELOAD_PRIORITY )
 {

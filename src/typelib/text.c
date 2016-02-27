@@ -564,8 +564,11 @@ PTEXT SegConcatEx(PTEXT output,PTEXT input,S_32 offset,size_t length DBG_PASS )
 
 	while (input&&idx<length)
 	{
-//#define min(a,b) (((a)<(b))?(a):(b))
-		len = min( GetTextSize( input ) - offset, length-idx );
+		//#define min(a,b) (((a)<(b))?(a):(b))
+		if( ( GetTextSize( input ) - offset ) < ( length-idx  ) )
+			len = GetTextSize( input ) - offset;
+		else
+         len = length - idx;
 		MemCpy( GetText(output) + idx,
 				  GetText(input) + offset,
 				  sizeof( TEXTCHAR ) * ( len + 1 ) );
@@ -3004,8 +3007,8 @@ wchar_t * CharWConvertExx ( const char *wch, size_t len DBG_PASS )
 				                 | ( (wchar_t)wch[2] & 0x3f ) << 6
 				                 | ( (wchar_t)wch[3] & 0x3f );
 				//lprintf( "literal char is %d (%08x", literal_char, literal_char );
-				ch[0] = ((wchar_t*)&literal_char)[0];
-				ch[1] = ((wchar_t*)&literal_char)[1];
+				ch[0] = 0xD800 + ( ( ( literal_char - 0x10000 ) & 0xFFC00 ) >> 10 );// ((wchar_t*)&literal_char)[0];
+				ch[1] = 0xDC00 + ( ( literal_char - 0x10000 ) & 0x3ff );// ((wchar_t*)&literal_char)[1];
 				ch++;
 				wch += 4;
 			}

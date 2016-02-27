@@ -7,7 +7,7 @@
 
 #include "global.h"
 
-//#define MEMLOG
+#define MEMLOG
 //#define VALIDATE
 
 //#pragma asm
@@ -87,8 +87,10 @@ void *AllocateEx( int size DBG_PASS ) {
 	}
 #ifdef _DEBUG
 #ifdef MEMLOG
-   if( g.bDebugLog )
-		fprintf( stddbg, WIDE("%s(%d): Allocate %d %lp\n"), pFile, nLine, size, mem->data );
+   if( g.bDebugLog ) {
+	   fprintf( stddbg, WIDE( "%s(%d): Allocate %d %p\n" ), pFile, nLine, size, mem->data );
+	   fflush( stddbg );
+   }
 #endif
 #endif
 
@@ -119,19 +121,21 @@ void ReleaseExx( void **pp DBG_PASS ) {
    PMEMBLOCK mem = (PMEMBLOCK)(((char*)p) - offsetof( MEMBLOCK, data ));
    g.nReleases++;
 #ifdef MEMLOG
-   if( g.bDebugLog )
+   if( g.bDebugLog ) {
 #ifdef _DEBUG
-		fprintf( stddbg, WIDE("%s(%d): Release %lp\n")
-                  , pFile, nLine
-			, p );
-		fprintf( stddbg, WIDE("%s(%d): %s(%d)Release %lp\n")
-                  , pFile, nLine
-                  , mem->file, mem->line
-			, p );
+	   fprintf( stddbg, WIDE( "%s(%d): Release %p\n" )
+		   , pFile, nLine
+		   , p );
+	   fprintf( stddbg, WIDE( "%s(%d): %s(%d)Release %p\n" )
+		   , pFile, nLine
+		   , mem->file, mem->line
+		   , p );
+	   fflush( stddbg );
 #else
    	fprintf( stddbg, WIDE("Release %lp\n")
 			, p );
 #endif
+   }
 #endif
 #ifdef VALIDATE
 	if( !bDisableValidate )
@@ -141,7 +145,7 @@ void ReleaseExx( void **pp DBG_PASS ) {
 #endif
    if( mem->owners != 1 )
    {
-      fprintf( stddbg, WIDE("Block %lp already free from: %s(%d) - or long ago freed (%d)...")
+      fprintf( stddbg, WIDE("Block %p already free from: %s(%d) - or long ago freed (%d)...")
 #ifdef _DEBUG
                   " %s(%d)"
 #endif

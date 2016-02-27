@@ -151,7 +151,7 @@ struct odbc_queue
 
 
 #ifdef SQLLIB_SOURCE
-typedef struct pssql_global_tag
+struct pssql_global
 {
 	CRITICALSECTION Init;
 	//POPTION_INTERFACE pOptionInterface;
@@ -197,7 +197,7 @@ typedef struct pssql_global_tag
 	int OptionVersion;
 	PLIST date_offsets;
 	PLIST odbc_queues;
-} GLOBAL;
+};
 #endif
 
 INDEX GetIndexOfName(PODBC odbc, CTEXTSTR table,CTEXTSTR name);

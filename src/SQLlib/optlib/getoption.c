@@ -27,7 +27,7 @@
 //#define DEFAULT_PUBLIC_KEY "system"
 
 SQL_NAMESPACE
-extern GLOBAL *global_sqlstub_data;
+extern struct pssql_global *global_sqlstub_data;
 SQL_NAMESPACE_END
 /*
  Dump Option table...
@@ -38,9 +38,6 @@ SQL_NAMESPACE_END
  left join optionmap as omap2 on omap2.node_id=omap.parent_node_id
  left join optionname as oname2 on omap2.name_id=oname2.name_id
 */
-SQL_NAMESPACE
-extern GLOBAL *global_sqlstub_data;
-SQL_NAMESPACE_END
 
 
 SACK_OPTION_NAMESPACE

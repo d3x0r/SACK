@@ -83,12 +83,37 @@ void SetCaptionButtonImages( struct physical_device_caption_button *caption_butt
 		if( caption_button->pc->device )
 		{
 			int y = FrameCaptionYOfs( caption_button->pc, caption_button->pc->BorderType );
+			LockRenderer( caption_button->pc->device->pActImg );
 			DrawFrameCaption( caption_button->pc );
 			UpdateDisplayPortion( caption_button->pc->device->pActImg, caption_button->pc->surface_rect.x - 1, y
 										, caption_button->pc->surface_rect.width + 2
 										, caption_button->pc->surface_rect.y - y );
+			UnlockRenderer( caption_button->pc->device->pActImg );
 		}
 	}
+}
+
+static void RefreshCaption( PSI_CONTROL pc, PPHYSICAL_DEVICE device )
+{
+	//if( !g.flags.allow_threaded_draw )
+	if( device->pActImg && !pc->flags.bOpeningFrameDisplay )
+	{
+		int y = FrameCaptionYOfs( pc, pc->BorderType );
+		LockRenderer( device->pActImg );
+		DrawFrameCaption( pc );
+		if( !pc->flags.bResizedDirty ) // set during resize operation; don't output now.
+			UpdateDisplayPortion( device->pActImg, pc->surface_rect.x - 1, y
+										, pc->surface_rect.width + 2
+										, pc->surface_rect.y - y );
+		UnlockRenderer( device->pActImg );
+	}
+	/*
+	else
+	{
+		pc->flags.bResizedDirty = 1;
+		Redraw( device->pActImg );
+	}
+	*/
 }
 
 void HideCaptionButton ( struct physical_device_caption_button *caption_button )
@@ -98,12 +123,8 @@ void HideCaptionButton ( struct physical_device_caption_button *caption_button )
 		caption_button->flags.hidden = TRUE;
 		if( caption_button->pc->device )
 		{
-			int y = FrameCaptionYOfs( caption_button->pc, caption_button->pc->BorderType );
-			DrawFrameCaption( caption_button->pc );
-			if( !caption_button->pc->flags.bResizedDirty ) // set during resize operation; don't output now.
-				UpdateDisplayPortion( caption_button->pc->device->pActImg, caption_button->pc->surface_rect.x - 1, y
-											, caption_button->pc->surface_rect.width + 2
-											, caption_button->pc->surface_rect.y - y );
+			RefreshCaption( caption_button->pc, caption_button->pc->device );
+
 		}
 	}
 }
@@ -114,12 +135,7 @@ void ShowCaptionButton ( struct physical_device_caption_button *caption_button )
 		caption_button->flags.hidden = FALSE;
 		if( caption_button->pc->device )
 		{
-			int y = FrameCaptionYOfs( caption_button->pc, caption_button->pc->BorderType );
-			DrawFrameCaption( caption_button->pc );
-			if( !caption_button->pc->flags.bResizedDirty ) // set during resize operation; don't output now.
-				UpdateDisplayPortion( caption_button->pc->device->pActImg, caption_button->pc->surface_rect.x - 1, y
-											, caption_button->pc->surface_rect.width + 2
-											, caption_button->pc->surface_rect.y - y );
+			RefreshCaption( caption_button->pc, caption_button->pc->device );
 		}
 	}
 }

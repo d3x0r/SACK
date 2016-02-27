@@ -917,15 +917,15 @@ PNG_INTERNAL_FUNCTION(void,png_zfree,(voidpf png_ptr, voidpf ptr),PNG_EMPTY);
  * PNGCBAPI at 1.5.0
  */
 
-PNG_INTERNAL_FUNCTION(void PNGCBAPI,png_default_read_data,(png_structp png_ptr,
+PNG_INTERNAL_FUNCTION(int PNGCBAPI,png_default_read_data,(png_structp png_ptr,
     png_bytep data, png_size_t length),PNG_EMPTY);
 
 #ifdef PNG_PROGRESSIVE_READ_SUPPORTED
-PNG_INTERNAL_FUNCTION(void PNGCBAPI,png_push_fill_buffer,(png_structp png_ptr,
+PNG_INTERNAL_FUNCTION(int PNGCBAPI,png_push_fill_buffer,(png_structp png_ptr,
     png_bytep buffer, png_size_t length),PNG_EMPTY);
 #endif
 
-PNG_INTERNAL_FUNCTION(void PNGCBAPI,png_default_write_data,(png_structp png_ptr,
+PNG_INTERNAL_FUNCTION(int PNGCBAPI,png_default_write_data,(png_structp png_ptr,
     png_bytep data, png_size_t length),PNG_EMPTY);
 
 #ifdef PNG_WRITE_FLUSH_SUPPORTED
@@ -951,11 +951,11 @@ PNG_INTERNAL_FUNCTION(png_uint_32,png_read_chunk_header,(png_structrp png_ptr),
    PNG_EMPTY);
 
 /* Read data from whatever input you are using into the "data" buffer */
-PNG_INTERNAL_FUNCTION(void,png_read_data,(png_structrp png_ptr, png_bytep data,
+PNG_INTERNAL_FUNCTION(int,png_read_data,(png_structrp png_ptr, png_bytep data,
     png_size_t length),PNG_EMPTY);
 
 /* Read bytes into buf, and update png_ptr->crc */
-PNG_INTERNAL_FUNCTION(void,png_crc_read,(png_structrp png_ptr, png_bytep buf,
+PNG_INTERNAL_FUNCTION(int,png_crc_read,(png_structrp png_ptr, png_bytep buf,
     png_uint_32 length),PNG_EMPTY);
 
 /* Read "skip" bytes, read the file crc, and (optionally) verify png_ptr->crc */
@@ -1176,14 +1176,14 @@ PNG_INTERNAL_FUNCTION(void,png_write_find_filter,(png_structrp png_ptr,
     png_row_infop row_info),PNG_EMPTY);
 
 #ifdef PNG_SEQUENTIAL_READ_SUPPORTED
-PNG_INTERNAL_FUNCTION(void,png_read_IDAT_data,(png_structrp png_ptr,
+PNG_INTERNAL_FUNCTION(int,png_read_IDAT_data,(png_structrp png_ptr,
    png_bytep output, png_alloc_size_t avail_out),PNG_EMPTY);
    /* Read 'avail_out' bytes of data from the IDAT stream.  If the output buffer
     * is NULL the function checks, instead, for the end of the stream.  In this
     * case a benign error will be issued if the stream end is not found or if
     * extra data has to be consumed.
     */
-PNG_INTERNAL_FUNCTION(void,png_read_finish_IDAT,(png_structrp png_ptr),
+PNG_INTERNAL_FUNCTION(int,png_read_finish_IDAT,(png_structrp png_ptr),
    PNG_EMPTY);
    /* This cleans up when the IDAT LZ stream does not end when the last image
     * byte is read; there is still some pending input.

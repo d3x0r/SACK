@@ -5,7 +5,7 @@ set( project bag.image.puregl )
 
 ADD_DEFINITIONS( -D__3D__ )
 
-set( font_sources ../font.c ../fntcache.c ../fntrender.c ../lucidaconsole.c )
+set( font_sources ../font.c ../fntcache.c ../fntrender.c ../lucidaconsole2.c )
 
 if( WIN32 )
     INCLUDE_DIRECTORIES( ../../vidlib/puregl/glew-1.9.0/include )

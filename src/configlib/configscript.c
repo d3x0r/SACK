@@ -210,7 +210,7 @@ typedef struct configuation_state {
 	PTRSZVAL (CPROC *Unhandled)( PTRSZVAL, CTEXTSTR );
 } CONFIG_STATE;
 
-typedef struct configscript_global_tag {
+struct configscript_global {
 	//LOGICAL bSaveMemDebug;
 	int _last_allocate_logging;
 	int _disabled_allocate_logging;
@@ -222,20 +222,23 @@ typedef struct configscript_global_tag {
 		BIT_FIELD bLogTrace : 1;
 		BIT_FIELD bLogLines : 1;
 	} flags;
-} GLOBAL;
+};
 
+#ifdef g
+#  undef g
+#endif
 #ifndef __STATIC_GLOBALS__
-static GLOBAL *global_config_data;
-#define g (*global_config_data)
+static struct configscript_global *global_config_data;
 PRIORITY_PRELOAD( InitGlobalConfigScript, CONFIG_SCRIPT_PRELOAD_PRIORITY )
 {
 	SimpleRegisterAndCreateGlobal( global_config_data );
 }
 
 #else
-static GLOBAL global_config_data;
-#define g (global_config_data)
+static struct configscript_global _global_config_data;
+static struct configscript_global *global_config_data = &_global_config_data;
 #endif
+#define g (*global_config_data)
 
 void DoInit( void )
 {

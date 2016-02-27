@@ -371,13 +371,13 @@ png_do_read_intrapixel(png_row_infop row_info, png_bytep row)
 }
 #endif /* MNG_FEATURES */
 
-void PNGAPI
+int PNGAPI
 png_read_row(png_structrp png_ptr, png_bytep row, png_bytep dsp_row)
 {
    png_row_info row_info;
 
    if (png_ptr == NULL)
-      return;
+      return 0;
 
    png_debug2(1, "in png_read_row (row %lu, pass %d)",
        (unsigned long)png_ptr->row_number, png_ptr->pass);
@@ -456,7 +456,7 @@ png_read_row(png_structrp png_ptr, png_bytep row, png_bytep dsp_row)
                if (dsp_row != NULL)
                   png_combine_row(png_ptr, dsp_row, 1/*display*/);
                png_read_finish_row(png_ptr);
-               return;
+               return 1;
             }
             break;
 
@@ -467,7 +467,7 @@ png_read_row(png_structrp png_ptr, png_bytep row, png_bytep dsp_row)
                   png_combine_row(png_ptr, dsp_row, 1/*display*/);
 
                png_read_finish_row(png_ptr);
-               return;
+               return 1;
             }
             break;
 
@@ -478,7 +478,7 @@ png_read_row(png_structrp png_ptr, png_bytep row, png_bytep dsp_row)
                   png_combine_row(png_ptr, dsp_row, 1/*display*/);
 
                png_read_finish_row(png_ptr);
-               return;
+               return 1;
             }
             break;
 
@@ -489,7 +489,7 @@ png_read_row(png_structrp png_ptr, png_bytep row, png_bytep dsp_row)
                   png_combine_row(png_ptr, dsp_row, 1/*display*/);
 
                png_read_finish_row(png_ptr);
-               return;
+               return 1;
             }
             break;
 
@@ -500,7 +500,7 @@ png_read_row(png_structrp png_ptr, png_bytep row, png_bytep dsp_row)
                   png_combine_row(png_ptr, dsp_row, 1/*display*/);
 
                png_read_finish_row(png_ptr);
-               return;
+               return 1;
             }
             break;
 
@@ -511,7 +511,7 @@ png_read_row(png_structrp png_ptr, png_bytep row, png_bytep dsp_row)
                   png_combine_row(png_ptr, dsp_row, 1/*display*/);
 
                png_read_finish_row(png_ptr);
-               return;
+               return 1;
             }
             break;
 
@@ -520,7 +520,7 @@ png_read_row(png_structrp png_ptr, png_bytep row, png_bytep dsp_row)
             if ((png_ptr->row_number & 1) == 0)
             {
                png_read_finish_row(png_ptr);
-               return;
+               return 1;
             }
             break;
       }
@@ -531,7 +531,8 @@ png_read_row(png_structrp png_ptr, png_bytep row, png_bytep dsp_row)
       png_error(png_ptr, "Invalid attempt to read row data");
 
    /* Fill the row with IDAT data: */
-   png_read_IDAT_data(png_ptr, png_ptr->row_buf, row_info.rowbytes + 1);
+   if( !png_read_IDAT_data(png_ptr, png_ptr->row_buf, row_info.rowbytes + 1) )
+	   return 0;
 
    if (png_ptr->row_buf[0] > PNG_FILTER_VALUE_NONE)
    {
@@ -603,7 +604,7 @@ png_read_row(png_structrp png_ptr, png_bytep row, png_bytep dsp_row)
 
    if (png_ptr->read_row_fn != NULL)
       (*(png_ptr->read_row_fn))(png_ptr, png_ptr->row_number, png_ptr->pass);
-
+   return 1;
 }
 #endif /* SEQUENTIAL_READ */
 
@@ -687,7 +688,7 @@ png_read_rows(png_structrp png_ptr, png_bytepp row,
  *
  * [*] png_handle_alpha() does not exist yet, as of this version of libpng
  */
-void PNGAPI
+int PNGAPI
 png_read_image(png_structrp png_ptr, png_bytepp image)
 {
    png_uint_32 i, image_height;
@@ -697,7 +698,7 @@ png_read_image(png_structrp png_ptr, png_bytepp image)
    png_debug(1, "in png_read_image");
 
    if (png_ptr == NULL)
-      return;
+      return 0;
 
 #ifdef PNG_READ_INTERLACING_SUPPORTED
    if ((png_ptr->flags & PNG_FLAG_ROW_INIT) == 0)
@@ -741,10 +742,12 @@ png_read_image(png_structrp png_ptr, png_bytepp image)
       rp = image;
       for (i = 0; i < image_height; i++)
       {
-         png_read_row(png_ptr, *rp, NULL);
+         if( !png_read_row(png_ptr, *rp, NULL) )
+			 return 0;
          rp++;
       }
    }
+   return 1;
 }
 #endif /* SEQUENTIAL_READ */
 
@@ -753,7 +756,7 @@ png_read_image(png_structrp png_ptr, png_bytepp image)
  * file, will verify the end is accurate, and will read any comments
  * or time information at the end of the file, if info is not NULL.
  */
-void PNGAPI
+int PNGAPI
 png_read_end(png_structrp png_ptr, png_inforp info_ptr)
 {
 #ifdef PNG_HANDLE_AS_UNKNOWN_SUPPORTED
@@ -763,7 +766,7 @@ png_read_end(png_structrp png_ptr, png_inforp info_ptr)
    png_debug(1, "in png_read_end");
 
    if (png_ptr == NULL)
-      return;
+      return 0;
 
    /* If png_read_end is called in the middle of reading the rows there may
     * still be pending IDAT data and an owned zstream.  Deal with this here.
@@ -771,7 +774,8 @@ png_read_end(png_structrp png_ptr, png_inforp info_ptr)
 #ifdef PNG_HANDLE_AS_UNKNOWN_SUPPORTED
    if (png_chunk_unknown_handling(png_ptr, png_IDAT) == 0)
 #endif
-      png_read_finish_IDAT(png_ptr);
+      if( !png_read_finish_IDAT(png_ptr) )
+		  return 0;
 
 #ifdef PNG_READ_CHECK_FOR_INVALID_INDEX_SUPPORTED
    /* Report invalid palette index; added at libng-1.5.10 */
@@ -911,6 +915,7 @@ png_read_end(png_structrp png_ptr, png_inforp info_ptr)
          png_handle_unknown(png_ptr, info_ptr, length,
             PNG_HANDLE_CHUNK_AS_DEFAULT);
    } while ((png_ptr->mode & PNG_HAVE_IEND) == 0);
+   return 1;
 }
 #endif /* SEQUENTIAL_READ */
 

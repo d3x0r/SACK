@@ -2,17 +2,11 @@
 set( project sack.msgsvr.service.plugin. )
 
 
-set(SOURCES 
-${FIRST_GCC_LIBRARY_SOURCE}
-server2
-${LAST_GCC_LIBRARY_SOURCE}
-)
+set(SOURCES server2 )
 
 
-add_library_force_source( ${project} SHARED ${SOURCES} )
-string( REPLACE "." "_" TARGET_LABEL ${project} )
+sack_add_library( ${project} SHARED ${SOURCES} )
 SET_TARGET_PROPERTIES(${project} PROPERTIES
-                  COMPILE_FLAGS  "-DTARGET_LABEL=${TARGET_LABEL}"
                   PREFIX ""
                   SUFFIX ""
                   FOLDER "Message Service"
@@ -26,22 +20,21 @@ endif( NOT MSVC )
 
 
 target_link_libraries( ${project} ${SACK_LIBRARIES} )
+if( NOT MAKING_SACK_CORE )
+	target_link_libraries( ${project} message_service )
+endif( NOT MAKING_SACK_CORE )
 install_mode_dest( ${project} )
 
 
 set( project msgsvr )
 
 set(SERVER_SOURCES 
-${FIRST_GCC_PROGRAM_SOURCE}
 server3
-${LAST_GCC_PROGRAM_SOURCE}
 )
 
-add_executable_force_source( ${project} WIN32 ${SERVER_SOURCES} )
+add_program( ${project} WIN32 ${SERVER_SOURCES} )
 
-string( REPLACE "." "_" TARGET_LABEL ${project} )
 SET_TARGET_PROPERTIES(${project} PROPERTIES
-                  COMPILE_FLAGS  "-DTARGET_LABEL=${TARGET_LABEL} -DSERVERMSG_SOURCE -DBAG"
                   FOLDER "Message Service"
 )
 target_link_libraries( ${project} ${SACK_LIBRARIES} )
@@ -57,12 +50,11 @@ server_service
 ${LAST_GCC_PROGRAM_SOURCE}
 )
 
-add_executable_force_source( ${project} WIN32 ${SERVER_SOURCES} )
-string( REPLACE "." "_" TARGET_LABEL ${project} )
-SET_TARGET_PROPERTIES(${project} PROPERTIES
-                  COMPILE_FLAGS  "-DTARGET_LABEL=${TARGET_LABEL} -DSERVERMSG_SOURCE -DBAG"
-                  FOLDER "Message Service"
+add_program( ${project} WIN32 ${SERVER_SOURCES} )
+SET_PROPERTY( TARGET ${project} APPEND PROPERTY
+                  COMPILE_FLAGS  "-DSERVERMSG_SOURCE -DBAG"
 )
+SET_TARGET_PROPERTIES( ${project} PROPERTIES FOLDER "Message Service"  )
 target_link_libraries( ${project} ${SACK_LIBRARIES} )
 
 install_mode_dest( ${project} )

@@ -183,14 +183,16 @@ png_read_chunk_header(png_structrp png_ptr)
 }
 
 /* Read data, and (optionally) run it through the CRC. */
-void /* PRIVATE */
+int /* PRIVATE */
 png_crc_read(png_structrp png_ptr, png_bytep buf, png_uint_32 length)
 {
    if (png_ptr == NULL)
-      return;
+      return 0;
 
-   png_read_data(png_ptr, buf, length);
-   png_calculate_crc(png_ptr, buf, length);
+   if( !png_read_data(png_ptr, buf, length) )
+	   return 0;
+	png_calculate_crc(png_ptr, buf, length);
+   return 1;
 }
 
 /* Optionally skip data and then check the CRC.  Depending on whether we
@@ -3940,7 +3942,7 @@ png_read_filter_row(png_structrp pp, png_row_infop row_info, png_bytep row,
 }
 
 #ifdef PNG_SEQUENTIAL_READ_SUPPORTED
-void /* PRIVATE */
+int /* PRIVATE */
 png_read_IDAT_data(png_structrp png_ptr, png_bytep output,
    png_alloc_size_t avail_out)
 {
@@ -3985,7 +3987,8 @@ png_read_IDAT_data(png_structrp png_ptr, png_bytep output,
           */
          buffer = png_read_buffer(png_ptr, avail_in, 0/*error*/);
 
-         png_crc_read(png_ptr, buffer, avail_in);
+         if( !png_crc_read(png_ptr, buffer, avail_in) )
+			 return 0;
          png_ptr->idat_size -= avail_in;
 
          png_ptr->zstream.next_in = buffer;
@@ -4051,7 +4054,7 @@ png_read_IDAT_data(png_structrp png_ptr, png_bytep output,
          else /* checking */
          {
             png_chunk_benign_error(png_ptr, png_ptr->zstream.msg);
-            return;
+            return 0;
          }
       }
    } while (avail_out > 0);
@@ -4067,9 +4070,10 @@ png_read_IDAT_data(png_structrp png_ptr, png_bytep output,
       else /* the deflate stream contained extra data */
          png_chunk_benign_error(png_ptr, "Too much image data");
    }
+   return 1;
 }
 
-void /* PRIVATE */
+int /* PRIVATE */
 png_read_finish_IDAT(png_structrp png_ptr)
 {
    /* We don't need any more data and the stream should have ended, however the
@@ -4083,7 +4087,8 @@ png_read_finish_IDAT(png_structrp png_ptr)
        * the compressed stream, but the stream may be damaged too, so even after
        * this call we may need to terminate the zstream ownership.
        */
-      png_read_IDAT_data(png_ptr, NULL, 0);
+      if( !png_read_IDAT_data(png_ptr, NULL, 0) )
+		  return 0;
       png_ptr->zstream.next_out = NULL; /* safety */
 
       /* Now clear everything out for safety; the following may not have been
@@ -4115,6 +4120,7 @@ png_read_finish_IDAT(png_structrp png_ptr)
        */
       (void)png_crc_finish(png_ptr, png_ptr->idat_size);
    }
+   return 1;
 }
 
 void /* PRIVATE */

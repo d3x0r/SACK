@@ -30,7 +30,7 @@ SACK_VFS_NAMESPACE
 
 SACK_VFS_PROC struct volume * CPROC sack_vfs_load_volume( CTEXTSTR filepath );
 SACK_VFS_PROC struct volume * CPROC sack_vfs_load_crypt_volume( CTEXTSTR filepath, CTEXTSTR userkey, CTEXTSTR devkey );
-SACK_VFS_PROC struct volume * CPROC sack_vfs_use_crypt_volume( POINTER filepath, size_t size, CTEXTSTR userkey, CTEXTSTR devkey );
+SACK_VFS_PROC struct volume * CPROC sack_vfs_use_crypt_volume( POINTER filemem, size_t size, CTEXTSTR userkey, CTEXTSTR devkey );
 SACK_VFS_PROC void            CPROC sack_vfs_unload_volume( struct volume * vol );
 SACK_VFS_PROC void            CPROC sack_vfs_shrink_volume( struct volume * vol );
 SACK_VFS_PROC LOGICAL         CPROC sack_vfs_decrypt_volume( struct volume *vol );
@@ -52,5 +52,7 @@ SACK_VFS_PROC void CPROC sack_vfs_unlink_file( PTRSZVAL psv, const char * filena
 
 
 SACK_VFS_NAMESPACE_END
-
+#ifdef __cplusplus
+using namespace sack::SACK_VFS;
+#endif
 #endif

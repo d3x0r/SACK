@@ -6,7 +6,8 @@
 #include <stdhdrs.h>
 #include <network.h>
 #include <deadstart.h>
-
+#include <html5.websocket.h>
+#include <json_emitter.h>
 #include <timers.h>
 
 #ifdef WORLDSCAPE_SERVICE_PROGRAM
@@ -47,10 +48,11 @@ struct client_world_tracker
 
 struct worldscape_client
 {
-	//struct bitset worlds;
+	struct bitset worlds;
 	_32 tracker_count;
-	//SERVICE_ROUTE pid;
-	//PCLIENT pc; // websocket that connected here
+	SERVICE_ROUTE pid;
+	PCLIENT_WORLD_TRACKER world_trackers;
+	PCLIENT pc; // websocket that connected here
 };
 
 typedef struct json_context *PJC;
@@ -68,7 +70,7 @@ typedef struct world_server_mesasge_simple_array {
 
 typedef struct world_server_world {
 	CTEXTSTR name;
-   PLIST clients; // list of websockets connected to this world
+	PLIST clients; // list of websockets connected to this world
 	CLIENT_WORLD_TRACKER world_tracker; // lines, textures and sectors...
 } WorldServerWorld, *PWorldServerWorld;
 
@@ -76,7 +78,7 @@ static struct worldscape_server_local
 {
 	_32 SrvrMsgBase;
 	PLIST clients; // list of PNETWORK 
-   PLIST worlds; // list of PWorldServerWOrlds
+	PLIST worlds; // list of PWorldServerWOrlds
 	PCLASSROOT server_opcodes;
 	PJC pjc_world_server;
 	PJCO pjco_world_server_message; // for WorldServerMessage
@@ -1032,16 +1034,16 @@ int CPROC ClientConnect( PSERVICE_ROUTE route, _32 *params, size_t param_length
 
 
 
-
+#if 0
 static void WorldServerListWorlds( PWORLDSCAPE_CLIENT client, PWorldServerMessage message )
 {
 	WorldServerMessageReplyWorlds reply;
 	reply.opcode = "List World Reply";
 
-   reply.world_names =
-   LIST_FORALL(
+	reply.world_names =
+	LIST_FORALL(
 }
-
+#endif
 
 
 
@@ -1051,7 +1053,7 @@ PTRSZVAL flatland_server_web_socket_opened( PCLIENT pc, PTRSZVAL psv )
 	client->tracker_count = 0;
 	client->world_trackers = NULL;
 	client->worlds.num = 0;
-   client->pc = pc;
+	client->pc = pc;
 	AddLink( &l.clients, client );
 	return (PTRSZVAL)client;
 }
@@ -1075,45 +1077,54 @@ void flatland_server_web_socket_error( PCLIENT pc, PTRSZVAL psv, int error )
 void flatland_server_web_socket_event( PCLIENT pc, PTRSZVAL psv, POINTER buffer, int msglen )
 {
 	PWORLDSCAPE_CLIENT client = (PWORLDSCAPE_CLIENT)psv;
-   WorldServerMessage message;
-	json_parse_message( l.pjc_world_server, l.pjco_world_server_message, buffer, &message );
+	WorldServerMessage message;
+	PJCO pjco;
+	json_parse_message( l.pjc_world_server, (CTEXTSTR)buffer, msglen, &pjco, (POINTER*)&message );
 
 	{
-      ServerFunctionResult (*f) ServerFunctionArgs;
+		ServerFunctionResult (*f) ServerFunctionArgs;
 		f = GetRegisteredProcedure( l.server_opcodes, ServerFunctionResult, message->opcode, ServerFunctionArgs );
 		if( f )
-         f( client, &message );
+			f( client, &message );
 	}
 
-   json_dispose_message( l.pjc_world_server, l.pjco_world_server_message, &message );
+	json_dispose_message( pjco, &message );
 }
 
 void DefineJSONInterface()
 {
 	PJCO pjco_root;
-   PJCO pjco; // current elemnt in the root; may be a object result
-	l.pjc_world_server = json_create_context();
+	PJCO pjco; // current elemnt in the root; may be a object result
+	PJC pjc = l.pjc_world_server = json_create_context();
 
 	pjco_root
-		= l.pjco_world_server_message = json_create_object( pjc ); // root element name won't get emitted.
-	pjco = json_create_object_member( pjc, pjco_root,
-												"opcode"
-											  , offset( WorldServerMessage, opcode ), JSON_Element_String );
-	pjco = json_create_object_member( pjc, pjco_root
-											  , "data"
-											  , offset( WorldServerMessage, data ), JSON_Element_String );
+		= l.pjco_world_server_message = json_create_object( l.pjc_world_server, sizeof( WorldServerMessage ) ); // root element name won't get emitted.
+	pjco = json_add_object_member( pjco_root,
+									"opcode"
+									, offsetof( WorldServerMessage, opcode )
+									, JSON_Element_String
+									, sizeof( ((WorldServerMessage*)0)->opcode ) );
+	pjco = json_add_object_member( pjco_root
+								, "data"
+								, offsetof( WorldServerMessage, data )
+								, JSON_Element_String
+								, sizeof( ((WorldServerMessage*)0)->data ) );
 
 	pjco_root
-		= l.pjco_world_server_message_list_world_reply = json_create_object( pjc ); // root element name won't get emitted.
-   pjco = json_create_object_member( pjc, pjco_root,
-												"opcode"
-											  , offset( WorldServerMessage, opcode ), JSON_Element_String );
-	pjco = json_create_object_member_array_pointer( pjc, pjco_root
-																 , "data"
-																 , offset( WorldServerMessageSimpleArray, pData )
-																 , JSON_Element_String
-                                                 , offset( WorldServerMessageSimpleArray, nData );
-																 );
+		= l.pjco_world_server_message_list_world_reply = json_create_object( pjc, sizeof( WorldServerMessageSimpleArray ) ); // root element name won't get emitted.
+   pjco = json_add_object_member( pjco_root		
+									, "opcode"	
+									  , offsetof( WorldServerMessageSimpleArray, opcode )
+									  , JSON_Element_String
+									  , 0 );
+#if 0
+	pjco = json_add_object_member_array_pointer( pjco_root
+												, "data"
+												, offsetof( WorldServerMessageSimpleArray, pData )
+												, JSON_Element_String
+												, offsetof( WorldServerMessageSimpleArray, nData )
+												);
+#endif
 }
 
 // enable magic linking.
@@ -1129,19 +1140,21 @@ PRELOAD( RegisterFlatlandService )
 										 , flatland_server_web_socket_error
 										 , 0
 							  );
-   DefineJSONInterface();
+
+	DefineJSONInterface();
 	l.server_opcodes = GetClassRoot( "org/d3x0r/sack/games/flatland/world/scape/server" );
 
+	RegisterFunction( "org/d3x0r/sack/games/flatland/world/scape/server"
+						, NULL
+						 , TOSTR(ServerFunctionResult)
+						 , "List Worlds"
+						 , TOSTR(ServerFunctionArgs) );
+	/*
 	RegisterFunction( "org/d3x0r/sack/games/flatland/world/scape/server", NULL
 						 , ServerFunctionResult
 						 , "List Worlds"
 						 , ServerFunctionArgs );
-
-	RegisterFunction( "org/d3x0r/sack/games/flatland/world/scape/server", NULL
-						 , ServerFunctionResult
-						 , "List Worlds"
-						 , ServerFunctionArgs );
-
+	*/
 	//PWSTR result;
 	//PeerCreatePeerName( NULL, "test.singular", &result );
 #if 0

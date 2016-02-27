@@ -1948,8 +1948,9 @@ static void DoUpdateCommonEx( PPENDING_RECT upd, PSI_CONTROL pc, int bDraw, int 
 			{
 				Image current = NULL;
 #ifdef DEBUG_UPDAATE_DRAW
-				if( g.flags.bLogDebugUpdate )
-					lprintf( WIDE("Invoking a draw self for %p at %s(%d) level %d"), pc DBG_RELAY , level );
+				if( g.flags.bLogDebugUpdate ) {
+					_lprintf( DBG_RELAY )( WIDE("Invoking a draw self for %p level %d"), pc, level );
+				}
 #endif
 				if( pc->flags.bDestroy )
 				{
@@ -2013,7 +2014,6 @@ static void DoUpdateCommonEx( PPENDING_RECT upd, PSI_CONTROL pc, int bDraw, int 
 					// this causes a lock in that layer.?
 					ResetImageBuffers( pc->Surface, FALSE );	
 					InvokeDrawMethod( pc, _DrawThySelf, ( pc ) );
-
 				}
 
 #ifdef DEBUG_UPDAATE_DRAW
@@ -2036,7 +2036,7 @@ static void DoUpdateCommonEx( PPENDING_RECT upd, PSI_CONTROL pc, int bDraw, int 
 							lprintf( WIDE( "Parent is no longer cleaned...." ) );
 #endif
 						pc->flags.bCleanedRecently = 1;
-						pc->flags.bParentCleaned = 0; // has now drawn itself, and we must assume that it's not clean.
+						//pc->flags.bParentCleaned = 0; // has now drawn itself, and we must assume that it's not clean.
 						pc->flags.children_cleaned = 0;
 					}
 
@@ -2056,7 +2056,10 @@ static void DoUpdateCommonEx( PPENDING_RECT upd, PSI_CONTROL pc, int bDraw, int 
 				// from a different place... this one only needs to
 				// worry aobut child region borders after telling them to
 				// draw - to enforce cleanest bordering...
-				if( g.flags.always_draw || ( pc->parent && !pc->parent->flags.children_cleaned ) )
+				if( g.flags.always_draw 
+					|| ( pc->parent && !pc->parent->flags.children_cleaned ) 
+					|| ( pc->flags.bParentCleaned )
+					)
 					if( pc->DrawBorder )  // and initial?
 					{
 #ifdef DEBUG_BORDER_DRAWING
@@ -2177,6 +2180,7 @@ static void DoUpdateCommonEx( PPENDING_RECT upd, PSI_CONTROL pc, int bDraw, int 
 			pc->flags.children_cleaned = 1;
 			pc->flags.bCleaning = 0;
 			pc->flags.bFirstCleaning = 1;
+			//pc->flags.bParentCleaned = 0; // has now drawn itself, and we must assume that it's not clean.
 		}
 		else
 		{
@@ -2216,6 +2220,8 @@ static void DoUpdateCommonEx( PPENDING_RECT upd, PSI_CONTROL pc, int bDraw, int 
 						DoUpdateCommonEx( upd, child, cleaned, level+1 DBG_SRC );
 					}
 				}
+				//pc->flags.bParentCleaned = 0; // has now drawn itself, and we must assume that it's not clean.
+				//pc->flags.children_cleaned = 1;
 			}
 #if DEBUG_UPDAATE_DRAW > 2
 			if( g.flags.bLogDebugUpdate )
@@ -2280,6 +2286,10 @@ void SmudgeCommonEx( PSI_CONTROL pc DBG_PASS )
 		PPHYSICAL_DEVICE device = frame?frame->device:NULL;
 		if( device )
 		{
+#if DEBUG_UPDAATE_DRAW > 0
+			if( g.flags.bLogDebugUpdate )
+				_lprintf(DBG_RELAY)( WIDE( "Add to dirty controls... Smudge %p %s" ), pc, pc->pTypeName?pc->pTypeName:WIDE( "NoTypeName" ) );
+#endif
 			if( FindLink( &device->pending_dirty_controls, pc ) == INVALID_INDEX )
 				AddLink( &device->pending_dirty_controls, pc );
 			if( !device->flags.sent_redraw && device->pActImg )
@@ -2668,6 +2678,7 @@ PROCEDURE RealCreateCommonExx( PSI_CONTROL *pResult
 	//lprintf( "Set default fraction 1/1" );
 	SetFraction( pc->scalex, 1, 1 );
 	SetFraction( pc->scaley, 1, 1 );
+	pc->flags.bInitial = 1;
 
 	//else
 	//	pc->caption.font = g.default_font;
@@ -2856,7 +2867,10 @@ PSI_PROC( void, RevealCommonEx )( PSI_CONTROL pc DBG_PASS )
 		//lprintf( WIDE( "Parent h %d i %d" ), parent_hidden, parent_initial );
 #ifdef DEBUG_UPDAATE_DRAW
 		if( g.flags.bLogDebugUpdate )
-			_xlprintf(LOG_NOISE DBG_RELAY)( WIDE("Revealing %p %s"), pc, pc->pTypeName?pc->pTypeName:WIDE( "NoTypeName" ) );
+			_xlprintf(LOG_NOISE DBG_RELAY)( WIDE("Revealing %p %s %s")
+					, pc
+					, pc->pTypeName?pc->pTypeName:WIDE( "NoTypeName" )
+					, pc->caption.text?GetText( pc->caption.text ):"" );
 #endif
 		if( pc->device )
 		{
@@ -2896,6 +2910,7 @@ PSI_PROC( void, RevealCommonEx )( PSI_CONTROL pc DBG_PASS )
 				if( g.flags.bLogDebugUpdate )
 					lprintf( WIDE( "Control was hidden, now showing." ) );
 #endif
+			//pc->flags.bParentCleaned = 1;
 			pc->flags.bHiddenParent = 0;
 		}
 		if( !pc->flags.bInitial )
@@ -2933,7 +2948,9 @@ PSI_PROC( void, DisplayFrameOverOnUnder )( PSI_CONTROL pc, PSI_CONTROL over, PRE
 			lprintf( WIDE("-------- OPEN DEVICE") );
 #endif
 		pc->flags.bInitial = FALSE;
+		pc->flags.bOpeningFrameDisplay = TRUE;
 		pf = OpenPhysicalDevice( pc, over, pActImg, under );
+		pc->flags.bOpeningFrameDisplay = FALSE;
 		pc->stack_parent = over;
 		pc->stack_child = under;
 		if( under )
@@ -3044,7 +3061,10 @@ PSI_PROC( void, HideControl )( PSI_CONTROL pc )
 		return;
 #ifdef DEBUG_UPDAATE_DRAW
 	if( g.flags.bLogDebugUpdate )
-		lprintf( WIDE( "Hide common %p %s" ), pc, pc->pTypeName?pc->pTypeName:WIDE( "NoTypeName" ) );
+		lprintf( WIDE( "Hide common %p %s %s" )
+				, pc
+				, pc->pTypeName?pc->pTypeName:WIDE( "NoTypeName" )
+				, pc->caption.text?GetText( pc->caption.text ):"" );
 #endif
 	//PSI_CONTROL _pc = pc;
 	levels++;
@@ -3083,7 +3103,7 @@ PSI_PROC( void, HideControl )( PSI_CONTROL pc )
 		PSI_CONTROL child;
 		hidden = 1;
 		if( GetFrame(pc )->device && GetFrame(pc )->device->pFocus == pc )
-         FixFrameFocus( GetFrame(pc)->device, FFF_HERE );
+			FixFrameFocus( GetFrame(pc)->device, FFF_HERE );
 		for( child = pc->child; child; child = child->next )
 		{
 			/* hide all children, which will trigger /dev/null update */

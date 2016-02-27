@@ -5,7 +5,7 @@
 //#include <stdhdrs.h>
 #endif
 #include <sack_types.h>
-#include <typelib.h> // leach, assuming this will be compiled with this part at least.
+#include <sack_typelib.h> // leach, assuming this will be compiled with this part at least.
 
 #define pastejunk_(a,b) a##b
 #define pastejunk(a,b) pastejunk_(a,b)
@@ -669,7 +669,7 @@ void name( void)
 
 #define PRIORITY_PRELOAD(name,priority) static void CPROC name(void); \
    static int CPROC pastejunk(schedule_,name)(void);   \
-	static __declspec(allocate(_STARTSEG_)) int (CPROC*pastejunk(TARGET_LABEL,pastejunk( pastejunk(x_,name),__LINE__)))(void) = pastejunk(schedule_,name); \
+	__declspec(allocate(_STARTSEG_)) int (CPROC*pastejunk(TARGET_LABEL,pastejunk( pastejunk(x_,name),__LINE__)))(void) = pastejunk(schedule_,name); \
 	int CPROC pastejunk(schedule_,name)(void) {                 \
 	RegisterPriorityStartupProc( name,TOSTR(name),priority,pastejunk(TARGET_LABEL,pastejunk( pastejunk(x_,name),__LINE__)) DBG_SRC );\
 	return 0; \
@@ -687,7 +687,7 @@ typedef void(*atexit_priority_proc)(void (*)(void),int,CTEXTSTR DBG_PASS);
 
 #define PRIORITY_ATEXIT(name,priority) static void CPROC name(void); \
    static int schedule_atexit_##name(void);   \
-	static __declspec(allocate(_STARTSEG_)) void (CPROC*pastejunk(TARGET_LABEL,pastejunk( x_##name,__LINE__)))(void) = (void(CPROC*)(void))schedule_atexit_##name; \
+	__declspec(allocate(_STARTSEG_)) void (CPROC*pastejunk(TARGET_LABEL,pastejunk( x_##name,__LINE__)))(void) = (void(CPROC*)(void))schedule_atexit_##name; \
 	static int schedule_atexit_##name(void) {                 \
 	RegisterPriorityShutdownProc( name,TOSTR(name),priority,pastejunk(TARGET_LABEL,pastejunk( x_##name,__LINE__)) DBG_SRC );\
 	return 0; \

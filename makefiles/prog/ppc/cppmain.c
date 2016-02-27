@@ -56,11 +56,11 @@
 
 int KillQuotes( char *string )
 {
-   // this processing stage cannot be done at the pre-processor level
-   // for things like "\x02" "4" which is actually 
-   // character to followed by ascii 4.
-   //return strlen( string );
-   // okay but yes it can be done for #pramga message
+	// this processing stage cannot be done at the pre-processor level
+	// for things like "\x02" "4" which is actually 
+	// character to followed by ascii 4.
+	//return strlen( string );
+	// okay but yes it can be done for #pramga message
 
 	// this routine removes leading and trailing quotes.
 	// and only stores that which was within the quotes.
@@ -119,7 +119,7 @@ int CollapseQuotes( char *string )
 				if( *string != ' ' && *string != '\t' )
 				{
 					lastquote = 0;
-               lastquotepos = NULL;
+					lastquotepos = NULL;
 				}
 
 				if( *string == '\"' || *string == '\'' )
@@ -161,7 +161,7 @@ void DumpSegs( PTEXT pOp )
 		else
 		{
 			fprintf( stddbg, WIDE("[%d%s]"), tmp->format.spaces,GetText( tmp ) );
-	   }
+		}
 		tmp = NEXTLINE( tmp );
 	}
 }
@@ -171,14 +171,13 @@ void DumpSegs( PTEXT pOp )
 
 int ProcessSystemIncludeFile( char *name, int bAllowAbsolute, int bNext )
 {
-   char Workname[__MAX_PATH__];
+	char Workname[__MAX_PATH__];
 	PTEXT pPath;
 	INDEX idx;
 
-
 	if( bAllowAbsolute &&
-		 OpenNewInputFile( name, GetCurrentFileName(), GetCurrentLine(), g.bAutoDepend, bNext ) )
-      return TRUE;
+		 OpenNewInputFile( name, name, GetCurrentFileName(), GetCurrentLine(), g.bAutoDepend, bNext ) )
+		return TRUE;
 	{
 		FORALL( g.pUserIncludePath, idx, PTEXT, pPath )
 		{
@@ -189,7 +188,7 @@ int ProcessSystemIncludeFile( char *name, int bAllowAbsolute, int bNext )
 			{
 				fprintf( stddbg, WIDE("attempting <%s>\n") , Workname );
 			}
-			if( OpenNewInputFile( Workname, GetCurrentFileName(), GetCurrentLine(), TRUE, bNext ) )
+			if( OpenNewInputFile( name, Workname, GetCurrentFileName(), GetCurrentLine(), TRUE, bNext ) )
 			{
 				if( idx )
 					SetCurrentPath( GetText( pPath ) );
@@ -203,15 +202,18 @@ int ProcessSystemIncludeFile( char *name, int bAllowAbsolute, int bNext )
 			{
 				fprintf( stddbg, WIDE("attempting <%s>\n") , Workname );
 			}
-			if( OpenNewInputFile( Workname, GetCurrentFileName(), GetCurrentLine(), FALSE, bNext ) )
+			g.flags.doing_system_file = 1;
+			if( OpenNewInputFile( name, Workname, GetCurrentFileName(), GetCurrentLine(), FALSE, bNext ) )
 			{
+				g.flags.doing_system_file = 0;
 				SetCurrentPath( GetText( pPath ) );
 				return TRUE;
 			}
+			g.flags.doing_system_file = 0;
 		}
 	}
-   // at this point - offer to add another path...
-   return FALSE;
+	// at this point - offer to add another path...
+	return FALSE;
 
 }
 //----------------------------------------------------------------------
@@ -219,17 +221,18 @@ int ProcessSystemIncludeFile( char *name, int bAllowAbsolute, int bNext )
 int ProcessInclude( int bNext )
 {
 
-   char Workname[__MAX_PATH__];
-   char basename[__MAX_PATH__];
-   int i = 0, did_subst = 0;
+	char Workname[__MAX_PATH__];
+	char basename[__MAX_PATH__];
+	int i = 0, did_subst = 0;
 	PTEXT pEnd, pWord;
 
-   if( !( pWord = GetCurrentWord() ) )
-   {
+	if( !( pWord = GetCurrentWord() ) )
+	{
 		fprintf( stderr, WIDE("%s(%d) Error: #include without name.\n"), GetCurrentFileName(), GetCurrentLine() );
-      g.ErrorCount++;
-      return TRUE;
+		g.ErrorCount++;
+		return TRUE;
 	}
+	g.flags.bIncludedLastFile = 0;
 	do
 	{
 		if( GetText( pWord )[0] == '\"' )
@@ -260,13 +263,29 @@ int ProcessInclude( int bNext )
 			}
 			if( g.flags.load_once )
 			{
-				if( AlreadyLoaded( Workname ) )
-               return TRUE;
+				if( AlreadyLoaded( Workname ) ) {
+					SetCurrentWord( NEXTLINE( pEnd ) );
+					g.flags.bIncludedLastFile = 1;
+					return TRUE;
+				}
 			}
-			if( !OpenNewInputFile( Workname, GetCurrentFileName(), GetCurrentLine(), g.bAutoDepend, bNext ) )
+			if( !OpenNewInputFile( basename, Workname, GetCurrentFileName(), GetCurrentLine(), g.bAutoDepend, bNext ) )
 			{
 				PTEXT pPath;
 				INDEX idx;
+				int count;
+				char *dir = pathrchr( g.pFileStack->longname );
+				if( dir )
+					count = (dir - g.pFileStack->longname);
+				else
+					count = 0;
+				snprintf( Workname, __MAX_PATH__, WIDE( "%*.*s/%s" ), count, count, g.pFileStack->longname, basename );
+				if( OpenNewInputFile( basename, Workname, GetCurrentFileName(), GetCurrentLine(), TRUE, bNext ) )
+				{
+					SetCurrentWord( NEXTLINE( pEnd ) );
+					g.flags.bIncludedLastFile = 1;
+					return TRUE;
+				}
 				FORALL( g.pUserIncludePath, idx, PTEXT, pPath )
 				{
 					sprintf( Workname, WIDE("%s/%s"), GetText( pPath ), basename );
@@ -274,16 +293,20 @@ int ProcessInclude( int bNext )
 					{
 						fprintf( stddbg, WIDE("attempting \"%s\"\n") , Workname );
 					}
-               /*1234*/
+					/*1234*/
 					if( g.flags.load_once )
 					{
-						if( AlreadyLoaded( Workname ) )
+						if( AlreadyLoaded( Workname ) ) {
+							SetCurrentWord( NEXTLINE( pEnd ) );
+							g.flags.bIncludedLastFile = 1;
 							return TRUE;
+						}
 					}
-					if( OpenNewInputFile( Workname, GetCurrentFileName(), GetCurrentLine(), TRUE, bNext ) )
+					if( OpenNewInputFile( basename, Workname, GetCurrentFileName(), GetCurrentLine(), TRUE, bNext ) )
 					{
 						if( idx )
 							SetCurrentPath( GetText( pPath ) );
+						g.flags.bIncludedLastFile = 1;
 						return TRUE;
 					}
 				}
@@ -294,12 +317,15 @@ int ProcessInclude( int bNext )
 				return FALSE;
 			}
 			else
+			{
+				g.flags.bIncludedLastFile = 1;
 				return TRUE;
+			}
 		}
 		else if( GetText( pWord )[0] == '<' )
 		{
-			PTEXT pPath;
-			INDEX idx;
+			//PTEXT pPath;
+			//INDEX idx;
 			/*
 			 if( GetText( GetCurrentWord() )[0] != '<' )
 			 {
@@ -326,11 +352,16 @@ int ProcessInclude( int bNext )
 			}
 			if( g.flags.load_once )
 			{
-				if( AlreadyLoaded( basename ) )
-               return TRUE;
+				if( AlreadyLoaded( basename ) ) {
+					SetCurrentWord( NEXTLINE( pEnd ) );
+					g.flags.bIncludedLastFile = 1;
+					return TRUE;
+				}
 			}
-			if( ProcessSystemIncludeFile( basename, FALSE, bNext ) )
-            return TRUE;
+			if( ProcessSystemIncludeFile( basename, FALSE, bNext ) ) {
+				g.flags.bIncludedLastFile = 1;
+				return TRUE;
+			}
 			break;
 		}
 		else
@@ -342,33 +373,36 @@ int ProcessInclude( int bNext )
 			did_subst++;
 		}
 	} while( did_subst < 2 );
-
+	if( g.flags.load_once )
+	{
+		AddFileDepend( g.pFileStack, basename, basename );
+	}
 	fprintf( stderr, WIDE("%s(%d) Warning could not process include file %c%s%c\n")
-           , GetCurrentFileName(), GetCurrentLine()
-               , GetCurrentWord()->data.data[0]
-               , basename
-               , pEnd->data.data[0]
+			  , GetCurrentFileName(), GetCurrentLine()
+					, GetCurrentWord()->data.data[0]
+					, basename
+					, pEnd->data.data[0]
 			);
-   //g.ErrorCount++;
+	//g.ErrorCount++;
 
-   // at this point - offer to add another path...
-   return FALSE;
+	// at this point - offer to add another path...
+	return FALSE;
 
 }
 
 //----------------------------------------------------------------------
 // values for nState in FILETRACK
-//#define CONTINUE_DEFINE   0x000002
+//#define CONTINUE_DEFINE	0x000002
 // if a ELSE or ENDIF at level 0 is found...
 // then this is satisfied... #if type statement increment if levels
 // and endif decrements the levels....
-#define FIND_ELSE         0x000008
+#define FIND_ELSE			0x000008
 // FIND_ENDIF ... statements between are ignored until ENDIF
 // even #else and #elseif type
 // although #if within this block may also have a paired ENDIF
 // #if type statements will increment the if levels and
 // #endif will decrement until level is 0 and is an end...
-#define FIND_ENDIF        0x000010
+#define FIND_ENDIF		  0x000010
 //----------------------------------------------------------------------
 
 //----------------------------------------------------------------------
@@ -391,7 +425,7 @@ void SetIfBegin( void )
 				 );
 	if( !pFileIfStart )
 	{
-      if( g.bDebugLog )
+		if( g.bDebugLog )
 			fprintf( stddbg, WIDE("Set if starting level: %d\n"), g.nIfLevels );
 		pFileIfStart = StrDup( GetCurrentFileName() );
 		nLineIfStart = GetCurrentLine();
@@ -413,14 +447,14 @@ void ClearIfBegin( void )
 		fprintf( stddbg, WIDE("%s(%d): Clearing IF %d finding %s%s\n")
 					, GetCurrentFileName()
 					, GetCurrentLine() 
-		         , g.nIfLevels
+					, g.nIfLevels
 					, nState & FIND_ELSE?"ELSE":""
 					, nState & FIND_ENDIF?"ENDING":""
 					);
 	g.nIfLevels--;
 	if( !g.nIfLevels )
 	{
-	   //fprintf( stderr, WIDE("--------------------------------------------\n") );
+		//fprintf( stderr, WIDE("--------------------------------------------\n") );
 		if( pFileIfStart )
 			Release( pFileIfStart );
 		pFileIfStart = NULL;
@@ -450,34 +484,41 @@ int PreProcessLine( void )
 	{
 		fprintf( stddbg, WIDE("%s(%d): "), GetCurrentFileName(), GetCurrentLine() );
 		DumpSegs( GetCurrentWord() );
-      fprintf( stddbg, WIDE("\n") );
+		fprintf( stddbg, WIDE("\n") );
 	}
-   // pre-processor command processing....
+	// pre-processor command processing....
 	if( GetText( GetCurrentWord() )[0] == '#' )
 	{
 		// pre processor directive at start of line...
 		pDirective = StepCurrentWord();
+		if( !pDirective )
+			return FALSE;
 		StepCurrentWord();
 //==== ENDIF =====================================================
-      if( TextLike( pDirective, WIDE("endif") ) )
-      {
-      	if( nState & FIND_ELSE )
-      	{
-            if( g.nIfLevels == nIfLevelElse )
+		if( TextLike( pDirective, WIDE("endif") ) )
+		{
+			if( g.flags.skip_define_processing ) {
+				SetCurrentWord( pFirstWord );
+				return TRUE;
+			}
+
+			if( nState & FIND_ELSE )
+			{
+				if( g.nIfLevels == nIfLevelElse )
 				{
 					if( g.bDebugLog )
 						fprintf( stddbg, WIDE("%s(%d): Looking for an else - found endif - correct level\n")
 								 , GetCurrentFileName(), GetCurrentLine() );
-               nState &= ~FIND_ELSE;
+					nState &= ~FIND_ELSE;
 				}
 				else if( g.bDebugLog )
 					fprintf( stddbg, WIDE("%s(%d): Looking for an else - found endif - wrong level\n")
 								 , GetCurrentFileName(), GetCurrentLine() );
 
-      	}
+			}
 			if( nState & FIND_ENDIF )
 			{
-            if( g.nIfLevels == nIfLevelElse )
+				if( g.nIfLevels == nIfLevelElse )
 				{
 					if( g.bDebugLog )
 						fprintf( stddbg, WIDE("%s(%d): Looking for an endif - found endif - correct level\n")
@@ -490,13 +531,13 @@ int PreProcessLine( void )
 			}
 			ClearIfBegin();
 
-  	      if( !g.nIfLevels )
-  	      {
+  			if( !g.nIfLevels )
+  			{
 				if( g.bDebugLog )
 					fprintf( stddbg, WIDE("-------------------------------------\n") );
-     	      nState &= ~(FIND_ELSE | FIND_ENDIF);
-     	   }
-         return FALSE;
+	  			nState &= ~(FIND_ELSE | FIND_ENDIF);
+	  		}
+			return FALSE;
 		}
 		if( nState & FIND_ENDIF )
 		{
@@ -504,7 +545,11 @@ int PreProcessLine( void )
 					  TextLike( pDirective, WIDE("ifndef") ) ||
 					  TextLike( pDirective, WIDE("if") ) )
 			{
-            SetIfBegin();
+				if( g.flags.skip_define_processing ) {
+					SetCurrentWord( pFirstWord );
+					return TRUE;
+				}
+				SetIfBegin();
 				if( g.bDebugLog )
 				{
 					fprintf( stddbg, WIDE("%s(%d): Another level of ifs... coming up! (%d)\n")
@@ -515,26 +560,30 @@ int PreProcessLine( void )
 			return FALSE;
 		}
 //==== ELSE =====================================================
-      else if( TextLike( pDirective, WIDE("else") ) )
-      {
-         if( GetCurrentWord() )
-         {
+		else if( TextLike( pDirective, WIDE("else") ) )
+		{
+			if( g.flags.skip_define_processing ) {
+				SetCurrentWord( pFirstWord );
+				return TRUE;
+			}
+			if( GetCurrentWord() )
+			{
 				fprintf( stderr, WIDE("%s(%d) Warning: harmless extra tokens after #ELSE\n")
 						 , GetCurrentFileName(), GetCurrentLine() );
-         }
-         if( nState & FIND_ENDIF )
-         {
+			}
+			if( nState & FIND_ENDIF )
+			{
 				// if only looking for endif - continue....
 				if( g.bDebugLog )
 					fprintf( stddbg, WIDE("Still looking for endif... skipping else\n") );
-            return FALSE;
-         }
+				return FALSE;
+			}
 
-         if( nState & FIND_ELSE )
-         {
-            if( g.nIfLevels == nIfLevelElse )
+			if( nState & FIND_ELSE )
+			{
+				if( g.nIfLevels == nIfLevelElse )
 				{
-               if( g.bDebugLog )
+					if( g.bDebugLog )
 						fprintf( stddbg, WIDE("%s(%d): Found an else on the correct level - let's process...\n")
 								 , GetCurrentFileName(), GetCurrentLine() );
 					// is the else that we seek....
@@ -542,13 +591,13 @@ int PreProcessLine( void )
 					// to wait for that #endif to complete and
 					// get us back to the  right level to find
 					// and else....
-               nState &= ~FIND_ELSE;
+					nState &= ~FIND_ELSE;
 				}
 				return FALSE;
-         }
-         else // was in an if - and now need to find endif...
+			}
+			else // was in an if - and now need to find endif...
 			{
-               if( g.bDebugLog )
+					if( g.bDebugLog )
 						fprintf( stddbg, WIDE("%s(%d): else termination - next to find endif this level(%d)\n")
 								 , GetCurrentFileName(), GetCurrentLine()
 								 , g.nIfLevels );
@@ -557,53 +606,65 @@ int PreProcessLine( void )
 				// it would be skipped 
 				//fprintf( stderr, WIDE("Finding the endif of the current if...\n") );
 				nIfLevelElse = g.nIfLevels;
-	         nState |= FIND_ENDIF;
+				nState |= FIND_ENDIF;
 			}
-         return FALSE;
-      }
+			return FALSE;
+		}
 //==== ELSEIFDEF ELIFDEF =====================================================
-      else if( TextLike( pDirective, WIDE("elseifdef") ) ||
-               TextLike( pDirective, WIDE("elifdef") ) )
-      {
-			if( !( nState & FIND_ELSE ) )
-			{
-            // if was processing, an else causes find endif...
-				nState = FIND_ENDIF;
-				nIfLevelElse = g.nIfLevels;
-            return TRUE;
-			}
-         return FALSE;
-      }
-//==== ELSEIFNDEF ELIFNDEF =====================================================
-      else if( TextLike( pDirective, WIDE("elseifndef") ) ||
-               TextLike( pDirective, WIDE("elifndef") ) )
+		else if( TextLike( pDirective, WIDE("elseifdef") ) ||
+					TextLike( pDirective, WIDE("elifdef") ) )
 		{
+			if( g.flags.skip_define_processing ) {
+				SetCurrentWord( pFirstWord );
+				return TRUE;
+			}
 			if( !( nState & FIND_ELSE ) )
 			{
-            // if was processing, an else causes find endif...
+				// if was processing, an else causes find endif...
 				nState = FIND_ENDIF;
 				nIfLevelElse = g.nIfLevels;
-            return TRUE;
+				return TRUE;
+			}
+			return FALSE;
+		}
+//==== ELSEIFNDEF ELIFNDEF =====================================================
+		else if( TextLike( pDirective, WIDE("elseifndef") ) ||
+					TextLike( pDirective, WIDE("elifndef") ) )
+		{
+			if( g.flags.skip_define_processing ) {
+				SetCurrentWord( pFirstWord );
+				return TRUE;
+			}
+			if( !( nState & FIND_ELSE ) )
+			{
+				// if was processing, an else causes find endif...
+				nState = FIND_ENDIF;
+				nIfLevelElse = g.nIfLevels;
+				return TRUE;
 			}
 			// results in find_else... else continues...
-         // unless
-         return FALSE;
+			// unless
+			return FALSE;
 		}
 
 		// nothing else is valid if I'm still looking for an else or endif and it was not handled
-      // by the prior two conditions....
+		// by the prior two conditions....
 		if( nState & (FIND_ELSE | FIND_ENDIF) )
 		{
+			if( g.flags.skip_define_processing ) {
+				SetCurrentWord( pFirstWord );
+				return TRUE;
+			}
 			if( TextLike( pDirective, WIDE("elseif") ) ||
 				TextLike( pDirective, WIDE("elif") ) )
 			{
-            goto SubstituteAndProcess;
+				goto SubstituteAndProcess;
 			}
 			else if( TextLike( pDirective, WIDE("ifdef") ) ||
 					  TextLike( pDirective, WIDE("ifndef") ) ||
 					  TextLike( pDirective, WIDE("if") ) )
 			{
-            SetIfBegin();
+				SetIfBegin();
 				if( g.bDebugLog )
 				{
 					fprintf( stddbg, WIDE("%s(%d): Another level of ifs... coming up! (%d)\n")
@@ -611,108 +672,125 @@ int PreProcessLine( void )
 							 , g.nIfLevels  );
 				}
 			}
-         //fprintf( stderr, WIDE("Failing line...\n") );
+			//fprintf( stderr, WIDE("Failing line...\n") );
 			return FALSE;
 		}
 
 //== INCLUDE =======================================================
 		if( TextLike( pDirective, WIDE("include") ) )
 		{
-         //fprintf( stderr, WIDE("Include segments...") );
-         //DumpSegs( pDirective );
+			//fprintf( stderr, WIDE("Include segments...") );
+			//DumpSegs( pDirective );
 			ProcessInclude( FALSE );
-			if( g.flags.keep_includes )
+			if( g.flags.keep_includes && !g.flags.bIncludedLastFile )
 				SetCurrentWord( pFirstWord );
 
-         return g.flags.keep_includes;
-      }
+			return g.flags.keep_includes;
+		}
 //== INCLUDE NEXT ==================================================
 		else if( TextLike( pDirective, WIDE("include_next") ) )
 		{
-         //fprintf( stderr, WIDE("Include segments...") );
-         //DumpSegs( pDirective );
+			//fprintf( stderr, WIDE("Include segments...") );
+			//DumpSegs( pDirective );
 			ProcessInclude( TRUE );
-         if( g.flags.keep_includes )
+			if( g.flags.keep_includes && !g.flags.bIncludedLastFile )
 				SetCurrentWord( pFirstWord );
-         return g.flags.keep_includes;
-      }
+			return g.flags.keep_includes;
+		}
 //== DEFINE =======================================================
-      else if( TextLike( pDirective, WIDE("define") ) )
-      {
-         if( !NEXTLINE( pDirective ) )
-         {
-            fprintf( stderr, WIDE("\"#define\" keyword alone is NOT allowed...") );
-            return FALSE; // can still continue....
-         }
+		else if( TextLike( pDirective, WIDE("define") ) )
+		{
+			if( g.flags.skip_define_processing ) {
+				SetCurrentWord( pFirstWord );
+				return TRUE;
+			}
+			if( !NEXTLINE( pDirective ) )
+			{
+				fprintf( stderr, WIDE("\"#define\" keyword alone is NOT allowed...") );
+				return FALSE; // can still continue....
+			}
 			ProcessDefine( DEFINE_FILE );
-         return FALSE;
-      }
+			return FALSE;
+		}
 //== UNDEF  =======================================================
-      else if( TextLike( pDirective, WIDE("undef") ) )
-      {
-         PDEF pDef;
-         pDef = FindDefineName( GetCurrentWord(), IGNORE_PARAMS );
-         if( pDef )
-         {
-            DeleteDefine( &pDef );
-         }
-         return FALSE;
-      }
+		else if( TextLike( pDirective, WIDE("undef") ) )
+		{
+			PDEF pDef;
+			if( g.flags.skip_define_processing ) {
+				SetCurrentWord( pFirstWord );
+				return TRUE;
+			}
+			pDef = FindDefineName( GetCurrentWord(), IGNORE_PARAMS );
+			if( pDef )
+			{
+				DeleteDefine( &pDef );
+			}
+			return FALSE;
+		}
 //== IFDEF =======================================================
-      else if( TextLike( pDirective, WIDE("ifdef") ) )
-      {
+		else if( TextLike( pDirective, WIDE("ifdef") ) )
+		{
+			if( g.flags.skip_define_processing ) {
+				SetCurrentWord( pFirstWord );
+				return TRUE;
+			}
 			SetIfBegin();
-         if( !FindDefineName( GetCurrentWord(), IGNORE_PARAMS ) )
-         {
-            if( g.bDebugLog )
+			if( !FindDefineName( GetCurrentWord(), IGNORE_PARAMS ) )
+			{
+				if( g.bDebugLog )
 				{
 					fprintf( stddbg, WIDE("%s(%d): ifdef %s FAILED\n")
 							, GetCurrentFileName()
-                       , GetCurrentLine()
+							  , GetCurrentLine()
 							, GetText( GetCurrentWord() ));
 				}
-            nState |= FIND_ELSE;
-         }
-         else
-            if( g.bDebugLog )
+				nState |= FIND_ELSE;
+			}
+			else
+				if( g.bDebugLog )
 				{
 					fprintf( stddbg, WIDE("%s(%d): ifdef %s SUCCESS\n")
 							, GetCurrentFileName()
-                       , GetCurrentLine()
+							  , GetCurrentLine()
 							, GetText( GetCurrentWord() ) );
 				}
-         nIfLevelElse = g.nIfLevels;
-         return FALSE;
-      }
+			nIfLevelElse = g.nIfLevels;
+			return FALSE;
+		}
 //== IFNDEF =======================================================
-      else if( TextLike( pDirective, WIDE("ifndef") ) )
-      {
+		else if( TextLike( pDirective, WIDE("ifndef") ) )
+		{
+			if( g.flags.skip_define_processing ) {
+				SetCurrentWord( pFirstWord );
+				return TRUE;
+			}
 			SetIfBegin();
-         if( FindDefineName( GetCurrentWord(), IGNORE_PARAMS ) )
-         {
-            if( g.bDebugLog )
+			if( FindDefineName( GetCurrentWord(), IGNORE_PARAMS ) )
+			{
+				if( g.bDebugLog )
 				{
 					fprintf( stddbg, WIDE("%s(%d): ifndef %s FAILED\n")
 							, GetCurrentFileName()
-                       , GetCurrentLine()
+							  , GetCurrentLine()
 							, GetText( GetCurrentWord() ));
 				}
-            nState |= FIND_ELSE;
-         }
-         else
-            if( g.bDebugLog )
+				nState |= FIND_ELSE;
+			}
+			else
+				if( g.bDebugLog )
 					fprintf( stddbg, WIDE("%s(%d): ifndef %s SUCCESS\n")
 							, GetCurrentFileName()
-                       , GetCurrentLine()
+							  , GetCurrentLine()
 							, GetText( GetCurrentWord() ) );
-         nIfLevelElse = g.nIfLevels;
-         // otherwise we can store these statements...
-         return FALSE;
+			nIfLevelElse = g.nIfLevels;
+			// otherwise we can store these statements...
+			return FALSE;
 		}
 
 		// have to go through all words and check vs current
 		// defines to see if we need to substitute the data or not...
-SubstituteAndProcess:
+	SubstituteAndProcess:
+		if( !g.flags.skip_define_processing )
 		{
 			PTEXT line = GetCurrentWord();
 			EvalSubstitutions( &line, FALSE );
@@ -720,50 +798,58 @@ SubstituteAndProcess:
 				SetCurrentWord( line );
 		}
 //=== IF ======================================================
-      if( TextLike( pDirective, WIDE("if") ) )
-      {
+		if( TextLike( pDirective, WIDE("if") ) )
+		{
 			PTEXT dbg;
+			if( g.flags.skip_define_processing ) {
+				SetCurrentWord( pFirstWord );
+				return TRUE;
+			}
 			SetIfBegin();
-         if( !ProcessExpression() )
-         {
-            nState |= FIND_ELSE;
-            nIfLevelElse = g.nIfLevels;
-            if( g.bDebugLog )
-            {
+			if( !ProcessExpression() )
+			{
+				nState |= FIND_ELSE;
+				nIfLevelElse = g.nIfLevels;
+				if( g.bDebugLog )
+				{
 					dbg = BuildLine( pDirective );
 					fprintf( stddbg, WIDE("%s(%d): %s FAILED\n")
 									, GetCurrentFileName()
 									, GetCurrentLine()
 									, GetText(dbg) );
 					LineRelease( dbg );
-            }
-         }
-         else
+				}
+			}
+			else
 			{
-            if( g.bDebugLog )
-            {
+				if( g.bDebugLog )
+				{
 					dbg = BuildLine( pDirective );
-               fprintf( stddbg, WIDE("%s(%d): %s SUCCESS\n")
+					fprintf( stddbg, WIDE("%s(%d): %s SUCCESS\n")
 									, GetCurrentFileName()
 									, GetCurrentLine()
 									, GetText(dbg) );
 					LineRelease( dbg );
-            }
+				}
 			}
-      }
+		}
 //=== ELSEIF ELIF ======================================================
 		else if( TextLike( pDirective, WIDE("elseif") ) ||
 				  TextLike( pDirective, WIDE("elif") ) )
-      {
-         if( nState & FIND_ELSE )
+		{
+			if( g.flags.skip_define_processing ) {
+				SetCurrentWord( pFirstWord );
+				return TRUE;
+			}
+			if( nState & FIND_ELSE )
 			{
-            PTEXT dbg;
+				PTEXT dbg;
 				if( g.nIfLevels == nIfLevelElse &&
-				    ProcessExpression() )
+					 ProcessExpression() )
 				{
 					if( g.bDebugLog )
 					{
-                  dbg = BuildLine( pDirective );
+						dbg = BuildLine( pDirective );
 						fprintf( stddbg, WIDE("%s(%d): %s Success\n")
 									, GetCurrentFileName()
 									, GetCurrentLine()
@@ -774,12 +860,12 @@ SubstituteAndProcess:
 				}
 				else if( g.bDebugLog )
 				{
-               dbg = BuildLine( pDirective );
+					dbg = BuildLine( pDirective );
 					fprintf( stddbg, WIDE("%s(%d): %s Failure\n")
 									, GetCurrentFileName()
 									, GetCurrentLine()
 							, GetText( dbg ) );
-               LineRelease( dbg );
+					LineRelease( dbg );
 				}
 			}
 			else // wasn't looking for else - else found - go to endif now.
@@ -787,36 +873,36 @@ SubstituteAndProcess:
 				nState = FIND_ENDIF;
 				nIfLevelElse = g.nIfLevels;
 			}
-      }
+		}
 //==== PRAGMA =====================================================
-      else if( TextLike( pDirective, WIDE("pragma") ) )
-      {
-         // pramga message seems to be a useful thing to have...
-         // other pragmas need to be ignored
-         // pragmas occur with all data on a single line.
-         // evaluate substitutions... (already done)
+		else if( TextLike( pDirective, WIDE("pragma") ) )
+		{
+			// pramga message seems to be a useful thing to have...
+			// other pragmas need to be ignored
+			// pragmas occur with all data on a single line.
+			// evaluate substitutions... (already done)
 			PTEXT pOp = GetCurrentWord();
-         if( TextLike( pOp, WIDE("message") ) )
-         {
-            PTEXT pOut;
-            pOut = BuildLineEx( NEXTLINE( pOp ), FALSE DBG_SRC );
-            pOut->data.size = CollapseQuotes( pOut->data.data );
-            pOut->data.size = KillQuotes( pOut->data.data );
-            fprintf( stderr, WIDE("%s\n"), GetText( pOut ) );
-            //fprintf( stdout, WIDE("%s\n"), GetText( pOut ) );
-            LineRelease( pOut );
-            // dump the remaining segments...
+			if( TextLike( pOp, WIDE("message") ) )
+			{
+				PTEXT pOut;
+				pOut = BuildLineEx( NEXTLINE( pOp ), FALSE DBG_SRC );
+				pOut->data.size = CollapseQuotes( pOut->data.data );
+				pOut->data.size = KillQuotes( pOut->data.data );
+				fprintf( stderr, WIDE("%s\n"), GetText( pOut ) );
+				//fprintf( stdout, WIDE("%s\n"), GetText( pOut ) );
+				LineRelease( pOut );
+				// dump the remaining segments...
 			}
 			else if( TextLike( pOp, WIDE("systemincludepath") ) )
 			{
-            PTEXT pOut;
-            pOut = BuildLineEx( NEXTLINE( pOp ), FALSE DBG_SRC );
+				PTEXT pOut;
+				pOut = BuildLineEx( NEXTLINE( pOp ), FALSE DBG_SRC );
 				AddLink( g.pSysIncludePath, pOut );
 			}
 			else if( TextLike( pOp, WIDE("includepath") ) )
 			{
-            PTEXT pOut;
-            pOut = BuildLineEx( NEXTLINE( pOp ), FALSE DBG_SRC );
+				PTEXT pOut;
+				pOut = BuildLineEx( NEXTLINE( pOp ), FALSE DBG_SRC );
 				AddLink( g.pUserIncludePath, pOut );
 			}
 			else if( TextLike( pOp, WIDE("pack") ) )
@@ -832,12 +918,12 @@ SubstituteAndProcess:
 							 , GetText( pOut ) );
 					LineRelease( pOut );
 				}
-				SetCurrentWord( *GetCurrentTextLine() );
+				SetCurrentWord( pFirstWord );
 				return g.flags.bEmitUnknownPragma;
 			}
 			// watcom - inline assembly junk...
 			else if( TextLike( pOp, WIDE("warning") )
-		          ||  TextLike( pOp, WIDE("intrinsic") )
+					 ||  TextLike( pOp, WIDE("intrinsic") )
 					  || TextLike( pOp, WIDE("aux") )
 					  || TextLike( pOp, WIDE("function") )
 					 || TextLike( pOp, WIDE("comment") ) )
@@ -853,13 +939,13 @@ SubstituteAndProcess:
 							 , GetText( pOut ) );
 					LineRelease( pOut );
 				}
-				SetCurrentWord( *GetCurrentTextLine() );
+				SetCurrentWord( pFirstWord );
 				return g.flags.bEmitUnknownPragma;
 			}
 			// watcom - dependancy generation...
 			else if( TextLike( pOp, WIDE("read_only_file") ) )
 			{
-			   // can't see any usefulness when using ppc to preprocess...
+				// can't see any usefulness when using ppc to preprocess...
 				return FALSE;
 			}
 			else
@@ -871,11 +957,11 @@ SubstituteAndProcess:
 						 , GetCurrentLine()
 						 , GetText( pOut ) );
 				LineRelease( pOut );
-            // hmm - gcc processing .i files fails this.
-				SetCurrentWord( *GetCurrentTextLine() );
-            return g.flags.bEmitUnknownPragma;
+				// hmm - gcc processing .i files fails this.
+				SetCurrentWord( pFirstWord );
+				return g.flags.bEmitUnknownPragma;
 				//return TRUE; // emit this line - maybe the compiler knows...
-            //return FALSE;
+				//return FALSE;
 			}
 		}
 		else if( TextLike( pDirective, WIDE("warning") ) )
@@ -886,7 +972,7 @@ SubstituteAndProcess:
 					 , GetCurrentFileName()
 					 , GetCurrentLine()
 					 , GetText( pOut ) );
-         LineRelease( pOut );
+			LineRelease( pOut );
 		}
 		else if( TextLike( pDirective, WIDE("error") ) )
 		{
@@ -897,7 +983,7 @@ SubstituteAndProcess:
 					 , GetCurrentLine()
 					 , GetText( pOut ) );
 			LineRelease( pOut );
-         g.ErrorCount++;
+			g.ErrorCount++;
 		}
 		else
 		{
@@ -907,29 +993,30 @@ SubstituteAndProcess:
 					 , GetCurrentFileName()
 					 , GetCurrentLine()
 					 , GetText( pOut ) );
-         LineRelease( pOut );
+			LineRelease( pOut );
 		}
-      return FALSE;
-   }
+		return FALSE;
+	}
 
-   if( nState & ( FIND_ELSE|FIND_ENDIF ) )
-   {
+	if( nState & ( FIND_ELSE|FIND_ENDIF ) )
+	{
 		// ignore anything on this line for output
-      return FALSE;
+		return FALSE;
 	}
 	if( pDirective )
 	{
 		fprintf( stderr, WIDE("ERROR: Responding true to invoking a preprocessor command to output\n") );
 	}
+	if( !g.flags.skip_define_processing )
 	{
 		PTEXT *line = GetCurrentTextLine();
-      //PTEXT reset = GetCurrentWord();
-      if( nState )
+		//PTEXT reset = GetCurrentWord();
+		if( nState )
 			fprintf( stderr, WIDE("ERROR: Substituting the line...bad state %d\n"), nState );
 		EvalSubstitutions( line, TRUE );
-      SetCurrentWord( *line );
+		SetCurrentWord( pFirstWord );
 	}
-   return TRUE;
+	return TRUE;
 }
 
 //----------------------------------------------------------------------------
@@ -937,35 +1024,35 @@ SubstituteAndProcess:
 int ProcessStatement( void )
 {
 
-   return TRUE;
+	return TRUE;
 
 
 	//ProcessEnum();  // snags enumeration symbols...
 	//ProcessStructUnion(); // builds union/structure space...
-   //ProcessArray(); // handles gathering and possible re-emmission of arrays...
+	//ProcessArray(); // handles gathering and possible re-emmission of arrays...
 }
 
 //----------------------------------------------------------------------------
 
 void RunProcessFile( void )
 {
-   while( ReadLine( FALSE ) )
+	while( ReadLine( FALSE ) )
 	{
-      int depth = CurrentFileDepth();
+		int depth = CurrentFileDepth();
 		if( PreProcessLine() )
 		{
-			if( g.flags.keep_includes )
+			//if( g.flags.keep_includes )
 			{
-				if( depth > 1 )
-					continue;
+			//	if( depth > 1 )
+			//		continue;
 			}
-         if( ProcessStatement() )
+			if( ProcessStatement() )
 			{
 				PTEXT pOut;
 				pOut = BuildLineEx( GetCurrentWord(), FALSE DBG_SRC );
 				if( pOut )
 				{
-					if( g.flags.bWriteLine )
+					if( g.flags.bWriteLineInfo )
 					{
 						WriteCurrentLineInfo();
 					}
@@ -974,7 +1061,7 @@ void RunProcessFile( void )
 				}
 			}
 		}
-   }
+	}
 	if( nState || g.nIfLevels )
 	{
 		char *file;
@@ -983,25 +1070,72 @@ void RunProcessFile( void )
 		fprintf( stderr, WIDE("Missing #endif starting at %s(%d)")
 					, file, line );
 	}
-   // at this point we have dumped an output file....
-   // the standard states
-//   5. Each source character set member and escape sequence in character constants and
+	// at this point we have dumped an output file....
+	// the standard states
+//	5. Each source character set member and escape sequence in character constants and
 //string literals is converted to the corresponding member of the execution character
 //set; if there is no corresponding member, it is converted to an implementationdefined
 //member other than the null (wide) character.7)
-   // this is done above... as we are handling substitutions...
-   // though this will result in an inability to handle some things like...
-   // "\33" "3"
+	// this is done above... as we are handling substitutions...
+	// though this will result in an inability to handle some things like...
+	// "\33" "3"
 // 6. Adjacent string literal tokens are concatenated.
 // 7. 8. ... and done :)
 }
 
+void ProcessFile( char *file );
+void loadConfig( void ) {
+	{
+		char file[256];
+		sprintf( file, WIDE( "%s/config.ppc" ), g.pWorkPath/*g.pExecPath*/ );
+		//printf( WIDE("loading defines from %s"), file );
+#if defined( __WATCOMC__ ) || defined (__LCC__)
+		{
+			char *includepath = getenv( WIDE( "INCLUDE" ) );
+			// %WATCOM%\H\NT;%WATCOM%\H;%INCLUDE%
+			char *start, *end;
+			start = includepath;
+			while( start[0] && (end = strchr( start, ';' )) )
+			{
+				PTEXT pOut;
+				end[0] = 0;
+				//printf( WIDE("Adding include path: %s"), start );
+				pOut = SegCreateFromText( start );
+				AddLink( g.pSysIncludePath, pOut );
+				start = end + 1;
+			}
+			if( start[0] )
+			{
+				PTEXT pOut;
+				//printf( WIDE("Adding include path: %s"), start );
+				pOut = SegCreateFromText( start );
+				AddLink( g.pSysIncludePath, pOut );
+			}
+		}
+#endif
+		ProcessFile( file );
+		CommitDefinesToCommandLine();
+		DestoyDepends();
+	}
+
+}
+
+
 void ProcessFile( char *file )
 {
 	char newname[__MAX_PATH__];
-   if( !OpenInputFile( file ) )
-   {
-      return;
+	char *filestart = pathrchr( file );
+	if( !g.flags.config_loaded ) {
+		g.flags.config_loaded = 1;;
+		loadConfig();
+	}
+	if( !filestart )
+		filestart = file;
+	else
+		filestart++;
+	if( !OpenInputFile( filestart, file ) )
+	{
+		return;
 	}
 	if( g.CurrentOutName[0] != 0xFF )
 	{
@@ -1028,11 +1162,12 @@ void ProcessFile( char *file )
 				return;
 			}
 		}
+		g.CurrentOutName[0] = 0xFF;
 		{
-         PINCLUDE_REF pRef;
+			PINCLUDE_REF pRef;
 			while( pRef = PopLink( g.pIncludeList ) )
 			{
-            g.flags.bNoOutput = pRef->flags.bMacros;
+				g.flags.bNoOutput = pRef->flags.bMacros;
 				if( !ProcessSystemIncludeFile( pRef->name, TRUE, FALSE ) )
 				{
 					fprintf( stderr, WIDE("%s(%d): Warning could not process include file \'%s\'\n")
@@ -1041,7 +1176,7 @@ void ProcessFile( char *file )
 					//g.ErrorCount++;
 					return;
 				}
-            Release( pRef );
+				Release( pRef );
 			}
 			g.flags.bNoOutput = 0;
 		}
@@ -1070,37 +1205,39 @@ void ReleaseIncludePaths( void )
 
 void usage( void )
 {
-   printf( WIDE("usage: %s (options) <files...>\n"), g.pExecName );
-   printf( WIDE("   options to include\n")
-           "   ------------------------------------------\n" );
-   printf( WIDE("    -[Ii]<path(s)>      add include path to default\n") );
-   printf( WIDE("    -[Ss][Ii]<path(s)>  add include path to system default\n") );
-   printf( WIDE("    -[Dd]<symbol>       define additional symbols\n") );
-	printf( WIDE("    -MF<file>           dump out auto-depend info\n") );
-   printf( WIDE("    -MT<file>           use (file) as name of target in depend file\n") );
-	printf( WIDE("    -L                  write file/line info prefixing output lines\n") );
-	printf( WIDE("    -l                  write file/line info prefixing output lines\n")
-			 "                        (without line directive)\n" );
-	printf( WIDE("    -K                  emit unknown pragmas into output\n") );
-   printf( WIDE("    -k                  do not emit unknown pragma (default)\n") );
-	printf( WIDE("    -c                  keep comments in output\n") );
-	printf( WIDE("    -p                  keep includes in output (don't output content of include)\n") );
-	printf( WIDE("    -f                  force / into \\\n") );
-   printf( WIDE("    -F                  force \\ into /\n") );
-	printf( WIDE("    -[Oo]<file>         specify the output filename\n") );
-   printf( WIDE("    -once               only load any include once\n") );
-	printf( WIDE("    -[Zz]               debug info mode. ( 1, 2, 4 )\n") );
+	printf( WIDE("usage: %s (options) <files...>\n"), g.pExecName );
+	printf( WIDE("	options to include\n")
+			  "	------------------------------------------\n" );
+	printf( WIDE("	 -[Ii]<path(s)>		add include path to default\n") );
+	printf( WIDE("	 -[Ss][Ii]<path(s)>  add include path to system default\n") );
+	printf( WIDE("	 -[Dd]<symbol>		 define additional symbols\n") );
+	printf( WIDE("	 -MF<file>			  dump out auto-depend info\n") );
+	printf( WIDE("	 -MT<file>			  use (file) as name of target in depend file\n") );
+	printf( WIDE("	 -L						write file/line info prefixing output lines\n") );
+	printf( WIDE("	 -l						write file/line info prefixing output lines\n")
+			 "								(without line directive)\n" );
+	printf( WIDE("	 -K						emit unknown pragmas into output\n") );
+	printf( WIDE("	 -k						do not emit unknown pragma (default)\n") );
+	printf( WIDE("	 -c						keep comments in output\n") );
+	printf( WIDE("	 -p						keep includes in output (don't output content of include)\n") );
+	printf( WIDE( "	 -f						force / into \\\n" ) );
+	printf( WIDE( "	 -sd					skip define processing (if,else,etc also skippped)\n" ) );
+	printf( WIDE( "	 -ssio					Skip System Include Out;try to keep #includes that are missing as #include\n" ) );
+	printf( WIDE("	 -F						force \\ into /\n") );
+	printf( WIDE("	 -[Oo]<file>			specify the output filename\n") );
+	printf( WIDE("	 -once					only load any include once\n") );
+	printf( WIDE("	 -[Zz]					debug info mode. ( 1, 2, 4 )\n") );
 	printf( WIDE("  Any option prefixed with a - will force the option off...\n") );
 	printf( WIDE("  Option L is by default on. (line info with #line keyword)\n") );
 	printf( WIDE("  output default is input name substituing the last character for an i...\n") );
-   printf( WIDE("        test.cpp -> test.cpi  test.c -> test.i\n") );
-   printf( WIDE("  -? for more help\n") );
+	printf( WIDE("		  test.cpp -> test.cpi  test.c -> test.i\n") );
+	printf( WIDE("  -? for more help\n") );
 }
 
 void longusage( void )
 {
 	printf( WIDE("Unimplemented yet... showing usage()\n") );
-   usage();
+	usage();
 }
 
 int ispathchr( char c )
@@ -1127,7 +1264,7 @@ char *nextchr( char *string, char *chars )
 		string++;
 	}
 	return NULL;
-}              
+}				  
 
 int main( char argc, char **argv, char **env )
 {
@@ -1169,71 +1306,45 @@ int main( char argc, char **argv, char **env )
 	//printf( WIDE("path: %s\n"), g.pExecPath );
 	getcwd( g.pWorkPath, sizeof( g.pWorkPath ) );
 #else
-   printf( WIDE("Path is not defined - probably will not work.") );
+	printf( WIDE("Path is not defined - probably will not work.") );
 #endif
 #ifdef __WATCOMC__
-   SetMinAllocate( sizeof( TEXT ) + 16 );
+	SetMinAllocate( sizeof( TEXT ) + 16 );
 #endif
-   DisableMemoryValidate(TRUE);
+	DisableMemoryValidate(TRUE);
 	// should build this from execution path of this module
-   g.flags.do_trigraph = 1;
+	g.flags.do_trigraph = 1;
 	g.flags.bWriteLine = TRUE;
-   g.flags.bLineUsesLineKeyword = TRUE;
+	g.flags.bLineUsesLineKeyword = TRUE;
+	g.bDebugLog = FALSE;
+	//g.dbgout = fopen( "debug.log", "wt" );
+	g.CurrentOutName[0] = 0xFF;
 	//AddLink( g.pSysIncludePath, SegCreateFromText( WIDE("m:\\lcc\\include") ) );
 
 	AddLink( g.pUserIncludePath, (PTEXT)&g.pCurrentPath );
 	SetCurrentPath( WIDE(".") );
 
-   InitDefines(); // set current date/time macros....
-   DefineDefine( WIDE("TRUE"), WIDE("1") );
-   DefineDefine( WIDE("FALSE"), WIDE("0") );
-   DefineDefine( WIDE("true"), WIDE("1") );
-	DefineDefine( WIDE("false"), WIDE("0") );
-	DefineDefine( WIDE("__bool_true_false_are_defined"), WIDE("1") );
-	DefineDefine( WIDE("bool"), WIDE("unsigned char") );
-   DefineDefine( WIDE("__PPCCPP__"), WIDE("0x100") );
+	InitDefines(); // set current date/time macros....
+	if( 0 && !g.flags.skip_define_processing )
 	{
-		char file[256];
-		sprintf( file, WIDE("%s/config.ppc"), g.pExecPath );
-		//printf( WIDE("loading defines from %s"), file );
-#if defined( __WATCOMC__ ) || defined (__LCC__)
-		{
-			char *includepath = getenv( WIDE("INCLUDE") );
-         // %WATCOM%\H\NT;%WATCOM%\H;%INCLUDE%
-         char *start, *end;
-         start = includepath;
-         while( start[0] && ( end = strchr( start, ';' ) ) )
-         {
-         	PTEXT pOut;
-         	end[0] = 0;
-         	//printf( WIDE("Adding include path: %s"), start );
-            pOut = SegCreateFromText( start );
-				AddLink( g.pSysIncludePath, pOut );
-         	start = end+1;
-         }
-         if( start[0] )
-         {
-         	PTEXT pOut;
-         	//printf( WIDE("Adding include path: %s"), start );
-            pOut = SegCreateFromText( start );
-				AddLink( g.pSysIncludePath, pOut );
-			}
-		}
-#endif
-		g.CurrentOutName[0] = 0xFF;
-		ProcessFile( file );
-      CommitDefinesToCommandLine();
-      g.CurrentOutName[0] = 0;
-		DestoyDepends();
+		DefineDefine( WIDE( "TRUE" ), WIDE( "1" ) );
+		DefineDefine( WIDE( "FALSE" ), WIDE( "0" ) );
+		DefineDefine( WIDE( "true" ), WIDE( "1" ) );
+		DefineDefine( WIDE( "false" ), WIDE( "0" ) );
+		DefineDefine( WIDE( "__bool_true_false_are_defined" ), WIDE( "1" ) );
+		DefineDefine( WIDE( "bool" ), WIDE( "unsigned char" ) );
+		DefineDefine( WIDE( "__PPCCPP__" ), WIDE( "0x100" ) );
 	}
-   {
-      int i=1;
+	{
+		int i=1;
 		int nArgState = ARG_UNKNOWN;
-      for( i = 1; i < argc; i++  )
-      {
-         if( argv[i][0] == '-' ||
-             //argv[i][0] == '/' ||
-             nArgState )
+		printf( "anything??" );
+		for( i = 1; i < argc; i++  )
+		{
+		  printf( "arg %d %s\n", i, argv[i] );
+			if( argv[i][0] == '-' ||
+				 //argv[i][0] == '/' ||
+				 nArgState )
 			{
 				int n, done = 0, negarg = 0;
 				for( n = 1;
@@ -1247,35 +1358,35 @@ int main( char argc, char **argv, char **env )
 							PINCLUDE_REF pRef = Allocate( sizeof( INCLUDE_REF ) );
 							pRef->flags.bMacros = 1;
 							pRef->name = argv[i];
-                     PushLink( g.pIncludeList, pRef );
+							PushLink( g.pIncludeList, pRef );
 						}
 						nArgState = ARG_UNKNOWN;
 						done = 1;
-                  break;
+						break;
 					case ARG_INCLUDE_FILE:
 						{
 							PINCLUDE_REF pRef = Allocate( sizeof( INCLUDE_REF ) );
 							pRef->flags.bMacros = 0;
 							pRef->name = argv[i];
-                     PushLink( g.pIncludeList, pRef );
+							PushLink( g.pIncludeList, pRef );
 						}
 						nArgState = ARG_UNKNOWN;
 						done = 1;
-                  break;
+						break;
 					case ARG_AUTOTARGET_NAME:
-                  strcpy( g.AutoTargetName, argv[i] );
+						strcpy( g.AutoTargetName, argv[i] );
 						nArgState = ARG_UNKNOWN;
-                  done = 1;
+						done = 1;
 						break;
 					case ARG_GEN_STDOUT:
 						nArgState = ARG_UNKNOWN;
-                  done = 1;
-                  break;
+						done = 1;
+						break;
 					case ARG_OUT_NAME:
-                  strcpy( g.CurrentOutName, argv[i] );
+						strcpy( g.CurrentOutName, argv[i] );
 						nArgState = ARG_UNKNOWN;
-                  done = 1;
-                  break;
+						done = 1;
+						break;
 					case ARG_AUTODEPEND_NAME:
 						g.AutoDependFile = fopen( argv[i], WIDE("wt") );
 						if( !g.AutoDependFile )
@@ -1283,7 +1394,7 @@ int main( char argc, char **argv, char **env )
 							fprintf( stderr, WIDE("Failed to open %s for auto depend info."), argv[i] );
 						}
 						nArgState = ARG_UNKNOWN;
-                  done = 1;
+						done = 1;
 						break;
 					case ARG_INCLUDE_PATH:
 						{
@@ -1309,10 +1420,10 @@ int main( char argc, char **argv, char **env )
 								AddLink( g.pUserIncludePath, SegCreateFromText( arg ) );
 							}
 							else
-                        i--;
+								i--;
 						}
 						nArgState = 0;
-                  done = 1;
+						done = 1;
 						break;
 					case ARG_SYS_INCLUDE_PATH:
 						{
@@ -1343,15 +1454,15 @@ int main( char argc, char **argv, char **env )
 						// some option to turn off/on write line info...
 						if( argv[i][n] == '-' )
 						{
-                     negarg = 1;
+							negarg = 1;
 						}
 						else if( argv[i][n] == 'c' )
 						{
-                     g.flags.keep_comments = 1;
+							g.flags.keep_comments = 1;
 						}
 						else if( argv[i][n] == 'p' )
 						{
-                     g.flags.keep_includes = 1;
+							g.flags.keep_includes = 1;
 						}
 						else if( argv[i][n] == 'I' )
 						{
@@ -1390,32 +1501,48 @@ int main( char argc, char **argv, char **env )
 								//if( argv[i][n+7]
 								nArgState = ARG_INCLUDE_FILE;
 								done = 1;
-                        break;
+								break;
 							}
 							else if( strcmp( argv[i] + n + 1, WIDE("macro") ) == 0 )
 							{
 								nArgState = ARG_MACRO_FILE;
 								done = 1;
-                        break;
+								break;
 							}
 							else
 							{
 								fprintf( stderr, WIDE("Argument error: %s\n"), argv[i] );
 								usage();
-                        return 1;
+								return 1;
 							}
 						}
-						else if( ( argv[i][n] == 's' &&
-									 argv[i][n+1] == 'o' ) )
+						else if( (argv[i][n] == 's' &&
+							argv[i][n + 1] == 'o') )
 						{
 							g.flags.bStdout = 1;
-                     n++;
-                     break;
+							n++;
+							break;
+						}
+						else if( argv[i][n] == 's' && argv[i][n + 1] &&
+							argv[i][n + 1] == 'd' ) {
+							g.flags.skip_define_processing = 1;
+							n += 3;
+							break;
+						}
+						else if( argv[i][n] == 's' && argv[i][n + 1] &&
+							argv[i][n + 1] == 's' && argv[i][n + 2] &&
+							argv[i][n + 2] == 'i' && argv[i][n + 3] &&
+							argv[i][n + 3] == 'o'
+							)
+						{
+							g.flags.bSkipSystemIncludeOut = 1;
+							n+=3;
+							break;
 						}
 						else if( ( argv[i][n] == 's' ||
 							  argv[i][n] == 'S' ) &&
 							( argv[i][n+1] == 'I' ||
-							   argv[i][n+1] == 'i' ) )
+								argv[i][n+1] == 'i' ) )
 						{
 							char *arg, *next, *tmp;
 							if( !argv[i][n+2] )
@@ -1444,7 +1571,7 @@ int main( char argc, char **argv, char **env )
 						}
 						else if( strcmp( argv[i]+n, "once" ) == 0 )
 						{
-                     g.flags.load_once = 1;
+							g.flags.load_once = 1;
 						}
 						else if( argv[i][n] == 'M' )
 						{
@@ -1471,24 +1598,19 @@ int main( char argc, char **argv, char **env )
 							}
 							else if( argv[i][n+1] == 'T' )
 							{
-								if( argv[i][n+2] )
-								{
-									strcpy( g.AutoTargetName, argv[i]+n+2 );
-								}
-								else
-								{
-									nArgState = ARG_AUTOTARGET_NAME;
-								}
+								if( argv[i][n+2] ) strcpy( g.AutoTargetName, argv[i]+n+2 );
+								else nArgState = ARG_AUTOTARGET_NAME;
 							}
 							else
-                        goto unknown_option;
+								goto unknown_option;
 						}
 						else if( argv[i][n] == 'o' ||
 								  argv[i][n] == 'O' )
 						{
+							printf( "output %s", argv[i] + 2 );
 							if( negarg )
 							{
-                        g.CurrentOutName[0] = 0xFF;
+								g.CurrentOutName[0] = 0xFF;
 							}
 							else
 							{
@@ -1513,7 +1635,7 @@ int main( char argc, char **argv, char **env )
 								if( eq )
 								{
 									*eq = 0;
-                           eq++;
+									eq++;
 								}
 								// additional command line defines....
 								DefineDefine( argv[i] + n+1, eq );
@@ -1529,7 +1651,7 @@ int main( char argc, char **argv, char **env )
 							if( isdigit( argv[i][n+1] ) )
 							{
 								g.bDebugLog = atoi( argv[i] + n+1 );
-                        printf( WIDE("Debug set to %d\n"), g.bDebugLog );
+								printf( WIDE("Debug set to %d\n"), g.bDebugLog );
 							}
 							else
 								g.bDebugLog = TRUE;
@@ -1568,13 +1690,13 @@ int main( char argc, char **argv, char **env )
 						}
 						else if( argv[i][n] == 'K' )
 						{
-                     g.flags.bEmitUnknownPragma = TRUE;
+							g.flags.bEmitUnknownPragma = TRUE;
 						}
 						else if( argv[i][n] == 'k' )
 						{
-                     g.flags.bEmitUnknownPragma = FALSE;
+							g.flags.bEmitUnknownPragma = FALSE;
 						}
-						else if( argv[i][n] == '?' )
+						else if( ( argv[i][n] == '?' ) || ( argv[i][n] == 'h' ) )
 						{
 							longusage();
 							return 0;
@@ -1596,26 +1718,27 @@ int main( char argc, char **argv, char **env )
 				process_count++;
 				if( process_count > 1 )
 				{
-               fprintf( stderr, WIDE("Probable error! -include, -imacro directives are lost.\nMultiple sources on command line.\n") );
+					//fprintf( stderr, WIDE("Probable error! -include, -imacro directives are lost.\nMultiple sources on command line.\n") );
 				}
-            ProcessFile( argv[i] );
+				ProcessFile( argv[i] );
 				DeleteAllDefines( DEFINE_FILE );
-            g.CurrentOutName[0] = 0; // clear name.
-         }
+				//if(  )
+				//g.CurrentOutName[0] = 0; // clear name.
+			}
 		}
 	}
-   VarTextEmpty( &g.vt );
-   if( g.bAutoDepend )
-   {
-   	DumpDepends();
+	VarTextEmpty( &g.vt );
+	if( g.bAutoDepend )
+	{
+		DumpDepends();
 	}
 	{
-      PINCLUDE_REF pRef;
+		PINCLUDE_REF pRef;
 		while( pRef = PopLink( g.pIncludeList ) )
-         Release( pRef );
+			Release( pRef );
 	}
 	DestoyDepends();
-   DeleteAllDefines( DEFINE_ALL );
+	DeleteAllDefines( DEFINE_ALL );
 	ReleaseIncludePaths();
 	DeinitDefines();
 	if( g.bDebugLog )
@@ -1623,5 +1746,7 @@ int main( char argc, char **argv, char **env )
 		fprintf( stderr, WIDE("Allocates: %ld(%ld) Releases: %ld\n"), g.nAllocates, g.nAllocSize, g.nReleases );
 		DumpMemory();
 	}
-   return g.ErrorCount;
+	if( g.flags.skip_define_processing )
+		return 0;
+	return g.ErrorCount;
 }

@@ -10,41 +10,9 @@
 #include "global.h"
 
 
-typedef struct file_tracking_tag
-{
-   int nLine;
-   char name[__MAX_PATH__]; // if I use malloc this dynamic member failed ...
-   char longname[__MAX_PATH__]; // if I use malloc this dynamic member failed ...
-   FILE *file;
-   PTEXT line; // last line read...
-   PTEXT pParsed; // last line parsed
-   PTEXT pNextWord; // next token to be used...
-   struct file_tracking_tag *prior; // stack...
-   FILE *output;
-   struct file_dependancy_tag *pFileDep;
-	int  bBlockComment; // state remains multi-lines
-   int nIfLevel; // level of ifs started when this file is opened.
 
-   // -- state tracking per file --
-   /*
-	int nState;
-
-	int nIfLevels;  // count up and down always...
-	int nIfLevelElse; // what level to find the else on...
-	*/
-} FILETRACK, *PFILETRACK;
-
-static PFILETRACK pFileStack;
 
 //----------------------------------------------------------------------
-
-typedef struct file_dependancy_tag
-{
-   char name[__MAX_PATH__];
-   struct file_dependancy_tag *pDependedBy  // what file included this
-   								, *pDependsOn // first file this one depends on
-   								, *pAlso;  // next file which pDepended by depends on
-} FILEDEP, *PFILEDEP;
 
 // all files in Root->pAlso are top level dependancies.
 static PFILEDEP FileDependancyRoot;
@@ -77,9 +45,9 @@ void FixSlashes( char *path )
 // unused thought the CPP main might use this ...
 int CurrentFileDepend( void )
 {
-   if( pFileStack )
-		return (int)pFileStack->pFileDep;
-   return 0;
+	if( g.pFileStack )
+		return (int)g.pFileStack->pFileDep;
+	return 0;
 }
 
 //----------------------------------------------------------------------
@@ -88,9 +56,9 @@ int CurrentFileDepend( void )
 int CurrentFileDepth( void )
 {
 	int n = 0;
-   PFILETRACK pft;
-   for( pft = pFileStack; pft; n++, pft = pft->prior );
-   return n;
+	PFILETRACK pft;
+	for( pft = g.pFileStack; pft; n++, pft = pft->prior );
+	return n;
 }
 
 
@@ -99,7 +67,7 @@ int CurrentFileDepth( void )
 void SetCurrentPath( char *path )
 {
 	strcpy( g.pCurrentPath.data.data, path );
-   g.pCurrentPath.data.size = strlen( path );
+	g.pCurrentPath.data.size = strlen( path );
 }
 
 //----------------------------------------------------------------------
@@ -110,8 +78,8 @@ PFILEDEP FindDependFile( PFILEDEP root, char *filename )
 	while( pDep )
 	{
 		next = pDep->pAlso;
-		if( (!strcmp( pDep->name, filename )) ||
-		    ( pDep = FindDependFile( pDep->pDependsOn, filename ) ) )
+		if( (!strcmp( pDep->base_name, filename )) ||
+			 ( pDep = FindDependFile( pDep->pDependsOn, filename ) ) )
 		{
 			return pDep;
 		}
@@ -125,21 +93,24 @@ LOGICAL AlreadyLoaded( char *filename )
 {
 	if( FindDependFile( FileDependancyRoot, filename ) )
 		return TRUE;
-   return FALSE;
+	return FALSE;
 }
 
 //----------------------------------------------------------------------
 
-PFILEDEP AddDepend( PFILEDEP root, char *filename )
+PFILEDEP AddDepend( PFILEDEP root, char *basename, char *filename )
 {
 	PFILEDEP pfd = root;
-	//fprintf( stderr, WIDE("Adding dependancy for: %s %s\n"), root?root->name:"Base File", filename );
+	if( !root )
+		root = FileDependancyRoot;
+	fprintf( stderr, WIDE("Adding dependancy for: %s %s\n"), root?root->full_name:"Base File", filename );
 	while( pfd && pfd->pDependedBy )
 		pfd = pfd->pDependedBy;
-	if( !( pfd = FindDependFile( pfd, filename ) ) )
+	if( !( pfd = FindDependFile( pfd, basename ) ) )
 	{
 		pfd = Allocate( sizeof( FILEDEP ) );
-		strcpy( pfd->name, filename );
+		strcpy( pfd->base_name, basename );
+		strcpy( pfd->full_name, filename );
 		pfd->pAlso = NULL;
 		pfd->pDependsOn = NULL;
 		pfd->pDependedBy = NULL;
@@ -161,17 +132,17 @@ PFILEDEP AddDepend( PFILEDEP root, char *filename )
 			int count = 1;
 			while( pCheck )
 			{
-				if( strcmp( pCheck->name, pfd->name ) == 0 )
+				if( strcmp( pCheck->full_name, pfd->full_name ) == 0 )
 				{
 					fprintf( stderr, WIDE("Check name matched...\n") );
 					count++;
 					if( count > 3 )
 					{
 						PFILEDEP pDump = pfd->pDependedBy;
-						fprintf( stderr, WIDE("Possible header recursion: \'%s\'"), pfd->name );
+						fprintf( stderr, WIDE("Possible header recursion: \'%s\'"), pfd->full_name );
 						while( pDump && pDump != pCheck )
 						{
-							fprintf( stderr, WIDE(" included by \'%s\'"), pDump->name );
+							fprintf( stderr, WIDE(" included by \'%s\'"), pDump->full_name );
 							pDump = pDump->pDependedBy;
 						}
 						fprintf( stderr, WIDE("\n") );
@@ -189,6 +160,12 @@ PFILEDEP AddDepend( PFILEDEP root, char *filename )
 
 //----------------------------------------------------------------------
 
+PFILEDEP AddFileDepend( PFILETRACK pft, char *basename, char *filename ) {
+	AddDepend( pft->pFileDep, basename, filename );
+}
+
+//----------------------------------------------------------------------
+
 void DumpDependLevel( PFILEDEP pfd, int level )
 {
 	PFILEDEP pDep = pfd->pDependsOn;
@@ -196,7 +173,7 @@ void DumpDependLevel( PFILEDEP pfd, int level )
 	{
 		if( !level && g.AutoTargetName[0] && !pfd->pDependedBy )
 		{
-			fprintf( g.AutoDependFile, WIDE("%s:%s "), g.AutoTargetName, pfd->name );
+			fprintf( g.AutoDependFile, WIDE("%s:%s "), g.AutoTargetName, pfd->full_name );
 		}
 		//else if( level )
 		//	fprintf( g.AutoDependFile, WIDE("%s "), pfd->name );
@@ -204,7 +181,7 @@ void DumpDependLevel( PFILEDEP pfd, int level )
 		//fprintf( g.AutoDependFile, WIDE("%s:"), pfd->name );
 		while( pDep )
 		{
-			fprintf( g.AutoDependFile, WIDE("%s "), pDep->name );
+			fprintf( g.AutoDependFile, WIDE("%s "), pDep->full_name );
 			pDep = pDep->pAlso;
 		}
 		// for all files which this one depended on, 
@@ -224,14 +201,14 @@ void DumpDependLevel( PFILEDEP pfd, int level )
 
 void DumpDepends( void )
 {
-   int level = 0;
+	int level = 0;
 	// trace through root files....
 	PFILEDEP pfd = FileDependancyRoot;
 	if( !g.AutoDependFile )
 		g.AutoDependFile = stdout;
 	while( pfd )
 	{
-      // post increment to make sure we start at 0...
+		// post increment to make sure we start at 0...
 		DumpDependLevel( pfd, level++ );
 		pfd = pfd->pAlso;
 	}
@@ -247,7 +224,7 @@ void DestroyDependLevel( PFILEDEP pfd )
 	//	fprintf( stderr, WIDE("destory level...%s \n"), pfd->name );
 	if( pDep )
 	{
-      //pDep = pfd->pDependsOn;
+		//pDep = pfd->pDependsOn;
 		while( pDep )
 		{
 			next = pDep->pAlso;
@@ -277,8 +254,8 @@ void DestoyDepends( void )
 
 int GetCurrentLine( void )
 {
-	if( pFileStack )
-		return pFileStack->nLine;
+	if( g.pFileStack )
+		return g.pFileStack->nLine;
 	return 0;
 }
 
@@ -286,9 +263,9 @@ int GetCurrentLine( void )
 
 char *GetCurrentFileName( void )
 {
-	if( pFileStack )
-		return pFileStack->longname;
-   return "<Command Line>";
+	if( g.pFileStack )
+		return g.pFileStack->longname;
+	return "<Command Line>";
 	//return NULL;
 }
 
@@ -302,15 +279,15 @@ char *FixName( char *file )
 	else
 		strcpy( realname, file );
 
-   return realname;
+	return realname;
 }
 
 //----------------------------------------------------------------------
 
 char *GetCurrentShortFileName( void )
 {
-	if( pFileStack )
-		return pFileStack->name;
+	if( g.pFileStack )
+		return g.pFileStack->name;
 	return NULL;
 }
 
@@ -318,9 +295,9 @@ char *GetCurrentShortFileName( void )
 
 void GetCurrentFileLine( char *name, int *line )
 {
-   if( name )
+	if( name )
 		strcpy( name, GetCurrentFileName() );
-   if( line )
+	if( line )
 		*line = GetCurrentLine();
 }
 
@@ -330,14 +307,14 @@ void WriteLineInfo( char *name, int line )
 {
 	FILE *out = GetCurrentOutput();
 	static char  LastFileWritten[__MAX_PATH__];
-	static int   LastLineWritten;
+	static int	LastLineWritten;
 	if( out )
 	{
 		LastLineWritten++; 
 		if( strcmp( name, LastFileWritten ) || // not match
-		    line != LastLineWritten )
+			 line != LastLineWritten )
 		{
-         strcpy( LastFileWritten, GetCurrentFileName() );
+			strcpy( LastFileWritten, GetCurrentFileName() );
 			LastLineWritten = line;
 			if( g.flags.bWriteLineInfo )
 			{
@@ -351,7 +328,7 @@ void WriteLineInfo( char *name, int line )
 			}
 			else
 			{
-            // gcc is wonderful, eh?
+				// gcc is wonderful, eh?
 				fprintf( out, WIDE("# %d \"%s\"\n")
 						  //"//line %s(%d)\n"
 						 , LastLineWritten
@@ -359,15 +336,15 @@ void WriteLineInfo( char *name, int line )
 						 );
 			}
 			}
-	   }
-   }
+		}
+	}
 }
 
 //----------------------------------------------------------------------
 
 void WriteCurrentLineInfo( void )
 {
-   WriteLineInfo( GetCurrentFileName(), GetCurrentLine() );
+	WriteLineInfo( GetCurrentFileName(), GetCurrentLine() );
 }
 
 //----------------------------------------------------------------------
@@ -379,16 +356,17 @@ void WriteLine( int len, char *line )
 	{
 		fwrite( line, 1, len, out );
 		fputc( '\n', out );
+		//fflush( out );
 	}
-   //fprintf( out, WIDE("%s\n"), line );
+	//fprintf( out, WIDE("%s\n"), line );
 }
 
 //----------------------------------------------------------------------
 
 PTEXT GetCurrentWord( void )
 {
-	if( pFileStack )
-		return pFileStack->pNextWord;
+	if( g.pFileStack )
+		return g.pFileStack->pNextWord;
 	return NULL;
 }
 
@@ -396,8 +374,8 @@ PTEXT GetCurrentWord( void )
 
 PTEXT *GetCurrentTextLine( void )
 {
-	if( pFileStack )
-		return &pFileStack->pParsed;
+	if( g.pFileStack )
+		return &g.pFileStack->pParsed;
 	return NULL;
 }
 
@@ -405,8 +383,8 @@ PTEXT *GetCurrentTextLine( void )
 
 PTEXT GetNextWord( void )
 {
-	if( pFileStack )
-		return pFileStack->pNextWord = NEXTLINE( pFileStack->pNextWord );
+	if( g.pFileStack )
+		return g.pFileStack->pNextWord = NEXTLINE( g.pFileStack->pNextWord );
 	return NULL;
 }
 
@@ -414,77 +392,83 @@ PTEXT GetNextWord( void )
 
 void SetCurrentWord( PTEXT word )
 {
-	if( pFileStack->pNextWord == pFileStack->pParsed )
-		pFileStack->pParsed = word;
-	pFileStack->pNextWord = word;
+	if( g.pFileStack->pParsed )
+	if( g.pFileStack->pNextWord == g.pFileStack->pParsed )
+		g.pFileStack->pParsed = word;
+	g.pFileStack->pNextWord = word;
 }
 
 //----------------------------------------------------------------------
 
 FILE *GetCurrentOutput(void)
 {
-   if( !g.flags.bNoOutput )
-		if( pFileStack )
-			return pFileStack->output;
+	if( !g.flags.bNoOutput )
+	{
+		return g.output;
+	}
 	return NULL;
 }
 //----------------------------------------------------------------------
 
 PTEXT StepCurrentWord( void )
 {
-	if( pFileStack )
-		return pFileStack->pNextWord = NEXTLINE( pFileStack->pNextWord );
+	if( g.pFileStack )
+		return g.pFileStack->pNextWord = NEXTLINE( g.pFileStack->pNextWord );
 	return NULL;
 }
 
 
 //----------------------------------------------------------------------
 // root level open.
-int OpenInputFile( char *file )
+int OpenInputFile( char *basename, char *file )
 {
-   PFILETRACK pft;
+	PFILETRACK pft;
 	FILE *fp;
-   char *tmp;
-   if( pFileStack )
-   {
-   	fprintf( stderr, WIDE("warning: Already have a root level file open.") );
-   }
-   fp = fopen( tmp = FixName(file), WIDE("rt") );
-   if( fp )
-   {
-      pft = (PFILETRACK)Allocate( sizeof( FILETRACK ) );
-      pft->bBlockComment = 0;
-      pft->nLine = 0;
-      pft->file = fp;
-      pft->nIfLevel = g.nIfLevels;
+	char *tmp;
+	if( g.pFileStack )
+	{
+			fprintf( stderr, WIDE("warning: Already have a root level file open.") );
+	}
+	if( AlreadyLoaded( basename ) )
+	{
+		return 0;
+	}
+	fp = fopen( tmp = FixName(file), WIDE("rt") );
+	if( fp )
+	{
+		pft = (PFILETRACK)Allocate( sizeof( FILETRACK ) );
+		pft->bBlockComment = 0;
+		pft->nLine = 0;
+		pft->file = fp;
+		pft->nIfLevel = g.nIfLevels;
 		strcpy( pft->name, file );
-      strcpy( pft->longname, tmp );
-      FixSlashes( pft->longname );
-      pft->line = NULL;
-      pft->output = NULL;
-      pft->pParsed = NULL;
-      pft->pNextWord = NULL;
-      pft->prior = pFileStack;
-      //fprintf( stderr, WIDE("Add in OpenInputFile\n") );
-      pft->pFileDep = AddDepend( NULL, file );
-      pFileStack = pft;
-   }
-   else
-      pft = NULL;
-   return (int)pft;
+		strcpy( pft->longname, tmp );
+		FixSlashes( pft->longname );
+		pft->line = NULL;
+		//pft->output = NULL;
+		pft->pParsed = NULL;
+		pft->pNextWord = NULL;
+		pft->prior = g.pFileStack;
+		//fprintf( stderr, WIDE("Add in OpenInputFile\n") );
+		pft->pFileDep = AddDepend( NULL, basename, file );
+		g.pFileStack = pft;
+	}
+	else
+		pft = NULL;
+	return (int)pft;
 }
 
 //----------------------------------------------------------------------
 
-int OpenNewInputFile( char *name, char *pFile, int nLine, int bDepend, int bNext )
+int OpenNewInputFile( char *basename, char *name, char *pFile, int nLine, int bDepend, int bNext )
 {
-	PFILETRACK pft = pFileStack;
-   PFILETRACK pftNew = NULL;
+	PFILETRACK pft = g.pFileStack;
+	PFILETRACK pftNew = NULL;
 	FILE *fp;
-   char *tmp;
+	char *tmp;
 	if( bNext )
 	{
-		PFILETRACK pftTest = pFileStack;
+		PFILETRACK pftTest = g.pFileStack;
 		while( pftTest )
 		{
 			if( strcmp( name, pftTest->name ) == 0 )
@@ -493,104 +477,104 @@ int OpenNewInputFile( char *name, char *pFile, int nLine, int bDepend, int bNext
 		}
 	}
 
-   fp = fopen( tmp = FixName(name), WIDE("rt") );
-   if( fp )
-   {
-      pftNew = (PFILETRACK)Allocate( sizeof( FILETRACK ) );
-      pftNew->bBlockComment = 0;
-      pftNew->nLine = 0;
+	fp = fopen( tmp = FixName(name), WIDE("rt") );
+	if( fp )
+	{
+		pftNew = (PFILETRACK)Allocate( sizeof( FILETRACK ) );
+		pftNew->bBlockComment = 0;
+		pftNew->nLine = 0;
 		pftNew->file = fp;
-      pftNew->nIfLevel = g.nIfLevels;
-      strcpy( pftNew->name, name );
-      strcpy( pftNew->longname, tmp );
+		pftNew->nIfLevel = g.nIfLevels;
+		strcpy( pftNew->name, name );
+		strcpy( pftNew->longname, tmp );
 		FixSlashes( pftNew->longname );
 
 		// move the current line to the current file... (so we can log #include?)
 		pftNew->line = NULL;
 
 		pftNew->pNextWord = pft->pNextWord;
-      pft->pNextWord = NULL;
+		pft->pNextWord = NULL;
 
-      pftNew->output = pft->output;
-      pftNew->pParsed = NULL;
-      pftNew->pNextWord = NULL;
-      pftNew->prior = pFileStack;
-      if( bDepend && ( pft->pFileDep ) )
-      {
-	      //fprintf( stderr, WIDE("Add in OpenNewInputFile\n") );
-			pftNew->pFileDep = AddDepend( pft->pFileDep, name );
+		//pftNew->output = pft->output;
+		pftNew->pParsed = NULL;
+		pftNew->pNextWord = NULL;
+		pftNew->prior = g.pFileStack;
+		if( bDepend && ( pft->pFileDep ) )
+		{
+			//fprintf( stderr, WIDE("Add in OpenNewInputFile\n") );
+			pftNew->pFileDep = AddDepend( pft->pFileDep, basename, name );
 		}
-      else
+		else
 			pftNew->pFileDep = NULL;
-      pFileStack = pftNew;
-   }
-   return (int)pftNew;
+		g.pFileStack = pftNew;
+	}
+	return (int)pftNew;
 }
 
 //----------------------------------------------------------------------
 
 int OpenOutputFile( char *newfile )
 {
-	PFILETRACK pft = pFileStack;
-   if( pft )
-   {
-      pft->output = fopen( FixName( newfile ), WIDE("wt") );
-      if( pft->output )
-      {
-         return 1;
-      }
-   }
-   return 0;
+	//PFILETRACK pft = g.pFileStack;
+	//if( pft )
+	{
+		g.output = fopen( FixName( newfile ), WIDE("wt") );
+		if( g.output )
+		{
+			return 1;
+		}
+	}
+	return 0;
 }
 
 //----------------------------------------------------------------------
 
 int OpenStdOutputFile( void )
 {
-	PFILETRACK pft = pFileStack;
-   if( pft )
-   {
-      pft->output = stdout;
-      if( pft->output )
-      {
-         return 1;
-      }
-   }
-   return 0;
+	PFILETRACK pft = g.pFileStack;
+	if( pft )
+	{
+		g.output = stdout;
+		//if( pft->output )
+		{
+			return 1;
+		}
+	}
+	return 0;
 }
 
 //----------------------------------------------------------------------
 
 void CloseInputFileEx( DBG_VOIDPASS )
 {
-	PFILETRACK pft = pFileStack;
+	PFILETRACK pft = g.pFileStack;
 	if( pft->nIfLevel != g.nIfLevels )
 	{
 		fprintf( stderr, WIDE("Warning: Unmatched #if/#endif in %s (%d extra #if)\n")
 				, pft->longname
 				 , g.nIfLevels - pft->nIfLevel );
 	}
-   if( pft->file )
-   {
-      fclose( pft->file );
-      pft->file = NULL;
-   }
-   if( !pft->prior )
-   {
-      if( pft->output )
-      {
-         fclose( pft->output );
-         pft->output = NULL;
-      }
-   }
-   if( pft->line )
-      LineRelease( pft->line );
+	if( pft->file )
+	{
+		fclose( pft->file );
+		pft->file = NULL;
+	}
+	if( !pft->prior )
+	{
+		//if( pft->output )
+		{
+			//fclose( pft->output );
+			//pft->output = NULL;
+		}
+	}
+	if( pft->line )
+		LineRelease( pft->line );
 	if( pft->pParsed )
 		LineRelease( pft->pParsed );
-   pft->line = NULL;
-   pft->pParsed = NULL;
-   pFileStack = pft->prior;
-   ReleaseExx( (void**)&pft DBG_RELAY );
+	pft->line = NULL;
+	pft->pParsed = NULL;
+	g.pFileStack = pft->prior;
+	ReleaseExx( (void**)&pft DBG_RELAY );
 }
 
 //----------------------------------------------------------------------
@@ -598,171 +582,176 @@ void CloseInputFileEx( DBG_VOIDPASS )
 
 void CloseAllFiles( void )
 {
-   while( pFileStack )
-      CloseInputFile();
+	while( g.pFileStack )
+		CloseInputFile();
 }
 
 //----------------------------------------------------------------------
 
 PTEXT ReadLineEx( int Append DBG_PASS )
 {
-   PFILETRACK pft;
-   PTEXT pNew;
+	PFILETRACK pft;
+	PTEXT pNew;
 Restart:
-	pft = pFileStack;
-   if( !pft )
-      return NULL;
-   do
-   {
-   	int bContinue;
-   	PTEXT current;
-   GetNewLine: // loop this far when comments consume entire line...
-      if( pft->line )
-         LineReleaseEx( &pft->line DBG_RELAY );
+	pft = g.pFileStack;
+	if( !pft  )
+		return NULL;
+	do
+	{
+		int bContinue;
+		PTEXT current;
+	GetNewLine: // loop this far when comments consume entire line...
+	if( (pft->pParsed == pft->line) )
+		DebugBreak();
+		if( pft->line )
+			LineReleaseEx( &pft->line DBG_RELAY );
 		pft->line = NULL;
-      if( !Append )
-      {
-         if( pft->pParsed )
-         {
-            LineReleaseEx( &pft->pParsed DBG_RELAY );
-         }
-         pft->pNextWord = NULL;
-      }
-      bContinue = 0;
-      do
-      {
-         pft->line = SegAppend( pft->line, current = get_line( pft->file, &pft->nLine ) );
-         if( !current )
-         {
-         	if( bContinue )
-         	{
-         		fprintf( stderr, WIDE("%s(%d) Warning: Continuation(\\) at end of file will continue to next file...\n"),
-         						GetCurrentFileName(), GetCurrentLine() );
-         	}
-            CloseInputFile();
-            goto Restart;
+		if( !Append && ( pft->pParsed != pft->line ) )
+		{
+		  current = pft->pParsed;
+			do {
+				if( ( ( (PTRSZVAL)current)&0xFFFF0000) == (PTRSZVAL)0xDDDD0000U )
+				{
+					DebugBreak();
+				}
+				current = NEXTLINE( current );
+			} while( current );
+			if( pft->pParsed )
+			{
+				current = pft->pParsed;
+				LineReleaseEx( &pft->pParsed DBG_RELAY );
+			}
+			pft->pNextWord = NULL;
+		}
+		bContinue = 0;
+		do
+		{
+			pft->line = SegAppend( pft->line, current = get_line( pft->file, &pft->nLine ) );
+			if( !current )
+			{
+				if( bContinue )
+				{
+					fprintf( stderr, WIDE("%s(%d) Warning: Continuation(\\) at end of file will continue to next file...\n"),
+									GetCurrentFileName(), GetCurrentLine() );
+				}
+				CloseInputFile();
+				goto Restart;
 			}
 			else
 			{
 				if( !current->format.spaces )
 					current->format.spaces = 1;
 			}
-         if( current->data.data[current->data.size-1] == '\\' )
-         {
-         	current->data.data[current->data.size = (current->data.size-1)] = 0;
-         	bContinue = 1;
-         }
-         else
-         	bContinue = 0;
-      }while( pft && !pft->line && !bContinue );
+			if( current->data.data[current->data.size-1] == '\\' )
+			{
+				current->data.data[current->data.size = (current->data.size-1)] = 0;
+				bContinue = 1;
+			}
+			else
+				bContinue = 0;
+		}while( pft && !pft->line && !bContinue );
 
-      if( !pft || !pft->line )
+		if( !pft || !pft->line )
 		{
 			if( g.bDebugLog & DEBUG_READING )
 			{
 				fprintf( stddbg, WIDE("Returning NULL line...\n") );
 			}
-         return NULL;
-      }
-      pNew = burst( pft->line );
+			return NULL;
+		}
+		pNew = burst( pft->line );
 
-      // strip blank lines...
-      if( pNew && !GetTextSize( pNew ) )
-      {
+		// strip blank lines...
+		if( pNew && !GetTextSize( pNew ) )
+		{
 			if( g.bDebugLog & DEBUG_READING )
 			{
 				printf( WIDE("No content...") );
 			}
-         LineRelease( pNew );
-         goto GetNewLine;
-      }
+			LineRelease( pNew );
+			goto GetNewLine;
+		}
 
-      {
-         PTEXT p, pStart = NULL;
-         int quote  = 0; // set to current quote to match ... " or '
-         int escape = 0; // if(quote) and prior == '\' skip " or ' chars
-         int nSlash = 0;
+		{
+			PTEXT p, pStart = NULL;
+			int quote  = 0; // set to current quote to match ... " or '
+			int escape = 0; // if(quote) and prior == '\' skip " or ' chars
+			int nSlash = 0;
 			int nStar  = 0;
 			int nLessthan = 0;
 			int nGreaterthan = 0;
-         int nPercent = 0;
+			int nPercent = 0;
 
-         for( p = pNew; p; p = NEXTLINE( p ) )
-         {
-            char *pText;
-         ContinueNoIncrement:
-            pText = GetText( p );
-            if( !pft->bBlockComment )
-            {
-               if( !quote )
-               {
-                  if( pText[0] == '\'' )
-                  {
-                     quote = '\'';
-                     continue;
-                  }
-                  else if( pText[0] == '\"' )
-                  {
-                     quote = '\"';
-                     continue;
-                  }
-               }
-            }
-            if( quote )
-            {
-               if( !escape )
-               {
-                  if( pText[0] == '\\' )
-                     escape = 1;
-                  else if( pText[0] == quote )
-                     quote = 0;
-               }
-               else
-                  escape = 0;
-            }
-            else if( pText[0] == '/'  )
+			for( p = pNew; p; p = NEXTLINE( p ) )
+			{
+				char *pText;
+			ContinueNoIncrement:
+				pText = GetText( p );
+				if( !pft->bBlockComment )
+				{
+					if( !quote )
+					{
+						if( pText[0] == '\'' )
+						{
+							quote = '\'';
+							continue;
+						}
+						else if( pText[0] == '\"' )
+						{
+							quote = '\"';
+							continue;
+						}
+					}
+				}
+				if( quote )
+				{
+					if( !escape )
+					{
+						if( pText[0] == '\\' )
+							escape = 1;
+						else if( pText[0] == quote )
+							quote = 0;
+					}
+					else
+						escape = 0;
+				}
+				else if( pText[0] == '/'  )
 				{
 					if( g.bDebugLog & DEBUG_READING )
 					{
 						fprintf( stddbg, WIDE("Have a slash...\n") );
 					}
-               if( nStar ) // leading stars up to close...
-               {
+					if( nStar ) // leading stars up to close...
+					{
 						if( g.bDebugLog & DEBUG_READING )
 						{
 							fprintf( stddbg, WIDE("ending comment...\n") );
 						}
-               	if( p->format.spaces )
-               	{
-               		nStar = 0;
-               		continue;
-               	}
-                  nStar = 0;
-                  if( !pft->bBlockComment )
-                  {
-                  	// this may be the case - may also be a case of invalid paramters....
-                  	// */ is an illegal operator combination anyhow....
-                     fprintf( stderr, WIDE("%s(%d) Warning: close block comment which was not started.\n")
-                                 , pft->name, pft->nLine );
-                  }
-                  pft->bBlockComment = 0;
-                  if( pStart ) // began on this line.... ending here also
+						if( p->format.spaces )
+						{
+							nStar = 0;
+							continue;
+						}
+						nStar = 0;
+						if( !pft->bBlockComment )
+						{
+							// this may be the case - may also be a case of invalid paramters....
+							// */ is an illegal operator combination anyhow....
+							fprintf( stderr, WIDE("%s(%d) Warning: close block comment which was not started.\n")
+											, pft->name, pft->nLine );
+						}
+						pft->bBlockComment = 0;
+						if( pStart ) // began on this line.... ending here also
 						{
 							if( g.bDebugLog & DEBUG_READING )
 							{
 								fprintf( stddbg, WIDE("had a start of comment...\n") );
 							}
 							if( NEXTLINE( p ) )
-                     {
-                        p = NEXTLINE( p );
-                        SegBreak( p );
-                        if( pStart != pNew )
-                           SegAppend( SegBreak( pStart ), p );
-                        else
-									pNew = p;
-								if( g.flags.keep_comments
-									&& ( g.flags.keep_includes && CurrentFileDepth() == 1 )
-									|| !g.flags.keep_includes )
+							{
+								p = NEXTLINE( p );
+								SegBreak( p );
+								if( g.flags.keep_comments )
 								{
 									PTEXT pOut;
 									pOut = BuildLineEx( pStart, FALSE DBG_SRC );
@@ -776,26 +765,32 @@ Restart:
 										LineRelease( pOut );
 									}
 								}
-                        LineRelease( pStart );
-                        pStart = NULL;
-                        goto ContinueNoIncrement;
-                     }
-                     else
+								if( pStart != pNew )
+									SegAppend( SegBreak( pStart ), p );
+								else
+								{
+									pNew = p;
+								}
+								LineRelease( pStart );
+								pStart = NULL;
+								goto ContinueNoIncrement;
+							}
+							else
 							{
 								if( g.bDebugLog & DEBUG_READING )
 								{
 									fprintf( stddbg, WIDE("Trailing part of line was block comment...\n") );
 								}
-                        // whole line is a block comment...
-                        if( pStart == pNew )
-                        {
+								// whole line is a block comment...
+								if( pStart == pNew )
+								{
 									if( g.bDebugLog & DEBUG_READING )
 									{
 										fprintf( stddbg, WIDE("while line In block comment...") );
 									}
-									if( g.flags.keep_comments
-										&& ( g.flags.keep_includes && CurrentFileDepth() == 1 )
-										|| !g.flags.keep_includes )
+									if( g.flags.keep_comments /*&&
+										( !g.flags.bSkipSystemIncludeOut && !g.flags.doing_system_file )*/
+									   )
 									{
 										PTEXT pOut;
 										pOut = BuildLineEx( pNew, FALSE DBG_SRC );
@@ -809,25 +804,23 @@ Restart:
 											LineRelease( pOut );
 										}
 									}
-                           LineRelease( pNew );
+									LineRelease( pNew );
 									goto GetNewLine;
-                        }
-                        // else there is something before left...
-                        SegBreak( pStart );
-                        LineRelease( pStart );
-                        break; // loop ends anyway...
-                     }
-                  }
-                  else
-                  {
-                     // up to this point we have been in a block comment
-                     if( NEXTLINE( p ) )
-                     {
-                        p = NEXTLINE( p );
-                        SegBreak( p );
-								if( g.flags.keep_comments
-									&& ( g.flags.keep_includes && CurrentFileDepth() == 1 )
-									|| !g.flags.keep_includes )
+								}
+								// else there is something before left...
+								SegBreak( pStart );
+								LineRelease( pStart );
+								break; // loop ends anyway...
+							}
+						}
+						else
+						{
+							// up to this point we have been in a block comment
+							if( NEXTLINE( p ) )
+							{
+								p = NEXTLINE( p );
+								SegBreak( p );
+								if( g.flags.keep_comments )
 								{
 									PTEXT pOut;
 									pOut = BuildLineEx( pNew, FALSE DBG_SRC );
@@ -843,15 +836,13 @@ Restart:
 								}
 								LineRelease( pNew );
 								pNew = p;
-                        goto ContinueNoIncrement;
-                     }
-                     else
-                     {
-                        // entire line within block comment...
-                        //printf( WIDE("in block comment... ") );
-								if( g.flags.keep_comments
-									&& ( g.flags.keep_includes && CurrentFileDepth() == 1 )
-									|| !g.flags.keep_includes )
+								goto ContinueNoIncrement;
+							}
+							else
+							{
+								// entire line within block comment...
+								//printf( WIDE("in block comment... ") );
+								if( g.flags.keep_comments )
 								{
 									PTEXT pOut;
 									pOut = BuildLineEx( pNew, FALSE DBG_SRC );
@@ -865,20 +856,20 @@ Restart:
 										LineRelease( pOut );
 									}
 								}
-                        LineRelease( pNew );
-                        goto GetNewLine;
-                     }
-                  }
-               }
+								LineRelease( pNew );
+								goto GetNewLine;
+							}
+						}
+					}
 
-               if( !nSlash && !nStar &&
-                  ( !pft->bBlockComment ) )
+					if( !nSlash && !nStar &&
+						( !pft->bBlockComment ) )
 					{
 						if( g.bDebugLog & DEBUG_READING )
 						{
 							fprintf( stddbg, WIDE("Marking begin...\n") );
 						}
-                  pStart = p;
+						pStart = p;
 					}
 					else
 					{
@@ -890,34 +881,32 @@ Restart:
 									, pft->bBlockComment?"In block": "" );
 						}
 					}
-               if( !(pft->bBlockComment ) )
-               {
-               	if( nSlash )
-               	{
-                    	if( p->format.spaces )
-	               	{
-   	            		nSlash = 1; // reset/set count...
-      	         		continue;
-         	      	}
-               	}
-                  nSlash++;
+					if( !(pft->bBlockComment ) )
+					{
+						if( nSlash )
+						{
+						  	if( p->format.spaces )
+							{
+								nSlash = 1; // reset/set count...
+								continue;
+							}
+						}
+						nSlash++;
 
-                  if( nSlash >= 2 )
-                  {
-                     PTEXT pout;
+						if( nSlash >= 2 )
+						{
+							PTEXT pout;
 
-                     if( pStart == pNew )
-                     {
-                        // releasing the whole line...
-                        //printf( WIDE("Whole line commented...\n") );
-								if( g.flags.keep_comments
-									&& ( g.flags.keep_includes && CurrentFileDepth() == 1 )
-									|| !g.flags.keep_includes )
+							if( pStart == pNew )
+							{
+								// releasing the whole line...
+								//printf( WIDE("Whole line commented...\n") );
+								if( g.flags.keep_comments )
 								{
 									PTEXT pOut;
 									// throw in a newline, comments end up above the actual line
 									// should force a #line indicator also?
-                           //SegAppend( pNew, SegCreate(0));
+									//SegAppend( pNew, SegCreate(0));
 									pOut = BuildLineEx( pNew, FALSE DBG_SRC );
 									if( pOut )
 									{
@@ -929,13 +918,13 @@ Restart:
 										LineRelease( pOut );
 									}
 								}
-                        LineRelease( pNew );
-                        goto GetNewLine;
-                     }
-                     SegBreak( pStart );
-							if( g.flags.keep_comments
-								&& ( g.flags.keep_includes && CurrentFileDepth() == 1 )
-								|| !g.flags.keep_includes )
+								// internally we keep pParsed which is what pNew is also...
+								// pParsed will delete pNew
+								//LineRelease( pNew );
+								goto GetNewLine;
+							}
+							SegBreak( pStart );
+							if( g.flags.keep_comments )
 							{
 								PTEXT pOut;
 								// throw in a newline, comments end up above the actual line
@@ -954,70 +943,68 @@ Restart:
 							LineRelease( pStart );
 							break;
 						}
-               }
-            }
-            else if( pText[0] == '*' )
+					}
+				}
+				else if( pText[0] == '*' )
 				{
 					if( g.bDebugLog & DEBUG_READING )
 					{
 						fprintf( stddbg, WIDE("found a star... was there a slash?\n") );
 					}
-               if( nSlash == 1 ) // begin block comment
-               {
-               	if( p->format.spaces )
+					if( nSlash == 1 ) // begin block comment
+					{
+						if( p->format.spaces )
 						{
-		               nSlash = 0;
-               	 	nStar = 1; // set/reset count.
-               	 	continue;
+							nSlash = 0;
+							nStar = 1; // set/reset count.
+							continue;
 						}
 						if( g.bDebugLog & DEBUG_READING )
 						{
 							fprintf( stddbg, WIDE("okay defineatly block comment...\n") );
 						}
-                  if( pft->bBlockComment )
+						if( pft->bBlockComment )
 							nStar++;
-                  else
+						else
 							pft->bBlockComment = TRUE;
-                  // pStart should point to the beginning '/' already
-                  // /*/ is not a valid comment but /**/ is.
-               }
-               else
-               {
-               	if( p->format.spaces )
-               	{
-               	 	nStar = 1; // set/reset count.
-               	 	continue;
+					// pStart should point to the beginning '/' already
+					// /*/ is not a valid comment but /**/ is.
+					}
+					else
+					{
+						if( p->format.spaces )
+						{
+						 	nStar = 1; // set/reset count.
+						 	continue;
 						}
 						if( g.bDebugLog & DEBUG_READING )
 						{
 							fprintf( stddbg, WIDE("Adding another star...\n") );
 						}
 						nStar++; // this is beginning of end block comment maybe
-               }
-               // begin block comment....
-            }
-            else // character is neither a '/' or a '*'
-            {
-               nSlash = 0;
-               nStar = 0;
-            }
-         }
+					}
+					// begin block comment....
+				}
+				else // character is neither a '/' or a '*'
+				{
+					nSlash = 0;
+					nStar = 0;
+				}
+			}
 
-         if( pft->bBlockComment ) // fell off end of line without a close on this.
+			if( pft->bBlockComment ) // fell off end of line without a close on this.
 			{
 				if( g.bDebugLog & DEBUG_READING )
 				{
 					fprintf( stddbg, WIDE("Daning block comment - continue reading...\n") );
 				}
-            if( pStart )
-            {
-               // began a block comment, but it continues....
-               if( pStart == pNew )
-               {
-               	//printf( WIDE("In Block comment(3)...\n") );
-						if( g.flags.keep_comments
-							&& ( g.flags.keep_includes && CurrentFileDepth() == 1 )
-							|| !g.flags.keep_includes )
+				if( pStart )
+				{
+					// began a block comment, but it continues....
+					if( pStart == pNew )
+					{
+						//printf( WIDE("In Block comment(3)...\n") );
+						if( g.flags.keep_comments )
 						{
 							PTEXT pOut;
 							pOut = BuildLineEx( pNew, FALSE DBG_SRC );
@@ -1032,13 +1019,32 @@ Restart:
 							}
 						}
 						LineRelease( pNew );
-                  goto GetNewLine; // this block started here and was whole line
-               }
-               SegBreak( pStart );
-               LineRelease( pStart );
-					if( g.flags.keep_comments
-						&& ( g.flags.keep_includes && CurrentFileDepth() == 1 )
-						|| !g.flags.keep_includes )
+						goto GetNewLine; // this block started here and was whole line
+					}
+					else
+					{
+						SegBreak( pStart );
+
+						PTEXT pOut;
+						pOut = BuildLineEx( pNew, FALSE DBG_SRC );
+						if( pOut )
+						{
+							if( g.flags.bWriteLine )
+							{
+								WriteCurrentLineInfo();
+							}
+							WriteLine( GetTextSize( pOut ), GetText( pOut ) );
+							LineRelease( pOut );
+						}
+						LineRelease( pNew );
+						pNew = pStart;
+					}
+				if( !g.flags.keep_comments ) {
+					SegBreak( pStart );
+					LineRelease( pStart );
+				}
+				/*
+					if( g.flags.keep_comments )
 					{
 						PTEXT pOut;
 						pOut = BuildLineEx( pStart, FALSE DBG_SRC );
@@ -1052,14 +1058,13 @@ Restart:
 							LineRelease( pOut );
 						}
 					}
+					*/
 				}
-            else
-            {
-              	//printf( WIDE("In Block comment(3)...\n") );
-               // ignore this line completely!
-					if( g.flags.keep_comments
-						&& ( g.flags.keep_includes && CurrentFileDepth() == 1 )
-						|| !g.flags.keep_includes )
+				else
+				{
+				  	//printf( WIDE("In Block comment(3)...\n") );
+					// ignore this line completely!
+					if( g.flags.keep_comments )
 					{
 						PTEXT pOut;
 						pOut = BuildLineEx( pNew, FALSE DBG_SRC );
@@ -1076,12 +1081,12 @@ Restart:
 					LineRelease( pNew );
 					goto GetNewLine;
 				}
-         }
-      }
-   }while( !pNew );
-   //printf( WIDE("Adding %lp to %lp\n"), pNew, pft->pParsed );
-   pft->pParsed = SegAppend( pft->pParsed, pNew );
-   if( !Append )
+			}
+		}
+	}while( !pNew );
+	//printf( WIDE("Adding %lp to %lp\n"), pNew, pft->pParsed );
+	pft->pParsed = SegAppend( pft->pParsed, pNew );
+	if( !Append )
 		pft->pNextWord = pNew;
 	if( g.bDebugLog & DEBUG_READING )
 	{
@@ -1089,7 +1094,7 @@ Restart:
 		DumpSegs( pNew );
 		fprintf( stddbg, WIDE("\n") );
 	}
-   return pNew;
+	return pNew;
 }
 
 
@@ -1100,7 +1105,7 @@ char *pathrchr( char *path )
 	end2 = strrchr( path, '/' );
 	if( end1 > end2 )
 		return end1;
-   return end2;
+	return end2;
 }
 
 //-----------------------------------------------------------------------
@@ -1114,13 +1119,13 @@ char *pathchr( char *path )
 	{
 		if( end1 < end2 )
 			return end1;
-      return end2;
+		return end2;
 	}
 	else if( end1 )
 		return end1;
 	else if( end2 )
-      return end2;
-   return NULL;
+		return end2;
+	return NULL;
 }
 
 

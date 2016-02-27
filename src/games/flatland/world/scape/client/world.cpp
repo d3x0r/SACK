@@ -25,7 +25,7 @@ extern GLOBAL g;
 
 INDEX  CPROC CreateSquareSector( INDEX iWorld, PC_POINT pOrigin, RCOORD size )
 {
-	_32 ResultID;
+	MSGIDTYPE ResultID;
 	_32 Result[1];
 	size_t ResultLen = sizeof( Result );
 	if( ConnectToServer()
@@ -61,7 +61,7 @@ PTRSZVAL CPROC CompareWorldName( POINTER p, PTRSZVAL psv )
 
 INDEX OpenWorld( CTEXTSTR name )
 {
-	_32 ResultID;
+	MSGIDTYPE ResultID;
 	INDEX Result[1];
 	size_t ResultLen = sizeof( Result );
 	if( ConnectToServer()
@@ -149,7 +149,7 @@ void ResetWorld( INDEX iWorld )
 	if( ConnectToServer() )
 	{
 		// even with wait, it still returns before events are sent to the client.
-		_32 wait;
+		MSGIDTYPE wait;
 		TransactServerMessage( g.MsgBase, MSG_OFFSET(ResetWorld)
 									, &iWorld, ParamLength( iWorld, iWorld )
 									, &wait, NULL, 0 );
@@ -176,7 +176,7 @@ void ResetWorld( INDEX iWorld )
 
 int SaveWorldToFile( INDEX iWorld )
 {
-	_32 ResultID;
+	MSGIDTYPE ResultID;
 	_32 Result[1];
 	size_t ResultLen = sizeof( Result );
 	if( ConnectToServer()
@@ -195,7 +195,7 @@ int SaveWorldToFile( INDEX iWorld )
 
 int LoadWorldFromFile( INDEX iWorld )
 {
-	_32 ResultID;
+	MSGIDTYPE ResultID;
 	_32 Result[1];
 	size_t ResultLen = sizeof( Result );
 	if( ConnectToServer()

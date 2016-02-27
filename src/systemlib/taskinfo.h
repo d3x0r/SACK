@@ -99,6 +99,9 @@ extern
 #endif
 } *local_systemlib;
 
+#ifdef l
+#   undef l
+#endif
 #define l (*local_systemlib)
 
 int TryShellExecute( PTASK_INFO task, CTEXTSTR path, CTEXTSTR program, PTEXT cmdline );

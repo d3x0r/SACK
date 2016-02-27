@@ -1,8 +1,9 @@
+#define FILESYSTEM_LIBRARY_SOURCE
 #define NO_UNICODE_C
 #define WINFILE_COMMON_SOURCE
 #define FIX_RELEASE_COM_COLLISION
 #include <stdhdrs.h>
-#undef DeleteList
+//#undef DeleteList
 #ifdef WIN32
 #include <shlobj.h>
 #endif
@@ -52,32 +53,32 @@ static void UpdateLocalDataPath( void )
 #endif
 	SHGetFolderPath( NULL, CSIDL_COMMON_APPDATA, NULL, SHGFP_TYPE_CURRENT, path );
 	realpath = NewArray( TEXTCHAR, len = StrLen( path )
-							  + StrLen( l.producer?l.producer:WIDE("") )
-							  + StrLen( l.application?l.application:WIDE("") ) + 3 ); // worse case +3
+							  + StrLen( (*winfile_local).producer?(*winfile_local).producer:WIDE("") )
+							  + StrLen( (*winfile_local).application?(*winfile_local).application:WIDE("") ) + 3 ); // worse case +3
 	tnprintf( realpath, len, WIDE("%s%s%s%s%s"), path
-			  , l.producer?WIDE("/"):WIDE(""), l.producer?l.producer:WIDE("")
-			  , l.application?WIDE("/"):WIDE(""), l.application?l.application:WIDE("")
+			  , (*winfile_local).producer?WIDE("/"):WIDE(""), (*winfile_local).producer?(*winfile_local).producer:WIDE("")
+			  , (*winfile_local).application?WIDE("/"):WIDE(""), (*winfile_local).application?(*winfile_local).application:WIDE("")
 			  );
-	if( l.data_file_root )
-		Deallocate( TEXTSTR, l.data_file_root );
-	l.data_file_root = realpath;
-	MakePath( l.data_file_root );
+	if( (*winfile_local).data_file_root )
+		Deallocate( TEXTSTR, (*winfile_local).data_file_root );
+	(*winfile_local).data_file_root = realpath;
+	MakePath( (*winfile_local).data_file_root );
 #else
-	l.data_file_root = StrDup( WIDE(".") );
+	(*winfile_local).data_file_root = StrDup( WIDE(".") );
 
 #endif
 }
 
 void sack_set_common_data_producer( CTEXTSTR name )
 {
-	l.producer = StrDup( name );
+	(*winfile_local).producer = StrDup( name );
 	UpdateLocalDataPath();
 
 }
 
 void sack_set_common_data_application( CTEXTSTR name )
 {
-	l.application = StrDup( name );
+	(*winfile_local).application = StrDup( name );
 	UpdateLocalDataPath();
 }
 
@@ -86,18 +87,18 @@ static void LocalInit( void )
 	if( !winfile_local )
 	{
 		SimpleRegisterAndCreateGlobal( winfile_local );
-		if( !l.flags.bInitialized )
+		if( !(*winfile_local).flags.bInitialized )
 		{
-			InitializeCriticalSec( &l.cs_files );
-			l.flags.bInitialized = 1;
-			l.flags.bLogOpenClose = 0;
+			InitializeCriticalSec( &(*winfile_local).cs_files );
+			(*winfile_local).flags.bInitialized = 1;
+			(*winfile_local).flags.bLogOpenClose = 0;
 			{
 #ifdef _WIN32
 				sack_set_common_data_producer( WIDE( "Freedom Collective" ) );
 				sack_set_common_data_application( GetProgramName() );
 
 #else
-				l.data_file_root = StrDup( WIDE( "~" ) );
+				(*winfile_local).data_file_root = StrDup( WIDE( "~" ) );
 #endif
 			}
 		}
@@ -112,7 +113,7 @@ static void InitGroups( void )
 	group = New( struct Group );
 	group->base_path = StrDup( GetCurrentPath( tmp, sizeof( tmp ) ) );
 	group->name = StrDup( WIDE( "Default" ) );
-	AddLink( &l.groups, group );
+	AddLink( &(*winfile_local).groups, group );
 
 	// known handle '1' is the program's load path.
 	group = New( struct Group );
@@ -123,25 +124,25 @@ static void InitGroups( void )
 	group->base_path = StrDup( GetProgramPath() );
 #endif
 	group->name = StrDup( WIDE( "Program Path" ) );
-	AddLink( &l.groups, group );
+	AddLink( &(*winfile_local).groups, group );
 
 	// known handle '1' is the program's start path.
 	group = New( struct Group );
 	group->base_path = StrDup( GetStartupPath() );
 	group->name = StrDup( WIDE( "Startup Path" ) );
-	AddLink( &l.groups, group );
-	l.have_default = TRUE;
+	AddLink( &(*winfile_local).groups, group );
+	(*winfile_local).have_default = TRUE;
 }
 
 static struct Group *GetGroupFilePath( CTEXTSTR group )
 {
 	struct Group *filegroup;
 	INDEX idx;
-	if( !l.groups )
+	if( !(*winfile_local).groups )
 	{
 		InitGroups();
 	}
-	LIST_FORALL( l.groups, idx, struct Group *, filegroup )
+	LIST_FORALL( (*winfile_local).groups, idx, struct Group *, filegroup )
 	{
 		if( StrCaseCmp( filegroup->name, group ) == 0 )
 		{
@@ -164,7 +165,7 @@ INDEX  GetFileGroup ( CTEXTSTR groupname, CTEXTSTR default_path )
 #ifdef __NO_OPTIONS__
 			tmp[0] = 0;
 #else
-			if( l.have_default )
+			if( (*winfile_local).have_default )
 				SACK_GetProfileString( GetProgramName(), tmp_ent, default_path?default_path:WIDE( "" ), tmp, sizeof( tmp ) );
 #endif
 			if( tmp[0] )
@@ -182,14 +183,14 @@ INDEX  GetFileGroup ( CTEXTSTR groupname, CTEXTSTR default_path )
 			filegroup->base_path = StrDup( default_path );
 		else
 			filegroup->base_path = StrDup( WIDE( "." ) );
-		AddLink( &l.groups, filegroup );
+		AddLink( &(*winfile_local).groups, filegroup );
 	}
-	return FindLink( &l.groups, filegroup );
+	return FindLink( &(*winfile_local).groups, filegroup );
 }
 
 TEXTSTR GetFileGroupText ( INDEX group, TEXTSTR path, int path_chars )
 {
-	struct Group* filegroup = (struct Group *)GetLink( &l.groups, group );
+	struct Group* filegroup = (struct Group *)GetLink( &(*winfile_local).groups, group );
 	if( !filegroup )
 	{
 		path[0] = 0;
@@ -226,7 +227,7 @@ TEXTSTR ExpandPathVariable( CTEXTSTR path )
 				tnprintf( tmp, len * sizeof( TEXTCHAR ), WIDE( "%*.*s" ), (int)(end-subst_path), (int)(end-subst_path), subst_path );
 				
 				group = GetFileGroup( tmp, NULL );
-				filegroup = (struct Group *)GetLink( &l.groups, group );
+				filegroup = (struct Group *)GetLink( &(*winfile_local).groups, group );
 				Deallocate( TEXTCHAR*, tmp );  // must deallocate tmp
 
 				newest_path = NewArray( TEXTCHAR, len = ( subst_path - tmp_path ) + StrLen( filegroup->base_path ) + ( this_length - ( end - tmp_path ) ) + 1 );
@@ -241,7 +242,7 @@ TEXTSTR ExpandPathVariable( CTEXTSTR path )
 				tmp_path = ExpandPathVariable( newest_path );
 				Deallocate( TEXTCHAR*, newest_path );
 			
-				if( l.flags.bLogOpenClose )
+				if( (*winfile_local).flags.bLogOpenClose )
 					lprintf( WIDE( "transform subst [%s]" ), tmp_path );
 			}
 		}
@@ -252,7 +253,7 @@ TEXTSTR ExpandPathVariable( CTEXTSTR path )
 TEXTSTR ExpandPathEx( CTEXTSTR path, struct file_system_interface *fsi )
 {
 	TEXTSTR tmp_path = NULL;
-	if( l.flags.bLogOpenClose )
+	if( (*winfile_local).flags.bLogOpenClose )
 		lprintf( WIDE( "input path is [%s]" ), path );
 
 	if( path )
@@ -290,7 +291,7 @@ TEXTSTR ExpandPathEx( CTEXTSTR path, struct file_system_interface *fsi )
 			{
 				CTEXTSTR here;
 				size_t len;
-				here = l.data_file_root;
+				here = (*winfile_local).data_file_root;
 				tmp_path = NewArray( TEXTCHAR, len = ( StrLen( here ) + StrLen( path ) ) );
 				tnprintf( tmp_path, len, WIDE( "%s/%s" ), here, path + 2 );
 			}
@@ -323,7 +324,7 @@ TEXTSTR ExpandPathEx( CTEXTSTR path, struct file_system_interface *fsi )
 					len = 0;
 
 		/*
-				if( l.flags.bLogOpenClose )
+				if( (*winfile_local).flags.bLogOpenClose )
 					lprintf( "Fix dots in [%s]", tmp_path );
 				for( ofs = len+1; tmp_path[ofs]; ofs++ )
 				{
@@ -332,7 +333,7 @@ TEXTSTR ExpandPathEx( CTEXTSTR path, struct file_system_interface *fsi )
 					if( tmp_path[ofs] == '\\' )
 						tmp_path[ofs] = '.';
 				}
-				if( l.flags.bLogOpenClose )
+				if( (*winfile_local).flags.bLogOpenClose )
 				lprintf( "Fixed result [%s]", tmp_path );
 			*/
 			}
@@ -348,7 +349,7 @@ TEXTSTR ExpandPathEx( CTEXTSTR path, struct file_system_interface *fsi )
 		}
 	}
 
-	if( l.flags.bLogOpenClose )
+	if( (*winfile_local).flags.bLogOpenClose )
 		lprintf( WIDE( "output path is [%s]" ), tmp_path );
 
 	return tmp_path;
@@ -370,7 +371,7 @@ INDEX  SetGroupFilePath ( CTEXTSTR group, CTEXTSTR path )
 		filegroup->base_path = StrDup( path );
 		tnprintf( tmp, sizeof( tmp ), WIDE( "file group/%s" ), group );
 #ifndef __NO_OPTIONS__
-		if( l.have_default )
+		if( (*winfile_local).have_default )
 		{
 			TEXTCHAR tmp2[256];
 			SACK_GetProfileString( GetProgramName(), tmp, WIDE( "" ), tmp2, sizeof( tmp2 ) );
@@ -378,15 +379,15 @@ INDEX  SetGroupFilePath ( CTEXTSTR group, CTEXTSTR path )
 				SACK_WriteProfileString( GetProgramName(), tmp, path );
 		}
 #endif
-		AddLink( &l.groups, filegroup );
-		l.have_default = TRUE;
+		AddLink( &(*winfile_local).groups, filegroup );
+		(*winfile_local).have_default = TRUE;
 	}
 	else
 	{
 		Deallocate( TEXTCHAR*, filegroup->base_path );
 		filegroup->base_path = StrDup( path );
 	}
-	return FindLink( &l.groups, filegroup );
+	return FindLink( &(*winfile_local).groups, filegroup );
 }
 
 
@@ -395,9 +396,9 @@ void SetDefaultFilePath( CTEXTSTR path )
 	TEXTSTR tmp_path = NULL;
 	struct Group *filegroup;
 	LocalInit();
-	filegroup = (struct Group *)GetLink( &l.groups, 0 );
+	filegroup = (struct Group *)GetLink( &(*winfile_local).groups, 0 );
 	tmp_path = ExpandPath( path );
-	if( l.groups && filegroup )
+	if( (*winfile_local).groups && filegroup )
 	{
 		Deallocate( TEXTSTR, filegroup->base_path );
 		filegroup->base_path = StrDup( tmp_path?tmp_path:path );
@@ -415,21 +416,21 @@ static TEXTSTR PrependBasePath( INDEX groupid, struct Group *group, CTEXTSTR fil
 	TEXTSTR real_filename = filename?ExpandPath( filename ):NULL;
 	TEXTSTR fullname;
 
-	if( l.flags.bLogOpenClose )
+	if( (*winfile_local).flags.bLogOpenClose )
 		lprintf( WIDE("Prepend to {%s} %p %") _size_f, real_filename, group, groupid );
 
-	if( l.groups )
+	if( (*winfile_local).groups )
 	{
 		//SetDefaultFilePath( GetProgramPath() );
 		if( !group )
 		{
 			if( groupid >= 0 )
-				group = (struct Group *)GetLink( &l.groups, groupid );
+				group = (struct Group *)GetLink( &(*winfile_local).groups, groupid );
 		}
 	}
 	if( !group || ( filename && ( IsAbsolutePath( real_filename ) ) ) )
 	{
-		if( l.flags.bLogOpenClose )
+		if( (*winfile_local).flags.bLogOpenClose )
 			lprintf( WIDE("already an absolute path.  [%s]"), real_filename );
 		return real_filename;
 	}
@@ -439,7 +440,7 @@ static TEXTSTR PrependBasePath( INDEX groupid, struct Group *group, CTEXTSTR fil
 		size_t len;
 		tmp_path = ExpandPath( group->base_path );
 		fullname = NewArray( TEXTCHAR, len = StrLen( filename ) + StrLen(tmp_path) + 2 );
-		if( l.flags.bLogOpenClose )
+		if( (*winfile_local).flags.bLogOpenClose )
 			lprintf(WIDE("prepend %s[%s] with %s"), group->base_path, tmp_path, filename );
 		tnprintf( fullname, len, WIDE("%s/%s"), tmp_path, real_filename );
 #if __ANDROID__
@@ -458,7 +459,7 @@ static TEXTSTR PrependBasePath( INDEX groupid, struct Group *group, CTEXTSTR fil
 				len = 0;
 
 		/*
-			if( l.flags.bLogOpenClose )
+			if( (*winfile_local).flags.bLogOpenClose )
 				lprintf( WIDE("Fix dots in [%s]"), fullname );
 			for( ofs = len+1; fullname[ofs]; ofs++ )
 			{
@@ -470,7 +471,7 @@ static TEXTSTR PrependBasePath( INDEX groupid, struct Group *group, CTEXTSTR fil
 		*/
 		}
 #endif
-		if( l.flags.bLogOpenClose )
+		if( (*winfile_local).flags.bLogOpenClose )
 			lprintf( WIDE("result %s"), fullname );
 		Deallocate( TEXTCHAR*, tmp_path );
 		Deallocate( TEXTCHAR*, real_filename );
@@ -480,7 +481,7 @@ static TEXTSTR PrependBasePath( INDEX groupid, struct Group *group, CTEXTSTR fil
 
 TEXTSTR sack_prepend_path( INDEX group, CTEXTSTR filename )
 {
-	struct Group *filegroup = (struct Group *)GetLink( &l.groups, group );
+	struct Group *filegroup = (struct Group *)GetLink( &(*winfile_local).groups, group );
 	TEXTSTR result = PrependBasePath( group, filegroup, filename );
 	return result;
 }
@@ -496,29 +497,29 @@ HANDLE sack_open( INDEX group, CTEXTSTR filename, int opts, ... )
 	HANDLE handle;
 	struct file *file;
 	INDEX idx;
-	EnterCriticalSec( &l.cs_files );
-	LIST_FORALL( l.files, idx, struct file *, file )
+	EnterCriticalSec( &(*winfile_local).cs_files );
+	LIST_FORALL( (*winfile_local).files, idx, struct file *, file )
 	{
 		if( StrCmp( file->name, filename ) == 0 )
 		{
 			break;
 		}
 	}
-	LeaveCriticalSec( &l.cs_files );
+	LeaveCriticalSec( &(*winfile_local).cs_files );
 	if( !file )
 	{
-		struct Group *filegroup = (struct Group *)GetLink( &l.groups, group );
+		struct Group *filegroup = (struct Group *)GetLink( &(*winfile_local).groups, group );
 		file = New( struct file );
 		file->name = StrDup( filename );
 		file->fullname = PrependBasePath( group, filegroup, filename );
 		file->handles = NULL;
 		file->files = NULL;
 		file->group = group;
-		EnterCriticalSec( &l.cs_files );
-		AddLink( &l.files,file );
-		LeaveCriticalSec( &l.cs_files );
+		EnterCriticalSec( &(*winfile_local).cs_files );
+		AddLink( &(*winfile_local).files,file );
+		LeaveCriticalSec( &(*winfile_local).cs_files );
 	}
-	if( l.flags.bLogOpenClose )
+	if( (*winfile_local).flags.bLogOpenClose )
 		lprintf( WIDE( "Open File: [%s]" ), file->fullname );
 #ifdef __LINUX__
 #  undef open
@@ -531,7 +532,7 @@ HANDLE sack_open( INDEX group, CTEXTSTR filename, int opts, ... )
 		handle = open( file->fullname, opts );
 #endif
 	}
-	if( l.flags.bLogOpenClose )
+	if( (*winfile_local).flags.bLogOpenClose )
 		lprintf( WIDE( "open %s %d %d" ), file->fullname, handle, opts );
 #else
 	switch( opts & 3 )
@@ -565,12 +566,12 @@ HANDLE sack_open( INDEX group, CTEXTSTR filename, int opts, ... )
 							, NULL );
 	break;
 	}
-	if( l.flags.bLogOpenClose )
+	if( (*winfile_local).flags.bLogOpenClose )
 		lprintf( WIDE( "open %s %p %08x" ), file->fullname, (POINTER)handle, opts );
 #endif
 	if( handle == INVALID_HANDLE_VALUE )
 	{
-		if( l.flags.bLogOpenClose )
+		if( (*winfile_local).flags.bLogOpenClose )
 			lprintf( WIDE( "Failed to open file [%s]=[%s]" ), file->name, file->fullname );
 		return INVALID_HANDLE_VALUE;
 	}
@@ -603,8 +604,8 @@ struct file *FindFileByHandle( HANDLE file_file )
 {
 	struct file *file;
 	INDEX idx;
-	EnterCriticalSec( &l.cs_files );
-	LIST_FORALL( l.files, idx, struct file *, file )
+	EnterCriticalSec( &(*winfile_local).cs_files );
+	LIST_FORALL( (*winfile_local).files, idx, struct file *, file )
 	{
 		INDEX idx2;
 		HANDLE* check;
@@ -616,13 +617,13 @@ struct file *FindFileByHandle( HANDLE file_file )
 		if( check )
 			break;
 	}
-	LeaveCriticalSec( &l.cs_files );
+	LeaveCriticalSec( &(*winfile_local).cs_files );
 	return file;
 }
 
 LOGICAL sack_iset_eof ( INDEX file_handle )
 {
-	HANDLE *holder = (HANDLE*)GetLink( &l.handles, file_handle );
+	HANDLE *holder = (HANDLE*)GetLink( &(*winfile_local).handles, file_handle );
 	HANDLE handle = holder?holder[0]:INVALID_HANDLE_VALUE;
 #ifdef _WIN32
 	return SetEndOfFile( handle );
@@ -637,8 +638,8 @@ struct file *FindFileByFILE( FILE *file_file )
 	struct file *file;
 	INDEX idx;
 	LocalInit();
-	EnterCriticalSec( &l.cs_files );
-	LIST_FORALL( l.files, idx, struct file *, file )
+	EnterCriticalSec( &(*winfile_local).cs_files );
+	LIST_FORALL( (*winfile_local).files, idx, struct file *, file )
 	{
 		INDEX idx2;
 		FILE *check;
@@ -650,7 +651,7 @@ struct file *FindFileByFILE( FILE *file_file )
 		if( check )
 			break;
 	}
-	LeaveCriticalSec( &l.cs_files );
+	LeaveCriticalSec( &(*winfile_local).cs_files );
 	return file;
 }
 
@@ -677,7 +678,7 @@ LOGICAL sack_set_eof ( HANDLE file_handle )
 	}
 	else
 	{
-		HANDLE *holder = (HANDLE*)GetLink( &l.handles, (INDEX)file_handle );
+		HANDLE *holder = (HANDLE*)GetLink( &(*winfile_local).handles, (INDEX)file_handle );
 		HANDLE handle = holder?holder[0]:INVALID_HANDLE_VALUE;
 #ifdef _WIN32
 		return SetEndOfFile( handle );
@@ -714,7 +715,7 @@ int sack_ftruncate( FILE *file_file )
 
 long sack_tell( INDEX file_handle )
 {
-	HANDLE *holder = (HANDLE*)GetLink( &l.handles, file_handle );
+	HANDLE *holder = (HANDLE*)GetLink( &(*winfile_local).handles, file_handle );
 	HANDLE handle = holder?holder[0]:INVALID_HANDLE_VALUE;
 #ifdef WIN32
 	_32 length = SetFilePointer( handle // must have GENERIC_READ and/or GENERIC_WRITE
@@ -775,13 +776,13 @@ int sack_close( HANDLE file_handle )
 	if( file )
 	{
 		SetLink( &file->handles, (INDEX)file_handle, NULL );
-		if( l.flags.bLogOpenClose )
+		if( (*winfile_local).flags.bLogOpenClose )
 			lprintf( WIDE("Close %s"), file->fullname );
 		/*
 		Deallocate( TEXTCHAR*, file->name );
 		Deallocate( TEXTCHAR*, file->fullname );
 		Deallocate( TEXTCHAR*, file );
-		DeleteLink( &l.files, file );
+		DeleteLink( &(*winfile_local).files, file );
 		*/
 	}
 	if( file_handle != INVALID_HANDLE_VALUE )
@@ -800,19 +801,19 @@ INDEX sack_iopen( INDEX group, CTEXTSTR filename, int opts, ... )
 	h = sack_open( group, filename, opts );
 	if( h == INVALID_HANDLE_VALUE )
 	{
-		if( l.flags.bLogOpenClose )
+		if( (*winfile_local).flags.bLogOpenClose )
 			lprintf( WIDE( "Failed to open %s" ), filename );
 		return INVALID_INDEX;
 	}
-	EnterCriticalSec( &l.cs_files );
+	EnterCriticalSec( &(*winfile_local).cs_files );
 	{
 		HANDLE *holder = New( HANDLE );
 		holder[0] = h;
-		AddLink( &l.handles, holder );
-		result = FindLink( &l.handles, holder );
+		AddLink( &(*winfile_local).handles, holder );
+		result = FindLink( &(*winfile_local).handles, holder );
 	}
-	LeaveCriticalSec( &l.cs_files );
-	if( l.flags.bLogOpenClose )
+	LeaveCriticalSec( &(*winfile_local).cs_files );
+	if( (*winfile_local).flags.bLogOpenClose )
 		lprintf( WIDE( "return iopen of [%s]=%d(%")_size_f WIDE(")?" ), filename, h, result );
 	return result;
 }
@@ -820,24 +821,24 @@ INDEX sack_iopen( INDEX group, CTEXTSTR filename, int opts, ... )
 int sack_iclose( INDEX file_handle )
 {
 	int result;
-	EnterCriticalSec( &l.cs_files );
+	EnterCriticalSec( &(*winfile_local).cs_files );
 	{
-		HANDLE *holder = (HANDLE*)GetLink( &l.handles, file_handle );
+		HANDLE *holder = (HANDLE*)GetLink( &(*winfile_local).handles, file_handle );
 		HANDLE handle = holder?holder[0]:INVALID_HANDLE_VALUE;
-		SetLink( &l.handles, file_handle, 0 );
+		SetLink( &(*winfile_local).handles, file_handle, 0 );
 		Deallocate( HANDLE*, holder );
 		result = sack_close( handle );
 	}
-	LeaveCriticalSec( &l.cs_files );
+	LeaveCriticalSec( &(*winfile_local).cs_files );
 	return result;
 }
 
 int sack_ilseek( INDEX file_handle, size_t pos, int whence )
 {
 	int result;
-	EnterCriticalSec( &l.cs_files );
+	EnterCriticalSec( &(*winfile_local).cs_files );
 	{
-		 HANDLE *holder = (HANDLE*)GetLink( &l.handles, file_handle );
+		 HANDLE *holder = (HANDLE*)GetLink( &(*winfile_local).handles, file_handle );
 		 HANDLE handle = holder?holder[0]:INVALID_HANDLE_VALUE;
 #ifdef _WIN32
 		result = SetFilePointer(handle,pos,NULL,whence);
@@ -845,20 +846,20 @@ int sack_ilseek( INDEX file_handle, size_t pos, int whence )
 		result = lseek( handle, pos, whence );
 #endif
 	}
-	LeaveCriticalSec( &l.cs_files );
+	LeaveCriticalSec( &(*winfile_local).cs_files );
 	return result;
 }
 
 int sack_iread( INDEX file_handle, POINTER buffer, int size )
 {
-	EnterCriticalSec( &l.cs_files );
+	EnterCriticalSec( &(*winfile_local).cs_files );
 	{
-		 HANDLE *holder = (HANDLE*)GetLink( &l.handles, file_handle );
+		 HANDLE *holder = (HANDLE*)GetLink( &(*winfile_local).handles, file_handle );
 		 HANDLE handle = holder?holder[0]:INVALID_HANDLE_VALUE;
 #ifdef _WIN32
 		DWORD dwLastReadResult;
 		//lprintf( WIDE( "... %p %p" ), file_handle, h );
-		LeaveCriticalSec( &l.cs_files );
+		LeaveCriticalSec( &(*winfile_local).cs_files );
 		return (ReadFile( handle, (POINTER)buffer, size, &dwLastReadResult, NULL )?dwLastReadResult:-1 );
 #else
 		return read( handle, buffer, size );
@@ -868,13 +869,13 @@ int sack_iread( INDEX file_handle, POINTER buffer, int size )
 
 int sack_iwrite( INDEX file_handle, CPOINTER buffer, int size )
 {
-	EnterCriticalSec( &l.cs_files );
+	EnterCriticalSec( &(*winfile_local).cs_files );
 	{
-		 HANDLE *holder = (HANDLE*)GetLink( &l.handles, file_handle );
+		 HANDLE *holder = (HANDLE*)GetLink( &(*winfile_local).handles, file_handle );
 		 HANDLE handle = holder?holder[0]:INVALID_HANDLE_VALUE;
 #ifdef _WIN32
 		DWORD dwLastWrittenResult;
-		LeaveCriticalSec( &l.cs_files );
+		LeaveCriticalSec( &(*winfile_local).cs_files );
 		return (WriteFile( handle, (POINTER)buffer, size, &dwLastWrittenResult, NULL )?dwLastWrittenResult:-1 );
 #else
 		return write( handle, buffer, size );
@@ -909,7 +910,7 @@ int sack_unlinkEx( INDEX group, CTEXTSTR filename, struct file_system_mounted_in
 #endif
 			if( mount->fsi->exists( mount->psvInstance, filename ) )
 			{
-				mount->fsi->unlink( mount->psvInstance, filename );
+				mount->fsi->_unlink( mount->psvInstance, filename );
 				okay = 0;
 			}
 #ifdef UNICODE
@@ -933,7 +934,7 @@ int sack_unlinkEx( INDEX group, CTEXTSTR filename, struct file_system_mounted_in
 
 int sack_unlink( INDEX group, CTEXTSTR filename )
 {
-	return sack_unlinkEx( group, filename, l.mounted_file_systems );
+	return sack_unlinkEx( group, filename, (*winfile_local).mounted_file_systems );
 }
 
 int sack_rmdir( INDEX group, CTEXTSTR filename )
@@ -971,10 +972,10 @@ FILE * sack_fopenEx( INDEX group, CTEXTSTR filename, CTEXTSTR opts, struct file_
 	LOGICAL single_mount = (mount != NULL );
 	struct file_system_mounted_interface *test_mount;
 	LocalInit();
-	EnterCriticalSec( &l.cs_files );
+	EnterCriticalSec( &(*winfile_local).cs_files );
 
 	if( !mount )
-		mount = l.mounted_file_systems;
+		mount = (*winfile_local).mounted_file_systems;
 
 	if( !StrChr( opts, 'r' ) && !StrChr( opts, '+' ) )
 		while( mount )
@@ -985,9 +986,9 @@ FILE * sack_fopenEx( INDEX group, CTEXTSTR filename, CTEXTSTR opts, struct file_
 			mount = mount->next;
 		}
 
-	if( l.flags.bLogOpenClose )
+	if( (*winfile_local).flags.bLogOpenClose )
 		lprintf( WIDE("open %s %p(%s) %s (%d)"), filename, mount, mount->name, opts, mount?mount->writeable:1 );
-	LIST_FORALL( l.files, idx, struct file *, file )
+	LIST_FORALL( (*winfile_local).files, idx, struct file *, file )
 	{
 		if( ( file->group == group )
 			&& ( StrCmp( file->name, filename ) == 0 ) 
@@ -996,12 +997,12 @@ FILE * sack_fopenEx( INDEX group, CTEXTSTR filename, CTEXTSTR opts, struct file_
 			break;
 		}
 	}
-	LeaveCriticalSec( &l.cs_files );
+	LeaveCriticalSec( &(*winfile_local).cs_files );
 
 	if( !file )
 	{
 		TEXTSTR tmpname = NULL;
-		struct Group *filegroup = (struct Group *)GetLink( &l.groups, group );
+		struct Group *filegroup = (struct Group *)GetLink( &(*winfile_local).groups, group );
 		file = New( struct file );
 		memalloc = TRUE;
 
@@ -1030,27 +1031,27 @@ FILE * sack_fopenEx( INDEX group, CTEXTSTR filename, CTEXTSTR opts, struct file_
 			if( mount && group == 0 )
 			{
 				file->fullname = StrDup( file->name );
-				if( l.flags.bLogOpenClose )
+				if( (*winfile_local).flags.bLogOpenClose )
 					lprintf( WIDE("full is %s"), file->fullname );
 			}
 			else
 			{
 				file->fullname = PrependBasePath( group, filegroup, file->name );
-				if( l.flags.bLogOpenClose )
+				if( (*winfile_local).flags.bLogOpenClose )
 					lprintf( WIDE("full is %s %d"), file->fullname, group );
 			}
 			//file->fullname = file->name;
 		}
 		file->group = group;
-		EnterCriticalSec( &l.cs_files );
-		AddLink( &l.files,file );
-		LeaveCriticalSec( &l.cs_files );
+		EnterCriticalSec( &(*winfile_local).cs_files );
+		AddLink( &(*winfile_local).files,file );
+		LeaveCriticalSec( &(*winfile_local).cs_files );
 	}
 	if( StrChr( file->fullname, '%' ) )
 	{
 		if( memalloc )
 		{
-			DeleteLink( &l.files, file );
+			DeleteLink( &(*winfile_local).files, file );
 			Deallocate( TEXTCHAR*, file->name );
 			Deallocate( TEXTCHAR*, file->fullname );
 			Deallocate( struct file *, file );
@@ -1058,7 +1059,7 @@ FILE * sack_fopenEx( INDEX group, CTEXTSTR filename, CTEXTSTR opts, struct file_
 		//DebugBreak();
 		return NULL;
 	}
-	if( l.flags.bLogOpenClose )
+	if( (*winfile_local).flags.bLogOpenClose )
 		lprintf( WIDE( "Open File: [%s]" ), file->fullname );
 
 	if( mount && mount->fsi )
@@ -1076,7 +1077,7 @@ FILE * sack_fopenEx( INDEX group, CTEXTSTR filename, CTEXTSTR opts, struct file_
 #  define _fullname file->fullname
 #endif
 					file->mount = test_mount;
-					if( l.flags.bLogOpenClose )
+					if( (*winfile_local).flags.bLogOpenClose )
 						lprintf( WIDE("Call mount %s to check if file exists %s"), test_mount->name, file->fullname );
 					if( test_mount->fsi->exists( test_mount->psvInstance, _fullname ) )
 					{
@@ -1114,7 +1115,7 @@ FILE * sack_fopenEx( INDEX group, CTEXTSTR filename, CTEXTSTR opts, struct file_
 #else
 #  define _fullname file->fullname
 #endif
-					if( l.flags.bLogOpenClose )
+					if( (*winfile_local).flags.bLogOpenClose )
 						lprintf( WIDE("Call mount %s to open file %s"), test_mount->name, file->fullname );
 					handle = (FILE*)test_mount->fsi->open( test_mount->psvInstance, _fullname );
 #ifdef UNICODE
@@ -1159,19 +1160,19 @@ default_fopen:
 		handle = fopen( file->fullname, opts );
 #  endif
 #endif
-		if( l.flags.bLogOpenClose )
+		if( (*winfile_local).flags.bLogOpenClose )
 			lprintf( WIDE("native opened %s"), file->fullname );
 	}
 	if( !handle )
 	{
-		if( l.flags.bLogOpenClose )
+		if( (*winfile_local).flags.bLogOpenClose )
 			lprintf( WIDE( "Failed to open file [%s]=[%s]" ), file->name, file->fullname );
 		return NULL;
 	}
-	if( l.flags.bLogOpenClose )
+	if( (*winfile_local).flags.bLogOpenClose )
 		lprintf( WIDE( "sack_open %s (%s)" ), file->fullname, opts );
 	AddLink( &file->files, handle );
-	if( l.flags.bLogOpenClose )
+	if( (*winfile_local).flags.bLogOpenClose )
 		lprintf( WIDE( "Added FILE* %p and list is %p" ), handle, file->files );
 	return handle;
 }
@@ -1192,9 +1193,9 @@ FILE*  sack_fsopenEx( INDEX group
 	INDEX idx;
 	LOGICAL single_mount = ( mount != NULL );
 	LocalInit();
-	EnterCriticalSec( &l.cs_files );
+	EnterCriticalSec( &(*winfile_local).cs_files );
 	if( !mount )
-		mount = l.mounted_file_systems;
+		mount = (*winfile_local).mounted_file_systems;
 
 	if( !StrChr( opts, 'r' ) && !StrChr( opts, '+' ) )
 		while( mount )
@@ -1205,7 +1206,7 @@ FILE*  sack_fsopenEx( INDEX group
 			mount = mount->next;
 		}
 
-	LIST_FORALL( l.files, idx, struct file *, file )
+	LIST_FORALL( (*winfile_local).files, idx, struct file *, file )
 	{
 		if( ( file->group == group )
 			&& ( StrCmp( file->name, filename ) == 0 ) 
@@ -1214,10 +1215,10 @@ FILE*  sack_fsopenEx( INDEX group
 			break;
 		}
 	}
-	LeaveCriticalSec( &l.cs_files );
+	LeaveCriticalSec( &(*winfile_local).cs_files );
 	if( !file )
 	{
-		struct Group *filegroup = (struct Group *)GetLink( &l.groups, group );
+		struct Group *filegroup = (struct Group *)GetLink( &(*winfile_local).groups, group );
 		file = New( struct file );
 		file->handles = NULL;
 		file->files = NULL;
@@ -1228,9 +1229,9 @@ FILE*  sack_fsopenEx( INDEX group
 			file->fullname = PrependBasePath( group, filegroup, filename );
 		else
 			file->fullname = StrDup( filename );
-		EnterCriticalSec( &l.cs_files );
-		AddLink( &l.files,file );
-		LeaveCriticalSec( &l.cs_files );
+		EnterCriticalSec( &(*winfile_local).cs_files );
+		AddLink( &(*winfile_local).files,file );
+		LeaveCriticalSec( &(*winfile_local).cs_files );
 	}
 	if( mount && mount->fsi )
 	{
@@ -1245,7 +1246,7 @@ FILE*  sack_fsopenEx( INDEX group
 #  define _fullname file->fullname
 #endif
 				file->mount = test_mount;
-				if( l.flags.bLogOpenClose )
+				if( (*winfile_local).flags.bLogOpenClose )
 					lprintf( WIDE("Call mount %s to check if file exists %s"), test_mount->name, file->fullname );
 				if( test_mount->fsi->exists( test_mount->psvInstance, _fullname ) )
 				{
@@ -1277,7 +1278,7 @@ FILE*  sack_fsopenEx( INDEX group
 #else
 #  define _fullname file->fullname
 #endif
-					if( l.flags.bLogOpenClose )
+					if( (*winfile_local).flags.bLogOpenClose )
 						lprintf( WIDE("Call mount %s to open file %s"), test_mount->name, file->fullname );
 					handle = (FILE*)test_mount->fsi->open( test_mount->psvInstance, _fullname );
 #ifdef UNICODE
@@ -1324,23 +1325,23 @@ default_fopen:
 	}
 	if( !handle )
 	{
-		if( l.flags.bLogOpenClose )
+		if( (*winfile_local).flags.bLogOpenClose )
 			lprintf( WIDE( "Failed to open file [%s]=[%s]" ), file->name, file->fullname );
 		return NULL;
 	}
-	if( l.flags.bLogOpenClose )
+	if( (*winfile_local).flags.bLogOpenClose )
 		lprintf( WIDE( "sack_open %s (%s)" ), file->fullname, opts );
-	EnterCriticalSec( &l.cs_files );
+	EnterCriticalSec( &(*winfile_local).cs_files );
 	AddLink( &file->files, handle );
-	LeaveCriticalSec( &l.cs_files );
-	if( l.flags.bLogOpenClose )
+	LeaveCriticalSec( &(*winfile_local).cs_files );
+	if( (*winfile_local).flags.bLogOpenClose )
 		lprintf( WIDE( "Added FILE* %p and list is %p" ), handle, file->files );
 	return handle;
 }
 
 FILE*  sack_fsopen( INDEX group, CTEXTSTR filename, CTEXTSTR opts, int share_mode )
 {
-	return sack_fsopenEx( group, filename, opts, share_mode, NULL/*l.mounted_file_systems*/ );
+	return sack_fsopenEx( group, filename, opts, share_mode, NULL/*(*winfile_local).mounted_file_systems*/ );
 }
 
 size_t sack_fsize ( FILE *file_file )
@@ -1405,10 +1406,10 @@ int  sack_fclose ( FILE *file_file )
 	file = FindFileByFILE( file_file );
 	if( file )
 	{
-		if( l.flags.bLogOpenClose )
+		if( (*winfile_local).flags.bLogOpenClose )
 			lprintf( WIDE("Closing %s"), file->fullname );
 		DeleteLink( &file->files, file_file );
-		if( l.flags.bLogOpenClose )
+		if( (*winfile_local).flags.bLogOpenClose )
 			lprintf( WIDE( "deleted FILE* %p and list is %p" ), file_file, file->files );
 	}
 	/*
@@ -1418,7 +1419,7 @@ int  sack_fclose ( FILE *file_file )
 	DeleteLink( &files, file );
 	*/
 	if( file->mount && file->mount->fsi )
-		return file->mount->fsi->close( file_file );
+		return file->mount->fsi->_close( file_file );
 	return fclose( file_file );
 }
  size_t  sack_fread ( POINTER buffer, size_t size, int count,FILE *file_file )
@@ -1426,7 +1427,7 @@ int  sack_fclose ( FILE *file_file )
 	struct file *file;
 	file = FindFileByFILE( file_file );
 	if( file->mount && file->mount->fsi )
-		return file->mount->fsi->read( file_file, (char*)buffer, size * count );
+		return file->mount->fsi->_read( file_file, (char*)buffer, size * count );
 	return fread( buffer, size, count, file_file );
 }
  size_t  sack_fwrite ( CPOINTER buffer, size_t size, int count,FILE *file_file )
@@ -1440,11 +1441,11 @@ int  sack_fclose ( FILE *file_file )
 		{
 			POINTER dupbuf = malloc( size*count + 3 );
 			memcpy( dupbuf, buffer, size*count );
-			result = file->mount->fsi->write( file_file, (const char*)dupbuf, size * count );
+			result = file->mount->fsi->_write( file_file, (const char*)dupbuf, size * count );
 			Deallocate( POINTER, dupbuf );
 		}
 		else
-			result = file->mount->fsi->write( file_file, (const char*)buffer, size * count );
+			result = file->mount->fsi->_write( file_file, (const char*)buffer, size * count );
 		return result;
 	}
 	return fwrite( (POINTER)buffer, size, count, file_file );
@@ -1471,7 +1472,7 @@ TEXTSTR sack_fgets ( TEXTSTR buffer, size_t size,FILE *file_file )
 		buffer[size] = 0;
 		for( n = 0; n < size; n++ )
 		{
-			if( file->mount->fsi->read( file_file, output, 1 ) )
+			if( file->mount->fsi->_read( file_file, output, 1 ) )
 			{
 				if( output[0] == '\n' )
 				{
@@ -1512,12 +1513,12 @@ LOGICAL sack_existsEx ( const char *filename, struct file_system_mounted_interfa
 
 LOGICAL sack_exists( const char * filename )
 {
-	struct file_system_mounted_interface *mount = l.mounted_file_systems;
+	struct file_system_mounted_interface *mount = (*winfile_local).mounted_file_systems;
 	while( mount )
 	{
 		if( sack_existsEx( filename, mount ) )
 		{
-			l.last_find_mount = mount;
+			(*winfile_local).last_find_mount = mount;
 			return TRUE;
 		}
 		mount = mount->next;
@@ -1559,7 +1560,7 @@ int  sack_renameEx ( CTEXTSTR file_source, CTEXTSTR new_name, struct file_system
 
 int  sack_rename( CTEXTSTR file_source, CTEXTSTR new_name )
 {
-	return sack_renameEx( file_source, new_name, l.default_mount );
+	return sack_renameEx( file_source, new_name, (*winfile_local).default_mount );
 }
 
 size_t GetSizeofFile( TEXTCHAR *name, P_32 unused )
@@ -1653,7 +1654,7 @@ struct file_system_interface *sack_get_filesystem_interface( CTEXTSTR name )
 {
 	struct file_interface_tracker *fit;
 	INDEX idx;
-	LIST_FORALL( l.file_system_interface, idx, struct file_interface_tracker *, fit )
+	LIST_FORALL( (*winfile_local).file_system_interface, idx, struct file_interface_tracker *, fit )
 	{
 		if( StrCaseCmp( fit->name, name ) == 0 )
 			return fit->fsi;
@@ -1663,7 +1664,7 @@ struct file_system_interface *sack_get_filesystem_interface( CTEXTSTR name )
 
 void sack_set_default_filesystem_interface( struct file_system_interface *fsi )
 {
-	l.default_file_system_interface = fsi;
+	(*winfile_local).default_file_system_interface = fsi;
 }
 
 void sack_register_filesystem_interface( CTEXTSTR name, struct file_system_interface *fsi )
@@ -1672,7 +1673,7 @@ void sack_register_filesystem_interface( CTEXTSTR name, struct file_system_inter
 	fit->name = StrDup( name );
 	fit->fsi = fsi;
 	LocalInit();
-	AddLink( &l.file_system_interface, fit );
+	AddLink( &(*winfile_local).file_system_interface, fit );
 }
 
 
@@ -1722,14 +1723,14 @@ PRIORITY_PRELOAD( InitWinFileSysEarly, OSALOT_PRELOAD_PRIORITY - 1 )
 	LocalInit();
 	if( !sack_get_filesystem_interface( WIDE("native") ) )
 		sack_register_filesystem_interface( WIDE("native" ), &native_fsi );
-	if( !l.default_mount )
-		l.default_mount = sack_mount_filesystem( "native", NULL, 1000, (PTRSZVAL)NULL, TRUE );
+	if( !(*winfile_local).default_mount )
+		(*winfile_local).default_mount = sack_mount_filesystem( "native", NULL, 1000, (PTRSZVAL)NULL, TRUE );
 }
 
 #ifndef __NO_OPTIONS__
 PRELOAD( InitWinFileSys )
 {
-	l.flags.bLogOpenClose = SACK_GetProfileIntEx( WIDE( "SACK/filesys" ), WIDE( "Log open and close" ), l.flags.bLogOpenClose, TRUE );
+	(*winfile_local).flags.bLogOpenClose = SACK_GetProfileIntEx( WIDE( "SACK/filesys" ), WIDE( "Log open and close" ), (*winfile_local).flags.bLogOpenClose, TRUE );
 }
 #endif
 
@@ -1741,7 +1742,7 @@ static void * CPROC sack_filesys_open( PTRSZVAL psv, const char *filename ) {
 	TEXTCHAR *_filename = DupCStr( filename );
 #  define filename _filename
 #endif
-	result = sack_fopenEx( 0, filename, WIDE("wb+"), l.default_mount ); 
+	result = sack_fopenEx( 0, filename, WIDE("wb+"), (*winfile_local).default_mount ); 
 #ifdef UNICODE
 	Deallocate( TEXTCHAR *, _filename );
 #  undef filename
@@ -1755,7 +1756,7 @@ static int CPROC sack_filesys_exists( PTRSZVAL psv, const char *filename ) {
 	TEXTSTR _filename = DupCStr( filename );
 #define filename _filename
 #endif
-	result = sack_existsEx( filename, l.default_mount );
+	result = sack_existsEx( filename, (*winfile_local).default_mount );
 #ifdef UNICODE
 	Deallocate( TEXTSTR, _filename );
 #undef filename
@@ -1763,11 +1764,11 @@ static int CPROC sack_filesys_exists( PTRSZVAL psv, const char *filename ) {
 	return result;
 }
 
-struct file_system_mounted_interface *sack_get_default_mount( void ) { return l.default_mount; }
+struct file_system_mounted_interface *sack_get_default_mount( void ) { return (*winfile_local).default_mount; }
 
 struct file_system_mounted_interface *sack_get_mounted_filesystem( const char *name )
 {
-	struct file_system_mounted_interface *root = l.mounted_file_systems;
+	struct file_system_mounted_interface *root = (*winfile_local).mounted_file_systems;
 	while( root )
 	{
 		if( stricmp( root->name, name ) == 0 ) break;
@@ -1783,7 +1784,7 @@ void sack_unmount_filesystem( struct file_system_mounted_interface *mount )
 
 struct file_system_mounted_interface *sack_mount_filesystem( const char *name, struct file_system_interface *fsi, int priority, PTRSZVAL psvInstance, LOGICAL writable )
 {
-	struct file_system_mounted_interface *root = l.mounted_file_systems;
+	struct file_system_mounted_interface *root = (*winfile_local).mounted_file_systems;
 	struct file_system_mounted_interface *mount = New( struct file_system_mounted_interface );
 	mount->name = strdup( name );
 	mount->priority = priority;
@@ -1793,9 +1794,9 @@ struct file_system_mounted_interface *sack_mount_filesystem( const char *name, s
 	//lprintf( "Create mount called %s ", name );
 	if( !root || ( root->priority >= priority ) )
 	{
-		if( !root || root == l.mounted_file_systems )
+		if( !root || root == (*winfile_local).mounted_file_systems )
 		{
-			LinkThing( l.mounted_file_systems, mount );
+			LinkThing( (*winfile_local).mounted_file_systems, mount );
 		}
 		else
 		{
@@ -1840,7 +1841,7 @@ int sack_vfprintf( FILE *file_handle, const char *format, va_list args )
 		Deallocate( TEXTCHAR*, _format );
 #  undef format
 #endif
-		r = file->mount->fsi->write( file_handle, (char*)GetText( output ), GetTextSize( output ) * sizeof( TEXTCHAR ) );
+		r = file->mount->fsi->_write( file_handle, (char*)GetText( output ), GetTextSize( output ) * sizeof( TEXTCHAR ) );
 		LineRelease( output );
 		return r;
 	}	

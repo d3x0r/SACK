@@ -60,10 +60,10 @@ LOGGING_NAMESPACE
 
 struct syslog_local_data {
 int cannot_log;
-#define cannot_log l.cannot_log
+#define cannot_log (*syslog_local).cannot_log
 _64 cpu_tick_freq;
-#define cpu_tick_freq l.cpu_tick_freq
-// flags that control the operation of system logging....
+#define cpu_tick_freq (*syslog_local).cpu_tick_freq
+// (*syslog_local).flags that control the operation of system logging....
 struct state_flags{
 	BIT_FIELD bInitialized : 1;
 	BIT_FIELD bUseDay : 1;
@@ -80,33 +80,31 @@ struct state_flags{
 	BIT_FIELD bOptionsLoaded : 1;
 	BIT_FIELD group_ok : 1;
 } flags;
-#define flags l.flags
 
 // a conserviative minimalistic configuration...
-//} flags = { 0,0,1,0,1,0,1,1,0};
+//} (*syslog_local).flags = { 0,0,1,0,1,0,1,1,0};
 
  TEXTCHAR *pProgramName;
-#define pProgramName l.pProgramName
+#define pProgramName (*syslog_local).pProgramName
  UserLoggingCallback UserCallback;
-#define UserCallback l.UserCallback
+//#define User1Callback (*syslog_local).UserCallback
 
  enum syslog_types logtype;
-#define logtype l.logtype
+#define logtype (*syslog_local).logtype
 
  _32 nLogLevel; // default log EVERYTHING
-#define nLogLevel l.nLogLevel
+#define nLogLevel (*syslog_local).nLogLevel
  _32 nLogCustom; // bits enabled and disabled for custom mesasges...
-#define nLogCustom l.nLogCustom
+#define nLogCustom (*syslog_local).nLogCustom
  CTEXTSTR gFilename;// = "LOG";
-#define gFilename l.gFilename
+#define gFilename (*syslog_local).gFilename
  FILE *file;
  SOCKET   hSock;
-#define hSock l.hSock
+#define hSock (*syslog_local).hSock
  SOCKET   hSyslogdSock;
  int bCPUTickWorks; // assume this works, until it fails
-#define bCPUTickWorks l.bCPUTickWorks
+#define bCPUTickWorks (*syslog_local).bCPUTickWorks
  _64 tick_bias;
-#define tick_bias l.tick_bias
  _64 lasttick;
  _64 lasttick2;
  
@@ -130,10 +128,9 @@ struct state_flags{
 
 #ifndef __STATIC_GLOBALS__
 struct syslog_local_data *syslog_local;
-#define l (*syslog_local)
 #else
-struct syslog_local_data syslog_local;
-#define l (syslog_local)
+struct syslog_local_data _syslog_local;
+struct syslog_local_data *syslog_local = &_syslog_local;
 #endif
 
 
@@ -149,7 +146,7 @@ PRIORITY_ATEXIT( CleanSyslog, ATEXIT_PRIORITY_SYSLOG )
 		return;
 #endif
 	_logtype = logtype;
-	if( ( _logtype == SYSLOG_AUTO_FILE && l.file ) || ( _logtype == SYSLOG_NONE ) )
+	if( ( _logtype == SYSLOG_AUTO_FILE && (*syslog_local).file ) || ( _logtype == SYSLOG_NONE ) )
 		lprintf( WIDE( "Final log - syslog clos(ing)ed." ) );
 
 
@@ -160,13 +157,13 @@ PRIORITY_ATEXIT( CleanSyslog, ATEXIT_PRIORITY_SYSLOG )
 	case SYSLOG_FILE:  // usually this is stderr ... don't do anything
 		break;
 	case SYSLOG_FILENAME:
-		fclose( l.file );
+		fclose( (*syslog_local).file );
 		break;
 #ifdef __LINUX__
 #  ifndef __DISABLE_SYSLOGD_SYSLOG__
 	case SYSLOG_SOCKET_SYSLOGD:
-		closesocket( l.hSyslogdSock );
-		l.hSyslogdSock = INVALID_SOCKET;
+		closesocket( (*syslog_local).hSyslogdSock );
+		(*syslog_local).hSyslogdSock = INVALID_SOCKET;
 		break;
 #  endif
 #endif
@@ -246,16 +243,16 @@ _64 GetCPUTick(void )
 		// but it's also a 'meaningless expression' so watcom pukes.
 		(1)?(0):(tick = 0);
 #endif
-		if( !l.lasttick )
-			l.lasttick = tick;
-		else if( tick < l.lasttick )
+		if( !(*syslog_local).lasttick )
+			(*syslog_local).lasttick = tick;
+		else if( tick < (*syslog_local).lasttick )
 		{
 			bCPUTickWorks = 0;
 			cpu_tick_freq = 1;
-			tick_bias = l.lasttick - ( timeGetTime()/*GetTickCount()*/ * 1000 );
-			tick = l.lasttick + 1; // more than prior, but no longer valid.
+			(*syslog_local).tick_bias = (*syslog_local).lasttick - ( timeGetTime()/*GetTickCount()*/ * 1000 );
+			tick = (*syslog_local).lasttick + 1; // more than prior, but no longer valid.
 		}
-		l.lasttick = tick;
+		(*syslog_local).lasttick = tick;
 		return tick;
 #elif defined( _MSC_VER )
 #ifdef _M_CEE_PURE
@@ -274,27 +271,27 @@ _64 GetCPUTick(void )
 		_asm mov dword ptr [tick + 4], edx;
 #endif
 #   endif
-		if( !l.lasttick )
-			l.lasttick = tick;
-		else if( tick < l.lasttick )
+		if( !(*syslog_local).lasttick )
+			(*syslog_local).lasttick = tick;
+		else if( tick < (*syslog_local).lasttick )
 		{
 			bCPUTickWorks = 0;
 			cpu_tick_freq = 1;
-			tick_bias = l.lasttick - ( timeGetTime()/*GetTickCount()*/ * 1000 );
-			tick = l.lasttick + 1; // more than prior, but no longer valid.
+			(*syslog_local).tick_bias = (*syslog_local).lasttick - ( timeGetTime()/*GetTickCount()*/ * 1000 );
+			tick = (*syslog_local).lasttick + 1; // more than prior, but no longer valid.
 		}
-		l.lasttick = tick;
+		(*syslog_local).lasttick = tick;
 		return tick;
-		if( !l.lasttick )
-			l.lasttick = tick;
-		else if( tick < l.lasttick )
+		if( !(*syslog_local).lasttick )
+			(*syslog_local).lasttick = tick;
+		else if( tick < (*syslog_local).lasttick )
 		{
 			bCPUTickWorks = 0;
 			cpu_tick_freq = 1;
-			tick_bias = l.lasttick - ( timeGetTime()/*GetTickCount()*/ * 1000 );
-			tick = l.lasttick + 1; // more than prior, but no longer valid.
+			(*syslog_local).tick_bias = (*syslog_local).lasttick - ( timeGetTime()/*GetTickCount()*/ * 1000 );
+			tick = (*syslog_local).lasttick + 1; // more than prior, but no longer valid.
 		}
-		l.lasttick = tick;
+		(*syslog_local).lasttick = tick;
 		return tick;
 #endif
 #elif defined( __GNUC__ ) && !defined( __arm__ ) && !defined( __aarch64__ )
@@ -303,22 +300,22 @@ _64 GetCPUTick(void )
 			PREFIX_PACKED struct { _32 low, high; } PACKED parts;
 		}tick;
 		asm( "rdtsc\n" : "=a"(tick.parts.low), "=d"(tick.parts.high) );
-		if( !l.lasttick )
-			l.lasttick = tick.tick;
-		else if( tick.tick < l.lasttick )
+		if( !(*syslog_local).lasttick )
+			(*syslog_local).lasttick = tick.tick;
+		else if( tick.tick < (*syslog_local).lasttick )
 		{
 			bCPUTickWorks = 0;
 			cpu_tick_freq = 1;
-			tick_bias = l.lasttick - ( timeGetTime()/*GetTickCount()*/ * 1000 );
-			tick.tick = l.lasttick + 1; // more than prior, but no longer valid.
+			(*syslog_local).tick_bias = (*syslog_local).lasttick - ( timeGetTime()/*GetTickCount()*/ * 1000 );
+			tick.tick = (*syslog_local).lasttick + 1; // more than prior, but no longer valid.
 		}
-		l.lasttick = tick.tick;
+		(*syslog_local).lasttick = tick.tick;
 		return tick.tick;
 #else
 		DebugBreak();
 #endif
 	}
-	return tick_bias + (timeGetTime()/*GetTickCount()*/ * 1000);
+	return (*syslog_local).tick_bias + (timeGetTime()/*GetTickCount()*/ * 1000);
 }
 
 _64 GetCPUFrequency( void )
@@ -368,7 +365,7 @@ void SetDefaultName( CTEXTSTR path, CTEXTSTR name, CTEXTSTR extra )
 	if( !filename )
       filename = "org.d3x0r.sack";
 	// this has to come from C heap.. my init isn't done yet probably and
-   // sharemem will just fail.  (it's probably trying to log... )
+   // sharemem will just fai(*syslog_local).  (it's probably trying to log... )
 	newpath = (TEXTCHAR*)malloc( len = sizeof(TEXTCHAR)*(9 + StrLen( filepath ) + StrLen( filename ) + (extra?StrLen(extra):0) + 5) );
 #ifdef __cplusplus_cli
 	tnprintf( newpath, len, WIDE("%s/%s%s.cli.log"), filepath, filename, extra?extra:WIDE("") );
@@ -382,11 +379,11 @@ void SetDefaultName( CTEXTSTR path, CTEXTSTR name, CTEXTSTR extra )
 #ifndef __NO_OPTIONS__
 static void LoadOptions( void )
 {
-	if( !flags.bOptionsLoaded )
+	if( !(*syslog_local).flags.bOptionsLoaded )
 	{
-		flags.bLogSourceFile = SACK_GetProfileIntEx( GetProgramName()
+		(*syslog_local).flags.bLogSourceFile = SACK_GetProfileIntEx( GetProgramName()
 																 , WIDE( "SACK/Logging/Log Source File")
-																 , flags.bLogSourceFile, TRUE );
+																 , (*syslog_local).flags.bLogSourceFile, TRUE );
 
 #ifndef __ANDROID__
 		// android has a system log that does just fine/ default startup sets that.
@@ -396,16 +393,16 @@ static void LoadOptions( void )
 										, TRUE ) )
 		{
 			logtype = SYSLOG_SYSTEM;
-			flags.bLogProgram = 1;
+			(*syslog_local).flags.bLogProgram = 1;
 		}
 		else if( SACK_GetProfileIntEx( GetProgramName(), WIDE( "SACK/Logging/Enable File Log" )
 										, ( logtype == SYSLOG_AUTO_FILE )
 										, TRUE ) )
 		{
 			//logtype = SYSLOG_AUTO_FILE;
-			flags.bLogOpenAppend = 0;
-			flags.bLogOpenBackup = 1;
-			flags.bLogProgram = 1;
+			(*syslog_local).flags.bLogOpenAppend = 0;
+			(*syslog_local).flags.bLogOpenBackup = 1;
+			(*syslog_local).flags.bLogProgram = 1;
 		}
 		// set all default parts of the name.
 		// this overrides options with options available from SQL database.
@@ -447,21 +444,21 @@ static void LoadOptions( void )
 		nLogLevel = SACK_GetProfileIntEx( GetProgramName(), WIDE( "SACK/Logging/Default Log Level (1001:all, 100:least)" ), nLogLevel, TRUE );
 
 		// use the defaults; they may be overriden by reading the options.
-		flags.bLogThreadID = 1 || SACK_GetProfileIntEx( GetProgramName(), WIDE( "SACK/Logging/Log Thread ID" ), flags.bLogThreadID, TRUE );
-		flags.bLogProgram = SACK_GetProfileIntEx( GetProgramName(), WIDE( "SACK/Logging/Log Program" ), flags.bLogProgram, TRUE );
-		flags.bLogSourceFile = SACK_GetProfileIntEx( GetProgramName(), WIDE( "SACK/Logging/Log Source File" ), flags.bLogSourceFile, TRUE );
+		(*syslog_local).flags.bLogThreadID = 1 || SACK_GetProfileIntEx( GetProgramName(), WIDE( "SACK/Logging/Log Thread ID" ), (*syslog_local).flags.bLogThreadID, TRUE );
+		(*syslog_local).flags.bLogProgram = SACK_GetProfileIntEx( GetProgramName(), WIDE( "SACK/Logging/Log Program" ), (*syslog_local).flags.bLogProgram, TRUE );
+		(*syslog_local).flags.bLogSourceFile = SACK_GetProfileIntEx( GetProgramName(), WIDE( "SACK/Logging/Log Source File" ), (*syslog_local).flags.bLogSourceFile, TRUE );
 
-		if( SACK_GetProfileIntEx( GetProgramName(), WIDE( "SACK/Logging/Log CPU Tick Time and Delta" ), flags.bLogCPUTime, TRUE ) )
+		if( SACK_GetProfileIntEx( GetProgramName(), WIDE( "SACK/Logging/Log CPU Tick Time and Delta" ), (*syslog_local).flags.bLogCPUTime, TRUE ) )
 		{
 			SystemLogTime( SYSLOG_TIME_CPU|SYSLOG_TIME_DELTA );
 		}
-		else if( SACK_GetProfileIntEx( GetProgramName(), WIDE( "SACK/Logging/Log Time as Delta" ), flags.bUseDeltaTime, TRUE ) )
+		else if( SACK_GetProfileIntEx( GetProgramName(), WIDE( "SACK/Logging/Log Time as Delta" ), (*syslog_local).flags.bUseDeltaTime, TRUE ) )
 		{
 			SystemLogTime( SYSLOG_TIME_HIGH|SYSLOG_TIME_DELTA );
 		}
-		else if( SACK_GetProfileIntEx( GetProgramName(), WIDE( "SACK/Logging/Log Time" ), flags.bLogTime, TRUE ) )
+		else if( SACK_GetProfileIntEx( GetProgramName(), WIDE( "SACK/Logging/Log Time" ), (*syslog_local).flags.bLogTime, TRUE ) )
 		{
-			if( SACK_GetProfileIntEx( GetProgramName(), WIDE( "SACK/Logging/Log Date" ), flags.bUseDay, TRUE ) )
+			if( SACK_GetProfileIntEx( GetProgramName(), WIDE( "SACK/Logging/Log Date" ), (*syslog_local).flags.bUseDay, TRUE ) )
 			{
 				SystemLogTime( SYSLOG_TIME_LOG_DAY|SYSLOG_TIME_HIGH );
 			}
@@ -470,7 +467,7 @@ static void LoadOptions( void )
 		}
 		else
 			SystemLogTime( 0 );
-		flags.bOptionsLoaded = 1;
+		(*syslog_local).flags.bOptionsLoaded = 1;
 	}
 }
 #endif
@@ -490,27 +487,19 @@ void InitSyslog( int ignore_options )
 	}
 	SimpleRegisterAndCreateGlobal( syslog_local );
  	
-	if( !flags.bInitialized )
+	if( !(*syslog_local).flags.bInitialized )
 #endif
 	{
 		//logtype = SYSLOG_FILE;
-		//l.file = stderr;
+		//(*syslog_local).file = stderr;
 #if defined( WIN32 )
-#   if defined( __STATIC_GLOBALS__ )
-		syslog_local.next_lprintf_tls = TlsAlloc();
-#   else
-		syslog_local->next_lprintf_tls = TlsAlloc();
-#   endif
+		(*syslog_local).next_lprintf_tls = TlsAlloc();
 #elif defined( __LINUX__ )
-#   if defined( __STATIC_GLOBALS__ )
-		pthread_key_create( &syslog_local.next_lprintf_tls, NULL );
-#   else
-		pthread_key_create( &syslog_local->next_lprintf_tls, NULL );
-#   endif
+		pthread_key_create( &((*syslog_local).next_lprintf_tls, NULL );
 #endif
-		flags.bLogThreadID = 1;
+		(*syslog_local).flags.bLogThreadID = 1;
 		hSock = INVALID_SOCKET;
-		l.hSyslogdSock = INVALID_SOCKET;
+		(*syslog_local).hSyslogdSock = INVALID_SOCKET;
 		bCPUTickWorks = 1;
 		nLogLevel = LOG_NOISE-1; // default log EVERYTHING
 #
@@ -518,11 +507,11 @@ void InitSyslog( int ignore_options )
 		{
 			logtype = SYSLOG_SYSTEM;
 			nLogLevel = LOG_NOISE + 1000; // default log EVERYTHING
-			flags.bLogSourceFile = 1;
-			flags.bUseDeltaTime = 1;
-			flags.bLogCPUTime = 1;
-			flags.bLogThreadID = 1;
-			flags.bLogProgram = 0;
+			(*syslog_local).flags.bLogSourceFile = 1;
+			(*syslog_local).flags.bUseDeltaTime = 1;
+			(*syslog_local).flags.bLogCPUTime = 1;
+			(*syslog_local).flags.bLogThreadID = 1;
+			(*syslog_local).flags.bLogProgram = 0;
 			SystemLogTime( SYSLOG_TIME_HIGH );
 		}
 #else
@@ -530,7 +519,7 @@ void InitSyslog( int ignore_options )
 		{
 #    ifdef __LINUX__
 			logtype = SYSLOG_SOCKET_SYSLOGD;
-			flags.bLogProgram = 1;
+			(*syslog_local).flags.bLogProgram = 1;
 			
 #    else
 			/* using SYSLOG_AUTO_FILE option does not require this to be open.
@@ -538,35 +527,35 @@ void InitSyslog( int ignore_options )
 			*/
 
 			logtype = SYSLOG_AUTO_FILE;
-			flags.bLogOpenBackup = 1;
-			flags.bUseDeltaTime = 1;
-			flags.bLogCPUTime = 1;
-			flags.bUseDeltaTime = 1;
-			flags.bLogCPUTime = 1;
-			flags.bLogProgram = 0;
+			(*syslog_local).flags.bLogOpenBackup = 1;
+			(*syslog_local).flags.bUseDeltaTime = 1;
+			(*syslog_local).flags.bLogCPUTime = 1;
+			(*syslog_local).flags.bUseDeltaTime = 1;
+			(*syslog_local).flags.bLogCPUTime = 1;
+			(*syslog_local).flags.bLogProgram = 0;
 			SystemLogTime( SYSLOG_TIME_HIGH );
 #    endif
 			nLogLevel = LOG_NOISE + 1000; // default log EVERYTHING
-			flags.bLogOpenAppend = 0;
-			flags.bLogSourceFile = 1;
-			flags.bLogThreadID = 1;
+			(*syslog_local).flags.bLogOpenAppend = 0;
+			(*syslog_local).flags.bLogSourceFile = 1;
+			(*syslog_local).flags.bLogThreadID = 1;
 			//SetDefaultName( NULL, NULL, NULL );
 			//lprintf( WIDE("Syslog Initializing, debug mode, startup programname.log\n") );
 		}
 #  else
 		// stderr?
 		logtype = SYSLOG_NONE;
-		l.file = NULL;
+		(*syslog_local).file = NULL;
 #  endif
 #endif
 
-		flags.bInitialized = 1;
+		(*syslog_local).flags.bInitialized = 1;
 	}
 #ifndef __NO_OPTIONS__
 	if( !ignore_options )
 		LoadOptions();
 #else
-	flags.bOptionsLoaded = 1;
+	(*syslog_local).flags.bOptionsLoaded = 1;
 #  ifndef __ANDROID__
 	SetDefaultName( NULL, NULL, NULL );
 #  endif
@@ -589,7 +578,7 @@ PRIORITY_PRELOAD( InitSyslogPreloadWithOptions, NAMESPACE_PRELOAD_PRIORITY + 1 )
 
 PRIORITY_PRELOAD( InitSyslogPreloadAllowGroups, DEFAULT_PRELOAD_PRIORITY + 1 )
 {
-   flags.group_ok = 1;
+   (*syslog_local).flags.group_ok = 1;
 }
 
 //----------------------------------------------------------------------------
@@ -636,7 +625,7 @@ CTEXTSTR GetTimeEx( int bUseDay )
 
 CTEXTSTR GetTime( void )
 {
-   return GetTimeEx( flags.bUseDay );
+   return GetTimeEx( (*syslog_local).flags.bUseDay );
 }
 
 
@@ -687,7 +676,7 @@ static TEXTCHAR *GetTimeHigh( void )
 	static SYSTEMTIME _st;
 	SYSTEMTIME st, st_save;
 
-	if( flags.bUseDeltaTime )
+	if( (*syslog_local).flags.bUseDeltaTime )
 	{
 		GetLocalTime( &st );
 		st_save = st;
@@ -719,7 +708,7 @@ static TEXTCHAR *GetTimeHigh( void )
 	else
 		GetLocalTime( &st );
 
-	if( flags.bUseDay )
+	if( (*syslog_local).flags.bUseDay )
 		tnprintf( timebuffer, sizeof(timebuffer), WIDE("%02d/%02d/%d %02d:%02d:%02d.%03d")
 		        , st.wMonth, st.wDay, st.wYear
 		        , st.wHour, st.wMinute, st.wSecond, st.wMilliseconds );
@@ -735,7 +724,7 @@ static TEXTCHAR *GetTimeHigh( void )
 	struct tm *timething, tm, tm_save;
 	int len;
 	gettimeofday( &tv, NULL );
-	if( flags.bUseDeltaTime )
+	if( (*syslog_local).flags.bUseDeltaTime )
 	{
 		tv_save = tv;
 		timething = localtime( &tv.tv_sec );
@@ -778,7 +767,7 @@ static TEXTCHAR *GetTimeHigh( void )
 
 	len = strftime( c_timebuffer
                   , sizeof( c_timebuffer )
-                  , (flags.bUseDay)?"%m/%d/%Y %H:%M:%S":"%H:%M:%S"
+                  , ((*syslog_local).flags.bUseDay)?"%m/%d/%Y %H:%M:%S":"%H:%M:%S"
 					  , &tm );
 #undef snprintf
 	snprintf( c_timebuffer + len, 5, ".%03ld", tv.tv_usec / 1000 );
@@ -840,9 +829,9 @@ static TEXTCHAR *GetTimeHighest( void )
 	_64 tick;
 	static TEXTCHAR timebuffer[64];
 	tick = GetCPUTick();
-	if( !l.lasttick2 )
-		l.lasttick2 = tick;
-	if( flags.bUseDeltaTime )
+	if( !(*syslog_local).lasttick2 )
+		(*syslog_local).lasttick2 = tick;
+	if( (*syslog_local).flags.bUseDeltaTime )
 	{
 #ifdef UNICODE
 		size_t ofs = 0;
@@ -851,8 +840,8 @@ static TEXTCHAR *GetTimeHighest( void )
 #else
 		int ofs = tnprintf( timebuffer, sizeof( timebuffer ), WIDE("%20") _64fs WIDE(" "), tick );
 #endif
-		PrintCPUDelta( timebuffer + ofs, sizeof( timebuffer ) - ofs, l.lasttick2, tick );
-		l.lasttick2 = tick;
+		PrintCPUDelta( timebuffer + ofs, sizeof( timebuffer ) - ofs, (*syslog_local).lasttick2, tick );
+		(*syslog_local).lasttick2 = tick;
 	}
 	else
 		tnprintf( timebuffer, sizeof( timebuffer ), WIDE("%20") _64fs, tick );
@@ -862,13 +851,13 @@ static TEXTCHAR *GetTimeHighest( void )
 
 static CTEXTSTR GetLogTime( void )
 {
-	if( flags.bLogTime )
+	if( (*syslog_local).flags.bLogTime )
 	{
-		if( flags.bLogHighTime )
+		if( (*syslog_local).flags.bLogHighTime )
 		{
 			return GetTimeHigh();
 		}
-		else if( flags.bLogCPUTime )
+		else if( (*syslog_local).flags.bLogCPUTime )
 		{
 			return GetTimeHighest();
 		}
@@ -896,11 +885,11 @@ static SOCKADDR saBind = { 2, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00  };
 static void UDPSystemLog( const TEXTCHAR *message )
 {
 #ifdef HAVE_IDLE
-	while( l.bLogging )
+	while( (*syslog_local).bLogging )
 		Idle();
 #endif
-	l.bLogging = 1;
-	if( !l.bStarted )
+	(*syslog_local).bLogging = 1;
+	if( !(*syslog_local).bStarted )
 	{
 #ifdef _WIN32
 #ifndef MAKEWORD
@@ -909,11 +898,11 @@ static void UDPSystemLog( const TEXTCHAR *message )
 		WSADATA ws;  // used to start up the socket services...
 		if( WSAStartup( MAKEWORD(1,1), &ws ) )
 		{
-			l.bLogging = 0;
+			(*syslog_local).bLogging = 0;
 			return;
 		}
 #endif
-		l.bStarted = TRUE;
+		(*syslog_local).bStarted = TRUE;
 	}
 	if( hSock == INVALID_SOCKET )
 	{
@@ -921,14 +910,14 @@ static void UDPSystemLog( const TEXTCHAR *message )
 		hSock = socket(PF_INET,SOCK_DGRAM,0);
 		if( hSock == INVALID_SOCKET )
 		{
-			l.bLogging = 0;
+			(*syslog_local).bLogging = 0;
 			return;
 		}
 		if( bind(hSock,&saBind,sizeof(SOCKADDR)) )
 		{
 			closesocket( hSock );
 			hSock = INVALID_SOCKET;
-			l. bLogging = 0;
+			(*syslog_local). bLogging = 0;
 			return;
 		}
 #ifndef BCC16
@@ -961,7 +950,7 @@ static void UDPSystemLog( const TEXTCHAR *message )
 		if( logtype != SYSLOG_UDPBROADCAST )
 			Relinquish(); // allow logging agents time to pick this up...
 	}
-	l.bLogging = 0;
+	(*syslog_local).bLogging = 0;
 }
 #endif
 
@@ -977,43 +966,43 @@ static struct sockaddr_un saSyslogdAddr  = { AF_UNIX, {"/dev/log"} };
 
 static void SyslogdSystemLog( const TEXTCHAR *message )
 {
-	while( l.bSyslogdLogging )
+	while( (*syslog_local).bSyslogdLogging )
 #    ifdef HAVE_IDLE
 		Idle();
 #    else
 		Relinquish();
 #    endif
 	//fprintf( stderr, "present." );
-	l.bSyslogdLogging = 1;
-	if( l.hSyslogdSock == INVALID_SOCKET )
+	(*syslog_local).bSyslogdLogging = 1;
+	if( (*syslog_local).hSyslogdSock == INVALID_SOCKET )
 	{
 		LOGICAL bEnable = TRUE;
-		l.hSyslogdSock = socket(AF_UNIX,SOCK_DGRAM,0);
-		if( l.hSyslogdSock == INVALID_SOCKET )
+		(*syslog_local).hSyslogdSock = socket(AF_UNIX,SOCK_DGRAM,0);
+		if( (*syslog_local).hSyslogdSock == INVALID_SOCKET )
 		{
 			//fprintf( stderr, "failed..." );
-			l.bSyslogdLogging = 0;
+			(*syslog_local).bSyslogdLogging = 0;
 			return;
 		}
-		if(connect(l.hSyslogdSock,(struct sockaddr *)&saSyslogdAddr,sizeof(saSyslogdAddr)) )
+		if(connect((*syslog_local).hSyslogdSock,(struct sockaddr *)&saSyslogdAddr,sizeof(saSyslogdAddr)) )
 		{
 			//fprintf( stderr, "failed..." );
-			closesocket( l.hSyslogdSock );
-			l.hSyslogdSock = INVALID_SOCKET;
-			l.bSyslogdLogging = 0;
+			closesocket( (*syslog_local).hSyslogdSock );
+			(*syslog_local).hSyslogdSock = INVALID_SOCKET;
+			(*syslog_local).bSyslogdLogging = 0;
 			return;
 		}
 	}
-	if( l.hSyslogdSock != INVALID_SOCKET )
+	if( (*syslog_local).hSyslogdSock != INVALID_SOCKET )
 	{
-		if( send( l.hSyslogdSock, message, StrLen( message ), 0 ) == 0 )
+		if( send( (*syslog_local).hSyslogdSock, message, StrLen( message ), 0 ) == 0 )
 		{
 			//fprintf( stderr, "failed..." );
-			closesocket( l.hSyslogdSock );
-			l.hSyslogdSock = INVALID_SOCKET;
+			closesocket( (*syslog_local).hSyslogdSock );
+			(*syslog_local).hSyslogdSock = INVALID_SOCKET;
 		}
 	}
-	l.bSyslogdLogging = 0;
+	(*syslog_local).bSyslogdLogging = 0;
 }
 #  endif
 #endif
@@ -1060,16 +1049,16 @@ LOGICAL IsBadReadPtr( CPOINTER pointer, PTRSZVAL len )
 
 static void FileSystemLog( CTEXTSTR message )
 {
-	if( l.file )
+	if( (*syslog_local).file )
 	{
 #ifdef UNICODE
-		fputws( message, l.file );
-		fputws( WIDE("\n"), l.file );
+		fputws( message, (*syslog_local).file );
+		fputws( WIDE("\n"), (*syslog_local).file );
 #else
-		sack_fputs( message, l.file );
-		sack_fputs( "\n", l.file );
+		sack_fputs( message, (*syslog_local).file );
+		sack_fputs( "\n", (*syslog_local).file );
 #endif
-		sack_fflush( l.file );
+		sack_fflush( (*syslog_local).file );
 	}
 }
 
@@ -1112,7 +1101,7 @@ void DoSystemLog( const TEXTCHAR *buffer )
 	if( !syslog_local )
 	{
 		InitSyslog( 1 );
-		if( logtype == SYSLOG_AUTO_FILE && !l.file )
+		if( logtype == SYSLOG_AUTO_FILE && !(*syslog_local).file )
 		{
 			// cannot log until system log is complete
 			return;
@@ -1141,21 +1130,21 @@ void DoSystemLog( const TEXTCHAR *buffer )
 	{
 		if( logtype == SYSLOG_AUTO_FILE )
 		{
-			if( !l.file && gFilename )
+			if( !(*syslog_local).file && gFilename )
 			{
 				int n_retry = 0;
 			retry_again:
 				logtype = SYSLOG_NONE; // disable logging - internal functions might inadvertantly log something...
-				if( !flags.bOptionsLoaded )
+				if( !(*syslog_local).flags.bOptionsLoaded )
 				{
 #if  _MSC_VER >=1600 
-					l.file = sack_fsopen( 0, gFilename, WIDE("wt")
+					(*syslog_local).file = sack_fsopen( 0, gFilename, WIDE("wt")
 #ifdef _UNICODE 
 							WIDE(", ccs=UNICODE")
 #endif
 						, _SH_DENYWR );
 #else
-					l.file = sack_fopen( 0, gFilename, WIDE("wt") 
+					(*syslog_local).file = sack_fopen( 0, gFilename, WIDE("wt") 
 #ifdef _UNICODE 
 							WIDE(", ccs=UNICODE")
 #endif
@@ -1164,35 +1153,35 @@ void DoSystemLog( const TEXTCHAR *buffer )
 				}
 				else
 				{
-				if( flags.bLogOpenBackup )
+				if( (*syslog_local).flags.bLogOpenBackup )
 				{
 					BackupFile( gFilename, (int)StrLen( gFilename ), 1 );
 				}
-				else if( flags.bLogOpenAppend )
+				else if( (*syslog_local).flags.bLogOpenAppend )
 #if  _MSC_VER >=1600 
-					l.file = sack_fsopen( flags.group_ok?GetFileGroup( WIDE( "system.logs" ), GetProgramPath() ):(INDEX)0, gFilename, WIDE("at+")
+					(*syslog_local).file = sack_fsopen( (*syslog_local).flags.group_ok?GetFileGroup( WIDE( "system.logs" ), GetProgramPath() ):(INDEX)0, gFilename, WIDE("at+")
 #ifdef _UNICODE 
 							WIDE(", ccs=UNICODE")
 #endif
 						, _SH_DENYWR );
 #else
-					l.file = sack_fopen( flags.group_ok?GetFileGroup( WIDE( "system.logs" ), GetProgramPath() ):(INDEX)0, gFilename, WIDE("at+") 
+					(*syslog_local).file = sack_fopen( (*syslog_local).flags.group_ok?GetFileGroup( WIDE( "system.logs" ), GetProgramPath() ):(INDEX)0, gFilename, WIDE("at+") 
 #ifdef _UNICODE 
 							WIDE(", ccs=UNICODE")
 #endif
 						);
 #endif
-				if( l.file )
-					fseek( l.file, 0, SEEK_END );
+				if( (*syslog_local).file )
+					fseek( (*syslog_local).file, 0, SEEK_END );
 				else
 #if  _MSC_VER >=1600 
-					l.file = sack_fsopenEx( flags.group_ok?GetFileGroup( WIDE( "system.logs" ), GetProgramPath() ):(INDEX)0, gFilename, WIDE("wt")
+					(*syslog_local).file = sack_fsopenEx( (*syslog_local).flags.group_ok?GetFileGroup( WIDE( "system.logs" ), GetProgramPath() ):(INDEX)0, gFilename, WIDE("wt")
 #ifdef _UNICODE 
 							WIDE(", ccs=UNICODE")
 #endif
 							, _SH_DENYWR, NULL );
 #else
-					l.file = sack_fopenEx( flags.group_ok?GetFileGroup( WIDE( "system.logs" ), GetProgramPath() ):(INDEX)0, gFilename, WIDE("wt") 
+					(*syslog_local).file = sack_fopenEx( (*syslog_local).flags.group_ok?GetFileGroup( WIDE( "system.logs" ), GetProgramPath() ):(INDEX)0, gFilename, WIDE("wt") 
 #ifdef _UNICODE 
 							WIDE(", ccs=UNICODE")
 #endif
@@ -1202,7 +1191,7 @@ void DoSystemLog( const TEXTCHAR *buffer )
 				}
 				//logtype = SYSLOG_AUTO_FILE;
 
-				if( !l.file )
+				if( !(*syslog_local).file )
 				{
 					if( n_retry < 500 )
 					{
@@ -1249,7 +1238,7 @@ void DoSystemLog( const TEXTCHAR *buffer )
 	else 
 #endif
 	if( logtype == SYSLOG_CALLBACK )
-		UserCallback( buffer );
+		(*syslog_local).UserCallback( buffer );
 }
 
 void SystemLogFL( const TEXTCHAR *message FILELINE_PASS )
@@ -1272,7 +1261,7 @@ void SystemLogFL( const TEXTCHAR *message FILELINE_PASS )
 #endif
 	if( cannot_log )
 		return;
-	if( !flags.group_ok && lock )
+	if( !(*syslog_local).flags.group_ok && lock )
 		return;
 #ifdef WIN32
 	while( InterlockedExchange( (long volatile*)&lock, 1 ) ) Relinquish();
@@ -1280,7 +1269,7 @@ void SystemLogFL( const TEXTCHAR *message FILELINE_PASS )
 	while( LockedExchange( &lock, 1 ) ) Relinquish();
 #endif
 	logtime = GetLogTime();
-	if( flags.bLogSourceFile && pFile )
+	if( (*syslog_local).flags.bLogSourceFile && pFile )
 	{
 #ifndef _LOG_FULL_FILE_NAMES
 		CTEXTSTR p;
@@ -1294,24 +1283,24 @@ void SystemLogFL( const TEXTCHAR *message FILELINE_PASS )
 	}
 	else
 		sourcefile[0] = 0;
-	if( flags.bLogThreadID )
+	if( (*syslog_local).flags.bLogThreadID )
 		tnprintf( threadid, sizeof( threadid ), WIDE("%012") _64fX WIDE("~"), GetMyThreadID() );
 	if( pFile )
 		tnprintf( buffer, sizeof( buffer )
 				  , WIDE("%s%s%s%s%s%s%s")
 				  , logtime, logtime[0]?WIDE("|"):WIDE("")
-				  , flags.bLogThreadID?threadid:WIDE("")
-				  , flags.bLogProgram?(GetProgramName()):WIDE("")
-				  , flags.bLogProgram?WIDE("@"):WIDE("")
-				  , flags.bLogSourceFile?sourcefile:WIDE("")
+				  , (*syslog_local).flags.bLogThreadID?threadid:WIDE("")
+				  , (*syslog_local).flags.bLogProgram?(GetProgramName()):WIDE("")
+				  , (*syslog_local).flags.bLogProgram?WIDE("@"):WIDE("")
+				  , (*syslog_local).flags.bLogSourceFile?sourcefile:WIDE("")
 				  , message );
 	else
 		tnprintf( buffer, sizeof( buffer )
 				  , WIDE("%s%s%s%s%s%s")
 				  , logtime, logtime[0]?WIDE("|"):WIDE("")
-				  , flags.bLogThreadID?threadid:WIDE("")
-				  , flags.bLogProgram?(GetProgramName()):WIDE("")
-				  , flags.bLogProgram?WIDE("@"):WIDE("")
+				  , (*syslog_local).flags.bLogThreadID?threadid:WIDE("")
+				  , (*syslog_local).flags.bLogProgram?(GetProgramName()):WIDE("")
+				  , (*syslog_local).flags.bLogProgram?WIDE("@"):WIDE("")
 				  , message );
 	DoSystemLog( buffer );
 	lock = 0;
@@ -1390,17 +1379,17 @@ void SystemLogEx ( const TEXTCHAR *message DBG_PASS )
 
 void  SetSystemLog ( enum syslog_types type, const void *data )
 {
-	if( l.file && ( logtype != SYSLOG_FILE ) )
+	if( (*syslog_local).file && ( logtype != SYSLOG_FILE ) )
 	{
-		fclose( l.file );
-		l.file = NULL;
+		fclose( (*syslog_local).file );
+		(*syslog_local).file = NULL;
 	}
 	if( type == SYSLOG_FILE )
 	{
 		if( data )
 		{
 			logtype = type;
-			l.file = (FILE*)data;
+			(*syslog_local).file = (FILE*)data;
 		}
 	}
 	else if( type == SYSLOG_FILENAME )
@@ -1419,13 +1408,13 @@ void  SetSystemLog ( enum syslog_types type, const void *data )
 #endif
 				);
 #endif
-		l.file = log;
+		(*syslog_local).file = log;
 
 		logtype = SYSLOG_FILE;
 	}
 	else if( type == SYSLOG_CALLBACK )
 	{
-		UserCallback = (UserLoggingCallback)data;
+		(*syslog_local).UserCallback = (UserLoggingCallback)data;
 	}
 	else
 	{
@@ -1436,22 +1425,22 @@ void  SetSystemLog ( enum syslog_types type, const void *data )
 
  void  SystemLogTime ( LOGICAL enable )
 {
-	flags.bLogTime = FALSE;
-	flags.bUseDay = FALSE;
-	flags.bUseDeltaTime = FALSE;
-	flags.bLogHighTime = FALSE;
-	flags.bLogCPUTime = FALSE;
+	(*syslog_local).flags.bLogTime = FALSE;
+	(*syslog_local).flags.bUseDay = FALSE;
+	(*syslog_local).flags.bUseDeltaTime = FALSE;
+	(*syslog_local).flags.bLogHighTime = FALSE;
+	(*syslog_local).flags.bLogCPUTime = FALSE;
 	if( enable )
 	{
-		flags.bLogTime = TRUE;
+		(*syslog_local).flags.bLogTime = TRUE;
 		if( enable & SYSLOG_TIME_HIGH )
-			flags.bLogHighTime = TRUE;
+			(*syslog_local).flags.bLogHighTime = TRUE;
 		if( enable & SYSLOG_TIME_LOG_DAY )
-			flags.bUseDay = TRUE;
+			(*syslog_local).flags.bUseDay = TRUE;
 		if( enable & SYSLOG_TIME_DELTA )
-			flags.bUseDeltaTime = TRUE;
+			(*syslog_local).flags.bUseDeltaTime = TRUE;
 		if( enable & SYSLOG_TIME_CPU )
-			flags.bLogCPUTime = TRUE;
+			(*syslog_local).flags.bLogCPUTime = TRUE;
 	}
 }
 
@@ -1469,31 +1458,11 @@ static struct next_lprint_info *GetNextInfo( void )
 {
 	struct next_lprint_info *next;
 #if defined( WIN32 )
-#   if defined( __STATIC_GLOBALS__ )
-	if( !( next = (struct next_lprint_info*)TlsGetValue( syslog_local.next_lprintf_tls ) ) )
-#   else
-	if( !( next = (struct next_lprint_info*)TlsGetValue( syslog_local->next_lprintf_tls ) ) )
-#   endif
-	{
-#   if defined( __STATIC_GLOBALS__ )
-		TlsSetValue( syslog_local.next_lprintf_tls, next = New( struct next_lprint_info ) );
-#   else
-		TlsSetValue( syslog_local->next_lprintf_tls, next = New( struct next_lprint_info ) );
-#   endif
-	}
+	if( !( next = (struct next_lprint_info*)TlsGetValue( (*syslog_local).next_lprintf_tls ) ) )
+		TlsSetValue( (*syslog_local).next_lprintf_tls, next = New( struct next_lprint_info ) );
 #elif defined( __LINUX__ )
-#   if defined( __STATIC_GLOBALS__ )
-	if( !( next = (struct next_lprint_info*)pthread_getspecific( syslog_local.next_lprintf_tls ) ) )
-#   else
-		if( !( next = (struct next_lprint_info*)pthread_getspecific( syslog_local->next_lprintf_tls ) ) )
-#   endif
-	{
-#   if defined( __STATIC_GLOBALS__ )
-		pthread_setspecific( syslog_local.next_lprintf_tls, next = New( struct next_lprint_info ) );
-#   else
-		pthread_setspecific( syslog_local->next_lprintf_tls, next = New( struct next_lprint_info ) );
-#   endif
-	}
+	if( !( next = (struct next_lprint_info*)pthread_getspecific( (*syslog_local).next_lprintf_tls ) ) )
+		pthread_setspecific( (*syslog_local).next_lprintf_tls, next = New( struct next_lprint_info ) );
 #endif
 	return next;
 }
@@ -1522,17 +1491,17 @@ static INDEX CPROC _real_vlprintf ( CTEXTSTR format, va_list args )
 		TEXTCHAR threadid[32];
 
 		cannot_log = 1;
-		if( !l.buffers )
+		if( !(*syslog_local).buffers )
 		{
 			int n;
-			l.buffers = CreateLinkQueue();
+			(*syslog_local).buffers = CreateLinkQueue();
 			for( n = 0; n < 6; n++ )
-				EnqueLink( &l.buffers, (POINTER)1 );
+				EnqueLink( &(*syslog_local).buffers, (POINTER)1 );
 			for( n = 0; n < 6; n++ )
-				DequeLink( &l.buffers );
+				DequeLink( &(*syslog_local).buffers );
 		}
 
-		buffer = (TEXTCHAR*)DequeLink( &l.buffers );
+		buffer = (TEXTCHAR*)DequeLink( &(*syslog_local).buffers );
 		if( !buffer )
 		{
 			//DoSystemLog( WIDE( "Adding Logging Buffer" ) );
@@ -1556,33 +1525,33 @@ static INDEX CPROC _real_vlprintf ( CTEXTSTR format, va_list args )
 			ofs = 0;
 		// argsize - the program's giving us file and line
 		// debug for here or not, this must be used.
-		if( flags.bLogThreadID )
+		if( (*syslog_local).flags.bLogThreadID )
 			tnprintf( threadid, sizeof( threadid ), WIDE("%012") _64fX WIDE("~"), GetMyThreadID() );
 #ifdef UNDER_CE
 		tnprintf( buffer + ofs, 4095 - ofs, WIDE("%s%s%s")
-				  , flags.bLogThreadID?threadid:WIDE("")
-				  , flags.bLogProgram?GetProgramName():WIDE("")
-				  , flags.bLogProgram?WIDE("@"):WIDE("")
+				  , (*syslog_local).flags.bLogThreadID?threadid:WIDE("")
+				  , (*syslog_local).flags.bLogProgram?GetProgramName():WIDE("")
+				  , (*syslog_local).flags.bLogProgram?WIDE("@"):WIDE("")
 				  );
 		ofs += StrLen( buffer + ofs );
 #else
 		tnprintf( buffer + ofs, 4095 - ofs, WIDE("%s%s%s")
-				  , flags.bLogThreadID?threadid:WIDE("")
-				  , flags.bLogProgram?GetProgramName():WIDE("")
-				  , flags.bLogProgram?WIDE("@"):WIDE("")
+				  , (*syslog_local).flags.bLogThreadID?threadid:WIDE("")
+				  , (*syslog_local).flags.bLogProgram?GetProgramName():WIDE("")
+				  , (*syslog_local).flags.bLogProgram?WIDE("@"):WIDE("")
 				  );
 		ofs += StrLen( buffer + ofs );
 #endif
 		{
+#ifdef _DEBUG
 			CTEXTSTR pFile;
 #ifndef _LOG_FULL_FILE_NAMES
 			CTEXTSTR p;
 #endif
 			_32 nLine;
-#ifdef _DEBUG
-			if( flags.bLogSourceFile && ( pFile = next_lprintf.pFile ) )
+			if( (*syslog_local).flags.bLogSourceFile && ( pFile = next_lprintf.pFile ) )
 			{
-				if( flags.bProtectLoggedFilenames )
+				if( (*syslog_local).flags.bProtectLoggedFilenames )
 					if( IsBadReadPtr( pFile, 2 ) )
                   pFile = WIDE("(Unloaded file?)");
 #   ifndef _LOG_FULL_FILE_NAMES
@@ -1617,7 +1586,7 @@ static INDEX CPROC _real_vlprintf ( CTEXTSTR format, va_list args )
 
 		{
 			cannot_log = 1;
-			EnqueLink( &l.buffers, buffer );
+			EnqueLink( &(*syslog_local).buffers, buffer );
 			cannot_log = 0;
 		}
 	}
@@ -1715,7 +1684,7 @@ static int f(void )
 
 void ProtectLoggedFilenames( LOGICAL bEnable )
 {
-	flags.bProtectLoggedFilenames = bEnable;
+	(*syslog_local).flags.bProtectLoggedFilenames = bEnable;
 }
 
 void SetSystemLoggingLevel( _32 nLevel )
@@ -1735,11 +1704,11 @@ void SetSystemLoggingLevel( _32 nLevel )
 void SetSyslogOptions( FLAGSETTYPE *options )
 {
 	// the mat operations don't turn into valid bitfield operators. (watcom)
-	flags.bLogOpenAppend = TESTFLAG( options, SYSLOG_OPT_OPENAPPEND )?1:0; // open for append, else open for write
-	flags.bLogOpenBackup = TESTFLAG( options, SYSLOG_OPT_OPEN_BACKUP )?1:0; // open for append, else open for write
-	flags.bLogProgram = TESTFLAG( options, SYSLOG_OPT_LOG_PROGRAM_NAME )?1:0; // open for append, else open for write
-	flags.bLogThreadID = TESTFLAG( options, SYSLOG_OPT_LOG_THREAD_ID )?1:0; // open for append, else open for write
-	flags.bLogSourceFile = TESTFLAG( options, SYSLOG_OPT_LOG_SOURCE_FILE )?1:0; // open for append, else open for write
+	(*syslog_local).flags.bLogOpenAppend = TESTFLAG( options, SYSLOG_OPT_OPENAPPEND )?1:0; // open for append, else open for write
+	(*syslog_local).flags.bLogOpenBackup = TESTFLAG( options, SYSLOG_OPT_OPEN_BACKUP )?1:0; // open for append, else open for write
+	(*syslog_local).flags.bLogProgram = TESTFLAG( options, SYSLOG_OPT_LOG_PROGRAM_NAME )?1:0; // open for append, else open for write
+	(*syslog_local).flags.bLogThreadID = TESTFLAG( options, SYSLOG_OPT_LOG_THREAD_ID )?1:0; // open for append, else open for write
+	(*syslog_local).flags.bLogSourceFile = TESTFLAG( options, SYSLOG_OPT_LOG_SOURCE_FILE )?1:0; // open for append, else open for write
 }
 
 #ifdef __cplusplus_cli
@@ -1760,6 +1729,7 @@ public:
 #ifdef __cplusplus
 LOGGING_NAMESPACE_END
 #endif
+
 
 //---------------------------------------------------------------------------
 // $Log: syslog.c,v $

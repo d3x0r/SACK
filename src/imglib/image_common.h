@@ -61,8 +61,8 @@ struct image_common_local_data_tag {
 //#define l image_common_local
 
 
-void  CPROC cSetColorAlpha( PCDATA po, int oo, int w, int h, CDATA color );
-void  CPROC cSetColor( PCDATA po, int oo, int w, int h, CDATA color );
+void  SetColorAlpha( PCDATA po, int oo, int w, int h, CDATA color );
+void  SetColor( PCDATA po, int oo, int w, int h, CDATA color );
 
 Image CPROC GetInvertedImage( Image child_image );
 Image CPROC GetShadedImage( Image child_image, CDATA red, CDATA green, CDATA blue );

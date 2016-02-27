@@ -48,8 +48,13 @@ void DrawLine( PCVECTOR p, PCVECTOR m, RCOORD t1, RCOORD t2, CDATA c )
 	VECTOR v1,v2;
 	glBegin( GL_LINES );
 	glColor4ubv( (unsigned char *)&c );
+#ifdef MAKE_RCOORD_SINGLE
 	glVertex3fv( add( v1, scale( v1, m, t1 ), p ) );
 	glVertex3fv( add( v2, scale( v2, m, t2 ), p ) );
+#else
+	glVertex3dv( add( v1, scale( v1, m, t1 ), p ) );
+	glVertex3dv( add( v2, scale( v2, m, t2 ), p ) );
+#endif
 	glEnd();
 }
 

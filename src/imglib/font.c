@@ -7,6 +7,8 @@
  *  *  consult doc/image.html
  *
  */
+
+#define FORCE_COLOR_MACROS
 #define FIX_RELEASE_COM_COLLISION
 #include <stdhdrs.h>
 #define IMAGE_LIBRARY_SOURCE
@@ -83,9 +85,9 @@ PFONT GetDefaultFont( void )
 }
 
 #if __3D__
-#define CharPlotAlpha(pRealImage,x,y,color) ( pRealImage->reverse_interface? pRealImage->reverse_interface->_plotalpha[0]( (Image)pRealImage->reverse_interface_instance, x, y, color ) : plot( pRealImage, x, y, color ) )
+#define CharPlotAlpha(pRealImage,x,y,color) ( pRealImage->reverse_interface? pRealImage->reverse_interface->_plotalpha( (Image)pRealImage->reverse_interface_instance, x, y, color ) : plot( pRealImage, x, y, color ) )
 #else
-#define CharPlotAlpha(pRealImage,x,y,color) ( pRealImage->reverse_interface? pRealImage->reverse_interface->_plotalpha[0]( (Image)pRealImage->reverse_interface_instance, x, y, color ) : plotalpha( pRealImage, x, y, color ) )
+#define CharPlotAlpha(pRealImage,x,y,color) ( pRealImage->reverse_interface? pRealImage->reverse_interface->_plotalpha( (Image)pRealImage->reverse_interface_instance, x, y, color ) : plotalpha( pRealImage, x, y, color ) )
 #endif
 
 //---------------------------------------------------------------------------
