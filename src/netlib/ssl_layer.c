@@ -2,7 +2,7 @@
 #include <deadstart.h>
 #include <procreg.h>
 #include <sqlgetoption.h>
-#include "../contrib/MatrixSSL/3.7.1/matrixssl/matrixsslApi.h"
+#include "../src/contrib/MatrixSSL/3.7.1/matrixssl/matrixsslApi.h"
 
 #define ALLOW_ANON_CONNECTIONS	1
 

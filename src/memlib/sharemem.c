@@ -264,15 +264,20 @@ PRIORITY_PRELOAD( InitGlobal, DEFAULT_PRELOAD_PRIORITY )
 #endif
 }
 
-#ifdef __GNUC__
+#if __GNUC__ 
 #  ifndef __ATOMIC_RELAXED
 #    define __ATOMIC_RELAXED 0
 #  endif
 //#  if defined __ARM__ || defined __ANDROID__
 //#    define XCHG(p,val)  LockedExchange( p, val )
 //#  else
-//inline _32 DoXchg( PV_32 p, _32 val ){  __asm__( WIDE("lock xchg (%2),%0"):WIDE( "=a" )(val):WIDE( "0" )(val),WIDE( "c" )(p) ); return val; }
+#  if  ( __GNUC_VERSION >= 40800 )
 #    define XCHG(p,val)  __atomic_exchange_n(p,val,__ATOMIC_RELAXED)
+#  else
+inline _32 DoXchg( PV_32 p, _32 val ){  __asm__( WIDE("lock xchg (%2),%0"):WIDE( "=a" )(val):WIDE( "0" )(val),WIDE( "c" )(p) ); return val; }
+inline _64 DoXchg64( PV_64 p, _64 val ){  __asm__( WIDE("lock xchg (%2),%0"):WIDE( "=a" )(val):WIDE( "0" )(val),WIDE( "c" )(p) ); return val; }
+#    define XCHG( p,val) ( ( sizeof( val ) > sizeof( _32 ) )?DoXchg64( (PV_64)p, (_64)val ):DoXchg( (PV_32)p, (_32)val ) )
+#  endif
 //#  endif
 #else
 #  define XCHG(p,val)  LockedExchange( p, val )
@@ -292,8 +297,8 @@ PRIORITY_PRELOAD( InitGlobal, DEFAULT_PRELOAD_PRIORITY )
 #  endif
 #else
 #  if defined( __LINUX__ ) || defined( __LINUX64__ ) 
-//DoXchg( p, val );
-   return __atomic_exchange_n(p,val,__ATOMIC_RELAXED);
+	DoXchg( p, val );
+//   return __atomic_exchange_n(p,val,__ATOMIC_RELAXED);
 #  else /* some other system, not windows, not linux... */
 	{
 #warning compiling C fallback locked exchange.  This is NOT atomic, and needs to be
@@ -326,7 +331,7 @@ PRIORITY_PRELOAD( InitGlobal, DEFAULT_PRELOAD_PRIORITY )
 #else
 #  if defined __GNUC__
 #     if !defined( __ANDROID__ ) || ( ANDROID_NDK_TARGET_PLATFORM > 16 )
-	return __atomic_exchange_n(p,val,__ATOMIC_RELAXED);
+	return XCHG(p,val);//__atomic_exchange_n(p,val,__ATOMIC_RELAXED);
 #else
 	{
 		// swp is the instruction....

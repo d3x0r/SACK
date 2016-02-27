@@ -206,9 +206,9 @@ else( __ANDROID__ )
         endif( NOT __NO_GUI__ )
 #	find_package( uuid )
 	include( makefiles/cmake/FindSqlite.cmake )
-        find_package( FUSE )
+#        find_package( FUSE )
         if( NOT ${FUSE_FOUND} )
-        	set( NEED_FUSE ON )
+#        	set( NEED_FUSE ON )
         endif( NOT ${FUSE_FOUND} )
         
 	find_package( Sqlite )
@@ -1172,9 +1172,11 @@ add_subdirectory( src/imglib )
 
 ###########
 
-if( NOT __ANDROID__ )
-   add_subdirectory( src/vidlib )
-endif( NOT __ANDROID__ )
+if( NOT __NO_GUI__ )
+  if( NOT __ANDROID__ )
+     add_subdirectory( src/vidlib )
+  endif( NOT __ANDROID__ )
+endif( NOT __NO_GUI__ )
 
 ###########
 

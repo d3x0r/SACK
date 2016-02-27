@@ -21,7 +21,7 @@ endif ( SQLITE3_INCLUDE_DIR AND SQLITE3_LIBRARIES )
 if( NOT WIN32 )
   INCLUDE(FindPkgConfig)
 
-  pkg_check_modules(SQLITE3 REQUIRED sqlite3 )
+  #pkg_check_modules(SQLITE3 REQUIRED sqlite3 )
 
 endif( NOT WIN32 )
 

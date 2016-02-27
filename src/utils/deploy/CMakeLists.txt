@@ -1,9 +1,11 @@
 PROJECT( sack_deploy )
 
+if( FROM_MERCURIAL)
 FILE( STRINGS ${CMAKE_SOURCE_DIR}/.hgtags TMP_tags )
 LIST( GET TMP_tags -1 TMP_TAG )
 STRING( REPLACE " " ";" NEWLIST ${TMP_TAG} )
 LIST( GET NEWLIST -1 CURRENT_REPO_REVISION )
+endif( FROM_MERCURIAL )
  
 message( "Sack revision: " ${CURRENT_REPO_REVISION} )
 
