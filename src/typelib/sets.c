@@ -18,15 +18,15 @@
 #include <sharemem.h>
 #include <logging.h>
 
-#include <typelib.h>
+#include <sack_typelib.h>
 
-#undef GetFromSet
-#undef GetArrayFromSet
-#undef DeleteFromSet
-#undef DeleteArrayFromSet
-#undef CountUsedInSet
-#undef GetLinearSetArray
-#undef ForAllInSet
+//#undef GetFromSet
+//#undef GetArrayFromSet
+//#undef DeleteFromSet
+//#undef DeleteArrayFromSet
+//#undef CountUsedInSet
+//#undef GetLinearSetArray
+//#undef ForAllInSet
 
 //----------------------------------------------------------------------------
 static int bLog; // put into a global structure, and configure.
@@ -365,18 +365,6 @@ void DeleteFromSetExx( GENERICSET *pSet, void *unit, int unitsize, int max DBG_P
 		Log( WIDE("Failed to find node in set!") );
 }
 
-#if 0
-#undef DeleteFromSetEx
-PUBLIC( void, DeleteFromSetEx )( GENERICSET *pSet, void *unit, int unitsize, int max )
-{
-   DeleteFromSetExx( pSet, unit, unitsize, max DBG_SRC );
-}
-
-void DeleteFromSet( GENERICSET *pSet, void *unit, int unitsize, int max )
-{
-	DeleteFromSetExx( pSet, unit, unitsize, max DBG_SRC );
-}
-#endif
 
 //----------------------------------------------------------------------------
 
@@ -417,7 +405,7 @@ void DeleteSetMember( GENERICSET *pSet, INDEX iMember, int unitsize, int max )
 }
 //----------------------------------------------------------------------------
 
-int CountUsedInSet( GENERICSET *pSet, int max )
+int CountUsedInSetEx( GENERICSET *pSet, int max )
 {
 	int cnt = 0, n;
 	while( pSet )
@@ -432,14 +420,14 @@ int CountUsedInSet( GENERICSET *pSet, int max )
 
 //----------------------------------------------------------------------------
 
-void **GetLinearSetArray( GENERICSET *pSet, int *pCount, int unitsize, int max )
+void **GetLinearSetArrayEx( GENERICSET *pSet, int *pCount, int unitsize, int max )
 {
 	void  **array;
 	int items, cnt, n, ofs;
 	INDEX nMin, nNewMin;
 	GENERICSET *pCur, *pNewMin;
 	//Log2( WIDE("Building Array unit size: %d(%08x)"), unitsize, unitsize );
-	items = CountUsedInSet( pSet, max );
+	items = CountUsedInSetEx( pSet, max );
 	if( pCount )
 		*pCount = items;
 	ofs = ( ( max + 31) / 32 ) * 4;

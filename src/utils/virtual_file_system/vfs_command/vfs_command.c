@@ -195,7 +195,7 @@ static void CPROC ShowFile( PTRSZVAL psv, CTEXTSTR file, int flags )
 {
 	void *f = l.fsi->open( (PTRSZVAL)psv, file + 2 );
 	printf( "%9d %s\n", l.fsi->size( f ), file );
-	l.fsi->close( f );
+	l.fsi->_close( f );
 }
 
 static void GetDirectory( void )
@@ -281,7 +281,7 @@ SaneWinMain( argc, argv )
 		else if( StrCaseCmp( argv[arg], "rm" ) == 0
 			|| StrCaseCmp( argv[arg], "delete" ) == 0 )
 		{
-			l.fsi->unlink( (PTRSZVAL)l.current_vol, argv[arg+1] );
+			l.fsi->_unlink( (PTRSZVAL)l.current_vol, argv[arg+1] );
 			arg++;
 		}
 		else if( StrCaseCmp( argv[arg], "store" ) == 0 )

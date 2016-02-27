@@ -13,8 +13,8 @@ void test1( void )
 	{
 		lprintf( "file size is now: %d", fsi->size( file ) );
 		fsi->seek( file, fsi->size( file ), 0 );
-		fsi->write( file, "1", 1 );
-		fsi->close( file );
+		fsi->_write( file, "1", 1 );
+		fsi->_close( file );
 	}
 }
 
@@ -28,7 +28,7 @@ void test2( void )
 	{
 		snprintf( buf, 256, "file.%d", n );
 		file = fsi->open( (PTRSZVAL)volume, buf );
-		fsi->close( file );
+		fsi->_close( file );
 	}
 }
 

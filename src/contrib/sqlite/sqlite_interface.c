@@ -70,6 +70,10 @@ struct my_sqlite3_vfs
 	struct file_system_mounted_interface *mount;
 };
 
+#ifdef l
+#  undef l
+#endif
+
 #define l local_sqlite_interface
 
 struct local_data {

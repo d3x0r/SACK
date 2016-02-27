@@ -350,7 +350,11 @@ void sack_vfs_unload_volume( struct volume * vol ) {
 	INDEX idx;
 	struct sack_vfs_file *file;
 	LIST_FORALL( vol->files, idx, struct sack_vfs_file *, file )
-		Release( file );
+		break;
+	if( file ) {
+		vol->closed = TRUE;
+		return;
+	}
 	DeleteList( &vol->files );
 	Release( vol->disk );
 	if( vol->key ) {
@@ -798,6 +802,7 @@ int CPROC sack_vfs_close( struct sack_vfs_file *file ) {
 	DeleteLink( &file->vol->files, file ); 
 	if( file->delete_on_close ) sack_vfs_unlink_file_entry( file->vol, file->entry, &file->dirent_key );  
 	file->vol->lock = 0;
+	if( file->vol->closed ) sack_vfs_unload_volume( file->vol );
 	Release( file ); 
 	return 0; 
 }
@@ -913,6 +918,8 @@ static LOGICAL CPROC sack_vfs_rename( PTRSZVAL psvInstance, const char *original
 
 static LOGICAL CPROC sack_vfs_is_directory( const char *name ) { return FALSE; }
 
+//#ifndef NO_SACK_INTERFACE
+
 static struct file_system_interface sack_vfs_fsi = { 
                                                      (void*(CPROC*)(PTRSZVAL,const char *))sack_vfs_open
                                                    , (int(CPROC*)(void*))sack_vfs_close
@@ -959,5 +966,7 @@ PRIORITY_PRELOAD( Sack_VFS_RegisterDefaultFilesystem, SQL_PRELOAD_PRIORITY + 1 )
 		                     , 900, (PTRSZVAL)vol, TRUE );
 	}
 }
+
+//#endif
 
 SACK_VFS_NAMESPACE_END

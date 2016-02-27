@@ -75,6 +75,10 @@ struct procreg_local_tag {
 	//gcroot<System::IO::FileStream^> fs;
 };
 
+#ifdef l
+#   undef l
+#endif
+
 #define l (*procreg_local_data)
 
 static struct procreg_local_tag *procreg_local_data;

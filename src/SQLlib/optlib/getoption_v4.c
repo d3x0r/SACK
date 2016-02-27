@@ -22,7 +22,7 @@
 //#define DETAILED_LOGGING
 
 SQL_NAMESPACE
-extern GLOBAL *global_sqlstub_data;
+extern struct pssql_global *global_sqlstub_data;
 SQL_NAMESPACE_END
 /*
  Dump Option table...

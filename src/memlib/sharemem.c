@@ -44,9 +44,6 @@
 #endif
 #endif
 
-#define ENABLE_NATIVE_MALLOC_PROTECTOR
-
-#define MEMORY_STRUCT_DEFINED
 #define DEFINE_MEMORY_STRUCT
 #include <stdhdrs.h>
 #include <filedotnet.h>
@@ -56,7 +53,9 @@
 #include <deadstart.h>
 #include <sharemem.h>
 #include <procreg.h>
-#include "sharestruc.h"
+#ifndef _SHARED_MEMORY_LIBRARY
+#  include "sharestruc.h"
+#endif
 #include <sqlgetoption.h>
 #include <ctype.h>
 
@@ -88,6 +87,9 @@ namespace sack {
 #define LEAD_PROTECT_BLOCK_TAIL 0xbeefcafeUL
 #endif
 
+#ifdef g
+#  undef g
+#endif
 
 #define BASE_MEMORY (POINTER)0x80000000
 // golly allocating a WHOLE DOS computer to ourselves? how RUDE

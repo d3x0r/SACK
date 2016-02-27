@@ -1,5 +1,7 @@
 #if !defined( MEMORY_STRUCT_DEFINED ) || defined( DEFINE_MEMORY_STRUCT )
 
+//#define ENABLE_NATIVE_MALLOC_PROTECTOR
+
 #ifdef _DEBUG
 #  define USE_DEBUG_LOGGING 1
 #else

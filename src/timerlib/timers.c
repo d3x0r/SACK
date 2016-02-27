@@ -70,7 +70,9 @@
 
 #include <timers.h>
 
-#include "../memlib/sharestruc.h"
+#ifndef _SHARED_MEMORY_LIBRARY
+#  include "../memlib/sharestruc.h"
+#endif
 #ifdef __cplusplus 
 namespace sack {
 	namespace timers {

@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <windows.h>
 #include <tlhelp32.h>
-#include <typelib.h>
+#include <sack_typelib.h> // stdint
 #include <sharemem.h>
 
 BOOL GetProcessList( const TEXTCHAR *file )

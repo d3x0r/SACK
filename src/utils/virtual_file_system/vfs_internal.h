@@ -48,6 +48,7 @@ PREFIX_PACKED struct volume {
 	P_8 usekey[BLOCK_CACHE_COUNT]; // composite key
 	PLIST files; // when reopened file structures need to be updated also...
 	LOGICAL read_only;
+	LOGICAL closed;
 	_32 lock;
 } PACKED;
 

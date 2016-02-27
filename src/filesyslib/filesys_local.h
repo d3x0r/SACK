@@ -35,4 +35,4 @@ extern
 } *winfile_local;
 
 
-#define l (*winfile_local)
+//#define l (*winfile_local)
