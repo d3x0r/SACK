@@ -1,7 +1,8 @@
 /*
  *  Crafted by James Buckeyne
+ *  Part of SACK github.com/d3x0r/SACK
  *
- *   (c) Freedom Collective 2000-2006++
+ *   (c) Freedom Collective 2000-2006++, 2016++
  *
  *   created to provide standard logging features
  *   lprintf( format, ... ); simple, basic
@@ -322,8 +323,12 @@ enum {
 	     logging.                                                     */
 	   LOG_NOISE = 1000
      , /* Define that the message is just noisy - though verbosly
-        informative, it's level is less critical than even INFO. */
-      LOG_DEBUG = 2000
+	  informative, it's level is less critical than even INFO.
+	  default iS LOG_NOISE which is 1000, an ddefault for disabling most messages
+	  is to set log level to 999.  Have to increase to 2000 to see debug, and this name
+     has beviously
+	  */
+      LOG_LEVEL_DEBUG = 2000
 	, /* Specify the message is of DEBUG importance, which is far
 	   above even NOISY. If debug logging is enabled, all logging,
 	   ERROR, WARNING, ADVISORY, INFO, NOISY and DEBUG will be
