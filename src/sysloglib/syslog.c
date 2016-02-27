@@ -495,7 +495,7 @@ void InitSyslog( int ignore_options )
 #if defined( WIN32 )
 		(*syslog_local).next_lprintf_tls = TlsAlloc();
 #elif defined( __LINUX__ )
-		pthread_key_create( &((*syslog_local).next_lprintf_tls, NULL );
+		pthread_key_create( &((*syslog_local).next_lprintf_tls), NULL );
 #endif
 		(*syslog_local).flags.bLogThreadID = 1;
 		hSock = INVALID_SOCKET;
