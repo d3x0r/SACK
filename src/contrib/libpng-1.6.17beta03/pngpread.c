@@ -502,13 +502,13 @@ png_push_crc_finish(png_structrp png_ptr)
    }
 }
 
-void PNGCBAPI
+int PNGCBAPI
 png_push_fill_buffer(png_structp png_ptr, png_bytep buffer, png_size_t length)
 {
    png_bytep ptr;
 
    if (png_ptr == NULL)
-      return;
+      return 0;
 
    ptr = buffer;
    if (png_ptr->save_buffer_size != 0)
@@ -543,6 +543,7 @@ png_push_fill_buffer(png_structp png_ptr, png_bytep buffer, png_size_t length)
       png_ptr->current_buffer_size -= save_size;
       png_ptr->current_buffer_ptr += save_size;
    }
+   return 1;
 }
 
 void /* PRIVATE */

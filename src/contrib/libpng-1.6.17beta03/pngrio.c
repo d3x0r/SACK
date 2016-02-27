@@ -28,13 +28,13 @@
  * buffering if you are using unbuffered reads.  This should never be asked
  * to read more then 64K on a 16 bit machine.
  */
-void /* PRIVATE */
+int /* PRIVATE */
 png_read_data(png_structrp png_ptr, png_bytep data, png_size_t length)
 {
    png_debug1(4, "reading %d bytes", (int)length);
 
    if (png_ptr->read_data_fn != NULL)
-      (*(png_ptr->read_data_fn))(png_ptr, data, length);
+      return (*(png_ptr->read_data_fn))(png_ptr, data, length);
 
    else
       png_error(png_ptr, "Call to NULL read function");
@@ -46,13 +46,13 @@ png_read_data(png_structrp png_ptr, png_bytep data, png_size_t length)
  * read_data function and use it at run time with png_set_read_fn(), rather
  * than changing the library.
  */
-void PNGCBAPI
+int PNGCBAPI
 png_default_read_data(png_structp png_ptr, png_bytep data, png_size_t length)
 {
    png_size_t check;
 
    if (png_ptr == NULL)
-      return;
+      return 0;
 
    /* fread() returns 0 on error, so it is OK to store this in a png_size_t
     * instead of an int, which is what fread() actually returns.
@@ -60,7 +60,11 @@ png_default_read_data(png_structp png_ptr, png_bytep data, png_size_t length)
    check = fread(data, 1, length, png_voidcast(png_FILE_p, png_ptr->io_ptr));
 
    if (check != length)
-      png_error(png_ptr, "Read Error");
+   {
+      png_warning(png_ptr, "Read Error");
+	  return 0;
+   }
+   return 1;
 }
 #endif
 

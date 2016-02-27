@@ -914,7 +914,7 @@ typedef png_row_info * * png_row_infopp;
  * expected to return the read data in the buffer.
  */
 typedef PNG_CALLBACK(void, *png_error_ptr, (png_structp, png_const_charp));
-typedef PNG_CALLBACK(void, *png_rw_ptr, (png_structp, png_bytep, png_size_t));
+typedef PNG_CALLBACK(int, *png_rw_ptr, (png_structp, png_bytep, png_size_t));
 typedef PNG_CALLBACK(void, *png_flush_ptr, (png_structp));
 typedef PNG_CALLBACK(void, *png_read_status_ptr, (png_structp, png_uint_32,
     int));
@@ -1514,13 +1514,13 @@ PNG_EXPORT(55, void, png_read_rows, (png_structrp png_ptr, png_bytepp row,
 
 #ifdef PNG_SEQUENTIAL_READ_SUPPORTED
 /* Read a row of data. */
-PNG_EXPORT(56, void, png_read_row, (png_structrp png_ptr, png_bytep row,
+PNG_EXPORT(56, int, png_read_row, (png_structrp png_ptr, png_bytep row,
     png_bytep display_row));
 #endif
 
 #ifdef PNG_SEQUENTIAL_READ_SUPPORTED
 /* Read the whole image into memory at once. */
-PNG_EXPORT(57, void, png_read_image, (png_structrp png_ptr, png_bytepp image));
+PNG_EXPORT(57, int, png_read_image, (png_structrp png_ptr, png_bytepp image));
 #endif
 
 /* Write a row of image data */
@@ -1544,7 +1544,7 @@ PNG_EXPORT(61, void, png_write_end, (png_structrp png_ptr,
 
 #ifdef PNG_SEQUENTIAL_READ_SUPPORTED
 /* Read the end of the PNG file. */
-PNG_EXPORT(62, void, png_read_end, (png_structrp png_ptr, png_inforp info_ptr));
+PNG_EXPORT(62, int, png_read_end, (png_structrp png_ptr, png_inforp info_ptr));
 #endif
 
 /* Free any memory associated with the png_info_struct */

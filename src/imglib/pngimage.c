@@ -52,12 +52,19 @@ IMAGE_NAMESPACE
 namespace loader {
 #endif
 
-void ImagePngRead (png_structp png, png_bytep data, png_size_t size)
+int ImagePngRead (png_structp png, png_bytep data, png_size_t size)
 {
 	ImagePngRawData *self = (ImagePngRawData *)png_get_io_ptr( png );
 	if (self->r_size < size)
 	{
-		png_error (png, "Space Read Error");
+		char msg[128];
+#ifdef _MSC_VER
+		_snprintf( msg, 128, "Space Read Error wanted %d only had %d", size, self->r_size );
+#else
+		snprintf( msg, 128, "Space Read Error wanted %d only had %d", size, self->r_size );
+#endif
+		png_warning(png, msg );
+		return 0;
 	}
 	else
 	{
@@ -65,12 +72,14 @@ void ImagePngRead (png_structp png, png_bytep data, png_size_t size)
 		self->r_size -= size;
 		self->r_data += size;
 	} /* endif */
+	return 1;
 }
 
 void PNGCBAPI NotSoFatalError( png_structp png_ptr, png_const_charp c )
 {
-	if( strcmp( c, "iCCP: known incorrect sRGB profile" ) == 0 
-		&& strcmp( c, "iCCP: cHRM chunk does not match sRGB" ) == 0 )
+	if( strcmp( c, "iCCP: known incorrect sRGB profile" ) != 0 
+		&& strcmp( c, "iCCP: cHRM chunk does not match sRGB" ) != 0
+		&& strcmp( c, "Interlace handling should be turned on when using png_read_image" ) != 0 )
 		lprintf( WIDE("Error in PNG stuff: %s"), c );
 }
 
@@ -241,7 +250,11 @@ no_mem2:
 					row_pointers[row] = (png_bytep)(pImage->image + row * pImage->pwidth);
 			}
 			// Read image data
-			png_read_image (png_ptr, row_pointers);
+			if( !png_read_image (png_ptr, row_pointers) )
+			{
+				UnmakeImageFile( pImage );
+				pImage = NULL;
+			}
 			// read rest of file, and get additional chunks in info_ptr
 			png_read_end (png_ptr, (png_infop)NULL);
 		}
@@ -264,7 +277,7 @@ typedef struct ImagePngRawDataWriter_tag
 
 
 //--------------------------------------
-static void CPROC ImagePngWrite(png_structp png,
+static int CPROC ImagePngWrite(png_structp png,
                            png_bytep   data,
                            png_size_t  length)
 {
@@ -288,6 +301,7 @@ static void CPROC ImagePngWrite(png_structp png,
 	}
 	MemCpy( (*self->r_data)+(*self->r_size), data, length );
 	(*self->r_size) = (*self->r_size) + length;
+	return 1;
 }
 
 

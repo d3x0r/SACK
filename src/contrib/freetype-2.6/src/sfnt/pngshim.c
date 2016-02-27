@@ -148,7 +148,7 @@
   }
 
 
-  static void
+  static int
   read_data_from_FT_Stream( png_structp  png,
                             png_bytep    data,
                             png_size_t   length )
@@ -166,12 +166,13 @@
       *e = FT_THROW( Invalid_Stream_Read );
       png_error( png, NULL );
 
-      return;
+      return 0;
     }
 
     memcpy( data, stream->cursor, length );
 
     FT_FRAME_EXIT();
+	return 1;
   }
 
 
