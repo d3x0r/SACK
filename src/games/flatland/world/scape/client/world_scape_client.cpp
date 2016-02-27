@@ -45,7 +45,7 @@ void InvokeCallbacks( void )
 }
 
 
-int CPROC EventHandler( _32 MsgID, _32 *params, size_t paramlen )
+int CPROC EventHandler( MSGIDTYPE MsgID, _32 *params, size_t paramlen )
 {
    int result = EVENT_HANDLED;
 	_32 *job_block = (P_32)NewArray( _8, paramlen + sizeof( MsgID ) );
@@ -286,7 +286,7 @@ void Mark##Name##Updated( INDEX iWorld, INDEX iName )   \
 
 void MarkLineUpdated( INDEX iWorld, INDEX iName )   
 {  
-	_32 ResultID;
+	MSGIDTYPE ResultID;
 	_32 Result[1];
 	size_t ResultLen = 0;
 	PFLATLAND_MYLINESEG Name; 

@@ -642,19 +642,5 @@ int main( int argc, char **argv )
 }
 
 //------------------------------------------------------------------------------
-//
-//$Log: bardservice.c,v $
-//Revision 1.3  2005/07/27 23:26:07  christopher
-//checkpoint
-//
-//Revision 1.2  2005/07/16 00:08:22  christopher
-//checkpoint.
-//
-//Revision 1.1  2005/07/15 22:34:31  christopher
-//inital commit
-//
-//
-
-
 
 

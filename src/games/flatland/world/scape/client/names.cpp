@@ -90,7 +90,7 @@ void SetName( INDEX iWorld, INDEX iName, CTEXTSTR text )
 
 INDEX MakeName( INDEX iWorld, CTEXTSTR text )
 {
-	_32 ResultID;
+	MSGIDTYPE ResultID;
 	_32 Result[1];
 	size_t ResultLen = sizeof( Result );
 	if( ConnectToServer()

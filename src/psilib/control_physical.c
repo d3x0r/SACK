@@ -267,6 +267,9 @@ static void CPROC FrameRedraw( PTRSZVAL psvFrame, PRENDERER psvSelf )
 		}
 		else
 		{
+			PSI_CONTROL pcChild;
+			for( pcChild = pc->child; pcChild; pcChild = pcChild->next )
+				UpdateCommonEx( pcChild, FALSE DBG_SRC );
 #ifdef DEBUG_UPDAATE_DRAW
 			if( g.flags.bLogDebugUpdate )
 				lprintf( WIDE( "trusting that the frame is already drawn to the stable buffer..." ) );

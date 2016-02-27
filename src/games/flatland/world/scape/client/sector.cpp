@@ -343,7 +343,7 @@ int UpdateMatingLines( INDEX iWorld, INDEX iWall
 					  // return FALSE to invalidate the update... too many 
 					  // intersections... or lines that get deleted...
 {
-	_32 ResultID;
+	MSGIDTYPE ResultID;
 	_32 Result[1];
 	INDEX tmp = bLockSlope;
 	size_t ResultLen = sizeof( Result );
@@ -1144,7 +1144,7 @@ INDEX InsertConnectedSector( INDEX iWorld, INDEX iWall, RCOORD offset )
 
 INDEX AddConnectedSector( INDEX iWorld, INDEX iWall, RCOORD offset )
 {
-	_32 ResultID;
+	MSGIDTYPE ResultID;
 	INDEX Result[1];
 	size_t ResultLen = sizeof( Result );
 	if( ConnectToServer()
@@ -1527,7 +1527,7 @@ void GetSectorPoints( INDEX iWorld, INDEX iSector, _POINT **list, int *npoints )
 
 int MoveSectors( INDEX iWorld, int nSectors,INDEX *pSectors, P_POINT del )
 {
-	_32 ResultID;
+	MSGIDTYPE ResultID;
 	_32 Result[1];
 	size_t ResultLen = 0;
 	if( ConnectToServer()
@@ -1549,7 +1549,7 @@ int MoveSectors( INDEX iWorld, int nSectors,INDEX *pSectors, P_POINT del )
 
 int MoveWalls( INDEX iWorld, int nWalls, INDEX *WallList, P_POINT del, int bLockSlope )
 {
-	_32 ResultID;
+	MSGIDTYPE ResultID;
 	_32 Result[1];
 	int tmp = bLockSlope;
 	size_t ResultLen = sizeof( Result );
@@ -1572,7 +1572,7 @@ int MoveWalls( INDEX iWorld, int nWalls, INDEX *WallList, P_POINT del, int bLock
 //----------------------------------------------------------------------------
 int RemoveWall( INDEX iWorld, INDEX iWall )
 {
-	_32 ResultID;
+	MSGIDTYPE ResultID;
 	_32 Result[1];
 	size_t ResultLen = sizeof( Result );
 	if( ConnectToServer()
@@ -1589,7 +1589,7 @@ int RemoveWall( INDEX iWorld, INDEX iWall )
 }
 void BreakWall( INDEX iWorld, INDEX iWall )
 {
-	_32 ResultID;
+	MSGIDTYPE ResultID;
 	_32 Result[1];
 	size_t ResultLen = sizeof( Result );
 	if( ConnectToServer()

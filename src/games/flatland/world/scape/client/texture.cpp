@@ -36,7 +36,7 @@ static INDEX CPROC FindTextureName( INDEX texture, PTRSZVAL psv )
 
 INDEX MakeTexture( INDEX iWorld, INDEX iName )
 {
-	_32 ResultID;
+	MSGIDTYPE ResultID;
 	_32 Result[1];
 	size_t ResultLen = sizeof( Result );
 	if( ConnectToServer()
@@ -87,7 +87,7 @@ void DeleteTextures( INDEX iWorld )
 
 void SetSolidColor( INDEX iWorld, INDEX iTexture, CDATA color )
 {
-	_32 ResultID;
+	MSGIDTYPE ResultID;
 	_32 Result[1];
 	size_t ResultLen = 0;//sizeof( INDEX );
 	if( ConnectToServer()
@@ -155,7 +155,7 @@ void GetTextureNameText( INDEX iWorld, INDEX iTexture, TEXTCHAR *buf, int bufsiz
 
 INDEX SetTexture( INDEX iWorld, INDEX iSector, INDEX iTexture )
 {
-	_32 ResultID;
+	MSGIDTYPE ResultID;
 	_32 Result[1];
 	size_t ResultLen = sizeof( Result );
 	if( ConnectToServer()

@@ -955,10 +955,10 @@ JSON_EMITTER_PROC( struct json_context_object *, json_add_object_member_object )
 	return json_add_object_member_object_array( object, name, offset, type, child_object, 0, JSON_NO_OFFSET );
 }
 //----------------------------------------------------------------------------------------------
-void json_add_object_member_array_pointer( struct json_context_object *object
+struct json_context_object * json_add_object_member_array_pointer( struct json_context_object *object
 													  , CTEXTSTR name
-													  , int offset, enum JSON_ObjectElementTypes type
-													  , int count_offset )
+													  , size_t offset, enum JSON_ObjectElementTypes type
+													  , size_t count_offset )
 {
 	struct json_context *context = object->context;
 	struct json_context_object_element *member = New( struct json_context_object_element );
@@ -967,6 +967,7 @@ void json_add_object_member_array_pointer( struct json_context_object *object
 	member->offset = offset;
 	member->type = type;
 	member->count_offset = count_offset;
+   return object;
 }
 
 //----------------------------------------------------------------------------------------------

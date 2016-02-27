@@ -30,3 +30,8 @@ add_subdirectory( world/scape/server )
 add_subdirectory( world/scape/client )
 add_subdirectory( client/edit )
 add_subdirectory( client/play )
+
+add_subdirectory( ../../msgsvr/server __/msgsvr )
+add_subdirectory( ../../msgsvr/client __/msgclient )
+
+

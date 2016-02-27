@@ -139,17 +139,18 @@ int main( int argc, char **argv )
 	l.world = OpenWorld( WIDE("") );
 	LoadWorldFromFile( l.world );
 	WakeableSleep( 500 ); // give the world time to load.
+	
 	{
 		_32 w, h;
 		PBODY body = EnterWorld( l.world );
 		PVIEW view ;
 		GetDisplaySizeEx( 0, NULL,NULL,&w, &h );
-		view = CreateViewEx( V_FORWARD, NULL, WIDE("blah"), h/3, h/3 );
-		view = CreateViewEx( V_DOWN, NULL, WIDE("blah"), h/3, 0 );
-		view = CreateViewEx( V_UP, NULL, WIDE("blah"), h/3, 2*h/2 );
-		view = CreateViewEx( V_RIGHT, NULL, WIDE("blah"), 0, h/3 );
-		view = CreateViewEx( V_LEFT, NULL, WIDE("blah"), 2*h/3, h/3 );
-		view = CreateViewEx( V_BEHIND, NULL, WIDE("blah"), 3*h/3, h/3 );
+		//view = CreateViewEx( V_FORWARD, NULL, WIDE("blah"), h/3, h/3 );
+		//view = CreateViewEx( V_DOWN, NULL, WIDE("blah"), h/3, 0 );
+		//view = CreateViewEx( V_UP, NULL, WIDE("blah"), h/3, 2*h/2 );
+		//view = CreateViewEx( V_RIGHT, NULL, WIDE("blah"), 0, h/3 );
+		//view = CreateViewEx( V_LEFT, NULL, WIDE("blah"), 2*h/3, h/3 );
+		//view = CreateViewEx( V_BEHIND, NULL, WIDE("blah"), 3*h/3, h/3 );
 		//Equip( body );
 		//PlayWorld( world, body );
 		while( 1 )
