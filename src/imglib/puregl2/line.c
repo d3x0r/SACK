@@ -36,7 +36,7 @@
 
 #include "blotproto.h"
 
-/* void do_line(BITMAP *bmp, int x1, y1, x2, y2, int d, void (*proc)())
+/* void do_line(BITMAP *bmp, int x1, y1, x2, y2, CDATA d, void (*proc)())
  *  Calculates all the points along a line between x1, y1 and x2, y2,
  *  calling the supplied function for each one. This will be passed a
  *  copy of the bmp parameter, the x and y position, and a copy of the
@@ -54,8 +54,8 @@ extern "C" {
 #define ROUND_ERROR ( ( 1<< ( FIX_SHIFT - 1 ) ) - 1 )
 
 
-void CPROC do_linec( ImageFile *pImage, int x1, int y1
-						 , int x2, int y2, int d )
+void CPROC do_line( ImageFile *pImage, S_32 x1, S_32 y1
+						 , S_32 x2, S_32 y2, CDATA d )
 {
 	if( pImage->flags & IF_FLAG_FINAL_RENDER )
 	{
@@ -216,8 +216,8 @@ void CPROC do_linec( ImageFile *pImage, int x1, int y1
 	}
 }
 
-void CPROC do_lineAlphac( ImageFile *pImage, int x1, int y1
-                            , int x2, int y2, int d )
+void CPROC do_lineAlpha( ImageFile *pImage, S_32 x1, S_32 y1
+                            , S_32 x2, S_32 y2, CDATA d )
 {
 	if( pImage->flags & IF_FLAG_FINAL_RENDER )
 	{
@@ -378,9 +378,9 @@ void CPROC do_lineAlphac( ImageFile *pImage, int x1, int y1
 	}
 }
 
-void CPROC do_lineExVc( ImageFile *pImage, int x1, int y1
-                            , int x2, int y2, int d
-                            , void (*func)(ImageFile *pif, int x, int y, int d ) )
+void CPROC do_lineExV( ImageFile *pImage, S_32 x1, S_32 y1
+                            , S_32 x2, S_32 y2, PTRSZVAL d
+                            , void (*func)(ImageFile *pif, S_32 x, S_32 y, PTRSZVAL d ) )
 {
 	int err, delx, dely, len, inc;
 	//if( !pImage || !pImage->image ) return;
@@ -455,25 +455,25 @@ void CPROC do_lineExVc( ImageFile *pImage, int x1, int y1
 	}
 }
 
-void CPROC do_hlinec( ImageFile *pImage, int y, int xfrom, int xto, CDATA color )
+void CPROC do_hline( ImageFile *pImage, S_32 y, S_32 xfrom, S_32 xto, CDATA color )
 {
 	BlatColor( pImage, xfrom, y, xto-xfrom, 1, color );
 	//do_linec( pImage, xfrom, y, xto, y, color );
 }
 
-void CPROC do_vlinec( ImageFile *pImage, int x, int yfrom, int yto, CDATA color )
+void CPROC do_vline( ImageFile *pImage, S_32 x, S_32 yfrom, S_32 yto, CDATA color )
 {
 	BlatColor( pImage, x, yfrom, 1, yto-yfrom, color );
 	//do_linec( pImage, x, yfrom, x, yto, color );
 }
 
-void CPROC do_hlineAlphac( ImageFile *pImage, int y, int xfrom, int xto, CDATA color )
+void CPROC do_hlineAlpha( ImageFile *pImage, S_32 y, S_32 xfrom, S_32 xto, CDATA color )
 {
 	BlatColorAlpha( pImage, xfrom, y, xto-xfrom, 1, color );
 	//do_lineAlphac( pImage, xfrom, y, xto, y, color );
 }
 
-void CPROC do_vlineAlphac( ImageFile *pImage, int x, int yfrom, int yto, CDATA color )
+void CPROC do_vlineAlpha( ImageFile *pImage, S_32 x, S_32 yfrom, S_32 yto, CDATA color )
 {
 	BlatColorAlpha( pImage, x, yfrom, 1, yto-yfrom, color );
 	//do_lineAlphac( pImage, x, yfrom, x, yto, color );

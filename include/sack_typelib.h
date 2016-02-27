@@ -1198,7 +1198,7 @@ TYPELIB_PROC  int TYPELIB_CALLTYPE  MemberValidInSetEx( GENERICSET *set, POINTER
    \ \                                                                               */
 #define MemberValidInSet( name, set, member ) MemberValidInSetEx( (GENERICSET*)set, member, sizeof( name ), MAX##name##SPERSET )
 
-TYPELIB_PROC  int TYPELIB_CALLTYPE  CountUsedInSet( GENERICSET *set, int max );
+TYPELIB_PROC  int TYPELIB_CALLTYPE  CountUsedInSetEx( GENERICSET *set, int max );
 /* Count number of elements that are allocated in the set.
    
    
@@ -1209,9 +1209,9 @@ TYPELIB_PROC  int TYPELIB_CALLTYPE  CountUsedInSet( GENERICSET *set, int max );
    
    Returns
    The number of items in the step.                              */
-#define CountUsedInSet( name, set ) CountUsedInSet( (GENERICSET*)set, MAX##name##SPERSET )
+#define CountUsedInSet( name, set ) CountUsedInSetEx( (GENERICSET*)set, MAX##name##SPERSET )
 
-TYPELIB_PROC  POINTER * TYPELIB_CALLTYPE GetLinearSetArray( GENERICSET *pSet, int *pCount, int unitsize, int max );
+TYPELIB_PROC  POINTER * TYPELIB_CALLTYPE GetLinearSetArrayEx( GENERICSET *pSet, int *pCount, int unitsize, int max );
 /* Converts a set into a copy of the objects in the set
    organized in a flat array.
    
@@ -1226,7 +1226,7 @@ TYPELIB_PROC  POINTER * TYPELIB_CALLTYPE GetLinearSetArray( GENERICSET *pSet, in
    Returns
    Pointer to an array that are a copy of the objects in the
    set.                                                      */
-#define GetLinearSetArray( name, set, pCount ) GetLinearSetArray( (GENERICSET*)set, pCount, sizeof( name ), MAX##name##SPERSET )
+#define GetLinearSetArray( name, set, pCount ) GetLinearSetArrayEx( (GENERICSET*)set, pCount, sizeof( name ), MAX##name##SPERSET )
 
 /* Returned the index of an item in a linear array returned from
    a set.
@@ -3306,7 +3306,7 @@ using namespace sack::containers;
 
 #endif
 
-// $Log: typelib.h,v $
+// $Log: sack_typelib.h,v $
 // Revision 1.99  2005/07/10 23:56:25  d3x0r
 // Fix types for C++...
 //

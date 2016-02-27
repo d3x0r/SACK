@@ -13,6 +13,7 @@
  *
  */
 
+#define FORCE_COLOR_MACROS
 
 #define IMAGE_LIBRARY_SOURCE
 #define LIBRARY_DEF
@@ -38,8 +39,8 @@ extern "C" {
 #define FIX_SHIFT 18
 #define ROUND_ERROR ( ( 1<< ( FIX_SHIFT - 1 ) ) - 1 )
 
-void CPROC do_linec( ImageFile *pImage, int x1, int y1
-                            , int x2, int y2, int d )
+void CPROC do_line( Image pImage, S_32 x1, S_32 y1
+                            , S_32 x2, S_32 y2, CDATA d )
 {
    int err, delx, dely, len, inc;
    if( !pImage || !pImage->image ) return;
@@ -113,8 +114,8 @@ void CPROC do_linec( ImageFile *pImage, int x1, int y1
    }
 }
 
-void CPROC do_lineAlphac( ImageFile *pImage, int x1, int y1
-                            , int x2, int y2, int d )
+void CPROC do_lineAlpha( Image pImage, S_32 x1, S_32 y1
+                            , S_32 x2, S_32 y2, CDATA d )
 {
    int err, delx, dely, len, inc;
    if( !pImage || !pImage->image ) return;
@@ -188,9 +189,9 @@ void CPROC do_lineAlphac( ImageFile *pImage, int x1, int y1
    }
 }
 
-void CPROC do_lineExVc( ImageFile *pImage, int x1, int y1
-                            , int x2, int y2, int d
-                            , void (*func)(ImageFile *pif, int x, int y, int d ) )
+void CPROC do_lineExV( Image pImage, S_32 x1, S_32 y1
+                            , S_32 x2, S_32 y2, PTRSZVAL d
+                            , void (*func)(Image pif, S_32 x, S_32 y, PTRSZVAL d ) )
 {
    int err, delx, dely, len, inc;
    //if( !pImage || !pImage->image ) return;
@@ -264,7 +265,7 @@ void CPROC do_lineExVc( ImageFile *pImage, int x1, int y1
    }
 }
 
-void CPROC do_hlinec( ImageFile *pImage, int y, int xfrom, int xto, CDATA color )
+void CPROC do_hline( Image pImage, S_32 y, S_32 xfrom, S_32 xto, CDATA color )
 {
    PCDATA po;
    int len;
@@ -303,7 +304,7 @@ void CPROC do_hlinec( ImageFile *pImage, int y, int xfrom, int xto, CDATA color 
    }
 }
 
-void CPROC do_vlinec( ImageFile *pImage, int x, int yfrom, int yto, CDATA color )
+void CPROC do_vline( Image pImage, S_32 x, S_32 yfrom, S_32 yto, CDATA color )
 {
    PCDATA po;
    int oo;
@@ -342,7 +343,7 @@ void CPROC do_vlinec( ImageFile *pImage, int x, int yfrom, int yto, CDATA color 
    }
 }
 
-void CPROC do_hlineAlphac( ImageFile *pImage, int y, int xfrom, int xto, CDATA color )
+void CPROC do_hlineAlpha( Image pImage, S_32 y, S_32 xfrom, S_32 xto, CDATA color )
 {
    PCDATA po;
    int len;
@@ -373,7 +374,7 @@ void CPROC do_hlineAlphac( ImageFile *pImage, int y, int xfrom, int xto, CDATA c
    }
 }
 
-void CPROC do_vlineAlphac( ImageFile *pImage, int x, int yfrom, int yto, CDATA color )
+void CPROC do_vlineAlpha( Image pImage, S_32 x, S_32 yfrom, S_32 yto, CDATA color )
 {
    PCDATA po;
    int oo;

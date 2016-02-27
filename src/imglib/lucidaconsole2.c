@@ -3421,7 +3421,7 @@ struct { unsigned short height, baseline;unsigned int chars; unsigned char flags
        _LucidaConsole13by8
 #endif
 = { 
-13, 12, 256, 0, 0xA0, "LucidaConsoleRegularfixed14By14", {  (PCHARACTER)&_char_0
+13, 16, 256, 0, 0xA0, "LucidaConsoleRegularfixed14By14", {  (PCHARACTER)&_char_0
  ,(PCHARACTER)&_char_1
  ,(PCHARACTER)&_char_2
  ,(PCHARACTER)&_char_3

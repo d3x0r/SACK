@@ -12,7 +12,7 @@ set( font_sources
 	../font.c 
         ../fntcache.c 
         ../fntrender.c 
-        ../lucidaconsole.c 
+        ../lucidaconsole2.c 
         ../pngimage.c 
         ../bmpimage.c 
         ../gifimage.c 

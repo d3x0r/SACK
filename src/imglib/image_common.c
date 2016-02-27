@@ -164,7 +164,7 @@ extern "C" {
 #endif
 
 // where d is from 0 to 255 between c1, c2
-static CDATA CPROC cColorAverage( CDATA c1, CDATA c2
+CDATA CPROC ColorAverage( CDATA c1, CDATA c2
 								  , int d, int max )
 {
   CDATA res;
@@ -948,7 +948,7 @@ void TranslateCoord( Image image, S_32 *x, S_32 *y )
 
 //---------------------------------------------------------------------------
 
-void  CPROC cSetColor( PCDATA po, int oo, int w, int h, CDATA color )
+void  SetColor( PCDATA po, int oo, int w, int h, CDATA color )
 {
 	oo /= 4;
 	{
@@ -970,7 +970,7 @@ void  CPROC cSetColor( PCDATA po, int oo, int w, int h, CDATA color )
 	}
 }
 
-void  CPROC cSetColorAlpha( PCDATA po, int oo, int w, int h, CDATA color )
+void  SetColorAlpha( PCDATA po, int oo, int w, int h, CDATA color )
 {
 	int alpha = AlphaVal(color);
 	oo /= 4;
@@ -992,24 +992,6 @@ void  CPROC cSetColorAlpha( PCDATA po, int oo, int w, int h, CDATA color )
 		}
 	}
 }
-
-IMAGE_NAMESPACE_END
-ASM_IMAGE_NAMESPACE
-void  CPROC asmBlatColor( PCDATA po, int oo, int w, int h
-						, CDATA color );
-
-void  (CPROC*BlatPixels)( PCDATA po, int oo, int w, int h
-						, CDATA color ) = cSetColor;
-
-void  CPROC asmBlatColorAlpha( PCDATA po, int oo, int w, int h
-						, CDATA color );
-void  CPROC mmxBlatColorAlpha( PCDATA po, int oo, int w, int h
-						, CDATA color );
-
-void  (CPROC*BlatPixelsAlpha)( PCDATA po, int oo, int w, int h
-						, CDATA color ) = cSetColorAlpha;
-ASM_IMAGE_NAMESPACE_END
-IMAGE_NAMESPACE
 
 
 //---------------------------------------------------------------------------
@@ -1074,9 +1056,9 @@ IMAGE_NAMESPACE
 
 //---------------------------------------------------------------------------
 
+#if 0
 IMAGE_NAMESPACE_END
 ASM_IMAGE_NAMESPACE
-
 void CPROC cplot( ImageFile *pi, S_32 x, S_32 y, CDATA c );
 void CPROC cplotraw( ImageFile *pi, S_32 x, S_32 y, CDATA c );
 void CPROC cplotalpha( ImageFile *pi, S_32 x, S_32 y, CDATA c );
@@ -1150,7 +1132,7 @@ void CPROC do_vlineAlphaMMX( ImageFile *pImage, S_32 x, S_32 yfrom, S_32 yto, CD
 
 ASM_IMAGE_NAMESPACE_END
 IMAGE_NAMESPACE
-
+#endif
 
 //---------------------------------------------------------------------------
 
@@ -1361,6 +1343,7 @@ IMAGE_NAMESPACE
 #define VFUNC(n) n
 #endif
 
+#if 0
  void  SetBlotMethod ( _32 method )
 {
 #ifdef HAS_ASSEMBLY
@@ -1454,6 +1437,8 @@ IMAGE_NAMESPACE
 		//printf( WIDE("Blot Method C --------------------------\n ") );
 	}
 }
+#endif
+
 
 extern int link_interface_please;
 void f(void )
@@ -2048,6 +2033,7 @@ PUBLIC( void, InvokePreloads )( void )
 }
 #endif
 
+#if 0
 #ifdef STUPID_NO_DATA_EXPORTS
 #define Noa b a CPROC b
 No CDATA  ColorAverage ( CDATA c1, CDATA c2
@@ -2103,7 +2089,7 @@ No void  do_lineExV( Image pImage, S_32 x, S_32 y
 {
 	_do_lineExV(pImage,x,y,xto,yto,color,func);
 }
-
+#endif
 
 #endif
 IMAGE_NAMESPACE_END

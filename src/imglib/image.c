@@ -81,7 +81,7 @@ void CPROC MarkImageUpdated( Image child_image )
 	}
 }
 
-
+#if 0
 IMAGE_NAMESPACE_END
 ASM_IMAGE_NAMESPACE
 void  CPROC asmBlatColor( PCDATA po, int oo, int w, int h
@@ -98,6 +98,7 @@ extern void  (CPROC*BlatPixelsAlpha)( PCDATA po, int oo, int w, int h
 
 ASM_IMAGE_NAMESPACE_END
 IMAGE_NAMESPACE
+#endif
 
 //---------------------------------------------------------------------------
 // This routine fills a rectangle with a solid color
@@ -164,7 +165,7 @@ IMAGE_NAMESPACE
    else
 		oo = 4*(pifDest->pwidth - w);     // w is how much we can copy...
 	po = IMG_ADDRESS(pifDest,x,y);
-	BlatPixels( po, oo, w, h, color );
+	SetColor( po, oo, w, h, color );
 }
 
  void  BlatColorAlpha ( ImageFile *pifDest, S_32 x, S_32 y, _32 w, _32 h, CDATA color )
@@ -219,7 +220,7 @@ IMAGE_NAMESPACE
 	po = IMG_ADDRESS(pifDest,x,y);
 	oo = 4*(pifDest->pwidth - w);     // w is how much we can copy...
 
-	BlatPixelsAlpha( po, oo, w, h, color );
+	SetColorAlpha( po, oo, w, h, color );
 }
 
 void SetImageTransformRelation( Image pImage, enum image_translation_relation relation, PRCOORD aux )
@@ -255,12 +256,12 @@ CDATA CPROC asmgetpixel( ImageFile *pi, S_32 x, S_32 y );
 
 //---------------------------------------------------------------------------
 
-void CPROC cplotraw( ImageFile *pi, S_32 x, S_32 y, CDATA c )
+void CPROC plotraw( ImageFile *pi, S_32 x, S_32 y, CDATA c )
 {
    *IMG_ADDRESS(pi,x,y) = c;
 }
 
-void CPROC cplot( ImageFile *pi, S_32 x, S_32 y, CDATA c )
+void CPROC plot( ImageFile *pi, S_32 x, S_32 y, CDATA c )
 {
    if( !pi || !pi->image ) return;
    if( ( x >= pi->x ) && ( x < (pi->x + pi->width )) &&
@@ -272,7 +273,7 @@ void CPROC cplot( ImageFile *pi, S_32 x, S_32 y, CDATA c )
 
 //---------------------------------------------------------------------------
 
-CDATA CPROC cgetpixel( ImageFile *pi, S_32 x, S_32 y )
+CDATA CPROC getpixel( ImageFile *pi, S_32 x, S_32 y )
 {
    if( !pi || !pi->image ) return 0;
    if( ( x >= pi->x ) && ( x < (pi->x + pi->width )) &&
@@ -285,7 +286,7 @@ CDATA CPROC cgetpixel( ImageFile *pi, S_32 x, S_32 y )
 
 //---------------------------------------------------------------------------
 
-void CPROC cplotalpha( ImageFile *pi, S_32 x, S_32 y, CDATA c )
+void CPROC plotalpha( ImageFile *pi, S_32 x, S_32 y, CDATA c )
 {
    CDATA *po;
    if( !pi || !pi->image ) return;
@@ -298,6 +299,7 @@ void CPROC cplotalpha( ImageFile *pi, S_32 x, S_32 y, CDATA c )
 }
 
 //---------------------------------------------------------------------------
+#if 0
 
 void CPROC do_linec( ImageFile *pImage, S_32 x, S_32 y
                             , S_32 xto, S_32 yto, CDATA color );
@@ -344,6 +346,8 @@ void CPROC do_vlineAlphac( ImageFile *pImage, S_32 x, S_32 yfrom, S_32 yto, CDAT
 #ifdef HAS_ASSEMBLY
 void CPROC do_vlineAlphaasm( ImageFile *pImage, S_32 x, S_32 yfrom, S_32 yto, CDATA color );
 void CPROC do_vlineAlphaMMX( ImageFile *pImage, S_32 x, S_32 yfrom, S_32 yto, CDATA color );
+#endif
+
 #endif
 
 ASM_IMAGE_NAMESPACE_END
