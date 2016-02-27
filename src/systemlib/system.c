@@ -7,10 +7,10 @@
 #include <stdhdrs.h>
 #include <string.h>
 #ifdef WIN32
-#undef StrDup
+//#undef StrDup
 #include <shlwapi.h>
 #include <shellapi.h>
-#undef StrRChr
+//#undef StrRChr
 #endif
 #include <sack_types.h>
 #include <deadstart.h>
@@ -1284,7 +1284,7 @@ void InvokeLibraryLoad( void )
 static void LoadExistingLibraries( void )
 {
 #ifdef WIN32
-	int n = 256;
+	DWORD n = 256;
 	HMODULE *modules = NewArray( HMODULE, 256 );
 	DWORD needed;
 	if( !l.EnumProcessModules )
@@ -1434,7 +1434,7 @@ void DeAttachThreadToLibraries( LOGICAL attach )
 			{
 				// thread local storage fixup
 				PIMAGE_TLS_DIRECTORY tls = (PIMAGE_TLS_DIRECTORY)Seek( library->library, dir[IMAGE_DIRECTORY_ENTRY_TLS].VirtualAddress );
-				int n;
+				DWORD n;
 				if( dir[IMAGE_DIRECTORY_ENTRY_TLS].Size )
 				{
 					for( n = 0; n < dir[IMAGE_DIRECTORY_ENTRY_TLS].Size / sizeof( IMAGE_TLS_DIRECTORY ); n++ )
@@ -1687,7 +1687,7 @@ SYSTEM_PROC( generic_function, LoadFunctionExx )( CTEXTSTR libname, CTEXTSTR fun
 				{
 					PIMAGE_DATA_DIRECTORY dir;
 					PIMAGE_EXPORT_DIRECTORY exp_dir;
-					int n;
+					DWORD n;
 					int ord;
 					dir = (PIMAGE_DATA_DIRECTORY)source_nt_header->OptionalHeader.DataDirectory;
 					exp_dir = (PIMAGE_EXPORT_DIRECTORY)Seek( library->library, dir[0].VirtualAddress );
