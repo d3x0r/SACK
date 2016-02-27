@@ -438,28 +438,29 @@ RENDER_PROC (void, UpdateDisplayPortionEx)( PVIDEO hVideo
 			if( hVideo->flags.bTopmost )
 			{
 #ifdef LOG_ORDERING_REFOCUS
-
-			//DumpMyChain( hVideo );
-			//DumpChainBelow( hVideo, hVideo->hWndOutput );
-			//DumpChainAbove( hVideo, hVideo->hWndOutput );
-			lprintf( WIDE( "Putting window above ... %p %p" ), hVideo->pBelow?hVideo->pBelow->hWndOutput:NULL
-							, GetNextWindow( hVideo->hWndOutput, GW_HWNDPREV ) );
-			lprintf( WIDE( "Putting should be below ... %p %p" ), hVideo->pAbove?hVideo->pAbove->hWndOutput:NULL, GetNextWindow( hVideo->hWndOutput, GW_HWNDNEXT ) );
+				//DumpMyChain( hVideo );
+				//DumpChainBelow( hVideo, hVideo->hWndOutput );
+				//DumpChainAbove( hVideo, hVideo->hWndOutput );
+				lprintf( WIDE( "Putting window above ... %p %p" ), hVideo->pBelow?hVideo->pBelow->hWndOutput:NULL
+								, GetNextWindow( hVideo->hWndOutput, GW_HWNDNEXT ) );
+				lprintf( WIDE( "Putting should be below ... %p %p" ), hVideo->pAbove?hVideo->pAbove->hWndOutput:NULL, GetNextWindow( hVideo->hWndOutput, GW_HWNDPREV ) );
 #endif
-			if( hVideo->flags.bTopmost )
-			{
 				//lprintf( WIDE( "Initial setup of window -> topmost.... %p" ), HWND_TOPMOST );
-				hVideo->pWindowPos.hwndInsertAfter = HWND_TOPMOST; // otherwise we get '0' as our desired 'after'
+				//hVideo->pWindowPos.hwndInsertAfter = HWND_TOPMOST; // otherwise we get '0' as our desired 'after'
+				if( l.flags.bLogWrites )
+					lprintf( "Show window %s  %p %p  %d"
+						, hVideo->flags.bTopmost?"TOpMost":"not topmost"
+						, hVideo->pAbove, hVideo->pBelow, hVideo->flags.bOpenedBehind );
+				/*
+				SetWindowPos (hVideo->hWndOutput
+								, hVideo->flags.bTopmost?HWND_TOPMOST:HWND_TOP
+								, 0, 0, 0, 0,
+								SWP_NOMOVE
+								| SWP_NOSIZE
+								| SWP_NOACTIVATE
+								);
+				*/
 			}
-
-					SetWindowPos (hVideo->hWndOutput
-								 , hVideo->flags.bTopmost?HWND_TOPMOST:HWND_TOP
-								 , 0, 0, 0, 0,
-								  SWP_NOMOVE
-								  | SWP_NOSIZE
-								  | SWP_NOACTIVATE
-								 );
-				}
 					if( hVideo->pAbove || hVideo->pBelow || hVideo->flags.bOpenedBehind )
 					{
 						if( ( hVideo->pAbove 
@@ -517,15 +518,21 @@ RENDER_PROC (void, UpdateDisplayPortionEx)( PVIDEO hVideo
 						// SW_shownormal does extra stuff, that I think causes top level windows to fall behind other
 						// topmost windows.
 						if( hVideo->flags.bTopmost )
+						{
+							if( l.flags.bLogWrites )
+								lprintf( "Show again, topmost." );
 							SetWindowPos (hVideo->hWndOutput, HWND_TOPMOST, 0, 0, 0, 0,
 										SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW );
-						else
+						}
+						else {
+							if( l.flags.bLogWrites )
+								lprintf( "ShowWindow, SHOWNORMAL." );
 #ifdef UNDER_CE
 							ShowWindow (hVideo->hWndOutput, SW_SHOWNORMAL );
 #else
 							ShowWindow (hVideo->hWndOutput, SW_SHOW );
 #endif
-
+						}
 #ifdef LOG_OPEN_TIMING
 						lprintf( WIDE( "window shown..." ) );
 #endif
@@ -533,14 +540,9 @@ RENDER_PROC (void, UpdateDisplayPortionEx)( PVIDEO hVideo
 						lprintf( WIDE( "Having shown window... should have had a no-event paint ?" ) );
 #endif
 					}
-
+#if 0
 					if( hVideo->flags.bReady && hVideo->flags.bShown && hVideo->pRedrawCallback )
 					{
-#ifdef USE_IPC_MESSAGE_QUEUE_TO_GATHER_MOUSE_EVENTS
-						SendServiceEvent( 0, l.dwMsgBase + MSG_RedrawMethod, &hVideo, sizeof( hVideo ) );
-#else
-						//InvalidateRect( hVideo->hWndOutput, NULL, FALSE );
-#endif
 						if( l.flags.bLogWrites )
 							lprintf( WIDE( "Bitblit out..." ) );
 						BitBlt ((HDC)hVideo->hDCOutput, x, y, w, h,
@@ -549,22 +551,14 @@ RENDER_PROC (void, UpdateDisplayPortionEx)( PVIDEO hVideo
 					// show will generate a paint...
 					// and on the paint we will draw, otherwise
 					// we'll do it twice.
-					//if( bCreatedhWndInstance )
 					if( !hVideo->pAbove && !hVideo->flags.bNoAutoFocus )
 					{
-#ifdef NOISY_LOGGING
-						lprintf( WIDE( "Foregrounding?" ) );
-#endif
-						//SetForegroundWindow (hVideo->hWndOutput);
-						// these things should invoke losefocus method messages...
-#ifdef NOISY_LOGGING
-						lprintf( WIDE( "focusing?" ) );
-#endif
 						SafeSetFocus( hVideo->hWndOutput );
 						if( hVideo->pRedrawCallback )
 							hVideo->pRedrawCallback (hVideo->dwRedrawData, (PRENDERER) hVideo);
 
 					}
+#endif
 		} // end of if(!shown) else shown....
 		else
 		{
@@ -2420,7 +2414,9 @@ WM_DROPFILES
 					pwp->cy = hVideo->pWindowPos.cy;
 				}
 			}
-
+#ifdef LOG_ORDERING_REFOCUS
+			lprintf( "In Changing, window is %s", hVideo->flags.bTopmost?"Topmost":"NORMAL" );
+#endif
 			{
 				if( !( pwp->flags & SWP_NOSIZE ) )
 				{
@@ -2464,7 +2460,7 @@ WM_DROPFILES
 #ifdef LOG_ORDERING_REFOCUS
 					lprintf( WIDE( "... not above below or under, who cares. return. %p" ), pwp->hwndInsertAfter );							
 #endif
-					if( hVideo->flags.bAbsoluteTopmost )
+					if( hVideo->flags.bTopmost )
 					{
 						if( pwp->hwndInsertAfter != HWND_TOPMOST )
 						{
@@ -2474,13 +2470,13 @@ WM_DROPFILES
 							pwp->hwndInsertAfter = HWND_TOPMOST;
 							//pwp->hwndInsertAfter = MoveWindowStack( hVideo, HWND_TOPMOST, 1 );
 						}
-						else
-						{
-							Return 0;
-						}
+						//else
+						//{
+						//	Return 0;
+						//}
 					}
-					else
-						Return 0;
+					//else
+					Return 0;
 				}
 				if( !pwp->hwndInsertAfter )				
 				{											
@@ -3415,9 +3411,6 @@ RENDER_PROC (BOOL, CreateWindowStuffSizedAt) (PVIDEO hVideo, int x, int y,
 	// generate an event to dispatch pending...
 	// there is a good chance that a window event caused a window
 	// and it will be sleeping until the next event...
-#ifdef USE_IPC_MESSAGE_QUEUE_TO_GATHER_MOUSE_EVENTS
-	SendServiceEvent( 0, l.dwMsgBase + MSG_DispatchPending, NULL, 0 );
-#endif
 	//Log (WIDE( "Created window in module..." ));
 	if (!hVideo->hWndOutput)
 		return FALSE;
@@ -4658,9 +4651,6 @@ RENDER_PROC (void, CloseDisplay) (PVIDEO hVideo)
 		// generate an event to dispatch pending...
 		// there is a good chance that a window event caused a window
 		// and it will be sleeping until the next event...
-#ifdef USE_IPC_MESSAGE_QUEUE_TO_GATHER_MOUSE_EVENTS
-		SendServiceEvent( 0, l.dwMsgBase + MSG_DispatchPending, NULL, 0 );
-#endif
 	}
 	return;
 }
@@ -5038,15 +5028,16 @@ RENDER_PROC (void, MakeTopmost) (PVIDEO hVideo)
 	if( hVideo )
 	{
 		hVideo->flags.bTopmost = 1;
-		SetWindowLong( hVideo->hWndOutput, GWL_EXSTYLE, GetWindowLong( hVideo->hWndOutput, GWL_EXSTYLE ) | WS_EX_TOPMOST );
+		if( l.flags.bLogWrites )
+			lprintf( "Make Topmost... (set window style)" );
+		//SetWindowLong( hVideo->hWndOutput, GWL_EXSTYLE, GetWindowLong( hVideo->hWndOutput, GWL_EXSTYLE ) | WS_EX_TOPMOST );
 		if( hVideo->flags.bShown )
 		{
 			//lprintf( WIDE( "Forcing topmost" ) );
-			SetWindowPos (hVideo->hWndOutput, HWND_TOPMOST, 0, 0, 0, 0,
+			if( l.flags.bLogWrites )
+				lprintf( "Was shown already, so set TOPMOST stack... (set window style)" );
+			SetWindowPos( hVideo->hWndOutput, HWND_TOPMOST, 0, 0, 0, 0,
 							  SWP_NOMOVE | SWP_NOSIZE);
-		}
-		else
-		{
 		}
 	}
 }
@@ -5059,7 +5050,7 @@ RENDER_PROC (void, MakeAbsoluteTopmost) (PVIDEO hVideo)
 	{
 		hVideo->flags.bTopmost = 1;
 		hVideo->flags.bAbsoluteTopmost = 1;
-		SetWindowLong( hVideo->hWndOutput, GWL_EXSTYLE, GetWindowLong( hVideo->hWndOutput, GWL_EXSTYLE ) | WS_EX_TOPMOST );
+		//SetWindowLong( hVideo->hWndOutput, GWL_EXSTYLE, GetWindowLong( hVideo->hWndOutput, GWL_EXSTYLE ) | WS_EX_TOPMOST );
 		hVideo->top_force_timer_id = SetTimer( hVideo->hWndOutput, 100, 100, NULL );
 		if( hVideo->flags.bShown )
 		{
@@ -5552,7 +5543,7 @@ RENDER_PROC( void, ForceDisplayFront )( PRENDERER pRender )
 RENDER_PROC( void, ForceDisplayBack )( PRENDERER pRender )
 {
 	// uhmm...
-	lprintf( WIDE( "Force display backward." ) );
+	//lprintf( WIDE( "Force display backward." ) );
 	SetWindowPos( pRender->hWndOutput, HWND_BOTTOM, 0, 0, 0, 0, SWP_NOMOVE|SWP_NOSIZE );
 
 }
