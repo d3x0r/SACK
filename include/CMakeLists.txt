@@ -72,7 +72,7 @@ sack_vfs.h
 systray.h
 timers.h
 translation.h
-typelib.h
+sack_typelib.h
 vectlib.h
 vectypes.h
 vidlib.h
