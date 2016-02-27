@@ -104,6 +104,7 @@ add_subpath( ../src/utils/window_stacker )
 add_subpath( ../src/utils/set_registry )
 add_subpath( ../src/utils/image_colorizer )
 add_subpath( ../src/utils/opensim/region_maker )
+add_subpath( ../makefiles/prog/ppc )
 add_subpath( ../src/netlib/html5.websocket/server )
 endif( WIN32 )
 

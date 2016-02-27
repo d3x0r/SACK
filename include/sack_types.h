@@ -1,9 +1,18 @@
-/* Define most of the cosre types on which everything else is
+/* Include sthdrs.h */
+
+
+
+/* Define most of the sack core types on which everything else is
    based. Also defines some of the primitive container
    structures. We also handle a lot of platform/compiler
    abstraction here.
    
    
+   A reFactoring for stdint.h and uint32_t etc would be USEFUL!
+   where types don't exist, define them as apprpritate types instead. 
+But WHO doesn't have stdint?  BTW is sizeof( size_t ) == sizeof( void* )
+
+
    
    This is automatically included with stdhdrs.h; however, when
    including sack_types.h, the minimal headers are pulled. stdhdrs.h */
@@ -1788,7 +1797,7 @@ typedef struct DataQueue
 _CONTAINER_NAMESPACE_END
 SACK_NAMESPACE_END
 
-#include <typelib.h> 
+#include <sack_typelib.h> 
 
 
 SACK_NAMESPACE

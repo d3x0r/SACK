@@ -86,6 +86,16 @@ JSON_EMITTER_PROC( struct json_context_object *, json_add_object_member_array )(
 																										 , size_t count_offset
 																										 );
 
+// more complex method; add_object_member actually calls this to implement a 0 byte array of the same type.
+//  object_size is used if the type is JSON_Element_ObjectPointer for the parsing to be able to allocate
+// the message part.  array is represented as a pointer, which will be dynamically allocated
+JSON_EMITTER_PROC( struct json_context_object *, json_add_object_member_array_pointer )( struct json_context_object *format
+																										 , CTEXTSTR name
+																										 , size_t offset
+																										 , enum JSON_ObjectElementTypes type
+																										 , size_t count_offset
+																										 );
+
 // adds a reference to a PLIST as an array with the content of the array specified as the type
 JSON_EMITTER_PROC( struct json_context_object *, json_add_object_member_list )( struct json_context_object *object
 																										, CTEXTSTR name
@@ -104,10 +114,10 @@ JSON_EMITTER_PROC( struct json_context_object *, json_add_object_member_object )
 																										  );
 
 JSON_EMITTER_PROC( struct json_context_object *, json_add_object_member_user_routine )( struct json_context_object *object
-																, CTEXTSTR name
-																  , size_t offset, enum JSON_ObjectElementTypes type
-																  , size_t object_size 
-																  , void (*user_formatter)(PVARTEXT,CPOINTER) );
+																												  , CTEXTSTR name
+																												  , size_t offset, enum JSON_ObjectElementTypes type
+																												  , size_t object_size
+																												  , void (*user_formatter)(PVARTEXT,CPOINTER) );
 
 // take a object format and a pointer to data and return a json message string
 JSON_EMITTER_PROC( TEXTSTR, json_build_message )( struct json_context_object *format
@@ -116,24 +126,24 @@ JSON_EMITTER_PROC( TEXTSTR, json_build_message )( struct json_context_object *fo
 // take a json string and a format and fill in a structure from the text.
 // tests all formats, to first-match; 
 JSON_EMITTER_PROC( LOGICAL, json_parse_message )( struct json_context *format
-                                             , CTEXTSTR msg
-											 , size_t msglen
-                                             , struct json_context_object **result_format
-                                             , POINTER *msg_data_out
-                                             );
+																, CTEXTSTR msg
+																, size_t msglen
+																, struct json_context_object **result_format
+																, POINTER *msg_data_out
+																);
 // take a json string and a format and fill in a structure from the text.
 // if object does not fit all members (may have extra, but must have at least all members in message in format to return TRUE)
 // then it returns false; that is if a member is in the 'msg' parameter that is not in
 // the format, then the result is FALSE.
 JSON_EMITTER_PROC( LOGICAL, json_parse_message_format )( struct json_context_object *format
-                                             , CTEXTSTR msg
-											 , size_t msglen
-                                             , POINTER *msg_data_out
-                                             );
+																		 , CTEXTSTR msg
+																		 , size_t msglen
+																		 , POINTER *msg_data_out
+																		 );
 // any allocate mesage parts are released.
 JSON_EMITTER_PROC( void, json_dispose_message )( struct json_context_object *format
-                                             , POINTER msg_data
-                                             );
+															  , POINTER msg_data
+															  );
 
 #ifdef __cplusplus
 } } SACK_NAMESPACE_END

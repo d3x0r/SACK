@@ -106,12 +106,12 @@ struct file_system_mounted_interface;
 /* Extended external file system interface to be able to use external file systems */
 struct file_system_interface {
 	void* (CPROC *open)(PTRSZVAL psvInstance, const char *);                                                  //filename
-	int (CPROC *close)(void *);                                                 //file *
-	size_t (CPROC *read)(void *,char *, size_t);                    //file *, buffer, length (to read)
-	size_t (CPROC *write)(void*,const char *, size_t);                    //file *, buffer, length (to write)
+	int (CPROC *_close)(void *);                                                 //file *
+	size_t (CPROC *_read)(void *,char *, size_t);                    //file *, buffer, length (to read)
+	size_t (CPROC *_write)(void*,const char *, size_t);                    //file *, buffer, length (to write)
 	size_t (CPROC *seek)( void *, size_t, int whence);
 	void  (CPROC *truncate)( void *);
-	void (CPROC *unlink)( PTRSZVAL psvInstance, const char *);
+	void (CPROC *_unlink)( PTRSZVAL psvInstance, const char *);
 	size_t (CPROC *size)( void *); // get file size
 	size_t (CPROC *tell)( void *); // get file current position
 	int (CPROC *flush )(void *kp);
@@ -414,7 +414,7 @@ FILESYS_PROC  void FILESYS_API sack_set_common_data_producer( CTEXTSTR name );
 
 
 #ifdef WIN32
-#if !defined( SACK_BAG_EXPORTS ) && !defined( BAG_EXTERNALS )
+#if !defined( SACK_BAG_EXPORTS ) && !defined( BAG_EXTERNALS ) && !defined( FILESYSTEM_LIBRARY_SOURCE )
 # define _lopen(a,...) sack_open(0,a,##__VA_ARGS__)
 # define tell(a)      sack_tell(a)
 # define lseek(a,b,c) sack_ilseek(a,b,c)

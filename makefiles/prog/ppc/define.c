@@ -1538,7 +1538,7 @@ void EvalSubstitutions( PTEXT *subst, int more )
             	{
             		PTEXT name = GetLink( pDefine->pParams, idx );
             		PTEXT full = BuildLine( (PTEXT)pArgVals->pNode[idx] );
-					   fprintf( stddbg, WIDE("%s = %s (%08x)\n")
+					   fprintf( stddbg, WIDE("%s = %s (%p)\n")
 								, name?GetText( name ):"..."
 								, GetText( full )
 								, arg );

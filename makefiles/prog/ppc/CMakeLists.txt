@@ -13,3 +13,4 @@ set( MYSOURCES
 
 add_executable( ppc ${MYSOURCES} )
 
+INSTALL( TARGETS ppc DESTINATION bin )

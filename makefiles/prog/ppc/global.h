@@ -1,5 +1,6 @@
 
-#define stddbg stderr
+#define stddbg g.dbgout
+//stderr
 
 #include "./types.h"
 #include "fileio.h"
@@ -28,7 +29,14 @@ typedef struct global_tag
 		_32 keep_includes : 1;
 		_32 bWriteLineInfo : 1;
 		_32 load_once : 1;
+		_32 bSkipSystemIncludeOut : 1;// don't output system include headers
+		_32 bIncludedLastFile : 1; // a status of the last processinclude
+		_32 doing_system_file : 1;
+		_32 skip_define_processing : 1;
+		_32 config_loaded : 1;
 	} flags;
+	FILE *output;
+
 	int bDebugLog;
 	char pExecPath[256];
 	char pExecName[256];
@@ -56,6 +64,11 @@ typedef struct global_tag
 	unsigned char AutoTargetName[256]; // target name to reference when
 	                                   //building auto depend...
 	PLINKSTACK pIncludeList;
+	FILE *dbgout;
+	PFILETRACK pAllFileStack;
+
+	PFILETRACK pFileStack;
+
 } GLOBAL;
 
 // debug Log options....
