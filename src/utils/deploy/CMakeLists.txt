@@ -5,8 +5,8 @@ FILE( STRINGS ${CMAKE_SOURCE_DIR}/.hgtags TMP_tags )
 LIST( GET TMP_tags -1 TMP_TAG )
 STRING( REPLACE " " ";" NEWLIST ${TMP_TAG} )
 LIST( GET NEWLIST -1 CURRENT_REPO_REVISION )
-if( FROM_MERCURIAL AND EXISTS ${CMAKE_SOURCE_DIR}/.hgtags )
- 
+endif( FROM_MERCURIAL AND EXISTS ${CMAKE_SOURCE_DIR}/.hgtags )
+
 message( "Sack revision: " ${CURRENT_REPO_REVISION} )
 
 configure_file( deploy.cm.cm ${CMAKE_BINARY_DIR}/deploy.cm.tmp @ONLY )
