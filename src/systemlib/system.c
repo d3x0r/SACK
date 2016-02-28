@@ -572,11 +572,11 @@ PTRSZVAL CPROC TerminateProgram( PTASK_INFO task )
 				// try using ctrl-c, ctrl-break to end process...
 				if( !StopProgram( task ) )
 				{
-					xlprintf(LOG_DEBUG+1)( WIDE("Program did not respond to ctrl-c or ctrl-break...") );
+					xlprintf(LOG_LEVEL_DEBUG+1)( WIDE("Program did not respond to ctrl-c or ctrl-break...") );
 					// if ctrl-c fails, try finding the window, and sending exit (systray close)
 					if( EndTaskWindow( task ) )
 					{
-						xlprintf(LOG_DEBUG+1)( WIDE("failed to find task window to send postquitmessage...") );
+						xlprintf(LOG_LEVEL_DEBUG+1)( WIDE("failed to find task window to send postquitmessage...") );
 						// didn't find the window - result was continue_enum with no more (1)
                   // so didn't find the window - nothing to wait for, fall through
 						nowait = 1;
@@ -584,7 +584,7 @@ PTRSZVAL CPROC TerminateProgram( PTASK_INFO task )
 				}
 				if( nowait || ( WaitForSingleObject( task->pi.hProcess, 500 ) != WAIT_OBJECT_0 ) )
 				{
-					xlprintf(LOG_DEBUG+1)( WIDE("Terminating process....") );
+					xlprintf(LOG_LEVEL_DEBUG+1)( WIDE("Terminating process....") );
 					bDontCloseProcess = 1;
 					if( !TerminateProcess( task->pi.hProcess, 0xD1E ) )
 					{
@@ -1094,7 +1094,7 @@ SYSTEM_PROC( PTASK_INFO, LaunchProgramEx )( CTEXTSTR program, CTEXTSTR path, PCT
 	else
 		needs_quotes = FALSE;
 
-	xlprintf(LOG_DEBUG+1)( WIDE( "quotes?%s path[%s] program[%s]" ), needs_quotes?WIDE( "yes" ):WIDE( "no" ), expanded_working_path, expanded_path );
+	xlprintf(LOG_LEVEL_DEBUG+1)( WIDE( "quotes?%s path[%s] program[%s]" ), needs_quotes?WIDE( "yes" ):WIDE( "no" ), expanded_working_path, expanded_path );
 
 	if( needs_quotes )
 		vtprintf( pvt, WIDE( "\"" ) );
@@ -1171,13 +1171,13 @@ SYSTEM_PROC( PTASK_INFO, LaunchProgramEx )( CTEXTSTR program, CTEXTSTR path, PCT
       0
 	  )
 	{
-		xlprintf(LOG_DEBUG+1)( WIDE("Success running %s[%s] %p: %d"), program, GetText( cmdline ), task->pi.hProcess, GetLastError() );
+		xlprintf(LOG_LEVEL_DEBUG+1)( WIDE("Success running %s[%s] %p: %d"), program, GetText( cmdline ), task->pi.hProcess, GetLastError() );
 		if( EndNotice )
 			ThreadTo( WaitForTaskEnd, (PTRSZVAL)task );
 	}
 	else
 	{
-		xlprintf(LOG_DEBUG+1)( WIDE("Failed to run %s[%s]: %d"), program, GetText( cmdline ), GetLastError() );
+		xlprintf(LOG_LEVEL_DEBUG+1)( WIDE("Failed to run %s[%s]: %d"), program, GetText( cmdline ), GetLastError() );
 		ReleaseEx( task DBG_SRC );
 		task = NULL;
 	}
