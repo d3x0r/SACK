@@ -440,7 +440,7 @@ void ProcessList( void )
 	l.wait = MakeThread();
 	LIST_FORALL( l.players, idx, CTEXTSTR, name )
 	{
-		PromptAndYesNo( name, GetLink( &l.total_players, idx ) );
+		PromptAndYesNo( name, (CTEXTSTR)GetLink( &l.total_players, idx ) );
 		while( l.local_task )
 		{
 			WakeableSleep( 20000 );
