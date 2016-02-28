@@ -7,7 +7,7 @@ if( MSVC )
 set( SUPPORTS_PARALLEL_BUILD_TYPE 1 )
 endif( MSVC )
 
-if( __LINUX64__ )
+if( __LINUX64__ OR ( __LINUX__ AND __64__ ) )
 SET(  SHARED_LIBPATH "lib64" )
 SET(  LINK_LIBPATH "lib64" )
 SET(  SHARED_BINPATH "bin" )
@@ -133,11 +133,7 @@ else( BUILD_MONOLITHIC )
 	endif( NOT __ANDROID__ )
 endif( BUILD_MONOLITHIC )
 
-if( __LINUX64__ )
-		FILE( APPEND ${FILEOUT} "set( SACK_LIBRARY_DIR $" "{SACK_BASE}/lib64 )\n" )
-else( __LINUX64__ )
-		FILE( APPEND ${FILEOUT} "set( SACK_LIBRARY_DIR $" "{SACK_BASE}/lib )\n" )
-endif( __LINUX64__ )
+		FILE( APPEND ${FILEOUT} "set( SACK_LIBRARY_DIR $" "{SACK_BASE}/${SHARED_LIBPATH} )\n" )
 
 		FILE( APPEND ${FILEOUT} "\n" )
 		FILE( APPEND ${FILEOUT} "set( USE_OPTIONS @USE_OPTIONS@ )\n" )
@@ -265,6 +261,7 @@ else( BUILD_MONOLITHIC )
                 set( libfile_list ${libfile_list} @BAG_PLUSPLUS@ @BAG_PSI_PLUSPLUS@ )
    endif( NOT __NO_CPLUSPLUS )
 
+if( NOT __NO_GUI__ )
 # Win32 or __UNIX support PureGL and puregl2... 
 if( NOT __ANDROID__ )
                 SET( libfile_list ${libfile_list} bag.image.puregl )
@@ -276,6 +273,7 @@ endif( NOT __ANDROID__ )
 # proxy is memory-only and platform agnostic                
                 SET( libfile_list ${libfile_list} bag.video.proxy.server )
                 SET( libfile_list ${libfile_list} bag.video.proxy.instance.server )
+endif( NOT __NO_GUI__ )
 
 endif( BUILD_MONOLITHIC )
 
