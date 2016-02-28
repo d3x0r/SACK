@@ -2349,7 +2349,7 @@ void SmudgeCommonEx( PSI_CONTROL pc DBG_PASS )
 			}
 #if DEBUG_UPDAATE_DRAW > 3
 			if( g.flags.bLogDebugUpdate )
-				_xlprintf(LOG_DEBUG DBG_RELAY)( WIDE("%s %s %s %p")
+				_xlprintf(LOG_LEVEL_DEBUG DBG_RELAY)( WIDE("%s %s %s %p")
 														, pc->flags.bDirty?WIDE( "already smudged" ):WIDE( "" )
 														,(pc->flags.bDirty && pc->flags.bCleaning)?WIDE( "and" ):WIDE( "" )
 														, pc->flags.bCleaning?WIDE( "in process of cleaning..." ):WIDE( "" )
@@ -2375,7 +2375,7 @@ void SmudgeCommonEx( PSI_CONTROL pc DBG_PASS )
 				 !parent->flags.bDirty; parent = parent->parent )
 			{
 				if( g.flags.bLogDebugUpdate )
-					_xlprintf( LOG_DEBUG DBG_RELAY ) ( WIDE("%s %p is %s and %s %s")
+					_xlprintf( LOG_LEVEL_DEBUG DBG_RELAY ) ( WIDE("%s %p is %s and %s %s")
 																, (parent==pc)?WIDE( "self" ):WIDE( "parent" )
 																, parent
 																, parent->InUse?WIDE( "USED" ):WIDE( "Not Used" )
