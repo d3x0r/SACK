@@ -90,13 +90,12 @@ set( NETWORK_SOURCES
   ${MORE_NETWORK_SOURCES}
 )
 
-#if( NOT MINGW )
 if( NOT NO_SSL )
 set( NETWORK_SOURCES ${NETWORK_SOURCES} 
   ${SOURCES_ROOT}src/netlib/ssl_layer.c
 )
 endif( NOT NO_SSL )
-#endif( NOT MINGW )
+
 SET_SOURCE_FILES_PROPERTIES( ${NETWORK_SOURCES} PROPERTIES 
 		FOLDER "Source Files\\Network Library" )
 endif( NOT __NO_NETWORK__ )
@@ -285,8 +284,6 @@ set( IMAGE_SOURCES
 
 SET_SOURCE_FILES_PROPERTIES( ${IMAGE_SOURCES} PROPERTIES 
 		FOLDER "Source Files\\Image Library" )
-
-#if( NOT __NO_GUI__ )
 
 set( PSI_MORE_CONTROLS
   ${SOURCES_ROOT}src/psilib/console/history.c
