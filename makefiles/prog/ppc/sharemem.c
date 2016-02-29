@@ -2199,7 +2199,7 @@ MEM_PROC( TEXTSTR, StrDupEx )( CTEXTSTR original DBG_PASS )
 	return result;
 }
 
-#ifdef __GCC__
+#ifdef __GNUC__
 int stricmp( char *one, char *two )
 {
    return strcasecmp( one, two );
