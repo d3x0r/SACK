@@ -78,6 +78,8 @@ endif( NOT __ANDROID__ AND NOT __CLR__ )
 
 add_subpath( ../src/utils/frame_ID_converter )
 
+add_subpath( ../makefiles/prog/ppc )
+add_subpath( ../src/utils/image_colorizer )
 
 if( WIN32 )
 add_subpath( ../src/utils/shoimg )
@@ -102,11 +104,10 @@ add_subpath( ../src/utils/get_display )
 add_subpath( ../src/utils/pcopy )
 add_subpath( ../src/utils/window_stacker )
 add_subpath( ../src/utils/set_registry )
-add_subpath( ../src/utils/image_colorizer )
-add_subpath( ../src/utils/opensim/region_maker )
-add_subpath( ../makefiles/prog/ppc )
-add_subpath( ../src/netlib/html5.websocket/server )
 endif( WIN32 )
+
+add_subpath( ../src/utils/opensim/region_maker )
+add_subpath( ../src/netlib/html5.websocket/server )
 
 
 
