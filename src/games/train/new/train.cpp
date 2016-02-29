@@ -1,4 +1,4 @@
-#define MAKE_RCOORD_SINGLE
+//#define MAKE_RCOORD_SINGLE
 #include <stdhdrs.h>
 #include <deadstart.h>
 #include <logging.h>

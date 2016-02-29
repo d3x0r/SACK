@@ -1,4 +1,4 @@
-#define MAKE_RCOORD_SINGLE
+//#define MAKE_RCOORD_SINGLE
 #include <stdhdrs.h>
 #define USE_RENDER_INTERFACE l.pri
 #define USE_IMAGE_INTERFACE l.pii
@@ -1136,15 +1136,15 @@ public:
 			for( idx = 0; PeekDataQueueEx( &position_history, struct position_history, &curpos, idx ); idx++ )
 			{
 				//PrintVector( curpos.origin );
-				glVertex3fv( curpos.origin );
+				glVertex3dv( curpos.origin );
 				addscaled( v, curpos.origin, curpos.up, 20.0 );
 				//PrintVector( v );
-				glVertex3fv( v );
+				glVertex3dv( v );
 			}
 			//PrintVector( pos.origin );
-			glVertex3fv( pos.origin );
+			glVertex3dv( pos.origin );
 			addscaled( v, pos.origin, pos.up, 20.0 );
-			glVertex3fv( v );
+			glVertex3dv( v );
 			glEnd();
          /*
 			glBegin( GL_LINE_STRIP );
