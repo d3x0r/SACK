@@ -3088,18 +3088,18 @@ static int OnDrawCommon( WIDE( "Menu Canvas" ) )( PSI_CONTROL pf )
 				PutStringFont( surface
 							, (S_32)15, (S_32)y, BASE_COLOR_WHITE, SetAlpha( BASE_COLOR_BLACK, 90 )
 							, WIDE("There are no controls defined..."), (*font) );
-				y += skip;
-				PutStringFont( surface
-							, (S_32)15, (S_32)y, BASE_COLOR_WHITE, SetAlpha( BASE_COLOR_BLACK, 90 )
-								 , WIDE("Press Alt-C to edit")
-								 , (*font)
-								 );
-				y += skip;
-				PutStringFont( surface
-							, (S_32)15, (S_32)y, BASE_COLOR_WHITE, SetAlpha( BASE_COLOR_BLACK, 90 )
-								 , WIDE("Right click on empty space to edit other properties and add plugins...")
-								 , (*font)
-								 );
+				//y += skip;
+				//PutStringFont( surface
+				//			, (S_32)15, (S_32)y, BASE_COLOR_WHITE, SetAlpha( BASE_COLOR_BLACK, 90 )
+				//				 , WIDE("Press Alt-C to edit")
+				//				 , (*font)
+				//				 );
+				//y += skip;
+				//PutStringFont( surface
+				//			, (S_32)15, (S_32)y, BASE_COLOR_WHITE, SetAlpha( BASE_COLOR_BLACK, 90 )
+				//				 , WIDE("Right click on empty space to edit other properties and add plugins...")
+				//				 , (*font)
+				//				 );
 			}
 		}
 

@@ -1,3 +1,5 @@
+set( CMAKE_INSTALL_MESSAGE "LAZY" )
+
 set_property(GLOBAL PROPERTY USE_FOLDERS On)
 
 cmake_minimum_required(VERSION 2.8)
