@@ -2,7 +2,7 @@
 // also unbalanced #endif statements....
 
 #ifndef __GCC__
-#include <conio.h>
+//#include <conio.h>
 #endif
 #if defined( _WIN32 )
 #include <windows.h> // getmodulefilename
@@ -29,7 +29,7 @@
 #ifndef __GCC__
 // this was good during development of infinite loops but bad in production...
 // maybe ifdef _DEBUG the kbhit();
-#define fprintf /*if( kbhit() ) exit(0); else */ fprintf
+#define fprintf fprintf
 #else
 #define fprintf fprintf
 #endif
