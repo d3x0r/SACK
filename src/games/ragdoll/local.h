@@ -1,6 +1,6 @@
 #ifdef __cplusplus
 #include <btBulletDynamicsCommon.h>
-#include "../Demos/OpenGL/GlDebugDrawer.h"
+//#include "../Demos/OpenGL/GlDebugDrawer.h"
 #endif
 
 #define NO_FILEOP_ALIAS
@@ -60,7 +60,7 @@ extern
 	PIMAGE_INTERFACE pii;
 
    struct BulletInfo bullet;
-   GLDebugDrawer *debug_drawer;
+  // GLDebugDrawer *debug_drawer;
    _32 last_tick;  // this is what tick we are rendering for.  (it's more like now than last.)
    RCOORD time_scale;
    PTRANSFORM origin;

@@ -30,9 +30,9 @@ PRIORITY_PRELOAD( InitLocal, DEFAULT_PRELOAD_PRIORITY - 1 )
 	l.pii = GetImageInterface();
 
 	SetupBullet( &l.bullet );
-	l.debug_drawer = new GLDebugDrawer();
-	l.bullet.dynamicsWorld->setDebugDrawer( l.debug_drawer );
-	l.debug_drawer->setDebugMode( btIDebugDraw::DBG_DrawWireframe );
+	//l.debug_drawer = new GLDebugDrawer();
+	//l.bullet.dynamicsWorld->setDebugDrawer( l.debug_drawer );
+	//l.debug_drawer->setDebugMode( btIDebugDraw::DBG_DrawWireframe );
 	l.time_scale = 100.0;
 }
 

@@ -62,7 +62,7 @@ macro( ADD_PLUGIN target group  )
 	SET_TARGET_PROPERTIES(${target} PROPERTIES
                   COMPILE_FLAGS  "-DTARGET_LABEL=${TARGET_LABEL} ${LibraryExtraFlags} -D__DEKWARE_PLUGIN__"
                   COMPILE_DEFINITIONS ${MOREDEFS}
-                  FOLDER Dekware/plugins/${group}
+                  FOLDER plugins/${group}
 	)
 	if( NOT __ANDROID__ )
 		SET_TARGET_PROPERTIES(${target} PROPERTIES

@@ -4,7 +4,7 @@
 //#include <windows.h>
 #include <math.h>  // exp()
 //#include <process.h>
-#include <typelib.h>
+#include <sack_typelib.h>
 #include "global.h"
 #include "brain.hpp"
 
