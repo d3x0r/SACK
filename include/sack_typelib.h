@@ -2333,14 +2333,37 @@ TYPELIB_PROC  INDEX TYPELIB_CALLTYPE  LineLengthExx( PTEXT pt, LOGICAL bSingle,P
    pEOL :      the segment to use to represent an end of line. Often
                this is a SegCreate(0) segment.                       */
 TYPELIB_PROC  PTEXT TYPELIB_CALLTYPE  BuildLineExEx( PTEXT pt, LOGICAL bSingle, int nTabsize, PTEXT pEOL DBG_PASS );
+
+/* Collapses an indirect segment or a while list of segments
+into a single segment with content expanded. When passed to
+things like TextParse and Burst, segments have their
+positioning encoded to counters for tabs and spaces; the
+segment itself contains only text without whitespace. Buildline
+expands these segments into their plain text representation.
+Parameters
+pt :        pointer to a PTEXT segment.
+bSingle :   if TRUE, build only the first segment. If the
+segment is indirect, builds entire content of
+indirect.
+pEOL :      the segment to use to represent an end of line. Often
+this is a SegCreate(0) segment.                       */
 TYPELIB_PROC  PTEXT TYPELIB_CALLTYPE  BuildLineExx( PTEXT pt, LOGICAL bSingle, PTEXT pEOL DBG_PASS );
-//#define BuildLineEx(b,pt,single) BuildLineEx(b,pt,single DBG_SRC )
+
+/* <combine sack::containers::text::BuildLineExEx@PTEXT@LOGICAL@int@PTEXT pEOL>
+
+\ \                                                                          */
 #define BuildLineExx(from,single,eol) BuildLineExEx( from,single,8,NULL DBG_SRC )
+
 /* <combine sack::containers::text::BuildLineExEx@PTEXT@LOGICAL@int@PTEXT pEOL>
    
    \ \                                                                          */
 #define BuildLineEx(from,single) BuildLineExEx( from,single,8,NULL DBG_SRC )
-/* Flattens all segments in a line to a single segment result. */
+
+/* <combine sack::containers::text::BuildLineExEx@PTEXT@LOGICAL@int@PTEXT pEOL>
+   
+   \ \                                                                          
+    Flattens all segments in a line to a single segment result. 
+*/
 #define BuildLine(from) BuildLineExEx( from, FALSE,8,NULL DBG_SRC )
 
 //
