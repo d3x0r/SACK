@@ -3,7 +3,7 @@
 
 #include <string.h>
 
-#include "./types.h"
+#include "types.h"
 
 #define DEFAULT_COLOR 0xF7
 #define PRIOR_COLOR 0xF6 // this does not change the color....

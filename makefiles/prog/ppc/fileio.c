@@ -1023,9 +1023,9 @@ Restart:
 					}
 					else
 					{
+						PTEXT pOut;
 						SegBreak( pStart );
 
-						PTEXT pOut;
 						pOut = BuildLineEx( pNew, FALSE DBG_SRC );
 						if( pOut )
 						{

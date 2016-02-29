@@ -90,13 +90,12 @@ set( NETWORK_SOURCES
   ${MORE_NETWORK_SOURCES}
 )
 
-#if( NOT MINGW )
 if( NOT NO_SSL )
 set( NETWORK_SOURCES ${NETWORK_SOURCES} 
   ${SOURCES_ROOT}src/netlib/ssl_layer.c
 )
 endif( NOT NO_SSL )
-#endif( NOT MINGW )
+
 SET_SOURCE_FILES_PROPERTIES( ${NETWORK_SOURCES} PROPERTIES 
 		FOLDER "Source Files\\Network Library" )
 endif( NOT __NO_NETWORK__ )
@@ -286,8 +285,6 @@ set( IMAGE_SOURCES
 SET_SOURCE_FILES_PROPERTIES( ${IMAGE_SOURCES} PROPERTIES 
 		FOLDER "Source Files\\Image Library" )
 
-if( NOT __NO_GUI__ )
-
 set( PSI_MORE_CONTROLS
   ${SOURCES_ROOT}src/psilib/console/history.c
   ${SOURCES_ROOT}src/psilib/console/console_keydefs.c
@@ -342,6 +339,7 @@ if( NOT BUILD_MONOLITHIC )
 set( PSI_SOURCES ${PSI_SOURCES} 
   ${SOURCES_ROOT}src/psilib/fntcache.c
 )
+endif( NOT BUILD_MONOLITHIC )
 
 SET_PROPERTY(SOURCE ${PSI_SOURCES}
                  APPEND 
@@ -351,7 +349,6 @@ SET_SOURCE_FILES_PROPERTIES( ${PSI_SOURCES} PROPERTIES
 SET_SOURCE_FILES_PROPERTIES( ${PSI_MORE_CONTROLS} PROPERTIES 
 		FOLDER "Source Files\\PSI Library\\Console" )
 
-endif()
 
 if( WIN32 )
   SET( SYSTRAY_SOURCES  ${SOURCES_ROOT}src/systraylib/systray.c )
@@ -408,8 +405,6 @@ SET_SOURCE_FILES_PROPERTIES( ${HTML5_SOURCES} PROPERTIES
 endif( NOT __NO_NETWORK__ )
         
 
-
-endif( NOT __NO_GUI__ )
 
 if( NOT __NO_MSGSVR__ )
 set( SACK_MSG_SERVICES 

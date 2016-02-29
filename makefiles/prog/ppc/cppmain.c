@@ -2,7 +2,7 @@
 // also unbalanced #endif statements....
 
 #ifndef __GCC__
-#include <conio.h>
+//#include <conio.h>
 #endif
 #if defined( _WIN32 )
 #include <windows.h> // getmodulefilename
@@ -29,7 +29,7 @@
 #ifndef __GCC__
 // this was good during development of infinite loops but bad in production...
 // maybe ifdef _DEBUG the kbhit();
-#define fprintf /*if( kbhit() ) exit(0); else */ fprintf
+#define fprintf fprintf
 #else
 #define fprintf fprintf
 #endif
@@ -279,7 +279,11 @@ int ProcessInclude( int bNext )
 					count = (dir - g.pFileStack->longname);
 				else
 					count = 0;
+#if( _MSC_VER && ( _MSC_VER < 1800 ) )
+				_snprintf( Workname, __MAX_PATH__, WIDE( "%*.*s/%s" ), count, count, g.pFileStack->longname, basename );
+#else
 				snprintf( Workname, __MAX_PATH__, WIDE( "%*.*s/%s" ), count, count, g.pFileStack->longname, basename );
+#endif
 				if( OpenNewInputFile( basename, Workname, GetCurrentFileName(), GetCurrentLine(), TRUE, bNext ) )
 				{
 					SetCurrentWord( NEXTLINE( pEnd ) );
@@ -1206,32 +1210,42 @@ void ReleaseIncludePaths( void )
 void usage( void )
 {
 	printf( WIDE("usage: %s (options) <files...>\n"), g.pExecName );
-	printf( WIDE("	options to include\n")
+	printf( WIDE("\toptions to include\n")
 			  "	------------------------------------------\n" );
-	printf( WIDE("	 -[Ii]<path(s)>		add include path to default\n") );
-	printf( WIDE("	 -[Ss][Ii]<path(s)>  add include path to system default\n") );
-	printf( WIDE("	 -[Dd]<symbol>		 define additional symbols\n") );
-	printf( WIDE("	 -MF<file>			  dump out auto-depend info\n") );
-	printf( WIDE("	 -MT<file>			  use (file) as name of target in depend file\n") );
-	printf( WIDE("	 -L						write file/line info prefixing output lines\n") );
-	printf( WIDE("	 -l						write file/line info prefixing output lines\n")
-			 "								(without line directive)\n" );
-	printf( WIDE("	 -K						emit unknown pragmas into output\n") );
-	printf( WIDE("	 -k						do not emit unknown pragma (default)\n") );
-	printf( WIDE("	 -c						keep comments in output\n") );
-	printf( WIDE("	 -p						keep includes in output (don't output content of include)\n") );
-	printf( WIDE( "	 -f						force / into \\\n" ) );
-	printf( WIDE( "	 -sd					skip define processing (if,else,etc also skippped)\n" ) );
-	printf( WIDE( "	 -ssio					Skip System Include Out;try to keep #includes that are missing as #include\n" ) );
-	printf( WIDE("	 -F						force \\ into /\n") );
-	printf( WIDE("	 -[Oo]<file>			specify the output filename\n") );
-	printf( WIDE("	 -once					only load any include once\n") );
-	printf( WIDE("	 -[Zz]					debug info mode. ( 1, 2, 4 )\n") );
-	printf( WIDE("  Any option prefixed with a - will force the option off...\n") );
+	printf( WIDE("\t -[Ii]<path(s)>      add include path to default\n") );
+	printf( WIDE("\t -[Ss][Ii]<path(s)>  add include path to system default\n") );
+	printf( WIDE("\t -[Dd]<symbol>       define additional symbols\n") );
+	printf( WIDE("\t -MF<file>           dump out auto-depend info\n") );
+	printf( WIDE("\t -MT<file>           use (file) as name of target in depend file\n") );
+	printf( WIDE("\t -L                  write file/line info prefixing output lines\n") );
+	printf( WIDE("\t -l                  write file/line info prefixing output lines\n") );
+	printf( WIDE( "	                           (without line directive)\n" ) );
+	printf( WIDE("\t -K                  emit unknown pragmas into output\n") );
+	printf( WIDE("\t -k                  do not emit unknown pragma (default)\n") );
+	printf( WIDE("\t -c                  keep comments in output\n") );
+	printf( WIDE("\t -p                  keep includes in output (don't output content of include)\n") );
+	printf( WIDE("\t -f                  force / into \\ in include statements with paths\n" ) );
+	printf( WIDE("\t -sd                 skip define processing (if,else,etc also skippped)\n" ) );
+	printf( WIDE("\t -ssio               Skip System Include Out;try to keep #includes that are missing as #include\n" ) );
+	printf( WIDE("\t -F                  force \\ into /\n") );
+	printf( WIDE("\t -[Oo]<file>         specify the output filename; output filename must be set before input(s) are read\n") );
+	printf( WIDE("\t                         -o output \"process this file into output.c\"\n" ) );
+	printf( WIDE("\t -once               only load any include once\n") );
+	printf( WIDE("\t -[Zz]#              debug info mode. where number is in ( 1, 2, 4 )\n") );
+	printf( WIDE("  Any option prefixed with a - will force the option off...  --c to force not keeping comments\n") );
 	printf( WIDE("  Option L is by default on. (line info with #line keyword)\n") );
 	printf( WIDE("  output default is input name substituing the last character for an i...\n") );
-	printf( WIDE("		  test.cpp -> test.cpi  test.c -> test.i\n") );
-	printf( WIDE("  -? for more help\n") );
+	printf( WIDE("\t\t  test.cpp -> test.cpi  test.c -> test.i\n") );
+	printf( WIDE("\t examples : \n" ) );
+	printf( WIDE("\t\tppc source_file.c\n" ) );
+	printf( WIDE("\t\t# the following is how to do an amalgamtion\n" ) );
+	printf( WIDE("\t\tppc -sd -ssio -K -c -once -Iinclude -o file_all.c file1.c file2.c file3.c\n" ) );
+	printf( WIDE("\t\tppc -sdssioKconce -Iinclude -o file_all.c file1.c file2.c file3.c\n" ) );
+	printf( WIDE("\t -? for more help\n") );
+	printf( WIDE(" (startup directory)/config.ppc is read first.  It is only read once.   Usage is intended to generate\n" ) );
+	printf( WIDE(" one file at a time.   It IS possible to do -o file1.i file1.c -o file2.i file2.c but the config.ppc won't\n" ) );
+	printf( WIDE(" be read the second time.  However, symbols meant to be kept in an amalgamtion output can be define here, and\n" ) );
+   printf( WIDE(" those defines will be kept.\n" ) );
 }
 
 void longusage( void )
@@ -1338,10 +1352,8 @@ int main( char argc, char **argv, char **env )
 	{
 		int i=1;
 		int nArgState = ARG_UNKNOWN;
-		printf( "anything??" );
 		for( i = 1; i < argc; i++  )
 		{
-		  printf( "arg %d %s\n", i, argv[i] );
 			if( argv[i][0] == '-' ||
 				 //argv[i][0] == '/' ||
 				 nArgState )
