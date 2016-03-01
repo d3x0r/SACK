@@ -313,17 +313,11 @@ static void AssignKey( struct volume *vol, const char *key1, const char *key2 )
 
 struct volume *sack_vfs_load_crypt_volume( const char * filepath, const char * userkey, const char * devkey ) {
 	struct volume *vol = New( struct volume );
-	vol->read_only = 0;
-	vol->dwSize = 0;
-	vol->disk = 0;
-	vol->lock = 0;
+	MemSet( vol, 0, sizeof( struct volume ) );
 	vol->volname = SaveText( filepath );
-	vol->datakey = NULL;
 	vol->userkey = userkey;
 	vol->devkey = devkey;
-	vol->entropy = NULL;
 	AssignKey( vol, userkey, devkey );
-	vol->files = NULL;
 	ExpandVolume( vol );
 	if( !ValidateBAT( vol ) ) { Release( vol->disk ); return NULL; }
 	return vol;
@@ -331,15 +325,9 @@ struct volume *sack_vfs_load_crypt_volume( const char * filepath, const char * u
 
 struct volume *sack_vfs_use_crypt_volume( POINTER memory, size_t sz, const char * userkey, const char * devkey ) {
 	struct volume *vol = New( struct volume );
+	MemSet( vol, 0, sizeof( struct volume ) );
 	vol->read_only = 1;
-	vol->dwSize = 0;
-	vol->disk = 0;
-	vol->lock = 0;
-	vol->volname = NULL;
-	vol->datakey = NULL;
-	vol->entropy = NULL;
 	AssignKey( vol, userkey, devkey );
-	vol->files = NULL;
 	vol->disk = (struct disk*)memory;
 	vol->dwSize = sz;
 	if( !ValidateBAT( vol ) ) { Release( vol ); return NULL; }
