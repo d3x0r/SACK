@@ -1178,6 +1178,9 @@ if( NOT __NO_GUI__ )
   if( NOT __ANDROID__ )
      add_subdirectory( src/vidlib )
   endif( NOT __ANDROID__ )
+  
+else( NOT __NO_GUI__ )
+     add_subdirectory( src/vidlib/proxy )
 endif( NOT __NO_GUI__ )
 
 ###########

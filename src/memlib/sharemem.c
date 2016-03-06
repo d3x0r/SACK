@@ -270,11 +270,15 @@ PRIORITY_PRELOAD( InitGlobal, DEFAULT_PRELOAD_PRIORITY )
 #  ifndef __ATOMIC_RELAXED
 #    define __ATOMIC_RELAXED 0
 #  endif
-//#  if defined __ARM__ || defined __ANDROID__
-//#    define XCHG(p,val)  LockedExchange( p, val )
-//#  else
+//#    define DoXchg  XCHG
+#  ifndef __GNUC_VERSION
+#    define __GNUC_VERSION ( __GNUC__ * 10000 ) + ( __GNUC_MINOR__ * 100 )
+#  endif
 #  if  ( __GNUC_VERSION >= 40800 )
 #    define XCHG(p,val)  __atomic_exchange_n(p,val,__ATOMIC_RELAXED)
+///  for some reason __GNUC_VERSION doesn't exist from android ?
+#  elif defined __ARM__ || defined __ANDROID__
+//#    define XCHG(p,val)  __atomic_exchange_n(p,val,__ATOMIC_RELAXED)
 #  else
 inline _32 DoXchg( PV_32 p, _32 val ){  __asm__( WIDE("lock xchg (%2),%0"):WIDE( "=a" )(val):WIDE( "0" )(val),WIDE( "c" )(p) ); return val; }
 inline _64 DoXchg64( PV_64 p, _64 val ){  __asm__( WIDE("lock xchg (%2),%0"):WIDE( "=a" )(val):WIDE( "0" )(val),WIDE( "c" )(p) ); return val; }
@@ -298,8 +302,8 @@ inline _64 DoXchg64( PV_64 p, _64 val ){  __asm__( WIDE("lock xchg (%2),%0"):WID
 	return InterlockedExchange( (volatile LONG *)p, val );
 #  endif
 #else
-#  if defined( __LINUX__ ) || defined( __LINUX64__ ) 
-	DoXchg( p, val );
+#  if ( defined( __LINUX__ ) || defined( __LINUX64__ ) ) //&& !( defined __ARM__ || defined __ANDROID__ )
+	XCHG( p, val );
 //   return __atomic_exchange_n(p,val,__ATOMIC_RELAXED);
 #  else /* some other system, not windows, not linux... */
 	{
