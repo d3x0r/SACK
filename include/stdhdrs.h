@@ -115,6 +115,9 @@
 #    include <winuser.h>
 #    undef WIN32
 #  endif
+#  ifdef WIN32
+#    include <shlobj.h>
+#  endif
 #  define _WINSOCKAPI_
 #  include <windows.h>
 #  undef _WINSOCKAPI_

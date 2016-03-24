@@ -2625,3 +2625,4 @@ public ref class ProcReg
 
 PROCREG_NAMESPACE_END
 
+#undef l

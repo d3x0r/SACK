@@ -411,21 +411,24 @@ static void DumpODBCInfo( PODBC odbc )
 	lprintf( WIDE( "odbc->hdbc = %p" ), odbc->hdbc );
 #endif
 	lprintf( WIDE( "Last native error code: %d" ), odbc->native );
+#if defined( USE_SQLITE ) || defined( USE_SQLITE_INTERFACE )
+#  define NativeOption odbc->flags.bSQLite_native?WIDE("[Native SQLite]"):WIDE("[Not Native SQLite]")
+#else
+#  define NativeOption WIDE("[]")
+#endif
+#ifdef USE_ODBC
+#  define ODBCOption odbc->flags.bODBC?WIDE("[ODBC]"):WIDE("[Not ODBC]")
+#else
+#  define ODBCOption WIDE("[]")
+#endif
+
 	lprintf( WIDE( "odbc flags = %s %s %s %s %s %s" )
 		, odbc->flags.bConnected?WIDE("[Connected]"):WIDE("[Not Connected]")
 		, odbc->flags.bAccess ?WIDE("[MS Access]"):WIDE("[]")
 		, odbc->flags.bSQLite?WIDE("[SQLite]"):WIDE("[]")
-		, odbc->flags.bPushed?WIDE("[PendingPush]"):WIDE("[]")
-#if defined( USE_SQLITE ) || defined( USE_SQLITE_INTERFACE )
-		, odbc->flags.bSQLite_native?WIDE("[Native SQLite]"):WIDE("[Not Native SQLite]")
-#else
-		, WIDE("[]")
-#endif
-#ifdef USE_ODBC
-		, odbc->flags.bODBC?WIDE("[ODBC]"):WIDE("[Not ODBC]")
-#else
-		, WIDE("[]")
-#endif
+			 , odbc->flags.bPushed?WIDE("[PendingPush]"):WIDE("[]")
+			 , NativeOption
+			 , ODBCOption
 		);
 	lprintf( WIDE("Collection(s)...") );
 	{
