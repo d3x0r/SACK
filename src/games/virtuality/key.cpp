@@ -2,6 +2,7 @@
 #define ROTATION_ACCEL 0.01F
 #define KEY_VELOCITY 10.10F
 #define KEY_ACCEL 0.11F
+#include <stdhdrs.h>
 
 #include <string.h>
 #include "global.h"

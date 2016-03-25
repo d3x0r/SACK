@@ -2,6 +2,7 @@
 #define USE_IMAGE_INTERFACE ImageInterface
 #define USE_RENDER_INTERFACE RenderInterface
 
+#include <stdhdrs.h>
 #include <psi.h>
 #include <psi/console.h>
 

@@ -1,9 +1,9 @@
+#include <image.h>
 #include <vectlib.h>
 #undef _X
 #include "symbits.h"
 #ifdef __cplusplus
-namespace sack {
-namespace image {
+	IMAGE_NAMESPACE
 #endif
 	typedef struct font_tag *PFONT ;
 #ifdef __cplusplus 
@@ -3684,6 +3684,6 @@ PFONT __LucidaConsole13by8 = (PFONT)&___LucidaConsole13by8;
 #endif
 #ifdef __cplusplus
       }; // default_font namespace
-   }//namespace sack {
-}//namespace image {
+IMAGE_NAMESPACE_END 
+
 #endif

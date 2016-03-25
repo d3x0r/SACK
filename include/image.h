@@ -71,33 +71,33 @@
 /* Define the namespace of image routines, when building under
    C++.                                                        */
 #ifdef _D3D_DRIVER
-#define IMAGE_NAMESPACE namespace sack { namespace image { namespace d3d {
-#define _IMAGE_NAMESPACE namespace image { namespace d3d {
-#define BASE_IMAGE_NAMESPACE namespace image {
+#  define IMAGE_NAMESPACE namespace sack { namespace image { namespace d3d {
+#  define _IMAGE_NAMESPACE namespace image { namespace d3d {
+#  define BASE_IMAGE_NAMESPACE namespace image {
 /* Define the namespace of image routines, when building under
    C++. This ends a namespace.                                 */
-#define IMAGE_NAMESPACE_END }}}
+#  define IMAGE_NAMESPACE_END }}}
 #elif defined( _D3D10_DRIVER )
-#define IMAGE_NAMESPACE namespace sack { namespace image { namespace d3d10 {
-#define _IMAGE_NAMESPACE namespace image { namespace d3d10 {
-#define BASE_IMAGE_NAMESPACE namespace image {
+#  define IMAGE_NAMESPACE namespace sack { namespace image { namespace d3d10 {
+#  define _IMAGE_NAMESPACE namespace image { namespace d3d10 {
+#  define BASE_IMAGE_NAMESPACE namespace image {
 /* Define the namespace of image routines, when building under
    C++. This ends a namespace.                                 */
-#define IMAGE_NAMESPACE_END }}}
+#  define IMAGE_NAMESPACE_END }}}
 #elif defined( _D3D11_DRIVER )
-#define IMAGE_NAMESPACE namespace sack { namespace image { namespace d3d11 {
-#define _IMAGE_NAMESPACE namespace image { namespace d3d11 {
-#define BASE_IMAGE_NAMESPACE namespace image {
+#  define IMAGE_NAMESPACE namespace sack { namespace image { namespace d3d11 {
+#  define _IMAGE_NAMESPACE namespace image { namespace d3d11 {
+#  define BASE_IMAGE_NAMESPACE namespace image {
 /* Define the namespace of image routines, when building under
    C++. This ends a namespace.                                 */
-#define IMAGE_NAMESPACE_END }}}
+#  define IMAGE_NAMESPACE_END }}}
 #else
-#define BASE_IMAGE_NAMESPACE namespace image {
-#define IMAGE_NAMESPACE namespace sack { namespace image {
-#define _IMAGE_NAMESPACE namespace image {
+#  define BASE_IMAGE_NAMESPACE namespace image {
+#  define IMAGE_NAMESPACE namespace sack { namespace image {
+#  define _IMAGE_NAMESPACE namespace image {
 /* Define the namespace of image routines, when building under
    C++. This ends a namespace.                                 */
-#define IMAGE_NAMESPACE_END }}
+#  define IMAGE_NAMESPACE_END }}
 #endif
 /* Define the namespace of image routines, when building under
    C++. This ends the namespace. Assembly routines only have the

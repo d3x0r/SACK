@@ -81,24 +81,6 @@ void CPROC MarkImageUpdated( Image child_image )
 	}
 }
 
-#if 0
-IMAGE_NAMESPACE_END
-ASM_IMAGE_NAMESPACE
-void  CPROC asmBlatColor( PCDATA po, int oo, int w, int h
-                  , CDATA color );
-
-void  CPROC asmBlatColorAlpha( PCDATA po, int oo, int w, int h
-                  , CDATA color );
-void  CPROC mmxBlatColorAlpha( PCDATA po, int oo, int w, int h
-                  , CDATA color );
-extern void  (CPROC*BlatPixels)( PCDATA po, int oo, int w, int h
-                  , CDATA color );
-extern void  (CPROC*BlatPixelsAlpha)( PCDATA po, int oo, int w, int h
-                  , CDATA color );
-
-ASM_IMAGE_NAMESPACE_END
-IMAGE_NAMESPACE
-#endif
 
 //---------------------------------------------------------------------------
 // This routine fills a rectangle with a solid color

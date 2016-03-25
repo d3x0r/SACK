@@ -611,6 +611,8 @@ struct image_shader_op * BeginImageShaderOp(PImageShaderTracker tracker, Image t
 	struct image_shader_op *isibo;
 	struct image_shader_image_buffer *image_shader_op;
 	GLboolean depth;
+	if( !tracker )
+		return NULL;
 	glGetBooleanv(GL_DEPTH_TEST, &depth ); 
 
 	if( l.glActiveSurface->shader_local.last_operation 
@@ -665,7 +667,8 @@ void AppendImageShaderOpTristrip( struct image_shader_op *op, int triangles, ...
 {
 	va_list args;
 	va_start( args, triangles );
-	op->tracker->AppendTristrip( op, triangles, op->psvKey, args );	
+	if( op )
+		op->tracker->AppendTristrip( op, triangles, op->psvKey, args );	
 }
 
 

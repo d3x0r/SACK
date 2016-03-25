@@ -7,7 +7,6 @@
    Includes the MOST stuff here ( a full windows.h parse is many
    many lines of code.)                                          */
 
-#include <sack_types.h>
 
 /* A macro to build a wide character string of __FILE__ */
 #define _WIDE__FILE__(n) WIDE(n)
@@ -115,12 +114,12 @@
 #    include <winuser.h>
 #    undef WIN32
 #  endif
-#  ifdef WIN32
-#    include <shlobj.h>
-#  endif
 #  define _WINSOCKAPI_
 #  include <windows.h>
 #  undef _WINSOCKAPI_
+#  if defined( WIN32 ) && !defined( NO_SHLOBJ )
+#    include <shlobj.h>
+#  endif
 
 #  include <windowsx.h>
 // we like timeGetTime() instead of GetTickCount()
@@ -134,6 +133,7 @@
 #  ifdef NEED_V4W
 #    include <vfw.h>
 #  endif
+#include <sack_types.h>
 
 // incldue this first so we avoid a conflict.
 // hopefully this comes from sack system?
@@ -181,6 +181,7 @@
 #include <sack_types.h>
 #include <sys/time.h>
 #include <errno.h>
+#include <sack_types.h>
 #include <sack_system.h>
 # include <filedotnet.h>
 #if defined( __ARM__ )

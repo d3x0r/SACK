@@ -159,12 +159,9 @@ IMAGE_NAMESPACE
 //------------------------------------------
 
 #define Avg( c1, c2, d, max ) ((((c1)*(max-(d))) + ((c2)*(d)))/max)
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 // where d is from 0 to 255 between c1, c2
-CDATA CPROC ColorAverage( CDATA c1, CDATA c2
+CDATA ColorAverage( CDATA c1, CDATA c2
 								  , int d, int max )
 {
   CDATA res;
@@ -177,10 +174,6 @@ CDATA CPROC ColorAverage( CDATA c1, CDATA c2
   return res;
 }
 
-// this could be assembly and MMX optimized...
-#ifdef __cplusplus
-} //extern "C" {
-#endif
 
 //----------------------------------------------------------------------
 
@@ -1056,87 +1049,7 @@ void  SetColorAlpha( PCDATA po, int oo, int w, int h, CDATA color )
 
 //---------------------------------------------------------------------------
 
-#if 0
-IMAGE_NAMESPACE_END
-ASM_IMAGE_NAMESPACE
-void CPROC cplot( ImageFile *pi, S_32 x, S_32 y, CDATA c );
-void CPROC cplotraw( ImageFile *pi, S_32 x, S_32 y, CDATA c );
-void CPROC cplotalpha( ImageFile *pi, S_32 x, S_32 y, CDATA c );
-CDATA CPROC cgetpixel( ImageFile *pi, S_32 x, S_32 y );
-
-#ifdef HAS_ASSEMBLY
-void CPROC asmplot( ImageFile *pi, S_32 x, S_32 y, CDATA c );
-#endif
-
-#ifdef HAS_ASSEMBLY
-void CPROC asmplotraw( ImageFile *pi, S_32 x, S_32 y, CDATA c );
-#endif
-
-#ifdef HAS_ASSEMBLY
-void CPROC asmplotalpha( ImageFile *pi, S_32 x, S_32 y, CDATA c );
-void CPROC asmplotalphaMMX( ImageFile *pi, S_32 x, S_32 y, CDATA c );
-#endif
-
-#ifdef HAS_ASSEMBLY
-CDATA CPROC asmgetpixel( ImageFile *pi, S_32 x, S_32 y );
-#endif
-
-//---------------------------------------------------------------------------
-
-void CPROC do_linec( ImageFile *pImage, S_32 x, S_32 y
-									 , S_32 xto, S_32 yto, CDATA color );
-#ifdef HAS_ASSEMBLY
-void CPROC do_lineasm( ImageFile *pImage, S_32 x, S_32 y
-					, S_32 xto, S_32 yto, CDATA color );
-#endif
-
-void CPROC do_lineAlphac( ImageFile *pImage, S_32 x, S_32 y
-									 , S_32 xto, S_32 yto, CDATA color );
-#ifdef HAS_ASSEMBLY
-void CPROC do_lineAlphaasm( ImageFile *pImage, S_32 x, S_32 y
-									 , S_32 xto, S_32 yto, CDATA color );
-void CPROC do_lineAlphaMMX( ImageFile *pImage, S_32 x, S_32 y
-						  , S_32 xto, S_32 yto, CDATA color );
-#endif
-
-void CPROC do_lineExVc( ImageFile *pImage, S_32 x, S_32 y
-									 , S_32 xto, S_32 yto, CDATA color
-									 , void (*func)( ImageFile*pif, S_32 x, S_32 y, int d ) );
-#ifdef HAS_ASSEMBLY
-void CPROC do_lineExVasm( ImageFile *pImage, S_32 x, S_32 y
-									 , S_32 xto, S_32 yto, CDATA color
-									 , void (*func)( ImageFile*pif, S_32 x, S_32 y, int d ) );
-#endif
-
-void CPROC do_hlinec( ImageFile *pImage, S_32 y, S_32 xfrom, S_32 xto, CDATA color );
-#ifdef HAS_ASSEMBLY
-void CPROC do_hlineasm( ImageFile *pImage, S_32 y, S_32 xfrom, S_32 xto, CDATA color );
-#endif
-
-void CPROC do_vlinec( ImageFile *pImage, S_32 x, S_32 yfrom, S_32 yto, CDATA color );
-#ifdef HAS_ASSEMBLY
-void CPROC do_vlineasm( ImageFile *pImage, S_32 x, S_32 yfrom, S_32 yto, CDATA color );
-#endif
-
-void CPROC do_hlineAlphac( ImageFile *pImage, S_32 y, S_32 xfrom, S_32 xto, CDATA color );
-#ifdef HAS_ASSEMBLY
-void CPROC do_hlineAlphaasm( ImageFile *pImage, S_32 y, S_32 xfrom, S_32 xto, CDATA color );
-void CPROC do_hlineAlphaMMX( ImageFile *pImage, S_32 y, S_32 xfrom, S_32 xto, CDATA color );
-#endif
-
-void CPROC do_vlineAlphac( ImageFile *pImage, S_32 x, S_32 yfrom, S_32 yto, CDATA color );
-#ifdef HAS_ASSEMBLY
-void CPROC do_vlineAlphaasm( ImageFile *pImage, S_32 x, S_32 yfrom, S_32 yto, CDATA color );
-void CPROC do_vlineAlphaMMX( ImageFile *pImage, S_32 x, S_32 yfrom, S_32 yto, CDATA color );
-#endif
-
-ASM_IMAGE_NAMESPACE_END
-IMAGE_NAMESPACE
-#endif
-
-//---------------------------------------------------------------------------
-
- void  SetStringBehavior ( ImageFile *pImage, _32 behavior )
+void  SetStringBehavior ( ImageFile *pImage, _32 behavior )
 {
 	pImage->flags &= ~(IF_FLAG_C_STRING|IF_FLAG_MENU_STRING|IF_FLAG_CONTROL_STRING );
 	if( behavior == STRING_PRINT_RAW )
@@ -1330,115 +1243,12 @@ void RotateImageAbout( Image pImage, int edge_flag, RCOORD offset_x, RCOORD offs
 										name##TImgA = asm##name##TImgAMMX,    \
 										name##TImgAI = asm##name##TImgAIMMX )
 
-IMAGE_NAMESPACE_END
-ASM_IMAGE_NAMESPACE
-extern int CPROC IsMMX( void );
-ASM_IMAGE_NAMESPACE_END
-IMAGE_NAMESPACE
-
 
 #ifdef STUPID_NO_DATA_EXPORTS
 #define VFUNC(n) _PASTE(_,n)
 #else
 #define VFUNC(n) n
 #endif
-
-#if 0
- void  SetBlotMethod ( _32 method )
-{
-#ifdef HAS_ASSEMBLY
-	if( method == BLOT_MMX )
-	{
-#ifndef __LINUX64__
-		if( IsMMX() )
-		{
-			//Log( WIDE("Setting MMX Blot") );
-			VFUNC(ColorAverage) = cColorAverage;
-			BlatPixels = asmBlatColor;
-			BlatPixelsAlpha = mmxBlatColorAlpha;
-			SetCopySetMMX( CopyPixels );
-			SetCopySetMMX( CopyPixelsShaded );
-			SetCopySetMMX( CopyPixelsMulti );
-			SetCopySetMMX( BlotScaled );
-			SetCopySetMMX( BlotScaledShaded );
-			SetCopySetMMX( BlotScaledMulti );
-			VFUNC(plot )= asmplot;
-			VFUNC(plotalpha )= asmplotalphaMMX;
-			VFUNC(getpixel )= asmgetpixel;
-			VFUNC(do_lineExV) = do_lineExVasm;
-			VFUNC(do_lineAlpha) = do_lineAlphaMMX;
-			VFUNC(do_line) = do_lineasm;
-			VFUNC(do_hline) = do_hlineasm;
-			VFUNC(do_vline) = do_vlineasm;
-			VFUNC(do_hlineAlpha) = do_hlineAlphaMMX;
-			VFUNC(do_vlineAlpha) = do_vlineAlphaMMX;
-			return;
-			//printf( WIDE("Blot Method MMX --------------------------\n ") );
-		}
-		else
-		{
-			//Log( WIDE("Setting MMX failed - using ASM") );
-
-			method = BLOT_ASM;
-		}
-#endif
-	}
-
-	if( method == BLOT_ASM)
-	{
-		//Log( WIDE("Setting ASM Blots") );
-		VFUNC(ColorAverage) = cColorAverage;
-		BlatPixels = asmBlatColor;
-		BlatPixelsAlpha = asmBlatColorAlpha;
-		SetCopySetAsm( CopyPixels );
-		SetCopySetAsm( CopyPixelsShaded );
-		SetCopySetAsm( CopyPixelsMulti );
-		SetCopySetAsm( BlotScaled );
-		SetCopySetAsm( BlotScaledShaded );
-		SetCopySetAsm( BlotScaledMulti );
-		VFUNC(plot) = asmplot;
-		VFUNC(plotalpha) = asmplotalpha;
-		VFUNC(getpixel) = asmgetpixel;
-		VFUNC(do_lineExV) = do_lineExVasm;
-		VFUNC(do_lineAlpha) = do_lineAlphaasm;
-		VFUNC(do_line) = do_lineasm;
-		VFUNC(do_hline) = do_hlineasm;
-		VFUNC(do_vline) = do_vlineasm;
-		VFUNC(do_hlineAlpha) = do_hlineAlphaasm;
-		VFUNC(do_vlineAlpha) = do_vlineAlphaasm;
-		//printf( WIDE("Blot Method ASM --------------------------\n ") );
-	}
-	else // choose this if any invalid method is passed...
-#else
-		;//Log( WIDE("No assembly....") );
-#endif
-	{
-		// common ... no alternative.
-		VFUNC(ColorAverage) = cColorAverage;
-		//Log( WIDE("Setting C Blots") );
-		BlatPixels = cSetColor;
-		BlatPixelsAlpha = cSetColorAlpha;
-		SetCopySetC( CopyPixels );
-		SetCopySetC( CopyPixelsShaded );
-		SetCopySetC( CopyPixelsMulti );
-		SetCopySetC( BlotScaled );
-		SetCopySetC( BlotScaledShaded );
-		SetCopySetC( BlotScaledMulti );
-		VFUNC(plot) = cplot;
-		VFUNC(plotalpha) = cplotalpha;
-		VFUNC(getpixel) = cgetpixel;
-		VFUNC(do_lineExV) = do_lineExVc;
-		VFUNC(do_lineAlpha) = do_lineAlphac;
-		VFUNC(do_line) = do_linec;
-		VFUNC(do_hline) = do_hlinec;
-		VFUNC(do_vline) = do_vlinec;
-		VFUNC(do_hlineAlpha) = do_hlineAlphac;
-		VFUNC(do_vlineAlpha) = do_vlineAlphac;
-		//printf( WIDE("Blot Method C --------------------------\n ") );
-	}
-}
-#endif
-
 
 extern int link_interface_please;
 void f(void )

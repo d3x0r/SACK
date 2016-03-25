@@ -15,7 +15,7 @@
 #define DO_LOGGING
 #ifdef USE_SQLITE_INTERFACE
 #define USES_SQLITE_INTERFACE
-#define DEFINES_SQLITE_INTERFACE
+//#define DEFINES_SQLITE_INTERFACE
 #endif
 #include <stdhdrs.h>
 #include <deadstart.h>
