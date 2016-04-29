@@ -177,11 +177,13 @@ static struct json_context_object *WebSockInitJson( enum proxy_message_id messag
 		json_add_object_member( cto_data, WIDE("server_font_id"), ofs = 0, JSON_Element_PTRSZVAL, 0 );
 		json_add_object_member( cto_data, WIDE("baseline"), ofs = ofs + sizeof( PTRSZVAL ), JSON_Element_Unsigned_Integer_32, 0 );
 		json_add_object_member( cto_data, WIDE("height"), ofs = ofs + sizeof( _32 ), JSON_Element_Unsigned_Integer_32, 0 );
+		json_add_object_member( cto_data, WIDE( "bias_x" ), ofs = ofs + sizeof( _32 ), JSON_Element_Integer_8, 0 );
+		json_add_object_member( cto_data, WIDE( "bias_y" ), ofs = ofs + sizeof( _8 ), JSON_Element_Integer_8, 0 );
 		//json_add_object_member( cto_data, WIDE("characters"), ofs = ofs + sizeof(PTRSZVAL), JSON_Element_Integer_32, 0 );
 		{
 			int ofs_inner;
 			struct json_context_object *cto_data_member;
-			cto_data_member = json_add_object_member_list( cto_data, WIDE("data"), ofs = ofs + sizeof(_32), (enum JSON_ObjectElementTypes)0, 0 );
+			cto_data_member = json_add_object_member_list( cto_data, WIDE("data"), ofs = ofs + sizeof(_8), (enum JSON_ObjectElementTypes)0, 0 );
 			json_add_object_member( cto_data_member, WIDE("c"), ofs_inner = 0, JSON_Element_Integer_32, 0 );
 			json_add_object_member( cto_data_member, WIDE("x"), ofs_inner = ofs_inner + sizeof(_32), JSON_Element_Integer_32, 0 );
 			json_add_object_member( cto_data_member, WIDE("y"), ofs_inner = ofs_inner + sizeof(S_32), JSON_Element_Integer_32, 0 );
@@ -763,9 +765,15 @@ static void SendTCPMessage( PCLIENT pc, LOGICAL websock, enum proxy_message_id m
 			int chars = 0;
 			struct common_message *outmsg;
 			PVPImage SourceImage;
+			if( !font )
+				font = l.real_interface->_GetDefaultFont();
 			msg = NewArray( _8, sendlen = ( 4 + 1 + sizeof( struct font_data_data ) ) );
 			outmsg = (struct common_message*)(msg + 4);
 			outmsg->message_id = PMID_FontData;
+			outmsg->data.font_data.bias_x = (font->bias & 0xF); 
+			outmsg->data.font_data.bias_y = ((font->bias>>4) & 0xF);
+			if( outmsg->data.font_data.bias_x & 0x8 ) outmsg->data.font_data.bias_x |= 0xF0;
+			if( outmsg->data.font_data.bias_y & 0x8 ) outmsg->data.font_data.bias_y |= 0xF0;
 			outmsg->data.font_data.image_id = INVALID_INDEX;
 			outmsg->data.font_data.server_font_id = FindLink( &l.fonts, font );
 			outmsg->data.font_data.baseline = font->baseline;
@@ -2092,10 +2100,12 @@ static Image CPROC VidlibProxy_LoadImageFileEx( CTEXTSTR filename DBG_PASS )
 static void CPROC VidlibProxy_ResizeImageEx	  ( Image pImage, S_32 width, S_32 height DBG_PASS)
 {
 	PVPImage image = (PVPImage)pImage;
-	image->w = width;
-	image->h = height;
-	l.real_interface->_ResizeImageEx( image->image, width, height DBG_RELAY );
-	SendClientMessage( PMID_Size_Image, image );
+	if( image ) {
+		image->w = width;
+		image->h = height;
+		l.real_interface->_ResizeImageEx( image->image, width, height DBG_RELAY );
+		SendClientMessage( PMID_Size_Image, image );
+	}
 }
 
 static void CPROC VidlibProxy_MoveImage			( Image pImage, S_32 x, S_32 y )
@@ -2891,6 +2901,12 @@ static void CPROC VidlibProxy_PutCharacterVerticalInvertFont( Image pImage, S_32
 static void VidlibProxy_SendPutString( PVPImage pImage, S_32 x, S_32 y, CDATA color, CDATA background
 												, CTEXTSTR pc, size_t nLen, SFTFont font, int orientation, int justification, _32 right )
 {
+	if( !font )
+	{
+		font = l.real_interface->_GetDefaultFont();
+		if( FindLink( &l.fonts, font ) == INVALID_INDEX )
+			font->flags |= FONT_FLAG_UPDATED;
+	}
 	if( font && ( font->flags & FONT_FLAG_UPDATED ) )
 	{
 		if( FindLink( &l.fonts, font ) == INVALID_INDEX )

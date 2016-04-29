@@ -186,6 +186,8 @@ PREFIX_PACKED struct font_data_data
 	PTRSZVAL server_font_id;
 	S_32 baseline;
 	_32 height;
+	S_8 bias_x;
+	S_8 bias_y;
 	/* these translate to JSON easily... but bad for a network structure. */
 	PLIST characters; // list of font_character_data
 	PLIST colors;   // list of font_color_image_data

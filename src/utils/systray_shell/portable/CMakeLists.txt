@@ -87,6 +87,7 @@ set( BASE_SOURCES
         ${ODBC_SOURCES}
         ${OPTION_SOURCE}
         ${SQLITE_SOURCES}
+        ${BAG_SQLITE_INTERFACE}
         ${SYSTRAY_SOURCES}
         ../systray_shell.c )
 

@@ -2981,7 +2981,7 @@ wchar_t * CharWConvertExx ( const char *wch, size_t len DBG_PASS )
 	size_t  sizeInBytes;
 	wchar_t	*ch;
 	wchar_t   *_ch;
-	sizeInBytes = ((len + 1) * sizeof( char ) );
+	sizeInBytes = ((len + 1) * sizeof( wchar_t ) );
 	_ch = ch = NewArray( wchar_t, sizeInBytes);
 	{
 		size_t n;
@@ -3019,9 +3019,9 @@ wchar_t * CharWConvertExx ( const char *wch, size_t len DBG_PASS )
 			}
 			ch++;
 		}
+		ch[0] = 0;
 		ch = _ch;
 	}
-
 	return ch;
 }
 

@@ -1154,7 +1154,13 @@ default_fopen:
 		Deallocate( char*, tmpname );
 		Deallocate( char*, tmpopts );
 #    else
-		fopen_s( &handle, file->fullname, opts );
+		{
+			wchar_t *tmp = CharWConvert( file->fullname );
+			wchar_t *wopts = CharWConvert( opts );
+			_wfopen_s( &handle, tmp, wopts );
+			Deallocate( wchar_t *, tmp );
+			Deallocate( wchar_t *, wopts );
+		}
 #    endif
 #  else
 		handle = fopen( file->fullname, opts );

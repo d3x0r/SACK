@@ -274,6 +274,7 @@ OPTION( NEED_ZLIB "Build internal zlib lib (with suitable exports to link agains
 OPTION( NEED_EXPAT "Build internal Expat library (older version)" ON )
 OPTION( __WINDOWS_ARM_CE__ "Build for windows CE 5.0 ARM" 0 )
 OPTION( USE_ASSEMBLY "Use Assembly files as available.  NASM required for this." OFF )
+OPTION( USE_HARDWARE_INFO "Include Hardware information utilities" ${WIN32} )
 
 OPTION( BUILD_MONOLITHIC "Build one giant library" ${BUILD_MONOLITHIC} )
 OPTION( BUILD_UNICODE "Build All as Unicode" ${BUILD_UNICODE} )
@@ -482,26 +483,32 @@ else()
   set( __NO_MSGSVR__ ON )
 endif()
 
+EXECUTE_PROCESS(COMMAND ${CMAKE_COMMAND} -E copy_if_different ${PROJECT_SOURCE_DIR}/${VECTLIB_SOURCES} ${CMAKE_BINARY_DIR}/src/vectlib/vectlib_double.c )
+EXECUTE_PROCESS(COMMAND ${CMAKE_COMMAND} -E copy_if_different ${PROJECT_SOURCE_DIR}/${VECTLIB_SOURCES} ${CMAKE_BINARY_DIR}/src/vectlib/vectlib_double.cpp )
 
+       add_custom_command( OUTPUT ${CMAKE_BINARY_DIR}/src/vectlib/vectlib_double.c
+                           DEPENDS ${PROJECT_SOURCE_DIR}/${VECTLIB_SOURCES}
+                           COMMAND ${CMAKE_COMMAND} -E copy_if_different ${PROJECT_SOURCE_DIR}/${VECTLIB_SOURCES} ${CMAKE_BINARY_DIR}/src/vectlib/vectlib_double.c
+                           COMMAND ${CMAKE_COMMAND} -E touch ${CMAKE_BINARY_DIR}/src/vectlib/vectlib_double.c
+                           )
        add_custom_command( OUTPUT ${CMAKE_BINARY_DIR}/src/vectlib/vectlib_double.cpp
                            DEPENDS ${PROJECT_SOURCE_DIR}/${VECTLIB_SOURCES}
                            COMMAND ${CMAKE_COMMAND} -E copy_if_different ${PROJECT_SOURCE_DIR}/${VECTLIB_SOURCES} ${CMAKE_BINARY_DIR}/src/vectlib/vectlib_double.cpp
                            COMMAND ${CMAKE_COMMAND} -E touch ${CMAKE_BINARY_DIR}/src/vectlib/vectlib_double.cpp
                            )
-#EXECUTE_PROCESS(COMMAND cmake -E copy_if_different ${PROJECT_SOURCE_DIR}/${VECTLIB_SOURCES} ${CMAKE_BINARY_DIR}/src/vectlib/vectlib_double.cpp )
        add_custom_command( OUTPUT ${CMAKE_BINARY_DIR}/src/vectlib/vectlib_float.cpp
                            DEPENDS ${PROJECT_SOURCE_DIR}/${VECTLIB_SOURCES}
                            COMMAND ${CMAKE_COMMAND} -E copy_if_different ${PROJECT_SOURCE_DIR}/${VECTLIB_SOURCES} ${CMAKE_BINARY_DIR}/src/vectlib/vectlib_float.cpp
                            COMMAND ${CMAKE_COMMAND} -E touch ${CMAKE_BINARY_DIR}/src/vectlib/vectlib_float.cpp
                            )
+
+# ADD_CUSTOM_TARGET( generate_vectlib DEPENDS ${CMAKE_BINARY_DIR}/src/vectlib/vectlib_double.c)
+
 #EXECUTE_PROCESS(COMMAND cmake -E copy_if_different ${PROJECT_SOURCE_DIR}/${VECTLIB_SOURCES} ${CMAKE_BINARY_DIR}/src/vectlib/vectlib_float.cpp )
 SET_PROPERTY(SOURCE ${CMAKE_BINARY_DIR}/src/vectlib/vectlib_float.cpp
                  APPEND 
 		PROPERTY COMPILE_DEFINITIONS "MAKE_RCOORD_SINGLE" ) 
 SET_PROPERTY(SOURCE ${IMAGE_SOURCES}
-                 APPEND 
-		PROPERTY COMPILE_DEFINITIONS "MAKE_RCOORD_SINGLE" ) 
-SET_PROPERTY(SOURCE ${VECTLIB_SOURCES}
                  APPEND 
 		PROPERTY COMPILE_DEFINITIONS "MAKE_RCOORD_SINGLE" ) 
 
@@ -680,6 +687,7 @@ set( SACK_SOURCES
     ${BASE_SOURCES} 
 	${VIDLIB_HEADLESS_SOURCES}
     ${VECTLIB_SOURCES}
+    ${VECTLIB_MORE_SOURCES}
     ${SNPRINTF_SOURCES}
     ${ODBC_SOURCES}
     ${BAG_SQLITE_INTERFACE}
@@ -947,6 +955,7 @@ add_library( bag SHARED
   ${FIRST_GCC_LIBRARY_SOURCE} 
     ${BASE_SOURCES} 
     ${VECTLIB_SOURCES}
+    ${VECTLIB_MORE_SOURCES}
     ${ODBC_SOURCES}
     ${GENX_SOURCES}
     ${BAG_SQLITE_INTERFACE}
@@ -1295,7 +1304,8 @@ endIF(NOT FORCE_CXX AND EXISTS ${BULLET_SOURCE}/CMakeLists.txt AND NOT BUILD_UNI
 if( NOT BUILD_MONOLITHIC AND NOT __NO_GUI__ )
 	#include vidlib first incase glew is used, then imglib
 	add_subdirectory( src/imglib/puregl2 )
-        
+	add_subdirectory( src/imglib/vulkan )
+
 if( NOT __QNX__ AND NOT __ANDROID__ )
 	#standard OpenGL; mostly windows-centric
 	add_subdirectory( src/imglib/puregl )
@@ -1310,6 +1320,7 @@ if( NOT __NO_NETWORK__ )
   add_subdirectory( src/vidlib/proxy )
 endif( NOT __NO_NETWORK__ )
   add_subdirectory( src/vidlib/puregl2 )
+  add_subdirectory( src/vidlib/vulkan )
 
 if( NOT __QNX__ AND NOT __ANDROID__ )
   add_subdirectory( src/vidlib/puregl )

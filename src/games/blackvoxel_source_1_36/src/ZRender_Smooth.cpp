@@ -16,6 +16,8 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
+#define FIX_COM_RELEASE_COLLISION
+#include "z/ZTypes.h"
 #include <GL/glew.h>
 #include <math.h>
 #include <stdio.h>

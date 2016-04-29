@@ -1084,6 +1084,18 @@ bool SetVoxel_WithCullingUpdate(ZVoxelWorld *world, ZVoxelSector *sector, Long x
   return(true);
 }
 
+void ZRender_Basic::FreeDisplayData(ZVoxelSector * Sector)
+{
+  ZRender_Interface_displaydata * DisplayData;
+
+  DisplayData = (ZRender_Interface_displaydata *)Sector->DisplayData;
+
+  if (DisplayData)
+  {
+		delete DisplayData;
+  }
+}
+
 
 
 void ZRender_Basic::Render( bool use_external_matrix )

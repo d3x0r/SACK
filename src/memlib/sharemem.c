@@ -91,12 +91,16 @@ namespace sack {
 #  undef g
 #endif
 
+static PTRSZVAL masks[33] = { ~0, ~0, ~1, 0, ~3, 0, 0, 0, ~7, 0, 0, 0, 0, 0, 0, 0, ~15, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, ~31 };
+
+
 #define BASE_MEMORY (POINTER)0x80000000
 // golly allocating a WHOLE DOS computer to ourselves? how RUDE
 #define SYSTEM_CAPACITY  g.dwSystemCapacity
 
 
-#define MALLOC_CHUNK_SIZE ( offsetof( MALLOC_CHUNK, byData ) )
+#define MALLOC_CHUNK_SIZE(pData) ( ( (pData)?( (_32*)(pData))[-1]:0 ) + offsetof( MALLOC_CHUNK, byData ) )
+//#define CHUNK_SIZE(pData) ( ( (pData)?( (_32*)(pData))[-1]:0 ) +offsetof( CHUNK, byData ) ) )
 #define CHUNK_SIZE ( offsetof( CHUNK, byData ) )
 #define MEM_SIZE  ( offsetof( MEM, pRoot ) )
 
@@ -264,6 +268,7 @@ PRIORITY_PRELOAD( InitGlobal, DEFAULT_PRELOAD_PRIORITY )
 	//USE_CUSTOM_ALLOCER = SACK_GetProfileIntEx( GetProgramName(), WIDE( "SACK/Memory Library/Custom Allocator" ), USE_CUSTOM_ALLOCER, TRUE );
 	g.bDisableDebug = SACK_GetProfileIntEx( GetProgramName(), WIDE( "SACK/Memory Library/Disable Debug" ), !USE_DEBUG_LOGGING, TRUE );
 #endif
+	g.nMinAllocateSize = 32;
 }
 
 #if __GNUC__ 
@@ -303,7 +308,7 @@ inline _64 DoXchg64( PV_64 p, _64 val ){  __asm__( WIDE("lock xchg (%2),%0"):WID
 #  endif
 #else
 #  if ( defined( __LINUX__ ) || defined( __LINUX64__ ) ) //&& !( defined __ARM__ || defined __ANDROID__ )
-	XCHG( p, val );
+	return XCHG( p, val );
 //   return __atomic_exchange_n(p,val,__ATOMIC_RELAXED);
 #  else /* some other system, not windows, not linux... */
 	{
@@ -814,7 +819,7 @@ void InitSharedMemory( void )
 #endif
 #ifdef VERBOSE_LOGGING
 		if( !g.bDisableDebug )
-			Log2( WIDE("CHUNK: %d  MEM:%d"), CHUNK_SIZE, MEM_SIZE );
+			Log2( WIDE("CHUNK: %d  MEM:%d"), CHUNK_SIZE(0), MEM_SIZE );
 #endif
 		g.bInit = TRUE;  // onload was definatly a zero.
 		{
@@ -1461,7 +1466,7 @@ PTRSZVAL GetFileSize( int fd )
 					(*dwSize) = (PTRSZVAL)(lSize.QuadPart);
 				}
 				if( bCreated )
-					(*bCreated) = 1;
+					(*bCreated) = 0;
 			}
 			else
 			{
@@ -1471,7 +1476,7 @@ PTRSZVAL GetFileSize( int fd )
 				SetFilePointer( hFile, (LONG)*dwSize, NULL, FILE_BEGIN );
 				SetEndOfFile( hFile );
 				if( bCreated )
-					(*bCreated) = 0;
+					(*bCreated) = 1;
 			}
 			//(*dwSize) = GetFileSize( hFile, NULL );
 #ifdef DEBUG_OPEN_SPACE
@@ -1766,14 +1771,19 @@ static void DropMemEx( PMEM pMem DBG_PASS )
 
 //------------------------------------------------------------------------------------------------------
 
-POINTER HeapAllocateEx( PMEM pHeap, PTRSZVAL dwSize DBG_PASS )
+POINTER HeapAllocateAlignedEx( PMEM pHeap, PTRSZVAL dwSize, _32 alignment DBG_PASS )
 {
    // if a heap is passed, it's a private heap, and allocation is as normal...
+	_32 dwPad = 0;
+	if( alignment ) {
+		dwSize += (alignment - 1);
+		dwPad = (alignment - 1);
+	}
 	if( !pHeap && !USE_CUSTOM_ALLOCER )
 	{
 		PMALLOC_CHUNK pc;
 #ifdef ENABLE_NATIVE_MALLOC_PROTECTOR
-		pc = (PMALLOC_CHUNK)malloc( sizeof( MALLOC_CHUNK ) + dwSize + sizeof( pc->LeadProtect ) );
+		pc = (PMALLOC_CHUNK)malloc( sizeof( MALLOC_CHUNK ) + aligment + dwSize + sizeof( pc->LeadProtect ) );
 		if( !pc )
 			DebugBreak();
 		MemSet( pc->LeadProtect, LEAD_PROTECT_TAG, sizeof( pc->LeadProtect ) );
@@ -1783,13 +1793,26 @@ POINTER HeapAllocateEx( PMEM pHeap, PTRSZVAL dwSize DBG_PASS )
 #endif
 		pc->dwOwners = 1;
 		pc->dwSize = dwSize;
+		pc->dwPad = dwPad;
 #ifndef NO_LOGGING
 		if( g.bLogAllocate )
 		{
 			_lprintf(DBG_RELAY)( WIDE( "alloc %p(%p) %" ) _PTRSZVALfs, pc, pc->byData, dwSize );
 		}
 #endif
-		return pc->byData;
+		if( alignment && ( (PTRSZVAL)pc->byData & ~masks[alignment] ) ) {
+			PTRSZVAL retval = ((((PTRSZVAL)pc->byData) + (alignment - 1)) & masks[alignment]);
+			if( dwPad < 4 ) {
+				DebugBreak();
+			}
+			pc->dwPad = dwPad - 4;
+			((_32*)(retval - 4))[0] = pc->to_chunk_start = ((((PTRSZVAL)pc->byData) + (alignment - 1)) & masks[alignment]) - (PTRSZVAL)pc->byData;
+			return (POINTER)retval;
+		}
+		else {
+			pc->to_chunk_start = 0;
+			return pc->byData;
+		}
 	}
 	else
 	{
@@ -1947,17 +1970,30 @@ POINTER HeapAllocateEx( PMEM pHeap, PTRSZVAL dwSize DBG_PASS )
 #endif
 		DropMem( pCurMem );
 		DropMem( pMem );
-		return pc->byData;
+		if( alignment && ((PTRSZVAL)pc->byData & ~masks[alignment]) ) {
+			PTRSZVAL retval = ((((PTRSZVAL)pc->byData) + (alignment - 1)) & masks[alignment]);
+			((_32*)(retval - 4))[0] = pc->to_chunk_start = ((((PTRSZVAL)pc->byData) + (alignment - 1)) & masks[alignment]) - (PTRSZVAL)pc->byData;
+			return (POINTER)retval;
+		}
+		else {
+			pc->to_chunk_start = 0;
+			return pc->byData;
+		}
 	}
 
    return NULL;
 }
 
 //------------------------------------------------------------------------------------------------------
+POINTER HeapAllocateEx( PMEM pHeap, PTRSZVAL dwSize DBG_PASS ) {
+	return HeapAllocateAlignedEx( pHeap, dwSize, 0 DBG_RELAY );
+}
+
+//------------------------------------------------------------------------------------------------------
 #undef AllocateEx
  POINTER  AllocateEx ( PTRSZVAL dwSize DBG_PASS )
 {
-	return HeapAllocateEx( g.pMemInstance, dwSize DBG_RELAY );
+	return HeapAllocateAlignedEx( g.pMemInstance, dwSize, 0 DBG_RELAY );
 }
 
 //------------------------------------------------------------------------------------------------------
@@ -1967,7 +2003,7 @@ POINTER HeapAllocateEx( PMEM pHeap, PTRSZVAL dwSize DBG_PASS )
 	POINTER dest;
 	PTRSZVAL min;
 
-	dest = HeapAllocateEx( pHeap, size DBG_RELAY );
+	dest = HeapAllocateAlignedEx( pHeap, size, 0 DBG_RELAY );
 	if( source )
 	{
 		min = SizeOfMemBlock( source );
@@ -1992,7 +2028,7 @@ POINTER HeapAllocateEx( PMEM pHeap, PTRSZVAL dwSize DBG_PASS )
 	POINTER dest;
 	PTRSZVAL min;
 
-	dest = HeapAllocateEx( pHeap, size DBG_RELAY );
+	dest = HeapAllocateAlignedEx( pHeap, size, 0 DBG_RELAY );
 	if( source )
 	{
 		min = SizeOfMemBlock( source );
@@ -2083,13 +2119,13 @@ static void Bubble( PMEM pMem )
 	{
 		if( USE_CUSTOM_ALLOCER )
 		{
-			register PCHUNK pc = (PCHUNK)(((PTRSIZEVAL)pData) - offsetof( CHUNK, byData ));
+			register PCHUNK pc = (PCHUNK)(((PTRSIZEVAL)pData) - (((_32*)pData)[-1] + offsetof( CHUNK, byData )));
 			return pc->dwSize - pc->dwPad;
 		}
 		else
 		{
-			register PMALLOC_CHUNK pc = (PMALLOC_CHUNK)(((PTRSIZEVAL)pData) - offsetof( MALLOC_CHUNK, byData ));
-			return pc->dwSize;
+			register PMALLOC_CHUNK pc = (PMALLOC_CHUNK)(((PTRSIZEVAL)pData) - (((_32*)pData)[-1] + offsetof( MALLOC_CHUNK, byData )));
+			return pc->dwSize - ( pc->to_chunk_start + pc->dwPad );
 		}
 	}
 	return 0;
@@ -2132,8 +2168,8 @@ POINTER ReleaseEx ( POINTER pData DBG_PASS )
 		if( !USE_CUSTOM_ALLOCER )
 		{
 			// register PMEM pMem = (PMEM)(pData - offsetof( MEM, pRoot ));
-			register PMALLOC_CHUNK pc = (PMALLOC_CHUNK)(((PTRSZVAL)pData) -
-													offsetof( MALLOC_CHUNK, byData ));
+			register PMALLOC_CHUNK pc = (PMALLOC_CHUNK)(((PTRSZVAL)pData) - ( ((_32*)pData)[-1] +
+													offsetof( MALLOC_CHUNK, byData ) ) );
 			pc->dwOwners--;
 			if( !pc->dwOwners )
 			{
@@ -2169,8 +2205,8 @@ POINTER ReleaseEx ( POINTER pData DBG_PASS )
 		}
       else
 		{
-			register PCHUNK pc = (PCHUNK)(((PTRSZVAL)pData) -
-													offsetof( CHUNK, byData ));
+			register PCHUNK pc = (PCHUNK)(((PTRSZVAL)pData) - ( ( (_32*)pData)[-1] +
+													offsetof( CHUNK, byData ) ) );
 			PMEM pMem, pCurMem;
 			PSPACE pMemSpace;
 
@@ -2423,7 +2459,7 @@ POINTER ReleaseEx ( POINTER pData DBG_PASS )
 	{
 		if( !USE_CUSTOM_ALLOCER )
 		{
-			PMALLOC_CHUNK pc = (PMALLOC_CHUNK)((char*)pData - MALLOC_CHUNK_SIZE);
+			PMALLOC_CHUNK pc = (PMALLOC_CHUNK)((char*)pData - MALLOC_CHUNK_SIZE(pData));
 			//_lprintf( DBG_RELAY )( "holding block %p", pc );
 #ifndef NO_LOGGING
 			if( g.bLogAllocate && g.bLogAllocateWithHold )
@@ -2694,7 +2730,7 @@ void  DebugDumpHeapMemEx ( PMEM pHeap, LOGICAL bVerbose )
 	PMEM pMem;
 	if( !ppMemory || !*ppMemory)
 		return FALSE;
-	pc = (PCHUNK)(((PTRSIZEVAL)(*ppMemory)) - offsetof( CHUNK, byData ));
+	pc = (PCHUNK)(((PTRSIZEVAL)(*ppMemory)) - (((_32*)pData)[-1] + offsetof( CHUNK, byData )));
 	pMem = GrabMem( pc->pRoot );
 
 		// check if prior block is free... if so - then...

@@ -501,10 +501,14 @@ set( UUID_SOURCES
   ${SOURCES_ROOT}src/contrib/uuid-1.6.2/uuid_ui64.c
 )
 
-SET( VECTLIB_SOURCES src/vectlib/vectlib.c )
-SET_PROPERTY(SOURCE ${VECTLIB_SOURCES}
+SET( VECTLIB_SOURCES src/vectlib/vectlib.c  
+    )
+SET( VECTLIB_MORE_SOURCES src/vectlib/vectlib.c  
+    ${CMAKE_BINARY_DIR}/src/vectlib/vectlib_double.c
+    )
+SET_PROPERTY(SOURCE src/vectlib/vectlib.c  
                  APPEND 
-		PROPERTY COMPILE_DEFINITIONS "MAKE_RCOORD_SINGLE;NO_UNICODE_C" ) 
+		PROPERTY COMPILE_DEFINITIONS "MAKE_RCOORD_SINGLE" ) 
 
 
 set( MD5_SOURCES
@@ -657,6 +661,7 @@ set_source_files_properties(${TYPE_LIBRARY_SOURCES} PROPERTIES LANGUAGE CXX )
 set_source_files_properties(${ADVANCED_TYPE_LIBRARY_SOURCES} PROPERTIES LANGUAGE CXX )
 set_source_files_properties(${NETWORK_SOURCES} PROPERTIES LANGUAGE CXX )
 set_source_files_properties(${VECTLIB_SOURCES} PROPERTIES LANGUAGE CXX)
+set_source_files_properties(${VECTLIB_MORE_SOURCES} PROPERTIES LANGUAGE CXX)
 set_source_files_properties(${OPTION_SOURCE} PROPERTIES LANGUAGE CXX )
 set_source_files_properties(${ODBC_SOURCES} PROPERTIES LANGUAGE CXX )
 set_source_files_properties(${BASE_SOURCES} PROPERTIES LANGUAGE CXX )

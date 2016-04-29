@@ -178,11 +178,11 @@ ATEXIT_PRIORITY( CloseConnections, ATEXIT_PRIORITY_SYSLOG - 3 )
 {
 	PODBC odbc;
 	INDEX idx;
-	LIST_FORALL( global_sqlstub_data->pOpenODBC, idx, PODBC, odbc  )
-	{
-		CloseDatabaseEx( odbc, FALSE );
-
-	}
+	if( global_sqlstub_data )
+		LIST_FORALL( global_sqlstub_data->pOpenODBC, idx, PODBC, odbc  )
+		{
+			CloseDatabaseEx( odbc, FALSE );
+		}
 }
 
 #if defined( USE_SQLITE ) || defined( USE_SQLITE_INTERFACE )
@@ -847,7 +847,11 @@ void InitLibrary( void )
 #ifdef __ANDROID__
 		g.OptionDb.info.pDSN = StrDup( WIDE( "./option.db" ) );
 #else
+#   ifdef __LINUX__
+		g.OptionDb.info.pDSN = StrDup( WIDE( "~/.option.db" ) );
+#   else
 		g.OptionDb.info.pDSN = StrDup( WIDE( "*/../option.db" ) );
+#   endif
 #endif
 		// default to new option database.
 		g.OptionVersion = 4;

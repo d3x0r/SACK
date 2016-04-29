@@ -233,11 +233,13 @@ int ProcessHttp( PCLIENT pc, struct HttpState *pHttpState )
 										if( TextSimilar( request, WIDE( "GET" ) ) )
 										{
 											pHttpState->numeric_code = HTTP_STATE_RESULT_CONTENT; // initialize to assume it's incomplete; NOT OK.  (requests should be OK)
+											request = NEXTLINE( request );
 										}
 										if( TextSimilar( request, WIDE( "POST" ) ) )
 										{
 											pHttpState->numeric_code = HTTP_STATE_RESULT_CONTENT; // initialize to assume it's incomplete; NOT OK.  (requests should be OK)
 											lprintf( WIDE("probably shouldn't post final until content length is also received...") );
+											request = NEXTLINE( request );
 										}
 										for( tmp = request; tmp; tmp = next )
 										{
@@ -270,23 +272,26 @@ int ProcessHttp( PCLIENT pc, struct HttpState *pHttpState )
 													}
 												}
 											}
-											if( GetText(tmp)[0] == '?' )
+											else if( GetText(tmp)[0] == '?' )
 											{
 												ProcessURL_CGI( pHttpState, next );
 												next = NEXTLINE( next );
 											}
-											if( GetText(tmp)[0] == '#' )
+											else if( GetText(tmp)[0] == '#' )
 											{
 												lprintf( WIDE("Page anchor is lost... %s"), GetText( next ) );
 												next = NEXTLINE( next );
 											}
-											if( ( resource_path && tmp->format.position.offset.spaces ) )
-											{
-												break;
-											}
 											else
 											{
-												resource_path = SegAppend( resource_path, SegGrab( tmp ) );
+												if( (resource_path && tmp->format.position.offset.spaces) )
+												{
+													break;
+												}
+												else
+												{
+													resource_path = SegAppend( resource_path, SegGrab( tmp ) );
+												}
 											}
 										}
 										pHttpState->resource = resource_path;
@@ -380,7 +385,9 @@ int ProcessHttp( PCLIENT pc, struct HttpState *pHttpState )
 		}
 	}
 	if( pHttpState->final && 
-		( pHttpState->content_length && ( GetTextSize( pHttpState->partial ) >= pHttpState->content_length ) ) )
+		( ( pHttpState->content_length && ( GetTextSize( pHttpState->partial ) >= pHttpState->content_length ) ) 
+			|| ( !pHttpState->content_length ) 
+			) )
 	{
 		if( pHttpState->numeric_code == 500 )
 			return HTTP_STATE_INTERNAL_SERVER_ERROR;

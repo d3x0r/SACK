@@ -51,56 +51,56 @@ static volatile_variable_entry vve_serverIP = { DEFTEXT( WIDE("server_ip") ), Ge
 
 int InitNetwork( PSENTIENT ps )
 {
-   static int bInit = FALSE;
-   static int bIniting = FALSE;
-   while( bIniting )
-   {
-      //Log( WIDE("Delay to init...\n"));
-      Sleep(5);
-   }
-   bIniting = TRUE;
-   //Log( WIDE("Start NetInit\n") );
-   if( !bInit &&
-       !NetworkWait( 0, MAX_CLIENTS, 32 ) )
-   {
-      DECLTEXT( msg, WIDE("Absolutely no network.") );
-      if( ps->Command )
-         EnqueLink( &ps->Command->Output, &msg );
+	static int bInit = FALSE;
+	static int bIniting = FALSE;
+	while( bIniting )
+	{
+		//Log( WIDE("Delay to init...\n"));
+		Sleep(5);
+	}
+	bIniting = TRUE;
+	//Log( WIDE("Start NetInit\n") );
+	if( !bInit &&
+		 !NetworkWait( 0, MAX_CLIENTS, 32 ) )
+	{
+		DECLTEXT( msg, WIDE("Absolutely no network.") );
+		if( ps->Command )
+			EnqueLink( &ps->Command->Output, &msg );
 
-      return FALSE;
-   }
-   bIniting = FALSE;
-   bInit = TRUE;
-   return TRUE;
+		return FALSE;
+	}
+	bIniting = FALSE;
+	bInit = TRUE;
+	return TRUE;
 }
 
 //--------------------------------------------------------------------------
 
 void CPROC ReadComplete( PCLIENT pc, POINTER pbuf, size_t nSize )
 {
-   PMYDATAPATH pdp;
-   do
-   {
-      pdp = (PMYDATAPATH)GetNetworkLong( pc, DATA_PATH );
-      if( !pdp )
-      {
-      	Log( WIDE("Terminal waiting for datapath to be present...") );
-      	Relinquish();
-      }
-   }while( !pdp );
-   if( pbuf )
-   {
-      ((P_8)pbuf)[nSize] = 0;
-      pdp->Buffer->data.size = nSize;
+	PMYDATAPATH pdp;
+	do
+	{
+		pdp = (PMYDATAPATH)GetNetworkLong( pc, DATA_PATH );
+		if( !pdp )
+		{
+			Log( WIDE("Terminal waiting for datapath to be present...") );
+			Relinquish();
+		}
+	}while( !pdp );
+	if( pbuf )
+	{
+		((P_8)pbuf)[nSize] = 0;
+		pdp->Buffer->data.size = nSize;
 #ifdef _UNICODE 
  		EnqueLink( &pdp->common.Input, SegCreateFromCharLen( (char*)pbuf, nSize ) );
 #else
  		EnqueLink( &pdp->common.Input, SegDuplicate( pdp->Buffer ) );
 #endif
-      pdp->Buffer->data.size = 4096;
-      WakeAThread( pdp->common.Owner );
-   }
-   ReadStream( pc, GetText(pdp->Buffer), GetTextSize( pdp->Buffer ) -1);
+		pdp->Buffer->data.size = 4096;
+		WakeAThread( pdp->common.Owner );
+	}
+	ReadStream( pc, GetText(pdp->Buffer), GetTextSize( pdp->Buffer ) -1);
 }
 
 //---------------------------------------------------------------------------
@@ -146,22 +146,22 @@ static void CPROC TerminalCloseCallback( PCLIENT pc )
 		WakeAThread( ps );
 	}
 	else
-      lprintf( WIDE("Failed to get stuff... ") );
+		lprintf( WIDE("Failed to get stuff... ") );
 }
 //---------------------------------------------------------------------------
 
 static void CPROC ClientDisconnected( PCLIENT pc )
 {
-   PSENTIENT ps;
+	PSENTIENT ps;
 	PMYDATAPATH pdp;
-   do
-   {
-      ps = (PSENTIENT)GetNetworkLong( pc, CONTROLLING_SENTIENCE );
+	do
+	{
+		ps = (PSENTIENT)GetNetworkLong( pc, CONTROLLING_SENTIENCE );
 		pdp = (PMYDATAPATH)GetNetworkLong( pc, DATA_PATH );
-   }while( !ps || !pdp );
+	}while( !ps || !pdp );
 
-   if( ps )
-   {
+	if( ps )
+	{
 		if( !InvokeBehavior( WIDE("close_tcp"), ps->Current, ps, NULL ) )
 		{
 			// at least with this close method we can see it happen under /debug...
@@ -169,7 +169,7 @@ static void CPROC ClientDisconnected( PCLIENT pc )
 		}
 	}
 	else
-      DebugBreak();
+		DebugBreak();
 }
 
 //---------------------------------------------------------------------------
@@ -182,28 +182,28 @@ static void CPROC ClientDisconnected( PCLIENT pc )
 
 static void CPROC ServerRecieve( PCLIENT pc, POINTER pBuffer, size_t nSize )
 {
-   PMYDATAPATH pdp;
-   PTEXT Buffer;
-   do
-   {
-      pdp = (PMYDATAPATH)GetNetworkLong( pc, DATA_PATH );
-   }while( !pdp );
-   Buffer = pdp->Buffer;
+	PMYDATAPATH pdp;
+	PTEXT Buffer;
+	do
+	{
+		pdp = (PMYDATAPATH)GetNetworkLong( pc, DATA_PATH );
+	}while( !pdp );
+	Buffer = pdp->Buffer;
 
-   if( pBuffer )
-   {
-      PTEXT pBuild;
+	if( pBuffer )
+	{
+		PTEXT pBuild;
 		Buffer->data.size = nSize;
 		pBuild = SegDuplicate( Buffer );
 		//lprintf( WIDE("Received: %s"), GetText( pBuild ) );
 		EnqueLink( &pdp->common.Input, pBuild );
-      WakeAThread( pdp->common.Owner );
-   }
-   Buffer->data.size = 4096;
-   ReadTCP( pc
-          , Buffer->data.data
-          , Buffer->data.size );
-   return;
+		WakeAThread( pdp->common.Owner );
+	}
+	Buffer->data.size = 4096;
+	ReadTCP( pc
+			 , Buffer->data.data
+			 , Buffer->data.size );
+	return;
 }
 
 //---------------------------------------------------------------------------
@@ -214,43 +214,46 @@ static void CPROC ServerRecieve( PCLIENT pc, POINTER pBuffer, size_t nSize )
 #endif
 // unsigned short __stdcall ntohs (unsigned short netshort);
 //struct servent * __stdcall getservbyname(const TEXTCHAR * name,
-//                                                 const TEXTCHAR * proto);
+//                                         const TEXTCHAR * proto);
 
 //---------------------------------------------------------------------------
 
 static TEXTCHAR byOutputBuf[1492];
 static int ofs;
 
-static int CPROC TerminalTransmit( PDATAPATH pdpX )
+static int CPROC TerminalTransmitEx( PDATAPATH pdpX, LOGICAL secure )
 {
-   PMYDATAPATH pdp = (PMYDATAPATH)pdpX;
-   size_t len;
-   PTEXT tokens, pdel;
-   //if( pdp->common.Type == myTypeID ||
-   //    pdp->common.Type == myTypeID2)
-   {
-      ofs = 0;
-      while( ( pdel = tokens = (PTEXT)DequeLink( &pdp->common.Output ) ) )
-      {
-      	{
+	PMYDATAPATH pdp = (PMYDATAPATH)pdpX;
+	size_t len;
+	PTEXT tokens, pdel;
+	//if( pdp->common.Type == myTypeID ||
+	//    pdp->common.Type == myTypeID2)
+	{
+		ofs = 0;
+		while( ( pdel = tokens = (PTEXT)DequeLink( &pdp->common.Output ) ) )
+		{
+			{
 				//Log2( WIDE("Sending %d bytes to connection FORMATTED! %08x"), GetTextSize( tokens ), NEXTLINE(tokens ) );
-	         if( pdp->bCommandOut && !(tokens->flags & TF_NORETURN ))
-   	      {
-      	      if(( ofs + 2) < sizeof(byOutputBuf) )
-         	   {
-	         PutInLeadReturn:
-   	            byOutputBuf[ofs++] = '\r';
-      	         byOutputBuf[ofs++] = '\n';
-         	      byOutputBuf[ofs] = 0;
-            	}
-	            else
-   	         {
-      	         SendTCP( pdp->handle, byOutputBuf, ofs );
-         	      ofs = 0;
-            	   goto PutInLeadReturn;
-	            }
-   	      }
-      	   {
+				if( pdp->bCommandOut && !(tokens->flags & TF_NORETURN ))
+				{
+					if(( ofs + 2) < sizeof(byOutputBuf) )
+					{
+					PutInLeadReturn:
+						byOutputBuf[ofs++] = '\r';
+						byOutputBuf[ofs++] = '\n';
+						byOutputBuf[ofs] = 0;
+					}
+					else
+					{
+						if( secure )
+							ssl_Send( pdp->handle, byOutputBuf, ofs );
+						else
+							SendTCP( pdp->handle, byOutputBuf, ofs );
+						ofs = 0;
+						goto PutInLeadReturn;
+					}
+				}
+				{
 					PTEXT pSend, pSeg;
 					//PTEXT first;
 
@@ -273,13 +276,19 @@ static int CPROC TerminalTransmit( PDATAPATH pdpX )
 							if( ofs )
 							{
 								lprintf( WIDE("sending (%d) %s"), ofs, byOutputBuf );
-								SendTCP( pdp->handle, byOutputBuf, ofs );
+								if( secure )
+									ssl_Send( pdp->handle, byOutputBuf, ofs );
+								else
+									SendTCP( pdp->handle, byOutputBuf, ofs );
 								ofs = 0;
 								goto RequeueToBuffer;
 							}
 							else
 							{
-								SendTCP( pdp->handle, GetText(pSeg), GetTextSize( pSeg ) );
+								if( secure )
+									ssl_Send( pdp->handle, GetText(pSeg), GetTextSize( pSeg ) );
+								else
+									SendTCP( pdp->handle, GetText(pSeg), GetTextSize( pSeg ) );
 							}
 						}
 						else
@@ -300,16 +309,29 @@ static int CPROC TerminalTransmit( PDATAPATH pdpX )
 			LineRelease( pdel );
 		}
 		if( ofs )
-			SendTCP( pdp->handle, byOutputBuf, ofs );
+			if( secure )
+				ssl_Send( pdp->handle, byOutputBuf, ofs );
+			else
+				SendTCP( pdp->handle, byOutputBuf, ofs );
 	}
 #if 0
-   else
-   {
-      Log( WIDE("We're so fucked...\n") );
-      DebugBreak();
+	else
+	{
+		Log( WIDE("We're so fucked...\n") );
+		DebugBreak();
 	}
 #endif
-   return 0;
+	return 0;
+}
+
+static int CPROC TerminalTransmit( PDATAPATH pdpX )
+{
+	return TerminalTransmitEx( pdpX, FALSE );
+}
+
+static int CPROC SecureTerminalTransmit( PDATAPATH pdpX )
+{
+	return TerminalTransmitEx( pdpX, TRUE );
 }
 
 //---------------------------------------------------------------------------
@@ -317,25 +339,25 @@ static int CPROC TerminalTransmit( PDATAPATH pdpX )
 static int CPROC Close( PDATAPATH pdpClose )
 {
 	PMYDATAPATH pdp = (PMYDATAPATH)pdpClose;
-   //if( pdp->common.Type == myTypeID ||
-   //    pdp->common.Type == myTypeID2 )
-   {
-      PSENTIENT ps = pdp->common.Owner;
+	//if( pdp->common.Type == myTypeID ||
+	//	 pdp->common.Type == myTypeID2 )
+	{
+		PSENTIENT ps = pdp->common.Owner;
 		if( pdp->handle )
 			RemoveClientEx( pdp->handle, TRUE, TRUE );
-      pdp->common.Type = 0; // HT_CLOSED
-      pdp->common.Close = NULL;
-      pdp->common.Read = NULL;
-      pdp->common.Write = NULL;
-      LineRelease( pdp->Buffer );
-      pdp->handle = NULL;
-      if( pdp->CommandInfo.InputHistory )
-      {
-         PTEXT pLine;
-         while( ( pLine = (PTEXT)DequeLink( &pdp->CommandInfo.InputHistory ) ) )
-            LineRelease( pLine );
-         DeleteLinkQueue( &pdp->CommandInfo.InputHistory );
-      }
+		pdp->common.Type = 0; // HT_CLOSED
+		pdp->common.Close = NULL;
+		pdp->common.Read = NULL;
+		pdp->common.Write = NULL;
+		LineRelease( pdp->Buffer );
+		pdp->handle = NULL;
+		if( pdp->CommandInfo.InputHistory )
+		{
+			PTEXT pLine;
+			while( ( pLine = (PTEXT)DequeLink( &pdp->CommandInfo.InputHistory ) ) )
+				LineRelease( pLine );
+			DeleteLinkQueue( &pdp->CommandInfo.InputHistory );
+		}
 		{
 			if( ps->Command )
 			{
@@ -343,50 +365,50 @@ static int CPROC Close( PDATAPATH pdpClose )
 				QueueCommand( ps, WIDE("/CloseTerm") );
 			}
 		}
-      return 0;
-   }
-   return 1;
+		return 0;
+	}
+	return 1;
 }
 //---------------------------------------------------------------------------
 static int CPROC AutoRelay( PDATAPATH pdp )
 {
 	RelayInput( pdp, NULL );
-   return 0;
+	return 0;
 }
 
 //---------------------------------------------------------------------------
 static void ClearCommandHold( struct sentient_tag *ps// sentient processing macro
-                   , struct macro_state_tag *pMacState ) // saves extra peek...
+						 , struct macro_state_tag *pMacState ) // saves extra peek...
 {
 	//Log( WIDE("Clearing commands for macro...") );
 	ps->flags.bHoldCommands = FALSE;
-   PopData( &ps->MacroStack );
+	PopData( &ps->MacroStack );
 }
 
 //---------------------------------------------------------------------------
 static void CPROC ServerContacted( PCLIENT pListen,PCLIENT pNew  )
 {
-   PSENTIENT ps;
-   PMYDATAPATH pdp, pdpserver;
-   int bCommand;
-   do
-   {
-      ps = (PSENTIENT)GetNetworkLong( pListen, CONTROLLING_SENTIENCE );
-      pdpserver = (PMYDATAPATH)GetNetworkLong( pListen, DATA_PATH );
-   }while( !ps || !pdpserver );
-   if( pdpserver == (PMYDATAPATH)ps->Command )
-      bCommand = TRUE;
-   else
-      bCommand = FALSE;
+	PSENTIENT ps;
+	PMYDATAPATH pdp, pdpserver;
+	int bCommand;
+	do
+	{
+		ps = (PSENTIENT)GetNetworkLong( pListen, CONTROLLING_SENTIENCE );
+		pdpserver = (PMYDATAPATH)GetNetworkLong( pListen, DATA_PATH );
+	}while( !ps || !pdpserver );
+	if( pdpserver == (PMYDATAPATH)ps->Command )
+		bCommand = TRUE;
+	else
+		bCommand = FALSE;
 
-   {
+	{
 		PENTITY pe;
-      //PTEXT tmp;
-      PSENTIENT psNew;
+		//PTEXT tmp;
+		PSENTIENT psNew;
 
 		pe = Duplicate( ps->Current );
 
-      //AddVolatileVariable( pe, &vve_clientIP, (PTRSZVAL)pNew );
+		//AddVolatileVariable( pe, &vve_clientIP, (PTRSZVAL)pNew );
 		//AddVolatileVariable( pe, &vve_serverIP, (PTRSZVAL)pNew );
 
 		// this should make this thing's creator the createor fo the socket...
@@ -394,15 +416,15 @@ static void CPROC ServerContacted( PCLIENT pListen,PCLIENT pNew  )
 		// the real creator needs to be killed...
 		{
 			// oh - this is for purposes of output from this
-         // object...
+			// object...
 			//DeleteLink( &pe->pCreatedBy->pCreated, pe );
-         //AddLink( &ps->Current->pCreatedBy, pe );
+			//AddLink( &ps->Current->pCreatedBy, pe );
 			//pe->pCreatedBy = ps->Current->pCreatedBy;
 		}
 
 		psNew = CreateAwareness( pe );
 		//Assimilate( psNew, tmp = SegCreateFromText( WIDE("net device") ) );
-      //LineRelease( tmp );
+		//LineRelease( tmp );
 		psNew->flags.bHoldCommands = TRUE;
 		if( bCommand )
 		{
@@ -465,8 +487,8 @@ static void CPROC ServerContacted( PCLIENT pListen,PCLIENT pNew  )
 //---------------------------------------------------------------------------
 static int CPROC serverwrite( PDATAPATH ps )
 {
-   RelayOutput( ps, NULL );
-   return 0;
+	RelayOutput( ps, NULL );
+	return 0;
 }
 
 //---------------------------------------------------------------------------
@@ -474,12 +496,12 @@ static int CPROC serverwrite( PDATAPATH ps )
 
 static PDATAPATH OnInitDevice( WIDE("tcpserver"), WIDE("Telnet server socket connection...")  )( PDATAPATH *pChannel, PSENTIENT ps, PTEXT parameters )
 {
-   PMYDATAPATH pdp;
-   PTEXT pAddress;
-   if( !InitNetwork(ps) )
-   {
-      return NULL;
-   }
+	PMYDATAPATH pdp;
+	PTEXT pAddress;
+	if( !InitNetwork(ps) )
+	{
+		return NULL;
+	}
 
 	pdp = CreateDataPath( pChannel, MYDATAPATH );
 
@@ -509,8 +531,8 @@ static PDATAPATH OnInitDevice( WIDE("tcpserver"), WIDE("Telnet server socket con
 		//pdp->common.flags.KeepCR = TRUE;
 		SetNetworkLong( pdp->handle, CONTROLLING_SENTIENCE, (PTRSZVAL)ps );
 		SetNetworkLong( pdp->handle, DATA_PATH, (PTRSZVAL)pdp );
-   }
-   return (PDATAPATH)pdp;
+	}
+	return (PDATAPATH)pdp;
 }
 
 //---------------------------------------------------------------------------
@@ -519,7 +541,7 @@ static void  CPROC TerminalConnect( PCLIENT pClient, int nError )
 {
 	if( nError )
 	{
-   		Log1( WIDE("Aborted connect after return : %d"), nError );
+			Log1( WIDE("Aborted connect after return : %d"), nError );
 		TerminalCloseCallback( pClient ); // calls remove client..
 	}
 	else
@@ -529,56 +551,112 @@ static void  CPROC TerminalConnect( PCLIENT pClient, int nError )
 //---------------------------------------------------------------------------
 static PDATAPATH OnInitDevice(WIDE("tcp"), WIDE("Telnet type clear text socket connection..."))( PDATAPATH *pChannel, PSENTIENT ps, PTEXT parameters )
 {
-   SOCKADDR *sa;
-   PTEXT pDestination;
-   PMYDATAPATH pdp;
+	SOCKADDR *sa;
+	PTEXT pDestination;
+	PMYDATAPATH pdp;
 
 
-   pdp = CreateDataPath( pChannel, MYDATAPATH );
-   pdp->Buffer = SegCreate( 4096 );
+	pdp = CreateDataPath( pChannel, MYDATAPATH );
+	pdp->Buffer = SegCreate( 4096 );
 
-   if( !InitNetwork(ps) )
-   {
-      return NULL;
-   }
+	if( !InitNetwork(ps) )
+	{
+		return NULL;
+	}
 
 	pDestination = BuildLineExx( GetParam( ps, &parameters ), TRUE, NULL DBG_SRC );
 	Log1( WIDE("Address: \"%s\""), GetText( pDestination ) );
 	sa = CreateSockAddress( GetText( pDestination ), 23 );
-   LineRelease( pDestination );
-   if( sa )
-   {
-      pdp->handle = OpenTCPClientAddrExx( sa, ReadComplete,
+	LineRelease( pDestination );
+	if( sa )
+	{
+		pdp->handle = OpenTCPClientAddrExx( sa, ReadComplete,
                                           TerminalCloseCallback,
                                           NULL,
                                           TerminalConnect );
 		ReleaseAddress( sa );
-      if( pdp->handle )
-      {
-         SetTCPNoDelay( pdp->handle, TRUE );
-         pdp->common.Type = 1;//myTypeID;
-         pdp->common.Close = Close;
-         pdp->common.Write = TerminalTransmit;
-         pdp->common.Read = NULL; // not needed cause data appears magically...
+		if( pdp->handle )
+		{
+			SetTCPNoDelay( pdp->handle, TRUE );
+			pdp->common.Type = 1;//myTypeID;
+			pdp->common.Close = Close;
+			pdp->common.Write = TerminalTransmit;
+			pdp->common.Read = NULL; // not needed cause data appears magically...
 			pdp->common.flags.Data_Source = 1;
 
-         //pdp->common.flags.KeepCR = TRUE;
-         pdp->nState = 0;
-         pdp->nParams = 0;
-         pdp->ParamSet[0] = 0;
-         pdp->flags.bNewLine = FALSE; // start with NEWLINE...
-         SetNetworkLong( pdp->handle, CONTROLLING_SENTIENCE, (PTRSZVAL)ps );
-         SetNetworkLong( pdp->handle, DATA_PATH, (PTRSZVAL)pdp );
-      }
-      else
-      {
-	   	Log( WIDE("Aborted during connect...") );
-	   	LineRelease( pdp->Buffer );
-	   	DestroyDataPath( (PDATAPATH)pdp );
-	   	pdp = NULL;
-      }
-   }
-   return (PDATAPATH)pdp;
+			//pdp->common.flags.KeepCR = TRUE;
+			pdp->nState = 0;
+			pdp->nParams = 0;
+			pdp->ParamSet[0] = 0;
+			pdp->flags.bNewLine = FALSE; // start with NEWLINE...
+			SetNetworkLong( pdp->handle, CONTROLLING_SENTIENCE, (PTRSZVAL)ps );
+			SetNetworkLong( pdp->handle, DATA_PATH, (PTRSZVAL)pdp );
+		}
+		else
+		{
+			Log( WIDE("Aborted during connect...") );
+			LineRelease( pdp->Buffer );
+			DestroyDataPath( (PDATAPATH)pdp );
+			pdp = NULL;
+		}
+	}
+	return (PDATAPATH)pdp;
+}
+
+
+//---------------------------------------------------------------------------
+static PDATAPATH OnInitDevice(WIDE("tls"), WIDE("Telnet type clear text TLS socket connection..."))( PDATAPATH *pChannel, PSENTIENT ps, PTEXT parameters )
+{
+	SOCKADDR *sa;
+	PTEXT pDestination;
+	PMYDATAPATH pdp;
+
+
+	pdp = CreateDataPath( pChannel, MYDATAPATH );
+	pdp->Buffer = SegCreate( 4096 );
+
+	if( !InitNetwork(ps) )
+	{
+		return NULL;
+	}
+
+	pDestination = BuildLineExx( GetParam( ps, &parameters ), TRUE, NULL DBG_SRC );
+	Log1( WIDE("Address: \"%s\""), GetText( pDestination ) );
+	sa = CreateSockAddress( GetText( pDestination ), 23 );
+	LineRelease( pDestination );
+	if( sa )
+	{
+		pdp->handle = OpenTCPClientAddrExx( sa, ReadComplete,
+						                        TerminalCloseCallback,
+                                          NULL,
+                                          TerminalConnect );
+		ReleaseAddress( sa );
+		if( pdp->handle && ssl_BeginClientSession( pdp->handle ) )
+		{
+			SetTCPNoDelay( pdp->handle, TRUE );
+			pdp->common.Type = 1;//myTypeID;
+			pdp->common.Close = Close;
+			pdp->common.Write = SecureTerminalTransmit;
+			pdp->common.Read = NULL; // not needed cause data appears magically...
+			pdp->common.flags.Data_Source = 1;
+
+			//pdp->common.flags.KeepCR = TRUE;
+			pdp->nState = 0;
+			pdp->nParams = 0;
+			pdp->ParamSet[0] = 0;
+			pdp->flags.bNewLine = FALSE; // start with NEWLINE...
+			SetNetworkLong( pdp->handle, CONTROLLING_SENTIENCE, (PTRSZVAL)ps );
+			SetNetworkLong( pdp->handle, DATA_PATH, (PTRSZVAL)pdp );
+		}
+		else
+		{
+			Log( WIDE("Aborted during connect...") );
+			LineRelease( pdp->Buffer );
+			DestroyDataPath( (PDATAPATH)pdp );
+			pdp = NULL;
+		}
+	}
+	return (PDATAPATH)pdp;
 }
 
 
@@ -587,19 +665,19 @@ static PDATAPATH OnInitDevice(WIDE("tcp"), WIDE("Telnet type clear text socket c
 // UDP Receive message
 static void UDPReceive( PCLIENT pc, TEXTSTR pBuffer, int nSize, SOCKADDR *sa )
 {
-   PMYDATAPATH pdp;
-   pdp = (PMYDATAPATH)GetNetworkLong( pc, DATA_PATH );
-   if( pdp )
+	PMYDATAPATH pdp;
+	pdp = (PMYDATAPATH)GetNetworkLong( pc, DATA_PATH );
+	if( pdp )
 	{
 		PTEXT pSeg;
 		if( pBuffer && nSize )
 		{
-		   pdp->Buffer->data.data[nSize] = 0;
-   	  	pdp->Buffer->data.size = nSize;
-   	  	if( sa )
-   	  	{
+			pdp->Buffer->data.data[nSize] = 0;
+		  	pdp->Buffer->data.size = nSize;
+		  	if( sa )
+		  	{
 				PTEXT pData = SegAppend( pSeg = SegCreate( sizeof( SOCKADDR ) )
-	 						           , SegDuplicate( pdp->Buffer ) );
+	 									  , SegDuplicate( pdp->Buffer ) );
 
 				MemCpy( GetText( pSeg ), sa, sizeof( SOCKADDR ) );
 				pSeg->flags |= TF_ADDRESS;
@@ -611,7 +689,7 @@ static void UDPReceive( PCLIENT pc, TEXTSTR pBuffer, int nSize, SOCKADDR *sa )
 		 		EnqueLink( &pdp->common.Input
 	 						, SegDuplicate( pdp->Buffer ) );
 		}
-   		pdp->Buffer->data.size = 4096;
+			pdp->Buffer->data.size = 4096;
 		ReadUDP( pc, pdp->Buffer->data.data, pdp->Buffer->data.size );
 	}
 }
@@ -622,40 +700,40 @@ static void UDPReceive( PCLIENT pc, TEXTSTR pBuffer, int nSize, SOCKADDR *sa )
 
 static int CPROC UDPTransmit( PDATAPATH pdpX )
 {
-   PMYDATAPATH pdp = (PMYDATAPATH)pdpX;
-   PTEXT pLine, pWord, pSend, pAddr;
-   // ugg...
-   while( ( pLine = (PTEXT)DequeLink( &pdp->common.Output ) ) )
-   {
-      TEXTCHAR *pAddrData;
-      pWord = pLine;
-      if( ( pWord->flags & TF_ADDRESS ) == TF_ADDRESS )
-      {
-         // assume this is a valid network address... if nto well it won't work.
-         pAddr = pWord;
-         pAddrData = pAddr->data.data;
-         pWord = NEXTLINE( pWord );
-      }
-      else
-      {
-         pAddr = NULL;
-         pAddrData = NULL;
-      }
-      pSend = BuildLine( pWord );
-      if( pSend )
-      {
-         if( !SendUDPEx( pdp->handle
-                       , pSend->data.data
-                       , pSend->data.size
-                       , (SOCKADDR*)pAddrData ) )
-         {
-            //DECLTEXT( msg, WIDE("Send Failed...") );
-         }
-      }
-      LineRelease( pSend );
+	PMYDATAPATH pdp = (PMYDATAPATH)pdpX;
+	PTEXT pLine, pWord, pSend, pAddr;
+	// ugg...
+	while( ( pLine = (PTEXT)DequeLink( &pdp->common.Output ) ) )
+	{
+		TEXTCHAR *pAddrData;
+		pWord = pLine;
+		if( ( pWord->flags & TF_ADDRESS ) == TF_ADDRESS )
+		{
+			// assume this is a valid network address... if nto well it won't work.
+			pAddr = pWord;
+			pAddrData = pAddr->data.data;
+			pWord = NEXTLINE( pWord );
+		}
+		else
+		{
+			pAddr = NULL;
+			pAddrData = NULL;
+		}
+		pSend = BuildLine( pWord );
+		if( pSend )
+		{
+			if( !SendUDPEx( pdp->handle
+							  , pSend->data.data
+							  , pSend->data.size
+							  , (SOCKADDR*)pAddrData ) )
+			{
+				//DECLTEXT( msg, WIDE("Send Failed...") );
+			}
+		}
+		LineRelease( pSend );
 		LineRelease( pLine );
-   }
-   return 0;
+	}
+	return 0;
 }
 
 //---------------------------------------------------------------------------
@@ -667,270 +745,270 @@ static int CPROC UDPTransmit( PDATAPATH pdpX )
 // udp
 static PDATAPATH OnInitDevice(WIDE("udpserver"), WIDE("UDP datagram connection..."))( PDATAPATH *pChannel, PSENTIENT ps, PTEXT parameters )
 {
-   // blah - uhmm like stuff....
-   PMYDATAPATH pdp;
-   PTEXT pDestination;
-   SOCKADDR *sa;
+	// blah - uhmm like stuff....
+	PMYDATAPATH pdp;
+	PTEXT pDestination;
+	SOCKADDR *sa;
 
-   pdp = CreateDataPath( pChannel, MYDATAPATH );
-   pdp->Buffer = SegCreate( 4096 );
+	pdp = CreateDataPath( pChannel, MYDATAPATH );
+	pdp->Buffer = SegCreate( 4096 );
 
-   if( !InitNetwork(ps) )
-   {
-      return NULL;
-   }
+	if( !InitNetwork(ps) )
+	{
+		return NULL;
+	}
 
-   pDestination = GetParam( ps, &parameters );
-   sa = CreateSockAddress( GetText( pDestination ), 23 );
+	pDestination = GetParam( ps, &parameters );
+	sa = CreateSockAddress( GetText( pDestination ), 23 );
 
-   if( sa )
-   {
-      pdp->handle = ServeUDPAddr( sa, NULL, NULL );
-      ReleaseAddress( sa );
-      if( !pdp->handle )
-      {
-         DECLTEXT( msg, WIDE("Could not open UDP Receiver") );
-         EnqueLink( &ps->Command->Output, &msg );
-         Release( pdp->Buffer );
-         DestroyDataPath( (PDATAPATH)pdp );
-         pdp = NULL;
-      }
-      else
-      {
-         pdp->common.Type = 1;//myTypeID4;
-         // think the default close will work for UDP stuff too?
-         pdp->common.Close = Close;
-         pdp->common.Write = UDPTransmit;
-         pdp->common.Read = NULL; // not needed cause data appears magically...
-         //pdp->common.flags.KeepCR = TRUE;
-         SetNetworkLong( pdp->handle, CONTROLLING_SENTIENCE, (PTRSZVAL)ps );
-         SetNetworkLong( pdp->handle, DATA_PATH, (PTRSZVAL)pdp );
-         SetNetworkReadComplete( pdp->handle, (cReadComplete)UDPReceive );
-         UDPReceive( pdp->handle, NULL, 0, NULL ); // intial read queue...
-      }
+	if( sa )
+	{
+		pdp->handle = ServeUDPAddr( sa, NULL, NULL );
+		ReleaseAddress( sa );
+		if( !pdp->handle )
+		{
+			DECLTEXT( msg, WIDE("Could not open UDP Receiver") );
+			EnqueLink( &ps->Command->Output, &msg );
+			Release( pdp->Buffer );
+			DestroyDataPath( (PDATAPATH)pdp );
+			pdp = NULL;
+		}
+		else
+		{
+			pdp->common.Type = 1;//myTypeID4;
+			// think the default close will work for UDP stuff too?
+			pdp->common.Close = Close;
+			pdp->common.Write = UDPTransmit;
+			pdp->common.Read = NULL; // not needed cause data appears magically...
+			//pdp->common.flags.KeepCR = TRUE;
+			SetNetworkLong( pdp->handle, CONTROLLING_SENTIENCE, (PTRSZVAL)ps );
+			SetNetworkLong( pdp->handle, DATA_PATH, (PTRSZVAL)pdp );
+			SetNetworkReadComplete( pdp->handle, (cReadComplete)UDPReceive );
+			UDPReceive( pdp->handle, NULL, 0, NULL ); // intial read queue...
+		}
 
-   }
+	}
 
-   return (PDATAPATH)pdp;
+	return (PDATAPATH)pdp;
 }
 
 //---------------------------------------------------------------------------
 
 static PDATAPATH OnInitDevice(WIDE("udp"), WIDE("UDP datagram connection..."))( PDATAPATH *pChannel, PSENTIENT ps, PTEXT parameters )
 {
-   PMYDATAPATH pdp;
-   PTEXT pDestination, pSource;
-   SOCKADDR *sa, *saFrom;
+	PMYDATAPATH pdp;
+	PTEXT pDestination, pSource;
+	SOCKADDR *sa, *saFrom;
 
-   pdp = CreateDataPath( pChannel, MYDATAPATH );
-   pdp->Buffer = SegCreate( 4096 );
+	pdp = CreateDataPath( pChannel, MYDATAPATH );
+	pdp->Buffer = SegCreate( 4096 );
 
-   if( !InitNetwork(ps) )
-   {
-      return NULL;
-   }
+	if( !InitNetwork(ps) )
+	{
+		return NULL;
+	}
 
-   pDestination = GetParam( ps, &parameters );
-   sa = CreateSockAddress( GetText( pDestination ), 23 );
-   pSource = GetParam( ps, &parameters );
-   if( pSource )
-   {
-	   saFrom = CreateSockAddress( GetText( pSource ), 23 );
-   }
-   else
-      saFrom = NULL;
-   if( sa )
-   {
-      pdp->handle = ConnectUDPAddr( saFrom, sa, NULL, NULL );
-      ReleaseAddress( sa );
-      if( saFrom )
-         ReleaseAddress( saFrom );
-      if( !pdp->handle )
-      {
-         DECLTEXT( msg, WIDE("Could not open UDP Socket...") );
-         EnqueLink( &ps->Command->Output, &msg );
-         Release( pdp->Buffer );
-         DestroyDataPath( (PDATAPATH)pdp );
-         pdp = NULL;
-      }
-      else
-      {
-         pdp->common.Type = 1;//myTypeID4;
-         // think the default close will work for UDP stuff too?
-         pdp->common.Close = Close;
-         pdp->common.Write = UDPTransmit;
-         pdp->common.Read = NULL; // not needed cause data appears magically...
-         //pdp->common.flags.KeepCR = TRUE;
-         SetNetworkLong( pdp->handle, CONTROLLING_SENTIENCE, (PTRSZVAL)ps );
-         SetNetworkLong( pdp->handle, DATA_PATH, (PTRSZVAL)pdp );
-         SetNetworkReadComplete( pdp->handle, (cReadComplete)UDPReceive );
-         UDPReceive( pdp->handle, NULL, 0, NULL ); // intial read queue...
-      }
+	pDestination = GetParam( ps, &parameters );
+	sa = CreateSockAddress( GetText( pDestination ), 23 );
+	pSource = GetParam( ps, &parameters );
+	if( pSource )
+	{
+		saFrom = CreateSockAddress( GetText( pSource ), 23 );
+	}
+	else
+		saFrom = NULL;
+	if( sa )
+	{
+		pdp->handle = ConnectUDPAddr( saFrom, sa, NULL, NULL );
+		ReleaseAddress( sa );
+		if( saFrom )
+			ReleaseAddress( saFrom );
+		if( !pdp->handle )
+		{
+			DECLTEXT( msg, WIDE("Could not open UDP Socket...") );
+			EnqueLink( &ps->Command->Output, &msg );
+			Release( pdp->Buffer );
+			DestroyDataPath( (PDATAPATH)pdp );
+			pdp = NULL;
+		}
+		else
+		{
+			pdp->common.Type = 1;//myTypeID4;
+			// think the default close will work for UDP stuff too?
+			pdp->common.Close = Close;
+			pdp->common.Write = UDPTransmit;
+			pdp->common.Read = NULL; // not needed cause data appears magically...
+			//pdp->common.flags.KeepCR = TRUE;
+			SetNetworkLong( pdp->handle, CONTROLLING_SENTIENCE, (PTRSZVAL)ps );
+			SetNetworkLong( pdp->handle, DATA_PATH, (PTRSZVAL)pdp );
+			SetNetworkReadComplete( pdp->handle, (cReadComplete)UDPReceive );
+			UDPReceive( pdp->handle, NULL, 0, NULL ); // intial read queue...
+		}
 
-   }
+	}
 
-   return (PDATAPATH)pdp;
+	return (PDATAPATH)pdp;
 }
 
 //---------------------------------------------------------------------------
 
 static int HandleCommand( WIDE("Network"), WIDE("getaddr") , WIDE("Get network address from message..."))( PSENTIENT ps, PTEXT parameters )
 {
-   return 0;
+	return 0;
 }
 
 //---------------------------------------------------------------------------
 
-static int HandleCommand(WIDE("Network"), WIDE("getip") , WIDE("Get network address from message..."))( PSENTIENT ps, PTEXT parameters )   // input is %textaddr %outvar
+static int HandleCommand(WIDE("Network"), WIDE("getip") , WIDE("Get network address from message..."))( PSENTIENT ps, PTEXT parameters )	// input is %textaddr %outvar
 {
-   PTEXT var1, var2, save, pPort;
-   save = parameters;
-   var1 = GetParam( ps, &parameters );
-   if( var1 == save )
-   {
-      DECLTEXT( msg, WIDE("Invalid variable reference...") );
-      EnqueLink( &ps->Command->Output, &msg );
-//      return 0;
-   }
-   else
+	PTEXT var1, var2, save, pPort;
+	save = parameters;
+	var1 = GetParam( ps, &parameters );
+	if( var1 == save )
+	{
+		DECLTEXT( msg, WIDE("Invalid variable reference...") );
+		EnqueLink( &ps->Command->Output, &msg );
+//		return 0;
+	}
+	else
 	{
 		while( var1->flags & TF_INDIRECT )
-	      var1 = GetIndirect( var1 );
-   }
-   save = parameters;
-   var2 = GetParam( ps, &parameters );
-   if( var2 == save )
-   {
-      DECLTEXT( msg, WIDE("Invalid variable reference...") );
-      EnqueLink( &ps->Command->Output, &msg );
-      return 0;
-   }
+			var1 = GetIndirect( var1 );
+	}
+	save = parameters;
+	var2 = GetParam( ps, &parameters );
+	if( var2 == save )
+	{
+		DECLTEXT( msg, WIDE("Invalid variable reference...") );
+		EnqueLink( &ps->Command->Output, &msg );
+		return 0;
+	}
 
-   if( var1 && var2 )
-   {
-      pPort = NULL;
-      if( var1->flags & TF_BINARY )
-      {
-         SOCKADDR *sa;
-         sa = (SOCKADDR*)GetText( var1 );
-         if( sa->sa_family != AF_INET )
-         {
-            DECLTEXT( msg, WIDE("Binary data is not an INET address...") );
-            EnqueLink( &ps->Command->Output, &msg );
-            return 0;
-         }
-         else
-         {
-            pPort = SegCreate( 15 );
-            pPort->data.size = snprintf( pPort->data.data, pPort->data.size*sizeof(TEXTCHAR), WIDE("%s")
+	if( var1 && var2 )
+	{
+		pPort = NULL;
+		if( var1->flags & TF_BINARY )
+		{
+			SOCKADDR *sa;
+			sa = (SOCKADDR*)GetText( var1 );
+			if( sa->sa_family != AF_INET )
+			{
+				DECLTEXT( msg, WIDE("Binary data is not an INET address...") );
+				EnqueLink( &ps->Command->Output, &msg );
+				return 0;
+			}
+			else
+			{
+				pPort = SegCreate( 15 );
+				pPort->data.size = snprintf( pPort->data.data, pPort->data.size*sizeof(TEXTCHAR), WIDE("%s")
 												  , inet_ntoa( (
 #ifdef __LINUX__
 																	 *(struct in_addr*)&
 #endif
 																	 ((SOCKADDR_IN*)sa)->sin_addr) ) );
-         }
-      }
-      else
-      {
-         TEXTCHAR *p, *port;
-         p = GetText( var1 );
-         if( ( port = strchr( p, ':' ) ) )
-         {
-            port++;
-            pPort = SegCreateFromText( port );
-         }
-         else
-         {
-            DECLTEXT( msg, WIDE("Dunno how to interpret as an IP:PORT...") );
-            EnqueLink( &ps->Command->Output, &msg );
-         }
-      }
-      if( pPort )
-      {
-         LineRelease( GetIndirect( var2 ) );
-         SetIndirect( var2, pPort );
-      }
-   }
-   else
-   {
-      DECLTEXT( msg, WIDE("Parameters to GetIP are wrong... /getip ip:port %into") );
-      EnqueLink( &ps->Command->Output, &msg );
-      return 0;
-   }
-   return 0;
+			}
+		}
+		else
+		{
+			TEXTCHAR *p, *port;
+			p = GetText( var1 );
+			if( ( port = strchr( p, ':' ) ) )
+			{
+				port++;
+				pPort = SegCreateFromText( port );
+			}
+			else
+			{
+				DECLTEXT( msg, WIDE("Dunno how to interpret as an IP:PORT...") );
+				EnqueLink( &ps->Command->Output, &msg );
+			}
+		}
+		if( pPort )
+		{
+			LineRelease( GetIndirect( var2 ) );
+			SetIndirect( var2, pPort );
+		}
+	}
+	else
+	{
+		DECLTEXT( msg, WIDE("Parameters to GetIP are wrong... /getip ip:port %into") );
+		EnqueLink( &ps->Command->Output, &msg );
+		return 0;
+	}
+	return 0;
 }
 
 //---------------------------------------------------------------------------
 
 static int HandleCommand(WIDE("Network"), WIDE("getport") , WIDE("Get network address from message..."))( PSENTIENT ps, PTEXT parameters ) // input is %textaddr %outvar
 {
-   PTEXT var1, var2, save, pPort;
-   save = parameters;
-   var1 = GetParam( ps, &parameters );
-   if( var1 == save )
-   {
-      DECLTEXT( msg, WIDE("Invalid variable reference...") );
-      EnqueLink( &ps->Command->Output, &msg );
-//      return 0;
-   }
-   else
-      var1 = GetIndirect( var1 );
-   save = parameters;
-   var2 = GetParam( ps, &parameters );
-   if( var2 == save )
-   {
-      DECLTEXT( msg, WIDE("Invalid variable reference...") );
-      EnqueLink( &ps->Command->Output, &msg );
-      return 0;
-   }
-   if( var1 && var2 )
-   {
-      pPort = NULL;
-      if( var1->flags & TF_BINARY )
-      {
-         SOCKADDR *sa;
-         sa = (SOCKADDR*)GetText( var1 );
-         if( sa->sa_family != AF_INET )
-         {
-            DECLTEXT( msg, WIDE("Binary data is not an INET address...") );
-            EnqueLink( &ps->Command->Output, &msg );
-            return 0;
-         }
-         else
-         {
-            pPort = SegCreate( 5 );
-            pPort->data.size = snprintf( pPort->data.data, pPort->data.size*sizeof(TEXTCHAR), WIDE("%d")
-                             , ntohs( *(unsigned short*)sa->sa_data ) );
-         }
-      }
-      else
-      {
-         TEXTCHAR *p, *port;
-         p = GetText( var1 );
-         if( ( port = strchr( p, ':' ) ) )
-         {
-            port++;
-            pPort = SegCreateFromText( port );
-         }
-         else
-         {
-            DECLTEXT( msg, WIDE("Dunno how to interpret as an IP:PORT...") );
-            EnqueLink( &ps->Command->Output, &msg );
-         }
-      }
-      if( pPort )
-      {
-         LineRelease( GetIndirect( var2 ) );
-         SetIndirect( var2, pPort );
-      }
-   }
-   else
-   {
-      DECLTEXT( msg, WIDE("Parameters to GetIP are wrong... /getip ip:port %into") );
-      EnqueLink( &ps->Command->Output, &msg );
-      return 0;
-   }
-   return 0;
+	PTEXT var1, var2, save, pPort;
+	save = parameters;
+	var1 = GetParam( ps, &parameters );
+	if( var1 == save )
+	{
+		DECLTEXT( msg, WIDE("Invalid variable reference...") );
+		EnqueLink( &ps->Command->Output, &msg );
+//		return 0;
+	}
+	else
+		var1 = GetIndirect( var1 );
+	save = parameters;
+	var2 = GetParam( ps, &parameters );
+	if( var2 == save )
+	{
+		DECLTEXT( msg, WIDE("Invalid variable reference...") );
+		EnqueLink( &ps->Command->Output, &msg );
+		return 0;
+	}
+	if( var1 && var2 )
+	{
+		pPort = NULL;
+		if( var1->flags & TF_BINARY )
+		{
+			SOCKADDR *sa;
+			sa = (SOCKADDR*)GetText( var1 );
+			if( sa->sa_family != AF_INET )
+			{
+				DECLTEXT( msg, WIDE("Binary data is not an INET address...") );
+				EnqueLink( &ps->Command->Output, &msg );
+				return 0;
+			}
+			else
+			{
+				pPort = SegCreate( 5 );
+				pPort->data.size = snprintf( pPort->data.data, pPort->data.size*sizeof(TEXTCHAR), WIDE("%d")
+									  , ntohs( *(unsigned short*)sa->sa_data ) );
+			}
+		}
+		else
+		{
+			TEXTCHAR *p, *port;
+			p = GetText( var1 );
+			if( ( port = strchr( p, ':' ) ) )
+			{
+				port++;
+				pPort = SegCreateFromText( port );
+			}
+			else
+			{
+				DECLTEXT( msg, WIDE("Dunno how to interpret as an IP:PORT...") );
+				EnqueLink( &ps->Command->Output, &msg );
+			}
+		}
+		if( pPort )
+		{
+			LineRelease( GetIndirect( var2 ) );
+			SetIndirect( var2, pPort );
+		}
+	}
+	else
+	{
+		DECLTEXT( msg, WIDE("Parameters to GetIP are wrong... /getip ip:port %into") );
+		EnqueLink( &ps->Command->Output, &msg );
+		return 0;
+	}
+	return 0;
 }
 
 //---------------------------------------------------------------------------
@@ -938,7 +1016,7 @@ static int HandleCommand(WIDE("Network"), WIDE("getport") , WIDE("Get network ad
 //static int CPROC BuildAddress( PSENTIENT ps, PTEXT parameters ) // input is %textvar %outvar
 //{
 //
-//   return 0;
+//	return 0;
 //}
 
 //---------------------------------------------------------------------------
@@ -988,11 +1066,11 @@ static int HandleCommand(WIDE("Network"), WIDE("whois"), WIDE("Perform whois que
 
 static int HandleCommand(WIDE("Network"), WIDE("ping"), WIDE("Ping a network address..."))( PSENTIENT ps, PTEXT parameters )
 {
-   PTEXT temp;
-   PVARTEXT pvt = VarTextCreate();
-   if( InitNetwork(ps) )
-   {
-      	temp = GetParam( ps, &parameters );
+	PTEXT temp;
+	PVARTEXT pvt = VarTextCreate();
+	if( InitNetwork(ps) )
+	{
+			temp = GetParam( ps, &parameters );
 #ifndef __ANDROID__
 		DoPing( GetText( temp ), 0, 2500, 1, pvt, FALSE, NULL );
 		temp = VarTextGet( pvt );
@@ -1025,36 +1103,36 @@ static int HandleCommand(WIDE("Network"), WIDE("ping"), WIDE("Ping a network add
 
 static int HandleCommand(WIDE("Network"), WIDE("trace"), WIDE("Route trace a network address..."))( PSENTIENT ps, PTEXT parameters )
 {
-   PTEXT temp;
-   PVARTEXT pvt = VarTextCreate();
-   if( InitNetwork(ps) )
-   {
-      temp = GetParam( ps, &parameters );
+	PTEXT temp;
+	PVARTEXT pvt = VarTextCreate();
+	if( InitNetwork(ps) )
+	{
+		temp = GetParam( ps, &parameters );
 #ifndef __ANDROID__
-      DoPing( GetText( temp ), 32, 2500, 1, pvt, FALSE, NULL );
+		DoPing( GetText( temp ), 32, 2500, 1, pvt, FALSE, NULL );
 #endif
-      temp = VarTextGet( pvt );
+		temp = VarTextGet( pvt );
 		{
-         PTEXT partial = NULL, out;
-         out = GatherLineEx( &partial, NULL, FALSE, FALSE, TRUE, temp );
-         while( out )
-         {
-            	PTEXT end;
-            	end = out;
-            	SetEnd( end );
-            	if( end )
-	            	GetText( end )[GetTextSize(end)-1] = 0;
-            EnqueLink( &ps->Command->Output, out );
-            out = GatherLineEx( &partial, NULL, FALSE, FALSE, TRUE, NULL );
-         }
-         if( partial )
-         {
-            EnqueLink( &ps->Command->Output, partial );
-         }
+			PTEXT partial = NULL, out;
+			out = GatherLineEx( &partial, NULL, FALSE, FALSE, TRUE, temp );
+			while( out )
+			{
+					PTEXT end;
+					end = out;
+					SetEnd( end );
+					if( end )
+						GetText( end )[GetTextSize(end)-1] = 0;
+				EnqueLink( &ps->Command->Output, out );
+				out = GatherLineEx( &partial, NULL, FALSE, FALSE, TRUE, NULL );
+			}
+			if( partial )
+			{
+				EnqueLink( &ps->Command->Output, partial );
+			}
 		}
 		LineRelease( temp );
-      //EnqueLink( &ps->Command->Output, temp );
-   }
+		//EnqueLink( &ps->Command->Output, temp );
+	}
 	VarTextDestroy( &pvt );
 	return 0;
 }
@@ -1063,8 +1141,8 @@ PSENTIENT psScanning;
 _32 dwThreadCount;
 TEXTCHAR *pAddr;
 _16 wPortFrom = 1
-   , wPortNow = 0
-   , wPortTo = 2048;
+	, wPortNow = 0
+	, wPortTo = 2048;
 _32 dwMaxThreads = 100;
 //_32 dwThreadCount;
 PTEXT pHolder;
@@ -1074,98 +1152,98 @@ PTEXT pHolder;
 
 static PTRSZVAL CPROC ThreadProc( PTHREAD pThread )
 {
-   PTRSZVAL dwPort = GetThreadParam( pThread );
-   PCLIENT pc;
-   pc = OpenTCPClientEx( pAddr, (_16)dwPort, NULL, NULL, NULL );
-   if( pc )
-   {
-      PTEXT pOutput;
-      TEXTCHAR byOutput[256];
-      snprintf( byOutput, sizeof( byOutput ), WIDE("Connected to address at port: %ld"), dwPort );
-      pOutput = SegCreateFromText( byOutput );
-      EnqueLink( &psScanning->Command->Output, pOutput );
-      RemoveClient( pc );
-   }
-   LockedDecrement( &dwThreadCount );
-   return 0;
+	PTRSZVAL dwPort = GetThreadParam( pThread );
+	PCLIENT pc;
+	pc = OpenTCPClientEx( pAddr, (_16)dwPort, NULL, NULL, NULL );
+	if( pc )
+	{
+		PTEXT pOutput;
+		TEXTCHAR byOutput[256];
+		snprintf( byOutput, sizeof( byOutput ), WIDE("Connected to address at port: %ld"), dwPort );
+		pOutput = SegCreateFromText( byOutput );
+		EnqueLink( &psScanning->Command->Output, pOutput );
+		RemoveClient( pc );
+	}
+	LockedDecrement( &dwThreadCount );
+	return 0;
 }
 
 PTRSZVAL CPROC PortScanner( PTHREAD thread )
 {
-   for( wPortNow = wPortFrom; wPortNow < wPortTo; wPortNow++ )
-   {
-      if( dwThreadCount >= dwMaxThreads )
-         while( dwThreadCount > (dwMaxThreads/2) )
-            Sleep(20); // wait for some completes...
+	for( wPortNow = wPortFrom; wPortNow < wPortTo; wPortNow++ )
+	{
+		if( dwThreadCount >= dwMaxThreads )
+			while( dwThreadCount > (dwMaxThreads/2) )
+				Sleep(20); // wait for some completes...
 
-      if( dwThreadCount < dwMaxThreads )
-      {
+		if( dwThreadCount < dwMaxThreads )
+		{
 			LockedIncrement( &dwThreadCount ); // mark NOW.
-         ThreadTo( ThreadProc, wPortNow );
-      }
+			ThreadTo( ThreadProc, wPortNow );
+		}
 
-   }
-   while( dwThreadCount ) // wiat for all threads to finish...
-      Sleep(5);
-   {
-      PTEXT pOutput;
-      TEXTCHAR byOutput[256];
-      snprintf( byOutput, sizeof( byOutput ), WIDE("Checked ports %d - %d"), wPortFrom, wPortNow );
-      pOutput = SegCreateFromText( byOutput );
-      EnqueLink( &psScanning->Command->Output, pOutput );
-   }
-   LineRelease( pHolder );
-   psScanning = 0;
-   return 0;
+	}
+	while( dwThreadCount ) // wiat for all threads to finish...
+		Sleep(5);
+	{
+		PTEXT pOutput;
+		TEXTCHAR byOutput[256];
+		snprintf( byOutput, sizeof( byOutput ), WIDE("Checked ports %d - %d"), wPortFrom, wPortNow );
+		pOutput = SegCreateFromText( byOutput );
+		EnqueLink( &psScanning->Command->Output, pOutput );
+	}
+	LineRelease( pHolder );
+	psScanning = 0;
+	return 0;
 }
 
 static int HandleCommand(WIDE("Network"), WIDE("portscan"), WIDE("scan first 2000 ports at an address..."))( PSENTIENT ps, PTEXT parameters )
 {
-   PTEXT temp;
-   PSENTIENT psOld;
-   if( b95 )
-      dwMaxThreads = 10;
-   else
-      dwMaxThreads = 100;
-   if( psScanning )
-   {
-      PTEXT pOutput;
-      TEXTCHAR byOutput[256];
-      snprintf( byOutput, sizeof( byOutput ), WIDE("Port scan running to %s ports %d - %d now on %d"),
-                  pAddr, wPortFrom, wPortTo, wPortNow );
-      pOutput = SegCreateFromText( byOutput );
-      EnqueLink( &psScanning->Command->Output, pOutput );
-      return 0;
-   }
-   do
-   {
-      while( psScanning )
-         Sleep(0);
-      psOld = (PSENTIENT)LockedExchangePtrSzVal( (PTRSZVAL*)&psScanning, (PTRSZVAL)ps );
-   }
-   while( psOld );
+	PTEXT temp;
+	PSENTIENT psOld;
+	if( b95 )
+		dwMaxThreads = 10;
+	else
+		dwMaxThreads = 100;
+	if( psScanning )
+	{
+		PTEXT pOutput;
+		TEXTCHAR byOutput[256];
+		snprintf( byOutput, sizeof( byOutput ), WIDE("Port scan running to %s ports %d - %d now on %d"),
+						pAddr, wPortFrom, wPortTo, wPortNow );
+		pOutput = SegCreateFromText( byOutput );
+		EnqueLink( &psScanning->Command->Output, pOutput );
+		return 0;
+	}
+	do
+	{
+		while( psScanning )
+			Sleep(0);
+		psOld = (PSENTIENT)LockedExchangePtrSzVal( (PTRSZVAL*)&psScanning, (PTRSZVAL)ps );
+	}
+	while( psOld );
 
 
-   if( InitNetwork( ps ) )
-   {
-      temp = GetParam( ps, &parameters );
-      if( temp )
-      {
-         pHolder = SegDuplicate( temp );
+	if( InitNetwork( ps ) )
+	{
+		temp = GetParam( ps, &parameters );
+		if( temp )
+		{
+			pHolder = SegDuplicate( temp );
 			pAddr = GetText( pHolder );
-         ThreadTo( PortScanner, 0 );
-      }
-   }
-   return 0;
+			ThreadTo( PortScanner, 0 );
+		}
+	}
+	return 0;
 }
 
 
 static PTEXT DeviceVolatileVariableGet( WIDE("net object"), WIDE("client_ip"), WIDE("current client side IP") )( PENTITY pe, PTEXT *ppLastValue )
 //PTEXT GetClientIP( PTRSZVAL psv, struct entity_tag *pe, PTEXT *ppLastValue )
 {
-   PCLIENT pc = (PCLIENT)GetLink( &pe->pPlugin, iNetObject );
+	PCLIENT pc = (PCLIENT)GetLink( &pe->pPlugin, iNetObject );
 	static SOCKADDR_IN saSrc;
-   TEXTCHAR *addr;
+	TEXTCHAR *addr;
 	saSrc.sin_addr.S_un.S_addr = (_32)GetNetworkLong( pc, GNL_IP );
 	addr = DupCharToText( inet_ntoa( *(struct in_addr*)&saSrc.sin_addr ) );
 	if( *ppLastValue )
@@ -1177,9 +1255,9 @@ static PTEXT DeviceVolatileVariableGet( WIDE("net object"), WIDE("client_ip"), W
 static PTEXT DeviceVolatileVariableGet( WIDE("net object"), WIDE("server_ip"), WIDE("current remote side IP") )( PENTITY pe, PTEXT *ppLastValue )
 //PTEXT GetServerIP( PTRSZVAL psv, struct entity_tag *pe, PTEXT *ppLastValue )
 {
-   PCLIENT pc = (PCLIENT)GetLink( &pe->pPlugin, iNetObject );
+	PCLIENT pc = (PCLIENT)GetLink( &pe->pPlugin, iNetObject );
 	static SOCKADDR_IN saSrc;
-   TEXTCHAR *addr;
+	TEXTCHAR *addr;
 	saSrc.sin_addr.S_un.S_addr = (_32)GetNetworkLong( pc, GNL_MYIP );
 	addr = DupCharToText( inet_ntoa( *(struct in_addr*)&saSrc.sin_addr ) );
 	if( *ppLastValue )
@@ -1196,22 +1274,22 @@ PUBLIC( TEXTCHAR *, RegisterRoutines )( void )
 
 PUBLIC( void, UnloadPlugin )( void ) // this routine is called when /unload is invoked
 {
-//   UnregisterRoutine( WIDE("send") );
-   UnregisterRoutine( WIDE("getaddr") );
-   UnregisterRoutine( WIDE("getip") );
-   UnregisterRoutine( WIDE("getport") );
-   UnregisterRoutine( WIDE("ping") );
-   UnregisterRoutine( WIDE("trace") );
-   UnregisterRoutine( WIDE("portscan") );
-   UnregisterRoutine( WIDE("whois") );
-   UnregisterRoutine( WIDE("ReadData") );
-   UnregisterRoutine( WIDE("SendData") );
-   UnregisterRoutine( WIDE("HTTP") );
-   UnregisterDevice( WIDE("tcp") );
-   UnregisterDevice( WIDE("udp") );
-   UnregisterDevice( WIDE("tcpserver") );
-   UnregisterDevice( WIDE("udpserver") );
-   NetworkQuit();
+//	UnregisterRoutine( WIDE("send") );
+	UnregisterRoutine( WIDE("getaddr") );
+	UnregisterRoutine( WIDE("getip") );
+	UnregisterRoutine( WIDE("getport") );
+	UnregisterRoutine( WIDE("ping") );
+	UnregisterRoutine( WIDE("trace") );
+	UnregisterRoutine( WIDE("portscan") );
+	UnregisterRoutine( WIDE("whois") );
+	UnregisterRoutine( WIDE("ReadData") );
+	UnregisterRoutine( WIDE("SendData") );
+	UnregisterRoutine( WIDE("HTTP") );
+	UnregisterDevice( WIDE("tcp") );
+	UnregisterDevice( WIDE("udp") );
+	UnregisterDevice( WIDE("tcpserver") );
+	UnregisterDevice( WIDE("udpserver") );
+	NetworkQuit();
 }
 
 

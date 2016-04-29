@@ -559,20 +559,26 @@ void ZVoxelReactor::ProcessSectors( double LastLoopTime )
     LowActivityTrigger = Sector->Flag_IsActiveLowRefresh && (((Sector->Pos_x + CycleNum) & Sector->LowRefresh_Mask) == 0);
     if (Sector->Flag_IsActiveVoxels | LowActivityTrigger)
     {
+		int n;
       // Find All the
       Sx = Sector->Pos_x - 1;
       Sy = Sector->Pos_y - 1;
       Sz = Sector->Pos_z - 1;
 
-      Sector->near_sector[n]->ModifTracker.SetActualCycleNum(CycleNum);
-      for (x = 0; x < 6; x++)
-        //for (y = 0; y <= 2; y++)
-          //for (z = 0; z <= 2; z++)
+      for (x = 0; x <= 2; x++)
+        for (y = 0; y <= 2; y++)
+          for (z = 0; z <= 2; z++)
           {
-            //MainOffset = x + (y << 2) + (z << 4);
-				 //if (!(SectorTable[MainOffset] = World->FindSector(Sx + x, Sy + y, Sz + z))) SectorTable[MainOffset] = DummySector;
-             if( Sector->near_sector[n] )
-					 Sector->near_sector[n]->ModifTracker.SetActualCycleNum(CycleNum);
+            MainOffset = x + (y << 2) + (z << 4);
+            if (!(SectorTable[MainOffset] = World->FindSector(Sx + x, Sy + y, Sz + z))) 
+				SectorTable[MainOffset] = DummySector;
+          }
+
+      Sector->ModifTracker.SetActualCycleNum(CycleNum);
+      for (x = 0; x < 6; x++)
+          {
+             if( Sector->near_sectors[x] )
+					 Sector->near_sectors[x]->ModifTracker.SetActualCycleNum(CycleNum);
           }
 
       // Make the sector table
@@ -596,7 +602,7 @@ void ZVoxelReactor::ProcessSectors( double LastLoopTime )
           for (y = 0; y < ZVOXELBLOCSIZE_Y; y++)
           {
             VoxelType = (*VoxelP);
-            if (VoxelTypeManager->VoxelTable[VoxelType].IsActive))
+			if (VoxelTypeManager->VoxelTable[VoxelType]->Is_Active )
             {
               if (!Sector->ModifTracker.Get( MainOffset ) ) // If voxel is already processed, don't process it once more in the same cycle.
               {
@@ -646,7 +652,9 @@ void ZVoxelReactor::ProcessSectors( double LastLoopTime )
 
                             // Test if we can fall downward
                               i=0;
-                              cx = x+1 ; cy = y ; cz = z+1; SecondaryOffset[i] = If_x[cx]+If_y[cy]+If_z[cz];St[i] = SectorTable[ Of_x[cx] + Of_y[cy] + Of_z[cz] ]; Vp[i] = &St[i]->Data.Data[ SecondaryOffset[i] ];
+                              cx = x+1 ; cy = y ; cz = z+1; SecondaryOffset[i] = If_x[cx]+If_y[cy]+If_z[cz];
+							  St[i] = SectorTable[ Of_x[cx] + Of_y[cy] + Of_z[cz] ]; 
+							  Vp[i] = &St[i]->Data.Data[ SecondaryOffset[i] ];
                               if (VoxelTypeManager->VoxelTable[*Vp[i]]->Is_CanBeReplacedBy_Water)
                               {
                                 World->SetVoxel_WithCullingUpdate(RSx + x, RSy + y-1, RSz + z, 84, ZVoxelSector::CHANGE_IMPORTANT);
@@ -1627,7 +1635,10 @@ void ZVoxelReactor::ProcessSectors( double LastLoopTime )
                                         {
                                           if (i==2) continue;
                                           // Fetch voxel around.
-                                          cx = x+bp6[i].x ; cy = y+bp6[i].y ; cz = z+bp6[i].z ; SecondaryOffset[i] = If_x[cx]+If_y[cy]+If_z[cz];St[i] = SectorTable[ Of_x[cx] + Of_y[cy] + Of_z[cz] ]; Vp[i] = &St[i]->Data.Data[ SecondaryOffset[i] ];
+                                          cx = x+bp6[i].x ; cy = y+bp6[i].y ; cz = z+bp6[i].z ; 
+										  SecondaryOffset[i] = If_x[cx]+If_y[cy]+If_z[cz];
+										  St[i] = SectorTable[ Of_x[cx] + Of_y[cy] + Of_z[cz] ]; 
+										  Vp[i] = &St[i]->Data.Data[ SecondaryOffset[i] ];
                                           VoxelType2 = *Vp[i];
 
                                           // Only take a voxel if it has not moved.

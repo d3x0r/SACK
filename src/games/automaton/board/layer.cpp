@@ -746,7 +746,7 @@ PLAYER_PATH_NODE LAYER::UnlayPath( int nLayers )
 			node->flags.ForeDir = NOWHERE;
 			return node;
 		}
-		if( node->flags.bForced )
+		if( node && node->flags.bForced )
 		{
 			DebugBreak();
          // this is SO bad.

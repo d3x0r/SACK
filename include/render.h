@@ -1611,6 +1611,7 @@ struct render_interface_tag
 	RENDER_PROC_PTR( LOGICAL, VidlibRenderAllowsCopy )( void );
 	RENDER_PROC_PTR( void, SetDisplayCursor )( CTEXTSTR nCursor );
 	RENDER_PROC_PTR( LOGICAL, IsDisplayRedrawForced )( PRENDERER renderer );
+	RENDER_PROC_PTR( void, ReplyCloseDisplay )( void ); // only valid during a headless display event....
 
 };
 
@@ -1744,6 +1745,7 @@ typedef int check_this_variable;
 #define DisableMouseOnIdle      REND_PROC_ALIAS(DisableMouseOnIdle )
 #define SetDisplayNoMouse      REND_PROC_ALIAS(SetDisplayNoMouse )
 #define SetTouchHandler        REND_PROC_ALIAS(SetTouchHandler)
+#define ReplyCloseDisplay      if(USE_RENDER_INTERFACE) if((USE_RENDER_INTERFACE)->_ReplyCloseDisplay) (USE_RENDER_INTERFACE)->_ReplyCloseDisplay
 
 #define SetDisplayFullScreen    REND_PROC_ALIAS_VOID( SetDisplayFullScreen )
 #define SuspendSystemSleep      REND_PROC_ALIAS_VOID( SuspendSystemSleep )

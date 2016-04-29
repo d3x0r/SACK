@@ -264,10 +264,12 @@ extern __sighandler_t bsd_signal(int, __sighandler_t);
 #ifdef _UNICODE
 #  ifdef _WIN32
 #    ifdef CONSOLE_SHELL
-#      define SaneWinMain(a,b) int main( int a, char **argv_real ) { int n; TEXTCHAR **b; b = NewArray( TEXTSTR, a + 1 ); for( n = 0; n < a; n++ ) b[n] = DupCharToText( argv_real[n] ); b[n] = NULL; {
+    // in order to get wide characters from the commandline we have to use the GetCommandLineW function, convert it to utf8 for internal usage.
+#      define SaneWinMain(a,b) int main( int a, char **argv_real ) { char *tmp; TEXTCHAR **b; ParseIntoArgs( GetCommandLineW(), &a, &b ); Deallocate( char*, tmp ); {
+	//int n; TEXTCHAR **b; b = NewArray( TEXTSTR, a + 1 ); for( n = 0; n < a; n++ ) b[n] = DupCharToText( argv_real[n] ); b[n] = NULL; {
 #      define EndSaneWinMain() } }
 #    else
-#      define SaneWinMain(a,b) int APIENTRY WinMain( HINSTANCE hInst, HINSTANCE hPrev, LPSTR lpCmdLine, int nCmdShow ) { int a; TEXTCHAR **b; ParseIntoArgs( GetCommandLine(), &a, &b ); {
+#      define SaneWinMain(a,b) int APIENTRY WinMain( HINSTANCE hInst, HINSTANCE hPrev, LPSTR lpCmdLine, int nCmdShow ) { char *tmp; int a; TEXTCHAR **b; ParseIntoArgs( tmp = WCharConvert( GetCommandLineW() ), &a, &b ); Deallocate( char*, tmp ); {
 #      define EndSaneWinMain() } }
 #    endif
 #  else
@@ -282,10 +284,11 @@ extern __sighandler_t bsd_signal(int, __sighandler_t);
 #else
 #  ifdef _WIN32
 #    ifdef CONSOLE_SHELL
-#      define SaneWinMain(a,b) int main( int a, char **b ) { char **argv_real = b; {
+// in order to get wide characters from the commandline we have to use the GetCommandLineW function, convert it to utf8 for internal usage.
+#      define SaneWinMain(a,b) int main( int a, char **argv_real ) { char *tmp; TEXTCHAR **b; ParseIntoArgs( tmp = WcharConvert( GetCommandLineW() ), &a, &b ); Deallocate( char*, tmp ); {
 #      define EndSaneWinMain() } }
 #    else
-#      define SaneWinMain(a,b) int APIENTRY WinMain( HINSTANCE hInst, HINSTANCE hPrev, LPSTR lpCmdLine, int nCmdShow ) { int a; TEXTCHAR **b; ParseIntoArgs( GetCommandLine(), &a, &b ); {
+#      define SaneWinMain(a,b) int APIENTRY WinMain( HINSTANCE hInst, HINSTANCE hPrev, LPSTR lpCmdLine, int nCmdShow ) { int a; char *tmp; TEXTCHAR **b; ParseIntoArgs( tmp = CharWConvert( GetCommandLineW() ), &a, &b ); {
 #      define EndSaneWinMain() } }
 #    endif
 #  else

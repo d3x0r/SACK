@@ -59,15 +59,18 @@ static const char *default_certs[] = {
 static int32 loadRsaKeys( sslKeys_t *keys, LOGICAL client )
 {
 	uint32 priv_key_len = 0;
-	uint32 pub_key_len = 0;
+	uint32 cert_key_len = 0;
 	unsigned char *CAstream = NULL;
 	int32 CAstreamLen = 0;
 	int32 rc;
 	TEXTCHAR buf[256];
+	TEXTCHAR privkey_buf[256];
+	TEXTCHAR cert_buf[256];
 	unsigned char *priv_key = NULL;
-	unsigned char *pub_key = NULL;
+	unsigned char *cert_key = NULL;
 	FILE *file;
 	size_t size;
+	int fileGroup = GetFileGroup( "ssl certs", "certs" );
 	{
 
 	/*
@@ -78,7 +81,7 @@ static int32 loadRsaKeys( sslKeys_t *keys, LOGICAL client )
 		CAstreamLen = 0;
 		for( n = 0; n < ( sizeof( default_certs ) / sizeof( default_certs[0] ) ); n++ )
 		{
-			file = sack_fopen( GetFileGroup( "ssl certs", "certs" ), default_certs[n], "rb" );
+			file = sack_fopen( fileGroup, default_certs[n], "rb" );
 			if( file )
 			{
 				size = sack_fsize( file );
@@ -86,8 +89,28 @@ static int32 loadRsaKeys( sslKeys_t *keys, LOGICAL client )
 				sack_fclose( file );
 			}
 		}
-		SACK_GetProfileString( "SSL/Cert Authority Extra", "filename", "mycert.pem", buf, 256 );
-		file = sack_fopen( GetFileGroup( "ssl certs", "certs" ), buf, "rb" );
+		{
+			/*
+			 In-memory based keys
+			 Build the CA list first for potential client auth usage
+			 */
+			priv_key_len = 0;
+			SACK_GetProfileString( "SSL/Private Key", "filename", "myprivkey.pem", privkey_buf, 256 );
+			file = sack_fopen( fileGroup, privkey_buf, "rb" );
+			if( file )
+			{
+				priv_key_len = sack_fsize( file );
+				priv_key = NewArray( _8, priv_key_len );
+
+				sack_fread( priv_key, 1, priv_key_len, file );
+				sack_fclose( file );
+			}
+			else
+				priv_key = NULL;
+		}
+
+		SACK_GetProfileString( "SSL/Cert Authority Extra", "filename", "mycert.pem", cert_buf, 256 );
+		file = sack_fopen( fileGroup, cert_buf, "rb" );
 		if( file )
 		{
 			CAstreamLen += sack_fsize( file );
@@ -99,12 +122,12 @@ static int32 loadRsaKeys( sslKeys_t *keys, LOGICAL client )
 		CAstreamLen = 0;
 		for( n = 0; n < ( sizeof( default_certs ) / sizeof( default_certs[0] ) ); n++ )
 		{
-			file = sack_fopen( GetFileGroup( "ssl certs", "certs" ), default_certs[n], "rb" );
+			file = sack_fopen( fileGroup, default_certs[n], "rb" );
 			if( file )
 			{
 				size = sack_fsize( file );
-				sack_fread( CAstream + CAstreamLen, 1, size, file );
-				rc = matrixSslLoadRsaKeysMem(keys, NULL, 0, NULL, 0, CAstream+ CAstreamLen, size );
+				CAstreamLen += sack_fread( CAstream + CAstreamLen, 1, size, file );
+				//rc = matrixSslLoadRsaKeysMem(keys, NULL, 0, NULL, 0, CAstream+ CAstreamLen, size );
 				//lprintf( "cert success : %d %s", rc, default_certs[n] );
 
 				//CAstream[CAstreamLen++] = '\n';
@@ -112,15 +135,13 @@ static int32 loadRsaKeys( sslKeys_t *keys, LOGICAL client )
 			}
 		}
 
-		file = sack_fopen( GetFileGroup( "ssl certs", "certs" ), buf, "rb" );
+		file = sack_fopen( fileGroup, cert_buf, "rb" );
 		if( file )
 		{
 			size = sack_fsize( file );
 			CAstreamLen += sack_fread( CAstream + CAstreamLen, 1, size, file );
 			sack_fclose( file );
 		}
-		CAstreamLen = 0;
-		Release( CAstream );
 	}
 
 	if( 0 )
@@ -129,19 +150,19 @@ static int32 loadRsaKeys( sslKeys_t *keys, LOGICAL client )
 		In-memory based keys
 		Build the CA list first for potential client auth usage
 	*/
-		pub_key_len = 0;
-		SACK_GetProfileString( "SSL/Public Key", "filename", "mykey.pem", buf, 256 );
-		file = sack_fopen( GetFileGroup( "ssl certs", "certs" ), buf, "rb" );
+		cert_key_len = 0;
+		SACK_GetProfileString( "SSL/Certificate", "filename", "mycert.pem", cert_buf, 256 );
+		file = sack_fopen( fileGroup, cert_buf, "rb" );
 		if( file )
 		{
-			pub_key_len = sack_fsize( file );
-			pub_key = NewArray( _8, pub_key_len );
+			cert_key_len = sack_fsize( file );
+			cert_key = NewArray( _8, cert_key_len );
 
-			sack_fread( pub_key, 1, pub_key_len, file );
+			sack_fread( cert_key, 1, cert_key_len, file );
 			sack_fclose( file );
 		}
 		else
-			pub_key = NULL;
+			cert_key = NULL;
 	}
 	if( 0 )
 	{
@@ -151,7 +172,7 @@ static int32 loadRsaKeys( sslKeys_t *keys, LOGICAL client )
 	*/
 		priv_key_len = 0;
 		SACK_GetProfileString( "SSL/Private Key", "filename", "myprivkey.pem", buf, 256 );
-		file = sack_fopen( GetFileGroup( "ssl certs", "certs" ), buf, "rb" );
+		file = sack_fopen( fileGroup, buf, "rb" );
 		if( file )
 		{
 			priv_key_len = sack_fsize( file );
@@ -163,9 +184,9 @@ static int32 loadRsaKeys( sslKeys_t *keys, LOGICAL client )
 		else
 			priv_key = NULL;
 	}
-	if( pub_key_len || priv_key_len || CAstreamLen )
+	if( cert_key_len || priv_key_len || CAstreamLen )
 	{
-		rc = matrixSslLoadRsaKeysMem(keys, pub_key, pub_key_len,
+		rc = matrixSslLoadRsaKeysMem(keys, cert_key, cert_key_len,
 				priv_key, priv_key_len, CAstream, CAstreamLen);
 
 		if (rc < 0) {
@@ -176,12 +197,14 @@ static int32 loadRsaKeys( sslKeys_t *keys, LOGICAL client )
 			matrixSslDeleteKeys(keys);
 			matrixSslClose();
 		}
+		if( cert_key_len )
+			Release( cert_key );
+		if( priv_key_len )
+			Release( priv_key );
+		if( CAstream )
+			Release( CAstream );
 		return rc;
 	}
-	if( pub_key_len )
-		Release( pub_key );
-	if( priv_key_len )
-		Release( priv_key );
 	return PS_SUCCESS;
 }
 
@@ -506,7 +529,7 @@ LOGICAL ssl_BeginClientSession( PCLIENT pc )
 		);
 	if( result != MATRIXSSL_REQUEST_SEND)
 	{
-		lprintf( "Failed to create new SSL client session" );
+		lprintf( "Failed to create new SSL client session, %d", result );
 		return FALSE;
 	}
 	{

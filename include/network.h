@@ -758,7 +758,7 @@ NETWORK_PROC( void, RemoveClientExx )(PCLIENT lpClient, LOGICAL bBlockNofity, LO
 NETWORK_PROC( LOGICAL, ssl_BeginClientSession )( PCLIENT pc );
 
 /* use this to send on SSL Connection instead of SendTCP. */
-LOGICAL ssl_Send( PCLIENT pc, POINTER buffer, size_t length );
+NETWORK_PROC( LOGICAL, ssl_Send )( PCLIENT pc, POINTER buffer, size_t length );
 
 
 

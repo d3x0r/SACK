@@ -96,6 +96,7 @@ enum config_types {
 	, CONFIG_PROCEDURE
 
 	, CONFIG_COLOR
+	, CONFIG_NOTHING // to save as an option after variables
 };
 
 typedef struct config_element_tag CONFIG_ELEMENT, *PCONFIG_ELEMENT;
@@ -125,18 +126,20 @@ struct config_element_tag
 		TEXTSTR pWord; // also pFilename, pPath, pURL
 		struct {
 			TEXTSTR pWord; // also pFilename, pPath, pURL
-			struct config_element_tag *pEnd; // also this ends single word...
+			PLIST pEnds; // also this ends single word...
+			struct config_element_tag *pWhichEnd;
 		} singleword;
 		// maybe pURL should be burst into
 		//	( address, user, password, path, page, params )
 		SOCKADDR *psaSockaddr;
 		struct {
-				TEXTSTR pWords;
-	// next thing to match...
-	// this is probably a constant text thing, but
-	// may be say an integer, filename, or some known
-	// format thing...
-				struct config_element_tag *pEnd;
+			TEXTSTR pWords;
+				 // next thing to match...
+				 // this is probably a constant text thing, but
+				 // may be say an integer, filename, or some known
+				 // format thing...
+			PLIST pEnds;//struct config_element_tag *pEnd;
+			struct config_element_tag *pWhichEnd;
 		} multiword;
 		FRACTION fraction;
 		USER_CONFIG_HANDLER Process;
@@ -1556,7 +1559,10 @@ collect_denominator:
 
 int IsSingleWordVar( PCONFIG_ELEMENT pce, PTEXT *start )
 {
+	struct config_element_tag *pEnd;
 	PTEXT pWords = NULL;
+	int matched = 1;
+	struct config_element_tag *default_EOL = NULL;
 	//PTEXT __start = *start;
 	if( pce->type != CONFIG_SINGLE_WORD )
 		return FALSE;
@@ -1569,30 +1575,58 @@ int IsSingleWordVar( PCONFIG_ELEMENT pce, PTEXT *start )
 	{
 		if( pWords )
 		{
-			PTEXT _start = *start;
-			if( IsAnyVar( pce->data[0].singleword.pEnd, start ) )
-			{
-				if( g.flags.bLogTrace )
-					lprintf( WIDE("Failed check for var check..") );
-				*start = _start; // restore start..
-				break;
-			}
+			INDEX idx;
 			if( (*start)->format.position.offset.spaces )
 			{
 				//if( pWords )
 				//	LineRelease( pWords );
 				// so at a space, stop appending.
 				if( g.flags.bLogTrace )
-					lprintf( WIDE("next word has spaces... [%s](%d)"), GetText(*start), (*start)->format.position.offset.spaces );
+					lprintf( WIDE( "next word has spaces... [%s](%d)" ), GetText( *start ), (*start)->format.position.offset.spaces );
 				break;
+			}
+
+			LIST_FORALL( pce->data[0].multiword.pEnds, idx, struct config_element_tag *, pEnd ){
+				PTEXT _start = *start;
+				if( matched = IsAnyVar( pEnd, start ) )
+				{
+					pce->data[0].singleword.pWhichEnd = pEnd;
+					pce->next = pEnd->next;
+					if( g.flags.bLogTrace )
+						lprintf( WIDE("Failed check for var check..") );
+					*start = _start; // restore start..
+					break;
+				}
+				else if( pEnd->type == CONFIG_NOTHING ) {
+					if( !default_EOL )
+						default_EOL = pce;
+				}
 				//*start = _start;
 				//return TRUE;
 			}
+		}
+		// was more than one word.
+		if( pWords && ( (*start)->format.position.offset.spaces || (*start)->format.position.offset.tabs ) ) {
+			LineRelease( pWords );
+			pWords = NULL;
+			return FALSE;
 		}
 		pWords = SegAppend( pWords, SegDuplicate( *start ) );
 		if( g.flags.bLogTrace )
 			lprintf( WIDE("Appending more to single word...[%s]"), GetText( (*start) ) );
 		*start = NEXTLINE( *start );
+	}
+	if( (!*start) )
+	{
+		if( !matched && !default_EOL )
+		{
+			LineRelease( pWords );
+			pWords = NULL;
+			// multiword ended - end of line, and no match on the next tag...
+			return FALSE;
+		}
+		else if( g.flags.bLogTrace )
+			lprintf( WIDE( "is alright - gathered to end of line ok." ) );
 	}
 	if( pWords )
 	{
@@ -1614,8 +1648,10 @@ int IsSingleWordVar( PCONFIG_ELEMENT pce, PTEXT *start )
 
 int IsMultiWordVar( PCONFIG_ELEMENT pce, PTEXT *start )
 {
+	struct config_element_tag *pEnd;
 	int matched = 1;
 	PTEXT pWords = NULL;
+	struct config_element_tag *default_EOL = NULL;
 	if( pce->type != CONFIG_MULTI_WORD )
 		return FALSE;
 	if( pce->data[0].multiword.pWords )
@@ -1623,23 +1659,42 @@ int IsMultiWordVar( PCONFIG_ELEMENT pce, PTEXT *start )
 		Release( pce->data[0].multiword.pWords );
 		pce->data[0].multiword.pWords = NULL;
 	}
-	while( *start &&
-			!(matched = IsAnyVar( pce->data[0].multiword.pEnd, start ) ) )
+	while( *start )
 	{
+		INDEX idx;
+		LIST_FORALL( pce->data[0].multiword.pEnds, idx, struct config_element_tag *, pEnd )
+		{
+			if( matched = IsAnyVar( pEnd, start ) ) {
+				pce->data[0].multiword.pWhichEnd = pEnd;
+				if( g.flags.bLogTrace )
+					lprintf( "Matched one of several?  set next to %p", pEnd, pEnd->next );
+				pce->next = pEnd->next;
+				break;
+			}
+			else if( !default_EOL && pEnd->type == CONFIG_NOTHING ) {
+				default_EOL = pEnd;
+			}
+		}
+		if( pEnd )
+			break;
 		pWords = SegAppend( pWords, SegDuplicate( *start ) );
 		*start = NEXTLINE( *start );
 	}
 	if( (!*start) )
 	{
-		if( !matched && pce->data[0].multiword.pEnd )
+		if( !matched && !default_EOL )
 		{
 			LineRelease( pWords );
 			pWords = NULL;
 			// multiword ended - end of line, and no match on the next tag...
 			return FALSE;
 		}
-		else if( g.flags.bLogTrace )
-			lprintf( WIDE( "is alright - gathered to end of line ok." ) );
+		else {
+			if( default_EOL )
+				pce->next = default_EOL->next;
+			if( g.flags.bLogTrace )
+				lprintf( WIDE( "is alright - gathered to end of line ok. (or matched)" ) );
+		}
 	}
 	//if( !pWords )
 	//	pWords = SegCreate(0);
@@ -1662,6 +1717,7 @@ int IsMultiWordVar( PCONFIG_ELEMENT pce, PTEXT *start )
 
 int IsPathVar( PCONFIG_ELEMENT pce, PTEXT *start )
 {
+	struct config_element_tag *pEnd;
 	PTEXT pWords = NULL;
 	if( pce->type != CONFIG_PATH )
 		return FALSE;
@@ -1670,9 +1726,21 @@ int IsPathVar( PCONFIG_ELEMENT pce, PTEXT *start )
 		Release( pce->data[0].multiword.pWords );
 		pce->data[0].multiword.pWords = NULL;
 	}
-	while( *start &&
-			!IsAnyVar( pce->data[0].multiword.pEnd, start ) )
+	while( *start  )
 	{
+		INDEX idx;
+		LIST_FORALL( pce->data[0].multiword.pEnds, idx, struct config_element_tag *, pEnd )
+		{
+			if( IsAnyVar( pEnd, start ) ) {
+				pce->data[0].multiword.pWhichEnd = pEnd;
+				if( g.flags.bLogTrace )
+					lprintf( "Matched one of several?  set next to %p", pEnd->next );
+				pce->next = pEnd->next;
+				break;
+			}
+		}
+		if( pEnd )
+         break;
 		pWords = SegAppend( pWords, SegDuplicate( *start ) );
 		*start = NEXTLINE( *start );
 	}
@@ -1697,6 +1765,7 @@ int IsPathVar( PCONFIG_ELEMENT pce, PTEXT *start )
 
 int IsFileVar( PCONFIG_ELEMENT pce, PTEXT *start )
 {
+	struct config_element_tag *pEnd;
 	PTEXT pWords = NULL;
 	if( pce->type != CONFIG_FILE )
 		return FALSE;
@@ -1705,9 +1774,20 @@ int IsFileVar( PCONFIG_ELEMENT pce, PTEXT *start )
 		Release( pce->data[0].multiword.pWords );
 		pce->data[0].multiword.pWords = NULL;
 	}
-	while( *start &&
-			!IsAnyVar( pce->data[0].multiword.pEnd, start ) )
+	while( *start )
 	{
+		INDEX idx;
+		LIST_FORALL( pce->data[0].multiword.pEnds, idx, struct config_element_tag *, pEnd )
+		{
+			if( IsAnyVar( pEnd, start ) ) {
+				pce->data[0].multiword.pWhichEnd = pEnd;
+				lprintf( "Matched one of several?  set next to %p", pEnd->next );
+				pce->next = pEnd->next;
+				break;
+			}
+		}
+		if( pEnd )
+			break;
 		pWords = SegAppend( pWords, SegDuplicate( *start ) );
 		*start = NEXTLINE( *start );
 	}
@@ -1732,6 +1812,7 @@ int IsFileVar( PCONFIG_ELEMENT pce, PTEXT *start )
 
 int IsFilePathVar( PCONFIG_ELEMENT pce, PTEXT *start )
 {
+	struct config_element_tag *pEnd;
 	PTEXT pWords = NULL;
 	if( pce->type != CONFIG_FILEPATH )
 		return FALSE;
@@ -1740,9 +1821,20 @@ int IsFilePathVar( PCONFIG_ELEMENT pce, PTEXT *start )
 		Release( pce->data[0].multiword.pWords );
 		pce->data[0].multiword.pWords = NULL;
 	}
-	while( *start &&
-			!IsAnyVar( pce->data[0].multiword.pEnd, start ) )
+	while( *start )
 	{
+		INDEX idx;
+		LIST_FORALL( pce->data[0].multiword.pEnds, idx, struct config_element_tag *, pEnd )
+		{
+			if( IsAnyVar( pEnd, start ) ) {
+				pce->data[0].multiword.pWhichEnd = pEnd;
+				lprintf( "Matched one of several?  set next to %p", pEnd->next );
+				pce->next = pEnd->next;
+				break;
+			}
+		}
+		if( pEnd )
+         break;
 		pWords = SegAppend( pWords, SegDuplicate( *start ) );
 		*start = NEXTLINE( *start );
 	}
@@ -1968,6 +2060,8 @@ void ProcessConfigurationLine( PCONFIG_HANDLER pch, PTEXT line )
 										lprintf( WIDE("Yes, it is any var.") );
 
 									found = 1;
+									if( g.flags.bLogTrace )
+										lprintf( "pce->next is %p", pce->next );
 									Check = pce->next;
 									break;
 								}
@@ -2441,14 +2535,17 @@ void AddConfigurationEx( PCONFIG_HANDLER pch, CTEXTSTR format, USER_CONFIG_HANDL
 			case 'd':
 				pceNew->type = CONFIG_PATH;
 				pceNew->flags.vector = flags.vector;
+				flags.store_next_as_end = 1;
 				break;
 			case 'n':
 				pceNew->type = CONFIG_FILE;
 				pceNew->flags.vector = flags.vector;
+				flags.store_next_as_end = 1;
 				break;
 			case 'p':
 				pceNew->type = CONFIG_FILEPATH;
 				pceNew->flags.vector = flags.vector;
+				flags.store_next_as_end = 1;
 				break;
 			case 'a':
 				pceNew->type = CONFIG_ADDRESS;
@@ -2468,9 +2565,31 @@ void AddConfigurationEx( PCONFIG_HANDLER pch, CTEXTSTR format, USER_CONFIG_HANDL
 				{
 					if( g.flags.bLogTrace )
 						lprintf( WIDE("Storing as end...") );
-					pcePrior->data[0].multiword.pEnd = pceNew;
-					pceNew->flags.multiword_terminator = 1;
-					pceNew->prior = pcePrior;
+					{
+						INDEX idx;
+						struct config_element_tag *pEnd;
+						LIST_FORALL( pcePrior->data[0].multiword.pEnds, idx, struct config_element_tag *, pEnd ){
+							if( pceNew->type == pEnd->type ) {
+								break;
+							}
+						}
+						if( !pEnd ){
+							AddLink( &pcePrior->data[0].multiword.pEnds, pceNew );
+							pceNew->flags.multiword_terminator = 1;
+							pceNew->prior = pcePrior;
+							pct = pceNew->next = NewConfigTest( pch );
+							if( g.flags.bLogTrace )
+								lprintf( "%p pceNew next is %p", pceNew, pct );
+						}
+						else{
+							if( g.flags.bLogTrace )
+								lprintf( "Need to do something with original to chain?" );
+							DestroyConfigElement( pch, pceNew );
+							pceNew = pEnd;
+							pct = pEnd->next;
+						}
+
+					}
 					pcePrior = pceNew;
 					pceNew = NewConfigTestElement( pch );
 
@@ -2487,7 +2606,7 @@ void AddConfigurationEx( PCONFIG_HANDLER pch, CTEXTSTR format, USER_CONFIG_HANDL
 					{
 						if( g.flags.bLogTrace )
 							lprintf( WIDE("Also Storing as end...") );
-						pcePrior->data[0].singleword.pEnd = pceNew;
+						AddLink( &pcePrior->data[0].singleword.pEnds, pceNew );
 						pceNew->flags.singleword_terminator = 1;
 						flags.also_store_as_end = 0;
 					}
@@ -2563,9 +2682,35 @@ void AddConfigurationEx( PCONFIG_HANDLER pch, CTEXTSTR format, USER_CONFIG_HANDL
 					if( g.flags.bLogTrace )
 						lprintf( WIDE("Adding %s as the terminator"), GetText( pWord ) );
 					pceNew->data[0].pText = SegDuplicate( pWord );
-					pcePrior->data[0].multiword.pEnd = pceNew;
-					pceNew->flags.multiword_terminator = 1;
-					pceNew->prior = pcePrior;
+					{
+						INDEX idx;
+						struct config_element_tag *pEnd;
+						LIST_FORALL( pcePrior->data[0].multiword.pEnds, idx, struct config_element_tag *, pEnd ){
+							if( pceNew->type == pEnd->type ) {
+								if( pceNew->type == CONFIG_TEXT ) {
+									if( SameText( pceNew->data[0].pText, pEnd->data[0].pText ) == 0 )
+										break;
+								}
+							}
+						}
+						if( !pEnd ){
+							if( g.flags.bLogTrace )
+								lprintf( "Added new terminator branch... pce needs a pct" );
+							AddLink( &pcePrior->data[0].multiword.pEnds, pceNew );
+							pceNew->flags.multiword_terminator = 1;
+							pceNew->prior = pcePrior;
+                     pct = pceNew->next = NewConfigTest( pch );
+						}
+						else{
+                     // use existing one, so delete this one.
+                     DestroyConfigElement( pch, pceNew );
+							pceNew = pEnd;
+                     pct = pEnd->next;
+							if( g.flags.bLogTrace )
+								lprintf( "Recovered an old pce to resume from...%p", pEnd );
+						}
+
+					}
 					pcePrior = pceNew;
 					pceNew = NewConfigTestElement( pch );
 					flags.store_as_end = 0;
@@ -2589,7 +2734,7 @@ void AddConfigurationEx( PCONFIG_HANDLER pch, CTEXTSTR format, USER_CONFIG_HANDL
 						{
 							if( g.flags.bLogTrace )
 								lprintf( WIDE("Also Storing as end... %s"), GetText( pceNew->data[0].pText ) );
-							pcePrior->data[0].singleword.pEnd = pConst;
+							AddLink( &pcePrior->data[0].singleword.pEnds, pceNew );
 							pceNew->flags.singleword_terminator = 1;
 							flags.also_store_as_end = 0;
 						}
@@ -2604,7 +2749,7 @@ void AddConfigurationEx( PCONFIG_HANDLER pch, CTEXTSTR format, USER_CONFIG_HANDL
 						{
 							if( g.flags.bLogTrace )
 								lprintf( WIDE("Also Storing as end... %s"), GetText( pceNew->data[0].pText ) );
-							pcePrior->data[0].singleword.pEnd = pceNew;
+							AddLink( &pcePrior->data[0].singleword.pEnds, pceNew );
 							pceNew->flags.singleword_terminator = 1;
 							flags.also_store_as_end = 0;
 						}
@@ -2621,6 +2766,20 @@ void AddConfigurationEx( PCONFIG_HANDLER pch, CTEXTSTR format, USER_CONFIG_HANDL
 			}
 		}
 		pWord = NEXTLINE( pWord );
+	}
+	if( flags.store_as_end ) {
+		pceNew->type = CONFIG_NOTHING;
+		AddLink( &pcePrior->data[0].multiword.pEnds, pceNew );
+		pceNew->flags.multiword_terminator = 1;
+		pceNew->prior = pcePrior;
+		pct = pceNew->next = NewConfigTest( pch );
+		if( g.flags.bLogTrace )
+			lprintf( "%p pceNew next is %p", pceNew, pct );
+
+		pcePrior = pceNew;
+		pceNew = NewConfigTestElement( pch );
+
+		flags.store_as_end = 0;
 	}
 	LineRelease( pLine );
 	// end of the format line - add the procedure.
@@ -2723,12 +2882,17 @@ void DestroyConfigElement( PCONFIG_HANDLER pch, PCONFIG_ELEMENT pce )
 	case CONFIG_MULTI_WORD:
 		if( pce->data[0].multiword.pWords )
 			Release( pce->data[0].multiword.pWords );
-		if( pce->data[0].multiword.pEnd )
+		if( pce->data[0].multiword.pEnds )
 		{
+			struct config_element_tag *pEnd;
+			INDEX idx;
+			LIST_FORALL( pce->data[0].multiword.pEnds, idx, struct config_element_tag *, pEnd )
+			{
 #ifdef DEBUG_SAVE_CONFIG
-			lprintf( "Destroy config element %p", pce->data[0].multiword.pEnd );
+				lprintf( "Destroy config element %p", pEnd );
 #endif
-			DestroyConfigElement( pch, pce->data[0].multiword.pEnd );
+				DestroyConfigElement( pch, pEnd );
+			}
 		}
 		break;
 	case CONFIG_URL:

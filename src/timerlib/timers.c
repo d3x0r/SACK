@@ -383,16 +383,18 @@ PRIORITY_ATEXIT( StopTimers, ATEXIT_PRIORITY_TIMERS )
 	int tries = 0;
 	//pid_t mypid = getppid();
 	// not sure if mypid is needed...
-	g.flags.bExited = 1;
-	if( g.pTimerThread )
-		WakeThread( g.pTimerThread );
-	while( g.pTimerThread )
-	{
-		tries++;
-		if( tries > 10 )
-			return;
-		WakeThread( g.pTimerThread );
-		Relinquish();
+	if( global_timer_structure ) {
+		g.flags.bExited = 1;
+		if( g.pTimerThread )
+			WakeThread( g.pTimerThread );
+		while( g.pTimerThread )
+		{
+			tries++;
+			if( tries > 10 )
+				return;
+			WakeThread( g.pTimerThread );
+			Relinquish();
+		}
 	}
 }
 //--------------------------------------------------------------------------

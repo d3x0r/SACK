@@ -1,5 +1,5 @@
 #include <windows.h>
-
+#include <stdio.h>
 int done;
 int thread_finished;
 int thread_working;

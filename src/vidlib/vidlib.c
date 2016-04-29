@@ -5810,7 +5810,7 @@ PRIORITY_PRELOAD( VideoRegisterInterface, VIDLIB_PRELOAD_PRIORITY )
 #  endif
 #endif
 		, GetDisplayInterface, DropDisplayInterface );
-	if( SACK_GetProfileInt( WIDE("SACK/Video Render"), WIDE("enable alt-f4 exit"), 0 ) )
+	if( SACK_GetProfileInt( WIDE("SACK/Video Render"), WIDE("enable alt-f4 exit"), 1 ) )
 		BindEventToKey( NULL, KEY_F4, KEY_MOD_RELEASE|KEY_MOD_ALT, DefaultExit, 0 );
 	//EnableLoggingOutput( TRUE );
 	VideoLoadOptions();

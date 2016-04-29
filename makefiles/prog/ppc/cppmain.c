@@ -282,7 +282,11 @@ int ProcessInclude( int bNext )
 #if( _MSC_VER && ( _MSC_VER < 1800 ) )
 				_snprintf( Workname, __MAX_PATH__, WIDE( "%*.*s/%s" ), count, count, g.pFileStack->longname, basename );
 #else
+#if( _MSC_VER && ( _MSC_VER < 1800 ) )
+				_snprintf( Workname, __MAX_PATH__, WIDE( "%*.*s/%s" ), count, count, g.pFileStack->longname, basename );
+#else
 				snprintf( Workname, __MAX_PATH__, WIDE( "%*.*s/%s" ), count, count, g.pFileStack->longname, basename );
+#endif
 #endif
 				if( OpenNewInputFile( basename, Workname, GetCurrentFileName(), GetCurrentLine(), TRUE, bNext ) )
 				{

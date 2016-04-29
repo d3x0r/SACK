@@ -17,6 +17,14 @@ alias service render sack.render.proxy.server
 alias service image sack.image.proxy.server
 endif
 
+if sack/vidlib/use interface == vulkan
+module bag.image.vulkan.dll
+module bag.video.vulkan.dll
+
+alias service render vulkan.render
+alias service image vulkan.image
+endif
+
 if sack/vidlib/use interface == headless.instanced
 module bag.image.dll
 module bag.video.proxy.instance.server.dll

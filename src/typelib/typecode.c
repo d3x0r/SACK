@@ -275,7 +275,19 @@ static PLIST ExpandListEx( PLIST *pList, INDEX amount DBG_PASS )
 	return result;
 }
 
-//--------------------------------------------------------------------------
+ //--------------------------------------------------------------------------
+
+ INDEX GetLinkCount( PLIST pList ) {
+	 INDEX i;
+	 POINTER p;
+	 INDEX count = 0;
+	 LIST_FORALL( pList, i, POINTER, p ) {
+		 count++;
+	 }
+	 return count;
+ }
+
+ //--------------------------------------------------------------------------
 
 static PTRSZVAL CPROC IsLink( PTRSZVAL value, INDEX i, POINTER *link )
 {

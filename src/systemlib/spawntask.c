@@ -634,10 +634,11 @@ ATEXIT( SystemAutoShutdownTasks )
 {
 	INDEX idx;
 	PTASK_INFO task;
-	LIST_FORALL( l.system_tasks, idx, PTASK_INFO, task )
-	{
-      TerminateProgram( task );
-	}
+	if( local_systemlib )
+		LIST_FORALL( (*local_systemlib).system_tasks, idx, PTASK_INFO, task )
+		{
+			TerminateProgram( task );
+		}
 }
 
 SYSTEM_PROC( PTASK_INFO, SystemEx )( CTEXTSTR command_line
@@ -660,7 +661,7 @@ SYSTEM_PROC( PTASK_INFO, SystemEx )( CTEXTSTR command_line
 	result = LaunchPeerProgramExx( argv[0], NULL, (PCTEXTSTR)argv, 0, OutputHandler?SystemOutputHandler:NULL, SystemTaskEnd, (PTRSZVAL)&end_notice DBG_RELAY );
 	if( result )
 	{
-		AddLink( &l.system_tasks, result );
+		AddLink( &(*local_systemlib).system_tasks, result );
 		// we'll get woken when it ends, might as well be infinite.
 		while( !end_notice.ended )
 		{
@@ -669,7 +670,7 @@ SYSTEM_PROC( PTASK_INFO, SystemEx )( CTEXTSTR command_line
 			else
 				Relinquish();
 		}
-		DeleteLink( &l.system_tasks, result );
+		DeleteLink( &(*local_systemlib).system_tasks, result );
 	}
 	{
 		POINTER tmp = (POINTER)argv;

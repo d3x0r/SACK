@@ -123,13 +123,13 @@ SaneWinMain( argc, argv )
 		input = sack_fopen( 0, argv[2], WIDE("rb+") );
 		if( input )
 		{
-			if( StrCaseCmpEx( argv[1], WIDE("u"), 1 ) == 0 )
+			if( StrCaseCmpEx( argv[1], WIDE( "u" ), 1 ) == 0 )
 			{
 				read_ascii( input );
 				ascii_to_unicode();
 				write_unicode( input );
 			}
-         else
+			else
 			{
 				read_unicode( input );
 				unicode_to_ascii();
@@ -137,6 +137,8 @@ SaneWinMain( argc, argv )
 			}
 			fclose( input );
 		}
+		else
+			printf( WIDE( "Failed to open %s" ), argv[2] );
 	}
 	else
 	{

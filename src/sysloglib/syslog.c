@@ -1457,12 +1457,22 @@ struct next_lprint_info{
 static struct next_lprint_info *GetNextInfo( void )
 {
 	struct next_lprint_info *next;
-#if defined( WIN32 )
+#ifdef USE_CUSTOM_ALLOCER
+#  if defined( WIN32 )
 	if( !( next = (struct next_lprint_info*)TlsGetValue( (*syslog_local).next_lprintf_tls ) ) )
-		TlsSetValue( (*syslog_local).next_lprintf_tls, next = New( struct next_lprint_info ) );
-#elif defined( __LINUX__ )
+		TlsSetValue( (*syslog_local).next_lprintf_tls, next = (struct next_lprint_info*)malloc( sizeof( struct next_lprint_info ) ) );
+#  elif defined( __LINUX__ )
 	if( !( next = (struct next_lprint_info*)pthread_getspecific( (*syslog_local).next_lprintf_tls ) ) )
 		pthread_setspecific( (*syslog_local).next_lprintf_tls, next = New( struct next_lprint_info ) );
+#  endif
+#else
+#  if defined( WIN32 )
+	if( !(next = (struct next_lprint_info*)TlsGetValue( (*syslog_local).next_lprintf_tls )) )
+		TlsSetValue( (*syslog_local).next_lprintf_tls, next = New( struct next_lprint_info ) );
+#  elif defined( __LINUX__ )
+	if( !(next = (struct next_lprint_info*)pthread_getspecific( (*syslog_local).next_lprintf_tls )) )
+		pthread_setspecific( (*syslog_local).next_lprintf_tls, next = New( struct next_lprint_info ) );
+#  endif
 #endif
 	return next;
 }

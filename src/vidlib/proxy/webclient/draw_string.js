@@ -6,31 +6,36 @@ function font_character()
 }
 function string_font()
 {
-	var server_id;
+		var server_id;
     var images;
-	var baseline;
+		var baseline;
     var character_index = [];
     var characters = [];
-	var image;
+		var image;
 }
 
-function tint_image(imageObj, context, canvas){
+var tinted_images = [];
+
+function tint_image(imageObj, color ){
     var destX = 0;
     var destY = 0;
-  
-    context.drawImage(imageObj, destX, destY);
-  
-    var imageData = context.getImageData(0, 0, canvas.width, canvas.height);
-    var pixels = imageData.data;
-    for (var i = 0; i < pixels.length; i += 4) {
-        pixels[i]   = 255 - pixels[i];   // red
-        pixels[i+1] = 255 - pixels[i+1]; // green
-        pixels[i+2] = 255 - pixels[i+2]; // blue
-        // i+3 is alpha (the fourth element)
-    }
-  
-    // overwrite original image
-    context.putImageData(imageData, 0, 0);
+		int n = tinted_image.find( (img) =>{ if( img.image == imageObj && img.color == color ) return true; return false; })
+		if( n == -1 ) {
+	    context.drawImage(imageObj, destX, destY);
+
+	    var imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+	    var pixels = imageData.data;
+	    for (var i = 0; i < pixels.length; i += 4) {
+	        pixels[i]   = 255 - pixels[i];   // red
+	        pixels[i+1] = 255 - pixels[i+1]; // green
+	        pixels[i+2] = 255 - pixels[i+2]; // blue
+	        // i+3 is alpha (the fourth element)
+	    }
+
+	    // overwrite original image
+	    context.putImageData(imageData, 0, 0);
+		}
+		return context;
 }
 
 
@@ -42,7 +47,7 @@ function putString( image, x, y, color,background,string, font, orientation, jus
 	render = image.renderer;
 	//console.log( "font image " + font.image + " " + image.renderer );
 	var ctx= render.canvas.getContext("2d");
-	//console.log( "yay, put a string: " + string + " output to " + ctx );
+	console.log( "yay, put a string: " + string + " output to " + ctx, "col:", color, "back:", background, font );
 	if( orientation == 0 )
 	{
 		var charval = 0;
@@ -52,7 +57,7 @@ function putString( image, x, y, color,background,string, font, orientation, jus
 			// handle utf-8 encoding
 			if( charval & 0x80 )
 			{
-				if( ( charval & 0xE0 ) == 0xC0 ) 
+				if( ( charval & 0xE0 ) == 0xC0 )
 				{
 					charval = ( ( string[i].charCodeAt() & 0x1F ) << 6 ) | ( string[i+1].charCodeAt() & 0x3f );
 					i++;
@@ -101,16 +106,17 @@ function putString( image, x, y, color,background,string, font, orientation, jus
 					yd_back = yd;
 					break;
 				}
-
+				xd += font.bias_x;
+				yd += font.bias_y;
 				ctx.drawImage( font.image.image
 					, character.x, character.y
 					, character.w, character.h
 					, xd, yd
 					, character.w, character.h
 					);
-				
+
 			}
-						
+
 			if( charval == '\n' )
 			{
 				x = _x;
@@ -124,4 +130,3 @@ function putString( image, x, y, color,background,string, font, orientation, jus
 		}
 	}
 }
-
