@@ -236,7 +236,7 @@ char *StrDupEx( const char *original DBG_PASS )
 	return result;
 }
 
-#ifdef __GNUC__
+#if defined( __GNUC__ ) && !defined( _WIN32 )
 int stricmp( char *one, char *two )
 {
    return strcasecmp( one, two );

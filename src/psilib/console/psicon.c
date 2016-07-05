@@ -215,6 +215,10 @@ static int OnDrawCommon( WIDE("PSI Console") )( PCOMMON pc )
 		console->rArea.top = 0;
 		console->rArea.bottom = console->psicon.image->height;
 		//lprintf( WIDE("Updating child propportions...") );
+		{
+			SFTFont font = GetCommonFont( console->psicon.frame );
+			GetStringSizeFont( WIDE( " " ), &console->nFontWidth, &console->nFontHeight, (SFTFont)font );
+		}
 		PSI_ConsoleCalculate( console );
 	}
 	else
@@ -721,7 +725,7 @@ static void CPROC DrawString( PCONSOLE_INFO console, int x, int y, RECT *r, CTEX
 		r->right = r->left + w;
 		r->bottom = r->top + h;
 	}
-	lprintf( WIDE("Output string (%d-%d)  (%d-%d) %*.*s"), (*r).left, (*r).right, (*r).top, (*r).bottom, nShow, nShow, s + nShown );
+	//lprintf( WIDE("Output string (%d-%d)  (%d-%d) %*.*s"), (*r).left, (*r).right, (*r).top, (*r).bottom, nShow, nShow, s + nShown );
 	PutStringFontEx( console->psicon.image, x, y
 						, console->psicon.crText, console->psicon.crBack
 						, s + nShown

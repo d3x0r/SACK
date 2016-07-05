@@ -104,8 +104,8 @@ POPTION_TREE GetOptionTreeExxx( PODBC odbc, PFAMILYTREE existing_tree DBG_PASS )
 		//lprintf( WIDE( "need a new option tree for %p" ), odbc );
 		tree = New( struct sack_option_tree_family );
 		MemSet( tree, 0, sizeof( struct sack_option_tree_family ) );
-		tree->root = New( OPTION_TREE_NODE );
-		MemSet( tree->root, 0, sizeof( struct sack_option_tree_family_node ) );
+		tree->root = GetFromSet( OPTION_TREE_NODE, &tree->nodes );
+		//MemSet( tree->root, 0, sizeof( struct sack_option_tree_family_node ) );
 		tree->root->name_id = INVALID_INDEX;
 		tree->root->value_id = INVALID_INDEX;
 
@@ -610,8 +610,8 @@ static POPTION_TREE_NODE GetOptionIndexExxx( PODBC odbc, POPTION_TREE_NODE paren
 #endif
 						//lprintf( WIDE("Adding new option to family tree... ") );
 						{
-							POPTION_TREE_NODE new_node = New( struct sack_option_tree_family_node );
-							MemSet( new_node, 0, sizeof( struct sack_option_tree_family_node ) );
+							POPTION_TREE_NODE new_node = GetFromSet( OPTION_TREE_NODE, &tree->nodes );
+							//MemSet( new_node, 0, sizeof( struct sack_option_tree_family_node ) );
 							new_node->id = ID;
 							new_node->value_id = INVALID_INDEX;
 							new_node->name_id = IDName;
@@ -641,8 +641,8 @@ static POPTION_TREE_NODE GetOptionIndexExxx( PODBC odbc, POPTION_TREE_NODE paren
 					//   value = INVALID_INDEX;
 					//sscanf( result, WIDE("%lu"), &parent );
 					{
-						POPTION_TREE_NODE new_node = New( struct sack_option_tree_family_node );
-						MemSet( new_node, 0, sizeof( struct sack_option_tree_family_node ) );
+						POPTION_TREE_NODE new_node = GetFromSet( OPTION_TREE_NODE, &tree->nodes );// New( struct sack_option_tree_family_node );
+						//MemSet( new_node, 0, sizeof( struct sack_option_tree_family_node ) );
 						new_node->id = IndexCreateFromText( result[0] );
 						new_node->value = NULL;
 						new_node->node = FamilyTreeAddChild( &tree->option_tree, new_node, (PTRSZVAL)SaveText( namebuf ) );

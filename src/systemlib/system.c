@@ -717,7 +717,7 @@ PTRSZVAL CPROC WaitForTaskEnd( PTHREAD pThread )
 		if( task->EndNotice )
 			task->EndNotice( task->psvEnd, task );
 #if defined( WIN32 )
-		lprintf( WIDE( "Closing process and thread handles." ) );
+		//lprintf( WIDE( "Closing process and thread handles." ) );
 		if( task->pi.hProcess )
 		{
 			CloseHandle( task->pi.hProcess );
@@ -1520,6 +1520,7 @@ SYSTEM_PROC( generic_function, LoadFunctionExx )( CTEXTSTR libname, CTEXTSTR fun
 		{
 			StrCpy( library->full_name, libname );
 			library->name = (char*)pathrchr( library->full_name );
+			library->loading = 0;
 			if( library->name )
 				library->name++;
 			else
@@ -1550,11 +1551,16 @@ SYSTEM_PROC( generic_function, LoadFunctionExx )( CTEXTSTR libname, CTEXTSTR fun
 #  else
 #        undef libname
 #  endif
+			// during external load, it will end up adding a library that has
+			// a valid handle, this entry is no longer good and we should use that one.
+			// THe full name probably won't match.
 			for( check = l.libraries; check; check = check->next )
 			{
 				// result will be in the local list of libraries (duplicating this one)
 				// and will reference the same name(or a byte duplicate)
-				if( check != library && StrCaseCmp( check->full_name, library->full_name ) == 0 )
+				if( check != library && !check->loading
+					&& ( StrCaseCmp( check->full_name, library->full_name ) == 0
+						|| StrCaseCmp( check->name, library->name ) == 0 ) )
 				{
 					UnlinkThing( library );
 					Deallocate( PLIBRARY, library );					
@@ -1846,7 +1852,7 @@ SYSTEM_PROC( generic_function, LoadFunctionExx )( CTEXTSTR libname, CTEXTSTR fun
 				ReleaseEx( tmpname DBG_SRC );
 			}
 #  else
-         function->function = (generic_function)dlsym( library->library, function->name );
+			function->function = (generic_function)dlsym( library->library, function->name );
 #  endif
  			if( !(function->function) )
 			{

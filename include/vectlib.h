@@ -73,44 +73,41 @@
 #endif
 
 #if defined( _D3D_DRIVER ) || defined( _D3D10_DRIVER ) || ( !defined( __cplusplus ) && defined( __ANDROID__ ) )
-#ifndef MAKE_RCOORD_SINGLE
-#define MAKE_RCOORD_SINGLE
-#endif
+#  ifndef MAKE_RCOORD_SINGLE
+#    define MAKE_RCOORD_SINGLE
+#  endif
 #endif
 
 #ifdef __cplusplus
-#ifndef MAKE_RCOORD_SINGLE
-#define VECTOR_NAMESPACE SACK_NAMESPACE namespace math { namespace vector { namespace Double {
-#define _MATH_VECTOR_NAMESPACE namespace math { namespace vector { namespace Double {
-#define _VECTOR_NAMESPACE namespace vector { namespace Double {
-#define USE_VECTOR_NAMESPACE using namespace sack::math::vector::Double;
+#  ifndef MAKE_RCOORD_SINGLE
+#    define VECTOR_NAMESPACE SACK_NAMESPACE namespace math { namespace vector { namespace Double {
+#    define _MATH_VECTOR_NAMESPACE namespace math { namespace vector { namespace Double {
+#    define _VECTOR_NAMESPACE namespace vector { namespace Double {
+#    define USE_VECTOR_NAMESPACE using namespace sack::math::vector::Double;
+#  else
+#    define VECTOR_NAMESPACE SACK_NAMESPACE namespace math { namespace vector { namespace Float {
+#    define _MATH_VECTOR_NAMESPACE namespace math { namespace vector { Float {
+#    define _VECTOR_NAMESPACE namespace vector { namespace Float {
+#    define USE_VECTOR_NAMESPACE using namespace sack::math::vector::Float;
+#  endif
+#  define _MATH_NAMESPACE namespace math {
+#  define VECTOR_NAMESPACE_END } } } SACK_NAMESPACE_END
 #else
-#define VECTOR_NAMESPACE SACK_NAMESPACE namespace math { namespace vector { namespace Float {
-#define _MATH_VECTOR_NAMESPACE namespace math { namespace vector { Float {
-#define _VECTOR_NAMESPACE namespace vector { namespace Float {
-#define USE_VECTOR_NAMESPACE using namespace sack::math::vector::Float;
-#endif
-#define _MATH_NAMESPACE namespace math {
-#define VECTOR_NAMESPACE_END } } } SACK_NAMESPACE_END
-#ifdef SACK_BAG_EXPORTS
-
-#ifndef MAKE_RCOORD_SINGLE
-#define USE_VECTOR_NAMESPACE using namespace sack::math::vector::Double;
-#else
-#ifndef USE_VECTOR_NAMESPACE 
-#define USE_VECTOR_NAMESPACE using namespace sack::math::vector;
-#endif
-#endif
-#endif
-#else
-#define VECTOR_NAMESPACE
-#define _MATH_VECTOR_NAMESPACE
-#define _MATH_NAMESPACE
-#define _VECTOR_NAMESPACE
-#define VECTOR_NAMESPACE_END
-#define USE_VECTOR_NAMESPACE 
+#  define VECTOR_NAMESPACE
+#  define _MATH_VECTOR_NAMESPACE
+#  define _MATH_NAMESPACE
+#  define _VECTOR_NAMESPACE
+#  define VECTOR_NAMESPACE_END
+#  define USE_VECTOR_NAMESPACE 
 #endif
 
+#ifdef MAKE_RCOORD_SINGLE
+#  define VECTOR_METHOD(r,n,args) MATHLIB_EXPORT r n##f args; 
+#  define EXTERNAL_NAME(n)  n##f
+#else
+#  define VECTOR_METHOD(r,n,args) MATHLIB_EXPORT r n##d args; 
+#  define EXTERNAL_NAME(n)  n##d
+#endif
 
 #include <vectypes.h>
 
@@ -227,7 +224,8 @@ struct orthoarea_tag {
    
    <b>Parameters</b>
                                                                */
-MATHLIB_EXPORT P_POINT Invert( P_POINT a );
+VECTOR_METHOD( P_POINT, Invert, ( P_POINT a ) );
+
 /* Macro which can be used to make a vector's direction be
    exactly opposite of what it is now.                     */
 #define InvertVector( a ) ( a[0] = -a[0], a[1]=-a[1], a[2]=-a[2] )
@@ -245,14 +243,14 @@ MATHLIB_EXPORT P_POINT Invert( P_POINT a );
    // expands to
    PrintVectorEx( "_X", _X DBG_SRC );
    </code>                                                    */
-MATHLIB_EXPORT void PrintVectorEx( CTEXTSTR lpName, PCVECTOR v DBG_PASS );
+VECTOR_METHOD( void, PrintVectorEx, ( CTEXTSTR lpName, PCVECTOR v DBG_PASS ) );
 /* <combine sack::math::vector::PrintVectorEx@CTEXTSTR@PCVECTOR v>
    
    \ \                                                               */
 #define PrintVector(v) PrintVectorEx( WIDE(#v), v DBG_SRC )
 /* Same as PrintVectorEx, but prints to standard output using
    printf.                                                    */
-MATHLIB_EXPORT void PrintVectorStdEx( CTEXTSTR lpName, VECTOR v DBG_PASS );
+VECTOR_METHOD( void, PrintVectorStdEx, ( CTEXTSTR lpName, VECTOR v DBG_PASS ) );
 /* <combine sack::math::vector::PrintVectorStdEx@CTEXTSTR@VECTOR v>
    
    \ \                                                                */
@@ -270,7 +268,7 @@ MATHLIB_EXPORT void PrintVectorStdEx( CTEXTSTR lpName, VECTOR v DBG_PASS );
    A PTRANSFORM is not a MATRIX; there is a matrix in a
    transform, and is the first member, so a ptransform can be
    cast to a matrix and logged with this function.              */
-MATHLIB_EXPORT void PrintMatrixEx( CTEXTSTR lpName, MATRIX m DBG_PASS );
+VECTOR_METHOD( void, PrintMatrixEx, ( CTEXTSTR lpName, MATRIX m DBG_PASS ) );
 /* <combine sack::math::vector::PrintMatrixEx@CTEXTSTR@MATRIX m>
    
    \ \                                                             */
@@ -289,6 +287,13 @@ typedef const TRANSFORM *PCTRANSFORM;
 /* Constant pointer to a constant transform. For things like _I
    transformation which is the identity translation.            */
 typedef const PCTRANSFORM *CPCTRANSFORM;
+
+#define VectorConst_0 EXTERNAL_NAME(VectorConst_0)
+#define VectorConst_X EXTERNAL_NAME(VectorConst_X)
+#define VectorConst_Y EXTERNAL_NAME(VectorConst_Y)
+#define VectorConst_Z EXTERNAL_NAME(VectorConst_Z)
+#define VectorConst_I EXTERNAL_NAME(VectorConst_I)
+
 
 //------ Constants for origin(0,0,0), and axii
 #ifndef VECTOR_LIBRARY_SOURCE
@@ -327,13 +332,13 @@ MATHLIB_DEXPORT const PCTRANSFORM VectorConst_I;
    Remarks
    The result vector may be the same as one of the source
    vectors.                                               */
-MATHLIB_EXPORT P_POINT add( P_POINT pr, PC_POINT pv1, PC_POINT pv2 );
+VECTOR_METHOD( P_POINT, add, ( P_POINT pr, PC_POINT pv1, PC_POINT pv2 ) );
 /* subtracts two vectors and stores the result in another
    vector.
    Remarks
    The result vector may be the same as one of the source
    vectors.                                               */
-MATHLIB_EXPORT P_POINT sub( P_POINT pr, PC_POINT pv1, PC_POINT pv2 );
+VECTOR_METHOD( P_POINT, sub, ( P_POINT pr, PC_POINT pv1, PC_POINT pv2 ) );
 /* Scales a vector by a scalar
    Parameters
    pr :   \result vector
@@ -347,7 +352,7 @@ MATHLIB_EXPORT P_POINT sub( P_POINT pr, PC_POINT pv1, PC_POINT pv2 );
    SetPoint( start, _X );
    scale( result, start, 3 );
    </code>                                   */
-MATHLIB_EXPORT P_POINT scale( P_POINT pr, PC_POINT pv1, RCOORD k );
+VECTOR_METHOD( P_POINT, scale, ( P_POINT pr, PC_POINT pv1, RCOORD k ) );
 /* Adds a vector scaled by a scalar to another vector, results
    in a third vector.
    
@@ -372,11 +377,11 @@ MATHLIB_EXPORT P_POINT scale( P_POINT pr, PC_POINT pv1, RCOORD k );
    
    // result is ( 1, 1.414, 0 )
    </code>                                                     */
-MATHLIB_EXPORT P_POINT addscaled( P_POINT pr, PC_POINT pv1, PC_POINT pv2, RCOORD k );
+VECTOR_METHOD( P_POINT, addscaled, ( P_POINT pr, PC_POINT pv1, PC_POINT pv2, RCOORD k ) );
 /* Normalizes a non-zero vector. That is the resulting length of
    the vector is 1.0. Modifies the vector in place.              */
-MATHLIB_EXPORT void normalize( P_POINT pv );
-MATHLIB_EXPORT void crossproduct( P_POINT pr, PC_POINT pv1, PC_POINT pv2 );
+VECTOR_METHOD( void, normalize, ( P_POINT pv ) );
+VECTOR_METHOD( void, crossproduct, ( P_POINT pr, PC_POINT pv1, PC_POINT pv2 ) );
 /* \Returns the sin of the angle between two vectors.
    Parameters
    pv1 :  one vector
@@ -385,7 +390,7 @@ MATHLIB_EXPORT void crossproduct( P_POINT pr, PC_POINT pv1, PC_POINT pv2 );
    Remarks
    If the length of either vector is 0, then a divide by zero
    exception will happen.                                     */
-MATHLIB_EXPORT RCOORD SinAngle( PC_POINT pv1, PC_POINT pv2 );
+VECTOR_METHOD( RCOORD, SinAngle, ( PC_POINT pv1, PC_POINT pv2 ) );
 /* \Returns the cos (cosine) of the angle between two vectors.
    Parameters
    pv1 :  one vector
@@ -394,12 +399,12 @@ MATHLIB_EXPORT RCOORD SinAngle( PC_POINT pv1, PC_POINT pv2 );
    Remarks
    If the length of either vector is 0, then a divide by zero
    exception will happen.                                      */
-MATHLIB_EXPORT RCOORD CosAngle( PC_POINT pv1, PC_POINT pv2 );
-MATHLIB_EXPORT RCOORD dotproduct( PC_POINT pv1, PC_POINT pv2 );
+VECTOR_METHOD( RCOORD, CosAngle, ( PC_POINT pv1, PC_POINT pv2 ) );
+VECTOR_METHOD( RCOORD, dotproduct, ( PC_POINT pv1, PC_POINT pv2 ) );
 // result is the projection of project onto onto
-MATHLIB_EXPORT P_POINT project( P_POINT pr, PC_POINT onto, PC_POINT project );
+VECTOR_METHOD( P_POINT, project, ( P_POINT pr, PC_POINT onto, PC_POINT project ) );
 /* \Returns the scalar length of a vector. */
-MATHLIB_EXPORT RCOORD Length( PC_POINT pv );
+VECTOR_METHOD( RCOORD, Length, ( PC_POINT pv ) );
 /* \Returns the distance between two points.
    
    
@@ -409,14 +414,14 @@ MATHLIB_EXPORT RCOORD Length( PC_POINT pv );
    
    Returns
    The distance between the two points.      */
-MATHLIB_EXPORT RCOORD Distance( PC_POINT v1, PC_POINT v2 );
+VECTOR_METHOD( RCOORD, Distance, ( PC_POINT v1, PC_POINT v2 ) );
 /* \Returns the distance a point is as projected on another
    vector. The result is the distance along that vector from the
    origin.
    Parameters
    pvOn :  Vector to project on
    pvOf :  vector to get projection length of.                   */
-MATHLIB_EXPORT RCOORD DirectedDistance( PC_POINT pvOn, PC_POINT pvOf );
+VECTOR_METHOD( RCOORD, DirectedDistance, ( PC_POINT pvOn, PC_POINT pvOf ) );
 
 /* copies the value of a ray into another ray
    Parameters
@@ -440,13 +445,13 @@ MATHLIB_EXPORT RCOORD DirectedDistance( PC_POINT pvOn, PC_POINT pvOf );
 		 if name is NULL, allocates an unnamed transform; otherwise
        the transform is created in a known namespace that can be browsed.
 		 */
-MATHLIB_EXPORT PTRANSFORM CreateNamedTransform ( CTEXTSTR name );
+VECTOR_METHOD( PTRANSFORM, CreateNamedTransform, ( CTEXTSTR name ) );
 #define CreateTransform() CreateNamedTransform( NULL )
-MATHLIB_EXPORT PTRANSFORM CreateTransformMotion( PTRANSFORM pt );
-MATHLIB_EXPORT PTRANSFORM CreateTransformMotionEx( PTRANSFORM pt, int rocket );
-MATHLIB_EXPORT void DestroyTransform      ( PTRANSFORM pt );
+VECTOR_METHOD( PTRANSFORM, CreateTransformMotion, ( PTRANSFORM pt ) );
+VECTOR_METHOD( PTRANSFORM, CreateTransformMotionEx, ( PTRANSFORM pt, int rocket ) );
+VECTOR_METHOD( void, DestroyTransform     , ( PTRANSFORM pt ) );
 /* Resets a transform back to initial conitions. */
-MATHLIB_EXPORT void ClearTransform        ( PTRANSFORM pt );
+VECTOR_METHOD( void, ClearTransform       , ( PTRANSFORM pt ) );
 /* Badly named function.
    
    InvertTransform turns a transform sideways, that is takes
@@ -470,17 +475,17 @@ MATHLIB_EXPORT void ClearTransform        ( PTRANSFORM pt );
    
    Not entirely useful at all :)
    </code>                                                    */
-MATHLIB_EXPORT void InvertTransform        ( PTRANSFORM pt );
-MATHLIB_EXPORT void Scale                 ( PTRANSFORM pt, RCOORD sx, RCOORD sy, RCOORD sz );
+VECTOR_METHOD( void, InvertTransform        , ( PTRANSFORM pt ) );
+VECTOR_METHOD( void, Scale                 , ( PTRANSFORM pt, RCOORD sx, RCOORD sy, RCOORD sz ) );
 
-MATHLIB_EXPORT void Translate             ( PTRANSFORM pt, RCOORD tx, RCOORD ty, RCOORD tz );
-MATHLIB_EXPORT void TranslateV            ( PTRANSFORM pt, PC_POINT t );
-MATHLIB_EXPORT void TranslateRel          ( PTRANSFORM pt, RCOORD tx, RCOORD ty, RCOORD tz );
-MATHLIB_EXPORT void TranslateRelV         ( PTRANSFORM pt, PC_POINT t );
+VECTOR_METHOD( void, Translate             , ( PTRANSFORM pt, RCOORD tx, RCOORD ty, RCOORD tz ) );
+VECTOR_METHOD( void, TranslateV            , ( PTRANSFORM pt, PC_POINT t ) );
+VECTOR_METHOD( void, TranslateRel          , ( PTRANSFORM pt, RCOORD tx, RCOORD ty, RCOORD tz ) );
+VECTOR_METHOD( void, TranslateRelV         , ( PTRANSFORM pt, PC_POINT t ) );
 
 
-MATHLIB_EXPORT void RotateAbs( PTRANSFORM pt, RCOORD rx, RCOORD ry, RCOORD rz );
-MATHLIB_EXPORT void RotateAbsV( PTRANSFORM pt, PC_POINT );
+VECTOR_METHOD( void, RotateAbs, ( PTRANSFORM pt, RCOORD rx, RCOORD ry, RCOORD rz ) );
+VECTOR_METHOD( void, RotateAbsV, ( PTRANSFORM pt, PC_POINT ) );
 /* Updates the current rotation matrix of a transform by a
    relative amount. Amounts to rotate about the x, y and z axii
    are given in radians.
@@ -496,13 +501,13 @@ MATHLIB_EXPORT void RotateAbsV( PTRANSFORM pt, PC_POINT );
    
    See Also
    RotateRelV                                                       */
-MATHLIB_EXPORT void RotateRel( PTRANSFORM pt, RCOORD rx, RCOORD ry, RCOORD rz );
+VECTOR_METHOD( void, RotateRel, ( PTRANSFORM pt, RCOORD rx, RCOORD ry, RCOORD rz ) );
 /* Update a transformation matrix by relative degress about the
    x axix, y axis and z axis.
    Parameters
    pt :  transform to update
    v :   vector containing x,y and z relative roll coordinate.  */
-MATHLIB_EXPORT void RotateRelV( PTRANSFORM pt, PC_POINT );
+VECTOR_METHOD( void, RotateRelV, ( PTRANSFORM pt, PC_POINT ) );
 /* Rotates a transform around some arbitrary axis. (any line may
    be used to rotate the transformation's rotation matrix)
    Parameters
@@ -519,7 +524,7 @@ MATHLIB_EXPORT void RotateRelV( PTRANSFORM pt, PC_POINT );
    http://www.siggraph.org/education/materials/HyperGraph/modeling/mod_tran/3drota.htm
    and http://astronomy.swin.edu.au/~pbourke/geometry/rotate/.
                                                                                        */
-MATHLIB_EXPORT void RotateAround( PTRANSFORM pt, PC_POINT p, RCOORD amount );
+VECTOR_METHOD( void, RotateAround, ( PTRANSFORM pt, PC_POINT p, RCOORD amount ) );
 /* Sets the current 'up' axis of a transformation. The forward
    axis is adjusted so that it remains perpendicular to the mast
    axis vs the right axis. After the forward axis is updated,
@@ -536,53 +541,53 @@ MATHLIB_EXPORT void RotateAround( PTRANSFORM pt, PC_POINT p, RCOORD amount );
    keeps up up. (Actually, the computation was used for an
    object running along the interior of a sphere, and this
    normalizes their 'up' to the center of the sphere.               */
-MATHLIB_EXPORT void RotateMast( PTRANSFORM pt, PCVECTOR vup );
+VECTOR_METHOD( void, RotateMast, ( PTRANSFORM pt, PCVECTOR vup ) );
 /* Rotates around the 'up' of the current rotation matrix. Same
    as a yaw rotation.
    Parameters
    pt :     transformation to rotate
    angle :  angle to rotate \- positive should be clockwise,
             looking from top down.                              */
-MATHLIB_EXPORT void RotateAroundMast( PTRANSFORM pt, RCOORD angle );
+VECTOR_METHOD( void, RotateAroundMast, ( PTRANSFORM pt, RCOORD angle ) );
 
 /* Recovers a transformation state from a file.
    Parameters
    pt :        transform to read into
    filename :  filename with the transform in it. */
-MATHLIB_EXPORT void LoadTransform( PTRANSFORM pt, CTEXTSTR filename );
+VECTOR_METHOD( void, LoadTransform, ( PTRANSFORM pt, CTEXTSTR filename ) );
 /* Provides a way to save a matrix ( direct binary file dump)
    Parameters
    pt :        transform matrix to save
    filename :  \file to save the transformation in.           */
-MATHLIB_EXPORT void SaveTransform( PTRANSFORM pt, CTEXTSTR filename );
+VECTOR_METHOD( void, SaveTransform, ( PTRANSFORM pt, CTEXTSTR filename ) );
 
 
-MATHLIB_EXPORT void RotateTo( PTRANSFORM pt, PCVECTOR vforward, PCVECTOR vright );
-MATHLIB_EXPORT void RotateRight( PTRANSFORM pt, int A1, int A2 );
+VECTOR_METHOD( void, RotateTo, ( PTRANSFORM pt, PCVECTOR vforward, PCVECTOR vright ) );
+VECTOR_METHOD( void, RotateRight, ( PTRANSFORM pt, int A1, int A2 ) );
 
-MATHLIB_EXPORT void Apply           ( PCTRANSFORM pt, P_POINT dest, PC_POINT src );
-MATHLIB_EXPORT void ApplyR          ( PCTRANSFORM pt, PRAY dest, PRAY src );
-MATHLIB_EXPORT void ApplyT          ( PCTRANSFORM pt, PTRANSFORM dest, PCTRANSFORM src );
+VECTOR_METHOD( void, Apply           , ( PCTRANSFORM pt, P_POINT dest, PC_POINT src ) );
+VECTOR_METHOD( void, ApplyR          , ( PCTRANSFORM pt, PRAY dest, PRAY src ) );
+VECTOR_METHOD( void, ApplyT          , ( PCTRANSFORM pt, PTRANSFORM dest, PCTRANSFORM src ) );
 // I know this was a result - unsure how it was implented...
 //void ApplyT              (PTRANFORM pt, PTRANSFORM pt1, PTRANSFORM pt2 );
 
-MATHLIB_EXPORT void ApplyInverse    ( PCTRANSFORM pt, P_POINT dest, PC_POINT src );
-MATHLIB_EXPORT void ApplyInverseR   ( PCTRANSFORM pt, PRAY dest, PRAY src );
-MATHLIB_EXPORT void ApplyInverseT   ( PCTRANSFORM pt, PTRANSFORM dest, PCTRANSFORM src );
+VECTOR_METHOD( void, ApplyInverse    , ( PCTRANSFORM pt, P_POINT dest, PC_POINT src ) );
+VECTOR_METHOD( void, ApplyInverseR   , ( PCTRANSFORM pt, PRAY dest, PRAY src ) );
+VECTOR_METHOD( void, ApplyInverseT   , ( PCTRANSFORM pt, PTRANSFORM dest, PCTRANSFORM src ) );
 // again note there was a void ApplyInverseT
 
-MATHLIB_EXPORT void ApplyRotation        ( PCTRANSFORM pt, P_POINT dest, PC_POINT src );
-MATHLIB_EXPORT void ApplyRotationT       ( PCTRANSFORM pt, PTRANSFORM ptd, PCTRANSFORM pts );
+VECTOR_METHOD( void, ApplyRotation        , ( PCTRANSFORM pt, P_POINT dest, PC_POINT src ) );
+VECTOR_METHOD( void, ApplyRotationT       , ( PCTRANSFORM pt, PTRANSFORM ptd, PCTRANSFORM pts ) );
 
-MATHLIB_EXPORT void ApplyInverseRotation ( PCTRANSFORM pt, P_POINT dest, PC_POINT src );
+VECTOR_METHOD( void, ApplyInverseRotation , ( PCTRANSFORM pt, P_POINT dest, PC_POINT src ) );
 
-MATHLIB_EXPORT void ApplyInverseRotationT( PCTRANSFORM pt, PTRANSFORM ptd, PCTRANSFORM pts );
+VECTOR_METHOD( void, ApplyInverseRotationT, ( PCTRANSFORM pt, PTRANSFORM ptd, PCTRANSFORM pts ) );
 
-MATHLIB_EXPORT void ApplyTranslation     ( PCTRANSFORM pt, P_POINT dest, PC_POINT src );
-MATHLIB_EXPORT void ApplyTranslationT    ( PCTRANSFORM pt, PTRANSFORM ptd, PCTRANSFORM pts );
+VECTOR_METHOD( void, ApplyTranslation     , ( PCTRANSFORM pt, P_POINT dest, PC_POINT src ) );
+VECTOR_METHOD( void, ApplyTranslationT    , ( PCTRANSFORM pt, PTRANSFORM ptd, PCTRANSFORM pts ) );
 
-MATHLIB_EXPORT void ApplyInverseTranslation( PCTRANSFORM pt, P_POINT dest, PC_POINT src );
-MATHLIB_EXPORT void ApplyInverseTranslationT( PCTRANSFORM pt, PTRANSFORM ptd, PCTRANSFORM pts );
+VECTOR_METHOD( void, ApplyInverseTranslation, ( PCTRANSFORM pt, P_POINT dest, PC_POINT src ) );
+VECTOR_METHOD( void, ApplyInverseTranslationT, ( PCTRANSFORM pt, PTRANSFORM ptd, PCTRANSFORM pts ) );
 
 // after Move() these callbacks are invoked.
 typedef void (*MotionCallback)( PTRSZVAL, PTRANSFORM );
@@ -593,40 +598,40 @@ typedef void (*MotionCallback)( PTRSZVAL, PTRANSFORM );
    callback :  user callback routine
    psv :       pointer size value data to be passed to user
                callback routine.                             */
-MATHLIB_EXPORT void AddTransformCallback( PTRANSFORM pt, MotionCallback callback, PTRSZVAL psv );
+VECTOR_METHOD( void, AddTransformCallback, ( PTRANSFORM pt, MotionCallback callback, PTRSZVAL psv ) );
 
 /* Set the speed vector used when Move is applied to a
    PTRANSFORM.
    Parameters
    pt :  transform to set the current speed of.
    s :   the speed vector to set.                      */
-MATHLIB_EXPORT PC_POINT SetSpeed( PTRANSFORM pt, PC_POINT s );
-MATHLIB_EXPORT P_POINT GetSpeed( PTRANSFORM pt, P_POINT s );
+VECTOR_METHOD( PC_POINT, SetSpeed, ( PTRANSFORM pt, PC_POINT s ) );
+VECTOR_METHOD( P_POINT, GetSpeed, ( PTRANSFORM pt, P_POINT s ) );
 /* Sets the acceleration applied to the speed when Move is
    called.                                                 */
-MATHLIB_EXPORT PC_POINT SetAccel( PTRANSFORM pt, PC_POINT s );
-MATHLIB_EXPORT P_POINT GetAccel( PTRANSFORM pt, P_POINT s );
+VECTOR_METHOD( PC_POINT, SetAccel, ( PTRANSFORM pt, PC_POINT s ) );
+VECTOR_METHOD( P_POINT, GetAccel, ( PTRANSFORM pt, P_POINT s ) );
 /* Sets the forward direction speed in a PTRANSFORM.
    Parameters
    pt :        Transform to set the right speed of.
    distance :  How far it should go in the next time interval. */
-MATHLIB_EXPORT void Forward( PTRANSFORM pt, RCOORD distance );
-MATHLIB_EXPORT void MoveForward( PTRANSFORM pt, RCOORD distance );
-MATHLIB_EXPORT void MoveRight( PTRANSFORM pt, RCOORD distance );
-MATHLIB_EXPORT void MoveUp( PTRANSFORM pt, RCOORD distance );
+VECTOR_METHOD( void, Forward, ( PTRANSFORM pt, RCOORD distance ) );
+VECTOR_METHOD( void, MoveForward, ( PTRANSFORM pt, RCOORD distance ) );
+VECTOR_METHOD( void, MoveRight, ( PTRANSFORM pt, RCOORD distance ) );
+VECTOR_METHOD( void, MoveUp, ( PTRANSFORM pt, RCOORD distance ) );
 /* Sets the up direction speed in a PTRANSFORM.
    Parameters
    pt :        Transform to set the right speed of.
    distance :  How far it should go in the next time interval. */
-MATHLIB_EXPORT void Up( PTRANSFORM pt, RCOORD distance );
+VECTOR_METHOD( void, Up, ( PTRANSFORM pt, RCOORD distance ) );
 /* Sets the right direction speed in a PTRANSFORM.
    Parameters
    pt :        Transform to set the right speed of.
    distance :  How far it should go in the next time interval. */
-MATHLIB_EXPORT void Right( PTRANSFORM pt, RCOORD distance );
-MATHLIB_EXPORT PC_POINT SetRotation( PTRANSFORM pt, PC_POINT r );
-MATHLIB_EXPORT P_POINT GetRotation( PTRANSFORM pt, P_POINT r );
-MATHLIB_EXPORT PC_POINT SetRotationAccel( PTRANSFORM pt, PC_POINT r );
+VECTOR_METHOD( void, Right, ( PTRANSFORM pt, RCOORD distance ) );
+VECTOR_METHOD( PC_POINT, SetRotation, ( PTRANSFORM pt, PC_POINT r ) );
+VECTOR_METHOD( P_POINT, GetRotation, ( PTRANSFORM pt, P_POINT r ) );
+VECTOR_METHOD( PC_POINT, SetRotationAccel, ( PTRANSFORM pt, PC_POINT r ) );
 /* Set how long it takes, in milliseconds, to move 1 unit of
    speed vector or rotate 1 unit of rotation vector when Move is
    called. Each matrix maintains a last tick. If many thousands
@@ -656,7 +661,7 @@ MATHLIB_EXPORT PC_POINT SetRotationAccel( PTRANSFORM pt, PC_POINT r );
    
    
                                                                  */
-MATHLIB_EXPORT void SetTimeInterval( PTRANSFORM pt, RCOORD speed_interval, RCOORD rotation_interval );
+VECTOR_METHOD( void, SetTimeInterval, ( PTRANSFORM pt, RCOORD speed_interval, RCOORD rotation_interval ) );
 
 /* Updates a transform by it's current speed and rotation
    assuming speed and rotation are specified in x per 1 second.
@@ -670,41 +675,110 @@ MATHLIB_EXPORT void SetTimeInterval( PTRANSFORM pt, RCOORD speed_interval, RCOOR
    
    See Also
    <link sack::math::vector::SetTimeInterval@PTRANSFORM@RCOORD@RCOORD, SetTimeInterval> */
-MATHLIB_EXPORT LOGICAL Move( PTRANSFORM pt );
+VECTOR_METHOD( LOGICAL, Move, ( PTRANSFORM pt ) );
 #if 0
-	MATHLIB_EXPORT void Unmove( PTRANSFORM pt );
+	VECTOR_METHOD( void, Unmove, ( PTRANSFORM pt ) );
 #endif
 
-MATHLIB_EXPORT void showstdEx( PTRANSFORM pt, char *header );  
-MATHLIB_EXPORT void ShowTransformEx( PTRANSFORM pt, char *header DBG_PASS );  
+VECTOR_METHOD( void, showstdEx, ( PTRANSFORM pt, char *header ) );  
+VECTOR_METHOD( void, ShowTransformEx, ( PTRANSFORM pt, char *header DBG_PASS ) );  
 /* <combine sack::math::vector::ShowTransformEx@PTRANSFORM@char *header>
    
    \ \                                                                   */
 #define ShowTransform( n ) ShowTransformEx( n, #n DBG_SRC )
-MATHLIB_EXPORT void showstd( PTRANSFORM pt, char *header );  
+VECTOR_METHOD( void, showstd, ( PTRANSFORM pt, char *header ) );  
 
 
-MATHLIB_EXPORT void GetOriginV( PTRANSFORM pt, P_POINT o ); 
-MATHLIB_EXPORT PC_POINT GetOrigin( PTRANSFORM pt ); 
+VECTOR_METHOD( void, GetOriginV, ( PTRANSFORM pt, P_POINT o ) ); 
+VECTOR_METHOD( PC_POINT, GetOrigin, ( PTRANSFORM pt ) ); 
 
-MATHLIB_EXPORT void GetAxisV( PTRANSFORM pt, P_POINT a, int n ); 
-MATHLIB_EXPORT PC_POINT GetAxis( PTRANSFORM pt, int n ); 
+VECTOR_METHOD( void, GetAxisV, ( PTRANSFORM pt, P_POINT a, int n ) ); 
+VECTOR_METHOD( PC_POINT, GetAxis, ( PTRANSFORM pt, int n ) ); 
 
-MATHLIB_EXPORT void SetAxis( PTRANSFORM pt, RCOORD a, RCOORD b, RCOORD c, int n ); 
-MATHLIB_EXPORT void SetAxisV( PTRANSFORM pt, PC_POINT a, int n ); 
+VECTOR_METHOD( void, SetAxis, ( PTRANSFORM pt, RCOORD a, RCOORD b, RCOORD c, int n ) ); 
+VECTOR_METHOD( void, SetAxisV, ( PTRANSFORM pt, PC_POINT a, int n ) ); 
 
 // matrix is suitable to set as the first matrix for opengl rendering.
 // it is an inverse application that uses the transform's origin as camera origin
 // and the rotation matrix as what to look at.
-MATHLIB_EXPORT void GetGLCameraMatrix( PTRANSFORM pt, PMATRIX out );
+VECTOR_METHOD( void, GetGLCameraMatrix, ( PTRANSFORM pt, PMATRIX out ) );
 
-MATHLIB_EXPORT void GetGLMatrix( PTRANSFORM pt, PMATRIX out );
-MATHLIB_EXPORT void SetGLMatrix( PMATRIX in, PTRANSFORM pt );
+VECTOR_METHOD( void, GetGLMatrix, ( PTRANSFORM pt, PMATRIX out ) );
+VECTOR_METHOD( void, SetGLMatrix, ( PMATRIX in, PTRANSFORM pt ) );
 
-MATHLIB_EXPORT void SetRotationMatrix( PTRANSFORM pt, RCOORD *quat );
-MATHLIB_EXPORT void GetRotationMatrix( PTRANSFORM pt, RCOORD *quat );
+VECTOR_METHOD( void, SetRotationMatrix, ( PTRANSFORM pt, RCOORD *quat ) );
+VECTOR_METHOD( void, GetRotationMatrix, ( PTRANSFORM pt, RCOORD *quat ) );
+
+#if !defined( VECTOR_LIBRARY_SOURCE ) && !defined( NO_AUTO_VECTLIB_NAMES )
+#define add EXTERNAL_NAME(add)
+#define sub EXTERNAL_NAME(sub)
+#define scale EXTERNAL_NAME(scale)
+#define Scale EXTERNAL_NAME(Scale)
+#define Invert EXTERNAL_NAME(Invert)
+#define GetOrigin EXTERNAL_NAME(GetOrigin)
+#define GetOriginV EXTERNAL_NAME(GetOriginV)
+#define GetAxis EXTERNAL_NAME(GetAxis)
+#define GetAxisV EXTERNAL_NAME(GetAxisV)
+#define GetGLCameraMatrix EXTERNAL_NAME(GetGLCameraMatrix)
+#define ApplyInverse EXTERNAL_NAME(ApplyInverse)
+
+#define Move EXTERNAL_NAME(Move)
+#define MoveForward EXTERNAL_NAME(MoveForward)
+#define MoveRight EXTERNAL_NAME(MoveRight)
+#define MoveUp EXTERNAL_NAME(MoveUp)
+
+#define Forward EXTERNAL_NAME(Forward)
+#define Right EXTERNAL_NAME(Right)
+#define Up EXTERNAL_NAME(Up)
+
+#define PrintVectorEx EXTERNAL_NAME(PrintVectorEx)
+#define PrintMatrixEx EXTERNAL_NAME(PrintMatrixEx)
+#define ShowTransformEx EXTERNAL_NAME(ShowTransformEx)
 
 
+
+#define addscaled EXTERNAL_NAME(addscaled)
+#define Length EXTERNAL_NAME(Length)
+#define normalize EXTERNAL_NAME(normalize)
+#define Translate EXTERNAL_NAME(Translate)
+#define TranslateV EXTERNAL_NAME(TranslateV)
+#define Apply EXTERNAL_NAME(Apply)
+#define ApplyR EXTERNAL_NAME(ApplyR)
+#define ApplyT EXTERNAL_NAME(ApplyT)
+#define ApplyTranslation EXTERNAL_NAME(ApplyTranslation)
+#define ApplyTranslationR EXTERNAL_NAME(ApplyTranslationR)
+#define ApplyTranslationT EXTERNAL_NAME(ApplyTranslationT)
+#define ApplyInverseRotation EXTERNAL_NAME(ApplyInverseRotation)
+#define ApplyInverseR EXTERNAL_NAME(ApplyInverseR)
+#define ApplyRotation EXTERNAL_NAME(ApplyRotation)
+#define ApplyRotationT EXTERNAL_NAME(ApplyRotationT)
+#define RotateAround EXTERNAL_NAME(RotateAround)
+#define RotateRel EXTERNAL_NAME(RotateRel)
+#define SetRotation EXTERNAL_NAME(SetRotation)
+#define GetRotation EXTERNAL_NAME(GetRotation)
+#define SetRotationAccel EXTERNAL_NAME(SetRotationAccel)
+#define RotateRight EXTERNAL_NAME(RotateRight)
+#define dotproduct EXTERNAL_NAME(dotproduct)
+#define DestroyTransform EXTERNAL_NAME(DestroyTransform)
+#define SinAngle EXTERNAL_NAME(SinAngle)
+#define CosAngle EXTERNAL_NAME(CosAngle)
+#define crossproduct EXTERNAL_NAME(crossproduct)
+#define CreateTransformMotion EXTERNAL_NAME(CreateTransformMotion)
+#define CreateTransformMotionEx EXTERNAL_NAME(CreateTransformMotionEx)
+#define CreateNamedTransform EXTERNAL_NAME(CreateNamedTransform)
+#define ClearTransform EXTERNAL_NAME(ClearTransform)
+#define RotateTo EXTERNAL_NAME(RotateTo)
+#define SetSpeed EXTERNAL_NAME(SetSpeed)
+#define SetAccel EXTERNAL_NAME(SetAccel)
+#define TranslateRel EXTERNAL_NAME( TranslateRel )
+#define TranslateRelV EXTERNAL_NAME( TranslateRelV )
+#define RotateAbs EXTERNAL_NAME(RotateAbs)
+#define RotateAbsV EXTERNAL_NAME(RotateAbsV)
+#define GetRotationMatrix EXTERNAL_NAME(GetRotationMatrix)
+#define SetRotationMatrix EXTERNAL_NAME(SetRotationMatrix)
+
+
+#endif
 
 #ifdef __cplusplus
 #if 0

@@ -8,16 +8,6 @@
 #include <image.h>
 
 RENDER_NAMESPACE
-#ifdef MINGW_SUX
-
-typedef HANDLE HTOUCHINPUT;
-#define WM_TOUCH 0x0240
-/*
- * RegisterTouchWindow flag values
- */
-#define TWF_FINETOUCH       (0x00000001)
-#define TWF_WANTPALM        (0x00000002)
-#endif
 
 #ifndef VIDLIB_MAIN
 extern
@@ -42,6 +32,8 @@ extern
 		BIT_FIELD bUseLLKeyhook : 1;
 		BIT_FIELD bLogMouseEvents : 1;
 		BIT_FIELD bHookTouchEvents : 1;
+		BIT_FIELD bDisableAutoDoubleClickFullScreen : 1;
+		BIT_FIELD bDoNotPreserveAspectOnFullScreen : 1;
 		//---------- see comment above
 	} flags;
 	PRENDERER mouse_last_vid;

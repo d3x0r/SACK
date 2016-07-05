@@ -839,7 +839,7 @@ void DestroySQLTable( PTABLE table )
 		Release( (POINTER)table->fields.field[n].extra );
 		for( m = 0; table->fields.field[n].previous_names[m] && m < MAX_PREVIOUS_FIELD_NAMES; m++ )
 		{
-         Release( (POINTER)table->fields.field[n].previous_names[m] );
+			Release( (POINTER)table->fields.field[n].previous_names[m] );
 		}
 	}
 	for( n = 0; n < table->keys.count; n++ )
@@ -850,7 +850,21 @@ void DestroySQLTable( PTABLE table )
 		}
 		Release( (POINTER)table->keys.key[n].name );
 	}
-   Release( (POINTER)table->name );
+	for( n = 0; n < table->constraints.count; n++ )
+	{
+		for( m = 0; table->constraints.constraint[n].colnames[m] && m < MAX_KEY_COLUMNS; m++ )
+		{
+			Release( (POINTER)table->constraints.constraint[n].colnames[m] );
+		}
+		for( m = 0; table->constraints.constraint[n].foriegn_colnames[m] && m < MAX_KEY_COLUMNS; m++ )
+		{
+			Release( (POINTER)table->constraints.constraint[n].foriegn_colnames[m] );
+		}
+		Release( (POINTER)table->constraints.constraint[n].name );
+		Release( (POINTER)table->constraints.constraint[n].references );
+	}
+	Release( (POINTER)table->name );
+	Release( (POINTER)table->constraints.constraint );
 	Release( (POINTER)table->fields.field );
 	Release( (POINTER)table->keys.key );
 	Release( table );

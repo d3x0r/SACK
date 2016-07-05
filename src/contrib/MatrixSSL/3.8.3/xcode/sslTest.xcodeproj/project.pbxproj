@@ -1,0 +1,278 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 46;
+	objects = {
+
+/* Begin PBXContainerItemProxy section */
+		DD1144A51B8D3A2B00721CD4 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = DD1144991B8D39B700721CD4 /* core.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = DD7EB84D1B8D2A83000F7458;
+			remoteInfo = core;
+		};
+		DD1144A71B8D3A2B00721CD4 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = DD1144A11B8D39C700721CD4 /* crypto.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = DD11442E1B8D2D7D00721CD4;
+			remoteInfo = crypto;
+		};
+		DD1144A91B8D3A2B00721CD4 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = DD1144911B8D399200721CD4 /* matrixssl.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = DD1144441B8D2EE600721CD4;
+			remoteInfo = matrixssl;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		DD1144901B8D38F700721CD4 /* sslTest.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = sslTest.c; path = ../matrixssl/test/sslTest.c; sourceTree = "<group>"; };
+		DD1144911B8D399200721CD4 /* matrixssl.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; path = matrixssl.xcodeproj; sourceTree = "<group>"; };
+		DD1144991B8D39B700721CD4 /* core.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; path = core.xcodeproj; sourceTree = "<group>"; };
+		DD1144A11B8D39C700721CD4 /* crypto.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; path = crypto.xcodeproj; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXGroup section */
+		DD1144851B8D37F700721CD4 = {
+			isa = PBXGroup;
+			children = (
+				DD1144901B8D38F700721CD4 /* sslTest.c */,
+				DD1144991B8D39B700721CD4 /* core.xcodeproj */,
+				DD1144A11B8D39C700721CD4 /* crypto.xcodeproj */,
+				DD1144911B8D399200721CD4 /* matrixssl.xcodeproj */,
+			);
+			sourceTree = "<group>";
+		};
+		DD1144921B8D399200721CD4 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		DD11449A1B8D39B700721CD4 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		DD1144A21B8D39C700721CD4 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXLegacyTarget section */
+		DD11448A1B8D37F700721CD4 /* sslTest */ = {
+			isa = PBXLegacyTarget;
+			buildArgumentsString = "$(ACTION)";
+			buildConfigurationList = DD11448D1B8D37F700721CD4 /* Build configuration list for PBXLegacyTarget "sslTest" */;
+			buildPhases = (
+			);
+			buildToolPath = /usr/bin/make;
+			buildWorkingDirectory = ../matrixssl/test/;
+			dependencies = (
+				DD1144A61B8D3A2B00721CD4 /* PBXTargetDependency */,
+				DD1144A81B8D3A2B00721CD4 /* PBXTargetDependency */,
+				DD1144AA1B8D3A2B00721CD4 /* PBXTargetDependency */,
+			);
+			name = sslTest;
+			passBuildSettingsInEnvironment = 1;
+			productName = sslTest;
+		};
+/* End PBXLegacyTarget section */
+
+/* Begin PBXProject section */
+		DD1144861B8D37F700721CD4 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				LastUpgradeCheck = 0710;
+				ORGANIZATIONNAME = "INSIDE Secure";
+				TargetAttributes = {
+					DD11448A1B8D37F700721CD4 = {
+						CreatedOnToolsVersion = 6.4;
+					};
+				};
+			};
+			buildConfigurationList = DD1144891B8D37F700721CD4 /* Build configuration list for PBXProject "sslTest" */;
+			compatibilityVersion = "Xcode 3.2";
+			developmentRegion = English;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+			);
+			mainGroup = DD1144851B8D37F700721CD4;
+			projectDirPath = "";
+			projectReferences = (
+				{
+					ProductGroup = DD11449A1B8D39B700721CD4 /* Products */;
+					ProjectRef = DD1144991B8D39B700721CD4 /* core.xcodeproj */;
+				},
+				{
+					ProductGroup = DD1144A21B8D39C700721CD4 /* Products */;
+					ProjectRef = DD1144A11B8D39C700721CD4 /* crypto.xcodeproj */;
+				},
+				{
+					ProductGroup = DD1144921B8D399200721CD4 /* Products */;
+					ProjectRef = DD1144911B8D399200721CD4 /* matrixssl.xcodeproj */;
+				},
+			);
+			projectRoot = "";
+			targets = (
+				DD11448A1B8D37F700721CD4 /* sslTest */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXTargetDependency section */
+		DD1144A61B8D3A2B00721CD4 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = core;
+			targetProxy = DD1144A51B8D3A2B00721CD4 /* PBXContainerItemProxy */;
+		};
+		DD1144A81B8D3A2B00721CD4 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = crypto;
+			targetProxy = DD1144A71B8D3A2B00721CD4 /* PBXContainerItemProxy */;
+		};
+		DD1144AA1B8D3A2B00721CD4 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = matrixssl;
+			targetProxy = DD1144A91B8D3A2B00721CD4 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		DD11448B1B8D37F700721CD4 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = "";
+				MTL_ENABLE_DEBUG_INFO = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = macosx;
+			};
+			name = Debug;
+		};
+		DD11448C1B8D37F700721CD4 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = "";
+				MTL_ENABLE_DEBUG_INFO = NO;
+				SDKROOT = macosx;
+			};
+			name = Release;
+		};
+		DD11448E1B8D37F700721CD4 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				DEBUGGING_SYMBOLS = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				OTHER_CFLAGS = "";
+				OTHER_LDFLAGS = "";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Debug;
+		};
+		DD11448F1B8D37F700721CD4 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				OTHER_CFLAGS = "";
+				OTHER_LDFLAGS = "";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		DD1144891B8D37F700721CD4 /* Build configuration list for PBXProject "sslTest" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				DD11448B1B8D37F700721CD4 /* Debug */,
+				DD11448C1B8D37F700721CD4 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		DD11448D1B8D37F700721CD4 /* Build configuration list for PBXLegacyTarget "sslTest" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				DD11448E1B8D37F700721CD4 /* Debug */,
+				DD11448F1B8D37F700721CD4 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = DD1144861B8D37F700721CD4 /* Project object */;
+}

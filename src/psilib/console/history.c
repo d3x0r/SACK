@@ -1875,8 +1875,8 @@ void BuildDisplayInfoLines( PHISTORY_BROWSER phbr, SFTFont font )
 							if( ( nSegShown < nLen ) || ( trim_char ) )
 							{
 								//lprintf( "Wrapped line... reset nChar cause it's a new line of characters." );
-							do_end_of_line:
 								nWrapped++;
+							do_end_of_line:
 
 								//lprintf( "Setting prior toshow to nChar...%d", nChar );
 								pLastSetLine->nToShow = nChar - trim_char;

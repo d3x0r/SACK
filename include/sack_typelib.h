@@ -83,6 +83,13 @@ TYPELIB_PROC  POINTER* TYPELIB_CALLTYPE     GetLinkAddress ( PLIST *pList, INDEX
    0\-n :           Index of the first occurance of the link in the
                     list.                                           */
 TYPELIB_PROC  INDEX TYPELIB_CALLTYPE        FindLink       ( PLIST *pList, POINTER value );
+/* return the count of used members in a PLIST
+    pList : the list to count
+	Return Value 
+	   number of things in the list.
+*/
+TYPELIB_PROC  INDEX TYPELIB_CALLTYPE        GetLinkCount   ( PLIST pList );
+
 /* Uses FindLink on the list for the value to delete, and then
    sets the index of the found link to NULL.
    

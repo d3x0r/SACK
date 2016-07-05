@@ -50,6 +50,7 @@ PLIST class_names;
 //CTEXTSTR class_name;
 static PLIST sequences;
 PCLIENT pcListen;
+PCLIENT pcListenTCP;
 CTEXTSTR pInterfaceAddr;
 static int bLogOutput;
 int bLogPacketReceive;
@@ -589,7 +590,9 @@ static void ProcessPacket( PCLIENT pc_reply, POINTER buffer, size_t size, SOCKAD
 							tmp_args->bCaptureOutput = bCaptureOutput;
 							tmp_args->restart = restart;
 							tmp_args->pc_task_reply = pc_reply;
+#ifdef _DEBUG
 							lprintf( WIDE("Capturing task output to send back... begin back connect.") );
+#endif
 							ThreadTo( RemoteBackConnect, (PTRSZVAL)tmp_args );
 						}
 						else
@@ -690,26 +693,38 @@ static void CPROC ConnectionReceived( PCLIENT pcServer, PCLIENT pcNew )
 
 int BeginNetwork( void )
 {
+   int attempt = 0;
 	if( !NetworkWait( NULL, 48, 2 ) )
 		return 0;
-
-	pcListen = ServeUDP( pInterfaceAddr, 3006, UDPRead, NULL );
-	if( !pcListen )
-	{
-		lprintf( WIDE("Failed to listen on 3006") );
-		return 0;
-	}
+	do {
+		pcListen = ServeUDP( pInterfaceAddr, 3006, UDPRead, NULL );
+		if( !pcListen )
+		{
+			lprintf( WIDE("Failed to listen on 3006") );
+			if( attempt > 10 )
+            return 0;
+			WakeableSleep( 1000 );
+         attempt++;
+			//return 0;
+		}
+	} while( !pcListen );
 	UDPEnableBroadcast( pcListen, TRUE );
 	lprintf( WIDE("listening on %s[:3006]"), pInterfaceAddr?pInterfaceAddr:WIDE("0.0.0.0:3006") );
 	{
-		SOCKADDR *host_tcp = CreateSockAddress( pInterfaceAddr, 3006 );
-		pcListen = OpenTCPListenerAddrEx( host_tcp, ConnectionReceived );
-		if( !pcListen )
+		SOCKADDR *host_tcp;
+		if( pInterfaceAddr ){
+			host_tcp = CreateSockAddress( pInterfaceAddr, 3006 );
+			pcListenTCP = OpenTCPListenerAddrEx( host_tcp, ConnectionReceived );
+		}
+		else {
+         // opening with just a port allows listen on IPV4&6 all address.
+			pcListenTCP = OpenTCPListenerEx( 3006, ConnectionReceived );
+		}
+		if( !pcListenTCP )
 		{
 			lprintf( WIDE("Failed to listen on 3006") );
 			return 0;
 		}
-		UDPEnableBroadcast( pcListen, TRUE );
 		return 1;
 	}
 }
@@ -821,7 +836,9 @@ SaneWinMain( argc, argv )
 						else
 						{
 							arg_ofs++;
+#ifdef _DEBUG
 							lprintf( WIDE("Dup string %s"), arg_v[arg_ofs] );
+#endif
 							AddLink( &class_names, StrDup( arg_v[arg_ofs] ) );
 						}
 						break;
@@ -971,8 +988,8 @@ SaneWinMain( argc, argv )
 		lprintf( WIDE("Usage: %s\n [-c <class_name>...]  [-l]\n")
 				  WIDE(" -l enables logging\n")
 				  WIDE(" -L enables network packet receive logging\n")
-				  WIDE(" -s socket listen address (resembles send on launchcmd)\n")
-				  WIDE(" as many class names as you awnt may be added.\n")
+				  WIDE(" -s socket listen address (resembles send on launchcmd, only one per instance supported)\n")
+				  WIDE(" as many class names as you want may be added.\n")
 				  WIDE("  If a class_name is specified commands for specified class will be executed.\n")
 				  WIDE("  If NO class_name is specified all received commands will be executed.\n")
 				  WIDE("  If no class is specified in the message, it is also launched."), argv[0] );

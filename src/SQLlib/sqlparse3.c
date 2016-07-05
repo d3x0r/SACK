@@ -61,13 +61,13 @@ int GrabName( PTEXT *word, TEXTSTR *result, int *bQuoted DBG_PASS )
 			phrase = SegAppend( phrase, SegDuplicateEx(*word DBG_RELAY ) );
 			(*word) = NEXTLINE( *word );
 		}
-      // skip one more - end after the last `
+		// skip one more - end after the last `
 		(*word) = NEXTLINE( *word );
 		if( GetText( *word )[0] == '.' )
 		{
 			(*word) = NEXTLINE( *word );
 			LineRelease( phrase );
-         phrase = NULL;
+			phrase = NULL;
 			if( TextLike( (*word), WIDE( "`" ) ) )
 			{
 				(*word) = NEXTLINE( *word );
@@ -131,7 +131,7 @@ static int GrabType( PTEXT *word, TEXTSTR *result DBG_PASS )
 		if( StrCaseCmp( GetText( type ), WIDE( "unsigned" ) ) == 0 )
 		{
 			SegAppend( type, SegDuplicate(*word) );
-         (*word) = NEXTLINE( *word );
+			(*word) = NEXTLINE( *word );
 		}
 		if( (*word) && GetText( *word )[0] == '(' )
 		{
@@ -186,7 +186,7 @@ static int GrabExtra( PTEXT *word, TEXTSTR *result )
 		}
 		else
 			if( result )
-            (*result) = NULL;
+				(*result) = NULL;
 	}
    return TRUE;
 }
@@ -456,6 +456,7 @@ int GetTableColumns( PTABLE table, PTEXT *word DBG_PASS )
 				{
 					//lprintf( "Skipping constraint parsing" );
 					AddConstraint( table, word );
+					Release( name );
 				}
 				else if( ( StrCaseCmp( name, WIDE( "INDEX" ) ) == 0 )
 					   || ( StrCaseCmp( name, WIDE( "KEY" ) ) == 0 ) )

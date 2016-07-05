@@ -1,3 +1,4 @@
+#define NO_AUTO_VECTLIB_NAMES
 #include "interface.h"
 #define PEICE_SOURCE_COMPILING
 #include <stdhdrs.h>

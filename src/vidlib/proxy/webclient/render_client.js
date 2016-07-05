@@ -11,13 +11,13 @@ function proxy_image()
 	var x;
 	var y;
 	var w;
-	var h;     
+	var h;
 	var parent;  // relation with other images
 	var child;   // relation with other images
 	var next;   // relation with other images
 	var prior; // relation with other images
 	var renderer;  // which render_surface this represents (null if static resource, uses image)
-	var server_id; // what the server calls this image (low number probably) 
+	var server_id; // what the server calls this image (low number probably)
 	var image; // actual Image() instance
 	var on_document = false;
 	var server_render_id; // the image may be created before the renderer...
@@ -30,7 +30,7 @@ function OpenServer( canvas_name )
 		return;
 
 	var image_list = [];
-	var render_list = []; 
+	var render_list = [];
 	var font_list = [];
 
 	function remove_render( render )
@@ -54,11 +54,11 @@ function OpenServer( canvas_name )
 			//console.log( "is " + image_list[idx].server_id +"=="+ server_id + " ?" );
 			if( image_list[idx].server_id == server_id )
 				return image_list[idx];
-		}	
-		console.log( "did not find image " + server_id );		
+		}
+		console.log( "did not find image " + server_id );
 		return null;
-	}	
-	
+	}
+
 	function find_render( server_id )
 	{
 		if( server_id < 0 )
@@ -68,10 +68,10 @@ function OpenServer( canvas_name )
 		{
 			if( render_list[idx].server_id == server_id )
 				return render_list[idx];
-		}		
+		}
 		return null;
-	}	
-	 
+	}
+
 	function find_font( server_id )
 	{
 		if( server_id < 0 )
@@ -79,28 +79,28 @@ function OpenServer( canvas_name )
 		var idx;
 		for( idx = 0; idx < font_list.length; idx++ )
 		{
-			//console.log( "is " + font_list[idx].server_id +"=="+ server_id + " ?" );
+			console.log( "is " + font_list[idx].server_id +"=="+ server_id + " ?" );
 			if( font_list[idx].server_id == server_id )
 				return font_list[idx];
-		}	
-		console.log( "did not find font " + server_id );		
+		}
+		console.log( "did not find font " + server_id );
 		return null;
-	}	
-	
- 
+	}
+
+
      ws.onopen = function()
      {
         // Web Socket is connected, send data using send()
-        
+
         // debug btoa (atob)
 		//console.log( "output : " + btoa("[{\"MsgID\":22,\"data\":{\"image_to_id\":62,\"image_from_id\":44}}]") );
-     
+
         ws.send( JSON.stringify( { MsgID: 100 /* PMID_ClientIdentification */,
-        				 data : { client_id:"apple" + createGuid() } 
-        			} 
+        				 data : { client_id:"apple" + createGuid() }
+        			}
                                 ) );
      };
-    
+
 	var b = 0;
 	var last_mouse_down = null;
 	function keydown(event)
@@ -108,8 +108,8 @@ function OpenServer( canvas_name )
 		    console.debug(  event  );
 		if( last_mouse_down )
                 {
-                
-	            ws.send( JSON.stringify( 
+
+	            ws.send( JSON.stringify(
 					{
                        	MsgID:16 /*PMID_Event_Key*/,
 						data: {
@@ -128,7 +128,7 @@ function OpenServer( canvas_name )
                 if( last_mouse_down )  // focus
                 {
             		event.preventDefault();
-		ws.send( JSON.stringify( 
+		ws.send( JSON.stringify(
 					{
                        	MsgID:16 /*PMID_Event_Key*/,
 						data: {
@@ -140,7 +140,7 @@ function OpenServer( canvas_name )
 		 }
 	}
 
-	
+
 	function mousedown(event)
 	{
 		var x = event.pageX;
@@ -166,7 +166,7 @@ function OpenServer( canvas_name )
 			y -= canvas.offsetTop;
                      console.log( "corrected xy = " + x + "," +  y + " on " + render.server_id );
 			b |= 1 << ( event.which - 1 );
-			ws.send( JSON.stringify( 
+			ws.send( JSON.stringify(
 					{
                        	MsgID:15 /*PMID_Event_Mouse*/,
 						data: {
@@ -176,7 +176,7 @@ function OpenServer( canvas_name )
 							b:b
 						}
 					} )  );
-        	
+
 			//console.log( "click on render " + render_list[n].server_id + " x:" + x + " y:" + y);
 		}
 	}
@@ -202,7 +202,7 @@ function OpenServer( canvas_name )
 			x -= canvas.offsetLeft;
 			y -= canvas.offsetTop;
 			b &= ~(1 << ( event.which - 1 ));
-			ws.send( JSON.stringify( 
+			ws.send( JSON.stringify(
 					{
                        	MsgID:15 /*PMID_Event_Mouse*/,
 						data: {
@@ -212,7 +212,7 @@ function OpenServer( canvas_name )
 							b:b
 						}
 					} )  );
-        	
+
 			//console.log( "unclick on render " + render_list[n].server_id + " x:" + x + " y:" + y);
 		}
 	}
@@ -240,12 +240,12 @@ function OpenServer( canvas_name )
 			x -= canvas.offsetLeft;
 			y -= canvas.offsetTop;
                      //console.log( "corrected xy = " + x + "," +  y );
-                     
-                     
+
+
 			last_mouse_down = render_list[n];
-                        
-                        
-			ws.send( JSON.stringify( 
+
+
+			ws.send( JSON.stringify(
 					{
                        	MsgID:15 /*PMID_Event_Mouse*/,
 						data: {
@@ -258,7 +258,7 @@ function OpenServer( canvas_name )
 			//console.log( "move on render " + render_list[n].server_id + " x:" + x + " y:" + y);
 		}
 	}
-	
+
         function OrphanSubImage( image )
         {
         	if( image.prior != null )
@@ -270,7 +270,7 @@ function OpenServer( canvas_name )
                 image.parent = null;
                 image.next = null;
                 image.prior = null;
-                
+
         }
 
 	function AdoptSubImage( parent, orphan )
@@ -279,7 +279,7 @@ function OpenServer( canvas_name )
                	orphan.next = parent.child;
                 parent.child = orphan;
         }
-        
+
         var start = null;
         function step(timestamp) {
      		//var progress;
@@ -289,15 +289,15 @@ function OpenServer( canvas_name )
 		//if (progress < 2000) {
 		//	requestAnimationFrame(step);
 	}
-        
+
 	function HandleMessage( msg )
 	{
               /*
-        	if( ( msg.MsgID != 13 ) 
-                	&& ( msg.MsgID != 11 ) 
+        	if( ( msg.MsgID != 13 )
+                	&& ( msg.MsgID != 11 )
                 	&& ( msg.MsgID != 6 )  // makeimage
                         && ( msg.MsgID != 7 )  // make sub image
-	        	)              
+	        	)
 		     console.log( "message:" + msg.MsgID );
               */
      	switch( msg.MsgID )
@@ -345,7 +345,7 @@ function OpenServer( canvas_name )
 				canvas.addEventListener("mousemove", mousemove, false);
 				document.addEventListener("keydown", keydown, false);
 				document.addEventListener("keyup", keyup, false);
-			
+
 				render_list.push( render = new render_surface( msg.data.server_render_id, canvas ) );
                                 render.added = added;
 				var i;
@@ -390,13 +390,13 @@ function OpenServer( canvas_name )
                         {
 				var ctx= render.canvas.getContext("2d");
                                 ctx.clearRect(0, 0, render.canvas.width, render.canvas.height );
-                        }       
+                        }
                         remove_render( render );
                         //render_list.pop( render );
 	        	break;
 		case 6: // PMID_MakeImage
 			var canvas = null;
-			canvas = find_render( msg.data.server_render_id );			
+			canvas = find_render( msg.data.server_render_id );
 			image_list.push( image = new proxy_image() );
 			if( canvas == null )
 			{
@@ -418,7 +418,7 @@ function OpenServer( canvas_name )
 			image.width = msg.data.width;
 			image.height = msg.data.height;
 			image.parent = find_image( msg.data.server_parent_image_id );
-			if( image.parent != null )			
+			if( image.parent != null )
 			{
 				if( ( image.next = image.parent.child ) != null )
 				{
@@ -426,19 +426,19 @@ function OpenServer( canvas_name )
 				}
 				image.parent.child = image;
 			}
-			
+
 			break;
         	case 20: // PMID_Move_Image
 			image = find_image( msg.data.server_image_id );
 			image.x = msg.data.x;
 			image.y = msg.data.y;
-                	
+
                 	break;
         	case 21: // PMID_Size_Image
 			image = find_image( msg.data.server_image_id );
 			image.width = msg.data.width;
 			image.height = msg.data.height;
-                	
+
                 	break;
                 case 22: // PMID_TransferSubImages
                 	image_to = find_image( msg.data.image_to_id );
@@ -472,7 +472,7 @@ function OpenServer( canvas_name )
 			ctx.fillRect(ofs_x + msg.data.x, ofs_y + msg.data.y, msg.data.width, msg.data.height );
 			break;
 		case 10: // PMID_ImageData
-			image = find_image( msg.data.server_image_id );	
+			image = find_image( msg.data.server_image_id );
 		    console.log( "Updated image source.... "  + msg.data.server_image_id );
                         //{
 			//if( image.on_document )
@@ -500,7 +500,7 @@ function OpenServer( canvas_name )
 				ofs_y += parent_image.y;
 				parent_image = parent_image.parent;
 			}
-			
+
 			while( parent_src_image.parent != null )
 			{
                            //console.log( "image step to " + parent_src_image.parent.server_id );
@@ -528,18 +528,18 @@ function OpenServer( canvas_name )
 				context.restore();
 				break;
 			case 1:
-				
+
 				break;
 			}
-			
+
 			source_image = find_image( msg.data.image_id );
 			ctx.drawImage( parent_src_image.image
-				, ofs_xs + msg.data.xs, ofs_ys + msg.data.ys 
+				, ofs_xs + msg.data.xs, ofs_ys + msg.data.ys
 				, msg.data.width, msg.data.height
 				, ofs_x + msg.data.x, ofs_y + msg.data.y
 				, msg.data.width, msg.data.height
 				);
-		
+
 		    break;
 		case 12: // PMID_BlotScaledImageSizedTo
 			image = find_image( msg.data.server_image_id );
@@ -555,7 +555,7 @@ function OpenServer( canvas_name )
 				ofs_y += parent_image.y;
 				parent_image = parent_image.parent;
 			}
-			
+
 			while( parent_src_image.parent != null )
 			{
 				ofs_xs += parent_src_image.x;
@@ -567,21 +567,21 @@ function OpenServer( canvas_name )
                                 }
 				parent_src_image = parent_src_image.parent;
 			}
-			
+
                         if( !parent_src_image.image )
                         {
-                        	console.log( "scaled blot from render to image; not supported." 
+                        	console.log( "scaled blot from render to image; not supported."
                                 		+ parent_src_image.render_id );
                         	break;
                         }
 			render = parent_image.renderer;
 		    //console.log( "scaled image " + msg.data.image_id + " " + parent_src_image.image  + " render " + parent_image.renderer + "of image " + parent_image.server_id + " imagesrc " + parent_src_image.image) ;
-                        
+
 			var ctx= render.canvas.getContext("2d");
 			//source_image = find_image( msg.data.image_id );
-					                        
+
 			ctx.drawImage( parent_src_image.image
-				, ofs_xs + msg.data.xs, ofs_ys + msg.data.ys 
+				, ofs_xs + msg.data.xs, ofs_ys + msg.data.ys
 				, msg.data.ws, msg.data.hs
 				, ofs_x + msg.data.x, ofs_y + msg.data.y
 				, msg.data.width, msg.data.height
@@ -602,7 +602,7 @@ function OpenServer( canvas_name )
 			}
 			render = parent_image.renderer;
 			var ctx= render.canvas.getContext("2d");
-			
+
 			ctx.strokeStyle = msg.data.color;
 			ctx.beginPath();
 			ctx.moveTo( ofs_x + msg.data.x1, ofs_y + msg.data.y1 );
@@ -613,7 +613,7 @@ function OpenServer( canvas_name )
                      console.log( "Flush draws on " + msg.data.server_render_id );
                        // consider enable mouse send here?
                 	window.requestAnimationFrame(step)
-                        ws.send( JSON.stringify( { MsgID: 26 /* PMID_Event_Flush_Finished */ 
+                        ws.send( JSON.stringify( { MsgID: 26 /* PMID_Event_Flush_Finished */
 					       , data: {
 							server_render_id:msg.data.server_render_id
                                                       }
@@ -621,34 +621,34 @@ function OpenServer( canvas_name )
                                 ) );
                 	break;
                 case 25 : // PMID_DawBlockBegin
-                	
+
                                dataStart = msg.data.data.indexOf(",") + 1;
                             //console.log( "string is " + msg.data.data.substring(dataStart) );
                                bytes = atob( msg.data.data.substring(dataStart) );
-                               
+
                                var i;
                                var dataBuffer, dataArray;
 			       dataBuffer = new ArrayBuffer(bytes.length);
 			       dataArray = new Uint8Array(dataBuffer);
-                                
+
                                for (i = 0; i < bytes.length; i++)
 				 dataArray[i] = bytes.charCodeAt(i);
 
                             //console.log( "bytes is :" + bytes.length + dataArray );
 	                        var inflate = new Zlib.Inflate(dataArray);
                                 var output = inflate.decompress();
-                                
+
                                 var str = "";
 				for(var i = 0; i < output.length; i += 1) {
       			       		str += String.fromCharCode(output[i]);
 				}
                             //console.log( "lengths " + output.length + " and " + msg.data.length );
                             //console.log( "success? " + str );
-                                
+
 		        	var msg = JSON.parse(str);
 		       		//console.log( "msg " + msg );
 				if(  Object.prototype.toString.call(msg) === '[object Array]' )
-				{ 
+				{
 					var m;
                         	        //console.log( "have messages... " + msg.length );
 					for( m = 0; m < msg.length; m++ )
@@ -659,7 +659,7 @@ function OpenServer( canvas_name )
 				}
 				else
 					HandleMessage( msg );
-                                
+
                 	break;
                 case 27: // PMID_FontData
 					font = find_font( msg.data.server_font_id );
@@ -668,6 +668,8 @@ function OpenServer( canvas_name )
 						console.log( "create font" );
 						font_list.push( font = new string_font() );
 						font.server_id = msg.data.server_font_id;
+						font.bias_x = msg.data.bias_x;
+						font.bias_y = msg.data.bias_y;
 					}
 					else
 						console.log( "updating existing font" );
@@ -687,7 +689,7 @@ function OpenServer( canvas_name )
 						image = parent_image = find_image( msg.data.server_image_id );
 						ofs_x = 0;
 						ofs_y = 0;
-						
+
 						while( parent_image.parent != null )
 						{
 							ofs_x += parent_image.x;
@@ -706,15 +708,15 @@ function OpenServer( canvas_name )
         }
 	};
 
-	
-	
-     ws.onmessage = function (evt) 
-     { 
+
+
+     ws.onmessage = function (evt)
+     {
             //console.log( "message : " + evt.data );
         	var msg = JSON.parse(evt.data);
-        
+
 		if(  Object.prototype.toString.call(msg) === '[object Array]' )
-		{ 
+		{
 			var m;
 			for( m = 0; m < msg.length; m++ )
 				HandleMessage( msg[m] );
@@ -723,9 +725,9 @@ function OpenServer( canvas_name )
 			HandleMessage( msg );
      };
      ws.onclose = function( evt )
-     { 
+     {
         // websocket is closed.
-        //alert("Connection is closed... (closing window)" + evt.data ); 
+        //alert("Connection is closed... (closing window)" + evt.data );
       	for (var i = 0; i < render_list.length; i++) {
         	if( render_list[i].added )
 	               	document.body.removeChild( render_list[i].canvas );
@@ -741,7 +743,7 @@ function OpenServer( canvas_name )
 				document.removeEventListener("keyup", keyup, false);
                 }
         }
-       
+
      };
      ws.onerror = function(evt)
      {

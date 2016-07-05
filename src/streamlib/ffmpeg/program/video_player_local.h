@@ -78,7 +78,16 @@ struct ffmpeg_button_local
 	struct my_button me;
    PRENDERER renderer;
 	//--- control_panel.c shared
-   PLIST controls; // list of struct media_control_panel
+	PLIST controls; // list of struct media_control_panel
+
+	LOGICAL loop; // controls whether to play once or continuously
+	LOGICAL stretch_full_display ;
+	LOGICAL touch_to_pause;
+	LOGICAL topmost;
+
+	int touch_step;
+	int last_touch; // when touch began.
+	int exit_code; // what to return when done.
 }l;
 
 // slider update... (passed the my_button containing the file... )

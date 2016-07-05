@@ -76,7 +76,7 @@ CTEXTSTR New4ReadOptionNameTable( POPTION_TREE tree, CTEXTSTR name, CTEXTSTR tab
 			Release( tmp );
 			if( SQLQueryEx( tree->odbc, query, &result DBG_RELAY) && result )
 			{
-				IDName = StrDup( result );
+				IDName = SaveText( result );
 				SQLEndQuery( tree->odbc );
 			}
 			else if( bCreate )
@@ -285,8 +285,8 @@ POPTION_TREE_NODE New4GetOptionIndexExxx( PODBC odbc, POPTION_TREE tree, POPTION
 #endif
 					//lprintf( WIDE("Adding new option to family tree... ") );
 					{
-						POPTION_TREE_NODE new_node = New( struct sack_option_tree_family_node );
-						MemSet( new_node, 0, sizeof( struct sack_option_tree_family_node ) );
+						POPTION_TREE_NODE new_node = GetFromSet( OPTION_TREE_NODE, &tree->nodes );
+						//MemSet( new_node, 0, sizeof( struct sack_option_tree_family_node ) );
 						new_node->guid = ID;
 						new_node->value_guid = NULL; // no value (yet?)
 						new_node->name_guid = IDName;
@@ -309,12 +309,12 @@ POPTION_TREE_NODE New4GetOptionIndexExxx( PODBC odbc, POPTION_TREE tree, POPTION
 			}
 			else
 			{
-				POPTION_TREE_NODE new_node = New( struct sack_option_tree_family_node );
-				MemSet( new_node, 0, sizeof( struct sack_option_tree_family_node ) );
+				POPTION_TREE_NODE new_node = GetFromSet( OPTION_TREE_NODE, &tree->nodes );// New( struct sack_option_tree_family_node );
+				//MemSet( new_node, 0, sizeof( struct sack_option_tree_family_node ) );
 #ifdef DETAILED_LOGGING
 				lprintf( WIDE("found the node which has the name specified...") );
 #endif
-				new_node->guid = StrDup( result[0] );
+				new_node->guid = SaveText( result[0] );
 				new_node->value_guid = NULL;
 				new_node->name_guid = IDName;
 				new_node->name = SaveText( namebuf );

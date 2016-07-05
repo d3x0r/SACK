@@ -38,21 +38,21 @@ static const _POINT __W = {ZERO, ZERO, ZERO, ONE};
 #else
 #define PRE_EXTERN
 #endif
-PRE_EXTERN MATHLIB_DEXPORT const PC_POINT VectorConst_0 = (PC_POINT)&__0[0];
-PRE_EXTERN MATHLIB_DEXPORT const PC_POINT VectorConst_X = (PC_POINT)&__X[0];
-PRE_EXTERN MATHLIB_DEXPORT const PC_POINT VectorConst_Y = (PC_POINT)&__Y[0];
-PRE_EXTERN MATHLIB_DEXPORT const PC_POINT VectorConst_Z = (PC_POINT)&__Z[0];
+PRE_EXTERN MATHLIB_DEXPORT const PC_POINT EXTERNAL_NAME(VectorConst_0) = (PC_POINT)&__0[0];
+PRE_EXTERN MATHLIB_DEXPORT const PC_POINT EXTERNAL_NAME(VectorConst_X) = (PC_POINT)&__X[0];
+PRE_EXTERN MATHLIB_DEXPORT const PC_POINT EXTERNAL_NAME(VectorConst_Y) = (PC_POINT)&__Y[0];
+PRE_EXTERN MATHLIB_DEXPORT const PC_POINT EXTERNAL_NAME(VectorConst_Z) = (PC_POINT)&__Z[0];
 #if (DIMENSIONS > 3 )
 const PC_POINT _W = (PC_POINT)&__W;
 #endif
-const TRANSFORM __I = { { { 1, 0, 0, 0 }
+static const TRANSFORM __I = { { { 1, 0, 0, 0 }
 								, { 0, 1, 0, 0 }
 								, { 0, 0, 1, 0 }
 								, { 0, 0, 0, 1 } }
 							 , { 1, 1, 1 } // s
   //                    , NULL // motion
 };
-PRE_EXTERN MATHLIB_DEXPORT const PCTRANSFORM VectorConst_I = &__I;
+PRE_EXTERN MATHLIB_DEXPORT const PCTRANSFORM EXTERNAL_NAME(VectorConst_I) = &__I;
 
 static struct {
 	struct {
@@ -63,45 +63,46 @@ static struct {
 #define l local_vectlib_data
 
 //----------------------------------------------------------------
-#if defined( MSVC ) || defined( __WATCOMC__ )
+#if defined( _MSC_VER ) || defined( __WATCOMC__ )
 #define INLINEFUNC(type, name, params) _inline type _##name params
-#define REALFUNCT(type, name, params, callparams ) type name params { return _##name callparams; } 
-#define REALFUNC( name, params, callparams ) void name params { _##name callparams; } 
+#define REALFUNCT(type, name, params, callparams ) type EXTERNAL_NAME(name) params { return _##name callparams; } 
+#define REALFUNC( name, params, callparams ) void EXTERNAL_NAME(name) params { _##name callparams; } 
 #define DOFUNC(name) _##name
 #elif defined( __LCC__ )
 #define INLINEFUNC(type, name, params) inline type _INL_##name params
-#define REALFUNC( name, params, callparams ) void name params { _INL_##name callparams; } 
-#define REALFUNCT(type, name, params, callparams ) type name params { return _INL_##name callparams; }
+#define REALFUNC( name, params, callparams ) void EXTERNAL_NAME(name) params { _INL_##name callparams; } 
+#define REALFUNCT(type, name, params, callparams ) type EXTERNAL_NAME(name) params { return _INL_##name callparams; }
 #define DOFUNC(name) _INL_##name
 #elif defined( __BORLANDC__ )
 //#define INLINEFUNC(type, name, params) _inline type _INL_##name params
 //#define REALFUNC( name, params, callparams ) void name params { _INL_##name callparams; } 
 //#define REALFUNCT(type, name, params, callparams ) void name params { return _INL_##name callparams; }
 //#define DOFUNC(name) _INL_##name
-#define INLINEFUNC(type, name, params) type name params
+#define INLINEFUNC(type, name, params) type EXTERNAL_NAME(name) params
 #define REALFUNCT(type, name, params, callparams ) 
 #define REALFUNC( name, params, callparams ) 
 #define DOFUNC(name) name
 #elif defined( __CYGWIN__ )
 #define INLINEFUNC(type, name, params) inline type _INL_##name params
-#define REALFUNC( name, params, callparams ) void name params { _INL_##name callparams; } 
-#define REALFUNCT(type, name, params, callparams ) type name params { return _INL_##name callparams; }
+#define REALFUNC( name, params, callparams ) void EXTERNAL_NAME(name) params { _INL_##name callparams; } 
+#define REALFUNCT(type, name, params, callparams ) type EXTERNAL_NAME(name) params { return _INL_##name callparams; }
 #define DOFUNC(name) _INL_##name
 #else
 // no inline support at all....
-#define INLINEFUNC(type, name, params)  type name params
+
+#define INLINEFUNC(type, name, params)  type EXTERNAL_NAME(name) params
 #define REALFUNCT(type, name, params, callparams ) 
 #define REALFUNC( name, params, callparams ) 
-#define DOFUNC(name) name
+#define DOFUNC(name) EXTERNAL_NAME(name)
 #endif
 
 #ifdef __BORLANDC__
 #define SIN sin
 #define COS cos
 #else
-#ifdef MAKE_RCOORD_SINGLE
-#define sqrt (float)sqrt
-#ifdef __WATCOMC__
+#  ifdef MAKE_RCOORD_SINGLE
+#    define sqrt (float)sqrt
+#    ifdef __WATCOMC__
 #define SIN (float)sin
 #define COS (float)cos
 #else
@@ -153,13 +154,14 @@ INLINEFUNC( P_POINT, scale, ( P_POINT pr, PC_POINT pv1, RCOORD k ) )
 
 REALFUNCT( P_POINT, scale, ( PVECTOR pr, PCVECTOR pv1, RCOORD k ), (pr, pv1, k ) )
 
-P_POINT Invert( P_POINT a )
+INLINEFUNC( P_POINT, Invert, ( P_POINT a ) )
 {
 	a[0] = -a[0];
 	a[1]=-a[1];
 	a[2]=-a[2];
 	return a;
 }
+REALFUNCT( P_POINT, Invert, ( P_POINT a ), (a) )
 
 
 //----------------------------------------------------------------
@@ -188,7 +190,7 @@ REALFUNCT( RCOORD, Length, ( PCVECTOR pv ), (pv) )
 
 //----------------------------------------------------------------
 
-RCOORD Distance( PC_POINT v1, PC_POINT v2 )
+RCOORD EXTERNAL_NAME(Distance)( PC_POINT v1, PC_POINT v2 )
 {
    VECTOR v;
    DOFUNC(sub)( v, v1, v2 );
@@ -197,16 +199,16 @@ RCOORD Distance( PC_POINT v1, PC_POINT v2 )
 
 //----------------------------------------------------------------
 
- void normalize( P_POINT pv )
+ INLINEFUNC( void, normalize, ( P_POINT pv ) )
 {
 	RCOORD k = DOFUNC(Length)( pv );
    if( k != 0 )
 		DOFUNC(scale)( pv, pv, ONE / k );
 }
-
+ REALFUNCT( void,  normalize, ( P_POINT pv ), (pv) )
 //----------------------------------------------------------------
 
- void crossproduct( P_POINT pr, PC_POINT pv1, PC_POINT pv2 )
+ INLINEFUNC( void, crossproduct, ( P_POINT pr, PC_POINT pv1, PC_POINT pv2 ) )
 {
    // this must be limited to 3D only, huh???
    // what if we are 4D?  how does this change??
@@ -215,7 +217,7 @@ RCOORD Distance( PC_POINT v1, PC_POINT v2 )
   pr[1] = pv2[0] * pv1[2] - pv2[2] * pv1[0]; //a2c1-c2a1 ( - determinaent )
   pr[2] = pv2[1] * pv1[0] - pv2[0] * pv1[1]; //b2a1-a2b1 
 }
-
+REALFUNCT( void, crossproduct, ( P_POINT pr, PC_POINT pv1, PC_POINT pv2 ), (pr,pv1,pv2) )
 // hmmm
 // 2 4 dimensional vectors would be insufficient to determine
 // a single perpendicular vector... as it could lay  in a perpendular
@@ -224,63 +226,64 @@ RCOORD Distance( PC_POINT v1, PC_POINT v2 )
 // 2 lines form a point of intersection
 //----------------------------------------------------------------
 
-RCOORD SinAngle( PC_POINT pv1, PC_POINT pv2 )
+RCOORD EXTERNAL_NAME(SinAngle)( PC_POINT pv1, PC_POINT pv2 )
 {
 	_POINT r;
 	RCOORD l;
-	crossproduct( r, pv1, pv2 );
+	DOFUNC(crossproduct)( r, pv1, pv2 );
 	l = DOFUNC(Length)( r ) / ( DOFUNC(Length)(pv1) * DOFUNC(Length)(pv2) );
 	return l;
 }
 
 //----------------------------------------------------------------
 
-RCOORD dotproduct( PC_POINT pv1, PC_POINT pv2 )
+INLINEFUNC( RCOORD, dotproduct, ( PC_POINT pv1, PC_POINT pv2 ) )
 {
   return pv2[0] * pv1[0] +
   		   pv2[1] * pv1[1] +
   		   pv2[2] * pv1[2] ;
 }
+REALFUNCT( RCOORD, dotproduct, ( PC_POINT pv1, PC_POINT pv2 ), (pv1, pv2) )
 
 //----------------------------------------------------------------
 
 // returns directed distance of OF in the direction of ON
-RCOORD DirectedDistance( PC_POINT pvOn, PC_POINT pvOf )
+RCOORD EXTERNAL_NAME(DirectedDistance)( PC_POINT pvOn, PC_POINT pvOf )
 {
 	RCOORD l = DOFUNC(Length)(pvOn);
 	if( l  )
-		return dotproduct(  pvOn, pvOf ) / l; 	
+		return DOFUNC(dotproduct)(  pvOn, pvOf ) / l; 	
 	return 0;
 }
 
 //----------------------------------------------------------------
- void LogVector( char *lpName, VECTOR v )
+ static void LogVector( char *lpName, VECTOR v )
 #define LogVector(v) LogVector( #v, v )
 {
    Log4( WIDE("Vector %s = <%lg, %lg, %lg>"),
             lpName, v[0], v[1], v[2] );
 }
 
-RCOORD CosAngle( PC_POINT pv1, PC_POINT pv2 )
+RCOORD EXTERNAL_NAME(CosAngle)( PC_POINT pv1, PC_POINT pv2 )
 {
 	RCOORD l = DOFUNC(Length)( pv1 ) * DOFUNC(Length)( pv2 );
 	if( l )
-		return dotproduct( pv1, pv2 ) / l;
+		return DOFUNC(dotproduct)( pv1, pv2 ) / l;
 	return 0; // as good an angle as any...
 }
 
 //----------------------------------------------------------------
 
-P_POINT project( P_POINT pr, PC_POINT onto, PC_POINT project )
+P_POINT EXTERNAL_NAME(project)( P_POINT pr, PC_POINT onto, PC_POINT project )
 {
 	RCOORD dot;
-	dot = dotproduct( onto, project ) / dotproduct( onto, onto );
+	dot = DOFUNC(dotproduct)( onto, project ) / DOFUNC(dotproduct)( onto, onto );
 	return DOFUNC(scale)( pr, onto, dot );
 }
 
 //----------------------------------------------------------------
 
-void ClearTransform( PTRANSFORM pt )
+void EXTERNAL_NAME(ClearTransform)( PTRANSFORM pt )
 {
 	MemSet( pt, 0, sizeof( *pt ) );
 	pt->m[0][0] = ONE;
@@ -297,10 +300,10 @@ void ClearTransform( PTRANSFORM pt )
 static void CPROC transform_created( void *data, PTRSZVAL size )
 {
 	PTRANSFORM pt = (PTRANSFORM)data;
-	ClearTransform( pt );
+	EXTERNAL_NAME( ClearTransform )( pt );
 }
 
-PTRANSFORM CreateNamedTransform( CTEXTSTR name  )
+PTRANSFORM EXTERNAL_NAME(CreateNamedTransform)( CTEXTSTR name  )
 {
 	PTRANSFORM pt;
 	if( name )
@@ -308,30 +311,35 @@ PTRANSFORM CreateNamedTransform( CTEXTSTR name  )
 		if( !l.flags.bRegisteredTransform )
 		{
 			l.flags.bRegisteredTransform = 1;
-			RegisterDataType( WIDE( "SACK/vectlib" ), WIDE( "transform" ), sizeof( TRANSFORM ), transform_created, NULL );
+#ifdef MAKE_RCOORD_SINGLE
+#  define TYPENAME "transformf"
+#else
+#  define TYPENAME "transformd"
+#endif
+			RegisterDataType( WIDE( "SACK/vectlib" ), TYPENAME, sizeof( TRANSFORM ), transform_created, NULL );
 		}
-		pt = (PTRANSFORM)CreateRegisteredDataType( WIDE( "SACK/vectlib" ), WIDE( "transform" ), name );
+		pt = (PTRANSFORM)CreateRegisteredDataType( WIDE( "SACK/vectlib" ), TYPENAME, name );
 	}
 	else
 	{
 		pt = New( struct transform_tag );
 		pt->motion = NULL;
-		ClearTransform(pt);
+		EXTERNAL_NAME(ClearTransform)(pt);
 	}
    return pt;
 };
 
 #undef CreateTransform
-MATHLIB_EXPORT PTRANSFORM CreateTransform( void )
+MATHLIB_EXPORT PTRANSFORM EXTERNAL_NAME(CreateTransform)( void )
 {
-   return CreateNamedTransform( NULL );
+   return EXTERNAL_NAME(CreateNamedTransform)( NULL );
 }
 
 
 //----------------------------------------------------------------
 
 
-PTRANSFORM CreateTransformMotionEx( PTRANSFORM pt, int rocket )
+PTRANSFORM EXTERNAL_NAME(CreateTransformMotionEx)( PTRANSFORM pt, int rocket )
 {
 	if( !pt->motion )
 	{
@@ -346,21 +354,21 @@ PTRANSFORM CreateTransformMotionEx( PTRANSFORM pt, int rocket )
 
 //----------------------------------------------------------------
 
-PTRANSFORM CreateTransformMotion( PTRANSFORM pt )
+PTRANSFORM EXTERNAL_NAME(CreateTransformMotion)( PTRANSFORM pt )
 {
-   return CreateTransformMotionEx( pt, 0 );
+   return EXTERNAL_NAME(CreateTransformMotionEx)( pt, 0 );
 }
 
 //----------------------------------------------------------------
 
-void DestroyTransform( PTRANSFORM pt )
+void EXTERNAL_NAME(DestroyTransform)( PTRANSFORM pt )
 {
 	Release( pt );
 }
 
 //----------------------------------------------------------------
 
- void Scale( PTRANSFORM pt, RCOORD sx, RCOORD sy, RCOORD sz ) {
+ void EXTERNAL_NAME(Scale)( PTRANSFORM pt, RCOORD sx, RCOORD sy, RCOORD sz ) {
    pt->s[0] = sx;
    pt->s[1] = sy;
    pt->s[2] = sz;
@@ -368,7 +376,7 @@ void DestroyTransform( PTRANSFORM pt )
 
 //----------------------------------------------------------------
 
- void TranslateV( PTRANSFORM pt, PC_POINT t )
+ void EXTERNAL_NAME(TranslateV)( PTRANSFORM pt, PC_POINT t )
 {
 #ifdef _MSC_VER
 	if( _isnan( pt->m[0][0] ) )
@@ -383,7 +391,7 @@ void DestroyTransform( PTRANSFORM pt )
 
 //----------------------------------------------------------------
 
- void Translate( PTRANSFORM pt, RCOORD tx, RCOORD ty, RCOORD tz ) {
+ void EXTERNAL_NAME(Translate)( PTRANSFORM pt, RCOORD tx, RCOORD ty, RCOORD tz ) {
    pt->m[3][0] = tx;
    pt->m[3][1] = ty;
    pt->m[3][2] = tz;
@@ -391,24 +399,24 @@ void DestroyTransform( PTRANSFORM pt )
 
 //----------------------------------------------------------------
 
- void TranslateRelV( PTRANSFORM pt, PC_POINT t ) {
+ void EXTERNAL_NAME(TranslateRelV)( PTRANSFORM pt, PC_POINT t ) {
    DOFUNC(add)( pt->m[3], pt->m[3], t );
 }
 
 //----------------------------------------------------------------
 
-void TranslateRel(PTRANSFORM pt, RCOORD tx, RCOORD ty, RCOORD tz) {
+void EXTERNAL_NAME(TranslateRel)(PTRANSFORM pt, RCOORD tx, RCOORD ty, RCOORD tz) {
 	VECTOR v;
 	v[0] = tx;
 	v[1] = ty;
-   v[2] = tz;
-   DOFUNC(add)( pt->m[3], pt->m[3], v );
+	v[2] = tz;
+	DOFUNC(add)( pt->m[3], pt->m[3], v );
 }
 
 //----------------------------------------------------------------
 
 
-void RotateAround( PTRANSFORM pt, PC_POINT p, RCOORD amount )
+void EXTERNAL_NAME(RotateAround)( PTRANSFORM pt, PC_POINT p, RCOORD amount )
 {
 	// P defines an axis around which the rotation portion of the matrix
 	// is rotated by an amount.
@@ -417,7 +425,7 @@ void RotateAround( PTRANSFORM pt, PC_POINT p, RCOORD amount )
    // and http://astronomy.swin.edu.au/~pbourke/geometry/rotate/
 	TRANSFORM t;
 	PTRANSFORM T = pt;
-	RCOORD Len = Length( p );
+	RCOORD Len = EXTERNAL_NAME(Length)( p );
 	RCOORD Cos = COS(amount);
 	RCOORD Sin = SIN(amount);
 	RCOORD normal;
@@ -464,10 +472,10 @@ void RotateAround( PTRANSFORM pt, PC_POINT p, RCOORD amount )
 #undef v
 #undef up
 
-	ApplyRotationT( pt, T, T );
+	EXTERNAL_NAME(ApplyRotationT)( pt, T, T );
 }
 
- void RotateAbsV( PTRANSFORM pt, PC_POINT dv ) {
+ void EXTERNAL_NAME(RotateAbsV)( PTRANSFORM pt, PC_POINT dv ) {
    // set rotation matrix to coordinates specified.
    RCOORD rcos[3]; // cos(rx), cos(ry), cos(rz)
    RCOORD rcosf[3]; // cos[2]*cos[1], cos[2]*cos[0], cos[1]*cos[0]
@@ -486,12 +494,12 @@ void RotateAround( PTRANSFORM pt, PC_POINT p, RCOORD amount )
 
 //----------------------------------------------------------------
 
-void RotateAbs( PTRANSFORM pt, RCOORD rx, RCOORD ry, RCOORD rz ) {
+void EXTERNAL_NAME(RotateAbs)( PTRANSFORM pt, RCOORD rx, RCOORD ry, RCOORD rz ) {
 	_POINT p;
 	p[0] = rx;
 	p[1] = ry;
    p[2] = rz;
-   RotateAbsV( pt, p );
+   EXTERNAL_NAME(RotateAbsV)( pt, p );
 }
 
 //------------------------------------
@@ -517,10 +525,10 @@ INLINEFUNC( void, Rotate, ( RCOORD dAngle, P_POINT vaxis1, P_POINT vaxis2 ) )
 #define RotatePitch(m,a)      if(a) DOFUNC(Rotate)( a,m[vForward],m[vUp] );
 #define RotateRoll(m,a)       if(a) DOFUNC(Rotate)( a,m[vUp],m[vRight] );
 
-void RotateRelV( PTRANSFORM pt, PC_POINT r )
+void EXTERNAL_NAME(RotateRelV)( PTRANSFORM pt, PC_POINT r )
 { // depends on Scale function....
    if( !pt->motion )
-	   CreateTransformMotion( pt );
+	   EXTERNAL_NAME(CreateTransformMotion)( pt );
    switch( pt->motion->nTime++ )
    {
    case 0:
@@ -559,40 +567,40 @@ void RotateRelV( PTRANSFORM pt, PC_POINT r )
 
 //----------------------------------------------------------------
 
- void RotateRel( PTRANSFORM pt, RCOORD x, RCOORD y, RCOORD z )
+ void EXTERNAL_NAME(RotateRel)( PTRANSFORM pt, RCOORD x, RCOORD y, RCOORD z )
 {
 	_POINT p;
 	p[0] = x;
 	p[1] = y;
 	p[2] = z;
-	RotateRelV( pt, p );
+	EXTERNAL_NAME(RotateRelV)( pt, p );
 }
 
 //----------------------------------------------------------------
 
-void RotateTo( PTRANSFORM pt, PCVECTOR vforward, PCVECTOR vright )
+void EXTERNAL_NAME(RotateTo)( PTRANSFORM pt, PCVECTOR vforward, PCVECTOR vright )
 {
 	SetPoint( pt->m[vForward], vforward );
-	normalize( pt->m[vForward] );
+	DOFUNC(normalize)( pt->m[vForward] );
 	SetPoint( pt->m[vRight], vright );
-	normalize( pt->m[vRight] );
-	crossproduct( pt->m[vUp], pt->m[vForward], pt->m[vRight] );
+	DOFUNC(normalize)( pt->m[vRight] );
+	DOFUNC(crossproduct)( pt->m[vUp], pt->m[vForward], pt->m[vRight] );
 }
 
 //----------------------------------------------------------------
 
-void RotateMast( PTRANSFORM pt, PCVECTOR vup )
+void EXTERNAL_NAME(RotateMast)( PTRANSFORM pt, PCVECTOR vup )
 {
 	SetPoint( pt->m[vUp], vup );
-	normalize( pt->m[vUp] );
-	crossproduct( pt->m[vForward], pt->m[vUp], pt->m[vRight] );
-	normalize( pt->m[vForward] );
-	crossproduct( pt->m[vRight], pt->m[vForward], pt->m[vUp] );
+	DOFUNC(normalize)( pt->m[vUp] );
+	DOFUNC(crossproduct)( pt->m[vForward], pt->m[vUp], pt->m[vRight] );
+	DOFUNC(normalize)( pt->m[vForward] );
+	DOFUNC(crossproduct)( pt->m[vRight], pt->m[vForward], pt->m[vUp] );
 }
 
 //----------------------------------------------------------------
 
-void RotateAroundMast( PTRANSFORM pt, RCOORD amount )
+void EXTERNAL_NAME(RotateAroundMast)( PTRANSFORM pt, RCOORD amount )
 {
 #ifdef _MSC_VER
 	if( _isnan( pt->m[0][0] ) )
@@ -614,19 +622,19 @@ void RotateAroundMast( PTRANSFORM pt, RCOORD amount )
 //----------------------------------------------------------------
 
 // Right as in Right Angle...
- void RotateRight( PTRANSFORM pt, int Axis1, int Axis2 )
+ void EXTERNAL_NAME(RotateRight)( PTRANSFORM pt, int Axis1, int Axis2 )
 {
    VECTOR v;
    if( Axis1 == -1 )
    {
-      Invert( pt->m[vForward] );
-      Invert( pt->m[vRight] );
+      DOFUNC(Invert)( pt->m[vForward] );
+      DOFUNC(Invert)( pt->m[vRight] );
    }
    else
    {
       SetPoint( v, pt->m[Axis1] );
       SetPoint( pt->m[Axis1], pt->m[Axis2] );
-      Invert( v );
+      DOFUNC(Invert)( v );
       SetPoint( pt->m[Axis2], v );
    }
 }
@@ -677,7 +685,7 @@ REALFUNC( ApplyRotation, ( PCTRANSFORM pt, P_POINT dest, PC_POINT src ) , (pt, d
 
 //----------------------------------------------------------------
 
-void ApplyTranslation( PCTRANSFORM pt, P_POINT dest, PC_POINT src )
+void EXTERNAL_NAME(ApplyTranslation)( PCTRANSFORM pt, P_POINT dest, PC_POINT src )
 {
    DOFUNC(add)( dest, src, pt->m[3] );
 }
@@ -712,7 +720,7 @@ INLINEFUNC( void, Apply, ( PCTRANSFORM pt, P_POINT dest, PC_POINT src )  )
 REALFUNC( Apply, ( PCTRANSFORM pt, P_POINT dest, PC_POINT src ), (pt, dest, src ) )
 //----------------------------------------------------------------
 
- void ApplyR( PCTRANSFORM pt, PRAY prd, PRAY prs )
+ void EXTERNAL_NAME(ApplyR)( PCTRANSFORM pt, PRAY prd, PRAY prs )
 {
 	DOFUNC(Apply)( pt, prd->o, prs->o );
 	DOFUNC(ApplyRotation)( pt, prd->n, prs->n );
@@ -720,10 +728,10 @@ REALFUNC( Apply, ( PCTRANSFORM pt, P_POINT dest, PC_POINT src ), (pt, dest, src 
 
 //----------------------------------------------------------------
 
-void ApplyT( PCTRANSFORM pt, PTRANSFORM ptd, PCTRANSFORM pts )
+void EXTERNAL_NAME(ApplyT)( PCTRANSFORM pt, PTRANSFORM ptd, PCTRANSFORM pts )
 {
 	TRANSFORM t;
-	ClearTransform( &t );
+	EXTERNAL_NAME(ClearTransform)( &t );
 	DOFUNC(ApplyRotation)( pt, t.m[0], pts->m[0] );
 	DOFUNC(ApplyRotation)( pt, t.m[1], pts->m[1] );
 	DOFUNC(ApplyRotation)( pt, t.m[2], pts->m[2] );
@@ -743,10 +751,10 @@ void ApplyT( PCTRANSFORM pt, PTRANSFORM ptd, PCTRANSFORM pts )
 
 //----------------------------------------------------------------
 
-void ApplyCameraT( PCTRANSFORM pt, PTRANSFORM ptd, PCTRANSFORM pts )
+void EXTERNAL_NAME(ApplyCameraT)( PCTRANSFORM pt, PTRANSFORM ptd, PCTRANSFORM pts )
 {
 	TRANSFORM t;
-	ClearTransform( &t );
+	EXTERNAL_NAME(ClearTransform)( &t );
 	DOFUNC(ApplyRotation)( pt, t.m[0], pts->m[0] );
 	DOFUNC(ApplyRotation)( pt, t.m[1], pts->m[1] );
 	DOFUNC(ApplyRotation)( pt, t.m[2], pts->m[2] );
@@ -766,10 +774,10 @@ void ApplyCameraT( PCTRANSFORM pt, PTRANSFORM ptd, PCTRANSFORM pts )
 
 //----------------------------------------------------------------
 
- void ApplyTranslationT( PCTRANSFORM pt, PTRANSFORM ptd, PCTRANSFORM pts )
+ void EXTERNAL_NAME(ApplyTranslationT)( PCTRANSFORM pt, PTRANSFORM ptd, PCTRANSFORM pts )
 {
 	TRANSFORM t;
-	ClearTransform( &t );
+	EXTERNAL_NAME(ClearTransform)( &t );
 	SetPoint( t.m[0], pts->m[0] );
 	SetPoint( t.m[1], pts->m[1] );
 	SetPoint( t.m[2], pts->m[2] );
@@ -782,10 +790,10 @@ void ApplyCameraT( PCTRANSFORM pt, PTRANSFORM ptd, PCTRANSFORM pts )
 // may be called with the same transform for source and dest
 // safely transforms such that the source is not destroyed until
 // the value of dest is computed entirely, which is then set into dest.
- void ApplyRotationT( PCTRANSFORM pt, PTRANSFORM ptd, PCTRANSFORM pts )
+ void EXTERNAL_NAME(ApplyRotationT)( PCTRANSFORM pt, PTRANSFORM ptd, PCTRANSFORM pts )
 {
 	TRANSFORM t;
-	ClearTransform( &t );
+	EXTERNAL_NAME(ClearTransform)( &t );
 	DOFUNC(ApplyRotation)( pt, t.m[0], pts->m[0] );
 	DOFUNC(ApplyRotation)( pt, t.m[1], pts->m[1] );
 	DOFUNC(ApplyRotation)( pt, t.m[2], pts->m[2] );
@@ -795,7 +803,7 @@ void ApplyCameraT( PCTRANSFORM pt, PTRANSFORM ptd, PCTRANSFORM pts )
 
 //----------------------------------------------------------------
 
- void ApplyInverseR( PCTRANSFORM pt, PRAY prd, PRAY prs )
+ void EXTERNAL_NAME(ApplyInverseR)( PCTRANSFORM pt, PRAY prd, PRAY prs )
 {
    DOFUNC(ApplyInverse)( pt, prd->o, prs->o );
    DOFUNC(ApplyInverseRotation)( pt, prd->n, prs->n );
@@ -803,10 +811,10 @@ void ApplyCameraT( PCTRANSFORM pt, PTRANSFORM ptd, PCTRANSFORM pts )
 
 //----------------------------------------------------------------
 
- void ApplyInverseT( PCTRANSFORM pt, PTRANSFORM ptd, PCTRANSFORM pts )
+ void EXTERNAL_NAME(ApplyInverseT)( PCTRANSFORM pt, PTRANSFORM ptd, PCTRANSFORM pts )
 {
 	TRANSFORM t;
-   ClearTransform( &t );
+   EXTERNAL_NAME(ClearTransform)( &t );
    DOFUNC(ApplyInverseRotation)( pt, t.m[0], pts->m[0] );
    DOFUNC(ApplyInverseRotation)( pt, t.m[1], pts->m[1] );
 	DOFUNC(ApplyInverseRotation)( pt, t.m[2], pts->m[2] );
@@ -817,10 +825,10 @@ void ApplyCameraT( PCTRANSFORM pt, PTRANSFORM ptd, PCTRANSFORM pts )
 
 //----------------------------------------------------------------
 
- void ApplyInverseTranslationT( PCTRANSFORM pt, PTRANSFORM ptd, PCTRANSFORM pts )
+ void EXTERNAL_NAME(ApplyInverseTranslationT)( PCTRANSFORM pt, PTRANSFORM ptd, PCTRANSFORM pts )
 {
 	TRANSFORM t;
-	ClearTransform( &t );
+	EXTERNAL_NAME(ClearTransform)( &t );
    SetPoint( t.m[0], pts->m[0] );
    SetPoint( t.m[1], pts->m[1] );
 	SetPoint( t.m[2], pts->m[2] );
@@ -830,10 +838,10 @@ void ApplyCameraT( PCTRANSFORM pt, PTRANSFORM ptd, PCTRANSFORM pts )
 
 //----------------------------------------------------------------
 
- void ApplyInverseRotationT( PCTRANSFORM pt, PTRANSFORM ptd, PCTRANSFORM pts )
+ void EXTERNAL_NAME(ApplyInverseRotationT)( PCTRANSFORM pt, PTRANSFORM ptd, PCTRANSFORM pts )
 {
 	TRANSFORM t;
-   ClearTransform( &t );
+   EXTERNAL_NAME(ClearTransform)( &t );
    DOFUNC(ApplyInverseRotation)( pt, t.m[0], pts->m[0] );
    DOFUNC(ApplyInverseRotation)( pt, t.m[1], pts->m[1] );
    DOFUNC(ApplyInverseRotation)( pt, t.m[2], pts->m[2] );
@@ -843,7 +851,7 @@ void ApplyCameraT( PCTRANSFORM pt, PTRANSFORM ptd, PCTRANSFORM pts )
 
 //----------------------------------------------------------------
 
-void MoveForward( PTRANSFORM pt, RCOORD distance )
+void EXTERNAL_NAME(MoveForward)( PTRANSFORM pt, RCOORD distance )
 {
 	if( pt )
 	{
@@ -854,7 +862,7 @@ void MoveForward( PTRANSFORM pt, RCOORD distance )
 }
 //----------------------------------------------------------------
 
-void MoveRight( PTRANSFORM pt, RCOORD distance )
+void EXTERNAL_NAME(MoveRight)( PTRANSFORM pt, RCOORD distance )
 {
 	if( pt )
 	{
@@ -866,7 +874,7 @@ void MoveRight( PTRANSFORM pt, RCOORD distance )
 
 //----------------------------------------------------------------
 
-void MoveUp( PTRANSFORM pt, RCOORD distance )
+void EXTERNAL_NAME(MoveUp)( PTRANSFORM pt, RCOORD distance )
 {
 	if( pt )
 	{
@@ -878,7 +886,7 @@ void MoveUp( PTRANSFORM pt, RCOORD distance )
 
 //----------------------------------------------------------------
 
- void Forward( PTRANSFORM pt, RCOORD distance )
+ void EXTERNAL_NAME(Forward)( PTRANSFORM pt, RCOORD distance )
 {
 	if( pt && pt->motion )
 		pt->motion->speed[vForward] = distance;
@@ -886,7 +894,7 @@ void MoveUp( PTRANSFORM pt, RCOORD distance )
 
 //----------------------------------------------------------------
 
- void Up( PTRANSFORM pt, RCOORD distance )
+ void EXTERNAL_NAME(Up)( PTRANSFORM pt, RCOORD distance )
 {
 	if( pt && pt->motion )
 		pt->motion->speed[vUp] = distance;
@@ -894,7 +902,7 @@ void MoveUp( PTRANSFORM pt, RCOORD distance )
 
 //----------------------------------------------------------------
 
- void Right( PTRANSFORM pt, RCOORD distance )
+ void EXTERNAL_NAME(Right)( PTRANSFORM pt, RCOORD distance )
 {
 	if( pt && pt->motion )
 		pt->motion->speed[vRight] = distance;
@@ -902,7 +910,7 @@ void MoveUp( PTRANSFORM pt, RCOORD distance )
 
 //----------------------------------------------------------------
 
-void AddTransformCallback( PTRANSFORM pt, MotionCallback callback, PTRSZVAL psv )
+void EXTERNAL_NAME(AddTransformCallback)( PTRANSFORM pt, MotionCallback callback, PTRSZVAL psv )
 {
 	if( pt && pt->motion )
 	{
@@ -915,7 +923,7 @@ void AddTransformCallback( PTRANSFORM pt, MotionCallback callback, PTRSZVAL psv 
 
 //----------------------------------------------------------------
 
-void InvokeCallbacks( PTRANSFORM pt )
+static void InvokeCallbacks( PTRANSFORM pt )
 {
 	INDEX idx;
 	MotionCallback callback;
@@ -934,7 +942,7 @@ void InvokeCallbacks( PTRANSFORM pt )
 
 //----------------------------------------------------------------
 
-LOGICAL Move( PTRANSFORM pt )
+LOGICAL EXTERNAL_NAME(Move)( PTRANSFORM pt )
 {
 	LOGICAL moved = FALSE;
 	// this matrix of course....
@@ -1019,7 +1027,7 @@ LOGICAL Move( PTRANSFORM pt )
 		if( pt->motion->rocket )
 		{
 			moved = TRUE;
-			scale( v, pt->motion->accel, speed_step );
+			DOFUNC(scale)( v, pt->motion->accel, speed_step );
 			// add the scaled acceleration in the current direction of this
 			pt->motion->speed[0] += v[0] * pt->m[0][0]
 				+ v[1] * pt->m[1][0]
@@ -1030,7 +1038,7 @@ LOGICAL Move( PTRANSFORM pt )
 			pt->motion->speed[2] += v[0] * pt->m[0][2]
 				+ v[1] * pt->m[1][2]
 				+ v[2] * pt->m[2][2];
-			addscaled( pt->m[3], pt->m[3], pt->motion->speed, speed_step );
+			DOFUNC(addscaled)( pt->m[3], pt->m[3], pt->motion->speed, speed_step );
 		}
 		else
 		{
@@ -1038,8 +1046,8 @@ LOGICAL Move( PTRANSFORM pt )
 				|| pt->motion->accel[0] || pt->motion->accel[1] || pt->motion->accel[2] )
 			{
 				moved = TRUE;
-				addscaled( pt->motion->speed, pt->motion->speed, pt->motion->accel, speed_step );
-				scale( v, pt->motion->speed, speed_step );
+				DOFUNC(addscaled)( pt->motion->speed, pt->motion->speed, pt->motion->accel, speed_step );
+				DOFUNC(scale)( v, pt->motion->speed, speed_step );
 				//scale( v, v, pt->time_scale ); // velocity applied across this time
 				pt->m[3][0] += v[0] * pt->m[0][0]
 					+ v[1] * pt->m[1][0]
@@ -1064,10 +1072,10 @@ LOGICAL Move( PTRANSFORM pt )
 			VECTOR  r;
 			//lprintf( WIDE(WIDE( "Time scale is not applied" )) );
 			moved = TRUE;
-			addscaled( pt->motion->rotation, pt->motion->rotation, pt->motion->rot_accel, rotation_step );
-			scale( r, pt->motion->rotation, rotation_step );
+			DOFUNC(addscaled)( pt->motion->rotation, pt->motion->rotation, pt->motion->rot_accel, rotation_step );
+			DOFUNC(scale)( r, pt->motion->rotation, rotation_step );
 
-			RotateRelV( pt, r );
+			EXTERNAL_NAME(RotateRelV)( pt, r );
 #ifdef _MSC_VER
 			if( _isnan( pt->m[0][0] ) )
 				lprintf( WIDE( "blah" ) );
@@ -1169,7 +1177,7 @@ LOGICAL Move( PTRANSFORM pt )
 		lprintf( WIDE( "blah" ) );
 #endif
 	//add( v, pt->speed, pt->accel );
-	addscaled( pt->speed, pt->speed, pt->accel, -speed_step );
+	DOFUNC(addscaled)( pt->speed, pt->speed, pt->accel, -speed_step );
 	scale( v, pt->speed, -speed_step );
 	//scale( v, v, pt->time_scale ); // velocity applied across this time
    pt->m[3][0] += v[0] * pt->m[0][0]
@@ -1190,10 +1198,10 @@ LOGICAL Move( PTRANSFORM pt )
 	{
 		VECTOR  r;
 		//lprintf( WIDE(WIDE( "Time scale is not applied" )) );
-		addscaled( pt->motion->rotation, pt->motion->rotation, pt->motion->rot_accel, -rotation_step );
+		DOFUNC(addscaled)( pt->motion->rotation, pt->motion->rotation, pt->motion->rot_accel, -rotation_step );
 		scale( r, pt->motion->rotation, -rotation_step );
 
-		RotateRelV( pt, r );
+		EXTERNAL_NAME(RotateRelV)( pt, r );
 #ifdef _MSC_VER
    	if( _isnan( pt->m[0][0] ) )
 			lprintf( WIDE( "blah" ) );
@@ -1212,7 +1220,7 @@ LOGICAL Move( PTRANSFORM pt )
 #endif
 //----------------------------------------------------------------
 
-P_POINT GetSpeed( PTRANSFORM pt, P_POINT s )
+P_POINT EXTERNAL_NAME(GetSpeed)( PTRANSFORM pt, P_POINT s )
 {
    SetPoint( s, pt->motion->speed );
    return s;
@@ -1220,7 +1228,7 @@ P_POINT GetSpeed( PTRANSFORM pt, P_POINT s )
 
 //----------------------------------------------------------------
 
-PC_POINT  SetSpeed( PTRANSFORM pt, PC_POINT s )
+PC_POINT  EXTERNAL_NAME(SetSpeed)( PTRANSFORM pt, PC_POINT s )
 {
 	SetPoint( pt->motion->speed, s );
    return s;
@@ -1228,14 +1236,14 @@ PC_POINT  SetSpeed( PTRANSFORM pt, PC_POINT s )
 
 //----------------------------------------------------------------
 
-void SetTimeInterval( PTRANSFORM pt, RCOORD speed_interval, RCOORD rotation_interval )
+void EXTERNAL_NAME(SetTimeInterval)( PTRANSFORM pt, RCOORD speed_interval, RCOORD rotation_interval )
 {
    pt->motion->rotation_time_interval = rotation_interval; // application of motion uses this factor
    pt->motion->speed_time_interval = speed_interval; // application of motion uses this factor
 }
 
 //----------------------------------------------------------------
-P_POINT  GetAccel( PTRANSFORM pt, P_POINT s )
+P_POINT  EXTERNAL_NAME(GetAccel)( PTRANSFORM pt, P_POINT s )
 {
    SetPoint( s, pt->motion->accel );
    return s;
@@ -1243,7 +1251,7 @@ P_POINT  GetAccel( PTRANSFORM pt, P_POINT s )
 
 //----------------------------------------------------------------
 
- PC_POINT  SetAccel( PTRANSFORM pt, PC_POINT s )
+ PC_POINT  EXTERNAL_NAME(SetAccel)( PTRANSFORM pt, PC_POINT s )
 {
 	SetPoint( pt->motion->accel, s );
 	return s;
@@ -1251,7 +1259,7 @@ P_POINT  GetAccel( PTRANSFORM pt, P_POINT s )
 
 //----------------------------------------------------------------
 
- PC_POINT SetRotation( PTRANSFORM pt, PC_POINT r )
+ PC_POINT EXTERNAL_NAME(SetRotation)( PTRANSFORM pt, PC_POINT r )
 {
 	SetPoint( pt->motion->rotation, r );
 	return r;
@@ -1259,7 +1267,7 @@ P_POINT  GetAccel( PTRANSFORM pt, P_POINT s )
 
 //----------------------------------------------------------------
 
-P_POINT GetRotation( PTRANSFORM pt, P_POINT r )
+P_POINT EXTERNAL_NAME(GetRotation)( PTRANSFORM pt, P_POINT r )
 {
 	SetPoint( r, pt->motion->rotation );
 	return r;
@@ -1267,7 +1275,7 @@ P_POINT GetRotation( PTRANSFORM pt, P_POINT r )
 
 //----------------------------------------------------------------
 
- PC_POINT SetRotationAccel( PTRANSFORM pt, PC_POINT r )
+ PC_POINT EXTERNAL_NAME(SetRotationAccel)( PTRANSFORM pt, PC_POINT r )
 {
 	SetPoint( pt->motion->rot_accel, r );
 	return r;
@@ -1275,14 +1283,14 @@ P_POINT GetRotation( PTRANSFORM pt, P_POINT r )
 
 //----------------------------------------------------------------
 
- void GetOriginV( PTRANSFORM pt, P_POINT o )
+ void EXTERNAL_NAME(GetOriginV)( PTRANSFORM pt, P_POINT o )
 {
    SetPoint( o, pt->m[3] );
 }
 
 //----------------------------------------------------------------
 
- PC_POINT GetOrigin( PTRANSFORM pt  )
+ PC_POINT EXTERNAL_NAME(GetOrigin)( PTRANSFORM pt  )
 {
 	if( pt )
 		return pt->m[3];
@@ -1291,14 +1299,14 @@ P_POINT GetRotation( PTRANSFORM pt, P_POINT r )
 
 //----------------------------------------------------------------
 
- void GetAxisV( PTRANSFORM pt, P_POINT a, int n )
+ void EXTERNAL_NAME(GetAxisV)( PTRANSFORM pt, P_POINT a, int n )
 {
 	SetPoint( a, pt->m[n] );
 }
 
 //----------------------------------------------------------------
 
- PC_POINT GetAxis( PTRANSFORM pt, int n )
+ PC_POINT EXTERNAL_NAME(GetAxis)( PTRANSFORM pt, int n )
 {
 	if( pt )
 		return pt->m[n];
@@ -1307,21 +1315,21 @@ P_POINT GetRotation( PTRANSFORM pt, P_POINT r )
 
 //----------------------------------------------------------------
 
- void SetAxisV( PTRANSFORM pt, PC_POINT a, int n )
+ void EXTERNAL_NAME(SetAxisV)( PTRANSFORM pt, PC_POINT a, int n )
 {
    SetPoint( pt->m[n], a );
 }
 
 //----------------------------------------------------------------
 
- void SetAxis( PTRANSFORM pt, RCOORD a, RCOORD b, RCOORD c, int n )
+ void EXTERNAL_NAME(SetAxis)( PTRANSFORM pt, RCOORD a, RCOORD b, RCOORD c, int n )
 {
    SetPoint( pt->m[n], &a );
 }
 
 //----------------------------------------------------------------
 
-void InvertTransform( PTRANSFORM pt )
+void EXTERNAL_NAME(InvertTransform)( PTRANSFORM pt )
 {
 	RCOORD tmp;
 	int i, j;
@@ -1342,7 +1350,7 @@ void InvertTransform( PTRANSFORM pt )
 
 //----------------------------------------------------------------
 
-void GetGLCameraMatrix( PTRANSFORM pt, PMATRIX out )
+void EXTERNAL_NAME(GetGLCameraMatrix)( PTRANSFORM pt, PMATRIX out )
 {
     // ugly but perhaps there will be some optimization if I
     // do this linear like... sure it's a lot of code, but at
@@ -1375,10 +1383,10 @@ void GetGLCameraMatrix( PTRANSFORM pt, PMATRIX out )
 	 // above matrix... so I need to undo having the correct
     // bias on the translation.
 	 //DOFUNC(ApplyInverseRotation)( pt, out[3], pt->m[3] );
-    Invert( pt->m[2] );
+    DOFUNC(Invert)( pt->m[2] );
     DOFUNC(ApplyInverseRotation)( pt, out[3], pt->m[3] );
-	 Invert( pt->m[2] );
-    Invert( out[3] );
+	DOFUNC(Invert)( pt->m[2] );
+    DOFUNC(Invert)( out[3] );
     //ApplyRotation( pt, out[3], pt->m[3] );
     //out[3][0] = pt->m[3][0];
     //out[3][1] = pt->m[3][1];
@@ -1391,7 +1399,7 @@ void GetGLCameraMatrix( PTRANSFORM pt, PMATRIX out )
 
 //----------------------------------------------------------------
 
-void GetGLMatrix( PTRANSFORM pt, PMATRIX out )
+void EXTERNAL_NAME(GetGLMatrix)( PTRANSFORM pt, PMATRIX out )
 {
 	// ugly but perhaps there will be some optimization if I
 	// do this linear like... sure it's a lot of code, but at
@@ -1424,17 +1432,17 @@ void GetGLMatrix( PTRANSFORM pt, PMATRIX out )
 	 // above matrix... so I need to undo having the correct
     // bias on the translation.
 	 //DOFUNC(ApplyInverseRotation)( pt, out[3], pt->m[3] );
-	Invert( pt->m[2] );
+	DOFUNC(Invert)( pt->m[2] );
 	DOFUNC(ApplyInverseRotation)( pt, out[3], pt->m[3] );
-	Invert( pt->m[2] );
-	Invert( out[3] );
+	DOFUNC(Invert)( pt->m[2] );
+	DOFUNC(Invert)( out[3] );
 
 	out[3][3] = pt->m[3][3];
 }
 
 //----------------------------------------------------------------
 
-void SetGLMatrix( PMATRIX in, PTRANSFORM pt )
+void EXTERNAL_NAME(SetGLMatrix)( PMATRIX in, PTRANSFORM pt )
 {
     // ugly but perhaps there will be some optimization if I
     // do this linear like... sure it's a lot of code, but at
@@ -1474,7 +1482,7 @@ void SetGLMatrix( PMATRIX in, PTRANSFORM pt )
     pt->m[3][3] = 1.0f;
 }
 
-void SetRotationMatrix( PTRANSFORM pt, RCOORD *quat )
+void EXTERNAL_NAME(SetRotationMatrix)( PTRANSFORM pt, RCOORD *quat )
 {
 
    /*
@@ -1516,7 +1524,7 @@ yY = y*Y; yZ = y*Z; zZ = z*Z
 	//
 }
 
-void GetRotationMatrix( PTRANSFORM pt, RCOORD *quat )
+void EXTERNAL_NAME(GetRotationMatrix)( PTRANSFORM pt, RCOORD *quat )
 {
 //	t = Qxx+Qyy+Qzz (trace of Q)
 //r = sqrt(1+t)
@@ -1638,67 +1646,68 @@ z = (Qyx-Qxy)*s
 
 #define DOUBLE_FORMAT  WIDE("%g")
 
-void PrintVectorEx( CTEXTSTR lpName, PCVECTOR v DBG_PASS )
+void EXTERNAL_NAME(PrintVectorEx)( CTEXTSTR lpName, PCVECTOR v DBG_PASS )
 {
    _xlprintf( 1 DBG_RELAY )( WIDE("Vector  %s = <") DOUBLE_FORMAT WIDE(", ") DOUBLE_FORMAT WIDE(", ") DOUBLE_FORMAT WIDE("> ") DOUBLE_FORMAT,
-            lpName, v[0], v[1], v[2], Length( v ) );
+            lpName, v[0], v[1], v[2], EXTERNAL_NAME(Length)( v ) );
 }
 #undef PrintVector
-void PrintVector( CTEXTSTR lpName, PCVECTOR v )
+void EXTERNAL_NAME(PrintVector)( CTEXTSTR lpName, PCVECTOR v )
 {
-   PrintVectorEx( lpName, v DBG_SRC );
+   EXTERNAL_NAME(PrintVectorEx)( lpName, v DBG_SRC );
 }
 
- void PrintVectorStdEx( CTEXTSTR lpName, VECTOR v DBG_PASS )
+ void EXTERNAL_NAME(PrintVectorStdEx)( CTEXTSTR lpName, VECTOR v DBG_PASS )
 {
    TEXTCHAR byBuffer[256];
    tnprintf( byBuffer, sizeof( byBuffer ), WIDE("Vector  %s = <") DOUBLE_FORMAT WIDE(", ") DOUBLE_FORMAT WIDE(", ") DOUBLE_FORMAT WIDE("> ") DOUBLE_FORMAT WIDE("\n"),
-            lpName, v[0], v[1], v[2], Length(v) );
+            lpName, v[0], v[1], v[2], EXTERNAL_NAME(Length)(v) );
    PRINTF( WIDE("%s"), byBuffer );
 }
 
 #undef PrintVectorStd
- void PrintVectorStd( CTEXTSTR lpName, VECTOR v )
+ void EXTERNAL_NAME(PrintVectorStd)( CTEXTSTR lpName, VECTOR v )
 {
-   PrintVectorStdEx( lpName, v DBG_SRC );
+   EXTERNAL_NAME(PrintVectorStdEx)( lpName, v DBG_SRC );
 }
 
 #undef PrintMatrix
-void PrintMatrix( CTEXTSTR lpName, MATRIX m )
-#define PrintMatrix(m) PrintMatrix( #m, m )
+void EXTERNAL_NAME(PrintMatrix)( CTEXTSTR lpName, MATRIX m )
+#define PrintMatrixd(m) PrintMatrixd( #m, m )
+#define PrintMatrixf(m) PrintMatrixf( #m, m )
 {
-   PrintMatrixEx( lpName, m DBG_SRC );
+   EXTERNAL_NAME(PrintMatrixEx)( lpName, m DBG_SRC );
 }
 
-void PrintMatrixEx( CTEXTSTR lpName, MATRIX m DBG_PASS )
+void EXTERNAL_NAME(PrintMatrixEx)( CTEXTSTR lpName, MATRIX m DBG_PASS )
 {
    _xlprintf( 1 DBG_RELAY )( WIDE("Vector  %s = <") DOUBLE_FORMAT WIDE(", ") DOUBLE_FORMAT WIDE(", ") DOUBLE_FORMAT WIDE(", ") DOUBLE_FORMAT WIDE("> ") DOUBLE_FORMAT,
-            lpName, m[0][0], m[0][1], m[0][2], m[0][3], Length( m[0] ) );
+            lpName, m[0][0], m[0][1], m[0][2], m[0][3], EXTERNAL_NAME(Length)( m[0] ) );
    _xlprintf( 1 DBG_RELAY )( WIDE("Vector  %s = <") DOUBLE_FORMAT WIDE(", ") DOUBLE_FORMAT WIDE(", ") DOUBLE_FORMAT WIDE(", ") DOUBLE_FORMAT WIDE("> ") DOUBLE_FORMAT,
-            lpName, m[1][0], m[1][1], m[1][2], m[1][3], Length( m[1] ) );
+            lpName, m[1][0], m[1][1], m[1][2], m[1][3], EXTERNAL_NAME(Length)( m[1] ) );
    _xlprintf( 1 DBG_RELAY )( WIDE("Vector  %s = <") DOUBLE_FORMAT WIDE(", ") DOUBLE_FORMAT WIDE(", ") DOUBLE_FORMAT WIDE(", ") DOUBLE_FORMAT WIDE("> ") DOUBLE_FORMAT,
-            lpName, m[2][0], m[2][1], m[2][2], m[2][3], Length( m[2] ) );
+            lpName, m[2][0], m[2][1], m[2][2], m[2][3], EXTERNAL_NAME(Length)( m[2] ) );
    _xlprintf( 1 DBG_RELAY )( WIDE("Vector  %s = <") DOUBLE_FORMAT WIDE(", ") DOUBLE_FORMAT WIDE(", ") DOUBLE_FORMAT WIDE(", ") DOUBLE_FORMAT WIDE("> ") DOUBLE_FORMAT,
-            lpName, m[3][0], m[3][1], m[3][2], m[3][3], Length( m[3] ) );
+            lpName, m[3][0], m[3][1], m[3][2], m[3][3], EXTERNAL_NAME(Length)( m[3] ) );
    {
 	   VECTOR v;
-	   crossproduct( v, m[1], m[2] );
-	   PrintVector( WIDE( "cross1" ), v );
-	   crossproduct( v, m[2], m[0] );
-	   PrintVector( WIDE( "cross2" ), v );
-	   crossproduct( v, m[0], m[1] );
-	   PrintVector( WIDE( "cross3" ), v );
+	   DOFUNC(crossproduct)( v, m[1], m[2] );
+	   EXTERNAL_NAME(PrintVector)( WIDE( "cross1" ), v );
+	   DOFUNC(crossproduct)( v, m[2], m[0] );
+	   EXTERNAL_NAME(PrintVector)( WIDE( "cross2" ), v );
+	   DOFUNC(crossproduct)( v, m[0], m[1] );
+	   EXTERNAL_NAME(PrintVector)( WIDE( "cross3" ), v );
    }
 }
 
 
 #undef ShowTransform
-void ShowTransformEx( PTRANSFORM pt, char *header DBG_PASS )
+void EXTERNAL_NAME(ShowTransformEx)( PTRANSFORM pt, char *header DBG_PASS )
 {
    _xlprintf( 1 DBG_RELAY )( WIDE("transform %s"), header );
 	_xlprintf( 1 DBG_RELAY )( WIDE("     -----------------"));
-#define F4(name) _xlprintf( 1 DBG_RELAY )( _WIDE(#name) WIDE(" <") DOUBLE_FORMAT WIDE(" ") DOUBLE_FORMAT WIDE(" ") DOUBLE_FORMAT WIDE(" ") DOUBLE_FORMAT WIDE("> ") DOUBLE_FORMAT, pt->name[0], pt->name[1], pt->name[2], pt->name[3], Length( pt->name ) )
-#define F(name) _xlprintf( 1 DBG_RELAY )( _WIDE(#name) WIDE(" <") DOUBLE_FORMAT WIDE(" ") DOUBLE_FORMAT WIDE(" ") DOUBLE_FORMAT WIDE("> ") DOUBLE_FORMAT, pt->name[0], pt->name[1], pt->name[2], Length( pt->name ) )
+#define F4(name) _xlprintf( 1 DBG_RELAY )( _WIDE(#name) WIDE(" <") DOUBLE_FORMAT WIDE(" ") DOUBLE_FORMAT WIDE(" ") DOUBLE_FORMAT WIDE(" ") DOUBLE_FORMAT WIDE("> ") DOUBLE_FORMAT, pt->name[0], pt->name[1], pt->name[2], pt->name[3], EXTERNAL_NAME(Length)( pt->name ) )
+#define F(name) _xlprintf( 1 DBG_RELAY )( _WIDE(#name) WIDE(" <") DOUBLE_FORMAT WIDE(" ") DOUBLE_FORMAT WIDE(" ") DOUBLE_FORMAT WIDE("> ") DOUBLE_FORMAT, pt->name[0], pt->name[1], pt->name[2], EXTERNAL_NAME(Length)( pt->name ) )
 	if( pt->motion )
 	{
 		F(motion->speed);
@@ -1712,12 +1721,12 @@ void ShowTransformEx( PTRANSFORM pt, char *header DBG_PASS )
    F(s);
 }
 
-void ShowTransform( PTRANSFORM pt, char *header )
+void EXTERNAL_NAME(ShowTransform)( PTRANSFORM pt, char *header )
 {
-	ShowTransformEx( pt, header DBG_SRC );
+	EXTERNAL_NAME(ShowTransformEx)( pt, header DBG_SRC );
 }
 
-void showstd( PTRANSFORM pt, char *header )
+void EXTERNAL_NAME(showstd)( PTRANSFORM pt, char *header )
 {
 	TEXTCHAR byMsg[256];
 #undef F4
@@ -1744,7 +1753,7 @@ void showstd( PTRANSFORM pt, char *header )
    PRINTF( WIDE("%s"), byMsg );
 }
 
-void SaveTransform( PTRANSFORM pt, CTEXTSTR filename )
+void EXTERNAL_NAME(SaveTransform)( PTRANSFORM pt, CTEXTSTR filename )
 {
 	FILE *file;
 	Fopen( file, filename, WIDE("wb") );
@@ -1755,7 +1764,7 @@ void SaveTransform( PTRANSFORM pt, CTEXTSTR filename )
 	}
 
 }
-void LoadTransform( PTRANSFORM pt, CTEXTSTR filename )
+void EXTERNAL_NAME(LoadTransform)( PTRANSFORM pt, CTEXTSTR filename )
 {
 	FILE *file;
 	Fopen( file, filename, WIDE("rb" ) );
@@ -1768,14 +1777,14 @@ void LoadTransform( PTRANSFORM pt, CTEXTSTR filename )
 
 }
 
-void GetPointOnPlane( PRAY plane, PCVECTOR up, PCVECTOR size, PCVECTOR point )
+void EXTERNAL_NAME(GetPointOnPlane)( PRAY plane, PCVECTOR up, PCVECTOR size, PCVECTOR point )
 {
 	// plane is origin-normal specificatio of plane.
 	// up is the direction of 'y' on the plane, right is the direction of 'x',
 	// size  is the width/ehight of the plane from the origin
    // point is the x/y point (missing the z coordinate)
 	VECTOR right;
-	crossproduct( right, plane->n, up );
+	DOFUNC(crossproduct)( right, plane->n, up );
 }
 
 VECTOR_NAMESPACE_END

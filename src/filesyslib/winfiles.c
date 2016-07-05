@@ -411,7 +411,7 @@ void SetDefaultFilePath( CTEXTSTR path )
 		Deallocate( TEXTCHAR*, tmp_path );
 }
 
-static TEXTSTR PrependBasePath( INDEX groupid, struct Group *group, CTEXTSTR filename )
+static TEXTSTR PrependBasePathEx( INDEX groupid, struct Group *group, CTEXTSTR filename, LOGICAL expand_path )
 {
 	TEXTSTR real_filename = filename?ExpandPath( filename ):NULL;
 	TEXTSTR fullname;
@@ -438,7 +438,10 @@ static TEXTSTR PrependBasePath( INDEX groupid, struct Group *group, CTEXTSTR fil
 	{
 		TEXTSTR tmp_path;
 		size_t len;
-		tmp_path = ExpandPath( group->base_path );
+		if( expand_path )
+			tmp_path = ExpandPath( group->base_path );
+		else
+			tmp_path = group->base_path;
 		fullname = NewArray( TEXTCHAR, len = StrLen( filename ) + StrLen(tmp_path) + 2 );
 		if( (*winfile_local).flags.bLogOpenClose )
 			lprintf(WIDE("prepend %s[%s] with %s"), group->base_path, tmp_path, filename );
@@ -473,11 +476,18 @@ static TEXTSTR PrependBasePath( INDEX groupid, struct Group *group, CTEXTSTR fil
 #endif
 		if( (*winfile_local).flags.bLogOpenClose )
 			lprintf( WIDE("result %s"), fullname );
-		Deallocate( TEXTCHAR*, tmp_path );
+		if( expand_path )
+			Deallocate( TEXTCHAR*, tmp_path );
 		Deallocate( TEXTCHAR*, real_filename );
 	}
 	return fullname;
 }
+
+static TEXTSTR PrependBasePath( INDEX groupid, struct Group *group, CTEXTSTR filename )
+{
+   return PrependBasePathEx(groupid,group,filename,TRUE );
+}
+
 
 TEXTSTR sack_prepend_path( INDEX group, CTEXTSTR filename )
 {
@@ -1011,7 +1021,7 @@ FILE * sack_fopenEx( INDEX group, CTEXTSTR filename, CTEXTSTR opts, struct file_
 			tmpname = ExpandPathVariable( filename );
 			filename = tmpname;
 		}
-      if( (filename[0] == '@') || (filename[0] == '*') || (filename[0] == '~') )
+		if( (filename[0] == '@') || (filename[0] == '*') || (filename[0] == '~') )
 		{
 			tmpname = ExpandPathEx( filename, NULL );
 			filename = tmpname;
@@ -1036,7 +1046,7 @@ FILE * sack_fopenEx( INDEX group, CTEXTSTR filename, CTEXTSTR opts, struct file_
 			}
 			else
 			{
-				file->fullname = PrependBasePath( group, filegroup, file->name );
+				file->fullname = PrependBasePathEx( group, filegroup, file->name, !mount );
 				if( (*winfile_local).flags.bLogOpenClose )
 					lprintf( WIDE("full is %s %d"), file->fullname, group );
 			}
@@ -1046,6 +1056,12 @@ FILE * sack_fopenEx( INDEX group, CTEXTSTR filename, CTEXTSTR opts, struct file_
 		EnterCriticalSec( &(*winfile_local).cs_files );
 		AddLink( &(*winfile_local).files,file );
 		LeaveCriticalSec( &(*winfile_local).cs_files );
+	}
+	if( (file->fullname[0] == '@') || (file->fullname[0] == '*') || (file->fullname[0] == '~') )
+	{
+		TEXTSTR tmpname = ExpandPathEx( file->fullname, NULL );
+		Deallocate( TEXTSTR, file->fullname );
+		file->fullname = tmpname;
 	}
 	if( StrChr( file->fullname, '%' ) )
 	{
@@ -1154,7 +1170,13 @@ default_fopen:
 		Deallocate( char*, tmpname );
 		Deallocate( char*, tmpopts );
 #    else
-		fopen_s( &handle, file->fullname, opts );
+		{
+			wchar_t *tmp = CharWConvert( file->fullname );
+			wchar_t *wopts = CharWConvert( opts );
+			_wfopen_s( &handle, tmp, wopts );
+			Deallocate( wchar_t *, tmp );
+			Deallocate( wchar_t *, wopts );
+		}
 #    endif
 #  else
 		handle = fopen( file->fullname, opts );
@@ -1406,20 +1428,26 @@ int  sack_fclose ( FILE *file_file )
 	file = FindFileByFILE( file_file );
 	if( file )
 	{
+		int status;
 		if( (*winfile_local).flags.bLogOpenClose )
 			lprintf( WIDE("Closing %s"), file->fullname );
+		if( file->mount && file->mount->fsi )
+			status = file->mount->fsi->_close( file_file );
+		else
+			status = fclose( file_file );
+		EnterCriticalSec( &(*winfile_local).cs_files );
 		DeleteLink( &file->files, file_file );
+		DeleteLink( &(*winfile_local).files, file );
+		LeaveCriticalSec( &(*winfile_local).cs_files );
 		if( (*winfile_local).flags.bLogOpenClose )
 			lprintf( WIDE( "deleted FILE* %p and list is %p" ), file_file, file->files );
+
+		Deallocate( TEXTCHAR*, file->name );
+		Deallocate( TEXTCHAR*, file->fullname );
+		Deallocate( struct file*, file );
+		return status;
 	}
-	/*
-	Deallocate( TEXTCHAR*, file->name );
-	Deallocate( TEXTCHAR*, file->fullname );
-	Deallocate( TEXTCHAR*, file );
-	DeleteLink( &files, file );
-	*/
-	if( file->mount && file->mount->fsi )
-		return file->mount->fsi->_close( file_file );
+
 	return fclose( file_file );
 }
  size_t  sack_fread ( POINTER buffer, size_t size, int count,FILE *file_file )

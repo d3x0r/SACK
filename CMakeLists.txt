@@ -32,6 +32,7 @@ set( SACK_BASE ${PROJECT_SOURCE_DIR} )
 
 set( CMAKE_MODULE_PATH ${SACK_SOURCE_DIR}/makefiles/cmake )
 
+set( MATRIXSSL_VERSION 3.8.3 )
 
 include( DefaultInstall )
 
@@ -129,9 +130,10 @@ else( __ANDROID__ )
       set( NEED_FREETYPE ON )
       if( NOT __CLR__ )
         set( SOCKET_LIBRARIES MatrixSSL  )
+        set( WIN_SYS_LIBS advapi32 )
       endif( NOT __CLR__ )
         set( SOCKET_LIBRARIES ${SOCKET_LIBRARIES} ws2_32 iphlpapi )
-        set( WIN_SYS_LIBS winmm rpcrt4 )
+        set( WIN_SYS_LIBS ${WIN_SYS_LIBS} winmm rpcrt4 )
         if( WATCOM )
 	        set( PLATFORM_LIBRARIES ${PLATFORM_LIBRARIES} shfolder psapi )
         endif( WATCOM)
@@ -274,6 +276,7 @@ OPTION( NEED_ZLIB "Build internal zlib lib (with suitable exports to link agains
 OPTION( NEED_EXPAT "Build internal Expat library (older version)" ON )
 OPTION( __WINDOWS_ARM_CE__ "Build for windows CE 5.0 ARM" 0 )
 OPTION( USE_ASSEMBLY "Use Assembly files as available.  NASM required for this." OFF )
+OPTION( USE_HARDWARE_INFO "Include Hardware information utilities" ${WIN32} )
 
 OPTION( BUILD_MONOLITHIC "Build one giant library" ${BUILD_MONOLITHIC} )
 OPTION( BUILD_UNICODE "Build All as Unicode" ${BUILD_UNICODE} )
@@ -482,26 +485,29 @@ else()
   set( __NO_MSGSVR__ ON )
 endif()
 
-
-       add_custom_command( OUTPUT ${CMAKE_BINARY_DIR}/src/vectlib/vectlib_double.cpp
-                           DEPENDS ${PROJECT_SOURCE_DIR}/${VECTLIB_SOURCES}
+       add_custom_command( OUTPUT ${CMAKE_BINARY_DIR}/src/vectlib/vectlib_double.c
+                           DEPENDS ${PROJECT_SOURCE_DIR}/${VECTLIB_SOURCES} ${CMAKE_BINARY_DIR}/src/vectlib/vecstruc.h
+                           COMMAND ${CMAKE_COMMAND} -E copy_if_different ${PROJECT_SOURCE_DIR}/${VECTLIB_SOURCES} ${CMAKE_BINARY_DIR}/src/vectlib/vectlib_double.c
+                           COMMAND ${CMAKE_COMMAND} -E touch ${CMAKE_BINARY_DIR}/src/vectlib/vectlib_double.c
+                           )
+       add_custom_command( OUTPUT ${CMAKE_BINARY_DIR}/src/vectlib/vectlib_double.cpp 
+                           DEPENDS ${PROJECT_SOURCE_DIR}/${VECTLIB_SOURCES} ${CMAKE_BINARY_DIR}/src/vectlib/vecstruc.h
                            COMMAND ${CMAKE_COMMAND} -E copy_if_different ${PROJECT_SOURCE_DIR}/${VECTLIB_SOURCES} ${CMAKE_BINARY_DIR}/src/vectlib/vectlib_double.cpp
                            COMMAND ${CMAKE_COMMAND} -E touch ${CMAKE_BINARY_DIR}/src/vectlib/vectlib_double.cpp
                            )
-#EXECUTE_PROCESS(COMMAND cmake -E copy_if_different ${PROJECT_SOURCE_DIR}/${VECTLIB_SOURCES} ${CMAKE_BINARY_DIR}/src/vectlib/vectlib_double.cpp )
        add_custom_command( OUTPUT ${CMAKE_BINARY_DIR}/src/vectlib/vectlib_float.cpp
-                           DEPENDS ${PROJECT_SOURCE_DIR}/${VECTLIB_SOURCES}
+                           DEPENDS ${PROJECT_SOURCE_DIR}/${VECTLIB_SOURCES} ${CMAKE_BINARY_DIR}/src/vectlib/vecstruc.h
                            COMMAND ${CMAKE_COMMAND} -E copy_if_different ${PROJECT_SOURCE_DIR}/${VECTLIB_SOURCES} ${CMAKE_BINARY_DIR}/src/vectlib/vectlib_float.cpp
                            COMMAND ${CMAKE_COMMAND} -E touch ${CMAKE_BINARY_DIR}/src/vectlib/vectlib_float.cpp
                            )
+
+# ADD_CUSTOM_TARGET( generate_vectlib DEPENDS ${CMAKE_BINARY_DIR}/src/vectlib/vectlib_double.c)
+
 #EXECUTE_PROCESS(COMMAND cmake -E copy_if_different ${PROJECT_SOURCE_DIR}/${VECTLIB_SOURCES} ${CMAKE_BINARY_DIR}/src/vectlib/vectlib_float.cpp )
 SET_PROPERTY(SOURCE ${CMAKE_BINARY_DIR}/src/vectlib/vectlib_float.cpp
                  APPEND 
 		PROPERTY COMPILE_DEFINITIONS "MAKE_RCOORD_SINGLE" ) 
 SET_PROPERTY(SOURCE ${IMAGE_SOURCES}
-                 APPEND 
-		PROPERTY COMPILE_DEFINITIONS "MAKE_RCOORD_SINGLE" ) 
-SET_PROPERTY(SOURCE ${VECTLIB_SOURCES}
                  APPEND 
 		PROPERTY COMPILE_DEFINITIONS "MAKE_RCOORD_SINGLE" ) 
 
@@ -515,7 +521,9 @@ include_directories(  ${SACK_BASE}/include )
 
 
 if( USING_OLD_MINGW )
-  add_definitions( -DMINGW_SUX )
+  if( CMAKE_C_COMPILER_VERSION VERSION_LESS 5.0 )
+	  add_definitions( -DMINGW_SUX )
+  endif( CMAKE_C_COMPILER_VERSION VERSION_LESS 5.0 )
   set( CMAKE_C_FLAGS ${CMAKE_C_FLAGS} -fshort-wchar )
   set( CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} -fshort-wchar )
 endif()
@@ -571,7 +579,7 @@ FOREACH(SOURCE ${SACK_PLUSPLUS_HEADERS})
        add_custom_command( OUTPUT ${CMAKE_BINARY_DIR}/${BASENAME}
                            DEPENDS ${SOURCE}
                            COMMAND ${CMAKE_COMMAND} -E copy_if_different ${SOURCE} ${CMAKE_BINARY_DIR}/${BASENAME} 
-                           COMMAND ${CMAKE_COMMAND} -E touch ${CMAKE_BINARY_DIR}/${BASENAME} 
+                           #COMMAND ${CMAKE_COMMAND} -E touch ${CMAKE_BINARY_DIR}/${BASENAME} 
                            )
        #EXECUTE_PROCESS(COMMAND ${CMAKE_COMMAND} -E copy_if_different ${SOURCE} ${CMAKE_BINARY_DIR}/${BASENAME} )
 
@@ -616,7 +624,7 @@ FOREACH(SOURCE ${ARGN} )
           add_custom_command( OUTPUT ${CMAKE_BINARY_DIR}/${BASENAME}${FILEEXT}
                               DEPENDS ${SOURCE}
                               COMMAND ${CMAKE_COMMAND} -E copy_if_different ${SOURCE} ${CMAKE_BINARY_DIR}/${BASENAME}${FILEEXT} 
-                              COMMAND ${CMAKE_COMMAND} -E touch ${CMAKE_BINARY_DIR}/${BASENAME}${FILEEXT} 
+                              #COMMAND ${CMAKE_COMMAND} -E touch ${CMAKE_BINARY_DIR}/${BASENAME}${FILEEXT} 
                               )
           #EXECUTE_PROCESS(COMMAND cmake -E copy_if_different ${SOURCE} ${CMAKE_BINARY_DIR}/${BASENAME}${FILEEXT} )
        
@@ -629,7 +637,7 @@ FOREACH(SOURCE ${ARGN} )
          add_custom_command( OUTPUT ${CMAKE_BINARY_DIR}/${BASENAME}${FILEEXT}
                              DEPENDS ${PROJECT_SOURCE_DIR}/${SOURCE}
                              COMMAND ${CMAKE_COMMAND} -E copy_if_different ${PROJECT_SOURCE_DIR}/${SOURCE} ${CMAKE_BINARY_DIR}/${BASENAME}${FILEEXT} 
-                             COMMAND ${CMAKE_COMMAND} -E touch ${CMAKE_BINARY_DIR}/${BASENAME}${FILEEXT} 
+                             #COMMAND ${CMAKE_COMMAND} -E touch ${CMAKE_BINARY_DIR}/${BASENAME}${FILEEXT} 
                              )
          #EXECUTE_PROCESS(COMMAND cmake -E copy_if_different ${PROJECT_SOURCE_DIR}/${SOURCE} ${CMAKE_BINARY_DIR}/${BASENAME}${FILEEXT} )
          #message( "LIB2_SOURCE2 : ${BASENAME}  ${SOURCE}" )
@@ -680,6 +688,7 @@ set( SACK_SOURCES
     ${BASE_SOURCES} 
 	${VIDLIB_HEADLESS_SOURCES}
     ${VECTLIB_SOURCES}
+    ${VECTLIB_MORE_SOURCES}
     ${SNPRINTF_SOURCES}
     ${ODBC_SOURCES}
     ${BAG_SQLITE_INTERFACE}
@@ -947,6 +956,7 @@ add_library( bag SHARED
   ${FIRST_GCC_LIBRARY_SOURCE} 
     ${BASE_SOURCES} 
     ${VECTLIB_SOURCES}
+    ${VECTLIB_MORE_SOURCES}
     ${ODBC_SOURCES}
     ${GENX_SOURCES}
     ${BAG_SQLITE_INTERFACE}
@@ -1178,6 +1188,9 @@ if( NOT __NO_GUI__ )
   if( NOT __ANDROID__ )
      add_subdirectory( src/vidlib )
   endif( NOT __ANDROID__ )
+  
+else( NOT __NO_GUI__ )
+     add_subdirectory( src/vidlib/proxy )
 endif( NOT __NO_GUI__ )
 
 ###########
@@ -1292,7 +1305,8 @@ endIF(NOT FORCE_CXX AND EXISTS ${BULLET_SOURCE}/CMakeLists.txt AND NOT BUILD_UNI
 if( NOT BUILD_MONOLITHIC AND NOT __NO_GUI__ )
 	#include vidlib first incase glew is used, then imglib
 	add_subdirectory( src/imglib/puregl2 )
-        
+	add_subdirectory( src/imglib/vulkan )
+
 if( NOT __QNX__ AND NOT __ANDROID__ )
 	#standard OpenGL; mostly windows-centric
 	add_subdirectory( src/imglib/puregl )
@@ -1307,6 +1321,7 @@ if( NOT __NO_NETWORK__ )
   add_subdirectory( src/vidlib/proxy )
 endif( NOT __NO_NETWORK__ )
   add_subdirectory( src/vidlib/puregl2 )
+  add_subdirectory( src/vidlib/vulkan )
 
 if( NOT __QNX__ AND NOT __ANDROID__ )
   add_subdirectory( src/vidlib/puregl )
@@ -1417,7 +1432,7 @@ add_subdirectory( src/utils/runner )
 add_subdirectory( src/utils/virtual_file_system )
 
 if( NOT __CLR__ )
-	add_subdirectory( src/contrib/MatrixSSL/3.7.1 )
+	add_subdirectory( src/contrib/MatrixSSL/${MATRIXSSL_VERSION} )
 endif( NOT __CLR__ )
 
 if( BUILD_TESTS )
@@ -1495,7 +1510,6 @@ if( NOT UNIX )
 endif( NOT UNIX )
 add_subdirectory( src/utils/seed_random )
 add_subdirectory( src/deadstart )
-add_subdirectory( src/utils/deploy )
 #add_subdirectory( ../allegro allegro )
 
  if( NOT __NO_GUI__ AND NOT __ANDROID__ )
@@ -1541,7 +1555,20 @@ SET( CMAKE_INSTALL_DEBUG_LIBRARIES_ONLY 1 )
 endif( ${CMAKE_BUILD_TYPE} MATCHES "[dD][eE][bB][uU][gG]" )
 
 INCLUDE(InstallRequiredSystemLibraries)
+if( MINGW )
+	if( EXISTS C:/tools/mingw-w64/i686-5.3.0-win32-sjlj-rt_v4-rev0/mingw32/bin/libgcc_s_sjlj-1.dll )
+        	set( CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS "${CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS} C:/tools/mingw-w64/i686-5.3.0-win32-sjlj-rt_v4-rev0/mingw32/bin/libgcc_s_sjlj-1.dll" )
+	endif()
+	if( EXISTS C:/tools/mingw-w64/i686-5.3.0-win32-sjlj-rt_v4-rev0/mingw32/bin/libstdc++-6.dll )
+        	set( CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS "${CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS} C:/tools/mingw-w64/i686-5.3.0-win32-sjlj-rt_v4-rev0/mingw32/bin/libstdc++-6.dll" )
+        endif()
+endif()
 INSTALL( FILES ${CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS} DESTINATION ${BINARY_OUTPUT_DIR} )
+
+# add deploy project last, so it can also convey that there were required runtimes copied
+add_subdirectory( src/utils/deploy )
+
+
 
 SET(CPACK_PACKAGE_DESCRIPTION_SUMMARY "SACK Layer 1")
 SET(CPACK_PACKAGE_VENDOR "Freedom Collective")

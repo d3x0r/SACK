@@ -58,6 +58,15 @@ LOGGING_NAMESPACE
 #endif
 
 
+#ifndef _SH_DENYWR
+#  define _SH_COMPAT 0x00
+#  define _SH_DENYRW 0x10
+#  define _SH_DENYWR 0x20
+#  define _SH_DENYRD 0x30
+#  define _SH_DENYNO 0x40
+#  define _SH_SECURE 0x80
+#endif
+
 struct syslog_local_data {
 int cannot_log;
 #define cannot_log (*syslog_local).cannot_log
@@ -444,7 +453,7 @@ static void LoadOptions( void )
 		nLogLevel = SACK_GetProfileIntEx( GetProgramName(), WIDE( "SACK/Logging/Default Log Level (1001:all, 100:least)" ), nLogLevel, TRUE );
 
 		// use the defaults; they may be overriden by reading the options.
-		(*syslog_local).flags.bLogThreadID = 1 || SACK_GetProfileIntEx( GetProgramName(), WIDE( "SACK/Logging/Log Thread ID" ), (*syslog_local).flags.bLogThreadID, TRUE );
+		(*syslog_local).flags.bLogThreadID = SACK_GetProfileIntEx( GetProgramName(), WIDE( "SACK/Logging/Log Thread ID" ), (*syslog_local).flags.bLogThreadID, TRUE );
 		(*syslog_local).flags.bLogProgram = SACK_GetProfileIntEx( GetProgramName(), WIDE( "SACK/Logging/Log Program" ), (*syslog_local).flags.bLogProgram, TRUE );
 		(*syslog_local).flags.bLogSourceFile = SACK_GetProfileIntEx( GetProgramName(), WIDE( "SACK/Logging/Log Source File" ), (*syslog_local).flags.bLogSourceFile, TRUE );
 
@@ -1067,11 +1076,7 @@ static void BackupFile( const TEXTCHAR *source, int source_name_len, int n )
 {
 	FILE *testfile;
 	INDEX group;
-#if  _MSC_VER >=1600 
 	testfile = sack_fsopenEx( group = GetFileGroup( WIDE( "system.logs" ), GetProgramPath() ), source, WIDE("rt"), _SH_DENYWR, NULL );
-#else
-	testfile = sack_fopenEx( group = GetFileGroup( WIDE( "system.logs" ), GetProgramPath() ), source, WIDE("rt"), NULL );
-#endif
 	if( testfile )
 	{
 		TEXTCHAR backup[256];
@@ -1137,19 +1142,11 @@ void DoSystemLog( const TEXTCHAR *buffer )
 				logtype = SYSLOG_NONE; // disable logging - internal functions might inadvertantly log something...
 				if( !(*syslog_local).flags.bOptionsLoaded )
 				{
-#if  _MSC_VER >=1600 
 					(*syslog_local).file = sack_fsopen( 0, gFilename, WIDE("wt")
 #ifdef _UNICODE 
 							WIDE(", ccs=UNICODE")
 #endif
 						, _SH_DENYWR );
-#else
-					(*syslog_local).file = sack_fopen( 0, gFilename, WIDE("wt") 
-#ifdef _UNICODE 
-							WIDE(", ccs=UNICODE")
-#endif
-						);
-#endif
 				}
 				else
 				{
@@ -1158,36 +1155,19 @@ void DoSystemLog( const TEXTCHAR *buffer )
 					BackupFile( gFilename, (int)StrLen( gFilename ), 1 );
 				}
 				else if( (*syslog_local).flags.bLogOpenAppend )
-#if  _MSC_VER >=1600 
 					(*syslog_local).file = sack_fsopen( (*syslog_local).flags.group_ok?GetFileGroup( WIDE( "system.logs" ), GetProgramPath() ):(INDEX)0, gFilename, WIDE("at+")
 #ifdef _UNICODE 
 							WIDE(", ccs=UNICODE")
 #endif
 						, _SH_DENYWR );
-#else
-					(*syslog_local).file = sack_fopen( (*syslog_local).flags.group_ok?GetFileGroup( WIDE( "system.logs" ), GetProgramPath() ):(INDEX)0, gFilename, WIDE("at+") 
-#ifdef _UNICODE 
-							WIDE(", ccs=UNICODE")
-#endif
-						);
-#endif
 				if( (*syslog_local).file )
 					fseek( (*syslog_local).file, 0, SEEK_END );
 				else
-#if  _MSC_VER >=1600 
 					(*syslog_local).file = sack_fsopenEx( (*syslog_local).flags.group_ok?GetFileGroup( WIDE( "system.logs" ), GetProgramPath() ):(INDEX)0, gFilename, WIDE("wt")
 #ifdef _UNICODE 
 							WIDE(", ccs=UNICODE")
 #endif
 							, _SH_DENYWR, NULL );
-#else
-					(*syslog_local).file = sack_fopenEx( (*syslog_local).flags.group_ok?GetFileGroup( WIDE( "system.logs" ), GetProgramPath() ):(INDEX)0, gFilename, WIDE("wt") 
-#ifdef _UNICODE 
-							WIDE(", ccs=UNICODE")
-#endif
-							, NULL
-							);
-#endif
 				}
 				//logtype = SYSLOG_AUTO_FILE;
 
@@ -1395,19 +1375,11 @@ void  SetSystemLog ( enum syslog_types type, const void *data )
 	else if( type == SYSLOG_FILENAME )
 	{
 		FILE *log;
-#if  _MSC_VER >=1600 
 		log = sack_fsopen( GetFileGroup( WIDE( "system.logs" ), GetProgramPath() ), (CTEXTSTR)data, WIDE("wt")
 #ifdef _UNICODE 
 				WIDE(", ccs=UNICODE")
 #endif
 				, _SH_DENYWR );
-#else
-		log = sack_fopen( GetFileGroup( WIDE( "system.logs" ), GetProgramPath() ), (CTEXTSTR)data, WIDE("wt")
-#ifdef _UNICODE 
-				WIDE(", ccs=UNICODE")
-#endif
-				);
-#endif
 		(*syslog_local).file = log;
 
 		logtype = SYSLOG_FILE;
@@ -1457,12 +1429,22 @@ struct next_lprint_info{
 static struct next_lprint_info *GetNextInfo( void )
 {
 	struct next_lprint_info *next;
-#if defined( WIN32 )
+#ifdef USE_CUSTOM_ALLOCER
+#  if defined( WIN32 )
 	if( !( next = (struct next_lprint_info*)TlsGetValue( (*syslog_local).next_lprintf_tls ) ) )
-		TlsSetValue( (*syslog_local).next_lprintf_tls, next = New( struct next_lprint_info ) );
-#elif defined( __LINUX__ )
+		TlsSetValue( (*syslog_local).next_lprintf_tls, next = (struct next_lprint_info*)malloc( sizeof( struct next_lprint_info ) ) );
+#  elif defined( __LINUX__ )
 	if( !( next = (struct next_lprint_info*)pthread_getspecific( (*syslog_local).next_lprintf_tls ) ) )
 		pthread_setspecific( (*syslog_local).next_lprintf_tls, next = New( struct next_lprint_info ) );
+#  endif
+#else
+#  if defined( WIN32 )
+	if( !(next = (struct next_lprint_info*)TlsGetValue( (*syslog_local).next_lprintf_tls )) )
+		TlsSetValue( (*syslog_local).next_lprintf_tls, next = New( struct next_lprint_info ) );
+#  elif defined( __LINUX__ )
+	if( !(next = (struct next_lprint_info*)pthread_getspecific( (*syslog_local).next_lprintf_tls )) )
+		pthread_setspecific( (*syslog_local).next_lprintf_tls, next = New( struct next_lprint_info ) );
+#  endif
 #endif
 	return next;
 }

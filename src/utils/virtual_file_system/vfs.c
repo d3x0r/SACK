@@ -319,7 +319,7 @@ struct volume *sack_vfs_load_crypt_volume( const char * filepath, const char * u
 	vol->devkey = devkey;
 	AssignKey( vol, userkey, devkey );
 	ExpandVolume( vol );
-	if( !ValidateBAT( vol ) ) { Release( vol->disk ); return NULL; }
+	if( !ValidateBAT( vol ) ) { Deallocate( struct disk *, vol->disk ); return NULL; }
 	return vol;
 }
 
@@ -330,7 +330,7 @@ struct volume *sack_vfs_use_crypt_volume( POINTER memory, size_t sz, const char 
 	AssignKey( vol, userkey, devkey );
 	vol->disk = (struct disk*)memory;
 	vol->dwSize = sz;
-	if( !ValidateBAT( vol ) ) { Release( vol ); return NULL; }
+	if( !ValidateBAT( vol ) ) { Deallocate( struct volume*, vol ); return NULL; }
 	return vol;
 }
 
@@ -343,13 +343,13 @@ void sack_vfs_unload_volume( struct volume * vol ) {
 		vol->closed = TRUE;
 		return;
 	}
-	DeleteList( &vol->files );
-	Release( vol->disk );
+	DeleteListEx( &vol->files DBG_SRC );
+	Deallocate( struct disk *, vol->disk );
 	if( vol->key ) {
-		Release( vol->key );
+		Deallocate( P_8, vol->key );
 		SRG_DestroyEntropy( &vol->entropy );
 	}
-	Release( vol );
+	Deallocate( struct volume*, vol );
 }
 
 void sack_vfs_shrink_volume( struct volume * vol ) {
@@ -377,7 +377,7 @@ void sack_vfs_shrink_volume( struct volume * vol ) {
 			break;
 	}while( 1 );
 
-	Release( vol->disk );
+	Deallocate( struct disk *, vol->disk );
 	SetFileLength( vol->volname, last_bat * BLOCKS_PER_SECTOR * BLOCK_SIZE + ( last_block + 1 + 1 )* BLOCK_SIZE );
 	// setting 0 size will cause expand to do an initial open instead of expanding
 	vol->dwSize = 0;
@@ -581,7 +581,7 @@ struct sack_vfs_file * CPROC sack_vfs_openfile( struct volume *vol, const char *
 	LoG( "sack_vfs open %s = %p on %s", filename, file, vol->volname );
 	file->entry = ScanDirectory( vol, filename, &file->dirent_key );
 	if( !file->entry )
-		if( vol->read_only ) { LoG( "Fail open: readonly" ); vol->lock = 0; Release( file ); return NULL; }
+		if( vol->read_only ) { LoG( "Fail open: readonly" ); vol->lock = 0; Deallocate( struct sack_vfs_file *, file ); return NULL; }
 		else file->entry = GetNewDirectory( vol, filename );
 	if( vol->key )
 		memcpy( &file->dirent_key, vol->usekey[BLOCK_CACHE_DIRECTORY] + ( (PTRSZVAL)file->entry & BLOCK_MASK ), sizeof( struct directory_entry ) );
@@ -738,7 +738,7 @@ size_t CPROC sack_vfs_read( struct sack_vfs_file *file, char * data, size_t leng
 	// if there's still length here, FPI is now on the start of blocks
 	while( length ) {
 		P_8 block = (P_8)vfs_BSEEK( file->vol, file->block, BLOCK_CACHE_FILE );
-		if( length > BLOCK_SIZE ) {
+		if( length >= BLOCK_SIZE ) {
 			MaskBlock( file->vol, file->vol->usekey[BLOCK_CACHE_FILE], (P_8)data, 0, 0, (const char*)block, BLOCK_SIZE - ofs );
 			written += BLOCK_SIZE;
 			data += BLOCK_SIZE;
@@ -791,7 +791,7 @@ int CPROC sack_vfs_close( struct sack_vfs_file *file ) {
 	if( file->delete_on_close ) sack_vfs_unlink_file_entry( file->vol, file->entry, &file->dirent_key );  
 	file->vol->lock = 0;
 	if( file->vol->closed ) sack_vfs_unload_volume( file->vol );
-	Release( file ); 
+	Deallocate( struct sack_vfs_file *, file );
 	return 0; 
 }
 
@@ -880,7 +880,7 @@ static int CPROC sack_vfs_find_first( struct find_info *info ) {
 	return iterate_find( info );
 }
 
-static int CPROC sack_vfs_find_close( struct find_info *info ) { Release( info ); return 0; }
+static int CPROC sack_vfs_find_close( struct find_info *info ) { Deallocate( struct find_info*, info ); return 0; }
 static int CPROC sack_vfs_find_next( struct find_info *info ) { return iterate_find( info ); }
 static char * CPROC sack_vfs_find_get_name( struct find_info *info ) { return info->filename; }
 static size_t CPROC sack_vfs_find_get_size( struct find_info *info ) { return info->filesize; }

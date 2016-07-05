@@ -268,34 +268,34 @@ struct ffmpeg_file
 {
 	struct ffmpeg_file_flag
 	{
-		BIT_FIELD reading_frames : 1;
-		BIT_FIELD need_video_frame : 1;
-		BIT_FIELD using_video_frame : 1;
-		BIT_FIELD need_audio_frame : 1;
-		BIT_FIELD audio_sleeping : 1;
-		BIT_FIELD no_more_packets : 1;
-		BIT_FIELD sent_end_event : 1;
-		BIT_FIELD close_processing : 1;
-		BIT_FIELD allow_tick : 1;
-		//BIT_FIELD use_internal_tick : 1;
-		BIT_FIELD paused : 1;   // this is the pause request
-		BIT_FIELD need_audio_dequeue : 1;  // this is a resume(start) condition to attach video to sound
-		BIT_FIELD audio_paused : 1;  // acknowledgement of pause on audio device
-		BIT_FIELD video_paused : 1; // acknowledgement of pause on video device
-		BIT_FIELD skip_video_output : 1;
-		BIT_FIELD seek_read : 1;
-		BIT_FIELD force_pkt_pts_in_ms : 1; // video frame rate correction 1
-		BIT_FIELD force_pkt_pts_in_ticks : 1; // video frame rate correction 1
-		BIT_FIELD is_last_block : 1;
-		BIT_FIELD use_soft_queue : 1;
-		BIT_FIELD set_play_anyway : 1;
-		BIT_FIELD clear_pending_video : 1;
-		BIT_FIELD was_playing : 1; // seek to 0 should check this to prevent seeking when already at the start; set after a single packet is read
+		BIT_FIELD reading_frames/* : 1*/;
+		BIT_FIELD need_video_frame/* : 1*/;
+		BIT_FIELD using_video_frame/* : 1*/;
+		BIT_FIELD need_audio_frame/* : 1*/;
+		BIT_FIELD audio_sleeping/* : 1*/;
+		BIT_FIELD no_more_packets/* : 1*/;
+		BIT_FIELD sent_end_event/* : 1*/;
+		BIT_FIELD close_processing/* : 1*/;
+		BIT_FIELD allow_tick/* : 1*/;
+		//BIT_FIELD use_internal_tick/* : 1*/;
+		BIT_FIELD paused/* : 1*/;   // this is the pause request
+		BIT_FIELD need_audio_dequeue/* : 1*/;  // this is a resume(start) condition to attach video to sound
+		BIT_FIELD audio_paused/* : 1*/;  // acknowledgement of pause on audio device
+		BIT_FIELD video_paused/* : 1*/; // acknowledgement of pause on video device
+		BIT_FIELD skip_video_output/* : 1*/;
+		BIT_FIELD seek_read/* : 1*/;
+		BIT_FIELD force_pkt_pts_in_ms/* : 1*/; // video frame rate correction 1
+		BIT_FIELD force_pkt_pts_in_ticks/* : 1*/; // video frame rate correction 1
+		BIT_FIELD is_last_block/* : 1*/;
+		BIT_FIELD use_soft_queue/* : 1*/;
+		BIT_FIELD set_play_anyway/* : 1*/;
+		BIT_FIELD clear_pending_video/* : 1*/;
+		BIT_FIELD was_playing/* : 1*/; // seek to 0 should check this to prevent seeking when already at the start; set after a single packet is read
 		struct file_video_flags
 		{
-			BIT_FIELD have_decode_time : 1;
-			BIT_FIELD first_flush : 1;
-			BIT_FIELD flushing : 1;
+			BIT_FIELD have_decode_time/* : 1*/;
+			BIT_FIELD first_flush/* : 1*/;
+			BIT_FIELD flushing/* : 1*/;
 		} video;
 	} flags;
 	TEXTSTR filename;
@@ -420,7 +420,7 @@ static struct ffmpeg_interface_local
 	PIMAGE_INTERFACE pii;
 	PLIST files;
 	LOGICAL initialized_video;
-   LOGICAL initialized_audio;
+	LOGICAL initialized_audio;
 	CRITICALSECTION cs_audio_out;
 	int x_ofs, y_ofs;
 	int default_outstanding_audio;
@@ -439,7 +439,7 @@ static void InitFFMPEG_audio( void )
 {
 	if( l.initialized_audio )
 		return;
-   l.initialized_audio = TRUE;
+	l.initialized_audio = TRUE;
 
 	InitializeCriticalSec( &l.cs_audio_out );
 
@@ -834,7 +834,7 @@ static struct sound_device *getSoundDevice( struct ffmpeg_file * file )
 				result = (*sound_device->bqPlayerBufferQueue)->RegisterCallback( sound_device->bqPlayerBufferQueue, bqPlayerCallback, file);
 			}
 		}
-	   while( 0 );
+		while( 0 );
 #else
 
 		sound_device->alc_device = openal.alcOpenDevice( NULL );
@@ -901,7 +901,7 @@ static void ClearRequeueAudio( struct ffmpeg_file *file )
 		//flush_packet.buf = NULL;
 		//flush_packet.side_data = NULL;
 		//lprintf( WIDE("flush audio codec.") );
-		do
+		if( file->pAudioCodecCtx ) do
 		{
 			ffmpeg.avcodec_decode_audio4(file->pAudioCodecCtx, file->pAudioFrame, &frameFinished, &flush_packet );
 		}
@@ -1138,9 +1138,9 @@ static void EnableAudioOutput( struct ffmpeg_file * file )
 		//ffmpeg.av_opt_set_sample_fmt(file->audio_converter, WIDE("in_sample_fmt"),  AV_SAMPLE_FMT_FLTP, 0);
 		//ffmpeg.av_opt_set_sample_fmt(file->audio_converter, WIDE("in_sample_fmt"),  AV_SAMPLE_FMT_FLT, 0);
 	}
-   else if( file->pAudioCodecCtx->codec_id, AV_CODEC_ID_AAC )
+	else if( file->pAudioCodecCtx->codec_id, AV_CODEC_ID_AAC )
 		ffmpeg.av_opt_set_sample_fmt(file->audio_converter, "in_sample_fmt",  AV_SAMPLE_FMT_FLTP, 0);
-   else if( file->pAudioCodecCtx->codec_id, AV_CODEC_ID_AC3 )
+	else if( file->pAudioCodecCtx->codec_id, AV_CODEC_ID_AC3 )
 		ffmpeg.av_opt_set_sample_fmt(file->audio_converter, "in_sample_fmt",  AV_SAMPLE_FMT_S16P, 0);
 	else
 
@@ -1179,8 +1179,8 @@ static void PushBuffer( struct ffmpeg_file *file )
       //lprintf( WIDE("push buffer, release %p"), file->ffmpeg_buffer_sizes );
 		Release( file->ffmpeg_buffers );
 		Release( file->ffmpeg_buffer_sizes );
-      file->ffmpeg_buffers = new_bufs;
-      file->ffmpeg_buffer_sizes = new_sizes;
+		file->ffmpeg_buffers = new_bufs;
+		file->ffmpeg_buffer_sizes = new_sizes;
 	}
 
 	if( file->ffmpeg_buffer_used_total == 0 )
@@ -1207,7 +1207,7 @@ static void PushBuffer( struct ffmpeg_file *file )
 		else
 			lprintf( WIDE("Failed to append file to out") );
 	}
-   // need a new buffer, this is returned to the input library...
+	// need a new buffer, this is returned to the input library...
 	file->ffmpeg_buffers[file->ffmpeg_buffers_count] = NewArray( _8, file->ffmpeg_buffer_size );
 	MemCpy( file->ffmpeg_buffers[file->ffmpeg_buffers_count], file->ffmpeg_buffer, file->ffmpeg_buffer_size );
 	file->ffmpeg_buffer_sizes[file->ffmpeg_buffers_count] = file->ffmpeg_buffer_size;
@@ -1797,6 +1797,9 @@ struct ffmpeg_file * ffmpeg_LoadFile( CTEXTSTR filename
 			{
 				ffmpeg_UpdateControlLayout( file );
 			}
+#ifdef DEBUG_LOG_INFO
+			lprintf( "Initialize stream - first log; set need_video_frame." );
+#endif
 			file->flags.need_video_frame = 1;
 			//file->videoFrame = file->pVideoCodecCtx->delay;
 		}
@@ -1905,9 +1908,9 @@ static void LogTime( struct ffmpeg_file *file, LOGICAL video, CTEXTSTR leader, i
 	S_64 video_time = ( file->videoFrame - 1 ) * 1000000LL *  file->pVideoCodecCtx->ticks_per_frame * file->pVideoCodecCtx->time_base.num / file->pVideoCodecCtx->time_base.den;
 	S_64 video_time_now = ( file->videoFrame ) * 1000000LL *  file->pVideoCodecCtx->ticks_per_frame * file->pVideoCodecCtx->time_base.num / file->pVideoCodecCtx->time_base.den;
 	// in MS
-	_64 audio_time = 1000 * file->audioSamplesPlayed / file->pAudioCodecCtx->sample_rate;
+	_64 audio_time = file->pAudioCodecCtx?(1000 * file->audioSamplesPlayed / file->pAudioCodecCtx->sample_rate):0;
 	_64 audio_time2 = file->al_last_buffer_reclaim - file->media_start_time;
-	_64 audio_time_pending = 1000 * file->audioSamplesPending / file->pAudioCodecCtx->sample_rate;
+	_64 audio_time_pending = file->pAudioCodecCtx ? (1000 * file->audioSamplesPending / file->pAudioCodecCtx->sample_rate ):0;
 	_64 clock_time = ffmpeg.av_gettime();
 	_64 real_time = ( clock_time - file->media_start_time ) / 1000;
 	// between now and last audio finish
@@ -1916,10 +1919,11 @@ static void LogTime( struct ffmpeg_file *file, LOGICAL video, CTEXTSTR leader, i
 	// the (av) time of 1 video frame
 	S_64 video_time_tick = ( 1000LL ) * 1000LL *  file->pVideoCodecCtx->ticks_per_frame * (_64)file->pVideoCodecCtx->time_base.num / (_64)file->pVideoCodecCtx->time_base.den;
 	// the (av)real time of 1k sound samples
-	S_64 audio_time_pending_1000_tick = 1000 * 1000 * 1000 / file->pAudioCodecCtx->sample_rate;
+	S_64 audio_time_pending_1000_tick = 1000 * 1000 * 1000 / (file->pAudioCodecCtx ? (file->pAudioCodecCtx->sample_rate):44100);
 
 	// the 1k samples needs to be included this is in single-samples
 	S_64 video_time_in_audio_frames;
+
 	if( file->videoFrame > 0 )
 		video_time_in_audio_frames	= 1000 * video_time_now / audio_time_pending_1000_tick;
 	else
@@ -1945,11 +1949,11 @@ static void LogTime( struct ffmpeg_file *file, LOGICAL video, CTEXTSTR leader, i
 	if( file->videoFrame > 0 )
 	{
 		// Post .5 second updates to position feedback controls
-		if( video_time > (1000 * ( file->last_tick_update + 500 ) ) )
+		if( video_time > (( file->last_tick_update + 500 ) ) )
 		{
-			_64 tick = ( video_time * 1000000000 )
+			_64 tick = ( video_time * 1000000000000 )
 									/ file->pFormatCtx->duration ;
-			file->last_tick_update = video_time / 1000;
+			file->last_tick_update = video_time;
 			if( file->video_position_update ) 
 				file->video_position_update( file->psvUpdateParam, tick + file->seek_position );
 		}
@@ -1977,12 +1981,19 @@ static void LogTime( struct ffmpeg_file *file, LOGICAL video, CTEXTSTR leader, i
 			//file->video_next_pts_time = file->media_start_time + video_time_now + ( video_time_tick * file->video_adjust_ticks );
 
 			//file->video_current_pts_time = file->media_start_time + video_time * 1000;;
-
-			file->video_next_pts_time = file->media_start_time + ( video_time_now )
-				+ ( ( video_time_in_audio_frames - file->audioSamplesPlayed ) * 1000LL ) / file->pAudioCodecCtx->sample_rate
-				+ ( video_time_tick * file->video_adjust_ticks )
+			if( file->pAudioCodecCtx )
+				file->video_next_pts_time = file->media_start_time + (video_time_now)
+				+((video_time_in_audio_frames - file->audioSamplesPlayed) * 1000LL) / file->pAudioCodecCtx->sample_rate
+				+ (video_time_tick * file->video_adjust_ticks)
 				;
+			else {
+				S_64 tmp = clock_time - file->media_start_time;
+					//		+(video_time_tick * file->video_adjust_ticks)) - file->video_next_pts_time;
 
+				file->video_next_pts_time = file->media_start_time + (video_time_now * 1000 )+( video_time_tick *1000 )
+					+ (video_time_tick * file->video_adjust_ticks);
+					//;
+			}
 			// delta in ms....
 			 //lprintf( WIDE("something %")_64fs , (  ( video_time_in_audio_frames - file->audioSamplesPlayed ) * 1000LL ) / file->pAudioCodecCtx->sample_rate );
 			 //lprintf( WIDE("something %")_64fs , file->video_next_pts_time - file->media_start_time );
@@ -2014,12 +2025,12 @@ static void LogTime( struct ffmpeg_file *file, LOGICAL video, CTEXTSTR leader, i
 		, ( audio_time_pending % ( 1000 * 60 ) ) / 1000
 		, ( audio_time_pending % ( 1000 ) )
 		, file->videoFrame
-		, (( video_time /1000) / ( 1000 * 60 ) ) % 60
-		, (( video_time /1000) % ( 1000 * 60 ) ) / 1000
-		, ( (video_time /1000) % ( 1000 ) )
-		, ( ( clock_time - prior_video_time ) / ( 1000 * 60 ) ) % 60
-		, ( ( clock_time - prior_video_time ) % ( 1000 * 60 ) ) / 1000
-			  , ( ( clock_time - prior_video_time ) % ( 1000 ) )
+		, (( video_time ) / ( 1000 * 60 ) ) % 60
+		, (( video_time ) % ( 1000 * 60 ) ) / 1000
+		, ( (video_time ) % ( 1000 ) )
+		, ( ( clock_time - prior_video_time ) / ( 1000*1000 * 60 ) ) % 60
+		, ( (( clock_time - prior_video_time ) /1000 ) % (1000 * 60 ) ) / 1000
+			  , ( ( ( clock_time - prior_video_time ) / 1000 )% ( 1000 ) )
 			  );
 	prior_video_time = clock_time;
 	if( pause_wait )
@@ -2302,7 +2313,7 @@ static PTRSZVAL CPROC ProcessAudioFrame( PTHREAD thread )
 			, file->flags.reading_frames?WIDE(" reading"):WIDE("")
 			);
 	}
-	lprintf(WIDE(" This thread is no longer playing audio for %s"), file->filename );
+	lprintf(WIDE(" This thread is no longer playing audio for %p %s"), file, file->filename );
 	file->audioThread = NULL;
 	return 0;
 }
@@ -2385,7 +2396,7 @@ static PTRSZVAL CPROC ProcessVideoFrame( PTHREAD thread )
 	AVPacket *packet;
 	// allow the first tick.
 #ifdef DEBUG_LOG_INFO
-	lprintf(WIDE(" This thread is playing video for %s"), file->filename );
+	lprintf(WIDE(" This thread is playing video for %p %s"), file, file->filename );
 #endif
 	//file->flags.use_internal_tick = 0; // this is never enabled.  
 	file->flags.allow_tick = 1;
@@ -2395,9 +2406,13 @@ static PTRSZVAL CPROC ProcessVideoFrame( PTHREAD thread )
 		packet = (AVPacket*)DequeLink( &file->pVideoPackets );
 		if( !packet )
 		{
+         // there aren't any more; so force the value to 0...
+			file->video_packets = 0;
+			//lprintf( "failed to have a pcket...%d", file->flags.no_more_packets );
 			if( file->flags.no_more_packets )
 				if( !file->flags.video.first_flush )
 				{
+					//lprintf( "first flush, so setup blank packet to get last frame..." );
 					file->flags.video.first_flush = 1;
 					file->flags.video.flushing = 1;
 					packet = &l.blank_packet;
@@ -2405,6 +2420,7 @@ static PTRSZVAL CPROC ProcessVideoFrame( PTHREAD thread )
 				else
 				{
 					// allow pause...
+					//lprintf( "second flush, leave packet NULL" );
 					file->flags.video.flushing = 0;
 				}
 
@@ -2431,8 +2447,16 @@ static PTRSZVAL CPROC ProcessVideoFrame( PTHREAD thread )
 			//if( file->flags.use_internal_tick )
 			//	packet->pts = MyTick( file, 1 );
 			ffmpeg.avcodec_decode_video2(file->pVideoCodecCtx, file->pVideoFrame, &frameFinished,
-										packet);
-
+												  packet);
+#ifdef _DEBUG
+			if( file->flags.no_more_packets )
+			{
+				if( !file->video_packets )
+					;//lprintf( "no packets, nothing queued, and we finished a frame?  %d", frameFinished );
+				else
+					;//lprintf( "no packets, and we finished a frame?  %d %d(remain in queue)", frameFinished, file->video_packets );
+				}
+#endif
 			// Did we get a video frame?
 			if( frameFinished) 
 			{
@@ -2445,11 +2469,11 @@ static PTRSZVAL CPROC ProcessVideoFrame( PTHREAD thread )
                ;
 				int64_t frame_del;
 				_64 processed_time = ffmpeg.av_gettime();
-				S_64 video_time_tick = ( 1000LL ) * 1000LL *  file->pVideoCodecCtx->ticks_per_frame * (_64)file->pVideoCodecCtx->time_base.num / (_64)file->pVideoCodecCtx->time_base.den;
+				S_64 video_time_tick = 1000LL * ( 1000LL ) * 1000LL *  file->pVideoCodecCtx->ticks_per_frame * (_64)file->pVideoCodecCtx->time_base.num / (_64)file->pVideoCodecCtx->time_base.den;
 				if( file->flags.video.flushing )
 					file->flags.video.first_flush = 0;
 #ifdef DEBUG_VIDEO_PACKET_READ
-				lprintf( WIDE("for the record we're lookin at %lld %lld"), processed_time - file->video_decode_start, video_time_tick );
+				lprintf( WIDE("for the record we're lookin at %"_64fs" %"_64fs), processed_time - file->video_decode_start, video_time_tick );
 #endif
 				if( ( processed_time - file->video_decode_start ) > video_time_tick )
 				{
@@ -2615,8 +2639,9 @@ static PTRSZVAL CPROC ProcessVideoFrame( PTHREAD thread )
 										if( !file->flags.reading_frames )
 											WakeThread( file->readThread );
 									}
-									else
+									else {
 										file->flags.need_video_frame = 0;
+									}
 									//lprintf( WIDE("wait %d"), (_32)(  frame_del ) );
 									//lprintf( WIDE("wait %d"), (_32)( ((time - file->video_current_pts_time)/1000)));
 									//lprintf( WIDE("wait %d"), (_32)(  frame_del - ((time - file->video_current_pts_time)/1000)) );
@@ -2751,8 +2776,12 @@ static PTRSZVAL CPROC ProcessVideoFrame( PTHREAD thread )
 		else
 		{
 			// need more packets...
+			if( file->flags.video.first_flush ) {
+				// was flushing the buffers... and no more packets, done.
+				break;
+			}
 			file->flags.need_video_frame = 1;
-			//lprintf( WIDE("need a video packet...") );
+			//lprintf( WIDE("need a video packet...%p"), file, file->flags );
 			if( !file->flags.reading_frames )
 				WakeThread( file->readThread );
 			file->flags.using_video_frame = 0;
@@ -2765,7 +2794,12 @@ static PTRSZVAL CPROC ProcessVideoFrame( PTHREAD thread )
 		}
 	}
 	video_done:
-	lprintf(WIDE(" This thread is no longer playing video for %s"), file->filename );
+#ifdef DEBUG_LOG_INFO
+	lprintf(WIDE(" This thread is no longer playing video for %p %s"), file, file->filename );
+#endif
+	file->flags.using_video_frame = 0;
+	file->flags.need_video_frame = 0;
+	file->flags.video_paused = 1;
 	file->videoThread = NULL;
 	return 0;
 }
@@ -2779,7 +2813,7 @@ static PTRSZVAL CPROC ProcessFrames( PTHREAD thread )
 	int pending = 0;
 	file->packet_queue = CreateLinkQueue();
 #ifdef DEBUG_LOG_INFO
-	lprintf(WIDE(" This thread is playing %s"), file->filename );
+	lprintf(WIDE(" This thread is playing %p %s"), file, file->filename );
 #endif
 	if( !file->pFormatCtx->duration )
 		file->pFormatCtx->duration = 1000000000;
@@ -2788,8 +2822,13 @@ static PTRSZVAL CPROC ProcessFrames( PTHREAD thread )
 		while( file->flags.no_more_packets || file->flags.paused )
 		{
 			WakeableSleep( SLEEP_FOREVER );
-			if( file->flags.close_processing )
+			if( file->flags.close_processing ) {
+				ffmpeg.av_free_packet( packet );
+				file->free_packets++;
+				EnqueLink( &file->packet_queue, packet );
+				packet = NULL;
 				break;
+			}
 		}
 
 		if( !file->flags.no_more_packets )
@@ -2804,9 +2843,20 @@ static PTRSZVAL CPROC ProcessFrames( PTHREAD thread )
 			{
 				file->flags.reading_frames = 0;
 				//lprintf( WIDE("stop reading...") );
-				WakeableSleep( 250 );
-				if( file->flags.close_processing )
+				if( file->flags.paused )
+					WakeableSleep( SLEEP_FOREVER );
+				else {
+					WakeableSleep( 250 );
+					//if( (!file->flags.need_audio_frame && !file->flags.need_video_frame) )
+					//   lprintf( "Stalled waiting for someone to need something... " );
+				}
+				if( file->flags.close_processing ){
+					ffmpeg.av_free_packet( packet );
+					file->free_packets++;
+					EnqueLink( &file->packet_queue, packet );
+					packet = NULL;
 					break;
+				}
 				//lprintf( WIDE("woke up to read more...for %s %s"), file->flags.need_audio_frame?WIDE("audio"):WIDE(""), file->flags.need_video_frame?WIDE("video"):WIDE("") );
 			}
 
@@ -2851,6 +2901,11 @@ static PTRSZVAL CPROC ProcessFrames( PTHREAD thread )
 					}
 					lprintf( WIDE("Seek was in error; flag no more packets.") );
 					file->flags.no_more_packets = 1;
+
+					ffmpeg.av_free_packet( packet );
+					file->free_packets++;
+					EnqueLink( &file->packet_queue, packet );
+					packet = NULL;
 					continue;  // go back to the top
 				}
 				else
@@ -2868,11 +2923,10 @@ static PTRSZVAL CPROC ProcessFrames( PTHREAD thread )
 				// loop around to go to sleep
 				// a seek might enable playing again...
 #ifdef DEBUG_LOW_LEVEL_PACKET_READ
-				lprintf( WIDE("packet reader; no more packets.") );
+				lprintf( WIDE("packet reader; no more packets.  %d  %d"), file->video_packets, file->out_of_queue );
 #endif
 				file->flags.no_more_packets = 1;
-				while( ( !file->flags.need_video_frame || file->video_packets ) 
-					|| ( !file->flags.need_audio_frame || file->out_of_queue ) )
+				while( ( file->video_packets ) || ( file->out_of_queue ) )
 				{
 					//lprintf( WIDE("waiting for video and audio to end.... %d %d %d %d"), file->flags.need_video_frame, file->video_packets,  file->flags.need_audio_frame, file->out_of_queue );
 					WakeableSleep( 10 );
@@ -2889,6 +2943,11 @@ static PTRSZVAL CPROC ProcessFrames( PTHREAD thread )
 					if( file->video_ended )
 						file->video_ended( file->psvEndedParam );
 				}
+
+				ffmpeg.av_free_packet( packet );
+				file->free_packets++;
+				EnqueLink( &file->packet_queue, packet );
+				packet = NULL;
 				continue;
 			}
 			file->flags.was_playing = 1;
@@ -2900,7 +2959,6 @@ static PTRSZVAL CPROC ProcessFrames( PTHREAD thread )
 #ifdef DEBUG_LOW_LEVEL_PACKET_READ
 				lprintf( WIDE("add packet to video... %p(%d)"), packet, file->video_packets );
 #endif
-
 				if( file->flags.need_video_frame )
 				{
 					if( file->video_packets > l.default_outstanding_video )
@@ -2967,7 +3025,9 @@ static PTRSZVAL CPROC ProcessFrames( PTHREAD thread )
 			}
 		}
 	}
-	lprintf(WIDE(" This thread is no longer playing %s"), file->filename );
+#ifdef DEBUG_LOG_INFO
+	lprintf(WIDE(" This thread is no longer playing %p %s"), file, file->filename );
+#endif
 	file->readThread = NULL;
 	return 0;
 }
@@ -2995,7 +3055,7 @@ void ffmpeg_UnloadFile( struct ffmpeg_file *file )
 			}
 			Relinquish();
 		}
-		lprintf( WIDE("lock audio out....") );
+		//lprintf( WIDE("lock audio out....") );
 		EnterCriticalSec( &l.cs_audio_out );
 		// lock so we don't mess up current context
 #ifndef USE_OPENSL
@@ -3013,7 +3073,7 @@ void ffmpeg_UnloadFile( struct ffmpeg_file *file )
 		}
 #endif
 		LeaveCriticalSec( &l.cs_audio_out );
-		lprintf( WIDE("clean buffers....") );
+		//lprintf( WIDE("clean buffers....") );
 		{
 			struct al_buffer *buffer;
 			while( buffer = (struct al_buffer *)DequeLink( &file->al_free_buffer_queue ) )
@@ -3096,17 +3156,18 @@ void ffmpeg_PlayFile( struct ffmpeg_file *file )
 {
 	if( file->flags.paused )
 	{
-		S_64 video_time_now = ( file->videoFrame ) * 1000000LL *  file->pVideoCodecCtx->ticks_per_frame * file->pVideoCodecCtx->time_base.num / file->pVideoCodecCtx->time_base.den;
-		S_64 audio_time_pending_1000_tick = 1000 * 1000 * 1000 / file->pAudioCodecCtx->sample_rate;
+		S_64 video_frame_time = 1000000LL * file->pVideoCodecCtx->ticks_per_frame * file->pVideoCodecCtx->time_base.num / file->pVideoCodecCtx->time_base.den;
+		S_64 video_time_now = ( file->videoFrame ) * video_frame_time;
+		S_64 audio_time_pending_1000_tick = file->pAudioCodecCtx?(1000 * 1000 * 1000 / file->pAudioCodecCtx->sample_rate):video_frame_time;
 		S_64 video_time_in_audio_frames	= 1000 * video_time_now / audio_time_pending_1000_tick;
-		S_64 audio_time_now = ( ( video_time_in_audio_frames - file->audioSamplesPlayed ) * 1000LL ) / file->pAudioCodecCtx->sample_rate;
+		S_64 audio_time_now = file->pAudioCodecCtx?(( ( video_time_in_audio_frames - file->audioSamplesPlayed ) * 1000LL ) / file->pAudioCodecCtx->sample_rate):video_time_now;
 		S_64 video_time_tick = ( 1000LL ) * 1000LL *  file->pVideoCodecCtx->ticks_per_frame * (_64)file->pVideoCodecCtx->time_base.num / (_64)file->pVideoCodecCtx->time_base.den;
 		S_64 frame_tick_adjust =  ( video_time_tick * file->video_adjust_ticks );
 
 		file->media_start_time = ffmpeg.av_gettime();// - ( video_time_now + audio_time_now + frame_tick_adjust );
 		file->videoFrame = 0;
 		file->audioSamplesPlayed = 0;
-
+		file->last_tick_update = 0;
 		file->flags.paused = 0;
 	}
 	if( !file->readThread )
@@ -3124,6 +3185,7 @@ void ffmpeg_PlayFile( struct ffmpeg_file *file )
 			// otherwise, already have audio data (probably) and video frame for next... so start audio, 
 			// which after starting, will wake video, which will both wake read if needed.
 			WakeThread( file->audioThread );
+			WakeThread( file->videoThread );
 		}
 	}
 }
@@ -3149,6 +3211,7 @@ void ffmpeg_SeekFile( struct ffmpeg_file *file, S_64 target_time )
 #endif
 	if( !file->readThread )
 	{
+		// have to resume reader (probably)
 		file->flags.paused = 1;
 		file->readThread = ThreadTo( ProcessFrames, (PTRSZVAL)file );
 	}
@@ -3237,7 +3300,7 @@ void audio_GetPlaybackDevices( PLIST *ppList )
 		while (*pDeviceList)
 		{
 			//ALFWprintf("%s\n", pDeviceList);
-	         AddLink( ppList, DupCStr( pDeviceList ) );
+			AddLink( ppList, DupCStr( pDeviceList ) );
 			pDeviceList += strlen(pDeviceList) + 1;
 		}
 	}
@@ -3283,8 +3346,8 @@ struct audio_device {
 	int max_in_queue;
 	int out_of_queue;
 	struct {
-		BIT_FIELD paused : 1;
-		BIT_FIELD capturing : 1;
+		BIT_FIELD paused/* : 1*/;
+		BIT_FIELD capturing/* : 1*/;
 	} flags;
 	PTHREAD audioThread;
 	int max_sample_level;
@@ -3384,7 +3447,7 @@ static PTRSZVAL CPROC audio_ReadCaptureDevice( PTHREAD thread )
 							{
 								if( ad->callback )
 									ad->callback( ad->psvCallback
-												, ad->max_sample_level
+									            , ad->max_sample_level
 									            , ad->compress_buffer
 									            , ad->compress_segments * 33 );
 								ad->compress_segments = 0;
@@ -3430,7 +3493,7 @@ static PTRSZVAL CPROC audio_ReadCaptureDevice( PTHREAD thread )
 				{
 					if( ad->callback )
 						ad->callback( ad->psvCallback
-									, ad->max_sample_level
+						            , ad->max_sample_level
 						            , ad->compress_buffer
 						            , ad->compress_segments * 33 );
 					ad->compress_segments = 0;
@@ -3640,17 +3703,19 @@ static PTRSZVAL CPROC ProcessPlaybackAudioFrame( PTHREAD thread )
 			//lprintf( WIDE("(moved all fom in(file/avail) to out(openal) in : %d  out: %d   max : %d"), file->in_queue, file->out_of_queue, file->max_in_queue );
 		}
 	}
+#ifdef DEBUG_LOG_INFO
 	lprintf(WIDE(" This thread is no longer playing playback audio") );
+#endif
 	return 0;
 }
 
 static void GetPlaybackAudioBuffer( struct audio_device * file, POINTER data, size_t sz
 #ifdef USE_OPENSL
-                           , int samples
+                                  , int samples
 #else
-								  , ALuint samples
+                                  , ALuint samples
 #endif
-								  )
+                                  )
 {
 #ifdef USE_OPENSL
 	SLresult result;

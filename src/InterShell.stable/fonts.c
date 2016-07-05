@@ -423,12 +423,20 @@ static void OnSaveCommon( WIDE( "Common Fonts" ) )( FILE *out )
 			TEXTCHAR *data;
 			if( theme_preset->fontdata && theme_preset->fontdatalen )
 			{
-            TEXTSTR tmp;
-				//EncodeBinaryConfig( &data, theme_preset->fontdata, theme_preset->fontdatalen );
+				TEXTSTR tmp;
+				int n;
+				for( n = 0; n < 12; n++ )
+					if( !((P_8)theme_preset->fontdata)[n] )
+						break;
+				if( n < 12 )
+					EncodeBinaryConfig( &data, theme_preset->fontdata, theme_preset->fontdatalen );
+				else
+					data = EscapeMenuString( theme_preset->fontdata );
 				sack_fprintf( out, WIDE("font preset %s=%s\n")
 						 , theme_preset->name
-						 , tmp = EscapeMenuString( theme_preset->fontdata )/*data*/ );
-				//Release( data );
+						 , data );
+				if( n < 12 )
+					Release( data );
 			}
 			// if there's no data, don't bother saving anything.
 			//else

@@ -13,7 +13,7 @@
 #include <ws2tcpip.h>
 #include <sack_types.h>
 
-#if defined( MINGW_SUX )
+#if defined( MINGW_SUX ) && ( __GNUC__ < 5 )
 /* Address information */
 typedef struct addrinfoA {
     int             ai_flags;

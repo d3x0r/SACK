@@ -366,7 +366,7 @@ NETWORK_PROC( PCLIENT, CPPOpenTCPListenerExx )(_16 wPort
       // have to have the base one open or pcOther cannot be set.
 		lpMyAddr = CreateSockAddress( WIDE(":::"), wPort );
 		pc->pcOther = CPPOpenTCPListenerAddrExx( lpMyAddr, NotifyCallback, psvConnect DBG_RELAY );
-		Release( lpMyAddr );
+		ReleaseAddress( lpMyAddr );
 	}
 	return pc;
 }

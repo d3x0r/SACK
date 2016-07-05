@@ -132,7 +132,7 @@ struct threads_tag
 	PTRSZVAL param;
 	PTRSZVAL (CPROC*proc)( struct threads_tag * );
 	PTRSZVAL (CPROC*simple_proc)( POINTER );
-	CTEXTSTR thread_event_name; // might be not a real thread.
+	TEXTSTR thread_event_name; // might be not a real thread.
 	THREAD_ID thread_ident;
 	PTHREAD_EVENT thread_event;
 #ifdef _WIN32
@@ -383,16 +383,18 @@ PRIORITY_ATEXIT( StopTimers, ATEXIT_PRIORITY_TIMERS )
 	int tries = 0;
 	//pid_t mypid = getppid();
 	// not sure if mypid is needed...
-	g.flags.bExited = 1;
-	if( g.pTimerThread )
-		WakeThread( g.pTimerThread );
-	while( g.pTimerThread )
-	{
-		tries++;
-		if( tries > 10 )
-			return;
-		WakeThread( g.pTimerThread );
-		Relinquish();
+	if( global_timer_structure ) {
+		g.flags.bExited = 1;
+		if( g.pTimerThread )
+			WakeThread( g.pTimerThread );
+		while( g.pTimerThread )
+		{
+			tries++;
+			if( tries > 10 )
+				return;
+			WakeThread( g.pTimerThread );
+			Relinquish();
+		}
 	}
 }
 //--------------------------------------------------------------------------
@@ -651,7 +653,7 @@ void  WakeThreadEx( PTHREAD thread DBG_PASS )
 {
 	if( !thread ) // can't wake nothing
 	{
-		_lprintf(DBG_RELAY)( WIDE("Failed to find thread to wake...") );
+		//_lprintf(DBG_RELAY)( WIDE("Failed to find thread to wake...") );
 		return;
 	}
 	//_xlprintf( 0 DBG_RELAY )( WIDE("Waking a thread: %p"), thread );
@@ -1195,6 +1197,8 @@ void  UnmakeThread( void )
 {
 	PTHREAD pThread;
 	struct my_thread_info* _MyThreadInfo = GetThreadTLS();
+	while( LockedExchange( &g.lock_thread_create, 1 ) )
+		Relinquish();
 	pThread
 #ifdef HAS_TLS
 		= MyThreadInfo.pThread;
@@ -1204,14 +1208,20 @@ void  UnmakeThread( void )
 	if( pThread )
 	{
 #ifdef _WIN32
-      //lprintf( WIDE("Unmaking thread event! on thread %016"_64fx"x"), pThread->thread_ident );
+		//lprintf( WIDE("Unmaking thread event! on thread %016"_64fx"x"), pThread->thread_ident );
 		CloseHandle( pThread->thread_event->hEvent );
+		{
+			struct my_thread_info* _MyThreadInfo = GetThreadTLS();
+			Deallocate( struct my_thread_info*, _MyThreadInfo );
+			TlsSetValue( global_timer_structure->my_thread_info_tls, NULL );
+		}
 #else
 		closesem( (POINTER)pThread, 0 );
 #endif
 		// unlink from g.threads list.
 		//if( ( (*pThread->me)=pThread->next ) )
 		//	pThread->next->me = pThread->me;
+		Deallocate( TEXTSTR, pThread->thread_event_name );
 #ifdef _WIN32
 		Deallocate( TEXTSTR, pThread->thread_event->name );
 		if( global_timer_structure )
@@ -1221,6 +1231,7 @@ void  UnmakeThread( void )
 		if( global_timer_structure )
 			DeleteFromSet( THREAD, g.threadset, pThread ) /*Release( pThread )*/;
 	}
+	g.lock_thread_create = 0;
 }
 
 //--------------------------------------------------------------------------
@@ -1459,7 +1470,10 @@ PTHREAD  ThreadToEx( PTRSZVAL (CPROC*proc)(PTHREAD), PTRSZVAL param DBG_PASS )
 	else
 	{
 		// unlink from g.threads list.
+		while( LockedExchange( &g.lock_thread_create, 1 ) )
+			Relinquish();
 		DeleteFromSet( THREAD, &g.threadset, pThread ) /*Release( pThread )*/;
+		g.lock_thread_create = 0;
 		pThread = NULL;
 	}
 	return pThread;
@@ -1529,7 +1543,10 @@ PTHREAD  ThreadToSimpleEx( PTRSZVAL (CPROC*proc)(POINTER), POINTER param DBG_PAS
 	else
 	{
 		// unlink from g.threads list.
+		while( LockedExchange( &g.lock_thread_create, 1 ) )
+			Relinquish();
 		DeleteFromSet( THREAD, &g.threadset, pThread ) /*Release( pThread )*/;
+		g.lock_thread_create = 0;
 		pThread = NULL;
 	}
 	return pThread;

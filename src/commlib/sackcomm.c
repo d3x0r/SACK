@@ -108,9 +108,9 @@ static void LocalInit( void )
 {
 	if( !l.flags.bInited )
 	{
-		bLogDataXfer = OptGetPrivateProfileInt( WIDE("COM PORTS"), WIDE("Log IO"), 0, WIDE("comports.ini") );
-		gbLog = OptGetPrivateProfileIntEx( WIDE("futlmsg"), WIDE("allowlogging"), 0, WIDE("comports.ini"), TRUE );
-      l.flags.bInited = 1;
+		bLogDataXfer = SACK_GetPrivateProfileInt( WIDE("COM PORTS"), WIDE("Log IO"), 0, WIDE("comports.ini") );
+		gbLog = SACK_GetPrivateProfileIntEx( WIDE("COM PORTS"), WIDE("allow logging"), 0, WIDE("comports.ini"), TRUE );
+		l.flags.bInited = 1;
 	}
 }
 
@@ -173,7 +173,7 @@ PTRSZVAL OpenComm( CTEXTSTR name, int nInQueue, int nOutQueue )
 									  , OPEN_EXISTING
 									  , FILE_ATTRIBUTE_NORMAL
 									  , NULL );
-		timeout.ReadIntervalTimeout = OptGetPrivateProfileInt( name, WIDE( "port timeout" ), 100, WIDE( "comports.ini" ) );
+		timeout.ReadIntervalTimeout = SACK_GetPrivateProfileInt( name, WIDE( "port timeout" ), 100, WIDE( "comports.ini" ) );
 		timeout.ReadTotalTimeoutMultiplier = 1;
 		timeout.ReadTotalTimeoutConstant = 1;
 		timeout.WriteTotalTimeoutMultiplier = 1;
@@ -334,12 +334,12 @@ void RemoveComTracking( PCOM_TRACK pComTrack )
 		pComTrack->flags.bDestroy = 1;
 		return;
 	}
-   Log2( WIDE("Unlink... %p %p"),pComTrack->me, pComTrack->next );
+	//Log2( WIDE("Unlink... %p %p"),pComTrack->me, pComTrack->next );
 	if( ( (*pComTrack->me) = pComTrack->next ) )
 		pComTrack->next->me = pComTrack->me;
-   xlprintf(LOG_NOISE)( WIDE("Release redbuffer...") );
+	//xlprintf(LOG_NOISE)( WIDE("Release redbuffer...") );
 	Release( pComTrack->pReadBuffer );
-   xlprintf(LOG_NOISE)( WIDE("Release comtrack..") );
+	//xlprintf(LOG_NOISE)( WIDE("Release comtrack..") );
 	Release( pComTrack );
 }
 
@@ -776,7 +776,7 @@ void DumpTermios( struct termios *opts )
 	  TEXTCHAR szInit[64];
 	  // capital letters on carrier, rts, rtsflow mean to enable - otherwise
 	  // don't pay attention to those signals.
-	  OptGetPrivateProfileString( WIDE("COM PORTS"), szPort, WIDE("57600,N,8,1,cARRIER,RTS,rTSFLOW"), szInit, sizeof( szInit ), WIDE("comports.ini") );
+	  SACK_GetPrivateProfileString( WIDE("COM PORTS"), szPort, WIDE("57600,N,8,1,cARRIER,RTS,rTSFLOW"), szInit, sizeof( szInit ), WIDE("comports.ini") );
 #if defined(  _WIN32 ) || defined( __LINUX__ )
 	  if( !iTimerId )
 	  {
@@ -826,7 +826,7 @@ void DumpTermios( struct termios *opts )
 			PTRSZVAL iCommId = OpenComm( szPort, uiRcvQ, uiSendQ );
 			if( gbLog )
 				lprintf( WIDE("attempted to open: %s result %d"), szPort, iCommId );
-			if( iCommId >= 0 )
+			if( (int)iCommId >= 0 )
 			{
 				pct = AddComTracking( szPort, iCommId );
 				if( StrCaseCmpEx( szPort, WIDE("lpt"), 3 ) != 0 )
@@ -856,6 +856,7 @@ void DumpTermios( struct termios *opts )
 				else 
 					pct->dcb.fRtsControl = RTS_CONTROL_DISABLE;
 #endif
+            pct->dcb.fDtrControl = DTR_CONTROL_ENABLE;
 				pct->flags.bUseCarrierDetect = iCarrier; // try this - remove maybe.
 				lprintf( WIDE( " pct->dcb.BaudRate is %lu pct->dcb.ByteSize is %lu pct->dcb.Parity is %lu pct->dcb.fRtsControl is %lu " )
 					, pct->dcb.BaudRate
@@ -864,18 +865,20 @@ void DumpTermios( struct termios *opts )
 					, pct->dcb.fRtsControl
 					);
 
+				//EscapeCommFunction( (HANDLE)iCommId, SETDTR );
+				//EscapeCommFunction( (HANDLE)iCommId, SETRTS );
+				//SETDTR
 #ifdef BCC16
 		      if ( SetCommState( &pct->dcb ) )
 #else
 		      if ( !SetCommState( (HANDLE)iCommId, &pct->dcb ) )
 #endif
 		      {
-					xlprintf(LOG_NOISE)( WIDE("Open: Invalid initialization string") );
 #ifdef _WIN32
 					lprintf( WIDE("Open: Invalid initialization string %d"), GetLastError() );
 #endif
-      		  SackCloseComm( iCommId );
-		        iCommId = -1;
+				SackCloseComm( iCommId );
+				iCommId = -1;
 				}
 #else
 				{
@@ -915,8 +918,8 @@ void DumpTermios( struct termios *opts )
                pct->flags.bOutputOnly = 1;
 				}
 			}
-			else
-				xlprintf(LOG_NOISE)( WIDE("Failed!") );
+			//else
+			//	xlprintf(LOG_NOISE)( WIDE("Failed!") );
 			if( iCommId >= 0 )
 			{
 				if( func )
@@ -932,7 +935,7 @@ void DumpTermios( struct termios *opts )
 					pct->callbacks = pcc;
 				}
 			}
-         xlprintf(LOG_NOISE)( WIDE("Resulting to the client...") );
+			//xlprintf(LOG_NOISE)( WIDE("Resulting to the client...") );
 			return  iCommId;
 		}
 	}
@@ -1418,15 +1421,6 @@ void DumpTermios( struct termios *opts )
 
 	/*attempt comm write*/
     //if( fnuiIsUnitConnected() || gbyTimeOut == 0 || gfDoCommAnyway)
-   if( bLogDataXfer & 1 )
-   {
-    	int nOut = len;
-		lprintf( WIDE("Send COM: dump buffer (%d)"), len );
-		#if defined( _TRACE_DATA_MIN )
-		   if( nOut > 16 ) nOut = 16;
-		#endif
-      LogBinary( (P_8)buffer, nOut );
-	}
 	if( !len )
 	{
 		lprintf( WIDE("Sorry, no, you cannot SEND nothing.") );

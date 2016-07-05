@@ -1,0 +1,70 @@
+For detailed information, see Getting Started Guide
+
+1. Quick Start for Linux / Mac OS X Command Line
+2. Quick Start for Mac OS X Xcode Projects
+3. For Windows, see Getting Started Guide
+
+================================================================================
+
+Quick Start for Linux / Mac OS X Command Line
+====
+
+Configuration is done by manually editing the *Config.h files:
+core/coreConfig.h
+crypto/cryptoConfig.h
+matrixssl/matrixsslConfig.h
+
+$ make
+Builds static libraries:
+core/libcore_s.a
+crypto/libcrypt_s.a
+matrixssl/libssl_s.a
+
+$ cd apps/ssl
+$ make
+Builds example client and server:
+apps/ssl/client
+apps/ssl/server
+
+$ ./server
+Runs server example, listening on port 4433
+
+$ ./runClient.sh
+Runs client example with default parameters
+
+Additional example applications are available in:
+crypto/test/
+matrixssl/test/
+apps/dtls/
+
+================================================================================
+
+Quick Start for Mac OS X Xcode Projects
+====
+Open one of:
+	xcode/server.xcodeproj
+	xcode/client.xcodeproj
+	xcode/dtlsServer.xcodeproj
+	xcode/dtlsClient.xcodeproj
+	xcode/algorithmTest.xcodeproj
+	xcode/sslTest.xcodeproj
+
+These 3 steps are needed only the first time each project is opened:
+1. Menu: Product->Scheme,
+	select the executable name (not core, crypto or matrixssl sub-projects)
+	"core" may continue to show as selected, however it has been updated
+2. Menu: Product->Build
+	this will build the static libraries and application
+3. Menu: Product->Scheme->Edit Scheme, set Executable to "Other...",
+	and choose application build in previous step
+The scheme is saved in a .xcscheme directory under the project file, however
+as it does not use relative paths, it cannot easily be distributed with the
+project.
+
+The Xcode projects call out to the Makefiles for build instructions, so
+changes to the Makefiles will affect the Xcode projects, and the generated
+files are in the same location.
+
+Build For->Running will build with optimizations
+Build For->Testing will build without optimizations and includes debug symbols
+

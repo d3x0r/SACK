@@ -302,7 +302,7 @@ enum {
 #endif
 
 
-#if defined( MINGW_SUX ) || defined( __LINUX__ )
+#if defined( __LINUX__ )
 #define NO_TOUCH
 #endif
 
@@ -339,13 +339,17 @@ typedef struct input_point
 
 #ifndef NO_TOUCH
 
-#ifdef MINGW_SUX
+#if defined( MINGW_SUX )
 /*
  * Touch input mask values (TOUCHINPUT.dwMask)
  */
 #define TOUCHINPUTMASKF_TIMEFROMSYSTEM  0x0001  // the dwTime field contains a system generated value
 #define TOUCHINPUTMASKF_EXTRAINFO       0x0002  // the dwExtraInfo field is valid
 #define TOUCHINPUTMASKF_CONTACTAREA     0x0004  // the cxContact and cyContact fields are valid
+typedef HANDLE HTOUCHINPUT;
+#define WM_TOUCH 0x0240
+#define TWF_FINETOUCH 0x00000001
+#define TWF_WANTPALM 0x00000002
 #endif
 
 #define TOUCHEVENTF_USED 0x8000 // added to flags as touches are used.  Controls may use some of the touches but not all.
@@ -1611,6 +1615,7 @@ struct render_interface_tag
 	RENDER_PROC_PTR( LOGICAL, VidlibRenderAllowsCopy )( void );
 	RENDER_PROC_PTR( void, SetDisplayCursor )( CTEXTSTR nCursor );
 	RENDER_PROC_PTR( LOGICAL, IsDisplayRedrawForced )( PRENDERER renderer );
+	RENDER_PROC_PTR( void, ReplyCloseDisplay )( void ); // only valid during a headless display event....
 
 };
 
@@ -1744,6 +1749,7 @@ typedef int check_this_variable;
 #define DisableMouseOnIdle      REND_PROC_ALIAS(DisableMouseOnIdle )
 #define SetDisplayNoMouse      REND_PROC_ALIAS(SetDisplayNoMouse )
 #define SetTouchHandler        REND_PROC_ALIAS(SetTouchHandler)
+#define ReplyCloseDisplay      if(USE_RENDER_INTERFACE) if((USE_RENDER_INTERFACE)->_ReplyCloseDisplay) (USE_RENDER_INTERFACE)->_ReplyCloseDisplay
 
 #define SetDisplayFullScreen    REND_PROC_ALIAS_VOID( SetDisplayFullScreen )
 #define SuspendSystemSleep      REND_PROC_ALIAS_VOID( SuspendSystemSleep )

@@ -1,0 +1,283 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 46;
+	objects = {
+
+/* Begin PBXContainerItemProxy section */
+		DD2B4EAD1BA8E32D000FD8BC /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = DD2B4E971BA8E1B5000FD8BC /* core.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = DD7EB84D1B8D2A83000F7458;
+			remoteInfo = core;
+		};
+		DD2B4EAF1BA8E330000FD8BC /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = DD2B4E9B1BA8E1C0000FD8BC /* crypto.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = DD11442E1B8D2D7D00721CD4;
+			remoteInfo = crypto;
+		};
+		DD2B4EB11BA8E333000FD8BC /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = DD2B4E9E1BA8E1C0000FD8BC /* matrixssl.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = DD1144441B8D2EE600721CD4;
+			remoteInfo = matrixssl;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		877FAC9E1BF50F5500BF8B70 /* dtlsClient.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = dtlsClient.c; path = ../apps/dtls/dtlsClient.c; sourceTree = "<group>"; };
+		877FAC9F1BF50F5500BF8B70 /* dtlsCommon.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = dtlsCommon.c; path = ../apps/dtls/dtlsCommon.c; sourceTree = "<group>"; };
+		877FACA01BF50F5500BF8B70 /* dtlsCommon.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = dtlsCommon.h; path = ../apps/dtls/dtlsCommon.h; sourceTree = "<group>"; };
+		877FACA11BF50F5500BF8B70 /* Makefile */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.make; name = Makefile; path = ../apps/dtls/Makefile; sourceTree = "<group>"; };
+		DD2B4E971BA8E1B5000FD8BC /* core.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; path = core.xcodeproj; sourceTree = "<group>"; };
+		DD2B4E9B1BA8E1C0000FD8BC /* crypto.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; path = crypto.xcodeproj; sourceTree = "<group>"; };
+		DD2B4E9E1BA8E1C0000FD8BC /* matrixssl.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; path = matrixssl.xcodeproj; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXGroup section */
+		DD2B4E8C1BA8E17A000FD8BC = {
+			isa = PBXGroup;
+			children = (
+				877FAC9E1BF50F5500BF8B70 /* dtlsClient.c */,
+				877FAC9F1BF50F5500BF8B70 /* dtlsCommon.c */,
+				877FACA01BF50F5500BF8B70 /* dtlsCommon.h */,
+				877FACA11BF50F5500BF8B70 /* Makefile */,
+				DD2B4E971BA8E1B5000FD8BC /* core.xcodeproj */,
+				DD2B4E9B1BA8E1C0000FD8BC /* crypto.xcodeproj */,
+				DD2B4E9E1BA8E1C0000FD8BC /* matrixssl.xcodeproj */,
+			);
+			sourceTree = "<group>";
+		};
+		DD2B4E981BA8E1B5000FD8BC /* Products */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		DD2B4E9C1BA8E1C0000FD8BC /* Products */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		DD2B4E9F1BA8E1C0000FD8BC /* Products */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXLegacyTarget section */
+		DD2B4E911BA8E17B000FD8BC /* client */ = {
+			isa = PBXLegacyTarget;
+			buildArgumentsString = "$(ACTION)";
+			buildConfigurationList = DD2B4E941BA8E17B000FD8BC /* Build configuration list for PBXLegacyTarget "client" */;
+			buildPhases = (
+			);
+			buildToolPath = /usr/bin/make;
+			buildWorkingDirectory = ../apps/dtls;
+			dependencies = (
+				DD2B4EB21BA8E333000FD8BC /* PBXTargetDependency */,
+				DD2B4EB01BA8E330000FD8BC /* PBXTargetDependency */,
+				DD2B4EAE1BA8E32D000FD8BC /* PBXTargetDependency */,
+			);
+			name = client;
+			passBuildSettingsInEnvironment = 1;
+			productName = client;
+		};
+/* End PBXLegacyTarget section */
+
+/* Begin PBXProject section */
+		DD2B4E8D1BA8E17A000FD8BC /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				LastUpgradeCheck = 0640;
+				ORGANIZATIONNAME = "INSIDE Secure";
+				TargetAttributes = {
+					DD2B4E911BA8E17B000FD8BC = {
+						CreatedOnToolsVersion = 6.4;
+					};
+				};
+			};
+			buildConfigurationList = DD2B4E901BA8E17A000FD8BC /* Build configuration list for PBXProject "dtlsClient" */;
+			compatibilityVersion = "Xcode 3.2";
+			developmentRegion = English;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+			);
+			mainGroup = DD2B4E8C1BA8E17A000FD8BC;
+			projectDirPath = "";
+			projectReferences = (
+				{
+					ProductGroup = DD2B4E981BA8E1B5000FD8BC /* Products */;
+					ProjectRef = DD2B4E971BA8E1B5000FD8BC /* core.xcodeproj */;
+				},
+				{
+					ProductGroup = DD2B4E9C1BA8E1C0000FD8BC /* Products */;
+					ProjectRef = DD2B4E9B1BA8E1C0000FD8BC /* crypto.xcodeproj */;
+				},
+				{
+					ProductGroup = DD2B4E9F1BA8E1C0000FD8BC /* Products */;
+					ProjectRef = DD2B4E9E1BA8E1C0000FD8BC /* matrixssl.xcodeproj */;
+				},
+			);
+			projectRoot = "";
+			targets = (
+				DD2B4E911BA8E17B000FD8BC /* client */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXTargetDependency section */
+		DD2B4EAE1BA8E32D000FD8BC /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = core;
+			targetProxy = DD2B4EAD1BA8E32D000FD8BC /* PBXContainerItemProxy */;
+		};
+		DD2B4EB01BA8E330000FD8BC /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = crypto;
+			targetProxy = DD2B4EAF1BA8E330000FD8BC /* PBXContainerItemProxy */;
+		};
+		DD2B4EB21BA8E333000FD8BC /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = matrixssl;
+			targetProxy = DD2B4EB11BA8E333000FD8BC /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		DD2B4E921BA8E17B000FD8BC /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = "";
+				MTL_ENABLE_DEBUG_INFO = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = macosx;
+			};
+			name = Debug;
+		};
+		DD2B4E931BA8E17B000FD8BC /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = "";
+				MTL_ENABLE_DEBUG_INFO = NO;
+				SDKROOT = macosx;
+			};
+			name = Release;
+		};
+		DD2B4E951BA8E17B000FD8BC /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				DEBUGGING_SYMBOLS = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				OTHER_CFLAGS = "";
+				OTHER_LDFLAGS = "";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Debug;
+		};
+		DD2B4E961BA8E17B000FD8BC /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				OTHER_CFLAGS = "";
+				OTHER_LDFLAGS = "";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		DD2B4E901BA8E17A000FD8BC /* Build configuration list for PBXProject "dtlsClient" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				DD2B4E921BA8E17B000FD8BC /* Debug */,
+				DD2B4E931BA8E17B000FD8BC /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		DD2B4E941BA8E17B000FD8BC /* Build configuration list for PBXLegacyTarget "client" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				DD2B4E951BA8E17B000FD8BC /* Debug */,
+				DD2B4E961BA8E17B000FD8BC /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = DD2B4E8D1BA8E17A000FD8BC /* Project object */;
+}

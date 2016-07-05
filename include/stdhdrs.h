@@ -7,7 +7,6 @@
    Includes the MOST stuff here ( a full windows.h parse is many
    many lines of code.)                                          */
 
-#include <sack_types.h>
 
 /* A macro to build a wide character string of __FILE__ */
 #define _WIDE__FILE__(n) WIDE(n)
@@ -118,6 +117,9 @@
 #  define _WINSOCKAPI_
 #  include <windows.h>
 #  undef _WINSOCKAPI_
+#  if defined( WIN32 ) && !defined( NO_SHLOBJ )
+#    include <shlobj.h>
+#  endif
 
 #  include <windowsx.h>
 // we like timeGetTime() instead of GetTickCount()
@@ -131,6 +133,7 @@
 #  ifdef NEED_V4W
 #    include <vfw.h>
 #  endif
+#include <sack_types.h>
 
 // incldue this first so we avoid a conflict.
 // hopefully this comes from sack system?
@@ -178,6 +181,7 @@
 #include <sack_types.h>
 #include <sys/time.h>
 #include <errno.h>
+#include <sack_types.h>
 #include <sack_system.h>
 # include <filedotnet.h>
 #if defined( __ARM__ )
@@ -260,10 +264,12 @@ extern __sighandler_t bsd_signal(int, __sighandler_t);
 #ifdef _UNICODE
 #  ifdef _WIN32
 #    ifdef CONSOLE_SHELL
-#      define SaneWinMain(a,b) int main( int a, char **argv_real ) { int n; TEXTCHAR **b; b = NewArray( TEXTSTR, a + 1 ); for( n = 0; n < a; n++ ) b[n] = DupCharToText( argv_real[n] ); b[n] = NULL; {
+    // in order to get wide characters from the commandline we have to use the GetCommandLineW function, convert it to utf8 for internal usage.
+#      define SaneWinMain(a,b) int main( int a, char **argv_real ) { char *tmp; TEXTCHAR **b; ParseIntoArgs( GetCommandLineW(), &a, &b ); Deallocate( char*, tmp ); {
+	//int n; TEXTCHAR **b; b = NewArray( TEXTSTR, a + 1 ); for( n = 0; n < a; n++ ) b[n] = DupCharToText( argv_real[n] ); b[n] = NULL; {
 #      define EndSaneWinMain() } }
 #    else
-#      define SaneWinMain(a,b) int APIENTRY WinMain( HINSTANCE hInst, HINSTANCE hPrev, LPSTR lpCmdLine, int nCmdShow ) { int a; TEXTCHAR **b; ParseIntoArgs( GetCommandLine(), &a, &b ); {
+#      define SaneWinMain(a,b) int APIENTRY WinMain( HINSTANCE hInst, HINSTANCE hPrev, LPSTR lpCmdLine, int nCmdShow ) { char *tmp; int a; TEXTCHAR **b; ParseIntoArgs( tmp = WcharConvert( GetCommandLineW() ), &a, &b ); Deallocate( char*, tmp ); {
 #      define EndSaneWinMain() } }
 #    endif
 #  else
@@ -278,10 +284,11 @@ extern __sighandler_t bsd_signal(int, __sighandler_t);
 #else
 #  ifdef _WIN32
 #    ifdef CONSOLE_SHELL
-#      define SaneWinMain(a,b) int main( int a, char **b ) { char **argv_real = b; {
+// in order to get wide characters from the commandline we have to use the GetCommandLineW function, convert it to utf8 for internal usage.
+#      define SaneWinMain(a,b) int main( int a, char **argv_real ) { char *tmp; TEXTCHAR **b; ParseIntoArgs( tmp = WcharConvert( GetCommandLineW() ), &a, &b ); Deallocate( char*, tmp ); {
 #      define EndSaneWinMain() } }
 #    else
-#      define SaneWinMain(a,b) int APIENTRY WinMain( HINSTANCE hInst, HINSTANCE hPrev, LPSTR lpCmdLine, int nCmdShow ) { int a; TEXTCHAR **b; ParseIntoArgs( GetCommandLine(), &a, &b ); {
+#      define SaneWinMain(a,b) int APIENTRY WinMain( HINSTANCE hInst, HINSTANCE hPrev, LPSTR lpCmdLine, int nCmdShow ) { int a; char *tmp; TEXTCHAR **b; ParseIntoArgs( tmp = WcharConvert( GetCommandLineW() ), &a, &b ); {
 #      define EndSaneWinMain() } }
 #    endif
 #  else

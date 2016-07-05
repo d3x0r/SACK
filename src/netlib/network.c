@@ -807,7 +807,7 @@ static int NetworkStartup( void )
          }
           nStep = 0; // reset...
 			if( ++attempt >= 30 ) return NetworkQuit();
-         return 0;//NetworkQuit();
+         return 1;//NetworkQuit();
       }
 
       // Retrieve my IP address and UDP Port number
@@ -820,7 +820,7 @@ static int NetworkStartup( void )
       attempt = 0;
       // Fall into next state..............
    case 2 :
-      // Associate an address with a socket. (bind)
+		// Associate an address with a socket. (bind)
       if( bind( sockMaster, (PSOCKADDR)&remSin, sizeof(remSin))
           == SOCKET_ERROR )
       {
@@ -835,7 +835,7 @@ static int NetworkStartup( void )
       nStep++;
       attempt = 0;
       // Fall into next state..............
-   case 3 :
+	case 3 :
       closesocket(sockMaster);
       sockMaster = INVALID_SOCKET;
       nStep = 0; // reset...
@@ -2710,7 +2710,7 @@ NETWORK_PROC( SOCKADDR *,CreateSockAddress)(CTEXTSTR name, _16 nDefaultPort )
 #endif
 	if( name && ( port = (char*)strrchr( name, ':' ) ) )
 	{
-		tmp = strdup( name );
+		tmp = StrDup( name );
 		bTmpName = 1;
 		port = tmp + (port-name);
 		name = tmp;
@@ -3070,7 +3070,9 @@ void InternalRemoveClientExx(PCLIENT lpClient, LOGICAL bBlockNofity, LOGICAL bLi
 			// active list to clsoed list.
 			else if( !(lpClient->dwFlags & CF_CLOSED) )
 			{
+#ifdef LOG_DEBUG_CLOSING
 				lprintf( WIDE("Client was NOT already closed?!?!") );
+#endif
 				AddClosed( GrabClient( lpClient ) );
 			}
 #ifdef LOG_DEBUG_CLOSING

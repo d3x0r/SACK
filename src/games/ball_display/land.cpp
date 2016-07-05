@@ -1,3 +1,5 @@
+#define MAKE_RCOORD_SINGLE
+
 #include <stdhdrs.h>
 #define USE_RENDER_INTERFACE l.pri
 #define USE_IMAGE_INTERFACE l.pii
@@ -832,8 +834,8 @@ int RenderPolePatch( PHEXPATCH patch, int north )
 				r = 0;
 				for( c = 0; c <= level; c++ )
 				{
-					tmpval[0] = tmpval[0] + 0.1;
-					tmpval[1] = tmpval[1] + 0.1;
+					tmpval[0] = tmpval[0] + 0.1f;
+					tmpval[1] = tmpval[1] + 0.1f;
 					ConvertPolarToRect( level, c, &x, &y );
 					scale( v2, pole_patch.patches[s].grid[x][y]
 							, SPHERE_SIZE + patch[north].height[s][x][y] );

@@ -1,5 +1,7 @@
 #include <stdhdrs.h>
-
+#if _WIN32
+#undef Sleep
+#endif
 int main( int argc, char ** argv )
 {
 	int n;

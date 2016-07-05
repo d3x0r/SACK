@@ -1,3 +1,8 @@
+/*
+ This is a test program that opens 1000 connections to a server.
+ no data is transferred to server... just whatever the server sends is dumped.
+ */
+
 #include <stdhdrs.h>
 #include <stdio.h>
 #include <logging.h>

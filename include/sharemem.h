@@ -308,6 +308,7 @@ MEM_PROC  void MEM_API  DebugDumpHeapMemFile ( PMEM pHeap, CTEXTSTR pFilename );
 MEM_PROC  void MEM_API  DebugDumpMemFile ( CTEXTSTR pFilename );
 
 #ifdef __GNUC__
+MEM_PROC  POINTER MEM_API  HeapAllocateAlignedEx ( PMEM pHeap, PTRSZVAL dwSize, _32 alignment DBG_PASS ) __attribute__( (malloc) );
 MEM_PROC  POINTER MEM_API  HeapAllocateEx ( PMEM pHeap, PTRSZVAL nSize DBG_PASS ) __attribute__((malloc));
 MEM_PROC  POINTER MEM_API  AllocateEx ( PTRSZVAL nSize DBG_PASS ) __attribute__((malloc));
 #else
@@ -318,6 +319,13 @@ MEM_PROC  POINTER MEM_API  AllocateEx ( PTRSZVAL nSize DBG_PASS ) __attribute__(
             InitHeap()
    Size :   Size of block to allocate                    */
 MEM_PROC  POINTER MEM_API  HeapAllocateEx ( PMEM pHeap, PTRSZVAL nSize DBG_PASS );
+/* \ \
+Parameters
+pHeap :  pointer to a heap which was initialized with
+InitHeap()
+Size :   Size of block to allocate                    
+Alignment : count of bytes to return block on (1,2,4,8,16,32)  */
+MEM_PROC  POINTER MEM_API  HeapAllocateAlignedEx( PMEM pHeap, PTRSZVAL nSize, _32 alignment DBG_PASS );
 /* Allocates a block of memory of specific size. Debugging
    information if passed is recorded on the block.
    Parameters
@@ -390,8 +398,12 @@ MEM_PROC  POINTER MEM_API  AllocateEx ( PTRSZVAL nSize DBG_PASS );
 /* <combine sack::memory::HeapAllocateEx@PMEM@PTRSZVAL nSize>
    
    \ \                                                        */
-#define HeapAllocate(heap, n) HeapAllocateEx( (heap), (PTRSZVAL)(n) DBG_SRC )
-/* <combine sack::memory::AllocateEx@PTRSZVAL nSize>
+#define HeapAllocate(heap, n) HeapAllocateEx( (heap), (n) DBG_SRC )
+   /* <combine sack::memory::HeapAllocateAlignedEx@PMEM@PTRSZVAL@_32>
+
+   \ \                                                        */
+#define HeapAllocateAligned(heap, n, m) HeapAllocateEx( (heap), (n), m DBG_SRC )
+   /* <combine sack::memory::AllocateEx@PTRSZVAL nSize>
    
    \ \                                               */
 #ifdef FIX_RELEASE_COM_COLLISION

@@ -2250,7 +2250,7 @@ INDEX vvtprintf( PVARTEXT pvt, CTEXTSTR format, va_list args )
 {
 	INDEX len;
 	int tries = 0;
-#if defined( UNDER_CE ) || defined( _MSC_VER )// this might be unicode...
+#if ( defined( UNDER_CE ) || defined( _WIN32 ) ) && !defined( MINGW_SUX )// this might be unicode...
 #  ifdef USE_UCRT
 	{
 		va_list tmp_args;
@@ -2306,41 +2306,35 @@ INDEX vvtprintf( PVARTEXT pvt, CTEXTSTR format, va_list args )
 	}
 	return len;
 #  endif
-#elif defined( __GNUC__ )
+#elif defined( __GNUC__ ) && !defined( _WIN32 )
 	{
-#ifdef __GNUC__
 		va_list tmp_args;
 		va_copy( tmp_args, args );
-#ifdef _UNICODE
-#define vsnprintf vswprintf
-#endif
-#else
-#ifdef _UNICODE
-#define vsnprintf vsnwprintf
-#endif
-#endif
+#    ifdef _UNICODE
+#      define vsnprintf vswprintf
+#    endif
 		// len returns number of characters (not NUL)
 		len = vsnprintf( NULL, 0, format
-#ifdef __GNUC__
+#  ifdef __GNUC__
 							, tmp_args
-#else
+#  else
 							, args
-#endif
+#  endif
 							);
 		if( !len ) // nothign to add... we'll get stuck looping if this is not checked.
 			return 0;
-#ifdef __GNUC__
+#  ifdef __GNUC__
 		va_end( tmp_args );
-#endif
+#  endif
 		// allocate +1 for length with NUL
 		if( ((_32)len+1) >= (pvt->collect_avail-pvt->collect_used) )
 		{
 			// expand when we need more room.
 			VarTextExpand( pvt, ((len+1)<pvt->expand_by)?pvt->expand_by:(len+1+pvt->expand_by)  );
 		}
-#ifdef VERBOSE_DEBUG_VARTEXT
+#  ifdef VERBOSE_DEBUG_VARTEXT
 		Log3( WIDE("Print Length: %d into %d after %s"), len, pvt->collect_used, pvt->collect_text );
-#endif
+#  endif
 		// include NUL in the limit of characters able to print...
 		vsnprintf( pvt->collect_text + pvt->collect_used, len+1, format, args );
 	}
@@ -2350,27 +2344,27 @@ INDEX vvtprintf( PVARTEXT pvt, CTEXTSTR format, va_list args )
 		va_list _args;
 		_args[0] = args[0];
 		do {
-#ifdef VERBOSE_DEBUG_VARTEXT
+#  ifdef VERBOSE_DEBUG_VARTEXT
 			Log2( WIDE("Print Length: ofs %d after %s")
 				 , pvt->collect_used
 				 , pvt->collect_text );
-#endif
+#  endif
 			args[0] = _args[0];
 			//va_start( args, format );
-#ifdef _UNICODE
-#define vsnprintf _vsnwprintf
-#endif
+#  ifdef _UNICODE
+#    define vsnprintf _vsnwprintf
+#  endif
 			len = vsnprintf( pvt->collect_text + pvt->collect_used
 								, destlen = pvt->collect_avail - pvt->collect_used
 								, format, args );
 			if( !len ) // nothign to add... we'll get stuck looping if this is not checked.
 				return 0;
-#ifdef VERBOSE_DEBUG_VARTEXT
+#  ifdef VERBOSE_DEBUG_VARTEXT
 			lprintf( WIDE("result of vsnprintf: %d(%d) \'%s\' (%s)")
 					 , len, destlen
 					 , pvt->collect_text
 					 , format );
-#endif
+#  endif
 			if( len >= destlen )
 			{
 				// vsnwprintf() for NULL and 0 length returns -1
@@ -2385,8 +2379,6 @@ INDEX vvtprintf( PVARTEXT pvt, CTEXTSTR format, va_list args )
 	// uhmm not sure what state this is then...
 	{
 		do {
-			if( strcmp( format, "%s" ) == 0 && pvt->collect_used==7)
-				DebugBreak();
 			len = vsnprintf( pvt->collect_text + pvt->collect_used
 								, pvt->collect_avail - pvt->collect_used
 								, format, args );
@@ -2981,7 +2973,7 @@ wchar_t * CharWConvertExx ( const char *wch, size_t len DBG_PASS )
 	size_t  sizeInBytes;
 	wchar_t	*ch;
 	wchar_t   *_ch;
-	sizeInBytes = ((len + 1) * sizeof( char ) );
+	sizeInBytes = ((len + 1) * sizeof( wchar_t ) );
 	_ch = ch = NewArray( wchar_t, sizeInBytes);
 	{
 		size_t n;
@@ -3019,9 +3011,9 @@ wchar_t * CharWConvertExx ( const char *wch, size_t len DBG_PASS )
 			}
 			ch++;
 		}
+		ch[0] = 0;
 		ch = _ch;
 	}
-
 	return ch;
 }
 

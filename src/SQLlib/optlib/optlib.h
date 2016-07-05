@@ -24,7 +24,7 @@ struct sack_option_tree_family_node {
 		BIT_FIELD bExpanded : 1;
 	} flags;
 	PODBC uncommited_write; // connection this was written on for the commit event.
-   _32 expansion_tick;
+	_32 expansion_tick;
 };
 #define MAXOPTION_TREE_NODESPERSET 256
 DeclareSet( OPTION_TREE_NODE );
@@ -41,15 +41,16 @@ struct sack_option_tree_family {
 		BIT_FIELD bCreated : 1;
 	} flags;
 	PLIST uncommited; // list of option values that were written.
+	POPTION_TREE_NODESET nodes;
 };
 
 struct option_odbc_tracker
 {
 	CTEXTSTR name;
-   int version;
+	int version;
 	PLINKQUEUE available;
 	PLIST outstanding;
-   PFAMILYTREE shared_option_tree;
+	PFAMILYTREE shared_option_tree;
 };
 
 struct sack_option_global_tag {
@@ -60,15 +61,15 @@ struct sack_option_global_tag {
 		BIT_FIELD bUseSystemDefault : 1;
 		BIT_FIELD bPromptDefault : 1;
 		BIT_FIELD bEnableSystemMapping : 2;
-   } flags;
-   TEXTCHAR SystemName[128];
-   INDEX SystemID;
-   _32 Session;
+	} flags;
+	TEXTCHAR SystemName[128];
+	INDEX SystemID;
+	_32 Session;
 	//PFAMILYTREE option_tree;
-   PLIST trees; // list of struct sack_option_family_tree's
+	PLIST trees; // list of struct sack_option_family_tree's
 	PODBC Option; // primary ODBC for option use.
 	CRITICALSECTION cs_option;
-   PLIST odbc_list;
+	PLIST odbc_list;
 };
 
 //INDEX GetOptionIndexEx( INDEX parent, CTEXTSTR file, CTEXTSTR pBranch, CTEXTSTR pValue, int bCreate DBG_PASS );

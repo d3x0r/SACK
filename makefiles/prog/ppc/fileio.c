@@ -1066,8 +1066,7 @@ Restart:
 					// ignore this line completely!
 					if( g.flags.keep_comments )
 					{
-						PTEXT pOut;
-						pOut = BuildLineEx( pNew, FALSE DBG_SRC );
+						PTEXT pOut = BuildLineEx( pNew, FALSE DBG_SRC );
 						if( pOut )
 						{
 							if( g.flags.bWriteLine )

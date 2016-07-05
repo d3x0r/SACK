@@ -1,0 +1,44 @@
+#
+#	Makefile for core static library
+#
+#	Copyright (c) 2013-2016 INSIDE Secure Corporation. All Rights Reserved.
+#
+
+MATRIXSSL_ROOT:=..
+include $(MATRIXSSL_ROOT)/common.mk
+
+SRC:=\
+	memset_s.c \
+	corelib.c \
+	$(OSDEP)/osdep.c
+
+
+
+ASM:=memset_s.s
+
+# Generated files
+STATIC:=libcore_s.a
+
+all: compile
+
+compile: $(ASM) $(OBJS) $(STATIC)
+
+# Special rule to build memset_s function without optimization
+memset_s.o: memset_s.c
+	$(CC) -O0 -Wall -ffunction-sections -fdata-sections -o $@ -c $<
+
+# Generate the (.s) assembly file to verify zero is being performed
+$(ASM): memset_s.c
+	$(CC) -O0 -g -fverbose-asm -S $<
+
+# Additional Dependencies
+$(OBJS): $(MATRIXSSL_ROOT)/common.mk Makefile *.h
+
+# Build the static library
+# Redirect stderr to null so we don't see the 'empty file' warnings
+$(STATIC): $(OBJS)
+	$(AR) -rcuv $@ $^ 2>/dev/null
+
+clean:
+	rm -f $(STATIC) $(OBJS) $(ASM)
+

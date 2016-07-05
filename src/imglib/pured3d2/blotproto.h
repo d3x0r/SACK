@@ -25,7 +25,7 @@ ASM_IMAGE_NAMESPACE_END
 #ifdef __cplusplus
 IMAGE_NAMESPACE
 
-		extern "C" {
+//		extern "C" {
 #endif
 
 #define CLAMP(n) (((n)>255)?(255):(n))
@@ -718,7 +718,7 @@ BLOT_EXTERN void (CPROC*BlotScaledMultiTImgAI)( SCALED_BLOT_WORK_PARAMS
 
 
 #ifdef __cplusplus
-} // extern "C"
+//} // extern "C"
 IMAGE_NAMESPACE_END
 #endif
 // $Log: blotproto.h,v $

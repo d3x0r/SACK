@@ -1,6 +1,8 @@
 #ifndef GLOBAL_STRUCTURE_DEFINED
 #define GLOBAL_STRUCTURE_DEFINED
 
+#include <stdhdrs.h>
+
 //DOM-IGNORE-BEGIN
 #define g global_psi_structure
 //DOM-IGNORE-END

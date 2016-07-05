@@ -16,6 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
+#define FIX_COM_COLLISION
 #include "ZWorld.h"
 #include "stdio.h"
 #include "math.h"
@@ -234,7 +235,8 @@ void ZVoxelWorld::RemoveSector( ZVoxelSector * Sector )
   ZVoxelSector * SectorPointer;
 
   for( x = 0; x < 6; x++ )
-	  if( Sector->near_sectors[x] != null ) Sector->near_sectors[x].near_sectors[x^1] = null;
+	  if( Sector->near_sectors[x] != NULL ) 
+		  Sector->near_sectors[x]->near_sectors[x^1] = NULL;
   // Finding sector in hash
 
   x = (Sector->Pos_x % Size_x) & 0xff;

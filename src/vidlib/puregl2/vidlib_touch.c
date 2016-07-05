@@ -219,7 +219,7 @@ int Handle3DTouches( struct display_camera *camera, PINPUT_POINT touches, int nT
 				v_n_old[vUp] = touch_info.two.y - touch_info.one.y;
 				v_n_old[vForward] = 0;
 
-            old_length = Length( v_n_old );
+				old_length = Length( v_n_old );
 				addscaled( v_mid_old, v_o_old, v_n_old, 0.5f );
 
 				ComputeMouseRay( camera, FALSE, &rotate_axis, v_mid_new[vRight] + camera->w/2, camera->h/2 - v_mid_new[vUp] );

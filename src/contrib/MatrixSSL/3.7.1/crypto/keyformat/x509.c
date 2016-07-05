@@ -549,7 +549,7 @@ int32 psX509ParseCert(psPool_t *pool, unsigned char *pp, uint32 size,
 		if (cert->version != 2) {
 			psTraceIntCrypto("ERROR: non-v3 certificate version %d insecure\n",
 				cert->version);
-			return PS_PARSE_FAIL;
+			//return PS_PARSE_FAIL;
 		}
 /*
 		CertificateSerialNumber  ::=  INTEGER

@@ -9,7 +9,9 @@
 #ifndef USE_SQLITE_INTERFACE
 #define USE_SQLITE_INTERFACE
 #endif
+#define SQLLIB_SOURCE
 #define BUILDS_INTERFACE
+#define DEFINES_SQLITE_INTERFACE
 #include "../../SQLlib/sqlstruc.h"
 #include "sqlite3.h"
 

@@ -166,7 +166,14 @@ ExtendSet:
 				}
 			}
 			if( n == maxcnt )
+			{
+				if( !set->next ) {
+					// synchronize this; obviusly every member IS used.
+					set->nUsed = n;
+					goto ExtendSet; // for some reason didn't find anything; maybe it's a small set of less than 32 elements?
+				}
 				set = set->next;
+			}
 		}
 		if( bLog ) _lprintf( DBG_RELAY )( WIDE( "Unit result: %p from %p %d %d %d %d" ), unit, set, unitsize, maxcnt, n, ( ( (maxcnt +31) / 32 ) * 4 )  );
 	}

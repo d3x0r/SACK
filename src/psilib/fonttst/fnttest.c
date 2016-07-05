@@ -113,9 +113,9 @@ SaneWinMain( argc, argv )
 		int bits = atoi( DupCharToText( argv[5] ) );
 		printf( WIDE("Using parameters specified from command line ... %s %sx%s %s bits"), DupCharToText( argv[2] ), DupCharToText( argv[3] ), DupCharToText( argv[4] ), DupCharToText( argv[5] ) );
 		if( bits == 8 )
-			bits = 3;
-		else if( bits == 2 )
 			bits = 2;
+		else if( bits == 2 )
+			bits = 1;
 		else
 			bits = 0;
 		font = RenderFontFileEx( argv[2], atoi( argv[3] ), atoi( argv[4] ), bits, &fontsize, &fontdata );

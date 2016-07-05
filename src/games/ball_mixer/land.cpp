@@ -68,7 +68,7 @@
 
 #include "land.h"
 
-
+#undef normalize
 #define SPHERE_SIZE PLANET_RADIUS
 
 //#define POLE_NEAR_AREA_DEBUG

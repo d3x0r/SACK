@@ -2262,51 +2262,31 @@ static int ChildInUse( PSI_CONTROL pc, int level )
 
 void SmudgeCommonEx( PSI_CONTROL pc DBG_PASS )
 {
+	if( !pc )
+		return;
+	if( pc->flags.bDestroy )
+		return;
+
 	// if( pc->flags.bTransparent && pc->parent && !pc->parent->flags.bDirty )
 	//    SmudgeCommon( pc->parent );
 	if( g.flags.always_draw )
 	{
-		if( pc )
+		if( !pc->flags.bDestroy )
 		{
-			if( !pc->flags.bDestroy )
-			{
-				PSI_CONTROL frame = GetFrame( pc );
-				PPHYSICAL_DEVICE device = frame?frame->device:NULL;
-				if( device )
-					MarkDisplayUpdated( device->pActImg );
-			}
+			PSI_CONTROL frame = GetFrame( pc );
+			PPHYSICAL_DEVICE device = frame?frame->device:NULL;
+			if( device )
+				MarkDisplayUpdated( device->pActImg );
 		}
 		if( g.flags.bLogDebugUpdate )
 			_lprintf(DBG_RELAY)( WIDE( "%p(%s) wanted to draw..." ), pc, pc->pTypeName );
 		return;
 	}
-	else if( !g.flags.allow_threaded_draw )
-	{
-		PSI_CONTROL frame = GetFrame( pc );
-		PPHYSICAL_DEVICE device = frame?frame->device:NULL;
-		if( device )
-		{
-#if DEBUG_UPDAATE_DRAW > 0
-			if( g.flags.bLogDebugUpdate )
-				_lprintf(DBG_RELAY)( WIDE( "Add to dirty controls... Smudge %p %s" ), pc, pc->pTypeName?pc->pTypeName:WIDE( "NoTypeName" ) );
-#endif
-			if( FindLink( &device->pending_dirty_controls, pc ) == INVALID_INDEX )
-				AddLink( &device->pending_dirty_controls, pc );
-			if( !device->flags.sent_redraw && device->pActImg )
-			{
-				//lprintf( WIDE("Send redraw to self.... draw controls in pending_dirty_controls") );
-				//device->flags.sent_redraw = 1;
-				Redraw( device->pActImg );
-			}
-		}
-	}
-	else if(pc)
-	{
-		if( pc->flags.bDestroy )
-			return;
+	else {
+		LOGICAL schedule_only = FALSE;
 #if DEBUG_UPDAATE_DRAW > 0
 		if( g.flags.bLogDebugUpdate )
-			_lprintf(DBG_RELAY)( WIDE( "Smudge %p %s" ), pc, pc->pTypeName?pc->pTypeName:WIDE( "NoTypeName" ) );
+			_lprintf( DBG_RELAY )(WIDE( "Smudge %p %s" ), pc, pc->pTypeName ? pc->pTypeName : WIDE( "NoTypeName" ));
 #endif
 		{
 			PSI_CONTROL parent;
@@ -2316,11 +2296,11 @@ void SmudgeCommonEx( PSI_CONTROL pc DBG_PASS )
 				{
 #if DEBUG_UPDAATE_DRAW > 3
 					if( g.flags.bLogDebugUpdate )
-						lprintf( WIDE("a control %p(%d) (self, or some parent %p(%d)) has %s or %s  (marks me as dirty anhow, but doesn't attempt anything further)")
-								 , pc, pc->nType, parent, parent->nType
-								 , parent->flags.bNoUpdate?WIDE( "noupdate" ):WIDE( "..." )
-								 , parent->flags.bHidden?WIDE( "hidden" ):WIDE( "..." )
-								 );
+						lprintf( WIDE( "a control %p(%d) (self, or some parent %p(%d)) has %s or %s  (marks me as dirty anhow, but doesn't attempt anything further)" )
+							, pc, pc->nType, parent, parent->nType
+							, parent->flags.bNoUpdate ? WIDE( "noupdate" ) : WIDE( "..." )
+							, parent->flags.bHidden ? WIDE( "hidden" ) : WIDE( "..." )
+							);
 #endif
 					pc->flags.bDirty = 1;
 					{
@@ -2330,73 +2310,101 @@ void SmudgeCommonEx( PSI_CONTROL pc DBG_PASS )
 							child->flags.bParentCleaned = 0; // has now drawn itself, and we must assume that it's not clean.
 						}
 					}
-					return;
+					// otherwise we need to schedule the drawing...
+					if( g.flags.allow_threaded_draw )
+						return;
+					else
+						schedule_only = TRUE;
 				}
 			}
 		}
-		if( pc->flags.bDirty || pc->flags.bCleaning )
+		if( !g.flags.allow_threaded_draw )
 		{
-			if( pc->flags.bCleaning )
+			PSI_CONTROL frame = GetFrame( pc );
+			PPHYSICAL_DEVICE device = frame?frame->device:NULL;
+			if( device )
 			{
-				_32 tick = timeGetTime();
-				// something changed, and we'll have to draw that control again... as soon as it's done cleaning actually.
-				pc->flags.bDirtied = 1;
-				while( pc->flags.bCleaning && pc->flags.bDirtied && ((tick+500) < timeGetTime() ) )
-					WakeableSleep( 10 );
-				if( !pc->flags.bCleaning )
-					if( pc->flags.bDirtied )
-						pc->flags.bDirty = 1;
-			}
-#if DEBUG_UPDAATE_DRAW > 3
-			if( g.flags.bLogDebugUpdate )
-				_xlprintf(LOG_LEVEL_DEBUG DBG_RELAY)( WIDE("%s %s %s %p")
-														, pc->flags.bDirty?WIDE( "already smudged" ):WIDE( "" )
-														,(pc->flags.bDirty && pc->flags.bCleaning)?WIDE( "and" ):WIDE( "" )
-														, pc->flags.bCleaning?WIDE( "in process of cleaning..." ):WIDE( "" )
-														, pc );
+#if DEBUG_UPDAATE_DRAW > 0
+				if( g.flags.bLogDebugUpdate )
+					_lprintf(DBG_RELAY)( WIDE( "Add to dirty controls... Smudge %p %s" ), pc, pc->pTypeName?pc->pTypeName:WIDE( "NoTypeName" ) );
 #endif
-
-         //Sleep( 10 );
-			//return;
+				if( FindLink( &device->pending_dirty_controls, pc ) == INVALID_INDEX )
+					AddLink( &device->pending_dirty_controls, pc );
+				if( !schedule_only && !device->flags.sent_redraw && device->pActImg )
+				{
+					//lprintf( WIDE("Send redraw to self.... draw controls in pending_dirty_controls") );
+					//device->flags.sent_redraw = 1;
+					Redraw( device->pActImg );
+				}
+			}
+			return;
 		}
-		else // if( !pc->flags.bDirty )
+		else
 		{
-			PSI_CONTROL parent;
+			if( pc->flags.bDirty || pc->flags.bCleaning )
+			{
+				if( pc->flags.bCleaning )
+				{
+					_32 tick = timeGetTime();
+					// something changed, and we'll have to draw that control again... as soon as it's done cleaning actually.
+					pc->flags.bDirtied = 1;
+					while( pc->flags.bCleaning && pc->flags.bDirtied && ((tick + 500) < timeGetTime()) )
+						WakeableSleep( 10 );
+					if( !pc->flags.bCleaning )
+						if( pc->flags.bDirtied )
+							pc->flags.bDirty = 1;
+				}
 #if DEBUG_UPDAATE_DRAW > 3
-			if( g.flags.bLogDebugUpdate )
-				lprintf( WIDE( "not dirty, and not cleaning" ) );
+				if( g.flags.bLogDebugUpdate )
+					_xlprintf( LOG_LEVEL_DEBUG DBG_RELAY )(WIDE( "%s %s %s %p" )
+						, pc->flags.bDirty ? WIDE( "already smudged" ) : WIDE( "" )
+						, (pc->flags.bDirty && pc->flags.bCleaning) ? WIDE( "and" ) : WIDE( "" )
+						, pc->flags.bCleaning ? WIDE( "in process of cleaning..." ) : WIDE( "" )
+						, pc);
+#endif
+
+				//Sleep( 10 );
+				   //return;
+			}
+			else // if( !pc->flags.bDirty )
+			{
+				PSI_CONTROL parent;
+#if DEBUG_UPDAATE_DRAW > 3
+				if( g.flags.bLogDebugUpdate )
+					lprintf( WIDE( "not dirty, and not cleaning" ) );
 #endif
 
 #ifdef DEBUG_UPDAATE_DRAW
-			//if( pc->parent && pc->flags.bTransparent )
-			//   SmudgeCommon( pc->parent );
-			for( parent = pc; parent /*&& parent->flags.bTransparent*/ &&
-				 !parent->InUse &&
-				 !parent->flags.bDirty; parent = parent->parent )
-			{
-				if( g.flags.bLogDebugUpdate )
-					_xlprintf( LOG_LEVEL_DEBUG DBG_RELAY ) ( WIDE("%s %p is %s and %s %s")
-																, (parent==pc)?WIDE( "self" ):WIDE( "parent" )
-																, parent
-																, parent->InUse?WIDE( "USED" ):WIDE( "Not Used" )
-																, parent->flags.bTransparent?WIDE( "Transparent" ):WIDE( "opaque" )
-																, parent->flags.bChildDirty?WIDE( "has Dirty Child" ):WIDE( "children clean" ));
-				//parent->flags.bChildDirty = 1;
-			}
+				//if( pc->parent && pc->flags.bTransparent )
+				//   SmudgeCommon( pc->parent );
+				for( parent = pc; parent /*&& parent->flags.bTransparent*/ &&
+					!parent->InUse &&
+					!parent->flags.bDirty; parent = parent->parent )
+				{
+					if( g.flags.bLogDebugUpdate )
+						_xlprintf( LOG_LEVEL_DEBUG DBG_RELAY ) (WIDE( "%s %p is %s and %s %s" )
+							, (parent == pc) ? WIDE( "self" ) : WIDE( "parent" )
+							, parent
+							, parent->InUse ? WIDE( "USED" ) : WIDE( "Not Used" )
+							, parent->flags.bTransparent ? WIDE( "Transparent" ) : WIDE( "opaque" )
+							, parent->flags.bChildDirty ? WIDE( "has Dirty Child" ) : WIDE( "children clean" ));
+					//parent->flags.bChildDirty = 1;
+				}
 #endif
 
-			// a parent is in use (misleading - parent may be self...)
-			// - that means that
-			// an event is dispatched, and when that event is complete
-			// it will have all children checked for dirt.
+				// a parent is in use (misleading - parent may be self...)
+				// - that means that
+				// an event is dispatched, and when that event is complete
+				// it will have all children checked for dirt.
 
 #ifdef DEBUG_UPDAATE_DRAW
-			{
-				if( g.flags.bLogDebugUpdate )
-					_xlprintf(LOG_NOISE DBG_RELAY )( WIDE("marking myself dirty. %p"), pc );
-			}
+				{
+					if( g.flags.bLogDebugUpdate )
+						_xlprintf( LOG_NOISE DBG_RELAY )(WIDE( "marking myself dirty. %p" ), pc);
+				}
 #endif
-			pc->flags.bDirty = 1;
+				pc->flags.bDirty = 1;
+			}
 		}
 		if( pc->flags.bOpenGL )
 		{

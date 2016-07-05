@@ -106,9 +106,12 @@ add_subpath( ../src/utils/window_stacker )
 add_subpath( ../src/utils/set_registry )
 endif( WIN32 )
 
+
 add_subpath( ../src/utils/opensim/region_maker )
 add_subpath( ../src/netlib/html5.websocket/server )
-
+if( __LINUX__ AND NOT __ANDROID__ )
+   add_subpath( ../src/utils/linux_ban_scanner )
+endif( __LINUX__ AND NOT __ANDROID__ )
 
 
 SET( CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS_SKIP 1 )

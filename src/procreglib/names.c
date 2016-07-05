@@ -2125,6 +2125,8 @@ void ReadConfiguration( void )
 		AddConfigurationMethod( pch, WIDE( "enable trace=%b" ), SetTrace );
 		AddConfigurationMethod( pch, WIDE( "option default %m=%m" ), SetOptionDefault );
 		AddConfigurationMethod( pch, WIDE( "option set %m=%m" ), SetOptionSet );
+		AddConfigurationMethod( pch, WIDE( "default option %m=%m" ), SetOptionDefault );
+		AddConfigurationMethod( pch, WIDE( "set option %m=%m" ), SetOptionSet );
 		AddConfigurationMethod( pch, WIDE( "start directory \"%m\"" ), SetDefaultDirectory );
 		AddConfigurationMethod( pch, WIDE( "include \"%m\"" ), IncludeAdditional );
 		AddConfigurationMethod( pch, WIDE( "if %m==%m" ), TestOption );
@@ -2625,3 +2627,4 @@ public ref class ProcReg
 
 PROCREG_NAMESPACE_END
 
+#undef l

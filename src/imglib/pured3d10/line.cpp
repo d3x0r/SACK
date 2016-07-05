@@ -36,20 +36,16 @@
  *  copy of the bmp parameter, the x and y position, and a copy of the
  *  d parameter (so do_line() can be used with putpixel()).
  */
-#ifdef __cplusplus
-namespace sack {
-	namespace image {
-extern "C" {
-#endif
-
+IMAGE_NAMESPACE
+#define int S_32
 //unsigned long DOALPHA( unsigned long over, unsigned long in, unsigned long a );
 
 #define FIX_SHIFT 18
 #define ROUND_ERROR ( ( 1<< ( FIX_SHIFT - 1 ) ) - 1 )
 
 
-void CPROC do_linec( ImageFile *pImage, int x1, int y1
-						 , int x2, int y2, int d )
+void CPROC do_line( ImageFile *pImage, int x1, int y1
+						 , int x2, int y2, CDATA d )
 {
 	if( pImage->flags & IF_FLAG_FINAL_RENDER )
 	{
@@ -219,8 +215,8 @@ void CPROC do_linec( ImageFile *pImage, int x1, int y1
 	}
 }
 
-void CPROC do_lineAlphac( ImageFile *pImage, int x1, int y1
-				                , int x2, int y2, int d )
+void CPROC do_lineAlpha( ImageFile *pImage, int x1, int y1
+				                , int x2, int y2, CDATA d )
 {
 	if( pImage->flags & IF_FLAG_FINAL_RENDER )
 	{
@@ -393,9 +389,9 @@ void CPROC do_lineAlphac( ImageFile *pImage, int x1, int y1
 	}
 }
 
-void CPROC do_lineExVc( ImageFile *pImage, int x1, int y1
-				                , int x2, int y2, int d
-				                , void (*func)(ImageFile *pif, int x, int y, int d ) )
+void CPROC do_lineExV( ImageFile *pImage, int x1, int y1
+				                , int x2, int y2, PTRSZVAL d
+				                , void (*func)(ImageFile *pif, int x, int y, PTRSZVAL d ) )
 {
 	int err, delx, dely, len, inc;
 	//if( !pImage || !pImage->image ) return;
@@ -469,7 +465,7 @@ void CPROC do_lineExVc( ImageFile *pImage, int x1, int y1
 	}
 }
 
-void CPROC do_hlinec( ImageFile *pImage, int y, int xfrom, int xto, CDATA color )
+void CPROC do_hline( ImageFile *pImage, int y, int xfrom, int xto, CDATA color )
 {
 	if( xfrom < xto )
 		BlatColor( pImage, xfrom, y, xto-xfrom, 1, color );
@@ -477,7 +473,7 @@ void CPROC do_hlinec( ImageFile *pImage, int y, int xfrom, int xto, CDATA color 
 		BlatColor( pImage, xfrom, y, xfrom-xto, 1, color );
 }
 
-void CPROC do_vlinec( ImageFile *pImage, int x, int yfrom, int yto, CDATA color )
+void CPROC do_vline( ImageFile *pImage, int x, int yfrom, int yto, CDATA color )
 {
 	if( yto > yfrom )
 		BlatColor( pImage, x, yfrom, 1, yto-yfrom, color );
@@ -485,7 +481,7 @@ void CPROC do_vlinec( ImageFile *pImage, int x, int yfrom, int yto, CDATA color 
 		BlatColor( pImage, x, yfrom, 1, yfrom-yto, color );
 }
 
-void CPROC do_hlineAlphac( ImageFile *pImage, int y, int xfrom, int xto, CDATA color )
+void CPROC do_hlineAlpha( ImageFile *pImage, int y, int xfrom, int xto, CDATA color )
 {
 	if( xfrom < xto )
 		BlatColorAlpha( pImage, xfrom, y, xto-xfrom, 1, color );
@@ -493,7 +489,7 @@ void CPROC do_hlineAlphac( ImageFile *pImage, int y, int xfrom, int xto, CDATA c
 		BlatColorAlpha( pImage, xfrom, y, xfrom-xto, 1, color );
 }
 
-void CPROC do_vlineAlphac( ImageFile *pImage, int x, int yfrom, int yto, CDATA color )
+void CPROC do_vlineAlpha( ImageFile *pImage, int x, int yfrom, int yto, CDATA color )
 {
 	if( yto > yfrom )
 		BlatColorAlpha( pImage, x, yfrom, 1, yto-yfrom, color );
@@ -501,11 +497,7 @@ void CPROC do_vlineAlphac( ImageFile *pImage, int x, int yfrom, int yto, CDATA c
 		BlatColorAlpha( pImage, x, yfrom, 1, yfrom-yto, color );
 }
 
-#ifdef __cplusplus
-		}; //extern "C" {
-	}; //	namespace image {
-}; //namespace sack {
-#endif
+IMAGE_NAMESPACE_END
 
 // $Log: line.c,v $
 // Revision 1.14  2004/06/21 07:47:13  d3x0r

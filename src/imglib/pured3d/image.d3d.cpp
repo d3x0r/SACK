@@ -188,10 +188,10 @@ void MarkImageUpdated( Image child_image )
 }
 
 void  (CPROC*BlatPixelsAlpha)( PCDATA po, int oo, int w, int h
-						, CDATA color ) = cSetColorAlpha;
+						, CDATA color ) = SetColorAlpha;
 
 void  (CPROC*BlatPixels)( PCDATA po, int oo, int w, int h
-						, CDATA color ) = cSetColor;
+						, CDATA color ) = SetColor;
 
 //---------------------------------------------------------------------------
 // This routine fills a rectangle with a solid color
@@ -495,34 +495,10 @@ void  BlatColorAlpha ( ImageFile *pifDest, S_32 x, S_32 y, _32 w, _32 h, CDATA c
 	}
 }
 
-IMAGE_NAMESPACE_END
-ASM_IMAGE_NAMESPACE
-
-void CPROC cplot( ImageFile *pi, S_32 x, S_32 y, CDATA c );
-void CPROC cplotraw( ImageFile *pi, S_32 x, S_32 y, CDATA c );
-void CPROC cplotalpha( ImageFile *pi, S_32 x, S_32 y, CDATA c );
-CDATA CPROC cgetpixel( ImageFile *pi, S_32 x, S_32 y );
-
-#ifdef HAS_ASSEMBLY
-void CPROC asmplot( ImageFile *pi, S_32 x, S_32 y, CDATA c );
-#endif
-
-#ifdef HAS_ASSEMBLY
-void CPROC asmplotraw( ImageFile *pi, S_32 x, S_32 y, CDATA c );
-#endif
-
-#ifdef HAS_ASSEMBLY
-void CPROC asmplotalpha( ImageFile *pi, S_32 x, S_32 y, CDATA c );
-void CPROC asmplotalphaMMX( ImageFile *pi, S_32 x, S_32 y, CDATA c );
-#endif
-
-#ifdef HAS_ASSEMBLY
-CDATA CPROC asmgetpixel( ImageFile *pi, S_32 x, S_32 y );
-#endif
 
 //---------------------------------------------------------------------------
 
-void CPROC cplotraw( ImageFile *pi, S_32 x, S_32 y, CDATA c )
+void CPROC plotraw( ImageFile *pi, S_32 x, S_32 y, CDATA c )
 {
 	if( pi->flags & IF_FLAG_FINAL_RENDER )
 	{
@@ -535,7 +511,7 @@ void CPROC cplotraw( ImageFile *pi, S_32 x, S_32 y, CDATA c )
 	}
 }
 
-void CPROC cplot( ImageFile *pi, S_32 x, S_32 y, CDATA c )
+void CPROC plot( ImageFile *pi, S_32 x, S_32 y, CDATA c )
 {
 	if( !pi ) return;
 	if( ( x >= pi->x ) && ( x < (pi->x + pi->width )) &&
@@ -555,7 +531,7 @@ void CPROC cplot( ImageFile *pi, S_32 x, S_32 y, CDATA c )
 
 //---------------------------------------------------------------------------
 
-CDATA CPROC cgetpixel( ImageFile *pi, S_32 x, S_32 y )
+CDATA CPROC getpixel( ImageFile *pi, S_32 x, S_32 y )
 {
 	if( !pi || !pi->image ) return 0;
 	if( ( x >= pi->x ) && ( x < (pi->x + pi->width )) &&
@@ -575,7 +551,7 @@ CDATA CPROC cgetpixel( ImageFile *pi, S_32 x, S_32 y )
 
 //---------------------------------------------------------------------------
 
-void CPROC cplotalpha( ImageFile *pi, S_32 x, S_32 y, CDATA c )
+void CPROC plotalpha( ImageFile *pi, S_32 x, S_32 y, CDATA c )
 {
 	CDATA *po;
 	if( !pi ) return;
@@ -596,56 +572,6 @@ void CPROC cplotalpha( ImageFile *pi, S_32 x, S_32 y, CDATA c )
 }
 
 //---------------------------------------------------------------------------
-
-void CPROC do_linec( ImageFile *pImage, S_32 x, S_32 y
-									 , S_32 xto, S_32 yto, CDATA color );
-#ifdef HAS_ASSEMBLY
-void CPROC do_lineasm( ImageFile *pImage, S_32 x, S_32 y
-					, S_32 xto, S_32 yto, CDATA color );
-#endif
-
-void CPROC do_lineAlphac( ImageFile *pImage, S_32 x, S_32 y
-									 , S_32 xto, S_32 yto, CDATA color );
-#ifdef HAS_ASSEMBLY
-void CPROC do_lineAlphaasm( ImageFile *pImage, S_32 x, S_32 y
-									 , S_32 xto, S_32 yto, CDATA color );
-void CPROC do_lineAlphaMMX( ImageFile *pImage, S_32 x, S_32 y
-						  , S_32 xto, S_32 yto, CDATA color );
-#endif
-
-void CPROC do_lineExVc( ImageFile *pImage, S_32 x, S_32 y
-									 , S_32 xto, S_32 yto, CDATA color
-									 , void (*func)( ImageFile*pif, S_32 x, S_32 y, int d ) );
-#ifdef HAS_ASSEMBLY
-void CPROC do_lineExVasm( ImageFile *pImage, S_32 x, S_32 y
-									 , S_32 xto, S_32 yto, CDATA color
-									 , void (*func)( ImageFile*pif, S_32 x, S_32 y, int d ) );
-#endif
-
-void CPROC do_hlinec( ImageFile *pImage, S_32 y, S_32 xfrom, S_32 xto, CDATA color );
-#ifdef HAS_ASSEMBLY
-void CPROC do_hlineasm( ImageFile *pImage, S_32 y, S_32 xfrom, S_32 xto, CDATA color );
-#endif
-
-void CPROC do_vlinec( ImageFile *pImage, S_32 x, S_32 yfrom, S_32 yto, CDATA color );
-#ifdef HAS_ASSEMBLY
-void CPROC do_vlineasm( ImageFile *pImage, S_32 x, S_32 yfrom, S_32 yto, CDATA color );
-#endif
-
-void CPROC do_hlineAlphac( ImageFile *pImage, S_32 y, S_32 xfrom, S_32 xto, CDATA color );
-#ifdef HAS_ASSEMBLY
-void CPROC do_hlineAlphaasm( ImageFile *pImage, S_32 y, S_32 xfrom, S_32 xto, CDATA color );
-void CPROC do_hlineAlphaMMX( ImageFile *pImage, S_32 y, S_32 xfrom, S_32 xto, CDATA color );
-#endif
-
-void CPROC do_vlineAlphac( ImageFile *pImage, S_32 x, S_32 yfrom, S_32 yto, CDATA color );
-#ifdef HAS_ASSEMBLY
-void CPROC do_vlineAlphaasm( ImageFile *pImage, S_32 x, S_32 yfrom, S_32 yto, CDATA color );
-void CPROC do_vlineAlphaMMX( ImageFile *pImage, S_32 x, S_32 yfrom, S_32 yto, CDATA color );
-#endif
-
-ASM_IMAGE_NAMESPACE_END
-IMAGE_NAMESPACE
 
 
 

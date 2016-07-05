@@ -178,7 +178,7 @@ POPTION_TREE_NODE NewGetOptionIndexExxx( PODBC odbc, POPTION_TREE tree, POPTION_
 #endif
 					//lprintf( WIDE("Adding new option to family tree... ") );
 					{
-						POPTION_TREE_NODE new_node = New( struct sack_option_tree_family_node );
+						POPTION_TREE_NODE new_node = GetFromSet( OPTION_TREE_NODE, &tree->nodes );// New( struct sack_option_tree_family_node );
 						new_node->id = ID;
 						new_node->value_id = INVALID_INDEX; // no value (yet?)
 						new_node->name_id = IDName;
@@ -202,7 +202,7 @@ POPTION_TREE_NODE NewGetOptionIndexExxx( PODBC odbc, POPTION_TREE tree, POPTION_
 #ifdef DETAILED_LOGGING
 				lprintf( WIDE("found the node which has the name specified...") );
 #endif
-				POPTION_TREE_NODE new_node = New( struct sack_option_tree_family_node );
+				POPTION_TREE_NODE new_node = GetFromSet( OPTION_TREE_NODE, &tree->nodes );// New( struct sack_option_tree_family_node );
 				new_node->id = IndexCreateFromText( result[0] );
 				new_node->value_id = INVALID_INDEX;
 				new_node->name_id = IDName;

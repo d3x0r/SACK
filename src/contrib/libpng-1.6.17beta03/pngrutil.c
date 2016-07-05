@@ -228,9 +228,10 @@ png_crc_finish(png_structrp png_ptr, png_uint_32 skip)
          png_chunk_warning(png_ptr, "CRC error");
       }
 
-      else
-         png_chunk_error(png_ptr, "CRC error");
-
+      else{
+         png_chunk_warning(png_ptr, "CRC error");
+		 return 0;
+	  }
       return (1);
    }
 
@@ -265,7 +266,8 @@ png_crc_error(png_structrp png_ptr)
 #endif
 
    /* The chunk CRC must be serialized in a single I/O call. */
-   png_read_data(png_ptr, crc_bytes, 4);
+   if( !png_read_data(png_ptr, crc_bytes, 4) )
+		return 0;
 
    if (need_crc != 0)
    {
@@ -1050,7 +1052,7 @@ png_handle_IEND(png_structrp png_ptr, png_inforp info_ptr, png_uint_32 length)
 
    png_ptr->mode |= (PNG_AFTER_IDAT | PNG_HAVE_IEND);
 
-   png_crc_finish(png_ptr, length);
+   png_crc_finish(png_ptr, length); // returns 0/1 valid invalid now...
 
    if (length != 0)
       png_chunk_benign_error(png_ptr, "invalid");

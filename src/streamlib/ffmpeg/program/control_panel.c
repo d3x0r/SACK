@@ -20,7 +20,9 @@ struct media_control_panel
 	PSI_CONTROL pause_button;
 	PSI_CONTROL seek_slider;
 	PSI_CONTROL progress;
-
+#ifdef _DEBUG
+	PSI_CONTROL debug_mem_button;
+#endif
 };
 
 EasyRegisterControl( MyName, sizeof( struct media_control_panel ) );
@@ -80,6 +82,12 @@ static void CPROC stop_pushed( PTRSZVAL psvPanel, PSI_CONTROL pc )
 {
 	struct media_control_panel *panel = ( struct media_control_panel *)psvPanel;
 	ffmpeg_StopFile( panel->media->file );
+}
+
+static void CPROC debug_mem( PTRSZVAL psvPanel, PSI_CONTROL pc )
+{
+	struct media_control_panel *panel = (struct media_control_panel *)psvPanel;
+	DebugDumpMemEx(  TRUE );
 }
 
 static void CPROC pause_pushed( PTRSZVAL psvPanel, PSI_CONTROL pc )
@@ -153,6 +161,10 @@ void ShowMediaPanel( struct my_button *media )
 		SetScrollKnobEvent( panel->knob, KnobTick, (PTRSZVAL)panel );
 		panel->stop_button = MakeNamedCaptionedControl( newPanel, WIDE( "Button" ), 50, 0, 50, 25, -1, "Stop" );
 		SetButtonPushMethod( panel->stop_button, stop_pushed, (PTRSZVAL)panel );
+#ifdef _DEBUG
+		panel->debug_mem_button = MakeNamedCaptionedControl( newPanel, WIDE( "Button" ), 100, 55, 100, 25, -1, "Debug Memory" );
+		SetButtonPushMethod( panel->debug_mem_button, debug_mem, (PTRSZVAL)panel );
+#endif
 		panel->pause_button = MakeNamedCaptionedControl( newPanel, WIDE( "Button" ), 50, 25, 50, 25, -1, "Pause" );
 		SetButtonPushMethod( panel->pause_button, pause_pushed, (PTRSZVAL)panel );
 		panel->progress = MakeNamedCaptionedControl( newPanel, WIDE( "Button" ), 50, 50, 50, 25, -1, "???" );
@@ -168,7 +180,7 @@ void ShowMediaPanel( struct my_button *media )
 		// have an existing panel to just show.
 		RevealCommon( panel->panel );
 	}
-	ffmpeg_SetPositionUpdateCallback( panel->media->file, video_position_update, (PTRSZVAL)panel );
+ 	ffmpeg_SetPositionUpdateCallback( panel->media->file, video_position_update, (PTRSZVAL)panel );
 }
 
 void ClosePanel( struct my_button *media )

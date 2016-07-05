@@ -588,6 +588,8 @@ void WinLogicCalculateHistory( PCONSOLE_INFO pdp )
 	if( pdp->pHistoryDisplay )
 		SetBrowserColumns( pdp->pHistoryDisplay, pdp->nColumns, pdp->nWidth - pdp->nXPad*2 );
 	SetBrowserColumns( pdp->pCurrentDisplay, pdp->nColumns, pdp->nWidth - pdp->nXPad*2 );
+	SetBrowserLines( pdp->pCurrentDisplay, pdp->nLines );
+	pdp->pCurrentDisplay->nLineHeight = pdp->nHeight;
 	//lprintf( WIDE("Don't forget we wanted to inset command for a button...") );
 	if( pdp->pCommandDisplay )
 		SetBrowserColumns( pdp->pCommandDisplay, pdp->nColumns, pdp->nWidth - pdp->nXPad*2 );

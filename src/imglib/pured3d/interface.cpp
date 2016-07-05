@@ -21,7 +21,7 @@ extern void MarkImageUpdated( Image child_image );
 
 IMAGE_INTERFACE RealImageInterface = {
   SetStringBehavior
-, SetBlotMethod
+, NULL // SetBlotMethod
 
 , BuildImageFileEx               
 , MakeImageFileEx                
@@ -53,17 +53,17 @@ IMAGE_INTERFACE RealImageInterface = {
    , &_do_hlineAlpha                  
    , &_do_vlineAlpha
 #else
-   , &plot                           
-   , &plotalpha                      
-   , &getpixel
+   , plot                           
+   , plotalpha                      
+   , getpixel
 
-   , &do_line                        
-   , &do_lineAlpha                   
+   , do_line                        
+   , do_lineAlpha                   
 
-   , &do_hline                       
-   , &do_vline                       
-   , &do_hlineAlpha                  
-   , &do_vlineAlpha
+   , do_hline                       
+   , do_vline                       
+   , do_hlineAlpha                  
+   , do_vlineAlpha
 #endif
    , GetDefaultFont
    , GetFontHeight
@@ -92,7 +92,7 @@ IMAGE_INTERFACE RealImageInterface = {
 #ifdef STUPID_NO_DATA_EXPORTS
 												 , &_ColorAverage
 #else
-												 , &ColorAverage
+												 , ColorAverage
 #endif
                                  , SyncImage
                                 , GetImageSurface
@@ -202,6 +202,7 @@ static void CPROC _ImageDropImageInterface( POINTER p )
 PRIORITY_PRELOAD( ImageRegisterInterface, IMAGE_PRELOAD_PRIORITY )
 {
 	RegisterInterface( WIDE("d3d.image"), _ImageGetImageInterface, _ImageDropImageInterface );
+#ifndef __NO_OPTIONS__
 	l.scale = (RCOORD)SACK_GetProfileInt( GetProgramName(), WIDE("SACK/Image Library/Scale"), 10 );
 	if( l.scale == 0.0 )
 	{
@@ -211,8 +212,11 @@ PRIORITY_PRELOAD( ImageRegisterInterface, IMAGE_PRELOAD_PRIORITY )
 	}
 	else
 		l.scale = 1.0f / l.scale;
+#else
+	l.scale = 1.0f;
+#endif
 	// this initializes some of the interface methods
-	SetBlotMethod( BLOT_C );
+	//SetBlotMethod( BLOT_C );
 	RealImageInterface._IsImageTargetFinal = IsImageTargetFinal;
 }
 

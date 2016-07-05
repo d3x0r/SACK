@@ -16,6 +16,8 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
+#define FIX_COM_RELEASE_COLLISION
+    #include "z/ZTypes.h"
 #include <CRTDBG.H>
 #include <logging.h>
 #include <pssql.h>
@@ -27,7 +29,6 @@
    // #include <GL/glext.h>
    // #include <GL/glut.h>
     #include <SDL2/SDL.h>
-    #include "z/ZTypes.h"
     #include "bmploader.h"
 
     #include "math.h"
@@ -684,9 +685,9 @@ SaneWinMain( argc, argv )
           }
 
 	{
-		int (*EditOptions)( PODBC );
-		EditOptions = (int(*)(PODBC))LoadFunction( "EditOptions.plugin", "EditOptions" );
-		EditOptions(NULL);
+		int (*EditOptions)( PODBC, void*/*PSI_CONTROL*/ );
+		EditOptions = (int(*)(PODBC,void*/*PSI_CONTROL*/))LoadFunction( "EditOptions.plugin", "EditOptions" );
+		EditOptions(NULL, NULL);
 
 	}
           // Pre-Gameloop Initialisations.

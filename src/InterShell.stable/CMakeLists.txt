@@ -4,11 +4,6 @@ cmake_minimum_required(VERSION 2.8)
 
 PROJECT( InterShell )
 
-if( MINGW ) 
-# trigger no-touch
-#add_definitions( -DMINGW_SUX ) 
-endif()
-
 if( NOT MAKING_SACK_CORE )
   if( NOT SACK_SDK_ROOT_PATH )
     GET_FILENAME_COMPONENT(SACK_SDK_ROOT_PATH "[HKEY_LOCAL_MACHINE\\SOFTWARE\\Freedom Collective\\SACK;Install_Dir]" ABSOLUTE CACHE)

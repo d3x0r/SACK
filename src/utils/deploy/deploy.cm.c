@@ -1,7 +1,9 @@
 #define NO_UNICODE_C
+#include <stdhdrs.h>
 #include <sack_types.h>
 #define SUFFER_WITH_NO_SNPRINTF
 #include <final_types.h>
+#define __CRT__NO_INLINE
 #ifdef __WATCOMC__
 #undef snprintf
 #endif
@@ -20,6 +22,9 @@
 
 #define MySubKey "Freedom Collective\\${CMAKE_PROJECT_NAME}"
 #define MyKey "SOFTWARE\\" MySubKey
+#undef NewArray
+#undef Deallocate
+#undef unlink
 #define NewArray(a,b)  (a*)malloc( sizeof(a)*b )
 #define Deallocate(a,b)  free(b)
 
@@ -44,7 +49,7 @@ char * MyWcharConvert ( const wchar_t *wch )
 	sizeInBytes = ((len + 1) * sizeof( wchar_t ));
 	err = 0;
 	ch = NewArray( char, sizeInBytes);
-#if defined( _MSC_VER )
+#if defined( _WIN32 )
 	err = wcstombs_s(&convertedChars, 
                     ch, sizeInBytes,
 						  wch, sizeInBytes);
@@ -79,7 +84,7 @@ wchar_t * MyCharWConvert ( const char *wch )
 	sizeInBytes = ((len + 1) * sizeof( char ) );
 	err = 0;
 	ch = NewArray( wchar_t, sizeInBytes);
-#if defined( _MSC_VER )
+#if defined( _WIN32 )
 	err = mbstowcs_s(&convertedChars, 
                     ch, sizeInBytes,
 						  wch, sizeInBytes * sizeof( wchar_t ) );

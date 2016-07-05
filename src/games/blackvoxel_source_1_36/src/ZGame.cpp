@@ -502,8 +502,8 @@ bool ZGame::Init_Renderer(ZLog * InitLog, PTRSZVAL psvInit )
   //ZRender_Basic Basic_Renderer;
 
 
-  //Basic_Renderer = new ZRender_Basic( World );
-  Basic_Renderer = new ZRender_Smooth( World );
+  Basic_Renderer = new ZRender_Basic( World );
+  //Basic_Renderer = new ZRender_Smooth( World );
 
   Basic_Renderer->SetGameEnv(this);
   Basic_Renderer->Init();

@@ -308,12 +308,148 @@ static PTRSZVAL CPROC replay_thread( PTHREAD thread )
 
 }
 
+static
+void*
+CPROC lock_frame(
+									 void* psv, void **something
+									)
+{
+	struct my_vlc_interface *pmyi = (struct my_vlc_interface*)psv;
+#ifdef DEBUG_LOCK_UNLOCK
+	lprintf( WIDE( "LOCK." ) );
+#endif
+	if( pmyi->flags.direct_output && !l.flags.bRequireDraw )
+	{
+		CDATA *data;
+		pmyi->host_image = GetDisplayImage( pmyi->host_surface );
+		data = GetImageSurface( pmyi->host_image );
+#ifdef INVERT_DATA
+		data += pmyi->host_image->pwidth * (pmyi->host_image->height -1);
+#endif
+		(*something) = data;
+	}
+	else
+	{
+		Image capture = (Image)DequeLink( &pmyi->available_frames );
+		CDATA *data;
+#ifdef DEBUG_LOCK_UNLOCK
+		lprintf( WIDE( "locking..." ) );
+#endif
+		if( !capture )
+		{
+			pmyi->images++;
+			lprintf( WIDE( "Ran out of images... adding a new one... %d" ), pmyi->images );
+			capture = MakeImageFile( pmyi->image_w, pmyi->image_h );
+		}
+
+		pmyi->surface = capture;
+		pmyi->host_image = capture; // last captured image for unlock to enque.
+		data = GetImageSurface( pmyi->host_image );
+
+#ifdef INVERT_DATA
+		data += pmyi->surface->pwidth * (pmyi->surface->height -1);
+#endif
+#ifdef DEBUG_LOCK_UNLOCK
+		lprintf( WIDE( "Resulting surface %p" ), data );
+#endif
+		(*something) = data;
+	}
+	return NULL; // ID passed later for unlock, and used for display
+}
+
+static
+#ifndef USE_PRE_1_1_0_VLC
+void
+#else
+int
+#endif
+ CPROC unlock_frame(
+#ifndef USE_PRE_1_1_0_VLC
+										void* psv
+									  , void *id, void *const *p_pixels
+#else
+                              PTRSZVAL psv
+#endif
+									  )
+{
+	struct my_vlc_interface *pmyi = (struct my_vlc_interface*)psv;
+	// in this case, we want to update the control - it's already had its content filled.
+#ifdef DEBUG_LOCK_UNLOCK
+	lprintf( WIDE( "unlock" ) );
+#endif
+	if( pmyi->flags.direct_output && !l.flags.bRequireDraw )
+	{
+		//pmyi->surface = pmyi->host_image;
+		//AdjustAlpha( pmyi);
+		if( pmyi->flags.transparent )
+			IssueUpdateLayeredEx( pmyi->host_surface, TRUE, 0, 0, pmyi->host_image->width, pmyi->host_image->height DBG_SRC );
+		else
+			Redraw( pmyi->host_surface );
+	}
+	else
+	{
+		EnqueLink( &pmyi->updated_frames, pmyi->host_image );
+		if( !l.flags.bRequireDraw )
+			WakeThread( pmyi->update_thread );
+		else
+			MarkImageDirty( pmyi->host_image );
+	}
+#ifdef USE_PRE_1_1_0_VLC
+	return 0;
+#endif
+
+}
+
+static void CPROC display_frame(void *data, void *id)
+{
+#ifdef DEBUG_LOCK_UNLOCK
+	lprintf( WIDE( "DISPLAY FRAME" ) );
+#endif
+    /* VLC wants to display the video */
+//    (void) data;
+    //assert(id == NULL);
+}
+
+
+
+
 static void CPROC PlayerEvent( const libvlc_event_t *event, void *user )
 {
 	struct my_vlc_interface *pmyi = (struct my_vlc_interface *)user;
 	//xlprintf(2100)( WIDE( "Event %d" ), event->type );
 	switch( event->type )
 	{
+	default:
+		xlprintf(900)( WIDE( "Unhandled Event %d" ), event->type );
+		break;
+	case libvlc_MediaPlayerBuffering:
+      /* no work for us to do, nice to know though? */
+		break;
+	case libvlc_MediaPlayerVout:
+      lprintf("VOUt - setup otuptu now..." );
+		{
+			unsigned x, y;
+			Image image;
+
+			if( vlc.libvlc_video_get_size( pmyi->mp, 0, &x, &y ) )
+			{
+				lprintf( WIDE( "error... no stream?" ) );
+				x = 640;
+				y = 480;
+			}
+			else
+				lprintf( WIDE( "Stream size is %d,%d" ), x, y );
+
+			image = MakeImageFile( pmyi->image_w = x, pmyi->image_h = y );
+			EnqueLink( &pmyi->available_frames, image );
+			
+			//lprintf( WIDE( "vlc 1.1.x set callbacks, get ready." ) );
+			vlc.libvlc_video_set_callbacks( pmyi->mp, lock_frame, unlock_frame, display_frame, pmyi );
+			//lprintf( WIDE( "Output %d %d" ), pmyi->image_w, pmyi->image_h );
+			vlc.libvlc_video_set_format(pmyi->mp, "RV32", pmyi->image_w, pmyi->image_h, -(signed)(pmyi->image_w*sizeof(CDATA)));
+		}
+
+      break;
 	case libvlc_MediaPlayerPlaying:
 		//xlprintf(LOG_ALWAYS)( WIDE( "Really playing." ) );
 		pmyi->flags.bPlaying = 1;
@@ -404,55 +540,6 @@ static void CPROC PlayerEvent( const libvlc_event_t *event, void *user )
 		break;
 	}
 
-}
-
-static
-void*
-CPROC lock_frame(
-									 void* psv, void **something
-									)
-{
-	struct my_vlc_interface *pmyi = (struct my_vlc_interface*)psv;
-#ifdef DEBUG_LOCK_UNLOCK
-	lprintf( WIDE( "LOCK." ) );
-#endif
-	if( pmyi->flags.direct_output && !l.flags.bRequireDraw )
-	{
-		CDATA *data;
-		pmyi->host_image = GetDisplayImage( pmyi->host_surface );
-		data = GetImageSurface( pmyi->host_image );
-#ifdef INVERT_DATA
-		data += pmyi->host_image->pwidth * (pmyi->host_image->height -1);
-#endif
-		(*something) = data;
-	}
-	else
-	{
-		Image capture = (Image)DequeLink( &pmyi->available_frames );
-		CDATA *data;
-#ifdef DEBUG_LOCK_UNLOCK
-		lprintf( WIDE( "locking..." ) );
-#endif
-		if( !capture )
-		{
-			pmyi->images++;
-			lprintf( WIDE( "Ran out of images... adding a new one... %d" ), pmyi->images );
-			capture = MakeImageFile( pmyi->image_w, pmyi->image_h );
-		}
-
-		pmyi->surface = capture;
-		pmyi->host_image = capture; // last captured image for unlock to enque.
-		data = GetImageSurface( pmyi->host_image );
-
-#ifdef INVERT_DATA
-		data += pmyi->surface->pwidth * (pmyi->surface->height -1);
-#endif
-#ifdef DEBUG_LOCK_UNLOCK
-		lprintf( WIDE( "Resulting surface %p" ), data );
-#endif
-		(*something) = data;
-	}
-	return NULL; // ID passed later for unlock, and used for display
 }
 
 static void AdjustAlpha( struct my_vlc_interface *pmyi )
@@ -652,60 +739,6 @@ static PTRSZVAL CPROC UpdateThread( PTHREAD thread )
 			}
 		}
 	}
-}
-
-
-static
-#ifndef USE_PRE_1_1_0_VLC
-void
-#else
-int
-#endif
- CPROC unlock_frame(
-#ifndef USE_PRE_1_1_0_VLC
-										void* psv
-									  , void *id, void *const *p_pixels
-#else
-                              PTRSZVAL psv
-#endif
-									  )
-{
-	struct my_vlc_interface *pmyi = (struct my_vlc_interface*)psv;
-	// in this case, we want to update the control - it's already had its content filled.
-#ifdef DEBUG_LOCK_UNLOCK
-	lprintf( WIDE( "unlock" ) );
-#endif
-	if( pmyi->flags.direct_output && !l.flags.bRequireDraw )
-	{
-		//pmyi->surface = pmyi->host_image;
-		//AdjustAlpha( pmyi);
-		if( pmyi->flags.transparent )
-			IssueUpdateLayeredEx( pmyi->host_surface, TRUE, 0, 0, pmyi->host_image->width, pmyi->host_image->height DBG_SRC );
-		else
-			Redraw( pmyi->host_surface );
-	}
-	else
-	{
-		EnqueLink( &pmyi->updated_frames, pmyi->host_image );
-		if( !l.flags.bRequireDraw )
-			WakeThread( pmyi->update_thread );
-		else
-			MarkImageDirty( pmyi->host_image );
-	}
-#ifdef USE_PRE_1_1_0_VLC
-	return 0;
-#endif
-
-}
-
-static void CPROC display_frame(void *data, void *id)
-{
-#ifdef DEBUG_LOCK_UNLOCK
-	lprintf( WIDE( "DISPLAY FRAME" ) );
-#endif
-    /* VLC wants to display the video */
-//    (void) data;
-    //assert(id == NULL);
 }
 
 
@@ -1458,6 +1491,10 @@ struct my_vlc_interface * PlayItemInEx( PSI_CONTROL pc, CTEXTSTR input, CTEXTSTR
 			pmyi->mpev = vlc.libvlc_vlm_get_event_manager( pmyi->inst );
 		}
 
+		vlc.libvlc_video_set_callbacks( pmyi->mp, lock_frame, unlock_frame, display_frame, pmyi );
+		BindAllEvents( pmyi );
+
+      if( 0 )
 		{
 			unsigned x, y;
 			Image image;
@@ -1475,18 +1512,16 @@ struct my_vlc_interface * PlayItemInEx( PSI_CONTROL pc, CTEXTSTR input, CTEXTSTR
 			EnqueLink( &pmyi->available_frames, image );
 			
 			//lprintf( WIDE( "vlc 1.1.x set callbacks, get ready." ) );
-			vlc.libvlc_video_set_callbacks( pmyi->mp, lock_frame, unlock_frame, display_frame, pmyi );
 			//lprintf( WIDE( "Output %d %d" ), pmyi->image_w, pmyi->image_h );
 			vlc.libvlc_video_set_format(pmyi->mp, "RV32", pmyi->image_w, pmyi->image_h, -(signed)(pmyi->image_w*sizeof(CDATA)));
 		}
 
 
-		BindAllEvents( pmyi );
 
 		vlc.libvlc_media_release (pmyi->m);
 
 		//vlc.libvlc_media_list_player_play_item_at_index( pmyi->mlp, 0 PASS_EXCEPT_PARAM );
-		//vlc.libvlc_media_player_play( pmyi->mp PASS_EXCEPT_PARAM);
+		vlc.libvlc_media_player_play( pmyi->mp PASS_EXCEPT_PARAM);
 
 		pmyi->flags.bStarted = 1;
 	}

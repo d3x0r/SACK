@@ -89,8 +89,9 @@ NETWORK_PROC( PCLIENT, CPPServeUDPAddrEx )( SOCKADDR *pAddr
 #endif
 		if (bind(pc->Socket,pc->saSource,SOCKADDR_LENGTH(pc->saSource)))
 		{
+			_32 err = WSAGetLastError();
+			_lprintf(DBG_RELAY)( WIDE("Bind Fail: %d"), err );
 			DumpAddr( WIDE( "BIND FAIL:" ), pc->saSource );
-			_lprintf(DBG_RELAY)( WIDE("Bind Fail: %d"), WSAGetLastError() );
 			InternalRemoveClientEx( pc, TRUE, FALSE );
 			NetworkUnlock( pc );
 			return NULL;
@@ -217,7 +218,8 @@ NETWORK_PROC( void, UDPEnableBroadcast)( PCLIENT pc, int bEnable )
       if( setsockopt( pc->Socket, SOL_SOCKET
                   , SO_BROADCAST, (char*)&bEnable, sizeof( bEnable ) ) )
 		{
-			lprintf( WIDE("Failed to set sock opt - BROADCAST(%d)"), WSAGetLastError() );
+			_32 error = WSAGetLastError();
+			lprintf( WIDE("Failed to set sock opt - BROADCAST(%d)"), error );
 		}
 }
 

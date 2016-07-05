@@ -5,6 +5,7 @@
 #ifdef __WATCOMC__
 #undef snprintf
 #endif
+#define __CRT__NO_INLINE
 #include <stdio.h>
 #include <string.h>
 

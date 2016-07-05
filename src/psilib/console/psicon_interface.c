@@ -2,6 +2,7 @@
 #define USE_IMAGE_INTERFACE ImageInterface
 #define USE_RENDER_INTERFACE RenderInterface
 
+#include <stdhdrs.h>
 #include <psi.h>
 #include <psi/console.h>
 
@@ -33,7 +34,7 @@ PSI_Console_Phrase PSIConsoleOutput( PSI_CONTROL pc, PTEXT lines )
 		PTEXT tmp;
 
 		remainder = parsed = burst( lines );
-		for( tmp = parsed; tmp; tmp = next )
+		for( tmp = remainder; tmp; tmp = next )
 		{
 			next = NEXTLINE( tmp );
 			if( !GetTextSize( tmp ) )
@@ -47,7 +48,7 @@ PSI_Console_Phrase PSIConsoleOutput( PSI_CONTROL pc, PTEXT lines )
 					prior->format.position.offset.spaces += (_16)console->pending_spaces;
 					prior->format.position.offset.tabs += (_16)console->pending_tabs;
 					que = BuildLine( prior );
-					if( !console->flags.bNewLine )
+					if( console->flags.bNewLine )
 						que->flags |= TF_NORETURN;
 					phrase  = PSI_WinLogicWriteEx( console, que, 0 );
 					LineRelease( prior );

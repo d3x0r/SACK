@@ -21,7 +21,11 @@ struct glSurfaceImageData {
 	} flags;
 	GLuint glIndex;
 };
+#else
+IMAGE_NAMESPACE
 #endif
+#else
+IMAGE_NAMESPACE
 #endif
 
 struct shade_cache_element {

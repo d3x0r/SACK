@@ -4,21 +4,28 @@
 #ifndef FINAL_TYPES
 #define FINAL_TYPES
 
-# ifdef __WATCOMC__
+#  ifdef __WATCOMC__
 #    include <stdio.h>
 #  endif //__WATCOMC__
 
-# ifdef _MSC_VER
+#  ifdef _WIN32
 
-#include <stdio.h>
-#include <baseTsd.h>
-#include <windef.h>
-#include <winbase.h>  // this redefines lprintf sprintf etc... and strsafe is preferred
-#include <winuser.h> // more things that need override by strsafe.h
-#include <tchar.h>
-#include <strsafe.h>
-#else
-#include <wchar.h>
+#    include <stdio.h>
+#    include <baseTsd.h>
+#    include <windef.h>
+#    include <winbase.h>  // this redefines lprintf sprintf etc... and strsafe is preferred
+#    include <winuser.h> // more things that need override by strsafe.h
+#    include <tchar.h>
+#    ifdef __GNUC__ // added for mingw64 actually
+#      undef __CRT__NO_INLINE
+#    endif
+#    ifndef MINGW_SUX
+#      include <strsafe.h>
+#    else
+#      define STRSAFE_E_INSUFFICIENT_BUFFER  0x8007007AL
+#    endif
+#  else
+#    include <wchar.h>
 #  endif
 
 // may consider changing this to P_16 for unicode...

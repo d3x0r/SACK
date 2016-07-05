@@ -142,7 +142,7 @@ RENDER_PROC( int, SetActiveGLDisplayView )( PVIDEO hDisplay, int nFracture )
 			lprintf( "Prior GL Context being released." );
 #endif
 			//lprintf( "swapping buffer..." );
-			glFlush();
+			//glFlush();
 			SwapBuffers( _hDisplay->hDCOutput );
 
 			if(!wglMakeCurrent( NULL, NULL) )               // Try To Deactivate The Rendering Context

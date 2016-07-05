@@ -22,7 +22,8 @@ But WHO doesn't have stdint?  BTW is sizeof( size_t ) == sizeof( void* )
 //#endif
 
 //#define USE_SACK_CUSTOM_MEMORY_ALLOCATION
-// this has to be a compile option (option from cmake)
+	// this has to be a compile option (option from cmake)
+   // enables debug dump mem...
 #ifdef USE_SACK_CUSTOM_MEMORY_ALLOCATION
 #define USE_CUSTOM_ALLOCER 1
 #else
@@ -1290,7 +1291,7 @@ SACK_NAMESPACE
 
 #  if defined( __STDC_FORMAT_MACROS )
 
-#    if !defined( __GNUC__ )
+#    if !defined( __GNUC__ ) || defined( _WIN32 )
 #      define _size_f    _WIDE( PRIu64 )
 #      define _size_fx   _WIDE( PRIx64 )
 #      define _size_fX   _WIDE( PRIX64 )
@@ -1316,7 +1317,7 @@ SACK_NAMESPACE
 #    define cPTRSZVALfx PRIx64 
 
 #  else
-#    if !defined( __GNUC__ )
+#    if !defined( __GNUC__ ) || defined( _WIN32 )
 #      define _size_f    _64f
 #      define _size_fx   _64fx
 #      define _size_fX   _64fX
@@ -1346,7 +1347,8 @@ SACK_NAMESPACE
 
 #  if defined( __STDC_FORMAT_MACROS )
 
-#    if !defined( __GNUC__ ) || defined( MINGW_SUX )
+      // this HAS been fixed in UCRT - 2015!  but it'll take 5 years before everyone has that...
+#    if !defined( __GNUC__ ) || defined( _WIN32 )
 #      define _size_f    _WIDE( PRIu32 )
 #      define _size_fx   _WIDE( PRIx32 )
 #      define _size_fX   _WIDE( PRIX32 )
@@ -1372,7 +1374,8 @@ SACK_NAMESPACE
 #    define cPTRSZVALfx PRIx32
 #  else
 
-#    if !defined( __GNUC__ ) || defined( MINGW_SUX )
+      // this HAS been fixed in UCRT - 2015!  but it'll take 5 years before everyone has that...
+#    if !defined( __GNUC__ ) || defined( _WIN32 )
 #      define _size_f    _32f
 #      define _size_fx   _32fx
 #      define _size_fX   _32fX

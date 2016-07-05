@@ -1706,7 +1706,7 @@ void SaveButtonConfig( PSI_CONTROL pc_canvas, TEXTCHAR *filename )
 	}
 	RenameConfig( filename, filename, strlen( filename ), 1 );
 
-	file = sack_fopen( 0, filename, WIDE("wt") );
+	file = sack_fopen( 0, filename, WIDE("wb") );
 	if( file )
 	{
        //sack_fprintf( file, WIDE("[config]\n") ); // make this look like an INI so some standard tools work.
@@ -1817,7 +1817,7 @@ void SaveButtonConfig( PSI_CONTROL pc_canvas, TEXTCHAR *filename )
 			POINTER mem = OpenSpace( NULL, tmpname, &size );
 			if( !mem )
 			{
-				readfile = sack_fopen( 0, tmpname, "rt" );
+				readfile = sack_fopen( 0, tmpname, "rb" );
 				if( readfile )
 				{
 					mem = NewArray( _8, size = sack_fsize( readfile ) );

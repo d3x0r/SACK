@@ -28,7 +28,7 @@ static int CPROC myKeyProc( PTRSZVAL dwUser, _32 key )
 	if( IsKeyPressed( key ) && ( KEY_CODE( key ) == KEY_SPACE ) )
 	{
 		struct my_button *media = (struct my_button *)dwUser;
-		//lprintf( "magic key..." );
+		lprintf( "magic key..." );
 		if( media->flags.showing_panel )
 		{
 			media->flags.showing_panel = 0;
@@ -39,8 +39,91 @@ static int CPROC myKeyProc( PTRSZVAL dwUser, _32 key )
 			media->flags.showing_panel = 1;
 			ShowMediaPanel( media );
 		}
+		return 1;
 	}
-   return 0;
+	return 0;
+}
+
+int CPROC touchEvent( PTRSZVAL psv, PINPUT_POINT touches, int nTouches )
+{
+	if( nTouches == 1 )
+	{
+      if( touches[0].flags.new_event )
+			switch( l.touch_step )
+			{
+			default:
+				l.touch_step = 0;
+            break;
+			case 0:
+				if( touches[0].x > l.display_width/2 && touches[0].y > l.display_height / 2 )
+				{
+					l.touch_step++;
+				}
+				else
+               l.touch_step = 0;
+				break;
+			case 2:
+				if( touches[0].x < l.display_width/2 && touches[0].y < l.display_height / 2 )
+				{
+					l.touch_step++;
+				}
+				else
+               l.touch_step = 0;
+				break;
+			case 4:
+				if( touches[0].x > l.display_width/2 && touches[0].y > l.display_height / 2 )
+				{
+					l.touch_step++;
+               l.last_touch = GetTickCount();
+				}
+				else
+               l.touch_step = 0;
+				break;
+			}
+		else if( touches[0].flags.end_event )
+		{
+			switch( l.touch_step )
+			{
+			case 1:
+				if( touches[0].x > l.display_width/2 && touches[0].y > l.display_height / 2 )
+				{
+					l.touch_step++;
+				}
+				else
+               l.touch_step = 0;
+				break;
+			case 3:
+				if( touches[0].x < l.display_width/2 && touches[0].y < l.display_height / 2 )
+				{
+					l.touch_step++;
+				}
+				else
+               l.touch_step = 0;
+				break;
+			case 5:
+				if( ( ( GetTickCount() - l.last_touch ) > 500 ) && ( touches[0].x > l.display_width/2 && touches[0].y > l.display_height / 2 ) )
+				{
+					ffmpeg_PauseFile( l.me.file );
+					HideDisplay( l.me.render );
+               // pause and hide.
+				}
+				else
+               l.touch_step = 0;
+
+				break;
+			}
+		}
+	}
+	if( nTouches > 1 ) {
+      l.touch_step = 0;
+	}
+	if( nTouches == 4 ) {
+		l.stopped = TRUE;
+		l.loop = FALSE;
+      l.exit_code = 1;
+		WakeThread( l.main_thread );
+
+	}
 }
 
 static PRENDERER CPROC GetDisplay( PTRSZVAL psv, _32 w, _32 h )
@@ -62,14 +145,20 @@ static PRENDERER CPROC GetDisplay( PTRSZVAL psv, _32 w, _32 h )
 	if( !( result = l.renderer ) )
 	{
 		l.renderer = result = OpenDisplaySizedAt( 0 /*DISPLAY_ATTRIBUTE_LAYERED*/, w, h, l.x_ofs, l.y_ofs );
+		l.display_width = w;
+		l.display_height = h;
 		SetKeyboardHandler( result, myKeyProc, (PTRSZVAL)p->media );
 		// auto hide idle mouse on this surface
 		DisableMouseOnIdle( result, TRUE );
 		SetDisplayFullScreen( result, l.full_display );
+		SetTouchHandler( result, touchEvent, 0 );
+		if( l.topmost )
+			MakeTopmost( result );
 	}
 	else
 	{
 		SizeDisplay( result, w, h );
+		SetDisplayFullScreen( result, l.full_display );
 	}
 	//MakeTopmost( result );
 	p->result = result;
@@ -200,11 +289,16 @@ static void SavePlayed( CTEXTSTR newname )
 	}
 }
 
+//static void
+
 #ifndef __ANDROID__
 SaneWinMain( argc, argv )
 {
 	int n;
-   ReloadPlayed();
+   int played = 0;
+	ReloadPlayed();
+	do {
+      played = 0;
 	for( n = 1; n < argc; n++ )
 	{
 		struct my_button *video;
@@ -239,20 +333,45 @@ SaneWinMain( argc, argv )
 			{
 				n++;
 				l.full_display = atoi( argv[n] );
+				GetDisplaySizeEx( l.full_display, &l.x_ofs, &l.y_ofs, &l.display_width, &l.display_height );
+
 			}
+			else if( argv[n][1] == 'l' )
+			{
+				l.loop = TRUE;
+			}
+			else if( argv[n][1] == 'f' )
+			{
+				l.stretch_full_display = TRUE;
+			}
+			else if( argv[n][1] == 't' )
+			{
+				l.touch_to_pause = TRUE;
+			}
+			else if( argv[n][1] == 'T' )
+			{
+				l.topmost = TRUE;
+			}
+
 			continue;
 		}
 		{
 			SavePlayed( argv[n] );
 			video = PlayVideo( argv[n] );
-			l.main_thread = MakeThread();
-			while( !l.stopped )
-			{
-				WakeableSleep( 100000 );
+			if( video->file ) {
+            played++;
+				l.main_thread = MakeThread();
+				while( !l.stopped )
+				{
+					WakeableSleep( 100000 );
+				}
+				ffmpeg_UnloadFile( l.me.file );
+				l.stopped = FALSE;
 			}
 		}
 	}
-	return 0;
+	} while( l.loop && played );
+	return l.exit_code;
 }
 EndSaneWinMain()
 #endif

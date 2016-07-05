@@ -214,7 +214,7 @@ if( USE_SQLITE )
   SET( BAG_SQLITE_INTERFACE  ${SOURCES_ROOT}src/contrib/sqlite/sqlite_interface.c )
   
 if( NOT SQLITE3_FOUND )
-  SET( SQLITE_VERSION 3.10.2 )
+  SET( SQLITE_VERSION 3.13.0 )
   SET( SQLITE_SOURCES ${SOURCES_ROOT}src/contrib/sqlite/${SQLITE_VERSION}/sqlite3.c )
   include_directories( ${SOURCES_ROOT}src/contrib/sqlite/${SQLITE_VERSION} )
   
@@ -366,25 +366,25 @@ set( SACK_PLUSPLUS_HEADERS ${SACK_PLUSPLUS_HEADERS}
      ${SOURCES_ROOT}src/netlib/html5.websocket/json/json.h
      ${SOURCES_ROOT}src/netlib/html5.websocket/html5.websocket.common.h
      
-     ${SOURCES_ROOT}src/contrib/MatrixSSL/3.7.1/matrixssl/matrixsslApi.h
-     ${SOURCES_ROOT}src/contrib/MatrixSSL/3.7.1/matrixssl/matrixsslConfig.h
-     ${SOURCES_ROOT}src/contrib/MatrixSSL/3.7.1/matrixssl/matrixssllib.h
-     ${SOURCES_ROOT}src/contrib/MatrixSSL/3.7.1/matrixssl/version.h
-     ${SOURCES_ROOT}src/contrib/MatrixSSL/3.7.1/core/coreApi.h
-     ${SOURCES_ROOT}src/contrib/MatrixSSL/3.7.1/core/osdep.h
-     ${SOURCES_ROOT}src/contrib/MatrixSSL/3.7.1/core/list.h
-     ${SOURCES_ROOT}src/contrib/MatrixSSL/3.7.1/core/psmalloc.h
-     ${SOURCES_ROOT}src/contrib/MatrixSSL/3.7.1/core/coreConfig.h
-     ${SOURCES_ROOT}src/contrib/MatrixSSL/3.7.1/crypto/cryptoApi.h
-     ${SOURCES_ROOT}src/contrib/MatrixSSL/3.7.1/crypto/cryptolib.h
-     ${SOURCES_ROOT}src/contrib/MatrixSSL/3.7.1/crypto/cryptoConfig.h
-     ${SOURCES_ROOT}src/contrib/MatrixSSL/3.7.1/crypto/symmetric/symmetric.h
-     ${SOURCES_ROOT}src/contrib/MatrixSSL/3.7.1/crypto/math/pstm.h
-     ${SOURCES_ROOT}src/contrib/MatrixSSL/3.7.1/crypto/digest/digest.h
-     ${SOURCES_ROOT}src/contrib/MatrixSSL/3.7.1/crypto/pubkey/pubkey.h
-     ${SOURCES_ROOT}src/contrib/MatrixSSL/3.7.1/crypto/keyformat/asn1.h
-     ${SOURCES_ROOT}src/contrib/MatrixSSL/3.7.1/crypto/keyformat/x509.h
-     ${SOURCES_ROOT}src/contrib/MatrixSSL/3.7.1/crypto/prng/prng.h
+     ${SOURCES_ROOT}src/contrib/MatrixSSL/${MATRIXSSL_VERSION}/matrixssl/matrixsslApi.h
+     ${SOURCES_ROOT}src/contrib/MatrixSSL/${MATRIXSSL_VERSION}/matrixssl/matrixsslConfig.h
+     ${SOURCES_ROOT}src/contrib/MatrixSSL/${MATRIXSSL_VERSION}/matrixssl/matrixssllib.h
+     ${SOURCES_ROOT}src/contrib/MatrixSSL/${MATRIXSSL_VERSION}/matrixssl/version.h
+     ${SOURCES_ROOT}src/contrib/MatrixSSL/${MATRIXSSL_VERSION}/core/coreApi.h
+     ${SOURCES_ROOT}src/contrib/MatrixSSL/${MATRIXSSL_VERSION}/core/osdep.h
+     ${SOURCES_ROOT}src/contrib/MatrixSSL/${MATRIXSSL_VERSION}/core/list.h
+     ${SOURCES_ROOT}src/contrib/MatrixSSL/${MATRIXSSL_VERSION}/core/psmalloc.h
+     ${SOURCES_ROOT}src/contrib/MatrixSSL/${MATRIXSSL_VERSION}/core/coreConfig.h
+     ${SOURCES_ROOT}src/contrib/MatrixSSL/${MATRIXSSL_VERSION}/crypto/cryptoApi.h
+     ${SOURCES_ROOT}src/contrib/MatrixSSL/${MATRIXSSL_VERSION}/crypto/cryptolib.h
+     ${SOURCES_ROOT}src/contrib/MatrixSSL/${MATRIXSSL_VERSION}/crypto/cryptoConfig.h
+     ${SOURCES_ROOT}src/contrib/MatrixSSL/${MATRIXSSL_VERSION}/crypto/symmetric/symmetric.h
+     ${SOURCES_ROOT}src/contrib/MatrixSSL/${MATRIXSSL_VERSION}/crypto/math/pstm.h
+     ${SOURCES_ROOT}src/contrib/MatrixSSL/${MATRIXSSL_VERSION}/crypto/digest/digest.h
+     ${SOURCES_ROOT}src/contrib/MatrixSSL/${MATRIXSSL_VERSION}/crypto/pubkey/pubkey.h
+     ${SOURCES_ROOT}src/contrib/MatrixSSL/${MATRIXSSL_VERSION}/crypto/keyformat/asn1.h
+     ${SOURCES_ROOT}src/contrib/MatrixSSL/${MATRIXSSL_VERSION}/crypto/keyformat/x509.h
+     ${SOURCES_ROOT}src/contrib/MatrixSSL/${MATRIXSSL_VERSION}/crypto/prng/prng.h
      
      )
 
@@ -501,10 +501,16 @@ set( UUID_SOURCES
   ${SOURCES_ROOT}src/contrib/uuid-1.6.2/uuid_ui64.c
 )
 
-SET( VECTLIB_SOURCES src/vectlib/vectlib.c )
-SET_PROPERTY(SOURCE ${VECTLIB_SOURCES}
+SET( VECTLIB_SOURCES src/vectlib/vectlib.c  
+    )
+SET( VECTLIB_MORE_SOURCES src/vectlib/vectlib.c  
+    ${CMAKE_BINARY_DIR}/src/vectlib/vectlib_double.c
+     ${SOURCES_ROOT}src/vectlib/vecstruc.h
+
+    )
+SET_PROPERTY(SOURCE src/vectlib/vectlib.c  
                  APPEND 
-		PROPERTY COMPILE_DEFINITIONS "MAKE_RCOORD_SINGLE;NO_UNICODE_C" ) 
+		PROPERTY COMPILE_DEFINITIONS "MAKE_RCOORD_SINGLE" ) 
 
 
 set( MD5_SOURCES
@@ -657,6 +663,7 @@ set_source_files_properties(${TYPE_LIBRARY_SOURCES} PROPERTIES LANGUAGE CXX )
 set_source_files_properties(${ADVANCED_TYPE_LIBRARY_SOURCES} PROPERTIES LANGUAGE CXX )
 set_source_files_properties(${NETWORK_SOURCES} PROPERTIES LANGUAGE CXX )
 set_source_files_properties(${VECTLIB_SOURCES} PROPERTIES LANGUAGE CXX)
+set_source_files_properties(${VECTLIB_MORE_SOURCES} PROPERTIES LANGUAGE CXX)
 set_source_files_properties(${OPTION_SOURCE} PROPERTIES LANGUAGE CXX )
 set_source_files_properties(${ODBC_SOURCES} PROPERTIES LANGUAGE CXX )
 set_source_files_properties(${BASE_SOURCES} PROPERTIES LANGUAGE CXX )

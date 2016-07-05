@@ -360,7 +360,8 @@ void IssueUpdateLayeredEx( PVIDEO hVideo, LOGICAL bContent, S_32 x, S_32 y, _32 
 																	, bContent?(HDC)hVideo->hDCOutput:NULL
 																	, bContent?&hVideo->topPos:NULL
 																	, bContent?&hVideo->size:NULL
-																	, bContent?(hVideo->flags.bLayeredWindow&&hVideo->flags.bFullScreen && !hVideo->flags.bNotFullScreen)?(HDC)hVideo->hDCBitmapFullScreen:hVideo->hDCBitmap:NULL
+																	, bContent?(hVideo->flags.bLayeredWindow&&hVideo->flags.bFullScreen
+																					&& !hVideo->flags.bNotFullScreen)?(HDC)hVideo->hDCBitmapFullScreen:hVideo->hDCBitmap:NULL
 																	, bContent?&pointSource:NULL
 																	, 0 // color key
 																	, &blend
@@ -681,8 +682,12 @@ RENDER_PROC (void, UpdateDisplayPortionEx)( PVIDEO hVideo
 									}
 									y = ( hVideo->full_screen.height - h ) / 2;
 									x = ( hVideo->full_screen.width - w ) / 2;
-									StretchBlt ((HDC)hVideo->hDCOutput, x, y, w, h,//hVideo->full_screen.width, hVideo->full_screen.height,
-										(HDC)hVideo->hDCBitmap, 0, 0, hVideo->pImage->width, hVideo->pImage->height, SRCCOPY);
+									if( l.flags.bDoNotPreserveAspectOnFullScreen )
+										StretchBlt ((HDC)hVideo->hDCOutput, hVideo->full_screen.x, hVideo->full_screen.y, hVideo->full_screen.width, hVideo->full_screen.height,
+														(HDC)hVideo->hDCBitmap, 0, 0, hVideo->pImage->width, hVideo->pImage->height, SRCCOPY);
+									else
+										StretchBlt ((HDC)hVideo->hDCOutput, x, y, w, h,//hVideo->full_screen.width, hVideo->full_screen.height,
+														(HDC)hVideo->hDCBitmap, 0, 0, hVideo->pImage->width, hVideo->pImage->height, SRCCOPY);
 								}
 								else
 									BitBlt ((HDC)hVideo->hDCOutput, x, y, w, h,
@@ -1604,7 +1609,7 @@ LRESULT CALLBACK
 		}
 
 		//lprintf( WIDE("hvid is %p"), hVid );
-		if(hVid)
+ 		if(hVid)
 		{
 			{
 				PVIDEO hVideo = hVid;
@@ -1677,7 +1682,7 @@ LRESULT CALLBACK
 		{
 			dispatch_handled = HandleKeyEvents( KeyDefs, key );
 		}
-		lprintf( WIDE( "code:%d handled:%d" ), code, dispatch_handled );
+		//lprintf( WIDE( "code:%d handled:%d" ), code, dispatch_handled );
 		// do we REALLY have to call the next hook?!
 		// I mean windows will just fuck us in the next layer....
 		if( ( code < 0 )|| !dispatch_handled )
@@ -2705,6 +2710,7 @@ WM_DROPFILES
 					for( n = 0; n < count; n++ )
 					{
 						// windows coordiantes some in in hundreths of pixesl as a long
+#ifdef _DEBUG
 						lprintf( WIDE("input point %d,%d %08x  %s %s %s %s %s %s %s")
 								 , inputs[n].x, inputs[n].y
 								 , inputs[n].dwFlags
@@ -2715,8 +2721,8 @@ WM_DROPFILES
 								 , ( inputs[n].dwFlags & TOUCHEVENTF_PRIMARY)?WIDE("Primary"):WIDE("")
 								 , ( inputs[n].dwFlags & TOUCHEVENTF_NOCOALESCE)?WIDE("NoCoales"):WIDE("")
 								 , ( inputs[n].dwFlags & TOUCHEVENTF_PALM)?WIDE("PALM"):WIDE("")
-
 								 );
+#endif
 						outputs[n].x = inputs[n].x / 100.0f;
 						outputs[n].y = inputs[n].y / 100.0f;
 
@@ -3791,7 +3797,9 @@ static void HandleMessage (MSG Msg)
 		//lprintf( WIDE( "Handling SHOW_WINDOW message! %p" ), Msg.lParam );
 		if( hVideo->flags.bTopmost )
 		{
+#ifdef LOG_SHOW_HIDE
 			lprintf( "Got a posted show - set to topmost.." );
+#endif
 			SetWindowPos( hVideo->hWndOutput
 				, HWND_TOPMOST
 				, 0, 0, 0, 0,
@@ -3987,6 +3995,8 @@ static void VideoLoadOptions( void )
 	l.flags.bLogWrites = SACK_GetOptionIntEx( option, GetProgramName(), WIDE( "SACK/Video Render/Log Video Output" ), 0, TRUE );
 	l.flags.bLogDisplayEnumTest = SACK_GetOptionIntEx( option, GetProgramName(), WIDE( "SACK/Video Render/Log Display Enumeration" ), 0, TRUE );
 	l.flags.bUseLLKeyhook = SACK_GetOptionIntEx( option, GetProgramName(), WIDE( "SACK/Video Render/Use Low Level Keyhook" ), 0, TRUE );
+   l.flags.bDisableAutoDoubleClickFullScreen = SACK_GetOptionIntEx( option, GetProgramName(), WIDE( "SACK/Video Render/Disable full-screen mouse auto double-click" ), 0, TRUE );
+   l.flags.bDoNotPreserveAspectOnFullScreen = SACK_GetOptionIntEx( option, GetProgramName(), WIDE( "SACK/Video Render/Do not preserve aspect streching full-screen" ), 0, TRUE );
 	DropOptionODBC( option );
 #else
 #  ifndef UNDER_CE
@@ -4190,10 +4200,17 @@ void CPROC Vidlib_SetDisplayFullScreen( PRENDERER hVideo, int target_display )
 					w =  hVideo->pImage->width * hVideo->full_screen.height / hVideo->pImage->height;
 					h =  hVideo->pImage->height * hVideo->full_screen.height / hVideo->pImage->height;
 				}
-				MoveSizeDisplay( hVideo
-						, hVideo->full_screen.x + (( hVideo->full_screen.width - w ) / 2)
-						, hVideo->full_screen.y + (( hVideo->full_screen.height - h ) / 2)
-						, w, h );
+				if( l.flags.bDoNotPreserveAspectOnFullScreen )
+					MoveSizeDisplay( hVideo
+										, hVideo->full_screen.x// + (( hVideo->full_screen.width - w ) / 2)
+										, hVideo->full_screen.y// + (( hVideo->full_screen.height - h ) / 2)
+										, hVideo->full_screen.width
+										, hVideo->full_screen.height );
+            else
+					MoveSizeDisplay( hVideo
+										, hVideo->full_screen.x + (( hVideo->full_screen.width - w ) / 2)
+										, hVideo->full_screen.y + (( hVideo->full_screen.height - h ) / 2)
+										, w, h );
 			}
 		}
 	}
@@ -4205,6 +4222,8 @@ static int CPROC DefaultMouse( PRENDERER r, S_32 x, S_32 y, _32 b )
 	static _32 mouse_first_click_tick_changed;
 	_32 tick = timeGetTime();
 	//lprintf( "Default mouse on %p  %d,%d %08x", r, x, y, b );
+	if( !l.flags.bDisableAutoDoubleClickFullScreen )
+	{
 	if( r->flags.bFullScreen )
 	{
 		static _32 mouse_first_click_tick;
@@ -4246,7 +4265,13 @@ static int CPROC DefaultMouse( PRENDERER r, S_32 x, S_32 y, _32 b )
 									w =  r->pImage->width * r->full_screen.height / r->pImage->height;
 									h =  r->pImage->height * r->full_screen.height / r->pImage->height;
 								}
-								MoveSizeDisplay( r
+                        if( l.flags.bDoNotPreserveAspectOnFullScreen )
+									MoveSizeDisplay( r
+										, r->full_screen.x// + (( r->full_screen.width - w ) / 2)
+										, r->full_screen.y// + (( r->full_screen.height - h ) / 2)
+													, r->full_screen.width, r->full_screen.height );
+                        else
+									MoveSizeDisplay( r
 										, r->full_screen.x + (( r->full_screen.width - w ) / 2)
 										, r->full_screen.y + (( r->full_screen.height - h ) / 2)
 										, w, h );
@@ -4278,6 +4303,7 @@ static int CPROC DefaultMouse( PRENDERER r, S_32 x, S_32 y, _32 b )
 				MoveDisplayRel( r, x - l_lock_x, y - l_lock_y );
 			}
 		}
+	}
 	}
 	l_mouse_b = b;
 	return 1;
@@ -4665,6 +4691,7 @@ RENDER_PROC (void, SizeDisplay) (PVIDEO hVideo, _32 w, _32 h)
 	if( w == hVideo->pWindowPos.cx && h == hVideo->pWindowPos.cy )
 		return;
 	// if this isn't updated, this determines a forced size during changing.
+   hVideo->flags.bFullScreen = FALSE;
 	hVideo->pWindowPos.cx = w;
 	hVideo->pWindowPos.cy = h;
 	if( hVideo->flags.bLayeredWindow )
@@ -5810,7 +5837,7 @@ PRIORITY_PRELOAD( VideoRegisterInterface, VIDLIB_PRELOAD_PRIORITY )
 #  endif
 #endif
 		, GetDisplayInterface, DropDisplayInterface );
-	if( SACK_GetProfileInt( WIDE("SACK/Video Render"), WIDE("enable alt-f4 exit"), 0 ) )
+	if( SACK_GetProfileInt( WIDE("SACK/Video Render"), WIDE("enable alt-f4 exit"), 1 ) )
 		BindEventToKey( NULL, KEY_F4, KEY_MOD_RELEASE|KEY_MOD_ALT, DefaultExit, 0 );
 	//EnableLoggingOutput( TRUE );
 	VideoLoadOptions();

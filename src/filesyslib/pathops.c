@@ -343,6 +343,7 @@ LOGICAL  IsPath ( CTEXTSTR path )
 			MakePath( tmppath );
 			status = CreateDirectory( path, NULL );
 		}
+		Release( tmppath );
 	}
 	return status;
 #else

@@ -34,10 +34,10 @@ namespace sack {
 #ifdef NO_PRIVATE_DEF
 struct critical_section_tag {
 	volatile _32 dwUpdating; // this is set when entering or leaving (updating)...
-   volatile _32 dwLocks;
+	volatile _32 dwLocks;
 	THREAD_ID dwThreadID; // windows upper 16 is process ID, lower is thread ID
-   THREAD_ID dwThreadWaiting; // ID of thread waiting for this..
-   //PDATAQUEUE pPriorWaiters;
+	THREAD_ID dwThreadWaiting; // ID of thread waiting for this..
+	//PDATAQUEUE pPriorWaiters;
 #ifdef DEBUG_CRITICAL_SECTIONS
 	_32 bCollisions ;
 	CTEXTSTR pFile;
@@ -68,7 +68,8 @@ namespace sack {
 
 PREFIX_PACKED struct malloc_chunk_tag
 {
-	_32 dwOwners;            // if 0 - block is free
+	_16 dwOwners;   // if 0 - block is free
+	_16 dwPad;      // extra bytes 4/12 typical, sometimes pad untill next. (alignment extra bytes)
 #ifdef __64__
 	_32 pad;
 #endif
@@ -76,10 +77,11 @@ PREFIX_PACKED struct malloc_chunk_tag
 #ifdef ENABLE_NATIVE_MALLOC_PROTECTOR
 	_32 LeadProtect[2];
 #endif
+	_32 to_chunk_start; // this is additional to subtract to get back to start (aligned allocate)
 	_8 byData[1]; // _8 is the smallest valid datatype could be _0
 } PACKED;
 
-struct heap_chunk_tag
+PREFIX_PACKED struct heap_chunk_tag
 {
 	_16 dwOwners;            // if 0 - block is free
 	_16 dwPad;   // extra bytes 4/12 typical, sometimes pad untill next.
@@ -90,8 +92,9 @@ struct heap_chunk_tag
 	struct heap_chunk_tag *pPrior;         // save some math backwards...
 	struct memory_block_tag * pRoot;  // pointer to master allocation struct (pMEM)
 	DeclareLink( struct heap_chunk_tag );
+	_32 to_chunk_start; // this is additional to subtract to get back to start (aligned allocate)
 	_8 byData[1]; // _8 is the smallest valid datatype could be _0
-};
+} PACKED;
 
 // a chunk of memory in a heap space, heaps are also tracked, so extents
 // of that space are known, therefore one can identify a heap chunk
