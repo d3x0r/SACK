@@ -92,6 +92,7 @@ static void LocalInit( void )
 			InitializeCriticalSec( &(*winfile_local).cs_files );
 			(*winfile_local).flags.bInitialized = 1;
 			(*winfile_local).flags.bLogOpenClose = 0;
+         (*winfile_local).flags.bDeallocateClosedFiles = 1;
 			{
 #ifdef _WIN32
 				sack_set_common_data_producer( WIDE( "Freedom Collective" ) );
@@ -1425,6 +1426,7 @@ int  sack_fflush ( FILE *file_file )
 int  sack_fclose ( FILE *file_file )
 {
 	struct file *file;
+	EnterCriticalSec( &(*winfile_local).cs_files );
 	file = FindFileByFILE( file_file );
 	if( file )
 	{
@@ -1435,18 +1437,21 @@ int  sack_fclose ( FILE *file_file )
 			status = file->mount->fsi->_close( file_file );
 		else
 			status = fclose( file_file );
-		EnterCriticalSec( &(*winfile_local).cs_files );
 		DeleteLink( &file->files, file_file );
-		DeleteLink( &(*winfile_local).files, file );
-		LeaveCriticalSec( &(*winfile_local).cs_files );
+		if( !GetLinkCount( file->files ) ) {
+			DeleteListEx( &file->files DBG_SRC );
+			DeleteLink( &(*winfile_local).files, file );
+
+			Deallocate( TEXTCHAR*, file->name );
+			Deallocate( TEXTCHAR*, file->fullname );
+			Deallocate( struct file*, file );
+		}
 		if( (*winfile_local).flags.bLogOpenClose )
 			lprintf( WIDE( "deleted FILE* %p and list is %p" ), file_file, file->files );
-
-		Deallocate( TEXTCHAR*, file->name );
-		Deallocate( TEXTCHAR*, file->fullname );
-		Deallocate( struct file*, file );
+		LeaveCriticalSec( &(*winfile_local).cs_files );
 		return status;
 	}
+	LeaveCriticalSec( &(*winfile_local).cs_files );
 
 	return fclose( file_file );
 }
@@ -1725,10 +1730,6 @@ static size_t CPROC sack_filesys_size( void*file ) { return sack_fsize( (FILE*)f
 static size_t CPROC sack_filesys_tell( void*file ) { return sack_ftell( (FILE*)file ); }
 static int CPROC sack_filesys_flush( void*file ) { return sack_fflush( (FILE*)file ); }
 static int CPROC sack_filesys_exists( PTRSZVAL psv, const char*file );
-//static int CPROC sack_filesys_( FILE*filename, ) { return ( ); }
-//static int CPROC sack_filesys_( FILE*filename, ) { return ( ); }
-//static int CPROC sack_filesys_( FILE*filename, ) { return ( ); }
-//static int CPROC sack_filesys_( FILE*filename, ) { return ( ); }
 
 static struct file_system_interface native_fsi = {
 	sack_filesys_open
@@ -1759,6 +1760,7 @@ PRIORITY_PRELOAD( InitWinFileSysEarly, OSALOT_PRELOAD_PRIORITY - 1 )
 PRELOAD( InitWinFileSys )
 {
 	(*winfile_local).flags.bLogOpenClose = SACK_GetProfileIntEx( WIDE( "SACK/filesys" ), WIDE( "Log open and close" ), (*winfile_local).flags.bLogOpenClose, TRUE );
+	(*winfile_local).flags.bDeallocateClosedFiles = SACK_GetProfileIntEx( WIDE( "SACK/filesys" ), WIDE( "Deallocate closed files" ), (*winfile_local).flags.bLogOpenClose, TRUE );
 }
 #endif
 

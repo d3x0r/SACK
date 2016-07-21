@@ -2007,7 +2007,7 @@ VideoWindowProc (HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 	//static UINT uLastMouseMsg;
 #if defined( OTHER_EVENTS_HERE )
 	if( l.flags.bLogMessages )
-		if( uMsg != 13 && uMsg != WM_TIMER ) // get window title?
+		//if( uMsg != 13 && uMsg != WM_TIMER ) // get window title?
 		{
 			lprintf( WIDE("Got message %p %d(%04x) %p %p %d"), hWnd, uMsg, uMsg, wParam, lParam, ++level );
 		}
@@ -2021,7 +2021,7 @@ VideoWindowProc (HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
 	case 13:
 #if defined( OTHER_EVENTS_HERE )
-		level++;
+		//level++;
 #endif
 		break;
 	case WM_MOVE:
@@ -3126,6 +3126,7 @@ WM_DROPFILES
 			hVideo = (PVIDEO)GetWindowLongPtr( hWnd, WD_HVIDEO );
 			if( hVideo && hVideo->top_force_timer_id == wParam )
 			{
+				lprintf( "tick for top_force_timer" );
 				if( hVideo->flags.bAbsoluteTopmost )
 				{
 					if( GetTopWindow( NULL ) != hVideo->hWndOutput )
@@ -3135,6 +3136,7 @@ WM_DROPFILES
 		}
 		if( l.flags.mouse_on && l.last_mouse_update )
 		{
+			//lprintf( "tick for mouse_hide" );
 #ifdef LOG_MOUSE_HIDE_IDLE
 			lprintf( WIDE( "Pending mouse away... %d" ), timeGetTime() - ( l.last_mouse_update ) );
 #endif
@@ -3146,17 +3148,38 @@ WM_DROPFILES
 #endif
 				l.flags.mouse_on = 0;
 				//l.last_mouse_update = 0;
-				while( x = ShowCursor( FALSE ) )
+				//lprintf( "showCursor(FALSE)" );
 				{
+					CURSORINFO  ci;
+#ifndef CURSOR_SUPPRESSED
+#  define CURSOR_SUPPRESSED 0x00000002
+#endif
+					ci.cbSize = sizeof( CURSORINFO );
+					if( GetCursorInfo( &ci ) ) {
+						//lprintf( "cursor info is %d", ci.flags );
+						if( (ci.flags & CURSOR_SHOWING) && !(ci.flags & CURSOR_SUPPRESSED) ) {
+							int c = ShowCursor( TRUE );
+							//lprintf( "cursor count will be %d", c );
+							while( c && ( x = ShowCursor( FALSE ) ) )
+							{
+								//lprintf( "cursor count will be %d", x );
+							}
+							//lprintf( "cursor count will be %d", x );
+						}
+					}
+					else {
+						lprintf( "Cursor info failed? %d", GetLastError() );
+					}
 				}
 #ifdef LOG_MOUSE_HIDE_IDLE
 				lprintf( WIDE( "Show count %d %d" ), x, GetLastError() );
 #endif
+				//lprintf( "setCursor(NULL)" );
 				SetCursor( NULL );
 			}
 		}
 		// this is a special return, it doesn't decrement the counter... cause WM_TIMER is filtered in OTHER_EVENTS logging
-		return 0;
+		Return 0;
 		//break;
 	case WM_CREATE:
 		{

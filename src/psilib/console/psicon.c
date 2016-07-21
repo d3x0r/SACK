@@ -110,7 +110,7 @@ static int CPROC InitPSIConsole( PSI_CONTROL pc );
 static int CPROC MouseHandler( PCOMMON pc, S_32 x, S_32 y, _32 b );
 static int CPROC KeyEventProc( PCOMMON pc, _32 key );
 
-CONTROL_REGISTRATION ConsoleClass = { WIDE("PSI Console"), { { -1, -1 }, sizeof( CONSOLE_INFO ), BORDER_NORMAL|BORDER_RESIZABLE|BORDER_FIXED }
+CONTROL_REGISTRATION ConsoleClass = { WIDE("PSI Console"), { { 640, 480 }, sizeof( CONSOLE_INFO ), BORDER_NORMAL|BORDER_RESIZABLE|BORDER_FIXED }
 												, InitPSIConsole
 												, NULL
 												, NULL//RenderChildWindow

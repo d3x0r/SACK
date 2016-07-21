@@ -27,6 +27,7 @@ extern
 	struct {
 		BIT_FIELD bLogOpenClose : 1;
 		BIT_FIELD bInitialized : 1;
+		BIT_FIELD bDeallocateClosedFiles : 1;
 	} flags;
 	TEXTSTR data_file_root;
 	TEXTSTR producer;

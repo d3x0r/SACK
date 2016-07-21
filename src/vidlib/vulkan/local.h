@@ -486,7 +486,14 @@ extern
 
 //--------------------------vulkan_interface.c 
 
+#if defined(_WIN32)
 void EnableVulkan( HINSTANCE hInstance, struct display_camera *camera );
+#elif defined(__ANDROID__)
+void EnableVulkan( ANativeWindow *window, struct display_camera *camera );
+#else
+void EnableVulkan( xcb_connection_t *connection,
+	xcb_window_t *window, struct display_camera *camera );
+#endif
 
 
 

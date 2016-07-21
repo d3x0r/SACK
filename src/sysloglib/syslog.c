@@ -511,7 +511,6 @@ void InitSyslog( int ignore_options )
 		(*syslog_local).hSyslogdSock = INVALID_SOCKET;
 		bCPUTickWorks = 1;
 		nLogLevel = LOG_NOISE-1; // default log EVERYTHING
-#
 #ifdef __ANDROID__
 		{
 			logtype = SYSLOG_SYSTEM;
