@@ -397,11 +397,14 @@ typedef struct myfinddata {
 			}
 			else
 			{
-				StrCpyEx( findbasename(pInfo), WIDE("."), 2 );
+				StrCpyEx( findbasename(pInfo), WIDE(""), 2 );
 				StrCpyEx( findmask(pInfo), mask, MAX_PATH_NAME );
 			}
 		}
-		tnprintf( findmask, sizeof(findmask), WIDE("%s/*"), findbasename(pInfo) );
+		if( findbasename(pInfo)[0] )
+			tnprintf( findmask, sizeof(findmask), WIDE("%s/*"), findbasename(pInfo) );
+		else
+			tnprintf( findmask, sizeof( findmask ), WIDE( "*" ) );
 		if( pData->scanning_mount?pData->scanning_mount->fsi:NULL )
 			if( pData->scanning_mount->fsi->find_first( findcursor(pInfo) ) )
 				findhandle(pInfo) = 0;
@@ -540,7 +543,10 @@ getnext:
 		if( pData->scanning_mount?pData->scanning_mount->fsi:NULL )
 		{
 			tnprintf( pData->file_buffer, MAX_PATH_NAME, WIDE("%s"), pData->scanning_mount->fsi->find_get_name( findcursor(pInfo) ) );
-			tnprintf( pData->buffer, MAX_PATH_NAME, WIDE("%s/%s"), findbasename(pInfo), pData->file_buffer );
+			if( findbasename( pInfo )[0] )
+				tnprintf( pData->buffer, MAX_PATH_NAME, WIDE("%s/%s"), findbasename(pInfo), pData->file_buffer );
+			else
+				tnprintf( pData->buffer, MAX_PATH_NAME, WIDE( "%s" ), pData->file_buffer );
 		}
 		else
 		{
@@ -550,7 +556,7 @@ getnext:
 			tnprintf( pData->buffer, MAX_PATH_NAME, WIDE("%s/%s"), findbasename(pInfo), finddata(pInfo)->cFileName );
 #  else
 			tnprintf( pData->file_buffer, MAX_PATH_NAME, WIDE("%s"), finddata(pInfo)->name );
-			tnprintf( pData->buffer, MAX_PATH_NAME, WIDE("%s/%s"), findbasename(pInfo), pData->file_buffer );
+			tnprintf( pData->buffer, MAX_PATH_NAME, WIDE("%s%s%s"), findbasename(pInfo), findbasename( pInfo )[0]?"/":"", pData->file_buffer );
 #  endif
 #else
 			tnprintf( pData->file_buffer, MAX_PATH_NAME, WIDE("%s"), de->d_name );

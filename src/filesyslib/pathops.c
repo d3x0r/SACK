@@ -21,7 +21,7 @@ extern TEXTSTR ExpandPath( CTEXTSTR path );
 	end2 = StrRChr( path, '/' );
 	if( end1 > end2 )
 		return end1;
-   return end2;
+	return end2;
 }
 
 #ifdef __cplusplus
@@ -32,7 +32,7 @@ extern TEXTSTR ExpandPath( CTEXTSTR path );
 	end2 = StrRChr( path, '/' );
 	if( end1 > end2 )
 		return end1;
-   return end2;
+	return end2;
 }
 #endif
 
@@ -47,13 +47,13 @@ extern TEXTSTR ExpandPath( CTEXTSTR path );
 	{
 		if( end1 < end2 )
 			return end1;
-	  return end2;
+		return end2;
 	}
 	else if( end1 )
 		return end1;
 	else if( end2 )
-	  return end2;
-   return NULL;
+		return end2;
+	return NULL;
 }
 
 //-----------------------------------------------------------------------
@@ -74,7 +74,7 @@ TEXTSTR GetCurrentPath( TEXTSTR path, int len )
 		//tmppath = DupCStr( _path );
 		//StrCpyEx( path, tmppath, len );
 		path[0] = '.';
-      path[1] = 0;
+		path[1] = 0;
 	}
 #	  else
 	getcwd( path, len );
@@ -335,13 +335,14 @@ LOGICAL  IsPath ( CTEXTSTR path )
 	status = CreateDirectory( path, NULL );
 	if( !status )
 	{
+		uint32_t err = GetLastError();
 		TEXTSTR tmppath = StrDup( path );
 		TEXTSTR last = (TEXTSTR)pathrchr( tmppath );
 		if( last )
 		{
 			last[0] = 0;
-			MakePath( tmppath );
-			status = CreateDirectory( path, NULL );
+			if( MakePath( tmppath ) )
+				status = CreateDirectory( path, NULL );
 		}
 		Release( tmppath );
 	}
@@ -366,25 +367,25 @@ LOGICAL  IsPath ( CTEXTSTR path )
 int  SetCurrentPath ( CTEXTSTR path )
 {
 	int status = 1;
-   TEXTSTR tmp_path;
+	TEXTSTR tmp_path;
 	if( !path )
 		return 0;
-   tmp_path = ExpandPath( path );
+	tmp_path = ExpandPath( path );
 #ifndef UNDER_CE
 #  ifdef _WIN32
 	status = SetCurrentDirectory( tmp_path );
 #  else
 #	ifdef UNICODE
-	 {
-	   char *tmppath = CStrDup( path );
-		 status = chdir( tmppath ); // make directory with full umask permissions
-		 Release( tmppath );
-	 }
+	{
+		char *tmppath = CStrDup( path );
+		status = chdir( tmppath ); // make directory with full umask permissions
+		Release( tmppath );
+	}
 #	else
 	 status = !chdir( tmp_path );
 #	endif
 #  endif
-   Release( tmp_path );
+	Release( tmp_path );
 	if( status )
 	{
 		TEXTCHAR tmp[256];
@@ -447,40 +448,3 @@ FILESYS_NAMESPACE_END
 
 
 //-----------------------------------------------------------------------
-// $Log: pathops.c,v $
-// Revision 1.14  2005/05/06 18:15:24  jim
-// Add ability to set file write time.
-//
-// Revision 1.13  2004/05/27 21:37:39  d3x0r
-// Syncpoint.
-//
-// Revision 1.12  2004/05/06 08:13:46  d3x0r
-// Apply repsiective const changes to pathchr, pathrchr
-//
-// Revision 1.11  2004/01/12 08:42:16  panther
-// Fix return type of pathchr
-//
-// Revision 1.10  2004/01/07 09:46:37  panther
-// Fix pathops to handle const char * decl.  Disable logging
-//
-// Revision 1.9  2003/08/12 12:14:01  panther
-// ...
-//
-// Revision 1.8  2003/04/21 20:02:31  panther
-// Support option to return file name only
-//
-// Revision 1.7  2003/01/31 16:23:24  panther
-// Cleaned for visual studio warnings
-//
-// Revision 1.6  2003/01/28 02:24:43  panther
-// Fixes to network - common timer for network pause... minor updates which should have been commited already
-//
-// Revision 1.5  2002/08/16 21:41:11  panther
-// Updated to compile under linux, also updated to new method of declaring
-// public externals.
-//
-// Revision 1.4  2002/07/26 09:16:55  panther
-// Added IsPath, CreatePath, SetCurrentPath, GetFileWriteTime
-// Modified GetCurrentPath
-//
-//

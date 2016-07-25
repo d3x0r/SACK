@@ -186,17 +186,19 @@ static int OnDrawCommon( CONTROL_SCROLL_KNOB_NAME )( PSI_CONTROL pc )
 		}
 		ClearImageTo( surface, 0x1000001 );
 		{
-			_32 image_width, image_height;
+			_32 image_width = 0, image_height = 0;
 			GetImageSize( knob->knob_image, &image_width, &image_height );
-			knob->width_scale = 0x10000 * surface->width / image_width;
-			knob->height_scale = 0x10000 * surface->height / image_height;
-			SetSpritePosition( knob->knob_sprite, surface->width  / 2, surface->height / 2 );
-			rotate_scaled_sprite( surface
-									  , knob->knob_sprite
-									  , ( ( 0x100000000LL/12 ) * knob->last_arc ) - knob->zero_angle
-									  , knob->width_scale
-									  , knob->height_scale
-									  );
+			if( image_width && image_height ) {
+				knob->width_scale = 0x10000 * surface->width / image_width;
+				knob->height_scale = 0x10000 * surface->height / image_height;
+				SetSpritePosition( knob->knob_sprite, surface->width  / 2, surface->height / 2 );
+				rotate_scaled_sprite( surface
+										  , knob->knob_sprite
+										  , ( ( 0x100000000LL/12 ) * knob->last_arc ) - knob->zero_angle
+										  , knob->width_scale
+										  , knob->height_scale
+										  );
+			}
 		}
 	}
 	return 1;
@@ -231,18 +233,20 @@ PSI_PROC( void, SetScrollKnobImageName )( PSI_CONTROL pc, CTEXTSTR image )
 		knob->knob_image_file = StrDup( image );
 		UnmakeImageFile( knob->knob_image );
 		knob->knob_image = LoadImageFile( image );
-		if( knob->knob_sprite )
-			UnmakeSprite( knob->knob_sprite, 0 );
-		knob->knob_sprite = MakeSpriteImage( knob->knob_image );
-		{
-			_32 image_width, image_height;
-			_32 control_width, control_height;
-			GetFrameSize( pc, &control_width, &control_height );
-			GetImageSize( knob->knob_image, &image_width, &image_height );
-			knob->width_scale = 0x10000 * control_width / image_width;
-			knob->height_scale = 0x10000 * control_height / image_height;
-			SetSpritePosition( knob->knob_sprite, control_width / 2, control_height / 2 );
-			SetSpriteHotspot( knob->knob_sprite, image_width / 2, image_height / 2 );
+		if( knob->knob_image ) {
+			if( knob->knob_sprite )
+				UnmakeSprite( knob->knob_sprite, 0 );
+			knob->knob_sprite = MakeSpriteImage( knob->knob_image );
+			{
+				_32 image_width, image_height;
+				_32 control_width, control_height;
+				GetFrameSize( pc, &control_width, &control_height );
+				GetImageSize( knob->knob_image, &image_width, &image_height );
+				knob->width_scale = 0x10000 * control_width / image_width;
+				knob->height_scale = 0x10000 * control_height / image_height;
+				SetSpritePosition( knob->knob_sprite, control_width / 2, control_height / 2 );
+				SetSpriteHotspot( knob->knob_sprite, image_width / 2, image_height / 2 );
+			}
 		}
 	}
 }
@@ -253,18 +257,20 @@ PSI_PROC( void, SetScrollKnobImage )( PSI_CONTROL pc, Image image )
 	if( knob )
 	{
 		knob->knob_image = image;
-		if( knob->knob_sprite )
-			UnmakeSprite( knob->knob_sprite, 0 );
-		knob->knob_sprite = MakeSpriteImage( knob->knob_image );
-		{
-			_32 image_width, image_height;
-			_32 control_width, control_height;
-			GetFrameSize( pc, &control_width, &control_height );
-			GetImageSize( knob->knob_image, &image_width, &image_height );
-			knob->width_scale = 0x10000 * control_width / image_width;
-			knob->height_scale = 0x10000 * control_height / image_height;
-			SetSpritePosition( knob->knob_sprite, control_width / 2, control_height / 2 );
-			SetSpriteHotspot( knob->knob_sprite, image_width / 2, image_height / 2 );
+		if( image ) {
+			if( knob->knob_sprite )
+				UnmakeSprite( knob->knob_sprite, 0 );
+			knob->knob_sprite = MakeSpriteImage( knob->knob_image );
+			{
+				_32 image_width, image_height;
+				_32 control_width, control_height;
+				GetFrameSize( pc, &control_width, &control_height );
+				GetImageSize( knob->knob_image, &image_width, &image_height );
+				knob->width_scale = 0x10000 * control_width / image_width;
+				knob->height_scale = 0x10000 * control_height / image_height;
+				SetSpritePosition( knob->knob_sprite, control_width / 2, control_height / 2 );
+				SetSpriteHotspot( knob->knob_sprite, image_width / 2, image_height / 2 );
+			}
 		}
 	}
 

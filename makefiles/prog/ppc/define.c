@@ -34,34 +34,34 @@ void ValidateTree( PDEF *root )
 		if( (*root)->me != root )
 		{
 			fprintf( stderr, WIDE("Invalid linking this->me is not itself!\n") );
-         DebugBreak();
+			DebugBreak();
 		}
 		if( (*root)->pGreater )
 		{
 			if( (*root)->pGreater->me != &(*root)->pGreater )
 			{
 				fprintf( stderr, WIDE("Invalid linking this->greater does not reference me\n") );
-            DebugBreak();
+				DebugBreak();
 			}
-         ValidateTree( &(*root)->pGreater );
+			ValidateTree( &(*root)->pGreater );
 		}
 		if( (*root)->pLesser )
 		{
 			if( (*root)->pLesser->me != &(*root)->pLesser )
 			{
 				fprintf( stderr, WIDE("Invalid linking this->lesser does not reference me\n") );
-            DebugBreak();
+				DebugBreak();
 			}
-         ValidateTree( &(*root)->pLesser );
+			ValidateTree( &(*root)->pLesser );
 		}
 		if( (*root)->pSame )
 		{
 			if( (*root)->pSame->me != &(*root)->pSame )
 			{
 				fprintf( stderr, WIDE("Invalid linking this->same does not reference me\n") );
-            DebugBreak();
+				DebugBreak();
 			}
-         ValidateTree( &(*root)->pSame );
+			ValidateTree( &(*root)->pSame );
 		}
 	}
 }
@@ -74,30 +74,30 @@ void ValidateTree( PDEF *root )
 
 void FixQuoting( PTEXT test )
 {
-   while( test )
-   {
+	while( test )
+	{
 		if( GetText( test )[0] == '\"' )
 		{
 			PTEXT insert = SegCreateFromText( WIDE("\\") );
 			insert->format.spaces = test->format.spaces;
-         test->format.spaces = 0;
-   		SegInsert( insert, test );
+			test->format.spaces = 0;
+			SegInsert( insert, test );
 		}
-   	else if( GetText( test )[0] == '\'' )
+		else if( GetText( test )[0] == '\'' )
 		{
-   		PTEXT insert = SegCreateFromText( WIDE("\\") );
+			PTEXT insert = SegCreateFromText( WIDE("\\") );
 			insert->format.spaces = test->format.spaces;
-         test->format.spaces = 0;
-   		SegInsert( insert, test );
-   	}
-   	else if( GetText( test )[0] == '\\' )
-   	{
-   		PTEXT insert = SegCreateFromText( WIDE("\\") );
+			test->format.spaces = 0;
+			SegInsert( insert, test );
+		}
+		else if( GetText( test )[0] == '\\' )
+		{
+			PTEXT insert = SegCreateFromText( WIDE("\\") );
 			insert->format.spaces = test->format.spaces;
-         test->format.spaces = 0;
-   		SegInsert( insert, test );
-   	}
-   	test = NEXTLINE( test );
+			test->format.spaces = 0;
+			SegInsert( insert, test );
+		}
+		test = NEXTLINE( test );
 	}
 }
 
@@ -106,17 +106,17 @@ void FixQuoting( PTEXT test )
 void DeleteDefineContent( PDEF p )
 {
 	if( p->pName )
-   	LineRelease( p->pName );
-   if( p->pData )
-	   LineRelease( p->pData );
-   {
-   	INDEX idx;
-   	PTEXT param;
-	   FORALL( p->pParams, idx, PTEXT, param )
-	   {
-	   	LineRelease( param );
-	   }
-	   DeleteList( p->pParams );
+		LineRelease( p->pName );
+	if( p->pData )
+		LineRelease( p->pData );
+	{
+		INDEX idx;
+		PTEXT param;
+		FORALL( p->pParams, idx, PTEXT, param )
+		{
+			LineRelease( param );
+		}
+		DeleteList( p->pParams );
 	}
 }
 
@@ -144,26 +144,26 @@ void InitDefines( void )
 	localtime_r( &now, &tm );
 #elif defined( __WINTIME__ )
 	SYSTEMTIME st;
-   GetLocalTime( &st );
+	GetLocalTime( &st );
 #endif
 
 	{
 		DECLTEXT( constname, WIDE("__LINE__") );
 		DefineLine.pName = (PTEXT)&constname;
-      DefineLine.pParams = NULL;
-      DefineLine.bUsed = FALSE;
-      DefineLine.pLesser = NULL;
-      DefineLine.pGreater = NULL;
-   }
-	{
-      DECLTEXT( constname, WIDE("__FILE__") );
-		DefineFile.pName = (PTEXT)&constname;
-      DefineFile.pParams = NULL;
-      DefineFile.bUsed = FALSE;
-      DefineFile.pLesser = NULL;
-      DefineFile.pGreater = NULL;
+		DefineLine.pParams = NULL;
+		DefineLine.bUsed = FALSE;
+		DefineLine.pLesser = NULL;
+		DefineLine.pGreater = NULL;
 	}
-   //if( TextIs( pName, WIDE("__TIME__ ") ) ) // hh:mm:ss
+	{
+		DECLTEXT( constname, WIDE("__FILE__") );
+		DefineFile.pName = (PTEXT)&constname;
+		DefineFile.pParams = NULL;
+		DefineFile.bUsed = FALSE;
+		DefineFile.pLesser = NULL;
+		DefineFile.pGreater = NULL;
+	}
+	//if( TextIs( pName, WIDE("__TIME__ ") ) ) // hh:mm:ss
 	{
 		DECLTEXT( constname, WIDE("__TIME__") );
 		char time[15];
@@ -176,13 +176,13 @@ void InitDefines( void )
 #endif
 		DefineTime.pName = (PTEXT)&constname;
 		DefineTime.pData = SegCreateFromText( time );
-      DefineTime.pData->format.spaces = 1;
-      DefineTime.pParams = NULL;
-      DefineTime.bUsed = FALSE;
-      DefineTime.pLesser = NULL;
-      DefineTime.pGreater = NULL;
+		DefineTime.pData->format.spaces = 1;
+		DefineTime.pParams = NULL;
+		DefineTime.bUsed = FALSE;
+		DefineTime.pLesser = NULL;
+		DefineTime.pGreater = NULL;
 	}
-   //if( TextIs( pName, WIDE("__DATE__ ") ) ) // Mmm dd yyyy dd = ' x' if <10
+	//if( TextIs( pName, WIDE("__DATE__ ") ) ) // Mmm dd yyyy dd = ' x' if <10
 	{
 		DECLTEXT( constname, WIDE("__DATE__") );
 		char date[20];
@@ -194,27 +194,27 @@ void InitDefines( void )
 #endif
 		DefineDate.pName = (PTEXT)&constname;
 		DefineDate.pData = SegCreateFromText( date );
-      DefineDate.pData->format.spaces = 1;
-      DefineDate.pParams = NULL;
-      DefineDate.bUsed = FALSE;
-      DefineDate.pLesser = NULL;
-      DefineDate.pGreater = NULL;
+		DefineDate.pData->format.spaces = 1;
+		DefineDate.pParams = NULL;
+		DefineDate.bUsed = FALSE;
+		DefineDate.pLesser = NULL;
+		DefineDate.pGreater = NULL;
 	}
-   // on GCC - these end up being defined....
-   //if( TextIs( pName, WIDE("__STDC__ ") ) ) // 1
+	// on GCC - these end up being defined....
+	//if( TextIs( pName, WIDE("__STDC__ ") ) ) // 1
 	//if( TextIs( pName, WIDE("__STDC_HOSTED__ ") ) ) // ?? what's a hosted?
 	// and this - well the compiler itself needs to support this - so
 	// this should come in from the
 #ifdef DEFINE_STDC_VERSION
 	{
 		DECLTEXT( constname, WIDE("__STDC_VERSION__") );
-      DefineStdCVersion.pParams = NULL;
+		DefineStdCVersion.pParams = NULL;
 		DefineStdCVersion.pName = (PTEXT)&constname;
 		DefineStdCVersion.pData = SegCreateFromInt( 199901L );
-      DefineStdCVersion.pData->format.spaces = 1;
-      DefineStdCVersion.bUsed = FALSE;
-      DefineStdCVersion.pLesser = NULL;
-      DefineStdCVersion.pGreater = NULL;
+		DefineStdCVersion.pData->format.spaces = 1;
+		DefineStdCVersion.bUsed = FALSE;
+		DefineStdCVersion.pLesser = NULL;
+		DefineStdCVersion.pGreater = NULL;
 	}
 #endif
 }
@@ -223,7 +223,7 @@ void InitDefines( void )
 
 void DeinitDefines( void )
 {
-   DeleteStaticDefines();
+	DeleteStaticDefines();
 }
 
 //----------------------------------------------------------------------
@@ -232,68 +232,68 @@ void DeinitDefines( void )
 //  
 PDEF FindDefineName( PTEXT pName, int params )
 {
-   PDEF p;
+	PDEF p;
 	int levels = 1;
-   if( TextIs( pName, WIDE("__LINE__") ) )
-   {
-      if( DefineLine.pData )
-         LineRelease( DefineLine.pData );
-      DefineLine.pData = SegCreateFromInt( GetCurrentLine() );
-      DefineLine.bUsed = FALSE;
-      return &DefineLine;
-   }
-   else if( TextIs( pName, WIDE("__FILE__") ) )
+	if( TextIs( pName, WIDE("__LINE__") ) )
+	{
+		if( DefineLine.pData )
+			LineRelease( DefineLine.pData );
+		DefineLine.pData = SegCreateFromInt( GetCurrentLine() );
+		DefineLine.bUsed = FALSE;
+		return &DefineLine;
+	}
+	else if( TextIs( pName, WIDE("__FILE__") ) )
 	{
 		VARTEXT vt;
 		VarTextInit( &vt );
-      if( DefineFile.pData )
-         LineRelease( DefineFile.pData );
+		if( DefineFile.pData )
+			LineRelease( DefineFile.pData );
 		//printf( WIDE("Building result: %s\n"), GetCurrentFileName() );
 		VarTextAddCharacter( &vt, '\"' );
-      VarTextEnd( &vt );
-      vtprintf( &vt, WIDE("%s"), GetCurrentShortFileName() );
-      VarTextEnd( &vt );
+		VarTextEnd( &vt );
+		vtprintf( &vt, WIDE("%s"), GetCurrentShortFileName() );
+		VarTextEnd( &vt );
 		VarTextAddCharacter( &vt, '\"' );
 		DefineFile.pData = VarTextGet( &vt );
-      VarTextEmpty( &vt );
-      DefineFile.bUsed = FALSE;
-      return &DefineFile;
-   }
-   //if( TextIs( pName, WIDE("__TIME__ ") ) ) // hh:mm:ss
+		VarTextEmpty( &vt );
+		DefineFile.bUsed = FALSE;
+		return &DefineFile;
+	}
+	//if( TextIs( pName, WIDE("__TIME__ ") ) ) // hh:mm:ss
 	else if( TextIs( pName, WIDE("__TIME__") ) )
 	{
-      DefineTime.bUsed = FALSE;
-      return &DefineTime;
+		DefineTime.bUsed = FALSE;
+		return &DefineTime;
 	}
-   //if( TextIs( pName, WIDE("__DATE__ ") ) ) // Mmm dd yyyy dd = ' x' if <10
+	//if( TextIs( pName, WIDE("__DATE__ ") ) ) // Mmm dd yyyy dd = ' x' if <10
 	else if( TextIs( pName, WIDE("__DATE__") ) )
 	{
-      DefineDate.bUsed = FALSE;
-      return &DefineDate;
+		DefineDate.bUsed = FALSE;
+		return &DefineDate;
 	}
 
 	// This is probably compiler specific.... but let's see what
-   // happens for now.
+	// happens for now.
 #ifdef DEFINE_STDC_VERSION
 	else if( TextIs( pName, WIDE("__STDC_VERSION__") ) )  // 199901L
 	{
-      return &DefineStdCVersion;
+		return &DefineStdCVersion;
 	}
 #endif
-   // all of these are compiler specific....
-   //if( TextIs( pName, WIDE("__STDC__ ") ) ) // 1
-   //if( TextIs( pName, WIDE("__STDC_HOSTED__ ") ) ) // ?? what's a hosted?
-   //if( TextIs( pName, WIDE("__STDC_IEC_559__ ") ) ) // 1 if conform annex f
-   //if( TextIs( pName, WIDE("__STDC_IEC_559_COMPLEX__ ") ) ) // 1 if conform annex g
-   //if( TextIs( pName, WIDE("__STDC_ISO_10646__ ") ) ) // 199712L yyyymmL wchar_t encodings
-   // do not allow __cplusplus to redefine...
+	// all of these are compiler specific....
+	//if( TextIs( pName, WIDE("__STDC__ ") ) ) // 1
+	//if( TextIs( pName, WIDE("__STDC_HOSTED__ ") ) ) // ?? what's a hosted?
+	//if( TextIs( pName, WIDE("__STDC_IEC_559__ ") ) ) // 1 if conform annex f
+	//if( TextIs( pName, WIDE("__STDC_IEC_559_COMPLEX__ ") ) ) // 1 if conform annex g
+	//if( TextIs( pName, WIDE("__STDC_ISO_10646__ ") ) ) // 199712L yyyymmL wchar_t encodings
+	// do not allow __cplusplus to redefine...
 
-   p = pDefineRoot;
-   while( p )
-   {
-   	int d = SameText( pName, p->pName );
-      if(  d == 0 )
-      {
+	p = pDefineRoot;
+	while( p )
+	{
+		int d = SameText( pName, p->pName );
+		if(  d == 0 )
+		{
 			// just checking to see if defined...
 			if( params == IGNORE_PARAMS &&
 				 !p->bUsed )
@@ -313,9 +313,9 @@ PDEF FindDefineName( PTEXT pName, int params )
 				if( p->pParams )
 				{	
 					if( p->pParams->Cnt == params 
-					   || ( p->bVarParams 
-					    && ( (int)p->pParams->Cnt <= params ) )
-				     )
+						|| ( p->bVarParams 
+						 && ( (int)p->pParams->Cnt <= params ) )
+					  )
 					{
 						if( !p->bUsed )
 							return p;
@@ -333,16 +333,16 @@ PDEF FindDefineName( PTEXT pName, int params )
 			while( p );
 			if( p )
 				break;
-      }
-      else if( d > 0 )
-	      p = p->pGreater;
-	   else
-	      p = p->pLesser;
-	   levels++;
-   }
-   //if( g.bDebugLog )
+		}
+		else if( d > 0 )
+			p = p->pGreater;
+		else
+			p = p->pLesser;
+		levels++;
+	}
+	//if( g.bDebugLog )
 	//   fprintf( stderr, WIDE("levels checked for name: %d/%d\n"), levels, nDefines );
-   return NULL;
+	return NULL;
 }
 
 //----------------------------------------------------------------------
@@ -351,11 +351,11 @@ PDEF FindDefineName( PTEXT pName, int params )
 void InsertDefine( PDEF pDef, PDEF p )
 {
 	*p->me = pDef;
-   pDef->me = p->me;
+	pDef->me = p->me;
 	if( pDef->pGreater = p->pGreater )
-      pDef->pGreater->me = &pDef->pGreater;
+		pDef->pGreater->me = &pDef->pGreater;
 	if( pDef->pLesser = p->pLesser )
-      pDef->pLesser->me = &pDef->pLesser;
+		pDef->pLesser->me = &pDef->pLesser;
 	pDef->pSame = p;
 	p->me = &pDef->pSame;
 	p->pGreater = NULL;
@@ -376,26 +376,26 @@ void DeleteDefine( PDEF *ppDef )
 		PDEF tmp;
 		// this ends up clearing &pDef usually....
 		tmp = pDef;
-      // take me out of the tree...
+		// take me out of the tree...
 		*pDef->me = NULL;
 
 		if( pDef->pSame )
 		{
-         pDef->pSame->me = NULL;
+			pDef->pSame->me = NULL;
 			HangNode( &pDefineRoot, pDef->pSame );
-         pDef->pSame = NULL;
+			pDef->pSame = NULL;
 		}
 		if( pDef->pLesser )
 		{
-         pDef->pLesser->me = NULL;
+			pDef->pLesser->me = NULL;
 			HangNode( &pDefineRoot, pDef->pLesser );
-         pDef->pLesser = NULL;
+			pDef->pLesser = NULL;
 		}
 		if( pDef->pGreater )
 		{
-         pDef->pGreater->me = NULL;
+			pDef->pGreater->me = NULL;
 			HangNode( &pDefineRoot, pDef->pGreater );
-         pDef->pGreater = NULL;
+			pDef->pGreater = NULL;
 		}
 		DeleteDefineContent( pDef );
 		Release( tmp );
@@ -411,14 +411,14 @@ void HangNode( PDEF *root, PDEF pDef )
 	PDEF p, prior = NULL;
 	if( !pDef )	
 		return;
-   // allow definition of internal __DATE__ and __TIME__
+	// allow definition of internal __DATE__ and __TIME__
 	if( TextIs( pDef->pName, WIDE("__DATE__") ) )
 	{
 		if( pDef->nType == DEFINE_COMMANDLINE )
 		{
 			LineRelease( DefineDate.pData );
 			DefineDate.pData = pDef->pData;
-         pDef->pData = NULL;
+			pDef->pData = NULL;
 			DeleteDefine( &pDef );
 		}
 		else
@@ -429,7 +429,7 @@ void HangNode( PDEF *root, PDEF pDef )
 					 );
 			DeleteDefine( &pDef );
 		}
-      return;
+		return;
 	}
 	else if( TextIs( pDef->pName, WIDE("__TIME__") ) )
 	{
@@ -437,7 +437,7 @@ void HangNode( PDEF *root, PDEF pDef )
 		{
 			LineRelease( DefineTime.pData );
 			DefineTime.pData = pDef->pData;
-         pDef->pData = NULL;
+			pDef->pData = NULL;
 			DeleteDefine( &pDef );
 		}
 		else
@@ -446,54 +446,54 @@ void HangNode( PDEF *root, PDEF pDef )
 					 , GetCurrentFileName()
 					 , GetCurrentLine()
 					 );
-         DeleteDefine( &pDef );
+			DeleteDefine( &pDef );
 		}
-      return;
+		return;
 	}
 
 	if( !*root )
 	{
 		*root = pDef;
 		pDef->me = root;
-      ValidateTree( &pDefineRoot );
+		ValidateTree( &pDefineRoot );
 		return;
 	}
-   p = *root;
-   while( p )
-   {
-   	int d = SameText( pDef->pName, p->pName );;
-   	if( d > 0 )
-   	{
-   		if( !p->pGreater )
-   		{
-            pDef->me = &p->pGreater;
-   			p->pGreater = pDef;
+	p = *root;
+	while( p )
+	{
+		int d = SameText( pDef->pName, p->pName );;
+		if( d > 0 )
+		{
+			if( !p->pGreater )
+			{
+				pDef->me = &p->pGreater;
+				p->pGreater = pDef;
 				ValidateTree( &pDefineRoot );
-   			return;
-   		}
+				return;
+			}
 			else
 			{
-            prior = p;
+				prior = p;
 				p = p->pGreater;
 			}
-      }
-      else if( d < 0 )
-      {
-   		if( !p->pLesser )
-   		{
-            pDef->me = &p->pLesser;
-   			p->pLesser = pDef;
+		}
+		else if( d < 0 )
+		{
+			if( !p->pLesser )
+			{
+				pDef->me = &p->pLesser;
+				p->pLesser = pDef;
 				ValidateTree( &pDefineRoot );
-   			return;
-   		}
+				return;
+			}
 			else
 			{
-            prior = p;
+				prior = p;
 				p = p->pLesser;
 			}
-      }
-      else
-      {
+		}
+		else
+		{
 			if( pDef->pParams )
 			{  // has parameters () - may be 0, but still...
 				// nparams...
@@ -514,7 +514,7 @@ void HangNode( PDEF *root, PDEF pDef )
 								if( pDef->bVarParams )
 								{
 									fprintf( stderr, WIDE("%s(%d): Error attempt to redefine macro %s defined at %s(%d).\n")
-									        , GetCurrentFileName()
+											  , GetCurrentFileName()
 											  , GetCurrentLine()
 											  , GetText( pDef->pName )
 											  , p->pFile, p->nLine );
@@ -532,7 +532,7 @@ void HangNode( PDEF *root, PDEF pDef )
 								if( !pDef->bVarParams )
 								{
 									fprintf( stderr, WIDE("%s(%d): Error attempt to redefine macro %s defined at %s(%d).\n")
-									        , GetCurrentFileName()
+											  , GetCurrentFileName()
 											  , GetCurrentLine()
 											  , GetText( pDef->pName )
 											  , p->pFile, p->nLine );
@@ -548,17 +548,17 @@ void HangNode( PDEF *root, PDEF pDef )
 					prior = p;
 					p = p->pSame;
 				} while( p );
-            pDef->me = &prior->pSame;
+				pDef->me = &prior->pSame;
 				prior->pSame = pDef;
 				ValidateTree( &pDefineRoot );
-            return;
+				return;
 			}
 			else
 			{
 				// no paramters - symbol alone...
 				if( !p->pParams )
 				{
-               /*
+					/*
 					if( !pDef->pParams )
 					{
 						fprintf( stderr, WIDE("%s(%d): WARNING Attempt to Redefine macro with no params - failed.!\n")
@@ -566,12 +566,12 @@ void HangNode( PDEF *root, PDEF pDef )
 								, GetCurrentLine() );
 						DeleteDefine( &pDef );
 						ValidateTree( &pDefineRoot );
-                  return;
+						return;
 					}
 					else
-               */
+					*/
 						fprintf( stderr, WIDE("%s(%d): WARNING Redefining macro \'%s\'(overloading name alone with params)!\n")
-				   			, GetCurrentFileName()
+								, GetCurrentFileName()
 								, GetCurrentLine() 
 								, GetText( pDef->pName )
 								);
@@ -580,7 +580,7 @@ void HangNode( PDEF *root, PDEF pDef )
 				ValidateTree( &pDefineRoot );
 				return;
 			}
-      }
+		}
 	}
 }
 
@@ -590,14 +590,14 @@ void DeleteDefineTree( PDEF *ppRoot, int type )
 {
 	if( ppRoot && *ppRoot )
 	{
-      PDEF root = *ppRoot;
+		PDEF root = *ppRoot;
 		DeleteDefineTree( &(root->pLesser), type );
 		DeleteDefineTree( &(root->pGreater), type );
 		DeleteDefineTree( &(root->pSame), type );
 		if( type == DEFINE_ALL ||
 			 root->nType == type )
-         DeleteDefine( ppRoot );
-      ValidateTree( &pDefineRoot );
+			DeleteDefine( ppRoot );
+		ValidateTree( &pDefineRoot );
 	}
 }
 
@@ -607,7 +607,7 @@ void DeleteAllDefines( int type )
 {
 	// uhmm this works - but it's hideous...
 	// should do something like delete bottom up
-   DeleteDefineTree( &pDefineRoot, type );
+	DeleteDefineTree( &pDefineRoot, type );
 }
 
 //----------------------------------------------------------------------
@@ -616,10 +616,10 @@ void DefineDefine( char *name, char *value )
 {
 	PDEF pDefine = Allocate( sizeof( DEF ) );
 	MemSet( pDefine, 0, sizeof( DEF ) );
-   pDefine->nType = DEFINE_COMMANDLINE;
+	pDefine->nType = DEFINE_COMMANDLINE;
 	pDefine->pName = SegCreateFromText( name );
 	pDefine->pData = SegCreateFromText( value );
-   if( pDefine->pData )
+	if( pDefine->pData )
 		pDefine->pData->format.spaces = 1;
 	HangNode( &pDefineRoot, pDefine );
 
@@ -629,60 +629,60 @@ void DefineDefine( char *name, char *value )
 
 int ProcessDefine( int type )
 {
-   //PTEXT def;
-   if( !pCurrentDefine )
-   {
+	//PTEXT def;
+	if( !pCurrentDefine )
+	{
 		PTEXT pWord = GetCurrentWord();
-      if( TextIs( pWord, WIDE("__LINE__") )
+		if( TextIs( pWord, WIDE("__LINE__") )
 			|| TextIs( pWord, WIDE("__FILE__") )
 #ifdef DEFINE_STDC_VERSION
 			|| TextIs( pWord, WIDE("__STDC_VERSION__") )
 #endif
 		  )
-          // none of the above constants mentioned may be redefined
-          // nor 'defined'
-      {
-      	if( g.bDebugLog )
-      	{
-	         fprintf( stddbg, WIDE("%s(%d) Warning: Cannot define predefined symbols.")
-   	                     , GetCurrentFileName(), GetCurrentLine() );
-      	}
-         fprintf( stderr, WIDE("%s(%d) Warning: Cannot define predefined symbols.")
-                        , GetCurrentFileName(), GetCurrentLine() );
-         return TRUE; // just a warning
-      }
-      pCurrentDefine = Allocate( sizeof( DEF ) );
-      MemSet(pCurrentDefine, 0, sizeof( DEF ) );
-      strcpy( pCurrentDefine->pFile, GetCurrentFileName() );
+			 // none of the above constants mentioned may be redefined
+			 // nor 'defined'
+		{
+			if( g.bDebugLog )
+			{
+				fprintf( stddbg, WIDE("%s(%d) Warning: Cannot define predefined symbols.")
+									, GetCurrentFileName(), GetCurrentLine() );
+			}
+			fprintf( stderr, WIDE("%s(%d) Warning: Cannot define predefined symbols.")
+								, GetCurrentFileName(), GetCurrentLine() );
+			return TRUE; // just a warning
+		}
+		pCurrentDefine = Allocate( sizeof( DEF ) );
+		MemSet(pCurrentDefine, 0, sizeof( DEF ) );
+		strcpy( pCurrentDefine->pFile, GetCurrentFileName() );
 		pCurrentDefine->nLine = GetCurrentLine();
-      pCurrentDefine->nType = type;
+		pCurrentDefine->nType = type;
 		pWord = GetCurrentWord();
-      if( g.bDebugLog & DEBUG_DEFINES )
-      {
-         fprintf( stddbg, WIDE("%s(%d) Defining macro: %s\n")
-                     , GetCurrentFileName(), GetCurrentLine()
-                     , GetText( pWord ) );
-      }
+		if( g.bDebugLog & DEBUG_DEFINES )
+		{
+			fprintf( stddbg, WIDE("%s(%d) Defining macro: %s\n")
+							, GetCurrentFileName(), GetCurrentLine()
+							, GetText( pWord ) );
+		}
 
-      pCurrentDefine->pName = SegDuplicate( pWord );
-      if( ( NEXTLINE( pWord ) &&
-          ( NEXTLINE( pWord )->format.spaces == 0 ) ) )
-      {
-      	pWord = StepCurrentWord();
-         if( GetText( pWord )[0] == '(' )
-         {
-            // these parameters are macros vars for define...
-            // required count....
-            pCurrentDefine->pParams = CreateList();
-	      	StepCurrentWord();
-            while( ( pWord = GetCurrentWord() ) &&
-					    GetText( pWord )[0] != ')' )
-            {
-               if( GetText( pWord )[0] != ',' )
-               {
+		pCurrentDefine->pName = SegDuplicate( pWord );
+		if( ( NEXTLINE( pWord ) &&
+			 ( NEXTLINE( pWord )->format.spaces == 0 ) ) )
+		{
+			pWord = StepCurrentWord();
+			if( GetText( pWord )[0] == '(' )
+			{
+				// these parameters are macros vars for define...
+				// required count....
+				pCurrentDefine->pParams = CreateList();
+				StepCurrentWord();
+				while( ( pWord = GetCurrentWord() ) &&
+						 GetText( pWord )[0] != ')' )
+				{
+					if( GetText( pWord )[0] != ',' )
+					{
 						if( TextIs( pWord, WIDE("...") ) )
 						{
-                     if( g.bDebugLog & DEBUG_DEFINES )
+							if( g.bDebugLog & DEBUG_DEFINES )
 								fprintf( stderr, WIDE("Adding var args...\n") );
 							if( pCurrentDefine->bVarParams )
 							{
@@ -727,32 +727,32 @@ int ProcessDefine( int type )
 										 , GetCurrentLine() );
 							}
 						}
-               }
-		      	StepCurrentWord();
-            }
-         }
-      }
-     	StepCurrentWord();
-   }
-   //----------------
-   // add data to the current macro here...
-   //----------------
+					}
+					StepCurrentWord();
+				}
+			}
+		}
+	  	StepCurrentWord();
+	}
+	//----------------
+	// add data to the current macro here...
+	//----------------
 	if( GetCurrentWord() )
-   {
+	{
 		PTEXT p;
-      p = GetCurrentWord();
-      while( p )
+		p = GetCurrentWord();
+		while( p )
 		{
 			PTEXT newseg = SegDuplicate( p );
 			if( p == GetCurrentWord() )
-            newseg->format.spaces = 0;
-         pCurrentDefine->pData = SegAppend( pCurrentDefine->pData
+				newseg->format.spaces = 0;
+			pCurrentDefine->pData = SegAppend( pCurrentDefine->pData
 													  , newseg );
-         p = NEXTLINE(p);
-      }
-      pCurrentDefine->pData->format.spaces = 0;
+			p = NEXTLINE(p);
+		}
+		pCurrentDefine->pData->format.spaces = 0;
 	}
-   if( g.bDebugLog & DEBUG_DEFINES )
+	if( g.bDebugLog & DEBUG_DEFINES )
 	{
 		PTEXT out = BuildLine( pCurrentDefine->pData );
 		fprintf( stddbg, WIDE("Define %s == %s\n"), GetText( pCurrentDefine->pName ), GetText( out ) );
@@ -778,7 +778,7 @@ int ProcessDefine( int type )
 											: 0 );
 		if( pOld )
 		{
-         if( g.flags.bAllWarnings )
+			if( g.flags.bAllWarnings )
 				fprintf( stderr, WIDE("%s(%d) Warning: redefining symbol: %s Previously defined at %s(%d).\n")
 						, GetCurrentFileName(), GetCurrentLine()
 						, GetText( pCurrentDefine->pName )
@@ -795,7 +795,7 @@ int ProcessDefine( int type )
 	nDefines++;
 	HangNode( &pDefineRoot, pCurrentDefine );
 	pCurrentDefine = NULL;
-   if( g.bDebugLog & DEBUG_DEFINES )
+	if( g.bDebugLog & DEBUG_DEFINES )
 		fprintf( stderr, WIDE("done with define...\n") );
 	return TRUE;
 }
@@ -805,24 +805,24 @@ int ProcessDefine( int type )
 PTEXT BuildSizeofArgs( PTEXT args )
 {
 	PTEXT arg = NULL
-       , trinary_then = NULL
-       , trinary_else = NULL;
+		 , trinary_then = NULL
+		 , trinary_else = NULL;
 	PTEXT result = NULL;
-   char *text;
+	char *text;
 	int quote = 0
-     , paren = 0
-     , trinary_collect_then = 0
+	  , paren = 0
+	  , trinary_collect_then = 0
 	  , trinary_collect_else = 0;
 	for( ; args; args = NEXTLINE( args ) )
 	{
-      text = GetText( args );
+		text = GetText( args );
 		if( !quote )
 		{
 			if( text[0] == '\"' ||
 				text[0] == '\'' )
 			{
 				quote = text[0];
-            continue;
+				continue;
 			}
 			if( text[0] == '(' )
 				paren++;
@@ -841,12 +841,12 @@ PTEXT BuildSizeofArgs( PTEXT args )
 			if( text[0] == '?' )
 			{
 				trinary_collect_then = 1;
-            continue;
+				continue;
 			}
 			if( trinary_collect_then && text[0] == ':' )
 			{
 				trinary_collect_else = 1;
-            continue;
+				continue;
 			}
 		}
 		else // in quote...
@@ -861,9 +861,9 @@ PTEXT BuildSizeofArgs( PTEXT args )
 					arg = SegAppend( arg, SegCreateFromText( WIDE("char*") ) );
 				quote = 0;
 			}
-         continue;
+			continue;
 		}
-      if( text[0] == ',' )
+		if( text[0] == ',' )
 		{
 			PTEXT out = arg;
 			PTEXT tmp;
@@ -877,12 +877,12 @@ PTEXT BuildSizeofArgs( PTEXT args )
 			{
 				vtprintf( &g.vt , WIDE(" ( sizeof( ") );
 				VarTextEnd( &g.vt );
-            out = trinary_then;
+				out = trinary_then;
 				while( out )
 				{
 					vtprintf( &g.vt, WIDE("%s"), GetText( out ) );
 					tmp = VarTextEnd( &g.vt );
-               tmp->flags |= out->flags & TF_NOEXPAND;
+					tmp->flags |= out->flags & TF_NOEXPAND;
 					tmp->format.spaces = out->format.spaces;
 					out = NEXTLINE( out );
 				}
@@ -890,12 +890,12 @@ PTEXT BuildSizeofArgs( PTEXT args )
 				VarTextEnd( &g.vt );
 				vtprintf( &g.vt , WIDE("sizeof( ") );
 				VarTextEnd( &g.vt );
-            out = trinary_else;
+				out = trinary_else;
 				while( out )
 				{
 					vtprintf( &g.vt, WIDE("%s"), GetText( out ) );
 					tmp = VarTextEnd( &g.vt );
-               tmp->flags |= out->flags & TF_NOEXPAND;
+					tmp->flags |= out->flags & TF_NOEXPAND;
 					tmp->format.spaces = out->format.spaces;
 					out = NEXTLINE( out );
 				}
@@ -903,12 +903,12 @@ PTEXT BuildSizeofArgs( PTEXT args )
 				VarTextEnd( &g.vt );
 				vtprintf( &g.vt , WIDE("sizeof( ") );
 				VarTextEnd( &g.vt );
-            out = trinary_then;
+				out = trinary_then;
 				while( out )
 				{
 					vtprintf( &g.vt, WIDE("%s"), GetText( out ) );
 					tmp = VarTextEnd( &g.vt );
-               tmp->flags |= out->flags & TF_NOEXPAND;
+					tmp->flags |= out->flags & TF_NOEXPAND;
 					tmp->format.spaces = out->format.spaces;
 					out = NEXTLINE( out );
 				}
@@ -916,12 +916,12 @@ PTEXT BuildSizeofArgs( PTEXT args )
 				VarTextEnd( &g.vt );
 				vtprintf( &g.vt , WIDE("sizeof( ") );
 				VarTextEnd( &g.vt );
-            out = trinary_else;
+				out = trinary_else;
 				while( out )
 				{
 					vtprintf( &g.vt, WIDE("%s"), GetText( out ) );
 					tmp = VarTextEnd( &g.vt );
-               tmp->flags |= out->flags & TF_NOEXPAND;
+					tmp->flags |= out->flags & TF_NOEXPAND;
 					tmp->format.spaces = out->format.spaces;
 					out = NEXTLINE( out );
 				}
@@ -929,8 +929,8 @@ PTEXT BuildSizeofArgs( PTEXT args )
 				VarTextEnd( &g.vt );
 				LineRelease( trinary_then );
 				LineRelease( trinary_else );
-            // would be the 'if' part of this expression - unused.
-            LineRelease( arg );
+				// would be the 'if' part of this expression - unused.
+				LineRelease( arg );
 			}
 			else
 			{
@@ -945,12 +945,12 @@ PTEXT BuildSizeofArgs( PTEXT args )
 				}
 				vtprintf( &g.vt , WIDE(" sizeof( ") );
 				VarTextEnd( &g.vt );
-            out = arg;
+				out = arg;
 				while( out )
 				{
 					vtprintf( &g.vt, WIDE("%s"), GetText( out ) );
 					tmp = VarTextEnd( &g.vt );
-               tmp->flags |= out->flags & TF_NOEXPAND;
+					tmp->flags |= out->flags & TF_NOEXPAND;
 					tmp->format.spaces = out->format.spaces;
 					out = NEXTLINE( out );
 				}
@@ -972,7 +972,7 @@ PTEXT BuildSizeofArgs( PTEXT args )
 				trinary_else = SegAppend( trinary_else, SegDuplicate( args ) );
 			else if( trinary_collect_then )
 				trinary_then = SegAppend( trinary_then, SegDuplicate( args ) );
-         else
+			else
 				arg = SegAppend( arg, SegDuplicate( args ) );
 		}
 	}
@@ -980,7 +980,7 @@ PTEXT BuildSizeofArgs( PTEXT args )
 	{
 		{
 			PTEXT out = arg;
-         PTEXT tmp;
+			PTEXT tmp;
 			vtprintf( &g.vt, WIDE("(") );
 			VarTextEnd( &g.vt );
 			vtprintf( &g.vt , WIDE(" ( (") );
@@ -990,12 +990,12 @@ PTEXT BuildSizeofArgs( PTEXT args )
 			{
 				vtprintf( &g.vt , WIDE(" ( sizeof( ") );
 				VarTextEnd( &g.vt );
-            out = trinary_then;
+				out = trinary_then;
 				while( out )
 				{
 					vtprintf( &g.vt, WIDE("%s"), GetText( out ) );
 					tmp = VarTextEnd( &g.vt );
-               tmp->flags |= out->flags & TF_NOEXPAND;
+					tmp->flags |= out->flags & TF_NOEXPAND;
 					tmp->format.spaces = out->format.spaces;
 					out = NEXTLINE( out );
 				}
@@ -1003,12 +1003,12 @@ PTEXT BuildSizeofArgs( PTEXT args )
 				VarTextEnd( &g.vt );
 				vtprintf( &g.vt , WIDE("sizeof( ") );
 				VarTextEnd( &g.vt );
-            out = trinary_else;
+				out = trinary_else;
 				while( out )
 				{
 					vtprintf( &g.vt, WIDE("%s"), GetText( out ) );
 					tmp = VarTextEnd( &g.vt );
-               tmp->flags |= out->flags & TF_NOEXPAND;
+					tmp->flags |= out->flags &TF_NOEXPAND;
 					tmp->format.spaces = out->format.spaces;
 					out = NEXTLINE( out );
 				}
@@ -1016,12 +1016,12 @@ PTEXT BuildSizeofArgs( PTEXT args )
 				VarTextEnd( &g.vt );
 				vtprintf( &g.vt , WIDE("sizeof( ") );
 				VarTextEnd( &g.vt );
-            out = trinary_then;
+				out = trinary_then;
 				while( out )
 				{
 					vtprintf( &g.vt, WIDE("%s"), GetText( out ) );
 					tmp = VarTextEnd( &g.vt );
-               tmp->flags |= out->flags & TF_NOEXPAND;
+					tmp->flags |= out->flags & TF_NOEXPAND;
 					tmp->format.spaces = out->format.spaces;
 					out = NEXTLINE( out );
 				}
@@ -1029,12 +1029,12 @@ PTEXT BuildSizeofArgs( PTEXT args )
 				VarTextEnd( &g.vt );
 				vtprintf( &g.vt , WIDE("sizeof( ") );
 				VarTextEnd( &g.vt );
-            out = trinary_else;
+				out = trinary_else;
 				while( out )
 				{
 					vtprintf( &g.vt, WIDE("%s"), GetText( out ) );
 					tmp = VarTextEnd( &g.vt );
-               tmp->flags |= out->flags & TF_NOEXPAND;
+					tmp->flags |= out->flags & TF_NOEXPAND;
 					tmp->format.spaces = out->format.spaces;
 					out = NEXTLINE( out );
 				}
@@ -1042,8 +1042,8 @@ PTEXT BuildSizeofArgs( PTEXT args )
 				VarTextEnd( &g.vt );
 				LineRelease( trinary_then );
 				LineRelease( trinary_else );
-            // would be the 'if' part of this expression - unused.
-            LineRelease( arg );
+				// would be the 'if' part of this expression - unused.
+				LineRelease( arg );
 			}
 			else
 			{
@@ -1058,12 +1058,12 @@ PTEXT BuildSizeofArgs( PTEXT args )
 				}
 				vtprintf( &g.vt , WIDE(" sizeof( ") );
 				VarTextEnd( &g.vt );
-            out = arg;
+				out = arg;
 				while( out )
 				{
 					vtprintf( &g.vt, WIDE("%s"), GetText( out ) );
 					tmp = VarTextEnd( &g.vt );
-               tmp->flags |= out->flags & TF_NOEXPAND;
+					tmp->flags |= out->flags & TF_NOEXPAND;
 					tmp->format.spaces = out->format.spaces;
 					out = NEXTLINE( out );
 				}
@@ -1078,34 +1078,34 @@ PTEXT BuildSizeofArgs( PTEXT args )
 			//VarTextEnd( &g.vt );
 			LineRelease( arg );
 			result = SegAppend( result, VarTextGet( &g.vt ) );
-         arg = NULL;
+			arg = NULL;
 		}
 	}
-   else
+	else
 		result = SegAppend( result, SegCreateFromInt( 0 ) );
-   return result;
+	return result;
 }
 
 //----------------------------------------------------------------------
 
 INDEX FindArg( PLIST pArgs, PTEXT pName )
 {
-   INDEX i;
-   PTEXT pTest;
+	INDEX i;
+	PTEXT pTest;
 	if( TextIs( pName, WIDE("...") )
 		|| TextIs( pName, WIDE("__VA_ARGS__") )
 		|| TextIs( pName, WIDE("__SZ_ARGS__") ) )
 	{
 		return pArgs->Cnt;
 	}
-   FORALL( pArgs, i, PTEXT, pTest )
-   {
-      if( SameText( pName, pTest ) == 0 )
-      {
-         return i;
-      }
-   }
-   return INVALID_INDEX;
+	FORALL( pArgs, i, PTEXT, pTest )
+	{
+		if( SameText( pName, pTest ) == 0 )
+		{
+			return i;
+		}
+	}
+	return INVALID_INDEX;
 }
 
 void EmptyArgList( PLIST *pArgVals )
@@ -1152,34 +1152,34 @@ PDEF AddArgumentEx( PLIST *pArgVals, PTEXT *pVal, INDEX *pi, PDEF pDefine, int *
 			{
 				*pbVarArg = 1;
 				*pi = pDefine->pParams->Cnt;
-            return pDefine;
+				return pDefine;
 			}
 		}
 	}
 	if( GetLinkEx( pArgVals, *pi ) )
-      fprintf( stderr, WIDE("Overwriting exisitng parameter with new parameter?!") );
+		fprintf( stderr, WIDE("Overwriting exisitng parameter with new parameter?!") );
 	SetLinkEx( pArgVals, *pi, *pVal DBG_RELAY );
-   *pVal = NULL;
+	*pVal = NULL;
 	if( !*pbVarArg )
-      (*pi)++;
-   return pDefine;
+		(*pi)++;
+	return pDefine;
 }
 	//----------------------------------------------------------------------
 
 void EvalSubstitutions( PTEXT *subst, int more )
 {
-   // pWord may be associated with parameters...
-   // EvanSubst( &"min(a,b)" ) or basically...
-   PTEXT pStart, pWord, pReset;
-   PDEF pDefine;
-   int Quote = 0, Escape = 0;
+	// pWord may be associated with parameters...
+	// EvanSubst( &"min(a,b)" ) or basically...
+	PTEXT pStart, pWord, pReset;
+	PDEF pDefine;
+	int Quote = 0, Escape = 0;
 	static int nSubstLevel;
 
-   // get word first....
+	// get word first....
 	if( !subst || !*subst )
-      return;
+		return;
 
-   nSubstLevel++;
+	nSubstLevel++;
 
 	if( g.bDebugLog & DEBUG_SUBST )
 	{
@@ -1188,25 +1188,25 @@ void EvalSubstitutions( PTEXT *subst, int more )
 		fprintf( stderr, WIDE("\n") );
 	}
 
-   // start at the beginning of all symbols...
+	// start at the beginning of all symbols...
 	for( pWord = *subst;
 		 //= GetCurrentWord();
-        pWord; 
-        pWord = pReset )
+		  pWord; 
+		  pWord = pReset )
 	{
 		pReset = NEXTLINE( pWord );
 
-   	if( pWord->flags & (TF_INDIRECT|TF_NOEXPAND) )
+		if( pWord->flags & (TF_INDIRECT|TF_NOEXPAND) )
 			continue;
 
-   	if( Quote )
+		if( Quote )
 		{
 			if( !Escape )
 			{
 				if( GetText( pWord )[0] == '\\' )
 				{
 					Escape = TRUE;
-               continue;
+					continue;
 				}
 			}
 			else
@@ -1214,17 +1214,17 @@ void EvalSubstitutions( PTEXT *subst, int more )
 				Escape = FALSE;
 				continue;
 			}
-   		if( GetText( pWord )[0] == Quote )
-   			Quote = 0;
-  			continue;
+			if( GetText( pWord )[0] == Quote )
+				Quote = 0;
+			continue;
 		}
 		//fprintf( stderr, WIDE("Word is: %s\n"), GetText(pWord) );
-   	if( GetText( pWord )[0] == '\'' ||
-   	    GetText( pWord )[0] == '\"' )
-   	{
-   		Quote = GetText( pWord )[0];
-   		continue;
-   	}
+	if( GetText( pWord )[0] == '\'' ||
+		 GetText( pWord )[0] == '\"' )
+	{
+		Quote = GetText( pWord )[0];
+		continue;
+	}
 
 		if( TextIs( pWord, WIDE("defined") ) )
 		{
@@ -1281,13 +1281,13 @@ void EvalSubstitutions( PTEXT *subst, int more )
 					fprintf( stderr, WIDE("%s(%d): defined used with no parameter (last thing on line)\n")
 							 , GetCurrentFileName(), GetCurrentLine() );
 			}
-         // okay having evaluated defined... do subst on that.
+			// okay having evaluated defined... do subst on that.
 			if( pNewWord )
 			{
 				PTEXT pOrigin = pStart;
-            pNewWord->flags |= TF_NOEXPAND;
+				pNewWord->flags |=TF_NOEXPAND;
 				SegSubstRange( &pStart, pEnd, pNewWord );
-            pReset = NEXTLINE( pNewWord ); // already have a good idea that 0/1 will not subst...
+				pReset = NEXTLINE( pNewWord ); // already have a good idea that 0/1 will not subst...
 				if( pOrigin == *subst )
 				{
 					if( g.bDebugLog & DEBUG_SUBST )
@@ -1299,8 +1299,8 @@ void EvalSubstitutions( PTEXT *subst, int more )
 			}
 			else
 			{
-            PTEXT pOrigin = pStart;
-            pReset = NEXTLINE( pEnd );
+				PTEXT pOrigin = pStart;
+				pReset = NEXTLINE( pEnd );
 				SegSubstRange( &pStart, pEnd, NULL );
 				if( pOrigin == *subst )
 				{
@@ -1326,60 +1326,60 @@ void EvalSubstitutions( PTEXT *subst, int more )
 		// just check to see if this word is anything defined
 		// then later get the actual define for pDefine...
 		pDefine = FindDefineName( pWord, IGNORE_PARAMS ); // look up this symbol
-      if( pDefine && !pDefine->bUsed ) // if we found the name as a symbol...
-      {
-         PTEXT pSubst = NULL, p;
-         PLIST pArgVals = NULL;
-         if( g.bDebugLog & DEBUG_SUBST )
-         {
+		if( pDefine && !pDefine->bUsed ) // if we found the name as a symbol...
+		{
+			PTEXT pSubst = NULL, p;
+			PLIST pArgVals = NULL;
+			if( g.bDebugLog & DEBUG_SUBST )
+			{
 				fprintf( stddbg, WIDE("Found substitution for %s params:%lp\n"), GetText( pWord ), pDefine->pParams );
-	      }
+			}
 			// don't use it yet....
-         //pDefine->bUsed = TRUE;
+			//pDefine->bUsed = TRUE;
 
 			// does the define expect parameters?
-         if( pDefine->pParams )
-         {
+			if( pDefine->pParams )
+			{
 				INDEX i = 0;
 				int bVarArg = 0;
-            int bNoArgs = 1;
+				int bNoArgs = 1;
 				PTEXT pVal = NULL;
 				char *file_start;
 				int line_start;
 				file_start = GetCurrentFileName();
-            line_start = GetCurrentLine();
+				line_start = GetCurrentLine();
 				if( !NEXTLINE( pWord ) && more )
 					pReset = pWord = ReadLine( TRUE );
-            else
+				else
 					pWord = NEXTLINE( pWord );
 				if( !pWord ||
 					 GetText( pWord )[0] != '(' )
 				{
-               if( g.flags.bAllWarnings )
+					if( g.flags.bAllWarnings )
 						fprintf( stderr, WIDE("%s(%d) Warning: No parameters for macro defined at %s(%d)\n")
 								, GetCurrentFileName(), GetCurrentLine()
 								, pDefine->pFile, pDefine->nLine
 								 );
-               continue;
+					continue;
 				}
-            // step to the next word after the leading (
+				// step to the next word after the leading (
 				pWord = NEXTLINE( pWord );
-            // need to gather the parameters specified
+				// need to gather the parameters specified
 				// then find the right define result for number of paramters...
-            while(1)
-            {
-               int quote = 0;
-               int parenlevels = 0;
-               int escape = 0;
+				while(1)
+				{
+					int quote = 0;
+					int parenlevels = 0;
+					int escape = 0;
 					char *text;
 
-               while( pWord || ( more && ( pWord = ReadLine( TRUE ) ) ) )
-               {
-                  // while I have a word, get the text for the word,
-                  // if quote levels or paren levels continue collection
+					while( pWord || ( more && ( pWord = ReadLine( TRUE ) ) ) )
+					{
+						// while I have a word, get the text for the word,
+						// if quote levels or paren levels continue collection
 						// or if it's not a ','
 						//fprintf( stddbg, WIDE(" stuff... %08x %08x %s\n"), pWord, GetText( pWord ), GetText( pWord ) );
-                  text = GetText( pWord );
+						text = GetText( pWord );
 						//fprintf( stddbg, WIDE("Consider word: %s\n"), text );
 						if( !quote )
 						{
@@ -1399,9 +1399,9 @@ void EvalSubstitutions( PTEXT *subst, int more )
 							}
 							else if( !parenlevels && text[0] == ',' )
 							{
-                        bNoArgs = FALSE;
+								bNoArgs = FALSE;
 								if( !bVarArg )
-                              break;
+									break;
 							}
 						}
 						else // is quote
@@ -1430,8 +1430,8 @@ void EvalSubstitutions( PTEXT *subst, int more )
 					{
 						fprintf( stderr, WIDE("%s(%d): Error: Ran out of file data before end of macro params\n")
 								 , GetCurrentFileName(), GetCurrentLine() );
-                  if( quote )
-                  {
+						if( quote )
+						{
 							fprintf( stderr, WIDE("%s(%d) Error: Unterminated string - out of input.\n")
 									 , GetCurrentFileName(), GetCurrentLine() );
 							g.ErrorCount++;
@@ -1444,19 +1444,19 @@ void EvalSubstitutions( PTEXT *subst, int more )
 							g.ErrorCount++;
 							parenlevels = 0;
 						}
-                  EmptyArgList( &pArgVals );
+						EmptyArgList( &pArgVals );
 						if( pVal )
 							LineRelease( pVal );
-                  return;
+						return;
 					}
 						//if( !bVarArg && text[0] == ',' )
 						//{
-					  // 	pWord = NEXTLINE( pWord );
+						// 	pWord = NEXTLINE( pWord );
 						//	if( !pWord )
-                  //      pWord = ReadLine( TRUE );
-                     //break; // end the read/gather loop also...
+						//      pWord = ReadLine( TRUE );
+						//break; // end the read/gather loop also...
 						//}
-               //}
+						//}
 					if( GetText( pWord )[0] == ')' )
 						break;
 					if( !bVarArg )
@@ -1483,19 +1483,19 @@ void EvalSubstitutions( PTEXT *subst, int more )
 							pDefine = AddArgument( &pArgVals, &pVal, &i, pDefine, &bVarArg );
 							if( !pDefine )
 							{
-                        if( pVal )
+								if( pVal )
 									LineRelease( pVal );
 								return;
 							}
 							if( bVarArg && pVal )
-                        pVal = SegAppend( pVal, SegDuplicate( pWord ) );
+								pVal = SegAppend( pVal, SegDuplicate( pWord ) );
 						//}
 					}
 					else
 					{
 						break; // otherwise we'll have already collected the var arg in pVal...
 					}
-               pWord = NEXTLINE( pWord );
+					pWord = NEXTLINE( pWord );
 				}
 
 				if( !bNoArgs )
@@ -1503,9 +1503,9 @@ void EvalSubstitutions( PTEXT *subst, int more )
 					// var args value is dangling when the above loop ends.
 					//if( !pDefine->bVarParams )
 					//{
-               //   fprintf( stderr, WIDE("Adding var arg parameter to a macro without var args?\n") );
+					//   fprintf( stderr, WIDE("Adding var arg parameter to a macro without var args?\n") );
 					//}
-               if( pVal )
+					if( pVal )
 						pVal->format.spaces = 0;
 					pDefine = AddArgument( &pArgVals, &pVal, &i, pDefine, &bVarArg );
 					if( !pDefine )
@@ -1514,53 +1514,53 @@ void EvalSubstitutions( PTEXT *subst, int more )
 							LineRelease( pVal );
 						return;
 					}
-               if( pVal )
+					if( pVal )
 						pDefine = AddArgument( &pArgVals, &pVal, &i, pDefine, &bVarArg );
 					if( pVal )
-                  fprintf( stderr, WIDE("BLAH! Still have a parametner...\n") );
+						fprintf( stderr, WIDE("BLAH! Still have a parametner...\n") );
 				}
 				// hmm at this point the pDefine is auto updated as we find more arguments...
-            // assuming that there have been a legal ordering of macros declared....
+				// assuming that there have been a legal ordering of macros declared....
 				//pDefine = FindDefineName( pDefine->pName
 				//								, pArgVals?pArgVals->Cnt:0 );
 
 				if( ( g.bDebugLog & DEBUG_SUBST )
 					&& pDefine && pDefine->pParams ) // could be useful to dump arguments....
-            {
-            	PTEXT arg;
-            	INDEX idx;
-            	if( g.bDebugLog & DEBUG_SUBST )
+				{
+					PTEXT arg;
+					INDEX idx;
+					if( g.bDebugLog & DEBUG_SUBST )
 						fprintf( stddbg, WIDE("Macro Arguments: \n") );
 					if( pArgVals )
 					{
-               for( idx = 0; idx < pArgVals->Cnt; idx++ )
-            	//FORALL( pArgVals, idx, PTEXT, arg )
-            	{
-            		PTEXT name = GetLink( pDefine->pParams, idx );
-            		PTEXT full = BuildLine( (PTEXT)pArgVals->pNode[idx] );
-					   fprintf( stddbg, WIDE("%s = %s (%p)\n")
-								, name?GetText( name ):"..."
-								, GetText( full )
-								, arg );
-            		LineRelease( full );
+						for( idx = 0; idx < pArgVals->Cnt; idx++ )
+						//FORALL( pArgVals, idx, PTEXT, arg )
+						{
+							PTEXT name = GetLink( pDefine->pParams, idx );
+							PTEXT full = BuildLine( (PTEXT)pArgVals->pNode[idx] );
+								fprintf( stddbg, WIDE("%s = %s (%p)\n")
+										, name?GetText( name ):"..."
+										, GetText( full )
+										, arg );
+								LineRelease( full );
+						}
 					}
-					}
-            }
+				}
 
 				if( pArgVals && pDefine->pParams &&
 					( pArgVals->Cnt < pDefine->pParams->Cnt ) )
 				{
 					fprintf( stderr, WIDE("%s(%d): Warning: parameters to macro are short... assuming NIL parameters.\n")
-                      , GetCurrentFileName(), GetCurrentLine() );
+						 , GetCurrentFileName(), GetCurrentLine() );
 				}
 
-            // ok now we have gathered macro parameters, and the macro
+			// ok now we have gathered macro parameters, and the macro
 				if( pDefine )
-            {
-               int MakeString = 0;
-               int quote = 0;
-               int escape = 0;
-               INDEX idx;
+				{
+					int MakeString = 0;
+					int quote = 0;
+					int escape = 0;
+					INDEX idx;
 
 					if( pArgVals )
 					{
@@ -1571,52 +1571,52 @@ void EvalSubstitutions( PTEXT *subst, int more )
 					}
 					pDefine->bUsed = TRUE; // is used. now...
 
-               for( p = pDefine->pData; p; p = NEXTLINE( p ) )
-               {
-                  if( !quote )
-                  {
-                     if( GetText( p )[0] == '\'' )
-                        quote = '\'';
-                     if( GetText( p )[0] == '\"' )
-                        quote = '\"';
-                  }
-                  else
-                  {
-                     if( !escape )
-                     {
-                        if( GetText( p )[0] == '\\' )
-                           escape = TRUE;
-                        else if( GetText( p )[0] == quote )
-                           quote = 0;
-                     }
-                     else
-                        escape = 0;
-                  }
-                  if( quote )
+					for( p = pDefine->pData; p; p = NEXTLINE( p ) )
+					{
+						if( !quote )
 						{
-                     pSubst = SegAppend( pSubst, SegDuplicate( p ) );
-                     continue;
-                  }
+							if( GetText( p )[0] == '\'' )
+								quote = '\'';
+							if( GetText( p )[0] == '\"' )
+								quote = '\"';
+						}
+						else
+						{
+							if( !escape )
+							{
+								if( GetText( p )[0] == '\\' )
+									escape = TRUE;
+								else if( GetText( p )[0] == quote )
+									quote = 0;
+							}
+							else
+								escape = 0;
+						}
+						if( quote )
+						{
+							pSubst = SegAppend( pSubst, SegDuplicate( p ) );
+							continue;
+						}
 
-                  if( GetText( p )[0] == '#' )
-                  {
-                     MakeString++;
-                     continue;
-                  }
+						if( GetText( p )[0] == '#' )
+						{
+							MakeString++;
+							continue;
+						}
 
-                  idx = FindArg( pDefine->pParams, p );
-                  if( idx == INVALID_INDEX )
+						idx = FindArg( pDefine->pParams, p );
+						if( idx == INVALID_INDEX )
 						{
 							PTEXT seg;
 							if( TextIs( p, WIDE("__VA_ARGS__") ) ||
 								TextIs( p, WIDE("...") ) )
 							{
 								fprintf( stderr, WIDE("%s(%d): Should NEVER be here!\n"), __FILE__, __LINE__ );
-                        exit(-1);
+								exit(-1);
 							}
 							seg = SegDuplicate( p );
 
-                     if( MakeString == 2 )
+							if( MakeString == 2 )
 							{
 								if( seg )
 								{
@@ -1635,16 +1635,16 @@ void EvalSubstitutions( PTEXT *subst, int more )
 									seg = newseg;
 								}
 								MakeString = 0;
-                     }
-                     else if( MakeString == 1 )
+							}
+							else if( MakeString == 1 )
 							{
 								if( seg )
 								{
-                           PTEXT tmp;
+									PTEXT tmp;
 									VarTextAddCharacter( &g.vt, '\"' );
 									tmp = VarTextEnd( &g.vt );
 									if( !(tmp->format.spaces = p->format.spaces ) )
-                              tmp->format.spaces++;
+										tmp->format.spaces++;
 
 									vtprintf( &g.vt, WIDE("%s"), GetText( seg ) );
 									VarTextEnd( &g.vt );
@@ -1652,17 +1652,17 @@ void EvalSubstitutions( PTEXT *subst, int more )
 									LineRelease( seg );
 									seg = VarTextGet( &g.vt );
 								}
-                        MakeString = 0;
+								MakeString = 0;
 							}
 							else
 							{
 								if( p == pDefine->pData )
 									seg->format.spaces++;
 							}
-                     pSubst = SegAppend( pSubst, seg );
-                  }
-                  else
-                  {
+							pSubst = SegAppend( pSubst, seg );
+						}
+						else
+						{
 							PTEXT seg;
 							if( idx == pDefine->pParams->Cnt )
 							{
@@ -1677,7 +1677,7 @@ void EvalSubstitutions( PTEXT *subst, int more )
 										SetEnd( prior );
 										if( prior && GetText( prior )[0] == ',' )
 										{
-                                 SegDelete( &prior );
+											SegDelete( &prior );
 										}
 										continue;
 									}
@@ -1688,7 +1688,7 @@ void EvalSubstitutions( PTEXT *subst, int more )
 								seg = TextDuplicate( GetLink( pArgVals, idx ) );
 							}
 
-                     if( MakeString == 2 )
+							if( MakeString == 2 )
 							{
 								if( seg )
 								{
@@ -1706,25 +1706,25 @@ void EvalSubstitutions( PTEXT *subst, int more )
 									SegSubst( seg, newseg );
 									seg = newseg;
 								}
-                        /*
-                     	// don't check this for substitution
+								/*
+								// don't check this for substitution
 								if( seg )
 								seg->format.spaces = 0;
-                        */
-                        MakeString = 0;
-                     }
-                     else if( MakeString == 1 )
+								*/
+								MakeString = 0;
+							}
+							else if( MakeString == 1 )
 							{
 								PTEXT text;
 								if( seg )
 								{
-                           PTEXT tmp;
+									PTEXT tmp;
 									FixQuoting( seg );
 									text = BuildLine( seg );
 									VarTextAddCharacter( &g.vt, '\"' );
 									tmp = VarTextEnd( &g.vt );
 									if( !(tmp->format.spaces = p->format.spaces ) )
-                              tmp->format.spaces++;
+										tmp->format.spaces++;
 									vtprintf( &g.vt, WIDE("%s"), GetText( text ) );
 									VarTextEnd( &g.vt );
 									VarTextAddCharacter( &g.vt, '\"' );
@@ -1732,13 +1732,13 @@ void EvalSubstitutions( PTEXT *subst, int more )
 									LineRelease( seg );
 									seg = VarTextGet( &g.vt );
 								}
-                     	// don't check this for substitution
-                        MakeString = 0;
-                     }
-                     else
+									// don't check this for substitution
+							MakeString = 0;
+						}
+						else
 							{
 								// seg will always be a unique thing unto itself here.
-                        /*
+								/*
 								if( g.bDebugLog & DEBUG_SUBST )
 								{
 									fprintf( stddbg, WIDE("%s(%d): Doing substitution on substituted parameter: ")
@@ -1746,7 +1746,7 @@ void EvalSubstitutions( PTEXT *subst, int more )
 											, GetCurrentLine()
 											 );
 									DumpSegs( seg );
-                           fprintf( stddbg, WIDE("\n") );
+									fprintf( stddbg, WIDE("\n") );
 								}
 								EvalSubstitutions( &seg, ppReset );
 								if( g.bDebugLog & DEBUG_SUBST )
@@ -1756,22 +1756,22 @@ void EvalSubstitutions( PTEXT *subst, int more )
 											, GetCurrentLine()
 											 );
 									DumpSegs( seg );
-                           fprintf( stddbg, WIDE("\n") );
+									fprintf( stddbg, WIDE("\n") );
 								}
-                        */
+								*/
 								if( seg )
 								{
 									seg->format.spaces = p->format.spaces;
 									//if( p == pDefine->pData )
 									seg->format.spaces++;
 								}
-                        // check seg itself as a symbol...
-                     }
-                     pSubst = SegAppend( pSubst, seg );
-                  }
-               }
+								// check seg itself as a symbol...
+							}
+							pSubst = SegAppend( pSubst, seg );
+						}
+					}
 					EmptyArgList( &pArgVals );
-            }
+				}
 				else
 				{
 					fprintf( stderr, WIDE("%s(%d): Could not match macro(%s) with specified (%d) parameters...\n")
@@ -1779,13 +1779,13 @@ void EvalSubstitutions( PTEXT *subst, int more )
 							 , GetText( pStart )
 							 , pArgVals?pArgVals->Cnt:0 );
 					EmptyArgList( &pArgVals );
-               continue;
+					continue;
 				}
-         }
-         else // if !define->params...
+			}
+			else // if !define->params...
 			{
-            pDefine->bUsed = TRUE;
-            // simple case - no names, no nothing, just literatal substitue
+				pDefine->bUsed = TRUE;
+				// simple case - no names, no nothing, just literatal substitue
 				if( pSubst = TextDuplicate( pDefine->pData ) )
 				{
 					if( g.bDebugLog & DEBUG_SUBST )
@@ -1795,7 +1795,7 @@ void EvalSubstitutions( PTEXT *subst, int more )
 				else
 				{
 					if( g.bDebugLog & DEBUG_SUBST )
-                  fprintf( stddbg, WIDE("Symbol has no subst data...\n") );
+						fprintf( stddbg, WIDE("Symbol has no subst data...\n") );
 				}
 			}
 
@@ -1807,7 +1807,7 @@ void EvalSubstitutions( PTEXT *subst, int more )
 				if( pReset )
 					pReset->format.spaces = 1;
 				if( pSubst )
-	            pReset = pSubst;
+					pReset = pSubst;
 				SegSubstRange( &pStart, pWord, pSubst );
 				if( pOrigin == *subst )
 				{
@@ -1820,13 +1820,13 @@ void EvalSubstitutions( PTEXT *subst, int more )
 
 				// while current is still marked as used, process from HERE
 				// forward... this will allow recursive defines to work.
-            /*
+				/*
 				if( pStart == *subst )
 				{
 					if( g.bDebugLog & DEBUG_SUBST )
 						fprintf( stddbg, WIDE("Doing subst from start of line...\n") );
 					EvalSubstitutions( subst, FALSE ); // need recursion to keep defined substs from redefining...
-               pReset = *ppReset;
+					pReset = *ppReset;
 					fprintf( stddbg, WIDE("Returning from doing start of line subst...\n") );
 				}
 				else
@@ -1834,22 +1834,22 @@ void EvalSubstitutions( PTEXT *subst, int more )
 					if( g.bDebugLog & DEBUG_SUBST )
 						fprintf( stddbg, WIDE("Doing subst from current start\n") );
 					EvalSubstitutions( &pStart, FALSE ); // need recursion to keep defined substs from redefining...
-               pReset = *ppReset;
+					pReset = *ppReset;
 					fprintf( stddbg, WIDE("Returning from current spot subst...\n") );
 				}
-            */
+				*/
 			}
 			else
 			{
-            PTEXT pOrigin = pStart;
+				PTEXT pOrigin = pStart;
 				// step to the next word... substitution with NO data
 				// just continue on with current line.
 				// we will be breaking out of this loop, so this sets
 				// the initial condition of the next recursion path.
 				pReset = NEXTLINE( pWord );
 				if( pReset )
-               pReset->format.spaces = 1;
-            //if( ppReset )
+					pReset->format.spaces = 1;
+				//if( ppReset )
 				//	*ppReset = pReset;
 				SegSubstRange( &pStart, pWord, NULL );
 				if( pOrigin == *subst )
@@ -1860,27 +1860,27 @@ void EvalSubstitutions( PTEXT *subst, int more )
 					}
 					*subst = pReset;
 				}
-         }
-         if( g.bDebugLog & DEBUG_SUBST )
-         {
-	         fprintf( stddbg, WIDE("Line Now:") );
-   	      DumpSegs( *subst );
-   	      fprintf( stddbg, WIDE("\n") );
+			}
+			if( g.bDebugLog & DEBUG_SUBST )
+			{
+				fprintf( stddbg, WIDE("Line Now:") );
+				DumpSegs( *subst );
+				fprintf( stddbg, WIDE("\n") );
 			}
 
-         // release symbol just substituted.
-  			if( pDefine )
+			// release symbol just substituted.
+			if( pDefine )
 					pDefine->bUsed = FALSE;
 		} // end if define && !used
 		else
 		{
-         pWord->flags |= TF_NOEXPAND;
+			pWord->flags |= TF_NOEXPAND;
 		}
 
 		//else if( pDefine ) // if used - perhaps we should return now and see if parent substitutions can handle this...
 		//{
 		//	*ppReset = pWord;
-      //   return;
+		//   return;
 		//}
 
 	} // while there's a word...
@@ -1892,8 +1892,8 @@ void EvalSubstitutions( PTEXT *subst, int more )
 			fprintf( stddbg, WIDE("Resulting No content.\n") );
 		}
 	}
-   nSubstLevel--;
-   return;
+	nSubstLevel--;
+	return;
 }
 
 //----------------------------------------------------------------------
@@ -1902,10 +1902,10 @@ void CommitDefinesToCommandLineTree( PDEF root )
 {
 	if( root )
 	{
-      CommitDefinesToCommandLineTree( root->pLesser );
-      CommitDefinesToCommandLineTree( root->pSame );
+		CommitDefinesToCommandLineTree( root->pLesser );
+		CommitDefinesToCommandLineTree( root->pSame );
 		CommitDefinesToCommandLineTree( root->pGreater );
-      root->nType = DEFINE_COMMANDLINE;
+		root->nType = DEFINE_COMMANDLINE;
 	}
 }
 
@@ -1913,7 +1913,7 @@ void CommitDefinesToCommandLineTree( PDEF root )
 
 void CommitDefinesToCommandLine( void )
 {
-   CommitDefinesToCommandLineTree( pDefineRoot );
+	CommitDefinesToCommandLineTree( pDefineRoot );
 }
 
 //----------------------------------------------------------------------

@@ -18,9 +18,12 @@ string( REGEX REPLACE "library clbrdll.lib" "" CMAKE_C_STANDARD_LIBRARIES "${CMA
 string( REGEX REPLACE "library plbrdll.lib" "" CMAKE_C_STANDARD_LIBRARIES "${CMAKE_C_STANDARD_LIBRARIES}" )
 endif( WATCOM )
 
-set( project sqlcmd.portable )
+set( project pssqlcmd.portable )
 
 set( SOURCES_ROOT ${CMAKE_CURRENT_SOURCE_DIR}/../../../.. )
+
+# should really build this from these sources specifications...
+#include( ${SOURCES_ROOT}/CMakeSources.lst )
 
 if( WIN32 )
 set( MORE_SYSTEM_SOURCES   ${SOURCES_ROOT}/src/systemlib/oswin.c )

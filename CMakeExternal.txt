@@ -1,7 +1,7 @@
 
 
 if( NEED_JPEG )
-SET( JBASEDIR src/contrib/jpeg-9 )
+SET( JBASEDIR ${SOURCES_ROOT}src/contrib/jpeg-9 )
 SET( SYSDEPMEM jmemnobs.c )
 
 # library object files common to compression and decompression
@@ -42,7 +42,7 @@ endif( NEED_JPEG )
 if( NEED_PNG )
 
  if( NEED_ZLIB )
-  SET( ZBASEDIR src/contrib/zlib-1.2.7 )
+  SET( ZBASEDIR ${SOURCES_ROOT}src/contrib/zlib-1.2.7 )
   include( ${ZBASEDIR}/CMakeLists.part )
 if( FORCE_CXX )
 #set_source_files_properties(${ZLIB_SOURCE} PROPERTIES LANGUAGE CXX )
@@ -51,7 +51,7 @@ source_group("Source Files\\zlib-1.2.7 Library" FILES ${ZLIB_SOURCE})
  endif( NEED_ZLIB )
 
 
- SET( PBASEDIR src/contrib/libpng-1.6.17beta03 )
+ SET( PBASEDIR ${SOURCES_ROOT}src/contrib/libpng-1.6.17beta03 )
  include( ${PBASEDIR}/CMakeLists.part )
 
 if( FORCE_CXX )
@@ -64,8 +64,8 @@ endif( NEED_PNG )
 
 
 if( NEED_FREETYPE )
+SET( FBASEDIR ${SOURCES_ROOT}src/contrib/freetype-2.6/src )
 SET( FREETYPE_INCLUDE_DIRS ${FBASEDIR}/include )
-SET( FBASEDIR src/contrib/freetype-2.6/src )
 
 Set( ExternalExtraDefinitions ${ExternalExtraDefinitions} FREETYPE_SOURCE FT2_BUILD_LIBRARY FT_CONFIG_OPTION_USE_PNG )
 

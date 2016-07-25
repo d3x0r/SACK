@@ -26,26 +26,27 @@ if( CMAKE_C_COMPILER_ID STREQUAL "OpenWatcom" )
 endif()
 
 
-if( WIN32 )
-  if( __64__ )
-    install( DIRECTORY ${FFMPEG_SOURCES_ROOT}prebuilt/windows/x64/ffmpeg/2.3.0/bin/ DESTINATION bin )
-    #install( DIRECTORY ${FFMPEG_SOURCES_ROOT}prebuilt/windows/x64/openal/1.15.1/bin/ DESTINATION bin )
-    set( ffmpeg_libraries avcodec-56.dll avdevice-56.dll avfilter-5.dll avformat-56.dll avutil-54.dll postproc-53.dll swresample-1.dll swscale-3.dll )
-    #set( openal_libraries OpenAL32.dll )
-  else( __64__ )
-    install( DIRECTORY ${FFMPEG_SOURCES_ROOT}prebuilt/windows/x86/ffmpeg/2.3.0/bin/ DESTINATION bin )
-    #install( DIRECTORY ${FFMPEG_SOURCES_ROOT}prebuilt/windows/x86/openal/1.15.1/bin/ DESTINATION bin )
-    set( ffmpeg_libraries avcodec-56.dll avdevice-56.dll avfilter-5.dll avformat-56.dll avutil-54.dll postproc-53.dll swresample-1.dll swscale-3.dll )
-    #set( openal_libraries OpenAL32.dll )
-  endif( __64__ )
-  # portable projects won't need this anyway.
-  if( MAKING_SACK_CORE )
-    set( UTILS OFF)
-    set( EXAMPLES OFF)
-    add_subdirectory( ${FFMPEG_SOURCES_ROOT}openal-soft-1.15.1 openal )
-  endif( MAKING_SACK_CORE )
-
-endif( WIN32 )
+if( MAKING_SACK_CORE )
+  if( WIN32 )
+    if( __64__ )
+      install( DIRECTORY ${FFMPEG_SOURCES_ROOT}prebuilt/windows/x64/ffmpeg/2.3.0/bin/ DESTINATION bin )
+      #install( DIRECTORY ${FFMPEG_SOURCES_ROOT}prebuilt/windows/x64/openal/1.15.1/bin/ DESTINATION bin )
+      set( ffmpeg_libraries avcodec-56.dll avdevice-56.dll avfilter-5.dll avformat-56.dll avutil-54.dll postproc-53.dll swresample-1.dll swscale-3.dll )
+      #set( openal_libraries OpenAL32.dll )
+    else( __64__ )
+      install( DIRECTORY ${FFMPEG_SOURCES_ROOT}prebuilt/windows/x86/ffmpeg/2.3.0/bin/ DESTINATION bin )
+      #install( DIRECTORY ${FFMPEG_SOURCES_ROOT}prebuilt/windows/x86/openal/1.15.1/bin/ DESTINATION bin )
+      set( ffmpeg_libraries avcodec-56.dll avdevice-56.dll avfilter-5.dll avformat-56.dll avutil-54.dll postproc-53.dll swresample-1.dll swscale-3.dll )
+      #set( openal_libraries OpenAL32.dll )
+    endif( __64__ )
+    # portable projects won't need this anyway.
+    if( MAKING_SACK_CORE )
+      set( UTILS OFF)
+      set( EXAMPLES OFF)
+      add_subdirectory( ${FFMPEG_SOURCES_ROOT}openal-soft-1.15.1 openal )
+    endif( MAKING_SACK_CORE )
+  endif( WIN32 )
+endif( MAKING_SACK_CORE )
 
 if( __ANDROID__ )
   install( DIRECTORY ${FFMPEG_SOURCES_ROOT}prebuilt/android/arm7/ffmpeg/2.1.3/ DESTINATION . )
@@ -60,12 +61,14 @@ if( __ANDROID__ )
 
 endif( __ANDROID__ )
 
+if( MAKING_SACK_CORE )
 INSTALL( 
   FILES
     ${SOURCES_ROOT}include/ffmpeg_interface.h
   DESTINATION
     include/${CMAKE_PROJECT_NAME}
 )
+endif( MAKING_SACK_CORE )
 
 
 

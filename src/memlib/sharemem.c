@@ -91,7 +91,7 @@ namespace sack {
 #  undef g
 #endif
 
-static PTRSZVAL masks[33] = { ~0, ~0, ~1, 0, ~3, 0, 0, 0, ~7, 0, 0, 0, 0, 0, 0, 0, ~15, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, ~31 };
+static PTRSZVAL masks[33] = { ~0U, ~0U, ~1U, 0, ~3U, 0, 0, 0, ~7U, 0, 0, 0, 0, 0, 0, 0, ~15U, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, ~31U };
 
 
 #define BASE_MEMORY (POINTER)0x80000000
@@ -267,6 +267,8 @@ PRIORITY_PRELOAD( InitGlobal, DEFAULT_PRELOAD_PRIORITY )
 	g.bLogAllocateWithHold = SACK_GetProfileIntEx( GetProgramName(), WIDE( "SACK/Memory Library/Enable Logging Holds" ), g.bLogAllocateWithHold, TRUE );
 	//USE_CUSTOM_ALLOCER = SACK_GetProfileIntEx( GetProgramName(), WIDE( "SACK/Memory Library/Custom Allocator" ), USE_CUSTOM_ALLOCER, TRUE );
 	g.bDisableDebug = SACK_GetProfileIntEx( GetProgramName(), WIDE( "SACK/Memory Library/Disable Debug" ), !USE_DEBUG_LOGGING, TRUE );
+#else
+	//g.bLogAllocate = 1;
 #endif
 	g.nMinAllocateSize = 32;
 }

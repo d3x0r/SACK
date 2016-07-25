@@ -283,9 +283,9 @@ struct SACK_3D_Surface {
 	int verts;
 } ;
 
-void InitShader(PImageShaderTracker shader);
-void InitSuperSimpleShader( PImageShaderTracker shader );
-void InitLayerTextureShader( PImageShaderTracker shader );
+void InitShader(PTRSZVAL psvSetup, PImageShaderTracker shader);
+void InitSuperSimpleShader( PTRSZVAL psvSetup, PImageShaderTracker shader );
+void InitLayerTextureShader( PTRSZVAL psvSetup, PImageShaderTracker shader );
 
 
 struct SACK_3D_Surface *CreateBumpTextureFragment( int verts

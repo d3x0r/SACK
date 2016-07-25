@@ -2,7 +2,9 @@
 #include <deadstart.h>
 #include <procreg.h>
 #include <sqlgetoption.h>
-#include "../src/contrib/MatrixSSL/3.7.1/matrixssl/matrixsslApi.h"
+
+#define _LIB
+#include "matrixssl/matrixsslApi.h"
 
 #define ALLOW_ANON_CONNECTIONS	1
 
@@ -27,9 +29,59 @@ static struct ssl_global
 	} flags;
 	LOGICAL trace;
 	sslSessionId_t	*sid; // reusable key data
-	uint32 cipher[16];
-	uint16 cipherlen;
+	uint8 cipherlen;
 }ssl_global;
+
+
+uint16_t ciphers[] = {
+ TLS_RSA_WITH_AES_128_CBC_SHA		
+, TLS_DHE_RSA_WITH_AES_128_CBC_SHA		
+//,	TLS_DH_anon_WITH_AES_128_CBC_SHA		
+, TLS_RSA_WITH_AES_256_CBC_SHA			
+, TLS_DHE_RSA_WITH_AES_256_CBC_SHA		
+//,	TLS_DH_anon_WITH_AES_256_CBC_SHA		
+, TLS_RSA_WITH_AES_128_CBC_SHA256			
+, TLS_RSA_WITH_AES_256_CBC_SHA256			
+//, TLS_DHE_RSA_WITH_AES_128_CBC_SHA256		  
+//, TLS_DHE_RSA_WITH_AES_256_CBC_SHA256		
+//, TLS_RSA_WITH_SEED_CBC_SHA				
+//, TLS_PSK_WITH_AES_128_CBC_SHA			
+//, TLS_PSK_WITH_AES_128_CBC_SHA256			
+//, TLS_PSK_WITH_AES_256_CBC_SHA384			
+//, TLS_PSK_WITH_AES_256_CBC_SHA			
+//, TLS_DHE_PSK_WITH_AES_128_CBC_SHA		
+//, TLS_DHE_PSK_WITH_AES_256_CBC_SHA		
+, TLS_RSA_WITH_AES_128_GCM_SHA256			
+, TLS_RSA_WITH_AES_256_GCM_SHA384			
+
+//, TLS_EMPTY_RENEGOTIATION_INFO_SCSV		
+//, TLS_FALLBACK_SCSV						
+
+, TLS_ECDH_ECDSA_WITH_AES_128_CBC_SHA		//8
+, TLS_ECDH_ECDSA_WITH_AES_256_CBC_SHA		
+, TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA	
+, TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA	
+//, TLS_ECDHE_RSA_WITH_3DES_EDE_CBC_SHA		
+, TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA		
+, TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA		
+, TLS_ECDH_RSA_WITH_AES_128_CBC_SHA		
+, TLS_ECDH_RSA_WITH_AES_256_CBC_SHA		
+, TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256 
+, TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA384 
+, TLS_ECDH_ECDSA_WITH_AES_128_CBC_SHA256  
+, TLS_ECDH_ECDSA_WITH_AES_256_CBC_SHA384  
+, TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256	
+, TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384	
+, TLS_ECDH_RSA_WITH_AES_128_CBC_SHA256	
+, TLS_ECDH_RSA_WITH_AES_256_CBC_SHA384	
+, TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256 
+, TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384 
+, TLS_ECDH_ECDSA_WITH_AES_128_GCM_SHA256	
+, TLS_ECDH_ECDSA_WITH_AES_256_GCM_SHA384	
+, TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256	
+, TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384	
+, TLS_ECDH_RSA_WITH_AES_128_GCM_SHA256	
+, TLS_ECDH_RSA_WITH_AES_256_GCM_SHA384	};
 
 
 static const char *default_certs[] = {
@@ -186,8 +238,10 @@ static int32 loadRsaKeys( sslKeys_t *keys, LOGICAL client )
 	}
 	if( cert_key_len || priv_key_len || CAstreamLen )
 	{
-		rc = matrixSslLoadRsaKeysMem(keys, cert_key, cert_key_len,
-				priv_key, priv_key_len, CAstream, CAstreamLen);
+		rc = matrixSslLoadRsaKeysMem(keys
+			, client?NULL:cert_key, client?0:cert_key_len
+			, client?NULL:priv_key, client?0:priv_key_len
+			, CAstream, CAstreamLen );
 
 		if (rc < 0) {
 			lprintf("No certificate material loaded.  Exiting");
@@ -239,7 +293,7 @@ void CloseSession( PCLIENT pc )
 	If this callback is not registered in matrixSslNewClientSession
 	the connection will be accepted or closed based on the alert value.
  */
-static int32 certCb(ssl_t *ssl, psX509Cert_t *cert, int32 alert)
+static int32_t certCb(ssl_t *ssl, psX509Cert_t *cert, int32_t alert)
 {
 #ifndef USE_ONLY_PSK_CIPHER_SUITE
 	psX509Cert_t	*next;
@@ -317,8 +371,8 @@ static int32 certCb(ssl_t *ssl, psX509Cert_t *cert, int32 alert)
 }
 
 
-static int32 extensionCb(ssl_t *ssl, unsigned short extType,
-							unsigned short extLen, void *e)
+static int32_t extensionCb(ssl_t *ssl, uint16_t extType,
+							uint8_t extLen, void *e)
 {
 	unsigned char	*c;
 	short			len;
@@ -470,7 +524,7 @@ LOGICAL ssl_BeginClientSession( PCLIENT pc )
 			lprintf( "MatrixSSL Failed to initialize." );
 			return FALSE;
 		}
-		ssl_global.cipherlen          = 3;
+		ssl_global.cipherlen          = sizeof( ciphers ) / sizeof( ciphers[0] );
 		/*
            "    53 TLS_RSA_WITH_AES_256_CBC_SHA\n"
            "    47 TLS_RSA_WITH_AES_128_CBC_SHA\n"
@@ -478,11 +532,13 @@ LOGICAL ssl_BeginClientSession( PCLIENT pc )
            "     5 SSL_RSA_WITH_RC4_128_SHA\n"
            "     4 SSL_RSA_WITH_RC4_128_MD5\n");
 		*/
-		ssl_global.cipher[0]          = TLS_RSA_WITH_AES_128_CBC_SHA;
-		ssl_global.cipher[1]          = TLS_RSA_WITH_AES_256_CBC_SHA;
-		ssl_global.cipher[2]          =  57;
-		ssl_global.cipher[3]          = TLS_RSA_WITH_AES_256_CBC_SHA256;
-		ssl_global.cipher[4]          = 53;
+
+
+		//ssl_global.cipher[0]          = TLS_RSA_WITH_AES_128_CBC_SHA;
+		//ssl_global.cipher[1]          = TLS_RSA_WITH_AES_256_CBC_SHA;
+		//ssl_global.cipher[2]          = TLS_DHE_RSA_WITH_AES_256_CBC_SHA/*57*/;
+		//ssl_global.cipher[3]          = TLS_RSA_WITH_AES_256_CBC_SHA256;
+		//ssl_global.cipher[4]          = TLS_RSA_WITH_AES_256_CBC_SHA/*53*/;
 
 		ssl_global.flags.bInited = 1;
 	}
@@ -516,12 +572,12 @@ LOGICAL ssl_BeginClientSession( PCLIENT pc )
 
 	matrixSslCreateSNIext(NULL, (unsigned char*)hostname, (uint32)strlen(hostname),
 		&ext, &extLen);
-	matrixSslLoadHelloExtension(extension, ext, extLen, EXT_SERVER_NAME);
+	matrixSslLoadHelloExtension(extension, ext, extLen, EXT_SNI );
 	psFree(ext, NULL);
 
 	result = matrixSslNewClientSession( &pc->ssl_session->ssl, pc->ssl_session->keys
 		, ssl_global.sid
-		, ssl_global.cipher, ssl_global.cipherlen
+		, ciphers, ssl_global.cipherlen
 		, certCb
 		, NULL /*g_ip*/	 // const char *expectedName
 		, extension
@@ -546,6 +602,57 @@ LOGICAL ssl_BeginClientSession( PCLIENT pc )
 	ssl_ReadComplete( pc, NULL, 0 );
 	return TRUE;
 }
+
+static void CPROC keyGenEnd( PTRSZVAL psv, PTASK_INFO task ){
+	((LOGICAL*)psv)[0] = TRUE;
+
+}
+
+void CreateKeyFile( void )
+{
+	char *args[] = { "openssl", "genrsa", "-out", "privkey.pem", "2048", NULL };
+  // LaunchPeerProgram( "openssl", NULL, args, NULL, keyGenEnd, NULL, 0 );
+}
+
+const char *Something = "[ ca ]   \n\
+default_ca      = CA_default      \n\
+                                  \n\
+[ CA_default ]                    \n\
+serial = 1                        \n\
+crl = ca-crl.pem                  \n\
+database = ca-database.txt        \n\
+name_opt = none                   \n\
+cert_opt = none                   \n\
+default_crl_days = 9999           \n\
+default_md = md5                  \n\
+                                  \n\
+[ req ]                           \n\
+default_bits           = 4096     \n\
+days                   = 9999     \n\
+distinguished_name     = req_distinguished_name\n\
+attributes             = req_attributes        \n\
+prompt                 = no                    \n\
+output_password        = password              \n\
+                                               \n\
+[ req_distinguished_name ]                     \n\
+C                      = US                    \n\
+ST                     = NV                    \n\
+L                      = Las Vegas             \n\
+O                      = Freedom Collective    \n\
+OU                     = experimental          \n\
+CN                     = ca                    \n\
+emailAddress           = noone@nowhere.net     \n\
+                                               \n\
+[ req_attributes ]                             \n\
+challengePassword      = test                  \n";
+
+void genkey2()
+{
+   //System( "openssl req -new -x509 -days 9999 -config ca.cnf -keyout ca-key.pem -out ca-cert.pem -config ca.cnf", NULL, 0 );
+//	System( "openssl rsa -in ca-key.pem -out key.pem", NULL, 0 );
+
+}
+
 
 
 SACK_NETWORK_NAMESPACE_END
