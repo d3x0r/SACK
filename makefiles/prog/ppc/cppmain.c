@@ -226,7 +226,7 @@ int ProcessInclude( int bNext )
 	int i = 0, did_subst = 0;
 	PTEXT pEnd, pWord;
 
-	if( !( pWord = GetCurrentWord() ) )
+	if( !( pEnd = pWord = GetCurrentWord() ) )
 	{
 		fprintf( stderr, WIDE("%s(%d) Error: #include without name.\n"), GetCurrentFileName(), GetCurrentLine() );
 		g.ErrorCount++;
@@ -376,9 +376,13 @@ int ProcessInclude( int bNext )
 		{
 			PTEXT pStart = pWord;
 			EvalSubstitutions( &pWord, FALSE );
-			if( pWord != pStart )
-			SetCurrentWord( pWord );
+			if( pWord != pStart ) {
+				SetCurrentWord( pWord );
+			}
+			else
+				sprintf( basename, WIDE("%s"), GetText( pEnd ) );
 			did_subst++;
+
 		}
 	} while( did_subst < 2 );
 	if( g.flags.load_once )
@@ -387,9 +391,9 @@ int ProcessInclude( int bNext )
 	}
 	fprintf( stderr, WIDE("%s(%d) Warning could not process include file %c%s%c\n")
 			  , GetCurrentFileName(), GetCurrentLine()
-					, GetCurrentWord()->data.data[0]
+					, (pEnd!= GetCurrentWord())?GetCurrentWord()->data.data[0]:' '
 					, basename
-					, pEnd->data.data[0]
+					, (pEnd != GetCurrentWord()) ? pEnd->data.data[0] : ' '
 			);
 	//g.ErrorCount++;
 
@@ -505,7 +509,7 @@ int PreProcessLine( void )
 //==== ENDIF =====================================================
 		if( TextLike( pDirective, WIDE("endif") ) )
 		{
-			if( g.flags.skip_define_processing ) {
+			if( g.flags.skip_logic_processing || g.flags.skip_define_processing ) {
 				SetCurrentWord( pFirstWord );
 				return TRUE;
 			}
@@ -553,7 +557,7 @@ int PreProcessLine( void )
 					  TextLike( pDirective, WIDE("ifndef") ) ||
 					  TextLike( pDirective, WIDE("if") ) )
 			{
-				if( g.flags.skip_define_processing ) {
+				if( g.flags.skip_logic_processing || g.flags.skip_define_processing ) {
 					SetCurrentWord( pFirstWord );
 					return TRUE;
 				}
@@ -570,7 +574,7 @@ int PreProcessLine( void )
 //==== ELSE =====================================================
 		else if( TextLike( pDirective, WIDE("else") ) )
 		{
-			if( g.flags.skip_define_processing ) {
+			if( g.flags.skip_logic_processing || g.flags.skip_define_processing ) {
 				SetCurrentWord( pFirstWord );
 				return TRUE;
 			}
@@ -622,7 +626,7 @@ int PreProcessLine( void )
 		else if( TextLike( pDirective, WIDE("elseifdef") ) ||
 					TextLike( pDirective, WIDE("elifdef") ) )
 		{
-			if( g.flags.skip_define_processing ) {
+			if( g.flags.skip_logic_processing || g.flags.skip_define_processing ) {
 				SetCurrentWord( pFirstWord );
 				return TRUE;
 			}
@@ -639,7 +643,7 @@ int PreProcessLine( void )
 		else if( TextLike( pDirective, WIDE("elseifndef") ) ||
 					TextLike( pDirective, WIDE("elifndef") ) )
 		{
-			if( g.flags.skip_define_processing ) {
+			if( g.flags.skip_logic_processing || g.flags.skip_define_processing ) {
 				SetCurrentWord( pFirstWord );
 				return TRUE;
 			}
@@ -659,7 +663,7 @@ int PreProcessLine( void )
 		// by the prior two conditions....
 		if( nState & (FIND_ELSE | FIND_ENDIF) )
 		{
-			if( g.flags.skip_define_processing ) {
+			if( g.flags.skip_logic_processing || g.flags.skip_define_processing ) {
 				SetCurrentWord( pFirstWord );
 				return TRUE;
 			}
@@ -718,6 +722,10 @@ int PreProcessLine( void )
 				return FALSE; // can still continue....
 			}
 			ProcessDefine( DEFINE_FILE );
+			if( g.flags.skip_logic_processing ) {
+				SetCurrentWord( pFirstWord );
+				return TRUE;
+			}
 			return FALSE;
 		}
 //== UNDEF  =======================================================
@@ -733,12 +741,16 @@ int PreProcessLine( void )
 			{
 				DeleteDefine( &pDef );
 			}
+			if( g.flags.skip_logic_processing ) {
+				SetCurrentWord( pFirstWord );
+				return TRUE;
+			}
 			return FALSE;
 		}
 //== IFDEF =======================================================
 		else if( TextLike( pDirective, WIDE("ifdef") ) )
 		{
-			if( g.flags.skip_define_processing ) {
+			if( g.flags.skip_logic_processing || g.flags.skip_define_processing ) {
 				SetCurrentWord( pFirstWord );
 				return TRUE;
 			}
@@ -768,7 +780,7 @@ int PreProcessLine( void )
 //== IFNDEF =======================================================
 		else if( TextLike( pDirective, WIDE("ifndef") ) )
 		{
-			if( g.flags.skip_define_processing ) {
+			if( g.flags.skip_logic_processing || g.flags.skip_define_processing ) {
 				SetCurrentWord( pFirstWord );
 				return TRUE;
 			}
@@ -798,7 +810,7 @@ int PreProcessLine( void )
 		// have to go through all words and check vs current
 		// defines to see if we need to substitute the data or not...
 	SubstituteAndProcess:
-		if( !g.flags.skip_define_processing )
+		if( !g.flags.skip_define_processing && !g.flags.skip_logic_processing )
 		{
 			PTEXT line = GetCurrentWord();
 			EvalSubstitutions( &line, FALSE );
@@ -809,7 +821,7 @@ int PreProcessLine( void )
 		if( TextLike( pDirective, WIDE("if") ) )
 		{
 			PTEXT dbg;
-			if( g.flags.skip_define_processing ) {
+			if( g.flags.skip_logic_processing || g.flags.skip_define_processing ) {
 				SetCurrentWord( pFirstWord );
 				return TRUE;
 			}
@@ -845,7 +857,7 @@ int PreProcessLine( void )
 		else if( TextLike( pDirective, WIDE("elseif") ) ||
 				  TextLike( pDirective, WIDE("elif") ) )
 		{
-			if( g.flags.skip_define_processing ) {
+			if( g.flags.skip_logic_processing || g.flags.skip_define_processing ) {
 				SetCurrentWord( pFirstWord );
 				return TRUE;
 			}
@@ -1015,7 +1027,7 @@ int PreProcessLine( void )
 	{
 		fprintf( stderr, WIDE("ERROR: Responding true to invoking a preprocessor command to output\n") );
 	}
-	if( !g.flags.skip_define_processing )
+	if( !g.flags.skip_define_processing && !g.flags.skip_logic_processing )
 	{
 		PTEXT *line = GetCurrentTextLine();
 		//PTEXT reset = GetCurrentWord();
@@ -1230,12 +1242,14 @@ void usage( void )
 	printf( WIDE("\t -p                  keep includes in output (don't output content of include)\n") );
 	printf( WIDE("\t -f                  force / into \\ in include statements with paths\n" ) );
 	printf( WIDE("\t -sd                 skip define processing (if,else,etc also skippped)\n" ) );
+	printf( WIDE("\t -sl                 skip logic processing (if,else,endif skippped; process defines for include subst)\n" ) );
 	printf( WIDE("\t -ssio               Skip System Include Out;try to keep #includes that are missing as #include\n" ) );
 	printf( WIDE("\t -F                  force \\ into /\n") );
 	printf( WIDE("\t -[Oo]<file>         specify the output filename; output filename must be set before input(s) are read\n") );
 	printf( WIDE("\t                         -o output \"process this file into output.c\"\n" ) );
 	printf( WIDE("\t -once               only load any include once\n") );
 	printf( WIDE("\t -[Zz]#              debug info mode. where number is in ( 1, 2, 4 )\n") );
+	printf( WIDE("\t @<file>              any option read from a file...\n") );
 	printf( WIDE("  Any option prefixed with a - will force the option off...  --c to force not keeping comments\n") );
 	printf( WIDE("  Option L is by default on. (line info with #line keyword)\n") );
 	printf( WIDE("  output default is input name substituing the last character for an i...\n") );
@@ -1265,6 +1279,7 @@ int ispathchr( char c )
 	return FALSE;
 }
 
+
 char *nextchr( char *string, char *chars )
 {
 	char *test;
@@ -1284,81 +1299,36 @@ char *nextchr( char *string, char *chars )
 	return NULL;
 }				  
 
-int main( char argc, char **argv, char **env )
-{
-#ifdef __LINUX__
-	{
-		/* #include unistd.h, stdio.h, string.h */
-		{
-			char buf[256], *pb;
-			int n;
-			n = readlink( WIDE("/proc/self/exe"), buf, 256 );
-			if( n >= 0 )
-			{
-				buf[n] = 0; //linux
-				if( !n )
-				{
-					strcpy( buf, WIDE(".") );
-					buf[ n = readlink( WIDE("/proc/curproc/"), buf, 256 ) ] = 0; // fbsd
-				}
-			}
-			else
-				strcpy( buf, WIDE(".") );
-			pb = strrchr( buf, '/' );
-			if( pb )
-			{
-				pb[0]=0;
-				pb++;
-				strcpy( g.pExecName, pb );
-			}
-			strcpy( g.pExecPath, buf );
-		}
-	}
-	getcwd( g.pWorkPath, sizeof( g.pWorkPath ) );
-#elif defined( _WIN32 )
-	 char *laststroke;
-	 GetModuleFileName( NULL, g.pExecPath, sizeof(g.pExecPath) );
-	 laststroke = pathrchr( g.pExecPath );
-	 if( laststroke )
-		 laststroke[0] = 0;
-	//printf( WIDE("path: %s\n"), g.pExecPath );
-	getcwd( g.pWorkPath, sizeof( g.pWorkPath ) );
-#else
-	printf( WIDE("Path is not defined - probably will not work.") );
-#endif
-#ifdef __WATCOMC__
-	SetMinAllocate( sizeof( TEXT ) + 16 );
-#endif
-	DisableMemoryValidate(TRUE);
-	// should build this from execution path of this module
-	g.flags.do_trigraph = 1;
-	g.flags.bWriteLine = TRUE;
-	g.flags.bLineUsesLineKeyword = TRUE;
-	g.bDebugLog = FALSE;
-	//g.dbgout = fopen( "debug.log", "wt" );
-	g.CurrentOutName[0] = 0xFF;
-	//AddLink( g.pSysIncludePath, SegCreateFromText( WIDE("m:\\lcc\\include") ) );
-
-	AddLink( g.pUserIncludePath, (PTEXT)&g.pCurrentPath );
-	SetCurrentPath( WIDE(".") );
-
-	InitDefines(); // set current date/time macros....
-	if( 0 && !g.flags.skip_define_processing )
-	{
-		DefineDefine( WIDE( "TRUE" ), WIDE( "1" ) );
-		DefineDefine( WIDE( "FALSE" ), WIDE( "0" ) );
-		DefineDefine( WIDE( "true" ), WIDE( "1" ) );
-		DefineDefine( WIDE( "false" ), WIDE( "0" ) );
-		DefineDefine( WIDE( "__bool_true_false_are_defined" ), WIDE( "1" ) );
-		DefineDefine( WIDE( "bool" ), WIDE( "unsigned char" ) );
-		DefineDefine( WIDE( "__PPCCPP__" ), WIDE( "0x100" ) );
-	}
+int processArguments( int argc, char **argv ) {
 	{
 		int i=1;
 		int nArgState = ARG_UNKNOWN;
 		for( i = 1; i < argc; i++  )
 		{
-			if( argv[i][0] == '-' ||
+			if( argv[i][0] == '@' ) {
+				FILE *file = fopen( argv[i]+1, "rt" );
+				if( file ) {
+					char buf[4096];
+					while( fgets( buf, 4096, file ) )
+					{
+						int tmpargc;
+						char **tmpargv;
+						int len = strlen(buf);
+						if( buf[len-1] == '\n' )
+							buf[len-1] = 0;
+						ParseIntoArgs( buf, &tmpargc, &tmpargv );
+						processArguments( tmpargc+1, tmpargv-1 );
+						{
+							int n;
+							// be nice and cleanup memory.
+							for( n = 0; n < tmpargc; n++ )
+								Release( tmpargv[n] );
+							Release( tmpargv );
+						}
+					}
+				}
+			}
+			else if( argv[i][0] == '-' ||
 				 //argv[i][0] == '/' ||
 				 nArgState )
 			{
@@ -1542,6 +1512,12 @@ int main( char argc, char **argv, char **env )
 						else if( argv[i][n] == 's' && argv[i][n + 1] &&
 							argv[i][n + 1] == 'd' ) {
 							g.flags.skip_define_processing = 1;
+							n += 3;
+							break;
+						}
+						else if( argv[i][n] == 's' && argv[i][n + 1] &&
+							argv[i][n + 1] == 'l' ) {
+							g.flags.skip_logic_processing = 1;
 							n += 3;
 							break;
 						}
@@ -1737,11 +1713,91 @@ int main( char argc, char **argv, char **env )
 					//fprintf( stderr, WIDE("Probable error! -include, -imacro directives are lost.\nMultiple sources on command line.\n") );
 				}
 				ProcessFile( argv[i] );
-				DeleteAllDefines( DEFINE_FILE );
+				if( !g.flags.skip_logic_processing )
+					DeleteAllDefines( DEFINE_FILE );
 				//if(  )
 				//g.CurrentOutName[0] = 0; // clear name.
 			}
 		}
+	}
+	return 2;
+}
+
+int main( char argc, char **argv, char **env )
+{
+#ifdef __LINUX__
+	{
+		/* #include unistd.h, stdio.h, string.h */
+		{
+			char buf[256], *pb;
+			int n;
+			n = readlink( WIDE("/proc/self/exe"), buf, 256 );
+			if( n >= 0 )
+			{
+				buf[n] = 0; //linux
+				if( !n )
+				{
+					strcpy( buf, WIDE(".") );
+					buf[ n = readlink( WIDE("/proc/curproc/"), buf, 256 ) ] = 0; // fbsd
+				}
+			}
+			else
+				strcpy( buf, WIDE(".") );
+			pb = strrchr( buf, '/' );
+			if( pb )
+			{
+				pb[0]=0;
+				pb++;
+				strcpy( g.pExecName, pb );
+			}
+			strcpy( g.pExecPath, buf );
+		}
+	}
+	getcwd( g.pWorkPath, sizeof( g.pWorkPath ) );
+#elif defined( _WIN32 )
+	 char *laststroke;
+	 GetModuleFileName( NULL, g.pExecPath, sizeof(g.pExecPath) );
+	 laststroke = pathrchr( g.pExecPath );
+	 if( laststroke )
+		 laststroke[0] = 0;
+	//printf( WIDE("path: %s\n"), g.pExecPath );
+	getcwd( g.pWorkPath, sizeof( g.pWorkPath ) );
+#else
+	printf( WIDE("Path is not defined - probably will not work.") );
+#endif
+#ifdef __WATCOMC__
+	SetMinAllocate( sizeof( TEXT ) + 16 );
+#endif
+	DisableMemoryValidate(TRUE);
+	// should build this from execution path of this module
+	g.flags.do_trigraph = 1;
+	g.flags.bWriteLine = TRUE;
+	g.flags.bLineUsesLineKeyword = TRUE;
+	g.bDebugLog = FALSE;
+	//g.dbgout = fopen( "debug.log", "wt" );
+	g.CurrentOutName[0] = 0xFF;
+	//AddLink( g.pSysIncludePath, SegCreateFromText( WIDE("m:\\lcc\\include") ) );
+
+	AddLink( g.pUserIncludePath, (PTEXT)&g.pCurrentPath );
+	SetCurrentPath( WIDE(".") );
+
+	InitDefines(); // set current date/time macros....
+	if( 0 && !g.flags.skip_define_processing )
+	{
+		DefineDefine( WIDE( "TRUE" ), WIDE( "1" ) );
+		DefineDefine( WIDE( "FALSE" ), WIDE( "0" ) );
+		DefineDefine( WIDE( "true" ), WIDE( "1" ) );
+		DefineDefine( WIDE( "false" ), WIDE( "0" ) );
+		DefineDefine( WIDE( "__bool_true_false_are_defined" ), WIDE( "1" ) );
+		DefineDefine( WIDE( "bool" ), WIDE( "unsigned char" ) );
+		DefineDefine( WIDE( "__PPCCPP__" ), WIDE( "0x100" ) );
+	}
+	{
+		int r = processArguments( argc, argv );
+		if( r == 0 )
+			return 0;
+		if( r == 1 )
+			 return 1;
 	}
 	VarTextEmpty( &g.vt );
 	if( g.bAutoDepend )

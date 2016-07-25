@@ -1898,10 +1898,10 @@ static void OnFirstDraw3d( WIDE( "Terrain View" ) )( PTRSZVAL psvInit )
 	// states to make sure we just fall back to the old way.
 	// so should load the classic image along with any new images.
 
-	l.shader.extra_simple_shader.shader_tracker = ImageGetShader( WIDE("SuperSimpleShader"), InitSuperSimpleShader );
+	l.shader.extra_simple_shader.shader_tracker = ImageGetShaderInit( WIDE("SuperSimpleShader"), NULL, InitSuperSimpleShader, 0 );
 
-	l.shader.simple_shader.shader_tracker = ImageGetShader( WIDE("SimpleLightShader"), InitShader );
-	l.shader.normal_shader.shader_tracker = ImageGetShader( WIDE("SimpleLightLayerShader"), InitLayerTextureShader );
+	l.shader.simple_shader.shader_tracker = ImageGetShaderInit( WIDE("SimpleLightShader"), NULL, InitShader, 0 );
+	l.shader.normal_shader.shader_tracker = ImageGetShaderInit( WIDE("SimpleLightLayerShader"), NULL, InitLayerTextureShader, 0 );
 	{
 		int n;
 		struct band *initial_band = new band( l.hex_size );
@@ -2320,7 +2320,7 @@ static void OnDraw3d( WIDE("Terrain View") )( PTRSZVAL psvInit )
 			vert[0] =-0; vert[1] = -10; vert[2] =0;
 			vert[3] =1000; vert[4] =-10; vert[5] =0;
 
-			ImageEnableShader( ImageGetShader( WIDE("Simple Shader"), NULL ), vert, col );
+			ImageEnableShader( ImageGetShader( WIDE("Simple Shader") ), vert, col );
 			glDrawArrays(GL_LINES, 0, 2);	
 			CheckErr();
 		}
@@ -2345,6 +2345,8 @@ enum move_mode{
 	MOVE_SPIN_STOP,
 	MOVE_SPIN_ANGLE,
 };
+
+#undef normalize
 
 void ApplyBlowerForces( void )
 {

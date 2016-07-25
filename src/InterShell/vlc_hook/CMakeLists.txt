@@ -1,4 +1,4 @@
-
+error( don't use this )
 
 cmake_minimum_required(VERSION 2.8)
 
@@ -18,9 +18,9 @@ ${LAST_GCC_LIBRARY_SOURCE} )
 
 if( NOT VLC_PATH )
 if( MAKING_SACK_CORE )
-set( VLC_PATH ${SACK_SDK_ROOT_PATH}/src/libvlc/1.1.3 )
+set( VLC_PATH ${SACK_SDK_ROOT_PATH}/src/libvlc/2.2.4 )
 else( MAKING_SACK_CORE )
-set( VLC_PATH ${SACK_SDK_ROOT_PATH}/include/libvlc/1.1.3 )
+set( VLC_PATH ${SACK_SDK_ROOT_PATH}/include/libvlc/2.2.4 )
 endif( MAKING_SACK_CORE )
 endif( NOT VLC_PATH )
 OPTION( VLC_PATH "Path to which version of VLC interface to use" ${VLC_PATH} )

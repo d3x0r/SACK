@@ -86,4 +86,7 @@ void DestoyDepends( void );
 char *pathrchr( char *path );
 char *pathchr( char *path );
 
+//---------- actually is args.c; but it's only the one function......
+void ParseIntoArgs( char *lpCmdLine, int *pArgc, char ***pArgv );
+
 #endif

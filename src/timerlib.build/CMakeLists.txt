@@ -38,10 +38,10 @@ set( TIMERLIB_SOURCES     ${THIS_FIRST_GCC_SOURCES}
     ../procreglib/names.c
     ../procreglib/registry.h
     ../sysloglib/syslog.c
-    ../filesyslib/pathops.c
+    ../filesyslib/pathops.c  # syslog requires all of these... 
     ../filesyslib/winfiles.c
     ../filesyslib/filesys_local.h
-    ../systemlib/system.c
+    ../systemlib/system.c    # default log paths setup here
     ../systemlib/taskinfo.h
     ../deadstart/deadstart_core.c 
 	${MORE_TIMER_SOURCES}

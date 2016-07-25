@@ -55,6 +55,7 @@ endif( BUILD_TESTS )
 if( BUILD_EXTRAS )
 
 add_subdirectory( vfs_command )
+add_subdirectory( vfs_extract )
 
 # some assembly required...
 #if( WIN32 )

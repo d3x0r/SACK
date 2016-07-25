@@ -33,6 +33,7 @@ typedef struct global_tag
 		_32 bIncludedLastFile : 1; // a status of the last processinclude
 		_32 doing_system_file : 1;
 		_32 skip_define_processing : 1;
+		_32 skip_logic_processing : 1;
 		_32 config_loaded : 1;
 	} flags;
 	FILE *output;

@@ -25,7 +25,7 @@
 #  endif
 #endif //_MSC_VER 
 
-#if _MSC_VER > 100000
+#if ( _MSC_VER > 1600 )
 // I don't use these limit anyway... so not having them should be harmless
 #  include <stdint.h>
 #endif

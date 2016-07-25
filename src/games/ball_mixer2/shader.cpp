@@ -68,7 +68,7 @@ void CPROC EnableSuperSimpleShader( PImageShaderTracker tracker, PTRSZVAL psv, v
 }
 
 
-void InitSuperSimpleShader( PImageShaderTracker shader )
+void InitSuperSimpleShader( PTRSZVAL psvSetup, PImageShaderTracker shader )
 {
 		const char *v_codeblocks[2];
 		const char *p_codeblocks[2];
@@ -299,7 +299,7 @@ void CPROC EnableSimpleShader( PImageShaderTracker tracker, PTRSZVAL psv, va_lis
 }
 
 
-void InitShader( PImageShaderTracker shader )
+void InitShader( PTRSZVAL psvSetup, PImageShaderTracker shader )
 {
 
 
@@ -371,7 +371,7 @@ static void CPROC EnableSimpleLayerTextureShader( PImageShaderTracker tracker, P
 }
 
 
-void InitLayerTextureShader( PImageShaderTracker shader )
+void InitLayerTextureShader( PTRSZVAL psvSetup, PImageShaderTracker shader )
 {
 
 	{

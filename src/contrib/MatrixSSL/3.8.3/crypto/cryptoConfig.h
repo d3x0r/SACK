@@ -70,7 +70,7 @@
 */
 #define USE_RSA
 #define USE_ECC
-//#define USE_DH
+#define USE_DH
 
 /******************************************************************************/
 
@@ -165,7 +165,7 @@
 #define USE_CERT_PARSE /**< Usually required. @pre USE_X509 */
 #define USE_FULL_CERT_PARSE /**< @pre USE_CERT_PARSE */
 //#define ENABLE_CA_CERT_HASH /**< Used only for TLS trusted CA ind ext. */
-//#define ENABLE_MD5_SIGNED_CERTS /** @security Accept MD5 signed certs? */
+#define ENABLE_MD5_SIGNED_CERTS /** @security Accept MD5 signed certs? */
 #define ENABLE_SHA1_SIGNED_CERTS /** @security Accept SHA1 signed certs? */
 
 //#define USE_CRL /***< @pre USE_FULL_CERT_PARSE */

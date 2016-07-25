@@ -3,7 +3,9 @@
 #define NO_UNICODE_C
 #include <sack_types.h>
 #define SUFFER_WITH_NO_SNPRINTF
+#define __CRT__NO_INLINE
 #include <final_types.h>
+#define __CRT__NO_INLINE
 #include <stdio.h>
 #include <string.h>
 

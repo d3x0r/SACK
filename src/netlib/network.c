@@ -405,14 +405,13 @@ LOGICAL IsAddressV6( SOCKADDR *addr )
 const char * GetAddrName( SOCKADDR *addr )
 {
 	char * tmp = ((char**)addr)[-1];
-	if( tmp )
+	if( !( (PTRSZVAL)tmp & 0xFFFF0000 ) )
 	{
-		if( !( (PTRSZVAL)tmp & 0xFFFF0000 ) )
-		{
-			lprintf( WIDE("corrupted sockaddr.") );
-			DebugBreak();
-		}
-		else
+		lprintf( WIDE("corrupted sockaddr.") );
+		DebugBreak();
+	}
+	if( !tmp )
+	{
 		{
 			char buf[256];
 

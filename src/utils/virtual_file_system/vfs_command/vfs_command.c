@@ -57,7 +57,7 @@ static void CPROC _StoreFile( PTRSZVAL psv,  CTEXTSTR filename, int flags )
 static void StoreFile( CTEXTSTR filemask )
 {
 	void *info = NULL;
-	while( ScanFilesEx( NULL, filemask, &info, _StoreFile, SFF_SUBPATHONLY, 0, FALSE, sack_get_default_mount() ) );
+	while( ScanFilesEx( NULL, filemask, &info, _StoreFile, SFF_DIRECTORIES|SFF_SUBCURSE|SFF_SUBPATHONLY, 0, FALSE, sack_get_default_mount() ) );
 }
 
 static void ExtractFile( CTEXTSTR filename )

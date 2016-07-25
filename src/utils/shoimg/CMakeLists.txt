@@ -6,10 +6,10 @@ include_directories( ${SACK_ROOT_}/sdk/include )
 
 
 set( VLC_INTERFACE_ONLY ON )
-add_subdirectory( ../../InterShell/vlc_hook __/__/InterShell/vlc_hook )
-include_directories( ../../InterShell/vlc_hook )
+add_subdirectory( ../../InterShell.stable/vlc_hook __/__/InterShell.stable/vlc_hook )
+include_directories( ../../InterShell.stable/vlc_hook )
 
-include_directories( ../../libvlc/1.1.6/sdk/include )
+include_directories( ../../libvlc/2.2.4/sdk/include )
 
 ##############################################
 set( project crossfade )
@@ -32,7 +32,7 @@ install_default_dest( ${project} )
 ##############################################
 set( project crossfade_vid )
 
-include_directories( ../../InterShell/vlc_hook )
+include_directories( ../../InterShell.stable/vlc_hook )
 
 set(BASE_SOURCES
 ${FIRST_GCC_PROGRAM_SOURCE} 

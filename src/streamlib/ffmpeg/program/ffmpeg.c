@@ -48,19 +48,19 @@ int CPROC touchEvent( PTRSZVAL psv, PINPUT_POINT touches, int nTouches )
 {
 	if( nTouches == 1 )
 	{
-      if( touches[0].flags.new_event )
+		if( touches[0].flags.new_event )
 			switch( l.touch_step )
 			{
 			default:
 				l.touch_step = 0;
-            break;
+				break;
 			case 0:
 				if( touches[0].x > l.display_width/2 && touches[0].y > l.display_height / 2 )
 				{
 					l.touch_step++;
 				}
 				else
-               l.touch_step = 0;
+					l.touch_step = 0;
 				break;
 			case 2:
 				if( touches[0].x < l.display_width/2 && touches[0].y < l.display_height / 2 )
@@ -68,16 +68,16 @@ int CPROC touchEvent( PTRSZVAL psv, PINPUT_POINT touches, int nTouches )
 					l.touch_step++;
 				}
 				else
-               l.touch_step = 0;
+					l.touch_step = 0;
 				break;
 			case 4:
 				if( touches[0].x > l.display_width/2 && touches[0].y > l.display_height / 2 )
 				{
 					l.touch_step++;
-               l.last_touch = GetTickCount();
+					l.last_touch = GetTickCount();
 				}
 				else
-               l.touch_step = 0;
+					l.touch_step = 0;
 				break;
 			}
 		else if( touches[0].flags.end_event )
@@ -90,7 +90,7 @@ int CPROC touchEvent( PTRSZVAL psv, PINPUT_POINT touches, int nTouches )
 					l.touch_step++;
 				}
 				else
-               l.touch_step = 0;
+					l.touch_step = 0;
 				break;
 			case 3:
 				if( touches[0].x < l.display_width/2 && touches[0].y < l.display_height / 2 )
@@ -98,29 +98,29 @@ int CPROC touchEvent( PTRSZVAL psv, PINPUT_POINT touches, int nTouches )
 					l.touch_step++;
 				}
 				else
-               l.touch_step = 0;
+					l.touch_step = 0;
 				break;
 			case 5:
 				if( ( ( GetTickCount() - l.last_touch ) > 500 ) && ( touches[0].x > l.display_width/2 && touches[0].y > l.display_height / 2 ) )
 				{
 					ffmpeg_PauseFile( l.me.file );
 					HideDisplay( l.me.render );
-               // pause and hide.
+					// pause and hide.
 				}
 				else
-               l.touch_step = 0;
+					l.touch_step = 0;
 
 				break;
 			}
 		}
 	}
 	if( nTouches > 1 ) {
-      l.touch_step = 0;
+		l.touch_step = 0;
 	}
 	if( nTouches == 4 ) {
 		l.stopped = TRUE;
 		l.loop = FALSE;
-      l.exit_code = 1;
+		l.exit_code = 1;
 		WakeThread( l.main_thread );
 
 	}
@@ -151,7 +151,9 @@ static PRENDERER CPROC GetDisplay( PTRSZVAL psv, _32 w, _32 h )
 		// auto hide idle mouse on this surface
 		DisableMouseOnIdle( result, TRUE );
 		SetDisplayFullScreen( result, l.full_display );
+#if !defined( NO_TOUCH )
 		SetTouchHandler( result, touchEvent, 0 );
+#endif
 		if( l.topmost )
 			MakeTopmost( result );
 	}
@@ -187,7 +189,7 @@ static void CPROC VideoEndedCallback( PTRSZVAL psv )
 	HideDisplay( me->render );
 	SuspendSystemSleep( 0 );
 	l.stopped = TRUE;
-   WakeThread( l.main_thread );
+	WakeThread( l.main_thread );
 }
 
 static void CPROC VideoPlayError( CTEXTSTR string )

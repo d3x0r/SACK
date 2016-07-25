@@ -99,7 +99,7 @@
 	#ifndef __GNUC__
 	#error "64bit digits requires GCC"
 	#endif
-	typedef unsigned long		pstm_digit;
+	typedef unsigned long long		pstm_digit;
 	typedef unsigned long		pstm_word __attribute__ ((mode(TI)));
 	#define DIGIT_BIT			64
 

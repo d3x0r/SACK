@@ -218,7 +218,7 @@ extern void	osdepEntropyClose(void);
  typedef signed short int16;
  typedef unsigned short uint16;
  typedef unsigned char uint8;
-#ifndef _STDINT_H
+#if !defined(_STDINT_H) && !defined( _STDINT )
  typedef signed long int32_t;
  typedef unsigned long uint32_t;
  typedef signed short int16_t;
@@ -229,7 +229,7 @@ extern void	osdepEntropyClose(void);
  #ifdef HAVE_NATIVE_INT64
   typedef unsigned long long	uint64;
   typedef signed long long	int64;
-#ifndef _STDINT_H
+#if !defined( _STDINT_H ) && !defined( _STDINT )
   typedef unsigned long long	uint64_t;
   typedef signed long long	int64_t;
 #endif

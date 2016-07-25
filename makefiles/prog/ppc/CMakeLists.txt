@@ -2,6 +2,7 @@
 PROJECT( Panthers_pre_cpp )
 
 set( MYSOURCES 
+        args.c
 	define.c 
         links.c 
         text.c 

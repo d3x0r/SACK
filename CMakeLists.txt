@@ -3,9 +3,10 @@ set( CMAKE_INSTALL_MESSAGE "LAZY" )
 cmake_minimum_required(VERSION 3.0)
 
 project( SACK )
-message( WIN32=${WIN32} )
-message( UNIX=${UNIX} )
-message( CMAKE_SYSTEM_NAME=${CMAKE_SYSTEM_NAME} )
+#message( WIN32=${WIN32} )
+#message( UNIX=${UNIX} )
+#message( CMAKE_SYSTEM_NAME=${CMAKE_SYSTEM_NAME} )
+
 
 SET( MAKING_SACK_CORE ON )
 SET( SACK_SDK_ROOT_PATH ${CMAKE_CURRENT_SOURCE_DIR} )
@@ -458,7 +459,7 @@ SET( SOURCES_ROOT ${CMAKE_CURRENT_SOURCE_DIR}/ )
 include( CMakeSources.lst )
 
 add_subdirectory( src/contrib/gsm-1.0-pl13 )
-add_subdirectory( src/contrib/libvlc/2.0.1 )
+#add_subdirectory( src/contrib/libvlc/2.2.4 )
 
 
 # expat is a 'standard' library.  ripped a copy for ease, it's also incredibly simple.
@@ -1433,6 +1434,7 @@ add_subdirectory( src/utils/virtual_file_system )
 
 if( NOT __CLR__ )
 	add_subdirectory( src/contrib/MatrixSSL/${MATRIXSSL_VERSION} )
+        include_directories( src/contrib/MatrixSSL/${MATRIXSSL_VERSION} )
 endif( NOT __CLR__ )
 
 if( BUILD_TESTS )
@@ -1543,9 +1545,7 @@ if( __INCLUDE_INTERSHELL__ )
 add_subdirectory( src/InterShell )
 endif( __INCLUDE_INTERSHELL__ )
 
-install( FILES ${SOURCES_ROOT}src/contrib/snprintf_2.2/snprintf.h DESTINATION
-include/SACK/snprintf-2.2 )
-
+install( FILES ${SOURCES_ROOT}src/contrib/snprintf_2.2/snprintf.h DESTINATION include/SACK/snprintf-2.2 )
 
 # get the libraries..
 SET( CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS_SKIP 1 )
@@ -1556,14 +1556,31 @@ endif( ${CMAKE_BUILD_TYPE} MATCHES "[dD][eE][bB][uU][gG]" )
 
 INCLUDE(InstallRequiredSystemLibraries)
 if( MINGW )
-	if( EXISTS C:/tools/mingw-w64/i686-5.3.0-win32-sjlj-rt_v4-rev0/mingw32/bin/libgcc_s_sjlj-1.dll )
-        	set( CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS "${CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS} C:/tools/mingw-w64/i686-5.3.0-win32-sjlj-rt_v4-rev0/mingw32/bin/libgcc_s_sjlj-1.dll" )
-	endif()
-	if( EXISTS C:/tools/mingw-w64/i686-5.3.0-win32-sjlj-rt_v4-rev0/mingw32/bin/libstdc++-6.dll )
-        	set( CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS "${CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS} C:/tools/mingw-w64/i686-5.3.0-win32-sjlj-rt_v4-rev0/mingw32/bin/libstdc++-6.dll" )
-        endif()
+	set( TOOLS $ENV{TOOLS} )
+        if( CMAKE_SIZE_OF_VOIDP EQUAL 8 )
+        	set( MINGW64_ROOT x86_64-5.3.0-win32-seh-rt_v4-rev0 )
+		if( EXISTS ${TOOLS}/mingw-w64/${MINGW64_ROOT}/mingw32/bin/libgcc_s_seh-1.dll )
+        		set( CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS ${CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS} ${TOOLS}/mingw-w64/${MINGW64_ROOT}/mingw32/bin/libgcc_s_seh-1.dll )
+		endif()
+		if( EXISTS ${TOOLS}/mingw-w64/${MINGW64_ROOT}/mingw32/bin/libstdc++-6.dll )
+        		set( CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS ${CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS} ${TOOLS}/mingw-w64/${MINGW64_ROOT}/mingw32/bin/libstdc++-6.dll )
+	        endif()
+        else( CMAKE_SIZE_OF_VOIDP EQUAL 8 )
+        	set( MINGW64_ROOT i686-5.3.0-win32-sjlj-rt_v4-rev0 )
+		if( EXISTS ${TOOLS}/mingw-w64/${MINGW64_ROOT}/mingw32/bin/libgcc_s_sjlj-1.dll )
+        		set( CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS ${CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS} ${TOOLS}/mingw-w64/${MINGW64_ROOT}/mingw32/bin/libgcc_s_sjlj-1.dll )
+		endif()
+		if( EXISTS ${TOOLS}/mingw-w64/${MINGW64_ROOT}/mingw32/bin/libstdc++-6.dll )
+        		set( CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS ${CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS} ${TOOLS}/mingw-w64/${MINGW64_ROOT}/mingw32/bin/libstdc++-6.dll )
+	        endif()
+        endif( CMAKE_SIZE_OF_VOIDP EQUAL 8 )
 endif()
-INSTALL( FILES ${CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS} DESTINATION ${BINARY_OUTPUT_DIR} )
+
+if( CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS )
+	STRING( REPLACE "\\" "/" CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS "${CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS}" )
+	message( "Extra runtime install: ${CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS}")
+	INSTALL( FILES ${CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS} DESTINATION ${BINARY_OUTPUT_DIR} )
+endif( CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS )
 
 # add deploy project last, so it can also convey that there were required runtimes copied
 add_subdirectory( src/utils/deploy )
