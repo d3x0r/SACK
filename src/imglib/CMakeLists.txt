@@ -2,9 +2,6 @@
 # because sources are common to monolithic build mode
 # they are already defined in a variable calld VIDLIB_SOURCES (defined in CMakeSources.lst)
 
-if( FORCE_CXX )
-    set_source_files_properties( ${IMAGE_SOURCES}  PROPERTIES LANGUAGE CXX )
-endif( FORCE_CXX )
 
 add_library( bag.image SHARED 
   ${FIRST_GCC_LIBRARY_SOURCE} 
@@ -19,7 +16,7 @@ SET_TARGET_PROPERTIES(bag.image PROPERTIES
 )
 
 my_target_link_libraries( bag.image bag ${EXTERNALS} ${PLATFORM_LIBRARIES} )
-my_target_link_libraries( bag.image bag.psi )
+#my_target_link_libraries( bag.image bag.psi )
 
 install_mode_dest( bag.image )
 
