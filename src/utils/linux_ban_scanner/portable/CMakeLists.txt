@@ -21,7 +21,7 @@ endif( WATCOM )
 
 
 
-set( project linux_syslog_scanner )
+set( project linux_syslog_scanner.portable )
 
 set( SOURCES_ROOT ../../../../.. )
 
