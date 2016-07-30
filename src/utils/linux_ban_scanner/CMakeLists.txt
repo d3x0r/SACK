@@ -10,3 +10,4 @@ SET_TARGET_PROPERTIES(${PROJECT_NAME} PROPERTIES FOLDER utils )
 target_link_libraries( ${PROJECT_NAME} ${SACK_LIBRARIES} )
 install_default_dest( ${PROJECT_NAME} )
 
+add_subdirectory( portable )
