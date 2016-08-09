@@ -27,7 +27,7 @@ INCLUDE_DIRECTORIES( . )
 add_subdirectory( core )
 add_subdirectory( crypto )
 add_subdirectory( matrixssl )
-#add_subdirectory( apps )
+#add_subdirectory( apps/ssl )
 
 if( BUILD_TESTS )
 add_subdirectory( crypto/test )

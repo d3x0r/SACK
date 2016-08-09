@@ -33,7 +33,7 @@ set( SACK_BASE ${PROJECT_SOURCE_DIR} )
 
 set( CMAKE_MODULE_PATH ${SACK_SOURCE_DIR}/makefiles/cmake )
 
-set( MATRIXSSL_VERSION 3.8.3 )
+set( MATRIXSSL_VERSION 3.8.4 )
 
 include( DefaultInstall )
 

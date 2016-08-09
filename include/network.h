@@ -756,6 +756,7 @@ NETWORK_PROC( void, RemoveClientExx )(PCLIENT lpClient, LOGICAL bBlockNofity, LO
 
 /* Begin an SSL Connection.  This ends up replacing ReadComplete callback with an inbetween layer*/
 NETWORK_PROC( LOGICAL, ssl_BeginClientSession )( PCLIENT pc );
+NETWORK_PROC( LOGICAL, ssl_BeginServer )( PCLIENT pc );
 
 /* use this to send on SSL Connection instead of SendTCP. */
 NETWORK_PROC( LOGICAL, ssl_Send )( PCLIENT pc, POINTER buffer, size_t length );

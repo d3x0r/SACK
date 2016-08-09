@@ -361,11 +361,7 @@ void InvokeDeadstart( void )
 	}
 #endif
 
-#ifdef __64__
-	while( ( proc = (PSTARTUP_PROC)LockedExchange64( (PVPTRSZVAL)&proc_schedule, 0 ) ) != NULL )
-#else
-		while( ( proc = (PSTARTUP_PROC)LockedExchange( (PVPTRSZVAL)&proc_schedule, 0 ) ) != NULL )
-#endif
+	while( ( proc = (PSTARTUP_PROC)LockedExchangePtrSzVal( (PVPTRSZVAL)&proc_schedule, 0 ) ) != NULL )
 	{
 		// need to set this to point to new head of list... it's not in proc_schedule anymore
 		//proc->me = &proc;
@@ -385,17 +381,19 @@ void InvokeDeadstart( void )
 		}
 		{
 			l.bDispatched = 1;
+#ifdef _DEBUG
 			if( proc->proc
-#ifndef __LINUX__
-#if  __WATCOMC__ >= 1280
+#  ifndef __LINUX__
+#    if  __WATCOMC__ >= 1280
 				&& !IsBadCodePtr( (int(STDCALL*)(void))proc->proc )
-#elif defined( __64__ )
+#    elif defined( __64__ )
 				&& !IsBadCodePtr( (FARPROC)proc->proc )
-#else
+#    else
 //				&& !IsBadCodePtr( (int STDCALL(*)(void))proc->proc )
-#endif
-#endif
+#    endif
+#  endif
 			  )
+#endif
 			{
 				proc->proc();
 			}
@@ -408,11 +406,7 @@ void InvokeDeadstart( void )
 				PSTARTUP_PROC newly_scheduled_things;
 				proc->me = &proc;
 				resumed_proc = proc;
-#ifdef __64__
-				if( ( newly_scheduled_things = (PSTARTUP_PROC)LockedExchange64( (PVPTRSZVAL)&proc_schedule, 0 ) ) != NULL )
-#else
-				if( ( newly_scheduled_things = (PSTARTUP_PROC)LockedExchange( (PVPTRSZVAL)&proc_schedule, 0 ) ) != NULL )
-#endif
+				if( ( newly_scheduled_things = (PSTARTUP_PROC)LockedExchangePtrSzVal( (PVPTRSZVAL)&proc_schedule, 0 ) ) != NULL )
 				{
 					newly_scheduled_things->me = &newly_scheduled_things;
 					//lprintf( "------------------  newly scheduled startups; requeue old startups into new list ------------------ " );
@@ -526,11 +520,7 @@ void InvokeExits( void )
 #ifndef __STATIC_GLOBALS__
 		deadstart_local_data &&
 #endif
-#ifdef __64__
-			( proc = (PSHUTDOWN_PROC)LockedExchange64( (PV_64)&shutdown_proc_schedule, 0 ) ) != NULL
-#else
-			( proc = (PSHUTDOWN_PROC)LockedExchange( (PV_32)&shutdown_proc_schedule, 0 ) ) != NULL
-#endif
+			( proc = (PSHUTDOWN_PROC)LockedExchangePtrSzVal( (PVPTRSZVAL)&shutdown_proc_schedule, 0 ) ) != NULL
 		  )
 	{
 		// just before all memory goes away

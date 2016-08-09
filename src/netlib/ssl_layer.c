@@ -81,7 +81,9 @@ uint16_t ciphers[] = {
 , TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256	
 , TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384	
 , TLS_ECDH_RSA_WITH_AES_128_GCM_SHA256	
-, TLS_ECDH_RSA_WITH_AES_256_GCM_SHA384	};
+							, TLS_ECDH_RSA_WITH_AES_256_GCM_SHA384
+							, SSL_NULL_WITH_NULL_NULL
+};
 
 
 static const char *default_certs[] = {
@@ -196,7 +198,7 @@ static int32 loadRsaKeys( sslKeys_t *keys, LOGICAL client )
 		}
 	}
 
-	if( 0 )
+	//if( 0 )
 	{
 	/*
 		In-memory based keys
@@ -216,31 +218,12 @@ static int32 loadRsaKeys( sslKeys_t *keys, LOGICAL client )
 		else
 			cert_key = NULL;
 	}
-	if( 0 )
-	{
-	/*
-		In-memory based keys
-		Build the CA list first for potential client auth usage
-	*/
-		priv_key_len = 0;
-		SACK_GetProfileString( "SSL/Private Key", "filename", "myprivkey.pem", buf, 256 );
-		file = sack_fopen( fileGroup, buf, "rb" );
-		if( file )
-		{
-			priv_key_len = sack_fsize( file );
-			priv_key = NewArray( _8, priv_key_len );
 
-			sack_fread( priv_key, 1, priv_key_len, file );
-			sack_fclose( file );
-		}
-		else
-			priv_key = NULL;
-	}
 	if( cert_key_len || priv_key_len || CAstreamLen )
 	{
 		rc = matrixSslLoadRsaKeysMem(keys
-			, client?NULL:cert_key, client?0:cert_key_len
-			, client?NULL:priv_key, client?0:priv_key_len
+			, cert_key, cert_key_len
+			, priv_key, priv_key_len
 			, CAstream, CAstreamLen );
 
 		if (rc < 0) {
@@ -507,6 +490,147 @@ LOGICAL ssl_Send( PCLIENT pc, POINTER buffer, size_t length )
 }
 
 
+static void ssl_ServerReadComplete( PCLIENT pc, POINTER buffer, size_t length )
+{
+	//lprintf( "SSL Read complete %p %d", buffer, length );
+	if( buffer )
+	{
+		unsigned char *buf;
+		uint32 len;
+
+		int32 rc = 0;
+		if ((rc = matrixSslReceivedData(pc->ssl_session->ssl, (int32)length, &buf,
+													&len)) < 0) {
+			lprintf( "Protocol failure?" );
+			Release( pc->ssl_session );
+			RemoveClient( pc );
+			return;
+		}
+	Process:
+		switch (rc) {
+		case MATRIXSSL_REQUEST_SEND:
+			while( ( len = matrixSslGetOutdata(pc->ssl_session->ssl, &buf) ) > 0 )
+			{
+				//lprintf( "Send..." );
+				SendTCP( pc, buf, len );
+				matrixSslSentData( pc->ssl_session->ssl, len);
+
+			}
+			break;
+		case 0:
+		case MATRIXSSL_REQUEST_RECV:
+			break;  // always attempts to read more.
+
+		case MATRIXSSL_APP_DATA:
+		case MATRIXSSL_APP_DATA_COMPRESSED:
+			if( pc->ssl_session->dwReadFlags & CF_CPPREAD )
+				pc->ssl_session->cpp_user_read( pc->psvRead, buf, len );
+			else
+				pc->ssl_session->user_read( pc, buf, len );
+			if( pc->ssl_session )
+				rc = matrixSslProcessedData( pc->ssl_session->ssl, &buf, &len );
+			else
+				return;
+			if( rc )
+				goto Process;
+			break;
+		case MATRIXSSL_HANDSHAKE_COMPLETE:
+			if( pc->ssl_session->dwReadFlags & CF_CPPREAD )
+				pc->ssl_session->cpp_user_read( pc->psvRead, NULL, 0 );
+			else
+				pc->ssl_session->user_read( pc, NULL, 0 );
+			break;
+		case MATRIXSSL_RECEIVED_ALERT:
+			/* The first byte of the buffer is the level */
+			/* The second byte is the description */
+			if (*buf == SSL_ALERT_LEVEL_FATAL) {
+				lprintf("Fatal alert: %d, closing connection.\n",
+							*(buf + 1));
+				CloseSession( pc );
+				return;
+			}
+			/* Closure alert is normal (and best) way to close */
+			if (*(buf + 1) == SSL_ALERT_CLOSE_NOTIFY) {
+				RemoveClient( pc );
+				return;
+			}
+			if (*(buf + 1) == SSL_ALERT_UNRECOGNIZED_NAME) {
+				// this is a normal close...
+			}
+			else
+				lprintf("Warning alert: %d\n", *(buf + 1));
+			rc = matrixSslProcessedData( pc->ssl_session->ssl, &buf, &len );
+			goto Process;
+		default:
+			/* If rc <= 0 we fall here */
+			lprintf( "Unhandled SSL Process Code: %d", rc );
+			RemoveClient( pc );
+			return;
+		}
+	}
+
+	if( pc->ssl_session )
+	{
+		S_32 len;
+		unsigned char *buf;
+		if ((len = matrixSslGetReadbuf(pc->ssl_session->ssl, &buf)) <= 0) {
+			lprintf( "need error handling failed to get a buffer?" );
+		}
+		else
+		{
+			ReadTCP( pc, buf, len );
+		}
+	}
+}
+
+
+static LOGICAL ssl_InitLibrary( void ){
+	if( !ssl_global.flags.bInited )
+	{
+		if( matrixSslOpenWithConfig( MATRIXSSL_CONFIG /* "YN" */ ) != MATRIXSSL_SUCCESS )
+		{
+			lprintf( "MatrixSSL Failed to initialize." );
+			return FALSE;
+		}
+		ssl_global.cipherlen          = sizeof( ciphers ) / sizeof( ciphers[0] );
+
+		ssl_global.flags.bInited = 1;
+	}
+   return TRUE;
+}
+
+
+
+LOGICAL ssl_BeginServer( PCLIENT pc ) {
+	struct ssl_session * ses;
+
+	ssl_InitLibrary();
+	pc->flags.bSecure = 1;
+
+	ses = New( struct ssl_session );
+	if (matrixSslNewKeys(&ses->keys, NULL) < 0) {
+		lprintf("MatrixSSL library key init failure.  Exiting");
+		Release( ses );
+		return FALSE;
+	}
+
+	matrixSslNewSessionId(&ssl_global.sid, NULL);
+	if( loadRsaKeys( ses->keys, FALSE ) < 0 )
+		return FALSE;
+
+	ses->dwReadFlags = pc->dwFlags;
+	ses->user_read = pc->read.ReadComplete;
+	ses->cpp_user_read = pc->read.CPPReadComplete;
+	pc->read.ReadComplete = ssl_ServerReadComplete;
+	pc->dwFlags &= ~CF_CPPREAD;
+
+	pc->ssl_session = ses;
+	// at this point pretty much have to assume
+   // that it will be OK.
+   return TRUE;
+
+}
+
 LOGICAL ssl_BeginClientSession( PCLIENT pc )
 {
 	int32 result;
@@ -516,32 +640,7 @@ LOGICAL ssl_BeginClientSession( PCLIENT pc )
 	sslSessOpts_t	options;
 	const char *hostname = GetAddrName( pc->saClient );
 	struct ssl_session * ses;
-
-	if( !ssl_global.flags.bInited )
-	{
-		if( matrixSslOpenWithConfig( MATRIXSSL_CONFIG /* "YN" */ ) != MATRIXSSL_SUCCESS )
-		{
-			lprintf( "MatrixSSL Failed to initialize." );
-			return FALSE;
-		}
-		ssl_global.cipherlen          = sizeof( ciphers ) / sizeof( ciphers[0] );
-		/*
-           "    53 TLS_RSA_WITH_AES_256_CBC_SHA\n"
-           "    47 TLS_RSA_WITH_AES_128_CBC_SHA\n"
-           "    10 SSL_RSA_WITH_3DES_EDE_CBC_SHA\n"
-           "     5 SSL_RSA_WITH_RC4_128_SHA\n"
-           "     4 SSL_RSA_WITH_RC4_128_MD5\n");
-		*/
-
-
-		//ssl_global.cipher[0]          = TLS_RSA_WITH_AES_128_CBC_SHA;
-		//ssl_global.cipher[1]          = TLS_RSA_WITH_AES_256_CBC_SHA;
-		//ssl_global.cipher[2]          = TLS_DHE_RSA_WITH_AES_256_CBC_SHA/*57*/;
-		//ssl_global.cipher[3]          = TLS_RSA_WITH_AES_256_CBC_SHA256;
-		//ssl_global.cipher[4]          = TLS_RSA_WITH_AES_256_CBC_SHA/*53*/;
-
-		ssl_global.flags.bInited = 1;
-	}
+	ssl_InitLibrary();
 
 	ses = New( struct ssl_session );
 	if (matrixSslNewKeys(&ses->keys, NULL) < 0) {

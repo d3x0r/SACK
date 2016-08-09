@@ -54,9 +54,12 @@ typedef void (CPROC*TaskOutput)(PTRSZVAL, PTASK_INFO task, CTEXTSTR buffer, size
 // Run a program completely detached from the current process
 // it runs independantly.  Program does not suspend until it completes.
 // No way at all to know if the program works or fails.
-#define LPP_OPTION_DO_NOT_HIDE  1
-#define LPP_OPTION_IMPERSONATE_EXPLORER 2
-#define LPP_OPTION_FIRST_ARG_IS_ARG 4
+#define LPP_OPTION_DO_NOT_HIDE           1
+// for services to launch normal processes (never got it to work; used to work in XP/NT?)
+#define LPP_OPTION_IMPERSONATE_EXPLORER  2
+#define LPP_OPTION_FIRST_ARG_IS_ARG      4
+#define LPP_OPTION_NEW_GROUP             8
+#define LPP_OPTION_NEW_CONSOLE          16
 SYSTEM_PROC( PTASK_INFO, LaunchPeerProgramExx )( CTEXTSTR program, CTEXTSTR path, PCTEXTSTR args
 															  , int flags
 															  , TaskOutput OutputHandler
@@ -135,7 +138,15 @@ SYSTEM_PROC( generic_function, LoadPrivateFunctionEx )( CTEXTSTR libname, CTEXTS
 #define OnLibraryLoad(name)  \
 	__DefineRegistryMethod(WIDE("SACK"),_OnLibraryLoad,WIDE("system/library"),WIDE("load_event"),name WIDE("_LoadEvent"),void,(void), __LINE__)
 
+// the callback passed will be called during LoadLibrary to allow an external
+// handler to download or extract the library; the resulting library should also
+// be loaded by the callback using the standard 'LoadFunction' methods
 SYSTEM_PROC( void, SetExternalLoadLibrary )( LOGICAL (CPROC*f)(const char *) );
+
+// please Release or Deallocate the reutrn value
+// the callback should search for the file specified, if required, download or extract it
+// and then return with a Release'able utf-8 char *.
+SYSTEM_PROC( void, SetExternalFindProgram )( char * (CPROC*f)(const char *) );
 SYSTEM_PROC( void, SetProgramName )( CTEXTSTR filename );
 
 
@@ -166,44 +177,6 @@ using namespace sack::system;
 // Revision 1.14  2005/07/06 00:33:55  jim
 // Fixes for all sorts of mangilng with the system.h header.
 //
-// Revision 1.13  2005/07/06 00:20:59  jim
-// Fix system.h to not define HLIBRARY which is unused anyhow.
-//
-// Revision 1.12  2005/07/06 00:03:17  jim
-// Typecasts to make getenv macro happy.  Implemented in OSALOT since watcom's getenv implementation SUCKS.
-//
-// Revision 1.11  2005/06/20 17:23:04  jim
-// Add function to load libraries privately - needed for certain things like PLUGINS
-//
-// Revision 1.11  2005/06/19 05:12:32  d3x0r
-// Add ability to load private libraries...
-//
-// Revision 1.10  2005/05/30 11:56:20  d3x0r
-// various fixes... working on psilib update optimization... various stabilitizations... also extending msgsvr functionality.
-//
-// Revision 1.9  2005/05/25 16:50:09  d3x0r
-// Synch with working repository.
-//
-// Revision 1.9  2005/04/19 22:49:30  jim
-// Looks like the display module technology nearly works... at least exits graceful are handled somewhat gracefully.
-//
-// Revision 1.8  2004/09/20 20:41:09  d3x0r
-// Fix function type for load function
-//
-// Revision 1.7  2004/08/13 16:49:55  d3x0r
-// Implement a terminate process, and better monitor for exit completion
-//
-// Revision 1.6  2004/06/14 10:46:28  d3x0r
-// Define force focus and stacking operations for render panels...
-//
-// Revision 1.5  2004/05/02 05:06:22  d3x0r
-// Sweeping changes to logging which by default release was very very noisy...
-//
-// Revision 1.4  2004/04/26 09:47:25  d3x0r
-// Cleanup some C++ problems, and standard C issues even...
-//
-// Revision 1.3  2004/03/04 01:09:47  d3x0r
-// Modifications to force slashes to wlib.  Updates to Interfaces to be gotten from common interface manager.
 //
 // Revision 1.2  2003/10/24 14:59:21  panther
 // Added Load/Unload Function for system shared library abstraction

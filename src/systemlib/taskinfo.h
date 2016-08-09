@@ -92,6 +92,9 @@ extern
 	PTREEROOT pFunctionTree;
 	int nLibrary;
 	LOGICAL (CPROC*ExternalLoadLibrary)( const char *filename );
+
+	char * (CPROC*ExternalFindProgram)( const char *filename ); // please Release or Deallocate the reutrn value
+
 	// on XP this is in PSAPI.DLL later it's in Kernel32.DLL 
 #ifdef WIN32
 	BOOL (WINAPI* EnumProcessModules)( HANDLE hProcess, HMODULE *lphModule

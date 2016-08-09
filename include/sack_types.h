@@ -1,4 +1,4 @@
-/* Include sthdrs.h */
+/* please Include sthdrs.h */
 
 
 
@@ -15,11 +15,9 @@ But WHO doesn't have stdint?  BTW is sizeof( size_t ) == sizeof( void* )
 
    
    This is automatically included with stdhdrs.h; however, when
-   including sack_types.h, the minimal headers are pulled. stdhdrs.h */
-//#if defined( __GNUC__ ) || defined( __WATCOMC__ )
+   including sack_types.h, the minimal headers are pulled. */
 #define HAS_STDINT
 #include <stdint.h>
-//#endif
 
 //#define USE_SACK_CUSTOM_MEMORY_ALLOCATION
 	// this has to be a compile option (option from cmake)
@@ -1096,12 +1094,9 @@ typedef _64 *P_64;
 typedef S_64 *PS_64;
 
 
-#if defined( __64__ )
-typedef _64             PTRSIZEVAL;
-typedef _64             PTRSZVAL;
-#else
+//#if defined( __64__ )
 /* see PTRSZVAL this just has more letters. */
-typedef _32             PTRSIZEVAL;
+typedef uintptr_t             PTRSIZEVAL;
 /* This is an unsigned integer type that has the same length as
    a pointer, so that simple byte offset calculations can be
    performed against an integer. non-standard compiler
@@ -1110,8 +1105,20 @@ typedef _32             PTRSIZEVAL;
    should be 0, and no offset should apply. So translation of
    pointers to integer types allows greater flexibility without
    relying on compiler features which may not exist.             */
-typedef _32             PTRSZVAL;
-#endif
+typedef uintptr_t             PTRSZVAL;
+//#else
+/* see PTRSZVAL this just has more letters. */
+//typedef size_t             PTRSIZEVAL;
+/* This is an unsigned integer type that has the same length as
+   a pointer, so that simple byte offset calculations can be
+   performed against an integer. non-standard compiler
+   extensions allow void* to be added with an index and increase
+   in bytes, but void itself is of 0 size, so anything times 0
+   should be 0, and no offset should apply. So translation of
+   pointers to integer types allows greater flexibility without
+   relying on compiler features which may not exist.             */
+//typedef size_t             PTRSZVAL;
+//#endif
 
 /* An pointer to a volatile unsigned integer type that is 64 bits long. */
 typedef volatile _64  *PV_64;

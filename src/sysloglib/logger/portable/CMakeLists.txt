@@ -42,6 +42,7 @@ ${FIRST_GCC_PROGRAM_SOURCE}
     ${SOURCES_ROOT}/src/configlib/configscript.c
     ${SOURCES_ROOT}/src/sysloglib/syslog.c
     ${SOURCES_ROOT}/src/systemlib/system.c
+    ${SOURCES_ROOT}/src/systemlib/spawntask.c
     ${SOURCES_ROOT}/src/systemlib/args.c
     ${SOURCES_ROOT}/src/netlib/network.c
     ${SOURCES_ROOT}/src/netlib/udpnetwork.c

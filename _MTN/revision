@@ -2,8 +2,4 @@ format_version "1"
 
 new_manifest [0000000000000000000000000000000000000002]
 
-old_revision [23ea040bcd709287ec975196327dd9435508ebfc]
-
-add_dir "build_core"
-
-add_dir "plusplus"
+old_revision [e5836473521a01e331c7e52ec2a86834fb303093]

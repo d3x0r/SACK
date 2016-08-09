@@ -60,6 +60,8 @@ ${FIRST_GCC_PROGRAM_SOURCE}
     ${SOURCES_ROOT}/src/configlib/configscript.c
     ${SOURCES_ROOT}/src/sysloglib/syslog.c
     ${SOURCES_ROOT}/src/systemlib/system.c
+    ${SOURCES_ROOT}/src/systemlib/spawntask.c
+    ${SOURCES_ROOT}/src/systemlib/args.c
     ${MORE_SYSTEM_SOURCES}
     ${SOURCES_ROOT}/src/typelib/typecode.c
     ${SOURCES_ROOT}/src/typelib/text.c

@@ -23,7 +23,7 @@ endif( WATCOM )
 
 set( project linux_syslog_scanner.portable )
 
-set( SOURCES_ROOT ../../../../.. )
+set( SOURCES_ROOT ../../../.. )
 
 if( WIN32 )
 set( MORE_SYSTEM_SOURCES   ${SOURCES_ROOT}/src/systemlib/oswin.c )
@@ -48,18 +48,29 @@ set(BASE_SOURCES
     ${SOURCES_ROOT}/src/typelib/binarylist.c
     ${SOURCES_ROOT}/src/filesyslib/filescan.c
     ${SOURCES_ROOT}/src/filesyslib/pathops.c
-    ${SOURCES_ROOT}/src/filesyslib/winfiles.c
-${LAST_GCC_PROGRAM_SOURCE}
+    ${SOURCES_ROOT}/src/filesyslib/winfiles.c 
+)
+set(TAIL_SOURCES
+	${LAST_GCC_PROGRAM_SOURCE}
     ${SOURCES_ROOT}/src/deadstart/deadstart_core.c 
 )
 
-sack_add_executable(${project} ${BASE_SOURCES} )
+sack_add_executable(${project} ${BASE_SOURCES} ../syslog_scanner.c  ${TAIL_SOURCES}  )
 SET_PROPERTY(TARGET ${project} APPEND PROPERTY COMPILE_DEFINITIONS "STANDALONE_HEADER;__NO_IDLE__;__NO_INTERFACE_SUPPORT__;__STATIC__;SACK_BAG_EXPORTS;__NO_OPTIONS__;__NO_DEFAULT_INTERFACES__;__NO_NETWORK__;__DISABLE_UDP_SYSLOG__;NO_DEADSTART_DLLMAIN" )
 SET_TARGET_PROPERTIES(${project} PROPERTIES
       FOLDER utils/vfs
 )
-target_link_libraries( ${project} ${PLATFORM_LIBRARIES} )
+target_link_libraries( ${project} ${SACK_PLATFORM_LIBRARIES} )
 install_default_dest( ${project} )
 
+
+set( project linux_postfix_scanner.portable )
+sack_add_executable(${project} ${BASE_SOURCES} ../postfix_scanner.c  ${TAIL_SOURCES}  )
+SET_PROPERTY(TARGET ${project} APPEND PROPERTY COMPILE_DEFINITIONS "STANDALONE_HEADER;__NO_IDLE__;__NO_INTERFACE_SUPPORT__;__STATIC__;SACK_BAG_EXPORTS;__NO_OPTIONS__;__NO_DEFAULT_INTERFACES__;__NO_NETWORK__;__DISABLE_UDP_SYSLOG__;NO_DEADSTART_DLLMAIN" )
+SET_TARGET_PROPERTIES(${project} PROPERTIES
+      FOLDER utils/vfs
+)
+target_link_libraries( ${project} ${SACK_PLATFORM_LIBRARIES} )
+install_default_dest( ${project} )
 
 

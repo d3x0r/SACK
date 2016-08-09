@@ -6,9 +6,32 @@ if( WIN32 AND CMAKE_COMPILER_IS_GNUCC )
     #SET( EXTRACTER_LINK_FLAGS "/MANIFEST:NO" )
 endif( WIN32 AND CMAKE_COMPILER_IS_GNUCC )
 
+if( MINGW OR MSVC )
+    set( MORE_RESOURCES sfx.rc )
+endif( MINGW OR MSVC )
+
+if( MINGW )
+	if( NOT HOST_UNIX )
+		SET(CMAKE_RC_COMPILER_INIT "windres")
+		SET(CMAKE_RC_COMPILER "windres")
+		SET(CMAKE_RC_COMPILE_OBJECT "windres <FLAGS> <DEFINES> -O coff -o <OBJECT> <SOURCE>")
+		ENABLE_LANGUAGE(RC)
+	endif( NOT HOST_UNIX )
+elseif( WATCOM )
+    string( REPLACE ".rc" ".res" WATCOM_RESOURCES ${RESOURCES} )
+    SET( CMAKE_RC_COMPILER "rc" )
+    string( REPLACE "/" "\\" WATCOM_CMAKE_CURRENT_BINARY_DIR ${CMAKE_CURRENT_BINARY_DIR} )
+    string( REPLACE "/" "\\" WATCOM_CMAKE_CURRENT_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR} )
+    add_custom_command( OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${WATCOM_RESOURCES}
+                     DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/${RESOURCES}
+                     COMMAND ${CMAKE_RC_COMPILER} -i${WATCOM_CMAKE_CURRENT_SOURCE_DIR} -fo${WATCOM_CMAKE_CURRENT_BINARY_DIR}\\${WATCOM_RESOURCES} ${WATCOM_CMAKE_CURRENT_SOURCE_DIR}\\${RESOURCES}
+     )
+    ADD_CUSTOM_TARGET( "generate_foo${project}" DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/${WATCOM_RESOURCES})
+
+endif()
 
 set(BASE_SOURCES
-    vfs_extracter.c memory_dll_loader.c ${EXTRACTER_MORE_SORUCES}
+    vfs_extracter.c ${EXTRACTER_MORE_SORUCES} ${MORE_RESOURCES}
 )
 
 sack_add_executable( ${PROJECT} ${BASE_SOURCES} )
@@ -22,18 +45,6 @@ SET_TARGET_PROPERTIES(${PROJECT} PROPERTIES
                   FOLDER utils/vfs
 )
 
-if( WIN32 AND CMAKE_COMPILER_IS_GNUCC )
-
-message( "something is ${CMAKE_CURRENT_BINARY_DIR}\\sack_vfs_extracter.exe" )
-add_custom_command(TARGET
-                     ${PROJECT}
-                   POST_BUILD
-                   COMMAND
-                     "mt.exe" -manifest \"${CMAKE_CURRENT_SOURCE_DIR}\\extracter.manifest\" -outputresource:\"${CMAKE_CURRENT_BINARY_DIR}\\sack_vfs_extracter.exe\"\;\#1
-                   COMMENT
-                     "Adding custom manifest containing MSVCRT80 dependency..." 
-                  )
-endif( WIN32 AND CMAKE_COMPILER_IS_GNUCC )
 
 target_link_libraries( ${PROJECT} sack_vfs.module ${SACK_LIBRARIES} )
 install_mode_dest( ${PROJECT} )

@@ -1714,7 +1714,8 @@ int IsMultiWordVar( PCONFIG_ELEMENT pce, PTEXT *start )
 		}
 		return TRUE;
 	}
-	return FALSE;
+	/* can have empty space for multiword, but was an OK result anyway...*/
+	return matched;
 }
 
 //---------------------------------------------------------------------
