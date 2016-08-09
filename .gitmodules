@@ -1,0 +1,3 @@
+[submodule "src/contrib/MatrixSSL/3.8.4"]
+	path = src/contrib/MatrixSSL/3.8.4
+	url = M:/sack/src/contrib/MatrixSSL/3.8.4
