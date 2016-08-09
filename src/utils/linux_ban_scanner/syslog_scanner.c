@@ -7,7 +7,7 @@ struct local_ban_scanner
 	_32 exec_timer;
 	TEXTSTR command;
 	TEXTSTR output;
-   TEXTSTR readlog;
+	TEXTSTR readlog;
 } lbs;
 
 
@@ -20,7 +20,7 @@ void CPROC ExecFirewall( PTRSZVAL psv )
 static void AddBan( const char *IP )
 {
 	FILE *file = fopen( lbs.output, "ab" );
-   printf( "add %s\n", IP );
+	printf( "add %s\n", IP );
 	if( file ) {
 		fprintf( file, "%s\n", IP );
 		fclose( file );
@@ -67,61 +67,61 @@ static PTRSZVAL CPROC failed_pass3( PTRSZVAL psv, arg_list args )
 
 static PTRSZVAL CPROC failed_user( PTRSZVAL psv, arg_list args )
 {
-   PARAM( args, CTEXTSTR, leader );
-   PARAM( args, CTEXTSTR, leader2 );
-   PARAM( args, CTEXTSTR, user );
+	PARAM( args, CTEXTSTR, leader );
+	PARAM( args, CTEXTSTR, leader2 );
+	PARAM( args, CTEXTSTR, user );
 	PARAM( args, CTEXTSTR, ip_addr );
 
-   AddBan( ip_addr );
-   return psv;
+	AddBan( ip_addr );
+	return psv;
 }
 
 static PTRSZVAL CPROC failed_user_single( PTRSZVAL psv, arg_list args )
 {
-   PARAM( args, CTEXTSTR, leader );
+	PARAM( args, CTEXTSTR, leader );
 	PARAM( args, CTEXTSTR, ip_addr );
 
-   AddBan( ip_addr );
-   return psv;
+	AddBan( ip_addr );
+	return psv;
 }
 
 static PTRSZVAL CPROC Unhandled( PTRSZVAL psv, CTEXTSTR line )
 {
-   if( line )
+	if( line )
 		printf( "Unhandled: %s\n", line );
-   return psv;
+	return psv;
 }
 
 static void InitBanScan( void )
 {
 	lbs.pch_scanner = CreateConfigurationHandler();
-   AddConfigurationMethod( lbs.pch_scanner, "%m Did not receive identification string from %w", failed_user_single );
+	AddConfigurationMethod( lbs.pch_scanner, "%m Did not receive identification string from %w", failed_user_single );
 
-   AddConfigurationMethod( lbs.pch_scanner, "%m Disconnected from %w port %w [preauth]", failed_pass3 );
+	AddConfigurationMethod( lbs.pch_scanner, "%m Disconnected from %w port %w [preauth]", failed_pass3 );
 
 	AddConfigurationMethod( lbs.pch_scanner, "%m Failed password for invalid user %w from %w port %i ssh2", failed_pass2 );
 
 	AddConfigurationMethod( lbs.pch_scanner, "%m Failed password for %w from %w port %i ssh2 ", failed_pass );
 	AddConfigurationMethod( lbs.pch_scanner, "%m Failed password for %w from %w", failed_pass );
-   AddConfigurationMethod( lbs.pch_scanner, "%m Invalid user %w from %w", failed_pass );
+	AddConfigurationMethod( lbs.pch_scanner, "%m Invalid user %w from %w", failed_pass );
 
 	//AddConfigurationMethod( lbs.pch_scanner, "%m sshd %m: Received disconnect from %i", failed_pass2 );
 	//AddConfigurationMethod( lbs.pch_scanner, "%m sshd %m: Invalid user %w from %i", failed_user );
-   SetConfigurationUnhandled( lbs.pch_scanner, Unhandled );
+	SetConfigurationUnhandled( lbs.pch_scanner, Unhandled );
 }
 
-static PTRSZVAL CPROC setFirwallCommand( PTRSZSVAL psv, arg_list args )
+static PTRSZVAL CPROC setFirewallCommand( PTRSZVAL psv, arg_list args )
 {
 	PARAM( args, CTEXTSTR, path );
 	lbs.command = StrDup( path );
-   return psv;
+	return psv;
 }
 
-static PTRSZVAL CPROC setFirwallBanlist( PTRSZSVAL psv, arg_list args )
+static PTRSZVAL CPROC setFirewallBanlist( PTRSZVAL psv, arg_list args )
 {
 	PARAM( args, CTEXTSTR, path );
 	lbs.output = StrDup( path );
-   return psv;
+	return psv;
 }
 
 static void ReadConfig( void )
@@ -131,11 +131,11 @@ static void ReadConfig( void )
 	lbs.output = "/etc/firewall/banlist";
 	//lbs.readlog = "/var/log/secure";
 
-   //AddConfigurationMethod( pch, "readlog=%m", setReadPath );
-   AddConfigurationMethod( pch, "command=%m", setFirewallCommand );
+	//AddConfigurationMethod( pch, "readlog=%m", setReadPath );
+	AddConfigurationMethod( pch, "command=%m", setFirewallCommand );
 	AddConfigurationMethod( pch, "output=%m", setFirewallBanlist );
 	ProcessConfigurationFile( pch, "linux_syslog_scanner.conf", 0 );
-   DestroyConfigurationHandler( pch );
+	DestroyConfigurationHandler( pch );
 
 }
 
@@ -143,11 +143,11 @@ static _8 buf[4096];
 int main( void )
 {
 	int size;
-   ReadConfig();
-   InitBanScan();
+	ReadConfig();
+	InitBanScan();
 	while( fgets( buf, 4096, stdin ) )
 	{
-      ProcessConfigurationInput( lbs.pch_scanner, buf, strlen(buf), 0 );
+		ProcessConfigurationInput( lbs.pch_scanner, buf, strlen(buf), 0 );
 	}
 	return 0;
 }

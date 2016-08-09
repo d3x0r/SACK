@@ -23,7 +23,7 @@ endif( WATCOM )
 
 set( project linux_syslog_scanner.portable )
 
-set( SOURCES_ROOT ../../../../.. )
+set( SOURCES_ROOT ../../../.. )
 
 if( WIN32 )
 set( MORE_SYSTEM_SOURCES   ${SOURCES_ROOT}/src/systemlib/oswin.c )
@@ -58,7 +58,7 @@ SET_PROPERTY(TARGET ${project} APPEND PROPERTY COMPILE_DEFINITIONS "STANDALONE_H
 SET_TARGET_PROPERTIES(${project} PROPERTIES
       FOLDER utils/vfs
 )
-target_link_libraries( ${project} ${PLATFORM_LIBRARIES} )
+target_link_libraries( ${project} ${SACK_PLATFORM_LIBRARIES} )
 install_default_dest( ${project} )
 
 

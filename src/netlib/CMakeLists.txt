@@ -23,6 +23,8 @@ INCLUDE( ../timerlib.build/copymac.cmake )
 
 if( WIN32 )
     SET( MORE_SOURCES net_winsock2.c )
+else()
+    SET( MORE_DEFS ${MORE_DEFS} __LINUX__=1 )
 endif( WIN32 )
 
 if( WIN32 )
@@ -31,6 +33,14 @@ set(MORE_NETWORK_SOURCES
   ../systemlib/oswin.c
 )
 endif( WIN32 )
+
+if( CMAKE_SIZEOF_VOID_P EQUAL 8 )
+    SET( __64__ ON )
+    set( MORE_DEFS ${MORE_DEFS} __64__=1 )
+else( CMAKE_SIZEOF_VOID_P EQUAL 8 )
+    DEFINE_DEFAULT( __64__ OFF )
+endif( CMAKE_SIZEOF_VOID_P EQUAL 8 )
+
 
 set( MATRIXSSL_VERSION 3.8.3 )
 add_subdirectory( ../contrib/MatrixSSL/${MATRIXSSL_VERSION} MatrixSSL )
@@ -46,8 +56,10 @@ set( NETLIB_SOURCES
     netstruc.h
     ../timerlib/timers.c
     ../memlib/sharemem.c 
+    ../memlib/sharestruc.h
     ../memlib/memory_operations.c 
     ../procreglib/names.c 
+    ../procreglib/registry.h
     ../typelib/typecode.c 
     ../typelib/sets.c 
     ../idlelib/idle.c 
