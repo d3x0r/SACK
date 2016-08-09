@@ -1,0 +1,7 @@
+#include <windows.h>
+
+//PadIcon ICON "PAD.ICO"
+#if( __GNUC__ )
+1    24    extracter.manifest
+#endif
+

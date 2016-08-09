@@ -26,3 +26,5 @@ include/genxml
 include/png
 include/sexpat
 .hg
+.git
+~$

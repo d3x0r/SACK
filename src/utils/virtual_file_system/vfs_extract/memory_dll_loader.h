@@ -1,2 +1,0 @@
-
-POINTER GetExtraData( POINTER block );

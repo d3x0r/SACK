@@ -40,6 +40,8 @@ ${FIRST_GCC_PROGRAM_SOURCE}
     ${SOURCES_ROOT}/systraylib/systray.c
     ${SOURCES_ROOT}/sysloglib/syslog.c
     ${SOURCES_ROOT}/systemlib/system.c
+    ${SOURCES_ROOT}/systemlib/spawntask.c
+    ${SOURCES_ROOT}/systemlib/args.c
     ${MORE_SYSTEM_SOURCES}
     ${SOURCES_ROOT}/typelib/typecode.c
     ${SOURCES_ROOT}/typelib/text.c

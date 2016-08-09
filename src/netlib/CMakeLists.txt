@@ -42,7 +42,8 @@ else( CMAKE_SIZEOF_VOID_P EQUAL 8 )
 endif( CMAKE_SIZEOF_VOID_P EQUAL 8 )
 
 
-set( MATRIXSSL_VERSION 3.8.3 )
+set( MATRIXSSL_VERSION 3.8.4 )
+
 add_subdirectory( ../contrib/MatrixSSL/${MATRIXSSL_VERSION} MatrixSSL )
 INCLUDE_DIRECTORIES( ../contrib/MatrixSSL/${MATRIXSSL_VERSION} )
 

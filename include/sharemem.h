@@ -695,9 +695,9 @@ MEM_PROC  _32 MEM_API  LockedDecrement ( P_32 p );
 #endif
 
 #ifdef __64__
-#define LockedExchangePtrSzVal(a,b) LockedExchange64(a,b)
+#define LockedExchangePtrSzVal(a,b) LockedExchange64((PV_64)(a),b)
 #else
-#define LockedExchangePtrSzVal(a,b) LockedExchange(a,b)
+#define LockedExchangePtrSzVal(a,b) LockedExchange((PV_32)(a),b)
 #endif
 
 /* Multiprocessor safe swap of the contents of a variable with a

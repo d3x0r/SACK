@@ -1065,6 +1065,10 @@ int TryShellExecute( PTASK_INFO task, CTEXTSTR path, CTEXTSTR program, PTEXT cmd
 // No way at all to know if the program works or fails.
 SYSTEM_PROC( PTASK_INFO, LaunchProgramEx )( CTEXTSTR program, CTEXTSTR path, PCTEXTSTR args, TaskEnd EndNotice, PTRSZVAL psv )
 {
+	return LaunchPeerProgramExx( program, path, args
+                              , LPP_OPTION_DO_NOT_HIDE | LPP_OPTION_NEW_GROUP
+										, NULL, EndNotice, psv DBG_SRC );
+#if 0
 	PTASK_INFO task;
 	if( program && program[0] )
 	{
@@ -1241,6 +1245,7 @@ SYSTEM_PROC( PTASK_INFO, LaunchProgramEx )( CTEXTSTR program, CTEXTSTR path, PCT
 #endif
 	}
 	return FALSE;
+#endif
 }
 
 SYSTEM_PROC( PTASK_INFO, LaunchProgram )( CTEXTSTR program, CTEXTSTR path, PCTEXTSTR args )
@@ -1249,18 +1254,6 @@ SYSTEM_PROC( PTASK_INFO, LaunchProgram )( CTEXTSTR program, CTEXTSTR path, PCTEX
 }
 
 //--------------------------------------------------------------------------
-
-SYSTEM_PROC( int, CallProgram )( CTEXTSTR program, CTEXTSTR path, PCTEXTSTR args, ... )
-{
-	// should hook into stdin,stdout,stderr...
-	// also keep track of process handles so that
-	// the close of said program could be monitored.....
-   return 0;
-}
-
-//-------------------------------------------------------------------------
-
-//-------------------------------------------------------------------------
 
 void InvokeLibraryLoad( void )
 {
@@ -1280,6 +1273,7 @@ void InvokeLibraryLoad( void )
 	}
 }
 
+// look for all the libraries that are currently already loaded (so we know to just load them the normal way)
 #define Seek(a,b) (((PTRSZVAL)a)+(b))
 static void LoadExistingLibraries( void )
 {
@@ -2088,7 +2082,16 @@ LOGICAL IsSystemShuttingDown( void )
 
 void SetExternalLoadLibrary( LOGICAL (CPROC*f)(const char *) )
 {
+	if( !local_systemlib )
+		SystemInit();
 	l.ExternalLoadLibrary = f;
+}
+
+void SetExternalFindProgram( char * (CPROC*f)(const char *) )
+{
+	if( !local_systemlib )
+		SystemInit();
+	l.ExternalFindProgram = f;
 }
 
 void SetProgramName( CTEXTSTR filename )

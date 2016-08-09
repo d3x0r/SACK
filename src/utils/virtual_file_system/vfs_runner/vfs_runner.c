@@ -21,9 +21,109 @@ static struct vfs_runner_local
 #endif
 }l;
 
+#define ADVANCED_LOADER 1
+
+#if ADVANCED_LOADER
 static LOGICAL CPROC LoadLibraryDependant( CTEXTSTR name )
 {
-	if( sack_exists( name ) )
+	static PLIST loading;
+	CTEXTSTR del_string;
+#ifdef DEBUG_LIBRARY_LOADING
+	lprintf( "LoadLIb %s", name );
+#endif
+	{
+		CTEXTSTR test;
+		INDEX idx;
+		LIST_FORALL( loading, idx, CTEXTSTR, test )
+		{
+#ifdef DEBUG_LIBRARY_LOADING
+			lprintf( "Compare %s vs %s", name, test );
+#endif
+			if( StrStr( name, test ) || StrStr( test, name ) )
+			{
+				//lprintf( "already loading %s(%s)", name, test );
+				return TRUE;
+			}
+		}
+	}
+	if( IsMappedLibrary( name ) )
+		return TRUE;
+	AddLink( &loading, del_string = StrDup( name ) );
+	if( sack_existsEx( name, l.rom ) )
+	{
+		FILE *file;
+#ifdef DEBUG_LIBRARY_LOADING
+
+		lprintf( "%s exists...", name );
+#endif
+		file = sack_fopenEx( 0, name, "rb", l.rom );
+		if( file )
+		{
+			CTEXTSTR path = ExpandPath( "*/tmp" );
+			TEXTCHAR tmpnam[256];
+			size_t sz = sack_fsize( file );
+			FILE *tmp;
+#ifdef DEBUG_LIBRARY_LOADING
+			lprintf( "library is %d %s", sz, name );
+#endif
+			MakePath( path );
+			snprintf( tmpnam, 256, "%s/%s", path, name );
+			tmp = sack_fopenEx( 0, tmpnam, "wb", sack_get_default_mount() );
+#ifdef DEBUG_LIBRARY_LOADING
+			lprintf( "Loading %s(%p)", tmpnam, tmp );
+#endif
+			if( sz && tmp )
+			{
+				int written, read ;
+				POINTER data = NewArray( _8, sz );
+				read = sack_fread( data, 1, sz, file );
+				written = sack_fwrite( data, 1, sz, tmp );
+				sack_fclose( tmp );
+#ifdef DEBUG_LIBRARY_LOADING
+				lprintf( "written file... closed file...now scanning and then load %d %d", read, written );
+#endif
+				ScanLoadLibraryFromMemory( name, data, sz, TRUE, LoadLibraryDependant );
+				//if( !LoadFunction( name, NULL ) )
+				{
+					LoadFunction( tmpnam, NULL );
+				}
+#if 0
+				{
+					int n;
+					for( n = 0; fixup_entries[n].libname; n++ )
+					{
+						if( fixup_entries[n].fixed )
+							continue;
+						if( StrStr( tmpnam, fixup_entries[n].libname ) != 0 )
+						{
+							POINTER p;
+							//lprintf( "need fix abort.." );
+							//fixup_entries[n].fixed = TRUE;
+							p = LoadLibrary( tmpnam );
+							FixAbortLink( p, fixup_entries + n, TRUE );
+						}
+					}
+				}
+#endif
+				//sack_unlinkEx( 0, tmpnam, sack_get_default_mount() );
+				Release( data );
+			}
+			DeleteLink( &loading, del_string );
+			sack_fclose( file );
+			return TRUE;
+		}
+	}
+	else
+		LoadFunction( name, NULL );
+    DeleteLink( &loading, del_string );
+
+	return FALSE;
+}
+#else
+
+static LOGICAL CPROC LoadLibraryDependant( CTEXTSTR name )
+{
+	if( sack_existsEx( name, l.rom ) )
 	{
 		FILE *file = sack_fopenEx( 0, name, "rb", l.rom );
 		if( file )
@@ -70,6 +170,52 @@ static LOGICAL CPROC LoadLibraryDependant( CTEXTSTR name )
 		}
 	}
 	return FALSE;
+}
+
+#endif
+
+static char * FindProgram( const char *name ) {
+	if( sack_existsEx( name, l.rom ) )
+	{
+		FILE *file;
+#ifdef DEBUG_LIBRARY_LOADING
+
+		lprintf( "%s exists...", name );
+#endif
+		file = sack_fopenEx( 0, name, "rb", l.rom );
+		if( file )
+		{
+			TEXTSTR path = ExpandPath( "*/tmp" );
+			TEXTCHAR tmpnam[256];
+			size_t sz = sack_fsize( file );
+			FILE *tmp;
+			if( sz ) {
+#ifdef DEBUG_LIBRARY_LOADING
+				lprintf( "library is %d %s", sz, name );
+#endif
+				MakePath( path );
+				snprintf( tmpnam, 256, "%s/%s", path, name );
+				tmp = sack_fopenEx( 0, tmpnam, "wb", sack_get_default_mount() );
+#ifdef DEBUG_LIBRARY_LOADING
+				lprintf( "Loading %s(%p)", tmpnam, tmp );
+#endif
+				if( tmp )
+				{
+					int written, read ;
+					POINTER data = NewArray( _8, sz );
+					read = sack_fread( data, 1, sz, file );
+					written = sack_fwrite( data, 1, sz, tmp );
+					sack_fclose( tmp );
+#ifdef DEBUG_LIBRARY_LOADING
+					lprintf( "written file... closed file...now scanning and then load %d %d", read, written );
+#endif
+				}
+			}
+			sack_fclose( file );
+         return path;
+		}
+	}
+	return NULL;
 }
 
 void FixupMyTLS( void )
@@ -174,6 +320,7 @@ PRIORITY_PRELOAD( XSaneWinMain, DEFAULT_PRELOAD_PRIORITY + 20 )//( argc, argv )
 		l.fsi = sack_get_filesystem_interface( "sack_shmem.runner" );
 		sack_set_default_filesystem_interface( l.fsi );
 		SetExternalLoadLibrary( LoadLibraryDependant );
+		SetExternalFindProgram( FindProgram );
 		SetProgramName( "program" );
 		vol = sack_vfs_use_crypt_volume( vfs_memory, sz-((PTRSZVAL)vfs_memory-(PTRSZVAL)memory), REPLACE_ME_2, REPLACE_ME_3 );
 		l.rom = sack_mount_filesystem( "self", l.fsi, 100, (PTRSZVAL)vol, FALSE );

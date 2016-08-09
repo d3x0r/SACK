@@ -4,7 +4,10 @@
 #include <sack_types.h>
 #include <deadstart.h>
 #include <sharemem.h>
-#include <idle.h>
+
+#ifndef __NO_IDLE__
+#  include <idle.h>
+#endif
 
 #include <timers.h>
 #include <filesys.h>
@@ -262,11 +265,15 @@ SYSTEM_PROC( PTASK_INFO, LaunchPeerProgramExx )( CTEXTSTR program, CTEXTSTR path
 	if( program && program[0] )
 	{
 #ifdef WIN32
+		int launch_flags = ( ( flags & LPP_OPTION_NEW_CONSOLE ) ? CREATE_NEW_CONSOLE : 0 )
+		                 | ( ( flags & LPP_OPTION_NEW_GROUP ) ? CREATE_NEW_PROCESS_GROUP : 0 )
+			;
 		PVARTEXT pvt = VarTextCreateEx( DBG_VOIDRELAY );
 		PTEXT cmdline;
 		PTEXT final_cmdline;
       LOGICAL needs_quotes;
 		TEXTSTR expanded_path = ExpandPath( program );
+      char *new_path;
 		TEXTSTR expanded_working_path = path?ExpandPath( path ):ExpandPath( WIDE(".") );
 		int first = TRUE;
 		//TEXTCHAR saved_path[256];
@@ -274,6 +281,13 @@ SYSTEM_PROC( PTASK_INFO, LaunchPeerProgramExx )( CTEXTSTR program, CTEXTSTR path
 		MemSet( task, 0, sizeof( TASK_INFO ) );
 		task->psvEnd = psv;
 		task->EndNotice = EndNotice;
+		if( l.ExternalFindProgram ) {
+			new_path = l.ExternalFindProgram( expanded_path );
+			if( new_path ) {
+				Release( expanded_path );
+            expanded_path = new_path;
+			}
+		}
 #ifdef _DEBUG
 		xlprintf(LOG_NOISE)( WIDE("%s[%s]"), path, expanded_working_path );
 #endif
@@ -284,8 +298,6 @@ SYSTEM_PROC( PTASK_INFO, LaunchPeerProgramExx )( CTEXTSTR program, CTEXTSTR path
 			expanded_working_path = NULL;
 		}
 		if( expanded_path && StrChr( expanded_path, ' ' ) )
-			needs_quotes = TRUE;
-		else if( expanded_working_path && StrChr( expanded_working_path, ' ' ) )
 			needs_quotes = TRUE;
 		else
 			needs_quotes = FALSE;
@@ -381,7 +393,7 @@ SYSTEM_PROC( PTASK_INFO, LaunchPeerProgramExx )( CTEXTSTR program, CTEXTSTR path
 				if( ( CreateProcessAsUser( hExplorer, NULL //program
 												 , GetText( cmdline )
 												 , NULL, NULL, TRUE
-												 , CREATE_NEW_PROCESS_GROUP
+												 , launch_flags | CREATE_NEW_PROCESS_GROUP
 												 , NULL
 												 , expanded_working_path
 												 , &task->si
@@ -389,7 +401,7 @@ SYSTEM_PROC( PTASK_INFO, LaunchPeerProgramExx )( CTEXTSTR program, CTEXTSTR path
 					( CreateProcessAsUser( hExplorer, program
 												, GetText( cmdline )
 												, NULL, NULL, TRUE
-												, CREATE_NEW_PROCESS_GROUP
+												, launch_flags | CREATE_NEW_PROCESS_GROUP
 												, NULL
 												, expanded_working_path
 												, &task->si
@@ -397,7 +409,7 @@ SYSTEM_PROC( PTASK_INFO, LaunchPeerProgramExx )( CTEXTSTR program, CTEXTSTR path
 					( CreateProcessAsUser( hExplorer, program
 												, NULL // GetText( cmdline )
 												, NULL, NULL, TRUE
-												, CREATE_NEW_PROCESS_GROUP
+												, launch_flags | CREATE_NEW_PROCESS_GROUP
 												, NULL
 												, expanded_working_path
 												, &task->si
@@ -405,7 +417,7 @@ SYSTEM_PROC( PTASK_INFO, LaunchPeerProgramExx )( CTEXTSTR program, CTEXTSTR path
 					( CreateProcessAsUser( hExplorer, WIDE( "cmd.exe" )
 												, GetText( final_cmdline )
 												, NULL, NULL, TRUE
-												, CREATE_NEW_PROCESS_GROUP
+												, launch_flags | CREATE_NEW_PROCESS_GROUP
 												, NULL
 												, expanded_working_path
 												, &task->si
@@ -422,7 +434,7 @@ SYSTEM_PROC( PTASK_INFO, LaunchPeerProgramExx )( CTEXTSTR program, CTEXTSTR path
 				if( ( CreateProcess( NULL //program
 										 , GetText( cmdline )
 										 , NULL, NULL, TRUE
-										 , OutputHandler?CREATE_NO_WINDOW:0//CREATE_NEW_PROCESS_GROUP
+										 , launch_flags | ( OutputHandler?CREATE_NO_WINDOW:0 )//CREATE_NEW_PROCESS_GROUP
 										 , NULL
 										 , expanded_working_path
 										 , &task->si
@@ -430,7 +442,7 @@ SYSTEM_PROC( PTASK_INFO, LaunchPeerProgramExx )( CTEXTSTR program, CTEXTSTR path
 					( CreateProcess( program
 										, GetText( cmdline )
 										, NULL, NULL, TRUE
-										, OutputHandler?CREATE_NO_WINDOW:0//CREATE_NEW_PROCESS_GROUP
+										, launch_flags | ( OutputHandler?CREATE_NO_WINDOW:0 )//CREATE_NEW_PROCESS_GROUP
 										, NULL
 										, expanded_working_path
 										, &task->si
@@ -438,7 +450,7 @@ SYSTEM_PROC( PTASK_INFO, LaunchPeerProgramExx )( CTEXTSTR program, CTEXTSTR path
 					( CreateProcess( program
 										, NULL // GetText( cmdline )
 										, NULL, NULL, TRUE
-										, OutputHandler?CREATE_NO_WINDOW:0//CREATE_NEW_PROCESS_GROUP
+										, launch_flags | ( OutputHandler?CREATE_NO_WINDOW:0 )//CREATE_NEW_PROCESS_GROUP
 										, NULL
 										, expanded_working_path
 										, &task->si
@@ -447,7 +459,7 @@ SYSTEM_PROC( PTASK_INFO, LaunchPeerProgramExx )( CTEXTSTR program, CTEXTSTR path
 					( CreateProcess( NULL//WIDE( "cmd.exe" )
 										, GetText( final_cmdline )
 										, NULL, NULL, TRUE
-										, OutputHandler?CREATE_NO_WINDOW:0//CREATE_NEW_PROCESS_GROUP
+										, launch_flags | ( OutputHandler?CREATE_NO_WINDOW:0 )//CREATE_NEW_PROCESS_GROUP
 										, NULL
 										, expanded_working_path
 										, &task->si
@@ -519,6 +531,7 @@ SYSTEM_PROC( PTASK_INFO, LaunchPeerProgramExx )( CTEXTSTR program, CTEXTSTR path
 			task->psvEnd = psv;
 			task->EndNotice = EndNotice;
 			task->OutputEvent = OutputHandler;
+         if( OutputHandler )
 			{
 				pipe(task->hStdIn.pair);
 				task->hStdIn.handle = task->hStdIn.pair[1];
@@ -542,11 +555,11 @@ SYSTEM_PROC( PTASK_INFO, LaunchPeerProgramExx )( CTEXTSTR program, CTEXTSTR path
 				//close( task->hStdIn.pair[1] );
 				//close( task->hStdOut.pair[0] );
 				//close( task->hStdErr.pair[0] );
-
-				dup2( task->hStdIn.pair[0], 0 );
-				dup2( task->hStdOut.pair[1], 1 );
-				dup2( task->hStdOut.pair[1], 2 );
-
+				if( OutputHandler ) {
+					dup2( task->hStdIn.pair[0], 0 );
+					dup2( task->hStdOut.pair[1], 1 );
+					dup2( task->hStdOut.pair[1], 2 );
+				}
 				DispelDeadstart();
 
 				//usleep( 100000 );
@@ -566,8 +579,10 @@ SYSTEM_PROC( PTASK_INFO, LaunchPeerProgramExx )( CTEXTSTR program, CTEXTSTR path
 					}
 					Release( tmp );
 				}
-				close( task->hStdIn.pair[0] );
-				close( task->hStdOut.pair[1] );
+				if( OutputHandler ) {
+					close( task->hStdIn.pair[0] );
+					close( task->hStdOut.pair[1] );
+				}
 				//close( task->hWriteErr );
 				close( 0 );
 				close( 1 );
@@ -582,10 +597,13 @@ SYSTEM_PROC( PTASK_INFO, LaunchPeerProgramExx )( CTEXTSTR program, CTEXTSTR path
 			}
 			else
 			{
-				close( task->hStdIn.pair[0] );
-				close( task->hStdOut.pair[1] );
+				if( OutputHandler ) {
+					close( task->hStdIn.pair[0] );
+					close( task->hStdOut.pair[1] );
+				}
 			}
-			ThreadTo( HandleTaskOutput, (PTRSZVAL)task );
+			if( OutputHandler )
+				ThreadTo( HandleTaskOutput, (PTRSZVAL)task );
 			task->pid = newpid;
 			lprintf( WIDE("Forked, and set the pid..") );
 			// how can I know if the command failed?
@@ -671,10 +689,14 @@ SYSTEM_PROC( PTASK_INFO, SystemEx )( CTEXTSTR command_line
 		// we'll get woken when it ends, might as well be infinite.
 		while( !end_notice.ended )
 		{
+#ifndef __NO_IDLE__
 			if( !Idle( ) )
 				WakeableSleep( 10000 );
 			else
 				Relinquish();
+#else
+         WakeableSleep( 25 );
+#endif
 		}
 		DeleteLink( &(*local_systemlib).system_tasks, result );
 	}
