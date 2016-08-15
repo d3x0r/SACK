@@ -782,14 +782,14 @@ int UnlinkWall( INDEX iWorld, INDEX iWall, INDEX findwall )
 
 //----------------------------------------------------------------------------
 // PARAMETERS  are backwards because of foreachmemberinset thing.
-PTRSZVAL CPROC ServerDestroyLine( INDEX iLine, INDEX iWorld )
+uintptr_t CPROC ServerDestroyLine( INDEX iLine, INDEX iWorld )
 {
 	MarkLineDeleted( iWorld, iLine );
 	return 0;
 }
 //----------------------------------------------------------------------------
 WORLD_PROC( void, ServerForAllLines )( INDEX iWorld
-								  , PTRSZVAL(CPROC *f)(INDEX,INDEX) )
+								  , uintptr_t(CPROC *f)(INDEX,INDEX) )
 {
 	GETWORLD( iWorld );
 	DoForAllLines( world->lines, f, iWorld );
@@ -797,7 +797,7 @@ WORLD_PROC( void, ServerForAllLines )( INDEX iWorld
 
 //----------------------------------------------------------------------------
 
-PTRSZVAL CPROC ServerDestroyWall(  INDEX iWall, INDEX iWorld )
+uintptr_t CPROC ServerDestroyWall(  INDEX iWall, INDEX iWorld )
 {
 	PWORLD world = GetSetMember( WORLD, &g.worlds, iWorld );
 	PWALL wall = GetSetMember( WALL, &world->walls, iWall );
@@ -832,14 +832,14 @@ PTRSZVAL CPROC ServerDestroyWall(  INDEX iWall, INDEX iWorld )
 }
 //----------------------------------------------------------------------------
 WORLD_PROC( void, ServerForAllWalls )( INDEX iWorld
-								  , PTRSZVAL(CPROC *f)(INDEX,INDEX) )
+								  , uintptr_t(CPROC *f)(INDEX,INDEX) )
 {
 	GETWORLD( iWorld );
 	DoForAllWalls( world->walls, f, iWorld );
 }
 //----------------------------------------------------------------------------
 
-PTRSZVAL CPROC ServerDestroySector( INDEX iSector, INDEX iWorld )
+uintptr_t CPROC ServerDestroySector( INDEX iSector, INDEX iWorld )
 {
 	PWORLD world = GetSetMember( WORLD, &g.worlds, iWorld );
 	PSECTOR ps = GetSetMember( SECTOR, &world->sectors, iSector );
@@ -881,7 +881,7 @@ PTRSZVAL CPROC ServerDestroySector( INDEX iSector, INDEX iWorld )
 
 //----------------------------------------------------------------------------
 WORLD_PROC( void, ServerForAllSectors )( INDEX iWorld
-								  , PTRSZVAL(CPROC *f)(INDEX,INDEX) )
+								  , uintptr_t(CPROC *f)(INDEX,INDEX) )
 {
 	GETWORLD( iWorld );
 	DoForAllSectors( world->sectors, f, iWorld );
@@ -1331,7 +1331,7 @@ INDEX FlatlandPointWithin( INDEX iWorld, int nSectors, INDEX *pSectors, P_POINT 
 
 //----------------------------------------------------------------------------
 
-INDEX FlatlandPointWithinLoopSingle( INDEX iSector, PTRSZVAL psv )
+INDEX FlatlandPointWithinLoopSingle( INDEX iSector, uintptr_t psv )
 {
 	struct data_tag {
 		INDEX iWorld;
@@ -2140,7 +2140,7 @@ WORLD_PROC( INDEX, GetSectorName )( INDEX iWorld, INDEX iSector  )
 
 //--------------------------------------------------------------
 
-static void CPROC SectorForCallback( PTRSZVAL psv, INDEX iSector )
+static void CPROC SectorForCallback( uintptr_t psv, INDEX iSector )
 {
 
 }

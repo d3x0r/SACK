@@ -2,15 +2,15 @@
 #include "listports.h"
 #include <sharemem.h>
 
-static LOGICAL Win9xListPorts( ListPortsCallback lpCallback, PTRSZVAL psv );
-static LOGICAL WinNT40ListPorts( ListPortsCallback lpCallback, PTRSZVAL psv );
-static LOGICAL Win2000ListPorts( ListPortsCallback lpCallback, PTRSZVAL psv ); 
-static LOGICAL WinCEListPorts( ListPortsCallback lpCallback, PTRSZVAL psv);
-static LOGICAL ScanEnumTree( CTEXTSTR lpEnumPath, ListPortsCallback lpCallback, PTRSZVAL psv );
-static _32 OpenSubKeyByIndex( HKEY hKey, _32 dwIndex, REGSAM samDesired, PHKEY phkResult, TEXTSTR* lppSubKeyName ); 
-static _32 QueryStringValue( HKEY hKey, CTEXTSTR lpValueName, TEXTSTR* lppStringValue );
+static LOGICAL Win9xListPorts( ListPortsCallback lpCallback, uintptr_t psv );
+static LOGICAL WinNT40ListPorts( ListPortsCallback lpCallback, uintptr_t psv );
+static LOGICAL Win2000ListPorts( ListPortsCallback lpCallback, uintptr_t psv ); 
+static LOGICAL WinCEListPorts( ListPortsCallback lpCallback, uintptr_t psv);
+static LOGICAL ScanEnumTree( CTEXTSTR lpEnumPath, ListPortsCallback lpCallback, uintptr_t psv );
+static uint32_t OpenSubKeyByIndex( HKEY hKey, uint32_t dwIndex, REGSAM samDesired, PHKEY phkResult, TEXTSTR* lppSubKeyName ); 
+static uint32_t QueryStringValue( HKEY hKey, CTEXTSTR lpValueName, TEXTSTR* lppStringValue );
 
-LOGICAL ListPorts( ListPortsCallback lpCallback, PTRSZVAL psv )
+LOGICAL ListPorts( ListPortsCallback lpCallback, uintptr_t psv )
 {
 
 #ifdef WIN32
@@ -82,12 +82,12 @@ LOGICAL ListPorts( ListPortsCallback lpCallback, PTRSZVAL psv )
 #endif
 }
 
-static LOGICAL Win9xListPorts( ListPortsCallback lpCallback, PTRSZVAL psv )
+static LOGICAL Win9xListPorts( ListPortsCallback lpCallback, uintptr_t psv )
 {
 	return ScanEnumTree( WIDE( "ENUM" ), lpCallback, psv );
 }
 
-static LOGICAL WinNT40ListPorts( ListPortsCallback lpCallback, PTRSZVAL psv )
+static LOGICAL WinNT40ListPorts( ListPortsCallback lpCallback, uintptr_t psv )
 /* Unlike Win9x, information on serial ports registry storing in NT 4.0 is
  * scarce. HKEY_LOCAL_MACHINE\HARDWARE\DEVICEMAP\SERIALCOMM is reliably
  * documented to hold the names of all installed serial ports, but I haven't
@@ -96,9 +96,9 @@ static LOGICAL WinNT40ListPorts( ListPortsCallback lpCallback, PTRSZVAL psv )
  * in Win9x, there's only the bare names of the ports.
  */
 {
-	_32     dwError = 0;
+	uint32_t     dwError = 0;
 	HKEY    hKey = NULL;
-	_32     dwIndex;
+	uint32_t     dwIndex;
 	TEXTSTR lpValueName = NULL;
 	TEXTSTR lpPortName = NULL;
 
@@ -111,8 +111,8 @@ static LOGICAL WinNT40ListPorts( ListPortsCallback lpCallback, PTRSZVAL psv )
 
 	for(dwIndex=0;;++dwIndex)
 	{
-		_32              cbValueName = 32 * sizeof( TEXTCHAR );
-		_32              cbPortName = 32 * sizeof( TEXTCHAR );
+		uint32_t              cbValueName = 32 * sizeof( TEXTCHAR );
+		uint32_t              cbPortName = 32 * sizeof( TEXTCHAR );
 		LISTPORTS_PORTINFO portinfo;
 
 		/* loop asking for the value data til we allocated enough memory */
@@ -134,7 +134,7 @@ static LOGICAL WinNT40ListPorts( ListPortsCallback lpCallback, PTRSZVAL psv )
 				goto end;
 			}
 
-			if( !( dwError = RegEnumValue( hKey, dwIndex, lpValueName, &cbValueName, NULL, NULL, (LPBYTE)lpPortName, &cbPortName) ) )
+			if( !( dwError = RegEnumValue( hKey, dwIndex, lpValueName, &cbValueName, NULL, NULL, (LPBYTE)lpPortName, (LPDWORD)&cbPortName) ) )
 			{
 				break; /* we did it */
 			}
@@ -177,7 +177,7 @@ end:
 	else return TRUE;
 }
 
-static LOGICAL Win2000ListPorts( ListPortsCallback lpCallback, PTRSZVAL psv )
+static LOGICAL Win2000ListPorts( ListPortsCallback lpCallback, uintptr_t psv )
 /* Information on serial ports is stored in the Win2000 registry in a manner very
  * similar to that of Win9x, with three differences:
  *   · The ENUM tree is not located under HKLM, but under HKLM\SYSTEM\CURRENTCONTROLSET.
@@ -204,22 +204,22 @@ static LOGICAL Win2000ListPorts( ListPortsCallback lpCallback, PTRSZVAL psv )
   return ScanEnumTree( WIDE( "SYSTEM\\CURRENTCONTROLSET\\ENUM" ), lpCallback, psv );
 }
 
-static LOGICAL WinCEListPorts( ListPortsCallback lpCallback, PTRSZVAL psv )
+static LOGICAL WinCEListPorts( ListPortsCallback lpCallback, uintptr_t psv )
 /* Available COM ports on Pocket PC/Windows CE devices are stored in registry under
  * key: HKLM\Drivers\BuiltIn. Note, that also other stuff like native Bluetooth ports
  * are written in this part of registry, so we must skip them using condition
  * (_tcsncicmp(lpPortName,WIDE("COM"),3)!=0) below.
  */
 {
-	_32                 dwError = 0;
+	uint32_t                 dwError = 0;
 	HKEY                hKey = NULL;
-	_32                 dwIndex;
+	uint32_t                 dwIndex;
 	TEXTSTR             lpPortName = NULL;
 	HKEY                hkLevel1 = NULL;
 	TEXTSTR             lpFriendlyName = NULL;
 	LISTPORTS_PORTINFO  portinfo;
-	_32                 index;
-	_32                 wordSize = sizeof( _32 );
+	uint32_t                 index;
+	uint32_t                 wordSize = sizeof( uint32_t );
 
 	portinfo.lpPortName = (TEXTSTR)malloc( 64 );
 
@@ -254,7 +254,7 @@ static LOGICAL WinCEListPorts( ListPortsCallback lpCallback, PTRSZVAL psv )
 		if ( StrCaseCmpEx( lpPortName, WIDE( "COM" ), 3 ) != 0 ) 
 			continue; // We want only COM serial ports
 
-		if ( dwError = RegQueryValueEx( hkLevel1, WIDE( "INDEX" ), NULL, NULL, (LPBYTE)&index, &wordSize) ) 
+		if ( dwError = RegQueryValueEx( hkLevel1, WIDE( "INDEX" ), NULL, NULL, (LPBYTE)&index, (LPDWORD)&wordSize) )
 		{
 			if( dwError == ERROR_FILE_NOT_FOUND ) 
 				continue; 
@@ -300,24 +300,24 @@ end:
 		return TRUE;
 }
 
-static LOGICAL ScanEnumTree( CTEXTSTR lpEnumPath, ListPortsCallback lpCallback, PTRSZVAL psv )
+static LOGICAL ScanEnumTree( CTEXTSTR lpEnumPath, ListPortsCallback lpCallback, uintptr_t psv )
 {
 	static const TEXTCHAR lpstrPortsClass[] =    WIDE( "PORTS" );
 	static const TEXTCHAR lpstrPortsClassGUID[] = WIDE( "{4D36E978-E325-11CE-BFC1-08002BE10318}" );
 	int terd = 0;
-	_32    dwError = 0;
+	uint32_t    dwError = 0;
 	HKEY   hkEnum = NULL;
-	_32    dwIndex1;
+	uint32_t    dwIndex1;
 	HKEY   hkLevel1 = NULL;
-	_32    dwIndex2;
+	uint32_t    dwIndex2;
 	HKEY   hkLevel2 = NULL;
-	_32    dwIndex3;
+	uint32_t    dwIndex3;
 	HKEY   hkLevel3 = NULL;
 	HKEY   hkDeviceParameters = NULL;
 	TEXTCHAR  lpClass[sizeof( lpstrPortsClass ) / sizeof( lpstrPortsClass[0] )];
-	_32    cbClass;
+	uint32_t    cbClass;
 	TEXTCHAR  lpClassGUID[sizeof( lpstrPortsClassGUID ) / sizeof( lpstrPortsClassGUID[0] )];
-	_32    cbClassGUID;
+	uint32_t    cbClassGUID;
 	TEXTSTR lpPortName = NULL;
 	TEXTSTR lpFriendlyName = NULL;
 	TEXTSTR lpTechnology = NULL;
@@ -399,7 +399,7 @@ static LOGICAL ScanEnumTree( CTEXTSTR lpEnumPath, ListPortsCallback lpCallback, 
 
 				cbClass = sizeof( lpClass );
 				
-				if( ( terd = RegQueryValueEx( hkLevel3, WIDE( "CLASS" ), NULL, NULL, (LPBYTE)lpClass, &cbClass ) ) == ERROR_SUCCESS && StrCaseCmp( lpClass, lpstrPortsClass ) == 0 )
+				if( ( terd = RegQueryValueEx( hkLevel3, WIDE( "CLASS" ), NULL, NULL, (LPBYTE)lpClass, (LPDWORD)&cbClass ) ) == ERROR_SUCCESS && StrCaseCmp( lpClass, lpstrPortsClass ) == 0 )
 				{						 
 					/* ok */
 				}
@@ -407,7 +407,7 @@ static LOGICAL ScanEnumTree( CTEXTSTR lpEnumPath, ListPortsCallback lpCallback, 
 				else
 				{
 					cbClassGUID = sizeof( lpClassGUID );					
-					if( RegQueryValueEx( hkLevel3, WIDE( "CLASSGUID" ), NULL, NULL, (LPBYTE)lpClassGUID, &cbClassGUID ) == ERROR_SUCCESS && StrCaseCmp( lpClassGUID, lpstrPortsClassGUID ) == 0 )
+					if( RegQueryValueEx( hkLevel3, WIDE( "CLASSGUID" ), NULL, NULL, (LPBYTE)lpClassGUID, (LPDWORD)&cbClassGUID ) == ERROR_SUCCESS && StrCaseCmp( lpClassGUID, lpstrPortsClassGUID ) == 0 )
 					{						
 						/* ok */
 					}
@@ -504,12 +504,12 @@ end:
 		return TRUE;
 }
 
-static _32 OpenSubKeyByIndex( HKEY hKey, _32 dwIndex, REGSAM samDesired, PHKEY phkResult, TEXTSTR* lppSubKeyName )
+static uint32_t OpenSubKeyByIndex( HKEY hKey, uint32_t dwIndex, REGSAM samDesired, PHKEY phkResult, TEXTSTR* lppSubKeyName )
 {
-	_32              dwError = 0;
+	uint32_t              dwError = 0;
 	LOGICAL          bLocalSubkeyName = FALSE;
 	TEXTSTR          lpSubkeyName = NULL;
-	_32              cbSubkeyName = 128 * sizeof( TEXTCHAR ); /* an initial guess */
+	uint32_t              cbSubkeyName = 128 * sizeof( TEXTCHAR ); /* an initial guess */
 	FILETIME         filetime;
 
 	if( lppSubKeyName == NULL )
@@ -529,7 +529,7 @@ static _32 OpenSubKeyByIndex( HKEY hKey, _32 dwIndex, REGSAM samDesired, PHKEY p
 			goto end;
 		}
 
-		if( !( dwError = RegEnumKeyEx( hKey, dwIndex, *lppSubKeyName, &cbSubkeyName, 0, NULL, NULL, &filetime ) ) )
+		if( !( dwError = RegEnumKeyEx( hKey, dwIndex, *lppSubKeyName, (LPDWORD)&cbSubkeyName, 0, NULL, NULL, &filetime ) ) )
 		{
 			break; /* we did it */
 		}
@@ -555,13 +555,13 @@ end:
 	return dwError;
 }
 
-static _32 QueryStringValue( HKEY hKey, CTEXTSTR lpValueName, TEXTSTR* lppStringValue )
+static uint32_t QueryStringValue( HKEY hKey, CTEXTSTR lpValueName, TEXTSTR* lppStringValue )
 {
-	_32 cbStringValue = 128 * sizeof( TEXTCHAR ); /* an initial guess */
+	uint32_t cbStringValue = 128 * sizeof( TEXTCHAR ); /* an initial guess */
 
 	for(;;)
 	{
-		_32 dwError;
+		uint32_t dwError;
 
 		free( *lppStringValue );
 
@@ -570,7 +570,7 @@ static _32 QueryStringValue( HKEY hKey, CTEXTSTR lpValueName, TEXTSTR* lppString
 			return ERROR_NOT_ENOUGH_MEMORY;
 		}
 		
-		if( !( dwError = RegQueryValueEx( hKey, lpValueName, NULL, NULL, (LPBYTE)*lppStringValue, &cbStringValue ) ) )
+		if( !( dwError = RegQueryValueEx( hKey, lpValueName, NULL, NULL, (LPBYTE)*lppStringValue, (LPDWORD)&cbStringValue ) ) )
 		{
 			return ERROR_SUCCESS;
 		}

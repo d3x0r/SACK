@@ -2,11 +2,11 @@
 #include <render.h>
 
 
-int CPROC Keyproc( PTRSZVAL psv, _32 keycode )
+int CPROC Keyproc( uintptr_t psv, uint32_t keycode )
 {
 	char buffer[128];
-   _32 newtime = timeGetTime();;
-   static _32 time;
+   uint32_t newtime = timeGetTime();;
+   static uint32_t time;
 	int ofs = 0;
 	ofs += snprintf( buffer + ofs, sizeof( buffer ) - ofs, "%05d : ", newtime - time );
    time = newtime;

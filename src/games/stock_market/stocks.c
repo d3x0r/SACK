@@ -44,29 +44,29 @@ enum buy_controls {
 
 typedef struct buy_stock_dialog_tag
 {
-	_32 max_shares;
-   _32 have_shares;
-   _32 cash;
-	S_32 gain;
-   _32 value;
-   S_32 shares;
+	uint32_t max_shares;
+   uint32_t have_shares;
+   uint32_t cash;
+	int32_t gain;
+   uint32_t value;
+   int32_t shares;
 } BUY_STOCK_DIALOG;
 
 BUY_STOCK_DIALOG buy;
 
 typedef struct sell_stock_dialog_tag
 {
-	_32 sell[8];
-	_32 value[8];
-	_32 owned[8];
-   _32 currentpage;
-   _32 total;
-   _32 target;
-	S_32 gain;
+	uint32_t sell[8];
+	uint32_t value[8];
+	uint32_t owned[8];
+   uint32_t currentpage;
+   uint32_t total;
+   uint32_t target;
+	int32_t gain;
 } SELL_STOCK_DIALOG;
 SELL_STOCK_DIALOG sell;
 
-void CPROC AddSome( PTRSZVAL psv, PCONTROL button )
+void CPROC AddSome( uintptr_t psv, PCONTROL button )
 {
 	PCONTROL pc;
 	if( (int)psv < 0 )
@@ -94,7 +94,7 @@ void CPROC AddSome( PTRSZVAL psv, PCONTROL button )
 	}
 }
 
-void CPROC DoSale( PTRSZVAL psv, PCONTROL button )
+void CPROC DoSale( uintptr_t psv, PCONTROL button )
 {
 	TEXTCHAR strokes[12];
 	if( buy.shares )
@@ -106,12 +106,12 @@ void CPROC DoSale( PTRSZVAL psv, PCONTROL button )
 		EnqueStrokes( WIDE("0n") );
 }
 
-void CPROC CancelSale( PTRSZVAL psv, PCONTROL button )
+void CPROC CancelSale( uintptr_t psv, PCONTROL button )
 {
    EnqueStrokes( WIDE("0y") );
 }
 
-void BuySomeStock( PSTOCK pStock, _32 max_shares )
+void BuySomeStock( PSTOCK pStock, uint32_t max_shares )
 {
 	TEXTCHAR txt[10];
 	PSTOCKACCOUNT pAccount;
@@ -167,10 +167,10 @@ void UpdateTarget( void )
 	}
 }
 
-void CPROC AddSomeSell( PTRSZVAL psv, PCONTROL button )
+void CPROC AddSomeSell( uintptr_t psv, PCONTROL button )
 {
 	PCOMMON sheet = GetCurrentSheet( GetControl( g.SellStocks, SHT_STOCKS ) );
-   _32 ID = GetControlID( (PCONTROL)sheet ) - SHT_STOCK;
+   uint32_t ID = GetControlID( (PCONTROL)sheet ) - SHT_STOCK;
 	if( (int)psv < 0 )
 	{
 		sell.gain *= (int)psv;
@@ -230,7 +230,7 @@ int GetAccountIndex( PORTFOLIO portfolio, PSTOCK stock )
 
 }
 
-void CPROC DoSell( PTRSZVAL psv, PCONTROL button )
+void CPROC DoSell( uintptr_t psv, PCONTROL button )
 {
 	int n;
 	TEXTCHAR strokes[16];
@@ -249,12 +249,12 @@ void CPROC DoSell( PTRSZVAL psv, PCONTROL button )
    EnqueStrokes( WIDE("0") );
 }
 
-void CPROC CancelSell( PTRSZVAL psv, PCONTROL button )
+void CPROC CancelSell( uintptr_t psv, PCONTROL button )
 {
    EnqueStrokes( WIDE("0") );
 }
 
-void StockSellStart( PORTFOLIO portfolio, _32 target, int bForced )
+void StockSellStart( PORTFOLIO portfolio, uint32_t target, int bForced )
 {
 	INDEX idx;
    int n = 0;
@@ -322,7 +322,7 @@ int CPROC DrawStockBar( PCOMMON pc )
 	PSTOCK stock;
 	int x, y, n;
    int colwidth;
-	_32 width, height;
+	uint32_t width, height;
 	Surface = GetControlSurface( pc );
 	ClearImageTo( Surface, Color( 255, 255, 255 ) );
    n = 0;
@@ -397,7 +397,7 @@ int CPROC DrawPortfolio( PCONTROL pc )
 	PSTOCK stock;
 	int x, y, n;
    int colwidth;
-	_32 width, height;
+	uint32_t width, height;
 	if( !g.pCurrentPlayer )
       return 0;
    portfolio = g.pCurrentPlayer->portfolio;
@@ -477,12 +477,12 @@ void ShowPortfolio( PORTFOLIO portfolio, int bForced, int bMenu )
 
 //---------------------------------------------------------------------------
 
-_32 SellStock( PORTFOLIO portfolio
+uint32_t SellStock( PORTFOLIO portfolio
                  , PSTOCKACCOUNT pWhich
                  , int bForced
-                 , _32 amount )
+                 , uint32_t amount )
 {
-   _32 cash = 0;
+   uint32_t cash = 0;
     INDEX idx;
    PSTOCKACCOUNT pAccount;
     LIST_FORALL( *portfolio, idx, PSTOCKACCOUNT, pAccount )
@@ -504,9 +504,9 @@ _32 SellStock( PORTFOLIO portfolio
 
 //---------------------------------------------------------------------------
 
-_32 CountShares( PORTFOLIO portfolio )
+uint32_t CountShares( PORTFOLIO portfolio )
 {
-   _32 shares = 0;
+   uint32_t shares = 0;
     INDEX idx;
    PSTOCKACCOUNT pAccount;
     LIST_FORALL( *portfolio, idx, PSTOCKACCOUNT, pAccount )
@@ -518,9 +518,9 @@ _32 CountShares( PORTFOLIO portfolio )
 
 //---------------------------------------------------------------------------
 
-_32 SellAllStocks( PORTFOLIO portfolio, int bForced ) // if forced use minprice
+uint32_t SellAllStocks( PORTFOLIO portfolio, int bForced ) // if forced use minprice
 {
-	_32 cash = 0;
+	uint32_t cash = 0;
 	INDEX idx;
 	PSTOCKACCOUNT pAccount;
 	LIST_FORALL( *portfolio, idx, PSTOCKACCOUNT, pAccount )
@@ -532,10 +532,10 @@ _32 SellAllStocks( PORTFOLIO portfolio, int bForced ) // if forced use minprice
 
 //---------------------------------------------------------------------------
 
-_32 SellStocks( PORTFOLIO portfolio, _32 target, int bForced )
+uint32_t SellStocks( PORTFOLIO portfolio, uint32_t target, int bForced )
 {
 	int n, count, yes;
-	_32 cash = 0;
+	uint32_t cash = 0;
 	INDEX idx;
 	PSTOCKACCOUNT stock;
    StockSellStart( portfolio, target, bForced );
@@ -577,7 +577,7 @@ _32 SellStocks( PORTFOLIO portfolio, _32 target, int bForced )
 
 //---------------------------------------------------------------------------
 
-_32 BuyStock( PORTFOLIO portfolio, PSTOCK stock, _32 shares )
+uint32_t BuyStock( PORTFOLIO portfolio, PSTOCK stock, uint32_t shares )
 {
     PSTOCKACCOUNT pAccount = GetStockAccount( portfolio, stock );
     if( !pAccount )
@@ -595,7 +595,7 @@ _32 BuyStock( PORTFOLIO portfolio, PSTOCK stock, _32 shares )
 
 //---------------------------------------------------------------------------
 
-PSTOCK GetStockByID( _16 ID )
+PSTOCK GetStockByID( uint16_t ID )
 {   
     INDEX idx;
     PSTOCK pStock;
@@ -609,7 +609,7 @@ PSTOCK GetStockByID( _16 ID )
 
 //---------------------------------------------------------------------------
 
-void UpdateStock( PSTOCK pStock, S_16 stages )
+void UpdateStock( PSTOCK pStock, int16_t stages )
 {
     if( pStock->flags.inverse )
         pStock->Stage -= stages;
@@ -625,12 +625,12 @@ void UpdateStock( PSTOCK pStock, S_16 stages )
 
 //---------------------------------------------------------------------------
 
-_32 GetStockValueEx( PSTOCK pStock, int delta, int bMin )
+uint32_t GetStockValueEx( PSTOCK pStock, int delta, int bMin )
 {
-    _32 value = pStock->Baseline;
+    uint32_t value = pStock->Baseline;
 	 FRACTION tmp, tmp2;
-    S_32 stage = pStock->Stage + delta;
-    S_32 effectivestage;
+    int32_t stage = pStock->Stage + delta;
+    int32_t effectivestage;
     if( bMin )
       return pStock->Minimum;
 	 //Log2( WIDE("%s stage is: %d"), pStock->name, pStock->Stage );
@@ -663,7 +663,7 @@ _32 GetStockValueEx( PSTOCK pStock, int delta, int bMin )
     return value;
 }
 
-_32 GetStockValue( PSTOCK pStock, int bMin )
+uint32_t GetStockValue( PSTOCK pStock, int bMin )
 {
    return GetStockValueEx( pStock, 0, bMin );
 }
@@ -688,7 +688,7 @@ void DumpStocks( void )
 
 //---------------------------------------------------------------------------
 
-void UpdateStocks( S_16 stages )
+void UpdateStocks( int16_t stages )
 {
    PSTOCK pStock;
    INDEX idx;
@@ -702,7 +702,7 @@ void UpdateStocks( S_16 stages )
 
 //---------------------------------------------------------------------------
 
-PTRSZVAL CPROC ConfigStockLink( PTRSZVAL psv, arg_list args )
+uintptr_t CPROC ConfigStockLink( uintptr_t psv, arg_list args )
 {
    PARAM( args, LOGICAL, yesno );
 /*
@@ -719,17 +719,17 @@ PTRSZVAL CPROC ConfigStockLink( PTRSZVAL psv, arg_list args )
 
 //---------------------------------------------------------------------------
 
-PTRSZVAL CPROC ConfigStockLevels( PTRSZVAL psv, arg_list args )
+uintptr_t CPROC ConfigStockLevels( uintptr_t psv, arg_list args )
 {
-   PARAM( args, _64, levels );
+   PARAM( args, uint64_t, levels );
     //Log1( WIDE("Setting %d stages"), levels );
     g.Market.stages = levels;
     return psv;
 }
 
-PTRSZVAL CPROC SetSecondStaging( PTRSZVAL psv, arg_list args )
+uintptr_t CPROC SetSecondStaging( uintptr_t psv, arg_list args )
 {
-   PARAM( args, _64, SecondStaging );
+   PARAM( args, uint64_t, SecondStaging );
     g.Market.SecondStaging = SecondStaging;
     return psv;
 }
@@ -737,7 +737,7 @@ PTRSZVAL CPROC SetSecondStaging( PTRSZVAL psv, arg_list args )
 //---------------------------------------------------------------------------
 
 
-PTRSZVAL CPROC BeginStock( PTRSZVAL psv, arg_list args )
+uintptr_t CPROC BeginStock( uintptr_t psv, arg_list args )
 {
    PARAM( args, TEXTSTR, pName );
     PSTOCK pStock;
@@ -750,24 +750,24 @@ PTRSZVAL CPROC BeginStock( PTRSZVAL psv, arg_list args )
     pStock = New( STOCK );
     MemSet( pStock, 0, sizeof( STOCK ) );
     strcpy( pStock->name, pName );
-    return (PTRSZVAL)pStock;;
+    return (uintptr_t)pStock;;
 }
 
 //---------------------------------------------------------------------------
 
-PTRSZVAL CPROC SetStockId( PTRSZVAL psv, arg_list args )
+uintptr_t CPROC SetStockId( uintptr_t psv, arg_list args )
 {
-   PARAM( args, S_64, ID );
+   PARAM( args, int64_t, ID );
     PSTOCK pStock = (PSTOCK)psv;
     Log1( WIDE("Set ID to %d"), ID );
     if( pStock )
-        pStock->ID = (_16)ID;
+        pStock->ID = (uint16_t)ID;
     return psv;
 }
 
 //---------------------------------------------------------------------------
 
-PTRSZVAL CPROC SetStockSymbol( PTRSZVAL psv, arg_list args )
+uintptr_t CPROC SetStockSymbol( uintptr_t psv, arg_list args )
 {
    PARAM( args, TEXTSTR, pSymbol );
     if( psv )
@@ -782,9 +782,9 @@ PTRSZVAL CPROC SetStockSymbol( PTRSZVAL psv, arg_list args )
 
 //---------------------------------------------------------------------------
 
-PTRSZVAL CPROC SetStockMin( PTRSZVAL psv, arg_list args )
+uintptr_t CPROC SetStockMin( uintptr_t psv, arg_list args )
 {
-   PARAM( args, _64, min );
+   PARAM( args, uint64_t, min );
     if( psv )
     {
         PSTOCK pStock = (PSTOCK)psv;
@@ -797,7 +797,7 @@ PTRSZVAL CPROC SetStockMin( PTRSZVAL psv, arg_list args )
 
 //---------------------------------------------------------------------------
 
-PTRSZVAL CPROC SetStockStaging( PTRSZVAL psv, arg_list args )
+uintptr_t CPROC SetStockStaging( uintptr_t psv, arg_list args )
 {
     PARAM( args, FRACTION, staging1 );
     PARAM( args, FRACTION, staging2 );
@@ -819,9 +819,9 @@ PTRSZVAL CPROC SetStockStaging( PTRSZVAL psv, arg_list args )
 
 //---------------------------------------------------------------------------
 
-PTRSZVAL CPROC SetStockDividend( PTRSZVAL psv, arg_list args )
+uintptr_t CPROC SetStockDividend( uintptr_t psv, arg_list args )
 {
-   PARAM( args, _64, dividend );
+   PARAM( args, uint64_t, dividend );
     if( psv )
     {
         PSTOCK pStock = (PSTOCK)psv;
@@ -834,7 +834,7 @@ PTRSZVAL CPROC SetStockDividend( PTRSZVAL psv, arg_list args )
 
 //---------------------------------------------------------------------------
 
-PTRSZVAL CPROC SetStockColor( PTRSZVAL psv, arg_list args )
+uintptr_t CPROC SetStockColor( uintptr_t psv, arg_list args )
 {
    PARAM( args, CDATA, color );
     if( psv )
@@ -850,9 +850,9 @@ PTRSZVAL CPROC SetStockColor( PTRSZVAL psv, arg_list args )
 
 //---------------------------------------------------------------------------
 
-PTRSZVAL CPROC SetStockBaseline( PTRSZVAL psv, arg_list args )
+uintptr_t CPROC SetStockBaseline( uintptr_t psv, arg_list args )
 {
-   PARAM( args, _64, baseline );
+   PARAM( args, uint64_t, baseline );
     if( psv )
     {
         PSTOCK pStock = (PSTOCK)psv;
@@ -865,7 +865,7 @@ PTRSZVAL CPROC SetStockBaseline( PTRSZVAL psv, arg_list args )
 
 //---------------------------------------------------------------------------
 
-PTRSZVAL CPROC SetStockInversed( PTRSZVAL psv, arg_list args )
+uintptr_t CPROC SetStockInversed( uintptr_t psv, arg_list args )
 {
     if( psv )
     {
@@ -879,7 +879,7 @@ PTRSZVAL CPROC SetStockInversed( PTRSZVAL psv, arg_list args )
 
 //---------------------------------------------------------------------------
 
-PTRSZVAL CPROC EndStockConfiguration( PTRSZVAL psv )
+uintptr_t CPROC EndStockConfiguration( uintptr_t psv )
 {
     if( psv )
     {
@@ -946,7 +946,7 @@ void InitStockDialogs( void )
 		PCONTROL sheet;
 		INDEX idx;
 		PSTOCK stock;
-		_32 width, height;
+		uint32_t width, height;
 		TEXTCHAR name[10];
 		PCONTROL pc = MakeSheetControl( g.SellStocks, 4, 4
 												, g.scale * 12 - 8 - 8, g.scale * 3 + 4

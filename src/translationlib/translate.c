@@ -10,13 +10,13 @@ struct translation {
 	PLIST strings;
 };
 
-#define STRING_INDEX_TYPE _32
+#define STRING_INDEX_TYPE uint32_t
 
-#define STRINGSPACE_SIZE (8192 - sizeof( _32 ) - 2 * sizeof( POINTER ))
+#define STRINGSPACE_SIZE (8192 - sizeof( uint32_t ) - 2 * sizeof( POINTER ))
 
 typedef struct stringspace_tag
 {
-	_32 nextname;
+	uint32_t nextname;
 	TEXTCHAR buffer[STRINGSPACE_SIZE];
 	DeclareLink( struct stringspace_tag );
 } STRINGSPACE, *PSTRINGSPACE;
@@ -29,7 +29,7 @@ static struct translation_local_tag
 	PLIST index_list;
 	PSTRINGSPACE index_strings;
 	PSTRINGSPACE translated_strings;
-	_32 string_count;
+	uint32_t string_count;
 	PLIST translations;
 	struct translation *current_translation;
 } *_translate_local;
@@ -45,7 +45,7 @@ PRELOAD( InitTrasnlationLocal )
 
 //---------------------------------------------------------------------------
 
-static CTEXTSTR SaveString( PSTRINGSPACE *root, _32 index, CTEXTSTR text )
+static CTEXTSTR SaveString( PSTRINGSPACE *root, uint32_t index, CTEXTSTR text )
 {
 	PSTRINGSPACE space = root[0];
 	TEXTCHAR *p;
@@ -72,14 +72,14 @@ static CTEXTSTR SaveString( PSTRINGSPACE *root, _32 index, CTEXTSTR text )
 	if( index )
 	{
 		MemCpy( p = space->buffer + space->nextname + sizeof( STRING_INDEX_TYPE )
-			, text,(_32)(sizeof( TEXTCHAR)*(len)) );
+			, text,(uint32_t)(sizeof( TEXTCHAR)*(len)) );
 		((STRING_INDEX_TYPE*)(space->buffer + space->nextname))[0] = index;
-		space->nextname += (_32)len + sizeof( STRING_INDEX_TYPE );
+		space->nextname += (uint32_t)len + sizeof( STRING_INDEX_TYPE );
 	}
 	else
 	{
-		MemCpy( p = space->buffer + space->nextname, text,(_32)(sizeof( TEXTCHAR)*(len)) );
-		space->nextname += (_32)len;
+		MemCpy( p = space->buffer + space->nextname, text,(uint32_t)(sizeof( TEXTCHAR)*(len)) );
+		space->nextname += (uint32_t)len;
 	}
 	// +2 1 for byte of len, 1 for nul at end.
 #if defined( __ARM__ ) || defined( UNDER_CE )
@@ -95,7 +95,7 @@ static CTEXTSTR SaveString( PSTRINGSPACE *root, _32 index, CTEXTSTR text )
 
 void SaveTranslationDataToFile( FILE *output )
 {
-	_32 n;
+	uint32_t n;
 	PSTRINGSPACE strings;
 	for( n = 0, strings = translate_local.index_strings;
 		 strings;
@@ -115,8 +115,8 @@ void SaveTranslationDataToFile( FILE *output )
 		{
 			int len;
 			INDEX string_idx;
-			_32 tmp;
-			_8 length[3];
+			uint32_t tmp;
+			uint8_t length[3];
 			CTEXTSTR string;
 			len = StrLen( translation->name );
 			sack_fwrite( &len, 1, sizeof( len ), output );
@@ -167,8 +167,8 @@ void SaveTranslationData( void )
 
 void LoadTranslationDataFromFile( FILE *input )
 {
-	_32 n;
-	_32 b;
+	uint32_t n;
+	uint32_t b;
 	PSTRINGSPACE strings;
 	PSTRINGSPACE next;
 	PSTRINGSPACE last;
@@ -202,15 +202,15 @@ void LoadTranslationDataFromFile( FILE *input )
 	}
 	{
 		INDEX idx;
-		_32 len;
+		uint32_t len;
 		TEXTSTR string = NULL; // buffer used to read string into
-		_32 maxlen = 0; // length of buffer to use to read string
+		uint32_t maxlen = 0; // length of buffer to use to read string
 		struct translation *translation;
 		while( sack_fread( &len, 1, sizeof( len ), input ) )
 		{
 			INDEX string_idx;
-			_32 tmp;
-			_8 length[3];
+			uint32_t tmp;
+			uint8_t length[3];
 			translation = New( struct translation );
 			AddLink( &translate_local.translations, translation );
 			translation->strings = NULL;
@@ -255,14 +255,14 @@ void LoadTranslationDataFromFile( FILE *input )
 		PSTRINGSPACE space;
 		for( space = translate_local.index_strings; space; space = space->next )
 		{
-			_32 offset = 0;
-			_32 index;
+			uint32_t offset = 0;
+			uint32_t index;
 			CTEXTSTR string;
 			for(offset = 0; offset < space->nextname; offset++ )
 			{
 				index = ((STRING_INDEX_TYPE*)( space->buffer + offset ))[0];
 				SetLink( &translate_local.index_list, index - 1, string = ( space->buffer + offset + 4 ) );
-				AddBinaryNode( translate_local.index, (CPOINTER)(index), (PTRSZVAL)string );
+				AddBinaryNode( translate_local.index, (CPOINTER)(index), (uintptr_t)string );
 
 				offset += StrLen( string ) + 4;
 			}
@@ -286,12 +286,12 @@ void LoadTranslationData( void )
 
 CTEXTSTR TranslateText( CTEXTSTR text )
 {
-	PTRSZVAL psvIndex = (PTRSZVAL)FindInBinaryTree( translate_local.index, (PTRSZVAL)text );
+	uintptr_t psvIndex = (uintptr_t)FindInBinaryTree( translate_local.index, (uintptr_t)text );
 	if( !psvIndex )
 	{
 		CTEXTSTR index_text = SaveString( &translate_local.index_strings, translate_local.string_count+1, text );
 		PLIST list = SetLink( &translate_local.index_list, translate_local.string_count, index_text );
-		AddBinaryNode( translate_local.index, (CPOINTER)(translate_local.string_count+1), (PTRSZVAL)index_text );
+		AddBinaryNode( translate_local.index, (CPOINTER)(translate_local.string_count+1), (uintptr_t)index_text );
 		translate_local.string_count++;
 		psvIndex = translate_local.string_count;
 	}

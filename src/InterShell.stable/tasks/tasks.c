@@ -27,8 +27,8 @@ static struct {
 	PLOAD_TASK windows_shell;
 	//PSI_CONTROL frame; // this should be the same as the global frame (to hide when launching task)
 	struct {
-		_32 bExit : 4; // this needs to be set someday... it comes from intershell_main
-		_32 wait_for_network_drive : 1;
+		uint32_t bExit : 4; // this needs to be set someday... it comes from intershell_main
+		uint32_t wait_for_network_drive : 1;
 		BIT_FIELD bSentLaunchComplete : 1;
 	} flags;
 	PLIST tasks_that_hid_main_canvas;
@@ -161,8 +161,8 @@ static void SetWithFindMode( LPDEVMODE mode, int bRestoreOnCrash )
 		int n;
 		for( n = 0; n < 3; n++ )
 		{
-			_32 flags;
-			_32 result;
+			uint32_t flags;
+			uint32_t result;
 			switch( n )
 			{
 			case 0:
@@ -271,7 +271,7 @@ static void SetWithFindMode( LPDEVMODE mode, int bRestoreOnCrash )
 #endif
 #endif
 
-void SetResolution( PLOAD_TASK task, _32 w, _32 h, LOGICAL bAtLeast )
+void SetResolution( PLOAD_TASK task, uint32_t w, uint32_t h, LOGICAL bAtLeast )
 {
 #ifndef UNDER_CE
 #ifdef WIN32
@@ -460,17 +460,17 @@ PLOAD_TASK CPROC CreateTask( PMENU_BUTTON button )
 	return task;
 }
 
-static PTRSZVAL OnCreateMenuButton( WIDE("Task") )( PMENU_BUTTON button )
+static uintptr_t OnCreateMenuButton( WIDE("Task") )( PMENU_BUTTON button )
 {
 	PLOAD_TASK task = CreateTask( button );
 	task->flags.bButton = 1;
 	task->button = button;
 	InterShell_SetButtonStyle( button, WIDE("bicolor square") );
-	return (PTRSZVAL)task;
+	return (uintptr_t)task;
 }
 //---------------------------------------------------------------------------
 
-static void OnDestroyMenuButton( WIDE("Task") )( PTRSZVAL psv )
+static void OnDestroyMenuButton( WIDE("Task") )( uintptr_t psv )
 {
 	// destory button... destroy associated task information...
 }
@@ -549,14 +549,14 @@ TEXTCHAR *GetTaskArgs( PLOAD_TASK pTask, LOGICAL bShutdown )
 
 //---------------------------------------------------------------------------
 
-static void CPROC AddSystemAllow( PTRSZVAL psv, PSI_CONTROL pc_button )
+static void CPROC AddSystemAllow( uintptr_t psv, PSI_CONTROL pc_button )
 {
 	TEXTCHAR buffer[256];
 	GetControlText( GetNearControl( pc_button, EDIT_SYSTEM_NAME ), buffer, sizeof( buffer ) );
 	AddListItem( GetNearControl( pc_button, LISTBOX_ALLOW_RUN_ON ), buffer );
 }
 
-static void CPROC AddSystemDisallow( PTRSZVAL psv, PSI_CONTROL pc_button )
+static void CPROC AddSystemDisallow( uintptr_t psv, PSI_CONTROL pc_button )
 {
 	TEXTCHAR buffer[256];
 	GetControlText( GetNearControl( pc_button, EDIT_SYSTEM_NAME ), buffer, sizeof( buffer ) );
@@ -566,7 +566,7 @@ static void CPROC AddSystemDisallow( PTRSZVAL psv, PSI_CONTROL pc_button )
 
 //---------------------------------------------------------------------------
 
-static void CPROC RemoveSystemAllow( PTRSZVAL psv, PSI_CONTROL pc_button )
+static void CPROC RemoveSystemAllow( uintptr_t psv, PSI_CONTROL pc_button )
 {
 	PLISTITEM pli;
 	PSI_CONTROL list;
@@ -580,7 +580,7 @@ static void CPROC RemoveSystemAllow( PTRSZVAL psv, PSI_CONTROL pc_button )
 
 //---------------------------------------------------------------------------
 
-static void CPROC RemoveSystemDisallow( PTRSZVAL psv, PSI_CONTROL pc_button )
+static void CPROC RemoveSystemDisallow( uintptr_t psv, PSI_CONTROL pc_button )
 {
 	PLISTITEM pli;
 	PSI_CONTROL list;
@@ -597,7 +597,7 @@ static void CPROC RemoveSystemDisallow( PTRSZVAL psv, PSI_CONTROL pc_button )
 
 
 
-void EditTaskProperties( PTRSZVAL psv, PSI_CONTROL parent_frame, LOGICAL bVisual )
+void EditTaskProperties( uintptr_t psv, PSI_CONTROL parent_frame, LOGICAL bVisual )
 {
 	PLOAD_TASK pTask = (PLOAD_TASK)psv;
 	PCOMMON frame = LoadXMLFrameOver( parent_frame, bVisual?WIDE("menu.task.isframe"):WIDE("task.isframe") );
@@ -613,7 +613,7 @@ void EditTaskProperties( PTRSZVAL psv, PSI_CONTROL parent_frame, LOGICAL bVisual
 
 		// re-set security module to reference a different place.
 		if( pTask->flags.bButton ) // otherwise security will be checked on the non-button task
-			SetupSecurityEdit( frame, (PTRSZVAL)&pTask->security_modules );
+			SetupSecurityEdit( frame, (uintptr_t)&pTask->security_modules );
 
 		{
 			TEXTCHAR buf[256];
@@ -666,10 +666,10 @@ void EditTaskProperties( PTRSZVAL psv, PSI_CONTROL parent_frame, LOGICAL bVisual
 					AddListItem( list, system );
 				}
 			}
-			SetButtonPushMethod( GetControl( frame, BTN_ADD_SYSTEM ), AddSystemAllow, (PTRSZVAL)pTask );
-			SetButtonPushMethod( GetControl( frame, BTN_REMOVE_SYSTEM ), RemoveSystemAllow, (PTRSZVAL)pTask );
-			SetButtonPushMethod( GetControl( frame, BTN_ADD_DISALLOW_SYSTEM ), AddSystemDisallow, (PTRSZVAL)pTask );
-			SetButtonPushMethod( GetControl( frame, BTN_REMOVE_DISALLOW_SYSTEM ), RemoveSystemDisallow, (PTRSZVAL)pTask );
+			SetButtonPushMethod( GetControl( frame, BTN_ADD_SYSTEM ), AddSystemAllow, (uintptr_t)pTask );
+			SetButtonPushMethod( GetControl( frame, BTN_REMOVE_SYSTEM ), RemoveSystemAllow, (uintptr_t)pTask );
+			SetButtonPushMethod( GetControl( frame, BTN_ADD_DISALLOW_SYSTEM ), AddSystemDisallow, (uintptr_t)pTask );
+			SetButtonPushMethod( GetControl( frame, BTN_REMOVE_DISALLOW_SYSTEM ), RemoveSystemDisallow, (uintptr_t)pTask );
 		}
 	}
 	DisplayFrameOver( frame, parent_frame );
@@ -806,7 +806,7 @@ void EditTaskProperties( PTRSZVAL psv, PSI_CONTROL parent_frame, LOGICAL bVisual
 	DestroyFrame( &frame );
 }
 
-static PTRSZVAL OnEditControl( WIDE("Task") )( PTRSZVAL psv, PSI_CONTROL parent_frame )
+static uintptr_t OnEditControl( WIDE("Task") )( uintptr_t psv, PSI_CONTROL parent_frame )
 {
 	EditTaskProperties( psv, parent_frame, TRUE );
 	return psv;
@@ -890,7 +890,7 @@ void DestroyTask( PLOAD_TASK *ppTask )
 
 //---------------------------------------------------------------------------
 
-void CPROC HandleTaskOutput( PTRSZVAL psvTaskInfo, PTASK_INFO task, CTEXTSTR buffer, size_t size )
+void CPROC HandleTaskOutput( uintptr_t psvTaskInfo, PTASK_INFO task, CTEXTSTR buffer, size_t size )
 {
 	PLOAD_TASK pTask = (PLOAD_TASK)psvTaskInfo;
 	lprintf( WIDE("%s:%s"), pTask->pTask, buffer );
@@ -911,7 +911,7 @@ static LOGICAL IsTaskRunning( PLOAD_TASK pTask )
 
 //---------------------------------------------------------------------------
 // forward declaration, cause the task may re-spawn within task ended
-void CPROC TaskEnded( PTRSZVAL psv, PTASK_INFO task_ended );
+void CPROC TaskEnded( uintptr_t psv, PTASK_INFO task_ended );
 //---------------------------------------------------------------------------
 
 void RunATask( PLOAD_TASK pTask, int bWaitInRoutine, LOGICAL bShutdown )
@@ -931,11 +931,11 @@ void RunATask( PLOAD_TASK pTask, int bWaitInRoutine, LOGICAL bShutdown )
 			return;
 	}
 	{
-		PTRSZVAL task_security;
+		uintptr_t task_security;
 		if( !pTask->flags.bButton ) // otherwise security will be checked on the button
-			task_security = CreateSecurityContext( (PTRSZVAL)pTask );
+			task_security = CreateSecurityContext( (uintptr_t)pTask );
 		else
-			task_security = CreateSecurityContext( (PTRSZVAL)&pTask->security_modules );
+			task_security = CreateSecurityContext( (uintptr_t)&pTask->security_modules );
 		if( task_security == INVALID_INDEX )
 			return;
 		//if( task_security )
@@ -1029,7 +1029,7 @@ void RunATask( PLOAD_TASK pTask, int bWaitInRoutine, LOGICAL bShutdown )
 											, 0
 											, HandleTaskOutput
 											, TaskEnded
-											, (PTRSZVAL)pTask 
+											, (uintptr_t)pTask 
 											DBG_SRC
 											);
 		}
@@ -1038,7 +1038,7 @@ void RunATask( PLOAD_TASK pTask, int bWaitInRoutine, LOGICAL bShutdown )
 			task = LaunchProgramEx( taskname, path
 					, (PCTEXTSTR)args
 					, TaskEnded
-					, (PTRSZVAL)pTask 
+					, (uintptr_t)pTask 
 					);
 		Release( (POINTER)taskname );
 		Release( (POINTER)path );
@@ -1139,7 +1139,7 @@ static void OnBeginShutdown( WIDE("Intershell Tasks") )( void )
 
 //---------------------------------------------------------------------------
 
-void CPROC TaskEnded( PTRSZVAL psv, PTASK_INFO task_ended )
+void CPROC TaskEnded( uintptr_t psv, PTASK_INFO task_ended )
 {
 	INDEX idx;
 	int marked = FALSE;
@@ -1178,7 +1178,7 @@ void CPROC TaskEnded( PTRSZVAL psv, PTASK_INFO task_ended )
 
 	if( pTask->psvSecurityToken )
 	{
-		CloseSecurityContext( (PTRSZVAL)pTask, pTask->psvSecurityToken );
+		CloseSecurityContext( (uintptr_t)pTask, pTask->psvSecurityToken );
 		pTask->psvSecurityToken = 0;
 	}
 
@@ -1293,7 +1293,7 @@ static void KillSpawnedProgram( PLOAD_TASK tasks )
 					  , (p)?p[0]=0:0
 					  , hWnd = FindWindow( WIDE("AlertAgentIcon"), progname ) ) )
 				{
-					_32 delay = timeGetTime() + 500;
+					uint32_t delay = timeGetTime() + 500;
 					bIcon = TRUE;
 					lprintf( WIDE("Found by alert tray icon... closing.") );
 					PostMessage( hWnd, WM_COMMAND, /*MNU_EXIT*/1000, 0 );
@@ -1301,7 +1301,7 @@ static void KillSpawnedProgram( PLOAD_TASK tasks )
 				if( bIcon )
 				{
 					HWND still_here;
-					_32 TickDelay = timeGetTime() + 250;
+					uint32_t TickDelay = timeGetTime() + 250;
 					// give it a little time before just killing it.
 					while( ( still_here = FindWindow( WIDE("AlertAgentIcon"), progname ) ) &&
 							( TickDelay > timeGetTime() ) )
@@ -1326,7 +1326,7 @@ static void KillSpawnedProgram( PLOAD_TASK tasks )
 					snprintf( progname, sizeof( progname ), WIDE("%s.instance.lock"), basename );
 					{
 						POINTER mem_lock;
-						PTRSZVAL size = 0;
+						uintptr_t size = 0;
 						mem_lock = OpenSpace( progname
 												  , NULL
 													//, WIDE("memory.delete")
@@ -1360,7 +1360,7 @@ static void KillSpawnedProgram( PLOAD_TASK tasks )
 //---------------------------------------------------------------------------
 
 // should get auto innited to button proc...
-static void OnKeyPressEvent(  WIDE("Task") )( PTRSZVAL psv )
+static void OnKeyPressEvent(  WIDE("Task") )( uintptr_t psv )
 {
 	PLOAD_TASK pTask = (PLOAD_TASK)psv;
 	if( pTask->flags.bOneLaunch && pTask->flags.bOneLaunchClickStop && TaskHasSpawns( pTask ) )
@@ -1434,7 +1434,7 @@ static void OnInterShellShutdown( WIDE("DOKillSpawnedPrograms") )(void)
 }
 
 //---------------------------------------------------------------------------
-PTRSZVAL CPROC WaitForNetworkThread( PTHREAD thread );
+uintptr_t CPROC WaitForNetworkThread( PTHREAD thread );
 
 int LaunchNetworkTasks( int bWaitForNetworkDrive )
 {
@@ -1492,7 +1492,7 @@ int LaunchNetworkTasks( int bWaitForNetworkDrive )
 }
 
 #ifdef _WIN32
-PTRSZVAL CPROC WaitForNetworkThread( PTHREAD thread )
+uintptr_t CPROC WaitForNetworkThread( PTHREAD thread )
 {
 	static int bWaiting;
 	PBANNER banner = NULL;
@@ -1551,14 +1551,14 @@ PTRSZVAL CPROC WaitForNetworkThread( PTHREAD thread )
 	return 0;
 }
 #else
-PTRSZVAL CPROC WaitForNetworkDriveThread( PTHREAD thread )
+uintptr_t CPROC WaitForNetworkDriveThread( PTHREAD thread )
 {
 	// shrug - in a linux world, how do we know?
 	return 0;
 }
 #endif
 
-static PTRSZVAL CPROC NetworkTaskStarter( PTHREAD thread )
+static uintptr_t CPROC NetworkTaskStarter( PTHREAD thread )
 {
 	LaunchNetworkTasks( 0 );
 	return 0;
@@ -1576,9 +1576,9 @@ static void OnFinishAllInit( WIDE("tasks") )( void )
 	ThreadTo( WaitForNetworkThread, 1 );
 }
 
-static LOGICAL CPROC PressDosKey( PTRSZVAL psv, _32 key )
+static LOGICAL CPROC PressDosKey( uintptr_t psv, uint32_t key )
 {
-	static _32 _tick, tick;
+	static uint32_t _tick, tick;
 	static int reset = 0;
 	static int reset2 = 0;
 	static int reset3 = 0;
@@ -1677,13 +1677,13 @@ static LOGICAL CPROC PressDosKey( PTRSZVAL psv, _32 key )
 static void OnFinishInit( WIDE("TasksShellKeys") )( PSI_CONTROL pc_canvas )
 //PRELOAD( SetTaskKeys )
 {
-	BindEventToKey( NULL, KEY_D, KEY_MOD_ALT, PressDosKey, (PTRSZVAL)'D' );
-	BindEventToKey( NULL, KEY_O, KEY_MOD_ALT, PressDosKey, (PTRSZVAL)'O' );
-	BindEventToKey( NULL, KEY_S, KEY_MOD_ALT, PressDosKey, (PTRSZVAL)'S' );
-	BindEventToKey( NULL, KEY_P, KEY_MOD_ALT, PressDosKey, (PTRSZVAL)'P' );
-	BindEventToKey( NULL, KEY_W, KEY_MOD_ALT, PressDosKey, (PTRSZVAL)'W' );
-	BindEventToKey( NULL, KEY_I, KEY_MOD_ALT, PressDosKey, (PTRSZVAL)'I' );
-	BindEventToKey( NULL, KEY_N, KEY_MOD_ALT, PressDosKey, (PTRSZVAL)'N' );
+	BindEventToKey( NULL, KEY_D, KEY_MOD_ALT, PressDosKey, (uintptr_t)'D' );
+	BindEventToKey( NULL, KEY_O, KEY_MOD_ALT, PressDosKey, (uintptr_t)'O' );
+	BindEventToKey( NULL, KEY_S, KEY_MOD_ALT, PressDosKey, (uintptr_t)'S' );
+	BindEventToKey( NULL, KEY_P, KEY_MOD_ALT, PressDosKey, (uintptr_t)'P' );
+	BindEventToKey( NULL, KEY_W, KEY_MOD_ALT, PressDosKey, (uintptr_t)'W' );
+	BindEventToKey( NULL, KEY_I, KEY_MOD_ALT, PressDosKey, (uintptr_t)'I' );
+	BindEventToKey( NULL, KEY_N, KEY_MOD_ALT, PressDosKey, (uintptr_t)'N' );
 
 }
 
@@ -1694,7 +1694,7 @@ static void OnFinishInit( WIDE("TasksShellKeys") )( PSI_CONTROL pc_canvas )
 		pTask = (PLOAD_TASK)psv;
 
 
-static PTRSZVAL CPROC ConfigSetTaskName( PTRSZVAL psv, arg_list args )
+static uintptr_t CPROC ConfigSetTaskName( uintptr_t psv, arg_list args )
 {
 	PARAM( args, TEXTCHAR *, text );
 	PSV_PARAM;
@@ -1707,7 +1707,7 @@ static PTRSZVAL CPROC ConfigSetTaskName( PTRSZVAL psv, arg_list args )
 
 //---------------------------------------------------------------------------
 
-static PTRSZVAL CPROC SetTaskPath( PTRSZVAL psv, arg_list args )
+static uintptr_t CPROC SetTaskPath( uintptr_t psv, arg_list args )
 {
 	PARAM( args, TEXTCHAR *, text );
 	PSV_PARAM;
@@ -1719,7 +1719,7 @@ static PTRSZVAL CPROC SetTaskPath( PTRSZVAL psv, arg_list args )
 
 //---------------------------------------------------------------------------
 
-static PTRSZVAL CPROC SetShutdownTaskPath( PTRSZVAL psv, arg_list args )
+static uintptr_t CPROC SetShutdownTaskPath( uintptr_t psv, arg_list args )
 {
 	PARAM( args, TEXTCHAR *, text );
 	PSV_PARAM;
@@ -1731,7 +1731,7 @@ static PTRSZVAL CPROC SetShutdownTaskPath( PTRSZVAL psv, arg_list args )
 
 //---------------------------------------------------------------------------
 
-static PTRSZVAL CPROC SetTaskTask( PTRSZVAL psv, arg_list args )
+static uintptr_t CPROC SetTaskTask( uintptr_t psv, arg_list args )
 {
 	PARAM( args, TEXTCHAR *, text );
 	PSV_PARAM;
@@ -1742,7 +1742,7 @@ static PTRSZVAL CPROC SetTaskTask( PTRSZVAL psv, arg_list args )
 
 //---------------------------------------------------------------------------
 
-static PTRSZVAL CPROC SetShutdownTaskTask( PTRSZVAL psv, arg_list args )
+static uintptr_t CPROC SetShutdownTaskTask( uintptr_t psv, arg_list args )
 {
 	PARAM( args, TEXTCHAR *, text );
 	PSV_PARAM;
@@ -1753,7 +1753,7 @@ static PTRSZVAL CPROC SetShutdownTaskTask( PTRSZVAL psv, arg_list args )
 
 //---------------------------------------------------------------------------
 
-PTRSZVAL CPROC SetTaskArgs( PTRSZVAL psv, arg_list args )
+uintptr_t CPROC SetTaskArgs( uintptr_t psv, arg_list args )
 {
 	PARAM( args, TEXTCHAR *, text );
 	PSV_PARAM;
@@ -1764,7 +1764,7 @@ PTRSZVAL CPROC SetTaskArgs( PTRSZVAL psv, arg_list args )
 }
 //---------------------------------------------------------------------------
 
-PTRSZVAL CPROC SetShutdownTaskArgs( PTRSZVAL psv, arg_list args )
+uintptr_t CPROC SetShutdownTaskArgs( uintptr_t psv, arg_list args )
 {
 	PARAM( args, TEXTCHAR *, text );
 	PSV_PARAM;
@@ -1774,7 +1774,7 @@ PTRSZVAL CPROC SetShutdownTaskArgs( PTRSZVAL psv, arg_list args )
 	return psv;
 }
 
-PTRSZVAL CPROC SetTaskRestart( PTRSZVAL psv, arg_list args )
+uintptr_t CPROC SetTaskRestart( uintptr_t psv, arg_list args )
 {
 	PARAM( args, LOGICAL, bRestart );
 	PSV_PARAM;
@@ -1783,7 +1783,7 @@ PTRSZVAL CPROC SetTaskRestart( PTRSZVAL psv, arg_list args )
 	return psv;
 }
 
-PTRSZVAL CPROC SetTaskExclusive( PTRSZVAL psv, arg_list args )
+uintptr_t CPROC SetTaskExclusive( uintptr_t psv, arg_list args )
 {
 	PARAM( args, LOGICAL, bExclusive );
 	PSV_PARAM;
@@ -1791,7 +1791,7 @@ PTRSZVAL CPROC SetTaskExclusive( PTRSZVAL psv, arg_list args )
 		pTask->flags.bExclusive = !bExclusive;
 	return psv;
 }
-PTRSZVAL CPROC SetTaskWait( PTRSZVAL psv, arg_list args )
+uintptr_t CPROC SetTaskWait( uintptr_t psv, arg_list args )
 {
 	PARAM( args, LOGICAL, bWait );
 	PSV_PARAM;
@@ -1799,7 +1799,7 @@ PTRSZVAL CPROC SetTaskWait( PTRSZVAL psv, arg_list args )
 		pTask->flags.bWaitForTask = bWait;
 	return psv;
 }
-PTRSZVAL CPROC SetTaskBackground( PTRSZVAL psv, arg_list args )
+uintptr_t CPROC SetTaskBackground( uintptr_t psv, arg_list args )
 {
 	PARAM( args, LOGICAL, bBackground );
 	PSV_PARAM;
@@ -1808,7 +1808,7 @@ PTRSZVAL CPROC SetTaskBackground( PTRSZVAL psv, arg_list args )
 	return psv;
 }
 
-PTRSZVAL CPROC SetTaskCapture( PTRSZVAL psv, arg_list args )
+uintptr_t CPROC SetTaskCapture( uintptr_t psv, arg_list args )
 {
 	PARAM( args, LOGICAL, bCaptureOutput );
 	PSV_PARAM;
@@ -1817,7 +1817,7 @@ PTRSZVAL CPROC SetTaskCapture( PTRSZVAL psv, arg_list args )
 	return psv;
 }
 
-PTRSZVAL CPROC SetTaskHide( PTRSZVAL psv, arg_list args )
+uintptr_t CPROC SetTaskHide( uintptr_t psv, arg_list args )
 {
 	PARAM( args, LOGICAL, bHideCanvas );
 	PSV_PARAM;
@@ -1826,7 +1826,7 @@ PTRSZVAL CPROC SetTaskHide( PTRSZVAL psv, arg_list args )
 	return psv;
 }
 
-PTRSZVAL CPROC SetTaskOneTime( PTRSZVAL psv, arg_list args )
+uintptr_t CPROC SetTaskOneTime( uintptr_t psv, arg_list args )
 {
 	PARAM( args, LOGICAL, bOneLaunch );
 	PSV_PARAM;
@@ -1835,7 +1835,7 @@ PTRSZVAL CPROC SetTaskOneTime( PTRSZVAL psv, arg_list args )
 	return psv;
 }
 
-PTRSZVAL CPROC SetTaskOneTimeClickStop( PTRSZVAL psv, arg_list args )
+uintptr_t CPROC SetTaskOneTimeClickStop( uintptr_t psv, arg_list args )
 {
 	PARAM( args, LOGICAL, bOneLaunchClickStop );
 	PSV_PARAM;
@@ -1846,10 +1846,10 @@ PTRSZVAL CPROC SetTaskOneTimeClickStop( PTRSZVAL psv, arg_list args )
 
 //---------------------------------------------------------------------------
 
-PTRSZVAL CPROC SetLaunchResolution( PTRSZVAL psv, arg_list args )
+uintptr_t CPROC SetLaunchResolution( uintptr_t psv, arg_list args )
 {
-	PARAM( args, S_64, width );
-	PARAM( args, S_64, height );
+	PARAM( args, int64_t, width );
+	PARAM( args, int64_t, height );
 	PSV_PARAM;
 	if( pTask )
 	{
@@ -1865,10 +1865,10 @@ PTRSZVAL CPROC SetLaunchResolution( PTRSZVAL psv, arg_list args )
 
 //---------------------------------------------------------------------------
 
-PTRSZVAL CPROC SetLeastLaunchResolution( PTRSZVAL psv, arg_list args )
+uintptr_t CPROC SetLeastLaunchResolution( uintptr_t psv, arg_list args )
 {
-	PARAM( args, S_64, width );
-	PARAM( args, S_64, height );
+	PARAM( args, int64_t, width );
+	PARAM( args, int64_t, height );
 	PSV_PARAM;
 	if( pTask )
 	{
@@ -1884,16 +1884,16 @@ PTRSZVAL CPROC SetLeastLaunchResolution( PTRSZVAL psv, arg_list args )
 
 //---------------------------------------------------------------------------
 
-static PTRSZVAL CPROC SetTaskSecurity( PTRSZVAL psv, arg_list args )
+static uintptr_t CPROC SetTaskSecurity( uintptr_t psv, arg_list args )
 {
 	PARAM( args, CTEXTSTR, module );
 	PARAM( args, CTEXTSTR, token );
 	PSV_PARAM;
-	AddSecurityContextToken( (PTRSZVAL)&pTask->security_modules, module, token );	
+	AddSecurityContextToken( (uintptr_t)&pTask->security_modules, module, token );	
 	return psv;
 }
 
-static PTRSZVAL CPROC SetTaskRunOn( PTRSZVAL psv, arg_list args )
+static uintptr_t CPROC SetTaskRunOn( uintptr_t psv, arg_list args )
 {
 	PARAM( args, CTEXTSTR, system );
 	CTEXTSTR my_system = InterShell_GetSystemName();
@@ -1916,7 +1916,7 @@ static PTRSZVAL CPROC SetTaskRunOn( PTRSZVAL psv, arg_list args )
 	return psv;
 }
 
-static PTRSZVAL CPROC SetTaskNoRunOn( PTRSZVAL psv, arg_list args )
+static uintptr_t CPROC SetTaskNoRunOn( uintptr_t psv, arg_list args )
 {
 	PARAM( args, CTEXTSTR, system );
 	CTEXTSTR my_system = InterShell_GetSystemName();
@@ -1930,7 +1930,7 @@ static PTRSZVAL CPROC SetTaskNoRunOn( PTRSZVAL psv, arg_list args )
 	return psv;
 }
 
-PTRSZVAL CPROC BeginButtonTaskInfo( PTRSZVAL psv, arg_list args )
+uintptr_t CPROC BeginButtonTaskInfo( uintptr_t psv, arg_list args )
 {
 	//BeginSubConfiguration( NULL, WIDE("Task Done") );
 	return psv;
@@ -1963,7 +1963,7 @@ void AddTaskConfigs( PCONFIG_HANDLER pch )
 
 }
 
-PTRSZVAL  CPROC FinishConfigTask( PTRSZVAL psv, arg_list args )
+uintptr_t  CPROC FinishConfigTask( uintptr_t psv, arg_list args )
 {
 	// just return NULL here, so there's no object to process
 	// EndConfig?  how does the pushed state recover?
@@ -1971,13 +1971,13 @@ PTRSZVAL  CPROC FinishConfigTask( PTRSZVAL psv, arg_list args )
 }
 
 /* place holder for common subconfiguration start. */
-static void OnLoadControl( WIDE("TaskInfo") )( PCONFIG_HANDLER pch, PTRSZVAL psv )
+static void OnLoadControl( WIDE("TaskInfo") )( PCONFIG_HANDLER pch, uintptr_t psv )
 {
 	lprintf( WIDE("Begin sub for task...") );
 	AddTaskConfigs( pch );
 }
 
-static void OnLoadControl( WIDE("Task") )( PCONFIG_HANDLER pch, PTRSZVAL psv )
+static void OnLoadControl( WIDE("Task") )( PCONFIG_HANDLER pch, uintptr_t psv )
 {
 	//lprintf( "Begin sub for task..." );
 	AddTaskConfigs( pch );
@@ -1991,7 +1991,7 @@ static void OnInterShellShutdown( WIDE("Task") )( void )
 
 //---------------------------------------------------------------------------
 
-PTRSZVAL CPROC CreateNewNetworkTask( PTRSZVAL psv, arg_list args )
+uintptr_t CPROC CreateNewNetworkTask( uintptr_t psv, arg_list args )
 {
 	PLOAD_TASK pTask = CreateTask(NULL);
 	pTask->flags.bExclusive = 0;
@@ -1999,60 +1999,60 @@ PTRSZVAL CPROC CreateNewNetworkTask( PTRSZVAL psv, arg_list args )
 	AddLink( &l.autoload, pTask );
 	//l.flags.bTask = 1;
 	BeginSubConfiguration( WIDE("TaskInfo"), WIDE("Task Done") );
-	return (PTRSZVAL)pTask;
+	return (uintptr_t)pTask;
 }
 
 //---------------------------------------------------------------------------
 
-PTRSZVAL CPROC CreateShellCommand( PTRSZVAL psv, arg_list args )
+uintptr_t CPROC CreateShellCommand( uintptr_t psv, arg_list args )
 {
 	PLOAD_TASK pTask = CreateTask(NULL);
 	pTask->flags.bExclusive = 0;
 	l.shell = pTask;
 	//l.flags.bTask = 1;
 	BeginSubConfiguration( WIDE("TaskInfo"), WIDE("Task Done") );
-	return (PTRSZVAL)pTask;
+	return (uintptr_t)pTask;
 }
 
 //---------------------------------------------------------------------------
 
-PTRSZVAL CPROC CreateWinShellCommand( PTRSZVAL psv, arg_list args )
+uintptr_t CPROC CreateWinShellCommand( uintptr_t psv, arg_list args )
 {
 	PLOAD_TASK pTask = CreateTask(NULL);
 	pTask->flags.bExclusive = 0;
 	l.windows_shell = pTask;
 	//l.flags.bTask = 1;
 	BeginSubConfiguration( WIDE("TaskInfo"), WIDE("Task Done") );
-	return (PTRSZVAL)pTask;
+	return (uintptr_t)pTask;
 }
 
 //---------------------------------------------------------------------------
 
-PTRSZVAL CPROC CreatePowerShellCommand( PTRSZVAL psv, arg_list args )
+uintptr_t CPROC CreatePowerShellCommand( uintptr_t psv, arg_list args )
 {
 	PLOAD_TASK pTask = CreateTask(NULL);
 	pTask->flags.bExclusive = 0;
 	l.power_shell = pTask;
 	//l.flags.bTask = 1;
 	BeginSubConfiguration( WIDE("TaskInfo"), WIDE("Task Done") );
-	return (PTRSZVAL)pTask;
+	return (uintptr_t)pTask;
 }
 
 //---------------------------------------------------------------------------
 
-PTRSZVAL CPROC CreatePowerShellISECommand( PTRSZVAL psv, arg_list args )
+uintptr_t CPROC CreatePowerShellISECommand( uintptr_t psv, arg_list args )
 {
 	PLOAD_TASK pTask = CreateTask(NULL);
 	pTask->flags.bExclusive = 0;
 	l.power_shell_ise = pTask;
 	//l.flags.bTask = 1;
 	BeginSubConfiguration( WIDE("TaskInfo"), WIDE("Task Done") );
-	return (PTRSZVAL)pTask;
+	return (uintptr_t)pTask;
 }
 
 //---------------------------------------------------------------------------
 
-PTRSZVAL CPROC CreateNewWaitTask( PTRSZVAL psv, arg_list args )
+uintptr_t CPROC CreateNewWaitTask( uintptr_t psv, arg_list args )
 {
 	PLOAD_TASK pTask = CreateTask(NULL);
 	pTask->flags.bLaunchWhenNetworkDriveUp = 1;
@@ -2063,17 +2063,17 @@ PTRSZVAL CPROC CreateNewWaitTask( PTRSZVAL psv, arg_list args )
 	// at this point how do I get the thing?
 	//AddTaskConfigs( ... );
 	BeginSubConfiguration( WIDE("TaskInfo"), WIDE("Task Done") );
-	return (PTRSZVAL)pTask;
+	return (uintptr_t)pTask;
 }
 
-PTRSZVAL CPROC SetWaitForNetwork( PTRSZVAL psv, arg_list args )
+uintptr_t CPROC SetWaitForNetwork( uintptr_t psv, arg_list args )
 {
 	PARAM( args, LOGICAL, yes_no );
 	l.flags.wait_for_network_drive = yes_no;
 	return psv;
 }
 
-PTRSZVAL CPROC AddAdditionalPath( PTRSZVAL psv, arg_list args )
+uintptr_t CPROC AddAdditionalPath( uintptr_t psv, arg_list args )
 {
 	PARAM( args, CTEXTSTR, path );
 #ifdef HAVE_ENVIRONMENT
@@ -2083,7 +2083,7 @@ PTRSZVAL CPROC AddAdditionalPath( PTRSZVAL psv, arg_list args )
 	return psv;
 }
 
-PTRSZVAL CPROC AddPrependPath( PTRSZVAL psv, arg_list args )
+uintptr_t CPROC AddPrependPath( uintptr_t psv, arg_list args )
 {
 	PARAM( args, CTEXTSTR, path );
 #ifdef HAVE_ENVIRONMENT
@@ -2125,7 +2125,7 @@ static void DumpTask( FILE *file, PLOAD_TASK pTask, int sub )
 	if( pTask )
 	{
 		CTEXTSTR p;
-		InterShell_SaveSecurityInformation( file, (PTRSZVAL)pTask );
+		InterShell_SaveSecurityInformation( file, (uintptr_t)pTask );
 
 		if( sub )
 		{
@@ -2167,7 +2167,7 @@ static void DumpTask( FILE *file, PLOAD_TASK pTask, int sub )
 			LIST_FORALL( pTask->security_modules, idx, struct task_security_module *, module )
 			{
 				CTEXTSTR token;
-				GetSecurityContextTokens( (PTRSZVAL)&pTask->security_modules, module->name, &module->tokens );
+				GetSecurityContextTokens( (uintptr_t)&pTask->security_modules, module->name, &module->tokens );
 				LIST_FORALL( module->tokens, idx2, CTEXTSTR, token )
 				{
 					sack_fprintf( file, WIDE("%sSecurity Token for [%s]%s\n"), sub?WIDE("\t"):InterShell_GetSaveIndent(), module->name, token );
@@ -2191,7 +2191,7 @@ static void DumpTask( FILE *file, PLOAD_TASK pTask, int sub )
 	}
 }
 
-static void OnSaveControl( WIDE("Task") )( FILE *file, PTRSZVAL psv )
+static void OnSaveControl( WIDE("Task") )( FILE *file, uintptr_t psv )
 {
 	DumpTask( file, (PLOAD_TASK)psv, 0 );
 }
@@ -2256,14 +2256,14 @@ static void OnSaveCommon( WIDE("Tasks") )( FILE *file )
 // property methods for tasks which are auto load/invisible.
 
 
-void CPROC EditNetworkTaskProperties( PTRSZVAL psv, PSI_CONTROL button )
+void CPROC EditNetworkTaskProperties( uintptr_t psv, PSI_CONTROL button )
 {
 	PLISTITEM pli = GetSelectedItem( GetNearControl( button, LISTBOX_AUTO_TASKS ) );
 	if( pli )
 	{
 		TEXTCHAR buf[256];
 		PLOAD_TASK task = (PLOAD_TASK)GetItemData( pli );
-		EditTaskProperties( (PTRSZVAL)task, button, FALSE );
+		EditTaskProperties( (uintptr_t)task, button, FALSE );
 		snprintf( buf, sizeof( buf ), WIDE("%s%s%s")
 				  , task->pName
 				  , task->flags.bLaunchWhenNetworkDriveUp?WIDE("[NETWORK]"):WIDE("")
@@ -2272,11 +2272,11 @@ void CPROC EditNetworkTaskProperties( PTRSZVAL psv, PSI_CONTROL button )
 	}
 }
 
-void CPROC CreateNetworkTaskProperties( PTRSZVAL psv, PSI_CONTROL button )
+void CPROC CreateNetworkTaskProperties( uintptr_t psv, PSI_CONTROL button )
 {
 	PLOAD_TASK task;
 	task = CreateTask( NULL );
-	EditTaskProperties( (PTRSZVAL)task, button, FALSE );
+	EditTaskProperties( (uintptr_t)task, button, FALSE );
 	// validate task, and perhaps destroy it?
 	if( !task->pName[0] )
 		StrCpy( task->pName, WIDE("NO PROGRAM") );
@@ -2286,12 +2286,12 @@ void CPROC CreateNetworkTaskProperties( PTRSZVAL psv, PSI_CONTROL button )
 				  , task->pName
 				  , task->flags.bLaunchWhenNetworkDriveUp?WIDE("[NETWORK]"):WIDE("")
 				  , task->flags.bRestart?WIDE("[RESTART]"):WIDE("") );
-		SetItemData( AddListItem( GetNearControl( button, LISTBOX_AUTO_TASKS ), buf ), (PTRSZVAL)task );
+		SetItemData( AddListItem( GetNearControl( button, LISTBOX_AUTO_TASKS ), buf ), (uintptr_t)task );
 	}
 	AddLink( &l.autoload, task );
 }
 
-void CPROC DestroyNetworkTaskProperties( PTRSZVAL psv, PSI_CONTROL button )
+void CPROC DestroyNetworkTaskProperties( uintptr_t psv, PSI_CONTROL button )
 {
 	PSI_CONTROL list;
 	PLISTITEM pli = GetSelectedItem( list = GetNearControl( button, LISTBOX_AUTO_TASKS ) );
@@ -2322,11 +2322,11 @@ static void OnGlobalPropertyEdit( WIDE("Tasks") )( PSI_CONTROL parent )
 				PLOAD_TASK task;
 				INDEX idx;
 				TEXTCHAR buf[256];
-				SetItemData( AddListItem( list, WIDE("Command Shell") ), (PTRSZVAL)l.shell );
+				SetItemData( AddListItem( list, WIDE("Command Shell") ), (uintptr_t)l.shell );
 #ifdef WIN32
-				SetItemData( AddListItem( list, WIDE("Explorer") ), (PTRSZVAL)l.windows_shell );
-				SetItemData( AddListItem( list, WIDE("Power Shell") ), (PTRSZVAL)l.power_shell );
-				SetItemData( AddListItem( list, WIDE("Power Shell ISE") ), (PTRSZVAL)l.power_shell_ise );
+				SetItemData( AddListItem( list, WIDE("Explorer") ), (uintptr_t)l.windows_shell );
+				SetItemData( AddListItem( list, WIDE("Power Shell") ), (uintptr_t)l.power_shell );
+				SetItemData( AddListItem( list, WIDE("Power Shell ISE") ), (uintptr_t)l.power_shell_ise );
 #endif
 				LIST_FORALL( l.autoload, idx, PLOAD_TASK, task )
 				{
@@ -2334,7 +2334,7 @@ static void OnGlobalPropertyEdit( WIDE("Tasks") )( PSI_CONTROL parent )
 							  , task->pName
 							  , task->flags.bLaunchWhenNetworkDriveUp?WIDE("[NETWORK]"):WIDE("")
 							  , task->flags.bRestart?WIDE("[RESTART]"):WIDE("") );
-					SetItemData( AddListItem( list, buf ), (PTRSZVAL)task );
+					SetItemData( AddListItem( list, buf ), (uintptr_t)task );
 				}
 			}
 			SetCheckState( GetControl( frame, CHECKBOX_NETWORK_WAIT ), l.flags.wait_for_network_drive );
@@ -2355,7 +2355,7 @@ static void OnGlobalPropertyEdit( WIDE("Tasks") )( PSI_CONTROL parent )
 	}
 }
 
-static void OnCloneControl( WIDE("Task") )( PTRSZVAL psvNew, PTRSZVAL psvOriginal )
+static void OnCloneControl( WIDE("Task") )( uintptr_t psvNew, uintptr_t psvOriginal )
 {
 	PLOAD_TASK pNewTask = (PLOAD_TASK)psvNew;
 	PLOAD_TASK pOriginalTask = (PLOAD_TASK)psvOriginal;
@@ -2388,7 +2388,7 @@ struct resolution_button
 	PMENU_BUTTON button;
 };
 
-static void OnKeyPressEvent( WIDE("Task Util/Set Resolution") )( PTRSZVAL psv )
+static void OnKeyPressEvent( WIDE("Task Util/Set Resolution") )( uintptr_t psv )
 {
 	struct resolution_button *resbut = (struct resolution_button *)psv;
 	if( resbut->width && resbut->height )
@@ -2397,16 +2397,16 @@ static void OnKeyPressEvent( WIDE("Task Util/Set Resolution") )( PTRSZVAL psv )
 		ResetResolution( NULL );
 }
 
-static PTRSZVAL OnCreateMenuButton( WIDE("Task Util/Set Resolution") )( PMENU_BUTTON button )
+static uintptr_t OnCreateMenuButton( WIDE("Task Util/Set Resolution") )( PMENU_BUTTON button )
 {
 	struct resolution_button *resbut = New( struct resolution_button );
 	resbut->width = 0;
 	resbut->height = 0;
 	resbut->button = button;
-	return (PTRSZVAL)resbut;
+	return (uintptr_t)resbut;
 }
 
-static PTRSZVAL OnEditControl( WIDE("Task Util/Set Resolution") )( PTRSZVAL psv, PSI_CONTROL parent_frame )
+static uintptr_t OnEditControl( WIDE("Task Util/Set Resolution") )( uintptr_t psv, PSI_CONTROL parent_frame )
 {
 	PCOMMON frame = LoadXMLFrame( WIDE( "task.resolution.isframe" ) );
 	int okay = 0;
@@ -2434,16 +2434,16 @@ static PTRSZVAL OnEditControl( WIDE("Task Util/Set Resolution") )( PTRSZVAL psv,
 	return psv;
 }
 
-static void OnSaveControl( WIDE("Task Util/Set Resolution") )( FILE *file, PTRSZVAL psv )
+static void OnSaveControl( WIDE("Task Util/Set Resolution") )( FILE *file, uintptr_t psv )
 {
 	struct resolution_button *resbut = (struct resolution_button *)psv;
 	sack_fprintf( file, WIDE("launch at %d by %d\n"), resbut->width, resbut->height );
 }
 
-PTRSZVAL CPROC SetLaunchResolution2( PTRSZVAL psv, arg_list args )
+uintptr_t CPROC SetLaunchResolution2( uintptr_t psv, arg_list args )
 {
-	PARAM( args, S_64, width );
-	PARAM( args, S_64, height );
+	PARAM( args, int64_t, width );
+	PARAM( args, int64_t, height );
 	struct resolution_button *resbut = (struct resolution_button *)psv;
 	if( resbut )
 	{
@@ -2455,7 +2455,7 @@ PTRSZVAL CPROC SetLaunchResolution2( PTRSZVAL psv, arg_list args )
 
 
 
-static void OnLoadControl( WIDE("Task Util/Set Resolution") )( PCONFIG_HANDLER pch, PTRSZVAL psv )
+static void OnLoadControl( WIDE("Task Util/Set Resolution") )( PCONFIG_HANDLER pch, uintptr_t psv )
 {
 	AddConfigurationMethod( pch, WIDE("Launch at %i by %i"), SetLaunchResolution2 );
 }
@@ -2468,7 +2468,7 @@ static LOGICAL OnDropAccept( WIDE("Add Task Button") )( PSI_CONTROL pc_canvas, C
 		||StrCaseStr( file, WIDE(".com") )
 		||StrCaseStr( file, WIDE(".cmd") ) )
 	{
-		PTRSZVAL psv = InterShell_CreateControl( pc_canvas, WIDE("Task"), x, y, 5, 3 );
+		uintptr_t psv = InterShell_CreateControl( pc_canvas, WIDE("Task"), x, y, 5, 3 );
 		PLOAD_TASK pTask = (PLOAD_TASK)psv;
 		if( pTask )
 		{

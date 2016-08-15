@@ -30,7 +30,7 @@ struct listcolumn_tag
 
 typedef struct listbox_tag
 {
-	//_32 attr;
+	//uint32_t attr;
 	Image  ListSurface;
 	PLISTITEM items // first item
 				, last // last item
@@ -41,16 +41,16 @@ typedef struct listbox_tag
 				, first_selected; // first item selected for shift-click multi-select
 	PLISTITEM _pli; // last state - used for dispatch item (which if deleted, needs to not resend)
 	struct {
-		_32 bSingle : 1; // alternative multiple selections can be made
-		_32 bDestroying : 1;
-		_32 bNoUpdate : 1;
-		_32 bTree : 1;
-		_32 bInitial : 1;
-		_32 bSortNormal : 1; // sort least to most (top is least, bottom is most )
-		_32 bVertical_Column_abels : 1;
-		_32 bSizable_Columns : 1;
-		_32 bSortable_Columns : 1;
-		_32 bLazyMulti : 1; // just click on item toggles state.
+		uint32_t bSingle : 1; // alternative multiple selections can be made
+		uint32_t bDestroying : 1;
+		uint32_t bNoUpdate : 1;
+		uint32_t bTree : 1;
+		uint32_t bInitial : 1;
+		uint32_t bSortNormal : 1; // sort least to most (top is least, bottom is most )
+		uint32_t bVertical_Column_abels : 1;
+		uint32_t bSizable_Columns : 1;
+		uint32_t bSortable_Columns : 1;
+		uint32_t bLazyMulti : 1; // just click on item toggles state.
 	} flags;
 	PSI_CONTROL pcScroll;
 	int nLastLevel;
@@ -61,11 +61,11 @@ typedef struct listbox_tag
 	int nTabstop[30];
 
 	SelectionChanged SelChangeHandler;
-	PTRSZVAL psvSelChange;
+	uintptr_t psvSelChange;
 	DoubleClicker DoubleClickHandler;
-	PTRSZVAL psvDoubleClick;
+	uintptr_t psvDoubleClick;
 	ListItemOpened ListItemOpenHandler;
-	PTRSZVAL psvOpenClose;
+	uintptr_t psvOpenClose;
 } LISTBOX, *PLISTBOX;
 
 //---------------------------------------------------------------------------
@@ -192,7 +192,7 @@ void ClearSelectedItems( PSI_CONTROL pc )
 static void AdjustItemsIntoBox( PSI_CONTROL pc )
 {
 	// current item must be shown in the list...
-	_32 w, h;
+	uint32_t w, h;
 	int x, y, maxchars;
 	PLISTITEM pli;
 	ValidatedControlData( PLISTBOX, LISTBOX_CONTROL, plb, pc );
@@ -215,7 +215,7 @@ static void AdjustItemsIntoBox( PSI_CONTROL pc )
 		// current will still fit integrally on the listbox
 		// back up firstshown....
 		while( plb->firstshown->prior && 
-				 ( SUS_LT( y, int, (pc->surface_rect.height - (h-1)),_32) ) )
+				 ( SUS_LT( y, int, (pc->surface_rect.height - (h-1)),uint32_t) ) )
 		{
 			y += h;
 			plb->firstshown = plb->firstshown->prior;
@@ -387,7 +387,7 @@ static void UpdateScrollForList//Ex
 static int OnDrawCommon( LISTBOX_CONTROL_NAME )( PSI_CONTROL pc )
 {
 	int bFirstDraw;
-	_32 w, h;
+	uint32_t w, h;
 	int x, y, maxchars;
 	PLISTITEM pli;
 	ValidatedControlData( PLISTBOX, LISTBOX_CONTROL, plb, pc );
@@ -438,9 +438,9 @@ static int OnDrawCommon( LISTBOX_CONTROL_NAME )( PSI_CONTROL pc )
 		}
 		while( start )
 		{
-			_32 width = 0;
+			uint32_t width = 0;
 			int bRight = 0;
-			S_32 column = plb->nTabstop[tab];
+			int32_t column = plb->nTabstop[tab];
 			if( plb->nTabstop[tab] < 0 )
 			{
 				bRight = 1;
@@ -737,7 +737,7 @@ int GetItemCount( PLISTBOX plb )
 
 //---------------------------------------------------------------------------
 
-static void CPROC ScrollBarUpdate( PTRSZVAL psvList, int type, int current )
+static void CPROC ScrollBarUpdate( uintptr_t psvList, int type, int current )
 {
 	PSI_CONTROL pc = (PSI_CONTROL)psvList;
 	ValidatedControlData( PLISTBOX, LISTBOX_CONTROL, plb, pc );
@@ -782,7 +782,7 @@ static void SelectRange( PLISTBOX plb, PLISTITEM pli_start, PLISTITEM pli_end )
 
 //---------------------------------------------------------------------------
 
-static int OnMouseCommon( LISTBOX_CONTROL_NAME )( PSI_CONTROL pc, S_32 x, S_32 y, _32 b )
+static int OnMouseCommon( LISTBOX_CONTROL_NAME )( PSI_CONTROL pc, int32_t x, int32_t y, uint32_t b )
 {
   	ValidatedControlData( PLISTBOX, LISTBOX_CONTROL, plb, pc );
 	if( plb )
@@ -805,7 +805,7 @@ static int OnMouseCommon( LISTBOX_CONTROL_NAME )( PSI_CONTROL pc, S_32 x, S_32 y
 				{
 					if( pli->top >= 0 &&
 						 y >= pli->top &&
-						 SUS_LT( y, S_32, ( pli->top + pli->height ), _32 ) )
+						 SUS_LT( y, int32_t, ( pli->top + pli->height ), uint32_t ) )
 						break;
 					pli = pli->next;
 				}
@@ -881,7 +881,7 @@ static int OnMouseCommon( LISTBOX_CONTROL_NAME )( PSI_CONTROL pc, S_32 x, S_32 y
 				{
 					if( pli->top >= 0 &&
 						 y >= pli->top &&
-						 SUS_LT( y, S_32, ( pli->top + pli->height ), _32 ) )
+						 SUS_LT( y, int32_t, ( pli->top + pli->height ), uint32_t ) )
 						break;
 					pli = pli->next;
 				}
@@ -899,7 +899,7 @@ static int OnMouseCommon( LISTBOX_CONTROL_NAME )( PSI_CONTROL pc, S_32 x, S_32 y
 				{
 					if( pli->top >= 0 &&
 						 y >= pli->top &&
-						 SUS_LT( y, S_32, ( pli->top + pli->height ), _32 ) )
+						 SUS_LT( y, int32_t, ( pli->top + pli->height ), uint32_t ) )
 						break;
 					pli = pli->next;
 				}
@@ -914,8 +914,8 @@ static int OnMouseCommon( LISTBOX_CONTROL_NAME )( PSI_CONTROL pc, S_32 x, S_32 y
 						plb->y = y;
 						plb->b = b;
 						{
-							_32 result = TrackPopup( pli->pPopup, GetFrame( plb ) );
-							if( result != (_32)-1 )
+							uint32_t result = TrackPopup( pli->pPopup, GetFrame( plb ) );
+							if( result != (uint32_t)-1 )
 								pli->MenuProc( pli->psvContextMenu, pli, result );
 						}
 						return 1;
@@ -951,7 +951,7 @@ static LOGICAL IsParentOpen( PLISTITEM pli )
 }
 
 
-static int OnKeyCommon( LISTBOX_CONTROL_NAME )( PSI_CONTROL pc, _32 key )
+static int OnKeyCommon( LISTBOX_CONTROL_NAME )( PSI_CONTROL pc, uint32_t key )
 {
 	int handled = 0;
 	ValidatedControlData( PLISTBOX, LISTBOX_CONTROL, plb, pc );
@@ -1093,17 +1093,17 @@ static int OnKeyCommon( LISTBOX_CONTROL_NAME )( PSI_CONTROL pc, _32 key )
 
 //---------------------------------------------------------------------------
 
-//CONTROL_PROC_DEF( LISTBOX_CONTROL, LISTBOX, ListBox, (_32 attr) )
+//CONTROL_PROC_DEF( LISTBOX_CONTROL, LISTBOX, ListBox, (uint32_t attr) )
 int CPROC InitListBox( PSI_CONTROL pc )
 {
-	//ARG( _32, attr );
+	//ARG( uint32_t, attr );
 	// there are no args to listbox...
 	// there are options though - tree list, etc...
 	// they should be passed!
 	ValidatedControlData( PLISTBOX, LISTBOX_CONTROL, plb, pc );
 	if( plb )
 	{
-		S_32 width = GetFontHeight( GetCommonFont( pc ) ) * 1.2;
+		int32_t width = GetFontHeight( GetCommonFont( pc ) ) * 1.2;
 		//ScaleCoords( (PSI_CONTROL)pc, &width, NULL );
 
 		plb->ListSurface = MakeSubImage( pc->Surface
@@ -1124,7 +1124,7 @@ int CPROC InitListBox( PSI_CONTROL pc )
 													 , pc->surface_rect.width-width, 0
 													 , width, pc->surface_rect.height
 													 , pc->nID );
-		SetScrollUpdateMethod( plb->pcScroll, ScrollBarUpdate, (PTRSZVAL)pc );
+		SetScrollUpdateMethod( plb->pcScroll, ScrollBarUpdate, (uintptr_t)pc );
 		SetNoFocus( plb->pcScroll );
 		return TRUE;
 	}
@@ -1345,7 +1345,7 @@ void SetCurrentItem( PSI_CONTROL pc, PLISTITEM hli )
 
 //---------------------------------------------------------------------------
 
-PLISTITEM SetItemData( PLISTITEM hli, PTRSZVAL psv )
+PLISTITEM SetItemData( PLISTITEM hli, uintptr_t psv )
 {
 	PLISTITEM pli = (PLISTITEM)hli;
 	if( hli )
@@ -1355,7 +1355,7 @@ PLISTITEM SetItemData( PLISTITEM hli, PTRSZVAL psv )
 
 //---------------------------------------------------------------------------
 
-PTRSZVAL GetItemData( PLISTITEM hli )
+uintptr_t GetItemData( PLISTITEM hli )
 {
 	PLISTITEM pli = (PLISTITEM)hli;
 	if( pli )
@@ -1365,7 +1365,7 @@ PTRSZVAL GetItemData( PLISTITEM hli )
 
 //---------------------------------------------------------------------------
 
-PSI_PROC( void, SetItemContextMenu )( PLISTITEM pli, PMENU pMenu, void (CPROC*MenuProc)(PTRSZVAL, PLISTITEM, _32 menuopt ), PTRSZVAL psv )
+PSI_PROC( void, SetItemContextMenu )( PLISTITEM pli, PMENU pMenu, void (CPROC*MenuProc)(uintptr_t, PLISTITEM, uint32_t menuopt ), uintptr_t psv )
 {
 	if( pli )
 	{
@@ -1458,7 +1458,7 @@ PSI_PROC( PLISTITEM, FindListItem )( PSI_CONTROL pc, CTEXTSTR text )
 }
 
 //---------------------------------------------------------------------------
-PSI_PROC( void, SetSelChangeHandler)( PSI_CONTROL pc, SelectionChanged proc, PTRSZVAL psvUser )
+PSI_PROC( void, SetSelChangeHandler)( PSI_CONTROL pc, SelectionChanged proc, uintptr_t psvUser )
 {
 	ValidatedControlData( PLISTBOX, LISTBOX_CONTROL, plb, pc );
 	if( plb )
@@ -1470,7 +1470,7 @@ PSI_PROC( void, SetSelChangeHandler)( PSI_CONTROL pc, SelectionChanged proc, PTR
 
 //---------------------------------------------------------------------------
 
-PSI_PROC( void, SetDoubleClickHandler )( PSI_CONTROL pc, DoubleClicker proc, PTRSZVAL psvUser )
+PSI_PROC( void, SetDoubleClickHandler )( PSI_CONTROL pc, DoubleClicker proc, uintptr_t psvUser )
 {
 	ValidatedControlData( PLISTBOX, LISTBOX_CONTROL, plb, pc );
 	if( plb )
@@ -1505,8 +1505,8 @@ PSI_PROC( int, DisableUpdateListBox )( PSI_CONTROL pc, LOGICAL bDisable )
 
 void EnumSelectedListItems( PSI_CONTROL pc
 								  , PLISTITEM pliStart
-								  , void (CPROC *HandleListItem )(PTRSZVAL,PSI_CONTROL,PLISTITEM)
-								  , PTRSZVAL psv )
+								  , void (CPROC *HandleListItem )(uintptr_t,PSI_CONTROL,PLISTITEM)
+								  , uintptr_t psv )
 {
 	ValidatedControlData( PLISTBOX, LISTBOX_CONTROL, plb, pc );
 	if( plb && plb->flags.bTree )
@@ -1555,8 +1555,8 @@ void EnumSelectedListItems( PSI_CONTROL pc
 
 void EnumListItems( PSI_CONTROL pc
 						, PLISTITEM pliStart
-						, void (CPROC *HandleListItem )(PTRSZVAL,PSI_CONTROL,PLISTITEM)
-						, PTRSZVAL psv )
+						, void (CPROC *HandleListItem )(uintptr_t,PSI_CONTROL,PLISTITEM)
+						, uintptr_t psv )
 {
 	ValidatedControlData( PLISTBOX, LISTBOX_CONTROL, plb, pc );
 	if( plb->flags.bTree )
@@ -1622,7 +1622,7 @@ PSI_PROC( int, OpenListItem )( PLISTITEM pli, int bOpen )
 }
 
 
-PSI_PROC( void, SetListItemOpenHandler )( PSI_CONTROL pc, ListItemOpened proc, PTRSZVAL psvUser )
+PSI_PROC( void, SetListItemOpenHandler )( PSI_CONTROL pc, ListItemOpened proc, uintptr_t psvUser )
 {
 	// this routine is called before the branch is actually opened and rendered...
 	// allowing an application to fill in the tree dynamically....
@@ -1712,7 +1712,7 @@ static void OnSizeCommon( LISTBOX_CONTROL_NAME )( PSI_CONTROL pc, LOGICAL begin_
 	//lprintf( "Resize listbox" );
 	if( plb )
 	{
-		S_32 width = 15;
+		int32_t width = 15;
 		ScaleCoords( (PSI_CONTROL)pc, &width, NULL );
 		// resize the scrollbar accordingly...
 		ResizeImage( plb->ListSurface, pc->surface_rect.width - width
@@ -1729,7 +1729,7 @@ static void OnScaleCommon( LISTBOX_CONTROL_NAME )( PSI_CONTROL pc )
 	//lprintf( "Rescale listbox" );
 	if( plb )
 	{
-		S_32 width = 15;
+		int32_t width = 15;
 		ScaleCoords( (PSI_CONTROL)pc, &width, NULL );
 		// resize the scrollbar accordingly...
 		MoveSizeCommon( plb->pcScroll , pc->surface_rect.width-width, 0

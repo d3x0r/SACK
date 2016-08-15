@@ -63,9 +63,9 @@ void InvertObject( POBJECT po );
 POBJECT CreatePlane( PCVECTOR vo, PCVECTOR vn, PCVECTOR pr, 
                      RCOORD size, CDATA c ); // not a real plane....
 int AddPlane( POBJECT pobj, PCVECTOR po, PCVECTOR pn, int d );
-#define HANDLE _32
+#define HANDLE uint32_t
 
-_32 SaveObject( HANDLE hFile, POBJECT po );
+uint32_t SaveObject( HANDLE hFile, POBJECT po );
 POBJECT LoadObject( HANDLE hFile );
 
 #define FORALLOBJ( pStart, ppo )  \

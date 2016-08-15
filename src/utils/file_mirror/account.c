@@ -52,7 +52,7 @@ static void ProcessLocalUpdateFailedCommands( PACCOUNT account );
 
 //-------------------------------------------------------------------------
 
-int SendFileChange( PACCOUNT account, PCLIENT pc, _32 PathID, _32 ID, char *file, _32 start, _32 length )
+int SendFileChange( PACCOUNT account, PCLIENT pc, uint32_t PathID, uint32_t ID, char *file, uint32_t start, uint32_t length )
 {
 	// char *data;
 	int thisread;
@@ -75,9 +75,9 @@ int SendFileChange( PACCOUNT account, PCLIENT pc, _32 PathID, _32 ID, char *file
 		//xlprintf(2100)( "open of %s = %p", file, hFile );
 		if( hFile != -1 )
 		{
-			_32 extra = 0;
-			_32 *msg;
-			msg = (P_32)Allocate( length + sizeof( _32[5]) );
+			uint32_t extra = 0;
+			uint32_t *msg;
+			msg = (uint32_t*)Allocate( length + sizeof( uint32_t[5]) );
 			if( pns->longbuffer )
 			{
 				// a new buffer shouldn't be requested untli this buffer has been received; so
@@ -86,20 +86,20 @@ int SendFileChange( PACCOUNT account, PCLIENT pc, _32 PathID, _32 ID, char *file
 				pns->longbuffer = NULL;
 			}
 			pns->longbuffer = msg;
-			msg[0] = *(_32*)"FDAT";
+			msg[0] = *(uint32_t*)"FDAT";
 			msg[1] = start;
 			msg[2] = length;
 			lseek( hFile, start, SEEK_SET );
 			if( pcc->version >= VER_CODE( 3, 2 ) )
 			{
-				extra = sizeof( _32[5] );
+				extra = sizeof( uint32_t[5] );
 				msg[3] = PathID;
 				msg[4] = ID;
 				thisread = read( hFile, msg+5, length );
 			}
 			else
 			{
-				extra = sizeof( _32[3] );
+				extra = sizeof( uint32_t[3] );
 				thisread = read( hFile, msg+3, length );
 			}
 			msg[2] = thisread;
@@ -118,8 +118,8 @@ int SendFileChange( PACCOUNT account, PCLIENT pc, _32 PathID, _32 ID, char *file
 	}
 	else
 	{
-		_32 msg[5];
-		msg[0] = *(_32*)"FDAT";
+		uint32_t msg[5];
+		msg[0] = *(uint32_t*)"FDAT";
 		msg[1] = start;
 		msg[2] = 0;
 		if( pcc->version >= VER_CODE( 3, 2 ) )
@@ -183,15 +183,15 @@ int CheckDirectoryOnAccount( PACCOUNT account
 
 //-------------------------------------------------------------------------
 
-int ReadValidateCRCs( PCLIENT_CONNECTION pcc, _32 *crc, size_t crclen
+int ReadValidateCRCs( PCLIENT_CONNECTION pcc, uint32_t *crc, size_t crclen
 						  , char *name, size_t finalsize
 						  , PFILE_INFO pFileInfo
 						  )
 {
 	int matches = 1;
 	size_t blocklen = 4096;
-	PTRSZVAL size = 0;
-	P_8 mem;
+	uintptr_t size = 0;
+	uint8_t* mem;
 	PFILECHANGE pfc = NULL;
    PFILECHANGE pfc_last = NULL;
 
@@ -210,15 +210,15 @@ int ReadValidateCRCs( PCLIENT_CONNECTION pcc, _32 *crc, size_t crclen
 		return 1;
 	}
 
-	mem = (P_8)OpenSpace( NULL, name, &size );
+	mem = (uint8_t*)OpenSpace( NULL, name, &size );
 	//lprintf( "Validating CRCs %p %s %ld(%ld) %d", mem, name, size, finalsize, crclen );
 	if( mem )
 	{
-		_32 n;
-		_32 n_start = 0;
+		uint32_t n;
+		uint32_t n_start = 0;
 		for( n = 0; n < crclen; n++ )
 		{
-			_32 crc_result;
+			uint32_t crc_result;
 			size_t check_length = blocklen;
 			//lprintf( "Checking block: %ld of %ld", n, crclen );
 			if( ( finalsize - ( n * blocklen ) ) < blocklen )
@@ -341,7 +341,7 @@ int ReadValidateCRCs( PCLIENT_CONNECTION pcc, _32 *crc, size_t crclen
 		if( size > finalsize )
 		{
 			SetFileLength( name, finalsize );
-			//SetFileTimes( name, *(_64*)&pFileInfo->lastcreate, *(_64*)&pFileInfo->lastmodified, *(_64*)&pFileInfo->lastmodified );
+			//SetFileTimes( name, *(uint64_t*)&pFileInfo->lastcreate, *(uint64_t*)&pFileInfo->lastmodified, *(uint64_t*)&pFileInfo->lastmodified );
 		}
 		if( matches )
 			return 1;
@@ -351,7 +351,7 @@ int ReadValidateCRCs( PCLIENT_CONNECTION pcc, _32 *crc, size_t crclen
 	{
 		// build list of requests which are nicely sized...
 		PFILECHANGE pfc;
-		_32 n;
+		uint32_t n;
 		xlprintf(2100)( "Requesting whole file[%s] (in parts) since we know nothing... ", pFileInfo->name );
 		for( n = 0; n < (finalsize + ((10*blocklen) - 1)) / (10*blocklen); n++ )
 		{
@@ -386,14 +386,14 @@ int ReadValidateCRCs( PCLIENT_CONNECTION pcc, _32 *crc, size_t crclen
 //-------------------------------------------------------------------------
 
 int OpenFileOnAccount( PNETWORK_STATE pns //PACCOUNT account
-                     , _32 PathID
+                     , uint32_t PathID
                      , char *filename
-                     , _32 size
+                     , uint32_t size
                      , FILETIME time_create
                      , FILETIME time_modify
                      , FILETIME time_access
-                     , _32 *crc
-                     , _32 crclen )
+                     , uint32_t *crc
+                     , uint32_t crclen )
 {
 	if( pns->account )
 	{
@@ -497,7 +497,7 @@ int OpenFileOnAccount( PNETWORK_STATE pns //PACCOUNT account
 			PFILECHANGE pfc = (PFILECHANGE)DequeLink( &pcc->segments );
 			if( pfc )
 			{
-				_32 msg[5];
+				uint32_t msg[5];
 
 				// buffer allocation happens when FDAT comes back.
 
@@ -510,20 +510,20 @@ int OpenFileOnAccount( PNETWORK_STATE pns //PACCOUNT account
 						Release( pfc );
 					}
 					while( pfc = (PFILECHANGE)DequeLink( &pcc->segments ) );
-					msg[0] = *(_32*)"FAIL";
+					msg[0] = *(uint32_t*)"FAIL";
 					SendTCP( pcc->pc, msg, 4 );
 				}
 				else
 				{
 					msg[0] = account->SendResponce;
-					msg[1] = (_32)pfc->start;  // file position
-					msg[2] = (_32)pfc->size;   // length...
+					msg[1] = (uint32_t)pfc->start;  // file position
+					msg[2] = (uint32_t)pfc->size;   // length...
                xlprintf(2100)( "set lastblock %d", pfc->last_block );
 					pns->flags.last_block = pfc->last_block;
 					if( pns->version >= VER_CODE( 3, 2 ) )
 					{
-						msg[3] = (_32)pfc->pFileInfo->PathID;
-						msg[4] = (_32)pfc->pFileInfo->ID;
+						msg[3] = (uint32_t)pfc->pFileInfo->PathID;
+						msg[4] = (uint32_t)pfc->pFileInfo->ID;
 						SendTCP( pcc->pc, msg, 20 );
 					}
 					else
@@ -691,14 +691,14 @@ void UpdateAccountFile( PACCOUNT account, int start, int size, PNETWORK_STATE pn
 			PFILECHANGE pfc = (PFILECHANGE)DequeLink( &pcc->segments );
 			if( pfc )
 			{
-				_32 msg[4];
+				uint32_t msg[4];
 				// going to need a secondary buffer here...
 				//Release( account->buffer );
 				xlprintf(2100)( "Allocate buffer %d", pfc->size );
 				//account->buffer = Allocate( pfc->size );
 				msg[0] = account->SendResponce;
-				msg[1] = (_32)pfc->start;
-				msg[2] = (_32)pfc->size;
+				msg[1] = (uint32_t)pfc->start;
+				msg[2] = (uint32_t)pfc->size;
 				xlprintf(2100)( "set lastblock %d", pfc->last_block );
 				pns->flags.last_block = pfc->last_block;
 
@@ -732,7 +732,7 @@ char *GetAccountBuffer( PCLIENT_CONNECTION account, int length )
 
 //-------------------------------------------------------------------------
 
-char *GetAccountDirectory( PACCOUNT account, _32 PathID )
+char *GetAccountDirectory( PACCOUNT account, uint32_t PathID )
 {
 	if( account )
 		return ((PDIRECTORY)GetLink( &account->Directories, PathID ))->path;
@@ -743,25 +743,25 @@ char *GetAccountDirectory( PACCOUNT account, _32 PathID )
 
 void SendCRCs( PCLIENT pc, CTEXTSTR name, size_t insize )
 {
-	_32 *crc = NULL;
+	uint32_t *crc = NULL;
 	size_t crclen;
-	PTRSZVAL size = 0;
-	P_8 mem;
+	uintptr_t size = 0;
+	uint8_t* mem;
 	if( insize )
 	{
 		if( g.flags.log_file_ops )
 			lprintf( "open %s", name );
-		mem = (P_8)OpenSpace( NULL, name, &size );
+		mem = (uint8_t*)OpenSpace( NULL, name, &size );
 		if( g.flags.log_file_ops )
 			lprintf( "Result of open %p %d", mem, size );
 		crclen = ( size + 4095 ) / 4096;
 		if( mem )
 		{
-			_32 n;
+			uint32_t n;
 			if( size != insize )
-				lprintf( "Mismatched sizes in send crcs - will cause problems... %d,%d", (_32)size, (_32)insize );
+				lprintf( "Mismatched sizes in send crcs - will cause problems... %d,%d", (uint32_t)size, (uint32_t)insize );
 			crclen = ( size + 4095 ) / 4096;
-			crc = (P_32)Allocate( sizeof( _32 ) * crclen );
+			crc = (uint32_t*)Allocate( sizeof( uint32_t ) * crclen );
 			for( n = 0; n < crclen; n++ )
 			{
 				size_t blocklen = 4096;
@@ -791,10 +791,10 @@ LOGICAL LoadCRCs( PFILE_INFO pFileInfo )
    LOGICAL result = TRUE; // assume file changed
 	static int bInitial = 1;
 	static int first_crc;
-	_32 *crc = NULL;
+	uint32_t *crc = NULL;
 	size_t crclen;
-	PTRSZVAL size = 0;
-	P_8 mem;
+	uintptr_t size = 0;
+	uint8_t* mem;
 
 	if( bInitial )
 	{
@@ -805,17 +805,17 @@ LOGICAL LoadCRCs( PFILE_INFO pFileInfo )
 	{
 		if( g.flags.log_file_ops )
 			xlprintf(LOG_ALWAYS)( "open %s", pFileInfo->full_name );
-		mem = (P_8)OpenSpace( NULL, pFileInfo->full_name, &size );
+		mem = (uint8_t*)OpenSpace( NULL, pFileInfo->full_name, &size );
 		if( g.flags.log_file_ops )
 			xlprintf(LOG_ALWAYS)( "Result of open %p %d", mem, size );
 		crclen = ( size + 4095 ) / 4096;
 		if( mem )
 		{
-			_32 n;
+			uint32_t n;
 			if( size != pFileInfo->dwSize )
-				lprintf( "Mismatched sizes in send crcs - will cause problems... %d,%d", (_32)size, (_32)pFileInfo->dwSize );
+				lprintf( "Mismatched sizes in send crcs - will cause problems... %d,%d", (uint32_t)size, (uint32_t)pFileInfo->dwSize );
 			crclen = ( size + 4095 ) / 4096;
-			crc = (P_32)Allocate( sizeof( _32 ) * crclen );
+			crc = (uint32_t*)Allocate( sizeof( uint32_t ) * crclen );
 			for( n = 0; n < crclen; n++ )
 			{
 				crc[n] = mem[n * 4096];
@@ -839,7 +839,7 @@ LOGICAL LoadCRCs( PFILE_INFO pFileInfo )
 			{
 				// if there were CRCs and the same length, if they match
             // result NO CHANGE
-				if( MemCmp( pFileInfo->crc, crc, crclen * sizeof( _32 ) ) == 0 )
+				if( MemCmp( pFileInfo->crc, crc, crclen * sizeof( uint32_t ) ) == 0 )
 					result = FALSE;
 			}
 			Release( pFileInfo->crc );
@@ -864,16 +864,16 @@ LOGICAL LoadCRCs( PFILE_INFO pFileInfo )
 
 //-------------------------------------------------------------------------
 
-int NextFileChange( PTRSZVAL psv
+int NextFileChange( uintptr_t psv
                         , CTEXTSTR filepath
-                        , _64 size
-                        , _64 timestamp_create
-                        , _64 timestamp_modify
-                        , _64 timestamp_access
+                        , uint64_t size
+                        , uint64_t timestamp_create
+                        , uint64_t timestamp_modify
+                        , uint64_t timestamp_access
                         , LOGICAL bCreated
                         , LOGICAL bDirectory
                         , LOGICAL bDeleted 
-						, _32 ID
+						, uint32_t ID
 						)
 {
 	PMONDIR pDir = (PMONDIR)psv;
@@ -883,30 +883,30 @@ int NextFileChange( PTRSZVAL psv
 		if( !bDeleted )
 		{
 			int len ;
-			_32 msg[10+64]; // 4 for 4 words of message header
+			uint32_t msg[10+64]; // 4 for 4 words of message header
 			// +64 for 256 bytes of name
 			CTEXTSTR name;
 			char *charmsg;
 			if( pDir->flags.bIncoming )
-				msg[0] = *(_32*)"STAT";
+				msg[0] = *(uint32_t*)"STAT";
 			else
 			{
-				msg[0] = *(_32*)"FILE";
+				msg[0] = *(uint32_t*)"FILE";
 				snprintf( pDir->pcc->LastFile, sizeof( pDir->pcc->LastFile ), "%s/%s", pDir->pDirectory->path, filepath );
 				//strcpy( pDir->pcc->LastFile, filepath );
 			}
-			msg[1] = (_32)size;
-			//lprintf( "file time is %lld %lld %lld", *(_64*)&timestamp_create, *(_64*)&timestamp_modify, *(_64*)&timestamp_access );
-			msg[2] = (_32)timestamp_create;
-			msg[3] = (_32)(timestamp_create>>32);
-			msg[4] = (_32)timestamp_modify;
-			msg[5] = (_32)(timestamp_modify>>32);
-			msg[6] = (_32)timestamp_access;
-			msg[7] = (_32)(timestamp_access>>32);
-			msg[8] = (_32)pDir->PathID;
+			msg[1] = (uint32_t)size;
+			//lprintf( "file time is %lld %lld %lld", *(uint64_t*)&timestamp_create, *(uint64_t*)&timestamp_modify, *(uint64_t*)&timestamp_access );
+			msg[2] = (uint32_t)timestamp_create;
+			msg[3] = (uint32_t)(timestamp_create>>32);
+			msg[4] = (uint32_t)timestamp_modify;
+			msg[5] = (uint32_t)(timestamp_modify>>32);
+			msg[6] = (uint32_t)timestamp_access;
+			msg[7] = (uint32_t)(timestamp_access>>32);
+			msg[8] = (uint32_t)pDir->PathID;
 			if( pDir->pcc->version >= VER_CODE( 3, 2 ) )
 			{
-				msg[9] = (_32)ID;
+				msg[9] = (uint32_t)ID;
 				len = 40;
 			}
 			else
@@ -925,7 +925,7 @@ int NextFileChange( PTRSZVAL psv
 							  , name );
 			if( g.flags.log_file_ops )
 				lprintf( "Announced %4.4s %s (%d,%lld,%lld,%lld) %d", msg
-						 , filepath, msg[1], (*(_64*)(msg+2)), (*(_64*)(msg+4)), (*(_64*)(msg+6)), len );
+						 , filepath, msg[1], (*(uint64_t*)(msg+2)), (*(uint64_t*)(msg+4)), (*(uint64_t*)(msg+6)), len );
 
 			while( !NetworkLock( pDir->pcc->pc ) );
 			//LogBinary( msg, len );
@@ -945,9 +945,9 @@ int NextFileChange( PTRSZVAL psv
 		{
 			CTEXTSTR name;
 			int words = 9;
-			_8 msg[256];
-			*(_32*)msg = *(_32*)"KILL";
-			*(_32*)(msg+4) = (_32)pDir->PathID;
+			uint8_t msg[256];
+			*(uint32_t*)msg = *(uint32_t*)"KILL";
+			*(uint32_t*)(msg+4) = (uint32_t)pDir->PathID;
 			name = pathrchr( filepath );
 			if( !name )
 				name = filepath;
@@ -988,8 +988,8 @@ void BuildManifest( PACCOUNT account, LOGICAL keep_manifest )
 {
 	size_t len = 0;
 	size_t available_msg_len = 0;
-	_32 *msg = NULL;
-	_32 *_msg;
+	uint32_t *msg = NULL;
+	uint32_t *_msg;
 	INDEX idx;
 	PDIRECTORY pDir;
    // release old manifest
@@ -1023,60 +1023,60 @@ void BuildManifest( PACCOUNT account, LOGICAL keep_manifest )
 				{
 					len = 8;
 					oldlen = 8;
-					msg = (_32*)Allocate( len );
-					msg[0] = *(_32*)"MANI"; // MANIfest
+					msg = (uint32_t*)Allocate( len );
+					msg[0] = *(uint32_t*)"MANI"; // MANIfest
 				}
 
 				if( pFileInfo->flags.bDirectory )
 				{
-					len += ( newlen = ( 3 * sizeof( _32 ) ) + filename_len );
+					len += ( newlen = ( 3 * sizeof( uint32_t ) ) + filename_len );
 					if( len > available_msg_len )
 					{
 						available_msg_len += ((len-available_msg_len)>16384)?((len-available_msg_len) + 16384):16384;
-						_msg = (P_32)Allocate( available_msg_len );
+						_msg = (uint32_t*)Allocate( available_msg_len );
 						MemCpy( _msg, msg, oldlen );
 						Release( msg );
 						msg = _msg;
 					}
 
-					_msg = (_32*)(((PTRSZVAL)msg) + len - newlen);
+					_msg = (uint32_t*)(((uintptr_t)msg) + len - newlen);
 
 					_msg[0] = 1;
 					_msg[1] = filename_len;
-					_msg[2] = (_32)idx;
+					_msg[2] = (uint32_t)idx;
 					snprintf( (char*)(_msg + 3), filename_len, "%s", pFileInfo->name );
 				}
 				else
 				{
-					len += ( newlen = (_32)( ( 12 * sizeof( _32 ) ) + filename_len + ( pFileInfo->crclen * sizeof( _32 ) ) ) );
+					len += ( newlen = (uint32_t)( ( 12 * sizeof( uint32_t ) ) + filename_len + ( pFileInfo->crclen * sizeof( uint32_t ) ) ) );
 					if( len > available_msg_len )
 					{
 						available_msg_len += ((len-available_msg_len)>16384)?((len-available_msg_len) + 16384):16384;
-						_msg = (P_32)Allocate( available_msg_len );
+						_msg = (uint32_t*)Allocate( available_msg_len );
 						MemCpy( _msg, msg, oldlen );
 						Release( msg );
 						msg = _msg;
 					}
-					_msg = (_32*)(((PTRSZVAL)msg) + len - newlen);
+					_msg = (uint32_t*)(((uintptr_t)msg) + len - newlen);
 
 					_msg[0] = 0;
-					_msg[1] = (_32)pFileInfo->dwSize;
-					//lprintf( "file time is %lld %lld %lld", *(_64*)&timestamp_create, *(_64*)&timestamp_modify, *(_64*)&timestamp_access );
-					_msg[2] = (_32)pFileInfo->lastcreate.dwLowDateTime;
-					_msg[3] = (_32)(pFileInfo->lastcreate.dwHighDateTime);
-					_msg[4] = (_32)pFileInfo->lastmodified.dwLowDateTime;
-					_msg[5] = (_32)(pFileInfo->lastmodified.dwHighDateTime);
-					_msg[6] = (_32)pFileInfo->lastaccess.dwLowDateTime;
-					_msg[7] = (_32)pFileInfo->lastaccess.dwHighDateTime;
-					_msg[8] = (_32)idx;
+					_msg[1] = (uint32_t)pFileInfo->dwSize;
+					//lprintf( "file time is %lld %lld %lld", *(uint64_t*)&timestamp_create, *(uint64_t*)&timestamp_modify, *(uint64_t*)&timestamp_access );
+					_msg[2] = (uint32_t)pFileInfo->lastcreate.dwLowDateTime;
+					_msg[3] = (uint32_t)(pFileInfo->lastcreate.dwHighDateTime);
+					_msg[4] = (uint32_t)pFileInfo->lastmodified.dwLowDateTime;
+					_msg[5] = (uint32_t)(pFileInfo->lastmodified.dwHighDateTime);
+					_msg[6] = (uint32_t)pFileInfo->lastaccess.dwLowDateTime;
+					_msg[7] = (uint32_t)pFileInfo->lastaccess.dwHighDateTime;
+					_msg[8] = (uint32_t)idx;
 					//lprintf( "file id %d and %d", pFileInfo->ID, idx2 );
-					_msg[9] = (_32)pFileInfo->ID;
+					_msg[9] = (uint32_t)pFileInfo->ID;
 					_msg[10] = filename_len;
-					_msg[11] = (_32)pFileInfo->crclen;
+					_msg[11] = (uint32_t)pFileInfo->crclen;
 					snprintf( (char*)(_msg + 12), filename_len, "%s", pFileInfo->name );
 					if( pFileInfo->crc && pFileInfo->crclen )
 					{
-						MemCpy( _msg + 12 + (filename_len/4), pFileInfo->crc, pFileInfo->crclen * sizeof( _32 ) );
+						MemCpy( _msg + 12 + (filename_len/4), pFileInfo->crc, pFileInfo->crclen * sizeof( uint32_t ) );
 					}
 					else
 					{
@@ -1096,7 +1096,7 @@ void BuildManifest( PACCOUNT account, LOGICAL keep_manifest )
 		if( msg )
 		{
 			manifest_save = fopen( tmpname, "wb" );
-			msg[1] = (_32)(len - 8);
+			msg[1] = (uint32_t)(len - 8);
 			if( manifest_save )
 			{
 				fwrite( msg, 1, len, manifest_save );
@@ -1119,7 +1119,7 @@ void BuildManifest( PACCOUNT account, LOGICAL keep_manifest )
 void AllFiles( PACCOUNT account, PCLIENT_CONNECTION pcc )
 {
 	size_t len;
-	_32 *msg;
+	uint32_t *msg;
 
 	if( account->manifest )
 	{
@@ -1149,19 +1149,19 @@ void AllFiles( PACCOUNT account, PCLIENT_CONNECTION pcc )
 	{
 		xlprintf(2100)( "already have a manfest... use it.(%d)", account->manifest_len );
 		len = account->manifest_len;
-		msg = (P_32)account->manifest;
+		msg = (uint32_t*)account->manifest;
 	}
 	else
 	{
 		BuildManifest( account, TRUE );
 		len = account->manifest_len;
-		msg = (P_32)account->manifest;
+		msg = (uint32_t*)account->manifest;
 	}
 	if( pcc )
 	{
 		if( len )
 		{
-			msg[1] = (_32)(len - 8);
+			msg[1] = (uint32_t)(len - 8);
 			xlprintf(2100)( "Manifest is %d", len );
 			SendTCP( pcc->pc, msg, len );
 		}
@@ -1174,10 +1174,10 @@ void AllFiles( PACCOUNT account, PCLIENT_CONNECTION pcc )
 }
 
 
-int CPROC FileMonNextFileChange( PTRSZVAL psv
+int CPROC FileMonNextFileChange( uintptr_t psv
                         , CTEXTSTR filepath
-                        , _64 size
-                        , _64 timestamp_modify
+                        , uint64_t size
+                        , uint64_t timestamp_modify
                         , LOGICAL bCreated
                         , LOGICAL bDirectory
 								, LOGICAL bDeleted )
@@ -1188,7 +1188,7 @@ int CPROC FileMonNextFileChange( PTRSZVAL psv
 	   , 0 );
 }
 
-void CPROC ProcessScannedFile( PTRSZVAL psv, CTEXTSTR name, int flags )
+void CPROC ProcessScannedFile( uintptr_t psv, CTEXTSTR name, int flags )
 {
 	PMONDIR pDir = (PMONDIR)psv;
 	FILETIME lastmodified;
@@ -1198,10 +1198,10 @@ void CPROC ProcessScannedFile( PTRSZVAL psv, CTEXTSTR name, int flags )
 	DWORD dwSize;
 	snprintf( filepath, sizeof( filepath ), "%s/%s", pDir->pDirectory->path, name );
 	dwSize = GetFileTimeAndSize( filepath, &lastcreate, &lastaccess, &lastmodified, NULL );
-	//lprintf( "File : [%s][%s] %d %lld %lld %lld", name, filepath, dwSize, *(_64*)&lastmodified,*(_64*)&lastaccess,*(_64*)&lastcreate  );
+	//lprintf( "File : [%s][%s] %d %lld %lld %lld", name, filepath, dwSize, *(uint64_t*)&lastmodified,*(uint64_t*)&lastaccess,*(uint64_t*)&lastcreate  );
 	NextFileChange( psv
 					  , name
-					  , (_64)dwSize
+					  , (uint64_t)dwSize
 					  , ConvertFileTimeToInt( &lastcreate )
 					  , ConvertFileTimeToInt( &lastmodified )
 					  , ConvertFileTimeToInt( &lastaccess )
@@ -1236,16 +1236,16 @@ int NextChange( PCLIENT_CONNECTION pcc )
 				if( pFileInfo )
 				{
 					pDir->current_file++;
-					NextFileChange( (PTRSZVAL)pDir
+					NextFileChange( (uintptr_t)pDir
 									  , pFileInfo->name
-									  , (_64)pFileInfo->dwSize
+									  , (uint64_t)pFileInfo->dwSize
 									  , ConvertFileTimeToInt( &pFileInfo->lastcreate )
 									  , ConvertFileTimeToInt( &pFileInfo->lastmodified )
 									  , ConvertFileTimeToInt( &pFileInfo->lastaccess )
 									  , TRUE      // eh - might as well claim created? unused at implementation
 									  , pFileInfo->flags.bDirectory  // is a directory
 									  , FALSE 
-									  , (_32)pFileInfo->ID
+									  , (uint32_t)pFileInfo->ID
 									  ); // never deleted
 					result = 1;
 				}
@@ -1283,7 +1283,7 @@ void LoadAccountManifest( PACCOUNT account )
 //-------------------------------------------------------------------------
 
 #if 0
-void CPROC ScanForChanges( PTRSZVAL psv )
+void CPROC ScanForChanges( uintptr_t psv )
 {
 	PACCOUNT current = (PACCOUNT)psv;
 	if( current->DoScanTime && (current->DoScanTime < GetTickCount()) )
@@ -1306,7 +1306,7 @@ struct monitor_data {
 
 void MonitorSubdirectories( PNETWORK_STATE pns, PDIRECTORY pDirectory, PLIST *monitors, CTEXTSTR path );
 
-void CPROC MonitorCheck( PTRSZVAL psv, CTEXTSTR name, int flags )
+void CPROC MonitorCheck( uintptr_t psv, CTEXTSTR name, int flags )
 {
 	if( flags & SFF_DIRECTORY )
 	{
@@ -1323,7 +1323,7 @@ void CPROC MonitorCheck( PTRSZVAL psv, CTEXTSTR name, int flags )
 		pDir->pHandler = AddExtendedFileChangeCallback( pDir->monitor
 																	 , data->pDirectory->mask
 																	 , FileMonNextFileChange
-																	 , (PTRSZVAL)pDir );
+																	 , (uintptr_t)pDir );
 		lprintf( "%s %s monitor pathname is : %s"
 			 , "..user.."
 			 , pDir->flags.bIncoming?"incoming":"outgoing"
@@ -1347,7 +1347,7 @@ void MonitorSubdirectories( PNETWORK_STATE pns, PDIRECTORY pDirectory, PLIST *mo
 	pDir->pHandler = AddExtendedFileChangeCallback( pDir->monitor
 																 , pDirectory->mask
 																 , FileMonNextFileChange
-																 , (PTRSZVAL)pDir );
+																 , (uintptr_t)pDir );
 	lprintf( "%s %s monitor pathname is : %s"
 		 , "..user.."
 		 , pDir->flags.bIncoming?"incoming":"outgoing"
@@ -1364,13 +1364,13 @@ void MonitorSubdirectories( PNETWORK_STATE pns, PDIRECTORY pDirectory, PLIST *mo
 		while( ScanFiles( path
 							 , "*"
 							 , &info
-							 , MonitorCheck, SFF_NAMEONLY|SFF_SUBCURSE|SFF_DIRECTORIES, (PTRSZVAL)&data ) );
+							 , MonitorCheck, SFF_NAMEONLY|SFF_SUBCURSE|SFF_DIRECTORIES, (uintptr_t)&data ) );
 	}
 }
 
 //-------------------------------------------------------------------------
 
-PACCOUNT LoginEx( PCLIENT pc, char *user, _32 dwIP, _32 version DBG_PASS )
+PACCOUNT LoginEx( PCLIENT pc, char *user, uint32_t dwIP, uint32_t version DBG_PASS )
 {
 	PACCOUNT account;
 	PNETWORK_STATE pns = (PNETWORK_STATE)GetNetworkLong( pc, 0 );
@@ -1382,7 +1382,7 @@ PACCOUNT LoginEx( PCLIENT pc, char *user, _32 dwIP, _32 version DBG_PASS )
 	{
 		if( CompareMask( account->unique_name, user, FALSE ) )
 		{
-			_32 start = GetTickCount() + 2000;
+			uint32_t start = GetTickCount() + 2000;
 			PCLIENT_CONNECTION pcc = New( CLIENT_CONNECTION );
 			memset( pcc, 0, sizeof( CLIENT_CONNECTION ) );
 			pcc->version = version;
@@ -1415,10 +1415,10 @@ PACCOUNT LoginEx( PCLIENT pc, char *user, _32 dwIP, _32 version DBG_PASS )
 			}
 
 			{
-				_32 msg[3];
-				msg[0] = *(_32*)"OVRL";
+				uint32_t msg[3];
+				msg[0] = *(uint32_t*)"OVRL";
 				msg[1] = account->files.count;
-				msg[2] = (_32)account->files.size;
+				msg[2] = (uint32_t)account->files.size;
 				SendTCP( pc, msg, 12 );
 			}
 			SendTimeEx( pc, FALSE );
@@ -1478,7 +1478,7 @@ PACCOUNT LoginEx( PCLIENT pc, char *user, _32 dwIP, _32 version DBG_PASS )
 						}
 						else
 							NextChange( pcc );
-						//ScanFiles( pDirectory->path, "*", &pDir->data, ProcessScannedFile, SFF_NAMEONLY|SFF_SUBCURSE|SFF_DIRECTORIES, (PTRSZVAL)pDir );
+						//ScanFiles( pDirectory->path, "*", &pDir->data, ProcessScannedFile, SFF_NAMEONLY|SFF_SUBCURSE|SFF_DIRECTORIES, (uintptr_t)pDir );
 						break;
 					}
 					else
@@ -1645,7 +1645,7 @@ PNETBUFFER FindNetBuffer( CTEXTSTR address )
 	pNetBuffer = g.NetworkBuffers;
 	while( pNetBuffer )
 	{
-		if( *(_64*)pNetBuffer->sa == *(_64*)sa )
+		if( *(uint64_t*)pNetBuffer->sa == *(uint64_t*)sa )
 		{
 			ReleaseAddress( sa );
 			return pNetBuffer;
@@ -1691,7 +1691,7 @@ static int PathCmpEx( CTEXTSTR s1, CTEXTSTR s2, int maxlen )
 
 //-------------------------------------------------------------------------
 
-PTRSZVAL CPROC SetCommon( PTRSZVAL psv, arg_list args )
+uintptr_t CPROC SetCommon( uintptr_t psv, arg_list args )
 {
 	//PARAM( args, char*, name );
 	PACCOUNT account;
@@ -1743,7 +1743,7 @@ static PDIRECTORY GetDirectory( PACCOUNT account, INDEX expected_index, CTEXTSTR
 		NewPath->mask = pathrchr( NewPath->path );
 
 		SetLink( &account->Directories, expected_index, NewPath );
-		NewPath->ID = (_32)FindLink( &account->Directories, NewPath );
+		NewPath->ID = (uint32_t)FindLink( &account->Directories, NewPath );
 	}
 	return NewPath;
 }
@@ -1761,7 +1761,7 @@ static PFILE_INFO GetFileInfo( PDIRECTORY directory, CTEXTSTR name )
 	{
 		if( PathCmpEx( pFileInfo->name, name, MAXPATH ) == 0 )
 		{
-			if( PathCmpEx( pFileInfo->full_name, directory->path, (_32)dirlen ) != 0 )
+			if( PathCmpEx( pFileInfo->full_name, directory->path, (uint32_t)dirlen ) != 0 )
 			{
 				len = StrLen( name ) + ( dirlen ) + 2;
 				Release( pFileInfo->full_name );
@@ -1807,13 +1807,13 @@ static PFILE_INFO GetFileInfo( PDIRECTORY directory, CTEXTSTR name )
 
 void ExpandManifest( PACCOUNT account, LOGICAL mark_deleted )
 {
-	_32 local_check = FALSE;
+	uint32_t local_check = FALSE;
 	LOGICAL status = TRUE;
-	_32 *msg;
+	uint32_t *msg;
 	size_t start = 8;  // skip 'mani' and packet length
 	size_t next_offset = 0;
 	int segment_count = 0;
-	PTRSZVAL oldsize = 0;
+	uintptr_t oldsize = 0;
 	LOGICAL same = FALSE;
 	lprintf( "Expand is default deleted? %d", mark_deleted );
 	//lprintf( "Doing expand... %d %d", start, account->manifest_len );
@@ -1821,14 +1821,14 @@ void ExpandManifest( PACCOUNT account, LOGICAL mark_deleted )
 	{
 		PFILE_INFO pFileInfo;
 		PDIRECTORY pDir;
-		_32 PathID;
-		_32 size;
-		_32 crclen;
+		uint32_t PathID;
+		uint32_t size;
+		uint32_t crclen;
 		char *filename;
 		//size_t len;
 		account->manifest_files.count++;
 		//lprintf( "... %p %d", account->manifest, start );
-		msg = (_32*)(((PTRSZVAL)account->manifest) + start );
+		msg = (uint32_t*)(((uintptr_t)account->manifest) + start );
 		//LogBinary( msg, 64 );
 
 		//lprintf( "msg %p msg_orig %p", msg, msg_original );
@@ -1836,7 +1836,7 @@ void ExpandManifest( PACCOUNT account, LOGICAL mark_deleted )
 		if( msg[0] )
 		{
 			xlprintf(2100)( "Is a directory... %d %d %d %s", msg[0], msg[1], msg[2], msg + 3  );
-			next_offset = ( 3 * sizeof( _32 ) + msg[1] );
+			next_offset = ( 3 * sizeof( uint32_t ) + msg[1] );
 
 			//lprintf( "next %d" , next_offset );
 			if( msg[2] > 50000 )
@@ -1870,7 +1870,7 @@ void ExpandManifest( PACCOUNT account, LOGICAL mark_deleted )
 			LOGICAL bStoreCRC = FALSE;
 			xlprintf(2100)( "Is a file... %d %d %s",msg[10],msg[11], msg + 12 );
 
-			next_offset = ( ( 12 + msg[11] ) * sizeof( _32 ) + msg[10] );
+			next_offset = ( ( 12 + msg[11] ) * sizeof( uint32_t ) + msg[10] );
 			//lprintf( "next %d next_orig %d", next_offset, next_offset_original );
 
 			if( msg[8] > 50000 )
@@ -1945,8 +1945,8 @@ void ExpandManifest( PACCOUNT account, LOGICAL mark_deleted )
 			if( bStoreCRC )
 			{
 				// crc length is in blocks.
-				pFileInfo->crc = NewArray( _32, msg[11] );
-				MemCpy( pFileInfo->crc, msg + 12 + (msg[10]/4), msg[11] * sizeof( _32 ) );
+				pFileInfo->crc = NewArray( uint32_t, msg[11] );
+				MemCpy( pFileInfo->crc, msg + 12 + (msg[10]/4), msg[11] * sizeof( uint32_t ) );
 				pFileInfo->crclen = msg[11];
 			}
 
@@ -1978,9 +1978,9 @@ PACCOUNT CreateAccount( CTEXTSTR name, LOGICAL client )
 	//if( !client )
 #endif
    LoadAccountManifest( account );
-	account->SendResponce = *(_32*)"SEND";
-	account->NextResponce = *(_32*)"NEXT";
-	account->WhatResponce = *(_32*)"WHAT";
+	account->SendResponce = *(uint32_t*)"SEND";
+	account->NextResponce = *(uint32_t*)"NEXT";
+	account->WhatResponce = *(uint32_t*)"WHAT";
 	LinkThing( g.AccountList, account );
 	return account;
 }
@@ -2025,10 +2025,10 @@ static CTEXTSTR SubstituteNameVars( CTEXTSTR name )
 }
 //-------------------------------------------------------------------------
 
-static PTRSZVAL CPROC CreateUser( PTRSZVAL psv, arg_list args )
+static uintptr_t CPROC CreateUser( uintptr_t psv, arg_list args )
 {
 	PARAM( args, CTEXTSTR, name );
-	return (PTRSZVAL)CreateAccount( name, FALSE );
+	return (uintptr_t)CreateAccount( name, FALSE );
 }
 
 //-------------------------------------------------------------------------
@@ -2045,7 +2045,7 @@ static void TrimSlashes( char *path )
 
 //-------------------------------------------------------------------------
 
-static PTRSZVAL CPROC AddIncomingPathEx( LOGICAL live, LOGICAL verify, PTRSZVAL psv, arg_list args )
+static uintptr_t CPROC AddIncomingPathEx( LOGICAL live, LOGICAL verify, uintptr_t psv, arg_list args )
 {
 	PARAM( args, CTEXTSTR, path );
 	PACCOUNT account;
@@ -2071,24 +2071,24 @@ static PTRSZVAL CPROC AddIncomingPathEx( LOGICAL live, LOGICAL verify, PTRSZVAL 
 	return psv;
 }
 
-static PTRSZVAL CPROC AddIncomingPath( PTRSZVAL psv, arg_list args )
+static uintptr_t CPROC AddIncomingPath( uintptr_t psv, arg_list args )
 {
 	return AddIncomingPathEx( TRUE, FALSE, psv, args );
 }
-static PTRSZVAL CPROC AddIncomingDataPath( PTRSZVAL psv, arg_list args )
+static uintptr_t CPROC AddIncomingDataPath( uintptr_t psv, arg_list args )
 {
 	return AddIncomingPathEx( FALSE, FALSE, psv, args );
 }
-static PTRSZVAL CPROC AddVerifyDataPath( PTRSZVAL psv, arg_list args )
+static uintptr_t CPROC AddVerifyDataPath( uintptr_t psv, arg_list args )
 {
 	return AddIncomingPathEx( FALSE, TRUE, psv, args );
 }
 ////-------------------------------------------------------------------------
 
-int CPROC PrescanFileUpdate( PTRSZVAL psv
+int CPROC PrescanFileUpdate( uintptr_t psv
                         , CTEXTSTR _filepath
-                        , _64 size
-                        , _64 timestamp_modify
+                        , uint64_t size
+                        , uint64_t timestamp_modify
                         , LOGICAL bCreated
                         , LOGICAL bDirectory
 								, LOGICAL bDeleted )
@@ -2162,7 +2162,7 @@ int CPROC PrescanFileUpdate( PTRSZVAL psv
 }
 
 
-static void CPROC PrescanFile( PTRSZVAL psv, CTEXTSTR name, int flags )
+static void CPROC PrescanFile( uintptr_t psv, CTEXTSTR name, int flags )
 {
 	PDIRECTORY directory = (PDIRECTORY)psv;
 	PACCOUNT account = directory->account;
@@ -2261,7 +2261,7 @@ struct DeleteScanInfo {
 	PLINKSTACK delete_dirlist;
 };
 
-static void CPROC DeleteScanFile( PTRSZVAL psv, CTEXTSTR name, int flags )
+static void CPROC DeleteScanFile( uintptr_t psv, CTEXTSTR name, int flags )
 {
 	struct DeleteScanInfo *info = (struct DeleteScanInfo*)psv;
 	PFILE_INFO pFileInfo;
@@ -2316,7 +2316,7 @@ void ScanForDeletes( PACCOUNT account )
 		info.pDir = pDir;
 		lprintf( "Scan for deletes in %s", pDir->path );
 		while( ScanFiles( pDir->path, "*", &data
-							 , DeleteScanFile, SFF_NAMEONLY|SFF_SUBCURSE|SFF_DIRECTORIES, (PTRSZVAL)&info ) );
+							 , DeleteScanFile, SFF_NAMEONLY|SFF_SUBCURSE|SFF_DIRECTORIES, (uintptr_t)&info ) );
 	}
 	{
 		TEXTSTR tmpname;
@@ -2333,7 +2333,7 @@ void ScanForDeletes( PACCOUNT account )
 
 //-------------------------------------------------------------------------
 
-static PTRSZVAL CPROC AddOutgoingPathEx( LOGICAL live, PTRSZVAL psv, arg_list args )
+static uintptr_t CPROC AddOutgoingPathEx( LOGICAL live, uintptr_t psv, arg_list args )
 {
 	PARAM( args, TEXTSTR, path );
 	PACCOUNT account;
@@ -2363,11 +2363,11 @@ static PTRSZVAL CPROC AddOutgoingPathEx( LOGICAL live, PTRSZVAL psv, arg_list ar
 				NewPath->pHandler = AddExtendedFileChangeCallback( NewPath->pDirMon
 																, "*"
 																, PrescanFileUpdate
-																				 , (PTRSZVAL)NewPath );
+																				 , (uintptr_t)NewPath );
 #endif
 				lprintf( "Begin scanning %s for files...", NewPath->path );
 				while( ScanFiles( NewPath->path, "*", &data
-									 , PrescanFile, SFF_NAMEONLY|SFF_SUBCURSE|SFF_DIRECTORIES, (PTRSZVAL)NewPath ) );
+									 , PrescanFile, SFF_NAMEONLY|SFF_SUBCURSE|SFF_DIRECTORIES, (uintptr_t)NewPath ) );
 				lprintf( "File Totals now: %d(%d)", account->files.count, account->files.size );
 			}
 #endif
@@ -2381,18 +2381,18 @@ static PTRSZVAL CPROC AddOutgoingPathEx( LOGICAL live, PTRSZVAL psv, arg_list ar
 	return psv;
 }
 
-static PTRSZVAL CPROC AddOutgoingPath( PTRSZVAL psv, arg_list args )
+static uintptr_t CPROC AddOutgoingPath( uintptr_t psv, arg_list args )
 {
 	return AddOutgoingPathEx( TRUE, psv, args );
 }
-static PTRSZVAL CPROC AddOutgoingDataPath( PTRSZVAL psv, arg_list args )
+static uintptr_t CPROC AddOutgoingDataPath( uintptr_t psv, arg_list args )
 {
 	return AddOutgoingPathEx( FALSE, psv, args );
 }
 
 //-------------------------------------------------------------------------
 
-static PTRSZVAL CPROC SetAccountAddress( PTRSZVAL psv, arg_list args )
+static uintptr_t CPROC SetAccountAddress( uintptr_t psv, arg_list args )
 {
 	PARAM( args, CTEXTSTR, address );
 	PACCOUNT account;
@@ -2411,7 +2411,7 @@ static PTRSZVAL CPROC SetAccountAddress( PTRSZVAL psv, arg_list args )
 
 //-------------------------------------------------------------------------
 
-static PTRSZVAL CPROC SetServerAddress( PTRSZVAL psv, arg_list args )
+static uintptr_t CPROC SetServerAddress( uintptr_t psv, arg_list args )
 {
 	PACCOUNT account = (PACCOUNT)psv;
 	PARAM( args, CTEXTSTR, address );
@@ -2427,7 +2427,7 @@ static PTRSZVAL CPROC SetServerAddress( PTRSZVAL psv, arg_list args )
 
 //-------------------------------------------------------------------------
 
-static PTRSZVAL CPROC SetAccountClean( PTRSZVAL psv, arg_list args )
+static uintptr_t CPROC SetAccountClean( uintptr_t psv, arg_list args )
 {
 	PACCOUNT account = (PACCOUNT)psv;
 	if( account )
@@ -2441,18 +2441,18 @@ static PTRSZVAL CPROC SetAccountClean( PTRSZVAL psv, arg_list args )
 
 //-------------------------------------------------------------------------
 
-static PTRSZVAL CPROC SetLoginName( PTRSZVAL psv, arg_list args )
+static uintptr_t CPROC SetLoginName( uintptr_t psv, arg_list args )
 {
 	PARAM( args, CTEXTSTR, name );
-   PTRSZVAL psv_result;
+   uintptr_t psv_result;
 	name = SubstituteNameVars( name );
-	psv_result = (PTRSZVAL)CreateAccount( name, TRUE );
+	psv_result = (uintptr_t)CreateAccount( name, TRUE );
 	return psv_result;
 }
 
 //-------------------------------------------------------------------------
 
-static PTRSZVAL CPROC AddKeepFile( PTRSZVAL psv, arg_list args )
+static uintptr_t CPROC AddKeepFile( uintptr_t psv, arg_list args )
 {
 	PACCOUNT account = (PACCOUNT)psv;
 	PARAM( args, CTEXTSTR, name );
@@ -2463,7 +2463,7 @@ static PTRSZVAL CPROC AddKeepFile( PTRSZVAL psv, arg_list args )
 
 //-------------------------------------------------------------------------
 
-static PTRSZVAL CPROC SetForceCase( PTRSZVAL psv, arg_list args )
+static uintptr_t CPROC SetForceCase( uintptr_t psv, arg_list args )
 {
 	PARAM( args, char *, opt );
 	if( opt[0] == 'l' || opt[0] == 'L' )
@@ -2473,7 +2473,7 @@ static PTRSZVAL CPROC SetForceCase( PTRSZVAL psv, arg_list args )
 
 //-------------------------------------------------------------------------
 
-static PTRSZVAL CPROC FinishReading( PTRSZVAL psv )
+static uintptr_t CPROC FinishReading( uintptr_t psv )
 {
 	PACCOUNT account;
 	if( account = (PACCOUNT)psv )
@@ -2485,7 +2485,7 @@ static PTRSZVAL CPROC FinishReading( PTRSZVAL psv )
 
 //---------------------------------------------------------------------------
 
-static PTRSZVAL CPROC DoProcessLocalVerifyCommands( PTHREAD thread )
+static uintptr_t CPROC DoProcessLocalVerifyCommands( PTHREAD thread )
 {
    PACCOUNT account = (PACCOUNT)GetThreadParam( thread );
 	INDEX idx;
@@ -2501,12 +2501,12 @@ static PTRSZVAL CPROC DoProcessLocalVerifyCommands( PTHREAD thread )
 
 static void ProcessLocalVerifyCommands( PACCOUNT account )
 {
-   ThreadTo( DoProcessLocalVerifyCommands, (PTRSZVAL)account );
+   ThreadTo( DoProcessLocalVerifyCommands, (uintptr_t)account );
 }
 
 //---------------------------------------------------------------------------
 
-static PTRSZVAL CPROC DoProcessLocalUpdateCommands( PTHREAD thread )
+static uintptr_t CPROC DoProcessLocalUpdateCommands( PTHREAD thread )
 {
    PACCOUNT account = (PACCOUNT)GetThreadParam( thread );
 	INDEX idx;
@@ -2522,12 +2522,12 @@ static PTRSZVAL CPROC DoProcessLocalUpdateCommands( PTHREAD thread )
 
 static void ProcessLocalUpdateCommands( PACCOUNT account )
 {
-   ThreadTo( DoProcessLocalUpdateCommands, (PTRSZVAL)account );
+   ThreadTo( DoProcessLocalUpdateCommands, (uintptr_t)account );
 }
 
 //---------------------------------------------------------------------------
 
-static PTRSZVAL CPROC DoProcessLocalUpdateFailedCommands( PTHREAD thread )
+static uintptr_t CPROC DoProcessLocalUpdateFailedCommands( PTHREAD thread )
 {
    PACCOUNT account = (PACCOUNT)GetThreadParam( thread );
 	INDEX idx;
@@ -2543,7 +2543,7 @@ static PTRSZVAL CPROC DoProcessLocalUpdateFailedCommands( PTHREAD thread )
 
 static void ProcessLocalUpdateFailedCommands( PACCOUNT account )
 {
-   ThreadTo( DoProcessLocalUpdateFailedCommands, (PTRSZVAL)account );
+   ThreadTo( DoProcessLocalUpdateFailedCommands, (uintptr_t)account );
 }
 
 //-------------------------------------------------------------------------
@@ -2559,7 +2559,7 @@ ATEXIT( WaitForTasks )
 
 //-------------------------------------------------------------------------
 
-static PTRSZVAL CPROC AddAccountUpdateCommand( PTRSZVAL psv, arg_list args )
+static uintptr_t CPROC AddAccountUpdateCommand( uintptr_t psv, arg_list args )
 {
 	PARAM( args, CTEXTSTR, command );
 	PACCOUNT account;
@@ -2572,7 +2572,7 @@ static PTRSZVAL CPROC AddAccountUpdateCommand( PTRSZVAL psv, arg_list args )
 
 //-------------------------------------------------------------------------
 
-static PTRSZVAL CPROC AddAccountUpdateFailCommand( PTRSZVAL psv, arg_list args )
+static uintptr_t CPROC AddAccountUpdateFailCommand( uintptr_t psv, arg_list args )
 {
 	PARAM( args, CTEXTSTR, command );
 	PACCOUNT account;
@@ -2585,7 +2585,7 @@ static PTRSZVAL CPROC AddAccountUpdateFailCommand( PTRSZVAL psv, arg_list args )
 
 //-------------------------------------------------------------------------
 
-static PTRSZVAL CPROC AddAccountVerifyCommand( PTRSZVAL psv, arg_list args )
+static uintptr_t CPROC AddAccountVerifyCommand( uintptr_t psv, arg_list args )
 {
 	PARAM( args, CTEXTSTR, command );
 	PACCOUNT account;
@@ -2598,9 +2598,9 @@ static PTRSZVAL CPROC AddAccountVerifyCommand( PTRSZVAL psv, arg_list args )
 
 //-------------------------------------------------------------------------
 
-static PTRSZVAL CPROC SetMaxConnections( PTRSZVAL psv, arg_list args )
+static uintptr_t CPROC SetMaxConnections( uintptr_t psv, arg_list args )
 {
-	PARAM( args, S_64, value );
+	PARAM( args, int64_t, value );
    maxconnections = (int)value;
    return psv;
 }
@@ -2769,15 +2769,15 @@ static LOGICAL FileMatches( PFILE_INFO pFileInfo )
 	return TRUE;
 }
 
-LOGICAL ProcessManifest( PNETWORK_STATE pns, PACCOUNT account, _32 *buffer, size_t length )
+LOGICAL ProcessManifest( PNETWORK_STATE pns, PACCOUNT account, uint32_t *buffer, size_t length )
 {
-	_32 local_check = FALSE;
+	uint32_t local_check = FALSE;
 	LOGICAL status = TRUE;
-	_32 *msg;
+	uint32_t *msg;
 	size_t start = 0;
 	size_t next_offset = 0;
 	int segment_count = 0;
-	PTRSZVAL oldsize = 0;
+	uintptr_t oldsize = 0;
    LOGICAL send_fail = 0;
 	POINTER mem;
 	LOGICAL same = FALSE;
@@ -2793,11 +2793,11 @@ LOGICAL ProcessManifest( PNETWORK_STATE pns, PACCOUNT account, _32 *buffer, size
 		char *filename;
 		account->manifest_files.count++;
 
-		msg = (_32*)(((PTRSZVAL)buffer) + start );
+		msg = (uint32_t*)(((uintptr_t)buffer) + start );
 
 		if( msg[0] )
 		{
-			next_offset = ( 3 * sizeof( _32 ) + msg[1] );
+			next_offset = ( 3 * sizeof( uint32_t ) + msg[1] );
 
 			pDir = GetDirectory( account, msg[2], NULL );
 
@@ -2818,7 +2818,7 @@ LOGICAL ProcessManifest( PNETWORK_STATE pns, PACCOUNT account, _32 *buffer, size
 		{
          // check the physical file also... (updates fileinfo to physical, instead of manifest)
 			LOGICAL file_matches;
-			next_offset = ( ( 12 + msg[11] ) * sizeof( _32 ) + msg[10] );
+			next_offset = ( ( 12 + msg[11] ) * sizeof( uint32_t ) + msg[10] );
 
 			//lprintf( "next %d ", next_offset );
 
@@ -2911,15 +2911,15 @@ LOGICAL ProcessManifest( PNETWORK_STATE pns, PACCOUNT account, _32 *buffer, size
 				// have to scan the file.
 			check_crcs:
 				{
-					P_32 newcrc = msg + 12 + (msg[10]/4);
-					_32 newcrclen = msg[11];
+					uint32_t* newcrc = msg + 12 + (msg[10]/4);
+					uint32_t newcrclen = msg[11];
 
 					{
 						// if the file matches on disk what we think it should be, then
 						//just quick check the CRC in memory.
 						PFILECHANGE pfc = NULL;
                   PFILECHANGE pfc_last = NULL;
-						_32 n = 0;
+						uint32_t n = 0;
 						int b = 0;
 						xlprintf(2100)( "check manifest or file CRCs (file if file was not the same as manifest)" );
 						while( ( pFileInfo->crclen && ( n < pFileInfo->crclen ) ) && n < newcrclen )
@@ -3049,8 +3049,8 @@ LOGICAL ProcessManifest( PNETWORK_STATE pns, PACCOUNT account, _32 *buffer, size
 				if( !send_fail )
 				{
 					// save the new crc's (the files will match this)
-					pFileInfo->crc = NewArray( _32, msg[11] );
-					MemCpy( pFileInfo->crc, msg + 12 + (msg[10]/4), msg[11] * sizeof( _32 ) );
+					pFileInfo->crc = NewArray( uint32_t, msg[11] );
+					MemCpy( pFileInfo->crc, msg + 12 + (msg[10]/4), msg[11] * sizeof( uint32_t ) );
 
 					pFileInfo->crclen = msg[11];
 				}
@@ -3059,25 +3059,25 @@ LOGICAL ProcessManifest( PNETWORK_STATE pns, PACCOUNT account, _32 *buffer, size
 			{
 				if( 0 )
 				{
-					LogBinary( pFileInfo->crc, pFileInfo->crclen * sizeof( _32 ) );
-					LogBinary( msg + 12 + (msg[10]/4), msg[11] * sizeof( _32 ) );
+					LogBinary( pFileInfo->crc, pFileInfo->crclen * sizeof( uint32_t ) );
+					LogBinary( msg + 12 + (msg[10]/4), msg[11] * sizeof( uint32_t ) );
 				}
             // reload CRCs...
 				if( pDir->flags.bVerify )
 				{
 					file_matches = FileMatches( pFileInfo );
 					if( 0 )
-						LogBinary( pFileInfo->crc, pFileInfo->crclen * sizeof( _32 ) );
+						LogBinary( pFileInfo->crc, pFileInfo->crclen * sizeof( uint32_t ) );
 				}
 
 				xlprintf(2100)( "(local)manifest file and (server)manifest message are %s time/size... check CRC? %p %p (%d)"
-								  , file_matches?"Same":"Different", pFileInfo->crc, msg, msg[11] * sizeof( _32 ) );
+								  , file_matches?"Same":"Different", pFileInfo->crc, msg, msg[11] * sizeof( uint32_t ) );
 				{
 					int first = 1;
 					do
 					{
 						// file times matched, size matched... shouldn't even really check the crc content...
-						if( MemCmp( pFileInfo->crc, msg + 12 + (msg[10]/4), msg[11] * sizeof( _32 ) ) == 0 )
+						if( MemCmp( pFileInfo->crc, msg + 12 + (msg[10]/4), msg[11] * sizeof( uint32_t ) ) == 0 )
 						{
 							if( !first )
 								xlprintf(2100)( "and the CRC reload worked." );
@@ -3153,12 +3153,12 @@ void ProcessFileChanges( PACCOUNT account, PCLIENT_CONNECTION pcc )
 	PFILECHANGE pfc = (PFILECHANGE)DequeLink( &pcc->segments );
 	if( pfc )
 	{
-		_32 msg[5];
-		msg[0] = *(_32*)"SEND";
-		msg[1] = (_32)pfc->start;
-		msg[2] = (_32)pfc->size;
-		msg[3] = (_32)pfc->pFileInfo->PathID;
-		msg[4] = (_32)pfc->pFileInfo->Source_ID;
+		uint32_t msg[5];
+		msg[0] = *(uint32_t*)"SEND";
+		msg[1] = (uint32_t)pfc->start;
+		msg[2] = (uint32_t)pfc->size;
+		msg[3] = (uint32_t)pfc->pFileInfo->PathID;
+		msg[4] = (uint32_t)pfc->pFileInfo->Source_ID;
       account->flags.bRequestedUpdates = 1;
 		xlprintf(2100)( "asking for more data... %d %d in (%d/%d : %d) %s", pfc->start, pfc->size, pfc->pFileInfo->ID, pfc->pFileInfo->Source_ID, pfc->pFileInfo->PathID, pfc->pFileInfo->full_name );
 		{
@@ -3172,7 +3172,7 @@ void ProcessFileChanges( PACCOUNT account, PCLIENT_CONNECTION pcc )
 	}
 	else
 	{
-		_32 msg[1];
+		uint32_t msg[1];
 		if( pcc->version >= VER_CODE( 3, 2 ) )
 		{
 			// send manifest (after OKAY and OVRL)
@@ -3184,7 +3184,7 @@ void ProcessFileChanges( PACCOUNT account, PCLIENT_CONNECTION pcc )
 			ProcessLocalUpdateCommands( account );
 		}
 		lprintf( "Send NEXT" );
-		msg[0] = *(_32*)"NEXT";
+		msg[0] = *(uint32_t*)"NEXT";
 		SendTCP( pcc->pc, msg, 4 );
 	}
 }

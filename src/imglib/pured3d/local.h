@@ -86,7 +86,7 @@ void InitShader( void );
  
 Image AllocateCharacterSpaceByFont( Image target_image, SFTFont font, PCHARACTER character );
 IDirect3DBaseTexture9 *ReloadD3DTexture( Image image, int option );
-void TranslateCoord( Image image, S_32 *x, S_32 *y );
+void TranslateCoord( Image image, int32_t *x, int32_t *y );
 void CPROC MarkImageUpdated( Image image );
 
 IMAGE_NAMESPACE_END

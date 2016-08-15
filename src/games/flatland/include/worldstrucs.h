@@ -13,13 +13,13 @@ typedef struct nameflag_tag {
 }NAMEFLAGS;
 
 struct name_data {
-	_16 length;
+	uint16_t length;
 	TEXTSTR name;
 };
 
 typedef struct name_tag {
 	NAMEFLAGS flags;
-	_16 lines;
+	uint16_t lines;
 	struct name_data *name;
 	int refcount; // number of times this name is referenced...
 } NAME, *PNAME;
@@ -173,8 +173,8 @@ struct UpdateThingMsg {
 
 struct flagset
 {
-		_32 num;
-		_32 *flags;
+		uint32_t num;
+		uint32_t *flags;
 };
 
 struct all_flagset
@@ -271,13 +271,13 @@ WORLD_PROC( PSECTOR, GetSector )(INDEX world,INDEX idx);
 #define GetLinearNameArray(set, pLines)    (PNAME*)GetLinearSetArray( NAME, set, pLines )
 #define GetLinearTextureArray(set, nCount)    (PFLATLAND_TEXTURE*)GetLinearSetArray( FLATLAND_TEXTURE, set, nCount )
 #define GetLinearLineArray(set, nCount )      (PFLATLAND_MYLINESEG*)GetLinearSetArray( FLATLAND_MYLINESEG, set, nCount )
-#define ForAllWalls(set, f, psv)           ForAllInSet( WALL, (set), (FAISCallback)(f), (PTRSZVAL)(psv) )
+#define ForAllWalls(set, f, psv)           ForAllInSet( WALL, (set), (FAISCallback)(f), (uintptr_t)(psv) )
 
 #define DeleteSector(pset, item) 				DeleteFromSet( SECTOR, (pset), (item) )
 
-#define DoForAllSectors(set, f, psv)           ForEachSetMember( SECTOR, (set), (FESMCallback)(f), (PTRSZVAL)(psv) )
-#define DoForAllWalls(set, f, psv)           ForEachSetMember( WALL, (set), (FESMCallback)(f), (PTRSZVAL)(psv) )
-#define DoForAllLines(set, f, psv)           ForEachSetMember( FLATLAND_MYLINESEG, (set), (FESMCallback)(f), (PTRSZVAL)(psv) )
+#define DoForAllSectors(set, f, psv)           ForEachSetMember( SECTOR, (set), (FESMCallback)(f), (uintptr_t)(psv) )
+#define DoForAllWalls(set, f, psv)           ForEachSetMember( WALL, (set), (FESMCallback)(f), (uintptr_t)(psv) )
+#define DoForAllLines(set, f, psv)           ForEachSetMember( FLATLAND_MYLINESEG, (set), (FESMCallback)(f), (uintptr_t)(psv) )
 
 
 #define DeleteLine(set,line)  DeleteFromSet( FLATLAND_MYLINESEG, (set), (line) )
@@ -309,7 +309,7 @@ WORLD_PROC( PSECTOR, GetSector )(INDEX world,INDEX idx);
 	}}
 
 
-//#define ForAllTextures(set,f,psv) ForAllInSet( TEXTURE, (set), (FAISCallback)(f), (PTRSZVAL)(psv) )
+//#define ForAllTextures(set,f,psv) ForAllInSet( TEXTURE, (set), (FAISCallback)(f), (uintptr_t)(psv) )
 //#define SetTexture( isetthis, itexture ) (((isetthis!=INVALID_INDEX)?(GetSetMember(TEXTURE,&world->textures,isetthis))->refcount--:0),(itexture!=INVALID_INDEX)?((isetthis) = (itexture), (GetSetMember(TEXTURE,&world->textures,itexture))->refcount++):0)
 
 #include <world.h>

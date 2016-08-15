@@ -15,8 +15,8 @@ typedef struct database_tag{
    ExecStatusType status;
    PSENTIENT ps;
 	struct {
-		_32 bConnected;
-      _32 bReconnecting;
+		uint32_t bConnected;
+      uint32_t bReconnecting;
 	} flags;
 } DATABASE, *PDATABASE;
 

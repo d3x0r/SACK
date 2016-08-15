@@ -675,7 +675,7 @@ int KeyLeft( PCONSOLE_INFO pci )
 
 //----------------------------------------------------------------------------
 
-int KeyShift( P_32 pKeyState, LOGICAL bDown )
+int KeyShift( uint32_t* pKeyState, LOGICAL bDown )
 {
    if( bDown )
    {
@@ -690,7 +690,7 @@ int KeyShift( P_32 pKeyState, LOGICAL bDown )
 
 //----------------------------------------------------------------------------
 
-int KeyControl( P_32 pKeyState, LOGICAL bDown )
+int KeyControl( uint32_t* pKeyState, LOGICAL bDown )
 {
    if( bDown )
    {
@@ -705,7 +705,7 @@ int KeyControl( P_32 pKeyState, LOGICAL bDown )
 
 //----------------------------------------------------------------------------
 
-int KeyAlt( P_32 pKeyState, LOGICAL bDown )
+int KeyAlt( uint32_t* pKeyState, LOGICAL bDown )
 {
    if( bDown )
    {
@@ -1096,8 +1096,8 @@ int DoStroke( PCONSOLE_INFO pdp, PTEXT stroke )
 //----------------------------------------------------------------------------
 
 void KeyPressHandler( PCONSOLE_INFO pdp
-						  , _8 key_index
-						  , _8 mod
+						  , uint8_t key_index
+						  , uint8_t mod
 						  , PTEXT characters
 						  )
 {

@@ -13,9 +13,9 @@ static int DoFunction(PSENTIENT  ps, PTEXT parameters, double (*f)(double) )
    if( temp )
    {
 		struct {
-			_32 bIntNumber : 1;
+			uint32_t bIntNumber : 1;
 		} flags;
-		S_64 iNumber;
+		int64_t iNumber;
 		double fNumber;
 		int bInt;
 		PTEXT pResult;

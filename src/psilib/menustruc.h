@@ -20,22 +20,22 @@ PSI_MENU_NAMESPACE
 
 typedef struct menu_tag {
     struct {
-        _32 changed:1;
-        _32 tracking:1;
-		  _32 abort:1;
-		  _32 showing : 1;
-		  _32 bSubmenuOpen : 1;
+        uint32_t changed:1;
+        uint32_t tracking:1;
+		  uint32_t abort:1;
+		  uint32_t showing : 1;
+		  uint32_t bSubmenuOpen : 1;
     }flags;
     struct menuitem_tag *items;
 #ifdef __64__ 
-	S_64 selection;
+	int64_t selection;
 #else
-    S_32 selection; // -1 while no selection
+    int32_t selection; // -1 while no selection
 #endif
     struct menuitem_tag *selected;
-    S_16   height, width;
+    int16_t   height, width;
     struct {
-        S_32    x, y; // display x and y
+        int32_t    x, y; // display x and y
     } display;
     SFTFont  font;
     PCOMMON image;
@@ -45,13 +45,13 @@ typedef struct menu_tag {
 } MENU;
 
 typedef struct menuitemflags_tag {
-	_32 bSeparator:1; // pretty much no other data is useful...
-	_32 bOwnerDraw:1; // information is only useful to an external routine
-	_32 bHasText:1;   // text field valid...
-	_32 bChecked:1;
-	_32 bSelected:1; // current option shown...
-	_32 bOpen:1; // sub menu with active popup shown
-	_32 bSubMenu:1; // data content is a submenu.. else ID data
+	uint32_t bSeparator:1; // pretty much no other data is useful...
+	uint32_t bOwnerDraw:1; // information is only useful to an external routine
+	uint32_t bHasText:1;   // text field valid...
+	uint32_t bChecked:1;
+	uint32_t bSelected:1; // current option shown...
+	uint32_t bOpen:1; // sub menu with active popup shown
+	uint32_t bSubMenu:1; // data content is a submenu.. else ID data
 } ITEMFLAGS;
 
 typedef struct draw_popup_item_tag  DRAWPOPUPITEM;
@@ -59,18 +59,18 @@ typedef struct draw_popup_item_tag  *PDRAWPOPUPITEM;
 // duplicated in controls.h - applications need this structure...
 struct draw_popup_item_tag 
 {
-	PTRSZVAL ID;
+	uintptr_t ID;
 	struct {
-		_32 selected : 1;
-		_32 checked  : 1;
+		uint32_t selected : 1;
+		uint32_t checked  : 1;
 	} flags;
 	union {
 		struct {
-			_32 width, height;
+			uint32_t width, height;
 		} measure;
 		struct {
-			S_32 x, y;
-			_32 width, height;
+			int32_t x, y;
+			uint32_t width, height;
 			Image image;
 		} draw;
 	};
@@ -92,14 +92,14 @@ typedef struct menuitem_tag {
 		} owner;
 	} data;
 	union {
-  		PTRSZVAL userdata;
-		PTRSZVAL ID;
+  		uintptr_t userdata;
+		uintptr_t ID;
 		PMENU menu;
 	} value;
 	int baseline;
-   _32 height; // not including +2 for above/below highlights
-   _32 width; // reported from owner draw measuring...
-   _32 offset; // left offset (for check/icon space)
+   uint32_t height; // not including +2 for above/below highlights
+   uint32_t width; // reported from owner draw measuring...
+   uint32_t offset; // left offset (for check/icon space)
 	struct menuitem_tag *next, **me;
 } MENUITEM;
 

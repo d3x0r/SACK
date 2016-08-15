@@ -23,13 +23,13 @@ typedef void (CPROC *Update3dProc)(PTRANSFORM);
 struct plugin_reference
 {
 	CTEXTSTR name;
-	PTRSZVAL psv;
+	uintptr_t psv;
 	void (CPROC *Update3d)(PTRANSFORM origin);
-	void (CPROC *FirstDraw3d)(PTRSZVAL);
-	void (CPROC *ExtraDraw3d)(PTRSZVAL,PTRANSFORM camera);
-	void (CPROC *Draw3d)(PTRSZVAL);
-	LOGICAL (CPROC *Mouse3d)(PTRSZVAL,PRAY,S_32,S_32,_32);
-   LOGICAL (CPROC *Key3d)(PTRSZVAL,_32);
+	void (CPROC *FirstDraw3d)(uintptr_t);
+	void (CPROC *ExtraDraw3d)(uintptr_t,PTRANSFORM camera);
+	void (CPROC *Draw3d)(uintptr_t);
+	LOGICAL (CPROC *Mouse3d)(uintptr_t,PRAY,int32_t,int32_t,uint32_t);
+   LOGICAL (CPROC *Key3d)(uintptr_t,uint32_t);
 };
 
 struct display_camera
@@ -117,8 +117,8 @@ typedef struct vidlib_local_tag
 	PVIDEO hCapturedPrior;
 	// kbd.key == KeyboardState
 	KEYBOARD kbd;
-	_32 dwMsgBase;
-	//_32 pid;
+	uint32_t dwMsgBase;
+	//uint32_t pid;
 	//char KeyboardState[256];   // export for key procs to reference...
 	PLIST keyhooks;
 	PLIST ll_keyhooks;
@@ -130,7 +130,7 @@ typedef struct vidlib_local_tag
 	BOOL (WINAPI *UpdateLayeredWindowIndirect )(HWND hWnd, const UPDATELAYEREDWINDOWINFO *pULWInfo);
 #endif
 #endif
-	_32 last_mouse_update; // last tick the mouse moved.
+	uint32_t last_mouse_update; // last tick the mouse moved.
 	UINT_PTR mouse_timer_id;
 	UINT_PTR redraw_timer_id;
 

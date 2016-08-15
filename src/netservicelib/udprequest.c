@@ -11,10 +11,10 @@
 
 typedef struct responce_handlers{
 	SOCKADDR *saAsk;
-	_16 port;
+	uint16_t port;
 	int timer;
-	int (CPROC*HandleResponce)( PTRSZVAL psv, SOCKADDR *responder );
-   PTRSZVAL psvUser;
+	int (CPROC*HandleResponce)( uintptr_t psv, SOCKADDR *responder );
+   uintptr_t psvUser;
 	struct responce_handlers *next, **me;
 } RESPONCEHANDLER, *PRESPONCEHANDLER;
 
@@ -51,7 +51,7 @@ struct handler_params {
 	SOCKADDR *sa;
 } param;
 
-PTRSZVAL CPROC InvokeHandler( PTHREAD thread )
+uintptr_t CPROC InvokeHandler( PTHREAD thread )
 {
 	struct handler_params *params = (struct handler_params*)GetThreadParam( thread );
 	params->received = 1;
@@ -68,10 +68,10 @@ static void CPROC UDPMessage( PCLIENT pc, POINTER buffer, size_t size, SOCKADDR 
 	}
 	else
 	{
-		if( *(_64*)buffer == *(_64*)"IM HERE!" )
+		if( *(uint64_t*)buffer == *(uint64_t*)"IM HERE!" )
 		{
 			PRESPONCEHANDLER prh = responders;
-			_16 port;// = GetNetworkLong( pc, GNL_PORT );
+			uint16_t port;// = GetNetworkLong( pc, GNL_PORT );
 			GetAddressParts( sa, NULL, &port );
 			//Log( WIDE("Received a responce from service!") );
 			while( prh && (prh->port != port ) )
@@ -85,7 +85,7 @@ static void CPROC UDPMessage( PCLIENT pc, POINTER buffer, size_t size, SOCKADDR 
 				param.prh = prh;
 				param.received =0;
 				//Log( WIDE("Found a service handler, calling it...") );
-				ThreadTo( InvokeHandler, (PTRSZVAL)&param );
+				ThreadTo( InvokeHandler, (uintptr_t)&param );
 				while( !param.received )
 					Relinquish();
 			}
@@ -99,8 +99,8 @@ static void CPROC UDPMessage( PCLIENT pc, POINTER buffer, size_t size, SOCKADDR 
 
 NETSERVICE_PROC( int, DiscoverServiceEx )( int netwide
 													, int port
-													, int (CPROC*Handler)( PTRSZVAL psv, SOCKADDR *responder )
-													, PTRSZVAL psvUser 
+													, int (CPROC*Handler)( uintptr_t psv, SOCKADDR *responder )
+													, uintptr_t psvUser 
 													, int bRespond )
 {
 	PRESPONCEHANDLER handler = New( RESPONCEHANDLER );
@@ -127,15 +127,15 @@ NETSERVICE_PROC( int, DiscoverServiceEx )( int netwide
 	if( ( handler->next = responders ) )
 		responders->me = &handler->next;
 	responders = handler;
-	handler->timer = AddTimerEx( 1000, 10000, (void (CPROC*)(PTRSZVAL))RequestTimer, (PTRSZVAL)handler );
+	handler->timer = AddTimerEx( 1000, 10000, (void (CPROC*)(uintptr_t))RequestTimer, (uintptr_t)handler );
         
    return 1;
 }
 
 int DiscoverService ( int netwide
 													, int port
-													, int (CPROC*Handler)( PTRSZVAL psv, SOCKADDR *responder )
-													, PTRSZVAL psvUser )
+													, int (CPROC*Handler)( uintptr_t psv, SOCKADDR *responder )
+													, uintptr_t psvUser )
 {
 	return DiscoverServiceEx( netwide, port, Handler, psvUser, 0 );
 }

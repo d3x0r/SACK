@@ -17,7 +17,7 @@ void LoadCardset( char *name, int *card_count, char **result_faces )
 		if( file )
 		{
 			char card[12];
-			_32 length;
+			uint32_t length;
 			fseek( file, 0, SEEK_END );
 			length = ftell( file );
 			fseek( file, 0, SEEK_SET );

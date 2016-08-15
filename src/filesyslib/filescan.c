@@ -190,7 +190,7 @@ typedef struct result_buffer
 	int result_len;
 } RESULT_BUFFER, *PRESULT_BUFFER;
 
-static void CPROC MatchFile( PTRSZVAL psvUser, CTEXTSTR name, int flags )
+static void CPROC MatchFile( uintptr_t psvUser, CTEXTSTR name, int flags )
 {
 	PRESULT_BUFFER buffer = (PRESULT_BUFFER)psvUser;
 	buffer->result_len = tnprintf( buffer->buffer, buffer->len*sizeof(TEXTCHAR), WIDE("%s"), name );
@@ -205,7 +205,7 @@ int  GetMatchingFileName ( CTEXTSTR filemask, int flags, TEXTSTR pResult, int nR
 	result_buf.result_len = 0;
 	// may need a while loop here...
 	// but I'm just going to result the first matching anyhow.
-	while( ScanFiles( NULL, filemask, &info, MatchFile, flags, (PTRSZVAL)&result_buf ) );
+	while( ScanFiles( NULL, filemask, &info, MatchFile, flags, (uintptr_t)&result_buf ) );
 	return result_buf.result_len;
 }
 
@@ -288,9 +288,9 @@ typedef struct myfinddata {
  int  ScanFilesEx ( CTEXTSTR base
            , CTEXTSTR mask
            , void **pInfo
-           , void CPROC Process( PTRSZVAL psvUser, CTEXTSTR name, int flags )
+           , void CPROC Process( uintptr_t psvUser, CTEXTSTR name, int flags )
            , int flags 
-           , PTRSZVAL psvUser 
+           , uintptr_t psvUser 
 		   , LOGICAL begin_sub_path 
 		   , struct file_system_mounted_interface *mount
 		   )
@@ -750,9 +750,9 @@ getnext:
  int  ScanFiles ( CTEXTSTR base
                 , CTEXTSTR mask
                 , void **pInfo
-                , void CPROC Process( PTRSZVAL psvUser, CTEXTSTR name, int flags )
+                , void CPROC Process( uintptr_t psvUser, CTEXTSTR name, int flags )
                 , int flags 
-                , PTRSZVAL psvUser )
+                , uintptr_t psvUser )
  {
 	 return ScanFilesEx( base, mask, pInfo, Process, flags, psvUser, FALSE, NULL );
  }
@@ -760,14 +760,14 @@ getnext:
 
 //---------------------------------------------------------------------------
 
- void  ScanDrives ( void (CPROC*Process)(PTRSZVAL user, CTEXTSTR letter, int flags)
-									, PTRSZVAL user )
+ void  ScanDrives ( void (CPROC*Process)(uintptr_t user, CTEXTSTR letter, int flags)
+									, uintptr_t user )
 {
 #ifdef WIN32
 #  ifdef UNDER_CE
 	Process( user, WIDE(""), SFF_DRIVE );
 #  else
-	_32 drives;
+	uint32_t drives;
 	int i;
 	drives = GetLogicalDrives();
 	for( i = 0; i < 26; i++ )

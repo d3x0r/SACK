@@ -5,8 +5,8 @@ int main( void )
 {
 	CTEXTSTR key = GetGUID();
 	CTEXTSTR zero = GuidZero();
-	_32 tick = timeGetTime();
-   _32 othertick;
+	uint32_t tick = timeGetTime();
+   uint32_t othertick;
 	int n;
 	for( n = 0; n < 10000; n++ )
 		GetSeqGUID();

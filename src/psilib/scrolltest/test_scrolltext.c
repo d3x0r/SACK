@@ -4,7 +4,7 @@
 PSI_CONTROL t1, t2;
 PSI_CONTROL t3, t4;
 
-void CPROC DoScroll( PTRSZVAL psv )
+void CPROC DoScroll( uintptr_t psv )
 {
 	static int n;
 	static int m;

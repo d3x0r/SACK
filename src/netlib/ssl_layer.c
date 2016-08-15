@@ -17,7 +17,7 @@ struct ssl_session {
 	sslKeys_t		*keys;
 	//sslSessionId_t	*sid;
 	ssl_t           *ssl;
-	_32 dwReadFlags; // CF_CPPREAD
+	uint32_t dwReadFlags; // CF_CPPREAD
 	cReadComplete user_read;
 	cppReadComplete  cpp_user_read;
 };
@@ -154,7 +154,7 @@ static int32 loadRsaKeys( sslKeys_t *keys, LOGICAL client )
 			if( file )
 			{
 				priv_key_len = sack_fsize( file );
-				priv_key = NewArray( _8, priv_key_len );
+				priv_key = NewArray( uint8_t, priv_key_len );
 
 				sack_fread( priv_key, 1, priv_key_len, file );
 				sack_fclose( file );
@@ -172,7 +172,7 @@ static int32 loadRsaKeys( sslKeys_t *keys, LOGICAL client )
 		}
 
 		if( CAstreamLen )
-			CAstream = NewArray( _8, CAstreamLen);
+			CAstream = NewArray( uint8_t, CAstreamLen);
 		CAstreamLen = 0;
 		for( n = 0; n < ( sizeof( default_certs ) / sizeof( default_certs[0] ) ); n++ )
 		{
@@ -210,7 +210,7 @@ static int32 loadRsaKeys( sslKeys_t *keys, LOGICAL client )
 		if( file )
 		{
 			cert_key_len = sack_fsize( file );
-			cert_key = NewArray( _8, cert_key_len );
+			cert_key = NewArray( uint8_t, cert_key_len );
 
 			sack_fread( cert_key, 1, cert_key_len, file );
 			sack_fclose( file );
@@ -229,7 +229,7 @@ static int32 loadRsaKeys( sslKeys_t *keys, LOGICAL client )
 		if (rc < 0) {
 			lprintf("No certificate material loaded.  Exiting");
 			//if (CAstream) {
-			//	Deallocate(P_8, CAstream);
+			//	Deallocate(uint8_t*, CAstream);
 			//}
 			matrixSslDeleteKeys(keys);
 			matrixSslClose();
@@ -454,7 +454,7 @@ static void ssl_ReadComplete( PCLIENT pc, POINTER buffer, size_t length )
 
 	if( pc->ssl_session )
 	{
-		S_32 len;
+		int32_t len;
 		unsigned char *buf;
 		if ((len = matrixSslGetReadbuf(pc->ssl_session->ssl, &buf)) <= 0) {
 			lprintf( "need error handling failed to get a buffer?" );
@@ -571,7 +571,7 @@ static void ssl_ServerReadComplete( PCLIENT pc, POINTER buffer, size_t length )
 
 	if( pc->ssl_session )
 	{
-		S_32 len;
+		int32_t len;
 		unsigned char *buf;
 		if ((len = matrixSslGetReadbuf(pc->ssl_session->ssl, &buf)) <= 0) {
 			lprintf( "need error handling failed to get a buffer?" );
@@ -689,7 +689,7 @@ LOGICAL ssl_BeginClientSession( PCLIENT pc )
 		return FALSE;
 	}
 	{
-		S_32 len;
+		int32_t len;
 		unsigned char *buf;
 		// begin initial communication
 		while( (len = matrixSslGetOutdata(pc->ssl_session->ssl, &buf)) > 0 )
@@ -702,7 +702,7 @@ LOGICAL ssl_BeginClientSession( PCLIENT pc )
 	return TRUE;
 }
 
-static void CPROC keyGenEnd( PTRSZVAL psv, PTASK_INFO task ){
+static void CPROC keyGenEnd( uintptr_t psv, PTASK_INFO task ){
 	((LOGICAL*)psv)[0] = TRUE;
 
 }

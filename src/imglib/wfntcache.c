@@ -57,9 +57,9 @@ namespace image {
 typedef struct cache_build_tag
 {
 	struct {
-		_32 initialized : 1;
-		_32 show_mono_only : 1;
-		_32 show_prop_only : 1;
+		uint32_t initialized : 1;
+		uint32_t show_mono_only : 1;
+		uint32_t show_prop_only : 1;
 	} flags;
 	// this really has no sorting
 	// just a list of FONT_ENTRYs
@@ -72,31 +72,31 @@ typedef struct cache_build_tag
 	PTREEROOT pFontCache;
 
    // when we read the cache from disk - use these....
-	_32 nPaths;
+	uint32_t nPaths;
 	TEXTCHAR* *pPathList;
 	TEXTCHAR *pPathNames; // slab of ALL names?
-	_32 nFiles;
+	uint32_t nFiles;
 	TEXTCHAR* *pFileList;
 	TEXTCHAR *pFileNames; // slab of ALL names?
-	_32 nStyles;
+	uint32_t nStyles;
 	TEXTCHAR* *pStyleList;
 	TEXTCHAR *pStyleNames; // slab of ALL names?
-	_32 nFamilies;
+	uint32_t nFamilies;
 	TEXTCHAR* *pFamilyList;
 	TEXTCHAR *pFamilyNames; // slab of ALL names?
 
 	PFONT_STYLE pStyleSlab;
-	_32 nStyle;
+	uint32_t nStyle;
 	PAPP_SIZE_FILE pSizeFileSlab;
-	_32 nSizeFile;
+	uint32_t nSizeFile;
 	PSIZES pSizeSlab;
-   _32 nSize;
+   uint32_t nSize;
 	PALT_SIZE_FILE pAltSlab;
-   _32 nAlt;
+   uint32_t nAlt;
 
 } CACHE_BUILD, *PCACHE_BUILD;
 
-_64 fontcachetime;
+uint64_t fontcachetime;
 static CACHE_BUILD build;
 
 //-------------------------------------------------------------------------
@@ -180,7 +180,7 @@ void DoSHA1( PSIZE_FILE file )
 	if( file->path && file->file )
 	{
 		snprintf( filename, sizeof( filename ), WIDE("%s/%s"), file->path->word, file->file->word );
-		memmap = OpenSpace( NULL, filename, (PTRSZVAL*)&size );
+		memmap = OpenSpace( NULL, filename, (uintptr_t*)&size );
 		SHA1Reset( &Sha1Context );
 		SHA1Input( &Sha1Context, (uint8_t*)memmap, size );
 		SHA1Result( &Sha1Context, file->SHA1 );
@@ -260,14 +260,14 @@ int UniqueStrCmp( TEXTCHAR *s1, INDEX s1_length, TEXTCHAR *s2 )
 
 //-------------------------------------------------------------------------
 
-void CPROC DestroyDictEntry( POINTER psvEntry, PTRSZVAL key )
+void CPROC DestroyDictEntry( POINTER psvEntry, uintptr_t key )
 {
    Release( psvEntry );
 }
 
 //-------------------------------------------------------------------------
 
-static int CPROC MyStrCmp( PTRSZVAL s1, PTRSZVAL s2 )
+static int CPROC MyStrCmp( uintptr_t s1, uintptr_t s2 )
 {
    return strcmp( (TEXTCHAR*)s1, (TEXTCHAR*)s2 );
 }
@@ -286,10 +286,10 @@ PDICT_ENTRY AddDictEntry( PTREEROOT *root, CTEXTSTR name )
 	len = strlen( name );
 	pde = (PDICT_ENTRY)Allocate( sizeof( DICT_ENTRY ) + len*sizeof(pde->word[0]));
 	StrCpyEx( pde->word, name, len + 1 );
-	if( !AddBinaryNode( *root, pde, (PTRSZVAL)pde->word ) )
+	if( !AddBinaryNode( *root, pde, (uintptr_t)pde->word ) )
 	{
 		Release( pde );
-		pde = (PDICT_ENTRY)FindInBinaryTree( *root, (PTRSZVAL)name );
+		pde = (PDICT_ENTRY)FindInBinaryTree( *root, (uintptr_t)name );
 	}
 	return pde;
 }
@@ -327,7 +327,7 @@ PDICT_ENTRY AddPath( CTEXTSTR filepath, PDICT_ENTRY *file )
 void SetIDs( PTREEROOT root )
 {
 	PDICT_ENTRY pde;
-	_32 ID = 0;
+	uint32_t ID = 0;
 	for( pde = (PDICT_ENTRY)GetLeastNode( root );
 		 pde;
 		  pde = (PDICT_ENTRY)GetGreaterNode( root ) )
@@ -345,10 +345,10 @@ PFONT_ENTRY AddFontEntry( PDICT_ENTRY name )
 	if( !build.pFontCache )
 	{
 		build.pFontCache = CreateBinaryTreeEx( MyStrCmp
-														 , (void(CPROC *)(POINTER,PTRSZVAL))DestroyFontEntry );
+														 , (void(CPROC *)(POINTER,uintptr_t))DestroyFontEntry );
 	}
 
-	pfe = (PFONT_ENTRY)FindInBinaryTree( build.pFontCache, (PTRSZVAL)name->word );
+	pfe = (PFONT_ENTRY)FindInBinaryTree( build.pFontCache, (uintptr_t)name->word );
 	if( !pfe )
 	{
 		pfe = (PFONT_ENTRY)Allocate( sizeof( FONT_ENTRY ) );
@@ -356,7 +356,7 @@ PFONT_ENTRY AddFontEntry( PDICT_ENTRY name )
 		pfe->name = name;
 		pfe->nStyles = 0;
 		pfe->styles = NULL;
-		AddBinaryNode( build.pFontCache, pfe, (PTRSZVAL)name->word );
+		AddBinaryNode( build.pFontCache, pfe, (uintptr_t)name->word );
 	}
 	return pfe;
 }
@@ -375,7 +375,7 @@ void AddAlternateSizeFile( PSIZE_FILE psfBase, PDICT_ENTRY path, PDICT_ENTRY fil
 
 //-------------------------------------------------------------------------
 
-void AddSizeToFile( PSIZE_FILE psf, S_16 width, S_16 height )
+void AddSizeToFile( PSIZE_FILE psf, int16_t width, int16_t height )
 {
 	if( psf )
 	{
@@ -441,9 +441,9 @@ PSIZE_FILE AddSizeFileEx( PFONT_STYLE pfs
 }
 
 //-------------------------------------------------------------------------
-static _32 fonts_checked;
+static uint32_t fonts_checked;
 
-void CPROC ListFontFile( PTRSZVAL psv, CTEXTSTR name, int flags )
+void CPROC ListFontFile( uintptr_t psv, CTEXTSTR name, int flags )
 {
 	FT_Face face;
 	int face_idx;
@@ -669,10 +669,10 @@ void DumpFontCache( void )
 	// slightly complex loop to scan cache as it is, and
    // write out total styles, alt files, and sizes...
 	{
-		_32 nStyles = 0;
-		_32 nSizeFiles = 0;
-		_32 nAltFiles = 0;
-		_32 nSizes = 0;
+		uint32_t nStyles = 0;
+		uint32_t nSizeFiles = 0;
+		uint32_t nAltFiles = 0;
+		uint32_t nSizes = 0;
 		for( pfe = (PFONT_ENTRY)GetLeastNode( build.pFontCache );
 			  pfe;
 			  pfe = (PFONT_ENTRY)GetGreaterNode( build.pFontCache ) )
@@ -859,7 +859,7 @@ void DumpFontCache( void )
 
 #ifdef _DEBUG
 
-INDEX IndexOf( TEXTCHAR **list, _32 count, POINTER item )
+INDEX IndexOf( TEXTCHAR **list, uint32_t count, POINTER item )
 {
 	INDEX idx;
 	for( idx = 0; idx < count; idx++)
@@ -876,7 +876,7 @@ void DumpLoadedFontCache( void )
 {
 	FILE *out;
 	PFONT_ENTRY pfe;
-	_32 fontidx, idx;
+	uint32_t fontidx, idx;
 	Fopen( out, WIDE("Fonts.Cache1"), WIDE("wt") );
 	if( !out )
 		return;
@@ -888,10 +888,10 @@ void DumpLoadedFontCache( void )
 	{
 		INDEX fontidx, styleidx, idx;
 		PFONT_ENTRY pfe;
-		_32 nStyles = 0;
-		_32 nSizeFiles = 0;
-		_32 nAltFiles = 0;
-		_32 nSizes = 0;
+		uint32_t nStyles = 0;
+		uint32_t nSizeFiles = 0;
+		uint32_t nAltFiles = 0;
+		uint32_t nSizes = 0;
 		for( fontidx = 0; pfe = fg.pFontCache + fontidx, fontidx < fg.nFonts; fontidx++ )
 		{
 			PAPP_SIZE_FILE psf;
@@ -1053,10 +1053,10 @@ void UnloadFontBuilder( void )
 #define TXT_STATUS  100
 #define TXT_TIME_STATUS 101
 #define TXT_COUNT_STATUS 102
-static _32 StartTime;
+static uint32_t StartTime;
 static int TimeElapsed;
 
-void CPROC UpdateStatus( PTRSZVAL psvFrame )
+void CPROC UpdateStatus( uintptr_t psvFrame )
 {
 	TEXTCHAR msg[256];
 	if( !StartTime )
@@ -1084,7 +1084,7 @@ void CPROC UpdateStatus( PTRSZVAL psvFrame )
 
 //-------------------------------------------------------------------------
 
-void CPROC ScanDrive( PTRSZVAL user, TEXTCHAR *letter, int flags )
+void CPROC ScanDrive( uintptr_t user, TEXTCHAR *letter, int flags )
 {
 	TEXTCHAR base[5];
 	void *data = NULL;
@@ -1102,7 +1102,7 @@ void CPROC ScanDrive( PTRSZVAL user, TEXTCHAR *letter, int flags )
 void BuildFontCache( void )
 {
 	void *data = NULL;
-	_32 timer;
+	uint32_t timer;
 #ifdef __CAN_USE_CACHE_DIALOG__
 	PCOMMON status;
 	status = CreateFrame( WIDE("Font Cache Status")
@@ -1121,7 +1121,7 @@ void BuildFontCache( void )
 #endif
 #ifdef __CAN_USE_CACHE_DIALOG__
 	timer = AddTimer( 100, UpdateStatus
-		, (PTRSZVAL)status
+		, (uintptr_t)status
 		);
 #else
 	timer = AddTimer( 100, UpdateStatus
@@ -1149,7 +1149,7 @@ void BuildFontCache( void )
 	//while( ScanFiles( WIDE("/."), WIDE("*.ttf\t*.fon\t*.TTF\t*.pcf.gz\t*.pf?\t*.fnt\t*.psf.gz"), &data
 	//					 , ListFontFile, SFF_SUBCURSE, 0 ) );
 #else
-	//ScanDrives( ScanDrive, (PTRSZVAL)NULL );
+	//ScanDrives( ScanDrive, (uintptr_t)NULL );
 	//while( ScanFiles( WIDE("/."), WIDE("*.ttf\t*.fon\t*.TTF\t*.pcf.gz\t*.pf?\t*.fnt\t*.psf.gz"), &data
 	//					 , ListFontFile, SFF_SUBCURSE, 0 ) );
 #endif
@@ -1205,17 +1205,17 @@ void LoadAllFonts( void )
 		char fgets_buf[128];
 		TEXTCHAR *buf;
 		size_t len;
-		_32 PathID = 0;
+		uint32_t PathID = 0;
 		size_t PathOfs = 0;
-		_32 FamilyID = 0;
+		uint32_t FamilyID = 0;
 		size_t FamilyOfs = 0;
-		_32 StyleID = 0;
+		uint32_t StyleID = 0;
 		size_t StyleOfs = 0;
-		_32 FileID = 0;
+		uint32_t FileID = 0;
 		size_t FileOfs = 0;
-		//_32 line = 0;
-		_32 nFont = 0; // which font we're currently reading for.
-		_64 tmpfiletime = GetFileWriteTime( WIDE("Fonts.Cache") );
+		//uint32_t line = 0;
+		uint32_t nFont = 0; // which font we're currently reading for.
+		uint64_t tmpfiletime = GetFileWriteTime( WIDE("Fonts.Cache") );
 		if( fontcachetime == tmpfiletime )
 		{
 			sack_fclose( in );
@@ -1287,10 +1287,10 @@ void LoadAllFonts( void )
 					break;
 				case '#':
 					{
-						_32 nStyles;
-						_32 nSizeFiles;
-						_32 nAltFiles;
-						_32 nSizes;
+						uint32_t nStyles;
+						uint32_t nSizeFiles;
+						uint32_t nAltFiles;
+						uint32_t nSizes;
 #ifdef __cplusplus_cli
 #define SCANBUF mybuf
 						char *mybuf = CStrDup( buf + 2 );
@@ -1361,7 +1361,7 @@ void LoadAllFonts( void )
 					*(count++) = 0;
 					pfe = fg.pFontCache + nFont++;
 					{
-						_32 nStyles = atoi( count );
+						uint32_t nStyles = atoi( count );
 						pfe->flags.unusable = 0;
 						pfe->nStyles = 0; // use this to count...
 						pfe->styles = (PLIST)(build.pStyleSlab + build.nStyle);
@@ -1414,7 +1414,7 @@ void LoadAllFonts( void )
 					{
 						// continue size-fonts... (on style)
 						TEXTCHAR *width, *height;
-						S_16 nWidth, nHeight;
+						int16_t nWidth, nHeight;
 						TEXTCHAR *PathID;
 						TEXTCHAR *file;
 						while( ( count = next ) && next[0] )

@@ -96,7 +96,7 @@ class ZRender_Interface
     ZVoxelTypeManager * VoxelTypeManager;
     ZTextureManager  * TextureManager;
 public:
-	PTRSZVAL current_gl_camera;
+	uintptr_t current_gl_camera;
     ZCamera     * Camera;
     float *Aspect_Ratio;
 protected:
@@ -199,8 +199,8 @@ protected:
 
     void Init();
     void Cleanup() { }
-    Bool LoadVoxelTexturesToGPU(PTRSZVAL psvInit);
-    Bool LoadTexturesToGPU(PTRSZVAL psvInit);
+    Bool LoadVoxelTexturesToGPU(uintptr_t psvInit);
+    Bool LoadTexturesToGPU(uintptr_t psvInit);
 
 
     void Render_DebugLine       ( ZVector3f & Start, ZVector3f & End);

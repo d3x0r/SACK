@@ -22,7 +22,7 @@ static int BeginNetwork( void )
 	if( !pcCommand )
 	{
 		srand( GetTickCount() );
-		pcCommand = ConnectUDP( NULL, (_16)(3000 + rand() % 10000), WIDE("255.255.255.255"), 3020, NULL, NULL );
+		pcCommand = ConnectUDP( NULL, (uint16_t)(3000 + rand() % 10000), WIDE("255.255.255.255"), 3020, NULL, NULL );
 	}
 
 
@@ -40,7 +40,7 @@ SaneWinMain( argc, argv )
 	if( argc > 1 )
 		if( BeginNetwork() )
 		{
-			_32 packet[3];
+			uint32_t packet[3];
 			packet[0] = timeGetTime();
 			packet[1] = 0;
 			packet[2] = atoi( argv[1] );

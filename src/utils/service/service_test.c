@@ -4,7 +4,7 @@
 static PTASK_INFO task;
 static PTHREAD waiting;
 
-static void CPROC MyTaskDone( PTRSZVAL psv, PTASK_INFO task )
+static void CPROC MyTaskDone( uintptr_t psv, PTASK_INFO task )
 {
 	task = NULL;
    WakeThread( waiting );

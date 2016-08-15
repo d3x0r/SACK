@@ -79,7 +79,7 @@ static void SetEnvVariable( CTEXTSTR name, CTEXTSTR value, LOGICAL bUser )
 #endif
 }
 
-static void OnKeyPressEvent( WIDE( "InterShell/Set Environment" ) )( PTRSZVAL psv )
+static void OnKeyPressEvent( WIDE( "InterShell/Set Environment" ) )( uintptr_t psv )
 {
 	PSETVAR pSetVar = (PSETVAR)psv;
 	SetEnvVariable( pSetVar->varname, pSetVar->newval, pSetVar->bUser );
@@ -87,17 +87,17 @@ static void OnKeyPressEvent( WIDE( "InterShell/Set Environment" ) )( PTRSZVAL ps
 	//return 1;
 }
 
-static PTRSZVAL OnCreateMenuButton( WIDE( "InterShell/Set Environment" ) )( PMENU_BUTTON button )
+static uintptr_t OnCreateMenuButton( WIDE( "InterShell/Set Environment" ) )( PMENU_BUTTON button )
 {
 	PSETVAR pSetVar = New( SETVAR );
 	pSetVar->varname = NULL;
 	pSetVar->newval = NULL;
 	InterShell_SetButtonStyle( button, WIDE( "bicolor square" ) );
 
-	return (PTRSZVAL)pSetVar;
+	return (uintptr_t)pSetVar;
 }
 
-static PTRSZVAL OnConfigureControl( WIDE( "InterShell/Set Environment" ) )( PTRSZVAL psv, PSI_CONTROL parent )
+static uintptr_t OnConfigureControl( WIDE( "InterShell/Set Environment" ) )( uintptr_t psv, PSI_CONTROL parent )
 {
 	PSETVAR pSetVar = (PSETVAR)psv;
 	PSI_CONTROL frame;
@@ -134,7 +134,7 @@ static PTRSZVAL OnConfigureControl( WIDE( "InterShell/Set Environment" ) )( PTRS
 	return psv;
 }
 
-static void OnSaveControl( WIDE( "InterShell/Set Environment" ) )( FILE *file, PTRSZVAL psv )
+static void OnSaveControl( WIDE( "InterShell/Set Environment" ) )( FILE *file, uintptr_t psv )
 {
 	PSETVAR pSetVar = (PSETVAR)psv;
 	sack_fprintf( file, WIDE( "Set Environment User=%s\n" ), pSetVar->bUser?WIDE("yes"):WIDE("no") );
@@ -142,7 +142,7 @@ static void OnSaveControl( WIDE( "InterShell/Set Environment" ) )( FILE *file, P
 	sack_fprintf( file, WIDE( "Set Environment text value=%s\n" ), EscapeMenuString( pSetVar->newval ) );
 }
 
-static void OnCloneControl( WIDE( "InterShell/Set Environment" ) )( PTRSZVAL psvNew, PTRSZVAL psvOld )
+static void OnCloneControl( WIDE( "InterShell/Set Environment" ) )( uintptr_t psvNew, uintptr_t psvOld )
 {
 	PSETVAR pSetVarNew = (PSETVAR)psvNew;
 	PSETVAR pSetVarOld = (PSETVAR)psvOld;
@@ -151,7 +151,7 @@ static void OnCloneControl( WIDE( "InterShell/Set Environment" ) )( PTRSZVAL psv
 	pSetVarNew->bUser = pSetVarOld->bUser;
 }
 
-static PTRSZVAL CPROC SetVariableVariableName( PTRSZVAL psv, arg_list args )
+static uintptr_t CPROC SetVariableVariableName( uintptr_t psv, arg_list args )
 {
 	PARAM( args, CTEXTSTR, name );
 	PSETVAR pSetVar = (PSETVAR)psv;
@@ -159,7 +159,7 @@ static PTRSZVAL CPROC SetVariableVariableName( PTRSZVAL psv, arg_list args )
 	return psv;
 }
 
-static PTRSZVAL CPROC SetVariableVariableValue( PTRSZVAL psv, arg_list args )
+static uintptr_t CPROC SetVariableVariableValue( uintptr_t psv, arg_list args )
 {
 	PARAM( args, CTEXTSTR, name );
 	PSETVAR pSetVar = (PSETVAR)psv;
@@ -167,7 +167,7 @@ static PTRSZVAL CPROC SetVariableVariableValue( PTRSZVAL psv, arg_list args )
 	return psv;
 }
 
-static PTRSZVAL CPROC SetVariableUser( PTRSZVAL psv, arg_list args )
+static uintptr_t CPROC SetVariableUser( uintptr_t psv, arg_list args )
 {
 	PARAM( args, LOGICAL, bUser );
 	PSETVAR pSetVar = (PSETVAR)psv;
@@ -175,7 +175,7 @@ static PTRSZVAL CPROC SetVariableUser( PTRSZVAL psv, arg_list args )
 	return psv;
 }
 
-static void OnLoadControl( WIDE( "InterShell/Set Environment" ) )( PCONFIG_HANDLER pch, PTRSZVAL psv )
+static void OnLoadControl( WIDE( "InterShell/Set Environment" ) )( PCONFIG_HANDLER pch, uintptr_t psv )
 {
 	AddConfigurationMethod( pch,  WIDE( "Set Environment user=%b" ), SetVariableUser );
 	AddConfigurationMethod( pch,  WIDE( "Set Environment text name=%m" ), SetVariableVariableName );

@@ -12,7 +12,7 @@ typedef struct mydatapath_tag {
    DATAPATH common;
 
    struct {
-		_32 outbound : 1;
+		uint32_t outbound : 1;
    } flags;
    PTEXT tokens;
 } MYDATAPATH, *PMYDATAPATH;

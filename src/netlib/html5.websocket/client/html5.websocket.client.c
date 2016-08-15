@@ -34,9 +34,9 @@ static void SendRequestHeader( WebSocketClient websock )
 }
 
 
-static void CPROC WebSocketTimer( PTRSZVAL psv )
+static void CPROC WebSocketTimer( uintptr_t psv )
 {
-	_32 now;
+	uint32_t now;
 	INDEX idx;
 	WebSocketClient websock;
 	LIST_FORALL( wsc_local.clients, idx, WebSocketClient, websock )
@@ -47,11 +47,11 @@ static void CPROC WebSocketTimer( PTRSZVAL psv )
 		if( websock->flags.want_close )
 		{
 			struct {
-				_16 reason;
+				uint16_t reason;
 			} msg;
 			msg.reason = 1000; // normal
 			websock->input_state.flags.closed = 1;
-			SendWebSocketMessage( websock->pc, 8, 1, 0, (P_8)&msg, 2 );
+			SendWebSocketMessage( websock->pc, 8, 1, 0, (uint8_t*)&msg, 2 );
 		}
 
 		// do auto ping...
@@ -88,8 +88,8 @@ static void CPROC WebSocketClientReceive( PCLIENT pc, POINTER buffer, size_t len
 			if( wsc_local.opening_client )
 			{
 				SetTCPNoDelay( pc, TRUE );
-				SetNetworkLong( pc, 0, (PTRSZVAL)wsc_local.opening_client );
-				SetNetworkLong( pc, 1, (PTRSZVAL)&wsc_local.opening_client->output_state );
+				SetNetworkLong( pc, 0, (uintptr_t)wsc_local.opening_client );
+				SetNetworkLong( pc, 1, (uintptr_t)&wsc_local.opening_client->output_state );
 				wsc_local.opening_client = NULL; // clear this to allow open to return.
 			}
 			else
@@ -118,7 +118,7 @@ static void CPROC WebSocketClientReceive( PCLIENT pc, POINTER buffer, size_t len
 					if( websock->input_state.on_open )
 						websock->input_state.on_open( pc, websock->input_state.psv_on );
 					if( content )
-						ProcessWebSockProtocol( &websock->input_state, websock->pc, (P_8)GetText( content ), GetTextSize( content ) );
+						ProcessWebSockProtocol( &websock->input_state, websock->pc, (uint8_t*)GetText( content ), GetTextSize( content ) );
 				}
 			}
 			else if( (int)result >= 300 && (int)result < 400 )
@@ -137,7 +137,7 @@ static void CPROC WebSocketClientReceive( PCLIENT pc, POINTER buffer, size_t len
 		}
 		else
 		{
-			ProcessWebSockProtocol( &websock->input_state, websock->pc, (P_8)buffer, len );
+			ProcessWebSockProtocol( &websock->input_state, websock->pc, (uint8_t*)buffer, len );
 		}
 		// process buffer?
 
@@ -188,7 +188,7 @@ PCLIENT WebSocketOpen( CTEXTSTR url_address
 							, web_socket_event on_event
 							, web_socket_closed on_closed
 							, web_socket_error on_error
-							, PTRSZVAL psv )
+							, uintptr_t psv )
 {
 	WebSocketClient websock = New( struct web_socket_client );
 	if( !wsc_local.timer )
@@ -228,8 +228,8 @@ PCLIENT WebSocketOpen( CTEXTSTR url_address
 			}
 			else
 			{
-				SetNetworkLong( websock->pc, 0, (PTRSZVAL)websock );
-				SetNetworkLong( websock->pc, 1, (PTRSZVAL)&websock->output_state );
+				SetNetworkLong( websock->pc, 0, (uintptr_t)websock );
+				SetNetworkLong( websock->pc, 1, (uintptr_t)&websock->output_state );
 			}
 			while( wsc_local.opening_client )
 				Idle();
@@ -247,7 +247,7 @@ void WebSocketClose( PCLIENT pc )
    RemoveClient( pc );
 }
 
-void WebSocketEnableAutoPing( PCLIENT pc, _32 delay )
+void WebSocketEnableAutoPing( PCLIENT pc, uint32_t delay )
 {
 	WebSocketClient websock = (WebSocketClient)GetNetworkLong( pc, 0 );
 	if( websock->Magic == 0x20130911 )

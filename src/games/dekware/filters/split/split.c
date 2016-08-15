@@ -17,10 +17,10 @@ static int myTypeID;
 typedef struct mydatapath_tag {
    DATAPATH common;
    struct {
-   	_32 inbound:1;
-        _32 outbound:1;
-        _32 intoin:1; // else in to out if inbound
-        _32 outtoin:1; // else out to out if outbound
+   	uint32_t inbound:1;
+        uint32_t outbound:1;
+        uint32_t intoin:1; // else in to out if inbound
+        uint32_t outtoin:1; // else out to out if outbound
    } flags;
    PMERGEDATAPATH pMerger;  // thing to receive the split information
 } MYDATAPATH, *PMYDATAPATH;

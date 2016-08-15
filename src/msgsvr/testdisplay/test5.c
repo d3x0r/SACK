@@ -12,7 +12,7 @@ typedef struct global_tag {
 GLOBAL g;
 
 
-void CPROC RedrawTwo( PTRSZVAL psvUser, PRENDERER renderer )
+void CPROC RedrawTwo( uintptr_t psvUser, PRENDERER renderer )
 {
 	Image image = GetDisplayImage( renderer );
 	Log2( WIDE("Update image two (0,0)-(%d,%d)"), image->width, image->height );

@@ -44,7 +44,7 @@ struct keyboard_tag
    /* I'm not sure, maybe it's the printable key char? */
 		unsigned char key[NUM_KEYS];
 #if 0
-	// void (*Proc)(PTRSZVAL psv)[NUM_KEYS][8];
+	// void (*Proc)(uintptr_t psv)[NUM_KEYS][8];
 #endif
 };
 

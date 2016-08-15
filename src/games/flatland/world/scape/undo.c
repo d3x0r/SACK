@@ -104,7 +104,7 @@ void AddUndo( INDEX iWorld, int type, ... )
 	}
 }
 
-void SrvrEndUndo( _32 client_id, INDEX iWorld, int type, ... )
+void SrvrEndUndo( uint32_t client_id, INDEX iWorld, int type, ... )
 {
    GETWORLD( iWorld );
 	if( world->firstundo->type != type )
@@ -132,7 +132,7 @@ void SrvrEndUndo( _32 client_id, INDEX iWorld, int type, ... )
 	}
 }
 
-void SrvrDoUndo( _32 client_id, INDEX iWorld )
+void SrvrDoUndo( uint32_t client_id, INDEX iWorld )
 {
    GETWORLD( iWorld );
 	PUNDORECORD next;

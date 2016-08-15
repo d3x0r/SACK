@@ -5,16 +5,16 @@
 #define MASK_TOP_MASK_VAL(length,val) ((val)&( (0xFFFFFFFFUL) >> (32-(length)) ))
 #define MY_MASK_MASK_VAL(n,length,val)   (MASK_TOP_MASK_VAL(length,val) << ((n)&0x7) )
 
-#define SET_MASK(v,n,_mask_size,val)    (((MASKSET_READTYPE*)(((PTRSZVAL)(v))+(n)/CHAR_BIT))[0] =    \
-( ((MASKSET_READTYPE*)(((PTRSZVAL)(v))+(n)/CHAR_BIT))[0]                                 \
+#define SET_MASK(v,n,_mask_size,val)    (((MASKSET_READTYPE*)(((uintptr_t)(v))+(n)/CHAR_BIT))[0] =    \
+( ((MASKSET_READTYPE*)(((uintptr_t)(v))+(n)/CHAR_BIT))[0]                                 \
  & (~(MY_MASK_MASK(n,_mask_size))) )                                                                           \
 	| MY_MASK_MASK_VAL(n,_mask_size,val) )
 
 	int offset;
-	_8 buffer[100];
-	static _32 seed = 0;
+	uint8_t buffer[100];
+	static uint32_t seed = 0;
 
-void getsalt( PTRSZVAL psv, POINTER *salt, size_t *salt_size )
+void getsalt( uintptr_t psv, POINTER *salt, size_t *salt_size )
 {
 	(*salt) = &seed;
 	(*salt_size) = sizeof( seed );
@@ -49,10 +49,10 @@ int CalculateDistribution( struct random_context *ctx, int bits )
 
 	{
 		int prior = 0;
-		S_64 prior_value;
+		int64_t prior_value;
 		for( n = 0; n < 2000000000; n ++ )
 		{
-			S_64 value = SRG_GetEntropy( ctx, bits, 0 );
+			int64_t value = SRG_GetEntropy( ctx, bits, 0 );
 			d->unit_counters[value]++;
 			if( bits < 10 )
 				if( prior )
@@ -80,7 +80,7 @@ SaneWinMain( argc, argv )
 {
 	struct random_context *entropy = SRG_CreateEntropy2( getsalt, 0 );
 	int n;
-	_32 opts = 0;
+	uint32_t opts = 0;
 	seed = GetTickCount();
 	SetSyslogOptions( &opts );
 	SystemLogTime( 0 );

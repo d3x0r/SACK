@@ -77,9 +77,9 @@ typedef struct stdproc_def_tag
 #endif
 
 #define MAGIC_TREE_NUMBER 0x20040525
-#define IS_TREE_MAGIC(tree)  (*((_32*)(&(tree))) == (_32)MAGIC_TREE_NUMBER )
+#define IS_TREE_MAGIC(tree)  (*((uint32_t*)(&(tree))) == (uint32_t)MAGIC_TREE_NUMBER )
 #define MAGIC_LIST_NUMBER 0x20040911
-#define IS_LIST_MAGIC(tree)  (*((_32*)(&(tree))) == (_32)MAGIC_LIST_NUMBER )
+#define IS_LIST_MAGIC(tree)  (*((uint32_t*)(&(tree))) == (uint32_t)MAGIC_LIST_NUMBER )
 typedef struct tree_def_tag
 {
 ////////
@@ -91,7 +91,7 @@ typedef struct tree_def_tag
 // examinging the first 4 characters... however!
 // the string passed must be at least 4 bytes of
    // real memory.
-	_32 Magic;  // magic number 0x20040525
+	uint32_t Magic;  // magic number 0x20040525
 	union {
 		PTREEROOT Tree; // any option can have a tree of suboptions?
 			// a list of things may serve as lightweight alternative
@@ -105,7 +105,7 @@ DeclareSet( TREEDEF );
 
 typedef struct data_class_def_tag
 {
-   PTRSZVAL size;
+   uintptr_t size;
    OpenCloseNotification Open;
    OpenCloseNotification Close;
    INDEX unique;
@@ -117,13 +117,13 @@ typedef struct name_def_tag
 	// a member can have a string and a number
    // associated with it.
    CTEXTSTR sValue;
-   PTRSZVAL iValue;
+   uintptr_t iValue;
 } NAMEDEF, *PNAMEDEF;
 
 #ifdef __LINUX__
 typedef  struct service_tag {
 	pid_t pid;
-	_32 Msg;
+	uint32_t Msg;
 	// paramters...
 } SERVICE, *PSERVICE;
 #endif
@@ -135,8 +135,8 @@ typedef struct proc_name_tag
 		// if it does, then the tree will be non-NULL
 		BIT_FIELD bTree : 1; // else it's a proc leef...
 		BIT_FIELD bValue : 1; // name value points at a name
-		BIT_FIELD bIntVal : 1; // and value is a PTRSZVAL integer...
-		BIT_FIELD bStringVal : 1; // and value is a PTRSZVAL integer...
+		BIT_FIELD bIntVal : 1; // and value is a uintptr_t integer...
+		BIT_FIELD bStringVal : 1; // and value is a uintptr_t integer...
 		BIT_FIELD bProc : 1; // name points at a function
 		BIT_FIELD bService : 1;  // this might be fun to register names across msgsvr's
 		BIT_FIELD bData : 1; // data member defines data..
@@ -162,11 +162,11 @@ typedef struct proc_name_tag
 DeclareSet( NAME );
 
 
-#define NAMESPACE_SIZE (4096 - sizeof( _32 ) - 2 * sizeof( POINTER ))
+#define NAMESPACE_SIZE (4096 - sizeof( uint32_t ) - 2 * sizeof( POINTER ))
 
 typedef struct namespace_tag
 {
-	_32 nextname;
+	uint32_t nextname;
 	TEXTCHAR buffer[NAMESPACE_SIZE];
 	DeclareLink( struct namespace_tag );
 } NAMESPACE, *PNAMESPACE;

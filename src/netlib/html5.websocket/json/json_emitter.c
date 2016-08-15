@@ -55,7 +55,7 @@
 SACK_NAMESPACE namespace network { namespace json {
 #endif
 
-PTRSZVAL json_add_object( struct json_context *context, CTEXTSTR name, struct json_context_object *format, POINTER object );
+uintptr_t json_add_object( struct json_context *context, CTEXTSTR name, struct json_context_object *format, POINTER object );
 
 static CTEXTSTR tab_filler = WIDE("\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t");
 
@@ -171,7 +171,7 @@ void json_add_list_value( struct json_context_object *object, struct json_contex
 	vtprintf( context->pvt, WIDE( "]" ) );
 }
 
-void json_add_int_64_value( struct json_context *context, CTEXTSTR name, S_64 value )
+void json_add_int_64_value( struct json_context *context, CTEXTSTR name, int64_t value )
 {
 	if( context->human_readable )
 		vtprintf( context->pvt, WIDE("%*.*s\"%s\":%") _64fs WIDE("\n")
@@ -182,7 +182,7 @@ void json_add_int_64_value( struct json_context *context, CTEXTSTR name, S_64 va
 				  , name, value );
 }
 
-void json_add_int_32_value( struct json_context *context, CTEXTSTR name, S_32 value )
+void json_add_int_32_value( struct json_context *context, CTEXTSTR name, int32_t value )
 {
 	if( context->human_readable )
 		vtprintf( context->pvt, WIDE("%*.*s\"%s\":%") _32fs WIDE("\n")
@@ -193,7 +193,7 @@ void json_add_int_32_value( struct json_context *context, CTEXTSTR name, S_32 va
 				  , name, value );
 }
 
-void json_add_int_16_value( struct json_context *context, CTEXTSTR name, S_16 value )
+void json_add_int_16_value( struct json_context *context, CTEXTSTR name, int16_t value )
 {
 	if( context->human_readable )
 		vtprintf( context->pvt, WIDE("%*.*s\"%s\":%") _16fs WIDE("\n")
@@ -204,7 +204,7 @@ void json_add_int_16_value( struct json_context *context, CTEXTSTR name, S_16 va
 				  , name, value );
 }
 
-void json_add_int_8_value( struct json_context *context, CTEXTSTR name, S_8 value )
+void json_add_int_8_value( struct json_context *context, CTEXTSTR name, int8_t value )
 {
 	if( context->human_readable )
 		vtprintf( context->pvt, WIDE("%*.*s\"%s\":%") _8fs WIDE("\n")
@@ -217,7 +217,7 @@ void json_add_int_8_value( struct json_context *context, CTEXTSTR name, S_8 valu
 
 //----------------------------------------------------------------------------------------------
 
-void json_add_uint_64_value( struct json_context *context, CTEXTSTR name, _64 value )
+void json_add_uint_64_value( struct json_context *context, CTEXTSTR name, uint64_t value )
 {
 	if( context->human_readable )
 		vtprintf( context->pvt, WIDE("%*.*s\"%s\":%") _64f WIDE("\n")
@@ -228,7 +228,7 @@ void json_add_uint_64_value( struct json_context *context, CTEXTSTR name, _64 va
 				  , name, value );
 }
 
-void json_add_uint_32_value( struct json_context *context, CTEXTSTR name, _32 value )
+void json_add_uint_32_value( struct json_context *context, CTEXTSTR name, uint32_t value )
 {
 	if( context->human_readable )
 		vtprintf( context->pvt, WIDE("%*.*s\"%s\":%") _32f WIDE("\n")
@@ -239,7 +239,7 @@ void json_add_uint_32_value( struct json_context *context, CTEXTSTR name, _32 va
 				  , name, value );
 }
 
-void json_add_uint_16_value( struct json_context *context, CTEXTSTR name, _16 value )
+void json_add_uint_16_value( struct json_context *context, CTEXTSTR name, uint16_t value )
 {
 	if( context->human_readable )
 		vtprintf( context->pvt, WIDE("%*.*s\"%s\":%") _16f WIDE("\n")
@@ -250,7 +250,7 @@ void json_add_uint_16_value( struct json_context *context, CTEXTSTR name, _16 va
 				  , name, value );
 }
 
-void json_add_uint_8_value( struct json_context *context, CTEXTSTR name, _8 value )
+void json_add_uint_8_value( struct json_context *context, CTEXTSTR name, uint8_t value )
 {
 	if( context->human_readable )
 		vtprintf( context->pvt, WIDE("%*.*s\"%s\":%") _8f WIDE("\n")
@@ -301,7 +301,7 @@ void json_add_value_array( struct json_context *context, CTEXTSTR name, CTEXTSTR
 
 //----------------------------------------------------------------------------------------------
 
-void json_add_int_64_value_array( struct json_context *context, CTEXTSTR name, S_64* pValues, size_t nValues )
+void json_add_int_64_value_array( struct json_context *context, CTEXTSTR name, int64_t* pValues, size_t nValues )
 {
 	size_t n;
 	if( context->human_readable )
@@ -325,7 +325,7 @@ void json_add_int_64_value_array( struct json_context *context, CTEXTSTR name, S
 
 //----------------------------------------------------------------------------------------------
 
-void json_add_int_32_value_array( struct json_context *context, CTEXTSTR name, S_32* pValues, size_t nValues )
+void json_add_int_32_value_array( struct json_context *context, CTEXTSTR name, int32_t* pValues, size_t nValues )
 {
 	size_t n;
 	if( context->human_readable )
@@ -349,7 +349,7 @@ void json_add_int_32_value_array( struct json_context *context, CTEXTSTR name, S
 
 //----------------------------------------------------------------------------------------------
 
-void json_add_int_16_value_array( struct json_context *context, CTEXTSTR name, S_16* pValues, size_t nValues )
+void json_add_int_16_value_array( struct json_context *context, CTEXTSTR name, int16_t* pValues, size_t nValues )
 {
 	size_t n;
 	if( context->human_readable )
@@ -373,7 +373,7 @@ void json_add_int_16_value_array( struct json_context *context, CTEXTSTR name, S
 
 //----------------------------------------------------------------------------------------------
 
-void json_add_int_8_value_array( struct json_context *context, CTEXTSTR name, S_8* pValues, size_t nValues )
+void json_add_int_8_value_array( struct json_context *context, CTEXTSTR name, int8_t* pValues, size_t nValues )
 {
 	size_t n;
 	if( context->human_readable )
@@ -397,7 +397,7 @@ void json_add_int_8_value_array( struct json_context *context, CTEXTSTR name, S_
 
 //----------------------------------------------------------------------------------------------
 
-void json_add_uint_64_value_array( struct json_context *context, CTEXTSTR name, _64* pValues, size_t nValues )
+void json_add_uint_64_value_array( struct json_context *context, CTEXTSTR name, uint64_t* pValues, size_t nValues )
 {
 	size_t n;
 	if( context->human_readable )
@@ -421,7 +421,7 @@ void json_add_uint_64_value_array( struct json_context *context, CTEXTSTR name, 
 
 //----------------------------------------------------------------------------------------------
 
-void json_add_uint_32_value_array( struct json_context *context, CTEXTSTR name, _32* pValues, size_t nValues )
+void json_add_uint_32_value_array( struct json_context *context, CTEXTSTR name, uint32_t* pValues, size_t nValues )
 {
 	size_t n;
 	if( context->human_readable )
@@ -445,7 +445,7 @@ void json_add_uint_32_value_array( struct json_context *context, CTEXTSTR name, 
 
 //----------------------------------------------------------------------------------------------
 
-void json_add_uint_16_value_array( struct json_context *context, CTEXTSTR name, _16* pValues, size_t nValues )
+void json_add_uint_16_value_array( struct json_context *context, CTEXTSTR name, uint16_t* pValues, size_t nValues )
 {
 	size_t n;
 	if( context->human_readable )
@@ -469,7 +469,7 @@ void json_add_uint_16_value_array( struct json_context *context, CTEXTSTR name, 
 
 //----------------------------------------------------------------------------------------------
 
-void json_add_uint_8_value_array( struct json_context *context, CTEXTSTR name, _8* pValues, size_t nValues )
+void json_add_uint_8_value_array( struct json_context *context, CTEXTSTR name, uint8_t* pValues, size_t nValues )
 {
 	size_t n;
 	if( context->human_readable )
@@ -581,11 +581,11 @@ static int GetNumber( CTEXTSTR *start )
 
 //----------------------------------------------------------------------------------------------
 
-PTRSZVAL ParseFormat( struct json_context *context, CTEXTSTR format, PTRSZVAL object )
+uintptr_t ParseFormat( struct json_context *context, CTEXTSTR format, uintptr_t object )
 {
 	int padding = 0;
 	int member_offset;
-	PTRSZVAL current_obj_ofs = object;
+	uintptr_t current_obj_ofs = object;
 	CTEXTSTR start = format;
 	CTEXTSTR _start;
 	TEXTCHAR namebuf[256];
@@ -613,7 +613,7 @@ PTRSZVAL ParseFormat( struct json_context *context, CTEXTSTR format, PTRSZVAL ob
 
 	member_offset = GetNumber( &start );
 	if( member_offset )
-		current_obj_ofs = ((PTRSZVAL)object)+member_offset;
+		current_obj_ofs = ((uintptr_t)object)+member_offset;
 
 
 #define padded_add(n)	((n)<padding?padding:(n))
@@ -695,21 +695,21 @@ static size_t GetDefaultObjectSize( enum JSON_ObjectElementTypes type )
 	switch( type )
 	{
 	case JSON_Element_Integer_8:
-		return sizeof( S_8 );
+		return sizeof( int8_t );
 	case JSON_Element_Integer_16:
-		return sizeof( S_16 );
+		return sizeof( int16_t );
 	case JSON_Element_Integer_32:
- 		return sizeof( S_32 );
+ 		return sizeof( int32_t );
 	case JSON_Element_Integer_64:
- 		return sizeof( S_64 );
+ 		return sizeof( int64_t );
 	case JSON_Element_Unsigned_Integer_8:
- 		return sizeof( _8 );
+ 		return sizeof( uint8_t );
 	case JSON_Element_Unsigned_Integer_16:
-		return sizeof( _16 );
+		return sizeof( uint16_t );
 	case JSON_Element_Unsigned_Integer_32:
-		return sizeof( _32 );
+		return sizeof( uint32_t );
 	case JSON_Element_Unsigned_Integer_64:
-		return sizeof( _64 );
+		return sizeof( uint64_t );
 	case JSON_Element_String:
 		return sizeof( POINTER );
 	case JSON_Element_CharArray:
@@ -726,14 +726,14 @@ static size_t GetDefaultObjectSize( enum JSON_ObjectElementTypes type )
 		return sizeof( POINTER );
 	case JSON_Element_PTRSZVAL:  
 	case JSON_Element_PTRSZVAL_BLANK_0:
-		return sizeof( PTRSZVAL );
+		return sizeof( uintptr_t );
 		break;
 	}
 	return 0;
 }
 //----------------------------------------------------------------------------------------------
 
-PTRSZVAL json_add_object( struct json_context *context, CTEXTSTR name, struct json_context_object *format, POINTER object )
+uintptr_t json_add_object( struct json_context *context, CTEXTSTR name, struct json_context_object *format, POINTER object )
 {
 	return 0;
 }
@@ -1003,177 +1003,177 @@ TEXTSTR json_build_message( struct json_context_object *object
 			//else if( member->count_offset != JSON_NO_OFFSET )
 			//	;
 			//else
-				json_add_list_value( member->object, context, member->name, *(PLIST*)(((PTRSZVAL)msg)+member->offset) );
+				json_add_list_value( member->object, context, member->name, *(PLIST*)(((uintptr_t)msg)+member->offset) );
 			break;
 		case JSON_Element_Integer_64:
 			if( member->count )
-				json_add_int_64_value_array( context, member->name, (S_64*)(((PTRSZVAL)msg)+member->offset), member->count );
+				json_add_int_64_value_array( context, member->name, (int64_t*)(((uintptr_t)msg)+member->offset), member->count );
 			else if( member->count_offset != JSON_NO_OFFSET )
 				json_add_int_64_value_array( context, member->name
-										, *(S_64**)(((PTRSZVAL)msg)+member->offset)
-										, *(size_t*)(((PTRSZVAL)msg)+member->count_offset)
+										, *(int64_t**)(((uintptr_t)msg)+member->offset)
+										, *(size_t*)(((uintptr_t)msg)+member->count_offset)
 										);
 			else
-				json_add_int_64_value( context, member->name, *(S_64*)(((PTRSZVAL)msg)+member->offset) );
+				json_add_int_64_value( context, member->name, *(int64_t*)(((uintptr_t)msg)+member->offset) );
 			break;
 		case JSON_Element_Integer_32:
 			if( member->count )
-				json_add_int_32_value_array( context, member->name, (S_32*)(((PTRSZVAL)msg)+member->offset), member->count );
+				json_add_int_32_value_array( context, member->name, (int32_t*)(((uintptr_t)msg)+member->offset), member->count );
 			else if( member->count_offset != JSON_NO_OFFSET )
 				json_add_int_32_value_array( context, member->name
-										, *(S_32**)(((PTRSZVAL)msg)+member->offset)
-										, *(size_t*)(((PTRSZVAL)msg)+member->count_offset)
+										, *(int32_t**)(((uintptr_t)msg)+member->offset)
+										, *(size_t*)(((uintptr_t)msg)+member->count_offset)
 										);
 			else
-				json_add_int_32_value( context, member->name, *(S_32*)(((PTRSZVAL)msg)+member->offset) );
+				json_add_int_32_value( context, member->name, *(int32_t*)(((uintptr_t)msg)+member->offset) );
 			break;
 		case JSON_Element_Integer_16:
 			if( member->count )
-				json_add_int_16_value_array( context, member->name, (S_16*)(((PTRSZVAL)msg)+member->offset), member->count );
+				json_add_int_16_value_array( context, member->name, (int16_t*)(((uintptr_t)msg)+member->offset), member->count );
 			else if( member->count_offset != JSON_NO_OFFSET )
 				json_add_int_16_value_array( context, member->name
-										, *(S_16**)(((PTRSZVAL)msg)+member->offset)
-										, *(size_t*)(((PTRSZVAL)msg)+member->count_offset)
+										, *(int16_t**)(((uintptr_t)msg)+member->offset)
+										, *(size_t*)(((uintptr_t)msg)+member->count_offset)
 										);
 			else
-				json_add_int_16_value( context, member->name, *(S_16*)(((PTRSZVAL)msg)+member->offset) );
+				json_add_int_16_value( context, member->name, *(int16_t*)(((uintptr_t)msg)+member->offset) );
 			break;
 		case JSON_Element_Integer_8:
 			if( member->count )
-				json_add_int_8_value_array( context, member->name, (S_8*)(((PTRSZVAL)msg)+member->offset), member->count );
+				json_add_int_8_value_array( context, member->name, (int8_t*)(((uintptr_t)msg)+member->offset), member->count );
 			else if( member->count_offset != JSON_NO_OFFSET )
 				json_add_int_8_value_array( context, member->name
-										, *(S_8**)(((PTRSZVAL)msg)+member->offset)
-										, *(size_t*)(((PTRSZVAL)msg)+member->count_offset)
+										, *(int8_t**)(((uintptr_t)msg)+member->offset)
+										, *(size_t*)(((uintptr_t)msg)+member->count_offset)
 										);
 			else
-				json_add_int_8_value( context, member->name, *(S_8*)(((PTRSZVAL)msg)+member->offset) );
+				json_add_int_8_value( context, member->name, *(int8_t*)(((uintptr_t)msg)+member->offset) );
 			break;
 		case JSON_Element_Unsigned_Integer_64:
 			if( member->count )
-				json_add_uint_64_value_array( context, member->name, (_64*)(((PTRSZVAL)msg)+member->offset), member->count );
+				json_add_uint_64_value_array( context, member->name, (uint64_t*)(((uintptr_t)msg)+member->offset), member->count );
 			else if( member->count_offset != JSON_NO_OFFSET )
 				json_add_uint_64_value_array( context, member->name
-										, *(_64**)(((PTRSZVAL)msg)+member->offset)
-										, *(size_t*)(((PTRSZVAL)msg)+member->count_offset)
+										, *(uint64_t**)(((uintptr_t)msg)+member->offset)
+										, *(size_t*)(((uintptr_t)msg)+member->count_offset)
 										);
 			else
-				json_add_uint_64_value( context, member->name, *(_64*)(((PTRSZVAL)msg)+member->offset) );
+				json_add_uint_64_value( context, member->name, *(uint64_t*)(((uintptr_t)msg)+member->offset) );
 			break;
 		case JSON_Element_Unsigned_Integer_32:
 			if( member->count )
-				json_add_uint_32_value_array( context, member->name, (_32*)(((PTRSZVAL)msg)+member->offset), member->count );
+				json_add_uint_32_value_array( context, member->name, (uint32_t*)(((uintptr_t)msg)+member->offset), member->count );
 			else if( member->count_offset != JSON_NO_OFFSET )
 				json_add_uint_32_value_array( context, member->name
-										, *(_32**)(((PTRSZVAL)msg)+member->offset)
-										, *(size_t*)(((PTRSZVAL)msg)+member->count_offset)
+										, *(uint32_t**)(((uintptr_t)msg)+member->offset)
+										, *(size_t*)(((uintptr_t)msg)+member->count_offset)
 										);
 			else
-				json_add_uint_32_value( context, member->name, *(_32*)(((PTRSZVAL)msg)+member->offset) );
+				json_add_uint_32_value( context, member->name, *(uint32_t*)(((uintptr_t)msg)+member->offset) );
 			break;
 		case JSON_Element_Unsigned_Integer_16:
 			if( member->count )
-				json_add_uint_16_value_array( context, member->name, (_16*)(((PTRSZVAL)msg)+member->offset), member->count );
+				json_add_uint_16_value_array( context, member->name, (uint16_t*)(((uintptr_t)msg)+member->offset), member->count );
 			else if( member->count_offset != JSON_NO_OFFSET )
 				json_add_uint_16_value_array( context, member->name
-										, *(_16**)(((PTRSZVAL)msg)+member->offset)
-										, *(size_t*)(((PTRSZVAL)msg)+member->count_offset)
+										, *(uint16_t**)(((uintptr_t)msg)+member->offset)
+										, *(size_t*)(((uintptr_t)msg)+member->count_offset)
 										);
 			else
-				json_add_uint_16_value( context, member->name, *(_16*)(((PTRSZVAL)msg)+member->offset) );
+				json_add_uint_16_value( context, member->name, *(uint16_t*)(((uintptr_t)msg)+member->offset) );
 			break;
 		case JSON_Element_Unsigned_Integer_8:
 			if( member->count )
-				json_add_uint_8_value_array( context, member->name, (_8*)(((PTRSZVAL)msg)+member->offset), member->count );
+				json_add_uint_8_value_array( context, member->name, (uint8_t*)(((uintptr_t)msg)+member->offset), member->count );
 			else if( member->count_offset != JSON_NO_OFFSET )
 				json_add_uint_8_value_array( context, member->name
-										, *(_8**)(((PTRSZVAL)msg)+member->offset)
-										, *(size_t*)(((PTRSZVAL)msg)+member->count_offset)
+										, *(uint8_t**)(((uintptr_t)msg)+member->offset)
+										, *(size_t*)(((uintptr_t)msg)+member->count_offset)
 										);
 			else
-				json_add_uint_8_value( context, member->name, *(_8*)(((PTRSZVAL)msg)+member->offset) );
+				json_add_uint_8_value( context, member->name, *(uint8_t*)(((uintptr_t)msg)+member->offset) );
 			break;
 		case JSON_Element_Float:
 			if( member->count )
-				json_add_float_value_array( context, member->name, (float*)(((PTRSZVAL)msg)+member->offset), member->count );
+				json_add_float_value_array( context, member->name, (float*)(((uintptr_t)msg)+member->offset), member->count );
 			else if( member->count_offset != JSON_NO_OFFSET )
 				json_add_float_value_array( context, member->name
-										, *(float**)(((PTRSZVAL)msg)+member->offset)
-										, *(size_t*)(((PTRSZVAL)msg)+member->count_offset)
+										, *(float**)(((uintptr_t)msg)+member->offset)
+										, *(size_t*)(((uintptr_t)msg)+member->count_offset)
 										);
 			else
-				json_add_float_value( context, member->name, *(float*)(((PTRSZVAL)msg)+member->offset) );
+				json_add_float_value( context, member->name, *(float*)(((uintptr_t)msg)+member->offset) );
 			break;
 		case JSON_Element_Double:
 			if( member->count )
-				json_add_double_value_array( context, member->name, (double*)(((PTRSZVAL)msg)+member->offset), member->count );
+				json_add_double_value_array( context, member->name, (double*)(((uintptr_t)msg)+member->offset), member->count );
 			else if( member->count_offset != JSON_NO_OFFSET )
 				json_add_double_value_array( context, member->name
-										, *(double**)(((PTRSZVAL)msg)+member->offset)
-										, *(size_t*)(((PTRSZVAL)msg)+member->count_offset)
+										, *(double**)(((uintptr_t)msg)+member->offset)
+										, *(size_t*)(((uintptr_t)msg)+member->count_offset)
 										);
 			else
-				json_add_float_value( context, member->name, *(double*)(((PTRSZVAL)msg)+member->offset) );
+				json_add_float_value( context, member->name, *(double*)(((uintptr_t)msg)+member->offset) );
 			break;
 
 		case JSON_Element_String:
 			if( member->count )
-				json_add_value_array( context, member->name, *(CTEXTSTR**)(((PTRSZVAL)msg)+member->offset), member->count );
+				json_add_value_array( context, member->name, *(CTEXTSTR**)(((uintptr_t)msg)+member->offset), member->count );
 			else if( member->count_offset != JSON_NO_OFFSET )
 				json_add_value_array( context, member->name
-										, (CTEXTSTR*)(((PTRSZVAL)msg)+member->offset)
-										, *(int*)(((PTRSZVAL)msg)+member->count_offset)
+										, (CTEXTSTR*)(((uintptr_t)msg)+member->offset)
+										, *(int*)(((uintptr_t)msg)+member->count_offset)
 										);
 			else
-				json_add_value( context, member->name, *(CTEXTSTR*)(((PTRSZVAL)msg)+member->offset) );
+				json_add_value( context, member->name, *(CTEXTSTR*)(((uintptr_t)msg)+member->offset) );
 			break;
 		case JSON_Element_CharArray:
 			if( member->count )
-				json_add_value_array( context, member->name, (CTEXTSTR*)(((PTRSZVAL)msg)+member->offset), member->count );
+				json_add_value_array( context, member->name, (CTEXTSTR*)(((uintptr_t)msg)+member->offset), member->count );
 			else if( member->count_offset != JSON_NO_OFFSET )
 				json_add_value_array( context, member->name
-										, (CTEXTSTR*)(((PTRSZVAL)msg)+member->offset)
-										, *(int*)(((PTRSZVAL)msg)+member->count_offset)
+										, (CTEXTSTR*)(((uintptr_t)msg)+member->offset)
+										, *(int*)(((uintptr_t)msg)+member->count_offset)
 										);
 			else
-				json_add_value( context, member->name, (CTEXTSTR)(((PTRSZVAL)msg)+member->offset) );
+				json_add_value( context, member->name, (CTEXTSTR)(((uintptr_t)msg)+member->offset) );
 			break;
 		case JSON_Element_ObjectPointer:
 			{
 				vtprintf( context->pvt, WIDE("\"%s\":")
 						  , member->name );
-				json_build_message( member->object, *((POINTER*)(((PTRSZVAL)msg)+member->offset)) );
+				json_build_message( member->object, *((POINTER*)(((uintptr_t)msg)+member->offset)) );
 			}
 			break;
 		case JSON_Element_Object:
 			{
 				vtprintf( context->pvt, WIDE("\"%s\":")
 						  , member->name );
-				json_build_message( member->object, (POINTER)(((PTRSZVAL)msg)+member->offset) );
+				json_build_message( member->object, (POINTER)(((uintptr_t)msg)+member->offset) );
 			}
 			break;
 		case JSON_Element_PTRSZVAL:
 			{
-				PTRSZVAL psv;
+				uintptr_t psv;
 
 #ifdef __64__
-				if( ( psv = *(S_64*)(((PTRSZVAL)msg)+member->offset) ) == INVALID_INDEX )
-					json_add_int_64_value( context, member->name, *(S_64*)(((PTRSZVAL)msg)+member->offset) );
+				if( ( psv = *(int64_t*)(((uintptr_t)msg)+member->offset) ) == INVALID_INDEX )
+					json_add_int_64_value( context, member->name, *(int64_t*)(((uintptr_t)msg)+member->offset) );
 				else
-					json_add_uint_64_value( context, member->name, *(S_64*)(((PTRSZVAL)msg)+member->offset) );
+					json_add_uint_64_value( context, member->name, *(int64_t*)(((uintptr_t)msg)+member->offset) );
 #else
-				if( ( psv = *(S_32*)(((PTRSZVAL)msg)+member->offset) ) == INVALID_INDEX )
-					json_add_int_32_value( context, member->name, *(S_32*)(((PTRSZVAL)msg)+member->offset) );
+				if( ( psv = *(int32_t*)(((uintptr_t)msg)+member->offset) ) == INVALID_INDEX )
+					json_add_int_32_value( context, member->name, *(int32_t*)(((uintptr_t)msg)+member->offset) );
 				else
-					json_add_uint_32_value( context, member->name, *(S_32*)(((PTRSZVAL)msg)+member->offset) );
+					json_add_uint_32_value( context, member->name, *(int32_t*)(((uintptr_t)msg)+member->offset) );
 #endif
 			}
 			break;
 		case JSON_Element_PTRSZVAL_BLANK_0:
 			{
-				PTRSZVAL psv;
+				uintptr_t psv;
 #ifdef __64__
-				if( psv = *(S_64*)(((PTRSZVAL)msg)+member->offset) )
+				if( psv = *(int64_t*)(((uintptr_t)msg)+member->offset) )
 				{
 					if( n )
 						vtprintf( context->pvt, WIDE(",") );
@@ -1183,7 +1183,7 @@ TEXTSTR json_build_message( struct json_context_object *object
 						json_add_uint_64_value( context, member->name, psv );
 				}
 #else
-				if( psv = *(S_32*)(((PTRSZVAL)msg)+member->offset) )
+				if( psv = *(int32_t*)(((uintptr_t)msg)+member->offset) )
 				{
 					if( n )
 						vtprintf( context->pvt, WIDE(",") );
@@ -1197,7 +1197,7 @@ TEXTSTR json_build_message( struct json_context_object *object
 			break;
 		case JSON_Element_UserRoutine:
 			vtprintf( context->pvt, WIDE("\"%s\":"), member->name );
-			member->user_formatter( context->pvt, (CPOINTER)(((PTRSZVAL)msg)+member->offset) );
+			member->user_formatter( context->pvt, (CPOINTER)(((uintptr_t)msg)+member->offset) );
 			break;
 		}
 	}

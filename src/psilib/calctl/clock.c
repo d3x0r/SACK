@@ -49,12 +49,12 @@ static PTEXT GetTime( PCLOCK_CONTROL clock, int bNewline ) /*FOLD00*/
 		SYSTEMTIME st;
 	//	pTime = SegCreate( 38 );
 		GetLocalTime( &st );
-		clock->time_data.sc = (_8)st.wSecond;
-		clock->time_data.mn = (_8)st.wMinute;
-		clock->time_data.hr = (_8)st.wHour;
+		clock->time_data.sc = (uint8_t)st.wSecond;
+		clock->time_data.mn = (uint8_t)st.wMinute;
+		clock->time_data.hr = (uint8_t)st.wHour;
 		//clock->time_data.doy = st.wDayOfWeek;
-		clock->time_data.dy = (_8)st.wDay;
-		clock->time_data.mo = (_8)st.wMonth;
+		clock->time_data.dy = (uint8_t)st.wDay;
+		clock->time_data.mo = (uint8_t)st.wMonth;
 		clock->time_data.yr = st.wYear;
 		clock->time_data.ms = st.wMilliseconds;
 	/*
@@ -137,7 +137,7 @@ static int CPROC DrawClock( PCOMMON pc )
 	ValidatedControlData( PCLOCK_CONTROL, clock_control.TypeID, pClk, pc );
 	if( pClk )
 	{
-		_32 w, h;
+		uint32_t w, h;
 		int line_count = 0;
 		int lines = 0;
 		//PTEXT szNow = pClk->time;
@@ -174,8 +174,8 @@ static int CPROC DrawClock( PCOMMON pc )
 					BlatColorAlpha( surface, 0, 0, surface->width, surface->height, pClk->backcolor );
 				//DebugBreak();
 				PutStringFontEx( surface
-									, (SUS_GT(surface->width,S_32,w,_32)?(( surface->width - w ) / 2):0)
-									, (SUS_GT(surface->height,S_32,h,_32)?(( surface->height - ( h * lines ) ) / 2):0) + ( line_count * h )
+									, (SUS_GT(surface->width,int32_t,w,uint32_t)?(( surface->width - w ) / 2):0)
+									, (SUS_GT(surface->height,int32_t,h,uint32_t)?(( surface->height - ( h * lines ) ) / 2):0) + ( line_count * h )
 									, pClk->textcolor, 0
 									, line, strlen( line )
 									, GetCommonFont( pc ) );
@@ -189,7 +189,7 @@ static int CPROC DrawClock( PCOMMON pc )
 }
 
 
-static void CPROC Update( PTRSZVAL psvPC )
+static void CPROC Update( uintptr_t psvPC )
 {
 	ValidatedControlData( PCLOCK_CONTROL, clock_control.TypeID, pClk, (PCOMMON)psvPC );
 	if( pClk )
@@ -247,7 +247,7 @@ int CPROC InitClock( PCOMMON pc )
 										  , (GetControlSurface( pc )->width -10) / 6
 										  , (GetControlSurface( pc )->height -10)/ 2
 										  ,3 ) );
-	SetCommonUserData( pc, AddTimer( 50, Update, (PTRSZVAL)pc ) );
+	SetCommonUserData( pc, AddTimer( 50, Update, (uintptr_t)pc ) );
 	SetCommonTransparent( pc, TRUE );
 	pClk->textcolor = GetBaseColor( TEXTCOLOR );
 	pClk->last_time = NULL; // make sure it's NULL
@@ -257,7 +257,7 @@ int CPROC InitClock( PCOMMON pc )
 
 void CPROC DestroyClock( PCOMMON pc )
 {
-	RemoveTimer( (_32)GetCommonUserData( pc ) );
+	RemoveTimer( (uint32_t)GetCommonUserData( pc ) );
 	DeleteLink( &g.clocks, pc );
 }
 
@@ -418,6 +418,6 @@ static void OnDisplayResume( WIDE("PSI_Clock") _WIDE(TARGETNAME))( void )
 }
 
 
-//PUBLIC( _32, LinkClockPlease );
+//PUBLIC( uint32_t, LinkClockPlease );
 
 PSI_CLOCK_NAMESPACE_END

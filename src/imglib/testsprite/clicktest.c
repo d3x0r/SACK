@@ -40,7 +40,7 @@ void ProcessMotion( void )
 	}
 }
 
-void CPROC SpriteDrawProc( PTRSZVAL psv, PRENDERER renderer, S_32 x, S_32 y, _32 w, _32 h )
+void CPROC SpriteDrawProc( uintptr_t psv, PRENDERER renderer, int32_t x, int32_t y, uint32_t w, uint32_t h )
 {
    int n;
 	for( n = 0; n < MAX_SPRITES; n++ )
@@ -59,7 +59,7 @@ void CPROC SpriteDrawProc( PTRSZVAL psv, PRENDERER renderer, S_32 x, S_32 y, _32
 
 
 
-void CPROC DrawProc( PTRSZVAL psv, PRENDERER renderer )
+void CPROC DrawProc( uintptr_t psv, PRENDERER renderer )
 {
 	int n;
    if( background )
@@ -75,7 +75,7 @@ void CPROC DrawProc( PTRSZVAL psv, PRENDERER renderer )
 }
 
 /*
-void CPROC DrawProc( PTRSZVAL psv, PRENDERER renderer )
+void CPROC DrawProc( uintptr_t psv, PRENDERER renderer )
 {
    int n;
    ProcessMotion();
@@ -95,7 +95,7 @@ void CPROC DrawProc( PTRSZVAL psv, PRENDERER renderer )
 }
 */
 
-int CPROC MouseProc( PTRSZVAL psv, S_32 x, S_32 y, _32 b )
+int CPROC MouseProc( uintptr_t psv, int32_t x, int32_t y, uint32_t b )
 {
 	int n;
    static int _b;
@@ -116,7 +116,7 @@ int CPROC MouseProc( PTRSZVAL psv, S_32 x, S_32 y, _32 b )
 }
 
 
-void CPROC Tick( PTRSZVAL psv )
+void CPROC Tick( uintptr_t psv )
 {
 	int n;
 	//for( n = 0; n < 16; n++ )

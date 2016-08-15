@@ -186,7 +186,7 @@ static struct fmpeg_interface
 	declare_func( void, avformat_free_context, (AVFormatContext *s) );
 	declare_func( int, av_strerror,	(	int 	errnum,char * 	errbuf,size_t 	errbuf_size ) );
 	declare_func( Image, GetControlSurface, ( PSI_CONTROL pc ) ); 
-	declare_func( void, GetFrameSize, ( PSI_CONTROL pf, _32 *w, _32 *h ) );
+	declare_func( void, GetFrameSize, ( PSI_CONTROL pf, uint32_t *w, uint32_t *h ) );
 	declare_func( void, UpdateFrameEx, ( PSI_CONTROL pc, int x, int y, int w, int h DBG_PASS ) );
 } ffmpeg;
 
@@ -241,7 +241,7 @@ static struct openal_interface
 struct al_buffer
 {
 #ifdef USE_OPENSL
-	P_8 buffer; // bytes to oplay
+	uint8_t* buffer; // bytes to oplay
 	int samples; // so we know how much of the sound has been played
 #else
 	ALuint buffer;
@@ -268,7 +268,7 @@ struct sound_device
 };
 
 struct ffmpeg_video_frame {
-	_8 *rgb_buffer;
+	uint8_t *rgb_buffer;
 	int64_t video_current_pts_time;
 	Image output_control_image;
 	AVFrame *pVideoFrameRGB;
@@ -319,17 +319,17 @@ struct ffmpeg_file
 	void (*post_video_render)( PSI_CONTROL pc );
 	/* image used with output_control to allow transparent blending */
 	//Image output_control_image;
-	_32 output_width;
-	_32 output_height;
-	_32 input_width;
-	_32 input_height;
-	_32 video_frame_num_bytes;
+	uint32_t output_width;
+	uint32_t output_height;
+	uint32_t input_width;
+	uint32_t input_height;
+	uint32_t video_frame_num_bytes;
 
-	_64 seek_position;
-	PTRSZVAL file_size;
+	uint64_t seek_position;
+	uintptr_t file_size;
 	FILE *file_device;
-	P_8 file_memory;  // instead of a FILE* file might already be in memory.
-	PTRSZVAL file_position_index; // byte index into memory that is current read pointer.
+	uint8_t* file_memory;  // instead of a FILE* file might already be in memory.
+	uintptr_t file_position_index; // byte index into memory that is current read pointer.
 	
 	AVIOContext *ffmpeg_io;
 
@@ -337,10 +337,10 @@ struct ffmpeg_file
 	int ffmpeg_buffers_count;
 	int ffmpeg_buffers_first;
 	int *ffmpeg_buffer_sizes;
-	P_8 *ffmpeg_buffers;
+	uint8_t* *ffmpeg_buffers;
 
-	P_8 ffmpeg_buffer;
-	P_8 ffmpeg_buffer_partial;
+	uint8_t* ffmpeg_buffer;
+	uint8_t* ffmpeg_buffer_partial;
 	size_t ffmpeg_buffer_used_total;
 	size_t ffmpeg_buffer_size;
 	size_t ffmpeg_buffer_used;
@@ -378,9 +378,9 @@ struct ffmpeg_file
 	PLINKQUEUE pDecodedVideoFrames; // struct ffmpeg_video_frame * that have been decoded, ready to play
 	LOGICAL output_waiting;
 	LOGICAL output_waiting_pause;
-	_32 video_post_tick; // when we sent the last redraw
+	uint32_t video_post_tick; // when we sent the last redraw
 
-	_64 videoFrame;
+	uint64_t videoFrame;
 	int64_t frame_del;
 				
 
@@ -401,19 +401,19 @@ struct ffmpeg_file
 	int video_low_water; // default 4 - how many outstanding to start sleeping/to request more input packets
 
 
-	S_64 audioFrame;
-	S_64 audioSamplesPending;
-	S_64 audioSamplesPlayed;
-	S_64 audioSamples;
+	int64_t audioFrame;
+	int64_t audioSamplesPending;
+	int64_t audioSamplesPlayed;
+	int64_t audioSamples;
 
 	struct SwrContext *audio_converter;
-	_8 **audio_out;
-	_32 max_out_samples; // biggest conversion buffer allocated
+	uint8_t **audio_out;
+	uint32_t max_out_samples; // biggest conversion buffer allocated
 	int use_channels;
 
 	struct sound_device *sound_device;
 
-	_64 al_last_buffer_reclaim;
+	uint64_t al_last_buffer_reclaim;
 	int al_format;
 	PLINKQUEUE al_free_buffer_queue; // queue of struct al_buffer
 	PLINKQUEUE al_used_buffer_queue; // queue of struct al_buffer
@@ -428,11 +428,11 @@ struct ffmpeg_file
        int list_devices;
 
 	TEXTCHAR szTime[256];
-	_64 last_tick_update;
-	void (CPROC*video_position_update)( PTRSZVAL psv, _64 tick );
-	PTRSZVAL psvUpdateParam;
-	void (CPROC*video_ended)( PTRSZVAL psv );
-	PTRSZVAL psvEndedParam;
+	uint64_t last_tick_update;
+	void (CPROC*video_position_update)( uintptr_t psv, uint64_t tick );
+	uintptr_t psvUpdateParam;
+	void (CPROC*video_ended)( uintptr_t psv );
+	uintptr_t psvEndedParam;
 	void (CPROC*external_video_failure)( CTEXTSTR );
 };
 
@@ -466,7 +466,7 @@ static void InitFFMPEG_audio( void )
 	InitializeCriticalSec( &l.cs_audio_out );
 
 	setup_func( lib_psi, Image,GetControlSurface, ( PSI_CONTROL pc ) );
-	setup_func( lib_psi, void, GetFrameSize, ( PSI_CONTROL pf, _32 *w, _32 *h ) );
+	setup_func( lib_psi, void, GetFrameSize, ( PSI_CONTROL pf, uint32_t *w, uint32_t *h ) );
 	setup_func( lib_psi, void, UpdateFrameEx, ( PSI_CONTROL pc, int x, int y, int w, int h DBG_PASS ) );
 
 #ifndef USE_OPENSL
@@ -602,7 +602,7 @@ static void InitFFMPEG_video( void )
 	setup_func( lib_util, int, av_strerror,	(	int 	errnum,char * 	errbuf,size_t 	errbuf_size ) );
 
 	setup_func( lib_psi, Image,GetControlSurface, ( PSI_CONTROL pc ) );
-	setup_func( lib_psi, void, GetFrameSize, ( PSI_CONTROL pf, _32 *w, _32 *h ) );
+	setup_func( lib_psi, void, GetFrameSize, ( PSI_CONTROL pf, uint32_t *w, uint32_t *h ) );
 	setup_func( lib_psi, void, UpdateFrameEx, ( PSI_CONTROL pc, int x, int y, int w, int h DBG_PASS ) );
 
 	ffmpeg.av_register_all();
@@ -953,7 +953,7 @@ struct ffmpeg_video_frame *GetVideoFrame( struct ffmpeg_file *file ) {
 			//if( frame->rgb_buffer )
 			//	ffmpeg.av_free( file->rgb_buffer );
 			frame->pVideoFrameRGB = ffmpeg.av_frame_alloc();
-			frame->rgb_buffer = (_8 *)ffmpeg.av_malloc(file->video_frame_num_bytes*sizeof(uint8_t));
+			frame->rgb_buffer = (uint8_t *)ffmpeg.av_malloc(file->video_frame_num_bytes*sizeof(uint8_t));
 
 			ffmpeg.av_image_fill_arrays( frame->pVideoFrameRGB->data, frame->pVideoFrameRGB->linesize
 												, frame->rgb_buffer, PIX_FMT
@@ -1013,7 +1013,7 @@ static void GetAudioBuffer( struct ffmpeg_file * file, POINTER data, size_t sz
 	{
 		buffer = New( struct al_buffer );
 #ifdef USE_OPENSL
-		buffer->buffer = NewArray( _8, sz );
+		buffer->buffer = NewArray( uint8_t, sz );
 		MemCpy( buffer->buffer, data, sz );
 #else
 		openal.alGenBuffers( 1, &buffer->buffer );
@@ -1196,10 +1196,10 @@ static void PushBuffer( struct ffmpeg_file *file )
 	if( file->ffmpeg_buffers_count == file->ffmpeg_buffers_avail )
 	{
 		int *new_sizes;
-		P_8 *new_bufs;
+		uint8_t* *new_bufs;
 		int n;
 		file->ffmpeg_buffers_avail += 16;
-		new_bufs = NewArray( P_8, file->ffmpeg_buffers_avail );
+		new_bufs = NewArray( uint8_t*, file->ffmpeg_buffers_avail );
 		new_sizes = NewArray( int, file->ffmpeg_buffers_avail );
 		for( n = file->ffmpeg_buffers_first; n < file->ffmpeg_buffers_count; n++ )
 		{
@@ -1239,7 +1239,7 @@ static void PushBuffer( struct ffmpeg_file *file )
 			lprintf( WIDE("Failed to append file to out") );
 	}
 	// need a new buffer, this is returned to the input library...
-	file->ffmpeg_buffers[file->ffmpeg_buffers_count] = NewArray( _8, file->ffmpeg_buffer_size );
+	file->ffmpeg_buffers[file->ffmpeg_buffers_count] = NewArray( uint8_t, file->ffmpeg_buffer_size );
 	MemCpy( file->ffmpeg_buffers[file->ffmpeg_buffers_count], file->ffmpeg_buffer, file->ffmpeg_buffer_size );
 	file->ffmpeg_buffer_sizes[file->ffmpeg_buffers_count] = file->ffmpeg_buffer_size;
 	file->ffmpeg_buffer_used_total += file->ffmpeg_buffer_size;
@@ -1269,7 +1269,7 @@ int CPROC ffmpeg_read_packet(void *opaque, uint8_t *buf, int buf_size)
 #ifdef DEBUG_LOW_LEVEL_PACKET_IO
 				lprintf( WIDE("need part of the end and the next...") );
 #endif
-				file->ffmpeg_buffer_partial = NewArray( _8, file->ffmpeg_buffer_size - file->ffmpeg_buffer_used );
+				file->ffmpeg_buffer_partial = NewArray( uint8_t, file->ffmpeg_buffer_size - file->ffmpeg_buffer_used );
 				file->ffmpeg_buffer_partial_avail = file->ffmpeg_buffer_size - file->ffmpeg_buffer_used;
 				MemCpy( file->ffmpeg_buffer_partial, file->ffmpeg_buffer, file->ffmpeg_buffer_partial_avail );
 			}
@@ -1530,7 +1530,7 @@ void ffmpeg_UpdateControlLayout( struct ffmpeg_file *file )
 {
 	if( file )
 	{
-		_32 width, height;
+		uint32_t width, height;
 		ffmpeg.GetFrameSize( file->output_control, &width, &height );
 		if( file->img_convert_ctx )
 			ffmpeg.sws_freeContext( file->img_convert_ctx );
@@ -1563,10 +1563,10 @@ void ffmpeg_SetPrePostDraw( struct ffmpeg_file *file, void (*pre_render)(PSI_CON
 //---------------------------------------------------------------------------------------------
 
 struct ffmpeg_file * ffmpeg_LoadFile( CTEXTSTR filename
-                                    , PRENDERER (CPROC*getDisplay)(PTRSZVAL psv,_32 w, _32 h), PTRSZVAL psvGetDisplay 
+                                    , PRENDERER (CPROC*getDisplay)(uintptr_t psv,uint32_t w, uint32_t h), uintptr_t psvGetDisplay 
                                     , PSI_CONTROL output_control
-                                    , void (CPROC*video_position_update)( PTRSZVAL psv, _64 tick ), PTRSZVAL psvUpdate
-                                    , void (CPROC*video_ended)( PTRSZVAL psv ), PTRSZVAL psvEnded
+                                    , void (CPROC*video_position_update)( uintptr_t psv, uint64_t tick ), uintptr_t psvUpdate
+                                    , void (CPROC*video_ended)( uintptr_t psv ), uintptr_t psvEnded
                                     , void (CPROC*play_error)( CTEXTSTR message )
                                     )
 
@@ -1602,7 +1602,7 @@ struct ffmpeg_file * ffmpeg_LoadFile( CTEXTSTR filename
 	{
 		filename++;
 		// IStream-Interface that was already created elsewhere:
-		//file->ffmpeg_buffer = NewArray( _8, file->ffmpeg_buffer_size = 32*1024 );
+		//file->ffmpeg_buffer = NewArray( uint8_t, file->ffmpeg_buffer_size = 32*1024 );
  
 		// Allocate the AVIOContext:
 		// The fourth parameter (pStream) is a user parameter which will be passed to our callback functions
@@ -1671,7 +1671,7 @@ struct ffmpeg_file * ffmpeg_LoadFile( CTEXTSTR filename
 #else
 #  ifdef WIN32
 		file->file_size = 0;
-		file->file_memory = (P_8)OpenSpace( NULL, filename, &file->file_size );
+		file->file_memory = (uint8_t*)OpenSpace( NULL, filename, &file->file_size );
 		if( !file->file_memory ) {
 			file->file_device = sack_fopen( 0, filename, WIDE( "rb" ) );
 			file->ffmpeg_buffer_size = 32000;
@@ -1692,7 +1692,7 @@ struct ffmpeg_file * ffmpeg_LoadFile( CTEXTSTR filename
 #ifdef DEBUG_LOW_LEVEL_PACKET_READ
 			lprintf( WIDE("buffer is %d"), file->ffmpeg_buffer_size );
 #endif
-			file->ffmpeg_buffer = NewArray( _8, file->ffmpeg_buffer_size );
+			file->ffmpeg_buffer = NewArray( uint8_t, file->ffmpeg_buffer_size );
 			//file->ffmpeg_buffer_size = 0;
 			if( file->file_memory ) 
 				memcpy( file->ffmpeg_buffer
@@ -1808,9 +1808,9 @@ struct ffmpeg_file * ffmpeg_LoadFile( CTEXTSTR filename
 			// Get a pointer to the codec context for the video stream
 			file->pVideoCodecCtx = file->pFormatCtx->streams[file->videoStream]->codec;
 			if( file->pVideoCodecCtx->ticks_per_frame == 1 )
-				file->frame_del = ( 1000* 1000LL ) * 1000LL *  file->pVideoCodecCtx->ticks_per_frame * (_64)file->pVideoCodecCtx->time_base.num / (_64)file->pVideoCodecCtx->time_base.den;
+				file->frame_del = ( 1000* 1000LL ) * 1000LL *  file->pVideoCodecCtx->ticks_per_frame * (uint64_t)file->pVideoCodecCtx->time_base.num / (uint64_t)file->pVideoCodecCtx->time_base.den;
 			else
-				file->frame_del = (1000LL) * 1000LL * file->pVideoCodecCtx->ticks_per_frame * (_64)file->pVideoCodecCtx->time_base.num / (_64)file->pVideoCodecCtx->time_base.den;
+				file->frame_del = (1000LL) * 1000LL * file->pVideoCodecCtx->ticks_per_frame * (uint64_t)file->pVideoCodecCtx->time_base.num / (uint64_t)file->pVideoCodecCtx->time_base.den;
 
 			//lprintf( WIDE("scale %d "), ( 1000 * file->pVideoCodecCtx->time_base.num ) / file->pVideoCodecCtx->time_base.den );
 			// Find the decoder for the video stream
@@ -1980,25 +1980,25 @@ struct ffmpeg_file * ffmpeg_LoadFile( CTEXTSTR filename
 static void LogTime( struct ffmpeg_file *file, LOGICAL video, CTEXTSTR leader, int pause_wait DBG_PASS )
 {
 	//- file->pVideoCodecCtx->delay
-	static S_64 prior_video_time;
-	S_64 video_time = ( file->videoFrame - 1 ) * file->frame_del;
-	S_64 video_time_now = ( file->videoFrame ) * file->frame_del;
+	static int64_t prior_video_time;
+	int64_t video_time = ( file->videoFrame - 1 ) * file->frame_del;
+	int64_t video_time_now = ( file->videoFrame ) * file->frame_del;
 	// in MS
-	_64 audio_time = file->pAudioCodecCtx?(1000 * file->audioSamplesPlayed / file->pAudioCodecCtx->sample_rate):0;
-	_64 audio_time2 = file->al_last_buffer_reclaim - file->media_start_time;
-	_64 audio_time_pending = file->pAudioCodecCtx ? (1000 * file->audioSamplesPending / file->pAudioCodecCtx->sample_rate ):0;
-	_64 clock_time = ffmpeg.av_gettime();
-	_64 real_time = ( clock_time - file->media_start_time ) / 1000;
+	uint64_t audio_time = file->pAudioCodecCtx?(1000 * file->audioSamplesPlayed / file->pAudioCodecCtx->sample_rate):0;
+	uint64_t audio_time2 = file->al_last_buffer_reclaim - file->media_start_time;
+	uint64_t audio_time_pending = file->pAudioCodecCtx ? (1000 * file->audioSamplesPending / file->pAudioCodecCtx->sample_rate ):0;
+	uint64_t clock_time = ffmpeg.av_gettime();
+	uint64_t real_time = ( clock_time - file->media_start_time ) / 1000;
 	// between now and last audio finish
-	S_64 delta_audio = (S_64)clock_time - (S_64)file->al_last_buffer_reclaim;
+	int64_t delta_audio = (int64_t)clock_time - (int64_t)file->al_last_buffer_reclaim;
 
 	// the (av) time of 1 video frame
-	S_64 video_time_tick = ( 1000LL ) * 1000LL *  file->pVideoCodecCtx->ticks_per_frame * (_64)file->pVideoCodecCtx->time_base.num / (_64)file->pVideoCodecCtx->time_base.den;
+	int64_t video_time_tick = ( 1000LL ) * 1000LL *  file->pVideoCodecCtx->ticks_per_frame * (uint64_t)file->pVideoCodecCtx->time_base.num / (uint64_t)file->pVideoCodecCtx->time_base.den;
 	// the (av)real time of 1k sound samples
-	S_64 audio_time_pending_1000_tick = 1000 * 1000 * 1000 / (file->pAudioCodecCtx ? (file->pAudioCodecCtx->sample_rate):44100);
+	int64_t audio_time_pending_1000_tick = 1000 * 1000 * 1000 / (file->pAudioCodecCtx ? (file->pAudioCodecCtx->sample_rate):44100);
 
 	// the 1k samples needs to be included this is in single-samples
-	S_64 video_time_in_audio_frames;
+	int64_t video_time_in_audio_frames;
 
 	if( file->videoFrame > 0 )
 		video_time_in_audio_frames	= 1000 * video_time_now / audio_time_pending_1000_tick;
@@ -2027,7 +2027,7 @@ static void LogTime( struct ffmpeg_file *file, LOGICAL video, CTEXTSTR leader, i
 		// Post .5 second updates to position feedback controls
 		if( video_time > (( file->last_tick_update + 500 ) ) )
 		{
-			_64 tick = ( video_time * 1000000000000 )
+			uint64_t tick = ( video_time * 1000000000000 )
 									/ file->pFormatCtx->duration ;
 			file->last_tick_update = video_time;
 			if( file->video_position_update ) 
@@ -2065,7 +2065,7 @@ static void LogTime( struct ffmpeg_file *file, LOGICAL video, CTEXTSTR leader, i
 					;
 			} 
 			else {
-				S_64 tmp = clock_time - file->media_start_time;
+				int64_t tmp = clock_time - file->media_start_time;
 					//		+(video_time_tick * file->video_adjust_ticks)) - file->video_next_pts_time;
 #ifdef DEBUG_WIN8_REDRAW
 				lprintf( "next tick is built from %" _64fs "  %"  _64fs  " %" _64fs, file->media_start_time, video_time_now, video_time_tick * 1000 );
@@ -2127,7 +2127,7 @@ static void LogTime( struct ffmpeg_file *file, LOGICAL video, CTEXTSTR leader, i
 //---------------------------------------------------------------------------------------------
 
 
-static PTRSZVAL CPROC ProcessAudioFrame( PTHREAD thread )
+static uintptr_t CPROC ProcessAudioFrame( PTHREAD thread )
 {
 	struct ffmpeg_file * file = (struct ffmpeg_file *)GetThreadParam( thread );
 	AVPacket *packet;
@@ -2429,7 +2429,7 @@ static void ClearPendingVideo( struct ffmpeg_file *file )
 
 //---------------------------------------------------------------------------------------------
 
-static PTRSZVAL CPROC internal_stop_thread( PTHREAD thread )
+static uintptr_t CPROC internal_stop_thread( PTHREAD thread )
 {
 	ffmpeg_StopFile((struct ffmpeg_file *)GetThreadParam( thread  ) );
 	return 0;
@@ -2441,7 +2441,7 @@ static void stop( struct ffmpeg_file *file )
 {
 	if( !file->stopThread )
 	{
-		file->stopThread = ThreadTo( internal_stop_thread, (PTRSZVAL)file );
+		file->stopThread = ThreadTo( internal_stop_thread, (uintptr_t)file );
 		if( file->external_video_failure )
 			file->external_video_failure( WIDE("Video Decode\n Too Slow\nOn This Device\n :(") );
 	}
@@ -2507,7 +2507,7 @@ static void OutputFrame( struct ffmpeg_file * file, struct ffmpeg_video_frame *f
 
 //---------------------------------------------------------------------------------------------
 
-static PTRSZVAL CPROC UpdateOutputFrames( PTHREAD thread )
+static uintptr_t CPROC UpdateOutputFrames( PTHREAD thread )
 {
 	struct ffmpeg_file * file = (struct ffmpeg_file *)GetThreadParam( thread );
 	while( !file->flags.close_processing )
@@ -2553,7 +2553,7 @@ static PTRSZVAL CPROC UpdateOutputFrames( PTHREAD thread )
 //---------------------------------------------------------------------------------------------
 
 
-static PTRSZVAL CPROC ProcessVideoFrame( PTHREAD thread )
+static uintptr_t CPROC ProcessVideoFrame( PTHREAD thread )
 {
 	struct ffmpeg_file * file = (struct ffmpeg_file *)GetThreadParam( thread );
 	int frameFinished;
@@ -2779,7 +2779,7 @@ static PTRSZVAL CPROC ProcessVideoFrame( PTHREAD thread )
 				EnqueLink( &file->pDecodedVideoFrames, frame );
 				{
 					if( !file->videoOutputThread ) {
-						file->videoOutputThread = ThreadTo( UpdateOutputFrames, (PTRSZVAL)file );
+						file->videoOutputThread = ThreadTo( UpdateOutputFrames, (uintptr_t)file );
 					}
 					else {
 						if( file->output_waiting )
@@ -2839,7 +2839,7 @@ static PTRSZVAL CPROC ProcessVideoFrame( PTHREAD thread )
 //---------------------------------------------------------------------------------------------
 
 
-static PTRSZVAL CPROC ProcessFrames( PTHREAD thread )
+static uintptr_t CPROC ProcessFrames( PTHREAD thread )
 {
 	struct ffmpeg_file * file = (struct ffmpeg_file *)GetThreadParam( thread );
 	AVPacket *packet;
@@ -3025,7 +3025,7 @@ static PTRSZVAL CPROC ProcessFrames( PTHREAD thread )
 					else
 					{
 						file->flags.video.first_flush = 1;
-						file->videoThread = ThreadTo( ProcessVideoFrame, (PTRSZVAL)file );
+						file->videoThread = ThreadTo( ProcessVideoFrame, (uintptr_t)file );
 						file->flags.video.first_flush = 0;
 					}
 
@@ -3068,7 +3068,7 @@ static PTRSZVAL CPROC ProcessFrames( PTHREAD thread )
 						}
 					}
 					else
-						file->audioThread = ThreadTo( ProcessAudioFrame, (PTRSZVAL)file );
+						file->audioThread = ThreadTo( ProcessAudioFrame, (uintptr_t)file );
 				}
 			}
 			else
@@ -3097,7 +3097,7 @@ void ffmpeg_UnloadFile( struct ffmpeg_file *file )
 {
 	if( file )
 	{
-		_32 tick = timeGetTime();
+		uint32_t tick = timeGetTime();
 		file->flags.close_processing = 1;
 		// previously was going to go to end-of-stream with no_more_packets...
 		// but decided to leave threads if player is at end of file in case of seek/rewind
@@ -3224,13 +3224,13 @@ void ffmpeg_PlayFile( struct ffmpeg_file *file )
 {
 	if( file->flags.paused )
 	{
-		S_64 video_frame_time = 1000000LL * file->pVideoCodecCtx->ticks_per_frame * file->pVideoCodecCtx->time_base.num / file->pVideoCodecCtx->time_base.den;
-		S_64 video_time_now = ( file->videoFrame ) * video_frame_time;
-		S_64 audio_time_pending_1000_tick = file->pAudioCodecCtx?(1000 * 1000 * 1000 / file->pAudioCodecCtx->sample_rate):video_frame_time;
-		S_64 video_time_in_audio_frames	= 1000 * video_time_now / audio_time_pending_1000_tick;
-		S_64 audio_time_now = file->pAudioCodecCtx?(( ( video_time_in_audio_frames - file->audioSamplesPlayed ) * 1000LL ) / file->pAudioCodecCtx->sample_rate):video_time_now;
-		S_64 video_time_tick = ( 1000LL ) * 1000LL *  file->pVideoCodecCtx->ticks_per_frame * (_64)file->pVideoCodecCtx->time_base.num / (_64)file->pVideoCodecCtx->time_base.den;
-		S_64 frame_tick_adjust =  ( video_time_tick * file->video_adjust_ticks );
+		int64_t video_frame_time = 1000000LL * file->pVideoCodecCtx->ticks_per_frame * file->pVideoCodecCtx->time_base.num / file->pVideoCodecCtx->time_base.den;
+		int64_t video_time_now = ( file->videoFrame ) * video_frame_time;
+		int64_t audio_time_pending_1000_tick = file->pAudioCodecCtx?(1000 * 1000 * 1000 / file->pAudioCodecCtx->sample_rate):video_frame_time;
+		int64_t video_time_in_audio_frames	= 1000 * video_time_now / audio_time_pending_1000_tick;
+		int64_t audio_time_now = file->pAudioCodecCtx?(( ( video_time_in_audio_frames - file->audioSamplesPlayed ) * 1000LL ) / file->pAudioCodecCtx->sample_rate):video_time_now;
+		int64_t video_time_tick = ( 1000LL ) * 1000LL *  file->pVideoCodecCtx->ticks_per_frame * (uint64_t)file->pVideoCodecCtx->time_base.num / (uint64_t)file->pVideoCodecCtx->time_base.den;
+		int64_t frame_tick_adjust =  ( video_time_tick * file->video_adjust_ticks );
 
 		file->media_start_time = ffmpeg.av_gettime();// - ( video_time_now + audio_time_now + frame_tick_adjust );
 		file->videoFrame = 0;
@@ -3241,7 +3241,7 @@ void ffmpeg_PlayFile( struct ffmpeg_file *file )
 	if( !file->readThread )
 	{
 		//lprintf( WIDE("and... play the file...") );
-		file->readThread = ThreadTo( ProcessFrames, (PTRSZVAL)file );
+		file->readThread = ThreadTo( ProcessFrames, (uintptr_t)file );
 	}
 	else
 	{
@@ -3273,7 +3273,7 @@ void ffmpeg_PauseFile( struct ffmpeg_file *file )
 
 //---------------------------------------------------------------------------------------------
 
-void ffmpeg_SeekFile( struct ffmpeg_file *file, S_64 target_time )
+void ffmpeg_SeekFile( struct ffmpeg_file *file, int64_t target_time )
 {
 	int was_paused = file->flags.paused;
 #ifdef DEBUG_LOW_LEVEL_PACKET_IO
@@ -3283,7 +3283,7 @@ void ffmpeg_SeekFile( struct ffmpeg_file *file, S_64 target_time )
 	{
 		// have to resume reader (probably)
 		file->flags.paused = 1;
-		file->readThread = ThreadTo( ProcessFrames, (PTRSZVAL)file );
+		file->readThread = ThreadTo( ProcessFrames, (uintptr_t)file );
 	}
 	else
 	{
@@ -3316,7 +3316,7 @@ void ffmpeg_SeekFile( struct ffmpeg_file *file, S_64 target_time )
 		ffmpeg_PlayFile( file );
 }
 
-void ffmpeg_SetPositionUpdateCallback( struct ffmpeg_file *file, void (CPROC*video_position_update)( PTRSZVAL psv, _64 tick ), PTRSZVAL psvUpdate )
+void ffmpeg_SetPositionUpdateCallback( struct ffmpeg_file *file, void (CPROC*video_position_update)( uintptr_t psv, uint64_t tick ), uintptr_t psvUpdate )
 {
 	file->video_position_update = video_position_update;
 	file->psvUpdateParam = psvUpdate;
@@ -3399,18 +3399,18 @@ struct audio_device {
 	ALuint al_source;
 	int frame_size;
 	short *input_data;
-	PTRSZVAL psvCallback;
+	uintptr_t psvCallback;
 	struct al_buffer buffer;
-	void (CPROC*callback)( PTRSZVAL, int max_level, POINTER data, size_t );
+	void (CPROC*callback)( uintptr_t, int max_level, POINTER data, size_t );
 
 	gsm gsm_inst;
-	_8 *compress_buffer;
+	uint8_t *compress_buffer;
 	size_t compress_segments;
 	gsm_signal compress_partial_buffer[160];
 	int compress_partial_buffer_idx;
 
 	// playback buffer management
-	_64 al_last_buffer_reclaim;
+	uint64_t al_last_buffer_reclaim;
 	int al_format;
 	PLINKQUEUE al_free_buffer_queue; // queue of struct al_buffer
 	PLINKQUEUE al_used_buffer_queue; // queue of struct al_buffer
@@ -3426,10 +3426,10 @@ struct audio_device {
 	PTHREAD audioThread;
 	int max_sample_level;
 	int input_trigger_level;
-	_32 last_compress_block_time;
+	uint32_t last_compress_block_time;
 };
 
-static PTRSZVAL CPROC audio_ReadCaptureDevice( PTHREAD thread )
+static uintptr_t CPROC audio_ReadCaptureDevice( PTHREAD thread )
 {
 	struct audio_device *ad = (struct audio_device*)GetThreadParam( thread );
 	while( 1 )
@@ -3594,7 +3594,7 @@ static PTRSZVAL CPROC audio_ReadCaptureDevice( PTHREAD thread )
 	}
 }
 
-struct audio_device *audio_OpenCaptureDevice( CTEXTSTR devname, void (CPROC*callback)( PTRSZVAL psvInst, int max_level, POINTER data, size_t ), PTRSZVAL psvInst )
+struct audio_device *audio_OpenCaptureDevice( CTEXTSTR devname, void (CPROC*callback)( uintptr_t psvInst, int max_level, POINTER data, size_t ), uintptr_t psvInst )
 {
 	struct audio_device *ad = New( struct audio_device );
 #ifdef UNICODE
@@ -3612,11 +3612,11 @@ struct audio_device *audio_OpenCaptureDevice( CTEXTSTR devname, void (CPROC*call
 	if( ad->device )
 	{
 		ad->gsm_inst = gsm_create();
-		ad->compress_buffer = NewArray( _8, 33 * DEFAULT_SAMPLE_SEGMENTS * 2 );
+		ad->compress_buffer = NewArray( uint8_t, 33 * DEFAULT_SAMPLE_SEGMENTS * 2 );
 		ad->psvCallback = psvInst;
 		ad->callback = callback;
 		ad->input_data = NewArray( short, ad->frame_size );
-		ThreadTo( audio_ReadCaptureDevice, (PTRSZVAL)ad );
+		ThreadTo( audio_ReadCaptureDevice, (uintptr_t)ad );
 	}
 	return ad;
 }
@@ -3634,7 +3634,7 @@ void audio_ResumeCapture( struct audio_device *device )
 }
 
 
-static PTRSZVAL CPROC ProcessPlaybackAudioFrame( PTHREAD thread )
+static uintptr_t CPROC ProcessPlaybackAudioFrame( PTHREAD thread )
 {
 	struct audio_device * file = (struct audio_device*)GetThreadParam( thread );
 	int frameFinished;
@@ -3800,7 +3800,7 @@ static void GetPlaybackAudioBuffer( struct audio_device * file, POINTER data, si
 	{
 		buffer = New( struct al_buffer );
 #ifdef USE_OPENSL
-		buffer->buffer = NewArray( _8, sz );
+		buffer->buffer = NewArray( uint8_t, sz );
 		MemCpy( buffer->buffer, data, sz );
 #else
 		openal.alGenBuffers( 1, &buffer->buffer );
@@ -3873,7 +3873,7 @@ static void GetPlaybackAudioBuffer( struct audio_device * file, POINTER data, si
 	LeaveCriticalSec( &l.cs_audio_out );
 #endif
 	if( !file->audioThread )
-		file->audioThread = ThreadTo( ProcessPlaybackAudioFrame, (PTRSZVAL)file );
+		file->audioThread = ThreadTo( ProcessPlaybackAudioFrame, (uintptr_t)file );
 }
 
 

@@ -266,8 +266,8 @@ const TEXTCHAR*  GetKeyText (int key)
 }
 
 void  GetDisplaySizeEx ( int nDisplay
-												 , S_32 *x, S_32 *y
-												 , _32 *width, _32 *height)
+												 , int32_t *x, int32_t *y
+												 , uint32_t *width, uint32_t *height)
 {
 		if( x )
 			(*x) = 0;
@@ -476,7 +476,7 @@ static void HandleMessage( PRENDERER gl_camera, GLWindow *x11_gl_window, XEvent 
 
 
 
-PTRSZVAL CPROC ProcessDisplayMessages( PTHREAD thread )
+uintptr_t CPROC ProcessDisplayMessages( PTHREAD thread )
 {
 	XEvent event;
 	struct display_camera *camera;

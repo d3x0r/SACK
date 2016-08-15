@@ -5,24 +5,24 @@
 #include <html5.websocket.h>
 
 
-PTRSZVAL my_web_socket_opened( PCLIENT pc, PTRSZVAL psv )
+uintptr_t my_web_socket_opened( PCLIENT pc, uintptr_t psv )
 {
 	lprintf( WIDE("Connection opened... %p %p"), pc, psv );
 	return psv;
 }
 
-void my_web_socket_closed( PCLIENT pc, PTRSZVAL psv )
+void my_web_socket_closed( PCLIENT pc, uintptr_t psv )
 {
 	lprintf( WIDE("Connection closed... %p %p"), pc, psv );
 }
 
-void my_web_socket_error( PCLIENT pc, PTRSZVAL psv, int error )
+void my_web_socket_error( PCLIENT pc, uintptr_t psv, int error )
 {
 	/* no errors are implemented yet*/
 	lprintf( WIDE("Connection error... %p %p"), pc, psv );
 }
 
-void my_web_socket_event( PCLIENT pc, PTRSZVAL psv, POINTER buffer, int msglen )
+void my_web_socket_event( PCLIENT pc, uintptr_t psv, POINTER buffer, int msglen )
 {
 	lprintf( WIDE("Recieved event") );
 	LogBinary( buffer, msglen );

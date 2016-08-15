@@ -46,18 +46,18 @@ typedef struct reel_tag
 	INDEX offset; // 96 points...
 	Image images[REEL_LENGTH]; // REEL_LENGTH some unique constant to use in this code.
 	INDEX reel_idx[REEL_LENGTH]; // REEL_LENGTH some unique constant to use in this code.
-	S_32 speed; // positive or negative offset parameter... reels may spin backwards...
+	int32_t speed; // positive or negative offset parameter... reels may spin backwards...
 	// this is an idea, but I think that hrm..
-	_32 next_event; // some time that if time now is greater than, do something else
+	uint32_t next_event; // some time that if time now is greater than, do something else
 
-	_32 stop_event; // tick at which we will be stopped.
-	_32 stop_event_now; // the current now that the stop event thinks it is... so it can cat  up to 'now'
-	_32 stop_event_tick;
+	uint32_t stop_event; // tick at which we will be stopped.
+	uint32_t stop_event_now; // the current now that the stop event thinks it is... so it can cat  up to 'now'
+	uint32_t stop_event_tick;
 
-	_32 start_event; // when started, and spinning...
-	_32 start_event_now; // set at now, and itereated at
-	_32 start_event_tick; // tick rate for start_event_now
-	_32 target_idx;
+	uint32_t start_event; // when started, and spinning...
+	uint32_t start_event_now; // set at now, and itereated at
+	uint32_t start_event_tick; // tick rate for start_event_now
+	uint32_t target_idx;
 } REEL, *PREEL;
 
 
@@ -79,10 +79,10 @@ int GetStatus( PSI_CONTROL pc );
 // global ( actually a local since it's not in a .H file. )
 typedef struct global_tag {
 	struct {
-		_32 bBackgroundInitialized : 1;
+		uint32_t bBackgroundInitialized : 1;
 	} flags;
-	S_32 ofs;
-	_32 nReels;
+	int32_t ofs;
+	uint32_t nReels;
 	Image background, playing, playagain;
 	Image strip; // raw strip of images loaded from a file.
 	// oh I see this is a long lost global variable... wonder why this got lost in the mix....
@@ -107,7 +107,7 @@ typedef struct global_tag {
 	Image backgroundsurface;
 	PIMAGE_INTERFACE pii;
 	PRENDER_INTERFACE pdi;
-	_32 idx[NUM_REELS];
+	uint32_t idx[NUM_REELS];
 
 
 } GLOBAL;

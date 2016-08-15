@@ -174,7 +174,7 @@ typedef PREFIX_PACKED struct MY_IMAGE_OPTIONAL_HEADER {
 			MY_IMAGE_DATA_DIRECTORY DataDirectory[MY_IMAGE_NUMBEROF_DIRECTORY_ENTRIES];
 		} PE32;
 		struct {
-			_64 ImageBase;
+			uint64_t ImageBase;
 			DWORD SectionAlignment;
 			DWORD FileAlignment;
 			WORD MajorOperatingSystemVersion;
@@ -190,16 +190,16 @@ typedef PREFIX_PACKED struct MY_IMAGE_OPTIONAL_HEADER {
 			// -- windows specific fieds preceed...
 			WORD Subsystem;
 			WORD DllCharacteristics;
-			_64 SizeOfStackReserve;
-			_64 SizeOfStackCommit;
-			_64 SizeOfHeapReserve;
-			_64 SizeOfHeapCommit;
+			uint64_t SizeOfStackReserve;
+			uint64_t SizeOfStackCommit;
+			uint64_t SizeOfHeapReserve;
+			uint64_t SizeOfHeapCommit;
 			DWORD LoaderFlags;  // obsolete
 			DWORD NumberOfRvaAndSizes;
 			MY_IMAGE_DATA_DIRECTORY DataDirectory[MY_IMAGE_NUMBEROF_DIRECTORY_ENTRIES];
 		} PE32_plus;
 		struct {
-			_64 ImageBase;
+			uint64_t ImageBase;
 			DWORD SectionAlignment;
 			DWORD FileAlignment;
 			WORD MajorOperatingSystemVersion;
@@ -215,10 +215,10 @@ typedef PREFIX_PACKED struct MY_IMAGE_OPTIONAL_HEADER {
 			// -- windows specific fieds preceed...
 			WORD Subsystem;
 			WORD DllCharacteristics;
-			_64 SizeOfStackReserve;
-			_64 SizeOfStackCommit;
-			_64 SizeOfHeapReserve;
-			_64 SizeOfHeapCommit;
+			uint64_t SizeOfStackReserve;
+			uint64_t SizeOfStackCommit;
+			uint64_t SizeOfHeapReserve;
+			uint64_t SizeOfHeapCommit;
 			DWORD LoaderFlags;  // obsolete
 			DWORD NumberOfRvaAndSizes;
 			MY_IMAGE_DATA_DIRECTORY DataDirectory[MY_IMAGE_NUMBEROF_DIRECTORY_ENTRIES];
@@ -461,8 +461,8 @@ int ScanFile( PFILESOURCE pfs )
 			}
 			if( pe64 )
 			{
-				_32 buffer[28];
-				_64 value;
+				uint32_t buffer[28];
+				uint64_t value;
 				int count;
 				int offset = 
 					+ nt_header.FileHeader.SizeOfOptionalHeader // sizeof optional header
@@ -473,10 +473,10 @@ int ScanFile( PFILESOURCE pfs )
 				TEXTCHAR *sections;
 				value = 1;
 				count = 0;
-				for( fread( &value, 1, sizeof( _64), file ); value; fread( &value, 1, sizeof( _64), file ) )
+				for( fread( &value, 1, sizeof( uint64_t), file ); value; fread( &value, 1, sizeof( uint64_t), file ) )
 					count++;
 				//fread( buffer, 1, sizeof( buffer ), file );
-				offset += count * sizeof( _64 );
+				offset += count * sizeof( uint64_t );
 				sections = NewArray( TEXTCHAR, section_size = ( nt_optional_header.PE64.SizeOfHeaders - offset ) );
 				
 				//fseek( file, offset, SEEK_SET );

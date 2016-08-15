@@ -148,7 +148,7 @@ static int OnChangePage( WIDE("Calendar") )( PCanvasData pc_canvas )
 	return TRUE;
 }
 
-static LOGICAL OnQueryShowControl( WIDE("Calendar/Date Selector") )( PTRSZVAL psv )
+static LOGICAL OnQueryShowControl( WIDE("Calendar/Date Selector") )( uintptr_t psv )
 {
 	struct day_selector_info *pDay = (struct day_selector_info*)psv;
 	if( pDay->update != l.current_update )
@@ -195,7 +195,7 @@ static LOGICAL OnQueryShowControl( WIDE("Calendar/Date Selector") )( PTRSZVAL ps
 	return TRUE;
 }
 
-static void OnKeyPressEvent( WIDE("Calendar/Date Selector") )( PTRSZVAL psv )
+static void OnKeyPressEvent( WIDE("Calendar/Date Selector") )( uintptr_t psv )
 {
 	struct day_selector_info *pDay = (struct day_selector_info*)psv;
 	l.current_day = pDay->day;
@@ -206,17 +206,17 @@ static void OnKeyPressEvent( WIDE("Calendar/Date Selector") )( PTRSZVAL psv )
 	l.prior_selected = pDay;
 }
 
-static PTRSZVAL OnCreateMenuButton( WIDE("Calendar/Date Selector") )( PMENU_BUTTON button )
+static uintptr_t OnCreateMenuButton( WIDE("Calendar/Date Selector") )( PMENU_BUTTON button )
 {
 	struct day_selector_info *pDay = New(struct day_selector_info);
 	MemSet( pDay, 0, sizeof( struct day_selector_info ) );
 	pDay->button = button;
 	InterShell_SetButtonStyle( button, WIDE("bicolor square") );
 	InterShell_SetButtonColors( button, BASE_COLOR_WHITE, BASE_COLOR_BROWN, BASE_COLOR_BLACK, BASE_COLOR_WHITE );
-	return (PTRSZVAL)pDay;
+	return (uintptr_t)pDay;
 }
 
-static void OnKeyPressEvent( WIDE("Calendar/Previous Month") )( PTRSZVAL button )
+static void OnKeyPressEvent( WIDE("Calendar/Previous Month") )( uintptr_t button )
 {
 	l.current_month--;
 	if( l.current_month < 1 )
@@ -227,14 +227,14 @@ static void OnKeyPressEvent( WIDE("Calendar/Previous Month") )( PTRSZVAL button 
 	UpdateCalendar( FALSE );
 }
 
-static PTRSZVAL OnCreateMenuButton( WIDE("Calendar/Previous Month") )( PMENU_BUTTON button )
+static uintptr_t OnCreateMenuButton( WIDE("Calendar/Previous Month") )( PMENU_BUTTON button )
 {
 	InterShell_SetButtonText( button, WIDE("Previous_Month") );
 	InterShell_SetButtonStyle( button, WIDE("square") );
-	return (PTRSZVAL)button;
+	return (uintptr_t)button;
 }
 
-static void OnKeyPressEvent( WIDE("Calendar/Next Month") )( PTRSZVAL button )
+static void OnKeyPressEvent( WIDE("Calendar/Next Month") )( uintptr_t button )
 {
 	l.current_month++;
 	if( l.current_month > 12 )
@@ -245,24 +245,24 @@ static void OnKeyPressEvent( WIDE("Calendar/Next Month") )( PTRSZVAL button )
 	UpdateCalendar( FALSE );
 }
 
-static PTRSZVAL OnCreateMenuButton( WIDE("Calendar/Next Month") )( PMENU_BUTTON button )
+static uintptr_t OnCreateMenuButton( WIDE("Calendar/Next Month") )( PMENU_BUTTON button )
 {
 	InterShell_SetButtonText( button, WIDE("Next_Month") );
 	InterShell_SetButtonStyle( button, WIDE("square") );
-	return (PTRSZVAL)button;
+	return (uintptr_t)button;
 }
 
-static void OnKeyPressEvent( WIDE("Calendar/Select Today") )( PTRSZVAL button )
+static void OnKeyPressEvent( WIDE("Calendar/Select Today") )( uintptr_t button )
 {
 	ResetDate();
 	UpdateCalendar( FALSE );
 }
 
-static PTRSZVAL OnCreateMenuButton( WIDE("Calendar/Select Today") )( PMENU_BUTTON button )
+static uintptr_t OnCreateMenuButton( WIDE("Calendar/Select Today") )( PMENU_BUTTON button )
 {
 	InterShell_SetButtonText( button, WIDE("Select_Today") );
 	InterShell_SetButtonStyle( button, WIDE("square") );
-	return (PTRSZVAL)button;
+	return (uintptr_t)button;
 }
 
 

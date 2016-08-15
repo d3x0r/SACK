@@ -68,13 +68,13 @@ _TIMER_NAMESPACE
 #endif
 
 #if defined( __LINUX__ ) || defined( __ANDROID__ )
-TIMER_PROC( _32, timeGetTime )( void );
-TIMER_PROC( _32, GetTickCount )( void );
-TIMER_PROC( void, Sleep )( _32 ms );
+TIMER_PROC( uint32_t, timeGetTime )( void );
+TIMER_PROC( uint32_t, GetTickCount )( void );
+TIMER_PROC( void, Sleep )( uint32_t ms );
 #endif
 
 /* Function signature for user callbacks passed to AddTimer. */
-typedef void (CPROC *TimerCallbackProc)( PTRSZVAL psv );
+typedef void (CPROC *TimerCallbackProc)( uintptr_t psv );
 /* Adds a new periodic timer. From now, until the timer is
    removed with RemoveTimer, it will call the timer procedure at
    the specified frequency of milliseconds. The delay until the
@@ -98,7 +98,7 @@ typedef void (CPROC *TimerCallbackProc)( PTRSZVAL psv );
    Example
    First some setup valid for all timer creations...
    <code lang="c++">
-   void CPROC TimerProc( PTRSZVAL user_data )
+   void CPROC TimerProc( uintptr_t user_data )
    {
        // user_data of the timer is the 'user' parameter passed to AddTimer(Exx)
    }
@@ -106,7 +106,7 @@ typedef void (CPROC *TimerCallbackProc)( PTRSZVAL psv );
    you might want to save this for something like
    RescheduleTimer
    <code>
-   _32 timer_id;
+   uint32_t timer_id;
    
    
    </code>
@@ -128,14 +128,14 @@ typedef void (CPROC *TimerCallbackProc)( PTRSZVAL psv );
 	this will allow other timers to fire on schedule.  The timer that is waiting is not
 	in the list of timers to process.
 	*/
-TIMER_PROC( _32, AddTimerExx )( _32 start, _32 frequency
+TIMER_PROC( uint32_t, AddTimerExx )( uint32_t start, uint32_t frequency
 					, TimerCallbackProc callback
-					, PTRSZVAL user DBG_PASS);
-/* <combine sack::timers::AddTimerExx@_32@_32@TimerCallbackProc@PTRSZVAL user>
+					, uintptr_t user DBG_PASS);
+/* <combine sack::timers::AddTimerExx@uint32_t@uint32_t@TimerCallbackProc@uintptr_t user>
    
    \ \                                                                         */
 #define AddTimerEx( s,f,c,u ) AddTimerExx( (s),(f),(c),(u) DBG_SRC )
-/* <combine sack::timers::AddTimerExx@_32@_32@TimerCallbackProc@PTRSZVAL user>
+/* <combine sack::timers::AddTimerExx@uint32_t@uint32_t@TimerCallbackProc@uintptr_t user>
    
    \ \                                                                         */
 #define AddTimer( f, c, u ) AddTimerExx( (f), (f), (c), (u) DBG_SRC)
@@ -145,7 +145,7 @@ TIMER_PROC( _32, AddTimerExx )( _32 start, _32 frequency
    from within the timer itself.
    Parameters
    timer :  32 bit timer ID from AddTimer.                       */
-TIMER_PROC( void, RemoveTimer )( _32 timer );
+TIMER_PROC( void, RemoveTimer )( uint32_t timer );
 /* Reschedule when a timer can fire. The delay can be 0 to make
    wake the timer.
    Parameters
@@ -155,11 +155,11 @@ TIMER_PROC( void, RemoveTimer )( _32 timer );
             using the macro, the default delay is the timer's
             frequency. (can prevent the timer from firing until
             it's frequency from now.)                           */
-TIMER_PROC( void, RescheduleTimerEx )( _32 timer, _32 delay );
-/* <combine sack::timers::RescheduleTimerEx@_32@_32>
+TIMER_PROC( void, RescheduleTimerEx )( uint32_t timer, uint32_t delay );
+/* <combine sack::timers::RescheduleTimerEx@uint32_t@uint32_t>
    
    \ \                                               */
-TIMER_PROC( void, RescheduleTimer )( _32 timer );
+TIMER_PROC( void, RescheduleTimer )( uint32_t timer );
 /* Changes the frequency of a timer. Reschedule timer only
    changes the next time it fires, this can adjust the
    frequency. The simple ChangeTimer macro is sufficient.
@@ -168,8 +168,8 @@ TIMER_PROC( void, RescheduleTimer )( _32 timer );
    initial :    initial delay of the timer. (Might matter if the
                 timer hasn't fired the first time)
    frequency :  new delay between timer callback invokations.    */
-TIMER_PROC( void, ChangeTimerEx )( _32 ID, _32 initial, _32 frequency );
-/* <combine sack::timers::ChangeTimerEx@_32@_32@_32>
+TIMER_PROC( void, ChangeTimerEx )( uint32_t ID, uint32_t initial, uint32_t frequency );
+/* <combine sack::timers::ChangeTimerEx@uint32_t@uint32_t@uint32_t>
    
    \ \                                               */
 #define ChangeTimer( ID, Freq ) ChangeTimerEx( ID, Freq, Freq )
@@ -181,14 +181,14 @@ typedef struct threads_tag *PTHREAD;
 
 /* Function signature for a thread entry point passed to
    ThreadTo.                                             */
-typedef PTRSZVAL (CPROC*ThreadStartProc)( PTHREAD );
+typedef uintptr_t (CPROC*ThreadStartProc)( PTHREAD );
 /* Function signature for a thread entry point passed to
    ThreadToSimple.                                             */
-typedef PTRSZVAL (*ThreadSimpleStartProc)( POINTER );
+typedef uintptr_t (*ThreadSimpleStartProc)( POINTER );
 
 
 /* Create a separate thread that starts in the routine
-   specified. The PTRSZVAL value (something that might be a
+   specified. The uintptr_t value (something that might be a
    pointer), is passed in the PTHREAD structure. (See
    GetThreadParam)
    Parameters
@@ -199,14 +199,14 @@ typedef PTRSZVAL (*ThreadSimpleStartProc)( POINTER );
    
    Example
    See WakeableSleepEx.                                        */
-TIMER_PROC( PTHREAD, ThreadToEx )( ThreadStartProc proc, PTRSZVAL param DBG_PASS );
-/* <combine sack::timers::ThreadToEx@ThreadStartProc@PTRSZVAL param>
+TIMER_PROC( PTHREAD, ThreadToEx )( ThreadStartProc proc, uintptr_t param DBG_PASS );
+/* <combine sack::timers::ThreadToEx@ThreadStartProc@uintptr_t param>
    
    \ \                                                               */
 #define ThreadTo(proc,param) ThreadToEx( proc,param DBG_SRC )
 
 /* Create a separate thread that starts in the routine
-   specified. The PTRSZVAL value (something that might be a
+   specified. The uintptr_t value (something that might be a
    pointer), is passed in the PTHREAD structure. (See
    GetThreadParam)
    Parameters
@@ -219,7 +219,7 @@ TIMER_PROC( PTHREAD, ThreadToEx )( ThreadStartProc proc, PTRSZVAL param DBG_PASS
    See WakeableSleepEx.                                        */
 TIMER_PROC( PTHREAD, ThreadToSimpleEx )( ThreadSimpleStartProc proc, POINTER param DBG_PASS );
 
-/* <combine sack::timers::ThreadToEx@ThreadStartProc@PTRSZVAL param>
+/* <combine sack::timers::ThreadToEx@ThreadStartProc@uintptr_t param>
    
    \ \                                                               */
 #define ThreadToSimple(proc,param) ThreadToSimpleEx( proc,param DBG_SRC )
@@ -265,7 +265,7 @@ TIMER_PROC( void, UnmakeThread )( void );
    
    Example
    See WakeableSleepEx.                                        */
-TIMER_PROC( PTRSZVAL, GetThreadParam )( PTHREAD thread );
+TIMER_PROC( uintptr_t, GetThreadParam )( PTHREAD thread );
 /* \returns the numeric THREAD_ID from a PTHREAD.
    Parameters
    thread :  thread to get the system wide unique ID of. */
@@ -288,10 +288,10 @@ TIMER_PROC( THREAD_ID, GetThisThreadID )( void );
    <code lang="c++">
    PTHREAD main_thread;
    
-   PTRSZVAL CPROC WakeMeThread( PTHREAD thread )
+   uintptr_t CPROC WakeMeThread( PTHREAD thread )
    {
       // get the value passed to ThreadTo as user_data.
-      PTRSZVAL user_data = GetThreadParam( thread );
+      uintptr_t user_data = GetThreadParam( thread );
       // let the main thread sleep a little wile
        WakeableSleep( 250 );
       // then wake it up
@@ -310,19 +310,19 @@ TIMER_PROC( THREAD_ID, GetThisThreadID )( void );
        return 0;
    }
    </code>                                                       */
-TIMER_PROC( void, WakeableSleepEx )( _32 milliseconds DBG_PASS );
-TIMER_PROC( void, WakeableSleep )( _32 milliseconds );
-TIMER_PROC( void, WakeableNamedSleepEx )( CTEXTSTR name, _32 n DBG_PASS );
+TIMER_PROC( void, WakeableSleepEx )( uint32_t milliseconds DBG_PASS );
+TIMER_PROC( void, WakeableSleep )( uint32_t milliseconds );
+TIMER_PROC( void, WakeableNamedSleepEx )( CTEXTSTR name, uint32_t n DBG_PASS );
 #define WakeableNamedSleep( name, n )   WakeableNamedSleepEx( name, n DBG_SRC )
 TIMER_PROC( void, WakeNamedSleeperEx )( CTEXTSTR name DBG_PASS );
 #define WakeNamedSleeper( name )   WakeNamedSleeperEx( name DBG_SRC )
 
-TIMER_PROC( void, WakeableNamedThreadSleepEx )( CTEXTSTR name, _32 n DBG_PASS );
+TIMER_PROC( void, WakeableNamedThreadSleepEx )( CTEXTSTR name, uint32_t n DBG_PASS );
 #define WakeableNamedThreadSleep( name, n )   WakeableNamedThreadSleepEx( name, n DBG_SRC )
 TIMER_PROC( void, WakeNamedThreadSleeperEx )( CTEXTSTR name, THREAD_ID therad DBG_PASS );
 #define WakeNamedThreadSleeper( name, thread )   WakeNamedThreadSleeperEx( name, thread DBG_SRC )
 
-/* <combine sack::timers::WakeableSleepEx@_32 milliseconds>
+/* <combine sack::timers::WakeableSleepEx@uint32_t milliseconds>
    
    \ \                                                      */
 #define WakeableSleep(n) WakeableSleepEx(n DBG_SRC )
@@ -386,7 +386,7 @@ TIMER_PROC( void, EndThread )( PTHREAD thread );
    PTHREAD main_thread;
    LOGICAL thread_finished_check;
    
-   PTRSZVAL CPROC ThreadProc( PTHREAD thread )
+   uintptr_t CPROC ThreadProc( PTHREAD thread )
    {
        if( IsThisThread( main_thread ) )
             printf( "This thread is not the main thread.\\n" );
@@ -400,7 +400,7 @@ TIMER_PROC( void, EndThread )( PTHREAD thread );
    
    </code>
    <code lang="c++">
-       // hmm - for some reason, just pass the PTRSZVAL that was passed to ThreadTo as the result.
+       // hmm - for some reason, just pass the uintptr_t that was passed to ThreadTo as the result.
        return GetThreadParam( thread );
    }
    

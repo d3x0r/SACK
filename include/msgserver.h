@@ -44,22 +44,22 @@ SACK_NAMESPACE
 /* User callback signature to return the function callback table
    to the server for event dispatch to a service (?) (INTERNAL?) */
 typedef int (CPROC *GetServiceFunctionTable)(server_function_table *ppTable
-												  ,_32 *nEntries
-												  ,_32 MsgBase);
+												  ,uint32_t *nEntries
+												  ,uint32_t MsgBase);
 
 #ifndef CLIENT_MESSAGE_INTERFACE
 #ifndef CLIENTMSG_SOURCE
 // now - is there some magic to allow libraries to link to
 // the core application?? - this is in the server's core
 // and is access by the services it loads.
-SERVERMSG_PROC(int, SendMultiServiceEvent)( _32 pid, _32 event
-								 , _32 parts
+SERVERMSG_PROC(int, SendMultiServiceEvent)( uint32_t pid, uint32_t event
+								 , uint32_t parts
 								 , ... );
-/* <combine sack::msg::client::SendMultiServiceEvent@_32@_32@_32@...>
+/* <combine sack::msg::client::SendMultiServiceEvent@uint32_t@uint32_t@uint32_t@...>
    
    \ \                                                                */
 #define SendServiceEvent(pid,event,data,len) SendMultiServiceEvent(pid,event,1,data,len)
-//void SendServiceEvent( _32 pid, _32 event, _32 *data, _32 len );
+//void SendServiceEvent( uint32_t pid, uint32_t event, uint32_t *data, uint32_t len );
 #endif
 #endif
 

@@ -208,7 +208,7 @@ class ZFrame : public ZObject
     }
 
 
-    virtual void Render(ZRender_Interface *render, Frame_Dimensions * ParentPosition, PTRSZVAL psvInit);
+    virtual void Render(ZRender_Interface *render, Frame_Dimensions * ParentPosition, uintptr_t psvInit);
     virtual void SetTexture(ULong TextureNum) {this->TextureNum = TextureNum; }
     virtual void SetPosition(float x, float y) {Dimensions.Position_x = x; Dimensions.Position_y = y;}
     virtual void SetDragPosition(float x, float y) { DragAbsolutePosition.x = x; DragAbsolutePosition.y = y; }
@@ -305,7 +305,7 @@ class ZGraphicUserManager : public ZEventConsumer
 
     void RemoveAllFrames(); // Clear Screen
 
-    void Render( ZRender_Interface *render, PTRSZVAL psvInit );
+    void Render( ZRender_Interface *render, uintptr_t psvInit );
 
 
     // Event Input

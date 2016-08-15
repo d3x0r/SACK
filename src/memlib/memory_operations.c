@@ -26,33 +26,33 @@ SACK_MEMORY_NAMESPACE
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 
-void  MemSet ( POINTER p, PTRSZVAL n, size_t sz )
+void  MemSet ( POINTER p, uintptr_t n, size_t sz )
 {
 #if defined( _MSC_VER ) && !defined( __NO_WIN32API__ ) && !defined( UNDER_CE )
 #  if defined( _WIN64 )
 	//__asm cld;
-	__stosq( (_64*)p, n, sz/8 );
+	__stosq( (uint64_t*)p, n, sz/8 );
 	if( sz & 4 )
-		(*(_32*)( ((PTRSZVAL)p) + sz - (sz&7) ) ) = (_32)n;
+		(*(uint32_t*)( ((uintptr_t)p) + sz - (sz&7) ) ) = (uint32_t)n;
 	if( sz & 2 )
-		(*(_16*)( ((PTRSZVAL)p) + sz - (sz&3) ) ) = (_16)n;
+		(*(uint16_t*)( ((uintptr_t)p) + sz - (sz&3) ) ) = (uint16_t)n;
 	if( sz & 1 )
-		(*(_8*)( ((PTRSZVAL)p) + sz - (sz&1) ) ) = (_8)n;
+		(*(uint8_t*)( ((uintptr_t)p) + sz - (sz&1) ) ) = (uint8_t)n;
 #  else
 #    ifdef __64__
-	__stosq( (_64*)p, n, sz / 4 );
+	__stosq( (uint64_t*)p, n, sz / 4 );
 	if( sz & 4 )
-		(*(_32*)( ((PTRSZVAL)p) + sz - (sz&7) ) ) = (_32)n;
+		(*(uint32_t*)( ((uintptr_t)p) + sz - (sz&7) ) ) = (uint32_t)n;
 	if( sz & 2 )
-		(*(_16*)( ((PTRSZVAL)p) + sz - (sz&3) ) ) = (_16)n;
+		(*(uint16_t*)( ((uintptr_t)p) + sz - (sz&3) ) ) = (uint16_t)n;
 	if( sz & 1 )
-		(*(_8*)( ((PTRSZVAL)p) + sz - (sz&1) ) ) = (_8)n;
+		(*(uint8_t*)( ((uintptr_t)p) + sz - (sz&1) ) ) = (uint8_t)n;
 #    else
-	__stosd( (_32*)p, n, sz / 4 );
+	__stosd( (DWORD*)p, n, sz / 4 );
 	if( sz & 2 )
-		(*(_16*)( ((PTRSZVAL)p) + sz - (sz&3) ) ) = (_16)n;
+		(*(uint16_t*)( ((uintptr_t)p) + sz - (sz&3) ) ) = (uint16_t)n;
 	if( sz & 1 )
-		(*(_8*)( ((PTRSZVAL)p) + sz - (sz&1) ) ) = (_8)n;
+		(*(uint8_t*)( ((uintptr_t)p) + sz - (sz&1) ) ) = (uint8_t)n;
 #    endif
 #  endif
 #else
@@ -60,12 +60,12 @@ void  MemSet ( POINTER p, PTRSZVAL n, size_t sz )
 #endif
 }
 
-int  MemChk ( POINTER p, PTRSZVAL val, size_t sz )
+int  MemChk ( POINTER p, uintptr_t val, size_t sz )
 {
 #if defined( _MSC_VER ) && !defined( __NO_WIN32API__ ) && !defined( UNDER_CE )
-	int n;
-	PTRSZVAL *data = (PTRSZVAL*)p;
-	for( n = 0; n < sz/sizeof(PTRSZVAL); n++ )
+	size_t n;
+	uintptr_t *data = (uintptr_t*)p;
+	for( n = 0; n < sz/sizeof(uintptr_t); n++ )
 		if( data[n] != val )
 			return 0;
    return 1;
@@ -82,16 +82,16 @@ int  MemChk ( POINTER p, PTRSZVAL val, size_t sz )
 #if defined( _MSC_VER ) && !defined( __NO_WIN32API__ )&& !defined( UNDER_CE )
 
 #  ifdef _WIN64
-	__movsq( (_64*)pTo, (_64*)pFrom, sz/8 );
+	__movsq( (uint64_t*)pTo, (uint64_t*)pFrom, sz/8 );
 	if( sz & 4 )
-		(*(_32*)( ((PTRSZVAL)pTo) + sz - (sz&7) ) ) = (*(_32*)( ((PTRSZVAL)pFrom) + sz - (sz&7) ) );
+		(*(uint32_t*)( ((uintptr_t)pTo) + sz - (sz&7) ) ) = (*(uint32_t*)( ((uintptr_t)pFrom) + sz - (sz&7) ) );
 #  else
-	__movsd( (_32*)pTo, (_32*)pFrom, sz/4 );
+	__movsd( (DWORD*)pTo, (DWORD*)pFrom, sz/4 );
 #  endif
 	if( sz & 2 )
-		(*(_16*)( ((PTRSZVAL)pTo) + sz - (sz&3) ) ) = (*(_16*)( ((PTRSZVAL)pFrom) + sz - (sz&3) ) );
+		(*(uint16_t*)( ((uintptr_t)pTo) + sz - (sz&3) ) ) = (*(uint16_t*)( ((uintptr_t)pFrom) + sz - (sz&3) ) );
 	if( sz & 1 )
-		(*(_8*)( ((PTRSZVAL)pTo) + sz - (sz&1) ) ) = (*(_8*)( ((PTRSZVAL)pFrom) + sz - (sz&1) ) );
+		(*(uint8_t*)( ((uintptr_t)pTo) + sz - (sz&1) ) ) = (*(uint8_t*)( ((uintptr_t)pFrom) + sz - (sz&1) ) );
 #else
 	memcpy( pTo, pFrom, sz );
 #endif
@@ -311,7 +311,7 @@ TEXTSTR StrStr( TEXTSTR s1, CTEXTSTR s2 )
  int  CmpMem8 ( void *s1, void *s2, unsigned long n, unsigned long *r )
 {
 	register int t1, t2;
-	_32 pos;
+	uint32_t pos;
 	{
 		pos = 0;
 		while( pos < n )
@@ -321,8 +321,8 @@ TEXTSTR StrStr( TEXTSTR s1, CTEXTSTR s2 )
 			if( ( t1 ) == ( t2 ) )
 			{
 				(pos)++;
-				s1 = (void*)(((PTRSZVAL)s1) + 1);
-				s2 = (void*)(((PTRSZVAL)s2) + 1);
+				s1 = (void*)(((uintptr_t)s1) + 1);
+				s2 = (void*)(((uintptr_t)s2) + 1);
 			}
 			else if( t1 > t2 )
 			{
@@ -347,7 +347,7 @@ TEXTSTR StrStr( TEXTSTR s1, CTEXTSTR s2 )
 {
 	if( original )
 	{
-		PTRSZVAL len = (PTRSZVAL)StrLen( original ) + 1;
+		uintptr_t len = (uintptr_t)StrLen( original ) + 1;
 		TEXTCHAR *result;
 		result = (TEXTCHAR*)AllocateEx( sizeof(TEXTCHAR)*len  DBG_RELAY );
 		MemCpy( result, original, sizeof(TEXTCHAR)*len );

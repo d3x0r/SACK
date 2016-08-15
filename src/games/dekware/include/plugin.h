@@ -41,7 +41,7 @@ CORE_CPROC( void, SetDatapathType )( PDATAPATH pdp, int nType );
 void LoadPlugin( CTEXTSTR pFile, PSENTIENT ps, PTEXT parameters );
 // callback for ScanFiles; calls LoadPlugin with ps=NULL and parameters=NULL
 // called from scanfiles in syscmds too right now...
-void CPROC LoadAPlugin( PTRSZVAL psv, CTEXTSTR name, int flags );
+void CPROC LoadAPlugin( uintptr_t psv, CTEXTSTR name, int flags );
 void Unload    ( PTEXT pCommandName );
 void DumpLoadedPluginList( PSENTIENT ps );
 
@@ -67,7 +67,7 @@ CORE_PROC( OptionHandler, GetOptionRegistered )( TEXTSTR prefix, PTEXT Command )
 CORE_CPROC( void,  UnregisterRoutine    )( CTEXTSTR pName );
 CORE_PROC( void,  PrintRegisteredRoutines)( PLINKQUEUE *Output, PSENTIENT ps, PTEXT parameters );
 CORE_PROC( int,   RoutineRegistered)( PSENTIENT ps, PTEXT Command );
-CORE_CPROC( int,   RegisterDeviceOpts       )( CTEXTSTR pNext, CTEXTSTR pDescription, DeviceOpenDevice Open, option_entry *pOptions, _32 nOptions );
+CORE_CPROC( int,   RegisterDeviceOpts       )( CTEXTSTR pNext, CTEXTSTR pDescription, DeviceOpenDevice Open, option_entry *pOptions, uint32_t nOptions );
 CORE_CPROC( int,   RegisterDevice       )( CTEXTSTR pNext, CTEXTSTR pDescription, DeviceOpenDevice Open );
 CORE_CPROC( void,  UnregisterDevice     )( CTEXTSTR pName );
 CORE_CPROC( INDEX, RegisterExtension    )( CTEXTSTR pName );

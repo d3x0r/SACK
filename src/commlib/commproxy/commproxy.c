@@ -9,7 +9,7 @@ typedef struct com_port_tag
 	HWND hWndRecv;
    int handle; // handle that stubcomm results with.
 	// work buffer, callback results are read into here.
-   _32 dwLastMsg;
+   uint32_t dwLastMsg;
 	char buffer[4096];
    int buflen;
    DeclareLink( struct com_port_tag );
@@ -18,13 +18,13 @@ typedef struct com_port_tag
 typedef struct global_tag
 {
 	HWND hWnd;
-   _32 nWriteTimeout;
+   uint32_t nWriteTimeout;
    PCOM_PORT pComPorts;
 } GLOBAL;
 
 static GLOBAL g;
 
-void CPROC ReadCallback( PTRSZVAL psv, int iCommId, POINTER buffer, int nReadLen )
+void CPROC ReadCallback( uintptr_t psv, int iCommId, POINTER buffer, int nReadLen )
 {
 	PCOM_PORT pComPort = (PCOM_PORT)psv;
 	ATOM Atom;
@@ -68,7 +68,7 @@ int CALLBACK WndProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam )
 				  pComPort;
 				  pComPort = pComPort->next )
 			{
-            _32 tick = GetTickCount();
+            uint32_t tick = GetTickCount();
 				if( ( pComPort->dwLastMsg + 20000 ) < tick )
 				{
 					Log3( WIDE("Com port last is: %lu cur is: %lu (%lu)"),pComPort->dwLastMsg, tick, tick - pComPort->dwLastMsg );
@@ -125,7 +125,7 @@ int CALLBACK WndProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam )
          MemSet( pComPort, 0, sizeof( COM_PORT ) );
 			GlobalGetAtomName( lParam, szPort, sizeof( szPort ) );
          pComPort->hWndRecv = (HWND)wParam;
-			pComPort->handle = StubOpenCommEx( szPort, 4096, 4096, ReadCallback, (PTRSZVAL)pComPort );
+			pComPort->handle = StubOpenCommEx( szPort, 4096, 4096, ReadCallback, (uintptr_t)pComPort );
          pComPort->dwLastMsg = GetTickCount();
          Log1( WIDE("Resulted with %d"), pComPort->handle );
 			GlobalDeleteAtom( lParam );

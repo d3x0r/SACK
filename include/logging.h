@@ -134,7 +134,7 @@ SYSLOG_SOCKET_SYSLOGD
 
 //---------------------------------------------------------------------------
 
-SYSLOG_PROC  LOGICAL SYSLOG_API  IsBadReadPtr ( CPOINTER pointer, PTRSZVAL len );
+SYSLOG_PROC  LOGICAL SYSLOG_API  IsBadReadPtr ( CPOINTER pointer, uintptr_t len );
 #endif
 
 SYSLOG_PROC  CTEXTSTR SYSLOG_API  GetPackedTime ( void );
@@ -148,11 +148,11 @@ SYSLOG_PROC  void SYSLOG_API  ProtectLoggedFilenames ( LOGICAL bEnable );
 SYSLOG_PROC  void SYSLOG_API  SystemLogFL ( CTEXTSTR FILELINE_PASS );
 SYSLOG_PROC  void SYSLOG_API  SystemLogEx ( CTEXTSTR DBG_PASS );
 SYSLOG_PROC  void SYSLOG_API  SystemLog ( CTEXTSTR );
-SYSLOG_PROC  void SYSLOG_API  LogBinaryFL ( P_8 buffer, size_t size FILELINE_PASS );
-SYSLOG_PROC  void SYSLOG_API  LogBinaryEx ( P_8 buffer, size_t size DBG_PASS );
-SYSLOG_PROC  void SYSLOG_API  LogBinary ( P_8 buffer, size_t size );
+SYSLOG_PROC  void SYSLOG_API  LogBinaryFL ( uint8_t* buffer, size_t size FILELINE_PASS );
+SYSLOG_PROC  void SYSLOG_API  LogBinaryEx ( uint8_t* buffer, size_t size DBG_PASS );
+SYSLOG_PROC  void SYSLOG_API  LogBinary ( uint8_t* buffer, size_t size );
 // logging level defaults to 1000 which is log everything
-SYSLOG_PROC  void SYSLOG_API  SetSystemLoggingLevel ( _32 nLevel );
+SYSLOG_PROC  void SYSLOG_API  SetSystemLoggingLevel ( uint32_t nLevel );
 #if defined( _DEBUG ) || defined( _DEBUG_INFO )
 /* Log a binary buffer. Logs lines representing 16 bytes of data
    at a time. The hex of each byte in a buffer followed by the
@@ -176,11 +176,11 @@ SYSLOG_PROC  void SYSLOG_API  SetSystemLoggingLevel ( _32 nLevel );
    
    The '.' at the end of 'sample string' is a non printable
    character. characters 0-31 and 127+ are printed as '.'.       */
-#define LogBinary(buf,sz) LogBinaryFL((P_8)(buf),sz DBG_SRC )
+#define LogBinary(buf,sz) LogBinaryFL((uint8_t*)(buf),sz DBG_SRC )
 #define SystemLog(buf)    SystemLogFL(buf DBG_SRC )
 #else
 // need to include the typecast... binary logging doesn't really care what sort of pointer it gets.
-#define LogBinary(buf,sz) LogBinary((P_8)(buf),sz )
+#define LogBinary(buf,sz) LogBinary((uint8_t*)(buf),sz )
 //#define LogBinaryEx(buf,sz,...) LogBinaryFL(buf,sz FILELINE_NULL)
 //#define SystemLogEx(buf,...) SystemLogFL(buf FILELINE_NULL )
 #endif
@@ -197,18 +197,18 @@ typedef INDEX (CPROC*RealLogFunction)(CTEXTSTR format,...)
 	__attribute__ ((__format__ (__printf__, 1, 2)))
 #endif
 	;
-SYSLOG_PROC  RealVLogFunction SYSLOG_API  _vxlprintf ( _32 level DBG_PASS );
-SYSLOG_PROC  RealLogFunction SYSLOG_API  _xlprintf ( _32 level DBG_PASS );
+SYSLOG_PROC  RealVLogFunction SYSLOG_API  _vxlprintf ( uint32_t level DBG_PASS );
+SYSLOG_PROC  RealLogFunction SYSLOG_API  _xlprintf ( uint32_t level DBG_PASS );
 
 // utility function to format a cpu delta into a buffer...
 // end-start is always printed... therefore tick_end-0 is
 // print absolute time... formats as millisecond.NNN
-SYSLOG_PROC  void SYSLOG_API  PrintCPUDelta ( TEXTCHAR *buffer, size_t buflen, _64 tick_start, _64 tick_end );
+SYSLOG_PROC  void SYSLOG_API  PrintCPUDelta ( TEXTCHAR *buffer, size_t buflen, uint64_t tick_start, uint64_t tick_end );
 // return the current CPU tick
-SYSLOG_PROC  _64 SYSLOG_API  GetCPUTick ( void );
+SYSLOG_PROC  uint64_t SYSLOG_API  GetCPUTick ( void );
 // result in nano seconds - thousanths of a millisecond...
-SYSLOG_PROC  _32 SYSLOG_API  ConvertTickToMicrosecond ( _64 tick );
-SYSLOG_PROC  _64 SYSLOG_API  GetCPUFrequency ( void );
+SYSLOG_PROC  uint32_t SYSLOG_API  ConvertTickToMicrosecond ( uint64_t tick );
+SYSLOG_PROC  uint64_t SYSLOG_API  GetCPUFrequency ( void );
 SYSLOG_PROC  CTEXTSTR SYSLOG_API  GetTimeEx ( int bUseDay );
 
 SYSLOG_PROC  void SYSLOG_API  SetSyslogOptions ( FLAGSETTYPE *options );
@@ -360,7 +360,7 @@ enum SyslogTimeSpecifications {
 };
 
 /* Specify how time is logged. */
-SYSLOG_PROC void SYSLOG_API SystemLogTime( _32 enable );
+SYSLOG_PROC void SYSLOG_API SystemLogTime( uint32_t enable );
 
 #ifndef NO_LOGGING
 

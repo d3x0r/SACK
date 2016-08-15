@@ -4,7 +4,7 @@
 #include <vectlib.h>
 
 
-void CPROC UpdateImage( PTRSZVAL psv, PRENDERER hVideo )
+void CPROC UpdateImage( uintptr_t psv, PRENDERER hVideo )
 {
 	int i;
 	ImageFile *pImage;                       

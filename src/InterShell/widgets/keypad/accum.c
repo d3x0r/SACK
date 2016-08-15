@@ -19,26 +19,26 @@ typedef struct accumulator_update_tag
 {
 	struct accumulator_update_tag *next;
 	struct accumulator_update_tag **me;
-	void (*Updated)( PTRSZVAL psv, PACCUMULATOR accum );
-	PTRSZVAL psvUpdated;
+	void (*Updated)( uintptr_t psv, PACCUMULATOR accum );
+	uintptr_t psvUpdated;
 } ACCUMULATOR_UPDATE, *PACCUMULATOR_UPDATE;
 
 typedef struct accumulator_tag
 {
-	S_64 value;
-	S_64 dec_base; // inversion factor for decimal application...
-	_64 decimal;
+	int64_t value;
+	int64_t dec_base; // inversion factor for decimal application...
+	uint64_t decimal;
 	PVARTEXT pvt_text; // a handle-any-case type text collector...
 	struct {
-		_32 bDecimal : 1; // whether or not accumulator has a decimal.
-		_32 bHaveDecimal : 1; // whether decimal has been entered...
-		_32 bDollars : 1; // dollars (formatting)
-		_32 bText : 1; // uses text operations instead of numeric
+		uint32_t bDecimal : 1; // whether or not accumulator has a decimal.
+		uint32_t bHaveDecimal : 1; // whether decimal has been entered...
+		uint32_t bDollars : 1; // dollars (formatting)
+		uint32_t bText : 1; // uses text operations instead of numeric
 	} flags;
 	struct accumulator_tag *next;
 	struct accumulator_tag **me;
 	struct accumulator_update_tag *updates;
-	_64 digit_mod_mask;
+	uint64_t digit_mod_mask;
 	TEXTCHAR name[];
 
 } ACCUMULATOR;
@@ -57,19 +57,19 @@ static void InvokeUpdates( PACCUMULATOR accum )
 	}
 }
 
-PACCUMULATOR SetAccumulator( PACCUMULATOR accum, S_64 value )
+PACCUMULATOR SetAccumulator( PACCUMULATOR accum, int64_t value )
 {
 	accum->value = value;
 	InvokeUpdates( accum );
 	return accum;
 }
 
-S_64 GetAccumulatorValue( PACCUMULATOR accum )
+int64_t GetAccumulatorValue( PACCUMULATOR accum )
 {
    return accum->value;
 }
 
-void KeyIntoAccumulator( PACCUMULATOR accum, S_64 val, _32 base )
+void KeyIntoAccumulator( PACCUMULATOR accum, int64_t val, uint32_t base )
 {
 	// adds in to accumulator as if keyed in...
    //lprintf( "Accumulator %s  add %" _64fs "(%d)", accum->name, val, base );
@@ -95,7 +95,7 @@ void KeyIntoAccumulator( PACCUMULATOR accum, S_64 val, _32 base )
 		if( accum->value < 0 )
 		{
 			accum->value = (-accum->value) % accum->digit_mod_mask;
-			accum->value *= -(S_32)base;
+			accum->value *= -(int32_t)base;
 			accum->value -= val;
 		}
 		else
@@ -130,7 +130,7 @@ void KeyDecimalIntoAccumulator( PACCUMULATOR accum )
 	InvokeUpdates( accum );
 }
 
-void ClearAccumulatorDigit( PACCUMULATOR accum, _32 base )
+void ClearAccumulatorDigit( PACCUMULATOR accum, uint32_t base )
 {
 	if( accum->flags.bText )
 	{
@@ -227,16 +227,16 @@ size_t GetAccumulatorText( PACCUMULATOR accum, TEXTCHAR *text, int nLen )
 	return len;
 }
 
-PACCUMULATOR GetAccumulator( CTEXTSTR name, _32 flags )
+PACCUMULATOR GetAccumulator( CTEXTSTR name, uint32_t flags )
 {
 	PACCUMULATOR accum;
 	if( !pHeap )
 	{
-		_32 size = 0;
+		uint32_t size = 0;
 		{
 			size = 0xFFF0; // don't make this ODD for ARM process
 			pHeap = (PMEM)Allocate( size );
-			((PTRSZVAL*)pHeap)[0] = 0;
+			((uintptr_t*)pHeap)[0] = 0;
 
 			InitHeap( pHeap, size );
 		}
@@ -289,8 +289,8 @@ PACCUMULATOR GetAccumulator( CTEXTSTR name, _32 flags )
 }
 
 void SetAccumulatorUpdateProc( PACCUMULATOR accum
-									  , void (*Updated)(PTRSZVAL psv, PACCUMULATOR accum )
-									  , PTRSZVAL psvUser
+									  , void (*Updated)(uintptr_t psv, PACCUMULATOR accum )
+									  , uintptr_t psvUser
 									  )
 {
 	if( accum )
@@ -329,7 +329,7 @@ void KeyTextIntoAccumulator( PACCUMULATOR accum, CTEXTSTR value ) // works with 
 }
 
 
-void SetAccumulatorMask( PACCUMULATOR accum, _64 mask )
+void SetAccumulatorMask( PACCUMULATOR accum, uint64_t mask )
 {
 	if( !mask )
 		accum->digit_mod_mask = 1000000000000000000LL;

@@ -1,4 +1,4 @@
 
 
 
-LOGICAL PngImageFile ( Image pImage, _8 ** buf, int *size);
+LOGICAL PngImageFile ( Image pImage, uint8_t ** buf, int *size);

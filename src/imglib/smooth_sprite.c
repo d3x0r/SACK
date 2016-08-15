@@ -70,15 +70,15 @@ IMAGE_NAMESPACE
 
 static void PlotArbitrary( Image dest
 						, Image source_image
-						, S_32 x1, S_32 y1
-						, S_32 x2, S_32 y2
-						, S_32 x3, S_32 y3
-						, S_32 x4, S_32 y4
-						, _32 alpha
-						, _32 mode
-						, _32 param1
-						, _32 param2
-						, _32 param3
+						, int32_t x1, int32_t y1
+						, int32_t x2, int32_t y2
+						, int32_t x3, int32_t y3
+						, int32_t x4, int32_t y4
+						, uint32_t alpha
+						, uint32_t mode
+						, uint32_t param1
+						, uint32_t param2
+						, uint32_t param3
 						)
 {
 	// x1, y1 define the position of the upper left corner of the image
@@ -99,17 +99,17 @@ static void PlotArbitrary( Image dest
 #define CONVERT_SAMPLE(channel,n) ( workspace.samples[n]?( ( workspace.channel[n] /*- (128*workspace.samples[n])*/ ) / workspace.samples[n] ):0 )
 //#define CONVERT_SAMPLE(channel,n) ( ( ( workspace.channel[n] - (128*workspace.samples[n]) ) / workspace.samples[n]/2 ) + 128 )
 #define DC_COLOR_BIAS 128
-      S_16 red[4096];
-      S_16 blue[4096];
-      S_16 green[4096];
-		S_16 alpha[4096];
-		_32 samples[4096];
+      int16_t red[4096];
+      int16_t blue[4096];
+      int16_t green[4096];
+		int16_t alpha[4096];
+		uint32_t samples[4096];
       // when it comes time to output, this should be saved.
-		_32 min_sample;
-      _32 max_sample;
-      //_32 used;
+		uint32_t min_sample;
+      uint32_t max_sample;
+      //uint32_t used;
 	} workspace;
-   static _32 used;
+   static uint32_t used;
 	struct {
 		struct {
 			int samepoint : 1;
@@ -117,11 +117,11 @@ static void PlotArbitrary( Image dest
 			int no_right : 1;
 		} flags;
 		struct {
-			S_32 x, y;
+			int32_t x, y;
 			int vertex_number; // 0, 1, 2, 3
 		}left;
 		struct {
-			S_32 x, y;
+			int32_t x, y;
 			int vertex_number; // 0, 1, 2, 3
 		} right;
 	} points[3];
@@ -983,10 +983,10 @@ static void PlotArbitrary( Image dest
    used = 0;
 }
 
-static void (CPROC *SavePortion )( PSPRITE_METHOD psm, _32 x, _32 y, _32 w, _32 h );
+static void (CPROC *SavePortion )( PSPRITE_METHOD psm, uint32_t x, uint32_t y, uint32_t w, uint32_t h );
 
 
-IMAGE_PROC( void, SetSavePortion )( void (CPROC*_SavePortion )( PSPRITE_METHOD psm, _32 x, _32 y, _32 w, _32 h ) )
+IMAGE_PROC( void, SetSavePortion )( void (CPROC*_SavePortion )( PSPRITE_METHOD psm, uint32_t x, uint32_t y, uint32_t w, uint32_t h ) )
 {
    SavePortion = _SavePortion;
 }
@@ -1000,7 +1000,7 @@ static void TranslatePoints( Image dest, PSPRITE sprite )
 	int x4, y4;
 	_POINT result;
 	_POINT tmp;
-	static _32 lock;
+	static uint32_t lock;
 	static PTRANSFORM transform;
 	//lprintf( "-- Begin Transform" );
 	while( LockedExchange( &lock, 1 ) ) Relinquish();

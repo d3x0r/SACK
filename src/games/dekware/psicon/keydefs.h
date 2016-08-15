@@ -18,9 +18,9 @@ enum {
 // 2 - display update  (when history starts...)
 // 3 - history update only...
 
-CORECON_PROC( int, KeyShift     )( P_32 pKeyState, LOGICAL bState );
-CORECON_PROC( int, KeyControl   )( P_32 pKeyState, LOGICAL bState );
-CORECON_PROC( int, KeyAlt       )( P_32 pKeyState, LOGICAL bState );
+CORECON_PROC( int, KeyShift     )( uint32_t* pKeyState, LOGICAL bState );
+CORECON_PROC( int, KeyControl   )( uint32_t* pKeyState, LOGICAL bState );
+CORECON_PROC( int, KeyAlt       )( uint32_t* pKeyState, LOGICAL bState );
 
 CORECON_PROC( int, KeyLeft )( PCONSOLE_INFO pci );
 CORECON_PROC( int, KeyRight )( PCONSOLE_INFO pci );
@@ -56,7 +56,7 @@ typedef struct KeyDefine {
       int bFunction;  // true if pStroke is pKeyFunc()
       union {
           PTEXT pStroke; // this may be pKeyFunc()
-          void (CPROC *ControlKey)( P_32 pKeyState, LOGICAL bState );
+          void (CPROC *ControlKey)( uint32_t* pKeyState, LOGICAL bState );
           int (CPROC *CommandKey)( PCONSOLE_INFO pci );
           int (CPROC *HistoryKey)( PHISTORY_BROWSER pct );
           int (CPROC *SpecialKey)( PCONSOLE_INFO pdp ); // PASTE
@@ -98,8 +98,8 @@ CORECON_PROC( int, KeyUnBind )( PDATAPATH pdp, PSENTIENT ps, PTEXT parameters );
 #endif
 CORECON_PROC(int, DoStroke )( PCONSOLE_INFO pdp, PTEXT stroke );
 CORECON_PROC( void, KeyPressHandler )( PCONSOLE_INFO pdp
-												 , _8 key_index
-												 , _8 mod
+												 , uint8_t key_index
+												 , uint8_t mod
 												 , PTEXT characters
 												 );
 

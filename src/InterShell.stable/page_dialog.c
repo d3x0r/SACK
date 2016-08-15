@@ -30,7 +30,7 @@ typedef struct page_changer_dialog_struct
 } PAGE_DIALOG, *PPAGE_DIALOG;
 
 
-OnEditControl( PAGE_CHANGER_NAME )( PTRSZVAL psv, PSI_CONTROL parent_frame )
+OnEditControl( PAGE_CHANGER_NAME )( uintptr_t psv, PSI_CONTROL parent_frame )
 {
 	PPAGE_CHANGER page_changer = (PPAGE_CHANGER)psv;
 	if( page_changer )

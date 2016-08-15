@@ -56,8 +56,8 @@ static int OnCreateCommon( WIDE("Video Control") )( PSI_CONTROL pc )
 										 , device_opts, sizeof( device_opts ), "video.ini" );
    */
 	{
-		S_32 x = 0;
-		S_32 y = 0;
+		int32_t x = 0;
+		int32_t y = 0;
 		//Image surface = GetControlSurface( pc );
 		//GetPhysicalCoordinate( pc, &x, &y, FALSE );
  		//control->surface = OpenDisplayAboveSizedAt( DISPLAY_ATTRIBUTE_LAYERED|DISPLAY_ATTRIBUTE_CHILD|DISPLAY_ATTRIBUTE_NO_MOUSE

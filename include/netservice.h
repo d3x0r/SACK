@@ -20,8 +20,8 @@
 
 NETSERVICE_PROC( int, DiscoverService )( int netwide
 													, int port
-													, int (CPROC *Handler)( PTRSZVAL psvUser, SOCKADDR *responder )
-													, PTRSZVAL psvUser );
+													, int (CPROC *Handler)( uintptr_t psvUser, SOCKADDR *responder )
+													, uintptr_t psvUser );
 NETSERVICE_PROC( void, EndDiscoverService )( int port );
 
 

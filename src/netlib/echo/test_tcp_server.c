@@ -40,7 +40,7 @@ void CPROC ClientConnected( PCLIENT pListen, PCLIENT pNew )
    AddLink( &clients, pNew );
 }
 
-static void CPROC SendStuff( PTRSZVAL psv )
+static void CPROC SendStuff( uintptr_t psv )
 {
 	INDEX idx;
 	PCLIENT pc;

@@ -16,9 +16,9 @@ typedef struct image_display_tag
 typedef struct global_tag
 {
 	struct {
-		_32 exit : 1;
+		uint32_t exit : 1;
 	} flags;
-   _32 x, y;
+   uint32_t x, y;
    PIMAGE_DISPLAY images;
 	PIMAGE_INTERFACE pii;
    PRENDER_INTERFACE pdi;
@@ -27,14 +27,14 @@ typedef struct global_tag
 
 GLOBAL g;
 
-void CPROC DrawImage( PTRSZVAL psv, PRENDERER out )
+void CPROC DrawImage( uintptr_t psv, PRENDERER out )
 {
    PIMAGE_DISPLAY pdi = (PIMAGE_DISPLAY)psv;
 	BlotImage( GetDisplayImage( pdi->display ), pdi->Loaded, 0, 0 );
    UpdateDisplay( pdi->display );
 }
 
-int CPROC KeyHandler( PTRSZVAL psv, _32 key )
+int CPROC KeyHandler( uintptr_t psv, uint32_t key )
 {
 	if( GetKeyText( key ) == '\x1b' )
 		g.flags.exit = 1;
@@ -55,8 +55,8 @@ void AddImage( char *name )
    pdi->display = OpenDisplaySizedAt( 0
 												, pdi->Loaded->width, pdi->Loaded->height
 												, g.x, g.y );
-	SetRedrawHandler( pdi->display, DrawImage, (PTRSZVAL)pdi );
-   DrawImage( (PTRSZVAL)pdi, pdi->display );
+	SetRedrawHandler( pdi->display, DrawImage, (uintptr_t)pdi );
+   DrawImage( (uintptr_t)pdi, pdi->display );
 	SetKeyboardHandler( pdi->display, KeyHandler, 0 );
 	g.x += 10;
    g.y += 10;

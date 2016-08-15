@@ -229,7 +229,7 @@ POINTER *T4( POINTER *pMem )
 
 void DumpStats( void )
          {
-            _32 dwFree, dwUsed, dwChunks, dwFreeChunks;
+            uint32_t dwFree, dwUsed, dwChunks, dwFreeChunks;
             char msg[256];
             GetMemStats(&dwFree, &dwUsed, &dwChunks, &dwFreeChunks);
             sprintf( msg, WIDE("MemStat: Used: %d(%d) Free: %d(%d)")

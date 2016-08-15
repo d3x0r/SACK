@@ -134,10 +134,10 @@ public:
 #endif
 
 // address of the thing...
-typedef PTRSZVAL (CPROC *ForProc)( PTRSZVAL user, INDEX idx, POINTER *item );
+typedef uintptr_t (CPROC *ForProc)( uintptr_t user, INDEX idx, POINTER *item );
 // if the callback function returns non 0 - then the looping is aborted,
 // and the value is returned... the user value is passed to the callback.
-TYPELIB_PROC  PTRSZVAL TYPELIB_CALLTYPE     ForAllLinks    ( PLIST *pList, ForProc func, PTRSZVAL user ); 
+TYPELIB_PROC  uintptr_t TYPELIB_CALLTYPE     ForAllLinks    ( PLIST *pList, ForProc func, uintptr_t user ); 
 
 /* This is a iterator which can be used to check each member in
    a PLIST.
@@ -286,7 +286,7 @@ _DATALIST_NAMESPACE
 /* Creates a data list which hold data elements of the specified
    size.
                                                                  */
-TYPELIB_PROC  PDATALIST TYPELIB_CALLTYPE  CreateDataListEx ( PTRSZVAL nSize DBG_PASS );
+TYPELIB_PROC  PDATALIST TYPELIB_CALLTYPE  CreateDataListEx ( uintptr_t nSize DBG_PASS );
 /* <combine sack::containers::data_list::DeleteDataList>
    
    \ \                                                   */
@@ -298,7 +298,7 @@ TYPELIB_PROC  POINTER TYPELIB_CALLTYPE    SetDataItemEx ( PDATALIST *ppdl, INDEX
    PDATALIST datalist = CreateDataList();
    
    struct my_struct {
-       _32 my_data;
+       uint32_t my_data;
    }
    
    struct my_struct my_item;
@@ -370,7 +370,7 @@ TYPELIB_PROC  void TYPELIB_CALLTYPE       EmptyDataList ( PDATALIST *ppdl );
 #define DATA_FORALL( l, i, t, v )  if(((v)=(t)NULL),(l)&&((l)->Cnt != INVALID_INDEX))   \
 	for( ((i)=0);                         \
 	(((i) < (l)->Cnt)                                    \
-         ?(((v)=(t)((l)->data + (PTRSZVAL)(((l)->Size) * (i)))),1)   \
+         ?(((v)=(t)((l)->data + (uintptr_t)(((l)->Size) * (i)))),1)   \
 	      :(((v)=(t)NULL),0))&&(v); (i)++ )
 
 /* <code>
@@ -395,7 +395,7 @@ TYPELIB_PROC  void TYPELIB_CALLTYPE       EmptyDataList ( PDATALIST *ppdl );
          ?((v)=(t)((l)->data + (((l)->Size) * (i))))   \
 	      :(((v)=(t)NULL),0); (i)++ )
 
-/* <combine sack::containers::data_list::CreateDataListEx@PTRSZVAL nSize>
+/* <combine sack::containers::data_list::CreateDataListEx@uintptr_t nSize>
    
    Creates a DataList specifying just the size. Uses the current
    source and line for debugging parameter.                               */
@@ -749,7 +749,7 @@ typedef struct MsgDataHandle *PMSGHANDLE;
 
 // messages sent - the first dword of them must be
 // a message ID.
-typedef void (CPROC *MsgQueueReadCallback)( PTRSZVAL psv, CPOINTER p, PTRSZVAL sz );
+typedef void (CPROC *MsgQueueReadCallback)( uintptr_t psv, CPOINTER p, uintptr_t sz );
 /* Create a named shared memory message queue.
    
    
@@ -762,7 +762,7 @@ typedef void (CPROC *MsgQueueReadCallback)( PTRSZVAL psv, CPOINTER p, PTRSZVAL s
               read callback.                                      */
 TYPELIB_PROC  PMSGHANDLE TYPELIB_CALLTYPE  SackCreateMsgQueue ( CTEXTSTR name, size_t size
                                                       , MsgQueueReadCallback Read
-                                                      , PTRSZVAL psvRead );
+                                                      , uintptr_t psvRead );
 /* Open a message queue. Opens if it exists, does not create.
    Parameters
    name :     name of the queue.
@@ -771,7 +771,7 @@ TYPELIB_PROC  PMSGHANDLE TYPELIB_CALLTYPE  SackCreateMsgQueue ( CTEXTSTR name, s
               the read callback.                                  */
 TYPELIB_PROC  PMSGHANDLE TYPELIB_CALLTYPE  SackOpenMsgQueue ( CTEXTSTR name
 													 , MsgQueueReadCallback Read
-													 , PTRSZVAL psvRead );
+													 , uintptr_t psvRead );
 /* Destroys a message queue.
    Parameters
    ppmh :  address of the message queue handle to close (sets
@@ -794,7 +794,7 @@ TYPELIB_PROC  void TYPELIB_CALLTYPE  DeleteMsgQueue ( PMSGHANDLE **ppmh );
 #define MSGQUE_ERROR_EABORT 5
 // result is the size of the message, or 0 if no message.
 // -1 if some other error?
-TYPELIB_PROC  int TYPELIB_CALLTYPE  DequeMsgEx ( PMSGHANDLE pmh, long *MsgID, POINTER buffer, size_t msgsize, _32 options DBG_PASS );
+TYPELIB_PROC  int TYPELIB_CALLTYPE  DequeMsgEx ( PMSGHANDLE pmh, long *MsgID, POINTER buffer, size_t msgsize, uint32_t options DBG_PASS );
 /* Receives a message from the message queue.
    Parameters
    Message Queue :  PMSGHANDLE to read from
@@ -815,7 +815,7 @@ TYPELIB_PROC  int TYPELIB_CALLTYPE  DequeMsgEx ( PMSGHANDLE pmh, long *MsgID, PO
 /* <combine sack::containers::message::PeekMsg>
    
    \ \                                          */
-TYPELIB_PROC  int TYPELIB_CALLTYPE  PeekMsgEx ( PMSGHANDLE pmh, long MsgID, POINTER buffer, size_t msgsize, _32 options DBG_PASS );
+TYPELIB_PROC  int TYPELIB_CALLTYPE  PeekMsgEx ( PMSGHANDLE pmh, long MsgID, POINTER buffer, size_t msgsize, uint32_t options DBG_PASS );
 /* Just peek at the next message.
    Parameters
    queue :        The PMSGHANDLE queue to read.
@@ -834,7 +834,7 @@ TYPELIB_PROC  int TYPELIB_CALLTYPE  PeekMsgEx ( PMSGHANDLE pmh, long MsgID, POIN
 /* <combine sack::containers::message::EnqueMsg>
    
    \ \                                          */
-TYPELIB_PROC  int TYPELIB_CALLTYPE  EnqueMsgEx ( PMSGHANDLE pmh, POINTER buffer, size_t msgsize, _32 options DBG_PASS );
+TYPELIB_PROC  int TYPELIB_CALLTYPE  EnqueMsgEx ( PMSGHANDLE pmh, POINTER buffer, size_t msgsize, uint32_t options DBG_PASS );
 /* Add a message to the queue.
    Parameters
    Message Queue :  PMSGQUEUE to write to.
@@ -947,24 +947,24 @@ _SETS_NAMESPACE
 
 // requires a symbol of MAX<insert name>SPERSET to declare max size...
 #if 1 //ndef __cplusplus
-#define SizeOfSet(size,count)  (sizeof(POINTER)*2+sizeof(int)+sizeof( _32[((count)+31)/32] ) + ((size)*(count)))
+#define SizeOfSet(size,count)  (sizeof(POINTER)*2+sizeof(int)+sizeof( uint32_t[((count)+31)/32] ) + ((size)*(count)))
 #define DeclareSet( name )  typedef struct name##set_tag {   \
 	struct name##set_tag *next, *prior;                      \
-	_32 nUsed;                                               \
-	_32 nBias;                                               \
-	_32 bUsed[(MAX##name##SPERSET + 31 ) / 32];              \
+	uint32_t nUsed;                                               \
+	uint32_t nBias;                                               \
+	uint32_t bUsed[(MAX##name##SPERSET + 31 ) / 32];              \
 	name p[MAX##name##SPERSET];                           \
-	CPP_(int forall(PTRSZVAL(CPROC*f)(void*,PTRSZVAL),PTRSZVAL psv) {if( this ) return _ForAllInSet( (struct genericset_tag*)this, sizeof(name), MAX##name##SPERSET, f, psv ); else return 0; }) \
+	CPP_(int forall(uintptr_t(CPROC*f)(void*,uintptr_t),uintptr_t psv) {if( this ) return _ForAllInSet( (struct genericset_tag*)this, sizeof(name), MAX##name##SPERSET, f, psv ); else return 0; }) \
 	CPP_(name##set_tag() { next = NULL;prior = NULL;nUsed = 0; nBias = 0; MemSet( bUsed, 0, sizeof( bUsed ) ); MemSet( p, 0, sizeof( p ) );} )\
 	} name##SET, *P##name##SET
 
 #define DeclareClassSet( name ) typedef struct name##set_tag {   \
 	struct name##set_tag *next, *prior;                      \
-	_32 nUsed;                                               \
-	_32 nBias;                                               \
-	_32 bUsed[(MAX##name##SPERSET + 31 ) / 32];              \
+	uint32_t nUsed;                                               \
+	uint32_t nBias;                                               \
+	uint32_t bUsed[(MAX##name##SPERSET + 31 ) / 32];              \
 	class name p[MAX##name##SPERSET];                        \
-	CPP_(int forall(PTRSZVAL(CPROC*)(void*f,PTRSZVAL),PTRSZVAL psv) {if( this ) return _ForAllInSet( (struct genericset_tag*)this, sizeof(class name), MAX##name##SPERSET, f, psv ); else return 0; }) \
+	CPP_(int forall(uintptr_t(CPROC*)(void*f,uintptr_t),uintptr_t psv) {if( this ) return _ForAllInSet( (struct genericset_tag*)this, sizeof(class name), MAX##name##SPERSET, f, psv ); else return 0; }) \
 	} name##SET, *P##name##SET
 #endif
 
@@ -1003,7 +1003,7 @@ _SETS_NAMESPACE
    Example
    <code lang="c++">
    struct treenode_tag {
-       _32 treenode_data;  // abitrary structure data
+       uint32_t treenode_data;  // abitrary structure data
    };
    typedef struct treenode_tag TREENODE;
    
@@ -1059,9 +1059,9 @@ typedef struct genericset_tag {
 	   to me. (did you get that?) See <link DeclareLink>.          */
 	struct genericset_tag **me;
 	/* number of spots in this set block that are used. */
-	_32 nUsed;
-	_32 nBias; // hmm if I change this here? we're hozed... so.. we'll do it anyhow :) evil - recompile please
-	_32 bUsed[1]; // after this p * unit must be computed
+	uint32_t nUsed;
+	uint32_t nBias; // hmm if I change this here? we're hozed... so.. we'll do it anyhow :) evil - recompile please
+	uint32_t bUsed[1]; // after this p * unit must be computed
 } GENERICSET, *PGENERICSET;
 
 /* \ \ 
@@ -1183,8 +1183,8 @@ TYPELIB_PROC  void TYPELIB_CALLTYPE  DeleteFromSetExx( GENERICSET *set, POINTER 
    iMember :   index of member to delete
    unitsize :  (filled by macro) size of element in set
    max :       (filled by macro) size of a block of elements. */
-TYPELIB_PROC  void TYPELIB_CALLTYPE  DeleteSetMemberEx( GENERICSET *set, INDEX iMember, PTRSZVAL unitsize, INDEX max );
-/* <combine sack::containers::sets::DeleteSetMemberEx@GENERICSET *@INDEX@PTRSZVAL@INDEX>
+TYPELIB_PROC  void TYPELIB_CALLTYPE  DeleteSetMemberEx( GENERICSET *set, INDEX iMember, uintptr_t unitsize, INDEX max );
+/* <combine sack::containers::sets::DeleteSetMemberEx@GENERICSET *@INDEX@uintptr_t@INDEX>
    
    \ \                                                                                   */
 #define DeleteSetMember( name, set, member ) DeleteSetMemberEx( (GENERICSET*)set, member, sizeof( name ), MAX##name##SPERSET )
@@ -1261,7 +1261,7 @@ TYPELIB_PROC  void TYPELIB_CALLTYPE  DeleteSet( GENERICSET **ppSet );
    
    ForAllinSet Callback - callback fucntion used with
    ForAllInSet                                        */
-typedef PTRSZVAL (CPROC *FAISCallback)(void*,PTRSZVAL);
+typedef uintptr_t (CPROC *FAISCallback)(void*,uintptr_t);
 /* \ \ 
    Parameters
    pSet :      poiner to a set
@@ -1276,23 +1276,23 @@ typedef PTRSZVAL (CPROC *FAISCallback)(void*,PTRSZVAL);
    If the user callback returns 0, the loop continues. If the
    user callback returns non zero then the looping through the
    set ends, and that result is returned.                         */
-TYPELIB_PROC  PTRSZVAL TYPELIB_CALLTYPE  _ForAllInSet( GENERICSET *pSet, int unitsize, int max, FAISCallback f, PTRSZVAL psv );
+TYPELIB_PROC  uintptr_t TYPELIB_CALLTYPE  _ForAllInSet( GENERICSET *pSet, int unitsize, int max, FAISCallback f, uintptr_t psv );
 
 /* <combine sack::containers::sets::ForEachSetMember>
    
    ForEachSetMember Callback function - for the function '
    ForEachSetMember'                                       */
-typedef PTRSZVAL (CPROC *FESMCallback)(INDEX,PTRSZVAL);
-TYPELIB_PROC  PTRSZVAL TYPELIB_CALLTYPE  ForEachSetMember ( GENERICSET *pSet, int unitsize, int max, FESMCallback f, PTRSZVAL psv );
+typedef uintptr_t (CPROC *FESMCallback)(INDEX,uintptr_t);
+TYPELIB_PROC  uintptr_t TYPELIB_CALLTYPE  ForEachSetMember ( GENERICSET *pSet, int unitsize, int max, FESMCallback f, uintptr_t psv );
 
 
 #if 0 //def __cplusplus
 
 #define DeclareSet(name)                                \
 	struct name##set_tag {               \
-	_32 set_size;                             \
-	_32 element_size;                         \
-	_32 element_cnt;                          \
+	uint32_t set_size;                             \
+	uint32_t element_size;                         \
+	uint32_t element_cnt;                          \
 	PGENERICSET pool;                        \
 	name##set_tag() {                        \
 	element_size = sizeof( name );             \
@@ -1306,14 +1306,14 @@ TYPELIB_PROC  PTRSZVAL TYPELIB_CALLTYPE  ForEachSetMember ( GENERICSET *pSet, in
 	name* get(INDEX member) { return (this)?(name*)GetUsedSetMemberEx( &pool, member, set_size, element_size, element_cnt DBG_SRC ):(NULL); } \
 	void drop( name* member ) { DeleteFromSetEx( pool, (POINTER)member, element_size, element_cnt ); } \
 	int valid( name* member ) { return MemberValidInSetEx( pool, (POINTER)member, element_size, element_cnt ); } \
-	PTRSZVAL forall( FAISCallback f, PTRSZVAL psv ) { if( this ) return _ForAllInSet( pool, element_size, element_cnt, f, psv ); else return 0; } \
+	uintptr_t forall( FAISCallback f, uintptr_t psv ) { if( this ) return _ForAllInSet( pool, element_size, element_cnt, f, psv ); else return 0; } \
 	};       \
 	typedef struct name##set_tag *P##name##SET, name##SET;        
 
 #define ForAllInSet(name, pset,f,psv) _ForAllInSet( (GENERICSET*)(pset), sizeof( name ), MAX##name##SPERSET, (f), (psv) )
 #else
 
-/* <combine sack::containers::sets::_ForAllInSet@GENERICSET *@int@int@FAISCallback@PTRSZVAL>
+/* <combine sack::containers::sets::_ForAllInSet@GENERICSET *@int@int@FAISCallback@uintptr_t>
    
    \ \                                                                                       */
 #define ForAllInSet(name, pset,f,psv) _ForAllInSet( (GENERICSET*)(pset), sizeof( name ), MAX##name##SPERSET, (f), (psv) )
@@ -1326,11 +1326,11 @@ TYPELIB_PROC  PTRSZVAL TYPELIB_CALLTYPE  ForEachSetMember ( GENERICSET *pSet, in
    pSet :      pointer to the set to iterate
    unitsize :  size of each element
    max :       max count of elements per set block
-   f :         function to call ( PTRSZVAL (*)(INDEX,PTRSZVAL) )
-   psv :       user data value to pass to function as PTRSZVAL
+   f :         function to call ( uintptr_t (*)(INDEX,uintptr_t) )
+   psv :       user data value to pass to function as uintptr_t
    
    Returns
-   PTRSZVAL - this value is the return of the user function if
+   uintptr_t - this value is the return of the user function if
    the function does not return 0. A non zero return from the
    user callback stops iteration.                                */
 #define ForEachSetMember(name,pset,f,psv) ForEachSetMember( (GENERICSET*)(pset),sizeof(name),MAX##name##SPERSET, (f), (psv) )
@@ -1400,7 +1400,7 @@ _TEXT_NAMESPACE
                    FORMAT_OP_JUSTIFY_CENTER
 };
 
-//typedef struct text_color_tag { _32 color: 8; } TEXTCOLOR;
+//typedef struct text_color_tag { uint32_t color: 8; } TEXTCOLOR;
 
 // this was a 32 bit structure, but 8 fore, 8 back
 // 8 x, 8 y failed for positioning...
@@ -1494,15 +1494,15 @@ typedef struct format_info_tag
 		   Usage of this union is dependant on <link text::format_info_tag::flags@1::format_op, format_op>. */
 		struct {
          // Signed coordinate of this segment on a text display.  May be relative depending on format_op.
-			S_16 x;
+			int16_t x;
          // Signed coordinate of this segment on a text display.  May be relative depending on format_op.
-			S_16 y; 
+			int16_t y; 
 		} coords;
 		/* Defines the distance from the prior segment in count of tabs
 		   and spaces (mostly count of spaces).                         */
 		struct {
-			_16 tabs;   // tabs preceed spaces....
-			_16 spaces; // not sure what else to put with this...
+			uint16_t tabs;   // tabs preceed spaces....
+			uint16_t spaces; // not sure what else to put with this...
 		} offset;
 	} position;
 } FORMAT, *PFORMAT;
@@ -1564,7 +1564,7 @@ enum TextFlags {
                               TF_PAREN|TF_TAG|TF_FORMATEX|TF_FORMATABS|TF_FORMATREL)
 
 #define DECLTEXTSZTYPE( name, size ) struct { \
-   _32 flags; \
+   uint32_t flags; \
    struct text_segment_tag *Next, *Prior; \
    FORMAT format; \
    DECLDATA(data, size); \
@@ -1682,7 +1682,7 @@ enum TextFlags {
 typedef struct text_segment_tag
 {
 	// then here I could overlap with pEnt .bshadow, bmacro, btext ?
-   _32 flags;  
+   uint32_t flags;  
 	/* This points to the next segment in the sentence or phrase. NULL
 	   if at the end of the line.                                      */
 		struct text_segment_tag *Next;
@@ -1696,8 +1696,8 @@ typedef struct text_segment_tag
    /* A description of the data stored here.  It is compatible with a DATABLOCk.... */
    struct {
 	   /* unsigned size; size is sometimes a pointer value...
-                  this means bad thing when we change platforms... Or not, since we went to PTRSZVAL which is big enough for a pointer. */
-		PTRSZVAL size;
+                  this means bad thing when we change platforms... Or not, since we went to uintptr_t which is big enough for a pointer. */
+		uintptr_t size;
 		/* the data of the test segment 
 		 beginning of var data - this is created size+sizeof(TEXT) */
 	   	TEXTCHAR  data[1]; 
@@ -1767,7 +1767,7 @@ TYPELIB_PROC  PTEXT TYPELIB_CALLTYPE  GetIndirect(PTEXT segment );
 
 /* Get the format flags of a PTEXT.
                                     */
-TYPELIB_PROC  _32 TYPELIB_CALLTYPE  GetTextFlags( PTEXT segment );
+TYPELIB_PROC  uint32_t TYPELIB_CALLTYPE  GetTextFlags( PTEXT segment );
 /* Gets the text segment length. */
 TYPELIB_PROC  size_t TYPELIB_CALLTYPE  GetTextSize( PTEXT segment );
 /* Gets the text of a PTEXT segment. (convert to a CTEXTSTR)
@@ -1780,7 +1780,7 @@ TYPELIB_PROC  TEXTSTR TYPELIB_CALLTYPE  GetText( PTEXT segment );
 // segment of this - since a TF_APPLICATION is also
 // TF_INDIRECT - using the size to point to some application
 // defined structure instead of a PTEXT structure.
-TYPELIB_PROC  void TYPELIB_CALLTYPE  RegisterTextExtension ( _32 flags, PTEXT(CPROC*)(PTRSZVAL,POINTER), PTRSZVAL );
+TYPELIB_PROC  void TYPELIB_CALLTYPE  RegisterTextExtension ( uint32_t flags, PTEXT(CPROC*)(uintptr_t,POINTER), uintptr_t );
 // similar to GetIndirect - but results in the literal pointer
 // instead of the text that the application may have registered to result with.
 TYPELIB_PROC  POINTER TYPELIB_CALLTYPE  GetApplicationPointer ( PTEXT text );
@@ -1801,7 +1801,7 @@ TYPELIB_PROC  void TYPELIB_CALLTYPE  SetApplicationPointer ( PTEXT text, POINTER
    segment :  pointer to a TEXT segment to set the indirect content
               of.
    data :     pointer to a PTEXT to be referenced indirectly.       */
-#define SetIndirect(Seg,Where)  ( (Seg)->data.size = ((PTRSZVAL)(Where)-(PTRSZVAL)NULL) )
+#define SetIndirect(Seg,Where)  ( (Seg)->data.size = ((uintptr_t)(Where)-(uintptr_t)NULL) )
 
 		/* these return 1 for more(l1&gt;l2) -1 for (l1&lt;l2) and 0 for match.
        */
@@ -2015,8 +2015,8 @@ TYPELIB_PROC  PTEXT TYPELIB_CALLTYPE  SegCreateFromIntEx( int value DBG_PASS );
    
    Parameters
    _64bit_value :  integer value to convert to a PTEXT segment. */
-TYPELIB_PROC  PTEXT TYPELIB_CALLTYPE  SegCreateFrom_64Ex( S_64 value DBG_PASS );
-/* Create a text segment from a _64 bit value. (long long int) */
+TYPELIB_PROC  PTEXT TYPELIB_CALLTYPE  SegCreateFrom_64Ex( int64_t value DBG_PASS );
+/* Create a text segment from a uint64_t bit value. (long long int) */
 #define SegCreateFrom_64(v) SegCreateFrom_64Ex( v DBG_SRC )
 /* \ \ 
    See Also
@@ -2112,8 +2112,8 @@ TYPELIB_PROC  void TYPELIB_CALLTYPE  SegReleaseEx( PTEXT seg DBG_PASS );
    length :    how much from 'offset' in input to append as a new
                segment to output.
    DBG_PASS :  \file and line debugging information               */
-TYPELIB_PROC  PTEXT TYPELIB_CALLTYPE  SegConcatEx   (PTEXT output,PTEXT input,S_32 offset,size_t length DBG_PASS);
-/* <combine sack::containers::text::SegConcatEx@PTEXT@PTEXT@S_32@size_t length>
+TYPELIB_PROC  PTEXT TYPELIB_CALLTYPE  SegConcatEx   (PTEXT output,PTEXT input,int32_t offset,size_t length DBG_PASS);
+/* <combine sack::containers::text::SegConcatEx@PTEXT@PTEXT@int32_t@size_t length>
    
    looks like it takes a peice of one segment and appends it to
    another....
@@ -2222,10 +2222,10 @@ TYPELIB_PROC  PTEXT TYPELIB_CALLTYPE  SegSplitEx( PTEXT *pLine, INDEX nPos DBG_P
 
 TYPELIB_PROC  PTEXT TYPELIB_CALLTYPE  FlattenLine ( PTEXT pLine );
 /* Create a highest precision signed integer from a PTEXT. */
-TYPELIB_PROC  S_64 TYPELIB_CALLTYPE  IntCreateFromSeg( PTEXT pText );
+TYPELIB_PROC  int64_t TYPELIB_CALLTYPE  IntCreateFromSeg( PTEXT pText );
 /* Converts a text to the longest precision signed integer
    value.                                                  */
-TYPELIB_PROC  S_64 TYPELIB_CALLTYPE  IntCreateFromText( CTEXTSTR p );
+TYPELIB_PROC  int64_t TYPELIB_CALLTYPE  IntCreateFromText( CTEXTSTR p );
 
 /* Create a high precision floating point value from PTEXT
    segment.                                                */
@@ -2271,8 +2271,8 @@ TYPELIB_PROC  double TYPELIB_CALLTYPE  FloatCreateFromText( CTEXTSTR p, CTEXTSTR
    0 if not a number or fails.
    
    1 if a valid conversion took place.                              */
-TYPELIB_PROC  int TYPELIB_CALLTYPE  IsSegAnyNumberEx ( PTEXT *ppText, double *pfNumber, S_64 *piNumber, int *pbIsInt, int bUseAllSegs );
-/* <combine sack::containers::text::IsSegAnyNumberEx@PTEXT *@double *@S_64 *@int *@int>
+TYPELIB_PROC  int TYPELIB_CALLTYPE  IsSegAnyNumberEx ( PTEXT *ppText, double *pfNumber, int64_t *piNumber, int *pbIsInt, int bUseAllSegs );
+/* <combine sack::containers::text::IsSegAnyNumberEx@PTEXT *@double *@int64_t *@int *@int>
    
    \ \                                                                                  */
 #define IsSegAnyNumber(pptext, pfNum, piNum, pbIsInt) IsSegAnyNumberEx( pptext, pfNum, piNum, pbIsInt, 0 )
@@ -2514,12 +2514,12 @@ typedef struct vartext_tag *PVARTEXT;
    exand_by :  how much to expand the buffer by when more room
                is needed
    DBG_PASS :  debug file and line parameters.                   */
-TYPELIB_PROC  PVARTEXT TYPELIB_CALLTYPE  VarTextCreateExEx ( _32 initial, _32 expand DBG_PASS );
-/* <combine sack::containers::text::VarTextCreateExEx@_32@_32 expand>
+TYPELIB_PROC  PVARTEXT TYPELIB_CALLTYPE  VarTextCreateExEx ( uint32_t initial, uint32_t expand DBG_PASS );
+/* <combine sack::containers::text::VarTextCreateExEx@uint32_t@uint32_t expand>
    
    \ \                                                                */
 #define VarTextCreateExx(i,e) VarTextCreateExEx(i,e DBG_SRC )
-/* <combine sack::containers::text::VarTextCreateExEx@_32@_32 expand>
+/* <combine sack::containers::text::VarTextCreateExEx@uint32_t@uint32_t expand>
    
    Creates a variable text collector. Default initial size and
    expansion is 0 and 32.
@@ -2705,12 +2705,12 @@ typedef struct user_input_buffer_tag {
    /* A exchange-lock variable for controlling access to the
       \history (so things aren't being read from it while it is
       scrolling old data out).                                  */
-	_32   CollectionBufferLock;
+	uint32_t   CollectionBufferLock;
 	INDEX CollectionIndex;  // used to store index.. for insert type operations...
 	int   CollectionInsert; // flag for whether we are inserting or overwriting
 	PTEXT CollectionBuffer; // used to store partial from GatherLine
-	void (CPROC*CollectedEvent)( PTRSZVAL psv, PTEXT text ); // called when a buffer is complete.
-	PTRSZVAL psvCollectedEvent;  // passed to the event callback when a line is completed
+	void (CPROC*CollectedEvent)( uintptr_t psv, PTEXT text ); // called when a buffer is complete.
+	uintptr_t psvCollectedEvent;  // passed to the event callback when a line is completed
 } USER_INPUT_BUFFER, *PUSER_INPUT_BUFFER;
 
 /* Creates a buffer structure which behaves like the command
@@ -2871,11 +2871,11 @@ typedef struct treeroot_tag *PTREEROOT;
 /* Generic Compare is the type declaration for the callback routine for user custom comparisons.  
   This routine should return -1 if new is less than old, it should return 1 if new is more than old, and it 
   should return 0 if new and old are the same key. */
-typedef int (CPROC *GenericCompare)( PTRSZVAL oldnode,PTRSZVAL newnode );
+typedef int (CPROC *GenericCompare)( uintptr_t oldnode,uintptr_t newnode );
 /* Signature for the user callback passed to CreateBinaryTreeEx
    that will be called for each node removed from the binary
    list.                                                        */
-typedef void (CPROC *GenericDestroy)( CPOINTER user, PTRSZVAL key);
+typedef void (CPROC *GenericDestroy)( CPOINTER user, uintptr_t key);
 
 /* when adding a node if Compare is NULL the default method of a
    basic unsigned integer compare on the key value is done. if
@@ -2887,7 +2887,7 @@ typedef void (CPROC *GenericDestroy)( CPOINTER user, PTRSZVAL key);
    
    Example
    <code lang="c++">
-   int CPROC MyGenericCompare( PTRSZVAL oldnode,PTRSZVAL newnode )
+   int CPROC MyGenericCompare( uintptr_t oldnode,uintptr_t newnode )
    {
    </code>
    <code>
@@ -2903,7 +2903,7 @@ typedef void (CPROC *GenericDestroy)( CPOINTER user, PTRSZVAL key);
              \:(oldnode\<newnode)? -1
              \:0;
    }
-   void CPROC MyGenericDestroy(POINTER user, PTRSZVAL key)
+   void CPROC MyGenericDestroy(POINTER user, uintptr_t key)
    {
       // do something custom with your user data and or key value
    }
@@ -2921,7 +2921,7 @@ typedef void (CPROC *GenericDestroy)( CPOINTER user, PTRSZVAL key);
    <link CreateBinaryTreeEx>
    
    <link CreateBinaryTree>                                               */
-TYPELIB_PROC  PTREEROOT TYPELIB_CALLTYPE  CreateBinaryTreeExtended( _32 flags
+TYPELIB_PROC  PTREEROOT TYPELIB_CALLTYPE  CreateBinaryTreeExtended( uint32_t flags
 															, GenericCompare Compare
 															, GenericDestroy Destroy DBG_PASS);
 /* This is the simpler case of <link CreateBinaryTreeExtended>,
@@ -3014,7 +3014,7 @@ TYPELIB_PROC  void TYPELIB_CALLTYPE  BalanceBinaryTree( PTREEROOT root );
                         */
 TYPELIB_PROC  int TYPELIB_CALLTYPE  AddBinaryNodeEx( PTREEROOT root
                                                    , CPOINTER userdata
-                                                   , PTRSZVAL key DBG_PASS );
+                                                   , uintptr_t key DBG_PASS );
 /* Adds a user pointer identified by key to a binary list.
    
    
@@ -3025,7 +3025,7 @@ TYPELIB_PROC  int TYPELIB_CALLTYPE  AddBinaryNodeEx( PTREEROOT root
    
    PTREEROOT tree = CreateBinaryTree();
    
-   PTRSZVAL key = 1;
+   uintptr_t key = 1;
    POINTER data = NewArray( TEXTCHAR, 32 );
    
    AddBinaryNode( tree, data, key );
@@ -3034,7 +3034,7 @@ TYPELIB_PROC  int TYPELIB_CALLTYPE  AddBinaryNodeEx( PTREEROOT root
    Parameters
    root :  PTREEROOT binary tree instance.
    data :  POINTER to some user object.
-   key :   PTRSZVAL a integer type which can be used to identify
+   key :   uintptr_t a integer type which can be used to identify
            the data. (used to compare in the tree).<p /><p />If
            the user has specified a custom comparison routine in
            an extended CreateBinaryTree(), then this value might
@@ -3048,9 +3048,9 @@ TYPELIB_PROC  int TYPELIB_CALLTYPE  AddBinaryNodeEx( PTREEROOT root
 #define AddBinaryNode(r,u,k) AddBinaryNodeEx((r),(u),(k) DBG_SRC )
 //TYPELIB_PROC  int TYPELIB_CALLTYPE  AddBinaryNode( PTREEROOT root
 //                                    , POINTER userdata
-//                                    , PTRSZVAL key );
+//                                    , uintptr_t key );
 
-TYPELIB_PROC  void TYPELIB_CALLTYPE  RemoveBinaryNode( PTREEROOT root, POINTER use, PTRSZVAL key );
+TYPELIB_PROC  void TYPELIB_CALLTYPE  RemoveBinaryNode( PTREEROOT root, POINTER use, uintptr_t key );
 
 /* Search in a binary tree for the specified key.
    Returns
@@ -3071,15 +3071,15 @@ TYPELIB_PROC  void TYPELIB_CALLTYPE  RemoveBinaryNode( PTREEROOT root, POINTER u
       }
    }
    </code>                                          */
-TYPELIB_PROC  CPOINTER TYPELIB_CALLTYPE  FindInBinaryTree( PTREEROOT root, PTRSZVAL key );
+TYPELIB_PROC  CPOINTER TYPELIB_CALLTYPE  FindInBinaryTree( PTREEROOT root, uintptr_t key );
 
 
 // result of fuzzy routine is 0 = match.  100 = inexact match
 // 1 = no match, actual may be larger
 // -1 = no match, actual may be lesser
 // 100 = inexact match- checks nodes near for better match.
-TYPELIB_PROC  CPOINTER TYPELIB_CALLTYPE  LocateInBinaryTree( PTREEROOT root, PTRSZVAL key
-														, int (CPROC*fuzzy)( PTRSZVAL psv, PTRSZVAL node_key ) );
+TYPELIB_PROC  CPOINTER TYPELIB_CALLTYPE  LocateInBinaryTree( PTREEROOT root, uintptr_t key
+														, int (CPROC*fuzzy)( uintptr_t psv, uintptr_t node_key ) );
 
 
 /* During FindInBinaryTree and LocateInBinaryTree, the last
@@ -3112,7 +3112,7 @@ TYPELIB_PROC  void TYPELIB_CALLTYPE  RemoveCurrentNode(PTREEROOT root );
    Example
    <code>
    
-   int ForEachNode( POINTER user, PTRSZVAL key )
+   int ForEachNode( POINTER user, uintptr_t key )
    {
        // return not 1 to dump to log the internal tree structure
        return 0; // probably did own logging here, so don't log tree internal
@@ -3127,7 +3127,7 @@ TYPELIB_PROC  void TYPELIB_CALLTYPE  RemoveCurrentNode(PTREEROOT root );
    
    </code>                                                                    */
 TYPELIB_PROC  void TYPELIB_CALLTYPE  DumpTree( PTREEROOT root 
-                          , int (*Dump)( CPOINTER user, PTRSZVAL key ) );
+                          , int (*Dump)( CPOINTER user, uintptr_t key ) );
 
 
 /* See Also
@@ -3252,9 +3252,9 @@ TYPELIB_PROC  CPOINTER TYPELIB_CALLTYPE  GetPriorNode( PTREEROOT root );
    
    Example
    <code lang="c++">
-   _32 total_nodes = GetNodeCount(tree);
+   uint32_t total_nodes = GetNodeCount(tree);
    </code>                                         */
-TYPELIB_PROC  _32 TYPELIB_CALLTYPE  GetNodeCount ( PTREEROOT root );
+TYPELIB_PROC  uint32_t TYPELIB_CALLTYPE  GetNodeCount ( PTREEROOT root );
 
 TYPELIB_PROC  PTREEROOT TYPELIB_CALLTYPE  ShadowBinaryTree( PTREEROOT root ); // returns a shadow of the original.
 
@@ -3275,18 +3275,18 @@ typedef struct familynode_tag *PFAMILYNODE;
 /* <unfinished>
    
    Incomplete Work in progress (maybe) */
-TYPELIB_PROC  PFAMILYTREE TYPELIB_CALLTYPE  CreateFamilyTree ( int (CPROC *Compare)(PTRSZVAL key1, PTRSZVAL key2)
-															, void (CPROC *Destroy)(POINTER user, PTRSZVAL key) );
+TYPELIB_PROC  PFAMILYTREE TYPELIB_CALLTYPE  CreateFamilyTree ( int (CPROC *Compare)(uintptr_t key1, uintptr_t key2)
+															, void (CPROC *Destroy)(POINTER user, uintptr_t key) );
 /* <unfinished>
    
    Incomplete, Family tree was never completed. */
 TYPELIB_PROC  POINTER TYPELIB_CALLTYPE  FamilyTreeFindChild ( PFAMILYTREE root
-														  , PTRSZVAL psvKey );
+														  , uintptr_t psvKey );
 /* <unfinished>
    
    Incomplete, Family tree was never completed. */
 TYPELIB_PROC  POINTER  TYPELIB_CALLTYPE FamilyTreeFindChildEx ( PFAMILYTREE root, PFAMILYNODE root_node
-													 , PTRSZVAL psvKey );
+													 , uintptr_t psvKey );
 /* Resets the search cursors in the tree... */
 TYPELIB_PROC  void TYPELIB_CALLTYPE  FamilyTreeReset ( PFAMILYTREE *option_tree );
 /* Resets the content of the tree (should call destroy methods, at this time it does not) */
@@ -3295,14 +3295,14 @@ TYPELIB_PROC  void TYPELIB_CALLTYPE  FamilyTreeClear ( PFAMILYTREE option_tree )
 /* <unfinished>
    
    Incomplete Work in progress (maybe) */
-TYPELIB_PROC  PFAMILYNODE TYPELIB_CALLTYPE  FamilyTreeAddChild ( PFAMILYTREE *root, POINTER userdata, PTRSZVAL key );
+TYPELIB_PROC  PFAMILYNODE TYPELIB_CALLTYPE  FamilyTreeAddChild ( PFAMILYTREE *root, POINTER userdata, uintptr_t key );
 
 TYPELIB_PROC LOGICAL TYPELIB_CALLTYPE FamilyTreeForEachChild( PFAMILYTREE root, PFAMILYNODE node
-			, LOGICAL (CPROC *ProcessNode)( PTRSZVAL psvForeach, PTRSZVAL psvNodeData )
-			, PTRSZVAL psvUserData );
+			, LOGICAL (CPROC *ProcessNode)( uintptr_t psvForeach, uintptr_t psvNodeData )
+			, uintptr_t psvUserData );
 TYPELIB_PROC LOGICAL TYPELIB_CALLTYPE FamilyTreeForEach( PFAMILYTREE root, PFAMILYNODE node
-			, LOGICAL (CPROC *ProcessNode)( PTRSZVAL psvForeach, PTRSZVAL psvNodeData, int level )
-			, PTRSZVAL psvUserData );
+			, LOGICAL (CPROC *ProcessNode)( uintptr_t psvForeach, uintptr_t psvNodeData, int level )
+			, uintptr_t psvUserData );
 
 #ifdef __cplusplus
 }; //namespace family {

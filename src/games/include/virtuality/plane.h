@@ -69,9 +69,9 @@ typedef struct linep_tag
 	PMYLINESEG pLine;  // index of line in line pool
 	struct {
 		// nLineTo/From accounts for 1000 lines in a closed facet (excessive)
-		//_32 nLineFrom : 10;
-		//_32 nLineTo : 10;
-		_32 bOrderFromTo : 1;
+		//uint32_t nLineFrom : 10;
+		//uint32_t nLineTo : 10;
+		uint32_t bOrderFromTo : 1;
 	};
    // nordering from, to
 	int nLineFrom; // index of line at dFrom of this line
@@ -213,7 +213,7 @@ void DiagnosticDump( PMYLINESEGSET *ppls, PFACETSET pps );
 int GetPoints( PFACET pf, int *nPoints, VECTOR ppv[] );
 int GetNormals( PFACET pf, int *nPoints, VECTOR ppv[] );
 
-	static void MarkTick( _64 *var)  {
+	static void MarkTick( uint64_t *var)  {
 #ifdef __WATCOMC__
 	extern void GetCPUTicks();
 #pragma aux GetCPUTicks = "rdtsc"   \
@@ -222,7 +222,7 @@ int GetNormals( PFACET pf, int *nPoints, VECTOR ppv[] );
 	"mov dword ptr [ecx+4], edx "
 	GetCPUTicks();
 #elif defined( GCC )
-	_64 tick;
+	uint64_t tick;
 	asm( "rdtsc\n" : "=A"(tick) );
 #endif
 

@@ -1,6 +1,6 @@
 
 #ifndef DECOMPRESS_STRUCT_DEFINED
-typedef PTRSZVAL PDECOMPRESS;
+typedef uintptr_t PDECOMPRESS;
 #endif
 
 

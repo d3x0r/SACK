@@ -28,14 +28,14 @@ enum {
 
 
 //---------------------------------------------------------------------------
-static PTRSZVAL CPROC ReloadSliderColor( PTRSZVAL psv, arg_list args );
-static PTRSZVAL CPROC ReloadSliderBackColor( PTRSZVAL psv, arg_list args );
-static PTRSZVAL CPROC SetSliderHorizontal( PTRSZVAL psv, arg_list args );
-static PTRSZVAL CPROC SetSliderDragging( PTRSZVAL psv, arg_list args );
-static PTRSZVAL CPROC SetSliderBackgroundImage( PTRSZVAL psv, arg_list args );
-static PTRSZVAL CPROC SetSliderMinValue( PTRSZVAL psv, arg_list args );
-static PTRSZVAL CPROC SetSliderMaxValue( PTRSZVAL psv, arg_list args );
-static PTRSZVAL CPROC SetSliderCurrentValue( PTRSZVAL psv, arg_list args );
+static uintptr_t CPROC ReloadSliderColor( uintptr_t psv, arg_list args );
+static uintptr_t CPROC ReloadSliderBackColor( uintptr_t psv, arg_list args );
+static uintptr_t CPROC SetSliderHorizontal( uintptr_t psv, arg_list args );
+static uintptr_t CPROC SetSliderDragging( uintptr_t psv, arg_list args );
+static uintptr_t CPROC SetSliderBackgroundImage( uintptr_t psv, arg_list args );
+static uintptr_t CPROC SetSliderMinValue( uintptr_t psv, arg_list args );
+static uintptr_t CPROC SetSliderMaxValue( uintptr_t psv, arg_list args );
+static uintptr_t CPROC SetSliderCurrentValue( uintptr_t psv, arg_list args );
 
 
 //---------------------------------------------------------------------------
@@ -51,7 +51,7 @@ PRELOAD( RegisterExtraSliderConfig )
 }
 
 
-static void CPROC OnSliderUpdateProc(PTRSZVAL psv, PSI_CONTROL pc, int val)
+static void CPROC OnSliderUpdateProc(uintptr_t psv, PSI_CONTROL pc, int val)
 //Update current value
 {
 	PSLIDER_INFO info = (PSLIDER_INFO)psv;
@@ -70,7 +70,7 @@ static void CPROC OnSliderUpdateProc(PTRSZVAL psv, PSI_CONTROL pc, int val)
 			if( button->ID == info->ID )
 			{
 				if( button->file )
-					ffmpeg_SeekFile( button->file, (_64)val * 1000 );
+					ffmpeg_SeekFile( button->file, (uint64_t)val * 1000 );
 			}
 		}
 	}
@@ -78,14 +78,14 @@ static void CPROC OnSliderUpdateProc(PTRSZVAL psv, PSI_CONTROL pc, int val)
 	LabelVariableChanged( info->label );
 }
 
-static CTEXTSTR GetCurrentValueString( PTRSZVAL psv )
+static CTEXTSTR GetCurrentValueString( uintptr_t psv )
 {
 	PSLIDER_INFO info = (PSLIDER_INFO)psv;
 	snprintf( info->value, 32, WIDE("%")_32fs WIDE(".%")_32fs WIDE("%%"), info->current / 10000, info->current % 10000 );
 	return info->value;
 }
 
-void UpdatePositionCallback( PTRSZVAL psv, _64 tick )
+void UpdatePositionCallback( uintptr_t psv, uint64_t tick )
 {
 	struct my_button *button = (struct my_button*)psv;
 	if( button->slider )
@@ -98,7 +98,7 @@ void UpdatePositionCallback( PTRSZVAL psv, _64 tick )
 	}
 }
 
-static PTRSZVAL OnCreateControl(CONTROL_NAME)( PSI_CONTROL frame, S_32 x, S_32 y, _32 w, _32 h )
+static uintptr_t OnCreateControl(CONTROL_NAME)( PSI_CONTROL frame, int32_t x, int32_t y, uint32_t w, uint32_t h )
 {
 
 	PSLIDER_INFO info = New( SLIDER_INFO );
@@ -138,7 +138,7 @@ static PTRSZVAL OnCreateControl(CONTROL_NAME)( PSI_CONTROL frame, S_32 x, S_32 y
 		}
 	}
 
-	SetSliderUpdateHandler( info->control, OnSliderUpdateProc, (PTRSZVAL)info );	//info (pointer) will be returned in OnSliderUpdateProc()
+	SetSliderUpdateHandler( info->control, OnSliderUpdateProc, (uintptr_t)info );	//info (pointer) will be returned in OnSliderUpdateProc()
 	 
 	// none of these are accurate values, they are just default WHITE and nothing.
 	InterShell_SetButtonColors( NULL, info->color, info->backcolor, 0, 0 );
@@ -148,17 +148,17 @@ static PTRSZVAL OnCreateControl(CONTROL_NAME)( PSI_CONTROL frame, S_32 x, S_32 y
 	{
 		TEXTCHAR tmpname[32];
 		tnprintf( tmpname, 32, WIDE( "Player %d position" ), info->ID );
-		info->label = CreateLabelVariableEx( tmpname, LABEL_TYPE_PROC_EX, GetCurrentValueString, (PTRSZVAL)info );
+		info->label = CreateLabelVariableEx( tmpname, LABEL_TYPE_PROC_EX, GetCurrentValueString, (uintptr_t)info );
 	}
 
 	// the result of this will be hidden...
-	return (PTRSZVAL)info;
+	return (uintptr_t)info;
 }
 
 
 
 
-static PTRSZVAL OnConfigureControl( CONTROL_NAME )( PTRSZVAL psv, PSI_CONTROL parent_frame )
+static uintptr_t OnConfigureControl( CONTROL_NAME )( uintptr_t psv, PSI_CONTROL parent_frame )
 {
 	PSLIDER_INFO info = (PSLIDER_INFO)psv;
 	{
@@ -228,7 +228,7 @@ static PTRSZVAL OnConfigureControl( CONTROL_NAME )( PTRSZVAL psv, PSI_CONTROL pa
 }
 
 
-static void OnSaveControl( CONTROL_NAME )( FILE *file,PTRSZVAL psv )
+static void OnSaveControl( CONTROL_NAME )( FILE *file,uintptr_t psv )
 {
 	PSLIDER_INFO info = (PSLIDER_INFO)psv;
 	sack_fprintf( file, WIDE("Seek Slider color=$%02X%02X%02X%02X\n")
@@ -256,7 +256,7 @@ static void OnSaveControl( CONTROL_NAME )( FILE *file,PTRSZVAL psv )
 }
 
 
-static PTRSZVAL CPROC ReloadSliderColor( PTRSZVAL psv, arg_list args )
+static uintptr_t CPROC ReloadSliderColor( uintptr_t psv, arg_list args )
 {
 	PSLIDER_INFO info = (PSLIDER_INFO)psv;
 	PARAM( args, CDATA, color );
@@ -264,7 +264,7 @@ static PTRSZVAL CPROC ReloadSliderColor( PTRSZVAL psv, arg_list args )
 	return psv;
 }
 
-static PTRSZVAL CPROC ReloadSliderBackColor( PTRSZVAL psv, arg_list args )
+static uintptr_t CPROC ReloadSliderBackColor( uintptr_t psv, arg_list args )
 {
 	PSLIDER_INFO info = (PSLIDER_INFO)psv;
 	PARAM( args, CDATA, color );
@@ -272,7 +272,7 @@ static PTRSZVAL CPROC ReloadSliderBackColor( PTRSZVAL psv, arg_list args )
 	return psv;
 }
 
-static PTRSZVAL CPROC SetSliderHorizontal( PTRSZVAL psv, arg_list args )
+static uintptr_t CPROC SetSliderHorizontal( uintptr_t psv, arg_list args )
 {
 	PSLIDER_INFO info = (PSLIDER_INFO)psv;
 	PARAM( args, LOGICAL, bHorizontal );
@@ -282,7 +282,7 @@ static PTRSZVAL CPROC SetSliderHorizontal( PTRSZVAL psv, arg_list args )
 	return psv;
 }
 
-static PTRSZVAL CPROC SetSliderDragging( PTRSZVAL psv, arg_list args )
+static uintptr_t CPROC SetSliderDragging( uintptr_t psv, arg_list args )
 {
 	PSLIDER_INFO info = (PSLIDER_INFO)psv;
 	PARAM( args, LOGICAL, bDragging );
@@ -291,7 +291,7 @@ static PTRSZVAL CPROC SetSliderDragging( PTRSZVAL psv, arg_list args )
 }
 
 
-static PTRSZVAL CPROC SetSliderBackgroundImage( PTRSZVAL psv, arg_list args )
+static uintptr_t CPROC SetSliderBackgroundImage( uintptr_t psv, arg_list args )
 {
 	PSLIDER_INFO info = (PSLIDER_INFO)psv;
 	PARAM( args, CTEXTSTR, name );
@@ -300,30 +300,30 @@ static PTRSZVAL CPROC SetSliderBackgroundImage( PTRSZVAL psv, arg_list args )
 	return psv;
 }
 
-static PTRSZVAL CPROC SetSliderMinValue( PTRSZVAL psv, arg_list args )
+static uintptr_t CPROC SetSliderMinValue( uintptr_t psv, arg_list args )
 {
 	PSLIDER_INFO info = (PSLIDER_INFO)psv;
-	PARAM( args, S_32, min );
+	PARAM( args, int32_t, min );
 	info->min = min;
 	return psv;
 }
 
-static PTRSZVAL CPROC SetSliderMaxValue( PTRSZVAL psv, arg_list args )
+static uintptr_t CPROC SetSliderMaxValue( uintptr_t psv, arg_list args )
 {
 	PSLIDER_INFO info = (PSLIDER_INFO)psv;
-	PARAM( args, S_32, max );
+	PARAM( args, int32_t, max );
 	info->max = max;
 	return psv;
 }
-static PTRSZVAL CPROC SetSliderCurrentValue( PTRSZVAL psv, arg_list args )
+static uintptr_t CPROC SetSliderCurrentValue( uintptr_t psv, arg_list args )
 {
 	PSLIDER_INFO info = (PSLIDER_INFO)psv;
-	PARAM( args, S_32, current );
+	PARAM( args, int32_t, current );
 	info->current = current;
 	return psv;
 }
 
-static void OnLoadControl( CONTROL_NAME )( PCONFIG_HANDLER pch, PTRSZVAL psv )
+static void OnLoadControl( CONTROL_NAME )( PCONFIG_HANDLER pch, uintptr_t psv )
 {
 	AddConfigurationMethod( pch, WIDE("Seek Slider color=%c"), ReloadSliderColor );
 	AddConfigurationMethod( pch, WIDE("Seek Slider back color=%c"), ReloadSliderBackColor );
@@ -336,9 +336,9 @@ static void OnLoadControl( CONTROL_NAME )( PCONFIG_HANDLER pch, PTRSZVAL psv )
 
 }
 
-static void OnFixupControl( CONTROL_NAME )(  PTRSZVAL psv )
+static void OnFixupControl( CONTROL_NAME )(  uintptr_t psv )
 {
-	_32 opt;
+	uint32_t opt;
 	PSLIDER_INFO info = (PSLIDER_INFO)psv;
 
 	if( info )
@@ -352,16 +352,16 @@ static void OnFixupControl( CONTROL_NAME )(  PTRSZVAL psv )
 	}
 }
 
-static PSI_CONTROL OnGetControl( CONTROL_NAME )( PTRSZVAL psv )
+static PSI_CONTROL OnGetControl( CONTROL_NAME )( uintptr_t psv )
 {
 	PSLIDER_INFO info = (PSLIDER_INFO)psv;
 	return info->control;
 }
 
 
-static LOGICAL OnQueryShowControl( CONTROL_NAME )( PTRSZVAL psv )
+static LOGICAL OnQueryShowControl( CONTROL_NAME )( uintptr_t psv )
 {
-	_32 opt;
+	uint32_t opt;
 	PSLIDER_INFO info = (PSLIDER_INFO)psv;
 
 	if( info ) 

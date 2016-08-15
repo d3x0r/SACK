@@ -48,7 +48,7 @@ static int GetAMessageEx( MSGQ_TYPE msgq, MSGIDTYPE MsgFilter, CTEXTSTR q, int f
 #endif
 			//lprintf( "^^^" );
 			//lprintf( WIDE("Got a receive...") );
-			if( ( MessageLen == (-((S_32)sizeof(MSGIDTYPE))) ) ) // retry
+			if( ( MessageLen == (-((int32_t)sizeof(MSGIDTYPE))) ) ) // retry
 			{
 				lprintf( WIDE("Recieved -4 message (no data?!) no message, should have been -1, ENOMSG") );
 				MessageIn->hdr.msgid = RU_ALIVE;
@@ -152,7 +152,7 @@ static int GetAMessageEx( MSGQ_TYPE msgq, MSGIDTYPE MsgFilter, CTEXTSTR q, int f
 // find a handler to receive into?
 
 int WaitReceiveServerMsg ( PSLEEPER sleeper
-					, _32 MsgOut
+					, uint32_t MsgOut
 					DBG_PASS )
 {
 	PTRANSACTIONHANDLER handler = sleeper->handler;
@@ -316,7 +316,7 @@ int QueueWaitReceiveServerMsg ( PSLEEPER sleeper, PTRANSACTIONHANDLER handler
 }
 
 
-PTRSZVAL CPROC HandleMessages( PTHREAD thread )
+uintptr_t CPROC HandleMessages( PTHREAD thread )
 {
 	MSGIDTYPE MsgFilter = (MSGIDTYPE)GetThreadParam( thread );
 	g.pThread = thread;

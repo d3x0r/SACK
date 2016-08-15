@@ -16,8 +16,8 @@ struct application_tracker
 {
 	CTEXTSTR title;
 	CTEXTSTR classname;
-	S_32 last_x, last_y;
-	_32 last_w, last_h;
+	int32_t last_x, last_y;
+	uint32_t last_w, last_h;
 #ifdef WIN32
 	HWND hWnd;
 #endif
@@ -68,7 +68,7 @@ PRELOAD( RegisterKeypadIDs )
 	EasyRegisterResource( WIDE("InterShell/Application Mount") _WIDE(TARGETNAME), EDIT_APP_SEND_FROM, EDIT_FIELD_NAME );
 }
 
-static PTRSZVAL OnEditControl( WIDE( "Application Mount" ) )( PTRSZVAL psv, PSI_CONTROL pc_parent )
+static uintptr_t OnEditControl( WIDE( "Application Mount" ) )( uintptr_t psv, PSI_CONTROL pc_parent )
 {
 	PSI_CONTROL frame = LoadXMLFrameOver( pc_parent, WIDE("ConfigureApplicationMount.isFrame") );
 	PSI_CONTROL pc = (PSI_CONTROL)psv;
@@ -308,7 +308,7 @@ struct application_tracker *FindAppWindow( PMY_CONTROL app_control )
 }
 
 
-static PTRSZVAL CPROC WaitForApplication( PTHREAD thread )
+static uintptr_t CPROC WaitForApplication( PTHREAD thread )
 {
 	LOGICAL need_change;
 	LOGICAL need_find;
@@ -436,7 +436,7 @@ static PTRSZVAL CPROC WaitForApplication( PTHREAD thread )
 	return 0;
 }
 
-static PTRSZVAL OnCreateControl( WIDE("Application Mount") )( PSI_CONTROL parent, S_32 x, S_32 y, _32 w, _32 h )
+static uintptr_t OnCreateControl( WIDE("Application Mount") )( PSI_CONTROL parent, int32_t x, int32_t y, uint32_t w, uint32_t h )
 {
 	PSI_CONTROL pc;
 	pc = MakeNamedControl( parent, WIDE("Application Mount"), x, y, w, h, -1 );
@@ -448,7 +448,7 @@ static PTRSZVAL OnCreateControl( WIDE("Application Mount") )( PSI_CONTROL parent
 	}
 	if( !l.waiting )
 		l.waiting = ThreadTo( WaitForApplication, 0 );
-	return (PTRSZVAL)pc;
+	return (uintptr_t)pc;
 }
 
 static void OnFinishInit( WIDE("Application Mount") )( PSI_CONTROL pc_canvas  )
@@ -457,12 +457,12 @@ static void OnFinishInit( WIDE("Application Mount") )( PSI_CONTROL pc_canvas  )
 		l.waiting = ThreadTo( WaitForApplication, 0 );
 }
 
-static PSI_CONTROL OnGetControl( WIDE("Application Mount") )( PTRSZVAL psv )
+static PSI_CONTROL OnGetControl( WIDE("Application Mount") )( uintptr_t psv )
 {
 	return (PSI_CONTROL)psv;
 }
 
-static void OnSaveControl( WIDE("Application Mount") )( FILE* file, PTRSZVAL psv )
+static void OnSaveControl( WIDE("Application Mount") )( FILE* file, uintptr_t psv )
 {
 	MyValidatedControlData( PMY_CONTROL, control, (PSI_CONTROL)psv );
 	sack_fprintf( file, WIDE("Application Title=%s\n"), control->app_window_name?control->app_window_name:WIDE("") );
@@ -471,7 +471,7 @@ static void OnSaveControl( WIDE("Application Mount") )( FILE* file, PTRSZVAL psv
 	sack_fprintf( file, WIDE("Application Send From Address=%s\n"), control->send_from?control->send_from:WIDE("") );
 }
 
-static PTRSZVAL CPROC SetApplicationName( PTRSZVAL psv, arg_list args )
+static uintptr_t CPROC SetApplicationName( uintptr_t psv, arg_list args )
 {
 	PARAM( args, CTEXTSTR, name );
 	MyValidatedControlData( PMY_CONTROL, control, (PSI_CONTROL)psv );
@@ -481,7 +481,7 @@ static PTRSZVAL CPROC SetApplicationName( PTRSZVAL psv, arg_list args )
 	return psv;
 }
 
-static PTRSZVAL CPROC SetApplicationClass( PTRSZVAL psv, arg_list args )
+static uintptr_t CPROC SetApplicationClass( uintptr_t psv, arg_list args )
 {
 	PARAM( args, CTEXTSTR, name );
 	MyValidatedControlData( PMY_CONTROL, control, (PSI_CONTROL)psv );
@@ -490,7 +490,7 @@ static PTRSZVAL CPROC SetApplicationClass( PTRSZVAL psv, arg_list args )
 	return psv;
 }
 
-static PTRSZVAL CPROC SetApplicationSendFrom( PTRSZVAL psv, arg_list args )
+static uintptr_t CPROC SetApplicationSendFrom( uintptr_t psv, arg_list args )
 {
 	PARAM( args, CTEXTSTR, name );
 	MyValidatedControlData( PMY_CONTROL, control, (PSI_CONTROL)psv );
@@ -499,7 +499,7 @@ static PTRSZVAL CPROC SetApplicationSendFrom( PTRSZVAL psv, arg_list args )
 	return psv;
 }
 
-static PTRSZVAL CPROC SetApplicationSendTo( PTRSZVAL psv, arg_list args )
+static uintptr_t CPROC SetApplicationSendTo( uintptr_t psv, arg_list args )
 {
 	PARAM( args, CTEXTSTR, name );
 	MyValidatedControlData( PMY_CONTROL, control, (PSI_CONTROL)psv );
@@ -508,7 +508,7 @@ static PTRSZVAL CPROC SetApplicationSendTo( PTRSZVAL psv, arg_list args )
 	return psv;
 }
 
-static void OnLoadControl( WIDE("Application Mount") )( PCONFIG_HANDLER pch, PTRSZVAL psv )
+static void OnLoadControl( WIDE("Application Mount") )( PCONFIG_HANDLER pch, uintptr_t psv )
 {
 	AddConfigurationMethod( pch, WIDE("Application Title=%m"), SetApplicationName );
 	AddConfigurationMethod( pch, WIDE("Application Class=%m"), SetApplicationClass );
@@ -539,8 +539,8 @@ static void OnRevealCommon( WIDE("Application Mount") )( PSI_CONTROL pc )
 	MyValidatedControlData( PMY_CONTROL, control, pc );
 	if( control )
 	{
-		S_32 x = 0;
-		S_32 y = 0;
+		int32_t x = 0;
+		int32_t y = 0;
 		Image image = GetControlSurface( pc );
 		//lprintf( "Showing %p", control );
 		//lprintf( WIDE("begin show(move)...") );
@@ -561,7 +561,7 @@ static void OnRevealCommon( WIDE("Application Mount") )( PSI_CONTROL pc )
 	}
 }
 
-static void OnCloneControl( WIDE("Application Mount") )( PTRSZVAL copy,PTRSZVAL original)
+static void OnCloneControl( WIDE("Application Mount") )( uintptr_t copy,uintptr_t original)
 {
 	PSI_CONTROL pc_copy = (PSI_CONTROL)copy;
 	PSI_CONTROL pc_original = (PSI_CONTROL)original;

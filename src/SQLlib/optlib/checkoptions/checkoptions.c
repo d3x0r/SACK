@@ -147,11 +147,11 @@ CTEXTSTR *result = NULL;
 	{
 		INDEX idx;
       int deleted;
-		_32 parent;
+		uint32_t parent;
 		do
 		{
 			deleted = 0;
-			LIST_FORALL( options, idx, _32, parent )
+			LIST_FORALL( options, idx, uint32_t, parent )
 			{
 				if( (parent > 1) && !GetLink( &options, parent-1 ) )
 				{

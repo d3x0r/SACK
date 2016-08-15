@@ -161,10 +161,10 @@ FRACTION_PROC  void FRACTION_API  LogCoords ( PCOORDPAIR pcp );
    
    Returns
    \result; the pointer the fraction to receive the result. */
-FRACTION_PROC  PFRACTION FRACTION_API  ScaleFraction ( PFRACTION result, S_32 value, PFRACTION f );
+FRACTION_PROC  PFRACTION FRACTION_API  ScaleFraction ( PFRACTION result, int32_t value, PFRACTION f );
 /* Results in the integer part of the fraction. If the faction
    was 330/10 then the result would be 33.                     */
-FRACTION_PROC  S_32 FRACTION_API  ReduceFraction ( PFRACTION f );
+FRACTION_PROC  int32_t FRACTION_API  ReduceFraction ( PFRACTION f );
 
 /* Scales a 32 bit integer value by a fraction. The result is
    the scaled value result.
@@ -174,7 +174,7 @@ FRACTION_PROC  S_32 FRACTION_API  ReduceFraction ( PFRACTION f );
    
    Returns
    The (value * f) integer value of.                          */
-FRACTION_PROC  _32 FRACTION_API  ScaleValue ( PFRACTION f, S_32 value );
+FRACTION_PROC  uint32_t FRACTION_API  ScaleValue ( PFRACTION f, int32_t value );
 /* \ \ 
    Parameters
    f :      The fraction to scale the value by
@@ -182,7 +182,7 @@ FRACTION_PROC  _32 FRACTION_API  ScaleValue ( PFRACTION f, S_32 value );
    
    Returns
    the value of ( value * 1/ f )               */
-FRACTION_PROC  _32 FRACTION_API  InverseScaleValue ( PFRACTION f, S_32 value );
+FRACTION_PROC  uint32_t FRACTION_API  InverseScaleValue ( PFRACTION f, int32_t value );
 
 	SACK_MATH_FRACTION_NAMESPACE_END
 

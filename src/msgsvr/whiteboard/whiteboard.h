@@ -57,7 +57,7 @@ enum {//whiteboard_messages;
 
 typedef struct board_point_tag
 {
-	S_32 x, y;
+	int32_t x, y;
    CDATA c;
 } BOARD_POINT, *PBOARD_POINT;
 #define MAXBOARD_POINTSPERSET 256
@@ -101,11 +101,11 @@ DeclareSet( BOARD_LAYER );
 typedef struct board_client_tag
 {
 	struct {
-		_32 bCreating : 1;
+		uint32_t bCreating : 1;
 	} flags;
    struct board_tag *board; // which board this layer is on.
    enum SHAPE_TYPE creating;
-	_32 client_id;
+	uint32_t client_id;
 	PLIST layers;
    CTEXTSTR name;
 	PBOARD_LAYER current_layer;
@@ -118,18 +118,18 @@ typedef struct board_tag
 {
 	struct {
       // ready to be used...
-		_32 bReady : 1;
-		_32 bWaiting : 1;
+		uint32_t bReady : 1;
+		uint32_t bWaiting : 1;
 	} flags;
    TEXTSTR name;
 	PLIST clients;
    PLIST layers;
 #ifdef WHITEBOARD_CLIENT
    CDATA current_color;
-	S_32 org_x, org_y; // origin x, y
+	int32_t org_x, org_y; // origin x, y
 // fixed point number.. scale 1 is 256x bigger
 //, 0x100 is 1x, 0x200 is 1/2x
-	S_32 scale;
+	int32_t scale;
 #endif
 } WHITEBOARD, *PWHITEBOARD;
 #define MAXWHITEBOARDSPERSET 8

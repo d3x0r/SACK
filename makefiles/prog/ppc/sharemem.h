@@ -11,7 +11,7 @@
 #    endif
 
 #ifndef MEM_LIBRARY_SOURCE
-typedef PTRSZVAL PMEM;
+typedef uintptr_t PMEM;
 #endif
 
 #ifdef __cplusplus
@@ -23,17 +23,17 @@ extern "C"  {
 // DigSpace( WIDE("Picture Memory"), WIDE("Picture.mem"), 100000 );
 
 // raw shared file view...
-MEM_PROC( POINTER, OpenSpace )( TEXTSTR pWhat, TEXTSTR pWhere, _32 *dwSize );
+MEM_PROC( POINTER, OpenSpace )( TEXTSTR pWhat, TEXTSTR pWhere, uint32_t *dwSize );
 
 // an option to specify a requested address would be MOST handy...
-MEM_PROC( POINTER, OpenSpaceEx )( TEXTSTR pWhat, TEXTSTR pWhere, _32 address, _32 *dwSize );
+MEM_PROC( POINTER, OpenSpaceEx )( TEXTSTR pWhat, TEXTSTR pWhere, uint32_t address, uint32_t *dwSize );
 
 MEM_PROC( void, CloseSpace )( POINTER pMem );
-MEM_PROC( _32, GetSpaceSize )( POINTER pMem );
+MEM_PROC( uint32_t, GetSpaceSize )( POINTER pMem );
 
 // even if pMem is just a POINTER returned from OpenSpace
 // this will create a valid heap pointer.
-MEM_PROC( void, InitHeap)( PMEM pMem, _32 dwSize );
+MEM_PROC( void, InitHeap)( PMEM pMem, uint32_t dwSize );
 
 // not sure about this one - perhaps with custom heaps
 // we DEFINATLY need to disallow auto-additions
@@ -51,11 +51,11 @@ MEM_PROC( void, DebugDumpHeapMemFile )( PMEM pHeap, char *pFilename );
 MEM_PROC( void, DebugDumpMemFile )( char *pFilename );
 
 
-MEM_PROC( POINTER, HeapAllocateEx )( PMEM pHeap, _32 nSize DBG_PASS );
+MEM_PROC( POINTER, HeapAllocateEx )( PMEM pHeap, uint32_t nSize DBG_PASS );
 #define HeapAllocate(heap, n) HeapAllocateEx( (heap), (n) DBG_SRC )
-MEM_PROC( POINTER, AllocateEx )( _32 nSize DBG_PASS );
+MEM_PROC( POINTER, AllocateEx )( uint32_t nSize DBG_PASS );
 #define Allocate( n ) HeapAllocateEx( 0, (n) DBG_SRC )
-//MEM_PROC( POINTER, AllocateEx )( _32 nSize DBG_PASS );
+//MEM_PROC( POINTER, AllocateEx )( uint32_t nSize DBG_PASS );
 //#define Allocate(n) AllocateEx(n DBG_SRC )
 MEM_PROC( POINTER, GetFirstUsedBlock )( PMEM pHeap );
 
@@ -69,21 +69,21 @@ MEM_PROC( POINTER, ReleaseEx )( POINTER pData DBG_PASS ) ;
 MEM_PROC( POINTER, HoldEx )( POINTER pData DBG_PASS  );
 #define Hold(p) HoldEx(p DBG_SRC )
 
-MEM_PROC( POINTER, HeapReallocateEx )( PMEM pHeap, POINTER source, _32 size DBG_PASS );
+MEM_PROC( POINTER, HeapReallocateEx )( PMEM pHeap, POINTER source, uint32_t size DBG_PASS );
 #define HeapReallocate(heap,p,sz) HeapReallocateEx( (heap),(p),(sz) DBG_SRC )
-MEM_PROC( POINTER, ReallocateEx )( POINTER source, _32 size DBG_PASS );
+MEM_PROC( POINTER, ReallocateEx )( POINTER source, uint32_t size DBG_PASS );
 #define Reallocate(p,sz) ReallocateEx( (p),(sz) DBG_SRC )
 MEM_PROC( POINTER, HeapMoveEx )( PMEM pNewHeap, POINTER source DBG_PASS );
 #define HeapMove(h,s) HeapMoveEx( (h), (s) DBG_SRC )
 
-MEM_PROC( _32, SizeOfMemBlock )( CPOINTER pData );
+MEM_PROC( uint32_t, SizeOfMemBlock )( CPOINTER pData );
 
 MEM_PROC( LOGICAL, Defragment )( POINTER *ppMemory );
 
-MEM_PROC( void, GetHeapMemStatsEx )( PMEM pHeap, _32 *pFree, _32 *pUsed, _32 *pChunks, _32 *pFreeChunks DBG_PASS );
+MEM_PROC( void, GetHeapMemStatsEx )( PMEM pHeap, uint32_t *pFree, uint32_t *pUsed, uint32_t *pChunks, uint32_t *pFreeChunks DBG_PASS );
 #define GetHeapMemStats(h,f,u,c,fc) GetHeapMemStatsEx( h,f,u,c,fc DBG_SRC )
-//MEM_PROC( void, GetHeapMemStats )( PMEM pHeap, _32 *pFree, _32 *pUsed, _32 *pChunks, _32 *pFreeChunks );
-MEM_PROC( void, GetMemStats )( _32 *pFree, _32 *pUsed, _32 *pChunks, _32 *pFreeChunks );
+//MEM_PROC( void, GetHeapMemStats )( PMEM pHeap, uint32_t *pFree, uint32_t *pUsed, uint32_t *pChunks, uint32_t *pFreeChunks );
+MEM_PROC( void, GetMemStats )( uint32_t *pFree, uint32_t *pUsed, uint32_t *pChunks, uint32_t *pFreeChunks );
 
 MEM_PROC( void, SetAllocateLogging )( LOGICAL bTrueFalse );
 MEM_PROC( void, SetAllocateDebug )( LOGICAL bDisable );
@@ -91,14 +91,14 @@ MEM_PROC( void, SetCriticalLogging )( LOGICAL bTrueFalse );
 MEM_PROC( void, SetMinAllocate )( int nSize );
 MEM_PROC( void, SetHeapUnit )( int dwSize );
 
-MEM_PROC( _32, LockedExchange )( P_32 p, _32 val );
-MEM_PROC( _32, LockedIncrement )( P_32 p );
-MEM_PROC( _32, LockedDecrement )( P_32 p );
+MEM_PROC( uint32_t, LockedExchange )( uint32_t* p, uint32_t val );
+MEM_PROC( uint32_t, LockedIncrement )( uint32_t* p );
+MEM_PROC( uint32_t, LockedDecrement )( uint32_t* p );
 
 
-MEM_PROC( void, MemSet )( POINTER p, _32 n, _32 sz );
-MEM_PROC( void, MemCpy )( POINTER pTo, CPOINTER pFrom, _32 sz );
-MEM_PROC( int, MemCmp )( CPOINTER pOne, CPOINTER pTwo, _32 sz );
+MEM_PROC( void, MemSet )( POINTER p, uint32_t n, uint32_t sz );
+MEM_PROC( void, MemCpy )( POINTER pTo, CPOINTER pFrom, uint32_t sz );
+MEM_PROC( int, MemCmp )( CPOINTER pOne, CPOINTER pTwo, uint32_t sz );
 MEM_PROC( POINTER, MemDupEx )( CPOINTER thing DBG_PASS );
 #define MemDup(thing) MemDupEx(thing DBG_SRC )
 
@@ -119,9 +119,9 @@ inline void operator delete (void * p DBG_PASS )
 //#define deleteEx(file,line) delete(file,line)
 
 inline void * operator new( size_t size DBG_PASS )
-{ return AllocateEx( (_32)size DBG_RELAY ); }
+{ return AllocateEx( (uint32_t)size DBG_RELAY ); }
 inline void * operator new[]( size_t size DBG_PASS )
-{ return AllocateEx( (_32)size DBG_RELAY ); }
+{ return AllocateEx( (uint32_t)size DBG_RELAY ); }
 #  define new new( DBG_VOIDSRC )
 #  define newEx(file,line) new(file,line)
 // common names - sometimes in conflict when declaring

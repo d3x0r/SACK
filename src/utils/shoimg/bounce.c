@@ -19,7 +19,7 @@ Image imgGraphic;
 Image surface;
 
 PRENDERER display;
-_32 width, height;
+uint32_t width, height;
 int _ix[10], _iy[10];
 int _n;
 int ix, iy;
@@ -93,7 +93,7 @@ void FillDifference( Image surface, int a, int b, int mix, CDATA color )
 
 }
 
-void CPROC Output( PTRSZVAL psv, PRENDERER display )
+void CPROC Output( uintptr_t psv, PRENDERER display )
 {
 	surface = GetDisplayImage( display );
 {
@@ -155,7 +155,7 @@ void CPROC Output( PTRSZVAL psv, PRENDERER display )
 		ix = 0;
 		dx = (rand(  ) * 12 / RAND_MAX + 1);
 	}
-	if( SUS_GTE( ix, int, (width-imgGraphic->width ), _32 ) )
+	if( SUS_GTE( ix, int, (width-imgGraphic->width ), uint32_t ) )
 	{
 		ix = (width-imgGraphic->width )-1;
 		dx = -(rand( ) * 12 / RAND_MAX + 1);
@@ -167,7 +167,7 @@ void CPROC Output( PTRSZVAL psv, PRENDERER display )
 		iy = 0;
 		dy = (rand(  ) * 12 / RAND_MAX + 1);
 	}
-	if( SUS_GTE( iy, int, (height-imgGraphic->height ), _32 ) )
+	if( SUS_GTE( iy, int, (height-imgGraphic->height ), uint32_t ) )
 	{
 		iy = (height-imgGraphic->height )-1;
 		dy = -(rand( ) * 12 / RAND_MAX + 1);
@@ -191,7 +191,7 @@ UpdateDisplay( display );
    not_first = 1;
 }
 
-void CPROC tick( PTRSZVAL psv )
+void CPROC tick( uintptr_t psv )
 {
    Redraw( display );
 }
@@ -200,9 +200,9 @@ SaneWinMain(argc, argv )
 //int main( int argc, char **argv )
 {
 	LOGICAL SuccessOrFailure = TRUE;
-	_32 w,h;
+	uint32_t w,h;
 	int x = 0, y = 0;
-	_64 z = 10;
+	uint64_t z = 10;
 	srand( GetTickCount() );
 	dx = rand() * 12 / RAND_MAX + 2;
 	dy = rand() * 12 / RAND_MAX + 2;
@@ -307,7 +307,7 @@ SaneWinMain(argc, argv )
 		( (h + y ) <= height )
       )
 	{
-      _64 a = GetTickCount();
+      uint64_t a = GetTickCount();
 		display = OpenDisplaySizedAt( DISPLAY_ATTRIBUTE_LAYERED
 														  , w //width
 														  , h //height
@@ -333,7 +333,7 @@ SaneWinMain(argc, argv )
 	}
 	else
 	{
-		_32 x;
+		uint32_t x;
 		lprintf( WIDE("\n\n\tUsage: %s <image> [[[<width> <height>] <x> <y>] <seconds>].  \n\t\
 						  Must be width of %u by height of %u or less, controlled by Display.Config. \n\t\
 						  Example:  shoimg sky.jpg  orients at default (top left) and will use default resolution (maximum) and display full screen for the default time period (ten seconds).\n\t\

@@ -236,17 +236,17 @@ static int CPROC Seek( PDATAPATH pDataPath, PSENTIENT ps, PTEXT parameters )
 		}
 		else if( GetText( op )[0] == '+' )
 		{
-			_32 pos = (_32)IntNumber( op );
+			uint32_t pos = (uint32_t)IntNumber( op );
 			fseek( pdp->handle, pos, SEEK_CUR );
 		}
 		else if( GetText( op )[0] == '-' )
 		{
-			_32 pos = (_32)IntNumber( op );
+			uint32_t pos = (uint32_t)IntNumber( op );
 			fseek( pdp->handle, pos, SEEK_CUR );
 		}
 		else if( IsNumber( op ) )
 		{
-			_32 pos = (_32)IntNumber( op );
+			uint32_t pos = (uint32_t)IntNumber( op );
 			fseek( pdp->handle, pos, SEEK_SET );
 		}
 		else
@@ -304,8 +304,8 @@ static PDATAPATH CPROC Open( PDATAPATH *pChannel, PSENTIENT ps, PTEXT parameters
 	PMYDATAPATH pdp = NULL;
 	PTEXT pFile;
 	struct {
-		_32 read : 1;
-		_32 write : 1;
+		uint32_t read : 1;
+		uint32_t write : 1;
 	} flags;
 	PTEXT saveparams=parameters, temp;
 	flags.read = 0;
@@ -370,9 +370,9 @@ static PDATAPATH CPROC Open( PDATAPATH *pChannel, PSENTIENT ps, PTEXT parameters
 			len_read = fread( charbuf, 1, 64, pdp->handle );
 			if( len_read )
 			{
-				if( ( ((_16*)charbuf)[0] == 0xFEFF )
-					|| ( ((_16*)charbuf)[0] == 0xFFFE )
-					|| ( ((_16*)charbuf)[0] == 0xFDEF ) )
+				if( ( ((uint16_t*)charbuf)[0] == 0xFEFF )
+					|| ( ((uint16_t*)charbuf)[0] == 0xFFFE )
+					|| ( ((uint16_t*)charbuf)[0] == 0xFDEF ) )
 					pdp->flags.bUnicode = 1;
 				else if( ( charbuf[0] == 0xef ) && ( charbuf[1] == 0xbb ) && ( charbuf[0] == 0xbf ) )
 				{
@@ -698,10 +698,10 @@ static int CPROC CloseLog( PSENTIENT ps, PTEXT parameters )
 	return 0;
 }
 
-int CPROC FileChanged( PTRSZVAL psvSent
+int CPROC FileChanged( uintptr_t psvSent
 							, CTEXTSTR file
-							, _64 size
-							, _64 time
+							, uint64_t size
+							, uint64_t time
 							, LOGICAL bCreated
 							, LOGICAL bDirectory
 							, LOGICAL bDeleted )
@@ -753,7 +753,7 @@ int CPROC CreateFileMonitor( PSENTIENT ps, PENTITY pe, PTEXT parameters )
 			psNew = pe->pControlledBy;
 			if( !psNew )
 				psNew = CreateAwareness( pe );
-			AddExtendedFileChangeCallback( pMonitor, NULL, FileChanged, (PTRSZVAL)psNew );
+			AddExtendedFileChangeCallback( pMonitor, NULL, FileChanged, (uintptr_t)psNew );
 			// should figure out a way to define what the parameters
 			// received by the behavior method are...
 			// or maybe behaviors are parameterless and rely on having

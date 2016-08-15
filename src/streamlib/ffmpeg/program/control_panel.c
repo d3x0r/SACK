@@ -46,7 +46,7 @@ static int OnDrawCommon( MyName )( PSI_CONTROL pc )
 	return 1;
 }
 
-static int OnMouseCommon( MyName )( PSI_CONTROL pc, S_32 x, S_32 y, _32 b )
+static int OnMouseCommon( MyName )( PSI_CONTROL pc, int32_t x, int32_t y, uint32_t b )
 {
 	static int _b;
 	static int _x, _y;
@@ -78,19 +78,19 @@ void HideMediaPanel( struct my_button *media )
 	}
 }
 
-static void CPROC stop_pushed( PTRSZVAL psvPanel, PSI_CONTROL pc )
+static void CPROC stop_pushed( uintptr_t psvPanel, PSI_CONTROL pc )
 {
 	struct media_control_panel *panel = ( struct media_control_panel *)psvPanel;
 	ffmpeg_StopFile( panel->media->file );
 }
 
-static void CPROC debug_mem( PTRSZVAL psvPanel, PSI_CONTROL pc )
+static void CPROC debug_mem( uintptr_t psvPanel, PSI_CONTROL pc )
 {
 	struct media_control_panel *panel = (struct media_control_panel *)psvPanel;
 	DebugDumpMemEx(  TRUE );
 }
 
-static void CPROC pause_pushed( PTRSZVAL psvPanel, PSI_CONTROL pc )
+static void CPROC pause_pushed( uintptr_t psvPanel, PSI_CONTROL pc )
 {
 	struct media_control_panel *panel = ( struct media_control_panel *)psvPanel;
 	if( panel->flags.playing )
@@ -114,16 +114,16 @@ static void UpdateProgress( struct media_control_panel *panel, int val )
 	SetControlText( panel->progress, progress );
 }
 
-static void CPROC seek_changed( PTRSZVAL psvPanel, PSI_CONTROL pc, int val )
+static void CPROC seek_changed( uintptr_t psvPanel, PSI_CONTROL pc, int val )
 {
 	struct media_control_panel *panel = ( struct media_control_panel *)psvPanel;
 	UpdateProgress( panel, val );
 	if( !panel->flags.setting_position )
-		ffmpeg_SeekFile( panel->media->file, (S_64)val * 100000LL );
+		ffmpeg_SeekFile( panel->media->file, (int64_t)val * 100000LL );
 	// update position text...
 }
 
-static void CPROC video_position_update( PTRSZVAL psvPanel, _64 tick )
+static void CPROC video_position_update( uintptr_t psvPanel, uint64_t tick )
 {
 	struct media_control_panel *panel = ( struct media_control_panel *)psvPanel;
 	panel->flags.setting_position = 1;
@@ -133,7 +133,7 @@ static void CPROC video_position_update( PTRSZVAL psvPanel, _64 tick )
 
 }
 
-static void CPROC KnobTick( PTRSZVAL psv, int ticks )
+static void CPROC KnobTick( uintptr_t psv, int ticks )
 {
 	struct media_control_panel *panel = (struct media_control_panel *)psv;
 	ffmpeg_AdjustVideo( panel->media->file, ticks );
@@ -158,21 +158,21 @@ void ShowMediaPanel( struct my_button *media )
 		panel->knob = MakeNamedControl( newPanel, CONTROL_SCROLL_KNOB_NAME, 0, 0, 50, 50, -1 );
 		panel->knob_image = LoadImageFile( WIDE( "images/dial2a.png" ) );
 		SetScrollKnobImage( panel->knob, panel->knob_image );
-		SetScrollKnobEvent( panel->knob, KnobTick, (PTRSZVAL)panel );
+		SetScrollKnobEvent( panel->knob, KnobTick, (uintptr_t)panel );
 		panel->stop_button = MakeNamedCaptionedControl( newPanel, WIDE( "Button" ), 50, 0, 50, 25, -1, "Stop" );
-		SetButtonPushMethod( panel->stop_button, stop_pushed, (PTRSZVAL)panel );
+		SetButtonPushMethod( panel->stop_button, stop_pushed, (uintptr_t)panel );
 #ifdef _DEBUG
 		panel->debug_mem_button = MakeNamedCaptionedControl( newPanel, WIDE( "Button" ), 100, 55, 100, 25, -1, "Debug Memory" );
-		SetButtonPushMethod( panel->debug_mem_button, debug_mem, (PTRSZVAL)panel );
+		SetButtonPushMethod( panel->debug_mem_button, debug_mem, (uintptr_t)panel );
 #endif
 		panel->pause_button = MakeNamedCaptionedControl( newPanel, WIDE( "Button" ), 50, 25, 50, 25, -1, "Pause" );
-		SetButtonPushMethod( panel->pause_button, pause_pushed, (PTRSZVAL)panel );
+		SetButtonPushMethod( panel->pause_button, pause_pushed, (uintptr_t)panel );
 		panel->progress = MakeNamedCaptionedControl( newPanel, WIDE( "Button" ), 50, 50, 50, 25, -1, "???" );
 		//panel->progress = MakeNamedCaptionedControl( newPanel, WIDE( "Button" ), 50, 75, 50, 25, -1, "???" );
 		panel->seek_slider = MakeNamedControl( newPanel, SLIDER_CONTROL_NAME,100, 0, 400, 50, -1 );
 		SetSliderOptions( panel->seek_slider, SLIDER_HORIZ );
 		SetSliderValues( panel->seek_slider, 0, 0, 10000 );  // 100.00%
-		SetSliderUpdateHandler( panel->seek_slider, seek_changed, (PTRSZVAL)panel );
+		SetSliderUpdateHandler( panel->seek_slider, seek_changed, (uintptr_t)panel );
 		DisplayFrame( newPanel );
 	}
 	else
@@ -180,7 +180,7 @@ void ShowMediaPanel( struct my_button *media )
 		// have an existing panel to just show.
 		RevealCommon( panel->panel );
 	}
- 	ffmpeg_SetPositionUpdateCallback( panel->media->file, video_position_update, (PTRSZVAL)panel );
+ 	ffmpeg_SetPositionUpdateCallback( panel->media->file, video_position_update, (uintptr_t)panel );
 }
 
 void ClosePanel( struct my_button *media )

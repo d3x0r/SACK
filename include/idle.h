@@ -15,13 +15,13 @@ namespace sack {
 // return -1 if not the correct thread
 // return 0 if no events processed
 // return 1 if events were processed
-typedef int (CPROC *IdleProc)(PTRSZVAL);
+typedef int (CPROC *IdleProc)(uintptr_t);
 
-IDLE_PROC( void, AddIdleProc )( IdleProc Proc, PTRSZVAL psvUser );
+IDLE_PROC( void, AddIdleProc )( IdleProc Proc, uintptr_t psvUser );
 IDLE_PROC( int, RemoveIdleProc )( IdleProc Proc );
 
 IDLE_PROC( int, Idle )( void );
-IDLE_PROC( int, IdleFor )( _32 dwMilliseconds );
+IDLE_PROC( int, IdleFor )( uint32_t dwMilliseconds );
 #ifdef __cplusplus
 	};//	namespace timers {
 };//namespace sack {

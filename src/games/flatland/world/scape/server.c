@@ -29,7 +29,7 @@ typedef struct client_world_tracker CLIENT_WORLD_TRACKER, *PCLIENT_WORLD_TRACKER
 
 struct bitset
 {
-	_32 num;
+	uint32_t num;
 	FLAGSETTYPE *used; // dynamic array of bits indicating that this line is known?
 	FLAGSETTYPE *created; // created status to client... for each client... 
 	FLAGSETTYPE *updated;
@@ -49,17 +49,17 @@ struct worldscape_client
 {
 	struct bitset worlds;
 
-	//_32 tracker_count; // same as worlds->num
+	//uint32_t tracker_count; // same as worlds->num
 	/*
 	* this is an array of bitsets... one for each world.  
 	*/
 	PCLIENT_WORLD_TRACKER world_trackers;
-	_32 pid;
+	uint32_t pid;
 };
 
 static struct worldscape_server_local
 {
-	_32 SrvrMsgBase;
+	uint32_t SrvrMsgBase;
 	PLIST clients; // list of PWORLDSCAPE_CLIENTs
 }l;
 //#if 0
@@ -69,18 +69,18 @@ void ExpandBitset( struct bitset *pbitset, INDEX least )
 	/* should do something smarter here rather than looping every 32 increment. */
 	if( least >= pbitset->num )
 	{
-		_32 old_count = pbitset->num;
+		uint32_t old_count = pbitset->num;
 		FLAGSETTYPE *new_created_flags;
 		FLAGSETTYPE *new_updated_flags;
 		FLAGSETTYPE *new_used_flags;
 		pbitset->num += (32 > (least-pbitset->num))?32:((least+31)& (~31));
 
-		new_created_flags = NewArray( _32, ( pbitset->num / 32 ) );
-		new_updated_flags = NewArray( _32, ( pbitset->num / 32 ) );
-		new_used_flags = NewArray( _32, ( pbitset->num / 32 ) );
-		MemSet( new_created_flags + ( old_count / 32 ), 0, sizeof( _32 ) );
-		MemSet( new_updated_flags + ( old_count / 32 ), 0, sizeof( _32 ) );
-		MemSet( new_used_flags + ( old_count / 32 ), 0, sizeof( _32 ) );
+		new_created_flags = NewArray( uint32_t, ( pbitset->num / 32 ) );
+		new_updated_flags = NewArray( uint32_t, ( pbitset->num / 32 ) );
+		new_used_flags = NewArray( uint32_t, ( pbitset->num / 32 ) );
+		MemSet( new_created_flags + ( old_count / 32 ), 0, sizeof( uint32_t ) );
+		MemSet( new_updated_flags + ( old_count / 32 ), 0, sizeof( uint32_t ) );
+		MemSet( new_used_flags + ( old_count / 32 ), 0, sizeof( uint32_t ) );
 		if( old_count )
 		{
 			MemCpy( new_created_flags
@@ -105,7 +105,7 @@ void ExpandBitset( struct bitset *pbitset, INDEX least )
 //---------------------------------------------------------------
 
 #define DefineMarkers( name, Name, iName ) \
-void Mark##Name##UpdatedEx( _32 source_id, _32 client_id, INDEX iWorld, INDEX iName )   \
+void Mark##Name##UpdatedEx( uint32_t source_id, uint32_t client_id, INDEX iWorld, INDEX iName )   \
 {  \
 	INDEX iClient;                     \
 	PWORLDSCAPE_CLIENT client;         \
@@ -127,7 +127,7 @@ void Mark##Name##UpdatedEx( _32 source_id, _32 client_id, INDEX iWorld, INDEX iN
 		}  \
 	}  \
 }\
-	void Mark##Name##Updated( _32 client_id, INDEX iWorld, INDEX iName )  { Mark##Name##UpdatedEx( 0/*safe default, no pid will be 0, therefore skip none, send all*/, client_id, iWorld, iName ); } \
+	void Mark##Name##Updated( uint32_t client_id, INDEX iWorld, INDEX iName )  { Mark##Name##UpdatedEx( 0/*safe default, no pid will be 0, therefore skip none, send all*/, client_id, iWorld, iName ); } \
 
 DefineMarkers( sector, Sector, iSector );
 DefineMarkers( line, Line, iLine );
@@ -137,7 +137,7 @@ DefineMarkers( wall, Wall, iWall );
 
 //---------------------------------------------------------------
 
-static PTRSZVAL CPROC SetBitOn( INDEX idx, PTRSZVAL psv )
+static uintptr_t CPROC SetBitOn( INDEX idx, uintptr_t psv )
 {
 	struct bitset *setinbitset = (struct bitset *)psv;
 	ExpandBitset( setinbitset, idx );
@@ -150,11 +150,11 @@ static PTRSZVAL CPROC SetBitOn( INDEX idx, PTRSZVAL psv )
 /* for each thing created, mark as updated and used */
 static void SyncCreateUpdate( PWORLD world, PCLIENT_WORLD_TRACKER client )
 {
-	ForEachSetMember( SECTOR, world->sectors, SetBitOn, (PTRSZVAL)&client->sectors );
-	ForEachSetMember( FLATLAND_TEXTURE, world->textures, SetBitOn, (PTRSZVAL)&client->textures );
-	ForEachSetMember( NAME, world->names, SetBitOn, (PTRSZVAL)&client->names );
-	ForEachSetMember( FLATLAND_MYLINESEG, world->lines, SetBitOn, (PTRSZVAL)&client->lines );
-	ForEachSetMember( WALL, world->walls, SetBitOn, (PTRSZVAL)&client->walls );
+	ForEachSetMember( SECTOR, world->sectors, SetBitOn, (uintptr_t)&client->sectors );
+	ForEachSetMember( FLATLAND_TEXTURE, world->textures, SetBitOn, (uintptr_t)&client->textures );
+	ForEachSetMember( NAME, world->names, SetBitOn, (uintptr_t)&client->names );
+	ForEachSetMember( FLATLAND_MYLINESEG, world->lines, SetBitOn, (uintptr_t)&client->lines );
+	ForEachSetMember( WALL, world->walls, SetBitOn, (uintptr_t)&client->walls );
 }
 
 //---------------------------------------------------------------
@@ -203,7 +203,7 @@ void SrvrMarkWorldUpdated( INDEX client_id, INDEX iWorld )
 	LIST_FORALL( l.clients, iClient, PWORLDSCAPE_CLIENT, client )
 		if( client->pid == client_id )
 		{
-	_32 old_count = client->worlds.num;
+	uint32_t old_count = client->worlds.num;
 
 
 	/* only update those worlds that this client has 'created' */
@@ -428,8 +428,8 @@ void UpdateClients( void )
 
 
 
-int CPROC ServerCreateWorld(  _32 *params, _32 param_length
-							, _32 *result, _32 *result_length
+int CPROC ServerCreateWorld(  uint32_t *params, uint32_t param_length
+							, uint32_t *result, uint32_t *result_length
 							)
 {
 	INDEX iWorld;
@@ -453,16 +453,16 @@ int CPROC ServerCreateWorld(  _32 *params, _32 param_length
 
 /* create basic world */
 
-int CPROC ServerDestroyWorld(  _32 *params, _32 param_length
-							, _32 *result, _32 *result_length
+int CPROC ServerDestroyWorld(  uint32_t *params, uint32_t param_length
+							, uint32_t *result, uint32_t *result_length
 							)
 {
 	(*result_length) = INVALID_INDEX;
 	return 1;
 }
 
-int CPROC ServerResetWorld(  _32 *params, _32 param_length
-							, _32 *result, _32 *result_length
+int CPROC ServerResetWorld(  uint32_t *params, uint32_t param_length
+							, uint32_t *result, uint32_t *result_length
 							)
 {
 	(*result_length) = INVALID_INDEX;
@@ -471,8 +471,8 @@ int CPROC ServerResetWorld(  _32 *params, _32 param_length
 
 //--------------------------------------
 
-int CPROC ServerMakeName(  _32 *params, _32 param_length
-							, _32 *result, _32 *result_length
+int CPROC ServerMakeName(  uint32_t *params, uint32_t param_length
+							, uint32_t *result, uint32_t *result_length
 							)
 {
 	INDEX iWorld = params[0];
@@ -482,8 +482,8 @@ int CPROC ServerMakeName(  _32 *params, _32 param_length
 	return 1;	
 }
 
-int CPROC ServerSetSectorName(  _32 *params, _32 param_length
-							, _32 *result, _32 *result_length
+int CPROC ServerSetSectorName(  uint32_t *params, uint32_t param_length
+							, uint32_t *result, uint32_t *result_length
 							)
 {
 	SrvrSetSectorName( params[-1], params[0], params[1], params[2] );
@@ -494,14 +494,14 @@ int CPROC ServerSetSectorName(  _32 *params, _32 param_length
 //--------------------------------------
 
 
-int CPROC ServerCreateSquareSector(  _32 *params, _32 param_length
-							, _32 *result, _32 *result_length
+int CPROC ServerCreateSquareSector(  uint32_t *params, uint32_t param_length
+							, uint32_t *result, uint32_t *result_length
 							)
 {
 	INDEX iWorld = params[0];
 	INDEX iSector = SrvrCreateSquareSector( params[-1], iWorld
 					, (PC_POINT)params+1
-					, *(RCOORD*)( params + (3*sizeof(RCOORD)/sizeof( _32)) + 1)
+					, *(RCOORD*)( params + (3*sizeof(RCOORD)/sizeof( uint32_t)) + 1)
 					);
     result[0] = iSector;
 	//MarkSectorUpdated( iWorld, iSector );
@@ -535,8 +535,8 @@ int CPROC ServerCreateSquareSector(  _32 *params, _32 param_length
 }
 
 
-int CPROC ServerAddConnectedSector( _32 *params, _32 param_length
-					  , _32 *result, _32 *result_length )
+int CPROC ServerAddConnectedSector( uint32_t *params, uint32_t param_length
+					  , uint32_t *result, uint32_t *result_length )
 {
 	((int*)result)[0] = SrvrAddConnectedSector( params[-1], params[0], params[1], ((RCOORD*)(params + 2))[0] );
 	UpdateClients(); // result will happen after all other elemtns are created...
@@ -544,10 +544,10 @@ int CPROC ServerAddConnectedSector( _32 *params, _32 param_length
 	return 1;
 }
 
-int CPROC ServerMoveSectors( _32 *params, _32 param_length
-					  , _32 *result, _32 *result_length )
+int CPROC ServerMoveSectors( uint32_t *params, uint32_t param_length
+					  , uint32_t *result, uint32_t *result_length )
 {
-	PTRSZVAL param_idx = (PTRSZVAL)params;
+	uintptr_t param_idx = (uintptr_t)params;
 
 	((int*)result)[0] = SrvrMoveSectors( params[-1], params[0]
 		, ( param_length - sizeof( params[0] ) - sizeof( _POINT ) ) / sizeof( INDEX )
@@ -559,10 +559,10 @@ int CPROC ServerMoveSectors( _32 *params, _32 param_length
 	return 1;
 }
 
-int CPROC ServerMoveWalls( _32 *params, _32 param_length
-					  , _32 *result, _32 *result_length )
+int CPROC ServerMoveWalls( uint32_t *params, uint32_t param_length
+					  , uint32_t *result, uint32_t *result_length )
 {
-	PTRSZVAL param_idx = (PTRSZVAL)params;
+	uintptr_t param_idx = (uintptr_t)params;
 
 	((int*)result)[0] = SrvrMoveWalls( params[-1], params[0]
 		, ( param_length - (2*sizeof( params[0] )) - sizeof( _POINT ) ) / sizeof( INDEX )
@@ -575,10 +575,10 @@ int CPROC ServerMoveWalls( _32 *params, _32 param_length
 	return 1;
 }
 
-int CPROC ServerUpdateMatingLines( _32 *params, _32 param_length
-					  , _32 *result, _32 *result_length )
+int CPROC ServerUpdateMatingLines( uint32_t *params, uint32_t param_length
+					  , uint32_t *result, uint32_t *result_length )
 {
-	PTRSZVAL param_idx = (PTRSZVAL)params;
+	uintptr_t param_idx = (uintptr_t)params;
 
 	((int*)result)[0] = SrvrUpdateMatingLines( params[-1], params[0], params[1], params[2], params[3] );
 	UpdateClients(); // result will happen after all other elemtns are created...
@@ -587,8 +587,8 @@ int CPROC ServerUpdateMatingLines( _32 *params, _32 param_length
 }
 
 
-int CPROC UpdateLine( _32 *params, _32 param_length
-					  , _32 *result, _32 *result_length )
+int CPROC UpdateLine( uint32_t *params, uint32_t param_length
+					  , uint32_t *result, uint32_t *result_length )
 {
 	INDEX iWorld = params[0];
 	PWORLD world = GetSetMember( WORLD, &g.worlds, iWorld );
@@ -604,16 +604,16 @@ int CPROC UpdateLine( _32 *params, _32 param_length
 }
 
 
-int CPROC ServerClearUndo(  _32 *params, _32 param_length
-							, _32 *result, _32 *result_length
+int CPROC ServerClearUndo(  uint32_t *params, uint32_t param_length
+							, uint32_t *result, uint32_t *result_length
 							)
 {
 	(*result_length) = INVALID_INDEX;
 	return 1;
 }
 
-int CPROC ServerSaveWorld(  _32 *params, _32 param_length
-							, _32 *result, _32 *result_length
+int CPROC ServerSaveWorld(  uint32_t *params, uint32_t param_length
+							, uint32_t *result, uint32_t *result_length
 							)
 {
    result[0] = SaveWorldToFile( params[0] );
@@ -621,8 +621,8 @@ int CPROC ServerSaveWorld(  _32 *params, _32 param_length
 	return 1;
 }
 
-int CPROC ServerLoadeWorld(  _32 *params, _32 param_length
-							, _32 *result, _32 *result_length
+int CPROC ServerLoadeWorld(  uint32_t *params, uint32_t param_length
+							, uint32_t *result, uint32_t *result_length
 							)
 {
    result[0] = LoadWorldFromFile( params[0] );
@@ -630,8 +630,8 @@ int CPROC ServerLoadeWorld(  _32 *params, _32 param_length
 	return 1;
 }
 
-int CPROC ServerAddUndo(  _32 *params, _32 param_length
-							, _32 *result, _32 *result_length
+int CPROC ServerAddUndo(  uint32_t *params, uint32_t param_length
+							, uint32_t *result, uint32_t *result_length
 							)
 {
 	(*result_length) = INVALID_INDEX;
@@ -639,8 +639,8 @@ int CPROC ServerAddUndo(  _32 *params, _32 param_length
 }
 
 
-int CPROC ServerEndUndo(  _32 *params, _32 param_length
-							, _32 *result, _32 *result_length
+int CPROC ServerEndUndo(  uint32_t *params, uint32_t param_length
+							, uint32_t *result, uint32_t *result_length
 							)
 {
 	(*result_length) = INVALID_INDEX;
@@ -648,8 +648,8 @@ int CPROC ServerEndUndo(  _32 *params, _32 param_length
 }
 
 
-int CPROC ClientConnect(  _32 *params, _32 param_length
-							, _32 *result, _32 *result_length
+int CPROC ClientConnect(  uint32_t *params, uint32_t param_length
+							, uint32_t *result, uint32_t *result_length
 							)
 {
 	PWORLDSCAPE_CLIENT client = New( WORLDSCAPE_CLIENT );
@@ -665,8 +665,8 @@ int CPROC ClientConnect(  _32 *params, _32 param_length
 	return TRUE;
 }
 
-int CPROC ClientDisconnect(  _32 *params, _32 param_length
-							, _32 *result, _32 *result_length
+int CPROC ClientDisconnect(  uint32_t *params, uint32_t param_length
+							, uint32_t *result, uint32_t *result_length
 							)
 {
 	INDEX idx;
@@ -683,8 +683,8 @@ int CPROC ClientDisconnect(  _32 *params, _32 param_length
 	return TRUE;
 }
 
-int CPROC ServerMakeTexture(  _32 *params, _32 param_length
-							, _32 *result, _32 *result_length
+int CPROC ServerMakeTexture(  uint32_t *params, uint32_t param_length
+							, uint32_t *result, uint32_t *result_length
 							)
 {
 	((INDEX*)result)[0] = SrvrMakeTexture( params[-1], params[0], params[1] );
@@ -693,8 +693,8 @@ int CPROC ServerMakeTexture(  _32 *params, _32 param_length
 }
 
 
-int CPROC ServerSetTexture(  _32 *params, _32 param_length
-							, _32 *result, _32 *result_length
+int CPROC ServerSetTexture(  uint32_t *params, uint32_t param_length
+							, uint32_t *result, uint32_t *result_length
 							)
 {
 	SrvrSetTexture( params[-1], params[0], params[1], params[2] );	
@@ -703,8 +703,8 @@ int CPROC ServerSetTexture(  _32 *params, _32 param_length
 }
 
 
-int CPROC FlushUpdates(  _32 *params, _32 param_length
-							, _32 *result, _32 *result_length
+int CPROC FlushUpdates(  uint32_t *params, uint32_t param_length
+							, uint32_t *result, uint32_t *result_length
 							)
 {
 	UpdateClients();
@@ -720,9 +720,9 @@ SERVER_FUNCTION functions[] = {
 	, ServerFunctionEntry( ServerCreateWorld )
 	  , ServerFunctionEntry( ServerDestroyWorld )
 	  , ServerFunctionEntry( ServerResetWorld )
-	  , ServerFunctionEntry( NULL )//WORLD_PROC( _32, GetSectorCount )( INDEX iWorld );
-	  , ServerFunctionEntry( NULL )//WORLD_PROC( _32, GetWallCount )( INDEX iWorld );
-	  , ServerFunctionEntry( NULL )//WORLD_PROC( _32, GetLineCount )( INDEX iWorld );
+	  , ServerFunctionEntry( NULL )//WORLD_PROC( uint32_t, GetSectorCount )( INDEX iWorld );
+	  , ServerFunctionEntry( NULL )//WORLD_PROC( uint32_t, GetWallCount )( INDEX iWorld );
+	  , ServerFunctionEntry( NULL )//WORLD_PROC( uint32_t, GetLineCount )( INDEX iWorld );
 	  , ServerFunctionEntry( ServerSaveWorld )//, SaveWorldToFile
 	  , ServerFunctionEntry( ServerLoadWorld )//, LoadWorldFromFile
 
@@ -757,7 +757,7 @@ SERVER_FUNCTION functions[] = {
 
 	  , ServerFunctionEntry( NULL )//WORLD_PROC( INDEX, FlatlandPointWithin )( INDEX iWorld, int nSectors, INDEX *piSectors, P_POINT p );
 	  , ServerFunctionEntry( NULL )//WORLD_PROC( INDEX, FlatlandPointWithinSingle )( INDEX world, INDEX iSector, P_POINT p );
-	  , ServerFunctionEntry( NULL )//WORLD_PROC( INDEX, FlatlandPointWithinLoopSingle )(  PTRSZVAL psv, INDEX iSector );
+	  , ServerFunctionEntry( NULL )//WORLD_PROC( INDEX, FlatlandPointWithinLoopSingle )(  uintptr_t psv, INDEX iSector );
 
 	  , ServerFunctionEntry( NULL )//WORLD_PROC( void, ComputeSectorOrigin )( INDEX iWorld, INDEX iSector );
 	  , ServerFunctionEntry( NULL )//WORLD_PROC( void, ComputeSectorSetOrigin )( INDEX iWorld, int nSectors, INDEX *sectors, P_POINT origin );
@@ -794,7 +794,7 @@ SERVER_FUNCTION functions[] = {
 	  //, ServerFunctionEntry( NULL )//WORLD_PROC( void, BalanceALine )( INDEX iWorld, INDEX iLine );
 //	  , ServerFunctionEntry( NULL )//WORLD_PROC( PFLATLAND_TEXTURE, GetSectorData )( INDEX iWorld, INDEX iTexture );
 
-	 // , ServerFunctionEntry( NULL )//WORLD_PROC( void, ForAllSectors )( INDEX iWorld, PTRSZVAL(CPROC *f)(PTRSZVAL,INDEX),PTRSZVAL);
+	 // , ServerFunctionEntry( NULL )//WORLD_PROC( void, ForAllSectors )( INDEX iWorld, uintptr_t(CPROC *f)(uintptr_t,INDEX),uintptr_t);
 
 // internal only function use
 // BalanceALine and pass world and line index
@@ -820,7 +820,7 @@ SERVER_FUNCTION functions[] = {
 	  , ServerFunctionEntry( NULL )//WORLD_PROC( void, GetSectorPoints )( INDEX iWorld, INDEX iSector, _POINT **list, int *npoints );
 
 
-	  , ServerFunctionEntry( ServerAddUndo )//WORLD_PROC( INDEX, ForAllTextures )( INDEX iWorld, INDEX (CPROC*)(INDEX,PTRSZVAL), PTRSZVAL );
+	  , ServerFunctionEntry( ServerAddUndo )//WORLD_PROC( INDEX, ForAllTextures )( INDEX iWorld, INDEX (CPROC*)(INDEX,uintptr_t), uintptr_t );
 	  , ServerFunctionEntry( ServerEndUndo )//WORLD_PROC( void, GetTextureNameText )( INDEX iWorld, INDEX iTexture, char *buf, int bufsize );
 	  , ServerFunctionEntry( NULL )//WORLD_PROC( void, MarkTextureUpdated )( INDEX iWorld, INDEX iTexture );
 	  , ServerFunctionEntry( NULL )//WORLD_PROC( void, MarkSectorUpdated )( INDEX iWorld, INDEX iSector );
@@ -830,7 +830,7 @@ SERVER_FUNCTION functions[] = {
 	  , ServerFunctionEntry( NULL )//WORLD_PROC( void, MarkWorldUpdated )( INDEX iWorld );
 
 	  , ServerFunctionEntry( ServerSetSectorName )//WORLD_PROC( void, SetSectorName )( INDEX iWorld, INDEX iSector, INDEX iName );
-	  , ServerFunctionEntry( NULL )//WORLD_PROC( void, AddUpdateCallback )( WorldScapeUdpateProc, PTRSZVAL psv );
+	  , ServerFunctionEntry( NULL )//WORLD_PROC( void, AddUpdateCallback )( WorldScapeUdpateProc, uintptr_t psv );
 	  , ServerFunctionEntry( UpdateLine )
 	  , ServerFunctionEntry( NULL )//ServerFunctionEntry( UpdateSector )
 	  , ServerFunctionEntry( NULL )//ServerFunctionEntry( UpdateWall )

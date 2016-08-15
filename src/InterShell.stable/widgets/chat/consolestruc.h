@@ -41,7 +41,7 @@ PSI_CONSOLE_NAMESPACE
 
 #if !defined( WIN32 ) && !defined( _WIN32 )
 typedef struct rect_tag {
-	S_32 top,left,right,bottom;
+	int32_t top,left,right,bottom;
 } RECT;
 #endif
 //----------------------------------------------------------------------------
@@ -124,8 +124,8 @@ struct history_tracking_info
 	// share the same width/height...
 	PHISTORY_LINE_CURSOR pCursor;
 
-	_32 pending_spaces;
-	_32 pending_tabs;
+	uint32_t pending_spaces;
+	uint32_t pending_tabs;
 	
 };
 
@@ -136,10 +136,10 @@ typedef struct myconsolestruc {
 	PUSER_INPUT_BUFFER CommandInfo;
 
 	// physical width and height, (1:1 in console modes)
-	_32 nWidth;	// in pixels
-	_32 nColumns; // in character count width
-	_32 nHeight;  // in pixels
-	_32 nLines;	// in character count rows
+	uint32_t nWidth;	// in pixels
+	uint32_t nColumns; // in character count width
+	uint32_t nHeight;  // in pixels
+	uint32_t nLines;	// in character count rows
 
 	CRITICALSECTION Lock;
 
@@ -165,15 +165,15 @@ typedef struct myconsolestruc {
 	} flags;
 
 	// these are working parameters during output...
-	_32 pending_spaces;
-	_32 pending_tabs;
+	uint32_t pending_spaces;
+	uint32_t pending_tabs;
 
 	RECT rArea; // pixel size of the display (if font height/width>1)
-	_32 nFontHeight;
-	_32 nFontWidth;
-	S_32 nXPad; // pixels/lines to padd left/right side...
-	S_32 nYPad; // pixels/lines to padd top/bottom side...
-	S_32 nCmdLinePad; // pixels to raise bar above cmdline
+	uint32_t nFontHeight;
+	uint32_t nFontWidth;
+	int32_t nXPad; // pixels/lines to padd left/right side...
+	int32_t nYPad; // pixels/lines to padd top/bottom side...
+	int32_t nCmdLinePad; // pixels to raise bar above cmdline
 
 	//PHISTORY_BIOS pHistory;
 	int nHistoryPercent;
@@ -214,7 +214,7 @@ typedef struct myconsolestruc {
 
 	KEYBIND Keyboard[256][8];
 	// is actually current keymod state.
-	_32 dwControlKeyState;
+	uint32_t dwControlKeyState;
 
 	int mark_location;
 	// 0 = command, 1 = display, 2 = history
@@ -239,7 +239,7 @@ typedef struct myconsolestruc {
 	void (CPROC *RenderSeparator )( struct myconsolestruc *pmdp, int pos );
 	void (CPROC *KeystrokePaste )( struct myconsolestruc *pmdp );
 	//MeasureString measureString;
-	//PTRSZVAL psv_measureString;
+	//uintptr_t psv_measureString;
 
 	void (CPROC *RenderCursor )( struct myconsolestruc *pmdp, RECT *r, int column );
 	void (CPROC *Update )( struct myconsolestruc *pmdp, RECT *upd );
@@ -248,7 +248,7 @@ typedef struct myconsolestruc {
 	union {
 		// this is what this union has if nothing else defined
 		// winlogic should need no member herein....
-		_32 dwInterfaceData[32];
+		uint32_t dwInterfaceData[32];
 
 		struct
 		{

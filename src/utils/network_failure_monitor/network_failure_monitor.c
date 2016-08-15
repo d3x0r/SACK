@@ -23,16 +23,16 @@ static struct {
 	TEXTCHAR address[256];
 	int successes;
    SYSTEMTIME ok_time;
-   _32 successtime;
+   uint32_t successtime;
 	int failures;
    SYSTEMTIME not_ok_time;
-   _32 failtime;
+   uint32_t failtime;
 	PBANNER banner;
 } l;
 
 static PTHREAD Monitor;
 static int bSetTime; // skip ping
-static _32 sleep_time;
+static uint32_t sleep_time;
 
 
 static void DoLogNow( int forced )
@@ -41,7 +41,7 @@ static void DoLogNow( int forced )
 	{
 		if( l.successtime )
 		{
-			_32 del = GetTickCount() - l.successtime;
+			uint32_t del = GetTickCount() - l.successtime;
 			lprintf( "Succeses: %ld (for %02d:%02d:%02d.%03d)", l.successes
 					 , (del / (1000*60*60))
 					 , (del / (1000*60))%60
@@ -59,7 +59,7 @@ static void DoLogNow( int forced )
 	{
 		if( l.failtime )
 		{
-			_32 del = GetTickCount() - l.failtime;
+			uint32_t del = GetTickCount() - l.failtime;
 			lprintf( "Failures: %ld (for %02d:%02d:%02d.%03d)", l.failures
 					 , (del / (1000*60*60))
 					 , (del / (1000*60))%60
@@ -86,7 +86,7 @@ static void CPROC LogNow( void )
    DoLogNow( TRUE );
 }
 
-static void Result( _32 dwIP, CTEXTSTR name, int min, int max, int avg, int drop, int hops );
+static void Result( uint32_t dwIP, CTEXTSTR name, int min, int max, int avg, int drop, int hops );
 
 static void Count( int drop )
 {
@@ -170,7 +170,7 @@ static void Count( int drop )
    //lprintf( "Result is %d %d %d %d %d", min, max, avg, drop, hops );
 }
 
-static PTRSZVAL CPROC NetworkMonitor( PTHREAD thread )
+static uintptr_t CPROC NetworkMonitor( PTHREAD thread )
 {
    Monitor = thread;
    AddSystrayMenuFunction( "Force Log Now", LogNow );

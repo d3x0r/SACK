@@ -86,7 +86,7 @@ INDEX CreateSquareSector( INDEX iWorld, PC_POINT pOrigin, RCOORD size )
 
 //----------------------------------------------------------------------------
 
-PTRSZVAL CPROC CompareWorldName( INDEX iWorld, PTRSZVAL psv )
+uintptr_t CPROC CompareWorldName( INDEX iWorld, uintptr_t psv )
 {
 	CTEXTSTR name = (CTEXTSTR)psv;
 	PWORLD world = GetUsedSetMember( WORLD, &g.worlds, iWorld );
@@ -94,7 +94,7 @@ PTRSZVAL CPROC CompareWorldName( INDEX iWorld, PTRSZVAL psv )
 	GetNameText( iWorld, world->name, buffer, sizeof( buffer ) );
 	//   GetNameText( iWorld, world->name,
 	if( StrCmp( buffer, name ) == 0 )
-		return (PTRSZVAL)world;
+		return (uintptr_t)world;
 	return 0;
 }
 
@@ -103,8 +103,8 @@ INDEX ServerSideOpenWorld( PSERVICE_ROUTE iClient, CTEXTSTR name )
 {
 	PWORLD world;
 	INDEX iWorld;
-	PTRSZVAL psvResult;
-	psvResult = ForEachSetMember( WORLD, g.worlds, CompareWorldName, (PTRSZVAL)name );
+	uintptr_t psvResult;
+	psvResult = ForEachSetMember( WORLD, g.worlds, CompareWorldName, (uintptr_t)name );
 	if( psvResult )
 	{
 		world = (PWORLD)psvResult;
@@ -165,7 +165,7 @@ WORLD_PROC( PFLATLAND_MYLINESEGSET, GetLines )( INDEX iWorld )
 	return NULL;
 }
 //----------------------------------------------------------------------------
-WORLD_PROC( _32, GetSectorCount )( INDEX iWorld )
+WORLD_PROC( uint32_t, GetSectorCount )( INDEX iWorld )
 {
 	PWORLD world = GetSetMember( WORLD, &g.worlds, iWorld );
 	if( world )
@@ -173,7 +173,7 @@ WORLD_PROC( _32, GetSectorCount )( INDEX iWorld )
 	return 0;
 }
 //----------------------------------------------------------------------------
-WORLD_PROC( _32, GetWallCount )( INDEX iWorld )
+WORLD_PROC( uint32_t, GetWallCount )( INDEX iWorld )
 {
 	PWORLD world = GetSetMember( WORLD, &g.worlds, iWorld );
    if( world )
@@ -181,7 +181,7 @@ WORLD_PROC( _32, GetWallCount )( INDEX iWorld )
    return 0;
 }
 //----------------------------------------------------------------------------
-WORLD_PROC( _32, GetLineCount )( INDEX iWorld )
+WORLD_PROC( uint32_t, GetLineCount )( INDEX iWorld )
 {
 	PWORLD world = GetSetMember( WORLD, &g.worlds, iWorld );
 	if( world )
@@ -371,7 +371,7 @@ int SaveData( PODBC odbc, INDEX world_id, INDEX iWorld )
 	PFLATLAND_TEXTURE *texturearray;
 
 #ifdef LOG_SAVETIMING
-	_32 begin, start = GetTickCount();
+	uint32_t begin, start = GetTickCount();
 	begin = start;
 #endif
 	linearray   = GetLinearLineArray( pWorld->lines, &nlines );
@@ -525,7 +525,7 @@ int SaveData( PODBC odbc, INDEX world_id, INDEX iWorld )
 	for( cnt = 0; cnt < nnames; cnt++ )
 	{
 		int l;
-		_16 lines = namearray[cnt]->lines;
+		uint16_t lines = namearray[cnt]->lines;
 		PVARTEXT pvt = VarTextCreate();
 		for( l = 0; l < lines; l++ )
 		{
@@ -623,7 +623,7 @@ int OldSaveWorldToFile
 	PFLATLAND_TEXTURE *texturearray;
 
 #ifdef LOG_SAVETIMING
-	_32 begin, start = GetTickCount();
+	uint32_t begin, start = GetTickCount();
 	begin = start;
 #endif
 	linearray   = GetLinearLineArray( pWorld->lines, &nlines );
@@ -757,7 +757,7 @@ int OldSaveWorldToFile
 	for( cnt = 0; cnt < nnames; cnt++ )
 	{
 		int l;
-		_16 lines = namearray[cnt]->lines;
+		uint16_t lines = namearray[cnt]->lines;
 		namesize += fwrite( &namearray[cnt]->flags, 1, sizeof( namearray[cnt]->flags ), pFile );
 		namesize += fwrite( &lines, 1, sizeof( lines ), pFile );
 		for( l = 0; l < lines; l++ )
@@ -1174,7 +1174,7 @@ int MarkSelectedSectors( INDEX iWorld, PORTHOAREA rect, INDEX **sectorarray, int
 		rect->h = -rect->h;
 	}
 	Log( WIDE("Marking Sectors") );
-	DoForAllSectors( world->sectors, CheckSectorInRect, (PTRSZVAL)&si );
+	DoForAllSectors( world->sectors, CheckSectorInRect, (uintptr_t)&si );
 	if( si.nsectors )
 	{
 		Log1( WIDE("Found %d sectors in range"), si.nsectors );
@@ -1185,7 +1185,7 @@ int MarkSelectedSectors( INDEX iWorld, PORTHOAREA rect, INDEX **sectorarray, int
 			*sectorarray = (INDEX*)Allocate( sizeof( INDEX ) * si.nsectors );
 			si.ppsectors = *sectorarray;
 			si.nsectors = 0;
-			DoForAllSectors( world->sectors, CheckSectorInRect, (PTRSZVAL)&si );
+			DoForAllSectors( world->sectors, CheckSectorInRect, (uintptr_t)&si );
 		}
 		return TRUE;
 	}
@@ -1554,7 +1554,7 @@ INDEX FindSectorAroundPoint( INDEX iWorld, P_POINT p )
 	// hmm no spacetree now?
 	//return FindPointInSpace( world->spacetree, p, PointWithinSingle );
 	{
-		INDEX FlatlandPointWithinLoopSingle( INDEX iSector, PTRSZVAL psv );
+		INDEX FlatlandPointWithinLoopSingle( INDEX iSector, uintptr_t psv );
 
 		return DoForAllSectors( world->sectors, FlatlandPointWithinLoopSingle, &data ) - 1;
 	}

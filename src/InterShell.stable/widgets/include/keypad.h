@@ -42,10 +42,10 @@ KEYPAD_PROC( void, SetNewKeypadFlags )( int newflags );
 // then invoke a normal MakeNamedControl( WIDE("Keypad Control") ) you will
 // get the desired results - though not thread safe...
 KEYPAD_PROC(PSI_CONTROL, MakeKeypad )( PCOMMON parent
-												 , S_32 x, S_32 y, _32 w, _32 h, _32 ID, _32 flags
+												 , int32_t x, int32_t y, uint32_t w, uint32_t h, uint32_t ID, uint32_t flags
 												 , CTEXTSTR accumulator_name );
 KEYPAD_PROC(void, SetKeypadAccumulator )( PSI_CONTROL keypad, char *accumulator_name );
-KEYPAD_PROC(S_64, GetKeyedValue )( PSI_CONTROL keypad );
+KEYPAD_PROC(int64_t, GetKeyedValue )( PSI_CONTROL keypad );
 KEYPAD_PROC(int, GetKeyedText )( PSI_CONTROL keypad, TEXTSTR buffer, int buffersize );
 KEYPAD_PROC(void, ClearKeyedEntry )( PSI_CONTROL keypad );
 KEYPAD_PROC( void, ClearKeyedEntryOnNextKey )( PSI_CONTROL pc );
@@ -62,18 +62,18 @@ KEYPAD_PROC( void, CancelKeypadWait )( PSI_CONTROL keypad );
 //KEYPAD_PROC(PSI_CONTROL, GetKeypad )( PCOMMON pc );
 #define GetKeypad(pc) (pc)
 
-KEYPAD_PROC( void, SetKeypadEnterEvent )( PCOMMON pc, void (CPROC *event)(PTRSZVAL,PSI_CONTROL), PTRSZVAL psv );
-KEYPAD_PROC( void, SetKeypadCancelEvent )( PCOMMON pc, void (CPROC *event)(PTRSZVAL,PSI_CONTROL), PTRSZVAL psv );
+KEYPAD_PROC( void, SetKeypadEnterEvent )( PCOMMON pc, void (CPROC *event)(uintptr_t,PSI_CONTROL), uintptr_t psv );
+KEYPAD_PROC( void, SetKeypadCancelEvent )( PCOMMON pc, void (CPROC *event)(uintptr_t,PSI_CONTROL), uintptr_t psv );
 
 KEYPAD_PROC( PSI_CONTROL, MakeKeypadHotkey )( PSI_CONTROL frame
-														  , S_32 x
-														  , S_32 y
-														  , _32 w
-														  , _32 h
+														  , int32_t x
+														  , int32_t y
+														  , uint32_t w
+														  , uint32_t h
 														  , TEXTCHAR *keypad
 														  );
-KEYPAD_PROC( void, KeyIntoKeypad )( PSI_CONTROL keypad, S_64 value );
-KEYPAD_PROC( void, KeyIntoKeypadNoEnter )( PSI_CONTROL pc, _64 value );
+KEYPAD_PROC( void, KeyIntoKeypad )( PSI_CONTROL keypad, int64_t value );
+KEYPAD_PROC( void, KeyIntoKeypadNoEnter )( PSI_CONTROL pc, uint64_t value );
 KEYPAD_PROC( void, KeypadInvertValue )( PSI_CONTROL keypad );
 
 KEYPAD_PROC( CDATA, KeypadGetDisplayBackground )( PSI_CONTROL keypad );
@@ -95,9 +95,9 @@ KEYPAD_PROC( void, KeypadSetNumberKeyTextColor )( PSI_CONTROL keypad, CDATA colo
 KEYPAD_PROC( void, KeypadSetEnterKeyTextColor )( PSI_CONTROL keypad, CDATA color );
 KEYPAD_PROC( void, KeypadSetC_KeyTextColor )( PSI_CONTROL keypad, CDATA color );
 
-KEYPAD_PROC( void, KeypadSetupConfig )( PCONFIG_HANDLER pch, PTRSZVAL *ppsv );
+KEYPAD_PROC( void, KeypadSetupConfig )( PCONFIG_HANDLER pch, uintptr_t *ppsv );
 KEYPAD_PROC( void, KeypadWriteConfig )( FILE *file, CTEXTSTR indent, PSI_CONTROL pc_keypad );
-KEYPAD_PROC( void, KeypadAddMagicKeySequence )( PSI_CONTROL keypad, CTEXTSTR sequence, void (CPROC*event_proc)( PTRSZVAL ), PTRSZVAL psv_sequence );
+KEYPAD_PROC( void, KeypadAddMagicKeySequence )( PSI_CONTROL keypad, CTEXTSTR sequence, void (CPROC*event_proc)( uintptr_t ), uintptr_t psv_sequence );
 KEYPAD_PROC( void, KeypadSetAccumulator )( PSI_CONTROL pc, CTEXTSTR name );
 
 

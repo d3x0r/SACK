@@ -25,7 +25,7 @@ typedef struct filemonitor_tag {
 		BIT_FIELD   bPending : 1; // set when enqueued in pending list, and cleared after event dispatched.
 	} flags;
 	// if GetTickCount() - ScannedAt > monitor->scan_delay queue for change
-	_32 ScannedAt; // time this file was scanned
+	uint32_t ScannedAt; // time this file was scanned
 #ifdef __cplusplus_cli
 	gcroot<System::DateTime^> lastmodifiedtime;
 #else
@@ -35,7 +35,7 @@ typedef struct filemonitor_tag {
 	time_t lastmodifiedtime;
 #  endif
 #endif
-	_64    lastknownsize;
+	uint64_t    lastknownsize;
 	CRITICALSECTION cs;
 } FILEMON;
 
@@ -66,7 +66,7 @@ typedef struct filechangecallback_tag
 		CHANGEHANDLER HandleChange;
 		EXTENDEDCHANGEHANDLER HandleChangeEx;
 	};
-	PTRSZVAL psv;
+	uintptr_t psv;
 	DeclareLink( struct filechangecallback_tag );
 } CHANGECALLBACK, *PCHANGECALLBACK;
 
@@ -101,10 +101,10 @@ typedef struct monitor_tag
 
     // this includes updates to directories and files
 	 TEXTCHAR directory[MAX_PATH];
-    _32 DoScanTime;
-    _32 timer;
-	 _32 scan_delay;
-    _32 free_scan_delay;
+    uint32_t DoScanTime;
+    uint32_t timer;
+	 uint32_t scan_delay;
+    uint32_t free_scan_delay;
 	 PCHANGECALLBACK ChangeHandlers;
 	 DeclareLink( struct monitor_tag );
     PFILEMON last_rename_file;
@@ -130,7 +130,7 @@ struct local_filemon {
 #define l local_filemon
 
 
-void CPROC ScanTimer( PTRSZVAL monitor );
+void CPROC ScanTimer( uintptr_t monitor );
 
 PFILEMON NewFile( PCHANGEHANDLER, CTEXTSTR name );
 void CloseFileMonitors( PMONITOR monitor );

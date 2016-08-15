@@ -70,7 +70,7 @@ LOGGING_NAMESPACE
 struct syslog_local_data {
 int cannot_log;
 #define cannot_log (*syslog_local).cannot_log
-_64 cpu_tick_freq;
+uint64_t cpu_tick_freq;
 #define cpu_tick_freq (*syslog_local).cpu_tick_freq
 // (*syslog_local).flags that control the operation of system logging....
 struct state_flags{
@@ -101,9 +101,9 @@ struct state_flags{
  enum syslog_types logtype;
 #define logtype (*syslog_local).logtype
 
- _32 nLogLevel; // default log EVERYTHING
+ uint32_t nLogLevel; // default log EVERYTHING
 #define nLogLevel (*syslog_local).nLogLevel
- _32 nLogCustom; // bits enabled and disabled for custom mesasges...
+ uint32_t nLogCustom; // bits enabled and disabled for custom mesasges...
 #define nLogCustom (*syslog_local).nLogCustom
  CTEXTSTR gFilename;// = "LOG";
 #define gFilename (*syslog_local).gFilename
@@ -113,9 +113,9 @@ struct state_flags{
  SOCKET   hSyslogdSock;
  int bCPUTickWorks; // assume this works, until it fails
 #define bCPUTickWorks (*syslog_local).bCPUTickWorks
- _64 tick_bias;
- _64 lasttick;
- _64 lasttick2;
+ uint64_t tick_bias;
+ uint64_t lasttick;
+ uint64_t lasttick2;
  
  LOGICAL bStarted;
  LOGICAL bLogging;
@@ -200,7 +200,7 @@ PRIORITY_ATEXIT( CleanSyslog, ATEXIT_PRIORITY_SYSLOG )
              */
 void TestCPUTick( void )
 {
-	_64 tick, _tick;
+	uint64_t tick, _tick;
 	int n;
 	bCPUTickWorks = 1;
 	_tick = tick = GetCPUTick();
@@ -232,7 +232,7 @@ unsigned __int64 rdtsc( void);
 //#pragma aux GetCPUTicks3 = "rdtsc"   "mov dword ptr tick, eax"   	"mov dword ptr tick+4, edx "
 #endif
 
-_64 GetCPUTick(void )
+uint64_t GetCPUTick(void )
 {
 /*
  * being the core of CPU tick layer type stuff
@@ -246,7 +246,7 @@ _64 GetCPUTick(void )
 #if defined( __LCC__ )
 		return _rdtsc();
 #elif defined( __WATCOMC__ )
-		_64 tick = rdtsc();
+		uint64_t tick = rdtsc();
 #ifndef __WATCOMC__
 		// haha a nasty compiler trick to get the variable used
 		// but it's also a 'meaningless expression' so watcom pukes.
@@ -269,9 +269,9 @@ _64 GetCPUTick(void )
 		return 0;
 #else
 #   if defined( _WIN64 )
-		_64 tick = __rdtsc();
+		uint64_t tick = __rdtsc();
 #   else
-		static _64 tick;
+		static uint64_t tick;
 #if _ARM_ 
 		tick = tick+1;
 #else
@@ -305,8 +305,8 @@ _64 GetCPUTick(void )
 #endif
 #elif defined( __GNUC__ ) && !defined( __arm__ ) && !defined( __aarch64__ )
 		union {
-			_64 tick;
-			PREFIX_PACKED struct { _32 low, high; } PACKED parts;
+			uint64_t tick;
+			PREFIX_PACKED struct { uint32_t low, high; } PACKED parts;
 		}tick;
 		asm( "rdtsc\n" : "=a"(tick.parts.low), "=d"(tick.parts.high) );
 		if( !(*syslog_local).lasttick )
@@ -327,12 +327,12 @@ _64 GetCPUTick(void )
 	return (*syslog_local).tick_bias + (timeGetTime()/*GetTickCount()*/ * 1000);
 }
 
-_64 GetCPUFrequency( void )
+uint64_t GetCPUFrequency( void )
 {
 #ifdef COMPUTE_CPU_FREQUENCY
 	{
-		_64 cpu_tick, _cpu_tick;
-		_32 tick, _tick;
+		uint64_t cpu_tick, _cpu_tick;
+		uint32_t tick, _tick;
 		cpu_tick = _cpu_tick = GetCPUTick();
 		tick = _tick = timeGetTime()/*GetTickCount()*/;
 		cpu_tick_freq = 0;
@@ -801,7 +801,7 @@ static TEXTCHAR *GetTimeHigh( void )
 #define GetTimeHigh GetTime
 #endif
 
-_32 ConvertTickToMicrosecond( _64 tick )
+uint32_t ConvertTickToMicrosecond( uint64_t tick )
 {
 	if( bCPUTickWorks )
 	{
@@ -809,14 +809,14 @@ _32 ConvertTickToMicrosecond( _64 tick )
 			GetCPUFrequency();
 		if( !cpu_tick_freq )
 			return 0;
-		return (_32)(tick / cpu_tick_freq);
+		return (uint32_t)(tick / cpu_tick_freq);
 	}
 	else
-      return (_32)tick;
+      return (uint32_t)tick;
 }
 
 
-void PrintCPUDelta( TEXTCHAR *buffer, size_t buflen, _64 tick_start, _64 tick_end )
+void PrintCPUDelta( TEXTCHAR *buffer, size_t buflen, uint64_t tick_start, uint64_t tick_end )
 {
 #ifdef COMPUTE_CPU_FREQUENCY
 	if( !cpu_tick_freq )
@@ -834,7 +834,7 @@ void PrintCPUDelta( TEXTCHAR *buffer, size_t buflen, _64 tick_start, _64 tick_en
 
 static TEXTCHAR *GetTimeHighest( void )
 {
-	_64 tick;
+	uint64_t tick;
 	static TEXTCHAR timebuffer[64];
 	tick = GetCPUTick();
 	if( !(*syslog_local).lasttick2 )
@@ -1020,7 +1020,7 @@ static void SyslogdSystemLog( const TEXTCHAR *message )
 
 //---------------------------------------------------------------------------
 
-LOGICAL IsBadReadPtr( CPOINTER pointer, PTRSZVAL len )
+LOGICAL IsBadReadPtr( CPOINTER pointer, uintptr_t len )
 {
 	static FILE *maps;
 	//return FALSE;
@@ -1032,11 +1032,11 @@ LOGICAL IsBadReadPtr( CPOINTER pointer, PTRSZVAL len )
    //fprintf( stderr, WIDE("Testing a pointer..\n") );
 	if( maps )
 	{
-		PTRSZVAL ptr = (PTRSZVAL)pointer;
+		uintptr_t ptr = (uintptr_t)pointer;
 		char line[256];
 		while( fgets( line, sizeof(line)-1, maps ) )
 		{
-			PTRSZVAL low, high;
+			uintptr_t low, high;
 			sscanf( line, "%" cPTRSZVALfx "-%" cPTRSZVALfx, &low, &high );
 			//fprintf( stderr, WIDE("%s") WIDE("Find: %08") PTRSZVALfx WIDE(" Low: %08") PTRSZVALfx WIDE(" High: %08") PTRSZVALfx WIDE("\n")
 			//		 , line, pointer, low, high );
@@ -1226,7 +1226,7 @@ void SystemLogFL( const TEXTCHAR *message FILELINE_PASS )
 	static TEXTCHAR threadid[32];
 	static TEXTCHAR sourcefile[256];
 	CTEXTSTR logtime;
-	static _32 lock;
+	static uint32_t lock;
 #ifndef __STATIC_GLOBALS__
 	if( !syslog_local )
 	{
@@ -1301,10 +1301,10 @@ void SystemLogEx ( const TEXTCHAR *message DBG_PASS )
 	SystemLogFL( message, NULL, 0 );
 }
 
- void  LogBinaryFL ( P_8 buffer, size_t size FILELINE_PASS )
+ void  LogBinaryFL ( uint8_t* buffer, size_t size FILELINE_PASS )
 {
 	size_t nOut = size;
-	P_8 data = buffer;
+	uint8_t* data = buffer;
 #ifndef _LOG_FULL_FILE_NAMES
 	if( pFile )
 	{
@@ -1342,7 +1342,7 @@ void SystemLogEx ( const TEXTCHAR *message DBG_PASS )
 	}
 }
 #undef LogBinaryEx
- void  LogBinaryEx ( P_8 buffer, size_t size DBG_PASS )
+ void  LogBinaryEx ( uint8_t* buffer, size_t size DBG_PASS )
 {
 #ifdef _DEBUG
 	LogBinaryFL( buffer,size DBG_RELAY );
@@ -1351,7 +1351,7 @@ void SystemLogEx ( const TEXTCHAR *message DBG_PASS )
 #endif
 }
 #undef LogBinary
- void  LogBinary ( P_8 buffer, size_t size )
+ void  LogBinary ( uint8_t* buffer, size_t size )
 {
 	LogBinaryFL( buffer,size, NULL, 0 );
 }
@@ -1420,7 +1420,7 @@ struct next_lprint_info{
 	// please use this enter when resulting a function, and leave from said function.
 	// oh - but then we couldn't exist before crit sec code...
 	//CRITICALSECTION cs;
-	_32 nLevel;
+	uint32_t nLevel;
 	CTEXTSTR pFile;
 	int nLine;
 };
@@ -1529,7 +1529,7 @@ static INDEX CPROC _real_vlprintf ( CTEXTSTR format, va_list args )
 #ifndef _LOG_FULL_FILE_NAMES
 			CTEXTSTR p;
 #endif
-			_32 nLine;
+			uint32_t nLine;
 			if( (*syslog_local).flags.bLogSourceFile && ( pFile = next_lprintf.pFile ) )
 			{
 				if( (*syslog_local).flags.bProtectLoggedFilenames )
@@ -1588,7 +1588,7 @@ static INDEX CPROC _null_lprintf( CTEXTSTR f, ... )
 }
 
 
-RealVLogFunction  _vxlprintf ( _32 level DBG_PASS )
+RealVLogFunction  _vxlprintf ( uint32_t level DBG_PASS )
 {
 	struct next_lprint_info *_next_lprintf;
 	//EnterCriticalSec( &next_lprintf.cs );
@@ -1610,7 +1610,7 @@ RealVLogFunction  _vxlprintf ( _32 level DBG_PASS )
 	return _null_vlprintf;
 }
 
-RealLogFunction _xlprintf( _32 level DBG_PASS )
+RealLogFunction _xlprintf( uint32_t level DBG_PASS )
 {
 	struct next_lprint_info *_next_lprintf;
 	//EnterCriticalSec( &next_lprintf.cs );
@@ -1668,7 +1668,7 @@ void ProtectLoggedFilenames( LOGICAL bEnable )
 	(*syslog_local).flags.bProtectLoggedFilenames = bEnable;
 }
 
-void SetSystemLoggingLevel( _32 nLevel )
+void SetSystemLoggingLevel( uint32_t nLevel )
 {
 	if( nLevel & LOG_CUSTOM )
 	{

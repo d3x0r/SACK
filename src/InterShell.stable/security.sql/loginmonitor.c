@@ -30,18 +30,18 @@ static struct local_login_mon
 	HHOOK gKeyboardHook;
 
 	// Process info
-	_32 pidList1[1024];
-	_32 pidListLength1;
-	_32 pidList2[1024];
-	_32 pidListLength2;
+	uint32_t pidList1[1024];
+	uint32_t pidListLength1;
+	uint32_t pidList2[1024];
+	uint32_t pidListLength2;
 
 	// Timer data
-	_32 iTimerHandle;
+	uint32_t iTimerHandle;
 
 	// Database settings	
-	_32 iIdleTime;	
-	_32 iScreenSaverWaitTime;
-	_32 last_event_time;
+	uint32_t iIdleTime;	
+	uint32_t iScreenSaverWaitTime;
+	uint32_t last_event_time;
 
 	// Flags
 	struct local_login_mon_flags 
@@ -95,7 +95,7 @@ static LRESULT CALLBACK LowLevelKeyboardProc( int nCode, WPARAM wParam, LPARAM l
 
 //----------------------------------------------------------------------------------------
 // Hook Thread
-static PTRSZVAL CPROC HandleHook( PTHREAD thread )
+static uintptr_t CPROC HandleHook( PTHREAD thread )
 {	
 	MSG msg;
 
@@ -111,7 +111,7 @@ static PTRSZVAL CPROC HandleHook( PTHREAD thread )
 
 //----------------------------------------------------------------------------------------
 // Output handler for system call
-void CPROC LogOutput( PTRSZVAL psv, PTASK_INFO task, CTEXTSTR buffer, size_t size )
+void CPROC LogOutput( uintptr_t psv, PTASK_INFO task, CTEXTSTR buffer, size_t size )
 {
 	lprintf( WIDE("%s"), buffer );
 }
@@ -142,11 +142,11 @@ static LOGICAL HaveCurrentUser( PODBC odbc )
 
 //----------------------------------------------------------------------------------------
 // Timer for checking the timestamp
-static PTRSZVAL CPROC countDown( PTHREAD thread )
+static uintptr_t CPROC countDown( PTHREAD thread )
 {
 	TEXTCHAR buf[45];
-	_8 found = 0;	
-	_32 startTime;   
+	uint8_t found = 0;	
+	uint32_t startTime;   
 	PODBC odbc;
 	
 	// Loop forever
@@ -180,8 +180,8 @@ static PTRSZVAL CPROC countDown( PTHREAD thread )
 
 		if( HaveCurrentUser( odbc ) )
 		{
-			_32 target_tick = startTime + ( l.iScreenSaverWaitTime * 1000 );
-			S_32 remaining = ( target_tick - startTime );
+			uint32_t target_tick = startTime + ( l.iScreenSaverWaitTime * 1000 );
+			int32_t remaining = ( target_tick - startTime );
 			// Get time
 
 			// Check last event, if timeout not hit go back to sleep until timeout will be hit
@@ -220,8 +220,8 @@ static PTRSZVAL CPROC countDown( PTHREAD thread )
 			// If countdown made it to 0
 			if( ( target_tick < startTime ) )
 			{
-				_32 x;
-				_32 y;
+				uint32_t x;
+				uint32_t y;
 				// Logout users
 				SQLCommandf( odbc , WIDE("update login_history set logout_whenstamp=now() where logout_whenstamp=11111111111111 and system_id=%d"), g.system_id );
 

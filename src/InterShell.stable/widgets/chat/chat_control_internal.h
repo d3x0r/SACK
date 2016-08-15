@@ -15,7 +15,7 @@ typedef struct chat_list_tag
 	Image message_window;
 	int first_button;
 	int control_offset;
-	_32 first_x, first_y, _b;
+	uint32_t first_x, first_y, _b;
 	struct {
 		int message_top; // working variable used while drawing
 	} display;
@@ -40,25 +40,25 @@ typedef struct chat_list_tag
 		int command_mark_end;
 		int control_key_state;
 	} input;
-	void (CPROC*InputData)( PTRSZVAL psv, PTEXT input );
-	PTRSZVAL psvInputData;
-	void (CPROC*InputPaste)( PTRSZVAL psv );
-	PTRSZVAL psvInputPaste;
-	LOGICAL (CPROC*InputDrop)( PTRSZVAL psv, CTEXTSTR input, S_32 x, S_32 y );
-	PTRSZVAL psvInputDrop;
-	void (CPROC*MessageSeen)( PTRSZVAL psv );
-	void (CPROC*ImageSeen)( PTRSZVAL psv, Image image );
-	PTRSZVAL psvMessageSeen;
-	void (CPROC*MessageDeleted)( PTRSZVAL psvSeen );
-	void (CPROC*ImageDeleted)( PTRSZVAL psvSeen, Image image );
-	void (CPROC*PopupEvent)( PTRSZVAL,LOGICAL );
-	PTRSZVAL psvPopup;
+	void (CPROC*InputData)( uintptr_t psv, PTEXT input );
+	uintptr_t psvInputData;
+	void (CPROC*InputPaste)( uintptr_t psv );
+	uintptr_t psvInputPaste;
+	LOGICAL (CPROC*InputDrop)( uintptr_t psv, CTEXTSTR input, int32_t x, int32_t y );
+	uintptr_t psvInputDrop;
+	void (CPROC*MessageSeen)( uintptr_t psv );
+	void (CPROC*ImageSeen)( uintptr_t psv, Image image );
+	uintptr_t psvMessageSeen;
+	void (CPROC*MessageDeleted)( uintptr_t psvSeen );
+	void (CPROC*ImageDeleted)( uintptr_t psvSeen, Image image );
+	void (CPROC*PopupEvent)( uintptr_t,LOGICAL );
+	uintptr_t psvPopup;
 	//PHISTORY_LINE_CURSOR phlc_Input;
 	PSI_CONTROL send_button;
-	_32 send_button_width;  // if 0, is 55
-	_32 send_button_height; // if 0, sizes to the height of the input area
-	S_32 send_button_x_offset;
-	S_32 send_button_y_offset;
+	uint32_t send_button_width;  // if 0, is 55
+	uint32_t send_button_height; // if 0, sizes to the height of the input area
+	int32_t send_button_x_offset;
+	int32_t send_button_y_offset;
 	SFTFont input_font;
 	SFTFont date_font;
 	int nFontHeight;
@@ -82,11 +82,11 @@ typedef struct chat_list_tag
 		SFTFont sent_font;
 		SFTFont sender_font;
 		SFTFont received_font;
-		_32 cursor_timer;
+		uint32_t cursor_timer;
 		PSI_CONTROL pc;
 		PMENU popup_text_entry;
-	void (CPROC*OnImageAutoClose)( PTRSZVAL );
-	PTRSZVAL psvImageAutoClose;
+	void (CPROC*OnImageAutoClose)( uintptr_t );
+	uintptr_t psvImageAutoClose;
 } CHAT_LIST;
 typedef struct chat_list_tag *PCHAT_LIST;
 
@@ -102,33 +102,33 @@ struct scollable_list_local
 	CTEXTSTR decoration_name;
 	Image decoration;
 	struct {
-		S_32 back_x, back_y;
-		_32 back_w, back_h;
-		S_32 div_x1, div_x2;
-		S_32 div_y1, div_y2;
+		int32_t back_x, back_y;
+		uint32_t back_w, back_h;
+		int32_t div_x1, div_x2;
+		int32_t div_y1, div_y2;
 		Image BorderSegment[9];
 		CDATA text_color;
 	} send;
 	struct {
-		S_32 back_x, back_y;
-		_32 back_w, back_h;
-		S_32 arrow_x, arrow_y;
-		_32 arrow_w, arrow_h;
-		S_32 arrow_x_offset, arrow_y_offset;
-		S_32 div_x1, div_x2;
-		S_32 div_y1, div_y2;
+		int32_t back_x, back_y;
+		uint32_t back_w, back_h;
+		int32_t arrow_x, arrow_y;
+		uint32_t arrow_w, arrow_h;
+		int32_t arrow_x_offset, arrow_y_offset;
+		int32_t div_x1, div_x2;
+		int32_t div_y1, div_y2;
 		Image BorderSegment[9];
 		Image arrow;
 		CDATA text_color;
 	} sent;
 	struct {
-		S_32 back_x, back_y;
-		_32 back_w, back_h;
-		S_32 arrow_x, arrow_y;
-		_32 arrow_w, arrow_h;
-		S_32 arrow_x_offset, arrow_y_offset;
-		S_32 div_x1, div_x2;
-		S_32 div_y1, div_y2;
+		int32_t back_x, back_y;
+		uint32_t back_w, back_h;
+		int32_t arrow_x, arrow_y;
+		uint32_t arrow_w, arrow_h;
+		int32_t arrow_x_offset, arrow_y_offset;
+		int32_t div_x1, div_x2;
+		int32_t div_y1, div_y2;
 		Image BorderSegment[9];
 		Image arrow;
 		CDATA text_color;
@@ -174,13 +174,13 @@ void RenderTextLine(
 void Widget_WinLogicDoStroke( PCHAT_LIST list, PTEXT stroke );
 int Widget_DoStroke( PCHAT_LIST list, PTEXT stroke );
 void Widget_KeyPressHandler( PCHAT_LIST list
-						  , _8 key_index
-						  , _8 mod
+						  , uint8_t key_index
+						  , uint8_t mod
 						  , PTEXT characters
 						  );
 void Widget_KeyPressHandlerRelease( PCHAT_LIST list
-						  , _8 key_index
-						  , _8 mod
+						  , uint8_t key_index
+						  , uint8_t mod
 						  , PTEXT characters
 						  );
 void ReformatInput( PCHAT_LIST list );

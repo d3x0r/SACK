@@ -34,7 +34,7 @@ PRELOAD( RegisterUserPasswordControls )
 	EasyRegisterResource( WIDE("InterShell/Security/SQL"), REQUIRED_PERMISSIONS, LISTBOX_CONTROL_NAME );
 }
 
-PNULL_PASSWORD GetButtonSecurity( PTRSZVAL button, int bCreate )
+PNULL_PASSWORD GetButtonSecurity( uintptr_t button, int bCreate )
 {
 	PNULL_PASSWORD pls;
 	INDEX idx;
@@ -57,10 +57,10 @@ PNULL_PASSWORD GetButtonSecurity( PTRSZVAL button, int bCreate )
    return pls;
 }
 
-static PTRSZVAL CPROC AddButtonSecurity( PTRSZVAL psv, arg_list args )
+static uintptr_t CPROC AddButtonSecurity( uintptr_t psv, arg_list args )
 {
 	PARAM( args, CTEXTSTR, permission );
-	PTRSZVAL last_loading = psv;
+	uintptr_t last_loading = psv;
 	PNULL_PASSWORD pls = GetButtonSecurity( last_loading, TRUE );
 	//lprintf( WIDE("load context %p(%p)"), pls, last_loading );
 	if( pls )
@@ -86,7 +86,7 @@ static void OnLoadSecurityContext( WIDE("NULL Password") )( PCONFIG_HANDLER pch 
    AddConfigurationMethod( pch, WIDE("SQL password security=%m"), AddButtonSecurity );
 }
 
-static void OnSaveSecurityContext( WIDE("NULL Password") )( FILE *file, PTRSZVAL button )
+static void OnSaveSecurityContext( WIDE("NULL Password") )( FILE *file, uintptr_t button )
 {
 	PNULL_PASSWORD pls = GetButtonSecurity( button, FALSE );
    //lprintf( WIDE("save context %p"), pls );
@@ -104,7 +104,7 @@ static void OnSaveSecurityContext( WIDE("NULL Password") )( FILE *file, PTRSZVAL
 
 //--------------------------------------------------------------------------------
 
-static PTRSZVAL TestSecurityContext( WIDE("NULL Password") )( PTRSZVAL button )
+static uintptr_t TestSecurityContext( WIDE("NULL Password") )( uintptr_t button )
 {	
 	TEXTSTR current_user;
 	INDEX result;	
@@ -136,7 +136,7 @@ static PTRSZVAL TestSecurityContext( WIDE("NULL Password") )( PTRSZVAL button )
 	return 0; /* no security... */
 }
 
-static void  EndSecurityContext( WIDE("NULL Password") ) ( PTRSZVAL button, PTRSZVAL psv )
+static void  EndSecurityContext( WIDE("NULL Password") ) ( uintptr_t button, uintptr_t psv )
 {
 	//LogOutPassword( psv );
 	return;	
@@ -144,7 +144,7 @@ static void  EndSecurityContext( WIDE("NULL Password") ) ( PTRSZVAL button, PTRS
 //--------------------------------------------------------------------------------
 //--------------------------------------------------------------------------------
 
-void CPROC OnItemDoubleClickPermission( PTRSZVAL psv, PSI_CONTROL pc, PLISTITEM pli )
+void CPROC OnItemDoubleClickPermission( uintptr_t psv, PSI_CONTROL pc, PLISTITEM pli )
 {
 	int n;
 	int already_picked = 0;
@@ -172,14 +172,14 @@ void CPROC OnItemDoubleClickPermission( PTRSZVAL psv, PSI_CONTROL pc, PLISTITEM 
 
 //--------------------------------------------------------------------------------
 
-void CPROC OnItemDoubleClickRequired( PTRSZVAL psv, PSI_CONTROL pc, PLISTITEM pli )
+void CPROC OnItemDoubleClickRequired( uintptr_t psv, PSI_CONTROL pc, PLISTITEM pli )
 {
    DeleteListItem( pc, pli );
 }
 
 //--------------------------------------------------------------------------------
 
-static void OnEditSecurityContext( WIDE("NULL Password") )( PTRSZVAL button )
+static void OnEditSecurityContext( WIDE("NULL Password") )( uintptr_t button )
 {
 	PNULL_PASSWORD pls = GetButtonSecurity( button, TRUE );
 	if( pls )

@@ -124,14 +124,14 @@ HTTP_EXPORT /* Enumerates the various http header fields by passing them
    pHttpState :  _nt_
    _nt_ :        _nt_
    psv :         _nt_                                        */
-void HTTPAPI ProcessCGIFields( HTTPState pHttpState, void (CPROC*f)( PTRSZVAL psv, PTEXT name, PTEXT value ), PTRSZVAL psv );
+void HTTPAPI ProcessCGIFields( HTTPState pHttpState, void (CPROC*f)( uintptr_t psv, PTEXT name, PTEXT value ), uintptr_t psv );
 HTTP_EXPORT /* Enumerates the various http header fields by passing them
    each sequentially to the specified callback.
    Parameters
    pHttpState :  _nt_
    _nt_ :        _nt_
    psv :         _nt_                                        */
-void HTTPAPI ProcessHttpFields( HTTPState pHttpState, void (CPROC*f)( PTRSZVAL psv, PTEXT name, PTEXT value ), PTRSZVAL psv );
+void HTTPAPI ProcessHttpFields( HTTPState pHttpState, void (CPROC*f)( uintptr_t psv, PTEXT name, PTEXT value ), uintptr_t psv );
 HTTP_EXPORT /* Resets a processing state, so it can start collecting the
    next state. After a ProcessHttp results with true, this
    should be called after processing the packet content.
@@ -153,13 +153,13 @@ void HTTPAPI SendHttpResponse ( HTTPState pHttpState, PCLIENT pc, int numeric, C
  This should return FALSE if there was no content, allowing a 404 status result.
  Additional ways of dispatching need to be implemented (like handlers for paths, wildcards...)
  */
-typedef LOGICAL (CPROC *ProcessHttpRequest)( PTRSZVAL psv
+typedef LOGICAL (CPROC *ProcessHttpRequest)( uintptr_t psv
 												 , HTTPState pHttpState );
 
 HTTP_EXPORT
 /* Intended to create a generic http service, which you can
    attach URL handlers to. Incomplete                       */
-struct HttpServer *CreateHttpServerEx( CTEXTSTR interface_address, CTEXTSTR TargetName, CTEXTSTR site, ProcessHttpRequest handle_request, PTRSZVAL psv );
+struct HttpServer *CreateHttpServerEx( CTEXTSTR interface_address, CTEXTSTR TargetName, CTEXTSTR site, ProcessHttpRequest handle_request, uintptr_t psv );
 
 /* results with just the content of the message; no access to other information avaialble */
 HTTP_EXPORT PTEXT HTTPAPI PostHttp( PTEXT site, PTEXT resource, PTEXT content );
@@ -181,16 +181,16 @@ HTTP_EXPORT HTTPState HTTPAPI GetHttpsQuery( PTEXT site, PTEXT resource );
 // receives events for either GET if aspecific OnHttpRequest has not been defined for the specific resource
 // Return TRUE if processed, otherwise will attempt to match other Get Handlers
 #define OnHttpGet( site, resource ) \
-	__DefineRegistryMethod(WIDE( "SACK/Http/Methods" ),OnHttpGet,site,resource,WIDE( "Get" ),LOGICAL,(PTRSZVAL,PCLIENT,struct HttpState *,PTEXT),__LINE__)
+	__DefineRegistryMethod(WIDE( "SACK/Http/Methods" ),OnHttpGet,site,resource,WIDE( "Get" ),LOGICAL,(uintptr_t,PCLIENT,struct HttpState *,PTEXT),__LINE__)
 
 // receives events for either GET if aspecific OnHttpRequest has not been defined for the specific resource
 // Return TRUE if processed, otherwise will attempt to match other Get Handlers
 #define OnHttpPost( site, resource ) \
-	__DefineRegistryMethod(WIDE( "SACK/Http/Methods" ),OnHttpPost,site,resource,WIDE( "Post" ),LOGICAL,(PTRSZVAL,PCLIENT,struct HttpState *,PTEXT),__LINE__)
+	__DefineRegistryMethod(WIDE( "SACK/Http/Methods" ),OnHttpPost,site,resource,WIDE( "Post" ),LOGICAL,(uintptr_t,PCLIENT,struct HttpState *,PTEXT),__LINE__)
 
 // define a specific handler for a specific resource name on a host
 #define OnHttpRequest( site, resource ) \
-	__DefineRegistryMethod(WIDE( "SACK/Http/Methods" ),OnHttpRequest,WIDE( "something" ),site WIDE( "/" ) resource,WIDE( "Get" ),void,(PTRSZVAL,PCLIENT,struct HttpState *,PTEXT),__LINE__)
+	__DefineRegistryMethod(WIDE( "SACK/Http/Methods" ),OnHttpRequest,WIDE( "something" ),site WIDE( "/" ) resource,WIDE( "Get" ),void,(uintptr_t,PCLIENT,struct HttpState *,PTEXT),__LINE__)
 
 
 //--------------------------------------------------------------

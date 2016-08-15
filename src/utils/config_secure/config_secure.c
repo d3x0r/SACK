@@ -9,11 +9,11 @@ SaneWinMain( argc, argv )
 	if( argc > 1 )
 	{
 		TEXTSTR result;
-		P_8 buf;
+		uint8_t* buf;
 		size_t length;
 		FILE *file = sack_fopen( 0, argv[1], "rb" );
 		length = sack_fseek( file, 0, SEEK_END );
-		buf = NewArray( _8, length );
+		buf = NewArray( uint8_t, length );
 		sack_fseek( file, 0, SEEK_SET );
 		sack_fread( buf, 1, length, file );
 		sack_fclose( file );
@@ -29,7 +29,7 @@ SaneWinMain( argc, argv )
 		}
 		{
 			size_t testlen;
-			P_8 testbuf;
+			uint8_t* testbuf;
 			SRG_DecryptData( result, &testbuf, &testlen );
 			if( testlen != length )
 				printf( "\n length fail \n" );

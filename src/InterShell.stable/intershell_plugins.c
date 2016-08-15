@@ -101,7 +101,7 @@ struct configured_plugin *GetPlugin( CTEXTSTR plugin_mask )
 
 //-------------------------------------------------------------------------------
 
-static void CPROC PluginPicked( PTRSZVAL psv, PSI_CONTROL list, PLISTITEM pli )
+static void CPROC PluginPicked( uintptr_t psv, PSI_CONTROL list, PLISTITEM pli )
 {
 	struct configured_plugin *plugin = (struct configured_plugin *)GetItemData( pli );
 	PSI_CONTROL syslist = GetNearControl( list, LISTBOX_SYSTEMS );
@@ -151,7 +151,7 @@ static void CPROC PluginPicked( PTRSZVAL psv, PSI_CONTROL list, PLISTITEM pli )
 			ResetList( syslist );
 			LIST_FORALL( plugin->pLoadOn, idx, CTEXTSTR, system )
 			{
-				SetItemData( AddListItem( syslist, system ), (PTRSZVAL)system );
+				SetItemData( AddListItem( syslist, system ), (uintptr_t)system );
 			}
 		}
 
@@ -161,7 +161,7 @@ static void CPROC PluginPicked( PTRSZVAL psv, PSI_CONTROL list, PLISTITEM pli )
 			ResetList( syslist );
 			LIST_FORALL( plugin->pNoLoadOn, idx, CTEXTSTR, system )
 			{
-				SetItemData( AddListItem( syslist, system ), (PTRSZVAL)system );
+				SetItemData( AddListItem( syslist, system ), (uintptr_t)system );
 			}
 		}
 		l.current_plugin = plugin;
@@ -170,7 +170,7 @@ static void CPROC PluginPicked( PTRSZVAL psv, PSI_CONTROL list, PLISTITEM pli )
 
 //-------------------------------------------------------------------------------
 
-static void CPROC AddPlugin( PTRSZVAL psv, PSI_CONTROL button )
+static void CPROC AddPlugin( uintptr_t psv, PSI_CONTROL button )
 {
 	PSI_CONTROL plugin_name = GetNearControl( button, PLUGIN_NAME );
 	if( plugin_name )
@@ -183,7 +183,7 @@ static void CPROC AddPlugin( PTRSZVAL psv, PSI_CONTROL button )
 		{
 			PSI_CONTROL list;
 			SetSelectedItem( list
-								, SetItemData( plugin->pli = AddListItem( list = GetNearControl( button, LISTBOX_PLUGINS ), name ), (PTRSZVAL)plugin )
+								, SetItemData( plugin->pli = AddListItem( list = GetNearControl( button, LISTBOX_PLUGINS ), name ), (uintptr_t)plugin )
 								);
 		}
 	}
@@ -191,7 +191,7 @@ static void CPROC AddPlugin( PTRSZVAL psv, PSI_CONTROL button )
 
 //-------------------------------------------------------------------------------
 
-static void CPROC AddSystem( PTRSZVAL psv, PSI_CONTROL button )
+static void CPROC AddSystem( uintptr_t psv, PSI_CONTROL button )
 {
 	if( l.current_plugin )
 	{
@@ -219,7 +219,7 @@ static void CPROC AddSystem( PTRSZVAL psv, PSI_CONTROL button )
 
 //-------------------------------------------------------------------------------
 
-static void CPROC AddNoSystem( PTRSZVAL psv, PSI_CONTROL button )
+static void CPROC AddNoSystem( uintptr_t psv, PSI_CONTROL button )
 {
 	if( l.current_plugin )
 	{
@@ -246,7 +246,7 @@ static void CPROC AddNoSystem( PTRSZVAL psv, PSI_CONTROL button )
 
 
 //-------------------------------------------------------------------------------
-static void CPROC RemovePlugin( PTRSZVAL psv, PSI_CONTROL button )
+static void CPROC RemovePlugin( uintptr_t psv, PSI_CONTROL button )
 {
 	PSI_CONTROL list = GetNearControl( button, LISTBOX_PLUGINS );
 	PLISTITEM pli = GetSelectedItem( list );
@@ -272,7 +272,7 @@ static void CPROC RemovePlugin( PTRSZVAL psv, PSI_CONTROL button )
 	}
 }
 //-------------------------------------------------------------------------------
-static void CPROC RemoveSystem( PTRSZVAL psv, PSI_CONTROL button )
+static void CPROC RemoveSystem( uintptr_t psv, PSI_CONTROL button )
 {
 	PSI_CONTROL list = GetNearControl( button, LISTBOX_SYSTEMS );
 	PLISTITEM pli = GetSelectedItem( list );
@@ -282,7 +282,7 @@ static void CPROC RemoveSystem( PTRSZVAL psv, PSI_CONTROL button )
 	}
 }
 //-------------------------------------------------------------------------------
-static void CPROC RemoveNoSystem( PTRSZVAL psv, PSI_CONTROL button )
+static void CPROC RemoveNoSystem( uintptr_t psv, PSI_CONTROL button )
 {
 	PSI_CONTROL list = GetNearControl( button, LISTBOX_NO_SYSTEMS );
 	PLISTITEM pli = GetSelectedItem( list );
@@ -304,7 +304,7 @@ static void InitControls( PSI_CONTROL frame )
 		struct configured_plugin *plugin;
 		LIST_FORALL( l.plugins, idx, struct configured_plugin *, plugin )
 		{
-			SetItemData( plugin->pli = AddListItem( list, plugin->plugin_full_name ), (PTRSZVAL)plugin );
+			SetItemData( plugin->pli = AddListItem( list, plugin->plugin_full_name ), (uintptr_t)plugin );
 		}
 		SetSelChangeHandler( list, PluginPicked, 0 );
 	}
@@ -386,14 +386,14 @@ static void OnGlobalPropertyEdit( WIDE( "Edit Plugins" ) )( PSI_CONTROL parent )
 //-------------------------------------------------------------------------------
 
 
-static PTRSZVAL CPROC LoadConfigPlugin( PTRSZVAL psv, arg_list args )
+static uintptr_t CPROC LoadConfigPlugin( uintptr_t psv, arg_list args )
 {
 	PARAM( args, CTEXTSTR, filemask );
 	l.current_plugin = GetPlugin( filemask );
 	return psv;
 }
 
-static PTRSZVAL CPROC NoLoadConfigPluginOn( PTRSZVAL psv, arg_list args )
+static uintptr_t CPROC NoLoadConfigPluginOn( uintptr_t psv, arg_list args )
 {
 	PARAM( args, CTEXTSTR, systemmask );
 	if( l.current_plugin )
@@ -409,7 +409,7 @@ static PTRSZVAL CPROC NoLoadConfigPluginOn( PTRSZVAL psv, arg_list args )
 }
 
 //-------------------------------------------------------------------------------
-static PTRSZVAL CPROC LoadConfigPluginOn( PTRSZVAL psv, arg_list args )
+static uintptr_t CPROC LoadConfigPluginOn( uintptr_t psv, arg_list args )
 {
 	PARAM( args, CTEXTSTR, systemmask );
 	if( l.current_plugin )

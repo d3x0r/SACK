@@ -20,9 +20,9 @@ enum {
 // 2 - display update  (when history starts...)
 // 3 - history update only...
 
- int KeyShift     ( P_32 pKeyState, LOGICAL bState );
- int KeyControl   ( P_32 pKeyState, LOGICAL bState );
- int KeyAlt       ( P_32 pKeyState, LOGICAL bState );
+ int KeyShift     ( uint32_t* pKeyState, LOGICAL bState );
+ int KeyControl   ( uint32_t* pKeyState, LOGICAL bState );
+ int KeyAlt       ( uint32_t* pKeyState, LOGICAL bState );
 
  int Chat_KeyLeft ( PCHAT_LIST list, PUSER_INPUT_BUFFER pci );
  int Chat_KeyRight ( PCHAT_LIST list, PUSER_INPUT_BUFFER pci );
@@ -58,7 +58,7 @@ typedef struct KeyDefine {
       int bFunction;  // true if pStroke is pKeyFunc()
       union {
           PTEXT pStroke; // this may be pKeyFunc()
-          void (CPROC *ControlKey)( P_32 pKeyState, LOGICAL bState );
+          void (CPROC *ControlKey)( uint32_t* pKeyState, LOGICAL bState );
           int (CPROC *CommandKey)( PCHAT_LIST list, PUSER_INPUT_BUFFER pci );
           int (CPROC *HistoryKey)( PHISTORY_BROWSER pct );
           int (CPROC *SpecialKey)( PCONSOLE_INFO pdp ); // PASTE
@@ -100,8 +100,8 @@ CORECON_PROC( int, KeyUnBind )( PDATAPATH pdp, PSENTIENT ps, PTEXT parameters );
 #endif
 CORECON_PROC(int, PSI_DoStroke )( PCONSOLE_INFO pdp, PTEXT stroke );
 CORECON_PROC( void, PSI_KeyPressHandler )( PCONSOLE_INFO pdp
-												 , _8 key_index
-												 , _8 mod
+												 , uint8_t key_index
+												 , uint8_t mod
 												 , PTEXT characters
 												 );
 int CPROC KeyGetGatheredLine( PCHAT_LIST list, PUSER_INPUT_BUFFER pci );

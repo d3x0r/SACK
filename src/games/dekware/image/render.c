@@ -13,42 +13,42 @@ extern INDEX iRender;
 
 //---------------------------------------------------------------------------
 
-PTEXT RenderGetX( PTRSZVAL psv, PENTITY pe, PTEXT *pData )
+PTEXT RenderGetX( uintptr_t psv, PENTITY pe, PTEXT *pData )
 {
 	return *pData;
 }
 
 //---------------------------------------------------------------------------
 
-PTEXT RenderGetY( PTRSZVAL psv, PENTITY pe, PTEXT *pData )
+PTEXT RenderGetY( uintptr_t psv, PENTITY pe, PTEXT *pData )
 {
 	return *pData;
 }
 
 //---------------------------------------------------------------------------
 
-PTEXT RenderSetX( PTRSZVAL psv, PENTITY pe, PTEXT pData )
+PTEXT RenderSetX( uintptr_t psv, PENTITY pe, PTEXT pData )
 {
 	return pData;
 }
 
 //---------------------------------------------------------------------------
 
-PTEXT RenderSetY( PTRSZVAL psv, PENTITY pe, PTEXT pData )
+PTEXT RenderSetY( uintptr_t psv, PENTITY pe, PTEXT pData )
 {
 	return pData;
 }
 
 //---------------------------------------------------------------------------
 
-PTEXT RenderGetWidth( PTRSZVAL psv, PENTITY pe, PTEXT *pData )
+PTEXT RenderGetWidth( uintptr_t psv, PENTITY pe, PTEXT *pData )
 {
 	return *pData;
 }
 
 //---------------------------------------------------------------------------
 
-PTEXT RenderGetHeight( PTRSZVAL psv, PENTITY pe, PTEXT *pData )
+PTEXT RenderGetHeight( uintptr_t psv, PENTITY pe, PTEXT *pData )
 {
 	return *pData;
 }

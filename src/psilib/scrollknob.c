@@ -17,7 +17,7 @@ typedef struct scroll_knob
 	int _first_arc;
 	int delta_arc; // computed fixed delta between last and first
 	KnobEvent event_handler;
-	PTRSZVAL psvEvent;
+	uintptr_t psvEvent;
 
 	Image knob_image;
    PSPRITE knob_sprite;
@@ -41,11 +41,11 @@ static int OnCreateCommon( CONTROL_SCROLL_KNOB_NAME )( PSI_CONTROL pc )
 	return 1;
 }
 
-static int OnMouseCommon( CONTROL_SCROLL_KNOB_NAME )( PSI_CONTROL pc, S_32 x, S_32 y, _32 b )
+static int OnMouseCommon( CONTROL_SCROLL_KNOB_NAME )( PSI_CONTROL pc, int32_t x, int32_t y, uint32_t b )
 {
 	PScrollKnob knob = ControlData( PScrollKnob, pc );
 	int arc;
-	_32 w, h;
+	uint32_t w, h;
 	Image surface;
 	surface = GetControlSurface( pc );
 	w = surface->width;
@@ -186,7 +186,7 @@ static int OnDrawCommon( CONTROL_SCROLL_KNOB_NAME )( PSI_CONTROL pc )
 		}
 		ClearImageTo( surface, 0x1000001 );
 		{
-			_32 image_width = 0, image_height = 0;
+			uint32_t image_width = 0, image_height = 0;
 			GetImageSize( knob->knob_image, &image_width, &image_height );
 			if( image_width && image_height ) {
 				knob->width_scale = 0x10000 * surface->width / image_width;
@@ -215,7 +215,7 @@ static int OnTouchCommon( CONTROL_SCROLL_KNOB_NAME )( PSI_CONTROL pc, PINPUT_POI
 }
 #endif
 
-void SetScrollKnobEvent( PSI_CONTROL pc, KnobEvent event, PTRSZVAL psvEvent )
+void SetScrollKnobEvent( PSI_CONTROL pc, KnobEvent event, uintptr_t psvEvent )
 {
 	PScrollKnob knob = ControlData( PScrollKnob, pc );
 	if( knob )
@@ -238,8 +238,8 @@ PSI_PROC( void, SetScrollKnobImageName )( PSI_CONTROL pc, CTEXTSTR image )
 				UnmakeSprite( knob->knob_sprite, 0 );
 			knob->knob_sprite = MakeSpriteImage( knob->knob_image );
 			{
-				_32 image_width, image_height;
-				_32 control_width, control_height;
+				uint32_t image_width, image_height;
+				uint32_t control_width, control_height;
 				GetFrameSize( pc, &control_width, &control_height );
 				GetImageSize( knob->knob_image, &image_width, &image_height );
 				knob->width_scale = 0x10000 * control_width / image_width;
@@ -262,8 +262,8 @@ PSI_PROC( void, SetScrollKnobImage )( PSI_CONTROL pc, Image image )
 				UnmakeSprite( knob->knob_sprite, 0 );
 			knob->knob_sprite = MakeSpriteImage( knob->knob_image );
 			{
-				_32 image_width, image_height;
-				_32 control_width, control_height;
+				uint32_t image_width, image_height;
+				uint32_t control_width, control_height;
 				GetFrameSize( pc, &control_width, &control_height );
 				GetImageSize( knob->knob_image, &image_width, &image_height );
 				knob->width_scale = 0x10000 * control_width / image_width;

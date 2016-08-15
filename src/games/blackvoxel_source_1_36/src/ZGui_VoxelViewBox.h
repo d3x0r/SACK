@@ -68,7 +68,7 @@ class ZVoxelViewBox : public ZFrame
     virtual ULong  * GetQuantity()  { return(Quantity);}
     virtual void SetVoxelTypeManager(ZVoxelTypeManager * VoxelTypeManager) { this->VoxelTypeManager = VoxelTypeManager; }
 
-    virtual void Render(ZRender_Interface *render, Frame_Dimensions * ParentPosition, PTRSZVAL psvInit);
+    virtual void Render(ZRender_Interface *render, Frame_Dimensions * ParentPosition, uintptr_t psvInit);
 
     virtual void DropItem(ZFrame * Item, UShort nButton);
 

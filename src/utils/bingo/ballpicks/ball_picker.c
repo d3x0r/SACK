@@ -30,7 +30,7 @@ PCARD_TESTER_LINK sorted_cards[76];
 int marks[25];
 int counter;
 
-PTRSZVAL CPROC TestOk( POINTER p, PTRSZVAL psv )
+uintptr_t CPROC TestOk( POINTER p, uintptr_t psv )
 {
 	PCARD_TESTER tester = (PCARD_TESTER)p;
 	//lprintf( "card has %p has %d marks", tester, tester->marks );
@@ -38,7 +38,7 @@ PTRSZVAL CPROC TestOk( POINTER p, PTRSZVAL psv )
 	return 0;
 }
 
-PTRSZVAL CPROC TestOk2( POINTER p, PTRSZVAL psv )
+uintptr_t CPROC TestOk2( POINTER p, uintptr_t psv )
 {
 	if( counter == 72000 )
 	{

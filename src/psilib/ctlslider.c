@@ -14,8 +14,8 @@ typedef struct slider_tag
 	}flags;
 	int min, max, current;	
 	int _x, _y, _b; // prior button state;
-	void (CPROC*SliderUpdated)( PTRSZVAL psvUser, PSI_CONTROL pc, int val );
-   PTRSZVAL psvUser;
+	void (CPROC*SliderUpdated)( uintptr_t psvUser, PSI_CONTROL pc, int val );
+   uintptr_t psvUser;
 } SLIDER, *PSLIDER;
 
 
@@ -125,8 +125,8 @@ static int OnDrawCommon( SLIDER_CONTROL_NAME )( PSI_CONTROL pc )
 
 //---------------------------------------------------------------------------
 
-static int OnMouseCommon( SLIDER_CONTROL_NAME )( PSI_CONTROL pc, S_32 x, S_32 y, _32 b )
-//int CPROC _SliderMouse( PSI_CONTROL pc, S_32 x, S_32 y, _32 b )
+static int OnMouseCommon( SLIDER_CONTROL_NAME )( PSI_CONTROL pc, int32_t x, int32_t y, uint32_t b )
+//int CPROC _SliderMouse( PSI_CONTROL pc, int32_t x, int32_t y, uint32_t b )
 {
 	PSLIDER ps = ControlData( PSLIDER, pc );
 	int pos, span;
@@ -244,7 +244,7 @@ PSI_CONTROL SetSliderOptions( PSI_CONTROL pc, int attr )
     return pc;
 }
 
-PSI_CONTROL SetSliderUpdateHandler( PSI_CONTROL pc, SliderUpdateProc SliderUpdated, PTRSZVAL psvUser )
+PSI_CONTROL SetSliderUpdateHandler( PSI_CONTROL pc, SliderUpdateProc SliderUpdated, uintptr_t psvUser )
 {
 	ValidatedControlData( PSLIDER, SLIDER_CONTROL, ps, pc );
 	if( ps )
@@ -259,7 +259,7 @@ PSI_CONTROL SetSliderUpdateHandler( PSI_CONTROL pc, SliderUpdateProc SliderUpdat
 
 #undef MakeSlider
 static int OnCreateCommon( SLIDER_CONTROL_NAME )( PSI_CONTROL pc )
-//CONTROL_PROC_DEF( SLIDER_CONTROL, SLIDER, Slider, (void)/* (CPROC*SliderUpdated)(PTRSZVAL psv, PSI_CONTROL pc, int val), PTRSZVAL psv)*/ )
+//CONTROL_PROC_DEF( SLIDER_CONTROL, SLIDER, Slider, (void)/* (CPROC*SliderUpdated)(uintptr_t psv, PSI_CONTROL pc, int val), uintptr_t psv)*/ )
 {
 	ValidatedControlData( PSLIDER, SLIDER_CONTROL, ps, pc );
 	if( ps )
@@ -270,9 +270,9 @@ static int OnCreateCommon( SLIDER_CONTROL_NAME )( PSI_CONTROL pc )
 		ps->current = 50;
 		//if( args )
 		{
-			//FP_ARG( void CPROC, SliderUpdated,(PTRSZVAL psv, PSI_CONTROL pc, int val));
-			//ARG( PTRSZVAL, psv );
-         //ARG( _32, attr );
+			//FP_ARG( void CPROC, SliderUpdated,(uintptr_t psv, PSI_CONTROL pc, int val));
+			//ARG( uintptr_t, psv );
+         //ARG( uint32_t, attr );
 			//ps->SliderUpdated = SliderUpdated;
 			//ps->psvUser = psv;
 			//if( attr & SLIDER_HORIZ )

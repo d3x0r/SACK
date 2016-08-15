@@ -17,7 +17,7 @@ PCOMMON MakePages( PCOMMON frame )
 	PCOMMON sheet[3];
 	CDATA cActive = BASE_COLOR_BLACK;
 	CDATA cInactive = BASE_COLOR_WHITE;
-	_32 width, height;
+	uint32_t width, height;
 	Image surface = GetControlSurface( frame );
 	width = surface->width;
 	height = surface->height;

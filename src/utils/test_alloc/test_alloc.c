@@ -3,11 +3,11 @@
 #include <timers.h>
 
 #define SIZE 128
-_32 threads;
+uint32_t threads;
 
-PTRSZVAL CPROC tester( PTHREAD thread )
+uintptr_t CPROC tester( PTHREAD thread )
 {
-	PTRSZVAL psv = GetThreadParam( thread );
+	uintptr_t psv = GetThreadParam( thread );
 	POINTER p;
 	int n;
 	int m;
@@ -17,7 +17,7 @@ PTRSZVAL CPROC tester( PTHREAD thread )
 		memset( p, psv, SIZE );
 		//Relinquish();
 		for( m = 0; m < SIZE; m++ )
-			if( ((_8*)p)[m] != psv )
+			if( ((uint8_t*)p)[m] != psv )
 				printf( "FAIL %d %d", m, psv );
 		Release( p );
 	}

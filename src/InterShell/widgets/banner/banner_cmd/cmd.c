@@ -8,7 +8,7 @@ static struct {
 	CDATA text_color;
 	CTEXTSTR file;
 	TEXTSTR text;
-	PTRSZVAL text_size;
+	uintptr_t text_size;
 	int lines;
 	int columns;
 	int display;

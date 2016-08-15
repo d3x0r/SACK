@@ -42,10 +42,10 @@ _PSI_NAMESPACE
 #ifdef GCC
 #define CONTROL_INIT(name) CONTROL_PROPERTIES( name )(PSI_CONTROL pControl)      \
 { return NULL; } CONTROL_PROPERTIES_APPLY( name )(PSI_CONTROL pc,PSI_CONTROL page) { ; }    \
-	int CPROC Init##name ( PTRSZVAL psv, PSI_CONTROL pControl, _32 ID )
+	int CPROC Init##name ( uintptr_t psv, PSI_CONTROL pControl, uint32_t ID )
 
 #define CONTROL_INIT_EX(name)  \
-	int CPROC Init##name ( PTRSZVAL psv, PSI_CONTROL pControl, _32 ID )
+	int CPROC Init##name ( uintptr_t psv, PSI_CONTROL pControl, uint32_t ID )
 //#error Need to figure out how to register control Inits
 
 #else
@@ -120,9 +120,9 @@ typedef int (CPROC*__DrawThySelf)       ( struct common_control_frame * );
 typedef void (CPROC*__DrawDecorations)       ( struct common_control_frame * );
 /* \Internal event callback definition. A mouse event is
 	happening over the control.                           */
-typedef int (CPROC*__MouseMethod)       ( struct common_control_frame *, S_32 x, S_32 y, _32 b );
+typedef int (CPROC*__MouseMethod)       ( struct common_control_frame *, int32_t x, int32_t y, uint32_t b );
 /* \Internal event callback definition. A key has been pressed. */
-typedef int (CPROC*__KeyProc)           ( struct common_control_frame *, _32 );
+typedef int (CPROC*__KeyProc)           ( struct common_control_frame *, uint32_t );
 /* \Internal event callback definition. The caption of a control
 	is changing (Edit control uses this).                         */
 typedef void (CPROC*_CaptionChanged)    ( struct common_control_frame * );
@@ -152,7 +152,7 @@ typedef void (CPROC*_BeginEdit)         ( struct common_control_frame * );
 typedef void (CPROC*_EndEdit)           ( struct common_control_frame * );
 /* \Internal event callback definition. A file has been dropped
 	on the control.                                              */
-typedef LOGICAL (CPROC*_AcceptDroppedFiles)( struct common_control_frame *, CTEXTSTR filename, S_32 x, S_32 y );
+typedef LOGICAL (CPROC*_AcceptDroppedFiles)( struct common_control_frame *, CTEXTSTR filename, int32_t x, int32_t y );
 typedef void (CPROC*_HoverEventCallback)           ( struct common_control_frame * );
 
 
@@ -181,19 +181,19 @@ struct edit_state_tag {
 	// sizing... although we probably do want to see
 	// their behavior at the new size....
 	// but THIS definatly so we can process arrow keys...
-	//void (CPROC*PriorKeyProc)( PTRSZVAL psv, _32 );
-	//PTRSZVAL psvPriorKey;
+	//void (CPROC*PriorKeyProc)( uintptr_t psv, uint32_t );
+	//uintptr_t psvPriorKey;
 	DeclMethod( _KeyProc );
-	//void (CPROC*_PriorKeyProc)( PSI_CONTROL pc, _32 );
+	//void (CPROC*_PriorKeyProc)( PSI_CONTROL pc, uint32_t );
 
 	IMAGE_POINT hotspot[9];
 	IMAGE_RECTANGLE bound;
 	IMAGE_POINT bias; // pCurrent upper left corner kinda on the master frame
-	S_32 _x, _y; // marked x, y when the hotspot was grabbed...
+	int32_t _x, _y; // marked x, y when the hotspot was grabbed...
 
 	// should also do a cumulative change delta off
 	// this to lock the mouse in position...
-	S_32 delxaccum, delyaccum;
+	int32_t delxaccum, delyaccum;
 
 	struct {
 		BIT_FIELD bActive : 1; // edit state is active.
@@ -207,7 +207,7 @@ struct edit_state_tag {
 		BIT_FIELD bFrameWasResizable : 1;
 		BIT_FIELD bHotSpotsActive : 1;
 	} flags;
-	_32 BorderType;
+	uint32_t BorderType;
 
 //DOM-IGNORE-END
 };
@@ -222,7 +222,7 @@ struct physical_device_caption_button
 	void (CPROC*pressed_event)( PSI_CONTROL pc );
 	LOGICAL is_pressed;
 	int extra_pad;
-	_32 offset;
+	uint32_t offset;
 	struct {
 		BIT_FIELD hidden : 1;
 		BIT_FIELD rollover : 1;
@@ -235,8 +235,8 @@ typedef struct physical_device_caption_button *PCAPTION_BUTTON;
 
 typedef struct frame_border {
 	CDATA *defaultcolors;
-	S_32 BorderWidth;
-	S_32 BorderHeight;
+	int32_t BorderWidth;
+	int32_t BorderHeight;
 	struct psi_global_border_info {
 		BIT_FIELD bAnchorTop : 2; // 0 = none, 1=left, 2=center, 3=right
 		BIT_FIELD bAnchorBottom : 2; // 0 = none, 1=left, 2=center, 3=right
@@ -269,10 +269,10 @@ struct physical_device_interface
 	}flags;
 	EDIT_STATE EditState;
 	//PRENDERER pActImg;
-	//PTRSZVAL psvUser; // user data...
+	//uintptr_t psvUser; // user data...
 	int drag_x, drag_y; // position drag was started; for absolute motion
 	int _x, _y;
-	_32 _b; // last button state...
+	uint32_t _b; // last button state...
 	// these two buttons override controls which have the ID BTN_OKAY, BTN_CANCEL
 	int nIDDefaultOK;
 	int nIDDefaultCancel;
@@ -283,7 +283,7 @@ struct physical_device_interface
 		struct {
 			BIT_FIELD bias_is_surface : 1;
 		} flags;
-		S_32 x, y;
+		int32_t x, y;
 	} CurrentBias;
 	//Image original_surface;
 	struct common_control_frame * pCurrent; // Current control which has the mouse within it...(or owns mouse)
@@ -291,10 +291,10 @@ struct physical_device_interface
 	// this is now added as a draw callback method
 	//void (CPROC*OwnerDraw)(struct common_control_frame * pc);
 	// this is now added as a mouse callback method
-	//void (CPROC*OwnerMouse)(struct common_control_frame * pc, S_32 x, S_32 y, _32 b);
+	//void (CPROC*OwnerMouse)(struct common_control_frame * pc, int32_t x, int32_t y, uint32_t b);
 	// this is unused yet...
-	//int (CPROC*InitControl)(PTRSZVAL, struct common_control_frame *, _32);// match ControlInitProc(controls.h)
-	PTRSZVAL psvInit;
+	//int (CPROC*InitControl)(uintptr_t, struct common_control_frame *, uint32_t);// match ControlInitProc(controls.h)
+	uintptr_t psvInit;
 	PLIST pending_dirty_controls; // optimized search list for (allow_threaded_draw == FALSE)
 //DOM-IGNORE-END
 };
@@ -310,7 +310,7 @@ typedef struct common_button_data {
 	int *okay_value;
 	int *done_value;
 	struct button_flags {
-		_32 bWaitOnEdit : 1;
+		uint32_t bWaitOnEdit : 1;
 	} flags;
 //DOM-IGNORE-END
 } COMMON_BUTTON_DATA, *PCOMMON_BUTTON_DATA;
@@ -330,7 +330,7 @@ typedef struct common_control_frame
 	// from the object...
 	POINTER pUser;
 	// the user may also set a DWORD value associated with a control.
-	PTRSZVAL psvUser;
+	uintptr_t psvUser;
 
 	// this is the numeric type ID of the control.  Although, now
 	// controls are mostly tracked with their name.
@@ -488,12 +488,12 @@ typedef struct common_control_frame
 	// includes border/caption of control
 	Image Window; 
  // actively processing - only when decremented to 0 do we destroy...
-	_32 InUse;
+	uint32_t InUse;
 	// fake counter to allow ReleaseCommonUse to work.
-	_32 NotInUse; 
+	uint32_t NotInUse; 
 	// waitinig for a responce... when both inuse and inwait become 0 destroy can happy.
 	// otherwise when inuse reduces to 0, draw events are dispatched.
-	_32 InWait;
+	uint32_t InWait;
 	/* This is a pointer to the prior control in a frame. */
 	/* pointer to the first child control in this one. */
 	/* pointer to the next control within this control's parent. */
@@ -501,7 +501,7 @@ typedef struct common_control_frame
 	struct common_control_frame *child, *parent, *next, *prior, *stack_parent, *stack_child;
 	// maybe I can get pointers to this....
 
-	_32 BorderType;
+	uint32_t BorderType;
 	void (CPROC*BorderDrawProc)( PSI_CONTROL, Image );
 	void (CPROC*Rollover)( PSI_CONTROL, LOGICAL );
 	void (CPROC*BorderMeasureProc)( PSI_CONTROL, int *x_offset, int *y_offset, int *right_inset, int *bottom_inset );
@@ -548,7 +548,7 @@ typedef struct common_control_frame
 	/* when registered this gets set as where the control's events and rtti are registered.
 		 This will seperate /psi/control and /psi++/control without other flags to switch on */
 	PLIST caption_buttons;  // extra controls that are stuffed on the caption bar.
-	S_32 caption_button_x_ofs, caption_button_y_ofs;
+	int32_t caption_button_x_ofs, caption_button_y_ofs;
 	PFrameBorder border;
 	PCAPTION_BUTTON hover_caption_button;  // the current button pressed
 	PCAPTION_BUTTON pressed_caption_button;  // the current button pressed
@@ -562,7 +562,7 @@ typedef struct common_control_frame
 //---------------------------------------------------------------------------
 
 // each control has itself a draw border method.
-//void CPROC DrawBorder( PTRSZVAL psv, PSI_CONTROL pc );
+//void CPROC DrawBorder( uintptr_t psv, PSI_CONTROL pc );
 // check box uses these... ???
 void CPROC DrawThinFrame( PSI_CONTROL pc );
 void CPROC DrawThinnerFrame( PSI_CONTROL pc );
@@ -663,7 +663,7 @@ void DeleteWaitEx( PSI_CONTROL *pc DBG_PASS );
 _MOUSE_NAMESPACE_END
 USE_MOUSE_NAMESPACE
 
-int FrameCaptionYOfs( PSI_CONTROL pc, _32 BorderType );
+int FrameCaptionYOfs( PSI_CONTROL pc, uint32_t BorderType );
 
 void DrawFrameCaption( PSI_CONTROL pc );
 

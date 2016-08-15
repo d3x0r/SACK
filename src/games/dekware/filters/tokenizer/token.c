@@ -13,8 +13,8 @@ typedef struct mydatapath_tag {
    DATAPATH common;
 
 	struct {
-		_32 newline : 1;
-   	_32 outbound : 1;
+		uint32_t newline : 1;
+   	uint32_t outbound : 1;
    } flags;
    PTEXT tokens;
 } MYDATAPATH, *PMYDATAPATH;

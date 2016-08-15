@@ -590,7 +590,7 @@ VECTOR_METHOD( void, ApplyInverseTranslation, ( PCTRANSFORM pt, P_POINT dest, PC
 VECTOR_METHOD( void, ApplyInverseTranslationT, ( PCTRANSFORM pt, PTRANSFORM ptd, PCTRANSFORM pts ) );
 
 // after Move() these callbacks are invoked.
-typedef void (*MotionCallback)( PTRSZVAL, PTRANSFORM );
+typedef void (*MotionCallback)( uintptr_t, PTRANSFORM );
 /* When Move is called on the transform, these callbacks are
    invoked so user code can get even update for motion.
    Parameters
@@ -598,7 +598,7 @@ typedef void (*MotionCallback)( PTRSZVAL, PTRANSFORM );
    callback :  user callback routine
    psv :       pointer size value data to be passed to user
                callback routine.                             */
-VECTOR_METHOD( void, AddTransformCallback, ( PTRANSFORM pt, MotionCallback callback, PTRSZVAL psv ) );
+VECTOR_METHOD( void, AddTransformCallback, ( PTRANSFORM pt, MotionCallback callback, uintptr_t psv ) );
 
 /* Set the speed vector used when Move is applied to a
    PTRANSFORM.

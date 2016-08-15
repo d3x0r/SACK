@@ -24,8 +24,8 @@ struct idle_proc_tag
 	// to handle this callback
 	// return 0 if no messages were processed
 	// return 1 if messages were processed
-	int (CPROC*function)(PTRSZVAL);
-	PTRSZVAL data;
+	int (CPROC*function)(uintptr_t);
+	uintptr_t data;
 	THREAD_ID thread;
 	//PDATAQUEUE threads;
 	PIDLEPROC similar; // same function references go here - for multiple thread entries...
@@ -58,7 +58,7 @@ static struct idle_global_tag *idle_global = &_idle_global;// registered_idle_pr
 #endif
 #define procs ((*idle_global).registered_idle_procs)
 
-IDLE_PROC( void, AddIdleProc )( int (CPROC*Proc)( PTRSZVAL psv ), PTRSZVAL psvUser )
+IDLE_PROC( void, AddIdleProc )( int (CPROC*Proc)( uintptr_t psv ), uintptr_t psvUser )
 {
 	PIDLEPROC proc = NULL;
 #ifndef __STATIC_GLOBALS__
@@ -96,7 +96,7 @@ IDLE_PROC( void, AddIdleProc )( int (CPROC*Proc)( PTRSZVAL psv ), PTRSZVAL psvUs
 	LeaveCriticalSec( &(*idle_global).idle_cs );
 }
 
-IDLE_PROC( int, RemoveIdleProc )( int (CPROC*Proc)(PTRSZVAL psv ) )
+IDLE_PROC( int, RemoveIdleProc )( int (CPROC*Proc)(uintptr_t psv ) )
 {
 	PIDLEPROC check_proc;
 #ifndef __STATIC_GLOBALS__
@@ -187,9 +187,9 @@ IDLE_PROC( int, Idle )( void )
    return IdleEx( DBG_VOIDSRC );
 }
 
-IDLE_PROC( int, IdleForEx )( _32 dwMilliseconds DBG_PASS )
+IDLE_PROC( int, IdleForEx )( uint32_t dwMilliseconds DBG_PASS )
 {
-	_32 dwStart = timeGetTime();
+	uint32_t dwStart = timeGetTime();
 	while( ( dwStart + dwMilliseconds ) > timeGetTime() )
 	{
 		if( !IdleEx( DBG_VOIDRELAY ) )
@@ -202,7 +202,7 @@ IDLE_PROC( int, IdleForEx )( _32 dwMilliseconds DBG_PASS )
 }
 
 #undef IdleFor
-IDLE_PROC( int, IdleFor )( _32 dwMilliseconds )
+IDLE_PROC( int, IdleFor )( uint32_t dwMilliseconds )
 {
    return IdleForEx( dwMilliseconds DBG_SRC );
 }

@@ -11,7 +11,7 @@
 
 
 #define MY_MASK_MASK(n,length)	(MASK_TOP_MASK(length) << ((n)&0x7) )
-#define MY_GET_MASK(v,n,mask_size)  ( ( ((MASKSET_READTYPE*)((((PTRSZVAL)v))+(n)/CHAR_BIT))[0]											\
+#define MY_GET_MASK(v,n,mask_size)  ( ( ((MASKSET_READTYPE*)((((uintptr_t)v))+(n)/CHAR_BIT))[0]											\
  & MY_MASK_MASK(n,mask_size) )																									\
 	>> (((n))&0x7))
 
@@ -24,8 +24,8 @@ struct random_context {
 
 	POINTER salt;
 	size_t salt_size;
-	void (*getsalt)( PTRSZVAL, POINTER *salt, size_t *salt_size );
-	PTRSZVAL psv_user;
+	void (*getsalt)( uintptr_t, POINTER *salt, size_t *salt_size );
+	uintptr_t psv_user;
 	uint8_t entropy[SHA1HashSize];
 	uint8_t entropy2[SHA512_DIGEST_SIZE];
 	size_t bits_used;
@@ -59,7 +59,7 @@ static void NeedBits( struct random_context *ctx )
 	ctx->bits_used = 0;
 }
 
-struct random_context *SRG_CreateEntropyInternal( void (*getsalt)( PTRSZVAL, POINTER *salt, size_t *salt_size ), PTRSZVAL psv_user, LOGICAL version2 )
+struct random_context *SRG_CreateEntropyInternal( void (*getsalt)( uintptr_t, POINTER *salt, size_t *salt_size ), uintptr_t psv_user, LOGICAL version2 )
 {
 	struct random_context *ctx = New( struct random_context );
 	ctx->use_version2 = version2;
@@ -74,12 +74,12 @@ struct random_context *SRG_CreateEntropyInternal( void (*getsalt)( PTRSZVAL, POI
 	return ctx;
 }
 
-struct random_context *SRG_CreateEntropy( void (*getsalt)( PTRSZVAL, POINTER *salt, size_t *salt_size ), PTRSZVAL psv_user )
+struct random_context *SRG_CreateEntropy( void (*getsalt)( uintptr_t, POINTER *salt, size_t *salt_size ), uintptr_t psv_user )
 {
 	return SRG_CreateEntropyInternal( getsalt, psv_user, FALSE );
 }
 
-struct random_context *SRG_CreateEntropy2( void (*getsalt)( PTRSZVAL, POINTER *salt, size_t *salt_size ), PTRSZVAL psv_user )
+struct random_context *SRG_CreateEntropy2( void (*getsalt)( uintptr_t, POINTER *salt, size_t *salt_size ), uintptr_t psv_user )
 {
 	return SRG_CreateEntropyInternal( getsalt, psv_user, TRUE );
 }
@@ -90,12 +90,12 @@ void SRG_DestroyEntropy( struct random_context **ppEntropy )
 	(*ppEntropy) = NULL;
 }
 
-void SRG_GetEntropyBuffer( struct random_context *ctx, _32 *buffer, _32 bits )
+void SRG_GetEntropyBuffer( struct random_context *ctx, uint32_t *buffer, uint32_t bits )
 {
-	_32 tmp;
-	_32 partial_tmp;
+	uint32_t tmp;
+	uint32_t partial_tmp;
 	int partial_bits = 0;
-	_32 get_bits;
+	uint32_t get_bits;
 
 	do
 	{
@@ -138,16 +138,16 @@ void SRG_GetEntropyBuffer( struct random_context *ctx, _32 *buffer, _32 bits )
 	} while( bits );
 }
 
-S_32 SRG_GetEntropy( struct random_context *ctx, int bits, int get_signed )
+int32_t SRG_GetEntropy( struct random_context *ctx, int bits, int get_signed )
 {
-	S_32 result;
-	SRG_GetEntropyBuffer( ctx, (_32*)&result, bits );
+	int32_t result;
+	SRG_GetEntropyBuffer( ctx, (uint32_t*)&result, bits );
 	if( get_signed )
 		if( result & ( 1 << ( bits - 1 ) ) )
 		{
-			_32 negone = ~0;
+			uint32_t negone = ~0;
 			negone <<= bits;
-			return (S_32)( result | negone );
+			return (int32_t)( result | negone );
 		}
 	return result;
 }

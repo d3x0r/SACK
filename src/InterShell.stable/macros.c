@@ -81,7 +81,7 @@ void FillList( PSI_CONTROL list,PMACRO_BUTTON button )
 		ResetList( list );
 		while( pme )
 		{
-			SetItemData( AddListItem( list, (pme->button->text&&pme->button->text[0])?pme->button->text:pme->button->pTypeName ), (PTRSZVAL)pme );
+			SetItemData( AddListItem( list, (pme->button->text&&pme->button->text[0])?pme->button->text:pme->button->pTypeName ), (uintptr_t)pme );
 			//SetItemText( pli, (pme->button->text&&pme->button->text[0])?pme->button->text:pme->button->pTypeName );
 			pme = NextThing( pme );
 		}
@@ -89,7 +89,7 @@ void FillList( PSI_CONTROL list,PMACRO_BUTTON button )
 }
 
 
-static void CPROC MoveElementClone( PTRSZVAL psv, PSI_CONTROL control )
+static void CPROC MoveElementClone( uintptr_t psv, PSI_CONTROL control )
 {
 	PMACRO_BUTTON button = (PMACRO_BUTTON)psv;
 	PMENU_BUTTON pmbNew = GetCloneButton( NULL, 0, 0, TRUE );
@@ -104,7 +104,7 @@ static void CPROC MoveElementClone( PTRSZVAL psv, PSI_CONTROL control )
 	}
 }
 
-static void CPROC CloneElement( PTRSZVAL psv, PSI_CONTROL control )
+static void CPROC CloneElement( uintptr_t psv, PSI_CONTROL control )
 {
 	PSI_CONTROL list = GetNearControl( control, LIST_MACRO_ELEMENTS );
 	PLISTITEM pli = GetSelectedItem( list );
@@ -114,7 +114,7 @@ static void CPROC CloneElement( PTRSZVAL psv, PSI_CONTROL control )
 }
 
 
-static void CPROC AddButtonType( PTRSZVAL psv, PSI_CONTROL control )
+static void CPROC AddButtonType( uintptr_t psv, PSI_CONTROL control )
 {
 	PMACRO_BUTTON button = (PMACRO_BUTTON)psv;
 	PSI_CONTROL list = GetNearControl( control, LIST_CONTROL_TYPES );
@@ -185,7 +185,7 @@ int FillControlsList( PSI_CONTROL control, int nLevel, CTEXTSTR basename, CTEXTS
 				}
 				//AddLink( &g.extra_types, StrDup( basename ) );
 				added++;
-				SetItemData( pli, (PTRSZVAL)StrDup( controlpath ) );
+				SetItemData( pli, (uintptr_t)StrDup( controlpath ) );
 				break;
 			}
 		}
@@ -203,7 +203,7 @@ int FillControlsList( PSI_CONTROL control, int nLevel, CTEXTSTR basename, CTEXTS
 	return added;
 }
 
-static void CPROC MoveElementUp( PTRSZVAL psv, PSI_CONTROL control )
+static void CPROC MoveElementUp( uintptr_t psv, PSI_CONTROL control )
 {
 	PMACRO_BUTTON button = (PMACRO_BUTTON)psv;
 	PSI_CONTROL list = GetNearControl( control, LIST_MACRO_ELEMENTS );
@@ -212,7 +212,7 @@ static void CPROC MoveElementUp( PTRSZVAL psv, PSI_CONTROL control )
 	if( pme )
 	{
 		PMACRO_ELEMENT _prior = ((PMACRO_ELEMENT)pme->me);
-		if( (PTRSZVAL)&pme->next != (PTRSZVAL)pme )
+		if( (uintptr_t)&pme->next != (uintptr_t)pme )
 		{
 			lprintf( WIDE( "Failure, structure definition does not have DeclareLink() as first member." ) );
 			DebugBreak();
@@ -226,7 +226,7 @@ static void CPROC MoveElementUp( PTRSZVAL psv, PSI_CONTROL control )
 	}
 }
 
-static void CPROC MoveElementDown( PTRSZVAL psv, PSI_CONTROL control )
+static void CPROC MoveElementDown( uintptr_t psv, PSI_CONTROL control )
 {
 	PMACRO_BUTTON button = (PMACRO_BUTTON)psv;
 	PSI_CONTROL list = GetNearControl( control, LIST_MACRO_ELEMENTS );
@@ -235,7 +235,7 @@ static void CPROC MoveElementDown( PTRSZVAL psv, PSI_CONTROL control )
 	if( pme )
 	{
 		PMACRO_ELEMENT _next = NextThing( pme );
-		if( (PTRSZVAL)&pme->next != (PTRSZVAL)pme )
+		if( (uintptr_t)&pme->next != (uintptr_t)pme )
 		{
 			lprintf( WIDE( "Failure, structure definition does not have DeclareLink() as first member." ) );
 			DebugBreak();
@@ -249,7 +249,7 @@ static void CPROC MoveElementDown( PTRSZVAL psv, PSI_CONTROL control )
 	}
 }
 
-static void CPROC ConfigureElement( PTRSZVAL psv, PSI_CONTROL control )
+static void CPROC ConfigureElement( uintptr_t psv, PSI_CONTROL control )
 {
 	//PMACRO_BUTTON button = (PMACRO_BUTTON)psv;
 	PSI_CONTROL list = GetNearControl( control, LIST_MACRO_ELEMENTS );
@@ -282,7 +282,7 @@ static void CPROC ConfigureElement( PTRSZVAL psv, PSI_CONTROL control )
 	}
 }
 
-static void CPROC MoveElementRemove( PTRSZVAL psv, PSI_CONTROL control )
+static void CPROC MoveElementRemove( uintptr_t psv, PSI_CONTROL control )
 {
 	PMACRO_BUTTON button = (PMACRO_BUTTON)psv;
 	PSI_CONTROL list = GetNearControl( control, LIST_MACRO_ELEMENTS );
@@ -313,8 +313,8 @@ static void ConfigureMacroButton( PMACRO_BUTTON button, PSI_CONTROL parent )
 			ResetList( list );
 			FillControlsList( list, 1, TASK_PREFIX WIDE( "/control" ), NULL );
 			SetCommonButtonControls( frame );
-			SetButtonPushMethod( GetControl( frame, BUTTON_ADD_CONTROL ), AddButtonType, (PTRSZVAL)button );
-			//SetButtonPushMethod( GetControl( frame, BUTTON_EDIT_CONTROL ), AddButtonType, (PTRSZVAL)button );
+			SetButtonPushMethod( GetControl( frame, BUTTON_ADD_CONTROL ), AddButtonType, (uintptr_t)button );
+			//SetButtonPushMethod( GetControl( frame, BUTTON_EDIT_CONTROL ), AddButtonType, (uintptr_t)button );
 			{
 				PSI_CONTROL list = GetControl( frame, LIST_MACRO_ELEMENTS );
 				if( list )
@@ -322,17 +322,17 @@ static void ConfigureMacroButton( PMACRO_BUTTON button, PSI_CONTROL parent )
 					PMACRO_ELEMENT pme = button->elements;
 					while( pme )
 					{
-						SetItemData( AddListItem( list, (pme->button->text&&pme->button->text[0])?pme->button->text:pme->button->pTypeName ), (PTRSZVAL)pme );
+						SetItemData( AddListItem( list, (pme->button->text&&pme->button->text[0])?pme->button->text:pme->button->pTypeName ), (uintptr_t)pme );
 						pme = NextThing( pme );
 					}
 				}
 			}
-			SetButtonPushMethod( GetControl( frame, BUTTON_ELEMENT_UP ), MoveElementUp, (PTRSZVAL)button );
-			SetButtonPushMethod( GetControl( frame, BUTTON_ELEMENT_CLONE ), MoveElementClone, (PTRSZVAL)button );
-			SetButtonPushMethod( GetControl( frame, BUTTON_ELEMENT_CLONE_ELEMENT ), CloneElement, (PTRSZVAL)button );
-			SetButtonPushMethod( GetControl( frame, BUTTON_ELEMENT_DOWN ), MoveElementDown, (PTRSZVAL)button );
-			SetButtonPushMethod( GetControl( frame, BUTTON_ELEMENT_CONFIGURE ), ConfigureElement, (PTRSZVAL)button );
-			SetButtonPushMethod( GetControl( frame, BUTTON_ELEMENT_REMOVE ), MoveElementRemove, (PTRSZVAL)button );
+			SetButtonPushMethod( GetControl( frame, BUTTON_ELEMENT_UP ), MoveElementUp, (uintptr_t)button );
+			SetButtonPushMethod( GetControl( frame, BUTTON_ELEMENT_CLONE ), MoveElementClone, (uintptr_t)button );
+			SetButtonPushMethod( GetControl( frame, BUTTON_ELEMENT_CLONE_ELEMENT ), CloneElement, (uintptr_t)button );
+			SetButtonPushMethod( GetControl( frame, BUTTON_ELEMENT_DOWN ), MoveElementDown, (uintptr_t)button );
+			SetButtonPushMethod( GetControl( frame, BUTTON_ELEMENT_CONFIGURE ), ConfigureElement, (uintptr_t)button );
+			SetButtonPushMethod( GetControl( frame, BUTTON_ELEMENT_REMOVE ), MoveElementRemove, (uintptr_t)button );
 		}
 		DisplayFrameOver( frame, parent );
 		CommonWait( frame );
@@ -345,7 +345,7 @@ static void ConfigureMacroButton( PMACRO_BUTTON button, PSI_CONTROL parent )
 }
 
 
-static PTRSZVAL OnEditControl( MACRO_BUTTON_NAME )( PTRSZVAL psv, PSI_CONTROL parent )
+static uintptr_t OnEditControl( MACRO_BUTTON_NAME )( uintptr_t psv, PSI_CONTROL parent )
 {
 	ConfigureMacroButton( (PMACRO_BUTTON)psv, parent );
 	return psv;
@@ -441,12 +441,12 @@ static void InvokeMacroButton( PMACRO_BUTTON button, LOGICAL bBannerMessage )
 
 
 
-static void OnKeyPressEvent( MACRO_BUTTON_NAME )( PTRSZVAL psv )
+static void OnKeyPressEvent( MACRO_BUTTON_NAME )( uintptr_t psv )
 {
 	InvokeMacroButton( (PMACRO_BUTTON)psv, FALSE );
 }
 
-static void OnShowControl( MACRO_BUTTON_NAME )( PTRSZVAL psv )
+static void OnShowControl( MACRO_BUTTON_NAME )( uintptr_t psv )
 {
 	struct current_macro_state_during_invoke current_invoke_state;
 
@@ -463,16 +463,16 @@ static void OnShowControl( MACRO_BUTTON_NAME )( PTRSZVAL psv )
 }
 
 
-static PTRSZVAL OnCreateMenuButton( MACRO_BUTTON_NAME )( PMENU_BUTTON common )
+static uintptr_t OnCreateMenuButton( MACRO_BUTTON_NAME )( PMENU_BUTTON common )
 {
 	PMACRO_BUTTON button = New( MACRO_BUTTON );
 	button->button = common;
 	button->elements = NULL;
 	//AddLink( &l.buttons, button );
-	return (PTRSZVAL)button;
+	return (uintptr_t)button;
 }
 
-void WriteMacroButton( CTEXTSTR leader, FILE *file, PTRSZVAL psv )
+void WriteMacroButton( CTEXTSTR leader, FILE *file, uintptr_t psv )
 {
 	PMACRO_BUTTON button = (PMACRO_BUTTON)psv;
 	// save buttons...
@@ -489,12 +489,12 @@ void WriteMacroButton( CTEXTSTR leader, FILE *file, PTRSZVAL psv )
 	}
 }
 
-static void OnSaveControl( MACRO_BUTTON_NAME )( FILE *file, PTRSZVAL psv )
+static void OnSaveControl( MACRO_BUTTON_NAME )( FILE *file, uintptr_t psv )
 {
 	WriteMacroButton( NULL, file, psv );
 }
 
-static PTRSZVAL CPROC LoadMacroElements( PTRSZVAL psv, arg_list args )
+static uintptr_t CPROC LoadMacroElements( uintptr_t psv, arg_list args )
 {
 	PMACRO_BUTTON pmb = (PMACRO_BUTTON)psv;
 	PARAM( args, TEXTCHAR *, name );
@@ -538,7 +538,7 @@ static PTRSZVAL CPROC LoadMacroElements( PTRSZVAL psv, arg_list args )
 	return NULL;
 }
 
-static PTRSZVAL CPROC FinishMacro( PTRSZVAL psv, arg_list args )
+static uintptr_t CPROC FinishMacro( uintptr_t psv, arg_list args )
 {
 	PMACRO_BUTTON pmb = (PMACRO_BUTTON)psv;
 	if( !pmb )
@@ -551,7 +551,7 @@ static PTRSZVAL CPROC FinishMacro( PTRSZVAL psv, arg_list args )
 	return psv;
 }
 
-static void OnLoadControl( MACRO_BUTTON_NAME )( PCONFIG_HANDLER pch, PTRSZVAL psv )
+static void OnLoadControl( MACRO_BUTTON_NAME )( PCONFIG_HANDLER pch, uintptr_t psv )
 {
 	AddConfigurationMethod( pch, WIDE( "Macro Element \'%m\'" ), LoadMacroElements );
 	AddConfigurationMethod( pch, WIDE( "Macro Element List Done" ), FinishMacro );
@@ -588,9 +588,9 @@ void InvokeShutdownMacro( void )
 static void OnSaveCommon( WIDE( "Startup Macro" ) )( FILE *file )
 {
 	sack_fprintf( file, WIDE( "\n" ) );
-	WriteMacroButton( WIDE( "Startup " ), file, (PTRSZVAL)&l.startup );
+	WriteMacroButton( WIDE( "Startup " ), file, (uintptr_t)&l.startup );
 	sack_fprintf( file, WIDE( "\n" ) );
-	WriteMacroButton( WIDE( "Shutdown " ), file, (PTRSZVAL)&l.shutdown );
+	WriteMacroButton( WIDE( "Shutdown " ), file, (uintptr_t)&l.shutdown );
 }
 
 static void OnLoadCommon( WIDE( "Startup Macro" ) )( PCONFIG_HANDLER pch )
@@ -602,7 +602,7 @@ static void OnLoadCommon( WIDE( "Startup Macro" ) )( PCONFIG_HANDLER pch )
 	AddConfigurationMethod( pch, WIDE( "Shutdown Macro Element List Done" ), FinishMacro );
 }
 
-static void OnCloneControl( MACRO_BUTTON_NAME )( PTRSZVAL psvNew, PTRSZVAL psvOriginal )
+static void OnCloneControl( MACRO_BUTTON_NAME )( uintptr_t psvNew, uintptr_t psvOriginal )
 {
 	PMACRO_BUTTON pmbOriginal = (PMACRO_BUTTON)psvOriginal;
 	PMACRO_BUTTON pmbNew = (PMACRO_BUTTON)psvNew;

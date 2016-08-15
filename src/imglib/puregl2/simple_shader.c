@@ -79,22 +79,22 @@ struct simple_shader_data
 	//struct shader_buffer *vert_color;
 };
 
-PTRSZVAL CPROC SimpleShader_OpInit( PImageShaderTracker tracker, PTRSZVAL psv, int *existing_verts, va_list args )
+uintptr_t CPROC SimpleShader_OpInit( PImageShaderTracker tracker, uintptr_t psv, int *existing_verts, va_list args )
 {
 	struct simple_shader_data *shader_data = (struct simple_shader_data*)psv;
 	float *color = va_arg( args, float * );
 	shader_data->next_color = color;
 	*existing_verts = shader_data->data.vert_pos->used;
-	return (PTRSZVAL)psv;
+	return (uintptr_t)psv;
 	/*
 	struct simple_shader_op_data *newOp = New( struct simple_shader_op_data );
 	newOp->vert_pos = CreateShaderBuffer( 3, 8, 16 );
 	newOp->vert_color = CreateShaderBuffer( 4, 8, 16 );
-	return (PTRSZVAL)newOp;
+	return (uintptr_t)newOp;
 	*/
 }
 
-void CPROC SimpleShader_Output( PImageShaderTracker tracker, PTRSZVAL psv, PTRSZVAL psvKey, int from, int to )
+void CPROC SimpleShader_Output( PImageShaderTracker tracker, uintptr_t psv, uintptr_t psvKey, int from, int to )
 {
 	struct simple_shader_data *data = (struct simple_shader_data *)psv;
 	//struct simple_shader_op_data *shaderOp = (struct simple_shader_op_data *)psvKey;
@@ -114,7 +114,7 @@ void CPROC SimpleShader_Output( PImageShaderTracker tracker, PTRSZVAL psv, PTRSZ
 	CheckErr();
 }
 
-void CPROC SimpleShader_Reset( PImageShaderTracker tracker, PTRSZVAL psv, PTRSZVAL psvKey )
+void CPROC SimpleShader_Reset( PImageShaderTracker tracker, uintptr_t psv, uintptr_t psvKey )
 {
 	struct simple_shader_data *data = (struct simple_shader_data *)psv;
 	//struct simple_shader_op_data *shaderOp = (struct simple_shader_op_data *)psvKey;
@@ -123,7 +123,7 @@ void CPROC SimpleShader_Reset( PImageShaderTracker tracker, PTRSZVAL psv, PTRSZV
 	data->data.vert_color->used = 0;
 }
 
-void CPROC SimpleShader_AppendTristrip( struct image_shader_op *op, int triangles, PTRSZVAL psv, va_list args )
+void CPROC SimpleShader_AppendTristrip( struct image_shader_op *op, int triangles, uintptr_t psv, va_list args )
 {
 	struct simple_shader_data *data = (struct simple_shader_data *)psv;
 	float *verts = va_arg( args, float * );
@@ -159,17 +159,17 @@ void CPROC SimpleShader_AppendTristrip( struct image_shader_op *op, int triangle
 }
 
 
-PTRSZVAL SetupSuperSimpleShader( PTRSZVAL psv )
+uintptr_t SetupSuperSimpleShader( uintptr_t psv )
 {
 	struct simple_shader_data *data = New( struct simple_shader_data );
 	MemSet( data, 0, sizeof( struct simple_shader_data ) );
 	// no instance for simple tracker
 	data->data.vert_pos = CreateShaderBuffer( 3, 8, 16 );
 	data->data.vert_color = CreateShaderBuffer( 4, 8, 16 );
-	return (PTRSZVAL)data;
+	return (uintptr_t)data;
 }
 
-void InitSuperSimpleShader( PTRSZVAL psv, PImageShaderTracker tracker )
+void InitSuperSimpleShader( uintptr_t psv, PImageShaderTracker tracker )
 {
 	struct simple_shader_data *data = (struct simple_shader_data *)psv;
 	const char *v_codeblocks[2];

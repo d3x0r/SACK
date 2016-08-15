@@ -40,8 +40,8 @@ SACK_NETWORK_NAMESPACE
 #define MAGIC_SOCKADDR_LENGTH ( sizeof(SOCKADDR_IN)< 256?256:sizeof( SOCKADDR_IN) )
 
 // this might have to be like sock_addr_len_t
-#define SOCKADDR_LENGTH(sa) ( (int)*(PTRSZVAL*)( ( (PTRSZVAL)(sa) ) - 2*sizeof(PTRSZVAL) ) )
-#define SET_SOCKADDR_LENGTH(sa,size) ( ( *(PTRSZVAL*)( ( (PTRSZVAL)(sa) ) - 2*sizeof(PTRSZVAL) ) ) = size )
+#define SOCKADDR_LENGTH(sa) ( (int)*(uintptr_t*)( ( (uintptr_t)(sa) ) - 2*sizeof(uintptr_t) ) )
+#define SET_SOCKADDR_LENGTH(sa,size) ( ( *(uintptr_t*)( ( (uintptr_t)(sa) ) - 2*sizeof(uintptr_t) ) ) = size )
 
 // used by the network thread dispatched network layer messages...
 #define SOCKMSG_UDP (WM_USER+1)  // messages for UDP use this window Message
@@ -134,8 +134,8 @@ struct NetworkClient
 	SOCKADDR *saClient;  //Dest Address
 	SOCKADDR *saSource;  //Local Address of this port ...
 	SOCKADDR *saLastClient; // use this for UDP recvfrom
-	_8     hwClient[6];
-	_8     hwSource[6];
+	uint8_t     hwClient[6];
+	uint8_t     hwSource[6];
 	//  ServeUDP( WIDE("SourceIP"), SourcePort );
 	// 		saSource w/ no Dest - read is a connect...
 	//  ConnectUDP( WIDE("DestIP"), DestPort );
@@ -146,33 +146,33 @@ struct NetworkClient
 	//     connect(UDP) results in?
 
 	SOCKET      Socket;
-	_32         dwFlags; // CF_
-	_8        *lpUserData;
+	uint32_t         dwFlags; // CF_
+	uint8_t        *lpUserData;
 
 	union {
 		void (CPROC*ClientConnected)( struct NetworkClient *old, struct NetworkClient *newclient ); // new incoming client.
 		void (CPROC*ThisConnected)(struct NetworkClient *me, int nStatus );
-		void (CPROC*CPPClientConnected)( PTRSZVAL psv, struct NetworkClient *newclient ); // new incoming client.
-		void (CPROC*CPPThisConnected)( PTRSZVAL psv, int nStatus );
+		void (CPROC*CPPClientConnected)( uintptr_t psv, struct NetworkClient *newclient ); // new incoming client.
+		void (CPROC*CPPThisConnected)( uintptr_t psv, int nStatus );
 	}connect;
-	PTRSZVAL psvConnect;
+	uintptr_t psvConnect;
 	union {
 		void (CPROC*CloseCallback)(struct NetworkClient *);
-		void (CPROC*CPPCloseCallback)(PTRSZVAL psv);
+		void (CPROC*CPPCloseCallback)(uintptr_t psv);
 	} close;
-	PTRSZVAL psvClose;
+	uintptr_t psvClose;
 	union {
 		cReadComplete ReadComplete;
 		cppReadComplete CPPReadComplete;
 		cReadCompleteEx ReadCompleteEx;
 		cppReadCompleteEx CPPReadCompleteEx;
 	}read;
-	PTRSZVAL psvRead;
+	uintptr_t psvRead;
 	union {
 		void (CPROC*WriteComplete)( struct NetworkClient * );
-		void (CPROC*CPPWriteComplete)( PTRSZVAL psv );
+		void (CPROC*CPPWriteComplete)( uintptr_t psv );
 	}write;
-	PTRSZVAL psvWrite;
+	uintptr_t psvWrite;
 
 	LOGICAL 	      bWriteComplete; // set during bWriteComplete Notify...
 
@@ -186,7 +186,7 @@ struct NetworkClient
 	PTHREAD pWaiting; // Thread which is waiting for a result...
 	PendingBuffer RecvPending, FirstWritePending; // current incoming buffer
 	PendingBuffer *lpFirstPending,*lpLastPending; // outgoing buffers
-	_32    LastEvent; // GetTickCount() of last event...
+	uint32_t    LastEvent; // GetTickCount() of last event...
 	DeclareLink( struct NetworkClient );
 	PCLIENT pcOther; // listeners opened with port only have two connections, one IPV4 one IPV6
 	struct network_client_flags {
@@ -213,15 +213,15 @@ typedef struct NetworkClient CLIENT;
 #define MAX_NETCLIENTS  g.nMaxClients
 
 typedef struct client_slab_tag {
-	_32 count;
+	uint32_t count;
    CLIENT client[1];
 } CLIENT_SLAB, *PCLIENT_SLAB;
 
 // global network data goes here...
 LOCATION struct network_global_data{
-	_32     nMaxClients;
+	uint32_t     nMaxClients;
 	int     nUserData;     // number of longs.
-	P_8     pUserData;
+	uint8_t*     pUserData;
 	PLIST   ClientSlabs;
 	LOGICAL bLog;
 	LOGICAL bQuit;
@@ -232,8 +232,8 @@ LOCATION struct network_global_data{
 	PLINKQUEUE event_schedule;
 	PCLIENT ClosedClients;
 	CRITICALSECTION csNetwork;
-	_32 uNetworkPauseTimer;
-   _32 uPendingTimer;
+	uint32_t uNetworkPauseTimer;
+   uint32_t uPendingTimer;
 #ifndef __LINUX__
 	HWND ghWndNetwork;
 #endif
@@ -250,8 +250,8 @@ LOCATION struct network_global_data{
 #if defined( USE_WSA_EVENTS )
    HANDLE hMonitorThreadControlEvent;
 #endif
-	_32 dwReadTimeout;
-	_32 dwConnectTimeout;
+	uint32_t dwReadTimeout;
+	uint32_t dwConnectTimeout;
 	PLIST addresses;
 	struct {
 		BIT_FIELD bLogNotices : 1;

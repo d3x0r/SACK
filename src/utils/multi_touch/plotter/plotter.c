@@ -6,7 +6,7 @@ typedef struct my_touch_point *PMyTouchPoint;
 typedef struct my_touch_point MyTouchPoint;
 struct my_touch_point {
    
-   S_32 x,y;
+   int32_t x,y;
 
    PMyTouchPoint prior, next;
 };
@@ -15,7 +15,7 @@ typedef struct my_touch_glyph *PMyGlyph;
 typedef struct my_touch_glyph MyGlyph;
 struct my_touch_glyph {
 	CDATA color;
-	_32 id; // unique c9urrent id 
+	uint32_t id; // unique c9urrent id 
 	RCOORD x,y,w,h;
 	PMyTouchPoint start;
 };
@@ -27,13 +27,13 @@ static  struct local {
    
    PLIST chains;
 
-   S_32 x, y;
-	_32 w, h;
+   int32_t x, y;
+	uint32_t w, h;
 	PRENDERER renderer;
 	
 } l;
 
-void CPROC touch_plot( PTRSZVAL psv, PRENDERER renderer )
+void CPROC touch_plot( uintptr_t psv, PRENDERER renderer )
 {
 	Image surface = GetDisplayImage( renderer );
 	ClearImage( surface );
@@ -129,7 +129,7 @@ void EndEvent( PINPUT_POINT touch, int n )
 	DeleteLink( &l.touches, glyph );
 }
 
-int CPROC touch_events( PTRSZVAL psv, PINPUT_POINT pTouches, int nTouches )
+int CPROC touch_events( uintptr_t psv, PINPUT_POINT pTouches, int nTouches )
 {
 	int n;
 	//lprintf( "-------------------- %d ------------------", nTouches );

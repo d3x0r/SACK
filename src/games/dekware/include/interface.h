@@ -56,7 +56,7 @@ struct dekware_interface {
 
 	CORE_PROC_PTR( void,  RegisterRoutine      )( CTEXTSTR pClassname, CTEXTSTR pName, CTEXTSTR pDescription, RoutineAddress Routine );
 	CORE_PROC_PTR( int,   RegisterDevice       )( CTEXTSTR pNext, CTEXTSTR pDescription, DeviceOpenDevice Open );
-	CORE_PROC_PTR( int,   RegisterDeviceOpts       )( CTEXTSTR pNext, CTEXTSTR pDescription, DeviceOpenDevice Open, option_entry *pOptions, _32 nOptions );
+	CORE_PROC_PTR( int,   RegisterDeviceOpts       )( CTEXTSTR pNext, CTEXTSTR pDescription, DeviceOpenDevice Open, option_entry *pOptions, uint32_t nOptions );
 
 	CORE_PROC_PTR( void, AddVariableExxx )( PSENTIENT ps, PENTITY pe
 													  , PTEXT pName, PTEXT parameters
@@ -105,7 +105,7 @@ struct dekware_interface {
 	CORE_PROC_PTR( void, DoCommandf )( PSENTIENT ps, CTEXTSTR f, ... );
 	CORE_PROC_PTR( int, DestroyAwarenessEx      )( PSENTIENT ps DBG_PASS );
 	CORE_PROC_PTR( ObjectInit, ScanRegisteredObjects )( PENTITY pe, CTEXTSTR for_name );
-	CORE_PROC_PTR( PMACROSTATE, InvokeMacroEx )( PSENTIENT ps, PMACRO pMacro, PTEXT pArgs, void (CPROC*StopEvent)(PTRSZVAL psvUser, PMACROSTATE pms ), PTRSZVAL psv );
+	CORE_PROC_PTR( PMACROSTATE, InvokeMacroEx )( PSENTIENT ps, PMACRO pMacro, PTEXT pArgs, void (CPROC*StopEvent)(uintptr_t psvUser, PMACROSTATE pms ), uintptr_t psv );
 	CORE_PROC_PTR( void, TerminateMacro )( PMACROSTATE pms );
 };
 

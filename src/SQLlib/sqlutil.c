@@ -29,7 +29,7 @@ struct params
    PODBC odbc;
 };
 
-static int CPROC MyParmCmp( PTRSZVAL s1, PTRSZVAL s2 )
+static int CPROC MyParmCmp( uintptr_t s1, uintptr_t s2 )
 {
 	struct params *p1 = (struct params*)s1;
 	struct params *p2 = (struct params*)s2;
@@ -38,7 +38,7 @@ static int CPROC MyParmCmp( PTRSZVAL s1, PTRSZVAL s2 )
 	else
 		return 1;
 }
-static int CPROC MyStrCmp( PTRSZVAL s1, PTRSZVAL s2 )
+static int CPROC MyStrCmp( uintptr_t s1, uintptr_t s2 )
 {
 	return StrCaseCmp( (TEXTCHAR*)s1, (TEXTCHAR*)s2 );
 }
@@ -58,7 +58,7 @@ PTREEROOT GetTableCache( PODBC odbc, CTEXTSTR tablename )
 										 , MyParmCmp
 										 , NULL );
 	}
-	if( !( newcache = (PTREEROOT)FindInBinaryTree( tables, (PTRSZVAL)&parameters ) ) )
+	if( !( newcache = (PTREEROOT)FindInBinaryTree( tables, (uintptr_t)&parameters ) ) )
 	{
 		struct params *saveparams = New( struct params );
 		saveparams->name = StrDup( tablename );
@@ -68,7 +68,7 @@ PTREEROOT GetTableCache( PODBC odbc, CTEXTSTR tablename )
 						 , newcache = CreateBinaryTreeExx( BT_OPT_NODUPLICATES
 																	, MyStrCmp
 																	, NULL )
-						 , (PTRSZVAL)saveparams );
+						 , (uintptr_t)saveparams );
 	}
 	//else
 	//   lprintf( WIDE("Found tree cache...") );
@@ -79,13 +79,13 @@ PTREEROOT GetTableCache( PODBC odbc, CTEXTSTR tablename )
 INDEX GetIndexOfName(PODBC odbc, CTEXTSTR table,CTEXTSTR name)
 {
 	/* this resulting truncation warning is OK. */
-	return (INDEX)(((PTRSZVAL)FindInBinaryTree( GetTableCache( odbc, table ), (PTRSZVAL)name ))-1);
+	return (INDEX)(((uintptr_t)FindInBinaryTree( GetTableCache( odbc, table ), (uintptr_t)name ))-1);
 }
 
 CTEXTSTR GetKeyOfName(PODBC odbc, CTEXTSTR table,CTEXTSTR name)
 {
 	/* this resulting truncation warning is OK. */
-	return (CTEXTSTR)FindInBinaryTree( GetTableCache( odbc, table ), (PTRSZVAL)name );
+	return (CTEXTSTR)FindInBinaryTree( GetTableCache( odbc, table ), (uintptr_t)name );
 }
 
 //---------------------------------------------------------------------------
@@ -145,7 +145,7 @@ INDEX GetNameIndexExtended( PODBC odbc
 		IDName = INVALID_INDEX;
 
 	if( bQuote && ( IDName != INVALID_INDEX ) )
-		AddBinaryNode( GetTableCache(odbc, table), (POINTER)(IDName+1), (PTRSZVAL)StrDup( name ) );
+		AddBinaryNode( GetTableCache(odbc, table), (POINTER)(IDName+1), (uintptr_t)StrDup( name ) );
 	return IDName;
 }
 //-----------------------------------------------------------------------
@@ -237,7 +237,7 @@ CTEXTSTR  GetLastInsertKeyEx( CTEXTSTR table, CTEXTSTR col DBG_PASS )
 #undef EscapeBinary
 #undef EscapeString
 
-TEXTSTR EscapeSQLBinaryExx( PODBC odbc, CTEXTSTR blob, PTRSZVAL bloblen, LOGICAL bQuote DBG_PASS )
+TEXTSTR EscapeSQLBinaryExx( PODBC odbc, CTEXTSTR blob, uintptr_t bloblen, LOGICAL bQuote DBG_PASS )
 {
 	int type_mysql = 1;
 #if MYSQL_ODBC_CONNECTION_IS_BROKEN
@@ -359,16 +359,16 @@ TEXTSTR EscapeSQLBinaryExx( PODBC odbc, CTEXTSTR blob, PTRSZVAL bloblen, LOGICAL
 	}
 	return result;
 }
-TEXTSTR EscapeSQLBinaryEx ( PODBC odbc, CTEXTSTR blob, PTRSZVAL bloblen DBG_PASS )
+TEXTSTR EscapeSQLBinaryEx ( PODBC odbc, CTEXTSTR blob, uintptr_t bloblen DBG_PASS )
 {
 	return EscapeSQLBinaryExx( odbc, blob, bloblen, FALSE DBG_RELAY );
 }
-TEXTSTR EscapeBinaryEx ( CTEXTSTR blob, PTRSZVAL bloblen DBG_PASS )
+TEXTSTR EscapeBinaryEx ( CTEXTSTR blob, uintptr_t bloblen DBG_PASS )
 {
 	return EscapeSQLBinaryExx( NULL, blob, bloblen, FALSE DBG_RELAY );
 }
 
-TEXTCHAR * EscapeBinary ( CTEXTSTR blob, PTRSZVAL bloblen )
+TEXTCHAR * EscapeBinary ( CTEXTSTR blob, uintptr_t bloblen )
 {
 	return EscapeSQLBinaryExx( NULL, blob, bloblen, FALSE DBG_SRC );
 }
@@ -382,7 +382,7 @@ TEXTCHAR * EscapeSQLStringEx ( PODBC odbc, CTEXTSTR name DBG_PASS )
 
 TEXTCHAR * EscapeStringEx ( CTEXTSTR name DBG_PASS )
 {
-   return EscapeSQLBinaryExx( NULL, name, (_32)strlen( name ), FALSE DBG_RELAY );
+   return EscapeSQLBinaryExx( NULL, name, (uint32_t)strlen( name ), FALSE DBG_RELAY );
 }
 
 TEXTCHAR * EscapeString ( CTEXTSTR name )
@@ -391,12 +391,12 @@ TEXTCHAR * EscapeString ( CTEXTSTR name )
    return EscapeSQLBinaryExx( NULL, name, strlen( name ), FALSE DBG_SRC );
 }
 
-_8 hexbyte( TEXTCHAR *string )
+uint8_t hexbyte( TEXTCHAR *string )
 {
 	static TEXTCHAR hex[17] = WIDE("0123456789abcdef");
 	static TEXTCHAR HEX[17] = WIDE("0123456789ABCDEF");
 	TEXTCHAR *digit;
-	_8 value = 0;
+	uint8_t value = 0;
 
 	digit = strchr( hex, string[0] );
 	if( !digit )
@@ -404,16 +404,16 @@ _8 hexbyte( TEXTCHAR *string )
 		digit = strchr( HEX, string[0] );
 		if( digit )
 		{
-//cpg 19 Jan 2007 1>c:\work\sack\src\sqllib\sqlutil.c(187) : warning C4244: '=' : conversion from '__w64 int' to 'sack::_8', possible loss of data
-			value = (_8)(digit - HEX);
+//cpg 19 Jan 2007 1>c:\work\sack\src\sqllib\sqlutil.c(187) : warning C4244: '=' : conversion from '__w64 int' to 'sack::uint8_t', possible loss of data
+			value = (uint8_t)(digit - HEX);
 		}
 		else
          return 0;
 	}
 	else
 	{
-//cpg 19 Jan 2007 1>c:\work\sack\src\sqllib\sqlutil.c(194) : warning C4244: '=' : conversion from '__w64 int' to 'sack::_8', possible loss of data
-		value = (_8)(digit - hex);
+//cpg 19 Jan 2007 1>c:\work\sack\src\sqllib\sqlutil.c(194) : warning C4244: '=' : conversion from '__w64 int' to 'sack::uint8_t', possible loss of data
+		value = (uint8_t)(digit - hex);
 	}
 
 	value *= 16;
@@ -423,16 +423,16 @@ _8 hexbyte( TEXTCHAR *string )
 		digit = strchr( HEX, string[1] );
 		if( digit )
 		{
-//cpg 19 Jan 2007 1>c:\work\sack\src\sqllib\sqlutil.c(204) : warning C4244: '+=' : conversion from '__w64 int' to 'sack::_8', possible loss of data
-			value += (_8)(digit - HEX);
+//cpg 19 Jan 2007 1>c:\work\sack\src\sqllib\sqlutil.c(204) : warning C4244: '+=' : conversion from '__w64 int' to 'sack::uint8_t', possible loss of data
+			value += (uint8_t)(digit - HEX);
 		}
 		else
 			return 0;
 	}
 	else
 	{
-//cpg 19 Jan 2007 1>c:\work\sack\src\sqllib\sqlutil.c(211) : warning C4244: '+=' : conversion from '__w64 int' to 'sack::_8', possible loss of data
-		value += (_8)(digit - hex);
+//cpg 19 Jan 2007 1>c:\work\sack\src\sqllib\sqlutil.c(211) : warning C4244: '+=' : conversion from '__w64 int' to 'sack::uint8_t', possible loss of data
+		value += (uint8_t)(digit - hex);
 	}
 	return value;
 }
@@ -467,7 +467,7 @@ TEXTSTR DeblobifyString( CTEXTSTR blob, TEXTSTR outbuf, int outbuflen  )
 
 //---------------------------------------------------------------------------
 
-TEXTSTR RevertEscapeBinary( CTEXTSTR blob, PTRSZVAL *bloblen )
+TEXTSTR RevertEscapeBinary( CTEXTSTR blob, uintptr_t *bloblen )
 {
 	TEXTCHAR *tmpnamebuf, *result;
 	int n;
@@ -587,8 +587,8 @@ TEXTSTR RevertEscapeString( CTEXTSTR name )
 			if( IDName != INVALID_INDEX )
 			{
 				// instead of strdup, consider here using SaveName from procreg?
-				AddBinaryNode( GetTableCache(odbc,table), (POINTER)((PTRSZVAL)(IDName+1))
-								 , (PTRSZVAL)StrDup( name ) );
+				AddBinaryNode( GetTableCache(odbc,table), (POINTER)((uintptr_t)(IDName+1))
+								 , (uintptr_t)StrDup( name ) );
 			}
 			return IDName;
 }
@@ -661,7 +661,7 @@ TEXTSTR RevertEscapeString( CTEXTSTR name )
 
 //---------------------------------------------------------------------------
 
- int  SQLCreateTableEx ( PODBC odbc, CTEXTSTR filename, CTEXTSTR templatename, CTEXTSTR tablename, _32 options )
+ int  SQLCreateTableEx ( PODBC odbc, CTEXTSTR filename, CTEXTSTR templatename, CTEXTSTR tablename, uint32_t options )
 {
 	//CTEXTSTR result;
 	//TEXTCHAR query[256];
@@ -904,7 +904,7 @@ void DumpSQLTable( PTABLE table )
 }
 
 
- int  CreateTableEx ( CTEXTSTR filename, CTEXTSTR templatename, CTEXTSTR tablename, _32 options )
+ int  CreateTableEx ( CTEXTSTR filename, CTEXTSTR templatename, CTEXTSTR tablename, uint32_t options )
 {
    OpenSQL( DBG_VOIDSRC );
    if( g.odbc )
@@ -991,7 +991,7 @@ return 0; } } while (0);
    return 1;
 }
 
-LOGICAL CheckAccessODBCTable( PODBC odbc, PTABLE table, _32 options )
+LOGICAL CheckAccessODBCTable( PODBC odbc, PTABLE table, uint32_t options )
 {
 	CTEXTSTR *_fields = NULL;
 	CTEXTSTR *fields;
@@ -1193,7 +1193,7 @@ retry:
    return 1;
 }
 
-LOGICAL CPROC CheckMySQLODBCTable( PODBC odbc, PTABLE table, _32 options )
+LOGICAL CPROC CheckMySQLODBCTable( PODBC odbc, PTABLE table, uint32_t options )
 {
 // when this gets to be implemented...
 // the type "counter" needs to be interpreted as auto increment.
@@ -1711,7 +1711,7 @@ retry:
 }
 
 
-LOGICAL CheckODBCTableEx( PODBC odbc, PTABLE table, _32 options DBG_PASS )
+LOGICAL CheckODBCTableEx( PODBC odbc, PTABLE table, uint32_t options DBG_PASS )
 {
 	if( !odbc )
 	{
@@ -1735,7 +1735,7 @@ LOGICAL CheckODBCTableEx( PODBC odbc, PTABLE table, _32 options DBG_PASS )
 }
 
 #undef CheckODBCTable
-LOGICAL CheckODBCTable( PODBC odbc, PTABLE table, _32 options )
+LOGICAL CheckODBCTable( PODBC odbc, PTABLE table, uint32_t options )
 {
    return CheckODBCTableEx( odbc, table, options DBG_SRC );
 }

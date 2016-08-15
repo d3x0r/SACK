@@ -10,12 +10,12 @@
 #include "msgid.h"
 
 typedef struct {
-   _32 x, y;
+   uint32_t x, y;
 } ICON_LOCATION, *PICON_LOCATION;
 
 typedef struct{
-	_32 width;
-	_32 height;
+	uint32_t width;
+	uint32_t height;
 }MAX;
 
 
@@ -39,16 +39,16 @@ typedef struct {
 
 
 	struct{
-		_32 bInited:1;
-		_32 bDisplayed:1;
+		uint32_t bInited:1;
+		uint32_t bDisplayed:1;
 	}flags;
 
 	struct{
 		struct{
-			_32 connected:1;
-			_32 disconnected:1;
+			uint32_t connected:1;
+			uint32_t disconnected:1;
 		}flags;
-      _32 MsgBase;
+      uint32_t MsgBase;
 	}client;
 	TRAY_ICON icon;
    //
@@ -65,15 +65,15 @@ static GLOBAL g;
 //
 //  PARAMETERS:		Name		Description
 //					------------------------------------------------------
-//             _32 source    The numerical identifier of the calling process
-//             _32 MsgID     messages are enumerated:
+//             uint32_t source    The numerical identifier of the calling process
+//             uint32_t MsgID     messages are enumerated:
 //                             1 = Mate Started
 //                             2 = Mate Ended
 //                           >=4 = Application Defined (in this case, try msgid.h
-//             _32 *params   A pointer to anything, this is Application Defined, too.
-//             _32 param_length  The length of the data pointed to.
-//             _32 *result   The callback must write to this buffer to acknowledge the event.
-//             _32 *result_length The length of the acknowledge.
+//             uint32_t *params   A pointer to anything, this is Application Defined, too.
+//             uint32_t param_length  The length of the data pointed to.
+//             uint32_t *result   The callback must write to this buffer to acknowledge the event.
+//             uint32_t *result_length The length of the acknowledge.
 //
 //
 //************************************************************************
@@ -181,7 +181,7 @@ int RegisterIconEx( char *icon DBG_PASS )
 	}
 	else
 	{
-      _32 w = 0, h = 0;
+      uint32_t w = 0, h = 0;
 		xlprintf(LOG_NOISE)("Found %s making image button, blotting."
 				  , icon
 				  );

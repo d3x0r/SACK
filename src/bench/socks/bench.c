@@ -5,29 +5,29 @@
 typedef struct local_tag
 {
 	struct {
-		_32 bServer : 1;
-		_32 bClient : 1;
-		_32 bUnix : 1;
-		_32 bUDP : 1;
+		uint32_t bServer : 1;
+		uint32_t bClient : 1;
+		uint32_t bUnix : 1;
+		uint32_t bUDP : 1;
 	} flags;
 	PCLIENT pClient;
    PSOCKADDR pAddr;
-   _32 waiting;
-	_64 start;
-	_64 end;
-	_64 accum;
-	_64 passes;
-	_64 min;
-	_64 max;
-	_64 bytes;
+   uint32_t waiting;
+	uint64_t start;
+	uint64_t end;
+	uint64_t accum;
+	uint64_t passes;
+	uint64_t min;
+	uint64_t max;
+	uint64_t bytes;
 
    // buffer to send from...
-   _32 data[4096];
+   uint32_t data[4096];
 } LOCAL;
 static LOCAL l;
 
 #ifdef __WATCOMC__
-extern _64 CPROC GetCPUTicks();
+extern uint64_t CPROC GetCPUTicks();
 #pragma aux GetCPUTicks = "rdtsc"
 
 #define SetTick(var)   ((var) = GetCPUTicks())
@@ -43,7 +43,7 @@ void CPROC UDPClientRead( PCLIENT pc, POINTER buffer, int len, PSOCKADDR sa )
 	}
 	else
 	{
-      _64 del;
+      uint64_t del;
 		SetTick( l.end );
 		l.accum += (del = l.end - l.start);
 		l.passes++;
@@ -65,7 +65,7 @@ void CPROC ClientReadComplete( PCLIENT pc, POINTER buffer, int len )
 	}
 	else
 	{
-      _64 del;
+      uint64_t del;
 		SetTick( l.end );
 		l.accum += (del = l.end - l.start);
 		l.passes++;
@@ -98,7 +98,7 @@ void OpenClient( void )
 	}
 }
 
-void CPROC UDPServerRead( PCLIENT pc, POINTER buffer, _32 len, PSOCKADDR sa )
+void CPROC UDPServerRead( PCLIENT pc, POINTER buffer, uint32_t len, PSOCKADDR sa )
 {
 	if( !buffer )
 	{
@@ -166,7 +166,7 @@ void DumpStats( void )
 void TCPTest1Byte( void )
 {
 	int n;
-   _32 sec = time(NULL);
+   uint32_t sec = time(NULL);
 	//for( n = 0; n < 10000; n++ )
    while( (sec+5) > time(NULL) )
 	{
@@ -185,7 +185,7 @@ void TCPTest1Byte( void )
 void UDPTest1Byte( void )
 {
 	int n;
-   _32 sec = time(NULL);
+   uint32_t sec = time(NULL);
 	while( (sec+5) > time(NULL) )
 	//for( n = 0; n < 10000; n++ )
 	{
@@ -204,7 +204,7 @@ void UDPTest1Byte( void )
 void UDPTest1000Byte( void )
 {
 	int n;
-   _32 sec = time(NULL);
+   uint32_t sec = time(NULL);
 	while( (sec+5) > time(NULL) )
 	//for( n = 0; n < 10000; n++ )
 	{
@@ -222,7 +222,7 @@ void UDPTest1000Byte( void )
 void TCPTest1000Byte( void )
 {
 	int n;
-   _32 sec = time(NULL);
+   uint32_t sec = time(NULL);
 	while( (sec+5) > time(NULL) )
 	//for( n = 0; n < 10000; n++ )
 	{

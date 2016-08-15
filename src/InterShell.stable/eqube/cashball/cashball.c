@@ -64,7 +64,7 @@ static void InitView()
 	SQLDropODBC( odbc );
 }
 
-static void CPROC RefreshProc( PTRSZVAL psvTimer )
+static void CPROC RefreshProc( uintptr_t psvTimer )
 {
 	CTEXTSTR *results;
 	PODBC odbc = SQLGetODBCEx( cashball_local.DSN, cashball_local.user, cashball_local.password );
@@ -133,11 +133,11 @@ static int OnDrawCommon( "Cashball" )( PSI_CONTROL pc )
 {
 	Image surface = GetControlSurface( pc );
 	{
-		_32 now = GetTickCount();
+		uint32_t now = GetTickCount();
 		ClearImageTo( surface, cashball_local.background );
 
 		{
-			_32 w, h;
+			uint32_t w, h;
 			GetStringSizeFontEx( cashball_local.value, StrLen( cashball_local.value ), &w, &h, *cashball_local.font );
 			PutStringFontEx( surface, ( surface->width - w ) / 2, (surface->height - h ) / 2, cashball_local.text, 0, cashball_local.value, StrLen( cashball_local.value ), *cashball_local.font );
 		}
@@ -152,14 +152,14 @@ static int OnCreateCommon( "Cashball" )( PSI_CONTROL pc )
 	return 1;
 }
 
-static PTRSZVAL OnCreateControl( "Cashball" )(PSI_CONTROL parent, S_32 x, S_32 y, _32 w, _32 h)
+static uintptr_t OnCreateControl( "Cashball" )(PSI_CONTROL parent, int32_t x, int32_t y, uint32_t w, uint32_t h)
 {
 	if( !cashball_local.font )
 		cashball_local.font = UseACanvasFont( parent, "Cashball Font" );
-	return (PTRSZVAL)MakeNamedControl( parent, "Cashball", x, y, w, h, 0 );
+	return (uintptr_t)MakeNamedControl( parent, "Cashball", x, y, w, h, 0 );
 }
 
-static PSI_CONTROL OnGetControl( "Cashball" )(PTRSZVAL psv)
+static PSI_CONTROL OnGetControl( "Cashball" )(uintptr_t psv)
 {
 	return (PSI_CONTROL)psv;
 }

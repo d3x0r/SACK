@@ -5,12 +5,12 @@ MSGCLIENT_NAMESPACE
 
 //--------------------------------------------------------------------
 
-int SendInMultiMessageEx( PSERVICE_ROUTE routeID, _32 MsgID, _32 parts, BUFFER_LENGTH_PAIR *pairs DBG_PASS)
+int SendInMultiMessageEx( PSERVICE_ROUTE routeID, uint32_t MsgID, uint32_t parts, BUFFER_LENGTH_PAIR *pairs DBG_PASS)
 {
 	CPOINTER msg;
 	size_t len;
 	size_t ofs;
-	_32 param;
+	uint32_t param;
 	PQMSG MessageOut;
 	// shouldn't use MessageOut probably.. ..
 	// protect msgout against multiple people.. ..
@@ -41,7 +41,7 @@ int SendInMultiMessageEx( PSERVICE_ROUTE routeID, _32 MsgID, _32 parts, BUFFER_L
 		}
 		if( msg && len )
 		{
-			//Log3( WIDE("Adding %d bytes at %d: %08x "), len, ofs, ((P_32)msg)[0] );
+			//Log3( WIDE("Adding %d bytes at %d: %08x "), len, ofs, ((uint32_t*)msg)[0] );
 			MemCpy( ((char*)QMSGDATA(MessageOut)) + ofs, msg, len );
 			ofs += len;
 		}
@@ -60,7 +60,7 @@ int SendInMultiMessageEx( PSERVICE_ROUTE routeID, _32 MsgID, _32 parts, BUFFER_L
 		return !stat;
 	}
 }
-int SendInMultiMessage( PSERVICE_ROUTE routeID, _32 MsgID, _32 parts, BUFFER_LENGTH_PAIR *pairs )
+int SendInMultiMessage( PSERVICE_ROUTE routeID, uint32_t MsgID, uint32_t parts, BUFFER_LENGTH_PAIR *pairs )
 #define SendInMultiMessage(r,m,parts,pairs) SendInMultiMessageEx(r,m,parts,pairs DBG_SRC )
 {
 	return SendInMultiMessage( routeID, MsgID, parts, pairs);
@@ -68,7 +68,7 @@ int SendInMultiMessage( PSERVICE_ROUTE routeID, _32 MsgID, _32 parts, BUFFER_LEN
 
 //--------------------------------------------------------------------
 
-int SendInMessage( PSERVICE_ROUTE routeID, _32 MsgID, POINTER buffer, size_t len )
+int SendInMessage( PSERVICE_ROUTE routeID, uint32_t MsgID, POINTER buffer, size_t len )
 {
 	BUFFER_LENGTH_PAIR pair;
 	pair.buffer = buffer;
@@ -92,14 +92,14 @@ int metamsgrcv( MSGQ_TYPE q, POINTER p, int len, long id, int opt DBG_PASS )
 #endif
 
 static int PrivateSendTransactionResponseMultiMessageEx( PSERVICE_ROUTE DestID
-																, _32 MessageID, _32 buffers
+																, uint32_t MessageID, uint32_t buffers
 																, BUFFER_LENGTH_PAIR *pairs
 																 DBG_PASS )
 #define PrivateSendTransactionResponseMultiMessage(d,m,bu,p) PrivateSendTransactionResponseMultiMessageEx(d,m,bu,p DBG_SRC )
 {
 	CPOINTER msg;
 	size_t len, ofs;
-	_32 param;
+	uint32_t param;
 	int status;
 	PQMSG MessageOut;
 	if( g.flags.disconnected )
@@ -142,7 +142,7 @@ static int PrivateSendTransactionResponseMultiMessageEx( PSERVICE_ROUTE DestID
 		}
 		if( msg && len )
 		{
-			//Log3( WIDE("Adding %d bytes at %d: %08x "), len, ofs, ((P_32)msg)[0] );
+			//Log3( WIDE("Adding %d bytes at %d: %08x "), len, ofs, ((uint32_t*)msg)[0] );
 			MemCpy( ((char*)QMSGDATA( MessageOut )) + ofs, msg, len );
 			ofs += len;
 		}
@@ -150,7 +150,7 @@ static int PrivateSendTransactionResponseMultiMessageEx( PSERVICE_ROUTE DestID
 	// subtract 4 from the offset (the msg_id is not counted)
 	//Log2( WIDE("Sent %d  (%d) bytes"), g.MessageOut[0], ofs - sizeof( MSGIDTYPE ) );
 	// 0 success, non zero failure - return notted state
-				  //lprintf( WIDE("Send Message. %08lX"), *(_32*)g.MessageOut );
+				  //lprintf( WIDE("Send Message. %08lX"), *(uint32_t*)g.MessageOut );
 	//_xlprintf( 1 DBG_RELAY )( "blah." );
 #ifdef LOG_SENT_MESSAGES
 	_lprintf(DBG_RELAY)( "Send is %d", ofs );
@@ -162,42 +162,42 @@ static int PrivateSendTransactionResponseMultiMessageEx( PSERVICE_ROUTE DestID
 
 
 
-CLIENTMSG_PROC( int, SendServerMultiMessage )( PSERVICE_ROUTE RouteID, _32 MessageID, _32 buffers, ... )
+CLIENTMSG_PROC( int, SendServerMultiMessage )( PSERVICE_ROUTE RouteID, uint32_t MessageID, uint32_t buffers, ... )
 {
 	BUFFER_LENGTH_PAIR *pairs = (BUFFER_LENGTH_PAIR*)Allocate( sizeof( BUFFER_LENGTH_PAIR ) * buffers );
-	_32 n;
+	uint32_t n;
 	va_list args;
 	int status;
 	va_start( args, buffers );
 	for( n = 0; n < buffers; n++ )
 	{
 		pairs[n].buffer = va_arg( args, POINTER );
-		pairs[n].len = va_arg( args, _32 );
+		pairs[n].len = va_arg( args, uint32_t );
 	}
 	status = PrivateSendTransactionResponseMultiMessage( RouteID, MessageID, buffers, pairs );
 	Release( pairs );
 	return status;
 }
 
-CLIENTMSG_PROC( int, SendRoutedServerMultiMessage )( PSERVICE_ROUTE RouteID, _32 MessageID, _32 buffers, ... )
+CLIENTMSG_PROC( int, SendRoutedServerMultiMessage )( PSERVICE_ROUTE RouteID, uint32_t MessageID, uint32_t buffers, ... )
 {
 	int status;
 	BUFFER_LENGTH_PAIR *pairs = (BUFFER_LENGTH_PAIR*)Allocate( sizeof( BUFFER_LENGTH_PAIR ) * buffers );
-	_32 n;
+	uint32_t n;
 	va_list args;
 	va_start( args, buffers );
 	for( n = 0; n < buffers; n++ )
 	{
 
 		pairs[n].buffer = va_arg( args, POINTER );
-		pairs[n].len = va_arg( args, _32 );
+		pairs[n].len = va_arg( args, uint32_t );
 	}
 	status = PrivateSendTransactionResponseMultiMessage( RouteID, MessageID, buffers, pairs );
 	Release( pairs );
 	return status;
 }
 
-CLIENTMSG_PROC( int, SendRoutedServerMessage )( PSERVICE_ROUTE RouteID, _32 MessageID, POINTER buffer, size_t len )
+CLIENTMSG_PROC( int, SendRoutedServerMessage )( PSERVICE_ROUTE RouteID, uint32_t MessageID, POINTER buffer, size_t len )
 {
 	int status;
 	BUFFER_LENGTH_PAIR pair;
@@ -207,7 +207,7 @@ CLIENTMSG_PROC( int, SendRoutedServerMessage )( PSERVICE_ROUTE RouteID, _32 Mess
 	return status;
 }
 
-CLIENTMSG_PROC( int, SendServerMessage )( PSERVICE_ROUTE RouteID, _32 MessageID, POINTER msg, size_t len )
+CLIENTMSG_PROC( int, SendServerMessage )( PSERVICE_ROUTE RouteID, uint32_t MessageID, POINTER msg, size_t len )
 {
 	BUFFER_LENGTH_PAIR pair;
    int status;
@@ -222,16 +222,16 @@ CLIENTMSG_PROC( int, SendServerMessage )( PSERVICE_ROUTE RouteID, _32 MessageID,
 // this is used by msg.core.dll - used for forwarding messages
 // to real handlers...
 CLIENTMSG_PROC( int, TransactRoutedServerMultiMessageEx )( PSERVICE_ROUTE RouteID
-																			, MSGIDTYPE MsgOut, _32 buffers
+																			, MSGIDTYPE MsgOut, uint32_t buffers
 																			, MSGIDTYPE *MsgIn
 																			, POINTER BufferIn, size_t *LengthIn
-																			, _32 timeout
+																			, uint32_t timeout
 																			// buffer starts arg list, length is
 																			// not used, but is here for demonstration
 																			, ... )
 {
 	BUFFER_LENGTH_PAIR *pairs = (BUFFER_LENGTH_PAIR*)Allocate( sizeof( BUFFER_LENGTH_PAIR ) * buffers );
-	_32 n;
+	uint32_t n;
 	va_list args;
 	SLEEPER sleeper;
 	int status;
@@ -268,7 +268,7 @@ CLIENTMSG_PROC( int, TransactRoutedServerMultiMessageEx )( PSERVICE_ROUTE RouteI
 	for( n = 0; n < buffers; n++ )
 	{
 		pairs[n].buffer = va_arg( args, POINTER );
-		pairs[n].len = va_arg( args, _32 );
+		pairs[n].len = va_arg( args, uint32_t );
 	}
 	QueueWaitReceiveServerMsg( &sleeper, handler
 											, MsgIn
@@ -309,7 +309,7 @@ struct debug_transact {
 }next_transact;
 
 #undef TransactServerMultiMessage
-CLIENTMSG_PROC( int, TransactServerMultiMessage )( PSERVICE_ROUTE RouteID, MSGIDTYPE MsgOut, _32 buffers
+CLIENTMSG_PROC( int, TransactServerMultiMessage )( PSERVICE_ROUTE RouteID, MSGIDTYPE MsgOut, uint32_t buffers
 										, MSGIDTYPE *MsgIn, POINTER BufferIn, size_t *LengthIn
 										 // buffer starts arg list, length is
 										 // not used, but is here for demonstration
@@ -318,14 +318,14 @@ CLIENTMSG_PROC( int, TransactServerMultiMessage )( PSERVICE_ROUTE RouteID, MSGID
 	SLEEPER sleeper;
 	BUFFER_LENGTH_PAIR *pairs = (BUFFER_LENGTH_PAIR*)Allocate( sizeof( BUFFER_LENGTH_PAIR ) * buffers );
 	PTRANSACTIONHANDLER handler = GetTransactionHandler( RouteID );
-	_32 n;
+	uint32_t n;
 	va_list args;
 	int stat;
 	va_start( args, LengthIn );
 	for( n = 0; n < buffers; n++ )
 	{
 		pairs[n].buffer = va_arg( args, CPOINTER );
-		pairs[n].len = va_arg( args, _32 );
+		pairs[n].len = va_arg( args, uint32_t );
 	}
 	//if( MsgOut == 0x23f )
 	//	DebugBreak();
@@ -401,9 +401,9 @@ CLIENTMSG_PROC( TSMMProto
 }
 
 
-CLIENTMSG_PROC( int, TransactServerMultiMessageEx )( PSERVICE_ROUTE RouteID, MSGIDTYPE MsgOut, _32 buffers
+CLIENTMSG_PROC( int, TransactServerMultiMessageEx )( PSERVICE_ROUTE RouteID, MSGIDTYPE MsgOut, uint32_t buffers
 																	, MSGIDTYPE *MsgIn, POINTER BufferIn, size_t *LengthIn
-																	, _32 timeout
+																	, uint32_t timeout
 																	 // buffer starts arg list, length is
 																	 // not used, but is here for demonstration
 																	, ... )
@@ -411,14 +411,14 @@ CLIENTMSG_PROC( int, TransactServerMultiMessageEx )( PSERVICE_ROUTE RouteID, MSG
 	SLEEPER sleeper;
 	BUFFER_LENGTH_PAIR *pairs = (BUFFER_LENGTH_PAIR*)Allocate( sizeof( BUFFER_LENGTH_PAIR ) * buffers );
 	PTRANSACTIONHANDLER handler = GetTransactionHandler( RouteID );
-	_32 n;
+	uint32_t n;
 	va_list args;
 	int stat;
 	va_start( args, timeout );
 	for( n = 0; n < buffers; n++ )
 	{
 		pairs[n].buffer = va_arg( args, POINTER );
-		pairs[n].len = va_arg( args, _32 );
+		pairs[n].len = va_arg( args, uint32_t );
 	}
 	QueueWaitReceiveServerMsg( &sleeper, handler
 											, MsgIn
@@ -462,7 +462,7 @@ CLIENTMSG_PROC( int, TransactServerMessageEx)( PSERVICE_ROUTE RouteID, MSGIDTYPE
 
 CLIENTMSG_PROC( int, TransactServerMessageExx)( PSERVICE_ROUTE RouteID, MSGIDTYPE MsgOut, CPOINTER BufferOut, size_t LengthOut
 															 , MSGIDTYPE *MsgIn, POINTER BufferIn, size_t *LengthIn
-															  , _32 timeout DBG_PASS )
+															  , uint32_t timeout DBG_PASS )
 {
 #ifdef LOG_SENT_MESSAGES
 #  ifdef _DEBUG

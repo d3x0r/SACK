@@ -10,7 +10,7 @@
 #define BARD_PROC(type,name) IMPORT_METHOD type CPROC name
 #endif
 
-BARD_PROC( int, BARD_RegisterForSimpleEvent )( char *eventname, void (CPROC*eventproc)(PTRSZVAL,char *extra),PTRSZVAL );
+BARD_PROC( int, BARD_RegisterForSimpleEvent )( char *eventname, void (CPROC*eventproc)(uintptr_t,char *extra),uintptr_t );
 BARD_PROC( int, BARD_IssueSimpleEvent )( char *eventname );
 
 

@@ -61,8 +61,8 @@ void CPROC ConnectionClose(PCLIENT pc)
 
 void CPROC ReadComplete( PCLIENT pc, POINTER buffer, size_t size )
 {
-	static _64 LastMessage; // this is safe - only ONE connection EVER
-	_64 test;
+	static uint64_t LastMessage; // this is safe - only ONE connection EVER
+	uint64_t test;
 	int ToRead = 8;
 	if( !buffer )
 	{
@@ -75,31 +75,31 @@ void CPROC ReadComplete( PCLIENT pc, POINTER buffer, size_t size )
      	if( !LastMessage )
      	{
 			Log1( WIDE("Message is: %8.8s"), buffer );
-			if( *(_64*)buffer == *(_64*)"USERLIST" )
+			if( *(uint64_t*)buffer == *(uint64_t*)"USERLIST" )
 			{
 				Log1( WIDE("Message is: USERLIST!!"), buffer );
 				ToRead = 2;
-				LastMessage = *(_64*)buffer;
+				LastMessage = *(uint64_t*)buffer;
 				Log1( WIDE("Last Message is: %8.8s"), &LastMessage );
 			}
-			else if( *(_64*)buffer == *(_64*)"USERDEAD" )
+			else if( *(uint64_t*)buffer == *(uint64_t*)"USERDEAD" )
 			{
 				BasicMessageBox( WIDE("Relay Responce"), WIDE("User has been terminated!") );
 				RemoveClient( pc );
 			}
-			else if( *(_64*)buffer == *(_64*)"ALL DONE" )
+			else if( *(uint64_t*)buffer == *(uint64_t*)"ALL DONE" )
 			{
 				RemoveClient( pc );
 			}
-			else if( *(_64*)buffer == *(_64*)"MESSAGE!" ||
-			         *(_64*)buffer == *(_64*)"WINNERS:" )
+			else if( *(uint64_t*)buffer == *(uint64_t*)"MESSAGE!" ||
+			         *(uint64_t*)buffer == *(uint64_t*)"WINNERS:" )
 			{
 				ToRead = 1;
-				LastMessage = *(_64*)buffer;
+				LastMessage = *(uint64_t*)buffer;
 			}
-			else if( *(_64*)buffer == *(_64*)"MASTERIS" )
+			else if( *(uint64_t*)buffer == *(uint64_t*)"MASTERIS" )
 			{
-				LastMessage = *(_64*)buffer;
+				LastMessage = *(uint64_t*)buffer;
 			}
 			else
 			{
@@ -109,14 +109,14 @@ void CPROC ReadComplete( PCLIENT pc, POINTER buffer, size_t size )
 		else
 		{
 			Log1( WIDE("Continuing message: %8.8s"), &LastMessage );
-			if( LastMessage == *(_64*)"MESSAGE!" ||
-			    LastMessage == *(_64*)"WINNERS:" )
+			if( LastMessage == *(uint64_t*)"MESSAGE!" ||
+			    LastMessage == *(uint64_t*)"WINNERS:" )
 			{
 				Log( WIDE("(1)") );
-				ToRead = *(_8*)buffer;
+				ToRead = *(uint8_t*)buffer;
 				LastMessage++;
 			}
-         else if( (test = ((*(_64*)"WINNERS:")+1)), (LastMessage == test) )
+         else if( (test = ((*(uint64_t*)"WINNERS:")+1)), (LastMessage == test) )
          {
 				PCONTROL pcList = GetControl( frame, LST_WINNERS );
 				TEXTCHAR *winnerlist = (TEXTCHAR*)buffer;
@@ -148,19 +148,19 @@ void CPROC ReadComplete( PCLIENT pc, POINTER buffer, size_t size )
 				} while( endline[0] );
 				LastMessage = 0;
          }
-			else if( (test = ((*(_64*)"MESSAGE!")+1)), (LastMessage == test) )
+			else if( (test = ((*(uint64_t*)"MESSAGE!")+1)), (LastMessage == test) )
 			{
 				Log( WIDE("(2)") );
 				BasicMessageBox( WIDE("Relay Message"), DupCharToText( (char*)buffer ) );
 				LastMessage = 0;
 			}
-			else if( LastMessage == *(_64*)"MASTERIS" )
+			else if( LastMessage == *(uint64_t*)"MASTERIS" )
 			{
-				if( *(_64*)buffer == *(_64*)"ABSENT.." )
+				if( *(uint64_t*)buffer == *(uint64_t*)"ABSENT.." )
 				{
 					SetControlText( GetControl( frame, CHK_MASTER ), WIDE("Game Master is absent") );
 				}
-				else if( *(_64*)buffer == *(_64*)"PRESENT!" )
+				else if( *(uint64_t*)buffer == *(uint64_t*)"PRESENT!" )
 				{
 					SetControlText( GetControl( frame, CHK_MASTER ), WIDE("Game Master is PRESENT") );
 				}
@@ -171,14 +171,14 @@ void CPROC ReadComplete( PCLIENT pc, POINTER buffer, size_t size )
 				LastMessage = 0;
 				RemoveClient( pc );
 			}
-			else if( LastMessage == (*(_64*)"USERLIST") )
+			else if( LastMessage == (*(uint64_t*)"USERLIST") )
 			{
 				Log( WIDE("(3)") );
-				ToRead = *(_16*)buffer;
+				ToRead = *(uint16_t*)buffer;
 				Log1( WIDE("User list with size of %d"), ToRead );
 				LastMessage++;
 			}
-			else if(  (test = ((*(_64*)"USERLIST")+1) ), (LastMessage == test) )
+			else if(  (test = ((*(uint64_t*)"USERLIST")+1) ), (LastMessage == test) )
 			{
 				PCONTROL pcList = GetControl( frame, LST_USERS );
 				TEXTCHAR *userlist = (TEXTCHAR*)buffer;
@@ -208,7 +208,7 @@ void CPROC ReadComplete( PCLIENT pc, POINTER buffer, size_t size )
 						endname[0] = 0;
 						realname = NewArray( TEXTCHAR, ( endname - userlist ) + 1 );
 						StrCpyEx( realname, userlist, max( ( endname - userlist ), size ) );
-						SetItemData( hli, (PTRSZVAL)realname );
+						SetItemData( hli, (uintptr_t)realname );
 			   		endline++;
 				   	userlist = endline;
 				   }
@@ -260,7 +260,7 @@ PCLIENT ConnectToRelay( PCLIENT *pc )
 }
 
 
-void CPROC GetUserButton(PTRSZVAL psv, PCONTROL pcButton)
+void CPROC GetUserButton(uintptr_t psv, PCONTROL pcButton)
 {
 	PCLIENT pc;
 	ConnectToRelay( &pc );
@@ -272,7 +272,7 @@ void CPROC GetUserButton(PTRSZVAL psv, PCONTROL pcButton)
 	}
 }
 
-void CPROC KillRelayButton(PTRSZVAL psv, PCONTROL pcButton)
+void CPROC KillRelayButton(uintptr_t psv, PCONTROL pcButton)
 {
 	PCLIENT pc;
 	int i = 0;
@@ -294,7 +294,7 @@ void CPROC KillRelayButton(PTRSZVAL psv, PCONTROL pcButton)
 	}
 }
 
-void CPROC KillUserButton(PTRSZVAL psv, PCONTROL pcButton)
+void CPROC KillUserButton(uintptr_t psv, PCONTROL pcButton)
 {
 	PCLIENT pc;
 	ConnectToRelay( &pc );
@@ -312,7 +312,7 @@ void CPROC KillUserButton(PTRSZVAL psv, PCONTROL pcButton)
 	}
 }
 
-void CPROC RebootUserButton(PTRSZVAL psv, PCONTROL pcButton)
+void CPROC RebootUserButton(uintptr_t psv, PCONTROL pcButton)
 {
 	PCLIENT pc;
 	ConnectToRelay( &pc );
@@ -330,7 +330,7 @@ void CPROC RebootUserButton(PTRSZVAL psv, PCONTROL pcButton)
 	}
 }
 
-void CPROC ScanUserButton(PTRSZVAL psv, PCONTROL pcButton)
+void CPROC ScanUserButton(uintptr_t psv, PCONTROL pcButton)
 {
 	PCLIENT pc;
 	ConnectToRelay( &pc );
@@ -348,7 +348,7 @@ void CPROC ScanUserButton(PTRSZVAL psv, PCONTROL pcButton)
 	}
 }
 
-void CPROC UpdateUserButton(PTRSZVAL psv, PCONTROL pcButton)
+void CPROC UpdateUserButton(uintptr_t psv, PCONTROL pcButton)
 {
 	PCLIENT pc;
 	ConnectToRelay( &pc );
@@ -366,7 +366,7 @@ void CPROC UpdateUserButton(PTRSZVAL psv, PCONTROL pcButton)
 	}
 }
 
-void CPROC ScanAllButton(PTRSZVAL psv, PCONTROL pcButton)
+void CPROC ScanAllButton(uintptr_t psv, PCONTROL pcButton)
 {
 	PCLIENT pc;
 	ConnectToRelay( &pc );
@@ -381,7 +381,7 @@ void CPROC ScanAllButton(PTRSZVAL psv, PCONTROL pcButton)
 	}
 }
 
-void CPROC GetMasterStatusButton(PTRSZVAL psv, PCONTROL pcButton)
+void CPROC GetMasterStatusButton(uintptr_t psv, PCONTROL pcButton)
 {
 	PCLIENT pc;
 	ConnectToRelay( &pc );
@@ -394,7 +394,7 @@ void CPROC GetMasterStatusButton(PTRSZVAL psv, PCONTROL pcButton)
 }
 
 
-void CPROC UpdateAllButton(PTRSZVAL psv, PCONTROL pcButton)
+void CPROC UpdateAllButton(uintptr_t psv, PCONTROL pcButton)
 {
 	PCLIENT pc;
 	ConnectToRelay( &pc );
@@ -406,7 +406,7 @@ void CPROC UpdateAllButton(PTRSZVAL psv, PCONTROL pcButton)
 	}
 }
 
-void CPROC RequestWinnersButton(PTRSZVAL psv, PCONTROL pcButton)
+void CPROC RequestWinnersButton(uintptr_t psv, PCONTROL pcButton)
 {
 	PCLIENT pc;
 	ConnectToRelay( &pc );

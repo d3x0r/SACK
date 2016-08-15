@@ -27,13 +27,13 @@
 typedef struct received_event_tag
 {
 	char *data;
-   _32 tick;
+   uint32_t tick;
 }RECEIVED_EVENT, *PRECEIVED_EVENT;
 
 typedef struct simple_event_tag
 {
-	_32 source_id;
-   _32 event_id;
+	uint32_t source_id;
+   uint32_t event_id;
    char *name;
    SOCKADDR *sa;
 } SIMPLE_EVENT, *PSIMPLE_EVENT;
@@ -53,9 +53,9 @@ typedef struct simple_remote_event_tag
 typedef struct bard_local_tag
 {
 	struct {
-		_32 bExit : 1;
+		uint32_t bExit : 1;
 	} flags;
-	_32 MsgBase;  //the BaseID is generated from Registering as a Service.
+	uint32_t MsgBase;  //the BaseID is generated from Registering as a Service.
 	LOGICAL bExit;  //The MiscExit sets this to false, which causes fallout from main loop and exit.
 	PTHREAD pMainThread; // the main thread pointer.
 	PCLIENT pcService;  // a UDP socket to send and receive events to other peer BARD services
@@ -87,16 +87,16 @@ static void ExitBardService( void )
 //
 //  PARAMETERS:		Name		Description
 //					------------------------------------------------------
-//             _32 *params   A pointer to anything, this is Application Defined, too.
-//             _32 param_length  The length of the data pointed to.
-//             _32 *result   The callback must write to this buffer to acknowledge the event.
-//             _32 *result_length The length of the acknowledge.
+//             uint32_t *params   A pointer to anything, this is Application Defined, too.
+//             uint32_t param_length  The length of the data pointed to.
+//             uint32_t *result   The callback must write to this buffer to acknowledge the event.
+//             uint32_t *result_length The length of the acknowledge.
 //
 //
 //************************************************************************
 
-static int CPROC HandleConnectionToThisService( _32 *params, _32 param_length
-															 , _32 *result, _32 *result_length )
+static int CPROC HandleConnectionToThisService( uint32_t *params, uint32_t param_length
+															 , uint32_t *result, uint32_t *result_length )
 {
 	xlprintf(LOG_ALWAYS)("MessageHandler:MateStarted" );
 	// params[-1] is the source ID of this message
@@ -114,14 +114,14 @@ static int CPROC HandleConnectionToThisService( _32 *params, _32 param_length
 	// also result with the number of unique event messages this service will generate
 	result[1] = MSG_LASTEVENT;
    // result with the size of the result correctly.
-	(*result_length) = sizeof( _32[2] );
+	(*result_length) = sizeof( uint32_t[2] );
    // return success code
    return 1;
 }
 
 
-static int CPROC HandleDisconnectionFromThisService( _32 *params, _32 param_length
-																	, _32 *result, _32 *result_length )
+static int CPROC HandleDisconnectionFromThisService( uint32_t *params, uint32_t param_length
+																	, uint32_t *result, uint32_t *result_length )
 {
 	xlprintf(LOG_ALWAYS)("MessageHandler:MateEnded");
 	// params[-1] is the source ID of this message
@@ -222,13 +222,13 @@ static void DispatchSimpleEvent( char *eventname )
 //
 //  PARAMETERS:		Name		Description
 //					------------------------------------------------------
-//             _32 *params
+//             uint32_t *params
 //                 [0] = client event id
 //                  +1 = a character string
-//             _32 param_length  The length of the string pointed to.
-//             _32 *result
+//             uint32_t param_length  The length of the string pointed to.
+//             uint32_t *result
 //                        result[0] = a unique handle to the event(not 0)
-//             _32 *result_length  sizeof( result[0] )
+//             uint32_t *result_length  sizeof( result[0] )
 //
 //
 //************************************************************************
@@ -237,7 +237,7 @@ static void DispatchSimpleEvent( char *eventname )
 // source_id is the message service ID that wants this event...
 // saSource is the network address of a system that has someone that wants this event...
 // name is the event name...
-void CreateSimpleEvent( _32 event_id, _32 source_id, SOCKADDR *saSource, char *name )
+void CreateSimpleEvent( uint32_t event_id, uint32_t source_id, SOCKADDR *saSource, char *name )
 {
 	// identify the client as a wanting recipient of this message
 	// (by name)
@@ -259,8 +259,8 @@ void CreateSimpleEvent( _32 event_id, _32 source_id, SOCKADDR *saSource, char *n
 }
 
 
-static int CPROC HandleRegisterSimpleEvent( _32 *params, _32 param_length
-														, _32 *result, _32 *result_length )
+static int CPROC HandleRegisterSimpleEvent( uint32_t *params, uint32_t param_length
+														, uint32_t *result, uint32_t *result_length )
 {
 	// identify the client as a wanting recipient of this message
 	// (by name)
@@ -277,19 +277,19 @@ static int CPROC HandleRegisterSimpleEvent( _32 *params, _32 param_length
 //
 //  PARAMETERS:		Name		Description
 //					------------------------------------------------------
-//             _32 *params
+//             uint32_t *params
 //                  params[0] = the handle of the service and
 //                  params+1  = a character string
-//             _32 param_length  (appropriate length)
-//             _32 *result        no result
+//             uint32_t param_length  (appropriate length)
+//             uint32_t *result        no result
 //                        result[0] = a unique handle to the event(not 0)
-//             _32 *result_length  INVALID_INDEX (no data)
+//             uint32_t *result_length  INVALID_INDEX (no data)
 //
 //
 //************************************************************************
 
-static int CPROC HandleIssueSimpleEvent( _32 *params, _32 param_length
-													, _32 *result, _32 *result_length )
+static int CPROC HandleIssueSimpleEvent( uint32_t *params, uint32_t param_length
+													, uint32_t *result, uint32_t *result_length )
 {
 	char msg[256];
 	int ofs;
@@ -432,7 +432,7 @@ void CPROC UDPReceive( PCLIENT pc, POINTER buffer, int size, SOCKADDR *source )
 		}
 
       lprintf( WIDE("Received UDP buffer") );
-		LogBinary( (P_8)buffer, size );
+		LogBinary( (uint8_t*)buffer, size );
 
 		if( ( chars = TEST_MESSAGE( WIDE("register simple event:") ) ) )
 		{
@@ -500,7 +500,7 @@ WINPROC( long, WndProc )( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam )
 }
 
 
-int CPROC MyIdle( PTRSZVAL psv )
+int CPROC MyIdle( uintptr_t psv )
 {
 	MSG msg;
 
@@ -524,7 +524,7 @@ int CPROC MyIdle( PTRSZVAL psv )
 
 #endif
 
-void CPROC CheckEventTimer( PTRSZVAL psv )
+void CPROC CheckEventTimer( uintptr_t psv )
 {
 	INDEX idx;
 	PRECEIVED_EVENT event;

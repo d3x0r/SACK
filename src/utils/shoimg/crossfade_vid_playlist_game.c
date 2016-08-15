@@ -20,7 +20,7 @@
 struct video_player {
 	PRENDERER surface;
 	struct my_vlc_interface *vlc;
-	_32 fade_in_time;
+	uint32_t fade_in_time;
 	int playing;  // if stopped, don't re-stop
 	int paused;
 };
@@ -29,8 +29,8 @@ typedef struct video_element {
 	int type;
 	struct video_player *player;
 	Image image;
-	_32 fade_in;
-	_32 display_time; // how long to next image
+	uint32_t fade_in;
+	uint32_t display_time; // how long to next image
 };
 
 typedef struct video_sequence {
@@ -51,9 +51,9 @@ typedef struct global_tag {
 	{
 		BIT_FIELD bBlacking : 1;
 	}flags;
-	_32 enable_code;
+	uint32_t enable_code;
 
-	_32 tick_to_switch;
+	uint32_t tick_to_switch;
 
 	int default_show_time; // how long to show the iamge after fading in.
 	int fade_in; // how long fade out is..
@@ -67,8 +67,8 @@ typedef struct global_tag {
 	PRENDERER displays[2];
 	struct video_sequence *current_list[2];
 
-	_32 target_in;
-	_32 target_in_start;  //
+	uint32_t target_in;
+	uint32_t target_in_start;  //
 
 	PRENDERER prior_up;
 	struct video_element *prior_video;
@@ -84,13 +84,13 @@ typedef struct global_tag {
 
 	PCLIENT host_socket;
 
-	_32 next_chain;
-	_32 want_next_chain;
-	_32 last_received;
+	uint32_t next_chain;
+	uint32_t want_next_chain;
+	uint32_t last_received;
 
 	LOGICAL attract_mode;
-	_32 number_collector;
-	_32 value_collector[64];
+	uint32_t number_collector;
+	uint32_t value_collector[64];
 	int value_collect_index;
 	int begin_card;
 
@@ -99,12 +99,12 @@ typedef struct global_tag {
 	int prize_total;
 	struct mersenne_rng *rng;
 
-	_32 _b;
+	uint32_t _b;
 } GLOBAL;
 static GLOBAL g;
 
 
-void CPROC Output( PTRSZVAL psv, PRENDERER display )
+void CPROC Output( uintptr_t psv, PRENDERER display )
 {
 	if( g.is_up[psv] )
 	{
@@ -140,7 +140,7 @@ struct video_sequence *GetSequenceEx( int ID, LOGICAL bCreate )
 	return seq;
 }
 
-void BeginNewChain( _32 tick )
+void BeginNewChain( uint32_t tick )
 {
 	// if I'm in a transition, don't do this, otherwise we're not in
 	// a transition, and can now start a new transition.
@@ -172,7 +172,7 @@ void BeginNewChain( _32 tick )
 	}
 }
 
-void BeginFadeIn( _32 tick_start, _32 tick )
+void BeginFadeIn( uint32_t tick_start, uint32_t tick )
 {
 	LOGICAL play_and_hold;
 	struct video_sequence *current_seq = g.current_list[g.next_up];
@@ -214,7 +214,7 @@ void BeginFadeIn( _32 tick_start, _32 tick )
 
 }
 
-void ContinueFadeIn( _32 tick )
+void ContinueFadeIn( uint32_t tick )
 {
 	//lprintf( "something %d %d %d", g.target_in, tick, g.target_in - tick );
 	if( g.target_in && tick > g.target_in )
@@ -313,10 +313,10 @@ void ContinueFadeIn( _32 tick )
 	}
 }
 
-void CPROC tick( PTRSZVAL psv )
+void CPROC tick( uintptr_t psv )
 {
 
-	_32 now = timeGetTime();
+	uint32_t now = timeGetTime();
 
 	if( g.next_chain )
 	{
@@ -341,7 +341,7 @@ void CPROC tick( PTRSZVAL psv )
 	}
 }
 
-static void CPROC OnStopFade( PTRSZVAL psv )
+static void CPROC OnStopFade( uintptr_t psv )
 {
 	struct video_player *player = (struct video_player*)psv;
 	player->playing = 0;
@@ -355,7 +355,7 @@ static void CPROC OnStopFade( PTRSZVAL psv )
 	StopItem( player->vlc );
 }
 
-static int CPROC MouseMethod( PTRSZVAL psvMouse, S_32 x, S_32 y , _32 b )
+static int CPROC MouseMethod( uintptr_t psvMouse, int32_t x, int32_t y , uint32_t b )
 {
 	struct video_player *player = (struct video_player *)psvMouse;
 	if( player )
@@ -379,9 +379,9 @@ static struct video_element *LoadVideo( struct video_sequence *seq, CTEXTSTR fil
 													, g.x //0
 													, g.y //0
 													);
-	SetMouseHandler( player->surface, MouseMethod, (PTRSZVAL)player );
+	SetMouseHandler( player->surface, MouseMethod, (uintptr_t)player );
 	player->vlc = PlayItemOnEx( player->surface, file, WIDE("--repeat --loop") );
-	SetStopEvent( player->vlc, OnStopFade, (PTRSZVAL)player );
+	SetStopEvent( player->vlc, OnStopFade, (uintptr_t)player );
 
 	// only used if there is only 1 video - just show video.
 	AddLink( &g.video_displays, player );
@@ -400,15 +400,15 @@ static struct video_element *LoadVideo( struct video_sequence *seq, CTEXTSTR fil
 }
 
 
-static PTRSZVAL CPROC AddVideo( PTRSZVAL psv, arg_list args )
+static uintptr_t CPROC AddVideo( uintptr_t psv, arg_list args )
 {
-	PARAM( args, S_64, list_id );
-	PARAM( args, S_64, fade_in );
-	PARAM( args, S_64, play_length );
+	PARAM( args, int64_t, list_id );
+	PARAM( args, int64_t, fade_in );
+	PARAM( args, int64_t, play_length );
 	PARAM( args, CTEXTSTR, filename );
 	struct video_sequence *seq = GetSequence( (int)list_id );
 	//lprintf( WIDE( "adding video %s" ), filename );
-	g.next_fade_in = (_32)play_length;
+	g.next_fade_in = (uint32_t)play_length;
 
 	if( StrCaseStr( filename, WIDE(".jpg") ) ||
 		StrCaseStr( filename, WIDE(".jpeg") ) ||
@@ -424,8 +424,8 @@ static PTRSZVAL CPROC AddVideo( PTRSZVAL psv, arg_list args )
 			element->player = NULL;
 			element->type = 1;
 
-			element->display_time = (_32)play_length;
-			element->fade_in = (_32)fade_in;
+			element->display_time = (uint32_t)play_length;
+			element->fade_in = (uint32_t)fade_in;
 
 			AddLink( &seq->images, element );
 			g.nTotalImages++;
@@ -436,30 +436,30 @@ static PTRSZVAL CPROC AddVideo( PTRSZVAL psv, arg_list args )
 	{
 		struct video_element *element = LoadVideo( seq, filename );
 
-		element->display_time = (_32)play_length;
-		element->fade_in = (_32)fade_in;
+		element->display_time = (uint32_t)play_length;
+		element->fade_in = (uint32_t)fade_in;
 	}
 	return psv;
 }
 
-static PTRSZVAL CPROC SetDefaultShowTime( PTRSZVAL psv, arg_list args )
+static uintptr_t CPROC SetDefaultShowTime( uintptr_t psv, arg_list args )
 {
-	PARAM( args, S_64, delay );
+	PARAM( args, int64_t, delay );
 	g.default_show_time = (int)delay;
 	return psv;
 }
 
-static PTRSZVAL CPROC SetDefaultFadeInTime( PTRSZVAL psv, arg_list args )
+static uintptr_t CPROC SetDefaultFadeInTime( uintptr_t psv, arg_list args )
 {
-	PARAM( args, S_64, delay );
+	PARAM( args, int64_t, delay );
 	g.default_fade_in = (int)delay;
 	return psv;
 }
 
-static PTRSZVAL CPROC SetDefaultPrizeCount( PTRSZVAL psv, arg_list args )
+static uintptr_t CPROC SetDefaultPrizeCount( uintptr_t psv, arg_list args )
 {
-	PARAM( args, S_64, index );
-	PARAM( args, S_64, count );
+	PARAM( args, int64_t, index );
+	PARAM( args, int64_t, count );
 	TEXTCHAR value[32];
 	struct video_sequence *seq = GetSequence( (int)index );
 	tnprintf( value, 32, "%d", (int)index );
@@ -470,37 +470,37 @@ static PTRSZVAL CPROC SetDefaultPrizeCount( PTRSZVAL psv, arg_list args )
 
 static void AddRules( PCONFIG_HANDLER pch );
 
-static PTRSZVAL CPROC ProcessConfig( PTRSZVAL psv, arg_list args )
+static uintptr_t CPROC ProcessConfig( uintptr_t psv, arg_list args )
 {
 	PARAM( args, size_t, length );
 	PARAM( args, CPOINTER, data );
-	P_8 realdata;
+	uint8_t* realdata;
 	size_t reallength;
 	PCONFIG_HANDLER pch = CreateConfigurationHandler();
 	AddRules( pch );
-	SRG_DecryptRawData( (P_8)data, length, &realdata, &reallength );
+	SRG_DecryptRawData( (uint8_t*)data, length, &realdata, &reallength );
 	ProcessConfigurationInput( pch, (CTEXTSTR)realdata, reallength, 0 );
 	DestroyConfigurationEvaluator( pch );
 	return psv;
 }
 
-static PTRSZVAL CPROC SetStartCharacter( PTRSZVAL psv, arg_list args )
+static uintptr_t CPROC SetStartCharacter( uintptr_t psv, arg_list args )
 {
 	PARAM( args, char*, data );
    g.card_begin_char = data[0];
    return psv;
 }
 
-static PTRSZVAL CPROC SetEndCharacter( PTRSZVAL psv, arg_list args )
+static uintptr_t CPROC SetEndCharacter( uintptr_t psv, arg_list args )
 {
 	PARAM( args, char*, data );
    g.card_end_char = data[0];
    return psv;
 }
 
-static PTRSZVAL CPROC SetPrizeName( PTRSZVAL psv, arg_list args )
+static uintptr_t CPROC SetPrizeName( uintptr_t psv, arg_list args )
 {
-	PARAM( args, S_64, index );
+	PARAM( args, int64_t, index );
 	PARAM( args, CTEXTSTR, data );
 
 	struct video_sequence *seq = GetSequence( (int)index );
@@ -508,9 +508,9 @@ static PTRSZVAL CPROC SetPrizeName( PTRSZVAL psv, arg_list args )
    return psv;
 }
 
-static PTRSZVAL CPROC SetSwipeEnable( PTRSZVAL psv, arg_list args )
+static uintptr_t CPROC SetSwipeEnable( uintptr_t psv, arg_list args )
 {
-	PARAM( args, S_64, data );
+	PARAM( args, int64_t, data );
    g.enable_code = data;
    return psv;
 }
@@ -538,8 +538,8 @@ static void ReadConfigFile( CTEXTSTR filename )
 
 static void PickPrize( void )
 {
-	_32 rand = genrand_int32( g.rng );
-	_32 value = ( (_64)g.prize_total * (_64)rand ) / 0xFFFFFFFF;
+	uint32_t rand = genrand_int32( g.rng );
+	uint32_t value = ( (uint64_t)g.prize_total * (uint64_t)rand ) / 0xFFFFFFFF;
 	struct video_sequence *seq;
 	INDEX idx;
 	//lprintf( "got numbr %d %d", rand, value );
@@ -568,9 +568,9 @@ static void PickPrize( void )
 	}
 }
 
-static LOGICAL CPROC PressSomeKey( PTRSZVAL psv, _32 key_code )
+static LOGICAL CPROC PressSomeKey( uintptr_t psv, uint32_t key_code )
 {
-	static _32 _tick, tick;
+	static uint32_t _tick, tick;
 	static int reset = 0;
 	static int reset2 = 0;
 	static int reset3 = 0;
@@ -641,8 +641,8 @@ static LOGICAL CPROC PressSomeKey( PTRSZVAL psv, _32 key_code )
 SaneWinMain(argc, argv )
 //int main( int argc, char **argv )
 {
-	_32 width, height;
-	S_32 x, y;
+	uint32_t width, height;
+	int32_t x, y;
 	g.pdi = GetDisplayInterface();
 	g.pii = GetImageInterface();
 	RegisterIcon( NULL );
@@ -654,7 +654,7 @@ SaneWinMain(argc, argv )
 	g.y = y;
 
 	{
-		_32 tick = timeGetTime();
+		uint32_t tick = timeGetTime();
 		g.rng = init_by_array( &tick, 1 );
 	}
 
@@ -708,26 +708,26 @@ SaneWinMain(argc, argv )
 		int n;
 		for( n = 0; n < 256; n++ )
 		{
-			BindEventToKey( NULL, n, 0, PressSomeKey, (PTRSZVAL)0 );
-			BindEventToKey( NULL, n, KEY_MOD_SHIFT, PressSomeKey, (PTRSZVAL)0 );
+			BindEventToKey( NULL, n, 0, PressSomeKey, (uintptr_t)0 );
+			BindEventToKey( NULL, n, KEY_MOD_SHIFT, PressSomeKey, (uintptr_t)0 );
 		}
 	}
    /*
-	BindEventToKey( NULL, KEY_0, 0, PressSomeKey, (PTRSZVAL)0 );
-	BindEventToKey( NULL, KEY_1, 0, PressSomeKey, (PTRSZVAL)1 );
-	BindEventToKey( NULL, KEY_2, 0, PressSomeKey, (PTRSZVAL)2 );
-	BindEventToKey( NULL, KEY_3, 0, PressSomeKey, (PTRSZVAL)3 );
-	BindEventToKey( NULL, KEY_4, 0, PressSomeKey, (PTRSZVAL)4 );
-	BindEventToKey( NULL, KEY_5, 0, PressSomeKey, (PTRSZVAL)5 );
-	BindEventToKey( NULL, KEY_6, 0, PressSomeKey, (PTRSZVAL)6 );
-	BindEventToKey( NULL, KEY_7, 0, PressSomeKey, (PTRSZVAL)7 );
-	BindEventToKey( NULL, KEY_8, 0, PressSomeKey, (PTRSZVAL)8 );
-	BindEventToKey( NULL, KEY_9, 0, PressSomeKey, (PTRSZVAL)9 );
-	BindEventToKey( NULL, KEY_9, 0, PressSomeKey, (PTRSZVAL)9 );
-	BindEventToKey( NULL, KEY_5, KEY_MOD_SHIFT, PressSomeKey, (PTRSZVAL)10 );
+	BindEventToKey( NULL, KEY_0, 0, PressSomeKey, (uintptr_t)0 );
+	BindEventToKey( NULL, KEY_1, 0, PressSomeKey, (uintptr_t)1 );
+	BindEventToKey( NULL, KEY_2, 0, PressSomeKey, (uintptr_t)2 );
+	BindEventToKey( NULL, KEY_3, 0, PressSomeKey, (uintptr_t)3 );
+	BindEventToKey( NULL, KEY_4, 0, PressSomeKey, (uintptr_t)4 );
+	BindEventToKey( NULL, KEY_5, 0, PressSomeKey, (uintptr_t)5 );
+	BindEventToKey( NULL, KEY_6, 0, PressSomeKey, (uintptr_t)6 );
+	BindEventToKey( NULL, KEY_7, 0, PressSomeKey, (uintptr_t)7 );
+	BindEventToKey( NULL, KEY_8, 0, PressSomeKey, (uintptr_t)8 );
+	BindEventToKey( NULL, KEY_9, 0, PressSomeKey, (uintptr_t)9 );
+	BindEventToKey( NULL, KEY_9, 0, PressSomeKey, (uintptr_t)9 );
+	BindEventToKey( NULL, KEY_5, KEY_MOD_SHIFT, PressSomeKey, (uintptr_t)10 );
 
-	BindEventToKey( NULL, KEY_SEMICOLON, 0, PressSomeKey, (PTRSZVAL)10 );
-	BindEventToKey( NULL, KEY_SLASH, KEY_MOD_SHIFT, PressSomeKey, (PTRSZVAL)11 );
+	BindEventToKey( NULL, KEY_SEMICOLON, 0, PressSomeKey, (uintptr_t)10 );
+	BindEventToKey( NULL, KEY_SLASH, KEY_MOD_SHIFT, PressSomeKey, (uintptr_t)11 );
    */
 	{
 		struct video_sequence *sequence;
@@ -748,8 +748,8 @@ SaneWinMain(argc, argv )
 														 , g.x //0
 														 , g.y //0
 														 );
-			SetMouseHandler( g.displays[1], MouseMethod, (PTRSZVAL)0 );
-			SetMouseHandler( g.displays[1], MouseMethod, (PTRSZVAL)0 );
+			SetMouseHandler( g.displays[1], MouseMethod, (uintptr_t)0 );
+			SetMouseHandler( g.displays[1], MouseMethod, (uintptr_t)0 );
 
 			SetRedrawHandler( g.displays[0], Output, 0 );
 			SetRedrawHandler( g.displays[1], Output, 1 );

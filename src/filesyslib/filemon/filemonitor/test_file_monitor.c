@@ -3,7 +3,7 @@
 #include <filemon.h>
 
 
-static int CPROC ShowChange( PTRSZVAL psv, CTEXTSTR filepath, int deleted )
+static int CPROC ShowChange( uintptr_t psv, CTEXTSTR filepath, int deleted )
 {
 	printf( WIDE("%9ld %s changed%s\n"), timeGetTime(), filepath, deleted?WIDE("(deleted)"):WIDE("") );
 	lprintf( WIDE("%s changed%s\n"), filepath, deleted?WIDE("(deleted)"):WIDE("") );

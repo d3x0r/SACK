@@ -36,32 +36,32 @@ IMAGE_NAMESPACE
 #if !defined( _WINGDI_H ) && !defined( _WINGDI_ ) && !defined( UNDER_CE )
 
 typedef PREFIX_PACKED struct tagBITMAPFILEHEADER { // bmfh
-   _16    bfType;
-   _32    bfSize;
-   _16    bfReserved1;
-   _16    bfReserved2;
-   _32    bfOffBits;
+   uint16_t    bfType;
+   uint32_t    bfSize;
+   uint16_t    bfReserved1;
+   uint16_t    bfReserved2;
+   uint32_t    bfOffBits;
 } PACKED BITMAPFILEHEADER;
 
 typedef PREFIX_PACKED struct tagBITMAPINFOHEADER{ // bmih
-   _32   biSize;
-   S_32  biWidth;
-   S_32  biHeight;
-   _16   biPlanes;
-   _16   biBitCount;
-   _32   biCompression;
-   _32   biSizeImage;
-   S_32  biXPelsPerMeter;
-   S_32  biYPelsPerMeter;
-   _32   biClrUsed;
-   _32   biClrImportant;
+   uint32_t   biSize;
+   int32_t  biWidth;
+   int32_t  biHeight;
+   uint16_t   biPlanes;
+   uint16_t   biBitCount;
+   uint32_t   biCompression;
+   uint32_t   biSizeImage;
+   int32_t  biXPelsPerMeter;
+   int32_t  biYPelsPerMeter;
+   uint32_t   biClrUsed;
+   uint32_t   biClrImportant;
 } PACKED BITMAPINFOHEADER;
 
 typedef PREFIX_PACKED struct tagRGBQUAD { // rgbq
-    _8    rgbBlue;
-    _8    rgbGreen;
-    _8    rgbRed;
-    _8    rgbReserved;
+    uint8_t    rgbBlue;
+    uint8_t    rgbGreen;
+    uint8_t    rgbRed;
+    uint8_t    rgbReserved;
 } PACKED RGBQUAD;
 
 #if 0  /* not used anymore... */
@@ -88,26 +88,26 @@ typedef struct tagCIEXYZTRIPLE {
 
 //#if(WINVER >= 0x0400)
 typedef struct {
-        _32        bV4Size;
-        S_32       bV4Width;
-        S_32       bV4Height;
-        _16        bV4Planes;
-        _16        bV4BitCount;
-        _32        bV4V4Compression;
-        _32        bV4SizeImage;
-        S_32       bV4XPelsPerMeter;
-        S_32       bV4YPelsPerMeter;
-        _32        bV4ClrUsed;
-        _32        bV4ClrImportant;
-        _32        bV4RedMask;
-        _32        bV4GreenMask;
-        _32        bV4BlueMask;
-        _32        bV4AlphaMask;
-        _32        bV4CSType;
+        uint32_t        bV4Size;
+        int32_t       bV4Width;
+        int32_t       bV4Height;
+        uint16_t        bV4Planes;
+        uint16_t        bV4BitCount;
+        uint32_t        bV4V4Compression;
+        uint32_t        bV4SizeImage;
+        int32_t       bV4XPelsPerMeter;
+        int32_t       bV4YPelsPerMeter;
+        uint32_t        bV4ClrUsed;
+        uint32_t        bV4ClrImportant;
+        uint32_t        bV4RedMask;
+        uint32_t        bV4GreenMask;
+        uint32_t        bV4BlueMask;
+        uint32_t        bV4AlphaMask;
+        uint32_t        bV4CSType;
         CIEXYZTRIPLE bV4Endpoints;
-        _32        bV4GammaRed;
-        _32        bV4GammaGreen;
-        _32        bV4GammaBlue;
+        uint32_t        bV4GammaRed;
+        uint32_t        bV4GammaGreen;
+        uint32_t        bV4GammaBlue;
 } BITMAPV4HEADER, FAR *LPBITMAPV4HEADER, *PBITMAPV4HEADER;
 //#endif /* WINVER >= 0x0400 */
 #endif
@@ -129,30 +129,30 @@ typedef struct tagCIEXYZTRIPLE {
 } CIEXYZTRIPLE;
 #endif
 typedef struct {
-        _32        bV5Size;
-        S_32       bV5Width;
-        S_32       bV5Height;
-        _16        bV5Planes;
-        _16        bV5BitCount;
-        _32        bV5Compression;
-        _32        bV5SizeImage;
-        S_32       bV5XPelsPerMeter;
-        S_32       bV5YPelsPerMeter;
-        _32        bV5ClrUsed;
-        _32        bV5ClrImportant;
-        _32        bV5RedMask;
-        _32        bV5GreenMask;
-        _32        bV5BlueMask;
-        _32        bV5AlphaMask;
-        _32        bV5CSType;
+        uint32_t        bV5Size;
+        int32_t       bV5Width;
+        int32_t       bV5Height;
+        uint16_t        bV5Planes;
+        uint16_t        bV5BitCount;
+        uint32_t        bV5Compression;
+        uint32_t        bV5SizeImage;
+        int32_t       bV5XPelsPerMeter;
+        int32_t       bV5YPelsPerMeter;
+        uint32_t        bV5ClrUsed;
+        uint32_t        bV5ClrImportant;
+        uint32_t        bV5RedMask;
+        uint32_t        bV5GreenMask;
+        uint32_t        bV5BlueMask;
+        uint32_t        bV5AlphaMask;
+        uint32_t        bV5CSType;
         CIEXYZTRIPLE bV5Endpoints;
-        _32        bV5GammaRed;
-        _32        bV5GammaGreen;
-        _32        bV5GammaBlue;
-        _32        bV5Intent;
-        _32        bV5ProfileData;
-        _32        bV5ProfileSize;
-        _32        bV5Reserved;
+        uint32_t        bV5GammaRed;
+        uint32_t        bV5GammaGreen;
+        uint32_t        bV5GammaBlue;
+        uint32_t        bV5Intent;
+        uint32_t        bV5ProfileData;
+        uint32_t        bV5ProfileSize;
+        uint32_t        bV5Reserved;
 } BITMAPV5HEADER, FAR *LPBITMAPV5HEADER, *PBITMAPV5HEADER;
 //#endif WINVer > 0X50
 
@@ -174,11 +174,11 @@ typedef PREFIX_PACKED struct tagBITMAPV5INFO { // bmi
 //RGBQUAD          aColors[];
 //BYTE             aBitmapBits[];
 
-static ImageFile *Bitmap5ToImageFile( BITMAPV5HEADER *pbm, P_8 data )
+static ImageFile *Bitmap5ToImageFile( BITMAPV5HEADER *pbm, uint8_t* data )
 {
    ImageFile *pif;
-   _32 *dwPalette;
-   P_8 pColor;
+   uint32_t *dwPalette;
+   uint8_t* pColor;
 	int x, y, w, h;
    lprintf( WIDE( "Untested code here..." ) );
 	if( pbm->bV5Height < 0 )
@@ -190,8 +190,8 @@ static ImageFile *Bitmap5ToImageFile( BITMAPV5HEADER *pbm, P_8 data )
 	Log3( WIDE("Load bitmamp image: %d by %d %d bits"), w, h, pbm->bV5BitCount );
    if( pif )
    {
-      dwPalette = (P_32)(((P_8)pbm) + pbm->bV5Size);
-      //pColor = (P_8)(pbm->bmiColors + pbm->biClrUsed );
+      dwPalette = (uint32_t*)(((uint8_t*)pbm) + pbm->bV5Size);
+      //pColor = (uint8_t*)(pbm->bmiColors + pbm->biClrUsed );
       pColor = data;
       switch( pbm->bV5BitCount )
 		{
@@ -202,11 +202,11 @@ static ImageFile *Bitmap5ToImageFile( BITMAPV5HEADER *pbm, P_8 data )
 				{
 					for( x = 0; x < w; x++ )
 					{
-						((P_32)pif->image)[y*w+x] = (*(_32*)&pColor[x*4]) & 0xFFFFFF;
-						((P_32)pif->image)[y*w+x] |= 0xFF000000;
+						((uint32_t*)pif->image)[y*w+x] = (*(uint32_t*)&pColor[x*4]) & 0xFFFFFF;
+						((uint32_t*)pif->image)[y*w+x] |= 0xFF000000;
 						if( bGLColorMode )
 						{
-							((P_32)pif->image)[y*w+x] = GLColor( ((P_32)pif->image)[y*w+x] );
+							((uint32_t*)pif->image)[y*w+x] = GLColor( ((uint32_t*)pif->image)[y*w+x] );
 						}
 					}
 					pColor += ( ( w * 3 ) + 3 ) & 0x7FFFFFFC;
@@ -218,10 +218,10 @@ static ImageFile *Bitmap5ToImageFile( BITMAPV5HEADER *pbm, P_8 data )
 				{
 					for( x = 0; x < w; x++ )
 					{
-						((P_32)pif->image)[y*w+x] = (*(_32*)&pColor[x*4]);
+						((uint32_t*)pif->image)[y*w+x] = (*(uint32_t*)&pColor[x*4]);
 						if( bGLColorMode )
 						{
-							((P_32)pif->image)[y*w+x] = GLColor( ((P_32)pif->image)[y*w+x] );
+							((uint32_t*)pif->image)[y*w+x] = GLColor( ((uint32_t*)pif->image)[y*w+x] );
 						}
 					}
 					pColor += ( ( w * 3 ) + 3 ) & 0x7FFFFFFC;
@@ -233,11 +233,11 @@ static ImageFile *Bitmap5ToImageFile( BITMAPV5HEADER *pbm, P_8 data )
          {
             for( x = 0; x < w; x++ )
 				{
-					((P_32)pif->image)[y*w+x] = (*(_32*)&pColor[x*3]) & 0xFFFFFF;
-					((P_32)pif->image)[y*w+x] |= 0xFF000000;
+					((uint32_t*)pif->image)[y*w+x] = (*(uint32_t*)&pColor[x*3]) & 0xFFFFFF;
+					((uint32_t*)pif->image)[y*w+x] |= 0xFF000000;
 					if( bGLColorMode )
 					{
-                  ((P_32)pif->image)[y*w+x] = GLColor( ((P_32)pif->image)[y*w+x] );
+                  ((uint32_t*)pif->image)[y*w+x] = GLColor( ((uint32_t*)pif->image)[y*w+x] );
 					}
 				}
             pColor += ( ( w * 3 ) + 3 ) & 0x7FFFFFFC;
@@ -248,7 +248,7 @@ static ImageFile *Bitmap5ToImageFile( BITMAPV5HEADER *pbm, P_8 data )
          {
             for( x = 0; x < w; x++ )
             {
-               ((P_32)pif->image)[y*w+x] = dwPalette[pColor[x]];
+               ((uint32_t*)pif->image)[y*w+x] = dwPalette[pColor[x]];
             }
             pColor += ( w + 3 ) & 0x7FFFFFFc;
          }
@@ -263,7 +263,7 @@ static ImageFile *Bitmap5ToImageFile( BITMAPV5HEADER *pbm, P_8 data )
                   idx = pColor[(x/2)] & 0xF;
                else
                   idx = (pColor[(x/2)] >> 4)&0xf;
-               ((P_32)pif->image)[y*w+x] = dwPalette[idx];
+               ((uint32_t*)pif->image)[y*w+x] = dwPalette[idx];
             }
             pColor += ( ( (w+1)/2 ) + 3 ) & 0x7FFFFFFC;
          }
@@ -273,7 +273,7 @@ static ImageFile *Bitmap5ToImageFile( BITMAPV5HEADER *pbm, P_8 data )
          {
             for( x = 0; x < w; x++ )
             {
-               ((P_32)pif->image)[y*w+x] = dwPalette[!(!(pColor[y*(w/8)+(x/8)]&(0x80>>(x&7))))];
+               ((uint32_t*)pif->image)[y*w+x] = dwPalette[!(!(pColor[y*(w/8)+(x/8)]&(0x80>>(x&7))))];
             }
             pColor += ( ( (w+7)/8 ) + 3 ) & 0xFFFFFc;
          }
@@ -286,11 +286,11 @@ static ImageFile *Bitmap5ToImageFile( BITMAPV5HEADER *pbm, P_8 data )
 }
 
 
-static ImageFile *BitmapToImageFile( BITMAPINFOHEADER *pbm, P_8 data )
+static ImageFile *BitmapToImageFile( BITMAPINFOHEADER *pbm, uint8_t* data )
 {
    ImageFile *pif;
-   _32 *dwPalette;
-   P_8 pColor;
+   uint32_t *dwPalette;
+   uint8_t* pColor;
 	int x, y, w, h;
 	if( pbm->biSize == sizeof( BITMAPV5HEADER ) )
 	{
@@ -307,14 +307,14 @@ static ImageFile *BitmapToImageFile( BITMAPINFOHEADER *pbm, P_8 data )
 	*/
    if( pif )
    {
-		dwPalette = (P_32)(((P_8)pbm) + pbm->biSize);
+		dwPalette = (uint32_t*)(((uint8_t*)pbm) + pbm->biSize);
       if( bGLColorMode && ( pbm->biBitCount <= 8 ) )
 		{
 			int n;
 			for( n = 0; n < ( 1 << pbm->biBitCount ); n++ )
 				dwPalette[n] = GLColor( dwPalette[n] );
 		}
-      //pColor = (P_8)(pbm->bmiColors + pbm->biClrUsed );
+      //pColor = (uint8_t*)(pbm->bmiColors + pbm->biClrUsed );
       pColor = data;
       switch( pbm->biBitCount )
       {
@@ -323,13 +323,13 @@ static ImageFile *BitmapToImageFile( BITMAPINFOHEADER *pbm, P_8 data )
          {
             for( x = 0; x < w; x++ )
 				{
-					//((P_32)pif->image)[y*w+x] |= 0xFF000000;
+					//((uint32_t*)pif->image)[y*w+x] |= 0xFF000000;
 					if( bGLColorMode )
 					{
-						((P_32)pif->image)[y*w+x] = GLColor((*(_32*)&pColor[x*4]) );
+						((uint32_t*)pif->image)[y*w+x] = GLColor((*(uint32_t*)&pColor[x*4]) );
 					}
 					else
-						((P_32)pif->image)[y*w+x] = (*(_32*)&pColor[x*4]);
+						((uint32_t*)pif->image)[y*w+x] = (*(uint32_t*)&pColor[x*4]);
 				}
             pColor += ( ( w * 4 ) );
          }
@@ -339,11 +339,11 @@ static ImageFile *BitmapToImageFile( BITMAPINFOHEADER *pbm, P_8 data )
          {
             for( x = 0; x < w; x++ )
 				{
-					((P_32)pif->image)[y*w+x] = (*(_32*)&pColor[x*3]) & 0xFFFFFF;
-					((P_32)pif->image)[y*w+x] |= 0xFF000000;
+					((uint32_t*)pif->image)[y*w+x] = (*(uint32_t*)&pColor[x*3]) & 0xFFFFFF;
+					((uint32_t*)pif->image)[y*w+x] |= 0xFF000000;
 					if( bGLColorMode )
 					{
-                  ((P_32)pif->image)[y*w+x] = GLColor( ((P_32)pif->image)[y*w+x] );
+                  ((uint32_t*)pif->image)[y*w+x] = GLColor( ((uint32_t*)pif->image)[y*w+x] );
 					}
 				}
             pColor += ( ( w * 3 ) + 3 ) & 0x7FFFFFFC;
@@ -354,7 +354,7 @@ static ImageFile *BitmapToImageFile( BITMAPINFOHEADER *pbm, P_8 data )
          {
             for( x = 0; x < w; x++ )
             {
-               ((P_32)pif->image)[y*w+x] = dwPalette[pColor[x]];
+               ((uint32_t*)pif->image)[y*w+x] = dwPalette[pColor[x]];
             }
             pColor += ( w + 3 ) & 0x7FFFFFFc;
          }
@@ -369,7 +369,7 @@ static ImageFile *BitmapToImageFile( BITMAPINFOHEADER *pbm, P_8 data )
                   idx = pColor[(x/2)] & 0xF;
                else
                   idx = (pColor[(x/2)] >> 4)&0xf;
-               ((P_32)pif->image)[y*w+x] = dwPalette[idx];
+               ((uint32_t*)pif->image)[y*w+x] = dwPalette[idx];
             }
             pColor += ( ( (w+1)/2 ) + 3 ) & 0x7FFFFFFC;
          }
@@ -379,7 +379,7 @@ static ImageFile *BitmapToImageFile( BITMAPINFOHEADER *pbm, P_8 data )
          {
             for( x = 0; x < w; x++ )
             {
-               ((P_32)pif->image)[y*w+x] = dwPalette[!(!(pColor[y*(w/8)+(x/8)]&(0x80>>(x&7))))];
+               ((uint32_t*)pif->image)[y*w+x] = dwPalette[!(!(pColor[y*(w/8)+(x/8)]&(0x80>>(x&7))))];
             }
             pColor += ( ( (w+7)/8 ) + 3 ) & 0xFFFFFc;
          }
@@ -393,10 +393,10 @@ static ImageFile *BitmapToImageFile( BITMAPINFOHEADER *pbm, P_8 data )
    return pif;
 }
 
-Image ImageBMPFile (_8* ptr, _32 filesize)
+Image ImageBMPFile (uint8_t* ptr, uint32_t filesize)
 {
    ImageFile *image;
-   _8 *data;
+   uint8_t *data;
    if( ptr[0] != 'B' || ptr[1] != 'M' )
       return 0;
    data = ptr + ((BITMAPFILEHEADER*)ptr)->bfOffBits;
@@ -406,7 +406,7 @@ Image ImageBMPFile (_8* ptr, _32 filesize)
    return image;
 }
 
-Image ImageRawBMPFile (_8* ptr, _32 filesize)
+Image ImageRawBMPFile (uint8_t* ptr, uint32_t filesize)
 {
 	BITMAPINFOHEADER *bmp = (BITMAPINFOHEADER*)ptr;
    /* do some basic checking on the data... */
@@ -415,7 +415,7 @@ Image ImageRawBMPFile (_8* ptr, _32 filesize)
 	case sizeof( BITMAPINFOHEADER ):
 		{
 			//ImageFile *image;
-			//_8 *data;
+			//uint8_t *data;
 			return BitmapToImageFile( (BITMAPINFOHEADER*)(ptr), ptr + bmp->biSize );
 		  // return image;
 		}

@@ -40,12 +40,12 @@ CORECON_PROC( int, WinLogicWrite )( PDATAPATH pdp
 											 );
 CORECON_PROC( void, WinLogicCalculateHistory )( PCONSOLE_INFO pdp );
 
-CORECON_PROC(PTEXT, GetRows )( PTRSZVAL psv, struct entity_tag *pe, PTEXT *lastvalue );
-CORECON_PROC(PTEXT, GetCols )( PTRSZVAL psv, struct entity_tag *pe, PTEXT *lastvalue );
-CORECON_PROC(PTEXT, GetCursorX )( PTRSZVAL psv, struct entity_tag *pe, PTEXT *lastvalue );
-CORECON_PROC(PTEXT, SetCursorX )( PTRSZVAL psv, struct entity_tag *pe, PTEXT newvalue );
-CORECON_PROC(PTEXT, GetCursorY )( PTRSZVAL psv, struct entity_tag *pe, PTEXT *lastvalue );
-CORECON_PROC(PTEXT, SetCursorY )( PTRSZVAL psv, struct entity_tag *pe, PTEXT newvalue );
+CORECON_PROC(PTEXT, GetRows )( uintptr_t psv, struct entity_tag *pe, PTEXT *lastvalue );
+CORECON_PROC(PTEXT, GetCols )( uintptr_t psv, struct entity_tag *pe, PTEXT *lastvalue );
+CORECON_PROC(PTEXT, GetCursorX )( uintptr_t psv, struct entity_tag *pe, PTEXT *lastvalue );
+CORECON_PROC(PTEXT, SetCursorX )( uintptr_t psv, struct entity_tag *pe, PTEXT newvalue );
+CORECON_PROC(PTEXT, GetCursorY )( uintptr_t psv, struct entity_tag *pe, PTEXT *lastvalue );
+CORECON_PROC(PTEXT, SetCursorY )( uintptr_t psv, struct entity_tag *pe, PTEXT newvalue );
 
 
 //CORECON_PROC(void, RenderCommandLine )( PCONSOLE_INFO pdp );
@@ -55,7 +55,7 @@ CORECON_PROC(PTEXT, SetCursorY )( PTRSZVAL psv, struct entity_tag *pe, PTEXT new
 CORECON_PROC( void, WinLogicDoStroke )( PCONSOLE_INFO pdp, PTEXT pStroke );
 
 // nChar could also be considered nColumn
-CORECON_PROC(int, GetCharFromLine )( _32 cols
+CORECON_PROC(int, GetCharFromLine )( uint32_t cols
                          , PDISPLAYED_LINE pLine
                          , int nChar, TEXTCHAR *result );
 CORECON_PROC(int, GetCharFromRowCol )( PCONSOLE_INFO pdp
@@ -77,11 +77,11 @@ int HandleOptions( PDATAPATH pdp, PSENTIENT ps, PTEXT option );
 typedef struct penging_rectangle_tag
 {
 	struct {
-		_32 bHasContent : 1;
-		_32 bTmpRect : 1;
+		uint32_t bHasContent : 1;
+		uint32_t bTmpRect : 1;
 	} flags;
    CRITICALSECTION cs;
-	S_32 x, y;
-   _32 width, height;
+	int32_t x, y;
+   uint32_t width, height;
 } PENDING_RECT, *PPENDING_RECT;
 

@@ -29,9 +29,9 @@ void GetTextureNameText( INDEX iWorld, INDEX iTexture, TEXTCHAR *buf, int bufsiz
 }
 
 
-INDEX ForAllTextures( INDEX iWorld, INDEX(CPROC*f)(INDEX,PTRSZVAL), PTRSZVAL psv );
+INDEX ForAllTextures( INDEX iWorld, INDEX(CPROC*f)(INDEX,uintptr_t), uintptr_t psv );
 
-static INDEX CPROC FindTextureName( INDEX texture, PTRSZVAL psv )
+static INDEX CPROC FindTextureName( INDEX texture, uintptr_t psv )
 {
 	PFINDTHING pft = ( PFINDTHING)psv;
 	TEXTCHAR textname[256];
@@ -58,7 +58,7 @@ INDEX MakeTexture( INDEX iWorld, INDEX iName )
 
 	if( iName != INVALID_INDEX )
 	{
-		iTexture = ForAllTextures( iWorld, FindTextureName, (PTRSZVAL)&ft );
+		iTexture = ForAllTextures( iWorld, FindTextureName, (uintptr_t)&ft );
 		if( iTexture != INVALID_INDEX )
 			texture = GetSetMember( FLATLAND_TEXTURE, &world->textures, iTexture );
 		else
@@ -75,7 +75,7 @@ INDEX MakeTexture( INDEX iWorld, INDEX iName )
 
 //----------------------------------------------------------------------------
 
-static INDEX CPROC DeleteATexture( INDEX iTexture, PTRSZVAL psv )
+static INDEX CPROC DeleteATexture( INDEX iTexture, uintptr_t psv )
 {
 	INDEX iWorld = (INDEX)psv;
 	GETWORLD( iWorld );
@@ -99,7 +99,7 @@ void DeleteTexture( INDEX iWorld, INDEX iTexture )
 void DeleteTextures( INDEX iWorld )
 {
 	GETWORLD( iWorld );
-	ForAllTextures( iWorld, DeleteATexture, (PTRSZVAL)iWorld );
+	ForAllTextures( iWorld, DeleteATexture, (uintptr_t)iWorld );
 	DeleteSet( (GENERICSET**)&world->textures );
 }
 
@@ -119,8 +119,8 @@ void SetSolidColor( INDEX iWorld, INDEX iTexture, CDATA color )
 
 //----------------------------------------------------------------------------
 // if name is null,
-//PFLATLAND_TEXTURE ScanAllTextures( char *name, void (CPROC*userproc)(PTRSZVAL, PFLATLAND_TEXTURE)
- //  						  , PTRSZVAL userdata )
+//PFLATLAND_TEXTURE ScanAllTextures( char *name, void (CPROC*userproc)(uintptr_t, PFLATLAND_TEXTURE)
+ //  						  , uintptr_t userdata )
 //{
 //   return ForAllTextures( &world->textures, userproc, userdata );
 //}
@@ -133,26 +133,26 @@ void GetTextureData( INDEX iWorld, INDEX iTexture, PFLATLAND_TEXTURE *pptexture 
 	(*pptexture) = GetSetMember( FLATLAND_TEXTURE, &world->textures, iTexture );
 }
 
-PTRSZVAL CPROC TextureFilter( INDEX idx, PTRSZVAL psv )
+uintptr_t CPROC TextureFilter( INDEX idx, uintptr_t psv )
 {
 	struct thisstruc{
-		INDEX(CPROC*f)(INDEX,PTRSZVAL);
-		PTRSZVAL psv;
+		INDEX(CPROC*f)(INDEX,uintptr_t);
+		uintptr_t psv;
 	} *info = (struct thisstruc*)psv;
 	return info->f( idx, info->psv ) + 1; // INDEX 0 is valid, -1 is failure so skew result by 1 to have control work.
 }
 
 
-INDEX ForAllTextures( INDEX iWorld, INDEX(CPROC*f)(INDEX,PTRSZVAL), PTRSZVAL psv )
+INDEX ForAllTextures( INDEX iWorld, INDEX(CPROC*f)(INDEX,uintptr_t), uintptr_t psv )
 {
 	struct {
-		INDEX(CPROC*f)(INDEX,PTRSZVAL);
-		PTRSZVAL psv;
+		INDEX(CPROC*f)(INDEX,uintptr_t);
+		uintptr_t psv;
 	} info;
 	PWORLD world = GetSetMember( WORLD, &g.worlds, iWorld );
 	info.f = f;
 	info.psv = psv;
-	return (INDEX)ForEachSetMember( FLATLAND_TEXTURE, world->textures, TextureFilter, (PTRSZVAL)&info )-1;
+	return (INDEX)ForEachSetMember( FLATLAND_TEXTURE, world->textures, TextureFilter, (uintptr_t)&info )-1;
 }
 
 INDEX SetTexture( INDEX iWorld, INDEX iSector, INDEX iTexture )

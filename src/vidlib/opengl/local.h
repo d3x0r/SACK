@@ -6,9 +6,9 @@ typedef struct vidlib_local_tag
 	struct {
 		//-------- these should be removed! and moved to comments to save
       // string space! (and related logging statements these protect should be eliminated.)
-		_32 bLogRegister : 1;
-		_32 bLogFocus : 1;
-		_32 bLogWrites : 1; // log when surfaces are written to real space
+		uint32_t bLogRegister : 1;
+		uint32_t bLogFocus : 1;
+		uint32_t bLogWrites : 1; // log when surfaces are written to real space
       //---------- see comment above
 	} flags;
    PRENDERER mouse_last_vid;
@@ -38,8 +38,8 @@ typedef struct vidlib_local_tag
 	HVIDEO hCaptured;
 	// kbd.key == KeyboardState
 	KEYBOARD kbd;
-	_32 dwMsgBase;
-	//_32 pid;
+	uint32_t dwMsgBase;
+	//uint32_t pid;
 	//char KeyboardState[256];   // export for key procs to reference...
 	HHOOK hKeyHook;
 } LOCAL;

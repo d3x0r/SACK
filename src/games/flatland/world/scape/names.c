@@ -86,7 +86,7 @@ void SetName( INDEX iWorld, INDEX iName, CTEXTSTR text )
 		name->name = NULL;
 }
 
-INDEX SrvrMakeName( _32 client_id, INDEX iWorld, CTEXTSTR text )
+INDEX SrvrMakeName( uint32_t client_id, INDEX iWorld, CTEXTSTR text )
 {
 	PWORLD world = GetSetMember( WORLD, &g.worlds, iWorld );
 	// anmes should be cached... and referenced...
@@ -104,7 +104,7 @@ INDEX SrvrMakeName( _32 client_id, INDEX iWorld, CTEXTSTR text )
 	return iName;
 }
 
-static PTRSZVAL CPROC DeleteAName( PNAME name, INDEX iWorld )
+static uintptr_t CPROC DeleteAName( PNAME name, INDEX iWorld )
 {
 	GETWORLD( iWorld );
 	int l;

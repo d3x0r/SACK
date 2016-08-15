@@ -7,8 +7,8 @@
 
 static struct vlc_test_local {
 
-	_8  display; // What display do you want to use Ex. 1, 2
-	_32 time;    // Time for vlc to live
+	uint8_t  display; // What display do you want to use Ex. 1, 2
+	uint32_t time;    // Time for vlc to live
 
 	TEXTCHAR **wargv;          // Stores all the arguments
 	TEXTCHAR input[4096];      // Stores extra vlc input and options
@@ -151,8 +151,8 @@ int setOptions( int argc )
 
 int main( int argc, char ** argv )
 {	
-	_32 w, h;                 // w: how wide this display is, h: how tall this display is
-	S_32 x, y;                // x: left screen coordinate of this display, y: top screen coordinate of this display
+	uint32_t w, h;                 // w: how wide this display is, h: how tall this display is
+	int32_t x, y;                // x: left screen coordinate of this display, y: top screen coordinate of this display
 	PRENDERER transparent;
 	PSI_CONTROL surface;
 	struct my_vlc_interface *pmyi;

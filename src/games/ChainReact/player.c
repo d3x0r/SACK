@@ -52,7 +52,7 @@ PCONTROL pcColor;
 int LastColor;
 extern PLAYER players[];
 
-void CPROC AddPlayerButton( PTRSZVAL psv, PCONTROL pc )
+void CPROC AddPlayerButton( uintptr_t psv, PCONTROL pc )
 {
 	TEXTCHAR buffer[256];
 	PCOMMON frame = GetFrame( pc );
@@ -110,7 +110,7 @@ void CPROC AddPlayerButton( PTRSZVAL psv, PCONTROL pc )
 
 }
 
-void CPROC SetPlayerColor( PTRSZVAL psv, PCONTROL pc )
+void CPROC SetPlayerColor( uintptr_t psv, PCONTROL pc )
 {
 	if( LastColor >= 0 )
 	{
@@ -121,17 +121,17 @@ void CPROC SetPlayerColor( PTRSZVAL psv, PCONTROL pc )
 	pcColor = pc;
 }
 
-void CPROC PlayGameButton( PTRSZVAL psv, PCONTROL pc  )
+void CPROC PlayGameButton( uintptr_t psv, PCONTROL pc  )
 {
 	done = TRUE;
 }
 
-void CPROC ShowSomeHelp( PTRSZVAL psv, PCONTROL pc )
+void CPROC ShowSomeHelp( uintptr_t psv, PCONTROL pc )
 {
 
 }
 
-void CPROC QuitGame( PTRSZVAL psv, PCONTROL pc )
+void CPROC QuitGame( uintptr_t psv, PCONTROL pc )
 {
    DestroyFrame( &pPlayerFrame );
 	exit(1);
@@ -180,8 +180,8 @@ int ConfigurePlayers( void )
 	MakeImageButton( pFrame, 215, 71, 26, 26, BTN_COLOR8, pImages[7], 0, SetPlayerColor, 0 );
 	MakeImageButton( pFrame, 245, 71, 26, 26, BTN_COLOR9, pImages[8], 0, SetPlayerColor, 0 );
 	MakeButton( pFrame, 202, 100, 59, 20, BTN_HELP, WIDE("Help?"), 0, ShowSomeHelp, 0 );
-	MakeButton( pFrame, 108, 100, 82, 20, BTN_ADD, WIDE("Add Player"), 0, AddPlayerButton,  (PTRSZVAL)&nPlayers);
-	MakeButton( pFrame, 14, 100, 82, 20, BTN_PLAY, WIDE("Play Game"), 0, PlayGameButton, (PTRSZVAL)&done );
+	MakeButton( pFrame, 108, 100, 82, 20, BTN_ADD, WIDE("Add Player"), 0, AddPlayerButton,  (uintptr_t)&nPlayers);
+	MakeButton( pFrame, 14, 100, 82, 20, BTN_PLAY, WIDE("Play Game"), 0, PlayGameButton, (uintptr_t)&done );
 	EnableControl( GetControl( pFrame, BTN_PLAY ), FALSE );
 	SetCommonFocus( GetControl( pFrame, EDT_NAME ) );
 	LastColor = players[1].color;
@@ -234,14 +234,14 @@ static int CPROC DrawMimicBoard( PCOMMON pc )
    return 1;
 }
 
-void CPROC SliderUpdatedX( PTRSZVAL psv, PCONTROL pc, int val )
+void CPROC SliderUpdatedX( uintptr_t psv, PCONTROL pc, int val )
 {
 //	printf( WIDE("Value: %d\n"), val );
 	BOARD_X = val;
    SmudgeCommon( pcBoard );
 }
 
-void CPROC SliderUpdatedY( PTRSZVAL psv, PCONTROL pc, int val )
+void CPROC SliderUpdatedY( uintptr_t psv, PCONTROL pc, int val )
 {
 //	printf( WIDE("Value: %d\n"), val );
 	BOARD_Y = val;
@@ -268,7 +268,7 @@ void ConfigureBoard( int *animate, int *sphere )
 	SetSliderValues( pc, 3, BOARD_X, MAX_BOARD_X );
 	pc = MakeSlider( pFrame, 5, 20, 15, 153, SLD_BOARD_Y, SLIDER_VERT, SliderUpdatedY, 0 );
 	SetSliderValues( pc, 4, BOARD_Y, MAX_BOARD_Y );
-	MakeButton( pFrame, 14, 200, 82, 20, BTN_PLAY, WIDE("Done"), 0, PlayGameButton, (PTRSZVAL)&done );
+	MakeButton( pFrame, 14, 200, 82, 20, BTN_PLAY, WIDE("Done"), 0, PlayGameButton, (uintptr_t)&done );
 	SetCheckState( MakeCheckButton( pFrame, 131, 200, 80, 14, CHK_ANIMATE, WIDE("Animate"), 0, NULL, 0 ), 1 );
 	SetCheckState( MakeCheckButton( pFrame, 131, 220, 140, 14, CHK_SPHERICAL, WIDE("Spherical Wrap"), 0, NULL, 0 ), 1 );
 	//SetControlDraw( pcBoard, DrawMimicBoard, 0 );
@@ -280,7 +280,7 @@ void ConfigureBoard( int *animate, int *sphere )
 	while( !done ) Idle();
 
 	{
-		_32 width, height;
+		uint32_t width, height;
 		int z;
 		GetDisplaySize( &width, &height );
 		height -= 30;

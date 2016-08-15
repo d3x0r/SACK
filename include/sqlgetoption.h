@@ -18,7 +18,7 @@ SQLGETOPTION_PROC( size_t, SACK_GetPrivateProfileString )( CTEXTSTR pSection, CT
 /* <combine sack::sql::options::SACK_GetPrivateProfileStringEx@CTEXTSTR@CTEXTSTR@CTEXTSTR@TEXTCHAR *@size_t@CTEXTSTR@LOGICAL>
    
    \ \                                                                                                                        */
-SQLGETOPTION_PROC( S_32, SACK_GetPrivateProfileInt )( CTEXTSTR pSection, CTEXTSTR pOptname, S_32 nDefault, CTEXTSTR pININame );
+SQLGETOPTION_PROC( int32_t, SACK_GetPrivateProfileInt )( CTEXTSTR pSection, CTEXTSTR pOptname, int32_t nDefault, CTEXTSTR pININame );
 /* <combine sack::sql::options::SACK_GetPrivateProfileStringEx@CTEXTSTR@CTEXTSTR@CTEXTSTR@TEXTCHAR *@size_t@CTEXTSTR@LOGICAL>
    
    \ \                                                                                                                        */
@@ -34,7 +34,7 @@ SQLGETOPTION_PROC( int, SACK_GetProfileBlobOdbc )( PODBC odbc, CTEXTSTR pSection
 /* <combine sack::sql::options::SACK_GetPrivateProfileStringEx@CTEXTSTR@CTEXTSTR@CTEXTSTR@TEXTCHAR *@size_t@CTEXTSTR@LOGICAL>
    
    \ \                                                                                                                        */
-SQLGETOPTION_PROC( S_32, SACK_GetProfileInt )( CTEXTSTR pSection, CTEXTSTR pOptname, S_32 defaultval );
+SQLGETOPTION_PROC( int32_t, SACK_GetProfileInt )( CTEXTSTR pSection, CTEXTSTR pOptname, int32_t defaultval );
 
 /* All gets eventually end up here. This function gets a value
    from a database. Functions which return an 'int' use this
@@ -60,7 +60,7 @@ SQLGETOPTION_PROC( size_t, SACK_GetPrivateProfileStringEx )( CTEXTSTR pSection, 
 /* <combine sack::sql::options::SACK_GetPrivateProfileStringEx@CTEXTSTR@CTEXTSTR@CTEXTSTR@TEXTCHAR *@size_t@CTEXTSTR@LOGICAL>
    
    \ \                                                                                                                        */
-SQLGETOPTION_PROC( S_32, SACK_GetPrivateProfileIntEx )( CTEXTSTR pSection, CTEXTSTR pOptname, S_32 nDefault, CTEXTSTR pININame, LOGICAL bQuiet );
+SQLGETOPTION_PROC( int32_t, SACK_GetPrivateProfileIntEx )( CTEXTSTR pSection, CTEXTSTR pOptname, int32_t nDefault, CTEXTSTR pININame, LOGICAL bQuiet );
 /* <combine sack::sql::options::SACK_GetPrivateProfileStringEx@CTEXTSTR@CTEXTSTR@CTEXTSTR@TEXTCHAR *@size_t@CTEXTSTR@LOGICAL>
    
    \ \                                                                                                                        */
@@ -68,12 +68,12 @@ SQLGETOPTION_PROC( size_t, SACK_GetProfileStringEx )( CTEXTSTR pSection, CTEXTST
 /* <combine sack::sql::options::SACK_GetPrivateProfileStringEx@CTEXTSTR@CTEXTSTR@CTEXTSTR@TEXTCHAR *@size_t@CTEXTSTR@LOGICAL>
    
    \ \                                                                                                                        */
-SQLGETOPTION_PROC( S_32, SACK_GetProfileIntEx )( CTEXTSTR pSection, CTEXTSTR pOptname, S_32 defaultval, LOGICAL bQuiet );
+SQLGETOPTION_PROC( int32_t, SACK_GetProfileIntEx )( CTEXTSTR pSection, CTEXTSTR pOptname, int32_t defaultval, LOGICAL bQuiet );
 
 /* <combinewith sack::sql::options::SACK_WritePrivateProfileStringEx@CTEXTSTR@CTEXTSTR@CTEXTSTR@CTEXTSTR@LOGICAL>
    
    \ \                                                                                                            */
-SQLGETOPTION_PROC( S_32, SACK_WritePrivateProfileIntEx )( CTEXTSTR pSection, CTEXTSTR pName, S_32 value, CTEXTSTR pINIFile, LOGICAL bQuiet );
+SQLGETOPTION_PROC( int32_t, SACK_WritePrivateProfileIntEx )( CTEXTSTR pSection, CTEXTSTR pName, int32_t value, CTEXTSTR pINIFile, LOGICAL bQuiet );
 SQLGETOPTION_PROC( LOGICAL, SACK_WritePrivateProfileStringEx )( CTEXTSTR pSection, CTEXTSTR pName, CTEXTSTR pValue, CTEXTSTR pINIFile, LOGICAL bFlush );
 /* <combinewith sack::sql::options::SACK_WritePrivateProfileStringEx@CTEXTSTR@CTEXTSTR@CTEXTSTR@CTEXTSTR@LOGICAL>
    
@@ -82,7 +82,7 @@ SQLGETOPTION_PROC( LOGICAL, SACK_WriteProfileStringEx )( CTEXTSTR pSection, CTEX
 /* <combinewith sack::sql::options::SACK_WritePrivateProfileStringEx@CTEXTSTR@CTEXTSTR@CTEXTSTR@CTEXTSTR@LOGICAL>
    
    \ \                                                                                                            */
-SQLGETOPTION_PROC( S_32, SACK_WriteProfileIntEx )( CTEXTSTR pSection, CTEXTSTR pName, S_32 value, LOGICAL bQuiet );
+SQLGETOPTION_PROC( int32_t, SACK_WriteProfileIntEx )( CTEXTSTR pSection, CTEXTSTR pName, int32_t value, LOGICAL bQuiet );
 /* <combinewith sack::sql::options::SACK_WritePrivateProfileStringEx@CTEXTSTR@CTEXTSTR@CTEXTSTR@CTEXTSTR@LOGICAL>
    
    \ \                                                                                                            */
@@ -90,7 +90,7 @@ SQLGETOPTION_PROC( LOGICAL, SACK_WritePrivateProfileString )( CTEXTSTR pSection,
 /* <combinewith sack::sql::options::SACK_WritePrivateProfileStringEx@CTEXTSTR@CTEXTSTR@CTEXTSTR@CTEXTSTR@LOGICAL>
    
    \ \                                                                                                            */
-SQLGETOPTION_PROC( S_32, SACK_WritePrivateProfileInt )( CTEXTSTR pSection, CTEXTSTR pName, S_32 value, CTEXTSTR pINIFile );
+SQLGETOPTION_PROC( int32_t, SACK_WritePrivateProfileInt )( CTEXTSTR pSection, CTEXTSTR pName, int32_t value, CTEXTSTR pINIFile );
 /* <combinewith sack::sql::options::SACK_WritePrivateProfileStringEx@CTEXTSTR@CTEXTSTR@CTEXTSTR@CTEXTSTR@LOGICAL>
    
    \ \                                                                                                            */
@@ -118,7 +118,7 @@ SQLGETOPTION_PROC( int, SACK_WritePrivateProfileBlobOdbc )( PODBC odbc, CTEXTSTR
 /* <combinewith sack::sql::options::SACK_WritePrivateProfileStringEx@CTEXTSTR@CTEXTSTR@CTEXTSTR@CTEXTSTR@LOGICAL>
    
    \ \                                                                                                            */
-SQLGETOPTION_PROC( S_32, SACK_WriteProfileInt )( CTEXTSTR pSection, CTEXTSTR pName, S_32 value );
+SQLGETOPTION_PROC( int32_t, SACK_WriteProfileInt )( CTEXTSTR pSection, CTEXTSTR pName, int32_t value );
 
 
 /* <combinewith sack::sql::options::SACK_WritePrivateProfileStringEx@CTEXTSTR@CTEXTSTR@CTEXTSTR@CTEXTSTR@LOGICAL>
@@ -154,7 +154,7 @@ SQLGETOPTION_PROC( size_t, SACK_GetPrivateProfileStringExxx )( PODBC odbc
 #define SACK_GetOptionStringEx( odbc, section, option, default_buf, buf, buf_size, quiet )   \
    SACK_GetPrivateProfileStringExxx( odbc, section, option, default_buf, buf, buf_size, NULL, quiet DBG_SRC )
 
-SQLGETOPTION_PROC( S_32, SACK_GetPrivateProfileIntExx )( PODBC odbc, CTEXTSTR pSection, CTEXTSTR pOptname, S_32 nDefault, CTEXTSTR pININame, LOGICAL bQuiet DBG_PASS );
+SQLGETOPTION_PROC( int32_t, SACK_GetPrivateProfileIntExx )( PODBC odbc, CTEXTSTR pSection, CTEXTSTR pOptname, int32_t nDefault, CTEXTSTR pININame, LOGICAL bQuiet DBG_PASS );
 
 #define SACK_GetPrivateOptionInt( odbc, section, option, default_val, ini_name )   \
 	SACK_GetPrivateProfileIntExx( odbc, section, option, default_val, ini_name, FALSE DBG_SRC )
@@ -172,11 +172,11 @@ SQLGETOPTION_PROC( S_32, SACK_GetPrivateProfileIntExx )( PODBC odbc, CTEXTSTR pS
 SQLGETOPTION_PROC( CTEXTSTR, GetSystemID )( void );
 
 SQLGETOPTION_PROC( void, EnumOptions )( POPTION_TREE_NODE parent
-					 , int (CPROC *Process)(PTRSZVAL psv, CTEXTSTR name, POPTION_TREE_NODE ID, int flags )
-                , PTRSZVAL psvUser );
+					 , int (CPROC *Process)(uintptr_t psv, CTEXTSTR name, POPTION_TREE_NODE ID, int flags )
+                , uintptr_t psvUser );
 SQLGETOPTION_PROC( void, EnumOptionsEx )( PODBC odbc, POPTION_TREE_NODE parent
-					 , int (CPROC *Process)(PTRSZVAL psv, CTEXTSTR name, POPTION_TREE_NODE ID, int flags )
-                , PTRSZVAL psvUser );
+					 , int (CPROC *Process)(uintptr_t psv, CTEXTSTR name, POPTION_TREE_NODE ID, int flags )
+                , uintptr_t psvUser );
 SQLGETOPTION_PROC( POPTION_TREE, GetOptionTreeExxx )( PODBC odbc, PFAMILYTREE existing_tree DBG_PASS );
 
 

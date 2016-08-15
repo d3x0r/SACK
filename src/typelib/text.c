@@ -36,12 +36,12 @@ namespace text {
 #endif
 
 
-typedef PTEXT (CPROC*GetTextOfProc)( PTRSZVAL, POINTER );
+typedef PTEXT (CPROC*GetTextOfProc)( uintptr_t, POINTER );
 
 typedef struct text_exension_tag {
-	_32 bits;
+	uint32_t bits;
 	GetTextOfProc TextOf;
-	PTRSZVAL psvData;
+	uintptr_t psvData;
 }  TEXT_EXTENSION, *PTEXT_EXTENSION;
 
 typedef struct vartext_tag {
@@ -164,7 +164,7 @@ size_t GetTextSize( PTEXT segment )
 
 //---------------------------------------------------------------------------
 
-_32 GetTextFlags( PTEXT segment )
+uint32_t GetTextFlags( PTEXT segment )
 {
 	if( !segment )
 		return 0;
@@ -235,7 +235,7 @@ PTEXT LineDuplicateEx( PTEXT pText DBG_PASS )
 	while( pt )
 	{
 		if( !(pt->flags&TF_STATIC) )
-			HoldEx( (P_8)pt DBG_RELAY  );
+			HoldEx( (uint8_t*)pt DBG_RELAY  );
 		if( (pt->flags & TF_INDIRECT ) || (pt->flags&TF_APPLICATION) )
 			LineDuplicateEx( GetIndirect( pt ) DBG_RELAY );
 		pt = NEXTLINE( pt );
@@ -365,7 +365,7 @@ PTEXT SegCreateFromIntEx( int value DBG_PASS )
 
 //---------------------------------------------------------------------------
 
-PTEXT SegCreateFrom_64Ex( S_64 value DBG_PASS )
+PTEXT SegCreateFrom_64Ex( int64_t value DBG_PASS )
 {
 	PTEXT pResult;
 	pResult = SegCreateEx( 32 DBG_RELAY);
@@ -400,7 +400,7 @@ PTEXT SegCreateIndirectEx( PTEXT pText DBG_PASS )
 	PTEXT pSeg;
 	pSeg = SegCreateEx( -1 DBG_RELAY ); // no data content for indirect...
 	pSeg->flags |= TF_INDIRECT;
-	pSeg->data.size = (PTRSZVAL)pText;
+	pSeg->data.size = (uintptr_t)pText;
 	return pSeg;
 }
 
@@ -551,7 +551,7 @@ void LineReleaseEx(PTEXT line DBG_PASS )
 
 //---------------------------------------------------------------------------
 
-PTEXT SegConcatEx(PTEXT output,PTEXT input,S_32 offset,size_t length DBG_PASS )
+PTEXT SegConcatEx(PTEXT output,PTEXT input,int32_t offset,size_t length DBG_PASS )
 {
 	size_t idx=0;
 	size_t len=0;
@@ -723,8 +723,8 @@ TEXTCHAR NextCharEx( PTEXT input, size_t idx )
 
 // these are just shortcuts - these bits of code were used repeatedly....
 
-#define SET_SPACES() do {		word->format.position.offset.spaces = (_16)spaces; \
-		word->format.position.offset.tabs = (_16)tabs;                             \
+#define SET_SPACES() do {		word->format.position.offset.spaces = (uint16_t)spaces; \
+		word->format.position.offset.tabs = (uint16_t)tabs;                             \
 		spaces = 0;                                                         \
 		tabs = 0; } while(0)
 
@@ -746,11 +746,11 @@ PTEXT TextParse( PTEXT input, CTEXTSTR punctuation, CTEXTSTR filter_space, int b
 	int has_minus = -1;
 	int has_plus = -1;
 
-	_32 index;
+	uint32_t index;
 	INDEX size;
 
 	TEXTCHAR character;
-	_32 elipses = FALSE,
+	uint32_t elipses = FALSE,
 	   spaces = 0, tabs = 0;
 
 	if (!input)        // if nothing new to process- return nothing processed.
@@ -1006,11 +1006,11 @@ PTEXT burstEx( PTEXT input DBG_PASS )
 			word;
 	TEXTSTR tempText;
 
-	_32 index;
+	uint32_t index;
 	size_t size;
 
 	TEXTCHAR character;
-	_32 elipses = FALSE,
+	uint32_t elipses = FALSE,
 		spaces = 0, tabs = 0;
 
 	if (!input)		  // if nothing new to process- return nothing processed.
@@ -1346,7 +1346,7 @@ PTEXT BuildLineExEx( PTEXT pt, LOGICAL bSingle, int nTabsize, PTEXT pEOL DBG_PAS
 	int	nStack, firstadded;
 	int	skipspaces = ( PRIORLINE(pt) != NULL );
 	PTEXT pOut;
-	PTRSZVAL ofs;
+	uintptr_t ofs;
 
 	{
 		INDEX len;
@@ -1605,13 +1605,13 @@ void SetApplicationPointer( PTEXT text, POINTER p)
 	if( text )
 	{
 		text->flags |= TF_APPLICATION;
-		text->data.size = (PTRSZVAL)p;
+		text->data.size = (uintptr_t)p;
 	}
 }
 
 //----------------------------------------------------------------------------
 
-void RegisterTextExtension( _32 flags, PTEXT(CPROC*TextOf)(PTRSZVAL,POINTER), PTRSZVAL psvData)
+void RegisterTextExtension( uint32_t flags, PTEXT(CPROC*TextOf)(uintptr_t,POINTER), uintptr_t psvData)
 {
 	PTEXT_EXTENSION pte = (PTEXT_EXTENSION)Allocate( sizeof( TEXT_EXTENSION ) );
 	pte->bits = flags;
@@ -1757,12 +1757,12 @@ int CompareStrings( PTEXT pt1, int single1
 
 //--------------------------------------------------------------------------
 
-S_64 IntCreateFromText( CTEXTSTR p )
+int64_t IntCreateFromText( CTEXTSTR p )
 {
 	//CTEXTSTR p;
 	int s;
 	int begin;
-	S_64 num;
+	int64_t num;
 	//p = GetText( pText );
 	if( !p )
 		return FALSE;
@@ -1802,7 +1802,7 @@ S_64 IntCreateFromText( CTEXTSTR p )
 
 //--------------------------------------------------------------------------
 
-S_64 IntCreateFromSeg( PTEXT pText )
+int64_t IntCreateFromSeg( PTEXT pText )
 {
 	CTEXTSTR p;
 	p = GetText( pText );
@@ -1885,7 +1885,7 @@ double FloatCreateFromSeg( PTEXT pText )
 
 // if bUseAll - all segments must be part of the number
 // otherwise, only as many segments as are needed for the number are used...
-int IsSegAnyNumberEx( PTEXT *ppText, double *fNumber, S_64 *iNumber, int *bIntNumber, int bUseAll )
+int IsSegAnyNumberEx( PTEXT *ppText, double *fNumber, int64_t *iNumber, int *bIntNumber, int bUseAll )
 {
 	CTEXTSTR pCurrentCharacter;
 	PTEXT pBegin;
@@ -2023,7 +2023,7 @@ void VarTextInitEx( PVARTEXT pvt DBG_PASS )
 	pvt->expand_by = 0;
 }
 
- PVARTEXT  VarTextCreateExEx ( _32 initial, _32 expand DBG_PASS )
+ PVARTEXT  VarTextCreateExEx ( uint32_t initial, uint32_t expand DBG_PASS )
 {
 	PVARTEXT pvt = (PVARTEXT)AllocateEx( sizeof( VARTEXT ) DBG_RELAY );
 
@@ -2126,7 +2126,7 @@ void VarTextAddDataEx( PVARTEXT pvt, CTEXTSTR block, size_t length DBG_PASS )
 	Log1( WIDE("Adding character %c"), c );
 #endif
 	{
-		_32 n;
+		uint32_t n;
 		for( n = 0; n < length; n++ )
 		{
 			pvt->collect_text[pvt->collect_used++] = block[n];
@@ -2266,7 +2266,7 @@ INDEX vvtprintf( PVARTEXT pvt, CTEXTSTR format, va_list args )
 			return 0;
 		va_end( tmp_args );
 		// allocate +1 for length with NUL
-		if( ((_32)len+1) >= (pvt->collect_avail-pvt->collect_used) )
+		if( ((uint32_t)len+1) >= (pvt->collect_avail-pvt->collect_used) )
 		{
 			// expand when we need more room.
 			VarTextExpand( pvt, ((len+1)<pvt->expand_by)?pvt->expand_by:(len+1+pvt->expand_by)  );
@@ -2327,7 +2327,7 @@ INDEX vvtprintf( PVARTEXT pvt, CTEXTSTR format, va_list args )
 		va_end( tmp_args );
 #  endif
 		// allocate +1 for length with NUL
-		if( ((_32)len+1) >= (pvt->collect_avail-pvt->collect_used) )
+		if( ((uint32_t)len+1) >= (pvt->collect_avail-pvt->collect_used) )
 		{
 			// expand when we need more room.
 			VarTextExpand( pvt, ((len+1)<pvt->expand_by)?pvt->expand_by:(len+1+pvt->expand_by)  );
@@ -2488,7 +2488,7 @@ static void BuildTextFlags( PVARTEXT vt, PTEXT pSeg )
 	if( pSeg->flags & TF_PROMPT )
 		vtprintf( vt, WIDE( "Prompt " ) );
 	if( pSeg->flags & TF_PLUGIN )
-		vtprintf( vt, WIDE( "Plugin=%02x " ), (_8)(( pSeg->flags >> 26 ) & 0x3f ) );
+		vtprintf( vt, WIDE( "Plugin=%02x " ), (uint8_t)(( pSeg->flags >> 26 ) & 0x3f ) );
 #endif
 	
 	if( (pSeg->flags & TF_FORMATABS ) )
@@ -2890,7 +2890,7 @@ char * WcharConvertExx ( const wchar_t *wch, size_t len DBG_PASS )
 								&& ( ( wch[1] & 0xFC00 ) < 0xE000 ) )
 					 )
 				{
-					_32 longer_value;
+					uint32_t longer_value;
 					longer_value = 0x10000 + ( ( ( wch[0] & 0x3ff ) << 10 ) | ( ( wch[1] & 0x3ff ) ) );
 					if( ( longer_value >= 0xF0000 ) && ( longer_value < 0xF0800 ) ) // hack a way to encode D800-DFFF
 					{
@@ -2994,7 +2994,7 @@ wchar_t * CharWConvertExx ( const char *wch, size_t len DBG_PASS )
 			}
 			else if( ( wch[0] & 0xF0 ) == 0xF0 )
 			{
-				_32 literal_char =  ( ( (wchar_t)wch[0] & 0x7 ) << 18 ) 
+				uint32_t literal_char =  ( ( (wchar_t)wch[0] & 0x7 ) << 18 ) 
 				                 | ( ( (wchar_t)wch[1] & 0x3F ) << 12 ) 
 				                 | ( (wchar_t)wch[2] & 0x3f ) << 6
 				                 | ( (wchar_t)wch[3] & 0x3f );

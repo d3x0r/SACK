@@ -9,14 +9,14 @@
 #define QUEUE_SIZE 32768
 
 CRITICALSECTION cs;
-_32 count = MAX_MSGS;
-_32 setsize = 1;
-_32 going;
-_32 dwNow;
-_32 dwSize;
+uint32_t count = MAX_MSGS;
+uint32_t setsize = 1;
+uint32_t going;
+uint32_t dwNow;
+uint32_t dwSize;
 int n;
 
-PTRSZVAL CPROC RunServer( PTHREAD thead )
+uintptr_t CPROC RunServer( PTHREAD thead )
 {
 	PMSGHANDLE pmq_in = CreateMsgQueue( WIDE("test in"), QUEUE_SIZE, NULL, 0 );
 	PMSGHANDLE pmq_out = CreateMsgQueue( WIDE("test out"), QUEUE_SIZE, NULL, 0 );
@@ -24,9 +24,9 @@ PTRSZVAL CPROC RunServer( PTHREAD thead )
    going = 1;
 	if( pmq_in && pmq_out )
 	{
-		_32 msg[4096];
-		_32 msgsize;
-      _32 step;
+		uint32_t msg[4096];
+		uint32_t msgsize;
+      uint32_t step;
 		for( n = 0; n < count; n+=setsize )
 		{
          for( step = 0; step < setsize; step++ )
@@ -46,7 +46,7 @@ PTRSZVAL CPROC RunServer( PTHREAD thead )
    return 0;
 }
 
-PTRSZVAL CPROC RunClient( PTHREAD thead )
+uintptr_t CPROC RunClient( PTHREAD thead )
 {
 	PMSGHANDLE pmq_in = CreateMsgQueue( WIDE("test out"), QUEUE_SIZE, NULL, 0 );
 	PMSGHANDLE pmq_out = CreateMsgQueue( WIDE("test in"), QUEUE_SIZE, NULL, 0 );
@@ -54,9 +54,9 @@ PTRSZVAL CPROC RunClient( PTHREAD thead )
    going = 1;
 	if( pmq_in && pmq_out )
 	{
-      _32 step;
-		_32 msg[4096];
-		_32 msgsize = dwSize;
+      uint32_t step;
+		uint32_t msg[4096];
+		uint32_t msgsize = dwSize;
 		for( n = 0; n < count; n+=setsize )
 		{
 			msg[0] = n;
@@ -83,7 +83,7 @@ int main( int argc, char **argv )
 					 );
 	if( argc > 1 )
 	{
-		_32 dwStart;
+		uint32_t dwStart;
 		if( argc > 2 )
 		{
 			dwSize = atoi( argv[2] );
@@ -115,7 +115,7 @@ int main( int argc, char **argv )
          Relinquish();
       EnterCriticalSec( &cs );
 		{
-         _32 dwTime = GetTickCount() - dwStart + 1;
+         uint32_t dwTime = GetTickCount() - dwStart + 1;
 			lprintf( WIDE("Transacted %d messages in %dms = %d/sec, %d bytes/sec")
 					 , n
                 , dwTime

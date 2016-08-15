@@ -17,12 +17,12 @@
 typedef struct network_data_tag
 {
    PCLIENT pc; // self reference...
-	_32 *msg; // default to 32 bit message elements...
-   _32 toread; // amount of data to read for next read
-	_32 command;
-	_32 state;
-	_32 task_id;
-   _32 system_id;
+	uint32_t *msg; // default to 32 bit message elements...
+   uint32_t toread; // amount of data to read for next read
+	uint32_t command;
+	uint32_t state;
+	uint32_t task_id;
+   uint32_t system_id;
    PCOMMON list; // quick handle to the listbox...
    PLISTITEM pliSystem;// system's list item..
    PLIST tasks;
@@ -31,10 +31,10 @@ typedef struct network_data_tag
 typedef struct taskinfo_tag
 {
 	struct {
-		_32 create : 1; // set to create in the server...
-		_32 sync : 1; // set to update the summoner with this
+		uint32_t create : 1; // set to create in the server...
+		uint32_t sync : 1; // set to update the summoner with this
 	} flags;
-   _32 id;
+   uint32_t id;
 	char *name;
 	char *state;
 	PLIST depends;
@@ -44,8 +44,8 @@ typedef struct taskinfo_tag
 	 * this info reflects what the summoner knows
 	 * this allows the avatar to create and edit existing tasks
     ********/
-	_32 ready_timeout; // how much time before the task is assumed ready
-	_32 launch_width, launch_height; // special characteristics like height/width
+	uint32_t ready_timeout; // how much time before the task is assumed ready
+	uint32_t launch_width, launch_height; // special characteristics like height/width
 
 	char *pTask; // the program itself
 	char *pPath; // the path where it starts
@@ -56,8 +56,8 @@ typedef struct taskinfo_tag
 typedef struct itemdata_tag
 {
 	struct {
-		_32 bSystem : 1;
-		_32 bTask : 1;
+		uint32_t bSystem : 1;
+		uint32_t bTask : 1;
 	} flags;
 	//union
 	//{
@@ -69,7 +69,7 @@ typedef struct itemdata_tag
 typedef struct local_tag
 {
 	struct {
-		_32 bDefineMe : 1;
+		uint32_t bDefineMe : 1;
 	} flags;
 	TEXTSTR addr;
 	PLIST pSummoners;
@@ -90,8 +90,8 @@ static void GetTaskDepends( PCLIENT pSummoner, PTASKINFO task )
 	if( task )
 	{
 		struct {
-			_32 op;
-			_32 task_id;
+			uint32_t op;
+			uint32_t task_id;
 		} msg;
 		msg.op = LIST_TASK_DEPENDS;
 		msg.task_id = task->id;
@@ -105,7 +105,7 @@ static void GetTaskDepends( PCLIENT pSummoner, PTASKINFO task )
 
 static void GetTaskList( PCLIENT pSummoner )
 {
-	_32 op = LIST_TASKS;
+	uint32_t op = LIST_TASKS;
 	SendTCP( pSummoner, &op, sizeof( op ) );
 }
 
@@ -254,7 +254,7 @@ void CPROC SummonerReadComplete( PCLIENT pc, POINTER buffer, int nLen )
 		{  // also setup private network-data structure
 			pnd = (PNETWORK_DATA)Allocate( sizeof( NETWORK_DATA ) );
 			MemSet( pnd, 0, sizeof( NETWORK_DATA ) );
-			SetNetworkLong( pc, 0, (PTRSZVAL)pnd );
+			SetNetworkLong( pc, 0, (uintptr_t)pnd );
          pnd->pc = pc;
          pnd->list = GetControl( l.pFrame, LST_TASKS );
 			pnd->pliSystem = AddListItem( pnd->list
@@ -264,17 +264,17 @@ void CPROC SummonerReadComplete( PCLIENT pc, POINTER buffer, int nLen )
 				pid->flags.bTask = 0;
 				pid->flags.bSystem = 1;
 				pid->pnd = pnd;
-            SetItemData( pnd->pliSystem, (PTRSZVAL)pid );
+            SetItemData( pnd->pliSystem, (uintptr_t)pid );
 			}
 		}
-		pnd->msg = (_32*)Allocate( 4096 );
+		pnd->msg = (uint32_t*)Allocate( 4096 );
       pnd->state = NET_STATE_RESET;
       pnd->toread = 4;
 	}
 	else
 	{
 		lprintf( "Received..." );
-      LogBinary( (P_8)buffer, nLen );
+      LogBinary( (uint8_t*)buffer, nLen );
 	process_new_state:
 		switch( pnd->state )
 		{
@@ -386,7 +386,7 @@ void CPROC SummonerReadComplete( PCLIENT pc, POINTER buffer, int nLen )
 						pid->flags.bSystem = 0;
                   pid->pnd = pnd;
 						pid->task = pti;
-						SetItemData( pti->pli, (PTRSZVAL)pid );
+						SetItemData( pti->pli, (uintptr_t)pid );
 					}
 
 					p = strchr( line, '\t' );
@@ -418,22 +418,22 @@ void CPROC SummonerClose( PCLIENT pc )
 
 //---------------------------------------------------------------------
 
-void CPROC StopThing( PTRSZVAL psv, PCOMMON pc )
+void CPROC StopThing( uintptr_t psv, PCOMMON pc )
 {
 	PITEMDATA pid = (PITEMDATA)GetItemData( l.pli_current );
 	if( pid )
 	{
 		if( pid->flags.bSystem )
 		{
-			_32 op;
+			uint32_t op;
 			op = SUMMONER_SYSTEM_STOP;
          SendTCP( pid->pnd->pc, &op, sizeof( op ) );
 		}
 		else if( pid->flags.bTask )
 		{
 			struct {
-				_32 op;
-				_32 task_id;
+				uint32_t op;
+				uint32_t task_id;
 			}msg;
 
 			msg.op = SUMMONER_TASK_STOP;
@@ -445,22 +445,22 @@ void CPROC StopThing( PTRSZVAL psv, PCOMMON pc )
 
 //---------------------------------------------------------------------
 
-void CPROC SuspendThing( PTRSZVAL psv, PCOMMON pc )
+void CPROC SuspendThing( uintptr_t psv, PCOMMON pc )
 {
 	PITEMDATA pid = (PITEMDATA)GetItemData( l.pli_current );
 	if( pid )
 	{
 		if( pid->flags.bSystem )
 		{
-			_32 op;
+			uint32_t op;
 			op = SUMMONER_SYSTEM_SUSPEND;
          SendTCP( pid->pnd->pc, &op, sizeof( op ) );
 		}
 		else if( pid->flags.bTask )
 		{
 			struct {
-				_32 op;
-				_32 task_id;
+				uint32_t op;
+				uint32_t task_id;
 			}msg;
 
 			msg.op = SUMMONER_TASK_SUSPEND;
@@ -472,22 +472,22 @@ void CPROC SuspendThing( PTRSZVAL psv, PCOMMON pc )
 
 //---------------------------------------------------------------------
 
-void CPROC StartThing( PTRSZVAL psv, PCOMMON pc )
+void CPROC StartThing( uintptr_t psv, PCOMMON pc )
 {
 	PITEMDATA pid = (PITEMDATA)GetItemData( l.pli_current );
 	if( pid )
 	{
 		if( pid->flags.bSystem )
 		{
-			_32 op;
+			uint32_t op;
 			op = SUMMONER_SYSTEM_RESUME;
          SendTCP( pid->pnd->pc, &op, sizeof( op ) );
 		}
 		else if( pid->flags.bTask )
 		{
 			struct {
-				_32 op;
-				_32 task_id;
+				uint32_t op;
+				uint32_t task_id;
 			}msg;
 
 			msg.op = SUMMONER_TASK_START;
@@ -519,13 +519,13 @@ int OpenSummoner( char *addr )
 
 //---------------------------------------------------------------------
 
-void CPROC TaskSelectionChanged( PTRSZVAL psv, PCOMMON pcList, PLISTITEM pli )
+void CPROC TaskSelectionChanged( uintptr_t psv, PCOMMON pcList, PLISTITEM pli )
 {
 // update task information
    l.pli_current = pli;
 }
 
-void CPROC CreateTask( PTRSZVAL psv, PSI_CONTROL button )
+void CPROC CreateTask( uintptr_t psv, PSI_CONTROL button )
 {
    EditTask( button, NULL );
 }

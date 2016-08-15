@@ -22,7 +22,7 @@ typedef struct slider_info_tag
 
 	SFTFont *font;
 
-	_32 min, max, current;	
+	uint32_t min, max, current;	
 
 	/* this control may be destroyed and recreated based on other options */
 	PSI_CONTROL control;
@@ -51,7 +51,7 @@ extern
 #endif
 struct ffmpeg_button_local
 {
-	_32 display_width, display_height;
+	uint32_t display_width, display_height;
 	PRENDER_INTERFACE pdi;
 	PIMAGE_INTERFACE pii;
 	int button_id;
@@ -61,14 +61,14 @@ struct ffmpeg_button_local
 	int slider_seek_id;
 	PLIST buttons;
 	PLIST files;
-	_32 x_ofs;
-	_32 y_ofs;
+	uint32_t x_ofs;
+	uint32_t y_ofs;
 	PLIST active_files;
 	int full_display;
 	//PVARIABLE label_active_display;
-  S_32 mouse_x, mouse_y;
-	_32 mouse_b;
-	_32 mouse_first_click_tick;
+  int32_t mouse_x, mouse_y;
+	uint32_t mouse_b;
+	uint32_t mouse_first_click_tick;
 	PLIST videos_played; //list of CTEXTSTR
    PTHREAD main_thread;
    PTHREAD player_thread;
@@ -91,7 +91,7 @@ struct ffmpeg_button_local
 }l;
 
 // slider update... (passed the my_button containing the file... )
-void UpdatePositionCallback( PTRSZVAL psv, _64 tick );
+void UpdatePositionCallback( uintptr_t psv, uint64_t tick );
 
 
 void ShowMediaPanel( struct my_button *media );

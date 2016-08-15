@@ -139,7 +139,7 @@ LRESULT APIENTRY IconMessageHandler( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
 //----------------------------------------------------------------------
 
 static PTHREAD pMyThread;
-static int CPROC systrayidle( PTRSZVAL unused )
+static int CPROC systrayidle( uintptr_t unused )
 {
 	MSG msg;
 	if( IsThisThread( pMyThread ) )
@@ -159,7 +159,7 @@ static int CPROC systrayidle( PTRSZVAL unused )
 //----------------------------------------------------------------------
 CTEXTSTR icon;
 LOGICAL thread_ready;
-PTRSZVAL CPROC RegisterAndCreate( PTHREAD thread )
+uintptr_t CPROC RegisterAndCreate( PTHREAD thread )
 {
 #ifndef __NO_WIN32API__ 
 
@@ -180,7 +180,7 @@ PTRSZVAL CPROC RegisterAndCreate( PTHREAD thread )
 			TEXTCHAR byBuf[256];
 			if( GetLastError() != ERROR_CLASS_ALREADY_EXISTS )
 			{
-				tnprintf( byBuf, sizeof( byBuf ), WIDE("RegisterClassError: %08x %d"), GetModuleHandle( NULL ), GetLastError() );
+				tnprintf( byBuf, sizeof( byBuf ), WIDE("RegisterClassError: %p %d"), GetModuleHandle( NULL ), GetLastError() );
 				MessageBox( NULL, byBuf, WIDE("BAD"), MB_OK );
 				return FALSE;   // stop thread
 			}
@@ -190,7 +190,7 @@ PTRSZVAL CPROC RegisterAndCreate( PTHREAD thread )
 	}
 	{
 		TEXTCHAR wndname[256];
-		//if( (PTRSZVAL)icon < 0x10000)
+		//if( (uintptr_t)icon < 0x10000)
 		//	snprintf( wndname, sizeof( wndname ), WIDE("AlertAgentIcon:%d"), icon );
 		//else
 		tnprintf( wndname, sizeof( wndname ), WIDE("AlertAgentIcon:%s"), GetProgramName() );
@@ -339,7 +339,7 @@ int RegisterIconEx( CTEXTSTR user_icon DBG_PASS )
 	nid.uCallbackMessage = WM_USERICONMSG;
 
 
-	if( (PTRSZVAL)icon & 0xFFFF0000 )
+	if( (uintptr_t)icon & 0xFFFF0000 )
 	{
 		nid.hIcon = (HICON)LoadImage( NULL, icon, IMAGE_ICON
 									, 0, 0
@@ -455,7 +455,7 @@ void ChangeIconEx( CTEXTSTR icon DBG_PASS )
 	nid.uID = 0;
 	nid.uFlags = NIF_ICON|NIF_MESSAGE;
 	nid.uCallbackMessage = WM_USERICONMSG;
-	if( (PTRSZVAL)icon & 0xFFFF0000 )
+	if( (uintptr_t)icon & 0xFFFF0000 )
 	{
 		nid.hIcon = (HICON)LoadImage( GetModuleHandle(NULL), icon, IMAGE_ICON
 								, 0, 0

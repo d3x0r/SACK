@@ -133,11 +133,11 @@ void ParseURI( CTEXTSTR string )
    int content_length;
 
 	struct {
-		_32 bInvalid : 1;
-		_32 bGet : 1;
-		_32 bPost : 1;
-		_32 bBinary : 1; // reading the content...
-		_32 bValue : 1;
+		uint32_t bInvalid : 1;
+		uint32_t bGet : 1;
+		uint32_t bPost : 1;
+		uint32_t bBinary : 1; // reading the content...
+		uint32_t bValue : 1;
 	} flags;
 // we got a line, therefore we can process it...
 	// only thing then is the last line in the block ...
@@ -441,7 +441,7 @@ int main( void )
 				//BlotImageMultiShaded( out, image, 0, 0, cred, cgreen, cblue );
 				{
 					size_t size;
-					_8 *buf;
+					uint8_t *buf;
 					if( PngImageFile( out, &buf, &size ) )
 					{
 						printf( "content-length:%d\r\n", size );

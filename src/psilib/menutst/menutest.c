@@ -28,13 +28,13 @@ int AddSubMenus( int base, int level, PMENU menu )
 		{
 			TEXTCHAR buffer[256];
 			snprintf( buffer, sizeof( buffer ), WIDE("%d-%d-Option"), base, level );
-			AppendPopupItem( menu, MF_STRING|MF_POPUP, (PTRSZVAL)child, buffer );
+			AppendPopupItem( menu, MF_STRING|MF_POPUP, (uintptr_t)child, buffer );
 		}
    return 0;
 }
 
 
-static int OnMouseCommon( WIDE("Click Me") )( PSI_CONTROL pc, S_32 x, S_32 y, _32 b )
+static int OnMouseCommon( WIDE("Click Me") )( PSI_CONTROL pc, int32_t x, int32_t y, uint32_t b )
 {
 	if( b & MK_RBUTTON )
 	{
@@ -72,7 +72,7 @@ SaneWinMain( argc, argv )
 		AppendPopupItem( child, MF_STRING, MNU_MINZOOM+2, WIDE("x1/2") );
 		AppendPopupItem( child, MF_STRING, MNU_MINZOOM+1, WIDE("x1/4") );
 		AppendPopupItem( child, MF_STRING, MNU_MINZOOM+0, WIDE("x1/8") );
-		AppendPopupItem( Menu, MF_STRING|MF_POPUP, (PTRSZVAL)child, buffer );
+		AppendPopupItem( Menu, MF_STRING|MF_POPUP, (uintptr_t)child, buffer );
 	}
 	AppendPopupItem( Menu, MF_STRING, 1002, WIDE("&Options") );
 	AppendPopupItem( Menu, MF_STRING, 1004, WIDE("E&xit") );

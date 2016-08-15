@@ -100,7 +100,7 @@ PCARD_STACK GetCardStackFromHand( PHAND hand, CTEXTSTR name )
 
 //---------------------------------------------------------------------
 
-void AddCardStackUpdateCallback( PCARD_STACK stack, void (CPROC*f)(PTRSZVAL), PTRSZVAL psv )
+void AddCardStackUpdateCallback( PCARD_STACK stack, void (CPROC*f)(uintptr_t), uintptr_t psv )
 {
 	if( !stack )
 		return;
@@ -114,7 +114,7 @@ void AddCardStackUpdateCallback( PCARD_STACK stack, void (CPROC*f)(PTRSZVAL), PT
 
 //---------------------------------------------------------------------
 
-void RemoveCardStackUpdateCallback( PCARD_STACK stack, PTRSZVAL psv )
+void RemoveCardStackUpdateCallback( PCARD_STACK stack, uintptr_t psv )
 {
    INDEX idx;
 	struct update_callback *callback;

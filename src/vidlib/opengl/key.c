@@ -16,7 +16,7 @@
 RENDER_NAMESPACE
 //------------------------------------------------------------------------
 
-RENDER_PROC( _32, IsKeyDown )( HVIDEO hVideo, int c )
+RENDER_PROC( uint32_t, IsKeyDown )( HVIDEO hVideo, int c )
 {
    if( hVideo )
 		return hVideo->kbd.key[c] & 0x80;
@@ -29,7 +29,7 @@ RENDER_PROC( _32, IsKeyDown )( HVIDEO hVideo, int c )
 
 //------------------------------------------------------------------------
 
-RENDER_PROC( _32, KeyDown )( HVIDEO hVideo, int c )
+RENDER_PROC( uint32_t, KeyDown )( HVIDEO hVideo, int c )
 {
 	if( hVideo )
 	{

@@ -12,8 +12,8 @@ typedef struct task_info_tag {
 	DeclareLink( struct task_info_tag );
 	char *fluffyname;
 	struct {
-		_32 bRespawn : 1;
-		_32 bKilled : 1; // don't restart until allowed...
+		uint32_t bRespawn : 1;
+		uint32_t bKilled : 1; // don't restart until allowed...
 	} flags;
 	char *program;
 	char *path;
@@ -24,20 +24,20 @@ typedef struct task_info_tag {
 
 typedef struct global_tag {
 	PMY_TASK_INFO tasks;
-   _32 port;
+   uint32_t port;
 } LOCAL;
 
 static LOCAL g;
 
 //-------------------------------------------------------------------------
 
-void CPROC TaskEnded( PTRSZVAL psv, PTASK_INFO info )
+void CPROC TaskEnded( uintptr_t psv, PTASK_INFO info )
 {
 	PMY_TASK_INFO task = (PMY_TASK_INFO)psv;
 	if( task )
 	{
 		if( task->flags.bRespawn && !task->flags.bKilled )
-         LaunchProgramEx( task->program, task->path, task->args, TaskEnded, (PTRSZVAL)task );
+         LaunchProgramEx( task->program, task->path, task->args, TaskEnded, (uintptr_t)task );
 	}
 }
 
@@ -62,7 +62,7 @@ void StartTasks( void )
 	for( task = g.tasks; task; task = NextLink( task ) )
 	{
 		if( !task->info )
-			task->info = LaunchProgramEx( task->program, task->path, task->args, TaskEnded, (PTRSZVAL)task );
+			task->info = LaunchProgramEx( task->program, task->path, task->args, TaskEnded, (uintptr_t)task );
 		if( !task->info )
 		{
 			lprintf( WIDE("Failed to load task %s (%s in %s)"), task->fluffyname, task->program, task->path );
@@ -89,7 +89,7 @@ void StartTasks( void )
 
 //-------------------------------------------------------------------------
 
-PTRSZVAL CPROC NewTask( PTRSZVAL psv, va_list args )
+uintptr_t CPROC NewTask( uintptr_t psv, va_list args )
 {
 	PARAM( args, char *, name );
 	PMY_TASK_INFO task = Allocate( sizeof( MY_TASK_INFO ) );
@@ -99,12 +99,12 @@ PTRSZVAL CPROC NewTask( PTRSZVAL psv, va_list args )
       LinkThing( g.tasks, (PMY_TASK_INFO) psv );
 	}
 	task->fluffyname = StrDup( name );
-   return (PTRSZVAL)task;
+   return (uintptr_t)task;
 }
 
 //-------------------------------------------------------------------------
 
-PTRSZVAL CPROC SetProgramName( PTRSZVAL psv, va_list args )
+uintptr_t CPROC SetProgramName( uintptr_t psv, va_list args )
 {
 	PARAM( args, char *, name );
 	PMY_TASK_INFO task = (PMY_TASK_INFO)psv;
@@ -117,7 +117,7 @@ PTRSZVAL CPROC SetProgramName( PTRSZVAL psv, va_list args )
 
 //-------------------------------------------------------------------------
 
-PTRSZVAL CPROC SetProgramPath( PTRSZVAL psv, va_list args )
+uintptr_t CPROC SetProgramPath( uintptr_t psv, va_list args )
 {
 	PARAM( args, char *, path );
 	PMY_TASK_INFO task = (PMY_TASK_INFO)psv;
@@ -209,7 +209,7 @@ void SetTaskArguments( PMY_TASK_INFO task, char *args )
 
 //-------------------------------------------------------------------------
 
-PTRSZVAL CPROC SetProgramArgs( PTRSZVAL psv, va_list args )
+uintptr_t CPROC SetProgramArgs( uintptr_t psv, va_list args )
 {
 	PARAM( args, char *, progargs );
 	PMY_TASK_INFO task = (PMY_TASK_INFO)psv;
@@ -222,7 +222,7 @@ PTRSZVAL CPROC SetProgramArgs( PTRSZVAL psv, va_list args )
 
 //-------------------------------------------------------------------------
 
-PTRSZVAL CPROC SetProgramRespawn( PTRSZVAL psv, va_list args )
+uintptr_t CPROC SetProgramRespawn( uintptr_t psv, va_list args )
 {
 	PARAM( args, LOGICAL, respawn);
 	PMY_TASK_INFO task = (PMY_TASK_INFO)psv;
@@ -233,7 +233,7 @@ PTRSZVAL CPROC SetProgramRespawn( PTRSZVAL psv, va_list args )
    return psv;
 }
 
-PTRSZVAL CPROC SetProgramRequirements( PTRSZVAL psv, va_list args )
+uintptr_t CPROC SetProgramRequirements( uintptr_t psv, va_list args )
 {
    PARAM( args, char *, require );
 	PMY_TASK_INFO task = (PMY_TASK_INFO)psv;
@@ -246,7 +246,7 @@ PTRSZVAL CPROC SetProgramRequirements( PTRSZVAL psv, va_list args )
 
 //-------------------------------------------------------------------------
 
-PTRSZVAL CPROC TasksLoaded( PTRSZVAL psv )
+uintptr_t CPROC TasksLoaded( uintptr_t psv )
 {
 	if( psv )
 	{
@@ -285,8 +285,8 @@ void DoTaskUpdate( void )
 
 void CPROC ControllerReadComplete( PCLIENT pc, POINTER readbuf, int size )
 {
-	_32 ofs = GetNetworkLong( pc, NL_READ_SO_FAR );
-   P_8 buffer = (P_8)readbuf;
+	uint32_t ofs = GetNetworkLong( pc, NL_READ_SO_FAR );
+   uint8_t* buffer = (uint8_t*)readbuf;
 	if( !buffer )
 	{
       buffer = (POINTER)GetNetworkLong( pc, NL_BUFFER );
@@ -300,23 +300,23 @@ void CPROC ControllerReadComplete( PCLIENT pc, POINTER readbuf, int size )
          MemSet( buffer + ofs + size, 0, 8 - ( ofs + size ) );
 		}
       ofs += size;
-		if( ((_64*)buffer)[0] == *(_64*)"UPDATE\0\0" )
+		if( ((uint64_t*)buffer)[0] == *(uint64_t*)"UPDATE\0\0" )
 		{
 			DoTaskUpdate();
 			ofs = 0;
 		}
-		else if( ((_64*)buffer)[0] == *(_64*)"RESTART\0" )
+		else if( ((uint64_t*)buffer)[0] == *(uint64_t*)"RESTART\0" )
 		{
 			KillTasks();
 			StartTasks();
 			ofs = 0;
 		}
-		else if( ((_64*)buffer)[0] == *(_64*)"START\0\0\0" )
+		else if( ((uint64_t*)buffer)[0] == *(uint64_t*)"START\0\0\0" )
 		{
 			StartTasks();
 			ofs = 0;
 		}
-		else if( ((_64*)buffer)[0] == *(_64*)"STOP\0\0\0\0" )
+		else if( ((uint64_t*)buffer)[0] == *(uint64_t*)"STOP\0\0\0\0" )
 		{
 			KillTasks();
 			ofs = 0;
@@ -339,7 +339,7 @@ void CPROC ControllerDisconnect( PCLIENT pc )
 void CPROC ControllerConnected( PCLIENT pcNew, PCLIENT pcServer )
 {
 	SetNetworkReadComplete( pcNew, ControllerReadComplete );
-   SetNetworkLong( pcNew, NL_BUFFER, (PTRSZVAL)Allocate( 4096 ) );
+   SetNetworkLong( pcNew, NL_BUFFER, (uintptr_t)Allocate( 4096 ) );
 }
 
 void StartSpawnerService( void )

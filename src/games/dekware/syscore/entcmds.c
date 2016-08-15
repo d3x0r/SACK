@@ -35,7 +35,7 @@ PTEXT WriteListNot( PLIST pSource
 	size_t length;
 	typedef struct unique_tag {
 		PTEXT name;
-		_32 count;
+		uint32_t count;
 	} *unique_name, new_unique_name;
 	PDATALIST unique = NULL;
 	TEXTCHAR tmp[12];
@@ -756,7 +756,7 @@ int CPROC GRAB( PSENTIENT ps, PTEXT parameters )
 	vt = VarTextCreate( );
 	if( (temp = GetParam( ps, &parameters) ) )
 	{
-	 _32 x;
+	 uint32_t x;
 		PENTITY pThing, pRoom, pOwner;
 		x = Grab( ps->Current, temp
 				 , &pRoom

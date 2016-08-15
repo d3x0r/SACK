@@ -39,10 +39,10 @@ typedef struct EDITOR_tag {
    POINT ptUpperLeft; // upper left screen coordinate of window...
 } EDITOR, *PEDITOR;
 
-void EditResizeCallback( PTRSZVAL dwUser );
+void EditResizeCallback( uintptr_t dwUser );
 
 
-void EditMouseCallback( PTRSZVAL dwUser, int x, int y, int b )
+void EditMouseCallback( uintptr_t dwUser, int x, int y, int b )
 {
    static int _x, _y, _right, _left;
    int right, left;
@@ -53,12 +53,12 @@ void EditMouseCallback( PTRSZVAL dwUser, int x, int y, int b )
    if( IsKeyDown( pe->hVideo, KEY_PGUP ) )
    {
    	TranslateRel( pe->TView, 0, 0, -1.0 );
-   	EditResizeCallback( (PTRSZVAL)pe );
+   	EditResizeCallback( (uintptr_t)pe );
    }
    else if( IsKeyDown( pe->hVideo, KEY_PGDN ) )
    {
    	TranslateRel( pe->TView, 0, 0, 1.0 );
-   	EditResizeCallback( (PTRSZVAL)pe );
+   	EditResizeCallback( (uintptr_t)pe );
    }
 
    //if( pe->bLocked )
@@ -195,7 +195,7 @@ void EditMouseCallback( PTRSZVAL dwUser, int x, int y, int b )
 
             }
             */
-            EditResizeCallback( (PTRSZVAL)pe ); // update screen...
+            EditResizeCallback( (uintptr_t)pe ); // update screen...
          }
       } 
       else if( pe->bDragNormal )
@@ -210,7 +210,7 @@ void EditMouseCallback( PTRSZVAL dwUser, int x, int y, int b )
             sub( vn, vn, pe->pCurrentLine->r.o );
             Apply( pe->TView, pe->pCurrentLine->r.n, vn ); // apply inverse -> Apply...
             // update Intersecting lines......
-            EditResizeCallback( (PTRSZVAL)pe ); // update screen...
+            EditResizeCallback( (uintptr_t)pe ); // update screen...
          }
       }
       else if( pe->bDragWorld )
@@ -230,7 +230,7 @@ void EditMouseCallback( PTRSZVAL dwUser, int x, int y, int b )
             sub( v1, v2, v1 );
             v1[vForward] = 0; 
             TranslateRelV( pe->TView, v1 );
-            EditResizeCallback( (PTRSZVAL)pe ); // update screen...
+            EditResizeCallback( (uintptr_t)pe ); // update screen...
          }
       }
 
@@ -280,7 +280,7 @@ void MarkSlope( PEDITOR pe, Image pImage )
                     pe->ptN.y - MARK_SIZE, Color( 200, 200, 200 ) );
 }
 
-void EditResizeCallback( PTRSZVAL dwUser  )
+void EditResizeCallback( uintptr_t dwUser  )
 {
    PEDITOR pe = (PEDITOR)dwUser;
    PFACETSET pfs;
@@ -353,9 +353,9 @@ PEDITOR CreateEditor( POBJECT po )
 	MemSet( pe, 0, sizeof( EDITOR ) );
 	pe->TView = CreateTransform();
    pe->hVideo = OpenDisplay( 0 );//"World Editor" );
-   SetRedrawHandler( pe->hVideo, EditResizeCallback, (PTRSZVAL)pe );
-   SetMouseHandler( pe->hVideo, EditMouseCallback, (PTRSZVAL)pe );
-  // SetCloseHandler( pe->hVideo, EditCloseCallback, (PTRSZVAL)pe );
+   SetRedrawHandler( pe->hVideo, EditResizeCallback, (uintptr_t)pe );
+   SetMouseHandler( pe->hVideo, EditMouseCallback, (uintptr_t)pe );
+  // SetCloseHandler( pe->hVideo, EditCloseCallback, (uintptr_t)pe );
 
    // menu for this instance....
    pe->hMenu = CreatePopupMenu();
@@ -377,7 +377,7 @@ PEDITOR CreateEditor( POBJECT po )
 
    pe->bLocked = FALSE;
 
-   EditResizeCallback( (PTRSZVAL)pe);
+   EditResizeCallback( (uintptr_t)pe);
    return pe;
 }
 

@@ -34,7 +34,7 @@ class ZRender_Shader_Simple: public ZRender_Shader_Interface
 
     ZRender_Shader_Simple( class ZRender_Interface *render );
 
-	PTRSZVAL SetupShader( void );
+	uintptr_t SetupShader( void );
 	void InitShader( PImageShaderTracker tracker );
 
 	void DrawLine( ZVector3f *p1, ZVector3f *p2, ZVector4f *c );

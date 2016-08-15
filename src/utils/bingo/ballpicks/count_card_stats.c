@@ -8,17 +8,17 @@ int pack_size;
 int p; // used counter for which pack we're on globally.
 
 // per-pack count numbers...
-_8 shared_nums[75];
+uint8_t shared_nums[75];
 int multi_nums[75]; // 75 is overkill/ really this is pack size.
 LOGICAL used_n_row[15];
 int same_spot[25];
 //
-_32 current_card;
+uint32_t current_card;
 
 
 PLIST pack;
 
-void CARDLOOP( P_8 card, void(*f)(int,int,int,int) ) {
+void CARDLOOP( uint8_t* card, void(*f)(int,int,int,int) ) {
 	int n = 0;
 	int c, r;
 	for( c = 0; c < 5; c++ ) {
@@ -39,7 +39,7 @@ void CARDLOOP( P_8 card, void(*f)(int,int,int,int) ) {
 }
 
 
-void matchSpots( P_8 card, P_8 card2 )
+void matchSpots( uint8_t* card, uint8_t* card2 )
 {
 	int n = 0;
 	int c, r;
@@ -92,7 +92,7 @@ void NCounter( int c, int r, int base, int spot )
 	}
 }
 
-void countNs( P_8 card )
+void countNs( uint8_t* card )
 {
    CARDLOOP( card, NCounter );
 }
@@ -102,25 +102,25 @@ void NumCounter( int c, int r, int base, int spot )
    shared_nums[spot+base]++;
 }
 
-void countNums( P_8 card )
+void countNums( uint8_t* card )
 {
 	CARDLOOP( card, NumCounter );
 }
 
 void countPack( void )
 {
-	P_8 card;
+	uint8_t* card;
 	INDEX idx;
 
 
-	LIST_FORALL( pack, idx, P_8, card ) {
+	LIST_FORALL( pack, idx, uint8_t*, card ) {
 		countNums( card );
 		countNs( card );
 	}
-	LIST_FORALL( pack, idx, P_8, card ) {
+	LIST_FORALL( pack, idx, uint8_t*, card ) {
 		INDEX idx2 = idx + 1;
-		P_8 card2;
-		LIST_NEXTALL( pack, idx2, P_8, card2 ) {
+		uint8_t* card2;
+		LIST_NEXTALL( pack, idx2, uint8_t*, card2 ) {
 			matchSpots( card, card2 );
 		}
 	}
@@ -196,11 +196,11 @@ void countPack( void )
 }
 
 
-void countStats( P_8 cards, int pack_size, int start, int count )
+void countStats( uint8_t* cards, int pack_size, int start, int count )
 {
 	int n;
 	int c;
-	P_8 card;
+	uint8_t* card;
 	start = start-1;
 	start -= start % pack_size;
 	for( p = 0; p < count; p++ ) {
@@ -228,8 +228,8 @@ int main( int argc, char **argv )
 	count = atoi( argv[4] );
 
 	{
-		PTRSZVAL size = 0;
-		P_8 card_memory = OpenSpace( NULL, file, &size );
+		uintptr_t size = 0;
+		uint8_t* card_memory = OpenSpace( NULL, file, &size );
 		if( card_memory )
 		{
 			countStats( card_memory, pack_size, start, count );

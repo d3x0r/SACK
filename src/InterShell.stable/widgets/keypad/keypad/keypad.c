@@ -73,10 +73,10 @@ typedef struct page_keypad
 	PPAGE_DATA page;
 	PSI_CONTROL keypad;
 	CTEXTSTR keypad_type;
-	S_32 x;
-	S_32 y;
-	_32 w;
-	_32 h;
+	int32_t x;
+	int32_t y;
+	uint32_t w;
+	uint32_t h;
 
 } PAGE_KEYPAD, *PPAGE_KEYPAD;
 
@@ -84,12 +84,12 @@ typedef struct hotkey
 {
 	struct {
 
-		_32 bNegative : 1;
+		uint32_t bNegative : 1;
 
 	} flags;
 
 	PMENU_BUTTON button;
-	_64 value;
+	uint64_t value;
 	SFTFont *font;
 	SFTFont *new_font;
 	CTEXTSTR preset_name;
@@ -101,10 +101,10 @@ static struct {
 	//PSI_CONTROL keypad; // only use one of these, else keybindings suck.
 	PLIST keypads;
 	PLIST keypad_types;
-	PTRSZVAL psv_read_keypad;
+	uintptr_t psv_read_keypad;
 } l;
 
-void CPROC InvokeKeypadEnterEvent( PTRSZVAL psv, PSI_CONTROL pcKeypad )
+void CPROC InvokeKeypadEnterEvent( uintptr_t psv, PSI_CONTROL pcKeypad )
 {
 	PPAGE_KEYPAD keypad = (PPAGE_KEYPAD)psv;
 
@@ -147,7 +147,7 @@ void CPROC InvokeKeypadEnterEvent( PTRSZVAL psv, PSI_CONTROL pcKeypad )
 }
 
 
-void CPROC InvokeKeypadCancelEvent( PTRSZVAL psv, PSI_CONTROL pcKeypad )
+void CPROC InvokeKeypadCancelEvent( uintptr_t psv, PSI_CONTROL pcKeypad )
 {
 	PPAGE_KEYPAD keypad = (PPAGE_KEYPAD)psv;
 
@@ -216,8 +216,8 @@ static int IsGetKeypadControlForType( PSI_CONTROL frame, PPAGE_KEYPAD keypad )
 										, KEYPAD_FLAG_ENTRY|KEYPAD_FLAG_DISPLAY
 										, keypad->keypad_type
 										);
-	SetKeypadEnterEvent( keypad->keypad, InvokeKeypadEnterEvent, (PTRSZVAL)keypad );
-	SetKeypadCancelEvent( keypad->keypad, InvokeKeypadCancelEvent, (PTRSZVAL)keypad );
+	SetKeypadEnterEvent( keypad->keypad, InvokeKeypadEnterEvent, (uintptr_t)keypad );
+	SetKeypadCancelEvent( keypad->keypad, InvokeKeypadCancelEvent, (uintptr_t)keypad );
 	//AddLink( &l.keypads, keypad );
 	return TRUE;
 }
@@ -249,7 +249,7 @@ PUBLIC( void, GetKeypadsOfType )( PLIST *ppResultList, CTEXTSTR type )
 	}
 }
 
-static void CPROC EditVisualProperties( PTRSZVAL psvKeypad, PSI_CONTROL parent )
+static void CPROC EditVisualProperties( uintptr_t psvKeypad, PSI_CONTROL parent )
 {
 	PSI_CONTROL frame = LoadXMLFrameOver( parent, WIDE( "ConfigureKeypadVisual.isFrame" ) );
 	PPAGE_KEYPAD keypad = (PPAGE_KEYPAD)psvKeypad;
@@ -421,7 +421,7 @@ static void CPROC EditVisualProperties( PTRSZVAL psvKeypad, PSI_CONTROL parent )
 
 }
 
-static PTRSZVAL OnEditControl( WIDE( "Keypad 2" ) )( PTRSZVAL psv, PSI_CONTROL pc_parent )
+static uintptr_t OnEditControl( WIDE( "Keypad 2" ) )( uintptr_t psv, PSI_CONTROL pc_parent )
 {
 	PPAGE_KEYPAD keypad = (PPAGE_KEYPAD)psv;
 	PSI_CONTROL frame = LoadXMLFrameOver( pc_parent, WIDE("ConfigureKeypad.isFrame") );
@@ -459,7 +459,7 @@ static PTRSZVAL OnEditControl( WIDE( "Keypad 2" ) )( PTRSZVAL psv, PSI_CONTROL p
 			}
 		}
 		
-		SetButtonPushMethod( GetControl( frame, BTN_EDIT_VISUAL ), EditVisualProperties, (PTRSZVAL)keypad );
+		SetButtonPushMethod( GetControl( frame, BTN_EDIT_VISUAL ), EditVisualProperties, (uintptr_t)keypad );
 		DisplayFrameOver( frame, pc_parent );
 		CommonWait( frame );
 
@@ -494,7 +494,7 @@ static PTRSZVAL OnEditControl( WIDE( "Keypad 2" ) )( PTRSZVAL psv, PSI_CONTROL p
 	return psv;
 }
 
-static PTRSZVAL OnCreateControl( WIDE( "Keypad 2" ) )( PSI_CONTROL frame, S_32 x, S_32 y, _32 w, _32 h )
+static uintptr_t OnCreateControl( WIDE( "Keypad 2" ) )( PSI_CONTROL frame, int32_t x, int32_t y, uint32_t w, uint32_t h )
 {
 	PPAGE_KEYPAD page_keypad = NULL;
 	{
@@ -521,10 +521,10 @@ static PTRSZVAL OnCreateControl( WIDE( "Keypad 2" ) )( PSI_CONTROL frame, S_32 x
 												);
 			SetKeypadEnterEvent( page_keypad->keypad
 									 , InvokeKeypadEnterEvent
-									 , (PTRSZVAL)page_keypad );
+									 , (uintptr_t)page_keypad );
 			SetKeypadCancelEvent( page_keypad->keypad
 									 , InvokeKeypadCancelEvent
-									 , (PTRSZVAL)page_keypad );
+									 , (uintptr_t)page_keypad );
 			AddLink( &l.keypads, page_keypad );
 		}
 
@@ -532,7 +532,7 @@ static PTRSZVAL OnCreateControl( WIDE( "Keypad 2" ) )( PSI_CONTROL frame, S_32 x
 			return 0;
 	}
 
-	return (PTRSZVAL)page_keypad;
+	return (uintptr_t)page_keypad;
 }
 
 static int OnChangePage( WIDE( "Keypad 2" ) )( PSI_CONTROL pc_canvas )
@@ -546,14 +546,14 @@ static int OnChangePage( WIDE( "Keypad 2" ) )( PSI_CONTROL pc_canvas )
 	return TRUE;
 }
 
-static PSI_CONTROL OnGetControl( WIDE( "Keypad 2" ) )(PTRSZVAL psv )
+static PSI_CONTROL OnGetControl( WIDE( "Keypad 2" ) )(uintptr_t psv )
 {
 	PPAGE_KEYPAD keypad = (PPAGE_KEYPAD)psv;
 	return keypad->keypad;
 }
 
 
-static void OnSaveControl( WIDE( "Keypad 2" ) )( FILE *file, PTRSZVAL psv )
+static void OnSaveControl( WIDE( "Keypad 2" ) )( FILE *file, uintptr_t psv )
 {
 	PPAGE_KEYPAD keypad = (PPAGE_KEYPAD)psv;
 	sack_fprintf( file, WIDE( "%sKeypad type='%s'\n" ), InterShell_GetSaveIndent(), keypad->keypad_type?keypad->keypad_type:WIDE(".") );
@@ -561,7 +561,7 @@ static void OnSaveControl( WIDE( "Keypad 2" ) )( FILE *file, PTRSZVAL psv )
 	//sack_fprintf( file, "Keypad Option Go-Clear=%s", GetKeypadGoClear( keypad->keypad ) );
 }
 
-static PTRSZVAL CPROC MySetKeypadType( PTRSZVAL psv, arg_list args )
+static uintptr_t CPROC MySetKeypadType( uintptr_t psv, arg_list args )
 {
 	PARAM( args, CTEXTSTR, name );
 	PPAGE_KEYPAD keypad = (PPAGE_KEYPAD)psv;
@@ -572,12 +572,12 @@ static PTRSZVAL CPROC MySetKeypadType( PTRSZVAL psv, arg_list args )
 		KeypadSetAccumulator( keypad->keypad, name );
 	}
 
-	l.psv_read_keypad = (PTRSZVAL)keypad->keypad;
+	l.psv_read_keypad = (uintptr_t)keypad->keypad;
 
 	return psv;
 }
 
-static void OnLoadControl( WIDE( "Keypad 2" ) )( PCONFIG_HANDLER pch, PTRSZVAL psv )
+static void OnLoadControl( WIDE( "Keypad 2" ) )( PCONFIG_HANDLER pch, uintptr_t psv )
 {
 	AddConfigurationMethod( pch, WIDE( "Keypad type='%m'" ), MySetKeypadType );
 	KeypadSetupConfig( pch, &l.psv_read_keypad );
@@ -585,7 +585,7 @@ static void OnLoadControl( WIDE( "Keypad 2" ) )( PCONFIG_HANDLER pch, PTRSZVAL p
 
 //-------------------------------------------------------------------------------------------
 
-static PTRSZVAL OnEditControl( WIDE( "Keyboard 2" ) )( PTRSZVAL psv, PSI_CONTROL pc_parent )
+static uintptr_t OnEditControl( WIDE( "Keyboard 2" ) )( uintptr_t psv, PSI_CONTROL pc_parent )
 {
 	PPAGE_KEYPAD keypad = (PPAGE_KEYPAD)psv;
 	PSI_CONTROL frame = LoadXMLFrameOver( pc_parent, WIDE("ConfigureKeypad.isFrame") );
@@ -623,7 +623,7 @@ static PTRSZVAL OnEditControl( WIDE( "Keyboard 2" ) )( PTRSZVAL psv, PSI_CONTROL
 			}
 		}
 		
-		SetButtonPushMethod( GetControl( frame, BTN_EDIT_VISUAL ), EditVisualProperties, (PTRSZVAL)keypad );
+		SetButtonPushMethod( GetControl( frame, BTN_EDIT_VISUAL ), EditVisualProperties, (uintptr_t)keypad );
 		DisplayFrameOver( frame, pc_parent );
 		CommonWait( frame );
 
@@ -659,7 +659,7 @@ static PTRSZVAL OnEditControl( WIDE( "Keyboard 2" ) )( PTRSZVAL psv, PSI_CONTROL
 	return psv;
 }
 
-static PTRSZVAL OnCreateControl( WIDE( "Keyboard 2" ) )( PSI_CONTROL frame, S_32 x, S_32 y, _32 w, _32 h )
+static uintptr_t OnCreateControl( WIDE( "Keyboard 2" ) )( PSI_CONTROL frame, int32_t x, int32_t y, uint32_t w, uint32_t h )
 {
 	PPAGE_KEYPAD page_keypad = NULL;
 	{
@@ -692,10 +692,10 @@ static PTRSZVAL OnCreateControl( WIDE( "Keyboard 2" ) )( PSI_CONTROL frame, S_32
 												);
 			SetKeypadEnterEvent( page_keypad->keypad
 									 , InvokeKeypadEnterEvent
-									 , (PTRSZVAL)page_keypad );
+									 , (uintptr_t)page_keypad );
 			SetKeypadCancelEvent( page_keypad->keypad
 									 , InvokeKeypadCancelEvent
-									 , (PTRSZVAL)page_keypad );
+									 , (uintptr_t)page_keypad );
 			AddLink( &l.keypads, page_keypad );
 		}
 
@@ -703,17 +703,17 @@ static PTRSZVAL OnCreateControl( WIDE( "Keyboard 2" ) )( PSI_CONTROL frame, S_32
 			return 0;
 	}
 
-	return (PTRSZVAL)page_keypad;
+	return (uintptr_t)page_keypad;
 }
 
-static PSI_CONTROL OnGetControl( WIDE( "Keyboard 2" ) )(PTRSZVAL psv )
+static PSI_CONTROL OnGetControl( WIDE( "Keyboard 2" ) )(uintptr_t psv )
 {
 	PPAGE_KEYPAD keypad = (PPAGE_KEYPAD)psv;
 	return keypad->keypad;
 }
 
 
-static void OnSaveControl( WIDE( "Keyboard 2" ) )( FILE *file, PTRSZVAL psv )
+static void OnSaveControl( WIDE( "Keyboard 2" ) )( FILE *file, uintptr_t psv )
 {
 	PPAGE_KEYPAD keypad = (PPAGE_KEYPAD)psv;
 	sack_fprintf( file, WIDE( "Keypad type='%s'\n" ), keypad->keypad_type?keypad->keypad_type:WIDE(".") );
@@ -721,7 +721,7 @@ static void OnSaveControl( WIDE( "Keyboard 2" ) )( FILE *file, PTRSZVAL psv )
 	//sack_fprintf( file, "Keypad Option Go-Clear=%s", GetKeypadGoClear( keypad->keypad ) );
 }
 
-static void OnLoadControl( WIDE( "Keyboard 2" ) )( PCONFIG_HANDLER pch, PTRSZVAL psv )
+static void OnLoadControl( WIDE( "Keyboard 2" ) )( PCONFIG_HANDLER pch, uintptr_t psv )
 {
 	AddConfigurationMethod( pch, WIDE( "Keypad type='%m'" ), MySetKeypadType );
 	KeypadSetupConfig( pch, &l.psv_read_keypad );
@@ -729,7 +729,7 @@ static void OnLoadControl( WIDE( "Keyboard 2" ) )( PCONFIG_HANDLER pch, PTRSZVAL
 
 //-------------------------------------------------------------------------------------------
 
-static void OnKeyPressEvent( WIDE( "Keypad Hotkey 2" ) )( PTRSZVAL psv )
+static void OnKeyPressEvent( WIDE( "Keypad Hotkey 2" ) )( uintptr_t psv )
 {
 	// Because of the way this has to be created, this event has a funny
 	// rule about its parameters...
@@ -747,7 +747,7 @@ static void OnKeyPressEvent( WIDE( "Keypad Hotkey 2" ) )( PTRSZVAL psv )
 	}
 }
 
-static PTRSZVAL OnCreateMenuButton( WIDE( "Keypad Hotkey 2" ) )( PMENU_BUTTON button )
+static uintptr_t OnCreateMenuButton( WIDE( "Keypad Hotkey 2" ) )( PMENU_BUTTON button )
 {
 	PHOTKEY hotkey = New( HOTKEY );
 	MemSet( hotkey, 0, sizeof( *hotkey ) );
@@ -755,10 +755,10 @@ static PTRSZVAL OnCreateMenuButton( WIDE( "Keypad Hotkey 2" ) )( PMENU_BUTTON bu
 	InterShell_SetButtonStyle( button, WIDE( "bicolor square" ) );
 	InterShell_SetButtonText( button, WIDE( "10" ) );
 	hotkey->value = 10;
-	return (PTRSZVAL)hotkey;
+	return (uintptr_t)hotkey;
 }
 
-static void CPROC PickHotkeyFont( PTRSZVAL psv, PSI_CONTROL pc )
+static void CPROC PickHotkeyFont( uintptr_t psv, PSI_CONTROL pc )
 {
 	PHOTKEY hotkey = (PHOTKEY)psv;
 	SFTFont *font = SelectACanvasFont( GetFrame( pc ), GetFrame( pc ), &hotkey->preset_name );
@@ -771,7 +771,7 @@ static void CPROC PickHotkeyFont( PTRSZVAL psv, PSI_CONTROL pc )
 }
 
 
-static PTRSZVAL OnEditControl( WIDE( "Keypad Hotkey 2" ) )( PTRSZVAL psv, PSI_CONTROL parent_frame )
+static uintptr_t OnEditControl( WIDE( "Keypad Hotkey 2" ) )( uintptr_t psv, PSI_CONTROL parent_frame )
 {
 	PHOTKEY hotkey = (PHOTKEY)psv;
 	int okay = 0, done = 0;
@@ -825,7 +825,7 @@ static PTRSZVAL OnEditControl( WIDE( "Keypad Hotkey 2" ) )( PTRSZVAL psv, PSI_CO
 	return psv;
 }
 
-static void OnSaveControl( WIDE( "Keypad Hotkey 2" ) )( FILE *file, PTRSZVAL psv )
+static void OnSaveControl( WIDE( "Keypad Hotkey 2" ) )( FILE *file, uintptr_t psv )
 {
 	PHOTKEY hotkey = (PHOTKEY)psv;
 
@@ -840,9 +840,9 @@ static void OnSaveControl( WIDE( "Keypad Hotkey 2" ) )( FILE *file, PTRSZVAL psv
 	}
 }
 
-static PTRSZVAL CPROC SetHotkeyValue( PTRSZVAL psv, arg_list args )
+static uintptr_t CPROC SetHotkeyValue( uintptr_t psv, arg_list args )
 {
-	PARAM( args, _64, value );
+	PARAM( args, uint64_t, value );
 	PHOTKEY hotkey = (PHOTKEY)psv;
 
 	if( hotkey )
@@ -853,7 +853,7 @@ static PTRSZVAL CPROC SetHotkeyValue( PTRSZVAL psv, arg_list args )
 	return psv;
 }
 
-static PTRSZVAL CPROC SetHotkeyFontByName( PTRSZVAL psv, arg_list args )
+static uintptr_t CPROC SetHotkeyFontByName( uintptr_t psv, arg_list args )
 {
 	PHOTKEY hotkey = (PHOTKEY)psv;
 	PARAM( args, TEXTCHAR *, name );
@@ -862,14 +862,14 @@ static PTRSZVAL CPROC SetHotkeyFontByName( PTRSZVAL psv, arg_list args )
 	return psv;
 }
 
-static PTRSZVAL CPROC SetHotkeyNegative( PTRSZVAL psv, arg_list args )
+static uintptr_t CPROC SetHotkeyNegative( uintptr_t psv, arg_list args )
 {
 	PHOTKEY hotkey = (PHOTKEY)psv;
 	hotkey->flags.bNegative = 1;
 	return psv;
 }
 
-static PTRSZVAL CPROC SetHotkeyTarget( PTRSZVAL psv, arg_list args )
+static uintptr_t CPROC SetHotkeyTarget( uintptr_t psv, arg_list args )
 {
 	PARAM( args, CTEXTSTR, name );
 	PHOTKEY hotkey = (PHOTKEY)psv;
@@ -887,7 +887,7 @@ static PTRSZVAL CPROC SetHotkeyTarget( PTRSZVAL psv, arg_list args )
 	return psv;
 }
 
-static void OnLoadControl( WIDE( "Keypad Hotkey 2" ) )( PCONFIG_HANDLER pch, PTRSZVAL psv )
+static void OnLoadControl( WIDE( "Keypad Hotkey 2" ) )( PCONFIG_HANDLER pch, uintptr_t psv )
 {
 	AddConfigurationMethod( pch, WIDE( "hotkey font=%m" ), SetHotkeyFontByName );
 	AddConfigurationMethod( pch, WIDE( "hotkey value=%i" ), SetHotkeyValue );
@@ -896,7 +896,7 @@ static void OnLoadControl( WIDE( "Keypad Hotkey 2" ) )( PCONFIG_HANDLER pch, PTR
 }
 
 
-static void OnFixupControl( WIDE( "Keypad Hotkey 2" ) )( PTRSZVAL psv )
+static void OnFixupControl( WIDE( "Keypad Hotkey 2" ) )( uintptr_t psv )
 {
 	PHOTKEY hotkey = (PHOTKEY)psv;
 	TEXTCHAR buffer[256];
@@ -940,7 +940,7 @@ PUBLIC( void, SetKeypadType )( PSI_CONTROL keypad, CTEXTSTR type )
 
 
 
-PUBLIC( void, Keypad_AddMagicKeySequence )( PSI_CONTROL keypad, CTEXTSTR sequence, void (CPROC*event_proc)( PTRSZVAL ), PTRSZVAL psv_sequence )
+PUBLIC( void, Keypad_AddMagicKeySequence )( PSI_CONTROL keypad, CTEXTSTR sequence, void (CPROC*event_proc)( uintptr_t ), uintptr_t psv_sequence )
 {
 	KeypadAddMagicKeySequence( keypad, sequence, event_proc, psv_sequence );
 }

@@ -15,8 +15,8 @@ static int myTypeID;
 typedef struct mydatapath_tag {
 	DATAPATH common;
 	struct {
-		_32 bOutbound : 1;
-		_32 bInbound : 1;
+		uint32_t bOutbound : 1;
+		uint32_t bInbound : 1;
 	} flags;
 } MYDATAPATH, *PMYDATAPATH;
 

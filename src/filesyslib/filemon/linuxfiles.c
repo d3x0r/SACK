@@ -172,13 +172,13 @@ static void handler( int sig, siginfo_t *si, void *data )
     }
 }
 
-void CPROC NewScanTimer( PTRSZVAL unused )
+void CPROC NewScanTimer( uintptr_t unused )
 {
 	
         PMONITOR cur = Monitors;
         for( cur = Monitors; cur; cur = cur->next )
         {
-		static _8 buf[4096];
+		static uint8_t buf[4096];
 		struct inotify_event *event;
 		int len;	
 
@@ -242,7 +242,7 @@ FILEMONITOR_PROC( PMONITOR, MonitorFilesEx )( CTEXTSTR dirname, int scan_delay, 
 			Monitoring = 1;
 			//monitor->Client = Client;
 			monitor->DoScanTime = GetTickCount() - 1; // do first scan NOW
-			monitor->timer = AddTimerEx( 0, SCAN_DELAY/2, (void(*)(PTRSZVAL))ScanTimer, (PTRSZVAL)monitor );
+			monitor->timer = AddTimerEx( 0, SCAN_DELAY/2, (void(*)(uintptr_t))ScanTimer, (uintptr_t)monitor );
 			Log2( WIDE("Created timer: %") _32f WIDE(" Monitor handle: %d"), monitor->timer, monitor->fdMon );
 			return monitor;
 		}

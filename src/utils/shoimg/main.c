@@ -18,7 +18,7 @@ static GLOBAL g;
 Image imgGraphic;
 Image surface;
 
-void CPROC Output( PTRSZVAL psv, PRENDERER display )
+void CPROC Output( uintptr_t psv, PRENDERER display )
 {
    surface = GetDisplayImage( display );
 	BlotScaledImageAlpha( surface, imgGraphic, ALPHA_TRANSPARENT );
@@ -28,8 +28,8 @@ void CPROC Output( PTRSZVAL psv, PRENDERER display )
 int main( int argc, char **argv )
 {
    LOGICAL SuccessOrFailure = TRUE;
-	_32 width, height, w, h, x = 0, y = 0;
-	_64 z = 10;
+	uint32_t width, height, w, h, x = 0, y = 0;
+	uint64_t z = 10;
 
 	SetSystemLog( SYSLOG_FILE, stdout );
 	g.pdi = GetDisplayInterface();
@@ -132,7 +132,7 @@ int main( int argc, char **argv )
 		( (h + y ) <= height )
       )
 	{
-      _64 a = GetTickCount();
+      uint64_t a = GetTickCount();
 		PRENDERER display = OpenDisplaySizedAt( DISPLAY_ATTRIBUTE_LAYERED
 														  , w //width
 														  , h //height
@@ -155,7 +155,7 @@ int main( int argc, char **argv )
 	}
 	else
 	{
-		_32 x;
+		uint32_t x;
 		lprintf( WIDE("\n\n\tUsage: %s <image> [[[<width> <height>] <x> <y>] <seconds>].  \n\t\
 						  Must be width of %u by height of %u or less, controlled by Display.Config. \n\t\
 						  Example:  shoimg sky.jpg  orients at default (top left) and will use default resolution (maximum) and display full screen for the default time period (ten seconds).\n\t\

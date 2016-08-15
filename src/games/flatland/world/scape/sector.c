@@ -118,7 +118,7 @@ void DumpWall( INDEX iWorld, INDEX iWall )
 
 
 //----------------------------------------------------------------------------
-INDEX CreateWallFromLine( _32 client_id
+INDEX CreateWallFromLine( uint32_t client_id
 						 , INDEX iWorld
 						 , INDEX iSector
 						 // pStart == wall intended to be at the start part of
@@ -205,7 +205,7 @@ INDEX CreateWallFromLine( _32 client_id
 }
 //----------------------------------------------------------------------------
 
-INDEX SrvrCreateWall( _32 client_id, INDEX iWorld
+INDEX SrvrCreateWall( uint32_t client_id, INDEX iWorld
 				 , INDEX iSector
 				 // pStart == wall intended to be at the start part of
 				 // this line...
@@ -264,7 +264,7 @@ int CountWalls( INDEX iWorld, INDEX iWall )
 	/*if( !UpdateLevels ) UpdateSpace( UpdateCount, UpdateList );*/\
 	return r; }
 
-int SrvrUpdateMatingLines( _32 client_id, INDEX iWorld, INDEX iWall
+int SrvrUpdateMatingLines( uint32_t client_id, INDEX iWorld, INDEX iWall
 					  , int bLockSlope, int bErrorOK )
 					  // return TRUE to allow the update
 					  // return FALSE to invalidate the update... too many 
@@ -783,7 +783,7 @@ int UnlinkWall( INDEX iWorld, INDEX iWall, INDEX findwall )
 
 //----------------------------------------------------------------------------
 
-void SrvrDestroyWall( _32 client_id, INDEX iWorld, INDEX iWall )
+void SrvrDestroyWall( uint32_t client_id, INDEX iWorld, INDEX iWall )
 {
 	PWORLD world = GetSetMember( WORLD, &g.worlds, iWorld );
 	PWALL wall = GetSetMember( WALL, &world->walls, iWall );
@@ -815,7 +815,7 @@ void SrvrDestroyWall( _32 client_id, INDEX iWorld, INDEX iWall )
 
 //----------------------------------------------------------------------------
 
-int SrvrDestroySector( _32 client_id, INDEX iWorld, INDEX iSector )
+int SrvrDestroySector( uint32_t client_id, INDEX iWorld, INDEX iSector )
 {
 	PWORLD world = GetSetMember( WORLD, &g.worlds, iWorld );
 	PSECTOR ps = GetSetMember( SECTOR, &world->sectors, iSector );
@@ -876,7 +876,7 @@ void DeleteSectors( INDEX iWorld )
 
 //----------------------------------------------------------------------------
 
-int SrvrMergeWalls( _32 client_id, INDEX iWorld, INDEX iCurWall, INDEX iMarkedWall )
+int SrvrMergeWalls( uint32_t client_id, INDEX iWorld, INDEX iCurWall, INDEX iMarkedWall )
 {
 	PWORLD world = GetSetMember( WORLD, &g.worlds, iWorld );
 	PWALL CurWall = GetSetMember( WALL, &world->walls, iCurWall );
@@ -959,7 +959,7 @@ int SrvrMergeWalls( _32 client_id, INDEX iWorld, INDEX iCurWall, INDEX iMarkedWa
 		}                                         \
 	}
 
-void SrvrSplitWall( _32 client_id, INDEX iWorld, INDEX iWall )
+void SrvrSplitWall( uint32_t client_id, INDEX iWorld, INDEX iWall )
 {
 	PWORLD world = GetSetMember( WORLD, &g.worlds, iWorld );
 	PWALL wall = GetSetMember( WALL, &world->walls, iWall );
@@ -978,7 +978,7 @@ void SrvrSplitWall( _32 client_id, INDEX iWorld, INDEX iWall )
 
 //----------------------------------------------------------------------------
 
-void SplitNearWalls( _32 client_id, INDEX iWorld, INDEX iWall )
+void SplitNearWalls( uint32_t client_id, INDEX iWorld, INDEX iWall )
 {
 	PWORLD world = GetSetMember( WORLD, &g.worlds, iWorld );
 	PWALL wall = GetSetMember( WALL, &world->walls, iWall );
@@ -1052,7 +1052,7 @@ void SplitNearWalls( _32 client_id, INDEX iWorld, INDEX iWall )
 
 //----------------------------------------------------------------------------
 
-INDEX InsertConnectedSector( _32 client_id, INDEX iWorld, INDEX iWall, RCOORD offset )
+INDEX InsertConnectedSector( uint32_t client_id, INDEX iWorld, INDEX iWall, RCOORD offset )
 {
 	PWORLD world = GetSetMember( WORLD, &g.worlds, iWorld );
 
@@ -1153,7 +1153,7 @@ INDEX InsertConnectedSector( _32 client_id, INDEX iWorld, INDEX iWall, RCOORD of
 
 //----------------------------------------------------------------------------
 
-INDEX SrvrAddConnectedSector( _32 client_id, INDEX iWorld, INDEX iWall, RCOORD offset )
+INDEX SrvrAddConnectedSector( uint32_t client_id, INDEX iWorld, INDEX iWall, RCOORD offset )
 {
 	INDEX iSector, iLine;
 	PSECTOR ps;
@@ -1314,7 +1314,7 @@ INDEX FlatlandPointWithin( INDEX iWorld, int nSectors, INDEX *pSectors, P_POINT 
 
 //----------------------------------------------------------------------------
 
-INDEX FlatlandPointWithinLoopSingle( INDEX iSector, PTRSZVAL psv )
+INDEX FlatlandPointWithinLoopSingle( INDEX iSector, uintptr_t psv )
 {
 	struct data_tag {
 		INDEX iWorld;
@@ -1550,7 +1550,7 @@ void GetSectorPoints( INDEX iWorld, INDEX iSector, _POINT **list, int *npoints )
 
 //----------------------------------------------------------------------------
 
-int SrvrMoveSectors( _32 client_id, INDEX iWorld, int nSectors,INDEX *pSectors, P_POINT del )
+int SrvrMoveSectors( uint32_t client_id, INDEX iWorld, int nSectors,INDEX *pSectors, P_POINT del )
 {
 	PWORLD world = GetSetMember( WORLD, &g.worlds, iWorld );
 	// now in theory this routine can be extended to
@@ -1692,7 +1692,7 @@ int SrvrMoveSectors( _32 client_id, INDEX iWorld, int nSectors,INDEX *pSectors, 
 
 //----------------------------------------------------------------------------
 
-int SrvrMoveWalls( _32 client_id, INDEX iWorld, int nWalls, INDEX *WallList, P_POINT del, int bLockSlope )
+int SrvrMoveWalls( uint32_t client_id, INDEX iWorld, int nWalls, INDEX *WallList, P_POINT del, int bLockSlope )
 {
 	PWORLD world = GetSetMember( WORLD, &g.worlds, iWorld );
 	int n;
@@ -1759,7 +1759,7 @@ int SrvrMoveWalls( _32 client_id, INDEX iWorld, int nWalls, INDEX *WallList, P_P
 
 //----------------------------------------------------------------------------
 
-int SrvrRemoveWall( _32 client_id, INDEX iWorld, INDEX iWall )
+int SrvrRemoveWall( uint32_t client_id, INDEX iWorld, INDEX iWall )
 {
 	PWORLD world = GetSetMember( WORLD, g.worlds, iWorld );
 	PWALL wall = GetSetMember( WALL, &world->walls, iWall );
@@ -1883,7 +1883,7 @@ int SrvrRemoveWall( _32 client_id, INDEX iWorld, INDEX iWall )
 
 //----------------------------------------------------------------------------
 
-void SrvrBreakWall( _32 client_id, INDEX iWorld, INDEX iWall )
+void SrvrBreakWall( uint32_t client_id, INDEX iWorld, INDEX iWall )
 {
 	PWORLD world = GetSetMember( WORLD, g.worlds, iWorld );
 	PWALL wall = GetSetMember( WALL, &world->walls, iWall );
@@ -2151,7 +2151,7 @@ WORLD_PROC( INDEX, GetSectorName )( INDEX iWorld, INDEX iSector  )
 	return sector->iName;
 }
 
-void SrvrSetSectorName( _32 client_id, INDEX iWorld, INDEX iSector, INDEX iName  )
+void SrvrSetSectorName( uint32_t client_id, INDEX iWorld, INDEX iSector, INDEX iName  )
 {
 	GETWORLD( iWorld );
 	PSECTOR sector = GetSector( iSector );
@@ -2163,7 +2163,7 @@ void SrvrSetSectorName( _32 client_id, INDEX iWorld, INDEX iSector, INDEX iName 
 
 //--------------------------------------------------------------
 
-static void CPROC SectorForCallback( PTRSZVAL psv, INDEX iSector )
+static void CPROC SectorForCallback( uintptr_t psv, INDEX iSector )
 {
 
 }
@@ -2172,7 +2172,7 @@ static void CPROC SectorForCallback( PTRSZVAL psv, INDEX iSector )
 
 WORLD_PROC( void, ForAllSectors )( INDEX iWorld
 								  , FAISCallback f
-								  , PTRSZVAL psv)
+								  , uintptr_t psv)
 {
 	GETWORLD( iWorld );
 	if( world )

@@ -29,7 +29,7 @@ extern size_t iCardDeck, iHand;
 
 //---------------------------------------------------------------------
 
-PTEXT ShowPlayed( PTRSZVAL psv, PENTITY pe, PTEXT *ppLastValue )
+PTEXT ShowPlayed( uintptr_t psv, PENTITY pe, PTEXT *ppLastValue )
 {
 	// depends on the game where 'played' comes from.
 
@@ -38,7 +38,7 @@ PTEXT ShowPlayed( PTRSZVAL psv, PENTITY pe, PTEXT *ppLastValue )
 
 //---------------------------------------------------------------------
 
-PTEXT ShowTable( PTRSZVAL psv, PENTITY pe, PTEXT *ppLastValue )
+PTEXT ShowTable( uintptr_t psv, PENTITY pe, PTEXT *ppLastValue )
 {
 	// depends on the game where 'played' comes from.
 
@@ -331,7 +331,7 @@ static int ObjectMethod( WIDE("Cards"), WIDE("PlayTo"), WIDE("deal a card to an 
 //---------------------------------------------------------------------
 
 static PTEXT ObjectVolatileVariableGet( WIDE("hand"), WIDE("pokerhand"), WIDE("Shows name of the current poker hand") )( PENTITY pe, PTEXT *ppLastValue )
-//PTEXT GetPokerHand( PTRSZVAL psv, PENTITY pe, PTEXT *ppLastValue )
+//PTEXT GetPokerHand( uintptr_t psv, PENTITY pe, PTEXT *ppLastValue )
 {
 	return GetPokerHandName( (PHAND)GetLink( &pe->pPlugin, iHand ), ppLastValue );
 }
@@ -339,7 +339,7 @@ static PTEXT ObjectVolatileVariableGet( WIDE("hand"), WIDE("pokerhand"), WIDE("S
 //---------------------------------------------------------------------
 
 static PTEXT ObjectVolatileVariableGet( WIDE("hand"), WIDE("pokervalue"), WIDE("Shows current poker value of hand (numeric)") )( PENTITY pe, PTEXT *ppLastValue )
-//PTEXT GetPokerValue( PTRSZVAL psv, PENTITY pe, PTEXT *ppLastValue )
+//PTEXT GetPokerValue( uintptr_t psv, PENTITY pe, PTEXT *ppLastValue )
 {
     if( *ppLastValue )
         LineRelease( *ppLastValue );
@@ -352,7 +352,7 @@ static PTEXT ObjectVolatileVariableGet( WIDE("hand"), WIDE("pokervalue"), WIDE("
 //---------------------------------------------------------------------
 
 static PTEXT ObjectVolatileVariableGet( WIDE("hand"), WIDE("cards"), WIDE("count of cards in hand") )( PENTITY pe, PTEXT *ppLastValue )
-//PTEXT GetHandSize( PTRSZVAL psv, PENTITY pe, PTEXT *ppLastValue )
+//PTEXT GetHandSize( uintptr_t psv, PENTITY pe, PTEXT *ppLastValue )
 {
    PHAND ph;
 	if( !ppLastValue )
@@ -376,7 +376,7 @@ static PTEXT ObjectVolatileVariableGet( WIDE("hand"), WIDE("cards"), WIDE("count
 //---------------------------------------------------------------------
 
 static PTEXT ObjectVolatileVariableGet( WIDE("hand"), WIDE("pokercards"), WIDE("Just list the cards of the hand(full player hand iterator?)") )( PENTITY pe, PTEXT *ppLastValue )
-//PTEXT GetPokerCards( PTRSZVAL psv, PENTITY pe, PTEXT *ppLastValue )
+//PTEXT GetPokerCards( uintptr_t psv, PENTITY pe, PTEXT *ppLastValue )
 {
    // hmm where to put the output?! so that it can be used in script....
    // Guess Set Result...
@@ -402,7 +402,7 @@ static PTEXT ObjectVolatileVariableGet( WIDE("hand"), WIDE("pokercards"), WIDE("
 
 
 static PTEXT ObjectVolatileVariableGet( WIDE("hand"), WIDE("ShowHand"), WIDE("Shows the cards in the current hand") )( PENTITY pe, PTEXT *ppLastValue )
-//PTEXT ShowHand( PTRSZVAL psv, PENTITY pe, PTEXT *ppLastValue )
+//PTEXT ShowHand( uintptr_t psv, PENTITY pe, PTEXT *ppLastValue )
 {
    // hmm where to put the output?! so that it can be used in script....
    // Guess Set Result...
@@ -428,7 +428,7 @@ static PTEXT ObjectVolatileVariableGet( WIDE("hand"), WIDE("ShowHand"), WIDE("Sh
 //---------------------------------------------------------------------
 
 static PTEXT ObjectVolatileVariableGet( WIDE("cards"), WIDE("Rules"), WIDE("Shows the current rules of deck") )( PENTITY pe, PTEXT *ppLastValue )
-//PTEXT GetDeckRules( PTRSZVAL psv, PENTITY pe, PTEXT *ppLastValue )
+//PTEXT GetDeckRules( uintptr_t psv, PENTITY pe, PTEXT *ppLastValue )
 {
 	PVARTEXT pvt = VarTextCreate();
    VarTextDestroy( &pvt );
@@ -436,7 +436,7 @@ static PTEXT ObjectVolatileVariableGet( WIDE("cards"), WIDE("Rules"), WIDE("Show
 }
 
 static PTEXT ObjectVolatileVariableSet( WIDE("cards"), WIDE("Rules"), WIDE("Shows the current rules of deck") )( PENTITY pe, PTEXT pNewValue )
-//PTEXT SetDeckRules( PTRSZVAL psv, PENTITY pe, PTEXT pNewValue )
+//PTEXT SetDeckRules( uintptr_t psv, PENTITY pe, PTEXT pNewValue )
 {
 	// /deck/decl rules poker holdem
 	// possible deck rules

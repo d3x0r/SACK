@@ -25,7 +25,7 @@ static int ObjectMethod( "GPS", "Distance", "I dunno some sort of command" )( PS
 
 
 #if 0
-static int ObjectVariable( "GPS", "position", "no desc" )( PTRSZVAL psv, PENTITY pe, LOGICAL bSet, PTEXT *last_value )
+static int ObjectVariable( "GPS", "position", "no desc" )( uintptr_t psv, PENTITY pe, LOGICAL bSet, PTEXT *last_value )
 {
 }
 

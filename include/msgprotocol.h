@@ -62,7 +62,7 @@ SACK_NAMESPACE
 #endif
 // this will determine the length of parameter list
 // based on the first and last parameters.
-#define ParamLength( first, last ) ( ((PTRSZVAL)((&(last))+1)) - ((PTRSZVAL)(&(first))) )
+#define ParamLength( first, last ) ( ((uintptr_t)((&(last))+1)) - ((uintptr_t)(&(first))) )
 
 #ifdef _MSC_VER
 #pragma pack (push, 1)
@@ -169,8 +169,8 @@ typedef struct ServiceRoute_tag *PSERVICE_ROUTE;
 typedef struct ServiceEndPoint_tag SERVICE_ENDPOINT, *PSERVICE_ENDPOINT;
 // this is part of the message structure
 //
-// this structure is avaialble at ((PSERVICE_ROUTE)(((_32*)params)-1)[-1])
-// (to explain that, the first _32 back is the MsgID... to get JUST the route tag
+// this structure is avaialble at ((PSERVICE_ROUTE)(((uint32_t*)params)-1)[-1])
+// (to explain that, the first uint32_t back is the MsgID... to get JUST the route tag
 //  have to go back one Dword then back a service_route struct...
 #ifdef _MSC_VER
 #pragma pack (push, 1)
@@ -187,14 +187,14 @@ PREFIX_PACKED struct ServiceRoute_tag
 	//MSGIDTYPE process_id;   // remote process ID
    //MSGIDTYPE service_id;   // service (either served or connected as client) remote id
    SERVICE_ENDPOINT source;
-   //_32 source_process_id; // need this defined here anyway; so this can be used in receivers
-	//_32 source_service_id;  // the service this is connected to, or is a connection for local ID
+   //uint32_t source_process_id; // need this defined here anyway; so this can be used in receivers
+	//uint32_t source_service_id;  // the service this is connected to, or is a connection for local ID
 
 }PACKED;
 #ifdef _MSC_VER
 #pragma pack (pop)
 #endif
-#define GetServiceRoute(data)   ((PSERVICE_ROUTE)(((_32*)data)-1)-1)
+#define GetServiceRoute(data)   ((PSERVICE_ROUTE)(((uint32_t*)data)-1)-1)
 
 // server functions will return TRUE if no failure
 // server functions will return FALSE on failure
@@ -204,18 +204,18 @@ PREFIX_PACKED struct ServiceRoute_tag
 // stack passing, but the world is bizarre and these are
 // probably passed by registers.
 
-typedef int (CPROC *server_message_handler)( PSERVICE_ROUTE SourceRouteID, _32 MsgID
-														 , _32 *params, size_t param_length
-														 , _32 *result, size_t *result_length );
-typedef int (CPROC *server_message_handler_ex)( PTRSZVAL psv
-															 , PSERVICE_ROUTE SourceRouteID, _32 MsgID
-															 , _32 *params, size_t param_length
-															 , _32 *result, size_t *result_length );
+typedef int (CPROC *server_message_handler)( PSERVICE_ROUTE SourceRouteID, uint32_t MsgID
+														 , uint32_t *params, size_t param_length
+														 , uint32_t *result, size_t *result_length );
+typedef int (CPROC *server_message_handler_ex)( uintptr_t psv
+															 , PSERVICE_ROUTE SourceRouteID, uint32_t MsgID
+															 , uint32_t *params, size_t param_length
+															 , uint32_t *result, size_t *result_length );
 
 // params[-1] == Source Process ID
 // params[-2] == Source Route ID
-typedef int (CPROC *server_function)( PSERVICE_ROUTE route, _32 *params, size_t param_length
-										 , _32 *result, size_t *result_length );
+typedef int (CPROC *server_function)( PSERVICE_ROUTE route, uint32_t *params, size_t param_length
+										 , uint32_t *result, size_t *result_length );
 
 typedef struct server_function_entry_tag{
 #if defined( _DEBUG ) || defined( _DEBUG_INFO )
@@ -236,10 +236,10 @@ typedef SERVER_FUNCTION *server_function_table;
 // MsgID will be service msgBase + Remote ID...
 //    so the remote needs to specify a unique base... so ...
 //    entries must still be used...
-typedef int (CPROC*EventHandlerFunction)( MSGIDTYPE MsgID, _32*params, size_t paramlen);
-typedef int (CPROC*EventHandlerFunctionEx)( PSERVICE_ROUTE SourceID, MSGIDTYPE MsgID, _32*params, size_t paramlen);
-typedef int (CPROC*EventHandlerFunctionExx)( PTRSZVAL psv, PSERVICE_ROUTE SourceID, MSGIDTYPE MsgID
-														 , _32*params, size_t paramlen);
+typedef int (CPROC*EventHandlerFunction)( MSGIDTYPE MsgID, uint32_t*params, size_t paramlen);
+typedef int (CPROC*EventHandlerFunctionEx)( PSERVICE_ROUTE SourceID, MSGIDTYPE MsgID, uint32_t*params, size_t paramlen);
+typedef int (CPROC*EventHandlerFunctionExx)( uintptr_t psv, PSERVICE_ROUTE SourceID, MSGIDTYPE MsgID
+														 , uint32_t*params, size_t paramlen);
 
 // result of EventHandlerFunction shall be one fo the following values...
 //   EVENT_HANDLED

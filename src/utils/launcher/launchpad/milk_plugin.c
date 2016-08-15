@@ -59,7 +59,7 @@ static int OnDrawCommon( "Launcher Launchpad" )( PSI_CONTROL pc )
 
 //-------------------------------------------------------------------------
 
-static int OnMouseCommon( "Launcher Launchpad" )( PSI_CONTROL pc, S_32 x, S_32 y, _32 b )
+static int OnMouseCommon( "Launcher Launchpad" )( PSI_CONTROL pc, int32_t x, int32_t y, uint32_t b )
 {
    //if( b & MK_LBUTTON )
 	//	Report();
@@ -68,7 +68,7 @@ static int OnMouseCommon( "Launcher Launchpad" )( PSI_CONTROL pc, S_32 x, S_32 y
 
 //-------------------------------------------------------------------------
 
-OnCreateControl( "Launcher Launchpad" )( PSI_CONTROL frame, S_32 x, S_32 y, _32 w, _32 h )
+OnCreateControl( "Launcher Launchpad" )( PSI_CONTROL frame, int32_t x, int32_t y, uint32_t w, uint32_t h )
 {
 	PSI_CONTROL pc;
 	pc = MakeNamedControl( frame
@@ -80,22 +80,22 @@ OnCreateControl( "Launcher Launchpad" )( PSI_CONTROL frame, S_32 x, S_32 y, _32 
 								, -1
 								);
    AddLink( &l.icons, pc );
-   return (PTRSZVAL) pc;
+   return (uintptr_t) pc;
 }
 
-OnDestroyControl( "Launcher Launchpad" )( PTRSZVAL psv )
+OnDestroyControl( "Launcher Launchpad" )( uintptr_t psv )
 {
 	PSI_CONTROL pc = (PSI_CONTROL)psv;
 	DeleteLink( &l.icons, pc );
    DestroyCommon( &pc );
 }
 
-OnGetControl( "Launcher Launchpad" )( PTRSZVAL psv )
+OnGetControl( "Launcher Launchpad" )( uintptr_t psv )
 {
    return (PSI_CONTROL)psv;
 }
 
-static void CPROC AddPair( PTRSZVAL psv, PSI_CONTROL button )
+static void CPROC AddPair( uintptr_t psv, PSI_CONTROL button )
 {
 	PSI_CONTROL system = GetNearControl( button, TXT_SYSTEM_NAME );
 	PSI_CONTROL classname = GetNearControl( button, TXT_RESPOND_TO );
@@ -174,7 +174,7 @@ static void DeleteSystemClass( CTEXTSTR classname, CTEXTSTR system )
 	}
 }
 
-static void CPROC DeletePair( PTRSZVAL psv, PSI_CONTROL button )
+static void CPROC DeletePair( uintptr_t psv, PSI_CONTROL button )
 {
 	PSI_CONTROL listbox = GetNearControl( button, LISTBOX_SYSTEM_CLASS_NAMES );
 	if( listbox )
@@ -219,8 +219,8 @@ OnGlobalPropertyEdit( "Launcher Launchpad" )( PSI_CONTROL parent )
 					AddListItem( list, buffer );
 				}
 			}
-         SetButtonPushMethod( GetControl( frame, BTN_ADD_PAIR ), AddPair, (PTRSZVAL)frame );
-         SetButtonPushMethod( GetControl( frame, BTN_DELETE_PAIR ), DeletePair, (PTRSZVAL)list );
+         SetButtonPushMethod( GetControl( frame, BTN_ADD_PAIR ), AddPair, (uintptr_t)frame );
+         SetButtonPushMethod( GetControl( frame, BTN_DELETE_PAIR ), DeletePair, (uintptr_t)list );
 		}
 		//SetControlText( GetControl( frame, TXT_RESPOND_TO ), class_name );
 
@@ -250,7 +250,7 @@ OnGlobalPropertyEdit( "Launcher Launchpad" )( PSI_CONTROL parent )
 	}
 }
 
-OnSaveControl( "Launcher Launchpad" )( FILE *file, PTRSZVAL psv )
+OnSaveControl( "Launcher Launchpad" )( FILE *file, uintptr_t psv )
 {
    struct system_class_tag *system_class_name;
 	INDEX idx;
@@ -260,7 +260,7 @@ OnSaveControl( "Launcher Launchpad" )( FILE *file, PTRSZVAL psv )
 	}
 }
 
-static PTRSZVAL CPROC SetLaunchpadClass( PTRSZVAL psv, arg_list args )
+static uintptr_t CPROC SetLaunchpadClass( uintptr_t psv, arg_list args )
 {
 	PARAM( args, CTEXTSTR, new_class_name );
 	PARAM( args, CTEXTSTR, new_system_name );
@@ -268,7 +268,7 @@ static PTRSZVAL CPROC SetLaunchpadClass( PTRSZVAL psv, arg_list args )
    return psv;
 }
 
-static PTRSZVAL CPROC SetLaunchpadInterface( PTRSZVAL psv, arg_list args )
+static uintptr_t CPROC SetLaunchpadInterface( uintptr_t psv, arg_list args )
 {
 	PARAM( args, CTEXTSTR, interface );
 	extern CTEXTSTR pInterfaceAddr;
@@ -276,7 +276,7 @@ static PTRSZVAL CPROC SetLaunchpadInterface( PTRSZVAL psv, arg_list args )
    return psv;
 }
 
-OnLoadControl( "Launcher Launchpad" )( PCONFIG_HANDLER pch, PTRSZVAL psv )
+OnLoadControl( "Launcher Launchpad" )( PCONFIG_HANDLER pch, uintptr_t psv )
 {
    AddConfigurationMethod( pch, "Launchpad class=%m@%m", SetLaunchpadClass );
    AddConfigurationMethod( pch, "Launchpad Interface=%m", SetLaunchpadInterface );

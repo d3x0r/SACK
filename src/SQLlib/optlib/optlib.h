@@ -24,7 +24,7 @@ struct sack_option_tree_family_node {
 		BIT_FIELD bExpanded : 1;
 	} flags;
 	PODBC uncommited_write; // connection this was written on for the commit event.
-	_32 expansion_tick;
+	uint32_t expansion_tick;
 };
 #define MAXOPTION_TREE_NODESPERSET 256
 DeclareSet( OPTION_TREE_NODE );
@@ -64,7 +64,7 @@ struct sack_option_global_tag {
 	} flags;
 	TEXTCHAR SystemName[128];
 	INDEX SystemID;
-	_32 Session;
+	uint32_t Session;
 	//PFAMILYTREE option_tree;
 	PLIST trees; // list of struct sack_option_family_tree's
 	PODBC Option; // primary ODBC for option use.
@@ -105,11 +105,11 @@ LOGICAL New4CreateValue( POPTION_TREE odbc, POPTION_TREE_NODE value, CTEXTSTR pV
 void New4DeleteOption( PODBC odbc, POPTION_TREE_NODE iRoot );
 
 void NewEnumOptions( PODBC odbc, POPTION_TREE_NODE parent
-					 , int (CPROC *Process)(PTRSZVAL psv, CTEXTSTR name, POPTION_TREE_NODE ID, int flags )
-												  , PTRSZVAL psvUser );
+					 , int (CPROC *Process)(uintptr_t psv, CTEXTSTR name, POPTION_TREE_NODE ID, int flags )
+												  , uintptr_t psvUser );
 void New4EnumOptions( PODBC odbc, POPTION_TREE_NODE parent
-					 , int (CPROC *Process)(PTRSZVAL psv, CTEXTSTR name, POPTION_TREE_NODE ID, int flags )
-												  , PTRSZVAL psvUser );
+					 , int (CPROC *Process)(uintptr_t psv, CTEXTSTR name, POPTION_TREE_NODE ID, int flags )
+												  , uintptr_t psvUser );
 
 void NewDeleteOption( PODBC odbc, POPTION_TREE_NODE iRoot );
 void OpenWriterEx( POPTION_TREE option DBG_PASS);

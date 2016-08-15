@@ -7,7 +7,7 @@
 PSI_TEXT_NAMESPACE
 
 typedef struct text_tag {
-	_32 attr; // centering field...
+	uint32_t attr; // centering field...
 	struct {
 		BIT_FIELD bShadow : 1;
 	} flags;
@@ -57,7 +57,7 @@ static int CPROC OnDrawCommon( STATIC_TEXT_NAME )( PSI_CONTROL pc )
 	{
 		Image surface = GetControlSurface( pc );
 		SFTFont font;
-		_32 height, width;
+		uint32_t height, width;
 		if( ptc->background )
 			ClearImageTo( surface, ptc->background );
 		font = GetFrameFont( pc );
@@ -175,8 +175,8 @@ LOGICAL GetControlTextOffsetMinMax( PSI_CONTROL pc, int *min_offset, int *max_of
 	{
 		int minofs;
 		int maxofs;
-		_32 height, width;
-		S_32 _height, _width;
+		uint32_t height, width;
+		int32_t _height, _width;
 		Image surface = GetControlSurface( pc );
 		SFTFont font = GetFrameFont( pc );
 		width = GetStringSizeFont( GetText( pc->caption.text )
@@ -245,8 +245,8 @@ LOGICAL SetControlTextOffset( PSI_CONTROL pc, int offset )
 		LOGICAL result = TRUE;
 		ptc->offset = offset;
 		{
-			_32 height, width;
-			S_32 _height, _width;
+			uint32_t height, width;
+			int32_t _height, _width;
 			Image surface = GetControlSurface( pc );
 			SFTFont font = GetFrameFont( pc );
 			width = GetStringSizeFont( GetText( pc->caption.text )
@@ -281,7 +281,7 @@ LOGICAL SetControlTextOffset( PSI_CONTROL pc, int offset )
 				if( pc->flags.bVertical )
 				{
 					if( ( ( offset + ( surface->height - _width ) ) > surface->height )
-						|| SUS_GT( ( offset + ( surface->height - _width ) ), S_32, width, _32 ) )
+						|| SUS_GT( ( offset + ( surface->height - _width ) ), int32_t, width, uint32_t ) )
 						result = FALSE;
 				}
 				else

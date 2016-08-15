@@ -15,7 +15,7 @@ typedef struct handle_info_tag
 } HANDLEINFO, *PHANDLEINFO;
 
 
-//typedef void (CPROC*TaskEnd)(PTRSZVAL, struct task_info_tag *task_ended);
+//typedef void (CPROC*TaskEnd)(uintptr_t, struct task_info_tag *task_ended);
 struct task_info_tag {
 	struct {
 		BIT_FIELD closed : 1;
@@ -25,7 +25,7 @@ struct task_info_tag {
 	} flags;
 	TaskEnd EndNotice;
 	TaskOutput OutputEvent;
-	PTRSZVAL psvEnd;
+	uintptr_t psvEnd;
 	HANDLEINFO hStdIn;
 	HANDLEINFO hStdOut;
 	volatile PTHREAD pOutputThread;
@@ -43,14 +43,14 @@ struct task_info_tag {
    //HANDLE hReadErr, hWriteErr;
 	int hReadIn, hWriteIn;
    pid_t pid;
-   _32 exitcode;
+   uint32_t exitcode;
 #endif
 };
 
 
 typedef struct loaded_function_tag
 {
-	_32 references;
+	uint32_t references;
 	void (CPROC*function)(void );
 	struct loaded_library_tag *library;
 	DeclareLink( struct loaded_function_tag );
@@ -65,7 +65,7 @@ typedef void* HLIBRARY;
 #endif
 typedef struct loaded_library_tag
 {
-	PTRSZVAL nLibrary; // when unloading...
+	uintptr_t nLibrary; // when unloading...
 	HLIBRARY library;
 	LOGICAL mapped;
 	PFUNCTION functions;

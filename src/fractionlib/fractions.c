@@ -265,7 +265,7 @@ static void NormalizeFraction( PFRACTION f )
 
 //---------------------------------------------------------------------------
 
- PFRACTION  ScaleFraction ( PFRACTION result, S_32 value, PFRACTION f )
+ PFRACTION  ScaleFraction ( PFRACTION result, int32_t value, PFRACTION f )
 {
 	result->numerator = value * f->numerator;
 	result->denominator = f->denominator;
@@ -275,9 +275,9 @@ static void NormalizeFraction( PFRACTION f )
 
 //---------------------------------------------------------------------------
 
- _32  ScaleValue ( PFRACTION f, S_32 value )
+ uint32_t  ScaleValue ( PFRACTION f, int32_t value )
 {
-	S_32 result = 0;
+	int32_t result = 0;
 	if( f->denominator )
 		result = ( value * f->numerator ) / f->denominator;
 	return result;
@@ -285,9 +285,9 @@ static void NormalizeFraction( PFRACTION f )
 
 //---------------------------------------------------------------------------
 
- _32  InverseScaleValue ( PFRACTION f, S_32 value )
+ uint32_t  InverseScaleValue ( PFRACTION f, int32_t value )
 {
-	S_32 result =0;
+	int32_t result =0;
 if( f->numerator )
 	result = ( value * f->denominator ) / f->numerator;
 	return result;
@@ -295,7 +295,7 @@ if( f->numerator )
 
 //---------------------------------------------------------------------------
 
- S_32  ReduceFraction ( PFRACTION f )
+ int32_t  ReduceFraction ( PFRACTION f )
 {
 	return ( f->numerator ) / f->denominator;
 }

@@ -41,7 +41,7 @@ extern int bGLColorMode;
 typedef struct ImagePngRawData_tag
 {
 	// The buffer to "read" from
-	_8 *r_data;
+	uint8_t *r_data;
 	// The buffer size
 	png_size_t r_size;
   int alloced;  // need more info on the write side.
@@ -105,7 +105,7 @@ static void PNGCAPI my_png_longjmp_ptr3(jmp_buf b, int i)
 }
 #endif
 
-ImageFile *ImagePngFile (_8 * buf, size_t size)
+ImageFile *ImagePngFile (uint8_t * buf, size_t size)
 {
 	ImageFile *pImage;
 	png_structp png_ptr;
@@ -268,7 +268,7 @@ no_mem2:
 typedef struct ImagePngRawDataWriter_tag
 {
 	// The buffer to "read" from
-	_8 **r_data;
+	uint8_t **r_data;
 	// The buffer size
 	size_t *r_size;
 	size_t alloced;  // need more info on the write side.
@@ -290,13 +290,13 @@ static int CPROC ImagePngWrite(png_structp png,
 		if( self->alloced )
 		{
 			self->alloced += ((length > 2048)?length:0) + 4096;
-			(*self->r_data) = (_8*)ReallocateEx( (*self->r_data), self->alloced DBG_SRC );
+			(*self->r_data) = (uint8_t*)ReallocateEx( (*self->r_data), self->alloced DBG_SRC );
 		}
 		else
 		{
 			self->alloced += 4096;
 			(*self->r_size) = 0;
-			(*self->r_data) = NewArray( _8, self->alloced );
+			(*self->r_data) = NewArray( uint8_t, self->alloced );
 		}
 	}
 	MemCpy( (*self->r_data)+(*self->r_size), data, length );
@@ -319,7 +319,7 @@ void CPROC NotSoFatalError2( png_structp png_ptr, png_const_charp c )
 	lprintf( WIDE("Error in PNG stuff: %s"), c );
 }
 
-LOGICAL PngImageFile ( Image pImage, _8 ** buf, size_t *size)
+LOGICAL PngImageFile ( Image pImage, uint8_t ** buf, size_t *size)
 {
 	png_structp png_ptr;
 	png_infop info_ptr;

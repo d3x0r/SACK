@@ -48,14 +48,14 @@ typedef RCOORD RQUATERNION[4];
 typedef RCOORD PRQUATERNION[4];
 
 #ifdef RCOORD_IS_DOUBLE
-#define RCOORDBITS(v)  (*(_64*)&(v))
+#define RCOORDBITS(v)  (*(uint64_t*)&(v))
 #else
 /* A macro to get the literal bits into an unsigned value of the
    same size. Shift and binary operators do not apply to
    floating point values, but floating point values are fields
    of bits that represent fractional parts of integers. This
    gets the bits so the fields can be tested.                    */
-#define RCOORDBITS(v)  (*(_32*)&(v))
+#define RCOORDBITS(v)  (*(uint32_t*)&(v))
 #endif
 /* a symbol which is effectively the largest negative value of
    the space, anything less than this is untrackable, and is the

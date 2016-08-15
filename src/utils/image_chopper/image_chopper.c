@@ -8,7 +8,7 @@ static struct {
    PIMAGE_INTERFACE pii;
 } l;
 
-void CPROC Process( PTRSZVAL psvUser, CTEXTSTR file, int flags )
+void CPROC Process( uintptr_t psvUser, CTEXTSTR file, int flags )
 {
 	TEXTCHAR buf[256];
    TEXTSTR dup = StrDup( file );
@@ -31,7 +31,7 @@ void CPROC Process( PTRSZVAL psvUser, CTEXTSTR file, int flags )
 									 , image->width/4
 									 , image->height/4, 0, BLOT_COPY );
 		{
-			P_8 data;
+			uint8_t* data;
 			size_t size;
          FILE *out;
 			PngImageFile( out_image, &data, &size );

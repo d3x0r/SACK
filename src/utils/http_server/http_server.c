@@ -2,13 +2,13 @@
 #include <stdhdrs.h>
 #include <http.h>
 
-LOGICAL CPROC FallbackHandler( PTRSZVAL psv, struct HttpState *state )
+LOGICAL CPROC FallbackHandler( uintptr_t psv, struct HttpState *state )
 {
 	PTEXT resource = GetHttpResource( state );
 	PTEXT result;
-	_32 result_size = GetSizeofFile( GetText( resource ) + 1, NULL );
+	uint32_t result_size = GetSizeofFile( GetText( resource ) + 1, NULL );
 	lprintf( WIDE("Serve resource: %s"), GetText( resource ) );
-	if( result_size != (_32)-1 )
+	if( result_size != (uint32_t)-1 )
 	{
 		FILE *input = sack_fopen( 0, GetText( resource ) + 1, WIDE("rb") );
 		if( input )

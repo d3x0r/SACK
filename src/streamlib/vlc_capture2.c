@@ -37,9 +37,9 @@ static struct {
 		BIT_FIELD tv_last_play : 1;
 		BIT_FIELD bReceived : 1; // if any packet was received - this allows sending
 	}flags;
-	_32 last_attempt;
-	_32 last_receive;
-	_32 last_x, last_y, last_width, last_height;
+	uint32_t last_attempt;
+	uint32_t last_receive;
+	uint32_t last_x, last_y, last_width, last_height;
 	LOGICAL kill_complete;
 	PTHREAD launch_thread;
 	PLIST on_off_buttons;
@@ -134,9 +134,9 @@ static LOGICAL RequestAllowOn( void )
 	return TRUE;
 }
 
-void SendUpdate( _32 x, _32 y, _32 w, _32 h )
+void SendUpdate( uint32_t x, uint32_t y, uint32_t w, uint32_t h )
 {
-	_32 buffer[7];
+	uint32_t buffer[7];
 	if( !l.pc )
 	{
 		lprintf( WIDE("Socket isn't setup yet.") );
@@ -161,7 +161,7 @@ void SendUpdate( _32 x, _32 y, _32 w, _32 h )
 
 void SendChannelUp( void )
 {
-	_32 buffer[2];
+	uint32_t buffer[2];
 	if( !l.pc )
 		return;
 	buffer[0] = GetTickCount();
@@ -175,7 +175,7 @@ void SendChannelUp( void )
 
 void SendChannelDown( void )
 {
-	_32 buffer[2];
+	uint32_t buffer[2];
 	if( !l.pc )
 		return;
 	buffer[0] = GetTickCount();
@@ -189,7 +189,7 @@ void SendChannelDown( void )
 
 void SendChannel( int channel )
 {
-	_32 buffer[3];
+	uint32_t buffer[3];
 	if( !l.pc )
 		return;
 	buffer[0] = GetTickCount();
@@ -204,7 +204,7 @@ void SendChannel( int channel )
 
 void SendVolumeUp( void )
 {
-	_32 buffer[2];
+	uint32_t buffer[2];
 	if( !l.pc )
 		return;
 	buffer[0] = GetTickCount();
@@ -228,7 +228,7 @@ static void UpdateOnOffButtons( void )
 
 void SendTurnOff( void )
 {
-	_32 buffer[2];
+	uint32_t buffer[2];
 	if( !l.pc )
 		return;
 	buffer[0] = GetTickCount();
@@ -245,7 +245,7 @@ void SendTurnOff( void )
 
 void SendTurnOn( void )
 {
-	_32 buffer[7];
+	uint32_t buffer[7];
 	if( !l.pc )
 		return;
 	if( RequestAllowOn() )
@@ -265,7 +265,7 @@ void SendTurnOn( void )
 
 void SendVolumeDown( void )
 {
-	_32 buffer[7];
+	uint32_t buffer[7];
 	if( !l.pc )
 		return;
 	buffer[0] = GetTickCount();
@@ -279,7 +279,7 @@ void SendVolumeDown( void )
 
 void SendVolume( int volume )
 {
-	_32 buffer[7];
+	uint32_t buffer[7];
 	if( !l.pc )
 		return;
 	buffer[0] = GetTickCount();
@@ -297,20 +297,20 @@ static int OnDrawCommon( WIDE("Video Control") )( PSI_CONTROL pc )
 	return 1;
 }
 
-void CPROC KilTaskOutput( PTRSZVAL psv, PTASK_INFO task, CTEXTSTR buffer, size_t size )
+void CPROC KilTaskOutput( uintptr_t psv, PTASK_INFO task, CTEXTSTR buffer, size_t size )
 {
 	lprintf( WIDE("%s"), buffer );
 	// pskill output; don't really care
 }
 
-void CPROC KillTaskEnded( PTRSZVAL psv, PTASK_INFO task )
+void CPROC KillTaskEnded( uintptr_t psv, PTASK_INFO task )
 {
 	// don't respawn when exiting.
 	l.kill_complete = TRUE;
 	WakeThread( l.launch_thread );
 }
 
-void CPROC TaskEnded( PTRSZVAL psv, PTASK_INFO task )
+void CPROC TaskEnded( uintptr_t psv, PTASK_INFO task )
 {
 	if( task )
 		l.task = NULL;
@@ -378,7 +378,7 @@ static void CPROC ReadTvStatus( PCLIENT pc, POINTER buffer, size_t len, SOCKADDR
 	}
 	else
 	{
-		_32 tick = ((_32*)buffer)[0];
+		uint32_t tick = ((uint32_t*)buffer)[0];
 		if( tick != l.last_receive )
 		{
 #if defined( DEBUG_MESSAGES )
@@ -388,7 +388,7 @@ static void CPROC ReadTvStatus( PCLIENT pc, POINTER buffer, size_t len, SOCKADDR
 			l.flags.bReceived = 1;
 			l.last_receive = tick;
 
-			switch( ((_32*)buffer)[1] )
+			switch( ((uint32_t*)buffer)[1] )
 			{
 			case 1:
 				// this falls through... so we get to test for allow tv ON.
@@ -403,8 +403,8 @@ static void CPROC ReadTvStatus( PCLIENT pc, POINTER buffer, size_t len, SOCKADDR
 						{
 							if( control->flags.bShown )
 							{
-								S_32 x = 0;
-								S_32 y = 0;
+								int32_t x = 0;
+								int32_t y = 0;
 								Image image = GetControlSurface( pc );
 								control->flags.bShown = TRUE;
 								GetPhysicalCoordinate( pc, &x, &y, TRUE );
@@ -425,13 +425,13 @@ static void CPROC ReadTvStatus( PCLIENT pc, POINTER buffer, size_t len, SOCKADDR
 			case 0:
 				{
 					int tmp;
-					tmp = ((_32*)buffer)[2];
+					tmp = ((uint32_t*)buffer)[2];
 					snprintf( l.channel, sizeof( TEXTCHAR ) * 5, WIDE("%d"), tmp );
 					LabelVariableChanged( l.channel_var );
-					tmp = ((_32*)buffer)[3];
+					tmp = ((uint32_t*)buffer)[3];
 					snprintf( l.volume, sizeof( TEXTCHAR ) * 5, WIDE("%d"), tmp );
 					LabelVariableChanged( l.volume_var );
-					tmp = ((_8*)buffer)[16];
+					tmp = ((uint8_t*)buffer)[16];
 					l.flags.tv_playing = (tmp!=0);
 					if( !RequestAllowOn() )
 						l.flags.tv_last_play = 0;
@@ -506,8 +506,8 @@ static void OnRevealCommon( WIDE("Video Control") )( PSI_CONTROL pc )
 	MyValidatedControlData( PMY_CONTROL, control, pc );
 	if( control )
 	{
-		S_32 x = 0;
-		S_32 y = 0;
+		int32_t x = 0;
+		int32_t y = 0;
 		Image image = GetControlSurface( pc );
 		control->flags.bShown = TRUE;
 		GetPhysicalCoordinate( pc, &x, &y, TRUE );
@@ -519,88 +519,88 @@ static void OnRevealCommon( WIDE("Video Control") )( PSI_CONTROL pc )
 }
 
 
-static PTRSZVAL OnCreateMenuButton( WIDE("Video/Channel Up") )( PMENU_BUTTON button )
+static uintptr_t OnCreateMenuButton( WIDE("Video/Channel Up") )( PMENU_BUTTON button )
 {
 	SetButtonText( button, WIDE("Channel_Up") );
-	return (PTRSZVAL)button;
+	return (uintptr_t)button;
 }
 
-static void OnKeyPressEvent( WIDE("Video/Channel Up") )( PTRSZVAL psv )
+static void OnKeyPressEvent( WIDE("Video/Channel Up") )( uintptr_t psv )
 {
 	SendChannelUp();
 }
 
-static PTRSZVAL OnCreateMenuButton( WIDE("Video/Channel Down") )( PMENU_BUTTON button )
+static uintptr_t OnCreateMenuButton( WIDE("Video/Channel Down") )( PMENU_BUTTON button )
 {
 	SetButtonText( button, WIDE("Channel_Down") );
-	return (PTRSZVAL)button;
+	return (uintptr_t)button;
 }
 
-static void OnKeyPressEvent( WIDE("Video/Channel Down") )( PTRSZVAL psv )
+static void OnKeyPressEvent( WIDE("Video/Channel Down") )( uintptr_t psv )
 {
 	SendChannelDown();
 }
 
 
-static PTRSZVAL OnCreateMenuButton( WIDE("Video/Channel Set") )( PMENU_BUTTON button )
+static uintptr_t OnCreateMenuButton( WIDE("Video/Channel Set") )( PMENU_BUTTON button )
 {
 	SetButtonText( button, WIDE("3") );
-	return (PTRSZVAL)button;
+	return (uintptr_t)button;
 }
 
-static void OnKeyPressEvent( WIDE("Video/Channel Set") )( PTRSZVAL psv )
+static void OnKeyPressEvent( WIDE("Video/Channel Set") )( uintptr_t psv )
 {
 	SendChannel( 3 );
 }
 
 
-static PTRSZVAL OnCreateMenuButton( WIDE("Video/Volume Up") )( PMENU_BUTTON button )
+static uintptr_t OnCreateMenuButton( WIDE("Video/Volume Up") )( PMENU_BUTTON button )
 {
 	SetButtonText( button, WIDE("Volume_Up") );
-	return (PTRSZVAL)button;
+	return (uintptr_t)button;
 }
 
-static void OnKeyPressEvent( WIDE("Video/Volume Up") )( PTRSZVAL psv )
+static void OnKeyPressEvent( WIDE("Video/Volume Up") )( uintptr_t psv )
 {
 	SendVolumeUp();
 }
 
-static PTRSZVAL OnCreateMenuButton( WIDE("Video/Volume Down") )( PMENU_BUTTON button )
+static uintptr_t OnCreateMenuButton( WIDE("Video/Volume Down") )( PMENU_BUTTON button )
 {
 	SetButtonText( button, WIDE("Volume_Down") );
-	return (PTRSZVAL)button;
+	return (uintptr_t)button;
 }
 
-static void OnKeyPressEvent( WIDE("Video/Volume Down") )( PTRSZVAL psv )
+static void OnKeyPressEvent( WIDE("Video/Volume Down") )( uintptr_t psv )
 {
 	SendVolumeDown();
 }
 
 
-static PTRSZVAL OnCreateMenuButton( WIDE("Video/Volume Set") )( PMENU_BUTTON button )
+static uintptr_t OnCreateMenuButton( WIDE("Video/Volume Set") )( PMENU_BUTTON button )
 {
 	SetButtonText( button, WIDE("1000") );
-	return (PTRSZVAL)button;
+	return (uintptr_t)button;
 }
 
-static void OnKeyPressEvent( WIDE("Video/Volume Set") )( PTRSZVAL psv )
+static void OnKeyPressEvent( WIDE("Video/Volume Set") )( uintptr_t psv )
 {
 	SendVolume( 1000 );
 }
 
-static PTRSZVAL OnCreateMenuButton( WIDE("Video/Turn On") )( PMENU_BUTTON button )
+static uintptr_t OnCreateMenuButton( WIDE("Video/Turn On") )( PMENU_BUTTON button )
 {
 	SetButtonText( button, WIDE("On") );
 	AddLink( &l.on_off_buttons, button );
-	return (PTRSZVAL)button;
+	return (uintptr_t)button;
 }
 
-static void OnKeyPressEvent( WIDE("Video/Turn On") )( PTRSZVAL psv )
+static void OnKeyPressEvent( WIDE("Video/Turn On") )( uintptr_t psv )
 {
 	SendTurnOn();
 }
 
-static void OnShowControl( WIDE("Video/Turn On") )( PTRSZVAL psv )
+static void OnShowControl( WIDE("Video/Turn On") )( uintptr_t psv )
 {
 #ifdef MILK_PLUGIN
 	MILK_SetButtonHighlight( (PMENU_BUTTON)psv, l.flags.tv_playing );
@@ -609,19 +609,19 @@ static void OnShowControl( WIDE("Video/Turn On") )( PTRSZVAL psv )
 #endif
 }
 
-static PTRSZVAL OnCreateMenuButton( WIDE("Video/Turn Off") )( PMENU_BUTTON button )
+static uintptr_t OnCreateMenuButton( WIDE("Video/Turn Off") )( PMENU_BUTTON button )
 {
 	SetButtonText( button, WIDE("Off") );
 	AddLink( &l.on_off_buttons, button );
-	return (PTRSZVAL)button;
+	return (uintptr_t)button;
 }
 
-static void OnKeyPressEvent( WIDE("Video/Turn Off") )( PTRSZVAL psv )
+static void OnKeyPressEvent( WIDE("Video/Turn Off") )( uintptr_t psv )
 {
 	SendTurnOff();
 }
 
-static void OnShowControl( WIDE("Video/Turn Off") )( PTRSZVAL psv )
+static void OnShowControl( WIDE("Video/Turn Off") )( uintptr_t psv )
 {
 #ifdef MILK_PLUGIN
 	MILK_SetButtonHighlight( (PMENU_BUTTON)psv, !l.flags.tv_playing );
@@ -632,7 +632,7 @@ static void OnShowControl( WIDE("Video/Turn Off") )( PTRSZVAL psv )
 
 static void OnKeypadEnterType( WIDE("video"), WIDE("Video/Channel") )( PSI_CONTROL pc )
 {
-	_64 value = GetKeyedValue( pc );
+	uint64_t value = GetKeyedValue( pc );
 	ClearKeyedEntryOnNextKey( pc );
 	SendChannel( (int)value );
 }

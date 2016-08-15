@@ -29,7 +29,7 @@ typedef struct file_info_tag
 	FILETIME lastmodified;
 	FILETIME lastcreate;
 	FILETIME lastaccess;
-	_32 *crc;
+	uint32_t *crc;
 	size_t crclen;
 	PMONITOR pDirMon;
 	PCHANGEHANDLER pHandler;
@@ -49,13 +49,13 @@ typedef struct netbuffer_tag {
     int size;
     int valid;   // if we ever got a real game state....
     int present;
-	 _32 LastMessage;
+	 uint32_t LastMessage;
     DeclareLink( struct netbuffer_tag );
 } NETBUFFER, *PNETBUFFER;
 
 typedef struct address_tag {
-	_32 start; // non net order (host order)
-	_32 end;   // host order max (inclusive)
+	uint32_t start; // non net order (host order)
+	uint32_t end;   // host order max (inclusive)
 	struct address_tag *next;
 } ADDRESS,*PADDRESS;
 
@@ -70,7 +70,7 @@ typedef struct directory_tag {
 		BIT_FIELD bVerify : 1;
 	} flags;
 	char *name;  //optional name (to be done)
-	_32 ID;  // optional ID (to be done)
+	uint32_t ID;  // optional ID (to be done)
 	CTEXTSTR mask;
 	PACCOUNT account;
 	PLIST files;   // list of PFILE_INFO
@@ -88,14 +88,14 @@ typedef struct client_connection
 		BIT_FIELD bUpdated : 1; // set if server sends any FDAT commands (or hears a SEND from the client)
 		BIT_FIELD failed : 1;
 	} flags;
-	_32 timer;
+	uint32_t timer;
 	int lastupdate;
 	INDEX file;
 	char *buffer;
 	char LastFile[320];
 	PCLIENT pc;
 	PLIST Monitors; // one monitor for each in/out directory.
-	_32 version;  // active version of client logged in...
+	uint32_t version;  // active version of client logged in...
 	PLINKQUEUE segments;  // used on client side to request file info
 	int segment_total;
 	size_t segment_total_size;
@@ -123,10 +123,10 @@ struct accounts_tag {
 	// just assume that we do need to send also without
 	// recomputing differential.
 	
-	_32 SendResponce;
-	_32 NextResponce;
-	_32 WhatResponce;
-	_32 DoScanTime;
+	uint32_t SendResponce;
+	uint32_t NextResponce;
+	uint32_t WhatResponce;
+	uint32_t DoScanTime;
 	DeclareLink( struct accounts_tag );
 
 	PLIST connections; // list of PCLIENT_CONNECTION
@@ -136,7 +136,7 @@ struct accounts_tag {
 		PSOCKADDR server;
 		TEXTCHAR server_name[128];
 		PSI_CONTROL frame;
-		//_32 version;  // version received?
+		//uint32_t version;  // version received?
 	} client;
 
 	// have to synchronize this, need to set environment variables for things like the client's IP
@@ -146,18 +146,18 @@ struct accounts_tag {
 
 	struct file_totals
 	{
-		_32 count;
+		uint32_t count;
 		size_t size;
-		_32 start;   // set on client side when overall is received (used for status)
+		uint32_t start;   // set on client side when overall is received (used for status)
 	} files;
 	struct finished_file_totals
 	{
-		_32 count;
+		uint32_t count;
 		size_t size;
 	} finished_files;
 	struct manifest_file_totals
 	{
-		_32 count;
+		uint32_t count;
 		size_t size;
 	} manifest_files;
 
@@ -185,8 +185,8 @@ typedef struct monitored_directory_tag
 
 typedef struct connection_tag {
 	PCLIENT pc;
-	_32     LastCommunication;
-	//_32     Version;
+	uint32_t     LastCommunication;
+	//uint32_t     Version;
 } CONNECTION, *PCONNECTION;
 
 struct network_state
@@ -195,23 +195,23 @@ struct network_state
 	PACCOUNT account;
 	PACCOUNT datamirror;
 	PCONNECTION connection;
-	_32 last_message;
-	_32 last_message_time;
-	_32 pings_sent;
-	_32 login_fails;
-	//_32 version;
-	_32 filesize; // total size of the file being checked
-	_32 filestart; // start position of block received for file
-	_32 filepath; // integer to indicate which path this came from and should go into
-	_32 file_block_size; // a block of data may not be the whole file.
+	uint32_t last_message;
+	uint32_t last_message_time;
+	uint32_t pings_sent;
+	uint32_t login_fails;
+	//uint32_t version;
+	uint32_t filesize; // total size of the file being checked
+	uint32_t filestart; // start position of block received for file
+	uint32_t filepath; // integer to indicate which path this came from and should go into
+	uint32_t file_block_size; // a block of data may not be the whole file.
 	FILETIME filetime_create;
 	FILETIME filetime_modify;
 	FILETIME filetime_access;
 	PCLIENT_CONNECTION client_connection;
-	_32 path_id;
-	_32 file_id; // this is a unique identifier to server to get back this info (used in FDAT)
+	uint32_t path_id;
+	uint32_t file_id; // this is a unique identifier to server to get back this info (used in FDAT)
    POINTER longbuffer;
-	_32 version;  // active version of client logged in...
+	uint32_t version;  // active version of client logged in...
 	struct {
 		BIT_FIELD bInUse : 1;  // if in use, do not delete
 		BIT_FIELD bDeleted : 1; // if was in use, set deleted, when not in use, release

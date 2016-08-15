@@ -39,7 +39,7 @@ SACK_VFS_PROC const char *    CPROC sack_vfs_get_signature( struct volume *vol )
 
 
 SACK_VFS_PROC struct sack_vfs_file * CPROC sack_vfs_openfile( struct volume *vol, CTEXTSTR filename );
-SACK_VFS_PROC int CPROC sack_vfs_exists( PTRSZVAL psvInstance, const char * file );
+SACK_VFS_PROC int CPROC sack_vfs_exists( uintptr_t psvInstance, const char * file );
 SACK_VFS_PROC int CPROC sack_vfs_close( struct sack_vfs_file *file );
 SACK_VFS_PROC size_t CPROC sack_vfs_tell( struct sack_vfs_file *file );
 SACK_VFS_PROC size_t CPROC sack_vfs_size( struct sack_vfs_file *file );
@@ -48,7 +48,7 @@ SACK_VFS_PROC size_t CPROC sack_vfs_write( struct sack_vfs_file *file, const cha
 SACK_VFS_PROC size_t CPROC sack_vfs_read( struct sack_vfs_file *file, char * data, size_t length );
 SACK_VFS_PROC size_t CPROC sack_vfs_truncate( struct sack_vfs_file *file );
 // psv should be struct volume *vol;
-SACK_VFS_PROC void CPROC sack_vfs_unlink_file( PTRSZVAL psv, const char * filename );
+SACK_VFS_PROC void CPROC sack_vfs_unlink_file( uintptr_t psv, const char * filename );
 
 
 SACK_VFS_NAMESPACE_END

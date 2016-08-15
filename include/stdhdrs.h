@@ -210,11 +210,11 @@ extern __sighandler_t bsd_signal(int, __sighandler_t);
 // moved into timers - please linnk vs timers to get Sleep...
 //#define Sleep(n) (usleep((n)*1000))
 #define Relinquish() sched_yield()
-#define GetLastError() (S_32)errno
+#define GetLastError() (int32_t)errno
 /* return with a THREAD_ID that is a unique, universally
    identifier for the thread for inter process communication. */
-#define GetCurrentProcessId() ((_32)getpid())
-#define GetCurrentThreadId() ((_32)getpid())
+#define GetCurrentProcessId() ((uint32_t)getpid())
+#define GetCurrentThreadId() ((uint32_t)getpid())
 
 /* Define a min(a,b) macro when the compiler lacks it. */
 #ifndef min

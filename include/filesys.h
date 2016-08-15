@@ -25,7 +25,7 @@
 #include <io.h>
 #else
 #define LPFILETIME P_64
-#define FILETIME _64
+#define FILETIME uint64_t
 #endif
 #endif
 
@@ -105,19 +105,19 @@ struct file_system_mounted_interface;
 
 /* Extended external file system interface to be able to use external file systems */
 struct file_system_interface {
-	void* (CPROC *open)(PTRSZVAL psvInstance, const char *);                                                  //filename
+	void* (CPROC *open)(uintptr_t psvInstance, const char *);                                                  //filename
 	int (CPROC *_close)(void *);                                                 //file *
 	size_t (CPROC *_read)(void *,char *, size_t);                    //file *, buffer, length (to read)
 	size_t (CPROC *_write)(void*,const char *, size_t);                    //file *, buffer, length (to write)
 	size_t (CPROC *seek)( void *, size_t, int whence);
 	void  (CPROC *truncate)( void *);
-	void (CPROC *_unlink)( PTRSZVAL psvInstance, const char *);
+	void (CPROC *_unlink)( uintptr_t psvInstance, const char *);
 	size_t (CPROC *size)( void *); // get file size
 	size_t (CPROC *tell)( void *); // get file current position
 	int (CPROC *flush )(void *kp);
-	int (CPROC *exists)( PTRSZVAL psvInstance, const char *file );
+	int (CPROC *exists)( uintptr_t psvInstance, const char *file );
 	LOGICAL (CPROC*copy_write_buffer)(void );
-	struct find_cursor *(CPROC *find_create_cursor )( PTRSZVAL psvInstance, const char *root, const char *filemask );
+	struct find_cursor *(CPROC *find_create_cursor )( uintptr_t psvInstance, const char *root, const char *filemask );
 	int (CPROC *find_first)( struct find_cursor *cursor );
 	int (CPROC *find_close)( struct find_cursor *cursor );
 	int (CPROC *find_next)( struct find_cursor *cursor );
@@ -126,7 +126,7 @@ struct file_system_interface {
 	// ftell can be done with seek( file, 0, SEEK_CUR );
 	// if is_directory is NULL; assume result is false (file system does not support directories)
 	LOGICAL (CPROC *is_directory)( const char *pathname );
-	LOGICAL (CPROC *rename )( PTRSZVAL psvInstance, const char *original_name, const char *new_name );
+	LOGICAL (CPROC *rename )( uintptr_t psvInstance, const char *original_name, const char *new_name );
 };
 
 
@@ -167,17 +167,17 @@ FILESYS_PROC  int FILESYS_API  CompareMask ( CTEXTSTR mask, CTEXTSTR name, int k
 FILESYS_PROC  int FILESYS_API  ScanFilesEx ( CTEXTSTR base
            , CTEXTSTR mask
            , void **pInfo
-           , void CPROC Process( PTRSZVAL psvUser, CTEXTSTR name, int flags )
+           , void CPROC Process( uintptr_t psvUser, CTEXTSTR name, int flags )
            , int flags 
-		   , PTRSZVAL psvUser, LOGICAL begin_sub_path, struct file_system_mounted_interface *mount );
+		   , uintptr_t psvUser, LOGICAL begin_sub_path, struct file_system_mounted_interface *mount );
 FILESYS_PROC  int FILESYS_API  ScanFiles ( CTEXTSTR base
            , CTEXTSTR mask
            , void **pInfo
-           , void CPROC Process( PTRSZVAL psvUser, CTEXTSTR name, int flags )
+           , void CPROC Process( uintptr_t psvUser, CTEXTSTR name, int flags )
            , int flags 
-           , PTRSZVAL psvUser );
-FILESYS_PROC  void FILESYS_API  ScanDrives ( void (CPROC *Process)(PTRSZVAL user, CTEXTSTR letter, int flags)
-										  , PTRSZVAL user );
+           , uintptr_t psvUser );
+FILESYS_PROC  void FILESYS_API  ScanDrives ( void (CPROC *Process)(uintptr_t user, CTEXTSTR letter, int flags)
+										  , uintptr_t user );
 // result is length of name filled into pResult if pResult == NULL && nResult = 0
 // the result will the be length of the name matching the file.
 FILESYS_PROC  int FILESYS_API  GetMatchingFileName ( CTEXTSTR filemask, int flags, TEXTSTR pResult, int nResult );
@@ -217,13 +217,13 @@ FILESYS_PROC LOGICAL  FILESYS_API  IsPath ( CTEXTSTR path );
 
 FILESYS_PROC LOGICAL  FILESYS_API  IsAbsolutePath( CTEXTSTR path );
 
-FILESYS_PROC  _64     FILESYS_API  GetFileWriteTime ( CTEXTSTR name );
-FILESYS_PROC  _64     FILESYS_API  GetTimeAsFileTime ( void );
-FILESYS_PROC  LOGICAL FILESYS_API  SetFileWriteTime( CTEXTSTR name, _64 filetime ); 
+FILESYS_PROC  uint64_t     FILESYS_API  GetFileWriteTime ( CTEXTSTR name );
+FILESYS_PROC  uint64_t     FILESYS_API  GetTimeAsFileTime ( void );
+FILESYS_PROC  LOGICAL FILESYS_API  SetFileWriteTime( CTEXTSTR name, uint64_t filetime ); 
 FILESYS_PROC  LOGICAL FILESYS_API  SetFileTimes( CTEXTSTR name
-															  , _64 filetime_create  // last modification time.
-															  , _64 filetime_modify // last modification time.
-															  , _64 filetime_access  // last modification time.
+															  , uint64_t filetime_create  // last modification time.
+															  , uint64_t filetime_modify // last modification time.
+															  , uint64_t filetime_access  // last modification time.
 															  );
 
 
@@ -273,9 +273,9 @@ FILESYS_PROC LOGICAL FILESYS_API SetFileLength( CTEXTSTR path, size_t length );
    Returns
    \Returns the size of the file. or -1 if the file did not
    exist.                                                   */
-FILESYS_PROC  size_t FILESYS_API  GetSizeofFile ( TEXTCHAR *name, P_32 unused );
+FILESYS_PROC  size_t FILESYS_API  GetSizeofFile ( TEXTCHAR *name, uint32_t* unused );
 #ifndef __ANDROID__
-/* An extended function, which returns a _64 bit time
+/* An extended function, which returns a uint64_t bit time
    appropriate for the current platform. This is meant to
    replace 'stat'. It can get all commonly checked attributes of
    a file.
@@ -296,15 +296,15 @@ FILESYS_PROC  size_t FILESYS_API  GetSizeofFile ( TEXTCHAR *name, P_32 unused );
    Returns
    \Returns the size of the file. or -1 if the file did not
 	exist.                                                         */
-FILESYS_PROC  _32 FILESYS_API  GetFileTimeAndSize ( CTEXTSTR name
+FILESYS_PROC  uint32_t FILESYS_API  GetFileTimeAndSize ( CTEXTSTR name
 													, LPFILETIME lpCreationTime
 													,  LPFILETIME lpLastAccessTime
 													,  LPFILETIME lpLastWriteTime
 													, int *IsDirectory
 													);
 
-FILESYS_PROC void FILESYS_API ConvertFileIntToFileTime( _64 int_filetime, FILETIME *filetime );
-FILESYS_PROC _64 FILESYS_API ConvertFileTimeToInt( const FILETIME *filetime );
+FILESYS_PROC void FILESYS_API ConvertFileIntToFileTime( uint64_t int_filetime, FILETIME *filetime );
+FILESYS_PROC uint64_t FILESYS_API ConvertFileTimeToInt( const FILETIME *filetime );
 
 #endif
 
@@ -357,7 +357,7 @@ FILESYS_PROC  int FILESYS_API  sack_iwrite ( INDEX file_handle, CPOINTER buffer,
 
 /* internal (c library) file system is registered as prority 1000.... lower priorities are checked first for things like
   ScanFiles(), fopen( ..., "r" ), ... exists(), */
-FILESYS_PROC struct file_system_mounted_interface * FILESYS_API sack_mount_filesystem( const char *name, struct file_system_interface *, int priority, PTRSZVAL psvInstance, LOGICAL writable );
+FILESYS_PROC struct file_system_mounted_interface * FILESYS_API sack_mount_filesystem( const char *name, struct file_system_interface *, int priority, uintptr_t psvInstance, LOGICAL writable );
 FILESYS_PROC void FILESYS_API sack_unmount_filesystem( struct file_system_mounted_interface *mount );
 FILESYS_PROC struct file_system_mounted_interface * FILESYS_API sack_get_mounted_filesystem( const char *name );
 /* sometimes you want scanfiles to only scan external files... 

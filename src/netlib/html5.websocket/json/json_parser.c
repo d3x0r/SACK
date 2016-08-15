@@ -32,7 +32,7 @@ enum json_parse_state{
 struct array_element {
 	int value_type;
 	PTEXT string;
-	S_64  n;
+	int64_t  n;
 	double d;
 };
 
@@ -47,7 +47,7 @@ struct json_value_container {
 	int result_value;
 	int float_result;
 	double result_d;
-	S_64 result_n;
+	int64_t result_n;
 	PVARTEXT pvt_collector;
 };
 
@@ -77,11 +77,11 @@ static void FillDataToElement( struct json_context_object_element *element
 			switch( val->result_value )
 			{
 			case VALUE_NULL:
-				((CTEXTSTR*)( ((PTRSZVAL)msg_output) + element->offset + object_offset ))[0] = NULL;
+				((CTEXTSTR*)( ((uintptr_t)msg_output) + element->offset + object_offset ))[0] = NULL;
 				break;
 			case VALUE_STRING:
 				string = VarTextGet( val->pvt_collector );
-				((CTEXTSTR*)( ((PTRSZVAL)msg_output) + element->offset + object_offset ))[0] = StrDup( GetText( string ) );
+				((CTEXTSTR*)( ((uintptr_t)msg_output) + element->offset + object_offset ))[0] = StrDup( GetText( string ) );
 				LineRelease( string );
 				break;
 			default:
@@ -113,19 +113,19 @@ static void FillDataToElement( struct json_context_object_element *element
 				{
 				case JSON_Element_Integer_64:
 				case JSON_Element_Unsigned_Integer_64:
-					((S_8*)( ((PTRSZVAL)msg_output) + element->offset + object_offset ))[0] = 1;
+					((int8_t*)( ((uintptr_t)msg_output) + element->offset + object_offset ))[0] = 1;
                break;
 				case JSON_Element_Integer_32:
 				case JSON_Element_Unsigned_Integer_32:
-					((S_16*)( ((PTRSZVAL)msg_output) + element->offset + object_offset ))[0] = 1;
+					((int16_t*)( ((uintptr_t)msg_output) + element->offset + object_offset ))[0] = 1;
                break;
 				case JSON_Element_Integer_16:
 				case JSON_Element_Unsigned_Integer_16:
-					((S_32*)( ((PTRSZVAL)msg_output) + element->offset + object_offset ))[0] = 1;
+					((int32_t*)( ((uintptr_t)msg_output) + element->offset + object_offset ))[0] = 1;
                break;
 				case JSON_Element_Integer_8:
 				case JSON_Element_Unsigned_Integer_8:
-					((S_64*)( ((PTRSZVAL)msg_output) + element->offset + object_offset ))[0] = 1;
+					((int64_t*)( ((uintptr_t)msg_output) + element->offset + object_offset ))[0] = 1;
 					break;
 				}
 				break;
@@ -134,19 +134,19 @@ static void FillDataToElement( struct json_context_object_element *element
 				{
 				case JSON_Element_Integer_64:
 				case JSON_Element_Unsigned_Integer_64:
-					((S_8*)( ((PTRSZVAL)msg_output) + element->offset + object_offset ))[0] = 0;
+					((int8_t*)( ((uintptr_t)msg_output) + element->offset + object_offset ))[0] = 0;
                break;
 				case JSON_Element_Integer_32:
 				case JSON_Element_Unsigned_Integer_32:
-					((S_16*)( ((PTRSZVAL)msg_output) + element->offset + object_offset ))[0] = 0;
+					((int16_t*)( ((uintptr_t)msg_output) + element->offset + object_offset ))[0] = 0;
                break;
 				case JSON_Element_Integer_16:
 				case JSON_Element_Unsigned_Integer_16:
-					((S_32*)( ((PTRSZVAL)msg_output) + element->offset + object_offset ))[0] = 0;
+					((int32_t*)( ((uintptr_t)msg_output) + element->offset + object_offset ))[0] = 0;
                break;
 				case JSON_Element_Integer_8:
 				case JSON_Element_Unsigned_Integer_8:
-					((S_64*)( ((PTRSZVAL)msg_output) + element->offset + object_offset ))[0] = 0;
+					((int64_t*)( ((uintptr_t)msg_output) + element->offset + object_offset ))[0] = 0;
 					break;
 				}
 				break;
@@ -154,11 +154,11 @@ static void FillDataToElement( struct json_context_object_element *element
 				if( val->float_result )
 				{
 					lprintf( WIDE("warning received float, converting to int") );
-					((S_64*)( ((PTRSZVAL)msg_output) + element->offset + object_offset ))[0] = (S_64)val->result_d;
+					((int64_t*)( ((uintptr_t)msg_output) + element->offset + object_offset ))[0] = (int64_t)val->result_d;
 				}
 				else
 				{
-					((S_64*)( ((PTRSZVAL)msg_output) + element->offset + object_offset ))[0] = val->result_n;
+					((int64_t*)( ((uintptr_t)msg_output) + element->offset + object_offset ))[0] = val->result_n;
 				}
 				break;
 			default:
@@ -184,9 +184,9 @@ static void FillDataToElement( struct json_context_object_element *element
 				if( val->float_result )
 				{
 					if( element->type == JSON_Element_Float )
-						((float*)( ((PTRSZVAL)msg_output) + element->offset + object_offset ))[0] = (float)val->result_d;
+						((float*)( ((uintptr_t)msg_output) + element->offset + object_offset ))[0] = (float)val->result_d;
 					else
-						((double*)( ((PTRSZVAL)msg_output) + element->offset + object_offset ))[0] = val->result_d;
+						((double*)( ((uintptr_t)msg_output) + element->offset + object_offset ))[0] = val->result_d;
 
 				}
 				else
@@ -194,9 +194,9 @@ static void FillDataToElement( struct json_context_object_element *element
                // this is probably common (0 for instance)
 					lprintf( WIDE("warning received int, converting to float") );
 					if( element->type == JSON_Element_Float )
-						((float*)( ((PTRSZVAL)msg_output) + element->offset + object_offset ))[0] = (float)val->result_n;
+						((float*)( ((uintptr_t)msg_output) + element->offset + object_offset ))[0] = (float)val->result_n;
 					else
-						((double*)( ((PTRSZVAL)msg_output) + element->offset + object_offset ))[0] = (double)val->result_n;
+						((double*)( ((uintptr_t)msg_output) + element->offset + object_offset ))[0] = (double)val->result_n;
 
 				}
 				break;
@@ -223,13 +223,13 @@ static void FillDataToElement( struct json_context_object_element *element
 			case VALUE_NUMBER:
 				if( val->float_result )
 				{
-					lprintf( WIDE("warning received float, converting to int (PTRSZVAL)") );
-					((PTRSZVAL*)( ((PTRSZVAL)msg_output) + element->offset + object_offset ))[0] = (PTRSZVAL)val->result_d;
+					lprintf( WIDE("warning received float, converting to int (uintptr_t)") );
+					((uintptr_t*)( ((uintptr_t)msg_output) + element->offset + object_offset ))[0] = (uintptr_t)val->result_d;
 				}
 				else
 				{
 					// this is probably common (0 for instance)
-					((PTRSZVAL*)( ((PTRSZVAL)msg_output) + element->offset + object_offset ))[0] = (PTRSZVAL)val->result_n;
+					((uintptr_t*)( ((uintptr_t)msg_output) + element->offset + object_offset ))[0] = (uintptr_t)val->result_n;
 				}
 				break;
 			}
@@ -271,11 +271,11 @@ LOGICAL json_parse_message_format( struct json_context_object *format
 		return FALSE;
 	msg_output = (*_msg_output);
 
-	// messae is allcoated +7 bytes in case last part is a _8 type
-	// all integer stores use _64 type to store the collected value.
+	// messae is allcoated +7 bytes in case last part is a uint8_t type
+	// all integer stores use uint64_t type to store the collected value.
 	if( !msg_output )
 		msg_output = (*_msg_output)
-		           = NewArray( _8, format->object_size + 7  ); 
+		           = NewArray( uint8_t, format->object_size + 7  ); 
 
 
 	val.result_value = 0;
@@ -534,7 +534,7 @@ LOGICAL json_parse_message_format( struct json_context_object *format
 									break;
 								case 'u':
 									{
-										_32 hex_char = 0;
+										uint32_t hex_char = 0;
 										int ofs;
 										for( ofs = 0; ofs < 4; ofs++ )
 										{

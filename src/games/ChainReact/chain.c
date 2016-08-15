@@ -87,11 +87,11 @@ int drawing;
 int all_players_went;
 
 
-void CPROC MyRedraw( PTRSZVAL dwUser, PRENDERER pRenderer );
-int CPROC Mouse( PTRSZVAL dwUser, S_32 x, S_32 y, _32 b );
+void CPROC MyRedraw( uintptr_t dwUser, PRENDERER pRenderer );
+int CPROC Mouse( uintptr_t dwUser, int32_t x, int32_t y, uint32_t b );
 
 
-void CPROC Close( PTRSZVAL dwUser )
+void CPROC Close( uintptr_t dwUser )
 {
 	UnmakeImageFile( pGameBoard );
 	pGameBoard = NULL;
@@ -173,9 +173,9 @@ void ClearBoard( void )
 #endif
 
 	hDisplay = OpenDisplaySizedAt( 0, 200 + BOARD_X * BoardSizeX, 30 + BOARD_Y * BoardSizeY, 0, 0 );
-	SetCloseHandler( hDisplay, Close, (PTRSZVAL)hDisplay );
-	SetRedrawHandler( hDisplay, MyRedraw, (PTRSZVAL)hDisplay );
-	SetMouseHandler( hDisplay, Mouse, (PTRSZVAL) hDisplay );
+	SetCloseHandler( hDisplay, Close, (uintptr_t)hDisplay );
+	SetRedrawHandler( hDisplay, MyRedraw, (uintptr_t)hDisplay );
+	SetMouseHandler( hDisplay, Mouse, (uintptr_t) hDisplay );
 	//SizeVideo( hDisplay, 200 + BOARD_X * BoardSizeX, 30 + BOARD_Y * BoardSizeY );
 	//MoveVideo( hDisplay, 0, 0 );
 }
@@ -702,7 +702,7 @@ void RenderCurrentAtoms( void )
 		}
 }
 
-void CPROC AnimateAtoms( PTRSZVAL unused )
+void CPROC AnimateAtoms( uintptr_t unused )
 {
 	int bx, by;
 	int n;
@@ -848,7 +848,7 @@ int FindWinner( void )
 }
 
 
-void CPROC DrawBoard( PTRSZVAL unused )
+void CPROC DrawBoard( uintptr_t unused )
 {
 	int x, y;
 	// called 15 frames a second
@@ -878,14 +878,14 @@ void CPROC DrawBoard( PTRSZVAL unused )
 	drawing = FALSE;
 }
 
-void CPROC DrawBoardTimer( PTRSZVAL unused )
+void CPROC DrawBoardTimer( uintptr_t unused )
 {
    // a different thread, trigger a redraw.
    Redraw( hDisplay );
 }
 
 
-PTRSZVAL CPROC UpdateBoardThread( PTHREAD thread )
+uintptr_t CPROC UpdateBoardThread( PTHREAD thread )
 {
 	int updated;
 	while( 1 )
@@ -1035,7 +1035,7 @@ void AddPeice( int x, int y, int posx, int posy )
 	}
 }
 
-int CPROC Mouse( PTRSZVAL dwUser, S_32 x, S_32 y, _32 b )
+int CPROC Mouse( uintptr_t dwUser, int32_t x, int32_t y, uint32_t b )
 {
 	static int left, right;
 	int Boardx, Boardy;
@@ -1170,12 +1170,12 @@ int CPROC Mouse( PTRSZVAL dwUser, S_32 x, S_32 y, _32 b )
    return 1;
 }
 
-void CPROC MyRedraw( PTRSZVAL dwUser, PRENDERER pRenderer )
+void CPROC MyRedraw( uintptr_t dwUser, PRENDERER pRenderer )
 {
    if( !pGameBoard )
 		pGameBoard = MakeSubImage( GetDisplayImage( pRenderer ), 0, 0, BoardSizeX * BOARD_X, BoardSizeY * BOARD_Y );
    ClearImageTo( GetDisplayImage( pRenderer ), BASE_COLOR_BLACK );
-	DrawBoard( (PTRSZVAL)hDisplay );
+	DrawBoard( (uintptr_t)hDisplay );
 }
 SaneWinMain( argc, argv )
 {
@@ -1229,13 +1229,13 @@ SaneWinMain( argc, argv )
 			ClearBoard(); // property of clear board - select players, config players...
 			if( !animate )
 			{
-				DrawBoard( (PTRSZVAL)hDisplay );
+				DrawBoard( (uintptr_t)hDisplay );
 			}
 			else
 			{
 				UpdateDisplay( hDisplay );
 				if( !gnTimer )
-					gnTimer = AddTimer( 1000/30, DrawBoardTimer, (PTRSZVAL)hDisplay );
+					gnTimer = AddTimer( 1000/30, DrawBoardTimer, (uintptr_t)hDisplay );
 				if( !gnAnimateTimer )
 					gnAnimateTimer = AddTimer( 30, AnimateAtoms, 0 );
 				if( !pUpdateThread )

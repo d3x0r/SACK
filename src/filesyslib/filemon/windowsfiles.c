@@ -102,7 +102,7 @@ FILEMONITOR_PROC( void, EndMonitor )( PMONITOR monitor )
 	}
 	monitor->hChange = INVALID_HANDLE_VALUE;
 	{
-		_32 tick = timeGetTime();
+		uint32_t tick = timeGetTime();
 		while( monitor->pThread && ( ( tick+50 ) > timeGetTime() ) )
 			Relinquish();
 	}
@@ -139,7 +139,7 @@ struct peer_thread_info
 	} flags;
 	INDEX iEvent; // used to get back monitor info
 };
-static PTRSZVAL CPROC MonitorFileThread( PTHREAD pThread );
+static uintptr_t CPROC MonitorFileThread( PTHREAD pThread );
 
 static void ClearThreadEvents( struct peer_thread_info *info )
 {
@@ -189,7 +189,7 @@ static void AddThreadEvent( PMONITOR monitor, struct peer_thread_info *info )
 	{
 		if( l.flags.bLog )
 			lprintf( WIDE( "Now at event capacity, this is where next should resume from" ) );
-		ThreadTo( MonitorFileThread, (PTRSZVAL)last_peer );
+		ThreadTo( MonitorFileThread, (uintptr_t)last_peer );
 		while( !last_peer->child_peer )
 			Relinquish();
 		last_peer = last_peer->child_peer;
@@ -217,7 +217,7 @@ static void AddThreadEvent( PMONITOR monitor, struct peer_thread_info *info )
 
 static void ReadChanges( PMONITOR monitor )
 {
-	static _8 buffer[4096];
+	static uint8_t buffer[4096];
 	DWORD dwResultSize;
 
    if( l.flags.bLog )
@@ -417,7 +417,7 @@ static void WakePeers( struct peer_thread_info *info )
 	}
 }
 
-static PTRSZVAL CPROC MonitorFileThread( PTHREAD pThread )
+static uintptr_t CPROC MonitorFileThread( PTHREAD pThread )
 {
 	struct peer_thread_info this_thread;
 	struct peer_thread_info *peer_thread = (struct peer_thread_info*)GetThreadParam( pThread );
@@ -647,7 +647,7 @@ FILEMONITOR_PROC( PMONITOR, MonitorFilesEx )( CTEXTSTR directory, int scan_delay
 
 	if( !l.directory_monitor_thread )
 	{
-		l.directory_monitor_thread = ThreadTo( MonitorFileThread, (PTRSZVAL)0 );
+		l.directory_monitor_thread = ThreadTo( MonitorFileThread, (uintptr_t)0 );
 	}
 
    // wait for thread to finish initialization
@@ -663,7 +663,7 @@ FILEMONITOR_PROC( PMONITOR, MonitorFilesEx )( CTEXTSTR directory, int scan_delay
 
 	if( l.flags.bLog )
 		Log1( WIDE("Adding timer %d"), scan_delay / 3 );
-	monitor->timer = AddTimer( scan_delay/3, ScanTimer, (PTRSZVAL)monitor );
+	monitor->timer = AddTimer( scan_delay/3, ScanTimer, (uintptr_t)monitor );
 
 	return monitor;
 }

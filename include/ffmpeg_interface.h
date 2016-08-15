@@ -36,10 +36,10 @@ struct ffmpeg_file;
 // Return a file; return NULL if the file is not understood
 // Renderer callback will be called once the size of the video frame is known.
 FFMPEG_INTERFACE_EXPORT struct ffmpeg_file * FFMPEG_INTERFACEAPI ffmpeg_LoadFile( CTEXTSTR filename
-                                                                                , PRENDERER (CPROC*getDisplay)(PTRSZVAL psv,_32 w, _32 h), PTRSZVAL psvGetDisplay 
+                                                                                , PRENDERER (CPROC*getDisplay)(uintptr_t psv,uint32_t w, uint32_t h), uintptr_t psvGetDisplay 
                                                                                 , PSI_CONTROL output_control
-                                                                                , void (CPROC*video_position_update)( PTRSZVAL psv, _64 tick ), PTRSZVAL psvUpdate
-                                                                                , void (CPROC*video_ended)( PTRSZVAL psv ), PTRSZVAL psvEnded
+                                                                                , void (CPROC*video_position_update)( uintptr_t psv, uint64_t tick ), uintptr_t psvUpdate
+                                                                                , void (CPROC*video_ended)( uintptr_t psv ), uintptr_t psvEnded
                                                                                 , void (CPROC*play_error)( CTEXTSTR message )
                                                                                 );
 // specify additional routines for pre- and post- rendering to a control.
@@ -70,7 +70,7 @@ FFMPEG_INTERFACE_EXPORT void FFMPEG_INTERFACEAPI ffmpeg_StopFile( struct ffmpeg_
 // ffmpeg_SetPositionUpdateCallback( file, callback, callback_user_value );
 // setup the internal half second update routine to point to this routine...
 // used in case this routine is not avaiable, or known, at media load time
-FFMPEG_INTERFACE_EXPORT void FFMPEG_INTERFACEAPI ffmpeg_SetPositionUpdateCallback( struct ffmpeg_file *file, void (CPROC*video_position_update)( PTRSZVAL psv, _64 tick ), PTRSZVAL psvUpdate );
+FFMPEG_INTERFACE_EXPORT void FFMPEG_INTERFACEAPI ffmpeg_SetPositionUpdateCallback( struct ffmpeg_file *file, void (CPROC*video_position_update)( uintptr_t psv, uint64_t tick ), uintptr_t psvUpdate );
 
 // pauses a file that is playing
 // returns asynch to player pausing; it's more of a suggestion, but will be respected at the next
@@ -83,7 +83,7 @@ FFMPEG_INTERFACE_EXPORT void FFMPEG_INTERFACEAPI ffmpeg_PauseFile( struct ffmpeg
 // which gives millisecond positioning for files under 11 days 13 hours in length
 // (the next range down would have been millisecond range for files 16:40 minutes in length)
 // per-epic  (percent)
-FFMPEG_INTERFACE_EXPORT void FFMPEG_INTERFACEAPI ffmpeg_SeekFile( struct ffmpeg_file *file, S_64 perepic );
+FFMPEG_INTERFACE_EXPORT void FFMPEG_INTERFACEAPI ffmpeg_SeekFile( struct ffmpeg_file *file, int64_t perepic );
 
 // adjust video offset... provides ability to adjust tracking externally.
 // frames is the number of frames to delay or retard the video stream.
@@ -96,7 +96,7 @@ FFMPEG_INTERFACE_EXPORT void FFMPEG_INTERFACEAPI ffmpeg_AdjustVideo( struct ffmp
 FFMPEG_INTERFACE_EXPORT void FFMPEG_INTERFACEAPI audio_GetCaptureDevices( PLIST *ppList );
 FFMPEG_INTERFACE_EXPORT void FFMPEG_INTERFACEAPI audio_GetPlaybackDevices( PLIST *ppList );
 
-FFMPEG_INTERFACE_EXPORT struct audio_device * FFMPEG_INTERFACEAPI audio_OpenCaptureDevice( CTEXTSTR devname, void (CPROC*callback)( PTRSZVAL psvInst, int max_level, POINTER data, size_t ), PTRSZVAL psvInst );
+FFMPEG_INTERFACE_EXPORT struct audio_device * FFMPEG_INTERFACEAPI audio_OpenCaptureDevice( CTEXTSTR devname, void (CPROC*callback)( uintptr_t psvInst, int max_level, POINTER data, size_t ), uintptr_t psvInst );
 FFMPEG_INTERFACE_EXPORT struct audio_device * FFMPEG_INTERFACEAPI audio_OpenPlaybackDevice( CTEXTSTR devname );
 FFMPEG_INTERFACE_EXPORT void FFMPEG_INTERFACEAPI audio_PlaybackBuffer( struct audio_device *ad, POINTER data, size_t samples );
 

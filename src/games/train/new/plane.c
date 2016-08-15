@@ -26,7 +26,7 @@
 //#define DEBUG_PLANE_INTERSECTION
 
 INDEX tick;
-_64 ticks[20];
+uint64_t ticks[20];
 
 
 int Parallel( PVECTOR pv1, PVECTOR pv2 );
@@ -554,7 +554,7 @@ void DumpPlane( PFACET pp )
 #endif
 }
 
-PTRSZVAL CPROC IfLineDelete( POINTER p, PTRSZVAL pData )
+uintptr_t CPROC IfLineDelete( POINTER p, uintptr_t pData )
 {
 	struct procdata_tag {
       PLINESEGPSET *pplsps;
@@ -603,7 +603,7 @@ PTRSZVAL CPROC IfLineDelete( POINTER p, PTRSZVAL pData )
 }
 
 #if 0
-PTRSZVAL CPROC IfFacetDelete( POINTER p, PTRSZVAL psvData )
+uintptr_t CPROC IfFacetDelete( POINTER p, uintptr_t psvData )
 {
 	struct procdata_tag {
 		int nf;
@@ -623,7 +623,7 @@ PTRSZVAL CPROC IfFacetDelete( POINTER p, PTRSZVAL psvData )
 #endif
 
 #if 0
-PTRSZVAL CPROC IfSomethingUsed( POINTER p, PTRSZVAL psvUnused )
+uintptr_t CPROC IfSomethingUsed( POINTER p, uintptr_t psvUnused )
 {
 	PFACETREF pfr = (PFACETREF)p;
 	if( pfr->nFacet < 0 )
@@ -645,7 +645,7 @@ void DeleteLineEx( OBJECTINFO *oi, PFACET facet, PMYLINESEG pl DBG_PASS )
    data.pplsps = &facet->pLineSet;
 	data.facet = facet;
    data.pl = pl;
-	ForAllInSet( LINESEGP, &facet->pLineSet, IfLineDelete, (PTRSZVAL)&data );
+	ForAllInSet( LINESEGP, &facet->pLineSet, IfLineDelete, (uintptr_t)&data );
 	//pLine = GetSetMember( MYLINESEG, oi->ppLinePool, pl );
 	//data2.pf = pf;
 
@@ -778,7 +778,7 @@ void OrderFacetLines( OBJECTINFO *oi )
 
 static PTRANSFORM tFailureRotation;
 
-PTRSZVAL CPROC TestLinkLines2( POINTER p, PTRSZVAL psv )
+uintptr_t CPROC TestLinkLines2( POINTER p, uintptr_t psv )
 {
 	struct pd {
 		OBJECTINFO *oi;
@@ -907,7 +907,7 @@ PTRSZVAL CPROC TestLinkLines2( POINTER p, PTRSZVAL psv )
 }
 
 
-PTRSZVAL CPROC TestLinkLines1( POINTER p, PTRSZVAL psv )
+uintptr_t CPROC TestLinkLines1( POINTER p, uintptr_t psv )
 {
 	struct pd {
 		OBJECTINFO *oi;
@@ -950,7 +950,7 @@ PTRSZVAL CPROC TestLinkLines1( POINTER p, PTRSZVAL psv )
 			lprintf( "Link TO end of(%p) at %g", p,line->l.dTo );
 #endif
          data->pnLineLink = &data->pLine1->nLineTo;
-			ForAllInSet( LINESEGP, *data->pplps, TestLinkLines2, (PTRSZVAL)data );
+			ForAllInSet( LINESEGP, *data->pplps, TestLinkLines2, (uintptr_t)data );
 		}
 		if( data->pLine1->nLineFrom < 0 )
 		{
@@ -969,7 +969,7 @@ PTRSZVAL CPROC TestLinkLines1( POINTER p, PTRSZVAL psv )
 				SetPoint( data->to1, tmp );
 			}
          data->pnLineLink = &data->pLine1->nLineFrom;
-			ForAllInSet( LINESEGP, *data->pplps, TestLinkLines2, (PTRSZVAL)data );
+			ForAllInSet( LINESEGP, *data->pplps, TestLinkLines2, (uintptr_t)data );
 		}
 		if( ( ( data->pLine1->nLineFrom < 0 )
 			  && ( data->pLine1->nLineTo >= 0 ) )
@@ -995,7 +995,7 @@ PTRSZVAL CPROC TestLinkLines1( POINTER p, PTRSZVAL psv )
    return 0;
 }
 
-PTRSZVAL CPROC TestLinked( POINTER p, PTRSZVAL psv )
+uintptr_t CPROC TestLinked( POINTER p, uintptr_t psv )
 {
 	struct pd {
 		OBJECTINFO *oi;
@@ -1103,12 +1103,12 @@ void LinkFacetLines( OBJECTINFO *oi )
 		data.pplps = &pf->pLineSet;
 		data.pLine1 = NULL; // a scratch var, doesn't need init...
       //lprintf( "link facet %p", pf );
-		ForAllInSet( LINESEGP, *data.pplps, TestLinkLines1, (PTRSZVAL)&data );
-		ForAllInSet( LINESEGP, *data.pplps, TestLinked, (PTRSZVAL)&data );
+		ForAllInSet( LINESEGP, *data.pplps, TestLinkLines1, (uintptr_t)&data );
+		ForAllInSet( LINESEGP, *data.pplps, TestLinked, (uintptr_t)&data );
 	}
 }
 
-PTRSZVAL CPROC DeleteLinePSeg( POINTER p, PTRSZVAL psv )
+uintptr_t CPROC DeleteLinePSeg( POINTER p, uintptr_t psv )
 {
 	struct d{
 		PFACET pf;
@@ -1138,7 +1138,7 @@ int IntersectPlanes( OBJECTINFO *oi, int bAll )
 		} data;
       data.pf = pf;
       data.oi = oi;
-      ForAllInSet( LINESEGP, pf->pLineSet, DeleteLinePSeg, (PTRSZVAL)&data );
+      ForAllInSet( LINESEGP, pf->pLineSet, DeleteLinePSeg, (uintptr_t)&data );
    }
    //lprintf( "... %d", pfps->nUsedFacets );
    // for all combinations of planes intersect them.

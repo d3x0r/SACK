@@ -29,7 +29,7 @@ int b95 = FALSE;
 int bOutputPause;
 
 //HANDLE hThread;  // since only one console may exist... these are single
-_32 dwThread;  // global instances of thread data
+uint32_t dwThread;  // global instances of thread data
 
 //HANDLE hStdin, 1;
 //INPUT_RECORD InputBuffer[16];
@@ -195,7 +195,7 @@ void ClearLastCommandOutput( LOGICAL bUpdate )
 {
    int blanks_left;
    int linesback;
-   _32 dwSize;
+   uint32_t dwSize;
    if( bLastOutputWasCommand )
    {
     linesback = ( LastCommandPos.x + CommandLength ) / 80;
@@ -258,7 +258,7 @@ void ClearLastCommandOutput( LOGICAL bUpdate )
 
 void OutputText( PTEXT pText, LOGICAL bCommand, LOGICAL bSingle )
 {
-   _32 dwSize;
+   uint32_t dwSize;
    if( bCommand )
    {
       // if last output was non-command this will grab the current position
@@ -854,7 +854,7 @@ PDATAPATH Open( PSENTIENT ps, PTEXT parameters )
    // no parameters needed for this..
    PMYDATAPATH pdp;
 
-   _32 fdwMode, fdwSaveOldMode; 
+   uint32_t fdwMode, fdwSaveOldMode; 
 //   if( hStdin || 1 ) // console device is open here..
 //      return NULL;
 //   if( AllocConsole() )

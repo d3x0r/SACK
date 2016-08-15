@@ -24,20 +24,20 @@ typedef struct mydatapath_tag {
 
    // default is inbound, decode
    struct {
-   	_32 outbound    : 1;
-   	_32 inbound     : 1;
-   	_32 encode_in   : 1;
-   	_32 encode_out  : 1;
-   	_32 bNewLine    : 1;
-		_32 bPosition   : 1; // set TF_FORMATABS
-		_32 bPositionRel: 1; // set TF_FORMATREL
-		_32 bExtended   : 1; // set TF_FORAMTEX
-		_32 bCollectingParam : 1;
-		_32 bAttribute      : 1;
-		_32 keep_newline    : 1;
-		_32 wait_for_cursor : 1;
-		_32 newline_only_in : 1;
-		_32 newline_only_out : 1;
+   	uint32_t outbound    : 1;
+   	uint32_t inbound     : 1;
+   	uint32_t encode_in   : 1;
+   	uint32_t encode_out  : 1;
+   	uint32_t bNewLine    : 1;
+		uint32_t bPosition   : 1; // set TF_FORMATABS
+		uint32_t bPositionRel: 1; // set TF_FORMATREL
+		uint32_t bExtended   : 1; // set TF_FORAMTEX
+		uint32_t bCollectingParam : 1;
+		uint32_t bAttribute      : 1;
+		uint32_t keep_newline    : 1;
+		uint32_t wait_for_cursor : 1;
+		uint32_t newline_only_in : 1;
+		uint32_t newline_only_out : 1;
    } flags;
 } MYDATAPATH, *PMYDATAPATH;
 

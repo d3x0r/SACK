@@ -7,12 +7,12 @@ int done;
 PTHREAD main_thread;
 PTASK_INFO task;
 
-void CPROC output( PTRSZVAL psv, PTASK_INFO task, CTEXTSTR buffer, size_t size )
+void CPROC output( uintptr_t psv, PTASK_INFO task, CTEXTSTR buffer, size_t size )
 {
 	lprintf( WIDE("%*.*s"), size, size, buffer );
 }
 
-void CPROC ended( PTRSZVAL psv, PTASK_INFO task )
+void CPROC ended( uintptr_t psv, PTASK_INFO task )
 {
    lprintf( WIDE("Task has ended.") );
    done = 1;

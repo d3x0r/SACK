@@ -13,13 +13,13 @@ PSI_COLORWELL_NAMESPACE
 
 typedef struct colorwell {
 	struct {
-		_32 bPickColor : 1;
-		_32 bPicking : 1;
+		uint32_t bPickColor : 1;
+		uint32_t bPicking : 1;
 	} flags;
 	CDATA color;
 	
-	void(CPROC*UpdateProc)(PTRSZVAL,CDATA);
-	PTRSZVAL psvUpdate;
+	void(CPROC*UpdateProc)(uintptr_t,CDATA);
+	uintptr_t psvUpdate;
 } COLOR_WELL, *PCOLOR_WELL;
 
 enum {
@@ -156,9 +156,9 @@ static CDATA ScaleColor( CDATA original, CDATA new_color, int max, int cur )
 static int OnDrawCommon(WIDE("Shade Well")) ( PCONTROL pcShade )
 {
 	ValidatedControlData( PSHADE_WELL, shade_well.TypeID, psw, pcShade );
-	_32 black;
-	_32 width;
-	_32 height;
+	uint32_t black;
+	uint32_t width;
+	uint32_t height;
 	Image pSurface;
 	if( psw )
 	{
@@ -190,7 +190,7 @@ static int OnDrawCommon(WIDE("Shade Well")) ( PCONTROL pcShade )
 
 //----------------------------------------------------------------------------
 
-static int OnMouseCommon( WIDE("Color Matrix") )( PSI_CONTROL pc, S_32 x, S_32 y, _32 buttons )
+static int OnMouseCommon( WIDE("Color Matrix") )( PSI_CONTROL pc, int32_t x, int32_t y, uint32_t buttons )
 {
 	PPICK_COLOR_DATA ppcd = PPCD(pc);
 	if( buttons == -1 )
@@ -239,7 +239,7 @@ int CPROC DrawPalette( PSI_CONTROL pc )
 
 //----------------------------------------------------------------------------
 
-SLIDER_UPDATE( SetGreenLevel, (PTRSZVAL psv, PCONTROL pc, int val) )
+SLIDER_UPDATE( SetGreenLevel, (uintptr_t psv, PCONTROL pc, int val) )
 {
 	//PPALETTE_CONTROL
 	CDATA c;
@@ -317,7 +317,7 @@ static void SavePresets( PPICK_COLOR_DATA ppcd )
 
 //----------------------------------------------------------------------------
 
-BUTTON_CLICK( PresetButton, ( PTRSZVAL psv, PCONTROL pc ))
+BUTTON_CLICK( PresetButton, ( uintptr_t psv, PCONTROL pc ))
 {
 	// button was pressed...
 	PPICK_COLOR_DATA ppcd = (PPICK_COLOR_DATA)psv;
@@ -350,7 +350,7 @@ BUTTON_CLICK( PresetButton, ( PTRSZVAL psv, PCONTROL pc ))
 
 //----------------------------------------------------------------------------
 
-BUTTON_DRAW( PresetDraw, ( PTRSZVAL psv, PCONTROL pc ) )
+BUTTON_DRAW( PresetDraw, ( uintptr_t psv, PCONTROL pc ) )
 {
 	PPICK_COLOR_DATA ppcd = PPCD(pc);
 	if( ppcd )
@@ -365,7 +365,7 @@ BUTTON_DRAW( PresetDraw, ( PTRSZVAL psv, PCONTROL pc ) )
 
 //----------------------------------------------------------------------------
 
-BUTTON_CLICK( DefinePreset, ( PTRSZVAL unused, PCONTROL pc ) )
+BUTTON_CLICK( DefinePreset, ( uintptr_t unused, PCONTROL pc ) )
 {
 	PPICK_COLOR_DATA ppcd = (PPICK_COLOR_DATA)unused;
 	// put up a message box... 
@@ -374,7 +374,7 @@ BUTTON_CLICK( DefinePreset, ( PTRSZVAL unused, PCONTROL pc ) )
 
 //----------------------------------------------------------------------------
 
-BUTTON_CHECK( AlphaPressed, ( PTRSZVAL unused, PCONTROL pc ) )
+BUTTON_CHECK( AlphaPressed, ( uintptr_t unused, PCONTROL pc ) )
 {
 	PPICK_COLOR_DATA ppcd = (PPICK_COLOR_DATA)unused;
 	if( GetCheckState( pc ) )
@@ -389,7 +389,7 @@ BUTTON_CHECK( AlphaPressed, ( PTRSZVAL unused, PCONTROL pc ) )
 
 //----------------------------------------------------------------------------
 
-int CPROC PaletteLoad( PTRSZVAL psv, PSI_CONTROL pf, _32 ID )
+int CPROC PaletteLoad( uintptr_t psv, PSI_CONTROL pf, uint32_t ID )
 {
 	// hmm don't think there's really anything special I need to...
 	// okay yeah...
@@ -466,31 +466,31 @@ PSI_PROC( int, PickColorEx )( CDATA *result, CDATA original, PSI_CONTROL hAbove,
 	// don't parse the NUL at the end.
 	pf = ParseXMLFrame( palette_frame_xml, sizeof( palette_frame_xml ) - 1 );
 	if( !pf )
-		pf = LoadXMLFrame( WIDE("palette.frame") /*, NULL, PaletteLoad, (PTRSZVAL)&pcd*/ );;
+		pf = LoadXMLFrame( WIDE("palette.frame") /*, NULL, PaletteLoad, (uintptr_t)&pcd*/ );;
 	if( pf )
 	{
 		int i;
 		pcd.frame = pf;
 		pcd.pColorMatrix = MakeImageFile( 128, 128 );
-		SetFrameUserData( pf, (PTRSZVAL)&pcd );
+		SetFrameUserData( pf, (uintptr_t)&pcd );
 		SetSliderValues( GetControl( pf, SLD_GREENBAR ), 0, 255-GreenVal( pcd.CurrentColor ), 255 );
 		pcd.pcZoom =  GetControl( pf, CST_ZOOM );
 		pcd.psw = GetControl( pf, CST_SHADE );
 		pcd.pShadeRed = GetControl( pf, CST_SHADE_RED );
 		pcd.pShadeGreen = GetControl( pf, CST_SHADE_GREEN );
 		pcd.pShadeBlue = GetControl( pf, CST_SHADE_BLUE );
-		SetButtonPushMethod( GetControl( pf, BTN_PRESET ), DefinePreset, (PTRSZVAL)&pcd );
-		SetCheckButtonHandler( GetControl( pf, CHK_ALPHA ), AlphaPressed, (PTRSZVAL)&pcd );
+		SetButtonPushMethod( GetControl( pf, BTN_PRESET ), DefinePreset, (uintptr_t)&pcd );
+		SetCheckButtonHandler( GetControl( pf, CHK_ALPHA ), AlphaPressed, (uintptr_t)&pcd );
 		for( i = 0; i < 36; i++ )
 		{
 			PSI_CONTROL button = GetControl( pf, BTN_PRESET_BASE + i );
 			if( button )
 			{
-				SetButtonDrawMethod( button, PresetDraw, (PTRSZVAL)&pcd );
-				SetButtonPushMethod( button, PresetButton, (PTRSZVAL)&pcd );
+				SetButtonDrawMethod( button, PresetDraw, (uintptr_t)&pcd );
+				SetButtonPushMethod( button, PresetButton, (uintptr_t)&pcd );
 			}
 		}
-		SetSliderUpdateHandler( GetControl( pf, SLD_GREENBAR ), SetGreenLevel, (PTRSZVAL)&pcd );
+		SetSliderUpdateHandler( GetControl( pf, SLD_GREENBAR ), SetGreenLevel, (uintptr_t)&pcd );
 		SetCommonButtons( pf, &pcd.ColorDialogDone, &pcd.ColorDialogOkay );
 		SetShaderControls( &pcd, NULL );
 		SetSliderValues( GetControl( pf, SLD_GREENBAR ), 0, 255-GreenVal( pcd.CurrentColor ), 255 );
@@ -512,7 +512,7 @@ PSI_PROC( int, PickColorEx )( CDATA *result, CDATA original, PSI_CONTROL hAbove,
 		pcd.pColorMatrix = MakeImageFile( 128, 128 );
 		pcd.flags.bMatrixChanged = 1;
 		pcd.frame = pf;
-		SetFrameUserData( pf, (PTRSZVAL)&pcd );
+		SetFrameUserData( pf, (uintptr_t)&pcd );
 		//MoveFrame( pf, x - FRAME_WIDTH/2, y - FRAME_HEIGHT/2 );
 		pc = MakeNamedControl( pf, WIDE("Color Matrix")
 									, 5, 5, xsize, ysize
@@ -521,7 +521,7 @@ PSI_PROC( int, PickColorEx )( CDATA *result, CDATA original, PSI_CONTROL hAbove,
 		MakeSlider( pf
 					 , 5 + xsize + 3, 1
 					 , 18, ysize + 6
-					 , SLD_GREENBAR, SLIDER_VERT, SetGreenLevel, (PTRSZVAL)&pcd );
+					 , SLD_GREENBAR, SLIDER_VERT, SetGreenLevel, (uintptr_t)&pcd );
 
 		//	MakeTextControl( pf, TEXT_VERTICAL, 8 + xsize + 15, 20, 88, 12, TXT_STATIC, WIDE("Green Level") );
 		pcd.psw = MakeNamedControl( pf, WIDE("Shade Well"), 8 + xsize + 18 + 12, 5
@@ -551,19 +551,19 @@ PSI_PROC( int, PickColorEx )( CDATA *result, CDATA original, PSI_CONTROL hAbove,
 			PCONTROL pc;
 			for( i = 0; i < 12; i++ )
 			{
-				pc = MakeCustomDrawnButton( pf, 5 + 18 * i, ysize + 15 + 13     , 16, 16, BTN_PRESET_BASE+i, 0, PresetDraw, PresetButton, (PTRSZVAL)&pcd );
+				pc = MakeCustomDrawnButton( pf, 5 + 18 * i, ysize + 15 + 13     , 16, 16, BTN_PRESET_BASE+i, 0, PresetDraw, PresetButton, (uintptr_t)&pcd );
 				SetCommonBorder( pc, BORDER_THINNER );
 				SetNoFocus( pc );
 			}
 			for( i = 0; i < 12; i++ )
 			{
-				pc = MakeCustomDrawnButton( pf, 5 + 18 * i, ysize + 15 + 13 + 18, 16, 16, BTN_PRESET_BASE+i+12, 0, PresetDraw, PresetButton, (PTRSZVAL)&pcd );
+				pc = MakeCustomDrawnButton( pf, 5 + 18 * i, ysize + 15 + 13 + 18, 16, 16, BTN_PRESET_BASE+i+12, 0, PresetDraw, PresetButton, (uintptr_t)&pcd );
 				SetCommonBorder( pc, BORDER_THINNER );
 				SetNoFocus( pc );
 			}
 			for( i = 0; i < 12; i++ )
 			{
-				pc = MakeCustomDrawnButton( pf, 5 + 18 * i, ysize + 15 + 13 + 36, 16, 16, BTN_PRESET_BASE+i+24, 0, PresetDraw, PresetButton, (PTRSZVAL)&pcd );
+				pc = MakeCustomDrawnButton( pf, 5 + 18 * i, ysize + 15 + 13 + 36, 16, 16, BTN_PRESET_BASE+i+24, 0, PresetDraw, PresetButton, (uintptr_t)&pcd );
 				SetCommonBorder( pc, BORDER_THINNER );
 				SetNoFocus( pc );
 			}
@@ -571,10 +571,10 @@ PSI_PROC( int, PickColorEx )( CDATA *result, CDATA original, PSI_CONTROL hAbove,
 		// button style normal button
 		MakeCheckButton( pf, 5, 235, 95, 19
 							, BTN_PRESET, WIDE("Set Preset")
-							, 0, DefinePreset, (PTRSZVAL)&pcd );
+							, 0, DefinePreset, (uintptr_t)&pcd );
 		MakeCheckButton( pf, 5, 218, 95, 14
 							, CHK_ALPHA, WIDE("Set Alpha")
-							, 0, AlphaPressed, (PTRSZVAL)&pcd );
+							, 0, AlphaPressed, (uintptr_t)&pcd );
 
 		AddCommonButtons( pf, &pcd.ColorDialogDone, &pcd.ColorDialogOkay );
 		SetShaderControls( &pcd, NULL );
@@ -604,7 +604,7 @@ PSI_PROC( int, PickColorEx )( CDATA *result, CDATA original, PSI_CONTROL hAbove,
 
 PSI_PROC( int, PickColor )( CDATA *result, CDATA original, PSI_CONTROL hAbove )
 {
-	S_32 x, y;
+	int32_t x, y;
 	GetMousePosition( &x, &y );
 	return PickColorEx( result, original, hAbove, x, y );
 }
@@ -626,7 +626,7 @@ static int CPROC ColorWellDraw( PCONTROL pc )
 	return TRUE;
 }
 
-static int CPROC ColorWellMouse( PSI_CONTROL pc, S_32 x, S_32 y, _32 b )
+static int CPROC ColorWellMouse( PSI_CONTROL pc, int32_t x, int32_t y, uint32_t b )
 {
 	ValidatedControlData( PCOLOR_WELL, color_well.TypeID, pcw, pc );
 	//if( pc->flags.bDisable ) // ignore mouse on these...
@@ -674,7 +674,7 @@ PSI_CONTROL EnableColorWellPick( PSI_CONTROL pc, LOGICAL bEnable )
 	return pc;
 }
 
-PSI_CONTROL SetOnUpdateColorWell( PSI_CONTROL pc, void(CPROC*update_proc)(PTRSZVAL,CDATA), PTRSZVAL psvUpdate)
+PSI_CONTROL SetOnUpdateColorWell( PSI_CONTROL pc, void(CPROC*update_proc)(uintptr_t,CDATA), uintptr_t psvUpdate)
 {
 	ValidatedControlData( PCOLOR_WELL, color_well.TypeID, pcw, pc );
 	if( pcw )
@@ -687,7 +687,7 @@ PSI_CONTROL SetOnUpdateColorWell( PSI_CONTROL pc, void(CPROC*update_proc)(PTRSZV
 
 //----------------------------------------------------------------------------
 
-static int CPROC ShadeWellMouse( PSI_CONTROL pc, S_32 x, S_32 y, _32 b )
+static int CPROC ShadeWellMouse( PSI_CONTROL pc, int32_t x, int32_t y, uint32_t b )
 {
 	ValidatedControlData( PSHADE_WELL, shade_well.TypeID, psw, pc );
 	if( b == -1 )
@@ -698,11 +698,11 @@ static int CPROC ShadeWellMouse( PSI_CONTROL pc, S_32 x, S_32 y, _32 b )
 	{
 		PPICK_COLOR_DATA ppcd = PPCD(pc);
 		CDATA c;
-		_32 height;
+		uint32_t height;
 		Image pSurface = GetControlSurface( pc );
 		height = pSurface->height;
 		//lprintf( WIDE("Setting new mid color... update... ------------------------- ") );
-		if( SUS_LT( y, S_32, height/2, _32 ) )
+		if( SUS_LT( y, int32_t, height/2, uint32_t ) )
 		{
 			c = ScaleColor( psw->color_min, psw->color_mid, height/2, y );
 		}

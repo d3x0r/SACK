@@ -22,15 +22,15 @@ extern struct sack_option_global_tag *sack_global_option_data;
 
 struct new4_enum_params
 {
-	int (CPROC *Process)(PTRSZVAL psv
+	int (CPROC *Process)(uintptr_t psv
 							  , CTEXTSTR name
 							  , POPTION_TREE_NODE ID
 							  , int flags );
-	PTRSZVAL psvEnum;
+	uintptr_t psvEnum;
 };
 
 
-static LOGICAL CPROC New4CheckOption( PTRSZVAL psvForeach, PTRSZVAL psvNode )
+static LOGICAL CPROC New4CheckOption( uintptr_t psvForeach, uintptr_t psvNode )
 {
 	POPTION_TREE_NODE option_node = (POPTION_TREE_NODE)psvNode;
 	struct new4_enum_params *params = (struct new4_enum_params *)psvForeach;
@@ -40,11 +40,11 @@ static LOGICAL CPROC New4CheckOption( PTRSZVAL psvForeach, PTRSZVAL psvNode )
 
 void New4EnumOptions( PODBC odbc
 												  , POPTION_TREE_NODE parent
-												  , int (CPROC *Process)(PTRSZVAL psv
+												  , int (CPROC *Process)(uintptr_t psv
 																				, CTEXTSTR name
 																				, POPTION_TREE_NODE ID
 																				, int flags )
-												  , PTRSZVAL psvUser )
+												  , uintptr_t psvUser )
 {
 	POPTION_TREE node = GetOptionTreeExxx( odbc, NULL DBG_SRC );
 	TEXTCHAR query[256];
@@ -69,7 +69,7 @@ void New4EnumOptions( PODBC odbc
 		struct new4_enum_params params;
 		params.Process = Process;
 		params.psvEnum = psvUser;
-		FamilyTreeForEachChild( node->option_tree, parent->node, New4CheckOption, (PTRSZVAL)&params );
+		FamilyTreeForEachChild( node->option_tree, parent->node, New4CheckOption, (uintptr_t)&params );
 	}
 
 	if( !parent->flags.bExpanded || ( ( timeGetTime() - 5000 ) > parent->expansion_tick ) )
@@ -96,7 +96,7 @@ void New4EnumOptions( PODBC odbc
 			// then their stats...
 
 			// try adding this node into the tree.
-			POPTION_TREE_NODE existing = (POPTION_TREE_NODE)FamilyTreeFindChildEx( node->option_tree, parent->node, (PTRSZVAL)results[1] );
+			POPTION_TREE_NODE existing = (POPTION_TREE_NODE)FamilyTreeFindChildEx( node->option_tree, parent->node, (uintptr_t)results[1] );
 			if( !existing )
 			{
 				tmp_node = New( OPTION_TREE_NODE );
@@ -107,7 +107,7 @@ void New4EnumOptions( PODBC odbc
 
 				popodbc = 1;
 				tmp_node->name = SaveText( results[1] );
-				tmp_node->node = FamilyTreeAddChild( &node->option_tree, tmp_node, (PTRSZVAL)tmp_node->name );
+				tmp_node->node = FamilyTreeAddChild( &node->option_tree, tmp_node, (uintptr_t)tmp_node->name );
 
 				// psv is a pointer to args in some cases...
 				//lprintf( WIDE( "Enum %s %ld" ), optname, node );
@@ -134,7 +134,7 @@ struct complex_args
 	PODBC odbc;
 };
 
-static int CPROC CopyRoot( PTRSZVAL psvArgs, CTEXTSTR name, POPTION_TREE_NODE ID, int flags )
+static int CPROC CopyRoot( uintptr_t psvArgs, CTEXTSTR name, POPTION_TREE_NODE ID, int flags )
 {
 	struct complex_args *args = (struct complex_args*)psvArgs;
 	POPTION_TREE_NODE iCopy = GetOptionIndexEx( args->iNewRoot, NULL, name, NULL, TRUE DBG_SRC );
@@ -144,7 +144,7 @@ static int CPROC CopyRoot( PTRSZVAL psvArgs, CTEXTSTR name, POPTION_TREE_NODE ID
 		struct complex_args c_args;
 		c_args.iNewRoot = iCopy;
 		c_args.odbc = args->odbc;
-		EnumOptions( ID, CopyRoot, (PTRSZVAL)&c_args );
+		EnumOptions( ID, CopyRoot, (uintptr_t)&c_args );
 	}
 	return TRUE;
 }
@@ -165,7 +165,7 @@ void New4DuplicateOption( PODBC odbc, POPTION_TREE_NODE iRoot, CTEXTSTR pNewName
 		iNewName = GetOptionIndexEx( tmp_node, NULL, pNewName, NULL, TRUE DBG_SRC );
 		args.iNewRoot = iNewName;
 		args.odbc = odbc;
-		New4EnumOptions( args.odbc, iRoot, CopyRoot, (PTRSZVAL)&args );
+		New4EnumOptions( args.odbc, iRoot, CopyRoot, (uintptr_t)&args );
 	}
 }
 
@@ -181,8 +181,8 @@ static void New4FixOrphanedBranches( void )
 
 	SQLQuery( og.Option, WIDE( "select count(*) from " ) OPTION_MAP, &result2 );
 	// expand the options list to max extent real quickk....
-	SetLink( &options, (PTRSZVAL)IntCreateFromText( result2 ) + 1, 0 );
-	SetLink( &options2, (PTRSZVAL)IntCreateFromText( result2 ) + 1, 0 );
+	SetLink( &options, (uintptr_t)IntCreateFromText( result2 ) + 1, 0 );
+	SetLink( &options2, (uintptr_t)IntCreateFromText( result2 ) + 1, 0 );
 
 	for( SQLRecordQuery( og.Option, WIDE( "select option_id,parent_option_id from " ) OPTION4_MAP, NULL, &result, NULL );
 		  result;

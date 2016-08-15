@@ -27,14 +27,14 @@ typedef struct
 }LISTPORTS_PORTINFO;
 
 
-typedef LOGICAL (CPROC* ListPortsCallback)( PTRSZVAL psv, LISTPORTS_PORTINFO* lpPortInfo );
+typedef LOGICAL (CPROC* ListPortsCallback)( uintptr_t psv, LISTPORTS_PORTINFO* lpPortInfo );
 /* User provided callback funtion that receives the information on each
  * serial port available.
  * The strings provided on the LISTPORTS_INFO are not to be referenced after
  * the callback returns; instead make copies of them for later use.
  * If the callback returns FALSE, port enumeration is aborted.
  */
-SACKCOMMLIST_PROC( LOGICAL, ListPorts )( ListPortsCallback lpCallback, PTRSZVAL psv );
+SACKCOMMLIST_PROC( LOGICAL, ListPorts )( ListPortsCallback lpCallback, uintptr_t psv );
 /* Lists serial ports available on the system, passing the information on
  * each port on succesive calls to lpCallback.
  * lpCallbackValue, treated opaquely by ListPorts(), is intended to carry

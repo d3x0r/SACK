@@ -8,7 +8,7 @@
 
 	struct {
 		char section1[32];
-		_32 first_section;
+		uint32_t first_section;
       CTEXTSTR startup_library;
 	} decode = { "32 byte unique string goes here"
 				  , 0
@@ -25,7 +25,7 @@
 			if( self )
 			{
             POINTER out;
-				_32 section_length;
+				uint32_t section_length;
             struct section section;
 				char *filename;
 				fseek( self, decode.first_section, SEEK_SET );

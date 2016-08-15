@@ -157,7 +157,7 @@ int IsOneOfMyFrames( PENTITY pe )
 	return FALSE;
 }
 
-static PTEXT CPROC SetCaption( PTRSZVAL psv
+static PTEXT CPROC SetCaption( uintptr_t psv
 							  , struct entity_tag *pe
 							  , PTEXT newvalue )
 {
@@ -409,7 +409,7 @@ static int OnCreateObject( WIDE("psi_control"), WIDE("generic control...") )
 																	);
 				// named control have invoked WIDE("extra init") method, which
 				// if all goes well we should be able to discover our parent
-				//SetCommonUserData( pNewControl, (PTRSZVAL)peNew );
+				//SetCommonUserData( pNewControl, (uintptr_t)peNew );
 				AddLink( &g.pMyFrames, peNew );
 				if( g.peCreating )
 				{
@@ -419,11 +419,11 @@ static int OnCreateObject( WIDE("psi_control"), WIDE("generic control...") )
 				}
 				LeaveCriticalSec( &g.csCreating );
 #if 0
-				AddVolatileVariable( peNew, common_vars, (PTRSZVAL)pNewControl );
-				AddVolatileVariable( peNew, common_vars+1, (PTRSZVAL)pNewControl );
-				AddVolatileVariable( peNew, common_vars+2, (PTRSZVAL)pNewControl );
-				AddVolatileVariable( peNew, common_vars+3, (PTRSZVAL)pNewControl );
-				AddVolatileVariable( peNew, common_vars+4, (PTRSZVAL)pNewControl );
+				AddVolatileVariable( peNew, common_vars, (uintptr_t)pNewControl );
+				AddVolatileVariable( peNew, common_vars+1, (uintptr_t)pNewControl );
+				AddVolatileVariable( peNew, common_vars+2, (uintptr_t)pNewControl );
+				AddVolatileVariable( peNew, common_vars+3, (uintptr_t)pNewControl );
+				AddVolatileVariable( peNew, common_vars+4, (uintptr_t)pNewControl );
 				AddMethod( peNew, dialog_commands );
 				AddMethod( peNew, dialog_commands+1 );
 				AddMethod( peNew, dialog_commands+2 );

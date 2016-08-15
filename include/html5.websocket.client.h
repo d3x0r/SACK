@@ -29,11 +29,11 @@ length, and what is received will be exactly like the block that was sent.
 #endif
 
 // the result returned from the web_socket_opened event will
-// become the new value used for future PTRSZVAL parameters to other events.
-typedef PTRSZVAL (*web_socket_opened)( PCLIENT pc, PTRSZVAL psv );
-typedef void (*web_socket_closed)( PCLIENT pc, PTRSZVAL psv );
-typedef void (*web_socket_error)( PCLIENT pc, PTRSZVAL psv, int error );
-typedef void (*web_socket_event)( PCLIENT pc, PTRSZVAL psv, POINTER buffer, int msglen );
+// become the new value used for future uintptr_t parameters to other events.
+typedef uintptr_t (*web_socket_opened)( PCLIENT pc, uintptr_t psv );
+typedef void (*web_socket_closed)( PCLIENT pc, uintptr_t psv );
+typedef void (*web_socket_error)( PCLIENT pc, uintptr_t psv, int error );
+typedef void (*web_socket_event)( PCLIENT pc, uintptr_t psv, POINTER buffer, int msglen );
 
 
 // create a websocket connection.
@@ -46,7 +46,7 @@ WEBSOCKET_EXPORT PCLIENT WebSocketOpen( CTEXTSTR address
 															 , web_socket_event
 															 , web_socket_closed
 															 , web_socket_error
-															 , PTRSZVAL psv );
+															 , uintptr_t psv );
 
 // end a websocket connection nicely.
 WEBSOCKET_EXPORT void WebSocketClose( PCLIENT );
@@ -64,8 +64,8 @@ WEBSOCKET_EXPORT void WebSocketSendText( PCLIENT, POINTER, size_t ); // UTF8 RFC
 // literal binary sending; this may happen to be base64 encoded too
 WEBSOCKET_EXPORT void WebSocketSendBinary( PCLIENT, POINTER, size_t ); 
 
-WEBSOCKET_EXPORT void WebSocketEnableAutoPing( PCLIENT websock, _32 delay );
+WEBSOCKET_EXPORT void WebSocketEnableAutoPing( PCLIENT websock, uint32_t delay );
 
-WEBSOCKET_EXPORT void WebSocketPing( PCLIENT websock, _32 timeout );
+WEBSOCKET_EXPORT void WebSocketPing( PCLIENT websock, uint32_t timeout );
 
 #endif

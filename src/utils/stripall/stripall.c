@@ -3,7 +3,7 @@
 #include <stdhdrs.h>
 #include <filesys.h>
 
-void CPROC ProcessFile( PTRSZVAL psvUser, CTEXTSTR name, int flags )
+void CPROC ProcessFile( uintptr_t psvUser, CTEXTSTR name, int flags )
 {
 	static TEXTCHAR cmd[512];
 	snprintf( cmd, sizeof( cmd ), "wstrip %s", name );

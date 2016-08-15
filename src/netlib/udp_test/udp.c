@@ -2,7 +2,7 @@
 #include <network.h>
 #include <sharemem.h>
 
-_64 rcv;
+uint64_t rcv;
 
 void CPROC ReadComplete( PCLIENT pc, POINTER buffer, int size, SOCKADDR *saFrom )
 {
@@ -12,7 +12,7 @@ void CPROC ReadComplete( PCLIENT pc, POINTER buffer, int size, SOCKADDR *saFrom 
 	}
 	else
 	{
-      static _32 last;
+      static uint32_t last;
 		rcv++;
 		if( !last )
 			last = GetTickCount();
@@ -54,8 +54,8 @@ int main( int argc, char **argv )
 			}
 			if( pcServe )
 			{
-            _64 cnt;
-            _32 tick = GetTickCount();
+            uint64_t cnt;
+            uint32_t tick = GetTickCount();
 				while(1) 
 				{
                cnt++;

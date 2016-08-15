@@ -8,7 +8,7 @@ struct volume *volume;
 
 void test1( void )
 {
-	void*file = fsi->open( (PTRSZVAL)volume, "apple" );
+	void*file = fsi->open( (uintptr_t)volume, "apple" );
 	if( file )
 	{
 		lprintf( "file size is now: %d", fsi->size( file ) );
@@ -27,7 +27,7 @@ void test2( void )
 	for( n = 0; n < 10000; n++ )
 	{
 		snprintf( buf, 256, "file.%d", n );
-		file = fsi->open( (PTRSZVAL)volume, buf );
+		file = fsi->open( (uintptr_t)volume, buf );
 		fsi->_close( file );
 	}
 }
@@ -44,7 +44,7 @@ SaneWinMain( argc, argv )
 	SetSystemLog( SYSLOG_FILE, stdout );
 	{
 		fsi = sack_get_filesystem_interface( SACK_VFS_FILESYSTEM_NAME );
-		sack_mount_filesystem( "test", fsi, 800, (PTRSZVAL)volume, 1 );
+		sack_mount_filesystem( "test", fsi, 800, (uintptr_t)volume, 1 );
 		if( fsi )
 		{
 			//sack_vfs_load_crypt_volume( ExpandPath( "*/sack.vault" ), "alkj109ad908a0a8asdf908na90na80a98d098ahkljwerklja", "0000000-0000-0000-000000-000000" );

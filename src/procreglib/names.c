@@ -67,7 +67,7 @@ struct procreg_local_tag {
 	TEXTCHAR *config_filename;
 	FILE *file;
 	CRITICALSECTION csName;
-	_32 simple_lock;
+	uint32_t simple_lock;
 
 	PLINKQUEUE tmp_names;
 	int reference_count; 
@@ -258,7 +258,7 @@ static CTEXTSTR DoSaveNameEx( CTEXTSTR stripped, size_t len DBG_PASS )
 	if( l.flags.bIndexNameTable )
 	{
 		POINTER p;
-		p = (POINTER)FindInBinaryTree( l.NameIndex, (PTRSZVAL)stripped );
+		p = (POINTER)FindInBinaryTree( l.NameIndex, (uintptr_t)stripped );
 		if( p )
 		{
 			// otherwise it will be single threaded?
@@ -322,12 +322,12 @@ static CTEXTSTR DoSaveNameEx( CTEXTSTR stripped, size_t len DBG_PASS )
 			//lprintf( "Adding new namespace %p", space );
 			LinkThing( l.NameSpace, space );
 		}
-		MemCpy( p = space->buffer + space->nextname + 1, stripped,(_32)(sizeof( TEXTCHAR)*(len + 1)) );
+		MemCpy( p = space->buffer + space->nextname + 1, stripped,(uint32_t)(sizeof( TEXTCHAR)*(len + 1)) );
 		p[len] = 0; // make sure we get a null terminator...
 		// +2 1 for byte of len, 1 for nul at end.
 		alloclen = (len + 2);
 		space->buffer[space->nextname] = (TEXTCHAR)(alloclen);
-		space->nextname += (_32)alloclen;
+		space->nextname += (uint32_t)alloclen;
 		space->buffer[space->nextname] = 0;
 #if defined( __ARM__ ) || defined( UNDER_CE )
 		space->nextname = ( space->nextname + 3 ) & 0xFFFFC;
@@ -338,7 +338,7 @@ static CTEXTSTR DoSaveNameEx( CTEXTSTR stripped, size_t len DBG_PASS )
 
 		if( l.flags.bIndexNameTable )
 		{
-			AddBinaryNode( l.NameIndex, p, (PTRSZVAL)p );
+			AddBinaryNode( l.NameIndex, p, (uintptr_t)p );
 			BalanceBinaryTree( l.NameIndex );
 		}
 	}
@@ -447,7 +447,7 @@ CTEXTSTR SaveText( CTEXTSTR text )
 
 //---------------------------------------------------------------------------
 
-static void CPROC KillName( CPOINTER user, PTRSZVAL key )
+static void CPROC KillName( CPOINTER user, uintptr_t key )
 {
 	PNAME name = (PNAME)user;
 	if( name->tree.Tree )
@@ -468,18 +468,18 @@ static void CPROC KillName( CPOINTER user, PTRSZVAL key )
 //---------------------------------------------------------------------------
 
 // p would be the global space, but it's also already set in it's correct spot
-static void CPROC InitGlobalSpace( POINTER p, PTRSZVAL size )
+static void CPROC InitGlobalSpace( POINTER p, uintptr_t size )
 {
 	InitializeCriticalSec( &(*(struct procreg_local_tag*)p).csName );
 
 	(*(struct procreg_local_tag*)p).Names = (PTREEDEF)GetFromSet( TREEDEF, &(*(struct procreg_local_tag*)p).TreeNodes );
 	(*(struct procreg_local_tag*)p).Names->Magic = MAGIC_TREE_NUMBER;
-	(*(struct procreg_local_tag*)p).Names->Tree = CreateBinaryTreeExx( BT_OPT_NODUPLICATES, (int(CPROC *)(PTRSZVAL,PTRSZVAL))SavedNameCmp, KillName );
+	(*(struct procreg_local_tag*)p).Names->Tree = CreateBinaryTreeExx( BT_OPT_NODUPLICATES, (int(CPROC *)(uintptr_t,uintptr_t))SavedNameCmp, KillName );
 
 	// enable name indexing.
 	// if we have 500 names, 9 searches is much less than 250 avg
 	(*(struct procreg_local_tag*)p).flags.bIndexNameTable = 1;
-	(*(struct procreg_local_tag*)p).NameIndex = CreateBinaryTreeExx( BT_OPT_NODUPLICATES, (int(CPROC *)(PTRSZVAL,PTRSZVAL))SavedNameCmp, KillName );
+	(*(struct procreg_local_tag*)p).NameIndex = CreateBinaryTreeExx( BT_OPT_NODUPLICATES, (int(CPROC *)(uintptr_t,uintptr_t))SavedNameCmp, KillName );
 	(*(struct procreg_local_tag*)p).reference_count++;
 }
 
@@ -563,7 +563,7 @@ static PTREEDEF AddClassTree( PTREEDEF class_root, TEXTCHAR *name, PTREEROOT roo
 		classname->parent = class_root;
 
 		//lprintf( WIDE("Adding class tree thing %p  %s"), class_root->Tree, classname->name );
-		if( !AddBinaryNode( class_root->Tree, classname, (PTRSZVAL)classname->name ) )
+		if( !AddBinaryNode( class_root->Tree, classname, (uintptr_t)classname->name ) )
 		{
 			//Log( WIDE("For some reason could not add new class tree to tree!") );
 			DeleteFromSet( NAME, &l.NameSet, classname );
@@ -620,7 +620,7 @@ PTREEDEF GetClassTreeEx( PTREEDEF root, PTREEDEF _name_class, PTREEDEF alias, LO
 #if defined( __ARM__ ) || defined( UNDER_CE )
 		// if its odd, it comes from the name space
 		// (savename)
-		(((PTRSZVAL)class_root)&0x3) ||
+		(((uintptr_t)class_root)&0x3) ||
 #endif
 		(class_root->Magic != MAGIC_TREE_NUMBER) )
 	{
@@ -635,7 +635,7 @@ PTREEDEF GetClassTreeEx( PTREEDEF root, PTREEDEF _name_class, PTREEDEF alias, LO
 #if defined( __ARM__ ) || defined( UNDER_CE )
 	  // if its odd, it comes from the name space
 		// (savename)
-			 !(((PTRSZVAL)_name_class)&0x3) &&
+			 !(((uintptr_t)_name_class)&0x3) &&
 #endif
 			(_name_class->Magic == MAGIC_TREE_NUMBER) )
 		{
@@ -678,7 +678,7 @@ PTREEDEF GetClassTreeEx( PTREEDEF root, PTREEDEF _name_class, PTREEDEF alias, LO
 						// dress name terminates on a '/'
 						TEXTCHAR buf[256];
 						//lprintf( "Finding a..." );
-						new_root = (PNAME)FindInBinaryTree( class_root->Tree, (PTRSZVAL)DressName( buf, start ) );
+						new_root = (PNAME)FindInBinaryTree( class_root->Tree, (uintptr_t)DressName( buf, start ) );
 						//lprintf( WIDE("Found %p %s(%d)=%s"), new_root, buf+1, buf[0], start );
 					}
 					if( !new_root )
@@ -710,7 +710,7 @@ PTREEDEF GetClassTreeEx( PTREEDEF root, PTREEDEF _name_class, PTREEDEF alias, LO
 							new_root = AddClassTree( class_root
 															 , start
 															 , tree = CreateBinaryTreeExx( BT_OPT_NODUPLICATES
-																						 , (int(CPROC *)(PTRSZVAL,PTRSZVAL))SavedNameCmp
+																						 , (int(CPROC *)(uintptr_t,uintptr_t))SavedNameCmp
 																						 , KillName )
 															 , FALSE
 															 );
@@ -795,12 +795,12 @@ PROCREG_PROC( PTREEDEF, GetClassRoot )( PCLASSROOT name_class )
 #endif
 //---------------------------------------------------------------------------
 
-int AddNode( PTREEDEF class_root, POINTER data, PTRSZVAL key )
+int AddNode( PTREEDEF class_root, POINTER data, uintptr_t key )
 {
 	if( class_root )
 	{
 		TEXTCHAR buf[256];
-		PNAME oldname = (PNAME)FindInBinaryTree( class_root->Tree, (PTRSZVAL)DressName( buf, (CTEXTSTR)key ) );
+		PNAME oldname = (PNAME)FindInBinaryTree( class_root->Tree, (uintptr_t)DressName( buf, (CTEXTSTR)key ) );
 		if( oldname )
 		{
 			//lprintf( WIDE("Name already in the tree... %s"), (CTEXTSTR)key );
@@ -823,7 +823,7 @@ int AddNode( PTREEDEF class_root, POINTER data, PTRSZVAL key )
 
 //---------------------------------------------------------------------------
 
-static int CPROC MyStrCmp( PTRSZVAL s1, PTRSZVAL s2 )
+static int CPROC MyStrCmp( uintptr_t s1, uintptr_t s2 )
 {
 	//lprintf( WIDE("Compare (%s) vs (%s)"), s1, s2 );
 	return StrCaseCmp( (TEXTCHAR*)s1, (TEXTCHAR*)s2 );
@@ -885,7 +885,7 @@ PROCREG_PROC( LOGICAL, RegisterFunctionExx )( PCLASSROOT root
 		if( class_root )
 		{
 			PNAME oldname;
-			oldname = (PNAME)FindInBinaryTree( class_root->Tree, (PTRSZVAL)newname->name);
+			oldname = (PNAME)FindInBinaryTree( class_root->Tree, (uintptr_t)newname->name);
 			if( oldname )
 			{
 				if( !oldname->data.proc.proc )
@@ -909,7 +909,7 @@ PROCREG_PROC( LOGICAL, RegisterFunctionExx )( PCLASSROOT root
 					TEXTSTR s1, s2;
 #ifndef NO_LOGGING
 					CTEXTSTR file = GetRegisteredValue( (CTEXTSTR)&oldname->tree, WIDE( "Source File" ) );
-					int line = (int)(PTRSZVAL)GetRegisteredValueEx( (CTEXTSTR)&oldname->tree, WIDE( "Source Line" ), TRUE );
+					int line = (int)(uintptr_t)GetRegisteredValueEx( (CTEXTSTR)&oldname->tree, WIDE( "Source Line" ), TRUE );
 					_xlprintf( 2 DBG_RELAY)( WIDE("proc %s/%s regisry by %s of %s(%s) conflicts with %s(%d):%s(%s)...")
 												  , (CTEXTSTR)name_class?(CTEXTSTR)name_class:WIDE("@")
 												  , public_name?public_name:WIDE("@")
@@ -934,7 +934,7 @@ PROCREG_PROC( LOGICAL, RegisterFunctionExx )( PCLASSROOT root
 			}
 			else
 			{
-				if( !AddBinaryNode( class_root->Tree, (PCLASSROOT)newname, (PTRSZVAL)newname->name ) )
+				if( !AddBinaryNode( class_root->Tree, (PCLASSROOT)newname, (uintptr_t)newname->name ) )
 				{
 					Log( WIDE("For some reason could not add new name to tree!") );
 					DeleteFromSet( NAME, &l.NameSet, newname );
@@ -946,7 +946,7 @@ PROCREG_PROC( LOGICAL, RegisterFunctionExx )( PCLASSROOT root
 				newname->parent = class_root;
 				newname->tree.Magic = MAGIC_TREE_NUMBER;
 				newname->tree.Tree = CreateBinaryTreeExx( 0 // dups okay BT_OPT_NODUPLICATES
-																	 , (int(CPROC *)(PTRSZVAL,PTRSZVAL))MyStrCmp
+																	 , (int(CPROC *)(uintptr_t,uintptr_t))MyStrCmp
 																	 , KillName );
 #ifdef _DEBUG
 				{
@@ -997,7 +997,7 @@ int ReleaseRegisteredFunctionEx( PCLASSROOT root, CTEXTSTR name_class
 {
 	PTREEDEF class_root = GetClassTree( root, (PCLASSROOT)name_class );
 	TEXTCHAR buf[256];
-	PNAME node = (PNAME)FindInBinaryTree( class_root->Tree, (PTRSZVAL)DressName( buf, public_name ) );
+	PNAME node = (PNAME)FindInBinaryTree( class_root->Tree, (uintptr_t)DressName( buf, public_name ) );
 	if( node )
 	{
 		if( node->flags.bProc )
@@ -1106,8 +1106,8 @@ PROCREG_PROC( PROCEDURE, GetRegisteredProcedureExxx )( PCLASSROOT root, PCLASSRO
 		//TEXTCHAR buf[256];
 		//lprintf( WIDE("Found class %s=%p for %s"), name_class, class_root, name );
 		//DumpRegisteredNamesWork( class_root, 5 );
-		oldname = (PNAME)LocateInBinaryTree( class_root->Tree, (PTRSZVAL)name, NULL );
-		//oldname = (PNAME)FindInBinaryTree( class_root->Tree, (PTRSZVAL)DressName( buf, name ) );
+		oldname = (PNAME)LocateInBinaryTree( class_root->Tree, (uintptr_t)name, NULL );
+		//oldname = (PNAME)FindInBinaryTree( class_root->Tree, (uintptr_t)DressName( buf, name ) );
 		if( oldname )
 		{
 #if 0
@@ -1367,7 +1367,7 @@ PROCREG_PROC( int, RegisterValueExx )( PCLASSROOT root, CTEXTSTR name_class, CTE
 	if( class_root )
 	{
 		TEXTCHAR buf[256];
-		PNAME oldname = (PNAME)FindInBinaryTree( class_root->Tree, (PTRSZVAL)DressName( buf, name ) );
+		PNAME oldname = (PNAME)FindInBinaryTree( class_root->Tree, (uintptr_t)DressName( buf, name ) );
 		//lprintf( "... existed? %p", oldname );
 
 		if( oldname )
@@ -1376,7 +1376,7 @@ PROCREG_PROC( int, RegisterValueExx )( PCLASSROOT root, CTEXTSTR name_class, CTE
 			if( bIntVal )
 			{
 				oldname->flags.bIntVal = 1;
-				oldname->data.name.iValue = (PTRSZVAL)value;
+				oldname->data.name.iValue = (uintptr_t)value;
 			}
 			else
 			{
@@ -1395,7 +1395,7 @@ PROCREG_PROC( int, RegisterValueExx )( PCLASSROOT root, CTEXTSTR name_class, CTE
 			if( bIntVal )
 			{
 				newname->flags.bIntVal = 1;
-				newname->data.name.iValue = (PTRSZVAL)value;
+				newname->data.name.iValue = (uintptr_t)value;
 			}
 			else
 			{
@@ -1403,7 +1403,7 @@ PROCREG_PROC( int, RegisterValueExx )( PCLASSROOT root, CTEXTSTR name_class, CTE
 				newname->data.name.sValue = SaveName( value ); //StrDup( value );
 			}
 			//lprintf( "... adding %s (%s)", name, newname->name );
-			if( !AddBinaryNode( class_root->Tree, newname, (PTRSZVAL)newname->name ) )
+			if( !AddBinaryNode( class_root->Tree, newname, (uintptr_t)newname->name ) )
 			{
 				lprintf( WIDE("Failed to add name to tree...%s"), name );
 			}
@@ -1425,12 +1425,12 @@ PROCREG_PROC( int, RegisterValue )( CTEXTSTR name_class, CTEXTSTR name, CTEXTSTR
 	return RegisterValueEx( name_class, name, FALSE, value );
 }
 //---------------------------------------------------------------------------
-PROCREG_PROC( int, RegisterIntValueEx )( PCLASSROOT root, CTEXTSTR name_class, CTEXTSTR name, PTRSZVAL value )
+PROCREG_PROC( int, RegisterIntValueEx )( PCLASSROOT root, CTEXTSTR name_class, CTEXTSTR name, uintptr_t value )
 {
 	return RegisterValueExx( root, name_class, name, TRUE, (CTEXTSTR)value );
 }
 
-PROCREG_PROC( int, RegisterIntValue )( CTEXTSTR name_class, CTEXTSTR name, PTRSZVAL value )
+PROCREG_PROC( int, RegisterIntValue )( CTEXTSTR name_class, CTEXTSTR name, uintptr_t value )
 {
 	return RegisterValueEx( name_class, name, TRUE, (CTEXTSTR)value );
 }
@@ -1444,7 +1444,7 @@ int GetRegisteredStaticValue( PCLASSROOT root, CTEXTSTR name_class
 {
 	PTREEDEF class_root = GetClassTree( root, (PCLASSROOT)name_class );
 	TEXTCHAR buf[256];
-	PNAME oldname = (PNAME)FindInBinaryTree( class_root->Tree, (PTRSZVAL)DressName( buf, name ));
+	PNAME oldname = (PNAME)FindInBinaryTree( class_root->Tree, (uintptr_t)DressName( buf, name ));
 	if( oldname )
 	{
 		if( bIntVal )
@@ -1469,7 +1469,7 @@ PROCREG_PROC( CTEXTSTR, GetRegisteredValueExx )( PCLASSROOT root, CTEXTSTR name_
 	TEXTCHAR buf[256];
 	PNAME oldname;
 	class_root = GetClassTree( root, (PCLASSROOT)name_class );
-	oldname = (PNAME)FindInBinaryTree( class_root->Tree, (PTRSZVAL)DressName( buf, name ));
+	oldname = (PNAME)FindInBinaryTree( class_root->Tree, (uintptr_t)DressName( buf, name ));
 	if( oldname )
 	{
 		if( bIntVal )
@@ -1507,7 +1507,7 @@ PROCREG_PROC( int, GetRegisteredIntValue )( CTEXTSTR name_class, CTEXTSTR name )
  * this is OK.  the value originates as an 'int' and is typecast to a
  * CTEXTSTR which this then down converts back to 'int'
  */
-	return (int)(PTRSZVAL)GetRegisteredValueEx( (CTEXTSTR)name_class, name, TRUE );
+	return (int)(uintptr_t)GetRegisteredValueEx( (CTEXTSTR)name_class, name, TRUE );
 }
 
 PROCREG_PROC( int, GetRegisteredIntValueEx )( PCLASSROOT root, CTEXTSTR name_class, CTEXTSTR name )
@@ -1517,7 +1517,7 @@ PROCREG_PROC( int, GetRegisteredIntValueEx )( PCLASSROOT root, CTEXTSTR name_cla
  * this is OK.  the value originates as an 'int' and is typecast to a
  * CTEXTSTR which this then down converts back to 'int'
  */
-	return (int)(PTRSZVAL)GetRegisteredValueExx( root, name_class, name, TRUE );
+	return (int)(uintptr_t)GetRegisteredValueExx( root, name_class, name, TRUE );
 }
 
 #ifdef __cplusplus
@@ -1528,7 +1528,7 @@ PROCREG_PROC( int, GetRegisteredIntValue )( PCLASSROOT name_class, CTEXTSTR name
  * this is OK.  the value originates as an 'int' and is typecast to a
  * CTEXTSTR which this then down converts back to 'int'
  */
-	return (int)(PTRSZVAL)GetRegisteredValueEx( (CTEXTSTR)name_class, name, TRUE );
+	return (int)(uintptr_t)GetRegisteredValueEx( (CTEXTSTR)name_class, name, TRUE );
 }
 #endif
 //---------------------------------------------------------------------------
@@ -1549,12 +1549,12 @@ PROCREG_PROC( PCLASSROOT, RegisterClassAlias )( CTEXTSTR original, CTEXTSTR alia
 
 //---------------------------------------------------------------------------
 
-PROCREG_PROC( PTRSZVAL, RegisterDataTypeEx )( PCLASSROOT root
+PROCREG_PROC( uintptr_t, RegisterDataTypeEx )( PCLASSROOT root
 												 , CTEXTSTR classname
 												 , CTEXTSTR name
-												 , PTRSZVAL size
-												 , void (CPROC *Open)(POINTER,PTRSZVAL)
-												 , void (CPROC *Close)(POINTER,PTRSZVAL) )
+												 , uintptr_t size
+												 , void (CPROC *Open)(POINTER,uintptr_t)
+												 , void (CPROC *Close)(POINTER,uintptr_t) )
 {
 	PTREEDEF class_root = GetClassTreeEx( root, (PCLASSROOT)classname, NULL, TRUE );
 	if( class_root )
@@ -1568,24 +1568,24 @@ PROCREG_PROC( PTRSZVAL, RegisterDataTypeEx )( PCLASSROOT root
 		pName->data.data.size = size;
 		pName->data.data.instances.Magic = MAGIC_TREE_NUMBER;
 		pName->data.data.instances.Tree = CreateBinaryTreeExx( 0 // dups okay BT_OPT_NODUPLICATES
-														, (int(CPROC *)(PTRSZVAL,PTRSZVAL))MyStrCmp
+														, (int(CPROC *)(uintptr_t,uintptr_t))MyStrCmp
 														, KillName );
 		pName->parent = class_root;
-		if( !AddNode( class_root, pName, (PTRSZVAL)pName->name ) )
+		if( !AddNode( class_root, pName, (uintptr_t)pName->name ) )
 		{
 			DeleteFromSet( NAME, &l.NameSet, pName );
 			return 0; // NULL
 		}
-		return (PTRSZVAL)pName;
+		return (uintptr_t)pName;
 	}
 	return 0; // NULL
 }
 
-PROCREG_PROC( PTRSZVAL, RegisterDataType )( CTEXTSTR classname
+PROCREG_PROC( uintptr_t, RegisterDataType )( CTEXTSTR classname
 												 , CTEXTSTR name
-												 , PTRSZVAL size
-												 , void (CPROC *Open)(POINTER,PTRSZVAL)
-												 , void (CPROC *Close)(POINTER,PTRSZVAL) )
+												 , uintptr_t size
+												 , void (CPROC *Open)(POINTER,uintptr_t)
+												 , void (CPROC *Close)(POINTER,uintptr_t) )
 {
 	Init();
 	return RegisterDataTypeEx( l.Names, classname, name, size, Open, Close );
@@ -1593,19 +1593,19 @@ PROCREG_PROC( PTRSZVAL, RegisterDataType )( CTEXTSTR classname
 
 //---------------------------------------------------------------------------
 
-PROCREG_PROC( PTRSZVAL, MakeRegisteredDataTypeEx)( PCLASSROOT root
+PROCREG_PROC( uintptr_t, MakeRegisteredDataTypeEx)( PCLASSROOT root
 																 , CTEXTSTR classname
 																 , CTEXTSTR name
 																 , CTEXTSTR instancename
 																 , POINTER data
-																 , PTRSZVAL datasize
+																 , uintptr_t datasize
 																 )
 {
 	PTREEDEF class_root = GetClassTree( root, (PCLASSROOT)classname );
 	if( class_root )
 	{
 		TEXTCHAR buf[256];
-		PNAME pName = (PNAME)FindInBinaryTree( class_root->Tree, (PTRSZVAL)DressName( buf, name ));
+		PNAME pName = (PNAME)FindInBinaryTree( class_root->Tree, (uintptr_t)DressName( buf, name ));
 		if( !pName )
 			pName = (PNAME)RegisterDataTypeEx( root, classname, name, datasize, NULL, NULL );
 
@@ -1624,11 +1624,11 @@ PROCREG_PROC( PTRSZVAL, MakeRegisteredDataTypeEx)( PCLASSROOT root
 					instancename = SaveName( instancename );
 				{
 					// look up prior instance...
-					if( !FindInBinaryTree( pDataDef->instances.Tree, (PTRSZVAL)instancename ) )
+					if( !FindInBinaryTree( pDataDef->instances.Tree, (uintptr_t)instancename ) )
 					{
 						AddBinaryNode( pDataDef->instances.Tree
 										 , data
-										 , (PTRSZVAL)instancename );
+										 , (uintptr_t)instancename );
 					}
 					else
 					{
@@ -1639,7 +1639,7 @@ PROCREG_PROC( PTRSZVAL, MakeRegisteredDataTypeEx)( PCLASSROOT root
 						// destroy - fortunatly this is persistant data, and therefore
 						// doesn't get destroyed yet.
 					}
-					return (PTRSZVAL)data;
+					return (uintptr_t)data;
 				}
 			}
 		}
@@ -1653,7 +1653,7 @@ PROCREG_PROC( PTRSZVAL, MakeRegisteredDataTypeEx)( PCLASSROOT root
 
 //---------------------------------------------------------------------------
 
-PROCREG_PROC( PTRSZVAL, CreateRegisteredDataTypeEx)( PCLASSROOT root
+PROCREG_PROC( uintptr_t, CreateRegisteredDataTypeEx)( PCLASSROOT root
 																	, CTEXTSTR classname
 																	, CTEXTSTR name
 																	, CTEXTSTR instancename )
@@ -1662,7 +1662,7 @@ PROCREG_PROC( PTRSZVAL, CreateRegisteredDataTypeEx)( PCLASSROOT root
 	if( class_root )
 	{
 		TEXTCHAR buf[256];
-		PNAME pName = (PNAME)FindInBinaryTree( class_root->Tree, (PTRSZVAL)DressName( buf, name ));
+		PNAME pName = (PNAME)FindInBinaryTree( class_root->Tree, (uintptr_t)DressName( buf, name ));
 		if( pName && pName->flags.bData )
 		{
 			PDATADEF pDataDef = &pName->data.data;
@@ -1679,25 +1679,25 @@ PROCREG_PROC( PTRSZVAL, CreateRegisteredDataTypeEx)( PCLASSROOT root
 				{
 					POINTER p;
 					// look up prior instance...
-					if( !( p = (POINTER)FindInBinaryTree( pDataDef->instances.Tree, (PTRSZVAL)instancename ) ) )
+					if( !( p = (POINTER)FindInBinaryTree( pDataDef->instances.Tree, (uintptr_t)instancename ) ) )
 					{
 #ifdef DEBUG_GLOBAL_REGISTRATION
 						lprintf( WIDE( "Allocating new struct data :%" )_32f, pDataDef->size );
 #endif
 						p = Allocate( pDataDef->size + sizeof( PLIST ) );
 						((PLIST*)p)[0] = NULL;
-						p = (POINTER)( ((PTRSZVAL)p) + sizeof( PLIST ) );
+						p = (POINTER)( ((uintptr_t)p) + sizeof( PLIST ) );
 						MemSet( p, 0, pDataDef->size );
 						if( pDataDef->Open )
 							pDataDef->Open( p, pDataDef->size );
 						AddBinaryNode( pDataDef->instances.Tree
 										 , p
-										 , (PTRSZVAL)instancename );
+										 , (uintptr_t)instancename );
 					}
 					else
 					{
 						// registered one, returned, needs to be offset for hold purposes.
-						POINTER tmp_p = (POINTER)( (PTRSZVAL)p - sizeof( PLIST ) );
+						POINTER tmp_p = (POINTER)( (uintptr_t)p - sizeof( PLIST ) );
 						Hold( tmp_p );
 #ifdef DEBUG_GLOBAL_REGISTRATION
 						lprintf( WIDE("Resulting with previuosly created instance.") );
@@ -1706,7 +1706,7 @@ PROCREG_PROC( PTRSZVAL, CreateRegisteredDataTypeEx)( PCLASSROOT root
 						// doesn't get destroyed yet.
 #endif
 					}
-					return (PTRSZVAL)p;
+					return (uintptr_t)p;
 				}
 			}
 		}
@@ -1722,7 +1722,7 @@ PROCREG_PROC( PTRSZVAL, CreateRegisteredDataTypeEx)( PCLASSROOT root
 
 //---------------------------------------------------------------------------
 
-PROCREG_PROC( PTRSZVAL, CreateRegisteredDataType)( CTEXTSTR classname
+PROCREG_PROC( uintptr_t, CreateRegisteredDataType)( CTEXTSTR classname
 																 , CTEXTSTR name
 																 , CTEXTSTR instancename )
 {
@@ -1771,7 +1771,7 @@ LOGICAL RegisterInterface( CTEXTSTR servicename, POINTER(CPROC*load)(void), void
 //-----------------------------------------------------------------------
 #ifndef __NO_INTERFACE_SUPPORT__
 
-static PTRSZVAL CPROC HandleLibrary( PTRSZVAL psv, arg_list args )
+static uintptr_t CPROC HandleLibrary( uintptr_t psv, arg_list args )
 {
 	PARAM( args, TEXTCHAR*, servicename );
 	PARAM( args, TEXTCHAR*, library );
@@ -1806,7 +1806,7 @@ static PTRSZVAL CPROC HandleLibrary( PTRSZVAL psv, arg_list args )
 }
 
 //-----------------------------------------------------------------------
-static PTRSZVAL CPROC HandleAlias( PTRSZVAL psv, arg_list args )
+static uintptr_t CPROC HandleAlias( uintptr_t psv, arg_list args )
 {
 	PARAM( args, TEXTCHAR*, servicename );
 	PARAM( args, TEXTCHAR*, originalname );
@@ -1824,7 +1824,7 @@ static PTRSZVAL CPROC HandleAlias( PTRSZVAL psv, arg_list args )
 
 //-----------------------------------------------------------------------
 
-static PTRSZVAL CPROC HandleModule( PTRSZVAL psv, arg_list args )
+static uintptr_t CPROC HandleModule( uintptr_t psv, arg_list args )
 {
 	PARAM( args, TEXTCHAR*, module );
 	if( l.flags.bFindEndif || l.flags.bFindElse )
@@ -1843,7 +1843,7 @@ static PTRSZVAL CPROC HandleModule( PTRSZVAL psv, arg_list args )
 
 //-----------------------------------------------------------------------
 
-static PTRSZVAL CPROC HandlePrivateModule( PTRSZVAL psv, arg_list args )
+static uintptr_t CPROC HandlePrivateModule( uintptr_t psv, arg_list args )
 {
 	PARAM( args, TEXTCHAR*, module );
 	if( l.flags.bFindEndif || l.flags.bFindElse )
@@ -1909,7 +1909,7 @@ static TEXTSTR SubstituteNameVars( CTEXTSTR name )
 }
 //-----------------------------------------------------------------------
 
-static PTRSZVAL CPROC HandleModulePath( PTRSZVAL psv, arg_list args )
+static uintptr_t CPROC HandleModulePath( uintptr_t psv, arg_list args )
 {
 	PARAM( args, TEXTSTR, filepath );
 	filepath = ExpandPath( filepath );
@@ -1935,7 +1935,7 @@ PROCREG_PROC( void, SetInterfaceConfigFile )( TEXTCHAR *filename )
 }
 
 
-static PTRSZVAL CPROC SetDefaultDirectory( PTRSZVAL psv, arg_list args )
+static uintptr_t CPROC SetDefaultDirectory( uintptr_t psv, arg_list args )
 {
 #ifndef __NO_OPTIONS__
 	PARAM( args, CTEXTSTR, path );
@@ -1944,7 +1944,7 @@ static PTRSZVAL CPROC SetDefaultDirectory( PTRSZVAL psv, arg_list args )
 	return psv;
 }
 
-static PTRSZVAL CPROC SetOptionDefault( PTRSZVAL psv, arg_list args )
+static uintptr_t CPROC SetOptionDefault( uintptr_t psv, arg_list args )
 {
 #ifndef __NO_OPTIONS__
 	PARAM( args, TEXTSTR, key );
@@ -1981,7 +1981,7 @@ static PTRSZVAL CPROC SetOptionDefault( PTRSZVAL psv, arg_list args )
 #endif
 	return psv;
 }
-static PTRSZVAL CPROC SetOptionSet( PTRSZVAL psv, arg_list args )
+static uintptr_t CPROC SetOptionSet( uintptr_t psv, arg_list args )
 {
 #ifndef __NO_OPTIONS__
 	PARAM( args, TEXTSTR, key );
@@ -2019,7 +2019,7 @@ static PTRSZVAL CPROC SetOptionSet( PTRSZVAL psv, arg_list args )
 	return psv;
 }
 
-static PTRSZVAL CPROC TestOption( PTRSZVAL psv, arg_list args )
+static uintptr_t CPROC TestOption( uintptr_t psv, arg_list args )
 {
 #ifndef __NO_OPTIONS__
 	PARAM( args, CTEXTSTR, key );
@@ -2043,7 +2043,7 @@ static PTRSZVAL CPROC TestOption( PTRSZVAL psv, arg_list args )
 #endif
 	return psv;
 }
-static PTRSZVAL CPROC EndTestOption( PTRSZVAL psv, arg_list args )
+static uintptr_t CPROC EndTestOption( uintptr_t psv, arg_list args )
 {
 	if( l.flags.bTraceInterfaceLoading )
 		lprintf( WIDE( "found endif..." ) );
@@ -2055,7 +2055,7 @@ static PTRSZVAL CPROC EndTestOption( PTRSZVAL psv, arg_list args )
 	return psv;
 }
 
-static PTRSZVAL CPROC ElseTestOption( PTRSZVAL psv, arg_list args )
+static uintptr_t CPROC ElseTestOption( uintptr_t psv, arg_list args )
 {
 	if( l.flags.bTraceInterfaceLoading )
 		lprintf( WIDE( "found else..." ) );
@@ -2068,14 +2068,14 @@ static PTRSZVAL CPROC ElseTestOption( PTRSZVAL psv, arg_list args )
 		l.flags.bFindEndif++;
 	return psv;
 }
-static PTRSZVAL CPROC SetTrace( PTRSZVAL psv, arg_list args )
+static uintptr_t CPROC SetTrace( uintptr_t psv, arg_list args )
 {
 	PARAM( args, LOGICAL, yesno );
 	l.flags.bTraceInterfaceLoading = yesno;
 	return psv;
 }
 
-static PTRSZVAL CPROC IncludeAdditional( PTRSZVAL psv, arg_list args )
+static uintptr_t CPROC IncludeAdditional( uintptr_t psv, arg_list args )
 {
 	PARAM( args, CTEXTSTR, path );
 	TEXTSTR old_configname = l.config_filename;
@@ -2098,14 +2098,14 @@ static PTRSZVAL CPROC IncludeAdditional( PTRSZVAL psv, arg_list args )
 	return psv;
 }
 
-static PTRSZVAL CPROC SetProducerName( PTRSZVAL psv, arg_list args )
+static uintptr_t CPROC SetProducerName( uintptr_t psv, arg_list args )
 {
 	PARAM( args, CTEXTSTR, name );
 	sack_set_common_data_producer( name );
 	return psv;
 }
 
-static PTRSZVAL CPROC SetApplicationName( PTRSZVAL psv, arg_list args )
+static uintptr_t CPROC SetApplicationName( uintptr_t psv, arg_list args )
 {
 	PARAM( args, CTEXTSTR, name );
 	sack_set_common_data_application( name );
@@ -2162,7 +2162,7 @@ void ReadConfiguration( void )
 			if( !success )
 			{
 				CTEXTSTR dot;
-				loadname = NewArray( TEXTCHAR, (_32)(len = StrLen( GetProgramName() ) + StrLen( WIDE("interface.conf") ) + 3) );
+				loadname = NewArray( TEXTCHAR, (uint32_t)(len = StrLen( GetProgramName() ) + StrLen( WIDE("interface.conf") ) + 3) );
 				tnprintf( loadname, len, WIDE("%s.%s"), GetProgramName(), WIDE("interface.conf") );
 				success = ProcessConfigurationFile( pch, loadname, 0 );
 				if( !success )
@@ -2186,7 +2186,7 @@ void ReadConfiguration( void )
 			if( !success )
 			{
 				CTEXTSTR dot;
-				loadname = NewArray( TEXTCHAR, (_32)(len = StrLen( filepath ) + StrLen( GetProgramName() ) + StrLen( WIDE("interface.conf") ) + 3) );
+				loadname = NewArray( TEXTCHAR, (uint32_t)(len = StrLen( filepath ) + StrLen( GetProgramName() ) + StrLen( WIDE("interface.conf") ) + 3) );
 				tnprintf( loadname, len, WIDE("%s/%s.%s"), filepath, GetProgramName(), WIDE("interface.conf") );
 				success = ProcessConfigurationFile( pch, loadname, 0 );
 				if( !success )
@@ -2366,15 +2366,15 @@ PRIORITY_ATEXIT( CloseGlobalRegions, ATEXIT_PRIORITY_SHAREMEM + 1 )
 		}
 }
 
-void RegisterAndCreateGlobalWithInit( POINTER *ppGlobal, PTRSZVAL global_size, CTEXTSTR name, void (CPROC*Open)(POINTER,PTRSZVAL) )
+void RegisterAndCreateGlobalWithInit( POINTER *ppGlobal, uintptr_t global_size, CTEXTSTR name, void (CPROC*Open)(POINTER,uintptr_t) )
 {
 	POINTER *ppGlobalMain;
 	POINTER p;
 
 	if( ppGlobal == (POINTER*)&procreg_local_data )
 	{
-		PTRSZVAL size = global_size + sizeof( PLIST );
-		_32 created;
+		uintptr_t size = global_size + sizeof( PLIST );
+		uint32_t created;
 		TEXTCHAR spacename[32];
 		if( procreg_local_data != NULL )
 		{
@@ -2436,7 +2436,7 @@ void RegisterAndCreateGlobalWithInit( POINTER *ppGlobal, PTRSZVAL global_size, C
 		// hmm application only shared space?
 		// how do I get that to happen?
 		(*ppGlobal) = OpenSpaceExx( spacename, NULL, 0, &size, &created );
-		(*ppGlobal) = (POINTER*)( (PTRSZVAL)(*ppGlobal) + sizeof( PLIST ) );
+		(*ppGlobal) = (POINTER*)( (uintptr_t)(*ppGlobal) + sizeof( PLIST ) );
 		// I myself must have a global space, which is kept sepearte from named spaces
 		// but then... blah
 		if( created )
@@ -2447,7 +2447,7 @@ void RegisterAndCreateGlobalWithInit( POINTER *ppGlobal, PTRSZVAL global_size, C
 			MemSet( (*ppGlobal), 0, global_size );
 			{
 				// pp global is a double pointer type, I want the pointer before
-				PLIST *global_references = (PLIST*)( (PTRSZVAL)(*ppGlobal) - sizeof( POINTER ) );
+				PLIST *global_references = (PLIST*)( (uintptr_t)(*ppGlobal) - sizeof( POINTER ) );
 				global_references[0] = NULL;
 				AddLink( global_references, ppGlobal );
 			}
@@ -2462,7 +2462,7 @@ void RegisterAndCreateGlobalWithInit( POINTER *ppGlobal, PTRSZVAL global_size, C
 #endif
 			{
 				// pp global is a double pointer type, I want the pointer before
-				PLIST *global_references = (PLIST*)( (PTRSZVAL)(*ppGlobal) - sizeof( POINTER ) );
+				PLIST *global_references = (PLIST*)( (uintptr_t)(*ppGlobal) - sizeof( POINTER ) );
 				AddLink( global_references, ppGlobal );
 			}
 		}
@@ -2489,7 +2489,7 @@ void RegisterAndCreateGlobalWithInit( POINTER *ppGlobal, PTRSZVAL global_size, C
 #endif
 			{
 				// only need each space once in this list; when it's created.
-				POINTER tmp_p = (POINTER)( (PTRSZVAL)p - sizeof( PLIST ) );
+				POINTER tmp_p = (POINTER)( (uintptr_t)p - sizeof( PLIST ) );
 				AddLink( &l.global_spaces, tmp_p );
 			}
 		}
@@ -2512,7 +2512,7 @@ void RegisterAndCreateGlobalWithInit( POINTER *ppGlobal, PTRSZVAL global_size, C
 			(*ppGlobal) = (*ppGlobalMain);
 			{
 				// pp global is a double pointer type, I want the pointer before
-				PLIST *global_references = (PLIST*)( (PTRSZVAL)(*ppGlobal) - sizeof( PLIST ) );
+				PLIST *global_references = (PLIST*)( (uintptr_t)(*ppGlobal) - sizeof( PLIST ) );
 				AddLink( global_references, ppGlobal );
 			}
 		}
@@ -2529,7 +2529,7 @@ void RegisterAndCreateGlobalWithInit( POINTER *ppGlobal, PTRSZVAL global_size, C
 	}
 }
 
-void RegisterAndCreateGlobal( POINTER *ppGlobal, PTRSZVAL global_size, CTEXTSTR name )
+void RegisterAndCreateGlobal( POINTER *ppGlobal, uintptr_t global_size, CTEXTSTR name )
 {
 	RegisterAndCreateGlobalWithInit( ppGlobal, global_size, name, NULL );
 }
@@ -2579,7 +2579,7 @@ public ref class ProcReg
 			if( class_root )
 			{
 				PNAME oldname;
-				oldname = (PNAME)FindInBinaryTree( class_root->Tree, (PTRSZVAL)newname->name);
+				oldname = (PNAME)FindInBinaryTree( class_root->Tree, (uintptr_t)newname->name);
 				if( oldname )
 				{
 					if( oldname->data.stdproc.proc == Delegate )
@@ -2606,7 +2606,7 @@ public ref class ProcReg
 				else
 				{
 					newname->parent = class_root;
-					if( !AddBinaryNode( class_root->Tree, newname, (PTRSZVAL)newname->name ) )
+					if( !AddBinaryNode( class_root->Tree, newname, (uintptr_t)newname->name ) )
 					{
 						Log( WIDE("For some reason could not add new name to tree!") );
 						DeleteFromSet( NAME, &l.NameSet, newname );

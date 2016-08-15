@@ -4,19 +4,19 @@
 
 //-------------------------------------------------------------------------------------------
 
-void DodgeEx( Image dst, Image src[] , _32 step )
+void DodgeEx( Image dst, Image src[] , uint32_t step )
 #define Dodge( d, s ) DodgeEx( d, s, 1 )
 {
 	int y, x, row;
 	for( x = 0; x < 96; x+=step)//x++ )
 	{
-		_32 idx;
-		_32 divisor = 1;
-		_8 rvals[96];
-		_8 gvals[96];
-		_8 bvals[96];
-		_8 gain[96];
-		_32 red = 0
+		uint32_t idx;
+		uint32_t divisor = 1;
+		uint8_t rvals[96];
+		uint8_t gvals[96];
+		uint8_t bvals[96];
+		uint8_t gain[96];
+		uint32_t red = 0
 	, green = 0
 	, blue = 0, img = 0;
 		idx = 0;
@@ -65,20 +65,20 @@ void DodgeEx( Image dst, Image src[] , _32 step )
 }
 
 
-void BlurEx( Image dst, Image src[] , _32 step )
+void BlurEx( Image dst, Image src[] , uint32_t step )
 #define Blur( d, s ) BlurEx( d, s, 1 )
 {
 	int y, x, row;
 
 	for( x = 0; x < 96; x+=step)//x++ )
 	{
-		_32 idx;
-		_32 divisor = 1;
-		_8 rvals[96];
-		_8 gvals[96];
-		_8 bvals[96];
-		_8 gain[96];
-		_32 red = 0
+		uint32_t idx;
+		uint32_t divisor = 1;
+		uint8_t rvals[96];
+		uint8_t gvals[96];
+		uint8_t bvals[96];
+		uint8_t gain[96];
+		uint32_t red = 0
 	, green = 0
 	, blue = 0, img = 0;
 		idx = 0;
@@ -140,17 +140,17 @@ int CPROC DrawBackground( PSI_CONTROL pc )
 }
 
 
-void CPROC DrawReels( PTRSZVAL psv )
+void CPROC DrawReels( uintptr_t psv )
 {
 	int n;
 	for( n = 0; n < NUM_REELS; n++ )
 		SmudgeCommon( g.reel_pc[n] );
 }
 
-void CPROC ComputeReels( PTRSZVAL psv )
+void CPROC ComputeReels( uintptr_t psv )
 {
 	int n;
-	_32 now;
+	uint32_t now;
 	now=GetTickCount();
 	for( n = 0; n < NUM_REELS; n++ )
 	{
@@ -159,7 +159,7 @@ void CPROC ComputeReels( PTRSZVAL psv )
 		// with an option for x instead of Y
 		if( reel )
 		{
-			S_32 y;
+			int32_t y;
 			if( reel->speed > 1000 )
 				DebugBreak();
 			lprintf( "speed is %ld", reel->speed );
@@ -295,7 +295,7 @@ void CPROC ComputeReels( PTRSZVAL psv )
 
 PRELOAD( old_main )
 {
-	_32 width, height, imagecount = 0;
+	uint32_t width, height, imagecount = 0;
 
 	{
 		int n, m;

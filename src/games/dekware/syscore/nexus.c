@@ -152,7 +152,7 @@ PLIST BuildAttachedListEx( PENTITY also_ignore, PLIST *ppList, PENTITY source, i
 //--------------------------------------------------------------------------
 
 static PTEXT ObjectVolatileVariableGet( WIDE("core object"), WIDE("contents"), WIDE("Contents of the current object") )( PENTITY pe, PTEXT *last )
-//PTEXT CPROC GetContents( PTRSZVAL psv, PENTITY pe, PTEXT *last )
+//PTEXT CPROC GetContents( uintptr_t psv, PENTITY pe, PTEXT *last )
 {
 	PTEXT pList = NULL;
 	if( !(*last) )
@@ -181,7 +181,7 @@ static PTEXT ObjectVolatileVariableGet( WIDE("core object"), WIDE("scriptpath"),
 
 //--------------------------------------------------------------------------
 
-PTEXT _GetContents( PTRSZVAL psv, PENTITY pe, PTEXT *last )
+PTEXT _GetContents( uintptr_t psv, PENTITY pe, PTEXT *last )
 {
 	PTEXT pList = NULL;
 	if( !(*last) )
@@ -421,7 +421,7 @@ CORE_PROC( POINTER, FindThingEx )( PSENTIENT ps, PTEXT *tokens
 	PTEXT delete_seg = NULL;
 	PTEXT _tokens = *tokens;
 	//size_t cnt;
-	S_64 long_cnt = 1; // by default find the first.
+	int64_t long_cnt = 1; // by default find the first.
 	{
 		//PTEXT line = BuildLine( *tokens );
 		//lprintf( WIDE("finding [%s]"), GetText( line ) );
@@ -560,7 +560,7 @@ PSHADOW_OBJECT CreateShadowIn( PENTITY pContainer, PENTITY pe )
 //--------------------------------------------------------------------------
 
 static PTEXT ObjectVolatileVariableGet( WIDE("core object"), WIDE("scriptfile"), WIDE("next temp scriptfilename to use") )( PENTITY pe, PTEXT *last )
-//PTEXT CPROC GetScriptName( PTRSZVAL psv, PENTITY pe, PTEXT *last )
+//PTEXT CPROC GetScriptName( uintptr_t psv, PENTITY pe, PTEXT *last )
 {
 	static int nScript;
 	PVARTEXT pvt = VarTextCreate();
@@ -1258,14 +1258,14 @@ CORE_PROC( PENTITY, GetTheVoid )( void )
 
 //--------------------------------------------------------------------------
 
-static PTEXT CPROC GetSentientName( PTRSZVAL psv, POINTER p )
+static PTEXT CPROC GetSentientName( uintptr_t psv, POINTER p )
 {
 	PSENTIENT ps = (PSENTIENT)p;
 	return GetName( ps->Current );
 }
 //--------------------------------------------------------------------------
 
-static PTEXT CPROC GetEntityName( PTRSZVAL psv, POINTER p )	
+static PTEXT CPROC GetEntityName( uintptr_t psv, POINTER p )	
 {
 	PENTITY pe = (PENTITY)p;
 	return GetName( pe );
@@ -1558,7 +1558,7 @@ int ProcessSentients( THREAD_ID ThreadID )
 						!pms->state.flags.macro_suspend )
 					{
 						PLIST pCommands;
-						_32 ticks;
+						uint32_t ticks;
 						//SystemLog( WIDE("Found a macro to run...") );
 						//SystemLog( GetText( GetName( pms->pMacro ) ) );
 						if( !pms->state.flags.macro_delay
@@ -1600,7 +1600,7 @@ int ProcessSentients( THREAD_ID ThreadID )
 							//SystemLog( WIDE("Woke up too soon?? huh?") );
 							if( !ps->flags.scheduled )
 							{
-								AddTimerEx( pms->state.flags.data.delay_end - ticks, 0, TimerWake, (PTRSZVAL)ps );
+								AddTimerEx( pms->state.flags.data.delay_end - ticks, 0, TimerWake, (uintptr_t)ps );
 								ps->flags.scheduled = 1;
 							}
 						}
@@ -1940,10 +1940,10 @@ typedef struct process_thread_tag
 	DeclareLink( struct process_thread_tag );
 } PROCESS_THREAD, *PPROCESS_THREAD;
 
-static _32 updating_queues;
+static uint32_t updating_queues;
 static PPROCESS_THREAD processing, sleeping;
 
-PTRSZVAL CPROC ObjectProcessThread( PTHREAD thread )
+uintptr_t CPROC ObjectProcessThread( PTHREAD thread )
 {
 	int delay = 0, n;
 	PPROCESS_THREAD pMyThread = (PPROCESS_THREAD)GetThreadParam( thread );
@@ -2025,11 +2025,11 @@ CORE_PROC( void, WakeAThreadEx )( PSENTIENT ps DBG_PASS )
 			Relinquish();
 		LinkThing( processing, thread );
 		updating_queues = 0;
-		thread->thread = ThreadTo( ObjectProcessThread, (PTRSZVAL)thread );
+		thread->thread = ThreadTo( ObjectProcessThread, (uintptr_t)thread );
 	}
 }
 
-CORE_CPROC( void, TimerWake )( PTRSZVAL psv )
+CORE_CPROC( void, TimerWake )( uintptr_t psv )
 {
 	PSENTIENT ps = (PSENTIENT)psv;
 	if( ps )
@@ -2215,7 +2215,7 @@ CORE_PROC( void, Q_MSG )( PLINKQUEUE *po, CTEXTSTR msg, ... )
 	 va_start( args, msg );
 pvt = VarTextCreate(); vvtprintf( pvt, msg, args ); EnqueLink((po),VarTextGet( pvt )); VarTextDestroy( &pvt ); }
 
-void NOTHING( PTRSZVAL n )
+void NOTHING( uintptr_t n )
 {
 }
 
@@ -2449,7 +2449,7 @@ void Cleanup( void )
 	}
 }
 
-static PTRSZVAL CPROC DekwareThread( PTHREAD thread )
+static uintptr_t CPROC DekwareThread( PTHREAD thread )
 {
 	// now wait forever.
 	while(!gbExitNow) // main program's idle loop - do nothing other than wait...

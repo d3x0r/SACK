@@ -61,7 +61,7 @@ typedef struct sectorfilev8_tag {
 void DeleteSectors( INDEX iWorld );
 
 
-INDEX SrvrCreateWall( _32 client_id, INDEX iWorld
+INDEX SrvrCreateWall( uint32_t client_id, INDEX iWorld
 				 , INDEX iSector
 				 // pStart == wall intended to be at the start part of
 				 // this line...
@@ -74,12 +74,12 @@ INDEX SrvrCreateWall( _32 client_id, INDEX iWorld
 				 // this new is at the end or start of the indicated line
 				 , INDEX iEnd,   int bFromEndEnd
 				 , _POINT o, _POINT n );
-int SrvrUpdateMatingLines( _32 client_id, INDEX iWorld, INDEX iWall
+int SrvrUpdateMatingLines( uint32_t client_id, INDEX iWorld, INDEX iWall
 					  , int bLockSlope, int bErrorOK );
-int SrvrDestroySector( _32 client_id, INDEX iWorld, INDEX iSector );
+int SrvrDestroySector( uint32_t client_id, INDEX iWorld, INDEX iSector );
 
-void SrvrSetSectorName( _32 client, INDEX iWorld, INDEX iSector, INDEX iName  );
-int SrvrMoveSectors( _32 client_id, INDEX iWorld, int nSectors,INDEX *pSectors, P_POINT del );
-int SrvrMergeWalls( _32 client_id, INDEX iWorld, INDEX iCurWall, INDEX iMarkedWall );
+void SrvrSetSectorName( uint32_t client, INDEX iWorld, INDEX iSector, INDEX iName  );
+int SrvrMoveSectors( uint32_t client_id, INDEX iWorld, int nSectors,INDEX *pSectors, P_POINT del );
+int SrvrMergeWalls( uint32_t client_id, INDEX iWorld, INDEX iCurWall, INDEX iMarkedWall );
 
 #endif

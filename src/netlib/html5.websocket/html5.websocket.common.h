@@ -22,13 +22,13 @@ struct web_socket_input_state
 	size_t fragment_collection_avail;
 	size_t fragment_collection_length;
 	size_t fragment_collection_index;  // used for selecting mask byte
-	P_8 fragment_collection;
+	uint8_t* fragment_collection;
 
-	_32 last_reception; // for automatic ping/keep alive/idle death
+	uint32_t last_reception; // for automatic ping/keep alive/idle death
 
 	LOGICAL final;
 	LOGICAL mask;
-	_8 mask_key[4];
+	uint8_t mask_key[4];
 	int opcode;
 	size_t frame_length;
 	int input_msg_state;
@@ -39,8 +39,8 @@ struct web_socket_input_state
 	web_socket_closed on_close;
 	web_socket_opened on_open;
 	web_socket_error on_error;
-	PTRSZVAL psv_on;
-	PTRSZVAL psv_open; // result of the open, to pass to read
+	uintptr_t psv_on;
+	uintptr_t psv_open; // result of the open, to pass to read
 
 };
 
@@ -56,6 +56,6 @@ struct web_socket_output_state
 };
 
 
-EXTERN void SendWebSocketMessage( PCLIENT pc, int opcode, int final, int do_mask, P_8 payload, size_t length );
-EXTERN void ProcessWebSockProtocol( WebSocketInputState websock, PCLIENT pc, P_8 msg, size_t length );
+EXTERN void SendWebSocketMessage( PCLIENT pc, int opcode, int final, int do_mask, uint8_t* payload, size_t length );
+EXTERN void ProcessWebSockProtocol( WebSocketInputState websock, PCLIENT pc, uint8_t* msg, size_t length );
 

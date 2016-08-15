@@ -5,30 +5,30 @@
 
 typedef struct server_data_tracking_tag
 {
-	_32 pid; // pid of the owner - so destruction can happen on exit
-	PTRSZVAL thing; // object on the client side that it wants...
+	uint32_t pid; // pid of the owner - so destruction can happen on exit
+	uintptr_t thing; // object on the client side that it wants...
    struct server_data_tracking_tag *next, **me;
 } DATA_TRACKING, *PDATATRACKING;
 
 typedef struct global_data_tag
 {
 	PDATATRACKING pTracking;
-   _32 MsgBase;
+   uint32_t MsgBase;
 } GLOBAL, *PGLOBAL;
 
 static GLOBAL g;
 
-static int ControlClientClosed(  _32 *params, _32 length
-										, _32 *result, _32 *result_length )
+static int ControlClientClosed(  uint32_t *params, uint32_t length
+										, uint32_t *result, uint32_t *result_length )
 {
    // client has gone away - clean up all his resources....
-   _32 pid = params[0];
+   uint32_t pid = params[0];
 
    return TRUE;
 }
 
-#define SERVER_PROC(type,name) static int Server##name ( _32 *params, _32 param_length    \
-                                            , _32 *result, _32 *result_length )
+#define SERVER_PROC(type,name) static int Server##name ( uint32_t *params, uint32_t param_length    \
+                                            , uint32_t *result, uint32_t *result_length )
 
 SERVER_PROC( void, SetControlInterface)
 	//( PRENDER_INTERFACE DisplayInterface );
@@ -68,7 +68,7 @@ SERVER_PROC( CDATA, GetBaseColor )//CDATA ( INDEX idx );
 //-------- Frame and generic control functions --------------
 SERVER_PROC( PFRAME, CreateFrame)//( char *caption, int x, int y
 						  // 			, int w, int h
-						  // 			, _32 BorderFlags
+						  // 			, uint32_t BorderFlags
 						 ///  			, PFRAME hAbove );
 {
 	if( *result_length >= 4 )
@@ -87,7 +87,7 @@ SERVER_PROC( PFRAME, CreateFrame)//( char *caption, int x, int y
 
 SERVER_PROC( PFRAME, CreateFrameFromRenderer)//( char *caption, int x, int y
 						  // 			, int w, int h
-						  // 			, _32 BorderFlags
+						  // 			, uint32_t BorderFlags
 						 ///  			, PFRAME hAbove );
 {
    *result_length = INVALID_INDEX;
@@ -109,42 +109,42 @@ SERVER_PROC( void, DisplayFrame)//( PFRAME pf );
    return TRUE;
 }
 
-SERVER_PROC( void, SizeCommon)//( PFRAME pf, _32 w, _32 h );
+SERVER_PROC( void, SizeCommon)//( PFRAME pf, uint32_t w, uint32_t h );
 {
    SizeCommon( (PCOMMON)params[0], params[1], params[2] );
    *result_length = INVALID_INDEX;
    return TRUE;
 }
 
-SERVER_PROC( void, SizeCommonRel)//( PFRAME pf, _32 w, _32 h );
+SERVER_PROC( void, SizeCommonRel)//( PFRAME pf, uint32_t w, uint32_t h );
 {
    SizeCommonRel( (PCOMMON)params[0], params[1], params[2] );
    *result_length = INVALID_INDEX;
    return TRUE;
 }
 
-SERVER_PROC( void, MoveCommon)//( PFRAME pf, S_32 x, S_32 y );
+SERVER_PROC( void, MoveCommon)//( PFRAME pf, int32_t x, int32_t y );
 {
    MoveCommon( (PCOMMON)params[0], params[1], params[2] );
    *result_length = INVALID_INDEX;
    return TRUE;
 }
 
-SERVER_PROC( void, MoveCommonRel)//( PFRAME pf, S_32 x, S_32 y );
+SERVER_PROC( void, MoveCommonRel)//( PFRAME pf, int32_t x, int32_t y );
 {
    MoveCommonRel( (PCOMMON)params[0], params[1], params[2] );
    *result_length = INVALID_INDEX;
    return TRUE;
 }
 
-SERVER_PROC( void, MoveSizeCommon)//( PFRAME pf, S_32 x, S_32 y, w, h );
+SERVER_PROC( void, MoveSizeCommon)//( PFRAME pf, int32_t x, int32_t y, w, h );
 {
    MoveSizeCommon( (PCOMMON)params[0], params[1], params[2], params[3], params[4]);
    *result_length = INVALID_INDEX;
    return TRUE;
 }
 
-SERVER_PROC( void, MoveSizeCommonRel)//( PFRAME pf, S_32 x, S_32 y, w, y );
+SERVER_PROC( void, MoveSizeCommonRel)//( PFRAME pf, int32_t x, int32_t y, w, y );
 {
    MoveSizeCommonRel( (PCOMMON)params[0], params[1], params[2], params[3], params[4] );
    *result_length = INVALID_INDEX;
@@ -260,11 +260,11 @@ SERVER_PROC( int, IsControlEnabled)//( PCONTROL pc );
 }
 
 typedef struct client_init_tag {
-   _32 pid;
-	PTRSZVAL psvClient;
+   uint32_t pid;
+	uintptr_t psvClient;
 } CLIENT_INIT, *PCLIENT_INIT;
 
-static int ClientEventInitControl( PTRSZVAL psv, PCONTROL pc, _32 ID )
+static int ClientEventInitControl( uintptr_t psv, PCONTROL pc, uint32_t ID )
 {
 	PCLIENT_INIT init = (PCLIENT_INIT)psv;
    psv = init->psvClient;
@@ -284,14 +284,14 @@ SERVER_PROC( PCONTROL, CreateControlExx )//( PFRAME pFrame
 	ci.pid = params[-1];
 	ci.psvClient = params[9];
 
-	result[0] = (_32)CreateControlExx( (PFRAME)params[0] // frame
+	result[0] = (uint32_t)CreateControlExx( (PFRAME)params[0] // frame
 						, params[1] // attr
 						, params[2], params[3] // x, y
 						, params[4], params[5] // w, h
 						, params[6], params[7] // id, border
                   , params[8] // extra
 						, ClientEventInitControl
-						, (PTRSZVAL)&ci
+						, (uintptr_t)&ci
                   DBG_SRC
 						 );
    
@@ -389,10 +389,10 @@ SERVER_PROC( void, ProcessControlMessages)//(void);
 
 //------ BUTTONS ------------
 SERVER_PROC( PCONTROL, MakeButton)//( PFRAME pFrame, int attr, int x, int y, int w, int h
-                ///  , PTRSZVAL nID
+                ///  , uintptr_t nID
                 ///  , char *caption
-                 // , void (*PushMethod)//(PCONTROL pc, PTRSZVAL psv)
-                 // , PTRSZVAL Data );
+                 // , void (*PushMethod)//(PCONTROL pc, uintptr_t psv)
+                 // , uintptr_t Data );
 {
    *result_length = INVALID_INDEX;
    return TRUE;
@@ -400,9 +400,9 @@ SERVER_PROC( PCONTROL, MakeButton)//( PFRAME pFrame, int attr, int x, int y, int
 
 SERVER_PROC( PCONTROL, MakeImageButton)//( PFRAME pFrame, int attr, int x, int y, int w, int h
                 //  , Image pImage
-                //  , PTRSZVAL nID
-                //  , void (*PushMethod)//(PCONTROL pc, PTRSZVAL psv)
-                //  , PTRSZVAL Data );
+                //  , uintptr_t nID
+                //  , void (*PushMethod)//(PCONTROL pc, uintptr_t psv)
+                //  , uintptr_t Data );
 {
    *result_length = INVALID_INDEX;
    return TRUE;
@@ -410,8 +410,8 @@ SERVER_PROC( PCONTROL, MakeImageButton)//( PFRAME pFrame, int attr, int x, int y
 
 SERVER_PROC( PCONTROL, MakeCustomDrawnButton)//( PFRAME pFrame, int attr, int x, int y, int w, int h
                  // , void (*DrawMethod)//(PCONTROL pc)
-                 // , PTRSZVAL nID
-                 /// , void (*PushMethod)//(PCONTROL pc, PTRSZVAL psv), PTRSZVAL Data );
+                 // , uintptr_t nID
+                 /// , void (*PushMethod)//(PCONTROL pc, uintptr_t psv), uintptr_t Data );
 {
    *result_length = INVALID_INDEX;
    return TRUE;
@@ -431,18 +431,18 @@ SERVER_PROC( int, IsButtonPressed)//( PCONTROL pc );
 
 
 SERVER_PROC( PCONTROL, MakeCheckButton)//( PFRAME pFrame, int attr, int x, int y, int w, int h
-                   ///     , PTRSZVAL nID, char *text
-                   //     , void (*CheckProc)//(PCONTROL pc, PTRSZVAL psv )
-                   //     , PTRSZVAL psv );
+                   ///     , uintptr_t nID, char *text
+                   //     , void (*CheckProc)//(PCONTROL pc, uintptr_t psv )
+                   //     , uintptr_t psv );
 {
    *result_length = INVALID_INDEX;
    return TRUE;
 }
 
 SERVER_PROC( PCONTROL, MakeRadioButton)//( PFRAME pFrame, int attr, int x, int y, int w, int h
-						 //  	, PTRSZVAL nID, _32 GroupID, char *text
-						 //  	, void (*CheckProc)//(PCONTROL pc, PTRSZVAL psv )
-						 ///  	, PTRSZVAL psv );
+						 //  	, uintptr_t nID, uint32_t GroupID, char *text
+						 //  	, void (*CheckProc)//(PCONTROL pc, uintptr_t psv )
+						 ///  	, uintptr_t psv );
 {
    *result_length = INVALID_INDEX;
    return TRUE;
@@ -463,7 +463,7 @@ SERVER_PROC( void, SetCheckState)//( PCONTROL pc, int nState );
 
 //------ Static Text -----------
 SERVER_PROC( PCONTROL, MakeTextControl)//( PFRAME pf, int flags, int x, int y, int w, int h
-                   //     , PTRSZVAL nID, char *text );
+                   //     , uintptr_t nID, char *text );
 {
    *result_length = INVALID_INDEX;
    return TRUE;
@@ -476,7 +476,7 @@ SERVER_PROC( void, SetTextControlColors )//( PCONTROL pc, CDATA fore, CDATA back
 
 //------- Edit Control ---------
 SERVER_PROC( PCONTROL, MakeEditControl)//( PFRAME pf, int options, int x, int y, int w, int h
-                   //     , PTRSZVAL nID, char *text );
+                   //     , uintptr_t nID, char *text );
 {
    *result_length = INVALID_INDEX;
    return TRUE;
@@ -485,7 +485,7 @@ SERVER_PROC( PCONTROL, MakeEditControl)//( PFRAME pf, int options, int x, int y,
 // Use GetControlText/SetControlText
 
 //------- Slider Control --------
-SERVER_PROC( PCONTROL, MakeSlider)//( PFRAME pf, int flags, int x, int y, int w, int h, PTRSZVAL nID, void (*SliderUpdated)//(PCONTROL pc, int val) );
+SERVER_PROC( PCONTROL, MakeSlider)//( PFRAME pf, int flags, int x, int y, int w, int h, uintptr_t nID, void (*SliderUpdated)//(PCONTROL pc, int val) );
 {
    *result_length = INVALID_INDEX;
    return TRUE;
@@ -509,7 +509,7 @@ SERVER_PROC( int, PickColor)//( CDATA *result, CDATA original, PFRAME pAbove );
 
 
 //------- ListBox Control --------
-SERVER_PROC( PCONTROL, MakeListBox)//( PFRAME pf, int options, int x, int y, int w, int h, PTRSZVAL nID );
+SERVER_PROC( PCONTROL, MakeListBox)//( PFRAME pf, int options, int x, int y, int w, int h, uintptr_t nID );
 {
    *result_length = INVALID_INDEX;
    return TRUE;
@@ -552,13 +552,13 @@ SERVER_PROC( void, DeleteListItem)//( PCONTROL pc, PLISTITEM hli );
    return TRUE;
 }
 
-SERVER_PROC( void, SetItemData)//( PLISTITEM hli, PTRSZVAL psv );
+SERVER_PROC( void, SetItemData)//( PLISTITEM hli, uintptr_t psv );
 {
    *result_length = INVALID_INDEX;
    return TRUE;
 }
 
-SERVER_PROC( PTRSZVAL, GetItemData)//( PLISTITEM hli );
+SERVER_PROC( uintptr_t, GetItemData)//( PLISTITEM hli );
 {
    *result_length = INVALID_INDEX;
    return TRUE;
@@ -607,7 +607,7 @@ SERVER_PROC(PFONT, SetSelChangeHandler)//()
    return TRUE;
 }
 
-SERVER_PROC( void, SetDoubleClickHandler)//( PCONTROL pc, DoubleClicker proc, PTRSZVAL psvUser );
+SERVER_PROC( void, SetDoubleClickHandler)//( PCONTROL pc, DoubleClicker proc, uintptr_t psvUser );
 {
    *result_length = INVALID_INDEX;
    return TRUE;
@@ -618,7 +618,7 @@ SERVER_PROC( void, SetDoubleClickHandler)//( PCONTROL pc, DoubleClicker proc, PT
 #ifdef __LINUX__
 SERVER_PROC(PCONTROL, MakeGridBox)//( PFRAME pf, int options, int x, int y, int w, int h,
                   //               int viewport_x, int viewport_y, int total_x, int total_y,
-                     //            int row_thickness, int column_thickness, PTRSZVAL nID );
+                     //            int row_thickness, int column_thickness, uintptr_t nID );
 {
    *result_length = INVALID_INDEX;
    return TRUE;
@@ -649,19 +649,19 @@ SERVER_PROC( void *,GetPopupData)//( PMENU pm, int item );
    return TRUE;
 }
 
-SERVER_PROC( PMENUITEM, AppendPopupItem)//( PMENU pm, int type, PTRSZVAL dwID, POINTER pData );
+SERVER_PROC( PMENUITEM, AppendPopupItem)//( PMENU pm, int type, uintptr_t dwID, POINTER pData );
 {
    *result_length = INVALID_INDEX;
    return TRUE;
 }
 
-SERVER_PROC( PMENUITEM, CheckPopupItem)//( PMENU pm, _32 dwID, _32 state );
+SERVER_PROC( PMENUITEM, CheckPopupItem)//( PMENU pm, uint32_t dwID, uint32_t state );
 {
    *result_length = INVALID_INDEX;
    return TRUE;
 }
 
-SERVER_PROC( PMENUITEM, DeletePopupItem)//( PMENU pm, _32 dwID, _32 state );
+SERVER_PROC( PMENUITEM, DeletePopupItem)//( PMENU pm, uint32_t dwID, uint32_t state );
 {
    *result_length = INVALID_INDEX;
    return TRUE;
@@ -698,15 +698,15 @@ SERVER_PROC( void, SetScrollParams)//( PCONTROL pc, int min, int cur, int range,
    return TRUE;
 }
 
-SERVER_PROC( PCONTROL, MakeScrollBar)//( PFRAME pf, int flags, int x, int y, int w, int h, PTRSZVAL nID  );
+SERVER_PROC( PCONTROL, MakeScrollBar)//( PFRAME pf, int flags, int x, int y, int w, int h, uintptr_t nID  );
 {
    *result_length = INVALID_INDEX;
    return TRUE;
 }
 
 SERVER_PROC( void, SetScrollUpdateMethod)//( PCONTROL pc
-					//, void (*UpdateProc)(PTRSZVAL psv, int type, int current)
-					///, PTRSZVAL data );
+					//, void (*UpdateProc)(uintptr_t psv, int type, int current)
+					///, uintptr_t data );
 {
    *result_length = INVALID_INDEX;
    return TRUE;
@@ -769,7 +769,7 @@ static SERVER_FUNCTION PSIServerTable[] = {
 
 int GetControlFunctionTable(server_function_table *ppTable
 									,int *nEntries
-									,_32 MsgBase)
+									,uint32_t MsgBase)
 {
 	// connect to display, image...
    // set our interfaces to the appropriate interfaces there....

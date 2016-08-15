@@ -58,9 +58,9 @@ PRELOAD( InitConnectStatModule )
 }
 
 typedef struct tcp_sample {
-	_32 tick;
-	_64 cpu_tick_delta;
-	_32 dropped;
+	uint32_t tick;
+	uint64_t cpu_tick_delta;
+	uint32_t dropped;
 } TCP_SAMPLE, *PTCP_SAMPLE;
 
 #define MAXTCP_SAMPLESPERSET 512
@@ -68,7 +68,7 @@ DeclareSet( TCP_SAMPLE );
 
 typedef struct tcp_data {
 	struct {
-		_32 bSend : 1;// allowed to send data
+		uint32_t bSend : 1;// allowed to send data
 	} flags;
 	P_64 buffer;
 	TARGET_ADDRESS target;
@@ -77,16 +77,16 @@ typedef struct tcp_data {
 } TCP_DATA;
 			 typedef TCP_DATA *PTCP_DATA;
 
-PTRSZVAL CreateTCPTarget( TARGET_ADDRESS target )
+uintptr_t CreateTCPTarget( TARGET_ADDRESS target )
 {
 	NEW(TCP_DATA, tcp_data);
 	tcp_data->target = target;
 	tcp_data->buffer = (P_64)Allocate( 4096 );
 	// enough for a days worth of samples...
-	return (PTRSZVAL)tcp_data;
+	return (uintptr_t)tcp_data;
 }
 
-void DestroyTCPTarget( PTRSZVAL psv )
+void DestroyTCPTarget( uintptr_t psv )
 {
 	PTCP_DATA tcp_data = (PTCP_DATA)psv;
 	if( tcp_data->client )
@@ -95,22 +95,22 @@ void DestroyTCPTarget( PTRSZVAL psv )
 	Release( tcp_data );
 }
 
-void RenderTCPClient( PTRSZVAL psvRenderWhat // user data to pass to render to give render a thing to render
+void RenderTCPClient( uintptr_t psvRenderWhat // user data to pass to render to give render a thing to render
 						  , PDATALIST *points // GRAPH_LINE_SAMPLE output points to draw
-						  , _32 from // min tick
-						  , _32 to // max tick
-						  , _32 resolution  // width to plot
-						  , _32 value_resolution // height to plot
+						  , uint32_t from // min tick
+						  , uint32_t to // max tick
+						  , uint32_t resolution  // width to plot
+						  , uint32_t value_resolution // height to plot
 						  )
 {
 	PTCP_DATA tcp_data = (PTCP_DATA)psvRenderWhat;
 	INDEX iSample;
-	_32 tick = from;
+	uint32_t tick = from;
 	PTCP_SAMPLE sample;
 	int min_index_set = 0;
 	INDEX min_index;
-	_32 first_tick;
-	_64 base_value, max_value;
+	uint32_t first_tick;
+	uint64_t base_value, max_value;
 	if( !points ) // nowhere to render to.
 		return;
 	if( !(*points) )
@@ -121,7 +121,7 @@ void RenderTCPClient( PTRSZVAL psvRenderWhat // user data to pass to render to g
 		//(*points)->Cnt = 0;
 	}
 	//lprintf( "emptied data list of points... checking samples" );
-	base_value = (_64)~0;
+	base_value = (uint64_t)~0;
 	max_value = 0;
 	//lprintf( "check data... %d %d", tick, to );
 	for( iSample = 0; tick < to && ( sample = GetUsedSetMember( TCP_SAMPLE, &tcp_data->samples, iSample ) ); iSample++ )
@@ -156,7 +156,7 @@ void RenderTCPClient( PTRSZVAL psvRenderWhat // user data to pass to render to g
 					 ( sample->tick - from ) // how much past the from that this is...
 					 * resolution
 					) / (to-from);
-			point.value = (_32) // truncate
+			point.value = (uint32_t) // truncate
 					((
 					 ( sample->cpu_tick_delta - base_value )
 					 * value_resolution
@@ -170,22 +170,22 @@ void RenderTCPClient( PTRSZVAL psvRenderWhat // user data to pass to render to g
 	//lprintf( "done rendering..." );
 }
 
-void RenderTCPClientDrops( PTRSZVAL psvRenderWhat // user data to pass to render to give render a thing to render
+void RenderTCPClientDrops( uintptr_t psvRenderWhat // user data to pass to render to give render a thing to render
 								 , PDATALIST *points // GRAPH_LINE_SAMPLE output points to draw
-								 , _32 from // min tick
-								 , _32 to // max tick
-								 , _32 resolution  // width to plot
-								 , _32 value_resolution // height to plot
+								 , uint32_t from // min tick
+								 , uint32_t to // max tick
+								 , uint32_t resolution  // width to plot
+								 , uint32_t value_resolution // height to plot
 								 )
 {
 	PTCP_DATA tcp_data = (PTCP_DATA)psvRenderWhat;
 	INDEX iSample;
-	_32 tick = from;
+	uint32_t tick = from;
 	PTCP_SAMPLE sample;
-	_32 base_value, max_value;
+	uint32_t base_value, max_value;
 	int min_index_set = 0;
 	INDEX min_index;
-	_32 first_tick;
+	uint32_t first_tick;
 	if( !points ) // nowhere to render to.
 		return;
 	if( !(*points) )
@@ -196,7 +196,7 @@ void RenderTCPClientDrops( PTRSZVAL psvRenderWhat // user data to pass to render
 		//(*points)->Cnt = 0;
 	}
 	//lprintf( "emptied data list of points... checking samples" );
-	base_value = (_64)~0;
+	base_value = (uint64_t)~0;
 	max_value = 0;
 	for( iSample = 0; tick < to && ( sample = GetUsedSetMember( TCP_SAMPLE, &tcp_data->samples, iSample ) ); iSample++ )
 	{
@@ -251,8 +251,8 @@ void CPROC ClientReceive( PCLIENT pc, POINTER buffer, size_t size )
 	}
 	else
 	{
-		_64 min_tick_in_packet;
-		_64 tick = GetCPUTick();
+		uint64_t min_tick_in_packet;
+		uint64_t tick = GetCPUTick();
 		int dropped = 0;
 		int first = 1;
 		size_t ofs;
@@ -315,18 +315,18 @@ void CPROC ClientClosed( PCLIENT pc )
   }
 }
 
-void CPROC TCPTick( PTRSZVAL psv )
+void CPROC TCPTick( uintptr_t psv )
 {
 	PTCP_DATA tcp_data = (PTCP_DATA)psv;
 	if( !tcp_data->client )
 	{
 		//lprintf( "Queue connection to %s", tcp_data->target->name );
 		tcp_data->client = OpenTCPClientAddrExx( tcp_data->target->addr, ClientReceive, ClientClosed, NULL, ClientConnected );
-		SetNetworkLong( tcp_data->client, 0, (PTRSZVAL)tcp_data );
+		SetNetworkLong( tcp_data->client, 0, (uintptr_t)tcp_data );
 	}
 	else if( tcp_data->flags.bSend )
 	{
-		_64 tick = GetCPUTick();
+		uint64_t tick = GetCPUTick();
 		//lprintf( "%p connection %s ready, sending current tick", tcp_data->client, tcp_data->target->name );
 		SendTCP( tcp_data->client, (CPOINTER)&tick, sizeof( tick ) );
 	}

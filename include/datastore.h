@@ -13,13 +13,13 @@ EXPORTED_DATA INDEX iTransform;
 // this object and it's related members may be continuously related across
 // a cluster...
 
-INDEX   DataStore_RegisterNamedDataType( CTEXTSTR name, _32 size );
+INDEX   DataStore_RegisterNamedDataType( CTEXTSTR name, uint32_t size );
 // make an isntance of a data type...
 POINTER DataStore_CreateDataType( INDEX iType );
 
 //  indicate that a member of the data type is a set storage device
 // the index result may be used to create a member of this set on an object
-INDEX   DataStore_CreateDataSetLinkEx( INDEX iType, _32 offsetof_set_pointer, _32 setsize, _32 setunits, _32 maxcnt );
+INDEX   DataStore_CreateDataSetLinkEx( INDEX iType, uint32_t offsetof_set_pointer, uint32_t setsize, uint32_t setunits, uint32_t maxcnt );
 // a simple macro which uses ( iCluster, OBJECT, objects ) to know how to create the set of what type of object at which member
 #define DataStore_CreateDataSetLink( iType, type, membername )  DataStore_CreateDataSetLinkEx( iType, offsetof( type, objects ), sizeof( type##SET ), sizeof( type ), MAX##type##SPERSET );
 POINTER DataStore_GetFromDataSet( INDEX iType, POINTER member, INDEX iSet );
@@ -29,10 +29,10 @@ POINTER DataStore_GetFromDataSet( INDEX iType, POINTER member, INDEX iSet );
 // provided for sanity checks.
 
 // the iTypeLinked may be depricated in a performance model that can be trusted
-INDEX   DataStore_CreateLink( INDEX iType, _32 offsetof_pointer, INDEX iTypeLinked );
+INDEX   DataStore_CreateLink( INDEX iType, uint32_t offsetof_pointer, INDEX iTypeLinked );
 // set link uses iOtherType and pOther member to know which member on the remote sides
 // should be linked...
-POINTER DataStore_SetLink( INDEX iType, POINTER member, _32 iLink, _32 iOtherType, POINTER othermember )
+POINTER DataStore_SetLink( INDEX iType, POINTER member, uint32_t iLink, uint32_t iOtherType, POINTER othermember )
 
 
 

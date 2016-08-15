@@ -39,7 +39,7 @@ struct page_data
 	// other stuffs....
 	PSI_CONTROL frame;
 	PLIST controls; // List of PMENU_BUTTONs
-	_32 ID;
+	uint32_t ID;
 	struct {
 		BIT_FIELD bActive : 1; // quick checkable flag to see if page is active (last changed to)
 	} flags;
@@ -68,9 +68,9 @@ typedef struct page_data PAGE_DATA;
 
 #define PAGE_CHANGER_NAME WIDE("page/Page Changer")
 
-void SetCurrentPageID( PSI_CONTROL pc_canvas, _32 ID ); // MNU_CHANGE_PAGE ID (minus base)
-void DestroyPageID( PSI_CONTROL pc_canvas, _32 ID ); // MNU_DESTROY_PAGE ID (minus base)
-void UnDestroyPageID( PSI_CONTROL pc_canvas, _32 ID ); // MNU_DESTROY_PAGE ID (minus base)
+void SetCurrentPageID( PSI_CONTROL pc_canvas, uint32_t ID ); // MNU_CHANGE_PAGE ID (minus base)
+void DestroyPageID( PSI_CONTROL pc_canvas, uint32_t ID ); // MNU_DESTROY_PAGE ID (minus base)
+void UnDestroyPageID( PSI_CONTROL pc_canvas, uint32_t ID ); // MNU_DESTROY_PAGE ID (minus base)
 
 #ifdef INTERSHELL_SOURCE
 

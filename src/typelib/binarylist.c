@@ -4,7 +4,7 @@
  *   (c) Freedom Collective 2000-2006++
  *
  *   A binary tree container storing a user pointer blob of some user defined structure
- *   and a PTRSZVAL key which is used to check for content matchin.
+ *   and a uintptr_t key which is used to check for content matchin.
  *   Binary tree has algorithms to become balanced, if the input is known to be weighted,
  *   or if statistics are pulled that indicate that the tree should be balanced, this
  *   function is available on demand.  Also searching through the tree using
@@ -33,9 +33,9 @@ struct treenode_tag {
 		BIT_FIELD bUsed:1;
 		BIT_FIELD bRoot:1;
 	} flags;
-	_32 children;
+	uint32_t children;
 	CPOINTER userdata;
-	PTRSZVAL key;
+	uintptr_t key;
 	struct treenode_tag *lesser;
 	struct treenode_tag *greater;
 	struct treenode_tag **me;
@@ -53,8 +53,8 @@ typedef struct treeroot_tag {
 		BIT_FIELD bShadow:1; // tree points to the real TREEROOT (not a node)
 		BIT_FIELD bNoDuplicate : 1;
 	} flags;
-	_32 children;
-	_32 lock;
+	uint32_t children;
+	uint32_t lock;
 
 	GenericDestroy Destroy;
 	GenericCompare Compare;
@@ -80,7 +80,7 @@ PTREEROOT FindTreeRoot( PTREENODE node )
 
 //---------------------------------------------------------------------------
 
-int CPROC BinaryCompareInt( PTRSZVAL old, PTRSZVAL new_key )
+int CPROC BinaryCompareInt( uintptr_t old, uintptr_t new_key )
 {
 	if( old > new_key )
 		return 1;
@@ -321,7 +321,7 @@ int HangBinaryNode( PTREEROOT root, PTREENODE node )
 
 int AddBinaryNodeEx( PTREEROOT root
                    , CPOINTER userdata
-                   , PTRSZVAL key DBG_PASS )
+                   , uintptr_t key DBG_PASS )
 {
 	PTREENODE node;
 	if( !root )
@@ -341,7 +341,7 @@ int AddBinaryNodeEx( PTREEROOT root
 #undef AddBinaryNode
 int AddBinaryNode( PTREEROOT root
 						, POINTER userdata
-					  , PTRSZVAL key )
+					  , uintptr_t key )
 {
 	return AddBinaryNodeEx( root, userdata, key DBG_SRC );
 }
@@ -405,7 +405,7 @@ static void NativeRemoveBinaryNode( PTREEROOT root, PTREENODE node )
 
 //---------------------------------------------------------------------------
 
- void  RemoveBinaryNode ( PTREEROOT root, POINTER data, PTRSZVAL key )
+ void  RemoveBinaryNode ( PTREEROOT root, POINTER data, uintptr_t key )
 {
 	PTREENODE node;
 	if( !root )
@@ -457,7 +457,7 @@ void DestroyBinaryTree( PTREEROOT root )
 
 //---------------------------------------------------------------------------
 
-PTREEROOT CreateBinaryTreeExtended( _32 flags
+PTREEROOT CreateBinaryTreeExtended( uint32_t flags
 									  , GenericCompare Compare
 									  , GenericDestroy Destroy DBG_PASS )
 {
@@ -486,7 +486,7 @@ PTREEROOT CreateBinaryTreeEx( GenericCompare Compare
 
 //---------------------------------------------------------------------------
 int maxlevel = 0;
-void DumpNode( PTREENODE node, int level, int (*DumpMethod)( CPOINTER user, PTRSZVAL key ) )
+void DumpNode( PTREENODE node, int level, int (*DumpMethod)( CPOINTER user, uintptr_t key ) )
 {
 	int print;
 	if( !node )
@@ -514,7 +514,7 @@ void DumpNode( PTREENODE node, int level, int (*DumpMethod)( CPOINTER user, PTRS
 //---------------------------------------------------------------------------
 
 void DumpTree( PTREEROOT root 
-				 , int (*Dump)( CPOINTER user, PTRSZVAL key ) )
+				 , int (*Dump)( CPOINTER user, uintptr_t key ) )
 {
 	maxlevel = 0;
 	lprintf( WIDE("Tree %p has %")_32f WIDE(" nodes. %p is root"), root, root->children, root->tree );
@@ -524,7 +524,7 @@ void DumpTree( PTREEROOT root
 
 //---------------------------------------------------------------------------
 
-CPOINTER FindInBinaryTree( PTREEROOT root, PTRSZVAL key )
+CPOINTER FindInBinaryTree( PTREEROOT root, uintptr_t key )
 {
 	PTREENODE node;
 	if( !root )
@@ -549,7 +549,7 @@ CPOINTER FindInBinaryTree( PTREEROOT root, PTRSZVAL key )
 //---------------------------------------------------------------------------
 
 
-int CPROC TextMatchLocate( PTRSZVAL key1, PTRSZVAL key2 )
+int CPROC TextMatchLocate( uintptr_t key1, uintptr_t key2 )
 {
 	size_t k1len = StrLen( (CTEXTSTR)key1 );
 	size_t k2len = StrLen( (CTEXTSTR)key2 );
@@ -597,8 +597,8 @@ int CPROC TextMatchLocate( PTRSZVAL key1, PTRSZVAL key2 )
 // 1 = no match, actual may be larger
 // -1 = no match, actual may be lesser
 // 100 = inexact match- checks nodes near for better match.
-CPOINTER LocateInBinaryTree( PTREEROOT root, PTRSZVAL key
-								  , int (CPROC*fuzzy)( PTRSZVAL psv, PTRSZVAL node_key )
+CPOINTER LocateInBinaryTree( PTREEROOT root, uintptr_t key
+								  , int (CPROC*fuzzy)( uintptr_t psv, uintptr_t node_key )
 
 								  )
 {
@@ -978,7 +978,7 @@ CPOINTER GetPriorNode( PTREEROOT root )
 
 //---------------------------------------------------------------------------
 
-_32 GetNodeCount( PTREEROOT root )
+uint32_t GetNodeCount( PTREEROOT root )
 {
 	return root->children;
 }
@@ -1037,7 +1037,7 @@ PTREEROOT ShadowBinaryTree( PTREEROOT Original )
 // Stripped \r's.  Added GetNodeCount()
 //
 // Revision 1.10  2003/03/04 16:28:36  panther
-// Cleanup warnings in typecode.  Convert PTRSZVAL to POINTER literal in binarylist
+// Cleanup warnings in typecode.  Convert uintptr_t to POINTER literal in binarylist
 //
 // Revision 1.9  2003/03/02 18:50:21  panther
 // Added NO_DUPLICATES opption to  binary trees

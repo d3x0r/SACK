@@ -21,21 +21,21 @@
 typedef struct local_tag
 {
    PIMAGE_INTERFACE pii;
-	_32 ServerBaseMsgID;
+	uint32_t ServerBaseMsgID;
    BOARD_CLIENTSET clients; // people who are in this system
    WHITEBOARDSET boards;
 } LOCAL;
 
 typedef struct control_data_tag
 {
-	_32 BoardID;
-	_32 _b;
+	uint32_t BoardID;
+	uint32_t _b;
    enum SHAPE_TYPE iCurrentShape;
 } *PWHITEBOARD_CONTROL, WHITEBOARD_CONTROL;
 
 static LOCAL l;
 
-static int CPROC HandleBoardEvents( _32 MsgID, _32 *params, _32 paramlen )
+static int CPROC HandleBoardEvents( uint32_t MsgID, uint32_t *params, uint32_t paramlen )
 {
 	switch( MsgID )
 	{
@@ -77,9 +77,9 @@ static int Init( void )
 
 INDEX OpenBoard( char *name )
 {
-   _32 result;
-	_32 data[1];
-	_32 datalen = sizeof( data );
+   uint32_t result;
+	uint32_t data[1];
+	uint32_t datalen = sizeof( data );
 	if( !Init() )
 		return INVALID_INDEX;
 	// as soon as open board is called, and
@@ -102,7 +102,7 @@ INDEX OpenBoard( char *name )
    return INVALID_INDEX;
 }
 
-void CPROC WhiteboardBeginShape( INDEX iBoard, enum SHAPE_TYPE type, S_32 x, S_32 y )
+void CPROC WhiteboardBeginShape( INDEX iBoard, enum SHAPE_TYPE type, int32_t x, int32_t y )
 {
 	PWHITEBOARD board = GetUsedSetMember( WHITEBOARD, &l.boards, iBoard );
 	if( board )
@@ -114,7 +114,7 @@ void CPROC WhiteboardBeginShape( INDEX iBoard, enum SHAPE_TYPE type, S_32 x, S_3
 	}
 }
 
-void CPROC WhiteboardContinueShape( INDEX iBoard, S_32 x, S_32 y )
+void CPROC WhiteboardContinueShape( INDEX iBoard, int32_t x, int32_t y )
 {
 	PWHITEBOARD board = GetUsedSetMember( WHITEBOARD, &l.boards, iBoard );
 	if( board )
@@ -126,7 +126,7 @@ void CPROC WhiteboardContinueShape( INDEX iBoard, S_32 x, S_32 y )
 	}
 }
 
-void CPROC WhiteboardEndShape( INDEX iBoard, S_32 x, S_32 y )
+void CPROC WhiteboardEndShape( INDEX iBoard, int32_t x, int32_t y )
 {
 	PWHITEBOARD board = GetUsedSetMember( WHITEBOARD, &l.boards, iBoard );
 	if( board )
@@ -143,7 +143,7 @@ void CPROC WhiteboardEndShape( INDEX iBoard, S_32 x, S_32 y )
 //--------------------------------------------------------------------
 #ifdef IMPLEMENT_DEFAULT_WHITEBOARD_CONTROL
 
-static PTRSZVAL CPROC DrawSegment( void *pointer, PTRSZVAL psv )
+static uintptr_t CPROC DrawSegment( void *pointer, uintptr_t psv )
 {
 	PSI_CONTROL pc = (PSI_CONTROL)psv;
 	WHITEBOARD_CONTROL( pc, pcw );
@@ -170,7 +170,7 @@ static PTRSZVAL CPROC DrawSegment( void *pointer, PTRSZVAL psv )
    return 0;
 }
 
-static PTRSZVAL CPROC DrawALayer( void *pointer, PTRSZVAL psv )
+static uintptr_t CPROC DrawALayer( void *pointer, uintptr_t psv )
 {
 	PSI_CONTROL pc = (PSI_CONTROL)psv;
 	WHITEBOARD_CONTROL( pc, pcw );
@@ -181,7 +181,7 @@ static PTRSZVAL CPROC DrawALayer( void *pointer, PTRSZVAL psv )
 	PBOARD_LAYER layer = (PBOARD_LAYER)pointer;
 	if( pcw && board )
 	{
-      ForAllInSet( BOARD_SEGMENT, layer->segments, DrawSegment, (PTRSZVAL)pc );
+      ForAllInSet( BOARD_SEGMENT, layer->segments, DrawSegment, (uintptr_t)pc );
 	}
    return 0;
 }
@@ -195,21 +195,21 @@ static int OnDrawCommon( "Whiteboard Client Surface" ) /*CPROC DrawWhiteboardSur
 														, &l.boards, pcw->BoardID );
 		if( board )
 		{
-         ForAllInSet( BOARD_LAYER, &board->layers, DrawALayer, (PTRSZVAL)pc );
+         ForAllInSet( BOARD_LAYER, &board->layers, DrawALayer, (uintptr_t)pc );
 		}
       //EnumerateVectors( pcw->BoardID );
 	}
    return 1;
 }
 
-static int OnMouseCommon( "Whiteboard Client Surface" )/*CPROC MouseWhiteboardSurface*/( PSI_CONTROL pc, S_32 x, S_32 y, _32 b )
+static int OnMouseCommon( "Whiteboard Client Surface" )/*CPROC MouseWhiteboardSurface*/( PSI_CONTROL pc, int32_t x, int32_t y, uint32_t b )
 {
 	WHITEBOARD_CONTROL( pc, pcw );
 	PWHITEBOARD board = GetUsedSetMember( WHITEBOARD
 													, &l.boards, pcw->BoardID );
 	if( pcw )
 	{
-      _32 _b = pcw->_b;
+      uint32_t _b = pcw->_b;
 		if( b == MK_NO_BUTTON )
 		{
 		// unselect, drop stuff, etc...

@@ -126,7 +126,7 @@ PTEXT SetNextLineEx( PTEXT seg, PTEXT newnext DBG_PASS )
 //---------------------------------------------------------------------------
 //---------------------------------------------------------------------------
 
-PTEXT SegCreateEx( S_32 size DBG_PASS )
+PTEXT SegCreateEx( int32_t size DBG_PASS )
 {
    PTEXT pTemp;
    pTemp = AllocateEx( sizeof(TEXT) + size DBG_RELAY ); // good thing [1] is already counted.
@@ -194,7 +194,7 @@ int GetTextFlags( PTEXT segment )
 PTEXT SegDuplicateEx( PTEXT pText DBG_PASS )
 {
    PTEXT t;
-   _32 n;
+   uint32_t n;
    if( pText )
    {
       if( pText->flags & TF_INDIRECT )
@@ -420,16 +420,16 @@ void LineReleaseEx(PTEXT *ppLine DBG_PASS )
 
 //---------------------------------------------------------------------------
 
-PTEXT SegConcatEx(PTEXT output,PTEXT input,S_32 offset,S_32 length DBG_PASS )
+PTEXT SegConcatEx(PTEXT output,PTEXT input,int32_t offset,int32_t length DBG_PASS )
 {
-   S_32 idx=0,len=0;
+   int32_t idx=0,len=0;
    output=SegExpandEx(output, length DBG_RELAY); /* add 1 for a null */
 
    GetText(output)[0]=0;
 
    while (input&&idx<length)
    {
-      len = min( (S_32)GetTextSize( input ) - offset, length-idx );
+      len = min( (int32_t)GetTextSize( input ) - offset, length-idx );
       MemCpy( GetText(output) + idx,
               GetText(input) + offset,
               len );
@@ -614,13 +614,13 @@ PTEXT SegSplitEx( PTEXT *pLine, int nPos  DBG_PASS)
 //---------------------------------------------------------------------------
 //---------------------------------------------------------------------------
 
-_32 LineLength( PTEXT pt, int bSingle )
+uint32_t LineLength( PTEXT pt, int bSingle )
 {
    int   TopSingle = bSingle;
    PTEXT pStack[32];
    int   nStack;
    int   skipspaces = ( PRIORLINE(pt) != NULL );
-   _32 length = 0;
+   uint32_t length = 0;
    nStack = 0;
    while( pt )
    {
@@ -685,7 +685,7 @@ PTEXT BuildLineEx( PTEXT pt, int bSingle DBG_PASS )
    int   nStack, spaces = 0, firstadded;
    int   skipspaces = ( PRIORLINE(pt) != NULL );
    PTEXT pOut;
-   _32 ofs;
+   uint32_t ofs;
    //DebugBreak();
 
    {

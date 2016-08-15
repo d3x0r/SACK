@@ -73,10 +73,10 @@ ATEXIT( ExitTest )
 
 struct dropped_file_acceptor_tag {
 	dropped_file_acceptor f;
-	PTRSZVAL psvUser;
+	uintptr_t psvUser;
 };
 
-void WinShell_AcceptDroppedFiles( PRENDERER renderer, dropped_file_acceptor f, PTRSZVAL psvUser )
+void WinShell_AcceptDroppedFiles( PRENDERER renderer, dropped_file_acceptor f, uintptr_t psvUser )
 {
 	if( renderer )
 	{
@@ -164,7 +164,7 @@ VideoWindowProc (HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 #define Return   return 
 #endif
 	PVIDEO hVideo;
-	_32 _mouse_b = l.mouse_b;
+	uint32_t _mouse_b = l.mouse_b;
 	//static UINT uLastMouseMsg;
 #if defined( OTHER_EVENTS_HERE )
 	if( uMsg != 13 && uMsg != WM_TIMER ) // get window title?
@@ -248,7 +248,7 @@ VideoWindowProc (HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 			{
 				INDEX idx;
 				struct dropped_file_acceptor_tag *callback;
-				//_32 namelen = DragQueryFile( hDrop, iFIle, NULL, 0 );
+				//uint32_t namelen = DragQueryFile( hDrop, iFIle, NULL, 0 );
 				DragQueryFile( hDrop, iFile, buffer, (UINT)sizeof( buffer ) );
 				//lprintf( WIDE( "Accepting file drop [%s]" ), buffer );
 				LIST_FORALL( hVideo->dropped_file_acceptors, idx, struct dropped_file_acceptor_tag*, callback )
@@ -890,10 +890,10 @@ WM_DROPFILES
 		// normal fall through without processing button states
 		if (0)
 		{
-			S_16 wheel;
+			int16_t wheel;
 	case WM_MOUSEWHEEL:
 			l.mouse_b &= ~( MK_SCROLL_UP|MK_SCROLL_DOWN);
-			wheel = (S_16)(( wParam & 0xFFFF0000 ) >> 16);
+			wheel = (int16_t)(( wParam & 0xFFFF0000 ) >> 16);
 			if( wheel >= 120 )
 				l.mouse_b |= MK_SCROLL_UP;
 			if( wheel <= -120 )
@@ -1045,8 +1045,8 @@ WM_DROPFILES
 			l.mouse_last_vid = hVideo;
 #ifdef USE_IPC_MESSAGE_QUEUE_TO_GATHER_EVENTS
 			{
-				_32 msg[4];
-				msg[0] = (_32)(l.hCaptured?l.hCaptured:hVideo);
+				uint32_t msg[4];
+				msg[0] = (uint32_t)(l.hCaptured?l.hCaptured:hVideo);
 				msg[1] = l.mouse_x;
 				msg[2] = l.mouse_y;
 				msg[3] = l.mouse_b;
@@ -1620,7 +1620,7 @@ void OpenWin32Camera( struct display_camera *camera )
 	}
 }
 
-static int CPROC ProcessDisplayMessages( PTRSZVAL psvUnused )
+static int CPROC ProcessDisplayMessages( uintptr_t psvUnused )
 {
 	MSG Msg;
 	INDEX idx;
@@ -1683,7 +1683,7 @@ LRESULT CALLBACK AllGetWndProc( int code, WPARAM wParam, LPARAM lParam )
 
 
 //----------------------------------------------------------------------------
-PTRSZVAL CPROC VideoThreadProc (PTHREAD thread)
+uintptr_t CPROC VideoThreadProc (PTHREAD thread)
 {
 #ifdef LOG_STARTUP
 	Log( WIDE("Video thread...") );
@@ -1805,8 +1805,8 @@ PRELOAD( HostSystem_InitDisplayInfo )
 
 
 RENDER_PROC (void, GetDisplaySizeEx) ( int nDisplay
-												 , S_32 *x, S_32 *y
-												 , _32 *width, _32 *height)
+												 , int32_t *x, int32_t *y
+												 , uint32_t *width, uint32_t *height)
 {
 #ifndef NO_ENUM_DISPLAY
 		if( nDisplay > 0 )

@@ -86,7 +86,7 @@ static void CPROC RequestReadComplete( PCLIENT pc, POINTER pBuffer, size_t nSize
    else
    {
       pBuffer = Allocate( 4096 );
-      SetNetworkLong( pc, 2, (PTRSZVAL)pBuffer );
+      SetNetworkLong( pc, 2, (uintptr_t)pBuffer );
    }
    ReadTCP( pc, pBuffer, 4096 );
 }
@@ -227,8 +227,8 @@ static int HandleCommand(WIDE("IO"), WIDE("HTTP"), WIDE("Perform http command op
                if( pc )
                {
                   TEXTCHAR Request[290];
-                  SetNetworkLong( pc, 0, (PTRSZVAL)&pResult );
-                  SetNetworkLong( pc, 1, (PTRSZVAL)&bClosed );
+                  SetNetworkLong( pc, 0, (uintptr_t)&pResult );
+                  SetNetworkLong( pc, 1, (uintptr_t)&bClosed );
                   SendTCP( pc, Request,
 								  snprintf( Request, sizeof( Request ), WIDE("GET %s HTTP/1.1\r\n"), GetText( pURI ) ) );
 						Log1( WIDE("Sent: %s"), Request );

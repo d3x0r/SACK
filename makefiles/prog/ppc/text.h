@@ -28,7 +28,7 @@ typedef struct format_info_tag
 #define IS_DATA_FLAGS (0)
 
 #define DECLTEXTSZ( name, size ) struct { \
-   _32 flags; \
+   uint32_t flags; \
    struct text_segment_tag *Next, *Prior; \
    FORMAT format; \
    DECLDATA(data, size); \
@@ -37,7 +37,7 @@ typedef struct format_info_tag
 
 typedef struct text_segment_tag
 {
-   _32 flags;  // then here I could overlap with pEnt .bshadow, bmacro, btext ?
+   uint32_t flags;  // then here I could overlap with pEnt .bshadow, bmacro, btext ?
    struct text_segment_tag *Next, *Prior;
    FORMAT format; // valid if TF_FORMAT is set...
    DATA data; // must be last since var character data is included
@@ -75,7 +75,7 @@ char *GetTextEx( PTEXT segment );
 #define TextIs(text,string) ( !stricmp( GetText(text), string ) )
 #define TextLike(text,string) ( !stricmp( GetText(text), string ) )
 
-PTEXT SegCreateEx( S_32 nSize DBG_PASS );
+PTEXT SegCreateEx( int32_t nSize DBG_PASS );
 #define SegCreate(s) SegCreateEx(s DBG_SRC)
 PTEXT SegCreateFromTextEx( char *text DBG_PASS );
 #define SegCreateFromText(t) SegCreateFromTextEx(t DBG_SRC)
@@ -108,7 +108,7 @@ void  LineReleaseEx (PTEXT *line DBG_PASS );
 void SegReleaseEx( PTEXT seg DBG_PASS );
 #define SegRelease(l) SegReleaseEx(l DBG_SRC )
 
-PTEXT SegConcatEx   (PTEXT output,PTEXT input,S_32 offset,S_32 length DBG_PASS);
+PTEXT SegConcatEx   (PTEXT output,PTEXT input,int32_t offset,int32_t length DBG_PASS);
 #define SegConcat(out,in,ofs,len) SegConcatEx(out,in,ofs,len DBG_SRC)
 
 PTEXT SegUnlink   (PTEXT segment);
@@ -123,7 +123,7 @@ PTEXT SegSubstRangeEx( PTEXT *_this, PTEXT end, PTEXT that DBG_PASS);
 PTEXT SegSplitEx( PTEXT *pLine, int nPos DBG_PASS);
 #define SegSplit(line,pos) SegSplitEx( line, pos DBG_SRC )
 
-_32 LineLength( PTEXT pt, int bSingle );
+uint32_t LineLength( PTEXT pt, int bSingle );
 PTEXT BuildLineEx( PTEXT pt, int bSingle DBG_PASS );
 #define BuildLine(from) BuildLineEx( from, FALSE DBG_SRC )
 

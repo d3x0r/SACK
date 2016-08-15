@@ -27,7 +27,7 @@ void SetOutputFile( TEXTCHAR *file )
    save = sack_fopen( 0, file, WIDE("wt") );
 }
 
-PTRSZVAL CPROC InputThread( PTHREAD pThread )
+uintptr_t CPROC InputThread( PTHREAD pThread )
 {
 	TEXTCHAR ch[2];
 	ch[1] = 0;
@@ -102,7 +102,7 @@ off_t tell(int fd)
 
 void EnqueStrokes( const TEXTCHAR *strokes )
 {
-	_32 savepos;
+	uint32_t savepos;
 	int len = strlen( strokes );
 	bEnque = 1;
 	savepos = tell( inputpipe );

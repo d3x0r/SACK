@@ -59,7 +59,7 @@ static struct my_vidplayer_local
 	struct property_button * prior_property;
 }l;
 
-void CPROC TaskDone( PTRSZVAL psv, PTASK_INFO Task )
+void CPROC TaskDone( uintptr_t psv, PTASK_INFO Task )
 {
 	{
 		INDEX idx;
@@ -69,7 +69,7 @@ void CPROC TaskDone( PTRSZVAL psv, PTASK_INFO Task )
 	}
 	lprintf( WIDE("---- TASK DONE-----") );
 }
-void CPROC GetOutput( PTRSZVAL psv, PTASK_INFO task, CTEXTSTR buffer, _32 size )
+void CPROC GetOutput( uintptr_t psv, PTASK_INFO task, CTEXTSTR buffer, uint32_t size )
 {
 	{
 		INDEX idx;
@@ -164,7 +164,7 @@ void LaunchProcess2()
 }
 #endif
 
-PTRSZVAL CPROC Thread( PTHREAD thread )
+uintptr_t CPROC Thread( PTHREAD thread )
 {
 	l.workthread = thread;
 	while( 1 )
@@ -182,7 +182,7 @@ PTRSZVAL CPROC Thread( PTHREAD thread )
 	return 0;
 }
 
-PTRSZVAL CPROC Thread2( PTHREAD thread )
+uintptr_t CPROC Thread2( PTHREAD thread )
 {
 	l.workthread2 = thread;
 	while( 1 )
@@ -268,49 +268,49 @@ PRELOAD( BeginVideoPlayer )
 	ReloadPlaylist();
 }
 
-static PSI_CONTROL OnGetControl( WIDE("Video Playlist Manager/Console") )( PTRSZVAL psv )
+static PSI_CONTROL OnGetControl( WIDE("Video Playlist Manager/Console") )( uintptr_t psv )
 {
 	return (PSI_CONTROL)psv;
 }
 
-static PTRSZVAL OnCreateControl( WIDE("Video Playlist Manager/Console") )( PSI_CONTROL parent, S_32 x, S_32 y, _32 w, _32 h )
+static uintptr_t OnCreateControl( WIDE("Video Playlist Manager/Console") )( PSI_CONTROL parent, int32_t x, int32_t y, uint32_t w, uint32_t h )
 {
 	PSI_CONTROL pc = MakeNamedControl( parent, WIDE("PSI Console"), x, y, w, h, -1 );
 	AddLink( &l.consoles, pc );
-	return (PTRSZVAL)pc;
+	return (uintptr_t)pc;
 }
 
-static void OnKeyPressEvent( WIDE("Video Playlist Manager/Upload") )( PTRSZVAL psv )
+static void OnKeyPressEvent( WIDE("Video Playlist Manager/Upload") )( uintptr_t psv )
 {
 	l.begin_update = 1;
 	l.button = (PMENU_BUTTON)psv;
 	WakeThread( l.workthread );
 }
 
-static PTRSZVAL OnCreateMenuButton( WIDE("Video Playlist Manager/Upload") )( PMENU_BUTTON button )
+static uintptr_t OnCreateMenuButton( WIDE("Video Playlist Manager/Upload") )( PMENU_BUTTON button )
 {
 	InterShell_SetButtonStyle( button, WIDE("bicolor square") );
 	InterShell_SetButtonColors( button, BASE_COLOR_BLACK, BASE_COLOR_CYAN, BASE_COLOR_BLACK, COLOR_IGNORE );
-	return (PTRSZVAL)button;
+	return (uintptr_t)button;
 }
 
-static void OnKeyPressEvent( WIDE("Video Playlist Manager/Test") )( PTRSZVAL psv )
+static void OnKeyPressEvent( WIDE("Video Playlist Manager/Test") )( uintptr_t psv )
 {
 	l.begin_test = 1;
 	l.button2 = (PMENU_BUTTON)psv;
 	WakeThread( l.workthread2 );
 }
 
-static PTRSZVAL OnCreateMenuButton( WIDE("Video Playlist Manager/Test") )( PMENU_BUTTON button )
+static uintptr_t OnCreateMenuButton( WIDE("Video Playlist Manager/Test") )( PMENU_BUTTON button )
 {
 	InterShell_SetButtonStyle( button, WIDE("bicolor square") );
 	InterShell_SetButtonText( button, WIDE("Test_Playlist") );
 	InterShell_SetButtonColors( button, BASE_COLOR_BLACK, BASE_COLOR_CYAN, BASE_COLOR_BLACK, COLOR_IGNORE );
-	return (PTRSZVAL)button;
+	return (uintptr_t)button;
 }
 
 
-void CPROC AddFile( PTRSZVAL psv, CTEXTSTR name, int flags )
+void CPROC AddFile( uintptr_t psv, CTEXTSTR name, int flags )
 {
 	if( ( StrCaseCmp( name, WIDE("PlayList.m3u") ) == 0 )
 	  ||( StrCaseCmp( name, WIDE("PlayTest.m3u") ) == 0 )
@@ -448,7 +448,7 @@ void RefillListbox( PSI_CONTROL list )
 		PFILE_INFO file;
 		for( file = l.files; file; file = NextLink( file ) )
 		{
-			PLISTITEM item = SetItemData( AddListItem( list, GetFileString( file ) ), (PTRSZVAL)file );
+			PLISTITEM item = SetItemData( AddListItem( list, GetFileString( file ) ), (uintptr_t)file );
 			lprintf( WIDE("Added file %s"), GetFileString( file ) );
 			if( file == l.current_file )
 				SetSelectedItem( list, item );
@@ -460,7 +460,7 @@ void RefillListbox( PSI_CONTROL list )
 }
 
 
-static void OnShowControl( WIDE("Video PLayer/File List") )( PTRSZVAL psv )
+static void OnShowControl( WIDE("Video PLayer/File List") )( uintptr_t psv )
 {
 	PSI_CONTROL list = (PSI_CONTROL)psv;
 	DoScanFiles();
@@ -469,30 +469,30 @@ static void OnShowControl( WIDE("Video PLayer/File List") )( PTRSZVAL psv )
 	RefillListbox( list );
 }
 
-static void OnSelectListboxItem( WIDE("Video Playlist Manager/File List"), WIDE("..") )( PTRSZVAL psv, PLISTITEM pli )
+static void OnSelectListboxItem( WIDE("Video Playlist Manager/File List"), WIDE("..") )( uintptr_t psv, PLISTITEM pli )
 {
 	l.current_item = pli;
 	l.current_file = (PFILE_INFO)GetItemData( l.current_item );
 }
 
-static PTRSZVAL OnCreateListbox( WIDE("Video Playlist Manager/File List") )( PSI_CONTROL list )
+static uintptr_t OnCreateListbox( WIDE("Video Playlist Manager/File List") )( PSI_CONTROL list )
 {
 	static int stops[2] = {0, 48};
 	SetListBoxTabStops( list, 2, stops );
 	AddLink( &l.lists, list );
-	return (PTRSZVAL)list;
+	return (uintptr_t)list;
 }
 
-static void OnDestroyControl( WIDE("Video Playlist Manager/File List") )( PTRSZVAL psv )
+static void OnDestroyControl( WIDE("Video Playlist Manager/File List") )( uintptr_t psv )
 {
 	DeleteLink( &l.lists, (POINTER)psv );
 }
 
-static void OnKeyPressEvent( WIDE("Video Playlist Manager/Move File Up") )( PTRSZVAL psv )
+static void OnKeyPressEvent( WIDE("Video Playlist Manager/Move File Up") )( uintptr_t psv )
 {
 	if( l.current_item )
 	{
-		PTRSZVAL psv = GetItemData( l.current_item );
+		uintptr_t psv = GetItemData( l.current_item );
 		PFILE_INFO info = (PFILE_INFO)psv;
 		PFILE_INFO next = (PFILE_INFO)info->me;
 		// if the beginning of the list..
@@ -513,19 +513,19 @@ static void OnKeyPressEvent( WIDE("Video Playlist Manager/Move File Up") )( PTRS
 	}
 }
 
-static PTRSZVAL OnCreateMenuButton( WIDE("Video Playlist Manager/Move File Up") )( PMENU_BUTTON button )
+static uintptr_t OnCreateMenuButton( WIDE("Video Playlist Manager/Move File Up") )( PMENU_BUTTON button )
 {
 	InterShell_SetButtonStyle( button, WIDE("bicolor square") );
 	InterShell_SetButtonText( button, WIDE("File_Up") );
 	InterShell_SetButtonColors( button, BASE_COLOR_WHITE, BASE_COLOR_BLUE, COLOR_IGNORE, COLOR_IGNORE );
-	return (PTRSZVAL)button;
+	return (uintptr_t)button;
 }
 
-static void OnKeyPressEvent( WIDE("Video Playlist Manager/Move File Down") )( PTRSZVAL psv )
+static void OnKeyPressEvent( WIDE("Video Playlist Manager/Move File Down") )( uintptr_t psv )
 {
 	if( l.current_item )
 	{
-		PTRSZVAL psv = GetItemData( l.current_item );
+		uintptr_t psv = GetItemData( l.current_item );
 		PFILE_INFO info = (PFILE_INFO)psv;
 		PFILE_INFO next = NextLink( info );
 		// if end of list..
@@ -544,41 +544,41 @@ static void OnKeyPressEvent( WIDE("Video Playlist Manager/Move File Down") )( PT
 	}
 }
 
-static PTRSZVAL OnCreateMenuButton( WIDE("Video Playlist Manager/Move File Down") )( PMENU_BUTTON button )
+static uintptr_t OnCreateMenuButton( WIDE("Video Playlist Manager/Move File Down") )( PMENU_BUTTON button )
 {
 	InterShell_SetButtonStyle( button, WIDE("bicolor square") );
 	InterShell_SetButtonText( button, WIDE("File_Down") );
 	InterShell_SetButtonColors( button, BASE_COLOR_WHITE, BASE_COLOR_BLUE, COLOR_IGNORE, COLOR_IGNORE );
-	return (PTRSZVAL)button;
+	return (uintptr_t)button;
 }
 
 
 
-static void OnKeyPressEvent( WIDE("Video Playlist Manager/Toggle File Play") )( PTRSZVAL psv )
+static void OnKeyPressEvent( WIDE("Video Playlist Manager/Toggle File Play") )( uintptr_t psv )
 {
 	if( l.current_item )
 	{
-		PTRSZVAL psv = GetItemData( l.current_item );
+		uintptr_t psv = GetItemData( l.current_item );
 		PFILE_INFO info = (PFILE_INFO)psv;
 		info->flags.bUsed = !info->flags.bUsed;
 		SetItemText( l.current_item, GetFileString( info ) );
 	}
 }
 
-static PTRSZVAL OnCreateMenuButton( WIDE("Video Playlist Manager/Toggle File Play") )( PMENU_BUTTON button )
+static uintptr_t OnCreateMenuButton( WIDE("Video Playlist Manager/Toggle File Play") )( PMENU_BUTTON button )
 {
 	InterShell_SetButtonStyle( button, WIDE("bicolor square") );
 	InterShell_SetButtonText( button, WIDE("Toggle_Play") );
 	InterShell_SetButtonColors( button, BASE_COLOR_WHITE, BASE_COLOR_GREEN, COLOR_IGNORE, COLOR_IGNORE );
-	return (PTRSZVAL)button;
+	return (uintptr_t)button;
 }
 
 
-static void OnKeyPressEvent( WIDE("Video Playlist Manager/Delete File") )( PTRSZVAL psv )
+static void OnKeyPressEvent( WIDE("Video Playlist Manager/Delete File") )( uintptr_t psv )
 {
 	if( l.current_item )
 	{
-		PTRSZVAL psv = GetItemData( l.current_item );
+		uintptr_t psv = GetItemData( l.current_item );
 		PFILE_INFO info = (PFILE_INFO)psv;
 		{
 			TEXTCHAR buffer[256];
@@ -601,17 +601,17 @@ static void OnKeyPressEvent( WIDE("Video Playlist Manager/Delete File") )( PTRSZ
 	}
 }
 
-static PTRSZVAL OnCreateMenuButton( WIDE("Video Playlist Manager/Delete File") )( PMENU_BUTTON button )
+static uintptr_t OnCreateMenuButton( WIDE("Video Playlist Manager/Delete File") )( PMENU_BUTTON button )
 {
 	InterShell_SetButtonStyle( button, WIDE("bicolor square") );
 	InterShell_SetButtonText( button, WIDE("Toggle_Play") );
 	InterShell_SetButtonColors( button, BASE_COLOR_WHITE, BASE_COLOR_GREEN, COLOR_IGNORE, COLOR_IGNORE );
-	return (PTRSZVAL)button;
+	return (uintptr_t)button;
 }
 
 
 
-static void OnKeyPressEvent( WIDE("Video Playlist Manager/Select Property") )( PTRSZVAL psv )
+static void OnKeyPressEvent( WIDE("Video Playlist Manager/Select Property") )( uintptr_t psv )
 {
 	//if( l.current_item )
 	{
@@ -637,7 +637,7 @@ static void OnKeyPressEvent( WIDE("Video Playlist Manager/Select Property") )( P
 	}
 }
 
-static void OnShowControl( WIDE("Video Playlist Manager/Select Property") )( PTRSZVAL psv )
+static void OnShowControl( WIDE("Video Playlist Manager/Select Property") )( uintptr_t psv )
 {
 	struct property_button *button = (struct property_button*)psv;
 	TEXTCHAR varname[64];
@@ -645,29 +645,29 @@ static void OnShowControl( WIDE("Video Playlist Manager/Select Property") )( PTR
 	InterShell_SetButtonText( button->button, varname );
 }
 
-static PTRSZVAL OnCreateMenuButton( WIDE("Video Playlist Manager/Select Property") )( PMENU_BUTTON button )
+static uintptr_t OnCreateMenuButton( WIDE("Video Playlist Manager/Select Property") )( PMENU_BUTTON button )
 {
 	struct property_button *prop_button = New(struct property_button);
 	prop_button->button = button;
 	prop_button->ID = l.current_property++;
 	InterShell_SetButtonStyle( button, WIDE("bicolor square") );
 	InterShell_SetButtonColors( button, BASE_COLOR_WHITE, BASE_COLOR_GREEN, COLOR_IGNORE, COLOR_IGNORE );
-	return (PTRSZVAL)(prop_button);
+	return (uintptr_t)(prop_button);
 }
 
-static PTRSZVAL OnConfigureControl( WIDE("Video Playlist Manager/Select Property") )( PTRSZVAL psv, PSI_CONTROL parent )
+static uintptr_t OnConfigureControl( WIDE("Video Playlist Manager/Select Property") )( uintptr_t psv, PSI_CONTROL parent )
 {
 
 	return psv;
 }
 
-static void OnSaveControl( WIDE("Video Playlist Manager/Select Property"))( FILE *file, PTRSZVAL psv )
+static void OnSaveControl( WIDE("Video Playlist Manager/Select Property"))( FILE *file, uintptr_t psv )
 {
 	struct property_button *button = (struct property_button*)psv;
 	sack_fprintf( file, WIDE("Property ID=%d\n"), button->ID );
 }
 
-PTRSZVAL CPROC ReloadID( PTRSZVAL psv, arg_list args )
+uintptr_t CPROC ReloadID( uintptr_t psv, arg_list args )
 {
 	PARAM( args, int, id );
 	struct property_button *button = (struct property_button*)psv;
@@ -675,7 +675,7 @@ PTRSZVAL CPROC ReloadID( PTRSZVAL psv, arg_list args )
 	return psv;
 }
 
-static void OnLoadControl( WIDE("Video PLayer/Select Property"))( PCONFIG_HANDLER pch, PTRSZVAL psv )
+static void OnLoadControl( WIDE("Video PLayer/Select Property"))( PCONFIG_HANDLER pch, uintptr_t psv )
 {
 	AddConfigurationMethod( pch, WIDE("Property ID=%i"), ReloadID );
 }
@@ -683,10 +683,10 @@ static void OnLoadControl( WIDE("Video PLayer/Select Property"))( PCONFIG_HANDLE
 
 static void copy( CTEXTSTR src, CTEXTSTR dst )
 {
-	static _8 buffer[4096];
+	static uint8_t buffer[4096];
 	FILE *in, *out;
-	_64 filetime;
-	_64 filetime_dest;
+	uint64_t filetime;
+	uint64_t filetime_dest;
 
 	filetime = GetFileWriteTime( src );
 	filetime_dest = GetFileWriteTime( dst );
@@ -711,7 +711,7 @@ static void copy( CTEXTSTR src, CTEXTSTR dst )
 	SetFileWriteTime( dst, filetime );
 }
 
-static void CPROC AcceptFile( PSI_CONTROL pc, CTEXTSTR file, S_32 x, S_32 y )
+static void CPROC AcceptFile( PSI_CONTROL pc, CTEXTSTR file, int32_t x, int32_t y )
 {
 	if( !l.base_video_path )
 	{
@@ -752,13 +752,13 @@ static void CPROC AcceptFile( PSI_CONTROL pc, CTEXTSTR file, S_32 x, S_32 y )
 	}
 }
 
-static PTRSZVAL OnCreateMenuButton( WIDE("Video Playlist Manager/Accept Files") )( PMENU_BUTTON button )
+static uintptr_t OnCreateMenuButton( WIDE("Video Playlist Manager/Accept Files") )( PMENU_BUTTON button )
 {
 	AddCommonAcceptDroppedFiles( InterShell_GetButtonControl( button ), AcceptFile );
 	InterShell_SetButtonStyle( button, WIDE("bicolor square") );
 	InterShell_SetButtonText( button, WIDE("Toggle_Play") );
 	InterShell_SetButtonColors( button, BASE_COLOR_WHITE, BASE_COLOR_GREEN, COLOR_IGNORE, COLOR_IGNORE );
-	return (PTRSZVAL)button;
+	return (uintptr_t)button;
 }
 
 

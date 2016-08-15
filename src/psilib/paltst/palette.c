@@ -13,7 +13,7 @@ int main( void )
 	{
 		printf( WIDE("Guess what! We got a color: %08") _32fX WIDE("\n"), result );
 		{
-			_32 free,used,chunks,freechunks;
+			uint32_t free,used,chunks,freechunks;
 			Sleep( 1000 );// wait a moment for the dialog to really go away.
 			GetMemStats( &free, &used, &chunks, &freechunks );
 			printf( WIDE("Debug: used:%") _32f WIDE(" free:%") _32f WIDE(" chunks:%") _32f WIDE(" freechunks:%") _32f WIDE("\n")

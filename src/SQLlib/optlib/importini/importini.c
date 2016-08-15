@@ -9,7 +9,7 @@
 TEXTCHAR *SystemPrefix;
 
 
-void ProcessINIFile( CTEXTSTR filename, TEXTCHAR *pData, _32 nData )
+void ProcessINIFile( CTEXTSTR filename, TEXTCHAR *pData, uint32_t nData )
 {
 	TEXTCHAR *section = NULL;
 	TEXTCHAR *entry = NULL;
@@ -113,11 +113,11 @@ void ProcessINIFile( CTEXTSTR filename, TEXTCHAR *pData, _32 nData )
 	}
 }
 
-#define BYTEOP_DECODE(n)  ((((_16)(n))-20) & 0xFF)
+#define BYTEOP_DECODE(n)  ((((uint16_t)(n))-20) & 0xFF)
 
-void CRYPTODecryptMemory( POINTER mem, _32 size)
+void CRYPTODecryptMemory( POINTER mem, uint32_t size)
 {
-    _32 i;
+    uint32_t i;
 	 unsigned char *ptr = (unsigned char *)mem;
 	 if( !mem )
 	 {
@@ -131,15 +131,15 @@ void CRYPTODecryptMemory( POINTER mem, _32 size)
 }
 
 
-//void CPROC ReadINIFile( PTRSZVAL psv, char *filename, int flags )
-void CPROC ReadINIFile( PTRSZVAL psv,  CTEXTSTR filename, int flags )
+//void CPROC ReadINIFile( uintptr_t psv, char *filename, int flags )
+void CPROC ReadINIFile( uintptr_t psv,  CTEXTSTR filename, int flags )
 {
 	FILE *handle;
 	handle = sack_fopen( 0, filename, WIDE("rb") );
 	printf( WIDE("Process file: %s\n"), filename );
    if( handle )
 	{
-      _32 nsize;
+      uint32_t nsize;
 		fseek( handle, 0L, SEEK_END );
 		nsize = ftell( handle );
 		fseek( handle, 0L, SEEK_SET );
@@ -204,7 +204,7 @@ int main( int argc, char **argv )
 		else { rootpath = WIDE("."); mask = path; }
 		while( ScanFiles((CTEXTSTR)  rootpath, (CTEXTSTR) mask, &info, ReadINIFile, 0, 0 ) )
 		{
-			//_32 a,b,c,d;
+			//uint32_t a,b,c,d;
 			//GetMemStats( &a, &b, &c, &d );
 			//lprintf( "stats: %d %d %d %d", a, b, c, d );
          //DebugDumpMem();

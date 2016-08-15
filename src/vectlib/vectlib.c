@@ -297,7 +297,7 @@ void EXTERNAL_NAME(ClearTransform)( PTRANSFORM pt )
 
 //----------------------------------------------------------------
 
-static void CPROC transform_created( void *data, PTRSZVAL size )
+static void CPROC transform_created( void *data, uintptr_t size )
 {
 	PTRANSFORM pt = (PTRANSFORM)data;
 	EXTERNAL_NAME( ClearTransform )( pt );
@@ -910,7 +910,7 @@ void EXTERNAL_NAME(MoveUp)( PTRANSFORM pt, RCOORD distance )
 
 //----------------------------------------------------------------
 
-void EXTERNAL_NAME(AddTransformCallback)( PTRANSFORM pt, MotionCallback callback, PTRSZVAL psv )
+void EXTERNAL_NAME(AddTransformCallback)( PTRANSFORM pt, MotionCallback callback, uintptr_t psv )
 {
 	if( pt && pt->motion )
 	{
@@ -931,7 +931,7 @@ static void InvokeCallbacks( PTRANSFORM pt )
 	{
 		LIST_FORALL( pt->motion->callbacks, idx, MotionCallback, callback )
 		{
-			callback( (PTRSZVAL)GetLink( &pt->motion->userdata, idx ), pt );
+			callback( (uintptr_t)GetLink( &pt->motion->userdata, idx ), pt );
 #ifdef _MSC_VER
 			if( _isnan( pt->m[0][0] ) )
 				lprintf( WIDE( "blah" ) );
@@ -969,15 +969,15 @@ LOGICAL EXTERNAL_NAME(Move)( PTRANSFORM pt )
 #endif
 	{
 		{
-			static _64 tick_freq_cpu;
-			static _64 last_tick_cpu;
-			static _32 tick_cpu;
+			static uint64_t tick_freq_cpu;
+			static uint64_t last_tick_cpu;
+			static uint32_t tick_cpu;
 			if( pt->motion->last_tick )
 			{
 				// how much time passed between then and no
 				// and what's our target resolution?
-				static _32 now;
-				_32 delta = ( now = timeGetTime() ) - pt->motion->last_tick;
+				static uint32_t now;
+				uint32_t delta = ( now = timeGetTime() ) - pt->motion->last_tick;
 				if( !delta )
 				{
 					return FALSE;  // on 0 time elapse, don't try this... cpu scaling will mess this up.
@@ -986,8 +986,8 @@ LOGICAL EXTERNAL_NAME(Move)( PTRANSFORM pt )
 						tick_freq_cpu = GetCPUFrequency();
 					{
 						
-						static _64 now_cpu;
-						_64 delta_cpu = ( last_tick_cpu - (now_cpu = GetCPUTick() ) )
+						static uint64_t now_cpu;
+						uint64_t delta_cpu = ( last_tick_cpu - (now_cpu = GetCPUTick() ) )
 							- ( ( now - tick_cpu ) * tick_freq_cpu );
 						RCOORD delta2 = ( (RCOORD)delta_cpu * 1000 ) / ( (RCOORD)tick_freq_cpu * 33 );
 						pt->time_scale = ONE / (RCOORD)( delta2 );
@@ -1121,15 +1121,15 @@ LOGICAL EXTERNAL_NAME(Move)( PTRANSFORM pt )
 #endif
 	{
 		{
-			static _64 tick_freq_cpu;
-			static _64 last_tick_cpu;
-			static _32 tick_cpu;
+			static uint64_t tick_freq_cpu;
+			static uint64_t last_tick_cpu;
+			static uint32_t tick_cpu;
 			if( pt->last_tick )
 			{
 				// how much time passed between then and no
 				// and what's our target resolution?
-				static _32 now;
-				_32 delta = ( now = timeGetTime() ) - pt->last_tick;
+				static uint32_t now;
+				uint32_t delta = ( now = timeGetTime() ) - pt->last_tick;
 				if( !delta )
 				{
 					return FALSE;  // on 0 time elapse, don't try this... cpu scaling will mess this up.
@@ -1138,8 +1138,8 @@ LOGICAL EXTERNAL_NAME(Move)( PTRANSFORM pt )
 						tick_freq_cpu = GetCPUFrequency();
 					{
 						
-						static _64 now_cpu;
-						_64 delta_cpu = ( last_tick_cpu - (now_cpu = GetCPUTick() ) )
+						static uint64_t now_cpu;
+						uint64_t delta_cpu = ( last_tick_cpu - (now_cpu = GetCPUTick() ) )
 							- ( ( now - tick_cpu ) * tick_freq_cpu );
 						RCOORD delta2 = ( (RCOORD)delta_cpu * 1000 ) / ( (RCOORD)tick_freq_cpu * 33 );
 						pt->time_scale = ONE / (RCOORD)( delta2 );

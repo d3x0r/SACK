@@ -9,25 +9,25 @@
 
 static IMAGE_INTERFACE AndroidANWImageInterface;
 
-static void InvokeDisplaySizeChange( PRENDERER r, int nDisplay, S_32 x, S_32 y, _32 width, _32 height );
+static void InvokeDisplaySizeChange( PRENDERER r, int nDisplay, int32_t x, int32_t y, uint32_t width, uint32_t height );
 static void CPROC AndroidANW_Redraw( PRENDERER r );
 
-static void CPROC AndroidANW_UpdateDisplayPortionEx( PRENDERER r, S_32 x, S_32 y, _32 width, _32 height DBG_PASS );
+static void CPROC AndroidANW_UpdateDisplayPortionEx( PRENDERER r, int32_t x, int32_t y, uint32_t width, uint32_t height DBG_PASS );
 static void CPROC AndroidANW_MoveSizeDisplay( PRENDERER r
-													 , S_32 x, S_32 y
-													 , S_32 w, S_32 h );
+													 , int32_t x, int32_t y
+													 , int32_t w, int32_t h );
 
 
-static void CPROC DefaultMouse( PVPRENDER r, S_32 x, S_32 y, _32 b )
+static void CPROC DefaultMouse( PVPRENDER r, int32_t x, int32_t y, uint32_t b )
 {
 	static int l_mouse_b;
-	static _32 mouse_first_click_tick_changed;
+	static uint32_t mouse_first_click_tick_changed;
 	static LOGICAL begin_move;
-	_32 tick = timeGetTime();
+	uint32_t tick = timeGetTime();
 	//lprintf( "Default mouse on %p  %d,%d %08x", r, x, y, b );
 	if( r->flags.fullscreen )
 	{
-		static _32 mouse_first_click_tick;
+		static uint32_t mouse_first_click_tick;
 		if( MAKE_FIRSTBUTTON( b, l.mouse_b ) )
 		{
 			if( !mouse_first_click_tick )
@@ -127,8 +127,8 @@ static void CPROC AndroidANW_SetApplicationTitle( CTEXTSTR title )
 }
 
 static void CPROC AndroidANW_GetDisplaySizeEx( int nDisplay
-														  , S_32 *x, S_32 *y
-														  , _32 *width, _32 *height)
+														  , int32_t *x, int32_t *y
+														  , uint32_t *width, uint32_t *height)
 {
 	// wait for a valid display...
 	while( !l.default_display_x || !l.default_display_y )
@@ -144,12 +144,12 @@ static void CPROC AndroidANW_GetDisplaySizeEx( int nDisplay
 
 }
 
-static void CPROC AndroidANW_GetDisplaySize( _32 *width, _32 *height )
+static void CPROC AndroidANW_GetDisplaySize( uint32_t *width, uint32_t *height )
 {
 	AndroidANW_GetDisplaySizeEx( 0, NULL, NULL, width, height );
 }
 
-static void CPROC AndroidANW_SetDisplaySize		( _32 width, _32 height )
+static void CPROC AndroidANW_SetDisplaySize		( uint32_t width, uint32_t height )
 {
 	//SACK_WriteProfileInt( "SACK/Vidlib", "Default Display Width", width );
 	//SACK_WriteProfileInt( "SACK/Vidlib", "Default Display Height", height );
@@ -157,7 +157,7 @@ static void CPROC AndroidANW_SetDisplaySize		( _32 width, _32 height )
 
 
 
-static PRENDERER CPROC AndroidANW_OpenDisplayAboveUnderSizedAt( _32 attributes, _32 width, _32 height, S_32 x, S_32 y, PRENDERER above, PRENDERER under )
+static PRENDERER CPROC AndroidANW_OpenDisplayAboveUnderSizedAt( uint32_t attributes, uint32_t width, uint32_t height, int32_t x, int32_t y, PRENDERER above, PRENDERER under )
 {
 
 	PVPRENDER Renderer = New( struct vidlib_proxy_renderer );
@@ -165,7 +165,7 @@ static PRENDERER CPROC AndroidANW_OpenDisplayAboveUnderSizedAt( _32 attributes, 
 
 	Renderer->flags.hidden = 1;
 	Renderer->mouse_callback = (MouseCallback)DefaultMouse;
-	Renderer->psv_mouse_callback = (PTRSZVAL)Renderer;
+	Renderer->psv_mouse_callback = (uintptr_t)Renderer;
 
 	AddLink( &l.renderers, Renderer );
 	Renderer->id = FindLink( &l.renderers, Renderer );
@@ -206,12 +206,12 @@ static PRENDERER CPROC AndroidANW_OpenDisplayAboveUnderSizedAt( _32 attributes, 
 	return (PRENDERER)Renderer;
 }
 
-static PRENDERER CPROC AndroidANW_OpenDisplayAboveSizedAt( _32 attributes, _32 width, _32 height, S_32 x, S_32 y, PRENDERER above )
+static PRENDERER CPROC AndroidANW_OpenDisplayAboveSizedAt( uint32_t attributes, uint32_t width, uint32_t height, int32_t x, int32_t y, PRENDERER above )
 {
 	return AndroidANW_OpenDisplayAboveUnderSizedAt( attributes, width, height, x, y, above, NULL );
 }
 
-static PRENDERER CPROC AndroidANW_OpenDisplaySizedAt	  ( _32 attributes, _32 width, _32 height, S_32 x, S_32 y )
+static PRENDERER CPROC AndroidANW_OpenDisplaySizedAt	  ( uint32_t attributes, uint32_t width, uint32_t height, int32_t x, int32_t y )
 {
 	return AndroidANW_OpenDisplayAboveUnderSizedAt( attributes, width, height, x, y, (PRENDERER)l.top, NULL );
 }
@@ -282,7 +282,7 @@ static void CPROC  AndroidANW_CloseDisplay ( PRENDERER Renderer )
 // where UpdateDIsplayPortion takes the region within the renderer to update
 // this takes the real screen.
 static void CPROC UpdateDisplayPortionRecurse( 	ANativeWindow_Buffer *buffer
-															, PVPRENDER r, S_32 x, S_32 y, _32 width, _32 height )
+															, PVPRENDER r, int32_t x, int32_t y, uint32_t width, uint32_t height )
 {
 	// no-op; it will ahve already displayed(?)
 	//lprintf( "recurse %p", r );
@@ -445,9 +445,9 @@ iterate:
 				if( r->flags.fullscreen && !r->flags.not_fullscreen && r == l.full_screen_display )
 				{
 					{
-						_32 w;
-						_32 h;
-						S_32 x, y;
+						uint32_t w;
+						uint32_t h;
+						int32_t x, y;
 						w =  r->image->width * l.default_display_x / r->image->width;
 						h =  r->image->height * l.default_display_x / r->image->width;
 						if( h > l.default_display_y )
@@ -527,11 +527,11 @@ iterate:
 		}
 		else
 		{
-			_32 *base_bits = ((_32*)buffer->bits) + buffer->stride * ( y + l.display_skip_top ) + x;
+			uint32_t *base_bits = ((uint32_t*)buffer->bits) + buffer->stride * ( y + l.display_skip_top ) + x;
 			//lprintf( "buffer is %d %d buffer stride is %d  pwidth is %d width is %d", bounds.top, bounds.left, buffer.stride, ((PVPRENDER)r)->image->pwidth, width );
 			for( row = 0; row < height; row++ )
 			{
-				_32 *bits = base_bits;
+				uint32_t *bits = base_bits;
 				int col;
 				for( col = 0; col < width; col++ )
 					(bits++)[0] = 0xFF000000;
@@ -544,12 +544,12 @@ iterate:
 
 
 
-static void CPROC AndroidANW_UpdateDisplayPortionEx( PRENDERER r, S_32 x, S_32 y, _32 width, _32 height DBG_PASS )
+static void CPROC AndroidANW_UpdateDisplayPortionEx( PRENDERER r, int32_t x, int32_t y, uint32_t width, uint32_t height DBG_PASS )
 {
 	// no-op; it will ahve already displayed(?)
 	ANativeWindow_Buffer buffer;
-	S_32 out_x;
-	S_32 out_y;
+	int32_t out_x;
+	int32_t out_y;
 #ifdef DEBUG_OUTPUT
 	_lprintf(DBG_RELAY)( "update begin %p %d,%d  %d,%d", l.displayWindow, x, y, width, height );
 #endif
@@ -741,7 +741,7 @@ static void CPROC AndroidANW_UpdateDisplayEx( PRENDERER r DBG_PASS)
 	AndroidANW_UpdateDisplayPortionEx( r, 0, 0, ((PVPRENDER)r)->w, ((PVPRENDER)r)->h DBG_RELAY );
 }
 
-static void CPROC AndroidANW_GetDisplayPosition ( PRENDERER r, S_32 *x, S_32 *y, _32 *width, _32 *height )
+static void CPROC AndroidANW_GetDisplayPosition ( PRENDERER r, int32_t *x, int32_t *y, uint32_t *width, uint32_t *height )
 {
 	PVPRENDER pRender = (PVPRENDER)r;
 	if( r )
@@ -759,14 +759,14 @@ static void CPROC AndroidANW_GetDisplayPosition ( PRENDERER r, S_32 *x, S_32 *y,
 }
 
 static void CPROC AndroidANW_MoveSizeDisplay( PRENDERER r
-													 , S_32 x, S_32 y
-													 , S_32 w, S_32 h )
+													 , int32_t x, int32_t y
+													 , int32_t w, int32_t h )
 {
 	PVPRENDER pRender = (PVPRENDER)r;
 	//lprintf( "move size %d %d   %d %d", x, y, w, h );
-	S_32 real_x, real_y;
-	S_32 real_w;
-	S_32 real_h;
+	int32_t real_x, real_y;
+	int32_t real_w;
+	int32_t real_h;
 
    //-------------------------------
 	if( w > pRender->w )
@@ -813,7 +813,7 @@ static void CPROC AndroidANW_MoveSizeDisplay( PRENDERER r
 	AndroidANW_UpdateDisplayPortionEx( r, real_x, real_y, real_w, real_h DBG_SRC );
 }
 
-static void CPROC AndroidANW_MoveDisplay		  ( PRENDERER r, S_32 x, S_32 y )
+static void CPROC AndroidANW_MoveDisplay		  ( PRENDERER r, int32_t x, int32_t y )
 {
 	PVPRENDER pRender = (PVPRENDER)r;
 	AndroidANW_MoveSizeDisplay( r, 
@@ -824,7 +824,7 @@ static void CPROC AndroidANW_MoveDisplay		  ( PRENDERER r, S_32 x, S_32 y )
 								);
 }
 
-static void CPROC AndroidANW_MoveDisplayRel( PRENDERER r, S_32 delx, S_32 dely )
+static void CPROC AndroidANW_MoveDisplayRel( PRENDERER r, int32_t delx, int32_t dely )
 {
 	PVPRENDER pRender = (PVPRENDER)r;
 	AndroidANW_MoveSizeDisplay( r, 
@@ -835,7 +835,7 @@ static void CPROC AndroidANW_MoveDisplayRel( PRENDERER r, S_32 delx, S_32 dely )
 								);
 }
 
-static void CPROC AndroidANW_SizeDisplay( PRENDERER r, _32 w, _32 h )
+static void CPROC AndroidANW_SizeDisplay( PRENDERER r, uint32_t w, uint32_t h )
 {
 	PVPRENDER pRender = (PVPRENDER)r;
 	AndroidANW_MoveSizeDisplay( r, 
@@ -846,7 +846,7 @@ static void CPROC AndroidANW_SizeDisplay( PRENDERER r, _32 w, _32 h )
 								);
 }
 
-static void CPROC AndroidANW_SizeDisplayRel( PRENDERER r, S_32 delw, S_32 delh )
+static void CPROC AndroidANW_SizeDisplayRel( PRENDERER r, int32_t delw, int32_t delh )
 {
 	PVPRENDER pRender = (PVPRENDER)r;
 	AndroidANW_MoveSizeDisplay( r, 
@@ -858,8 +858,8 @@ static void CPROC AndroidANW_SizeDisplayRel( PRENDERER r, S_32 delw, S_32 delh )
 }
 
 static void CPROC AndroidANW_MoveSizeDisplayRel( PRENDERER r
-																 , S_32 delx, S_32 dely
-																 , S_32 delw, S_32 delh )
+																 , int32_t delx, int32_t dely
+																 , int32_t delw, int32_t delh )
 {
 	PVPRENDER pRender = (PVPRENDER)r;
 	AndroidANW_MoveSizeDisplay( r, 
@@ -881,11 +881,11 @@ static Image CPROC AndroidANW_GetDisplayImage( PRENDERER r )
 	return (Image)pRender->image;
 }
 
-static void CPROC AndroidANW_SetCloseHandler	 ( PRENDERER r, CloseCallback c, PTRSZVAL p )
+static void CPROC AndroidANW_SetCloseHandler	 ( PRENDERER r, CloseCallback c, uintptr_t p )
 {
 }
 
-static void CPROC AndroidANW_SetMouseHandler  ( PRENDERER r, MouseCallback c, PTRSZVAL p )
+static void CPROC AndroidANW_SetMouseHandler  ( PRENDERER r, MouseCallback c, uintptr_t p )
 {
 	PVPRENDER render = (PVPRENDER)r;
 	render->mouse_callback = c;
@@ -909,25 +909,25 @@ static void CPROC AndroidANW_Redraw( PRENDERER r )
 	//   lprintf( "This display is hidden..." );
 }
 
-static void CPROC AndroidANW_SetRedrawHandler  ( PRENDERER r, RedrawCallback c, PTRSZVAL p )
+static void CPROC AndroidANW_SetRedrawHandler  ( PRENDERER r, RedrawCallback c, uintptr_t p )
 {
 	PVPRENDER render = (PVPRENDER)r;
 	render->redraw = c;
 	render->psv_redraw = p;
 }
 
-static void CPROC AndroidANW_SetKeyboardHandler	( PRENDERER r, KeyProc c, PTRSZVAL p )
+static void CPROC AndroidANW_SetKeyboardHandler	( PRENDERER r, KeyProc c, uintptr_t p )
 {
 	PVPRENDER render = (PVPRENDER)r;
 	render->key_callback = c;
 	render->psv_key_callback = p;
 }
 
-static void CPROC AndroidANW_SetLoseFocusHandler  ( PRENDERER r, LoseFocusCallback c, PTRSZVAL p )
+static void CPROC AndroidANW_SetLoseFocusHandler  ( PRENDERER r, LoseFocusCallback c, uintptr_t p )
 {
 }
 
-static void CPROC AndroidANW_GetMousePosition	( S_32 *x, S_32 *y )
+static void CPROC AndroidANW_GetMousePosition	( int32_t *x, int32_t *y )
 {
    // used to position controls relative to the last touch
 	if( x )
@@ -936,7 +936,7 @@ static void CPROC AndroidANW_GetMousePosition	( S_32 *x, S_32 *y )
       (*y) = l.mouse_y;
 }
 
-static void CPROC AndroidANW_SetMousePosition  ( PRENDERER r, S_32 x, S_32 y )
+static void CPROC AndroidANW_SetMousePosition  ( PRENDERER r, int32_t x, int32_t y )
 {
 }
 
@@ -945,12 +945,12 @@ static LOGICAL CPROC AndroidANW_HasFocus		 ( PRENDERER  r )
 	return TRUE;
 }
 
-static _32 CPROC AndroidANW_IsKeyDown		  ( PRENDERER r, int key )
+static uint32_t CPROC AndroidANW_IsKeyDown		  ( PRENDERER r, int key )
 {
 	return 0;
 }
 
-static _32 CPROC AndroidANW_KeyDown		  ( PRENDERER r, int key )
+static uint32_t CPROC AndroidANW_KeyDown		  ( PRENDERER r, int key )
 {
 	return 0;
 }
@@ -960,12 +960,12 @@ static LOGICAL CPROC AndroidANW_DisplayIsValid ( PRENDERER r )
 	return (r != NULL);
 }
 
-static void CPROC AndroidANW_OwnMouseEx ( PRENDERER r, _32 Own DBG_PASS)
+static void CPROC AndroidANW_OwnMouseEx ( PRENDERER r, uint32_t Own DBG_PASS)
 {
 
 }
 
-static int CPROC AndroidANW_BeginCalibration ( _32 points )
+static int CPROC AndroidANW_BeginCalibration ( uint32_t points )
 {
 	return 0;
 }
@@ -1007,12 +1007,12 @@ static void CPROC AndroidANW_ForceDisplayBack( PRENDERER r )
 {
 }
 
-static int CPROC  AndroidANW_BindEventToKey( PRENDERER pRenderer, _32 scancode, _32 modifier, KeyTriggerHandler trigger, PTRSZVAL psv )
+static int CPROC  AndroidANW_BindEventToKey( PRENDERER pRenderer, uint32_t scancode, uint32_t modifier, KeyTriggerHandler trigger, uintptr_t psv )
 {
 	return 0;
 }
 
-static int CPROC AndroidANW_UnbindKey( PRENDERER pRenderer, _32 scancode, _32 modifier )
+static int CPROC AndroidANW_UnbindKey( PRENDERER pRenderer, uint32_t scancode, uint32_t modifier )
 {
 	return 0;
 }
@@ -1032,16 +1032,16 @@ static int CPROC AndroidANW_IsTouchDisplay( void )
 	return 1;
 }
 
-static void CPROC AndroidANW_GetMouseState( S_32 *x, S_32 *y, _32 *b )
+static void CPROC AndroidANW_GetMouseState( int32_t *x, int32_t *y, uint32_t *b )
 {
 }
 
-static PSPRITE_METHOD CPROC AndroidANW_EnableSpriteMethod(PRENDERER render, void(CPROC*RenderSprites)(PTRSZVAL psv, PRENDERER renderer, S_32 x, S_32 y, _32 w, _32 h ), PTRSZVAL psv )
+static PSPRITE_METHOD CPROC AndroidANW_EnableSpriteMethod(PRENDERER render, void(CPROC*RenderSprites)(uintptr_t psv, PRENDERER renderer, int32_t x, int32_t y, uint32_t w, uint32_t h ), uintptr_t psv )
 {
 	return NULL;
 }
 
-static void CPROC AndroidANW_WinShell_AcceptDroppedFiles( PRENDERER renderer, dropped_file_acceptor f, PTRSZVAL psvUser )
+static void CPROC AndroidANW_WinShell_AcceptDroppedFiles( PRENDERER renderer, dropped_file_acceptor f, uintptr_t psvUser )
 {
 }
 
@@ -1093,12 +1093,12 @@ static void CPROC AndroidANW_UnlockRenderer( PRENDERER render )
 {
 }
 
-static void CPROC AndroidANW_IssueUpdateLayeredEx( PRENDERER r, LOGICAL bContent, S_32 x, S_32 y, _32 w, _32 h DBG_PASS )
+static void CPROC AndroidANW_IssueUpdateLayeredEx( PRENDERER r, LOGICAL bContent, int32_t x, int32_t y, uint32_t w, uint32_t h DBG_PASS )
 {
 }
 
 
-static void CPROC AndroidANW_SetTouchHandler  ( PRENDERER r, TouchCallback c, PTRSZVAL p )
+static void CPROC AndroidANW_SetTouchHandler  ( PRENDERER r, TouchCallback c, uintptr_t p )
 {
 	PVPRENDER render = (PVPRENDER)r;
 	render->touch_callback = c;
@@ -1109,11 +1109,11 @@ static void CPROC AndroidANW_MarkDisplayUpdated( PRENDERER r  )
 {
 }
 
-static void CPROC AndroidANW_SetHideHandler		( PRENDERER r, HideAndRestoreCallback c, PTRSZVAL p )
+static void CPROC AndroidANW_SetHideHandler		( PRENDERER r, HideAndRestoreCallback c, uintptr_t p )
 {
 }
 
-static void CPROC AndroidANW_SetRestoreHandler  ( PRENDERER r, HideAndRestoreCallback c, PTRSZVAL p )
+static void CPROC AndroidANW_SetRestoreHandler  ( PRENDERER r, HideAndRestoreCallback c, uintptr_t p )
 {
 }
 
@@ -1198,7 +1198,7 @@ static RENDER_INTERFACE AndroidANWInterface = {
 													  , AndroidANW_SetMouseHandler
 													  , AndroidANW_SetRedrawHandler
 													  , AndroidANW_SetKeyboardHandler
-	 /* <combine sack::image::render::SetLoseFocusHandler@PRENDERER@LoseFocusCallback@PTRSZVAL>
+	 /* <combine sack::image::render::SetLoseFocusHandler@PRENDERER@LoseFocusCallback@uintptr_t>
 		 
 		 \ \																												 */
 													  , AndroidANW_SetLoseFocusHandler
@@ -1303,8 +1303,8 @@ static void HostSystem_InitDisplayInfo(void )
 // keyboard metric pans display (although should offer later options for applicatoins to handle it themselves....
 void SACK_Vidlib_SetNativeWindowHandle( ANativeWindow *displayWindow )
 {
-	_32 new_w, new_h;
-   _32 real_h;
+	uint32_t new_w, new_h;
+   uint32_t real_h;
 	//lprintf( "Setting native window handle... (shouldn't this do something else?)" );
 	l.displayWindow = displayWindow;
 
@@ -1461,9 +1461,9 @@ void SACK_Vidlib_SetSleepSuspend( void(*Suspend)(int) )
 //------------------------------------------------------------------------------
 // pause/resume
 //------------------------------------------------------------------------------
-static void InvokeDisplaySizeChange( PRENDERER r, int nDisplay, S_32 x, S_32 y, _32 width, _32 height )
+static void InvokeDisplaySizeChange( PRENDERER r, int nDisplay, int32_t x, int32_t y, uint32_t width, uint32_t height )
 {
-	void (CPROC *size_change)( PTRSZVAL, int nDisplay, S_32 x, S_32 y, _32 width, _32 height );
+	void (CPROC *size_change)( uintptr_t, int nDisplay, int32_t x, int32_t y, uint32_t width, uint32_t height );
    PVPRENDER render = (PVPRENDER)r;
 	PCLASSROOT data = NULL;
 	CTEXTSTR name;
@@ -1471,7 +1471,7 @@ static void InvokeDisplaySizeChange( PRENDERER r, int nDisplay, S_32 x, S_32 y, 
 		  name;
 		  name = GetNextRegisteredName( &data ) )
 	{
-		size_change = GetRegisteredProcedureExx( data,(CTEXTSTR)name,void,WIDE("on_display_size_change"),( PTRSZVAL psv_redraw, int nDisplay, S_32 x, S_32 y, _32 width, _32 height ));
+		size_change = GetRegisteredProcedureExx( data,(CTEXTSTR)name,void,WIDE("on_display_size_change"),( uintptr_t psv_redraw, int nDisplay, int32_t x, int32_t y, uint32_t width, uint32_t height ));
 
 		if( size_change )
 			size_change( render->psv_redraw, nDisplay, x, y, width, height );

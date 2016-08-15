@@ -7,8 +7,8 @@ MSGCLIENT_NAMESPACE
 //--------------------------------------------------------------------
 
 // this expects route to be destination-correct
-CLIENTMSG_PROC(int, SendMultiServiceEventPairsEx)( PSERVICE_ROUTE RouteID, _32 event
-															  , _32 parts
+CLIENTMSG_PROC(int, SendMultiServiceEventPairsEx)( PSERVICE_ROUTE RouteID, uint32_t event
+															  , uint32_t parts
 															  , BUFFER_LENGTH_PAIR *pairs
 															  DBG_PASS
 															  )
@@ -16,11 +16,11 @@ CLIENTMSG_PROC(int, SendMultiServiceEventPairsEx)( PSERVICE_ROUTE RouteID, _32 e
 {
 	static struct {
 		QMSG msg;
-		_32 data[2048-sizeof(QMSG)];
+		uint32_t data[2048-sizeof(QMSG)];
 	}msg;
 	static LOGICAL initialized;
 	static CRITICALSECTION cs;
-	P_8 msgbuf;
+	uint8_t* msgbuf;
 	size_t sendlen = 0;
 	if( !initialized )
 	{
@@ -46,7 +46,7 @@ CLIENTMSG_PROC(int, SendMultiServiceEventPairsEx)( PSERVICE_ROUTE RouteID, _32 e
 		msg.msg.hdr.source.service_id = 0;
 	}
 	msg.msg.hdr.msgid = event;
-	msgbuf = (P_8)msg.data;
+	msgbuf = (uint8_t*)msg.data;
 	while( parts )
 	{
 		if( pairs->buffer && pairs->len )
@@ -84,19 +84,19 @@ static struct {
 }nextsmmse;
 #endif
 #undef SendMultiServiceEvent
-CLIENTMSG_PROC(int, SendMultiServiceEvent)( PSERVICE_ROUTE RouteID, _32 event
-								 , _32 parts
+CLIENTMSG_PROC(int, SendMultiServiceEvent)( PSERVICE_ROUTE RouteID, uint32_t event
+								 , uint32_t parts
 								 , ... )
 {
 	int status;
 	BUFFER_LENGTH_PAIR *pairs = NewArray( BUFFER_LENGTH_PAIR, parts );
-	_32 n;
+	uint32_t n;
 	va_list args;
 	va_start( args, parts );
 	for( n = 0; n < parts; n++ )
 	{
 		pairs[n].buffer = va_arg( args, POINTER );
-		pairs[n].len = va_arg( args, _32 );
+		pairs[n].len = va_arg( args, uint32_t );
 	}
 #if defined( _DEBUG ) || defined( _DEBUG_INFO )
 	status = SendMultiServiceEventPairsEx( RouteID, event, parts, pairs, nextsmmse.pFile, nextsmmse.nLine );
@@ -118,20 +118,20 @@ CLIENTMSG_PROC(SendMultiServiceEventProto, SendMultiServiceEventEx)( DBG_VOIDPAS
 
 //--------------------------------------------------------------------
 
-PTRSZVAL CPROC HandleEventMessages( PTHREAD thread )
+uintptr_t CPROC HandleEventMessages( PTHREAD thread )
 {
 	g.pEventThread = thread;
 	g.flags.events_ready = TRUE;
 #ifdef DEBUG_THREADS
 	lprintf( WIDE("threadID: %Lx %lx"), GetThreadID( thread ), (unsigned long)(GetThreadID( thread ) & 0xFFFFFFFF) );
 #endif
-	//g.my_message_id = g.my_message_id; //(_32)( thread->ThreadID & 0xFFFFFFFF );
+	//g.my_message_id = g.my_message_id; //(uint32_t)( thread->ThreadID & 0xFFFFFFFF );
 	while( !g.flags.disconnected )
 	{
 		int r;
 		if( thread == g.pEventThread )
 		{
-			static _32 MessageEvent[2048]; // 8192 bytes
+			static uint32_t MessageEvent[2048]; // 8192 bytes
 #ifdef DEBUG_EVENTS
 			lprintf( WIDE("Reading event...") );
 #endif
@@ -166,7 +166,7 @@ int HandleEvents( MSGQ_TYPE msgq, PQMSG MessageEvent, int initial_flags )
 	int receive_count = 0;
 	while( 1 )
 	{
-		S_32 MessageLen;
+		int32_t MessageLen;
 #ifdef DEBUG_EVENTS
 		lprintf( WIDE("Reading eventqueue... my_message_id = %d"), g.my_message_id );
 #endif
@@ -298,13 +298,13 @@ int HandleEvents( MSGQ_TYPE msgq, PQMSG MessageEvent, int initial_flags )
 			}
 			else for( ; pHandler; pHandler = pHandler->next )
 			{
-				_32 Msg;
+				uint32_t Msg;
 #ifdef DEBUG_EVENTS
 				lprintf( WIDE("Finding handler for %ld-%d %p (from %lx to %lx)")
 						 , MessageEvent->hdr.msgid
 						 , 0//pHandler->MsgCountEvents
 						 , pHandler->Handler
-						 , (_32*)((&MessageEvent->hdr)+1)
+						 , (uint32_t*)((&MessageEvent->hdr)+1)
 						 , 0 /*pHandler->ServiceID*/ );
 #endif
 				//if( !pHandler->ServiceID )
@@ -331,14 +331,14 @@ int HandleEvents( MSGQ_TYPE msgq, PQMSG MessageEvent, int initial_flags )
 					if( pHandler->Handler )
 					{
 						//lprintf( WIDE("small handler") );
-						result_yesno = pHandler->Handler( Msg, (_32*)((&MessageEvent->hdr)+1), MessageLen - sizeof( MSGHDR ) );
+						result_yesno = pHandler->Handler( Msg, (uint32_t*)((&MessageEvent->hdr)+1), MessageLen - sizeof( MSGHDR ) );
 					}
 					else if( pHandler->HandlerEx )
 					{
 						//lprintf( WIDE("ex handler...%d"), Msg );
 						result_yesno = pHandler->HandlerEx( (PSERVICE_ROUTE)MessageEvent
 																	 , Msg
-																	 , (_32*)((&MessageEvent->hdr)+1)
+																	 , (uint32_t*)((&MessageEvent->hdr)+1)
 																	 , MessageLen - sizeof( MSGHDR ) );
 					}
 					else if( pHandler->HandlerExx )
@@ -347,7 +347,7 @@ int HandleEvents( MSGQ_TYPE msgq, PQMSG MessageEvent, int initial_flags )
 						result_yesno = pHandler->HandlerExx( pHandler->psv
 																	  , (PSERVICE_ROUTE)MessageEvent->hdr.source.process_id
 																	  , Msg
-																	  , (_32*)((&MessageEvent->hdr)+1)
+																	  , (uint32_t*)((&MessageEvent->hdr)+1)
 																	  , MessageLen - sizeof( MSGHDR ) );
 					}
 					if( result_yesno & EVENT_WAIT_DISPATCH )
@@ -368,9 +368,9 @@ int HandleEvents( MSGQ_TYPE msgq, PQMSG MessageEvent, int initial_flags )
 
 //--------------------------------------------------------------------
 
-CLIENTMSG_PROC( int, ProcessClientMessages )( PTRSZVAL unused )
+CLIENTMSG_PROC( int, ProcessClientMessages )( uintptr_t unused )
 {
-	static _32 MessageBuffer[2048];
+	static uint32_t MessageBuffer[2048];
 	if( IsThisThread( g.pEventThread ) )
 	{
 		lprintf( WIDE("External handle event messages...") );

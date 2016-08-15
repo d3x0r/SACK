@@ -50,14 +50,14 @@ typedef struct size_tag
 	struct {
 		/* This font file was found to be unusable. This is mostly used
 		   during the building of the font cache.                       */
-		_32 unusable : 1;
+		uint32_t unusable : 1;
 	} flags;
 	/* The height of the character (in uhmm something like PELS or
 	   dots)                                                       */
-	S_16 width;
+	int16_t width;
 	/* The height of the character (in uhmm something like PELS or
 	   dots)                                                       */
-	S_16 height;
+	int16_t height;
    /* Next size. A SizeFile actually contains an array of lists of
       size entries. There may be more than one size entry base, but
       then each might point at another. (like if a font had an 8x8,
@@ -82,18 +82,18 @@ typedef struct file_size_tag
 	struct {
 		/* This font file was found to be unusable. This is mostly used
 		   during the building of the font cache.                       */
-		_32 unusable : 1;
+		uint32_t unusable : 1;
 	} flags;
    /* pointer to the path where the file is found */
 	TEXTCHAR *path;
    /* name of the file itself */
 	TEXTCHAR *file;
    /* number of alternate files specified. */
-	_32   nAlt;
+	uint32_t   nAlt;
    /* list of alternates for this font */
 	PALT_SIZE_FILE pAlternate;
    /* sizes that are in this file */
-   _32   nSizes;
+   uint32_t   nSizes;
    PSIZES sizes; // scaled and fixed sizes available in this file.
 } SIZE_FILE, *PSIZE_FILE;
 
@@ -110,20 +110,20 @@ typedef struct font_style_t
 	   contained.                                                    */
 	struct {
 		/* The font from here and all sizes is mono-spaced. */
-		_32 mono : 1;
+		uint32_t mono : 1;
 		/* This font file was found to be unusable. This is mostly used
 		   during the building of the font cache.                       */
-		_32 unusable : 1;
+		uint32_t unusable : 1;
 		/* set italic attribute when rendering. */
-		_32 italic : 1;
+		uint32_t italic : 1;
 		/* set bold attribute when rendering. */
-		_32 bold : 1;
+		uint32_t bold : 1;
 	} flags;
 	/* name of this style. This is appended directly to the
 	   structure to avoid any allocation overhead.          */
 	TEXTCHAR        *name;
    /* number of files in the array of files. */
-   _32          nFiles;
+   uint32_t          nFiles;
    /* pointer to array of SIZE_FILE s. */
    PSIZE_FILE   files;
 } FONT_STYLE, *PFONT_STYLE;
@@ -145,10 +145,10 @@ typedef struct font_entry_tag
 	struct {
 		/* This font file was found to be unusable. This is mostly used
 		   during the building of the font cache.                       */
-		_32 unusable : 1;
+		uint32_t unusable : 1;
 	} flags;
 	TEXTCHAR   *name;  // name of this font family.
-   _32          nStyles; // number of styles in the styles array.
+   uint32_t          nStyles; // number of styles in the styles array.
    PFONT_STYLE  styles; // array of nStyles
 } FONT_ENTRY, *PFONT_ENTRY;
 
@@ -156,9 +156,9 @@ typedef struct font_entry_tag
 typedef struct cache_build_tag
 {
 	struct {
-		_32 initialized : 1;
-		_32 show_mono_only : 1;
-		_32 show_prop_only : 1;
+		uint32_t initialized : 1;
+		uint32_t show_mono_only : 1;
+		uint32_t show_prop_only : 1;
 	} flags;
 	// this really has no sorting
 	// just a list of FONT_ENTRYs
@@ -171,27 +171,27 @@ typedef struct cache_build_tag
 	PTREEROOT pFontCache;
 
    // when we read the cache from disk - use these....
-	_32 nPaths;
+	uint32_t nPaths;
 	TEXTCHAR* *pPathList;
 	TEXTCHAR *pPathNames; // slab of ALL names?
-	_32 nFiles;
+	uint32_t nFiles;
 	TEXTCHAR* *pFileList;
 	TEXTCHAR *pFileNames; // slab of ALL names?
-	_32 nStyles;
+	uint32_t nStyles;
 	TEXTCHAR* *pStyleList;
 	TEXTCHAR *pStyleNames; // slab of ALL names?
-	_32 nFamilies;
+	uint32_t nFamilies;
 	TEXTCHAR* *pFamilyList;
 	TEXTCHAR *pFamilyNames; // slab of ALL names?
 
 	PFONT_STYLE pStyleSlab;
-	_32 nStyle;
+	uint32_t nStyle;
 	PAPP_SIZE_FILE pSizeFileSlab;
-	_32 nSizeFile;
+	uint32_t nSizeFile;
 	PSIZES pSizeSlab;
-   _32 nSize;
+   uint32_t nSize;
 	PALT_SIZE_FILE pAltSlab;
-   _32 nAlt;
+   uint32_t nAlt;
 
 } CACHE_BUILD, *PCACHE_BUILD;
 
@@ -206,7 +206,7 @@ typedef struct cache_build_tag
 typedef struct font_global_tag
 {
 #if defined( STRUCT_ONLY )
-	PTRSZVAL library;
+	uintptr_t library;
 #else
 	/* This is the freetype instance variable that font rendering
 	   uses. Thread access to rendering is controlled, only a single
@@ -214,7 +214,7 @@ typedef struct font_global_tag
 	FT_Library   library;
 #endif
 	/* \ \  */
-	_32          nFonts;
+	uint32_t          nFonts;
 	/* \ \ 
 	   Description
 	   This is an overview of the internal font cache. The
@@ -266,7 +266,7 @@ typedef struct font_global_tag
 	} flags;
 	PTHREAD font_status_open_thread; 
 	PTHREAD font_status_timer_thread;
-	_64 fontcachetime;
+	uint64_t fontcachetime;
 	struct cache_build_tag *_build;
    TEXTCHAR font_cache_path[256];
 } FONT_GLOBAL;
@@ -290,24 +290,24 @@ struct font_data_tag {
    /* A magic identifier from FontMagicIdentifiers. This structure
       might be pointed to as a RENDER_FONTDATA instead, and its
       magic identifier would be different.                         */
-   _32 magic;
+   uint32_t magic;
 	/* this is the family index in the internal font cache. */
-	_32 nFamily;
+	uint32_t nFamily;
 	/* This is the index into the font cache of this style. */
-	_32 nStyle;
+	uint32_t nStyle;
 	/* This is the file index in the font cache. */
-	_32 nFile;
+	uint32_t nFile;
 	/* How wide to render the font in pixels. */
-	_32 nWidth;
+	uint32_t nWidth;
 	/* Height of the font to render output in pixels. */
-	_32 nHeight;
+	uint32_t nHeight;
    /* This is the flags that the font was created with. Think only
       the low 2 bits are used to determine resolution of the font
       as 1, 2, or 8 bits.                                          */
-   _32 flags;
+   uint32_t flags;
 	/* This is the timestamp of the cache file. If these don't
 	   match, the names are used to create the font.           */
-	_64 cachefile_time;
+	uint64_t cachefile_time;
    /* these is a list of names to create the font if the indexes
       are different. Think all names are concated together with a
       single '\\0' between and a double '\\0\\0' at the end.      */
@@ -320,21 +320,21 @@ typedef struct font_data_tag  FONTDATA;
    being rendered right now. This is the data that would result
    from calling
    
-   <link sack::image::InternalRenderFontFile@CTEXTSTR@S_32@S_32@_32, RenderFontFile>,
+   <link sack::image::InternalRenderFontFile@CTEXTSTR@int32_t@int32_t@uint32_t, RenderFontFile>,
    and would be used in future uses of <link sack::image::RenderScaledFontData@PFONTDATA@PFRACTION@PFRACTION, RenderScaledFontData>. */
 typedef struct render_font_data_tag {
    /* A magic identifier from FontMagicIdentifiers. This structure
       might be pointed to as a FONTDATA instead, and its
       magic identifier would be different.                         */
-   _32 magic;
+   uint32_t magic;
 	/* How wide to render the font in pixels. */
-	_32 nWidth;
+	uint32_t nWidth;
 	/* Height of the font to render output in pixels. */
-	_32 nHeight;
+	uint32_t nHeight;
    /* This is the flags that the font was created with. Think only
       the low 2 bits are used to determine resolution of the font
       as 1, 2, or 8 bits.                                          */
-	_32 flags;
+	uint32_t flags;
    /* this is the filename that was used to create the font.  The filename is relative to where the image service is running from. */
 	TEXTCHAR filename[1];
 } RENDER_FONTDATA;

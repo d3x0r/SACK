@@ -3,7 +3,7 @@
 
 static struct status_local_data
 {
-	_32 ID;
+	uint32_t ID;
 } status_local;
 
 
@@ -47,7 +47,7 @@ int CPROC DrawStatus( PSI_CONTROL pc )
 
 
 //---------------------------------------------------------------------------------------------------
-int CPROC MouseStatus( PSI_CONTROL pc, S_32 x, S_32 y, _32 b )
+int CPROC MouseStatus( PSI_CONTROL pc, int32_t x, int32_t y, uint32_t b )
 {
 	ValidatedControlData( PSTATUS, status_control.TypeID, status, pc );
 	if( status )
@@ -113,12 +113,12 @@ PRELOAD( RegisterReel)
 }
 
 
-static PTRSZVAL OnCreateControl( WIDE("Games/Slots/Status Patch"))(PSI_CONTROL parent,S_32 x,S_32 y,_32 w,_32 h)
+static uintptr_t OnCreateControl( WIDE("Games/Slots/Status Patch"))(PSI_CONTROL parent,int32_t x,int32_t y,uint32_t w,uint32_t h)
 {
-	return (PTRSZVAL)MakeNamedControl( parent, reel_control.name, x, y, w, h, status_local.ID++ );
+	return (uintptr_t)MakeNamedControl( parent, reel_control.name, x, y, w, h, status_local.ID++ );
 }
 
- static PSI_CONTROL OnGetControl(WIDE("Games/Slots/Status Patch"))(PTRSZVAL psvInit)
+ static PSI_CONTROL OnGetControl(WIDE("Games/Slots/Status Patch"))(uintptr_t psvInit)
  { 
 	 return (PSI_CONTROL)psvInit; 
  }

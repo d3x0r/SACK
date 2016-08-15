@@ -25,21 +25,21 @@
  or 0 - no token created
  or some other value that is passed to CloseSecurityContext when the button press is complete
  */
-PTRSZVAL CreateSecurityContext( PTRSZVAL button )
+uintptr_t CreateSecurityContext( uintptr_t button )
 {
       // add additional security plugin stuff...
       if( button )
 		{
-         PTRSZVAL psv_context;
+         uintptr_t psv_context;
 			CTEXTSTR name;
 			PCLASSROOT data = NULL;
 			for( name = GetFirstRegisteredName( TASK_PREFIX WIDE( "/common/security/Test Security" ), &data );
 				 name;
 				  name = GetNextRegisteredName( &data ) )
 			{
-				PTRSZVAL (CPROC*f)(PTRSZVAL);
+				uintptr_t (CPROC*f)(uintptr_t);
 				//snprintf( rootname, sizeof( rootname ), TASK_PREFIX WIDE( "/common/security/save common/%s" ), name );
-				f = GetRegisteredProcedure2( (CTEXTSTR)data, PTRSZVAL, name, (PTRSZVAL) );
+				f = GetRegisteredProcedure2( (CTEXTSTR)data, uintptr_t, name, (uintptr_t) );
 				if( f )
 				{
 					psv_context = f( button );
@@ -54,20 +54,20 @@ PTRSZVAL CreateSecurityContext( PTRSZVAL button )
    return 0;
 }
 
-void CloseSecurityContext( PTRSZVAL button, PTRSZVAL psvSecurity )
+void CloseSecurityContext( uintptr_t button, uintptr_t psvSecurity )
 {
       if( button )
 		{
-			//PTRSZVAL psv_context;
+			//uintptr_t psv_context;
 			CTEXTSTR name;
 			PCLASSROOT data = NULL;
 			for( name = GetFirstRegisteredName( TASK_PREFIX WIDE( "/common/security/Close Security" ), &data );
 				 name;
 				  name = GetNextRegisteredName( &data ) )
 			{
-				void (CPROC*f)(PTRSZVAL,PTRSZVAL);
+				void (CPROC*f)(uintptr_t,uintptr_t);
 				//snprintf( rootname, sizeof( rootname ), TASK_PREFIX WIDE( "/common/security/save common/%s" ), name );
-				f = GetRegisteredProcedure2( (CTEXTSTR)data, void, name, (PTRSZVAL,PTRSZVAL) );
+				f = GetRegisteredProcedure2( (CTEXTSTR)data, void, name, (uintptr_t,uintptr_t) );
 				if( f )
 				{
 					f( button, psvSecurity );
@@ -76,22 +76,22 @@ void CloseSecurityContext( PTRSZVAL button, PTRSZVAL psvSecurity )
 		}
 }
 
-void AddSecurityContextToken( PTRSZVAL button, CTEXTSTR module, CTEXTSTR token )
+void AddSecurityContextToken( uintptr_t button, CTEXTSTR module, CTEXTSTR token )
 {
 	TEXTCHAR tmpname[256];
-	void (CPROC*f)(PTRSZVAL,CTEXTSTR);
+	void (CPROC*f)(uintptr_t,CTEXTSTR);
 	snprintf( tmpname, 256, WIDE( "intershell/common/security/Add Security Token/%s" ), module );
-	f = GetRegisteredProcedure2( tmpname, void, WIDE("add_token"), (PTRSZVAL,CTEXTSTR) );
+	f = GetRegisteredProcedure2( tmpname, void, WIDE("add_token"), (uintptr_t,CTEXTSTR) );
 	if( f )
 		f( button, token );
 }
 
-void GetSecurityContextTokens( PTRSZVAL button, CTEXTSTR module, PLIST *ppList )
+void GetSecurityContextTokens( uintptr_t button, CTEXTSTR module, PLIST *ppList )
 {
 	TEXTCHAR tmpname[256];
-	void (CPROC*f)(PTRSZVAL,PLIST*);
+	void (CPROC*f)(uintptr_t,PLIST*);
 	snprintf( tmpname, 256, WIDE( "intershell/common/security/Get Security Tokens/%s" ), module );
-	f = GetRegisteredProcedure2( tmpname, void, WIDE("get_tokens"), (PTRSZVAL,PLIST*) );
+	f = GetRegisteredProcedure2( tmpname, void, WIDE("get_tokens"), (uintptr_t,PLIST*) );
 	if( f )
 		f( button, ppList );
 }
@@ -109,21 +109,21 @@ void GetSecurityModules( PLIST *ppList )
 	}
 }
 
-void CPROC SelectEditSecurity( PTRSZVAL psv, PSI_CONTROL listbox, PLISTITEM pli )
+void CPROC SelectEditSecurity( uintptr_t psv, PSI_CONTROL listbox, PLISTITEM pli )
 {
 	{
 		CTEXTSTR name;
 		//TEXTCHAR invoke[256];
-		void (CPROC*f)(PTRSZVAL);
+		void (CPROC*f)(uintptr_t);
 		name = (CTEXTSTR)GetItemData( pli );
-		f = GetRegisteredProcedure2( (CTEXTSTR)WIDE( "intershell/common/security/Edit Security" ), void, name, (PTRSZVAL) );
+		f = GetRegisteredProcedure2( (CTEXTSTR)WIDE( "intershell/common/security/Edit Security" ), void, name, (uintptr_t) );
 		if( f )
-			f( (PTRSZVAL)psv );
+			f( (uintptr_t)psv );
 	}
 }
 
 
-void CPROC EditSecurity( PTRSZVAL psv, PSI_CONTROL button )
+void CPROC EditSecurity( uintptr_t psv, PSI_CONTROL button )
 {
 	PSI_CONTROL pc_list;
    	PLISTITEM pli;
@@ -140,13 +140,13 @@ void CPROC EditSecurity( PTRSZVAL psv, PSI_CONTROL button )
 }
 
 
-void CPROC EditSecurityNoList( PTRSZVAL psv, PSI_CONTROL button )
+void CPROC EditSecurityNoList( uintptr_t psv, PSI_CONTROL button )
 {
 	SimpleMessageBox( button, WIDE( "No listbox to select security module" ), WIDE( "NO SECURITY LIST" ) );
 
 }
 
-void SetupSecurityEdit( PSI_CONTROL frame, PTRSZVAL object_to_secure )
+void SetupSecurityEdit( PSI_CONTROL frame, uintptr_t object_to_secure )
 		{
 			PSI_CONTROL listbox;
          //lprintf( "Setting up security edit for %p", object_to_secure );
@@ -158,7 +158,7 @@ void SetupSecurityEdit( PSI_CONTROL frame, PTRSZVAL object_to_secure )
 				ResetList( listbox );
 				LIST_FORALL( g.security_property_names, idx, CTEXTSTR, name )
 				{
-					SetItemData( AddListItem( listbox, name ), (PTRSZVAL)name );
+					SetItemData( AddListItem( listbox, name ), (uintptr_t)name );
 				}
 				SetDoubleClickHandler( listbox, SelectEditSecurity, object_to_secure );
 				SetButtonPushMethod( GetControl( frame, EDIT_SECURITY ), EditSecurity, object_to_secure );
@@ -177,7 +177,7 @@ static void OnGlobalPropertyEdit( WIDE( "Set Edit Permissions" ) )( PSI_CONTROL 
 	{
 		int okay = 0;
 		int done = 0;
-		SetupSecurityEdit( pc, (PTRSZVAL)parent );
+		SetupSecurityEdit( pc, (uintptr_t)parent );
 		SetCommonButtons( pc, &done, &okay );
 		DisplayFrameOver( pc, parent );
 		CommonWait( pc );
@@ -202,7 +202,7 @@ void InterShell_ReloadSecurityInformation( PCONFIG_HANDLER pch )
 	}
 }
 
-void InterShell_SaveSecurityInformation( FILE *file, PTRSZVAL psv )
+void InterShell_SaveSecurityInformation( FILE *file, uintptr_t psv )
 {
 	// add additional security plugin stuff...
 	CTEXTSTR name;
@@ -212,9 +212,9 @@ void InterShell_SaveSecurityInformation( FILE *file, PTRSZVAL psv )
 		 name;
 		  name = GetNextRegisteredName( &data ) )
 	{
-		void (CPROC*f)(FILE*,PTRSZVAL);
+		void (CPROC*f)(FILE*,uintptr_t);
 		//snprintf( rootname, sizeof( rootname ), TASK_PREFIX "/common/security/save common/%s", name );
-		f = GetRegisteredProcedure2( (CTEXTSTR)data, void, name, (FILE*,PTRSZVAL) );
+		f = GetRegisteredProcedure2( (CTEXTSTR)data, void, name, (FILE*,uintptr_t) );
 		if( f )
 			f( file, psv );
 	}
@@ -225,14 +225,14 @@ void InterShell_SaveSecurityInformation( FILE *file, PTRSZVAL psv )
 static void OnSaveCommon( WIDE( "@10 EditSecurity" ) )( FILE *file )
 {
 	fprintf( file, WIDE( "Begin Edit Permissions\n" ) );
-	InterShell_SaveSecurityInformation( file, (PTRSZVAL)InterShell_GetCurrentSavingCanvas() );
+	InterShell_SaveSecurityInformation( file, (uintptr_t)InterShell_GetCurrentSavingCanvas() );
 }
 
-static PTRSZVAL CPROC BeginGlobalEditPerms( PTRSZVAL psv, arg_list args )
+static uintptr_t CPROC BeginGlobalEditPerms( uintptr_t psv, arg_list args )
 {
 	lprintf( WIDE("Setting psv to loading canvas %p, adding security plugin rules"), InterShell_GetCurrentLoadingCanvas() );
 	InterShell_ReloadSecurityInformation( InterShell_GetCurrentConfigHandler() );
-	return (PTRSZVAL)InterShell_GetCurrentLoadingCanvas();
+	return (uintptr_t)InterShell_GetCurrentLoadingCanvas();
 }
 
 static void OnLoadCommon( WIDE( "@10 EditSecurity" ) )( PCONFIG_HANDLER pch )

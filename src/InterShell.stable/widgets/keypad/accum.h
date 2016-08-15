@@ -9,19 +9,19 @@ typedef struct accumulator_tag *PACCUMULATOR;
 #define ACCUM_DECIMAL 0x0002
 #define ACCUM_TEXT 0x0004
 
-PACCUMULATOR GetAccumulator( CTEXTSTR name, _32 flags );
+PACCUMULATOR GetAccumulator( CTEXTSTR name, uint32_t flags );
 size_t GetAccumulatorText( PACCUMULATOR accum, TEXTCHAR *text, int nLen );
-PACCUMULATOR SetAccumulator( PACCUMULATOR accum, S_64 value );
-S_64 GetAccumulatorValue( PACCUMULATOR accum );
+PACCUMULATOR SetAccumulator( PACCUMULATOR accum, int64_t value );
+int64_t GetAccumulatorValue( PACCUMULATOR accum );
 PACCUMULATOR AddAcummulator( PACCUMULATOR accum_dest, PACCUMULATOR accum_source );
 PACCUMULATOR TransferAccumluator( PACCUMULATOR accum_dest, PACCUMULATOR accum_source );
 void KeyTextIntoAccumulator( PACCUMULATOR, CTEXTSTR value ); // works with numeric, if value contains numeric characters
-void KeyIntoAccumulator( PACCUMULATOR accum, S_64 val, _32 base );
+void KeyIntoAccumulator( PACCUMULATOR accum, int64_t val, uint32_t base );
 void KeyDecimalIntoAccumulator( PACCUMULATOR accum );
 void ClearAccumulator( PACCUMULATOR accum );
-void ClearAccumulatorDigit( PACCUMULATOR accum, _32 base );
+void ClearAccumulatorDigit( PACCUMULATOR accum, uint32_t base );
 void SetAccumulatorUpdateProc( PACCUMULATOR accum
-									  , void (*Updated)(PTRSZVAL psv, PACCUMULATOR accum )
-									  , PTRSZVAL psvUser
+									  , void (*Updated)(uintptr_t psv, PACCUMULATOR accum )
+									  , uintptr_t psvUser
 									  );
-void SetAccumulatorMask( PACCUMULATOR accum, _64 mask );
+void SetAccumulatorMask( PACCUMULATOR accum, uint64_t mask );

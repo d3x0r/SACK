@@ -31,7 +31,7 @@ CORECON_PROC( void, PSI_WinLogicCalculateHistory )( PCONSOLE_INFO pdp );
 CORECON_PROC( void, PSI_WinLogicDoStroke )( PCONSOLE_INFO pdp, PTEXT pStroke );
 
 // nChar could also be considered nColumn
-CORECON_PROC(int, PSI_GetCharFromLine )( _32 cols
+CORECON_PROC(int, PSI_GetCharFromLine )( uint32_t cols
                          , PDISPLAYED_LINE pLine
                          , int nChar, TEXTCHAR *result );
 CORECON_PROC(int, PSI_GetCharFromRowCol )( PCONSOLE_INFO pdp
@@ -44,7 +44,7 @@ CORECON_PROC(int, PSI_ConvertXYToLineCol )( PCONSOLE_INFO pdp
                               , int *line, int *col );
 //CORECON_PROC(void, DoRenderHistory )( PCONSOLE_INFO pdp, int bHistoryStart );
 CORECON_PROC(int, PSI_UpdateHistory )( PCONSOLE_INFO pdp );
-int GetCharFromLine( PCONSOLE_INFO console, _32 cols
+int GetCharFromLine( PCONSOLE_INFO console, uint32_t cols
 						, PDISPLAYED_LINE pLine
 						, int nChar, TEXTCHAR *result );
 //------------------------------------------------------------------
@@ -53,17 +53,17 @@ int GetCharFromLine( PCONSOLE_INFO console, _32 cols
 typedef struct penging_rectangle_tag
 {
 	struct {
-		_32 bHasContent : 1;
-		_32 bTmpRect : 1;
+		uint32_t bHasContent : 1;
+		uint32_t bTmpRect : 1;
 	} flags;
    CRITICALSECTION cs;
-	S_32 x, y;
-   _32 width, height;
+	int32_t x, y;
+   uint32_t width, height;
 } PENDING_RECT, *PPENDING_RECT;
 
 
 void PSI_RenderCommandLine( PCONSOLE_INFO pdp, PENDING_RECT *region );	
-void CPROC PSIMeasureString( PTRSZVAL psvConsole, CTEXTSTR s, int nShown, _32 *w, _32 *h, SFTFont font );
+void CPROC PSIMeasureString( uintptr_t psvConsole, CTEXTSTR s, int nShown, uint32_t *w, uint32_t *h, SFTFont font );
 
 PSI_CONSOLE_NAMESPACE_END
 

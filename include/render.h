@@ -81,7 +81,7 @@
    
    <code lang="c++">
    
-   void CPROC DrawHandler( PTRSZVAL psvUserData, 31~PRENDERER render )
+   void CPROC DrawHandler( uintptr_t psvUserData, 31~PRENDERER render )
    {
        Image display = GetDisplayImage( render );
        // the display image may change, because of an external resize
@@ -210,7 +210,7 @@ enum active_msg_id {
 
 typedef struct {
    enum active_msg_id ID;
-   _32  size; // the size of the cargo potion of the message. (mostly data.raw)
+   uint32_t  size; // the size of the cargo potion of the message. (mostly data.raw)
    union {
   //--------------------
       struct {
@@ -230,26 +230,26 @@ typedef struct {
       } lose_focus;
   //--------------------
       struct {
-         _8 no_informaiton;
+         uint8_t no_informaiton;
       } draw;
   //--------------------
       struct {
-         _8 no_informaiton;
+         uint8_t no_informaiton;
       } close;
   //--------------------
       struct {
-         _8 no_informaiton;
+         uint8_t no_informaiton;
       } create;
   //--------------------
       struct {
-         _8 no_informaiton;
+         uint8_t no_informaiton;
       } destroy;     
   //--------------------
       struct {
-         _32 key;
+         uint32_t key;
       } key;
   //--------------------
-      _8 raw[1];
+      uint8_t raw[1];
    } data;
 } ACTIVEMESSAGE, *PACTIVEMESSAGE;
 #endif
@@ -318,14 +318,14 @@ enum {
 
 
 /* function signature for the close callback  which can be specified to handle events to close the display.  see SetCloseHandler. */
-typedef void (CPROC*CloseCallback)( PTRSZVAL psvUser );
+typedef void (CPROC*CloseCallback)( uintptr_t psvUser );
 /* function signature to define hide/restore callback, it just gets the user data of the callback... */
-typedef void (CPROC*HideAndRestoreCallback)( PTRSZVAL psvUser );
+typedef void (CPROC*HideAndRestoreCallback)( uintptr_t psvUser );
 /* function signature for the redraw callback  which can be specified to handle events to redraw the display.  see SetRedrawHandler. */
-typedef void (CPROC*RedrawCallback)( PTRSZVAL psvUser, PRENDERER self );
+typedef void (CPROC*RedrawCallback)( uintptr_t psvUser, PRENDERER self );
 /* function signature for the mouse callback  which can be specified to handle events from mouse motion on the display.  see SetMouseHandler.
   would be 'wise' to retun 0 if ignored, 1 if observed (perhaps not used), but NOT ignored.*/
-typedef int  (CPROC*MouseCallback)( PTRSZVAL psvUser, S_32 x, S_32 y, _32 b );
+typedef int  (CPROC*MouseCallback)( uintptr_t psvUser, int32_t x, int32_t y, uint32_t b );
 
 typedef struct input_point
 {
@@ -359,24 +359,24 @@ typedef HANDLE HTOUCHINPUT;
   This will trigger a check to see if there are unused touches to continue sending... oh but on renderer there's only one callback, more
   important as a note of the control touch event handerer.
   */
-typedef int  (CPROC*TouchCallback)( PTRSZVAL psvUser, PINPUT_POINT pTouches, int nTouches );
+typedef int  (CPROC*TouchCallback)( uintptr_t psvUser, PINPUT_POINT pTouches, int nTouches );
 
 #endif
 /* function signature for the close callback  which can be specified to handle events to redraw the display.  see SetLoseFocusHandler. */
-typedef void (CPROC*LoseFocusCallback)( PTRSZVAL dwUser, PRENDERER pGain );
+typedef void (CPROC*LoseFocusCallback)( uintptr_t dwUser, PRENDERER pGain );
 // without a keyproc, you will still get key notification in the mousecallback
 // if KeyProc returns 0 or is NULL, then bound keys are checked... otherwise
 // priority is given to controls with focus that handle keys.
-typedef int (CPROC*KeyProc)( PTRSZVAL dwUser, _32 keycode );
+typedef int (CPROC*KeyProc)( uintptr_t dwUser, uint32_t keycode );
 // without any other proc, you will get a general callback message.
 #if ACTIVE_MESSAGE_IMPLEMENTED
-typedef void (CPROC*GeneralCallback)( PTRSZVAL psvUser
+typedef void (CPROC*GeneralCallback)( uintptr_t psvUser
                                      , PRENDERER image
 												, PACTIVEMESSAGE msg );
 #endif
-typedef void (CPROC*RenderReadCallback)(PTRSZVAL psvUser, PRENDERER pRenderer, TEXTSTR buffer, INDEX len );
+typedef void (CPROC*RenderReadCallback)(uintptr_t psvUser, PRENDERER pRenderer, TEXTSTR buffer, INDEX len );
 // called before redraw callback to update the background on the scene...
-typedef void (CPROC*_3DUpdateCallback)( PTRSZVAL psvUser );
+typedef void (CPROC*_3DUpdateCallback)( uintptr_t psvUser );
 
 //----------------------------------------------------------
 //   Mouse Button definitions
@@ -492,13 +492,13 @@ enum DisplayAttributes {
 
 	 // this generates a mouse event though the mouse system directly
     // there is no queuing, and the mouse is completed before returning.
-    RENDER_PROC( void, GenerateMouseRaw)( S_32 x, S_32 y, _32 b );
+    RENDER_PROC( void, GenerateMouseRaw)( int32_t x, int32_t y, uint32_t b );
 	 /* Create mouse events to self?
 	    Parameters
 	    x :  x of the mouse
 	    y :  y of the mouse
 	    b :  buttons of the mouse    */
-	 RENDER_PROC( void, GenerateMouseDeltaRaw )( S_32 x, S_32 y, _32 b );
+	 RENDER_PROC( void, GenerateMouseDeltaRaw )( int32_t x, int32_t y, uint32_t b );
 
     /* Sets the title of the application window. Once upon a time,
        applications only were able to make a SINGLE window. Internally,
@@ -526,12 +526,12 @@ enum DisplayAttributes {
        
        Example
        <code lang="c++">
-       _32 w, h;
+       uint32_t w, h;
        GetDisplaySize( &amp;w, &amp;h );
        </code>
        See Also
-       <link sack::image::render::GetDisplaySizeEx@int@S_32 *@S_32 *@_32 *@_32 *, GetDisplaySizeEx> */
-    RENDER_PROC( void , GetDisplaySize)      ( _32 *width, _32 *height );
+       <link sack::image::render::GetDisplaySizeEx@int@int32_t *@int32_t *@uint32_t *@uint32_t *, GetDisplaySizeEx> */
+    RENDER_PROC( void , GetDisplaySize)      ( uint32_t *width, uint32_t *height );
 	 /* \ \ 
 	    Parameters
 	    nDisplay :  display to get the coordinates of. 0 is the
@@ -545,14 +545,14 @@ enum DisplayAttributes {
 	    
 	    Example
 	    <code lang="c#">
-	    S_32 x, y;
-	    _32 w, h;
+	    int32_t x, y;
+	    uint32_t w, h;
 	    
 	    GetDisplaySizeEx( 1, &amp;x, &amp;y, &amp;w, &amp;h );
 	    </code>                                                       */
 	 RENDER_PROC (void, GetDisplaySizeEx) ( int nDisplay
-													  , S_32 *x, S_32 *y
-													  , _32 *width, _32 *height);
+													  , int32_t *x, int32_t *y
+													  , uint32_t *width, uint32_t *height);
     /* Sets the first displayed physical window to a certain size. This
        should actually adjust the screen size. Like GetDisplaySize
        \returns the size of the actual display, this should set the
@@ -560,7 +560,7 @@ enum DisplayAttributes {
        Parameters
        width :   new width of the screen
        height :  new height of the screen.                              */
-    RENDER_PROC( void , SetDisplaySize)      ( _32 width, _32 height );
+    RENDER_PROC( void , SetDisplaySize)      ( uint32_t width, uint32_t height );
 
 #ifdef WIN32
     /* Enable logging when updates happen to the real display.
@@ -591,7 +591,7 @@ enum DisplayAttributes {
        height :      height of the display
        x :           x position of left the display
        y :           y position of the top of the display                                         */
-    RENDER_PROC( PRENDERER, OpenDisplaySizedAt)     ( _32 attributes, _32 width, _32 height, S_32 x, S_32 y );
+    RENDER_PROC( PRENDERER, OpenDisplaySizedAt)     ( uint32_t attributes, uint32_t width, uint32_t height, int32_t x, int32_t y );
     /* This opens a display for output. It is opened hidden, so the
        application might draw to its surface before it is shown.
        
@@ -607,7 +607,7 @@ enum DisplayAttributes {
        x :           x position of left the display
        y :           y position of the top of the display
        above :       display to put this one above.                                               */
-    RENDER_PROC( PRENDERER, OpenDisplayAboveSizedAt)( _32 attributes, _32 width, _32 height, S_32 x, S_32 y, PRENDERER above );
+    RENDER_PROC( PRENDERER, OpenDisplayAboveSizedAt)( uint32_t attributes, uint32_t width, uint32_t height, int32_t x, int32_t y, PRENDERER above );
     /* This opens a display for output. It is opened hidden, so the
        application might draw to its surface before it is shown.
        
@@ -623,7 +623,7 @@ enum DisplayAttributes {
        above :       display to put this one above.
        below :       display to put this one under. (for building
                      behind a cover window)                                                       */
-    RENDER_PROC( PRENDERER, OpenDisplayAboveUnderSizedAt)( _32 attributes, _32 width, _32 height, S_32 x, S_32 y, PRENDERER above, PRENDERER under );
+    RENDER_PROC( PRENDERER, OpenDisplayAboveUnderSizedAt)( uint32_t attributes, uint32_t width, uint32_t height, int32_t x, int32_t y, PRENDERER above, PRENDERER under );
 	 /* Sets the alpha level of the overall display window.
 	    Parameters
 	    hVideo :  display to set the overall fade level on
@@ -665,8 +665,8 @@ enum DisplayAttributes {
        height :  the height of the region to update
        DBG_PASS information is used to track who is doing updates
        when update logging is enabled.                               */
-    RENDER_PROC( void , UpdateDisplayPortionEx) ( PRENDERER, S_32 x, S_32 y, _32 width, _32 height DBG_PASS );
-/* <combine sack::image::render::UpdateDisplayPortionEx@PRENDERER@S_32@S_32@_32@_32 height>
+    RENDER_PROC( void , UpdateDisplayPortionEx) ( PRENDERER, int32_t x, int32_t y, uint32_t width, uint32_t height DBG_PASS );
+/* <combine sack::image::render::UpdateDisplayPortionEx@PRENDERER@int32_t@int32_t@uint32_t@uint32_t height>
    
    \ \                                                                                      */
 #define UpdateDisplayPortion(r,x,y,w,h) UpdateDisplayPortionEx(r,x,y,w,h DBG_SRC )
@@ -688,27 +688,27 @@ enum DisplayAttributes {
        width :   pointer to a unsigned 32 bit value to get the width.
        height :  pointer to a unsigned 32 bit value to get the
                  height.                                              */
-    RENDER_PROC( void, GetDisplayPosition)   ( PRENDERER, S_32 *x, S_32 *y, _32 *width, _32 *height );
+    RENDER_PROC( void, GetDisplayPosition)   ( PRENDERER, int32_t *x, int32_t *y, uint32_t *width, uint32_t *height );
     /* Moves a display to an absolute position.
        Parameters
        render :  the display to move
        x :       new X coordinate for the left of the display
        y :       new Y coordinate for the top of the display  */
-    RENDER_PROC( void , MoveDisplay)          ( PRENDERER, S_32 x, S_32 y );
+    RENDER_PROC( void , MoveDisplay)          ( PRENDERER, int32_t x, int32_t y );
     /* Moves a display relative to its current position.
        Parameters
        render :  the display to move
        delx :    a signed amount to add to its X coordiante
        dely :    a signed amount ot add to its Y coordinate. ( bigger
                  values go down the screen )                          */
-    RENDER_PROC( void , MoveDisplayRel)       ( PRENDERER, S_32 delx, S_32 dely );
+    RENDER_PROC( void , MoveDisplayRel)       ( PRENDERER, int32_t delx, int32_t dely );
     /* Sets the display's current size. If it is different than
        before, will invoke render's redraw callback.
        Parameters
        display :  the display to set the size of
        w :        new width of the display
        h :        new height of the display                     */
-    RENDER_PROC( void , SizeDisplay)          ( PRENDERER, _32 w, _32 h );
+    RENDER_PROC( void , SizeDisplay)          ( PRENDERER, uint32_t w, uint32_t h );
     /* Sets the display's current size relative to what it currently
        is. If it is different than before, will invoke render's
        redraw callback.
@@ -716,7 +716,7 @@ enum DisplayAttributes {
        display :  the display to set the size of
        w :        signed value to add to current width
        h :        signed value to add to current height              */
-    RENDER_PROC( void , SizeDisplayRel)       ( PRENDERER, S_32 delw, S_32 delh );
+    RENDER_PROC( void , SizeDisplayRel)       ( PRENDERER, int32_t delw, int32_t delh );
    /* Change the position and size of a display.
       Parameters
       hVideo :  display to move and size
@@ -725,8 +725,8 @@ enum DisplayAttributes {
       w :       new width of the display
       h :       new height of the display          */
    RENDER_PROC( void, MoveSizeDisplay )( PRENDERER hVideo
-                                        , S_32 x, S_32 y
-                                        , S_32 w, S_32 h );
+                                        , int32_t x, int32_t y
+                                        , int32_t w, int32_t h );
    /* Moves and changes the display size relative to its current
       size. All parameters are relative to current.
       Parameters
@@ -736,8 +736,8 @@ enum DisplayAttributes {
       delw :    amount to change the width by
       delh :    amount to change the height by                   */
    RENDER_PROC( void, MoveSizeDisplayRel )( PRENDERER hVideo
-                                        , S_32 delx, S_32 dely
-                                        , S_32 delw, S_32 delh );
+                                        , int32_t delx, int32_t dely
+                                        , int32_t delw, int32_t delh );
 		/* Put the display above another display. This makes sure that
 		   the displays are stacked at least in this order.
 		   Parameters
@@ -771,28 +771,28 @@ enum DisplayAttributes {
        hVideo :     display to set the close handler for
        callback :   close method to call when the display is called
        user_data :  user data passed to close method when invoked.  */
-    RENDER_PROC( void , SetCloseHandler)      ( PRENDERER, CloseCallback, PTRSZVAL );
+    RENDER_PROC( void , SetCloseHandler)      ( PRENDERER, CloseCallback, uintptr_t );
     /* Specifies the mouse event handler for a display.
        Parameters
        hVideo :     display to set the mouse handler for
        callback :   the routine to call when a mouse event happens.
        user_data :  this value is passed to the callback routine when
                     it is called.                                     */
-    RENDER_PROC( void , SetMouseHandler)      ( PRENDERER, MouseCallback, PTRSZVAL );
+    RENDER_PROC( void , SetMouseHandler)      ( PRENDERER, MouseCallback, uintptr_t );
     /* Specifies the hide event handler for a display.
        Parameters
        hVideo :     display to set the hide handler for
        callback :   the routine to call when a hide event happens.
        user_data :  this value is passed to the callback routine when
                     it is called.                                     */
-    RENDER_PROC( void , SetHideHandler)      ( PRENDERER, HideAndRestoreCallback, PTRSZVAL );
+    RENDER_PROC( void , SetHideHandler)      ( PRENDERER, HideAndRestoreCallback, uintptr_t );
     /* Specifies the restore event handler for a display.
        Parameters
        hVideo :     display to set the restore handler for
        callback :   the routine to call when a restore event happens.
        user_data :  this value is passed to the callback routine when
                     it is called.                                     */
-    RENDER_PROC( void , SetRestoreHandler)      ( PRENDERER, HideAndRestoreCallback, PTRSZVAL );
+    RENDER_PROC( void , SetRestoreHandler)      ( PRENDERER, HideAndRestoreCallback, uintptr_t );
 #ifndef NO_TOUCH
     /* Specifies the touch event handler for a display.
        Parameters
@@ -800,7 +800,7 @@ enum DisplayAttributes {
        callback :   the routine to call when a touch event happens.
        user_data :  this value is passed to the callback routine when
                     it is called.                                     */
- 	  RENDER_PROC( void , SetTouchHandler)      ( PRENDERER, TouchCallback, PTRSZVAL );
+ 	  RENDER_PROC( void , SetTouchHandler)      ( PRENDERER, TouchCallback, uintptr_t );
 #endif
 	 /* Sets the function to call when a redraw event is required.
 	    Parameters
@@ -815,7 +815,7 @@ enum DisplayAttributes {
 	    
 	    See Also
 	    <link sack::image::render::Redraw@PRENDERER, Redraw>        */
-	 RENDER_PROC( void , SetRedrawHandler)     ( PRENDERER, RedrawCallback, PTRSZVAL );
+	 RENDER_PROC( void , SetRedrawHandler)     ( PRENDERER, RedrawCallback, uintptr_t );
 	 // call this to call the callback registered. as appropriate.  Said callback
     // should never be directly called by application.
     RENDER_PROC( void, Redraw )( PRENDERER hVideo );
@@ -833,7 +833,7 @@ enum DisplayAttributes {
        for checking the 32 bit key value. The value passed to the
        keyboard handler contains most all of the information about
        the state of the keyboard and specific key.                   */
-    RENDER_PROC( void , SetKeyboardHandler)   ( PRENDERER, KeyProc, PTRSZVAL );
+    RENDER_PROC( void , SetKeyboardHandler)   ( PRENDERER, KeyProc, uintptr_t );
     /* Sets a callback handler called when focus is gained or lost
        by the display.
        Parameters
@@ -847,11 +847,11 @@ enum DisplayAttributes {
        that is getting the focus. This may be you, may be NULL
        (everyone losing focus) or may be another PRENDERER in your
        application.                                                  */
-    RENDER_PROC( void , SetLoseFocusHandler)  ( PRENDERER, LoseFocusCallback, PTRSZVAL );
+    RENDER_PROC( void , SetLoseFocusHandler)  ( PRENDERER, LoseFocusCallback, uintptr_t );
     /* Undefined */
-    RENDER_PROC( void, SetRenderReadCallback )( PRENDERER pRenderer, RenderReadCallback callback, PTRSZVAL psv );
+    RENDER_PROC( void, SetRenderReadCallback )( PRENDERER pRenderer, RenderReadCallback callback, uintptr_t psv );
 #if ACTIVE_MESSAGE_IMPLEMENTED
-    RENDER_PROC( void , SetDefaultHandler)    ( PRENDERER, GeneralCallback, PTRSZVAL );
+    RENDER_PROC( void , SetDefaultHandler)    ( PRENDERER, GeneralCallback, uintptr_t );
 #endif
     /* Receives the current global mouse state, and position in
        screen coordinates.
@@ -859,7 +859,7 @@ enum DisplayAttributes {
        x :  pointer to a signed 32 bit value for the mouse X position.
        y :  pointer to a signed 32 bit value for the mouse Y position.
        b :  current state of mouse buttons. See <link sack::image::render::ButtonFlags, ButtonFlags>. */
-    RENDER_PROC( void , GetMouseState )        ( S_32 *x, S_32 *y, _32 *b );
+    RENDER_PROC( void , GetMouseState )        ( int32_t *x, int32_t *y, uint32_t *b );
     /* Gets the current mouse position in screen coordinates.
        Parameters
        x :  pointer to a signed 32 bit value for the mouse position
@@ -867,17 +867,17 @@ enum DisplayAttributes {
        
        Example
        <code lang="c++">
-       S_32 x, y;
+       int32_t x, y;
        GetMousePosition( &amp;x, &amp;y );
        </code>                                                      */
-    RENDER_PROC( void , GetMousePosition)     ( S_32 *x, S_32 *y );
+    RENDER_PROC( void , GetMousePosition)     ( int32_t *x, int32_t *y );
     /* Sets the mouse pointer at the specified display coordinates.
        Parameters
        hDisplay :  display to use to where to position the mouse. Will
                    fault if NULL is passed.
        x :         x relative to the display to set the mouse
        y :         y relative to the display to set the mouse          */
-    RENDER_PROC( void , SetMousePosition)     ( PRENDERER, S_32 x, S_32 y );
+    RENDER_PROC( void , SetMousePosition)     ( PRENDERER, int32_t x, int32_t y );
 
     /* Test a display to see if it is focused.
        Parameters
@@ -905,7 +905,7 @@ enum DisplayAttributes {
        Parameters
        display :  display to check the key state in
        key :      KEY_ symbol to check.                    */
-    RENDER_PROC( _32, IsKeyDown )              ( PRENDERER display, int key );
+    RENDER_PROC( uint32_t, IsKeyDown )              ( PRENDERER display, int key );
     /* \ \ 
        Parameters
        display :  display to test the key status in
@@ -913,7 +913,7 @@ enum DisplayAttributes {
        
        Returns
        TRUE if the key is down, else FALSE.                  */
-    RENDER_PROC( _32, KeyDown )                ( PRENDERER display, int key );
+    RENDER_PROC( uint32_t, KeyDown )                ( PRENDERER display, int key );
     /* Sometimes displays can be closed by external forces (the
        close button on most windows). This tests to see if a display
        is still valid, or if it has been closed externally.
@@ -928,11 +928,11 @@ enum DisplayAttributes {
        Parameters
        display :  which window wants to own the mouse
        own :      1 to own, 0 to release ownership.                */
-    RENDER_PROC( void, OwnMouseEx )            ( PRENDERER display, _32 bOwn DBG_PASS );
+    RENDER_PROC( void, OwnMouseEx )            ( PRENDERER display, uint32_t bOwn DBG_PASS );
     /* Proprietary routine for reading touch screen serial devices
        directly and performing self calibration. Should rely on
        system driver and it's calibration instead.                 */
-    RENDER_PROC( int, BeginCalibration )       ( _32 points );
+    RENDER_PROC( int, BeginCalibration )       ( uint32_t points );
     /* Used when display is accessed via a remote message pipe, this
        allows all render operations to be flushed and processed.
        Parameters
@@ -1029,7 +1029,7 @@ RENDER_PROC( void, ForceDisplayBack )( PRENDERER display );
    buffer :     buffer to read into
    maxlen :     maximum length of buffer to read
    bReadLine :  ???                                              */
-RENDER_PROC( _32, ReadDisplayEx )( PRENDERER pRenderer, TEXTSTR buffer, _32 maxlen, LOGICAL bReadLine );
+RENDER_PROC( uint32_t, ReadDisplayEx )( PRENDERER pRenderer, TEXTSTR buffer, uint32_t maxlen, LOGICAL bReadLine );
 /* Unused. Incomplete. */
 #define ReadDisplay(r,b,len)      ReadDisplayEx(r,b,len,FALSE)
 /* Unused. Incomplete. */
@@ -1048,18 +1048,18 @@ RENDER_PROC( _32, ReadDisplayEx )( PRENDERER pRenderer, TEXTSTR buffer, _32 maxl
                display
    w :         width of the region to update to physical display
    h :         height of the region to update to physical display */
-RENDER_PROC( void, IssueUpdateLayeredEx )( PRENDERER hVideo, LOGICAL bContent, S_32 x, S_32 y, _32 w, _32 h DBG_PASS );
+RENDER_PROC( void, IssueUpdateLayeredEx )( PRENDERER hVideo, LOGICAL bContent, int32_t x, int32_t y, uint32_t w, uint32_t h DBG_PASS );
 
 
 #ifndef KEY_STRUCTURE_DEFINED
-typedef LOGICAL (CPROC*KeyTriggerHandler)(PTRSZVAL,_32 keycode);
+typedef LOGICAL (CPROC*KeyTriggerHandler)(uintptr_t,uint32_t keycode);
 typedef struct KeyDefine *PKEYDEFINE;
 #endif
 /* Can create an external key binder to store key event
    bindings. One of these is available per display.
    Example
    <code lang="c++">
-   void Alt_A_Pressed(PTRSZVAL user_data,_32 keycode)
+   void Alt_A_Pressed(uintptr_t user_data,uint32_t keycode)
    {
        // do something when alt-a is pressed.
    }
@@ -1083,7 +1083,7 @@ RENDER_PROC( void, DestroyKeyBinder )( PKEYDEFINE pKeyDef );
    Parameters
    KeyDefs :  PKEYDEFINE keystate which has keys bound to it.
    keycode :  the keycode passed to a KeyProc handler.         */
-RENDER_PROC( int, HandleKeyEvents )( PKEYDEFINE KeyDefs, _32 keycode );
+RENDER_PROC( int, HandleKeyEvents )( PKEYDEFINE KeyDefs, uint32_t keycode );
 
 /* Assigns a callback routine to a key event.
    Parameters
@@ -1094,9 +1094,9 @@ RENDER_PROC( int, HandleKeyEvents )( PKEYDEFINE KeyDefs, _32 keycode );
                alt, shift)
    trigger :   the trigger function to invoke when the key is
                pressed
-   psv :       a PTRSZVAL user data passed to the trigger function
+   psv :       a uintptr_t user data passed to the trigger function
                when invoked.                                       */
-RENDER_PROC( int, BindEventToKeyEx )( PKEYDEFINE KeyDefs, _32 scancode, _32 modifier, KeyTriggerHandler trigger, PTRSZVAL psv );
+RENDER_PROC( int, BindEventToKeyEx )( PKEYDEFINE KeyDefs, uint32_t scancode, uint32_t modifier, KeyTriggerHandler trigger, uintptr_t psv );
 /* Binds a key to a display.
    Parameters
    pRenderer :  display to set the event in (each display has a
@@ -1109,13 +1109,13 @@ RENDER_PROC( int, BindEventToKeyEx )( PKEYDEFINE KeyDefs, _32 scancode, _32 modi
    trigger :    callback to invoke when the key combination is
                 pressed
    psv :        user data to pass to the trigger when invoked.   */
-RENDER_PROC( int, BindEventToKey )( PRENDERER pRenderer, _32 scancode, _32 modifier, KeyTriggerHandler trigger, PTRSZVAL psv );
+RENDER_PROC( int, BindEventToKey )( PRENDERER pRenderer, uint32_t scancode, uint32_t modifier, KeyTriggerHandler trigger, uintptr_t psv );
 /* Remove a previous binding to a key.
    Parameters
    pRenderer :  renderer to remove the key bind from
    scancode :   key scancode to stop checking
    modifier :   key modifier to stop checking        */
-RENDER_PROC( int, UnbindKey )( PRENDERER pRenderer, _32 scancode, _32 modifier );
+RENDER_PROC( int, UnbindKey )( PRENDERER pRenderer, uint32_t scancode, uint32_t modifier );
 
 /* A way to test to see if the current input device is a touch
    display. This can affect how mouse clicks are handles for
@@ -1163,11 +1163,11 @@ RENDER_NAMESPACE
    Note
    Has fallen into disrepair, and may need work before sprites
    work this way.                                               */
-RENDER_PROC( PSPRITE_METHOD, EnableSpriteMethod )(PRENDERER render, void(CPROC*RenderSprites)(PTRSZVAL psv, PRENDERER renderer, S_32 x, S_32 y, _32 w, _32 h ), PTRSZVAL psv );
+RENDER_PROC( PSPRITE_METHOD, EnableSpriteMethod )(PRENDERER render, void(CPROC*RenderSprites)(uintptr_t psv, PRENDERER renderer, int32_t x, int32_t y, uint32_t w, uint32_t h ), uintptr_t psv );
 
 /* signature for callback method to pass to
    WinShell_AcceptDroppedFiles.             */
-typedef LOGICAL (CPROC*dropped_file_acceptor)(PTRSZVAL psv, CTEXTSTR filename, S_32 x, S_32 y );
+typedef LOGICAL (CPROC*dropped_file_acceptor)(uintptr_t psv, CTEXTSTR filename, int32_t x, int32_t y );
 /* Adds a callback to call when a file is dropped. Each callback
    can return 0 that it did not accept the file, or 1 that it
    did. once the file is accepted by a handler, it is not passed
@@ -1176,7 +1176,7 @@ typedef LOGICAL (CPROC*dropped_file_acceptor)(PTRSZVAL psv, CTEXTSTR filename, S
    renderer :  display to handle dropped files for
    f :         callback to acceptor
    psvUser :   user data passed to acceptor when it is invoked   */
-RENDER_PROC( void, WinShell_AcceptDroppedFiles )( PRENDERER renderer, dropped_file_acceptor f, PTRSZVAL psvUser );
+RENDER_PROC( void, WinShell_AcceptDroppedFiles )( PRENDERER renderer, dropped_file_acceptor f, uintptr_t psvUser );
 
 /* Enables a timer on the mouse to hide the cursor after a
    second that the mouse is not being moved.
@@ -1204,28 +1204,28 @@ RENDER_PROC( void, SetDisplayNoMouse )( PRENDERER hVideo, int bNoMouse );
 	RENDER_PROC( HWND, GetNativeHandle )( PRENDERER video );
 #endif
 
-/* <combine sack::image::render::OwnMouseEx@PRENDERER@_32 bOwn>
+/* <combine sack::image::render::OwnMouseEx@PRENDERER@uint32_t bOwn>
    
    \ \                                                          */
 #define OwnMouse(d,o) OwnMouseEx( d, o DBG_SRC )
 
-/* <combine sack::image::render::OpenDisplaySizedAt@_32@_32@_32@S_32@S_32>
+/* <combine sack::image::render::OpenDisplaySizedAt@uint32_t@uint32_t@uint32_t@int32_t@int32_t>
    
    \ \                                                                     */
 #define OpenDisplay(a)            OpenDisplaySizedAt(a,-1,-1,-1,-1)
-/* <combine sack::image::render::OpenDisplaySizedAt@_32@_32@_32@S_32@S_32>
+/* <combine sack::image::render::OpenDisplaySizedAt@uint32_t@uint32_t@uint32_t@int32_t@int32_t>
    
    \ \                                                                     */
 #define OpenDisplaySized(a,w,h)   OpenDisplaySizedAt(a,w,h,-1,-1)
-/* <combine sack::image::render::OpenDisplayAboveSizedAt@_32@_32@_32@S_32@S_32@PRENDERER>
+/* <combine sack::image::render::OpenDisplayAboveSizedAt@uint32_t@uint32_t@uint32_t@int32_t@int32_t@PRENDERER>
    
    \ \                                                                                    */
 #define OpenDisplayAbove(p,a)            OpenDisplayAboveSizedAt(p,-1,-1,-1,-1,a)
-/* <combine sack::image::render::OpenDisplayAboveSizedAt@_32@_32@_32@S_32@S_32@PRENDERER>
+/* <combine sack::image::render::OpenDisplayAboveSizedAt@uint32_t@uint32_t@uint32_t@int32_t@int32_t@PRENDERER>
    
    \ \                                                                                    */
 #define OpenDisplayAboveSized(p,a,w,h)   OpenDisplayAboveSizedAt(p,w,h,-1,-1,a)
-/* <combine sack::image::render::OpenDisplayAboveUnderSizedAt@_32@_32@_32@S_32@S_32@PRENDERER@PRENDERER>
+/* <combine sack::image::render::OpenDisplayAboveUnderSizedAt@uint32_t@uint32_t@uint32_t@int32_t@int32_t@PRENDERER@PRENDERER>
    
    \ \                                                                                                   */
 #define OpenDisplayUnderSizedAt(p,a,w,h,x,y) OpenDisplayAboveUnderSizedAt(a,w,h,x,y,NULL,p) 
@@ -1277,63 +1277,63 @@ struct render_interface_tag
                                                     
                                                     \ \                                                     */
        RENDER_PROC_PTR( void , SetApplicationIcon)  (Image Icon); 
-    /* <combine sack::image::render::GetDisplaySize@_32 *@_32 *>
+    /* <combine sack::image::render::GetDisplaySize@uint32_t *@uint32_t *>
        
        \ \                                                       */
-    RENDER_PROC_PTR( void , GetDisplaySize)      ( _32 *width, _32 *height );
-    /* <combine sack::image::render::SetDisplaySize@_32@_32>
+    RENDER_PROC_PTR( void , GetDisplaySize)      ( uint32_t *width, uint32_t *height );
+    /* <combine sack::image::render::SetDisplaySize@uint32_t@uint32_t>
        
        \ \                                                   */
-    RENDER_PROC_PTR( void , SetDisplaySize)      ( _32 width, _32 height );
+    RENDER_PROC_PTR( void , SetDisplaySize)      ( uint32_t width, uint32_t height );
 
-    /* <combine sack::image::render::OpenDisplaySizedAt@_32@_32@_32@S_32@S_32>
+    /* <combine sack::image::render::OpenDisplaySizedAt@uint32_t@uint32_t@uint32_t@int32_t@int32_t>
        
        \ \                                                                     */
-    RENDER_PROC_PTR( PRENDERER , OpenDisplaySizedAt)     ( _32 attributes, _32 width, _32 height, S_32 x, S_32 y );
-    /* <combine sack::image::render::OpenDisplayAboveSizedAt@_32@_32@_32@S_32@S_32@PRENDERER>
+    RENDER_PROC_PTR( PRENDERER , OpenDisplaySizedAt)     ( uint32_t attributes, uint32_t width, uint32_t height, int32_t x, int32_t y );
+    /* <combine sack::image::render::OpenDisplayAboveSizedAt@uint32_t@uint32_t@uint32_t@int32_t@int32_t@PRENDERER>
        
        \ \                                                                                    */
-    RENDER_PROC_PTR( PRENDERER , OpenDisplayAboveSizedAt)( _32 attributes, _32 width, _32 height, S_32 x, S_32 y, PRENDERER above );
+    RENDER_PROC_PTR( PRENDERER , OpenDisplayAboveSizedAt)( uint32_t attributes, uint32_t width, uint32_t height, int32_t x, int32_t y, PRENDERER above );
     /* <combine sack::image::render::CloseDisplay@PRENDERER>
        
        \ \                                                   */
     RENDER_PROC_PTR( void        , CloseDisplay) ( PRENDERER );
 
-    /* <combine sack::image::render::UpdateDisplayPortionEx@PRENDERER@S_32@S_32@_32@_32 height>
+    /* <combine sack::image::render::UpdateDisplayPortionEx@PRENDERER@int32_t@int32_t@uint32_t@uint32_t height>
        
        \ \                                                                                      */
-    RENDER_PROC_PTR( void, UpdateDisplayPortionEx) ( PRENDERER, S_32 x, S_32 y, _32 width, _32 height DBG_PASS );
+    RENDER_PROC_PTR( void, UpdateDisplayPortionEx) ( PRENDERER, int32_t x, int32_t y, uint32_t width, uint32_t height DBG_PASS );
     /* <combine sack::image::render::UpdateDisplayEx@PRENDERER>
        
        \ \                                                      */
     RENDER_PROC_PTR( void, UpdateDisplayEx)        ( PRENDERER DBG_PASS);
                              
-    /* <combine sack::image::render::GetDisplayPosition@PRENDERER@S_32 *@S_32 *@_32 *@_32 *>
+    /* <combine sack::image::render::GetDisplayPosition@PRENDERER@int32_t *@int32_t *@uint32_t *@uint32_t *>
        
        \ \                                                                                   */
-    RENDER_PROC_PTR( void, GetDisplayPosition)   ( PRENDERER, S_32 *x, S_32 *y, _32 *width, _32 *height );
-    /* <combine sack::image::render::MoveDisplay@PRENDERER@S_32@S_32>
+    RENDER_PROC_PTR( void, GetDisplayPosition)   ( PRENDERER, int32_t *x, int32_t *y, uint32_t *width, uint32_t *height );
+    /* <combine sack::image::render::MoveDisplay@PRENDERER@int32_t@int32_t>
        
        \ \                                                            */
-    RENDER_PROC_PTR( void, MoveDisplay)          ( PRENDERER, S_32 x, S_32 y );
-    /* <combine sack::image::render::MoveDisplayRel@PRENDERER@S_32@S_32>
+    RENDER_PROC_PTR( void, MoveDisplay)          ( PRENDERER, int32_t x, int32_t y );
+    /* <combine sack::image::render::MoveDisplayRel@PRENDERER@int32_t@int32_t>
        
        \ \                                                               */
-    RENDER_PROC_PTR( void, MoveDisplayRel)       ( PRENDERER, S_32 delx, S_32 dely );
-    /* <combine sack::image::render::SizeDisplay@PRENDERER@_32@_32>
+    RENDER_PROC_PTR( void, MoveDisplayRel)       ( PRENDERER, int32_t delx, int32_t dely );
+    /* <combine sack::image::render::SizeDisplay@PRENDERER@uint32_t@uint32_t>
        
        \ \                                                          */
-    RENDER_PROC_PTR( void, SizeDisplay)          ( PRENDERER, _32 w, _32 h );
-    /* <combine sack::image::render::SizeDisplayRel@PRENDERER@S_32@S_32>
+    RENDER_PROC_PTR( void, SizeDisplay)          ( PRENDERER, uint32_t w, uint32_t h );
+    /* <combine sack::image::render::SizeDisplayRel@PRENDERER@int32_t@int32_t>
        
        \ \                                                               */
-    RENDER_PROC_PTR( void, SizeDisplayRel)       ( PRENDERER, S_32 delw, S_32 delh );
-    /* <combine sack::image::render::MoveSizeDisplayRel@PRENDERER@S_32@S_32@S_32@S_32>
+    RENDER_PROC_PTR( void, SizeDisplayRel)       ( PRENDERER, int32_t delw, int32_t delh );
+    /* <combine sack::image::render::MoveSizeDisplayRel@PRENDERER@int32_t@int32_t@int32_t@int32_t>
        
        \ \                                                                             */
     RENDER_PROC_PTR( void, MoveSizeDisplayRel )  ( PRENDERER hVideo
-                                                 , S_32 delx, S_32 dely
-                                                 , S_32 delw, S_32 delh );
+                                                 , int32_t delx, int32_t dely
+                                                 , int32_t delw, int32_t delh );
     RENDER_PROC_PTR( void, PutDisplayAbove)      ( PRENDERER, PRENDERER ); /* <combine sack::image::render::PutDisplayAbove@PRENDERER@PRENDERER>
                                                               
                                                               \ \                                                                */
@@ -1343,42 +1343,42 @@ struct render_interface_tag
        \ \                                                      */
     RENDER_PROC_PTR( Image, GetDisplayImage)     ( PRENDERER );
 
-    /* <combine sack::image::render::SetCloseHandler@PRENDERER@CloseCallback@PTRSZVAL>
+    /* <combine sack::image::render::SetCloseHandler@PRENDERER@CloseCallback@uintptr_t>
        
        \ \                                                                             */
-    RENDER_PROC_PTR( void, SetCloseHandler)      ( PRENDERER, CloseCallback, PTRSZVAL );
-    /* <combine sack::image::render::SetMouseHandler@PRENDERER@MouseCallback@PTRSZVAL>
+    RENDER_PROC_PTR( void, SetCloseHandler)      ( PRENDERER, CloseCallback, uintptr_t );
+    /* <combine sack::image::render::SetMouseHandler@PRENDERER@MouseCallback@uintptr_t>
        
        \ \                                                                             */
-    RENDER_PROC_PTR( void, SetMouseHandler)      ( PRENDERER, MouseCallback, PTRSZVAL );
-    /* <combine sack::image::render::SetRedrawHandler@PRENDERER@RedrawCallback@PTRSZVAL>
+    RENDER_PROC_PTR( void, SetMouseHandler)      ( PRENDERER, MouseCallback, uintptr_t );
+    /* <combine sack::image::render::SetRedrawHandler@PRENDERER@RedrawCallback@uintptr_t>
        
        \ \                                                                               */
-    RENDER_PROC_PTR( void, SetRedrawHandler)     ( PRENDERER, RedrawCallback, PTRSZVAL );
-    /* <combine sack::image::render::SetKeyboardHandler@PRENDERER@KeyProc@PTRSZVAL>
+    RENDER_PROC_PTR( void, SetRedrawHandler)     ( PRENDERER, RedrawCallback, uintptr_t );
+    /* <combine sack::image::render::SetKeyboardHandler@PRENDERER@KeyProc@uintptr_t>
        
        \ \                                                                          */
-    RENDER_PROC_PTR( void, SetKeyboardHandler)   ( PRENDERER, KeyProc, PTRSZVAL );
-    /* <combine sack::image::render::SetLoseFocusHandler@PRENDERER@LoseFocusCallback@PTRSZVAL>
+    RENDER_PROC_PTR( void, SetKeyboardHandler)   ( PRENDERER, KeyProc, uintptr_t );
+    /* <combine sack::image::render::SetLoseFocusHandler@PRENDERER@LoseFocusCallback@uintptr_t>
        
        \ \                                                                                     */
-    RENDER_PROC_PTR( void, SetLoseFocusHandler)  ( PRENDERER, LoseFocusCallback, PTRSZVAL );
-    /* <combine sack::image::render::SetDefaultHandler@PRENDERER@GeneralCallback@PTRSZVAL>
+    RENDER_PROC_PTR( void, SetLoseFocusHandler)  ( PRENDERER, LoseFocusCallback, uintptr_t );
+    /* <combine sack::image::render::SetDefaultHandler@PRENDERER@GeneralCallback@uintptr_t>
        
        \ \                                                                                 */
 #if ACTIVE_MESSAGE_IMPLEMENTED
-			 RENDER_PROC_PTR( void, SetDefaultHandler)    ( PRENDERER, GeneralCallback, PTRSZVAL );
+			 RENDER_PROC_PTR( void, SetDefaultHandler)    ( PRENDERER, GeneralCallback, uintptr_t );
 #else
        POINTER junk1;
 #endif
-    /* <combine sack::image::render::GetMousePosition@S_32 *@S_32 *>
+    /* <combine sack::image::render::GetMousePosition@int32_t *@int32_t *>
        
 		 \ \                                                           */
-    RENDER_PROC_PTR( void, GetMousePosition)     ( S_32 *x, S_32 *y );
-    /* <combine sack::image::render::SetMousePosition@PRENDERER@S_32@S_32>
+    RENDER_PROC_PTR( void, GetMousePosition)     ( int32_t *x, int32_t *y );
+    /* <combine sack::image::render::SetMousePosition@PRENDERER@int32_t@int32_t>
        
        \ \                                                                 */
-    RENDER_PROC_PTR( void, SetMousePosition)     ( PRENDERER, S_32 x, S_32 y );
+    RENDER_PROC_PTR( void, SetMousePosition)     ( PRENDERER, int32_t x, int32_t y );
 
     /* <combine sack::image::render::HasFocus@PRENDERER>
        
@@ -1392,35 +1392,35 @@ struct render_interface_tag
     /* <combine sack::image::render::IsKeyDown@PRENDERER@int>
        
        \ \                                                    */
-    RENDER_PROC_PTR( _32, IsKeyDown )        ( PRENDERER display, int key );
+    RENDER_PROC_PTR( uint32_t, IsKeyDown )        ( PRENDERER display, int key );
     /* <combine sack::image::render::KeyDown@PRENDERER@int>
        
        \ \                                                  */
-    RENDER_PROC_PTR( _32, KeyDown )         ( PRENDERER display, int key );
+    RENDER_PROC_PTR( uint32_t, KeyDown )         ( PRENDERER display, int key );
     /* <combine sack::image::render::DisplayIsValid@PRENDERER>
        
        \ \                                                     */
     RENDER_PROC_PTR( LOGICAL, DisplayIsValid )  ( PRENDERER display );
-    /* <combine sack::image::render::OwnMouseEx@PRENDERER@_32 bOwn>
+    /* <combine sack::image::render::OwnMouseEx@PRENDERER@uint32_t bOwn>
        
        \ \                                                          */
-    RENDER_PROC_PTR( void, OwnMouseEx )            ( PRENDERER display, _32 Own DBG_PASS);
-    /* <combine sack::image::render::BeginCalibration@_32>
+    RENDER_PROC_PTR( void, OwnMouseEx )            ( PRENDERER display, uint32_t Own DBG_PASS);
+    /* <combine sack::image::render::BeginCalibration@uint32_t>
        
        \ \                                                 */
-    RENDER_PROC_PTR( int, BeginCalibration )       ( _32 points );
+    RENDER_PROC_PTR( int, BeginCalibration )       ( uint32_t points );
     /* <combine sack::image::render::SyncRender@PRENDERER>
        
        \ \                                                 */
     RENDER_PROC_PTR( void, SyncRender )            ( PRENDERER pDisplay );
     /* DEPRICATED; left in structure for compatibility.  Removed define and export definition. */
 
-	 /* <combine sack::image::render::MoveSizeDisplay@PRENDERER@S_32@S_32@S_32@S_32>
+	 /* <combine sack::image::render::MoveSizeDisplay@PRENDERER@int32_t@int32_t@int32_t@int32_t>
 	    
 	    \ \                                                                          */
 	 RENDER_PROC_PTR( void, MoveSizeDisplay )( PRENDERER hVideo
-                                        , S_32 x, S_32 y
-                                        , S_32 w, S_32 h );
+                                        , int32_t x, int32_t y
+                                        , int32_t w, int32_t h );
    /* <combine sack::image::render::MakeTopmost@PRENDERER>
       
       \ \                                                  */
@@ -1447,14 +1447,14 @@ struct render_interface_tag
 	   \ \                                                       */
 	RENDER_PROC_PTR( void, ForceDisplayBack )( PRENDERER display );
 
-	/* <combine sack::image::render::BindEventToKey@PRENDERER@_32@_32@KeyTriggerHandler@PTRSZVAL>
+	/* <combine sack::image::render::BindEventToKey@PRENDERER@uint32_t@uint32_t@KeyTriggerHandler@uintptr_t>
 	   
 	   \ \                                                                                        */
-	RENDER_PROC_PTR( int, BindEventToKey )( PRENDERER pRenderer, _32 scancode, _32 modifier, KeyTriggerHandler trigger, PTRSZVAL psv );
-	/* <combine sack::image::render::UnbindKey@PRENDERER@_32@_32>
+	RENDER_PROC_PTR( int, BindEventToKey )( PRENDERER pRenderer, uint32_t scancode, uint32_t modifier, KeyTriggerHandler trigger, uintptr_t psv );
+	/* <combine sack::image::render::UnbindKey@PRENDERER@uint32_t@uint32_t>
 	   
 	   \ \                                                        */
-	RENDER_PROC_PTR( int, UnbindKey )( PRENDERER pRenderer, _32 scancode, _32 modifier );
+	RENDER_PROC_PTR( int, UnbindKey )( PRENDERER pRenderer, uint32_t scancode, uint32_t modifier );
 	/* <combine sack::image::render::IsTopmost@PRENDERER>
 	   
 	   \ \                                                */
@@ -1472,18 +1472,18 @@ struct render_interface_tag
       
       \ \                                           */
    RENDER_PROC_PTR( int, IsTouchDisplay )( void );
-	/* <combine sack::image::render::GetMouseState@S_32 *@S_32 *@_32 *>
+	/* <combine sack::image::render::GetMouseState@int32_t *@int32_t *@uint32_t *>
 	   
 	   \ \                                                              */
-	RENDER_PROC_PTR( void , GetMouseState )        ( S_32 *x, S_32 *y, _32 *b );
-	/* <combine sack::image::render::EnableSpriteMethod@PRENDERER@void__cdecl*RenderSpritesPTRSZVAL psv\, PRENDERER renderer\, S_32 x\, S_32 y\, _32 w\, _32 h@PTRSZVAL>
+	RENDER_PROC_PTR( void , GetMouseState )        ( int32_t *x, int32_t *y, uint32_t *b );
+	/* <combine sack::image::render::EnableSpriteMethod@PRENDERER@void__cdecl*RenderSpritesPTRSZVAL psv\, PRENDERER renderer\, int32_t x\, int32_t y\, uint32_t w\, uint32_t h@uintptr_t>
 	   
 	   \ \                                                                                                                                                               */
-	RENDER_PROC_PTR ( PSPRITE_METHOD, EnableSpriteMethod )(PRENDERER render, void(CPROC*RenderSprites)(PTRSZVAL psv, PRENDERER renderer, S_32 x, S_32 y, _32 w, _32 h ), PTRSZVAL psv );
-	/* <combine sack::image::render::WinShell_AcceptDroppedFiles@PRENDERER@dropped_file_acceptor@PTRSZVAL>
+	RENDER_PROC_PTR ( PSPRITE_METHOD, EnableSpriteMethod )(PRENDERER render, void(CPROC*RenderSprites)(uintptr_t psv, PRENDERER renderer, int32_t x, int32_t y, uint32_t w, uint32_t h ), uintptr_t psv );
+	/* <combine sack::image::render::WinShell_AcceptDroppedFiles@PRENDERER@dropped_file_acceptor@uintptr_t>
 	   
 	   \ \                                                                                                 */
-	RENDER_PROC_PTR( void, WinShell_AcceptDroppedFiles )( PRENDERER renderer, dropped_file_acceptor f, PTRSZVAL psvUser );
+	RENDER_PROC_PTR( void, WinShell_AcceptDroppedFiles )( PRENDERER renderer, dropped_file_acceptor f, uintptr_t psvUser );
 	/* <combine sack::image::render::PutDisplayIn@PRENDERER@PRENDERER>
 	   
 	   \ \                                                             */
@@ -1504,10 +1504,10 @@ struct render_interface_tag
 	   
 	   \ \                                                                 */
 	RENDER_PROC_PTR (void, DisableMouseOnIdle) (PRENDERER hVideo, LOGICAL bEnable );
-	/* <combine sack::image::render::OpenDisplayAboveUnderSizedAt@_32@_32@_32@S_32@S_32@PRENDERER@PRENDERER>
+	/* <combine sack::image::render::OpenDisplayAboveUnderSizedAt@uint32_t@uint32_t@uint32_t@int32_t@int32_t@PRENDERER@PRENDERER>
 	   
 	   \ \                                                                                                   */
-	RENDER_PROC_PTR( PRENDERER, OpenDisplayAboveUnderSizedAt)( _32 attributes, _32 width, _32 height, S_32 x, S_32 y, PRENDERER above, PRENDERER under );
+	RENDER_PROC_PTR( PRENDERER, OpenDisplayAboveUnderSizedAt)( uint32_t attributes, uint32_t width, uint32_t height, int32_t x, int32_t y, PRENDERER above, PRENDERER under );
 	/* <combine sack::image::render::SetDisplayNoMouse@PRENDERER@int>
 	   
 	   \ \                                                            */
@@ -1534,12 +1534,12 @@ struct render_interface_tag
 	   \ \                                                      */
 	RENDER_PROC_PTR( HWND, GetNativeHandle )( PRENDERER video );
 #endif
-		 /* <combine sack::image::render::GetDisplaySizeEx@int@S_32 *@S_32 *@_32 *@_32 *>
+		 /* <combine sack::image::render::GetDisplaySizeEx@int@int32_t *@int32_t *@uint32_t *@uint32_t *>
 		    
 		    \ \                                                                           */
 		 RENDER_PROC_PTR (void, GetDisplaySizeEx) ( int nDisplay
-														  , S_32 *x, S_32 *y
-														  , _32 *width, _32 *height);
+														  , int32_t *x, int32_t *y
+														  , uint32_t *width, uint32_t *height);
 
 	/* Locks a video display. Applications shouldn't be locking
 	   this, but if for some reason they require it; use this
@@ -1550,7 +1550,7 @@ struct render_interface_tag
 	RENDER_PROC_PTR( void, UnlockRenderer )( PRENDERER render );
 	/* Provides a way for applications to cause the window to flush
 	   to the display (if it's a transparent window)                */
-	RENDER_PROC_PTR( void, IssueUpdateLayeredEx )( PRENDERER hVideo, LOGICAL bContent, S_32 x, S_32 y, _32 w, _32 h DBG_PASS );
+	RENDER_PROC_PTR( void, IssueUpdateLayeredEx )( PRENDERER hVideo, LOGICAL bContent, int32_t x, int32_t y, uint32_t w, uint32_t h DBG_PASS );
 	/* Check to see if the render mode is always redraw; changes how
 	   smudge works in PSI. If always redrawn, then the redraw isn't
 	   done during the smudge, and instead is delayed until a draw
@@ -1562,20 +1562,20 @@ struct render_interface_tag
 	RENDER_PROC_PTR( LOGICAL, RequiresDrawAll )( void );
 #ifndef NO_TOUCH
 		/* <combine sack::image::render::SetTouchHandler@PRENDERER@fte inc asdfl;kj
-		 fteTouchCallback@PTRSZVAL>
+		 fteTouchCallback@uintptr_t>
        
        \ \                                                                             */
-			RENDER_PROC_PTR( void, SetTouchHandler)      ( PRENDERER, TouchCallback, PTRSZVAL );
+			RENDER_PROC_PTR( void, SetTouchHandler)      ( PRENDERER, TouchCallback, uintptr_t );
 #endif
     RENDER_PROC_PTR( void, MarkDisplayUpdated )( PRENDERER );
-    /* <combine sack::image::render::SetHideHandler@PRENDERER@HideAndRestoreCallback@PTRSZVAL>
+    /* <combine sack::image::render::SetHideHandler@PRENDERER@HideAndRestoreCallback@uintptr_t>
        
        \ \                                                                             */
-    RENDER_PROC_PTR( void, SetHideHandler)      ( PRENDERER, HideAndRestoreCallback, PTRSZVAL );
-    /* <combine sack::image::render::SetRestoreHandler@PRENDERER@HideAndRestoreCallback@PTRSZVAL>
+    RENDER_PROC_PTR( void, SetHideHandler)      ( PRENDERER, HideAndRestoreCallback, uintptr_t );
+    /* <combine sack::image::render::SetRestoreHandler@PRENDERER@HideAndRestoreCallback@uintptr_t>
        
        \ \                                                                             */
-    RENDER_PROC_PTR( void, SetRestoreHandler)      ( PRENDERER, HideAndRestoreCallback, PTRSZVAL );
+    RENDER_PROC_PTR( void, SetRestoreHandler)      ( PRENDERER, HideAndRestoreCallback, uintptr_t );
 		 RENDER_PROC_PTR( void, RestoreDisplayEx )   ( PRENDERER hVideo DBG_PASS );
 		 /* added for android extensions; call to enable showing the keyboard in the correct thread
         ; may have applications for windows tablets 
@@ -1834,12 +1834,12 @@ typedef int check_this_variable;
 #endif
 #endif
 
-// static void OnDisplayChangedSize( WIDE("") )( PRENDERER, int nDisplay, _32 x, _32 y, _32 width, _32 height )
+// static void OnDisplayChangedSize( WIDE("") )( PRENDERER, int nDisplay, uint32_t x, uint32_t y, uint32_t width, uint32_t height )
 	// OnDisplayPause is called on systems that allow the application to suspend its display.
 	// Sleep mode may also trigger such an event, allows application to save state
    // a media player, for instance, may recover unplayed buffers to prepare for resume
 #define OnDisplaySizeChange(name) \
-	__DefineRegistryMethod(WIDE("sack/render"),OnDisplaySizeChange,WIDE("display"),name,WIDE("on_display_size_change"),void,( PTRSZVAL psv_redraw, int nDisplay, S_32 x, S_32 y, _32 width, _32 height ),__LINE__)
+	__DefineRegistryMethod(WIDE("sack/render"),OnDisplaySizeChange,WIDE("display"),name,WIDE("on_display_size_change"),void,( uintptr_t psv_redraw, int nDisplay, int32_t x, int32_t y, uint32_t width, uint32_t height ),__LINE__)
 
 // static void OnDisplayPause( WIDE("") )( void )
 	// OnDisplayPause is called on systems that allow the application to suspend its display.

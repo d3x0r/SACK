@@ -263,7 +263,7 @@
    PSI_PROC( int, Config##name)( PSI_CONTROL );  \
 	/*PSI_PROC( PSI_CONTROL, Make##name )( PSI_CONTROL pFrame, int attr */ \
 	/*, int x, int y, int w, int h*/ \
-	/*, PTRSZVAL nID, ... ); */
+	/*, uintptr_t nID, ... ); */
 #define CAPTIONED_CONTROL_PROC( name,_args )  \
 	PSI_PROC( PSI_CONTROL, Get##name##PropertyPage )( PSI_CONTROL pc ); \
 	PSI_PROC( void, Apply##name##PropertyPage )( PSI_CONTROL pc, PSI_CONTROL page ); \

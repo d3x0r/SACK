@@ -7,7 +7,7 @@
 
 typedef struct include_reference_tag {
 	struct {
-      _32 bMacros;
+      uint32_t bMacros;
 	} flags;
    char *name;
 } INCLUDE_REF, *PINCLUDE_REF;
@@ -16,25 +16,25 @@ typedef struct include_reference_tag {
 typedef struct global_tag
 {
 	struct {
-		_32 do_trigraph : 1;
-		_32 bWriteLine : 1;
-		_32 bLineUsesLineKeyword : 1;
-		_32 bNoOutput : 1; // when -imacro is used...
-		_32 bAllWarnings : 1; // enable normally harmless warnings.
-		_32 bEmitUnknownPragma : 1;
-		_32 bForceBackslash : 1;
-		_32 bForceForeslash : 1;
-		_32 bStdout : 1;
-		_32 keep_comments : 1;
-		_32 keep_includes : 1;
-		_32 bWriteLineInfo : 1;
-		_32 load_once : 1;
-		_32 bSkipSystemIncludeOut : 1;// don't output system include headers
-		_32 bIncludedLastFile : 1; // a status of the last processinclude
-		_32 doing_system_file : 1;
-		_32 skip_define_processing : 1;
-		_32 skip_logic_processing : 1;
-		_32 config_loaded : 1;
+		uint32_t do_trigraph : 1;
+		uint32_t bWriteLine : 1;
+		uint32_t bLineUsesLineKeyword : 1;
+		uint32_t bNoOutput : 1; // when -imacro is used...
+		uint32_t bAllWarnings : 1; // enable normally harmless warnings.
+		uint32_t bEmitUnknownPragma : 1;
+		uint32_t bForceBackslash : 1;
+		uint32_t bForceForeslash : 1;
+		uint32_t bStdout : 1;
+		uint32_t keep_comments : 1;
+		uint32_t keep_includes : 1;
+		uint32_t bWriteLineInfo : 1;
+		uint32_t load_once : 1;
+		uint32_t bSkipSystemIncludeOut : 1;// don't output system include headers
+		uint32_t bIncludedLastFile : 1; // a status of the last processinclude
+		uint32_t doing_system_file : 1;
+		uint32_t skip_define_processing : 1;
+		uint32_t skip_logic_processing : 1;
+		uint32_t config_loaded : 1;
 	} flags;
 	FILE *output;
 
@@ -43,7 +43,7 @@ typedef struct global_tag
 	char pExecName[256];
    char pWorkPath[256];
    DECLTEXTSZ( pCurrentPath, 256 );
-   _32 ErrorCount;
+   uint32_t ErrorCount;
 	/******************************/
 
 	PLIST pSysIncludePath; // list of paths to search includes for...

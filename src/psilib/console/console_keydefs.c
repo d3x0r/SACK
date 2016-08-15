@@ -987,7 +987,7 @@ int KeyHome( void * list, PUSER_INPUT_BUFFER pci )
 
 //----------------------------------------------------------------------------
 
-int KeyEndCmd( PTRSZVAL list, PUSER_INPUT_BUFFER pci )
+int KeyEndCmd( uintptr_t list, PUSER_INPUT_BUFFER pci )
 {
 	SetUserInputPosition( pci, -1, COMMAND_POS_SET );
 	return UPDATE_COMMAND;
@@ -1019,7 +1019,7 @@ int KeyLeft( void * list, PUSER_INPUT_BUFFER pci )
 
 //----------------------------------------------------------------------------
 
-int KeyShift( P_32 pKeyState, LOGICAL bDown )
+int KeyShift( uint32_t* pKeyState, LOGICAL bDown )
 {
    if( bDown )
    {
@@ -1034,7 +1034,7 @@ int KeyShift( P_32 pKeyState, LOGICAL bDown )
 
 //----------------------------------------------------------------------------
 
-int KeyControl( P_32 pKeyState, LOGICAL bDown )
+int KeyControl( uint32_t* pKeyState, LOGICAL bDown )
 {
    if( bDown )
    {
@@ -1049,7 +1049,7 @@ int KeyControl( P_32 pKeyState, LOGICAL bDown )
 
 //----------------------------------------------------------------------------
 
-int KeyAlt( P_32 pKeyState, LOGICAL bDown )
+int KeyAlt( uint32_t* pKeyState, LOGICAL bDown )
 {
    if( bDown )
    {
@@ -1434,8 +1434,8 @@ int PSI_DoStroke( PCONSOLE_INFO pdp, PTEXT stroke )
 //----------------------------------------------------------------------------
 
 void PSI_KeyPressHandler( PCONSOLE_INFO pdp
-						  , _8 key_index
-						  , _8 mod
+						  , uint8_t key_index
+						  , uint8_t mod
 						  , PTEXT characters
 						  )
 {
@@ -1498,7 +1498,7 @@ void PSI_KeyPressHandler( PCONSOLE_INFO pdp
 			result = UPDATE_NOTHING; // already taken care of?!
 			break;
 		case COMMANDKEY:
-			result = ConsoleKeyDefs[key_index].op[mod].data.CommandKey( (PTRSZVAL)pdp, pdp->
+			result = ConsoleKeyDefs[key_index].op[mod].data.CommandKey( (uintptr_t)pdp, pdp->
 #ifdef __DEKWARE_PLUGIN__
 																				 common.
 #endif

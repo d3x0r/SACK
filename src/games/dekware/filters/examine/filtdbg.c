@@ -14,9 +14,9 @@ static int myTypeID;
 typedef struct mydatapath_tag {
    DATAPATH common;
    struct {
-   	_32 bInput : 1;
-   	_32 bOutput : 1;
-		_32 bLog : 1;
+   	uint32_t bInput : 1;
+   	uint32_t bOutput : 1;
+		uint32_t bLog : 1;
    } flags;
    PLINKQUEUE input;
 } MYDATAPATH, *PMYDATAPATH;
@@ -93,7 +93,7 @@ static void BuildTextFlags( PVARTEXT vt, PTEXT pSeg )
 	if( pSeg->flags & TF_PROMPT )
 		vtprintf( vt, WIDE("Prompt ") );
 	if( pSeg->flags & TF_PLUGIN )
-		vtprintf( vt, WIDE("Plugin=%02x "), (_8)(( pSeg->flags >> 26 ) & 0x3f ) );
+		vtprintf( vt, WIDE("Plugin=%02x "), (uint8_t)(( pSeg->flags >> 26 ) & 0x3f ) );
 	
 	if( (pSeg->flags & TF_FORMATABS ) )
 		vtprintf( vt, WIDE("Pos:%d,%d ")

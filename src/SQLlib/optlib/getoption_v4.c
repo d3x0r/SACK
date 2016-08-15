@@ -107,7 +107,7 @@ CTEXTSTR New4ReadOptionNameTable( POPTION_TREE tree, CTEXTSTR name, CTEXTSTR tab
 			{
 				// instead of strdup, consider here using SaveName from procreg?
 				AddBinaryNode( GetTableCache(tree->odbc,table), (POINTER)IDName
-								 , (PTRSZVAL)SaveText( name ) );
+								 , (uintptr_t)SaveText( name ) );
 			}
 			return IDName;
 }
@@ -115,7 +115,7 @@ CTEXTSTR New4ReadOptionNameTable( POPTION_TREE tree, CTEXTSTR name, CTEXTSTR tab
 
 //------------------------------------------------------------------------
 
-LOGICAL CPROC LogProcessNode( PTRSZVAL psvForeach, PTRSZVAL psvNodeData, int level )
+LOGICAL CPROC LogProcessNode( uintptr_t psvForeach, uintptr_t psvNodeData, int level )
 {
 	POPTION_TREE_NODE nodeval = (POPTION_TREE_NODE)psvNodeData;
 	lprintf( WIDE("%d %s"), level, nodeval->name );
@@ -216,7 +216,7 @@ POPTION_TREE_NODE New4GetOptionIndexExxx( PODBC odbc, POPTION_TREE tree, POPTION
 #endif
 		//DumpFamilyTree( tree->option_tree );
 		{
-			POPTION_TREE_NODE node = (POPTION_TREE_NODE)FamilyTreeFindChild( tree->option_tree, (PTRSZVAL)namebuf );
+			POPTION_TREE_NODE node = (POPTION_TREE_NODE)FamilyTreeFindChild( tree->option_tree, (uintptr_t)namebuf );
 			if( node )
 			{
 #ifdef DETAILED_LOGGING
@@ -292,7 +292,7 @@ POPTION_TREE_NODE New4GetOptionIndexExxx( PODBC odbc, POPTION_TREE tree, POPTION
 						new_node->name_guid = IDName;
 						new_node->name = SaveText( namebuf );
 						new_node->value = NULL;
-						new_node->node = FamilyTreeAddChild( &tree->option_tree, new_node, (PTRSZVAL)new_node->name );
+						new_node->node = FamilyTreeAddChild( &tree->option_tree, new_node, (uintptr_t)new_node->name );
 						//lprintf( "New parent has been created in the tree... %p %s", new_node, new_node->guid );
 						parent = new_node;
 					}
@@ -319,7 +319,7 @@ POPTION_TREE_NODE New4GetOptionIndexExxx( PODBC odbc, POPTION_TREE tree, POPTION
 				new_node->name_guid = IDName;
 				new_node->name = SaveText( namebuf );
 				new_node->value = NULL;
-				new_node->node = FamilyTreeAddChild( &tree->option_tree, new_node, (PTRSZVAL)new_node->name );
+				new_node->node = FamilyTreeAddChild( &tree->option_tree, new_node, (uintptr_t)new_node->name );
 
 				//lprintf( "New parent has been created in the tree...2 %p %s", new_node, new_node->guid );
 				parent = new_node;

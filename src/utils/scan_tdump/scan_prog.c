@@ -7,18 +7,18 @@
 FILE *out;
 int done;
 
-void CPROC HandleTaskOutput( PTRSZVAL psv, PTASK_INFO pti, CTEXTSTR buffer, _32 size )
+void CPROC HandleTaskOutput( uintptr_t psv, PTASK_INFO pti, CTEXTSTR buffer, uint32_t size )
 {
    lprintf( "Got %s", buffer );
    fprintf( out, "%s", buffer );
 }
 
-void CPROC HandleTaskDone( PTRSZVAL psv, PTASK_INFO pti )
+void CPROC HandleTaskDone( uintptr_t psv, PTASK_INFO pti )
 {
    done = 1;
 }
 
-void CPROC ProcessAFile( CTEXTSTR progname, PTRSZVAL psv, CTEXTSTR name, int flags )
+void CPROC ProcessAFile( CTEXTSTR progname, uintptr_t psv, CTEXTSTR name, int flags )
 {
 	char cmd[256];
 	CTEXTSTR args[3];

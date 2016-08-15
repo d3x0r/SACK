@@ -96,7 +96,7 @@ int CPROC CMD_RUN( PSENTIENT ps, PTEXT parameters )
 	if( ( match = LocateMacro( ps->Current, GetText( Command ) ) ) )
 	{
 		PTEXT pArgs;
-		S_32 i;
+		int32_t i;
 		if( match->nArgs > 0 )
 		{
 			PVARTEXT vt;
@@ -302,7 +302,7 @@ int CPROC DELAY( PSENTIENT ps, PTEXT parameters )
 			{
 				ps->flags.scheduled = 1;
 				lprintf( WIDE("Setting wait on thread.") );
-				AddTimerEx( len, 0, TimerWake, (PTRSZVAL)ps );
+				AddTimerEx( len, 0, TimerWake, (uintptr_t)ps );
 				ps->CurrentMacro->state.flags.data.delay_end = GetTickCount() + len;
 				ps->CurrentMacro->state.flags.macro_delay = TRUE;
 			}
@@ -807,12 +807,12 @@ int IsBlank( PTEXT pText )
 //--------------------------------------------------------------------------
 
 #if 0
-S_64 IntNumber( PTEXT pText )
+int64_t IntNumber( PTEXT pText )
 {
 	TEXTCHAR *p;
 	int s;
 	int begin;
-	S_64 num;
+	int64_t num;
 	p = GetText( pText );
 	if( !pText || !p )
 		return FALSE;

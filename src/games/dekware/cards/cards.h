@@ -32,8 +32,8 @@ typedef struct card_tag
 	int id;			// 0-51 numeric ID of card....
 	int fake_id;   // 0-51 possible ID of the card... avoid duplicates.
 	struct {
-		_32 bDiscard:1; // set for discard scanner to remove from hand...
-		_32 bFaceDown:1; // a face down card id kinda wild....
+		uint32_t bDiscard:1; // set for discard scanner to remove from hand...
+		uint32_t bFaceDown:1; // a face down card id kinda wild....
 	} flags;
 	struct hand_tag *pPlayedBy;  // when card is on table, this is what hand it's from...
 	struct card_tag *next;
@@ -42,8 +42,8 @@ typedef struct card_tag
 
 struct update_callback
 {
-	void (CPROC *f)( PTRSZVAL psv );
-	PTRSZVAL psv;
+	void (CPROC *f)( uintptr_t psv );
+	uintptr_t psv;
 };
 
 
@@ -59,11 +59,11 @@ typedef struct deck_tag
 {
 	PTEXT name;
 	struct {
-		_32 bHold : 1; // cards in hand are not played
-		_32 bLowball : 1; // Lowest hand counts, aces are 1's.
+		uint32_t bHold : 1; // cards in hand are not played
+		uint32_t bLowball : 1; // Lowest hand counts, aces are 1's.
 	} flags;
-	_32 faces;
-	_32 suits;
+	uint32_t faces;
+	uint32_t suits;
 	PCARD card; // original array of cards, all cards always originate here.
 	PLIST Hands;  // list of entities which have HANDS
 	PLIST card_stacks; // named regions that have cards...
@@ -158,8 +158,8 @@ CARDS_PROC( PCARD, GrabCard )( PCARD );
 CARDS_PROC( PCARD_STACK, GetCardStack )( PDECK deck, CTEXTSTR name );
 CARDS_PROC( PCARD_STACK, GetCardStackFromHand )( PHAND deck, CTEXTSTR name );
 
-CARDS_PROC( void, AddCardStackUpdateCallback )( PCARD_STACK stack, void (CPROC*f)(PTRSZVAL), PTRSZVAL psv );
-CARDS_PROC( void, RemoveCardStackUpdateCallback )( PCARD_STACK stack, PTRSZVAL psv );
+CARDS_PROC( void, AddCardStackUpdateCallback )( PCARD_STACK stack, void (CPROC*f)(uintptr_t), uintptr_t psv );
+CARDS_PROC( void, RemoveCardStackUpdateCallback )( PCARD_STACK stack, uintptr_t psv );
 CARDS_PROC( PCARD, GetNthCard )( PCARD_STACK stack, int nCard );
 
 CARDS_PROC( PCARD, TransferCards )( PCARD_STACK stack_from, PCARD_STACK stack_to, int nCards );

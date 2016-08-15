@@ -13,8 +13,8 @@ typedef struct linesegfile_tag { // information in the file about a lineseg
 	RCOORD start, end;
 } LINESEGFILE, *PLINESEGFILE;
 
-INDEX SrvrCreateOpenLine( _32 client_id, INDEX world, _POINT o, _POINT n );
-INDEX SrvrDuplicateLine( _32 client_id, INDEX world, INDEX ilsDup );
+INDEX SrvrCreateOpenLine( uint32_t client_id, INDEX world, _POINT o, _POINT n );
+INDEX SrvrDuplicateLine( uint32_t client_id, INDEX world, INDEX ilsDup );
 
 // the client side will never invoke this method
 // these are safe to keep non-indexed...
@@ -27,7 +27,7 @@ void DumpLine( PFLATLAND_MYLINESEG pls );
 int FindIntersectionTime( RCOORD *pT1, PVECTOR s1, PVECTOR o1
                         , RCOORD *pT2, PVECTOR s2, PVECTOR o2 );
 //void BalanceLine( PFLATLAND_MYLINESEG pls );
-void SrvrBalanceALine( _32 client_id, INDEX iWorld, INDEX iLine );
+void SrvrBalanceALine( uint32_t client_id, INDEX iWorld, INDEX iLine );
 
 
 #endif

@@ -7,25 +7,25 @@
 #define MSG_Test2 (MSG_Test1+1)
 
 PSERVICE_ROUTE BaseID, OtherBaseID;
-_32 last_tick;
+uint32_t last_tick;
 
-int CPROC EventHandler( MSGIDTYPE Msg, _32 *params, size_t paramlen )
+int CPROC EventHandler( MSGIDTYPE Msg, uint32_t *params, size_t paramlen )
 {
 
-	_32 tick;
+	uint32_t tick;
 	printf( WIDE("Got event %08lx at %ld\n"), Msg, ( tick = GetTickCount() ) - last_tick );
 	last_tick = tick;
 	LogBinary( (POINTER)params, paramlen );
 	return 0;
 }
 
-_32 nlongmsgs;
-PTRSZVAL CPROC LongWaitTrans( PTHREAD thread )
+uint32_t nlongmsgs;
+uintptr_t CPROC LongWaitTrans( PTHREAD thread )
 {
 	while( 1 )
 	{
-		_32 buffer[32];
-		_32 result[32];
+		uint32_t buffer[32];
+		uint32_t result[32];
 		size_t buflen, reslen;
 		MSGIDTYPE  responce;
 		buffer[0] = 0x12345678;
@@ -83,13 +83,13 @@ SaneWinMain( argc, argv )
 	BaseID = LoadService( (argc < 2)?WIDE("Test Service 1"):argv[1], EventHandler );
 	if( BaseID )
 	{
-		_32 msgs = 0;
-		_32 endat = GetTickCount() + 3000;
+		uint32_t msgs = 0;
+		uint32_t endat = GetTickCount() + 3000;
 		printf( WIDE("Starting 3 second wait... sending messages and validating responses...\n") );
 		while( endat > GetTickCount() )
 		{
-			_32 buffer[32];
-			_32 result[32];
+			uint32_t buffer[32];
+			uint32_t result[32];
 			size_t buflen, reslen;
 			MSGIDTYPE responce;
 			buffer[0] = 0x12345678;

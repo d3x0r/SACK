@@ -11,7 +11,7 @@ int KeystrokePaste( PCONSOLE_INFO pdp )
 {
     if( OpenClipboard(NULL) )
     {
-        _32 format;
+        uint32_t format;
         // successful open...
         format = EnumClipboardFormats( 0 );
         while( format )

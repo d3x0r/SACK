@@ -22,10 +22,10 @@ typedef struct vidlib_proxy_image
 		BIT_FIELD bUsed : 1;
 	} flags;
 
-	P_8 buffer;
+	uint8_t* buffer;
 	size_t sendlen;
 	size_t buf_avail;
-	P_8 websock_buffer;
+	uint8_t* websock_buffer;
 	size_t websock_sendlen;
 	size_t websock_buf_avail;
 } *PVPImage;
@@ -41,9 +41,9 @@ struct server_socket_state
 
 typedef struct vidlib_proxy_renderer
 {
-	_32 w, h;
-	S_32 x, y;
-	_32 attributes;
+	uint32_t w, h;
+	int32_t x, y;
+	uint32_t attributes;
 	struct vidlib_proxy_renderer *above, *under;
 	PLIST remote_render_id;  // this is synced with same index as l.clients
 	struct vidlib_proxy_image *image;  // representation of the output surface
@@ -53,11 +53,11 @@ typedef struct vidlib_proxy_renderer
 	} flags;
 	INDEX id;
 	MouseCallback mouse_callback;
-	PTRSZVAL psv_mouse_callback;
+	uintptr_t psv_mouse_callback;
 	KeyProc key_callback;
-	PTRSZVAL psv_key_callback;
+	uintptr_t psv_key_callback;
 	RedrawCallback redraw;
-	PTRSZVAL psv_redraw;
+	uintptr_t psv_redraw;
 } *PVPRENDER;
 
 #define l vidlib_proxy_server_local
@@ -67,7 +67,7 @@ struct vidlib_proxy_local
 	PLIST renderers;
 	PLIST images;
 	PIMAGE_INTERFACE real_interface;
-	_8 key_states[256];
+	uint8_t key_states[256];
 	CRITICALSECTION message_formatter;
 } l;
 

@@ -24,8 +24,8 @@ void DumpMemory( void );
 
 unsigned long CPROC LockedExchange( unsigned long *p, unsigned long val );
 
-void CPROC MemSet( POINTER p, _32 v, _32 n);
-void CPROC MemCpy( POINTER p, POINTER p2, _32 n);
+void CPROC MemSet( POINTER p, uint32_t v, uint32_t n);
+void CPROC MemCpy( POINTER p, POINTER p2, uint32_t n);
 
 
 void DisableMemoryValidate( int bDisable );

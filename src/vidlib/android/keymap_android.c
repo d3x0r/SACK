@@ -212,7 +212,7 @@ int SACK_Vidlib_SendKeyEvents( int pressed, int key_index, int key_mods )
 		{
 			if( l.hVidVirtualFocused->key_callback )
 			{
-				_32 normal_key = (pressed?KEY_PRESSED:0)
+				uint32_t normal_key = (pressed?KEY_PRESSED:0)
 					| ( key_mods & 7 ) << 28
 					| ( key_index & 0xFF ) << 16
 					| ( key_index )
@@ -230,7 +230,7 @@ void SACK_Vidlib_SetTriggerKeyboard( void (*show)(void), void(*hide)(void)
 											  , int(*get_status_metric)(void)
 											  , int(*get_keyboard_metric)(void)
 											  , char *(*get_key_text)( void)
-                                    , int(*process_events)(PTRSZVAL psv)
+                                    , int(*process_events)(uintptr_t psv)
 											  )
 {
 	keymap_local.show_keyboard = show;

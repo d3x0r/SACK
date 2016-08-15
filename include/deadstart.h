@@ -710,8 +710,8 @@ typedef void(*atexit_priority_proc)(void (*)(void),int,CTEXTSTR DBG_PASS);
 #endif
 #define PRELOAD(name) PRIORITY_PRELOAD(name,DEFAULT_PRELOAD_PRIORITY)
 
-//extern _32 deadstart_complete;
-//#define DEADSTART_LINK _32 *deadstart_link_couple = &deadstart_complete; // make sure we reference this symbol
+//extern uint32_t deadstart_complete;
+//#define DEADSTART_LINK uint32_t *deadstart_link_couple = &deadstart_complete; // make sure we reference this symbol
 //#pragma data_seg(".CRT$XCAA")
 //extern void __cdecl __security_init_cookie(void);
 //static _CRTALLOC(".CRT$XCAA") _PVFV init_cookie = __security_init_cookie;

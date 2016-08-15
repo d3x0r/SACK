@@ -87,7 +87,7 @@ extern INDEX iImage, iDisplay, iRegion;
 
 //---------------------------------------------------------------------------
 
-void MouseHandler( PTRSZVAL psv, int x, int y, int b )
+void MouseHandler( uintptr_t psv, int x, int y, int b )
 {
 	//PENTITY pe;
 		
@@ -95,42 +95,42 @@ void MouseHandler( PTRSZVAL psv, int x, int y, int b )
 
 //---------------------------------------------------------------------------
 
-PTEXT ImageGetX( PTRSZVAL psv, PENTITY pe, PTEXT *pData )
+PTEXT ImageGetX( uintptr_t psv, PENTITY pe, PTEXT *pData )
 {
 	return *pData;
 }
 
 //---------------------------------------------------------------------------
 
-PTEXT ImageGetY( PTRSZVAL psv, PENTITY pe, PTEXT *pData )
+PTEXT ImageGetY( uintptr_t psv, PENTITY pe, PTEXT *pData )
 {
 	return *pData;
 }
 
 //---------------------------------------------------------------------------
 
-PTEXT ImageSetX( PTRSZVAL psv, PENTITY pe, PTEXT pData )
+PTEXT ImageSetX( uintptr_t psv, PENTITY pe, PTEXT pData )
 {
 	return pData;
 }
 
 //---------------------------------------------------------------------------
 
-PTEXT ImageSetY( PTRSZVAL psv, PENTITY pe, PTEXT pData )
+PTEXT ImageSetY( uintptr_t psv, PENTITY pe, PTEXT pData )
 {
 	return pData;
 }
 
 //---------------------------------------------------------------------------
 
-PTEXT ImageGetWidth( PTRSZVAL psv, PENTITY pe, PTEXT *pData )
+PTEXT ImageGetWidth( uintptr_t psv, PENTITY pe, PTEXT *pData )
 {
 	return *pData;
 }
 
 //---------------------------------------------------------------------------
 
-PTEXT ImageGetHeight( PTRSZVAL psv, PENTITY pe, PTEXT *pData )
+PTEXT ImageGetHeight( uintptr_t psv, PENTITY pe, PTEXT *pData )
 {
 	return *pData;
 }
@@ -138,7 +138,7 @@ PTEXT ImageGetHeight( PTRSZVAL psv, PENTITY pe, PTEXT *pData )
 
 //---------------------------------------------------------------------------
 
-PTEXT ImageGetParent( PTRSZVAL psv, PENTITY pe, PTEXT *pData )
+PTEXT ImageGetParent( uintptr_t psv, PENTITY pe, PTEXT *pData )
 {
 	return *pData;
 }

@@ -22,7 +22,7 @@ typedef struct POSImage
 		BIT_FIELD bUpdated : 1;
 	} flags;
    // this is the tick when this received.
-	_32 tick_show;
+	uint32_t tick_show;
 	struct POSImage *next;
 	struct POSImage **me;
    Image image;
@@ -38,7 +38,7 @@ typedef struct global_tag {
 		BIT_FIELD bLog : 1;
 	}flags;
 
-	_32 tick_to_switch;
+	uint32_t tick_to_switch;
 
 	int show_time; // how long to show the iamge after fading in.
    int fade_in; // how long fade in is..
@@ -66,7 +66,7 @@ Image imgGraphic;
 
 
 
-_32 width, height;
+uint32_t width, height;
 #define MAX_STEPS 16
 int _ix[MAX_STEPS], _iy[MAX_STEPS];
 int _n;
@@ -77,7 +77,7 @@ int not_first;
 
 
 
-void CPROC Output( PTRSZVAL psv, PRENDERER display )
+void CPROC Output( uintptr_t psv, PRENDERER display )
 {
 	if( g.is_up[psv] )
 	{
@@ -103,9 +103,9 @@ int target_in;
 int target_in_start;
 int target_out_start;
 
-void CPROC tick( PTRSZVAL psv )
+void CPROC tick( uintptr_t psv )
 {
-	_32 now = GetTickCount();
+	uint32_t now = GetTickCount();
 
    EnterCriticalSec( &g.cs );
 	if( !target_out_start && target_in_start )
@@ -219,7 +219,7 @@ void CPROC UDPReceive( PCLIENT pc, POINTER buffer, int size, SOCKADDR *saFrom )
 	}
 	else
 	{
-      _32 number;
+      uint32_t number;
 		char seq[9];
 		seq[8] = 0;
 		((P_64)seq)[0] = ((P_64)buffer)[0];
@@ -227,7 +227,7 @@ void CPROC UDPReceive( PCLIENT pc, POINTER buffer, int size, SOCKADDR *saFrom )
 		if( (((P_64)buffer)+1)[0] == ((P_64)"SERVING ")[0] )
 		{
          char seq[9];
-			int POS = atoi( ((TEXTSTR)((PTRSZVAL)buffer+16)) );
+			int POS = atoi( ((TEXTSTR)((uintptr_t)buffer+16)) );
 			EnterCriticalSec( &g.cs );
          if( g.flags.bLog ) lprintf( "Serving." );
 
@@ -251,7 +251,7 @@ void CPROC UDPReceive( PCLIENT pc, POINTER buffer, int size, SOCKADDR *saFrom )
 		}
 		else if( (((P_64)buffer)+1)[0] == ((P_64)"SERVED  ")[0] )
 		{
-			int POS = atoi( ((TEXTSTR)((PTRSZVAL)buffer+16)) );
+			int POS = atoi( ((TEXTSTR)((uintptr_t)buffer+16)) );
          if( g.flags.bLog ) lprintf( "Served." );
 			EnterCriticalSec( &g.cs );
 			if( POS < 32 && POS >= 1 )
@@ -278,7 +278,7 @@ void CPROC UDPReceive( PCLIENT pc, POINTER buffer, int size, SOCKADDR *saFrom )
 		}
 		else if( (((P_64)buffer)+1)[0] == ((P_64)"CLEARALL")[0] )
 		{
-			static _32 last_number;
+			static uint32_t last_number;
 			EnterCriticalSec( &g.cs );
 			if( number != last_number )
 			{
@@ -303,7 +303,7 @@ int main( int argc, char **argv )
 {
 	int x = 0;
 	int y = 0;
-   _32 width, height;
+   uint32_t width, height;
    int w, h;
 	g.pdi = GetDisplayInterface();
 	g.pii = GetImageInterface();

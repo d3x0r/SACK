@@ -3,7 +3,7 @@
 #include <network.h>
 
 PCLIENT pcListen;
-_32 tick, _tick;
+uint32_t tick, _tick;
 
 void CPROC LogRead( PCLIENT pc, POINTER buffer, size_t nSize, SOCKADDR *sa )
 {

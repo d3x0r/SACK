@@ -89,9 +89,9 @@ typedef PREFIX_PACKED struct MsgInternalData {
 	//   then length(low) points at next waiting.
 	//   MsgID is the ID being waited for
    //   datalength is sizeof( THREAD_ID ) and data is MyThreadID()
-	_32 length;
-	_32 real_length; // size resulting in read...
-	_32 ttl;  // this is tick count + time to live, if tick count is greater than this, message is dropped.
+	uint32_t length;
+	uint32_t real_length; // size resulting in read...
+	uint32_t ttl;  // this is tick count + time to live, if tick count is greater than this, message is dropped.
 
    // space which we added ourselves...
 } PACKED MSGCORE;
@@ -118,8 +118,8 @@ typedef struct MsgDataQueue
 	INDEX   Top;
 	INDEX   Bottom;
 	INDEX   Cnt;   // number of times this is open, huh?
-	_32     waiter_top; // reference of first element in queue waiting for specific ID
-	_32     waiter_bottom; // reference of first element in queue waiting for specific ID
+	uint32_t     waiter_top; // reference of first element in queue waiting for specific ID
+	uint32_t     waiter_bottom; // reference of first element in queue waiting for specific ID
 	//THREAD_ID waiting;  // a thread waiting for any message...
 	CRITICALSECTION cs;
 	INDEX   Size;
@@ -130,15 +130,15 @@ typedef struct MsgDataQueue
 		long msg; // and this is the message I wait for.
 		THREAD_ID me;  // my ID - who I am that I am waiting...
 	} waiters[1024];
-	_8      data[1];
+	uint8_t      data[1];
 } MSGQUEUE, *PMSGQUEUE;
 
 typedef struct MsgDataHandle
 {
 	PMSGQUEUE pmq;
-	_32 default_ttl;
+	uint32_t default_ttl;
 	MsgQueueReadCallback Read;
-	PTRSZVAL psvRead;
+	uintptr_t psvRead;
 	DeclareLink( struct MsgDataHandle );
 } MSGHANDLE;
 
@@ -152,12 +152,12 @@ typedef struct MsgDataHandle
 // this should be created such that it is at least 3 * largest message
  PMSGHANDLE  SackCreateMsgQueue ( CTEXTSTR name, size_t size
 													  , MsgQueueReadCallback Read
-														, PTRSZVAL psvRead )
+														, uintptr_t psvRead )
 {
    	PMSGHANDLE pmh;
 	PMSGQUEUE pmq;
-	PTRSZVAL dwSize = size + sizeof( MSGQUEUE );
-	_32 bCreated;
+	uintptr_t dwSize = size + sizeof( MSGQUEUE );
+	uint32_t bCreated;
 #ifdef __LINUX__
 	TEXTCHAR tmpname[128];
 	sprintf( tmpname, WIDE("/tmp/%s"), name );
@@ -204,12 +204,12 @@ typedef struct MsgDataHandle
 // this should be created such that it is at least 3 * largest message
  PMSGHANDLE  SackOpenMsgQueue ( CTEXTSTR name
 													 , MsgQueueReadCallback Read
-													 , PTRSZVAL psvRead )
+													 , uintptr_t psvRead )
 {
 	PMSGHANDLE pmh;
 	PMSGQUEUE pmq;
-	PTRSZVAL dwSize = 0;
-	_32 bCreated;
+	uintptr_t dwSize = 0;
+	uint32_t bCreated;
 #ifdef __LINUX__
 	char tmpname[128];
    sprintf( tmpname, WIDE("/tmp/%s"), name );
@@ -284,10 +284,10 @@ typedef struct MsgDataHandle
  void DumpMessageQueue( PMSGQUEUE pmq )
  {
 	 int tmp;
-	 for( tmp = pmq->Bottom; tmp != pmq->Top; tmp = tmp + (((P_32)(pmq->data+tmp))[0] & ACTUAL_LEN_MASK ) )
+	 for( tmp = pmq->Bottom; tmp != pmq->Top; tmp = tmp + (((uint32_t*)(pmq->data+tmp))[0] & ACTUAL_LEN_MASK ) )
 	 {
-		 lprintf( "Message In Queue... %d", (((P_32)(pmq->data+tmp))[0] & ACTUAL_LEN_MASK ) );
-		 LogBinary( pmq->data + tmp, (((P_32)(pmq->data+tmp))[0] & ACTUAL_LEN_MASK ) );
+		 lprintf( "Message In Queue... %d", (((uint32_t*)(pmq->data+tmp))[0] & ACTUAL_LEN_MASK ) );
+		 LogBinary( pmq->data + tmp, (((uint32_t*)(pmq->data+tmp))[0] & ACTUAL_LEN_MASK ) );
 	 }
  }
 
@@ -314,7 +314,7 @@ static void CollapseWaiting( PMSGQUEUE pmq, long msg )
 {
 	//int nWoken = 0;
 
-	S_32 tmp = pmq->waiter_bottom;
+	int32_t tmp = pmq->waiter_bottom;
 #ifndef DISABLE_MSGQUE_LOGGING_DETAILED
 	lprintf( WIDE("before moving the waiters forward on %s... msg %ld (or me? %s)"), pmq->name, msg, msg?"no":"yes" );
 	DumpWaiterQueue( pmq );
@@ -324,10 +324,10 @@ static void CollapseWaiting( PMSGQUEUE pmq, long msg )
 	// end up with a new bottom always (if having awoken something)
 	if( pmq->waiter_top != pmq->waiter_bottom )
 	{
-		//_32 last = 0;
-		_32 found = 0;
-		_32 marked = 0;
-		S_32 next = pmq->waiter_top - 1;
+		//uint32_t last = 0;
+		uint32_t found = 0;
+		uint32_t marked = 0;
+		int32_t next = pmq->waiter_top - 1;
 		INDEX tmp_bottom = pmq->waiter_bottom;
 		if( next < 0 )
 			next = 1023;
@@ -399,7 +399,7 @@ static void CollapseWaiting( PMSGQUEUE pmq, long msg )
 			lprintf( WIDE("Moving final into last position, and updating bottom to %d"), tmp_bottom );
 #endif
 			pmq->waiters[tmp] = pmq->waiters[next];
-			pmq->waiter_bottom = (_32)tmp_bottom;
+			pmq->waiter_bottom = (uint32_t)tmp_bottom;
 		}
 	}
 
@@ -479,7 +479,7 @@ static int ScanForWaiting( PMSGQUEUE pmq, long msg )
 
 //--------------------------------------------------------------------------
 
- int  EnqueMsgEx ( PMSGHANDLE pmh,  POINTER msg, size_t size, _32 opts DBG_PASS )
+ int  EnqueMsgEx ( PMSGHANDLE pmh,  POINTER msg, size_t size, uint32_t opts DBG_PASS )
 {
 	if( pmh )
 	{
@@ -488,7 +488,7 @@ static int ScanForWaiting( PMSGQUEUE pmq, long msg )
 #ifndef DISABLE_MSGQUE_LOGGING
 		int bNoSpace = 0;
 #endif
-		_32 realsize = (( size + (sizeof( MSGDATA ) ) ) + 3 ) & 0x7FFFFFFC;
+		uint32_t realsize = (( size + (sizeof( MSGDATA ) ) ) + 3 ) & 0x7FFFFFFC;
 		if( !pmq )
 		{
 			// errno = ENOSPACE; // or something....
@@ -508,7 +508,7 @@ static int ScanForWaiting( PMSGQUEUE pmq, long msg )
 				 , pmq->Bottom-pmq->Top, pmq->Size-pmq->Top + pmq->Bottom
 				 , pmq->Top-pmq->Bottom, pmq->Size-pmq->Bottom + pmq->Top
 				 , realsize );
-		_xlprintf(3 DBG_RELAY)( WIDE("[%s] ENqueMessage [%p] %ld len %") _MsgID_f WIDE(" %08") _32fx WIDE(""), pmq->name, pmq, *(MSGIDTYPE*)msg, size, *(P_32)(pmq->data + pmq->Bottom) );
+		_xlprintf(3 DBG_RELAY)( WIDE("[%s] ENqueMessage [%p] %ld len %") _MsgID_f WIDE(" %08") _32fx WIDE(""), pmq->name, pmq, *(MSGIDTYPE*)msg, size, *(uint32_t*)(pmq->data + pmq->Bottom) );
 		//LogBinary( pmq->data + pmq->Bottom, 32 );
 #endif
 		while( msg )
@@ -525,7 +525,7 @@ static int ScanForWaiting( PMSGQUEUE pmq, long msg )
 			{
 				// space is exactly what we need.
 				pStoreMsg->msg.ttl = timeGetTime() + pmh->default_ttl;
-				pStoreMsg->msg.real_length = (_32)size;
+				pStoreMsg->msg.real_length = (uint32_t)size;
 				pStoreMsg->msg.length = realsize | MARK_END_OF_QUE | (( opts & MSGQUE_WAIT_ID )?MARK_THREAD_WAITING:0 );
 #ifndef DISABLE_MSGQUE_LOGGING
 				lprintf( WIDE("New tmp will be 0.") );
@@ -588,7 +588,7 @@ static int ScanForWaiting( PMSGQUEUE pmq, long msg )
 					}
 				}
 				pStoreMsg->msg.ttl = timeGetTime() + pmh->default_ttl;
-				pStoreMsg->msg.real_length = (_32)size;
+				pStoreMsg->msg.real_length = (uint32_t)size;
 				pStoreMsg->msg.length = realsize | (( opts & MSGQUE_WAIT_ID )?MARK_THREAD_WAITING:0 );
 			}
 			if( tmp == pmq->Bottom )
@@ -669,7 +669,7 @@ int IsMsgQueueEmpty ( PMSGHANDLE pmh )
 // if this thread id known, you may change the MsgID
 // being waited for, which will result in this waking up
 // and reading for the new ID...
-int DequeMsgEx ( PMSGHANDLE pmh, long *MsgID, POINTER result, size_t size, _32 options DBG_PASS )
+int DequeMsgEx ( PMSGHANDLE pmh, long *MsgID, POINTER result, size_t size, uint32_t options DBG_PASS )
 {
 	PMSGQUEUE pmq = pmh->pmq;
 	int p;
@@ -677,10 +677,10 @@ int DequeMsgEx ( PMSGHANDLE pmh, long *MsgID, POINTER result, size_t size, _32 o
 	INDEX tmp
       , _tmp
 	;
-	_32 now = timeGetTime();
+	uint32_t now = timeGetTime();
 	INDEX _Bottom, _Top;
 
-   //_64 tick, tick2;
+   //uint64_t tick, tick2;
 	if( !pmq )
       return 0;
 	// if there's a read routine, this should not be called.
@@ -717,7 +717,7 @@ int DequeMsgEx ( PMSGHANDLE pmh, long *MsgID, POINTER result, size_t size, _32 o
 			{
 				//lprintf( WIDE("no message, waiting...") );
 				{
-					_32 tmp_top = pmq->waiter_top + 1;
+					uint32_t tmp_top = pmq->waiter_top + 1;
 					if( tmp_top >= 1024 )
 						tmp_top = 0;
 
@@ -885,15 +885,15 @@ int DequeMsgEx ( PMSGHANDLE pmh, long *MsgID, POINTER result, size_t size, _32 o
 				{
 					lprintf( WIDE("Collapsing two already read messages prior length was %") _32f WIDE("(%") _size_f WIDE(") and %")_32f WIDE("(%") _size_f WIDE(") (%s)")
 							 , pLastReadMsg->msg.length& ACTUAL_LEN_MASK
-							 , (PTRSZVAL)pLastReadMsg-(PTRSZVAL)pmq->data
+							 , (uintptr_t)pLastReadMsg-(uintptr_t)pmq->data
 							 , pReadMsg->msg.length& ACTUAL_LEN_MASK
-							 , (PTRSZVAL)pReadMsg-(PTRSZVAL)pmq->data
+							 , (uintptr_t)pReadMsg-(uintptr_t)pmq->data
 							 , (pReadMsg->msg.length&MARK_END_OF_QUE)?WIDE("end"):WIDE("") );
 						// prior message was read; collapse this one into it.
 					pLastReadMsg->msg.length |= (pReadMsg->msg.length & MARK_END_OF_QUE);
 					pLastReadMsg->msg.length += (pReadMsg->msg.length & ACTUAL_LEN_MASK);
 					lprintf( WIDE("Result in %")_32f WIDE(" %p   (tmp is %") _size_f WIDE(",t:%") _size_f WIDE(",b:%") _size_f WIDE(")"), pLastReadMsg->msg.length & ACTUAL_LEN_MASK
-						, (POINTER)((PTRSZVAL)pmq->data + (pLastReadMsg->msg.length & ACTUAL_LEN_MASK))
+						, (POINTER)((uintptr_t)pmq->data + (pLastReadMsg->msg.length & ACTUAL_LEN_MASK))
 						, tmp
 						, pmq->Top
 						, pmq->Bottom

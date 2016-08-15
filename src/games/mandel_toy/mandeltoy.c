@@ -630,19 +630,19 @@ void Render( PRENDERER r, int output )
 	}
 }
 
-static void CPROC OnDraw3d( "Mandelbrot renderer" )( PTRSZVAL psvInit )
+static void CPROC OnDraw3d( "Mandelbrot renderer" )( uintptr_t psvInit )
 {
 	Render( render, 0 );
 
 }
 
-void CPROC MyRedrawCallback( PTRSZVAL psv, PRENDERER r )
+void CPROC MyRedrawCallback( uintptr_t psv, PRENDERER r )
 {
    Render( r, FALSE );
 }
 
 
-int CPROC MyMouseCallback( PTRSZVAL psv, S_32 x, S_32 y, _32 b )
+int CPROC MyMouseCallback( uintptr_t psv, int32_t x, int32_t y, uint32_t b )
 {
 	if( b & MK_RBUTTON )
 	{
@@ -694,13 +694,13 @@ int CPROC MyMouseCallback( PTRSZVAL psv, S_32 x, S_32 y, _32 b )
 }
 
 
-static PTRSZVAL CPROC OnInit3d( "Mandelbrot renderer" )( PMatrix projection, PTRANSFORM camera, RCOORD *identity_depth, RCOORD *aspect )
+static uintptr_t CPROC OnInit3d( "Mandelbrot renderer" )( PMatrix projection, PTRANSFORM camera, RCOORD *identity_depth, RCOORD *aspect )
 {
-	_32 w, h;
+	uint32_t w, h;
 	GetDisplaySize( &w, &h );
 	render = OpenDisplaySizedAt( 0, w, h, 0, 0 );
 	SetRedrawHandler( render, MyRedrawCallback, 0 );
-	SetMouseHandler( render, MyMouseCallback, (PTRSZVAL)render );
+	SetMouseHandler( render, MyMouseCallback, (uintptr_t)render );
 	UpdateDisplay( render );
 	return 0;
 }

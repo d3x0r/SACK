@@ -58,7 +58,7 @@ static void * MyRealloc( void *p, size_t size )
 	return Reallocate( p, size );
 }
 
-#define Seek(a,b) (((PTRSZVAL)a)+(b))
+#define Seek(a,b) (((uintptr_t)a)+(b))
 
 static void FixAbortLink( POINTER p, struct fixup_table_entry *entry, LOGICAL gcclib )
 {
@@ -97,8 +97,8 @@ static void FixAbortLink( POINTER p, struct fixup_table_entry *entry, LOGICAL gc
 			PIMAGE_IMPORT_DESCRIPTOR real_import_base;
 			PIMAGE_SECTION_HEADER source_import_section = NULL;
 			PIMAGE_SECTION_HEADER source_text_section = NULL;
-			PTRSZVAL dwSize = 0;
-			//PTRSZVAL newSize;
+			uintptr_t dwSize = 0;
+			//uintptr_t newSize;
 			source_section = (PIMAGE_SECTION_HEADER)Seek( source_memory, FPISections );
 			// compute size of total of sections
 			// mark a few known sections for later processing
@@ -111,8 +111,8 @@ static void FixAbortLink( POINTER p, struct fixup_table_entry *entry, LOGICAL gc
 				{
 					const char * dll_name;
 					int f;
-					PTRSZVAL *dwFunc;
-					PTRSZVAL *dwTargetFunc;
+					uintptr_t *dwFunc;
+					uintptr_t *dwTargetFunc;
 					PIMAGE_IMPORT_BY_NAME import_desc;
 					if( real_import_base[n].Name )
 						dll_name = (const char*) Seek( real_import_base, real_import_base[n].Name - dir[IMAGE_DIRECTORY_ENTRY_IMPORT].VirtualAddress/*source_import_section->VirtualAddress*/ );
@@ -128,17 +128,17 @@ static void FixAbortLink( POINTER p, struct fixup_table_entry *entry, LOGICAL gc
 					//char * function_name = (char*) Seek( import_base, import_base[n]. - source_import_section->VirtualAddress );
 					//printf( "thing %s\n", dll_name );
 #if __WATCOMC__ && __WATCOMC__ < 1200
-					dwFunc = (PTRSZVAL*)Seek( real_import_base, real_import_base[n].OrdinalFirstThunk - dir[IMAGE_DIRECTORY_ENTRY_IMPORT].VirtualAddress );
+					dwFunc = (uintptr_t*)Seek( real_import_base, real_import_base[n].OrdinalFirstThunk - dir[IMAGE_DIRECTORY_ENTRY_IMPORT].VirtualAddress );
 #else
-					dwFunc = (PTRSZVAL*)Seek( real_import_base, real_import_base[n].OriginalFirstThunk - dir[IMAGE_DIRECTORY_ENTRY_IMPORT].VirtualAddress );
+					dwFunc = (uintptr_t*)Seek( real_import_base, real_import_base[n].OriginalFirstThunk - dir[IMAGE_DIRECTORY_ENTRY_IMPORT].VirtualAddress );
 #endif
-					dwTargetFunc = (PTRSZVAL*)Seek( real_import_base, real_import_base[n].FirstThunk - dir[IMAGE_DIRECTORY_ENTRY_IMPORT].VirtualAddress );
+					dwTargetFunc = (uintptr_t*)Seek( real_import_base, real_import_base[n].FirstThunk - dir[IMAGE_DIRECTORY_ENTRY_IMPORT].VirtualAddress );
 					for( f = 0; dwFunc[f]; f++ )
 					{
-						if( dwFunc[f] & ( (PTRSZVAL)1 << ( ( sizeof( PTRSZVAL ) * 8 ) - 1 ) ) )
+						if( dwFunc[f] & ( (uintptr_t)1 << ( ( sizeof( uintptr_t ) * 8 ) - 1 ) ) )
 						{
 							//lprintf( "Oridinal is %d", dwFunc[f] & 0xFFFF );
-							//dwTargetFunc[f] = (PTRSZVAL)LoadFunction( dll_name, (CTEXTSTR)(dwFunc[f] & 0xFFFF) );
+							//dwTargetFunc[f] = (uintptr_t)LoadFunction( dll_name, (CTEXTSTR)(dwFunc[f] & 0xFFFF) );
 						}
 						else
 						{
@@ -149,7 +149,7 @@ static void FixAbortLink( POINTER p, struct fixup_table_entry *entry, LOGICAL gc
 								if( StrCmp( (CTEXTSTR)import_desc->Name, entry->import_name ) == 0 )
 								{
 									//lprintf( "Fixed abort...%p to %p", dwTargetFunc + f, entry->pointer );
-									dwTargetFunc[f] = (PTRSZVAL)entry->pointer;
+									dwTargetFunc[f] = (uintptr_t)entry->pointer;
 									return;
 								}
 							}
@@ -164,17 +164,17 @@ static void FixAbortLink( POINTER p, struct fixup_table_entry *entry, LOGICAL gc
 						, &old_protect );
 								if( StrCmp( (CTEXTSTR)import_desc->Name, "malloc" ) == 0 )
 								{
-									dwTargetFunc[f] = (PTRSZVAL)MyAlloc;
+									dwTargetFunc[f] = (uintptr_t)MyAlloc;
 									//return;
 								}
 								if( StrCmp( (CTEXTSTR)import_desc->Name, "free" ) == 0 )
 								{
-									dwTargetFunc[f] = (PTRSZVAL)MyFree;
+									dwTargetFunc[f] = (uintptr_t)MyFree;
 									//return;
 								}
 								if( StrCmp( (CTEXTSTR)import_desc->Name, "realloc" ) == 0 )
 								{
-									dwTargetFunc[f] = (PTRSZVAL)MyRealloc;
+									dwTargetFunc[f] = (uintptr_t)MyRealloc;
 									//return;
 								}
 
@@ -244,7 +244,7 @@ static LOGICAL CPROC LoadLibraryDependant( CTEXTSTR name )
 			if( sz && tmp )
 			{
 				int written, read ;
-				POINTER data = NewArray( _8, sz );
+				POINTER data = NewArray( uint8_t, sz );
 				read = sack_fread( data, 1, sz, file );
 				written = sack_fwrite( data, 1, sz, tmp );
 				sack_fclose( tmp );
@@ -287,7 +287,7 @@ static LOGICAL CPROC LoadLibraryDependant( CTEXTSTR name )
 	return FALSE;
 }
 
-static void CPROC InstallFinished( PTRSZVAL psv, PTASK_INFO task )
+static void CPROC InstallFinished( uintptr_t psv, PTASK_INFO task )
 {
 	((LOGICAL*)psv)[0] = TRUE;
 
@@ -320,7 +320,7 @@ PRIORITY_PRELOAD( XSaneWinMain, DEFAULT_PRELOAD_PRIORITY + 20 )//( argc, argv )
 #define _appload( a, b )  sack_vfs_load_crypt_volume( "application.dat", NULL /*#a "-" b*/, NULL/*app_signature*/ )
 #define appload( a,b )  _appload( a,b )
 
-#define _sfxappload( a, b )  sack_vfs_use_crypt_volume( vfs_memory, sz-((PTRSZVAL)vfs_memory-(PTRSZVAL)memory), NULL, NULL )
+#define _sfxappload( a, b )  sack_vfs_use_crypt_volume( vfs_memory, sz-((uintptr_t)vfs_memory-(uintptr_t)memory), NULL, NULL )
 //#define _appload( a,b )  sack_vfs_load_crypt_volume( "application.dat", a, b )
 #define sfxappload( a,b )  _sfxappload( a,b )
 
@@ -330,7 +330,7 @@ PRIORITY_PRELOAD( XSaneWinMain, DEFAULT_PRELOAD_PRIORITY + 20 )//( argc, argv )
 
 	{
 #ifdef STANDALONE_HEADER
-		PTRSZVAL sz = 0;
+		uintptr_t sz = 0;
 		POINTER memory = OpenSpace( NULL, argv[0], &sz );
 		POINTER vfs_memory;
 		//printf( "memory is %p(%d)\n", memory, sz );
@@ -357,7 +357,7 @@ PRIORITY_PRELOAD( XSaneWinMain, DEFAULT_PRELOAD_PRIORITY + 20 )//( argc, argv )
 #endif
 	}
 
-	l.rom = sack_mount_filesystem( "self", l.fsi, 900, (PTRSZVAL)l.rom_fs, FALSE );
+	l.rom = sack_mount_filesystem( "self", l.fsi, 900, (uintptr_t)l.rom_fs, FALSE );
 
 	if( 0 )
 	{
@@ -366,7 +366,7 @@ PRIORITY_PRELOAD( XSaneWinMain, DEFAULT_PRELOAD_PRIORITY + 20 )//( argc, argv )
 			MessageBox( NULL, "Failed to load application data.", "Failed Initialization", MB_OK );
 			exit(0);
 		}
-		l.core_mount = sack_mount_filesystem( "sack_shmem", sack_get_filesystem_interface( "sack_shmem.runner" ), 900, (PTRSZVAL)l.core_fs, TRUE );
+		l.core_mount = sack_mount_filesystem( "sack_shmem", sack_get_filesystem_interface( "sack_shmem.runner" ), 900, (uintptr_t)l.core_fs, TRUE );
 	}
 
 #if 0
@@ -378,7 +378,7 @@ PRIORITY_PRELOAD( XSaneWinMain, DEFAULT_PRELOAD_PRIORITY + 20 )//( argc, argv )
 	l.resource_mount = sack_mount_filesystem( "resource_vfs"
 														 , l.fsi
 														 , 950
-														 , (PTRSZVAL)l.resource_fs, 0 );
+														 , (uintptr_t)l.resource_fs, 0 );
 #endif
 
 #ifndef _DEBUG
@@ -411,7 +411,7 @@ PRIORITY_PRELOAD( XSaneWinMain, DEFAULT_PRELOAD_PRIORITY + 20 )//( argc, argv )
 			args[0] = path;
 			args[1] = "/silent";
 			args[2] = NULL;
-			LaunchProgramEx( args[0], NULL, args, InstallFinished, (PTRSZVAL)&finished );
+			LaunchProgramEx( args[0], NULL, args, InstallFinished, (uintptr_t)&finished );
 			while( !finished )
 				WakeableSleep( 1000 );
 			if( !( hMod = LoadLibrary( "openAL32.dll" ) ) )

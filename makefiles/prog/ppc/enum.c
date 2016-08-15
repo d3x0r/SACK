@@ -21,8 +21,8 @@ typedef struct enum_table_tag
 typedef struct enum_global_tag
 {
 	struct {
-		_32 get_identifier: 1;
-		_32 current_value_set : 1;
+		uint32_t get_identifier: 1;
+		uint32_t current_value_set : 1;
 	} flags;
    PENUM_TABLE enumerations;
 	PENUM_TABLE current_enum;

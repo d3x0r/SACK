@@ -2,13 +2,13 @@
 
 #include <../bard.h>
 
-void CPROC GetAnyEvent( PTRSZVAL psv, char *extra )
+void CPROC GetAnyEvent( uintptr_t psv, char *extra )
 {
 	printf( WIDE("Received event with extra : %s\n"), extra );
 }
 
 char *name;
-void CPROC GetAnEvent( PTRSZVAL psv, char *extra )
+void CPROC GetAnEvent( uintptr_t psv, char *extra )
 {
 	printf( WIDE("Received %s event with extra : %s\n"), name, extra );
 }

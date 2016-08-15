@@ -5,11 +5,11 @@ typedef struct {
 	} flags;
 	PCAPTURE_DEVICE pDev[2];
 
-	S_32 display_x, display_y;
-	_32 display_width, display_height;
+	int32_t display_x, display_y;
+	uint32_t display_width, display_height;
 	SOCKADDR *saBroadcast;
 	PLIST controls;
-	_32 capture_thread;
+	uint32_t capture_thread;
    //PIMAGE_INTERFACE pii;
 } GLOBAL;
 

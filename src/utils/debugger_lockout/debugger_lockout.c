@@ -62,7 +62,7 @@ static POINTER CPROC GetAntiDebugInterface( void )
 TEXTSTR CryptStringEx( CTEXTSTR input, size_t len )
 #define CryptString(s) CryptStringEx(s,sizeof(s))
 {
-	P_8 output;
+	uint8_t* output;
 	size_t outsize;
 	size_t n;
 	size_t ofs;
@@ -87,9 +87,9 @@ TEXTSTR CryptStringEx( CTEXTSTR input, size_t len )
 
 #endif
 
-typedef _32 (CPROC *PaddTimerExx)( _32 start, _32 frequency
+typedef uint32_t (CPROC *PaddTimerExx)( uint32_t start, uint32_t frequency
 					, TimerCallbackProc callback
-					, PTRSZVAL user DBG_PASS);
+					, uintptr_t user DBG_PASS);
 
 static PaddTimerExx CheckDebugger( void )
 {
@@ -111,16 +111,16 @@ static PaddTimerExx CheckDebugger( void )
 	static HANDLE (__stdcall*getCurrentThread)(void);
 	static HWND (__stdcall*findWindow)( CTEXTSTR classname, CTEXTSTR wndname );
 
-	static void (*_DecryptRawData)( CPOINTER binary, size_t length, P_8 *buffer, size_t *chars );
+	static void (*_DecryptRawData)( CPOINTER binary, size_t length, uint8_t* *buffer, size_t *chars );
 	static PaddTimerExx addTimer;
 	//TEXTCHAR *tmp;
-	P_8 output;
+	uint8_t* output;
 	size_t outsize;
-	P_8 output2 = NULL;
+	uint8_t* output2 = NULL;
 	size_t outsize2;
-	P_8 output3 = NULL;
+	uint8_t* output3 = NULL;
 	size_t outsize3;
-	P_8 output4 = NULL;
+	uint8_t* output4 = NULL;
 	size_t outsize4;
 	TEXTCHAR stringbuf[256];
 	
@@ -132,7 +132,7 @@ static PaddTimerExx CheckDebugger( void )
 			stringbuf[n] = "@ATLWvpajcgArdWrgr"[n] ^ 0x13;
 		}
 		stringbuf[n] = 0;
-		_DecryptRawData = (void (*)( CPOINTER , size_t , P_8 *, size_t * ))LoadFunction( WIDE(LIBNAME), stringbuf );
+		_DecryptRawData = (void (*)( CPOINTER , size_t , uint8_t* *, size_t * ))LoadFunction( WIDE(LIBNAME), stringbuf );
 
 		_DecryptRawData( sAddTimerExx + 1, sAddTimerExx[0], &output, &outsize );
 		addTimer = (PaddTimerExx)LoadFunction( WIDE(LIBNAME), (CTEXTSTR)output );
@@ -364,23 +364,23 @@ static PaddTimerExx CheckDebugger( void )
 #endif
 }
 
-static void CPROC TickDebugger( PTRSZVAL psv )
+static void CPROC TickDebugger( uintptr_t psv )
 {
 	CheckDebugger();
 }
 
-PUBLIC( PTRSZVAL, dlopen )( CTEXTSTR name )
+PUBLIC( uintptr_t, dlopen )( CTEXTSTR name )
 {
 	LoadFunction( name, NULL );
-	return (PTRSZVAL)strdup( name );
+	return (uintptr_t)strdup( name );
 }
-PUBLIC( void, dlclose )( PTRSZVAL lib )
+PUBLIC( void, dlclose )( uintptr_t lib )
 {
 	UnloadFunction( (generic_function*)lib );
 }
-PUBLIC( PTRSZVAL, dlsym )( PTRSZVAL psvLib, PTRSZVAL psvName )
+PUBLIC( uintptr_t, dlsym )( uintptr_t psvLib, uintptr_t psvName )
 {
-	return (PTRSZVAL)LoadFunction( (CTEXTSTR)psvLib, (CTEXTSTR)psvName );
+	return (uintptr_t)LoadFunction( (CTEXTSTR)psvLib, (CTEXTSTR)psvName );
 }
 PUBLIC( const char *, dlerror )( void )
 {
@@ -415,9 +415,9 @@ static void CPROC name(void);
 	/*static __declspec(allocate(_STARTSEG_)) void (CPROC*pointer_##name)(void) = pastejunk(schedule_,name);*/ \
 static void CPROC name(void)
 {
-	_32 (CPROC *addTimerExx)( _32 start, _32 frequency
+	uint32_t (CPROC *addTimerExx)( uint32_t start, uint32_t frequency
 					, TimerCallbackProc callback
-					, PTRSZVAL user DBG_PASS);
+					, uintptr_t user DBG_PASS);
 	addTimerExx = CheckDebugger();
 	if( addTimerExx )
 		addTimerExx( 0, 5000, TickDebugger, 0 DBG_SRC );

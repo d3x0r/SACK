@@ -18,19 +18,19 @@ typedef struct mng_file {
 
 	CTEXTSTR name;       //mng file name
 
-	P_8 data;            //internal buffer for mng file 
-	_32 length;          // 
-	_32 current_index;
+	uint8_t* data;            //internal buffer for mng file 
+	uint32_t length;          // 
+	uint32_t current_index;
 
 	Image image;         //internal image buffer
 
 
-	_32 timer;			// timer ID
+	uint32_t timer;			// timer ID
 
-	_32 ix;				//position and size of played animation
-	_32 iy;
-	_32 iw;
-	_32 ih;
+	uint32_t ix;				//position and size of played animation
+	uint32_t iy;
+	uint32_t iw;
+	uint32_t ih;
 
 	struct {
 		volatile BIT_FIELD initialized : 1;  //

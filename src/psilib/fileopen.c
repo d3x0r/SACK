@@ -2,7 +2,7 @@
 #include <stdhdrs.h>
 #include <stdio.h>
 #include <sack_types.h>
-//void __stdcall Sleep( _32 time );
+//void __stdcall Sleep( uint32_t time );
 #include <sharemem.h>
 #include <idle.h>
 #include <filesys.h>
@@ -21,14 +21,14 @@ typedef struct fileopen_tag {
 #define TXT_PATHNAME 101
 
 
-void RedrawTemplate( PTRSZVAL psv )
+void RedrawTemplate( uintptr_t psv )
 {
 	
 }
 
 PSI_CONTROL pLoading;
 
-void CPROC AddFile( PTRSZVAL user, CTEXTSTR pathname, int flags )
+void CPROC AddFile( uintptr_t user, CTEXTSTR pathname, int flags )
 {
 	PLISTITEM newitem;
 //cpg26dec2006 c:\work\sack\src\psilib\fileopen.c(34): Warning! W202: Symbol 'pfod' has been defined, but not referenced
@@ -39,7 +39,7 @@ void CPROC AddFile( PTRSZVAL user, CTEXTSTR pathname, int flags )
       TEXTCHAR buffer[10];
       tnprintf( buffer, sizeof( buffer ), WIDE("-%c-"), pathname[0] );
       newitem = AddListItem( pLoading, buffer );
-      SetItemData( newitem, (PTRSZVAL)flags );
+      SetItemData( newitem, (uintptr_t)flags );
    }
    else
    {
@@ -53,13 +53,13 @@ void CPROC AddFile( PTRSZVAL user, CTEXTSTR pathname, int flags )
 			TEXTCHAR buffer[256];
 			tnprintf( buffer, sizeof( buffer ), WIDE("%s/"), name );
 			newitem = AddListItem( pLoading, buffer );
-			SetItemData( newitem, (PTRSZVAL)flags );
+			SetItemData( newitem, (uintptr_t)flags );
 
 		}
       else
 		{
 			newitem = AddListItem( pLoading, name );
-			SetItemData( newitem, (PTRSZVAL)flags );
+			SetItemData( newitem, (uintptr_t)flags );
 		}
    }
 }
@@ -74,21 +74,21 @@ void LoadList( PSI_CONTROL list, FILEOPENDATA *pfod )
    SetControlText( GetNearControl( list, TXT_PATHNAME ), pfod->basepath );
 	if( !pfod->basepath[0] )
 	{
-		ScanDrives( AddFile, (PTRSZVAL)pfod );
+		ScanDrives( AddFile, (uintptr_t)pfod );
 	}
 	else
 	{
-      AddFile( (PTRSZVAL)pfod, WIDE(".."), SFF_DIRECTORY );
+      AddFile( (uintptr_t)pfod, WIDE(".."), SFF_DIRECTORY );
 		while( ScanFiles( pfod->basepath
 								, pfod->currentmask
-								, &stuff, AddFile, SFF_DIRECTORIES, (PTRSZVAL)pfod ) );
+								, &stuff, AddFile, SFF_DIRECTORIES, (uintptr_t)pfod ) );
 	}
 	pLoading = 0;
 }
 
-void CPROC FileDouble( PTRSZVAL psv, PSI_CONTROL pc, PLISTITEM hli )
+void CPROC FileDouble( uintptr_t psv, PSI_CONTROL pc, PLISTITEM hli )
 {
-   _32 flags;
+   uint32_t flags;
    TEXTCHAR name[256];
    if( hli )
    {
@@ -141,7 +141,7 @@ void CPROC FileDouble( PTRSZVAL psv, PSI_CONTROL pc, PLISTITEM hli )
    }
 }
 
-void CPROC FileSingle( PTRSZVAL psv, PSI_CONTROL list, PLISTITEM hli )
+void CPROC FileSingle( uintptr_t psv, PSI_CONTROL list, PLISTITEM hli )
 {
 	TEXTCHAR name[256];
 	if( hli )
@@ -151,11 +151,11 @@ void CPROC FileSingle( PTRSZVAL psv, PSI_CONTROL list, PLISTITEM hli )
 	}
 }
 
-int PSI_PickFile( PSI_CONTROL parent, CTEXTSTR basepath, CTEXTSTR types, TEXTSTR result, _32 result_len, int Create )
+int PSI_PickFile( PSI_CONTROL parent, CTEXTSTR basepath, CTEXTSTR types, TEXTSTR result, uint32_t result_len, int Create )
 {
 	// auto configure open file dialog - well for now let us start at
 	// the current working directory...
-	S_32 x, y;
+	int32_t x, y;
 	PSI_CONTROL frame;
 	PSI_CONTROL pcList;
 	FILEOPENDATA fod;
@@ -174,8 +174,8 @@ int PSI_PickFile( PSI_CONTROL parent, CTEXTSTR basepath, CTEXTSTR types, TEXTSTR
 	//MakeTextControl( frame, 0, 5, 5, 240, 20, TXT_PATHNAME, NULL );
 	pcList = MakeListBox( frame, 5, 25, 240, 150, LST_FILES, LISTOPT_SORT );
 
-	SetDoubleClickHandler( pcList, FileDouble, (PTRSZVAL)&fod );
-	SetSelChangeHandler( pcList, FileSingle, (PTRSZVAL)&fod );
+	SetDoubleClickHandler( pcList, FileDouble, (uintptr_t)&fod );
+	SetSelChangeHandler( pcList, FileSingle, (uintptr_t)&fod );
 	StrCpyEx( fod.currentmask, WIDE("*"), sizeof( fod.currentmask ) / sizeof(TEXTCHAR) );
 	LoadList( pcList, &fod );
 
@@ -187,7 +187,7 @@ ReLoop:
 	{
 		// well suppose we should pull out our values before closing this frame...
 		PLISTITEM hli = GetSelectedItem( pcList );
-		_32 flags = GetItemData( hli );
+		uint32_t flags = GetItemData( hli );
 		if( !(flags & (SFF_DRIVE|SFF_DIRECTORY) ) )
 		{
 			GetControlText( GetControl( frame, TXT_PATHNAME ), fod.currentname, 280 );
@@ -200,7 +200,7 @@ ReLoop:
 			// show - invalid selection - no filename - is a directory...
 			//printf( WIDE("Clearing done?") );
 			fod.okay = 0;
-			FileDouble( (PTRSZVAL)&fod, pcList, hli );
+			FileDouble( (uintptr_t)&fod, pcList, hli );
 			goto ReLoop;
 		}
 	}
@@ -209,7 +209,7 @@ ReLoop:
 }
 
 int PSI_OpenFile( CTEXTSTR basepath, CTEXTSTR types, TEXTSTR result )
-//( PSI_CONTROL parent, CTEXTSTR basepath, CTEXTSTR types, TEXTSTR result, _32 result_len )
+//( PSI_CONTROL parent, CTEXTSTR basepath, CTEXTSTR types, TEXTSTR result, uint32_t result_len )
 {
 
    return PSI_PickFile( NULL, basepath, types, result, 256, 0 );

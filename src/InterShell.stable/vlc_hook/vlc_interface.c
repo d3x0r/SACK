@@ -21,7 +21,7 @@
 
 struct vlc_release
 {
-	_32 tick;
+	uint32_t tick;
 	struct my_vlc_interface *pmyi;
 };
 
@@ -50,7 +50,7 @@ static struct {
 
 void ReleaseInstance( struct my_vlc_interface *pmyi );
 
-void CPROC Cleaner( PTRSZVAL psv )
+void CPROC Cleaner( uintptr_t psv )
 {
 	struct vlc_release *release;
 	INDEX idx;
@@ -131,7 +131,7 @@ static struct vlc_interface
 	declare_func( void, libvlc_media_player_stop, ( libvlc_media_player_t * ) );
 	declare_func( void, libvlc_release, ( libvlc_instance_t * ) );
 	declare_func( void, libvlc_media_player_release, ( libvlc_media_player_t * ) );
-	declare_func( _32, libvlc_media_player_get_position, ( libvlc_media_player_t *) );
+	declare_func( uint32_t, libvlc_media_player_get_position, ( libvlc_media_player_t *) );
    declare_func( libvlc_time_t, libvlc_media_player_get_length, ( libvlc_media_player_t *) );
 	declare_func( libvlc_time_t, libvlc_media_player_get_time, ( libvlc_media_player_t *) );
    declare_func( void, libvlc_media_player_set_time, ( libvlc_media_player_t *, libvlc_time_t ) );
@@ -274,14 +274,14 @@ struct my_vlc_interface
 	PLIST controls;
 	PLIST panels;
 
-	_32 image_w, image_h;
+	uint32_t image_w, image_h;
 	int images; // should be a count of frames in available and updated.
 	PLINKQUEUE available_frames;
 	PLINKQUEUE updated_frames;
 	PTHREAD update_thread;
 
-	void (CPROC*StopEvent)(PTRSZVAL psv);
-	PTRSZVAL psvStopEvent;
+	void (CPROC*StopEvent)(uintptr_t psv);
+	uintptr_t psvStopEvent;
 
 };
 
@@ -291,7 +291,7 @@ static void CPROC _libvlc_callback_t( const libvlc_event_t *event, void *user )
 
 }
 
-static PTRSZVAL CPROC replay_thread( PTHREAD thread )
+static uintptr_t CPROC replay_thread( PTHREAD thread )
 {
 	struct my_vlc_interface *pmyi = (struct my_vlc_interface *)GetThreadParam( thread );
 	if( pmyi->StopEvent )
@@ -368,7 +368,7 @@ int
 										void* psv
 									  , void *id, void *const *p_pixels
 #else
-                              PTRSZVAL psv
+                              uintptr_t psv
 #endif
 									  )
 {
@@ -535,7 +535,7 @@ static void CPROC PlayerEvent( const libvlc_event_t *event, void *user )
 		}
 		else
 		{
-			ThreadTo( replay_thread, (PTRSZVAL)pmyi );
+			ThreadTo( replay_thread, (uintptr_t)pmyi );
 		}
 		break;
 	}
@@ -546,13 +546,13 @@ static void AdjustAlpha( struct my_vlc_interface *pmyi )
 {
 	Image image = GetDisplayImage( pmyi->host_surface );
 	PCDATA surface = GetImageSurface( image );
-	_32 oo = image->pwidth;
-	_32 width = image->width;
-	_32 height = image->height;
-	_32 r;
+	uint32_t oo = image->pwidth;
+	uint32_t width = image->width;
+	uint32_t height = image->height;
+	uint32_t r;
 	for( r = 0; r < height; r++ )
 	{
-		_32 c;
+		uint32_t c;
 		for( c = 0; c < width; c++ )
 		{
 	  // 	surface[c] = surface[c] & 0xFFFFFF;
@@ -716,7 +716,7 @@ static LOGICAL OutputAvailableFrame( struct my_vlc_interface *pmyi )
 }
 
 // this takes images from the queue of updated images and puts them on the display.
-static PTRSZVAL CPROC UpdateThread( PTHREAD thread )
+static uintptr_t CPROC UpdateThread( PTHREAD thread )
 {
 	struct my_vlc_interface *pmyi = (struct my_vlc_interface*)GetThreadParam( thread );
 	while( 1 )
@@ -850,7 +850,7 @@ void LoadVLC( void )
 	setup_func( void, libvlc_media_player_stop, ( libvlc_media_player_t * ) );
 	setup_func( void, libvlc_release, ( libvlc_instance_t * ) );
 	setup_func( void, libvlc_media_player_release, ( libvlc_media_player_t * ) );
-	setup_func( _32, libvlc_media_player_get_position, ( libvlc_media_player_t *) );
+	setup_func( uint32_t, libvlc_media_player_get_position, ( libvlc_media_player_t *) );
 	setup_func( libvlc_time_t, libvlc_media_player_get_length, ( libvlc_media_player_t *) );
    setup_func( libvlc_time_t, libvlc_media_player_get_time, ( libvlc_media_player_t *) );
    /*
@@ -1008,7 +1008,7 @@ struct my_vlc_interface *CreateInstanceInEx( PSI_CONTROL pc, CTEXTSTR input, CTE
 			
 			//EnqueLink( &pmyi->available_frames, image );
 			if( !l.flags.bRequireDraw )
-				pmyi->update_thread = ThreadTo( UpdateThread, (PTRSZVAL)pmyi );
+				pmyi->update_thread = ThreadTo( UpdateThread, (uintptr_t)pmyi );
 
 			pmyi->host_image = NULL;
 			pmyi->host_control = NULL;//pc;
@@ -1089,7 +1089,7 @@ static int EvalExcept( int n )
 }
 #endif
 
-void CPROC VLC_RedrawCallback( PTRSZVAL psvUser, PRENDERER self )
+void CPROC VLC_RedrawCallback( uintptr_t psvUser, PRENDERER self )
 {
 	// output to prenderer.
 	struct my_vlc_interface *pmyi;
@@ -1114,8 +1114,8 @@ struct my_vlc_interface *CreateInstanceOn( PRENDERER renderer, CTEXTSTR name, LO
 
 		if( renderer && l.flags.bRequireDraw )
 		{
-			//	pmyi->update_thread = ThreadTo( UpdateThread, (PTRSZVAL)pmyi );
-			SetRedrawHandler( renderer, VLC_RedrawCallback, (PTRSZVAL)pmyi );
+			//	pmyi->update_thread = ThreadTo( UpdateThread, (uintptr_t)pmyi );
+			SetRedrawHandler( renderer, VLC_RedrawCallback, (uintptr_t)pmyi );
 		}
 
 		pmyi->host_control = NULL;
@@ -1137,7 +1137,7 @@ struct my_vlc_interface *CreateInstanceOn( PRENDERER renderer, CTEXTSTR name, LO
 
 
 		//EnqueLink( &pmyi->available_frames, pmyi->host_image );
-		//pmyi->update_thread = ThreadTo( UpdateThread, (PTRSZVAL)pmyi );
+		//pmyi->update_thread = ThreadTo( UpdateThread, (uintptr_t)pmyi );
 
 		pmyi->name = StrDup( name );
 		//pmyi->host_images = NewArray( Image, 6 );
@@ -1368,7 +1368,7 @@ void PauseItem( struct my_vlc_interface *pmyi )
 }
 
 
-void SetStopEvent( struct my_vlc_interface *pmyi, void (CPROC*StopEvent)( PTRSZVAL psv ), PTRSZVAL psv )
+void SetStopEvent( struct my_vlc_interface *pmyi, void (CPROC*StopEvent)( uintptr_t psv ), uintptr_t psv )
 {
 	pmyi->StopEvent = StopEvent;
 	pmyi->psvStopEvent = psv;
@@ -1606,9 +1606,9 @@ struct on_thread_params
 	struct my_vlc_interface *pmyi;
 };
 
-PTRSZVAL CPROC PlayItemOnThread( PTHREAD thread )
+uintptr_t CPROC PlayItemOnThread( PTHREAD thread )
 {
-	PTRSZVAL psv = GetThreadParam( thread );
+	uintptr_t psv = GetThreadParam( thread );
 	struct on_thread_params *parms = (struct on_thread_params*)psv;
 	struct my_vlc_interface *pmyi;
 	//TEXTCHAR *start, *end;
@@ -1714,7 +1714,7 @@ PTRSZVAL CPROC PlayItemOnThread( PTHREAD thread )
 		parms->pmyi = pmyi;
 		parms->done = 1;
 	}
-	return (PTRSZVAL)pmyi;
+	return (uintptr_t)pmyi;
 }
 
 struct my_vlc_interface * PlayItemOn( PRENDERER renderer, CTEXTSTR input )
@@ -1725,7 +1725,7 @@ struct my_vlc_interface * PlayItemOn( PRENDERER renderer, CTEXTSTR input )
 	parms.extra_opts = NULL;
 	parms.transparent = 0;
 	parms.done = 0;
-	ThreadTo( PlayItemOnThread, (PTRSZVAL)&parms );
+	ThreadTo( PlayItemOnThread, (uintptr_t)&parms );
 	while( !parms.done )
 		Relinquish();
 	return parms.pmyi;
@@ -1741,7 +1741,7 @@ struct my_vlc_interface * PlayItemOnExx( PRENDERER renderer, CTEXTSTR input, CTE
 	parms.transparent = transparent;
 	parms.done = 0;
 
-	ThreadTo( PlayItemOnThread, (PTRSZVAL)&parms );
+	ThreadTo( PlayItemOnThread, (uintptr_t)&parms );
 	while( !parms.done )
       Relinquish();
 	return parms.pmyi;
@@ -1755,15 +1755,15 @@ struct my_vlc_interface * PlayItemOnEx( PRENDERER renderer, CTEXTSTR input, CTEX
 	parms.extra_opts = extra_opts;
 	parms.transparent = 0;
 	parms.done = 0;
-	ThreadTo( PlayItemOnThread, (PTRSZVAL)&parms );
+	ThreadTo( PlayItemOnThread, (uintptr_t)&parms );
 	while( !parms.done )
 		Relinquish();
 	return parms.pmyi;
 }
 
-PTRSZVAL CPROC PlayItemAtThread( PTHREAD thread )
+uintptr_t CPROC PlayItemAtThread( PTHREAD thread )
 {
-	PTRSZVAL psv = GetThreadParam( thread );
+	uintptr_t psv = GetThreadParam( thread );
 	struct on_thread_params *parms = (struct on_thread_params*)psv;
 	struct my_vlc_interface *pmyi;
 
@@ -1843,7 +1843,7 @@ struct my_vlc_interface * PlayItemAt( CTEXTSTR input )
 	parms.extra_opts = NULL;
 	parms.transparent = 0;
 	parms.done = 0;
-	ThreadTo( PlayItemAtThread, (PTRSZVAL)&parms );
+	ThreadTo( PlayItemAtThread, (uintptr_t)&parms );
 	while( !parms.done )
 		Relinquish();
 	return NULL;
@@ -1858,7 +1858,7 @@ struct my_vlc_interface * PlayItemAtExx( CTEXTSTR input, CTEXTSTR extra_opts, in
 	parms.transparent = transparent;
 	parms.done = 0;
 
-	ThreadTo( PlayItemAtThread, (PTRSZVAL)&parms );
+	ThreadTo( PlayItemAtThread, (uintptr_t)&parms );
 	while( !parms.done )
 		Relinquish();
 	return NULL;
@@ -1871,7 +1871,7 @@ struct my_vlc_interface * PlayItemAtEx( CTEXTSTR input, CTEXTSTR extra_opts )
 	parms.extra_opts = extra_opts;
 	parms.transparent = 0;
 	parms.done = 0;
-	ThreadTo( PlayItemAtThread, (PTRSZVAL)&parms );
+	ThreadTo( PlayItemAtThread, (uintptr_t)&parms );
 	while( !parms.done )
 		Relinquish();
 	return NULL;
@@ -2034,7 +2034,7 @@ void PlayUsingMediaList( struct my_vlc_interface *pmyi, PLIST files )
 }
 
 
-void SetPriority( _32 proirity_class )
+void SetPriority( uint32_t proirity_class )
 		{
 #ifdef _WIN32
 			HANDLE hToken, hProcess;
@@ -2088,7 +2088,7 @@ void SetPriority( _32 proirity_class )
 		}
 
 
-void PlayList( PLIST files, S_32 x, S_32 y, _32 w, _32 h )
+void PlayList( PLIST files, int32_t x, int32_t y, uint32_t w, uint32_t h )
 {
 	CTEXTSTR file_to_play;
    INDEX idx;
@@ -2188,9 +2188,9 @@ struct on_sound_thread_params
 	CTEXTSTR input;
 };
 
-PTRSZVAL CPROC PlaySoundItemOnThread( PTHREAD thread )
+uintptr_t CPROC PlaySoundItemOnThread( PTHREAD thread )
 {
-	PTRSZVAL psv = GetThreadParam( thread );
+	uintptr_t psv = GetThreadParam( thread );
 	struct on_sound_thread_params *parms = (struct on_sound_thread_params*)psv;
 	struct my_vlc_interface *pmyi;
 	pmyi = CreateInstance( parms->input );
@@ -2247,7 +2247,7 @@ void PlaySoundFile( CTEXTSTR file )
 	parms.transparent = 0;
 	parms.input = file;
 	parms.done = 0;
-	ThreadTo( PlaySoundItemOnThread, (PTRSZVAL)&parms );
+	ThreadTo( PlaySoundItemOnThread, (uintptr_t)&parms );
    // wait for the parameters to be read...
 	while( !parms.done )
       Relinquish();

@@ -11,9 +11,9 @@
 
 typedef struct vidlib_proxy_renderer
 {
-	_32 w, h;
-	S_32 x, y;
-	_32 attributes;
+	uint32_t w, h;
+	int32_t x, y;
+	uint32_t attributes;
 	struct vidlib_proxy_renderer *above, *under;
 	Image image;  // representation of the output surface
 	struct vidlib_proxy_renderer_flags
@@ -25,16 +25,16 @@ typedef struct vidlib_proxy_renderer
 	} flags;
 	INDEX id;
 	MouseCallback mouse_callback;
-	PTRSZVAL psv_mouse_callback;
+	uintptr_t psv_mouse_callback;
 	KeyProc key_callback;
-	PTRSZVAL psv_key_callback;
+	uintptr_t psv_key_callback;
 	RedrawCallback redraw;
-	PTRSZVAL psv_redraw;
+	uintptr_t psv_redraw;
 	TouchCallback touch_callback;
-	PTRSZVAL psv_touch_callback;
+	uintptr_t psv_touch_callback;
 	struct touch_event_state
 	{
-		S_32 mouse_x, mouse_y;
+		int32_t mouse_x, mouse_y;
 		struct touch_event_one{
 			struct touch_event_one_flags {
 				BIT_FIELD bDrag : 1;
@@ -55,7 +55,7 @@ typedef struct vidlib_proxy_renderer
 	} touch_info;
 	struct default_mouse_info
 	{
-      S_32 lock_x, lock_y;
+      int32_t lock_x, lock_y;
 	} mouse_info;
 } *PVPRENDER;
 
@@ -69,13 +69,13 @@ struct vidlib_android_local
 	PVPRENDER top;
 	CRITICALSECTION cs_update;
 	PIMAGE_INTERFACE real_interface;
-	_8 key_states[256];
+	uint8_t key_states[256];
 	CRITICALSECTION message_formatter;
 	ANativeWindow *displayWindow;
-	S_32 default_display_x, default_display_y;
-	S_32 old_display_x, old_display_y;
-	_32 display_skip_top;
-   _32 display_skip_bottom;
+	int32_t default_display_x, default_display_y;
+	int32_t old_display_x, old_display_y;
+	uint32_t display_skip_top;
+   uint32_t display_skip_bottom;
 	PVPRENDER hVidVirtualFocused;
 	struct vidlib_android_local_flags {
 		BIT_FIELD paused : 1;
@@ -84,9 +84,9 @@ struct vidlib_android_local
 	} flags;
 	PVPRENDER full_screen_display;
 	void(*SuspendSleep)(int);
-	S_32 mouse_x, mouse_y;
-	_32 mouse_b;
-	_32 mouse_first_click_tick;
+	int32_t mouse_x, mouse_y;
+	uint32_t mouse_b;
+	uint32_t mouse_first_click_tick;
    Image default_background;
 } l;
 

@@ -89,7 +89,7 @@ KEYPAD_PROC( void, LoadButtonTheme )( void );
 #define BUTTON_FLAG_TEXT_ON_TOP 1
 
 #define OnKeyPressEvent(name)  \
-	  DefineRegistryMethod(WIDE( "sack/widgets" ),KeyPressHandler,WIDE( "keypad" ),WIDE( "press handler/" )name, WIDE( "on_keypress_event" ),void,(PTRSZVAL))
+	  DefineRegistryMethod(WIDE( "sack/widgets" ),KeyPressHandler,WIDE( "keypad" ),WIDE( "press handler/" )name, WIDE( "on_keypress_event" ),void,(uintptr_t))
 
 	/*
 	 * {
@@ -101,71 +101,71 @@ KEYPAD_PROC( void, LoadButtonTheme )( void );
 	 *  {
 	 *     // add name to a list of available methods to hook to keys for external configuration...
 	 *    SetItemData( AddListItem( (PSI_CONTROL)list, name )
-	 *               ,(PTRSZVAL)GetRegisteredProcedure2( data, void, name, (PTRSZVAL,PKEY_BUTTON) );
+	 *               ,(uintptr_t)GetRegisteredProcedure2( data, void, name, (uintptr_t,PKEY_BUTTON) );
 	 *  }
 	 * }
 	 *
 	 *
     */
 
-typedef void (CPROC *PressHandler)( PTRSZVAL psv, PKEY_BUTTON key );
-typedef void (CPROC *SimplePressHandler)( PTRSZVAL psv );
+typedef void (CPROC *PressHandler)( uintptr_t psv, PKEY_BUTTON key );
+typedef void (CPROC *SimplePressHandler)( uintptr_t psv );
 KEYPAD_PROC( PKEY_BUTTON, MakeKeyExx )( PCOMMON frame
-											  , S_32 x, S_32 y
-											  , _32 width, _32 height
-											  , _32 ID
+											  , int32_t x, int32_t y
+											  , uint32_t width, uint32_t height
+											  , uint32_t ID
 											  , Image lense
 											  , Image frame_up
 												 , Image frame_down
                                       , Image mask
-											  , _32 flags
+											  , uint32_t flags
 											  , CDATA background
 											  , CTEXTSTR content
 											  , SFTFont font
 												  , PressHandler
                                        , CTEXTSTR PressHandlerName
-											  , PTRSZVAL psvPress
+											  , uintptr_t psvPress
 											  , CTEXTSTR value
 											  );
 KEYPAD_PROC( PKEY_BUTTON, MakeKeyEx )( PCOMMON frame
-											  , S_32 x, S_32 y
-											  , _32 width, _32 height
-											  , _32 ID
+											  , int32_t x, int32_t y
+											  , uint32_t width, uint32_t height
+											  , uint32_t ID
 											  , Image lense
 											  , Image frame_up
 												 , Image frame_down
                                       , Image mask
-											  , _32 flags
+											  , uint32_t flags
 											  , CDATA background
 											  , CTEXTSTR content
 											  , SFTFont font
 											  , PressHandler
-											  , PTRSZVAL psvPress
+											  , uintptr_t psvPress
 											  , CTEXTSTR value
 											  );
 KEYPAD_PROC( PKEY_BUTTON, MakeKey )( PCOMMON frame
-											  , S_32 x, S_32 y
-											  , _32 width, _32 height
-											  , _32 ID
+											  , int32_t x, int32_t y
+											  , uint32_t width, uint32_t height
+											  , uint32_t ID
 											  , Image lense
 											  , Image frame_up
 											  , Image frame_down
-											  , _32 flags
+											  , uint32_t flags
 											  , CDATA background
 											  , CTEXTSTR content
 											  , SFTFont font
 											  , PressHandler
-											  , PTRSZVAL psvPress
+											  , uintptr_t psvPress
 											  , CTEXTSTR value
 											  );
 KEYPAD_PROC( void, DestroyKey )( PKEY_BUTTON *key );
 
 CTEXTSTR GetKeyValue( PKEY_BUTTON pKey );
 
-KEYPAD_PROC( void, SetKeyPressEvent )( PKEY_BUTTON key, PressHandler function, PTRSZVAL psvPress );
-KEYPAD_PROC( void, GetKeyPressEvent )( PKEY_BUTTON key, PressHandler *function, PTRSZVAL *psvPress );
-KEYPAD_PROC( void, GetKeySimplePressEvent )( PKEY_BUTTON key, SimplePressHandler *function, PTRSZVAL *psvPress );
-KEYPAD_PROC( void, SetKeyPressNamedEvent )( PKEY_BUTTON key, CTEXTSTR PressHandler, PTRSZVAL psvPress );
+KEYPAD_PROC( void, SetKeyPressEvent )( PKEY_BUTTON key, PressHandler function, uintptr_t psvPress );
+KEYPAD_PROC( void, GetKeyPressEvent )( PKEY_BUTTON key, PressHandler *function, uintptr_t *psvPress );
+KEYPAD_PROC( void, GetKeySimplePressEvent )( PKEY_BUTTON key, SimplePressHandler *function, uintptr_t *psvPress );
+KEYPAD_PROC( void, SetKeyPressNamedEvent )( PKEY_BUTTON key, CTEXTSTR PressHandler, uintptr_t psvPress );
 KEYPAD_PROC( void, SetKeyText )( PKEY_BUTTON key, CTEXTSTR newtext );
 
 KEYPAD_PROC(void, SetKeyTextColor )( PKEY_BUTTON key, CDATA color );
@@ -173,7 +173,7 @@ KEYPAD_PROC(void, SetKeyColor )( PKEY_BUTTON key, CDATA color );
 // return TRUE if image name loaded successfully...
 KEYPAD_PROC(int, SetKeyImage )( PKEY_BUTTON key, Image image );
 KEYPAD_PROC(int, SetKeyImageByName )( PKEY_BUTTON key, CTEXTSTR name );
-KEYPAD_PROC(void, SetKeyImageAlpha )( PKEY_BUTTON key, S_16 alpha );
+KEYPAD_PROC(void, SetKeyImageAlpha )( PKEY_BUTTON key, int16_t alpha );
 
 KEYPAD_PROC(void, SetKeyGreyed )( PKEY_BUTTON key, int greyed );
 KEYPAD_PROC(void, UpdateKey )( PKEY_BUTTON key );
@@ -196,13 +196,13 @@ KEYPAD_PROC( void, SetKeyTextFieldColor )( PTEXT_PLACEMENT pField, CDATA color )
 #define BUTTON_FIELD_CENTER 1
 // this field is displayed using the x as the right side of the string to show.
 #define BUTTON_FIELD_RIGHT 2
-KEYPAD_PROC( PTEXT_PLACEMENT, AddKeyLayout )( PKEY_BUTTON pKey, int x, int y, SFTFont *font, CDATA color, _32 flags );
+KEYPAD_PROC( PTEXT_PLACEMENT, AddKeyLayout )( PKEY_BUTTON pKey, int x, int y, SFTFont *font, CDATA color, uint32_t flags );
 
 KEYPAD_PROC( void, SetKeyMultiShading )( PKEY_BUTTON key, CDATA r_channel, CDATA b_channel, CDATA g_channel );
 KEYPAD_PROC( void, SetKeyMultiShadingHighlights )( PKEY_BUTTON key, CDATA r_channel, CDATA b_channel, CDATA g_channel );
 KEYPAD_PROC( void, SetKeyShading )( PKEY_BUTTON key, CDATA grey_channel ); // set grey_channel to 0 to disable shading.
 
-KEYPAD_PROC( void, SetKeyImageMargin )( PKEY_BUTTON key, _32 hMargin, _32 vMargin );
+KEYPAD_PROC( void, SetKeyImageMargin )( PKEY_BUTTON key, uint32_t hMargin, uint32_t vMargin );
 KEYPAD_PROC( void, SetKeyHighlight )( PKEY_BUTTON key, LOGICAL bEnable );
 KEYPAD_PROC( LOGICAL, GetKeyHighlight )( PKEY_BUTTON key );
 KEYPAD_PROC( PRENDERER, GetButtonAnimationLayer )( PSI_CONTROL pc_key_button );

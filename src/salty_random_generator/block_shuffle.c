@@ -95,8 +95,8 @@ EXPORT_METHOD void BlockShuffle_GetDataBlock( struct block_shuffle_key *key, POI
 	{
 		for( iy = y; iy < ( y + h ); iy++ )
 		{
-			((P_8)( ( (PTRSZVAL)output ) + (ix - ofs_x ) + stride * ( iy - ofs_y ) ))[0] =
-				((P_8)( ( (PTRSZVAL)encrypted ) + key->map[ix + iy * key->width ] ))[0];
+			((uint8_t*)( ( (uintptr_t)output ) + (ix - ofs_x ) + stride * ( iy - ofs_y ) ))[0] =
+				((uint8_t*)( ( (uintptr_t)encrypted ) + key->map[ix + iy * key->width ] ))[0];
 		}
 	}
 }
@@ -114,8 +114,8 @@ EXPORT_METHOD void BlockShuffle_SetDataBlock( struct block_shuffle_key *key, POI
 	{
 		for( iy = y; iy < ( y + h ); iy++ )
 		{
-			((P_8)( ( (PTRSZVAL)encrypted ) + key->map[ix + iy * key->width] ))[0]
-				= ((P_8)( ( (PTRSZVAL)input ) + (ix - ofs_x ) + stride * ( iy - ofs_y ) ))[0];
+			((uint8_t*)( ( (uintptr_t)encrypted ) + key->map[ix + iy * key->width] ))[0]
+				= ((uint8_t*)( ( (uintptr_t)input ) + (ix - ofs_x ) + stride * ( iy - ofs_y ) ))[0];
 		}
 	}
 }

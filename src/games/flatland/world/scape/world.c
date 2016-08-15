@@ -27,7 +27,7 @@
 extern GLOBAL g;
 //----------------------------------------------------------------------------
 
-INDEX SrvrCreateSquareSector( _32 client_id, INDEX iWorld, PC_POINT pOrigin, RCOORD size )
+INDEX SrvrCreateSquareSector( uint32_t client_id, INDEX iWorld, PC_POINT pOrigin, RCOORD size )
 {
 	PWORLD world = GetSetMember( WORLD, &g.worlds, iWorld );
 	PSECTOR pSector;
@@ -96,25 +96,25 @@ INDEX SrvrCreateSquareSector( _32 client_id, INDEX iWorld, PC_POINT pOrigin, RCO
 
 //----------------------------------------------------------------------------
 
-PTRSZVAL CPROC CompareWorldName( POINTER p, PTRSZVAL psv )
+uintptr_t CPROC CompareWorldName( POINTER p, uintptr_t psv )
 {
 	CTEXTSTR name = (CTEXTSTR)psv;
 	PWORLD world = (PWORLD)p;
 	TEXTCHAR buffer[256];
 	GetNameText( GetMemberIndex( WORLD, &g.worlds, world ), world->name, buffer, sizeof( buffer ) );
 	if( StrCmp( buffer, name ) == 0 )
-		return (PTRSZVAL)world;
+		return (uintptr_t)world;
 	return 0;
 }
 
 //----------------------------------------------------------------------------
 
-INDEX SrvrOpenWorld( _32 client_id, CTEXTSTR name )
+INDEX SrvrOpenWorld( uint32_t client_id, CTEXTSTR name )
 {
 	PWORLD world;
 	INDEX iWorld;
-	PTRSZVAL psvResult;
-	psvResult = ForAllInSet( WORLD, g.worlds, CompareWorldName, (PTRSZVAL)name );
+	uintptr_t psvResult;
+	psvResult = ForAllInSet( WORLD, g.worlds, CompareWorldName, (uintptr_t)name );
 	if( psvResult )
 	{
 		world = (PWORLD)psvResult;
@@ -146,7 +146,7 @@ INDEX SrvrOpenWorld( _32 client_id, CTEXTSTR name )
 
 //----------------------------------------------------------------------------
 
-INDEX CreateBasicWorld( _32 client_id )
+INDEX CreateBasicWorld( uint32_t client_id )
 {
 	INDEX world = SrvrOpenWorld( client_id, "Default world" );
 	SrvrCreateSquareSector( client_id, world, VectorConst_0, 50 );
@@ -178,7 +178,7 @@ WORLD_PROC( PFLATLAND_MYLINESEGSET, GetLines )( INDEX iWorld )
 	return NULL;
 }
 //----------------------------------------------------------------------------
-WORLD_PROC( _32, GetSectorCount )( INDEX iWorld )
+WORLD_PROC( uint32_t, GetSectorCount )( INDEX iWorld )
 {
 	PWORLD world = GetSetMember( WORLD, &g.worlds, iWorld );
 	if( world )
@@ -186,7 +186,7 @@ WORLD_PROC( _32, GetSectorCount )( INDEX iWorld )
 	return 0;
 }
 //----------------------------------------------------------------------------
-WORLD_PROC( _32, GetWallCount )( INDEX iWorld )
+WORLD_PROC( uint32_t, GetWallCount )( INDEX iWorld )
 {
 	PWORLD world = GetSetMember( WORLD, &g.worlds, iWorld );
    if( world )
@@ -194,7 +194,7 @@ WORLD_PROC( _32, GetWallCount )( INDEX iWorld )
    return 0;
 }
 //----------------------------------------------------------------------------
-WORLD_PROC( _32, GetLineCount )( INDEX iWorld )
+WORLD_PROC( uint32_t, GetLineCount )( INDEX iWorld )
 {
 	PWORLD world = GetSetMember( WORLD, &g.worlds, iWorld );
 	if( world )
@@ -275,7 +275,7 @@ int SrvrSaveWorldToFile( FILE *pFile, INDEX iWorld )
 	PFLATLAND_TEXTURE *texturearray;
 
 #ifdef LOG_SAVETIMING
-	_32 begin, start = GetTickCount();
+	uint32_t begin, start = GetTickCount();
 	begin = start;
 #endif
 	linearray   = GetLinearLineArray( pWorld->lines, &nlines );
@@ -409,7 +409,7 @@ int SrvrSaveWorldToFile( FILE *pFile, INDEX iWorld )
 	for( cnt = 0; cnt < nnames; cnt++ )
 	{
 		int l;
-		_16 lines = namearray[cnt]->lines;
+		uint16_t lines = namearray[cnt]->lines;
 		namesize += fwrite( &namearray[cnt]->flags, 1, sizeof( namearray[cnt]->flags ), pFile );
 		namesize += fwrite( &lines, 1, sizeof( lines ), pFile );
 		for( l = 0; l < lines; l++ )
@@ -476,7 +476,7 @@ int SrvrSaveWorldToFile( FILE *pFile, INDEX iWorld )
 
 #define LOAD_PORTED
 #ifdef LOAD_PORTED
-int SrvrLoadWorldFromFile( _32 client_id, FILE *file, INDEX iWorld )
+int SrvrLoadWorldFromFile( uint32_t client_id, FILE *file, INDEX iWorld )
 {
 	FILE *pFile;
 	PWORLD world = GetSetMember( WORLD, &g.worlds, iWorld );
@@ -754,7 +754,7 @@ int SrvrLoadWorldFromFile( _32 client_id, FILE *file, INDEX iWorld )
 			namearray[cnt] = GetFromSet( NAME, &world->names );
 			if( version < 6 )
 			{
-				_32 length;
+				uint32_t length;
  				namearray[cnt]->name = (struct name_data*)Allocate( sizeof( *namearray[cnt]->name ) );
 				sz += fread( &length, 1, sizeof( length ), pFile );
             namearray[cnt]->name[0].length = length;
@@ -916,7 +916,7 @@ INDEX CPROC CheckWallSelect( PWALL wall, PWALLSELECTINFO si )
 
 //----------------------------------------------------------------------------
 
-int SrvrMergeSelectedWalls( _32 client_id, INDEX iWorld, INDEX iDefinite, PORTHOAREA rect )
+int SrvrMergeSelectedWalls( uint32_t client_id, INDEX iWorld, INDEX iDefinite, PORTHOAREA rect )
 {
 	GETWORLD(iWorld );
    //PWALL pDefinite = GetWall( iDefinite );
@@ -1024,7 +1024,7 @@ int MarkSelectedSectors( INDEX iWorld, PORTHOAREA rect, INDEX **sectorarray, int
 		rect->h = -rect->h;
 	}
 	Log( "Marking Sectors" );
-	DoForAllSectors( world->sectors, CheckSectorInRect, (PTRSZVAL)&si );
+	DoForAllSectors( world->sectors, CheckSectorInRect, (uintptr_t)&si );
 	if( si.nsectors )
 	{
 		Log1( "Found %d sectors in range", si.nsectors );
@@ -1035,7 +1035,7 @@ int MarkSelectedSectors( INDEX iWorld, PORTHOAREA rect, INDEX **sectorarray, int
 			*sectorarray = (INDEX*)Allocate( sizeof( INDEX ) * si.nsectors );
 			si.ppsectors = *sectorarray;
 			si.nsectors = 0;
-			DoForAllSectors( world->sectors, CheckSectorInRect, (PTRSZVAL)&si );
+			DoForAllSectors( world->sectors, CheckSectorInRect, (uintptr_t)&si );
 		}
 		return TRUE;
 	}
@@ -1087,7 +1087,7 @@ int PointInRect( P_POINT point, PORTHOAREA rect )
 
 //----------------------------------------------------------------------------
 
-int CPROC CheckWallInRect( _32 client_id, PWALL wall, PGROUPWALLSELECTINFO psi )
+int CPROC CheckWallInRect( uint32_t client_id, PWALL wall, PGROUPWALLSELECTINFO psi )
 {
 	GETWORLD(psi->iWorld);
 	_POINT p1, p2;
@@ -1135,7 +1135,7 @@ int CPROC CheckWallInRect( _32 client_id, PWALL wall, PGROUPWALLSELECTINFO psi )
 
 //----------------------------------------------------------------------------
 
-void SrvrMergeOverlappingWalls( _32 client_id, INDEX iWorld, PORTHOAREA rect )
+void SrvrMergeOverlappingWalls( uint32_t client_id, INDEX iWorld, PORTHOAREA rect )
 {
 	// for all walls - find a wall without a mate in the rect area...
 	// then for all remaining walls - find another wall that is the 

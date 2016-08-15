@@ -4,7 +4,7 @@ RENDER_NAMESPACE
 
 #ifndef RENDER_INTERFACE_INCLUDED
 /* type for callback signature to handle a bound keyboard event. */
-typedef LOGICAL (CPROC *KeyTriggerHandler)(PTRSZVAL,_32 keycode);
+typedef LOGICAL (CPROC *KeyTriggerHandler)(uintptr_t,uint32_t keycode);
 
 
 /* <combine sack::image::render::KeyDefine>
@@ -19,8 +19,8 @@ struct key_function
 			KeyTriggerHandler trigger;
 			KeyTriggerHandler extended_key_trigger;
 		}data;
-	PTRSZVAL psv;
-   PTRSZVAL extended_key_psv;
+	uintptr_t psv;
+   uintptr_t extended_key_psv;
 };
 
 //#if !defined( DISPLAY_SOURCE ) && !defined( DISPLAY_SERVICE ) && !defined( DISPLAY_CLIENT )
@@ -38,8 +38,8 @@ typedef struct keybind_tag { // overrides to default definitions
 			KeyTriggerHandler trigger;
 			KeyTriggerHandler extended_key_trigger;
 		}data;
-	PTRSZVAL psv;
-	PTRSZVAL extended_key_psv;
+	uintptr_t psv;
+	uintptr_t extended_key_psv;
 #endif
 //DOM-IGNORE-END
 } KEYBIND, *PKEYBIND;

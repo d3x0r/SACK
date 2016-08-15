@@ -33,7 +33,7 @@ struct {
 	unsigned int gl_shadow;
 	unsigned int gl_shaded;
 	unsigned int gl_cover;
-   _32 w, h;
+   uint32_t w, h;
 	PRENDERER render;
 	struct {
 		BIT_FIELD bFirstPaintDone : 1;
@@ -72,7 +72,7 @@ void ChooseColorDest( PBUBBLE bubble )
 
 void RelateBubble( PBUBBLE bubble )
 {
-   //AddWebNode( l.web, bubble->v, (PTRSZVAL)bubble );
+   //AddWebNode( l.web, bubble->v, (uintptr_t)bubble );
 #if 0
 	PBUBBLE check_bubble;
    INDEX idx;
@@ -238,7 +238,7 @@ void DrawBubbles( PBUBBLE bubble, Image image, int x, int y, CDATA c )
 		{
 			glBindTexture(GL_TEXTURE_2D, l.gl_shaded);				// Select Our Texture
 			glBegin(GL_QUADS);
-			glColor4ubv( (P_8)&c );
+			glColor4ubv( (uint8_t*)&c );
 			//lprintf( "Texture size is %g,%g", x_size, y_size );
 			glTexCoord2f(0.0f, y_size); glVertex3f(x+-scale,y+ -scale,  depth);	// Bottom Left Of The Texture and Quad
 			glTexCoord2f(x_size, y_size); glVertex3f( x+scale,y+ -scale,  depth);	// Bottom Right Of The Texture and Quad
@@ -376,7 +376,7 @@ void GenTexture( unsigned int *gl, Image img )
 
 }
 
-void CPROC UpdateImage( PTRSZVAL psv, PRENDERER renderer )
+void CPROC UpdateImage( uintptr_t psv, PRENDERER renderer )
 {
 	Image image = GetDisplayImage( renderer );
 
@@ -414,7 +414,7 @@ void CPROC UpdateImage( PTRSZVAL psv, PRENDERER renderer )
 	}
 }
 
-void CPROC Ticker( PTRSZVAL psv )
+void CPROC Ticker( uintptr_t psv )
 {
    MoveBubbles();
    Redraw( l.render );

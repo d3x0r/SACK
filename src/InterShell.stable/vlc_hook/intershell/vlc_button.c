@@ -42,7 +42,7 @@ void PlayOnPlayers( CTEXTSTR url_name )
 	}
 }
 
-static void OnKeyPressEvent( WIDE("VLC/button") )( PTRSZVAL psv )
+static void OnKeyPressEvent( WIDE("VLC/button") )( uintptr_t psv )
 {
 	static int n;
 	PMENU_BUTTON button = (PMENU_BUTTON)psv;
@@ -53,30 +53,30 @@ static void OnKeyPressEvent( WIDE("VLC/button") )( PTRSZVAL psv )
 		n = 0;
 }
 
-static PTRSZVAL OnCreateMenuButton( WIDE("VLC/button") )( PMENU_BUTTON button )
+static uintptr_t OnCreateMenuButton( WIDE("VLC/button") )( PMENU_BUTTON button )
 {
 
-	return (PTRSZVAL)button;
+	return (uintptr_t)button;
 }
 
 
-static void OnKeyPressEvent( WIDE("VLC/Player button") )( PTRSZVAL psv )
+static void OnKeyPressEvent( WIDE("VLC/Player button") )( uintptr_t psv )
 {
 	struct player_button *play = (struct player_button *)psv;
 	PlayOnPlayers( play->url_name );
 }
 
-static PTRSZVAL OnCreateMenuButton( WIDE("VLC/Player button") )( PMENU_BUTTON button )
+static uintptr_t OnCreateMenuButton( WIDE("VLC/Player button") )( PMENU_BUTTON button )
 {
 	struct player_button *play = New( struct player_button );
 	play->button = button;
 	play->url_name = NULL;
 	InterShell_SetButtonStyle( button, WIDE("bicolor square") );
 	InterShell_SetButtonText( button, WIDE("Play_Video") );
-	return (PTRSZVAL)button;
+	return (uintptr_t)button;
 }
 
-static void OnKeyPressEvent( WIDE("VLC/Stop Player button") )( PTRSZVAL psv )
+static void OnKeyPressEvent( WIDE("VLC/Stop Player button") )( uintptr_t psv )
 {
 	struct player_button *play = (struct player_button *)psv;
 	PVLC vlc;
@@ -91,17 +91,17 @@ static void OnKeyPressEvent( WIDE("VLC/Stop Player button") )( PTRSZVAL psv )
 
 }
 
-static PTRSZVAL OnCreateMenuButton( WIDE("VLC/Stop Player button") )( PMENU_BUTTON button )
+static uintptr_t OnCreateMenuButton( WIDE("VLC/Stop Player button") )( PMENU_BUTTON button )
 {
 	struct player_button *play = New( struct player_button );
 	play->button = button;
 	play->url_name = NULL;
 	InterShell_SetButtonStyle( button, WIDE("bicolor square") );
 	InterShell_SetButtonText( button, WIDE("Stop_Player") );
-	return (PTRSZVAL)button;
+	return (uintptr_t)button;
 }
 
-static PTRSZVAL CPROC SetButtonMedia( PTRSZVAL psv, arg_list args )
+static uintptr_t CPROC SetButtonMedia( uintptr_t psv, arg_list args )
 {
 	PARAM( args, CTEXTSTR, url );
 	struct player_button *play = (struct player_button *)psv;
@@ -111,12 +111,12 @@ static PTRSZVAL CPROC SetButtonMedia( PTRSZVAL psv, arg_list args )
 	return psv;
 }
 
-static void OnLoadControl( WIDE("VLC/Player button") )( PCONFIG_HANDLER pch, PTRSZVAL psv )
+static void OnLoadControl( WIDE("VLC/Player button") )( PCONFIG_HANDLER pch, uintptr_t psv )
 {
 	AddConfigurationMethod( pch, WIDE("Play Media:%m"), SetButtonMedia );
 }
 
-static void OnSaveControl( WIDE("VLC/Player button") )( FILE *file, PTRSZVAL psv )
+static void OnSaveControl( WIDE("VLC/Player button") )( FILE *file, uintptr_t psv )
 {
 	struct player_button *play = (struct player_button *)psv;
 	if( play->url_name )
@@ -125,30 +125,30 @@ static void OnSaveControl( WIDE("VLC/Player button") )( FILE *file, PTRSZVAL psv
 
 
 
-static PTRSZVAL OnCreateControl( WIDE("VLC/Player") )( PSI_CONTROL parent, S_32 x, S_32 y, _32 w, _32 h )
+static uintptr_t OnCreateControl( WIDE("VLC/Player") )( PSI_CONTROL parent, int32_t x, int32_t y, uint32_t w, uint32_t h )
 {
 
 	PSI_CONTROL pc = MakeNamedControl( parent, WIDE("VLC Surface"), x, y, w, h, -1 );
 	MyValidatedControlData( PVLC, vlc, pc );
 	vlc->pc = pc;
 	AddLink( &l.players, vlc );
-	return (PTRSZVAL)vlc;
+	return (uintptr_t)vlc;
 }
 
-static PSI_CONTROL OnGetControl( WIDE("VLC/Player"))(PTRSZVAL psv )
+static PSI_CONTROL OnGetControl( WIDE("VLC/Player"))(uintptr_t psv )
 {
 	PVLC vlc = (PVLC)psv;
 	return vlc->pc;
 }
 
-static void OnShowControl( WIDE("VLC/Player") )(PTRSZVAL psv )
+static void OnShowControl( WIDE("VLC/Player") )(uintptr_t psv )
 {
 	PVLC vlc = (PVLC)psv;
 	//vlc->vlc = PlayItemInEx( vlc->pc, WIDE("dshow://"), NULL );
 
 }
 
-static void OnHideControl( WIDE("VLC/Player") )(PTRSZVAL psv )
+static void OnHideControl( WIDE("VLC/Player") )(uintptr_t psv )
 {
 	PVLC vlc = (PVLC)psv;
 	//StopItem(  vlc->vlc );
@@ -157,7 +157,7 @@ static void OnHideControl( WIDE("VLC/Player") )(PTRSZVAL psv )
 
 //------------------------------------------------------------------------------------
 
-static PTRSZVAL OnCreateControl( WIDE("VLC/Video Link") )( PSI_CONTROL parent, S_32 x, S_32 y, _32 w, _32 h )
+static uintptr_t OnCreateControl( WIDE("VLC/Video Link") )( PSI_CONTROL parent, int32_t x, int32_t y, uint32_t w, uint32_t h )
 {
 	return 1;
 }

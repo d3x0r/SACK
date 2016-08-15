@@ -21,19 +21,19 @@ extern CONTROL_REGISTRATION clock_control;
 struct analog_clock
 {
 	struct {
-		_32 bLocked : 1;
+		uint32_t bLocked : 1;
 	} flags;
 	PRENDERER render;
 	Image image;
 	Image face;
 	Image composite; // size of face, work space to add hands.  Clock face created always.
-	_32 w, h;
+	uint32_t w, h;
 	PSPRITE second_hand;
 	PSPRITE minute_hand;
 	PSPRITE hour_hand;
 	struct {
-		_32 xofs;
-		_32 yofs;
+		uint32_t xofs;
+		uint32_t yofs;
 	} face_center;
 	PCLOCK_CONTROL clock;
 };
@@ -52,12 +52,12 @@ void DrawClock( Image surface, PANALOG_CLOCK analog )
 			SetSpritePosition( analog->second_hand, surface->width/2, surface->height/2 );
 			SetSpritePosition( analog->minute_hand, surface->width/2, surface->height/2 );
 			SetSpritePosition( analog->hour_hand, surface->width/2, surface->height/2 );
-			if( SUS_GT(surface->height,S_32,analog->h,_32) )
+			if( SUS_GT(surface->height,int32_t,analog->h,uint32_t) )
 			{
 				remake = 1;
 				analog->h = surface->height;
 			}
-			if( SUS_GT(surface->width ,S_32,analog->w,_32) )
+			if( SUS_GT(surface->width ,int32_t,analog->w,uint32_t) )
 			{
 				remake = 1;
 				analog->w = surface->width;
@@ -148,8 +148,8 @@ static void MoveSurface( PSI_CONTROL pc )
 		{
 			Image surface = GetControlSurface( pc );
 			PRENDERER r = GetFrameRenderer( GetFrame( pc ) );
-			S_32 x = 0;
-			S_32 y = 0;
+			int32_t x = 0;
+			int32_t y = 0;
 			GetPhysicalCoordinate( pc, &x, &y, TRUE );
 #if draw_on_renderer
 			if( analog->render )
@@ -193,7 +193,7 @@ static void OnSizeCommon( CLOCK_NAME )( PSI_CONTROL pc, LOGICAL changing )
 
 
 #ifdef draw_on_renderer
-void CPROC DrawClockLayers( PTRSZVAL psv, PRENDERER renderer )
+void CPROC DrawClockLayers( uintptr_t psv, PRENDERER renderer )
 {
 	ValidatedControlData( PCLOCK_CONTROL, clock_control.TypeID, clock, (PSI_CONTROL)psv );
 	if( clock )
@@ -284,8 +284,8 @@ void MakeClockAnalogEx( PSI_CONTROL pc, CTEXTSTR imagename, struct clock_image_t
 			{
 				Image surface = GetControlSurface( pc );
 				PRENDERER r = GetFrameRenderer( GetFrame( pc ) );
-				S_32 x = 0;
-				S_32 y = 0;
+				int32_t x = 0;
+				int32_t y = 0;
 				GetPhysicalCoordinate( pc, &x, &y, FALSE );
 					lprintf( WIDE( "Making clock uhm... %d %d %d %d over %p" ), x, y,surface->width
 																	 , surface->height );
@@ -298,11 +298,11 @@ void MakeClockAnalogEx( PSI_CONTROL pc, CTEXTSTR imagename, struct clock_image_t
 																	 , r // r may not exist yet... we might just be over a control that is frameless... later we'll relate as child
 																	 );
 				UpdateDisplay( analog->render );
-				SetRedrawHandler( analog->render, DrawClockLayers, (PTRSZVAL)pc );
+				SetRedrawHandler( analog->render, DrawClockLayers, (uintptr_t)pc );
 			}
 #endif
 			clock->analog_clock = analog;
-			//EnableSpriteMethod( GetFrameRenderer( GetFrame( pc ) ), DrawAnalogHands, (PTRSZVAL)analog );
+			//EnableSpriteMethod( GetFrameRenderer( GetFrame( pc ) ), DrawAnalogHands, (uintptr_t)analog );
 		}
 		else
 		{

@@ -54,15 +54,15 @@
 #endif
 //typedef void           _0;
 typedef void *P_0;
-typedef unsigned char  _8;
-typedef _8 *P_8;
-typedef unsigned short _16;
-typedef _16 *P_16;
-typedef unsigned long  _32;
-typedef _32 *P_32;
-typedef signed   char  S_8;
-typedef signed   short S_16;
-typedef signed   long  S_32;
+typedef unsigned char  uint8_t;
+typedef uint8_t *uint8_t*;
+typedef unsigned short uint16_t;
+typedef uint16_t *uint16_t*;
+typedef unsigned long  uint32_t;
+typedef uint32_t *uint32_t*;
+typedef signed   char  int8_t;
+typedef signed   short int16_t;
+typedef signed   long  int32_t;
 typedef const unsigned char *CTEXTSTR;
 typedef unsigned char TEXTCHAR;
 typedef TEXTCHAR *TEXTSTR;
@@ -80,12 +80,12 @@ typedef TEXTCHAR *TEXTSTR;
 #endif
 //#define SOCKADDR    sockaddr
 
-typedef _32   INDEX;
-#define INVALID_INDEX ((_32)-1) 
+typedef uint32_t   INDEX;
+#define INVALID_INDEX ((uint32_t)-1) 
 typedef void  *POINTER;
 typedef const void *CPOINTER;
-typedef _32 LOGICAL;
-typedef _32 PTRSZVAL;
+typedef uint32_t LOGICAL;
+typedef uint32_t uintptr_t;
 #ifndef FALSE
 #define FALSE 0
 #endif
@@ -94,58 +94,58 @@ typedef _32 PTRSZVAL;
 #endif
 
 
-#define DECLDATA(name,sz) struct {_32 size; _8 data[sz];} name
+#define DECLDATA(name,sz) struct {uint32_t size; uint8_t data[sz];} name
 
 typedef struct DataBlock {
-   _32 size;     // size is sometimes a pointer value...
+   uint32_t size;     // size is sometimes a pointer value...
                  // this means bad thing when we change platforms...
-   _8  data[1]; // beginning of var data - this is created size+sizeof(VPA)
+   uint8_t  data[1]; // beginning of var data - this is created size+sizeof(VPA)
 } DATA, *PDATA;
 
 typedef struct LinkBlock
 {
-   _32     Cnt;
-   _32     Lock;
+   uint32_t     Cnt;
+   uint32_t     Lock;
    POINTER pNode[1];
 } LIST, *PLIST;
 
 typedef struct DataListBlock
 {
-   _32     Cnt;
-   _32     Size;
-   _8      data[1];
+   uint32_t     Cnt;
+   uint32_t     Size;
+   uint8_t      data[1];
 } DATALIST, *PDATALIST; 
 
 typedef struct LinkStack
 {
-   _32     Top;
-   _32     Cnt;
+   uint32_t     Top;
+   uint32_t     Cnt;
    POINTER pNode[1];
 } LINKSTACK, *PLINKSTACK;
 
 typedef struct DataListStack
 {
-   _32     Top; // next avail...
-   _32     Cnt;
-   _32     Size;
-   _8      data[1];
+   uint32_t     Top; // next avail...
+   uint32_t     Cnt;
+   uint32_t     Size;
+   uint8_t      data[1];
 } DATASTACK, *PDATASTACK;
 
 typedef struct LinkQueue
 {
-   _32     Top;
-   _32     Bottom;
-   _32     Cnt;
-   _32     Lock;  // thread interlock using InterlockedExchange semaphore
+   uint32_t     Top;
+   uint32_t     Bottom;
+   uint32_t     Cnt;
+   uint32_t     Lock;  // thread interlock using InterlockedExchange semaphore
    POINTER pNode[2]; // need two to have distinct empty/full conditions
 } LINKQUEUE, *PLINKQUEUE;
 
 typedef struct LinkStackQueue // additional step function... 
 {
-   _32     Top;
-   _32     Bottom;
-   _32     Next;
-   _32     Cnt;
+   uint32_t     Top;
+   uint32_t     Bottom;
+   uint32_t     Next;
+   uint32_t     Cnt;
    POINTER pNode[2]; // need two to have distinct empty/full conditions
 } LINKSTACKQUEUE, *PLINKSTACKQUEUE;
 

@@ -61,8 +61,8 @@ static void CPROC AndroidANW_SetApplicationTitle( CTEXTSTR title )
 }
 
 static void CPROC AndroidANW_GetDisplaySizeEx( int nDisplay
-														  , S_32 *x, S_32 *y
-														  , _32 *width, _32 *height)
+														  , int32_t *x, int32_t *y
+														  , uint32_t *width, uint32_t *height)
 {
 	if( x )
 		(*x) = 0;
@@ -76,19 +76,19 @@ static void CPROC AndroidANW_GetDisplaySizeEx( int nDisplay
 
 }
 
-static void CPROC AndroidANW_GetDisplaySize( _32 *width, _32 *height )
+static void CPROC AndroidANW_GetDisplaySize( uint32_t *width, uint32_t *height )
 {
    AndroidANW_GetDisplaySizeEx( 0, NULL, NULL, width, height );
 }
 
-static void CPROC AndroidANW_SetDisplaySize		( _32 width, _32 height )
+static void CPROC AndroidANW_SetDisplaySize		( uint32_t width, uint32_t height )
 {
 	//SACK_WriteProfileInt( "SACK/Vidlib", "Default Display Width", width );
 	//SACK_WriteProfileInt( "SACK/Vidlib", "Default Display Height", height );
 }
 
 
-static PVPImage Internal_MakeImageFileEx ( INDEX iRender, _32 Width, _32 Height DBG_PASS)
+static PVPImage Internal_MakeImageFileEx ( INDEX iRender, uint32_t Width, uint32_t Height DBG_PASS)
 {
 	PVPImage image = New( struct vidlib_proxy_image );
 	MemSet( image, 0, sizeof( struct vidlib_proxy_image ) );
@@ -125,13 +125,13 @@ static PVPImage WrapImageFile( Image native )
 }
 
 
-static Image CPROC AndroidANW_MakeImageFileEx (_32 Width, _32 Height DBG_PASS)
+static Image CPROC AndroidANW_MakeImageFileEx (uint32_t Width, uint32_t Height DBG_PASS)
 {
 	return (Image)Internal_MakeImageFileEx( INVALID_INDEX, Width, Height DBG_RELAY );
 }
 
 
-static PRENDERER CPROC AndroidANW_OpenDisplayAboveUnderSizedAt( _32 attributes, _32 width, _32 height, S_32 x, S_32 y, PRENDERER above, PRENDERER under )
+static PRENDERER CPROC AndroidANW_OpenDisplayAboveUnderSizedAt( uint32_t attributes, uint32_t width, uint32_t height, int32_t x, int32_t y, PRENDERER above, PRENDERER under )
 {
 
 	PVPRENDER Renderer = New( struct vidlib_proxy_renderer );
@@ -150,12 +150,12 @@ static PRENDERER CPROC AndroidANW_OpenDisplayAboveUnderSizedAt( _32 attributes, 
 	return (PRENDERER)Renderer;
 }
 
-static PRENDERER CPROC AndroidANW_OpenDisplayAboveSizedAt( _32 attributes, _32 width, _32 height, S_32 x, S_32 y, PRENDERER above )
+static PRENDERER CPROC AndroidANW_OpenDisplayAboveSizedAt( uint32_t attributes, uint32_t width, uint32_t height, int32_t x, int32_t y, PRENDERER above )
 {
 	return AndroidANW_OpenDisplayAboveUnderSizedAt( attributes, width, height, x, y, above, NULL );
 }
 
-static PRENDERER CPROC AndroidANW_OpenDisplaySizedAt	  ( _32 attributes, _32 width, _32 height, S_32 x, S_32 y )
+static PRENDERER CPROC AndroidANW_OpenDisplaySizedAt	  ( uint32_t attributes, uint32_t width, uint32_t height, int32_t x, int32_t y )
 {
 	return AndroidANW_OpenDisplayAboveUnderSizedAt( attributes, width, height, x, y, NULL, NULL );
 }
@@ -189,7 +189,7 @@ static void CPROC  AndroidANW_CloseDisplay ( PRENDERER Renderer )
 	Release( Renderer );
 }
 
-static void CPROC AndroidANW_UpdateDisplayPortionEx( PRENDERER r, S_32 x, S_32 y, _32 width, _32 height DBG_PASS )
+static void CPROC AndroidANW_UpdateDisplayPortionEx( PRENDERER r, int32_t x, int32_t y, uint32_t width, uint32_t height DBG_PASS )
 {
 	// no-op; it will ahve already displayed(?)
 }
@@ -200,7 +200,7 @@ static void CPROC AndroidANW_UpdateDisplayEx( PRENDERER r DBG_PASS)
 
 }
 
-static void CPROC AndroidANW_GetDisplayPosition ( PRENDERER r, S_32 *x, S_32 *y, _32 *width, _32 *height )
+static void CPROC AndroidANW_GetDisplayPosition ( PRENDERER r, int32_t *x, int32_t *y, uint32_t *width, uint32_t *height )
 {
 	PVPRENDER pRender = (PVPRENDER)r;
 	if( x )
@@ -214,8 +214,8 @@ static void CPROC AndroidANW_GetDisplayPosition ( PRENDERER r, S_32 *x, S_32 *y,
 }
 
 static void CPROC AndroidANW_MoveSizeDisplay( PRENDERER r
-													 , S_32 x, S_32 y
-													 , S_32 w, S_32 h )
+													 , int32_t x, int32_t y
+													 , int32_t w, int32_t h )
 {
 	PVPRENDER pRender = (PVPRENDER)r;
 	pRender->x = x;
@@ -224,7 +224,7 @@ static void CPROC AndroidANW_MoveSizeDisplay( PRENDERER r
 	pRender->h = h;
 }
 
-static void CPROC AndroidANW_MoveDisplay		  ( PRENDERER r, S_32 x, S_32 y )
+static void CPROC AndroidANW_MoveDisplay		  ( PRENDERER r, int32_t x, int32_t y )
 {
 	PVPRENDER pRender = (PVPRENDER)r;
 	AndroidANW_MoveSizeDisplay( r, 
@@ -235,7 +235,7 @@ static void CPROC AndroidANW_MoveDisplay		  ( PRENDERER r, S_32 x, S_32 y )
 								);
 }
 
-static void CPROC AndroidANW_MoveDisplayRel( PRENDERER r, S_32 delx, S_32 dely )
+static void CPROC AndroidANW_MoveDisplayRel( PRENDERER r, int32_t delx, int32_t dely )
 {
 	PVPRENDER pRender = (PVPRENDER)r;
 	AndroidANW_MoveSizeDisplay( r, 
@@ -246,7 +246,7 @@ static void CPROC AndroidANW_MoveDisplayRel( PRENDERER r, S_32 delx, S_32 dely )
 								);
 }
 
-static void CPROC AndroidANW_SizeDisplay( PRENDERER r, _32 w, _32 h )
+static void CPROC AndroidANW_SizeDisplay( PRENDERER r, uint32_t w, uint32_t h )
 {
 	PVPRENDER pRender = (PVPRENDER)r;
 	AndroidANW_MoveSizeDisplay( r, 
@@ -257,7 +257,7 @@ static void CPROC AndroidANW_SizeDisplay( PRENDERER r, _32 w, _32 h )
 								);
 }
 
-static void CPROC AndroidANW_SizeDisplayRel( PRENDERER r, S_32 delw, S_32 delh )
+static void CPROC AndroidANW_SizeDisplayRel( PRENDERER r, int32_t delw, int32_t delh )
 {
 	PVPRENDER pRender = (PVPRENDER)r;
 	AndroidANW_MoveSizeDisplay( r, 
@@ -269,8 +269,8 @@ static void CPROC AndroidANW_SizeDisplayRel( PRENDERER r, S_32 delw, S_32 delh )
 }
 
 static void CPROC AndroidANW_MoveSizeDisplayRel( PRENDERER r
-																 , S_32 delx, S_32 dely
-																 , S_32 delw, S_32 delh )
+																 , int32_t delx, int32_t dely
+																 , int32_t delw, int32_t delh )
 {
 	PVPRENDER pRender = (PVPRENDER)r;
 	AndroidANW_MoveSizeDisplay( r, 
@@ -292,40 +292,40 @@ static Image CPROC AndroidANW_GetDisplayImage( PRENDERER r )
 	return (Image)pRender->image;
 }
 
-static void CPROC AndroidANW_SetCloseHandler	 ( PRENDERER r, CloseCallback c, PTRSZVAL p )
+static void CPROC AndroidANW_SetCloseHandler	 ( PRENDERER r, CloseCallback c, uintptr_t p )
 {
 }
 
-static void CPROC AndroidANW_SetMouseHandler  ( PRENDERER r, MouseCallback c, PTRSZVAL p )
+static void CPROC AndroidANW_SetMouseHandler  ( PRENDERER r, MouseCallback c, uintptr_t p )
 {
 	PVPRENDER render = (PVPRENDER)r;
 	render->mouse_callback = c;
 	render->psv_mouse_callback = p;
 }
 
-static void CPROC AndroidANW_SetRedrawHandler  ( PRENDERER r, RedrawCallback c, PTRSZVAL p )
+static void CPROC AndroidANW_SetRedrawHandler  ( PRENDERER r, RedrawCallback c, uintptr_t p )
 {
 	PVPRENDER render = (PVPRENDER)r;
 	render->redraw = c;
 	render->psv_redraw = p;
 }
 
-static void CPROC AndroidANW_SetKeyboardHandler	( PRENDERER r, KeyProc c, PTRSZVAL p )
+static void CPROC AndroidANW_SetKeyboardHandler	( PRENDERER r, KeyProc c, uintptr_t p )
 {
 	PVPRENDER render = (PVPRENDER)r;
 	render->key_callback = c;
 	render->psv_key_callback = p;
 }
 
-static void CPROC AndroidANW_SetLoseFocusHandler  ( PRENDERER r, LoseFocusCallback c, PTRSZVAL p )
+static void CPROC AndroidANW_SetLoseFocusHandler  ( PRENDERER r, LoseFocusCallback c, uintptr_t p )
 {
 }
 
-static void CPROC AndroidANW_GetMousePosition	( S_32 *x, S_32 *y )
+static void CPROC AndroidANW_GetMousePosition	( int32_t *x, int32_t *y )
 {
 }
 
-static void CPROC AndroidANW_SetMousePosition  ( PRENDERER r, S_32 x, S_32 y )
+static void CPROC AndroidANW_SetMousePosition  ( PRENDERER r, int32_t x, int32_t y )
 {
 }
 
@@ -380,12 +380,12 @@ static TEXTCHAR CPROC AndroidANW_GetKeyText		 ( int key )
 #endif
 }
 
-static _32 CPROC AndroidANW_IsKeyDown		  ( PRENDERER r, int key )
+static uint32_t CPROC AndroidANW_IsKeyDown		  ( PRENDERER r, int key )
 {
 	return 0;
 }
 
-static _32 CPROC AndroidANW_KeyDown		  ( PRENDERER r, int key )
+static uint32_t CPROC AndroidANW_KeyDown		  ( PRENDERER r, int key )
 {
 	return 0;
 }
@@ -395,12 +395,12 @@ static LOGICAL CPROC AndroidANW_DisplayIsValid ( PRENDERER r )
 	return (r != NULL);
 }
 
-static void CPROC AndroidANW_OwnMouseEx ( PRENDERER r, _32 Own DBG_PASS)
+static void CPROC AndroidANW_OwnMouseEx ( PRENDERER r, uint32_t Own DBG_PASS)
 {
 
 }
 
-static int CPROC AndroidANW_BeginCalibration ( _32 points )
+static int CPROC AndroidANW_BeginCalibration ( uint32_t points )
 {
 	return 0;
 }
@@ -433,12 +433,12 @@ static void CPROC AndroidANW_ForceDisplayBack( PRENDERER r )
 {
 }
 
-static int CPROC  AndroidANW_BindEventToKey( PRENDERER pRenderer, _32 scancode, _32 modifier, KeyTriggerHandler trigger, PTRSZVAL psv )
+static int CPROC  AndroidANW_BindEventToKey( PRENDERER pRenderer, uint32_t scancode, uint32_t modifier, KeyTriggerHandler trigger, uintptr_t psv )
 {
 	return 0;
 }
 
-static int CPROC AndroidANW_UnbindKey( PRENDERER pRenderer, _32 scancode, _32 modifier )
+static int CPROC AndroidANW_UnbindKey( PRENDERER pRenderer, uint32_t scancode, uint32_t modifier )
 {
 	return 0;
 }
@@ -458,16 +458,16 @@ static int CPROC AndroidANW_IsTouchDisplay( void )
 	return 0;
 }
 
-static void CPROC AndroidANW_GetMouseState( S_32 *x, S_32 *y, _32 *b )
+static void CPROC AndroidANW_GetMouseState( int32_t *x, int32_t *y, uint32_t *b )
 {
 }
 
-static PSPRITE_METHOD CPROC AndroidANW_EnableSpriteMethod(PRENDERER render, void(CPROC*RenderSprites)(PTRSZVAL psv, PRENDERER renderer, S_32 x, S_32 y, _32 w, _32 h ), PTRSZVAL psv )
+static PSPRITE_METHOD CPROC AndroidANW_EnableSpriteMethod(PRENDERER render, void(CPROC*RenderSprites)(uintptr_t psv, PRENDERER renderer, int32_t x, int32_t y, uint32_t w, uint32_t h ), uintptr_t psv )
 {
 	return NULL;
 }
 
-static void CPROC AndroidANW_WinShell_AcceptDroppedFiles( PRENDERER renderer, dropped_file_acceptor f, PTRSZVAL psvUser )
+static void CPROC AndroidANW_WinShell_AcceptDroppedFiles( PRENDERER renderer, dropped_file_acceptor f, uintptr_t psvUser )
 {
 }
 
@@ -522,17 +522,17 @@ static void CPROC AndroidANW_UnlockRenderer( PRENDERER render )
 {
 }
 
-static void CPROC AndroidANW_IssueUpdateLayeredEx( PRENDERER r, LOGICAL bContent, S_32 x, S_32 y, _32 w, _32 h DBG_PASS )
+static void CPROC AndroidANW_IssueUpdateLayeredEx( PRENDERER r, LOGICAL bContent, int32_t x, int32_t y, uint32_t w, uint32_t h DBG_PASS )
 {
 }
 
 
 #ifndef NO_TOUCH
 		/* <combine sack::image::render::SetTouchHandler@PRENDERER@fte inc asdfl;kj
-		 fteTouchCallback@PTRSZVAL>
+		 fteTouchCallback@uintptr_t>
 		 
 		 \ \																									  */
-static void CPROC AndroidANW_SetTouchHandler  ( PRENDERER r, TouchCallback c, PTRSZVAL p )
+static void CPROC AndroidANW_SetTouchHandler  ( PRENDERER r, TouchCallback c, uintptr_t p )
 {
 }
 #endif
@@ -541,11 +541,11 @@ static void CPROC AndroidANW_MarkDisplayUpdated( PRENDERER r  )
 {
 }
 
-static void CPROC AndroidANW_SetHideHandler		( PRENDERER r, HideAndRestoreCallback c, PTRSZVAL p )
+static void CPROC AndroidANW_SetHideHandler		( PRENDERER r, HideAndRestoreCallback c, uintptr_t p )
 {
 }
 
-static void CPROC AndroidANW_SetRestoreHandler  ( PRENDERER r, HideAndRestoreCallback c, PTRSZVAL p )
+static void CPROC AndroidANW_SetRestoreHandler  ( PRENDERER r, HideAndRestoreCallback c, uintptr_t p )
 {
 }
 
@@ -587,7 +587,7 @@ static RENDER_INTERFACE ProxyInterface = {
 													  , AndroidANW_SetMouseHandler
 													  , AndroidANW_SetRedrawHandler
 													  , AndroidANW_SetKeyboardHandler
-	 /* <combine sack::image::render::SetLoseFocusHandler@PRENDERER@LoseFocusCallback@PTRSZVAL>
+	 /* <combine sack::image::render::SetLoseFocusHandler@PRENDERER@LoseFocusCallback@uintptr_t>
 		 
 		 \ \																												 */
 													  , AndroidANW_SetLoseFocusHandler
@@ -659,16 +659,16 @@ static RENDER3D_INTERFACE Proxy3dInterface = {
 	NULL
 };
 
-static void CPROC AndroidANW_SetStringBehavior( Image pImage, _32 behavior )
+static void CPROC AndroidANW_SetStringBehavior( Image pImage, uint32_t behavior )
 {
 
 }
-static void CPROC AndroidANW_SetBlotMethod	  ( _32 method )
+static void CPROC AndroidANW_SetBlotMethod	  ( uint32_t method )
 {
 
 }
 
-static Image CPROC AndroidANW_BuildImageFileEx ( PCOLOR pc, _32 width, _32 height DBG_PASS)
+static Image CPROC AndroidANW_BuildImageFileEx ( PCOLOR pc, uint32_t width, uint32_t height DBG_PASS)
 {
 	PVPImage image = New( struct vidlib_proxy_image );
 	MemSet( image, 0, sizeof( struct vidlib_proxy_image ) );
@@ -684,7 +684,7 @@ static Image CPROC AndroidANW_BuildImageFileEx ( PCOLOR pc, _32 width, _32 heigh
 	return (Image)image;
 }
 
-static Image CPROC AndroidANW_MakeSubImageEx  ( Image pImage, S_32 x, S_32 y, _32 width, _32 height DBG_PASS )
+static Image CPROC AndroidANW_MakeSubImageEx  ( Image pImage, int32_t x, int32_t y, uint32_t width, uint32_t height DBG_PASS )
 {
 	PVPImage image = New( struct vidlib_proxy_image );
 	MemSet( image, 0, sizeof( struct vidlib_proxy_image ) );
@@ -713,7 +713,7 @@ static Image CPROC AndroidANW_MakeSubImageEx  ( Image pImage, S_32 x, S_32 y, _3
 	return (Image)image;
 }
 
-static Image CPROC AndroidANW_RemakeImageEx	 ( Image pImage, PCOLOR pc, _32 width, _32 height DBG_PASS)
+static Image CPROC AndroidANW_RemakeImageEx	 ( Image pImage, PCOLOR pc, uint32_t width, uint32_t height DBG_PASS)
 {
 	PVPImage image;
 	if( !(image = (PVPImage)pImage ) )
@@ -762,7 +762,7 @@ static Image CPROC AndroidANW_LoadImageFileEx( CTEXTSTR filename DBG_PASS )
 
 
 
-static void CPROC AndroidANW_ResizeImageEx	  ( Image pImage, S_32 width, S_32 height DBG_PASS)
+static void CPROC AndroidANW_ResizeImageEx	  ( Image pImage, int32_t width, int32_t height DBG_PASS)
 {
 	PVPImage image = (PVPImage)pImage;
 	image->w = width;
@@ -770,7 +770,7 @@ static void CPROC AndroidANW_ResizeImageEx	  ( Image pImage, S_32 width, S_32 he
 	l.real_interface->_ResizeImageEx( image->image, width, height DBG_RELAY );
 }
 
-static void CPROC AndroidANW_MoveImage			( Image pImage, S_32 x, S_32 y )
+static void CPROC AndroidANW_MoveImage			( Image pImage, int32_t x, int32_t y )
 {
 	PVPImage image = (PVPImage)pImage;
 	if( image->x != x || image->y != y )
@@ -781,14 +781,14 @@ static void CPROC AndroidANW_MoveImage			( Image pImage, S_32 x, S_32 y )
 	}
 }
 
-P_8 GetMessageBuf( PVPImage image, size_t size )
+uint8_t* GetMessageBuf( PVPImage image, size_t size )
 {
-	P_8 resultbuf;
+	uint8_t* resultbuf;
 	if( ( image->buf_avail ) <= ( size + image->sendlen ) )
 	{
-		P_8 newbuf;
+		uint8_t* newbuf;
 		image->buf_avail += size + 256;
-		newbuf = NewArray( _8, image->buf_avail );
+		newbuf = NewArray( uint8_t, image->buf_avail );
 		if( image->buffer )
 		{
 			MemCpy( newbuf, image->buffer, image->sendlen );
@@ -797,7 +797,7 @@ P_8 GetMessageBuf( PVPImage image, size_t size )
 		image->buffer = newbuf;
 	}
 	resultbuf = image->buffer + image->sendlen;
-	((_32*)resultbuf)[0] = size - 4;
+	((uint32_t*)resultbuf)[0] = size - 4;
 	image->sendlen += size;
 
 	return resultbuf + 4;
@@ -816,7 +816,7 @@ static LOGICAL FixArea( IMAGE_RECTANGLE *result, IMAGE_RECTANGLE *source, PVPIma
 	return l.real_interface->_IntersectRectangle( result, source, &r2 );
 }
 
-static void CPROC AndroidANW_BlatColor	  ( Image pifDest, S_32 x, S_32 y, _32 w, _32 h, CDATA color )
+static void CPROC AndroidANW_BlatColor	  ( Image pifDest, int32_t x, int32_t y, uint32_t w, uint32_t h, CDATA color )
 {
 	if( ((PVPImage)pifDest)->render_id != INVALID_INDEX )
 	{
@@ -868,7 +868,7 @@ static void CPROC AndroidANW_BlatColor	  ( Image pifDest, S_32 x, S_32 y, _32 w,
 
 }
 
-static void CPROC AndroidANW_BlatColorAlpha( Image pifDest, S_32 x, S_32 y, _32 w, _32 h, CDATA color )
+static void CPROC AndroidANW_BlatColorAlpha( Image pifDest, int32_t x, int32_t y, uint32_t w, uint32_t h, CDATA color )
 {
 	if( ((PVPImage)pifDest)->render_id != INVALID_INDEX )
 	{
@@ -929,7 +929,7 @@ static void SetImageUsed( PVPImage image )
 	}
 }
 
-static void CPROC AndroidANW_BlotImageSizedEx( Image pDest, Image pIF, S_32 x, S_32 y, S_32 xs, S_32 ys, _32 wd, _32 ht, _32 nTransparent, _32 method, ... )
+static void CPROC AndroidANW_BlotImageSizedEx( Image pDest, Image pIF, int32_t x, int32_t y, int32_t xs, int32_t ys, uint32_t wd, uint32_t ht, uint32_t nTransparent, uint32_t method, ... )
 {
 	PVPImage image = (PVPImage)pDest;
 	if( !((PVPImage)pIF)->image )
@@ -1048,7 +1048,7 @@ static void CPROC AndroidANW_BlotImageSizedEx( Image pDest, Image pIF, S_32 x, S
 	}
 }
 
-static void CPROC AndroidANW_BlotImageEx	  ( Image pDest, Image pIF, S_32 x, S_32 y, _32 nTransparent, _32 method, ... )
+static void CPROC AndroidANW_BlotImageEx	  ( Image pDest, Image pIF, int32_t x, int32_t y, uint32_t nTransparent, uint32_t method, ... )
 {
 	va_list args;
 	va_start( args, method );
@@ -1061,19 +1061,19 @@ static void CPROC AndroidANW_BlotImageEx	  ( Image pDest, Image pIF, S_32 x, S_3
 
 
 static void CPROC AndroidANW_BlotScaledImageSizedEx( Image pifDest, Image pifSrc
-											  , S_32 xd, S_32 yd
-											  , _32 wd, _32 hd
-											  , S_32 xs, S_32 ys
-											  , _32 ws, _32 hs
-											  , _32 nTransparent
-											  , _32 method, ... )
+											  , int32_t xd, int32_t yd
+											  , uint32_t wd, uint32_t hd
+											  , int32_t xs, int32_t ys
+											  , uint32_t ws, uint32_t hs
+											  , uint32_t nTransparent
+											  , uint32_t method, ... )
 {
 	PVPImage image = (PVPImage)pifDest;
 	if( image->render_id != INVALID_INDEX )
 	{
 		struct common_message *outmsg;
 		size_t sendlen;
-		_32 dhd, dwd, dhs, dws;
+		uint32_t dhd, dwd, dhs, dws;
 		int errx, erry;
 		if( !((PVPImage)pifSrc)->image )
 			return;
@@ -1096,7 +1096,7 @@ static void CPROC AndroidANW_BlotScaledImageSizedEx( Image pifDest, Image pifSrc
 		errx = -(signed)dwd;
 		erry = -(signed)dhd;
 
-		if( ( xd < 0 ) || ( (xd+(S_32)(wd&0x7FFFFFFF)) > image->w ) )
+		if( ( xd < 0 ) || ( (xd+(int32_t)(wd&0x7FFFFFFF)) > image->w ) )
 		{
 			int x = xd;
 			int w = 0;
@@ -1114,7 +1114,7 @@ static void CPROC AndroidANW_BlotScaledImageSizedEx( Image pifDest, Image pifSrc
 			}
 			xd = x;
 
-			while( x < pifDest->width && SUS_GT( w, int, wd, _32 ) )
+			while( x < pifDest->width && SUS_GT( w, int, wd, uint32_t ) )
 			{
 				errx += (signed)dws;
 				while( errx >= 0 )
@@ -1128,7 +1128,7 @@ static void CPROC AndroidANW_BlotScaledImageSizedEx( Image pifDest, Image pifSrc
 		}
 		//Log8( WIDE("Blot scaled params: %d %d %d %d / %d %d %d %d "), 
 		//		 xs, ys, ws, hs, xd, yd, wd, hd );
-		if( ( yd < 0 ) || ( yd +(S_32)(hd&0x7FFFFFFF) ) > pifDest->height )
+		if( ( yd < 0 ) || ( yd +(int32_t)(hd&0x7FFFFFFF) ) > pifDest->height )
 		{
 			int y = yd;
 			int h = 0;
@@ -1257,7 +1257,7 @@ static void CPROC AndroidANW_MarkImageDirty ( Image pImage )
 	if( 0 )
 	{
 		size_t outlen;
-		P_8 encoded_image;
+		uint8_t* encoded_image;
 	
 		if( ((PVPImage)pImage)->parent )
 			encoded_image = EncodeImage( ((PVPImage)pImage)->parent->image, FALSE, &outlen );
@@ -1269,7 +1269,7 @@ static void CPROC AndroidANW_MarkImageDirty ( Image pImage )
 
 #define DIMAGE_DATA_PROC(type,name,args)  static type (CPROC VidlibProxy2_##name)args;static type (CPROC* AndroidANW_##name)args = VidlibProxy2_##name; type (CPROC VidlibProxy2_##name)args
 
-DIMAGE_DATA_PROC( void,plot,		( Image pi, S_32 x, S_32 y, CDATA c ))
+DIMAGE_DATA_PROC( void,plot,		( Image pi, int32_t x, int32_t y, CDATA c ))
 {
 	if( ((PVPImage)pi)->render_id != INVALID_INDEX )
 	{
@@ -1281,7 +1281,7 @@ DIMAGE_DATA_PROC( void,plot,		( Image pi, S_32 x, S_32 y, CDATA c ))
 	}
 }
 
-DIMAGE_DATA_PROC( void,plotalpha, ( Image pi, S_32 x, S_32 y, CDATA c ))
+DIMAGE_DATA_PROC( void,plotalpha, ( Image pi, int32_t x, int32_t y, CDATA c ))
 {
 	if( ((PVPImage)pi)->render_id != INVALID_INDEX )
 	{
@@ -1292,7 +1292,7 @@ DIMAGE_DATA_PROC( void,plotalpha, ( Image pi, S_32 x, S_32 y, CDATA c ))
 	}
 }
 
-DIMAGE_DATA_PROC( CDATA,getpixel, ( Image pi, S_32 x, S_32 y ))
+DIMAGE_DATA_PROC( CDATA,getpixel, ( Image pi, int32_t x, int32_t y ))
 {
 	if( ((PVPImage)pi)->render_id != INVALID_INDEX )
 	{
@@ -1308,7 +1308,7 @@ DIMAGE_DATA_PROC( CDATA,getpixel, ( Image pi, S_32 x, S_32 y ))
 	return 0;
 }
 
-DIMAGE_DATA_PROC( void,do_line,	  ( Image pifDest, S_32 x, S_32 y, S_32 xto, S_32 yto, CDATA color ))
+DIMAGE_DATA_PROC( void,do_line,	  ( Image pifDest, int32_t x, int32_t y, int32_t xto, int32_t yto, CDATA color ))
 {
 	PVPImage image = (PVPImage)pifDest;
 	if( image->render_id != INVALID_INDEX )
@@ -1335,28 +1335,28 @@ DIMAGE_DATA_PROC( void,do_line,	  ( Image pifDest, S_32 x, S_32 y, S_32 xto, S_3
 	}
 }
 
-DIMAGE_DATA_PROC( void,do_lineAlpha,( Image pBuffer, S_32 x, S_32 y, S_32 xto, S_32 yto, CDATA color))
+DIMAGE_DATA_PROC( void,do_lineAlpha,( Image pBuffer, int32_t x, int32_t y, int32_t xto, int32_t yto, CDATA color))
 {
 	VidlibProxy2_do_line( pBuffer, x, y, xto, yto, color );
 }
 
 
-DIMAGE_DATA_PROC( void,do_hline,	  ( Image pImage, S_32 y, S_32 xfrom, S_32 xto, CDATA color ))
+DIMAGE_DATA_PROC( void,do_hline,	  ( Image pImage, int32_t y, int32_t xfrom, int32_t xto, CDATA color ))
 {
 	VidlibProxy2_do_line( pImage, xfrom, y, xto, y, color );
 }
 
-DIMAGE_DATA_PROC( void,do_vline,	  ( Image pImage, S_32 x, S_32 yfrom, S_32 yto, CDATA color ))
+DIMAGE_DATA_PROC( void,do_vline,	  ( Image pImage, int32_t x, int32_t yfrom, int32_t yto, CDATA color ))
 {
 	VidlibProxy2_do_line( pImage, x, yfrom, x, yto, color );
 }
 
-DIMAGE_DATA_PROC( void,do_hlineAlpha,( Image pImage, S_32 y, S_32 xfrom, S_32 xto, CDATA color ))
+DIMAGE_DATA_PROC( void,do_hlineAlpha,( Image pImage, int32_t y, int32_t xfrom, int32_t xto, CDATA color ))
 {
 	VidlibProxy2_do_line( pImage, xfrom, y, xto, y, color );
 }
 
-DIMAGE_DATA_PROC( void,do_vlineAlpha,( Image pImage, S_32 x, S_32 yfrom, S_32 yto, CDATA color ))
+DIMAGE_DATA_PROC( void,do_vlineAlpha,( Image pImage, int32_t x, int32_t yfrom, int32_t yto, CDATA color ))
 {
 	VidlibProxy2_do_line( pImage, x, yfrom, x, yto, color );
 }
@@ -1366,63 +1366,63 @@ static SFTFont CPROC AndroidANW_GetDefaultFont ( void )
 	return l.real_interface->_GetDefaultFont( );
 }
 
-static _32 CPROC AndroidANW_GetFontHeight  ( SFTFont font )
+static uint32_t CPROC AndroidANW_GetFontHeight  ( SFTFont font )
 {
 	return l.real_interface->_GetFontHeight( font );
 }
 
-static _32 CPROC AndroidANW_GetStringSizeFontEx( CTEXTSTR pString, size_t len, _32 *width, _32 *height, SFTFont UseFont )
+static uint32_t CPROC AndroidANW_GetStringSizeFontEx( CTEXTSTR pString, size_t len, uint32_t *width, uint32_t *height, SFTFont UseFont )
 {
 	return l.real_interface->_GetStringSizeFontEx( pString, len, width, height, UseFont );
 }
 
-static void CPROC AndroidANW_PutCharacterFont		  ( Image pImage, S_32 x, S_32 y, CDATA color, CDATA background, TEXTCHAR c, SFTFont font )
+static void CPROC AndroidANW_PutCharacterFont		  ( Image pImage, int32_t x, int32_t y, CDATA color, CDATA background, TEXTCHAR c, SFTFont font )
 {
 	l.real_interface->_PutCharacterFont( ((PVPImage)pImage)->image, x, y, color, background, c, font );
 }
 
-static void CPROC AndroidANW_PutCharacterVerticalFont( Image pImage, S_32 x, S_32 y, CDATA color, CDATA background, TEXTCHAR c, SFTFont font )
+static void CPROC AndroidANW_PutCharacterVerticalFont( Image pImage, int32_t x, int32_t y, CDATA color, CDATA background, TEXTCHAR c, SFTFont font )
 {
 	l.real_interface->_PutCharacterVerticalFont( ((PVPImage)pImage)->image, x, y, color, background, c, font );
 }
 
-static void CPROC AndroidANW_PutCharacterInvertFont  ( Image pImage, S_32 x, S_32 y, CDATA color, CDATA background, TEXTCHAR c, SFTFont font )
+static void CPROC AndroidANW_PutCharacterInvertFont  ( Image pImage, int32_t x, int32_t y, CDATA color, CDATA background, TEXTCHAR c, SFTFont font )
 {
 	l.real_interface->_PutCharacterInvertFont( ((PVPImage)pImage)->image, x, y, color, background, c, font );
 }
 
-static void CPROC AndroidANW_PutCharacterVerticalInvertFont( Image pImage, S_32 x, S_32 y, CDATA color, CDATA background, TEXTCHAR c, SFTFont font )
+static void CPROC AndroidANW_PutCharacterVerticalInvertFont( Image pImage, int32_t x, int32_t y, CDATA color, CDATA background, TEXTCHAR c, SFTFont font )
 {
 	l.real_interface->_PutCharacterVerticalInvertFont( ((PVPImage)pImage)->image, x, y, color, background, c, font );
 }
 
-static void CPROC AndroidANW_PutStringFontEx  ( Image pImage, S_32 x, S_32 y, CDATA color, CDATA background
+static void CPROC AndroidANW_PutStringFontEx  ( Image pImage, int32_t x, int32_t y, CDATA color, CDATA background
 												, CTEXTSTR pc, size_t nLen, SFTFont font )
 {
 	l.real_interface->_PutStringFontEx( ((PVPImage)pImage)->image, x, y, color, background, pc, nLen, font );
 }
 
-static void CPROC AndroidANW_PutStringVerticalFontEx		( Image pImage, S_32 x, S_32 y, CDATA color, CDATA background, CTEXTSTR pc, size_t nLen, SFTFont font )
+static void CPROC AndroidANW_PutStringVerticalFontEx		( Image pImage, int32_t x, int32_t y, CDATA color, CDATA background, CTEXTSTR pc, size_t nLen, SFTFont font )
 {
 	l.real_interface->_PutStringVerticalFontEx( ((PVPImage)pImage)->image, x, y, color, background, pc, nLen, font );
 }
 
-static void CPROC AndroidANW_PutStringInvertFontEx		  ( Image pImage, S_32 x, S_32 y, CDATA color, CDATA background, CTEXTSTR pc, size_t nLen, SFTFont font )
+static void CPROC AndroidANW_PutStringInvertFontEx		  ( Image pImage, int32_t x, int32_t y, CDATA color, CDATA background, CTEXTSTR pc, size_t nLen, SFTFont font )
 {
 	l.real_interface->_PutStringInvertFontEx( ((PVPImage)pImage)->image, x, y, color, background, pc, nLen, font );
 }
 
-static void CPROC AndroidANW_PutStringInvertVerticalFontEx( Image pImage, S_32 x, S_32 y, CDATA color, CDATA background, CTEXTSTR pc, size_t nLen, SFTFont font )
+static void CPROC AndroidANW_PutStringInvertVerticalFontEx( Image pImage, int32_t x, int32_t y, CDATA color, CDATA background, CTEXTSTR pc, size_t nLen, SFTFont font )
 {
 	l.real_interface->_PutStringInvertVerticalFontEx( ((PVPImage)pImage)->image, x, y, color, background, pc, nLen, font );
 }
 
-static _32 CPROC AndroidANW_GetMaxStringLengthFont( _32 width, SFTFont UseFont )
+static uint32_t CPROC AndroidANW_GetMaxStringLengthFont( uint32_t width, SFTFont UseFont )
 {
 	return l.real_interface->_GetMaxStringLengthFont( width, UseFont );
 }
 
-static void CPROC AndroidANW_GetImageSize ( Image pImage, _32 *width, _32 *height )
+static void CPROC AndroidANW_GetImageSize ( Image pImage, uint32_t *width, uint32_t *height )
 {
 	if( width )
 		(*width) = ((PVPImage)pImage)->w;
@@ -1442,11 +1442,11 @@ static SFTFont CPROC AndroidANW_LoadFont ( SFTFont font )
 	Interface index 44
 	
 	This is used by internal methods to transfer image and font
-	data to the render agent.											  */	IMAGE_PROC_PTR( DataState, BeginTransferData )	 ( _32 total_size, _32 segsize, CDATA data );
+	data to the render agent.											  */	IMAGE_PROC_PTR( DataState, BeginTransferData )	 ( uint32_t total_size, uint32_t segsize, CDATA data );
 /* Internal
 	Interface index 45
 	
-	Used internally to transfer data to render agent. */	IMAGE_PROC_PTR( void, ContinueTransferData )		( DataState state, _32 segsize, CDATA data );
+	Used internally to transfer data to render agent. */	IMAGE_PROC_PTR( void, ContinueTransferData )		( DataState state, uint32_t segsize, CDATA data );
 /* Internal
 	Interface index 46
 	
@@ -1586,23 +1586,23 @@ static void CPROC AndroidANW_TransferSubImages( Image pImageTo, Image pImageFrom
 	 Internal
 	Interface index 61															 */
 		IMAGE_PROC_PTR( void	, BlotSprite )( Image pdest, PSPRITE ps );
-	 /* <combine sack::image::DecodeMemoryToImage@P_8@_32>
+	 /* <combine sack::image::DecodeMemoryToImage@uint8_t*@uint32_t>
 		 
 		 \ \																*/
-static Image CPROC AndroidANW_DecodeMemoryToImage ( P_8 buf, _32 size )
+static Image CPROC AndroidANW_DecodeMemoryToImage ( uint8_t* buf, uint32_t size )
 {
 	Image real_image = l.real_interface->_DecodeMemoryToImage( buf, size );
 	return (Image)WrapImageFile( real_image );
 }
 
-/* <combine sack::image::GetFontRenderData@SFTFont@POINTER *@_32 *>
+/* <combine sack::image::GetFontRenderData@SFTFont@POINTER *@uint32_t *>
 	
 	\ \																			  */
-IMAGE_PROC_PTR( PSPRITE, SetSpriteHotspot )( PSPRITE sprite, S_32 x, S_32 y );
-/* <combine sack::image::SetSpritePosition@PSPRITE@S_32@S_32>
+IMAGE_PROC_PTR( PSPRITE, SetSpriteHotspot )( PSPRITE sprite, int32_t x, int32_t y );
+/* <combine sack::image::SetSpritePosition@PSPRITE@int32_t@int32_t>
 	
 	\ \																		  */
-IMAGE_PROC_PTR( PSPRITE, SetSpritePosition )( PSPRITE sprite, S_32 x, S_32 y );
+IMAGE_PROC_PTR( PSPRITE, SetSpritePosition )( PSPRITE sprite, int32_t x, int32_t y );
 	/* <combine sack::image::UnmakeImageFileEx@Image pif>
 		
 		\ \																*/
@@ -1611,13 +1611,13 @@ IMAGE_PROC_PTR( PSPRITE, SetSpritePosition )( PSPRITE sprite, S_32 x, S_32 y );
 	
 	\ \											  */
 
-/* <combinewith sack::image::GetStringRenderSizeFontEx@CTEXTSTR@_32@_32 *@_32 *@_32 *@SFTFont, sack::image::GetStringRenderSizeFontEx@CTEXTSTR@size_t@_32 *@_32 *@_32 *@SFTFont>
+/* <combinewith sack::image::GetStringRenderSizeFontEx@CTEXTSTR@uint32_t@uint32_t *@uint32_t *@uint32_t *@SFTFont, sack::image::GetStringRenderSizeFontEx@CTEXTSTR@size_t@uint32_t *@uint32_t *@uint32_t *@SFTFont>
 	
 	\ \																																																							*/
-IMAGE_PROC_PTR( _32, GetStringRenderSizeFontEx )( CTEXTSTR pString, size_t nLen, _32 *width, _32 *height, _32 *charheight, SFTFont UseFont );
+IMAGE_PROC_PTR( uint32_t, GetStringRenderSizeFontEx )( CTEXTSTR pString, size_t nLen, uint32_t *width, uint32_t *height, uint32_t *charheight, SFTFont UseFont );
 
-IMAGE_PROC_PTR( SFTFont, RenderScaledFont )( CTEXTSTR name, _32 width, _32 height, PFRACTION width_scale, PFRACTION height_scale, _32 flags );
-IMAGE_PROC_PTR( SFTFont, RenderScaledFontEx )( CTEXTSTR name, _32 width, _32 height, PFRACTION width_scale, PFRACTION height_scale, _32 flags, size_t *pnFontDataSize, POINTER *pFontData );
+IMAGE_PROC_PTR( SFTFont, RenderScaledFont )( CTEXTSTR name, uint32_t width, uint32_t height, PFRACTION width_scale, PFRACTION height_scale, uint32_t flags );
+IMAGE_PROC_PTR( SFTFont, RenderScaledFontEx )( CTEXTSTR name, uint32_t width, uint32_t height, PFRACTION width_scale, PFRACTION height_scale, uint32_t flags, size_t *pnFontDataSize, POINTER *pFontData );
 
 IMAGE_PROC_PTR( CDATA, MakeColor )( COLOR_CHANNEL r, COLOR_CHANNEL green, COLOR_CHANNEL b );
 IMAGE_PROC_PTR( CDATA, MakeAlphaColor )( COLOR_CHANNEL r, COLOR_CHANNEL green, COLOR_CHANNEL b, COLOR_CHANNEL a );
@@ -1634,7 +1634,7 @@ static Image CPROC AndroidANW_GetNativeImage( Image pImage )
 }
 
 IMAGE_PROC_PTR( void, DumpFontCache )( void );
-IMAGE_PROC_PTR( void, RerenderFont )( SFTFont font, S_32 width, S_32 height, PFRACTION width_scale, PFRACTION height_scale );
+IMAGE_PROC_PTR( void, RerenderFont )( SFTFont font, int32_t width, int32_t height, PFRACTION width_scale, PFRACTION height_scale );
 // option(1) == use GL_RGBA_EXT; option(2)==clamp; option(4)==repeat
 IMAGE_PROC_PTR( int, ReloadTexture )( Image child_image, int option );
 // option(1) == use GL_RGBA_EXT; option(2)==clamp; option(4)==repeat
@@ -1721,12 +1721,12 @@ static IMAGE_INTERFACE ProxyImageInterface = {
 		, NULL //AndroidANW_UnmakeSprite
 		, NULL //AndroidANW_struct font_global_tag *, GetGlobalFonts)( void );
 
-, NULL //IMAGE_PROC_PTR( _32, GetStringRenderSizeFontEx )( CTEXTSTR pString, size_t nLen, _32 *width, _32 *height, _32 *charheight, SFTFont UseFont );
+, NULL //IMAGE_PROC_PTR( uint32_t, GetStringRenderSizeFontEx )( CTEXTSTR pString, size_t nLen, uint32_t *width, uint32_t *height, uint32_t *charheight, SFTFont UseFont );
 
 , NULL //IMAGE_PROC_PTR( Image, LoadImageFileFromGroupEx )( INDEX group, CTEXTSTR filename DBG_PASS );
 
-, NULL //IMAGE_PROC_PTR( SFTFont, RenderScaledFont )( CTEXTSTR name, _32 width, _32 height, PFRACTION width_scale, PFRACTION height_scale, _32 flags );
-, NULL //IMAGE_PROC_PTR( SFTFont, RenderScaledFontEx )( CTEXTSTR name, _32 width, _32 height, PFRACTION width_scale, PFRACTION height_scale, _32 flags, size_t *pnFontDataSize, POINTER *pFontData );
+, NULL //IMAGE_PROC_PTR( SFTFont, RenderScaledFont )( CTEXTSTR name, uint32_t width, uint32_t height, PFRACTION width_scale, PFRACTION height_scale, uint32_t flags );
+, NULL //IMAGE_PROC_PTR( SFTFont, RenderScaledFontEx )( CTEXTSTR name, uint32_t width, uint32_t height, PFRACTION width_scale, PFRACTION height_scale, uint32_t flags, size_t *pnFontDataSize, POINTER *pFontData );
 
 , NULL //IMAGE_PROC_PTR( COLOR_CHANNEL, GetRedValue )( CDATA color ) ;
 , NULL //IMAGE_PROC_PTR( COLOR_CHANNEL, GetGreenValue )( CDATA color );
@@ -1745,7 +1745,7 @@ static IMAGE_INTERFACE ProxyImageInterface = {
 , NULL //IMAGE_PROC_PTR( void, MarkImageDirty )( Image pImage );
 
 , NULL //IMAGE_PROC_PTR( void, DumpFontCache )( void );
-, NULL //IMAGE_PROC_PTR( void, RerenderFont )( SFTFont font, S_32 width, S_32 height, PFRACTION width_scale, PFRACTION height_scale );
+, NULL //IMAGE_PROC_PTR( void, RerenderFont )( SFTFont font, int32_t width, int32_t height, PFRACTION width_scale, PFRACTION height_scale );
 // option(1) == use GL_RGBA_EXT; option(2)==clamp; option(4)==repeat
 , NULL //IMAGE_PROC_PTR( int, ReloadTexture )( Image child_image, int option );
 // option(1) == use GL_RGBA_EXT; option(2)==clamp; option(4)==repeat
@@ -1804,7 +1804,7 @@ static CDATA CPROC AndroidANW_MakeAlphaColor( COLOR_CHANNEL r, COLOR_CHANNEL grn
 /* This is a macro to cure a 64bit warning in visual studio. */
 #	 define _AND_FF
 #  endif
-#define _AColor( r,g,b,a ) (((_32)( ((_8)((b)_AND_FF))|((_16)((_8)((g))_AND_FF)<<8))|(((_32)((_8)((r))_AND_FF)<<16)))|(((a)_AND_FF)<<24))
+#define _AColor( r,g,b,a ) (((uint32_t)( ((uint8_t)((b)_AND_FF))|((uint16_t)((uint8_t)((g))_AND_FF)<<8))|(((uint32_t)((uint8_t)((r))_AND_FF)<<16)))|(((a)_AND_FF)<<24))
 	return _AColor( r, grn, b, alpha );
 }
 

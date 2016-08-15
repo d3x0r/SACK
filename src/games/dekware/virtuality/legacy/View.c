@@ -126,7 +126,7 @@ void DoMouse( PVIEW pv )
 }
 
 
-int CPROC ViewMouse( PTRSZVAL dwView, S_32 x, S_32 y, _32 b )
+int CPROC ViewMouse( uintptr_t dwView, int32_t x, int32_t y, uint32_t b )
 {
    VIEW *v = (VIEW*)dwView;
 	
@@ -141,7 +141,7 @@ return 1;
 
 int bDump;
 
-void CPROC _ShowObjects( PTRSZVAL dwView, PRENDERER hVideo )
+void CPROC _ShowObjects( uintptr_t dwView, PRENDERER hVideo )
 {
 
   VIEW *v = (VIEW*)dwView;
@@ -281,7 +281,7 @@ extern POBJECT pFirstObject;
          ApplyInverseRotation( View->T, m, mouse_vup );
          DrawLine( GetDisplayImage( View->hVideo ), b, m, 0, 10, 0x7f0000 );
       }
-      _ShowObjects( (PTRSZVAL)View, View->hVideo );  // clears the board...
+      _ShowObjects( (uintptr_t)View, View->hVideo );  // clears the board...
 
 			UpdateDisplayPortion( View->hVideo, 0, 0, 0, 0 );
 			
@@ -319,7 +319,7 @@ extern POBJECT pFirstObject;
 }
 
 
-void CPROC CloseView( PTRSZVAL dwView )
+void CPROC CloseView( uintptr_t dwView )
 {
    VIEW *V;
    V = (VIEW*)dwView;
@@ -338,9 +338,9 @@ PVIEW CreateViewEx( int nType, ViewMouseCallback pMC, char *Title, int sx, int s
 //   SetPoint( r, pr );
 
    pv->hVideo = OpenDisplaySizedAt( /*Title,*/ 0&DISPLAY_ATTRIBUTE_LAYERED, sx, sy, 200, 200 );
-	SetRedrawHandler( pv->hVideo, _ShowObjects, (PTRSZVAL)pv );
-	SetCloseHandler( pv->hVideo, CloseView, (PTRSZVAL)pv );
-   SetMouseHandler( pv->hVideo, ViewMouse, (PTRSZVAL)pv );
+	SetRedrawHandler( pv->hVideo, _ShowObjects, (uintptr_t)pv );
+	SetCloseHandler( pv->hVideo, CloseView, (uintptr_t)pv );
+   SetMouseHandler( pv->hVideo, ViewMouse, (uintptr_t)pv );
 	
    RestoreDisplay( pv->hVideo );
    pv->MouseMethod = pMC;

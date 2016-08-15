@@ -29,7 +29,7 @@
 // Internal Functions
 void Ping(TEXTSTR pstrHost, int maxTTL);
 TEXTSTR ReportError(TEXTSTR pInto, TEXTSTR pstrFrom);
-int  WaitForEchoReply(SOCKET s, _32 dwTime);
+int  WaitForEchoReply(SOCKET s, uint32_t dwTime);
 u_short in_cksum(u_short *addr, int len);
 
 // ICMP Echo Request/Reply functions
@@ -39,19 +39,19 @@ int   	RecvEchoReply( TEXTSTR, SOCKET, SOCKADDR_IN*, u_char *);
 #define MAX_HOPS     128 
 #define MAX_NAME_LEN 255
 typedef struct HopEntry_tag{
-   _32 dwIP;                 // IP from returned
-   _32 dwMinTime;
-   _32 dwMaxTime;
-   _32 dwAvgTime;
-   _32 dwDropped;
-//   _32 dwTime;
+   uint32_t dwIP;                 // IP from returned
+   uint32_t dwMinTime;
+   uint32_t dwMaxTime;
+   uint32_t dwAvgTime;
+   uint32_t dwDropped;
+//   uint32_t dwTime;
    TEXTCHAR  pName[MAX_NAME_LEN];  // bRDNS resulting...
    int TTL;                    // returned TTL from destination...
 } HOPENT, *PHOPENT;
 
-_32 dwThreadsActive;
+uint32_t dwThreadsActive;
 
-PTRSZVAL CPROC RDNSThread( PTHREAD pThread )
+uintptr_t CPROC RDNSThread( PTHREAD pThread )
 {
    PHOPENT pHopEnt = (PHOPENT)GetThreadParam( pThread );
    struct hostent *phe;
@@ -121,7 +121,7 @@ int MyDoPing( void )
 	int        nLoop;
 	int        nRet;
 	int        i;
-	_32   Dropped;
+	uint32_t   Dropped;
 
    static CRITICALSECTION cs;
 
@@ -162,7 +162,7 @@ int MyDoPing( void )
          }
          else
          {
-            //_64 dwTimeNow;
+            //uint64_t dwTimeNow;
             //dwTimeNow = GetCPUTick() - dwTimeSent;
 				//lprintf( "Suceess getting a packet?" );
             switch( RecvEchoReply( NULL, rawSocket, &saSrc, &cTTL) )
@@ -232,7 +232,7 @@ typedef struct tagICMPHDR
 typedef struct tagECHOREQUEST
 {
 	ICMPHDR icmpHdr;
-	_64		dwTime;
+	uint64_t		dwTime;
 	char	cData[REQ_DATASIZE];
 }ECHOREQUEST, *PECHOREQUEST;
 
@@ -340,7 +340,7 @@ TEXTSTR ReportError(TEXTSTR pInto, TEXTSTR pWhere)
 // WaitForEchoReply()
 // Use select() to determine when
 // data is waiting to be read
-int WaitForEchoReply(SOCKET s, _32 dwTime)
+int WaitForEchoReply(SOCKET s, uint32_t dwTime)
 {
 	struct timeval Timeout;
 	fd_set readfds;

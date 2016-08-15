@@ -1,5 +1,5 @@
 
-PTRSZVAL OpenV4W( POINTER p );
+uintptr_t OpenV4W( POINTER p );
 
 void Start( void );
 void Stop( void );

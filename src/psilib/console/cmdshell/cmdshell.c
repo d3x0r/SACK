@@ -4,20 +4,20 @@
 static int done;
 static PTHREAD pThread;
 
-void CPROC OutputHandle( PTRSZVAL psv, PTASK_INFO task, CTEXTSTR buffer, size_t size )
+void CPROC OutputHandle( uintptr_t psv, PTASK_INFO task, CTEXTSTR buffer, size_t size )
 {
 	int ofs = 0;
    //lprintf( "output %s", buffer );
 	pcprintf( (PSI_CONTROL)psv, WIDE("%s"), buffer + ofs );
 }
 
-void CPROC TaskEnded( PTRSZVAL psv, PTASK_INFO task )
+void CPROC TaskEnded( uintptr_t psv, PTASK_INFO task )
 {
 	done = TRUE;
 	WakeThread( pThread );
 }
 
-void CPROC WindowInput( PTRSZVAL psv, PTEXT text )
+void CPROC WindowInput( uintptr_t psv, PTEXT text )
 {
 	// collapse text to a single segment.
 	PTEXT out = BuildLine( text );
@@ -36,15 +36,15 @@ SaneWinMain( argc, argv )
 		PSIConsoleSetLocalEcho( pc, FALSE );
 		DisplayFrame( pc );
 
-		//task = LaunchPeerProgram( argc>1?argv[1]:WIDE("C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe"), WIDE("."), NULL, OutputHandle, TaskEnded, (PTRSZVAL)pc );
+		//task = LaunchPeerProgram( argc>1?argv[1]:WIDE("C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe"), WIDE("."), NULL, OutputHandle, TaskEnded, (uintptr_t)pc );
 		task = LaunchPeerProgramExx( argc>1?argv[1]:WIDE("cmd.exe"), WIDE("."), NULL
 											, 0 /*LPP_OPTION_DO_NOT_HIDE*/
-											, OutputHandle, TaskEnded, (PTRSZVAL)pc
+											, OutputHandle, TaskEnded, (uintptr_t)pc
                                   DBG_SRC
 											);
 		if( task )
 		{
-			PSIConsoleInputEvent( pc, WindowInput, (PTRSZVAL)task );
+			PSIConsoleInputEvent( pc, WindowInput, (uintptr_t)task );
 			pThread = MakeThread();
 			while( !done )
 			{

@@ -15,7 +15,7 @@ void SetTopOfForm( PHISTORY_LINE_CURSOR phlc );
 
 PHISTORYBLOCK DestroyRawHistoryBlock( PHISTORYBLOCK pHistory )
 {
-	_32 i;
+	uint32_t i;
 	PHISTORYBLOCK next;
 	for( i = 0; i < pHistory->nLinesUsed; i++ )
 	{
@@ -524,7 +524,7 @@ PTEXTLINE PutSegmentOut( PHISTORY_LINE_CURSOR phc
       // split/trimmed/overwritten.
 
       // so - split the line, result with current segment.
-		S_32 pos = 0;
+		int32_t pos = 0;
       //lprintf( WIDE("Okay insert/overwrite this segment on the display...") );
       text = pCurrentLine->pLine;
       while( pos < (phc->output.nCursorX) && text )
@@ -709,11 +709,11 @@ PTEXTLINE PutSegmentOut( PHISTORY_LINE_CURSOR phc
       {
          // len characters from 'text' need to be removed.
          // okay that should be fun...
-         _32 deletelen = len;
+         uint32_t deletelen = len;
          //Log1( WIDE("Remove %d characters!"), len );
          while( deletelen && text )
          {
-            _32 thislen = GetTextSize( text );
+            uint32_t thislen = GetTextSize( text );
             PTEXT next = NEXTLINE( text );
             if( thislen <= deletelen )
             {
@@ -921,7 +921,7 @@ void DumpRegion( PHISTORY_REGION region DBG_PASS )
 
 PTEXT EnumHistoryLineEx( PHISTORY_BROWSER phbr
 							  , int *offset
-							  , S_32 *length DBG_PASS)
+							  , int32_t *length DBG_PASS)
 #define EnumHistoryLine(hb,o,l) EnumHistoryLineEx(hb,o,l DBG_SRC )
 {
 	PTEXTLINE ptl;
@@ -1086,12 +1086,12 @@ int HistoryStat( PDATAPATH pdp, PSENTIENT ps, PTEXT parameters )
 #endif
 //----------------------------------------------------------------------------
 
-_32 ComputeNextOffset( PTEXT segment, _32 nShown )
+uint32_t ComputeNextOffset( PTEXT segment, uint32_t nShown )
 {
-    _32 offset = 0;
+    uint32_t offset = 0;
     while( segment )
     {
-        _32 nLen = GetTextSize( segment );
+        uint32_t nLen = GetTextSize( segment );
         TEXTCHAR *text = GetText( segment );
         while( nShown < nLen 
               && text[nShown] == ' ' )
@@ -1111,7 +1111,7 @@ _32 ComputeNextOffset( PTEXT segment, _32 nShown )
 
 //----------------------------------------------------------------------------
 
-int ComputeToShow( _32 cols, PTEXT segment, _32 nLen, int nOfs, int nShown )
+int ComputeToShow( uint32_t cols, PTEXT segment, uint32_t nLen, int nOfs, int nShown )
 {
     int nShow = cols - nOfs;
 	 // if space left to show here is less than
@@ -1142,17 +1142,17 @@ int ComputeToShow( _32 cols, PTEXT segment, _32 nLen, int nOfs, int nShown )
 
 //----------------------------------------------------------------------------
 
-int CountLinesSpanned( _32 cols, PTEXT countseg )
+int CountLinesSpanned( uint32_t cols, PTEXT countseg )
 {
    // always spans at least one line.
 	int nLines = 1;
 	if( countseg && cols )
 	{
-		_32 nShown = 0;
-		_32 nChar = 0;
+		uint32_t nShown = 0;
+		uint32_t nChar = 0;
 		while( countseg )
 		{
-			_32 nLen = GetTextSize( countseg );
+			uint32_t nLen = GetTextSize( countseg );
 			// part of this segment has already been skipped.
 			// ComputeNextOffset can do this.
 			if( nLen & 0x80000000)
@@ -1192,7 +1192,7 @@ int CountLinesSpanned( _32 cols, PTEXT countseg )
 //----------------------------------------------------------------------------
 
 // nOffset is number of lines to move...
-int AlignHistory( PHISTORY_BROWSER phbr, S_32 nOffset )
+int AlignHistory( PHISTORY_BROWSER phbr, int32_t nOffset )
 {
 	int result = UPDATE_NOTHING;
    //lprintf( WIDE("--------------- ALIGN HISTORY -------------") );
@@ -1338,7 +1338,7 @@ int AlignHistory( PHISTORY_BROWSER phbr, S_32 nOffset )
 }
 //----------------------------------------------------------------------------
 
-_32 GetBrowserDistance( PHISTORY_BROWSER phbr )
+uint32_t GetBrowserDistance( PHISTORY_BROWSER phbr )
 {
    INDEX nLines = 0; // count of lines...
 	PHISTORYBLOCK pHistory;
@@ -1546,7 +1546,7 @@ void BuildDisplayInfoLines( PHISTORY_BROWSER phbr )
 	PDATALIST *CurrentLineInfo = &phbr->DisplayLineInfo;
 	int start;
 	int firstline = 1;
-	_32 nShown = 0;
+	uint32_t nShown = 0;
 	PDISPLAYED_LINE pLastSetLine = NULL;
 	PTEXTLINE pLastLine = GetAHistoryLine( NULL, phbr, 0, FALSE );
 	//PHISTORY phbStart;
@@ -1839,7 +1839,7 @@ void SetHistoryDefaultBackground( PHISTORY_LINE_CURSOR phlc, int iColor )
 
 //----------------------------------------------------------------------------
 
-void GetHistoryCursorPos( PHISTORY_LINE_CURSOR phlc, PS_32 x, PS_32 y )
+void GetHistoryCursorPos( PHISTORY_LINE_CURSOR phlc, int32_t* x, int32_t* y )
 {
 	if( x ) *x = phlc->output.nCursorX;
    if( y ) *y = phlc->output.nCursorY;
@@ -1847,14 +1847,14 @@ void GetHistoryCursorPos( PHISTORY_LINE_CURSOR phlc, PS_32 x, PS_32 y )
 //----------------------------------------------------------------------------
 int GetCursorLine( PHISTORY_LINE_CURSOR phlc )
 {
-	S_32 y;
+	int32_t y;
 	GetHistoryCursorPos( phlc, NULL, &y );
    return y;
 }
 //----------------------------------------------------------------------------
 int GetCursorColumn( PHISTORY_LINE_CURSOR phlc )
 {
-	S_32 x;
+	int32_t x;
 	GetHistoryCursorPos( phlc, &x, NULL );
    return x;
 }
@@ -1899,7 +1899,7 @@ void SetCursorColumns( PHISTORY_LINE_CURSOR phlc, int n )
 }
 //----------------------------------------------------------------------------
 
-void SetHistoryCursorPos( PHISTORY_LINE_CURSOR phlc, S_32 x, S_32 y )
+void SetHistoryCursorPos( PHISTORY_LINE_CURSOR phlc, int32_t x, int32_t y )
 {
 	phlc->output.nCursorX = x;
 	phlc->output.nCursorY = y;
@@ -1907,7 +1907,7 @@ void SetHistoryCursorPos( PHISTORY_LINE_CURSOR phlc, S_32 x, S_32 y )
 
 //----------------------------------------------------------------------------
 
-void SetHistoryPageLines( PHISTORY_BROWSER phbr, _32 nLines )
+void SetHistoryPageLines( PHISTORY_BROWSER phbr, uint32_t nLines )
 {
    //lprintf( WIDE("Set histpry lines at %d"), nLines );
    phbr->nPageLines = nLines;

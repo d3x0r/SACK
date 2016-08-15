@@ -23,11 +23,11 @@ extern struct sack_option_global_tag *sack_global_option_data;
 
 void NewEnumOptions( PODBC odbc
 												  , POPTION_TREE_NODE parent
-												  , int (CPROC *Process)(PTRSZVAL psv
+												  , int (CPROC *Process)(uintptr_t psv
 																				, CTEXTSTR name
 																				, POPTION_TREE_NODE ID
 																				, int flags )
-												  , PTRSZVAL psvUser )
+												  , uintptr_t psvUser )
 {
 	POPTION_TREE node = GetOptionTreeExxx( odbc, NULL DBG_SRC );
 	TEXTCHAR query[256];
@@ -93,7 +93,7 @@ struct complex_args
 	PODBC odbc;
 };
 
-static int CPROC CopyRoot( PTRSZVAL psvArgs, CTEXTSTR name, POPTION_TREE_NODE ID, int flags )
+static int CPROC CopyRoot( uintptr_t psvArgs, CTEXTSTR name, POPTION_TREE_NODE ID, int flags )
 {
 	struct complex_args *args = (struct complex_args*)psvArgs;
 	POPTION_TREE_NODE iCopy = GetOptionIndexEx( args->iNewRoot, NULL, name, NULL, TRUE DBG_SRC );
@@ -103,7 +103,7 @@ static int CPROC CopyRoot( PTRSZVAL psvArgs, CTEXTSTR name, POPTION_TREE_NODE ID
 		struct complex_args c_args;
 		c_args.iNewRoot = iCopy;
 		c_args.odbc = args->odbc;
-		EnumOptions( ID, CopyRoot, (PTRSZVAL)&c_args );
+		EnumOptions( ID, CopyRoot, (uintptr_t)&c_args );
 	}
 	return TRUE;
 }
@@ -124,7 +124,7 @@ void NewDuplicateOption( PODBC odbc, POPTION_TREE_NODE iRoot, CTEXTSTR pNewName 
 		iNewName = GetOptionIndexEx( tmp_node, NULL, pNewName, NULL, TRUE DBG_SRC );
 		args.iNewRoot = iNewName;
 		args.odbc = odbc;
-		NewEnumOptions( args.odbc, iRoot, CopyRoot, (PTRSZVAL)&args );
+		NewEnumOptions( args.odbc, iRoot, CopyRoot, (uintptr_t)&args );
 	}
 }
 
@@ -136,7 +136,7 @@ static void NewFixOrphanedBranches( void )
 	CTEXTSTR result2 = NULL;
 	SQLQuery( og.Option, WIDE( "select count(*) from " ) OPTION_MAP, &result2 );
    // expand the options list to max extent real quickk....
-	SetLink( &options, (PTRSZVAL)IntCreateFromText( result2 ) + 1, 0 );
+	SetLink( &options, (uintptr_t)IntCreateFromText( result2 ) + 1, 0 );
 	for( SQLRecordQuery( og.Option, WIDE( "select option_id,parent_option_id from " ) OPTION_MAP, NULL, &result, NULL );
 		  result;
 		  FetchSQLRecord( og.Option, &result ) )

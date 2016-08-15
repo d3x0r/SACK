@@ -42,7 +42,7 @@ typedef struct edit_property_data_tag {
    PSI_CONTROL *ppFrame;
 	PSI_CONTROL pEditCurrent;
    PSI_CONTROL pPropertySheet;
-   S_32 x,y;
+   int32_t x,y;
    int bDone, bOkay;
 } EDIT_PROP_DATA, *PEDIT_PROP_DATA;
 
@@ -52,12 +52,12 @@ typedef struct edit_property_data_tag {
 #define DEFAULT_BUTTON_HEIGHT 20
 #define DEFAULT_BUTTON_BORDER BORDER_NORMAL
 
-void CreateAControl( PSI_CONTROL frame, _32 type, PEDIT_PROP_DATA pepd )
+void CreateAControl( PSI_CONTROL frame, uint32_t type, PEDIT_PROP_DATA pepd )
 {
 	//if( type < USER_CONTROL )
 	{
-		S_32 x = pepd->x;
-		S_32 y = pepd->y;
+		int32_t x = pepd->x;
+		int32_t y = pepd->y;
       lprintf( WIDE("new control at %")_32fs WIDE(",%")_32fs WIDE(" %")_32f WIDE(",%")_32f WIDE(""), x, y, frame->rect.x, frame->rect.y );
 		MakeControl( frame, type, x, y, 0, 0, -1 );
 	}
@@ -74,12 +74,12 @@ struct list_item_data
    int range;
 };
 
-void CPROC SetControlIDProperty( PTRSZVAL psv, PSI_CONTROL list, PLISTITEM item )
+void CPROC SetControlIDProperty( uintptr_t psv, PSI_CONTROL list, PLISTITEM item )
 {
 	struct list_item_data *data = (struct list_item_data*)GetItemData( item );
 	if( data )
 	{
-		//_32 ID = GetItemData( item );
+		//uint32_t ID = GetItemData( item );
 		PSI_CONTROL edit = GetNearControl( list, EDT_ID );
 		if( edit )
 		{
@@ -115,7 +115,7 @@ int FillControlIDList( CTEXTSTR root, PSI_CONTROL listbox, PSI_CONTROL pc, int l
 	{
 		if( !NameIsAlias( &data ) )
 		{
-			int value = (int)(PTRSZVAL)GetRegisteredValueExx( (CTEXTSTR)data, name, WIDE("value"), TRUE );
+			int value = (int)(uintptr_t)GetRegisteredValueExx( (CTEXTSTR)data, name, WIDE("value"), TRUE );
 			if( value )
 			{
 				struct list_item_data *itemdata = (struct list_item_data*)Allocate( sizeof( *itemdata ) );
@@ -123,11 +123,11 @@ int FillControlIDList( CTEXTSTR root, PSI_CONTROL listbox, PSI_CONTROL pc, int l
 				itemdata->_typename = pc->pTypeName;
 				itemdata->resname = name;
 				/* ETHICALITY DISCLAIMED: this is an okay conversion, cause we're asking for an INT type anyhow...*/
-				itemdata->value = (int)(PTRSZVAL)GetRegisteredValueExx( (CTEXTSTR)data, name, WIDE("value"), TRUE );
+				itemdata->value = (int)(uintptr_t)GetRegisteredValueExx( (CTEXTSTR)data, name, WIDE("value"), TRUE );
 				/* ETHICALITY DISCLAIMED: this is an okay conversion, cause we're asking for an INT type anyhow...*/
-				itemdata->range = (int)(PTRSZVAL)GetRegisteredValueExx( (CTEXTSTR)data, name, WIDE("range"), TRUE );
+				itemdata->range = (int)(uintptr_t)GetRegisteredValueExx( (CTEXTSTR)data, name, WIDE("range"), TRUE );
 				//lprintf( WIDE("Found Name %s"), name2 );
-				SetItemData( AddListItemEx( listbox, level, name ), (PTRSZVAL)itemdata );
+				SetItemData( AddListItemEx( listbox, level, name ), (uintptr_t)itemdata );
 				status = TRUE;
 			}
 			else
@@ -183,7 +183,7 @@ void InitFrameControls( PSI_CONTROL pcFrame, PSI_CONTROL pc )
 //cpg26dec2006 			CTEXTSTR name;
 //cpg26dec2006 			POINTER data = NULL;
 			SetListboxIsTree( list, TRUE );
-			SetSelChangeHandler( list, SetControlIDProperty, (PTRSZVAL)pc );
+			SetSelChangeHandler( list, SetControlIDProperty, (uintptr_t)pc );
 			FillControlIDList( NULL, list, pc, 0, NULL );
 #if 0
 			for( name = GetFirstRegisteredName( PSI_ROOT_REGISTRY WIDE("/resources"), &data );
@@ -213,7 +213,7 @@ void InitFrameControls( PSI_CONTROL pcFrame, PSI_CONTROL pc )
                   if( first )
 							AddListItemEx( list, 0, name );
                   first = 0;
-						SetItemData( AddListItemEx( list, 1, name2 ), (PTRSZVAL)data );
+						SetItemData( AddListItemEx( list, 1, name2 ), (uintptr_t)data );
 					}
 				}
 			}
@@ -221,9 +221,9 @@ void InitFrameControls( PSI_CONTROL pcFrame, PSI_CONTROL pc )
 		}
 #if 0
 		char rootname[256];
-		void (CPROC*f)(PTRSZVAL);
+		void (CPROC*f)(uintptr_t);
 		tnprintf( rootname, sizeof( rootname ), PSI_ROOT_REGISTRY WIDE("/resources/"), button->pTypeName );
-		f = GetRegisteredProcedure2( rootname, void, WIDE("button_destroy"), (PTRSZVAL) );
+		f = GetRegisteredProcedure2( rootname, void, WIDE("button_destroy"), (uintptr_t) );
 		if( f )
 			f(button->psvUser);
 #endif
@@ -247,8 +247,8 @@ PSI_PROC( int, EditControlProperties )( PSI_CONTROL control )
 {
 	PEDIT_PROP_DATA pEditProps = (PEDIT_PROP_DATA)Allocate( sizeof( EDIT_PROP_DATA ) );
 	PSI_CONTROL pf, pSheet = NULL;
-	S_32 x, y;
-	S_32 select;
+	int32_t x, y;
+	int32_t select;
 	GetMousePosition( &pEditProps->x, &pEditProps->y );
 	select = TrackPopup( pControlEditMenu, GetFrame( control ) );
 	if( select < 0 )
@@ -363,36 +363,36 @@ PSI_PROC( int, EditControlProperties )( PSI_CONTROL control )
 			if( pEditProps->bOkay )
 			{
 				PSI_CONTROL pc;
-				S_32 x, y;
-				_32 w, h, id;
+				int32_t x, y;
+				uint32_t w, h, id;
 				static TEXTCHAR buffer[32000];
 				GetControlText( GetControl(pSheet, EDT_CAPTION ), buffer, sizeof( buffer ) );
 				SetControlText( control, buffer );
 				GetControlText( pc = GetControl(pSheet, EDT_X ), buffer, sizeof( buffer ) );
 				if( pc )
-					x = (S_32)IntCreateFromText( buffer );
+					x = (int32_t)IntCreateFromText( buffer );
 				if( pc )
 				{
 					GetControlText( pc = GetControl( pSheet, EDT_Y), buffer, sizeof( buffer ) );
 					if( pc )
 					{
-						y = (S_32)IntCreateFromText( buffer );
+						y = (int32_t)IntCreateFromText( buffer );
 						MoveControl( control, x, y );
 					}
 				}
 				GetControlText( pc = GetControl(pSheet, EDT_WIDTH ), buffer, sizeof( buffer ) );
 				if( pc )
 				{
-					w = (_32)IntCreateFromText( buffer );
+					w = (uint32_t)IntCreateFromText( buffer );
 					GetControlText( pc = GetControl(pSheet, EDT_HEIGHT ), buffer, sizeof( buffer ) );
 					if( pc )
 					{
-						h = (_32)IntCreateFromText( buffer );
+						h = (uint32_t)IntCreateFromText( buffer );
 						SizeControl( control, w, h );
 					}
 				}
 				GetControlText( GetControl(pSheet, EDT_ID ), buffer, sizeof( buffer ) );
-				id = (_32)IntCreateFromText( buffer );
+				id = (uint32_t)IntCreateFromText( buffer );
 				SetControlID( (PSI_CONTROL)control, id );
 				GetControlText( GetControl( pSheet, EDT_IDNAME ), buffer, sizeof( buffer ) );
 				if( buffer[0] )
@@ -438,11 +438,11 @@ PSI_PROC( int, EditControlProperties )( PSI_CONTROL control )
 
 	//---------------------------------------------------------------------------
 
-PSI_PROC( int, EditFrameProperties )( PSI_CONTROL frame, S_32 x, S_32 y )
+PSI_PROC( int, EditFrameProperties )( PSI_CONTROL frame, int32_t x, int32_t y )
 {
 	PEDIT_PROP_DATA pEditProps = (PEDIT_PROP_DATA)Allocate( sizeof( EDIT_PROP_DATA ) );
 	PSI_CONTROL pf;
-	_32 select;
+	uint32_t select;
    pEditProps->x = x;
    pEditProps->y = y;
 	select = TrackPopup( pFrameEditMenu, frame );
@@ -519,22 +519,22 @@ PSI_PROC( int, EditFrameProperties )( PSI_CONTROL frame, S_32 x, S_32 y )
 			CommonWait( pf );
 			if( pEditProps->bOkay )
 			{
-				S_32 x, y;
-				_32 w, h, id;
+				int32_t x, y;
+				uint32_t w, h, id;
 				GetControlText( GetControl(pf, EDT_CAPTION ), buffer, sizeof( buffer ) );
 				SetControlText( frame, buffer );
 				GetControlText( GetControl(pf, EDT_X ), buffer, sizeof( buffer ) );
-				x = (S_32)IntCreateFromText( buffer );
+				x = (int32_t)IntCreateFromText( buffer );
 				GetControlText( GetControl(pf, EDT_Y), buffer, sizeof( buffer ) );
-				y = (S_32)IntCreateFromText( buffer );
+				y = (int32_t)IntCreateFromText( buffer );
 				MoveFrame( frame, x, y );
 				GetControlText( GetControl(pf, EDT_WIDTH ), buffer, sizeof( buffer ) );
-				w = (_32)IntCreateFromText( buffer );
+				w = (uint32_t)IntCreateFromText( buffer );
 				GetControlText( GetControl(pf, EDT_HEIGHT ), buffer, sizeof( buffer ) );
-				h = (_32)IntCreateFromText( buffer );
+				h = (uint32_t)IntCreateFromText( buffer );
 				SizeFrame( frame, w, h );
 				GetControlText( GetControl(pf, EDT_ID ), buffer, sizeof( buffer ) );
-				id = (_32)IntCreateFromText( buffer );
+				id = (uint32_t)IntCreateFromText( buffer );
 				SetControlID( frame, id );
 			}
 			DestroyCommon( &pf );
@@ -587,7 +587,7 @@ void RetachChildFrames( PSI_CONTROL pc )
 				RetachChildFrames( pc->child );
 			if( pc->flags.detached )
 			{
-				_32 BorderType = pc->device->EditState.BorderType;
+				uint32_t BorderType = pc->device->EditState.BorderType;
 				// adopt should close the device, if any, and quietly
 				// insert this control into it's parent
             if( parent )
@@ -665,15 +665,15 @@ PSI_PROC( void, EditFrame )( PSI_CONTROL pc, int bEnable )
 					if( nControls == 10 )
 					{
 						PMENU tmp = CreatePopup();
-						pli = AppendPopupItem( pCurrentControls, MF_POPUP, (PTRSZVAL)tmp, WIDE("More...") );
+						pli = AppendPopupItem( pCurrentControls, MF_POPUP, (uintptr_t)tmp, WIDE("More...") );
 						pCurrentControls = tmp;
 					}
 					pli = AppendPopupItem( pCurrentControls, MF_BYCOMMAND, MNU_ADDCONTROL + nItem, (POINTER)name );
 					nControls++;
-					//SetItemData( pli, (PTRSZVAL)GetRegisteredProcedure( PSI_ROOT_REGISTRY WIDE("/control/Button/Click"), int, name, (PTRSZVAL, PSI_CONTROL) ) );
+					//SetItemData( pli, (uintptr_t)GetRegisteredProcedure( PSI_ROOT_REGISTRY WIDE("/control/Button/Click"), int, name, (uintptr_t, PSI_CONTROL) ) );
 				}
 			}
-			AppendPopupItem( pFrameEditMenu, MF_POPUP, (PTRSZVAL)pControls, WIDE("Add Control") );
+			AppendPopupItem( pFrameEditMenu, MF_POPUP, (uintptr_t)pControls, WIDE("Add Control") );
 			AppendPopupItem( pFrameEditMenu, MF_STRING, MNU_EDITTHING, WIDE("Properties") );
 			AppendPopupItem( pFrameEditMenu, MF_STRING, MNU_SAVEFRAME, WIDE("Save") );
 			AppendPopupItem( pFrameEditMenu, MF_STRING, MNU_DONE, WIDE("Done") );

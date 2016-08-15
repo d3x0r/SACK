@@ -38,7 +38,7 @@ char pDirectory[MAX_PATH] = "z:\\uswestdex3.com";
 
 void CPROC ReadComplete( PCLIENT pc, POINTER pBuffer, int nSize )
 {
-	P_8 pBuf = (P_8)pBuffer;
+	uint8_t* pBuf = (uint8_t*)pBuffer;
    if( pBuf )
    {
       PBYTE pPage, pAddress, pStart, pFormData;

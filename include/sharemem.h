@@ -95,14 +95,14 @@
    find deadlocks by tracking who is entering critical sections
    and probably failing to leave them.                          */
 struct critical_section_tag {
-	_32 dwUpdating; // this is set when entering or leaving (updating)...
-	_32 dwLocks;  // count of locks entered.  (only low 24 bits may count for 16M entries, upper bits indicate internal statuses.
+	uint32_t dwUpdating; // this is set when entering or leaving (updating)...
+	uint32_t dwLocks;  // count of locks entered.  (only low 24 bits may count for 16M entries, upper bits indicate internal statuses.
 	THREAD_ID dwThreadID; // windows upper 16 is process ID, lower is thread ID
 	THREAD_ID dwThreadWaiting; // ID of thread waiting for this..
 #ifdef DEBUG_CRITICAL_SECTIONS
-	_32 bCollisions ;
+	uint32_t bCollisions ;
 	CTEXTSTR pFile;
-	_32  nLine;
+	uint32_t  nLine;
 #endif
 };
 
@@ -135,7 +135,7 @@ typedef struct critical_section_tag *PCRITICALSECTION;
    prior :  if not NULL, prior will be set to the current thread
             ID of the owning thread.                             */
 #ifndef USE_NATIVE_CRITICAL_SECTION
-MEM_PROC  S_32 MEM_API  EnterCriticalSecNoWaitEx ( PCRITICALSECTION pcs, THREAD_ID *prior DBG_PASS );
+MEM_PROC  int32_t MEM_API  EnterCriticalSecNoWaitEx ( PCRITICALSECTION pcs, THREAD_ID *prior DBG_PASS );
 #define EnterCriticalSecNoWait( pcs,prior ) EnterCriticalSecNoWaitEx( pcs, prior DBG_SRC )
 #else
 #define EnterCriticalSecNoWait( pcs,prior ) TryEnterCriticalSection( (pcs) )
@@ -152,7 +152,7 @@ MEM_PROC  void MEM_API  InitializeCriticalSec ( PCRITICALSECTION pcs );
 #define InitializeCriticalSec(pcs)  InitializeCriticalSection(pcs)
 #endif
 /* Get a count of how many times a critical section is locked */
-//MEM_PROC  _32 MEM_API  CriticalSecOwners ( PCRITICALSECTION pcs );
+//MEM_PROC  uint32_t MEM_API  CriticalSecOwners ( PCRITICALSECTION pcs );
 
 /* Namespace of all memory related functions for allocating and
    releasing memory.                                            */
@@ -186,10 +186,10 @@ typedef struct memory_block_tag* PMEM;
 // where is a filename for the filebacking of the shared memory
 // DigSpace( WIDE(TEXT( "Picture Memory" )), WIDE(TEXT( "Picture.mem" )), 100000 );
 
-/* <combinewith sack::memory::OpenSpaceExx@CTEXTSTR@CTEXTSTR@PTRSZVAL@PTRSZVAL *@P_32>
+/* <combinewith sack::memory::OpenSpaceExx@CTEXTSTR@CTEXTSTR@uintptr_t@uintptr_t *@uint32_t*>
    
    \ \                                                                                 */
-MEM_PROC  POINTER MEM_API  OpenSpace ( CTEXTSTR pWhat, CTEXTSTR pWhere, PTRSZVAL *dwSize );
+MEM_PROC  POINTER MEM_API  OpenSpace ( CTEXTSTR pWhat, CTEXTSTR pWhere, uintptr_t *dwSize );
 
 /* <unfinished>
    
@@ -221,7 +221,7 @@ MEM_PROC  POINTER MEM_API  OpenSpace ( CTEXTSTR pWhat, CTEXTSTR pWhere, PTRSZVAL
                name itself may also be used to share the memory.
    address :   A base address to map the memory at. If 0,
                specifies do not care.
-   dwSize :    pointer to a PTRSZVAL that defines the size to
+   dwSize :    pointer to a uintptr_t that defines the size to
                create. If 0, then the region is only opened. The
                size of the region opened is set back into this
                value after it is opened.
@@ -237,9 +237,9 @@ MEM_PROC  POINTER MEM_API  OpenSpace ( CTEXTSTR pWhat, CTEXTSTR pWhere, PTRSZVAL
    
    2) Open a file for direct memory access, the file is loaded
    into memory by system paging routines and not any API.         */
-MEM_PROC  POINTER MEM_API  OpenSpaceExx ( CTEXTSTR pWhat, CTEXTSTR pWhere, PTRSZVAL address
-	, PTRSZVAL *dwSize, P_32 bCreated );
-/* <combine sack::memory::OpenSpaceExx@CTEXTSTR@CTEXTSTR@PTRSZVAL@PTRSZVAL *@P_32>
+MEM_PROC  POINTER MEM_API  OpenSpaceExx ( CTEXTSTR pWhat, CTEXTSTR pWhere, uintptr_t address
+	, uintptr_t *dwSize, uint32_t* bCreated );
+/* <combine sack::memory::OpenSpaceExx@CTEXTSTR@CTEXTSTR@uintptr_t@uintptr_t *@uint32_t*>
    
    \ \                                                                             */
 #define OpenSpaceEx( what,where,address,psize) OpenSpaceExx( what,where,address,psize,NULL )
@@ -262,7 +262,7 @@ MEM_PROC  void MEM_API  CloseSpaceEx ( POINTER pMem, int bFinal );
    Parameters
    pMem :  pointer to a block of memory that was opened with
            OpenSpace().                                      */
-MEM_PROC  PTRSZVAL MEM_API  GetSpaceSize ( POINTER pMem );
+MEM_PROC  uintptr_t MEM_API  GetSpaceSize ( POINTER pMem );
 
 /* even if pMem is just a POINTER returned from OpenSpace this
    will create a valid heap pointer.
@@ -272,7 +272,7 @@ MEM_PROC  PTRSZVAL MEM_API  GetSpaceSize ( POINTER pMem );
    Parameters
    pMem :    pointer to a memory space to setup as a heap.
    dwSize :  size of the memory space pointed at by pMem.        */
-MEM_PROC  int MEM_API  InitHeap( PMEM pMem, PTRSZVAL dwSize );
+MEM_PROC  int MEM_API  InitHeap( PMEM pMem, uintptr_t dwSize );
 
 
 /* Dumps all blocks into the log.
@@ -308,9 +308,9 @@ MEM_PROC  void MEM_API  DebugDumpHeapMemFile ( PMEM pHeap, CTEXTSTR pFilename );
 MEM_PROC  void MEM_API  DebugDumpMemFile ( CTEXTSTR pFilename );
 
 #ifdef __GNUC__
-MEM_PROC  POINTER MEM_API  HeapAllocateAlignedEx ( PMEM pHeap, PTRSZVAL dwSize, _32 alignment DBG_PASS ) __attribute__( (malloc) );
-MEM_PROC  POINTER MEM_API  HeapAllocateEx ( PMEM pHeap, PTRSZVAL nSize DBG_PASS ) __attribute__((malloc));
-MEM_PROC  POINTER MEM_API  AllocateEx ( PTRSZVAL nSize DBG_PASS ) __attribute__((malloc));
+MEM_PROC  POINTER MEM_API  HeapAllocateAlignedEx ( PMEM pHeap, uintptr_t dwSize, uint32_t alignment DBG_PASS ) __attribute__( (malloc) );
+MEM_PROC  POINTER MEM_API  HeapAllocateEx ( PMEM pHeap, uintptr_t nSize DBG_PASS ) __attribute__((malloc));
+MEM_PROC  POINTER MEM_API  AllocateEx ( uintptr_t nSize DBG_PASS ) __attribute__((malloc));
 #else
 
 /* \ \ 
@@ -318,19 +318,19 @@ MEM_PROC  POINTER MEM_API  AllocateEx ( PTRSZVAL nSize DBG_PASS ) __attribute__(
    pHeap :  pointer to a heap which was initialized with
             InitHeap()
    Size :   Size of block to allocate                    */
-MEM_PROC  POINTER MEM_API  HeapAllocateEx ( PMEM pHeap, PTRSZVAL nSize DBG_PASS );
+MEM_PROC  POINTER MEM_API  HeapAllocateEx ( PMEM pHeap, uintptr_t nSize DBG_PASS );
 /* \ \
 Parameters
 pHeap :  pointer to a heap which was initialized with
 InitHeap()
 Size :   Size of block to allocate                    
 Alignment : count of bytes to return block on (1,2,4,8,16,32)  */
-MEM_PROC  POINTER MEM_API  HeapAllocateAlignedEx( PMEM pHeap, PTRSZVAL nSize, _32 alignment DBG_PASS );
+MEM_PROC  POINTER MEM_API  HeapAllocateAlignedEx( PMEM pHeap, uintptr_t nSize, uint32_t alignment DBG_PASS );
 /* Allocates a block of memory of specific size. Debugging
    information if passed is recorded on the block.
    Parameters
    size :  size of the memory block to create              */
-MEM_PROC  POINTER MEM_API  AllocateEx ( PTRSZVAL nSize DBG_PASS );
+MEM_PROC  POINTER MEM_API  AllocateEx ( uintptr_t nSize DBG_PASS );
 #endif
 
 /* A simple macro to allocate a new single unit of a structure. Adds
@@ -395,22 +395,22 @@ MEM_PROC  POINTER MEM_API  AllocateEx ( PTRSZVAL nSize DBG_PASS );
 #else
 #define Deallocate(type,thing) (ReleaseEx((POINTER)(thing)DBG_SRC))
 #endif
-/* <combine sack::memory::HeapAllocateEx@PMEM@PTRSZVAL nSize>
+/* <combine sack::memory::HeapAllocateEx@PMEM@uintptr_t nSize>
    
    \ \                                                        */
 #define HeapAllocate(heap, n) HeapAllocateEx( (heap), (n) DBG_SRC )
-   /* <combine sack::memory::HeapAllocateAlignedEx@PMEM@PTRSZVAL@_32>
+   /* <combine sack::memory::HeapAllocateAlignedEx@PMEM@uintptr_t@uint32_t>
 
    \ \                                                        */
 #define HeapAllocateAligned(heap, n, m) HeapAllocateEx( (heap), (n), m DBG_SRC )
-   /* <combine sack::memory::AllocateEx@PTRSZVAL nSize>
+   /* <combine sack::memory::AllocateEx@uintptr_t nSize>
    
    \ \                                               */
 #ifdef FIX_RELEASE_COM_COLLISION
 #else
 #define Allocate( n ) HeapAllocateEx( (PMEM)0, (n) DBG_SRC )
 #endif
-//MEM_PROC  POINTER MEM_API  AllocateEx ( PTRSZVAL nSize DBG_PASS );
+//MEM_PROC  POINTER MEM_API  AllocateEx ( uintptr_t nSize DBG_PASS );
 //#define Allocate(n) AllocateEx(n DBG_SRC )
 MEM_PROC  POINTER MEM_API  GetFirstUsedBlock ( PMEM pHeap );
 
@@ -491,16 +491,16 @@ MEM_PROC  POINTER MEM_API  HoldEx ( POINTER pData DBG_PASS  );
    
    If NULL is passed as the source block, then a new block
    filled with 0 is created.                                        */
-MEM_PROC  POINTER MEM_API  HeapReallocateEx ( PMEM pHeap, POINTER source, PTRSZVAL size DBG_PASS );
-/* <combine sack::memory::HeapReallocateEx@PMEM@POINTER@PTRSZVAL size>
+MEM_PROC  POINTER MEM_API  HeapReallocateEx ( PMEM pHeap, POINTER source, uintptr_t size DBG_PASS );
+/* <combine sack::memory::HeapReallocateEx@PMEM@POINTER@uintptr_t size>
    
    \ \                                                                 */
 #define HeapReallocate(heap,p,sz) HeapReallocateEx( (heap),(p),(sz) DBG_SRC )
-/* <combine sack::memory::HeapReallocateEx@PMEM@POINTER@PTRSZVAL size>
+/* <combine sack::memory::HeapReallocateEx@PMEM@POINTER@uintptr_t size>
    
    \ \                                                                 */
-MEM_PROC  POINTER MEM_API  ReallocateEx ( POINTER source, PTRSZVAL size DBG_PASS );
-/* <combine sack::memory::ReallocateEx@POINTER@PTRSZVAL size>
+MEM_PROC  POINTER MEM_API  ReallocateEx ( POINTER source, uintptr_t size DBG_PASS );
+/* <combine sack::memory::ReallocateEx@POINTER@uintptr_t size>
    
    \ \                                                        */
 #ifdef FIX_RELEASE_COM_COLLISION
@@ -528,16 +528,16 @@ MEM_PROC  POINTER MEM_API  ReallocateEx ( POINTER source, PTRSZVAL size DBG_PASS
    
    If NULL is passed as the source block, then a new block
    filled with 0 is created.                                        */
-MEM_PROC  POINTER MEM_API  HeapPreallocateEx ( PMEM pHeap, POINTER source, PTRSZVAL size DBG_PASS );
-/* <combine sack::memory::HeapPreallocateEx@PMEM@POINTER@PTRSZVAL size>
+MEM_PROC  POINTER MEM_API  HeapPreallocateEx ( PMEM pHeap, POINTER source, uintptr_t size DBG_PASS );
+/* <combine sack::memory::HeapPreallocateEx@PMEM@POINTER@uintptr_t size>
    
    \ \                                                                  */
 #define HeapPreallocate(heap,p,sz) HeapPreallocateEx( (heap),(p),(sz) DBG_SRC )
-/* <combine sack::memory::HeapPreallocateEx@PMEM@POINTER@PTRSZVAL size>
+/* <combine sack::memory::HeapPreallocateEx@PMEM@POINTER@uintptr_t size>
    
    \ \                                                                  */
-MEM_PROC  POINTER MEM_API  PreallocateEx ( POINTER source, PTRSZVAL size DBG_PASS );
-/* <combine sack::memory::PreallocateEx@POINTER@PTRSZVAL size>
+MEM_PROC  POINTER MEM_API  PreallocateEx ( POINTER source, uintptr_t size DBG_PASS );
+/* <combine sack::memory::PreallocateEx@POINTER@uintptr_t size>
    
    \ \                                                         */
 #define Preallocate(p,sz) PreallocateEx( (p),(sz) DBG_SRC )
@@ -564,7 +564,7 @@ MEM_PROC  POINTER MEM_API  HeapMoveEx ( PMEM pNewHeap, POINTER source DBG_PASS )
    
    Returns
    The size of the block that was specified by the Allocate(). */
-MEM_PROC  PTRSZVAL MEM_API  SizeOfMemBlock ( CPOINTER pData );
+MEM_PROC  uintptr_t MEM_API  SizeOfMemBlock ( CPOINTER pData );
 
 /* not so much of a fragment as a consolidation. Finds a free
    spot earlier in the heap and attempts to move the block
@@ -593,19 +593,19 @@ MEM_PROC  LOGICAL MEM_API  Defragment ( POINTER *ppMemory );
    FreeChunks from Chunks.
    Example
    <code lang="c++">
-   _32 free;
-   _32 used;
-   _32 chunks;
-   _32 free_chunks;
+   uint32_t free;
+   uint32_t used;
+   uint32_t chunks;
+   uint32_t free_chunks;
    GetHeapMemStatsEx( NULL, &amp;free, &amp;used, &amp;chunks, &amp;free_chunks );
    </code>                                                                         */
-MEM_PROC  void MEM_API  GetHeapMemStatsEx ( PMEM pHeap, _32 *pFree, _32 *pUsed, _32 *pChunks, _32 *pFreeChunks DBG_PASS );
-/* <combine sack::memory::GetHeapMemStatsEx@PMEM@_32 *@_32 *@_32 *@_32 *pFreeChunks>
+MEM_PROC  void MEM_API  GetHeapMemStatsEx ( PMEM pHeap, uint32_t *pFree, uint32_t *pUsed, uint32_t *pChunks, uint32_t *pFreeChunks DBG_PASS );
+/* <combine sack::memory::GetHeapMemStatsEx@PMEM@uint32_t *@uint32_t *@uint32_t *@uint32_t *pFreeChunks>
    
    \ \                                                                               */
 #define GetHeapMemStats(h,f,u,c,fc) GetHeapMemStatsEx( h,f,u,c,fc DBG_SRC )
-//MEM_PROC  void MEM_API  GetHeapMemStats ( PMEM pHeap, _32 *pFree, _32 *pUsed, _32 *pChunks, _32 *pFreeChunks );
-MEM_PROC  void MEM_API  GetMemStats ( _32 *pFree, _32 *pUsed, _32 *pChunks, _32 *pFreeChunks );
+//MEM_PROC  void MEM_API  GetHeapMemStats ( PMEM pHeap, uint32_t *pFree, uint32_t *pUsed, uint32_t *pChunks, uint32_t *pFreeChunks );
+MEM_PROC  void MEM_API  GetMemStats ( uint32_t *pFree, uint32_t *pUsed, uint32_t *pChunks, uint32_t *pFreeChunks );
 
 /* Sets whether to log allocations or not.
    
@@ -661,10 +661,10 @@ MEM_PROC  void MEM_API  SetHeapUnit ( size_t dwSize );
    the value previously in p.
    Example
    <code lang="c++">
-   _64 variable = 0;
-   _64 oldvalue = InterlockedExchange64( &amp;variable, 1 );
+   uint64_t variable = 0;
+   uint64_t oldvalue = InterlockedExchange64( &amp;variable, 1 );
    </code>                                                      */
-MEM_PROC  PTRSZVAL MEM_API  LockedExchange64 ( PVPTRSZVAL p, PTRSZVAL val );
+MEM_PROC  uintptr_t MEM_API  LockedExchange64 ( PVPTRSZVAL p, uintptr_t val );
 #endif
 /* Multi-processor safe exchange operation. Returns the prior
    value at the pointer.
@@ -674,20 +674,20 @@ MEM_PROC  PTRSZVAL MEM_API  LockedExchange64 ( PVPTRSZVAL p, PTRSZVAL val );
    
    Example
    <code lang="c#">
-   _64 value = 13;
-   _64 oldvalue = LockedExchange64( &amp;value, 15 );
+   uint64_t value = 13;
+   uint64_t oldvalue = LockedExchange64( &amp;value, 15 );
    // old value will be 13
    // value will be 15
    </code>                                                    */
-MEM_PROC  _64 MEM_API  LockedExchange64 ( PV_64 p, _64 val );
+MEM_PROC  uint64_t MEM_API  LockedExchange64 ( volatile int64_t* p, uint64_t val );
 /* A multi-processor safe increment of a variable.
    Parameters
    p :  pointer to a 32 bit value to increment.    */
-MEM_PROC  _32 MEM_API  LockedIncrement ( P_32 p );
+MEM_PROC  uint32_t MEM_API  LockedIncrement ( uint32_t* p );
 /* Does a multi-processor safe decrement on a variable.
    Parameters
    p :  pointer to a 32 bit value to decrement.         */
-MEM_PROC  _32 MEM_API  LockedDecrement ( P_32 p );
+MEM_PROC  uint32_t MEM_API  LockedDecrement ( uint32_t* p );
 
 #ifdef __cplusplus
 // like also __if_assembly__
@@ -695,9 +695,9 @@ MEM_PROC  _32 MEM_API  LockedDecrement ( P_32 p );
 #endif
 
 #ifdef __64__
-#define LockedExchangePtrSzVal(a,b) LockedExchange64((PV_64)(a),b)
+#define LockedExchangePtrSzVal(a,b) LockedExchange64((volatile int64_t*)(a),b)
 #else
-#define LockedExchangePtrSzVal(a,b) LockedExchange((PV_32)(a),b)
+#define LockedExchangePtrSzVal(a,b) LockedExchange((volatile uint32_t*)(a),b)
 #endif
 
 /* Multiprocessor safe swap of the contents of a variable with a
@@ -709,10 +709,10 @@ MEM_PROC  _32 MEM_API  LockedDecrement ( P_32 p );
    The prior value in p.
    Example
    <code>
-   _32 variable = 0;
-   _32 oldvalue = InterlockedExchange( &amp;variable, 1 );
+   uint32_t variable = 0;
+   uint32_t oldvalue = InterlockedExchange( &amp;variable, 1 );
    </code>                                                       */
-MEM_PROC  _32 MEM_API  LockedExchange ( PV_32 p, _32 val );
+MEM_PROC  uint32_t MEM_API  LockedExchange ( volatile uint32_t* p, uint32_t val );
 /* Sets a 32 bit value into memory. If the length to set is not
    a whole number of 32 bit words, the last bytes may contain
    the low 16 bits of the value and the low 8 bits.
@@ -730,7 +730,7 @@ MEM_PROC  _32 MEM_API  LockedExchange ( PV_32 p, _32 val );
    
    then if ( sz &amp; 1 ) the low 8 bits of n are written at the
    end.                                                          */
-MEM_PROC  void MEM_API  MemSet ( POINTER p, PTRSZVAL n, size_t sz );
+MEM_PROC  void MEM_API  MemSet ( POINTER p, uintptr_t n, size_t sz );
 //#define _memset_ MemSet
 /* memory copy operation. not safe when buffers overlap. Performs
    platform-native memory stream operation to copy from one
@@ -1069,8 +1069,8 @@ MEM_PROC  TEXTSTR MEM_API  DupCStrEx ( const char * original DBG_PASS );
 #if 0
 // this code was going to provide network oriented shared memory.
 #ifndef TRANSPORT_STRUCTURE_DEFINED
-typedef PTRSZVAL PTRANSPORT_QUEUE;
-struct transport_queue_tag { _8 private_data_here; };
+typedef uintptr_t PTRANSPORT_QUEUE;
+struct transport_queue_tag { uint8_t private_data_here; };
 
 #endif
 
@@ -1103,9 +1103,9 @@ inline void operator delete (void * p DBG_PASS )
 //#define deleteEx(file,line) delete(file,line)
 #ifdef USE_SACK_ALLOCER
 inline void * operator new( size_t size DBG_PASS )
-{ return AllocateEx( (PTRSZVAL)size DBG_RELAY ); }
+{ return AllocateEx( (uintptr_t)size DBG_RELAY ); }
 static void * operator new[]( size_t size DBG_PASS )
-{ return AllocateEx( (PTRSZVAL)size DBG_RELAY ); }
+{ return AllocateEx( (uintptr_t)size DBG_RELAY ); }
 #define new new( DBG_VOIDSRC )
 #define newEx(file,line) new(file,line)
 #endif

@@ -6868,7 +6868,7 @@ static struct{ char s, w, o, j; unsigned char data[23]; } _char_255 =
                   _XX_____} };
 
 
-struct { _16 height, chars;
+struct { uint16_t height, chars;
          PCHARACTER character[256]; } ComicSansMS16by20 = { 23, 256, {  (PCHARACTER)&_char_0
  ,(PCHARACTER)&_char_1
  ,(PCHARACTER)&_char_2

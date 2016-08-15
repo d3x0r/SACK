@@ -94,7 +94,7 @@ static void convert( P_64 outtime, time_t *time )
 
 //-----------------------------------------------------------------------
 
-_64 GetTimeAsFileTime ( void )
+uint64_t GetTimeAsFileTime ( void )
 {
 #if defined( __LINUX__ )
 	struct timeval tmp;
@@ -108,11 +108,11 @@ _64 GetTimeAsFileTime ( void )
 	FILETIME result;
 	GetLocalTime( &st );
 	SystemTimeToFileTime( &st, &result );
-	return *(_64*)&result;
+	return *(uint64_t*)&result;
 #endif
 }
 
- _64  GetFileWriteTime( CTEXTSTR name ) // last modification time.
+ uint64_t  GetFileWriteTime( CTEXTSTR name ) // last modification time.
 {
 	TEXTSTR tmppath = ExpandPath( name );
 #ifdef _WIN32
@@ -126,17 +126,17 @@ _64 GetTimeAsFileTime ( void )
 	if( hFile != INVALID_HANDLE_VALUE )
 	{
 		FILETIME filetime;
-		//_64 realtime;
+		//uint64_t realtime;
 		GetFileTime( hFile, NULL, NULL, &filetime );
 		CloseHandle( hFile );
-		//realtime = *(_64*)&filetime;
+		//realtime = *(uint64_t*)&filetime;
 		//realtime *= 100; // nano seconds?
-		return *(_64*)&filetime;
+		return *(uint64_t*)&filetime;
 	}
 	return 0;
 #else
 	struct stat statbuf;
-	 _64 realtime;
+	 uint64_t realtime;
 #ifdef UNICODE
 	{
 		char *tmpname = CStrDup( tmppath );
@@ -154,7 +154,7 @@ _64 GetTimeAsFileTime ( void )
 
 //-----------------------------------------------------------------------
 
- LOGICAL  SetFileWriteTime( CTEXTSTR name, _64 filetime ) // last modification time.
+ LOGICAL  SetFileWriteTime( CTEXTSTR name, uint64_t filetime ) // last modification time.
 {
 #ifdef _WIN32
 	HANDLE hFile = CreateFile( name
@@ -166,17 +166,17 @@ _64 GetTimeAsFileTime ( void )
 								  , NULL );
 	if( hFile != INVALID_HANDLE_VALUE )
 	{
-		//_64 realtime;
+		//uint64_t realtime;
 		SetFileTime( hFile, NULL, NULL, (CONST FILETIME*)&filetime );
 		CloseHandle( hFile );
-		//realtime = *(_64*)&filetime;
+		//realtime = *(uint64_t*)&filetime;
 	   //realtime *= 100; // nano seconds?
 	  return TRUE;
 	}
 	return FALSE;
 #else
 	struct stat statbuf;
-	_64 realtime;
+	uint64_t realtime;
 #ifdef UNICODE
 	 {
 		 int status;
@@ -194,7 +194,7 @@ _64 GetTimeAsFileTime ( void )
 }
 
 #ifdef WIN32
-_64 ConvertFileTimeToInt( const FILETIME *filetime )
+uint64_t ConvertFileTimeToInt( const FILETIME *filetime )
 {
 	ULARGE_INTEGER tmp;
 	tmp.u.LowPart = filetime->dwLowDateTime;
@@ -202,7 +202,7 @@ _64 ConvertFileTimeToInt( const FILETIME *filetime )
 	return tmp.QuadPart;
 }
 
-void ConvertFileIntToFileTime( _64 int_filetime, FILETIME *filetime )
+void ConvertFileIntToFileTime( uint64_t int_filetime, FILETIME *filetime )
 {
 	ULARGE_INTEGER tmp;
 	tmp.QuadPart = int_filetime;
@@ -212,9 +212,9 @@ void ConvertFileIntToFileTime( _64 int_filetime, FILETIME *filetime )
 #endif
 
 LOGICAL  SetFileTimes( CTEXTSTR name
-							, _64 time_create  // last modification time.
-							, _64 time_modify // last modification time.
-							, _64 time_access  // last modification time.
+							, uint64_t time_create  // last modification time.
+							, uint64_t time_modify // last modification time.
+							, uint64_t time_access  // last modification time.
 							)
 {
 #ifdef _WIN32
@@ -232,7 +232,7 @@ LOGICAL  SetFileTimes( CTEXTSTR name
 		FILETIME filetime_modify;
 		FILETIME filetime_access;
 		ULARGE_INTEGER tmp;
-		//_64 realtime;
+		//uint64_t realtime;
 		tmp.QuadPart = time_create;
 		filetime_create.dwLowDateTime = tmp.u.LowPart;
 		filetime_create.dwHighDateTime = tmp.u.HighPart;
@@ -262,7 +262,7 @@ LOGICAL  SetFileTimes( CTEXTSTR name
 			lprintf( WIDE("Failed to set times:(%s)%d"), name, GetLastError() );
 		}
 		CloseHandle( hFile );
-		//realtime = *(_64*)&filetime;
+		//realtime = *(uint64_t*)&filetime;
 		//realtime *= 100; // nano seconds?
 		return result;
 	}
@@ -273,7 +273,7 @@ LOGICAL  SetFileTimes( CTEXTSTR name
 	return FALSE;
 #else
 	struct stat statbuf;
-	 _64 realtime;
+	 uint64_t realtime;
 #ifdef UNICODE
 	 {
 	   char *tmpname = CStrDup( name );

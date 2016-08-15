@@ -56,7 +56,7 @@ int RegisterProduct( TEXTCHAR *pResult, TEXTCHAR *pProductID, TEXTCHAR *pProduct
 TEXTCHAR *GetFile( TEXTCHAR *pMatch, void *pi );
 
 
-int ProcessRegistryKeys(HKEY root, CTEXTSTR pClass, int (CPROC*f)(PTRSZVAL psv, CTEXTSTR key), PTRSZVAL psv );
+int ProcessRegistryKeys(HKEY root, CTEXTSTR pClass, int (CPROC*f)(uintptr_t psv, CTEXTSTR key), uintptr_t psv );
 
 #ifdef __cplusplus
 }

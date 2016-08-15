@@ -128,7 +128,7 @@ void CPROC KeystrokePaste( PCONSOLE_INFO pdp )
 #ifdef __WINDOWS__
 	if( OpenClipboard(NULL) )
 	{
-		_32 format;
+		uint32_t format;
 	// successful open...
 		format = EnumClipboardFormats( 0 );
 		while( format )
@@ -213,7 +213,7 @@ int CPROC RenderChildWindow( PCOMMON pc )
 
 //----------------------------------------------------------------------------
 
-int CPROC KeyEventProc( PCOMMON pc, _32 key )
+int CPROC KeyEventProc( PCOMMON pc, uint32_t key )
 {
 	PCONSOLE_INFO pdp = (PCONSOLE_INFO)GetCommonUserData( pc );
 	// this must here gather keystrokes and pass them forward into the
@@ -253,10 +253,10 @@ int CPROC KeyEventProc( PCOMMON pc, _32 key )
 
 //----------------------------------------------------------------------------
 
-int CPROC MouseHandler( PCOMMON pc, S_32 x, S_32 y, _32 b )
+int CPROC MouseHandler( PCOMMON pc, int32_t x, int32_t y, uint32_t b )
 {
-	static S_32 _x, _y;
-	static _32 _b;
+	static int32_t _x, _y;
+	static uint32_t _b;
 	//Log3( WIDE("Mouse thing...%ld,%ld %08lx"), x, y, b );
 	{
 		int xPos, yPos, row, col;
@@ -693,7 +693,7 @@ PRELOAD(RegisterConsole)
 
 static void CPROC DrawString( PCONSOLE_INFO pdp, int x, int y, RECT *r, TEXTCHAR *s, size_t nShown, size_t nShow )
 {
-	_32 w, h;
+	uint32_t w, h;
 	//lprintf( WIDE("Adding string out : %p %s %d %d at %d,%d #%08lX #%08lX"), pdp, s, nShown, nShow,x,y,r->left,r->top
 	//		 , pdp->psicon.crText, pdp->psicon.crBack );
 	GetStringRenderSizeFontEx( s, nShow, &w, &h, NULL, pdp->psicon.hFont );
@@ -842,15 +842,15 @@ int CPROC InitDekwareConsole( PSI_CONTROL pc )
 		pdp->common.Owner = ps;
 		//Log( WIDE("Create frame!!") );
 		pdp->psicon.frame = pc;
-		SetCommonUserData( pc, (PTRSZVAL)pdp );
+		SetCommonUserData( pc, (uintptr_t)pdp );
 
 		pdp->psicon.image = GetFrameSurface( pdp->psicon.frame );
 		GetStringSize( WIDE(" "), &pdp->nFontWidth, &pdp->nFontHeight );
 #if 0
-		AddVolatileVariable( pe, &vve_rows, (PTRSZVAL)pdp );
-		AddVolatileVariable( pe, &vve_cols, (PTRSZVAL)pdp );
-		AddVolatileVariable( pe, &vve_cursorx, (PTRSZVAL)pdp );
-		AddVolatileVariable( pe, &vve_cursory, (PTRSZVAL)pdp );
+		AddVolatileVariable( pe, &vve_rows, (uintptr_t)pdp );
+		AddVolatileVariable( pe, &vve_cols, (uintptr_t)pdp );
+		AddVolatileVariable( pe, &vve_cursorx, (uintptr_t)pdp );
+		AddVolatileVariable( pe, &vve_cursory, (uintptr_t)pdp );
 #endif
 #else
 		PCONSOLE_INFO pdp;
@@ -940,25 +940,25 @@ static PTEXT DeviceVolatileVariableGet( WIDE("psicon"), WIDE("rows"), WIDE("cons
 {
 	PSENTIENT ps = pe->pControlledBy;
 	PDATAPATH pdp = FindOpenDevice( ps, (PTEXT)&PSIConName );
-	return GetRows( (PTRSZVAL)pdp, pe, ppLastValue );
+	return GetRows( (uintptr_t)pdp, pe, ppLastValue );
 }
 static PTEXT DeviceVolatileVariableGet( WIDE("psicon"), WIDE("cols"), WIDE("console col count") )(PENTITY pe,PTEXT *ppLastValue)
 {
 	PSENTIENT ps = pe->pControlledBy;
 	PDATAPATH pdp = FindOpenDevice( ps, (PTEXT)&PSIConName );
-	return GetCols( (PTRSZVAL)pdp, pe, ppLastValue );
+	return GetCols( (uintptr_t)pdp, pe, ppLastValue );
 }
 static PTEXT DeviceVolatileVariableGet( WIDE("psicon"), WIDE("cursor_x"), WIDE("console cursor x(col) position") )(PENTITY pe,PTEXT *ppLastValue)
 {
 	PSENTIENT ps = pe->pControlledBy;
 	PDATAPATH pdp = FindOpenDevice( ps, (PTEXT)&PSIConName );
-	return GetCursorX( (PTRSZVAL)pdp, pe, ppLastValue );
+	return GetCursorX( (uintptr_t)pdp, pe, ppLastValue );
 }
 static PTEXT DeviceVolatileVariableGet( WIDE("psicon"), WIDE("cursor_y"), WIDE("console cursor y(row) position") )(PENTITY pe,PTEXT*ppLastValue)
 {
 	PSENTIENT ps = pe->pControlledBy;
 	PDATAPATH pdp = FindOpenDevice( ps, (PTEXT)&PSIConName );
-	return GetCursorY( (PTRSZVAL)pdp, pe, ppLastValue );
+	return GetCursorY( (uintptr_t)pdp, pe, ppLastValue );
 }
 
 //----------------------------------------------------------------------------
@@ -988,7 +988,7 @@ static PDATAPATH OnInitDevice( WIDE("psicon"), WIDE("Windows MDI interactive int
 	}
 
 	{
-		_32 width, height;
+		uint32_t width, height;
 		GetDisplayPosition( pdp->psicon.renderer, NULL, NULL, &width, &height );
 		bCreatingControl = 1;
 		pdp->psicon.frame = MakeCaptionedControl( NULL, ConsoleClass.TypeID, 0, 0
@@ -1006,9 +1006,9 @@ static PDATAPATH OnInitDevice( WIDE("psicon"), WIDE("Windows MDI interactive int
 		return NULL;
 	}
 
-	SetCommonUserData( pdp->psicon.frame, (PTRSZVAL)pdp );
+	SetCommonUserData( pdp->psicon.frame, (uintptr_t)pdp );
 	//SetFrameDraw( pdp->psicon.frame, RenderChildWindow );
-	//SetFrameKey( pdp->psicon.frame, KeyEventProc, (PTRSZVAL)pdp );
+	//SetFrameKey( pdp->psicon.frame, KeyEventProc, (uintptr_t)pdp );
 	//SetFrameMouse( pdp->psicon.frame, MouseHandler );
 	pdp->psicon.image = GetFrameSurface( pdp->psicon.frame );
 	if( !pdp->psicon.image )
@@ -1028,10 +1028,10 @@ static PDATAPATH OnInitDevice( WIDE("psicon"), WIDE("Windows MDI interactive int
 		// these could potentially result in multiple variables of the
 		// same name on an object (psicon input, psicon output...)
 #if 0
-		AddVolatileVariable( ps->Current, &vve_rows, (PTRSZVAL)pdp );
-		AddVolatileVariable( ps->Current, &vve_cols, (PTRSZVAL)pdp );
-		AddVolatileVariable( ps->Current, &vve_cursorx, (PTRSZVAL)pdp );
-		AddVolatileVariable( ps->Current, &vve_cursory, (PTRSZVAL)pdp );
+		AddVolatileVariable( ps->Current, &vve_rows, (uintptr_t)pdp );
+		AddVolatileVariable( ps->Current, &vve_cols, (uintptr_t)pdp );
+		AddVolatileVariable( ps->Current, &vve_cursorx, (uintptr_t)pdp );
+		AddVolatileVariable( ps->Current, &vve_cursory, (uintptr_t)pdp );
 #endif
 	}
 

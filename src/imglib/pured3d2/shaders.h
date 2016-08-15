@@ -36,14 +36,14 @@ struct image_shader_tracker
 	int projection;
 	int worldview;
 	int modelview;
-	PTRSZVAL psv_userdata;
+	uintptr_t psv_userdata;
 	void (CPROC*Init)( PImageShaderTracker );
-	void (CPROC*Enable)( PImageShaderTracker,PTRSZVAL,va_list);
+	void (CPROC*Enable)( PImageShaderTracker,uintptr_t,va_list);
 };
 
 
 PImageShaderTracker CPROC GetShader( CTEXTSTR name, void (*)(PImageShaderTracker) );
-void CPROC  SetShaderEnable( PImageShaderTracker tracker, void (CPROC*EnableShader)( PImageShaderTracker tracker, PTRSZVAL, va_list args ), PTRSZVAL psv );
+void CPROC  SetShaderEnable( PImageShaderTracker tracker, void (CPROC*EnableShader)( PImageShaderTracker tracker, uintptr_t, va_list args ), uintptr_t psv );
 void CPROC SetShaderModelView( PImageShaderTracker tracker, RCOORD *matrix );
 
 int CPROC CompileShaderEx( PImageShaderTracker shader

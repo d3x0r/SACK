@@ -6,7 +6,7 @@ int main( void )
 {
 	PODBC connections[3];
    LOGICAL init_database = 0;
-	if( GetSizeofFile( "test.db", 0 ) == (_32)-1 )
+	if( GetSizeofFile( "test.db", 0 ) == (uint32_t)-1 )
 		init_database = 1;
 
 	connections[0] = ConnectToDatabase( "test.db" );

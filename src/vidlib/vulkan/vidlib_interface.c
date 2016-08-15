@@ -13,27 +13,27 @@ static RENDER_INTERFACE VidInterface = { NULL //InitDisplay
                                        , (void (CPROC*)(Image)) SetApplicationIcon
                                        , GetDisplaySize
                                        , SetDisplaySize
-                                       , (PRENDERER (CPROC*)(_32, _32, _32, S_32, S_32)) OpenDisplaySizedAt
-                                       , (PRENDERER (CPROC*)(_32, _32, _32, S_32, S_32, PRENDERER)) OpenDisplayAboveSizedAt
+                                       , (PRENDERER (CPROC*)(uint32_t, uint32_t, uint32_t, int32_t, int32_t)) OpenDisplaySizedAt
+                                       , (PRENDERER (CPROC*)(uint32_t, uint32_t, uint32_t, int32_t, int32_t, PRENDERER)) OpenDisplayAboveSizedAt
                                        , (void (CPROC*)(PRENDERER)) CloseDisplay
-                                       , (void (CPROC*)(PRENDERER, S_32, S_32, _32, _32 DBG_PASS)) UpdateDisplayPortionEx
+                                       , (void (CPROC*)(PRENDERER, int32_t, int32_t, uint32_t, uint32_t DBG_PASS)) UpdateDisplayPortionEx
                                        , (void (CPROC*)(PRENDERER DBG_PASS)) UpdateDisplayEx
                                        , GetDisplayPosition
-                                       , (void (CPROC*)(PRENDERER, S_32, S_32)) MoveDisplay
-                                       , (void (CPROC*)(PRENDERER, S_32, S_32)) MoveDisplayRel
-                                       , (void (CPROC*)(PRENDERER, _32, _32)) SizeDisplay
-                                       , (void (CPROC*)(PRENDERER, S_32, S_32)) SizeDisplayRel
+                                       , (void (CPROC*)(PRENDERER, int32_t, int32_t)) MoveDisplay
+                                       , (void (CPROC*)(PRENDERER, int32_t, int32_t)) MoveDisplayRel
+                                       , (void (CPROC*)(PRENDERER, uint32_t, uint32_t)) SizeDisplay
+                                       , (void (CPROC*)(PRENDERER, int32_t, int32_t)) SizeDisplayRel
                                        , MoveSizeDisplayRel
                                        , (void (CPROC*)(PRENDERER, PRENDERER)) PutDisplayAbove
                                        , (Image (CPROC*)(PRENDERER)) GetDisplayImage
-                                       , (void (CPROC*)(PRENDERER, CloseCallback, PTRSZVAL)) SetCloseHandler
-                                       , (void (CPROC*)(PRENDERER, MouseCallback, PTRSZVAL)) SetMouseHandler
-                                       , (void (CPROC*)(PRENDERER, RedrawCallback, PTRSZVAL)) SetRedrawHandler
-                                       , (void (CPROC*)(PRENDERER, KeyProc, PTRSZVAL)) SetKeyboardHandler
+                                       , (void (CPROC*)(PRENDERER, CloseCallback, uintptr_t)) SetCloseHandler
+                                       , (void (CPROC*)(PRENDERER, MouseCallback, uintptr_t)) SetMouseHandler
+                                       , (void (CPROC*)(PRENDERER, RedrawCallback, uintptr_t)) SetRedrawHandler
+                                       , (void (CPROC*)(PRENDERER, KeyProc, uintptr_t)) SetKeyboardHandler
 													,  SetLoseFocusHandler
                                           , NULL
-                                       , (void (CPROC*)(S_32 *, S_32 *)) GetMousePosition
-                                       , (void (CPROC*)(PRENDERER, S_32, S_32)) SetMousePosition
+                                       , (void (CPROC*)(int32_t *, int32_t *)) GetMousePosition
+                                       , (void (CPROC*)(PRENDERER, int32_t, int32_t)) SetMousePosition
                                        , HasFocus  // has focus
                                        , GetKeyText
                                        , IsKeyDown

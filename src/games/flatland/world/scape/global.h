@@ -5,9 +5,9 @@
 
 typedef struct client_global_tag {
 	struct {
-		_32 connected : 1;
+		uint32_t connected : 1;
 	} flags;
-	_32 MsgBase;
+	uint32_t MsgBase;
 	// pointer by index number...
 	//PLIST worlds;
 } CLIENT_GLOBAL;
@@ -17,19 +17,19 @@ typedef struct client_tag {
 	struct {
 		// if the appropraite create flag is set
 		// said world does not get the create event
-		_32 bCreateWorld : 1;
-		_32 bCreateName : 1;
-		_32 bCreateSector : 1;
-		_32 bCreateTexture : 1;
-		_32 bCreateLine : 1;
-		_32 bCreateWall : 1;
+		uint32_t bCreateWorld : 1;
+		uint32_t bCreateName : 1;
+		uint32_t bCreateSector : 1;
+		uint32_t bCreateTexture : 1;
+		uint32_t bCreateLine : 1;
+		uint32_t bCreateWall : 1;
 	} flags;
-	_32 pid;
+	uint32_t pid;
 } WORLD_CLIENT, *PWORLD_CLIENT;
 
 typedef struct server_global_tag
 {
-	_32 MsgBase; // my message base?
+	uint32_t MsgBase; // my message base?
 	PWORLD_CLIENT clients;
 	PWORLDSET worlds;
 } SERVER_GLOBAL;

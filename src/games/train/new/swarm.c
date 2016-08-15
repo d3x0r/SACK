@@ -19,7 +19,7 @@ BASIC_PLANE CubeNormals[] = { { {0,0,0}, {    0,  0.5,    0 }/*, 1, 62 */}
 POBJECT master;
 PLIST slaves;
 
-void CPROC UpdateObjects( PTRSZVAL psv )
+void CPROC UpdateObjects( uintptr_t psv )
 {
 	// master->position accellerate in direction of origin
 	//    master also seeks to go away from the closest three

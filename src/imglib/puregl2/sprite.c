@@ -81,15 +81,15 @@ IMAGE_NAMESPACE
 
 static void PlotArbitrary( Image dest
 						, Image source
-						, S_32 x1, S_32 y1
-						, S_32 x2, S_32 y2
-						, S_32 x3, S_32 y3
-						, S_32 x4, S_32 y4
-						, _32 alpha
-						, _32 mode
-						, _32 param1
-						, _32 param2
-						, _32 param3
+						, int32_t x1, int32_t y1
+						, int32_t x2, int32_t y2
+						, int32_t x3, int32_t y3
+						, int32_t x4, int32_t y4
+						, uint32_t alpha
+						, uint32_t mode
+						, uint32_t param1
+						, uint32_t param2
+						, uint32_t param3
 						)
 {
 	// x1, y1 define the position of the upper left corner of the image
@@ -105,11 +105,11 @@ static void PlotArbitrary( Image dest
 			int no_right : 1;
 		} flags;
 		struct {
-			S_32 x, y;
+			int32_t x, y;
 			int vertex_number; // 0, 1, 2, 3
 		}left;
 		struct {
-			S_32 x, y;
+			int32_t x, y;
 			int vertex_number; // 0, 1, 2, 3
 		} right;
 	} points[3];
@@ -937,10 +937,10 @@ static void PlotArbitrary( Image dest
 	}
 }
 
-static void (CPROC *SavePortion )( PSPRITE_METHOD psm, _32 x, _32 y, _32 w, _32 h );
+static void (CPROC *SavePortion )( PSPRITE_METHOD psm, uint32_t x, uint32_t y, uint32_t w, uint32_t h );
 
 
- void  SetSavePortion ( void (CPROC*_SavePortion )( PSPRITE_METHOD psm, _32 x, _32 y, _32 w, _32 h ) )
+ void  SetSavePortion ( void (CPROC*_SavePortion )( PSPRITE_METHOD psm, uint32_t x, uint32_t y, uint32_t w, uint32_t h ) )
 {
    SavePortion = _SavePortion;
 }
@@ -954,9 +954,9 @@ static void TranslatePoints( Image dest, PSPRITE sprite )
 	int x4, y4;
 	_POINT result;
 	_POINT tmp;
-	static _32 lock;
+	static uint32_t lock;
 	static PTRANSFORM transform;
-	S_32 xd, yd;
+	int32_t xd, yd;
 	//lprintf( WIDE("-- Begin Transform") );
 	while( LockedExchange( &lock, 1 ) ) Relinquish();
 	if( !transform )

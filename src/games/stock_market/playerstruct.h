@@ -12,25 +12,25 @@ typedef struct archtype_tag {
 	CDATA color;
 	// maybe info like - shape info...
 	struct {
-		_32 used: 1;
+		uint32_t used: 1;
 
 	} flags;
 } ARCHTYPE, *PARCHTYPE;
 
 typedef struct player_tag {
 	struct {
-		_32 GoingLeft : 1; // else going right.
-		_32 bRemote : 1; // player is under remote control
+		uint32_t GoingLeft : 1; // else going right.
+		uint32_t bRemote : 1; // player is under remote control
 	} flags;
 	TEXTCHAR name[32];
 	INDEX id;
 	PARCHTYPE archtype;
-	_32 Cash;
-   _32 MinValue;
-	_32 NetValue;
+	uint32_t Cash;
+   uint32_t MinValue;
+	uint32_t NetValue;
 	int nHistory;
    int nHistoryAvail;
-   _32 *History;
+   uint32_t *History;
 	PLIST portfolio; // list of PSTOCKACCOUNTS
    PSTOCKACCOUNT pMeeting;  // which stock meeting we're in
 	PSPACE pCurrentSpace;

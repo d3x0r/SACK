@@ -1,14 +1,14 @@
 #include <stdhdrs.h>
 
-POINTER OpenAFile( const char *file, PTRSZVAL *size )
+POINTER OpenAFile( const char *file, uintptr_t *size )
 {
 	POINTER result = OpenSpace( NULL, file, size );
 	return result;
 }
 
 struct params {
-	P_8 p;
-	PTRSZVAL size;
+	uint8_t* p;
+	uintptr_t size;
 };
 
 //0123456789abcdef01234567
@@ -22,7 +22,7 @@ int main( int argc, char **argv )
 		struct params pa;
 		int card = atoi( argv[2] ) - 1;
 		pa.size = 0;
-		pa.p = (P_8)OpenAFile( argv[1], &pa.size );
+		pa.p = (uint8_t*)OpenAFile( argv[1], &pa.size );
 		if( pa.p ) {
 			printf( "%2d %2d %2d %2d %2d\n"
 				, (pa.p[12 * card + 0] >> 4)

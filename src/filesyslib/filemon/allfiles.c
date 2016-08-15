@@ -66,7 +66,7 @@ PRELOAD( InitFileMon)
 	Init();
 }
 
-int CPROC CompareName( PTRSZVAL psv1, PTRSZVAL psv2 )
+int CPROC CompareName( uintptr_t psv1, uintptr_t psv2 )
 {
 	CTEXTSTR s1 = (CTEXTSTR)psv1;
 	CTEXTSTR s2 = (CTEXTSTR)psv2;
@@ -80,7 +80,7 @@ void CloseFileMonitor( PCHANGEHANDLER Change, PFILEMON filemon )
     if( !Change || !filemon )
         return;
 	//Log1( WIDE("Closing %p"), filemon );
-    RemoveBinaryNode( Change->filelist, (POINTER)filemon, (PTRSZVAL)filemon->filename );
+    RemoveBinaryNode( Change->filelist, (POINTER)filemon, (uintptr_t)filemon->filename );
 	//DeleteLink( &Change->filelist, filemon );
 	if( Change->currentchange == filemon )
 		Change->currentchange = NULL;
@@ -124,7 +124,7 @@ int IsDirectory( CTEXTSTR name )
 #else
 #ifdef WIN32
 	{
-		_32 dwAttr = GetFileAttributes( name );
+		uint32_t dwAttr = GetFileAttributes( name );
 		if( dwAttr == -1 ) // uncertainty about what it really is, return ti's not a directory
 			return 0;
 		if( dwAttr & FILE_ATTRIBUTE_DIRECTORY )
@@ -160,7 +160,7 @@ PFILEMON WatchingFile( PCHANGEHANDLER monitor, CTEXTSTR name )
       if( l.flags.bLog ) Log1( WIDE("%s is a root file path"), name );
 		return (PFILEMON)2; // claim we already know about these  - stops actual updates
 	}
-	filemon = (PFILEMON)FindInBinaryTree( monitor->filelist, (PTRSZVAL)name );
+	filemon = (PFILEMON)FindInBinaryTree( monitor->filelist, (uintptr_t)name );
 	if( !filemon && IsDirectory( name ) )
 	{
 		if( l.flags.bLog ) Log1( WIDE("%s is a directory - probably skipping.."), name );
@@ -177,7 +177,7 @@ FILEMONITOR_PROC( PFILEMON, AddMonitoredFile )( PCHANGEHANDLER Change, CTEXTSTR 
 	{
 		PFILEMON newfile;
 		PMONITOR monitor = Change->monitor;
-		//_64 tick = GetCPUTick();
+		//uint64_t tick = GetCPUTick();
 		if( !(newfile=WatchingFile( Change, name ) ) )
 		{
 			size_t pos;
@@ -193,7 +193,7 @@ FILEMONITOR_PROC( PFILEMON, AddMonitoredFile )( PCHANGEHANDLER Change, CTEXTSTR 
 			newfile->lastmodifiedtime = gcnew System::DateTime();
 #else
 #ifdef WIN32
-			(*(_64*)&newfile->lastmodifiedtime) = 0;
+			(*(uint64_t*)&newfile->lastmodifiedtime) = 0;
 #else
 			newfile->lastmodifiedtime = 0;
 #endif
@@ -204,7 +204,7 @@ FILEMONITOR_PROC( PFILEMON, AddMonitoredFile )( PCHANGEHANDLER Change, CTEXTSTR 
 			newfile->flags.bPending         = 0;
 			newfile->flags.bCreated         = Change->flags.bInitial?0:1;
 			newfile->lastknownsize    = 0;
-			AddBinaryNode( Change->filelist, newfile, (PTRSZVAL)newfile->filename );
+			AddBinaryNode( Change->filelist, newfile, (uintptr_t)newfile->filename );
 			BalanceBinaryTree( Change->filelist );
 			//AddLink( &Change->filelist, newfile );
 		}
@@ -228,7 +228,7 @@ FILEMONITOR_PROC( PFILEMON, AddMonitoredFile )( PCHANGEHANDLER Change, CTEXTSTR 
 			monitor->flags.bPendingScan = 1;
 		}
 		//{
-		//	_64 tick2 = GetCPUTick();
+		//	uint64_t tick2 = GetCPUTick();
 		//   lprintf( "Delta %Ld (%d)", tick2-tick, ConvertTickToMicrosecond( tick2-tick ) );
 		//}
 		return newfile;
@@ -238,14 +238,14 @@ FILEMONITOR_PROC( PFILEMON, AddMonitoredFile )( PCHANGEHANDLER Change, CTEXTSTR 
 
 //-------------------------------------------------------------------------
 
-PTRSZVAL CPROC ScanFile( PTRSZVAL psv, INDEX idx, POINTER *item )
+uintptr_t CPROC ScanFile( uintptr_t psv, INDEX idx, POINTER *item )
 {
 	PCHANGEHANDLER Change = (PCHANGEHANDLER)psv;
 	PFILEMON filemon = (PFILEMON)(*item);
 #ifdef __cplusplus_cli
-	_64 dwSize, dwBigSize;
+	uint64_t dwSize, dwBigSize;
 #else
-	_32 dwSize;
+	uint32_t dwSize;
 #ifdef WIN32
 #else
 	struct stat statbuf;
@@ -299,7 +299,7 @@ PTRSZVAL CPROC ScanFile( PTRSZVAL psv, INDEX idx, POINTER *item )
 #ifdef __cplusplus_cli
 			|| filemon->lastmodifiedtime->CompareTo( (lastmodified = info->LastWriteTime ) )
 #else
-			|| (*(_64*)&lastmodified) != (*(_64*)&filemon->lastmodifiedtime)
+			|| (*(uint64_t*)&lastmodified) != (*(uint64_t*)&filemon->lastmodifiedtime)
 #endif
 			|| filemon->flags.bToDelete
 		  )
@@ -309,7 +309,7 @@ PTRSZVAL CPROC ScanFile( PTRSZVAL psv, INDEX idx, POINTER *item )
 			filemon->lastmodifiedtime = lastmodified;
 #else
 #ifdef WIN32
-			(*(_64*)&filemon->lastmodifiedtime) = (*(_64*)&lastmodified);
+			(*(uint64_t*)&filemon->lastmodifiedtime) = (*(uint64_t*)&lastmodified);
 #else
 			filemon->lastmodifiedtime = statbuf.st_mtime;
 #endif
@@ -371,9 +371,9 @@ static void ScanMonitorFiles( PMONITOR monitor )
 			 ; filemon
 			  ; filemon = (PFILEMON)GetGreaterNode( Change->filelist ) )
 		{
-			ScanFile( (PTRSZVAL)Change, 0, (POINTER*)&filemon );
+			ScanFile( (uintptr_t)Change, 0, (POINTER*)&filemon );
 		}
-		//while( ForAllLinks( &Change->filelist, ScanFile, (PTRSZVAL)Change ) );
+		//while( ForAllLinks( &Change->filelist, ScanFile, (uintptr_t)Change ) );
 	}
 }
 
@@ -395,7 +395,7 @@ static void DoForgetAll( PCHANGEHANDLER Change )
 			filemon->lastmodifiedtime = gcnew System::DateTime();
 #else
 #ifdef WIN32
-			(*(_64*)&filemon->lastmodifiedtime) = 0;
+			(*(uint64_t*)&filemon->lastmodifiedtime) = 0;
 #else
 			filemon->lastmodifiedtime = 0;
 #endif
@@ -472,7 +472,7 @@ static int DispatchChangesInternal( PMONITOR monitor, LOGICAL bExternalSource )
 {
 	if( IsThisThread( l.timer_thread ) )
 	{
-      _32 now = timeGetTime();
+      uint32_t now = timeGetTime();
 		int changed = 0;
 		PCHANGEHANDLER Change;
 		if( monitor->flags.bClosing )
@@ -508,7 +508,7 @@ static int DispatchChangesInternal( PMONITOR monitor, LOGICAL bExternalSource )
 #ifdef __cplusplus_cli
 															, Change->currentchange->lastmodifiedtime->Ticks
 #else
-															, (*(_64*)&Change->currentchange->lastmodifiedtime)
+															, (*(uint64_t*)&Change->currentchange->lastmodifiedtime)
 #endif
 															, Change->currentchange->flags.bCreated
 															, Change->currentchange->flags.bDirectory
@@ -621,7 +621,7 @@ static void InvokeScan( PMONITOR monitor )
 
 void DoScan( PMONITOR monitor )
 {
-	_32 now = timeGetTime();
+	uint32_t now = timeGetTime();
 	// in critical section...
 	//lprintf( WIDE("Tick...%s %d %d"), monitor->directory, timeGetTime(), monitor->DoScanTime );
 	if( monitor->DoScanTime && ( now > monitor->DoScanTime ) )
@@ -657,7 +657,7 @@ void DoScan( PMONITOR monitor )
 
 //-------------------------------------------------------------------------
 
-void CPROC ScanTimer( PTRSZVAL monitor )
+void CPROC ScanTimer( uintptr_t monitor )
 {
 	if( !l.timer_thread )
 		l.timer_thread = MakeThread();
@@ -690,7 +690,7 @@ FILEMONITOR_PROC( void, EverybodyScan )( void )
 FILEMONITOR_PROC( PCHANGEHANDLER, AddExtendedFileChangeCallback )( PMONITOR monitor
 																		, CTEXTSTR mask
 																		, EXTENDEDCHANGEHANDLER HandleChange
-																		, PTRSZVAL psv )
+																		, uintptr_t psv )
 {
 	if( monitor && HandleChange )
 	{
@@ -730,7 +730,7 @@ FILEMONITOR_PROC( PCHANGEHANDLER, AddExtendedFileChangeCallback )( PMONITOR moni
 FILEMONITOR_PROC( PCHANGEHANDLER, AddFileChangeCallback )( PMONITOR monitor
 															, CTEXTSTR mask
 															 , CHANGEHANDLER HandleChange
-															 , PTRSZVAL psv )
+															 , uintptr_t psv )
 {
 	if( l.flags.bLog )
 		lprintf(WIDE("add change handler is %p %p"), monitor, mask );
@@ -775,7 +775,7 @@ FILEMONITOR_PROC( void, SetFileLogging )( PMONITOR monitor, int enable )
 	monitor->flags.bLogFilesFound = 1;
 }
 
-FILEMONITOR_PROC( void, SetFMonitorForceScanTime )( PMONITOR monitor, _32 delay )
+FILEMONITOR_PROC( void, SetFMonitorForceScanTime )( PMONITOR monitor, uint32_t delay )
 {
 	if( monitor )
 		monitor->free_scan_delay = delay;

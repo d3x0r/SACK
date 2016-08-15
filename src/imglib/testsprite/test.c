@@ -36,7 +36,7 @@ void ProcessMotion( void )
 	}
 }
 
-void CPROC SpriteDrawProc( PTRSZVAL psv, PRENDERER renderer, S_32 x, S_32 y, _32 w, _32 h )
+void CPROC SpriteDrawProc( uintptr_t psv, PRENDERER renderer, int32_t x, int32_t y, uint32_t w, uint32_t h )
 {
 	int n;
    lprintf( WIDE("Update sprites...") );
@@ -48,7 +48,7 @@ void CPROC SpriteDrawProc( PTRSZVAL psv, PRENDERER renderer, S_32 x, S_32 y, _32
 
 }
 
-void CPROC DrawProc( PTRSZVAL psv, PRENDERER renderer )
+void CPROC DrawProc( uintptr_t psv, PRENDERER renderer )
 {
 	int n;
    lprintf( WIDE("uhmm nothing I guess") );
@@ -65,7 +65,7 @@ void CPROC DrawProc( PTRSZVAL psv, PRENDERER renderer )
 	lprintf( WIDE("done") );
 }
 
-void CPROC Tick( PTRSZVAL psv )
+void CPROC Tick( uintptr_t psv )
 {
 	int n;
 	//for( n = 0; n < 16; n++ )

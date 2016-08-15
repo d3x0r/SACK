@@ -16,7 +16,7 @@ struct BlockFormatter
 };
 
 
-static void CPROC AsciiMeasureString( PTRSZVAL psvConsole, CTEXTSTR s, int nShow, _32 *w, _32 *h, SFTFont font )
+static void CPROC AsciiMeasureString( uintptr_t psvConsole, CTEXTSTR s, int nShow, uint32_t *w, uint32_t *h, SFTFont font )
 {
 	struct BlockFormatter *block = (struct BlockFormatter*)psvConsole;
 #ifndef __NO_GUI__
@@ -64,7 +64,7 @@ void FormatTextToBlockEx( CTEXTSTR input, TEXTSTR *output, int* pixel_width, int
 
 		console->pHistory = PSI_CreateHistoryRegion();
 		console->pCursor = PSI_CreateHistoryCursor( console->pHistory );
-		console->pCurrentDisplay = PSI_CreateHistoryBrowser( console->pHistory, AsciiMeasureString, (PTRSZVAL)block_data );
+		console->pCurrentDisplay = PSI_CreateHistoryBrowser( console->pHistory, AsciiMeasureString, (uintptr_t)block_data );
 
 		console->nXPad = 0;
 		console->nYPad = 0;
@@ -103,8 +103,8 @@ void FormatTextToBlockEx( CTEXTSTR input, TEXTSTR *output, int* pixel_width, int
 				if( prior )
 				{
 					SetStart( prior );
-					prior->format.position.offset.spaces += (_16)console->pending_spaces;
-					prior->format.position.offset.tabs += (_16)console->pending_tabs;
+					prior->format.position.offset.spaces += (uint16_t)console->pending_spaces;
+					prior->format.position.offset.tabs += (uint16_t)console->pending_tabs;
 					if( prior->Next || GetTextSize( prior ) )
 					{
 						que = BuildLine( prior );
@@ -197,7 +197,7 @@ void FormatTextToBlockEx( CTEXTSTR input, TEXTSTR *output, int* pixel_width, int
 	}
 	(*output) = block;
 	{
-		_32 width, height;
+		uint32_t width, height;
 		GetStringSizeFont( (*output), &width, &height, font );
 		(*pixel_width) = width;
 		(*pixel_height) = height;

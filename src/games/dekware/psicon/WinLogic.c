@@ -15,10 +15,10 @@
 //----------------------------------------------------------------------------
 
 static PENDING_RECT update_rect;
-static S_32 mouse_x, mouse_y;
-static _32  mouse_buttons, _mouse_buttons;
+static int32_t mouse_x, mouse_y;
+static uint32_t  mouse_buttons, _mouse_buttons;
 
-static void AddUpdateRegion( PPENDING_RECT update_rect, S_32 x, S_32 y, _32 wd, _32 ht )
+static void AddUpdateRegion( PPENDING_RECT update_rect, int32_t x, int32_t y, uint32_t wd, uint32_t ht )
 {
 #ifdef __LINUX__
 	if( !update_rect->flags.bTmpRect )
@@ -447,7 +447,7 @@ void ChildCalculate( PCONSOLE_INFO pdp )
 
 //----------------------------------------------------------------------------
 
-PTEXT CPROC GetRows( PTRSZVAL psv, struct entity_tag *pe, PTEXT *lastvalue )
+PTEXT CPROC GetRows( uintptr_t psv, struct entity_tag *pe, PTEXT *lastvalue )
 {
     PCONSOLE_INFO pmdp = (PCONSOLE_INFO)psv;
     if( *lastvalue )
@@ -458,7 +458,7 @@ PTEXT CPROC GetRows( PTRSZVAL psv, struct entity_tag *pe, PTEXT *lastvalue )
 
 //----------------------------------------------------------------------------
 
-PTEXT CPROC GetCols( PTRSZVAL psv, struct entity_tag *pe, PTEXT *lastvalue )
+PTEXT CPROC GetCols( uintptr_t psv, struct entity_tag *pe, PTEXT *lastvalue )
 {
     PCONSOLE_INFO pmdp = (PCONSOLE_INFO)psv;
     if( *lastvalue )
@@ -469,7 +469,7 @@ PTEXT CPROC GetCols( PTRSZVAL psv, struct entity_tag *pe, PTEXT *lastvalue )
 
 //----------------------------------------------------------------------------
 
-PTEXT CPROC GetCursorX( PTRSZVAL psv, struct entity_tag *pe, PTEXT *lastvalue )
+PTEXT CPROC GetCursorX( uintptr_t psv, struct entity_tag *pe, PTEXT *lastvalue )
 {
     PCONSOLE_INFO pmdp = (PCONSOLE_INFO)psv;
     // cursorx ... abstract thing.... (pulled from history I guess)
@@ -482,7 +482,7 @@ PTEXT CPROC GetCursorX( PTRSZVAL psv, struct entity_tag *pe, PTEXT *lastvalue )
 
 //----------------------------------------------------------------------------
 
-PTEXT CPROC SetCursorX( PTRSZVAL psv, struct entity_tag *pe, PTEXT newvalue )
+PTEXT CPROC SetCursorX( uintptr_t psv, struct entity_tag *pe, PTEXT newvalue )
 {
     PCONSOLE_INFO pmdp = (PCONSOLE_INFO)psv;
     // cursorx ... abstract thing.... (pulled from history I guess)
@@ -492,7 +492,7 @@ PTEXT CPROC SetCursorX( PTRSZVAL psv, struct entity_tag *pe, PTEXT newvalue )
 
 //----------------------------------------------------------------------------
 
-PTEXT CPROC GetCursorY( PTRSZVAL psv, struct entity_tag *pe, PTEXT *lastvalue )
+PTEXT CPROC GetCursorY( uintptr_t psv, struct entity_tag *pe, PTEXT *lastvalue )
 {
     PCONSOLE_INFO pmdp = (PCONSOLE_INFO)psv;
     if( *lastvalue )
@@ -503,7 +503,7 @@ PTEXT CPROC GetCursorY( PTRSZVAL psv, struct entity_tag *pe, PTEXT *lastvalue )
 
 //----------------------------------------------------------------------------
 
-PTEXT CPROC SetCursorY( PTRSZVAL psv, struct entity_tag *pe, PTEXT newvalue )
+PTEXT CPROC SetCursorY( uintptr_t psv, struct entity_tag *pe, PTEXT newvalue )
 {
     PCONSOLE_INFO pmdp = (PCONSOLE_INFO)psv;
     // cursorx ... abstract thing.... (pulled from history I guess)
@@ -553,7 +553,7 @@ int WinLogicWrite( PDATAPATH pdp
 
       if( pLine->flags & TF_FORMATABS )
       {
-			S_32 cursorx, cursory;
+			int32_t cursorx, cursory;
          //lprintf( WIDE("absolute position format.") );
          GetHistoryCursorPos( pmdp->pCursor, &cursorx, &cursory );
          if( pLine->format.position.coords.x != -16384 )
@@ -567,7 +567,7 @@ int WinLogicWrite( PDATAPATH pdp
       }
       if( pLine->flags & TF_FORMATREL )
       {
-			S_32 cursorx, cursory;
+			int32_t cursorx, cursory;
          //lprintf( WIDE("relative position format") );
          GetHistoryCursorPos( pmdp->pCursor, &cursorx, &cursory );
          cursorx += pLine->format.position.coords.x;
@@ -640,7 +640,7 @@ int WinLogicWrite( PDATAPATH pdp
 
 //----------------------------------------------------------------------------
 
-int GetCharFromLine( _32 cols
+int GetCharFromLine( uint32_t cols
                    , PDISPLAYED_LINE pLine
                    , int nChar, TEXTCHAR *result )
 {
@@ -1270,7 +1270,7 @@ int SetTabs( PDATAPATH pdp, PSENTIENT ps, PTEXT params )
         else
 		  {
 
-            pmdp->pHistory->tabsize = (S_32)IntNumber( temp );
+            pmdp->pHistory->tabsize = (int32_t)IntNumber( temp );
         }
     }
     else

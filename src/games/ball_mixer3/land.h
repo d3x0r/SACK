@@ -522,7 +522,7 @@ typedef struct hexpatch_tag
 		BIT_FIELD racked : 1; // this ball has been moved to its position in the rack;
 		BIT_FIELD removed_before_simulated : 1;
 	} flags;
-	_32 time_to_rack;
+	uint32_t time_to_rack;
 	
 	RCOORD rack_delta;  // used to compute orthagonal update for perspective camera....
 		
@@ -533,7 +533,7 @@ typedef struct hexpatch_tag
 	RCOORD **height[12];//[HEX_SIZE+1][HEX_SIZE+1];
 	btCollisionShape* fallShape;
 	btRigidBody* fallRigidBody;
-	_32 fade_target_tick;
+	uint32_t fade_target_tick;
 	int max_hex_size;
 	int hex_size;
 	struct band *band;

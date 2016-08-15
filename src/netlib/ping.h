@@ -42,7 +42,7 @@ typedef struct tagICMPHDR
 typedef struct tagECHOREQUEST
 {
 	ICMPHDR icmpHdr;
-	_64		dwTime;
+	uint64_t		dwTime;
 	char	cData[REQ_DATASIZE];
 }ECHOREQUEST, *PECHOREQUEST;
 

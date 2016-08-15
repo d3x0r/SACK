@@ -27,8 +27,8 @@
 
 typedef struct sequence_data *pSequence;
 struct sequence_data {
-	_32 sequence;
-	_32 tick;
+	uint32_t sequence;
+	uint32_t tick;
 	/* we might end up with the same sequence for different packets...
 	 * happens when we launch two processes at the same time... */
 	POINTER packet;
@@ -59,8 +59,8 @@ typedef struct restartable_task RTASK;
 typedef struct restartable_task *PRTASK;
 struct restartable_task
 {
-	_32 fast_restart_count;
-	_32 prior_tick;
+	uint32_t fast_restart_count;
+	uint32_t prior_tick;
 	PCTEXTSTR args;
 	CTEXTSTR program;
 	struct {
@@ -73,11 +73,11 @@ struct restartable_task
 static TEXTCHAR start_path[256];
 static PLIST restarts; // these tasks restart when exited...
 
-static void CPROC ExpireSequences( PTRSZVAL psv )
+static void CPROC ExpireSequences( uintptr_t psv )
 {
 	pSequence pSeq = NULL;
 	INDEX idx;
-	_32 tick = GetTickCount();
+	uint32_t tick = GetTickCount();
 	do
 	{
 		LIST_FORALL( sequences, idx, pSequence, pSeq )
@@ -94,7 +94,7 @@ static void CPROC ExpireSequences( PTRSZVAL psv )
 	} while( pSeq );
 }
 
-static void CPROC GetTaskOutput( PTRSZVAL psv, PTASK_INFO task, CTEXTSTR buffer, size_t size )
+static void CPROC GetTaskOutput( uintptr_t psv, PTASK_INFO task, CTEXTSTR buffer, size_t size )
 {
 	if( bLogOutput )
 		lprintf( WIDE("%s"), buffer );
@@ -112,10 +112,10 @@ static void CPROC GetTaskOutput( PTRSZVAL psv, PTASK_INFO task, CTEXTSTR buffer,
 
 
 
-static void CPROC RestartTask( PTRSZVAL psv, PTASK_INFO task )
+static void CPROC RestartTask( uintptr_t psv, PTASK_INFO task )
 {
 	PRTASK restart = (PRTASK)psv;
-	_32 now = GetTickCount();
+	uint32_t now = GetTickCount();
 	lprintf( WIDE("restarting.") );
 	if( ( now - restart->prior_tick ) < 3000 )
 	{
@@ -137,7 +137,7 @@ static void CPROC RestartTask( PTRSZVAL psv, PTASK_INFO task )
 										  , restart->flags.bHide?0:LPP_OPTION_DO_NOT_HIDE
 										  , GetTaskOutput
 										  , RestartTask
-										  , (PTRSZVAL)restart
+										  , (uintptr_t)restart
 											DBG_SRC
 										  );
 #ifdef BUILD_SERVICE
@@ -147,7 +147,7 @@ static void CPROC RestartTask( PTRSZVAL psv, PTASK_INFO task )
 									  , restart->flags.bHide?0:LPP_OPTION_DO_NOT_HIDE
 									  , GetTaskOutput
 									  , RestartTask
-									  , (PTRSZVAL)restart
+									  , (uintptr_t)restart
 										DBG_SRC
 									  );
 #endif
@@ -160,7 +160,7 @@ static void CPROC RestartTask( PTRSZVAL psv, PTASK_INFO task )
 				LaunchProgramEx( restart->program, NULL
 									, (PCTEXTSTR)restart->args
 									, RestartTask
-									, (PTRSZVAL)restart );
+									, (uintptr_t)restart );
 
 #ifdef BUILD_SERVICE
 			else
@@ -169,7 +169,7 @@ static void CPROC RestartTask( PTRSZVAL psv, PTASK_INFO task )
 									  , restart->flags.bHide?0:LPP_OPTION_DO_NOT_HIDE
 									  , NULL
 									  , RestartTask
-									  , (PTRSZVAL)restart
+									  , (uintptr_t)restart
 									  DBG_SRC );
 #endif
 		}
@@ -183,7 +183,7 @@ static void CPROC RestartTask( PTRSZVAL psv, PTASK_INFO task )
 	}
 }
 
-static void CPROC TaskEnded( PTRSZVAL psv, PTASK_INFO task )
+static void CPROC TaskEnded( uintptr_t psv, PTASK_INFO task )
 {
 	//lprintf( "Caught task ended - eliminates zombies?" );
 	if( psv )
@@ -230,7 +230,7 @@ static void CPROC RemoteSent( PCLIENT pc, POINTER p, size_t size )
 	{
 		pns = New( struct task_output_network_state );
 		MemSet( pns, 0, sizeof( struct task_output_network_state ) );
-		SetNetworkLong( pc, 0, (PTRSZVAL)pns );
+		SetNetworkLong( pc, 0, (uintptr_t)pns );
 		pns->buffer =
 			p = Allocate( 256 );
 		pns->bufsize = 256;
@@ -240,7 +240,7 @@ static void CPROC RemoteSent( PCLIENT pc, POINTER p, size_t size )
 		switch( pns->state )
 		{
 		case NETWORK_STATE_GET_SIZE:
-			pns->toread = *(_32*)pns->buffer;
+			pns->toread = *(uint32_t*)pns->buffer;
 			pns->state = NETWORK_STATE_GET_COMMAND;
 			if( pns->toread > pns->bufsize )
 			{
@@ -251,7 +251,7 @@ static void CPROC RemoteSent( PCLIENT pc, POINTER p, size_t size )
 			break;
 		case NETWORK_STATE_GET_COMMAND:
 			{
-				P_8 buf = (P_8)p;
+				uint8_t* buf = (uint8_t*)p;
 				// do nothing with received input...
 				// it's just the other side probing connection alive... maybe... maybe there should be
 				// a couple commands - one for control level
@@ -314,7 +314,7 @@ struct thread_args
 	PCLIENT pc_task_reply;
 };
 
-static PTRSZVAL CPROC RemoteBackConnect( PTHREAD thread )
+static uintptr_t CPROC RemoteBackConnect( PTHREAD thread )
 {
 	struct thread_args *args = (struct thread_args *)GetThreadParam( thread );
 	PTASK_INFO task;
@@ -345,13 +345,13 @@ static PTRSZVAL CPROC RemoteBackConnect( PTHREAD thread )
 										, args->hide_process?0:LPP_OPTION_DO_NOT_HIDE
 										, GetTaskOutput
 										, args->restart_info?RestartTask:TaskEnded
-										, (PTRSZVAL)(args->restart_info?((PTRSZVAL)args->restart_info):((PTRSZVAL)pc_output))
+										, (uintptr_t)(args->restart_info?((uintptr_t)args->restart_info):((uintptr_t)pc_output))
 										 DBG_SRC
 										);
 	//lprintf( "And finally hook the process to its socket.." );
 	if( args->bCaptureOutput )
 	{
-		SetNetworkLong( pc_output, 1, (PTRSZVAL)task );
+		SetNetworkLong( pc_output, 1, (uintptr_t)task );
 	}
 	if( !task )
 	{
@@ -498,11 +498,11 @@ static void ProcessPacket( PCLIENT pc_reply, POINTER buffer, size_t size, SOCKAD
 			// build as a environvar...
 			//also continue scanning for next part of real command
 		}
-		//LogBinary( (P_8)buffer, size );
+		//LogBinary( (uint8_t*)buffer, size );
 		do
 		{
 			// keep a list of all sequences... and expire them at some point?
-			_32 packet_sequence = (_32)IntCreateFromText( seqbuf );
+			uint32_t packet_sequence = (uint32_t)IntCreateFromText( seqbuf );
 			{
 				struct sequence_data *pSeq = NULL;
 				INDEX idx;
@@ -533,7 +533,7 @@ static void ProcessPacket( PCLIENT pc_reply, POINTER buffer, size_t size, SOCKAD
 					if( bLogPacketReceive )
 					{
 						lprintf( WIDE("Received...") );
-						LogBinary( (P_8)buffer, size );
+						LogBinary( (uint8_t*)buffer, size );
 					}
 				}
 				// need to do this so that we don't get a command prompt from "system"
@@ -542,7 +542,7 @@ static void ProcessPacket( PCLIENT pc_reply, POINTER buffer, size_t size, SOCKAD
 					TEXTCHAR *arg;
 					int count = 0;
 					arg = inbuf;
-					while( ((PTRSZVAL)arg-(PTRSZVAL)buffer) < (PTRSZVAL)size )
+					while( ((uintptr_t)arg-(uintptr_t)buffer) < (uintptr_t)size )
 					{
 						count++;
 						arg += StrLen( arg ) + 1;
@@ -551,7 +551,7 @@ static void ProcessPacket( PCLIENT pc_reply, POINTER buffer, size_t size, SOCKAD
 
 					arg = inbuf;
 					count = 0;
-					while( ((PTRSZVAL)arg-(PTRSZVAL)buffer) < (PTRSZVAL)size )
+					while( ((uintptr_t)arg-(uintptr_t)buffer) < (uintptr_t)size )
 					{
 						args[count++] = arg;
 						arg += StrLen( arg ) + 1;
@@ -593,7 +593,7 @@ static void ProcessPacket( PCLIENT pc_reply, POINTER buffer, size_t size, SOCKAD
 #ifdef _DEBUG
 							lprintf( WIDE("Capturing task output to send back... begin back connect.") );
 #endif
-							ThreadTo( RemoteBackConnect, (PTRSZVAL)tmp_args );
+							ThreadTo( RemoteBackConnect, (uintptr_t)tmp_args );
 						}
 						else
 						{
@@ -604,7 +604,7 @@ static void ProcessPacket( PCLIENT pc_reply, POINTER buffer, size_t size, SOCKAD
 																, hide_process?0:LPP_OPTION_DO_NOT_HIDE
 																, GetTaskOutput
 																, restart_info?RestartTask:TaskEnded
-																, (PTRSZVAL)(restart_info?((PTRSZVAL)restart_info):0)
+																, (uintptr_t)(restart_info?((uintptr_t)restart_info):0)
 																 DBG_SRC
 																);
 						}
@@ -615,7 +615,7 @@ static void ProcessPacket( PCLIENT pc_reply, POINTER buffer, size_t size, SOCKAD
 							, start_path[0]?start_path:NULL
 											, (PCTEXTSTR)args
 											, restart_info?RestartTask:TaskEnded
-											, (PTRSZVAL)restart_info );
+											, (uintptr_t)restart_info );
 						if( !restart )
 						{
 							// restartable tasks want to keep the args...
@@ -668,7 +668,7 @@ static void CPROC TCPReadComplete( PCLIENT pc, POINTER buffer, size_t len )
 	{
 		pns = New( struct task_output_network_state );
 		MemSet( pns, 0, sizeof( struct task_output_network_state ) );
-		SetNetworkLong( pc, 0, (PTRSZVAL)pns );
+		SetNetworkLong( pc, 0, (uintptr_t)pns );
 		pns->bufsize = 4096;
 		pns->buffer = Allocate( 4096 );
 	}
@@ -737,35 +737,35 @@ void  SetTaskLogOutput(void)
 //--------------------------------------------------------------------------------
 //--------------------------------------------------------------------------------
 
-static PTRSZVAL CPROC TaskComplete( PTRSZVAL psv, arg_list args )
+static uintptr_t CPROC TaskComplete( uintptr_t psv, arg_list args )
 {
 	return psv;
 }
 
-static PTRSZVAL CPROC TaskBegin( PTRSZVAL psv, arg_list args )
+static uintptr_t CPROC TaskBegin( uintptr_t psv, arg_list args )
 {
 	return psv;
 }
 
-static PTRSZVAL CPROC SetTaskProgramName( PTRSZVAL psv, arg_list args )
+static uintptr_t CPROC SetTaskProgramName( uintptr_t psv, arg_list args )
 {
 	return psv;
 
 }
 
-static PTRSZVAL CPROC SetTaskArguments( PTRSZVAL psv, arg_list args )
-{
-
-	return psv;
-}
-
-static PTRSZVAL CPROC SetTaskPath( PTRSZVAL psv, arg_list args )
+static uintptr_t CPROC SetTaskArguments( uintptr_t psv, arg_list args )
 {
 
 	return psv;
 }
 
-static PTRSZVAL CPROC SetTaskRestart( PTRSZVAL psv, arg_list args )
+static uintptr_t CPROC SetTaskPath( uintptr_t psv, arg_list args )
+{
+
+	return psv;
+}
+
+static uintptr_t CPROC SetTaskRestart( uintptr_t psv, arg_list args )
 {
 
 	return psv;

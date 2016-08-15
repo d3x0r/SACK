@@ -7,9 +7,9 @@
 #define SECTION_LOGGED_WAIT 0x80000000
 
 typedef struct critical_section_tag {
-	_32 dwUpdating; // this is set when entering or leaving (updating)... 
-   _32 dwThread; // windows upper 16 is process ID, lower is thread ID
-   _32 dwLocks;
+	uint32_t dwUpdating; // this is set when entering or leaving (updating)... 
+   uint32_t dwThread; // windows upper 16 is process ID, lower is thread ID
+   uint32_t dwLocks;
 #ifdef _DEBUG
 	CTEXTSTR pFile;
 	int  nLine;
@@ -28,18 +28,18 @@ typedef struct chunk_tag
 							     // this requires two processes to
 								 // both be allowed to synchonistically
 								 // update a single value - StackTop
-//	_32 dwFlags;
-	_32 dwSize;  // limited to allocating 4 billion bytes...
-	_32 dwOwners;            // if 0 - block is free
+//	uint32_t dwFlags;
+	uint32_t dwSize;  // limited to allocating 4 billion bytes...
+	uint32_t dwOwners;            // if 0 - block is free
 	struct chunk_tag *pPrior;         // save some math backwards...
    struct memory_block_tag * pRoot;  // pointer to master allocation struct (pMEM)
 	struct chunk_tag *pNextFree
                   , *pPriorFree;
 #ifdef _DEBUG
    CTEXTSTR pFile;
-   _32     nLine; // shouldn't have more than 4 billion lines
+   uint32_t     nLine; // shouldn't have more than 4 billion lines
 #endif
-	_8 byData[1]; // _8 is the smallest valid datatype could be _0
+	uint8_t byData[1]; // uint8_t is the smallest valid datatype could be _0
 } CHUNK, *PCHUNK;
 
 
@@ -48,14 +48,14 @@ typedef struct memory_block_tag
 //	HANDLE hFile;
 //	HANDLE hMem;
 	// these should (from experience be able to be
-	// upper/lower words of same _32 ?
-	_32 dwProcess;  // region creator process ID
-	_32 dwThread;   // region creator thread ID...
+	// upper/lower words of same uint32_t ?
+	uint32_t dwProcess;  // region creator process ID
+	uint32_t dwThread;   // region creator thread ID...
 	// lock between multiple processes/threads
 	CRITICALSECTION cs;
 
-	_32 dwFlags;
-   _32 dwSize;
+	uint32_t dwFlags;
+   uint32_t dwSize;
 	PCHUNK pFirstFree;
 	CHUNK pRoot[1];
 } MEM, *PMEM;
@@ -63,7 +63,7 @@ typedef struct memory_block_tag
 typedef struct memory_stream_tag
 {
    PMEM  Map;
-   _32   pointer; // MPI - Mem pos index
+   uint32_t   pointer; // MPI - Mem pos index
 } MSTREAM, *PMSTREAM;
 
 #endif

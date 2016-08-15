@@ -122,7 +122,7 @@ struct private_mst_shader_data
 };
 
 
-static void CPROC SimpleMultiShadedTextureOutput( PImageShaderTracker tracker, PTRSZVAL psv, PTRSZVAL psvKey, int from, int to )
+static void CPROC SimpleMultiShadedTextureOutput( PImageShaderTracker tracker, uintptr_t psv, uintptr_t psvKey, int from, int to )
 {
 
 	struct private_mst_shader_data *data = (struct private_mst_shader_data *)psv;
@@ -157,7 +157,7 @@ static void CPROC SimpleMultiShadedTextureOutput( PImageShaderTracker tracker, P
 
 }
 
-static void CPROC SimpleMultiShadedTextureReset( PImageShaderTracker tracker, PTRSZVAL psv, PTRSZVAL psvKey )
+static void CPROC SimpleMultiShadedTextureReset( PImageShaderTracker tracker, uintptr_t psv, uintptr_t psvKey )
 {
 	struct private_mst_shader_texture_data *texture = (struct private_mst_shader_texture_data *)psvKey;
 
@@ -191,7 +191,7 @@ static struct private_mst_shader_texture_data *GetImageMstBuffer( struct private
 }
 
 
-static PTRSZVAL CPROC SimpleMultiShadedTextureShader_OpInit( PImageShaderTracker tracker, PTRSZVAL psv, int *existing_verts, va_list args )
+static uintptr_t CPROC SimpleMultiShadedTextureShader_OpInit( PImageShaderTracker tracker, uintptr_t psv, int *existing_verts, va_list args )
 {
 	struct private_mst_shader_data *data = (struct private_mst_shader_data *)psv;
 	int texture = va_arg( args, int );
@@ -204,11 +204,11 @@ static PTRSZVAL CPROC SimpleMultiShadedTextureShader_OpInit( PImageShaderTracker
 	text_buffer->next_b = b;
 
 	*existing_verts = text_buffer->vert_pos->used;
-	return (PTRSZVAL)text_buffer;
+	return (uintptr_t)text_buffer;
 }
 
 
-static void CPROC SimpleMultiShadedTexture_AppendTristrip( struct image_shader_op *op, int triangles, PTRSZVAL psv, va_list args )
+static void CPROC SimpleMultiShadedTexture_AppendTristrip( struct image_shader_op *op, int triangles, uintptr_t psv, va_list args )
 {
 	//struct private_mst_shader_data *data = (struct private_mst_shader_data *)psv;
 	float *verts = va_arg( args, float *);
@@ -262,15 +262,15 @@ static void CPROC SimpleMultiShadedTexture_AppendTristrip( struct image_shader_o
 	}
 }
 
-PTRSZVAL SetupSimpleMultiShadedTextureShader( PTRSZVAL psv )
+uintptr_t SetupSimpleMultiShadedTextureShader( uintptr_t psv )
 {
 	struct private_mst_shader_data *data = New(struct private_mst_shader_data );
 	data->vert_data = NULL;
-	return (PTRSZVAL)data;
+	return (uintptr_t)data;
 }
 
 
-void InitSimpleMultiShadedTextureShader( PTRSZVAL psvInst, PImageShaderTracker tracker )
+void InitSimpleMultiShadedTextureShader( uintptr_t psvInst, PImageShaderTracker tracker )
 {
 	GLint result;
 	const char *v_codeblocks[2];
@@ -278,7 +278,7 @@ void InitSimpleMultiShadedTextureShader( PTRSZVAL psvInst, PImageShaderTracker t
 	struct private_mst_shader_data *data = (struct private_mst_shader_data*)psvInst;
 	struct image_shader_attribute_order attribs[] = { { 0, "vPosition" }, { 1, "in_TexCoord" } };
 
-	//SetShaderEnable( tracker, SimpleMultiShadedTextureEnable, (PTRSZVAL)data );
+	//SetShaderEnable( tracker, SimpleMultiShadedTextureEnable, (uintptr_t)data );
 	SetShaderAppendTristrip( tracker, SimpleMultiShadedTexture_AppendTristrip );
 	SetShaderOutput( tracker, SimpleMultiShadedTextureOutput );
 	SetShaderReset( tracker, SimpleMultiShadedTextureReset );
@@ -319,7 +319,7 @@ void InitSimpleMultiShadedTextureShader( PTRSZVAL psvInst, PImageShaderTracker t
 		CheckErr();
 		data->texture_attrib =  glGetAttribLocation(tracker->glProgramId, "in_texCoord" );
 		CheckErr();
-		//return (PTRSZVAL)data;
+		//return (uintptr_t)data;
 	}
 }
 

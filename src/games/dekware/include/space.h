@@ -91,18 +91,18 @@ typedef BLOBTYPE macro_tag
    // name must be first - to be LIKE and entity...
    PTEXT pName;     // additional name to reference this macro by.
    PTEXT pDescription; // text description - listed in HELP
-   S_32  nArgs;  // count of required arguments... if negative %... present
+   int32_t  nArgs;  // count of required arguments... if negative %... present
    PTEXT pArgs;  // names of paremters...
    PLIST pCommands; // list of PTEXT lines to process 
-   _32   nCommands;
-   _32 Used; // number of times this macro is referenced... duplicate becomes cheap.
+   uint32_t   nCommands;
+   uint32_t Used; // number of times this macro is referenced... duplicate becomes cheap.
    //struct macro_tag *pPriorRecording; // layered macro recording info...
 } MACRO;
 
 typedef struct foreach_state_tag
 {
 	struct {
-		_32 bTopLevelStep : 1; // else follows indirects to genuine tokens
+		uint32_t bTopLevelStep : 1; // else follows indirects to genuine tokens
 	} flags;
 	INDEX nForEachTopMacroCmd;
 	// list of entities (or tokens)
@@ -120,7 +120,7 @@ typedef struct foreach_state_tag
 BLOBTYPE macro_state_flag_data {
            int  levels; // counter for /IF searching (nested)
             PTEXT pLabel; // what lebel to find (for goto)
-            _32 delay_end;
+            uint32_t delay_end;
 
 };
 
@@ -150,7 +150,7 @@ typedef BLOBTYPE macro_state_tag
 	BLOBREF macro_state_state state;
 	//union state_tag{        // current machine state...
 	//};
-	//   _32 dwFlags; 
+	//   uint32_t dwFlags; 
 	//}state;
 	PSENTIENT pInvokedBy; 
 	// this routine must PopData from ps->MacroStack
@@ -165,8 +165,8 @@ typedef BLOBTYPE macro_state_tag
 	// struct { INDEX nLabelCmd+1; PTEXT name } Label;
 	//   PDATASTACK pdsLabelStack; // as labels are encountered, save this... otherwise we have to runt he macro to get there
 	//-----------
-	void (CPROC*StopEvent)(PTRSZVAL psvUser, PMACROSTATE pms );
-	PTRSZVAL psv_StopEvent;
+	void (CPROC*StopEvent)(uintptr_t psvUser, PMACROSTATE pms );
+	uintptr_t psv_StopEvent;
 } MACROSTATE;
 
 
@@ -352,7 +352,7 @@ BLOBTYPE sentient_flags
 		// the pLastTell assocaited with a posted
 		// command should be checked to see if it si waiting
 		bool waiting_for_someone;
-		PTRSZVAL delay_end;   // number of milli seconds to wait....
+		uintptr_t delay_end;   // number of milli seconds to wait....
 //	}flags;
 
 };
@@ -408,9 +408,9 @@ public:
 	BLOBREF sentient_flags flags;
 
 
-	_32  ProcessLock; // Locked from executing.  Unlock sets this...
-	_32  ProcessingLock; // currently in use by a process loop...
-	_32  StepLock;    // if locked ->Next and/or ->Prior are invalid...
+	uint32_t  ProcessLock; // Locked from executing.  Unlock sets this...
+	uint32_t  ProcessingLock; // currently in use by a process loop...
+	uint32_t  StepLock;    // if locked ->Next and/or ->Prior are invalid...
 	PSENTIENT Next;
 	PSENTIENT Prior;  // next and prior sentients in list...
 	// macro variable waiting for input (macrostate?)
@@ -468,7 +468,7 @@ extern
 #ifdef CORE_SOURCE
 CORE_CPROC( void, WakeAThreadEx )( PSENTIENT ps DBG_PASS );
 #endif
-CORE_CPROC( void, TimerWake )( PTRSZVAL ps );
+CORE_CPROC( void, TimerWake )( uintptr_t ps );
 
 #ifdef CORE_SOURCE
 CORE_PROC( void, S_MSG )( PSENTIENT ps, CTEXTSTR msg, ... );

@@ -17,12 +17,12 @@ PUBLIC( PSI_CONTROL, GetKeypadOfType )( CTEXTSTR type );
 PUBLIC( void, GetKeypadsOfType )( PLIST *ppResultList, CTEXTSTR type );
 PUBLIC( void, CreateKeypadType )( CTEXTSTR name );
 
-// the PTRSZVAL here is retreived using InterShell_GetButtonUserData( button )
+// the uintptr_t here is retreived using InterShell_GetButtonUserData( button )
 PUBLIC( void, SetKeypadType )( PSI_CONTROL keypad, CTEXTSTR type );
 // define special key procedure.
 // Special Characters are led by @... @E = enter, @C= cancel @B=backspace....
 // more to be defined.  @@ is an @ (full keyboard only)
-PUBLIC( void, Keypad_AddMagicKeySequence )( PSI_CONTROL keypad, CTEXTSTR sequence, void (CPROC*event_proc)( PTRSZVAL ), PTRSZVAL psv_sequence );
+PUBLIC( void, Keypad_AddMagicKeySequence )( PSI_CONTROL keypad, CTEXTSTR sequence, void (CPROC*event_proc)( uintptr_t ), uintptr_t psv_sequence );
 
 
 

@@ -7,7 +7,7 @@ struct menu_listbox_tag
 	} flags;
 	PSI_CONTROL list;
 
-   _32 scrollbar_width; // might be nice to override this seperate from the font...
+   uint32_t scrollbar_width; // might be nice to override this seperate from the font...
 
 	SFTFont *font;
 	CTEXTSTR font_name;

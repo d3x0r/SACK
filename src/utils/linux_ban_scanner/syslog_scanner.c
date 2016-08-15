@@ -4,14 +4,14 @@
 struct local_ban_scanner
 {
 	PCONFIG_HANDLER pch_scanner;
-	_32 exec_timer;
+	uint32_t exec_timer;
 	TEXTSTR command;
 	TEXTSTR output;
 	TEXTSTR readlog;
 } lbs;
 
 
-void CPROC ExecFirewall( PTRSZVAL psv )
+void CPROC ExecFirewall( uintptr_t psv )
 {
 	system( lbs.command );
    lbs.exec_timer = 0;
@@ -31,7 +31,7 @@ static void AddBan( const char *IP )
 	}
 }
 
-static PTRSZVAL CPROC failed_pass( PTRSZVAL psv, arg_list args )
+static uintptr_t CPROC failed_pass( uintptr_t psv, arg_list args )
 {
    PARAM( args, CTEXTSTR, leader );
    PARAM( args, CTEXTSTR, user );
@@ -42,30 +42,30 @@ static PTRSZVAL CPROC failed_pass( PTRSZVAL psv, arg_list args )
    return psv;
 }
 
-static PTRSZVAL CPROC failed_pass2( PTRSZVAL psv, arg_list args )
+static uintptr_t CPROC failed_pass2( uintptr_t psv, arg_list args )
 {
    PARAM( args, CTEXTSTR, leader );
    PARAM( args, CTEXTSTR, user );
    PARAM( args, CTEXTSTR, ip_addr );
-   PARAM( args, S_64, port );
+   PARAM( args, int64_t, port );
 
    AddBan( ip_addr );
 
    return psv;
 }
 
-static PTRSZVAL CPROC failed_pass3( PTRSZVAL psv, arg_list args )
+static uintptr_t CPROC failed_pass3( uintptr_t psv, arg_list args )
 {
    PARAM( args, CTEXTSTR, leader );
    PARAM( args, CTEXTSTR, ip_addr );
-   PARAM( args, S_64, port );
+   PARAM( args, int64_t, port );
 
    AddBan( ip_addr );
 
    return psv;
 }
 
-static PTRSZVAL CPROC failed_user( PTRSZVAL psv, arg_list args )
+static uintptr_t CPROC failed_user( uintptr_t psv, arg_list args )
 {
 	PARAM( args, CTEXTSTR, leader );
 	PARAM( args, CTEXTSTR, leader2 );
@@ -76,7 +76,7 @@ static PTRSZVAL CPROC failed_user( PTRSZVAL psv, arg_list args )
 	return psv;
 }
 
-static PTRSZVAL CPROC failed_user_single( PTRSZVAL psv, arg_list args )
+static uintptr_t CPROC failed_user_single( uintptr_t psv, arg_list args )
 {
 	PARAM( args, CTEXTSTR, leader );
 	PARAM( args, CTEXTSTR, ip_addr );
@@ -85,7 +85,7 @@ static PTRSZVAL CPROC failed_user_single( PTRSZVAL psv, arg_list args )
 	return psv;
 }
 
-static PTRSZVAL CPROC Unhandled( PTRSZVAL psv, CTEXTSTR line )
+static uintptr_t CPROC Unhandled( uintptr_t psv, CTEXTSTR line )
 {
 	if( line )
 		printf( "Unhandled: %s\n", line );
@@ -110,14 +110,14 @@ static void InitBanScan( void )
 	SetConfigurationUnhandled( lbs.pch_scanner, Unhandled );
 }
 
-static PTRSZVAL CPROC setFirewallCommand( PTRSZVAL psv, arg_list args )
+static uintptr_t CPROC setFirewallCommand( uintptr_t psv, arg_list args )
 {
 	PARAM( args, CTEXTSTR, path );
 	lbs.command = StrDup( path );
 	return psv;
 }
 
-static PTRSZVAL CPROC setFirewallBanlist( PTRSZVAL psv, arg_list args )
+static uintptr_t CPROC setFirewallBanlist( uintptr_t psv, arg_list args )
 {
 	PARAM( args, CTEXTSTR, path );
 	lbs.output = StrDup( path );
@@ -139,7 +139,7 @@ static void ReadConfig( void )
 
 }
 
-static _8 buf[4096];
+static uint8_t buf[4096];
 int main( void )
 {
 	int size;

@@ -28,7 +28,7 @@
 #    include <wchar.h>
 #  endif
 
-// may consider changing this to P_16 for unicode...
+// may consider changing this to uint16_t* for unicode...
 #ifdef UNICODE
 #  ifndef NO_UNICODE_C
 #    define strrchr          wcsrchr

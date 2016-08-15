@@ -19,15 +19,15 @@
 struct video_player {
 	PRENDERER surface;
 	struct my_vlc_interface *vlc;
-	_32 fade_in_time;
+	uint32_t fade_in_time;
 };
 
 typedef struct video_element {
 	int type;
 	struct video_player *player;
 	Image image;
-	_32 fade_in;
-	_32 display_time; // how long to next image
+	uint32_t fade_in;
+	uint32_t display_time; // how long to next image
 };
 
 typedef struct video_sequence {
@@ -47,7 +47,7 @@ typedef struct global_tag {
 		BIT_FIELD bBlacking : 1;
 	}flags;
 
-	_32 tick_to_switch;
+	uint32_t tick_to_switch;
 
 	int default_show_time; // how long to show the iamge after fading in.
 	int fade_in; // how long fade out is..
@@ -61,8 +61,8 @@ typedef struct global_tag {
 	PRENDERER displays[2];
 	struct video_sequence *current_list[2];
 
-	_32 target_in;
-	_32 target_in_start;  //
+	uint32_t target_in;
+	uint32_t target_in_start;  //
 
 	PRENDERER prior_up;
 	PLIST video_displays;
@@ -76,14 +76,14 @@ typedef struct global_tag {
 
 	PCLIENT host_socket;
 
-	_32 next_chain;
-	_32 want_next_chain;
-	_32 last_received;
+	uint32_t next_chain;
+	uint32_t want_next_chain;
+	uint32_t last_received;
 } GLOBAL;
 static GLOBAL g;
 
 
-void CPROC Output( PTRSZVAL psv, PRENDERER display )
+void CPROC Output( uintptr_t psv, PRENDERER display )
 {
 	if( g.is_up[psv] )
 	{
@@ -118,7 +118,7 @@ struct video_sequence *GetSequenceEx( int ID, LOGICAL bCreate )
 	return seq;
 }
 
-void BeginNewChain( _32 tick )
+void BeginNewChain( uint32_t tick )
 {
 	// if I'm in a transition, don't do this, otherwise we're not in
    // a transition, and can now start a new transition.
@@ -149,7 +149,7 @@ void BeginNewChain( _32 tick )
 	}
 }
 
-void BeginFadeIn( _32 tick_start, _32 tick )
+void BeginFadeIn( uint32_t tick_start, uint32_t tick )
 {
 	struct video_sequence *current_seq = g.current_list[g.next_up];
 	struct video_element *current_element = (struct video_element *)GetLink( &current_seq->images, current_seq->current_image );
@@ -179,7 +179,7 @@ void BeginFadeIn( _32 tick_start, _32 tick )
 
 }
 
-void ContinueFadeIn( _32 tick )
+void ContinueFadeIn( uint32_t tick )
 {
 	if( g.target_in && tick > g.target_in )
 	{
@@ -261,10 +261,10 @@ void ContinueFadeIn( _32 tick )
 	}
 }
 
-void CPROC tick( PTRSZVAL psv )
+void CPROC tick( uintptr_t psv )
 {
 
-	_32 now = timeGetTime();
+	uint32_t now = timeGetTime();
 
 	if( g.next_chain )
 	{
@@ -287,7 +287,7 @@ void CPROC tick( PTRSZVAL psv )
 	}
 }
 
-static void CPROC OnStopFade( PTRSZVAL psv )
+static void CPROC OnStopFade( uintptr_t psv )
 {
 	struct video_player *player = (struct video_player*)psv;
 	g.next_chain = g.want_next_chain;
@@ -307,7 +307,7 @@ static struct video_element *LoadVideo( struct video_sequence *seq, CTEXTSTR fil
 													, g.y //0
 													);
 	player->vlc = PlayItemOnEx( player->surface, file, WIDE("--repeat --loop") );
-	SetStopEvent( player->vlc, OnStopFade, (PTRSZVAL)player );
+	SetStopEvent( player->vlc, OnStopFade, (uintptr_t)player );
 
    // only used if there is only 1 video - just show video.
 	AddLink( &g.video_displays, player );
@@ -326,15 +326,15 @@ static struct video_element *LoadVideo( struct video_sequence *seq, CTEXTSTR fil
 }
 
 
-static PTRSZVAL CPROC AddVideo( PTRSZVAL psv, arg_list args )
+static uintptr_t CPROC AddVideo( uintptr_t psv, arg_list args )
 {
-	PARAM( args, S_64, list_id );
-	PARAM( args, S_64, fade_in );
-	PARAM( args, S_64, play_length );
+	PARAM( args, int64_t, list_id );
+	PARAM( args, int64_t, fade_in );
+	PARAM( args, int64_t, play_length );
 	PARAM( args, CTEXTSTR, filename );
 	struct video_sequence *seq = GetSequence( (int)list_id );
 	lprintf( WIDE( "adding video %s" ), filename );
-	g.next_fade_in = (_32)play_length;
+	g.next_fade_in = (uint32_t)play_length;
 
 	if( StrCaseStr( filename, WIDE(".jpg") ) ||
 		StrCaseStr( filename, WIDE(".jpeg") ) ||
@@ -350,8 +350,8 @@ static PTRSZVAL CPROC AddVideo( PTRSZVAL psv, arg_list args )
 			element->player = NULL;
 			element->type = 1;
 
-			element->display_time = (_32)play_length;
-			element->fade_in = (_32)fade_in;
+			element->display_time = (uint32_t)play_length;
+			element->fade_in = (uint32_t)fade_in;
 
 			AddLink( &seq->images, element );
 			g.nTotalImages++;
@@ -362,22 +362,22 @@ static PTRSZVAL CPROC AddVideo( PTRSZVAL psv, arg_list args )
 	{
 		struct video_element *element = LoadVideo( seq, filename );
 
-		element->display_time = (_32)play_length;
-		element->fade_in = (_32)fade_in;
+		element->display_time = (uint32_t)play_length;
+		element->fade_in = (uint32_t)fade_in;
 	}
 	return psv;
 }
 
-static PTRSZVAL CPROC SetDefaultShowTime( PTRSZVAL psv, arg_list args )
+static uintptr_t CPROC SetDefaultShowTime( uintptr_t psv, arg_list args )
 {
-	PARAM( args, S_64, delay );
+	PARAM( args, int64_t, delay );
 	g.default_show_time = (int)delay;
 	return psv;
 }
 
-static PTRSZVAL CPROC SetDefaultFadeInTime( PTRSZVAL psv, arg_list args )
+static uintptr_t CPROC SetDefaultFadeInTime( uintptr_t psv, arg_list args )
 {
-	PARAM( args, S_64, delay );
+	PARAM( args, int64_t, delay );
 	g.default_fade_in = (int)delay;
 	return psv;
 }
@@ -396,12 +396,12 @@ static void CPROC ReadPacket( PCLIENT pc, POINTER buffer, size_t size, SOCKADDR 
 {
 	if( !buffer )
 	{
-		buffer = NewArray( _8, 256 );
+		buffer = NewArray( uint8_t, 256 );
 	}
 	else
 	{
-		// packet is _32[0] = tick _32[1] = command(to be implemented, _32[2] = next chain (command 0)
-		P_32 packet = (P_32)buffer;
+		// packet is uint32_t[0] = tick uint32_t[1] = command(to be implemented, uint32_t[2] = next chain (command 0)
+		uint32_t* packet = (uint32_t*)buffer;
 		if( g.last_received != packet[0] )
 		{
 			g.last_received = packet[0];
@@ -443,8 +443,8 @@ static void BeginNetwork( void )
 SaneWinMain(argc, argv )
 //int main( int argc, char **argv )
 {
-	_32 width, height;
-	S_32 x, y;
+	uint32_t width, height;
+	int32_t x, y;
 	g.pdi = GetDisplayInterface();
 	g.pii = GetImageInterface();
 	RegisterIcon( NULL );

@@ -15,10 +15,10 @@ typedef struct {
 
 	TEXTSTR animation_name;
 
-	_32 x;				//position and size of played animation
-	_32 y;
-	_32 w;
-	_32 h;
+	uint32_t x;				//position and size of played animation
+	uint32_t y;
+	uint32_t w;
+	uint32_t h;
 
 	PMNG_ANIMATION 	animation;
 	
@@ -59,14 +59,14 @@ OnCreateMenuButton( ANIMATION_BUTTON_NAME )( PMENU_BUTTON common )
   
 	info->pmb = common;
 	{
-		//_32 w, h;
+		//uint32_t w, h;
 		//GetFrameSize( InterShell_GetButtonControl( common ), &w, &h );
 		info->w = common->w;
 		info->h = common->h;
 	}
 //   lprintf("OnCreateMenuButton I am here!!!");
    AddLink( &l.buttons, info );
-   return (PTRSZVAL)info;
+   return (uintptr_t)info;
 }
 
 
@@ -125,7 +125,7 @@ static void ConfigureAnimationButton( PANIMATION_INFO info, PSI_CONTROL parent )
 }
 
 //---------------------------------------------------------------------------
-OnEditControl( ANIMATION_BUTTON_NAME )( PTRSZVAL psv, PSI_CONTROL parent )
+OnEditControl( ANIMATION_BUTTON_NAME )( uintptr_t psv, PSI_CONTROL parent )
 {
 	ConfigureAnimationButton( (PANIMATION_INFO)psv, parent );
 	return psv;
@@ -133,7 +133,7 @@ OnEditControl( ANIMATION_BUTTON_NAME )( PTRSZVAL psv, PSI_CONTROL parent )
 
 
 //---------------------------------------------------------------------------
-static PTRSZVAL CPROC SetAnimationName( PTRSZVAL psv, arg_list args )
+static uintptr_t CPROC SetAnimationName( uintptr_t psv, arg_list args )
 {
 //	PANIMATION_INFO info = (PANIMATION_INFO)psv;
 
@@ -148,10 +148,10 @@ if( info )
 }
 
 //---------------------------------------------------------------------------
-static PTRSZVAL CPROC SetAnimationXValue( PTRSZVAL psv, arg_list args )
+static uintptr_t CPROC SetAnimationXValue( uintptr_t psv, arg_list args )
 {
 	PANIMATION_INFO info = (PANIMATION_INFO)psv;
-	PARAM( args, S_32, x );
+	PARAM( args, int32_t, x );
 if( info )
 	info->x = x;
 
@@ -159,28 +159,28 @@ if( info )
 }
 
 //---------------------------------------------------------------------------
-static PTRSZVAL CPROC SetAnimationYValue( PTRSZVAL psv, arg_list args )
+static uintptr_t CPROC SetAnimationYValue( uintptr_t psv, arg_list args )
 {
 	PANIMATION_INFO info = (PANIMATION_INFO)psv;
-	PARAM( args, S_32, y );
+	PARAM( args, int32_t, y );
 if( info )
 	info->y = y;
 	return psv;
 }
 //---------------------------------------------------------------------------
-static PTRSZVAL CPROC SetAnimationWValue( PTRSZVAL psv, arg_list args )
+static uintptr_t CPROC SetAnimationWValue( uintptr_t psv, arg_list args )
 {
 	PANIMATION_INFO info = (PANIMATION_INFO)psv;
-	PARAM( args, S_32, w );
+	PARAM( args, int32_t, w );
 if( info )
 	info->w = w;
 	return psv;
 }
 //---------------------------------------------------------------------------
-static PTRSZVAL CPROC SetAnimationHValue( PTRSZVAL psv, arg_list args )
+static uintptr_t CPROC SetAnimationHValue( uintptr_t psv, arg_list args )
 {
 	PANIMATION_INFO info = (PANIMATION_INFO)psv;
-	PARAM( args, S_32, h );
+	PARAM( args, int32_t, h );
 if( info )
 	info->h = h;
 	return psv;
@@ -188,7 +188,7 @@ if( info )
 
 
 //---------------------------------------------------------------------------
-void WriteAnimationButton( CTEXTSTR leader, FILE *file, PTRSZVAL psv )
+void WriteAnimationButton( CTEXTSTR leader, FILE *file, uintptr_t psv )
 {
 	PANIMATION_INFO info = (PANIMATION_INFO)psv;
 
@@ -201,7 +201,7 @@ void WriteAnimationButton( CTEXTSTR leader, FILE *file, PTRSZVAL psv )
 }
 
 //---------------------------------------------------------------------------
-void ReadAnimationButton( PCONFIG_HANDLER pch, PTRSZVAL psv )
+void ReadAnimationButton( PCONFIG_HANDLER pch, uintptr_t psv )
 {
 	AddConfigurationMethod( pch, WIDE("Animation name =%m"), SetAnimationName );
 	AddConfigurationMethod( pch, WIDE("Animation X =%i"), SetAnimationXValue );
@@ -213,14 +213,14 @@ void ReadAnimationButton( PCONFIG_HANDLER pch, PTRSZVAL psv )
 
 
 //---------------------------------------------------------------------------
-OnSaveControl( ANIMATION_BUTTON_NAME )( FILE *file, PTRSZVAL psv )
+OnSaveControl( ANIMATION_BUTTON_NAME )( FILE *file, uintptr_t psv )
 {
 	WriteAnimationButton( NULL, file, psv );
 }
 
 
 //---------------------------------------------------------------------------
-OnLoadControl( ANIMATION_BUTTON_NAME )( PCONFIG_HANDLER pch, PTRSZVAL psv )
+OnLoadControl( ANIMATION_BUTTON_NAME )( PCONFIG_HANDLER pch, uintptr_t psv )
 {
 
 //   lprintf("OnLoadControl I am here!!!");
@@ -239,7 +239,7 @@ OnGlobalPropertyEdit( ANIMATION_BUTTON_NAME )( PSI_CONTROL parent )
 //---------------------------------------------------------------------------
 OnSaveCommon( ANIMATION_BUTTON_NAME )( FILE *file )
 {
-	WriteAnimationButton( NULL, file, (PTRSZVAL)&l );
+	WriteAnimationButton( NULL, file, (uintptr_t)&l );
 }
 
 //---------------------------------------------------------------------------
@@ -248,7 +248,7 @@ OnLoadCommon( ANIMATION_BUTTON_NAME )( PCONFIG_HANDLER pch )
 //   lprintf("OnLoadCommon I am here!!!   (sizeof(l)) is %lu", (sizeof(l)));
 
 	MemSet( &l, 0, sizeof(l) );
-	ReadAnimationButton( pch, (PTRSZVAL)&l);
+	ReadAnimationButton( pch, (uintptr_t)&l);
 }
 
 

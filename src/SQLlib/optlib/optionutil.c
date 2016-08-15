@@ -27,8 +27,8 @@ extern struct sack_option_global_tag *sack_global_option_data;
 
 
 SQLGETOPTION_PROC( void, EnumOptionsEx )( PODBC odbc, POPTION_TREE_NODE parent
-					 , int (CPROC *Process)(PTRSZVAL psv, CTEXTSTR name, POPTION_TREE_NODE ID, int flags )
-											  , PTRSZVAL psvUser )
+					 , int (CPROC *Process)(uintptr_t psv, CTEXTSTR name, POPTION_TREE_NODE ID, int flags )
+											  , uintptr_t psvUser )
 {
 	POPTION_TREE tree = GetOptionTreeExxx( odbc, NULL DBG_SRC );
 	if( tree->flags.bNewVersion )
@@ -81,8 +81,8 @@ SQLGETOPTION_PROC( void, EnumOptionsEx )( PODBC odbc, POPTION_TREE_NODE parent
 }
 
 SQLGETOPTION_PROC( void, EnumOptions )( POPTION_TREE_NODE parent
-					 , int (CPROC *Process)(PTRSZVAL psv, CTEXTSTR name, POPTION_TREE_NODE ID, int flags )
-											  , PTRSZVAL psvUser )
+					 , int (CPROC *Process)(uintptr_t psv, CTEXTSTR name, POPTION_TREE_NODE ID, int flags )
+											  , uintptr_t psvUser )
 {
 	PODBC odbc = GetOptionODBC( global_sqlstub_data->OptionDb.info.pDSN, global_sqlstub_data->OptionVersion );
 	EnumOptionsEx( odbc, parent, Process, psvUser );
@@ -93,7 +93,7 @@ struct copy_data {
    POPTION_TREE tree;
 };
 
-static int CPROC CopyRoot( PTRSZVAL iNewRoot, CTEXTSTR name, POPTION_TREE_NODE ID, int flags )
+static int CPROC CopyRoot( uintptr_t iNewRoot, CTEXTSTR name, POPTION_TREE_NODE ID, int flags )
 {
 	struct copy_data *copydata = (struct copy_data *)iNewRoot;
 	struct copy_data newcopy;
@@ -108,7 +108,7 @@ static int CPROC CopyRoot( PTRSZVAL iNewRoot, CTEXTSTR name, POPTION_TREE_NODE I
 		SetOptionValueEx( copydata->tree, iCopy );
 	}
 
-	EnumOptions( ID, CopyRoot, (PTRSZVAL)&newcopy );
+	EnumOptions( ID, CopyRoot, (uintptr_t)&newcopy );
 	return TRUE;
 }
 
@@ -130,7 +130,7 @@ SQLGETOPTION_PROC( void, DuplicateOptionEx )( PODBC odbc, POPTION_TREE_NODE iRoo
 		tmp_node->name_id = INVALID_INDEX;
       tmp_node->value_id = INVALID_INDEX;
 		copydata.iNewName = GetOptionIndexEx( tmp_node, NULL, pNewName, NULL, TRUE DBG_SRC );
-		EnumOptions( iRoot, CopyRoot, (PTRSZVAL)&copydata );
+		EnumOptions( iRoot, CopyRoot, (uintptr_t)&copydata );
 	}
 }
 

@@ -37,10 +37,10 @@ PLIST outputs;
 PLIST inputs;
 
 PROUTE routes;
-_16 wSockets = DEFAULT_SOCKETS; // default to 64 client/servers
+uint16_t wSockets = DEFAULT_SOCKETS; // default to 64 client/servers
 
 static struct global_data{
-   _32 packet_count;
+   uint32_t packet_count;
 }g;
 
 //---------------------------------------------------------------------------
@@ -89,7 +89,7 @@ void CPROC UDPRead( PCLIENT pc, POINTER buffer, size_t size, SOCKADDR *saFrom )
 	{
       Log( WIDE("Allocating buffer to read into...") );
 		buffer = Allocate( 4096 );
-		SetNetworkLong( pc, NL_BUFFER, (PTRSZVAL)buffer );
+		SetNetworkLong( pc, NL_BUFFER, (uintptr_t)buffer );
 	}
 	else
 	{
@@ -231,7 +231,7 @@ PROUTE CreateInput( TEXTCHAR *name, SOCKADDR *addr )
 	INDEX idx;
    SOCKADDR *bind_addr;
 	{
-		_16 port;
+		uint16_t port;
 		GetAddressParts( addr, NULL, &port );
 		bind_addr = CreateSockAddress( WIDE("0.0.0.0"), port );
 	}
@@ -247,7 +247,7 @@ PROUTE CreateInput( TEXTCHAR *name, SOCKADDR *addr )
 		snprintf( route->name, sizeof( route->name ), WIDE("%s"), name?name:WIDE("unnamed") );
 		route->listen_addr = addr;
 		{
-			_16 port;
+			uint16_t port;
          GetAddressParts( addr, NULL, &port );
 			route->bind_addr = bind_addr;
 		}
@@ -309,7 +309,7 @@ void BeginRouting( void )
 		start->listen = ServeUDPAddr( start->bind_addr, UDPRead, UDPClose );
 		if( start->listen )
 		{
-			SetNetworkLong( start->listen, NL_ROUTE, (PTRSZVAL)start );
+			SetNetworkLong( start->listen, NL_ROUTE, (uintptr_t)start );
 			{
             INDEX idx;
 				PROUTE_OUTPUT other;
@@ -328,9 +328,9 @@ void BeginRouting( void )
 						if( other->socket )
 						{
 							UDPEnableBroadcast( other->socket, TRUE );
-							SetNetworkLong( other->socket, NL_ROUTE, (PTRSZVAL)start );
-							SetNetworkLong( other->socket, NL_OTHER, (PTRSZVAL)start->listen );
-							SetNetworkLong( start->listen, NL_OTHER, (PTRSZVAL)other->socket );
+							SetNetworkLong( other->socket, NL_ROUTE, (uintptr_t)start );
+							SetNetworkLong( other->socket, NL_OTHER, (uintptr_t)start->listen );
+							SetNetworkLong( start->listen, NL_OTHER, (uintptr_t)other->socket );
 							Log( WIDE("Successfully mated listener with retransmitter, and vice versa") );
 						}
 						else

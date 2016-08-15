@@ -85,7 +85,7 @@ struct local_terrain_data_tag {
 	float values[40];
 	PSI_CONTROL sliders[40];
 
-	_32 last_tick;
+	uint32_t last_tick;
 	PLIST patches;
 	int hex_size; // how big initial patch size is.
 
@@ -101,10 +101,10 @@ struct local_terrain_data_tag {
 	 
 
 	 RCOORD next_active_distance;
-	 _32 watch_ball_tick; 
-	 _32 next_active_tick;
-	 _32 active_ball_forward_tick; 
-	 _32 return_to_home;
+	 uint32_t watch_ball_tick; 
+	 uint32_t next_active_tick;
+	 uint32_t active_ball_forward_tick; 
+	 uint32_t return_to_home;
     btVector3 ball_grab_position;
 
 	 RCOORD initial_view_quat[4];
@@ -112,21 +112,21 @@ struct local_terrain_data_tag {
 	 RCOORD final_view_quat[4];
 	 _POINT final_view_origin;
 
-	 _32 show_ball_time; // how long to show the front of the ball... (if not nextball mode, othrwise call event clears)
-	 _32 show_back_time; // how long to show the back of the ball if we're in next ball show?
-	 _32 fade_duration; // how long before ball fades to nothing...
+	 uint32_t show_ball_time; // how long to show the front of the ball... (if not nextball mode, othrwise call event clears)
+	 uint32_t show_back_time; // how long to show the back of the ball if we're in next ball show?
+	 uint32_t fade_duration; // how long before ball fades to nothing...
 
-	 _32 demo_tick_delay;
-	 _32 demo_time_wait_after_drop;
-	 _32 demo_time_wait_turn;
-	 _32 demo_time_wait_front;
-	_32 demo_time_to_pick_ball;
+	 uint32_t demo_tick_delay;
+	 uint32_t demo_time_wait_after_drop;
+	 uint32_t demo_time_wait_turn;
+	 uint32_t demo_time_wait_front;
+	uint32_t demo_time_to_pick_ball;
 	
-	_32 time_to_rack;
-	 _32 time_to_home;
-	 _32 time_to_track;
-	 _32 time_to_approach;
-	 _32 time_to_turn_ball;
+	uint32_t time_to_rack;
+	 uint32_t time_to_home;
+	 uint32_t time_to_track;
+	 uint32_t time_to_approach;
+	 uint32_t time_to_turn_ball;
 
 	int nNextBalls[75];
 	int last_set; // last position set from ball queue...
@@ -283,9 +283,9 @@ struct SACK_3D_Surface {
 	int verts;
 } ;
 
-void InitShader(PTRSZVAL psvSetup, PImageShaderTracker shader);
-void InitSuperSimpleShader( PTRSZVAL psvSetup, PImageShaderTracker shader );
-void InitLayerTextureShader( PTRSZVAL psvSetup, PImageShaderTracker shader );
+void InitShader(uintptr_t psvSetup, PImageShaderTracker shader);
+void InitSuperSimpleShader( uintptr_t psvSetup, PImageShaderTracker shader );
+void InitLayerTextureShader( uintptr_t psvSetup, PImageShaderTracker shader );
 
 
 struct SACK_3D_Surface *CreateBumpTextureFragment( int verts

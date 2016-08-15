@@ -22,7 +22,7 @@ typedef struct local_tag
 
 static LOCAL l;
 
-static int CPROC HandleSummonerEvents( PSERVICE_ROUTE SourceID, MSGIDTYPE MsgID, _32 *data, size_t len )
+static int CPROC HandleSummonerEvents( PSERVICE_ROUTE SourceID, MSGIDTYPE MsgID, uint32_t *data, size_t len )
 {
 	switch( MsgID )
 	{
@@ -83,7 +83,7 @@ PRELOAD( Started )
 				return;
 			}
 			//else l.my_name is my task name from sommoner.config
-			if( !TransactServerMessage( l.MsgBase, MSG_IM_STARTING, l.my_name, (_32)strlen( l.my_name ) + 1
+			if( !TransactServerMessage( l.MsgBase, MSG_IM_STARTING, l.my_name, (uint32_t)strlen( l.my_name ) + 1
 											  , NULL, NULL, 0 ) )
 			{
 				// this should almost be guaranteed to work...
@@ -103,13 +103,13 @@ PRELOAD( Started )
 
  void  LoadComplete ( void )
 {
-	_32 result;
+	uint32_t result;
    // if we registered with the summoner...
 	if( l.MsgBase )
 	{
 		//lprintf( WIDE("Sending IM_READY to summoner...\n") );
 		result = ((MSG_IM_READY) | SERVER_SUCCESS);
-		if( TransactServerMessage( l.MsgBase, MSG_IM_READY, l.my_name, (_32)strlen( l.my_name ) + 1
+		if( TransactServerMessage( l.MsgBase, MSG_IM_READY, l.my_name, (uint32_t)strlen( l.my_name ) + 1
 										 , NULL /*&result*/, NULL, 0 )
 		  )
 		{

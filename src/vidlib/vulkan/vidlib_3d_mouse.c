@@ -212,7 +212,7 @@ RCOORD IntersectLineWithPlane( PCVECTOR Slope, PCVECTOR Origin,  // line m, b
 	}
 }
 
-void ComputeMouseRay( struct display_camera *camera, LOGICAL bUniverseSpace, PRAY mouse_ray, S_32 x, S_32 y )
+void ComputeMouseRay( struct display_camera *camera, LOGICAL bUniverseSpace, PRAY mouse_ray, int32_t x, int32_t y )
 {
 #define BEGIN_SCALE 1
 #define COMMON_SCALE ( 2*camera->aspect)
@@ -254,7 +254,7 @@ void ComputeMouseRay( struct display_camera *camera, LOGICAL bUniverseSpace, PRA
 	}
 }
 
-void UpdateMouseRays( S_32 x, S_32 y )
+void UpdateMouseRays( int32_t x, int32_t y )
 {
 	struct display_camera *camera;
 	INDEX idx;
@@ -396,7 +396,7 @@ void GetViewVolume( PRAY *planes )
 	}
 }
 
-int CPROC OpenGLMouse( PTRSZVAL psvMouse, S_32 x, S_32 y, _32 b )
+int CPROC OpenGLMouse( uintptr_t psvMouse, int32_t x, int32_t y, uint32_t b )
 {
 	int used = 0;
 	PRENDERER check = NULL;

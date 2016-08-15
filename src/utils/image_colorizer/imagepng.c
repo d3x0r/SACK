@@ -30,7 +30,7 @@
 typedef struct ImagePngRawData_tag
 {
   // The buffer to "read" from
-  _8 **r_data;
+  uint8_t **r_data;
   // The buffer size
   int *r_size;
   int alloced;
@@ -59,13 +59,13 @@ static void CPROC ImagePngWrite(png_structp png,
 		if( self->alloced )
 		{
 			self->alloced += ((length > 2048)?length:0) + 4096;
-			(*self->r_data) = (_8*)Reallocate( (*self->r_data), self->alloced );
+			(*self->r_data) = (uint8_t*)Reallocate( (*self->r_data), self->alloced );
 		}
 		else
 		{
 			self->alloced += 4096;
 			(*self->r_size) = 0;
-			(*self->r_data) = (_8*)Allocate( self->alloced );
+			(*self->r_data) = (uint8_t*)Allocate( self->alloced );
 		}
 	}
 	MemCpy( (*self->r_data)+(*self->r_size), data, length );
@@ -87,7 +87,7 @@ static void CPROC NotSoFatalError( png_structp png_ptr, png_const_charp c )
 	lprintf( WIDE("Error in PNG stuff: %s"), c );
 }
 
-LOGICAL PngImageFile ( Image pImage, _8 ** buf, int *size)
+LOGICAL PngImageFile ( Image pImage, uint8_t ** buf, int *size)
 {
    png_structp png_ptr;
    png_infop info_ptr;

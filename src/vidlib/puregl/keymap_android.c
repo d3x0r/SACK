@@ -195,7 +195,7 @@ int SACK_Vidlib_SendKeyEvents( int pressed, int key_index, int key_mods )
 		{
 			if( l.hVidVirtualFocused->pKeyProc )
 			{
-				_32 normal_key = (pressed?KEY_PRESSED:0)
+				uint32_t normal_key = (pressed?KEY_PRESSED:0)
 					| ( key_mods & 7 ) << 28
 					| ( key_index & 0xFF ) << 16
 					| ( key_index )

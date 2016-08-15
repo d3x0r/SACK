@@ -5,7 +5,7 @@
 
 
 
-static PTRSZVAL OnCreateControl( WIDE("Video Capture-VLC")) (PSI_CONTROL parent,S_32 x,S_32 y,_32 width,_32 height)
+static uintptr_t OnCreateControl( WIDE("Video Capture-VLC")) (PSI_CONTROL parent,int32_t x,int32_t y,uint32_t width,uint32_t height)
 {
 	PSI_CONTROL pc = MakeNamedControl( parent, WIDE("Video Control"), x, y, width, height, -1 );
 #if 0
@@ -14,10 +14,10 @@ static PTRSZVAL OnCreateControl( WIDE("Video Capture-VLC")) (PSI_CONTROL parent,
 	SACK_GetProfileString( WIDE("streamlib"), WIDE("default capture vlc"), WIDE("dshow://"), argsline, sizeof( argsline ) );
 	PlayItemIn( pc, argsline );
 #endif
-	return (PTRSZVAL)pc;
+	return (uintptr_t)pc;
 }
 
-static PSI_CONTROL OnGetControl( WIDE("Video Capture-VLC") )( PTRSZVAL psv )
+static PSI_CONTROL OnGetControl( WIDE("Video Capture-VLC") )( uintptr_t psv )
 {
 	return (PSI_CONTROL)psv;
 }

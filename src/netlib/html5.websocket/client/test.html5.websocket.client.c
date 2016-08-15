@@ -5,27 +5,27 @@
 int done;
 PTHREAD main_thread;
 
-PTRSZVAL my_web_socket_opened( PCLIENT pc, PTRSZVAL psv )
+uintptr_t my_web_socket_opened( PCLIENT pc, uintptr_t psv )
 {
 	lprintf( "Connection opened... %p %p", pc, psv );
    WebSocketSendText( pc, "Test Message", 12 );
 	return psv;
 }
 
-void my_web_socket_closed( PCLIENT pc, PTRSZVAL psv )
+void my_web_socket_closed( PCLIENT pc, uintptr_t psv )
 {
 	lprintf( "Connection closed... %p %p", pc, psv );
 	done = 1;
 	WakeThread( main_thread );
 }
 
-void my_web_socket_error( PCLIENT pc, PTRSZVAL psv, int error )
+void my_web_socket_error( PCLIENT pc, uintptr_t psv, int error )
 {
 	/* no errors are implemented yet*/
 	lprintf( "Connection error... %p %p", pc, psv );
 }
 
-void my_web_socket_event( PCLIENT pc, PTRSZVAL psv, POINTER buffer, int msglen )
+void my_web_socket_event( PCLIENT pc, uintptr_t psv, POINTER buffer, int msglen )
 {
 	lprintf( "Recieved event" );
 	LogBinary( buffer, msglen );

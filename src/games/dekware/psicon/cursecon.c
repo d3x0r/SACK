@@ -122,7 +122,7 @@ static void WinconPrompt( PDATAPATH pdp )
 
 //----------------------------------------------------------------------------
 
-static PTRSZVAL InputThread( PTHREAD thread )
+static uintptr_t InputThread( PTHREAD thread )
 {
    PCONSOLE_INFO pdp = (PCONSOLE_INFO)thread->param;
     DECLTEXT( key, "                   " );
@@ -302,7 +302,7 @@ int RefreshDisplay( PDATAPATH *pChannel, PSENTIENT ps, PTEXT pargs )
 
 static void CPROC DrawString( PCONSOLE_INFO pdp, int x, int y, RECT *r, char *s, int nShown, int nShow )
 {
-	_32 dwSize;
+	uint32_t dwSize;
 	lprintf( "Adding string out : %s %d %d at %d,%d", s, nShown, nShow,x,y,r->left,r->top );
 	move( y-1, x );
    addnstr(s+nShown,nShow);
@@ -348,7 +348,7 @@ static void CPROC SetCurrentColor( PCONSOLE_INFO pdp, enum current_color_type ty
 
 static void CPROC FillConsoleRect( PCONSOLE_INFO pdp, RECT *r, enum fill_color_type type )
 {
-	int c; _32 dwSize;
+	int c; uint32_t dwSize;
 	move( r->top-1, r->left );
 	//lprintf( "Filling blank line: at %d,%d  %d,%d = %d", r->top, r->left, r->left, r->right, r->right-r->left);
 	switch( type )
@@ -444,10 +444,10 @@ PDATAPATH CPROC CreateConsole( PDATAPATH *pChannel, PSENTIENT ps, PTEXT paramete
 	pdp->pHistoryDisplay = CreateHistoryBrowser( pdp->pHistory );
 
 
-   AddVolatileVariable( ps->Current, &vve_rows, (PTRSZVAL)pdp );
-   AddVolatileVariable( ps->Current, &vve_cols, (PTRSZVAL)pdp );
-   AddVolatileVariable( ps->Current, &vve_cursorx, (PTRSZVAL)pdp );
-   AddVolatileVariable( ps->Current, &vve_cursory, (PTRSZVAL)pdp );
+   AddVolatileVariable( ps->Current, &vve_rows, (uintptr_t)pdp );
+   AddVolatileVariable( ps->Current, &vve_cols, (uintptr_t)pdp );
+   AddVolatileVariable( ps->Current, &vve_cursorx, (uintptr_t)pdp );
+   AddVolatileVariable( ps->Current, &vve_cursory, (uintptr_t)pdp );
 
    pdp->nXPad = 0;
    pdp->nYPad = 0;
@@ -480,7 +480,7 @@ PDATAPATH CPROC CreateConsole( PDATAPATH *pChannel, PSENTIENT ps, PTEXT paramete
 	ChildCalculate(pdp);
 
    lprintf( "Starting input thread..." );
-   ThreadTo( InputThread, (PTRSZVAL)pdp );
+   ThreadTo( InputThread, (uintptr_t)pdp );
 
    return (PDATAPATH)pdp;
 }

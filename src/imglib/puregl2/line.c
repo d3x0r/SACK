@@ -54,8 +54,8 @@ extern "C" {
 #define ROUND_ERROR ( ( 1<< ( FIX_SHIFT - 1 ) ) - 1 )
 
 
-void CPROC do_line( ImageFile *pImage, S_32 x1, S_32 y1
-						 , S_32 x2, S_32 y2, CDATA d )
+void CPROC do_line( ImageFile *pImage, int32_t x1, int32_t y1
+						 , int32_t x2, int32_t y2, CDATA d )
 {
 	if( pImage->flags & IF_FLAG_FINAL_RENDER )
 	{
@@ -67,8 +67,8 @@ void CPROC do_line( ImageFile *pImage, S_32 x1, S_32 y1
 		VECTOR normal;
 		int vi = 0;
 
-		TranslateCoord( pImage, (S_32*)&x1, (S_32*)&y1 );
-		TranslateCoord( pImage, (S_32*)&x2, (S_32*)&y2 );
+		TranslateCoord( pImage, (int32_t*)&x1, (int32_t*)&y1 );
+		TranslateCoord( pImage, (int32_t*)&x2, (int32_t*)&y2 );
 		v[vi][0][0] = x1;
 		v[vi][0][1] = y1;
 		v[vi][0][2] = 0.0;
@@ -216,8 +216,8 @@ void CPROC do_line( ImageFile *pImage, S_32 x1, S_32 y1
 	}
 }
 
-void CPROC do_lineAlpha( ImageFile *pImage, S_32 x1, S_32 y1
-                            , S_32 x2, S_32 y2, CDATA d )
+void CPROC do_lineAlpha( ImageFile *pImage, int32_t x1, int32_t y1
+                            , int32_t x2, int32_t y2, CDATA d )
 {
 	if( pImage->flags & IF_FLAG_FINAL_RENDER )
 	{
@@ -229,8 +229,8 @@ void CPROC do_lineAlpha( ImageFile *pImage, S_32 x1, S_32 y1
 		VECTOR normal;
 		int vi = 0;
 
-		TranslateCoord( pImage, (S_32*)&x1, (S_32*)&y1 );
-		TranslateCoord( pImage, (S_32*)&x2, (S_32*)&y2 );
+		TranslateCoord( pImage, (int32_t*)&x1, (int32_t*)&y1 );
+		TranslateCoord( pImage, (int32_t*)&x2, (int32_t*)&y2 );
 		v[vi][0][0] = x1;
 		v[vi][0][1] = y1;
 		v[vi][0][2] = 0.0;
@@ -378,9 +378,9 @@ void CPROC do_lineAlpha( ImageFile *pImage, S_32 x1, S_32 y1
 	}
 }
 
-void CPROC do_lineExV( ImageFile *pImage, S_32 x1, S_32 y1
-                            , S_32 x2, S_32 y2, PTRSZVAL d
-                            , void (*func)(ImageFile *pif, S_32 x, S_32 y, PTRSZVAL d ) )
+void CPROC do_lineExV( ImageFile *pImage, int32_t x1, int32_t y1
+                            , int32_t x2, int32_t y2, uintptr_t d
+                            , void (*func)(ImageFile *pif, int32_t x, int32_t y, uintptr_t d ) )
 {
 	int err, delx, dely, len, inc;
 	//if( !pImage || !pImage->image ) return;
@@ -455,25 +455,25 @@ void CPROC do_lineExV( ImageFile *pImage, S_32 x1, S_32 y1
 	}
 }
 
-void CPROC do_hline( ImageFile *pImage, S_32 y, S_32 xfrom, S_32 xto, CDATA color )
+void CPROC do_hline( ImageFile *pImage, int32_t y, int32_t xfrom, int32_t xto, CDATA color )
 {
 	BlatColor( pImage, xfrom, y, xto-xfrom, 1, color );
 	//do_linec( pImage, xfrom, y, xto, y, color );
 }
 
-void CPROC do_vline( ImageFile *pImage, S_32 x, S_32 yfrom, S_32 yto, CDATA color )
+void CPROC do_vline( ImageFile *pImage, int32_t x, int32_t yfrom, int32_t yto, CDATA color )
 {
 	BlatColor( pImage, x, yfrom, 1, yto-yfrom, color );
 	//do_linec( pImage, x, yfrom, x, yto, color );
 }
 
-void CPROC do_hlineAlpha( ImageFile *pImage, S_32 y, S_32 xfrom, S_32 xto, CDATA color )
+void CPROC do_hlineAlpha( ImageFile *pImage, int32_t y, int32_t xfrom, int32_t xto, CDATA color )
 {
 	BlatColorAlpha( pImage, xfrom, y, xto-xfrom, 1, color );
 	//do_lineAlphac( pImage, xfrom, y, xto, y, color );
 }
 
-void CPROC do_vlineAlpha( ImageFile *pImage, S_32 x, S_32 yfrom, S_32 yto, CDATA color )
+void CPROC do_vlineAlpha( ImageFile *pImage, int32_t x, int32_t yfrom, int32_t yto, CDATA color )
 {
 	BlatColorAlpha( pImage, x, yfrom, 1, yto-yfrom, color );
 	//do_lineAlphac( pImage, x, yfrom, x, yto, color );

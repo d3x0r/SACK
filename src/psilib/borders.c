@@ -237,7 +237,7 @@ void CPROC DrawFancyFrame( PSI_CONTROL pc )
 
 //---------------------------------------------------------------------------
 
-PSI_PROC( int, FrameBorderXOfs )( PSI_CONTROL pc, _32 BorderType )
+PSI_PROC( int, FrameBorderXOfs )( PSI_CONTROL pc, uint32_t BorderType )
 {
    //lprintf( WIDE("Result border offset for %08x"), BorderType );
     switch( BorderType & BORDER_TYPE )
@@ -275,7 +275,7 @@ PSI_PROC( int, FrameBorderXOfs )( PSI_CONTROL pc, _32 BorderType )
 
 //---------------------------------------------------------------------------
 
-PSI_PROC( int, FrameBorderX )( PSI_CONTROL pc, _32 BorderType )
+PSI_PROC( int, FrameBorderX )( PSI_CONTROL pc, uint32_t BorderType )
 {
    //lprintf( WIDE("Result total for %08x"), BorderType );
     switch( BorderType & BORDER_TYPE )
@@ -337,7 +337,7 @@ PSI_PROC( int, CaptionHeight )( PSI_CONTROL pf, CTEXTSTR text )
 
 //---------------------------------------------------------------------------
 
-PSI_PROC( int, FrameBorderYOfs )( PSI_CONTROL pc, _32 BorderType, CTEXTSTR caption )
+PSI_PROC( int, FrameBorderYOfs )( PSI_CONTROL pc, uint32_t BorderType, CTEXTSTR caption )
 {
 	int result = 0;
 	if( !(BorderType & BORDER_NOCAPTION ) && 
@@ -376,7 +376,7 @@ PSI_PROC( int, FrameBorderYOfs )( PSI_CONTROL pc, _32 BorderType, CTEXTSTR capti
 	return result + 2;
 }
 
-int FrameCaptionYOfs( PSI_CONTROL pc, _32 BorderType )
+int FrameCaptionYOfs( PSI_CONTROL pc, uint32_t BorderType )
 {
 	int result = 0;
 
@@ -414,7 +414,7 @@ int FrameCaptionYOfs( PSI_CONTROL pc, _32 BorderType )
 
 //---------------------------------------------------------------------------
 
-PSI_PROC( int, FrameBorderY )( PSI_CONTROL pc, _32 BorderType, CTEXTSTR caption )
+PSI_PROC( int, FrameBorderY )( PSI_CONTROL pc, uint32_t BorderType, CTEXTSTR caption )
 {
 	int result = 0;
 	if( !(BorderType & BORDER_NOCAPTION ) && 
@@ -461,8 +461,8 @@ PSI_PROC( int, FrameBorderY )( PSI_CONTROL pc, _32 BorderType, CTEXTSTR caption 
 void CPROC DrawThickFrame( PSI_CONTROL pc )
 {
 	Image window = pc->Window;
-	_32 width = window->width;
-	_32 height = window->height;
+	uint32_t width = window->width;
+	uint32_t height = window->height;
 	int n, ofs;
 	if( pc->flags.bInitial || pc->flags.bHidden ) return;
 	for( ofs = 0, n = 0; n < 2; n++,ofs++ )
@@ -490,8 +490,8 @@ void CPROC DrawThickFrame( PSI_CONTROL pc )
 void CPROC DrawThickFrameInverted( PSI_CONTROL pc )
 {
    Image window = pc->Window;
-	_32 width = window->width;
-	_32 height = window->height;
+	uint32_t width = window->width;
+	uint32_t height = window->height;
 	int n, ofs;
    if( pc->flags.bInitial || pc->flags.bHidden ) return;
 	for( ofs = 0, n = 0; n < 2; n++,ofs++ )
@@ -520,8 +520,8 @@ void CPROC DrawThickFrameInverted( PSI_CONTROL pc )
 void CPROC DrawNormalFrame( PSI_CONTROL pc )
 {
 	Image window = pc->Window;
-	_32 width = window->width;
-	_32 height = window->height;
+	uint32_t width = window->width;
+	uint32_t height = window->height;
 	if( pc->flags.bInitial || pc->flags.bHidden ) return;
 	 do_hline( window, 0, 0, width-1, basecolor(pc)[NORMAL] );
 	 do_hline( window, 1, 1, width-2, basecolor(pc)[HIGHLIGHT] );
@@ -547,8 +547,8 @@ void CPROC DrawNormalFrame( PSI_CONTROL pc )
 void CPROC DrawNormalFrameInverted( PSI_CONTROL pc )
 {
    Image window = pc->Window;
-   _32 width = window->width;
-    _32 height = window->height;
+   uint32_t width = window->width;
+    uint32_t height = window->height;
    if( pc->flags.bInitial || pc->flags.bHidden ) return;
 	do_hline( window, 0, 0, width-1, basecolor(pc)[SHADOW] );
 	do_hline( window, 1, 1, width-2, basecolor(pc)[SHADE] );
@@ -576,8 +576,8 @@ void CPROC DrawNormalFrameInverted( PSI_CONTROL pc )
 void CPROC DrawThinnerFrameImage( PSI_CONTROL pc, Image window )
 {
    //Image window = pc->Window;
-	_32 width = window->width;
-	_32 height = window->height;
+	uint32_t width = window->width;
+	uint32_t height = window->height;
 	do_hline( window, 0, 0, width-1, basecolor(pc)[HIGHLIGHT] );
 	do_hline( window, 1, 1, width-2, basecolor(pc)[NORMAL] );
 
@@ -596,8 +596,8 @@ void CPROC DrawThinnerFrameImage( PSI_CONTROL pc, Image window )
 void CPROC DrawThinnerFrame( PSI_CONTROL pc )
 {
    Image window = pc->Window;
-	_32 width = window->width;
-	_32 height = window->height;
+	uint32_t width = window->width;
+	uint32_t height = window->height;
    if( pc->flags.bInitial || pc->flags.bHidden ) return;
 	do_hline( window, 0, 0, width-1, basecolor(pc)[HIGHLIGHT] );
 	do_hline( window, 1, 1, width-2, basecolor(pc)[NORMAL] );
@@ -615,8 +615,8 @@ void CPROC DrawThinnerFrame( PSI_CONTROL pc )
 void CPROC DrawThinnerFrameInverted( PSI_CONTROL pc )
 {
 	Image window = pc->Window;
-	_32 width = window->width;
-	_32 height = window->height;
+	uint32_t width = window->width;
+	uint32_t height = window->height;
 	if( pc->flags.bInitial || pc->flags.bHidden ) return;
 	do_hline( window, 0, 0, width-1, basecolor(pc)[SHADOW] );
 	do_hline( window, 1, 1, width-2, basecolor(pc)[SHADE] );
@@ -634,8 +634,8 @@ void CPROC DrawThinnerFrameInverted( PSI_CONTROL pc )
 void CPROC DrawThinnerFrameInvertedImage( PSI_CONTROL pc, Image window )
 {
 	//Image window = pc->Window;
-	_32 width = window->width;
-	_32 height = window->height;
+	uint32_t width = window->width;
+	uint32_t height = window->height;
 	do_hline( window, 0, 0, width-1, basecolor(pc)[SHADOW] );
 	do_hline( window, 1, 1, width-2, basecolor(pc)[SHADE] );
 
@@ -653,8 +653,8 @@ void CPROC DrawThinnerFrameInvertedImage( PSI_CONTROL pc, Image window )
 
 void DrawThinnerFrameInset( PSI_CONTROL pc, Image window, int bInvert, int amount )
 {
-	_32 width = window->width;
-    _32 height = window->height;
+	uint32_t width = window->width;
+    uint32_t height = window->height;
 	if( !bInvert )
 	{
 		do_hline( window, amount+0, amount+0, width-(amount+1), basecolor(pc)[HIGHLIGHT] );
@@ -690,8 +690,8 @@ void DrawThinnerFrameInset( PSI_CONTROL pc, Image window, int bInvert, int amoun
 void CPROC DrawThinFrame( PSI_CONTROL pc )
 {
 	Image window = pc->Window;
-	_32 width = window->width;
-	_32 height = window->height;
+	uint32_t width = window->width;
+	uint32_t height = window->height;
 	if( /*pc->flags.bInitial ||*/ pc->flags.bHidden ) 
 		return;
 	//lprintf( "Draw thin frame: %08x %08x  %d %d", basecolor(pc)[SHADOW], basecolor(pc)[HIGHLIGHT], width, height );
@@ -705,8 +705,8 @@ void CPROC DrawThinFrame( PSI_CONTROL pc )
 void CPROC DrawThinFrameInverted( PSI_CONTROL pc )
 {
 	Image window = pc->Window;
-	_32 width = window->width;
-	_32 height = window->height;
+	uint32_t width = window->width;
+	uint32_t height = window->height;
 	if( /*pc->flags.bInitial ||*/ pc->flags.bHidden ) return;
 	//lprintf( "Draw thin frame Inverted: %08x %08x  %d %d", basecolor(pc)[SHADOW], basecolor(pc)[HIGHLIGHT], width, height );
 	do_hline( window, 0, 0, width-1, basecolor(pc)[SHADOW] );
@@ -720,8 +720,8 @@ void CPROC DrawThinFrameInverted( PSI_CONTROL pc )
 void CPROC DrawThinFrameInvertedImage( PSI_CONTROL pc, Image window )
 {
 	//Image window = pc->Window;
-	_32 width = window->width;
-	_32 height = window->height;
+	uint32_t width = window->width;
+	uint32_t height = window->height;
 	do_hline( window, 0, 0, width-1, basecolor(pc)[SHADOW] );
 	do_vline( window, 0, 0, height-1, basecolor(pc)[SHADOW] );
 	do_vline( window, width -1, 0, height-1, basecolor(pc)[HIGHLIGHT] );
@@ -732,8 +732,8 @@ void CPROC DrawThinFrameInvertedImage( PSI_CONTROL pc, Image window )
 
 void DrawThinFrameInset( PSI_CONTROL pc, Image window, int bInvert, int amount )
 {
-	_32 width = window->width;
-	_32 height = window->height;
+	uint32_t width = window->width;
+	uint32_t height = window->height;
 	if( !bInvert )
 	{
 		do_hline( window, amount, amount, width-(amount+1), basecolor(pc)[HIGHLIGHT] );
@@ -760,10 +760,10 @@ void DrawFrameCaption( PSI_CONTROL pc )
 	if( ( pc->BorderType & BORDER_TYPE ) == BORDER_NONE ) return;
 	{
 		int h, w;
-		_32 button_left;
-		_32 width, height;
-		_32 xofs = ( ( FrameBorderXOfs(pc, pc->BorderType) ) );
-		_32 yofs = ( ( FrameCaptionYOfs(pc, pc->BorderType ) ) );
+		uint32_t button_left;
+		uint32_t width, height;
+		uint32_t xofs = ( ( FrameBorderXOfs(pc, pc->BorderType) ) );
+		uint32_t yofs = ( ( FrameCaptionYOfs(pc, pc->BorderType ) ) );
 		Image out = NULL;
 		h = CaptionHeight( pc, pc?GetText(pc->caption.text):NULL ) - 1;
 		if( h <= 0 ) // no caption to...
@@ -792,12 +792,12 @@ void DrawFrameCaption( PSI_CONTROL pc )
 					if( !out )
 						out = g.FrameCaptionImage;
 					{
-						S_32 outx = 0;
-						S_32 outy = 0;
-						_32 outw = width - 2 *xofs;
-						_32 outh = h+2;
-						_32 routw = width - 2 *xofs;
-						_32 routh = h+2;
+						int32_t outx = 0;
+						int32_t outy = 0;
+						uint32_t outw = width - 2 *xofs;
+						uint32_t outh = h+2;
+						uint32_t routw = width - 2 *xofs;
+						uint32_t routh = h+2;
 						if( (h+2) < out->height )
 							outh = h+2;
 						else
@@ -873,12 +873,12 @@ void DrawFrameCaption( PSI_CONTROL pc )
 					if( !out )
 						out = g.FrameCaptionFocusedImage;
 					{
-						S_32 outx = 0;
-						S_32 outy = 0;
-						_32 outw = width - 2 *xofs;
-						_32 outh = h+2;
-						_32 routw = width - 2 *xofs;
-						_32 routh = h+2;
+						int32_t outx = 0;
+						int32_t outy = 0;
+						uint32_t outw = width - 2 *xofs;
+						uint32_t outh = h+2;
+						uint32_t routw = width - 2 *xofs;
+						uint32_t routh = h+2;
 						w = width - (xofs + 2);
 						if( (h+2) < out->height )
 							outh = h+2;
@@ -1155,8 +1155,8 @@ void CPROC SetDrawBorder( PSI_CONTROL pc )
 
 void UpdateSurface( PSI_CONTROL pc )
 {
-	_32 border;
-	_32 width, height;
+	uint32_t border;
+	uint32_t width, height;
 	LOGICAL size_changed = FALSE;
 	LOGICAL pos_changed = FALSE;
 	//xlprintf(2100)( "Update Surface... %p  %08x", pc, pc->BorderType );
@@ -1242,7 +1242,7 @@ void UpdateSurface( PSI_CONTROL pc )
 	}
 }
 
-PSI_PROC( void, SetCommonBorderEx )( PSI_CONTROL pc, _32 BorderType DBG_PASS )
+PSI_PROC( void, SetCommonBorderEx )( PSI_CONTROL pc, uint32_t BorderType DBG_PASS )
 {
 	//_xlprintf((LOG_NOISE+2) DBG_RELAY)( WIDE("Setting border for %s to %08x(%08x,%08x) %08x %08x"), pc->pTypeName, pc, pc->parent, pc->device, pc->BorderType, BorderType );
 	if( pc->BorderType != BorderType )

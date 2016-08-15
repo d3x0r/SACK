@@ -4,7 +4,7 @@
 #include <procreg.h>
 
 
-void CPROC ParseINI( PTRSZVAL psv, char *name, int flags )
+void CPROC ParseINI( uintptr_t psv, char *name, int flags )
 {
 	FILE *in = fopen( name, WIDE("rt") );
 	if( in )
@@ -85,7 +85,7 @@ void CPROC ParseINI( PTRSZVAL psv, char *name, int flags )
 int main( void )
 {
 	void *info = NULL;
-	_32 free, used, chuncks, freechunks;
+	uint32_t free, used, chuncks, freechunks;
    SetSystemLog( SYSLOG_FILE, stdout );
 	printf( WIDE("Lets see... ini files...") );
 	while( ScanFiles( WIDE("."), WIDE("*.ini"), &info, ParseINI, 0, 0 ) );

@@ -26,7 +26,7 @@ static struct local
 	PLIST index_strings;
 }l;
 
-static void AddTranslation( PTRSZVAL psv, PSI_CONTROL pc )
+static void AddTranslation( uintptr_t psv, PSI_CONTROL pc )
 {
 	TEXTCHAR name[256];
 	if( SimpleUserQuery( name, 256, WIDE("Enter Translation Name"), NULL ) )
@@ -34,7 +34,7 @@ static void AddTranslation( PTRSZVAL psv, PSI_CONTROL pc )
 		PLISTITEM pli;
 		PTranslation translation = CreateTranslation( name );
 		pli = AddComboBoxItem( l.pc_translations, name );
-		SetItemData( pli, (PTRSZVAL)translation );
+		SetItemData( pli, (uintptr_t)translation );
 	}
 }
 
@@ -52,22 +52,22 @@ static void FillBaseInformation( void )
 		{
 			CTEXTSTR name = GetTranslationName( translation );
 			pli = AddComboBoxItem( l.pc_translations, name );
-			SetItemData( pli, (PTRSZVAL)translation );
+			SetItemData( pli, (uintptr_t)translation );
 		}
 }
 
-static void SaveTranslation( PTRSZVAL psv, PSI_CONTROL pc )
+static void SaveTranslation( uintptr_t psv, PSI_CONTROL pc )
 {
 	SaveTranslationData();
 }
 
-static void LoadTranslation( PTRSZVAL psv, PSI_CONTROL pc )
+static void LoadTranslation( uintptr_t psv, PSI_CONTROL pc )
 {
 	LoadTranslationData();
 	FillBaseInformation();
 }
 
-static void UpdateTranslation( PTRSZVAL psv, PSI_CONTROL pc )
+static void UpdateTranslation( uintptr_t psv, PSI_CONTROL pc )
 {
 	TEXTCHAR buf[256];
 	GetControlText( l.pc_edit_translated_text, buf, 256 );
@@ -108,21 +108,21 @@ static void UpdateTranslatedStrings( void )
 			vtprintf( pvt, WIDE("%s\t%s"), string, translation_string );
 			out = VarTextGet( pvt );
 			pli = AddListItem( l.pc_translation_text, GetText( out ) );
-			SetItemData( pli, (PTRSZVAL)idx );
+			SetItemData( pli, (uintptr_t)idx );
 			LineRelease( out );
 		}
 		else
 		{
 			pli = AddListItem( l.pc_translation_text, string );
-			SetItemData( pli, (PTRSZVAL)idx );
+			SetItemData( pli, (uintptr_t)idx );
 		}
 	}
 	VarTextDestroy( &pvt );
 }
 
-static void CPROC TranslationSelected( PTRSZVAL psv, PSI_CONTROL pc, PLISTITEM pli )
+static void CPROC TranslationSelected( uintptr_t psv, PSI_CONTROL pc, PLISTITEM pli )
 {
-	PTRSZVAL psvItem = GetItemData( pli );
+	uintptr_t psvItem = GetItemData( pli );
 	l.selected_translation = (PTranslation)psvItem;
 	if( l.selected_translation )
 		SetCurrentTranslation( GetTranslationName( l.selected_translation ) );
@@ -131,7 +131,7 @@ static void CPROC TranslationSelected( PTRSZVAL psv, PSI_CONTROL pc, PLISTITEM p
 	UpdateTranslatedStrings();
 }
 
-static void AddTranslatable( PTRSZVAL psv, PSI_CONTROL pc )
+static void AddTranslatable( uintptr_t psv, PSI_CONTROL pc )
 {
 	TEXTCHAR name[256];
 	if( SimpleUserQuery( name, 256, WIDE("Enter Translatable String"), NULL ) )
@@ -141,7 +141,7 @@ static void AddTranslatable( PTRSZVAL psv, PSI_CONTROL pc )
 	}
 }
 
-static void CPROC SelectString( PTRSZVAL psv, PSI_CONTROL pc, PLISTITEM pli )
+static void CPROC SelectString( uintptr_t psv, PSI_CONTROL pc, PLISTITEM pli )
 {
 	if( l.selected_translation )
 	{

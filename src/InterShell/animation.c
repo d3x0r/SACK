@@ -57,7 +57,7 @@ Open/Close/Read/Write callback
 
 
 	if( !animation->data )
-		animation->data = (P_8)OpenSpace( NULL, animation->name, &animation->length);
+		animation->data = (uint8_t*)OpenSpace( NULL, animation->name, &animation->length);
 
 
 	animation->current_index = 0;
@@ -154,7 +154,7 @@ mng_uint32 MNG_DECL my_mng_gettickcount (mng_handle hHandle )
 }
 
 //---------------------------------------------------------------------------
-void CPROC MNGTimer( PTRSZVAL psv )
+void CPROC MNGTimer( uintptr_t psv )
 /*
 Called when prcessing needs to be resumed
 */
@@ -310,7 +310,7 @@ Set timer to resume playing animation
 	PMNG_ANIMATION animation = (PMNG_ANIMATION)mng_get_userdata( hHandle );
 
 	if( animation->timer == 0 )
-		animation->timer = AddTimer( timeout, MNGTimer, (PTRSZVAL)animation );
+		animation->timer = AddTimer( timeout, MNGTimer, (uintptr_t)animation );
 	else
 		RescheduleTimerEx( animation->timer, timeout );
 
@@ -318,7 +318,7 @@ Set timer to resume playing animation
 }
 
 /*
-static PTRSZVAL CPROC ThreadRunAnuimation( PTHREAD thread )
+static uintptr_t CPROC ThreadRunAnuimation( PTHREAD thread )
 {
 	PMNG_ANIMATION animation = (PMNG_ANIMATION)thread->param;	
 
@@ -405,7 +405,7 @@ x,y,w,h		- pley window (intershell coords)
 		//      mng_set_storechunks(animation->handle, MNG_FALSE);
 
 
-//			ThreadTo( ThreadRunAnuimation, (PTRSZVAL)animation );
+//			ThreadTo( ThreadRunAnuimation, (uintptr_t)animation );
 
 		mng_readdisplay( animation->handle );            
 		animation->flags.initialized = 1;

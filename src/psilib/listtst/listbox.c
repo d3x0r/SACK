@@ -13,7 +13,7 @@ PCONTROL pcList, pcTree, pcText;
 
 
 
-void CPROC AddItem( PTRSZVAL psvEdit, PCONTROL pc )
+void CPROC AddItem( uintptr_t psvEdit, PCONTROL pc )
 {
 	PCONTROL edit = (PCONTROL)psvEdit;
 	TEXTCHAR msg[256];
@@ -27,7 +27,7 @@ void CPROC AddItem( PTRSZVAL psvEdit, PCONTROL pc )
 PSI_CONTROL CreateListTester( PSI_CONTROL parent )
 {
 	int n;
-	_32 used, free, blocks, freeblocks;
+	uint32_t used, free, blocks, freeblocks;
    	PCOMMON pf;
 	GetMemStats( &free, &used, &blocks, &freeblocks );
 
@@ -62,7 +62,7 @@ PSI_CONTROL CreateListTester( PSI_CONTROL parent )
 	}
 	*/
 	MakeButton( pf, 5, 180, 70, 18, BTN_ADD, WIDE("Add Item"), 0, AddItem,
-				  (PTRSZVAL)MakeEditControl( pf, 5, 160, 140, 16, EDT_NEWTEXT, WIDE("New Item"), 0 ) );
+				  (uintptr_t)MakeEditControl( pf, 5, 160, 140, 16, EDT_NEWTEXT, WIDE("New Item"), 0 ) );
    pcText = MakeTextControl( pf, 5, 203, 140, 18, TXT_TEST, WIDE("text to change"), 0 );
    pcTree = MakeListBox( pf, 150, 5, 200, 150, LST_TREE, LISTOPT_TREE );
    SetListboxIsTree( pcTree, TRUE );

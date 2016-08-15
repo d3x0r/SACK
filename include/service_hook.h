@@ -35,7 +35,7 @@ SERVICE_EXPORT void SetupServiceEx( TEXTSTR name, void (CPROC*Start)( void ), vo
 
 // setup a service of a certain name.  The startthread begins when the service starts.
 // the start routine thread can wait indefinately.
-SERVICE_EXPORT void SetupServiceThread( TEXTSTR name, PTRSZVAL (CPROC*Start)( PTHREAD ), PTRSZVAL psv );
+SERVICE_EXPORT void SetupServiceThread( TEXTSTR name, uintptr_t (CPROC*Start)( PTHREAD ), uintptr_t psv );
 
 // install the current executable as a service of the specified name.  (and starts the service)
 SERVICE_EXPORT void ServiceInstall( CTEXTSTR ServiceName );
@@ -50,7 +50,7 @@ SERVICE_EXPORT PTASK_INFO LaunchUserProcess( CTEXTSTR program, CTEXTSTR path, PC
 									 , int flags
 									 , TaskOutput OutputHandler
 									 , TaskEnd EndNotice
-									 , PTRSZVAL psv
+									 , uintptr_t psv
 									  DBG_PASS
 														 );
 

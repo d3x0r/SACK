@@ -12,12 +12,12 @@ PRELOAD( InitCalculator )
 
 }
 
-static void CPROC Easter1( PTRSZVAL psv )
+static void CPROC Easter1( uintptr_t psv )
 {
 	BannerMessage( WIDE("Enabled Sequence 1") );
 }
 
-static void CPROC Easter2( PTRSZVAL psv )
+static void CPROC Easter2( uintptr_t psv )
 {
 	BannerMessage( WIDE("Enabled Sequence 2") );
 }

@@ -13,7 +13,7 @@
 PSI_CONSOLE_NAMESPACE
 //----------------------------------------------------------------------------
 
-static void AddUpdateRegion( PPENDING_RECT update_rect, S_32 x, S_32 y, _32 wd, _32 ht )
+static void AddUpdateRegion( PPENDING_RECT update_rect, int32_t x, int32_t y, uint32_t wd, uint32_t ht )
 {
 #ifdef __LINUX__
 	if( !update_rect->flags.bTmpRect )
@@ -782,7 +782,7 @@ PSI_Console_Phrase PSI_WinLogicWriteEx( PCONSOLE_INFO pmdp
 
 		if( pLine->flags & TF_FORMATABS )
 		{
-			S_32 cursorx, cursory;
+			int32_t cursorx, cursory;
 			//lprintf( WIDE("absolute position format.") );
 			GetHistoryCursorPos( pmdp->pCursor, &cursorx, &cursory );
 			if( pLine->format.position.coords.x != -16384 )
@@ -796,7 +796,7 @@ PSI_Console_Phrase PSI_WinLogicWriteEx( PCONSOLE_INFO pmdp
 		}
 		if( pLine->flags & TF_FORMATREL )
 		{
-			S_32 cursorx, cursory;
+			int32_t cursorx, cursory;
 			//lprintf( WIDE("relative position format") );
 			GetHistoryCursorPos( pmdp->pCursor, &cursorx, &cursory );
 			cursorx += pLine->format.position.coords.x;
@@ -840,7 +840,7 @@ PSI_Console_Phrase PSI_WinLogicWriteEx( PCONSOLE_INFO pmdp
 
 //----------------------------------------------------------------------------
 
-int GetCharFromLine( PCONSOLE_INFO console, _32 cols
+int GetCharFromLine( PCONSOLE_INFO console, uint32_t cols
 						, PDISPLAYED_LINE pLine
 						, int nChar, TEXTCHAR *result )
 {
@@ -849,9 +849,9 @@ int GetCharFromLine( PCONSOLE_INFO console, _32 cols
 	{
 		PTEXT pText = pLine->start;
 		int nOfs = 0, nSegShown = pLine->nFirstSegOfs;
-		_32 seg_len;
-		_32 nShown = 0; 
-		_32 col_offset = 0;
+		uint32_t seg_len;
+		uint32_t nShown = 0; 
+		uint32_t col_offset = 0;
 		nLen = pLine->nToShow ;// ComputeToShow( cols, &col_offset, pText, GetTextSize( pText ), nOfs, nShown, console->pCurrentDisplay );
 		while( pText )
 		{
@@ -941,7 +941,7 @@ TEXTCHAR *PSI_GetDataFromBlock( PCONSOLE_INFO pdp )
 										 : ( line == line_end ? (col_end)
 												: ( pdl->nToShow - col_start ) );
 				for( ;
-					 (S_64)col < end_count;
+					 (int64_t)col < end_count;
 					 col++ )
 				{
 					if( GetCharFromLine( pdp, pdp->nColumns, pdl, col, result + ofs ) )
@@ -1211,7 +1211,7 @@ int PSI_UpdateHistory( PCONSOLE_INFO pdp )
 			extern PSIKEYDEFINE ConsoleKeyDefs[];
 			lprintf( WIDE("key end command line now... please do renderings..") );
 			{
-				int KeyEndCmd( PTRSZVAL list, PUSER_INPUT_BUFFER pci );
+				int KeyEndCmd( uintptr_t list, PUSER_INPUT_BUFFER pci );
 
 				ConsoleKeyDefs[KEY_END].op[0].bFunction = COMMANDKEY;
 				ConsoleKeyDefs[KEY_END].op[0].data.CommandKey = KeyEndCmd;

@@ -3,7 +3,7 @@
 #include <network.h>
 
 
-void PingResult( _32 dwIP, CTEXTSTR name
+void PingResult( uint32_t dwIP, CTEXTSTR name
 						, int min, int max, int avg
 						, int drop, int hops )
 {
@@ -22,12 +22,12 @@ SaneWinMain( argc, argv )
    NetworkWait(NULL,2000,4);
 	{
 		TEXTCHAR address[256];
-		_32 IP;
+		uint32_t IP;
 		IP = inet_addr(CStrDup(argv[1]));
 		IP = ntohl( IP );
 		for( ; ( IP & 0xFFff ) != 0xFFFF ; IP++ )
 		{
-			_32 junk = htonl(IP);
+			uint32_t junk = htonl(IP);
 			StrCpy( address, DupCStr( inet_ntoa( *(struct in_addr*)&junk ) ) );
 			//printf( WIDE("Trying %s...\n"), address );
 			 DoPing( address, 

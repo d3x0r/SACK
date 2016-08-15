@@ -71,7 +71,7 @@ PRIORITY_PRELOAD( CreateFontRenderGlobal, IMAGE_PRELOAD_PRIORITY )
 void PrintLeadinJS( CTEXTSTR name, SFTFont font, int bits )
 {
 	//fprintf( output, WIDE( "var font = {};\n" ) );
-_32 i;
+uint32_t i;
 	fprintf( output, WIDE( "var font = { \nheight:%d, baseline:%d, flags:%d, characters:[")
 	       , font->height 
 	       , font->baseline
@@ -294,7 +294,7 @@ int PrintChar( int bits, int charnum, PCHARACTER character, int height )
 void PrintFontTable( CTEXTSTR name, PFONT font )
 {
 	int idx;
-	_32 i, maxwidth;
+	uint32_t i, maxwidth;
 	idx = 0;
 	maxwidth = 0;
 	for( i = 0; i < font->characters; i++ )
@@ -371,7 +371,7 @@ void DumpFontFile( CTEXTSTR name, SFTFont font_to_dump )
 		output = sack_fopen( 0, name, WIDE("wt") );
 		if( output )
 		{
-			_32 charid;
+			uint32_t charid;
 			for	( charid = 0; charid < font_to_dump->characters; charid++ )
 			{
 				PCHARACTER character;
@@ -385,7 +385,7 @@ void DumpFontFile( CTEXTSTR name, SFTFont font_to_dump )
 					//		: (font->flags&3)==FONT_FLAG_8BIT?8
 				//			: 1 );
 			{
-				_32 tmp = 0;
+				uint32_t tmp = 0;
 				for	( charid = 0; charid < font_to_dump->characters; charid++ )
 				{
 					PCHARACTER character;
@@ -412,11 +412,11 @@ void DumpFontFile( CTEXTSTR name, SFTFont font_to_dump )
 
 struct font_renderer_tag {
 	TEXTCHAR *file;
-	S_32 nWidth;
-	S_32 nHeight;
+	int32_t nWidth;
+	int32_t nHeight;
 	FRACTION width_scale;
 	FRACTION height_scale;
-	_32 flags; // whether to render 1(0/1), 2(2), 8(3) bits, ...
+	uint32_t flags; // whether to render 1(0/1), 2(2), 8(3) bits, ...
 	POINTER ResultData; // data that was resulted for creating this font.
 	size_t ResultDataLen;
 	POINTER font_memory;
@@ -655,8 +655,8 @@ Image AllocateCharacterSpaceByFont( Image image, SFTFont font, PCHARACTER charac
 //-------------------------------------------------------------------------
 
 #define TOSCALED(n) ((n)<<6)
-#define CEIL(n)  ((S_16)((((n) + 63 )&(-64)) >> 6))
-#define FLOOR(n) ((S_16)(((n) & (-64)) >> 6))
+#define CEIL(n)  ((int16_t)((((n) + 63 )&(-64)) >> 6))
+#define FLOOR(n) ((int16_t)(((n) & (-64)) >> 6))
 
 #define BITMAP_MASK(buf,n)  (buf[((n)/8)] & (0x80U >> ( (n) & 7 )))
 
@@ -859,8 +859,8 @@ void RenderMonoChar( PFONT font
 			charright ++; // add one back in... so we have a delta between left and right
 			//Log2( WIDE("Reduced char right size %d to %d"), charright, charright - charleft );
 
-			character->offset = (_8)charleft;
-			character->size = (_8)(charright - charleft);
+			character->offset = (uint8_t)charleft;
+			character->size = (uint8_t)(charright - charleft);
 
 			//Log7( WIDE("(%d(%c)) Character parameters: %d %d %d %d %d")
 			//	 , idx, idx< 32 ? ' ':idx
@@ -905,7 +905,7 @@ void RenderGreyChar( PFONT font
 						 , FT_Glyph_Metrics *metrics
 						 , FT_Int left_ofs
 						 , FT_Int width
-						 , _32 bits // 2 or 8
+						 , uint32_t bits // 2 or 8
 						 )
 {
 	//lprintf( WIDE("Rending char %d bits %d"), idx, bits );
@@ -1088,8 +1088,8 @@ void RenderGreyChar( PFONT font
 		charright ++; // add one back in... so we have a delta between left and right
 		//Log2( WIDE("Reduced char right size %d to %d"), charright, charright - charleft );
 
-		character->offset = (_8)charleft;
-		character->size = (_8)(charright - charleft);
+		character->offset = (uint8_t)charleft;
+		character->size = (uint8_t)(charright - charleft);
 
 		{
 			unsigned char *outdata;
@@ -1323,8 +1323,8 @@ void RenderColorChar( PFONT font
 		charright ++; // add one back in... so we have a delta between left and right
 		//Log2( WIDE("Reduced char right size %d to %d"), charright, charright - charleft );
 
-		character->offset = (_8)charleft;
-		character->size = (_8)(charright - charleft);
+		character->offset = (uint8_t)charleft;
+		character->size = (uint8_t)(charright - charleft);
 
 		{
 			unsigned char *outdata;
@@ -1698,11 +1698,11 @@ static SFTFont DoInternalRenderFontFile( PFONT_RENDERER renderer )
 }
 
 SFTFont InternalRenderFontFile( CTEXTSTR file
-										, S_32 nWidth
-										, S_32 nHeight
+										, int32_t nWidth
+										, int32_t nHeight
 										, PFRACTION width_scale
 										, PFRACTION height_scale
-										, _32 flags // whether to render 1(0/1), 2(2), 8(3) bits, ...
+										, uint32_t flags // whether to render 1(0/1), 2(2), 8(3) bits, ...
 										)
 {
 	int error;
@@ -1890,9 +1890,9 @@ try_another_default:
 }
 
 
-int RecheckCache( CTEXTSTR entry, _32 *pe
-					 , CTEXTSTR style, _32 *ps
-					 , CTEXTSTR filename, _32 *psf );
+int RecheckCache( CTEXTSTR entry, uint32_t *pe
+					 , CTEXTSTR style, uint32_t *ps
+					 , CTEXTSTR filename, uint32_t *psf );
 
 SFTFont RenderScaledFontData( PFONTDATA pfd, PFRACTION width_scale, PFRACTION height_scale )
 {
@@ -2003,7 +2003,7 @@ SFTFont RenderScaledFontData( PFONTDATA pfd, PFRACTION width_scale, PFRACTION he
 		PFONT_ENTRY pfe = NULL;
 		int family_idx;
       SFTFont result_font;
-		for( family_idx = 0; SUS_LT( family_idx, int, fg.nFonts, _32 ); family_idx++ )
+		for( family_idx = 0; SUS_LT( family_idx, int, fg.nFonts, uint32_t ); family_idx++ )
 		{
 			pfe = fg.pFontCache + family_idx;
 			if( StrCaseCmp( pfe->name, prfd->filename ) == 0 )
@@ -2032,14 +2032,14 @@ SFTFont RenderScaledFontData( PFONTDATA pfd, PFRACTION width_scale, PFRACTION he
 	return NULL;
 }
 
-SFTFont InternalRenderFont( _32 nFamily
-								  , _32 nStyle
-								  , _32 nFile
-								  , S_32 nWidth
-								  , S_32 nHeight
+SFTFont InternalRenderFont( uint32_t nFamily
+								  , uint32_t nStyle
+								  , uint32_t nFile
+								  , int32_t nWidth
+								  , int32_t nHeight
 								  , PFRACTION width_scale
 								  , PFRACTION height_scale
-								  , _32 flags
+								  , uint32_t flags
 								  )
 {
 	PFONT_ENTRY pfe = fg.pFontCache + nFamily;
@@ -2105,9 +2105,9 @@ void DestroyFont( SFTFont *font )
 
 //-------------------------------------------------------------------------
 
-int RecheckCache( CTEXTSTR entry, _32 *pe
-					 , CTEXTSTR style, _32 *ps
-					 , CTEXTSTR filename, _32 *psf )
+int RecheckCache( CTEXTSTR entry, uint32_t *pe
+					 , CTEXTSTR style, uint32_t *ps
+					 , CTEXTSTR filename, uint32_t *psf )
 {
 	INDEX n;
 	for( n = 0; n < fg.nFonts; n++ )
@@ -2132,9 +2132,9 @@ int RecheckCache( CTEXTSTR entry, _32 *pe
 						//lprintf( "    (3) is %s==%s (%s)", fg.pFontCache[n].styles[s].files[sf].file, file, filename );
 						if( strcmp( fg.pFontCache[n].styles[s].files[sf].file, file ) == 0 )
 						{
-							(*pe) = (_32)n;
-							(*ps) = (_32)s;
-							(*psf) = (_32)sf;
+							(*pe) = (uint32_t)n;
+							(*ps) = (uint32_t)s;
+							(*psf) = (uint32_t)sf;
 							return TRUE;
 						}
 					}
@@ -2162,7 +2162,7 @@ void SetFontRendererData( SFTFont font, POINTER pResult, size_t size )
 	}
 }
 
-SFTFont RenderFontFileScaledEx( CTEXTSTR file, _32 width, _32 height, PFRACTION width_scale, PFRACTION height_scale, _32 flags, size_t * size, POINTER *pFontData )
+SFTFont RenderFontFileScaledEx( CTEXTSTR file, uint32_t width, uint32_t height, PFRACTION width_scale, PFRACTION height_scale, uint32_t flags, size_t * size, POINTER *pFontData )
 {
 	POINTER save_data;
 	size_t save_size;
@@ -2197,18 +2197,18 @@ SFTFont RenderFontFileScaledEx( CTEXTSTR file, _32 width, _32 height, PFRACTION 
 	return font;
 }
 #undef RenderFontFileEx
-SFTFont RenderFontFileEx( CTEXTSTR file, _32 width, _32 height, _32 flags, size_t * size, POINTER *pFontData )
+SFTFont RenderFontFileEx( CTEXTSTR file, uint32_t width, uint32_t height, uint32_t flags, size_t * size, POINTER *pFontData )
 {
 	return RenderFontFileScaledEx( file, width, height, NULL, NULL, flags, size, pFontData );
 }
 
 #undef RenderFontFile
-SFTFont RenderFontFile( CTEXTSTR file, _32 width, _32 height, PFRACTION width_scale, PFRACTION height_scale, _32 flags )
+SFTFont RenderFontFile( CTEXTSTR file, uint32_t width, uint32_t height, PFRACTION width_scale, PFRACTION height_scale, uint32_t flags )
 {
 	return InternalRenderFontFile( file, width, height, width_scale, height_scale, flags );
 }
 
-SFTFont RenderScaledFontEx( CTEXTSTR name, _32 width, _32 height, PFRACTION width_scale, PFRACTION height_scale, _32 flags, size_t *pnFontDataSize, POINTER *pFontData )
+SFTFont RenderScaledFontEx( CTEXTSTR name, uint32_t width, uint32_t height, PFRACTION width_scale, PFRACTION height_scale, uint32_t flags, size_t *pnFontDataSize, POINTER *pFontData )
 {
 	SFTFont font;
 	PFONT_ENTRY pfe;
@@ -2231,7 +2231,7 @@ SFTFont RenderScaledFontEx( CTEXTSTR name, _32 width, _32 height, PFRACTION widt
 	}
 	if( family_idx < fg.nFonts )
 	{
-		SFTFont return_font = InternalRenderFont( (_32)family_idx
+		SFTFont return_font = InternalRenderFont( (uint32_t)family_idx
 														 , 0
 															 , 0
 															 , width
@@ -2292,7 +2292,7 @@ SFTFont RenderScaledFontEx( CTEXTSTR name, _32 width, _32 height, PFRACTION widt
 }
 
 #undef RenderScaledFont
-SFTFont RenderScaledFont( CTEXTSTR name, _32 width, _32 height, PFRACTION width_scale, PFRACTION height_scale, _32 flags )
+SFTFont RenderScaledFont( CTEXTSTR name, uint32_t width, uint32_t height, PFRACTION width_scale, PFRACTION height_scale, uint32_t flags )
 {
 	return RenderScaledFontEx(name,width,height,width_scale,height_scale,flags,NULL,NULL);
 }
@@ -2300,7 +2300,7 @@ SFTFont RenderScaledFont( CTEXTSTR name, _32 width, _32 height, PFRACTION width_
 
 int GetFontRenderData( SFTFont font, POINTER *fontdata, size_t *fontdatalen )
 {
-	// set pointer and _32 datalen passed by address
+	// set pointer and uint32_t datalen passed by address
 	// with the font descriptor block that was used to
 	// create the font (there's always something like that)
 	PFONT_RENDERER renderer = NULL;
@@ -2322,7 +2322,7 @@ int GetFontRenderData( SFTFont font, POINTER *fontdata, size_t *fontdatalen )
 	return FALSE;
 }
 
-void RerenderFont( SFTFont font, S_32 width, S_32 height, PFRACTION width_scale, PFRACTION height_scale )
+void RerenderFont( SFTFont font, int32_t width, int32_t height, PFRACTION width_scale, PFRACTION height_scale )
 {
 	PFONT_RENDERER renderer;
 	INDEX idx;
@@ -2332,7 +2332,7 @@ void RerenderFont( SFTFont font, S_32 width, S_32 height, PFRACTION width_scale,
 	{
 		if( renderer->font == font )
 		{
-			_32 n;
+			uint32_t n;
 			for( n = 0; n < font->characters; n++ )
 			{
 				if( renderer->font->character[n] )

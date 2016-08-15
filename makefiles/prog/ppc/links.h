@@ -3,9 +3,9 @@
 
 #include "./types.h"
 
-//PDATA CreateData( _32 size );
+//PDATA CreateData( uint32_t size );
 //PDATA CreateDataFromText( char *pData );
-//PDATA ExpandData( PDATA pData, _32 amount );
+//PDATA ExpandData( PDATA pData, uint32_t amount );
 //PDATA DuplicateData( PDATA pData );
 
 //void ReleaseData( PDATA pd );

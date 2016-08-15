@@ -7,11 +7,11 @@
 //void SetName( PNAME name, char *text );
 
 //void DeleteName( INDEX iWorld, INDEX iName );
-//WORLD_PROC( PTRSZVAL, DeleteName )( PNAME name, PNAMESET set );
+//WORLD_PROC( uintptr_t, DeleteName )( PNAME name, PNAMESET set );
 //void DeleteNames( PNAMESET *ppNames );
 
 //void GetNameText( char *text, PNAME name );
 
-INDEX SrvrMakeName( _32 client_id, INDEX iWorld, CTEXTSTR text );
+INDEX SrvrMakeName( uint32_t client_id, INDEX iWorld, CTEXTSTR text );
 
 #endif

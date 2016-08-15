@@ -33,7 +33,7 @@ PRELOAD( LoadInterface )
 	l.label_active_display = CreateLabelVariable( WIDE( "<Video/Active Display>"), LABEL_TYPE_PROC, GetActiveDisplay );
 }
 
-static PTRSZVAL OnCreateMenuButton( WIDE( "Test Video Player Load" ) )( PMENU_BUTTON button )
+static uintptr_t OnCreateMenuButton( WIDE( "Test Video Player Load" ) )( PMENU_BUTTON button )
 {
 	struct my_button *me = New( struct my_button );
 	MemSet( me, 0, sizeof( struct my_button ) );
@@ -41,7 +41,7 @@ static PTRSZVAL OnCreateMenuButton( WIDE( "Test Video Player Load" ) )( PMENU_BU
 	me->button = button;
 	me->file = NULL;
 	AddLink( &l.buttons, me );
-	return (PTRSZVAL)me;
+	return (uintptr_t)me;
 }
 
 struct GetDisplayParams
@@ -49,7 +49,7 @@ struct GetDisplayParams
 	PRENDERER result;
 };
 
-static PRENDERER CPROC GetDisplay( PTRSZVAL psv, _32 w, _32 h )
+static PRENDERER CPROC GetDisplay( uintptr_t psv, uint32_t w, uint32_t h )
 {
 	struct GetDisplayParams *p = (struct GetDisplayParams*)psv;
 
@@ -93,7 +93,7 @@ static PRENDERER CPROC GetDisplay( PTRSZVAL psv, _32 w, _32 h )
 }
 
 /* tick is from 0-1000000000  as 0-1.0 or 0-100% */
-static void CPROC UpdateCallback( PTRSZVAL psv, _64 tick )
+static void CPROC UpdateCallback( uintptr_t psv, uint64_t tick )
 {
 	UpdatePositionCallback(  psv, tick );
 }
@@ -103,16 +103,16 @@ static void CPROC VideoError( CTEXTSTR message )
    CreateBanner2Ex( NULL, NULL, message, BANNER_ALPHA|BANNER_NOWAIT|BANNER_CLICK|BANNER_TOP|BANNER_TIMEOUT, 5000 );
 }
 
-static void CPROC VideoEndedCallback( PTRSZVAL psv )
+static void CPROC VideoEndedCallback( uintptr_t psv )
 {
 	struct my_button *me = ( struct my_button *)psv;
 	HideDisplay( me->render );
 	SuspendSystemSleep( 0 );
 }
 
-static PTRSZVAL CPROC LoadMovieThread( PTHREAD thread )
+static uintptr_t CPROC LoadMovieThread( PTHREAD thread )
 {
-	PTRSZVAL psv_button = GetThreadParam( thread );
+	uintptr_t psv_button = GetThreadParam( thread );
 	struct my_button *me = ( struct my_button *)psv_button;
 	struct GetDisplayParams params;
 		TEXTSTR files[] = { 
@@ -147,10 +147,10 @@ static PTRSZVAL CPROC LoadMovieThread( PTHREAD thread )
 		 , "E:/downloads/The.Big.Bang.Theory.S07E04.HDTV.XviD-AFG/The.Big.Bang.Theory.S07E04.HDTV.XviD-AFG.avi"
 		 , "E:/downloads/Breaking.Bad.S05E10.HDTV.x264-ASAP/Breaking.Bad.S05E10.HDTV.x264-ASAP.mp4"
 		};
-			me->file = ffmpeg_LoadFile( files[me->ID], GetDisplay, (PTRSZVAL)&params
+			me->file = ffmpeg_LoadFile( files[me->ID], GetDisplay, (uintptr_t)&params
 				, NULL
-											  , UpdateCallback, (PTRSZVAL)me
-											  , VideoEndedCallback, (PTRSZVAL)me
+											  , UpdateCallback, (uintptr_t)me
+											  , VideoEndedCallback, (uintptr_t)me
 											  , VideoError
 											  );
 		if( me->file )
@@ -169,7 +169,7 @@ static PTRSZVAL CPROC LoadMovieThread( PTHREAD thread )
 
 }
 
-static void OnKeyPressEvent( WIDE( "Test Video Player Load" ) )( PTRSZVAL psv_button )
+static void OnKeyPressEvent( WIDE( "Test Video Player Load" ) )( uintptr_t psv_button )
 {
 	struct my_button *me = ( struct my_button *)psv_button;
 	//struct GetDisplayParams params;
@@ -177,12 +177,12 @@ static void OnKeyPressEvent( WIDE( "Test Video Player Load" ) )( PTRSZVAL psv_bu
 	{
       lprintf( "Set suspend sleep here.." );
 		SuspendSystemSleep( 1 );
-		ThreadTo( LoadMovieThread, (PTRSZVAL)me );
+		ThreadTo( LoadMovieThread, (uintptr_t)me );
       lprintf( ".." );
 		/*
-		me->file = ffmpeg_LoadFile( files[me->ID], GetDisplay, (PTRSZVAL)&params
-			, UpdateCallback, (PTRSZVAL)me 
-			, VideoEndedCallback, (PTRSZVAL)me );
+		me->file = ffmpeg_LoadFile( files[me->ID], GetDisplay, (uintptr_t)&params
+			, UpdateCallback, (uintptr_t)me 
+			, VideoEndedCallback, (uintptr_t)me );
 		if( me->file )
 		{
 			AddLink( &l.active_files, me->file );
@@ -199,32 +199,32 @@ static void OnKeyPressEvent( WIDE( "Test Video Player Load" ) )( PTRSZVAL psv_bu
 	}
 }
 
-static PTRSZVAL OnCreateMenuButton( WIDE( "Test Video Player Set Display" ) )( PMENU_BUTTON button )
+static uintptr_t OnCreateMenuButton( WIDE( "Test Video Player Set Display" ) )( PMENU_BUTTON button )
 {
 	struct my_button *me = New( struct my_button );
 	MemSet( me, 0, sizeof( struct my_button ) );
 	me->ID = l.button_display_id++;
 	me->button = button;
-	return (PTRSZVAL)me;
+	return (uintptr_t)me;
 }
 
-static void OnKeyPressEvent( WIDE( "Test Video Player Set Display" ) )( PTRSZVAL psv_button )
+static void OnKeyPressEvent( WIDE( "Test Video Player Set Display" ) )( uintptr_t psv_button )
 {
 	struct my_button *me = ( struct my_button *)psv_button;
 	l.full_display = me->ID;
 	LabelVariableChanged( l.label_active_display );
 }
 
-static PTRSZVAL OnCreateMenuButton( WIDE( "Test Video Player Pause" ) )( PMENU_BUTTON button )
+static uintptr_t OnCreateMenuButton( WIDE( "Test Video Player Pause" ) )( PMENU_BUTTON button )
 {
 	struct my_button *me = New( struct my_button );
 	MemSet( me, 0, sizeof( struct my_button ) );
 	me->ID = l.button_pause_id++;
 	me->button = button;
-	return (PTRSZVAL)me;
+	return (uintptr_t)me;
 }
 
-static void OnKeyPressEvent( WIDE( "Test Video Player Pause" ) )( PTRSZVAL psv_button )
+static void OnKeyPressEvent( WIDE( "Test Video Player Pause" ) )( uintptr_t psv_button )
 {
 	struct my_button *me = ( struct my_button *)psv_button;
 	INDEX idx;
@@ -242,15 +242,15 @@ static void OnKeyPressEvent( WIDE( "Test Video Player Pause" ) )( PTRSZVAL psv_b
 }
 
 
-static PTRSZVAL OnCreateMenuButton( WIDE( "Test Video Player Stop" ) )( PMENU_BUTTON button )
+static uintptr_t OnCreateMenuButton( WIDE( "Test Video Player Stop" ) )( PMENU_BUTTON button )
 {
 	struct my_button *me = New( struct my_button );
 	me->ID = l.button_stop_id++;
 	me->button = button;
-	return (PTRSZVAL)me;
+	return (uintptr_t)me;
 }
 
-static void OnKeyPressEvent( WIDE( "Test Video Player Stop" ) )( PTRSZVAL psv_button )
+static void OnKeyPressEvent( WIDE( "Test Video Player Stop" ) )( uintptr_t psv_button )
 {
 	struct my_button *me = ( struct my_button *)psv_button;
 	INDEX idx;

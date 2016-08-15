@@ -43,7 +43,7 @@ static DCB stDcb;
 
 typedef struct callback_tag {
 	CommReadCallback func;
-	PTRSZVAL psvUserRead;
+	uintptr_t psvUserRead;
 	int iTimer;
 	struct callback_tag *next, **me;
 	struct {
@@ -71,12 +71,12 @@ typedef struct com_tracking_tag {
 		char mybuffer[1024];
 		char *buffer;
 		int len;
-		_32 timeout;
+		uint32_t timeout;
 		  // this time will be set initially when the read starts, 
 		  // and will never be surpassed.
-		_32 dwEnd; // this is the presence of info here indicator.
+		uint32_t dwEnd; // this is the presence of info here indicator.
 		int *pnCharsRead;
-		_32 dwLastRead; // minor delay to glob reads...
+		uint32_t dwLastRead; // minor delay to glob reads...
 		int nTotalRead; // current accumulator of total read.
 	} current;
 	PCHANNEL_CALLBACK callbacks;
@@ -118,7 +118,7 @@ static void LocalInit( void )
 //-----------------------------------------------------------------------
  int  ReadComm ( int nCom, POINTER buffer, int nSize )
 {
-	_32 nRead = 0;
+	uint32_t nRead = 0;
 	char *pBytes = (char*)buffer;
 	int offset = 0;
 	OVERLAPPED ovl;
@@ -132,7 +132,7 @@ static void LocalInit( void )
    //if( gbLog )
 	//	lprintf( "Reading... %d", nSize );
 	while( offset < nSize &&
-	       ReadFile( (HANDLE)nCom, pBytes + offset, 1, &nRead, NULL ) &&
+	       ReadFile( (HANDLE)nCom, pBytes + offset, 1, (DWORD*)&nRead, NULL ) &&
 	       nRead )
 	{
 		offset += nRead;
@@ -141,9 +141,9 @@ static void LocalInit( void )
 	return nRead + offset;
 }
 //-----------------------------------------------------------------------
-int WriteComm( int nCom, POINTER buffer, _32 nSize )
+int WriteComm( int nCom, POINTER buffer, uint32_t nSize )
 {
-	_32 nWritten;
+	uint32_t nWritten;
    if( bLogDataXfer & 1 )
    {
     	int nOut = nSize;
@@ -151,14 +151,14 @@ int WriteComm( int nCom, POINTER buffer, _32 nSize )
 		#if defined( _TRACE_DATA_MIN )
 		   if( nOut > 16 ) nOut = 16;
 		#endif
-		LogBinary( (P_8)buffer, nOut );
+		LogBinary( (uint8_t*)buffer, nOut );
 	}
-	if( WriteFile( (HANDLE)nCom, buffer, nSize, &nWritten, NULL ) )
+	if( WriteFile( (HANDLE)nCom, buffer, nSize, (DWORD*)&nWritten, NULL ) )
 		return nWritten;
 	return -1;
 }
 //-----------------------------------------------------------------------
-PTRSZVAL OpenComm( CTEXTSTR name, int nInQueue, int nOutQueue )
+uintptr_t OpenComm( CTEXTSTR name, int nInQueue, int nOutQueue )
 {
    LocalInit();
 	if( gbLog )
@@ -181,7 +181,7 @@ PTRSZVAL OpenComm( CTEXTSTR name, int nInQueue, int nOutQueue )
 		SetCommTimeouts(hCom, &timeout);
 		if( gbLog )
 			Log2( WIDE("Result: %p %d"), hCom, GetLastError() );
-		return (PTRSZVAL)hCom;
+		return (uintptr_t)hCom;
 	}
 }
 //-----------------------------------------------------------------------
@@ -192,8 +192,8 @@ int CloseComm( int nDevice )
 //-----------------------------------------------------------------------
 int GetCommError( int nCom, COMSTAT *pcs )
 {
-	_32 dwErrors;
-	return ClearCommError( (HANDLE)nCom, &dwErrors, pcs );
+	uint32_t dwErrors;
+	return ClearCommError( (HANDLE)nCom, (DWORD*)&dwErrors, pcs );
 }
 //-----------------------------------------------------------------------
 int FlushComm( int nComm, int nQueues )
@@ -244,13 +244,13 @@ int FlushComm( int nComm, int nQueues )
 }
 
 //-----------------------------------------------------------------------
-int WriteComm( int nCom, POINTER buffer, _32 nSize )
+int WriteComm( int nCom, POINTER buffer, uint32_t nSize )
 {
    return write( nCom, buffer, nSize );
 }
 
 //-----------------------------------------------------------------------
-PTRSZVAL OpenComm( CTEXTSTR name, int nInQueue, int nOutQueue )
+uintptr_t OpenComm( CTEXTSTR name, int nInQueue, int nOutQueue )
 {
    LocalInit();
 	if( gbLog )
@@ -347,7 +347,7 @@ void RemoveComTracking( PCOM_TRACK pComTrack )
 
 static int 
     ParseComString ( const TEXTCHAR far *p
-                   , _32 far *pBaud
+                   , uint32_t far *pBaud
                    , int far *pPar
                    , int far *pData
                    , int far *pStop
@@ -358,9 +358,9 @@ static int
                    )
 {
   int iPar = 0, iData, iStop;
-  _32 dwBaud;
+  uint32_t dwBaud;
 //#if defined( _WIN32 ) || defined( BCC16 )
-  dwBaud = (_32)IntCreateFromText( p );
+  dwBaud = (uint32_t)IntCreateFromText( p );
   p = strchr( p, ',' );
   if ( *p != ',' )
   {
@@ -628,7 +628,7 @@ static int
       }
       break; 
   }
-  if ( pBaud ) *pBaud = (_32)dwBaud;
+  if ( pBaud ) *pBaud = (uint32_t)dwBaud;
   if ( pPar ) *pPar = iPar;
   if ( pData ) *pData = iData;
   if ( pStop ) *pStop = iStop;
@@ -640,14 +640,14 @@ static int
 
 int iTimerId;
 #if defined _WIN32 || defined( __LINUX__ )
-static void CPROC ReadTimer( PTRSZVAL psv )
+static void CPROC ReadTimer( uintptr_t psv )
 #else
 CALLBACKPROC( void, ReadTimer)( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam )
 #endif
 {
 	PCOM_TRACK pct;
-	//static _32 timer_ticks;
-   static _32 start;
+	//static uint32_t timer_ticks;
+   static uint32_t start;
 	for( pct = pTracking; pct; pct = pct->next )
 	{
 		if( pct->flags.bOutputOnly )
@@ -691,7 +691,7 @@ issue_callbacks:
 					if( bLogDataXfer & 2 )
 					{
 						lprintf( WIDE("COM Receive") );
-						LogBinary( (P_8)pct->pReadBuffer
+						LogBinary( (uint8_t*)pct->pReadBuffer
 								  , pct->nReadLen );
 					}
 				}
@@ -732,7 +732,7 @@ issue_callbacks:
 
 //-----------------------------------------------------------------------
 
-PTRSZVAL CPROC ReadThread( PTHREAD thread )
+uintptr_t CPROC ReadThread( PTHREAD thread )
 {
    iTimerId = 1;
 	while( 1 )
@@ -761,9 +761,9 @@ void DumpTermios( struct termios *opts )
 
 //-----------------------------------------------------------------------
 
- int  SackOpenCommEx(CTEXTSTR szPort, _32 uiRcvQ, _32 uiSendQ
+ int  SackOpenCommEx(CTEXTSTR szPort, uint32_t uiRcvQ, uint32_t uiSendQ
               , CommReadCallback func
-              , PTRSZVAL psvRead
+              , uintptr_t psvRead
                   )
 {
 #ifdef USE_REAL_FUNCTIONS
@@ -771,7 +771,7 @@ void DumpTermios( struct termios *opts )
    LocalInit();
 	{
 	  int iPar, iData, iStop, iCarrier, iRTS, iRTSFlow;
-	  _32 wBaud;
+	  uint32_t wBaud;
 	  const TEXTCHAR far *szErr;
 	  TEXTCHAR szInit[64];
 	  // capital letters on carrier, rts, rtsflow mean to enable - otherwise
@@ -823,7 +823,7 @@ void DumpTermios( struct termios *opts )
 		}
 		else
 		{
-			PTRSZVAL iCommId = OpenComm( szPort, uiRcvQ, uiSendQ );
+			uintptr_t iCommId = OpenComm( szPort, uiRcvQ, uiSendQ );
 			if( gbLog )
 				lprintf( WIDE("attempted to open: %s result %d"), szPort, iCommId );
 			if( (int)iCommId >= 0 )
@@ -964,7 +964,7 @@ void DumpTermios( struct termios *opts )
 
  void  SackSetReadCallback ( int iCommId
                                           , CommReadCallback f
-              										, PTRSZVAL psvRead )
+              										, uintptr_t psvRead )
 {
 	PCOM_TRACK pct;
 	pct = FindComByNumber( iCommId );
@@ -1130,7 +1130,7 @@ void DumpTermios( struct termios *opts )
 //-----------------------------------------------------------------------
 
  int  SackCommReadBufferEx( int iCommId, char *buffer, int len
-												 , _32 timeout, int *pnCharsRead 
+												 , uint32_t timeout, int *pnCharsRead 
 												 DBG_PASS
 												 )
 {
@@ -1138,7 +1138,7 @@ void DumpTermios( struct termios *opts )
    int nCharsRead;
 	PCOM_TRACK pComTrack = FindComByNumber( iCommId );
 
-	_32 dwEnd = GetTickCount() + timeout;
+	uint32_t dwEnd = GetTickCount() + timeout;
 	if( !pComTrack )
 		return SACKCOMM_ERR_NOTOPEN;
 	if( pComTrack->flags.bInRead )
@@ -1216,12 +1216,12 @@ void DumpTermios( struct termios *opts )
 	{
 #ifndef __LINUX__
 #ifdef BCC16
-		_32 iEvents;
+		uint32_t iEvents;
 	   iEvents = GetCommEventMask( iCommId, 0xFFFF );
 	   if( iEvents & EV_RLSDS )
 #else
-		_32 iEvents;
-		GetCommMask( (HANDLE)iCommId, &iEvents );
+		uint32_t iEvents;
+		GetCommMask( (HANDLE)iCommId, (DWORD*)&iEvents );
 		if( !(iEvents & EV_RLSD ) )
 #endif
 	   {
@@ -1296,7 +1296,7 @@ void DumpTermios( struct termios *opts )
 #ifdef BCC_16
                , pComTrack->cs.status
 #else
-               , *(P_32)&pComTrack->cs
+               , *(uint32_t*)&pComTrack->cs
 #endif
                , pComTrack->cs.cbInQue
 					, pComTrack->cs.cbOutQue );
@@ -1322,12 +1322,12 @@ void DumpTermios( struct termios *opts )
 			{
 #ifndef __LINUX__
 #ifdef BCC16
-	   		_32 iEvents;
+	   		uint32_t iEvents;
 	   		iEvents = GetCommEventMask( iCommId, 0xFFFF );
 	   		if( !(iEvents & EV_RLSDS) )
 #else
-	   		_32 iEvents;
-				GetCommMask( (HANDLE)iCommId, &iEvents );
+	   		uint32_t iEvents;
+				GetCommMask( (HANDLE)iCommId, (DWORD*)&iEvents );
 				if( !(iEvents & EV_RLSD ) )
 #endif
 	   		{
@@ -1384,7 +1384,7 @@ void DumpTermios( struct termios *opts )
 //-----------------------------------------------------------------------
 
  int  SackCommReadDataEx( int iCommId
-												 , _32 timeout
+												 , uint32_t timeout
 												 , char **pBuffer
 												 , int *pnCharsRead 
 												 DBG_PASS
@@ -1406,12 +1406,12 @@ void DumpTermios( struct termios *opts )
 //-----------------------------------------------------------------------
 
  int  SackCommWriteBufferEx( int iCommId, char *buffer, int len
-												  , _32 timeout DBG_PASS)
+												  , uint32_t timeout DBG_PASS)
 {
 	PCOM_TRACK pComTrack = FindComByNumber( iCommId );
 	int sendofs = 0;
 	int sendlen = len;
-	_32 dwEnd = GetTickCount() + timeout;
+	uint32_t dwEnd = GetTickCount() + timeout;
 	// clear error...
     /*check for no error*/
 #ifndef __LINUX__
@@ -1481,9 +1481,9 @@ void DumpTermios( struct termios *opts )
 	}
 	{
 //#if 0
-    _32   dwTicks = GetTickCount();
-    _32   dwWaitUntilAtLeast = dwTicks + 100UL;
-    _32   dwWaitNoMoreThan   = dwTicks + 5000UL;
+    uint32_t   dwTicks = GetTickCount();
+    uint32_t   dwWaitUntilAtLeast = dwTicks + 100UL;
+    uint32_t   dwWaitNoMoreThan   = dwTicks + 5000UL;
     int     nCharsRead;
     char    cBuf[100];
     PCOM_TRACK pComTrack = FindComByNumber( nCommID );

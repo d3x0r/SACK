@@ -130,7 +130,7 @@ int CPROC MEMDUMP( PSENTIENT ps, PTEXT parameters )
 //--------------------------------------
 int CPROC MEMORY( PSENTIENT ps, PTEXT parameters )
 {
-   _32 nFree, nUsed, nChunks, nFreeChunks;
+   uint32_t nFree, nUsed, nChunks, nFreeChunks;
 	PVARTEXT vt;
 	PTEXT temp, next;
    next = GetParam( ps, &parameters );
@@ -619,7 +619,7 @@ void WriteTextFlags( PSENTIENT ps, PTEXT pSeg )
 	if( pSeg->flags & TF_PROMPT )
 		vtprintf( vt, WIDE("Prompt ") );
 	if( pSeg->flags & TF_PLUGIN )
-		vtprintf( vt, WIDE("Plugin=%02x "), (_8)(( pSeg->flags >> 24 ) & 0xff) );
+		vtprintf( vt, WIDE("Plugin=%02x "), (uint8_t)(( pSeg->flags >> 24 ) & 0xff) );
 	EnqueLink( &ps->Command->Output, VarTextGet( vt ) );
 	VarTextDestroy( &vt );
 }

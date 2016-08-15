@@ -14,7 +14,7 @@ static GLOBAL g;
 Image back;
 Image surface;
 
-void CPROC Output( PTRSZVAL psv, PRENDERER display )
+void CPROC Output( uintptr_t psv, PRENDERER display )
 {
    surface = GetDisplayImage( display );
 	BlotScaledImage( surface, back );
@@ -23,7 +23,7 @@ void CPROC Output( PTRSZVAL psv, PRENDERER display )
 
 int main( int argc, char **argv )
 {
-	_32 width, height;
+	uint32_t width, height;
 	SetSystemLog( SYSLOG_FILE, stdout );
 	g.pdi = GetDisplayInterface();
 	g.pii = GetImageInterface();

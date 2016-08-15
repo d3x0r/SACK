@@ -14,7 +14,7 @@
 
 PSI_NAMESPACE
 
-static LOGICAL CPROC FileDroppedOnFrame( PTRSZVAL psvControl, CTEXTSTR filename, S_32 x, S_32 y )
+static LOGICAL CPROC FileDroppedOnFrame( uintptr_t psvControl, CTEXTSTR filename, int32_t x, int32_t y )
 {
 	LOGICAL found = 0;
 	PSI_CONTROL frame = (PSI_CONTROL)psvControl;
@@ -30,12 +30,12 @@ static LOGICAL CPROC FileDroppedOnFrame( PTRSZVAL psvControl, CTEXTSTR filename,
 					continue;
 				if( ( x < current->original_rect.x ) || 
 					( y < current->original_rect.y ) || 
-					( SUS_GT( x, S_32, ( current->original_rect.x + current->original_rect.width ) , _32 ) ) || 
-					( SUS_GT( y, S_32, ( current->original_rect.y + current->original_rect.height ), _32 ) ) )
+					( SUS_GT( x, int32_t, ( current->original_rect.x + current->original_rect.width ) , uint32_t ) ) || 
+					( SUS_GT( y, int32_t, ( current->original_rect.y + current->original_rect.height ), uint32_t ) ) )
 				{
 					continue;
 				}
-				found = FileDroppedOnFrame( (PTRSZVAL)current, filename
+				found = FileDroppedOnFrame( (uintptr_t)current, filename
 						, x - (current->original_rect.x )
 						, y - (current->original_rect.y ) );
 			}
@@ -51,7 +51,7 @@ static LOGICAL CPROC FileDroppedOnFrame( PTRSZVAL psvControl, CTEXTSTR filename,
 
 //---------------------------------------------------------------------------
 
-static void CPROC FrameClose( PTRSZVAL psv )
+static void CPROC FrameClose( uintptr_t psv )
 {
 	PPHYSICAL_DEVICE device = (PPHYSICAL_DEVICE)psv;
 	PSI_CONTROL common;
@@ -94,7 +94,7 @@ void GetCurrentDisplaySurface( PPHYSICAL_DEVICE device )
 //---------------------------------------------------------------------------
 //---------------------------------------------------------------------------
 
-static void OnDisplaySizeChange( WIDE("PSI Controls") _WIDE( TARGETNAME ) ) ( PTRSZVAL psvFrame, int display, S_32 x, S_32 y, _32 width, _32 height )
+static void OnDisplaySizeChange( WIDE("PSI Controls") _WIDE( TARGETNAME ) ) ( uintptr_t psvFrame, int display, int32_t x, int32_t y, uint32_t width, uint32_t height )
 {
 	PPHYSICAL_DEVICE pf = (PPHYSICAL_DEVICE)psvFrame;
 	if( pf )
@@ -111,10 +111,10 @@ static void OnDisplaySizeChange( WIDE("PSI Controls") _WIDE( TARGETNAME ) ) ( PT
 
 //---------------------------------------------------------------------------
 
-static void CPROC FrameRedraw( PTRSZVAL psvFrame, PRENDERER psvSelf )
+static void CPROC FrameRedraw( uintptr_t psvFrame, PRENDERER psvSelf )
 {
 	PPHYSICAL_DEVICE pf = (PPHYSICAL_DEVICE)psvFrame;
-	_32 update = 0;
+	uint32_t update = 0;
 	PSI_CONTROL pc;
 	//lprintf( WIDE("frame %p"), pf );
 	pc = pf->common;
@@ -282,7 +282,7 @@ static void CPROC FrameRedraw( PTRSZVAL psvFrame, PRENDERER psvSelf )
 
 //---------------------------------------------------------------------------
 
-static void CPROC FrameFocusProc( PTRSZVAL psvFrame, PRENDERER loss )
+static void CPROC FrameFocusProc( uintptr_t psvFrame, PRENDERER loss )
 {
 	int added_use = 0;
 	PPHYSICAL_DEVICE frame = (PPHYSICAL_DEVICE)psvFrame;
@@ -409,7 +409,7 @@ static void CPROC FrameFocusProc( PTRSZVAL psvFrame, PRENDERER loss )
 
 //---------------------------------------------------------------------------
 
-static int CPROC FrameKeyProc( PTRSZVAL psvFrame, _32 key )
+static int CPROC FrameKeyProc( uintptr_t psvFrame, uint32_t key )
 {
 	PPHYSICAL_DEVICE pf = (PPHYSICAL_DEVICE)psvFrame;
 	//PFRAME pf = (PFRAME)psvFrame;
@@ -533,7 +533,7 @@ static void HandleDefaultSingleTouch( PSI_CONTROL canvas, PINPUT_POINT touch1, P
 	}
 }
 
-static int CPROC HandleTouch( PTRSZVAL psv, PINPUT_POINT pTouches, int nTouches )
+static int CPROC HandleTouch( uintptr_t psv, PINPUT_POINT pTouches, int nTouches )
 {
 	PPHYSICAL_DEVICE pf = (PPHYSICAL_DEVICE)psv;
 	PSI_CONTROL pc = pf->common;
@@ -560,7 +560,7 @@ static int CPROC HandleTouch( PTRSZVAL psv, PINPUT_POINT pTouches, int nTouches 
 
 //---------------------------------------------------------------------------
 
-void CPROC FrameHide( PTRSZVAL psv )
+void CPROC FrameHide( uintptr_t psv )
 {
 	PPHYSICAL_DEVICE pf = (PPHYSICAL_DEVICE)psv;
 	PSI_CONTROL pc = pf->common;
@@ -569,7 +569,7 @@ void CPROC FrameHide( PTRSZVAL psv )
 
 //---------------------------------------------------------------------------
 
-void CPROC FrameRestore( PTRSZVAL psv )
+void CPROC FrameRestore( uintptr_t psv )
 {
 	PPHYSICAL_DEVICE pf = (PPHYSICAL_DEVICE)psv;
 	PSI_CONTROL pc = pf->common;
@@ -633,7 +633,7 @@ PPHYSICAL_DEVICE OpenPhysicalDevice( PSI_CONTROL pc, PSI_CONTROL over, PRENDERER
 			if( device->pActImg )
 			{
 #ifdef WIN32
-				WinShell_AcceptDroppedFiles( device->pActImg, FileDroppedOnFrame, (PTRSZVAL)pc );
+				WinShell_AcceptDroppedFiles( device->pActImg, FileDroppedOnFrame, (uintptr_t)pc );
 #endif
 				AddLink( &g.shown_frames, pc );
 				SetRendererTitle( device->pActImg, GetText( pc->caption.text ) );
@@ -656,13 +656,13 @@ PPHYSICAL_DEVICE OpenPhysicalDevice( PSI_CONTROL pc, PSI_CONTROL over, PRENDERER
 				SizeDisplay( pActImg, pc->rect.width, pc->rect.height );
 			else
 			{
-				_32 width, height;
+				uint32_t width, height;
 				GetDisplaySizeEx( 0, NULL, NULL, &width, &height );
 				SizeCommon( pc, width, height );
 			}
 			device->pActImg = pActImg;
 #ifdef WIN32
-			WinShell_AcceptDroppedFiles( device->pActImg, FileDroppedOnFrame, (PTRSZVAL)pc );
+			WinShell_AcceptDroppedFiles( device->pActImg, FileDroppedOnFrame, (uintptr_t)pc );
 #endif
 			AddLink( &g.shown_frames, pc );
          
@@ -684,16 +684,16 @@ PPHYSICAL_DEVICE OpenPhysicalDevice( PSI_CONTROL pc, PSI_CONTROL over, PRENDERER
 		if( device->pActImg )
 		{
 			// this routine is in Mouse.c
-			SetMouseHandler( device->pActImg, AltFrameMouse, (PTRSZVAL)device );
-			SetHideHandler( device->pActImg, FrameHide, (PTRSZVAL)device );
-			SetRestoreHandler( device->pActImg, FrameRestore, (PTRSZVAL)device );
+			SetMouseHandler( device->pActImg, AltFrameMouse, (uintptr_t)device );
+			SetHideHandler( device->pActImg, FrameHide, (uintptr_t)device );
+			SetRestoreHandler( device->pActImg, FrameRestore, (uintptr_t)device );
 
-			SetCloseHandler( device->pActImg, FrameClose, (PTRSZVAL)device );
-			SetRedrawHandler( device->pActImg, FrameRedraw, (PTRSZVAL)device );
-			SetKeyboardHandler( device->pActImg, FrameKeyProc, (PTRSZVAL)device );
-			SetLoseFocusHandler( device->pActImg, FrameFocusProc, (PTRSZVAL)device );
+			SetCloseHandler( device->pActImg, FrameClose, (uintptr_t)device );
+			SetRedrawHandler( device->pActImg, FrameRedraw, (uintptr_t)device );
+			SetKeyboardHandler( device->pActImg, FrameKeyProc, (uintptr_t)device );
+			SetLoseFocusHandler( device->pActImg, FrameFocusProc, (uintptr_t)device );
 #ifndef NO_TOUCH
-			SetTouchHandler( device->pActImg, HandleTouch, (PTRSZVAL)device );
+			SetTouchHandler( device->pActImg, HandleTouch, (uintptr_t)device );
 #endif
 			// these methods should aready be set by the creation above...
 			// have to attach the mouse events to this frame...
@@ -755,12 +755,12 @@ PSI_PROC( PSI_CONTROL, AttachFrameToRenderer )( PSI_CONTROL pc, PRENDERER pActIm
 }
 
 PSI_PROC( PSI_CONTROL, CreateFrameFromRenderer )( CTEXTSTR caption
-                                           , _32 BorderTypeFlags
+                                           , uint32_t BorderTypeFlags
                                            , PRENDERER pActImg )
 {
 	PSI_CONTROL pc = NULL;
-	S_32 x, y;
-	_32 width, height;
+	int32_t x, y;
+	uint32_t width, height;
 #ifdef USE_INTERFACES
 	GetMyInterface();
 	if( !g.MyImageInterface )

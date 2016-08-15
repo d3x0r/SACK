@@ -47,7 +47,7 @@ ASM_IMAGE_NAMESPACE_END
 
 IMAGE_NAMESPACE
 
-static void OnFirstDraw3d( WIDE( "@00 PUREGL Image Library" ) )( PTRSZVAL psv )
+static void OnFirstDraw3d( WIDE( "@00 PUREGL Image Library" ) )( uintptr_t psv )
 {
 	GLboolean tmp;
 	const GLubyte * val;
@@ -83,7 +83,7 @@ static void OnFirstDraw3d( WIDE( "@00 PUREGL Image Library" ) )( PTRSZVAL psv )
 	}
 }
 
-static PTRSZVAL OnInit3d( WIDE( "@00 PUREGL Image Library" ) )( PMatrix projection, PTRANSFORM camera, RCOORD *pIdentity_depty, RCOORD *aspect )
+static uintptr_t OnInit3d( WIDE( "@00 PUREGL Image Library" ) )( PMatrix projection, PTRANSFORM camera, RCOORD *pIdentity_depty, RCOORD *aspect )
 {
 	INDEX idx;
 	struct glSurfaceData *glSurface;
@@ -119,10 +119,10 @@ static PTRSZVAL OnInit3d( WIDE( "@00 PUREGL Image Library" ) )( PMatrix projecti
 	}
 	l.glActiveSurface = glSurface;
 
-	return (PTRSZVAL)glSurface;
+	return (uintptr_t)glSurface;
 }
 
-static PTRSZVAL CPROC ReleaseTexture( POINTER p, PTRSZVAL psv )
+static uintptr_t CPROC ReleaseTexture( POINTER p, uintptr_t psv )
 {
    Image image = (Image)p;
 	struct glSurfaceData *glSurface = ((struct glSurfaceData *)psv);
@@ -162,10 +162,10 @@ static PTRSZVAL CPROC ReleaseTexture( POINTER p, PTRSZVAL psv )
 
 static void ReleaseTextures( struct glSurfaceData *glSurface )
 {
-   ForAllInSet( ImageFile, image_common_local.Images, ReleaseTexture, (PTRSZVAL)glSurface );
+   ForAllInSet( ImageFile, image_common_local.Images, ReleaseTexture, (uintptr_t)glSurface );
 }
 
-static void OnClose3d( WIDE( "@00 PUREGL Image Library" ) )( PTRSZVAL psvInit )
+static void OnClose3d( WIDE( "@00 PUREGL Image Library" ) )( uintptr_t psvInit )
 {
 	struct glSurfaceData *glSurface = (struct glSurfaceData *)psvInit;
 	//lprintf( WIDE("cleaning up shaders here...") );
@@ -174,7 +174,7 @@ static void OnClose3d( WIDE( "@00 PUREGL Image Library" ) )( PTRSZVAL psvInit )
 	ReleaseTextures( glSurface );
 }
 
-static void OnBeginDraw3d( WIDE( "@00 PUREGL Image Library" ) )( PTRSZVAL psvInit, PTRANSFORM camera )
+static void OnBeginDraw3d( WIDE( "@00 PUREGL Image Library" ) )( uintptr_t psvInit, PTRANSFORM camera )
 {
 	l.glActiveSurface = (struct glSurfaceData *)psvInit;
 	l.glImageIndex = l.glActiveSurface->index;
@@ -186,7 +186,7 @@ static void OnBeginDraw3d( WIDE( "@00 PUREGL Image Library" ) )( PTRSZVAL psvIni
 	ClearShaders();
 }
 
-static void OnDraw3d( WIDE( "@00 PUREGL Image Library" ) )( PTRSZVAL psvInit )
+static void OnDraw3d( WIDE( "@00 PUREGL Image Library" ) )( uintptr_t psvInit )
 {
 	struct glSurfaceData *glSurface = (struct glSurfaceData *)psvInit;
 	FlushShaders( glSurface );
@@ -267,7 +267,7 @@ int ReloadOpenGlTexture( Image child_image, int option )
 				}
 				if( 0)
 				{
-					_8 *data;
+					uint8_t *data;
 					size_t datasize;
 					static int n;
 					TEXTCHAR buf[16];
@@ -363,7 +363,7 @@ void MarkImageUpdated( Image child_image )
 // it is used for clear image, clear image to
 // and for arbitrary rectangles - the direction
 // of images does not matter.
-void  BlatColor ( Image pifDest, S_32 x, S_32 y, _32 w, _32 h, CDATA color )
+void  BlatColor ( Image pifDest, int32_t x, int32_t y, uint32_t w, uint32_t h, CDATA color )
 {
 	PCDATA po;
 	int  oo;
@@ -477,7 +477,7 @@ void  BlatColor ( Image pifDest, S_32 x, S_32 y, _32 w, _32 h, CDATA color )
 		//lprintf( WIDE("Blotting %d,%d - %d,%d"), x, y, w, h );
 		// start at origin on destination....
 		if( pifDest->flags & IF_FLAG_INVERTED )
-			oo = 4*( (-(S_32)w) - pifDest->pwidth);     // w is how much we can copy...
+			oo = 4*( (-(int32_t)w) - pifDest->pwidth);     // w is how much we can copy...
 		else
 			oo = 4*(pifDest->pwidth - w);     // w is how much we can copy...
 		po = IMG_ADDRESS(pifDest,x,y);
@@ -487,7 +487,7 @@ void  BlatColor ( Image pifDest, S_32 x, S_32 y, _32 w, _32 h, CDATA color )
 	}
 }
 
-void  BlatColorAlpha ( Image pifDest, S_32 x, S_32 y, _32 w, _32 h, CDATA color )
+void  BlatColorAlpha ( Image pifDest, int32_t x, int32_t y, uint32_t w, uint32_t h, CDATA color )
 {
 	PCDATA po;
 	int  oo;
@@ -496,7 +496,7 @@ void  BlatColorAlpha ( Image pifDest, S_32 x, S_32 y, _32 w, _32 h, CDATA color 
 		lprintf( WIDE( "No dest, or no dest image." ) );
 		return;
 	}
-	if(  (S_32)w <= 0 || (S_32)h <= 0 )
+	if(  (int32_t)w <= 0 || (int32_t)h <= 0 )
 	{
 		//lprintf( WIDE("BlatColorAlpha; width or height less than 0 (%") _32fs WIDE("x%")_32fsWIDE(")"), w, h );
 		return;
@@ -616,7 +616,7 @@ ASM_IMAGE_NAMESPACE
 
 //---------------------------------------------------------------------------
 
-void CPROC plotraw( Image pi, S_32 x, S_32 y, CDATA c )
+void CPROC plotraw( Image pi, int32_t x, int32_t y, CDATA c )
 {
 #ifdef _INVERT_IMAGE
    //y = (pi->real_height-1) - y;
@@ -646,7 +646,7 @@ void CPROC plotraw( Image pi, S_32 x, S_32 y, CDATA c )
 	}
 }
 
-void CPROC plot( Image pifDest, S_32 x, S_32 y, CDATA c )
+void CPROC plot( Image pifDest, int32_t x, int32_t y, CDATA c )
 {
    if( !pifDest ) return;
    if( ( x >= pifDest->x ) && ( x < (pifDest->x + pifDest->width )) &&
@@ -669,7 +669,7 @@ void CPROC plot( Image pifDest, S_32 x, S_32 y, CDATA c )
 
 //---------------------------------------------------------------------------
 
-CDATA CPROC getpixel( Image pi, S_32 x, S_32 y )
+CDATA CPROC getpixel( Image pi, int32_t x, int32_t y )
 {
    if( !pi || !pi->image ) return 0;
    if( ( x >= pi->x ) && ( x < (pi->x + pi->width )) &&
@@ -692,7 +692,7 @@ CDATA CPROC getpixel( Image pi, S_32 x, S_32 y )
 
 //---------------------------------------------------------------------------
 
-void CPROC plotalpha( Image pi, S_32 x, S_32 y, CDATA c )
+void CPROC plotalpha( Image pi, int32_t x, int32_t y, CDATA c )
 {
    CDATA *po;
    if( !pi ) return;
@@ -1048,7 +1048,7 @@ void Render3dText( CTEXTSTR string, int characters, CDATA color, SFTFont font, P
 
 	// closed loop to get the top imgae size.
 	//lprintf( WIDE( "use regular texture %p (%d,%d)" ), pifSrc, pifSrc->width, pifSrc->height );
-	GetStringSizeFontEx( string, characters, (_32*)&output.real_width, (_32*)&output.real_height, font );
+	GetStringSizeFontEx( string, characters, (uint32_t*)&output.real_width, (uint32_t*)&output.real_height, font );
 	SetImageTransformRelation( &output, IMAGE_TRANSFORM_RELATIVE_CENTER, NULL );
 	ApplyRotationT( l.camera, output.transform, VectorConst_I );
 	{

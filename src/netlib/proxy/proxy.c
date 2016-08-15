@@ -11,7 +11,7 @@
 #define NL_ROUTE 1
 #define NL_OTHER 2   // PCLIENT other - the other client to send to...
 #define NL_BUFFER  3 // pointer to buffer reading into....
-#define NL_CONNECT_START 4 // _32 GetTickCount() when connect started.
+#define NL_CONNECT_START 4 // uint32_t GetTickCount() when connect started.
 #define NETWORK_WORDS 5
 
 	typedef struct path_tag {
@@ -25,11 +25,11 @@ typedef struct route_tag {
 	TEXTCHAR name[256];
 	struct {
       // if set - send IP as first 4 bytes to new connection
-		_32 ip_transmit : 1;
-		//TODO: implement _32 hw_transmit, and wherever IP transmit is sent, makd sure MAC addr is sent as well.
+		uint32_t ip_transmit : 1;
+		//TODO: implement uint32_t hw_transmit, and wherever IP transmit is sent, makd sure MAC addr is sent as well.
 		// if set - recieve first 4 bytes from connection, make
       // new connection to THAT IP, instead of the configured one.
-		_32 ip_route : 1;
+		uint32_t ip_route : 1;
    } flags;
 	SOCKADDR *in, *out;
 	PCLIENT listen;
@@ -48,8 +48,8 @@ static struct local_proxy_tag
 #define l local_proxy_data
 
 PROUTE routes;
-_32 dwTimeout = DEFAULT_TIMEOUT;
-_16 wSockets; // default to 64 client/servers
+uint32_t dwTimeout = DEFAULT_TIMEOUT;
+uint16_t wSockets; // default to 64 client/servers
 
 //---------------------------------------------------------------------------
 
@@ -106,7 +106,7 @@ void CPROC TCPRead( PCLIENT pc, POINTER buffer, size_t size )
 		PROUTE route = (PROUTE)GetNetworkLong( pc, NL_ROUTE );
       PPATH path = (PPATH)GetNetworkLong( pc, NL_PATH );
 		buffer = Allocate( 4096 );
-		SetNetworkLong( pc, NL_BUFFER, (PTRSZVAL)buffer );
+		SetNetworkLong( pc, NL_BUFFER, (uintptr_t)buffer );
 		if( route->flags.ip_route && !path )
 		{
          xlprintf( 2100 )( WIDE("Was delayed connect, reading 4 bytes for address") );
@@ -134,7 +134,7 @@ void CPROC TCPRead( PCLIENT pc, POINTER buffer, size_t size )
          else if( route->flags.ip_route )
 			{
 				SOCKADDR saTo = *route->out;
-				((_32*)&saTo)[1] = *(_32*)buffer;
+				((uint32_t*)&saTo)[1] = *(uint32_t*)buffer;
 				if( !ConnectMate( route, pc, &saTo ) )
 				{
                xlprintf( 2100 )( WIDE("Connect mate failed... remove connection") );
@@ -171,11 +171,11 @@ PPATH MakeNewPath( PROUTE pRoute, PCLIENT in, PCLIENT out )
 	path->in = in;
 	path->out = out;
    // link the sockets...
-	SetNetworkLong( in, NL_OTHER, (PTRSZVAL)out );
-	SetNetworkLong( out, NL_OTHER, (PTRSZVAL)in );
+	SetNetworkLong( in, NL_OTHER, (uintptr_t)out );
+	SetNetworkLong( out, NL_OTHER, (uintptr_t)in );
    // link the paths...
-	SetNetworkLong( in, NL_PATH, (PTRSZVAL)path );
-	SetNetworkLong( out, NL_PATH, (PTRSZVAL)path );
+	SetNetworkLong( in, NL_PATH, (uintptr_t)path );
+	SetNetworkLong( out, NL_PATH, (uintptr_t)path );
  	return path;
  	}
 }
@@ -218,13 +218,13 @@ PCLIENT ConnectMate( PROUTE pRoute, PCLIENT pExisting, SOCKADDR *sa )
 	out = OpenTCPClientAddrExx( sa, TCPRead, TCPClose, NULL, TCPConnected );
 	if( out )
 	{
-      _32 dwIP = (_32)GetNetworkLong( pExisting, GNL_IP );
+      uint32_t dwIP = (uint32_t)GetNetworkLong( pExisting, GNL_IP );
 		if( pRoute->flags.ip_transmit )
 		{
 			xlprintf( 2100 )( WIDE("Sending initiant's IP : %08") _32fX, dwIP );
 			SendTCP( out, &dwIP, 4 );
 		}
-		SetNetworkLong( out, NL_ROUTE, (PTRSZVAL)pRoute );
+		SetNetworkLong( out, NL_ROUTE, (uintptr_t)pRoute );
 		MakeNewPath( pRoute, pExisting, out );
 		SetNetworkLong( out, NL_CONNECT_START, timeGetTime() );
 		AddLink( &l.pPendingList, out );
@@ -260,7 +260,7 @@ void CPROC TCPConnect( PCLIENT pServer, PCLIENT pNew )
          return;
 	}
 	// have to set the route.
-	SetNetworkLong( pNew, NL_ROUTE, (PTRSZVAL)pRoute );
+	SetNetworkLong( pNew, NL_ROUTE, (uintptr_t)pRoute );
 	SetNetworkCloseCallback( pNew, TCPClose );
 	SetNetworkReadComplete( pNew, TCPRead );
 }
@@ -316,7 +316,7 @@ void BeginRouting( void )
 		next = start->next;
 		start->listen = OpenTCPListenerAddrEx( start->in, TCPConnect );
 		if( start->listen )
-			SetNetworkLong( start->listen, NL_ROUTE, (PTRSZVAL)start );
+			SetNetworkLong( start->listen, NL_ROUTE, (uintptr_t)start );
 		else
 		{
 			xlprintf( 2100 )( WIDE("Failed to open listener for route: %s"), start->name );
@@ -498,7 +498,7 @@ void ReadConfig( FILE *file )
 
 //---------------------------------------------------------------------------
 
-PTRSZVAL CPROC CheckPendingConnects( PTHREAD pUnused )
+uintptr_t CPROC CheckPendingConnects( PTHREAD pUnused )
 {
 	PCLIENT pending;
 	INDEX idx;
@@ -506,7 +506,7 @@ PTRSZVAL CPROC CheckPendingConnects( PTHREAD pUnused )
 	{
 		LIST_FORALL( l.pPendingList, idx, PCLIENT, pending )
 		{
-			PTRSZVAL dwStart = GetNetworkLong( pending, NL_CONNECT_START );
+			uintptr_t dwStart = GetNetworkLong( pending, NL_CONNECT_START );
 
 			//xlprintf( 2100 )( WIDE("Checking pending connect %ld vs %ld"),
 			//     ( GetNetworkLong( pending, NL_CONNECT_START ) + dwTimeout ) , GetTickCount() );
@@ -526,11 +526,11 @@ PTRSZVAL CPROC CheckPendingConnects( PTHREAD pUnused )
 //---------------------------------------------------------------------------
 
 int task_done;
-void CPROC MyTaskEnd( PTRSZVAL psv, PTASK_INFO task )
+void CPROC MyTaskEnd( uintptr_t psv, PTASK_INFO task )
 {
    task_done = 1;
 }
-void CPROC GetOutput( PTRSZVAL psv, PTASK_INFO task, CTEXTSTR buffer, _32 length )
+void CPROC GetOutput( uintptr_t psv, PTASK_INFO task, CTEXTSTR buffer, uint32_t length )
 {
    xlprintf( 2100 )( WIDE("%s"), buffer );
 }

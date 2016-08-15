@@ -11,7 +11,7 @@ XTRN struct my_vlc_interface *PlayItemAgainst( Image image, CTEXTSTR opts );
 XTRN void PlayItem( struct my_vlc_interface * );
 XTRN void PauseItem( struct my_vlc_interface * );
 XTRN void StopItem( struct my_vlc_interface *);
-XTRN void SetStopEvent( struct my_vlc_interface *, void (CPROC*StopEvent)( PTRSZVAL psv ), PTRSZVAL psv );
+XTRN void SetStopEvent( struct my_vlc_interface *, void (CPROC*StopEvent)( uintptr_t psv ), uintptr_t psv );
 
 // target is a PSI_CONTROL
 XTRN struct my_vlc_interface *PlayItemIn( PSI_CONTROL pc, CTEXTSTR input );
@@ -31,7 +31,7 @@ XTRN struct my_vlc_interface * PlayItemAtExx( CTEXTSTR input, CTEXTSTR extra_opt
 XTRN void HoldUpdates( void );
 XTRN void ReleaseUpdates( void );
 
-XTRN void PlayList( PLIST files, S_32 x, S_32 y, _32 w, _32 h );
+XTRN void PlayList( PLIST files, int32_t x, int32_t y, uint32_t w, uint32_t h );
 XTRN void PlaySoundFile( CTEXTSTR file );
 
 XTRN void StopItemIn( PSI_CONTROL pc );

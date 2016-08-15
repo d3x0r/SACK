@@ -892,7 +892,7 @@ void ReadBuffer( PPBO_Info pbo )
 				  if(pbo->raw)
 				  {
                  /*
-					  P_8 tmp = (P_8) pbo->raw;
+					  uint8_t* tmp = (uint8_t*) pbo->raw;
 					  tmp+= 3;
 					  {
 						  int n;
