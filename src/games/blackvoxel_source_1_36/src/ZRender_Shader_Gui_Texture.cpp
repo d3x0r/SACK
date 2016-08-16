@@ -62,15 +62,15 @@ void ZRender_Shader_Gui_Texture::Draw( int texture
 }
 
 
-PTRSZVAL ZRender_Shader_Gui_Texture::SetupShader( void )
+uintptr_t ZRender_Shader_Gui_Texture::SetupShader( void )
 {
 	// no instance for simple tracker
 	//data.data.vert_pos = ImageCreateShaderBuffer( 3, 8, 16 );
 	//data.data.vert_color = ImageCreateShaderBuffer( 4, 8, 16 );
-	return (PTRSZVAL)&data;
+	return (uintptr_t)&data;
 }
 
-static PTRSZVAL CPROC _SetupShader( PTRSZVAL psvInit )
+static uintptr_t CPROC _SetupShader( uintptr_t psvInit )
 {
 	ZRender_Shader_Simple *_this = (ZRender_Shader_Simple*)psvInit;
 	_this->SetupShader();
@@ -104,7 +104,7 @@ void ZRender_Shader_Gui_Texture::InitShader( PImageShaderTracker tracker )
 	}
 }
 
-static void CPROC _InitShader( PTRSZVAL psvSetup, PImageShaderTracker tracker )
+static void CPROC _InitShader( uintptr_t psvSetup, PImageShaderTracker tracker )
 {
 	ZRender_Shader_Gui_Texture *_this = (ZRender_Shader_Gui_Texture*)psvSetup;
 	_this->InitShader( tracker );
@@ -115,6 +115,6 @@ ZRender_Shader_Gui_Texture::ZRender_Shader_Gui_Texture( ZRender_Interface *rende
 	this->render = render;
 	shader = ImageGetShaderInit( WIDE("BV GUI Shader")
 		, _SetupShader
-		, _InitShader, (PTRSZVAL)this );
+		, _InitShader, (uintptr_t)this );
 
 }

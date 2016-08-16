@@ -54,6 +54,9 @@
 #endif
 //typedef void           _0;
 typedef void *P_0;
+#include <stdint.h>
+/*
+ refactors out - no more _xx types.
 typedef unsigned char  uint8_t;
 typedef uint8_t *uint8_t*;
 typedef unsigned short uint16_t;
@@ -63,6 +66,7 @@ typedef uint32_t *uint32_t*;
 typedef signed   char  int8_t;
 typedef signed   short int16_t;
 typedef signed   long  int32_t;
+*/
 typedef const unsigned char *CTEXTSTR;
 typedef unsigned char TEXTCHAR;
 typedef TEXTCHAR *TEXTSTR;

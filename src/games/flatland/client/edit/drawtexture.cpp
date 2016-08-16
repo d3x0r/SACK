@@ -234,7 +234,7 @@ int DrawTextureSolidColor( PCOMMON pc, INDEX iSector, CDATA color )
 
 extern int sectorsdrawn, sectorsskipped;
 
-PTRSZVAL CPROC DrawSectorTexture( INDEX iSector, PTRSZVAL psv)
+uintptr_t CPROC DrawSectorTexture( INDEX iSector, uintptr_t psv)
 {
 	PCOMMON pc = (PCOMMON)psv;
 	PDISPLAY display = ControlData( PDISPLAY, pc );

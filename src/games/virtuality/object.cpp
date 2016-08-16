@@ -14,7 +14,7 @@
 //----------------------------------------------------------------------
 
 extern INDEX tick;
-extern _64 ticks[20];
+extern uint64_t ticks[20];
 
 // doubly linked list only head needed.
 //POBJECT pFirstObject; // only one needed....
@@ -280,7 +280,7 @@ struct line_copied{
 	PMYLINESEG newseg;
 };
 
-PTRSZVAL CPROC copyseg( POINTER p, PTRSZVAL psv )
+uintptr_t CPROC copyseg( POINTER p, uintptr_t psv )
 {
 	struct copyseg_args *args = (struct copyseg_args *)psv;
 	struct line_copied *mapped_line;
@@ -299,7 +299,7 @@ PTRSZVAL CPROC copyseg( POINTER p, PTRSZVAL psv )
 	return 0;
 }
 
-PTRSZVAL CPROC copymyseg( POINTER p, PTRSZVAL psv )
+uintptr_t CPROC copymyseg( POINTER p, uintptr_t psv )
 {
 	struct copyseg_args *args = (struct copyseg_args *)psv;
 	PMYLINESEG lineseg = (PMYLINESEG)p;
@@ -314,7 +314,7 @@ PTRSZVAL CPROC copymyseg( POINTER p, PTRSZVAL psv )
 	return 0;
 }
 
-PTRSZVAL CPROC copyfacet( POINTER p, PTRSZVAL psv )
+uintptr_t CPROC copyfacet( POINTER p, uintptr_t psv )
 {
 	struct copyseg_args *args = (struct copyseg_args *)psv;
 	PLINESEGPSET segments;
@@ -379,7 +379,7 @@ POBJECT MakeScaledInstance( POBJECT pDefs, RCOORD fSize,
 	//fforward right and up are unused
 	LIST_FORALL( pDefs->objinfo->facets, idx, PFACET, facet )
 	{
-		copyfacet( facet, (PTRSZVAL)&args );
+		copyfacet( facet, (uintptr_t)&args );
 	}
 	return po;
 }
@@ -400,7 +400,7 @@ void InvertObject( POBJECT po )
 
 //-----------------------------------------------------------
 
-_32 SaveObject( CTEXTSTR filename, POBJECT po )
+uint32_t SaveObject( CTEXTSTR filename, POBJECT po )
 {
 	int p;
    FILE *file;
@@ -409,7 +409,7 @@ _32 SaveObject( CTEXTSTR filename, POBJECT po )
 	if( file )
 	{
       PFACET pf;
-      _32 tmp = 0;
+      uint32_t tmp = 0;
 		fwrite( &po->T, sizeof( po->T ), 1, file );
       tmp = 0;
 		LIST_FORALL( po->objinfo->facets, p, PFACET, pf )
@@ -430,14 +430,14 @@ _32 SaveObject( CTEXTSTR filename, POBJECT po )
 
 POBJECT LoadObject( CTEXTSTR filename )
 {
-	_32 dwUsed;
+	uint32_t dwUsed;
    FILE *file;
 //   PLANE p;
    VECTOR vn, vo;
    PFACET pp;
 
-   _32 c;
-   _32 dwRead;
+   uint32_t c;
+   uint32_t dwRead;
 	POBJECT po;
 	file = sack_fopen( 0, filename, "rb" );
 	if( file )

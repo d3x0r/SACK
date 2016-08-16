@@ -134,7 +134,7 @@ static LOGICAL WinNT40ListPorts( ListPortsCallback lpCallback, uintptr_t psv )
 				goto end;
 			}
 
-			if( !( dwError = RegEnumValue( hKey, dwIndex, lpValueName, &cbValueName, NULL, NULL, (LPBYTE)lpPortName, (LPDWORD)&cbPortName) ) )
+			if( !( dwError = RegEnumValue( hKey, dwIndex, lpValueName, (LPDWORD)&cbValueName, NULL, NULL, (LPBYTE)lpPortName, (LPDWORD)&cbPortName) ) )
 			{
 				break; /* we did it */
 			}

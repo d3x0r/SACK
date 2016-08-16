@@ -12,7 +12,7 @@ PRELOAD( Init )
 }
 
 static Image tmp ;
-static PTRSZVAL OnInit3d( WIDE( "Virtuality interface" ) )( PMatrix projection, PTRANSFORM camera, RCOORD *identity_depth, RCOORD *aspect )
+static uintptr_t OnInit3d( WIDE( "Virtuality interface" ) )( PMatrix projection, PTRANSFORM camera, RCOORD *identity_depth, RCOORD *aspect )
 {
 	l.transform = camera;
 	{
@@ -35,7 +35,7 @@ static PTRSZVAL OnInit3d( WIDE( "Virtuality interface" ) )( PMatrix projection, 
 	return 1;
 }
 
-static void OnFirstDraw3d( WIDE( "Terrain View" ) )( PTRSZVAL psvInit )
+static void OnFirstDraw3d( WIDE( "Terrain View" ) )( uintptr_t psvInit )
 {
 }
 
@@ -77,7 +77,7 @@ static void DrawLabel( struct virtuality_object *vobj )
 }
 
 
-static void OnDraw3d( WIDE( "Virtuality interface" ) )( PTRSZVAL psvInit )
+static void OnDraw3d( WIDE( "Virtuality interface" ) )( uintptr_t psvInit )
 {
 	INDEX idx;
 	struct virtuality_object *vobj;
@@ -91,7 +91,7 @@ static void OnDraw3d( WIDE( "Virtuality interface" ) )( PTRSZVAL psvInit )
 
 static void UpdateLabel( struct virtuality_object *vobj, CTEXTSTR text )
 {
-	_32 w, h;
+	uint32_t w, h;
 	GetStringSize( text, &w, &h );
 	ResizeImage( vobj->label, w, h );
 	SetImageTransformRelation( vobj->label, IMAGE_TRANSFORM_RELATIVE_CENTER, NULL );

@@ -10,7 +10,7 @@ extern PIMAGE_INTERFACE MyImageInterface;
 void DrawName( Image pImage, PNAME pName, int x, int y )
 {
 	char SectorName[64];
-	_32 w, h, l;
+	uint32_t w, h, l;
 	GetStringSize( NULL, NULL, &h );
 	if( pName->flags.bVertical )
 	{

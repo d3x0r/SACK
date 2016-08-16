@@ -234,7 +234,7 @@ Bool ZGraphicUserManager::MouseButtonRelease(UShort nButton, float Absolute_x, f
   return true;
 }
 
-void ZGraphicUserManager::Render( ZRender_Interface *render, PTRSZVAL psvInit )
+void ZGraphicUserManager::Render( ZRender_Interface *render, uintptr_t psvInit )
 {
   Frame_Dimensions Dimensions;
 
@@ -263,7 +263,7 @@ void ZGraphicUserManager::Render( ZRender_Interface *render, PTRSZVAL psvInit )
   FirstFrame->Render(render, &Dimensions, psvInit);
 }
 
-void ZFrame::Render(ZRender_Interface *render, Frame_Dimensions * ParentPosition, PTRSZVAL psvInit)
+void ZFrame::Render(ZRender_Interface *render, Frame_Dimensions * ParentPosition, uintptr_t psvInit)
 {
 	struct {
 		ZVector3f P1,P2,P3,P4;

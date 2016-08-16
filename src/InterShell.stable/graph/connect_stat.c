@@ -70,7 +70,7 @@ typedef struct tcp_data {
 	struct {
 		uint32_t bSend : 1;// allowed to send data
 	} flags;
-	P_64 buffer;
+	uint64_t* buffer;
 	TARGET_ADDRESS target;
 	PTCP_SAMPLESET samples;
 	PCLIENT client;
@@ -81,7 +81,7 @@ uintptr_t CreateTCPTarget( TARGET_ADDRESS target )
 {
 	NEW(TCP_DATA, tcp_data);
 	tcp_data->target = target;
-	tcp_data->buffer = (P_64)Allocate( 4096 );
+	tcp_data->buffer = (uint64_t*)Allocate( 4096 );
 	// enough for a days worth of samples...
 	return (uintptr_t)tcp_data;
 }

@@ -27,7 +27,7 @@ extern GLOBAL g;
 
 static struct worldscape_client_local
 {
-	_32 MsgBase;
+	uint32_t MsgBase;
 	//PWORLDSET worlds; // and therefore contains all other data...
 } l;
 
@@ -45,10 +45,10 @@ void InvokeCallbacks( void )
 }
 
 
-int CPROC EventHandler( MSGIDTYPE MsgID, _32 *params, size_t paramlen )
+int CPROC EventHandler( MSGIDTYPE MsgID, uint32_t *params, size_t paramlen )
 {
    int result = EVENT_HANDLED;
-	_32 *job_block = (P_32)NewArray( _8, paramlen + sizeof( MsgID ) );
+	uint32_t *job_block = (P_32)NewArray( _8, paramlen + sizeof( MsgID ) );
 	job_block[0] = MsgID;
 	MemCpy( job_block + 1, params, paramlen );
 	//lprintf( "Save message to block %p", job_block );
@@ -89,8 +89,8 @@ void CPROC AcceptChanges( void )
 	g.flags.accepting_changes = 1;
 	while( msg = (P_32)DequeLink( &g.pending_changes ) )
 	{
-		_32 MsgID = ((P_32)msg)[0];
-		_32 *params = msg + 1;
+		uint32_t MsgID = ((P_32)msg)[0];
+		uint32_t *params = msg + 1;
 		switch( MsgID )
 		{
 		case MSG_DispatchPending:
@@ -138,10 +138,10 @@ void CPROC AcceptChanges( void )
 				name->name = NewArray( struct name_data, name->lines );
 				{
 					int n;
-					TEXTSTR line = (TEXTSTR)((PTRSZVAL)(((INDEX*)params)+ 2)+offsetof( NAME, name ) );
+					TEXTSTR line = (TEXTSTR)((uintptr_t)(((INDEX*)params)+ 2)+offsetof( NAME, name ) );
 					for( n = 0; n < name->lines; n++ )
 					{
-						_32 len = name->name[n].length = (_16)StrLen( line );
+						uint32_t len = name->name[n].length = (_16)StrLen( line );
 						name->name[n].name = NewArray( TEXTCHAR, len + 1 );
 						MemCpy( name->name[n].name, line, len + 1 );
 						line += len + 1;
@@ -266,8 +266,8 @@ static void DisconnectFromServer( void )
 void Mark##Name##Updated( INDEX iWorld, INDEX iName )   \
 {  \
 	INDEX ResultID;\
-	_32 Result[1];\
-	_32 ResultLen = 0;\
+	uint32_t Result[1];\
+	uint32_t ResultLen = 0;\
 	PNAME Name; \
 	Get##Name##Data( iWorld, iName, &Name ); \
 	if( ConnectToServer()\
@@ -287,7 +287,7 @@ void Mark##Name##Updated( INDEX iWorld, INDEX iName )   \
 void MarkLineUpdated( INDEX iWorld, INDEX iName )   
 {  
 	MSGIDTYPE ResultID;
-	_32 Result[1];
+	uint32_t Result[1];
 	size_t ResultLen = 0;
 	PFLATLAND_MYLINESEG Name; 
 	GetLineData( iWorld, iName, &Name ); 
@@ -342,14 +342,14 @@ void CPROC DestroyWorld( INDEX world )
 // void  DeleteSectors ( INDEXSET *psectors );
 
 void CPROC FlatlandForAllSectors( INDEX iWorld
-			  , FESMCallback f, PTRSZVAL psv )
+			  , FESMCallback f, uintptr_t psv )
 {
 	GETWORLD( iWorld );
 	if( world ) 
 		DoForAllSectors( world->sectors, f, psv );
 }
 
-WORLD_PROC( void, AddUpdateCallback )( WorldScapeUdpateProc proc, PTRSZVAL psv )
+WORLD_PROC( void, AddUpdateCallback )( WorldScapeUdpateProc proc, uintptr_t psv )
 {
 	struct client_global_UpdateCallback_tag *blah;
 	blah = New( struct client_global_UpdateCallback_tag );
@@ -400,7 +400,7 @@ static WORLD_SCAPE_INTERFACE ClientInterface
 
 	  , FlatlandPointWithin//WORLD_PROC( INDEX, FlatlandPointWithin )( INDEX iWorld, int nSectors, INDEX *piSectors, P_POINT p );
 	  , FlatlandPointWithinSingle//WORLD_PROC( INDEX, FlatlandPointWithinSingle )( INDEX world, INDEX iSector, P_POINT p );
-	  , FlatlandPointWithinLoopSingle//WORLD_PROC( INDEX, FlatlandPointWithinLoopSingle )(  PTRSZVAL psv, INDEX iSector );
+	  , FlatlandPointWithinLoopSingle//WORLD_PROC( INDEX, FlatlandPointWithinLoopSingle )(  uintptr_t psv, INDEX iSector );
 
 	  , ComputeSectorOrigin//WORLD_PROC( void, ComputeSectorOrigin )( INDEX iWorld, INDEX iSector );
 	  , ComputeSectorSetOrigin//WORLD_PROC( void, ComputeSectorSetOrigin )( INDEX iWorld, int nSectors, INDEX *sectors, P_POINT origin );
@@ -466,7 +466,7 @@ static WORLD_SCAPE_INTERFACE ClientInterface
 	  , EndUndo
 
 
-	  , NULL//WORLD_PROC( INDEX, ForAllTextures )( INDEX iWorld, INDEX (CPROC*)(INDEX,PTRSZVAL), PTRSZVAL );
+	  , NULL//WORLD_PROC( INDEX, ForAllTextures )( INDEX iWorld, INDEX (CPROC*)(INDEX,uintptr_t), uintptr_t );
 	  , NULL//WORLD_PROC( void, GetTextureNameText )( INDEX iWorld, INDEX iTexture, char *buf, int bufsize );
 	  , NULL//WORLD_PROC( INDEX, SetTexture )( INDEX iWorld, INDEX iSector, INDEX iTexture );
 	  , NULL //SetSectorName

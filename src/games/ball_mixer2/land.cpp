@@ -1353,7 +1353,7 @@ static int EvalExcept( int n )
 
 void ParseImage( Image image, int size, int rows, int cols )
 {
-	_32 w, h;
+	uint32_t w, h;
 	int r, c;
 	int divisions = size + 1;
 	GetImageSize( image, &w, &h );
@@ -1415,7 +1415,7 @@ void ParseImage( Image image, int size, int rows, int cols )
 	}
 }
 
-static void CPROC UpdateSliderVal( PTRSZVAL psv, PSI_CONTROL pc, int val )
+static void CPROC UpdateSliderVal( uintptr_t psv, PSI_CONTROL pc, int val )
 {
 	l.values[psv] = val;
 	switch( psv )
@@ -1425,7 +1425,7 @@ static void CPROC UpdateSliderVal( PTRSZVAL psv, PSI_CONTROL pc, int val )
 	}
 }
 
-static void CPROC SaveColors( PTRSZVAL psv, PSI_CONTROL pc )
+static void CPROC SaveColors( uintptr_t psv, PSI_CONTROL pc )
 {
 	FILE *file = sack_fopen( 0, WIDE("values.dat"), WIDE("wb") );
 	if( file )
@@ -1435,7 +1435,7 @@ static void CPROC SaveColors( PTRSZVAL psv, PSI_CONTROL pc )
 	}
 }
 
-static void CPROC LoadColors( PTRSZVAL psv, PSI_CONTROL pc )
+static void CPROC LoadColors( uintptr_t psv, PSI_CONTROL pc )
 {
 	FILE *file = sack_fopen( 0, WIDE("values.dat"), WIDE("rb") );
 	if( file )
@@ -1851,7 +1851,7 @@ void MoveCameraToHome( void )
 	RCOORD scaled_quat[4];
 	_POINT scaled_origin;
 	RCOORD length;
-	_32 delta = l.return_to_home - l.last_tick;
+	uint32_t delta = l.return_to_home - l.last_tick;
 	int n;
 	for( n = 0; n < 4; n++ )
 	{
@@ -1891,7 +1891,7 @@ void MoveCameraToHome( void )
 	TranslateV( l.transform, scaled_origin  );
 }
 
-static void OnFirstDraw3d( WIDE( "Terrain View" ) )( PTRSZVAL psvInit )
+static void OnFirstDraw3d( WIDE( "Terrain View" ) )( uintptr_t psvInit )
 {
 	PTRANSFORM camera = (PTRANSFORM)psvInit;
 	// and really if initshader fails, it sets up in local flags and 
@@ -1931,7 +1931,7 @@ static void OnFirstDraw3d( WIDE( "Terrain View" ) )( PTRSZVAL psvInit )
 			{
 				TEXTCHAR text[12];
 				PTRANSFORM t;
-				_32 w, h;
+				uint32_t w, h;
 				snprintf( text, 12, WIDE("%d"), patch->number );
 				GetStringSizeFont( text, &w, &h, NULL );
 				PutStringFont( patch->label, (60-w)/2, (20-h)/2, BASE_COLOR_WHITE, 0, text, NULL );
@@ -1962,7 +1962,7 @@ static void OnFirstDraw3d( WIDE( "Terrain View" ) )( PTRSZVAL psvInit )
 
 }
 
-static PTRSZVAL OnInit3d( WIDE( "Terrain View" ) )( PMatrix projection, PTRANSFORM camera, RCOORD *identity_depth, RCOORD *aspect )
+static uintptr_t OnInit3d( WIDE( "Terrain View" ) )( PMatrix projection, PTRANSFORM camera, RCOORD *identity_depth, RCOORD *aspect )
 {
 #if 0
 	l.frame = CreateFrame( WIDE("Light Slider Controls"), 0, 0, 1024, 768, 0, NULL );
@@ -2002,7 +2002,7 @@ static PTRSZVAL OnInit3d( WIDE( "Terrain View" ) )( PMatrix projection, PTRANSFO
 		Translate( transform, -31.9047f,309.653f,711.449f);
 	}
 
-	return (PTRSZVAL)camera;
+	return (uintptr_t)camera;
 }
 
 
@@ -2013,7 +2013,7 @@ static void OnResume3d( WIDE( "Terrain View" ) )( void )
    l.last_tick = 0;
 }
 
-static void CPROC UpdatePositions( PTRSZVAL psv, PTRANSFORM origin );
+static void CPROC UpdatePositions( uintptr_t psv, PTRANSFORM origin );
 static LOGICAL OnUpdate3d( WIDE( "Terrain View" ) )( PTRANSFORM origin )
 {
 	l.transform = origin;
@@ -2034,7 +2034,7 @@ static LOGICAL OnUpdate3d( WIDE( "Terrain View" ) )( PTRANSFORM origin )
 }
 
 LOGICAL hold_update;
-static void OnBeginDraw3d( WIDE( "Terrain View" ) )( PTRSZVAL psv,PTRANSFORM camera )
+static void OnBeginDraw3d( WIDE( "Terrain View" ) )( uintptr_t psv,PTRANSFORM camera )
 {
 	int mode = 1;
 #ifndef GL_LIGHT_MODEL_COLOR_CONTROL
@@ -2062,14 +2062,14 @@ static void OnBeginDraw3d( WIDE( "Terrain View" ) )( PTRSZVAL psv,PTRANSFORM cam
 	// this transform is initialized to the viewpoint in vidlib.
 }
 
-static void OnDraw3d( WIDE("Terrain View") )( PTRSZVAL psvInit )
+static void OnDraw3d( WIDE("Terrain View") )( uintptr_t psvInit )
 {
 	MATRIX m;
-	static _32 prior_tick;
+	static uint32_t prior_tick;
 	static int frames;
 	static int skip = 30;
-	_32 now = timeGetTime();
-	static _32 fps;
+	uint32_t now = timeGetTime();
+	static uint32_t fps;
 	frames++;
 #ifdef DEBUG_TIMING
 	lprintf( WIDE("Tick.") );
@@ -2428,9 +2428,9 @@ void ApplyBlowerForces( void )
 
 CRITICALSECTION csUpdate;
 
- void CPROC UpdatePositions( PTRSZVAL psv, PTRANSFORM camera )
+ void CPROC UpdatePositions( uintptr_t psv, PTRANSFORM camera )
 {
-	_32 now = timeGetTime();
+	uint32_t now = timeGetTime();
 
 	ApplyBlowerForces();
 
@@ -2811,9 +2811,9 @@ void ReleaseBullet( struct BulletInfo *_bullet )
 }
 
 
-void CPROC tick( PTRSZVAL psv )
+void CPROC tick( uintptr_t psv )
 {
-	_32 now = timeGetTime();
+	uint32_t now = timeGetTime();
 
 	static int skip = 40;
 	static int phase;

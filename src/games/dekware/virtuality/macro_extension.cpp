@@ -13,20 +13,20 @@ struct macro_info_struct
 };
 
 // result to brain if this is running...
-static NATIVE GetMacroRunning( PTRSZVAL psv )
+static NATIVE GetMacroRunning( uintptr_t psv )
 {
 	struct macro_info_struct *mis = (struct macro_info_struct *)psv;
 	return (NATIVE)(( mis->pms != NULL ) || mis->running);
 }
 
 // Event callback from the InvokeMacroEx call
-static void CPROC MacroEnded( PTRSZVAL psv, PMACROSTATE pms_ending )
+static void CPROC MacroEnded( uintptr_t psv, PMACROSTATE pms_ending )
 {
 	struct macro_info_struct *mis = (struct macro_info_struct *)psv;
 	mis->pms = NULL;
 }
 
-static void StartRunMacro( PTRSZVAL psv, NATIVE value )
+static void StartRunMacro( uintptr_t psv, NATIVE value )
 {
 	if( value > 0 )
 	{
@@ -34,7 +34,7 @@ static void StartRunMacro( PTRSZVAL psv, NATIVE value )
 		if( !mis->running && !mis->stopping )
 		{
 			mis->running = 1;
-			mis->pms = InvokeMacroEx( mis->vobj->ps, mis->macro, NULL, MacroEnded, (PTRSZVAL)mis );
+			mis->pms = InvokeMacroEx( mis->vobj->ps, mis->macro, NULL, MacroEnded, (uintptr_t)mis );
 		}
 	}
 	else
@@ -44,7 +44,7 @@ static void StartRunMacro( PTRSZVAL psv, NATIVE value )
 	}
 }
 
-static void StopRunMacro( PTRSZVAL psv, NATIVE value )
+static void StopRunMacro( uintptr_t psv, NATIVE value )
 {
 	{
 		if( value > 0 )
@@ -84,9 +84,9 @@ static void ObjectMacroCreated( WIDE("Point Label"), WIDE("Brain Interface"), WI
 			mis->running = 0;
 			mis->stopping = 0;
 			mis->vobj = vobj;
-			pbs->AddInput( new value(GetMacroRunning, (PTRSZVAL)mis ), WIDE( "Is Running" ) );
-			pbs->AddOutput( new value(StartRunMacro, (PTRSZVAL)mis ), WIDE( "Start" ) );
-			pbs->AddOutput( new value(StopRunMacro, (PTRSZVAL)mis ), WIDE( "Stop" ) );
+			pbs->AddInput( new value(GetMacroRunning, (uintptr_t)mis ), WIDE( "Is Running" ) );
+			pbs->AddOutput( new value(StartRunMacro, (uintptr_t)mis ), WIDE( "Start" ) );
+			pbs->AddOutput( new value(StopRunMacro, (uintptr_t)mis ), WIDE( "Stop" ) );
 		}
 	}
 }

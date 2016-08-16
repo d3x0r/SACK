@@ -26,7 +26,7 @@
 #include "ZGui_TileFrame.h"
 
 
-void ZTileFrame::Render(ZRender_Interface *render, Frame_Dimensions * ParentPosition, PTRSZVAL psvInit)
+void ZTileFrame::Render(ZRender_Interface *render, Frame_Dimensions * ParentPosition, uintptr_t psvInit)
 {
 
   ZVector3f TopLeft, BottomRight;

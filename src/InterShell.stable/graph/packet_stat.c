@@ -46,7 +46,7 @@ typedef struct udp_sample {
 } UDP_SAMPLE;
 
 typedef struct udp_data {
-	//P_64 buffer;
+	//uint64_t* buffer;
 	TARGET_ADDRESS target;
 	PDATAQUEUE queue; // list of application specific structures which it may wish to use to render
 	PCLIENT client;
@@ -57,7 +57,7 @@ uintptr_t CreateUDPTarget( TARGET_ADDRESS target )
 {
 	NEW(UDP_DATA, udp_data);
 	udp_data->target = target;
-	//udp_data->buffer = (P_64)Allocate( 4096 );
+	//udp_data->buffer = (uint64_t*)Allocate( 4096 );
 	// enough for a days worth of samples...
 	udp_data->queue = CreateLargeDataQueue( sizeof( UDP_SAMPLE ), 200000 );
 	lprintf( WIDE("result udp thing %p"), udp_data );

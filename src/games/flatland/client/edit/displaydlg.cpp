@@ -18,7 +18,7 @@
 
 
 
-void CPROC ChooseDisplayColor( PTRSZVAL psvColor, PCONTROL pc )
+void CPROC ChooseDisplayColor( uintptr_t psvColor, PCONTROL pc )
 {
 	CDATA *color = (CDATA*)psvColor;
 	PickColor( color, *color, GetFrame( pc ) );

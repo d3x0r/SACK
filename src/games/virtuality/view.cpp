@@ -66,7 +66,7 @@ void ComputePlaneRay( PRAY out )
 	ApplyR( (PCTRANSFORM)g.EditInfo.TEdit, out, &in );
 }
 
-static LOGICAL OnKey3d( WIDE("Virtuality") )( PTRSZVAL psvView, _32 key )
+static LOGICAL OnKey3d( WIDE("Virtuality") )( uintptr_t psvView, uint32_t key )
 {
 	VIEW *v = (VIEW*)psvView;
 	int used = 0;
@@ -225,8 +225,8 @@ POBJECT TestMouseObject( POBJECT po, PRAY mouse, PFACET *face, PVECTOR vmin, RCO
 }
 
 
-static LOGICAL OnMouse3d( WIDE("Virtuality") )( PTRSZVAL psvView, PRAY mouse, S_32 x, S_32 y, _32 b )
-//int CPROC ViewMouse( PTRSZVAL dwView, S_32 x, S_32 y, _32 b )
+static LOGICAL OnMouse3d( WIDE("Virtuality") )( uintptr_t psvView, PRAY mouse, int32_t x, int32_t y, uint32_t b )
+//int CPROC ViewMouse( uintptr_t dwView, int32_t x, int32_t y, uint32_t b )
 {
    VIEW *v = (VIEW*)psvView;
 /*
@@ -354,7 +354,7 @@ static LOGICAL OnUpdate3d( WIDE( "Virtuality" ) )( PTRANSFORM origin )
 	return TRUE;
 }
 
-static void OnDraw3d( WIDE("Virtuality") )( PTRSZVAL psvUnusedOne )
+static void OnDraw3d( WIDE("Virtuality") )( uintptr_t psvUnusedOne )
 {
 	// cannot count that the camera state is relative for how we want to show?
 
@@ -419,14 +419,14 @@ static void OnDraw3d( WIDE("Virtuality") )( PTRSZVAL psvUnusedOne )
 
 
 
-static PTRSZVAL OnInit3d( WIDE("Virtuality") )( PMatrix projection, PTRANSFORM camera, RCOORD *identity_depth, RCOORD *aspect )
+static uintptr_t OnInit3d( WIDE("Virtuality") )( PMatrix projection, PTRANSFORM camera, RCOORD *identity_depth, RCOORD *aspect )
 {
 	g.camera = camera;
-	return (PTRSZVAL)1;
+	return (uintptr_t)1;
 }
 
 
-PTRSZVAL CPROC RenderFacet(  POBJECT po
+uintptr_t CPROC RenderFacet(  POBJECT po
 						   , PFACET pf );
 
 void RenderOpenFacet( POBJECT po, PFACET pf )
@@ -463,7 +463,7 @@ void RenderOpenFacet( POBJECT po, PFACET pf )
 //      CreateLine(  NULL, planes[n].o, planes[n].n,
 }
 
-PTRSZVAL CPROC RenderFacet(  POBJECT po
+uintptr_t CPROC RenderFacet(  POBJECT po
 						   , PFACET pf )
 {
 	//POBJECT po = (POBJECT)psv;

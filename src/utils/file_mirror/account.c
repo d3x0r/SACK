@@ -2731,9 +2731,9 @@ static LOGICAL FileMatches( PFILE_INFO pFileInfo )
 			{
 				fclose( sack_fopen( 0, pFileInfo->full_name, "wb" ) );
 				SetFileTimes( pFileInfo->full_name
-								, *(P_64)&pFileInfo->lastcreate
-								, *(P_64)&pFileInfo->lastmodified
-								, *(P_64)&pFileInfo->lastaccess );
+								, *(uint64_t*)&pFileInfo->lastcreate
+								, *(uint64_t*)&pFileInfo->lastmodified
+								, *(uint64_t*)&pFileInfo->lastaccess );
             return TRUE;
 			}
 		}
@@ -2839,9 +2839,9 @@ LOGICAL ProcessManifest( PNETWORK_STATE pns, PACCOUNT account, uint32_t *buffer,
 			xlprintf(2100)( "file sizes %5d %5d  %16lld %16lld %16lld %16lld (%s)"
 					 , msg[1]
 					 , pFileInfo->dwSize
-					 , ((P_64)(msg+2))[0]
+					 , ((uint64_t*)(msg+2))[0]
 					 , ConvertFileTimeToInt( &pFileInfo->lastcreate )
-					 , ((P_64)(msg+4))[0]
+					 , ((uint64_t*)(msg+4))[0]
 					 , ConvertFileTimeToInt( &pFileInfo->lastmodified )
 							  , filename );
 
@@ -2872,7 +2872,7 @@ LOGICAL ProcessManifest( PNETWORK_STATE pns, PACCOUNT account, uint32_t *buffer,
 					else
 					{
 						fclose( file );
-						SetFileTimes( pFileInfo->full_name, ((P_64)(msg + 2))[0], ((P_64)(msg + 4))[0], ((P_64)(msg + 6))[0] );
+						SetFileTimes( pFileInfo->full_name, ((uint64_t*)(msg + 2))[0], ((uint64_t*)(msg + 4))[0], ((uint64_t*)(msg + 6))[0] );
 					}
 					// redundant work to what's below....
 					// this has to be set before FileMatches to get a TRUE result.

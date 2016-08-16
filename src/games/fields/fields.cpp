@@ -391,7 +391,7 @@ static void CreateUniverse( void )
 	}
 }
 
-static void OnDraw3d( WIDE("Field Interaction 1") )( PTRSZVAL psvView )
+static void OnDraw3d( WIDE("Field Interaction 1") )( uintptr_t psvView )
 {
 	glBegin( GL_LINES );
    glEnd();
@@ -399,11 +399,11 @@ static void OnDraw3d( WIDE("Field Interaction 1") )( PTRSZVAL psvView )
 
 }
 
-static void OnBeginDraw3d( WIDE( "Field Interaction 1" ) )( PTRSZVAL psv,PTRANSFORM camera )
+static void OnBeginDraw3d( WIDE( "Field Interaction 1" ) )( uintptr_t psv,PTRANSFORM camera )
 {
 }
 
-static void OnFirstDraw3d( WIDE( "Field Interaction 1" ) )( PTRSZVAL psvInit )
+static void OnFirstDraw3d( WIDE( "Field Interaction 1" ) )( uintptr_t psvInit )
 {
 	// and really if initshader fails, it sets up in local flags and 
 	// states to make sure we just fall back to the old way.
@@ -419,16 +419,16 @@ static void OnFirstDraw3d( WIDE( "Field Interaction 1" ) )( PTRSZVAL psvInit )
 
 }
 
-static LOGICAL OnUpdate3D( WIDE("Field Interaction 1") )( PTRSZVAL psvInit, PTRANSFORM eye_transform )
+static LOGICAL OnUpdate3D( WIDE("Field Interaction 1") )( uintptr_t psvInit, PTRANSFORM eye_transform )
 {
    return TRUE;
 }
 
 
 
-static PTRSZVAL OnInit3d( WIDE( "Field Interaction 1" ) )( PMatrix projection, PTRANSFORM camera, RCOORD *identity_depth, RCOORD *aspect )
+static uintptr_t OnInit3d( WIDE( "Field Interaction 1" ) )( PMatrix projection, PTRANSFORM camera, RCOORD *identity_depth, RCOORD *aspect )
 {
 	// keep the camera as a 
-	return (PTRSZVAL)camera;
+	return (uintptr_t)camera;
 }
 

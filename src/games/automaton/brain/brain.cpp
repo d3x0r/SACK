@@ -31,12 +31,12 @@
 #endif
 
 //HINSTANCE ghInstDLL;
-static _32 brain_timer; // one timer for all brains.
+static uint32_t brain_timer; // one timer for all brains.
 static PLIST brains;
 
 //----------------------------------------------------------------------
 
-void CPROC BrainThread( PTRSZVAL brain )
+void CPROC BrainThread( uintptr_t brain )
 {
    PBRAIN b = (PBRAIN)(brain);
 	if( b->bExit )
@@ -46,7 +46,7 @@ void CPROC BrainThread( PTRSZVAL brain )
 }
 
 
-static PTRSZVAL CPROC DoBrainTick(PTRSZVAL psv, INDEX idx, POINTER *item )
+static uintptr_t CPROC DoBrainTick(uintptr_t psv, INDEX idx, POINTER *item )
 {
 	PBRAIN brain = ((PBRAIN*)item)[0];
 	{
@@ -63,7 +63,7 @@ static PTRSZVAL CPROC DoBrainTick(PTRSZVAL psv, INDEX idx, POINTER *item )
 	}
 }
 
-void CPROC BrainTick( PTRSZVAL unused )
+void CPROC BrainTick( uintptr_t unused )
 {
 	INDEX idx;
 	PBRAIN brain;
@@ -154,7 +154,7 @@ AliasProc( PBRAIN_STEM,AddComponent,(int n, CTEXTSTR pCompName
 
 	for( c = 0; c < n; c++ )
 	{
-		PARAM( vl, _32, Type );
+		PARAM( vl, uint32_t, Type );
 		PARAM( vl, PANYVALUE, pValue );
 		PARAM( vl, CTEXTSTR, pName );
 		if( Type == INPUT )
@@ -271,14 +271,14 @@ void BRAIN::DeleteComponents( void )
 
 //----------------------------------------------------------------------
 
-static PTRSZVAL CPROC  cReleaseNeuron( PNEURON neuron,  PTRSZVAL psv )
+static uintptr_t CPROC  cReleaseNeuron( PNEURON neuron,  uintptr_t psv )
 {
 	PBRAIN brain = (PBRAIN)psv;
 	brain->ReleaseNeuron( neuron );
 	return 0;
 }
 
-static PTRSZVAL CPROC  cReleaseSynapse( PSYNAPSE neuron,  PTRSZVAL psv )
+static uintptr_t CPROC  cReleaseSynapse( PSYNAPSE neuron,  uintptr_t psv )
 {
 	PBRAIN brain = (PBRAIN)psv;
 	brain->ReleaseSynapse( neuron );
@@ -290,8 +290,8 @@ BRAIN::~BRAIN()
 	// should check, if last brain, remove timer...
 	// brain_timer is started by the brain creator...
    DeleteComponents();
-   ForAllInSet( NEURON, this->NeuronPool, (FAISCallback)cReleaseNeuron, (PTRSZVAL)this );
-   ForAllInSet( SYNAPSE, this->SynapsePool, (FAISCallback)cReleaseSynapse, (PTRSZVAL)this );
+   ForAllInSet( NEURON, this->NeuronPool, (FAISCallback)cReleaseNeuron, (uintptr_t)this );
+   ForAllInSet( SYNAPSE, this->SynapsePool, (FAISCallback)cReleaseSynapse, (uintptr_t)this );
    DeleteSetEx( NEURON, &this->NeuronPool );
    DeleteSetEx( SYNAPSE, &this->SynapsePool );
    End();
@@ -312,7 +312,7 @@ void BRAIN::Run( void )
 void BRAIN::Init( void )
 {
 	// nothing to do here I think...
-	//_32 dwThreadId;
+	//uint32_t dwThreadId;
 	//pBrainStem = pbs;
 	bHalt = 0;
 	bExit = 0;
@@ -378,9 +378,9 @@ PRELOAD( RegisterBrain )
 
 //----------------------------------------------------------------------
 
-PTRSZVAL CPROC DoCollect( void *_this, PTRSZVAL cycle )
+uintptr_t CPROC DoCollect( void *_this, uintptr_t cycle )
 {
-	((PNEURON)_this)->Collect( (_32)cycle );
+	((PNEURON)_this)->Collect( (uint32_t)cycle );
 	return 0;
 }
 
@@ -428,7 +428,7 @@ void NEURON::Reset( void )
 
 //----------------------------------------------------------------------
 
-PTRSZVAL CPROC DoReset( POINTER _this, PTRSZVAL psv )
+uintptr_t CPROC DoReset( POINTER _this, uintptr_t psv )
 {
     ((PNEURON)_this)->Reset();
    return 0;
@@ -583,7 +583,7 @@ AliasProc( int, LinkSynapseFrom, ( PSYNAPSE ps, PNEURON pn ), (ps,pn) )
 
 //----------------------------------------------------------------------
 
-PTRSZVAL CPROC SaveNeuron( void *neuron, PTRSZVAL psvFile )
+uintptr_t CPROC SaveNeuron( void *neuron, uintptr_t psvFile )
 {
     ((PNEURON)neuron)->Save( (PODBC)NULL, INVALID_INDEX );
    return 0;
@@ -596,7 +596,7 @@ struct save_info_tag {
 		INDEX iParent;
 	};
     
-PTRSZVAL CPROC SaveSynapse( void *synapse, PTRSZVAL args )
+uintptr_t CPROC SaveSynapse( void *synapse, uintptr_t args )
 {
 	struct save_info_tag *info = (struct save_info_tag*)args;
 
@@ -611,7 +611,7 @@ INDEX BRAIN::Save( PODBC odbc, CTEXTSTR brainname )
 {
 	struct save_info_tag save_info;
    TEXTCHAR tmpval[32];
-	_32  dwWritten, dwZero;
+	uint32_t  dwWritten, dwZero;
 	if( !odbc )
 		odbc = ConnectToDatabase( WIDE("game_dev") );
 	if( !odbc )
@@ -635,29 +635,29 @@ INDEX BRAIN::Save( PODBC odbc, CTEXTSTR brainname )
 		save.pNeurons = (PNEURON)GetLinearSetArray( NEURON, NeuronPool, (int*)&save.nNeurons );
 		//save.brain_id = brain_id;
 		//save.file = file;
-		ForAllInSet( NEURON, NeuronPool, SaveNeuron, (PTRSZVAL)&save_info );
-		//NeuronPool->forall( SaveNeuron, (PTRSZVAL)&save_info );
-		ForAllInSet( SYNAPSE, SynapsePool, SaveSynapse, (PTRSZVAL)&save_info );
-		//SynapsePool->forall( SaveSynapse, (PTRSZVAL)&save_info );
+		ForAllInSet( NEURON, NeuronPool, SaveNeuron, (uintptr_t)&save_info );
+		//NeuronPool->forall( SaveNeuron, (uintptr_t)&save_info );
+		ForAllInSet( SYNAPSE, SynapsePool, SaveSynapse, (uintptr_t)&save_info );
+		//SynapsePool->forall( SaveSynapse, (uintptr_t)&save_info );
 	}
 	Unlock();
 	return dwWritten;
 }
 //#endif
 #if 0
-_32 BRAIN::Load( FILE *file )
+uint32_t BRAIN::Load( FILE *file )
 {
 #if 0
-   _32 dwR, dwRead, dwVersion, i, n, idx, j;
+   uint32_t dwR, dwRead, dwVersion, i, n, idx, j;
    NEURON neuron;
    SYNAPSE synapse;
    dwRead = 0;
    Lock();
-    ReadFile( file, &dwVersion, sizeof( _32 ), &dwR, NULL );
-    if( dwVersion != *(_32*)WIDE("MIND") )
+    ReadFile( file, &dwVersion, sizeof( uint32_t ), &dwR, NULL );
+    if( dwVersion != *(uint32_t*)WIDE("MIND") )
         return 0; // failed to read any really...
 
-   ReadFile( file, &dwVersion, sizeof( _32 ), &dwR, NULL );
+   ReadFile( file, &dwVersion, sizeof( uint32_t ), &dwR, NULL );
 
     ReadFile( file, &k, sizeof(k), &dwR, NULL );
 

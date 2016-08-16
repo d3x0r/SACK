@@ -28,7 +28,7 @@ int MySimpleUserQuery( TEXTCHAR *result, int reslen, TEXTCHAR *question, PCOMMON
 {
 	PCOMMON pf;
 	PCONTROL edit;
-	S_32 mouse_x, mouse_y;
+	int32_t mouse_x, mouse_y;
 
 	int Done = FALSE, Okay = FALSE;
 	pf = CreateFrame( NULL, 0, 0, 280, 60, 0, pAbove );
@@ -50,7 +50,7 @@ int MySimpleUserQuery( TEXTCHAR *result, int reslen, TEXTCHAR *question, PCOMMON
 
 
 
-void CPROC NewTexture( PTRSZVAL psvParent, PCONTROL button )
+void CPROC NewTexture( uintptr_t psvParent, PCONTROL button )
 {
 	TEXTCHAR name[256];
 	INDEX texture;
@@ -71,13 +71,13 @@ void CPROC NewTexture( PTRSZVAL psvParent, PCONTROL button )
 		texture = MakeTexture( args->display->pWorld, MakeName( args->display->pWorld, name ) );
 		SetSolidColor( args->display->pWorld, texture, AColor( 128, 128, 128, 128 ) );
 		hli = AddListItem( pcList = GetNearControl( button, LST_TEXTURES ), name );
-		SetItemData( hli, (PTRSZVAL)texture );
+		SetItemData( hli, (uintptr_t)texture );
 		SetCurrentItem( pcList, hli );
 		SetSelectedItem( pcList, hli );
 	}
 }
 
-void CPROC SetTextureColor( PTRSZVAL unused, PCONTROL button  )
+void CPROC SetTextureColor( uintptr_t unused, PCONTROL button  )
 {
 	PCONTROL pList;
 	PLISTITEM hli;
@@ -96,7 +96,7 @@ void CPROC SetTextureColor( PTRSZVAL unused, PCONTROL button  )
 	}
 }
 
-static INDEX CPROC AddTextureName( INDEX texture, PTRSZVAL pcList )
+static INDEX CPROC AddTextureName( INDEX texture, uintptr_t pcList )
 {
 	TEXTCHAR name[128];
 	PLISTITEM hli;
@@ -106,11 +106,11 @@ static INDEX CPROC AddTextureName( INDEX texture, PTRSZVAL pcList )
 	GetNameText( display->pWorld, pTexture->iName, name, 256 );
 	hli = AddListItem( (PCONTROL)pcList, name );
 	if( hli )
-		SetItemData( hli, (PTRSZVAL)texture );
+		SetItemData( hli, (uintptr_t)texture );
 	return INVALID_INDEX;
 }
 
-void CPROC DelTexture( PTRSZVAL unused, PCONTROL button )
+void CPROC DelTexture( uintptr_t unused, PCONTROL button )
 {
 	PCONTROL pcList = GetNearControl( button, LST_TEXTURES );
 	PLISTITEM hli = GetSelectedItem( pcList );
@@ -150,8 +150,8 @@ void ShowSectorProperties( PCOMMON pc, int nSectors, INDEX *ppsectors, int x, in
 		//	SetCheckState( pcVertical, ppsectors[0]->name->flags.bVertical );
 	}
 	pcList = MakeListBox( pf, 5, 42, 170, 100, LST_TEXTURES, 0 );
-	SetCommonUserData( pf, (PTRSZVAL)display );
-	ForAllTextures( display->pWorld, AddTextureName, (PTRSZVAL)pcList );
+	SetCommonUserData( pf, (uintptr_t)display );
+	ForAllTextures( display->pWorld, AddTextureName, (uintptr_t)pcList );
 
 	if( nSectors == 1 )
 	{
@@ -172,7 +172,7 @@ void ShowSectorProperties( PCOMMON pc, int nSectors, INDEX *ppsectors, int x, in
 		} args;
 		args.display = display;
 		args.parent = pf;
-		MakeButton( pf, 5, 147, 105, 19, BTN_NEWTEXTURE, WIDE("New Texture"), 0, NewTexture, (PTRSZVAL)&args );
+		MakeButton( pf, 5, 147, 105, 19, BTN_NEWTEXTURE, WIDE("New Texture"), 0, NewTexture, (uintptr_t)&args );
 	}
 	MakeButton( pf, 5, 169, 105, 19, BTN_TEXTURECOLOR, WIDE("Texture Color"), 0, SetTextureColor, display->pWorld );
 	MakeButton( pf, 115, 147, 115, 19, BTN_DELTEXTURE, WIDE("Delete Texture"), 0, DelTexture, 0 );

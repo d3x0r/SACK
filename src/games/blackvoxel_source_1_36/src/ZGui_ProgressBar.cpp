@@ -25,7 +25,7 @@
 
 #include "ZGui_ProgressBar.h"
 
-void ZFrame_ProgressBar::Render(ZRender_Interface *render, Frame_Dimensions * ParentPosition, PTRSZVAL psvInit )
+void ZFrame_ProgressBar::Render(ZRender_Interface *render, Frame_Dimensions * ParentPosition, uintptr_t psvInit )
 {
 
   ZVector3f TopLeft, BottomRight, BarBottomRight;

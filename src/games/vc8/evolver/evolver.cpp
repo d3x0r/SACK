@@ -38,7 +38,7 @@ public:
 	PSI_SimpleControl( PSI_CONTROL parent, char *name );
 	PSI_SimpleControl( PSI_CONTROL parent, INDEX type );
 	virtual int OnDraw( PSI_CONTROL pc ) = 0;
-	virtual int OnMouse( PSI_CONTROL pc, S_32, S_32, _32 ) = 0;
+	virtual int OnMouse( PSI_CONTROL pc, int32_t, int32_t, uint32_t ) = 0;
 };
 
 
@@ -50,7 +50,7 @@ int CPROC MyClassDrawThing( PSI_CONTROL pc )
 	return _this->OnDraw( pc );
 }
 
-int CPROC MyClassMouseThing( PSI_CONTROL pc, S_32 x, S_32 y, _32 b )
+int CPROC MyClassMouseThing( PSI_CONTROL pc, int32_t x, int32_t y, uint32_t b )
 {
 	PSI_SimpleControl* _this = ControlData( PSI_SimpleControl*, pc );
 	return _this->OnMouse( pc, x, y, b );
@@ -80,7 +80,7 @@ PSI_SimpleControl::PSI_SimpleControl( PSI_CONTROL parent, char *name )
 	                    , "int", "draw", "(PSI_CONTROL)" );
 		snprintf( buffer, sizeof( buffer ), "psi/control/%s/rtti", name );
 		SimpleRegisterMethod( buffer, MyClassMouseThing 
-	                    , "int", "mouse", "(PSI_CONTROL,S_32,S_32,_32)" );
+	                    , "int", "mouse", "(PSI_CONTROL,int32_t,int32_t,uint32_t)" );
 	}
 	pc = MakeNamedControl( parent, name, 0, 0, 1024, 768, -1 );
 	((PSI_SimpleControl**)(pc))[0] = this;
@@ -189,7 +189,7 @@ void DrawDisplayGrid( PDISPLAY display )
 {
 	int x, y;
 	//maxx, maxy, miny,, incx, incy, delx, dely, minx
-	_32 start= GetTickCount();;
+	uint32_t start= GetTickCount();;
 
 		int DrawSubLines, DrawSetLines;
 		// , drawn
@@ -342,9 +342,9 @@ struct actor
 	PC_POINT p;
 	RCOORD space; // the radius of space this occupies.
 
-	_32 lifespan;
-	S_32 health;
-	_32 offense;
+	uint32_t lifespan;
+	int32_t health;
+	uint32_t offense;
 
 	NATIVE want_look_left;
 	NATIVE want_look_right;
@@ -500,7 +500,7 @@ void DrawActors( PDISPLAY display, PLIST actors )
 	INDEX idx;
 	LIST_FORALL( actors, idx, actor*, a )
 	{
-		S_32 x, y;
+		int32_t x, y;
 #define MARK_SIZE 3
 		if( a == (actor*)1 )
 			continue; // not a real entry...
@@ -531,7 +531,7 @@ void DrawActors( PDISPLAY display, PLIST actors )
 }
 
 
-void CPROC TickUpdateActors( PTRSZVAL psv );
+void CPROC TickUpdateActors( uintptr_t psv );
 // MyControlID
 // MyValidatedControlData( arena*, arena, pc )
 class arena:public PSI_SimpleControl
@@ -553,7 +553,7 @@ public:
 		display.ybias = 0;
 		display.zbias = 1;
 		SetPoint( display.origin, VectorConst_0 );
-		AddTimer( 100, TickUpdateActors, (PTRSZVAL)this );
+		AddTimer( 100, TickUpdateActors, (uintptr_t)this );
 	}
 	void UpdateActors( void )
 	{
@@ -588,7 +588,7 @@ public:
 		DrawActors( &display, actors );
 		return 0;
 	}
-	int OnMouse( PSI_CONTROL pc, S_32 x, S_32 y, _32 b )
+	int OnMouse( PSI_CONTROL pc, int32_t x, int32_t y, uint32_t b )
 	{
 		int delx = x - display.x
 		 	, dely = y - display.y;
@@ -624,7 +624,7 @@ public:
 		}
 		if( b & MK_MBUTTON )
 		{
-			static _32 last;
+			static uint32_t last;
 			if( !last || (last + 2000 ) < GetTickCount() )
 			{
 				GetTickCount();
@@ -652,7 +652,7 @@ public:
 };
 
 
-void CPROC TickUpdateActors( PTRSZVAL psv )
+void CPROC TickUpdateActors( uintptr_t psv )
 {
 	((arena*)psv)->UpdateActors();
 }

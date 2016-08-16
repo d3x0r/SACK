@@ -91,11 +91,11 @@ uintptr_t CPROC read_ahead( PTHREAD thread )
 void self_compare( char *file, POINTER p, uintptr_t size )
 {
 	int n, m;
-	P_64 p64a = (P_64)p;
+	uint64_t* p64a = (uint64_t*)p;
 	uint32_t* p32a = (uint32_t*)(p64a+1);
 	for( n = 0; n < size; n += 12 )
 	{
-		P_64 p64b = (P_64)(p32a + 1);
+		uint64_t* p64b = (uint64_t*)(p32a + 1);
 		uint32_t* p32b = (uint32_t*)(p64b + 1);
 		TickLog( FALSE, "self", size, n);
 		for( m = n + 12; m < size; m += 12 )
@@ -105,10 +105,10 @@ void self_compare( char *file, POINTER p, uintptr_t size )
 						openDups();
 				fprintf( dupout, "overlap on %s %d", file, ( n / 12 ) + 1 );
 			}
-			p64b = (P_64)(p32b + 1);
+			p64b = (uint64_t*)(p32b + 1);
 			p32b = (uint32_t*)(p64b + 1);
 		}
-		p64a = (P_64)(p32a + 1);
+		p64a = (uint64_t*)(p32a + 1);
 		p32a = (uint32_t*)(p64a + 1);
 	}
 
@@ -118,11 +118,11 @@ void self_compare( char *file, POINTER p, uintptr_t size )
 void other_compare( struct params *pa, struct params *pb )
 {
 	int n, m;
-	P_64 p64a = (P_64)pa->p;
+	uint64_t* p64a = (uint64_t*)pa->p;
 	uint32_t* p32a = (uint32_t*)(p64a + 1);
 	for( n = 0; n < pa->size; n += 12 )
 	{
-		P_64 p64b = (P_64)(pb->p + (12*(n+1)));
+		uint64_t* p64b = (uint64_t*)(pb->p + (12*(n+1)));
 		uint32_t* p32b = (uint32_t*)(p64b + 1);
 		TickLog( FALSE, "other", pa->size, n );
 		for( m = n + 12; m < pb->size; m++ )
@@ -133,10 +133,10 @@ void other_compare( struct params *pa, struct params *pb )
 				fprintf( dupout, "overlap on %s %d and %s %d", filea, (n / 12) + 1, fileb, (m/12)+1 );
 				return TRUE;
 			}
-			p64b = (P_64)(p32b + 1);
+			p64b = (uint64_t*)(p32b + 1);
 			p32b = (uint32_t*)(p64b + 1);
 		}
-		p64a = (P_64)(p32a + 1);
+		p64a = (uint64_t*)(p32a + 1);
 		p32a = (uint32_t*)(p64a + 1);
 	}
 }
@@ -155,9 +155,9 @@ LOGICAL classify_compare( LOGICAL have_related_b )
 				PRELATION b = have_related_b?relatedb[i][j] :a->next;
 				while( a && b )
 				{
-					P_64 p64a = (P_64)a->card;
+					uint64_t* p64a = (uint64_t*)a->card;
 					uint32_t* p32a = (uint32_t*)(p64a + 1);
-					P_64 p64b = (P_64)b->card;
+					uint64_t* p64b = (uint64_t*)b->card;
 					uint32_t* p32b = (uint32_t*)(p64b + 1);
 					if( p64a[0] == p64b[0] &&
 						p32a[0] == p32b[0] ) {

@@ -85,7 +85,7 @@ TEXTSTR GetCurrentPath( TEXTSTR path, int len )
 }
 
 #ifndef _WIN32
-static void convert( P_64 outtime, time_t *time )
+static void convert( uint64_t* outtime, time_t *time )
 {
 #warning convert time function is incomplete.
 	*outtime = *time;

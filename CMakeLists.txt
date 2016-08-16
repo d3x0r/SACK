@@ -1538,11 +1538,11 @@ add_subdirectory( src/deadstart )
  endif( USE_OPTIONS AND NOT ( __NO_ODBC__ AND NOT USE_SQLITE ) )
 
 if( __LINUX__ OR ( MSVC10 AND __64__ ) )
-add_subdirectory( src/utils/apache_shell )
+	add_subdirectory( src/utils/apache_shell )
 endif( __LINUX__ OR ( MSVC10 AND __64__ ) )
 
 if( __INCLUDE_INTERSHELL__ )
-add_subdirectory( src/InterShell )
+	add_subdirectory( src/InterShell )
 endif( __INCLUDE_INTERSHELL__ )
 
 install( FILES ${SOURCES_ROOT}src/contrib/snprintf_2.2/snprintf.h DESTINATION include/SACK/snprintf-2.2 )

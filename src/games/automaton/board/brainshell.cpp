@@ -47,7 +47,7 @@
 
 typedef struct output_input_type {
 	struct {
-		_32 bOutput : 1; // else is an input...
+		uint32_t bOutput : 1; // else is an input...
 	} flags;
 	class BRAINBOARD *brainboard;
 	//PBRAIN_STEM pbs;
@@ -128,36 +128,36 @@ public:
 private:
 	PSYNAPSE synapse;
 public:
-	PTRSZVAL Create(PTRSZVAL psvExtra )
+	uintptr_t Create(uintptr_t psvExtra )
 	{
-		return (PTRSZVAL)(brainboard->brain->DupSynapse( brainboard->DefaultSynapse ));
+		return (uintptr_t)(brainboard->brain->DupSynapse( brainboard->DefaultSynapse ));
 	}
-	void Destroy( PTRSZVAL psv )
+	void Destroy( uintptr_t psv )
 	{
 		brainboard->brain->ReleaseSynapse( (PSYNAPSE)psv );
 	}
-	int Disconnect( PTRSZVAL psv )
+	int Disconnect( uintptr_t psv )
 	{
 		brainboard->brain->UnLinkSynapseTo( (PSYNAPSE)psv );
 		return TRUE;
 	}
-	int OnRightClick( PTRSZVAL psv, S_32 x, S_32 y )
+	int OnRightClick( uintptr_t psv, int32_t x, int32_t y )
 	{
 		ShowSynapseDialog( (PSYNAPSE)psv );
 		return 1;
 	}
-//	PEICE_PROC( int, OnClick )( PTRSZVAL psv, int x, int y )
+//	PEICE_PROC( int, OnClick )( uintptr_t psv, int x, int y )
 //	{
 //		lprintf( WIDE("syn") );
  //     return 0;
  //  }
-	void SaveBegin( PODBC odbc, PTRSZVAL psvInstance )
+	void SaveBegin( PODBC odbc, uintptr_t psvInstance )
 	{
 		//SQLCommandf( odbc, WIDE("delete from board_layer_neuron where board_layer_id=%lu"), iParent );
 		PSYNAPSE synapse = (PSYNAPSE)psvInstance;
 		synapse->SaveBegin( odbc );
 	}
-	INDEX Save( PODBC odbc, INDEX iParent, PTRSZVAL psvInstance )
+	INDEX Save( PODBC odbc, INDEX iParent, uintptr_t psvInstance )
 	{
 		//SQLCommandf( odbc, WIDE("delete from board_layer_synapse where board_layer_id=%lu"), iParent );
 		//INDEX iBrainSynapse = 
@@ -168,11 +168,11 @@ public:
 		//			, NULL, 0, NULL );
 		//return FetchLastInsertID( odbc, NULL, NULL );
 	}
-	PTRSZVAL Load( PODBC odbc, INDEX iInstance )
+	uintptr_t Load( PODBC odbc, INDEX iInstance )
 	{
 		PSYNAPSE synapse = brainboard->brain->GetSynapse();
 		synapse->Load( odbc, 0, iInstance );
-		return (PTRSZVAL)synapse;
+		return (uintptr_t)synapse;
 	}
 };
 
@@ -184,13 +184,13 @@ public:
 private:
 	CDATA level_colors[3];
 public:
-	PTRSZVAL Create( PTRSZVAL psvExtra )
+	uintptr_t Create( uintptr_t psvExtra )
 	{
 		//brainboard->create_input_type = (POUTPUT_INPUT)psvExtra;
 		//brainboard->create_input_type->flags.bOutput = 0;
 		lprintf( WIDE("Creating a new input (peice instance)") );
 		//this->brainboard->brain->GetInputNeuron( ((POUTPUT_INPUT)psvExtra)->pbs, ((POUTPUT_INPUT)psvExtra)->conn
-		return (PTRSZVAL)((POUTPUT_INPUT)psvExtra); // still not the real create...  but this is psviNstance...
+		return (uintptr_t)((POUTPUT_INPUT)psvExtra); // still not the real create...  but this is psviNstance...
 	}
 	void SetColors( CDATA c1, CDATA c2, CDATA c3 )
 	{
@@ -198,7 +198,7 @@ public:
 		level_colors[1] = c2;
 		level_colors[2] = c3;
 	}
-	void Draw( PTRSZVAL psvInstance, Image image, Image cell, S_32 x, S_32 y )
+	void Draw( uintptr_t psvInstance, Image image, Image cell, int32_t x, int32_t y )
 	{
 		CDATA cPrimary;
 		POUTPUT_INPUT input = (POUTPUT_INPUT)psvInstance;
@@ -218,13 +218,13 @@ public:
 		               , x, y
 		               , cPrimary );
 	}
-	int ConnectEnd( PTRSZVAL psv_to_instance, S_32 x, S_32 y
-									  , PIPEICE peice_from, PTRSZVAL psv_from_instance )
+	int ConnectEnd( uintptr_t psv_to_instance, int32_t x, int32_t y
+									  , PIPEICE peice_from, uintptr_t psv_from_instance )
 	{
 		return FALSE;
 	}
-	int ConnectBegin( PTRSZVAL psv_to_instance, S_32 x, S_32 y
-									  , PIPEICE peice_from, PTRSZVAL psv_from_instance )
+	int ConnectBegin( uintptr_t psv_to_instance, int32_t x, int32_t y
+									  , PIPEICE peice_from, uintptr_t psv_from_instance )
 	{
 		int n;
 		//if( peice_from == brainboard->NerveMethods )
@@ -239,12 +239,12 @@ public:
 			return brainboard->brain->LinkSynapseFrom( synapse, neuron->neuron, n );
 		return FALSE;
 	}
-	int OnRightClick( PTRSZVAL psv, S_32 x, S_32 y )
+	int OnRightClick( uintptr_t psv, int32_t x, int32_t y )
 	{
       //ShowInputDialog( (PNEURON)psv );
       return 1;
 	}
-	int OnClick( PTRSZVAL psv, S_32 x, S_32 y )
+	int OnClick( uintptr_t psv, int32_t x, int32_t y )
 	{
 		lprintf( WIDE("click on input! at %d,%d"), x, y );
 		if( x == 0 && y == 0 )
@@ -257,7 +257,7 @@ public:
 		}
 		else
 		{
-			if( !brainboard->board->BeginPath( brainboard->NervePeice, (PTRSZVAL)brainboard ) )
+			if( !brainboard->board->BeginPath( brainboard->NervePeice, (uintptr_t)brainboard ) )
 			{
 				// attempt to grab existing path...
 				// current position, and current layer
@@ -268,7 +268,7 @@ public:
 		// so far there's nothing on this cell to do....
 		return FALSE;
 	}
-	INDEX Save( PODBC odbc, INDEX iParent, PTRSZVAL psv )
+	INDEX Save( PODBC odbc, INDEX iParent, uintptr_t psv )
 	{
 		POUTPUT_INPUT neuron = (POUTPUT_INPUT)psv;
 		INDEX fake_parent_id = neuron->neuron->Save( odbc, iParent ); //io_node->Save( odbc, neuron->pbs->name(), iParent, TRUE );
@@ -280,7 +280,7 @@ public:
 			);
 		return fake_parent_id;
 	}
-	PTRSZVAL Load( PODBC odbc, INDEX iInstance )
+	uintptr_t Load( PODBC odbc, INDEX iInstance )
 	{
 		// result with psvInstance....
 		//PNEURON neuron = (PNEURON)psv;
@@ -302,7 +302,7 @@ public:
 			//PNEURON neuron = brainboard->brain->GetOutputNeuron( name );
 			//return neuron->Load( odbc, 0, iInstance, brainboard->brain );
 			SQLEndQuery( odbc );
-			return (PTRSZVAL)io_thing;
+			return (uintptr_t)io_thing;
 		}
 		PopODBCEx( odbc );
 		return 0;
@@ -315,7 +315,7 @@ public:
 	OUTPUT_METHODS( BRAINBOARD *newbrainboard ) { brainboard = newbrainboard; }
 private:
 	CDATA level_colors[3];
-	PTRSZVAL Create( PTRSZVAL psvExtra )
+	uintptr_t Create( uintptr_t psvExtra )
 	{
 		//brainboard->create_output_type = (POUTPUT_INPUT)psv;
 		//brainboard->create_output_type->flags.bOutput = 1;
@@ -326,12 +326,12 @@ private:
 		poi->neuron = brainboard->brain->GetOutputNeuron( poi->conn );
 		//DupNeuron( brainboard->DefaultNeuron ))
 
-		return (PTRSZVAL)((POUTPUT_INPUT)psvExtra); // still not the real create...  but this is psviNstance...
-		//return (PTRSZVAL)poi->neuron; // still not the real create...  but this is psviNstance...
-		//return (PTRSZVAL)(((POUTPUT_INPUT)psvExtra)->conn); // still not the real create...  but this is psviNstance...
-		//return (PTRSZVAL)(brainboard->create_output_type);
+		return (uintptr_t)((POUTPUT_INPUT)psvExtra); // still not the real create...  but this is psviNstance...
+		//return (uintptr_t)poi->neuron; // still not the real create...  but this is psviNstance...
+		//return (uintptr_t)(((POUTPUT_INPUT)psvExtra)->conn); // still not the real create...  but this is psviNstance...
+		//return (uintptr_t)(brainboard->create_output_type);
 	}
-	void Draw( PTRSZVAL psvInstance, Image image, Image cell, S_32 x, S_32 y )
+	void Draw( uintptr_t psvInstance, Image image, Image cell, int32_t x, int32_t y )
 	{
 		CDATA cPrimary;
 		PNEURON neuron = (PNEURON)psvInstance;
@@ -359,8 +359,8 @@ public:
 		level_colors[1] = c2;
 		level_colors[2] = c3;
 	}
-	int ConnectEnd( PTRSZVAL psv_to_instance, S_32 x, S_32 y
-									  , PIPEICE peice_from, PTRSZVAL psv_from_instance )
+	int ConnectEnd( uintptr_t psv_to_instance, int32_t x, int32_t y
+									  , PIPEICE peice_from, uintptr_t psv_from_instance )
 	{
 		int n;
 		int success = FALSE;
@@ -383,17 +383,17 @@ public:
 		}
 		return FALSE;
 	}
-	int ConnectBegin( PTRSZVAL psv_to_instance, S_32 x, S_32 y
-									  , PIPEICE peice_from, PTRSZVAL psv_from_instance )
+	int ConnectBegin( uintptr_t psv_to_instance, int32_t x, int32_t y
+									  , PIPEICE peice_from, uintptr_t psv_from_instance )
 	{
 		return FALSE;
 	}
-	int OnRightClick( PTRSZVAL psv, S_32 x, S_32 y )
+	int OnRightClick( uintptr_t psv, int32_t x, int32_t y )
 	{
 		//ShowOutputDialog( (PNEURON)psv );
 		return 1;
 	}
-	int OnClick( PTRSZVAL psv, S_32 x, S_32 y )
+	int OnClick( uintptr_t psv, int32_t x, int32_t y )
 	{
 		lprintf( WIDE("click on neuron! at %d,%d"), x, y );
 		if( x == 0 && y == 0 )
@@ -406,7 +406,7 @@ public:
 		}
 		else
 		{
-			if( !brainboard->board->BeginPath( brainboard->NervePeice, (PTRSZVAL)brainboard ) )
+			if( !brainboard->board->BeginPath( brainboard->NervePeice, (uintptr_t)brainboard ) )
 			{
 				// attempt to grab existing path...
 				// current position, and current layer
@@ -417,7 +417,7 @@ public:
 		// so far there's nothing on this cell to do....
 		return FALSE;
 	}
-	INDEX Save( PODBC odbc, INDEX iParent, PTRSZVAL psv )
+	INDEX Save( PODBC odbc, INDEX iParent, uintptr_t psv )
 	{
 		POUTPUT_INPUT neuron = (POUTPUT_INPUT)psv;
 		INDEX fake_parent_id = neuron->neuron->Save( odbc, iParent ); //io_node->Save( odbc, neuron->pbs->name(), iParent, TRUE );
@@ -429,7 +429,7 @@ public:
 			);
 		return fake_parent_id;
 	}
-	PTRSZVAL Load( PODBC odbc, INDEX iInstance )
+	uintptr_t Load( PODBC odbc, INDEX iInstance )
 	{
 		// result with psvInstance....
 		//PNEURON neuron = (PNEURON)psv;
@@ -448,7 +448,7 @@ public:
 			//PNEURON neuron = brainboard->brain->GetOutputNeuron( name );
 			//return neuron->Load( odbc, 0, iInstance, brainboard->brain );
 			SQLEndQuery( odbc );
-			return (PTRSZVAL)io_thing;
+			return (uintptr_t)io_thing;
 		}
 		return 0;
 	}
@@ -482,17 +482,17 @@ public:
 			c_threshold[2] = c3;
 		}
 	}
-	PTRSZVAL Create( PTRSZVAL psvExtra )
+	uintptr_t Create( uintptr_t psvExtra )
 	{
 		lprintf( WIDE("Creating a new neuron (peice instance)") );
-		return (PTRSZVAL)(brainboard->brain->DupNeuron( brainboard->DefaultNeuron ));
+		return (uintptr_t)(brainboard->brain->DupNeuron( brainboard->DefaultNeuron ));
 	}
-	void Destroy( PTRSZVAL psv )
+	void Destroy( uintptr_t psv )
 	{
       brainboard->brain->ReleaseNeuron( (PNEURON)psv );
 	}
 	
-	void Draw( PTRSZVAL psvInstance, Image image, Image cell, S_32 x, S_32 y )
+	void Draw( uintptr_t psvInstance, Image image, Image cell, int32_t x, int32_t y )
 	{
       //lprintf( WIDE("---------- DRAW NEURON ------------") );
 
@@ -550,13 +550,13 @@ public:
 								  , cTertiary, cSecondary, cPrimary );
 	}
 
-	void Update( PTRSZVAL psv, _32 cycle )
+	void Update( uintptr_t psv, uint32_t cycle )
 	{
 		lprintf( WIDE("updating color information for a neuron...") );
 	}
 
-	int ConnectEnd( PTRSZVAL psv_to_instance, S_32 x, S_32 y
-									  , PIPEICE peice_from, PTRSZVAL psv_from_instance )
+	int ConnectEnd( uintptr_t psv_to_instance, int32_t x, int32_t y
+									  , PIPEICE peice_from, uintptr_t psv_from_instance )
 	{
 		int n;
 		//if( peice_from == brainboard->NerveMethods )
@@ -575,8 +575,8 @@ public:
 		return FALSE;
 	}
 
-	int ConnectBegin( PTRSZVAL psv_to_instance, S_32 x, S_32 y
-									  , PIPEICE peice_from, PTRSZVAL psv_from_instance )
+	int ConnectBegin( uintptr_t psv_to_instance, int32_t x, int32_t y
+									  , PIPEICE peice_from, uintptr_t psv_from_instance )
 	{
 		int n;
 		//if( peice_from == brainboard->NerveMethods )
@@ -591,13 +591,13 @@ public:
 			return brainboard->brain->LinkSynapseFrom( synapse, neuron, n );
 		return FALSE;
 	}
-	int OnRightClick( PTRSZVAL psv, S_32 x, S_32 y )
+	int OnRightClick( uintptr_t psv, int32_t x, int32_t y )
 	{
 		ShowNeuronDialog( (PNEURON)psv );
 		return 1;
 	}
 
-	int OnClick( PTRSZVAL psv, S_32 x, S_32 y )
+	int OnClick( uintptr_t psv, int32_t x, int32_t y )
 	{
 		lprintf( WIDE("click on neuron! at %d,%d"), x, y );
 		if( x == 0 && y == 0 )
@@ -610,7 +610,7 @@ public:
 		}
 		else
 		{
-			if( !brainboard->board->BeginPath( brainboard->NervePeice, (PTRSZVAL)brainboard ) )
+			if( !brainboard->board->BeginPath( brainboard->NervePeice, (uintptr_t)brainboard ) )
 			{
 				// attempt to grab existing path...
 				// current position, and current layer
@@ -621,23 +621,23 @@ public:
 		// so far there's nothing on this cell to do....
 		return FALSE;
 	}
-	void SaveBegin( PODBC odbc, PTRSZVAL psvInstance )
+	void SaveBegin( PODBC odbc, uintptr_t psvInstance )
 	{
 		//SQLCommandf( odbc, WIDE("delete from board_layer_neuron where board_layer_id=%lu"), iParent );
 		PNEURON neuron = (PNEURON)psvInstance;
 		neuron->SaveBegin( odbc );
 	}
 
-	INDEX Save( PODBC odbc, INDEX iParent, PTRSZVAL psvInstance )
+	INDEX Save( PODBC odbc, INDEX iParent, uintptr_t psvInstance )
 	{
 		PNEURON neuron = (PNEURON)psvInstance;
 		return neuron->Save( odbc, iParent );
 	}
-	PTRSZVAL Load( PODBC odbc, INDEX iInstance )
+	uintptr_t Load( PODBC odbc, INDEX iInstance )
 	{
 		PNEURON neuron = brainboard->brain->GetNeuron();
 		neuron->Load( odbc, iInstance );
-		return (PTRSZVAL)neuron;
+		return (uintptr_t)neuron;
 	}
 };
 
@@ -663,19 +663,19 @@ static LOGICAL SelectNewFile( HWND hParent, PSTR szFile )
 */
 
 
-void CPROC CreateNewBoardName( PTRSZVAL psv, PSI_CONTROL button )
+void CPROC CreateNewBoardName( uintptr_t psv, PSI_CONTROL button )
 {
 	TEXTCHAR *newname = (TEXTCHAR*)psv;
 	SimpleUserQuery( newname, 256, WIDE("Enter a new board name"), button );
 }
 
-void CPROC SelectedItem( PTRSZVAL psv, PSI_CONTROL list, PLISTITEM item )
+void CPROC SelectedItem( uintptr_t psv, PSI_CONTROL list, PLISTITEM item )
 {
 	TEXTCHAR *newname = (TEXTCHAR*)psv;
 	sack::PSI::listbox::GetItemText( item, 256, newname );
 }
 
-void CPROC SelectedItemLoad( PTRSZVAL psv, PSI_CONTROL list, PLISTITEM item )
+void CPROC SelectedItemLoad( uintptr_t psv, PSI_CONTROL list, PLISTITEM item )
 {
 	TEXTCHAR *newname = (TEXTCHAR*)psv;
 	GetItemText( item, 256, newname );
@@ -712,8 +712,8 @@ CTEXTSTR PickBoardName( PODBC odbc, int bMustExist )
 				{
 					AddListItem( list, results[0] );
 				}
-				SetSelChangeHandler( list, SelectedItem, (PTRSZVAL)newname ); 
-				SetDoubleClickHandler( list, SelectedItemLoad, (PTRSZVAL)newname ); 
+				SetSelChangeHandler( list, SelectedItem, (uintptr_t)newname ); 
+				SetDoubleClickHandler( list, SelectedItemLoad, (uintptr_t)newname ); 
 			}
 		}
 		{
@@ -723,7 +723,7 @@ CTEXTSTR PickBoardName( PODBC odbc, int bMustExist )
 				if( bMustExist )
 					HideControl( pc );
 				else
-					SetButtonPushMethod( pc, CreateNewBoardName, (PTRSZVAL)newname );
+					SetButtonPushMethod( pc, CreateNewBoardName, (uintptr_t)newname );
 			}
 		}
 		SetCommonButtons( frame, &done, &okay );
@@ -750,42 +750,42 @@ public:
 private:
 	typedef PEICE_METHODS Parent;
 public:
-	PTRSZVAL Create(PTRSZVAL psvExtra)
+	uintptr_t Create(uintptr_t psvExtra)
 	{
 		//brainboard = (BRAINBOARD *)psvExtra;
 		return 1;
 	}
 
-	void Destroy( PTRSZVAL )
+	void Destroy( uintptr_t )
 	{
 		// nothing special to do on destroy background
 	}
-	PEICE_PROC( void, Properties )( PTRSZVAL psv, PCOMMON parent );
-	PEICE_PROC( int, Connect )( PTRSZVAL psvTo
+	PEICE_PROC( void, Properties )( uintptr_t psv, PCOMMON parent );
+	PEICE_PROC( int, Connect )( uintptr_t psvTo
 				  , int rowto, int colto
-				  , PTRSZVAL psvFrom
+				  , uintptr_t psvFrom
 				  , int rowfrom, int colfrom )
 	{
       return 0;
 	}
 
-	void Update( PTRSZVAL psv, _32 cycle )
+	void Update( uintptr_t psv, uint32_t cycle )
 	{
       lprintf( WIDE("Update background - nothing to do.") );
 		Parent::Update(psv,cycle);
 	}
 
-	int OnClick( PTRSZVAL psv, S_32 x, S_32 y )
+	int OnClick( uintptr_t psv, int32_t x, int32_t y )
 	{
 		brainboard->board->LockDrag();
 		return TRUE;
 	}
 
-	int OnRightClick( PTRSZVAL psv, S_32 x, S_32 y )
+	int OnRightClick( uintptr_t psv, int32_t x, int32_t y )
 	{
 		brainboard->RebuildComponentPopups();
 
-		_32 result = TrackPopup( brainboard->hMenu, NULL );
+		uint32_t result = TrackPopup( brainboard->hMenu, NULL );
 		//DebugBreak();
 		if( result >= MNU_ADD_INPUT_START && result < MNU_ADD_OUTPUT_START )
 		{
@@ -799,7 +799,7 @@ public:
 			//brainboard->create_input_type = GetLink( &brainboard->inputs, result-MNU_ADD_INPUT_START );
 
 			// really this only needs to pass the connector? or do I need to get a Input/Ouptut Neuron?
-			brainboard->board->PutPeice( brainboard->InputPeice, x, y, (PTRSZVAL)io_thing );
+			brainboard->board->PutPeice( brainboard->InputPeice, x, y, (uintptr_t)io_thing );
 		}
 		else if( result >= MNU_ADD_OUTPUT_START && result <= MNU_ADD_OUTPUT_LAST )
 		{
@@ -810,7 +810,7 @@ public:
 			io_thing->conn = (PCONNECTOR)GetLink( &brainboard->connectors, result-MNU_ADD_OUTPUT_START );// io_thing->pbs->getoutput( (result-MNU_ADD_OUTPUT_START)%80 );
 
 			// really this only needs to pass the connector? or do I need to get a Input/Ouptut Neuron?
-			brainboard->board->PutPeice( brainboard->OutputPeice, x, y, (PTRSZVAL)io_thing );
+			brainboard->board->PutPeice( brainboard->OutputPeice, x, y, (uintptr_t)io_thing );
 		}
 		else switch( result )
 		{
@@ -861,16 +861,16 @@ public:
 		}
 		return TRUE;
 	}
-	int OnDoubleClick( PTRSZVAL psv, int x, int y )
+	int OnDoubleClick( uintptr_t psv, int x, int y )
 	{
-		_32 result = TrackPopup( brainboard->hMenu, NULL );
+		uint32_t result = TrackPopup( brainboard->hMenu, NULL );
 		return TRUE;
 	}
 };
 
 //---------------------------------------------------
 
-PTRSZVAL DefineAColor( PTRSZVAL psv, arg_list args )
+uintptr_t DefineAColor( uintptr_t psv, arg_list args )
 {
 	PARAM( args, char *, pName );
 	PARAM( args, CDATA, color );
@@ -939,7 +939,7 @@ void BRAINBOARD::SetCellSize( arg_list args )
 	PARAM( args, S_64, y );
 	board->SetCellSize( (int)x, (int)y );
 }
-PTRSZVAL CPROC SetCellSize( PTRSZVAL psv, arg_list args )
+uintptr_t CPROC SetCellSize( uintptr_t psv, arg_list args )
 {
 	((BRAINBOARD*)psv)->SetCellSize( args );
 	return psv;
@@ -949,7 +949,7 @@ PTRSZVAL CPROC SetCellSize( PTRSZVAL psv, arg_list args )
 void BRAINBOARD::DefinePeiceColors( arg_list args )
 {
 	PARAM( args, TEXTCHAR *, type );
-	PARAM( args, _64, input_or_threshold );
+	PARAM( args, uint64_t, input_or_threshold );
 	PARAM( args, CDATA, c1 );
 	PARAM( args, CDATA, c2 );
 	PARAM( args, CDATA, c3 );
@@ -971,7 +971,7 @@ void BRAINBOARD::DefinePeiceColors( arg_list args )
 		output_methods->SetColors( c1,c2,c3 );
 	}
 }
-PTRSZVAL CPROC DefinePeiceColors( PTRSZVAL psv, arg_list args )
+uintptr_t CPROC DefinePeiceColors( uintptr_t psv, arg_list args )
 {
 	BRAINBOARD *brainboard = (BRAINBOARD*)psv;
 	brainboard->DefinePeiceColors( args );
@@ -981,8 +981,8 @@ PTRSZVAL CPROC DefinePeiceColors( PTRSZVAL psv, arg_list args )
 void BRAINBOARD::DefineABlock( arg_list args )
 {
 	PARAM( args, TEXTCHAR *, type );
-	PARAM( args, _64, cx );
-	PARAM( args, _64, cy );
+	PARAM( args, uint64_t, cx );
+	PARAM( args, uint64_t, cy );
 	PARAM( args, TEXTCHAR *, filename );
 	PPEICE_METHODS methods = FindPeiceMethods( type );
 	Image image = LoadImageFile( filename );
@@ -993,7 +993,7 @@ void BRAINBOARD::DefineABlock( arg_list args )
 										, (int)cx, (int)cy
 										, ((int)cx-1)/2, ((int)cy-1)/2
 										, methods 
-										, (PTRSZVAL)this /* brainboard*/
+										, (uintptr_t)this /* brainboard*/
 										 );
 		lprintf( WIDE("Make block %s : %s"), type, filename );
 		if( methods == background_methods )
@@ -1020,7 +1020,7 @@ void BRAINBOARD::DefineABlock( arg_list args )
 	else
 		lprintf( WIDE("Failed to open %s"), filename );
 }
-PTRSZVAL CPROC DefineABlock( PTRSZVAL psv, arg_list args )
+uintptr_t CPROC DefineABlock( uintptr_t psv, arg_list args )
 {
 	BRAINBOARD *brainboard = (BRAINBOARD*)psv;
 	brainboard->DefineABlock( args );
@@ -1035,9 +1035,9 @@ void BRAINBOARD::DefineABlockNoOpt( arg_list args )
 	Image image = LoadImageFile( filename );
 	lprintf( WIDE("Attempt to define via with %s"), filename );
 	if( image )
-		NervePeice = board->CreateVia( WIDE("nerve"), image, nerve_methods, (PTRSZVAL)this );
+		NervePeice = board->CreateVia( WIDE("nerve"), image, nerve_methods, (uintptr_t)this );
 }
-PTRSZVAL CPROC DefineABlockNoOpt( PTRSZVAL psv, arg_list args )
+uintptr_t CPROC DefineABlockNoOpt( uintptr_t psv, arg_list args )
 {
 	BRAINBOARD *brainboard = (BRAINBOARD*)psv;
 	brainboard->DefineABlockNoOpt( args );
@@ -1068,11 +1068,11 @@ void BRAINBOARD::LoadPeices( CTEXTSTR file )
 	AddConfigurationMethod( pch, WIDE("color %m %i %c %c %c"), ::DefinePeiceColors );
 	AddConfigurationMethod( pch, WIDE("pathway %p"), ::DefineABlockNoOpt );
 	
-	if( !ProcessConfigurationFile( pch, file, (PTRSZVAL)this ) )
+	if( !ProcessConfigurationFile( pch, file, (uintptr_t)this ) )
 	{
 		TEXTCHAR otherfile[256];
 		snprintf( otherfile, 256, WIDE("%%resources%%/%s"), file );
-		ProcessConfigurationFile( pch, otherfile, (PTRSZVAL)this );
+		ProcessConfigurationFile( pch, otherfile, (uintptr_t)this );
 	}
 	DestroyConfigurationHandler( pch );
 }
@@ -1092,10 +1092,10 @@ void BuildBrainstemMenus( PMENU hMenuComponents, PBRAIN_STEM pbs
 			PBRAIN_STEM module;
 			AppendPopupItem( hMenuComponents
 									, MF_STRING|MF_POPUP
-									, (PTRSZVAL)(comp_menu = CreatePopup())
+									, (uintptr_t)(comp_menu = CreatePopup())
 									, pbs->name() );
 			AddLink( menus, (POINTER)comp_menu );
-			AppendPopupItem( comp_menu, MF_STRING|MF_POPUP, (PTRSZVAL)(menu = CreatePopup() ), WIDE("inputs") );
+			AppendPopupItem( comp_menu, MF_STRING|MF_POPUP, (uintptr_t)(menu = CreatePopup() ), WIDE("inputs") );
 			AddLink( menus, (POINTER)menu );
 			
 			LIST_FORALL( pbs->Inputs.list, idx, PCONNECTOR, connector )
@@ -1103,7 +1103,7 @@ void BuildBrainstemMenus( PMENU hMenuComponents, PBRAIN_STEM pbs
 				AddLink( connectors, (POINTER)connector );
 				AppendPopupItem( menu, MF_STRING, MNU_ADD_INPUT_START + FindLink( connectors, (POINTER)connector) + ( n * 80 ), connector->name() );
 			}
-			AppendPopupItem( comp_menu, MF_STRING|MF_POPUP, (PTRSZVAL)(menu = CreatePopup() ), WIDE("outputs") );
+			AppendPopupItem( comp_menu, MF_STRING|MF_POPUP, (uintptr_t)(menu = CreatePopup() ), WIDE("outputs") );
 			AddLink( menus, (POINTER)menu );
 			
 			LIST_FORALL( pbs->Outputs.list, idx, PCONNECTOR, connector )
@@ -1112,7 +1112,7 @@ void BuildBrainstemMenus( PMENU hMenuComponents, PBRAIN_STEM pbs
 				AppendPopupItem( menu, MF_STRING, MNU_ADD_OUTPUT_START + FindLink( connectors, (POINTER)connector) + ( n * 80 ), connector->name() );
 			}
 			
-			AppendPopupItem( comp_menu, MF_STRING|MF_POPUP, (PTRSZVAL)(menu = CreatePopup() ), WIDE("module") );
+			AppendPopupItem( comp_menu, MF_STRING|MF_POPUP, (uintptr_t)(menu = CreatePopup() ), WIDE("module") );
 			AddLink( menus, (POINTER)menu );
 			
 			for( module = pbs->first_module(); module; idx++, module = pbs->next_module() )
@@ -1147,7 +1147,7 @@ void BRAINBOARD::InitMenus( void )
 	hMenu = CreatePopup();
 	AppendPopupItem( hMenu, MF_STRING, MNU_ADDNEURON, WIDE("Add &Neuron") );
    
-	AppendPopupItem( hMenu,MF_STRING|MF_POPUP, (PTRSZVAL)(hMenuComponents=CreatePopup()), WIDE("Add &Component") );
+	AppendPopupItem( hMenu,MF_STRING|MF_POPUP, (uintptr_t)(hMenuComponents=CreatePopup()), WIDE("Add &Component") );
 	{
 		int n = 0;
 		INDEX idx;
@@ -1163,7 +1163,7 @@ void BRAINBOARD::InitMenus( void )
 	AppendPopupItem( hMenu,MF_SEPARATOR,0,0 );
 	{
 		PMENU hPopup;
-		AppendPopupItem( hMenu,MF_STRING|MF_POPUP, (PTRSZVAL)(hPopup = CreatePopup()), WIDE("Zoom") );
+		AppendPopupItem( hMenu,MF_STRING|MF_POPUP, (uintptr_t)(hPopup = CreatePopup()), WIDE("Zoom") );
 		AddLink( &menus, hPopup );
 
 		//hPopup = (PMENU)GetPopupData( hMenu, 6 );

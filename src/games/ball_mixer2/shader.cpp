@@ -52,7 +52,7 @@ const char *gles_simple_p_shader =
      "  gl_FragColor = vColor;" 
      "}" ;
 
-void CPROC EnableSuperSimpleShader( PImageShaderTracker tracker, PTRSZVAL psv, va_list args )
+void CPROC EnableSuperSimpleShader( PImageShaderTracker tracker, uintptr_t psv, va_list args )
 {
 	float *verts = va_arg( args, float * );
 	float *color = va_arg( args, float * );
@@ -68,7 +68,7 @@ void CPROC EnableSuperSimpleShader( PImageShaderTracker tracker, PTRSZVAL psv, v
 }
 
 
-void InitSuperSimpleShader( PTRSZVAL psvSetup, PImageShaderTracker shader )
+void InitSuperSimpleShader( uintptr_t psvSetup, PImageShaderTracker shader )
 {
 		const char *v_codeblocks[2];
 		const char *p_codeblocks[2];
@@ -280,7 +280,7 @@ void InitSuperSimpleShader( PTRSZVAL psvSetup, PImageShaderTracker shader )
 	                                         "}\n";
 
 
-void CPROC EnableSimpleShader( PImageShaderTracker tracker, PTRSZVAL psv, va_list args )
+void CPROC EnableSimpleShader( PImageShaderTracker tracker, uintptr_t psv, va_list args )
 {
 	float *verts = va_arg( args, float * );
 	float *norms = va_arg( args, float * );
@@ -299,7 +299,7 @@ void CPROC EnableSimpleShader( PImageShaderTracker tracker, PTRSZVAL psv, va_lis
 }
 
 
-void InitShader( PTRSZVAL psvSetup, PImageShaderTracker shader )
+void InitShader( uintptr_t psvSetup, PImageShaderTracker shader )
 {
 
 
@@ -355,7 +355,7 @@ void InitShader( PTRSZVAL psvSetup, PImageShaderTracker shader )
 	}
 }
 
-static void CPROC EnableSimpleLayerTextureShader( PImageShaderTracker tracker, PTRSZVAL psv, va_list args )
+static void CPROC EnableSimpleLayerTextureShader( PImageShaderTracker tracker, uintptr_t psv, va_list args )
 {
 	float *verts = va_arg( args, float * );
 	float *color = va_arg( args, float * );
@@ -371,7 +371,7 @@ static void CPROC EnableSimpleLayerTextureShader( PImageShaderTracker tracker, P
 }
 
 
-void InitLayerTextureShader( PTRSZVAL psvSetup, PImageShaderTracker shader )
+void InitLayerTextureShader( uintptr_t psvSetup, PImageShaderTracker shader )
 {
 
 	{

@@ -222,9 +222,9 @@ void CPROC UDPReceive( PCLIENT pc, POINTER buffer, int size, SOCKADDR *saFrom )
       uint32_t number;
 		char seq[9];
 		seq[8] = 0;
-		((P_64)seq)[0] = ((P_64)buffer)[0];
+		((uint64_t*)seq)[0] = ((uint64_t*)buffer)[0];
 		sscanf( seq, "%X", &number );
-		if( (((P_64)buffer)+1)[0] == ((P_64)"SERVING ")[0] )
+		if( (((uint64_t*)buffer)+1)[0] == ((uint64_t*)"SERVING ")[0] )
 		{
          char seq[9];
 			int POS = atoi( ((TEXTSTR)((uintptr_t)buffer+16)) );
@@ -249,7 +249,7 @@ void CPROC UDPReceive( PCLIENT pc, POINTER buffer, int size, SOCKADDR *saFrom )
 			}
 			LeaveCriticalSec( &g.cs );
 		}
-		else if( (((P_64)buffer)+1)[0] == ((P_64)"SERVED  ")[0] )
+		else if( (((uint64_t*)buffer)+1)[0] == ((uint64_t*)"SERVED  ")[0] )
 		{
 			int POS = atoi( ((TEXTSTR)((uintptr_t)buffer+16)) );
          if( g.flags.bLog ) lprintf( "Served." );
@@ -276,7 +276,7 @@ void CPROC UDPReceive( PCLIENT pc, POINTER buffer, int size, SOCKADDR *saFrom )
 			}
 			LeaveCriticalSec( &g.cs );
 		}
-		else if( (((P_64)buffer)+1)[0] == ((P_64)"CLEARALL")[0] )
+		else if( (((uint64_t*)buffer)+1)[0] == ((uint64_t*)"CLEARALL")[0] )
 		{
 			static uint32_t last_number;
 			EnterCriticalSec( &g.cs );

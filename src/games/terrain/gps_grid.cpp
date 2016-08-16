@@ -107,7 +107,7 @@ int CPROC DrawGrid( PSI_CONTROL frame )
 		return 1;
 	}
 
-void CPROC UpdateGrid( PTRSZVAL psv )
+void CPROC UpdateGrid( uintptr_t psv )
 {
 	SmudgeCommon( (PSI_CONTROL)psv );
 }
@@ -119,7 +119,7 @@ void CreateGPSGridDisplay( void )
 
 	AddCommonDraw( frame, DrawGrid) ;
 
-	AddTimer( 300, UpdateGrid, (PTRSZVAL)frame );
+	AddTimer( 300, UpdateGrid, (uintptr_t)frame );
 	DisplayFrame( frame );
 	return;
 }

@@ -158,7 +158,7 @@ void ANYVALUE::set( NATIVE native )
       data.s = (S_16)native;
       break;
    case VAL_LONG:
-      data.l = (S_32)native;
+      data.l = (int32_t)native;
       break;
    case VAL_LONGLONG:
       data.ll = (S_64)native;
@@ -170,10 +170,10 @@ void ANYVALUE::set( NATIVE native )
       data.us = (_16)native;
       break;
    case VAL_ULONG:
-      data.ul = (_32)native;
+      data.ul = (uint32_t)native;
       break;
    case VAL_ULONGLONG:
-      data.ull = (_64)native;
+      data.ull = (uint64_t)native;
       break;
    case VAL_PTRFLOAT:
       *data.pf = (float)native;
@@ -188,7 +188,7 @@ void ANYVALUE::set( NATIVE native )
       *data.ps = (S_16)native;
       break;
    case VAL_PTRLONG:
-      *data.pl = (S_32)native;
+      *data.pl = (int32_t)native;
       break;
    case VAL_PTRLONGLONG:
       *data.pll = (S_64)native;
@@ -200,10 +200,10 @@ void ANYVALUE::set( NATIVE native )
       *data.pus = (_16)native;
       break;
    case VAL_PTRULONG:
-      *data.pul = (_32)native;
+      *data.pul = (uint32_t)native;
       break;
    case VAL_PTRULONGLONG:
-      *data.pull = (_64)native;
+      *data.pull = (uint64_t)native;
       break;
    case VAL_EXTERNINPUT:
    case VAL_EXTERNOUTPUT:
@@ -238,7 +238,7 @@ void value::set( enum type type, ... )
 		value::data.l = va_arg( args, long);
 		break;
 	case VAL_LONGLONG:
-		value::data.ll = va_arg( args, _64);
+		value::data.ll = va_arg( args, uint64_t);
 		break;
 	case VAL_UCHAR:
 		value::data.uc = va_arg( args, unsigned char);
@@ -250,7 +250,7 @@ void value::set( enum type type, ... )
 		value::data.ul = va_arg( args, unsigned long);
 		break;
 	case VAL_ULONGLONG:
-		value::data.ull = va_arg( args, _64);
+		value::data.ull = va_arg( args, uint64_t);
 		break;
 	case VAL_PTRFLOAT:
 		value::data.pf = va_arg( args, float*);
@@ -265,7 +265,7 @@ void value::set( enum type type, ... )
 		value::data.ps = va_arg( args, S_16*);
 		break;
 	case VAL_PTRLONG:
-		value::data.pl = va_arg( args, S_32*);
+		value::data.pl = va_arg( args, int32_t*);
 		break;
 	case VAL_PTRLONGLONG:
 		value::data.pll = va_arg( args, S_64 *);
@@ -277,26 +277,26 @@ void value::set( enum type type, ... )
 		value::data.pus = va_arg( args, _16 *);
 		break;
 	case VAL_PTRULONG:
-		value::data.pul = va_arg( args, _32 *);
+		value::data.pul = va_arg( args, uint32_t *);
 		break;
 	case VAL_PTRULONGLONG:
-		value::data.pull = va_arg( args, _64*);
+		value::data.pull = va_arg( args, uint64_t*);
 		break;
 	case VAL_EXTERNINPUT:
 		value::data.Input = va_arg( args, InputFunction);
-		value::aux = va_arg( args, PTRSZVAL );
+		value::aux = va_arg( args, uintptr_t );
 		break;
 	case VAL_EXTERNOUTPUT:
 		value::data.Output = va_arg( args, OutputFunction);
-		value::aux = va_arg( args, PTRSZVAL );
+		value::aux = va_arg( args, uintptr_t );
 		break;
 	case VAL_EXTERNTHRUPUT:
 		value::data.Thruput = va_arg( args, ThruputFunction);
-		value::aux = va_arg( args, PTRSZVAL );
+		value::aux = va_arg( args, uintptr_t );
 		break;
 	case VAL_EXTERNTRIGGER:
 		value::data.Trigger = va_arg( args, TriggerFunction);
-		value::aux = va_arg( args, PTRSZVAL );
+		value::aux = va_arg( args, uintptr_t );
 		break;
 	case VAL_PANYVALUE:
 		value::data.pany = va_arg( args, PANYVALUE);
@@ -324,9 +324,9 @@ void value::set( struct value *value )
  * to fill in the function....
  */
 /*
-_32 value::save( FILE *file )
+uint32_t value::save( FILE *file )
 {
-   _32 out;
+   uint32_t out;
    NATIVE value;
 	out = fwrite( &type, 1, sizeof( type ), file );
 	switch( type )
@@ -372,7 +372,7 @@ _32 value::save( FILE *file )
 
 INDEX value::save( PODBC odbc, INDEX iParent )
 {
-   _32 out;
+   uint32_t out;
    NATIVE value;
 	//out = fwrite( &type, 1, sizeof( type ), file );
 	switch( type )
@@ -417,7 +417,7 @@ INDEX value::save( PODBC odbc, INDEX iParent )
    return INVALID_INDEX;
 }
 
-_32 value::load( FILE *file )
+uint32_t value::load( FILE *file )
 {
    NATIVE value;
 	fread( &type, 1, sizeof( type ), file );

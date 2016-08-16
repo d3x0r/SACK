@@ -255,8 +255,8 @@ void DrawLine( PDISPLAY display, P_POINT m, P_POINT o, RCOORD start, RCOORD end,
 	p1[1] = DISPLAY_Y(display, p1[1]);
 	p2[1] = DISPLAY_Y(display, p2[1]);
 	do_line( display->pImage
-			 , (S_32)p1[0], (S_32)p1[1]
-			 , (S_32)p2[0], (S_32)p2[1]
+			 , (int32_t)p1[0], (int32_t)p1[1]
+			 , (int32_t)p2[0], (int32_t)p2[1]
 			 , color );
 }
 
@@ -319,7 +319,7 @@ void DrawSpaceLines( Image pImage, PSPACENODE space )
 
 //----------------------------------------------------------------------------
 
-PTRSZVAL CPROC DrawSectorLines( INDEX pSector, PTRSZVAL pc )
+uintptr_t CPROC DrawSectorLines( INDEX pSector, uintptr_t pc )
 {
 	INDEX iSector = (INDEX)pSector;
 	PDISPLAY display = ControlData( PDISPLAY, (PSI_CONTROL)pc );
@@ -462,7 +462,7 @@ void SetCurWall( PSI_CONTROL pc )
 
 //----------------------------------------------------------------------------
 
-PTRSZVAL CPROC DrawSectorName( INDEX p, PTRSZVAL psv )
+uintptr_t CPROC DrawSectorName( INDEX p, uintptr_t psv )
 {
 	INDEX iSector = (INDEX)p;
 	PDISPLAY display = (PDISPLAY)psv;
@@ -494,7 +494,7 @@ void DrawDisplayGrid( PDISPLAY display )
 {
 	int x, y;
 	//maxx, maxy, miny,, incx, incy, delx, dely, minx
-	_32 start= GetTickCount();;
+	uint32_t start= GetTickCount();;
 
 	if( display->flags.bShowGrid )
 	{
@@ -686,7 +686,7 @@ void RedrawWorld( PCOMMON pc, int nLine )
 {
 	//PDISPLAY display = (PDISPLAY)psvUser;
 	PDISPLAY display = ControlData( PDISPLAY, pc );
-	_32 start, resizestart;
+	uint32_t start, resizestart;
 	//if( updateonmove == mousemove )
 	//	Log3( WIDE("Dual Draw World %d last:%d this:%d"), mousemove, lastupdate, nLine );
 
@@ -732,7 +732,7 @@ void RedrawWorld( PCOMMON pc, int nLine )
 	if( display->flags.bShowSectorTexture )
 	{
 		//lprintf( WIDE("Draw sector texture.") );
-		ForAllSectors( display->pWorld, DrawSectorTexture, (PTRSZVAL)pc );
+		ForAllSectors( display->pWorld, DrawSectorTexture, (uintptr_t)pc );
 	}
 	if( dotiming )
 	{
@@ -742,13 +742,13 @@ void RedrawWorld( PCOMMON pc, int nLine )
 	}
 	if( display->flags.bShowLines || 
 		!display->flags.bShowSectorTexture )
-		ForAllSectors( display->pWorld, DrawSectorLines, (PTRSZVAL)pc );
+		ForAllSectors( display->pWorld, DrawSectorLines, (uintptr_t)pc );
 	else
 	{ 
 		int n;
 		for( n = 0; n < display->nSectors; n++ )
 		{
-			DrawSectorLines( display->CurSector.SectorList[n], (PTRSZVAL)pc );
+			DrawSectorLines( display->CurSector.SectorList[n], (uintptr_t)pc );
 			//DrawSpaceLines( display->pImage
 			//				, display->CurSector.SectorList[n]->spacenode );
 		}
@@ -765,7 +765,7 @@ void RedrawWorld( PCOMMON pc, int nLine )
 
 
 	if( display->flags.bShowSectorText )
-		ForAllSectors( display->pWorld, DrawSectorName, (PTRSZVAL)display );
+		ForAllSectors( display->pWorld, DrawSectorName, (uintptr_t)display );
 	if( dotiming )
 	{
 		Log3( WIDE("%s(%d): %d Sector Text"), __FILE__, __LINE__, GetTickCount() - start );
@@ -898,9 +898,9 @@ void RedrawWorld( PCOMMON pc, int nLine )
 
 	{
 		TEXTCHAR msg[256];
-		_32 sectors, walls, lines;
+		uint32_t sectors, walls, lines;
 		/*
-		_32 used, free, chunks, freechunks;
+		uint32_t used, free, chunks, freechunks;
        // gues this doesn't work anymore...
 		GetMemStats( &free, &used, &chunks, &freechunks );
 		sprintf( msg, WIDE("Used: %d Free: %d UsedChunks: %d FreeChunks: %d")
@@ -956,9 +956,9 @@ void DoSave( int bAutoSave, PDISPLAY display, INDEX iWorld )
 
 #define LOCK_THRESHOLD 5
 
-_32 AutoSaveTimer;
+uint32_t AutoSaveTimer;
 
-static int OnMouseCommon( WIDE("Flatland Editor") )( PCOMMON pc, S_32 x, S_32 y, _32 b )
+static int OnMouseCommon( WIDE("Flatland Editor") )( PCOMMON pc, int32_t x, int32_t y, uint32_t b )
 {
 	ValidatedControlData( PDISPLAY, editor.TypeID, display, pc );
 	//lprintf( WIDE("mouse event %d,%d %d"), x, y, b );
@@ -1098,7 +1098,7 @@ static int OnMouseCommon( WIDE("Flatland Editor") )( PCOMMON pc, S_32 x, S_32 y,
 			else
 			{
 				SmudgeCommon( pc );
-				//			RedrawWorld( (PTRSZVAL) display );
+				//			RedrawWorld( (uintptr_t) display );
 				display->x = x;
 				display->y = y;
 				display->b = b;
@@ -1310,7 +1310,7 @@ static int OnMouseCommon( WIDE("Flatland Editor") )( PCOMMON pc, S_32 x, S_32 y,
 					{
 						SetPoint( display->SectorOrigin, o );
 						//SmudgeCommon( pc );
-						//RedrawWorld( (PTRSZVAL)display );
+						//RedrawWorld( (uintptr_t)display );
 					}
 					else
 					{
@@ -1369,7 +1369,7 @@ static int OnMouseCommon( WIDE("Flatland Editor") )( PCOMMON pc, S_32 x, S_32 y,
 					if( UpdateMatingLines( display->pWorld, display->CurWall.Wall, IsKeyDown( display->hVideo, KEY_CONTROL ), FALSE ) )
 					{
 						SmudgeCommon( pc );
-						//RedrawWorld( (PTRSZVAL)display );
+						//RedrawWorld( (uintptr_t)display );
 					}
 					else
 					{
@@ -1425,7 +1425,7 @@ static int OnMouseCommon( WIDE("Flatland Editor") )( PCOMMON pc, S_32 x, S_32 y,
 						 if( UpdateMatingLines( display->pWorld, display->CurWall.Wall, IsKeyDown( display->hVideo, KEY_CONTROL ), FALSE ) )
 						 {
 						 SmudgeCommon( pc );
-						 //RedrawWorld( (PTRSZVAL)display );
+						 //RedrawWorld( (uintptr_t)display );
 						 }
 						 else
 						 {
@@ -1502,21 +1502,21 @@ static int OnMouseCommon( WIDE("Flatland Editor") )( PCOMMON pc, S_32 x, S_32 y,
 				SetPoint( display->origin, neworigin );
 				display->zbias = 1 << (i - MNU_MINZOOM);
 				SmudgeCommon( pc );
-				//RedrawWorld( (PTRSZVAL)display );
+				//RedrawWorld( (uintptr_t)display );
 			}
 			else switch( i )
 			{
 			case MNU_UNDO:
 				DoUndo(display->pWorld );
 				SmudgeCommon( pc );
-				//RedrawWorld( (PTRSZVAL)display );
+				//RedrawWorld( (uintptr_t)display );
 				break;
 			case MNU_BREAK:
 				if( !display->flags.bWallList )
 				{
 					BreakWall( display->pWorld, display->CurWall.Wall );
 					SmudgeCommon( pc );
-					//RedrawWorld( (PTRSZVAL)display );
+					//RedrawWorld( (uintptr_t)display );
 				}
 				break;
 			case MNU_SETTOP:
@@ -1532,14 +1532,14 @@ static int OnMouseCommon( WIDE("Flatland Editor") )( PCOMMON pc, S_32 x, S_32 y,
 				display->b = b;
 				Log( WIDE("Showing display properties") );
 				{
-					S_32 posx, posy;
+					int32_t posx, posy;
 					GetDisplayPosition( display->hVideo, &posx, &posy, NULL, NULL );
 					DisplayProperties( pc
 										  , x + posx
 										  , y + posy );
 				}
 				SmudgeCommon( pc );
-				//RedrawWorld( (PTRSZVAL)display );
+				//RedrawWorld( (uintptr_t)display );
 				break;
 			case MNU_SECTPROP:
 				// hmm maybe mass change... 
@@ -1547,7 +1547,7 @@ static int OnMouseCommon( WIDE("Flatland Editor") )( PCOMMON pc, S_32 x, S_32 y,
 				display->y = y;
 				display->b = b;
 				{
-					S_32 posx, posy;
+					int32_t posx, posy;
 					GetDisplayPosition( display->hVideo, &posx, &posy, NULL, NULL );
 					ShowSectorProperties( pc, display->nSectors
 												, display->CurSector.SectorList
@@ -1555,7 +1555,7 @@ static int OnMouseCommon( WIDE("Flatland Editor") )( PCOMMON pc, S_32 x, S_32 y,
 												, y + posy );
 				}
 				SmudgeCommon( pc );
-				//RedrawWorld( (PTRSZVAL)display );
+				//RedrawWorld( (uintptr_t)display );
 				break;
 			case MNU_DELETELINE:
 				ClearUndo(display->pWorld);
@@ -1566,7 +1566,7 @@ static int OnMouseCommon( WIDE("Flatland Editor") )( PCOMMON pc, S_32 x, S_32 y,
 				ClearCurrentWalls( display );
 				Log( WIDE("Clear current walls...") );
 				SmudgeCommon( pc );
-				//RedrawWorld( (PTRSZVAL)display );
+				//RedrawWorld( (uintptr_t)display );
 				break;
 			case MNU_SECTSELECT:
 				// if sectors got selected, then 
@@ -1578,7 +1578,7 @@ static int OnMouseCommon( WIDE("Flatland Editor") )( PCOMMON pc, S_32 x, S_32 y,
 					display->flags.bSectorList = TRUE;
 				}
 				SmudgeCommon( pc );
-				//RedrawWorld( (PTRSZVAL) display );
+				//RedrawWorld( (uintptr_t) display );
 				break;
 			case MNU_WALLSELECT:
 				ClearCurrentSectors( display );
@@ -1588,13 +1588,13 @@ static int OnMouseCommon( WIDE("Flatland Editor") )( PCOMMON pc, S_32 x, S_32 y,
 					display->flags.bWallList = TRUE;
 				}
 				SmudgeCommon( pc );
-				//RedrawWorld( (PTRSZVAL) display );
+				//RedrawWorld( (uintptr_t) display );
 				break;
 			case MNU_UNSELECTSECTORS:
 				ClearCurrentSectors( display );
 				ClearCurrentWalls( display );
 				SmudgeCommon( pc );
-				//RedrawWorld( (PTRSZVAL) display );
+				//RedrawWorld( (uintptr_t) display );
 				break;
 			case MNU_MERGEWALLS:
 				ClearUndo(display->pWorld);
@@ -1615,12 +1615,12 @@ static int OnMouseCommon( WIDE("Flatland Editor") )( PCOMMON pc, S_32 x, S_32 y,
 									, WIDE("Selection rectangle contains too many walls; merge not done.")
 									, WIDE("Merge Error") );
 				SmudgeCommon( pc );
-				//RedrawWorld( (PTRSZVAL) display );
+				//RedrawWorld( (uintptr_t) display );
 				break;
 			case MNU_MERGEOVERLAP:
 				MergeOverlappingWalls( display->pWorld, &display->SelectRect );
 				SmudgeCommon( pc );
-				//RedrawWorld( (PTRSZVAL)display );
+				//RedrawWorld( (uintptr_t)display );
 				break;
 			case MNU_RESET:
 				ClearCurrentSectors( display );
@@ -1629,7 +1629,7 @@ static int OnMouseCommon( WIDE("Flatland Editor") )( PCOMMON pc, S_32 x, S_32 y,
 				CreateSquareSector( display->pWorld, VectorConst_0, 50 );
 				ResetDisplay( display );
 				SmudgeCommon( pc );
-				//RedrawWorld( (PTRSZVAL) display );
+				//RedrawWorld( (uintptr_t) display );
 				break;			
 			case MNU_DELETE:
 				ClearUndo(display->pWorld);
@@ -1643,7 +1643,7 @@ static int OnMouseCommon( WIDE("Flatland Editor") )( PCOMMON pc, S_32 x, S_32 y,
 				}
 				ClearCurrentWalls( display );
 				SmudgeCommon( pc );
-				//RedrawWorld( (PTRSZVAL) display );
+				//RedrawWorld( (uintptr_t) display );
 				break;
 			case MNU_SPLIT:	// can only be selected if wall menu 
 				ClearUndo(display->pWorld);
@@ -1672,7 +1672,7 @@ static int OnMouseCommon( WIDE("Flatland Editor") )( PCOMMON pc, S_32 x, S_32 y,
 					}
 				display->MarkedWall = INVALID_INDEX;
 				SmudgeCommon( pc );
-				//RedrawWorld( (PTRSZVAL)display );
+				//RedrawWorld( (uintptr_t)display );
 				break;
 			case MNU_MARK:
 				if( !display->flags.bWallList )
@@ -1688,7 +1688,7 @@ static int OnMouseCommon( WIDE("Flatland Editor") )( PCOMMON pc, S_32 x, S_32 y,
 					p[2] = 0;
 					CreateSquareSector( display->pWorld, p, 50 );
 					SmudgeCommon( pc );
-					//RedrawWorld( (PTRSZVAL)display );
+					//RedrawWorld( (uintptr_t)display );
 				}
 				break;
 			case MNU_SAVE:
@@ -1733,7 +1733,7 @@ static int OnMouseCommon( WIDE("Flatland Editor") )( PCOMMON pc, S_32 x, S_32 y,
 							ClearCurrentSectors( display );
 							ClearCurrentWalls( display );
 							SmudgeCommon( pc );
-							//RedrawWorld( (PTRSZVAL) display );
+							//RedrawWorld( (uintptr_t) display );
 						}
 #endif
 					Log( WIDE("Done with file load?") );
@@ -1760,7 +1760,7 @@ static int OnMouseCommon( WIDE("Flatland Editor") )( PCOMMON pc, S_32 x, S_32 y,
 		display->SelectRect.w = REAL_X(display, x) - display->SelectRect.x;
 		display->SelectRect.h = REAL_Y(display, y) - display->SelectRect.y;
 		SmudgeCommon( pc );
-		//RedrawWorld( (PTRSZVAL)display);
+		//RedrawWorld( (uintptr_t)display);
 	}
 
 	// if nothing pressed - check motion for line crossings....
@@ -1839,7 +1839,7 @@ static int OnMouseCommon( WIDE("Flatland Editor") )( PCOMMON pc, S_32 x, S_32 y,
 					o[2] = 0;
 					//lprintf( WIDE("Checking point (%g,%g)"), o[0], o[1] );
 					{ 
-						_32 start = GetTickCount();
+						uint32_t start = GetTickCount();
 						//lprintf( WIDE("point %s within %p"), PointWithinSingle( display->pWorld, display->CurSector.Sector, o )?WIDE("is"):WIDE("is not")
 						//		 , display->CurSector.Sector );
 						if( ( (ps = display->CurSector.Sector) == INVALID_INDEX ) ||
@@ -1901,7 +1901,7 @@ static int OnMouseCommon( WIDE("Flatland Editor") )( PCOMMON pc, S_32 x, S_32 y,
 }
 
 
-void CPROC UpdateVisual( PTRSZVAL psv )
+void CPROC UpdateVisual( uintptr_t psv )
 {
 	PSI_CONTROL pc = (PSI_CONTROL)psv;
 	ValidatedControlData( PDISPLAY, editor.TypeID, display, pc );
@@ -1927,8 +1927,8 @@ static int OnCreateCommon(WIDE("Flatland Editor"))( PCOMMON pc )
 		pd->pWorld = OpenWorld( WIDE("Default Flatland World") );
 		//ResetWorld( pd->pWorld );
 		ResetDisplay( pd );
-		AddUpdateCallback( UpdateVisual, (PTRSZVAL)pc );
-		lprintf( "Registered %p %p", UpdateVisual, (PTRSZVAL)pc );
+		AddUpdateCallback( UpdateVisual, (uintptr_t)pc );
+		lprintf( "Registered %p %p", UpdateVisual, (uintptr_t)pc );
 		ClearCurrentSectors( pd );
 		ClearCurrentWalls( pd );
 		// might do some things like do the init menus here?
@@ -1937,7 +1937,7 @@ static int OnCreateCommon(WIDE("Flatland Editor"))( PCOMMON pc )
 	return 0;
 }
 
-static int OnKeyCommon( WIDE("Flatland Editor") )( PCOMMON pc, _32 key )
+static int OnKeyCommon( WIDE("Flatland Editor") )( PCOMMON pc, uint32_t key )
 {
 	ValidatedControlData( PDISPLAY, editor.TypeID, display, pc );
 	// hmm probably have to move the keyboard handling routines from
@@ -2089,7 +2089,7 @@ PUBLIC( void, FlatlandMain )( void )
 		PDISPLAY pDisplay;
 		g.pc = MakeCaptionedControl( NULL, editor.TypeID, 0, 0, 0, 0, 0, WIDE("Flatland Editor") );
 		pDisplay = ControlData( PDISPLAY, g.pc );
-		SetCommonUserData( g.pc, (PTRSZVAL)pDisplay );	
+		SetCommonUserData( g.pc, (uintptr_t)pDisplay );	
 		DisplayFrame( g.pc );
 
 		// I use this to test for keys

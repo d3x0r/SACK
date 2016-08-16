@@ -181,7 +181,7 @@ void SYNAPSE::get( PNATIVE gain, PNATIVE level, PNATIVE range )
 
 //----------------------------------------------------------------------
 
-NATIVE SYNAPSE::Collect( _32 cycle )
+NATIVE SYNAPSE::Collect( uint32_t cycle )
 {
 	return ( (NATIVE)Source->Collect(cycle) * Gain.get() ) / ((NATIVE)256);
 }
@@ -237,7 +237,7 @@ INDEX SYNAPSE::Save( PODBC odbc, INDEX iParent )
 
 //----------------------------------------------------------------------
 
-PTRSZVAL SYNAPSE::Load( PODBC odbc, INDEX iParent, INDEX iLoad )
+uintptr_t SYNAPSE::Load( PODBC odbc, INDEX iParent, INDEX iLoad )
 {
 	if( iSynapse )
 	{

@@ -133,7 +133,7 @@ void VIEW::DoMouse( void )
 }
 
 
-int ViewMouse( PTRSZVAL dwView, S_32 x, S_32 y, _32 b )
+int ViewMouse( uintptr_t dwView, int32_t x, int32_t y, uint32_t b )
 {
    VIEW *v = (VIEW*)dwView;
 
@@ -148,13 +148,13 @@ int ViewMouse( PTRSZVAL dwView, S_32 x, S_32 y, _32 b )
 
 bool bDump;
 
-void _ShowObjects( PTRSZVAL dwView, PRENDERER self )
+void _ShowObjects( uintptr_t dwView, PRENDERER self )
 {
   VIEW *v = (VIEW*)dwView;
   v->ShowObjects( );   
 }
 
-void CPROC TimerProc( PTRSZVAL psv )
+void CPROC TimerProc( uintptr_t psv )
 {
 extern VECTOR KeySpeed, KeyRotation;
 extern POBJECT pFirstObject;
@@ -255,7 +255,7 @@ extern POBJECT pFirstObject;
          View->T.ApplyInverseRotation( m, mouse_vup );
          DrawLine( image, b, m, 0, 10, 0x7f0000 );
       }
-      _ShowObjects( (_32)View, View->hVideo );  // clears the board...
+      _ShowObjects( (uint32_t)View, View->hVideo );  // clears the board...
 		UpdateDisplay( View->hVideo );
 
 
@@ -295,21 +295,21 @@ VIEW::VIEW( ViewMouseCallback pMC, char *Title )
    T.clear();
    hVideo = OpenDisplaySizedAt( 0, 200, 200, 
                               CW_USEDEFAULT, CW_USEDEFAULT );	
-	SetRedrawHandler( hVideo, _ShowObjects, (PTRSZVAL)this );
+	SetRedrawHandler( hVideo, _ShowObjects, (uintptr_t)this );
    MouseMethod = pMC;
-	SetMouseHandler( hVideo, ViewMouse, (PTRSZVAL)this );
+	SetMouseHandler( hVideo, ViewMouse, (uintptr_t)this );
    
    InitSpans( GetDisplayImage( hVideo ) ); // set nHeight, nWidth
 
    Previous = pMainView;
    if( !pMainView )
    {
-		AddTimer( 80, TimerProc, (PTRSZVAL)this );
+		AddTimer( 80, TimerProc, (uintptr_t)this );
    }
    pMainView = this;
 }
 
-void CloseView( _32 dwView )
+void CloseView( uint32_t dwView )
 {
    VIEW *V;
    V = (VIEW*)dwView;
@@ -323,9 +323,9 @@ VIEW::VIEW( int nType, ViewMouseCallback pMC, char *Title, int sx, int sy )
 //   SetPoint( r, pr );
 
    hVideo = OpenDisplaySizedAt( 0, 200, 200, sx, sy );
-	SetRedrawHandler( hVideo, _ShowObjects, (PTRSZVAL)this );
-	SetCloseHandler( hVideo, CloseView, (PTRSZVAL)this );
-	SetMouseHandler( hVideo, ViewMouse, (PTRSZVAL)this );
+	SetRedrawHandler( hVideo, _ShowObjects, (uintptr_t)this );
+	SetCloseHandler( hVideo, CloseView, (uintptr_t)this );
+	SetMouseHandler( hVideo, ViewMouse, (uintptr_t)this );
    MouseMethod = pMC;
 
    InitSpans( GetDisplayImage( hVideo ) ); // set nHeight, nWidth
@@ -333,7 +333,7 @@ VIEW::VIEW( int nType, ViewMouseCallback pMC, char *Title, int sx, int sy )
    Previous = pMainView;
    if( !pMainView )
    {
-      AddTimer(  200, TimerProc, (PTRSZVAL)this );
+      AddTimer(  200, TimerProc, (uintptr_t)this );
    }
    pMainView = this;
 }
