@@ -102,7 +102,7 @@ typedef unsigned long long	u64;
 /*
  * Table size depends on __STRICT_ALIGNMENT and whether or not endian-
  * specific ROTATE macro is defined. If __STRICT_ALIGNMENT is not
- * defined, which is normally the case on x86[_64] CPUs, the table is
+ * defined, which is normally the case on x86[uint64_t] CPUs, the table is
  * 4KB large unconditionally. Otherwise if ROTATE is defined, the
  * table is 2KB large, and otherwise - 16KB. 2KB table requires a
  * whole bunch of additional rotations, but I'm willing to "trade,"

@@ -88,6 +88,7 @@ typedef struct asn1_pctx_st ASN1_PCTX;
 #warning overriding WinCrypt defines
 #endif
 #endif
+#warning undef here...
 #undef X509_NAME
 #undef X509_CERT_PAIR
 #undef X509_EXTENSIONS

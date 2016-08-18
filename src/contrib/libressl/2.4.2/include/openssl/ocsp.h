@@ -146,6 +146,8 @@ typedef struct ocsp_signature_st {
  *       tbsRequest                  TBSRequest,
  *       optionalSignature   [0]     EXPLICIT Signature OPTIONAL }
  */
+#undef OCSP_REQUEST
+
 typedef struct ocsp_request_st {
 	OCSP_REQINFO *tbsRequest;
 	OCSP_SIGNATURE *optionalSignature; /* OPTIONAL */

@@ -191,6 +191,10 @@ static double ecdh_results[EC_NUM][1];
 
 static void sig_done(int sig);
 
+#ifndef SIGALRM
+#define	SIGALRM	14	/* alarm clock */
+#endif
+
 static void
 sig_done(int sig)
 {

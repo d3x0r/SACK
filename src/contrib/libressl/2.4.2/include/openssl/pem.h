@@ -70,7 +70,9 @@
 #include <openssl/evp.h>
 #include <openssl/x509.h>
 #include <openssl/pem2.h>
-
+#undef X509_NAME
+#undef X509_CERT_PAIR
+#undef X509_EXTENSIONS
 #ifdef  __cplusplus
 extern "C" {
 #endif
@@ -339,10 +341,10 @@ int PEM_write_bio_##name(BIO *bp, type *x, const EVP_CIPHER *enc, \
 
 #else
 
-#define DECLARE_PEM_read_bio(name, type) /**/
-#define DECLARE_PEM_write_bio(name, type) /**/
-#define DECLARE_PEM_write_bio_const(name, type) /**/
-#define DECLARE_PEM_write_cb_bio(name, type) /**/
+#define DECLARE_PEM_read_bio(name, type)
+#define DECLARE_PEM_write_bio(name, type)
+#define DECLARE_PEM_write_bio_const(name, type)
+#define DECLARE_PEM_write_cb_bio(name, type)
 
 #endif
 

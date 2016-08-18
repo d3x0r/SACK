@@ -62,6 +62,9 @@
 
 #if defined(_WIN32)
 #include <winsock2.h>
+#undef X509_NAME
+#undef OCSP_REQUEST
+#undef OCSP_RESPONSE
 #else
 #include <sys/time.h>
 #endif

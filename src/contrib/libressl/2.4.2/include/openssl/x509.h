@@ -121,6 +121,7 @@ extern "C" {
 #endif
 #endif
 #undef X509_NAME
+#undef OCSP_REQUEST
 #undef X509_CERT_PAIR
 #undef X509_EXTENSIONS
 #endif
@@ -599,6 +600,7 @@ struct pkcs8_priv_key_info_st
 }
 #endif
 
+#undef X509_NAME
 #include <openssl/x509_vfy.h>
 #include <openssl/pkcs7.h>
 

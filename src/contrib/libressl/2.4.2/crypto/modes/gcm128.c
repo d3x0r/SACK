@@ -98,7 +98,7 @@
  * to cache-timing attack. And the thing about "8-bit" implementation is
  * that it consumes 16 (sixteen) times more memory, 4KB per individual
  * key + 1KB shared. Well, on pros side it should be twice as fast as
- * "4-bit" version. And for gcc-generated x86[_64] code, "8-bit" version
+ * "4-bit" version. And for gcc-generated x86[uint64_t] code, "8-bit" version
  * was observed to run ~75% faster, closer to 100% for commercial
  * compilers... Yet "4-bit" procedure is preferred, because it's
  * believed to provide better security-performance balance and adequate
@@ -396,7 +396,7 @@ static void gcm_gmult_4bit(u64 Xi[2], const u128 Htable[16])
 /*
  * Streamed gcm_mult_4bit, see CRYPTO_gcm128_[en|de]crypt for
  * details... Compiler-generated code doesn't seem to give any
- * performance improvement, at least not on x86[_64]. It's here
+ * performance improvement, at least not on x86[uint64_t]. It's here
  * mostly as reference and a placeholder for possible future
  * non-trivial optimization[s]...
  */
