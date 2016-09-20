@@ -3,4 +3,4 @@
 #include <world.h>
 #include "display.h"
 
-PTRSZVAL CPROC DrawSectorTexture( INDEX iSector, PTRSZVAL pc  );
+uintptr_t CPROC DrawSectorTexture( INDEX iSector, uintptr_t pc  );

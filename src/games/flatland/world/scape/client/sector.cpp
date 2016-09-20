@@ -294,7 +294,7 @@ void SendLinesChanged( INDEX iWorld )
 	struct UpdateThingMsg line;
 	while( DequeData( &world->UpdatedLines, (POINTER)&line ) )
 	{
-		//_32 result;
+		//uint32_t result;
 		if( line.iThing > 1000 )
 			DebugBreak();
 		// expect to wait until the server
@@ -311,7 +311,7 @@ void SendLinesChanged( INDEX iWorld )
 
 void SendLineChanged( INDEX iWorld, INDEX iWall, INDEX iLine, LINESEG *lineseg, LOGICAL no_update_mate, LOGICAL lock_mating_slopes )
 {
-		//_32 result;
+		//uint32_t result;
 		// expect to wait until the server
 		// accepts the change.
 		lprintf( WIDE("Send.") );
@@ -320,8 +320,8 @@ void SendLineChanged( INDEX iWorld, INDEX iWall, INDEX iLine, LINESEG *lineseg, 
 			, &iWorld, sizeof( INDEX )
 			, &iWall, sizeof( INDEX )
 			, &iLine, sizeof( INDEX )
-			, &no_update_mate, sizeof( _32 )
-			, &lock_mating_slopes, sizeof( _32 )
+			, &no_update_mate, sizeof( uint32_t )
+			, &lock_mating_slopes, sizeof( uint32_t )
 			, lineseg, sizeof( LINESEG ) 
 										  );
 		lprintf( WIDE("Sent.") );
@@ -344,7 +344,7 @@ int UpdateMatingLines( INDEX iWorld, INDEX iWall
 					  // intersections... or lines that get deleted...
 {
 	MSGIDTYPE ResultID;
-	_32 Result[1];
+	uint32_t Result[1];
 	INDEX tmp = bLockSlope;
 	size_t ResultLen = sizeof( Result );
 	if( ConnectToServer()
@@ -1149,7 +1149,7 @@ INDEX AddConnectedSector( INDEX iWorld, INDEX iWall, RCOORD offset )
 	size_t ResultLen = sizeof( Result );
 	if( ConnectToServer()
 		&& TransactServerMultiMessage( MSG_ID(AddConnectedSector), 3
-								, &ResultID, (_32*)Result, &ResultLen 
+								, &ResultID, (uint32_t*)Result, &ResultLen 
 								, &iWorld, sizeof( iWorld )
 								, &iWall, sizeof( iWall )
 								, &offset, sizeof( RCOORD )
@@ -1234,7 +1234,7 @@ INDEX FlatlandPointWithin( INDEX iWorld, int nSectors, INDEX *pSectors, P_POINT 
 
 //----------------------------------------------------------------------------
 
-INDEX FlatlandPointWithinLoopSingle( INDEX iSector, PTRSZVAL psv )
+INDEX FlatlandPointWithinLoopSingle( INDEX iSector, uintptr_t psv )
 {
 	struct data_tag {
 		INDEX iWorld;
@@ -1528,7 +1528,7 @@ void GetSectorPoints( INDEX iWorld, INDEX iSector, _POINT **list, int *npoints )
 int MoveSectors( INDEX iWorld, int nSectors,INDEX *pSectors, P_POINT del )
 {
 	MSGIDTYPE ResultID;
-	_32 Result[1];
+	uint32_t Result[1];
 	size_t ResultLen = 0;
 	if( ConnectToServer()
 		&& TransactServerMultiMessage( MSG_ID(MoveSectors), 3
@@ -1550,7 +1550,7 @@ int MoveSectors( INDEX iWorld, int nSectors,INDEX *pSectors, P_POINT del )
 int MoveWalls( INDEX iWorld, int nWalls, INDEX *WallList, P_POINT del, int bLockSlope )
 {
 	MSGIDTYPE ResultID;
-	_32 Result[1];
+	uint32_t Result[1];
 	int tmp = bLockSlope;
 	size_t ResultLen = sizeof( Result );
 	if( ConnectToServer()
@@ -1573,7 +1573,7 @@ int MoveWalls( INDEX iWorld, int nWalls, INDEX *WallList, P_POINT del, int bLock
 int RemoveWall( INDEX iWorld, INDEX iWall )
 {
 	MSGIDTYPE ResultID;
-	_32 Result[1];
+	uint32_t Result[1];
 	size_t ResultLen = sizeof( Result );
 	if( ConnectToServer()
 		&& TransactServerMultiMessage( MSG_ID(RemoveWall), 2
@@ -1590,7 +1590,7 @@ int RemoveWall( INDEX iWorld, INDEX iWall )
 void BreakWall( INDEX iWorld, INDEX iWall )
 {
 	MSGIDTYPE ResultID;
-	_32 Result[1];
+	uint32_t Result[1];
 	size_t ResultLen = sizeof( Result );
 	if( ConnectToServer()
 		&& TransactServerMultiMessage( MSG_ID(BreakWall), 2
@@ -1807,7 +1807,7 @@ WORLD_PROC( INDEX, GetSectorName )( INDEX iWorld, INDEX iSector  )
 WORLD_PROC( void, SetSectorName )( INDEX iWorld, INDEX iSector, INDEX iName  )
 {
 	//INDEX ResultID;
-	//_32 Result[1];
+	//uint32_t Result[1];
 	//size_t ResultLen = 4;
 	if( ConnectToServer()
 		&& TransactServerMultiMessage( MSG_ID(SetSectorName), 3
@@ -1825,7 +1825,7 @@ WORLD_PROC( void, SetSectorName )( INDEX iWorld, INDEX iSector, INDEX iName  )
 
 //--------------------------------------------------------------
 
-static void CPROC SectorForCallback( PTRSZVAL psv, INDEX iSector )
+static void CPROC SectorForCallback( uintptr_t psv, INDEX iSector )
 {
 
 }
@@ -1834,7 +1834,7 @@ static void CPROC SectorForCallback( PTRSZVAL psv, INDEX iSector )
 
 WORLD_PROC( void, ForAllSectors )( INDEX iWorld
 								  , FESMCallback f
-								  , PTRSZVAL psv)
+								  , uintptr_t psv)
 {
 	GETWORLD( iWorld );
 	if( world )

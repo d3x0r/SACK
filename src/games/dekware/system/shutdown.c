@@ -119,7 +119,7 @@ void ResetDirectory( void )
 	SetCurrentDirectory( savedir );
 }
 
-void CPROC AddSoundName( PTRSZVAL psv, CTEXTSTR name, int flags )
+void CPROC AddSoundName( uintptr_t psv, CTEXTSTR name, int flags )
 {
 	AddLink( (PLIST*)psv, name );
 }
@@ -167,7 +167,7 @@ int GetSoundList( PSENTIENT ps, PLIST *pList, PTEXT pName )
 	
 	{
 		void *pInfo = NULL;
-		while( ScanFiles( NULL, str, &pInfo, AddSoundName, 0, (PTRSZVAL)pList ) )
+		while( ScanFiles( NULL, str, &pInfo, AddSoundName, 0, (uintptr_t)pList ) )
 		 	cnt++; // don't know if this is right...
 	}	
 	return cnt;
@@ -216,8 +216,8 @@ int CPROC Sound( PSENTIENT ps, PTEXT parameters )
 		{
 			
 		}
-  //WINMMAPI BOOL WINAPI PlaySoundA(LPCSTR pszSound, HMODULE hmod, _32 fdwSound);
-//          _declspec( dllimport )  BOOL _stdcall PlaySoundA( TEXTCHAR* name, P_0 hMod, _32 Flags );
+  //WINMMAPI BOOL WINAPI PlaySoundA(LPCSTR pszSound, HMODULE hmod, uint32_t fdwSound);
+//          _declspec( dllimport )  BOOL _stdcall PlaySoundA( TEXTCHAR* name, P_0 hMod, uint32_t Flags );
 		// SND_FILENAME 0x00020000L
 		// SND_ASYNC 1
 		// SND_NODEFAULT  2
@@ -279,10 +279,10 @@ typedef struct mydatapath_tag {
 	// 
 	struct {
 #ifdef __LINUX__
-		_32 use_pty : 1;
+		uint32_t use_pty : 1;
 #endif
-		_32 no_auto_newline : 1;
-		_32 unused:1;
+		uint32_t no_auto_newline : 1;
+		uint32_t unused:1;
 	} flags;
 	HANDLEINFO hStdIn;
 	HANDLEINFO hStdOut;
@@ -350,7 +350,7 @@ static int CPROC WriteSystem( PDATAPATH pdpX )
 		  )
 	{
 #ifdef _WIN32
-		_32 dwWritten;
+		uint32_t dwWritten;
 #endif
 	PTEXT pLine, pOutput;
 	pLine = (PTEXT)DequeLink( &pdp->common.Output );
@@ -457,12 +457,12 @@ void CheckPendingStatus( PMYDATAPATH pdp )
 //--------------------------------------------------------------------------
 
 
-PTRSZVAL CPROC CommandInputThread( PTHREAD pThread )
+uintptr_t CPROC CommandInputThread( PTHREAD pThread )
 {
 	PHANDLEINFO phi = (PHANDLEINFO)GetThreadParam( pThread );
 	PTEXT pInput = SegCreate( 4096 );
 	int done, lastloop, do_start = 1, check_time;
-	_32 start;
+	uint32_t start;
 	Hold( phi->pdp );
 #ifdef _DEBUG
 	{
@@ -473,7 +473,7 @@ PTRSZVAL CPROC CommandInputThread( PTHREAD pThread )
 	done = lastloop = FALSE;
 	do
 	{
-		_32 dwRead, dwAvail;
+		uint32_t dwRead, dwAvail;
 		if( done )
       		lastloop = TRUE;
 		if( do_start )
@@ -574,7 +574,7 @@ PTRSZVAL CPROC CommandInputThread( PTHREAD pThread )
 
 //--------------------------------------------------------------------------
 
-static void CPROC TaskEndHandler(PTRSZVAL psvpdp, PTASK_INFO task_ended)
+static void CPROC TaskEndHandler(uintptr_t psvpdp, PTASK_INFO task_ended)
 {
 	PMYDATAPATH pdp = (PMYDATAPATH)psvpdp;
 	Hold( pdp );
@@ -586,7 +586,7 @@ static void CPROC TaskEndHandler(PTRSZVAL psvpdp, PTASK_INFO task_ended)
 	Release( pdp );
 }
 
-static void CPROC TaskOutputHandler(PTRSZVAL psvpdp, PTASK_INFO task, CTEXTSTR buffer, size_t size )
+static void CPROC TaskOutputHandler(uintptr_t psvpdp, PTASK_INFO task, CTEXTSTR buffer, size_t size )
 {
    PMYDATAPATH pdp = (PMYDATAPATH)psvpdp;
 	Hold( pdp );
@@ -604,7 +604,7 @@ int LaunchSystemCommand( PMYDATAPATH pdp, PTEXT Command )
 	int argc;
 	ParseIntoArgs( GetText( Command ), &argc, &argv );
 
-	pdp->task = LaunchPeerProgramExx( argv[0], NULL, (PCTEXTSTR)argv, 0, TaskOutputHandler, TaskEndHandler, (PTRSZVAL)pdp DBG_SRC );
+	pdp->task = LaunchPeerProgramExx( argv[0], NULL, (PCTEXTSTR)argv, 0, TaskOutputHandler, TaskEndHandler, (uintptr_t)pdp DBG_SRC );
 
 	{
 		POINTER tmp = (POINTER)argv;
@@ -695,7 +695,7 @@ int LaunchSystemCommand( PMYDATAPATH pdp, PTEXT Command )
 		pdp->hStdOut.pLine 	 = NULL;
 		pdp->hStdOut.pdp 		 = pdp;
 		pdp->hStdOut.bNextNew = TRUE;
-		pdp->hStdOut.hThread  = ThreadTo( CommandInputThread, (PTRSZVAL)&pdp->hStdOut );
+		pdp->hStdOut.hThread  = ThreadTo( CommandInputThread, (uintptr_t)&pdp->hStdOut );
 	}
 	else
 	{
@@ -847,7 +847,7 @@ int LaunchSystemCommand( PMYDATAPATH pdp, PTEXT Command )
 
 				pdp->hStdOut.pLine = NULL;
 				pdp->hStdOut.pdp 	 = pdp;
-				pdp->hStdOut.hThread = ThreadTo( CommandInputThread, (PTRSZVAL)&pdp->hStdOut );
+				pdp->hStdOut.hThread = ThreadTo( CommandInputThread, (uintptr_t)&pdp->hStdOut );
 				DeleteList( &pArgs );
 			}
 	   }

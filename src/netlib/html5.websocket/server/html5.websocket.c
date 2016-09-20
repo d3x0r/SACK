@@ -19,7 +19,7 @@ HTML5_WEBSOCKET_NAMESPACE
 typedef struct html5_web_socket *HTML5WebSocket;
 
 struct html5_web_socket {
-   _32 Magic; // this value must be 0x20130912
+   uint32_t Magic; // this value must be 0x20130912
 	HTTPState http_state;
 	PCLIENT pc;
 	struct web_socket_flags
@@ -46,10 +46,10 @@ static LOGICAL ComputeReplyKey2( PVARTEXT pvt_output, HTML5WebSocket socket, PTE
 {
 	TEXTCHAR buf1[24];
 	int buf1_idx = 0;
-	_64 number1;
+	uint64_t number1;
 	TEXTCHAR buf2[24];
 	int buf2_idx = 0;
-	_64 number2;
+	uint64_t number2;
 	int spaces1 = 0;
 	int spaces2 = 0;
 	int c;
@@ -100,19 +100,19 @@ static LOGICAL ComputeReplyKey2( PVARTEXT pvt_output, HTML5WebSocket socket, PTE
 	{
 		struct replybuf
 		{
-			_8 result1[4];
-			_8 result2[4];
-			_8 extra[8];
+			uint8_t result1[4];
+			uint8_t result2[4];
+			uint8_t extra[8];
 		} buf;
 
-		buf.result1[0] = (_8)(( number1 & 0xFF000000 ) >> 24);
-		buf.result1[1] = (_8)(( number1 & 0xFF0000 ) >> 16);
-		buf.result1[2] = (_8)(( number1 & 0xFF00 ) >> 8);
-		buf.result1[3] = (_8)(( number1 & 0xFF ) >> 0);
-		buf.result2[0] = (_8)(( number2 & 0xFF000000 ) >> 24);
-		buf.result2[1] = (_8)(( number2 & 0xFF0000 ) >> 16);
-		buf.result2[2] = (_8)(( number2 & 0xFF00 ) >> 8);
-		buf.result2[3] = (_8)(( number2 & 0xFF ) >> 0);
+		buf.result1[0] = (uint8_t)(( number1 & 0xFF000000 ) >> 24);
+		buf.result1[1] = (uint8_t)(( number1 & 0xFF0000 ) >> 16);
+		buf.result1[2] = (uint8_t)(( number1 & 0xFF00 ) >> 8);
+		buf.result1[3] = (uint8_t)(( number1 & 0xFF ) >> 0);
+		buf.result2[0] = (uint8_t)(( number2 & 0xFF000000 ) >> 24);
+		buf.result2[1] = (uint8_t)(( number2 & 0xFF0000 ) >> 16);
+		buf.result2[2] = (uint8_t)(( number2 & 0xFF00 ) >> 8);
+		buf.result2[3] = (uint8_t)(( number2 & 0xFF ) >> 0);
 		{
 			int n;
 			// override text_content with....
@@ -126,7 +126,7 @@ static LOGICAL ComputeReplyKey2( PVARTEXT pvt_output, HTML5WebSocket socket, PTE
 		}
 		{
 			MD5_CTX ctx;
-			_8 result[16];
+			uint8_t result[16];
 			int n;
 			MD5Init( &ctx );
 			if( sizeof( buf ) != 16 )
@@ -175,10 +175,10 @@ static LOGICAL ComputeReplyKey2( PVARTEXT pvt_output, HTML5WebSocket socket, PTE
 static void HandleData( HTML5WebSocket socket, PCLIENT pc, POINTER buffer, size_t length )
 {
 	size_t n;
-	_8 okay = 0;
+	uint8_t okay = 0;
 	int randNum;
 	TEXTCHAR output[25];
-	P_8 bytes = (P_8)buffer;
+	uint8_t* bytes = (uint8_t*)buffer;
 	for( n = 0; n < length; n++ )
 	{
 		if( bytes[n] == 0 )
@@ -198,7 +198,7 @@ static void HandleData( HTML5WebSocket socket, PCLIENT pc, POINTER buffer, size_
 		{
 			if( socket->input_state.fragment_collection_avail == socket->input_state.fragment_collection_length )
 			{
-				P_8 new_fragment = NewArray( _8, socket->input_state.fragment_collection_avail + 64 );
+				uint8_t* new_fragment = NewArray( uint8_t, socket->input_state.fragment_collection_avail + 64 );
 				socket->input_state.fragment_collection_avail += 64;
 				MemCpy( new_fragment, socket->input_state.fragment_collection, socket->input_state.fragment_collection_length );
 				Deallocate( POINTER, socket->input_state.fragment_collection );
@@ -353,7 +353,7 @@ static void CPROC read_complete( PCLIENT pc, POINTER buffer, size_t length )
 			//lprintf( WIDE("Okay then hand this as data to process... within protocol") );
 			if( socket->flags.rfc6455 )
 			{
-				ProcessWebSockProtocol( &socket->input_state, pc, (P_8)buffer, length );
+				ProcessWebSockProtocol( &socket->input_state, pc, (uint8_t*)buffer, length );
 			}
 			else
 				HandleData( socket, pc, buffer, length );
@@ -376,13 +376,13 @@ static void CPROC connected( PCLIENT pc_server, PCLIENT pc_new )
 	socket->input_state = server_socket->input_state;
 	socket->http_state = CreateHttpState();
 
-	SetNetworkLong( pc_new, 0, (PTRSZVAL)socket );
-	SetNetworkLong( pc_new, 1, (PTRSZVAL)&socket->output_state );
-	SetNetworkLong( pc_new, 2, (PTRSZVAL)&socket->input_state );
+	SetNetworkLong( pc_new, 0, (uintptr_t)socket );
+	SetNetworkLong( pc_new, 1, (uintptr_t)&socket->output_state );
+	SetNetworkLong( pc_new, 2, (uintptr_t)&socket->input_state );
 	SetNetworkReadComplete( pc_new, read_complete );
 }
 
-static LOGICAL CPROC HandleRequest( PTRSZVAL psv, HTTPState pHttpState )
+static LOGICAL CPROC HandleRequest( uintptr_t psv, HTTPState pHttpState )
 {
    return 0;
 }
@@ -392,7 +392,7 @@ PCLIENT WebSocketCreate( CTEXTSTR hosturl
 							, web_socket_event on_event
 							, web_socket_closed on_closed
 							, web_socket_error on_error
-							, PTRSZVAL psv )
+							, uintptr_t psv )
 {
 	struct url_data *url;
 	HTML5WebSocket socket = New( struct html5_web_socket );
@@ -408,9 +408,9 @@ PCLIENT WebSocketCreate( CTEXTSTR hosturl
 	socket->pc = OpenTCPListenerAddrEx( CreateSockAddress( url->host, url->port ), connected );
 	SACK_ReleaseURL( url );
 	socket->http_state = CreateHttpState();
-	SetNetworkLong( socket->pc, 0, (PTRSZVAL)socket );
-	SetNetworkLong( socket->pc, 1, (PTRSZVAL)&socket->output_state );
-	SetNetworkLong( socket->pc, 2, (PTRSZVAL)&socket->input_state );
+	SetNetworkLong( socket->pc, 0, (uintptr_t)socket );
+	SetNetworkLong( socket->pc, 1, (uintptr_t)&socket->output_state );
+	SetNetworkLong( socket->pc, 2, (uintptr_t)&socket->input_state );
 	return socket->pc;
 }
 

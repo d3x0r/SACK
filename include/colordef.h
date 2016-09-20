@@ -51,8 +51,8 @@ SACK_NAMESPACE
 
 #else
 #if defined( _OPENGL_DRIVER ) || defined( USE_OPENGL_COMPAT_COLORS )
-#  define Color( r,g,b ) (((_32)( ((_8)(r))|((_16)((_8)(g))<<8))|(((_32)((_8)(b))<<16)))|0xFF000000)
-#  define AColor( r,g,b,a ) (((_32)( ((_8)(r))|((_16)((_8)(g))<<8))|(((_32)((_8)(b))<<16)))|((a)<<24))
+#  define Color( r,g,b ) (((uint32_t)( ((uint8_t)(r))|((uint16_t)((uint8_t)(g))<<8))|(((uint32_t)((uint8_t)(b))<<16)))|0xFF000000)
+#  define AColor( r,g,b,a ) (((uint32_t)( ((uint8_t)(r))|((uint16_t)((uint8_t)(g))<<8))|(((uint32_t)((uint8_t)(b))<<16)))|((a)<<24))
 #  define SetAlpha( rgb, a ) ( ((rgb)&0x00FFFFFF) | ( (a)<<24 ) )
 #  define SetGreen( rgb, g ) ( ((rgb)&0xFFFF00FF) | ( ((g)&0xFF)<<8 ) )
 #  define SetBlue( rgb, b )  ( ((rgb)&0xFF00FFFF) | ( ((b)&0xFF)<<16 ) )
@@ -77,9 +77,9 @@ SACK_NAMESPACE
    CDATA color3 = Color( 0,0,255); // blue only, this is birght blue
    CDATA color4 = Color(93,93,32); // this is probably a goldish grey
    </code>                                                             */
-#define Color( r,g,b ) (((_32)( ((_8)((b)AND_FF))|((_16)((_8)((g))AND_FF)<<8))|(((_32)((_8)((r))AND_FF)<<16)))|0xFF000000)
+#define Color( r,g,b ) (((uint32_t)( ((uint8_t)((b)AND_FF))|((uint16_t)((uint8_t)((g))AND_FF)<<8))|(((uint32_t)((uint8_t)((r))AND_FF)<<16)))|0xFF000000)
 /* Build a color with alpha specified. */
-#define AColor( r,g,b,a ) (((_32)( ((_8)((b)AND_FF))|((_16)((_8)((g))AND_FF)<<8))|(((_32)((_8)((r))AND_FF)<<16)))|(((a)AND_FF)<<24))
+#define AColor( r,g,b,a ) (((uint32_t)( ((uint8_t)((b)AND_FF))|((uint16_t)((uint8_t)((g))AND_FF)<<8))|(((uint32_t)((uint8_t)((r))AND_FF)<<16)))|(((a)AND_FF)<<24))
 /* Sets the alpha part of a color. (0-255 value, 0 being
    transparent, and 255 solid(opaque))
    Example
@@ -116,9 +116,9 @@ SACK_NAMESPACE
         /* a 4 byte array of color (not really used, we mostly went with CDATA and PCDATA instead of COLOR and PCOLOR */
 		typedef COLOR_CHANNEL COLOR[4];
 		// color data raw...
-		typedef _32 CDATA;
+		typedef uint32_t CDATA;
 		/* pointer to an array of 32 bit colors */
-		typedef _32 *PCDATA;
+		typedef uint32_t *PCDATA;
 		/* A Pointer to <link COLOR>. Probably an array of color (a
 		 block of pixels for instance)                            */
 		typedef COLOR *PCOLOR;

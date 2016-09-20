@@ -119,15 +119,15 @@ PRELOAD( InitUSBPulse100 )
 
 //---------------------------------------------------------------------------------
 
-static PTRSZVAL OnCreateMenuButton( WIDE("USB Pulse/Enable Output") )( PMENU_BUTTON button )
+static uintptr_t OnCreateMenuButton( WIDE("USB Pulse/Enable Output") )( PMENU_BUTTON button )
 {
 	PKEY_DATA key_data = New( KEY_DATA );
 	key_data->button = button;
 	key_data->device = GetLink( &l.devices, l.buttons.enable++ );
-	return (PTRSZVAL)key_data;
+	return (uintptr_t)key_data;
 }
 
-static void OnKeyPressEvent( WIDE("USB Pulse/Enable Output") )( PTRSZVAL psv )
+static void OnKeyPressEvent( WIDE("USB Pulse/Enable Output") )( uintptr_t psv )
 {
 	PKEY_DATA key_data = (PKEY_DATA)psv;
 	key_data->device->flags.enabled = !key_data->device->flags.enabled;
@@ -135,7 +135,7 @@ static void OnKeyPressEvent( WIDE("USB Pulse/Enable Output") )( PTRSZVAL psv )
 	UpdateButton( key_data->button );
 }
 
-static void OnShowControl( WIDE("USB Pulse/Enable Output") )( PTRSZVAL psv )
+static void OnShowControl( WIDE("USB Pulse/Enable Output") )( uintptr_t psv )
 {
 	PKEY_DATA key_data = (PKEY_DATA)psv;
 	InterShell_SetButtonHighlight( key_data->button, key_data->device->flags.enabled );
@@ -143,15 +143,15 @@ static void OnShowControl( WIDE("USB Pulse/Enable Output") )( PTRSZVAL psv )
 
 //---------------------------------------------------------------------------------
 
-static PTRSZVAL OnCreateMenuButton( WIDE("USB Pulse/Invert Output") )( PMENU_BUTTON button )
+static uintptr_t OnCreateMenuButton( WIDE("USB Pulse/Invert Output") )( PMENU_BUTTON button )
 {
 	PKEY_DATA key_data = New( KEY_DATA );
 	key_data->button = button;
 	key_data->device = (PUSB_PULSE_100)GetLink( &l.devices, l.buttons.invert++ );
-	return (PTRSZVAL)key_data;
+	return (uintptr_t)key_data;
 }
 
-static void OnKeyPressEvent( WIDE("USB Pulse/Invert Output") )( PTRSZVAL psv )
+static void OnKeyPressEvent( WIDE("USB Pulse/Invert Output") )( uintptr_t psv )
 {
 	PKEY_DATA key_data = (PKEY_DATA)psv;
 	key_data->device->flags.inverted = !key_data->device->flags.inverted;
@@ -159,7 +159,7 @@ static void OnKeyPressEvent( WIDE("USB Pulse/Invert Output") )( PTRSZVAL psv )
 	UpdateButton( key_data->button );
 }
 
-static void OnShowControl( WIDE("USB Pulse/Invert Output") )( PTRSZVAL psv )
+static void OnShowControl( WIDE("USB Pulse/Invert Output") )( uintptr_t psv )
 {
 	PKEY_DATA key_data = (PKEY_DATA)psv;
 	InterShell_SetButtonHighlight( key_data->button, key_data->device->flags.inverted );
@@ -167,15 +167,15 @@ static void OnShowControl( WIDE("USB Pulse/Invert Output") )( PTRSZVAL psv )
 
 //---------------------------------------------------------------------------------
 
-static PTRSZVAL OnCreateMenuButton( WIDE("USB Pulse/Enable RNG Output") )( PMENU_BUTTON button )
+static uintptr_t OnCreateMenuButton( WIDE("USB Pulse/Enable RNG Output") )( PMENU_BUTTON button )
 {
 	PKEY_DATA key_data = New( KEY_DATA );
 	key_data->button = button;
 	key_data->device = GetLink( &l.devices, l.buttons.RNG++ );
-	return (PTRSZVAL)key_data;
+	return (uintptr_t)key_data;
 }
 
-static void OnKeyPressEvent( WIDE("USB Pulse/Enable RNG Output") )( PTRSZVAL psv )
+static void OnKeyPressEvent( WIDE("USB Pulse/Enable RNG Output") )( uintptr_t psv )
 {
 	PKEY_DATA key_data = (PKEY_DATA)psv;
 	key_data->device->flags.RNG = !key_data->device->flags.RNG;
@@ -183,7 +183,7 @@ static void OnKeyPressEvent( WIDE("USB Pulse/Enable RNG Output") )( PTRSZVAL psv
 	UpdateButton( key_data->button );
 }
 
-static void OnShowControl( WIDE("USB Pulse/Enable RNG Output") )( PTRSZVAL psv )
+static void OnShowControl( WIDE("USB Pulse/Enable RNG Output") )( uintptr_t psv )
 {
 	PKEY_DATA key_data = (PKEY_DATA)psv;
 	InterShell_SetButtonHighlight( key_data->button, key_data->device->flags.RNG );
@@ -191,7 +191,7 @@ static void OnShowControl( WIDE("USB Pulse/Enable RNG Output") )( PTRSZVAL psv )
 
 //---------------------------------------------------------------------------------
 
-static void CPROC OnSliderVoltageProc( PTRSZVAL psv, PSI_CONTROL pc, int val )
+static void CPROC OnSliderVoltageProc( uintptr_t psv, PSI_CONTROL pc, int val )
 {
 	PKEY_DATA key_data = (PKEY_DATA)psv;
 	key_data->device->level = val;
@@ -199,24 +199,24 @@ static void CPROC OnSliderVoltageProc( PTRSZVAL psv, PSI_CONTROL pc, int val )
 	USBpulse100Drvr_SetAmplitude( key_data->device->com_port, ((float)key_data->device->level) / 100.0f );	
 }
 
-static PTRSZVAL OnCreateControl( WIDE("USB Pulse/Voltage Slider") )( PSI_CONTROL frame, S_32 x, S_32 y, _32 w, _32 h )
+static uintptr_t OnCreateControl( WIDE("USB Pulse/Voltage Slider") )( PSI_CONTROL frame, int32_t x, int32_t y, uint32_t w, uint32_t h )
 {
 	PKEY_DATA key_data = New( KEY_DATA );
 	key_data->slider = MakeNamedControl( frame, SLIDER_CONTROL_NAME, x, y, w, h, -1);
-	SetSliderUpdateHandler( key_data->slider, OnSliderVoltageProc, (PTRSZVAL)key_data );     
+	SetSliderUpdateHandler( key_data->slider, OnSliderVoltageProc, (uintptr_t)key_data );     
 	SetSliderValues( key_data->slider, 150, 300, 500 );
 	key_data->device = GetLink( &l.devices, l.buttons.voltage++ );
-	return (PTRSZVAL)key_data;
+	return (uintptr_t)key_data;
 }
 
-static PSI_CONTROL OnGetControl( WIDE("USB Pulse/Voltage Slider") )( PTRSZVAL psv )
+static PSI_CONTROL OnGetControl( WIDE("USB Pulse/Voltage Slider") )( uintptr_t psv )
 {
 	return ((PKEY_DATA)psv)->slider;
 }
 
 //---------------------------------------------------------------------------------
 
-static void CPROC OnSliderPLLProc( PTRSZVAL psv, PSI_CONTROL pc, int val )
+static void CPROC OnSliderPLLProc( uintptr_t psv, PSI_CONTROL pc, int val )
 {
 	PKEY_DATA key_data = (PKEY_DATA)psv;
 	key_data->device->level = val;
@@ -224,41 +224,41 @@ static void CPROC OnSliderPLLProc( PTRSZVAL psv, PSI_CONTROL pc, int val )
 	//USBpulse100Drvr_SetPLL( key_data->device->com_port, m, n, u, dly );
 }
 
-static PTRSZVAL OnCreateControl( WIDE("USB Pulse/Phase Lock Loop") )( PSI_CONTROL frame, S_32 x, S_32 y, _32 w, _32 h )
+static uintptr_t OnCreateControl( WIDE("USB Pulse/Phase Lock Loop") )( PSI_CONTROL frame, int32_t x, int32_t y, uint32_t w, uint32_t h )
 {
 	PKEY_DATA key_data = New( KEY_DATA );
 	key_data->slider = MakeNamedControl( frame, SLIDER_CONTROL_NAME, x, y, w, h, -1);
-	SetSliderUpdateHandler( key_data->slider, OnSliderPLLProc, (PTRSZVAL)key_data );     
+	SetSliderUpdateHandler( key_data->slider, OnSliderPLLProc, (uintptr_t)key_data );     
 	SetSliderValues( key_data->slider, 150, 300, 500 );
 	key_data->device = GetLink( &l.devices, l.buttons.voltage++ );
-	return (PTRSZVAL)key_data;
+	return (uintptr_t)key_data;
 }
 
-static PSI_CONTROL OnGetControl( WIDE("USB Pulse/Phase Lock Loop") )( PTRSZVAL psv )
+static PSI_CONTROL OnGetControl( WIDE("USB Pulse/Phase Lock Loop") )( uintptr_t psv )
 {
 	return ((PKEY_DATA)psv)->slider;
 }
 
 //---------------------------------------------------------------------------------
 
-static void CPROC OnFrequencyProc( PTRSZVAL psv, int change )
+static void CPROC OnFrequencyProc( uintptr_t psv, int change )
 {
    PKEY_DATA key_data = (PKEY_DATA)psv;
 	
 }
 
-static PTRSZVAL OnCreateControl( WIDE("USB Pulse/Frequency Knob") )( PSI_CONTROL frame,  S_32 x, S_32 y, _32 w, _32 h )
+static uintptr_t OnCreateControl( WIDE("USB Pulse/Frequency Knob") )( PSI_CONTROL frame,  int32_t x, int32_t y, uint32_t w, uint32_t h )
 {
 	PKEY_DATA key_data = New( KEY_DATA );
 	key_data->knob = MakeNamedControl( frame, CONTROL_SCROLL_KNOB_NAME, x, y, w, h, -1);
-	SetScrollKnobEvent( key_data->knob, OnFrequencyProc, (PTRSZVAL)key_data );
+	SetScrollKnobEvent( key_data->knob, OnFrequencyProc, (uintptr_t)key_data );
 	SetScrollKnobImageName( key_data->knob, WIDE("images/knobarrow.png") );
 	SetScrollKnobImageZeroAngle( key_data->knob, (0x100000000LL / 2) + (0x100000000LL / 3) );
 	key_data->device = GetLink( &l.devices, l.buttons.knob++ );
-	return (PTRSZVAL)key_data;
+	return (uintptr_t)key_data;
 }
 
-static PSI_CONTROL OnGetControl( WIDE("USB Pulse/Frequency Knob") )( PTRSZVAL psv )
+static PSI_CONTROL OnGetControl( WIDE("USB Pulse/Frequency Knob") )( uintptr_t psv )
 {
 	return ((PKEY_DATA)psv)->knob;
 }

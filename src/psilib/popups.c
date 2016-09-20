@@ -40,7 +40,7 @@ PSI_MENU_NAMESPACE
 	} local_popup_data;
 
 #ifdef CUSTOM_MENUS
-static _32 last_buttons;
+static uint32_t last_buttons;
 #endif
 extern CONTROL_REGISTRATION menu;
 
@@ -106,7 +106,7 @@ void UnshowMenu( PMENU pm );
 int CalculateMenuItems( PMENU pm )
 {
     PMENUITEM pmi;
-    _32 maxwidth, totalheight, hassubmenu = 0;
+    uint32_t maxwidth, totalheight, hassubmenu = 0;
     pmi = pm->items;
     maxwidth = 0;
 	 totalheight = MENU_VERTPAD;
@@ -124,7 +124,7 @@ int CalculateMenuItems( PMENU pm )
         }
         else if( pmi->flags.bHasText )
         {
-            _32 width;
+            uint32_t width;
             GetMenuStringSizeFontEx( pmi->data.text.text
                                     , pmi->data.text.textlen
                                     , &width, &pmi->height
@@ -152,8 +152,8 @@ int CalculateMenuItems( PMENU pm )
 		  pmi->offset = CHECK_WIDTH;
         pmi = pmi->next;
     }
-    pm->height = (S_16)(totalheight + MENU_VERTPAD);
-    pm->width = (S_16)(maxwidth
+    pm->height = (int16_t)(totalheight + MENU_VERTPAD);
+    pm->width = (int16_t)(maxwidth
         + 2*MENU_HORZPAD
         + CHECK_WIDTH
 							  + (hassubmenu?SUB_WIDTH:0));
@@ -332,7 +332,7 @@ void RenderSelect( PMENU pm, PMENUITEM pmi )
 
 static int CPROC RenderItems( PSI_CONTROL pc )
 {
-	//PTRSZVAL psv;
+	//uintptr_t psv;
 	//PRENDERER display;
 	ValidatedControlData( PMENU, menu.TypeID, pm, pc );
 	//PMENU pm = (PMENU);
@@ -369,7 +369,7 @@ static int CPROC RenderItems( PSI_CONTROL pc )
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-void CPROC TimerProc( PTRSZVAL psv )
+void CPROC TimerProc( uintptr_t psv )
 {
 	// some timer fired ... useful when a mouse is on a popup item
 	// and still for a time....
@@ -377,7 +377,7 @@ void CPROC TimerProc( PTRSZVAL psv )
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-static int MenuMouse( PMENU pm, S_32 x, S_32 y, _32 b )
+static int MenuMouse( PMENU pm, int32_t x, int32_t y, uint32_t b )
 {
 	PMENUITEM pmi;
 #ifdef DEBUG_DRAW_MENU
@@ -512,7 +512,7 @@ static int MenuMouse( PMENU pm, S_32 x, S_32 y, _32 b )
 	return TRUE;
 }
 
-static int OnMouseCommon( WIDE("Popup Menu") )( PSI_CONTROL pc, S_32 x, S_32 y, _32 b )
+static int OnMouseCommon( WIDE("Popup Menu") )( PSI_CONTROL pc, int32_t x, int32_t y, uint32_t b )
 {
 	ValidatedControlData( PMENU, menu.TypeID, pm, pc );
 	if( pm )
@@ -705,8 +705,8 @@ PRIORITY_PRELOAD( RegisterMenuPopup, PSI_PRELOAD_PRIORITY )
 
 void ShowMenu( PMENU pm, int x, int y, LOGICAL bWait, PSI_CONTROL parent )
 {
-	S_32 cx, cy;
-	S_32 dx, dy;
+	int32_t cx, cy;
+	int32_t dx, dy;
 	PSI_CONTROL display_parent;
 	if( pm->flags.showing )
 	{
@@ -729,7 +729,7 @@ void ShowMenu( PMENU pm, int x, int y, LOGICAL bWait, PSI_CONTROL parent )
 	}
 	if( !local_popup_data.flags.bDisplayBoundless )
 	{
-		GetDisplaySize( (P_32)&cx, (P_32)&cy );
+		GetDisplaySize( (uint32_t*)&cx, (uint32_t*)&cy );
 		if( ( x + pm->width + FrameBorderX( pm->image, BORDER_NORMAL) ) >= cx )
 		{
 			if( pm->parent )
@@ -750,8 +750,8 @@ void ShowMenu( PMENU pm, int x, int y, LOGICAL bWait, PSI_CONTROL parent )
 		}
 		else
 			dy = y;
-		pm->display.x = (_16)dx;
-		pm->display.y = (_16)dy;
+		pm->display.x = (uint16_t)dx;
+		pm->display.y = (uint16_t)dy;
 	}
 	else
 	{
@@ -795,7 +795,7 @@ void ShowMenu( PMENU pm, int x, int y, LOGICAL bWait, PSI_CONTROL parent )
 #endif
 
 // int DeleteMenu(...)
-PSI_PROC( PMENUITEM, DeletePopupItem )( PMENU pm, PTRSZVAL dwID, _32 state )
+PSI_PROC( PMENUITEM, DeletePopupItem )( PMENU pm, uintptr_t dwID, uint32_t state )
 {
 	if( local_popup_data.flags.bCustomMenuEnable )
 	{
@@ -898,7 +898,7 @@ PSI_PROC( void *, GetPopupData )( PMENU pm, int item )
 
 //----------------------------------------------------------------------
 //int AppendMenu( HMENU, type, dwID, pData )
-PSI_PROC( PMENUITEM, AppendPopupItem )( PMENU pm, int type, PTRSZVAL dwID, CPOINTER pData )
+PSI_PROC( PMENUITEM, AppendPopupItem )( PMENU pm, int type, uintptr_t dwID, CPOINTER pData )
 {
 	if( local_popup_data.flags.bCustomMenuEnable )
 	{
@@ -975,7 +975,7 @@ PSI_PROC( PMENUITEM, AppendPopupItem )( PMENU pm, int type, PTRSZVAL dwID, CPOIN
 
 //----------------------------------------------------------------------
 //int CheckMenuItem( HMENU, dwID, state )
-PSI_PROC( PMENUITEM, CheckPopupItem )( PMENU pm, PTRSZVAL dwID, _32 state )
+PSI_PROC( PMENUITEM, CheckPopupItem )( PMENU pm, uintptr_t dwID, uint32_t state )
 {
 	if( local_popup_data.flags.bCustomMenuEnable )
 	{
@@ -1045,7 +1045,7 @@ PSI_PROC( int, TrackPopup )( PMENU hMenuSub, PSI_CONTROL parent )
 {
 	if( local_popup_data.flags.bCustomMenuEnable )
 	{
-		S_32 x, y;
+		int32_t x, y;
 		int selection;
 		if( !hMenuSub )
 		{

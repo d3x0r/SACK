@@ -26,29 +26,29 @@ typedef enum space_type {
 typedef struct space_tag {
    // these are indexes into g.board list.
 	INDEX left, right, alternate;
-	_32 ID;
+	uint32_t ID;
 	struct {
-		_8 width;
-		_8 height;
-		_8 x;
-		_8 y;
+		uint8_t width;
+		uint8_t height;
+		uint8_t x;
+		uint8_t y;
 	} position;
 	enum space_type type;
 	struct {
-      _32 bMoveLeft : 1;
-      _32 bAlternateLeft : 1;
-      _32 bVertical : 1;
-		_32 bInvert : 1;
-		_32 bFlashing : 1;
-		_32 bFlashOn : 1;
+      uint32_t bMoveLeft : 1;
+      uint32_t bAlternateLeft : 1;
+      uint32_t bVertical : 1;
+		uint32_t bInvert : 1;
+		uint32_t bFlashing : 1;
+		uint32_t bFlashOn : 1;
 	} flags;
-	S_16 FixedStageAdjust;
+	int16_t FixedStageAdjust;
    FRACTION Split;  // 1:1, 2:1, 3:1 7:5 (how many per one)
 	union {
 		struct {
-			_32 cost;
+			uint32_t cost;
 			struct {
-				_32 bEvenRight : 1; // odd left; otherwise odd right, even left
+				uint32_t bEvenRight : 1; // odd left; otherwise odd right, even left
 			} flags;
       } start;
       struct {
@@ -57,14 +57,14 @@ typedef struct space_tag {
 		struct {
 			TEXTCHAR *name;
 			FLAGSET( payon, 12 );
-			_32 pay;
+			uint32_t pay;
          CDATA color;
 		} profession;
       struct {
          PSTOCK stock;
 		} buy_sell;
 		struct {
-         _32 fee;
+         uint32_t fee;
 		} broker;
 	} attributes;
 	PCONTROL region;

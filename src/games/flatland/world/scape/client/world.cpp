@@ -26,7 +26,7 @@ extern GLOBAL g;
 INDEX  CPROC CreateSquareSector( INDEX iWorld, PC_POINT pOrigin, RCOORD size )
 {
 	MSGIDTYPE ResultID;
-	_32 Result[1];
+	uint32_t Result[1];
 	size_t ResultLen = sizeof( Result );
 	if( ConnectToServer()
 		&& TransactServerMultiMessage( MSG_ID(CreateSquareSector), 3
@@ -45,7 +45,7 @@ INDEX  CPROC CreateSquareSector( INDEX iWorld, PC_POINT pOrigin, RCOORD size )
 //----------------------------------------------------------------------------
 
 #if 0
-PTRSZVAL CPROC CompareWorldName( POINTER p, PTRSZVAL psv )
+uintptr_t CPROC CompareWorldName( POINTER p, uintptr_t psv )
 {
 	CTEXTSTR name = (CTEXTSTR)psv;
 	PWORLD world = (PWORLD)p;
@@ -53,7 +53,7 @@ PTRSZVAL CPROC CompareWorldName( POINTER p, PTRSZVAL psv )
    /* was working on fixing this when I learned it's not even used */
    PNAME GetName( world->name, buffer, sizeof( buffer )/sizeof(TEXTCHAR) )
 	if( StrCmp( world->name, name ) == 0 )
-		return (PTRSZVAL)world;
+		return (uintptr_t)world;
 	return 0;
 }
 #endif
@@ -108,7 +108,7 @@ WORLD_PROC( PFLATLAND_MYLINESEGSET, GetLines )( INDEX iWorld )
 	return NULL;
 }
 //----------------------------------------------------------------------------
-WORLD_PROC( _32, GetSectorCount )( INDEX iWorld )
+WORLD_PROC( uint32_t, GetSectorCount )( INDEX iWorld )
 {
 	PWORLD world = GetSetMember( WORLD, &g.worlds, iWorld );
 	if( world )
@@ -116,7 +116,7 @@ WORLD_PROC( _32, GetSectorCount )( INDEX iWorld )
 	return 0;
 }
 //----------------------------------------------------------------------------
-WORLD_PROC( _32, GetWallCount )( INDEX iWorld )
+WORLD_PROC( uint32_t, GetWallCount )( INDEX iWorld )
 {
 	PWORLD world = GetSetMember( WORLD, &g.worlds, iWorld );
    if( world )
@@ -124,7 +124,7 @@ WORLD_PROC( _32, GetWallCount )( INDEX iWorld )
    return 0;
 }
 //----------------------------------------------------------------------------
-WORLD_PROC( _32, GetLineCount )( INDEX iWorld )
+WORLD_PROC( uint32_t, GetLineCount )( INDEX iWorld )
 {
 	PWORLD world = GetSetMember( WORLD, &g.worlds, iWorld );
 	if( world )
@@ -177,7 +177,7 @@ void ResetWorld( INDEX iWorld )
 int SaveWorldToFile( INDEX iWorld )
 {
 	MSGIDTYPE ResultID;
-	_32 Result[1];
+	uint32_t Result[1];
 	size_t ResultLen = sizeof( Result );
 	if( ConnectToServer()
 		&& TransactServerMultiMessage( MSG_ID(SaveWorldToFile), 1
@@ -196,7 +196,7 @@ int SaveWorldToFile( INDEX iWorld )
 int LoadWorldFromFile( INDEX iWorld )
 {
 	MSGIDTYPE ResultID;
-	_32 Result[1];
+	uint32_t Result[1];
 	size_t ResultLen = sizeof( Result );
 	if( ConnectToServer()
 		&& TransactServerMultiMessage( MSG_ID(LoadWorldFromFile), 1
@@ -355,7 +355,7 @@ int MarkSelectedSectors( INDEX iWorld, PORTHOAREA rect, INDEX **sectorarray, int
 		rect->h = -rect->h;
 	}
 	Log( WIDE("Marking Sectors") );
-	DoForAllSectors( world->sectors, CheckSectorInRect, (PTRSZVAL)&si );
+	DoForAllSectors( world->sectors, CheckSectorInRect, (uintptr_t)&si );
 	if( si.nsectors )
 	{
 		Log1( WIDE("Found %d sectors in range"), si.nsectors );
@@ -366,7 +366,7 @@ int MarkSelectedSectors( INDEX iWorld, PORTHOAREA rect, INDEX **sectorarray, int
 			*sectorarray = (INDEX*)Allocate( sizeof( INDEX ) * si.nsectors );
 			si.ppsectors = *sectorarray;
 			si.nsectors = 0;
-			DoForAllSectors( world->sectors, CheckSectorInRect, (PTRSZVAL)&si );
+			DoForAllSectors( world->sectors, CheckSectorInRect, (uintptr_t)&si );
 		}
 		return TRUE;
 	}

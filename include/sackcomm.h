@@ -42,33 +42,33 @@ SACKCOMM_PROC( int, SackWriteComm)(int iCommId, void far *pBuf, int iChars);
 SACKCOMM_PROC( int, SackReadComm)(int iCommId, void far *pBuf, int iChars);
 SACKCOMM_PROC( int, SackCloseComm)(int iCommId);
 
-typedef void (CPROC* CommReadCallback)( PTRSZVAL psv, int nCommId, POINTER buffer, int len );
+typedef void (CPROC* CommReadCallback)( uintptr_t psv, int nCommId, POINTER buffer, int len );
 
-SACKCOMM_PROC( int, SackOpenCommEx)(CTEXTSTR szPort, _32 uiRcvQ, _32 uiSendQ
+SACKCOMM_PROC( int, SackOpenCommEx)(CTEXTSTR szPort, uint32_t uiRcvQ, uint32_t uiSendQ
 											, CommReadCallback ReadCallback
-                  					, PTRSZVAL psv );
+                  					, uintptr_t psv );
 #define SackOpenComm( szport, rq, sq ) SackOpenCommEx( szport, rq, sq, NULL, 0 )
 
 SACKCOMM_PROC( void, SackSetReadCallback )( int nCommId
                                           , CommReadCallback Callback
-                                          , PTRSZVAL psvRead );
+                                          , uintptr_t psvRead );
 SACKCOMM_PROC( int, SackClearReadCallback )( int iCommId
                                           , CommReadCallback );
 
 SACKCOMM_PROC( int, SackCommReadBufferEx)( int iCommId, char *buffer, int len
-						 , _32 timeout, int *pnCharsRead
+						 , uint32_t timeout, int *pnCharsRead
 									 DBG_PASS );
 #define SackCommReadBuffer(c,b,l,t,pl) SackCommReadBufferEx( c,b,l,t,pl DBG_SRC )
 
 SACKCOMM_PROC( int, SackCommReadDataEx)( int iCommId
-						 , _32 timeout
+						 , uint32_t timeout
 						 , char **pBuffer
 						 , int *pnCharsRead 
 						 DBG_PASS
 					  );
 #define SackCommReadData(c,t,pb,pn) SackCommReadDataEx( c,t,pb,pn DBG_SRC )
 SACKCOMM_PROC( int,  SackCommWriteBufferEx)( int iCommId, char *buffer, int len
-							  , _32 timeout DBG_PASS );
+							  , uint32_t timeout DBG_PASS );
 #define SackCommWriteBuffer(c,b,l,t) SackCommWriteBufferEx(c,b,l,t DBG_SRC)
 SACKCOMM_PROC( void, SackCommFlush )( int nCommID );
 

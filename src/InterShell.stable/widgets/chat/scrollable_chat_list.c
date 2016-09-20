@@ -30,9 +30,9 @@
 /*
 typedef struct chat_time_tag
 {
-	_8 hr,mn,sc;
-	_8 mo,dy;
-	_16 year;
+	uint8_t hr,mn,sc;
+	uint8_t mo,dy;
+	uint16_t year;
 } CHAT_TIME;
 typedef struct chat_time_tag *PCHAT_TIME;
 */
@@ -45,11 +45,11 @@ typedef struct chat_widget_message
 	CHAT_TIME sent_time; // the time the message was sent
 	CHAT_TIME seen_time; // when the message was actually seen...
 	LOGICAL seen; // logical whether to set seen_time or not
-	PTRSZVAL psvSeen; // application handle of message
+	uintptr_t psvSeen; // application handle of message
 	TEXTSTR text;
 	Image image;
 	Image thumb_image;
-	_32 thumb_image_left;
+	uint32_t thumb_image_left;
 	TEXTSTR formatted_text;
 	size_t formatted_text_len;
 	int _formatted_height;
@@ -70,8 +70,8 @@ typedef struct chat_context_tag
 	int sender_height;
 	int sender_width;
 	int formatted_height;  // has to include all message text and all tmiestamps and all image heights
-	_32 max_width; // how wide the formatted message was
-	_32 extra_width;
+	uint32_t max_width; // how wide the formatted message was
+	uint32_t extra_width;
 	//int message_y;   // a single value for this makes no sense.
 	PLINKQUEUE messages; // queue of PCHAT_MESSAGE (search forward and backward ability)
 	LOGICAL deleted;
@@ -144,7 +144,7 @@ static int G2J( int year, int month, int day )
 	return month_total[month-1] + day + extra;
 }
 
-static S_64 AbsoluteSeconds( PCHAT_TIME message_time )
+static int64_t AbsoluteSeconds( PCHAT_TIME message_time )
 {
 	int now_day = G2J( message_time->yr, message_time->mo, message_time->dy );
 	int yr;
@@ -156,7 +156,7 @@ static S_64 AbsoluteSeconds( PCHAT_TIME message_time )
 	for( yr = 2000; yr < message_time->yr; yr++ )
 		now_day += IsLeap( yr )?366:365;
 
-	return ((S_64)now_day *24*60*60) + msg_tick;
+	return ((int64_t)now_day *24*60*60) + msg_tick;
 }
 
 // can track up to 4 timestamp deltas ....
@@ -165,9 +165,9 @@ static CTEXTSTR FormatMessageTime( CTEXTSTR time_type, PCHAT_TIME now, PCHAT_TIM
 	static TEXTCHAR _timebuf[4][64];
 	static int current_timebuf;
 	TEXTCHAR *timebuf;
-	S_64 absolute_day = AbsoluteSeconds( now );
-	S_64 absolute_msg_day = AbsoluteSeconds( message_time );
-	S_64 delta = absolute_day - absolute_msg_day;
+	int64_t absolute_day = AbsoluteSeconds( now );
+	int64_t absolute_msg_day = AbsoluteSeconds( message_time );
+	int64_t delta = absolute_day - absolute_msg_day;
 	LOGICAL neg = (delta < 0 )? 1 : 0;
 	if( neg )
 		delta = -delta;
@@ -217,9 +217,9 @@ static void ChopDecorations( void )
 		if( l.decoration && !l.received.BorderSegment[SEGMENT_TOP_LEFT] )
 		{
 			int MiddleSegmentWidth, MiddleSegmentHeight;
-			_32 BorderWidth = l.received.div_x1 - l.received.back_x;
-			_32 BorderWidth2 = ( l.received.back_x  + l.received.back_w ) - l.received.div_x2;
-			_32 BorderHeight = l.received.div_y1 - l.received.back_y;
+			uint32_t BorderWidth = l.received.div_x1 - l.received.back_x;
+			uint32_t BorderWidth2 = ( l.received.back_x  + l.received.back_w ) - l.received.div_x2;
+			uint32_t BorderHeight = l.received.div_y1 - l.received.back_y;
 
 			MiddleSegmentWidth = l.received.div_x2 - l.received.div_x1;
 			MiddleSegmentHeight = l.received.div_y2 - l.received.div_y1;
@@ -266,9 +266,9 @@ static void ChopDecorations( void )
 		if( l.decoration && !l.send.BorderSegment[SEGMENT_TOP_LEFT] )
 		{
 			int MiddleSegmentWidth, MiddleSegmentHeight;
-			_32 BorderWidth = l.send.div_x1 - l.send.back_x;
-			_32 BorderWidth2 = ( l.send.back_x  + l.send.back_w ) - l.send.div_x2;
-			_32 BorderHeight = l.send.div_y1 - l.send.back_y;
+			uint32_t BorderWidth = l.send.div_x1 - l.send.back_x;
+			uint32_t BorderWidth2 = ( l.send.back_x  + l.send.back_w ) - l.send.div_x2;
+			uint32_t BorderHeight = l.send.div_y1 - l.send.back_y;
 
 			MiddleSegmentWidth = l.send.div_x2 - l.send.div_x1;
 			MiddleSegmentHeight = l.send.div_y2 - l.send.div_y1;
@@ -314,9 +314,9 @@ static void ChopDecorations( void )
 		if( l.decoration && !l.sent.BorderSegment[SEGMENT_TOP_LEFT] )
 		{
 			int MiddleSegmentWidth, MiddleSegmentHeight;
-			_32 BorderWidth = l.sent.div_x1 - l.sent.back_x;
-			_32 BorderWidth2 = l.sent.back_h - ( l.sent.div_y2 - l.sent.back_y );
-			_32 BorderHeight = l.sent.div_y1 - l.sent.back_y;
+			uint32_t BorderWidth = l.sent.div_x1 - l.sent.back_x;
+			uint32_t BorderWidth2 = l.sent.back_h - ( l.sent.div_y2 - l.sent.back_y );
+			uint32_t BorderHeight = l.sent.div_y1 - l.sent.back_y;
 
 			MiddleSegmentWidth = l.sent.div_x2 - l.sent.div_x1;
 			MiddleSegmentHeight = l.sent.div_y2 - l.sent.div_y1;
@@ -363,7 +363,7 @@ static void ChopDecorations( void )
 	}
 }
 
-static PTRSZVAL CPROC SetBackgroundImage( PTRSZVAL psv, arg_list args )
+static uintptr_t CPROC SetBackgroundImage( uintptr_t psv, arg_list args )
 {
 	PARAM( args, CTEXTSTR, image_name );
 	l.decoration_name = StrDup( image_name );
@@ -371,147 +371,147 @@ static PTRSZVAL CPROC SetBackgroundImage( PTRSZVAL psv, arg_list args )
 	return psv;
 }
 
-static PTRSZVAL CPROC SetSentArrowArea( PTRSZVAL psv, arg_list args )
+static uintptr_t CPROC SetSentArrowArea( uintptr_t psv, arg_list args )
 {
-	PARAM( args, S_64, x );
-	PARAM( args, S_64, y );
-	PARAM( args, S_64, w );
-	PARAM( args, S_64, h );
-	l.sent.arrow_x = (S_32)x;
-	l.sent.arrow_y = (S_32)y;
-	l.sent.arrow_w = (_32)w;
-	l.sent.arrow_h = (_32)h;
+	PARAM( args, int64_t, x );
+	PARAM( args, int64_t, y );
+	PARAM( args, int64_t, w );
+	PARAM( args, int64_t, h );
+	l.sent.arrow_x = (int32_t)x;
+	l.sent.arrow_y = (int32_t)y;
+	l.sent.arrow_w = (uint32_t)w;
+	l.sent.arrow_h = (uint32_t)h;
 	return psv;
 }
 
-static PTRSZVAL CPROC SetReceiveArrowArea( PTRSZVAL psv, arg_list args )
+static uintptr_t CPROC SetReceiveArrowArea( uintptr_t psv, arg_list args )
 {
-	PARAM( args, S_64, x );
-	PARAM( args, S_64, y );
-	PARAM( args, S_64, w );
-	PARAM( args, S_64, h );
-	l.received.arrow_x = (S_32)x;
-	l.received.arrow_y = (S_32)y;
-	l.received.arrow_w = (_32)w;
-	l.received.arrow_h = (_32)h;
+	PARAM( args, int64_t, x );
+	PARAM( args, int64_t, y );
+	PARAM( args, int64_t, w );
+	PARAM( args, int64_t, h );
+	l.received.arrow_x = (int32_t)x;
+	l.received.arrow_y = (int32_t)y;
+	l.received.arrow_w = (uint32_t)w;
+	l.received.arrow_h = (uint32_t)h;
 	return psv;
 }
 
-static PTRSZVAL CPROC SetSentBackgroundArea( PTRSZVAL psv, arg_list args )
+static uintptr_t CPROC SetSentBackgroundArea( uintptr_t psv, arg_list args )
 {
-	PARAM( args, S_64, x );
-	PARAM( args, S_64, y );
-	PARAM( args, S_64, w );
-	PARAM( args, S_64, h );
-	l.sent.back_x = (S_32)x;
-	l.sent.back_y = (S_32)y;
-	l.sent.back_w = (_32)w;
-	l.sent.back_h = (_32)h;
+	PARAM( args, int64_t, x );
+	PARAM( args, int64_t, y );
+	PARAM( args, int64_t, w );
+	PARAM( args, int64_t, h );
+	l.sent.back_x = (int32_t)x;
+	l.sent.back_y = (int32_t)y;
+	l.sent.back_w = (uint32_t)w;
+	l.sent.back_h = (uint32_t)h;
 	return psv;
 }
 
-static PTRSZVAL CPROC SetReceiveBackgroundArea( PTRSZVAL psv, arg_list args )
+static uintptr_t CPROC SetReceiveBackgroundArea( uintptr_t psv, arg_list args )
 {
-	PARAM( args, S_64, x );
-	PARAM( args, S_64, y );
-	PARAM( args, S_64, w );
-	PARAM( args, S_64, h );
-	l.received.back_x = (S_32)x;
-	l.received.back_y = (S_32)y;
-	l.received.back_w = (_32)w;
-	l.received.back_h = (_32)h;
+	PARAM( args, int64_t, x );
+	PARAM( args, int64_t, y );
+	PARAM( args, int64_t, w );
+	PARAM( args, int64_t, h );
+	l.received.back_x = (int32_t)x;
+	l.received.back_y = (int32_t)y;
+	l.received.back_w = (uint32_t)w;
+	l.received.back_h = (uint32_t)h;
 	return psv;
 }
 
-static PTRSZVAL CPROC SetSentBackgroundDividers( PTRSZVAL psv, arg_list args )
+static uintptr_t CPROC SetSentBackgroundDividers( uintptr_t psv, arg_list args )
 {
-	PARAM( args, S_64, x1 );
-	PARAM( args, S_64, x2 );
-	PARAM( args, S_64, y1 );
-	PARAM( args, S_64, y2 );
-	l.sent.div_x1 = (S_32)x1;
-	l.sent.div_x2 = (S_32)x2;
-	l.sent.div_y1 = (S_32)y1;
-	l.sent.div_y2 = (S_32)y2;
+	PARAM( args, int64_t, x1 );
+	PARAM( args, int64_t, x2 );
+	PARAM( args, int64_t, y1 );
+	PARAM( args, int64_t, y2 );
+	l.sent.div_x1 = (int32_t)x1;
+	l.sent.div_x2 = (int32_t)x2;
+	l.sent.div_y1 = (int32_t)y1;
+	l.sent.div_y2 = (int32_t)y2;
 	return psv;
 }
 
-static PTRSZVAL CPROC SetReceiveBackgroundDividers( PTRSZVAL psv, arg_list args )
+static uintptr_t CPROC SetReceiveBackgroundDividers( uintptr_t psv, arg_list args )
 {
-	PARAM( args, S_64, x1 );
-	PARAM( args, S_64, x2 );
-	PARAM( args, S_64, y1 );
-	PARAM( args, S_64, y2 );
-	l.received.div_x1 = (S_32)x1;
-	l.received.div_x2 = (S_32)x2;
-	l.received.div_y1 = (S_32)y1;
-	l.received.div_y2 = (S_32)y2;
+	PARAM( args, int64_t, x1 );
+	PARAM( args, int64_t, x2 );
+	PARAM( args, int64_t, y1 );
+	PARAM( args, int64_t, y2 );
+	l.received.div_x1 = (int32_t)x1;
+	l.received.div_x2 = (int32_t)x2;
+	l.received.div_y1 = (int32_t)y1;
+	l.received.div_y2 = (int32_t)y2;
 	return psv;
 }
 
-static PTRSZVAL CPROC SetReceiveJustification( PTRSZVAL psv, arg_list args )
+static uintptr_t CPROC SetReceiveJustification( uintptr_t psv, arg_list args )
 {
 	// 0 = left
 	// 1 = right
 	// 2 = center
-	PARAM( args, S_64, justify );
+	PARAM( args, int64_t, justify );
 	l.flags.received_justification = (BIT_FIELD)justify;
 	return psv;
 }
 
-static PTRSZVAL CPROC SetSentJustification( PTRSZVAL psv, arg_list args )
+static uintptr_t CPROC SetSentJustification( uintptr_t psv, arg_list args )
 {
 	// 0 = left
 	// 1 = right
 	// 2 = center
-	PARAM( args, S_64, justify );
+	PARAM( args, int64_t, justify );
 	l.flags.sent_justification = (BIT_FIELD)justify;
 
 	return psv;
 }
 
-static PTRSZVAL CPROC SetReceiveTextJustification( PTRSZVAL psv, arg_list args )
+static uintptr_t CPROC SetReceiveTextJustification( uintptr_t psv, arg_list args )
 {
 	// 0 = left
 	// 1 = right
 	// 2 = center
-	PARAM( args, S_64, justify );
+	PARAM( args, int64_t, justify );
 	l.flags.received_text_justification = (BIT_FIELD)justify;
 	return psv;
 }
 
-static PTRSZVAL CPROC SetSentTextJustification( PTRSZVAL psv, arg_list args )
+static uintptr_t CPROC SetSentTextJustification( uintptr_t psv, arg_list args )
 {
 	// 0 = left
 	// 1 = right
 	// 2 = center
-	PARAM( args, S_64, justify );
+	PARAM( args, int64_t, justify );
 	l.flags.sent_text_justification = (BIT_FIELD)justify;
 
 	return psv;
 }
 
-static PTRSZVAL CPROC SetReceiveArrowOffset( PTRSZVAL psv, arg_list args )
+static uintptr_t CPROC SetReceiveArrowOffset( uintptr_t psv, arg_list args )
 {
-	PARAM( args, S_64, x );
-	PARAM( args, S_64, y );
-	l.received.arrow_x_offset = (S_32)x;
-	l.received.arrow_y_offset = (S_32)y;
+	PARAM( args, int64_t, x );
+	PARAM( args, int64_t, y );
+	l.received.arrow_x_offset = (int32_t)x;
+	l.received.arrow_y_offset = (int32_t)y;
 	return psv;
 }
 
-static PTRSZVAL CPROC SetSentArrowOffset( PTRSZVAL psv, arg_list args )
+static uintptr_t CPROC SetSentArrowOffset( uintptr_t psv, arg_list args )
 {
-	PARAM( args, S_64, x );
-	PARAM( args, S_64, y );
-	l.sent.arrow_x_offset = (S_32)x;
-	l.sent.arrow_y_offset = (S_32)y;
+	PARAM( args, int64_t, x );
+	PARAM( args, int64_t, y );
+	l.sent.arrow_x_offset = (int32_t)x;
+	l.sent.arrow_y_offset = (int32_t)y;
 	return psv;
 }
 
-static PTRSZVAL CPROC SetSidePad( PTRSZVAL psv, arg_list args )
+static uintptr_t CPROC SetSidePad( uintptr_t psv, arg_list args )
 {
-	PARAM( args, S_64, pad );
+	PARAM( args, int64_t, pad );
 	l.side_pad = (int)pad;
 	return psv;
 }
@@ -708,7 +708,7 @@ static void OnSaveCommon( WIDE( "Chat Control" ) )( FILE *file )
 }
 
 
-void Chat_SetMessageInputHandler( PSI_CONTROL pc, void (CPROC *Handler)( PTRSZVAL psv, PTEXT text ), PTRSZVAL psv )
+void Chat_SetMessageInputHandler( PSI_CONTROL pc, void (CPROC *Handler)( uintptr_t psv, PTEXT text ), uintptr_t psv )
 {
 	PCHAT_LIST *ppList = (ControlData( PCHAT_LIST*, pc ));
 	PCHAT_LIST chat_control = (*ppList);
@@ -717,7 +717,7 @@ void Chat_SetMessageInputHandler( PSI_CONTROL pc, void (CPROC *Handler)( PTRSZVA
 }
 
 
-void Chat_SetPasteInputHandler( PSI_CONTROL pc, void (CPROC *Handler)( PTRSZVAL psv ), PTRSZVAL psv )
+void Chat_SetPasteInputHandler( PSI_CONTROL pc, void (CPROC *Handler)( uintptr_t psv ), uintptr_t psv )
 {
 	PCHAT_LIST *ppList = (ControlData( PCHAT_LIST*, pc ));
 	PCHAT_LIST chat_control = (*ppList);
@@ -726,7 +726,7 @@ void Chat_SetPasteInputHandler( PSI_CONTROL pc, void (CPROC *Handler)( PTRSZVAL 
 }
 
 
-void Chat_SetDropInputHandler( PSI_CONTROL pc, LOGICAL (CPROC *Handler)( PTRSZVAL psv, CTEXTSTR path, S_32 x, S_32 y ), PTRSZVAL psv )
+void Chat_SetDropInputHandler( PSI_CONTROL pc, LOGICAL (CPROC *Handler)( uintptr_t psv, CTEXTSTR path, int32_t x, int32_t y ), uintptr_t psv )
 {
 	PCHAT_LIST *ppList = (ControlData( PCHAT_LIST*, pc ));
 	PCHAT_LIST chat_control = (*ppList);
@@ -734,7 +734,7 @@ void Chat_SetDropInputHandler( PSI_CONTROL pc, LOGICAL (CPROC *Handler)( PTRSZVA
 	chat_control->psvInputDrop = psv;
 }
 
-void Chat_SetSeenCallback( PSI_CONTROL pc, void (CPROC *Handler)( PTRSZVAL psv ), void (CPROC *DeleteHandler)( PTRSZVAL psv ) )
+void Chat_SetSeenCallback( PSI_CONTROL pc, void (CPROC *Handler)( uintptr_t psv ), void (CPROC *DeleteHandler)( uintptr_t psv ) )
 {
 	PCHAT_LIST *ppList = (ControlData( PCHAT_LIST*, pc ));
 	PCHAT_LIST chat_control = (*ppList);
@@ -742,7 +742,7 @@ void Chat_SetSeenCallback( PSI_CONTROL pc, void (CPROC *Handler)( PTRSZVAL psv )
 	chat_control->MessageDeleted = DeleteHandler;
 }
 
-void Chat_SetSeenImageCallback( PSI_CONTROL pc, void (CPROC *Handler)( PTRSZVAL psv, Image ), void (CPROC *DeleteHandler)( PTRSZVAL psv, Image ) )
+void Chat_SetSeenImageCallback( PSI_CONTROL pc, void (CPROC *Handler)( uintptr_t psv, Image ), void (CPROC *DeleteHandler)( uintptr_t psv, Image ) )
 {
 	PCHAT_LIST *ppList = (ControlData( PCHAT_LIST*, pc ));
 	PCHAT_LIST chat_control = (*ppList);
@@ -783,7 +783,7 @@ PCHAT_MESSAGE  Chat_EnqueMessage( PSI_CONTROL pc, LOGICAL sent
 							 , Image sender_icon
 							 , CTEXTSTR sender
 							 , CTEXTSTR text
-							 , PTRSZVAL psvSeen )
+							 , uintptr_t psvSeen )
 {
 	PCHAT_LIST *ppList = (ControlData( PCHAT_LIST*, pc ));
 	PCHAT_LIST chat_control = (*ppList);
@@ -844,7 +844,7 @@ PCHAT_MESSAGE Chat_EnqueImage( PSI_CONTROL pc, LOGICAL sent
 							 , Image sender_icon
 							 , CTEXTSTR sender
 							 , Image image
-							 , PTRSZVAL psvSeen )
+							 , uintptr_t psvSeen )
 {
 	PCHAT_LIST *ppList = (ControlData( PCHAT_LIST*, pc ));
 	PCHAT_LIST chat_control = (*ppList);
@@ -905,7 +905,7 @@ PCHAT_MESSAGE Chat_EnqueImage( PSI_CONTROL pc, LOGICAL sent
 	}
 }
 
-void MeasureFrameWidth( Image window, S_32 *left, S_32 *right, LOGICAL received, LOGICAL complete, int inset )
+void MeasureFrameWidth( Image window, int32_t *left, int32_t *right, LOGICAL received, LOGICAL complete, int inset )
 {
 	if( received )
 	{
@@ -955,10 +955,10 @@ void MeasureFrameWidth( Image window, S_32 *left, S_32 *right, LOGICAL received,
 	}
 }
 
-_32 DrawSendTextFrame( Image window, int y, int height, int inset )
+uint32_t DrawSendTextFrame( Image window, int y, int height, int inset )
 {
-	S_32 x_offset_left;
-	S_32 x_offset_right;
+	int32_t x_offset_left;
+	int32_t x_offset_right;
 	height +=  l.send.BorderSegment[SEGMENT_TOP]->height + l.send.BorderSegment[SEGMENT_BOTTOM]->height;
 	y -= l.send.BorderSegment[SEGMENT_TOP]->height + l.send.BorderSegment[SEGMENT_BOTTOM]->height;
 	//lprintf( WIDE("Draw at %d   %d  bias %d") , y, height, inset );
@@ -1018,10 +1018,10 @@ _32 DrawSendTextFrame( Image window, int y, int height, int inset )
 	return height;
 }
 
-_32 DrawMessageFrame( Image window, int y, int height, int inset, LOGICAL received, LOGICAL complete )
+uint32_t DrawMessageFrame( Image window, int y, int height, int inset, LOGICAL received, LOGICAL complete )
 {
-	S_32 x_offset_left;
-	S_32 x_offset_right;
+	int32_t x_offset_left;
+	int32_t x_offset_right;
 	height +=  l.sent.BorderSegment[SEGMENT_TOP]->height + l.sent.BorderSegment[SEGMENT_BOTTOM]->height;
 	y -= l.sent.BorderSegment[SEGMENT_TOP]->height + l.sent.BorderSegment[SEGMENT_BOTTOM]->height;
 	//lprintf( WIDE("Draw at %d   %d  bias %d") , y, height, inset );
@@ -1163,15 +1163,15 @@ _32 DrawMessageFrame( Image window, int y, int height, int inset, LOGICAL receiv
 	return height;
 }
 
-_32 UpdateContextExtents( Image window, PCHAT_LIST list, PCHAT_CONTEXT context )
+uint32_t UpdateContextExtents( Image window, PCHAT_LIST list, PCHAT_CONTEXT context )
 {
 	int message_idx;
 	PCHAT_MESSAGE msg;
 
-	_32 width;
-	S_32 x_offset_left, x_offset_right;	
-	S_32 frame_height;
-	S_32 _x_offset_left, _x_offset_right;	
+	uint32_t width;
+	int32_t x_offset_left, x_offset_right;	
+	int32_t frame_height;
+	int32_t _x_offset_left, _x_offset_right;	
 	MeasureFrameWidth( window, &x_offset_left, &x_offset_right, !context->sent, TRUE, 0 );
 	_x_offset_left = x_offset_left;
 	_x_offset_right = x_offset_right;
@@ -1196,7 +1196,7 @@ _32 UpdateContextExtents( Image window, PCHAT_LIST list, PCHAT_CONTEXT context )
 
 	if( context->sender )
 	{
-		_32 sender_line = l.context_sender_pad;
+		uint32_t sender_line = l.context_sender_pad;
 		int max_width = width;// - ((msg->sent)?l.sent.arrow_w:l.received.arrow_w);
 		int max_height = 50;
 		if( !context->formatted_sender )
@@ -1220,13 +1220,13 @@ _32 UpdateContextExtents( Image window, PCHAT_LIST list, PCHAT_CONTEXT context )
 			int max_width = width;// - ((msg->sent)?l.sent.arrow_w:l.received.arrow_w);
 			int max_height = 9999;
 			FormatTextToBlockEx( msg->text, &msg->formatted_text, &max_width, &max_height, list->sent_font );
-			if( (_32)max_width > ( context->max_width + context->extra_width ) )
+			if( (uint32_t)max_width > ( context->max_width + context->extra_width ) )
 			{
 				context->extra_width = 0;
 			}
 			msg->formatted_text_len = StrLen( msg->formatted_text );
 			msg->_formatted_height = max_height;
-			if( SUS_GT( max_width, int, context->max_width, _32 ) )
+			if( SUS_GT( max_width, int, context->max_width, uint32_t ) )
 				context->max_width = max_width;
 
 			frame_height = msg->_formatted_height;
@@ -1241,7 +1241,7 @@ _32 UpdateContextExtents( Image window, PCHAT_LIST list, PCHAT_CONTEXT context )
 					msg->_formatted_height = msg->thumb_image->height ;
 					msg->_formatted_height +=  ((message_idx<-1)?l.side_pad:0);
 					msg->_message_y = + msg->_formatted_height;
-					if( USS_GT( msg->thumb_image->width, int, context->max_width, _32 ) )
+					if( USS_GT( msg->thumb_image->width, int, context->max_width, uint32_t ) )
 						context->max_width = msg->thumb_image->width;
 					frame_height = msg->_formatted_height;
 				}
@@ -1253,8 +1253,8 @@ _32 UpdateContextExtents( Image window, PCHAT_LIST list, PCHAT_CONTEXT context )
 		if( context->sent )
 		{
 			CTEXTSTR timebuf;
-			_32 w, h;
-			_32 max_width = context->max_width;
+			uint32_t w, h;
+			uint32_t max_width = context->max_width;
 			if( msg->sent_time.yr == 0 )
 			{
 				snprintf( msg->formatted_time, 256, "Sending..." );
@@ -1268,7 +1268,7 @@ _32 UpdateContextExtents( Image window, PCHAT_LIST list, PCHAT_CONTEXT context )
 			msg->time_height = h + l.time_pad;
 			msg->_message_y += msg->time_height;
 			frame_height += msg->time_height;
-			if( (S_32)w > ( x_offset_right - x_offset_left) )
+			if( (int32_t)w > ( x_offset_right - x_offset_left) )
 				x_offset_left -= ( w ) - (x_offset_right - x_offset_left);
 			if( w > context->max_width )
 				context->extra_width = w - context->max_width;
@@ -1277,7 +1277,7 @@ _32 UpdateContextExtents( Image window, PCHAT_LIST list, PCHAT_CONTEXT context )
 		{
 			CTEXTSTR timebuf;
 			//CTEXTSTR timebuf2;
-			_32 w2, h2;
+			uint32_t w2, h2;
 			//CTEXTSTR timebuf3;
 
 			timebuf = FormatMessageTime( "sent time", &l.now, &msg->sent_time ) ;
@@ -1288,8 +1288,8 @@ _32 UpdateContextExtents( Image window, PCHAT_LIST list, PCHAT_CONTEXT context )
 			//snprintf( msg->formatted_time, 256, "Sent: %s\nRcvd: %s\nSeen: %s", timebuf, timebuf2, timebuf3 );
 			snprintf( msg->formatted_time, 256, "Sent: %s", timebuf);
 			GetStringSizeFont( msg->formatted_time, &w2, &h2, list->date_font );
-			if( w2 < (_32)context->sender_width )
-				w2 = (_32)context->sender_width;
+			if( w2 < (uint32_t)context->sender_width )
+				w2 = (uint32_t)context->sender_width;
 			msg->time_height = h2 + l.time_pad;
 			msg->_message_y += msg->time_height;
 			frame_height += msg->time_height;
@@ -1305,10 +1305,10 @@ _32 UpdateContextExtents( Image window, PCHAT_LIST list, PCHAT_CONTEXT context )
 
 void DrawAMessage( Image window, PCHAT_LIST list
 				  , PCHAT_CONTEXT context, PCHAT_MESSAGE msg
-					, S_32 x_offset_left, S_32 x_offset_right
+					, int32_t x_offset_left, int32_t x_offset_right
 				  )
 {
-	S_32 _x_offset_left, _x_offset_right;	
+	int32_t _x_offset_left, _x_offset_right;	
 	MeasureFrameWidth( window, &x_offset_left, &x_offset_right, !context->sent, TRUE, 0 );
 	_x_offset_left = x_offset_left;
 	_x_offset_right = x_offset_right;
@@ -1340,8 +1340,8 @@ void DrawAMessage( Image window, PCHAT_LIST list
 	if( context->sent )
 	{
 		CTEXTSTR timebuf;
-		_32  h;
-		_32 max_width = context->extra_width + context->max_width;
+		uint32_t  h;
+		uint32_t max_width = context->extra_width + context->max_width;
 		timebuf = msg->formatted_time;
 		h = msg->time_height;
 		PutStringFontExx( window, x_offset_left 
@@ -1370,12 +1370,12 @@ void DrawAMessage( Image window, PCHAT_LIST list
 	else
 	{
 		CTEXTSTR timebuf;
-		//_32 w;
-		_32 h;
+		//uint32_t w;
+		uint32_t h;
 		//CTEXTSTR timebuf2;
-		//_32 w2;
-		//_32 h2;
-		_32 max_width = context->max_width;
+		//uint32_t w2;
+		//uint32_t h2;
+		uint32_t max_width = context->max_width;
 		timebuf = msg->formatted_time;
 		h = msg->time_height;
 
@@ -1429,13 +1429,13 @@ static void DrawMessages( PCHAT_LIST list, Image window )
 
 	for( context_idx = -1; context = (PCHAT_CONTEXT)PeekQueueEx( list->contexts, context_idx ); context_idx-- )
 	{
-		_32 debug_start_top;
-		_32 frame_size;
+		uint32_t debug_start_top;
+		uint32_t frame_size;
 		int frame_pad;
-		_32 max_width;
+		uint32_t max_width;
 
-		S_32 x_offset_left, x_offset_right;	
-		S_32 _x_offset_left, _x_offset_right;	
+		int32_t x_offset_left, x_offset_right;	
+		int32_t _x_offset_left, _x_offset_right;	
 		if( context->deleted )
 			continue;
 		max_width = UpdateContextExtents( window, list, context );
@@ -1489,7 +1489,7 @@ static void DrawMessages( PCHAT_LIST list, Image window )
 
 		if( context->sender )
 		{
-			_32 x;
+			uint32_t x;
 			if( context->sent )
 				x = x_offset_left 
 									+ ( ( x_offset_right - x_offset_left ) 
@@ -1595,8 +1595,8 @@ static PCHAT_MESSAGE FindMessage( PCHAT_LIST list, int x, int y )
 				{
 					found = TRUE;
 					if( msg->thumb_image )
-						if( SUS_LT( x, int, msg->thumb_image_left, _32 ) 
-							|| SUS_GT( x, int, ( msg->thumb_image_left + msg->thumb_image->width ), _32 ) )
+						if( SUS_LT( x, int, msg->thumb_image_left, uint32_t ) 
+							|| SUS_GT( x, int, ( msg->thumb_image_left + msg->thumb_image->width ), uint32_t ) )
 							msg = NULL; // didn't click ON the image, so clear return.
 					break;
 				}
@@ -1636,8 +1636,8 @@ static void OnDisplayConnect( WIDE("@chat resources") )( struct display_app*app,
 int GetInputCursorIndex( PCHAT_LIST list, int x, int y )
 {
 	int nLine, nCursorLine;
-	_32 cursor_pos = 0;
-	_32 counter;
+	uint32_t cursor_pos = 0;
+	uint32_t counter;
 	DISPLAYED_LINE *pCurrentLine;
 	PDATALIST *ppCurrentLineInfo;
 	PTEXT first_seg = list->input.CommandInfo->CollectionBuffer;
@@ -1701,8 +1701,8 @@ int GetInputCursorIndex( PCHAT_LIST list, int x, int y )
 void GetInputCursorPos( PCHAT_LIST list, int *x, int *y )
 {
 	int nLine, nCursorLine;
-	_32 cursor_pos = list->input.CommandInfo->CollectionIndex;
-	_32 counter;
+	uint32_t cursor_pos = list->input.CommandInfo->CollectionIndex;
+	uint32_t counter;
 	DISPLAYED_LINE *pCurrentLine;
 	PDATALIST *ppCurrentLineInfo;
 	PTEXT cursor_segs;
@@ -1766,7 +1766,7 @@ void GetInputCursorPos( PCHAT_LIST list, int *x, int *y )
 					break;
 				}
 			}
-			if( SUS_GT( ofs, int, cursor_pos, _32 ) )
+			if( SUS_GT( ofs, int, cursor_pos, uint32_t ) )
 				break;
 			cursor_pos -= ofs;
 		}
@@ -1881,8 +1881,8 @@ static void DrawTextEntry( PSI_CONTROL pc, PCHAT_LIST list, LOGICAL update )
 
 		{
 			int nLine, nCursorLine, nDisplayLine;
-			_32 cursor_pos = list->input.CommandInfo->CollectionIndex;
-			_32 counter;
+			uint32_t cursor_pos = list->input.CommandInfo->CollectionIndex;
+			uint32_t counter;
 			DISPLAYED_LINE *pCurrentLine;
 			PDATALIST *ppCurrentLineInfo;
 			PTEXT cursor_segs;
@@ -1932,14 +1932,14 @@ static void DrawTextEntry( PSI_CONTROL pc, PCHAT_LIST list, LOGICAL update )
 				if( IsControlFocused( list->pc ) &&
 					( ( !nLine && !pCurrentLine ) || ( nLine == nCursorLine ) ) )
 				{
-					_32 w;
-					_32 total_w = 0;
+					uint32_t w;
+					uint32_t total_w = 0;
 					if( pCurrentLine )
 					{
 						PTEXT tmp;
-						_32 amount = cursor_pos;
-						_32 seg_amount;
-						_32 seg_start = pCurrentLine->nFirstSegOfs;
+						uint32_t amount = cursor_pos;
+						uint32_t seg_amount;
+						uint32_t seg_start = pCurrentLine->nFirstSegOfs;
 						for( tmp = pCurrentLine->start; cursor_pos && tmp; tmp = NEXTLINE( tmp ) )
 						{
 							seg_amount = GetTextSize( tmp ) - seg_start;
@@ -2056,7 +2056,7 @@ static int OnDrawCommon( CONTROL_NAME )( PSI_CONTROL pc )
 	}
 
 	{
-		_32 mid = list->message_window->width / 2;
+		uint32_t mid = list->message_window->width / 2;
 		if( list->display.message_top < 0 )
 		{
 			int arrow;
@@ -2106,7 +2106,7 @@ static int OnDrawCommon( CONTROL_NAME )( PSI_CONTROL pc )
 	return 1;
 }
 
-_32 GetChatInputCursor( PCHAT_LIST list, int x, int y )
+uint32_t GetChatInputCursor( PCHAT_LIST list, int x, int y )
 {
 	PDATALIST *ppCurrentLineInfo = GetDisplayInfo( list->input.phb_Input );
 	int nLine = list->input.command_skip_lines + ( list->input.command_lines - ( 1 + y / list->nFontHeight ) ); 
@@ -2115,20 +2115,20 @@ _32 GetChatInputCursor( PCHAT_LIST list, int x, int y )
 		if( pCurrentLine )
 		{
 			PTEXT tmp;
-			//_32 amount = cursor_pos;
-			_32 line_index = 0;
-			_32 line_length = pCurrentLine->nToShow;
-			_32 seg_start = pCurrentLine->nFirstSegOfs;
+			//uint32_t amount = cursor_pos;
+			uint32_t line_index = 0;
+			uint32_t line_length = pCurrentLine->nToShow;
+			uint32_t seg_start = pCurrentLine->nFirstSegOfs;
 			for( tmp = pCurrentLine->start; tmp; tmp = NEXTLINE( tmp ) )
 			{
 				CTEXTSTR text = GetText( tmp );
-				_32 len = GetTextSize( tmp );
-				_32 ch;
-				_32 ch_width, ch_height;
+				uint32_t len = GetTextSize( tmp );
+				uint32_t ch;
+				uint32_t ch_width, ch_height;
 				for( ch = seg_start; ch < len && line_index < line_length; ch++, line_index++ )
 				{
 					GetStringRenderSizeFontEx( GetText( tmp ) + ch, 1, &ch_width, &ch_height, NULL, list->sent_font );
-					if( SUS_LT( x, int, ch_width / 2, _32 ) )
+					if( SUS_LT( x, int, ch_width / 2, uint32_t ) )
 						return pCurrentLine->nLineStart + line_index;
 					x -= ch_width;
 				}
@@ -2140,7 +2140,7 @@ _32 GetChatInputCursor( PCHAT_LIST list, int x, int y )
 	return INVALID_INDEX;
 }
 
-static int OnMouseCommon( CONTROL_NAME )( PSI_CONTROL pc, S_32 x, S_32 y, _32 b )
+static int OnMouseCommon( CONTROL_NAME )( PSI_CONTROL pc, int32_t x, int32_t y, uint32_t b )
 {
 	PCHAT_LIST *ppList = ControlData( PCHAT_LIST*, pc );
 	PCHAT_LIST list = (*ppList);
@@ -2267,7 +2267,7 @@ static int OnMouseCommon( CONTROL_NAME )( PSI_CONTROL pc, S_32 x, S_32 y, _32 b 
 		{
 			if( list->flags.long_vertical_drag )
 			{
-				_32 original_offset = list->control_offset;
+				uint32_t original_offset = list->control_offset;
 				list->control_offset += ( y - list->first_y );
 				//lprintf( WIDE("adjust position by %d"), ( y - list->first_y ) );
 				if( list->control_offset < 0 )
@@ -2283,7 +2283,7 @@ static int OnMouseCommon( CONTROL_NAME )( PSI_CONTROL pc, S_32 x, S_32 y, _32 b 
 					PCHAT_MESSAGE msg = NULL; // might have 0 contexts
 					for( context_idx = -1; context = (PCHAT_CONTEXT)PeekQueueEx( list->contexts, context_idx ); context_idx-- )
 					{
-						_32 frame_pad;
+						uint32_t frame_pad;
 
 						// between contexts...
 						if( context_idx < -1 )
@@ -2366,7 +2366,7 @@ static int OnMouseCommon( CONTROL_NAME )( PSI_CONTROL pc, S_32 x, S_32 y, _32 b 
 	return 1;
 }
 
-static void CPROC PSIMeasureString( PTRSZVAL psv, CTEXTSTR s, int nShow, _32 *w, _32 *h, SFTFont font )
+static void CPROC PSIMeasureString( uintptr_t psv, CTEXTSTR s, int nShow, uint32_t *w, uint32_t *h, SFTFont font )
 {
 	PSI_CONTROL pc = (PSI_CONTROL)psv;
 	PCHAT_LIST *ppList = ControlData( PCHAT_LIST*, pc );
@@ -2377,7 +2377,7 @@ static void CPROC PSIMeasureString( PTRSZVAL psv, CTEXTSTR s, int nShow, _32 *w,
 }
 
 
-static LOGICAL CPROC DropAccept( PSI_CONTROL pc, CTEXTSTR path, S_32 x, S_32 y )
+static LOGICAL CPROC DropAccept( PSI_CONTROL pc, CTEXTSTR path, int32_t x, int32_t y )
 {
 	PCHAT_LIST *ppList = ControlData( PCHAT_LIST*, pc );
 	PCHAT_LIST list = (*ppList);
@@ -2390,7 +2390,7 @@ static int OnCommonFocus(CONTROL_NAME)(PSI_CONTROL control, LOGICAL bFocused )
 	return 1;
 }
 
-static void CPROC SendTypedMessage( PTRSZVAL psvUnused, PSI_CONTROL pc )
+static void CPROC SendTypedMessage( uintptr_t psvUnused, PSI_CONTROL pc )
 {
 	PCHAT_LIST list = (PCHAT_LIST)psvUnused;
 	KeyGetGatheredLine( list, list->input.CommandInfo );
@@ -2417,7 +2417,7 @@ static int EvalExcept( int n )
 }
 #endif
 
-static void CPROC cursorTick( PTRSZVAL psv )
+static void CPROC cursorTick( uintptr_t psv )
 {
 	PCHAT_LIST list = (PCHAT_LIST)psv;
 	list->flags.bCursorOn = !list->flags.bCursorOn;
@@ -2450,7 +2450,7 @@ static int OnCreateCommon( CONTROL_NAME )( PSI_CONTROL pc )
 	list->pc = pc;
 	list->popup_text_entry = CreatePopup();
 	AppendPopupItem( list->popup_text_entry, MF_STRING, 1, "Paste" );
-	list->cursor_timer = AddTimer( 500, cursorTick, (PTRSZVAL)list );
+	list->cursor_timer = AddTimer( 500, cursorTick, (uintptr_t)list );
 	{
 		int w, h;
 		TEXTCHAR buf[64];
@@ -2475,13 +2475,13 @@ static int OnCreateCommon( CONTROL_NAME )( PSI_CONTROL pc )
 	//list->colors.background_color = BASE_COLOR_WHITE;
 	list->message_window = MakeSubImage( GetControlSurface( pc ), 0, 0, 1, 1 );
 	list->send_button = MakeNamedCaptionedControl( pc, IMAGE_BUTTON_NAME, list->message_window->width - 35, list->message_window->height - 25, 35, 25, -1, TranslateText( "Send" ) );
-	SetButtonPushMethod( list->send_button, SendTypedMessage, (PTRSZVAL)list );
+	SetButtonPushMethod( list->send_button, SendTypedMessage, (uintptr_t)list );
 	SetCommonBorder( list->send_button, BORDER_NONE | BORDER_FIXED | BORDER_NOCAPTION );
 	SetButtonImages( list->send_button, l.button_normal, l.button_pressed );
 
 	list->input.pHistory = PSI_CreateHistoryRegion();
 	//list->phlc_Input = PSI_CreateHistoryCursor( list->pHistory );
-	list->input.phb_Input = PSI_CreateHistoryBrowser( list->input.pHistory, PSIMeasureString, (PTRSZVAL)pc );
+	list->input.phb_Input = PSI_CreateHistoryBrowser( list->input.pHistory, PSIMeasureString, (uintptr_t)pc );
 	list->input.CommandInfo = CreateUserInputBuffer();
 	SetBrowserLines( list->input.phb_Input, 3 );
 	list->colors.crText = BASE_COLOR_BLACK;
@@ -2490,14 +2490,14 @@ static int OnCreateCommon( CONTROL_NAME )( PSI_CONTROL pc )
 	return 1;
 }
 
-static PTRSZVAL OnCreateControl( INTERSHELL_CONTROL_NAME )( PSI_CONTROL parent, S_32 x, S_32 y, _32 w, _32 h )
+static uintptr_t OnCreateControl( INTERSHELL_CONTROL_NAME )( PSI_CONTROL parent, int32_t x, int32_t y, uint32_t w, uint32_t h )
 {
 	PSI_CONTROL pc = MakeNamedControl( parent, CONTROL_NAME, x, y, w,h, -1 );
 
-	return (PTRSZVAL)pc;
+	return (uintptr_t)pc;
 }
 
-static PSI_CONTROL OnGetControl( INTERSHELL_CONTROL_NAME )( PTRSZVAL psv )
+static PSI_CONTROL OnGetControl( INTERSHELL_CONTROL_NAME )( uintptr_t psv )
 {
 	return (PSI_CONTROL)psv;
 }
@@ -2529,7 +2529,7 @@ static void OnSizeCommon( CONTROL_NAME )( PSI_CONTROL pc, LOGICAL begin_sizing )
 
 
 
-static int OnKeyCommon( CONTROL_NAME )( PSI_CONTROL pc, _32 key )
+static int OnKeyCommon( CONTROL_NAME )( PSI_CONTROL pc, uint32_t key )
 {
 	PCHAT_LIST *ppList = ControlData( PCHAT_LIST*, pc );
 	PCHAT_LIST list = (*ppList);
@@ -2648,7 +2648,7 @@ static int OnKeyCommon( CONTROL_NAME )( PSI_CONTROL pc, _32 key )
 				if( key & KEY_PRESSED )
 				{
 					Widget_WinLogicDoStroke( list, (PTEXT)&stroke );
-					//Widget_KeyPressHandler( list, (_8)(KEY_CODE(key)&0xFF), (_8)KEY_MOD(key), (PTEXT)&stroke );
+					//Widget_KeyPressHandler( list, (uint8_t)(KEY_CODE(key)&0xFF), (uint8_t)KEY_MOD(key), (PTEXT)&stroke );
 					SmudgeCommon( pc );
 				}
 			}
@@ -2665,11 +2665,11 @@ void Chat_GetCurrentTime( PCHAT_TIME timebuf )
 	SYSTEMTIME st;
 	GetLocalTime( &st );
 	timebuf->yr = st.wYear;
-	timebuf->mo = (_8)st.wMonth;
-	timebuf->dy = (_8)st.wDay;
-	timebuf->hr = (_8)st.wHour;
-	timebuf->mn = (_8)st.wMinute;
-	timebuf->sc = (_8)st.wSecond;
+	timebuf->mo = (uint8_t)st.wMonth;
+	timebuf->dy = (uint8_t)st.wDay;
+	timebuf->hr = (uint8_t)st.wHour;
+	timebuf->mn = (uint8_t)st.wMinute;
+	timebuf->sc = (uint8_t)st.wSecond;
 	timebuf->ms = st.wMilliseconds;
 
 	{
@@ -2715,7 +2715,7 @@ void Chat_GetCurrentTime( PCHAT_TIME timebuf )
 			//								 &GmtTime );
 			// Local time expressed in terms of GMT bias.
 			{
-			timebuf->zhr = (S_8)( -( (int)dwValue/60 ) ) ;
+			timebuf->zhr = (int8_t)( -( (int)dwValue/60 ) ) ;
 			timebuf->zmn = ( dwValue % 60 );
 			}
 		}
@@ -2755,7 +2755,7 @@ void Chat_ClearOldMessages( PSI_CONTROL pc, int delete_time )
 		PCHAT_CONTEXT context;
 		PCHAT_MESSAGE msg;
 		CHAT_TIME now;
-		S_64 old_limit;
+		int64_t old_limit;
 		int c;
 		//list->control_offset = 0;
 		list->display.message_top = list->message_window->height + list->control_offset;
@@ -2772,7 +2772,7 @@ void Chat_ClearOldMessages( PSI_CONTROL pc, int delete_time )
 			//lprintf( WIDE("BEgin draw messages...") );
 			for( n = 0; msg = (PCHAT_MESSAGE)PeekQueueEx( context->messages, n ); n++ )
 			{
-				S_64 msg_time ;
+				int64_t msg_time ;
 				if( context->sent )
 				{ 
 					// if hasn't been sent yet...
@@ -2873,7 +2873,7 @@ void Chat_SetSendButtonSlicedImages( PSI_CONTROL pc, SlicedImage normal, SlicedI
 	SetButtonSlicedRolloverImages( list->send_button, rollover, pressed );
 }
 
-void Chat_SetSendButtonTextOffset( PSI_CONTROL pc, S_32 x, S_32 y )
+void Chat_SetSendButtonTextOffset( PSI_CONTROL pc, int32_t x, int32_t y )
 {
 	PCHAT_LIST *ppList = ControlData( PCHAT_LIST*, pc );
 	PCHAT_LIST list = (*ppList);
@@ -2881,7 +2881,7 @@ void Chat_SetSendButtonTextOffset( PSI_CONTROL pc, S_32 x, S_32 y )
 }
 
 
-void Chat_SetSendButtonSize( PSI_CONTROL pc, _32 width, _32 height )
+void Chat_SetSendButtonSize( PSI_CONTROL pc, uint32_t width, uint32_t height )
 {
 	PCHAT_LIST *ppList = ControlData( PCHAT_LIST*, pc );
 	PCHAT_LIST list = (*ppList);
@@ -2889,7 +2889,7 @@ void Chat_SetSendButtonSize( PSI_CONTROL pc, _32 width, _32 height )
 	list->send_button_height = height;
 }
 
-void Chat_SetSendButtonOffset( PSI_CONTROL pc, S_32 x, S_32 y )
+void Chat_SetSendButtonOffset( PSI_CONTROL pc, int32_t x, int32_t y )
 {
 	PCHAT_LIST *ppList = ControlData( PCHAT_LIST*, pc );
 	PCHAT_LIST list = (*ppList);
@@ -2897,7 +2897,7 @@ void Chat_SetSendButtonOffset( PSI_CONTROL pc, S_32 x, S_32 y )
 	list->send_button_y_offset = y;
 }
 
-void Chat_SetImageViewerPopupCallback( PSI_CONTROL pc, void (CPROC*PopupEvent)( PTRSZVAL,LOGICAL ), PTRSZVAL psvEvent )
+void Chat_SetImageViewerPopupCallback( PSI_CONTROL pc, void (CPROC*PopupEvent)( uintptr_t,LOGICAL ), uintptr_t psvEvent )
 {
 	PCHAT_LIST *ppList = ControlData( PCHAT_LIST*, pc );
 	PCHAT_LIST list = (*ppList);
@@ -2905,7 +2905,7 @@ void Chat_SetImageViewerPopupCallback( PSI_CONTROL pc, void (CPROC*PopupEvent)( 
 	list->psvPopup = psvEvent;
 }
 
-void Chat_SetImageViewerAutoCloseHandler( PSI_CONTROL pc, void (CPROC*Event)( PTRSZVAL ), PTRSZVAL psvEvent )
+void Chat_SetImageViewerAutoCloseHandler( PSI_CONTROL pc, void (CPROC*Event)( uintptr_t ), uintptr_t psvEvent )
 {
 	PCHAT_LIST *ppList = ControlData( PCHAT_LIST*, pc );
 	PCHAT_LIST list = (*ppList);

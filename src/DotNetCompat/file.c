@@ -93,12 +93,12 @@ int Fprintf( MYFILE *file, CTEXTSTR fmt, ... )
 }
 #endif
 
-int Fseek( MYFILE *file, S_64 pos, int whence )
+int Fseek( MYFILE *file, int64_t pos, int whence )
 {
 	return 0;
 }
 
-_64 Ftell( MYFILE *file )
+uint64_t Ftell( MYFILE *file )
 {
 	return 0;
 }

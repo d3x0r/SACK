@@ -11,17 +11,17 @@ static int OnCreateCommon( "ImageBoard" )( PSI_CONTROL pc )
    return 1;
 }
 
-static PTRSZVAL OnCreateControl( "ImageBoard" )( PSI_CONTROL parent, S_32 x, S_32 y, _32 w, _32 h )
+static uintptr_t OnCreateControl( "ImageBoard" )( PSI_CONTROL parent, int32_t x, int32_t y, uint32_t w, uint32_t h )
 {
    return MakeNamedControl( parent, "ImageBoard", x, y, w, h, -1 );
 }
 
-static PSI_CONTROL OnQueryGetControl( "ImageBoard" )( PTRSZVAL psv )
+static PSI_CONTROL OnQueryGetControl( "ImageBoard" )( uintptr_t psv )
 {
    return (PSI_CONTROL)psv;
 }
 
-static void OnLoadControl(WIDE("ImageBoard"))( PCONFIG_HANDLER psv, PTRSZVAL psv )
+static void OnLoadControl(WIDE("ImageBoard"))( PCONFIG_HANDLER psv, uintptr_t psv )
 {
 	PSI_CONTROL pc = (PSI_CONTROL)psv;
 	ValidatedControlData( struct image_board *, ImageBoardControl.TypeID, board, pc );
@@ -29,7 +29,7 @@ static void OnLoadControl(WIDE("ImageBoard"))( PCONFIG_HANDLER psv, PTRSZVAL psv
    AddConfigurationMethod(
 }
 
-static void OnSaveControl( WIDE("ImageBoard" ))( FILE *file, PTRSZVAL psv )
+static void OnSaveControl( WIDE("ImageBoard" ))( FILE *file, uintptr_t psv )
 {
 
 }

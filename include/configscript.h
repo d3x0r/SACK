@@ -98,7 +98,7 @@ CONFIGSCR_PROC( LOGICAL, BeginNamedConfiguration )( PCONFIG_HANDLER pch, CTEXTST
 // use this to restore the prior configuration state.
 CONFIGSCR_PROC( void, EndConfiguration )( PCONFIG_HANDLER pch );
 
-typedef PTRSZVAL (CPROC*USER_CONFIG_HANDLER)( PTRSZVAL, arg_list args );
+typedef uintptr_t (CPROC*USER_CONFIG_HANDLER)( uintptr_t, arg_list args );
 CONFIGSCR_PROC( void, AddConfigurationEx )( PCONFIG_HANDLER pch
 														, CTEXTSTR format
 														, USER_CONFIG_HANDLER Process DBG_PASS );
@@ -110,7 +110,7 @@ CONFIGSCR_PROC( void, AddConfigurationEx )( PCONFIG_HANDLER pch
 #define AddConfiguration(pch,f,pr) AddConfigurationEx(pch,f,pr DBG_SRC )
 #define AddConfigurationMethod AddConfiguration
 
-// FILTER receives a ptrszval that was given at configuration (addition to handler)
+// FILTER receives a uintptr_t that was given at configuration (addition to handler)
 // it receives a PTEXT block of (binary) data... and must result with
 // PTEXT segments which are lines which may or may not have \r\n\\ all
 // of which are removed before being resulted to the application.
@@ -120,15 +120,15 @@ CONFIGSCR_PROC( void, AddConfigurationEx )( PCONFIG_HANDLER pch
 typedef PTEXT (CPROC*USER_FILTER)( POINTER *, PTEXT );
 CONFIGSCR_PROC( void, AddConfigurationFilter )( PCONFIG_HANDLER pch, USER_FILTER filter );
 CONFIGSCR_PROC( void, ClearDefaultFilters )( PCONFIG_HANDLER pch );
-CONFIGSCR_PROC( void, SetConfigurationEndProc )( PCONFIG_HANDLER pch, PTRSZVAL (CPROC *Process)( PTRSZVAL ) );
+CONFIGSCR_PROC( void, SetConfigurationEndProc )( PCONFIG_HANDLER pch, uintptr_t (CPROC *Process)( uintptr_t ) );
 CONFIGSCR_PROC( void, SetConfigurationUnhandled )( PCONFIG_HANDLER pch
-																, PTRSZVAL (CPROC *Process)( PTRSZVAL, CTEXTSTR ) );
+																, uintptr_t (CPROC *Process)( uintptr_t, CTEXTSTR ) );
 
 CONFIGSCR_PROC( int, ProcessConfigurationFile )( PCONFIG_HANDLER pch
 															  , CTEXTSTR name
-															  , PTRSZVAL psv
+															  , uintptr_t psv
 															  );
-CONFIGSCR_PROC( PTRSZVAL, ProcessConfigurationInput )( PCONFIG_HANDLER pch, CTEXTSTR block, int size, PTRSZVAL psv );
+CONFIGSCR_PROC( uintptr_t, ProcessConfigurationInput )( PCONFIG_HANDLER pch, CTEXTSTR block, int size, uintptr_t psv );
 
 /*
  * TO BE IMPLEMENTED
@@ -153,7 +153,7 @@ CONFIGSCR_PROC( void, ExpandConfigString )( TEXTSTR out, CTEXTSTR in );
 
 #ifdef __cplusplus
 
-//typedef PTRSZVAL CPROC ::(*USER_CONFIG_METHOD)( ... );
+//typedef uintptr_t CPROC ::(*USER_CONFIG_METHOD)( ... );
 
 typedef class config_reader {
    PCONFIG_HANDLER pch;
@@ -174,7 +174,7 @@ public:
 	{
 		union {
 			struct {
-				_32 junk;
+				uint32_t junk;
             USER_CONFIG_HANDLER Process
 			} c;
          USER_CONFIG_METHOD Process;
@@ -185,7 +185,7 @@ public:
       */
 	inline int go( CTEXTSTR file, POINTER p )
 	{
-		return ProcessConfigurationFile( pch, file, (PTRSZVAL)p );
+		return ProcessConfigurationFile( pch, file, (uintptr_t)p );
 	}
 } CONFIG_READER;
 

@@ -287,7 +287,7 @@ void PlasmaFill2( struct plasma_patch *plasma, RCOORD *map, struct grid *here )
 }
 
 
-static void FeedRandom( PTRSZVAL psvPlasma, POINTER *salt, size_t *salt_size )
+static void FeedRandom( uintptr_t psvPlasma, POINTER *salt, size_t *salt_size )
 {
 	struct plasma_patch *plasma = (struct plasma_patch *)psvPlasma;
 	if( plasma->seed_corner < 0 )
@@ -427,7 +427,7 @@ struct plasma_patch *PlasmaCreatePatch( struct plasma_state *map, RCOORD seed[4]
 		*/
 	}
 
-	plasma->entropy = SRG_CreateEntropy2( FeedRandom, (PTRSZVAL)plasma );
+	plasma->entropy = SRG_CreateEntropy2( FeedRandom, (uintptr_t)plasma );
 
 
 	//if( initial_render )

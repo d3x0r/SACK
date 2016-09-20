@@ -231,7 +231,7 @@ static LOGICAL UpdateWindows( void )
    return updated;
 }
 
-static PTRSZVAL CPROC MonitorWindows( PTHREAD thread )
+static uintptr_t CPROC MonitorWindows( PTHREAD thread )
 {
 	while( 1 )
 	{
@@ -247,7 +247,7 @@ static PTRSZVAL CPROC MonitorWindows( PTHREAD thread )
 	return 0;
 }
 
-static PTRSZVAL CPROC AddWindow( PTRSZVAL psv, arg_list args )
+static uintptr_t CPROC AddWindow( uintptr_t psv, arg_list args )
 {
 	PARAM( args, CTEXTSTR, name );
 	PWINDOW_TRACKER wint = New( WINDOW_TRACKER );

@@ -139,7 +139,7 @@ void CPROC KeystrokePaste( PCONSOLE_INFO pdp )
 {
 	 if( OpenClipboard(NULL) )
 	 {
-		  _32 format;
+		  uint32_t format;
 		  // successful open...
 		  format = EnumClipboardFormats( 0 );
 		  while( format )
@@ -278,7 +278,7 @@ int CALLBACK NameDialog( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam )
 int CALLBACK ChildWindowProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam )
 {
 	 PCONSOLE_INFO pdp;
-	 static _32 mouse_buttons;
+	 static uint32_t mouse_buttons;
 	 switch( uMsg )
 	{
 	case WM_SETFOCUS:
@@ -717,7 +717,7 @@ do_mark_copy:
 #ifdef __DEKWARE_PLUGIN__
 				SetWindowText( hWnd, GetText( GetName( pdp->common.Owner->Current ) ) );
 #endif
-				_SetWindowLong( hWnd, WD_CONSOLE_INFO, (PTRSZVAL)pdp );
+				_SetWindowLong( hWnd, WD_CONSOLE_INFO, (uintptr_t)pdp );
 				{
 					pdp->wincon.hbrBackground = CreateSolidBrush( pdp->wincon.crBackground );
 					pdp->wincon.hbrCommandBackground = CreateSolidBrush( pdp->wincon.crCommandBackground );
@@ -891,8 +891,8 @@ int CALLBACK FrameWindowProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam
 //----------------------------------------------------------------------------
 HANDLE hMessageThread;
 DWORD dwMessageThread;
-_32 exiting;
-PTRSZVAL CPROC FrameWindowThread( PTHREAD thread )
+uint32_t exiting;
+uintptr_t CPROC FrameWindowThread( PTHREAD thread )
 {
 	MSG msg;
 	// create message queue - make sure we're able to handle incoming messages...
@@ -1006,7 +1006,7 @@ int RegisterWindows( void )
 		wc.hCursor = LoadCursor( NULL, IDC_ARROW );
 		wc.lpszClassName = WIDE("DekwareFrameClass");
 		wc.lpszMenuName = WIDE("FRAME_MENU");
-		wc.cbWndExtra = sizeof( PTRSZVAL );  // one extra POINTER
+		wc.cbWndExtra = sizeof( uintptr_t );  // one extra POINTER
 
 		aClassFrame = RegisterClass( &wc );
 		if( !aClassFrame )
@@ -1029,7 +1029,7 @@ int RegisterWindows( void )
 			//wc.hbrBackground = (HBRUSH)(COLOR_BTNFACE+1);
 		}
 		wc.lpszClassName = WIDE("DekwareChildClass");
-		wc.cbWndExtra = sizeof( PTRSZVAL );  // one extra POINTER
+		wc.cbWndExtra = sizeof( uintptr_t );  // one extra POINTER
 
 		aClassChild = RegisterClass( &wc );
 		if( !aClassChild )
@@ -1320,25 +1320,25 @@ static PTEXT DeviceVolatileVariableGet( WIDE("wincon"), WIDE("rows"), WIDE("cons
 {
 	PSENTIENT ps = pe->pControlledBy;
 	PDATAPATH pdp = FindOpenDevice( ps, (PTEXT)&WinConName );
-	return GetRows( (PTRSZVAL)pdp, pe, ppLastValue );
+	return GetRows( (uintptr_t)pdp, pe, ppLastValue );
 }
 static PTEXT DeviceVolatileVariableGet( WIDE("wincon"), WIDE("cols"), WIDE("console col count") )(PENTITY pe,PTEXT *ppLastValue)
 {
 	PSENTIENT ps = pe->pControlledBy;
 	PDATAPATH pdp = FindOpenDevice( ps, (PTEXT)&WinConName );
-	return GetCols( (PTRSZVAL)pdp, pe, ppLastValue );
+	return GetCols( (uintptr_t)pdp, pe, ppLastValue );
 }
 static PTEXT DeviceVolatileVariableGet( WIDE("wincon"), WIDE("cursor_x"), WIDE("console cursor x(col) position") )(PENTITY pe,PTEXT *ppLastValue)
 {
 	PSENTIENT ps = pe->pControlledBy;
 	PDATAPATH pdp = FindOpenDevice( ps, (PTEXT)&WinConName );
-	return GetCursorX( (PTRSZVAL)pdp, pe, ppLastValue );
+	return GetCursorX( (uintptr_t)pdp, pe, ppLastValue );
 }
 static PTEXT DeviceVolatileVariableGet( WIDE("wincon"), WIDE("cursor_y"), WIDE("console cursor y(row) position") )(PENTITY pe,PTEXT*ppLastValue)
 {
 	PSENTIENT ps = pe->pControlledBy;
 	PDATAPATH pdp = FindOpenDevice( ps, (PTEXT)&WinConName );
-	return GetCursorY( (PTRSZVAL)pdp, pe, ppLastValue );
+	return GetCursorY( (uintptr_t)pdp, pe, ppLastValue );
 }
 
 //----------------------------------------------------------------------------
@@ -1368,10 +1368,10 @@ static PDATAPATH OnInitDevice( WIDE("wincon"), WIDE("Windows MDI interactive int
 	//Log( WIDE("Initialized section...") );
 
 #if 0
-	AddVolatileVariable( ps->Current, &vve_rows, (PTRSZVAL)pdp );
-	AddVolatileVariable( ps->Current, &vve_cols, (PTRSZVAL)pdp );
-	AddVolatileVariable( ps->Current, &vve_cursorx, (PTRSZVAL)pdp );
-	AddVolatileVariable( ps->Current, &vve_cursory, (PTRSZVAL)pdp );
+	AddVolatileVariable( ps->Current, &vve_rows, (uintptr_t)pdp );
+	AddVolatileVariable( ps->Current, &vve_cols, (uintptr_t)pdp );
+	AddVolatileVariable( ps->Current, &vve_cursorx, (uintptr_t)pdp );
+	AddVolatileVariable( ps->Current, &vve_cursory, (uintptr_t)pdp );
 #endif
 	 //ps->flags.no_prompt = TRUE;
 	pdp->common.CommandInfo = CreateCommandHistoryEx( WinconPrompt );

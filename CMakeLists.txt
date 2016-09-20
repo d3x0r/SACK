@@ -34,6 +34,8 @@ set( SACK_BASE ${PROJECT_SOURCE_DIR} )
 set( CMAKE_MODULE_PATH ${SACK_SOURCE_DIR}/makefiles/cmake )
 
 set( MATRIXSSL_VERSION 3.8.4 )
+set( LIBRESSL_VERSION 2.4.2 )
+
 
 include( DefaultInstall )
 
@@ -458,6 +460,14 @@ set(  CMAKE_C_FLAGS_RELWITHDEBINFO "${CMAKE_C_FLAGS_RELWITHDEBINFO} -D_DEBUG_INF
 SET( SOURCES_ROOT ${CMAKE_CURRENT_SOURCE_DIR}/ )
 include( CMakeSources.lst )
 
+if( NOT __CLR__ )
+	#add_subdirectory( src/contrib/MatrixSSL/${MATRIXSSL_VERSION} )
+        #include_directories( src/contrib/MatrixSSL/${MATRIXSSL_VERSION} )
+	add_subdirectory( src/contrib/libressl/${LIBRESSL_VERSION} )
+        include_directories( src/contrib/libressl/${LIBRESSL_VERSION}/include )
+        set( SSL_LIBS ssl tls crypto )
+endif( NOT __CLR__ )
+
 add_subdirectory( src/contrib/gsm-1.0-pl13 )
 #add_subdirectory( src/contrib/libvlc/2.2.4 )
 
@@ -738,7 +748,8 @@ SET_TARGET_PROPERTIES(sack_bag PROPERTIES
 )
 target_link_libraries( sack_bag gsm-1.0-pl13 )
 if( NOT __CLR__ )
-	target_link_libraries( sack_bag MatrixSSL )
+	#target_link_libraries( sack_bag MatrixSSL )
+	target_link_libraries( sack_bag ${SSL_LIBS} )
 endif( NOT __CLR__ )
         
 
@@ -763,7 +774,8 @@ SET_TARGET_PROPERTIES(${SACK_BAG_PLUSPLUS} PROPERTIES
 )
 target_link_libraries( ${SACK_BAG_PLUSPLUS} gsm-1.0-pl13 )
 if( NOT __CLR__ )
-	target_link_libraries( ${SACK_BAG_PLUSPLUS} MatrixSSL )
+	#target_link_libraries( ${SACK_BAG_PLUSPLUS} MatrixSSL )
+	target_link_libraries( ${SACK_BAG_PLUSPLUS} ${SSL_LIBS} )
 endif( NOT __CLR__ )
 
 if( SACK_BUILD_STATIC_LIBS )
@@ -966,7 +978,8 @@ add_library( bag SHARED
 )
 target_link_libraries( bag gsm-1.0-pl13 )
 if( NOT __CLR__ )
-	target_link_libraries( bag MatrixSSL mssl_core )
+	#target_link_libraries( bag MatrixSSL mssl_core )
+	target_link_libraries( bag ${SSL_LIBS} )
 endif( NOT __CLR__ )
 
 if( __CLR__ )
@@ -1020,7 +1033,8 @@ COPY_CPLUSPLUS( psi_cplusplus_sources ${PSI_SOURCES} )
 add_library( ${BAG_PLUSPLUS} SHARED ${cplusplus_sources} )
 target_link_libraries( ${BAG_PLUSPLUS} gsm-1.0-pl13 )
 if( NOT __CLR__ )
-	target_link_libraries( ${BAG_PLUSPLUS} MatrixSSL )
+	#target_link_libraries( ${BAG_PLUSPLUS} MatrixSSL )
+	target_link_libraries( ${BAG_PLUSPLUS} ${SSL_LIBS} )
 endif( NOT __CLR__ )
 
 SET_TARGET_PROPERTIES(${BAG_PLUSPLUS} PROPERTIES
@@ -1432,10 +1446,6 @@ add_subdirectory( include )
 add_subdirectory( src/utils/runner )
 add_subdirectory( src/utils/virtual_file_system )
 
-if( NOT __CLR__ )
-	add_subdirectory( src/contrib/MatrixSSL/${MATRIXSSL_VERSION} )
-        include_directories( src/contrib/MatrixSSL/${MATRIXSSL_VERSION} )
-endif( NOT __CLR__ )
 
 if( BUILD_TESTS )
    add_subdirectory( src/streamlib/ffmpeg/audio_test )
@@ -1465,6 +1475,8 @@ if( NOT __NO_NETWORK__ )
    add_subdirectory( src/netlib/html5.websocket/server )
    #add_subdirectory( src/netlib/html5.websocket/client )
    add_subdirectory( src/netlib/html5.websocket/json/tests )
+   add_subdirectory( src/netlib/network_relay_server )
+   add_subdirectory( src/netlib/user )
    add_subdirectory( src/netlib/echo )
 endif( NOT __NO_NETWORK__ )
 
@@ -1538,11 +1550,11 @@ add_subdirectory( src/deadstart )
  endif( USE_OPTIONS AND NOT ( __NO_ODBC__ AND NOT USE_SQLITE ) )
 
 if( __LINUX__ OR ( MSVC10 AND __64__ ) )
-add_subdirectory( src/utils/apache_shell )
+	add_subdirectory( src/utils/apache_shell )
 endif( __LINUX__ OR ( MSVC10 AND __64__ ) )
 
 if( __INCLUDE_INTERSHELL__ )
-add_subdirectory( src/InterShell )
+	add_subdirectory( src/InterShell )
 endif( __INCLUDE_INTERSHELL__ )
 
 install( FILES ${SOURCES_ROOT}src/contrib/snprintf_2.2/snprintf.h DESTINATION include/SACK/snprintf-2.2 )

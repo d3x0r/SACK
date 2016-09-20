@@ -3,7 +3,7 @@
 
 int level;
 
-static void CPROC ProcessFile( PTRSZVAL psv, CTEXTSTR name, int flags )
+static void CPROC ProcessFile( uintptr_t psv, CTEXTSTR name, int flags )
 {
    level++;
    printf( WIDE("%3d - %s\n"), level, name );

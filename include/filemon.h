@@ -40,19 +40,19 @@ FILEMONITOR_PROC( void, SetFileLogging )( PMONITOR monitor, int enable );
 
 // return TRUE if okay to get next, return FALSE to
 // stop processing and wait until next...
-typedef int (CPROC *CHANGEHANDLER)(PTRSZVAL psv
+typedef int (CPROC *CHANGEHANDLER)(uintptr_t psv
 											 , CTEXTSTR filepath
 											 , int bDeleted);
 
 FILEMONITOR_PROC( PCHANGEHANDLER, AddFileChangeCallback )( PMONITOR monitor
                                                , CTEXTSTR mask
 															  , CHANGEHANDLER HandleChange
-															  , PTRSZVAL psv );
+															  , uintptr_t psv );
 
-typedef int (CPROC *EXTENDEDCHANGEHANDLER)( PTRSZVAL psv
+typedef int (CPROC *EXTENDEDCHANGEHANDLER)( uintptr_t psv
 														, CTEXTSTR filepath
-														, _64 size
-														, _64 time
+														, uint64_t size
+														, uint64_t time
 														, LOGICAL bCreated // file has just now been created.
                                           , LOGICAL bDirectory // it's a directory (add another monitor?)
 														, LOGICAL bDeleted); // file was just now deleted.
@@ -60,13 +60,13 @@ typedef int (CPROC *EXTENDEDCHANGEHANDLER)( PTRSZVAL psv
 FILEMONITOR_PROC( PCHANGEHANDLER, AddExtendedFileChangeCallback )( PMONITOR monitor
 																		, CTEXTSTR mask
 																		, EXTENDEDCHANGEHANDLER HandleChange
-																		, PTRSZVAL psv );
+																		, uintptr_t psv );
 
 
 FILEMONITOR_PROC( PFILEMON, AddMonitoredFile )( PCHANGEHANDLER Change, CTEXTSTR name );
 FILEMONITOR_PROC( void, EverybodyScan )( void );
 FILEMONITOR_PROC( void, MonitorForgetAll )( PMONITOR monitor );
-FILEMONITOR_PROC( void, SetFMonitorForceScanTime )( PMONITOR monitor, _32 delay );
+FILEMONITOR_PROC( void, SetFMonitorForceScanTime )( PMONITOR monitor, uint32_t delay );
 
 // returns 0 if no changed were pending, else returns number
 // of changes dispatched (not nessecarily handled)

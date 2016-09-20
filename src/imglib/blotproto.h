@@ -19,7 +19,7 @@
 ASM_IMAGE_NAMESPACE
 extern unsigned char AlphaTable[256][256];
 extern unsigned char ScalarAlphaTable[256][256];
-_32 DOALPHA( _32 over, _32 in, _8 a );
+uint32_t DOALPHA( uint32_t over, uint32_t in, uint8_t a );
 ASM_IMAGE_NAMESPACE_END
  
 #ifdef __cplusplus
@@ -31,12 +31,12 @@ namespace sack {
 
 #define CLAMP(n) (((n)>255)?(255):(n))
 #ifdef NEED_ALPHA2
-static _32 _XXr, _XXg, _XXb, aout, atmp, atmp2;
+static uint32_t _XXr, _XXg, _XXb, aout, atmp, atmp2;
 #endif
 #ifdef USE_OPENGL_COMPAT_COLORS
 #define DOALPHA2( over, in, a ) (  (atmp=(a)),                                             \
 (!(atmp))?(over):((atmp)>=255)?((in)| 0xFF000000UL):(               \
-   (atmp2=256U-atmp),(atmp++),(aout = ((_32)AlphaTable[atmp][AlphaVal( over )]) << 24),                                \
+   (atmp2=256U-atmp),(atmp++),(aout = ((uint32_t)AlphaTable[atmp][AlphaVal( over )]) << 24),                                \
    (_XXr = (((RedVal(in))   *(atmp)) + ((RedVal(over))  *((atmp2)))) >> 8 ),         \
    (_XXg = (((GreenVal(in)) *(atmp)) + ((GreenVal(over))*((atmp2)))) >> 8 ),            \
    (_XXb = (((BlueVal(in))  *(atmp)) + ((BlueVal(over)) *((atmp2)))) >> 8 ),         \
@@ -44,7 +44,7 @@ static _32 _XXr, _XXg, _XXb, aout, atmp, atmp2;
 #else
 #define DOALPHA2( over, in, a ) (  (atmp=(a)),                                             \
 (!(atmp))?(over):((atmp)>=255)?((in)| 0xFF000000UL):(               \
-   (atmp2=256U-atmp),(atmp++),(aout = ((_32)AlphaTable[atmp][AlphaVal( over )]) << 24),                                \
+   (atmp2=256U-atmp),(atmp++),(aout = ((uint32_t)AlphaTable[atmp][AlphaVal( over )]) << 24),                                \
    (_XXr = (((RedVal(in))   *(atmp)) + ((RedVal(over))  *((atmp2)))) >> 8 ),         \
    (_XXg = (((GreenVal(in)) *(atmp)) + ((GreenVal(over))*((atmp2)))) >> 8 ),            \
    (_XXb = (((BlueVal(in))  *(atmp)) + ((BlueVal(over)) *((atmp2)))) >> 8 ),         \
@@ -77,7 +77,7 @@ static _32 _XXr, _XXg, _XXb, aout, atmp, atmp2;
 				       + ( ( ( ( GreenVal(pixel) ) * (BlueVal(g)+1) ) >> 8 ) & 0xFF )\
 				       + ( ( ( ( RedVal(pixel) ) * (BlueVal(r)+1) ) >> 8 ) & 0xFF )),\
   				( ( bout > 255 )?255:bout ) ),                                       \
-	((_32)AlphaTable[AlphaVal(pixel)][                                                                 \
+	((uint32_t)AlphaTable[AlphaVal(pixel)][                                                                 \
  	   ScalarAlphaTable[(RedVal(pixel)?AlphaVal(r):255)][ScalarAlphaTable[(( ((pixel)>>16)&0xFF )?AlphaVal(b):255)][(( ((pixel)>>8)&0xFF )?AlphaVal(g):255) ] ] ] ) )
 #else
 #define MULTISHADEPIXEL( pixel,r,g,b) 	AColor(             \
@@ -93,7 +93,7 @@ static _32 _XXr, _XXg, _XXb, aout, atmp, atmp2;
 				       + ( ( ( ( ((pixel)>>8)&0xFF ) * (( (g) & 0xFF )+1) ) >> 8 ) & 0xFF )\
 				       + ( ( ( ( ((pixel)>>16)&0xFF ) * (( (r) & 0xFF )+1) ) >> 8 ) & 0xFF )),\
   				( ( bout > 255 )?255:bout ) ), \
-	((_32)AlphaTable[AlphaVal(pixel)][                                                                 \
+	((uint32_t)AlphaTable[AlphaVal(pixel)][                                                                 \
  	   ScalarAlphaTable[(RedVal(pixel)?AlphaVal(r):255)][ScalarAlphaTable[(BlueVal(pixel)?AlphaVal(b):255)][(GreenVal(pixel)?AlphaVal(g):255) ] ] ]) )
 #endif
 
@@ -102,10 +102,10 @@ static _32 _XXr, _XXg, _XXb, aout, atmp, atmp2;
 //-----------------------------------------------------------
 #define SCALED_BLOT_WORK_PARAMS  PCDATA po, PCDATA  pi       \
 						    , int i_errx, int i_erry          \
-						    , _32 wd, _32 hd                \
-				          , _32 dwd, _32 dhd                \
-				          , _32 dws, _32 dhs                \
-				          , S_32 oo, S_32 srcpwidth
+						    , uint32_t wd, uint32_t hd                \
+				          , uint32_t dwd, uint32_t dhd                \
+				          , uint32_t dws, uint32_t dhs                \
+				          , int32_t oo, int32_t srcpwidth
 
 
 #ifdef __cplusplus

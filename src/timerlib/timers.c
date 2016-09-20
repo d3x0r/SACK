@@ -109,11 +109,11 @@ struct timer_tag
 	struct {
 		BIT_FIELD bRescheduled : 1;
 	} flags;
-	_32 frequency;
-	S_32 delta;
-	_32 ID;
-	void (CPROC*callback)(PTRSZVAL user);
-	PTRSZVAL userdata;
+	uint32_t frequency;
+	int32_t delta;
+	uint32_t ID;
+	void (CPROC*callback)(uintptr_t user);
+	uintptr_t userdata;
 #if defined( _DEBUG ) || defined( _DEBUG_INFO )
 	CTEXTSTR pFile;
 	int nLine;
@@ -129,9 +129,9 @@ struct threads_tag
 	// these first two items MUST
 	// be declared publically, and MUST be visible
 	// to the thread created.
-	PTRSZVAL param;
-	PTRSZVAL (CPROC*proc)( struct threads_tag * );
-	PTRSZVAL (CPROC*simple_proc)( POINTER );
+	uintptr_t param;
+	uintptr_t (CPROC*proc)( struct threads_tag * );
+	uintptr_t (CPROC*simple_proc)( POINTER );
 	TEXTSTR thread_event_name; // might be not a real thread.
 	THREAD_ID thread_ident;
 	PTHREAD_EVENT thread_event;
@@ -156,7 +156,7 @@ struct threads_tag
 	} flags;
 	//struct threads_tag *next, **me;
 	CTEXTSTR pFile;
-	_32 nLine;
+	uint32_t nLine;
 };
 
 typedef struct threads_tag THREAD;
@@ -173,7 +173,7 @@ struct thread_event
 
 
 static struct {
-	_32 timerID;
+	uint32_t timerID;
 	PTIMERSET timer_pool;
 	PTIMER timers;
 	PTIMER add_timer; // this timer is scheduled to be added...
@@ -191,22 +191,22 @@ static struct {
 		BIT_FIELD bLogThreadCreate : 1;
 		BIT_FIELD bHaltTimers : 1;
 	} flags;
-	_32 del_timer; // this timer is scheduled to be removed...
-	_32 tick_bias; // should somehow end up equating to sleep overhead...
-	_32 last_tick; // last known time that a timer could have fired...
-	_32 this_tick; // the current moment up to which we fire all timers.
+	uint32_t del_timer; // this timer is scheduled to be removed...
+	uint32_t tick_bias; // should somehow end up equating to sleep overhead...
+	uint32_t last_tick; // last known time that a timer could have fired...
+	uint32_t this_tick; // the current moment up to which we fire all timers.
 	PTHREAD pTimerThread;
 	PTHREADSET threadset;
 	PTHREAD threads;
-	_32 lock_timers;
+	uint32_t lock_timers;
 	CRITICALSECTION cs_timer_change;
-	//_32 pending_timer_change;
-	_32 remove_timer;
-	_32 CurrentTimerID;
-	S_32 last_sleep;
+	//uint32_t pending_timer_change;
+	uint32_t remove_timer;
+	uint32_t CurrentTimerID;
+	int32_t last_sleep;
 
 #define g (*global_timer_structure)
-	_32 lock_thread_create;
+	uint32_t lock_thread_create;
 	// should be a short list... 10 maybe 15...
 	PLIST thread_events;
 
@@ -251,7 +251,7 @@ struct my_thread_info {
 
 #endif
 
-void  RemoveTimerEx( _32 ID DBG_PASS );
+void  RemoveTimerEx( uint32_t ID DBG_PASS );
 
 static struct my_thread_info* GetThreadTLS( void )
 {
@@ -314,26 +314,26 @@ PRELOAD( ConfigureTimers )
 //--------------------------------------------------------------------------
 #ifdef __LINUX__
 #ifdef __LINUX__
-_32  GetTickCount( void )
+uint32_t  GetTickCount( void )
 {
 	struct timeval time;
 	gettimeofday( &time, 0 );
 	return (time.tv_sec * 1000) + (time.tv_usec / 1000);
 }
 
-_32  timeGetTime( void )
+uint32_t  timeGetTime( void )
 {
 	struct timeval time;
 	gettimeofday( &time, 0 );
 	return (time.tv_sec * 1000) + (time.tv_usec / 1000);
 }
 
-void  Sleep( _32 ms )
+void  Sleep( uint32_t ms )
 {
 	(usleep((ms)*1000));
 }
 #endif
-PTRSZVAL closesem( POINTER p, PTRSZVAL psv )
+uintptr_t closesem( POINTER p, uintptr_t psv )
 {
 	PTHREAD thread = (PTHREAD)p;
 #ifdef USE_PIPE_SEMS
@@ -353,7 +353,7 @@ PTRSZVAL closesem( POINTER p, PTRSZVAL psv )
 	return 0;
 }
 
-static PTRSZVAL threadrunning( POINTER p, PTRSZVAL psv )
+static uintptr_t threadrunning( POINTER p, uintptr_t psv )
 {
 	PTHREAD thread = (PTHREAD)p;
 	if( thread->hThread && thread->flags.bStarted )
@@ -369,7 +369,7 @@ PRIORITY_ATEXIT( CloseAllWakeups, ATEXIT_PRIORITY_THREAD_SEMS )
 	while( ForAllInSet( THREAD, g.threadset, threadrunning, 0 ) )
 		Relinquish();
 	lprintf( WIDE("Destroy thread semaphores...") );
-	ForAllInSet( THREAD, g.threadset, closesem, (PTRSZVAL)0 );
+	ForAllInSet( THREAD, g.threadset, closesem, (uintptr_t)0 );
 	DeleteSet( (GENERICSET**)&g.threadset );
 	g.pTimerThread = NULL;
 	//g.threads = NULL;
@@ -409,8 +409,8 @@ static void InitWakeup( PTHREAD thread, CTEXTSTR event_name )
 	{
 		PTHREAD_EVENT thread_event;
 		TEXTCHAR name[64];
-		tnprintf( name, 64, WIDE("%s:%08lX:%08lX"), event_name, (_32)(thread->thread_ident >> 32)
-				  , (_32)(thread->thread_ident & 0xFFFFFFFF) );
+		tnprintf( name, 64, WIDE("%s:%08lX:%08lX"), event_name, (uint32_t)(thread->thread_ident >> 32)
+				  , (uint32_t)(thread->thread_ident & 0xFFFFFFFF) );
 		name[sizeof(name)/sizeof(name[0])-1] = 0;
 #ifdef LOG_CREATE_EVENT_OBJECT
 		lprintf( WIDE("Thread Event created is: %s everyone should use this..."), name );
@@ -514,11 +514,11 @@ static void InitWakeup( PTHREAD thread, CTEXTSTR event_name )
 //--------------------------------------------------------------------------
 
 
-PTRSZVAL CPROC check_thread_name( POINTER p, PTRSZVAL psv )
+uintptr_t CPROC check_thread_name( POINTER p, uintptr_t psv )
 {
 	PTHREAD thread = (PTHREAD)p;
 	if( StrCaseCmp( thread->thread_event_name, (CTEXTSTR)psv ) == 0 )
-		return (PTRSZVAL)p;
+		return (uintptr_t)p;
 	return 0;
 }
 
@@ -537,7 +537,7 @@ static PTHREAD FindWakeup( CTEXTSTR name )
 			SimpleRegisterAndCreateGlobal( global_timer_structure );
 	}
 
-	check = (PTHREAD)ForAllInSet( THREAD, g.threadset, check_thread_name, (PTRSZVAL)name );
+	check = (PTHREAD)ForAllInSet( THREAD, g.threadset, check_thread_name, (uintptr_t)name );
 	if( !check )
 	{
 #ifdef _DEBUG
@@ -560,13 +560,13 @@ struct name_and_id_params
 	THREAD_ID thread;
 };
 
-PTRSZVAL CPROC check_thread_name_and_id( POINTER p, PTRSZVAL psv )
+uintptr_t CPROC check_thread_name_and_id( POINTER p, uintptr_t psv )
 {
 	struct name_and_id_params *params = (struct name_and_id_params*)psv;
 	PTHREAD thread = (PTHREAD)p;
 	if( thread->thread_ident == params->thread 
 		&& StrCaseCmp( thread->thread_event_name, params->name ) == 0 )
-		return (PTRSZVAL)p;
+		return (uintptr_t)p;
 	return 0;
 }
 
@@ -588,7 +588,7 @@ static PTHREAD FindThreadWakeup( CTEXTSTR name, THREAD_ID thread )
 			SimpleRegisterAndCreateGlobal( global_timer_structure );
 	}
 
-	check = (PTHREAD)ForAllInSet( THREAD, g.threadset, check_thread_name_and_id, (PTRSZVAL)&params );
+	check = (PTHREAD)ForAllInSet( THREAD, g.threadset, check_thread_name_and_id, (uintptr_t)&params );
 	if( !check )
 	{
 #ifdef _DEBUG
@@ -606,14 +606,14 @@ static PTHREAD FindThreadWakeup( CTEXTSTR name, THREAD_ID thread )
 
 //--------------------------------------------------------------------------
 
-PTRSZVAL CPROC check_thread( POINTER p, PTRSZVAL psv )
+uintptr_t CPROC check_thread( POINTER p, uintptr_t psv )
 {
 	PTHREAD thread = (PTHREAD)p;
 	THREAD_ID ID = *((THREAD_ID*)psv);
 	//lprintf( "Check thread %016llx %016llx %s", thread->thread_ident, ID, thread->thread_event_name );
 	if( ( thread->thread_ident == ID )
 		&& ( StrCmp( thread->thread_event_name, WIDE("ThreadSignal") ) == 0 ) )
-		return (PTRSZVAL)p;
+		return (uintptr_t)p;
 	return 0;
 }
 
@@ -631,7 +631,7 @@ static PTHREAD FindThread( THREAD_ID thread )
 		if( IsRootDeadstartStarted() )
 			SimpleRegisterAndCreateGlobal( global_timer_structure );
 	}
-	check = (PTHREAD)ForAllInSet( THREAD, g.threadset, check_thread, (PTRSZVAL)&thread );
+	check = (PTHREAD)ForAllInSet( THREAD, g.threadset, check_thread, (uintptr_t)&thread );
 	if( !check )
 	{
 #ifdef _DEBUG
@@ -679,8 +679,8 @@ void  WakeThreadEx( PTHREAD thread DBG_PASS )
 		if( !(thread_event = thread->thread_event ) )
 		{
 			tnprintf( name, sizeof(name), WIDE("%s:%08lX:%08lX")
-					  , thread->thread_event_name, (_32)(thread->thread_ident >> 32)
-					  , (_32)(thread->thread_ident & 0xFFFFFFFF));
+					  , thread->thread_event_name, (uint32_t)(thread->thread_ident >> 32)
+					  , (uint32_t)(thread->thread_ident & 0xFFFFFFFF));
 			name[sizeof(name)/sizeof(name[0])-1] = 0;
 			LIST_FORALL( g.thread_events, idx, PTHREAD_EVENT, thread_event )
 			{
@@ -810,14 +810,14 @@ void  WakeThreadID( THREAD_ID thread )
 //--------------------------------------------------------------------------
 #ifdef _NO_SEMTIMEDOP_
 #ifndef _WIN32
-static void CPROC TimerWake( PTRSZVAL psv )
+static void CPROC TimerWake( uintptr_t psv )
 {
 	WakeThreadEx( (PTHREAD)psv DBG_SRC );
 }
 #endif
 #endif
 //--------------------------------------------------------------------------
-static void  InternalWakeableNamedSleepEx( CTEXTSTR name, _32 n, LOGICAL threaded DBG_PASS )
+static void  InternalWakeableNamedSleepEx( CTEXTSTR name, uint32_t n, LOGICAL threaded DBG_PASS )
 {
 	PTHREAD pThread;
 	if( name && threaded )
@@ -876,7 +876,7 @@ static void  InternalWakeableNamedSleepEx( CTEXTSTR name, _32 n, LOGICAL threade
 			if( n != SLEEP_FOREVER )
 			{
 				//lprintf( WIDE("Wakeable sleep in %ld (oneshot, no frequency)"), n );
-				nTimer = AddTimerExx( n, 0, TimerWake, (PTRSZVAL)pThread DBG_RELAY );
+				nTimer = AddTimerExx( n, 0, TimerWake, (uintptr_t)pThread DBG_RELAY );
 			}
 #endif
 #endif
@@ -1039,23 +1039,23 @@ static void  InternalWakeableNamedSleepEx( CTEXTSTR name, _32 n, LOGICAL threade
 	}
 }
 
-void  WakeableNamedThreadSleepEx( CTEXTSTR name, _32 n DBG_PASS )
+void  WakeableNamedThreadSleepEx( CTEXTSTR name, uint32_t n DBG_PASS )
 {
 	InternalWakeableNamedSleepEx( name, n, TRUE DBG_RELAY );
 }
 
-void  WakeableNamedSleepEx( CTEXTSTR name, _32 n DBG_PASS )
+void  WakeableNamedSleepEx( CTEXTSTR name, uint32_t n DBG_PASS )
 {
 	InternalWakeableNamedSleepEx( name, n, FALSE DBG_RELAY );
 }
-void  WakeableSleepEx( _32 n DBG_PASS )
+void  WakeableSleepEx( uint32_t n DBG_PASS )
 {
 	InternalWakeableNamedSleepEx( NULL, n, FALSE DBG_RELAY );
 }
 
 
 #undef WakeableSleep
-void  WakeableSleep( _32 n )
+void  WakeableSleep( uint32_t n )
 #define WakeableSleep(n) WakeableSleepEx(n DBG_SRC)
 {
 	WakeableSleepEx(n DBG_SRC);
@@ -1086,7 +1086,7 @@ static void AlarmSignal( int sig )
 	WakeThread( g.pTimerThread );
 }
 
-static void TimerWakeableSleep( _32 n )
+static void TimerWakeableSleep( uint32_t n )
 {
 	if( g.pTimerThread )
 	{
@@ -1156,7 +1156,7 @@ static void TimerWakeableSleep( _32 n )
 #endif
 
 //--------------------------------------------------------------------------
-PTRSZVAL CPROC ThreadProc( PTHREAD pThread );
+uintptr_t CPROC ThreadProc( PTHREAD pThread );
 // results if the timer
 
 int  IsThisThreadEx( PTHREAD pThreadTest DBG_PASS )
@@ -1238,10 +1238,10 @@ void  UnmakeThread( void )
 #ifdef __WATCOMC__
 static void *ThreadWrapper( PTHREAD pThread )
 #else
-static PTRSZVAL CPROC ThreadWrapper( PTHREAD pThread )
+static uintptr_t CPROC ThreadWrapper( PTHREAD pThread )
 #endif
 {
-	PTRSZVAL result = 0;
+	uintptr_t result = 0;
 	struct my_thread_info* _MyThreadInfo = GetThreadTLS();
 #ifdef __LINUX__
 	//lprintf( "register handler for sigusr1 (for thread)" );
@@ -1292,11 +1292,11 @@ static PTRSZVAL CPROC ThreadWrapper( PTHREAD pThread )
 static void *SimpleThreadWrapper( PTHREAD pThread )
 #else
 
-static PTRSZVAL CPROC SimpleThreadWrapper( PTHREAD pThread )
+static uintptr_t CPROC SimpleThreadWrapper( PTHREAD pThread )
 #endif
 {
 	struct my_thread_info* _MyThreadInfo = GetThreadTLS();
-	PTRSZVAL result = 0;
+	uintptr_t result = 0;
 #ifdef _WIN32
 	while( !pThread->hThread )
 	{
@@ -1393,7 +1393,7 @@ THREAD_ID GetThisThreadID( void )
 	return MakeThread()->thread_ident;
 #endif
 }
-PTRSZVAL GetThreadParam( PTHREAD thread )
+uintptr_t GetThreadParam( PTHREAD thread )
 {
 	if( thread )
 		return thread->param;
@@ -1402,7 +1402,7 @@ PTRSZVAL GetThreadParam( PTHREAD thread )
 
 //--------------------------------------------------------------------------
 
-PTHREAD  ThreadToEx( PTRSZVAL (CPROC*proc)(PTHREAD), PTRSZVAL param DBG_PASS )
+PTHREAD  ThreadToEx( uintptr_t (CPROC*proc)(PTHREAD), uintptr_t param DBG_PASS )
 {
 	int success;
 	PTHREAD pThread;
@@ -1481,7 +1481,7 @@ PTHREAD  ThreadToEx( PTRSZVAL (CPROC*proc)(PTHREAD), PTRSZVAL param DBG_PASS )
 
 //--------------------------------------------------------------------------
 
-PTHREAD  ThreadToSimpleEx( PTRSZVAL (CPROC*proc)(POINTER), POINTER param DBG_PASS )
+PTHREAD  ThreadToSimpleEx( uintptr_t (CPROC*proc)(POINTER), POINTER param DBG_PASS )
 {
 	int success;
 	PTHREAD pThread;
@@ -1496,7 +1496,7 @@ PTHREAD  ThreadToSimpleEx( PTRSZVAL (CPROC*proc)(POINTER), POINTER param DBG_PAS
 	MemSet( pThread, 0, sizeof( THREAD ) );
 	pThread->flags.bLocal = TRUE;
 	pThread->simple_proc = proc;
-	pThread->param = (PTRSZVAL)param;
+	pThread->param = (uintptr_t)param;
 	pThread->thread_ident = 0;
 #if DBG_AVAILABLE
 	pThread->pFile = pFile;
@@ -1668,22 +1668,22 @@ static void DoInsertTimer( PTIMER timer )
 
 //--------------------------------------------------------------------------
 
-static PTRSZVAL CPROC find_timer( POINTER p, PTRSZVAL psvID )
+static uintptr_t CPROC find_timer( POINTER p, uintptr_t psvID )
 {
-	_32 timerID = (_32)psvID;
+	uint32_t timerID = (uint32_t)psvID;
 	PTIMER timer = (PTIMER)p;
 	//lprintf( "Find to remove test %d==%d", timer->ID, timerID );
 	if( timer->ID == timerID )
-		return (PTRSZVAL)p;
+		return (uintptr_t)p;
 	return 0;
 }
 
-static void  DoRemoveTimer( _32 timerID DBG_PASS )
+static void  DoRemoveTimer( uint32_t timerID DBG_PASS )
 {
 	EnterCriticalSec( &g.csGrab );
 	{
 		PTIMER timer = g.timers;
-		PTRSZVAL psvTimerResult = ForAllInSet( TIMER, &g.timer_pool, find_timer, (PTRSZVAL)timerID );
+		uintptr_t psvTimerResult = ForAllInSet( TIMER, &g.timer_pool, find_timer, (uintptr_t)timerID );
 		if( psvTimerResult )
 			timer = (PTIMER)psvTimerResult;
 		else
@@ -1815,7 +1815,7 @@ static PTIMER GrabTimer( PTIMER timer )
 
 //--------------------------------------------------------------------------
 
-static int CPROC ProcessTimers( PTRSZVAL psvForce )
+static int CPROC ProcessTimers( uintptr_t psvForce )
 {
 	if( global_timer_structure )
 	{
@@ -1823,7 +1823,7 @@ static int CPROC ProcessTimers( PTRSZVAL psvForce )
 #ifdef ENABLE_CRITICALSEC_LOGGING
 	BIT_FIELD bLock = g.flags.bLogCriticalSections;
 #endif
-	_32 newtick;
+	uint32_t newtick;
 
 	if( g.flags.bExited )
 		return -1;
@@ -1892,7 +1892,7 @@ static int CPROC ProcessTimers( PTRSZVAL psvForce )
 		g.flags.bLogCriticalSections = 0;
 #endif
 		while( ( EnterCriticalSec( &g.csGrab ), timer = g.timers ) &&
-				( (S_32)( newtick - g.last_tick ) >= timer->delta ) )
+				( (int32_t)( newtick - g.last_tick ) >= timer->delta ) )
 		{
 #ifdef ENABLE_CRITICALSEC_LOGGING
 			g.flags.bLogCriticalSections = bLock;
@@ -2070,12 +2070,12 @@ static int CPROC ProcessTimers( PTRSZVAL psvForce )
 
 //--------------------------------------------------------------------------
 
-PTRSZVAL CPROC ThreadProc( PTHREAD pThread )
+uintptr_t CPROC ThreadProc( PTHREAD pThread )
 {
 	InitializeCriticalSec( &g.cs_timer_change );
 	g.pTimerThread = pThread;
 #ifndef __NO_IDLE__
-	AddIdleProc( ProcessTimers, (PTRSZVAL)0 );
+	AddIdleProc( ProcessTimers, (uintptr_t)0 );
 #endif
 #ifndef _WIN32
 	nice( -3 ); // allow ourselves a bit more priority...
@@ -2103,7 +2103,7 @@ static void *WatchdogProc( void *unused )
 #endif
 //--------------------------------------------------------------------------
 
-_32  AddTimerExx( _32 start, _32 frequency, TimerCallbackProc callback, PTRSZVAL user DBG_PASS )
+uint32_t  AddTimerExx( uint32_t start, uint32_t frequency, TimerCallbackProc callback, uintptr_t user DBG_PASS )
 {
 	PTIMER timer = GetFromSet( TIMER, &g.timer_pool );
 					 //timer = AllocateEx( sizeof( TIMER ) DBG_RELAY );
@@ -2112,7 +2112,7 @@ _32  AddTimerExx( _32 start, _32 frequency, TimerCallbackProc callback, PTRSZVAL
 	{
 		//"Creating one shot timer %d long", start );
 	}
-	timer->delta	 = (S_32)start; // first time for timer to fire... may be 0
+	timer->delta	 = (int32_t)start; // first time for timer to fire... may be 0
 	timer->frequency = frequency;
 	timer->callback = callback;
 	timer->ID = g.timerID++;
@@ -2149,14 +2149,14 @@ _32  AddTimerExx( _32 start, _32 frequency, TimerCallbackProc callback, PTRSZVAL
 }
 
 #undef AddTimerEx
-_32  AddTimerEx( _32 start, _32 frequency, void (CPROC*callback)(PTRSZVAL user), PTRSZVAL user )
+uint32_t  AddTimerEx( uint32_t start, uint32_t frequency, void (CPROC*callback)(uintptr_t user), uintptr_t user )
 {
 	return AddTimerExx( start, frequency, callback, user DBG_SRC );
 }
 
 //--------------------------------------------------------------------------
 
-void  RemoveTimerEx( _32 ID DBG_PASS )
+void  RemoveTimerEx( uint32_t ID DBG_PASS )
 {
 	// Lockout multiple changes at a time...
 	if( !NotTimerThread() && // IS timer thread..
@@ -2216,20 +2216,20 @@ void  RemoveTimerEx( _32 ID DBG_PASS )
 
 
 #undef RemoveTimer
-void  RemoveTimer( _32 ID )
+void  RemoveTimer( uint32_t ID )
 {
    RemoveTimerEx( ID DBG_SRC );
 }
 
 //--------------------------------------------------------------------------
 
-static void InternalRescheduleTimerEx( PTIMER timer, _32 delay )
+static void InternalRescheduleTimerEx( PTIMER timer, uint32_t delay )
 {
 	if( timer )
 	{
 		PTIMER bGrabbed = GrabTimer( timer );
 		timer->flags.bRescheduled = 1;
-		timer->delta = (S_32)delay;  // should never pass a negative value here, but delta can be negative.
+		timer->delta = (int32_t)delay;  // should never pass a negative value here, but delta can be negative.
 #ifdef LOG_SLEEPS
 		lprintf( "Reschedule at %d  %p", timer->delta, bGrabbed );
 #endif
@@ -2251,7 +2251,7 @@ static void InternalRescheduleTimerEx( PTIMER timer, _32 delay )
 //--------------------------------------------------------------------------
 
 // should lock this...
-void  RescheduleTimerEx( _32 ID, _32 delay )
+void  RescheduleTimerEx( uint32_t ID, uint32_t delay )
 {
 	PTIMER timer;
 	EnterCriticalSec( &g.csGrab );
@@ -2279,7 +2279,7 @@ void  RescheduleTimerEx( _32 ID, _32 delay )
 
 //--------------------------------------------------------------------------
 
-void  RescheduleTimer( _32 ID )
+void  RescheduleTimer( uint32_t ID )
 {
 	PTIMER timer = g.timers;
 	EnterCriticalSec( &g.csGrab );
@@ -2314,7 +2314,7 @@ static void OnDisplayResume( WIDE("@Internal Timers") _WIDE(TARGETNAME))( void )
 
 //--------------------------------------------------------------------------
 
-void  ChangeTimerEx( _32 ID, _32 initial, _32 frequency )
+void  ChangeTimerEx( uint32_t ID, uint32_t initial, uint32_t frequency )
 {
 	PTIMER timer = g.timers;
 	EnterCriticalSec( &g.csGrab );
@@ -2350,7 +2350,7 @@ LOGICAL  EnterCriticalSecEx( PCRITICALSECTION pcs DBG_PASS )
 			Relinquish();
 #ifdef _DEBUG
 			{
-				_32 curtick = timeGetTime();//GetTickCount();
+				uint32_t curtick = timeGetTime();//GetTickCount();
 				if( ( curtick+2000) < timeGetTime() )//GetTickCount() )
 				{
 					xlprintf(1)( WIDE( "Timeout during critical section wait for lock.  No lock should take more than 1 task cycle %")_32fs WIDE(" %" )_32fs, curtick, timeGetTime() );//GetTickCount() );
@@ -2405,7 +2405,7 @@ LOGICAL  LeaveCriticalSecEx( PCRITICALSECTION pcs DBG_PASS )
 {
 	THREAD_ID dwCurProc = GetMyThreadID();
 #ifdef _DEBUG
-	_32 curtick = timeGetTime();//GetTickCount();
+	uint32_t curtick = timeGetTime();//GetTickCount();
 #endif
 #ifdef ENABLE_CRITICALSEC_LOGGING
 	if( global_timer_structure && g.flags.bLogCriticalSections )

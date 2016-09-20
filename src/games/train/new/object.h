@@ -73,9 +73,9 @@ VIRTUALITY_EXPORT void InvertObject( POBJECT po );
 VIRTUALITY_EXPORT POBJECT CreatePlane( PCVECTOR vo, PCVECTOR vn, PCVECTOR pr, 
                      RCOORD size, CDATA c ); // not a real plane....
 VIRTUALITY_EXPORT int AddPlane( POBJECT pobj, PCVECTOR po, PCVECTOR pn, int d );
-#define HANDLE _32
+#define HANDLE uint32_t
 
-VIRTUALITY_EXPORT _32 SaveObject( HANDLE hFile, POBJECT po );
+VIRTUALITY_EXPORT uint32_t SaveObject( HANDLE hFile, POBJECT po );
 VIRTUALITY_EXPORT POBJECT LoadObject( HANDLE hFile );
 
 #define FORALLOBJ( pStart, ppo )  \

@@ -17,14 +17,14 @@ class TOOLBIN
 public:
 	PIBOARD board;
 	PCOMMON display;
-	_32 cell_width, cell_height;
+	uint32_t cell_width, cell_height;
 public:
 	TOOLBIN(PIBOARD boar);
 	void Init( PIBOARD board );
 
 };
 
-int CPROC MouseToolbin( PCOMMON pc, S_32 x, S_32 y, _32 b )
+int CPROC MouseToolbin( PCOMMON pc, int32_t x, int32_t y, uint32_t b )
 {
    return TRUE;
 }
@@ -45,9 +45,9 @@ int CPROC DrawToolbin( PCOMMON pc )
 			 peice;
 			  peice = toolbin->board->GetNextPeice( &idx ) )
 		{
-			_32 h;
+			uint32_t h;
 			if( peice->methods )
-				peice->methods->Draw( (PTRSZVAL)NULL, image, peice->getimage(), x, y );
+				peice->methods->Draw( (uintptr_t)NULL, image, peice->getimage(), x, y );
 			peice->methods->getsize( &h, NULL );
 			y += h * toolbin->cell_height;
 		}

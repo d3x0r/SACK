@@ -45,21 +45,21 @@ typedef struct option_interface_tag
 {
    // these provide simple section, key, value queries.
 	METHOD_PTR( size_t, GetPrivateProfileString )( CTEXTSTR pSection, CTEXTSTR pOptname, CTEXTSTR pDefaultbuf, TEXTSTR pBuffer, size_t nBuffer, CTEXTSTR pININame );
-	METHOD_PTR( S_32, GetPrivateProfileInt )( CTEXTSTR pSection, CTEXTSTR pOptname, S_32 nDefault, CTEXTSTR pININame );
+	METHOD_PTR( int32_t, GetPrivateProfileInt )( CTEXTSTR pSection, CTEXTSTR pOptname, int32_t nDefault, CTEXTSTR pININame );
 	METHOD_PTR( size_t, GetProfileString )( CTEXTSTR pSection, CTEXTSTR pOptname, CTEXTSTR pDefaultbuf, TEXTSTR pBuffer, size_t nBuffer );
-	METHOD_PTR( S_32, GetProfileInt )( CTEXTSTR pSection, CTEXTSTR pOptname, S_32 defaultval );
+	METHOD_PTR( int32_t, GetProfileInt )( CTEXTSTR pSection, CTEXTSTR pOptname, int32_t defaultval );
 
    // these provide an additional level of abstraction - the ini file
 	METHOD_PTR( LOGICAL, WritePrivateProfileString )( CTEXTSTR pSection, CTEXTSTR pName, CTEXTSTR pValue, CTEXTSTR pINIFile );
-	METHOD_PTR( S_32, WritePrivateProfileInt )( CTEXTSTR pSection, CTEXTSTR pName, S_32 value, CTEXTSTR pINIFile );
+	METHOD_PTR( int32_t, WritePrivateProfileInt )( CTEXTSTR pSection, CTEXTSTR pName, int32_t value, CTEXTSTR pINIFile );
 	METHOD_PTR( LOGICAL, WriteProfileString )( CTEXTSTR pSection, CTEXTSTR pName, CTEXTSTR pValue );
-	METHOD_PTR( S_32, WriteProfileInt )( CTEXTSTR pSection, CTEXTSTR pName, S_32 value );
+	METHOD_PTR( int32_t, WriteProfileInt )( CTEXTSTR pSection, CTEXTSTR pName, int32_t value );
 
    // these offer(expose) the option to be quiet
 	METHOD_PTR( size_t, GetPrivateProfileStringEx )( CTEXTSTR pSection, CTEXTSTR pOptname, CTEXTSTR pDefaultbuf, TEXTSTR pBuffer, size_t nBuffer, CTEXTSTR pININame, LOGICAL bQuiet );
-	METHOD_PTR( S_32, GetPrivateProfileIntEx )( CTEXTSTR pSection, CTEXTSTR pOptname, S_32 nDefault, CTEXTSTR pININame, LOGICAL bQuiet );
+	METHOD_PTR( int32_t, GetPrivateProfileIntEx )( CTEXTSTR pSection, CTEXTSTR pOptname, int32_t nDefault, CTEXTSTR pININame, LOGICAL bQuiet );
 	METHOD_PTR( size_t, GetProfileStringEx )( CTEXTSTR pSection, CTEXTSTR pOptname, CTEXTSTR pDefaultbuf, TEXTSTR pBuffer, size_t nBuffer, LOGICAL bQuiet );
-	METHOD_PTR( S_32, GetProfileIntEx )( CTEXTSTR pSection, CTEXTSTR pOptname, S_32 defaultval, LOGICAL bQuiet );
+	METHOD_PTR( int32_t, GetProfileIntEx )( CTEXTSTR pSection, CTEXTSTR pOptname, int32_t defaultval, LOGICAL bQuiet );
 
 	METHOD_PTR( LOGICAL, WriteProfileStringEx )( CTEXTSTR pSection, CTEXTSTR pName, CTEXTSTR pValue, CTEXTSTR pINIFile, LOGICAL flush );
 	METHOD_PTR( LOGICAL, WritePrivateProfileStringEx )( CTEXTSTR pSection, CTEXTSTR pName, CTEXTSTR pValue, CTEXTSTR pINIFile, LOGICAL commit );

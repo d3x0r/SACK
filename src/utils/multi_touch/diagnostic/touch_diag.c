@@ -8,7 +8,7 @@ static struct {
 	PIMAGE_INTERFACE pii;
 } l;
 
-int CPROC touch_events( PTRSZVAL psv, PINPUT_POINT pTouches, int nTouches )
+int CPROC touch_events( uintptr_t psv, PINPUT_POINT pTouches, int nTouches )
 {
 	int n;
 	lprintf( "-------------------- %d ------------------", nTouches );
@@ -24,8 +24,8 @@ int CPROC touch_events( PTRSZVAL psv, PINPUT_POINT pTouches, int nTouches )
 
 int main( void )
 {
-	S_32 x, y;
-	_32 w, h;
+	int32_t x, y;
+	uint32_t w, h;
 	PRENDERER renderer;
 
 	l.pii = GetImageInterface();

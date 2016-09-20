@@ -49,7 +49,7 @@ PFILESOURCE AddDependCopy( PFILESOURCE pfs, CTEXTSTR name )
 	return pfsNew;
 }
 
-void CPROC DoScanFile( PTRSZVAL psv, CTEXTSTR name, int flags )
+void CPROC DoScanFile( uintptr_t psv, CTEXTSTR name, int flags )
 {
 	PFILESOURCE pfs = CreateFileSource( name );
 	pfs->next = copytree;
@@ -155,10 +155,10 @@ void copy( TEXTCHAR *src, TEXTCHAR *dst )
 	}
 	else
 	{
-		static _8 buffer[4096];
+		static uint8_t buffer[4096];
 		FILE *in, *out;
-		_64 filetime;
-		_64 filetime_dest;
+		uint64_t filetime;
+		uint64_t filetime_dest;
 
 		filetime = GetFileWriteTime( src );
 		filetime_dest = GetFileWriteTime( dst );

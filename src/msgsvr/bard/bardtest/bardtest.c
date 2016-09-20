@@ -1,7 +1,7 @@
 
 #include <../bard.h>
 
-void CPROC GetAnyEvent( PTRSZVAL psv, char *extra )
+void CPROC GetAnyEvent( uintptr_t psv, char *extra )
 {
 	printf( WIDE("Received event with extra : %s\n"), extra );
 }

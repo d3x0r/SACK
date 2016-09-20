@@ -59,7 +59,7 @@ void InitPerspective( void )
 
 }
 
-void InitShader( PImageShaderTracker tracker, PTRSZVAL psv_old )
+void InitShader( PImageShaderTracker tracker, uintptr_t psv_old )
 {
 	const char *simple_color_vertex_source = 
 		"struct VS_INPUT { float4 pos : POSITION; float4 in_Color: COLOR0; };\n"
@@ -118,7 +118,7 @@ struct vertex
 	float col[4];
 };
 
-static void OnDraw3d( WIDE("Simple Shader Array") )( PTRSZVAL psvView )
+static void OnDraw3d( WIDE("Simple Shader Array") )( uintptr_t psvView )
 {
 	int result;
 	{
@@ -203,22 +203,22 @@ static void OnDraw3d( WIDE("Simple Shader Array") )( PTRSZVAL psvView )
 	}
 }
 
-static void OnBeginDraw3d( WIDE( "Simple Shader Array" ) )( PTRSZVAL psv,PTRANSFORM camera )
+static void OnBeginDraw3d( WIDE( "Simple Shader Array" ) )( uintptr_t psv,PTRANSFORM camera )
 {
 
 }
 
-static void OnFirstDraw3d( WIDE( "Simple Shader Array" ) )( PTRSZVAL psvInit )
+static void OnFirstDraw3d( WIDE( "Simple Shader Array" ) )( uintptr_t psvInit )
 {
 	l.shader = ImageGetShader(	WIDE("test_d3d_shader"), InitShader );
 
 }
 
-static PTRSZVAL OnInit3d( WIDE( "Simple Shader Array" ) )( PMatrix projection, PTRANSFORM camera, RCOORD *identity_depth, RCOORD *aspect )
+static uintptr_t OnInit3d( WIDE( "Simple Shader Array" ) )( PMatrix projection, PTRANSFORM camera, RCOORD *identity_depth, RCOORD *aspect )
 {
 	l.pi3i = GetImage3dInterface();
 	l.pr3i = GetRender3dInterface();
 	// keep the camera as a 
-	return (PTRSZVAL)camera;
+	return (uintptr_t)camera;
 }
 

@@ -138,7 +138,7 @@ PRELOAD( AllowWindowsShell )
 	EasyRegisterResource( WIDE("InterShell/Windows Shell"), EDIT_SHELL_NAME, EDIT_FIELD_NAME );
 }
 
-static void OnKeyPressEvent( WIDE("Windows Logoff") )( PTRSZVAL psv )
+static void OnKeyPressEvent( WIDE("Windows Logoff") )( uintptr_t psv )
 {
 	/*
 	HANDLE hLogonEvent = OpenEvent( EVENT_MODIFY_STATE, 1, WIDE("Global\\msgina: ReturnToWelcome") );
@@ -157,7 +157,7 @@ static void OnKeyPressEvent( WIDE("Windows Logoff") )( PTRSZVAL psv )
 	ExitWindowsEx( EWX_LOGOFF, SHTDN_REASON_FLAG_PLANNED | SHTDN_REASON_FLAG_USER_DEFINED );
 }
 
-static PTRSZVAL OnCreateMenuButton( WIDE("Windows Logoff") )( PMENU_BUTTON button )
+static uintptr_t OnCreateMenuButton( WIDE("Windows Logoff") )( PMENU_BUTTON button )
 {
 	return 1;
 }
@@ -166,7 +166,7 @@ static PTRSZVAL OnCreateMenuButton( WIDE("Windows Logoff") )( PMENU_BUTTON butto
 /* this might be nice to have auto populated start menu
  * based on the original window system stuff... should be easy enough to do...
  */
-OnKeyPressEvent( WIDE("Windows->Start") )( PTRSZVAL psv )
+OnKeyPressEvent( WIDE("Windows->Start") )( uintptr_t psv )
 {
 	PMENU menu;
 	menu = CreatePopup();
@@ -187,7 +187,7 @@ OnCreateMenuButton( WIDE("Windows->Start") )( PMENU_BUTTON button )
 #endif
 
 
-static void OnKeyPressEvent( WIDE("Windows/Set Permashell") )( PTRSZVAL psv )
+static void OnKeyPressEvent( WIDE("Windows/Set Permashell") )( uintptr_t psv )
 {
 	struct SetShellButton *my_button = ( struct SetShellButton *)psv;
 	DWORD dwStatus;
@@ -256,7 +256,7 @@ static void OnKeyPressEvent( WIDE("Windows/Set Permashell") )( PTRSZVAL psv )
 	}
 }
 
-static void OnShowControl( WIDE("Windows/Set Permashell") )( PTRSZVAL psv )
+static void OnShowControl( WIDE("Windows/Set Permashell") )( uintptr_t psv )
 {
 	struct SetShellButton *my_button = ( struct SetShellButton *)psv;
 	{
@@ -291,7 +291,7 @@ static void OnShowControl( WIDE("Windows/Set Permashell") )( PTRSZVAL psv )
 	}
 }
 
-static PTRSZVAL OnCreateMenuButton( WIDE("Windows/Set Permashell") )( PMENU_BUTTON button )
+static uintptr_t OnCreateMenuButton( WIDE("Windows/Set Permashell") )( PMENU_BUTTON button )
 {
 	struct SetShellButton *my_button = New( struct SetShellButton );
 	my_button->button = button;
@@ -300,16 +300,16 @@ static PTRSZVAL OnCreateMenuButton( WIDE("Windows/Set Permashell") )( PMENU_BUTT
 	InterShell_SetButtonStyle( button, WIDE("square") );
 	InterShell_SetButtonText( button, WIDE("Disable_Windows_Shell") );
 	InterShell_SetButtonColors( button, BASE_COLOR_LIGHTGREY, BASE_COLOR_BLACK, BASE_COLOR_BLACK, BASE_COLOR_BLACK );
-	return (PTRSZVAL)my_button;
+	return (uintptr_t)my_button;
 }
 
-static void OnSaveControl( WIDE("Windows/Set Permashell") )( FILE *file, PTRSZVAL psv )
+static void OnSaveControl( WIDE("Windows/Set Permashell") )( FILE *file, uintptr_t psv )
 {
 	struct SetShellButton *my_button = (struct SetShellButton*)psv;
 	sack_fprintf( file, WIDE("Set Shell To:%s\n"), EscapeMenuString( my_button->shell ) );
 }
 
-static PTRSZVAL CPROC SetButtonShell( PTRSZVAL psv, arg_list args )
+static uintptr_t CPROC SetButtonShell( uintptr_t psv, arg_list args )
 {
 	PARAM( args, CTEXTSTR, shell );
 	struct SetShellButton *my_button = (struct SetShellButton*)psv;
@@ -317,12 +317,12 @@ static PTRSZVAL CPROC SetButtonShell( PTRSZVAL psv, arg_list args )
 	return psv;
 }
 
-static void OnLoadControl( WIDE("Windows/Set Permashell") )( PCONFIG_HANDLER pch, PTRSZVAL psv )
+static void OnLoadControl( WIDE("Windows/Set Permashell") )( PCONFIG_HANDLER pch, uintptr_t psv )
 {
 	AddConfigurationMethod( pch, WIDE("Set Shell To:%m"), SetButtonShell );
 }
 
-static PTRSZVAL OnConfigureControl( WIDE("Windows/Set Permashell") )( PTRSZVAL psv, PSI_CONTROL parent )
+static uintptr_t OnConfigureControl( WIDE("Windows/Set Permashell") )( uintptr_t psv, PSI_CONTROL parent )
 {
 	struct SetShellButton *my_button = (struct SetShellButton*)psv;
 	PSI_CONTROL frame = LoadXMLFrameOver( parent, WIDE("ConfigurePermaShellButton.isFrame") );
@@ -348,7 +348,7 @@ static PTRSZVAL OnConfigureControl( WIDE("Windows/Set Permashell") )( PTRSZVAL p
 
 }
 
-static void OnKeyPressEvent( WIDE("Windows/Set Windows Shell") )( PTRSZVAL psv )
+static void OnKeyPressEvent( WIDE("Windows/Set Windows Shell") )( uintptr_t psv )
 {
 	DWORD dwStatus;
 	HKEY hTemp;
@@ -416,7 +416,7 @@ static void OnKeyPressEvent( WIDE("Windows/Set Windows Shell") )( PTRSZVAL psv )
 
 }
 
-static PTRSZVAL OnCreateMenuButton( WIDE("Windows/Set Windows Shell") )( PMENU_BUTTON button )
+static uintptr_t OnCreateMenuButton( WIDE("Windows/Set Windows Shell") )( PMENU_BUTTON button )
 {
 	struct SetShellButton *my_button = New( struct SetShellButton );
 	my_button->button = button;
@@ -424,10 +424,10 @@ static PTRSZVAL OnCreateMenuButton( WIDE("Windows/Set Windows Shell") )( PMENU_B
 	InterShell_SetButtonStyle( button, WIDE("square") );
 	InterShell_SetButtonText( button, WIDE("Enable_Windows_Shell") );
 	InterShell_SetButtonColors( button, BASE_COLOR_LIGHTGREY, BASE_COLOR_BLACK, BASE_COLOR_BLACK, BASE_COLOR_BLACK );
-	return (PTRSZVAL)my_button;
+	return (uintptr_t)my_button;
 }
 
-static void OnShowControl( WIDE("Windows/Set Windows Shell") )( PTRSZVAL psv )
+static void OnShowControl( WIDE("Windows/Set Windows Shell") )( uintptr_t psv )
 {
 	struct SetShellButton * my_button = ( struct SetShellButton *)psv;
 	{

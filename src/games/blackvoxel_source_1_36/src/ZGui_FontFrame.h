@@ -54,8 +54,8 @@ class ZFrame_FontFrame : public ZFrame
     virtual void  SetStyle      (ZTileStyle * TileStyle) { this->TileStyle = TileStyle;         }
     virtual void GetTextDisplaySize(ZVector2f * OutSize);
 
-    virtual void Render2(ZRender_Interface *render, Frame_Dimensions * ParentPosition, PTRSZVAL psvInit);
-    virtual void Render(ZRender_Interface *render, Frame_Dimensions * ParentPosition, PTRSZVAL psvInit);
+    virtual void Render2(ZRender_Interface *render, Frame_Dimensions * ParentPosition, uintptr_t psvInit);
+    virtual void Render(ZRender_Interface *render, Frame_Dimensions * ParentPosition, uintptr_t psvInit);
 };
 
 

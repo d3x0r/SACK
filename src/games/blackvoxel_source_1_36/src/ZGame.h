@@ -412,7 +412,7 @@ class ZGame
   bool Init_EventManager(ZLog * InitLog);
   bool Init_GuiManager(ZLog * InitLog);
   bool Init_TileSetsAndFonts(ZLog * InitLog);
-  bool Init_Renderer(ZLog * InitLog, PTRSZVAL psvInit );
+  bool Init_Renderer(ZLog * InitLog, uintptr_t psvInit );
   bool Init_Sound(ZLog * InitLog);
 
   bool Cleanup_UserDataStorage(ZLog * InitLog);

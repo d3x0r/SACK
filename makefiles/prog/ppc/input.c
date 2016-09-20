@@ -23,7 +23,7 @@ char NextCharEx( PTEXT input, INDEX idx )
 #define NextChar() NextCharEx( input, index )
 //----------------------------------------------------------------------
 
-PTEXT BreakAndAddEx( char character, PTEXT outdata, VARTEXT *out, _32 *spaces )
+PTEXT BreakAndAddEx( char character, PTEXT outdata, VARTEXT *out, uint32_t *spaces )
 {
    PTEXT tmp;
 	PTEXT word;
@@ -31,7 +31,7 @@ PTEXT BreakAndAddEx( char character, PTEXT outdata, VARTEXT *out, _32 *spaces )
 	if( ( word = VarTextGetEx( out DBG_SRC ) ) )
 	{
 		outdata = SegAdd( outdata, word );
-		word->format.spaces = (_16)*spaces;
+		word->format.spaces = (uint16_t)*spaces;
 		*spaces = 0;
 		VarTextAddCharacterEx( out, character DBG_SRC );
 		word = VarTextGetEx( out DBG_SRC );
@@ -42,7 +42,7 @@ PTEXT BreakAndAddEx( char character, PTEXT outdata, VARTEXT *out, _32 *spaces )
 		VarTextAddCharacterEx( out, character DBG_SRC );
 		word = VarTextGetEx( out DBG_SRC );
 
-		word->format.spaces = (_16)*spaces;
+		word->format.spaces = (uint16_t)*spaces;
 		*spaces = 0;
 		outdata = SegAdd( outdata, word );
 	}
@@ -80,19 +80,19 @@ char *test = "??= #"
 
 static union {
 		struct {
-			_32 bLesser  : 1;
-			_32 bGreater : 1;
-			_32 bColon   : 1;
-			_32 bPercent : 1;
-			_32 bQuestion1 : 1;
-			_32 bQuestion2 : 1;
+			uint32_t bLesser  : 1;
+			uint32_t bGreater : 1;
+			uint32_t bColon   : 1;
+			uint32_t bPercent : 1;
+			uint32_t bQuestion1 : 1;
+			uint32_t bQuestion2 : 1;
 		};
-      _32 dw;
+      uint32_t dw;
 	} flags;
 
 #define DBG_OVERRIDE DBG_RELAY
 
-PTEXT OutputDanglingCharsEx( PTEXT outdata, VARTEXT *out, _32 *spaces)
+PTEXT OutputDanglingCharsEx( PTEXT outdata, VARTEXT *out, uint32_t *spaces)
 #define OutputDanglingChars() outdata = OutputDanglingCharsEx( outdata, &out, &spaces )
 {                               
    int n = 0;                   
@@ -156,10 +156,10 @@ PTEXT burstEx( PTEXT input DBG_PASS )
          word;
    char *tempText;
 
-   _32 index;
+   uint32_t index;
    INDEX size;
-   _8 character;
-	_32 elipses = FALSE
+   uint8_t character;
+	uint32_t elipses = FALSE
        , spaces = 0
        , escape = 0
 	    , quote = 0; // just used for bi-graph/tri-graph stuff...
@@ -186,7 +186,7 @@ PTEXT burstEx( PTEXT input DBG_PASS )
       	word = VarTextGetEx( &out DBG_OVERRIDE );
       	if( word )
       	{
-      		word->format.spaces = (_16)spaces;
+      		word->format.spaces = (uint16_t)spaces;
       		spaces = 0;
       		outdata = SegAdd( outdata, word );
       	}
@@ -204,7 +204,7 @@ PTEXT burstEx( PTEXT input DBG_PASS )
          		PTEXT word = VarTextGetEx( &out DBG_OVERRIDE );
          		if( word )
          		{
-	         		word->format.spaces = (_16)spaces;
+	         		word->format.spaces = (uint16_t)spaces;
    	      		spaces = 0;
       	      	outdata = SegAdd( outdata, word );
       	      }
@@ -442,7 +442,7 @@ PTEXT burstEx( PTEXT input DBG_PASS )
          case '\n':
             if( ( word = VarTextGetEx( &out DBG_OVERRIDE ) ) )
             {
-            	word->format.spaces = (_16)spaces;
+            	word->format.spaces = (uint16_t)spaces;
             	spaces = 0; // fake a space next line...
             	outdata = SegAdd( outdata, word );
             }
@@ -452,7 +452,7 @@ PTEXT burstEx( PTEXT input DBG_PASS )
          case '\t':
             if( ( word = VarTextGetEx( &out DBG_OVERRIDE ) ) )
             {
-            	word->format.spaces = (_16)spaces;
+            	word->format.spaces = (uint16_t)spaces;
             	spaces = 0;
             	outdata = SegAdd( outdata, word );
             }
@@ -461,7 +461,7 @@ PTEXT burstEx( PTEXT input DBG_PASS )
          case '\r': // a space space character...
             if( ( word = VarTextGetEx( &out DBG_OVERRIDE ) ) )
             {
-            	word->format.spaces = (_16)spaces;
+            	word->format.spaces = (uint16_t)spaces;
             	spaces = 0;
             	outdata = SegAdd( outdata, word );
             }
@@ -478,7 +478,7 @@ PTEXT burstEx( PTEXT input DBG_PASS )
                   if( ( word = VarTextGetEx( &out DBG_OVERRIDE ) ) )
                   {
                   	outdata = SegAdd( outdata, word );
-                     word->format.spaces = (_16)spaces;
+                     word->format.spaces = (uint16_t)spaces;
                      spaces = 0;
                   }
                   VarTextAddCharacterEx( &out, '.' DBG_OVERRIDE );
@@ -530,7 +530,7 @@ PTEXT burstEx( PTEXT input DBG_PASS )
             	if( ( word = VarTextGetEx( &out DBG_OVERRIDE ) ) )
             	{
             		outdata = SegAdd( outdata, word );
-            		word->format.spaces = (_16)spaces;
+            		word->format.spaces = (uint16_t)spaces;
                   spaces = 0;
             	}
                elipses = FALSE;
@@ -575,7 +575,7 @@ PTEXT burstEx( PTEXT input DBG_PASS )
    if( ( word = VarTextGetEx( &out DBG_OVERRIDE ) ) ) // any generic outstanding data?
    {
    	outdata = SegAdd( outdata, word );
-      word->format.spaces = (_16)spaces;
+      word->format.spaces = (uint16_t)spaces;
       spaces = 0;
    }
 
@@ -597,7 +597,7 @@ PTEXT get_line(FILE *source, int *line)
 {
    #define WORKSPACE 128  // characters for workspace
    PTEXT workline=(PTEXT)NULL,pNew;
-   _32 length = 0;
+   uint32_t length = 0;
    if( !source )
       return NULL;
    do

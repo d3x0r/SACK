@@ -22,7 +22,7 @@ struct GetDisplayParams
 	struct my_button *media;
 };
 
-static int CPROC myKeyProc( PTRSZVAL dwUser, _32 key )
+static int CPROC myKeyProc( uintptr_t dwUser, uint32_t key )
 {
 	//lprintf( "key..." );
 	if( IsKeyPressed( key ) && ( KEY_CODE( key ) == KEY_SPACE ) )
@@ -44,7 +44,7 @@ static int CPROC myKeyProc( PTRSZVAL dwUser, _32 key )
 	return 0;
 }
 
-int CPROC touchEvent( PTRSZVAL psv, PINPUT_POINT touches, int nTouches )
+int CPROC touchEvent( uintptr_t psv, PINPUT_POINT touches, int nTouches )
 {
 	if( nTouches == 1 )
 	{
@@ -126,7 +126,7 @@ int CPROC touchEvent( PTRSZVAL psv, PINPUT_POINT touches, int nTouches )
 	}
 }
 
-static PRENDERER CPROC GetDisplay( PTRSZVAL psv, _32 w, _32 h )
+static PRENDERER CPROC GetDisplay( uintptr_t psv, uint32_t w, uint32_t h )
 {
 	struct GetDisplayParams *p = (struct GetDisplayParams*)psv;
 
@@ -147,7 +147,7 @@ static PRENDERER CPROC GetDisplay( PTRSZVAL psv, _32 w, _32 h )
 		l.renderer = result = OpenDisplaySizedAt( 0 /*DISPLAY_ATTRIBUTE_LAYERED*/, w, h, l.x_ofs, l.y_ofs );
 		l.display_width = w;
 		l.display_height = h;
-		SetKeyboardHandler( result, myKeyProc, (PTRSZVAL)p->media );
+		SetKeyboardHandler( result, myKeyProc, (uintptr_t)p->media );
 		// auto hide idle mouse on this surface
 		DisableMouseOnIdle( result, TRUE );
 		SetDisplayFullScreen( result, l.full_display );
@@ -178,12 +178,12 @@ static PRENDERER CPROC GetDisplay( PTRSZVAL psv, _32 w, _32 h )
 }
 
 /* tick is from 0-1000000000  as 0-1.0 or 0-100% */
-//static void CPROC UpdateCallback( PTRSZVAL psv, _64 tick )
+//static void CPROC UpdateCallback( uintptr_t psv, uint64_t tick )
 //{
 //	UpdatePositionCallback(  psv, tick );
 //}
 
-static void CPROC VideoEndedCallback( PTRSZVAL psv )
+static void CPROC VideoEndedCallback( uintptr_t psv )
 {
 	struct my_button *me = ( struct my_button *)psv;
 	HideDisplay( me->render );
@@ -205,10 +205,10 @@ static struct my_button * PlayVideo( CTEXTSTR name )
 	{
 		params.media = me;
 
-		me->file = ffmpeg_LoadFile( name, GetDisplay, (PTRSZVAL)&params
+		me->file = ffmpeg_LoadFile( name, GetDisplay, (uintptr_t)&params
 			, NULL, 0
 			, NULL
-			, VideoEndedCallback, (PTRSZVAL)me
+			, VideoEndedCallback, (uintptr_t)me
 			, VideoPlayError );
 		if( me->file )
 		{
@@ -380,7 +380,7 @@ EndSaneWinMain()
 
 #ifdef __ANDROID__
 
-static PTRSZVAL CPROC PlayMediaThread( PTHREAD thread )
+static uintptr_t CPROC PlayMediaThread( PTHREAD thread )
 {
    char *media = (char*)GetThreadParam( thread );
 	struct my_button *video;
@@ -401,7 +401,7 @@ static PTRSZVAL CPROC PlayMediaThread( PTHREAD thread )
 // entry point from Java to play video....
 void VideoPlayer_PlayMedia( char *media )
 {
-   ThreadTo( PlayMediaThread, (PTRSZVAL)media );
+   ThreadTo( PlayMediaThread, (uintptr_t)media );
 }
 
 // generic do-nothing activity code

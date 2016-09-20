@@ -11,8 +11,8 @@ static LOCAL l;
 
 typedef struct Systray_register
 {
-	_32 _34753423; // or is it 0x23347534 ?
-	_32 NIM_msg;  // which NofityIconData message...
+	uint32_t _34753423; // or is it 0x23347534 ?
+	uint32_t NIM_msg;  // which NofityIconData message...
    NOTIFYICONDATA nid; // NotifyIconData
 } SYSTRAY_DATA, *PSYSTRAY_DATA;
 

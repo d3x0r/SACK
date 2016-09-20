@@ -10,11 +10,11 @@
 #endif
 
 
-void SendWebSocketMessage( PCLIENT pc, int opcode, int final, int do_mask, P_8 payload, size_t length )
+void SendWebSocketMessage( PCLIENT pc, int opcode, int final, int do_mask, uint8_t* payload, size_t length )
 {
-	P_8 msgout;
-	P_8 use_mask;
-	_32 zero = 0;
+	uint8_t* msgout;
+	uint8_t* use_mask;
+	uint32_t zero = 0;
 	size_t length_out = length + 2; // minimum additional is the opcode and tiny payload length (2 bytes)
 	if( ( opcode & 8 ) && ( length > 125 ) )
 	{
@@ -43,17 +43,17 @@ void SendWebSocketMessage( PCLIENT pc, int opcode, int final, int do_mask, P_8 p
 	}
 	if( do_mask )
 	{
-		static _32 newmask;
+		static uint32_t newmask;
 		newmask ^= rand() ^ ( rand() << 13 ) ^ ( rand() << 26 );
-		use_mask = (P_8)&newmask;
+		use_mask = (uint8_t*)&newmask;
 		length_out += 4; // need 4 more bytes for the mask
 	}
 	else
 	{
-		use_mask = (P_8)&zero;
+		use_mask = (uint8_t*)&zero;
 	}
 
-	msgout = NewArray( _8, length_out );
+	msgout = NewArray( uint8_t, length_out );
 	MemSet( msgout, 0x12345678, length_out );
 	msgout[0] = (final?0x80:0x00) | opcode;
 	if( length > 125 )
@@ -63,26 +63,26 @@ void SendWebSocketMessage( PCLIENT pc, int opcode, int final, int do_mask, P_8 p
 			msgout[1] = 127;
 #if __64__
 			// size_t will be 32 bits on non 64 bit builds
-			msgout[2] = (_8)(length >> 56);
-			msgout[3] = (_8)(length >> 48);
-			msgout[4] = (_8)(length >> 40);
-			msgout[5] = (_8)(length >> 32);
+			msgout[2] = (uint8_t)(length >> 56);
+			msgout[3] = (uint8_t)(length >> 48);
+			msgout[4] = (uint8_t)(length >> 40);
+			msgout[5] = (uint8_t)(length >> 32);
 #else
 			msgout[2] = 0;
 			msgout[3] = 0;
 			msgout[4] = 0;
 			msgout[5] = 0;
 #endif
-			msgout[6] = (_8)(length >> 24);
-			msgout[7] = (_8)(length >> 16);
-			msgout[8] = (_8)(length >> 8);
-			msgout[9] = (_8)length;
+			msgout[6] = (uint8_t)(length >> 24);
+			msgout[7] = (uint8_t)(length >> 16);
+			msgout[8] = (uint8_t)(length >> 8);
+			msgout[9] = (uint8_t)length;
 		}
 		else
 		{
 			msgout[1] = 126;
-			msgout[2] = (_8)(length >> 8);
-			msgout[3] = (_8)(length);
+			msgout[2] = (uint8_t)(length >> 8);
+			msgout[3] = (uint8_t)(length);
 		}
 	}
 	else
@@ -91,22 +91,22 @@ void SendWebSocketMessage( PCLIENT pc, int opcode, int final, int do_mask, P_8 p
 	{
 		int mask_offset = (length_out-length) - 4;
 		msgout[1] |= 0x80;
-		msgout[mask_offset+0] = (_8)(use_mask[3]);
-		msgout[mask_offset+1] = (_8)(use_mask[2]);
-		msgout[mask_offset+2] = (_8)(use_mask[1]);
-		msgout[mask_offset+3] = (_8)(use_mask[0]);
+		msgout[mask_offset+0] = (uint8_t)(use_mask[3]);
+		msgout[mask_offset+1] = (uint8_t)(use_mask[2]);
+		msgout[mask_offset+2] = (uint8_t)(use_mask[1]);
+		msgout[mask_offset+3] = (uint8_t)(use_mask[0]);
 		use_mask = msgout + mask_offset;
 	}
 	{
 		size_t n;
-		P_8 data_out = msgout + (length_out-length);
+		uint8_t* data_out = msgout + (length_out-length);
 		for( n = 0; n < length; n++ )
 		{
 			(*data_out++) = payload[n] ^ use_mask[n&3];
 		}
 	}
 	SendTCP( pc, msgout, length_out );
-	Deallocate( P_8, msgout );
+	Deallocate( uint8_t*, msgout );
 }
 
 
@@ -138,7 +138,7 @@ static void ResetInputState( WebSocketInputState websock )
       *  %xA denotes a pong
       *  %xB-F are reserved for further control frames
 */
-void ProcessWebSockProtocol( WebSocketInputState websock, PCLIENT pc, P_8 msg, size_t length )
+void ProcessWebSockProtocol( WebSocketInputState websock, PCLIENT pc, uint8_t* msg, size_t length )
 {
 	size_t n;
 
@@ -188,11 +188,11 @@ void ProcessWebSockProtocol( WebSocketInputState websock, PCLIENT pc, P_8 msg, s
 			}
 			break;
 
-		case 2: // byte 1, extended payload _16
+		case 2: // byte 1, extended payload uint16_t
 			websock->frame_length = msg[n] << 8;
 			websock->input_msg_state++;
 			break;
-		case 3: // byte 1, extended payload _16
+		case 3: // byte 1, extended payload uint16_t
 			websock->frame_length |= msg[3];
 
 			if( websock->mask )
@@ -201,17 +201,17 @@ void ProcessWebSockProtocol( WebSocketInputState websock, PCLIENT pc, P_8 msg, s
 				websock->input_msg_state = 16;
 			break;
 
-		case 4: // byte 1, extended payload _64
-		case 5: // byte 2, extended payload _64
-		case 6: // byte 3, extended payload _64
-		case 7: // byte 4, extended payload _64
-		case 8: // byte 5, extended payload _64
-		case 9: // byte 6, extended payload _64
-		case 10: // byte 7, extended payload _64
+		case 4: // byte 1, extended payload uint64_t
+		case 5: // byte 2, extended payload uint64_t
+		case 6: // byte 3, extended payload uint64_t
+		case 7: // byte 4, extended payload uint64_t
+		case 8: // byte 5, extended payload uint64_t
+		case 9: // byte 6, extended payload uint64_t
+		case 10: // byte 7, extended payload uint64_t
 			websock->frame_length |= msg[n] << ( ( 11 - websock->input_msg_state ) * 8 );
 			websock->input_msg_state++;
 			break;
-		case 11: // byte 8, extended payload _64
+		case 11: // byte 8, extended payload uint64_t
 			websock->frame_length |= msg[n];
 
 			if( websock->mask )
@@ -233,12 +233,12 @@ void ProcessWebSockProtocol( WebSocketInputState websock, PCLIENT pc, P_8 msg, s
 			// first byte of data, check we have enough room for the remaining bytes; the frame_length is valid now.
 			if( websock->fragment_collection_avail < ( websock->fragment_collection_length + websock->frame_length ) )
 			{
-				P_8 new_fragbuf;
+				uint8_t* new_fragbuf;
 				websock->fragment_collection_avail += websock->frame_length;
-				new_fragbuf = (P_8)Allocate( websock->fragment_collection_avail );
+				new_fragbuf = (uint8_t*)Allocate( websock->fragment_collection_avail );
 				if( websock->fragment_collection_length )
 					MemCpy( new_fragbuf, websock->fragment_collection, websock->fragment_collection_length );
-				Deallocate( P_8, websock->fragment_collection );
+				Deallocate( uint8_t*, websock->fragment_collection );
 				websock->fragment_collection = new_fragbuf;
 				websock->fragment_collection_index = 0; // start with mask byte 0 on this new packet
 			}
@@ -333,11 +333,11 @@ void ProcessWebSockProtocol( WebSocketInputState websock, PCLIENT pc, P_8 msg, s
 	}
 }
 
-void WebSocketPing( PCLIENT pc, _32 timeout )
+void WebSocketPing( PCLIENT pc, uint32_t timeout )
 {
-	_32 start_at = timeGetTime();
-	_32 target = start_at + timeout;
-	_32 now;
+	uint32_t start_at = timeGetTime();
+	uint32_t target = start_at + timeout;
+	uint32_t now;
 	struct web_socket_input_state *input_state = (struct web_socket_input_state*)GetNetworkLong( pc, 2 );
 	struct web_socket_output_state *output = (struct web_socket_output_state *)GetNetworkLong(pc, 1);
 	SendWebSocketMessage( pc, 9, 1, output->flags.expect_masking, NULL, 0 );
@@ -359,10 +359,10 @@ void WebSocketSendText( PCLIENT pc, POINTER buffer, size_t length ) // UTF8 RFC3
 		char *outbuf = WcharConvertExx( (CTEXTSTR)buffer, length DBG_SRC );
 		int real_len = CStrLen( outbuf );
 		//lprintf( WIDE( "send %s"), buffer );
-		SendWebSocketMessage( pc, output->flags.sent_type?0:1, 1, output->flags.expect_masking, (P_8)outbuf, length );
+		SendWebSocketMessage( pc, output->flags.sent_type?0:1, 1, output->flags.expect_masking, (uint8_t*)outbuf, length );
 		Deallocate( char *, outbuf );
 #else
-		SendWebSocketMessage( pc, output->flags.sent_type?0:1, 1, output->flags.expect_masking, (P_8)buffer, length );
+		SendWebSocketMessage( pc, output->flags.sent_type?0:1, 1, output->flags.expect_masking, (uint8_t*)buffer, length );
 #endif
 
 		output->flags.sent_type = 0;
@@ -373,7 +373,7 @@ void WebSocketSendText( PCLIENT pc, POINTER buffer, size_t length ) // UTF8 RFC3
 void WebSocketBeginSendText( PCLIENT pc, POINTER buffer, size_t length ) // UTF8 RFC3629
 {
    struct web_socket_output_state *output = (struct web_socket_output_state *)GetNetworkLong(pc, 1);
-   SendWebSocketMessage( pc, 1, 0, output->flags.expect_masking, (P_8)buffer, length );
+   SendWebSocketMessage( pc, 1, 0, output->flags.expect_masking, (uint8_t*)buffer, length );
    output->flags.sent_type = 1;
 
 }
@@ -382,14 +382,14 @@ void WebSocketBeginSendText( PCLIENT pc, POINTER buffer, size_t length ) // UTF8
 void WebSocketSendBinary( PCLIENT pc, POINTER buffer, size_t length )
 {
    struct web_socket_output_state *output = (struct web_socket_output_state *)GetNetworkLong(pc, 1);
-	SendWebSocketMessage( pc, output->flags.sent_type?0:2, 1, output->flags.expect_masking, (P_8)buffer, length );
+	SendWebSocketMessage( pc, output->flags.sent_type?0:2, 1, output->flags.expect_masking, (uint8_t*)buffer, length );
 }
 
 // literal binary sending; this may happen to be base64 encoded too
 void WebSocketBeginSendBinary( PCLIENT pc, POINTER buffer, size_t length )
 {
    struct web_socket_output_state *output = (struct web_socket_output_state *)GetNetworkLong(pc, 1);
-   SendWebSocketMessage( pc, 2, 0, output->flags.expect_masking, (P_8)buffer, length );
+   SendWebSocketMessage( pc, 2, 0, output->flags.expect_masking, (uint8_t*)buffer, length );
    output->flags.sent_type = 1;
 }
 

@@ -21,7 +21,7 @@ int main( void )
 	printf( "rt_init size=%ld\n", sizeof( struct rt_init ) );
 	printf( "begin=%p\n", begin );
 	printf( "end=%p\n", end );
-	printf( "extra=%ld\n", ((PTRSZVAL)end - (PTRSZVAL)begin)%sizeof( struct rt_init ) );
+	printf( "extra=%ld\n", ((uintptr_t)end - (uintptr_t)begin)%sizeof( struct rt_init ) );
 	for( current = begin; current < end; current++ )
 	{
 		printf( "Entry %p(%d) = %s %s(%d)\n"

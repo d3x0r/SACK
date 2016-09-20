@@ -3,7 +3,7 @@
 	PTASK_INFO cat;
 	PTASK_INFO awk;
 
-void HandleOutput( PTRSZVAL psv, PTASK_INFO task, CTEXTSTR line, _32 linelen )
+void HandleOutput( uintptr_t psv, PTASK_INFO task, CTEXTSTR line, uint32_t linelen )
 {
 	if( awk && task == cat )
 	{
@@ -14,7 +14,7 @@ void HandleOutput( PTRSZVAL psv, PTASK_INFO task, CTEXTSTR line, _32 linelen )
 	fprintf( stderr, "test: %s\n", line );
 }
 
-void HandleTaskEnd( PTRSZVAL psv, PTASK_INFO task )
+void HandleTaskEnd( uintptr_t psv, PTASK_INFO task )
 {
 	fprintf( stderr, "uhmm" );
 }

@@ -13,7 +13,7 @@ void ReadServer( PCLIENT pc, POINTER buffer, int size )
 	else
 	{
 		if( size == 4 )
-			toread = *(_32*)buffer;
+			toread = *(uint32_t*)buffer;
 		else
 		{
 			printf( " server %d byte packet read...", size );
@@ -32,7 +32,7 @@ void ReadClient( PCLIENT pc, POINTER buffer, int size )
 	else
 	{
     		if( size == 4 )
-    			toread = *(_32*)buffer;
+    			toread = *(uint32_t*)buffer;
 		else
 		{
 			printf( " client %d byte packet read...", size );
@@ -106,7 +106,7 @@ int main( int argc, char **argv )
 				, CloseClient, NULL );
 			if( pcSend )
 			{
-				_32 len = 32;
+				uint32_t len = 32;
 				int buf[128];
 				SetTCPNoDelay( pcSend, TRUE );
 				SendTCP( pcSend, &len, sizeof( len ) );

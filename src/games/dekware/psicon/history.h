@@ -44,14 +44,14 @@ CORECON_PROC( void, WriteHistoryToFile )( FILE *file, PHISTORY_REGION phr );
 // this routine will auto step start++...
 CORECON_PROC( PTEXT, EnumHistoryLine )( PHISTORY_BROWSER pht
 							, int *offset
-							, S_32 *length );
+							, int32_t *length );
 
 CORECON_PROC( void, SetHistoryDefaultForeground )( PHISTORY_LINE_CURSOR phc, int iColor );
 CORECON_PROC( void, SetHistoryDefaultBackground )( PHISTORY_LINE_CURSOR phc, int iColor );
 
 //int BeginHistory( PHISTORY_LINE_CURSOR cursor );
 // adjust history by offset...
-int AlignHistory( PHISTORY_BROWSER cursor, S_32 nOffset );
+int AlignHistory( PHISTORY_BROWSER cursor, int32_t nOffset );
 int HistoryNearEnd( PHISTORY_BROWSER cursor, int nLines );
 // this takes into account typing a command, and recording a macro plus the dekware object prmopt...
 int FixCommandCursor( PHISTORY_BROWSER pht, PUSER_INPUT_BUFFER CommandInfo
@@ -82,10 +82,10 @@ void SetCursorNoPrompt( PHISTORY_BROWSER phbr, LOGICAL bNoPrompt );
 // amount +/- N == pageup down
 int MoveHistoryCursor( PHISTORY_BROWSER phbr, int amount );
 
-_32 ComputeNextOffset( PTEXT segment, _32 nShown );
-//int ComputeToShow( _32 cols, PTEXT segment, int nOfs, int nShown );
-int ComputeToShow( _32 cols, PTEXT segment, _32 nLen, int nOfs, int nShown );
-int CountLinesSpanned( _32 cols, PTEXT countseg );
+uint32_t ComputeNextOffset( PTEXT segment, uint32_t nShown );
+//int ComputeToShow( uint32_t cols, PTEXT segment, int nOfs, int nShown );
+int ComputeToShow( uint32_t cols, PTEXT segment, uint32_t nLen, int nOfs, int nShown );
+int CountLinesSpanned( uint32_t cols, PTEXT countseg );
 
 void BuildDisplayInfoLines( PHISTORY_BROWSER phlc );
 
@@ -101,10 +101,10 @@ int GetCommandCursor( PHISTORY_BROWSER phbr
 						  );
 #endif
 PDATALIST *GetDisplayInfo( PHISTORY_BROWSER phbr );
-void GetHistoryCursorPos( PHISTORY_LINE_CURSOR phlc, PS_32 x, PS_32 y );
-void SetHistoryCursorPos( PHISTORY_LINE_CURSOR phlc, S_32 x, S_32 y );
-void SetHistoryPageLines( PHISTORY_BROWSER phbr, _32 nLines );
-_32 GetBrowserDistance( PHISTORY_BROWSER phbr );
+void GetHistoryCursorPos( PHISTORY_LINE_CURSOR phlc, int32_t* x, int32_t* y );
+void SetHistoryCursorPos( PHISTORY_LINE_CURSOR phlc, int32_t x, int32_t y );
+void SetHistoryPageLines( PHISTORY_BROWSER phbr, uint32_t nLines );
+uint32_t GetBrowserDistance( PHISTORY_BROWSER phbr );
 void ResetHistoryBrowser( PHISTORY_BROWSER phbr );
 
 //void SetHistoryBrowserOwnPageBreak( PHISTORY_BROWSER phbr );

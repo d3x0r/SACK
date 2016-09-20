@@ -218,7 +218,7 @@ void InitShader( void )
 }
 
 
-static void OnDraw3d( WIDE("Simple Shader Array") )( PTRSZVAL psvView )
+static void OnDraw3d( WIDE("Simple Shader Array") )( uintptr_t psvView )
 //static int OnDrawCommon( WIDE("Terrain View") )( PSI_CONTROL pc )
 {
 	int result;
@@ -301,11 +301,11 @@ static void OnDraw3d( WIDE("Simple Shader Array") )( PTRSZVAL psvView )
 	}
 }
 
-static void OnBeginDraw3d( WIDE( "Simple Shader Array" ) )( PTRSZVAL psv,PTRANSFORM camera )
+static void OnBeginDraw3d( WIDE( "Simple Shader Array" ) )( uintptr_t psv,PTRANSFORM camera )
 {
 }
 
-static void OnFirstDraw3d( WIDE( "Simple Shader Array" ) )( PTRSZVAL psvInit )
+static void OnFirstDraw3d( WIDE( "Simple Shader Array" ) )( uintptr_t psvInit )
 {
 	// and really if initshader fails, it sets up in local flags and 
 	// states to make sure we just fall back to the old way.
@@ -321,9 +321,9 @@ static void OnFirstDraw3d( WIDE( "Simple Shader Array" ) )( PTRSZVAL psvInit )
 
 }
 
-static PTRSZVAL OnInit3d( WIDE( "Simple Shader Array" ) )( PMatrix projection, PTRANSFORM camera, RCOORD *identity_depth, RCOORD *aspect )
+static uintptr_t OnInit3d( WIDE( "Simple Shader Array" ) )( PMatrix projection, PTRANSFORM camera, RCOORD *identity_depth, RCOORD *aspect )
 {
 	// keep the camera as a 
-	return (PTRSZVAL)camera;
+	return (uintptr_t)camera;
 }
 

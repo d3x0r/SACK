@@ -20,7 +20,7 @@ typedef struct global_tag {
 		BIT_FIELD bShowInverted : 1;
 	}flags;
 
-	_32 tick_to_switch;
+	uint32_t tick_to_switch;
 
 	int show_time; // how long to show the iamge after fading in.
    int fade_in; // how long fade out is..
@@ -39,7 +39,7 @@ static GLOBAL g;
 Image imgGraphic;
 //Image surface;
 
-_32 width, height;
+uint32_t width, height;
 #define MAX_STEPS 16
 int _ix[MAX_STEPS], _iy[MAX_STEPS];
 int _n;
@@ -50,7 +50,7 @@ int not_first;
 
 
 
-void CPROC Output( PTRSZVAL psv, PRENDERER display )
+void CPROC Output( uintptr_t psv, PRENDERER display )
 {
 	if( g.is_up[psv] )
 	{
@@ -67,12 +67,12 @@ void CPROC Output( PTRSZVAL psv, PRENDERER display )
 
 int target_out;
 INDEX current_image;
-_32 target_in;
-_32 target_in_start;
+uint32_t target_in;
+uint32_t target_in_start;
 
-void CPROC tick( PTRSZVAL psv )
+void CPROC tick( uintptr_t psv )
 {
-	_32 now = GetTickCount();
+	uint32_t now = GetTickCount();
 
 	if( target_in_start )
 	{
@@ -127,7 +127,7 @@ SaneWinMain(argc, argv )
 {
 	int x = 0;
 	int y = 0;
-	_32 width, height;
+	uint32_t width, height;
 	int w, h;
 	g.pdi = GetDisplayInterface();
 	g.pii = GetImageInterface();

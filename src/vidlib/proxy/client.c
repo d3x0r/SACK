@@ -13,22 +13,22 @@ static void HandleMessage( PCLIENT pc, struct common_message*msg, size_t size );
 
 static void ReplayMessages( struct client_proxy_image *image )
 {
-	P_8 start = image->buffer;
+	uint8_t* start = image->buffer;
 	size_t offset = 0;
 	while( offset < image->sendlen )
 	{
-		_32 length = ((_32*)(start + offset))[0];
+		uint32_t length = ((uint32_t*)(start + offset))[0];
 		HandleMessage( NULL, (struct common_message*)(start + offset + 4), length );
 		offset += length;
 	}
 }
 
-static void CPROC RedrawEvent( PTRSZVAL psv, PRENDERER r )
+static void CPROC RedrawEvent( uintptr_t psv, PRENDERER r )
 {
 	size_t sendlen;
 	struct common_message *outmsg;
 	// often used; sometimes unused...
-	_8 *msg;
+	uint8_t *msg;
 	struct client_proxy_render *render = (struct client_proxy_render *)psv;
 
 	{
@@ -42,8 +42,8 @@ static void CPROC RedrawEvent( PTRSZVAL psv, PRENDERER r )
 
 	if( !render->flags.opening && 0 )
 	{
-		msg = NewArray( _8, sendlen = ( 4 + 1 + sizeof( struct close_display_data ) ) );
-		((_32*)msg)[0] = (_32)(sendlen - 4);
+		msg = NewArray( uint8_t, sendlen = ( 4 + 1 + sizeof( struct close_display_data ) ) );
+		((uint32_t*)msg)[0] = (uint32_t)(sendlen - 4);
 		outmsg = (struct common_message*)(msg + 4);
 		outmsg->message_id = PMID_Event_Redraw;
 		outmsg->data.close_display.server_display_id = render->id;
@@ -53,7 +53,7 @@ static void CPROC RedrawEvent( PTRSZVAL psv, PRENDERER r )
 	UpdateDisplay( render->render );
 }
 
-static PTRSZVAL CPROC EventThread( PTHREAD thread )
+static uintptr_t CPROC EventThread( PTHREAD thread )
 {
 	while( 1 )
 	{
@@ -68,14 +68,14 @@ static PTRSZVAL CPROC EventThread( PTHREAD thread )
 	return 0;
 }
 
-static int CPROC MouseEvent( PTRSZVAL psv, S_32 x, S_32 y, _32 b )
+static int CPROC MouseEvent( uintptr_t psv, int32_t x, int32_t y, uint32_t b )
 {
 	size_t sendlen;
-	struct event_msg *event = (struct event_msg*)NewArray( _8, sizeof( PCLIENT ) + ( sendlen = ( 4 + 1 + sizeof( struct mouse_event_data ) ) ) );
+	struct event_msg *event = (struct event_msg*)NewArray( uint8_t, sizeof( PCLIENT ) + ( sendlen = ( 4 + 1 + sizeof( struct mouse_event_data ) ) ) );
 	struct common_message *outmsg = &event->msg;
 	struct client_proxy_render *render = (struct client_proxy_render *)psv;
 	event->pc = render->pc;
-	event->sendlen = (_32)(sendlen - 4);
+	event->sendlen = (uint32_t)(sendlen - 4);
 	outmsg->message_id = PMID_Event_Mouse;
 	outmsg->data.mouse_event.server_render_id = render->id;
 	outmsg->data.mouse_event.x = x;
@@ -88,14 +88,14 @@ static int CPROC MouseEvent( PTRSZVAL psv, S_32 x, S_32 y, _32 b )
 	return 1;
 }
 
-static int CPROC KeyEvent( PTRSZVAL psv, _32 key )
+static int CPROC KeyEvent( uintptr_t psv, uint32_t key )
 {
 	size_t sendlen;
-	struct event_msg *event = (struct event_msg*)NewArray( _8, sizeof( PCLIENT ) + ( sendlen = ( 4 + 1 + sizeof( struct key_event_data ) ) ) );
+	struct event_msg *event = (struct event_msg*)NewArray( uint8_t, sizeof( PCLIENT ) + ( sendlen = ( 4 + 1 + sizeof( struct key_event_data ) ) ) );
 	struct common_message *outmsg = &event->msg;
 	struct client_proxy_render *render = (struct client_proxy_render *)psv;
 	event->pc = render->pc;
-	event->sendlen = (_32)(sendlen - 4);
+	event->sendlen = (uint32_t)(sendlen - 4);
 	outmsg->message_id = PMID_Event_Key;
 	outmsg->data.mouse_event.server_render_id = render->id;
 	outmsg->data.key_event.key = KEY_CODE( key );
@@ -107,14 +107,14 @@ static int CPROC KeyEvent( PTRSZVAL psv, _32 key )
 	return 1;
 }
 
-static P_8 GetMessageBuf( struct client_proxy_image * image, POINTER buffer, size_t size )
+static uint8_t* GetMessageBuf( struct client_proxy_image * image, POINTER buffer, size_t size )
 {
-	P_8 resultbuf;
+	uint8_t* resultbuf;
 	if( ( image->buf_avail ) <= ( 4 + size + image->sendlen ) )
 	{
-		P_8 newbuf;
+		uint8_t* newbuf;
 		image->buf_avail += size + 256;
-		newbuf = NewArray( _8, image->buf_avail );
+		newbuf = NewArray( uint8_t, image->buf_avail );
 		if( image->buffer )
 		{
 			MemCpy( newbuf, image->buffer, image->sendlen );
@@ -123,8 +123,8 @@ static P_8 GetMessageBuf( struct client_proxy_image * image, POINTER buffer, siz
 		image->buffer = newbuf;
 	}
 	resultbuf = image->buffer + image->sendlen;
-	((_32*)resultbuf)[0] = size + 4;
-	MemCpy( ((_32*)resultbuf) + 1, buffer, size );
+	((uint32_t*)resultbuf)[0] = size + 4;
+	MemCpy( ((uint32_t*)resultbuf) + 1, buffer, size );
 	image->sendlen += size + 4;
 	return resultbuf;
 }
@@ -194,9 +194,9 @@ void HandleMessage( PCLIENT pc, struct common_message*msg, size_t size )
 					                            , (PRENDERER)GetLink( &l.renderers, msg->data.opendisplay_data.over )
 					                            , (PRENDERER)GetLink( &l.renderers, msg->data.opendisplay_data.under )
 					                            ); 
-			SetMouseHandler( render->render, MouseEvent, (PTRSZVAL)render );
-			SetKeyboardHandler( render->render, KeyEvent, (PTRSZVAL)render );
-			SetRedrawHandler( render->render, RedrawEvent, (PTRSZVAL)render );
+			SetMouseHandler( render->render, MouseEvent, (uintptr_t)render );
+			SetKeyboardHandler( render->render, KeyEvent, (uintptr_t)render );
+			SetRedrawHandler( render->render, RedrawEvent, (uintptr_t)render );
 			SetLink( &l.renderers, msg->data.opendisplay_data.server_display_id, render );
 
 			RestoreDisplay( render->render );
@@ -322,7 +322,7 @@ void HandleMessage( PCLIENT pc, struct common_message*msg, size_t size )
             lprintf( WIDE( "already had some data collected... %d %d"), image->in_buflen, image->in_buf_avail );
 				if( ( image->in_buflen + size ) > image->in_buf_avail )
 				{
-					_8 *newbuf = NewArray( _8, image->in_buflen + size );
+					uint8_t *newbuf = NewArray( uint8_t, image->in_buflen + size );
 					MemCpy( newbuf, image->in_buffer, image->in_buflen );
 					MemCpy( newbuf + image->in_buflen, msg->data.image_data.data, size - ( sizeof( struct image_data_data ) ) );
 					image->in_buf_avail = image->in_buflen + size;
@@ -357,7 +357,7 @@ void HandleMessage( PCLIENT pc, struct common_message*msg, size_t size )
          image->in_buflen = 0;
 			if( ( image->in_buflen + size ) > image->in_buf_avail )
 			{
-				_8 *newbuf = NewArray( _8, image->in_buflen + size );
+				uint8_t *newbuf = NewArray( uint8_t, image->in_buflen + size );
 				MemCpy( newbuf, image->in_buffer, image->in_buflen );
 				MemCpy( newbuf + image->in_buflen, msg->data.image_data.data, size - ( sizeof( struct image_data_data ) ) );
             image->in_buf_avail = image->in_buflen + size;
@@ -372,7 +372,7 @@ void HandleMessage( PCLIENT pc, struct common_message*msg, size_t size )
 			struct client_proxy_image *image = (struct client_proxy_image *)GetLink( &l.images, msg->data.blatcolor.server_image_id );
 			if( ( image->in_buflen + size ) > image->in_buf_avail )
 			{
-				_8 *newbuf = NewArray( _8, image->in_buflen + size );
+				uint8_t *newbuf = NewArray( uint8_t, image->in_buflen + size );
 				MemCpy( newbuf, image->in_buffer, image->in_buflen );
 				MemCpy( newbuf + image->in_buflen, msg->data.image_data.data, size - ( sizeof( struct image_data_data ) ) );
             image->in_buf_avail = image->in_buflen + size;
@@ -470,8 +470,8 @@ static void CPROC SocketRead( PCLIENT pc, POINTER buffer, size_t size )
 		state = New(struct client_socket_state);
 		MemSet( state, 0, sizeof( struct client_socket_state ) );
 		state->flags.get_length = 1;
-		state->buffer = NewArray( _8, 16024 );
-		SetNetworkLong( pc, 0, (PTRSZVAL)state );
+		state->buffer = NewArray( uint8_t, 16024 );
+		SetNetworkLong( pc, 0, (uintptr_t)state );
 	}
 	else
 	{

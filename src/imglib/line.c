@@ -39,8 +39,8 @@ extern "C" {
 #define FIX_SHIFT 18
 #define ROUND_ERROR ( ( 1<< ( FIX_SHIFT - 1 ) ) - 1 )
 
-void CPROC do_line( Image pImage, S_32 x1, S_32 y1
-                            , S_32 x2, S_32 y2, CDATA d )
+void CPROC do_line( Image pImage, int32_t x1, int32_t y1
+                            , int32_t x2, int32_t y2, CDATA d )
 {
    int err, delx, dely, len, inc;
    if( !pImage || !pImage->image ) return;
@@ -114,8 +114,8 @@ void CPROC do_line( Image pImage, S_32 x1, S_32 y1
    }
 }
 
-void CPROC do_lineAlpha( Image pImage, S_32 x1, S_32 y1
-                            , S_32 x2, S_32 y2, CDATA d )
+void CPROC do_lineAlpha( Image pImage, int32_t x1, int32_t y1
+                            , int32_t x2, int32_t y2, CDATA d )
 {
    int err, delx, dely, len, inc;
    if( !pImage || !pImage->image ) return;
@@ -189,9 +189,9 @@ void CPROC do_lineAlpha( Image pImage, S_32 x1, S_32 y1
    }
 }
 
-void CPROC do_lineExV( Image pImage, S_32 x1, S_32 y1
-                            , S_32 x2, S_32 y2, PTRSZVAL d
-                            , void (*func)(Image pif, S_32 x, S_32 y, PTRSZVAL d ) )
+void CPROC do_lineExV( Image pImage, int32_t x1, int32_t y1
+                            , int32_t x2, int32_t y2, uintptr_t d
+                            , void (*func)(Image pif, int32_t x, int32_t y, uintptr_t d ) )
 {
    int err, delx, dely, len, inc;
    //if( !pImage || !pImage->image ) return;
@@ -265,7 +265,7 @@ void CPROC do_lineExV( Image pImage, S_32 x1, S_32 y1
    }
 }
 
-void CPROC do_hline( Image pImage, S_32 y, S_32 xfrom, S_32 xto, CDATA color )
+void CPROC do_hline( Image pImage, int32_t y, int32_t xfrom, int32_t xto, CDATA color )
 {
    PCDATA po;
    int len;
@@ -304,7 +304,7 @@ void CPROC do_hline( Image pImage, S_32 y, S_32 xfrom, S_32 xto, CDATA color )
    }
 }
 
-void CPROC do_vline( Image pImage, S_32 x, S_32 yfrom, S_32 yto, CDATA color )
+void CPROC do_vline( Image pImage, int32_t x, int32_t yfrom, int32_t yto, CDATA color )
 {
    PCDATA po;
    int oo;
@@ -343,7 +343,7 @@ void CPROC do_vline( Image pImage, S_32 x, S_32 yfrom, S_32 yto, CDATA color )
    }
 }
 
-void CPROC do_hlineAlpha( Image pImage, S_32 y, S_32 xfrom, S_32 xto, CDATA color )
+void CPROC do_hlineAlpha( Image pImage, int32_t y, int32_t xfrom, int32_t xto, CDATA color )
 {
    PCDATA po;
    int len;
@@ -374,7 +374,7 @@ void CPROC do_hlineAlpha( Image pImage, S_32 y, S_32 xfrom, S_32 xto, CDATA colo
    }
 }
 
-void CPROC do_vlineAlpha( Image pImage, S_32 x, S_32 yfrom, S_32 yto, CDATA color )
+void CPROC do_vlineAlpha( Image pImage, int32_t x, int32_t yfrom, int32_t yto, CDATA color )
 {
    PCDATA po;
    int oo;

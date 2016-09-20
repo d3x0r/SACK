@@ -445,7 +445,7 @@ But WHO doesn't have stdint?  BTW is sizeof( size_t ) == sizeof( void* )
 #define PREFIX_PACKED 
 
 // private thing left as a note, and forgotten.  some compilers did not define offsetof
-#define my_offsetof( ppstruc, member ) ((PTRSZVAL)&((*ppstruc)->member)) - ((PTRSZVAL)(*ppstruc))
+#define my_offsetof( ppstruc, member ) ((uintptr_t)&((*ppstruc)->member)) - ((uintptr_t)(*ppstruc))
 
 
 SACK_NAMESPACE
@@ -656,10 +656,10 @@ SACK_NAMESPACE
 #define FILELINE_VOIDSRC     (CTEXTSTR)_WIDE(__FILE__), __LINE__ 
 //#define FILELINE_LEADSRC     (CTEXTSTR)_WIDE(__FILE__), __LINE__, 
 /* specify a consistant macro to define file and line parameters, to functions with otherwise void param lists.  This are appended parameters, and common usage is to only use these with _DEBUG set. */
-#define FILELINE_VOIDPASS    CTEXTSTR pFile, _32 nLine
-//#define FILELINE_LEADPASS    CTEXTSTR pFile, _32 nLine, 
+#define FILELINE_VOIDPASS    CTEXTSTR pFile, uint32_t nLine
+//#define FILELINE_LEADPASS    CTEXTSTR pFile, uint32_t nLine, 
 /* specify a consistant macro to define file and line parameters.   This are appended parameters, and common usage is to only use these with _DEBUG set. */
-#define FILELINE_PASS        , CTEXTSTR pFile, _32 nLine
+#define FILELINE_PASS        , CTEXTSTR pFile, uint32_t nLine
 /* specify a consistant macro to forward file and line parameters.   This are appended parameters, and common usage is to only use these with _DEBUG set. */
 #define FILELINE_RELAY       , pFile, nLine
 /* specify a consistant macro to forward file and line parameters, to functions which have void parameter lists without this information.  This are appended parameters, and common usage is to only use these with _DEBUG set. */
@@ -673,7 +673,7 @@ SACK_NAMESPACE
   usage
     FILELINE_VARSRC: // declare pFile and nLine variables.
 	*/
-#define FILELINE_VARSRC       CTEXTSTR pFile = _WIDE(__FILE__); _32 nLine = __LINE__
+#define FILELINE_VARSRC       CTEXTSTR pFile = _WIDE(__FILE__); uint32_t nLine = __LINE__
 
 // this is for passing FILE, LINE information to allocate
 // useful during DEBUG phases only...
@@ -978,73 +978,77 @@ SACK_NAMESPACE
 #define P_0 void*
 #ifdef __cplusplus_cli
 // long is 32, int is 64
-#define _32 unsigned long
+#define uint32_t unsigned long
 #else
-#define _32 unsigned int
+#define uint32_t unsigned int
 #endif
-#define  _8   unsigned char      
-#define  P_8   _8               *
-#define  _16   unsigned short    
-#define  P_16   _16              *
-#define  P_32  _32             *
-#define  PC_32  const _32      *
-#define  S_8 signed   char     
-#define  PS_8 S_8             *
-#define  S_16 signed   short   
-#define  PS_16 S_16           *
-#define  S_32 signed   long    
-#define  PS_32 S_32           *
+#define  uint8_t   unsigned char      
+#define  uint8_t*   uint8_t               *
+#define  uint16_t   unsigned short    
+#define  uint16_t*   uint16_t              *
+#define  uint32_t*  uint32_t             *
+#define  PC_32  const uint32_t      *
+#define  int8_t signed   char     
+#define  PS_8 int8_t             *
+#define  int16_t signed   short   
+#define  PS_16 int16_t           *
+#define  int32_t signed   long    
+#define  int32_t* int32_t           *
 #define  X_8 char              
 #define  PX_8 char            *
 #else
 */
 /* the only type other than when used in a function declaration that void is valid is as a pointer to void. no _0 type exists (it does, but it's in vectlib, and is an origin vector)*/
 typedef void             *P_0;
+#if 0
 /* portability type for porting legacy 16 bit applications. Would
    be otherwise defined in stdint.h as uint16_t                   */
-typedef unsigned char      _8;
+typedef unsigned char      uint8_t;
 /* Would be otherwise defined in stdint.h as uint8_t*                   */
-typedef _8               *P_8;
+typedef uint8_t               *uint8_t*;
 /* Would be otherwise defined in stdint.h as uint16_t                   */
-typedef unsigned short    _16;
+typedef unsigned short    uint16_t;
 /* Would be otherwise defined in stdint.h as uint16_t*                   */
-typedef _16             *P_16;
+typedef uint16_t             *uint16_t*;
 #if defined( HAS_STDINT )
 /* An unsigned integer type that is 32 bits long. */
 #  ifdef WIN32
-// _32 needs to be compatible with DWORD and 'unsigned' while a 32 bit type, is not the same...
+// uint32_t needs to be compatible with DWORD and 'unsigned' while a 32 bit type, is not the same...
 // too many warnings; would require typecasts which would hide future problems.
-typedef unsigned long      _32;
+typedef unsigned long      uint32_t;
 #  else
-typedef uint32_t           _32;
+typedef uint32_t           uint32_t;
 #  endif
 #elif defined( __WATCOMC__ ) || (1)
 /* An unsigned integer type that is 32 bits long. */
-typedef unsigned long      _32;
+typedef unsigned long      uint32_t;
 #endif
 /* An pointer to an unsigned integer type that is 32 bits long. */
-typedef _32             *P_32;
+typedef uint32_t             *uint32_t*;
 /* An pointer to a volatile unsigned integer type that is 32 bits long. */
-typedef volatile _32             *PV_32;
+typedef volatile uint32_t             *volatile uint32_t*;
 /* An pointer to a constant unsigned integer type that is 32 bits long. */
-typedef const _32      *PC_32;
+typedef const uint32_t      *PC_32;
 /* A signed integer type that is 8 bits long. */
-typedef signed   char     S_8;
+typedef signed   char     int8_t;
 /* An pointer to a signed integer type that is 8 bits long. */
-typedef S_8             *PS_8;
+typedef int8_t             *PS_8;
 /* A signed integer type that is 16 bits long. */
-typedef signed   short   S_16;
+typedef signed   short   int16_t;
 /* An pointer to a signed integer type that is 16 bits long. */
-typedef S_16           *PS_16;
+typedef int16_t           *PS_16;
 #ifdef __LINUX64__
 /* A signed integer type that is 32 bits long. */
-typedef signed   int     S_32;
+typedef signed   int     int32_t;
 #else
 /* A signed integer type that is 32 bits long. */
-typedef signed   long    S_32;
+typedef signed   long    int32_t;
 #endif
 /* A pointer to a signed integer type that is 32 bits long. */
-typedef S_32           *PS_32;
+typedef int32_t           *int32_t*;
+#endif
+
+
 /* A character type, it is not signed or unsigned. */
 typedef char              X_8;
 /* A pointer to character type, it is not signed or unsigned. */
@@ -1053,7 +1057,7 @@ typedef char            *PX_8;
 /*
  * several compilers are rather picky about the types of data
  * used for bit field declaration, therefore this type
- * should be used instead of _32
+ * should be used instead of uint32_t
  */
 typedef unsigned int  BIT_FIELD;
 // have to do this on a per structure basis - otherwise
@@ -1063,39 +1067,40 @@ typedef unsigned int  BIT_FIELD;
 #define PACKED
 #endif
 
+#if 0
 #if defined( HAS_STDINT )
 /* An unsigned integer type that is 64 bits long. */
-typedef uint64_t _64;
+typedef uint64_t uint64_t;
 /* A signed integer type that is 64 bits long. */
-typedef int64_t  S_64;
+typedef int64_t  int64_t;
 #else 
 #    if ( __64__ )
 #       if( WIN32 )
 /* An unsigned integer type that is 64 bits long. */
-typedef unsigned long long _64;
+typedef unsigned long long uint64_t;
 /* A signed integer type that is 64 bits long. */
-typedef long long  S_64;
+typedef long long  int64_t;
 #       else
 /* An unsigned integer type that is 64 bits long. */
-typedef unsigned long _64;
+typedef unsigned long uint64_t;
 /* A signed integer type that is 64 bits long. */
-typedef long  S_64;
+typedef long  int64_t;
 #       endif( WIN32 )
 #    else
 /* An unsigned integer type that is 64 bits long. */
-typedef unsigned long long _64;
+typedef unsigned long long uint64_t;
 /* A signed integer type that is 64 bits long. */
-typedef long long  S_64;
+typedef long long  int64_t;
 #    endif
 #endif
 /* A pointer to an unsigned integer type that is 64 bits long. */
-typedef _64 *P_64;
+typedef uint64_t *P_64;
 /* A pointer to a signed integer type that is 64 bits long. */
-typedef S_64 *PS_64;
-
+typedef int64_t *int64_t*;
+#endif
 
 //#if defined( __64__ )
-/* see PTRSZVAL this just has more letters. */
+/* see uintptr_t this just has more letters. */
 typedef uintptr_t             PTRSIZEVAL;
 /* This is an unsigned integer type that has the same length as
    a pointer, so that simple byte offset calculations can be
@@ -1105,9 +1110,9 @@ typedef uintptr_t             PTRSIZEVAL;
    should be 0, and no offset should apply. So translation of
    pointers to integer types allows greater flexibility without
    relying on compiler features which may not exist.             */
-typedef uintptr_t             PTRSZVAL;
+//typedef uintptr_t             uintptr_t;
 //#else
-/* see PTRSZVAL this just has more letters. */
+/* see uintptr_t this just has more letters. */
 //typedef size_t             PTRSIZEVAL;
 /* This is an unsigned integer type that has the same length as
    a pointer, so that simple byte offset calculations can be
@@ -1117,13 +1122,13 @@ typedef uintptr_t             PTRSZVAL;
    should be 0, and no offset should apply. So translation of
    pointers to integer types allows greater flexibility without
    relying on compiler features which may not exist.             */
-//typedef size_t             PTRSZVAL;
+//typedef size_t             uintptr_t;
 //#endif
 
 /* An pointer to a volatile unsigned integer type that is 64 bits long. */
-typedef volatile _64  *PV_64;
+//typedef volatile uint64_t  *volatile int64_t*;
 /* An pointer to a volatile pointer size type that is as long as a pointer. */
-typedef volatile PTRSZVAL        *PVPTRSZVAL;
+typedef volatile uintptr_t        *PVPTRSZVAL;
 
 /* an unsigned type meant to index arrays.  (By convention, arrays are not indexed negatively.)  An index which is not valid is INVALID_INDEX, which equates to 0xFFFFFFFFUL or negative one cast as an INDEX... ((INDEX)-1). */
 typedef size_t         INDEX;
@@ -1133,7 +1138,7 @@ typedef size_t         INDEX;
 #ifdef __CYGWIN__
 typedef unsigned short wchar_t;
 #endif
-// may consider changing this to P_16 for unicode...
+// may consider changing this to uint16_t* for unicode...
 typedef wchar_t X_16;
 /* This is a pointer to wchar_t. A 16 bit value that is
    character data, and is not signed or unsigned.       */
@@ -1185,7 +1190,7 @@ typedef char            TEXTCHAR;
 #endif
 /* a character rune.  Strings should be interpreted as UTF-8 or 16 depending on UNICODE compile option.
    GetUtfChar() from strings.  */
-typedef _32             TEXTRUNE;
+typedef uint32_t             TEXTRUNE;
 
 
 //typedef enum { FALSE, TRUE } LOGICAL; // smallest information
@@ -1198,7 +1203,7 @@ typedef _32             TEXTRUNE;
 /* Meant to hold boolean and only boolean values. Should be
    implemented per-platform as appropriate for the bool type the
    compiler provides.                                            */
-typedef _32 LOGICAL;
+typedef uint32_t LOGICAL;
 
 /* This is a pointer. It is a void*. It is meant to point to a
    single thing, and cannot be used to reference arrays of bytes
@@ -1432,11 +1437,11 @@ SACK_NAMESPACE
 // This should be for several years a
 // sufficiently large type to represent
 // threads and processes.
-typedef _64 THREAD_ID;
+typedef uint64_t THREAD_ID;
 #define GetMyThreadIDNL GetMyThreadID
 
 #if defined( _WIN32 ) || defined( __CYGWIN__ )
-#define _GetMyThreadID()  ( (( ((_64)GetCurrentProcessId()) << 32 ) | ( (_64)GetCurrentThreadId() ) ) )
+#define _GetMyThreadID()  ( (( ((uint64_t)GetCurrentProcessId()) << 32 ) | ( (uint64_t)GetCurrentThreadId() ) ) )
 #define GetMyThreadID()  (GetThisThreadID())
 #else
 // this is now always the case
@@ -1446,12 +1451,12 @@ typedef _64 THREAD_ID;
 #endif
 #ifdef GETPID_RETURNS_PPID
 #ifdef __ANDROID__
-#define GetMyThreadID()  (( ((_64)getpid()) << 32 ) | ( (_64)(gettid()) ) )
+#define GetMyThreadID()  (( ((uint64_t)getpid()) << 32 ) | ( (uint64_t)(gettid()) ) )
 #else
-#define GetMyThreadID()  (( ((_64)getpid()) << 32 ) | ( (_64)(pthread_self()) ) )
+#define GetMyThreadID()  (( ((uint64_t)getpid()) << 32 ) | ( (uint64_t)(pthread_self()) ) )
 #endif
 #else
-#define GetMyThreadID()  (( ((_64)getppid()) << 32 ) | ( (_64)(getpid()|0x40000000)) )
+#define GetMyThreadID()  (( ((uint64_t)getppid()) << 32 ) | ( (uint64_t)(getpid()|0x40000000)) )
 #endif
 #define _GetMyThreadID GetMyThreadID
 #endif
@@ -1547,7 +1552,7 @@ node->me = &thing->next;     \
 
 
 /* the default type to use for flag sets - flag sets are arrays of bits which can be toggled on and off by an index. */
-#define FLAGSETTYPE _32
+#define FLAGSETTYPE uint32_t
 /* the number of bits a specific type is.
    Example
    int bit_size_int = FLAGTYPEBITS( int ); */
@@ -1572,12 +1577,12 @@ node->me = &thing->next;     \
 // 32 bits max for range on mask
 #define MASK_MAX_LENGTH 32
 // gives a 32 bit mask possible from flagset..
-#define MASKSET_READTYPE _32 
+#define MASKSET_READTYPE uint32_t 
 // gives byte index...
-#define MASKSETTYPE _8  
+#define MASKSETTYPE uint8_t  
 /* how many bits the type specified can hold
    Parameters
-   t :  data type to measure (int, _32, ... ) */
+   t :  data type to measure (int, uint32_t, ... ) */
 #define MASKTYPEBITS(t) (sizeof(t)*CHAR_BIT)
 /* the maximum number of bits storable in a type */
 #define MASK_MAX_TYPEBITS(t) (sizeof(t)*CHAR_BIT)
@@ -1609,7 +1614,7 @@ node->me = &thing->next;     \
 #define MASKSET(v,n,r)  MASKSETTYPE  (v)[(((n)*(r))+MASK_MAX_ROUND())/MASKTYPEBITS(MASKSETTYPE)]; const int v##_mask_size = r;
 // set a field index to a value
 #define SETMASK(v,n,val)    (((MASKSET_READTYPE*)((v)+((n)*(v##_mask_size))/MASKTYPEBITS((v)[0])))[0] =    \
-( ((MASKSET_READTYPE*)((v)+((n)*(v##_mask_size))/MASKTYPEBITS(_8)))[0]                                 \
+( ((MASKSET_READTYPE*)((v)+((n)*(v##_mask_size))/MASKTYPEBITS(uint8_t)))[0]                                 \
  & (~(MASK_MASK(n,v##_mask_size))) )                                                                           \
 	| MASK_MASK_VAL(n,v##_mask_size,val) )
 // get the value of a field
@@ -1630,16 +1635,16 @@ _CONTAINER_NAMESPACE
 typedef struct SimpleDataBlock {
    size_t size;/* unsigned size; size is sometimes a pointer value... this
                     means bad thing when we change platforms... Defined as
-                    PTRSZVAL now, so it's relative to the size of the platform
+                    uintptr_t now, so it's relative to the size of the platform
                     anyhow.                                                    */
 #ifdef _MSC_VER
 #pragma warning (disable:4200)
 #endif
-   _8  data[
+   uint8_t  data[
 #ifndef __cplusplus 
    1
 #endif
-   ]; // beginning of var data - this is created size+sizeof(_8)
+   ]; // beginning of var data - this is created size+sizeof(uint8_t)
 #ifdef _MSC_VER
 #pragma warning (default:4200)
 #endif
@@ -1696,11 +1701,11 @@ struct DataBlock
 	INDEX     Avail;
 	/* A simple exchange lock on the data for insert and delete. For
 	   thread safety.                                                */
-	//volatile _32     Lock;
+	//volatile uint32_t     Lock;
 	/* How big each element of the array is. */
 	INDEX     Size;
 	/* The physical array. */
-	_8      data[1];
+	uint8_t      data[1];
 };
 _DATALIST_NAMESPACE_END
 
@@ -1719,9 +1724,9 @@ typedef struct LinkStack
 	INDEX     Cnt;
 	/* thread interlock using InterlockedExchange semaphore. For
 	                  thread safety.                                            */
-	//volatile _32     Lock;
+	//volatile uint32_t     Lock;
 	/*  a defined maximum capacity of stacked values... values beyond this are lost from the bottom  */
-	_32     Max;
+	uint32_t     Max;
 	/* Reserved data portion that stores the pointers. */
 	POINTER pNode[1];
 } LINKSTACK, *PLINKSTACK;
@@ -1740,11 +1745,11 @@ typedef struct DataListStack
 	                all messages, unless they are network)
 	                                                                             */
 	INDEX     Cnt; // How many elements are on the stack. 
-	//volatile _32     Lock;  /* thread interlock using InterlockedExchange semaphore. For
+	//volatile uint32_t     Lock;  /* thread interlock using InterlockedExchange semaphore. For
 	//                  thread safety.                                            */
 	INDEX     Size; /* Size of each element in the stack. */
 	INDEX     Max; /* maximum elements in the stack */
-	_8      data[1]; /* The actual data area of the stack.  */
+	uint8_t      data[1]; /* The actual data area of the stack.  */
 } DATASTACK, *PDATASTACK;
 
 /* A queue which contains pointers to user objects. If the queue
@@ -1764,7 +1769,7 @@ typedef struct LinkQueue
 	/* thread interlock using InterlockedExchange semaphore. For
 	   thread safety.                                            */
 #if USE_CUSTOM_ALLOCER
-	volatile _32     Lock;
+	volatile uint32_t     Lock;
 #endif
 	POINTER pNode[2]; // need two to have distinct empty/full conditions
 } LINKQUEUE, *PLINKQUEUE;
@@ -1790,14 +1795,14 @@ typedef struct DataQueue
 	   and a new queue returned.                                    */
 	INDEX     Cnt;
 	/* thread interlock using InterlockedExchange semaphore */
-	//volatile _32     Lock;
+	//volatile uint32_t     Lock;
 	/* How big each element in the queue is. */
 	INDEX     Size;
 	/* How many elements to expand the queue by, when its capacity
 	   is reached.                                                 */
 	INDEX     ExpandBy;
 	/* The data area of the queue. */
-	_8      data[1];
+	uint8_t      data[1];
 } DATAQUEUE, *PDATAQUEUE;
 
 /* A mostly obsolete function, but can return the status of

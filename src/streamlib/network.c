@@ -14,9 +14,9 @@ extern GLOBAL g;
 typedef struct frame_collect_tag {
 	INDEX length;
    INDEX real_length;
-	P_8 bitstream;
+	uint8_t* bitstream;
    INDEX seg_count;
-	_32 *segments;
+	uint32_t *segments;
 } FRAME_COLLECT, *PFRAME_COLLECT;
 
 //#define PACKET_SIZE (1472 - (sizeof( PORTION ) ))
@@ -35,7 +35,7 @@ typedef struct portion_tag {
 typedef struct frame_portion_tag
 {
 	INDEX frame;
-	_32 time;
+	uint32_t time;
    PLIST portions;
 } FRAME_PORTION, *PFRAME_PORTION;
 
@@ -62,7 +62,7 @@ void InitCollection( PFRAME_COLLECT pfc, INDEX length, INDEX frags )
 		pfc->real_length = length;
 		if( pfc->bitstream )
          Release( pfc->bitstream );
-		pfc->bitstream = NewArray( _8, length );
+		pfc->bitstream = NewArray( uint8_t, length );
 		if( pfc->segments )
          Release( pfc->segments );
 		pfc->segments = (unsigned long*)Reallocate( pfc->segments
@@ -119,7 +119,7 @@ void CPROC ReadComplete( PCLIENT pc, POINTER buffer, int size, SOCKADDR *source 
 			{
 				if( FinishCollection( pnd->collecting ) )
 				{
-					EnqueFrame( &pnd->ready, (PTRSZVAL)pnd->collecting );
+					EnqueFrame( &pnd->ready, (uintptr_t)pnd->collecting );
 					pnd->collecting = NULL;
 				}
 				else
@@ -156,11 +156,11 @@ void CPROC ReadComplete( PCLIENT pc, POINTER buffer, int size, SOCKADDR *source 
 	}
 }
 
-int CPROC GetNetworkCapturedFrame( PTRSZVAL psv, PCAPTURE_DEVICE pDevice )
+int CPROC GetNetworkCapturedFrame( uintptr_t psv, PCAPTURE_DEVICE pDevice )
 {
 	PNETDATA pDevData = (PNETDATA)psv;
 	if( pDevData->processing != (PFRAME_COLLECT)INVALID_INDEX )
-		EnqueFrame( &pDevData->done, (PTRSZVAL)pDevData->processing );
+		EnqueFrame( &pDevData->done, (uintptr_t)pDevData->processing );
    pDevData->processing = (PFRAME_COLLECT)DequeFrame( &pDevData->ready );
 	if( pDevData->processing != (PFRAME_COLLECT)INVALID_INDEX )
 	{
@@ -174,23 +174,23 @@ int CPROC GetNetworkCapturedFrame( PTRSZVAL psv, PCAPTURE_DEVICE pDevice )
 }
 
 
-PTRSZVAL OpenNetworkCapture( char *name )
+uintptr_t OpenNetworkCapture( char *name )
 {
 	PNETDATA pnd = New( NETDATA );
 	MemSet( pnd, 0, sizeof( NETDATA ) );
 	pnd->socket = ServeUDP( NULL, 16661, ReadComplete, NULL );
 	pnd->buffer = NewArray( char, 5000 );
 	pnd->done.size = 5;
-   pnd->done.frames = (_32*)Allocate( sizeof( PTRSZVAL) * pnd->done.size );
+   pnd->done.frames = (uint32_t*)Allocate( sizeof( uintptr_t) * pnd->done.size );
 	pnd->ready.size = 5;
-   pnd->ready.frames = (_32*)Allocate( sizeof( PTRSZVAL) * pnd->done.size );
+   pnd->ready.frames = (uint32_t*)Allocate( sizeof( uintptr_t) * pnd->done.size );
 	pnd->processing = (PFRAME_COLLECT)INVALID_INDEX;
 	pnd->collecting = (PFRAME_COLLECT)INVALID_INDEX;
    pnd->frames = CreateLinkQueue();
 
-	SetNetworkLong( pnd->socket, NL_DEVICE, (PTRSZVAL)pnd );
+	SetNetworkLong( pnd->socket, NL_DEVICE, (uintptr_t)pnd );
    ReadUDP( pnd->socket, pnd->buffer, 5000 );
-   return (PTRSZVAL)pnd;
+   return (uintptr_t)pnd;
 }
 
 void CPROC RenderRequest( PCLIENT pc, POINTER buffer, int length, SOCKADDR *sa )
@@ -199,7 +199,7 @@ void CPROC RenderRequest( PCLIENT pc, POINTER buffer, int length, SOCKADDR *sa )
    lprintf( WIDE("Request for missing portions.") );
 }
 
-void CPROC ExpireFrames( PTRSZVAL psv )
+void CPROC ExpireFrames( uintptr_t psv )
 {
 	PNETDATA pnd = (PNETDATA)psv;
 	PFRAME_PORTION pfp;
@@ -219,7 +219,7 @@ void CPROC ExpireFrames( PTRSZVAL psv )
 	}
 }
 
-PTRSZVAL CPROC OpenNetworkRender( char *name )
+uintptr_t CPROC OpenNetworkRender( char *name )
 {
 	PNETDATA pnd = New( NETDATA );
 	MemSet( pnd, 0, sizeof( NETDATA ) );
@@ -231,12 +231,12 @@ PTRSZVAL CPROC OpenNetworkRender( char *name )
    pnd->collecting = (PFRAME_COLLECT)INVALID_INDEX;
 	pnd->portions = CreateList();
 	UDPEnableBroadcast( pnd->socket, TRUE );
-   return (PTRSZVAL)pnd;
+   return (uintptr_t)pnd;
 }
 
 
 
-int CPROC RenderNetworkFrame( PTRSZVAL psv, PCAPTURE_DEVICE pDevice )
+int CPROC RenderNetworkFrame( uintptr_t psv, PCAPTURE_DEVICE pDevice )
 {
 	PNETDATA pnd = (PNETDATA)psv;
 	char *data;

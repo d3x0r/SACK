@@ -261,7 +261,7 @@ PRIORITY_PRELOAD( RegisterUserPasswordControls, DEFAULT_PRELOAD_PRIORITY - 2 )
 
 }
 
-PSQL_PASSWORD GetButtonSecurity( PTRSZVAL button, int bCreate )
+PSQL_PASSWORD GetButtonSecurity( uintptr_t button, int bCreate )
 {
 	PSQL_PASSWORD pls;
 	INDEX idx;
@@ -311,10 +311,10 @@ void ResolveToken( PTOKEN *ppToken, CTEXTSTR *target, CTEXTSTR permission )
 	}
 }
 
-static PTRSZVAL CPROC AddButtonSecurity( PTRSZVAL psv, arg_list args )
+static uintptr_t CPROC AddButtonSecurity( uintptr_t psv, arg_list args )
 {
 	PARAM( args, CTEXTSTR, permission );
-	PTRSZVAL last_loading = psv;
+	uintptr_t last_loading = psv;
 	PSQL_PASSWORD pls = GetButtonSecurity( last_loading, TRUE );
 	//lprintf( WIDE("load context %p(%p)"), pls, last_loading );
 	if( pls )
@@ -335,10 +335,10 @@ static PTRSZVAL CPROC AddButtonSecurity( PTRSZVAL psv, arg_list args )
 	return psv;
 }
 
-static PTRSZVAL CPROC AddButtonSecurityRequire( PTRSZVAL psv, arg_list args )
+static uintptr_t CPROC AddButtonSecurityRequire( uintptr_t psv, arg_list args )
 {
 	PARAM( args, CTEXTSTR, permission );
-	PTRSZVAL last_loading = psv;
+	uintptr_t last_loading = psv;
 	PSQL_PASSWORD pls = GetButtonSecurity( last_loading, TRUE );
 	lprintf( WIDE("load context %p(%p)"), pls, last_loading );
 	if( pls )
@@ -348,10 +348,10 @@ static PTRSZVAL CPROC AddButtonSecurityRequire( PTRSZVAL psv, arg_list args )
 	return psv;
 }
 
-static PTRSZVAL CPROC AddButtonSecurityOverride( PTRSZVAL psv, arg_list args )
+static uintptr_t CPROC AddButtonSecurityOverride( uintptr_t psv, arg_list args )
 {
 	PARAM( args, CTEXTSTR, permission );
-	PTRSZVAL last_loading = psv;
+	uintptr_t last_loading = psv;
 	PSQL_PASSWORD pls = GetButtonSecurity( last_loading, TRUE );
 	//lprintf( WIDE("load context %p(%p)"), pls, last_loading );
 	if( pls )
@@ -361,7 +361,7 @@ static PTRSZVAL CPROC AddButtonSecurityOverride( PTRSZVAL psv, arg_list args )
 	return psv;
 }
 
-static void OnAddSecurityContextToken( WIDE("SQL Password") )( PTRSZVAL context, CTEXTSTR permission )
+static void OnAddSecurityContextToken( WIDE("SQL Password") )( uintptr_t context, CTEXTSTR permission )
 {
 	PSQL_PASSWORD pls = GetButtonSecurity( context, TRUE );
 	//lprintf( WIDE("load context %p(%p)"), pls, context );
@@ -382,7 +382,7 @@ static void OnAddSecurityContextToken( WIDE("SQL Password") )( PTRSZVAL context,
 	}	
 }
 
-static void OnGetSecurityContextTokens( WIDE("SQL Password") )( PTRSZVAL context, PLIST *list )
+static void OnGetSecurityContextTokens( WIDE("SQL Password") )( uintptr_t context, PLIST *list )
 {
 	PSQL_PASSWORD pls = GetButtonSecurity( context, TRUE );
 	EmptyList( list );
@@ -405,7 +405,7 @@ static void OnLoadSecurityContext( WIDE("SQL Password") )( PCONFIG_HANDLER pch )
    AddConfigurationMethod( pch, WIDE("SQL password required login override=%m"), AddButtonSecurityOverride );
 }
 
-static void OnSaveSecurityContext( WIDE("SQL Password") )( FILE *file, PTRSZVAL button )
+static void OnSaveSecurityContext( WIDE("SQL Password") )( FILE *file, uintptr_t button )
 {
 	PSQL_PASSWORD pls = GetButtonSecurity( button, FALSE );
    //lprintf( WIDE("save context %p"), pls );
@@ -429,7 +429,7 @@ static void OnSaveSecurityContext( WIDE("SQL Password") )( FILE *file, PTRSZVAL 
 
 //--------------------------------------------------------------------------------
 
-static PTRSZVAL TestSecurityContext( WIDE("SQL Password") )( PTRSZVAL button )
+static uintptr_t TestSecurityContext( WIDE("SQL Password") )( uintptr_t button )
 {	
 	TEXTSTR current_user;
 	PSQL_PASSWORD pls = GetButtonSecurity( button, FALSE );
@@ -460,13 +460,13 @@ static PTRSZVAL TestSecurityContext( WIDE("SQL Password") )( PTRSZVAL button )
 			if( !pi || pi->login_id == INVALID_INDEX )
 				return INVALID_INDEX;
 
-			return (PTRSZVAL)pi;
+			return (uintptr_t)pi;
 		}
 	}
 	return 0; /* no security... */
 }
 
-static void  EndSecurityContext( WIDE("SQL Password") ) ( PTRSZVAL button, PTRSZVAL psv )
+static void  EndSecurityContext( WIDE("SQL Password") ) ( uintptr_t button, uintptr_t psv )
 {
 	struct password_info *pi = (struct password_info *)psv;
 	if( pi )
@@ -479,7 +479,7 @@ static void  EndSecurityContext( WIDE("SQL Password") ) ( PTRSZVAL button, PTRSZ
 //--------------------------------------------------------------------------------
 //--------------------------------------------------------------------------------
 
-void CPROC OnItemDoubleClickPermission( PTRSZVAL psv, PSI_CONTROL pc, PLISTITEM pli )
+void CPROC OnItemDoubleClickPermission( uintptr_t psv, PSI_CONTROL pc, PLISTITEM pli )
 {
 	int n;
 	int already_picked = 0;
@@ -507,14 +507,14 @@ void CPROC OnItemDoubleClickPermission( PTRSZVAL psv, PSI_CONTROL pc, PLISTITEM 
 
 //--------------------------------------------------------------------------------
 
-void CPROC OnItemDoubleClickRequired( PTRSZVAL psv, PSI_CONTROL pc, PLISTITEM pli )
+void CPROC OnItemDoubleClickRequired( uintptr_t psv, PSI_CONTROL pc, PLISTITEM pli )
 {
    DeleteListItem( pc, pli );
 }
 
 //--------------------------------------------------------------------------------
 
-static void OnEditSecurityContext( WIDE("SQL Password") )( PTRSZVAL button )
+static void OnEditSecurityContext( WIDE("SQL Password") )( uintptr_t button )
 {
 	PSQL_PASSWORD pls = GetButtonSecurity( button, TRUE );
 	if( pls )

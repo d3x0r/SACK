@@ -56,7 +56,7 @@ SaneWinMain( argc, argv )
 	{
 		int bLogged;
 //		gpc[i] = OpenTCPClientExx( WIDE("65.0.7.180"), i, NULL, NULL, NULL, (cNotifyCallback)ConnectProc );
-		gpc[i] = OpenTCPClientExx( argv[1], (_16)i, NULL, NULL, NULL, (cConnectCallback)ConnectProc );
+		gpc[i] = OpenTCPClientExx( argv[1], (uint16_t)i, NULL, NULL, NULL, (cConnectCallback)ConnectProc );
 		if( !gpc[i] )
 		{
 			fprintf( stderr,WIDE("\rBad Failure: %d\n"), WSAGetLastError() ) ;

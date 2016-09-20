@@ -62,14 +62,14 @@ static SERVER_FUNCTION MyMessageHandlerTable[] = {
 // this is a server function which does nothing
 // responds with 0 bytes of data (if any)
 // and does not respond with any data (FALSE)
-static int DoNothing( _32 *params, _32 param_length
-						  , _32 *result, _32 *result_length)
+static int DoNothing( uint32_t *params, uint32_t param_length
+						  , uint32_t *result, uint32_t *result_length)
 {
 	*result_length = 0;
    return FALSE;
 }
 
-static int CPROC GetDisplayFunctionTable( server_function_table *table, int *entries, _32 MsgBase )
+static int CPROC GetDisplayFunctionTable( server_function_table *table, int *entries, uint32_t MsgBase )
 {
 	// this is the function invoked by the service loader
 	// to query how many entries this server supports (so
@@ -92,7 +92,7 @@ PRELOAD( RegisterService )
 {
 	// Register the service in the system interfaces...
 	RegisterFunction( WIDE("system/interfaces/msg_service"), GetDisplayFunctionTable
-						 , WIDE("int"), WIDE("display"), WIDE("(server_function_table*,int*,_32)") );
+						 , WIDE("int"), WIDE("display"), WIDE("(server_function_table*,int*,uint32_t)") );
 }
 
 

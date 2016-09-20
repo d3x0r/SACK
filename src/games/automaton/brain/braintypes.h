@@ -1,7 +1,7 @@
 #ifndef BRAIN_TYPES_DEFINED
 #define BRAIN_TYPES_DEFINED
 
-#include <stdhdrs.h> // ptrszval
+#include <stdhdrs.h> // uintptr_t
 #include "global.h"
 
 // note this value reflects the type defined by VAL_NATIVE
@@ -43,10 +43,10 @@ enum type {
 };
 
 
-typedef NATIVE (*InputFunction)( PTRSZVAL );
-typedef void   (*OutputFunction)( PTRSZVAL, NATIVE );
-typedef NATIVE (*ThruputFunction) ( PTRSZVAL, NATIVE );
-typedef void   (*TriggerFunction) ( PTRSZVAL );
+typedef NATIVE (*InputFunction)( uintptr_t );
+typedef void   (*OutputFunction)( uintptr_t, NATIVE );
+typedef NATIVE (*ThruputFunction) ( uintptr_t, NATIVE );
+typedef void   (*TriggerFunction) ( uintptr_t );
 
 struct value {
    enum type type;
@@ -54,26 +54,26 @@ struct value {
 		bool                   b;
       float                  f;
       double                 d;
-      S_8                    c;
+      int8_t                    c;
 		short                  s;
-		S_32                   l;
-      S_64                  ll;
-      _8                    uc;
+		int32_t                   l;
+      int64_t                  ll;
+      uint8_t                    uc;
       unsigned short        us;
-      _32                   ul;
-		_64                  ull;
+      uint32_t                   ul;
+		uint64_t                  ull;
       void                 *pv;
       bool                 *pb;
       float                *pf;
       double               *pd;
-      S_8                  *pc;
+      int8_t                  *pc;
       short                *ps;
-		S_32                 *pl;
-      S_64                *pll;
-      _8                  *puc;
+		int32_t                 *pl;
+      int64_t                *pll;
+      uint8_t                  *puc;
       unsigned short      *pus;
-      _32                 *pul;
-      _64                *pull;
+      uint32_t                 *pul;
+      uint64_t                *pull;
 		InputFunction       Input;
 		OutputFunction      Output;
 		ThruputFunction     Thruput;
@@ -81,18 +81,18 @@ struct value {
       struct value       *pany;
 	} data;
 #define VALUE_CONSTRUCTOR( val_type, name ) value(val_type *name){ data.name=name; value::type=VAL_##name; }
-#define FVALUE_CONSTRUCTOR( val_type, name ) value(val_type name, PTRSZVAL psv){ data.name=name; value::type=VAL_##name; value::aux=psv; }
+#define FVALUE_CONSTRUCTOR( val_type, name ) value(val_type name, uintptr_t psv){ data.name=name; value::type=VAL_##name; value::aux=psv; }
 	VALUE_CONSTRUCTOR( bool            ,   pb );
 	VALUE_CONSTRUCTOR( float           ,   pf );
 	VALUE_CONSTRUCTOR( double          ,   pd );
-	VALUE_CONSTRUCTOR( S_8             ,   pc );
-	VALUE_CONSTRUCTOR( S_16            ,   ps );
-	VALUE_CONSTRUCTOR( S_32            ,   pl );
-	VALUE_CONSTRUCTOR( S_64            ,  pll );
-	VALUE_CONSTRUCTOR( _8              ,  puc );
-	VALUE_CONSTRUCTOR( _16             ,  pus );
-	VALUE_CONSTRUCTOR( _32             ,  pul );
-	VALUE_CONSTRUCTOR( _64             , pull );
+	VALUE_CONSTRUCTOR( int8_t             ,   pc );
+	VALUE_CONSTRUCTOR( int16_t            ,   ps );
+	VALUE_CONSTRUCTOR( int32_t            ,   pl );
+	VALUE_CONSTRUCTOR( int64_t            ,  pll );
+	VALUE_CONSTRUCTOR( uint8_t              ,  puc );
+	VALUE_CONSTRUCTOR( uint16_t             ,  pus );
+	VALUE_CONSTRUCTOR( uint32_t             ,  pul );
+	VALUE_CONSTRUCTOR( uint64_t             , pull );
 	FVALUE_CONSTRUCTOR( InputFunction   , Input );
 	FVALUE_CONSTRUCTOR( OutputFunction  , Output );
 		//InputFunction       Input;
@@ -100,7 +100,7 @@ struct value {
       //ThruputFunction     Thruput;
 		//TriggerFunction     Trigger;
       //struct value       *pany;
-	PTRSZVAL aux; // value passed to input/output function
+	uintptr_t aux; // value passed to input/output function
 	int null( void )
 	{ return( type == VAL_NULL ); }
    ;
@@ -114,8 +114,8 @@ struct value {
 	value()	{ set(VAL_UNDEFINED); }
 	IMPORT value( enum type settype, ... );
 	IMPORT value( struct value *clonevalue );
-	//IMPORT _32 save(FILE*);
-	//IMPORT _32 load(FILE*);
+	//IMPORT uint32_t save(FILE*);
+	//IMPORT uint32_t load(FILE*);
 };
 #pragma pack()
 typedef struct value ANYVALUE, *PANYVALUE;

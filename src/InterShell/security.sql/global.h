@@ -10,8 +10,8 @@ typedef struct sql_token *PTOKEN;
 
 struct sql_password
 {
-	PTRSZVAL button; // object to secure, may not be a button.
-	PTRSZVAL psv;
+	uintptr_t button; // object to secure, may not be a button.
+	uintptr_t psv;
 	FLAGSETTYPE *permissions;
 	int nTokens;
 	TEXTSTR *pTokens;
@@ -45,9 +45,9 @@ struct sql_user
 	TEXTSTR last_name;
     TEXTSTR staff;
 	PLIST groups;
-	_32 dwFutTime; // expiration time...
-	_32 dwFutTime_Created; // account creation
-	_32 dwFutTime_Updated_Password; // last password update
+	uint32_t dwFutTime; // expiration time...
+	uint32_t dwFutTime_Created; // account creation
+	uint32_t dwFutTime_Updated_Password; // last password update
 };
 
 struct _global_sql_password {
@@ -66,7 +66,7 @@ struct _global_sql_password {
 	} flags;
 
 	PLIST users; // cached list of users
-	_32  prior_user_load; // prevent from reloading an already filled cache, but allow refreshing
+	uint32_t  prior_user_load; // prevent from reloading an already filled cache, but allow refreshing
 	int fDays;
 
 	PTHREAD pWindowThread;
@@ -98,7 +98,7 @@ TEXTSTR getCurrentUser( void );
 
 INDEX getCurrSystemID( void );
 
-PSQL_PASSWORD GetButtonSecurity( PTRSZVAL button, int bCreate );
+PSQL_PASSWORD GetButtonSecurity( uintptr_t button, int bCreate );
 
 void ReloadUserCache( PODBC odbc );
 

@@ -27,7 +27,7 @@
 #include <GL/glew.h>
 #include "SDL2/SDL.h"
 
-void ZInventoryBox::Render(ZRender_Interface *render, Frame_Dimensions * ParentPosition, PTRSZVAL psvInit)
+void ZInventoryBox::Render(ZRender_Interface *render, Frame_Dimensions * ParentPosition, uintptr_t psvInit)
 {
 
   ZVector3f TopLeft, BottomRight;

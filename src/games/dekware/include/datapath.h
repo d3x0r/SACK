@@ -12,8 +12,8 @@ typedef int (CPROC *OptionHandler)( PDATAPATH pdp, PSENTIENT ps, PTEXT text );
 typedef struct option_entry
 {
    DECLTEXTSZTYPE(name, 32);
-   S_8 significant; // minimum match
-   S_8 maxlen;      // maximum usable characters
+   int8_t significant; // minimum match
+   int8_t maxlen;      // maximum usable characters
    DECLTEXTSZTYPE(description, 128);
 	OptionHandler function;
    POINTER unused; // need this and cmd_entry to match!
@@ -79,7 +79,7 @@ typedef struct command_info_tag {
    PLINKQUEUE InputHistory;
    int   bRecallBegin; // set to TRUE when nHistory has wrapped...
 
-   _32   CollectionBufferLock;
+   uint32_t   CollectionBufferLock;
    INDEX CollectionIndex;  // used to store index.. for insert type operations...
    int   CollectionInsert; // flag for whether we are inserting or overwriting
 	PTEXT CollectionBuffer; // used to store partial from GatherLine

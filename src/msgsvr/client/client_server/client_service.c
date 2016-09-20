@@ -6,7 +6,7 @@
 
 
 LOGICAL BaseID;
-PTRSZVAL CPROC ClientThread( PTHREAD thread )
+uintptr_t CPROC ClientThread( PTHREAD thread )
 {
 	int n;
 	PSERVICE_ROUTE mid = (PSERVICE_ROUTE)GetThreadParam( thread );
@@ -19,8 +19,8 @@ PTRSZVAL CPROC ClientThread( PTHREAD thread )
 }
 
 
-static int CPROC ServiceFunction( PSERVICE_ROUTE route, _32 *params, size_t param_length
-										  , _32 *result, size_t *result_length )
+static int CPROC ServiceFunction( PSERVICE_ROUTE route, uint32_t *params, size_t param_length
+										  , uint32_t *result, size_t *result_length )
 {
 	// echo the data we got back to the client...
 	// most other things will do useful functions in functions.
@@ -30,8 +30,8 @@ static int CPROC ServiceFunction( PSERVICE_ROUTE route, _32 *params, size_t para
 	return TRUE;
 }
 
-static int CPROC ServiceFunction2( PSERVICE_ROUTE route, _32 *params, size_t param_length
-										  , _32 *result, size_t *result_length )
+static int CPROC ServiceFunction2( PSERVICE_ROUTE route, uint32_t *params, size_t param_length
+										  , uint32_t *result, size_t *result_length )
 {
 	// echo the data we got back to the client...
 	// most other things will do useful functions in functions.
@@ -43,8 +43,8 @@ static int CPROC ServiceFunction2( PSERVICE_ROUTE route, _32 *params, size_t par
 	return TRUE;
 }
 
-static int CPROC ServiceConnect( PSERVICE_ROUTE route, _32 *params, size_t param_length
-										  , _32 *result, size_t *result_length )
+static int CPROC ServiceConnect( PSERVICE_ROUTE route, uint32_t *params, size_t param_length
+										  , uint32_t *result, size_t *result_length )
 {
 	// accept connection
 	((MsgSrv_ReplyServiceLoad*)result)->ServiceID = route->dest.service_id;
@@ -53,9 +53,9 @@ static int CPROC ServiceConnect( PSERVICE_ROUTE route, _32 *params, size_t param
 	return TRUE;
 }
 
-static int CPROC MessageHandler( PSERVICE_ROUTE source, _32 MsgID
-										 , _32 *params, size_t param_length
-										 , _32 *result, size_t *result_length )
+static int CPROC MessageHandler( PSERVICE_ROUTE source, uint32_t MsgID
+										 , uint32_t *params, size_t param_length
+										 , uint32_t *result, size_t *result_length )
 {
 	switch( MsgID )
 	{

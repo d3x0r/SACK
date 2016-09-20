@@ -1,12 +1,12 @@
 
 #include <intershell_registry.h>
 
-OnCreateControl( "Any Generic" )( PSI_CONTROL parent, S_32 x, S_32 y, _32 w, _32 h )
+OnCreateControl( "Any Generic" )( PSI_CONTROL parent, int32_t x, int32_t y, uint32_t w, uint32_t h )
 {
-   return (PTRSZVAL)MakeNamedControl( parent, "Whiteboard Client Surface", x, y, w, h, -1 );
+   return (uintptr_t)MakeNamedControl( parent, "Whiteboard Client Surface", x, y, w, h, -1 );
 }
 
-OnGetControl( "Any Generic" )( PTRSZVAL psv )
+OnGetControl( "Any Generic" )( uintptr_t psv )
 {
    return (PSI_CONTROL)psv;
 }

@@ -86,7 +86,7 @@ extern unsigned char AlphaTable[256][256];
 // a(alpha) parameter value 0 : in is clear, over opaque
 //                         255: in is solid, over is clear
 
-_32 DOALPHA( _32 over, _32 in, _8 a )
+uint32_t DOALPHA( uint32_t over, uint32_t in, uint8_t a )
 {
 #if defined( _MSC_VER ) && 0 
 	int out;
@@ -100,7 +100,7 @@ _32 DOALPHA( _32 over, _32 in, _8 a )
 	 register __m64 m_tmp;
 	 register __m64 m_color1;
 	 register __m64 m_color2;
-	_32 alpha;
+	uint32_t alpha;
 	//alpha = 0x01010101 * (a);
 	zero = _mm_setzero_si64();
 	//one = _mm_set1_pi16( 1 );
@@ -355,7 +355,7 @@ static void ComputeImageData( ImageFile *pImage )
 
 //----------------------------------------------------------------------
 
- void  MoveImage ( ImageFile *pImage, S_32 x, S_32 y )
+ void  MoveImage ( ImageFile *pImage, int32_t x, int32_t y )
 {
 	if( !pImage->pParent
 		&& !( pImage->flags & IF_FLAG_OWN_DATA ) ) // cannot move master iamge... only sub images..
@@ -368,7 +368,7 @@ static void ComputeImageData( ImageFile *pImage )
 
 //----------------------------------------------------------------------
 
- void  GetImageSize ( ImageFile *image, _32 *width, _32 *height )
+ void  GetImageSize ( ImageFile *image, uint32_t *width, uint32_t *height )
 {
 	 if( image )
 	 {
@@ -389,7 +389,7 @@ static void ComputeImageData( ImageFile *pImage )
 
 //----------------------------------------------------------------------
 
- void  ResizeImageEx ( ImageFile *pImage, S_32 width, S_32 height DBG_PASS )
+ void  ResizeImageEx ( ImageFile *pImage, int32_t width, int32_t height DBG_PASS )
 {
 	if( !pImage )
 		return;
@@ -496,7 +496,7 @@ static void SmearFlag( Image image, int flag )
 
 //----------------------------------------------------------------------
 
- ImageFile * MakeSubImageEx ( ImageFile *pImage, S_32 x, S_32 y, _32 width, _32 height DBG_PASS)
+ ImageFile * MakeSubImageEx ( ImageFile *pImage, int32_t x, int32_t y, uint32_t width, uint32_t height DBG_PASS)
 {
 	ImageFile *p;
 	//if( !pImage )
@@ -544,7 +544,7 @@ static void SmearFlag( Image image, int flag )
 
 //----------------------------------------------------------------------
 
- ImageFile * BuildImageFileEx ( PCOLOR pc, _32 Width, _32 Height DBG_PASS )
+ ImageFile * BuildImageFileEx ( PCOLOR pc, uint32_t Width, uint32_t Height DBG_PASS )
 {
 	ImageFile *p;
 	p = GetFromSet( ImageFile, &image_common_local.Images );//(ImageFile*)AllocateEx( sizeof( ImageFile ) DBG_RELAY);
@@ -582,7 +582,7 @@ static void SmearFlag( Image image, int flag )
 //----------------------------------------------------------------------
 
  ImageFile *  RemakeImageEx ( ImageFile *pImage, PCOLOR pc
-											, _32 width, _32 height DBG_PASS)
+											, uint32_t width, uint32_t height DBG_PASS)
 {
 	// for this routine I'm gonna have to assume that the image
 	// has been constantly remade ( this is only an entry point
@@ -640,7 +640,7 @@ static void SmearFlag( Image image, int flag )
 //----------------------------------------------------------------------
 
 
- ImageFile * MakeImageFileEx (_32 Width, _32 Height DBG_PASS)
+ ImageFile * MakeImageFileEx (uint32_t Width, uint32_t Height DBG_PASS)
 {
 	//lprintf( WIDE("Allocate %d"),sizeof( COLOR ) * Width * Height  );
 	Image tmp = BuildImageFileEx( (PCOLOR)AllocateEx( sizeof( COLOR ) * Width * Height DBG_RELAY )
@@ -661,7 +661,7 @@ static void SmearFlag( Image image, int flag )
 	{
 		if( image_common_local.tint_cache )
 		{
-			CPOINTER node = FindInBinaryTree( image_common_local.tint_cache, (PTRSZVAL)pif );
+			CPOINTER node = FindInBinaryTree( image_common_local.tint_cache, (uintptr_t)pif );
 			struct shade_cache_image *ci = (struct shade_cache_image *)node;
 			struct shade_cache_element *ce;
 			if( node )
@@ -673,13 +673,13 @@ static void SmearFlag( Image image, int flag )
 					Deallocate( struct shade_cache_element*, ce );
 				}
 				DeleteListEx( &ci->elements DBG_SRC );
-				RemoveBinaryNode( image_common_local.tint_cache, ci, (PTRSZVAL)pif );
+				RemoveBinaryNode( image_common_local.tint_cache, ci, (uintptr_t)pif );
 				Deallocate( struct shade_cache_image *, ci );
 			}
 		}
 		if( image_common_local.shade_cache )
 		{
-			CPOINTER node = FindInBinaryTree( image_common_local.shade_cache, (PTRSZVAL)pif );
+			CPOINTER node = FindInBinaryTree( image_common_local.shade_cache, (uintptr_t)pif );
 			struct shade_cache_image *ci = (struct shade_cache_image *)node;
 			struct shade_cache_element *ce;
 			if( node )
@@ -691,7 +691,7 @@ static void SmearFlag( Image image, int flag )
 					Deallocate( struct shade_cache_element*, ce );
 				}
 				DeleteListEx( &ci->elements DBG_SRC );
-				RemoveBinaryNode( image_common_local.tint_cache, ci, (PTRSZVAL)pif );
+				RemoveBinaryNode( image_common_local.tint_cache, ci, (uintptr_t)pif );
 				Deallocate( struct shade_cache_image *, ci );
 			}
 		}
@@ -744,7 +744,7 @@ static void SmearFlag( Image image, int flag )
 
 //----------------------------------------------------------------------
 
-Image DecodeMemoryToImage( P_8 buf, _32 size )
+Image DecodeMemoryToImage( uint8_t* buf, uint32_t size )
 {
 	Image file = NULL;
 	//lprintf( WIDE("Attempting to decode an image...") );
@@ -783,8 +783,8 @@ Image DecodeMemoryToImage( P_8 buf, _32 size )
 
 ImageFile*  LoadImageFileFromGroupEx ( INDEX group, CTEXTSTR filename DBG_PASS )
 {
-	_32 size;
-	P_8 buf;
+	uint32_t size;
+	uint8_t* buf;
 	ImageFile* file = NULL;
 	FILE* fp;
 	fp = sack_fopen( group, filename, WIDE("rb"));
@@ -794,7 +794,7 @@ ImageFile*  LoadImageFileFromGroupEx ( INDEX group, CTEXTSTR filename DBG_PASS )
 	size = sack_fseek (fp, 0, SEEK_END);
 	size = sack_ftell (fp);
 	sack_fseek (fp, 0, SEEK_SET);
-	buf = (_8*) AllocateEx( size + 1 DBG_RELAY );
+	buf = (uint8_t*) AllocateEx( size + 1 DBG_RELAY );
 	sack_fread (buf, 1, size + 1, fp);
 	sack_fclose (fp);
 
@@ -819,7 +819,7 @@ ImageFile*  LoadImageFileEx ( CTEXTSTR filename DBG_PASS )
 
 //---------------------------------------------------------------------------
 
-void TranslateCoord( Image image, S_32 *x, S_32 *y )
+void TranslateCoord( Image image, int32_t *x, int32_t *y )
 {
 	while( image )
 	{
@@ -881,10 +881,10 @@ void TranslateCoord( Image image, S_32 *x, S_32 *y )
 			  , r2->x, r2->y, r2->width, r2->height
 			  , r2->x, r2->y, r2->x + r2->width, r2->y + r2->height );
 	*/
-	if( ( r1->x > (r2->x+(S_32)r2->width) ) ||
-		 ( r2->x > (r1->x+(S_32)r1->width) ) ||
-		 ( r1->y > (r2->y+(S_32)r2->height) ) ||
-		( r2->y > (r1->y+(S_32)r1->height) ) )
+	if( ( r1->x > (r2->x+(int32_t)r2->width) ) ||
+		 ( r2->x > (r1->x+(int32_t)r1->width) ) ||
+		 ( r1->y > (r2->y+(int32_t)r2->height) ) ||
+		( r2->y > (r1->y+(int32_t)r1->height) ) )
 	{
 		//DebugBreak();
 		return FALSE;
@@ -1049,7 +1049,7 @@ void  SetColorAlpha( PCDATA po, int oo, int w, int h, CDATA color )
 
 //---------------------------------------------------------------------------
 
-void  SetStringBehavior ( ImageFile *pImage, _32 behavior )
+void  SetStringBehavior ( ImageFile *pImage, uint32_t behavior )
 {
 	pImage->flags &= ~(IF_FLAG_C_STRING|IF_FLAG_MENU_STRING|IF_FLAG_CONTROL_STRING );
 	if( behavior == STRING_PRINT_RAW )
@@ -1262,7 +1262,7 @@ void f(void )
 }
 
 
-PCDATA  ImageAddress ( Image i, S_32 x, S_32 y )
+PCDATA  ImageAddress ( Image i, int32_t x, int32_t y )
 {
 	return ((CDATA*) \
 										 ((i)->image + (( (x) - (i)->eff_x ) \
@@ -1277,7 +1277,7 @@ PCDATA  ImageAddress ( Image i, S_32 x, S_32 y )
 //-----------------------------------------------------------------------
 
 
-static int CPROC ComparePointer( PTRSZVAL oldnode, PTRSZVAL newnode )
+static int CPROC ComparePointer( uintptr_t oldnode, uintptr_t newnode )
 {
 	if( newnode > oldnode )
 		return 1;
@@ -1296,7 +1296,7 @@ Image GetInvertedImage( Image child_image )
 	for( image = child_image; image && image->pParent; image = image->pParent );
 
 	{
-		CPOINTER node = FindInBinaryTree( image_common_local.shade_cache, (PTRSZVAL)image );
+		CPOINTER node = FindInBinaryTree( image_common_local.shade_cache, (uintptr_t)image );
 		struct shade_cache_image *ci = (struct shade_cache_image *)node;
 		struct shade_cache_element *ce;
 		if( node )
@@ -1336,7 +1336,7 @@ Image GetInvertedImage( Image child_image )
 			ci = New( struct shade_cache_image );
 			ci->image = image;
 			ci->elements = NULL;
-			AddBinaryNode( image_common_local.shade_cache, ci, (PTRSZVAL)image );
+			AddBinaryNode( image_common_local.shade_cache, ci, (uintptr_t)image );
 			ce = New( struct shade_cache_element );
 			ce->image = MakeImageFile( image->real_width, image->real_height );
 		}
@@ -1365,7 +1365,7 @@ Image GetShadedImage( Image child_image, CDATA red, CDATA green, CDATA blue )
 	for( image = child_image; image && image->pParent; image = image->pParent );
 
 	{
-		CPOINTER node = FindInBinaryTree( image_common_local.shade_cache, (PTRSZVAL)image );
+		CPOINTER node = FindInBinaryTree( image_common_local.shade_cache, (uintptr_t)image );
 		struct shade_cache_image *ci = (struct shade_cache_image *)node;
 		struct shade_cache_element *ce;
 
@@ -1407,7 +1407,7 @@ Image GetShadedImage( Image child_image, CDATA red, CDATA green, CDATA blue )
 			ce = New( struct shade_cache_element );
 			ci->image = image;
 			ci->elements = NULL;
-			AddBinaryNode( image_common_local.shade_cache, ci, (PTRSZVAL)image );
+			AddBinaryNode( image_common_local.shade_cache, ci, (uintptr_t)image );
 
 			ce->image = MakeImageFile( image->real_width, image->real_height );
 		}
@@ -1435,7 +1435,7 @@ Image GetTintedImage( Image child_image, CDATA color )
 	for( image = child_image; image && image->pParent; image = image->pParent );
 
 	{
-		CPOINTER node = FindInBinaryTree( image_common_local.tint_cache, (PTRSZVAL)image );
+		CPOINTER node = FindInBinaryTree( image_common_local.tint_cache, (uintptr_t)image );
 		struct shade_cache_image *ci = (struct shade_cache_image *)node;
 		struct shade_cache_element *ce;
 
@@ -1483,7 +1483,7 @@ Image GetTintedImage( Image child_image, CDATA color )
 			ce = New( struct shade_cache_element );
 			ci->image = image;
 			ci->elements = NULL;
-			AddBinaryNode( image_common_local.tint_cache, ci, (PTRSZVAL)image );
+			AddBinaryNode( image_common_local.tint_cache, ci, (uintptr_t)image );
 
 			ce->image = MakeImageFile( image->real_width, image->real_height );
 		}
@@ -1523,7 +1523,7 @@ LOGICAL IsImageTargetFinal( Image image )
 	return 0;
 }
 
-SlicedImage MakeSlicedImage( Image source, _32 left, _32 right, _32 top, _32 bottom, LOGICAL output_center ) 
+SlicedImage MakeSlicedImage( Image source, uint32_t left, uint32_t right, uint32_t top, uint32_t bottom, LOGICAL output_center ) 
 {
 	SlicedImage result = New( struct SlicedImageFile );
 	result->image = source;
@@ -1550,15 +1550,15 @@ SlicedImage MakeSlicedImage( Image source, _32 left, _32 right, _32 top, _32 bot
 }
 
 SlicedImage MakeSlicedImageComplex( Image source
-										, _32 top_left_x, _32 top_left_y, _32 top_left_width, _32 top_left_height
-										, _32 top_x, _32 top_y, _32 top_width, _32 top_height
-										, _32 top_right_x, _32 top_right_y, _32 top_right_width, _32 top_right_height
-										, _32 left_x, _32 left_y, _32 left_width, _32 left_height
-										, _32 center_x, _32 center_y, _32 center_width, _32 center_height
-										, _32 right_x, _32 right_y, _32 right_width, _32 right_height
-										, _32 bottom_left_x, _32 bottom_left_y, _32 bottom_left_width, _32 bottom_left_height
-										, _32 bottom_x, _32 bottom_y, _32 bottom_width, _32 bottom_height
-										, _32 bottom_right_x, _32 bottom_right_y, _32 bottom_right_width, _32 bottom_right_height
+										, uint32_t top_left_x, uint32_t top_left_y, uint32_t top_left_width, uint32_t top_left_height
+										, uint32_t top_x, uint32_t top_y, uint32_t top_width, uint32_t top_height
+										, uint32_t top_right_x, uint32_t top_right_y, uint32_t top_right_width, uint32_t top_right_height
+										, uint32_t left_x, uint32_t left_y, uint32_t left_width, uint32_t left_height
+										, uint32_t center_x, uint32_t center_y, uint32_t center_width, uint32_t center_height
+										, uint32_t right_x, uint32_t right_y, uint32_t right_width, uint32_t right_height
+										, uint32_t bottom_left_x, uint32_t bottom_left_y, uint32_t bottom_left_width, uint32_t bottom_left_height
+										, uint32_t bottom_x, uint32_t bottom_y, uint32_t bottom_width, uint32_t bottom_height
+										, uint32_t bottom_right_x, uint32_t bottom_right_y, uint32_t bottom_right_width, uint32_t bottom_right_height
 										, LOGICAL output_center ) 
 {
 	SlicedImage result = New( struct SlicedImageFile );
@@ -1586,7 +1586,7 @@ void UnmakeSlicedImage( SlicedImage image )
 	Deallocate( SlicedImage, image );
 }
 
-void BlotSlicedImageEx( Image dest, SlicedImage source, S_32 x, S_32 y, _32 w, _32 h, int alpha, enum BlotOperation op, ... )
+void BlotSlicedImageEx( Image dest, SlicedImage source, int32_t x, int32_t y, uint32_t w, uint32_t h, int alpha, enum BlotOperation op, ... )
 {
 	va_list args;
 	CDATA c1,c2,c3;
@@ -1644,8 +1644,8 @@ void BlotSlicedImageEx( Image dest, SlicedImage source, S_32 x, S_32 y, _32 w, _
 		if( ( w >= ( source->left + ( source->right_w ) ) )
 			&& ( h >= ( source->left + ( source->bottom_h ) ) ) )
 		{
-			_32 center_w = w - ( source->left + source->right_w );
-			_32 center_h = h - ( source->top + source->bottom_h );
+			uint32_t center_w = w - ( source->left + source->right_w );
+			uint32_t center_h = h - ( source->top + source->bottom_h );
 			BlotImageEx( dest, source->slices[SLICED_IMAGE_TOP_LEFT], 0, 0, alpha, op, c1, c2, c3 );
 			if( center_w )
 				BlotScaledImageSizedEx( dest, source->slices[SLICED_IMAGE_TOP]
@@ -1694,9 +1694,9 @@ void BlotSlicedImageEx( Image dest, SlicedImage source, S_32 x, S_32 y, _32 w, _
 		else if( w >= ( source->left + ( source->right_w ) ) )
 		{
 			// less height available
-			_32 center_w = w - ( source->left + ( source->right_w ) );
-			_32 h1 = ( ( source->top ) * h ) / ( source->top + source->bottom_h );
-			_32 h2 = h - h1;
+			uint32_t center_w = w - ( source->left + ( source->right_w ) );
+			uint32_t h1 = ( ( source->top ) * h ) / ( source->top + source->bottom_h );
+			uint32_t h2 = h - h1;
 
 			BlotScaledImageSizedEx( dest, source->slices[SLICED_IMAGE_TOP_LEFT]
 					, 0, 0 
@@ -1745,9 +1745,9 @@ void BlotSlicedImageEx( Image dest, SlicedImage source, S_32 x, S_32 y, _32 w, _
 		else if( h >= ( source->left + ( source->right_w ) ) )
 		{
 			// less height available
-			_32 center_h = h - ( source->top + ( source->bottom_h ) );
-			_32 w1 = ( ( source->left ) * w ) / ( source->left + source->right_w );
-			_32 w2 = w - w1;
+			uint32_t center_h = h - ( source->top + ( source->bottom_h ) );
+			uint32_t w1 = ( ( source->left ) * w ) / ( source->left + source->right_w );
+			uint32_t w2 = w - w1;
 
 			BlotScaledImageSizedEx( dest, source->slices[SLICED_IMAGE_TOP_LEFT]
 					, 0, 0 
@@ -1797,10 +1797,10 @@ void BlotSlicedImageEx( Image dest, SlicedImage source, S_32 x, S_32 y, _32 w, _
 		}
 		else
 		{
-			_32 h1 = ( ( source->top ) * h ) / ( source->top + source->bottom_h );
-			_32 h2 = h - h1;
-			_32 w1 = ( ( source->left ) * w ) / ( source->left + source->right_w );
-			_32 w2 = w - w1;
+			uint32_t h1 = ( ( source->top ) * h ) / ( source->top + source->bottom_h );
+			uint32_t h2 = h - h1;
+			uint32_t w1 = ( ( source->left ) * w ) / ( source->left + source->right_w );
+			uint32_t w2 = w - w1;
 
 			BlotScaledImageSizedEx( dest, source->slices[SLICED_IMAGE_TOP_LEFT]
 					, 0, 0 
@@ -1853,49 +1853,49 @@ No CDATA  ColorAverage ( CDATA c1, CDATA c2
 }
 
 
-No void plot      ( Image pi, S_32 x, S_32 y, CDATA c )
+No void plot      ( Image pi, int32_t x, int32_t y, CDATA c )
 {
 	_plot(pi,x,y,c);
 }
-No void plotalpha ( Image pi, S_32 x, S_32 y, CDATA c )
+No void plotalpha ( Image pi, int32_t x, int32_t y, CDATA c )
 {
 	_plotalpha(pi,x,y,c);
 }
-No CDATA getpixel ( Image pi, S_32 x, S_32 y )
+No CDATA getpixel ( Image pi, int32_t x, int32_t y )
 {
 	return _getpixel(pi,x,y);
 }
 //-------------------------------
 // Line functions  (lineasm.asm) // should include a line.c ... for now core was assembly...
 //-------------------------------
-No void do_line     ( Image pBuffer, S_32 x, S_32 y, S_32 xto, S_32 yto, CDATA color )  // d is color data...
+No void do_line     ( Image pBuffer, int32_t x, int32_t y, int32_t xto, int32_t yto, CDATA color )  // d is color data...
 {
 	_do_line( pBuffer, x, y, xto, yto, color );
 }
-No void do_lineAlpha( Image pBuffer, S_32 x, S_32 y, S_32 xto, S_32 yto, CDATA color)  // d is color data...
+No void do_lineAlpha( Image pBuffer, int32_t x, int32_t y, int32_t xto, int32_t yto, CDATA color)  // d is color data...
 
 {
 	_do_lineAlpha( pBuffer, x, y, xto, yto, color );
 }
-No void do_hline     ( Image pImage, S_32 y, S_32 xfrom, S_32 xto, CDATA color )
+No void do_hline     ( Image pImage, int32_t y, int32_t xfrom, int32_t xto, CDATA color )
 {
 	_do_hline( pImage, y, xfrom, xto, color );
 }
-No void do_vline     ( Image pImage, S_32 x, S_32 yfrom, S_32 yto, CDATA color )
+No void do_vline     ( Image pImage, int32_t x, int32_t yfrom, int32_t yto, CDATA color )
 {
 	_do_vline( pImage, x, yfrom, yto, color );
 }
-No void do_hlineAlpha( Image pImage, S_32 y, S_32 xfrom, S_32 xto, CDATA color )
+No void do_hlineAlpha( Image pImage, int32_t y, int32_t xfrom, int32_t xto, CDATA color )
 {
 	_do_hlineAlpha( pImage, y, xfrom, xto, color );
 }
-No void do_vlineAlpha( Image pImage, S_32 x, S_32 yfrom, S_32 yto, CDATA color )
+No void do_vlineAlpha( Image pImage, int32_t x, int32_t yfrom, int32_t yto, CDATA color )
 {
 	_do_vlineAlpha( pImage, x,yfrom, yto, color );
 }
-No void  do_lineExV( Image pImage, S_32 x, S_32 y
-									  , S_32 xto, S_32 yto, CDATA color
-									  , void (*func)( Image pif, S_32 x, S_32 y, int d ) )
+No void  do_lineExV( Image pImage, int32_t x, int32_t y
+									  , int32_t xto, int32_t yto, CDATA color
+									  , void (*func)( Image pif, int32_t x, int32_t y, int d ) )
 {
 	_do_lineExV(pImage,x,y,xto,yto,color,func);
 }

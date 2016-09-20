@@ -51,16 +51,16 @@
 
 
 /* initializes mt[N] with a seed */
-MERSENNE_PROC( struct mersenne_rng *, init_genrand )(_32 s);
+MERSENNE_PROC( struct mersenne_rng *, init_genrand )(uint32_t s);
 
 /* initialize by an array with array-length */
 /* init_key is the array for initializing keys */
 /* key_length is its length; in 32 bit words */
 /* slight change for C++, 2004/2/26 */
-MERSENNE_PROC( struct mersenne_rng *, init_by_array )(_32 init_key[], int key_length);
+MERSENNE_PROC( struct mersenne_rng *, init_by_array )(uint32_t init_key[], int key_length);
 
 /* generates a random number on [0,0xffffffff]-interval */
-MERSENNE_PROC( _32, genrand_int32 )(struct mersenne_rng *rng);
+MERSENNE_PROC( uint32_t, genrand_int32 )(struct mersenne_rng *rng);
 
 /* generates a random number on [0,0x7fffffff]-interval */
 MERSENNE_PROC( long, genrand_int31 )(struct mersenne_rng *rng);

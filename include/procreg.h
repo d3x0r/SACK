@@ -427,8 +427,8 @@ PROCREG_PROC( LOGICAL, RegisterFunctionExx )( CTEXTSTR root
 #define SimpleRegisterMethod(r,proc,rt,name,args) RegisterFunctionExx(r,NULL,name,rt,(PROCEDURE)proc,args,NULL,NULL DBG_SRC )
 
 #define GetRegisteredProcedure(nc,rtype,name,args) (rtype (CPROC*)args)GetRegisteredProcedureEx((nc),_WIDE(#rtype), _WIDE(#name), _WIDE(#args) )
-PROCREG_PROC( int, RegisterIntValueEx )( PCLASSROOT root, CTEXTSTR name_class, CTEXTSTR name, PTRSZVAL value );
-PROCREG_PROC( int, RegisterIntValue )( CTEXTSTR name_class, CTEXTSTR name, PTRSZVAL value );
+PROCREG_PROC( int, RegisterIntValueEx )( PCLASSROOT root, CTEXTSTR name_class, CTEXTSTR name, uintptr_t value );
+PROCREG_PROC( int, RegisterIntValue )( CTEXTSTR name_class, CTEXTSTR name, uintptr_t value );
 
 PROCREG_PROC( int, RegisterValueExx )( PCLASSROOT root, CTEXTSTR name_class, CTEXTSTR name, int bIntVal, CTEXTSTR value );
 PROCREG_PROC( int, RegisterValueEx )( CTEXTSTR name_class, CTEXTSTR name, int bIntVal, CTEXTSTR value );
@@ -465,7 +465,7 @@ PROCREG_PROC( CTEXTSTR, GetRegisteredValue )( CTEXTSTR name_class, CTEXTSTR name
    
    \ \                                                                                   */
 PROCREG_PROC( CTEXTSTR, GetRegisteredValueExx )( CTEXTSTR root, CTEXTSTR name_class, CTEXTSTR name, int bIntVal );
-PROCREG_PROC( int, RegisterIntValueEx )( CTEXTSTR root, CTEXTSTR name_class, CTEXTSTR name, PTRSZVAL value );
+PROCREG_PROC( int, RegisterIntValueEx )( CTEXTSTR root, CTEXTSTR name_class, CTEXTSTR name, uintptr_t value );
 #endif
 
 /* This is like GetRegisteredValue, but takes the address of the
@@ -495,7 +495,7 @@ PROCREG_PROC( int, GetRegisteredIntValue )( CTEXTSTR name_class, CTEXTSTR name )
 PROCREG_PROC( int, GetRegisteredIntValue )( PCLASSROOT name_class, CTEXTSTR name );
 #endif
 
-typedef void (CPROC*OpenCloseNotification)( POINTER, PTRSZVAL );
+typedef void (CPROC*OpenCloseNotification)( POINTER, uintptr_t );
 #define PUBLIC_DATA( public, struct, open, close )    \
 	PRELOAD( Data_##open##_##close ) { \
 	RegisterDataType( WIDE("system/data/structs")  \
@@ -510,9 +510,9 @@ typedef void (CPROC*OpenCloseNotification)( POINTER, PTRSZVAL );
 
 #define GET_PUBLIC_DATA( public, type, instname ) \
    (type*)CreateRegisteredDataType( WIDE("system/data/structs"), public, instname )
-PROCREG_PROC( PTRSZVAL, RegisterDataType )( CTEXTSTR classname
+PROCREG_PROC( uintptr_t, RegisterDataType )( CTEXTSTR classname
 												 , CTEXTSTR name
-												 , PTRSZVAL size
+												 , uintptr_t size
 												 , OpenCloseNotification open
 												 , OpenCloseNotification close );
 /* Registers a structure as creatable in shared memory by name.
@@ -537,21 +537,21 @@ PROCREG_PROC( PTRSZVAL, RegisterDataType )( CTEXTSTR classname
    classname :     path to the type
    name :          name of the type to create an instance of
    instancename :  a name for the instance created.                                         */
-PROCREG_PROC( PTRSZVAL, CreateRegisteredDataType)( CTEXTSTR classname
+PROCREG_PROC( uintptr_t, CreateRegisteredDataType)( CTEXTSTR classname
 																 , CTEXTSTR name
 																 , CTEXTSTR instancename );
 
-PROCREG_PROC( PTRSZVAL, RegisterDataTypeEx )( PCLASSROOT root
+PROCREG_PROC( uintptr_t, RegisterDataTypeEx )( PCLASSROOT root
 													, CTEXTSTR classname
 													, CTEXTSTR name
-													, PTRSZVAL size
+													, uintptr_t size
 													, OpenCloseNotification Open
 													, OpenCloseNotification Close );
 
 /* <combine sack::app::registry::CreateRegisteredDataType@CTEXTSTR@CTEXTSTR@CTEXTSTR>
    
    \ \                                                                                */
-PROCREG_PROC( PTRSZVAL, CreateRegisteredDataTypeEx)( PCLASSROOT root
+PROCREG_PROC( uintptr_t, CreateRegisteredDataTypeEx)( PCLASSROOT root
 																	, CTEXTSTR classname
 																	, CTEXTSTR name
 																	, CTEXTSTR instancename );
@@ -751,8 +751,8 @@ PROCREG_PROC( int, ReleaseRegisteredFunctionEx )( PCLASSROOT root
        SimpleRegisterAndCreateGlobal( global );
    }
    </code>                                                               */
-PROCREG_PROC( void, RegisterAndCreateGlobal )( POINTER *ppGlobal, PTRSZVAL global_size, CTEXTSTR name );
-/* <combine sack::app::registry::RegisterAndCreateGlobal@POINTER *@PTRSZVAL@CTEXTSTR>
+PROCREG_PROC( void, RegisterAndCreateGlobal )( POINTER *ppGlobal, uintptr_t global_size, CTEXTSTR name );
+/* <combine sack::app::registry::RegisterAndCreateGlobal@POINTER *@uintptr_t@CTEXTSTR>
    
    \ \                                                                                   */
 #define SimpleRegisterAndCreateGlobal( name ) 	RegisterAndCreateGlobal( (POINTER*)&name, sizeof( *name ), WIDE(#name) )
@@ -780,7 +780,7 @@ PROCREG_PROC( void, RegisterAndCreateGlobal )( POINTER *ppGlobal, PTRSZVAL globa
    </code>
    <code lang="c++">
    
-   void __cdecl InitRegion( POINTER region, PTRSZVAL region_size )
+   void __cdecl InitRegion( POINTER region, uintptr_t region_size )
    {
        // do something to initialize 'region'
    }
@@ -790,8 +790,8 @@ PROCREG_PROC( void, RegisterAndCreateGlobal )( POINTER *ppGlobal, PTRSZVAL globa
        SimpleRegisterAndCreateGlobalWithInit( global, InitRegion );
    }
    </code>                                                          */
-PROCREG_PROC( void, RegisterAndCreateGlobalWithInit )( POINTER *ppGlobal, PTRSZVAL global_size, CTEXTSTR name, void (CPROC*Init)(POINTER,PTRSZVAL) );
-/* <combine sack::app::registry::RegisterAndCreateGlobalWithInit@POINTER *@PTRSZVAL@CTEXTSTR@void __cdecl*InitPOINTER\,PTRSZVAL>
+PROCREG_PROC( void, RegisterAndCreateGlobalWithInit )( POINTER *ppGlobal, uintptr_t global_size, CTEXTSTR name, void (CPROC*Init)(POINTER,uintptr_t) );
+/* <combine sack::app::registry::RegisterAndCreateGlobalWithInit@POINTER *@uintptr_t@CTEXTSTR@void __cdecl*InitPOINTER\,uintptr_t>
    
    \ \                                                                                                                              */
 #define SimpleRegisterAndCreateGlobalWithInit( name,init ) 	RegisterAndCreateGlobalWithInit( (POINTER*)&name, sizeof( *name ), WIDE(#name), init )

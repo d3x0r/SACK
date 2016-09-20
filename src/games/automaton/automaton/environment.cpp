@@ -442,7 +442,7 @@ void EnvironmentRefresh( DWORD unused, PRENDERER self ) // called when window re
 //------------------------------------------
 // keyboard extensions are not applied since
 // this is direct from mouse - not from view...
-int EnvironMouse_2( DWORD dwUnused, S_32 x, S_32 y, _32 b )
+int EnvironMouse_2( DWORD dwUnused, int32_t x, int32_t y, uint32_t b )
 {
 static BOOL _bLeft, _bRight;	  // goes up, goes down....
 static int _x, _y;
@@ -539,7 +539,7 @@ void EnvironClose( DWORD dwUnused )
 //extern "C" void BlotImageMultiShaded( HVIDEO hDest, ImageFile *pIF, int x, int y, CDATA r, CDATA g, CDATA b );
 Image pTest;
 
-void CPROC UpdateBodies( PTRSZVAL psv )
+void CPROC UpdateBodies( uintptr_t psv )
 {
    int i;
    for( i = 0; i < MAX_BODIES; i++ )

@@ -4,7 +4,7 @@
 typedef struct xvideo_tag
 {
 	struct {
-		_32 bShown : 1;
+		uint32_t bShown : 1;
 	} flags;
 	GC gc;
 	Window win;
@@ -14,7 +14,7 @@ typedef struct xvideo_tag
 typedef struct local_tag
 {
 	struct {
-		_32 bInited : 1;
+		uint32_t bInited : 1;
 	} flags;
 	Display* display;
 	int screen_width;
@@ -29,8 +29,8 @@ typedef struct local_tag
 static LOCAL l;
 
 RENDER_PROC (void, UpdateDisplayPortionEx)( PXPANEL pPanel
-                                          , S_32 x, S_32 y
-                                          , _32 w, _32 h DBG_PASS)
+                                          , int32_t x, int32_t y
+                                          , uint32_t w, uint32_t h DBG_PASS)
 {
    ImageFile *pImage;
    if (pPanel

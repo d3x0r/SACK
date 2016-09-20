@@ -64,7 +64,7 @@ void DeleteLines( INDEX iWorld );
 WORLD_PROC( INDEX, GetWallLine )( INDEX iWorld, INDEX iWall );
 WORLD_PROC( INDEX, GetNextWall )( INDEX iWorld, INDEX iWall, int *priorend );
 WORLD_PROC( INDEX, GetFirstWall )( INDEX iWorld, INDEX iSector, int *priorend );
-PTRSZVAL CPROC ServerDestroyLine( INDEX iLine, INDEX iWorld );
+uintptr_t CPROC ServerDestroyLine( INDEX iLine, INDEX iWorld );
 
 INDEX AddConnectedSector( INDEX iWorld, INDEX iWall, RCOORD offset );
 int MoveWalls( INDEX iWorld, int nWalls, INDEX *WallList, P_POINT del, int bLockSlope );

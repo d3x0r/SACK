@@ -56,12 +56,12 @@ struct ControlRegistration_tag {
 		 about the control like default width and height           */
 		struct width_height_tag {
 			/* default width of the control. */
-			_32 width;
+			uint32_t width;
 			/* default height of the control. */
-			_32 height;
+			uint32_t height;
 		}	stuff;
-		_32 extra; // default width, height for right-click creation.
-		_32 default_border;  // default border style of the control see BorderOptionTypes
+		uint32_t extra; // default width, height for right-click creation.
+		uint32_t default_border;  // default border style of the control see BorderOptionTypes
 		//CTEXTSTR master_config;
       //struct ControlRegistration_tag *pMasterConfig;
 	}
@@ -83,11 +83,11 @@ struct ControlRegistration_tag {
 	/* <combine sack::PSI::OnMouseCommon>
 	   
 	   \ \                                */
-	int (CPROC*mouse)( PSI_CONTROL , S_32 x, S_32 y, _32 b );
+	int (CPROC*mouse)( PSI_CONTROL , int32_t x, int32_t y, uint32_t b );
 	/* <combine sack::PSI::OnKeyCommon>
 	   
 	   \ \                              */
-	int (CPROC*key)( PSI_CONTROL , _32 );
+	int (CPROC*key)( PSI_CONTROL , uint32_t );
 	/* <combine sack::PSI::OnDestroyCommon>
 	   
 	   \ \                                  */
@@ -120,7 +120,7 @@ struct ControlRegistration_tag {
 	   checked to identify the type of the control, and make sure
 	   that the user data retreived from the control is the correct
 	   type.                                                        */
-	_32 TypeID; 
+	uint32_t TypeID; 
 };
 
 typedef struct ControlRegistration_tag CONTROL_REGISTRATION;
@@ -129,12 +129,12 @@ typedef struct ControlRegistration_tag *PCONTROL_REGISTRATION;
 #define LinePaste(a,b) a##b
 #define LinePaste2(a,b) LinePaste(a,b)
 #define SYMVAL(a) a
-#define EasyRegisterControl( name, extra ) static CONTROL_REGISTRATION LinePaste2(ControlType,SYMVAL(__LINE__))= { name, { 32, 32, extra, BORDER_THINNER } }; PRELOAD( SimpleRegisterControl ){ DoRegisterControl( &LinePaste2(ControlType,SYMVAL(__LINE__)) ); } static P_32 _MyControlID = &LinePaste2(ControlType,SYMVAL(__LINE__)).TypeID;
-#define EasyRegisterControlEx( name, extra, reg_name ) static CONTROL_REGISTRATION reg_name= { name, { 32, 32, extra, BORDER_THINNER } }; PRELOAD( SimpleRegisterControl##reg_name ){ DoRegisterControl( &reg_name ); } static P_32 _MyControlID##reg_name = &reg_name.TypeID;
-#define EasyRegisterControlWithBorder( name, extra, border_flags ) static CONTROL_REGISTRATION LinePaste2(ControlType,SYMVAL(__LINE__))= { name, { 32, 32, extra, border_flags} }; PRELOAD( SimpleRegisterControl ){ DoRegisterControl( &LinePaste2(ControlType,SYMVAL(__LINE__)) ); } static P_32 _MyControlID = &LinePaste2(ControlType,SYMVAL(__LINE__)).TypeID;
-#define EasyRegisterControlWithBorderEx( name, extra, border_flags, reg_name ) static CONTROL_REGISTRATION reg_name= { name, { 32, 32, extra, border_flags} }; PRELOAD( SimpleRegisterControl##reg_name ){ DoRegisterControl( &reg_name ); } static P_32 _MyControlID##reg_name = &reg_name.TypeID;
-#define RegisterControlWithBorderEx( name, extra, border_flags, reg_name )  CONTROL_REGISTRATION reg_name= { name, { 32, 32, extra, border_flags} }; PRELOAD( SimpleRegisterControl##reg_name ){ DoRegisterControl( &reg_name ); } P_32 _MyControlID##reg_name = &reg_name.TypeID;
-#define ExternRegisterControlWithBorderEx( name, extra, border_flags, reg_name ) extern CONTROL_REGISTRATION reg_name; extern P_32 _MyControlID##reg_name;
+#define EasyRegisterControl( name, extra ) static CONTROL_REGISTRATION LinePaste2(ControlType,SYMVAL(__LINE__))= { name, { 32, 32, extra, BORDER_THINNER } }; PRELOAD( SimpleRegisterControl ){ DoRegisterControl( &LinePaste2(ControlType,SYMVAL(__LINE__)) ); } static uint32_t* _MyControlID = &LinePaste2(ControlType,SYMVAL(__LINE__)).TypeID;
+#define EasyRegisterControlEx( name, extra, reg_name ) static CONTROL_REGISTRATION reg_name= { name, { 32, 32, extra, BORDER_THINNER } }; PRELOAD( SimpleRegisterControl##reg_name ){ DoRegisterControl( &reg_name ); } static uint32_t* _MyControlID##reg_name = &reg_name.TypeID;
+#define EasyRegisterControlWithBorder( name, extra, border_flags ) static CONTROL_REGISTRATION LinePaste2(ControlType,SYMVAL(__LINE__))= { name, { 32, 32, extra, border_flags} }; PRELOAD( SimpleRegisterControl ){ DoRegisterControl( &LinePaste2(ControlType,SYMVAL(__LINE__)) ); } static uint32_t* _MyControlID = &LinePaste2(ControlType,SYMVAL(__LINE__)).TypeID;
+#define EasyRegisterControlWithBorderEx( name, extra, border_flags, reg_name ) static CONTROL_REGISTRATION reg_name= { name, { 32, 32, extra, border_flags} }; PRELOAD( SimpleRegisterControl##reg_name ){ DoRegisterControl( &reg_name ); } static uint32_t* _MyControlID##reg_name = &reg_name.TypeID;
+#define RegisterControlWithBorderEx( name, extra, border_flags, reg_name )  CONTROL_REGISTRATION reg_name= { name, { 32, 32, extra, border_flags} }; PRELOAD( SimpleRegisterControl##reg_name ){ DoRegisterControl( &reg_name ); } uint32_t* _MyControlID##reg_name = &reg_name.TypeID;
+#define ExternRegisterControlWithBorderEx( name, extra, border_flags, reg_name ) extern CONTROL_REGISTRATION reg_name; extern uint32_t* _MyControlID##reg_name;
 #define MyControlID (_MyControlID[0])
 #define MyControlIDEx(n) (_MyControlID##n[0])
 #define MyValidatedControlData( type, result, pc ) ValidatedControlData( type, MyControlID, result, pc )
@@ -270,7 +270,7 @@ typedef struct ControlRegistration_tag *PCONTROL_REGISTRATION;
    keys will also be given to mouse event as button MK_OBUTTON.
    Example
    <code lang="c++">
-   static int OnMouseCommon( TEXT("YourControlName") )( PSI_CONTROL control, S_32 x, S_32 y, _32 buttons )
+   static int OnMouseCommon( TEXT("YourControlName") )( PSI_CONTROL control, int32_t x, int32_t y, uint32_t buttons )
    {
        // if the control uses the mouse, it should return 1, else the mouse is passed through.
        return 0;
@@ -281,9 +281,9 @@ typedef struct ControlRegistration_tag *PCONTROL_REGISTRATION;
    Registers under
    
    /psi/control/\<name\>/rtti/mouse =
-   (PSI_CONTROL,S_32,S_32,_32)@void@_@mouse                                                                */
+   (PSI_CONTROL,int32_t,int32_t,uint32_t)@void@_@mouse                                                                */
 #define OnMouseCommon(name)  \
-	__DefineRegistryMethod(PSI_ROOT_REGISTRY,_OnMouseCommon,WIDE("control"),name WIDE("/rtti"),WIDE("mouse"),int,(PSI_CONTROL,S_32,S_32,_32), __LINE__)
+	__DefineRegistryMethod(PSI_ROOT_REGISTRY,_OnMouseCommon,WIDE("control"),name WIDE("/rtti"),WIDE("mouse"),int,(PSI_CONTROL,int32_t,int32_t,uint32_t), __LINE__)
 /* Controls may register a keyboard event procedure. This will
    receive notifications about what key is hit. Using mouse keys
    are impractical, because you would have to test every key for
@@ -298,7 +298,7 @@ typedef struct ControlRegistration_tag *PCONTROL_REGISTRATION;
    the key will be passed to the parent control to see if it
    wants to process it.
    <code lang="c++">
-   static int OnKeyCommon( name )( PSI_CONTROL control, _32 key )
+   static int OnKeyCommon( name )( PSI_CONTROL control, uint32_t key )
    {
       // a new key event has happened to this focused control.
       // the key passed may be parsed with macros from keybrd.h
@@ -308,9 +308,9 @@ typedef struct ControlRegistration_tag *PCONTROL_REGISTRATION;
    Internal
    Registers under
    
-   /psi/control/\<name\>/rtti/key=(PSI_CONTROL,_32)@int@_@key       */
+   /psi/control/\<name\>/rtti/key=(PSI_CONTROL,uint32_t)@int@_@key       */
 #define OnKeyCommon(name)  \
-	__DefineRegistryMethod(PSI_ROOT_REGISTRY,_OnKeyCommon,WIDE("control"),name WIDE("/rtti"),WIDE("key"),int,(PSI_CONTROL,_32), __LINE__)
+	__DefineRegistryMethod(PSI_ROOT_REGISTRY,_OnKeyCommon,WIDE("control"),name WIDE("/rtti"),WIDE("key"),int,(PSI_CONTROL,uint32_t), __LINE__)
 /* This event callback is called when a control's position
    changes. Usually only happens on the outer parent frame.
    Example
@@ -613,7 +613,7 @@ typedef struct ControlRegistration_tag *PCONTROL_REGISTRATION;
 
 // static LOGICAL OnDropAccept(WIDE(""))(PSI_CONTROL pc_canvas,CTEXTSTR filepath,int x,int y)
 #define OnControlDropAccept(name)  \
-	__DefineRegistryMethod(PSI_ROOT_REGISTRY,_OnControlDropAccept,WIDE("control"),name WIDE("/rtti"),WIDE("drop_accept"),LOGICAL,(PSI_CONTROL,CTEXTSTR,S_32,S_32), __LINE__)
+	__DefineRegistryMethod(PSI_ROOT_REGISTRY,_OnControlDropAccept,WIDE("control"),name WIDE("/rtti"),WIDE("drop_accept"),LOGICAL,(PSI_CONTROL,CTEXTSTR,int32_t,int32_t), __LINE__)
 
 // static void OnControlRollover(WIDE(""))(PSI_CONTROL pc_canvas,LOGICAL enter)
 // enter is a boolean if true mouse entered control else mouse left control

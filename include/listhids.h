@@ -27,9 +27,9 @@ typedef struct
 }LISTHIDS_HIDINFO;
 
 
-typedef LOGICAL (CPROC* ListHidsCallback)( PTRSZVAL psv, LISTHIDS_HIDINFO* lpHidInfo );
+typedef LOGICAL (CPROC* ListHidsCallback)( uintptr_t psv, LISTHIDS_HIDINFO* lpHidInfo );
 
-SACKHIDLIST_PROC( LOGICAL, ListHids )( ListHidsCallback lpCallback, PTRSZVAL psv );
+SACKHIDLIST_PROC( LOGICAL, ListHids )( ListHidsCallback lpCallback, uintptr_t psv );
 
 #ifdef __cplusplus
 }

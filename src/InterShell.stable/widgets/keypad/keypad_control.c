@@ -122,11 +122,11 @@ static KEY_SPACE_SIZE keyboard_sizing = { 4, 13
 typedef struct magic_sequence
 {
 	CTEXTSTR sequence;
-	void (CPROC*event_proc)( PTRSZVAL );
-	PTRSZVAL psv_sequence;
+	void (CPROC*event_proc)( uintptr_t );
+	uintptr_t psv_sequence;
 
 	// tracking the state of progress in matching this sequence.
-	_32 last_tick_sequence_match;
+	uint32_t last_tick_sequence_match;
 	int index_match;
 } MAGIC_SEQUENCE, *PMAGIC_SEQUENCE;
 
@@ -134,7 +134,7 @@ typedef struct display_struct
 {
 	PCONTROL control;
 	SFTFont font;
-	_32 width, height;
+	uint32_t width, height;
 	struct keypad_struct *keypad;
 } DISPLAY, *PDISPLAY;
 
@@ -168,17 +168,17 @@ typedef struct keypad_struct
 		BIT_FIELD bCenterJustify : 1;
 	} flags;
 
-	_32 displaywidth, displayheight;
+	uint32_t displaywidth, displayheight;
 	// last known size... when draw is triggered
 	// see if we need to rescale the buttoms...
 	PKEY_SPACE_SIZE key_spacing;
-	_32 nKeys;
+	uint32_t nKeys;
 	KEY_HOLDER *keys;
-	_32 width, height;
-	void (CPROC *keypad_enter_event)(PTRSZVAL psv, PSI_CONTROL keypad );
-	PTRSZVAL psvEnterEvent;
-	void (CPROC *keypad_cancel_event)(PTRSZVAL psv, PSI_CONTROL keypad );
-	PTRSZVAL psvCancelEvent;
+	uint32_t width, height;
+	void (CPROC *keypad_enter_event)(uintptr_t psv, PSI_CONTROL keypad );
+	uintptr_t psvEnterEvent;
+	void (CPROC *keypad_cancel_event)(uintptr_t psv, PSI_CONTROL keypad );
+	uintptr_t psvCancelEvent;
 
 	PCOMMON display;
 	DeclareLink( struct keypad_struct );
@@ -209,7 +209,7 @@ typedef struct keypad_struct
 } KEYPAD;
 
 static PKEYPAD keypads;
-static _32 magic_sequence_time_length = 1250;
+static uint32_t magic_sequence_time_length = 1250;
 static struct {
 	BIT_FIELD log_key_events : 1;
 } flags;
@@ -308,7 +308,7 @@ static void InvokeMagicSequences( PSI_CONTROL pc, CTEXTSTR new_data )
 		PMAGIC_SEQUENCE magic_sequence;
 		LIST_FORALL( keypad->magic_sequences, idx, PMAGIC_SEQUENCE, magic_sequence )
 		{
-			_32 now = timeGetTime();
+			uint32_t now = timeGetTime();
 			TEXTCHAR this_char;
 			if( magic_sequence->last_tick_sequence_match && 
 				( ( magic_sequence->last_tick_sequence_match + magic_sequence_time_length ) < now ) )
@@ -391,7 +391,7 @@ static void InvokeCancelEvent( PCOMMON pc )
 	}
 }
 
-void SetKeypadEnterEvent( PCOMMON pc, void (CPROC *event)(PTRSZVAL,PSI_CONTROL), PTRSZVAL psv )
+void SetKeypadEnterEvent( PCOMMON pc, void (CPROC *event)(uintptr_t,PSI_CONTROL), uintptr_t psv )
 {
 	ValidatedControlData( PKEYPAD, keypad_control.TypeID, keypad, pc );
 	if( keypad )
@@ -401,7 +401,7 @@ void SetKeypadEnterEvent( PCOMMON pc, void (CPROC *event)(PTRSZVAL,PSI_CONTROL),
 	}
 }
 
-void SetKeypadCancelEvent( PCOMMON pc, void (CPROC *event)(PTRSZVAL,PSI_CONTROL), PTRSZVAL psv )
+void SetKeypadCancelEvent( PCOMMON pc, void (CPROC *event)(uintptr_t,PSI_CONTROL), uintptr_t psv )
 {
 	ValidatedControlData( PKEYPAD, keypad_control.TypeID, keypad, pc );
 	if( keypad )
@@ -474,7 +474,7 @@ static int CPROC DrawKeypadDisplay( PCONTROL pc )
 	TEXTCHAR tmp_text[128];
 	TEXTCHAR text[128];
 	TEXTCHAR *output;
-		_32 width, height;
+		uint32_t width, height;
 		ValidatedControlData( PDISPLAY, keypad_display.TypeID, display, pc );
 		PKEYPAD pKeyPad = display->keypad;
 		Image surface = GetControlSurface( pc );
@@ -535,7 +535,7 @@ static int CPROC DrawKeypadDisplay( PCONTROL pc )
       return 1;
 }
 
-static void KeypadAccumUpdated( PTRSZVAL psvKeypad, PACCUMULATOR accum )
+static void KeypadAccumUpdated( uintptr_t psvKeypad, PACCUMULATOR accum )
 {
 	PKEYPAD keypad = (PKEYPAD)psvKeypad;
 	if( keypad->display )
@@ -550,7 +550,7 @@ static int resize_keys( PKEYPAD keypad )
 	unsigned int w, h;
 	int row, col, rows, cols;
 	FRACTION posy, posx, tmp;
-	S_32 keyx, keyy, keywidth, keyheight;
+	int32_t keyx, keyy, keywidth, keyheight;
 	// we might get called here to resize
 	// when we don't really have any children at all... and no spacing factor to
 	// apply.
@@ -666,9 +666,9 @@ static int OnDrawCommon( WIDE( "Keypad Control 2" ) )( PSI_CONTROL frame )//CPRO
    return FALSE;
 }
 
-static LOGICAL CPROC KeyboardHandler( PTRSZVAL psv
-											, _32 key );
-static void CPROC KeyPressed( PTRSZVAL psv, PKEY_BUTTON key );
+static LOGICAL CPROC KeyboardHandler( uintptr_t psv
+											, uint32_t key );
+static void CPROC KeyPressed( uintptr_t psv, PKEY_BUTTON key );
 static int new_flags;
 
 #define NUM_KEYBOARD_KEYS ( sizeof( keyboard_keys ) / sizeof( keyboard_keys[0] ) )
@@ -745,7 +745,7 @@ static int _InitKeypad( PSI_CONTROL frame )
 {
 	ValidatedControlData( PKEYPAD, keypad_control.TypeID, keypad, frame );
 	PKEY_SPACE_SIZE pKeySizing;
-	S_32 keyx, keyy, keywidth, keyheight;
+	int32_t keyx, keyy, keywidth, keyheight;
 	int row, col, rows, cols;
 	FRACTION posy, posx, tmp;//, curposy;
 	int w, h;
@@ -773,45 +773,45 @@ static int _InitKeypad( PSI_CONTROL frame )
 	{
 		PRENDERER render = GetFrameRenderer( GetFrame( frame ) );
       //lprintf( "Bind Normal Keys... %p", render );
-      BindEventToKey( render, KEY_PAD_0, KEY_MOD_ALL_CHANGES, KeyboardHandler, (PTRSZVAL)frame );
-      BindEventToKey( render, KEY_PAD_1, KEY_MOD_ALL_CHANGES, KeyboardHandler, (PTRSZVAL)frame );
-      BindEventToKey( render, KEY_PAD_2, KEY_MOD_ALL_CHANGES, KeyboardHandler, (PTRSZVAL)frame );
-      BindEventToKey( render, KEY_PAD_3, KEY_MOD_ALL_CHANGES, KeyboardHandler, (PTRSZVAL)frame );
-      BindEventToKey( render, KEY_PAD_4, KEY_MOD_ALL_CHANGES, KeyboardHandler, (PTRSZVAL)frame );
-      BindEventToKey( render, KEY_PAD_5, KEY_MOD_ALL_CHANGES, KeyboardHandler, (PTRSZVAL)frame );
-      BindEventToKey( render, KEY_PAD_6, KEY_MOD_ALL_CHANGES, KeyboardHandler, (PTRSZVAL)frame );
-      BindEventToKey( render, KEY_PAD_7, KEY_MOD_ALL_CHANGES, KeyboardHandler, (PTRSZVAL)frame );
-      BindEventToKey( render, KEY_PAD_8, KEY_MOD_ALL_CHANGES, KeyboardHandler, (PTRSZVAL)frame );
-      BindEventToKey( render, KEY_PAD_9, KEY_MOD_ALL_CHANGES, KeyboardHandler, (PTRSZVAL)frame );
-      BindEventToKey( render, KEY_INSERT, KEY_MOD_ALL_CHANGES, KeyboardHandler, (PTRSZVAL)frame );
-      BindEventToKey( render, KEY_DELETE, KEY_MOD_ALL_CHANGES, KeyboardHandler, (PTRSZVAL)frame );
-      BindEventToKey( render, KEY_DELETE, KEY_MOD_EXTENDED|KEY_MOD_ALL_CHANGES, KeyboardHandler, (PTRSZVAL)frame );
-      BindEventToKey( render, KEY_END, KEY_MOD_ALL_CHANGES, KeyboardHandler, (PTRSZVAL)frame );
-      BindEventToKey( render, KEY_DOWN, KEY_MOD_ALL_CHANGES, KeyboardHandler, (PTRSZVAL)frame );
-      BindEventToKey( render, KEY_PGDN, KEY_MOD_ALL_CHANGES, KeyboardHandler, (PTRSZVAL)frame );
-      BindEventToKey( render, KEY_LEFT, KEY_MOD_ALL_CHANGES, KeyboardHandler, (PTRSZVAL)frame );
-      BindEventToKey( render, KEY_CENTER, KEY_MOD_ALL_CHANGES, KeyboardHandler, (PTRSZVAL)frame );
-      BindEventToKey( render, KEY_RIGHT, KEY_MOD_ALL_CHANGES, KeyboardHandler, (PTRSZVAL)frame );
-      BindEventToKey( render, KEY_HOME, KEY_MOD_ALL_CHANGES, KeyboardHandler, (PTRSZVAL)frame );
-      BindEventToKey( render, KEY_UP, KEY_MOD_ALL_CHANGES, KeyboardHandler, (PTRSZVAL)frame );
-      BindEventToKey( render, KEY_PGUP, KEY_MOD_ALL_CHANGES, KeyboardHandler, (PTRSZVAL)frame );
-      BindEventToKey( render, KEY_PAD_DELETE, KEY_MOD_ALL_CHANGES, KeyboardHandler, (PTRSZVAL)frame );
-      BindEventToKey( render, KEY_PAD_ENTER, KEY_MOD_ALL_CHANGES, KeyboardHandler, (PTRSZVAL)frame );
-      BindEventToKey( render, KEY_PAD_ENTER, KEY_MOD_EXTENDED|KEY_MOD_ALL_CHANGES, KeyboardHandler, (PTRSZVAL)frame );
-      BindEventToKey( render, KEY_PAD_MINUS, KEY_MOD_ALL_CHANGES, KeyboardHandler, (PTRSZVAL)frame );
-      BindEventToKey( render, KEY_PAD_DELETE, KEY_MOD_ALL_CHANGES, KeyboardHandler, (PTRSZVAL)frame );
+      BindEventToKey( render, KEY_PAD_0, KEY_MOD_ALL_CHANGES, KeyboardHandler, (uintptr_t)frame );
+      BindEventToKey( render, KEY_PAD_1, KEY_MOD_ALL_CHANGES, KeyboardHandler, (uintptr_t)frame );
+      BindEventToKey( render, KEY_PAD_2, KEY_MOD_ALL_CHANGES, KeyboardHandler, (uintptr_t)frame );
+      BindEventToKey( render, KEY_PAD_3, KEY_MOD_ALL_CHANGES, KeyboardHandler, (uintptr_t)frame );
+      BindEventToKey( render, KEY_PAD_4, KEY_MOD_ALL_CHANGES, KeyboardHandler, (uintptr_t)frame );
+      BindEventToKey( render, KEY_PAD_5, KEY_MOD_ALL_CHANGES, KeyboardHandler, (uintptr_t)frame );
+      BindEventToKey( render, KEY_PAD_6, KEY_MOD_ALL_CHANGES, KeyboardHandler, (uintptr_t)frame );
+      BindEventToKey( render, KEY_PAD_7, KEY_MOD_ALL_CHANGES, KeyboardHandler, (uintptr_t)frame );
+      BindEventToKey( render, KEY_PAD_8, KEY_MOD_ALL_CHANGES, KeyboardHandler, (uintptr_t)frame );
+      BindEventToKey( render, KEY_PAD_9, KEY_MOD_ALL_CHANGES, KeyboardHandler, (uintptr_t)frame );
+      BindEventToKey( render, KEY_INSERT, KEY_MOD_ALL_CHANGES, KeyboardHandler, (uintptr_t)frame );
+      BindEventToKey( render, KEY_DELETE, KEY_MOD_ALL_CHANGES, KeyboardHandler, (uintptr_t)frame );
+      BindEventToKey( render, KEY_DELETE, KEY_MOD_EXTENDED|KEY_MOD_ALL_CHANGES, KeyboardHandler, (uintptr_t)frame );
+      BindEventToKey( render, KEY_END, KEY_MOD_ALL_CHANGES, KeyboardHandler, (uintptr_t)frame );
+      BindEventToKey( render, KEY_DOWN, KEY_MOD_ALL_CHANGES, KeyboardHandler, (uintptr_t)frame );
+      BindEventToKey( render, KEY_PGDN, KEY_MOD_ALL_CHANGES, KeyboardHandler, (uintptr_t)frame );
+      BindEventToKey( render, KEY_LEFT, KEY_MOD_ALL_CHANGES, KeyboardHandler, (uintptr_t)frame );
+      BindEventToKey( render, KEY_CENTER, KEY_MOD_ALL_CHANGES, KeyboardHandler, (uintptr_t)frame );
+      BindEventToKey( render, KEY_RIGHT, KEY_MOD_ALL_CHANGES, KeyboardHandler, (uintptr_t)frame );
+      BindEventToKey( render, KEY_HOME, KEY_MOD_ALL_CHANGES, KeyboardHandler, (uintptr_t)frame );
+      BindEventToKey( render, KEY_UP, KEY_MOD_ALL_CHANGES, KeyboardHandler, (uintptr_t)frame );
+      BindEventToKey( render, KEY_PGUP, KEY_MOD_ALL_CHANGES, KeyboardHandler, (uintptr_t)frame );
+      BindEventToKey( render, KEY_PAD_DELETE, KEY_MOD_ALL_CHANGES, KeyboardHandler, (uintptr_t)frame );
+      BindEventToKey( render, KEY_PAD_ENTER, KEY_MOD_ALL_CHANGES, KeyboardHandler, (uintptr_t)frame );
+      BindEventToKey( render, KEY_PAD_ENTER, KEY_MOD_EXTENDED|KEY_MOD_ALL_CHANGES, KeyboardHandler, (uintptr_t)frame );
+      BindEventToKey( render, KEY_PAD_MINUS, KEY_MOD_ALL_CHANGES, KeyboardHandler, (uintptr_t)frame );
+      BindEventToKey( render, KEY_PAD_DELETE, KEY_MOD_ALL_CHANGES, KeyboardHandler, (uintptr_t)frame );
 		if( !( new_flags & KEYPAD_FLAG_ALPHANUM ) )
 		{
-		BindEventToKey( render, KEY_0, KEY_MOD_ALL_CHANGES, KeyboardHandler, (PTRSZVAL)frame );
-		BindEventToKey( render, KEY_1, KEY_MOD_ALL_CHANGES, KeyboardHandler, (PTRSZVAL)frame );
-		BindEventToKey( render, KEY_2, KEY_MOD_ALL_CHANGES, KeyboardHandler, (PTRSZVAL)frame );
-		BindEventToKey( render, KEY_3, KEY_MOD_ALL_CHANGES, KeyboardHandler, (PTRSZVAL)frame );
-		BindEventToKey( render, KEY_4, KEY_MOD_ALL_CHANGES, KeyboardHandler, (PTRSZVAL)frame );
-		BindEventToKey( render, KEY_5, KEY_MOD_ALL_CHANGES, KeyboardHandler, (PTRSZVAL)frame );
-		BindEventToKey( render, KEY_6, KEY_MOD_ALL_CHANGES, KeyboardHandler, (PTRSZVAL)frame );
-		BindEventToKey( render, KEY_7, KEY_MOD_ALL_CHANGES, KeyboardHandler, (PTRSZVAL)frame );
-		BindEventToKey( render, KEY_8, KEY_MOD_ALL_CHANGES, KeyboardHandler, (PTRSZVAL)frame );
-		BindEventToKey( render, KEY_9, KEY_MOD_ALL_CHANGES, KeyboardHandler, (PTRSZVAL)frame );
+		BindEventToKey( render, KEY_0, KEY_MOD_ALL_CHANGES, KeyboardHandler, (uintptr_t)frame );
+		BindEventToKey( render, KEY_1, KEY_MOD_ALL_CHANGES, KeyboardHandler, (uintptr_t)frame );
+		BindEventToKey( render, KEY_2, KEY_MOD_ALL_CHANGES, KeyboardHandler, (uintptr_t)frame );
+		BindEventToKey( render, KEY_3, KEY_MOD_ALL_CHANGES, KeyboardHandler, (uintptr_t)frame );
+		BindEventToKey( render, KEY_4, KEY_MOD_ALL_CHANGES, KeyboardHandler, (uintptr_t)frame );
+		BindEventToKey( render, KEY_5, KEY_MOD_ALL_CHANGES, KeyboardHandler, (uintptr_t)frame );
+		BindEventToKey( render, KEY_6, KEY_MOD_ALL_CHANGES, KeyboardHandler, (uintptr_t)frame );
+		BindEventToKey( render, KEY_7, KEY_MOD_ALL_CHANGES, KeyboardHandler, (uintptr_t)frame );
+		BindEventToKey( render, KEY_8, KEY_MOD_ALL_CHANGES, KeyboardHandler, (uintptr_t)frame );
+		BindEventToKey( render, KEY_9, KEY_MOD_ALL_CHANGES, KeyboardHandler, (uintptr_t)frame );
 		}
 		if( new_flags & KEYPAD_FLAG_ALPHANUM )
 		{
@@ -819,13 +819,13 @@ static int _InitKeypad( PSI_CONTROL frame )
 			for( n = 0; n < NUM_KEYBOARD_KEYS; n++ )
 			{
 				//lprintf( "Bind to key %02x %d", keyboard_keys[n], keyboard_keys[n] );
-				BindEventToKey( render, keyboard_keys[n], KEY_MOD_ALL_CHANGES, KeyboardHandler, (PTRSZVAL)frame );
-				BindEventToKey( render, keyboard_keys[n], KEY_MOD_SHIFT|KEY_MOD_ALL_CHANGES, KeyboardHandler, (PTRSZVAL)frame );
+				BindEventToKey( render, keyboard_keys[n], KEY_MOD_ALL_CHANGES, KeyboardHandler, (uintptr_t)frame );
+				BindEventToKey( render, keyboard_keys[n], KEY_MOD_SHIFT|KEY_MOD_ALL_CHANGES, KeyboardHandler, (uintptr_t)frame );
 			}
 			for( n = 0; n < NUM_KEYBOARD_KEYS2; n++ )
 			{
-				BindEventToKey( render, keyboard_keys2[n], KEY_MOD_ALL_CHANGES, KeyboardHandler, (PTRSZVAL)frame );
-				BindEventToKey( render, keyboard_keys2[n], KEY_MOD_ALL_CHANGES|KEY_MOD_SHIFT, KeyboardHandler, (PTRSZVAL)frame );
+				BindEventToKey( render, keyboard_keys2[n], KEY_MOD_ALL_CHANGES, KeyboardHandler, (uintptr_t)frame );
+				BindEventToKey( render, keyboard_keys2[n], KEY_MOD_ALL_CHANGES|KEY_MOD_SHIFT, KeyboardHandler, (uintptr_t)frame );
 			}
 			pKeySizing = &keyboard_sizing;
 		}
@@ -851,7 +851,7 @@ static int _InitKeypad( PSI_CONTROL frame )
 	keypad->accum = GetAccumulator( WIDE("Keypad Entry")
 											, keypad->flags.bAlphaNum?ACCUM_TEXT
 													 : (keypad->flags.bEntry?0:ACCUM_DOLLARS) );
-	SetAccumulatorUpdateProc( keypad->accum, KeypadAccumUpdated, (PTRSZVAL)keypad );
+	SetAccumulatorUpdateProc( keypad->accum, KeypadAccumUpdated, (uintptr_t)keypad );
 	SetCommonTransparent( frame, TRUE );
 	//AddCommonDraw( frame, KeypadDraw );
 
@@ -952,7 +952,7 @@ static int _InitKeypad( PSI_CONTROL frame )
 																	 :keytext[row * cols + col]
 																	, keypad->font
 																			 , KeyPressed
-																			 , (PTRSZVAL)frame
+																			 , (uintptr_t)frame
 																			 , (CTEXTSTR)(&keypad->keys[row * cols + col])
 																			 );
 				SetKeyShading( keypad->keys[row * cols + col].key,
@@ -1021,13 +1021,13 @@ void EnterKeyIntoBuffer( TEXTCHAR **ppBuffer, TEXTCHAR c )
 	}
 }
 #endif
-static void CPROC KeyPressed( PTRSZVAL psv, PKEY_BUTTON key )
+static void CPROC KeyPressed( uintptr_t psv, PKEY_BUTTON key )
 {
 	ValidatedControlData( PKEYPAD, keypad_control.TypeID, pKeyPad, (PSI_CONTROL)psv );
 	TEXTCHAR *string;
 	int shift_changed = 0;
 	PKEY_HOLDER holder = (PKEY_HOLDER)GetKeyValue( key );
-	S_32 value;
+	int32_t value;
 
 	if( flags.log_key_events )
 		lprintf( WIDE("Press Key %p"), key );
@@ -1164,7 +1164,7 @@ static void CPROC KeyPressed( PTRSZVAL psv, PKEY_BUTTON key )
 		else if( string == (TEXTCHAR*)-1 )
 			value = -1;
 		else
-			value = (S_32)IntCreateFromText( string );
+			value = (int32_t)IntCreateFromText( string );
 
 		if( pKeyPad->flags.bPassword || !pKeyPad->flags.bDisplay || pKeyPad->flags.bEntry )
 		{
@@ -1244,18 +1244,18 @@ static void CPROC KeyPressed( PTRSZVAL psv, PKEY_BUTTON key )
 	}
 }
 
-KEYPAD_PROC( void, KeyIntoKeypad )( PSI_CONTROL pc, S_64 value )
+KEYPAD_PROC( void, KeyIntoKeypad )( PSI_CONTROL pc, int64_t value )
 {
 	ValidatedControlData( PKEYPAD, keypad_control.TypeID, pKeyPad, pc );
 	if( pKeyPad )
 	{
 		ClearAccumulator( pKeyPad->accum );
-		KeyIntoAccumulator( pKeyPad->accum, (S_32)value, 10 );
+		KeyIntoAccumulator( pKeyPad->accum, (int32_t)value, 10 );
 		InvokeEnterEvent( pc );
 	}
 }
 
-KEYPAD_PROC( void, KeyIntoKeypadNoEnter )( PSI_CONTROL pc, _64 value )
+KEYPAD_PROC( void, KeyIntoKeypadNoEnter )( PSI_CONTROL pc, uint64_t value )
 {
 	ValidatedControlData( PKEYPAD, keypad_control.TypeID, pKeyPad, pc );
 	if( pKeyPad )
@@ -1275,8 +1275,8 @@ KEYPAD_PROC( void, KeypadInvertValue )( PSI_CONTROL pc )
 }
 
 
-static LOGICAL CPROC KeyboardHandler( PTRSZVAL psv
-											, _32 key )
+static LOGICAL CPROC KeyboardHandler( uintptr_t psv
+											, uint32_t key )
 {
 	PKEY_BUTTON button = NULL;
 	ValidatedControlData( PKEYPAD, keypad_control.TypeID, pKeyPad, (PSI_CONTROL)psv );
@@ -2021,10 +2021,10 @@ void SetNewKeypadFlags( int flags )
 }
 
 PSI_CONTROL MakeKeypad( PCOMMON parent
-							 , S_32 x, S_32 y, _32 w, _32 h
+							 , int32_t x, int32_t y, uint32_t w, uint32_t h
 							  // show current value display...
-							 , _32 ID
-							 , _32 flags
+							 , uint32_t ID
+							 , uint32_t flags
                        , CTEXTSTR accumulator_name
 							 )
 {
@@ -2039,7 +2039,7 @@ PSI_CONTROL MakeKeypad( PCOMMON parent
 													, keypad->flags.bAlphaNum?ACCUM_TEXT
 													 :(keypad->flags.bEntry?0:ACCUM_DOLLARS)
 													);
-			SetAccumulatorUpdateProc( keypad->accum, KeypadAccumUpdated, (PTRSZVAL)keypad );
+			SetAccumulatorUpdateProc( keypad->accum, KeypadAccumUpdated, (uintptr_t)keypad );
 		}
 	}
    return frame;
@@ -2087,7 +2087,7 @@ int GetKeyedText( PSI_CONTROL pc, TEXTSTR buffer, int buflen )
    return 0;
 }
 
-S_64 GetKeyedValue( PSI_CONTROL pc )
+int64_t GetKeyedValue( PSI_CONTROL pc )
 {
 	ValidatedControlData( PKEYPAD, keypad_control.TypeID, keypad, pc );
 	if( keypad )
@@ -2141,7 +2141,7 @@ int WaitForKeypadResult( PSI_CONTROL pc )
 	return -1;
 }
 
-void CPROC HotkeyPressed( PTRSZVAL psv, PKEY_BUTTON button )
+void CPROC HotkeyPressed( uintptr_t psv, PKEY_BUTTON button )
 {
 }
 
@@ -2157,10 +2157,10 @@ LOGICAL GetKeypadGoClear( PSI_CONTROL pc )
 
 // okay this isn't enough either... it'll be way too hard to configure (without evomenu framework)
 PSI_CONTROL MakeKeypadHotkey( PSI_CONTROL frame
-										, S_32 x
-										, S_32 y
-										, _32 w
-										, _32 h
+										, int32_t x
+										, int32_t y
+										, uint32_t w
+										, uint32_t h
 										, TEXTCHAR *keypad
 									 )
 {
@@ -2463,16 +2463,16 @@ void KeypadWriteConfig( FILE *file, CTEXTSTR indent, PSI_CONTROL pc_keypad )
 	}
 }
 
-static PTRSZVAL *ppsv;
+static uintptr_t *ppsv;
 
-static PTRSZVAL CPROC SetDisplayBackgroundColor( PTRSZVAL psv, arg_list args )
+static uintptr_t CPROC SetDisplayBackgroundColor( uintptr_t psv, arg_list args )
 {
 	PARAM( args, CDATA, color );
    KeypadSetDisplayBackground( (PSI_CONTROL)(*ppsv), color );
 	return psv;
 }
 
-static PTRSZVAL CPROC SetDisplayTextColor( PTRSZVAL psv, arg_list args )
+static uintptr_t CPROC SetDisplayTextColor( uintptr_t psv, arg_list args )
 {
 	ValidatedControlData( PKEYPAD, keypad_control.TypeID, keypad, (PSI_CONTROL)(*ppsv) );
 	PARAM( args, CDATA, color );
@@ -2480,55 +2480,55 @@ static PTRSZVAL CPROC SetDisplayTextColor( PTRSZVAL psv, arg_list args )
 	return psv;
 }
 
-static PTRSZVAL CPROC SetNumkeyColor( PTRSZVAL psv, arg_list args )
+static uintptr_t CPROC SetNumkeyColor( uintptr_t psv, arg_list args )
 {
 	PARAM( args, CDATA, color );
    KeypadSetNumberKeyColor( (PSI_CONTROL)(*ppsv), color );
 	return psv;
 }
 
-static PTRSZVAL CPROC SetEnterKeyColor( PTRSZVAL psv, arg_list args )
+static uintptr_t CPROC SetEnterKeyColor( uintptr_t psv, arg_list args )
 {
 	PARAM( args, CDATA, color );
    KeypadSetEnterKeyColor( (PSI_CONTROL)(*ppsv), color );
 	return psv;
 }
 
-static PTRSZVAL CPROC SetCancelKeyColor( PTRSZVAL psv, arg_list args )
+static uintptr_t CPROC SetCancelKeyColor( uintptr_t psv, arg_list args )
 {
 	PARAM( args, CDATA, color );
    KeypadSetC_KeyColor( (PSI_CONTROL)(*ppsv), color );
 	return psv;
 }
-static PTRSZVAL CPROC SetNumkeyTextColor( PTRSZVAL psv, arg_list args )
+static uintptr_t CPROC SetNumkeyTextColor( uintptr_t psv, arg_list args )
 {
 	PARAM( args, CDATA, color );
 	KeypadSetNumberKeyTextColor( (PSI_CONTROL)(*ppsv), color );
 	return psv;
 }
 
-static PTRSZVAL CPROC SetCapsKeyColor( PTRSZVAL psv, arg_list args )
+static uintptr_t CPROC SetCapsKeyColor( uintptr_t psv, arg_list args )
 {
 	PARAM( args, CDATA, color );
 	KeypadSetCapsKeyColor( (PSI_CONTROL)(*ppsv), color );
 	return psv;
 }
 
-static PTRSZVAL CPROC SetEnterKeyTextColor( PTRSZVAL psv, arg_list args )
+static uintptr_t CPROC SetEnterKeyTextColor( uintptr_t psv, arg_list args )
 {
 	PARAM( args, CDATA, color );
    KeypadSetEnterKeyTextColor( (PSI_CONTROL)(*ppsv), color );
 	return psv;
 }
 
-static PTRSZVAL CPROC SetCancelKeyTextColor( PTRSZVAL psv, arg_list args )
+static uintptr_t CPROC SetCancelKeyTextColor( uintptr_t psv, arg_list args )
 {
 	PARAM( args, CDATA, color );
 	KeypadSetC_KeyTextColor( (PSI_CONTROL)(*ppsv), color );
 	return psv;
 }
 
-static PTRSZVAL CPROC SetBackgroundColor( PTRSZVAL psv, arg_list args )
+static uintptr_t CPROC SetBackgroundColor( uintptr_t psv, arg_list args )
 {
 	ValidatedControlData( PKEYPAD, keypad_control.TypeID, keypad, (PSI_CONTROL)(*ppsv) );
 	PARAM( args, CDATA, color );
@@ -2536,14 +2536,14 @@ static PTRSZVAL CPROC SetBackgroundColor( PTRSZVAL psv, arg_list args )
 	return psv;
 }
 
-static PTRSZVAL CPROC SetKeypadStyleConfig( PTRSZVAL psv, arg_list args )
+static uintptr_t CPROC SetKeypadStyleConfig( uintptr_t psv, arg_list args )
 {
-	PARAM( args, S_64, style );
+	PARAM( args, int64_t, style );
 	SetKeypadStyle( (PSI_CONTROL)(*ppsv), (enum keypad_styles)style );
 	return psv;
 }
 
-static PTRSZVAL CPROC SetKeypadFormatConfig( PTRSZVAL psv, arg_list args )
+static uintptr_t CPROC SetKeypadFormatConfig( uintptr_t psv, arg_list args )
 {
 	PARAM( args, CTEXTSTR, format );
 	KeypadSetDisplayFormat( (PSI_CONTROL)(*ppsv), format );
@@ -2551,7 +2551,7 @@ static PTRSZVAL CPROC SetKeypadFormatConfig( PTRSZVAL psv, arg_list args )
 }
 
 
-void KeypadSetupConfig( PCONFIG_HANDLER pch, PTRSZVAL *psv )
+void KeypadSetupConfig( PCONFIG_HANDLER pch, uintptr_t *psv )
 {
 	ppsv = psv;
 	AddConfigurationMethod( pch, WIDE( "keypad background=%c" ), SetBackgroundColor );
@@ -2862,7 +2862,7 @@ void KeypadSetDisplayFormat( PSI_CONTROL pc_keypad, CTEXTSTR format )
 			Release( (POINTER)keypad->display_format );
 		if( format )
 		{
-			_64 mod_mask = 0;
+			uint64_t mod_mask = 0;
 			int escape = 0;
 			int n;
 			keypad->display_format = StrDup( format );
@@ -2911,7 +2911,7 @@ void KeypadGetDisplayFormat( PSI_CONTROL pc_keypad, TEXTSTR format, int buflen )
 }
 
 
-void KeypadAddMagicKeySequence( PSI_CONTROL pc_keypad, CTEXTSTR sequence, void (CPROC*event_proc)( PTRSZVAL ), PTRSZVAL psv_sequence )
+void KeypadAddMagicKeySequence( PSI_CONTROL pc_keypad, CTEXTSTR sequence, void (CPROC*event_proc)( uintptr_t ), uintptr_t psv_sequence )
 {
 	ValidatedControlData( PKEYPAD, keypad_control.TypeID, keypad, pc_keypad );
 	if( keypad )
@@ -2934,7 +2934,7 @@ void KeypadSetAccumulator( PSI_CONTROL pc, CTEXTSTR name )
 		keypad->accum = GetAccumulator( name
 												, keypad->flags.bAlphaNum?ACCUM_TEXT
 												 : (keypad->flags.bEntry?0:ACCUM_DOLLARS) );
-		SetAccumulatorUpdateProc( keypad->accum, KeypadAccumUpdated, (PTRSZVAL)keypad );
+		SetAccumulatorUpdateProc( keypad->accum, KeypadAccumUpdated, (uintptr_t)keypad );
 	}
 }
 

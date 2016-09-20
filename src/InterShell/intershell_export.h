@@ -87,7 +87,7 @@ namespace sack {
 	       return 1; // result OK to create.
 	   }
 	   
-	   OnKeyPressEvent( “basic/Hello World” )( PTRSZVAL psvUnused )
+	   OnKeyPressEvent( “basic/Hello World” )( uintptr_t psvUnused )
 	   {
 	       SimpleMessageBox( NULL  // the parent frame, NULL is okay
 	                       , “Hello World!”   // the message within the message box
@@ -128,7 +128,7 @@ namespace sack {
 	   
 	   <code lang="c++">
 	   
-	   OnShowControl( “basic/List Test” )( PTRSZVAL psvList )
+	   OnShowControl( “basic/List Test” )( uintptr_t psvList )
 	   {
 	         PSI_CONTROL pc_list = (PSI_CONTROL)psvList;
 	         ResetList( pc_list );
@@ -152,7 +152,7 @@ namespace sack {
 	   
 	   
 	   
-	   OnCreateControl( “basic/Other Control” )( PSI_CONTROL frame, S_32 x, S_32 y, _32 w, _32 h )
+	   OnCreateControl( “basic/Other Control” )( PSI_CONTROL frame, int32_t x, int32_t y, uint32_t w, uint32_t h )
 	   
 	   {
 	         // this code results with a create PSI control.
@@ -163,7 +163,7 @@ namespace sack {
 	   // for one reason or another is NULL, which will in turn
 	   // fails creation of the InterShell control.
 	   
-	         return (PTRSZVAL)MakeNamedControl( frame
+	         return (uintptr_t)MakeNamedControl( frame
 	                 , “Some PSI Control type-name”
 	                 , x, y  // control position passed to event
 	   </code>
@@ -183,7 +183,7 @@ namespace sack {
 	   
 	   
 	   
-	   OnQueryGetControl( PTRSZVAL psv )
+	   OnQueryGetControl( uintptr_t psv )
 	   {
 	         // since we know that we returned a PSI_CONTROL from the
 	         // creation event, this can simply be typecast and returned.
@@ -270,12 +270,12 @@ enum label_variable_types {
 	LABEL_TYPE_INT,
    /* POINTER data is the address of a routine which takes (void) parameters and returns a CTEXTSTR*/
 	LABEL_TYPE_PROC,
-	/* POINTER data is the address of a routine which takes a (PTRSZVAL) and returns a CTEXTSTR */
-   /* PTRSZVAL psv is user data to pass to the procedure */
+	/* POINTER data is the address of a routine which takes a (uintptr_t) and returns a CTEXTSTR */
+   /* uintptr_t psv is user data to pass to the procedure */
 	LABEL_TYPE_PROC_EX,
 
-	/* POINTER data is the address of a routine which takes a (PTRSZVAL) and returns a CTEXTSTR */
-	/* PTRSZVAL psv is user data to pass to the procedure */
+	/* POINTER data is the address of a routine which takes a (uintptr_t) and returns a CTEXTSTR */
+	/* uintptr_t psv is user data to pass to the procedure */
    /* routine also gets the control the text is contained on? */
 	LABEL_TYPE_PROC_CONTROL_EX,
    /* POINTER data is a pointer to a simple string, the value is copied and used on the control */
@@ -283,7 +283,7 @@ enum label_variable_types {
 	/* POINTER data is a pointer to a function to call that returns an index.  After the variable name :option1,option2,option3,; can be specified.  User data is passed to proc also.  The option list is ended with ,;
 	 */
 	LABEL_TYPE_VALUE_STRING,
-	/* POINTER data is the address of a routine that takes a S_64 integer type; the integer is
+	/* POINTER data is the address of a routine that takes a int64_t integer type; the integer is
     specified in the text of the label.  */
 	LABEL_TYPE_PROC_PARAMETER,
 };
@@ -302,7 +302,7 @@ typedef CTEXTSTR  *label_string_value;
    CreateLabelVariable
    
    CreateLabelVariableEx                                   */
-typedef _32       *label_int_value;
+typedef uint32_t       *label_int_value;
 /* This is the type of the variable expected if a label is
    created with LABEL_TYPE_PROC.
    
@@ -318,7 +318,7 @@ typedef CTEXTSTR (*label_gettextproc)(void);
    CreateLabelVariable
    
    CreateLabelVariableEx                                   */
-typedef CTEXTSTR (*label_gettextproc_ex)(PTRSZVAL);
+typedef CTEXTSTR (*label_gettextproc_ex)(uintptr_t);
 /* This is the type of the variable expected if a label is
    created with LABEL_TYPE_PROC_CONTROL_EX.
    
@@ -327,7 +327,7 @@ typedef CTEXTSTR (*label_gettextproc_ex)(PTRSZVAL);
    CreateLabelVariable
    
    CreateLabelVariableEx                                   */
-typedef CTEXTSTR (*label_gettextproc_control)(PTRSZVAL, PMENU_BUTTON);
+typedef CTEXTSTR (*label_gettextproc_control)(uintptr_t, PMENU_BUTTON);
 /* This is the type of the variable expected if a label is
    created with LABEL_TYPE_PROC_PARAMETER.
    
@@ -336,9 +336,9 @@ typedef CTEXTSTR (*label_gettextproc_control)(PTRSZVAL, PMENU_BUTTON);
    CreateLabelVariable
    
    CreateLabelVariableEx                                   */
-typedef CTEXTSTR (*label_value_proc_parameter)( S_64 value );
+typedef CTEXTSTR (*label_value_proc_parameter)( int64_t value );
    /* this is the type of function to pass LABEL_TYPE_VALUE_STRING */
-typedef int (*label_value_proc)(PTRSZVAL, PMENU_BUTTON);
+typedef int (*label_value_proc)(uintptr_t, PMENU_BUTTON);
 
 struct intershell_interface {
 
@@ -351,8 +351,8 @@ INTERSHELL_PROC_PTR( void, GetCommonButtonControls )( PSI_CONTROL frame );
 INTERSHELL_PROC_PTR( void, SetCommonButtonControls )( PSI_CONTROL frame );
 
 
-INTERSHELL_PROC_PTR( void, RestartMenu )( PTRSZVAL psv, _32 keycode );
-INTERSHELL_PROC_PTR( void, ResumeMenu )( PTRSZVAL psv, _32 keycode );
+INTERSHELL_PROC_PTR( void, RestartMenu )( uintptr_t psv, uint32_t keycode );
+INTERSHELL_PROC_PTR( void, ResumeMenu )( uintptr_t psv, uint32_t keycode );
 
 
 // a zero (0) passed as a primary/secondary or tertiary color indicates no change. (err or disable)
@@ -390,7 +390,7 @@ INTERSHELL_PROC_PTR( void, InterShell_CommonImageUnloadByName )( CTEXTSTR name )
    \ \                                                                   */
 INTERSHELL_PROC_PTR( void, InterShell_CommonImageUnloadByImage )( Image unload );
 
-INTERSHELL_PROC_PTR( void, InterShell_SetButtonImageAlpha )( PMENU_BUTTON button, S_16 alpha );
+INTERSHELL_PROC_PTR( void, InterShell_SetButtonImageAlpha )( PMENU_BUTTON button, int16_t alpha );
 
 
 
@@ -421,7 +421,7 @@ INTERSHELL_PROC_PTR(PPAGE_DATA, ShellGetNamedPage)( PCanvasData pc, CTEXTSTR pag
 
 // Page name can be... 'first', 'next',  'here', 'return'
 // otherwise page name can be any name of any other page.
-INTERSHELL_PROC_PTR( int, ShellSetCurrentPage )( PCanvasData pc, CTEXTSTR name, enum page_transition direction, _32 time );
+INTERSHELL_PROC_PTR( int, ShellSetCurrentPage )( PCanvasData pc, CTEXTSTR name, enum page_transition direction, uint32_t time );
 
 INTERSHELL_PROC_PTR( int, ShellCallSetCurrentPage )( PCanvasData pc_canvas, CTEXTSTR name );
 
@@ -454,10 +454,10 @@ INTERSHELL_PROC_PTR( void, InterShell_DisableButtonPageChange )( PMENU_BUTTON bu
    
    \ \                                                                                         */
 INTERSHELL_PROC_PTR( PVARIABLE, CreateLabelVariable )( CTEXTSTR name, enum label_variable_types type, CPOINTER data );
-/* <combine sack::intershell::CreateLabelVariableEx@CTEXTSTR@enum label_variable_types@CPOINTER@PTRSZVAL>
+/* <combine sack::intershell::CreateLabelVariableEx@CTEXTSTR@enum label_variable_types@CPOINTER@uintptr_t>
    
    \ \                                                                                                    */
-INTERSHELL_PROC_PTR( PVARIABLE, CreateLabelVariableEx )( CTEXTSTR name, enum label_variable_types type, CPOINTER data, PTRSZVAL psv );
+INTERSHELL_PROC_PTR( PVARIABLE, CreateLabelVariableEx )( CTEXTSTR name, enum label_variable_types type, CPOINTER data, uintptr_t psv );
 INTERSHELL_PROC_PTR( void, LabelVariableChanged )( PVARIABLE ); 
 INTERSHELL_PROC_PTR( void, LabelVariablesChanged )( PLIST ); 
 
@@ -468,17 +468,17 @@ INTERSHELL_PROC_PTR( void, InterShell_RevealEx )( PCanvasData pc_canvas DBG_PASS
 
 #define InterShell_Reveal( c )  InterShell_RevealEx( c DBG_SRC )
 
-/* <combine sack::intershell::GetPageSize@P_32@P_32>
+/* <combine sack::intershell::GetPageSize@uint32_t*@uint32_t*>
    
    \ \                                               */
-INTERSHELL_PROC_PTR( void, GetPageSize )( P_32 width, P_32 height );
+INTERSHELL_PROC_PTR( void, GetPageSize )( uint32_t* width, uint32_t* height );
 
 
 INTERSHELL_PROC_PTR( void, SetButtonTextField )( PMENU_BUTTON pKey, PTEXT_PLACEMENT pField, TEXTCHAR *text );
-/* <combine sack::intershell::AddButtonLayout@PMENU_BUTTON@int@int@SFTFont *@CDATA@_32>
+/* <combine sack::intershell::AddButtonLayout@PMENU_BUTTON@int@int@SFTFont *@CDATA@uint32_t>
    
    \ \                                                                               */
-INTERSHELL_PROC_PTR( PTEXT_PLACEMENT, AddButtonLayout )( PMENU_BUTTON pKey, int x, int y, SFTFont *font, CDATA color, _32 flags );
+INTERSHELL_PROC_PTR( PTEXT_PLACEMENT, AddButtonLayout )( PMENU_BUTTON pKey, int x, int y, SFTFont *font, CDATA color, uint32_t flags );
 
 
 
@@ -543,7 +543,7 @@ INTERSHELL_PROC_PTR( CTEXTSTR, InterShell_TranslateLabelTextEx )( PMENU_BUTTON b
 /* <combine sack::intershell::InterShell_CreateControl@CTEXTSTR@int@int@int@int>
    
    \ \                                                                           */
-INTERSHELL_PROC_PTR( PTRSZVAL,  InterShell_CreateControl )( PSI_CONTROL canvas, CTEXTSTR type, int x, int y, int w, int h );
+INTERSHELL_PROC_PTR( uintptr_t,  InterShell_CreateControl )( PSI_CONTROL canvas, CTEXTSTR type, int x, int y, int w, int h );
 
 
 INTERSHELL_PROC_PTR( PPAGE_DATA, InterShell_CreateNamedPage )( PCanvasData canvas, CTEXTSTR page_name );
@@ -551,7 +551,7 @@ INTERSHELL_PROC_PTR( PPAGE_DATA, InterShell_CreateNamedPage )( PCanvasData canva
 INTERSHELL_PROC_PTR( void, InterShell_AddCommonButtonConfig )( PCONFIG_HANDLER pch );
 
 INTERSHELL_PROC_PTR( PSI_CONTROL, InterShell_GetCanvas )( PPAGE_DATA page );
-INTERSHELL_PROC_PTR( void, InterShell_SetPageLayout )( PSI_CONTROL canvas, _32 cols, _32 rows );  // width/height, x/y
+INTERSHELL_PROC_PTR( void, InterShell_SetPageLayout )( PSI_CONTROL canvas, uint32_t cols, uint32_t rows );  // width/height, x/y
 
 INTERSHELL_PROC_PTR( PMENU_BUTTON, InterShell_CreateSomeControl )( PSI_CONTROL pc_canvas, int x, int y, int w, int h
 							   , CTEXTSTR name );
@@ -560,17 +560,17 @@ INTERSHELL_PROC_PTR( CTEXTSTR, InterShell_GetSaveIndent )( void );
 INTERSHELL_PROC_PTR( LOGICAL, BeginSubConfigurationEx )( PMENU_BUTTON button, TEXTCHAR *control_type_name, const TEXTCHAR *end_type_name );
 
 INTERSHELL_PROC_PTR( void, InterShell_SetTheme )( PCanvasData pc_canvas, int ID );
-INTERSHELL_PROC_PTR( void, DisplayMenuCanvas )( PPAGE_DATA page, PRENDERER under, _32 width, _32 height, S_32 x, S_32 y );
+INTERSHELL_PROC_PTR( void, DisplayMenuCanvas )( PPAGE_DATA page, PRENDERER under, uint32_t width, uint32_t height, int32_t x, int32_t y );
 INTERSHELL_PROC_PTR( void, InterShell_SetPageColor )( PPAGE_DATA page, CDATA color );
 
-INTERSHELL_PROC_PTR( PTRSZVAL, InterShell_GetButtonUserData )( PMENU_BUTTON button );
+INTERSHELL_PROC_PTR( uintptr_t, InterShell_GetButtonUserData )( PMENU_BUTTON button );
 
 // this can be used to get the default canvas by passing NULL for the button.
 INTERSHELL_PROC_PTR( PCanvasData, InterShell_GetButtonCanvas )( PMENU_BUTTON button );
 
 INTERSHELL_PROC_PTR( SFTFont *, UseACanvasFont )( PCanvasData pc_canvas, CTEXTSTR name );
 
-INTERSHELL_PROC_PTR( PTRSZVAL, InterShell_GetButtonExtension )( PMENU_BUTTON button );
+INTERSHELL_PROC_PTR( uintptr_t, InterShell_GetButtonExtension )( PMENU_BUTTON button );
 
 INTERSHELL_PROC_PTR( void, InterShell_SetTextLabelOptions )( PMENU_BUTTON label, LOGICAL center, LOGICAL right, LOGICAL scroll, LOGICAL shadow );
 
@@ -578,16 +578,16 @@ INTERSHELL_PROC_PTR( PCanvasData, InterShell_GetCurrentLoadingCanvas )( void );
 INTERSHELL_PROC_PTR( PCanvasData, InterShell_GetCurrentSavingCanvas )( void );
 INTERSHELL_PROC_PTR( SFTFont *, CreateACanvasFont )( PCanvasData pc_canvas, CTEXTSTR name, SFTFont font, POINTER data, size_t datalen );
 
-INTERSHELL_PROC_PTR( void, SetupSecurityEdit )( PSI_CONTROL frame, PTRSZVAL object_to_secure );
-INTERSHELL_PROC_PTR( PTRSZVAL, CreateSecurityContext )( PTRSZVAL object );
-INTERSHELL_PROC_PTR( void, CloseSecurityContext )( PTRSZVAL button, PTRSZVAL psv_context_to_Destroy );
-INTERSHELL_PROC_PTR( void, InterShell_SaveSecurityInformation )( FILE *file, PTRSZVAL psv );
+INTERSHELL_PROC_PTR( void, SetupSecurityEdit )( PSI_CONTROL frame, uintptr_t object_to_secure );
+INTERSHELL_PROC_PTR( uintptr_t, CreateSecurityContext )( uintptr_t object );
+INTERSHELL_PROC_PTR( void, CloseSecurityContext )( uintptr_t button, uintptr_t psv_context_to_Destroy );
+INTERSHELL_PROC_PTR( void, InterShell_SaveSecurityInformation )( FILE *file, uintptr_t psv );
 
 INTERSHELL_PROC_PTR( SFTFont *, CreateACanvasFont2 )( PCanvasData pc_canvas, CTEXTSTR name, CTEXTSTR fontfilename, int size_x, int size_y );
 
 
-INTERSHELL_PROC_PTR( void, AddSecurityContextToken )( PTRSZVAL object, CTEXTSTR module, CTEXTSTR token );
-INTERSHELL_PROC_PTR( void, GetSecurityContextTokens )( PTRSZVAL object, CTEXTSTR module, PLIST *list );
+INTERSHELL_PROC_PTR( void, AddSecurityContextToken )( uintptr_t object, CTEXTSTR module, CTEXTSTR token );
+INTERSHELL_PROC_PTR( void, GetSecurityContextTokens )( uintptr_t object, CTEXTSTR module, PLIST *list );
 INTERSHELL_PROC_PTR( void, GetSecurityModules )( PLIST *list );
 //INTERSHELL_PROC_PTR( CTEXTSTR, InterShell_GetSaveIndent1 )( void ); // returns one level more than here
 INTERSHELL_PROC_PTR( void, InterShell_SetCloneButton )( PMENU_BUTTON button );
@@ -607,8 +607,8 @@ INTERSHELL_PROC( PMENU_BUTTON, InterShell_GetCurrentlyCreatingButton )( void );
 
 // wake up menu processing... there's a flag that was restart that this thinks
 // it might want...
-INTERSHELL_PROC( void, RestartMenu )( PTRSZVAL psv, _32 keycode );
-INTERSHELL_PROC( void, ResumeMenu )( PTRSZVAL psv, _32 keycode );
+INTERSHELL_PROC( void, RestartMenu )( uintptr_t psv, uint32_t keycode );
+INTERSHELL_PROC( void, ResumeMenu )( uintptr_t psv, uint32_t keycode );
 
 
 // a zero (0) passed as a primary/secondary or tertiary color indicates no change. (err or disable)
@@ -642,7 +642,7 @@ INTERSHELL_PROC( void, InterShell_CommonImageUnloadByImage )( Image unload );
  *    alpha > 0 increases opacity.
  *    Max value is +/-255
  */
-INTERSHELL_PROC( void, InterShell_SetButtonImageAlpha )( PMENU_BUTTON button, S_16 alpha );
+INTERSHELL_PROC( void, InterShell_SetButtonImageAlpha )( PMENU_BUTTON button, int16_t alpha );
 
 
 // return if the button is just virtual (part of a macro)
@@ -680,7 +680,7 @@ INTERSHELL_PROC(PPAGE_DATA, ShellGetNamedPage)( PCanvasData pc, CTEXTSTR pagenam
 // special names
 // start, next, prior are keywords that imply direct
 // page stacking.
-INTERSHELL_PROC( int, ShellSetCurrentPage )( PCanvasData pc, CTEXTSTR name, enum page_transition direction, _32 time );
+INTERSHELL_PROC( int, ShellSetCurrentPage )( PCanvasData pc, CTEXTSTR name, enum page_transition direction, uint32_t time );
 
 // a call will push the current page on a stack
 // which will be returned to if returncurrentpage is used.
@@ -707,7 +707,7 @@ INTERSHELL_PROC( void, HidePageExx )( PCanvasData pc_canvas DBG_PASS);
 INTERSHELL_PROC( void, InterShell_DisableButtonPageChange )( PMENU_BUTTON button );
 
 INTERSHELL_PROC( PVARIABLE, CreateLabelVariable )( CTEXTSTR name, enum label_variable_types type, CPOINTER data );
-INTERSHELL_PROC( PVARIABLE, CreateLabelVariableEx )( CTEXTSTR name, enum label_variable_types type, CPOINTER data, PTRSZVAL psv );
+INTERSHELL_PROC( PVARIABLE, CreateLabelVariableEx )( CTEXTSTR name, enum label_variable_types type, CPOINTER data, uintptr_t psv );
 // pass NULL to update all labels, otherwise, one can pass the result of a CreateLableVariable
 // to update only text labels using that variable.
 INTERSHELL_PROC( void, LabelVariableChanged )( PVARIABLE ); // update any labels which are using this variable.
@@ -721,13 +721,13 @@ INTERSHELL_PROC( void, InterShell_RevealEx )( PCanvasData canvas DBG_PASS );
 
 //----------------------------------------------------------
 //
-INTERSHELL_PROC( void, GetPageSize )( P_32 width, P_32 height );
+INTERSHELL_PROC( void, GetPageSize )( uint32_t* width, uint32_t* height );
 
 //-----------------------------------------------------
 // layout members which have a position x, y, font, text and color of their own
 // may be created on buttons.  They are displayed below the lense/ridge[up/down] and above the background.
 INTERSHELL_PROC( void, SetButtonTextField )( PMENU_BUTTON pKey, PTEXT_PLACEMENT pField, TEXTCHAR *text );
-INTERSHELL_PROC( PTEXT_PLACEMENT, AddButtonLayout )( PMENU_BUTTON pKey, int x, int y, SFTFont *font, CDATA color, _32 flags );
+INTERSHELL_PROC( PTEXT_PLACEMENT, AddButtonLayout )( PMENU_BUTTON pKey, int x, int y, SFTFont *font, CDATA color, uint32_t flags );
 
 
 //-----------------------------------------------------
@@ -764,12 +764,12 @@ INTERSHELL_PROC( PCanvasData, InterShell_GetCurrentLoadingCanvas )( void );
 INTERSHELL_PROC( PPAGE_DATA, InterShell_GetCurrentLoadingPage )( void );
 INTERSHELL_PROC( PCanvasData, InterShell_GetCurrentSavingCanvas )( void );
 
-//PTRSZVAL GetButtonExtension( PMENU_BUTTON button );
+//uintptr_t GetButtonExtension( PMENU_BUTTON button );
 
 //void AddCommonButtonConfig( PCONFIG_HANDLER pch, PMENU_BUTTON button );
 //void DumpCommonButton( FILE *file, PMENU_BUTTON button );
 
-//PTRSZVAL GetButtonExtension( PMENU_BUTTON button );
+//uintptr_t GetButtonExtension( PMENU_BUTTON button );
 
 
 // BeginSubConfiguration....
@@ -782,20 +782,20 @@ INTERSHELL_PROC( LOGICAL, BeginSubConfigurationEx )( PMENU_BUTTON button, TEXTCH
 INTERSHELL_PROC( CTEXTSTR, InterShell_GetSaveIndent )( void );
 INTERSHELL_PROC( CTEXTSTR, EscapeMenuString )( CTEXTSTR string );
 
-INTERSHELL_PROC( PTRSZVAL,  InterShell_CreateControl )( PSI_CONTROL canvas, CTEXTSTR type, int x, int y, int w, int h );
+INTERSHELL_PROC( uintptr_t,  InterShell_CreateControl )( PSI_CONTROL canvas, CTEXTSTR type, int x, int y, int w, int h );
 
 // might get a seperate canvas per page if it's opened in multi-frame mode.
 // otherwise pass NULL to get the default canvas
 INTERSHELL_PROC( PSI_CONTROL, InterShell_GetCanvas )( PPAGE_DATA page );
-INTERSHELL_PROC( void, InterShell_SetPageLayout )( PSI_CONTROL canvas, _32 cols, _32 rows );  // width/height, x/y
+INTERSHELL_PROC( void, InterShell_SetPageLayout )( PSI_CONTROL canvas, uint32_t cols, uint32_t rows );  // width/height, x/y
 
 INTERSHELL_PROC( PMENU_BUTTON, InterShell_CreateSomeControl )( PSI_CONTROL pc_canvas, int x, int y, int w, int h
 																				 , CTEXTSTR name );
-INTERSHELL_PROC( PTRSZVAL, InterShell_GetButtonExtension )( PMENU_BUTTON button );
+INTERSHELL_PROC( uintptr_t, InterShell_GetButtonExtension )( PMENU_BUTTON button );
 
 INTERSHELL_PROC( void, InterShell_SetTheme )( PCanvasData pc_canvas, int ID );
 
-INTERSHELL_PROC( void, DisplayMenuCanvas )( PPAGE_DATA page, PRENDERER under, _32 width, _32 height, S_32 x, S_32 y );
+INTERSHELL_PROC( void, DisplayMenuCanvas )( PPAGE_DATA page, PRENDERER under, uint32_t width, uint32_t height, int32_t x, int32_t y );
 INTERSHELL_PROC( void, InterShell_SetPageColor )( PPAGE_DATA page, CDATA color );
 
 INTERSHELL_PROC( void, InterShell_SetCloneButton )( PMENU_BUTTON button );

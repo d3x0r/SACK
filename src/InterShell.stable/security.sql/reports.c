@@ -19,17 +19,17 @@
 
 //--------------------------------------------------------------------
 
-OnKeyPressEvent( "SQL Password/Users/User Report" )( PTRSZVAL psv )
+OnKeyPressEvent( "SQL Password/Users/User Report" )( uintptr_t psv )
 {
 	HDC printer = GetPrinterDC(1);
 	int n;
 	char szString[256];
 	struct {
-		_16 wYr, wMo, wDy, wHr, wMn, wSc;
+		uint16_t wYr, wMo, wDy, wHr, wMn, wSc;
 	} time;
 
 	PUSER user;
-   _32 now = CAL_GET_FDATETIME();
+   uint32_t now = CAL_GET_FDATETIME();
 	ReloadUserCache( NULL );
 	FontFromColumns( printer, NULL, NULL, 100, NULL );
 	//ReadPasswordFile();
@@ -62,13 +62,13 @@ OnKeyPressEvent( "SQL Password/Users/User Report" )( PTRSZVAL psv )
 	{
 		int m;
 		struct {
-			_16 wYr, wMo, wDy, wHr, wMn, wSc;
+			uint16_t wYr, wMo, wDy, wHr, wMn, wSc;
 		} expire;
 		struct { 
-			_16 wYr, wMo, wDy, wHr, wMn, wSc;
+			uint16_t wYr, wMo, wDy, wHr, wMn, wSc;
 		} created;
 		struct { 
-			_16 wYr, wMo, wDy, wHr, wMn, wSc;
+			uint16_t wYr, wMo, wDy, wHr, wMn, wSc;
 		} password_updated;
 		char buf[256];
 
@@ -79,7 +79,7 @@ OnKeyPressEvent( "SQL Password/Users/User Report" )( PTRSZVAL psv )
 			char exp_datebuf[13];
 			char *upd_date;
 			char upd_datebuf[13];
-			_32 now = CAL_GET_FDATETIME();
+			uint32_t now = CAL_GET_FDATETIME();
 			if( user->dwFutTime > now )
 			{
 				CAL_P_YMDHMS_OF_FDATETIME( user->dwFutTime, &expire.wYr, &expire.wMo, &expire.wDy, &expire.wHr, &expire.wMn, &expire.wSc );
@@ -155,21 +155,21 @@ OnCreateMenuButton( "SQL Password/Users/User Report" )( PMENU_BUTTON button )
 
 //--------------------------------------------------------------------
 
-OnKeyPressEvent( "SQL Password/Users/History Report" )( PTRSZVAL psv )
+OnKeyPressEvent( "SQL Password/Users/History Report" )( uintptr_t psv )
 {
 	HDC printer = GetPrinterDC(0);
 	//int n;
 	char szString[256];
 	struct {
-		_16 wYr, wMo, wDy, wHr, wMn, wSc;
+		uint16_t wYr, wMo, wDy, wHr, wMn, wSc;
 	} time;
 	struct {
-		_16 wYr, wMo, wDy, wHr, wMn, wSc;
+		uint16_t wYr, wMo, wDy, wHr, wMn, wSc;
 	} report_from;
 	//struct {
-	//	_16 wYr, wMo, wDy, wHr, wMn, wSc;
+	//	uint16_t wYr, wMo, wDy, wHr, wMn, wSc;
 	//} report_to;
-	_32 now = CAL_GET_FDATETIME();
+	uint32_t now = CAL_GET_FDATETIME();
    ReloadUserCache( NULL );
 	FontFromColumns( printer, NULL, NULL, 140, NULL );
    ClearReportHeaders();
@@ -242,21 +242,21 @@ OnCreateMenuButton( "SQL Password/Users/History Report" )( PMENU_BUTTON button )
 
 //--------------------------------------------------------------------
 
-OnKeyPressEvent( "SQL Password/Users/Permission Report" )( PTRSZVAL psv )
+OnKeyPressEvent( "SQL Password/Users/Permission Report" )( uintptr_t psv )
 {
 	HDC printer = GetPrinterDC(1);
 	//int n;
 	char szString[256];
 	struct {
-		_16 wYr, wMo, wDy, wHr, wMn, wSc;
+		uint16_t wYr, wMo, wDy, wHr, wMn, wSc;
 	} time;
 	struct {
-		_16 wYr, wMo, wDy, wHr, wMn, wSc;
+		uint16_t wYr, wMo, wDy, wHr, wMn, wSc;
 	} report_from;
 	//struct {
-	//	_16 wYr, wMo, wDy, wHr, wMn, wSc;
+	//	uint16_t wYr, wMo, wDy, wHr, wMn, wSc;
 	//} report_to;
-	_32 now = CAL_GET_FDATETIME();
+	uint32_t now = CAL_GET_FDATETIME();
    ReloadUserCache( NULL );
 	FontFromColumns( printer, NULL, NULL, 112, NULL );
    ClearReportHeaders();

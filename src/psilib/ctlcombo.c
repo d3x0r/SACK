@@ -14,24 +14,24 @@
 PSI_COMBOBOX_NAMESPACE
 
 struct combobox {
-	_32 data;
+	uint32_t data;
 	LOGICAL first_item;
 	LOGICAL first_show;
 	PRENDERER popup_renderer;
-	void (CPROC*OnPopup)( PTRSZVAL psvPopup, LOGICAL show );
-	PTRSZVAL psvPopup;
+	void (CPROC*OnPopup)( uintptr_t psvPopup, LOGICAL show );
+	uintptr_t psvPopup;
 	PSI_CONTROL self;
 	PSI_CONTROL edit;
 	PSI_CONTROL expand_button;
-	_32 popup_width, popup_height;
+	uint32_t popup_width, popup_height;
 	PSI_CONTROL popup_frame;
 	PSI_CONTROL popup_frame_listbox;
 	SelectionChanged OnSelect;
-	PTRSZVAL psvOnSelect;
+	uintptr_t psvOnSelect;
 };
 typedef struct combobox COMBOBOX, *PCOMBOBOX;
 
-static void CPROC HandleLoseFocus( PTRSZVAL dwUser, PRENDERER pGain )
+static void CPROC HandleLoseFocus( uintptr_t dwUser, PRENDERER pGain )
 {
 	PCOMBOBOX pcbx = (PCOMBOBOX)dwUser;
 	lprintf( WIDE("combobox - HandleLoseFocus %p is gaining (we're losing) else we're gaining") , pGain );
@@ -45,10 +45,10 @@ static void CPROC HandleLoseFocus( PTRSZVAL dwUser, PRENDERER pGain )
 	}
 }
 
-static void CPROC ExpandButtonEvent(PTRSZVAL psvCbx, PSI_CONTROL pc )
+static void CPROC ExpandButtonEvent(uintptr_t psvCbx, PSI_CONTROL pc )
 {
 	PCOMBOBOX pcbx = (PCOMBOBOX)psvCbx;
-	S_32 x = 0, y = 0;
+	int32_t x = 0, y = 0;
 	SizeFrame( pcbx->popup_frame, pcbx->popup_width, pcbx->popup_height );
 	SizeControl( pcbx->popup_frame_listbox, pcbx->popup_width, pcbx->popup_height );
 	GetPhysicalCoordinate( pcbx->self, &x, &y, FALSE );
@@ -59,7 +59,7 @@ static void CPROC ExpandButtonEvent(PTRSZVAL psvCbx, PSI_CONTROL pc )
 	if( !pcbx->first_show )
 	{
 		pcbx->popup_renderer = GetFrameRenderer( pcbx->popup_frame );
-		SetLoseFocusHandler( pcbx->popup_renderer, HandleLoseFocus, (PTRSZVAL)pcbx );
+		SetLoseFocusHandler( pcbx->popup_renderer, HandleLoseFocus, (uintptr_t)pcbx );
 		pcbx->first_show = TRUE;
 	}
 	//OwnMouse( GetFrameRenderer( pcbx->popup_frame ), TRUE );
@@ -67,7 +67,7 @@ static void CPROC ExpandButtonEvent(PTRSZVAL psvCbx, PSI_CONTROL pc )
 	//CommonWait( pcbx->popup_frame );
 }
 
-static void PopupSelected( PTRSZVAL psvCbx, PSI_CONTROL pc, PLISTITEM hli )
+static void PopupSelected( uintptr_t psvCbx, PSI_CONTROL pc, PLISTITEM hli )
 {
 	PCOMBOBOX pcbx = (PCOMBOBOX)psvCbx;
 	TEXTCHAR buf[256];
@@ -84,7 +84,7 @@ static void PopupSelected( PTRSZVAL psvCbx, PSI_CONTROL pc, PLISTITEM hli )
 
 }
 
-static void ExpandButtonDraw( PTRSZVAL psv, PSI_CONTROL pc)
+static void ExpandButtonDraw( uintptr_t psv, PSI_CONTROL pc)
 {
 	Image surface = GetControlSurface( pc );
 	int n;
@@ -104,7 +104,7 @@ static int OnCreateCommon( WIDE("Combo Box") )( PSI_CONTROL pc )
 	pcbx->first_item = TRUE;
 	pcbx->expand_button = MakeNamedControl( pc, NORMAL_BUTTON_NAME, surface->width - surface->height, 0, surface->height, surface->height, 0 );
 	SetButtonDrawMethod( pcbx->expand_button, ExpandButtonDraw, 0 );
-	SetButtonPushMethod( pcbx->expand_button, ExpandButtonEvent, (PTRSZVAL)pcbx );
+	SetButtonPushMethod( pcbx->expand_button, ExpandButtonEvent, (uintptr_t)pcbx );
 	pcbx->edit = MakeNamedControl( pc, EDIT_FIELD_NAME, 0, 0, surface->width - surface->height, surface->height, 0 );
 	SetEditControlReadOnly( pcbx->edit, TRUE );
 	pcbx->popup_height = surface->width;
@@ -112,7 +112,7 @@ static int OnCreateCommon( WIDE("Combo Box") )( PSI_CONTROL pc )
 
 	pcbx->popup_frame = CreateFrame( NULL, 0, 0, surface->width, surface->width, BORDER_THIN|BORDER_NOCAPTION, NULL );
 	pcbx->popup_frame_listbox = MakeNamedControl( pcbx->popup_frame, LISTBOX_CONTROL_NAME, 0, 0, surface->width, surface->height, 0 );
-	SetSelChangeHandler( pcbx->popup_frame_listbox, PopupSelected, (PTRSZVAL)pcbx );
+	SetSelChangeHandler( pcbx->popup_frame_listbox, PopupSelected, (uintptr_t)pcbx );
 	//ValidatedControlData( PCOMBOBOX, COMBOBOX_CONTROL, pcbx, pc );
 	return TRUE;
 }
@@ -129,7 +129,7 @@ static void OnSizeCommon( WIDE( "Combo Box" ) )( PSI_CONTROL pc, LOGICAL start )
 	}
 }
 
-void SetComboBoxPopupSize( PSI_CONTROL pc, _32 w, _32 h )
+void SetComboBoxPopupSize( PSI_CONTROL pc, uint32_t w, uint32_t h )
 {
 	ValidatedControlData( PCOMBOBOX, COMBOBOX_CONTROL, pcbx, pc );
 	if( pcbx )
@@ -189,7 +189,7 @@ PLISTITEM AddComboBoxItem( PSI_CONTROL pc, CTEXTSTR text )
 	return NULL;
 }
 
-void SetComboBoxSelChangeHandler( PSI_CONTROL pc, SelectionChanged proc, PTRSZVAL psvUser )
+void SetComboBoxSelChangeHandler( PSI_CONTROL pc, SelectionChanged proc, uintptr_t psvUser )
 {
 	ValidatedControlData( PCOMBOBOX, COMBOBOX_CONTROL, pcbx, pc );
 	if( pcbx )
@@ -200,7 +200,7 @@ void SetComboBoxSelChangeHandler( PSI_CONTROL pc, SelectionChanged proc, PTRSZVA
 }
 
 
-void SetComboBoxPopupEventCallback( PSI_CONTROL pc, void (CPROC*PopupEvent)( PTRSZVAL,LOGICAL ), PTRSZVAL psvEvent )
+void SetComboBoxPopupEventCallback( PSI_CONTROL pc, void (CPROC*PopupEvent)( uintptr_t,LOGICAL ), uintptr_t psvEvent )
 {
 	ValidatedControlData( PCOMBOBOX, COMBOBOX_CONTROL, pcbx, pc );
 	if( pcbx )

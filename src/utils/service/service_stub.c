@@ -10,8 +10,8 @@ static struct {
 	CTEXTSTR next_service_name;
 	void (CPROC*Start)(void);
 	void (CPROC*Stop)(void);
-	PTRSZVAL (CPROC*StartThread)(PTHREAD);
-	PTRSZVAL psvStartThread;
+	uintptr_t (CPROC*StartThread)(PTHREAD);
+	uintptr_t psvStartThread;
 	PTHREAD main_thread;
 } local_service_info;
 #define l local_service_info
@@ -60,7 +60,7 @@ static void ControlHandler( DWORD request )
 }
 
 
-static void APIENTRY ServiceMain( _32 argc, TEXTCHAR **argv )
+static void APIENTRY ServiceMain( DWORD argc, TEXTCHAR **argv )
 {
 
    int error; 
@@ -160,7 +160,7 @@ void SetupServiceEx( TEXTSTR name, void (CPROC*Start)( void ), void (CPROC*Stop)
 		lprintf( WIDE( "Startup monitor failed! %d" ), GetLastError() );
 }
 
-void SetupServiceThread( TEXTSTR name, PTRSZVAL (CPROC*Start)( PTHREAD ), PTRSZVAL psv )
+void SetupServiceThread( TEXTSTR name, uintptr_t (CPROC*Start)( PTHREAD ), uintptr_t psv )
 {
 	SERVICE_TABLE_ENTRY ServiceTable[2];
 	l.StartThread = Start;
@@ -200,12 +200,12 @@ LOGICAL IsThisAService( void )
 //---------------------------------------------------------------------------
 
 static int task_done;
-static void CPROC MyTaskEnd( PTRSZVAL psv, PTASK_INFO task )
+static void CPROC MyTaskEnd( uintptr_t psv, PTASK_INFO task )
 {
 	task_done = 1;
 }
 
-static void CPROC GetOutput( PTRSZVAL psv, PTASK_INFO task, CTEXTSTR buffer, size_t length )
+static void CPROC GetOutput( uintptr_t psv, PTASK_INFO task, CTEXTSTR buffer, size_t length )
 {
 	lprintf( WIDE( "%s" ), buffer );
 }
@@ -265,7 +265,7 @@ PTASK_INFO LaunchUserProcess( CTEXTSTR program, CTEXTSTR path, PCTEXTSTR args
 									 , int flags
 									 , TaskOutput OutputHandler
 									 , TaskEnd EndNotice
-									 , PTRSZVAL psv
+									 , uintptr_t psv
 									  DBG_PASS
 									 )
 {

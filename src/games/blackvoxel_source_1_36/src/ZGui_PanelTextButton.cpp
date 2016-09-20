@@ -26,7 +26,7 @@
 #include "ZGui_PanelTextButton.h"
 #include <GL/glew.h>
 
-void ZPanelTextButton::Render(ZRender_Interface *render, Frame_Dimensions * ParentPosition, PTRSZVAL psvInit )
+void ZPanelTextButton::Render(ZRender_Interface *render, Frame_Dimensions * ParentPosition, uintptr_t psvInit )
 {
 
   ZVector3f P1,P2,P3,P4;

@@ -45,8 +45,8 @@ PSI_Console_Phrase PSIConsoleOutput( PSI_CONTROL pc, PTEXT lines )
 				if( prior )
 				{
 					SetStart( prior );
-					prior->format.position.offset.spaces += (_16)console->pending_spaces;
-					prior->format.position.offset.tabs += (_16)console->pending_tabs;
+					prior->format.position.offset.spaces += (uint16_t)console->pending_spaces;
+					prior->format.position.offset.tabs += (uint16_t)console->pending_tabs;
 					que = BuildLine( prior );
 					if( console->flags.bNewLine )
 						que->flags |= TF_NORETURN;
@@ -95,7 +95,7 @@ PSI_Console_Phrase PSIConsoleDirectOutput( PSI_CONTROL pc, PTEXT lines )
 	return phrase;
 }
 
-void PSIConsoleInputEvent( PSI_CONTROL pc, void(CPROC*Event)(PTRSZVAL,PTEXT), PTRSZVAL psv )
+void PSIConsoleInputEvent( PSI_CONTROL pc, void(CPROC*Event)(uintptr_t,PTEXT), uintptr_t psv )
 {
 	ValidatedControlData( PCONSOLE_INFO, ConsoleClass.TypeID, console, pc );
 	if( console )
@@ -178,8 +178,8 @@ void PSIConsoleSetHistory( PSI_CONTROL pc, struct history_tracking_info *history
 		{
 			console->pHistory = PSI_CreateHistoryRegion();
 			console->pCursor = PSI_CreateHistoryCursor( console->pHistory );
-			console->pCurrentDisplay = PSI_CreateHistoryBrowser( console->pHistory, PSIMeasureString, (PTRSZVAL)console );
-			console->pHistoryDisplay = PSI_CreateHistoryBrowser( console->pHistory, PSIMeasureString, (PTRSZVAL)console );
+			console->pCurrentDisplay = PSI_CreateHistoryBrowser( console->pHistory, PSIMeasureString, (uintptr_t)console );
+			console->pHistoryDisplay = PSI_CreateHistoryBrowser( console->pHistory, PSIMeasureString, (uintptr_t)console );
 			console->pending_spaces = 0;
 			console->pending_tabs = 0;
 			PSI_SetHistoryBrowserNoPageBreak( console->pHistoryDisplay );

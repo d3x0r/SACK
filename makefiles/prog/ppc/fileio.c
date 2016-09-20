@@ -610,7 +610,7 @@ Restart:
 		{
 		  current = pft->pParsed;
 			do {
-				if( ( ( (PTRSZVAL)current)&0xFFFF0000) == (PTRSZVAL)0xDDDD0000U )
+				if( ( ( (uintptr_t)current)&0xFFFF0000) == (uintptr_t)0xDDDD0000U )
 				{
 					DebugBreak();
 				}

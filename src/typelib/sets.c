@@ -69,7 +69,7 @@ void DeleteSet( GENERICSET **ppSet )
 PGENERICSET GetFromSetPoolEx( GENERICSET **pSetSet, int setsetsizea, int setunitsize, int setmaxcnt
 							 , GENERICSET **pSet, int setsizea, int unitsize, int maxcnt DBG_PASS ){
 	PGENERICSET set;
-	_32 maxbias = 0;
+	uint32_t maxbias = 0;
 	void *unit = NULL;
 
 	if( !pSet )
@@ -157,7 +157,7 @@ ExtendSet:
 			{
 				if( !IsUsed( set, n ) )
 				{
-					unit = (void*)( ((PTRSZVAL)(set->bUsed))
+					unit = (void*)( ((uintptr_t)(set->bUsed))
 										+ ( ( (maxcnt +31) / 32 ) * 4 ) // skip over the bUsed bitbuffer
 										+ n * unitsize ); // go to the appropriate offset
 					SetUsed( set, n );
@@ -191,7 +191,7 @@ void *GetFromSetEx( GENERICSET **pSet, int setsizea, int unitsize, int maxcnt DB
 static POINTER GetSetMemberExx( GENERICSET **pSet, INDEX nMember, int setsize, int unitsize, int maxcnt, int *bUsed DBG_PASS )
 {
 	PGENERICSET set;
-	_32 maxbias = 0;
+	uint32_t maxbias = 0;
 	if( nMember == INVALID_INDEX )
 		return NULL;
 	if( !pSet )
@@ -238,10 +238,10 @@ static POINTER GetSetMemberExx( GENERICSET **pSet, INDEX nMember, int setsize, i
 		(*bUsed) = 0;
 	else
 		(*bUsed) = 1;
-	if( bLog ) _lprintf(DBG_RELAY)( WIDE( "Resulting unit %" ) _PTRSZVALfs,  ((PTRSZVAL)(set->bUsed))
+	if( bLog ) _lprintf(DBG_RELAY)( WIDE( "Resulting unit %" ) _PTRSZVALfs,  ((uintptr_t)(set->bUsed))
 						+ ( ( (maxcnt +31) / 32 ) * 4 ) // skip over the bUsed bitbuffer
 						+ nMember * unitsize );
-	return (void*)( ((PTRSZVAL)(set->bUsed))
+	return (void*)( ((uintptr_t)(set->bUsed))
 						+ ( ( (maxcnt +31) / 32 ) * 4 ) // skip over the bUsed bitbuffer
 						+ nMember * unitsize ); // go to the appropriate offset
 }
@@ -280,15 +280,15 @@ POINTER GetSetMemberEx( GENERICSET **pSet, INDEX nMember, int setsize, int units
 INDEX GetMemberIndex(GENERICSET **ppSet, POINTER unit, int unitsize, int max )
 {
 	GENERICSET *pSet = ppSet?*ppSet:NULL;
-	PTRSZVAL nUnit = (PTRSZVAL)unit;
+	uintptr_t nUnit = (uintptr_t)unit;
 	int ofs = ( ( max + 31 ) / 32) * 4;
 	int base = 0;
 	while( pSet )
 	{
-		if( nUnit >= ((PTRSZVAL)(pSet->bUsed) + ofs ) &&
-			 nUnit <= ((PTRSZVAL)(pSet->bUsed) + ofs + unitsize*max ) )
+		if( nUnit >= ((uintptr_t)(pSet->bUsed) + ofs ) &&
+			 nUnit <= ((uintptr_t)(pSet->bUsed) + ofs + unitsize*max ) )
 		{
-			PTRSZVAL n = nUnit - ( ((PTRSZVAL)(pSet->bUsed)) + ofs );
+			uintptr_t n = nUnit - ( ((uintptr_t)(pSet->bUsed)) + ofs );
 			if( n % unitsize )
 			{
 				lprintf( WIDE("Error in set member alignment! %") _PTRSZVALfs WIDE(" of %d"), n % unitsize, unitsize );
@@ -308,14 +308,14 @@ INDEX GetMemberIndex(GENERICSET **ppSet, POINTER unit, int unitsize, int max )
 #undef MemberValidInSet
 int MemberValidInSet( GENERICSET *pSet, void *unit, int unitsize, int max )
 {
-	PTRSZVAL nUnit = (PTRSZVAL)unit;
+	uintptr_t nUnit = (uintptr_t)unit;
 	int ofs = ( ( max + 31 ) / 32) * 4;
 	while( pSet )
 	{
-		if( nUnit >= ((PTRSZVAL)(pSet->bUsed) + ofs ) &&
-			 nUnit <= ((PTRSZVAL)(pSet->bUsed) + ofs + unitsize*max ) )
+		if( nUnit >= ((uintptr_t)(pSet->bUsed) + ofs ) &&
+			 nUnit <= ((uintptr_t)(pSet->bUsed) + ofs + unitsize*max ) )
 		{
-			PTRSZVAL n = nUnit - ( ((PTRSZVAL)(pSet->bUsed)) + ofs );
+			uintptr_t n = nUnit - ( ((uintptr_t)(pSet->bUsed)) + ofs );
 			if( n % unitsize )
 			{
 				lprintf( WIDE("Error in set member alignment! %") _PTRSZVALfs WIDE(" of %d"), n % unitsize, unitsize );
@@ -334,21 +334,21 @@ int MemberValidInSet( GENERICSET *pSet, void *unit, int unitsize, int max )
 
 void DeleteFromSetExx( GENERICSET *pSet, void *unit, int unitsize, int max DBG_PASS )
 {
-	PTRSZVAL nUnit = (PTRSZVAL)unit;
+	uintptr_t nUnit = (uintptr_t)unit;
 	int ofs = ( ( max + 31 ) / 32) * 4;
 	if( bLog ) _lprintf(DBG_RELAY)( WIDE("Deleting from  %p of %p "), pSet, unit );
 	while( pSet )
 	{
 		if( bLog ) lprintf( WIDE( "range to check is %")_PTRSZVALfx WIDE("(%d) to %")_PTRSZVALfx WIDE("(%d)" )
-				 ,	  ((PTRSZVAL)(pSet->bUsed) + ofs )
-			     ,(nUnit >= ((PTRSZVAL)(pSet->bUsed) + ofs ))
-				  , ((PTRSZVAL)(pSet->bUsed) + ofs + unitsize*max )
-		        , (nUnit <= ((PTRSZVAL)(pSet->bUsed) + ofs + unitsize*max ))
+				 ,	  ((uintptr_t)(pSet->bUsed) + ofs )
+			     ,(nUnit >= ((uintptr_t)(pSet->bUsed) + ofs ))
+				  , ((uintptr_t)(pSet->bUsed) + ofs + unitsize*max )
+		        , (nUnit <= ((uintptr_t)(pSet->bUsed) + ofs + unitsize*max ))
 				 );
-		if( (nUnit >= ((PTRSZVAL)(pSet->bUsed) + ofs )) &&
-		    (nUnit <= ((PTRSZVAL)(pSet->bUsed) + ofs + unitsize*max )) )
+		if( (nUnit >= ((uintptr_t)(pSet->bUsed) + ofs )) &&
+		    (nUnit <= ((uintptr_t)(pSet->bUsed) + ofs + unitsize*max )) )
 		{
-			PTRSZVAL n = nUnit - ( ((PTRSZVAL)(pSet->bUsed)) + ofs );
+			uintptr_t n = nUnit - ( ((uintptr_t)(pSet->bUsed)) + ofs );
 			//Log1( WIDE("Found item in set at %d"), n / unitsize );
 			if( n % unitsize )
 			{
@@ -375,7 +375,7 @@ void DeleteFromSetExx( GENERICSET *pSet, void *unit, int unitsize, int max DBG_P
 
 //----------------------------------------------------------------------------
 
-void DeleteSetMemberEx( GENERICSET *pSet, INDEX iMember, PTRSZVAL unitsize, INDEX max )
+void DeleteSetMemberEx( GENERICSET *pSet, INDEX iMember, uintptr_t unitsize, INDEX max )
 {
 	//Log2( WIDE("Deleting from  %08x of %08x "), pSet, iMember );
 	while( pSet )
@@ -449,21 +449,21 @@ void **GetLinearSetArrayEx( GENERICSET *pSet, int *pCount, int unitsize, int max
 			// maybe instead of ordering elements
 			// by ID - order by physical memory?
 			// that allows findinarray to work better...
-			if( (PTRSZVAL)pCur->nBias < nNewMin &&
-				 (PTRSZVAL)pCur->nBias >= nMin )
+			if( (uintptr_t)pCur->nBias < nNewMin &&
+				 (uintptr_t)pCur->nBias >= nMin )
 			{
 				pNewMin = pCur;
 				nNewMin = pCur->nBias;
 			}
 			pCur = pCur->next;
 		}
-		if( (PTRSZVAL)nNewMin != INVALID_INDEX )
+		if( (uintptr_t)nNewMin != INVALID_INDEX )
 		{
 			cnt = 0;
 			for( n = 0; n < max; n++ )
 				if( IsUsed( pNewMin, n ) )
 				{
-					array[cnt] = (void*)( ((PTRSZVAL)(pNewMin->bUsed))
+					array[cnt] = (void*)( ((uintptr_t)(pNewMin->bUsed))
 												  + ofs
 												  + n * unitsize );
 					cnt++;
@@ -478,18 +478,18 @@ void **GetLinearSetArrayEx( GENERICSET *pSet, int *pCount, int unitsize, int max
 
 int FindInArray( void **pArray, int nArraySize, void *unit )
 {
-	//S_32 idx;
+	//int32_t idx;
 	if( pArray )
 	{
 		int i, j, m;
-		PTRSZVAL psvUnit, psvArray;
+		uintptr_t psvUnit, psvArray;
 		i = 0;
 		j = nArraySize-1;
-		psvUnit = (PTRSZVAL)unit;
+		psvUnit = (uintptr_t)unit;
 		do
 		{
 			m = (i+j)/2;
-			psvArray = (PTRSZVAL)pArray[m];
+			psvArray = (uintptr_t)pArray[m];
 			if( psvUnit < psvArray )
 				j = m - 1;
 			else if( psvUnit > psvArray )
@@ -508,7 +508,7 @@ int FindInArray( void **pArray, int nArraySize, void *unit )
 
 //----------------------------------------------------------------------------
 
-PTRSZVAL _ForAllInSet( GENERICSET *pSet, int unitsize, int max, FAISCallback f, PTRSZVAL psv )
+uintptr_t _ForAllInSet( GENERICSET *pSet, int unitsize, int max, FAISCallback f, uintptr_t psv )
 {
 	//Log2( WIDE("Doing all in set - size: %d setsize: %d"), unitsize, max );
 	if( f )
@@ -520,8 +520,8 @@ PTRSZVAL _ForAllInSet( GENERICSET *pSet, int unitsize, int max, FAISCallback f, 
 			for( n = 0; n < max; n++ )
 				if( IsUsed( pSet, n ) )
 				{
-					PTRSZVAL psvReturn;
-					psvReturn = f( (void*)( ((PTRSZVAL)(pSet->bUsed))	
+					uintptr_t psvReturn;
+					psvReturn = f( (void*)( ((uintptr_t)(pSet->bUsed))	
 											  + ofs 
 											  + n * unitsize ), psv );
 					if( psvReturn )
@@ -538,7 +538,7 @@ PTRSZVAL _ForAllInSet( GENERICSET *pSet, int unitsize, int max, FAISCallback f, 
 
 //----------------------------------------------------------------------------
 #undef ForEachSetMember
-PTRSZVAL ForEachSetMember( GENERICSET *pSet, int unitsize, int max, FESMCallback f, PTRSZVAL psv )
+uintptr_t ForEachSetMember( GENERICSET *pSet, int unitsize, int max, FESMCallback f, uintptr_t psv )
 {
 	//Log2( WIDE("Doing all in set - size: %d setsize: %d"), unitsize, max );
 	if( f )
@@ -552,7 +552,7 @@ PTRSZVAL ForEachSetMember( GENERICSET *pSet, int unitsize, int max, FESMCallback
 			for( n = 0; nFound < (int)pSet->nUsed && n < max; n++ )
 				if( IsUsed( pSet, n ) )
 				{
-					PTRSZVAL psvReturn;
+					uintptr_t psvReturn;
 					nFound++;
 					psvReturn = f( total+n, psv );
 					if( psvReturn )

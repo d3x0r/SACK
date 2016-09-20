@@ -19,7 +19,7 @@ static void StoreFileAs( CTEXTSTR filename, CTEXTSTR asfile )
 	{
 		FILE *out = sack_fopenEx( 0, asfile, "wb", l.current_mount );
 		size_t size = sack_fsize( in );
-		POINTER data = NewArray( _8, size );
+		POINTER data = NewArray( uint8_t, size );
 		if( l.verbose ) printf( " Opened file %s = %p\n", asfile, out );
 		sack_fread( data, 1, size, in );
 		if( l.verbose ) printf( " read %d\n", size );
@@ -31,7 +31,7 @@ static void StoreFileAs( CTEXTSTR filename, CTEXTSTR asfile )
 	}
 }
 
-static void CPROC _StoreFile( PTRSZVAL psv,  CTEXTSTR filename, int flags )
+static void CPROC _StoreFile( uintptr_t psv,  CTEXTSTR filename, int flags )
 {
 	FILE *in = sack_fopenEx( 0, filename, "rb", sack_get_default_mount() );
 	if( l.verbose ) printf( " Opened file %s = %p\n", filename, in );
@@ -41,7 +41,7 @@ static void CPROC _StoreFile( PTRSZVAL psv,  CTEXTSTR filename, int flags )
 		if( l.verbose ) printf( " file size (%d)\n", size );
 		{
 			FILE *out = sack_fopenEx( 0, filename, "wb", l.current_mount );
-			POINTER data = NewArray( _8, size );
+			POINTER data = NewArray( uint8_t, size );
 			if( l.verbose ) printf( " Opened file %s = %p (%d)\n", filename, out, size );
 			sack_fread( data, 1, size, in );
 			if( l.verbose ) printf( " read %d\n", size );
@@ -67,7 +67,7 @@ static void ExtractFile( CTEXTSTR filename )
 	{
 		FILE *out = sack_fopenEx( 0, filename, "wb", sack_get_default_mount() );
 		size_t size = sack_fsize( in );
-		POINTER data = NewArray( _8, size );
+		POINTER data = NewArray( uint8_t, size );
 		sack_fread( data, 1, size, in );
 		sack_fwrite( data, 1, size, out );
 		sack_fclose( in );
@@ -78,11 +78,11 @@ static void ExtractFile( CTEXTSTR filename )
 }
 
 #ifdef VIRUS_SCANNER_PARANOIA
-#define Seek(a,b) (((PTRSZVAL)a)+(b))
+#define Seek(a,b) (((uintptr_t)a)+(b))
 
 void SetExtraData( POINTER block, size_t length )
 {
-	//PTRSZVAL source_memory_length = block_len;
+	//uintptr_t source_memory_length = block_len;
 	POINTER source_memory = block;
 
 	{
@@ -111,8 +111,8 @@ void SetExtraData( POINTER block, size_t length )
 				+ sizeof( DWORD ) + sizeof( IMAGE_FILE_HEADER )
 				+ source_nt_header->FileHeader.SizeOfOptionalHeader;
 			PIMAGE_SECTION_HEADER source_section = (PIMAGE_SECTION_HEADER)Seek( source_memory, FPISections );
-			PTRSZVAL dwSize = 0;
-			PTRSZVAL newSize;
+			uintptr_t dwSize = 0;
+			uintptr_t newSize;
 			source_section = (PIMAGE_SECTION_HEADER)Seek( source_memory, FPISections );
 			for( n = 0; n < source_nt_header->FileHeader.NumberOfSections; n++ )
 			{
@@ -151,7 +151,7 @@ static void AppendFilesAs( CTEXTSTR filename1, CTEXTSTR filename2, CTEXTSTR outp
 	if( !file_out ) { printf( "Failed to read file to append to: %s", outputname ); return; }
 	file_out_size = sack_fsize( file_out );
 
-	buffer = NewArray( _8, file1_size );
+	buffer = NewArray( uint8_t, file1_size );
 	sack_fread( buffer, 1, file1_size, file1 );
 	sack_fwrite( buffer, 1, file1_size, file_out );
 	{
@@ -164,7 +164,7 @@ static void AppendFilesAs( CTEXTSTR filename1, CTEXTSTR filename2, CTEXTSTR outp
 
 	Release( buffer );
 
-	buffer = NewArray( _8, file2_size );
+	buffer = NewArray( uint8_t, file2_size );
 	sack_fread( buffer, 1, file2_size, file2 );
 	sack_fwrite( buffer, 1, file2_size, file_out );
 
@@ -181,7 +181,7 @@ static void ExtractFileAs( CTEXTSTR filename, CTEXTSTR asfile )
 	{
 		FILE *out = sack_fopenEx( 0, asfile, "wb", sack_get_default_mount() );
 		size_t size = sack_fsize( in );
-		POINTER data = NewArray( _8, size );
+		POINTER data = NewArray( uint8_t, size );
 		sack_fread( data, 1, size, in );
 		sack_fwrite( data, 1, size, out );
 		sack_fclose( in );
@@ -191,9 +191,9 @@ static void ExtractFileAs( CTEXTSTR filename, CTEXTSTR asfile )
 	}
 }
 
-static void CPROC ShowFile( PTRSZVAL psv, CTEXTSTR file, int flags )
+static void CPROC ShowFile( uintptr_t psv, CTEXTSTR file, int flags )
 {
-	void *f = l.fsi->open( (PTRSZVAL)psv, file + 2 );
+	void *f = l.fsi->open( (uintptr_t)psv, file + 2 );
 	printf( "%9d %s\n", l.fsi->size( f ), file );
 	l.fsi->_close( f );
 }
@@ -202,7 +202,7 @@ static void GetDirectory( void )
 {
 	POINTER info = NULL;
 	while( ScanFilesEx( NULL, "*", &info, ShowFile, SFF_SUBCURSE|SFF_SUBPATHONLY
-	                  , (PTRSZVAL)l.current_vol, FALSE, l.current_mount ) );
+	                  , (uintptr_t)l.current_vol, FALSE, l.current_mount ) );
 	//l.fsi->
 }
 
@@ -262,7 +262,7 @@ SaneWinMain( argc, argv )
 				printf( "Failed to load vfs: %s", argv[arg+1] );
 				return 2;
 			}
-			l.current_mount = sack_mount_filesystem( "vfs", l.fsi, 10, (PTRSZVAL)l.current_vol, 1 );
+			l.current_mount = sack_mount_filesystem( "vfs", l.fsi, 10, (uintptr_t)l.current_vol, 1 );
 			arg += 2;
 		}
 		else if( StrCaseCmp( argv[arg], "vfs" ) == 0 )
@@ -275,13 +275,13 @@ SaneWinMain( argc, argv )
 				printf( "Failed to load vfs: %s", argv[arg+1] );
 				return 2;
 			}
-			l.current_mount = sack_mount_filesystem( "vfs", l.fsi, 10, (PTRSZVAL)l.current_vol, 1 );
+			l.current_mount = sack_mount_filesystem( "vfs", l.fsi, 10, (uintptr_t)l.current_vol, 1 );
 			arg++;
 		}
 		else if( StrCaseCmp( argv[arg], "rm" ) == 0
 			|| StrCaseCmp( argv[arg], "delete" ) == 0 )
 		{
-			l.fsi->_unlink( (PTRSZVAL)l.current_vol, argv[arg+1] );
+			l.fsi->_unlink( (uintptr_t)l.current_vol, argv[arg+1] );
 			arg++;
 		}
 		else if( StrCaseCmp( argv[arg], "store" ) == 0 )

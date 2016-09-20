@@ -9,19 +9,19 @@
 
 // this is a variable in dialog.nex
 
-void CPROC DoListItemOpened( PTRSZVAL psvUser, PCONTROL pc, PLISTITEM hli, LOGICAL bOpened )
+void CPROC DoListItemOpened( uintptr_t psvUser, PCONTROL pc, PLISTITEM hli, LOGICAL bOpened )
 {
 	PENTITY pe = (PENTITY)psvUser;
    InvokeBehavior( WIDE("open"), pe, pe->pControlledBy, NULL );
 }
 
-void CPROC DoDoubleClicker( PTRSZVAL psvUser, PCONTROL pc, PLISTITEM hli )
+void CPROC DoDoubleClicker( uintptr_t psvUser, PCONTROL pc, PLISTITEM hli )
 {
 	PENTITY pe = (PENTITY)psvUser;
    InvokeBehavior( WIDE("double"), pe, pe->pControlledBy, NULL );
 }
 
-void CPROC DoSelectionChanged ( PTRSZVAL psvUser, PCOMMON pc, PLISTITEM hli )
+void CPROC DoSelectionChanged ( uintptr_t psvUser, PCOMMON pc, PLISTITEM hli )
 {
 	PENTITY pe = (PENTITY)psvUser;
    InvokeBehavior( WIDE("select"), pe, pe->pControlledBy, NULL );
@@ -85,10 +85,10 @@ static void InitControlObject( PENTITY pe, PCOMMON pc )
 	AddBehavior( pe, WIDE("open"), WIDE("An item in a tree list has been expanded.") );
 //	AddMethod( pe, methods + 0 );
 //   AddMethod( pe, methods + 1 );
-//AddVolatileVariable( pe, normal_button_vars+2, (PTRSZVAL)pc );
-	SetListItemOpenHandler( pc, DoListItemOpened, (PTRSZVAL)pe );
-	SetDoubleClickHandler( pc, DoDoubleClicker, (PTRSZVAL)pe );
-   SetSelChangeHandler( pc, DoSelectionChanged, (PTRSZVAL)pe );
+//AddVolatileVariable( pe, normal_button_vars+2, (uintptr_t)pc );
+	SetListItemOpenHandler( pc, DoListItemOpened, (uintptr_t)pe );
+	SetDoubleClickHandler( pc, DoDoubleClicker, (uintptr_t)pe );
+   SetSelChangeHandler( pc, DoSelectionChanged, (uintptr_t)pe );
 }
 
 int CPROC CustomInitListbox( PCOMMON pc )

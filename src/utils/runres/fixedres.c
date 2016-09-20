@@ -9,7 +9,7 @@
 PTHREAD mainthread;
 
 
-void CPROC TaskEnded( PTRSZVAL psv, PTASK_INFO task_ended )
+void CPROC TaskEnded( uintptr_t psv, PTASK_INFO task_ended )
 {
    WakeThread( mainthread );
 }
@@ -72,8 +72,8 @@ static void SetWithFindMode( LPDEVMODE mode, int bRestoreOnCrash, char const * c
 		int n;
 		for( n = 2; n < 3; n++ )
 		{
-			_32 flags;
-         _32 result;
+			uint32_t flags;
+         uint32_t result;
 			switch( n )
 			{
 			case 0:
@@ -196,7 +196,7 @@ static void SetWithFindMode( LPDEVMODE mode, int bRestoreOnCrash, char const * c
 }
 #endif
 
-void SetResolution(  _32 w, _32 h, char const * const name )
+void SetResolution(  uint32_t w, uint32_t h, char const * const name )
 {
 #ifdef WIN32
 	DEVMODE settings;
@@ -276,7 +276,7 @@ int main( int argc, char const *const *argv )
 	}
 	{
       int arg;
-		_32 width, height, bits = 32;
+		uint32_t width, height, bits = 32;
 		const char *program;
       arg = 1;
 		width = atol( argv[arg++] );

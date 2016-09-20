@@ -19,12 +19,12 @@
 
 //-------------------------------------------------------------------------
 
-PTRSZVAL psvFont;
+uintptr_t psvFont;
 static int CPROC DrawFont( PCOMMON renderer )
 {
 	SFTFont font = (SFTFont)psvFont;
 	Image image = GetFrameSurface( renderer );
-	_32 w, h;
+	uint32_t w, h;
 	GetStringSizeFont( WIDE(" "), &w, &h, font );
 	ClearImageTo( image, BASE_COLOR_WHITE );
 	PutStringFont( image, 5, 5, BASE_COLOR_BLACK, 0, WIDE("ABCDEFGHIJKLM"), font );
@@ -132,11 +132,11 @@ SaneWinMain( argc, argv )
 		if( StrCaseCmp( argv[1], "null" ) )
 			DumpFontFile( argv[1], font );
 	}
-	psvFont = (PTRSZVAL)font;
+	psvFont = (uintptr_t)font;
 	{
 		PCOMMON pRend = CreateFrame( WIDE("Demo Font"), 10, 10, 300, 300, BORDER_NORMAL, NULL );
 		AddCommonDraw( pRend, DrawFont );
-		//DrawFont( (PTRSZVAL)font, pRend );
+		//DrawFont( (uintptr_t)font, pRend );
 		DisplayFrame( pRend );
 		while( 1 )
 			Sleep( 1000 );

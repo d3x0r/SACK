@@ -50,7 +50,7 @@ using namespace sack::timers;
 struct task_info_tag;
 
 SACK_SYSTEM_NAMESPACE
-//typedef void (CPROC*TaskEnd)(PTRSZVAL, struct task_info_tag *task_ended);
+//typedef void (CPROC*TaskEnd)(uintptr_t, struct task_info_tag *task_ended);
 
 #include "taskinfo.h"
 
@@ -142,13 +142,13 @@ void OSALOT_AppendEnvironmentVariable(CTEXTSTR name, CTEXTSTR value)
 #if defined( WIN32 ) || defined( __CYGWIN__ )
 	TEXTCHAR *oldpath;
 	TEXTCHAR *newpath;
-	_32 length;
+	uint32_t length;
 	{
 		int oldlen;
 		oldpath = NewArray( TEXTCHAR, oldlen = ( GetEnvironmentVariable( name, NULL, 0 ) + 1 ) );
 		GetEnvironmentVariable( name, oldpath, oldlen );
 	}
-	newpath = NewArray( TEXTCHAR, length = (_32)(StrLen( oldpath ) + 2 + StrLen(value)) );
+	newpath = NewArray( TEXTCHAR, length = (uint32_t)(StrLen( oldpath ) + 2 + StrLen(value)) );
 #  ifdef UNICODE
 	snwprintf( newpath, length, WIDE("%s;%s"), oldpath, value );
 #  else
@@ -197,7 +197,7 @@ void OSALOT_PrependEnvironmentVariable(CTEXTSTR name, CTEXTSTR value)
 		oldpath = NewArray( TEXTCHAR, oldlen = ( GetEnvironmentVariable( name, NULL, 0 ) + 1 ) );
 		GetEnvironmentVariable( name, oldpath, oldlen );
 	}
-	newpath = NewArray( TEXTCHAR, length = (_32)(StrLen( oldpath ) + 2 + StrLen(value)) );
+	newpath = NewArray( TEXTCHAR, length = (uint32_t)(StrLen( oldpath ) + 2 + StrLen(value)) );
 #  ifdef UNICODE
 	snwprintf( newpath, length, WIDE("%s;%s"), value, oldpath );
 #  else
@@ -234,7 +234,7 @@ void OSALOT_PrependEnvironmentVariable(CTEXTSTR name, CTEXTSTR value)
 }
 #endif
 
-static void CPROC SetupSystemServices( POINTER mem, PTRSZVAL size )
+static void CPROC SetupSystemServices( POINTER mem, uintptr_t size )
 {
 	struct local_systemlib_data *init_l = (struct local_systemlib_data *)mem;
 #ifdef _WIN32
@@ -417,7 +417,7 @@ static void CPROC SetupSystemServices( POINTER mem, PTRSZVAL size )
 			oldpath = getenv( "LD_LIBRARY_PATH" );
 			if( oldpath )
 			{
-				newpath = NewArray( char, (_32)((oldpath?StrLen( oldpath ):0) + 2 + StrLen((*init_l).load_path)) );
+				newpath = NewArray( char, (uint32_t)((oldpath?StrLen( oldpath ):0) + 2 + StrLen((*init_l).load_path)) );
 				sprintf( newpath, WIDE("%s:%s"), (*init_l).load_path
 						 , oldpath );
 				setenv( WIDE("LD_LIBRARY_PATH"), newpath, 1 );
@@ -430,7 +430,7 @@ static void CPROC SetupSystemServices( POINTER mem, PTRSZVAL size )
 			oldpath = getenv( "PATH" );
 			if( oldpath )
 			{
-				newpath = NewArray( char, (_32)((oldpath?StrLen( oldpath ):0) + 2 + StrLen((*init_l).load_path)) );
+				newpath = NewArray( char, (uint32_t)((oldpath?StrLen( oldpath ):0) + 2 + StrLen((*init_l).load_path)) );
 				sprintf( newpath, WIDE("%s:%s"), (*init_l).load_path
 						 , oldpath );
 				setenv( WIDE("PATH"), newpath, 1 );
@@ -497,7 +497,7 @@ PRELOAD( SetupSystemOptions )
 #ifndef _M_CEE_PURE
 static BOOL CALLBACK CheckWindowAndSendKill( HWND hWnd, LPARAM lParam )
 {
-	_32 idThread, idProcess;
+	uint32_t idThread, idProcess;
 	PTASK_INFO task = (PTASK_INFO)lParam;
 	idThread = GetWindowThreadProcessId( hWnd, (LPDWORD)&idProcess );
 
@@ -552,7 +552,7 @@ LOGICAL CPROC StopProgram( PTASK_INFO task )
     return TRUE;
 }
 
-PTRSZVAL CPROC TerminateProgram( PTASK_INFO task )
+uintptr_t CPROC TerminateProgram( PTASK_INFO task )
 {
 	if( task )
 	{
@@ -632,7 +632,7 @@ PTRSZVAL CPROC TerminateProgram( PTASK_INFO task )
 
 //--------------------------------------------------------------------------
 
-SYSTEM_PROC( void, SetProgramUserData )( PTASK_INFO task, PTRSZVAL psv )
+SYSTEM_PROC( void, SetProgramUserData )( PTASK_INFO task, uintptr_t psv )
 {
 	if( task )
 		task->psvEnd = psv;
@@ -640,7 +640,7 @@ SYSTEM_PROC( void, SetProgramUserData )( PTASK_INFO task, PTRSZVAL psv )
 
 //--------------------------------------------------------------------------
 
-_32 GetTaskExitCode( PTASK_INFO task )
+uint32_t GetTaskExitCode( PTASK_INFO task )
 {
 	if( task )
 		return task->exitcode;
@@ -648,7 +648,7 @@ _32 GetTaskExitCode( PTASK_INFO task )
 }
 
 
-PTRSZVAL CPROC WaitForTaskEnd( PTHREAD pThread )
+uintptr_t CPROC WaitForTaskEnd( PTHREAD pThread )
 {
 	PTASK_INFO task = (PTASK_INFO)GetThreadParam( pThread );
 #ifdef __LINUX__
@@ -680,7 +680,7 @@ PTRSZVAL CPROC WaitForTaskEnd( PTHREAD pThread )
 #ifdef _WIN32
          // vista++ so this won't work for XP support...
 			static BOOL (WINAPI *MyCancelSynchronousIo)( HANDLE hThread ) = (BOOL(WINAPI*)(HANDLE))-1;
-			if( (PTRSZVAL)MyCancelSynchronousIo == (PTRSZVAL)-1 )
+			if( (uintptr_t)MyCancelSynchronousIo == (uintptr_t)-1 )
 				MyCancelSynchronousIo = (BOOL(WINAPI*)(HANDLE))LoadFunction( WIDE( "kernel32.dll" ), WIDE( "CancelSynchronousIo" ) );
 			if( MyCancelSynchronousIo )
 			{
@@ -693,7 +693,7 @@ PTRSZVAL CPROC WaitForTaskEnd( PTHREAD pThread )
 			else
 			{
 				static BOOL (WINAPI *MyCancelIoEx)( HANDLE hFile,LPOVERLAPPED ) = (BOOL(WINAPI*)(HANDLE,LPOVERLAPPED))-1;
-				if( (PTRSZVAL)MyCancelIoEx == (PTRSZVAL)-1 )
+				if( (uintptr_t)MyCancelIoEx == (uintptr_t)-1 )
 					MyCancelIoEx = (BOOL(WINAPI*)(HANDLE,LPOVERLAPPED))LoadFunction( WIDE( "kernel32.dll" ), WIDE( "CancelIoEx" ) );
 				if( MyCancelIoEx )
 					MyCancelIoEx( task->hStdOut.handle, NULL );
@@ -763,7 +763,7 @@ void EnumDesktop( void )
 {
    // I'm running on some windows station, right?
    //HWINSTA GetProcessWindowStation();
-	if( EnumDesktops( NULL, EnumDesktopProc, (LPARAM)(PTRSZVAL)0 ) )
+	if( EnumDesktops( NULL, EnumDesktopProc, (LPARAM)(uintptr_t)0 ) )
 	{
       // returned non-zero value from enumdesktopproc?
       // failed to find?
@@ -1024,13 +1024,13 @@ int TryShellExecute( PTASK_INFO task, CTEXTSTR path, CTEXTSTR program, PTEXT cmd
 	execinfo.nShow = SW_SHOWNORMAL;
 	if( ShellExecuteEx( &execinfo ) )
 	{
-		if( (PTRSZVAL)execinfo.hInstApp > 32)
+		if( (uintptr_t)execinfo.hInstApp > 32)
 		{
-			switch( (PTRSZVAL)execinfo.hInstApp )
+			switch( (uintptr_t)execinfo.hInstApp )
 			{
 			case 42:
 #ifdef _DEBUG
-				lprintf( WIDE( "No association picked : %p (gle:%d)" ), (PTRSZVAL)execinfo.hInstApp , GetLastError() );
+				lprintf( WIDE( "No association picked : %p (gle:%d)" ), (uintptr_t)execinfo.hInstApp , GetLastError() );
 #endif
 				break;
 			}
@@ -1043,10 +1043,10 @@ int TryShellExecute( PTASK_INFO task, CTEXTSTR path, CTEXTSTR program, PTEXT cmd
 		}
 		else
 		{
-			switch( (PTRSZVAL)execinfo.hInstApp )
+			switch( (uintptr_t)execinfo.hInstApp )
 			{
 			default:
-				lprintf( WIDE( "Shell exec error : %p (gle:%d)" ), (PTRSZVAL)execinfo.hInstApp , GetLastError() );
+				lprintf( WIDE( "Shell exec error : %p (gle:%d)" ), (uintptr_t)execinfo.hInstApp , GetLastError() );
 				break;
 			}
 			return FALSE;
@@ -1063,7 +1063,7 @@ int TryShellExecute( PTASK_INFO task, CTEXTSTR path, CTEXTSTR program, PTEXT cmd
 // Run a program completely detached from the current process
 // it runs independantly.  Program does not suspend until it completes.
 // No way at all to know if the program works or fails.
-SYSTEM_PROC( PTASK_INFO, LaunchProgramEx )( CTEXTSTR program, CTEXTSTR path, PCTEXTSTR args, TaskEnd EndNotice, PTRSZVAL psv )
+SYSTEM_PROC( PTASK_INFO, LaunchProgramEx )( CTEXTSTR program, CTEXTSTR path, PCTEXTSTR args, TaskEnd EndNotice, uintptr_t psv )
 {
 	return LaunchPeerProgramExx( program, path, args
                               , LPP_OPTION_DO_NOT_HIDE | LPP_OPTION_NEW_GROUP
@@ -1177,7 +1177,7 @@ SYSTEM_PROC( PTASK_INFO, LaunchProgramEx )( CTEXTSTR program, CTEXTSTR path, PCT
 	{
 		xlprintf(LOG_LEVEL_DEBUG+1)( WIDE("Success running %s[%s] %p: %d"), program, GetText( cmdline ), task->pi.hProcess, GetLastError() );
 		if( EndNotice )
-			ThreadTo( WaitForTaskEnd, (PTRSZVAL)task );
+			ThreadTo( WaitForTaskEnd, (uintptr_t)task );
 	}
 	else
 	{
@@ -1198,7 +1198,7 @@ SYSTEM_PROC( PTASK_INFO, LaunchProgramEx )( CTEXTSTR program, CTEXTSTR path, PCT
 		task->psvEnd = psv;
 		task->EndNotice = EndNotice;
 		//if( EndNotice )
-		ThreadTo( WaitForTaskEnd, (PTRSZVAL)task );
+		ThreadTo( WaitForTaskEnd, (uintptr_t)task );
 		if( !( newpid = fork() ) )
 		{
 		// in case exec fails, we need to
@@ -1274,7 +1274,7 @@ void InvokeLibraryLoad( void )
 }
 
 // look for all the libraries that are currently already loaded (so we know to just load them the normal way)
-#define Seek(a,b) (((PTRSZVAL)a)+(b))
+#define Seek(a,b) (((uintptr_t)a)+(b))
 static void LoadExistingLibraries( void )
 {
 #ifdef WIN32
@@ -1398,7 +1398,7 @@ SYSTEM_PROC( void, AddMappedLibrary)( CTEXTSTR libname, POINTER image_memory )
 	if( !library )
 	{
 		size_t maxlen = StrLen( libname ) + 1;
-		library = NewPlus( LIBRARY, sizeof(TEXTCHAR)*((maxlen<0xFFFFFF)?(_32)maxlen:0) );
+		library = NewPlus( LIBRARY, sizeof(TEXTCHAR)*((maxlen<0xFFFFFF)?(uint32_t)maxlen:0) );
 		library->name = library->full_name;
 		StrCpy( library->name, libname );
 		library->functions = NULL;
@@ -1448,7 +1448,7 @@ void DeAttachThreadToLibraries( LOGICAL attach )
 						dwInit = (*((DWORD*)tls->AddressOfIndex));
 						if( attach )
 						{
-							data = NewArray( _8, size );
+							data = NewArray( uint8_t, size );
 #ifdef _MSC_VER
 #  ifdef __64__
 #  else
@@ -1462,7 +1462,7 @@ void DeAttachThreadToLibraries( LOGICAL attach )
 #endif
 							//TlsSetValue( dwInit, data );
 							memcpy( data, (POINTER)tls->StartAddressOfRawData, size_init );
-							memset( ((P_8)data) + size_init, 0, tls->SizeOfZeroFill );
+							memset( ((uint8_t*)data) + size_init, 0, tls->SizeOfZeroFill );
 						}
 						else
 						{
@@ -1500,7 +1500,7 @@ SYSTEM_PROC( generic_function, LoadFunctionExx )( CTEXTSTR libname, CTEXTSTR fun
 	if( !library )
 	{
 		size_t maxlen = StrLen( l.load_path ) + 1 + StrLen( libname ) + 1;
-		library = NewPlus( LIBRARY, sizeof(TEXTCHAR)*((maxlen<0xFFFFFF)?(_32)maxlen:0) );
+		library = NewPlus( LIBRARY, sizeof(TEXTCHAR)*((maxlen<0xFFFFFF)?(uint32_t)maxlen:0) );
 		//lprintf( "New library %s", libname );
 		if( !IsAbsolutePath( libname ) )
 		{
@@ -1657,7 +1657,7 @@ SYSTEM_PROC( generic_function, LoadFunctionExx )( CTEXTSTR libname, CTEXTSTR fun
 		PFUNCTION function = library->functions;
 		while( function )
 		{
-			if( ((PTRSZVAL)function->name & 0xFFFF ) == (PTRSZVAL)function->name )
+			if( ((uintptr_t)function->name & 0xFFFF ) == (uintptr_t)function->name )
 				if( function->name == funcname )
 					break;
 				else
@@ -1675,7 +1675,7 @@ SYSTEM_PROC( generic_function, LoadFunctionExx )( CTEXTSTR libname, CTEXTSTR fun
 #ifdef WIN32
 
 				PIMAGE_DOS_HEADER source_dos_header = (PIMAGE_DOS_HEADER)library->library;
-#  define Seek(a,b) (((PTRSZVAL)a)+(b))
+#  define Seek(a,b) (((uintptr_t)a)+(b))
 				PIMAGE_NT_HEADERS source_nt_header = (PIMAGE_NT_HEADERS)Seek( library->library, source_dos_header->e_lfanew );
 				if( source_dos_header->e_magic != IMAGE_DOS_SIGNATURE )
 					lprintf( WIDE("Basic signature check failed; not a library") );
@@ -1694,16 +1694,16 @@ SYSTEM_PROC( generic_function, LoadFunctionExx )( CTEXTSTR libname, CTEXTSTR fun
 					{
 						void (**f)(void) = (void (**)(void))Seek( library->library, exp_dir->AddressOfFunctions );
 						char **names = (char**)Seek( library->library, exp_dir->AddressOfNames );
-						_16 *ords = (_16*)Seek( library->library, exp_dir->AddressOfNameOrdinals );
-						if( ( ord = ((PTRSZVAL)funcname & 0xFFFF ) ) == (PTRSZVAL)funcname )
+						uint16_t *ords = (uint16_t*)Seek( library->library, exp_dir->AddressOfNameOrdinals );
+						if( ( ord = ((uintptr_t)funcname & 0xFFFF ) ) == (uintptr_t)funcname )
 						{
-							return (generic_function)Seek( library->library, (PTRSZVAL)f[ord-exp_dir->Base] );
+							return (generic_function)Seek( library->library, (uintptr_t)f[ord-exp_dir->Base] );
 						}
 						else
 						{
 							for( n = 0; n < exp_dir->NumberOfFunctions; n++ )
 							{
-								char *name = (char*)Seek( library->library, (PTRSZVAL)names[n] );
+								char *name = (char*)Seek( library->library, (uintptr_t)names[n] );
 								int result;
 #  ifdef UNICODE
 								TEXTCHAR *_name = DupCStr( name );
@@ -1716,11 +1716,11 @@ SYSTEM_PROC( generic_function, LoadFunctionExx )( CTEXTSTR libname, CTEXTSTR fun
 #  endif
 								if( result == 0 )
 								{
-									if( ( ((PTRSZVAL)f[ords[n]] ) < ( dir[0].VirtualAddress + dir[0].Size ) )
-										&& ( ((PTRSZVAL)f[ords[n]] ) > dir[0].VirtualAddress ) )
+									if( ( ((uintptr_t)f[ords[n]] ) < ( dir[0].VirtualAddress + dir[0].Size ) )
+										&& ( ((uintptr_t)f[ords[n]] ) > dir[0].VirtualAddress ) )
 									{
 										char *tmpname;
-										char *name = (char*)Seek( library->library, (PTRSZVAL)f[ords[n]] );
+										char *name = (char*)Seek( library->library, (uintptr_t)f[ords[n]] );
 										char *fname = name;
 #  ifdef UNICODE
 										TEXTCHAR *_tmp_fname;
@@ -1752,7 +1752,7 @@ SYSTEM_PROC( generic_function, LoadFunctionExx )( CTEXTSTR libname, CTEXTSTR fun
 										return f;
 									}
 									//lprintf( "%s  %s is %d  %d = %p %p", library->name, name, n, ords[n], f[n], f[ords[n]] );									
-									return (generic_function)Seek( library->library, (PTRSZVAL)f[ords[n]] );
+									return (generic_function)Seek( library->library, (uintptr_t)f[ords[n]] );
 								}
 							}
 						}
@@ -1763,14 +1763,14 @@ SYSTEM_PROC( generic_function, LoadFunctionExx )( CTEXTSTR libname, CTEXTSTR fun
 			}
 			else
 			{
-				if( ( (PTRSZVAL)funcname & 0xFFFF ) == (PTRSZVAL)funcname )
+				if( ( (uintptr_t)funcname & 0xFFFF ) == (uintptr_t)funcname )
 				{
 					function = NewPlus( FUNCTION, len=0 );
 					function->name = funcname;				
 				}
 				else
 				{
-					function = NewPlus( FUNCTION, (len=(sizeof(TEXTCHAR)*( (_32)StrLen( funcname ) + 1 ) ) ) );
+					function = NewPlus( FUNCTION, (len=(sizeof(TEXTCHAR)*( (uint32_t)StrLen( funcname ) + 1 ) ) ) );
 					function->name = function->_name;
 					tnprintf( function->_name, len, WIDE( "%s" ), funcname );
 				}
@@ -1789,7 +1789,7 @@ SYSTEM_PROC( generic_function, LoadFunctionExx )( CTEXTSTR libname, CTEXTSTR fun
 			char *tmp;
 #    endif
   			if( l.flags.bLog )
-				lprintf( WIDE( "Get:%s" ), (((PTRSZVAL)function->name&0xFFFF)==(PTRSZVAL)function->name)?function->name:"ordinal" );
+				lprintf( WIDE( "Get:%s" ), (((uintptr_t)function->name&0xFFFF)==(uintptr_t)function->name)?function->name:"ordinal" );
 			if( !(function->function = (generic_function)GetProcAddress( library->library
 #    ifdef _UNICODE
 																						  , tmp = DupTextToChar( function->name )
@@ -1864,11 +1864,11 @@ SYSTEM_PROC( generic_function, LoadFunctionExx )( CTEXTSTR libname, CTEXTSTR fun
 			if( !l.pFunctionTree )
 				l.pFunctionTree = CreateBinaryTree();
 			//lprintf( WIDE("Adding function %p"), function->function );
-			if( (PTRSZVAL)function->name & 0xFF000000 )
+			if( (uintptr_t)function->name & 0xFF000000 )
 			{
 				int a =3;
 			}
-			AddBinaryNode( l.pFunctionTree, function, (PTRSZVAL)function->function );
+			AddBinaryNode( l.pFunctionTree, function, (uintptr_t)function->function );
 			LinkThing( library->functions, function );
 		}
 		function->references++;
@@ -1876,7 +1876,7 @@ SYSTEM_PROC( generic_function, LoadFunctionExx )( CTEXTSTR libname, CTEXTSTR fun
 	}
 	else
 	{
-		return (generic_function)(/*extend precisionfirst*/(PTRSZVAL)library->nLibrary); // success, but no function possible.
+		return (generic_function)(/*extend precisionfirst*/(uintptr_t)library->nLibrary); // success, but no function possible.
 	}
 	return NULL;
 }
@@ -1918,14 +1918,14 @@ SYSTEM_PROC( int, UnloadFunctionEx )( generic_function *f DBG_PASS )
 	if( !f  )
 		return 0;
 	_xlprintf( 1 DBG_RELAY )( WIDE("Unloading function %p"), *f );
-	if( (PTRSZVAL)(*f) < 1000 )
+	if( (uintptr_t)(*f) < 1000 )
 	{
 		// unload library only...
 		if( !(*f) )  // invalid result...
 			return 0;
 		{
 			PLIBRARY library;
-			PTRSZVAL nFind = (PTRSZVAL)(*f);
+			uintptr_t nFind = (uintptr_t)(*f);
 			for( library = l.libraries; library; library = NextLink( library ) )
 			{
 				if( nFind == library->nLibrary )
@@ -1942,7 +1942,7 @@ SYSTEM_PROC( int, UnloadFunctionEx )( generic_function *f DBG_PASS )
 		}
 	}
 	{
-		PFUNCTION function = (PFUNCTION)FindInBinaryTree( l.pFunctionTree, (PTRSZVAL)(*f) );
+		PFUNCTION function = (PFUNCTION)FindInBinaryTree( l.pFunctionTree, (uintptr_t)(*f) );
 		PLIBRARY library;
 		if( function &&
 		    !(--function->references) )
@@ -1977,13 +1977,13 @@ SYSTEM_PROC( int, UnloadFunctionEx )( generic_function *f DBG_PASS )
 #if !defined( __ANDROID__ )
 SYSTEM_PROC( PTHREAD, SpawnProcess )( CTEXTSTR filename, va_list args )
 {
-	PTRSZVAL (CPROC *newmain)( PTHREAD pThread );
-	newmain = (PTRSZVAL(CPROC*)(PTHREAD))LoadFunction( filename, WIDE("main") );
+	uintptr_t (CPROC *newmain)( PTHREAD pThread );
+	newmain = (uintptr_t(CPROC*)(PTHREAD))LoadFunction( filename, WIDE("main") );
 	if( newmain )
 	{
 		// hmm... suppose I should even thread through my own little header here
       // then when the thread exits I can get a positive acknowledgement?
-      return ThreadTo( newmain, (PTRSZVAL)args );
+      return ThreadTo( newmain, (uintptr_t)args );
 	}
 	return NULL;
 }

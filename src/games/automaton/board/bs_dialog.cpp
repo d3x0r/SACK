@@ -27,7 +27,7 @@ typedef struct local_tag
 	PLIST add_synapses; // PNEURON
 	PLIST done_synapses; // PDIALOG_DATA
 	PLIST synapses; // PDIALOG_DATA
-	_32 neuron_timer;
+	uint32_t neuron_timer;
 	PTHREAD prop_thread;
 } LOCAL;
 
@@ -37,8 +37,8 @@ int ActiveNeurons( void )
 {
 	INDEX idx;
 	int cnt = 0;
-	PTRSZVAL psv;
-	LIST_FORALL( l.neurons, idx, PTRSZVAL, psv )
+	uintptr_t psv;
+	LIST_FORALL( l.neurons, idx, uintptr_t, psv )
 		cnt++;
    return cnt;
 }
@@ -47,13 +47,13 @@ int ActiveSynapses( void )
 {
 	INDEX idx;
 	int cnt = 0;
-	PTRSZVAL psv;
-	LIST_FORALL( l.synapses, idx, PTRSZVAL, psv )
+	uintptr_t psv;
+	LIST_FORALL( l.synapses, idx, uintptr_t, psv )
 		cnt++;
 	return cnt;
 }
 
-void CPROC DonePushed( PTRSZVAL psv, PCOMMON pc )
+void CPROC DonePushed( uintptr_t psv, PCOMMON pc )
 {
 	PDIALOG_DATA pndd = (PDIALOG_DATA)psv;
 	EnterCriticalSec( &l.cs );
@@ -65,7 +65,7 @@ void CPROC DonePushed( PTRSZVAL psv, PCOMMON pc )
 	LeaveCriticalSec( &l.cs );
 }
 
-void CPROC RefreshFrame( PTRSZVAL psv )
+void CPROC RefreshFrame( uintptr_t psv )
 {
 	INDEX idx;
 	PDIALOG_DATA pndd;
@@ -94,7 +94,7 @@ void CPROC RefreshFrame( PTRSZVAL psv )
 	LeaveCriticalSec( &l.cs );
 }
 
-void CPROC SliderChanged( PTRSZVAL psv, PCOMMON pc, int val )
+void CPROC SliderChanged( uintptr_t psv, PCOMMON pc, int val )
 {
 	PDIALOG_DATA pndd = (PDIALOG_DATA)psv;
 	if( pndd->neuron )
@@ -104,7 +104,7 @@ void CPROC SliderChanged( PTRSZVAL psv, PCOMMON pc, int val )
 	return;
 }
 
-void CPROC SetNeuronTypeButton( PTRSZVAL psv, PSI_CONTROL pc )
+void CPROC SetNeuronTypeButton( uintptr_t psv, PSI_CONTROL pc )
 {
 	PSI_CONTROL frame = GetFrame( pc );
 	PDIALOG_DATA pndd = (PDIALOG_DATA)GetCommonUserData( frame );
@@ -120,7 +120,7 @@ static void Init( void )
 	}
 }
 
-static PTRSZVAL CPROC _ShowPropertyDialog( PTHREAD thread )
+static uintptr_t CPROC _ShowPropertyDialog( PTHREAD thread )
 {
 	PNEURON neuron;
 	PSYNAPSE synapse;
@@ -132,7 +132,7 @@ static PTRSZVAL CPROC _ShowPropertyDialog( PTHREAD thread )
 	l.neuron_timer = AddTimer( 166, RefreshFrame, 0 );
 	do
 	{
-		S_32 x, y;
+		int32_t x, y;
 		GetMouseState( &x, &y, NULL );
 		LIST_FORALL( l.add_neurons, idx, PNEURON, neuron )
 		{
@@ -144,12 +144,12 @@ static PTRSZVAL CPROC _ShowPropertyDialog( PTHREAD thread )
 			pndd->synapse = NULL;
 			snprintf( title, sizeof( title ), WIDE("%s Properties"), neuron->name() );
 			pndd->frame = CreateFrame( title, x, y, 256, 128, BORDER_NORMAL, NULL );
-			SetCommonUserData( pndd->frame, (PTRSZVAL)pndd );
+			SetCommonUserData( pndd->frame, (uintptr_t)pndd );
 			MakeCaptionedControl( pndd->frame, STATIC_TEXT, 5, 33, 73, 18, TEXT_VALUE1, WIDE("00") );
 			MakeCaptionedControl( pndd->frame, STATIC_TEXT, 5, 56, 73, 18, TEXT_VALUE2, WIDE("00") );
 			SetSliderValues( MakeSlider( pndd->frame, 5, 5, 246, 24, -1
 												, SLIDER_HORIZ
-												, SliderChanged, (PTRSZVAL)pndd
+												, SliderChanged, (uintptr_t)pndd
 												)
 								, -256, (int)pndd->neuron->threshold(), 256 );
 
@@ -168,7 +168,7 @@ static PTRSZVAL CPROC _ShowPropertyDialog( PTHREAD thread )
 			MakeButton( pndd->frame, 170, 46, 80, 20, IDOK, WIDE("Delete")
 									  , 0, NULL, 0 );
 			MakeButton( pndd->frame, 170, 71, 80, 20, IDOK, WIDE("Done")
-						 , 0, DonePushed, (PTRSZVAL)pndd );
+						 , 0, DonePushed, (uintptr_t)pndd );
 			DisplayFrame( pndd->frame );
 		}
 		LIST_FORALL( l.add_synapses, idx, PSYNAPSE, synapse )
@@ -184,7 +184,7 @@ static PTRSZVAL CPROC _ShowPropertyDialog( PTHREAD thread )
 			MakeCaptionedControl( pndd->frame, STATIC_TEXT, 5, 33, 73, 18, TEXT_VALUE1, WIDE("00") );
 			SetSliderValues( MakeSlider( pndd->frame, 5, 5, 246, 24, -1
 												, SLIDER_HORIZ
-												, SliderChanged, (PTRSZVAL)pndd
+												, SliderChanged, (uintptr_t)pndd
 												)
 								, -256, (int)pndd->synapse->gain(), 256 );
 
@@ -195,7 +195,7 @@ static PTRSZVAL CPROC _ShowPropertyDialog( PTHREAD thread )
 			MakeButton( pndd->frame, 170, 46, 80, 20, IDOK, WIDE("Delete")
 						 , 0, NULL, 0 );
 			MakeButton( pndd->frame, 170, 71, 80, 20, IDOK, WIDE("Done")
-						 ,0 , DonePushed, (PTRSZVAL)pndd );
+						 ,0 , DonePushed, (uintptr_t)pndd );
 			//SetCommonUserData( pndd->frame, pndd );
 
 			DisplayFrame( pndd->frame );
@@ -229,14 +229,14 @@ int CPROC ActiveNeuron( PNEURON neuron )
 {
 	INDEX idx;
 	int cnt = 0;
-   PTRSZVAL psv;
-	LIST_FORALL( l.neurons, idx, PTRSZVAL, psv )
+   uintptr_t psv;
+	LIST_FORALL( l.neurons, idx, uintptr_t, psv )
 		if( neuron == (PNEURON)psv )
 			return TRUE;
-	LIST_FORALL( l.add_neurons, idx, PTRSZVAL, psv )
+	LIST_FORALL( l.add_neurons, idx, uintptr_t, psv )
 		if( neuron == (PNEURON)psv )
 			return TRUE;
-	LIST_FORALL( l.done_neurons, idx, PTRSZVAL, psv )
+	LIST_FORALL( l.done_neurons, idx, uintptr_t, psv )
 		if( neuron == (PNEURON)psv )
 			return TRUE;
 	return FALSE;
@@ -246,14 +246,14 @@ int CPROC ActiveSynapse( PSYNAPSE synapse )
 {
 	INDEX idx;
 	int cnt = 0;
-	PTRSZVAL psv;
-	LIST_FORALL( l.synapses, idx, PTRSZVAL, psv )
+	uintptr_t psv;
+	LIST_FORALL( l.synapses, idx, uintptr_t, psv )
 		if( synapse == (PSYNAPSE)psv )
 			return TRUE;
-	LIST_FORALL( l.add_synapses, idx, PTRSZVAL, psv )
+	LIST_FORALL( l.add_synapses, idx, uintptr_t, psv )
 		if( synapse == (PSYNAPSE)psv )
 			return TRUE;
-	LIST_FORALL( l.done_synapses, idx, PTRSZVAL, psv )
+	LIST_FORALL( l.done_synapses, idx, uintptr_t, psv )
 		if( synapse == (PSYNAPSE)psv )
 			return TRUE;
 	return FALSE;

@@ -32,12 +32,12 @@
 
 typedef struct global_tag {
 	struct {
-		_32 bSpinning : 1;
-		_32 bBackgroundInitialized : 1;
+		uint32_t bSpinning : 1;
+		uint32_t bBackgroundInitialized : 1;
 	} flags;
-	_32 bReelSpinning[NUM_REELS];
-	S_32 ofs;
-	_32 nReels;
+	uint32_t bReelSpinning[NUM_REELS];
+	int32_t ofs;
+	uint32_t nReels;
    Image background, playing, playagain;
 	Image strip;
 	Image images[NUM_IMAGES];
@@ -53,17 +53,17 @@ typedef struct global_tag {
    Image backgroundsurface;
 	PIMAGE_INTERFACE pii;
 	PRENDER_INTERFACE pdi;
-	_32 uiSpeedCounter[NUM_REELS];
-   _32 uiSpeedStep[NUM_REELS];
-	_32 uiStartStep[NUM_REELS];
-	_32 idx[NUM_REELS];
+	uint32_t uiSpeedCounter[NUM_REELS];
+   uint32_t uiSpeedStep[NUM_REELS];
+	uint32_t uiStartStep[NUM_REELS];
+	uint32_t idx[NUM_REELS];
 
 
 } GLOBAL;
 
 GLOBAL g;
 
-INDEX GetPositionIndex( LOGICAL init, _32 reel )
+INDEX GetPositionIndex( LOGICAL init, uint32_t reel )
 {
 
 	if( init )
@@ -87,19 +87,19 @@ void SetReelSpeedStep(void)
 		g.uiSpeedCounter[n] = 0;
 	}
 }
-void DodgeEx( Image dst, Image src[] , _32 step )
+void DodgeEx( Image dst, Image src[] , uint32_t step )
 #define Dodge( d, s ) DodgeEx( d, s, 1 )
 {
    int y, x, row;
 	for( x = 0; x < 96; x+=step)//x++ )
 	{
-		_32 idx;
-      _32 divisor = 1;
-		_8 rvals[96];
-		_8 gvals[96];
-		_8 bvals[96];
-      _8 gain[96];
-		_32 red = 0
+		uint32_t idx;
+      uint32_t divisor = 1;
+		uint8_t rvals[96];
+		uint8_t gvals[96];
+		uint8_t bvals[96];
+      uint8_t gain[96];
+		uint32_t red = 0
 	, green = 0
 	, blue = 0, img = 0;
 		idx = 0;
@@ -148,20 +148,20 @@ void DodgeEx( Image dst, Image src[] , _32 step )
 }
 
 
-void BlurEx( Image dst, Image src[] , _32 step )
+void BlurEx( Image dst, Image src[] , uint32_t step )
 #define Blur( d, s ) BlurEx( d, s, 1 )
 {
    int y, x, row;
 
 	for( x = 0; x < 96; x+=step)//x++ )
 	{
-		_32 idx;
-      _32 divisor = 1;
-		_8 rvals[96];
-		_8 gvals[96];
-		_8 bvals[96];
-      _8 gain[96];
-		_32 red = 0
+		uint32_t idx;
+      uint32_t divisor = 1;
+		uint8_t rvals[96];
+		uint8_t gvals[96];
+		uint8_t bvals[96];
+      uint8_t gain[96];
+		uint32_t red = 0
 	, green = 0
 	, blue = 0, img = 0;
 		idx = 0;
@@ -266,12 +266,12 @@ void DrawSpinningReels( LOGICAL init )
 //keep persistent data.
 	int n;
 	static LOGICAL bInit[NUM_REELS];  //static to maintain state.
-	static _32 effectcount = 0;  //static to maintain state.
+	static uint32_t effectcount = 0;  //static to maintain state.
 	static LOGICAL bPlaying = FALSE;  //static to maintain state.
 	static int iBobble[5] = {0,-54,32,0,0}; //no need to declare this over and over 4 times a second.
    static INDEX idxBobbleCount[NUM_REELS]; //static to maintain state.
-	_32 uiSmartYOffset = ( ( NUM_PICS - NUM_PICS_IN_WINDOW ) / 2 );
-	static _32 bBobbling[NUM_REELS];
+	uint32_t uiSmartYOffset = ( ( NUM_PICS - NUM_PICS_IN_WINDOW ) / 2 );
+	static uint32_t bBobbling[NUM_REELS];
 
 //  	xlprintf(LOG_NOISE)("DrawSpinningReels, init is %s   g.flags.bSpinning is %d"
 //  							 , (init?"TRUE":"FALSE")
@@ -421,7 +421,7 @@ void DrawSpinningReels( LOGICAL init )
 							}
 							if(count[n] == (iteration[n] + 2 ) )
 							{
-								_32 x;
+								uint32_t x;
 								for( x = uiSmartYOffset; x <  ( NUM_PICS_IN_WINDOW + uiSmartYOffset) ; x++)
 								{
 									DrawPosition( n, last[n][x], x,  iBobble[idxBobbleCount[n]]);
@@ -496,7 +496,7 @@ void DrawSpinningReels( LOGICAL init )
 	UpdateDisplayPortion( g.render, REEL_OFSX, REEL_OFSY, REEL_STEPX*(g.nReels-1) + REEL_WIDTH,  REEL_HEIGHT   );
 }
 
-int CPROC MouseMethod( PTRSZVAL psv, S_32 x, S_32 y, _32 b )
+int CPROC MouseMethod( uintptr_t psv, int32_t x, int32_t y, uint32_t b )
 {
 	if( !g.flags.bSpinning )
 	{
@@ -588,10 +588,10 @@ int CPROC MouseMethod( PTRSZVAL psv, S_32 x, S_32 y, _32 b )
    return 1;
 }
 
-PTRSZVAL CPROC ReadInput( PTHREAD thread )
+uintptr_t CPROC ReadInput( PTHREAD thread )
 {
 	char buf[256];
-   PTRSZVAL retval = (PTRSZVAL)(0);
+   uintptr_t retval = (uintptr_t)(0);
 	while( fgets( buf, 256, stdin ) || buf[0] == '\x1b' )
 	{
 		if( !g.flags.bSpinning )
@@ -621,9 +621,9 @@ PTRSZVAL CPROC ReadInput( PTHREAD thread )
 
 int main( void )
 {
-	_32 width, height;
-	_32 imagecount = 0;
-	_32 testimagesatinitialization = 0;
+	uint32_t width, height;
+	uint32_t imagecount = 0;
+	uint32_t testimagesatinitialization = 0;
 	Image blank;
 
 	srand( time( NULL ) );
@@ -748,7 +748,7 @@ int main( void )
 	ThreadTo( ReadInput, 0 );
 
 	{
-		_32 start = GetTickCount();
+		uint32_t start = GetTickCount();
 		xlprintf(LOG_NOISE)("Started at %lu"
 								 , start);
       g.ofs = 0;

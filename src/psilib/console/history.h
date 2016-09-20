@@ -17,7 +17,7 @@ PSI_CONSOLE_NAMESPACE
 #define STRUC_PREFIX(n) n
 #endif
 
-typedef void (CPROC *MeasureString )( PTRSZVAL /*PCONSOLE_INFO*/ console, CTEXTSTR s, int nShow, _32 *w, _32 *h, SFTFont font );
+typedef void (CPROC *MeasureString )( uintptr_t /*PCONSOLE_INFO*/ console, CTEXTSTR s, int nShow, uint32_t *w, uint32_t *h, SFTFont font );
 	
 typedef struct STRUC_PREFIX(history_line_tag) TEXTLINE, *PTEXTLINE;
 typedef struct STRUC_PREFIX(history_block_link_tag) HISTORY_BLOCK_LINK, *PHISTORY_BLOCK_LINK;
@@ -34,7 +34,7 @@ typedef struct STRUC_PREFIX(history_bios_tag) HISTORY_BIOS, *PHISTORY_BIOS;
 
 CORECON_PROC( PHISTORY_REGION, PSI_CreateHistoryRegion )( void );
 CORECON_PROC( PHISTORY_LINE_CURSOR, PSI_CreateHistoryCursor )( PHISTORY_REGION );
-CORECON_PROC( PHISTORY_BROWSER, PSI_CreateHistoryBrowser )( PHISTORY_REGION, MeasureString, PTRSZVAL );
+CORECON_PROC( PHISTORY_BROWSER, PSI_CreateHistoryBrowser )( PHISTORY_REGION, MeasureString, uintptr_t );
 CORECON_PROC( void, PSI_DestroyHistoryRegion )( PHISTORY_REGION );
 CORECON_PROC( void, PSI_DestroyHistoryCursor )( PHISTORY_LINE_CURSOR );
 CORECON_PROC( void, PSI_DestroyHistoryBrowser )( PHISTORY_BROWSER );
@@ -53,14 +53,14 @@ CORECON_PROC( void, PSI_SetHistoryBrowserOwnPageBreak )( PHISTORY_BROWSER phbr )
 // this routine will auto step start++...
 CORECON_PROC( PTEXT, PSI_EnumHistoryLine )( PHISTORY_BROWSER pht
 							, int *offset
-							, S_32 *length );
+							, int32_t *length );
 
 CORECON_PROC( void, PSI_SetHistoryDefaultForeground )( PHISTORY_LINE_CURSOR phc, int iColor );
 CORECON_PROC( void, PSI_SetHistoryDefaultBackground )( PHISTORY_LINE_CURSOR phc, int iColor );
 
 //int BeginHistory( PHISTORY_LINE_CURSOR cursor );
 // adjust history by offset...
-int AlignHistory( PHISTORY_BROWSER cursor, S_32 nOffset, SFTFont font );
+int AlignHistory( PHISTORY_BROWSER cursor, int32_t nOffset, SFTFont font );
 int HistoryNearEnd( PHISTORY_BROWSER cursor, int nLines );
 // this takes into account typing a command, and recording a macro plus the dekware object prmopt...
 int FixCommandCursor( PHISTORY_BROWSER pht, PUSER_INPUT_BUFFER CommandInfo
@@ -102,9 +102,9 @@ void SetCursorNoPrompt( PHISTORY_BROWSER phbr, LOGICAL bNoPrompt );
 // amount +/- N == pageup down
 int MoveHistoryCursor( PHISTORY_BROWSER phbr, int amount );
 
-_32 ComputeNextOffset( PTEXT segment, _32 nShown );
-//int ComputeToShow( _32 cols, PTEXT segment, int nOfs, int nShown );
-_32 ComputeToShow( _32 colsize, _32 *col_offset, PTEXT segment, _32 nLen, _32 nOfs, _32 nShown, PHISTORY_BROWSER phbr, SFTFont font );
+uint32_t ComputeNextOffset( PTEXT segment, uint32_t nShown );
+//int ComputeToShow( uint32_t cols, PTEXT segment, int nOfs, int nShown );
+uint32_t ComputeToShow( uint32_t colsize, uint32_t *col_offset, PTEXT segment, uint32_t nLen, uint32_t nOfs, uint32_t nShown, PHISTORY_BROWSER phbr, SFTFont font );
 int CountLinesSpanned( PHISTORY_BROWSER phb, PTEXT countseg, SFTFont font, LOGICAL count_trailing_linefeeds );
 
 CORECON_PROC( void, BuildDisplayInfoLines )( PHISTORY_BROWSER phlc, SFTFont font );
@@ -121,10 +121,10 @@ int GetCommandCursor( PHISTORY_BROWSER phbr
 						  );
 #endif
 CORECON_PROC( PDATALIST *,GetDisplayInfo )( PHISTORY_BROWSER phbr );
-void GetHistoryCursorPos( PHISTORY_LINE_CURSOR phlc, PS_32 x, PS_32 y );
-void SetHistoryCursorPos( PHISTORY_LINE_CURSOR phlc, S_32 x, S_32 y );
-void PSI_SetHistoryPageLines( PHISTORY_BROWSER phbr, _32 nLines );
-_32 GetBrowserDistance( PHISTORY_BROWSER phbr, SFTFont font );
+void GetHistoryCursorPos( PHISTORY_LINE_CURSOR phlc, int32_t* x, int32_t* y );
+void SetHistoryCursorPos( PHISTORY_LINE_CURSOR phlc, int32_t x, int32_t y );
+void PSI_SetHistoryPageLines( PHISTORY_BROWSER phbr, uint32_t nLines );
+uint32_t GetBrowserDistance( PHISTORY_BROWSER phbr, SFTFont font );
 void ResetHistoryBrowser( PHISTORY_BROWSER phbr );
 CORECON_PROC( int, CountDisplayedLines) ( PHISTORY_BROWSER phbr );
 

@@ -1,7 +1,7 @@
 #ifndef IMAGE_COMMON_HEADER_INCLUDED
 #define IMAGE_COMMON_HEADER_INCLUDED
 ASM_IMAGE_NAMESPACE
-_32 DOALPHA( _32 over, _32 in, _8 a );
+uint32_t DOALPHA( uint32_t over, uint32_t in, uint8_t a );
 ASM_IMAGE_NAMESPACE_END
 
 #if !defined( _D3D_DRIVER ) && !defined( _D3D10_DRIVER ) && !defined( _D3D11_DRIVER )
@@ -31,7 +31,7 @@ IMAGE_NAMESPACE
 struct shade_cache_element {
 	CDATA r,grn,b;
 	Image image;
-	_32 age;
+	uint32_t age;
 	struct shade_cache_element_flags
 	{
 		BIT_FIELD parent_was_dirty : 1;
@@ -72,22 +72,22 @@ Image CPROC GetInvertedImage( Image child_image );
 Image CPROC GetShadedImage( Image child_image, CDATA red, CDATA green, CDATA blue );
 Image CPROC GetTintedImage( Image child_image, CDATA color );
 
-void CPROC SetFontBias( SFTFont font, S_32 x, S_32 y );
+void CPROC SetFontBias( SFTFont font, int32_t x, int32_t y );
 
-SlicedImage MakeSlicedImage( Image source, _32 left, _32 right, _32 top, _32 bottom, LOGICAL output_center );
+SlicedImage MakeSlicedImage( Image source, uint32_t left, uint32_t right, uint32_t top, uint32_t bottom, LOGICAL output_center );
 SlicedImage MakeSlicedImageComplex( Image source
-										, _32 top_left_x, _32 top_left_y, _32 top_left_width, _32 top_left_height
-										, _32 top_x, _32 top_y, _32 top_width, _32 top_height
-										, _32 top_right_x, _32 top_right_y, _32 top_right_width, _32 top_right_height
-										, _32 left_x, _32 left_y, _32 left_width, _32 left_height
-										, _32 center_x, _32 center_y, _32 center_width, _32 center_height
-										, _32 right_x, _32 right_y, _32 right_width, _32 right_height
-										, _32 bottom_left_x, _32 bottom_left_y, _32 bottom_left_width, _32 bottom_left_height
-										, _32 bottom_x, _32 bottom_y, _32 bottom_width, _32 bottom_height
-										, _32 bottom_right_x, _32 bottom_right_y, _32 bottom_right_width, _32 bottom_right_height
+										, uint32_t top_left_x, uint32_t top_left_y, uint32_t top_left_width, uint32_t top_left_height
+										, uint32_t top_x, uint32_t top_y, uint32_t top_width, uint32_t top_height
+										, uint32_t top_right_x, uint32_t top_right_y, uint32_t top_right_width, uint32_t top_right_height
+										, uint32_t left_x, uint32_t left_y, uint32_t left_width, uint32_t left_height
+										, uint32_t center_x, uint32_t center_y, uint32_t center_width, uint32_t center_height
+										, uint32_t right_x, uint32_t right_y, uint32_t right_width, uint32_t right_height
+										, uint32_t bottom_left_x, uint32_t bottom_left_y, uint32_t bottom_left_width, uint32_t bottom_left_height
+										, uint32_t bottom_x, uint32_t bottom_y, uint32_t bottom_width, uint32_t bottom_height
+										, uint32_t bottom_right_x, uint32_t bottom_right_y, uint32_t bottom_right_width, uint32_t bottom_right_height
 										, LOGICAL output_center );
 void UnmakeSlicedImage( SlicedImage image );
-void BlotSlicedImageEx( Image dest, SlicedImage source, S_32 x, S_32 y, _32 width, _32 height, int alpha, enum BlotOperation op, ... );
+void BlotSlicedImageEx( Image dest, SlicedImage source, int32_t x, int32_t y, uint32_t width, uint32_t height, int alpha, enum BlotOperation op, ... );
 
 
 IMAGE_NAMESPACE_END

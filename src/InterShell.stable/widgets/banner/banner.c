@@ -21,17 +21,17 @@
 BANNER_NAMESPACE
 
 struct upd_rect{
-	S_32 x, y;
-	_32 w, h;
+	int32_t x, y;
+	uint32_t w, h;
 };
 
 
 typedef struct banner_tag
 {
-	_32 flags;
+	uint32_t flags;
 	PSI_CONTROL frame;
 	PRENDERER renderer;
-	_32 owners;
+	uint32_t owners;
 	// if text controls were a little more betterer this would be good...
 	// they have textcolor, background color, borders, and uhmm they're missing
 	// font, and centering rules... left/right/center,top/bottom/center,
@@ -39,10 +39,10 @@ typedef struct banner_tag
 	PCONTROL okay, cancel;
 	PCONTROL yes, no;
 	struct banner_tag **me;
-	_32 result;
-	_32 timeout;
-	_32 timer;
-	_32 _b;
+	uint32_t result;
+	uint32_t timeout;
+	uint32_t timer;
+	uint32_t _b;
 	PTHREAD pWaitThread;
 	CDATA basecolor;
 	CDATA textcolor;
@@ -54,7 +54,7 @@ typedef struct banner_tag
 
 	struct upd_rect text_bounds;
 	struct upd_rect old_bounds;
-   _32 old_width, old_height;
+   uint32_t old_width, old_height;
 } BANNER;
 
 
@@ -63,9 +63,9 @@ struct banner_local_tag {
 		BIT_FIELD bInited : 1;
 		BIT_FIELD bFullDraw : 1;
 	} flags;
-	_32 w, h;
-	_32 _w, _h;
-	S_32 x, y; // x/y offset for extended banner.
+	uint32_t w, h;
+	uint32_t _w, _h;
+	int32_t x, y; // x/y offset for extended banner.
 
 	SFTFont font;
    SFTFont explorer_font;
@@ -73,7 +73,7 @@ struct banner_local_tag {
    PBANNER banner;
 	PIMAGE_INTERFACE pii;
 	PRENDER_INTERFACE pdi;
-   _32 count;
+   uint32_t count;
 };
 static struct banner_local_tag banner_local;
 
@@ -138,7 +138,7 @@ static void InitBannerFrame( void )
 
 //--------------------------------------------------------------------------
 
-static void CPROC SomeChoiceClicked( PTRSZVAL psv, PCONTROL pc )
+static void CPROC SomeChoiceClicked( uintptr_t psv, PCONTROL pc )
 {
 	PBANNER banner = (PBANNER)psv;
    int choice = GetControlID( pc );
@@ -170,7 +170,7 @@ static void CPROC SomeChoiceClicked( PTRSZVAL psv, PCONTROL pc )
 
 //--------------------------------------------------------------------------
 
-static void CPROC OkayChoiceClicked( PTRSZVAL psv, PCONTROL pc )
+static void CPROC OkayChoiceClicked( uintptr_t psv, PCONTROL pc )
 {
 	PBANNER banner = (PBANNER)psv;
 #ifdef DEBUG_BANNER_DRAW_UPDATE
@@ -188,7 +188,7 @@ static void CPROC OkayChoiceClicked( PTRSZVAL psv, PCONTROL pc )
 
 //--------------------------------------------------------------------------
 
-static void CPROC CancelChoiceClicked( PTRSZVAL psv, PCONTROL pc )
+static void CPROC CancelChoiceClicked( uintptr_t psv, PCONTROL pc )
 {
 	PBANNER banner = (PBANNER)psv;
 #ifdef DEBUG_BANNER_DRAW_UPDATE
@@ -207,7 +207,7 @@ static void CPROC CancelChoiceClicked( PTRSZVAL psv, PCONTROL pc )
 //--------------------------------------------------------------------------
 
 #define BANNER_NAME WIDE("Large font simple banner 2")
-static int OnKeyCommon( BANNER_NAME )( PSI_CONTROL pc, _32 key )
+static int OnKeyCommon( BANNER_NAME )( PSI_CONTROL pc, uint32_t key )
 {
 	PBANNER *ppBanner = (PBANNER*)GetCommonUserData( pc );
 	PBANNER banner;
@@ -259,7 +259,7 @@ static int OnKeyCommon( BANNER_NAME )( PSI_CONTROL pc, _32 key )
 
 static int OnMouseCommon( BANNER_NAME )
 //static int CPROC ClickHandler
-( PCONTROL pc, S_32 x, S_32 y, _32 b )
+( PCONTROL pc, int32_t x, int32_t y, uint32_t b )
 {
 	//ValidatedControlData();
 	PBANNER *ppBanner = (PBANNER*)GetCommonUserData( pc );
@@ -292,11 +292,11 @@ static int OnMouseCommon( BANNER_NAME )
 
 static void DrawBannerCaption( PSI_CONTROL pc, PBANNER banner, Image surface, TEXTCHAR *caption, CDATA color, int yofs, int height, int left, int explorer )
 {
-	_32 y = 0;
-	S_32 minx = BANNER_WIDTH;
-	_32 w, h, maxw = 0;
-	_32 maxw2 = 0;
-	_32 char_h;
+	uint32_t y = 0;
+	int32_t minx = BANNER_WIDTH;
+	uint32_t w, h, maxw = 0;
+	uint32_t maxw2 = 0;
+	uint32_t char_h;
 	CTEXTSTR start = caption;
 	CTEXTSTR end;
 	int skip = 0;
@@ -328,7 +328,7 @@ static void DrawBannerCaption( PSI_CONTROL pc, PBANNER banner, Image surface, TE
 
 	while( start )
 	{
-		S_32 x;
+		int32_t x;
 		end = StrChr( start, '\n' );
 		if( !end )
 		{
@@ -382,10 +382,10 @@ static void DrawBannerCaption( PSI_CONTROL pc, PBANNER banner, Image surface, TE
 	banner->bit_flags.bounds_set = 1;
 
 	{
-		S_32 rx, ry;
-		S_32 rx_right, ry_bottom;
-		S_32 rx_tmp;
-		_32 rw, rh;
+		int32_t rx, ry;
+		int32_t rx_right, ry_bottom;
+		int32_t rx_tmp;
+		uint32_t rw, rh;
 
 		rx_right = banner->text_bounds.x + banner->text_bounds.w + 1;
 		rx_tmp = banner->old_bounds.x + banner->old_bounds.w + 1;
@@ -490,7 +490,7 @@ PRIORITY_PRELOAD( RegisterBanner2, 65 )
 //--------------------------------------------------------------------------
 
 
-void CPROC killbanner( PTRSZVAL psv )
+void CPROC killbanner( uintptr_t psv )
 {
 	PBANNER *ppBanner = (PBANNER*)psv;
 	{
@@ -506,8 +506,8 @@ void CPROC killbanner( PTRSZVAL psv )
 int CreateBanner2Extended( PRENDERER parent, PBANNER *ppBanner, CTEXTSTR text, int options, int timeout, CDATA textcolor, CDATA basecolor, int lines, int cols, int display )
 {
 	//PBANNER newBanner;
-	S_32 x, y;
-	_32 w, h;
+	int32_t x, y;
+	uint32_t w, h;
 	PBANNER banner;
 	LOGICAL bUpdateLocked = FALSE;
 	InitBannerFrame();
@@ -624,7 +624,7 @@ int CreateBanner2Extended( PRENDERER parent, PBANNER *ppBanner, CTEXTSTR text, i
 		//													, banner->renderer
 		//													);
 		AttachFrameToRenderer( banner->frame, banner->renderer );
-		SetCommonUserData( banner->frame, (PTRSZVAL)ppBanner );
+		SetCommonUserData( banner->frame, (uintptr_t)ppBanner );
 		banner->owners = 1;
 	}
 	else
@@ -832,7 +832,7 @@ void SetBanner2Text( PBANNER banner, TEXTCHAR *text )
 
 //--------------------------------------------------------------------------
 
-static void CPROC BannerTimeout( PTRSZVAL ppsv )
+static void CPROC BannerTimeout( uintptr_t ppsv )
 {
 	PBANNER *ppBanner = (PBANNER*)ppsv;
 	int delta = (int)(*ppBanner)->timeout - (int)timeGetTime();
@@ -856,7 +856,7 @@ static void CPROC BannerTimeout( PTRSZVAL ppsv )
 
 //--------------------------------------------------------------------------
 
-void SetBanner2OptionsEx( PBANNER *ppBanner, _32 flags, _32 extra  )
+void SetBanner2OptionsEx( PBANNER *ppBanner, uint32_t flags, uint32_t extra  )
 {
 	PBANNER banner;
 	if( !ppBanner )
@@ -874,7 +874,7 @@ void SetBanner2OptionsEx( PBANNER *ppBanner, _32 flags, _32 extra  )
 			banner->timeout = timeGetTime() + extra;
 			if( !banner->timer )
 			{
-				banner->timer = AddTimerEx( extra, 0, BannerTimeout, (PTRSZVAL)ppBanner );
+				banner->timer = AddTimerEx( extra, 0, BannerTimeout, (uintptr_t)ppBanner );
 			}
 			else
 			{
@@ -899,7 +899,7 @@ void SetBanner2OptionsEx( PBANNER *ppBanner, _32 flags, _32 extra  )
 												, 3+IDCANCEL
 												, WIDE( "Cancel" ), 0
 												, SomeChoiceClicked
-												, (PTRSZVAL)banner );
+												, (uintptr_t)banner );
 			SetButtonColor( banner->cancel, AColor( 0x9a, 0x05, 0x1d, 0xdf ) );
 			banner->okay = MakeButton( banner->frame
 											 , 5 + ( BANNER_WIDTH / 2) - 5
@@ -909,7 +909,7 @@ void SetBanner2OptionsEx( PBANNER *ppBanner, _32 flags, _32 extra  )
 											 , 3+IDOK
 											 , WIDE( "Okay!" ), 0
 											 , SomeChoiceClicked
-											 , (PTRSZVAL)banner );
+											 , (uintptr_t)banner );
 			SetButtonColor( banner->okay, AColor( 0x18, 0x98, 0x6c, 0xdf ) );
 			banner->no = MakeButton( banner->frame
 												, 5, ( ( BANNER_HEIGHT * 4 ) / 6 ) - 5 - 10
@@ -918,7 +918,7 @@ void SetBanner2OptionsEx( PBANNER *ppBanner, _32 flags, _32 extra  )
 												, IDCANCEL
 												, WIDE( "No" ), 0
 												, SomeChoiceClicked
-												, (PTRSZVAL)banner );
+												, (uintptr_t)banner );
 			SetButtonColor( banner->no, AColor( 0x9a, 0x05, 0x1d, 0xdf ) );
 			banner->yes = MakeButton( banner->frame
 										  , 5 + ( BANNER_WIDTH / 2) - 5
@@ -927,7 +927,7 @@ void SetBanner2OptionsEx( PBANNER *ppBanner, _32 flags, _32 extra  )
 											 , IDOK
 											 , WIDE( "Yes" ), 0
 											 , SomeChoiceClicked
-											 , (PTRSZVAL)banner );
+											 , (uintptr_t)banner );
 			SetButtonColor( banner->yes, AColor( 0x18, 0x98, 0x6c, 0xdf ) );
 
 			//SetBaseColor( TEXTCOLOR, 0xffFFFFFF );
@@ -947,7 +947,7 @@ void SetBanner2OptionsEx( PBANNER *ppBanner, _32 flags, _32 extra  )
 												, IDCANCEL
 												, ( flags & BANNER_OPTION_YESNO )?WIDE( "No" ):WIDE( "Cancel" ), 0
 												, CancelChoiceClicked
-												, (PTRSZVAL)banner );
+												, (uintptr_t)banner );
 			SetButtonColor( banner->cancel, AColor( 0x9a, 0x05, 0x1d, 0xdf )  );
 			banner->okay = MakeButton( banner->frame
 											 , 5 + ( BANNER_WIDTH / 2) - 5, ( ( BANNER_HEIGHT * 2 ) / 3 ) - 5 - 10
@@ -955,7 +955,7 @@ void SetBanner2OptionsEx( PBANNER *ppBanner, _32 flags, _32 extra  )
 											 , IDOK
 											 , ( flags & BANNER_OPTION_YESNO )?WIDE( "Yes" ):WIDE( "Okay!" ), 0
 											 , OkayChoiceClicked
-											 , (PTRSZVAL)banner );
+											 , (uintptr_t)banner );
 			SetButtonColor( banner->okay, AColor( 0x18, 0x98, 0x6c, 0xdf ) );
 			SetControlColor( banner->okay, TEXTCOLOR, 0xffFFFFFF );
 			SetControlColor( banner->cancel, TEXTCOLOR, 0xffFFFFFF );
@@ -975,7 +975,7 @@ void SetBanner2OptionsEx( PBANNER *ppBanner, _32 flags, _32 extra  )
 				// this is taken care of by DestroyCommon- which is why we pass the address of banner->cancel
 				//banner->cancel = NULL;
 			}
-			//SetFrameMouse( banner->frame, ClickHandler, (PTRSZVAL)banner );
+			//SetFrameMouse( banner->frame, ClickHandler, (uintptr_t)banner );
 		}
 #if REQUIRE_PSI(1,1)
 		SetFrameFont( banner->frame, banner_local.font );
@@ -1040,7 +1040,7 @@ SFTFont GetBanner2Font( void )
 
 //--------------------------------------------------------------------------
 
-_32 GetBanner2FontHeight( void )
+uint32_t GetBanner2FontHeight( void )
 {
 	InitBannerFrame();
 	return GetFontHeight( banner_local.font );
@@ -1145,7 +1145,7 @@ void Banner2AnswerNo( CTEXTSTR type )
 	}
 }
 
-static PTRSZVAL CPROC Confirm( PTHREAD thread )
+static uintptr_t CPROC Confirm( PTHREAD thread )
 {
 	struct thread_params *parms = ( struct thread_params * )GetThreadParam( thread );
 	TEXTSTR msg;
@@ -1229,7 +1229,7 @@ static int Banner2ThreadConfirmExx( CTEXTSTR type, CTEXTSTR msg, DoConfirmProc d
 	parms.nokey = nokey;
 	parms.msg = msg;
 	parms.yesno = yesno;
-	ThreadTo( Confirm, (PTRSZVAL)&parms );
+	ThreadTo( Confirm, (uintptr_t)&parms );
 	while( !parms.received )
 		Relinquish();
 	return 0;

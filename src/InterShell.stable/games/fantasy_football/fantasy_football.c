@@ -33,12 +33,12 @@ struct game_cell_control
 	Image Prize;
 	struct ffmpeg_file *file;
 	struct ffmpeg_file *sound_file;
-	//S_32 cx, cy;
-	//_32 cw, ch;
-	S_32 bx, by;
-	_32 bw, bh;
-	S_32 fx, fy;
-	_32 fw, fh;
+	//int32_t cx, cy;
+	//uint32_t cw, ch;
+	int32_t bx, by;
+	uint32_t bw, bh;
+	int32_t fx, fy;
+	uint32_t fw, fh;
 };
 
 static struct fantasy_football_local
@@ -59,7 +59,7 @@ static struct fantasy_football_local
 	}grid;
 	TEXTCHAR card_end_char;
 	TEXTCHAR card_begin_char;
-	_64 enable_code;
+	uint64_t enable_code;
 
 	struct prize_data
 	{
@@ -94,8 +94,8 @@ static struct fantasy_football_local
 	int current_down;
 
 	LOGICAL attract_mode;
-	_32 number_collector;
-	_32 value_collector[64];
+	uint32_t number_collector;
+	uint32_t value_collector[64];
 	int value_collect_index;
 	int begin_card;
 
@@ -114,11 +114,11 @@ static struct fantasy_football_local
 		CTEXTSTR static_name;
 		Image static_image;
 		CTEXTSTR fontname;
-		_32 delay_draw;
-		_32 delay_finish;
+		uint32_t delay_draw;
+		uint32_t delay_finish;
 
-		_32 tick_draw; // when drawing starts?
-		_32 tick_finish;
+		uint32_t tick_draw; // when drawing starts?
+		uint32_t tick_finish;
 		struct {
 			SFTFont font;
 			FRACTION font_x, font_y;
@@ -196,8 +196,8 @@ static void ChoosePrize( void )
 
 	if( ffl.flags.prize_line_mode )
 	{
-		_32 rand = genrand_int32( ffl.rng );
-		_32 value = ( (_64)ffl.prizes.total_lines * (_64)rand ) / 0xFFFFFFFFU;
+		uint32_t rand = genrand_int32( ffl.rng );
+		uint32_t value = ( (uint64_t)ffl.prizes.total_lines * (uint64_t)rand ) / 0xFFFFFFFFU;
 		int n;
 		for( n = 0; n < ffl.prizes.number_lines; n++ )
 		{
@@ -207,14 +207,14 @@ static void ChoosePrize( void )
 				for( down = 0; down < ffl.prizes.lines[n].picks; down++ )
 				{
 					rand = genrand_int32( ffl.rng );
-					AddBinaryNode( ffl.prize_shuffle, (POINTER)ffl.prizes.lines[n].payouts[down], (PTRSZVAL)rand );
+					AddBinaryNode( ffl.prize_shuffle, (POINTER)ffl.prizes.lines[n].payouts[down], (uintptr_t)rand );
 				}
 				for( down = 0; down < 4; down++ )
 				{
 					if( !down )
-						ffl.prizes.prize_line.value[down] = (_32)GetLeastNode( ffl.prize_shuffle );
+						ffl.prizes.prize_line.value[down] = (uint32_t)GetLeastNode( ffl.prize_shuffle );
 					else
-						ffl.prizes.prize_line.value[down] = (_32)GetGreaterNode( ffl.prize_shuffle );
+						ffl.prizes.prize_line.value[down] = (uint32_t)GetGreaterNode( ffl.prize_shuffle );
 				}
 				DeductPrizeLine( n );
 				break;
@@ -225,14 +225,14 @@ static void ChoosePrize( void )
 	}
 	else
 	{
-		_32 rand;
+		uint32_t rand;
 		int square;
 		int g = 0;
 		int c = 0;
 		for( square = 0; square < 32; square++ )
 		{
 			rand = genrand_int32( ffl.rng );
-			AddBinaryNode( ffl.prize_shuffle, (POINTER)ffl.prizes.grid[g].value, (PTRSZVAL)rand );
+			AddBinaryNode( ffl.prize_shuffle, (POINTER)ffl.prizes.grid[g].value, (uintptr_t)rand );
 			c++;
 			if( c == ffl.prizes.grid[g].count )
 			{
@@ -243,50 +243,50 @@ static void ChoosePrize( void )
 		for( square = 0; square < 32; square++ )
 		{
 			if( !square )
-				ffl.prizes.grid_prizes[square].value = (_32)GetLeastNode( ffl.prize_shuffle );
+				ffl.prizes.grid_prizes[square].value = (uint32_t)GetLeastNode( ffl.prize_shuffle );
 			else
-				ffl.prizes.grid_prizes[square].value = (_32)GetGreaterNode( ffl.prize_shuffle );
+				ffl.prizes.grid_prizes[square].value = (uint32_t)GetGreaterNode( ffl.prize_shuffle );
 		}
 	}
 }
 
 
-static PTRSZVAL CPROC ProcessConfig( PTRSZVAL psv, arg_list args )
+static uintptr_t CPROC ProcessConfig( uintptr_t psv, arg_list args )
 {
 	PARAM( args, size_t, length );
 	PARAM( args, CPOINTER, data );
-	P_8 realdata;
+	uint8_t* realdata;
 	size_t reallength;
 	PCONFIG_HANDLER pch = CreateConfigurationHandler();
 	AddRules( pch );
-	SRG_DecryptRawData( (P_8)data, length, &realdata, &reallength );
+	SRG_DecryptRawData( (uint8_t*)data, length, &realdata, &reallength );
 	ProcessConfigurationInput( pch, (CTEXTSTR)realdata, reallength, 0 );
 	DestroyConfigurationEvaluator( pch );
 	return psv;
 }
 
-static PTRSZVAL CPROC SetStartCharacter( PTRSZVAL psv, arg_list args )
+static uintptr_t CPROC SetStartCharacter( uintptr_t psv, arg_list args )
 {
 	PARAM( args, char*, data );
 	ffl.card_begin_char = data[0];
 	return psv;
 }
 
-static PTRSZVAL CPROC SetEndCharacter( PTRSZVAL psv, arg_list args )
+static uintptr_t CPROC SetEndCharacter( uintptr_t psv, arg_list args )
 {
 	PARAM( args, char*, data );
 	ffl.card_end_char = data[0];
 	return psv;
 }
 
-static PTRSZVAL CPROC SetAttract( PTRSZVAL psv, arg_list args )
+static uintptr_t CPROC SetAttract( uintptr_t psv, arg_list args )
 {
 	PARAM( args, CTEXTSTR, data );
 	ffl.attract = StrDup( data );
 	return psv;
 }
 
-static PTRSZVAL CPROC SetGameForeground( PTRSZVAL psv, arg_list args )
+static uintptr_t CPROC SetGameForeground( uintptr_t psv, arg_list args )
 {
 	PARAM( args, CTEXTSTR, data );
 	ffl.grid.foreground = StrDup( data );
@@ -295,7 +295,7 @@ static PTRSZVAL CPROC SetGameForeground( PTRSZVAL psv, arg_list args )
 
 
 /*
-static PTRSZVAL CPROC SetHelmetSound( PTRSZVAL psv, arg_list args )
+static uintptr_t CPROC SetHelmetSound( uintptr_t psv, arg_list args )
 {
 	PARAM( args, CTEXTSTR, data );
 	ffl.helmet_sound = StrDup( data );
@@ -303,14 +303,14 @@ static PTRSZVAL CPROC SetHelmetSound( PTRSZVAL psv, arg_list args )
 }
 */
 
-static PTRSZVAL CPROC SetGameBackground( PTRSZVAL psv, arg_list args )
+static uintptr_t CPROC SetGameBackground( uintptr_t psv, arg_list args )
 {
 	PARAM( args, CTEXTSTR, data );
 	ffl.grid.background = StrDup( data );
 	return psv;
 }
 
-static PTRSZVAL CPROC SetGameOffset( PTRSZVAL psv, arg_list args )
+static uintptr_t CPROC SetGameOffset( uintptr_t psv, arg_list args )
 {
 	PARAM( args, FRACTION, x );
 	PARAM( args, FRACTION, y );
@@ -319,7 +319,7 @@ static PTRSZVAL CPROC SetGameOffset( PTRSZVAL psv, arg_list args )
 	return psv;
 }
 
-static PTRSZVAL CPROC SetGameSize( PTRSZVAL psv, arg_list args )
+static uintptr_t CPROC SetGameSize( uintptr_t psv, arg_list args )
 {
 	PARAM( args, FRACTION, x );
 	PARAM( args, FRACTION, y );
@@ -328,52 +328,52 @@ static PTRSZVAL CPROC SetGameSize( PTRSZVAL psv, arg_list args )
 	return psv;
 }
 
-static PTRSZVAL CPROC SetDownIntro( PTRSZVAL psv, arg_list args )
+static uintptr_t CPROC SetDownIntro( uintptr_t psv, arg_list args )
 {
-	PARAM( args, S_64, down );
+	PARAM( args, int64_t, down );
 	PARAM( args, CTEXTSTR, data );
 	ffl.downs[down-1] = StrDup( data );
 	return psv;
 }
-static PTRSZVAL CPROC SetTeamHelmet( PTRSZVAL psv, arg_list args )
+static uintptr_t CPROC SetTeamHelmet( uintptr_t psv, arg_list args )
 {
-	PARAM( args, S_64, down );
+	PARAM( args, int64_t, down );
 	PARAM( args, CTEXTSTR, data );
 	ffl.helmets[down-1] = StrDup( data );
 	return psv;
 }
 
-static PTRSZVAL CPROC SetTeamHelmetSticker( PTRSZVAL psv, arg_list args )
+static uintptr_t CPROC SetTeamHelmetSticker( uintptr_t psv, arg_list args )
 {
-	PARAM( args, S_64, down );
+	PARAM( args, int64_t, down );
 	PARAM( args, CTEXTSTR, data );
 	ffl.helmet_sticker_name[down-1] = StrDup( data );
 	return psv;
 }
 
-static PTRSZVAL CPROC SetSwipeEnable( PTRSZVAL psv, arg_list args )
+static uintptr_t CPROC SetSwipeEnable( uintptr_t psv, arg_list args )
 {
-	PARAM( args, S_64, data );
+	PARAM( args, int64_t, data );
 	ffl.enable_code = data;
 	return psv;
 }
 
-static PTRSZVAL CPROC SetValueImage( PTRSZVAL psv, arg_list args )
+static uintptr_t CPROC SetValueImage( uintptr_t psv, arg_list args )
 {
-	PARAM( args, S_64, data );
+	PARAM( args, int64_t, data );
 	PARAM( args, CTEXTSTR, filename );
 	return psv;
 }
 
-static PTRSZVAL CPROC SetUsePrizeLines( PTRSZVAL psv, arg_list args )
+static uintptr_t CPROC SetUsePrizeLines( uintptr_t psv, arg_list args )
 {
-	PARAM( args, S_64, data );
+	PARAM( args, int64_t, data );
 	ffl.flags.prize_line_mode = data;
 	return psv;
 }
-static PTRSZVAL CPROC SetGameCount( PTRSZVAL psv, arg_list args )
+static uintptr_t CPROC SetGameCount( uintptr_t psv, arg_list args )
 {
-	PARAM( args, S_64, data );
+	PARAM( args, int64_t, data );
 	ffl.prizes.total_games = data;
 	return psv;
 }
@@ -395,39 +395,39 @@ static void GetPrizeLine( int line )
 	}
 }
 
-static PTRSZVAL CPROC SetPrizeLineCount( PTRSZVAL psv, arg_list args )
+static uintptr_t CPROC SetPrizeLineCount( uintptr_t psv, arg_list args )
 {
-	PARAM( args, S_64, line );
-	PARAM( args, S_64, count );
+	PARAM( args, int64_t, line );
+	PARAM( args, int64_t, count );
 	TEXTCHAR buf[12];
 	snprintf( buf, 12, WIDE("%")_64fs, line );
 	GetPrizeLine( line );
 	ffl.prizes.lines[line-1].count = SACK_GetProfileIntEx( WIDE("Prizes/Lines"), buf, count, TRUE );
 	return psv;
 }
-static PTRSZVAL CPROC SetPrizeLinePicks( PTRSZVAL psv, arg_list args )
+static uintptr_t CPROC SetPrizeLinePicks( uintptr_t psv, arg_list args )
 {
-	PARAM( args, S_64, line );
-	PARAM( args, S_64, picks );
+	PARAM( args, int64_t, line );
+	PARAM( args, int64_t, picks );
 	GetPrizeLine( line );
 	ffl.prizes.lines[line-1].picks = picks;
 	ffl.prizes.lines[line-1].payouts = NewArray( int, picks );
 	return psv;
 }
-static PTRSZVAL CPROC SetPrizeLinePickValue( PTRSZVAL psv, arg_list args )
+static uintptr_t CPROC SetPrizeLinePickValue( uintptr_t psv, arg_list args )
 {
-	PARAM( args, S_64, line );
-	PARAM( args, S_64, pick );
-	PARAM( args, S_64, value );
+	PARAM( args, int64_t, line );
+	PARAM( args, int64_t, pick );
+	PARAM( args, int64_t, value );
 	GetPrizeLine( line );
 	ffl.prizes.lines[line-1].payouts[pick] = value;
 	return psv;
 }
 
-static PTRSZVAL CPROC SetGridPrize( PTRSZVAL psv, arg_list args )
+static uintptr_t CPROC SetGridPrize( uintptr_t psv, arg_list args )
 {
-	PARAM( args, S_64, count );
-	PARAM( args, S_64, value );
+	PARAM( args, int64_t, count );
+	PARAM( args, int64_t, value );
 	struct prize_grid_data *prize = GetGridPrize( );
 	prize->value = value;
 	prize->count = count;
@@ -435,51 +435,51 @@ static PTRSZVAL CPROC SetGridPrize( PTRSZVAL psv, arg_list args )
 }
 
 
-static PTRSZVAL CPROC 	SetScoreboardMovie ( PTRSZVAL psv, arg_list args )
+static uintptr_t CPROC 	SetScoreboardMovie ( uintptr_t psv, arg_list args )
 {
 	PARAM( args, CTEXTSTR, name );	ffl.scoreboard.movie_name= StrDup( name );	return psv;
 }
-	static PTRSZVAL CPROC SetScoreboardStatic( PTRSZVAL psv, arg_list args )
+	static uintptr_t CPROC SetScoreboardStatic( uintptr_t psv, arg_list args )
 {
 	PARAM( args, CTEXTSTR, name );	ffl.scoreboard.static_image = LoadImageFile( name );	return psv;
 }
-	static PTRSZVAL CPROC SetScoreboardFont( PTRSZVAL psv, arg_list args )
+	static uintptr_t CPROC SetScoreboardFont( uintptr_t psv, arg_list args )
 {
 	PARAM( args, CTEXTSTR, name );	ffl.scoreboard.fontname = StrDup( name );	return psv;
 }
-	static PTRSZVAL CPROC SetScoreLeaderPosition( PTRSZVAL psv, arg_list args )
+	static uintptr_t CPROC SetScoreLeaderPosition( uintptr_t psv, arg_list args )
 {
 	PARAM( args, FRACTION, x);	PARAM( args, FRACTION, y);	ffl.scoreboard.leader.x = x;	ffl.scoreboard.leader.y = y;	return psv;
 }
-	static PTRSZVAL CPROC SetScoreDownPosition( PTRSZVAL psv, arg_list args )
+	static uintptr_t CPROC SetScoreDownPosition( uintptr_t psv, arg_list args )
 {
 	PARAM( args, FRACTION, x);	PARAM( args, FRACTION, y);	ffl.scoreboard.down.x = x;	ffl.scoreboard.down.y = y;	return psv;
 }
-	static PTRSZVAL CPROC SetScoreTotalPosition( PTRSZVAL psv, arg_list args )
+	static uintptr_t CPROC SetScoreTotalPosition( uintptr_t psv, arg_list args )
 {
 	PARAM( args, FRACTION, x);	PARAM( args, FRACTION, y);	ffl.scoreboard.total.x = x;	ffl.scoreboard.total.y = y;	return psv;
 }
 
-	static PTRSZVAL CPROC SetScoreLeaderFontSize( PTRSZVAL psv, arg_list args )
+	static uintptr_t CPROC SetScoreLeaderFontSize( uintptr_t psv, arg_list args )
 {
 	PARAM( args, FRACTION, x);	PARAM( args, FRACTION, y);	ffl.scoreboard.leader.font_x = x;	ffl.scoreboard.leader.font_y = y;	return psv;
 }
-	static PTRSZVAL CPROC SetScoreDownFontSize( PTRSZVAL psv, arg_list args )
+	static uintptr_t CPROC SetScoreDownFontSize( uintptr_t psv, arg_list args )
 {
 	PARAM( args, FRACTION, x);	PARAM( args, FRACTION, y);	ffl.scoreboard.down.font_x = x;	ffl.scoreboard.down.font_y = y;	return psv;
 }
-	static PTRSZVAL CPROC SetScoreTotalFontSize( PTRSZVAL psv, arg_list args )
+	static uintptr_t CPROC SetScoreTotalFontSize( uintptr_t psv, arg_list args )
 {
 	PARAM( args, FRACTION, x);	PARAM( args, FRACTION, y);	ffl.scoreboard.total.font_x = x;	ffl.scoreboard.total.font_y = y;	return psv;
 }
-	static PTRSZVAL CPROC SetScoreDrawDelay( PTRSZVAL psv, arg_list args )
+	static uintptr_t CPROC SetScoreDrawDelay( uintptr_t psv, arg_list args )
 {
-	PARAM( args, S_64, count );	ffl.scoreboard.delay_draw = count;	return psv;
+	PARAM( args, int64_t, count );	ffl.scoreboard.delay_draw = count;	return psv;
 }
 
-	static PTRSZVAL CPROC SetScoreOutputDoneDelay( PTRSZVAL psv, arg_list args )
+	static uintptr_t CPROC SetScoreOutputDoneDelay( uintptr_t psv, arg_list args )
 {
-	PARAM( args, S_64, count );	ffl.scoreboard.delay_finish = count;	return psv;
+	PARAM( args, int64_t, count );	ffl.scoreboard.delay_finish = count;	return psv;
 }
 
 
@@ -536,7 +536,7 @@ static void OnLoadCommon( WIDE( "Fantasy Football" ) )( PCONFIG_HANDLER pch )
 
 
 
-static void CPROC EndScoreboard( PTRSZVAL psv )
+static void CPROC EndScoreboard( uintptr_t psv )
 {
 	// do nothing...
 	ffl.scoreboard.tick_draw = 0; 
@@ -551,7 +551,7 @@ static void CPROC EndScoreboard( PTRSZVAL psv )
 	*/
 }
 
-static void CPROC RestartAttract( PTRSZVAL psv )
+static void CPROC RestartAttract( uintptr_t psv )
 {
 	struct attract_control *ac = (struct attract_control *)psv;
 	if( ac->file )
@@ -563,7 +563,7 @@ static void CPROC RestartAttract( PTRSZVAL psv )
 }
 
 // helmet animation ended
-static void CPROC EndGridCell( PTRSZVAL psv )
+static void CPROC EndGridCell( uintptr_t psv )
 {
 	struct game_cell_control *gcc = (struct game_cell_control *)psv;
 	gcc->playing = FALSE;
@@ -574,7 +574,7 @@ static void CPROC EndGridCell( PTRSZVAL psv )
 
 }
 
-static void CPROC EndGridCellSound( PTRSZVAL psv )
+static void CPROC EndGridCellSound( uintptr_t psv )
 {
 	//struct game_cell_control *gcc = (struct game_cell_control *)psv;
 	//gcc->playing = FALSE;
@@ -599,7 +599,7 @@ static void OnHideCommon( WIDE("FF_Attract") )( PSI_CONTROL pc )
 	ffmpeg_PauseFile( ac->file );
 }
 
-static void OneShotDelay( PTRSZVAL psv )
+static void OneShotDelay( uintptr_t psv )
 {
 	RestartAttract( psv );
 }
@@ -611,9 +611,9 @@ static void OnRevealCommon( WIDE("FF_Attract") )( PSI_CONTROL pc )
 	if( !ac->playing )
 	{
 		ac->playing = TRUE;
-	//	AddTimerEx( 250, 0, OneShotDelay, (PTRSZVAL)ac );
+	//	AddTimerEx( 250, 0, OneShotDelay, (uintptr_t)ac );
 	}
-	RestartAttract( (PTRSZVAL)ac );
+	RestartAttract( (uintptr_t)ac );
 }
 
 
@@ -635,7 +635,7 @@ static int OnCreateCommon( WIDE( "FF_Grid_Cell" ) )( PSI_CONTROL pc )
 	return 1;
 }
 
-static int OnMouseCommon( WIDE( "FF_Grid_Cell") )( PSI_CONTROL pc, S_32 x, S_32 y, _32 b )
+static int OnMouseCommon( WIDE( "FF_Grid_Cell") )( PSI_CONTROL pc, int32_t x, int32_t y, uint32_t b )
 {
 	if( b )
 	{
@@ -726,14 +726,14 @@ static int OnCreateCommon( WIDE( "FF_Scoreboard" ) )( PSI_CONTROL pc )
 
 static void DrawScoreText( PSI_CONTROL pc )
 {
-	_32 now = timeGetTime();
+	uint32_t now = timeGetTime();
 	Image surface = GetControlSurface( pc );
 
 	if( ffl.scoreboard.tick_draw )
 	{
 		if( ffl.scoreboard.tick_draw < now )
 		{
-			_32 percent;
+			uint32_t percent;
 			if( ffl.scoreboard.tick_finish > now )
 				percent = 100 * ( ffl.scoreboard.tick_finish - ffl.scoreboard.tick_draw ) / ( ffl.scoreboard.tick_finish - now );
 			else
@@ -741,7 +741,7 @@ static void DrawScoreText( PSI_CONTROL pc )
 			// percent > 0
 			{
 				{
-					_32 w, h;
+					uint32_t w, h;
 					CTEXTSTR text = "Final Score:";
 					GetStringSizeFont( text, &w, &h, ffl.scoreboard.leader.font );
 					if( percent < 25 )
@@ -771,9 +771,9 @@ static void DrawScoreText( PSI_CONTROL pc )
 					TEXTCHAR buf[64];
 					int offset[4];
 					int length[4];
-					_32 w, h; // full string size
-					_32 w1, h1; // phrase 1 size
-					_32 w2, h2; // phrase 2 size
+					uint32_t w, h; // full string size
+					uint32_t w1, h1; // phrase 1 size
+					uint32_t w2, h2; // phrase 2 size
 					CTEXTSTR text = buf;
 					offset[0] = snprintf( buf, 0, "%d + ", 25 );
 					length[0] = offset[0];
@@ -866,7 +866,7 @@ static void DrawScoreText( PSI_CONTROL pc )
 			
 				if( percent >= 75 )
 				{
-					_32 w, h;
+					uint32_t w, h;
 					TEXTCHAR buf[32];
 					CTEXTSTR text = buf;
 					snprintf( buf, 32, "$%d", 100 );
@@ -914,7 +914,7 @@ static void OnHideCommon( WIDE("FF_Scoreboard") )( PSI_CONTROL pc )
 	ffmpeg_PauseFile( ac->file );
 }
 
-static void CPROC NextPage( PTRSZVAL psv )
+static void CPROC NextPage( uintptr_t psv )
 {
 	struct attract_control *ac = (struct attract_control *)psv;
 	ShellSetCurrentPage( GetCommonParent( ac->pc ), "Game Grid" );
@@ -923,7 +923,7 @@ static void CPROC NextPage( PTRSZVAL psv )
 
 
 
-static PTRSZVAL OnCreateControl(WIDE( "Fantasy Football/Attract" ))(PSI_CONTROL parent,S_32 x,S_32 y,_32 w,_32 h)
+static uintptr_t OnCreateControl(WIDE( "Fantasy Football/Attract" ))(PSI_CONTROL parent,int32_t x,int32_t y,uint32_t w,uint32_t h)
 {
 	struct attract_control *ac;
 	ac = New( struct attract_control );
@@ -939,18 +939,18 @@ static PTRSZVAL OnCreateControl(WIDE( "Fantasy Football/Attract" ))(PSI_CONTROL 
 								, NULL, 0
 								, ac->pc
 								, NULL, 0
-								, RestartAttract, (PTRSZVAL)ac
+								, RestartAttract, (uintptr_t)ac
 								, NULL );
-	return (PTRSZVAL)ac;
+	return (uintptr_t)ac;
 }
 
-static PSI_CONTROL OnGetControl( WIDE("Fantasy Football/Attract") )( PTRSZVAL psv )
+static PSI_CONTROL OnGetControl( WIDE("Fantasy Football/Attract") )( uintptr_t psv )
 {
 	struct attract_control *ac = (struct attract_control *)psv;
 	return ac->pc;
 }
 
-static PTRSZVAL OnCreateControl(WIDE( "Fantasy Football/Game Grid" ))(PSI_CONTROL parent,S_32 x,S_32 y,_32 w,_32 h)
+static uintptr_t OnCreateControl(WIDE( "Fantasy Football/Game Grid" ))(PSI_CONTROL parent,int32_t x,int32_t y,uint32_t w,uint32_t h)
 {
 	struct game_grid_control *ac;
 	ac = &ffl.grid.control;
@@ -1020,7 +1020,7 @@ static PTRSZVAL OnCreateControl(WIDE( "Fantasy Football/Game Grid" ))(PSI_CONTRO
 								, NULL, 0
 								, ffl.grid.cell[r*8+c].pc
 								, NULL, 0
-								, EndGridCell, (PTRSZVAL)&ffl.grid.cell[r*8+c]
+								, EndGridCell, (uintptr_t)&ffl.grid.cell[r*8+c]
 																		 , NULL );
             /*
 				ffl.grid.cell[r*8+c].sound_file = ffmpeg_LoadFile( ffl.helmet_sound
@@ -1034,17 +1034,17 @@ static PTRSZVAL OnCreateControl(WIDE( "Fantasy Football/Game Grid" ))(PSI_CONTRO
 
 			}
 	}
-	return (PTRSZVAL)ac;
+	return (uintptr_t)ac;
 }
 
-static PSI_CONTROL OnGetControl( WIDE("Fantasy Football/Game Grid") )( PTRSZVAL psv )
+static PSI_CONTROL OnGetControl( WIDE("Fantasy Football/Game Grid") )( uintptr_t psv )
 {
 	struct game_grid_control *ggc = (struct game_grid_control *)psv;
 	return ggc->pc;
 }
 
 
-static PTRSZVAL OnCreateControl(WIDE( "Fantasy Football/1st Down" ))(PSI_CONTROL parent,S_32 x,S_32 y,_32 w,_32 h)
+static uintptr_t OnCreateControl(WIDE( "Fantasy Football/1st Down" ))(PSI_CONTROL parent,int32_t x,int32_t y,uint32_t w,uint32_t h)
 {
 	struct attract_control *ac;
 	ac = New( struct attract_control );
@@ -1060,18 +1060,18 @@ static PTRSZVAL OnCreateControl(WIDE( "Fantasy Football/1st Down" ))(PSI_CONTROL
 								, NULL, 0
 								, ac->pc
 								, NULL, 0
-								, NextPage, (PTRSZVAL)ac
+								, NextPage, (uintptr_t)ac
 								, NULL );
-	return (PTRSZVAL)ac;
+	return (uintptr_t)ac;
 }
 
-static PSI_CONTROL OnGetControl( WIDE("Fantasy Football/1st Down") )( PTRSZVAL psv )
+static PSI_CONTROL OnGetControl( WIDE("Fantasy Football/1st Down") )( uintptr_t psv )
 {
 	struct attract_control *ac = (struct attract_control *)psv;
 	return ac->pc;
 }
 
-static PTRSZVAL OnCreateControl(WIDE( "Fantasy Football/2nd Down" ))(PSI_CONTROL parent,S_32 x,S_32 y,_32 w,_32 h)
+static uintptr_t OnCreateControl(WIDE( "Fantasy Football/2nd Down" ))(PSI_CONTROL parent,int32_t x,int32_t y,uint32_t w,uint32_t h)
 {
 	struct attract_control *ac;
 	ac = New( struct attract_control );
@@ -1087,18 +1087,18 @@ static PTRSZVAL OnCreateControl(WIDE( "Fantasy Football/2nd Down" ))(PSI_CONTROL
 								, NULL, 0
 								, ac->pc
 								, NULL, 0
-								, NextPage, (PTRSZVAL)ac
+								, NextPage, (uintptr_t)ac
 								, NULL );
-	return (PTRSZVAL)ac;
+	return (uintptr_t)ac;
 }
 
-static PSI_CONTROL OnGetControl( WIDE("Fantasy Football/2nd Down") )( PTRSZVAL psv )
+static PSI_CONTROL OnGetControl( WIDE("Fantasy Football/2nd Down") )( uintptr_t psv )
 {
 	struct attract_control *ac = (struct attract_control *)psv;
 	return ac->pc;
 }
 
-static PTRSZVAL OnCreateControl(WIDE( "Fantasy Football/3rd Down" ))(PSI_CONTROL parent,S_32 x,S_32 y,_32 w,_32 h)
+static uintptr_t OnCreateControl(WIDE( "Fantasy Football/3rd Down" ))(PSI_CONTROL parent,int32_t x,int32_t y,uint32_t w,uint32_t h)
 {
 	struct attract_control *ac;
 	ac = New( struct attract_control );
@@ -1114,18 +1114,18 @@ static PTRSZVAL OnCreateControl(WIDE( "Fantasy Football/3rd Down" ))(PSI_CONTROL
 								, NULL, 0
 								, ac->pc
 								, NULL, 0
-								, NextPage, (PTRSZVAL)ac
+								, NextPage, (uintptr_t)ac
 								, NULL );
-	return (PTRSZVAL)ac;
+	return (uintptr_t)ac;
 }
 
-static PSI_CONTROL OnGetControl( WIDE("Fantasy Football/3rd Down") )( PTRSZVAL psv )
+static PSI_CONTROL OnGetControl( WIDE("Fantasy Football/3rd Down") )( uintptr_t psv )
 {
 	struct attract_control *ac = (struct attract_control *)psv;
 	return ac->pc;
 }
 
-static PTRSZVAL OnCreateControl(WIDE( "Fantasy Football/4th Down" ))(PSI_CONTROL parent,S_32 x,S_32 y,_32 w,_32 h)
+static uintptr_t OnCreateControl(WIDE( "Fantasy Football/4th Down" ))(PSI_CONTROL parent,int32_t x,int32_t y,uint32_t w,uint32_t h)
 {
 	struct attract_control *ac;
 	ac = New( struct attract_control );
@@ -1141,18 +1141,18 @@ static PTRSZVAL OnCreateControl(WIDE( "Fantasy Football/4th Down" ))(PSI_CONTROL
 								, NULL, 0
 								, ac->pc
 								, NULL, 0
-								, NextPage, (PTRSZVAL)ac
+								, NextPage, (uintptr_t)ac
 								, NULL );
-	return (PTRSZVAL)ac;
+	return (uintptr_t)ac;
 }
 
-static PSI_CONTROL OnGetControl( WIDE("Fantasy Football/4th Down") )( PTRSZVAL psv )
+static PSI_CONTROL OnGetControl( WIDE("Fantasy Football/4th Down") )( uintptr_t psv )
 {
 	struct attract_control *ac = (struct attract_control *)psv;
 	return ac->pc;
 }
 
-static PTRSZVAL OnCreateControl(WIDE( "Fantasy Football/Scoreboard" ))(PSI_CONTROL parent,S_32 x,S_32 y,_32 w,_32 h)
+static uintptr_t OnCreateControl(WIDE( "Fantasy Football/Scoreboard" ))(PSI_CONTROL parent,int32_t x,int32_t y,uint32_t w,uint32_t h)
 {
 	struct attract_control *ac;
 	ac = New( struct attract_control );
@@ -1168,13 +1168,13 @@ static PTRSZVAL OnCreateControl(WIDE( "Fantasy Football/Scoreboard" ))(PSI_CONTR
 								, NULL, 0
 								, ac->pc
 								, NULL, 0
-								, EndScoreboard, (PTRSZVAL)ac
+								, EndScoreboard, (uintptr_t)ac
 								, NULL );
 	ffmpeg_SetPrePostDraw( ac->file, NULL, DrawScoreText );
-	return (PTRSZVAL)ac;
+	return (uintptr_t)ac;
 }
 
-static PSI_CONTROL OnGetControl( WIDE("Fantasy Football/Scoreboard") )( PTRSZVAL psv )
+static PSI_CONTROL OnGetControl( WIDE("Fantasy Football/Scoreboard") )( uintptr_t psv )
 {
 	struct attract_control *ac = (struct attract_control *)psv;
 	return ac->pc;
@@ -1183,9 +1183,9 @@ static PSI_CONTROL OnGetControl( WIDE("Fantasy Football/Scoreboard") )( PTRSZVAL
 
 
 
-static LOGICAL CPROC PressSomeKey( PTRSZVAL psv, _32 key_code )
+static LOGICAL CPROC PressSomeKey( uintptr_t psv, uint32_t key_code )
 {
-	static _32 _tick, tick;
+	static uint32_t _tick, tick;
 	static int reset = 0;
 	static int reset2 = 0;
 	static int reset3 = 0;
@@ -1260,41 +1260,41 @@ static LOGICAL CPROC PressSomeKey( PTRSZVAL psv, _32 key_code )
 
 void InitKeys( void )
 {
-	BindEventToKey( NULL, KEY_0, 0, PressSomeKey, (PTRSZVAL)0 );
-	BindEventToKey( NULL, KEY_1, 0, PressSomeKey, (PTRSZVAL)1 );
-	BindEventToKey( NULL, KEY_2, 0, PressSomeKey, (PTRSZVAL)2 );
-	BindEventToKey( NULL, KEY_3, 0, PressSomeKey, (PTRSZVAL)3 );
-	BindEventToKey( NULL, KEY_4, 0, PressSomeKey, (PTRSZVAL)4 );
-	BindEventToKey( NULL, KEY_5, 0, PressSomeKey, (PTRSZVAL)5 );
-	BindEventToKey( NULL, KEY_6, 0, PressSomeKey, (PTRSZVAL)6 );
-	BindEventToKey( NULL, KEY_7, 0, PressSomeKey, (PTRSZVAL)7 );
-	BindEventToKey( NULL, KEY_8, 0, PressSomeKey, (PTRSZVAL)8 );
-	BindEventToKey( NULL, KEY_9, 0, PressSomeKey, (PTRSZVAL)9 );
+	BindEventToKey( NULL, KEY_0, 0, PressSomeKey, (uintptr_t)0 );
+	BindEventToKey( NULL, KEY_1, 0, PressSomeKey, (uintptr_t)1 );
+	BindEventToKey( NULL, KEY_2, 0, PressSomeKey, (uintptr_t)2 );
+	BindEventToKey( NULL, KEY_3, 0, PressSomeKey, (uintptr_t)3 );
+	BindEventToKey( NULL, KEY_4, 0, PressSomeKey, (uintptr_t)4 );
+	BindEventToKey( NULL, KEY_5, 0, PressSomeKey, (uintptr_t)5 );
+	BindEventToKey( NULL, KEY_6, 0, PressSomeKey, (uintptr_t)6 );
+	BindEventToKey( NULL, KEY_7, 0, PressSomeKey, (uintptr_t)7 );
+	BindEventToKey( NULL, KEY_8, 0, PressSomeKey, (uintptr_t)8 );
+	BindEventToKey( NULL, KEY_9, 0, PressSomeKey, (uintptr_t)9 );
 
-	BindEventToKey( NULL, KEY_PAD_0, 0, PressSomeKey, (PTRSZVAL)0 );
-	BindEventToKey( NULL, KEY_PAD_1, 0, PressSomeKey, (PTRSZVAL)1 );
-	BindEventToKey( NULL, KEY_PAD_2, 0, PressSomeKey, (PTRSZVAL)2 );
-	BindEventToKey( NULL, KEY_PAD_3, 0, PressSomeKey, (PTRSZVAL)3 );
-	BindEventToKey( NULL, KEY_PAD_4, 0, PressSomeKey, (PTRSZVAL)4 );
-	BindEventToKey( NULL, KEY_PAD_5, 0, PressSomeKey, (PTRSZVAL)5 );
-	BindEventToKey( NULL, KEY_PAD_6, 0, PressSomeKey, (PTRSZVAL)6 );
-	BindEventToKey( NULL, KEY_PAD_7, 0, PressSomeKey, (PTRSZVAL)7 );
-	BindEventToKey( NULL, KEY_PAD_8, 0, PressSomeKey, (PTRSZVAL)8 );
-	BindEventToKey( NULL, KEY_PAD_9, 0, PressSomeKey, (PTRSZVAL)9 );
+	BindEventToKey( NULL, KEY_PAD_0, 0, PressSomeKey, (uintptr_t)0 );
+	BindEventToKey( NULL, KEY_PAD_1, 0, PressSomeKey, (uintptr_t)1 );
+	BindEventToKey( NULL, KEY_PAD_2, 0, PressSomeKey, (uintptr_t)2 );
+	BindEventToKey( NULL, KEY_PAD_3, 0, PressSomeKey, (uintptr_t)3 );
+	BindEventToKey( NULL, KEY_PAD_4, 0, PressSomeKey, (uintptr_t)4 );
+	BindEventToKey( NULL, KEY_PAD_5, 0, PressSomeKey, (uintptr_t)5 );
+	BindEventToKey( NULL, KEY_PAD_6, 0, PressSomeKey, (uintptr_t)6 );
+	BindEventToKey( NULL, KEY_PAD_7, 0, PressSomeKey, (uintptr_t)7 );
+	BindEventToKey( NULL, KEY_PAD_8, 0, PressSomeKey, (uintptr_t)8 );
+	BindEventToKey( NULL, KEY_PAD_9, 0, PressSomeKey, (uintptr_t)9 );
 
-	BindEventToKey( NULL, KEY_INSERT, 0, PressSomeKey, (PTRSZVAL)0 );
-	BindEventToKey( NULL, KEY_END, 0, PressSomeKey, (PTRSZVAL)1 );
-	BindEventToKey( NULL, KEY_DOWN, 0, PressSomeKey, (PTRSZVAL)2 );
-	BindEventToKey( NULL, KEY_PGDN, 0, PressSomeKey, (PTRSZVAL)3 );
-	BindEventToKey( NULL, KEY_LEFT, 0, PressSomeKey, (PTRSZVAL)4 );
-	BindEventToKey( NULL, KEY_CENTER, 0, PressSomeKey, (PTRSZVAL)5 );
-	BindEventToKey( NULL, KEY_RIGHT, 0, PressSomeKey, (PTRSZVAL)6 );
-	BindEventToKey( NULL, KEY_HOME, 0, PressSomeKey, (PTRSZVAL)7 );
-	BindEventToKey( NULL, KEY_UP, 0, PressSomeKey, (PTRSZVAL)8 );
-	BindEventToKey( NULL, KEY_PGUP, 0, PressSomeKey, (PTRSZVAL)9 );
+	BindEventToKey( NULL, KEY_INSERT, 0, PressSomeKey, (uintptr_t)0 );
+	BindEventToKey( NULL, KEY_END, 0, PressSomeKey, (uintptr_t)1 );
+	BindEventToKey( NULL, KEY_DOWN, 0, PressSomeKey, (uintptr_t)2 );
+	BindEventToKey( NULL, KEY_PGDN, 0, PressSomeKey, (uintptr_t)3 );
+	BindEventToKey( NULL, KEY_LEFT, 0, PressSomeKey, (uintptr_t)4 );
+	BindEventToKey( NULL, KEY_CENTER, 0, PressSomeKey, (uintptr_t)5 );
+	BindEventToKey( NULL, KEY_RIGHT, 0, PressSomeKey, (uintptr_t)6 );
+	BindEventToKey( NULL, KEY_HOME, 0, PressSomeKey, (uintptr_t)7 );
+	BindEventToKey( NULL, KEY_UP, 0, PressSomeKey, (uintptr_t)8 );
+	BindEventToKey( NULL, KEY_PGUP, 0, PressSomeKey, (uintptr_t)9 );
 
-	BindEventToKey( NULL, KEY_5, KEY_MOD_SHIFT, PressSomeKey, (PTRSZVAL)10 );
+	BindEventToKey( NULL, KEY_5, KEY_MOD_SHIFT, PressSomeKey, (uintptr_t)10 );
 
-	BindEventToKey( NULL, KEY_SEMICOLON, 0, PressSomeKey, (PTRSZVAL)10 );
-	BindEventToKey( NULL, KEY_SLASH, KEY_MOD_SHIFT, PressSomeKey, (PTRSZVAL)11 );
+	BindEventToKey( NULL, KEY_SEMICOLON, 0, PressSomeKey, (uintptr_t)10 );
+	BindEventToKey( NULL, KEY_SLASH, KEY_MOD_SHIFT, PressSomeKey, (uintptr_t)11 );
 }

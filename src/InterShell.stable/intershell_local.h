@@ -102,7 +102,7 @@ struct CanvasData {
 	//PPAGE_DATA page;
 
 	// each canvas can have a set of pages...
-	_32 nPages;
+	uint32_t nPages;
 	PLIST pages; // PPAGE_DATA list
 	PLIST deleted_pages; // PPAGE_DATA no longer listed in pages... Undelete(?)
 	PPAGE_DATA current_page;
@@ -124,9 +124,9 @@ struct CanvasData {
 	FRACTION width_scale, height_scale;
 	// this is maintained for simplicity...
 	// it's a convenience for the PARTX, etc macros below.
-	_32 width, height;
+	uint32_t width, height;
 	// each canvas can have a different stting of partsx and partsy
-	//_32 nPartsX, nPartsY;  // finest granulatity of control placement
+	//uint32_t nPartsX, nPartsY;  // finest granulatity of control placement
 
 	PRENDERER edit_glare; // this has it's own direct draw methods.  Without complication of being a control.
 	PSI_CONTROL edit_glare_frame; // cause we need to reference the glare as a frame...
@@ -150,7 +150,7 @@ typedef struct global_tag
 	PRENDERER display; // used to allow external applications to wake me.
 	//PSI_CONTROL single_frame;
 	//PSI_CONTROL first_frame;
-	PTRSZVAL psv_edit_security;
+	uintptr_t psv_edit_security;
 
 	PLIST frames;  // list of all canvases that have been created 
 
@@ -159,8 +159,8 @@ typedef struct global_tag
 	TEXTCHAR *config_filename;
 	SFTFont	*_keyfont;
 	PLIST glare_sets;
-	S_32 default_page_x, default_page_y;
-	_32 default_page_width, default_page_height;
+	int32_t default_page_x, default_page_y;
+	uint32_t default_page_width, default_page_height;
 
 	PMENU_BUTTON clonebutton;
 	int _px, _py;  // last part x, part y - marked on drag.
@@ -256,13 +256,13 @@ typedef struct global_tag
 //#define _MODY( canvas,npart, parts )  ( ( ( ( (PART_RESOLUTION) * npart ) ) * ((canvas)->height) ) % ((parts)*PART_RESOLUTION) )
 
 // get the X coordinate of a part
-#define _PARTX(canvas,part) (S_32)_COMPUTEX(canvas,part,(canvas)->current_page->grid.nPartsX)
+#define _PARTX(canvas,part) (int32_t)_COMPUTEX(canvas,part,(canvas)->current_page->grid.nPartsX)
 // get the Y coordinate of a part
-#define _PARTY(canvas,part) (S_32)_COMPUTEY(canvas,part,(canvas)->current_page->grid.nPartsY)
+#define _PARTY(canvas,part) (int32_t)_COMPUTEY(canvas,part,(canvas)->current_page->grid.nPartsY)
 // get the width coordinate of a part width
-#define _PARTW(canvas,x,w) (_32)(_PARTX(canvas,x+w)-_PARTX(canvas,x))
+#define _PARTW(canvas,x,w) (uint32_t)(_PARTX(canvas,x+w)-_PARTX(canvas,x))
 // get the height coordinate of a part height
-#define _PARTH(canvas,y,h) (_32)(_PARTY(canvas,y+h)-_PARTY(canvas,y))
+#define _PARTH(canvas,y,h) (uint32_t)(_PARTY(canvas,y+h)-_PARTY(canvas,y))
 
 // result with current parts
 #define _PARTSX(canvas) (canvas)->current_page->grid.nPartsX

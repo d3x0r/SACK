@@ -67,10 +67,10 @@ int CanRead( int handle )
 #endif
 
 //--------------------------------------------------------------------------
-extern PTRSZVAL CPROC WaitForTaskEnd( PTHREAD pThread );
+extern uintptr_t CPROC WaitForTaskEnd( PTHREAD pThread );
 
 
-static PTRSZVAL CPROC HandleTaskOutput(PTHREAD thread )
+static uintptr_t CPROC HandleTaskOutput(PTHREAD thread )
 {
 	PTASK_INFO task = (PTASK_INFO)GetThreadParam( thread );
 	{
@@ -84,7 +84,7 @@ static PTRSZVAL CPROC HandleTaskOutput(PTHREAD thread )
 			done = lastloop = FALSE;
 			do
 			{
-				_32 dwRead, dwAvail;
+				uint32_t dwRead, dwAvail;
 				if( done )
 					lastloop = TRUE;
 #ifdef _WIN32
@@ -101,7 +101,7 @@ static PTRSZVAL CPROC HandleTaskOutput(PTHREAD thread )
 						if( !task->flags.process_ended &&
 							 ReadFile( phi->handle
 										, GetText( pInput ), (DWORD)(GetTextSize( pInput ) - 1)
-										, &dwRead, NULL ) )  //read the  pipe
+										, (LPDWORD)&dwRead, NULL ) )  //read the  pipe
 						{
 #else
 							dwRead = read( phi->handle
@@ -150,7 +150,7 @@ static PTRSZVAL CPROC HandleTaskOutput(PTHREAD thread )
 							DWORD dwError = GetLastError();
 							if( ( dwError == ERROR_OPERATION_ABORTED ) && task->flags.process_ended )
 							{
-								if( PeekNamedPipe( phi->handle, NULL, 0, NULL, &dwAvail, NULL ) )
+								if( PeekNamedPipe( phi->handle, NULL, 0, NULL, (LPDWORD)&dwAvail, NULL ) )
 								{
 									if( dwAvail > 0 )
 									{
@@ -257,7 +257,7 @@ SYSTEM_PROC( PTASK_INFO, LaunchPeerProgramExx )( CTEXTSTR program, CTEXTSTR path
 															  , int flags
 															  , TaskOutput OutputHandler
 															  , TaskEnd EndNotice
-															  , PTRSZVAL psv
+															  , uintptr_t psv
 																DBG_PASS
 															  )
 {
@@ -489,13 +489,13 @@ SYSTEM_PROC( PTASK_INFO, LaunchPeerProgramExx )( CTEXTSTR program, CTEXTSTR path
 					task->hStdOut.pLine 	 = NULL;
 					//task->hStdOut.pdp 		 = pdp;
 					task->hStdOut.bNextNew = TRUE;
-					task->hStdOut.hThread  = ThreadTo( HandleTaskOutput, (PTRSZVAL)task );
-					ThreadTo( WaitForTaskEnd, (PTRSZVAL)task );
+					task->hStdOut.hThread  = ThreadTo( HandleTaskOutput, (uintptr_t)task );
+					ThreadTo( WaitForTaskEnd, (uintptr_t)task );
 				}
 				else
 				{
 					//task->hThread =
-					ThreadTo( WaitForTaskEnd, (PTRSZVAL)task );
+					ThreadTo( WaitForTaskEnd, (uintptr_t)task );
 				}
 			}
 			else
@@ -541,7 +541,7 @@ SYSTEM_PROC( PTASK_INFO, LaunchPeerProgramExx )( CTEXTSTR program, CTEXTSTR path
 			}
 
 			// always have to thread to taskend so waitpid can clean zombies.
-			ThreadTo( WaitForTaskEnd, (PTRSZVAL)task );
+			ThreadTo( WaitForTaskEnd, (uintptr_t)task );
 			if( path )
 			{
 				GetCurrentPath( saved_path, sizeof( saved_path ) );
@@ -603,7 +603,7 @@ SYSTEM_PROC( PTASK_INFO, LaunchPeerProgramExx )( CTEXTSTR program, CTEXTSTR path
 				}
 			}
 			if( OutputHandler )
-				ThreadTo( HandleTaskOutput, (PTRSZVAL)task );
+				ThreadTo( HandleTaskOutput, (uintptr_t)task );
 			task->pid = newpid;
 			lprintf( WIDE("Forked, and set the pid..") );
 			// how can I know if the command failed?
@@ -624,7 +624,7 @@ SYSTEM_PROC( PTASK_INFO, LaunchPeerProgramExx )( CTEXTSTR program, CTEXTSTR path
 SYSTEM_PROC( PTASK_INFO, LaunchPeerProgramEx )( CTEXTSTR program, CTEXTSTR path, PCTEXTSTR args
 															 , TaskOutput OutputHandler
 															 , TaskEnd EndNotice
-															 , PTRSZVAL psv
+															 , uintptr_t psv
                                                 DBG_PASS
 															  )
 {
@@ -637,18 +637,18 @@ struct task_end_notice
 {
 	PTHREAD thread;
 	LOGICAL ended;
-	PTRSZVAL psv_output;
+	uintptr_t psv_output;
    TaskOutput output_handler;
 };
 
-static void CPROC SystemTaskEnd( PTRSZVAL psvUser, PTASK_INFO task )
+static void CPROC SystemTaskEnd( uintptr_t psvUser, PTASK_INFO task )
 {
 	struct task_end_notice *end_data = (struct task_end_notice *)psvUser;
 	end_data->ended = TRUE;
 	WakeThread( end_data->thread );
 }
 
-static void CPROC SystemOutputHandler( PTRSZVAL psvUser, PTASK_INFO Task, CTEXTSTR buffer, size_t len )
+static void CPROC SystemOutputHandler( uintptr_t psvUser, PTASK_INFO Task, CTEXTSTR buffer, size_t len )
 {
 	struct task_end_notice *end_data = (struct task_end_notice *)psvUser;
 	end_data->output_handler( end_data->psv_output, Task, buffer, len );
@@ -667,7 +667,7 @@ ATEXIT( SystemAutoShutdownTasks )
 
 SYSTEM_PROC( PTASK_INFO, SystemEx )( CTEXTSTR command_line
 															  , TaskOutput OutputHandler
-															  , PTRSZVAL psv
+															  , uintptr_t psv
 																DBG_PASS
 											)
 {
@@ -682,7 +682,7 @@ SYSTEM_PROC( PTASK_INFO, SystemEx )( CTEXTSTR command_line
 	end_notice.output_handler = OutputHandler;
 	ParseIntoArgs( command_line_tmp, &argc, &argv );
 	Release( command_line_tmp );
-	result = LaunchPeerProgramExx( argv[0], NULL, (PCTEXTSTR)argv, 0, OutputHandler?SystemOutputHandler:NULL, SystemTaskEnd, (PTRSZVAL)&end_notice DBG_RELAY );
+	result = LaunchPeerProgramExx( argv[0], NULL, (PCTEXTSTR)argv, 0, OutputHandler?SystemOutputHandler:NULL, SystemTaskEnd, (uintptr_t)&end_notice DBG_RELAY );
 	if( result )
 	{
 		AddLink( &(*local_systemlib).system_tasks, result );
@@ -753,7 +753,7 @@ int vpprintf( PTASK_INFO task, CTEXTSTR format, va_list args )
 						Log( WIDE( "Pipe has no readers..." ) );
 							break;
 					}
-					LogBinary( (_8*)GetText( seg ), GetTextSize( seg ) );
+					LogBinary( (uint8_t*)GetText( seg ), GetTextSize( seg ) );
 					write( task->hStdIn.handle
 						 , GetText( seg )
 						 , GetTextSize( seg ) );

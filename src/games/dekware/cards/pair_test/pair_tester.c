@@ -15,10 +15,10 @@ typedef struct {
 	PDECK deck;
 	PHAND hand[9];
 
-	_32 _b; // last button state.
+	uint32_t _b; // last button state.
 
-	_32 step_x, step_y;
-	_32 width, height;
+	uint32_t step_x, step_y;
+	uint32_t width, height;
 	Image card_image[4][13];
 
 	int nHand;
@@ -38,7 +38,7 @@ typedef struct {
 static LOCAL l;
 
 
-PTRSZVAL CPROC PlayHands( PTHREAD thread )
+uintptr_t CPROC PlayHands( PTHREAD thread )
 {
 	int hand = 0;
 	int h;

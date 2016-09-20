@@ -22,7 +22,7 @@ static struct fuse_private_local
 	CTEXTSTR private_mount_point;
    pid_t myself;
 	struct directory_entry zero_entkey;
-	_8 zerokey[BLOCK_SIZE];
+	uint8_t zerokey[BLOCK_SIZE];
 	uid_t uid;
    gid_t gid;
 #ifdef BUILD_TEST
@@ -164,9 +164,9 @@ static void DumpDirectory( struct volume *vol, fuse_req_t req, struct dirbuf *b 
 			if( !(next_entries[n].first_block ^ entkey->first_block ) ) continue;// if file is deleted; don't check it's name.
 			{
 				char buf[256];
-				P_8 name = TSEEK( P_8, vol, name_ofs, BLOCK_CACHE_NAMES );
+				uint8_t* name = TSEEK( uint8_t*, vol, name_ofs, BLOCK_CACHE_NAMES );
 				int ch;
-				_8 c;
+				uint8_t c;
             if( vol->key )
 					for( ch = 0; c = (name[ch] ^ vol->usekey[BLOCK_CACHE_NAMES][( name_ofs & BLOCK_MASK ) +ch]); ch++ )
 						buf[ch] = c;
@@ -193,7 +193,7 @@ static void DumpDirectory( struct volume *vol, fuse_req_t req, struct dirbuf *b 
 
 static void ll_opendir(fuse_req_t req, fuse_ino_t ino, struct fuse_file_info *fi)
 {
-   fi->fh = (PTRSZVAL)New( struct dirbuf );
+   fi->fh = (uintptr_t)New( struct dirbuf );
 	memset((void*)fi->fh, 0, sizeof(struct dirbuf));
    fuse_reply_open( req, fi );
 }
@@ -290,7 +290,7 @@ static void fpvfs_close( void )
 	}
 }
 
-static PTRSZVAL CPROC sessionLoop( PTHREAD thread )
+static uintptr_t CPROC sessionLoop( PTHREAD thread )
 {
    lprintf( "thread as %d %d", getpid(), getpgrp() );
 	if( fuse_set_signal_handlers( fpl.session ) != -1 ) {

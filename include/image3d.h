@@ -30,9 +30,9 @@ struct shader_buffer {
 typedef struct image_3d_interface_tag
 {
 	IMAGE_PROC_PTR( PImageShaderTracker, ImageGetShaderInit)         ( CTEXTSTR name
-		, PTRSZVAL (CPROC*Setup)(PTRSZVAL psvInit)
-		, void (CPROC*Init)(PTRSZVAL psvSetup,PImageShaderTracker)
-		, PTRSZVAL psvInit );	
+		, uintptr_t (CPROC*Setup)(uintptr_t psvInit)
+		, void (CPROC*Init)(uintptr_t psvSetup,PImageShaderTracker)
+		, uintptr_t psvInit );	
 	IMAGE_PROC_PTR( int, ImageCompileShader )( PImageShaderTracker shader
 														  , char const*const*vertex_code, int vert_blocks
 														  , char const*const*frag_code, int frag_blocks );
@@ -42,15 +42,15 @@ typedef struct image_3d_interface_tag
 															 , struct image_shader_attribute_order *attribs, int nAttribs 
 															 );
 	IMAGE_PROC_PTR( void, ImageEnableShader )( PImageShaderTracker tracker, ... );
-	IMAGE_PROC_PTR( void, ImageSetShaderEnable )( PImageShaderTracker tracker, void (CPROC*EnableShader)( PImageShaderTracker tracker, PTRSZVAL psv, va_list args ), PTRSZVAL );
+	IMAGE_PROC_PTR( void, ImageSetShaderEnable )( PImageShaderTracker tracker, void (CPROC*EnableShader)( PImageShaderTracker tracker, uintptr_t psv, va_list args ), uintptr_t );
 	IMAGE_PROC_PTR( void, ImageSetShaderModelView )( PImageShaderTracker tracker, RCOORD *matrix );
 	IMAGE_PROC_PTR( struct image_shader_op *, ImageBeginShaderOp )(PImageShaderTracker tracker, ... );
 	// same parameters as the enable...
 	IMAGE_PROC_PTR( void, AppendShaderTristripQuad )( struct image_shader_op * tracker, ... );
 	// shader specific append; so it can deal with tracking source images for grouping
-	IMAGE_PROC_PTR( void, SetShaderAppendTristrip )( PImageShaderTracker tracker, void (CPROC*AppendTristrip)( struct image_shader_op *op, int triangles,PTRSZVAL,va_list args ) );
-	IMAGE_PROC_PTR( void, SetShaderOutput )( PImageShaderTracker tracker, void (CPROC*Flush)( PImageShaderTracker tracker, PTRSZVAL, PTRSZVAL, int, int ) );
-	IMAGE_PROC_PTR( void, SetShaderReset )( PImageShaderTracker tracker, void (CPROC*Reset)( PImageShaderTracker tracker, PTRSZVAL, PTRSZVAL ) );
+	IMAGE_PROC_PTR( void, SetShaderAppendTristrip )( PImageShaderTracker tracker, void (CPROC*AppendTristrip)( struct image_shader_op *op, int triangles,uintptr_t,va_list args ) );
+	IMAGE_PROC_PTR( void, SetShaderOutput )( PImageShaderTracker tracker, void (CPROC*Flush)( PImageShaderTracker tracker, uintptr_t, uintptr_t, int, int ) );
+	IMAGE_PROC_PTR( void, SetShaderReset )( PImageShaderTracker tracker, void (CPROC*Reset)( PImageShaderTracker tracker, uintptr_t, uintptr_t ) );
 	// same parameters as the enable...
 	IMAGE_PROC_PTR( void, AppendShaderTristrip )( struct image_shader_op * tracker, int triangles, ... );
 	//IMAGE_PROC_PTR( struct image_shader_op *, BeginShaderOp)(PImageShaderTracker tracker );

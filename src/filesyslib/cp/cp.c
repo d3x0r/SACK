@@ -7,12 +7,12 @@
 typedef struct global_tag
 {
 	struct {
-		_32 force : 1;
-		_32 recurse : 1;
-		_32 preserve : 1; // preserve rights - no meaning.
-		_32 interactive : 1;
-		_32 directories : 1;
-		//_32 fast : 1;
+		uint32_t force : 1;
+		uint32_t recurse : 1;
+		uint32_t preserve : 1; // preserve rights - no meaning.
+		uint32_t interactive : 1;
+		uint32_t directories : 1;
+		//uint32_t fast : 1;
 	} flags;
 	int nSrc;
 	PLIST src;
@@ -25,7 +25,7 @@ GLOBAL g;
 
 int MyCopyFile( char *src, char *dest, int unused )
 {
-	_32 src_size = 0;
+	uint32_t src_size = 0;
 	POINTER pSrc;
 	POINTER pDest;
 	pSrc  = OpenSpace( NULL, src, &src_size );
@@ -56,7 +56,7 @@ int MyCopyFile2( char *src, char *dest, int unused )
    return 1;
 }
 
-void CPROC DoCopy( PTRSZVAL skip, char *src, int flags )
+void CPROC DoCopy( uintptr_t skip, char *src, int flags )
 {
 	char tmp[256];
 	sprintf( tmp, WIDE("%s/%s"), g.dest, src + skip );
@@ -106,7 +106,7 @@ int HasWild( char *name )
 int main( int argc, char **argv )
 {
 	int arg;
-	//_32 start = GetTickCount();
+	//uint32_t start = GetTickCount();
 	//SetSystemLog( SYSLOG_FILENAME, WIDE("cp.log") );
 	for( arg = 1; arg < argc; arg++ )
 	{

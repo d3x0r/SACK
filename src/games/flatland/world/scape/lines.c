@@ -15,7 +15,7 @@ extern GLOBAL g;
 
 //DefineMarkers( line, Line, iLine );
 
-INDEX SrvrCreateOpenLine( _32 client_id, INDEX iWorld
+INDEX SrvrCreateOpenLine( uint32_t client_id, INDEX iWorld
 						  , _POINT o, _POINT n )
 {
 	PWORLD world = GetSetMember( WORLD, &g.worlds, iWorld );
@@ -45,7 +45,7 @@ INDEX SrvrCreateOpenLine( _32 client_id, INDEX iWorld
 
 //----------------------------------------------------------------------------
 
-INDEX SrvrDuplicateLine( _32 client_id, INDEX iWorld, INDEX ilsDup )
+INDEX SrvrDuplicateLine( uint32_t client_id, INDEX iWorld, INDEX ilsDup )
 {
 	PWORLD world = GetSetMember( WORLD, &g.worlds, iWorld );
 	PFLATLAND_MYLINESEGSET *ppLines = &world->lines;
@@ -266,7 +266,7 @@ static void BalanceLine( PFLATLAND_MYLINESEG pls )
 	pls->dTo = 1;
 }
 
-void SrvrBalanceALine( _32 client_id, INDEX iWorld, INDEX iLine )
+void SrvrBalanceALine( uint32_t client_id, INDEX iWorld, INDEX iLine )
 {
 	PWORLD world = GetSetMember( WORLD, &g.worlds, iWorld );
 	PFLATLAND_MYLINESEG pls = GetSetMember( FLATLAND_MYLINESEG, &world->lines, iLine );

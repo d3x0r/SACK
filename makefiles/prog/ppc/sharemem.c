@@ -77,11 +77,11 @@ int bLogCritical;
 
 //-------------------------------------------------------------------------
 #ifndef HAS_ASSEMBLY
-MEM_PROC( _32, LockedExchange )( P_32 p, _32 val )
+MEM_PROC( uint32_t, LockedExchange )( uint32_t* p, uint32_t val )
 {
 	if( p )
 	{
-		_32 prior = *p;
+		uint32_t prior = *p;
 		*p = val;
 		return prior;
 	}
@@ -89,7 +89,7 @@ MEM_PROC( _32, LockedExchange )( P_32 p, _32 val )
 }
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-MEM_PROC( void, MemSet )( POINTER p, _32 n, _32 sz )
+MEM_PROC( void, MemSet )( POINTER p, uint32_t n, uint32_t sz )
 {
 #ifdef _MSC_VER
       _asm mov ecx, sz;
@@ -114,7 +114,7 @@ store_none: ;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-MEM_PROC( void, MemCpy )( POINTER pTo, CPOINTER pFrom, _32 sz )
+MEM_PROC( void, MemCpy )( POINTER pTo, CPOINTER pFrom, uint32_t sz )
 {
 #ifdef _MSC_VER
       _asm mov   ecx, sz;
@@ -137,33 +137,33 @@ test_end: ;
 #endif
 }
 
-MEM_PROC( int, MemCmp )( CPOINTER pOne, CPOINTER pTwo, _32 sz )
+MEM_PROC( int, MemCmp )( CPOINTER pOne, CPOINTER pTwo, uint32_t sz )
 {
    return memcmp( pOne, pTwo, sz );
 }
 #else
 #ifdef __STATIC__
-//extern _32  LockedExchange( P_32 p, _32 val );
-extern void MemSet( POINTER p, _32 n, _32 sz );
-extern void MemCpy( POINTER to, CPOINTER from, _32 sz );
-extern int MemCmp( CPOINTER p1, CPOINTER p2, _32 sz );
+//extern uint32_t  LockedExchange( uint32_t* p, uint32_t val );
+extern void MemSet( POINTER p, uint32_t n, uint32_t sz );
+extern void MemCpy( POINTER to, CPOINTER from, uint32_t sz );
+extern int MemCmp( CPOINTER p1, CPOINTER p2, uint32_t sz );
 #else
-//MEM_PROC(  _32,  LockedExchange )( P_32 p, _32 val );
-MEM_PROC(  void, MemSet )( POINTER p, _32 n, _32 sz );
-MEM_PROC(  void, MemCpy )( POINTER to, CPOINTER from, _32 sz );
-MEM_PROC(  int, MemCmp )( CPOINTER to, CPOINTER from, _32 sz );
+//MEM_PROC(  uint32_t,  LockedExchange )( uint32_t* p, uint32_t val );
+MEM_PROC(  void, MemSet )( POINTER p, uint32_t n, uint32_t sz );
+MEM_PROC(  void, MemCpy )( POINTER to, CPOINTER from, uint32_t sz );
+MEM_PROC(  int, MemCmp )( CPOINTER to, CPOINTER from, uint32_t sz );
 #endif
 #endif
 
 //-------------------------------------------------------------------------
-MEM_PROC( _32, LockedIncrement )( P_32 p)
+MEM_PROC( uint32_t, LockedIncrement )( uint32_t* p)
 {
     if(p)
         return (*p)++;
     return 0;
 }
 //-------------------------------------------------------------------------
-MEM_PROC( _32, LockedDecrement )( P_32 p )
+MEM_PROC( uint32_t, LockedDecrement )( uint32_t* p )
 {
     if(p)
         return (*p)--;
@@ -337,10 +337,10 @@ enum {
 typedef struct internal_debug_log {
    int nType;
    POINTER p;
-   _32 dwSize;
-   _32 dwID;
-   _32 dwTime;
-   _32 nLine;
+   uint32_t dwSize;
+   uint32_t dwID;
+   uint32_t dwTime;
+   uint32_t nLine;
    TEXTSTR pFile;
 } DLOG, *PDLOG;
 
@@ -424,7 +424,7 @@ void TRACK_DEALLOC( void *pt, char *pFile, int nLine )
       }
    }
 }
-_32 lastdumptime;
+uint32_t lastdumptime;
 void TRACK_DUMP( void )
 {
    int n, max;
@@ -478,7 +478,7 @@ int pagesize;
 
 #define BASE_MEMORY (POINTER)0x80000000
 // golly allocating a WHOLE DOS computer to ourselves? how RUDE
-_32 dwSystemCapacity = 0x10000 * 0x08;  // 512K ! 1 meg... or 16 :(
+uint32_t dwSystemCapacity = 0x10000 * 0x08;  // 512K ! 1 meg... or 16 :(
 #define SYSTEM_CAPACITY  dwSystemCapacity
 
 
@@ -489,7 +489,7 @@ _32 dwSystemCapacity = 0x10000 * 0x08;  // 512K ! 1 meg... or 16 :(
 
 #ifdef __LINUX__
 #define WINAPI
-typedef _32 HINSTANCE;
+typedef uint32_t HINSTANCE;
 #endif
 // last entry in space tracking array will ALWAYS be
 // another space tracking array (if used)
@@ -502,8 +502,8 @@ typedef struct space_tracking_structure {
 #else
    int hFile;
 #endif
-   _32 dwSmallSize;
-   _32 dwSmallIndex;
+   uint32_t dwSmallSize;
+   uint32_t dwSmallIndex;
    struct space_tracking_structure *pNext
                                  , **me;
    struct space_tracking_structure *expansion;
@@ -512,10 +512,10 @@ typedef struct space_tracking_structure {
 static PSPACE pSpacePool;
 static PSPACE pFirst;
 #ifdef _DEBUG
-static _32 dwBlocks; // last values from getmemstats...
-static _32 dwFreeBlocks;
-static _32 dwAllocated;
-static _32 dwFree;
+static uint32_t dwBlocks; // last values from getmemstats...
+static uint32_t dwFreeBlocks;
+static uint32_t dwAllocated;
+static uint32_t dwFree;
 #endif
 #define MAX_PER_BLOCK 128 // 1 page blocks ...
 
@@ -534,7 +534,7 @@ void InitSharedMemory( void )
         Log2( WIDE("CHUNK: %d  MEM:%d"), CHUNK_SIZE, MEM_SIZE );
         bInit = TRUE;  // onload was definatly a zero.
         {
-            _32 dwSize = MAX_PER_BLOCK * sizeof( SPACE );
+            uint32_t dwSize = MAX_PER_BLOCK * sizeof( SPACE );
             pSpacePool = OpenSpace( NULL, NULL, &dwSize );
             if( pSpacePool )
             {
@@ -566,7 +566,7 @@ void InitSharedMemory( void )
 
 //------------------------------------------------------------------------------------------------------
 // private
-static PSPACE AddSpace( PSPACE pSpacePool, HANDLE hFile, HANDLE hMem, POINTER pMem, _32 dwSize, int bLink )
+static PSPACE AddSpace( PSPACE pSpacePool, HANDLE hFile, HANDLE hMem, POINTER pMem, uint32_t dwSize, int bLink )
 {
    PSPACE ps, _ps;
    static int InAdding; // don't add our tracking to ourselves...
@@ -611,8 +611,8 @@ Retry:
       goto Retry;
    }
    //Log7( WIDE("Managing space (s)%p (pm)%p (hf)%08lx (hm)%08lx (sz)%ld %08lx-%08lx")
-   //				, ps, pMem, (_32)hFile, (_32)hMem, dwSize
-   //            , (_32)pMem, ((_32)pMem + dwSize)
+   //				, ps, pMem, (uint32_t)hFile, (uint32_t)hMem, dwSize
+   //            , (uint32_t)pMem, ((uint32_t)pMem + dwSize)
    //				);
    ps->pMem = pMem;
    ps->hFile = hFile;
@@ -650,7 +650,7 @@ void DumpSpaces( void )
 	PSPACE ps = pSpacePool;
 	while( ps )
 	{
-		Log3( WIDE("Space: %p mem: %p-%p"), ps, ps->pMem, (P_8)ps->pMem + ps->dwSmallSize );
+		Log3( WIDE("Space: %p mem: %p-%p"), ps, ps->pMem, (uint8_t*)ps->pMem + ps->dwSmallSize );
 		if( ps->expansion )
 		{
          PSPACE pe = ps->expansion;
@@ -658,7 +658,7 @@ void DumpSpaces( void )
 			{
 				Log4( WIDE("expanded space: %p mem: %p-%p(%d)")
 					 , pe
-					 , pe->pMem, (P_8)pe->pMem + pe->dwSmallSize
+					 , pe->pMem, (uint8_t*)pe->pMem + pe->dwSmallSize
 					 , pe->dwSmallSize );
 				pe = pe->expansion;
 			}
@@ -740,7 +740,7 @@ MEM_PROC( void, CloseSpace )( POINTER pMem )
 
 //------------------------------------------------------------------------------------------------------
 
-MEM_PROC( _32, GetSpaceSize )( POINTER pMem )
+MEM_PROC( uint32_t, GetSpaceSize )( POINTER pMem )
 {
    PSPACE ps;
    ps = FindSpace( pMem );
@@ -750,16 +750,16 @@ MEM_PROC( _32, GetSpaceSize )( POINTER pMem )
 }
 
 #ifdef __LINUX__
-_32 GetFileSize( int fd )
+uint32_t GetFileSize( int fd )
 {
-    _32 len = lseek( fd, 0, SEEK_END );
+    uint32_t len = lseek( fd, 0, SEEK_END );
     lseek( fd, 0, SEEK_SET );
     return len;
 }
 
 #endif
 //------------------------------------------------------------------------------------------------------
-MEM_PROC( POINTER, OpenSpaceEx )( TEXTSTR pWhat, TEXTSTR pWhere, _32 address, P_32 dwSize )
+MEM_PROC( POINTER, OpenSpaceEx )( TEXTSTR pWhat, TEXTSTR pWhere, uint32_t address, uint32_t* dwSize )
 {
    HANDLE hFile;
    HANDLE hMem;
@@ -809,7 +809,7 @@ MEM_PROC( POINTER, OpenSpaceEx )( TEXTSTR pWhat, TEXTSTR pWhere, _32 address, P_
            }
            if( exists )
            {
-               if( GetFileSize( fd ) < (_32)*dwSize )
+               if( GetFileSize( fd ) < (uint32_t)*dwSize )
 					{
                   // expands the file...
                    ftruncate( fd, *dwSize );
@@ -897,7 +897,7 @@ MEM_PROC( POINTER, OpenSpaceEx )( TEXTSTR pWhat, TEXTSTR pWhere, _32 address, P_
       {
          // mark status for memory... dunno why?
          // in theory this is a memory image of valid memory already...
-         if( GetFileSize( hFile, NULL ) < (_32)*dwSize )
+         if( GetFileSize( hFile, NULL ) < (uint32_t)*dwSize )
          {
             //*dwSize = ( ( *dwSize + ( FILE_GRAN - 1 ) ) / FILE_GRAN ) * FILE_GRAN;
             SetFilePointer( hFile, *dwSize, NULL, FILE_BEGIN );
@@ -970,13 +970,13 @@ isokay:
 
 //------------------------------------------------------------------------------------------------------
 #undef OpenSpace
-MEM_PROC( POINTER, OpenSpace )( TEXTSTR pWhat, TEXTSTR pWhere, P_32 dwSize )
+MEM_PROC( POINTER, OpenSpace )( TEXTSTR pWhat, TEXTSTR pWhere, uint32_t* dwSize )
 {
         return OpenSpaceEx( pWhat, pWhere, 0, dwSize );
 }
 //------------------------------------------------------------------------------------------------------
 
-MEM_PROC( void, InitHeap)( PMEM pMem, _32 dwSize )
+MEM_PROC( void, InitHeap)( PMEM pMem, uint32_t dwSize )
 {
    //pMem->dwSize = *dwSize - MEM_SIZE;
    // size of the PMEM block is all inclusive (from pMem(0) to pMem(dwSize))
@@ -1010,7 +1010,7 @@ MEM_PROC( void, InitHeap)( PMEM pMem, _32 dwSize )
 
 //------------------------------------------------------------------------------------------------------
 
-PMEM DigSpace( TEXTSTR pWhat, TEXTSTR pWhere, P_32 dwSize )
+PMEM DigSpace( TEXTSTR pWhat, TEXTSTR pWhere, uint32_t* dwSize )
 {
     PMEM pMem = (PMEM)OpenSpace( pWhat, pWhere, dwSize );
 
@@ -1030,7 +1030,7 @@ PMEM DigSpace( TEXTSTR pWhat, TEXTSTR pWhere, P_32 dwSize )
 
 //------------------------------------------------------------------------------------------------------
 
-int ExpandSpace( PMEM pMem, _32 dwAmount )
+int ExpandSpace( PMEM pMem, uint32_t dwAmount )
 {
    PSPACE pspace = FindSpace( (POINTER)pMem );
    PSPACE pnewspace;
@@ -1059,7 +1059,7 @@ int ExpandSpace( PMEM pMem, _32 dwAmount )
 //------------------------------------------------------------------------------------------------------
 
 
-static _32 bMemInstanced; // set if anybody starts to DIG.
+static uint32_t bMemInstanced; // set if anybody starts to DIG.
 static PMEM pMemInstance;
 //static PMEM pMasterInstance;
 
@@ -1070,7 +1070,7 @@ static PMEM GrabMemEx( PMEM pMem DBG_PASS )
 	{
 		if( !bMemInstanced )
 		{
-         _32 MinSize = SYSTEM_CAPACITY;
+         uint32_t MinSize = SYSTEM_CAPACITY;
          // generic internal memory, unnamed, unshared, unsaved
          pMemInstance = pMem = DigSpace( NULL, NULL, &MinSize );
          if( !pMem )
@@ -1088,7 +1088,7 @@ static PMEM GrabMemEx( PMEM pMem DBG_PASS )
 
 //------------------------------------------------------------------------------------------------------
 
-MEM_PROC( POINTER, HeapAllocateEx )( PMEM pHeap, _32 dwSize DBG_PASS )
+MEM_PROC( POINTER, HeapAllocateEx )( PMEM pHeap, uint32_t dwSize DBG_PASS )
 {
    PCHUNK pc;
    PMEM pMem, pCurMem = NULL;
@@ -1113,7 +1113,7 @@ MEM_PROC( POINTER, HeapAllocateEx )( PMEM pHeap, _32 dwSize DBG_PASS )
 
 #ifdef _DEBUG
 	if( !bDisableDebug )
-	   dwSize += 4;  // add a _32 at end to mark, and check for application overflow...
+	   dwSize += 4;  // add a uint32_t at end to mark, and check for application overflow...
 #endif
 
 	// re-search for memory should step long back...
@@ -1167,7 +1167,7 @@ search_for_free_memory:
    	         if( pc->dwSize & 0x80000000 )
       	         DebugBreak();
 
-            	if( (PTRSZVAL)pNext - (PTRSZVAL)pCurMem < (PTRSZVAL)pCurMem->dwSize )  // not beyond end of memory...
+            	if( (uintptr_t)pNext - (uintptr_t)pCurMem < (uintptr_t)pCurMem->dwSize )  // not beyond end of memory...
 	               pNext->pPrior = pNew;
 
       	      pNew->dwOwners = 0;
@@ -1277,17 +1277,17 @@ search_for_free_memory:
 
 //------------------------------------------------------------------------------------------------------
 #undef AllocateEx
-MEM_PROC( POINTER, AllocateEx )( _32 dwSize DBG_PASS )
+MEM_PROC( POINTER, AllocateEx )( uint32_t dwSize DBG_PASS )
 {
 	return HeapAllocateEx( pMemInstance, dwSize DBG_RELAY );
 }
 
 //------------------------------------------------------------------------------------------------------
 
-MEM_PROC( POINTER, HeapReallocateEx )( PMEM pHeap, POINTER source, _32 size DBG_PASS )
+MEM_PROC( POINTER, HeapReallocateEx )( PMEM pHeap, POINTER source, uint32_t size DBG_PASS )
 {
 	POINTER dest;
-	_32 min;
+	uint32_t min;
 
 	dest = HeapAllocateEx( pHeap, size DBG_RELAY );
 	if( source )
@@ -1297,7 +1297,7 @@ MEM_PROC( POINTER, HeapReallocateEx )( PMEM pHeap, POINTER source, _32 size DBG_
 			min = size;
 		MemCpy( dest, source, min );
 		if( min < size )
-			MemSet( ((P_8)dest) + min, size, size - min );
+			MemSet( ((uint8_t*)dest) + min, size, size - min );
 		ReleaseEx( source DBG_RELAY );
 	}
 	else
@@ -1316,7 +1316,7 @@ MEM_PROC( POINTER, HeapMoveEx )( PMEM pNewHeap, POINTER source DBG_PASS )
 
 //------------------------------------------------------------------------------------------------------
 
-MEM_PROC( POINTER, ReallocateEx )( POINTER source, _32 size DBG_PASS )
+MEM_PROC( POINTER, ReallocateEx )( POINTER source, uint32_t size DBG_PASS )
 {
 	return HeapReallocateEx( pMemInstance, source, size DBG_RELAY );
 }
@@ -1333,7 +1333,7 @@ static void Bubble( PMEM pMem )
    next = temp->pNextFree;
    while( temp && next )
    {
-      if( (PTRSZVAL)next < (PTRSZVAL)temp )
+      if( (uintptr_t)next < (uintptr_t)temp )
       {
          next = temp->pNextFree;
          if( (temp->pNextFree = next->pNextFree) )
@@ -1363,11 +1363,11 @@ static void CollapsePrior( PCHUNK pThis )
 
 //------------------------------------------------------------------------------------------------------
 
-MEM_PROC( _32, SizeOfMemBlock )( CPOINTER pData )
+MEM_PROC( uint32_t, SizeOfMemBlock )( CPOINTER pData )
 {
 	if( pData )
 	{
-	   register PCHUNK pc = (PCHUNK)(((PTRSZVAL)pData) - offsetof( CHUNK, byData ));
+	   register PCHUNK pc = (PCHUNK)(((uintptr_t)pData) - offsetof( CHUNK, byData ));
 #ifdef _DEBUG
 		if( !bDisableDebug )
 	   	return pc->dwSize - 4;
@@ -1381,7 +1381,7 @@ MEM_PROC( _32, SizeOfMemBlock )( CPOINTER pData )
 
 MEM_PROC( POINTER, MemDupEx )( CPOINTER thing DBG_PASS )
 {
-	_32 size = SizeOfMemBlock( thing );
+	uint32_t size = SizeOfMemBlock( thing );
    POINTER result;
 	result = AllocateEx( size DBG_RELAY );
 	MemCpy( result, thing, size );
@@ -1398,7 +1398,7 @@ MEM_PROC( POINTER, MemDup )(CPOINTER thing )
 MEM_PROC( POINTER, ReleaseEx )( POINTER pData DBG_PASS )
 {
 // register PMEM pMem = (PMEM)(pData - offsetof( MEM, pRoot ));
-   register PCHUNK pc = (PCHUNK)(((PTRSZVAL)pData) - offsetof( CHUNK, byData ));
+   register PCHUNK pc = (PCHUNK)(((uintptr_t)pData) - offsetof( CHUNK, byData ));
    PMEM pMem, pCurMem;
    PSPACE pMemSpace;
 	if( !pData ) // always safe to release nothing at all..
@@ -1423,8 +1423,8 @@ MEM_PROC( POINTER, ReleaseEx )( POINTER pData DBG_PASS )
 	pMemSpace = FindSpace( pMem );
 
    while( pMemSpace && ( ( pCurMem = (PMEM)pMemSpace->pMem ),
-   		 (   ( (_32)pData < (_32)pCurMem )
-   		 ||  ( (_32)pData > ( (_32)pCurMem + pCurMem->dwSize ) ) )
+   		 (   ( (uint32_t)pData < (uint32_t)pCurMem )
+   		 ||  ( (uint32_t)pData > ( (uint32_t)pCurMem + pCurMem->dwSize ) ) )
    		 )
         )
 	{
@@ -1854,7 +1854,7 @@ MEM_PROC( LOGICAL, Defragment )( POINTER *ppMemory ) // returns true/false, upda
    PMEM pMem;
    if( !ppMemory || !*ppMemory)
       return FALSE;
-   pc = (PCHUNK)(((PTRSZVAL)(*ppMemory)) - offsetof( CHUNK, byData ));
+   pc = (PCHUNK)(((uintptr_t)(*ppMemory)) - offsetof( CHUNK, byData ));
    pMem = GrabMem( pc->pRoot );
 
       // check if prior block is free... if so - then...
@@ -1908,7 +1908,7 @@ MEM_PROC( LOGICAL, Defragment )( POINTER *ppMemory ) // returns true/false, upda
                pNew->dwSize += pNext->dwSize + CHUNK_SIZE;
                pNext = (PCHUNK)( pNew->byData + pNew->dwSize );
 
-               if( (_32)(((char *)pNext) - ((char *)pMem)) < pMem->dwSize )
+               if( (uint32_t)(((char *)pNext) - ((char *)pMem)) < pMem->dwSize )
                {
                   pNext->pPrior = pNew;
                }
@@ -1929,7 +1929,7 @@ MEM_PROC( LOGICAL, Defragment )( POINTER *ppMemory ) // returns true/false, upda
 
 //------------------------------------------------------------------------------------------------------
 
-MEM_PROC( void, GetHeapMemStatsEx )( PMEM pHeap, _32 *pFree, _32 *pUsed, _32 *pChunks, _32 *pFreeChunks DBG_PASS )
+MEM_PROC( void, GetHeapMemStatsEx )( PMEM pHeap, uint32_t *pFree, uint32_t *pUsed, uint32_t *pChunks, uint32_t *pFreeChunks DBG_PASS )
 {
     int nFree = 0, nUsed = 0, nChunks = 0, nFreeChunks = 0, nSpaces = 0;
     PCHUNK pc, _pc;
@@ -2021,7 +2021,7 @@ MEM_PROC( void, GetHeapMemStatsEx )( PMEM pHeap, _32 *pFree, _32 *pUsed, _32 *pC
 
 //------------------------------------------------------------------------------------------------------
 
-MEM_PROC( void, GetMemStats )( _32 *pFree, _32 *pUsed, _32 *pChunks, _32 *pFreeChunks )
+MEM_PROC( void, GetMemStats )( uint32_t *pFree, uint32_t *pUsed, uint32_t *pChunks, uint32_t *pFreeChunks )
 {
 	GetHeapMemStats( pMemInstance, pFree, pUsed, pChunks, pFreeChunks );
 }
@@ -2071,11 +2071,11 @@ MEM_PROC( void, SetHeapUnit )( int dwSize )
 
 //------------------------------------------------------------------------------------------------------
 
-// unsigned long = INDEX = _32
-// soon to become _64 - base pointers expand then also... so alignemt maintains
+// unsigned long = INDEX = uint32_t
+// soon to become uint64_t - base pointers expand then also... so alignemt maintains
 //------------------------------------------------------------------------------------------------------
 
-MEM_PROC( int, SetMemoryPointer )( PSPACE pmstr, _32 idx )
+MEM_PROC( int, SetMemoryPointer )( PSPACE pmstr, uint32_t idx )
 {
    pmstr->dwSmallIndex = idx;
    return 1;
@@ -2088,7 +2088,7 @@ MEM_PROC( int, CanReadMore )( PSPACE pmstr )
 }
 
 //------------------------------------------------------------------------------------------------------
-MEM_PROC( int, CanReadSize )( PSPACE pmstr, _32 size )
+MEM_PROC( int, CanReadSize )( PSPACE pmstr, uint32_t size )
 {
    return ( ( pmstr->dwSmallSize - pmstr->dwSmallIndex ) > size );
 }
@@ -2125,7 +2125,7 @@ MEM_PROC( unsigned short, ReadNextWord )( PSPACE pmstr )
 }
 
 //------------------------------------------------------------------------------------------------------
-MEM_PROC( _32, ReadNextLong )( PSPACE pmstr )
+MEM_PROC( uint32_t, ReadNextLong )( PSPACE pmstr )
 {
    unsigned long t;
    t = 0;
@@ -2154,7 +2154,7 @@ MEM_PROC( unsigned long, ReadNextBuffer )( PSPACE pmstr, void *p, unsigned long 
 MEM_PROC( int, CmpMem8 )( void *s1, void *s2, unsigned long n, unsigned long *r )
 {
    register int t1, t2;
-	_32 pos;
+	uint32_t pos;
    {
    	pos = 0;
       while( pos < n )
@@ -2186,7 +2186,7 @@ MEM_PROC( int, CmpMem8 )( void *s1, void *s2, unsigned long n, unsigned long *r 
 
 //------------------------------------------------------------------------------------------------------
 #undef GetHeapMemStats
-MEM_PROC( void, GetHeapMemStats )( PMEM pHeap, _32 *pFree, _32 *pUsed, _32 *pChunks, _32 *pFreeChunks )
+MEM_PROC( void, GetHeapMemStats )( PMEM pHeap, uint32_t *pFree, uint32_t *pUsed, uint32_t *pChunks, uint32_t *pFreeChunks )
 {
 	GetHeapMemStatsEx( pHeap, pFree, pUsed, pChunks, pFreeChunks DBG_SRC );
 }
@@ -2294,7 +2294,7 @@ int strnicmp( char *one, char *two, int len )
 // Added MemDup to duplicate any given allocated pointer
 //
 // Revision 1.55  2003/01/31 17:09:31  panther
-// Remove DWORD in favor of _32
+// Remove DWORD in favor of uint32_t
 //
 // Revision 1.54  2003/01/28 16:38:15  panther
 // Added debugging info option to relay through

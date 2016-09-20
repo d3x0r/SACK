@@ -8,9 +8,9 @@ INDEX iTelnet;
 typedef struct mydatapath_tag {
 	DATAPATH common;
 	struct {
-		_32 bDoNAWS : 1;
-		_32 bSendNAWS : 1;
-		_32 bLastWasIAC : 1; // secondary IAC (255) received
+		uint32_t bDoNAWS : 1;
+		uint32_t bSendNAWS : 1;
+		uint32_t bLastWasIAC : 1; // secondary IAC (255) received
 	} flags;
 // buffers needed for proc_iac
 	TEXTCHAR iac_data[256];
@@ -22,23 +22,23 @@ typedef struct mydatapath_tag {
 // * Definitions for the TELNET protocol.
 // */
 // 
-#define  IAC   (_8)255    /* 0XFF interpret as command: */
-#define  DONT  (_8)254    /* 0XFE you are not to use option */
-#define  DO    (_8)253    /* 0XFD please, you use option */
-#define  WONT  (_8)252    /* 0XFC I won't use option */
-#define  WILL  (_8)251    /* 0XFB I will use option */
-#define  SB    (_8)250    /* 0XFA interpret as subnegotiation */
-#define  GA    (_8)249    /* 0XF9 you may reverse the line */
-#define  EL    (_8)248    /* 0XF8 erase the current line */
-#define  EC    (_8)247    /* 0XF7 erase the current character */
-#define  AYT   (_8)246    /* 0XF6 are you there */
-#define  AO    (_8)245    /* 0XF5 abort output--but let prog finish */
-#define  IP    (_8)244    /* 0XF4 interrupt process--permanently */
-#define  IACBK (_8)243    /* 0XF3 break */
-#define  DM    (_8)242    /* 0XF2 data mark--for connect. cleaning */
-#define  NOP   (_8)241    /* 0XF1 nop */
-#define  SE    (_8)240    /* 0XF0 end sub negotiation */
-#define  EOR   (_8)239    /* 0XEF end of record (transparent mode) */
+#define  IAC   (uint8_t)255    /* 0XFF interpret as command: */
+#define  DONT  (uint8_t)254    /* 0XFE you are not to use option */
+#define  DO    (uint8_t)253    /* 0XFD please, you use option */
+#define  WONT  (uint8_t)252    /* 0XFC I won't use option */
+#define  WILL  (uint8_t)251    /* 0XFB I will use option */
+#define  SB    (uint8_t)250    /* 0XFA interpret as subnegotiation */
+#define  GA    (uint8_t)249    /* 0XF9 you may reverse the line */
+#define  EL    (uint8_t)248    /* 0XF8 erase the current line */
+#define  EC    (uint8_t)247    /* 0XF7 erase the current character */
+#define  AYT   (uint8_t)246    /* 0XF6 are you there */
+#define  AO    (uint8_t)245    /* 0XF5 abort output--but let prog finish */
+#define  IP    (uint8_t)244    /* 0XF4 interrupt process--permanently */
+#define  IACBK (uint8_t)243    /* 0XF3 break */
+#define  DM    (uint8_t)242    /* 0XF2 data mark--for connect. cleaning */
+#define  NOP   (uint8_t)241    /* 0XF1 nop */
+#define  SE    (uint8_t)240    /* 0XF0 end sub negotiation */
+#define  EOR   (uint8_t)239    /* 0XEF end of record (transparent mode) */
 
 #define DO_TB                 0  //*856  do transmit binary 
 #define DO_ECHO               1  //*857
@@ -73,7 +73,7 @@ typedef struct mydatapath_tag {
 
 struct do_text_tag 
 {
-	_8 dovalue;
+	uint8_t dovalue;
 	TEXTSTR dotext;
 } DoText [] = {
 	{DO_TB, WIDE("TB")}
@@ -107,7 +107,7 @@ struct do_text_tag
 	
 #define TWECHO     1
 #define BREAKEVNT  2
-static _32 status;
+static uint32_t status;
 
 // this is used below during processing IAC codes
 // it's a relic from obsolete code... but it may
@@ -154,7 +154,7 @@ static int proc_iac(PMYDATAPATH pmdp, TEXTCHAR tchar)
 		//Log1( WIDE("Added byte: %02x"), tchar );
 		pmdp->iac_data[pmdp->iac_count++]=tchar;
 
-      switch( (_8)pmdp->iac_data[1])
+      switch( (uint8_t)pmdp->iac_data[1])
 		{
 		case IAC:
 			// displayln(traceout,WIDE("double iac on %hd\n"),Channel);

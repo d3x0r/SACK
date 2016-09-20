@@ -5,9 +5,9 @@
 
 RAGDOLL_NAMESPACE
 
- void CPROC UpdatePositions( PTRSZVAL psv )
+ void CPROC UpdatePositions( uintptr_t psv )
 {
-	_32 now = timeGetTime();
+	uint32_t now = timeGetTime();
 
 	//ApplyExternalForces();
 	if( l.last_tick )
@@ -19,13 +19,13 @@ RAGDOLL_NAMESPACE
 }       
 
 
-static void OnDraw3d( WIDE("Ragdoll Physics") )( PTRSZVAL psv )
+static void OnDraw3d( WIDE("Ragdoll Physics") )( uintptr_t psv )
 {
 
 	l.bullet.dynamicsWorld->debugDrawWorld();
 }
 
-static void OnBeginDraw3d( WIDE("Ragdoll Physics") )( PTRSZVAL psv, PTRANSFORM camera )
+static void OnBeginDraw3d( WIDE("Ragdoll Physics") )( uintptr_t psv, PTRANSFORM camera )
 {
 	//ClearTransform( camera );
 	//MoveForward( camera, -20 );
@@ -34,7 +34,7 @@ static void OnBeginDraw3d( WIDE("Ragdoll Physics") )( PTRSZVAL psv, PTRANSFORM c
 	
 }
 
-static PTRSZVAL OnInit3d( WIDE("Ragdoll physics") )( PMatrix projection, PTRANSFORM camera, RCOORD *unit_distance, RCOORD *aspect )
+static uintptr_t OnInit3d( WIDE("Ragdoll physics") )( PMatrix projection, PTRANSFORM camera, RCOORD *unit_distance, RCOORD *aspect )
 {
 	if( !l.origin )
 	{
@@ -44,7 +44,7 @@ static PTRSZVAL OnInit3d( WIDE("Ragdoll physics") )( PMatrix projection, PTRANSF
 		MoveUp( l.origin, 62 );
 	}
 
-	return (PTRSZVAL)camera;
+	return (uintptr_t)camera;
 }
 
 

@@ -18,14 +18,14 @@ typedef struct global_tag {
 		BIT_FIELD bBlacking : 1;
 	}flags;
 
-   _32 tick_to_switch;
+   uint32_t tick_to_switch;
 } GLOBAL;
 static GLOBAL g;
 Image imgGraphic;
 Image surface;
 
 PRENDERER display;
-_32 width, height;
+uint32_t width, height;
 #define MAX_STEPS 16
 int _ix[MAX_STEPS], _iy[MAX_STEPS];
 int _n;
@@ -206,7 +206,7 @@ void FillDifference2( Image surface, int a, int b, int mix, int color, int c2 )
 
 }
 
-void CPROC Output( PTRSZVAL psv, PRENDERER display )
+void CPROC Output( uintptr_t psv, PRENDERER display )
 {
 	surface = GetDisplayImage( display );
 	{
@@ -314,7 +314,7 @@ void CPROC Output( PTRSZVAL psv, PRENDERER display )
 	not_first = 1;
 }
 
-void CPROC tick( PTRSZVAL psv )
+void CPROC tick( uintptr_t psv )
 {
 	if( !g.tick_to_switch )
 		g.tick_to_switch = GetTickCount() + 60000;
@@ -331,8 +331,8 @@ SaneWinMain(argc, argv )
 //int main( int argc, char **argv )
 {
    LOGICAL SuccessOrFailure = TRUE;
-	_32 w,h, x = 0, y = 0;
-	_64 z = MAX_STEPS;
+	uint32_t w,h, x = 0, y = 0;
+	uint64_t z = MAX_STEPS;
 	srand( GetTickCount() );
    dx = rand() * 12 / RAND_MAX + 2;
    dy = rand() * 12 / RAND_MAX + 2;
@@ -341,8 +341,8 @@ SaneWinMain(argc, argv )
 	g.pii = GetImageInterface();
 	GetDisplaySize( &width, &height );
    w = width; h = height;
-	ix = rand() * (_64)w / RAND_MAX;
-   iy = rand() * (_64)h / RAND_MAX;
+	ix = rand() * (uint64_t)w / RAND_MAX;
+   iy = rand() * (uint64_t)h / RAND_MAX;
 
 
 	for( x = 0; x < argc; x++ )
@@ -440,7 +440,7 @@ SaneWinMain(argc, argv )
 		( (h + y ) <= height )
       )
 	{
-      _64 a = GetTickCount();
+      uint64_t a = GetTickCount();
 		display = OpenDisplaySizedAt( DISPLAY_ATTRIBUTE_LAYERED
 														  , w //width
 														  , h //height
@@ -467,7 +467,7 @@ SaneWinMain(argc, argv )
 	}
 	else
 	{
-		_32 x;
+		uint32_t x;
 		lprintf( WIDE("\n\n\tUsage: %s <image> [[[<width> <height>] <x> <y>] <seconds>].  \n\t\
 						  Must be width of %u by height of %u or less, controlled by Display.Config. \n\t\
 						  Example:  shoimg sky.jpg  orients at default (top left) and will use default resolution (maximum) and display full screen for the default time period (ten seconds).\n\t\

@@ -29,9 +29,9 @@ enum {
 #define KEYMOD_ALT    KEY_MOD_ALT
 #define KEYMOD_ANY    ((KEY_MOD_SHIFT|KEY_MOD_CTRL|KEY_MOD_ALT) + 1)
 
-RENDER_PROC( int, BindEventToKey )( PRENDERER pRender, _32 keycode, _32 modifier, void(CPROC*trigger)(PTRSZVAL,_32 keycode), PTRSZVAL );
-RENDER_PROC( int, BindStringToKey )( PRENDERER pRender, _32 keycode, _32 modifier, char *text );
-RENDER_PROC( int, UnbindKey )( PRENDERER pRender, _32 keycode, _32 modifier );
+RENDER_PROC( int, BindEventToKey )( PRENDERER pRender, uint32_t keycode, uint32_t modifier, void(CPROC*trigger)(uintptr_t,uint32_t keycode), uintptr_t );
+RENDER_PROC( int, BindStringToKey )( PRENDERER pRender, uint32_t keycode, uint32_t modifier, char *text );
+RENDER_PROC( int, UnbindKey )( PRENDERER pRender, uint32_t keycode, uint32_t modifier );
 
 #endif
 //--------------------------------------------------------------------------

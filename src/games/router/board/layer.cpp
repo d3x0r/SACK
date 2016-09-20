@@ -29,7 +29,7 @@ extern DIR_DELTA DirDeltaMap[8];
 
 //--------------------------------------------------------------------------
 
-void LAYER_DATA::Update( _32 cycle )
+void LAYER_DATA::Update( uint32_t cycle )
 {
 	//if( cycle != _cycle )
 	//{
@@ -108,11 +108,11 @@ LAYER_DATA::LAYER_DATA( void )
 
 
 
-void DrawText( Image surface, S_32 base_x, S_32 base_y, TEXTSTR caption, CDATA color, SFTFont font )
+void DrawText( Image surface, int32_t base_x, int32_t base_y, TEXTSTR caption, CDATA color, SFTFont font )
 {
-   _32 x = 0;
-	_32 y = 0;
-	_32 w, h, maxw = 0;
+   uint32_t x = 0;
+	uint32_t y = 0;
+	uint32_t w, h, maxw = 0;
 	TEXTCHAR *start = caption;
 	TEXTCHAR *end;
 	//BlatColor( surface, 0, 0, surface->width, surface->height, banner->basecolor );
@@ -156,10 +156,10 @@ void DrawText( Image surface, S_32 base_x, S_32 base_y, TEXTSTR caption, CDATA c
 
 }
 
-void LAYER::Draw( PIBOARD board, Image image, S_32 x, S_32 y )
+void LAYER::Draw( PIBOARD board, Image image, int32_t x, int32_t y )
 {
-	_32 cellx, celly;
-	_32 boardx, boardy;
+	uint32_t cellx, celly;
+	uint32_t boardx, boardy;
 	int scale;
 	if( flags.bRoot )
 		return;
@@ -222,7 +222,7 @@ void LAYER::Draw( PIBOARD board, Image image, S_32 x, S_32 y )
 	{
 		// this requires knowing cellsize, and the current offset/origin of the
 		// layer/board...
-		_32 rows, cols;
+		uint32_t rows, cols;
 		int xofs, yofs;
 		// maximum number of cells on the board...
 		// so we don't over draw.
@@ -304,7 +304,7 @@ void LAYER::Draw( PIBOARD board, Image image, S_32 x, S_32 y )
 	}
 }
 
-void LAYER::BeginPath( S_32 x, S_32 y, int direction )
+void LAYER::BeginPath( int32_t x, int32_t y, int direction )
 {
 	LAYER_PATH_NODE node;
 	LAYER::x = x;
@@ -337,7 +337,7 @@ void LAYER::BeginPath( S_32 x, S_32 y, int direction )
 	}
 }
 
-void LAYER::BeginPath( S_32 x, S_32 y )
+void LAYER::BeginPath( int32_t x, int32_t y )
 {
    BeginPath( x, y, NOWHERE );
 }
@@ -553,17 +553,17 @@ LAYER::LAYER( PIPEICE peice, int _x, int _y )
 
 //--------------------------------------------------------------------------
 
-PTRSZVAL CPROC CheckIsLayer( POINTER p, PTRSZVAL psv )
+uintptr_t CPROC CheckIsLayer( POINTER p, uintptr_t psv )
 {
 	PLAYER layer = (PLAYER)p;
 	if( layer->iLayer == psv )
-		return (PTRSZVAL)layer;
+		return (uintptr_t)layer;
 	return 0;
 }
 
 PLAYER LAYER::FindLayer( INDEX iLayer )
 {
-	return 	(PLAYER)ForAllInSet( LAYER, (*pool), CheckIsLayer, (PTRSZVAL)iLayer );
+	return 	(PLAYER)ForAllInSet( LAYER, (*pool), CheckIsLayer, (uintptr_t)iLayer );
 //(PLAYER)(*pool)->forall( CheckIsLayer, iLayer );
 }
 
@@ -603,7 +603,7 @@ LAYER::LAYER( PODBC odbc, PLIST peices, INDEX iLoadLayer )
 			INDEX iStart = IntCreateFromText( results[6] );
 			if( iStart != INVALID_INDEX )
 			{
-				S_32 x, y;
+				int32_t x, y;
 				x = atoi( results[7] );
 				y = atoi( results[8] );
 				PLAYER loaded_route_start_layer;
@@ -619,7 +619,7 @@ LAYER::LAYER( PODBC odbc, PLIST peices, INDEX iLoadLayer )
 			INDEX iEnd = IntCreateFromText( results[9] );
 			if( iEnd != INVALID_INDEX )
 			{
-				S_32 x, y;
+				int32_t x, y;
 				x = atoi( results[10] );
 				y = atoi( results[11] );
 				PLAYER loaded_route_end_layer;
@@ -709,7 +709,7 @@ void LAYER::Unlink( void )
 
 }
 
-void LAYER::Link( PLAYER via, int link_type, S_32 x, S_32 y )
+void LAYER::Link( PLAYER via, int link_type, int32_t x, int32_t y )
 {
 	// links via to this
    // or links via from this
@@ -754,7 +754,7 @@ int LAYER::GetLastForeDirection( void )
    return NOWHERE;
 }
 
-int LAYER::IsLayerAt( S_32 *x, S_32 *y )
+int LAYER::IsLayerAt( int32_t *x, int32_t *y )
 {
 	PLAYER_PATH_NODE node;
 	int n;
@@ -1029,7 +1029,7 @@ BackTrace:   // method here to remove one peice from the trail.
 }
 #endif
 
-void LAYER::move( S_32 del_x, S_32 del_y )
+void LAYER::move( int32_t del_x, int32_t del_y )
 {
 	if( stacked_on )
 	{
@@ -1069,8 +1069,8 @@ void LAYER::move( S_32 del_x, S_32 del_y )
 					PLAYER_PATH_NODE node = (PLAYER_PATH_NODE)PeekData( &layer->pds_path );
 					if( layer->route_end_layer.layer )
 					{
-						S_32 destx = layer->route_end_layer.layer->x + layer->route_end_layer.x;
-						S_32 desty = layer->route_end_layer.layer->y + layer->route_end_layer.y;
+						int32_t destx = layer->route_end_layer.layer->x + layer->route_end_layer.x;
+						int32_t desty = layer->route_end_layer.layer->y + layer->route_end_layer.y;
 						layer->BeginPath( layer->x + del_x, layer->y + del_y );
 						layer->LayPath( destx, desty );
 					}
@@ -1086,7 +1086,7 @@ void LAYER::move( S_32 del_x, S_32 del_y )
 	}
 }
 
-int LAYER::MoveResizeLayer( S_32 x_del, S_32 y_del, S_32 width_del, S_32 height_del )
+int LAYER::MoveResizeLayer( int32_t x_del, int32_t y_del, int32_t width_del, int32_t height_del )
 {
    // routes/vias cannot be resized, they are long strings of single cells, not a block.
 	if( !flags.bRoute )
@@ -1107,7 +1107,7 @@ int LAYER::MoveResizeLayer( S_32 x_del, S_32 y_del, S_32 width_del, S_32 height_
 }
 
 
-void LAYER::LayPath( S_32 wX, S_32 wY )
+void LAYER::LayPath( int32_t wX, int32_t wY )
 {
 	int DeltaDir;
 	LOGICAL bLoop = FALSE, bIsRetry;  // no looping....
@@ -1282,14 +1282,14 @@ void LAYER::LayPath( S_32 wX, S_32 wY )
 							w += min_x - xx;
 							min_x = xx;
 						}
-						if( xx >= ( min_x + (S_32)w ) )
+						if( xx >= ( min_x + (int32_t)w ) )
 							w = xx - min_x + 1;
 						if( yy < min_y )
 						{
 							h += min_y - yy;
 							min_y = yy;
 						}
-						if( yy >= ( min_y + (S_32)h ) )
+						if( yy >= ( min_y + (int32_t)h ) )
 							h = yy - min_y + 1;
 
 					}

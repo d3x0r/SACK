@@ -85,8 +85,8 @@ struct sprite_method_tag
 	Image original_surface;
 	Image debug_image;
 	PDATAQUEUE saved_spots;
-	void(CPROC*RenderSprites)(PTRSZVAL psv, PRENDERER renderer, S_32 x, S_32 y, _32 w, _32 h );
-	PTRSZVAL psv;
+	void(CPROC*RenderSprites)(uintptr_t psv, PRENDERER renderer, int32_t x, int32_t y, uint32_t w, uint32_t h );
+	uintptr_t psv;
 };
 IMAGE_NAMESPACE_END
 
@@ -118,15 +118,15 @@ struct plugin_reference
 		BIT_FIELD did_first_draw : 1;
 	} flags;
 	CTEXTSTR name;
-	PTRSZVAL psv;
+	uintptr_t psv;
 	LOGICAL (CPROC *Update3d)(PTRANSFORM origin);
-	void (CPROC *FirstDraw3d)(PTRSZVAL);
-	void (CPROC *ExtraDraw3d)(PTRSZVAL,PTRANSFORM camera);
-	void (CPROC *Draw3d)(PTRSZVAL);
-	LOGICAL (CPROC *Mouse3d)(PTRSZVAL,PRAY,S_32,S_32,_32);
-	void (CPROC *ExtraClose3d)(PTRSZVAL);
+	void (CPROC *FirstDraw3d)(uintptr_t);
+	void (CPROC *ExtraDraw3d)(uintptr_t,PTRANSFORM camera);
+	void (CPROC *Draw3d)(uintptr_t);
+	LOGICAL (CPROC *Mouse3d)(uintptr_t,PRAY,int32_t,int32_t,uint32_t);
+	void (CPROC *ExtraClose3d)(uintptr_t);
 	void (CPROC *Resume3d)(void);
-   LOGICAL (CPROC *Key3d)(PTRSZVAL,_32);
+   LOGICAL (CPROC *Key3d)(uintptr_t,uint32_t);
 };
 
 #if defined( _D3D11_DRIVER )
@@ -149,8 +149,8 @@ struct dxgi_adapter
 
 struct display_camera
 {
-	S_32 x, y;
-	_32 w, h;
+	int32_t x, y;
+	uint32_t w, h;
 	int display;
 	RCOORD aspect;
    RCOORD depth; // far field
@@ -316,8 +316,8 @@ extern
 	PLIST pInactiveList;
 	PLIST threads;
 	PTHREAD actual_thread; // this is the one that creates windows surfaces...
-	_32 dwThreadID;  // thread that receives events from windows queues...
-	_32 dwEventThreadID; // thread that handles dispatch to application
+	uint32_t dwThreadID;  // thread that receives events from windows queues...
+	uint32_t dwEventThreadID; // thread that handles dispatch to application
 	VIDEO hDialogVid[16];
 	int nControlVid;
 	const TEXTCHAR *gpTitle;
@@ -334,7 +334,7 @@ extern
    struct plugin_reference *hPluginKeyCapture; // used to track focus of key events to plugin modules
 	// kbd.key == KeyboardState
 	KEYBOARD kbd;
-	_32 dwMsgBase;
+	uint32_t dwMsgBase;
 	//char KeyboardState[256];   // export for key procs to reference...
 	PLIST keyhooks;
 	PLIST ll_keyhooks;
@@ -351,10 +351,10 @@ extern
 #endif
 #endif
 #endif
-	_32 last_mouse_update; // last tick the mouse moved.
-	_32 mouse_timer_id;
+	uint32_t last_mouse_update; // last tick the mouse moved.
+	uint32_t mouse_timer_id;
 #ifdef WIN32
-	_32 redraw_timer_id;
+	uint32_t redraw_timer_id;
 #endif
 
 	RCOORD fProjection[4][4];
@@ -417,18 +417,18 @@ void OpenCamera( struct display_camera *camera );
 
 
 // --------------- Mouse 3d ------------
-void ComputeMouseRay( struct display_camera *camera, LOGICAL bUniverseSpace, PRAY mouse_ray, S_32 x, S_32 y );
+void ComputeMouseRay( struct display_camera *camera, LOGICAL bUniverseSpace, PRAY mouse_ray, int32_t x, int32_t y );
 int InverseOpenGLMouse( struct display_camera *camera, PRENDERER hVideo, RCOORD x, RCOORD y, int *result_x, int *result_y );
-int CPROC OpenGLMouse( PTRSZVAL psvMouse, S_32 x, S_32 y, _32 b );
+int CPROC OpenGLMouse( uintptr_t psvMouse, int32_t x, int32_t y, uint32_t b );
 int FindIntersectionTime( RCOORD *pT1, PVECTOR s1, PVECTOR o1
 								, RCOORD *pT2, PVECTOR s2, PVECTOR o2 );
 // this uses coordiantes in l.mouse_x and l.mouse_y and computes the current mouse ray in all displays
-void UpdateMouseRays( S_32 x, S_32 y );
+void UpdateMouseRays( int32_t x, int32_t y );
 #undef GetViewVolume
 void CPROC GetViewVolume( PRAY *planes );
 
 // -------- keymap_win32.c ----------------
-int CPROC OpenGLKey( PTRSZVAL psv, _32 keycode ); // should move this
+int CPROC OpenGLKey( uintptr_t psv, uint32_t keycode ); // should move this
 
 // ------- keymap_linux.c
 CTEXTSTR SACK_Vidlib_GetKeyText( int pressed, int key_index, int *used );
@@ -448,7 +448,7 @@ void OpenWin32Camera( struct display_camera *camera );
 int InitGL( struct display_camera *camera );										// All Setup For OpenGL Goes Here
 
 // ------ keydefs ------------
-int DispatchKeyEvent( PRENDERER render, _32 key );
+int DispatchKeyEvent( PRENDERER render, uint32_t key );
 
 
 // ------ android keymap -------------

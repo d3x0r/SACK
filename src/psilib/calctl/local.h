@@ -38,14 +38,14 @@ typedef struct clock_control_tag
 #pragma pack (push, 1)
 #endif
 	PREFIX_PACKED struct {
-      _16 ms; // milliseconds
-		_8 sc;
-		_8 mn;
-		_8 hr;
-		_8 dy;
-		_8 dow;
-		_8 mo;
-		_16 yr;
+      uint16_t ms; // milliseconds
+		uint8_t sc;
+		uint8_t mn;
+		uint8_t hr;
+		uint8_t dy;
+		uint8_t dow;
+		uint8_t mo;
+		uint16_t yr;
 	} PACKED time_data;
 #ifdef _MSC_VER
 #pragma pack (pop)

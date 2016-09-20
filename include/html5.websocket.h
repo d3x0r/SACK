@@ -49,7 +49,7 @@ HTML5_WEBSOCKET_NAMESPACE
 																	, web_socket_event on_event
 																	, web_socket_closed on_closed
 																	, web_socket_error on_error
-																	, PTRSZVAL psv
+																	, uintptr_t psv
 																	);
 
 

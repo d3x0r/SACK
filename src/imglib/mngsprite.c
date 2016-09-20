@@ -12,11 +12,11 @@
 typedef struct mng_file {
    mng_handle handle;
 	CTEXTSTR name;
-	P_8 data;
-   _32 length;
+	uint8_t* data;
+   uint32_t length;
 	Image image;
-   _32 timer; // timer ID
-   _32 current_index;
+   uint32_t timer; // timer ID
+   uint32_t current_index;
 } *PMNG_SPRITE;
 
 
@@ -126,7 +126,7 @@ mng_bool MNG_DECL my_mng_refresh (mng_handle hHandle
    return TRUE;
 }
 
-void CPROC MNGTimer( PTRSZVAL psv )
+void CPROC MNGTimer( uintptr_t psv )
 {
 	PMNG_SPRITE sprite = (PMNG_SPRITE)psv;
    mng_retcode myretcode;
@@ -146,14 +146,14 @@ mng_bool MNG_DECL my_mng_settimer (mng_handle hHandle, mng_uint32 timeout )
 {
 	PMNG_SPRITE sprite = mng_get_userdata( hHandle );
 	if( sprite->timer == INVALID_INDEX )
-		sprite->timer = AddTimer( timeout, MNGTimer, (PTRSZVAL)sprite );
+		sprite->timer = AddTimer( timeout, MNGTimer, (uintptr_t)sprite );
    else
 		RescheduleTimerEx( sprite->timer, timeout );
    //sprite->timeout = timeout;
    return MNG_TRUE;
 }
 
-PMNG_SPRITE DecodeMNG( _8 *buf, _32 size )
+PMNG_SPRITE DecodeMNG( uint8_t *buf, uint32_t size )
 {
    mng_retcode myretcode;
    PMNG_SPRITE sprite;

@@ -19,7 +19,7 @@ struct banner_button {
 		BIT_FIELD skip_if_lit : 1;
 		BIT_FIELD skip_if_unlit : 1;
 	} flags;
-	_32 delay; // amount of time forced wait.
+	uint32_t delay; // amount of time forced wait.
 	CTEXTSTR text;
 	CTEXTSTR imagename;
 	Image image; // may add an image to the banner?
@@ -62,21 +62,21 @@ PRELOAD( RegisterResources )
 }
 
 #define MAKE_BANNER_MESSAGE WIDE("Banner Message")
-static PTRSZVAL OnCreateMenuButton( MAKE_BANNER_MESSAGE )( PMENU_BUTTON button )
+static uintptr_t OnCreateMenuButton( MAKE_BANNER_MESSAGE )( PMENU_BUTTON button )
 {
 	PBANNER_BUTTON banner = New( BANNER_BUTTON );
 	MemSet( banner, 0, sizeof( *banner ) );
 	banner->button = button;
-	return (PTRSZVAL)banner;
+	return (uintptr_t)banner;
 }
 
-static void OnKeyPressEvent( MAKE_BANNER_MESSAGE )( PTRSZVAL psvBanner )
+static void OnKeyPressEvent( MAKE_BANNER_MESSAGE )( uintptr_t psvBanner )
 {
 	PBANNER_BUTTON banner = (PBANNER_BUTTON)psvBanner;
 	TEXTCHAR buffer[256];
 	int yes_no;
-	_32 timeout = 0;
-	_32 delay = 0;
+	uint32_t timeout = 0;
+	uint32_t delay = 0;
 	if( banner->flags.skip_if_lit || banner->flags.skip_if_unlit )
 	{
 		if( InterShell_GetButtonHighlight( banner->button ) )
@@ -135,16 +135,16 @@ static void OnKeyPressEvent( MAKE_BANNER_MESSAGE )( PTRSZVAL psvBanner )
 }
 
 #define REMOVE_BANNER_MESSAGE WIDE( "Banner Message Remove" )
-static PTRSZVAL OnCreateMenuButton( REMOVE_BANNER_MESSAGE )( PMENU_BUTTON button )
+static uintptr_t OnCreateMenuButton( REMOVE_BANNER_MESSAGE )( PMENU_BUTTON button )
 {
 	// this button should only exist as an invisible/macro button....
 	PBANNER_BUTTON banner = New( BANNER_BUTTON );
 	MemSet( banner, 0, sizeof( *banner ) );
 	banner->button = button;
-	return (PTRSZVAL)banner;
+	return (uintptr_t)banner;
 }
 
-static void OnKeyPressEvent( REMOVE_BANNER_MESSAGE )( PTRSZVAL psvBanner )
+static void OnKeyPressEvent( REMOVE_BANNER_MESSAGE )( uintptr_t psvBanner )
 {
 	PBANNER_BUTTON banner = (PBANNER_BUTTON)psvBanner;
 	INDEX idx;
@@ -156,7 +156,7 @@ static void OnKeyPressEvent( REMOVE_BANNER_MESSAGE )( PTRSZVAL psvBanner )
 	//BannerMessage( "Yo, whatcha want!?" );
 }
 
-static PTRSZVAL OnConfigureControl( MAKE_BANNER_MESSAGE )( PTRSZVAL psvBanner, PSI_CONTROL parent )
+static uintptr_t OnConfigureControl( MAKE_BANNER_MESSAGE )( uintptr_t psvBanner, PSI_CONTROL parent )
 {
 	PBANNER_BUTTON banner = (PBANNER_BUTTON)psvBanner;
 	PSI_CONTROL frame = LoadXMLFrameOver( parent, WIDE( "EditBannerMessage.isFrame" ) );
@@ -222,7 +222,7 @@ static PTRSZVAL OnConfigureControl( MAKE_BANNER_MESSAGE )( PTRSZVAL psvBanner, P
 
 
 
-static void OnSaveControl( MAKE_BANNER_MESSAGE )( FILE *file, PTRSZVAL psvBanner )
+static void OnSaveControl( MAKE_BANNER_MESSAGE )( FILE *file, uintptr_t psvBanner )
 {
 	TEXTCHAR buffer[256];
 	TEXTCHAR buffer2[256];
@@ -242,7 +242,7 @@ static void OnSaveControl( MAKE_BANNER_MESSAGE )( FILE *file, PTRSZVAL psvBanner
 }
 
 
-static PTRSZVAL CPROC ConfigSetBannerText( PTRSZVAL psvBanner, arg_list args )
+static uintptr_t CPROC ConfigSetBannerText( uintptr_t psvBanner, arg_list args )
 {
 	PBANNER_BUTTON banner = (PBANNER_BUTTON)psvBanner;
 	PARAM( args, CTEXTSTR, text );
@@ -254,19 +254,19 @@ static PTRSZVAL CPROC ConfigSetBannerText( PTRSZVAL psvBanner, arg_list args )
 	return psvBanner;
 }
 
-static PTRSZVAL CPROC ConfigSetBannerTimeout( PTRSZVAL psvBanner, arg_list args )
+static uintptr_t CPROC ConfigSetBannerTimeout( uintptr_t psvBanner, arg_list args )
 {
 	PBANNER_BUTTON banner = (PBANNER_BUTTON)psvBanner;
-	PARAM( args, S_64, delay );
+	PARAM( args, int64_t, delay );
 	if( delay < 0 )
 		banner->delay = 0;
 	else
-		banner->delay = (_32)delay;
+		banner->delay = (uint32_t)delay;
 
 	return psvBanner;
 }
 
-static PTRSZVAL CPROC ConfigSetBannerContinue( PTRSZVAL psvBanner, arg_list args )
+static uintptr_t CPROC ConfigSetBannerContinue( uintptr_t psvBanner, arg_list args )
 {
 	PBANNER_BUTTON banner = (PBANNER_BUTTON)psvBanner;
 	PARAM( args, LOGICAL, contin );
@@ -274,7 +274,7 @@ static PTRSZVAL CPROC ConfigSetBannerContinue( PTRSZVAL psvBanner, arg_list args
 	return psvBanner;
 }
 
-static PTRSZVAL CPROC ConfigSetBannerForced( PTRSZVAL psvBanner, arg_list args )
+static uintptr_t CPROC ConfigSetBannerForced( uintptr_t psvBanner, arg_list args )
 {
 	PBANNER_BUTTON banner = (PBANNER_BUTTON)psvBanner;
 	PARAM( args, LOGICAL, forced );
@@ -282,7 +282,7 @@ static PTRSZVAL CPROC ConfigSetBannerForced( PTRSZVAL psvBanner, arg_list args )
 	return psvBanner;
 }
 
-static PTRSZVAL CPROC ConfigSetBannerTopmost( PTRSZVAL psvBanner, arg_list args )
+static uintptr_t CPROC ConfigSetBannerTopmost( uintptr_t psvBanner, arg_list args )
 {
 	PBANNER_BUTTON banner = (PBANNER_BUTTON)psvBanner;
 	PARAM( args, LOGICAL, topmost );
@@ -290,7 +290,7 @@ static PTRSZVAL CPROC ConfigSetBannerTopmost( PTRSZVAL psvBanner, arg_list args 
 	return psvBanner;
 }
 
-static PTRSZVAL CPROC ConfigSetBannerYesNo( PTRSZVAL psvBanner, arg_list args )
+static uintptr_t CPROC ConfigSetBannerYesNo( uintptr_t psvBanner, arg_list args )
 {
 	PBANNER_BUTTON banner = (PBANNER_BUTTON)psvBanner;
 	PARAM( args, LOGICAL, yesno );
@@ -298,7 +298,7 @@ static PTRSZVAL CPROC ConfigSetBannerYesNo( PTRSZVAL psvBanner, arg_list args )
 	return psvBanner;
 }
 
-static PTRSZVAL CPROC ConfigSetBannerSkipLit( PTRSZVAL psvBanner, arg_list args )
+static uintptr_t CPROC ConfigSetBannerSkipLit( uintptr_t psvBanner, arg_list args )
 {
 	PBANNER_BUTTON banner = (PBANNER_BUTTON)psvBanner;
 	PARAM( args, LOGICAL, yesno );
@@ -306,7 +306,7 @@ static PTRSZVAL CPROC ConfigSetBannerSkipLit( PTRSZVAL psvBanner, arg_list args 
 	return psvBanner;
 }
 
-static PTRSZVAL CPROC ConfigSetBannerSkipUnlit( PTRSZVAL psvBanner, arg_list args )
+static uintptr_t CPROC ConfigSetBannerSkipUnlit( uintptr_t psvBanner, arg_list args )
 {
 	PBANNER_BUTTON banner = (PBANNER_BUTTON)psvBanner;
 	PARAM( args, LOGICAL, yesno );
@@ -314,7 +314,7 @@ static PTRSZVAL CPROC ConfigSetBannerSkipUnlit( PTRSZVAL psvBanner, arg_list arg
 	return psvBanner;
 }
 
-static PTRSZVAL CPROC ConfigSetBannerExplorer( PTRSZVAL psvBanner, arg_list args )
+static uintptr_t CPROC ConfigSetBannerExplorer( uintptr_t psvBanner, arg_list args )
 {
 	PBANNER_BUTTON banner = (PBANNER_BUTTON)psvBanner;
 	PARAM( args, LOGICAL, yesno );
@@ -322,7 +322,7 @@ static PTRSZVAL CPROC ConfigSetBannerExplorer( PTRSZVAL psvBanner, arg_list args
 	return psvBanner;
 }
 
-static PTRSZVAL CPROC ConfigSetBannerOkayCancel( PTRSZVAL psvBanner, arg_list args )
+static uintptr_t CPROC ConfigSetBannerOkayCancel( uintptr_t psvBanner, arg_list args )
 {
 	PBANNER_BUTTON banner = (PBANNER_BUTTON)psvBanner;
 	PARAM( args, LOGICAL, okaycancel );
@@ -330,7 +330,7 @@ static PTRSZVAL CPROC ConfigSetBannerOkayCancel( PTRSZVAL psvBanner, arg_list ar
 	return psvBanner;
 }
 
-static void OnLoadControl( MAKE_BANNER_MESSAGE )( PCONFIG_HANDLER pch, PTRSZVAL psvBanner )
+static void OnLoadControl( MAKE_BANNER_MESSAGE )( PCONFIG_HANDLER pch, uintptr_t psvBanner )
 {
 	AddConfigurationMethod( pch, WIDE( "banner text=%m" ), ConfigSetBannerText );
 	AddConfigurationMethod( pch, WIDE( "banner timeout=%i" ), ConfigSetBannerTimeout );

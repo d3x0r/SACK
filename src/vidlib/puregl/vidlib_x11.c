@@ -109,8 +109,8 @@ IMAGE_NAMESPACE
 
 struct saved_location
 {
-	S_32 x, y;
-	_32 w, h;
+	int32_t x, y;
+	uint32_t w, h;
 };
 
 struct sprite_method_tag
@@ -119,8 +119,8 @@ struct sprite_method_tag
 	Image original_surface;
 	Image debug_image;
 	PDATAQUEUE saved_spots;
-	void(CPROC*RenderSprites)(PTRSZVAL psv, PRENDERER renderer, S_32 x, S_32 y, _32 w, _32 h );
-	PTRSZVAL psv;
+	void(CPROC*RenderSprites)(uintptr_t psv, PRENDERER renderer, int32_t x, int32_t y, uint32_t w, uint32_t h );
+	uintptr_t psv;
 };
 IMAGE_NAMESPACE_END
 
@@ -535,8 +535,8 @@ void  EnableLoggingOutput( LOGICAL bEnable )
 }
 
 void  UpdateDisplayPortionEx( PRENDERER hVideo
-                                          , S_32 x, S_32 y
-                                          , _32 w, _32 h DBG_PASS)
+                                          , int32_t x, int32_t y
+                                          , uint32_t w, uint32_t h DBG_PASS)
 {
 
    if( hVideo )
@@ -1030,19 +1030,19 @@ static int mode = MODE_UNKNOWN;
 
  void InvokeExtraInit( struct display_camera *camera, PTRANSFORM view_camera, RCOORD identity_depth )
 {
-	PTRSZVAL (CPROC *Init3d)(PTRANSFORM,RCOORD);
+	uintptr_t (CPROC *Init3d)(PTRANSFORM,RCOORD);
 	PCLASSROOT data = NULL;
 	CTEXTSTR name;
 	for( name = GetFirstRegisteredName( "sack/render/puregl/init3d", &data );
 		  name;
 		  name = GetNextRegisteredName( &data ) )
 	{
-		Init3d = GetRegisteredProcedureExx( data,(CTEXTSTR)name,PTRSZVAL,"ExtraInit3d",(PTRANSFORM,RCOORD));
+		Init3d = GetRegisteredProcedureExx( data,(CTEXTSTR)name,uintptr_t,"ExtraInit3d",(PTRANSFORM,RCOORD));
 
 		if( Init3d )
 		{
 			struct plugin_reference *reference;
-			PTRSZVAL psvInit = Init3d( view_camera, identity_depth );
+			uintptr_t psvInit = Init3d( view_camera, identity_depth );
 			if( psvInit )
 			{
 				reference = New( struct plugin_reference );
@@ -1050,11 +1050,11 @@ static int mode = MODE_UNKNOWN;
 				reference->name = name;
 				{
 					static PCLASSROOT draw3d;
-					void (CPROC *Draw3d)(PTRSZVAL);
+					void (CPROC *Draw3d)(uintptr_t);
 					if( !draw3d )
 						draw3d = GetClassRoot( "sack/render/puregl/draw3d" );
 
-					reference->Draw3d = GetRegisteredProcedureExx( draw3d,(CTEXTSTR)name,void,"ExtraDraw3d",(PTRSZVAL));
+					reference->Draw3d = GetRegisteredProcedureExx( draw3d,(CTEXTSTR)name,void,"ExtraDraw3d",(uintptr_t));
 				}
 				AddLink( &camera->plugins, reference );
 			}
@@ -1062,40 +1062,40 @@ static int mode = MODE_UNKNOWN;
 	}
 }
 
-void InvokeExtraBeginDraw( CTEXTSTR name, PTRSZVAL psvInit )
+void InvokeExtraBeginDraw( CTEXTSTR name, uintptr_t psvInit )
 {
 	static PCLASSROOT draw3d;
-	void (CPROC *Draw3d)(PTRSZVAL);
+	void (CPROC *Draw3d)(uintptr_t);
 	if( !draw3d )
 		draw3d = GetClassRoot( "sack/render/puregl/draw3d" );
-	Draw3d = GetRegisteredProcedureExx( draw3d,(CTEXTSTR)name,void,"ExtraBeginDraw3d",(PTRSZVAL));
+	Draw3d = GetRegisteredProcedureExx( draw3d,(CTEXTSTR)name,void,"ExtraBeginDraw3d",(uintptr_t));
 	if( Draw3d )
 	{
 		Draw3d( psvInit );
 	}
 }
 
-void InvokeExtraDraw( CTEXTSTR name, PTRSZVAL psvInit )
+void InvokeExtraDraw( CTEXTSTR name, uintptr_t psvInit )
 {
 	static PCLASSROOT draw3d;
-	void (CPROC *Draw3d)(PTRSZVAL);
+	void (CPROC *Draw3d)(uintptr_t);
 	if( !draw3d )
 		draw3d = GetClassRoot( "sack/render/puregl/draw3d" );
-	Draw3d = GetRegisteredProcedureExx( draw3d,(CTEXTSTR)name,void,"ExtraDraw3d",(PTRSZVAL));
+	Draw3d = GetRegisteredProcedureExx( draw3d,(CTEXTSTR)name,void,"ExtraDraw3d",(uintptr_t));
 	if( Draw3d )
 	{
 		Draw3d( psvInit );
 	}
 }
 
-LOGICAL InvokeExtraMouse( CTEXTSTR name, PTRSZVAL psvInit, PRAY mouse_ray, _32 b )
+LOGICAL InvokeExtraMouse( CTEXTSTR name, uintptr_t psvInit, PRAY mouse_ray, uint32_t b )
 {
 	static PCLASSROOT mouse3d;
-	LOGICAL (CPROC *Mouse3d)(PTRSZVAL,PRAY,_32);
+	LOGICAL (CPROC *Mouse3d)(uintptr_t,PRAY,uint32_t);
 	LOGICAL used;
 	if( !mouse3d )
 		mouse3d = GetClassRoot( "sack/render/puregl/mouse3d" );
-	Mouse3d = GetRegisteredProcedureExx( mouse3d, (CTEXTSTR)name,LOGICAL,"ExtraMouse3d",(PTRSZVAL,PRAY,_32));
+	Mouse3d = GetRegisteredProcedureExx( mouse3d, (CTEXTSTR)name,LOGICAL,"ExtraMouse3d",(uintptr_t,PRAY,uint32_t));
 	if( Mouse3d )
 	{
 		used = Mouse3d( psvInit, mouse_ray, b );
@@ -1399,7 +1399,7 @@ void RenderGL( struct display_camera *camera )
 
 void LoadOptions( void )
 {
-	_32 average_width, average_height;
+	uint32_t average_width, average_height;
 	//int some_width;
 	//int some_height;
 #ifndef __NO_OPTIONS__
@@ -1407,7 +1407,7 @@ void LoadOptions( void )
 	{
 		int nDisplays = SACK_GetProfileIntEx( GetProgramName(), "SACK/Video Render/Number of Displays", 1, TRUE );
 		int n;
-		_32 screen_w = 1024, screen_h = 768;
+		uint32_t screen_w = 1024, screen_h = 768;
 		//GetDisplaySizeEx( 0, NULL, NULL, &screen_w, &screen_h );
 		switch( nDisplays )
 		{
@@ -1857,7 +1857,7 @@ int CPROC InverseOpenGLMouse( struct display_camera *camera, PRENDERER hVideo, R
 
 
 
- int CPROC OpenGLMouse( PTRSZVAL psvMouse, S_32 x, S_32 y, _32 b )
+ int CPROC OpenGLMouse( uintptr_t psvMouse, int32_t x, int32_t y, uint32_t b )
 {
     int used = 0;
     PRENDERER check;
@@ -1961,8 +1961,8 @@ BOOL  CreateCameras ( void )
 		{
 			int UseCoords = camera->display == -1;
 			int DefaultScreen = camera->display;
-			S_32 x, y;
-			_32 w, h;
+			int32_t x, y;
+			uint32_t w, h;
 			// if we don't do it this way, size_t overflows in camera definition.
 			if( !UseCoords )
 			{
@@ -1972,8 +1972,8 @@ BOOL  CreateCameras ( void )
 			}
 			else
 			{
-				w = (_32)camera->w;
-				h = (_32)camera->h;
+				w = (uint32_t)camera->w;
+				h = (uint32_t)camera->h;
 			}
 
 
@@ -1994,7 +1994,7 @@ BOOL  CreateCameras ( void )
 			InitializeCriticalSec( &camera->hVidCore->cs );
 			camera->hVidCore->camera = camera;
 			camera->hVidCore->pMouseCallback = OpenGLMouse;
-			camera->hVidCore->dwMouseData = (PTRSZVAL)camera;
+			camera->hVidCore->dwMouseData = (uintptr_t)camera;
          camera->hVidCore->pWindowPos.x = x;
          camera->hVidCore->pWindowPos.y = y;
          camera->hVidCore->pWindowPos.cx = w;
@@ -2347,7 +2347,7 @@ LOGICAL DoOpenDisplay( PRENDERER hNextVideo )
 	lprintf( WIDE( "Doing open of a display..." ) );
 #endif
 		{
-			_32 timeout = timeGetTime() + 500000;
+			uint32_t timeout = timeGetTime() + 500000;
 			//hNextVideo->thread = GetMyThreadID();
 			while (!hNextVideo->flags.bReady && timeout > timeGetTime())
 			{
@@ -2397,7 +2397,7 @@ PRENDERER  MakeDisplayFrom ( int hWnd)
 }
 
 
-PRENDERER  OpenDisplaySizedAt (_32 attr, _32 wx, _32 wy, S_32 x, S_32 y) // if native - we can return and let the messages dispatch...
+PRENDERER  OpenDisplaySizedAt (uint32_t attr, uint32_t wx, uint32_t wy, int32_t x, int32_t y) // if native - we can return and let the messages dispatch...
 {
 	PRENDERER hNextVideo;
 	//lprintf( "open display..." );
@@ -2465,8 +2465,8 @@ PRENDERER  OpenDisplaySizedAt (_32 attr, _32 wx, _32 wy, S_32 x, S_32 y) // if n
 
 //----------------------------------------------------------------------------
 
-PRENDERER  OpenDisplayAboveSizedAt (_32 attr, _32 wx, _32 wy,
-                                               S_32 x, S_32 y, PRENDERER parent)
+PRENDERER  OpenDisplayAboveSizedAt (uint32_t attr, uint32_t wx, uint32_t wy,
+                                               int32_t x, int32_t y, PRENDERER parent)
 {
    PRENDERER newvid = OpenDisplaySizedAt (attr, wx, wy, x, y);
    if (parent)
@@ -2474,8 +2474,8 @@ PRENDERER  OpenDisplayAboveSizedAt (_32 attr, _32 wx, _32 wy,
    return newvid;
 }
 
-PRENDERER  OpenDisplayAboveUnderSizedAt (_32 attr, _32 wx, _32 wy,
-                                               S_32 x, S_32 y, PRENDERER parent, PRENDERER barrier)
+PRENDERER  OpenDisplayAboveUnderSizedAt (uint32_t attr, uint32_t wx, uint32_t wy,
+                                               int32_t x, int32_t y, PRENDERER parent, PRENDERER barrier)
 {
    PRENDERER newvid = OpenDisplaySizedAt (attr, wx, wy, x, y);
    if( barrier )
@@ -2552,7 +2552,7 @@ void  CloseDisplay (PRENDERER hVideo)
 
 //----------------------------------------------------------------------------
 
-void  SizeDisplay (PRENDERER hVideo, _32 w, _32 h)
+void  SizeDisplay (PRENDERER hVideo, uint32_t w, uint32_t h)
 {
 #ifdef LOG_ORDERING_REFOCUS
 	lprintf( WIDE( "Size Display..." ) );
@@ -2590,11 +2590,11 @@ void  SizeDisplay (PRENDERER hVideo, _32 w, _32 h)
 
 //----------------------------------------------------------------------------
 
-void  SizeDisplayRel (PRENDERER hVideo, S_32 delw, S_32 delh)
+void  SizeDisplayRel (PRENDERER hVideo, int32_t delw, int32_t delh)
 {
 	if (delw || delh)
 	{
-		S_32 cx, cy;
+		int32_t cx, cy;
 		cx = hVideo->WindowPos.cx + delw;
 		cy = hVideo->WindowPos.cy + delh;
 		if (hVideo->WindowPos.cx < 50)
@@ -2617,7 +2617,7 @@ void  SizeDisplayRel (PRENDERER hVideo, S_32 delw, S_32 delh)
 
 //----------------------------------------------------------------------------
 
-void  MoveDisplay (PRENDERER hVideo, S_32 x, S_32 y)
+void  MoveDisplay (PRENDERER hVideo, int32_t x, int32_t y)
 {
 #ifdef LOG_ORDERING_REFOCUS
 	lprintf( WIDE( "Move display %d,%d" ), x, y );
@@ -2640,7 +2640,7 @@ void  MoveDisplay (PRENDERER hVideo, S_32 x, S_32 y)
 
 //----------------------------------------------------------------------------
 
-void  MoveDisplayRel (PRENDERER hVideo, S_32 x, S_32 y)
+void  MoveDisplayRel (PRENDERER hVideo, int32_t x, int32_t y)
 {
    if (x || y)
    {
@@ -2656,10 +2656,10 @@ void  MoveDisplayRel (PRENDERER hVideo, S_32 x, S_32 y)
 
 //----------------------------------------------------------------------------
 
-void  MoveSizeDisplay (PRENDERER hVideo, S_32 x, S_32 y, S_32 w,
-                                     S_32 h)
+void  MoveSizeDisplay (PRENDERER hVideo, int32_t x, int32_t y, int32_t w,
+                                     int32_t h)
 {
-   S_32 cx, cy;
+   int32_t cx, cy;
    hVideo->WindowPos.x = x;
 	hVideo->WindowPos.y = y;
    cx = w;
@@ -2679,10 +2679,10 @@ void  MoveSizeDisplay (PRENDERER hVideo, S_32 x, S_32 y, S_32 w,
 
 //----------------------------------------------------------------------------
 
-void  MoveSizeDisplayRel (PRENDERER hVideo, S_32 delx, S_32 dely,
-                                        S_32 delw, S_32 delh)
+void  MoveSizeDisplayRel (PRENDERER hVideo, int32_t delx, int32_t dely,
+                                        int32_t delw, int32_t delh)
 {
-	S_32 cx, cy;
+	int32_t cx, cy;
    hVideo->WindowPos.x += delx;
    hVideo->WindowPos.y += dely;
    cx = hVideo->WindowPos.cx + delw;
@@ -2713,7 +2713,7 @@ void  UpdateDisplayEx (PRENDERER hVideo DBG_PASS )
 
 //----------------------------------------------------------------------------
 
-void  SetMousePosition (PRENDERER hVid, S_32 x, S_32 y)
+void  SetMousePosition (PRENDERER hVid, int32_t x, int32_t y)
 {
 	if( !hVid )
 	{
@@ -2755,7 +2755,7 @@ void  SetMousePosition (PRENDERER hVid, S_32 x, S_32 y)
 
 //----------------------------------------------------------------------------
 
-void  GetMousePosition (S_32 * x, S_32 * y)
+void  GetMousePosition (int32_t * x, int32_t * y)
 {
 	lprintf( "This is really relative to what is looking at it " );
         //DebugBreak();
@@ -2769,7 +2769,7 @@ void  GetMousePosition (S_32 * x, S_32 * y)
 
 //----------------------------------------------------------------------------
 
-void CPROC GetMouseState(S_32 * x, S_32 * y, _32 *b)
+void CPROC GetMouseState(int32_t * x, int32_t * y, uint32_t *b)
 {
     lprintf( "Cannot GetMouseState." );
 #if 0
@@ -2783,7 +2783,7 @@ void CPROC GetMouseState(S_32 * x, S_32 * y, _32 *b)
 
 void  SetCloseHandler (PRENDERER hVideo,
                                      CloseCallback pWindowClose,
-                                     PTRSZVAL dwUser)
+                                     uintptr_t dwUser)
 {
 	if( hVideo )
 	{
@@ -2796,7 +2796,7 @@ void  SetCloseHandler (PRENDERER hVideo,
 
 void  SetMouseHandler (PRENDERER hVideo,
                                      MouseCallback pMouseCallback,
-                                     PTRSZVAL dwUser)
+                                     uintptr_t dwUser)
 {
    hVideo->dwMouseData = dwUser;
    hVideo->pMouseCallback = pMouseCallback;
@@ -2804,7 +2804,7 @@ void  SetMouseHandler (PRENDERER hVideo,
 
 void  SetHideHandler (PVIDEO hVideo,
                                      HideAndRestoreCallback pHideCallback,
-                                     PTRSZVAL dwUser)
+                                     uintptr_t dwUser)
 {
    hVideo->dwHideData = dwUser;
    hVideo->pHideCallback = pHideCallback;
@@ -2812,7 +2812,7 @@ void  SetHideHandler (PVIDEO hVideo,
 
 void  SetRestoreHandler (PVIDEO hVideo,
                                      HideAndRestoreCallback pRestoreCallback,
-                                     PTRSZVAL dwUser)
+                                     uintptr_t dwUser)
 {
    hVideo->dwRestoreData = dwUser;
    hVideo->pRestoreCallback = pRestoreCallback;
@@ -2822,7 +2822,7 @@ void  SetRestoreHandler (PVIDEO hVideo,
 #if !defined( __WATCOMC__ ) && !defined( __LINUX__ )
 RENDER_PROC (void, SetTouchHandler) (PRENDERER hVideo,
                                      TouchCallback pTouchCallback,
-                                     PTRSZVAL dwUser)
+                                     uintptr_t dwUser)
 {
    hVideo->dwTouchData = dwUser;
    hVideo->pTouchCallback = pTouchCallback;
@@ -2833,7 +2833,7 @@ RENDER_PROC (void, SetTouchHandler) (PRENDERER hVideo,
 
 void  SetRedrawHandler (PRENDERER hVideo,
                                       RedrawCallback pRedrawCallback,
-                                      PTRSZVAL dwUser)
+                                      uintptr_t dwUser)
 {
 	hVideo->dwRedrawData = dwUser;
 	if( (hVideo->pRedrawCallback = pRedrawCallback ) )
@@ -2854,7 +2854,7 @@ void  SetRedrawHandler (PRENDERER hVideo,
 //----------------------------------------------------------------------------
 
 void  SetKeyboardHandler (PRENDERER hVideo, KeyProc pKeyProc,
-                                        PTRSZVAL dwUser)
+                                        uintptr_t dwUser)
 {
 	hVideo->dwKeyData = dwUser;
 	hVideo->pKeyProc = pKeyProc;
@@ -2864,7 +2864,7 @@ void  SetKeyboardHandler (PRENDERER hVideo, KeyProc pKeyProc,
 
 void  SetLoseFocusHandler (PRENDERER hVideo,
                                          LoseFocusCallback pLoseFocus,
-                                         PTRSZVAL dwUser)
+                                         uintptr_t dwUser)
 {
 	hVideo->dwLoseFocus = dwUser;
 	hVideo->pLoseFocus = pLoseFocus;
@@ -2983,8 +2983,8 @@ void  RestoreDisplayEx (PRENDERER hVideo DBG_PASS )
 //----------------------------------------------------------------------------
 
 void  GetDisplaySizeEx ( int nDisplay
-												 , S_32 *x, S_32 *y
-												 , _32 *width, _32 *height)
+												 , int32_t *x, int32_t *y
+												 , uint32_t *width, uint32_t *height)
 {
    switch( nDisplay )
    {
@@ -3015,7 +3015,7 @@ void  GetDisplaySizeEx ( int nDisplay
    }
 }
 
-void  GetDisplaySize (_32 * width, _32 * height)
+void  GetDisplaySize (uint32_t * width, uint32_t * height)
 {
 	if( width )
 		(*width) = 65535;
@@ -3034,8 +3034,8 @@ void  GetDisplaySize (_32 * width, _32 * height)
 
 //----------------------------------------------------------------------------
 
-void  GetDisplayPosition (PRENDERER hVid, S_32 * x, S_32 * y,
-                                        _32 * width, _32 * height)
+void  GetDisplayPosition (PRENDERER hVid, int32_t * x, int32_t * y,
+                                        uint32_t * width, uint32_t * height)
 {
 	if (!hVid)
 		return;
@@ -3071,7 +3071,7 @@ LOGICAL  DisplayIsValid (PRENDERER hVid)
 
 //----------------------------------------------------------------------------
 
-void  SetDisplaySize (_32 width, _32 height)
+void  SetDisplaySize (uint32_t width, uint32_t height)
 {
    SizeDisplay (l.hVideoPool, width, height);
 }
@@ -3111,13 +3111,13 @@ PACTIVEMESSAGE  CreateActiveMessage (int ID, int size,...)
 }
 
 void  SetDefaultHandler (PRENDERER hVideo,
-                                       GeneralCallback general, PTRSZVAL psv)
+                                       GeneralCallback general, uintptr_t psv)
 {
 }
 #endif
 //----------------------------------------------------------------------------
 
-void  OwnMouseEx (PRENDERER hVideo, _32 own DBG_PASS)
+void  OwnMouseEx (PRENDERER hVideo, uint32_t own DBG_PASS)
 {
 	if (own)
 	{
@@ -3174,7 +3174,7 @@ NoProc (void)
 		return (HWND)hVideo; //hVideo->hWndOutput;
 	}
 
-int  BeginCalibration (_32 nPoints)
+int  BeginCalibration (uint32_t nPoints)
 {
    return 1;
 }
@@ -3300,27 +3300,27 @@ static RENDER_INTERFACE VidInterface = { InitDisplay
                                        , (void (CPROC*)(Image)) SetApplicationIcon
                                        , GetDisplaySize
                                        , SetDisplaySize
-                                       , (PRENDERER (CPROC*)(_32, _32, _32, S_32, S_32)) OpenDisplaySizedAt
-                                       , (PRENDERER (CPROC*)(_32, _32, _32, S_32, S_32, PRENDERER)) OpenDisplayAboveSizedAt
+                                       , (PRENDERER (CPROC*)(uint32_t, uint32_t, uint32_t, int32_t, int32_t)) OpenDisplaySizedAt
+                                       , (PRENDERER (CPROC*)(uint32_t, uint32_t, uint32_t, int32_t, int32_t, PRENDERER)) OpenDisplayAboveSizedAt
                                        , (void (CPROC*)(PRENDERER)) CloseDisplay
-                                       , (void (CPROC*)(PRENDERER, S_32, S_32, _32, _32 DBG_PASS)) UpdateDisplayPortionEx
+                                       , (void (CPROC*)(PRENDERER, int32_t, int32_t, uint32_t, uint32_t DBG_PASS)) UpdateDisplayPortionEx
                                        , (void (CPROC*)(PRENDERER DBG_PASS)) UpdateDisplayEx
                                        , GetDisplayPosition
-                                       , (void (CPROC*)(PRENDERER, S_32, S_32)) MoveDisplay
-                                       , (void (CPROC*)(PRENDERER, S_32, S_32)) MoveDisplayRel
-                                       , (void (CPROC*)(PRENDERER, _32, _32)) SizeDisplay
-                                       , (void (CPROC*)(PRENDERER, S_32, S_32)) SizeDisplayRel
+                                       , (void (CPROC*)(PRENDERER, int32_t, int32_t)) MoveDisplay
+                                       , (void (CPROC*)(PRENDERER, int32_t, int32_t)) MoveDisplayRel
+                                       , (void (CPROC*)(PRENDERER, uint32_t, uint32_t)) SizeDisplay
+                                       , (void (CPROC*)(PRENDERER, int32_t, int32_t)) SizeDisplayRel
                                        , MoveSizeDisplayRel
                                        , (void (CPROC*)(PRENDERER, PRENDERER)) PutDisplayAbove
                                        , (Image (CPROC*)(PRENDERER)) GetDisplayImage
-                                       , (void (CPROC*)(PRENDERER, CloseCallback, PTRSZVAL)) SetCloseHandler
-                                       , (void (CPROC*)(PRENDERER, MouseCallback, PTRSZVAL)) SetMouseHandler
-                                       , (void (CPROC*)(PRENDERER, RedrawCallback, PTRSZVAL)) SetRedrawHandler
-                                       , (void (CPROC*)(PRENDERER, KeyProc, PTRSZVAL)) SetKeyboardHandler
+                                       , (void (CPROC*)(PRENDERER, CloseCallback, uintptr_t)) SetCloseHandler
+                                       , (void (CPROC*)(PRENDERER, MouseCallback, uintptr_t)) SetMouseHandler
+                                       , (void (CPROC*)(PRENDERER, RedrawCallback, uintptr_t)) SetRedrawHandler
+                                       , (void (CPROC*)(PRENDERER, KeyProc, uintptr_t)) SetKeyboardHandler
 													,  SetLoseFocusHandler
                                           , NULL
-                                       , (void (CPROC*)(S_32 *, S_32 *)) GetMousePosition
-                                       , (void (CPROC*)(PRENDERER, S_32, S_32)) SetMousePosition
+                                       , (void (CPROC*)(int32_t *, int32_t *)) GetMousePosition
+                                       , (void (CPROC*)(PRENDERER, int32_t, int32_t)) SetMousePosition
                                        , HasFocus  // has focus
 					, GetKeyText
                                        , IsKeyDown
@@ -3408,13 +3408,13 @@ void  CPROC DropDisplay3dInterface (POINTER p)
 {
 }
 
-static LOGICAL CPROC DefaultExit( PTRSZVAL psv, _32 keycode )
+static LOGICAL CPROC DefaultExit( uintptr_t psv, uint32_t keycode )
 {
    lprintf( WIDE( "Default Exit..." ) );
    BAG_Exit(0);
 }
 
-static LOGICAL CPROC EnableRotation( PTRSZVAL psv, _32 keycode )
+static LOGICAL CPROC EnableRotation( uintptr_t psv, uint32_t keycode )
 {
 	lprintf( "Enable Rotation..." );
 	if( IsKeyPressed( keycode ) )
@@ -3441,7 +3441,7 @@ static LOGICAL CPROC EnableRotation( PTRSZVAL psv, _32 keycode )
 		lprintf( "unlock rotate" );
 }
 
-static LOGICAL CPROC CameraForward( PTRSZVAL psv, _32 keycode )
+static LOGICAL CPROC CameraForward( uintptr_t psv, uint32_t keycode )
 {
 	if( l.flags.bRotateLock )
 	{
@@ -3461,7 +3461,7 @@ static LOGICAL CPROC CameraForward( PTRSZVAL psv, _32 keycode )
 //   return 0;
 }
 
-static LOGICAL CPROC CameraLeft( PTRSZVAL psv, _32 keycode )
+static LOGICAL CPROC CameraLeft( uintptr_t psv, uint32_t keycode )
 {
 	if( l.flags.bRotateLock )
 	{
@@ -3484,7 +3484,7 @@ static LOGICAL CPROC CameraLeft( PTRSZVAL psv, _32 keycode )
 //   return 0;
 }
 
-static LOGICAL CPROC CameraRight( PTRSZVAL psv, _32 keycode )
+static LOGICAL CPROC CameraRight( uintptr_t psv, uint32_t keycode )
 {
 	if( l.flags.bRotateLock )
 	{
@@ -3498,7 +3498,7 @@ static LOGICAL CPROC CameraRight( PTRSZVAL psv, _32 keycode )
 //   return 0;
 }
 
-static LOGICAL CPROC CameraRollRight( PTRSZVAL psv, _32 keycode )
+static LOGICAL CPROC CameraRollRight( uintptr_t psv, uint32_t keycode )
 {
 	if( l.flags.bRotateLock )
 	{
@@ -3516,7 +3516,7 @@ static LOGICAL CPROC CameraRollRight( PTRSZVAL psv, _32 keycode )
 //   return 0;
 }
 
-static LOGICAL CPROC CameraRollLeft( PTRSZVAL psv, _32 keycode )
+static LOGICAL CPROC CameraRollLeft( uintptr_t psv, uint32_t keycode )
 {
 	if( l.flags.bRotateLock )
 	{
@@ -3534,7 +3534,7 @@ static LOGICAL CPROC CameraRollLeft( PTRSZVAL psv, _32 keycode )
 //   return 0;
 }
 
-static LOGICAL CPROC CameraDown( PTRSZVAL psv, _32 keycode )
+static LOGICAL CPROC CameraDown( uintptr_t psv, uint32_t keycode )
 {
 	if( l.flags.bRotateLock )
 	{
@@ -3594,7 +3594,7 @@ PRIORITY_PRELOAD( VideoRegisterInterface, VIDLIB_PRELOAD_PRIORITY )
 
 //typedef struct sprite_method_tag *PSPRITE_METHOD;
 
-PSPRITE_METHOD  EnableSpriteMethod (PRENDERER render, void(CPROC*RenderSprites)(PTRSZVAL psv, PRENDERER renderer, S_32 x, S_32 y, _32 w, _32 h ), PTRSZVAL psv )
+PSPRITE_METHOD  EnableSpriteMethod (PRENDERER render, void(CPROC*RenderSprites)(uintptr_t psv, PRENDERER renderer, int32_t x, int32_t y, uint32_t w, uint32_t h ), uintptr_t psv )
 {
 	// add a sprite callback to the image.
 	// enable copy image, and restore image
@@ -3611,7 +3611,7 @@ PSPRITE_METHOD  EnableSpriteMethod (PRENDERER render, void(CPROC*RenderSprites)(
 // and therefore this is handed to the image library via an export into image library
 // this is done this way, because the image library MUST exist before this library
 // therefore relying on the linker to handle this export is not possible.
-static void CPROC SavePortion( PSPRITE_METHOD psm, _32 x, _32 y, _32 w, _32 h )
+static void CPROC SavePortion( PSPRITE_METHOD psm, uint32_t x, uint32_t y, uint32_t w, uint32_t h )
 {
 	struct saved_location location;
    location.x = x;

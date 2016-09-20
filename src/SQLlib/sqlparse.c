@@ -26,8 +26,8 @@ SQL_NAMESPACE
 	} MY_FIELD, *PMY_FIELD;
 typedef struct my_generic_def_tag{
 
-	_32 count;
-	_32 fldCnt;
+	uint32_t count;
+	uint32_t fldCnt;
 	TEXTSTR cName;
 	int cType;
 	PLIST listFields;
@@ -159,11 +159,11 @@ PTABLE GetFieldsInSQLEx( CTEXTSTR cmd, int writestate DBG_PASS )
 	PTEXT pNew, pOld, busy;
 	TEXTCHAR *c = NULL;
 	TEXTCHAR buf[128];
-	_32 n = 0;
-	_32 total = 0;
+	uint32_t n = 0;
+	uint32_t total = 0;
 	PTEXT word1, word2, word3; /* Jim sez: duh these should have been text segments */
 	PTEXT phrase1, phrase2 = NULL;
-	_32 bFlagA = 0, bFlagB = 0, uiSubstateA = ENU_BEGIN;
+	uint32_t bFlagA = 0, bFlagB = 0, uiSubstateA = ENU_BEGIN;
 	LOGICAL gottatick = FALSE, bInNeedOfColumnAllocation = FALSE, gottaslash=FALSE , bEnum = FALSE;
 	INDEX state = ENU_CREATE_TABLE;
 	DB_KEY_DEF *pKeyDef;//to be alloc'ed after parsing of key.
@@ -179,12 +179,12 @@ PTABLE GetFieldsInSQLEx( CTEXTSTR cmd, int writestate DBG_PASS )
 	PTEXT tmp;
 	TEXTSTR name;
 	TEXTSTR szNormalizedName = NULL;//unfortunately, this has to be exposed to the whole function because it is used during parsing and printing, compare with pTable->name.
-	_8 countParen = 0;
+	uint8_t countParen = 0;
 
 
 	if( 0 )
 	{
-		_32 a,b,c,d;
+		uint32_t a,b,c,d;
 		GetMemStats( &a, &b, &c, &d );
 		lprintf( WIDE("Mem stats: %d %d %d %d"), a, b, c, d );
 		DebugDumpMem();
@@ -395,7 +395,7 @@ PTABLE GetFieldsInSQLEx( CTEXTSTR cmd, int writestate DBG_PASS )
 										//  table name normalization asdf pTable->name
 										if( strchr( pTable->name, ' ' ) )
 										{
-											_32 ln = ( ( strlen( pTable->name) ) + 1 );
+											uint32_t ln = ( ( strlen( pTable->name) ) + 1 );
 											TEXTSTR t;
 											TEXTSTR n = StrDup( pTable->name );
 											t = strtok( (char *) n, " ");// needs a char *, but is effectively a char const *, so typecast.
@@ -1126,7 +1126,7 @@ PTABLE GetFieldsInSQLEx( CTEXTSTR cmd, int writestate DBG_PASS )
 
 	{
 		INDEX ColumnIndex;
-		_32 c = 0;
+		uint32_t c = 0;
 		PMY_GENERIC_DEF pColumn = NULL;// to be alloc'ed during parsing of key.
 		PMY_FIELD pFld;//to be alloc'ed during parsing of the field.
 
@@ -1167,12 +1167,12 @@ PTABLE GetFieldsInSQLEx( CTEXTSTR cmd, int writestate DBG_PASS )
 			vtprintf( pvt, WIDE("\r\n//--------------------------------------------------------------------------"));
 			vtprintf( pvt, WIDE("\r\n\r\nFIELD %s_fields[] = { "), ( szNormalizedName ? szNormalizedName : pTable->name ) );
 		}
-		total = (_32)( sizeof( DB_KEY_DEF ) ) * ( (_32)( n  ) );
+		total = (uint32_t)( sizeof( DB_KEY_DEF ) ) * ( (uint32_t)( n  ) );
 		pKeyDef = NewArray( DB_KEY_DEF, n  );
 		//xlprintf(DEFAULT_LEVEL)(WIDE("For %lu indexes ( times %lu bytes), so allocated %lu bytes"), n , (sizeof(DB_KEY_DEF)), total );
 		MemSet( pKeyDef, 0, total );
 
-		total = (_32)( sizeof( FIELD ) ) * ( (_32)( c ) );
+		total = (uint32_t)( sizeof( FIELD ) ) * ( (uint32_t)( c ) );
 		pFields = NewArray( FIELD , c );
 		//		xlprintf(DEFAULT_LEVEL)(WIDE("For %lu regulars ( times %lu bytes), allocated %lu bytes"), c , (sizeof( FIELD) ), total );
 		MemSet( pFields, 0, total );
@@ -1360,7 +1360,7 @@ PTABLE GetFieldsInSQLEx( CTEXTSTR cmd, int writestate DBG_PASS )
 	LineRelease( pNew ); // release the burst buffer
 	if( 0 )
 	{
-		_32 a,b,c,d;
+		uint32_t a,b,c,d;
 		GetMemStats( &a, &b, &c, &d );
 		lprintf( WIDE("Mem stats: %d %d %d %d"), a, b, c, d );
 		DebugDumpMem();

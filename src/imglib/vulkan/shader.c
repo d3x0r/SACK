@@ -7,7 +7,7 @@
 
 IMAGE_NAMESPACE
 
-PImageShaderTracker GetShaderInit( CTEXTSTR name, PTRSZVAL (CPROC*Setup)(PTRSZVAL), void (CPROC*Init)(PTRSZVAL,PImageShaderTracker), PTRSZVAL psvSetup )
+PImageShaderTracker GetShaderInit( CTEXTSTR name, uintptr_t (CPROC*Setup)(uintptr_t), void (CPROC*Init)(uintptr_t,PImageShaderTracker), uintptr_t psvSetup )
 {
 	PImageShaderTracker tracker;
 	INDEX idx;
@@ -37,25 +37,25 @@ PImageShaderTracker GetShaderInit( CTEXTSTR name, PTRSZVAL (CPROC*Setup)(PTRSZVA
 }
 
 
-void  SetShaderEnable( PImageShaderTracker tracker, void (CPROC*EnableShader)( PImageShaderTracker tracker,PTRSZVAL, va_list args ), PTRSZVAL psv )
+void  SetShaderEnable( PImageShaderTracker tracker, void (CPROC*EnableShader)( PImageShaderTracker tracker,uintptr_t, va_list args ), uintptr_t psv )
 {
 	tracker->Enable = EnableShader;
 }
 
-void  SetShaderAppendTristrip( PImageShaderTracker tracker, void (CPROC*AppendTriStrip)( struct image_shader_op *op, int triangles, PTRSZVAL,va_list args ) )
+void  SetShaderAppendTristrip( PImageShaderTracker tracker, void (CPROC*AppendTriStrip)( struct image_shader_op *op, int triangles, uintptr_t,va_list args ) )
 {
 	tracker->AppendTristrip = AppendTriStrip;
 }
 
-void CPROC  SetShaderOutput( PImageShaderTracker tracker, void (CPROC*FlushShader)( PImageShaderTracker tracker, PTRSZVAL, PTRSZVAL, int, int  ) )
+void CPROC  SetShaderOutput( PImageShaderTracker tracker, void (CPROC*FlushShader)( PImageShaderTracker tracker, uintptr_t, uintptr_t, int, int  ) )
 {
 	tracker->Output = FlushShader;
 }
-void CPROC  SetShaderReset( PImageShaderTracker tracker, void (CPROC*FlushShader)( PImageShaderTracker tracker, PTRSZVAL, PTRSZVAL  ) )
+void CPROC  SetShaderReset( PImageShaderTracker tracker, void (CPROC*FlushShader)( PImageShaderTracker tracker, uintptr_t, uintptr_t  ) )
 {
 	tracker->Reset = FlushShader;
 }
-void CPROC  SetShaderOpInit( PImageShaderTracker tracker, PTRSZVAL (CPROC*InitOp)( PImageShaderTracker tracker, PTRSZVAL, int *existing_verts, va_list args  ) )
+void CPROC  SetShaderOpInit( PImageShaderTracker tracker, uintptr_t (CPROC*InitOp)( PImageShaderTracker tracker, uintptr_t, int *existing_verts, va_list args  ) )
 {
 	tracker->InitShaderOp = InitOp;
 }
@@ -552,7 +552,7 @@ size_t AppendShaderBufferData( struct shader_buffer *buffer, float *data )
 	return ++buffer->used;
 }
 
-static struct image_shader_op * GetShaderOp(PImageShaderTracker tracker, PTRSZVAL psvKey )
+static struct image_shader_op * GetShaderOp(PImageShaderTracker tracker, uintptr_t psvKey )
 {
 	struct image_shader_op *op;
 
@@ -598,7 +598,7 @@ struct image_shader_op * BeginShaderOp(PImageShaderTracker tracker, ... )
 	struct image_shader_op *shader_op;
 
 	va_list args;
-	PTRSZVAL psvKey;
+	uintptr_t psvKey;
 	int existing;
 	va_start( args, tracker );
 	psvKey = tracker->InitShaderOp( tracker, tracker->psvInit, &existing, args );
@@ -636,7 +636,7 @@ struct image_shader_op * BeginImageShaderOp(PImageShaderTracker tracker, Image t
 	}
 	{
 		va_list args;
-		PTRSZVAL psvKey;
+		uintptr_t psvKey;
 		int existing_verts;
 		va_start( args, target );
 		psvKey = tracker->InitShaderOp( tracker, tracker->psvInit, &existing_verts, args );

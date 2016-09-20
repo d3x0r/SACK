@@ -1,6 +1,6 @@
 
 #ifndef COMPRESS_STRUCT_DEFINED
-typedef PTRSZVAL PCOMPRESS;
+typedef uintptr_t PCOMPRESS;
 #endif
 
 // pass address of compressor - after this pCompressor will be NULL.

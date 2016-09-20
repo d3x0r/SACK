@@ -8,7 +8,7 @@ static struct test_data
 }l;
 
 
-static PTRSZVAL CPROC TestWake1( PTHREAD thread )
+static uintptr_t CPROC TestWake1( PTHREAD thread )
 {
 	while( 1 )
 	{
@@ -18,7 +18,7 @@ static PTRSZVAL CPROC TestWake1( PTHREAD thread )
 	}
 }
 
-static PTRSZVAL CPROC TestWake2( PTHREAD thread )
+static uintptr_t CPROC TestWake2( PTHREAD thread )
 {
    int n = 0;
 	while( 1 )

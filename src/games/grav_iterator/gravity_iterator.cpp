@@ -26,7 +26,7 @@ static struct local
 	PIMAGE_INTERFACE pii;
 } l;
 
-void CPROC draw( PTRSZVAL psv, PRENDERER r )
+void CPROC draw( uintptr_t psv, PRENDERER r )
 {
 
 }

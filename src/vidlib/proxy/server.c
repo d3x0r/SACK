@@ -18,7 +18,7 @@ IMAGE_NAMESPACE
 #ifdef __cplusplus
 namespace loader {
 #endif
-extern LOGICAL PngImageFile ( Image pImage, _8 ** buf, size_t *size);
+extern LOGICAL PngImageFile ( Image pImage, uint8_t ** buf, size_t *size);
 #ifdef __cplusplus
 };
 #endif
@@ -62,19 +62,19 @@ static struct json_context_object *WebSockInitReplyJson( enum proxy_message_id m
 	{
 	case PMID_Reply_OpenDisplayAboveUnderSizedAt:
 		json_add_object_member( cto_data, WIDE("server_render_id"), ofs = 0, JSON_Element_PTRSZVAL, 0 );
-		json_add_object_member( cto_data, WIDE("client_render_id"), ofs = ofs + sizeof(PTRSZVAL), JSON_Element_PTRSZVAL, 0 );
+		json_add_object_member( cto_data, WIDE("client_render_id"), ofs = ofs + sizeof(uintptr_t), JSON_Element_PTRSZVAL, 0 );
 		break;
 	case PMID_Event_Mouse:
 		json_add_object_member( cto_data, WIDE("server_render_id"), ofs = 0, JSON_Element_PTRSZVAL, 0 );
-		json_add_object_member( cto_data, WIDE("x"), ofs = ofs + sizeof(PTRSZVAL), JSON_Element_Integer_32, 0 );
-		json_add_object_member( cto_data, WIDE("y"), ofs = ofs + sizeof(S_32), JSON_Element_Integer_32, 0 );
-		json_add_object_member( cto_data, WIDE("b"), ofs = ofs + sizeof(S_32), JSON_Element_Unsigned_Integer_32, 0 );
+		json_add_object_member( cto_data, WIDE("x"), ofs = ofs + sizeof(uintptr_t), JSON_Element_Integer_32, 0 );
+		json_add_object_member( cto_data, WIDE("y"), ofs = ofs + sizeof(int32_t), JSON_Element_Integer_32, 0 );
+		json_add_object_member( cto_data, WIDE("b"), ofs = ofs + sizeof(int32_t), JSON_Element_Unsigned_Integer_32, 0 );
 
 		break;
 	case PMID_Event_Key:
 		json_add_object_member( cto_data, WIDE("server_render_id"), ofs = 0, JSON_Element_PTRSZVAL, 0 );
-		json_add_object_member( cto_data, WIDE("key"), ofs = ofs + sizeof(PTRSZVAL), JSON_Element_Unsigned_Integer_32, 0 );
-		json_add_object_member( cto_data, WIDE("pressed"), ofs = ofs + sizeof(S_32), JSON_Element_Unsigned_Integer_32, 0 );
+		json_add_object_member( cto_data, WIDE("key"), ofs = ofs + sizeof(uintptr_t), JSON_Element_Unsigned_Integer_32, 0 );
+		json_add_object_member( cto_data, WIDE("pressed"), ofs = ofs + sizeof(int32_t), JSON_Element_Unsigned_Integer_32, 0 );
 		break;
 	}
 	return cto;
@@ -103,17 +103,17 @@ static struct json_context_object *WebSockInitJson( enum proxy_message_id messag
 		break;
 	case PMID_TransferSubImages:
 		json_add_object_member( cto_data, WIDE("image_to_id"), ofs = 0, JSON_Element_PTRSZVAL, 0 );
-		json_add_object_member( cto_data, WIDE("image_from_id"), ofs = ofs + sizeof(PTRSZVAL), JSON_Element_PTRSZVAL, 0 );
+		json_add_object_member( cto_data, WIDE("image_from_id"), ofs = ofs + sizeof(uintptr_t), JSON_Element_PTRSZVAL, 0 );
 		break;
 	case PMID_OpenDisplayAboveUnderSizedAt:
 		json_add_object_member( cto_data, WIDE("x"), ofs = 0, JSON_Element_Integer_32, 0 );
-		json_add_object_member( cto_data, WIDE("y"), ofs = ofs + sizeof(S_32), JSON_Element_Integer_32, 0 );
-		json_add_object_member( cto_data, WIDE("width"), ofs = ofs + sizeof(S_32), JSON_Element_Unsigned_Integer_32, 0 );
-		json_add_object_member( cto_data, WIDE("height"), ofs = ofs + sizeof(_32), JSON_Element_Unsigned_Integer_32, 0 );
-		json_add_object_member( cto_data, WIDE("attrib"), ofs = ofs + sizeof(_32), JSON_Element_Unsigned_Integer_32, 0 );
-		json_add_object_member( cto_data, WIDE("server_render_id"), ofs = ofs + sizeof(_32), JSON_Element_PTRSZVAL, 0 );
-		json_add_object_member( cto_data, WIDE("over_render_id"), ofs = ofs + sizeof(PTRSZVAL), JSON_Element_PTRSZVAL_BLANK_0, 0 );
-		json_add_object_member( cto_data, WIDE("under_render_id"), ofs = ofs + sizeof(PTRSZVAL), JSON_Element_PTRSZVAL_BLANK_0, 0 );
+		json_add_object_member( cto_data, WIDE("y"), ofs = ofs + sizeof(int32_t), JSON_Element_Integer_32, 0 );
+		json_add_object_member( cto_data, WIDE("width"), ofs = ofs + sizeof(int32_t), JSON_Element_Unsigned_Integer_32, 0 );
+		json_add_object_member( cto_data, WIDE("height"), ofs = ofs + sizeof(uint32_t), JSON_Element_Unsigned_Integer_32, 0 );
+		json_add_object_member( cto_data, WIDE("attrib"), ofs = ofs + sizeof(uint32_t), JSON_Element_Unsigned_Integer_32, 0 );
+		json_add_object_member( cto_data, WIDE("server_render_id"), ofs = ofs + sizeof(uint32_t), JSON_Element_PTRSZVAL, 0 );
+		json_add_object_member( cto_data, WIDE("over_render_id"), ofs = ofs + sizeof(uintptr_t), JSON_Element_PTRSZVAL_BLANK_0, 0 );
+		json_add_object_member( cto_data, WIDE("under_render_id"), ofs = ofs + sizeof(uintptr_t), JSON_Element_PTRSZVAL_BLANK_0, 0 );
 		break;
 	case PMID_CloseDisplay:
 		json_add_object_member( cto_data, WIDE("server_render_id"), 0, JSON_Element_PTRSZVAL, 0 );
@@ -123,73 +123,73 @@ static struct json_context_object *WebSockInitJson( enum proxy_message_id messag
 		break;
 	case PMID_MoveSizeDisplay:
 		json_add_object_member( cto_data, WIDE("server_render_id"), ofs = 0, JSON_Element_PTRSZVAL, 0 );
-		json_add_object_member( cto_data, WIDE("x"), ofs = ofs + sizeof(PTRSZVAL), JSON_Element_Integer_32, 0 );
-		json_add_object_member( cto_data, WIDE("y"), ofs = ofs + sizeof(S_32), JSON_Element_Integer_32, 0 );
-		json_add_object_member( cto_data, WIDE("width"), ofs = ofs + sizeof(S_32), JSON_Element_Unsigned_Integer_32, 0 );
-		json_add_object_member( cto_data, WIDE("height"), ofs = ofs + sizeof(_32), JSON_Element_Unsigned_Integer_32, 0 );
+		json_add_object_member( cto_data, WIDE("x"), ofs = ofs + sizeof(uintptr_t), JSON_Element_Integer_32, 0 );
+		json_add_object_member( cto_data, WIDE("y"), ofs = ofs + sizeof(int32_t), JSON_Element_Integer_32, 0 );
+		json_add_object_member( cto_data, WIDE("width"), ofs = ofs + sizeof(int32_t), JSON_Element_Unsigned_Integer_32, 0 );
+		json_add_object_member( cto_data, WIDE("height"), ofs = ofs + sizeof(uint32_t), JSON_Element_Unsigned_Integer_32, 0 );
 		break;
 	case PMID_MakeImage:
 		json_add_object_member( cto_data, WIDE("server_image_id"), ofs = 0, JSON_Element_PTRSZVAL, 0 );
-		json_add_object_member( cto_data, WIDE("width"), ofs = ofs + sizeof( PTRSZVAL), JSON_Element_Unsigned_Integer_32, 0 );
-		json_add_object_member( cto_data, WIDE("height"), ofs = ofs + sizeof(_32), JSON_Element_Unsigned_Integer_32, 0 );
-		json_add_object_member( cto_data, WIDE("server_render_id"), ofs = ofs + sizeof(_32), JSON_Element_PTRSZVAL, 0 );
+		json_add_object_member( cto_data, WIDE("width"), ofs = ofs + sizeof( uintptr_t), JSON_Element_Unsigned_Integer_32, 0 );
+		json_add_object_member( cto_data, WIDE("height"), ofs = ofs + sizeof(uint32_t), JSON_Element_Unsigned_Integer_32, 0 );
+		json_add_object_member( cto_data, WIDE("server_render_id"), ofs = ofs + sizeof(uint32_t), JSON_Element_PTRSZVAL, 0 );
 		break;
 	case PMID_Move_Image:
 		json_add_object_member( cto_data, WIDE("server_image_id"), ofs = 0, JSON_Element_PTRSZVAL, 0 );
-		json_add_object_member( cto_data, WIDE("x"), ofs = ofs + sizeof( PTRSZVAL), JSON_Element_Integer_32, 0 );
-		json_add_object_member( cto_data, WIDE("y"), ofs = ofs + sizeof(_32), JSON_Element_Integer_32, 0 );
+		json_add_object_member( cto_data, WIDE("x"), ofs = ofs + sizeof( uintptr_t), JSON_Element_Integer_32, 0 );
+		json_add_object_member( cto_data, WIDE("y"), ofs = ofs + sizeof(uint32_t), JSON_Element_Integer_32, 0 );
 		break;
 	case PMID_Size_Image:
 		json_add_object_member( cto_data, WIDE("server_image_id"), ofs = 0, JSON_Element_PTRSZVAL, 0 );
-		json_add_object_member( cto_data, WIDE("width"), ofs = ofs + sizeof( PTRSZVAL), JSON_Element_Unsigned_Integer_32, 0 );
-		json_add_object_member( cto_data, WIDE("height"), ofs = ofs + sizeof(_32), JSON_Element_Unsigned_Integer_32, 0 );
+		json_add_object_member( cto_data, WIDE("width"), ofs = ofs + sizeof( uintptr_t), JSON_Element_Unsigned_Integer_32, 0 );
+		json_add_object_member( cto_data, WIDE("height"), ofs = ofs + sizeof(uint32_t), JSON_Element_Unsigned_Integer_32, 0 );
 		break;
 	case PMID_MakeSubImage:
 		json_add_object_member( cto_data, WIDE("server_image_id"), ofs = 0, JSON_Element_PTRSZVAL, 0 );
-		json_add_object_member( cto_data, WIDE("x"), ofs = ofs + sizeof(PTRSZVAL), JSON_Element_Integer_32, 0 );
-		json_add_object_member( cto_data, WIDE("y"), ofs = ofs + sizeof(S_32), JSON_Element_Integer_32, 0 );
-		json_add_object_member( cto_data, WIDE("width"), ofs = ofs + sizeof(S_32), JSON_Element_Unsigned_Integer_32, 0 );
-		json_add_object_member( cto_data, WIDE("height"), ofs = ofs + sizeof(_32), JSON_Element_Unsigned_Integer_32, 0 );
-		json_add_object_member( cto_data, WIDE("server_parent_image_id"), ofs = ofs + sizeof(_32), JSON_Element_PTRSZVAL, 0 );
+		json_add_object_member( cto_data, WIDE("x"), ofs = ofs + sizeof(uintptr_t), JSON_Element_Integer_32, 0 );
+		json_add_object_member( cto_data, WIDE("y"), ofs = ofs + sizeof(int32_t), JSON_Element_Integer_32, 0 );
+		json_add_object_member( cto_data, WIDE("width"), ofs = ofs + sizeof(int32_t), JSON_Element_Unsigned_Integer_32, 0 );
+		json_add_object_member( cto_data, WIDE("height"), ofs = ofs + sizeof(uint32_t), JSON_Element_Unsigned_Integer_32, 0 );
+		json_add_object_member( cto_data, WIDE("server_parent_image_id"), ofs = ofs + sizeof(uint32_t), JSON_Element_PTRSZVAL, 0 );
 		break;
 	case PMID_BlatColor:
 	case PMID_BlatColorAlpha:
 		json_add_object_member( cto_data, WIDE("server_image_id"), ofs = 0, JSON_Element_PTRSZVAL, 0 );
-		json_add_object_member( cto_data, WIDE("x"), ofs = ofs + sizeof(PTRSZVAL), JSON_Element_Integer_32, 0 );
-		json_add_object_member( cto_data, WIDE("y"), ofs = ofs + sizeof(S_32), JSON_Element_Integer_32, 0 );
-		json_add_object_member( cto_data, WIDE("width"), ofs = ofs + sizeof(S_32), JSON_Element_Integer_32, 0 );
-		json_add_object_member( cto_data, WIDE("height"), ofs = ofs + sizeof(_32), JSON_Element_Unsigned_Integer_32, 0 );
-		json_add_object_member_user_routine( cto_data, WIDE("color"), ofs = ofs + sizeof(_32), JSON_Element_Unsigned_Integer_32, 0, FormatColor );
+		json_add_object_member( cto_data, WIDE("x"), ofs = ofs + sizeof(uintptr_t), JSON_Element_Integer_32, 0 );
+		json_add_object_member( cto_data, WIDE("y"), ofs = ofs + sizeof(int32_t), JSON_Element_Integer_32, 0 );
+		json_add_object_member( cto_data, WIDE("width"), ofs = ofs + sizeof(int32_t), JSON_Element_Integer_32, 0 );
+		json_add_object_member( cto_data, WIDE("height"), ofs = ofs + sizeof(uint32_t), JSON_Element_Unsigned_Integer_32, 0 );
+		json_add_object_member_user_routine( cto_data, WIDE("color"), ofs = ofs + sizeof(uint32_t), JSON_Element_Unsigned_Integer_32, 0, FormatColor );
 		break;
 	case PMID_PutString:
 		json_add_object_member( cto_data, WIDE("server_image_id"), ofs = 0, JSON_Element_PTRSZVAL, 0 );
-		json_add_object_member( cto_data, WIDE("x"), ofs = ofs + sizeof(PTRSZVAL), JSON_Element_Integer_32, 0 );
-		json_add_object_member( cto_data, WIDE("y"), ofs = ofs + sizeof(S_32), JSON_Element_Integer_32, 0 );
+		json_add_object_member( cto_data, WIDE("x"), ofs = ofs + sizeof(uintptr_t), JSON_Element_Integer_32, 0 );
+		json_add_object_member( cto_data, WIDE("y"), ofs = ofs + sizeof(int32_t), JSON_Element_Integer_32, 0 );
 		json_add_object_member( cto_data, WIDE("orientation"), ofs = ofs + sizeof(int), JSON_Element_Integer_32, 0 );
 		json_add_object_member( cto_data, WIDE("justification"), ofs = ofs + sizeof(int), JSON_Element_Integer_32, 0 );
-		json_add_object_member( cto_data, WIDE("width"), ofs = ofs + sizeof(S_32), JSON_Element_Integer_32, 0 );
-		json_add_object_member( cto_data, WIDE("font_id"), ofs = ofs + sizeof(_32), JSON_Element_PTRSZVAL, 0 );
-		json_add_object_member_user_routine( cto_data, WIDE("color"), ofs = ofs + sizeof(PTRSZVAL), JSON_Element_Unsigned_Integer_32, 0, FormatColor );
-		json_add_object_member_user_routine( cto_data, WIDE("background"), ofs = ofs + sizeof(_32), JSON_Element_Unsigned_Integer_32, 0, FormatColor );
-		json_add_object_member( cto_data, WIDE("string"), ofs = ofs + sizeof( _32 ), JSON_Element_CharArray, 0 );
+		json_add_object_member( cto_data, WIDE("width"), ofs = ofs + sizeof(int32_t), JSON_Element_Integer_32, 0 );
+		json_add_object_member( cto_data, WIDE("font_id"), ofs = ofs + sizeof(uint32_t), JSON_Element_PTRSZVAL, 0 );
+		json_add_object_member_user_routine( cto_data, WIDE("color"), ofs = ofs + sizeof(uintptr_t), JSON_Element_Unsigned_Integer_32, 0, FormatColor );
+		json_add_object_member_user_routine( cto_data, WIDE("background"), ofs = ofs + sizeof(uint32_t), JSON_Element_Unsigned_Integer_32, 0, FormatColor );
+		json_add_object_member( cto_data, WIDE("string"), ofs = ofs + sizeof( uint32_t ), JSON_Element_CharArray, 0 );
 		break;
 	case PMID_FontData:
 		json_add_object_member( cto_data, WIDE("server_font_id"), ofs = 0, JSON_Element_PTRSZVAL, 0 );
-		json_add_object_member( cto_data, WIDE("baseline"), ofs = ofs + sizeof( PTRSZVAL ), JSON_Element_Unsigned_Integer_32, 0 );
-		json_add_object_member( cto_data, WIDE("height"), ofs = ofs + sizeof( _32 ), JSON_Element_Unsigned_Integer_32, 0 );
-		json_add_object_member( cto_data, WIDE( "bias_x" ), ofs = ofs + sizeof( _32 ), JSON_Element_Integer_8, 0 );
-		json_add_object_member( cto_data, WIDE( "bias_y" ), ofs = ofs + sizeof( _8 ), JSON_Element_Integer_8, 0 );
-		//json_add_object_member( cto_data, WIDE("characters"), ofs = ofs + sizeof(PTRSZVAL), JSON_Element_Integer_32, 0 );
+		json_add_object_member( cto_data, WIDE("baseline"), ofs = ofs + sizeof( uintptr_t ), JSON_Element_Unsigned_Integer_32, 0 );
+		json_add_object_member( cto_data, WIDE("height"), ofs = ofs + sizeof( uint32_t ), JSON_Element_Unsigned_Integer_32, 0 );
+		json_add_object_member( cto_data, WIDE( "bias_x" ), ofs = ofs + sizeof( uint32_t ), JSON_Element_Integer_8, 0 );
+		json_add_object_member( cto_data, WIDE( "bias_y" ), ofs = ofs + sizeof( uint8_t ), JSON_Element_Integer_8, 0 );
+		//json_add_object_member( cto_data, WIDE("characters"), ofs = ofs + sizeof(uintptr_t), JSON_Element_Integer_32, 0 );
 		{
 			int ofs_inner;
 			struct json_context_object *cto_data_member;
-			cto_data_member = json_add_object_member_list( cto_data, WIDE("data"), ofs = ofs + sizeof(_8), (enum JSON_ObjectElementTypes)0, 0 );
+			cto_data_member = json_add_object_member_list( cto_data, WIDE("data"), ofs = ofs + sizeof(uint8_t), (enum JSON_ObjectElementTypes)0, 0 );
 			json_add_object_member( cto_data_member, WIDE("c"), ofs_inner = 0, JSON_Element_Integer_32, 0 );
-			json_add_object_member( cto_data_member, WIDE("x"), ofs_inner = ofs_inner + sizeof(_32), JSON_Element_Integer_32, 0 );
-			json_add_object_member( cto_data_member, WIDE("y"), ofs_inner = ofs_inner + sizeof(S_32), JSON_Element_Integer_32, 0 );
-			json_add_object_member( cto_data_member, WIDE("w"), ofs_inner = ofs_inner + sizeof(S_32), JSON_Element_Integer_32, 0 );
-			json_add_object_member( cto_data_member, WIDE("h"), ofs_inner = ofs_inner + sizeof(_32), JSON_Element_Unsigned_Integer_32, 0 );
-			json_add_object_member( cto_data_member, WIDE("a"), ofs_inner = ofs_inner + sizeof(_32), JSON_Element_Integer_32, 0 );
+			json_add_object_member( cto_data_member, WIDE("x"), ofs_inner = ofs_inner + sizeof(uint32_t), JSON_Element_Integer_32, 0 );
+			json_add_object_member( cto_data_member, WIDE("y"), ofs_inner = ofs_inner + sizeof(int32_t), JSON_Element_Integer_32, 0 );
+			json_add_object_member( cto_data_member, WIDE("w"), ofs_inner = ofs_inner + sizeof(int32_t), JSON_Element_Integer_32, 0 );
+			json_add_object_member( cto_data_member, WIDE("h"), ofs_inner = ofs_inner + sizeof(uint32_t), JSON_Element_Unsigned_Integer_32, 0 );
+			json_add_object_member( cto_data_member, WIDE("a"), ofs_inner = ofs_inner + sizeof(uint32_t), JSON_Element_Integer_32, 0 );
 			cto_data_member = json_add_object_member_list( cto_data, WIDE("colors"), ofs = ofs + sizeof(PLIST), (enum JSON_ObjectElementTypes)0, 0 );
 			json_add_object_member( cto_data_member, WIDE("color"), ofs_inner = 0, JSON_Element_Unsigned_Integer_32, 0 );
 			json_add_object_member( cto_data, WIDE("image_id"), ofs = ofs + sizeof(PLIST), JSON_Element_PTRSZVAL, 0 );
@@ -198,35 +198,35 @@ static struct json_context_object *WebSockInitJson( enum proxy_message_id messag
 	case PMID_BlotScaledImageSizedTo:
 	case PMID_BlotImageSizedTo:
 		json_add_object_member( cto_data, WIDE("server_image_id"), ofs, JSON_Element_PTRSZVAL, 0 );
-		json_add_object_member( cto_data, WIDE("x"), ofs = ofs + sizeof(PTRSZVAL), JSON_Element_Integer_32, 0 );
-		json_add_object_member( cto_data, WIDE("y"), ofs = ofs + sizeof(S_32), JSON_Element_Integer_32, 0 );
-		json_add_object_member( cto_data, WIDE("width"), ofs = ofs + sizeof(S_32), JSON_Element_Unsigned_Integer_32, 0 );
-		json_add_object_member( cto_data, WIDE("height"), ofs = ofs + sizeof(_32), JSON_Element_Unsigned_Integer_32, 0 );
-		json_add_object_member( cto_data, WIDE("xs"), ofs = ofs + sizeof(_32), JSON_Element_Integer_32, 0 );
-		json_add_object_member( cto_data, WIDE("ys"), ofs = ofs + sizeof(S_32), JSON_Element_Integer_32, 0 );
+		json_add_object_member( cto_data, WIDE("x"), ofs = ofs + sizeof(uintptr_t), JSON_Element_Integer_32, 0 );
+		json_add_object_member( cto_data, WIDE("y"), ofs = ofs + sizeof(int32_t), JSON_Element_Integer_32, 0 );
+		json_add_object_member( cto_data, WIDE("width"), ofs = ofs + sizeof(int32_t), JSON_Element_Unsigned_Integer_32, 0 );
+		json_add_object_member( cto_data, WIDE("height"), ofs = ofs + sizeof(uint32_t), JSON_Element_Unsigned_Integer_32, 0 );
+		json_add_object_member( cto_data, WIDE("xs"), ofs = ofs + sizeof(uint32_t), JSON_Element_Integer_32, 0 );
+		json_add_object_member( cto_data, WIDE("ys"), ofs = ofs + sizeof(int32_t), JSON_Element_Integer_32, 0 );
 		if( message == PMID_BlotScaledImageSizedTo )
 		{
-			json_add_object_member( cto_data, WIDE("ws"), ofs = ofs + sizeof(S_32), JSON_Element_Unsigned_Integer_32, 0 );
-			json_add_object_member( cto_data, WIDE("hs"), ofs = ofs + sizeof(_32), JSON_Element_Unsigned_Integer_32, 0 );
+			json_add_object_member( cto_data, WIDE("ws"), ofs = ofs + sizeof(int32_t), JSON_Element_Unsigned_Integer_32, 0 );
+			json_add_object_member( cto_data, WIDE("hs"), ofs = ofs + sizeof(uint32_t), JSON_Element_Unsigned_Integer_32, 0 );
 		}
-		json_add_object_member( cto_data, WIDE("image_id"), ofs = ofs + sizeof(_32), JSON_Element_PTRSZVAL, 0 );
+		json_add_object_member( cto_data, WIDE("image_id"), ofs = ofs + sizeof(uint32_t), JSON_Element_PTRSZVAL, 0 );
 		break;
 	case PMID_ImageData:
 		json_add_object_member( cto_data, WIDE("server_image_id"), ofs = 0, JSON_Element_PTRSZVAL, 0 );
-		json_add_object_member( cto_data, WIDE("data"), ofs = ofs + sizeof(PTRSZVAL), JSON_Element_CharArray, 0 );
+		json_add_object_member( cto_data, WIDE("data"), ofs = ofs + sizeof(uintptr_t), JSON_Element_CharArray, 0 );
 		break;
 	case PMID_DrawBlock:
 		json_add_object_member( cto_data, WIDE("server_image_id"), ofs = 0, JSON_Element_PTRSZVAL, 0 );
-		json_add_object_member( cto_data, WIDE("length"), ofs = ofs + sizeof(PTRSZVAL), JSON_Element_PTRSZVAL, 0 );
-		json_add_object_member( cto_data, WIDE("data"), ofs = ofs + sizeof(PTRSZVAL), JSON_Element_CharArray, 0 );
+		json_add_object_member( cto_data, WIDE("length"), ofs = ofs + sizeof(uintptr_t), JSON_Element_PTRSZVAL, 0 );
+		json_add_object_member( cto_data, WIDE("data"), ofs = ofs + sizeof(uintptr_t), JSON_Element_CharArray, 0 );
 		break;
 	case PMID_DrawLine:
 		json_add_object_member( cto_data, WIDE("server_image_id"), ofs, JSON_Element_PTRSZVAL, 0 );
-		json_add_object_member( cto_data, WIDE("x1"), ofs = ofs + sizeof(PTRSZVAL), JSON_Element_Integer_32, 0 );
-		json_add_object_member( cto_data, WIDE("y1"), ofs = ofs + sizeof(S_32), JSON_Element_Integer_32, 0 );
-		json_add_object_member( cto_data, WIDE("x2"), ofs = ofs + sizeof(S_32), JSON_Element_Integer_32, 0 );
-		json_add_object_member( cto_data, WIDE("y2"), ofs = ofs + sizeof(S_32), JSON_Element_Integer_32, 0 );
-		json_add_object_member_user_routine( cto_data, WIDE("color"), ofs = ofs + sizeof(S_32), JSON_Element_Unsigned_Integer_32, 0, FormatColor );
+		json_add_object_member( cto_data, WIDE("x1"), ofs = ofs + sizeof(uintptr_t), JSON_Element_Integer_32, 0 );
+		json_add_object_member( cto_data, WIDE("y1"), ofs = ofs + sizeof(int32_t), JSON_Element_Integer_32, 0 );
+		json_add_object_member( cto_data, WIDE("x2"), ofs = ofs + sizeof(int32_t), JSON_Element_Integer_32, 0 );
+		json_add_object_member( cto_data, WIDE("y2"), ofs = ofs + sizeof(int32_t), JSON_Element_Integer_32, 0 );
+		json_add_object_member_user_routine( cto_data, WIDE("color"), ofs = ofs + sizeof(int32_t), JSON_Element_Unsigned_Integer_32, 0, FormatColor );
 		break;
 	}
 	return cto;
@@ -258,7 +258,7 @@ static void decodeblock( unsigned char in[4], char out[3], size_t len )
 	//out[] = (len > 2 ? base64[ in[2] & 0x3f ] : 0);
 }
 
-static TEXTCHAR *Encode64Image( CTEXTSTR mime, P_8 buf, LOGICAL bmp, size_t length, size_t *outsize )
+static TEXTCHAR *Encode64Image( CTEXTSTR mime, uint8_t* buf, LOGICAL bmp, size_t length, size_t *outsize )
 {
 	TEXTCHAR * real_output;
 	size_t mimelen = StrLen( mime );
@@ -276,7 +276,7 @@ static TEXTCHAR *Encode64Image( CTEXTSTR mime, P_8 buf, LOGICAL bmp, size_t leng
 			blocklen = length - n*3;
 			if( blocklen > 3 )
 				blocklen = 3;
-			encodeblock( ((P_8)buf) + n * 3, real_output + 13 + mimelen + n*4, blocklen );
+			encodeblock( ((uint8_t*)buf) + n * 3, real_output + 13 + mimelen + n*4, blocklen );
 		}
 		(*outsize) = 13 + mimelen + n*4 + 1;
 		real_output[13 + mimelen + n*4] = 0;
@@ -284,7 +284,7 @@ static TEXTCHAR *Encode64Image( CTEXTSTR mime, P_8 buf, LOGICAL bmp, size_t leng
 	return real_output;
 }
 
-static char *Decode64Binary( P_8 buf, LOGICAL bmp, size_t length, size_t *outsize )
+static char *Decode64Binary( uint8_t* buf, LOGICAL bmp, size_t length, size_t *outsize )
 {
 	char * real_output;
 	real_output = NewArray( char, ( ( ( length + 1 ) * 3 ) / 4 ) + 1 );
@@ -301,20 +301,20 @@ static char *Decode64Binary( P_8 buf, LOGICAL bmp, size_t length, size_t *outsiz
 			blocklen = length - n*4;
 			if( blocklen > 4 )
 				blocklen = 4;
-			decodeblock( ((P_8)buf) + n * 4, real_output + n*3, blocklen );
+			decodeblock( ((uint8_t*)buf) + n * 4, real_output + n*3, blocklen );
 		}
 		real_output[n*3] = 0;
 	}
 	return real_output;
 }
 
-static P_8 EncodeImage( Image image, LOGICAL bmp, size_t *outsize )
+static uint8_t* EncodeImage( Image image, LOGICAL bmp, size_t *outsize )
 {
 	if( !bmp )
 	{
 		if( image )
 		{
-			_8 *buf;
+			uint8_t *buf;
 			if( PngImageFile( image, &buf, outsize ) )
 			{
 				if( 1 )
@@ -340,7 +340,7 @@ static P_8 EncodeImage( Image image, LOGICAL bmp, size_t *outsize )
 		BITMAPFILEHEADER *header;
 		BITMAPV5HEADER *output;
 		size_t length;
-		header = (BITMAPFILEHEADER*)NewArray( _8, length = ( ( image->width * image->height * sizeof( CDATA ) ) + sizeof( BITMAPV5HEADER ) + sizeof( BITMAPFILEHEADER ) ) );
+		header = (BITMAPFILEHEADER*)NewArray( uint8_t, length = ( ( image->width * image->height * sizeof( CDATA ) ) + sizeof( BITMAPV5HEADER ) + sizeof( BITMAPFILEHEADER ) ) );
 		MemSet( header, 0, sizeof( BITMAPFILEHEADER ) + sizeof( BITMAPV5HEADER ) );
 		header->bfType = 'MB';
 		header->bfSize = (DWORD)length;
@@ -374,7 +374,7 @@ static P_8 EncodeImage( Image image, LOGICAL bmp, size_t *outsize )
 			fclose( out );
 		}
 
-		return (P_8)header;
+		return (uint8_t*)header;
 	}
 #endif
 	 return NULL;
@@ -407,7 +407,7 @@ static void SendTCPMessage( PCLIENT pc, LOGICAL websock, enum proxy_message_id m
 	// often used; sometimes unused...
 	PVPRENDER render;
 	PVPImage image;
-	_8 *msg;
+	uint8_t *msg;
 	EnterCriticalSec( &l.message_formatter );
 	if( websock )
 	{
@@ -421,9 +421,9 @@ static void SendTCPMessage( PCLIENT pc, LOGICAL websock, enum proxy_message_id m
 	{
 	case PMID_Version:
 		{
-			msg = NewArray( _8, sendlen = ( 4 + 1 + StrLen( l.application_title ) + 1 ) );
+			msg = NewArray( uint8_t, sendlen = ( 4 + 1 + StrLen( l.application_title ) + 1 ) );
 			memcpy( msg + 1, l.application_title, sizeof( TEXTCHAR ) * StrLen( l.application_title ) );
-			((_32*)msg)[0] = (_32)(sendlen - 4);
+			((uint32_t*)msg)[0] = (uint32_t)(sendlen - 4);
 			msg[4] = message;
 			if( websock )
 			{
@@ -438,9 +438,9 @@ static void SendTCPMessage( PCLIENT pc, LOGICAL websock, enum proxy_message_id m
 		break;
 	case PMID_SetApplicationTitle:
 		{
-			msg = NewArray( _8, sendlen = ( 4 + 1 + StrLen( l.application_title ) + 1 ) );
+			msg = NewArray( uint8_t, sendlen = ( 4 + 1 + StrLen( l.application_title ) + 1 ) );
 			StrCpy( (TEXTSTR)(msg + 1), l.application_title );
-			((_32*)msg)[0] = (_32)(sendlen - 4);
+			((uint32_t*)msg)[0] = (uint32_t)(sendlen - 4);
 			msg[4] = message;
 			if( websock )
 			{
@@ -456,8 +456,8 @@ static void SendTCPMessage( PCLIENT pc, LOGICAL websock, enum proxy_message_id m
 	case PMID_Flush_Draw:
 		{
 			render = va_arg( args, PVPRENDER );
-			msg = NewArray( _8, sendlen = ( 4 + 1 + sizeof( struct opendisplay_data ) ) );
-			((_32*)msg)[0] = (_32)(sendlen - 4);
+			msg = NewArray( uint8_t, sendlen = ( 4 + 1 + sizeof( struct opendisplay_data ) ) );
+			((uint32_t*)msg)[0] = (uint32_t)(sendlen - 4);
 			msg[4] = message;
 			((struct close_display_data*)(msg+5))->server_display_id = render->id;
 			if( websock )
@@ -474,8 +474,8 @@ static void SendTCPMessage( PCLIENT pc, LOGICAL websock, enum proxy_message_id m
 	case PMID_OpenDisplayAboveUnderSizedAt:
 		{
 			render = va_arg( args, PVPRENDER );
-			msg = NewArray( _8, sendlen = ( 4 + 1 + sizeof( struct opendisplay_data ) ) );
-			((_32*)msg)[0] = (_32)(sendlen - 4);
+			msg = NewArray( uint8_t, sendlen = ( 4 + 1 + sizeof( struct opendisplay_data ) ) );
+			((uint32_t*)msg)[0] = (uint32_t)(sendlen - 4);
 			msg[4] = message;
 
 			((struct opendisplay_data*)(msg+5))->x = render->x;
@@ -483,7 +483,7 @@ static void SendTCPMessage( PCLIENT pc, LOGICAL websock, enum proxy_message_id m
 			((struct opendisplay_data*)(msg+5))->w = render->w;
 			((struct opendisplay_data*)(msg+5))->h = render->h;
 			((struct opendisplay_data*)(msg+5))->attr = render->attributes;
-			((struct opendisplay_data*)(msg+5))->server_display_id = (PTRSZVAL)FindLink( &l.renderers, render );
+			((struct opendisplay_data*)(msg+5))->server_display_id = (uintptr_t)FindLink( &l.renderers, render );
 
 			if( render->above )
 				((struct opendisplay_data*)(msg+5))->over = render->above->id;
@@ -507,9 +507,9 @@ static void SendTCPMessage( PCLIENT pc, LOGICAL websock, enum proxy_message_id m
 		break;
 	case PMID_CloseDisplay:
 		{
-			msg = NewArray( _8, sendlen = ( 4 + 1 + sizeof( struct close_display_data ) ) );
+			msg = NewArray( uint8_t, sendlen = ( 4 + 1 + sizeof( struct close_display_data ) ) );
 			render = va_arg( args, PVPRENDER );
-			((_32*)msg)[0] = (_32)(sendlen - 4);
+			((uint32_t*)msg)[0] = (uint32_t)(sendlen - 4);
 			msg[4] = message;
 			if( ((struct close_display_data*)(msg+5))->server_display_id = render->id )
 				if( websock )
@@ -525,9 +525,9 @@ static void SendTCPMessage( PCLIENT pc, LOGICAL websock, enum proxy_message_id m
 		break;
 	case PMID_MoveSizeDisplay:
 		{
-			msg = NewArray( _8, sendlen = ( 4 + 1 + sizeof( struct move_size_display_data ) ) );
+			msg = NewArray( uint8_t, sendlen = ( 4 + 1 + sizeof( struct move_size_display_data ) ) );
 			render = va_arg( args, PVPRENDER );
-			((_32*)msg)[0] = (_32)(sendlen - 4);
+			((uint32_t*)msg)[0] = (uint32_t)(sendlen - 4);
 			msg[4] = message;
 			((struct move_size_display_data*)(msg+5))->server_display_id = render->id;
 			((struct move_size_display_data*)(msg+5))->x = render->x;
@@ -547,9 +547,9 @@ static void SendTCPMessage( PCLIENT pc, LOGICAL websock, enum proxy_message_id m
 		break;
 	case PMID_Move_Image : 
 		{
-			msg = NewArray( _8, sendlen = ( 4 + 1 + sizeof( struct make_image_data ) ) );
+			msg = NewArray( uint8_t, sendlen = ( 4 + 1 + sizeof( struct make_image_data ) ) );
 			image = va_arg( args, PVPImage );
-			((_32*)msg)[0] = (_32)(sendlen - 4);
+			((uint32_t*)msg)[0] = (uint32_t)(sendlen - 4);
 			outmsg = (struct common_message*)(msg + 4);
 			outmsg->message_id = message;
 			outmsg->data.move_image.x = image->x;
@@ -569,9 +569,9 @@ static void SendTCPMessage( PCLIENT pc, LOGICAL websock, enum proxy_message_id m
 		break;
 	case PMID_Size_Image : 
 		{
-			msg = NewArray( _8, sendlen = ( 4 + 1 + sizeof( struct make_image_data ) ) );
+			msg = NewArray( uint8_t, sendlen = ( 4 + 1 + sizeof( struct make_image_data ) ) );
 			image = va_arg( args, PVPImage );
-			((_32*)msg)[0] = (_32)(sendlen - 4);
+			((uint32_t*)msg)[0] = (uint32_t)(sendlen - 4);
 			outmsg = (struct common_message*)(msg + 4);
 			outmsg->message_id = message;
 			outmsg->data.size_image.w = image->w;
@@ -591,10 +591,10 @@ static void SendTCPMessage( PCLIENT pc, LOGICAL websock, enum proxy_message_id m
 		break;
 	case PMID_MakeImage:
 		{
-			msg = NewArray( _8, sendlen = ( 4 + 1 + sizeof( struct make_image_data ) ) );
+			msg = NewArray( uint8_t, sendlen = ( 4 + 1 + sizeof( struct make_image_data ) ) );
 			image = va_arg( args, PVPImage );
 			render = va_arg( args, PVPRENDER );
-			((_32*)msg)[0] = (_32)(sendlen - 4);
+			((uint32_t*)msg)[0] = (uint32_t)(sendlen - 4);
 			outmsg = (struct common_message*)(msg + 4);
 			outmsg->message_id = message;
 			outmsg->data.make_image.w = image->w;
@@ -618,9 +618,9 @@ static void SendTCPMessage( PCLIENT pc, LOGICAL websock, enum proxy_message_id m
 		break;
 	case PMID_MakeSubImage:
 		{
-			msg = NewArray( _8, sendlen = ( 4 + 1 + sizeof( struct make_subimage_data ) ) );
+			msg = NewArray( uint8_t, sendlen = ( 4 + 1 + sizeof( struct make_subimage_data ) ) );
 			image = va_arg( args, PVPImage );
-			((_32*)msg)[0] = (_32)(sendlen - 4);
+			((uint32_t*)msg)[0] = (uint32_t)(sendlen - 4);
 			outmsg = (struct common_message*)(msg + 4);
 			outmsg->message_id = message;
 			outmsg->data.make_subimage.x = image->x;
@@ -643,8 +643,8 @@ static void SendTCPMessage( PCLIENT pc, LOGICAL websock, enum proxy_message_id m
 		break;
 	case PMID_ImageData:
 		{
-			_32 offset = 0;
-			P_8 raw_image;
+			uint32_t offset = 0;
+			uint8_t* raw_image;
 			TEXTCHAR * encoded_image;
 			size_t outlen;
 			image = va_arg( args, PVPImage );
@@ -657,18 +657,18 @@ static void SendTCPMessage( PCLIENT pc, LOGICAL websock, enum proxy_message_id m
 			if( outlen > (16000-5) && !websock )
 			{
 				lprintf( WIDE( "need to send image in parts : %d" ), outlen );
-				msg = NewArray( _8, 16004 );
+				msg = NewArray( uint8_t, 16004 );
 				outmsg = (struct common_message*)(msg + 4);
 
 				while( outlen > (16000-5) )
 				{
 					MemCpy( outmsg->data.image_data.data, raw_image + offset, 16000 - 5/*header size, msgid,imgid*/ );
 
-					((_32*)msg)[0] = (_32)(16000);
+					((uint32_t*)msg)[0] = (uint32_t)(16000);
 					outmsg = (struct common_message*)(msg + 4);
 					outmsg->message_id = offset?PMID_ImageDataFragMore:PMID_ImageDataFrag;
 					outmsg->data.image_data.server_image_id = image->id;
-					lprintf( WIDE("Send Image %p %d  %d"), image, image->id, ((_32*)msg)[0] );
+					lprintf( WIDE("Send Image %p %d  %d"), image, image->id, ((uint32_t*)msg)[0] );
 					SendTCP( pc, msg, 16004 );
 					outlen -= (16000 - 5);
 					offset += (16000 - 5);
@@ -677,14 +677,14 @@ static void SendTCPMessage( PCLIENT pc, LOGICAL websock, enum proxy_message_id m
 			}
 			else
 			{
-				msg = NewArray( _8, sendlen = ( 4 + 1 + sizeof( struct image_data_data ) - 1 + outlen ) );
+				msg = NewArray( uint8_t, sendlen = ( 4 + 1 + sizeof( struct image_data_data ) - 1 + outlen ) );
 				outmsg = (struct common_message*)(msg + 4);
 			}
 
 			if( websock )
 			{
 				encoded_image = Encode64Image( WIDE("image/png"), raw_image, FALSE, outlen, &outlen );
-				msg = NewArray( _8, sendlen = ( 4 + 1 + sizeof( struct image_data_data ) + outlen * sizeof( TEXTCHAR ) ) );
+				msg = NewArray( uint8_t, sendlen = ( 4 + 1 + sizeof( struct image_data_data ) + outlen * sizeof( TEXTCHAR ) ) );
 				outmsg = (struct common_message*)(msg + 4);
 				MemCpy( outmsg->data.image_data.data, encoded_image, outlen * sizeof( TEXTCHAR ) );
 			}
@@ -693,7 +693,7 @@ static void SendTCPMessage( PCLIENT pc, LOGICAL websock, enum proxy_message_id m
 				lprintf( WIDE("outlen = %d"), outlen );
 				MemCpy( outmsg->data.image_data.data, raw_image + offset, outlen * sizeof( TEXTCHAR ) );
 			}
-			((_32*)msg)[0] = (_32)(sendlen - 4);
+			((uint32_t*)msg)[0] = (uint32_t)(sendlen - 4);
 			outmsg = (struct common_message*)(msg + 4);
 			outmsg->message_id = message;
 			outmsg->data.image_data.server_image_id = image->id;
@@ -715,8 +715,8 @@ static void SendTCPMessage( PCLIENT pc, LOGICAL websock, enum proxy_message_id m
        ** mostly looks like an image_data message...
 	case PMID_DrawBlock:
 		{
-			_32 offset = 0;
-			P_8 raw_image;
+			uint32_t offset = 0;
+			uint8_t* raw_image;
 			char * encoded_image;
 			size_t outlen;
 			image = va_arg( args, PVPImage );
@@ -730,7 +730,7 @@ static void SendTCPMessage( PCLIENT pc, LOGICAL websock, enum proxy_message_id m
 			if( websock )
 			{
 				encoded_image = Encode64Image( raw_image, FALSE, outlen, &outlen );
-				msg = NewArray( _8, sendlen = ( 4 + 1 + sizeof( struct image_data_data ) + outlen ) );
+				msg = NewArray( uint8_t, sendlen = ( 4 + 1 + sizeof( struct image_data_data ) + outlen ) );
 				outmsg = (struct common_message*)(msg + 4);
 				MemCpy( outmsg->data.image_data.data, encoded_image, outlen );
 			}
@@ -739,7 +739,7 @@ static void SendTCPMessage( PCLIENT pc, LOGICAL websock, enum proxy_message_id m
             lprintf( "outlen = %d", outlen );
 				MemCpy( outmsg->data.image_data.data, raw_image + offset, outlen );
 			}
-			((_32*)msg)[0] = (_32)(sendlen - 4);
+			((uint32_t*)msg)[0] = (uint32_t)(sendlen - 4);
 			outmsg = (struct common_message*)(msg + 4);
 			outmsg->message_id = message;
 			outmsg->data.image_data.server_image_id = image->id;
@@ -767,7 +767,7 @@ static void SendTCPMessage( PCLIENT pc, LOGICAL websock, enum proxy_message_id m
 			PVPImage SourceImage;
 			if( !font )
 				font = l.real_interface->_GetDefaultFont();
-			msg = NewArray( _8, sendlen = ( 4 + 1 + sizeof( struct font_data_data ) ) );
+			msg = NewArray( uint8_t, sendlen = ( 4 + 1 + sizeof( struct font_data_data ) ) );
 			outmsg = (struct common_message*)(msg + 4);
 			outmsg->message_id = PMID_FontData;
 			outmsg->data.font_data.bias_x = (font->bias & 0xF); 
@@ -815,17 +815,17 @@ static void SendTCPMessage( PCLIENT pc, LOGICAL websock, enum proxy_message_id m
 	case PMID_PutString:
 		{
 			PVPImage image = va_arg( args, PVPImage );
-			S_32 x = va_arg( args, S_32 );
-			S_32 y = va_arg( args, S_32 );
-			CDATA color = va_arg( args, _32 );
-			CDATA background = va_arg( args, _32 );
+			int32_t x = va_arg( args, int32_t );
+			int32_t y = va_arg( args, int32_t );
+			CDATA color = va_arg( args, uint32_t );
+			CDATA background = va_arg( args, uint32_t );
 			TEXTCHAR *string = va_arg( args, TEXTCHAR * );
-			size_t nChars = va_arg( args, _32 );
+			size_t nChars = va_arg( args, uint32_t );
 			SFTFont font = va_arg( args, SFTFont );
 			int orientation = va_arg( args, int );
 			int justification = va_arg( args, int );
-			_32 right = va_arg( args, _32 );
-			//_8 *msg;
+			uint32_t right = va_arg( args, uint32_t );
+			//uint8_t *msg;
 			//size_t sendlen;
 			//struct common_message *outmsg;
 		#ifdef _UNICODE
@@ -833,8 +833,8 @@ static void SendTCPMessage( PCLIENT pc, LOGICAL websock, enum proxy_message_id m
 		#else
 			//char *output = pc;
 		#endif
-			msg = NewArray( _8, sendlen = ( 4 + 1 + sizeof( struct put_string_data ) + ( nChars + 1 ) * sizeof( TEXTCHAR ) ) );
-			((_32*)msg)[0] = (_32)(sendlen - 4);
+			msg = NewArray( uint8_t, sendlen = ( 4 + 1 + sizeof( struct put_string_data ) + ( nChars + 1 ) * sizeof( TEXTCHAR ) ) );
+			((uint32_t*)msg)[0] = (uint32_t)(sendlen - 4);
 			outmsg = (struct common_message*)(msg + 4);
 			outmsg->data.put_string.server_image_id = image->id;
 			outmsg->data.put_string.foreground_color = color;
@@ -903,7 +903,7 @@ static void SendCompressedBuffer( PCLIENT pc, PVPImage image )
 		image->websock_buffer[image->websock_sendlen+3] = 0;
 #endif						
 		{
-			_8 *msg;
+			uint8_t *msg;
 			struct common_message *outmsg;
 			TEXTCHAR * text_encoded_data;
 			char * encoded_data;
@@ -930,12 +930,12 @@ static void SendCompressedBuffer( PCLIENT pc, PVPImage image )
 				, outlen
 				);
 			//LogBinary( image->websock_buffer, image->websock_sendlen );
-			msg = NewArray( _8, sendlen = ( 4 + 1 + sizeof( struct draw_block_data ) + outlen * sizeof( TEXTCHAR ) ) );
+			msg = NewArray( uint8_t, sendlen = ( 4 + 1 + sizeof( struct draw_block_data ) + outlen * sizeof( TEXTCHAR ) ) );
 			outmsg = (struct common_message*)(msg + 4);
 			MemCpy( outmsg->data.draw_block.data, text_encoded_data, outlen * sizeof( TEXTCHAR ) );
 			Release( text_encoded_data );
 
-			((_32*)msg)[0] = (_32)(sendlen - 4);
+			((uint32_t*)msg)[0] = (uint32_t)(sendlen - 4);
 			outmsg = (struct common_message*)(msg + 4);
 			outmsg->message_id = PMID_DrawBlock;
 			outmsg->data.draw_block.server_image_id = image->id;
@@ -1054,8 +1054,8 @@ static void CPROC SocketRead( PCLIENT pc, POINTER buffer, size_t size )
 		state = New(struct server_socket_state);
 		MemSet( state, 0, sizeof( struct server_socket_state ) );
 		state->flags.get_length = 1;
-		state->buffer = NewArray( _8, 2048 );
-		SetNetworkLong( pc, 0, (PTRSZVAL)state );
+		state->buffer = NewArray( uint8_t, 2048 );
+		SetNetworkLong( pc, 0, (uintptr_t)state );
 	}
 	else
 	{
@@ -1168,7 +1168,7 @@ static void CPROC Connected( PCLIENT pcServer, PCLIENT pcNew )
 	}
 }
 
-static PTRSZVAL WebSockOpen( PCLIENT pc, PTRSZVAL psv )
+static uintptr_t WebSockOpen( PCLIENT pc, uintptr_t psv )
 {
 	struct server_proxy_client *client = New( struct server_proxy_client );
 	INDEX idx;
@@ -1190,21 +1190,21 @@ static PTRSZVAL WebSockOpen( PCLIENT pc, PTRSZVAL psv )
 		SendImageBuffers( pc, TRUE, TRUE );
 	}
 	LeaveCriticalSec( &l.message_formatter );
-	return (PTRSZVAL)client;
+	return (uintptr_t)client;
 }
 
-static void WebSockClose( PCLIENT pc, PTRSZVAL psv )
+static void WebSockClose( PCLIENT pc, uintptr_t psv )
 {
 	struct server_proxy_client *client= (struct server_proxy_client *)psv;
 	DeleteLink( &l.clients, client );
 	Deallocate( struct server_proxy_client *, client );
 }
 
-static void WebSockError( PCLIENT pc, PTRSZVAL psv, int error )
+static void WebSockError( PCLIENT pc, uintptr_t psv, int error )
 {
 }
 
-static void WebSockEvent( PCLIENT pc, PTRSZVAL psv, POINTER buffer, int msglen )
+static void WebSockEvent( PCLIENT pc, uintptr_t psv, POINTER buffer, int msglen )
 {
 	POINTER msg = NULL;
 	struct server_proxy_client *client= (struct server_proxy_client *)psv;
@@ -1351,7 +1351,7 @@ static void CPROC VidlibProxy_SetApplicationTitle( CTEXTSTR title )
 	SendClientMessage( PMID_SetApplicationTitle );
 }
 
-static void CPROC VidlibProxy_GetDisplaySize( _32 *width, _32 *height )
+static void CPROC VidlibProxy_GetDisplaySize( uint32_t *width, uint32_t *height )
 {
 	if( width )
 		(*width) = SACK_GetProfileInt( WIDE("SACK/Vidlib"), WIDE("Default Display Width"), 1024 );
@@ -1359,14 +1359,14 @@ static void CPROC VidlibProxy_GetDisplaySize( _32 *width, _32 *height )
 		(*height) = SACK_GetProfileInt( WIDE("SACK/Vidlib"), WIDE("Default Display Height"), 768 );
 }
 
-static void CPROC VidlibProxy_SetDisplaySize		( _32 width, _32 height )
+static void CPROC VidlibProxy_SetDisplaySize		( uint32_t width, uint32_t height )
 {
 	SACK_WriteProfileInt( WIDE("SACK/Vidlib"), WIDE("Default Display Width"), width );
 	SACK_WriteProfileInt( WIDE("SACK/Vidlib"), WIDE("Default Display Height"), height );
 }
 
 
-static PVPImage Internal_MakeImageFileEx ( INDEX iRender, _32 Width, _32 Height DBG_PASS)
+static PVPImage Internal_MakeImageFileEx ( INDEX iRender, uint32_t Width, uint32_t Height DBG_PASS)
 {
 	PVPImage image = New( struct vidlib_proxy_image );
 	MemSet( image, 0, sizeof( struct vidlib_proxy_image ) );
@@ -1406,13 +1406,13 @@ static PVPImage WrapImageFile( Image native )
 }
 
 
-static Image CPROC VidlibProxy_MakeImageFileEx (_32 Width, _32 Height DBG_PASS)
+static Image CPROC VidlibProxy_MakeImageFileEx (uint32_t Width, uint32_t Height DBG_PASS)
 {
 	return (Image)Internal_MakeImageFileEx( INVALID_INDEX, Width, Height DBG_RELAY );
 }
 
 
-static PRENDERER CPROC VidlibProxy_OpenDisplayAboveUnderSizedAt( _32 attributes, _32 width, _32 height, S_32 x, S_32 y, PRENDERER above, PRENDERER under )
+static PRENDERER CPROC VidlibProxy_OpenDisplayAboveUnderSizedAt( uint32_t attributes, uint32_t width, uint32_t height, int32_t x, int32_t y, PRENDERER above, PRENDERER under )
 {
 
 	PVPRENDER Renderer = New( struct vidlib_proxy_renderer );
@@ -1432,12 +1432,12 @@ static PRENDERER CPROC VidlibProxy_OpenDisplayAboveUnderSizedAt( _32 attributes,
 	return (PRENDERER)Renderer;
 }
 
-static PRENDERER CPROC VidlibProxy_OpenDisplayAboveSizedAt( _32 attributes, _32 width, _32 height, S_32 x, S_32 y, PRENDERER above )
+static PRENDERER CPROC VidlibProxy_OpenDisplayAboveSizedAt( uint32_t attributes, uint32_t width, uint32_t height, int32_t x, int32_t y, PRENDERER above )
 {
 	return VidlibProxy_OpenDisplayAboveUnderSizedAt( attributes, width, height, x, y, above, NULL );
 }
 
-static PRENDERER CPROC VidlibProxy_OpenDisplaySizedAt	  ( _32 attributes, _32 width, _32 height, S_32 x, S_32 y )
+static PRENDERER CPROC VidlibProxy_OpenDisplaySizedAt	  ( uint32_t attributes, uint32_t width, uint32_t height, int32_t x, int32_t y )
 {
 	return VidlibProxy_OpenDisplayAboveUnderSizedAt( attributes, width, height, x, y, NULL, NULL );
 }
@@ -1474,7 +1474,7 @@ static void CPROC  VidlibProxy_CloseDisplay ( PRENDERER Renderer )
 	//Release( Renderer );
 }
 
-static void CPROC VidlibProxy_UpdateDisplayPortionEx( PRENDERER r, S_32 x, S_32 y, _32 width, _32 height DBG_PASS )
+static void CPROC VidlibProxy_UpdateDisplayPortionEx( PRENDERER r, int32_t x, int32_t y, uint32_t width, uint32_t height DBG_PASS )
 {
 	// no-op; it will ahve already displayed(?)
 	//SendImageBuffers( pc );
@@ -1490,7 +1490,7 @@ static void CPROC VidlibProxy_UpdateDisplayEx( PRENDERER r DBG_PASS)
 
 }
 
-static void CPROC VidlibProxy_GetDisplayPosition ( PRENDERER r, S_32 *x, S_32 *y, _32 *width, _32 *height )
+static void CPROC VidlibProxy_GetDisplayPosition ( PRENDERER r, int32_t *x, int32_t *y, uint32_t *width, uint32_t *height )
 {
 	PVPRENDER pRender = (PVPRENDER)r;
 	if( x )
@@ -1504,8 +1504,8 @@ static void CPROC VidlibProxy_GetDisplayPosition ( PRENDERER r, S_32 *x, S_32 *y
 }
 
 static void CPROC VidlibProxy_MoveSizeDisplay( PRENDERER r
-													 , S_32 x, S_32 y
-													 , S_32 w, S_32 h )
+													 , int32_t x, int32_t y
+													 , int32_t w, int32_t h )
 {
 	PVPRENDER pRender = (PVPRENDER)r;
 	pRender->x = x;
@@ -1515,7 +1515,7 @@ static void CPROC VidlibProxy_MoveSizeDisplay( PRENDERER r
 	SendClientMessage( PMID_MoveSizeDisplay, r );
 }
 
-static void CPROC VidlibProxy_MoveDisplay		  ( PRENDERER r, S_32 x, S_32 y )
+static void CPROC VidlibProxy_MoveDisplay		  ( PRENDERER r, int32_t x, int32_t y )
 {
 	PVPRENDER pRender = (PVPRENDER)r;
 	VidlibProxy_MoveSizeDisplay( r, 
@@ -1526,7 +1526,7 @@ static void CPROC VidlibProxy_MoveDisplay		  ( PRENDERER r, S_32 x, S_32 y )
 								);
 }
 
-static void CPROC VidlibProxy_MoveDisplayRel( PRENDERER r, S_32 delx, S_32 dely )
+static void CPROC VidlibProxy_MoveDisplayRel( PRENDERER r, int32_t delx, int32_t dely )
 {
 	PVPRENDER pRender = (PVPRENDER)r;
 	VidlibProxy_MoveSizeDisplay( r, 
@@ -1537,7 +1537,7 @@ static void CPROC VidlibProxy_MoveDisplayRel( PRENDERER r, S_32 delx, S_32 dely 
 								);
 }
 
-static void CPROC VidlibProxy_SizeDisplay( PRENDERER r, _32 w, _32 h )
+static void CPROC VidlibProxy_SizeDisplay( PRENDERER r, uint32_t w, uint32_t h )
 {
 	PVPRENDER pRender = (PVPRENDER)r;
 	VidlibProxy_MoveSizeDisplay( r, 
@@ -1548,7 +1548,7 @@ static void CPROC VidlibProxy_SizeDisplay( PRENDERER r, _32 w, _32 h )
 								);
 }
 
-static void CPROC VidlibProxy_SizeDisplayRel( PRENDERER r, S_32 delw, S_32 delh )
+static void CPROC VidlibProxy_SizeDisplayRel( PRENDERER r, int32_t delw, int32_t delh )
 {
 	PVPRENDER pRender = (PVPRENDER)r;
 	VidlibProxy_MoveSizeDisplay( r, 
@@ -1560,8 +1560,8 @@ static void CPROC VidlibProxy_SizeDisplayRel( PRENDERER r, S_32 delw, S_32 delh 
 }
 
 static void CPROC VidlibProxy_MoveSizeDisplayRel( PRENDERER r
-																 , S_32 delx, S_32 dely
-																 , S_32 delw, S_32 delh )
+																 , int32_t delx, int32_t dely
+																 , int32_t delw, int32_t delh )
 {
 	PVPRENDER pRender = (PVPRENDER)r;
 	VidlibProxy_MoveSizeDisplay( r, 
@@ -1583,40 +1583,40 @@ static Image CPROC VidlibProxy_GetDisplayImage( PRENDERER r )
 	return (Image)pRender->image;
 }
 
-static void CPROC VidlibProxy_SetCloseHandler	 ( PRENDERER r, CloseCallback c, PTRSZVAL p )
+static void CPROC VidlibProxy_SetCloseHandler	 ( PRENDERER r, CloseCallback c, uintptr_t p )
 {
 }
 
-static void CPROC VidlibProxy_SetMouseHandler  ( PRENDERER r, MouseCallback c, PTRSZVAL p )
+static void CPROC VidlibProxy_SetMouseHandler  ( PRENDERER r, MouseCallback c, uintptr_t p )
 {
 	PVPRENDER render = (PVPRENDER)r;
 	render->mouse_callback = c;
 	render->psv_mouse_callback = p;
 }
 
-static void CPROC VidlibProxy_SetRedrawHandler  ( PRENDERER r, RedrawCallback c, PTRSZVAL p )
+static void CPROC VidlibProxy_SetRedrawHandler  ( PRENDERER r, RedrawCallback c, uintptr_t p )
 {
 	PVPRENDER render = (PVPRENDER)r;
 	render->redraw = c;
 	render->psv_redraw = p;
 }
 
-static void CPROC VidlibProxy_SetKeyboardHandler	( PRENDERER r, KeyProc c, PTRSZVAL p )
+static void CPROC VidlibProxy_SetKeyboardHandler	( PRENDERER r, KeyProc c, uintptr_t p )
 {
 	PVPRENDER render = (PVPRENDER)r;
 	render->key_callback = c;
 	render->psv_key_callback = p;
 }
 
-static void CPROC VidlibProxy_SetLoseFocusHandler  ( PRENDERER r, LoseFocusCallback c, PTRSZVAL p )
+static void CPROC VidlibProxy_SetLoseFocusHandler  ( PRENDERER r, LoseFocusCallback c, uintptr_t p )
 {
 }
 
-static void CPROC VidlibProxy_GetMousePosition	( S_32 *x, S_32 *y )
+static void CPROC VidlibProxy_GetMousePosition	( int32_t *x, int32_t *y )
 {
 }
 
-static void CPROC VidlibProxy_SetMousePosition  ( PRENDERER r, S_32 x, S_32 y )
+static void CPROC VidlibProxy_SetMousePosition  ( PRENDERER r, int32_t x, int32_t y )
 {
 }
 
@@ -1680,12 +1680,12 @@ static const TEXTCHAR* CPROC VidlibProxy_GetKeyText		 ( int key )
 #endif
 }
 
-static _32 CPROC VidlibProxy_IsKeyDown		  ( PRENDERER r, int key )
+static uint32_t CPROC VidlibProxy_IsKeyDown		  ( PRENDERER r, int key )
 {
 	return 0;
 }
 
-static _32 CPROC VidlibProxy_KeyDown		  ( PRENDERER r, int key )
+static uint32_t CPROC VidlibProxy_KeyDown		  ( PRENDERER r, int key )
 {
 	return 0;
 }
@@ -1695,12 +1695,12 @@ static LOGICAL CPROC VidlibProxy_DisplayIsValid ( PRENDERER r )
 	return (r != NULL);
 }
 
-static void CPROC VidlibProxy_OwnMouseEx ( PRENDERER r, _32 Own DBG_PASS)
+static void CPROC VidlibProxy_OwnMouseEx ( PRENDERER r, uint32_t Own DBG_PASS)
 {
 
 }
 
-static int CPROC VidlibProxy_BeginCalibration ( _32 points )
+static int CPROC VidlibProxy_BeginCalibration ( uint32_t points )
 {
 	return 0;
 }
@@ -1734,12 +1734,12 @@ static void CPROC VidlibProxy_ForceDisplayBack( PRENDERER r )
 {
 }
 
-static int CPROC  VidlibProxy_BindEventToKey( PRENDERER pRenderer, _32 scancode, _32 modifier, KeyTriggerHandler trigger, PTRSZVAL psv )
+static int CPROC  VidlibProxy_BindEventToKey( PRENDERER pRenderer, uint32_t scancode, uint32_t modifier, KeyTriggerHandler trigger, uintptr_t psv )
 {
 	return 0;
 }
 
-static int CPROC VidlibProxy_UnbindKey( PRENDERER pRenderer, _32 scancode, _32 modifier )
+static int CPROC VidlibProxy_UnbindKey( PRENDERER pRenderer, uint32_t scancode, uint32_t modifier )
 {
 	return 0;
 }
@@ -1759,16 +1759,16 @@ static int CPROC VidlibProxy_IsTouchDisplay( void )
 	return 0;
 }
 
-static void CPROC VidlibProxy_GetMouseState( S_32 *x, S_32 *y, _32 *b )
+static void CPROC VidlibProxy_GetMouseState( int32_t *x, int32_t *y, uint32_t *b )
 {
 }
 
-static PSPRITE_METHOD CPROC VidlibProxy_EnableSpriteMethod(PRENDERER render, void(CPROC*RenderSprites)(PTRSZVAL psv, PRENDERER renderer, S_32 x, S_32 y, _32 w, _32 h ), PTRSZVAL psv )
+static PSPRITE_METHOD CPROC VidlibProxy_EnableSpriteMethod(PRENDERER render, void(CPROC*RenderSprites)(uintptr_t psv, PRENDERER renderer, int32_t x, int32_t y, uint32_t w, uint32_t h ), uintptr_t psv )
 {
 	return NULL;
 }
 
-static void CPROC VidlibProxy_WinShell_AcceptDroppedFiles( PRENDERER renderer, dropped_file_acceptor f, PTRSZVAL psvUser )
+static void CPROC VidlibProxy_WinShell_AcceptDroppedFiles( PRENDERER renderer, dropped_file_acceptor f, uintptr_t psvUser )
 {
 }
 
@@ -1821,8 +1821,8 @@ static HWND CPROC VidlibProxy_GetNativeHandle( PRENDERER r )
 #endif
 
 static void CPROC VidlibProxy_GetDisplaySizeEx( int nDisplay
-														  , S_32 *x, S_32 *y
-														  , _32 *width, _32 *height)
+														  , int32_t *x, int32_t *y
+														  , uint32_t *width, uint32_t *height)
 {
 	if( x )
 		(*x) = 0;
@@ -1842,17 +1842,17 @@ static void CPROC VidlibProxy_UnlockRenderer( PRENDERER render )
 {
 }
 
-static void CPROC VidlibProxy_IssueUpdateLayeredEx( PRENDERER r, LOGICAL bContent, S_32 x, S_32 y, _32 w, _32 h DBG_PASS )
+static void CPROC VidlibProxy_IssueUpdateLayeredEx( PRENDERER r, LOGICAL bContent, int32_t x, int32_t y, uint32_t w, uint32_t h DBG_PASS )
 {
 }
 
 
 #ifndef NO_TOUCH
 		/* <combine sack::image::render::SetTouchHandler@PRENDERER@fte inc asdfl;kj
-		 fteTouchCallback@PTRSZVAL>
+		 fteTouchCallback@uintptr_t>
 		 
 		 \ \																									  */
-static void CPROC VidlibProxy_SetTouchHandler  ( PRENDERER r, TouchCallback c, PTRSZVAL p )
+static void CPROC VidlibProxy_SetTouchHandler  ( PRENDERER r, TouchCallback c, uintptr_t p )
 {
 }
 #endif
@@ -1861,11 +1861,11 @@ static void CPROC VidlibProxy_MarkDisplayUpdated( PRENDERER r  )
 {
 }
 
-static void CPROC VidlibProxy_SetHideHandler		( PRENDERER r, HideAndRestoreCallback c, PTRSZVAL p )
+static void CPROC VidlibProxy_SetHideHandler		( PRENDERER r, HideAndRestoreCallback c, uintptr_t p )
 {
 }
 
-static void CPROC VidlibProxy_SetRestoreHandler  ( PRENDERER r, HideAndRestoreCallback c, PTRSZVAL p )
+static void CPROC VidlibProxy_SetRestoreHandler  ( PRENDERER r, HideAndRestoreCallback c, uintptr_t p )
 {
 }
 
@@ -1912,7 +1912,7 @@ static RENDER_INTERFACE ProxyInterface = {
 													  , VidlibProxy_SetMouseHandler
 													  , VidlibProxy_SetRedrawHandler
 													  , VidlibProxy_SetKeyboardHandler
-	 /* <combine sack::image::render::SetLoseFocusHandler@PRENDERER@LoseFocusCallback@PTRSZVAL>
+	 /* <combine sack::image::render::SetLoseFocusHandler@PRENDERER@LoseFocusCallback@uintptr_t>
 		 
 		 \ \																												 */
 													  , VidlibProxy_SetLoseFocusHandler
@@ -1989,16 +1989,16 @@ static RENDER3D_INTERFACE Proxy3dInterface = {
 	NULL
 };
 
-static void CPROC VidlibProxy_SetStringBehavior( Image pImage, _32 behavior )
+static void CPROC VidlibProxy_SetStringBehavior( Image pImage, uint32_t behavior )
 {
 
 }
-static void CPROC VidlibProxy_SetBlotMethod	  ( _32 method )
+static void CPROC VidlibProxy_SetBlotMethod	  ( uint32_t method )
 {
 
 }
 
-static Image CPROC VidlibProxy_BuildImageFileEx ( PCOLOR pc, _32 width, _32 height DBG_PASS)
+static Image CPROC VidlibProxy_BuildImageFileEx ( PCOLOR pc, uint32_t width, uint32_t height DBG_PASS)
 {
 	PVPImage image = New( struct vidlib_proxy_image );
 	MemSet( image, 0, sizeof( struct vidlib_proxy_image ) );
@@ -2016,7 +2016,7 @@ static Image CPROC VidlibProxy_BuildImageFileEx ( PCOLOR pc, _32 width, _32 heig
 	return (Image)image;
 }
 
-static Image CPROC VidlibProxy_MakeSubImageEx  ( Image pImage, S_32 x, S_32 y, _32 width, _32 height DBG_PASS )
+static Image CPROC VidlibProxy_MakeSubImageEx  ( Image pImage, int32_t x, int32_t y, uint32_t width, uint32_t height DBG_PASS )
 {
 	PVPImage image = New( struct vidlib_proxy_image );
 	MemSet( image, 0, sizeof( struct vidlib_proxy_image ) );
@@ -2046,7 +2046,7 @@ static Image CPROC VidlibProxy_MakeSubImageEx  ( Image pImage, S_32 x, S_32 y, _
 	return (Image)image;
 }
 
-static Image CPROC VidlibProxy_RemakeImageEx	 ( Image pImage, PCOLOR pc, _32 width, _32 height DBG_PASS)
+static Image CPROC VidlibProxy_RemakeImageEx	 ( Image pImage, PCOLOR pc, uint32_t width, uint32_t height DBG_PASS)
 {
 	PVPImage image;
 	if( !(image = (PVPImage)pImage ) )
@@ -2097,7 +2097,7 @@ static Image CPROC VidlibProxy_LoadImageFileEx( CTEXTSTR filename DBG_PASS )
 
 
 
-static void CPROC VidlibProxy_ResizeImageEx	  ( Image pImage, S_32 width, S_32 height DBG_PASS)
+static void CPROC VidlibProxy_ResizeImageEx	  ( Image pImage, int32_t width, int32_t height DBG_PASS)
 {
 	PVPImage image = (PVPImage)pImage;
 	if( image ) {
@@ -2108,7 +2108,7 @@ static void CPROC VidlibProxy_ResizeImageEx	  ( Image pImage, S_32 width, S_32 h
 	}
 }
 
-static void CPROC VidlibProxy_MoveImage			( Image pImage, S_32 x, S_32 y )
+static void CPROC VidlibProxy_MoveImage			( Image pImage, int32_t x, int32_t y )
 {
 	PVPImage image = (PVPImage)pImage;
 	if( image->x != x || image->y != y )
@@ -2120,14 +2120,14 @@ static void CPROC VidlibProxy_MoveImage			( Image pImage, S_32 x, S_32 y )
 	}
 }
 
-P_8 GetMessageBuf( PVPImage image, size_t size )
+uint8_t* GetMessageBuf( PVPImage image, size_t size )
 {
-	P_8 resultbuf;
+	uint8_t* resultbuf;
 	if( ( image->buf_avail ) <= ( size + image->sendlen ) )
 	{
-		P_8 newbuf;
+		uint8_t* newbuf;
 		image->buf_avail += size + 256;
-		newbuf = NewArray( _8, image->buf_avail );
+		newbuf = NewArray( uint8_t, image->buf_avail );
 		if( image->buffer )
 		{
 			MemCpy( newbuf, image->buffer, image->sendlen );
@@ -2136,7 +2136,7 @@ P_8 GetMessageBuf( PVPImage image, size_t size )
 		image->buffer = newbuf;
 	}
 	resultbuf = image->buffer + image->sendlen;
-	((_32*)resultbuf)[0] = size - 4;
+	((uint32_t*)resultbuf)[0] = size - 4;
 	image->sendlen += size;
 
 	return resultbuf + 4;
@@ -2147,13 +2147,13 @@ static void AppendJSON( PVPImage image, TEXTSTR msg, POINTER outmsg, size_t send
 	size_t size = StrLen( msg );
 	if( (image->websock_buf_avail ) < (size * sizeof( TEXTCHAR ) + image->websock_sendlen + 10 ) )
 	{
-		P_8 newbuf;
+		uint8_t* newbuf;
 		image->websock_buf_avail += size * sizeof( TEXTCHAR ) + 256;
 		if( image->websock_buf_avail > 40000 )
 		{
 			int a = 3;
 		}
-		newbuf = NewArray( _8, image->websock_buf_avail );
+		newbuf = NewArray( uint8_t, image->websock_buf_avail );
 		if( image->websock_buffer )
 		{
 			MemCpy( newbuf, image->websock_buffer, image->websock_sendlen );
@@ -2230,7 +2230,7 @@ static void ClearImageBuffers( PVPImage image, LOGICAL image_only )
 	}
 }
 
-static void CPROC VidlibProxy_BlatColor	  ( Image pifDest, S_32 x, S_32 y, _32 w, _32 h, CDATA color )
+static void CPROC VidlibProxy_BlatColor	  ( Image pifDest, int32_t x, int32_t y, uint32_t w, uint32_t h, CDATA color )
 {
 	if( ((PVPImage)pifDest)->render_id != INVALID_INDEX )
 	{
@@ -2277,7 +2277,7 @@ static void CPROC VidlibProxy_BlatColor	  ( Image pifDest, S_32 x, S_32 y, _32 w
 		}
 		{
 			TEXTSTR json_msg = json_build_message( cto, outmsg );
-			AppendJSON( image, json_msg, ((P_8)outmsg)-4, sendlen );
+			AppendJSON( image, json_msg, ((uint8_t*)outmsg)-4, sendlen );
 			Release( json_msg );
 		}
 		((PVPImage)pifDest)->image->flags |= IF_FLAG_UPDATED;
@@ -2290,7 +2290,7 @@ static void CPROC VidlibProxy_BlatColor	  ( Image pifDest, S_32 x, S_32 y, _32 w
 
 }
 
-static void CPROC VidlibProxy_BlatColorAlpha( Image pifDest, S_32 x, S_32 y, _32 w, _32 h, CDATA color )
+static void CPROC VidlibProxy_BlatColorAlpha( Image pifDest, int32_t x, int32_t y, uint32_t w, uint32_t h, CDATA color )
 {
 	if( ((PVPImage)pifDest)->render_id != INVALID_INDEX )
 	{
@@ -2337,7 +2337,7 @@ static void CPROC VidlibProxy_BlatColorAlpha( Image pifDest, S_32 x, S_32 y, _32
 		}
 		{
 			TEXTSTR json_msg = json_build_message( cto, outmsg );
-			AppendJSON( image, json_msg, ((P_8)outmsg)-4, sendlen );
+			AppendJSON( image, json_msg, ((uint8_t*)outmsg)-4, sendlen );
 			Release( json_msg );
 		}
 		((PVPImage)pifDest)->image->flags |= IF_FLAG_UPDATED;
@@ -2358,7 +2358,7 @@ static void SetImageUsed( PVPImage image )
 	}
 }
 
-static void CPROC VidlibProxy_BlotImageSizedEx( Image pDest, Image pIF, S_32 x, S_32 y, S_32 xs, S_32 ys, _32 wd, _32 ht, _32 nTransparent, _32 method, ... )
+static void CPROC VidlibProxy_BlotImageSizedEx( Image pDest, Image pIF, int32_t x, int32_t y, int32_t xs, int32_t ys, uint32_t wd, uint32_t ht, uint32_t nTransparent, uint32_t method, ... )
 {
 	PVPImage image = (PVPImage)pDest;
 	if( !((PVPImage)pIF)->image )
@@ -2481,7 +2481,7 @@ static void CPROC VidlibProxy_BlotImageSizedEx( Image pDest, Image pIF, S_32 x, 
 		outmsg->data.blot_image.server_image_id = image->id;
 		{
 			TEXTSTR json_msg = json_build_message( cto, outmsg );
-			AppendJSON( image, json_msg, ((P_8)outmsg)-4, sendlen );
+			AppendJSON( image, json_msg, ((uint8_t*)outmsg)-4, sendlen );
 			Release( json_msg );
 		}
 		((PVPImage)image)->image->flags |= IF_FLAG_UPDATED;
@@ -2498,7 +2498,7 @@ static void CPROC VidlibProxy_BlotImageSizedEx( Image pDest, Image pIF, S_32 x, 
 	}
 }
 
-static void CPROC VidlibProxy_BlotImageEx	  ( Image pDest, Image pIF, S_32 x, S_32 y, _32 nTransparent, _32 method, ... )
+static void CPROC VidlibProxy_BlotImageEx	  ( Image pDest, Image pIF, int32_t x, int32_t y, uint32_t nTransparent, uint32_t method, ... )
 {
 	va_list args;
 	va_start( args, method );
@@ -2511,12 +2511,12 @@ static void CPROC VidlibProxy_BlotImageEx	  ( Image pDest, Image pIF, S_32 x, S_
 
 
 static void CPROC VidlibProxy_BlotScaledImageSizedEx( Image pifDest, Image pifSrc
-											  , S_32 xd, S_32 yd
-											  , _32 wd, _32 hd
-											  , S_32 xs, S_32 ys
-											  , _32 ws, _32 hs
-											  , _32 nTransparent
-											  , _32 method, ... )
+											  , int32_t xd, int32_t yd
+											  , uint32_t wd, uint32_t hd
+											  , int32_t xs, int32_t ys
+											  , uint32_t ws, uint32_t hs
+											  , uint32_t nTransparent
+											  , uint32_t method, ... )
 {
 	PVPImage image = (PVPImage)pifDest;
 	if( image->render_id != INVALID_INDEX )
@@ -2524,7 +2524,7 @@ static void CPROC VidlibProxy_BlotScaledImageSizedEx( Image pifDest, Image pifSr
 		struct json_context_object *cto;
 		struct common_message *outmsg;
 		size_t sendlen;
-		_32 dhd, dwd, dhs, dws;
+		uint32_t dhd, dwd, dhs, dws;
 		int errx, erry;
 		if( !((PVPImage)pifSrc)->image )
 			return;
@@ -2547,7 +2547,7 @@ static void CPROC VidlibProxy_BlotScaledImageSizedEx( Image pifDest, Image pifSr
 		errx = -(signed)dwd;
 		erry = -(signed)dhd;
 
-		if( ( xd < 0 ) || ( (xd+(S_32)(wd&0x7FFFFFFF)) > image->w ) )
+		if( ( xd < 0 ) || ( (xd+(int32_t)(wd&0x7FFFFFFF)) > image->w ) )
 		{
 			int x = xd;
 			int w = 0;
@@ -2564,7 +2564,7 @@ static void CPROC VidlibProxy_BlotScaledImageSizedEx( Image pifDest, Image pifSr
 				x++;
 			}
 
-			while( x < image->w && SUS_GT( w, int, wd, _32 ) )
+			while( x < image->w && SUS_GT( w, int, wd, uint32_t ) )
 			{
 				errx += (signed)dws;
 				while( errx >= 0 )
@@ -2579,7 +2579,7 @@ static void CPROC VidlibProxy_BlotScaledImageSizedEx( Image pifDest, Image pifSr
 		}
 		//Log8( WIDE("Blot scaled params: %d %d %d %d / %d %d %d %d "), 
 		//		 xs, ys, ws, hs, xd, yd, wd, hd );
-		if( ( yd < 0 ) || ( yd +(S_32)(hd&0x7FFFFFFF) ) > image->h )
+		if( ( yd < 0 ) || ( yd +(int32_t)(hd&0x7FFFFFFF) ) > image->h )
 		{
 			int y = yd;
 			int h = 0;
@@ -2716,7 +2716,7 @@ static void CPROC VidlibProxy_BlotScaledImageSizedEx( Image pifDest, Image pifSr
 		outmsg->data.blot_scaled_image.server_image_id = image->id;
 		{
 			TEXTSTR json_msg = json_build_message( cto, outmsg );
-			AppendJSON( image, json_msg, ((P_8)outmsg)-4, sendlen );
+			AppendJSON( image, json_msg, ((uint8_t*)outmsg)-4, sendlen );
 			Release( json_msg );
 		}
 		((PVPImage)image)->image->flags |= IF_FLAG_UPDATED;
@@ -2741,7 +2741,7 @@ static void CPROC VidlibProxy_MarkImageDirty ( Image pImage )
 	if( 0 )
 	{
 		size_t outlen;
-		P_8 encoded_image;
+		uint8_t* encoded_image;
 	
 		if( ((PVPImage)pImage)->parent )
 			encoded_image = EncodeImage( ((PVPImage)pImage)->parent->image, FALSE, &outlen );
@@ -2754,7 +2754,7 @@ static void CPROC VidlibProxy_MarkImageDirty ( Image pImage )
 #define DIMAGE_DATA_PROC(type,name,args)  static type (CPROC VidlibProxy2_##name)args;static type (CPROC* VidlibProxy_##name)args = VidlibProxy2_##name; type (CPROC VidlibProxy2_##name)args
 #define IMAGE_DATA_PROC(type,name,args)  static type (CPROC VidlibProxy_##name)args
 
-IMAGE_DATA_PROC( void,plot,		( Image pi, S_32 x, S_32 y, CDATA c ))
+IMAGE_DATA_PROC( void,plot,		( Image pi, int32_t x, int32_t y, CDATA c ))
 {
 	if( ((PVPImage)pi)->render_id != INVALID_INDEX )
 	{
@@ -2766,7 +2766,7 @@ IMAGE_DATA_PROC( void,plot,		( Image pi, S_32 x, S_32 y, CDATA c ))
 	}
 }
 
-IMAGE_DATA_PROC( void,plotalpha, ( Image pi, S_32 x, S_32 y, CDATA c ))
+IMAGE_DATA_PROC( void,plotalpha, ( Image pi, int32_t x, int32_t y, CDATA c ))
 {
 	if( ((PVPImage)pi)->render_id != INVALID_INDEX )
 	{
@@ -2777,7 +2777,7 @@ IMAGE_DATA_PROC( void,plotalpha, ( Image pi, S_32 x, S_32 y, CDATA c ))
 	}
 }
 
-IMAGE_DATA_PROC( CDATA,getpixel, ( Image pi, S_32 x, S_32 y ))
+IMAGE_DATA_PROC( CDATA,getpixel, ( Image pi, int32_t x, int32_t y ))
 {
 	if( ((PVPImage)pi)->render_id != INVALID_INDEX )
 	{
@@ -2793,7 +2793,7 @@ IMAGE_DATA_PROC( CDATA,getpixel, ( Image pi, S_32 x, S_32 y ))
 	return 0;
 }
 
-IMAGE_DATA_PROC( void,do_line,	  ( Image pifDest, S_32 x, S_32 y, S_32 xto, S_32 yto, CDATA color ))
+IMAGE_DATA_PROC( void,do_line,	  ( Image pifDest, int32_t x, int32_t y, int32_t xto, int32_t yto, CDATA color ))
 {
 	PVPImage image = (PVPImage)pifDest;
 	if( image->render_id != INVALID_INDEX )
@@ -2816,7 +2816,7 @@ IMAGE_DATA_PROC( void,do_line,	  ( Image pifDest, S_32 x, S_32 y, S_32 xto, S_32
 		outmsg->data.line.color = color;
 		{
 			TEXTSTR json_msg = json_build_message( cto, outmsg );
-			AppendJSON( image, json_msg, ((P_8)outmsg)-4, sendlen );
+			AppendJSON( image, json_msg, ((uint8_t*)outmsg)-4, sendlen );
 			Release( json_msg );
 		}
 		LeaveCriticalSec( &l.message_formatter );
@@ -2828,28 +2828,28 @@ IMAGE_DATA_PROC( void,do_line,	  ( Image pifDest, S_32 x, S_32 y, S_32 xto, S_32
 	((PVPImage)pifDest)->image->flags |= IF_FLAG_UPDATED;
 }
 
-IMAGE_DATA_PROC( void,do_lineAlpha,( Image pBuffer, S_32 x, S_32 y, S_32 xto, S_32 yto, CDATA color))
+IMAGE_DATA_PROC( void,do_lineAlpha,( Image pBuffer, int32_t x, int32_t y, int32_t xto, int32_t yto, CDATA color))
 {
 	VidlibProxy_do_line( pBuffer, x, y, xto, yto, color );
 }
 
 
-IMAGE_DATA_PROC( void,do_hline,	  ( Image pImage, S_32 y, S_32 xfrom, S_32 xto, CDATA color ))
+IMAGE_DATA_PROC( void,do_hline,	  ( Image pImage, int32_t y, int32_t xfrom, int32_t xto, CDATA color ))
 {
 	VidlibProxy_do_line( pImage, xfrom, y, xto, y, color );
 }
 
-IMAGE_DATA_PROC( void,do_vline,	  ( Image pImage, S_32 x, S_32 yfrom, S_32 yto, CDATA color ))
+IMAGE_DATA_PROC( void,do_vline,	  ( Image pImage, int32_t x, int32_t yfrom, int32_t yto, CDATA color ))
 {
 	VidlibProxy_do_line( pImage, x, yfrom, x, yto, color );
 }
 
-IMAGE_DATA_PROC( void,do_hlineAlpha,( Image pImage, S_32 y, S_32 xfrom, S_32 xto, CDATA color ))
+IMAGE_DATA_PROC( void,do_hlineAlpha,( Image pImage, int32_t y, int32_t xfrom, int32_t xto, CDATA color ))
 {
 	VidlibProxy_do_line( pImage, xfrom, y, xto, y, color );
 }
 
-IMAGE_DATA_PROC( void,do_vlineAlpha,( Image pImage, S_32 x, S_32 yfrom, S_32 yto, CDATA color ))
+IMAGE_DATA_PROC( void,do_vlineAlpha,( Image pImage, int32_t x, int32_t yfrom, int32_t yto, CDATA color ))
 {
 	VidlibProxy_do_line( pImage, x, yfrom, x, yto, color );
 }
@@ -2859,38 +2859,38 @@ static SFTFont CPROC VidlibProxy_GetDefaultFont ( void )
 	return l.real_interface->_GetDefaultFont( );
 }
 
-static _32 CPROC VidlibProxy_GetFontHeight  ( SFTFont font )
+static uint32_t CPROC VidlibProxy_GetFontHeight  ( SFTFont font )
 {
 	return l.real_interface->_GetFontHeight( font );
 }
 
-static _32 CPROC VidlibProxy_GetStringSizeFontEx( CTEXTSTR pString, size_t len, _32 *width, _32 *height, SFTFont UseFont )
+static uint32_t CPROC VidlibProxy_GetStringSizeFontEx( CTEXTSTR pString, size_t len, uint32_t *width, uint32_t *height, SFTFont UseFont )
 {
 	return l.real_interface->_GetStringSizeFontEx( pString, len, width, height, UseFont );
 }
 
-static void CPROC VidlibProxy_PutCharacterFont		  ( Image pImage, S_32 x, S_32 y, CDATA color, CDATA background, TEXTCHAR c, SFTFont font )
+static void CPROC VidlibProxy_PutCharacterFont		  ( Image pImage, int32_t x, int32_t y, CDATA color, CDATA background, TEXTCHAR c, SFTFont font )
 {
 	((PVPImage)pImage)->image->flags |= IF_FLAG_HAS_PUTSTRING;
 	l.real_interface->_PutCharacterFont( ((PVPImage)pImage)->image, x, y, color, background, c, font );
 	((PVPImage)pImage)->image->flags |= IF_FLAG_UPDATED;
 }
 
-static void CPROC VidlibProxy_PutCharacterVerticalFont( Image pImage, S_32 x, S_32 y, CDATA color, CDATA background, TEXTCHAR c, SFTFont font )
+static void CPROC VidlibProxy_PutCharacterVerticalFont( Image pImage, int32_t x, int32_t y, CDATA color, CDATA background, TEXTCHAR c, SFTFont font )
 {
 	((PVPImage)pImage)->image->flags |= IF_FLAG_HAS_PUTSTRING;
 	l.real_interface->_PutCharacterVerticalFont( ((PVPImage)pImage)->image, x, y, color, background, c, font );
 	((PVPImage)pImage)->image->flags |= IF_FLAG_UPDATED;
 }
 
-static void CPROC VidlibProxy_PutCharacterInvertFont  ( Image pImage, S_32 x, S_32 y, CDATA color, CDATA background, TEXTCHAR c, SFTFont font )
+static void CPROC VidlibProxy_PutCharacterInvertFont  ( Image pImage, int32_t x, int32_t y, CDATA color, CDATA background, TEXTCHAR c, SFTFont font )
 {
 	((PVPImage)pImage)->image->flags |= IF_FLAG_HAS_PUTSTRING;
 	l.real_interface->_PutCharacterInvertFont( ((PVPImage)pImage)->image, x, y, color, background, c, font );
 	((PVPImage)pImage)->image->flags |= IF_FLAG_UPDATED;
 }
 
-static void CPROC VidlibProxy_PutCharacterVerticalInvertFont( Image pImage, S_32 x, S_32 y, CDATA color, CDATA background, TEXTCHAR c, SFTFont font )
+static void CPROC VidlibProxy_PutCharacterVerticalInvertFont( Image pImage, int32_t x, int32_t y, CDATA color, CDATA background, TEXTCHAR c, SFTFont font )
 {
 	((PVPImage)pImage)->image->flags |= IF_FLAG_HAS_PUTSTRING;
 	l.real_interface->_PutCharacterVerticalInvertFont( ((PVPImage)pImage)->image, x, y, color, background, c, font );
@@ -2898,8 +2898,8 @@ static void CPROC VidlibProxy_PutCharacterVerticalInvertFont( Image pImage, S_32
 }
 
 
-static void VidlibProxy_SendPutString( PVPImage pImage, S_32 x, S_32 y, CDATA color, CDATA background
-												, CTEXTSTR pc, size_t nLen, SFTFont font, int orientation, int justification, _32 right )
+static void VidlibProxy_SendPutString( PVPImage pImage, int32_t x, int32_t y, CDATA color, CDATA background
+												, CTEXTSTR pc, size_t nLen, SFTFont font, int orientation, int justification, uint32_t right )
 {
 	if( !font )
 	{
@@ -2929,7 +2929,7 @@ static void VidlibProxy_SendPutString( PVPImage pImage, S_32 x, S_32 y, CDATA co
 				cto = WebSockInitJson( PMID_PutString );
 
 			{
-				//_8 *msg;
+				//uint8_t *msg;
 				//size_t sendlen;
 				//struct common_message *outmsg;
 			#ifdef _UNICODE
@@ -2956,7 +2956,7 @@ static void VidlibProxy_SendPutString( PVPImage pImage, S_32 x, S_32 y, CDATA co
 
 			{
 				TEXTSTR json_msg = json_build_message( cto, outmsg );
-				AppendJSON( image, json_msg, ((P_8)outmsg)-4, sendlen );
+				AppendJSON( image, json_msg, ((uint8_t*)outmsg)-4, sendlen );
 				Release( json_msg );
 			}
 			((PVPImage)pImage)->image->flags |= IF_FLAG_UPDATED;
@@ -2967,8 +2967,8 @@ static void VidlibProxy_SendPutString( PVPImage pImage, S_32 x, S_32 y, CDATA co
 	//SendClientMessage( PMID_PutString, pImage, x, y, color, background, pc, nLen, font, orientation, justification, right );
 }
 
-static void CPROC VidlibProxy_PutStringFontExx  ( Image pImage, S_32 x, S_32 y, CDATA color, CDATA background
-												, CTEXTSTR pc, size_t nLen, SFTFont font, int justification, _32 right )
+static void CPROC VidlibProxy_PutStringFontExx  ( Image pImage, int32_t x, int32_t y, CDATA color, CDATA background
+												, CTEXTSTR pc, size_t nLen, SFTFont font, int justification, uint32_t right )
 {
 	((PVPImage)pImage)->image->flags |= IF_FLAG_HAS_PUTSTRING;
 	l.real_interface->_PutStringFontExx( ((PVPImage)pImage)->image, x, y, color, background, pc, nLen, font, justification, right );
@@ -2976,7 +2976,7 @@ static void CPROC VidlibProxy_PutStringFontExx  ( Image pImage, S_32 x, S_32 y, 
 	VidlibProxy_SendPutString( (PVPImage)pImage, x, y, color, background, pc, nLen, font, 0, justification, right );
 }
 
-static void CPROC VidlibProxy_PutStringFontEx  ( Image pImage, S_32 x, S_32 y, CDATA color, CDATA background
+static void CPROC VidlibProxy_PutStringFontEx  ( Image pImage, int32_t x, int32_t y, CDATA color, CDATA background
 												, CTEXTSTR pc, size_t nLen, SFTFont font )
 {
 	((PVPImage)pImage)->image->flags |= IF_FLAG_HAS_PUTSTRING;
@@ -2985,7 +2985,7 @@ static void CPROC VidlibProxy_PutStringFontEx  ( Image pImage, S_32 x, S_32 y, C
 	VidlibProxy_SendPutString( (PVPImage)pImage, x, y, color, background, pc, nLen, font, 0, 0, 0 );
 }
 
-static void CPROC VidlibProxy_PutStringVerticalFontEx		( Image pImage, S_32 x, S_32 y, CDATA color, CDATA background, CTEXTSTR pc, size_t nLen, SFTFont font )
+static void CPROC VidlibProxy_PutStringVerticalFontEx		( Image pImage, int32_t x, int32_t y, CDATA color, CDATA background, CTEXTSTR pc, size_t nLen, SFTFont font )
 {
 	((PVPImage)pImage)->image->flags |= IF_FLAG_HAS_PUTSTRING;
 	l.real_interface->_PutStringVerticalFontEx( ((PVPImage)pImage)->image, x, y, color, background, pc, nLen, font );
@@ -2993,7 +2993,7 @@ static void CPROC VidlibProxy_PutStringVerticalFontEx		( Image pImage, S_32 x, S
 	VidlibProxy_SendPutString( (PVPImage)pImage, x, y, color, background, pc, nLen, font, 1, 0, 0 );
 }
 
-static void CPROC VidlibProxy_PutStringInvertFontEx		  ( Image pImage, S_32 x, S_32 y, CDATA color, CDATA background, CTEXTSTR pc, size_t nLen, SFTFont font )
+static void CPROC VidlibProxy_PutStringInvertFontEx		  ( Image pImage, int32_t x, int32_t y, CDATA color, CDATA background, CTEXTSTR pc, size_t nLen, SFTFont font )
 {
 	((PVPImage)pImage)->image->flags |= IF_FLAG_HAS_PUTSTRING;
 	l.real_interface->_PutStringInvertFontEx( ((PVPImage)pImage)->image, x, y, color, background, pc, nLen, font );
@@ -3001,7 +3001,7 @@ static void CPROC VidlibProxy_PutStringInvertFontEx		  ( Image pImage, S_32 x, S
 	VidlibProxy_SendPutString( (PVPImage)pImage, x, y, color, background, pc, nLen, font, 2, 0, 0 );
 }
 
-static void CPROC VidlibProxy_PutStringInvertVerticalFontEx( Image pImage, S_32 x, S_32 y, CDATA color, CDATA background, CTEXTSTR pc, size_t nLen, SFTFont font )
+static void CPROC VidlibProxy_PutStringInvertVerticalFontEx( Image pImage, int32_t x, int32_t y, CDATA color, CDATA background, CTEXTSTR pc, size_t nLen, SFTFont font )
 {
 	((PVPImage)pImage)->image->flags |= IF_FLAG_HAS_PUTSTRING;
 	l.real_interface->_PutStringInvertVerticalFontEx( ((PVPImage)pImage)->image, x, y, color, background, pc, nLen, font );
@@ -3009,12 +3009,12 @@ static void CPROC VidlibProxy_PutStringInvertVerticalFontEx( Image pImage, S_32 
 	VidlibProxy_SendPutString( (PVPImage)pImage, x, y, color, background, pc, nLen, font, 3, 0, 0 );
 }
 
-static _32 CPROC VidlibProxy_GetMaxStringLengthFont( _32 width, SFTFont UseFont )
+static uint32_t CPROC VidlibProxy_GetMaxStringLengthFont( uint32_t width, SFTFont UseFont )
 {
 	return l.real_interface->_GetMaxStringLengthFont( width, UseFont );
 }
 
-static void CPROC VidlibProxy_GetImageSize ( Image pImage, _32 *width, _32 *height )
+static void CPROC VidlibProxy_GetImageSize ( Image pImage, uint32_t *width, uint32_t *height )
 {
 	if( width )
 		(*width) = ((PVPImage)pImage)->w;
@@ -3034,11 +3034,11 @@ static SFTFont CPROC VidlibProxy_LoadFont ( SFTFont font )
 	Interface index 44
 	
 	This is used by internal methods to transfer image and font
-	data to the render agent.											  */	IMAGE_PROC_PTR( DataState, BeginTransferData )	 ( _32 total_size, _32 segsize, CDATA data );
+	data to the render agent.											  */	IMAGE_PROC_PTR( DataState, BeginTransferData )	 ( uint32_t total_size, uint32_t segsize, CDATA data );
 /* Internal
 	Interface index 45
 	
-	Used internally to transfer data to render agent. */	IMAGE_PROC_PTR( void, ContinueTransferData )		( DataState state, _32 segsize, CDATA data );
+	Used internally to transfer data to render agent. */	IMAGE_PROC_PTR( void, ContinueTransferData )		( DataState state, uint32_t segsize, CDATA data );
 /* Internal
 	Interface index 46
 	
@@ -3182,7 +3182,7 @@ static void CPROC VidlibProxy_TransferSubImages( Image pImageTo, Image pImageFro
 							SendTCP( client->pc, outmsg, sendlen );
 					}
 				}
-				//AppendJSON( ((PVPImage)pImageTo), json_msg, ((P_8)outmsg)-4, sendlen );
+				//AppendJSON( ((PVPImage)pImageTo), json_msg, ((uint8_t*)outmsg)-4, sendlen );
 			}
 			Release( json_msg );
 		}
@@ -3211,23 +3211,23 @@ static void CPROC VidlibProxy_TransferSubImages( Image pImageTo, Image pImageFro
 	 Internal
 	Interface index 61															 */
 		IMAGE_PROC_PTR( void	, BlotSprite )( Image pdest, PSPRITE ps );
-	 /* <combine sack::image::DecodeMemoryToImage@P_8@_32>
+	 /* <combine sack::image::DecodeMemoryToImage@uint8_t*@uint32_t>
 		 
 		 \ \																*/
-static Image CPROC VidlibProxy_DecodeMemoryToImage ( P_8 buf, _32 size )
+static Image CPROC VidlibProxy_DecodeMemoryToImage ( uint8_t* buf, uint32_t size )
 {
 	Image real_image = l.real_interface->_DecodeMemoryToImage( buf, size );
 	return (Image)WrapImageFile( real_image );
 }
 
-/* <combine sack::image::GetFontRenderData@SFTFont@POINTER *@_32 *>
+/* <combine sack::image::GetFontRenderData@SFTFont@POINTER *@uint32_t *>
 	
 	\ \																			  */
-IMAGE_PROC_PTR( PSPRITE, SetSpriteHotspot )( PSPRITE sprite, S_32 x, S_32 y );
-/* <combine sack::image::SetSpritePosition@PSPRITE@S_32@S_32>
+IMAGE_PROC_PTR( PSPRITE, SetSpriteHotspot )( PSPRITE sprite, int32_t x, int32_t y );
+/* <combine sack::image::SetSpritePosition@PSPRITE@int32_t@int32_t>
 	
 	\ \																		  */
-IMAGE_PROC_PTR( PSPRITE, SetSpritePosition )( PSPRITE sprite, S_32 x, S_32 y );
+IMAGE_PROC_PTR( PSPRITE, SetSpritePosition )( PSPRITE sprite, int32_t x, int32_t y );
 	/* <combine sack::image::UnmakeImageFileEx@Image pif>
 		
 		\ \																*/
@@ -3236,13 +3236,13 @@ IMAGE_PROC_PTR( PSPRITE, SetSpritePosition )( PSPRITE sprite, S_32 x, S_32 y );
 	
 	\ \											  */
 
-/* <combinewith sack::image::GetStringRenderSizeFontEx@CTEXTSTR@_32@_32 *@_32 *@_32 *@SFTFont, sack::image::GetStringRenderSizeFontEx@CTEXTSTR@size_t@_32 *@_32 *@_32 *@SFTFont>
+/* <combinewith sack::image::GetStringRenderSizeFontEx@CTEXTSTR@uint32_t@uint32_t *@uint32_t *@uint32_t *@SFTFont, sack::image::GetStringRenderSizeFontEx@CTEXTSTR@size_t@uint32_t *@uint32_t *@uint32_t *@SFTFont>
 	
 	\ \																																																							*/
-IMAGE_PROC_PTR( _32, GetStringRenderSizeFontEx )( CTEXTSTR pString, size_t nLen, _32 *width, _32 *height, _32 *charheight, SFTFont UseFont );
+IMAGE_PROC_PTR( uint32_t, GetStringRenderSizeFontEx )( CTEXTSTR pString, size_t nLen, uint32_t *width, uint32_t *height, uint32_t *charheight, SFTFont UseFont );
 
-IMAGE_PROC_PTR( SFTFont, RenderScaledFont )( CTEXTSTR name, _32 width, _32 height, PFRACTION width_scale, PFRACTION height_scale, _32 flags );
-IMAGE_PROC_PTR( SFTFont, RenderScaledFontEx )( CTEXTSTR name, _32 width, _32 height, PFRACTION width_scale, PFRACTION height_scale, _32 flags, size_t *pnFontDataSize, POINTER *pFontData );
+IMAGE_PROC_PTR( SFTFont, RenderScaledFont )( CTEXTSTR name, uint32_t width, uint32_t height, PFRACTION width_scale, PFRACTION height_scale, uint32_t flags );
+IMAGE_PROC_PTR( SFTFont, RenderScaledFontEx )( CTEXTSTR name, uint32_t width, uint32_t height, PFRACTION width_scale, PFRACTION height_scale, uint32_t flags, size_t *pnFontDataSize, POINTER *pFontData );
 
 IMAGE_PROC_PTR( CDATA, MakeColor )( COLOR_CHANNEL r, COLOR_CHANNEL green, COLOR_CHANNEL b );
 IMAGE_PROC_PTR( CDATA, MakeAlphaColor )( COLOR_CHANNEL r, COLOR_CHANNEL green, COLOR_CHANNEL b, COLOR_CHANNEL a );
@@ -3259,7 +3259,7 @@ static Image CPROC VidlibProxy_GetNativeImage( Image pImage )
 }
 
 IMAGE_PROC_PTR( void, DumpFontCache )( void );
-IMAGE_PROC_PTR( void, RerenderFont )( SFTFont font, S_32 width, S_32 height, PFRACTION width_scale, PFRACTION height_scale );
+IMAGE_PROC_PTR( void, RerenderFont )( SFTFont font, int32_t width, int32_t height, PFRACTION width_scale, PFRACTION height_scale );
 // option(1) == use GL_RGBA_EXT; option(2)==clamp; option(4)==repeat
 IMAGE_PROC_PTR( int, ReloadTexture )( Image child_image, int option );
 // option(1) == use GL_RGBA_EXT; option(2)==clamp; option(4)==repeat
@@ -3348,12 +3348,12 @@ IMAGE_INTERFACE ProxyImageInterface = {
 		, NULL //VidlibProxy_UnmakeSprite
 		, NULL //VidlibProxy_struct font_global_tag *, GetGlobalFonts)( void );
 
-, NULL //IMAGE_PROC_PTR( _32, GetStringRenderSizeFontEx )( CTEXTSTR pString, size_t nLen, _32 *width, _32 *height, _32 *charheight, SFTFont UseFont );
+, NULL //IMAGE_PROC_PTR( uint32_t, GetStringRenderSizeFontEx )( CTEXTSTR pString, size_t nLen, uint32_t *width, uint32_t *height, uint32_t *charheight, SFTFont UseFont );
 
 , NULL //IMAGE_PROC_PTR( Image, LoadImageFileFromGroupEx )( INDEX group, CTEXTSTR filename DBG_PASS );
 
-, NULL //IMAGE_PROC_PTR( SFTFont, RenderScaledFont )( CTEXTSTR name, _32 width, _32 height, PFRACTION width_scale, PFRACTION height_scale, _32 flags );
-, NULL //IMAGE_PROC_PTR( SFTFont, RenderScaledFontEx )( CTEXTSTR name, _32 width, _32 height, PFRACTION width_scale, PFRACTION height_scale, _32 flags, size_t *pnFontDataSize, POINTER *pFontData );
+, NULL //IMAGE_PROC_PTR( SFTFont, RenderScaledFont )( CTEXTSTR name, uint32_t width, uint32_t height, PFRACTION width_scale, PFRACTION height_scale, uint32_t flags );
+, NULL //IMAGE_PROC_PTR( SFTFont, RenderScaledFontEx )( CTEXTSTR name, uint32_t width, uint32_t height, PFRACTION width_scale, PFRACTION height_scale, uint32_t flags, size_t *pnFontDataSize, POINTER *pFontData );
 
 , NULL //IMAGE_PROC_PTR( COLOR_CHANNEL, GetRedValue )( CDATA color ) ;
 , NULL //IMAGE_PROC_PTR( COLOR_CHANNEL, GetGreenValue )( CDATA color );
@@ -3372,7 +3372,7 @@ IMAGE_INTERFACE ProxyImageInterface = {
 , NULL //IMAGE_PROC_PTR( void, MarkImageDirty )( Image pImage );
 
 , NULL //IMAGE_PROC_PTR( void, DumpFontCache )( void );
-, NULL //IMAGE_PROC_PTR( void, RerenderFont )( SFTFont font, S_32 width, S_32 height, PFRACTION width_scale, PFRACTION height_scale );
+, NULL //IMAGE_PROC_PTR( void, RerenderFont )( SFTFont font, int32_t width, int32_t height, PFRACTION width_scale, PFRACTION height_scale );
 // option(1) == use GL_RGBA_EXT; option(2)==clamp; option(4)==repeat
 , NULL //IMAGE_PROC_PTR( int, ReloadTexture )( Image child_image, int option );
 // option(1) == use GL_RGBA_EXT; option(2)==clamp; option(4)==repeat
@@ -3431,7 +3431,7 @@ static CDATA CPROC VidlibProxy_MakeAlphaColor( COLOR_CHANNEL r, COLOR_CHANNEL gr
 /* This is a macro to cure a 64bit warning in visual studio. */
 #	 define _AND_FF
 #  endif
-#define _AColor( r,g,b,a ) (((_32)( ((_8)((b)_AND_FF))|((_16)((_8)((g))_AND_FF)<<8))|(((_32)((_8)((r))_AND_FF)<<16)))|(((a)_AND_FF)<<24))
+#define _AColor( r,g,b,a ) (((uint32_t)( ((uint8_t)((b)_AND_FF))|((uint16_t)((uint8_t)((g))_AND_FF)<<8))|(((uint32_t)((uint8_t)((r))_AND_FF)<<16)))|(((a)_AND_FF)<<24))
 	return _AColor( r, grn, b, alpha );
 }
 

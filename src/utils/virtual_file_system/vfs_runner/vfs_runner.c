@@ -75,7 +75,7 @@ static LOGICAL CPROC LoadLibraryDependant( CTEXTSTR name )
 			if( sz && tmp )
 			{
 				int written, read ;
-				POINTER data = NewArray( _8, sz );
+				POINTER data = NewArray( uint8_t, sz );
 				read = sack_fread( data, 1, sz, file );
 				written = sack_fwrite( data, 1, sz, tmp );
 				sack_fclose( tmp );
@@ -131,7 +131,7 @@ static LOGICAL CPROC LoadLibraryDependant( CTEXTSTR name )
 			size_t sz = sack_fsize( file );
 			if( sz )
 			{
-				POINTER data = NewArray( _8, sz );
+				POINTER data = NewArray( uint8_t, sz );
 				sack_fread( data, 1, sz, file );
 				LoadLibraryFromMemory( name, data, sz, TRUE, LoadLibraryDependant );
 				Release( data );
@@ -158,7 +158,7 @@ static LOGICAL CPROC LoadLibraryDependant( CTEXTSTR name )
 					size_t sz = sack_fsize( file );
 					if( sz )
 					{
-						POINTER data = NewArray( _8, sz );
+						POINTER data = NewArray( uint8_t, sz );
 						sack_fread( data, 1, sz, file );
 						LoadLibraryFromMemory( name, data, sz, TRUE, LoadLibraryDependant );
 						Release( data );
@@ -202,7 +202,7 @@ static char * FindProgram( const char *name ) {
 				if( tmp )
 				{
 					int written, read ;
-					POINTER data = NewArray( _8, sz );
+					POINTER data = NewArray( uint8_t, sz );
 					read = sack_fread( data, 1, sz, file );
 					written = sack_fwrite( data, 1, sz, tmp );
 					sack_fclose( tmp );
@@ -221,7 +221,7 @@ static char * FindProgram( const char *name ) {
 void FixupMyTLS( void )
 {
 #if _WIN32
-	#define Seek(a,b) (((PTRSZVAL)a)+(b))
+	#define Seek(a,b) (((uintptr_t)a)+(b))
 
 	HMODULE p = GetModuleHandle( NULL );
 	PIMAGE_DOS_HEADER source_dos_header = (PIMAGE_DOS_HEADER)p;
@@ -322,15 +322,15 @@ PRIORITY_PRELOAD( XSaneWinMain, DEFAULT_PRELOAD_PRIORITY + 20 )//( argc, argv )
 		SetExternalLoadLibrary( LoadLibraryDependant );
 		SetExternalFindProgram( FindProgram );
 		SetProgramName( "program" );
-		vol = sack_vfs_use_crypt_volume( vfs_memory, sz-((PTRSZVAL)vfs_memory-(PTRSZVAL)memory), REPLACE_ME_2, REPLACE_ME_3 );
-		l.rom = sack_mount_filesystem( "self", l.fsi, 100, (PTRSZVAL)vol, FALSE );
+		vol = sack_vfs_use_crypt_volume( vfs_memory, sz-((uintptr_t)vfs_memory-(uintptr_t)memory), REPLACE_ME_2, REPLACE_ME_3 );
+		l.rom = sack_mount_filesystem( "self", l.fsi, 100, (uintptr_t)vol, FALSE );
 		vol2 = sack_vfs_load_crypt_volume( "external.vfs", REPLACE_ME_2, REPLACE_ME_3 );
-		l.ram = sack_mount_filesystem( "extra", l.fsi, 110, (PTRSZVAL)vol, TRUE );
+		l.ram = sack_mount_filesystem( "extra", l.fsi, 110, (uintptr_t)vol, TRUE );
 		if( vol )
 		{
 			FILE *file = sack_fopenEx( 0, "0", "rb", l.rom );
 			size_t sz = sack_fsize( file );
-			POINTER data = NewArray( _8, sz );
+			POINTER data = NewArray( uint8_t, sz );
 			sack_fread( data, 1, sz, file );
 			sack_fclose( file );
 			l.entry_point = (int(WINAPI*)(HINSTANCE,HINSTANCE,LPSTR,int))
@@ -356,14 +356,14 @@ PRIORITY_PRELOAD( XSaneWinMain, DEFAULT_PRELOAD_PRIORITY + 20 )//( argc, argv )
 		SetExternalLoadLibrary( LoadLibraryDependant );
 		SetProgramName( "program" );
 		vol = sack_vfs_load_crypt_volume( "test.scvfs", REPLACE_ME_2, REPLACE_ME_3 );
-		l.rom = sack_mount_filesystem( "self", l.fsi, 100, (PTRSZVAL)vol, TRUE );
+		l.rom = sack_mount_filesystem( "self", l.fsi, 100, (uintptr_t)vol, TRUE );
 		vol2 = sack_vfs_load_crypt_volume( "external.vfs", REPLACE_ME_2, REPLACE_ME_3 );
-		l.ram = sack_mount_filesystem( "extra", l.fsi, 110, (PTRSZVAL)vol, TRUE );
+		l.ram = sack_mount_filesystem( "extra", l.fsi, 110, (uintptr_t)vol, TRUE );
 		if( vol )
 		{
 			FILE *file = sack_fopenEx( 0, "0", "rb", l.rom );
 			size_t sz = sack_fsize( file );
-			POINTER data = NewArray( _8, sz );
+			POINTER data = NewArray( uint8_t, sz );
 
 			sack_fread( data, 1, sz, file );
 			sack_fclose( file );

@@ -1,9 +1,9 @@
 
 #define CONTROL_SCROLL_KNOB_NAME WIDE("Scroll Knob" )
 
-typedef void (CPROC *KnobEvent)( PTRSZVAL psv, int ticks );
+typedef void (CPROC *KnobEvent)( uintptr_t psv, int ticks );
 
-PSI_PROC( void, SetScrollKnobEvent )( PSI_CONTROL pc, KnobEvent event, PTRSZVAL psvEvent );
+PSI_PROC( void, SetScrollKnobEvent )( PSI_CONTROL pc, KnobEvent event, uintptr_t psvEvent );
 PSI_PROC( void, SetScrollKnobImageName )( PSI_CONTROL pc, CTEXTSTR image );
 PSI_PROC( void, SetScrollKnobImage )( PSI_CONTROL pc, Image image );
 

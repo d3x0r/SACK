@@ -35,7 +35,7 @@ int KeystrokePaste( PRENDERER pRenderer )
 {
     if( OpenClipboard(NULL) )
     {
-        _32 format;
+        uint32_t format;
         // successful open...
         format = EnumClipboardFormats( 0 );
         while( format )
@@ -154,7 +154,7 @@ RENDER_PROC( void, DestroyKeyBinder )( PKEYDEFINE pKeyDef )
 //  if no parameters follow, the definition is assumed to
 //  be a macro definition, and the macro is invoked by
 //  the processing entity...
-RENDER_PROC( int, BindEventToKeyEx )( PKEYDEFINE pKeyDefs, _32 keycode, _32 modifier, KeyTriggerHandler trigger, PTRSZVAL psv )
+RENDER_PROC( int, BindEventToKeyEx )( PKEYDEFINE pKeyDefs, uint32_t keycode, uint32_t modifier, KeyTriggerHandler trigger, uintptr_t psv )
 {
 	if( modifier & KEY_MOD_ALL_CHANGES )
 	{
@@ -178,7 +178,7 @@ RENDER_PROC( int, BindEventToKeyEx )( PKEYDEFINE pKeyDefs, _32 keycode, _32 modi
 	return TRUE;
 }
 
-RENDER_PROC( int, BindEventToKey )( PRENDERER pRenderer, _32 keycode, _32 modifier, KeyTriggerHandler trigger, PTRSZVAL psv )
+RENDER_PROC( int, BindEventToKey )( PRENDERER pRenderer, uint32_t keycode, uint32_t modifier, KeyTriggerHandler trigger, uintptr_t psv )
 {
 	return BindEventToKeyEx( pRenderer?pRenderer->KeyDefs:KeyDefs
 								  , keycode, modifier
@@ -186,7 +186,7 @@ RENDER_PROC( int, BindEventToKey )( PRENDERER pRenderer, _32 keycode, _32 modifi
 }
 //----------------------------------------------------------------------------
 
-RENDER_PROC( int, UnbindKey )( PRENDERER pRenderer, _32 keycode, _32 modifier )
+RENDER_PROC( int, UnbindKey )( PRENDERER pRenderer, uint32_t keycode, uint32_t modifier )
 {
    if( pRenderer )
    {
@@ -200,7 +200,7 @@ RENDER_PROC( int, UnbindKey )( PRENDERER pRenderer, _32 keycode, _32 modifier )
 }
 
 
-RENDER_PROC( void, SetRenderReadCallback )( PRENDERER pRenderer, RenderReadCallback callback, PTRSZVAL psv )
+RENDER_PROC( void, SetRenderReadCallback )( PRENDERER pRenderer, RenderReadCallback callback, uintptr_t psv )
 {
    if( pRenderer )
    {
@@ -209,7 +209,7 @@ RENDER_PROC( void, SetRenderReadCallback )( PRENDERER pRenderer, RenderReadCallb
    }
 }
 
-RENDER_PROC( int, HandleKeyEvents )( PKEYDEFINE pKeyDefs, _32 key )
+RENDER_PROC( int, HandleKeyEvents )( PKEYDEFINE pKeyDefs, uint32_t key )
 {
 	int keycode = KEY_CODE(key);
 	int keymod = KEY_MOD(key);

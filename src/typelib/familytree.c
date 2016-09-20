@@ -30,7 +30,7 @@ struct familynode_tag {
 		BIT_FIELD bUsed:1;
 	} flags;
 	POINTER userdata;
-	PTRSZVAL key;
+	uintptr_t key;
 	struct familynode_tag *elder, *younger, *parent, *child;
 };
 typedef struct familynode_tag FAMILYNODE;
@@ -45,8 +45,8 @@ struct familyroot_tag {
 		BIT_FIELD bShadow:1; // family points to the real FAMILYTREE (not a node)
 		BIT_FIELD bNoDuplicate : 1;
 	} flags;
-	void (CPROC *Destroy)( POINTER user, PTRSZVAL key );
-	int (CPROC *Compare)(PTRSZVAL old,PTRSZVAL newx);
+	void (CPROC *Destroy)( POINTER user, uintptr_t key );
+	int (CPROC *Compare)(uintptr_t old,uintptr_t newx);
 	PFAMILYNODESET nodes;
 	PFAMILYNODE family;
 	PFAMILYNODE prior
@@ -65,8 +65,8 @@ typedef struct familyroot_tag FAMILYTREE;
 
 //----------------------------------------------------------------------------
 
- PFAMILYTREE  CreateFamilyTree ( int (CPROC*Compare)(PTRSZVAL old,PTRSZVAL new_key),
-															 void (CPROC*Destroy)( POINTER user, PTRSZVAL key ) )
+ PFAMILYTREE  CreateFamilyTree ( int (CPROC*Compare)(uintptr_t old,uintptr_t new_key),
+															 void (CPROC*Destroy)( POINTER user, uintptr_t key ) )
 {
 	PFAMILYTREE root = (PFAMILYTREE)Allocate( sizeof( FAMILYTREE ) );
 	MemSet( root, 0, sizeof( FAMILYTREE ) );
@@ -85,7 +85,7 @@ enum {
 //----------------------------------------------------------------------------
 
  POINTER  FamilyTreeFindChildEx ( PFAMILYTREE root, PFAMILYNODE root_node
-													 , PTRSZVAL psvKey )
+													 , uintptr_t psvKey )
 {
 	PFAMILYNODE node = root_node;
 	root->prior = root_node;
@@ -111,7 +111,7 @@ enum {
 	return node->userdata;
 }
 
-POINTER  FamilyTreeFindChild ( PFAMILYTREE root, PTRSZVAL psvKey )
+POINTER  FamilyTreeFindChild ( PFAMILYTREE root, uintptr_t psvKey )
 {
 	return FamilyTreeFindChildEx( root, root->lastfound, psvKey );
 }
@@ -120,8 +120,8 @@ POINTER  FamilyTreeFindChild ( PFAMILYTREE root, PTRSZVAL psvKey )
 
 // scans the whole tree to find a node
 LOGICAL FamilyTreeForEachChild( PFAMILYTREE root, PFAMILYNODE node
-			, LOGICAL (CPROC *ProcessNode)( PTRSZVAL psvForeach, PTRSZVAL psvNodeData )
-			, PTRSZVAL psvUserData )
+			, LOGICAL (CPROC *ProcessNode)( uintptr_t psvForeach, uintptr_t psvNodeData )
+			, uintptr_t psvUserData )
 {
 	if( !node )
 		node = root->family;
@@ -130,7 +130,7 @@ LOGICAL FamilyTreeForEachChild( PFAMILYTREE root, PFAMILYNODE node
 	while( node )
 	{
 		LOGICAL process_result;
-		process_result = ProcessNode( psvUserData, (PTRSZVAL)node->userdata );
+		process_result = ProcessNode( psvUserData, (uintptr_t)node->userdata );
 		if( !process_result )
 			return process_result;
 		node = node->elder;
@@ -140,8 +140,8 @@ LOGICAL FamilyTreeForEachChild( PFAMILYTREE root, PFAMILYNODE node
 
 // scans the whole tree to find a node
 LOGICAL FamilyTreeForEach( PFAMILYTREE root, PFAMILYNODE node
-			, LOGICAL (CPROC *ProcessNode)( PTRSZVAL psvForeach, PTRSZVAL psvNodeData, int level )
-			, PTRSZVAL psvUserData )
+			, LOGICAL (CPROC *ProcessNode)( uintptr_t psvForeach, uintptr_t psvNodeData, int level )
+			, uintptr_t psvUserData )
 {
 	static int level;
 	if( !node )
@@ -153,7 +153,7 @@ LOGICAL FamilyTreeForEach( PFAMILYTREE root, PFAMILYNODE node
 	{
 		LOGICAL process_result;
 		//lprintf( "node %p", node );
-		process_result = ProcessNode( psvUserData, (PTRSZVAL)node->userdata, level );
+		process_result = ProcessNode( psvUserData, (uintptr_t)node->userdata, level );
 		if( !process_result )
 			return process_result;
 		if( node->child )
@@ -164,7 +164,7 @@ LOGICAL FamilyTreeForEach( PFAMILYTREE root, PFAMILYNODE node
 	return TRUE;
 }
 
-static  PTRSZVAL CPROC DestroyNode(void* p,PTRSZVAL psvUser )
+static  uintptr_t CPROC DestroyNode(void* p,uintptr_t psvUser )
 {
 	PFAMILYTREE option_tree = (PFAMILYTREE)psvUser;
 	if( option_tree->Destroy )
@@ -175,7 +175,7 @@ static  PTRSZVAL CPROC DestroyNode(void* p,PTRSZVAL psvUser )
 
 void  FamilyTreeClear ( PFAMILYTREE option_tree )
 {
-	ForAllInSet( FAMILYNODE, option_tree->nodes, DestroyNode, (PTRSZVAL)option_tree );
+	ForAllInSet( FAMILYNODE, option_tree->nodes, DestroyNode, (uintptr_t)option_tree );
 	DeleteSetEx( FAMILYNODE, &option_tree->nodes );
 	option_tree->family = NULL;
 //	option_tree->nodes
@@ -195,7 +195,7 @@ void  FamilyTreeReset ( PFAMILYTREE *option_tree )
 
 //----------------------------------------------------------------------------
 
-PFAMILYNODE  FamilyTreeAddChild ( PFAMILYTREE *root, POINTER userdata, PTRSZVAL key )
+PFAMILYNODE  FamilyTreeAddChild ( PFAMILYTREE *root, POINTER userdata, uintptr_t key )
 {
 	if( root )
 	{

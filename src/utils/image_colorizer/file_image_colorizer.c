@@ -50,7 +50,7 @@ SaneWinMain( argc, argv )
 
 				{
 					int size;
-					_8 *buf;
+					uint8_t *buf;
 					if( PngImageFile( out, &buf, &size ) )
 					{
 						FILE *output = sack_fopen( 0, argv[5], WIDE("wb") );

@@ -114,14 +114,14 @@ delete ss;
 
 #define SQL_INI WIDE( "SQLPROXY.INI" )
 
-static PTRSZVAL CPROC AutoCloseThread( PTHREAD thread );
+static uintptr_t CPROC AutoCloseThread( PTHREAD thread );
 void CloseDatabaseEx( PODBC odbc, LOGICAL ReleaseConnection );
 
 int __DoSQLQueryEx(  PODBC odbc, PCOLLECT collection, CTEXTSTR query DBG_PASS );
 #define __DoSQLQuery( o,c,q ) __DoSQLQueryEx(o,c,q DBG_SRC )
-int __DoSQLCommandEx( PODBC odbc, PCOLLECT collection/*, _32 MyID*/ DBG_PASS );
+int __DoSQLCommandEx( PODBC odbc, PCOLLECT collection/*, uint32_t MyID*/ DBG_PASS );
 #define __DoSQLCommand(o,c) __DoSQLCommandEx(o,c DBG_SRC )
-int __GetSQLResult( PODBC odbc, PCOLLECT collection, int bMore/*, _32 MyID*/ );
+int __GetSQLResult( PODBC odbc, PCOLLECT collection, int bMore/*, uint32_t MyID*/ );
 #if defined( USE_SQLITE ) || defined( USE_SQLITE_INTERFACE )
 int DumpInfo2( PVARTEXT pvt, SQLSMALLINT type, struct odbc_handle_tag *odbc, LOGICAL bNoLog );
 #endif
@@ -576,8 +576,8 @@ static PCOLLECT CreateCollectorEx( PSERVICE_ROUTE SourceID, PODBC odbc, LOGICAL 
 
 //----------------------------------------------------------------------
 
-#define BYTEOP_ENCODE(n)  (char)((((_16)(n))+20) & 0xFF)
-#define BYTEOP_DECODE(n)  (char)((((_16)(n))-20) & 0xFF)
+#define BYTEOP_ENCODE(n)  (char)((((uint16_t)(n))+20) & 0xFF)
+#define BYTEOP_DECODE(n)  (char)((((uint16_t)(n))-20) & 0xFF)
 
 PTEXT CPROC TranslateINICrypt( PTEXT buffer )
 {
@@ -590,21 +590,21 @@ PTEXT CPROC TranslateINICrypt( PTEXT buffer )
 }
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-static PTRSZVAL CPROC SetPrimaryDSN( PTRSZVAL psv, arg_list args )
+static uintptr_t CPROC SetPrimaryDSN( uintptr_t psv, arg_list args )
 {
 	PARAM( args, CTEXTSTR, pDSN );
 	g.Primary.info.pDSN = StrDup( pDSN );
 	return psv;
 }
 
-static PTRSZVAL CPROC SetOptionDSN( PTRSZVAL psv, arg_list args )
+static uintptr_t CPROC SetOptionDSN( uintptr_t psv, arg_list args )
 {
 	PARAM( args, CTEXTSTR, pDSN );
 	g.OptionDb.info.pDSN = StrDup( pDSN );
 	return psv;
 }
 
-static PTRSZVAL CPROC SetOptionDSNVersion( PTRSZVAL psv, arg_list args )
+static uintptr_t CPROC SetOptionDSNVersion( uintptr_t psv, arg_list args )
 {
 	PARAM( args, LOGICAL, bNewVersion );
 #ifndef __NO_OPTIONS__
@@ -614,7 +614,7 @@ static PTRSZVAL CPROC SetOptionDSNVersion( PTRSZVAL psv, arg_list args )
 	return psv;
 }
 
-static PTRSZVAL CPROC SetOptionDSNVersion4( PTRSZVAL psv, arg_list args )
+static uintptr_t CPROC SetOptionDSNVersion4( uintptr_t psv, arg_list args )
 {
 	PARAM( args, LOGICAL, bNewVersion );
 #ifndef __NO_OPTIONS__
@@ -627,7 +627,7 @@ static PTRSZVAL CPROC SetOptionDSNVersion4( PTRSZVAL psv, arg_list args )
 }
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-static PTRSZVAL CPROC SetBackupDSN( PTRSZVAL psv, arg_list args )
+static uintptr_t CPROC SetBackupDSN( uintptr_t psv, arg_list args )
 {
 	PARAM( args, CTEXTSTR, pDSN );
 	g.Backup.info.pDSN = StrDup( pDSN );
@@ -635,7 +635,7 @@ static PTRSZVAL CPROC SetBackupDSN( PTRSZVAL psv, arg_list args )
 }
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-static PTRSZVAL CPROC SetConnString( PTRSZVAL psv, arg_list args )
+static uintptr_t CPROC SetConnString( uintptr_t psv, arg_list args )
 {
 	PARAM( args, CTEXTSTR, pUser );
 	StrCpyEx( g.Primary.info.pConnString, pUser, sizeof( g.Primary.info.pConnString ) / sizeof( TEXTCHAR ) );
@@ -643,7 +643,7 @@ static PTRSZVAL CPROC SetConnString( PTRSZVAL psv, arg_list args )
 }
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-static PTRSZVAL CPROC SetUser( PTRSZVAL psv, arg_list args )
+static uintptr_t CPROC SetUser( uintptr_t psv, arg_list args )
 {
 	PARAM( args, CTEXTSTR, pUser );
 	StrCpyEx( g.Primary.info.pID, pUser, sizeof( g.Primary.info.pID ) / sizeof( TEXTCHAR ) );
@@ -651,7 +651,7 @@ static PTRSZVAL CPROC SetUser( PTRSZVAL psv, arg_list args )
 }
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-static PTRSZVAL CPROC SetPassword( PTRSZVAL psv, arg_list args )
+static uintptr_t CPROC SetPassword( uintptr_t psv, arg_list args )
 {
 	PARAM( args, CTEXTSTR, pPassword );
 	StrCpyEx( g.Primary.info.pPASSWORD, pPassword, sizeof( g.Primary.info.pPASSWORD ) );
@@ -659,7 +659,7 @@ static PTRSZVAL CPROC SetPassword( PTRSZVAL psv, arg_list args )
 }
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-static PTRSZVAL CPROC SetFallback( PTRSZVAL psv, arg_list args )
+static uintptr_t CPROC SetFallback( uintptr_t psv, arg_list args )
 {
 	PARAM( args, LOGICAL, bFallback );
 	g.flags.bFallback = bFallback;
@@ -667,7 +667,7 @@ static PTRSZVAL CPROC SetFallback( PTRSZVAL psv, arg_list args )
 }
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-static PTRSZVAL CPROC SetRequirePrimaryConnection( PTRSZVAL psv, arg_list args )
+static uintptr_t CPROC SetRequirePrimaryConnection( uintptr_t psv, arg_list args )
 {
 	PARAM( args, LOGICAL, bRequired );
 	g.Primary.flags.bForceConnection = bRequired;
@@ -675,14 +675,14 @@ static PTRSZVAL CPROC SetRequirePrimaryConnection( PTRSZVAL psv, arg_list args )
 }
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-static PTRSZVAL CPROC SetRequireConnection( PTRSZVAL psv, arg_list args )
+static uintptr_t CPROC SetRequireConnection( uintptr_t psv, arg_list args )
 {
 	PARAM( args, LOGICAL, bRequired );
 	g.flags.bRequireConnection = bRequired;
 	return psv;
 }
 
-static PTRSZVAL CPROC SetRequireBackupConnection( PTRSZVAL psv, arg_list args )
+static uintptr_t CPROC SetRequireBackupConnection( uintptr_t psv, arg_list args )
 {
 	PARAM( args, LOGICAL, bRequired );
 	g.Backup.flags.bForceConnection = bRequired;
@@ -690,7 +690,7 @@ static PTRSZVAL CPROC SetRequireBackupConnection( PTRSZVAL psv, arg_list args )
 }
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-static PTRSZVAL CPROC SetBackupUser( PTRSZVAL psv, arg_list args )
+static uintptr_t CPROC SetBackupUser( uintptr_t psv, arg_list args )
 {
 	PARAM( args, CTEXTSTR, pUser );
 	StrCpyEx( g.Backup.info.pID, pUser, sizeof( g.Primary.info.pID ) );
@@ -698,34 +698,34 @@ static PTRSZVAL CPROC SetBackupUser( PTRSZVAL psv, arg_list args )
 }
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-static PTRSZVAL CPROC SetBackupPassword( PTRSZVAL psv, arg_list args )
+static uintptr_t CPROC SetBackupPassword( uintptr_t psv, arg_list args )
 {
 	PARAM( args, CTEXTSTR, pPassword );
 	StrCpyEx( g.Backup.info.pPASSWORD, pPassword, sizeof( g.Backup.info.pPASSWORD ) );
 	return psv;
 }
 
-static PTRSZVAL CPROC SetLoggingEnabled( PTRSZVAL psv, arg_list args )
+static uintptr_t CPROC SetLoggingEnabled( uintptr_t psv, arg_list args )
 {
 	PARAM( args, LOGICAL, bEnable );
 	g.flags.bLogging = bEnable;
 	return psv;
 }
-static PTRSZVAL CPROC SetLoggingEnabled2( PTRSZVAL psv, arg_list args )
+static uintptr_t CPROC SetLoggingEnabled2( uintptr_t psv, arg_list args )
 {
 	PARAM( args, LOGICAL, bEnable );
 	g.flags.bNoLog = !bEnable;
 	return psv;
 }
 
-static PTRSZVAL CPROC SetLoggingEnabled3( PTRSZVAL psv, arg_list args )
+static uintptr_t CPROC SetLoggingEnabled3( uintptr_t psv, arg_list args )
 {
 	PARAM( args, LOGICAL, bEnable );
 	g.flags.bLogData = bEnable;
 	return psv;
 }
 
-static PTRSZVAL CPROC SetLogOptions( PTRSZVAL psv, arg_list args )
+static uintptr_t CPROC SetLogOptions( uintptr_t psv, arg_list args )
 {
 	PARAM( args, LOGICAL, bEnable );
 	g.flags.bLogOptionConnection = bEnable;
@@ -764,7 +764,7 @@ void SetSQLAutoTransact( PODBC odbc, LOGICAL bEnable )
 	}
 }
 
-void SetSQLAutoTransactCallback( PODBC odbc, void (CPROC*callback)(PTRSZVAL,PODBC), PTRSZVAL psv )
+void SetSQLAutoTransactCallback( PODBC odbc, void (CPROC*callback)(uintptr_t,PODBC), uintptr_t psv )
 {
 	if( odbc )
 	{
@@ -785,7 +785,7 @@ void SetSQLAutoClose( PODBC odbc, LOGICAL bEnable )
 		if( bEnable )
 		{
 			if( !odbc->auto_close_thread )
-				odbc->auto_close_thread = ThreadTo( AutoCloseThread, (PTRSZVAL)odbc );
+				odbc->auto_close_thread = ThreadTo( AutoCloseThread, (uintptr_t)odbc );
 		}
 		else
 		{
@@ -1165,7 +1165,7 @@ int OpenSQLConnectionEx( PODBC odbc DBG_PASS )
 					if( odbc->flags.bAutoClose )
 					{
 						if( !odbc->auto_close_thread )
-							odbc->auto_close_thread = ThreadTo( AutoCloseThread, (PTRSZVAL)odbc );
+							odbc->auto_close_thread = ThreadTo( AutoCloseThread, (uintptr_t)odbc );
 					}
 					VarTextDestroy( &pvt );
 					{
@@ -1330,7 +1330,7 @@ void SQLCommit( PODBC odbc )
 			odbc->last_command_tick = 0;
 			if( odbc->auto_commit_thread )
 			{
-				_32 start = timeGetTime();
+				uint32_t start = timeGetTime();
 				WakeThread( odbc->auto_commit_thread );
 				while( odbc->auto_commit_thread && ( ( start + 500 )> timeGetTime() ) )
 					Relinquish();
@@ -1354,9 +1354,9 @@ void SQLCommit( PODBC odbc )
 // had to create this thread - stalling out in the timer thread prevents
 // all further commit action (which may unlock the Sqlite database this is
 // intended for.
-PTRSZVAL CPROC AutoCloseThread( PTHREAD thread )
+uintptr_t CPROC AutoCloseThread( PTHREAD thread )
 {
-	PTRSZVAL psv = GetThreadParam( thread );
+	uintptr_t psv = GetThreadParam( thread );
 	PODBC odbc = (PODBC)psv;
 	int tick = 0;
 	//lprintf( "begin..." );
@@ -1398,9 +1398,9 @@ PTRSZVAL CPROC AutoCloseThread( PTHREAD thread )
 // had to create this thread - stalling out in the timer thread prevents
 // all further commit action (which may unlock the Sqlite database this is
 // intended for.
-static PTRSZVAL CPROC CommitThread( PTHREAD thread )
+static uintptr_t CPROC CommitThread( PTHREAD thread )
 {
-	PTRSZVAL psv = GetThreadParam( thread );
+	uintptr_t psv = GetThreadParam( thread );
 	PODBC odbc = (PODBC)psv;
 	int tick = 0;
 	//lprintf( WIDE( "begin..." ) );
@@ -1450,7 +1450,7 @@ void BeginTransact( PODBC odbc )
 		return;
 	if( odbc->flags.bAutoTransact )
 	{
-		_32 newtick = timeGetTime();
+		uint32_t newtick = timeGetTime();
 		//lprintf( WIDE( "Allowed. %lu" ), odbc->last_command_tick );
 
 		// again with the tricky expressions....
@@ -1466,10 +1466,10 @@ void BeginTransact( PODBC odbc )
 					lprintf(WIDE( "so add a comit thread..." ) );
 			}
 			odbc->last_command_tick = newtick;
-			//odbc->commit_timer = AddTimer( 100, CommitTimer, (PTRSZVAL)odbc );
+			//odbc->commit_timer = AddTimer( 100, CommitTimer, (uintptr_t)odbc );
 			if( !odbc->auto_commit_thread )
 			{
-				odbc->auto_commit_thread = ThreadTo( CommitThread, (PTRSZVAL)odbc );
+				odbc->auto_commit_thread = ThreadTo( CommitThread, (uintptr_t)odbc );
 			}
 			odbc->flags.bAutoTransact = 0;
 #ifdef USE_SQLITE
@@ -1641,7 +1641,7 @@ void GenerateResponce( PCOLLECT collection, int responce )
 
 int OpenSQL( DBG_VOIDPASS )
 {
-	static _32 _bOpening;
+	static uint32_t _bOpening;
 	int bPrimaryComingUp = FALSE;
 	int bBackupComingUp = FALSE;
 	while( LockedExchange( &_bOpening, 1 ) )
@@ -2079,7 +2079,7 @@ int DumpInfoEx( PODBC odbc, PVARTEXT pvt, SQLSMALLINT type, SQLHANDLE *handle, L
 	RETCODE rc;
 	TEXTCHAR statecode[6];
 	TEXTCHAR message[256];
-	/* SQLINTEGER is the same sort of thing as S_32 - it's a constant 32 bit integer value. */
+	/* SQLINTEGER is the same sort of thing as int32_t - it's a constant 32 bit integer value. */
 	SQLINTEGER  native;
 	short  msglen;
 	SQLSMALLINT  n;
@@ -2247,7 +2247,7 @@ PCOLLECT FindCollection( PODBC odbc, PSERVICE_ROUTE SourceID )
 //-----------------------------------------------------------------------
 // also ifndef sql thing...
 
-PCOLLECT Collect( PCOLLECT collection, _32 *params, size_t paramlen )
+PCOLLECT Collect( PCOLLECT collection, uint32_t *params, size_t paramlen )
 {
 	CTEXTSTR buffer = (CTEXTSTR)params;
 	// make sure we have enough room.
@@ -2560,7 +2560,7 @@ SQLPROXY_PROC( int, SQLCommandEx )( PODBC odbc, CTEXTSTR command DBG_PASS )
 #ifdef LOG_COLLECTOR_STATES
 			lprintf( "creating collector...cmd: %s", command );
 #endif
-			Collect( pCollector = CreateCollector( 0, use_odbc, TRUE ), (_32*)command, (_32)strlen( command ) );
+			Collect( pCollector = CreateCollector( 0, use_odbc, TRUE ), (uint32_t*)command, (uint32_t)strlen( command ) );
 			//SimpleMessageBox( NULL, "Please shut down the database...", "Waiting.." );
 		} while( __DoSQLCommandEx( use_odbc, pCollector DBG_RELAY ) );
 		return use_odbc->collection->responce == WM_SQL_RESULT_SUCCESS?TRUE:0;
@@ -2798,7 +2798,7 @@ int __GetSQLResult( PODBC odbc, PCOLLECT collection, int bMore )
 #endif
 		PVARTEXT pvtData;
 		TEXTCHAR *tmpResult = NULL;
-		PTRSZVAL byTmpResultLen = 0;
+		uintptr_t byTmpResultLen = 0;
 		// SQLPrepare
 		// includes the table to list... therefore list the fields in the table.
 		if( (!odbc->flags.bNoLogging) && (!g.flags.bNoLog) && g.flags.bLogData )
@@ -4072,7 +4072,7 @@ static struct {
 			{
 				vtprintf( sql_insert.pvt_values, WIDE("%s%d")
 					, first?WIDE( "" ):WIDE( "," )
-					, (int)(PTRSZVAL)varval // this generates an error - typecast to different size.  This is probably okay... but that means we needed to have it push a 8 byte value here ...
+					, (int)(uintptr_t)varval // this generates an error - typecast to different size.  This is probably okay... but that means we needed to have it push a 8 byte value here ...
 					);
 			}
 			else
@@ -4129,7 +4129,7 @@ static struct {
 void ConvertSQLDateEx( CTEXTSTR date
                      , int *year, int *month, int *day
                      , int *hour, int *minute, int *second
-                     , int *msec, S_32 *nsec
+                     , int *msec, int32_t *nsec
                      , int *zone_ofs_hr, int *zone_ofs_mn
                      )
 {
@@ -4204,7 +4204,7 @@ void ConvertSQLDateEx( CTEXTSTR date
 //#ifdef SQL_PROXY_SERVER
 //-----------------------------------------------------------------------
 
-void CPROC Timer( PTRSZVAL psv )
+void CPROC Timer( uintptr_t psv )
 {
 	// this attempts to re-open backup and/or primary
 	// and within this is dispatched the backup/restore/init
@@ -4287,11 +4287,11 @@ static void LoadTasks( void )
 //--------------------------------------------------------------------------
 
 int CPROC SQLServiceHandler( PSERVICE_ROUTE SourceRouteID
-									, _32 MsgID
-									, _32 *params, size_t param_length
-									, _32 *result, size_t *result_length )
+									, uint32_t MsgID
+									, uint32_t *params, size_t param_length
+									, uint32_t *result, size_t *result_length )
 {
-	//_32 result_buffer_length = (*result_length);
+	//uint32_t result_buffer_length = (*result_length);
 	PCOLLECT pCollector = FindCollection( NULL, SourceRouteID );
 	// extended messages may provide a way to specify alternate ODBC sources of collectors
 	//pCollector->result_buffer = result;
@@ -4322,7 +4322,7 @@ int CPROC SQLServiceHandler( PSERVICE_ROUTE SourceRouteID
 	// success/failure information only applies.
 	// no data ever results from this?
 	if( result_length )
-		(*result_length) = (_32)INVALID_INDEX; // by default
+		(*result_length) = (uint32_t)INVALID_INDEX; // by default
 	{
 		// do stuff here
 		switch( MsgID )
@@ -4331,7 +4331,7 @@ int CPROC SQLServiceHandler( PSERVICE_ROUTE SourceRouteID
 			lprintf( WIDE("Service load request... respond with correct startup!") );
 			result[0] = WM_SQL_NUM_MESSAGES;
 			result[1] = WM_SQL_NUM_MESSAGES;
-			(*result_length) = (_32)((result+2) - result);
+			(*result_length) = (uint32_t)((result+2) - result);
 			return TRUE;
 		case MSG_ServiceUnload:
 			//do
@@ -4453,13 +4453,13 @@ void SQLBeginService( void )
 #endif
 //-------------------------------------------------------------------------
 
-void SQLSetUserData( PODBC odbc, PTRSZVAL psvUser )
+void SQLSetUserData( PODBC odbc, uintptr_t psvUser )
 {
 	odbc->psvUser = psvUser;
 }
 //-------------------------------------------------------------------------
 
-PTRSZVAL SQLGetUserData( PODBC odbc )
+uintptr_t SQLGetUserData( PODBC odbc )
 {
 	return odbc->psvUser;
 }

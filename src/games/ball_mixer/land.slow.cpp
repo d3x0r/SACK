@@ -1451,7 +1451,7 @@ static int EvalExcept( int n )
 
 void ParseImage( Image image, int rows, int cols )
 {
-	_32 w, h;
+	uint32_t w, h;
 	int r, c;
 	int divisions = HEX_SIZE+1;
 	GetImageSize( image, &w, &h );
@@ -1480,7 +1480,7 @@ void ParseImage( Image image, int rows, int cols )
 	}
 }
 
-static void CPROC UpdateSliderVal( PTRSZVAL psv, PSI_CONTROL pc, int val )
+static void CPROC UpdateSliderVal( uintptr_t psv, PSI_CONTROL pc, int val )
 {
    l.values[psv] = val;
 	switch( psv )
@@ -1490,7 +1490,7 @@ static void CPROC UpdateSliderVal( PTRSZVAL psv, PSI_CONTROL pc, int val )
 	}
 }
 
-static void CPROC SaveColors( PTRSZVAL psv, PSI_CONTROL pc )
+static void CPROC SaveColors( uintptr_t psv, PSI_CONTROL pc )
 {
 	FILE *file = sack_fopen( 0, "values.dat", "wb" );
 	if( file )
@@ -1500,7 +1500,7 @@ static void CPROC SaveColors( PTRSZVAL psv, PSI_CONTROL pc )
 	}
 }
 
-static void CPROC LoadColors( PTRSZVAL psv, PSI_CONTROL pc )
+static void CPROC LoadColors( uintptr_t psv, PSI_CONTROL pc )
 {
 	FILE *file = sack_fopen( 0, "values.dat", "rb" );
 	if( file )
@@ -1517,7 +1517,7 @@ static void CPROC LoadColors( PTRSZVAL psv, PSI_CONTROL pc )
 	}
 }
 
-static PTRSZVAL OnInit3d( WIDE( "Terrain View" ) )( PMatrix projection, PTRANSFORM camera, RCOORD *identity_depth, RCOORD *aspect )
+static uintptr_t OnInit3d( WIDE( "Terrain View" ) )( PMatrix projection, PTRANSFORM camera, RCOORD *identity_depth, RCOORD *aspect )
 {
    int n;
 	l.frame = CreateFrame( "Light Slider Controls", 0, 0, 1024, 768, 0, NULL );
@@ -1551,14 +1551,14 @@ static PTRSZVAL OnInit3d( WIDE( "Terrain View" ) )( PMatrix projection, PTRANSFO
 	return 1;
 }
 
-static void OnBeginDraw3d( WIDE( "Terrain View" ) )( PTRSZVAL psv )
+static void OnBeginDraw3d( WIDE( "Terrain View" ) )( uintptr_t psv )
 {
    glShadeModel( GL_FLAT );
 	//l.numbers.texture = ReloadTexture( l.numbers.image, 0 );
 	l.numbers.texture = ReloadMultiShadedTexture( l.numbers.image, 0, AColor( 5, 5, 5, 32), Color( 12, 12, 83 ), Color( 0, 170, 170 ) );
 }
 
-static void OnDraw3d( WIDE("Terrain View") )( PTRSZVAL psvView )
+static void OnDraw3d( WIDE("Terrain View") )( uintptr_t psvView )
 //static int OnDrawCommon( WIDE("Terrain View") )( PSI_CONTROL pc )
 {
 	//PRENDERER pRend = GetFrameRenderer( pc );
@@ -1643,9 +1643,9 @@ enum move_mode{
 
 CRITICALSECTION csUpdate;
 
-static void CPROC UpdatePositions( PTRSZVAL psv )
+static void CPROC UpdatePositions( uintptr_t psv )
 {
-	_32 now = timeGetTime();
+	uint32_t now = timeGetTime();
 	if( l.last_tick )
 	{
 		l.bullet.dynamicsWorld->stepSimulation( (now-l.last_tick)/1000.f, 10);

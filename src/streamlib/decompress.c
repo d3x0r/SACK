@@ -11,7 +11,7 @@
 
 typedef struct decompress_tag {
 	struct {
-		_32 bInited : 1;
+		uint32_t bInited : 1;
 	} flags;
    /*XVID_INIT_PARAM*/ xvid_gbl_init_t xinit;
    xvid_gbl_info_t xinfo;
@@ -59,7 +59,7 @@ void InitDecompress( PDECOMPRESS pDecompress, int width, int height )
 	}
 }
 
-int CPROC DecompressFrame( PTRSZVAL psv, PCAPTURE_DEVICE pDevice )
+int CPROC DecompressFrame( uintptr_t psv, PCAPTURE_DEVICE pDevice )
 {
    PDECOMPRESS pDecompress = (PDECOMPRESS)psv;
 	static Image frame;
@@ -135,7 +135,7 @@ int CPROC DecompressFrame( PTRSZVAL psv, PCAPTURE_DEVICE pDevice )
 }
 
 
-PTRSZVAL CPROC OpenDecompressor( PCAPTURE_DEVICE pDevice, _32 width, _32 height )
+uintptr_t CPROC OpenDecompressor( PCAPTURE_DEVICE pDevice, uint32_t width, uint32_t height )
 {
 	PDECOMPRESS pDecompress = Allocate( sizeof( *pDecompress ) );
 	MemSet( pDecompress, 0, sizeof( *pDecompress ) );
@@ -144,7 +144,7 @@ PTRSZVAL CPROC OpenDecompressor( PCAPTURE_DEVICE pDevice, _32 width, _32 height 
 	pDecompress->xparam.width = width;
 	pDecompress->xparam.height = height;
 
-	return (PTRSZVAL)pDecompress;
+	return (uintptr_t)pDecompress;
 
 }
 

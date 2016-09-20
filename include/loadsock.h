@@ -84,9 +84,9 @@ typedef struct hostent *PHOSTENT;
 
 struct win_in_addr {
         union {
-                struct { _8 s_b1,s_b2,s_b3,s_b4; } S_un_b;
-                struct { _16 s_w1,s_w2; } S_un_w;
-                _32 S_addr;
+                struct { uint8_t s_b1,s_b2,s_b3,s_b4; } S_un_b;
+                struct { uint16_t s_w1,s_w2; } S_un_w;
+                uint32_t S_addr;
         } S_un;
 
 #ifndef __ANDROID__
@@ -108,7 +108,7 @@ struct win_in_addr {
 
 struct win_sockaddr_in {
         short   sin_family;
-        _16 sin_port;
+        uint16_t sin_port;
         struct  win_in_addr sin_addr;
         char    sin_zero[8];
 };

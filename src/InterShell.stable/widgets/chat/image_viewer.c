@@ -32,15 +32,15 @@ struct image_viewer {
 	int xofs, yofs; // 1 = 1000; scaled coords...
 	int x_click, y_click;
 	int rotation;
-	_32 b;
+	uint32_t b;
 	int done;
 	PSI_CONTROL parent;
 	PSI_CONTROL self;
 	PRENDERER popup_renderer;
-	void (CPROC*PopupEvent)( PTRSZVAL,LOGICAL );
-	PTRSZVAL psvPopup;
-	void (CPROC*OnAutoClose)( PTRSZVAL );
-	PTRSZVAL psvAutoClose;
+	void (CPROC*PopupEvent)( uintptr_t,LOGICAL );
+	uintptr_t psvPopup;
+	void (CPROC*OnAutoClose)( uintptr_t );
+	uintptr_t psvAutoClose;
 };
 
 EasyRegisterControlWithBorder( CONTROL_NAME, sizeof( ImageViewer ), BORDER_CAPTION_CLOSE_IS_DONE|BORDER_CAPTION_CLOSE_BUTTON|BORDER_FIXED|BORDER_NORMAL|BORDER_RESIZABLE );
@@ -109,7 +109,7 @@ static int OnDrawCommon( CONTROL_NAME )( PSI_CONTROL pc )
 			);
 		{
 			CTEXTSTR message = TranslateText( "Escape to Exit\nScroll Wheel Zooms\nClick&Drag Pan" );
-			_32 w, h;
+			uint32_t w, h;
 			GetStringSizeFont( message, &w, &h, l.image_help_font );
 			BlatColorAlpha( surface, 0, 0, w + 15, h + 6, l.help_text_background );
 			PutStringFont( surface, 5, 3, l.help_text_color, 0
@@ -128,7 +128,7 @@ static int OnTouchCommon( CONTROL_NAME )( PSI_CONTROL pc, PINPUT_POINT pPoints,i
 }
 #endif
 
-static int OnMouseCommon( CONTROL_NAME )( PSI_CONTROL pc, S_32 x, S_32 y, _32 b )
+static int OnMouseCommon( CONTROL_NAME )( PSI_CONTROL pc, int32_t x, int32_t y, uint32_t b )
 {
 	ImageViewer *pViewer = ControlData( ImageViewer *, pc );
 	if( ( b & MK_LBUTTON ) && (!( pViewer->b & MK_LBUTTON ) ) ) // first-down
@@ -191,7 +191,7 @@ static int OnMouseCommon( CONTROL_NAME )( PSI_CONTROL pc, S_32 x, S_32 y, _32 b 
 	return 1;
 }
 
-static int OnKeyCommon( CONTROL_NAME )( PSI_CONTROL pc, _32 key )
+static int OnKeyCommon( CONTROL_NAME )( PSI_CONTROL pc, uint32_t key )
 {
 	if( IsKeyPressed( key ) )
 	{
@@ -205,8 +205,8 @@ static int OnKeyCommon( CONTROL_NAME )( PSI_CONTROL pc, _32 key )
 					RevealCommon( GetFrame( pViewer->parent ) ); 
 			}
 			{
-				void (CPROC*PopupEvent)( PTRSZVAL,LOGICAL );
-				PTRSZVAL psvPopup;
+				void (CPROC*PopupEvent)( uintptr_t,LOGICAL );
+				uintptr_t psvPopup;
 				PopupEvent = pViewer->PopupEvent;
 				psvPopup = pViewer->psvPopup;
 				DestroyFrame( &pc );
@@ -219,12 +219,12 @@ static int OnKeyCommon( CONTROL_NAME )( PSI_CONTROL pc, _32 key )
 	return 0;
 }
 
-static void CPROC DoneButton( PTRSZVAL psv, PCOMMON pc )
+static void CPROC DoneButton( uintptr_t psv, PCOMMON pc )
 {
 	PSI_CONTROL pc_frame = (PSI_CONTROL)GetParentControl( pc );
 	ImageViewer *pViewer = ControlData( ImageViewer *, pc_frame );
-	void (CPROC*PopupEvent)( PTRSZVAL,LOGICAL );
-	PTRSZVAL psvPopup;
+	void (CPROC*PopupEvent)( uintptr_t,LOGICAL );
+	uintptr_t psvPopup;
 	PopupEvent = pViewer->PopupEvent;
 	psvPopup = pViewer->psvPopup;
 	DestroyFrame( &pc_frame );
@@ -232,16 +232,16 @@ static void CPROC DoneButton( PTRSZVAL psv, PCOMMON pc )
 		PopupEvent( psvPopup, FALSE );
 }
 
-static void CPROC HandleLoseFocus( PTRSZVAL dwUser, PRENDERER pGain )
+static void CPROC HandleLoseFocus( uintptr_t dwUser, PRENDERER pGain )
 {
 	ImageViewer *pViewer = ( ImageViewer *)dwUser;
 	//lprintf( "combobox - HandleLoseFocus %p is gaining (we're losing) else we're gaining", pGain );
 	if( pGain && pGain != pViewer->popup_renderer )
 	{
-		void (CPROC*Event)( PTRSZVAL ) = pViewer->OnAutoClose;
-		PTRSZVAL psvEvent = pViewer->psvAutoClose;
-		void (CPROC*PopupEvent)( PTRSZVAL,LOGICAL );
-		PTRSZVAL psvPopup;
+		void (CPROC*Event)( uintptr_t ) = pViewer->OnAutoClose;
+		uintptr_t psvEvent = pViewer->psvAutoClose;
+		void (CPROC*PopupEvent)( uintptr_t,LOGICAL );
+		uintptr_t psvPopup;
 		PopupEvent = pViewer->PopupEvent;
 		psvPopup = pViewer->psvPopup;
 		DestroyControl( pViewer->self );
@@ -252,7 +252,7 @@ static void CPROC HandleLoseFocus( PTRSZVAL dwUser, PRENDERER pGain )
 	}
 }
 
-void ImageViewer_SetAutoCloseHandler( PSI_CONTROL pc, void (CPROC*Event)( PTRSZVAL ), PTRSZVAL psvEvent )
+void ImageViewer_SetAutoCloseHandler( PSI_CONTROL pc, void (CPROC*Event)( uintptr_t ), uintptr_t psvEvent )
 {
 	ImageViewer *pViewer;
 	pViewer = ControlData( ImageViewer *, pc );
@@ -262,21 +262,21 @@ void ImageViewer_SetAutoCloseHandler( PSI_CONTROL pc, void (CPROC*Event)( PTRSZV
 
 
 PSI_CONTROL ImageViewer_ShowImage( PSI_CONTROL parent, Image image
-								  , void (CPROC*PopupEvent)( PTRSZVAL,LOGICAL ), PTRSZVAL psvEvent 
+								  , void (CPROC*PopupEvent)( uintptr_t,LOGICAL ), uintptr_t psvEvent 
 								  )
 {
 	PSI_CONTROL pc;
-	_32 zoom;
+	uint32_t zoom;
 	ImageViewer *pViewer;
 	int x = 10;
 	int y = 10;
-	_32 w, h;
-	_32 show_w, show_h;
+	uint32_t w, h;
+	uint32_t show_w, show_h;
 	GetDisplaySize( &w, &h );
-	if( SUS_LT( image->width, int, w * 3 / 4, _32 ) )
+	if( SUS_LT( image->width, int, w * 3 / 4, uint32_t ) )
 	{
 		show_w = image->width;
-		if( SUS_LT( image->height, int, h * 3 / 4, _32 ) )
+		if( SUS_LT( image->height, int, h * 3 / 4, uint32_t ) )
 		{
 			show_h = image->height;
 		}
@@ -339,7 +339,7 @@ PSI_CONTROL ImageViewer_ShowImage( PSI_CONTROL parent, Image image
 	DisplayFrame( pc );
 	{
 		pViewer->popup_renderer = GetFrameRenderer( pc );
-		SetLoseFocusHandler( pViewer->popup_renderer, HandleLoseFocus, (PTRSZVAL)pViewer );
+		SetLoseFocusHandler( pViewer->popup_renderer, HandleLoseFocus, (uintptr_t)pViewer );
 	}
 	return pc;
 }

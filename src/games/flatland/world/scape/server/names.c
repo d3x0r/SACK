@@ -102,7 +102,7 @@ INDEX MakeName( INDEX iWorld, CTEXTSTR text )
 	return iName;
 }
 
-static PTRSZVAL CPROC DeleteAName( PNAME name, INDEX iWorld )
+static uintptr_t CPROC DeleteAName( PNAME name, INDEX iWorld )
 {
 	GETWORLD( iWorld );
 	int l;

@@ -15,13 +15,13 @@ typedef struct {
 	PIMAGE_INTERFACE pImg;
    PRENDER_INTERFACE pRend;
 	struct {
-		_32 bFlashOn : 1; // flash state (all spaces)
-		_32 bFlashing : 1; // set to flash possible spaces
-		_32 bFlashed : 1; // spaces have been flashed...
-		_32 bChoiceNeedsEnter : 1;
-		_32 bSelectPlayer : 1;
-		_32 bAllowSell : 1;
-		_32 bRandomRoll : 1;
+		uint32_t bFlashOn : 1; // flash state (all spaces)
+		uint32_t bFlashing : 1; // set to flash possible spaces
+		uint32_t bFlashed : 1; // spaces have been flashed...
+		uint32_t bChoiceNeedsEnter : 1;
+		uint32_t bSelectPlayer : 1;
+		uint32_t bAllowSell : 1;
+		uint32_t bRandomRoll : 1;
 	} flags;
 	MARKET Market;
    PLIST Board;
@@ -36,7 +36,7 @@ typedef struct {
 	PCOMMON Player;
 	PCOMMON graph;
 	PCONTROL Panel; // dialog on board to mount panels
-   _32 PanelWidth, PanelHeight;
+   uint32_t PanelWidth, PanelHeight;
 	PCOMMON Mounted; // current dialog mounted on panel.
    PCOMMON _Mounted; // prior dialog mounted...
 	PCOMMON BuyStocks; // buy stock mountable dialog
@@ -44,8 +44,8 @@ typedef struct {
 	PCOMMON RollDice;
 	PCONTROL pStockBar;
    PLIST PossiblePlayers;
-	_32 scale;
-   _32 nFlashTimer;
+	uint32_t scale;
+   uint32_t nFlashTimer;
 } GLOBAL;
 
 enum panel_ids{

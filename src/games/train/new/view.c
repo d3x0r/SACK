@@ -122,7 +122,7 @@ void ComputePlaneRay( PRAY out )
 	ApplyR( EditInfo.TEdit, out, &in );
 }
 
-int CPROC ViewMouse( PTRSZVAL dwView, S_32 x, S_32 y, _32 b )
+int CPROC ViewMouse( uintptr_t dwView, int32_t x, int32_t y, uint32_t b )
 {
    VIEW *v = (VIEW*)dwView;
 	int SetChanged;
@@ -272,7 +272,7 @@ int InitGL(GLvoid)										// All Setup For OpenGL Goes Here
 }
 
 
-void CPROC _ShowObjects( PTRSZVAL dwView, PRENDERER pRenderer )
+void CPROC _ShowObjects( uintptr_t dwView, PRENDERER pRenderer )
 {
 
 	VIEW *v = (VIEW*)dwView;
@@ -283,7 +283,7 @@ void CPROC _ShowObjects( PTRSZVAL dwView, PRENDERER pRenderer )
    lprintf( "Flushed." );
 }
 
-void CPROC TimerProc( PTRSZVAL psv )
+void CPROC TimerProc( uintptr_t psv )
 {
 static VECTOR KeySpeed, KeyRotation;
 //   static PTRANSFORM SaveT;
@@ -421,7 +421,7 @@ static POBJECT pCurrent;
 			//ShowTransform( View->Tglobal );
 		}
 
-		_ShowObjects( (PTRSZVAL)View, View->hVideo );
+		_ShowObjects( (uintptr_t)View, View->hVideo );
 
 		if( EditInfo.bEditing )
 		{
@@ -454,7 +454,7 @@ static POBJECT pCurrent;
 }
 
 
-void CPROC CloseView( PTRSZVAL dwView )
+void CPROC CloseView( uintptr_t dwView )
 {
    VIEW *V;
    V = (VIEW*)dwView;
@@ -510,9 +510,9 @@ void RotateMatrix( int nType, PTRANSFORM T )
 PVIEW CreateViewEx( int nType, ViewMouseCallback pMC, char *Title, int sx, int sy )
 {
    static HVIDEO hv;
-   _32 width, height;
+   uint32_t width, height;
 	PVIEW pv;
-   _32 winsz;
+   uint32_t winsz;
    pv = Allocate( sizeof( VIEW ) );
    memset( pv, 0, sizeof( VIEW ) );
    pv->T = CreateTransform();
@@ -548,9 +548,9 @@ PVIEW CreateViewEx( int nType, ViewMouseCallback pMC, char *Title, int sx, int s
    else
 		pv->Tglobal = pMainView->Tglobal;
 
-	SetRedrawHandler( pv->hVideo, _ShowObjects, (PTRSZVAL)pv );
-	SetCloseHandler( pv->hVideo, CloseView, (PTRSZVAL)pv );
-	SetMouseHandler( pv->hVideo, ViewMouse, (PTRSZVAL)pv );
+	SetRedrawHandler( pv->hVideo, _ShowObjects, (uintptr_t)pv );
+	SetCloseHandler( pv->hVideo, CloseView, (uintptr_t)pv );
+	SetMouseHandler( pv->hVideo, ViewMouse, (uintptr_t)pv );
 
    pv->MouseMethod = pMC;
 
@@ -593,7 +593,7 @@ void GetRealPoint( Image pImage, PVECTOR vresult, IMAGE_POINT pt )
 }
 
 
-PTRSZVAL CPROC RenderFacet( POBJECT po, PFACET pf )
+uintptr_t CPROC RenderFacet( POBJECT po, PFACET pf )
 {
 	//POBJECT po = (POBJECT)psv;
 	//PFACET pf = (PFACET)member;

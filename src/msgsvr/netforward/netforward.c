@@ -20,7 +20,7 @@ typedef SERVER *PSERVER;
 
 struct service_served {
 	INDEX service_idx;
-   _32 client_registered_id;
+   uint32_t client_registered_id;
 };
 
 struct wait_struct {
@@ -29,10 +29,10 @@ struct wait_struct {
 	} flags;
 	PCLIENT pc;
 	PTHREAD thread; // message_receiption thread...
-	_32 SourceRouteID;
+	uint32_t SourceRouteID;
    int status;
-	_32 *result;
-   _32 *result_length;
+	uint32_t *result;
+   uint32_t *result_length;
 };
 
 static struct {
@@ -68,12 +68,12 @@ enum {
 
 #pragma pack(0)
 PREFIX_PACKED struct struct_msg {
-	_32 length;
-	_32 MsgId;
+	uint32_t length;
+	uint32_t MsgId;
 } PACKED;
 PREFIX_PACKED struct struct_msg_r {
 	// length member already consumed on receive side.
-	_32 MsgId;
+	uint32_t MsgId;
 	// void _user structure here...
 } PACKED;
 
@@ -89,7 +89,7 @@ PREFIX_PACKED struct struct_msg_r {
 	} PACKED;
 
 DeclareMsg( version
-			 , _32 version;
+			 , uint32_t version;
 			 );
 DeclareMsg( service
 			 , INDEX idx;
@@ -97,22 +97,22 @@ DeclareMsg( service
 			 );
 DeclareMsg( service_registered
 			 , INDEX idx;
-				_32 dwMsgBase;
+				uint32_t dwMsgBase;
 			 );
 DeclareMsg( service_message
-			 , _32 MsgID;
-				_32 responce;
-				_32 result;
-				_32 result_length;
-				_32 actual_result_length;
-            _32 param_length;
-				_32 params[];
+			 , uint32_t MsgID;
+				uint32_t responce;
+				uint32_t result;
+				uint32_t result_length;
+				uint32_t actual_result_length;
+            uint32_t param_length;
+				uint32_t params[];
 			 );
 
 DeclareMsg( service_responce
-			 , _32 status;
-				_32 responce;
-				_32 result_length;
+			 , uint32_t status;
+				uint32_t responce;
+				uint32_t result_length;
 			 );
 
 DeclareMsg( service_load
@@ -122,15 +122,15 @@ DeclareMsg( service_load
 
 DeclareMsg( service_unload
 			 , INDEX service; //service index
-			   _32 client_id;
+			   uint32_t client_id;
 			 );
 
 DeclareMsg( service_event
-			 , _32 MsgID;
+			 , uint32_t MsgID;
 			 );
 
 DeclareMsg( service_loaded
-			 , _32 client_id;
+			 , uint32_t client_id;
 			 );
 
 
@@ -138,10 +138,10 @@ DeclareMsg( service_loaded
 
 #pragma pack()
 
-static int CPROC handle_any( PTRSZVAL psv
-						  , _32 SourceRouteID, _32 MsgID
-						  , _32 *params, _32 param_length
-						  , _32 *result, _32 *result_length )
+static int CPROC handle_any( uintptr_t psv
+						  , uint32_t SourceRouteID, uint32_t MsgID
+						  , uint32_t *params, uint32_t param_length
+						  , uint32_t *result, uint32_t *result_length )
 {
 	PCLIENT pc = (PCLIENT)psv;
 	switch( MsgID )
@@ -227,12 +227,12 @@ static void CPROC ClientClosed( PCLIENT pc )
 
 static void CPROC ReceivedMessage( PCLIENT pc, POINTER buffer, int size )
 {
-   PTRSZVAL toread = 4;
+   uintptr_t toread = 4;
 	if( !buffer )
 	{
       lprintf( "there is a maximal size in message service..." );
-		buffer = NewArray( _32, 1024 ); // there is a maximal size in message service...
-		SetNetworkLong( pc, NL_BUFFER, (PTRSZVAL)buffer );
+		buffer = NewArray( uint32_t, 1024 ); // there is a maximal size in message service...
+		SetNetworkLong( pc, NL_BUFFER, (uintptr_t)buffer );
       SetNetworkLong( pc, NL_LENGTH, 0 );
 	}
 	else
@@ -241,9 +241,9 @@ static void CPROC ReceivedMessage( PCLIENT pc, POINTER buffer, int size )
       toread = GetNetworkLong( pc, NL_LENGTH );
 		if( !toread )
 		{
-			_32 length;
+			uint32_t length;
 			// size == 4.
-			length = ((P_32)buffer)[0];
+			length = ((uint32_t*)buffer)[0];
 			toread = length;
          SetNetworkLong( pc, NL_LENGTH, toread = length );
 		}
@@ -252,14 +252,14 @@ static void CPROC ReceivedMessage( PCLIENT pc, POINTER buffer, int size )
 			//struct struct_msg msg;
 			//struct struct_msg_r rmsg;
 			/* what do we get sent? someone should send something... */
-			switch( ((P_32)buffer)[0] )
+			switch( ((uint32_t*)buffer)[0] )
 			{
 			case MSG_SERVICE:
 				{
 					struct struct_service_msg_r *in = (struct struct_service_msg_r *)buffer;
                struct struct_service_registered_msg msg;
 					msg.length = sizeof( msg ) - sizeof( msg.length );
-					msg.dwMsgBase = RegisterServiceHandlerEx( in->name, handle_any, (PTRSZVAL)pc );
+					msg.dwMsgBase = RegisterServiceHandlerEx( in->name, handle_any, (uintptr_t)pc );
 					msg.MsgId = MSG_SERVICE_REGISTERED;
                msg.idx = in->idx;
 					SetTCPNoDelay( pc, TRUE );
@@ -267,7 +267,7 @@ static void CPROC ReceivedMessage( PCLIENT pc, POINTER buffer, int size )
 				}
             break;
 			case MSG_VERSION:
-				// his version is ((P_32)buffer)[1]
+				// his version is ((uint32_t*)buffer)[1]
 				{
                struct struct_version_msg msg;
 					msg.length = sizeof( struct struct_version_msg_r );
@@ -306,8 +306,8 @@ static void CPROC ReceivedMessage( PCLIENT pc, POINTER buffer, int size )
 			case MSG_SERVICE_EVENT:
 				{
 					struct struct_service_event_msg_r *in = (struct struct_service_event_msg_r *)buffer;
-               _32 client_id = 0; // need a valid clientID here...
-               SendServiceEvent( client_id, in->MsgID, (_32*)(in + 1), size - sizeof( *in ) );
+               uint32_t client_id = 0; // need a valid clientID here...
+               SendServiceEvent( client_id, in->MsgID, (uint32_t*)(in + 1), size - sizeof( *in ) );
 				}
             break;
 			}
@@ -316,7 +316,7 @@ static void CPROC ReceivedMessage( PCLIENT pc, POINTER buffer, int size )
    ReadTCPMsg( pc, buffer, (int)toread );
 }
 
-static int CPROC DiscoveredHandler( PTRSZVAL psv, SOCKADDR *responder ); // sorry forward declaration :(
+static int CPROC DiscoveredHandler( uintptr_t psv, SOCKADDR *responder ); // sorry forward declaration :(
 
 static void CPROC NetworkClosed( PCLIENT pc )
 {
@@ -324,7 +324,7 @@ static void CPROC NetworkClosed( PCLIENT pc )
 	DiscoverService( TRUE, 5324, DiscoveredHandler, 0 );
 }
 
-static int CPROC DiscoveredHandler( PTRSZVAL psv, SOCKADDR *responder )
+static int CPROC DiscoveredHandler( uintptr_t psv, SOCKADDR *responder )
 {
 	PSERVER server;
 	INDEX idx;
@@ -354,13 +354,13 @@ static int CPROC DiscoveredHandler( PTRSZVAL psv, SOCKADDR *responder )
 	return TRUE;
 }
 
-static void CPROC CloseClient( PTRSZVAL psv )
+static void CPROC CloseClient( uintptr_t psv )
 {
 	RemoveClient( (PCLIENT)psv );
 	//RemoveTimer( timer );
 }
 
-static int CPROC EventHandler( PTRSZVAL psv, _32 SourceID, _32 MsgID, _32*params, _32 paramlen)
+static int CPROC EventHandler( uintptr_t psv, uint32_t SourceID, uint32_t MsgID, uint32_t*params, uint32_t paramlen)
 {
    PCLIENT pc = (PCLIENT)psv;
 	//server has generated an event...
@@ -377,12 +377,12 @@ static int CPROC EventHandler( PTRSZVAL psv, _32 SourceID, _32 MsgID, _32*params
 
 static void CPROC ServerRead( PCLIENT pc, POINTER buffer, int length )
 {
-   PTRSZVAL toread = 4;
+   uintptr_t toread = 4;
 	if( !buffer )
 	{
       lprintf( "there is a maximal size in message service..." );
-		buffer = NewArray( _32, 1024 ); // there is a maximal size in message service...
-		SetNetworkLong( pc, NL_BUFFER, (PTRSZVAL)buffer );
+		buffer = NewArray( uint32_t, 1024 ); // there is a maximal size in message service...
+		SetNetworkLong( pc, NL_BUFFER, (uintptr_t)buffer );
 		SetNetworkLong( pc, NL_LENGTH, 0 );
 		{
 			struct struct_version_msg msg;
@@ -412,9 +412,9 @@ static void CPROC ServerRead( PCLIENT pc, POINTER buffer, int length )
       toread = GetNetworkLong( pc, NL_LENGTH );
 		if( !toread )
 		{
-			_32 length;
+			uint32_t length;
 			// size == 4.
-			length = ((P_32)buffer)[0];
+			length = ((uint32_t*)buffer)[0];
 			toread = length;
          SetNetworkLong( pc, NL_LENGTH, toread = length );
 		}
@@ -422,21 +422,21 @@ static void CPROC ServerRead( PCLIENT pc, POINTER buffer, int length )
 		{
 			/* what do we get sent? someone should send something... */
 			/* what do we get sent? someone should send something... */
-			switch( ((P_32)buffer)[0] )
+			switch( ((uint32_t*)buffer)[0] )
 			{
 			case MSG_SERVICE_REGISTERED:
 				SetTCPNoDelay( pc, TRUE );
-            //((P_32)buffer)[1];
+            //((uint32_t*)buffer)[1];
 				break;
 			case MSG_VERSION:
 				/* client responded with his version, he thinks he can work with me...*/
-            // his version is ((P_32)buffer)[1]
+            // his version is ((uint32_t*)buffer)[1]
 				break;
 			case MSG_SERVICE_LOAD:
 				{
 					struct struct_service_load_msg_r *in = (struct struct_service_load_msg_r *)buffer;
                struct struct_service_loaded_msg msg;
-					msg.client_id = LoadServiceExx( (TEXTSTR)in + 1, EventHandler, (PTRSZVAL)pc );
+					msg.client_id = LoadServiceExx( (TEXTSTR)in + 1, EventHandler, (uintptr_t)pc );
 					msg.length = sizeof( struct struct_service_loaded_msg_r );
 					msg.MsgId = MSG_SERVICE_LOADED;
                
@@ -455,7 +455,7 @@ static void CPROC ServerRead( PCLIENT pc, POINTER buffer, int length )
 				static PREFIX_PACKED struct
 				{
                struct struct_service_responce_msg msg;
-					_32 tmpbuf[1024]; // largest buffer size?
+					uint32_t tmpbuf[1024]; // largest buffer size?
 				}PACKED msg;
 #pragma pack()
 				if( msg.msg.status = TransactServerMessage( in->MsgId, in->params, in->param_length
@@ -485,7 +485,7 @@ void CPROC connected( PCLIENT PcServer, PCLIENT pcNew )
 	lprintf( "Accepted a client..." );
 	RemoveClient( (PCLIENT)pcNew );
    SetNetworkReadComplete( pcNew, ServerRead );
-	//timer = AddTimer( 0, CloseClient, (PTRSZVAL)pcNew );
+	//timer = AddTimer( 0, CloseClient, (uintptr_t)pcNew );
 }
 
 

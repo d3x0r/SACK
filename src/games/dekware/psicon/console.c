@@ -39,7 +39,7 @@ extern int myTypeID;
 void CPROC RenderSeparator( PCONSOLE_INFO pdp, int nStart )
 {
 	int c;
-   _32 dwSize;
+   uint32_t dwSize;
 #define SetCurrentColor(f,b) do { /*lprintf( "setting attrbute %d:%d", f, b );*/ SetConsoleTextAttribute( pdp->consolecon.hStdout, f|((b)<<4) ); }while(0)
 #define move(y,x) do { COORD pos; /*lprintf( "setting position: %d,%d", x, y );*/ pos.X = x; pos.Y = y; SetConsoleCursorPosition( pdp->consolecon.hStdout, pos ); }while(0)
 	if( nStart == -1 )
@@ -72,7 +72,7 @@ PTEXT win_get_line(HANDLE hFile)
 //   extern HANDLE hStdin;
    #define WORKSPACE 1024  // character for workspace
    PTEXT workline=(PTEXT)NULL;
-   _32 length = 0;
+   uint32_t length = 0;
    do
    {
       // create a workspace to read input from the file.
@@ -362,7 +362,7 @@ VOID KeyEventProc(PCONSOLE_INFO pdp, KEY_EVENT_RECORD event)
 int gbExitThread;
 HANDLE hInput;
 
-static PTRSZVAL CPROC ConsoleInputThread( PTHREAD thread )
+static uintptr_t CPROC ConsoleInputThread( PTHREAD thread )
 {
 	PCONSOLE_INFO pdp = (PCONSOLE_INFO)GetThreadParam( thread );
    INPUT_RECORD irInBuf[128];
@@ -415,7 +415,7 @@ static PTRSZVAL CPROC ConsoleInputThread( PTHREAD thread )
 
 static void CPROC DrawString( PCONSOLE_INFO pdp, int x, int y, RECT *r, char *s, int nShown, int nShow )
 {
-	_32 dwSize;
+	uint32_t dwSize;
 	lprintf( "Adding string out : %s %d %d at %d,%d", s, nShown, nShow,x,y,r->left,r->top );
 	move( y-1, x );
    r->right = r.left + nShow;
@@ -451,7 +451,7 @@ static void CPROC SetCurrentColor( PCONSOLE_INFO pdp, enum current_color_type ty
 
 static void CPROC FillConsoleRect( PCONSOLE_INFO pdp, RECT *r, enum fill_color_type type )
 {
-	int c; _32 dwSize;
+	int c; uint32_t dwSize;
 	move( r->top-1, r->left );
 	lprintf( "Filling blank line: at %d,%d  %d,%d = %d", r->top, r->left, r->left, r->right, r->right-r->left);
 	switch( type )
@@ -498,25 +498,25 @@ static PTEXT DeviceVolatileVariableGet( "console", "rows", "console row count" )
 {
 	PSENTIENT ps = pe->pControlledBy;
 	PDATAPATH pdp = FindOpenDevice( ps, (PTEXT)&ConsoleName );
-   return GetRows( (PTRSZVAL)pdp, pe, ppLastValue );
+   return GetRows( (uintptr_t)pdp, pe, ppLastValue );
 }
 static PTEXT DeviceVolatileVariableGet( "console", "cols", "console col count" )(PENTITY pe,PTEXT *ppLastValue)
 {
 	PSENTIENT ps = pe->pControlledBy;
 	PDATAPATH pdp = FindOpenDevice( ps, (PTEXT)&ConsoleName );
-   return GetCols( (PTRSZVAL)pdp, pe, ppLastValue );
+   return GetCols( (uintptr_t)pdp, pe, ppLastValue );
 }
 static PTEXT DeviceVolatileVariableGet( "console", "cursor_x", "console cursor x(col) position" )(PENTITY pe,PTEXT *ppLastValue)
 {
 	PSENTIENT ps = pe->pControlledBy;
 	PDATAPATH pdp = FindOpenDevice( ps, (PTEXT)&ConsoleName );
-   return GetCursorX( (PTRSZVAL)pdp, pe, ppLastValue );
+   return GetCursorX( (uintptr_t)pdp, pe, ppLastValue );
 }
 static PTEXT DeviceVolatileVariableGet( "console", "cursor_y", "console cursor y(row) position" )(PENTITY pe,PTEXT*ppLastValue)
 {
 	PSENTIENT ps = pe->pControlledBy;
 	PDATAPATH pdp = FindOpenDevice( ps, (PTEXT)&ConsoleName );
-   return GetCursorY( (PTRSZVAL)pdp, pe, ppLastValue );
+   return GetCursorY( (uintptr_t)pdp, pe, ppLastValue );
 }
 
 //----------------------------------------------------------------------------
@@ -651,17 +651,17 @@ static PDATAPATH OnInitDevice( "console", "Windows MDI interactive interface" )(
 		//InitHistory( &pdp->History, NULL );
 		//pdp->History.pdp = pdp;
 #if 0
-    AddVolatileVariable( ps->Current, &vve_rows, (PTRSZVAL)pdp );
-    AddVolatileVariable( ps->Current, &vve_cols, (PTRSZVAL)pdp );
-    AddVolatileVariable( ps->Current, &vve_cursorx, (PTRSZVAL)pdp );
-	 AddVolatileVariable( ps->Current, &vve_cursory, (PTRSZVAL)pdp );
+    AddVolatileVariable( ps->Current, &vve_rows, (uintptr_t)pdp );
+    AddVolatileVariable( ps->Current, &vve_cols, (uintptr_t)pdp );
+    AddVolatileVariable( ps->Current, &vve_cursorx, (uintptr_t)pdp );
+	 AddVolatileVariable( ps->Current, &vve_cursory, (uintptr_t)pdp );
 #endif
 	 ChildCalculate( pdp );
 
 
       lprintf( "Starting input thread..." );
       ghInputThread = 
-			pdp->consolecon.pThread = ThreadTo( ConsoleInputThread, (PTRSZVAL)pdp );
+			pdp->consolecon.pThread = ThreadTo( ConsoleInputThread, (uintptr_t)pdp );
       lprintf( "And we're done." );
       return (PDATAPATH)pdp;
    }

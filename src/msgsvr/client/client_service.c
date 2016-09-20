@@ -76,12 +76,12 @@ LOGICAL HandleCoreMessage( PQMSG msg, size_t msglen DBG_PASS )
 	return FALSE;
 }
 
-PTRSZVAL CPROC HandleServiceMessages( PTHREAD thread )
+uintptr_t CPROC HandleServiceMessages( PTHREAD thread )
 //#define DoHandleServiceMessages(p) DoHandleServiceMessagesEx(p DBG_SRC)
 {
-	static _32 one = 1;
+	static uint32_t one = 1;
 	LOGICAL master_service = (LOGICAL)GetThreadParam( thread );
-	S_32 length;
+	int32_t length;
 	MSGIDTYPE msgid;
 	size_t result_length = INVALID_INDEX; // default to ...
 	// can't use getpid cause we really want the threadID
@@ -155,7 +155,7 @@ PTRSZVAL CPROC HandleServiceMessages( PTHREAD thread )
 		else
 		{
 			lprintf( WIDE("Received Message.... g.msgq_out %d"), length );
-			LogBinary( (P_8)recv, length + sizeof( QMSG ) );
+			LogBinary( (uint8_t*)recv, length + sizeof( QMSG ) );
 		}
 #endif
 
@@ -195,7 +195,7 @@ PTRSZVAL CPROC HandleServiceMessages( PTHREAD thread )
 				}
 				if( service )
 				{
-					_32 msgid = recv->hdr.msgid;
+					uint32_t msgid = recv->hdr.msgid;
 #ifdef DEBUG_MESSAGE_BASE_ID
 					lprintf( WIDE("service base %ld(+%ld) and this is from %s")
 							 , 0
@@ -451,7 +451,7 @@ int ReceiveServerMessageEx( PTRANSACTIONHANDLER handler, PQMSG MessageIn, size_t
 
 		if( handler->LastMsgID != ( (MessageIn->hdr.msgid)& 0xFFFFFFF ) )
 		{
-			LogBinary( (P_8)MessageIn, MessageLen );
+			LogBinary( (uint8_t*)MessageIn, MessageLen );
 			lprintf( WIDE("len was %") _size_f, MessageLen );
 			lprintf( WIDE("Message is for this guy - but isn't the right ID! %") _MsgID_f WIDE(" %") _32f WIDE(" %") _32f WIDE("")
 					 , handler->LastMsgID, (MessageIn->hdr.msgid) & 0xFFFFFFF, 0 );
@@ -465,7 +465,7 @@ int ReceiveServerMessageEx( PTRANSACTIONHANDLER handler, PQMSG MessageIn, size_t
 		MessageLen -= sizeof(QMSG) - sizeof( MSGIDTYPE );  // subtract message ID and message source from it.
 		if( MessageLen > 0 )
 		{
-			if( (S_32)(*handler->len) < MessageLen )
+			if( (int32_t)(*handler->len) < MessageLen )
 			{
 				_lprintf( DBG_RELAY )( WIDE("Cutting out possible data to the application - should provide a failure! %") _size_f WIDE(" expected %") _size_f WIDE(" returned"), (*handler->len), MessageLen );
 				MessageLen = (*handler->len);
@@ -480,7 +480,7 @@ int ReceiveServerMessageEx( PTRANSACTIONHANDLER handler, PQMSG MessageIn, size_t
 		// which will be the source ID and the message ID
 		if( MessageLen - ( sizeof( QMSG ) - sizeof( MSGIDTYPE ) ) )
 		{
-			LogBinary( (P_8)MessageIn, MessageLen + sizeof( QMSG ) );
+			LogBinary( (uint8_t*)MessageIn, MessageLen + sizeof( QMSG ) );
 			SystemLogEx( WIDE("Server returned result data which the client did not get") DBG_RELAY );
 		}
 	}
@@ -511,7 +511,7 @@ CLIENTMSG_PROC( LOGICAL, RegisterServiceExx )( CTEXTSTR name
 															, int entries
 															, server_message_handler handler
 															, server_message_handler_ex handler_ex
-															, PTRSZVAL psv
+															, uintptr_t psv
 															)
 {
 	int status;
@@ -572,14 +572,14 @@ CLIENTMSG_PROC( LOGICAL, RegisterServiceExx )( CTEXTSTR name
 		if( !pService->flags.bMasterServer && !g.flags.bServiceHandlerStarted )
 		{
 			// pass FALSE (not master service, begin receiving on my_message_id)
-			ThreadTo( HandleServiceMessages, (PTRSZVAL)0 );
+			ThreadTo( HandleServiceMessages, (uintptr_t)0 );
 			g.flags.bServiceHandlerStarted = 1;
 		}
 
 		if( pService->flags.bMasterServer && !g.flags.bCoreServiceHandlerStarted )
 		{
 			// pass FALSE (IS master service, begin receiving on 1)
-			ThreadTo( HandleServiceMessages, (PTRSZVAL)1 );
+			ThreadTo( HandleServiceMessages, (uintptr_t)1 );
 			g.flags.bCoreServiceHandlerStarted = 1;
 		}
 

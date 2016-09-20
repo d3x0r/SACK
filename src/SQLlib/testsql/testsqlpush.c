@@ -59,9 +59,9 @@ int TripleRecordQueryTest(void)
    int rezultz = 0;
 	int results = 0;
 	int rslts = 0;
-	_32 z = 0;
-	_32 y = 0;
-   _32 x = 0;
+	uint32_t z = 0;
+	uint32_t y = 0;
+   uint32_t x = 0;
    CTEXTSTR * sequelrezultz = NULL  ;
    CTEXTSTR * sequelresults = NULL;
 	CTEXTSTR * sqlrslts = NULL;
@@ -175,7 +175,7 @@ int PushSQLQueryTest(void)
 
 		if( ( sqlrslts[0] ) && ( strlen( sqlrslts[0] )> 0 )  )
 		{
-         _32 tick;
+         uint32_t tick;
 			xlprintf(LOG_NOISE)("sqlrslts[0] is %s", sqlrslts[0] );
          tick = GetTickCount();
 			strcpy( duhname, sqlrslts[0] );

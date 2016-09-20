@@ -41,50 +41,50 @@ typedef struct CanvasData  CanvasData, *PCanvasData;
 
 //OnCreateMenuButton(WIDE("name"))(PMENU_BUTTON button ) { /*create button data*/ }
 #define OnCreateMenuButton(name) \
-	DefineRegistryMethod(TASK_PREFIX,CreateMenuButton,WIDE( "control" ),name POSTFIX,WIDE( "button_create" ),PTRSZVAL,(PMENU_BUTTON))
+	DefineRegistryMethod(TASK_PREFIX,CreateMenuButton,WIDE( "control" ),name POSTFIX,WIDE( "button_create" ),uintptr_t,(PMENU_BUTTON))
 
 // parametrs to this are the parent control, x, y, width and height
-// OnCreateCommonControl(WIDE( "" ))(PSI_CONTROL parent,S_32 x,S_32 y,_32 w,_32 h)
+// OnCreateCommonControl(WIDE( "" ))(PSI_CONTROL parent,int32_t x,int32_t y,uint32_t w,uint32_t h)
 #define OnCreateControl(name) \
-	DefineRegistryMethod(TASK_PREFIX,CreateControl,WIDE( "control" ),name,WIDE( "control_create" ),PTRSZVAL,(PSI_CONTROL,S_32,S_32,_32,_32))
+	DefineRegistryMethod(TASK_PREFIX,CreateControl,WIDE( "control" ),name,WIDE( "control_create" ),uintptr_t,(PSI_CONTROL,int32_t,int32_t,uint32_t,uint32_t))
 #define OnCreateListbox(name) \
-	DefineRegistryMethod(TASK_PREFIX,CreateMenuListbox,WIDE( "control" ),name,WIDE( "listbox_create" ),PTRSZVAL,(PSI_CONTROL))
+	DefineRegistryMethod(TASK_PREFIX,CreateMenuListbox,WIDE( "control" ),name,WIDE( "listbox_create" ),uintptr_t,(PSI_CONTROL))
 
 #define OnDestroyMenuButton(name) \
-	  DefineRegistryMethod(TASK_PREFIX,DestroyMenuButton,WIDE( "control" ),name,WIDE( "button_destroy" ),void,(PTRSZVAL))
+	  DefineRegistryMethod(TASK_PREFIX,DestroyMenuButton,WIDE( "control" ),name,WIDE( "button_destroy" ),void,(uintptr_t))
 #define OnDestroyControl OnDestroyMenuButton
 #define OnDestroyListbox OnDestroyMenuButton
 
-// Return the real PSI_CONTROL; which may not be the ptrszval result from before
-// static PSI_CONTROL OnGetControl(WIDE(""))(PTRSZVAL psvInit);
+// Return the real PSI_CONTROL; which may not be the uintptr_t result from before
+// static PSI_CONTROL OnGetControl(WIDE(""))(uintptr_t psvInit);
 // { return (PSI_CONTROL)psvInit; }
 #define OnGetControl(name) \
-	DefineRegistryMethod(TASK_PREFIX,GetControl,WIDE( "control" ),name,WIDE( "get_control" ),PSI_CONTROL,(PTRSZVAL))
+	DefineRegistryMethod(TASK_PREFIX,GetControl,WIDE( "control" ),name,WIDE( "get_control" ),PSI_CONTROL,(uintptr_t))
 #define OnFixupControl(name) \
-	  DefineRegistryMethod(TASK_PREFIX,FixupControl,WIDE( "control" ),name,WIDE( "control_fixup" ),void,(PTRSZVAL))
+	  DefineRegistryMethod(TASK_PREFIX,FixupControl,WIDE( "control" ),name,WIDE( "control_fixup" ),void,(uintptr_t))
 #define OnFixupMenuButton OnFixupControl
 
 // things like clock can do a clock unlock
 // things like lists can requery databases to show new items....
 #define OnShowControl(name) \
-	DefineRegistryMethod(TASK_PREFIX,ShowControl,WIDE( "control" ),name,WIDE( "show_control" ),void,(PTRSZVAL))
+	DefineRegistryMethod(TASK_PREFIX,ShowControl,WIDE( "control" ),name,WIDE( "show_control" ),void,(uintptr_t))
 #define OnHideControl(name) \
-	DefineRegistryMethod(TASK_PREFIX,HideControl,WIDE( "control" ),name,WIDE( "hide_control" ),void,(PTRSZVAL))
+	DefineRegistryMethod(TASK_PREFIX,HideControl,WIDE( "control" ),name,WIDE( "hide_control" ),void,(uintptr_t))
 
-// static void OnLoadControl( WIDE(""))( PCONFIG_HANDLER, PTRSZVAL psv )
+// static void OnLoadControl( WIDE(""))( PCONFIG_HANDLER, uintptr_t psv )
 #define OnLoadControl( name ) \
-     DefineRegistryMethod(TASK_PREFIX,LoadControl,WIDE( "control" ),name,WIDE( "control_config" ),void,(PCONFIG_HANDLER,PTRSZVAL))
+     DefineRegistryMethod(TASK_PREFIX,LoadControl,WIDE( "control" ),name,WIDE( "control_config" ),void,(PCONFIG_HANDLER,uintptr_t))
 #define OnLoad( name ) \
-     _DefineRegistryMethod(TASK_PREFIX,LoadControl,WIDE( "control" ),name,WIDE( "control_config" ),void,(XML_Parser,PTRSZVAL))
+     _DefineRegistryMethod(TASK_PREFIX,LoadControl,WIDE( "control" ),name,WIDE( "control_config" ),void,(XML_Parser,uintptr_t))
 
 #define OnConfigureControl(name) \
-	DefineRegistryMethod(TASK_PREFIX,ConfigureControl,WIDE( "control" ),name,WIDE( "control_edit" ),PTRSZVAL,(PTRSZVAL,PSI_CONTROL))
+	DefineRegistryMethod(TASK_PREFIX,ConfigureControl,WIDE( "control" ),name,WIDE( "control_edit" ),uintptr_t,(uintptr_t,PSI_CONTROL))
 #define OnEditControl OnConfigureControl
 
 #define OnEditBegin(name) \
-	  DefineRegistryMethod(TASK_PREFIX,EditBegin,WIDE( "control" ),name,WIDE( "on_menu_edit_begin" ),void,(PTRSZVAL))
+	  DefineRegistryMethod(TASK_PREFIX,EditBegin,WIDE( "control" ),name,WIDE( "on_menu_edit_begin" ),void,(uintptr_t))
 #define OnEditEnd(name) \
-	  DefineRegistryMethod(TASK_PREFIX,EditEnd,WIDE( "control" ),name,WIDE( "on_menu_edit_end" ),void,(PTRSZVAL))
+	  DefineRegistryMethod(TASK_PREFIX,EditEnd,WIDE( "control" ),name,WIDE( "on_menu_edit_end" ),void,(uintptr_t))
 
 #define OnEditModeBegin(name) \
 	  DefineRegistryMethod(TASK_PREFIX,EditBegin,WIDE( "common" ),WIDE( "Begin Edit Mode" ), name WIDE( "_on_menu_edit_begin" ),void,(void))
@@ -92,35 +92,35 @@ typedef struct CanvasData  CanvasData, *PCanvasData;
 	  DefineRegistryMethod(TASK_PREFIX,EditEnd,WIDE( "common" ),WIDE( "End Edit Mode" ),name WIDE( "_on_menu_edit_end" ),void,(void))
 
 #define OnSelectListboxItem(name,othername) \
-	DefineRegistrySubMethod(TASK_PREFIX,ListSelectionChanged,WIDE( "control" ),name,WIDE( "listbox_selection_changed" ),othername,void,(PTRSZVAL,PLISTITEM))
+	DefineRegistrySubMethod(TASK_PREFIX,ListSelectionChanged,WIDE( "control" ),name,WIDE( "listbox_selection_changed" ),othername,void,(uintptr_t,PLISTITEM))
 #define OnDoubleSelectListboxItem(name,othername) \
-	DefineRegistrySubMethod(TASK_PREFIX,ListDoubleSelectionChanged,WIDE( "control" ),name,WIDE( "listbox_double_changed" ),othername,void,(PTRSZVAL,PLISTITEM))
+	DefineRegistrySubMethod(TASK_PREFIX,ListDoubleSelectionChanged,WIDE( "control" ),name,WIDE( "listbox_double_changed" ),othername,void,(uintptr_t,PLISTITEM))
 
 /* 
  * this is depreicated, buttons shouldn't really HAVE to know the button they are... 
  *
  */
 //#define OnSaveMenuButton(name)
-//	  DefineRegistryMethod(TASK_PREFIX,SaveButton,WIDE( "control" ),name,WIDE( "button_save" ),void,(FILE*,PMENU_BUTTON,PTRSZVAL))
+//	  DefineRegistryMethod(TASK_PREFIX,SaveButton,WIDE( "control" ),name,WIDE( "button_save" ),void,(FILE*,PMENU_BUTTON,uintptr_t))
 //#define OnSaveCommon OnSaveMenuButton
 #define OnSave(name) \
-	  _DefineRegistryMethod(TASK_PREFIX,SaveButton,WIDE( "control" ),name,WIDE( "control_save_xml" ),void,(genxWriter,PTRSZVAL))
+	  _DefineRegistryMethod(TASK_PREFIX,SaveButton,WIDE( "control" ),name,WIDE( "control_save_xml" ),void,(genxWriter,uintptr_t))
 
 #define OnSaveControl(name) \
-	  DefineRegistryMethod(TASK_PREFIX,SaveButton,WIDE( "control" ),name,WIDE( "control_save" ),void,(FILE*,PTRSZVAL))
+	  DefineRegistryMethod(TASK_PREFIX,SaveButton,WIDE( "control" ),name,WIDE( "control_save" ),void,(FILE*,uintptr_t))
 
 #define OnSaveControl(name) \
-	DefineRegistryMethod(TASK_PREFIX,SaveButton,WIDE( "control" ),name,WIDE( "control_save" ),void,(FILE*,PTRSZVAL))
+	DefineRegistryMethod(TASK_PREFIX,SaveButton,WIDE( "control" ),name,WIDE( "control_save" ),void,(FILE*,uintptr_t))
 /* this method is depricated also, and will soon be obsolete.... perfer usage of OnSave and OnLoad for further development */
 #define OnSaveMenuButton(name) \
-	  DefineRegistryMethod(TASK_PREFIX,SaveButton,WIDE( "control" ),name,WIDE( "button_save" ),void,(FILE*,PMENU_BUTTON,PTRSZVAL))
+	  DefineRegistryMethod(TASK_PREFIX,SaveButton,WIDE( "control" ),name,WIDE( "button_save" ),void,(FILE*,PMENU_BUTTON,uintptr_t))
 
 // return TRUE/FALSE whether the control should be shown, else it remains hidden.
 // this method is used both with MenuButton and Control.
 // This is called after FixupButton(on MenuButtonOnly) and EndEdit( on Controls and MenuButtons )
 // this is called during RestorePage(Full), which is used by ChangePage() after HidePage().
 #define OnQueryShowControl( name )  \
-	  DefineRegistryMethod(TASK_PREFIX,QueryShowControl,WIDE( "control" ),name,WIDE( "query can show" ),LOGICAL,(PTRSZVAL))
+	  DefineRegistryMethod(TASK_PREFIX,QueryShowControl,WIDE( "control" ),name,WIDE( "query can show" ),LOGICAL,(uintptr_t))
 
 // static int OnChangePage(WIDE(""))( PSI_CONTROL pc_canvas )
 #define OnChangePage(name) \
@@ -186,43 +186,43 @@ typedef struct CanvasData  CanvasData, *PCanvasData;
 
 // Method invoked when a control is selected and a copy operation invoked.
 // New method requires 'static &lt;return type&gt;' to be applied...
-// static void OnCopyControl( "blah" )( PTRSZVAL psvYourControl );
+// static void OnCopyControl( "blah" )( uintptr_t psvYourControl );
 #define OnCopyControl(name) \
-	__DefineRegistryMethod(TASK_PREFIX,CopyControl,WIDE( "control" ),name,WIDE( "copy_control" ),void,(PTRSZVAL),__LINE__)
+	__DefineRegistryMethod(TASK_PREFIX,CopyControl,WIDE( "control" ),name,WIDE( "copy_control" ),void,(uintptr_t),__LINE__)
 
 // Method invoked when a control is selected and a paste operation invoked.
 // New method requires 'static &lt;return type&gt;' to be applied...
-// static void OnPasteControl( WIDE( "blah" ) )( PTRSZVAL psvYourControl );
+// static void OnPasteControl( WIDE( "blah" ) )( uintptr_t psvYourControl );
 #define OnPasteControl(name) \
-	__DefineRegistryMethod(TASK_PREFIX,PasteControl,WIDE( "control" ),name,WIDE( "paste_control" ),void,(PTRSZVAL),__LINE__)
+	__DefineRegistryMethod(TASK_PREFIX,PasteControl,WIDE( "control" ),name,WIDE( "paste_control" ),void,(uintptr_t),__LINE__)
 
 // Event handler invoked when a control is cloned (using existing interface)
-// static void OnCloneControl( WIDE( "blah" ) )( PTRSZVAL psvControlThatIsNewClone, PTRSZVAL psvControlThatIsBeingCloned )
+// static void OnCloneControl( WIDE( "blah" ) )( uintptr_t psvControlThatIsNewClone, uintptr_t psvControlThatIsBeingCloned )
 #define OnCloneControl(name) \
-	__DefineRegistryMethod(TASK_PREFIX,CloneControl,WIDE( "control" ),name,WIDE( "clone_control" ),void,(PTRSZVAL,PTRSZVAL),__LINE__)
+	__DefineRegistryMethod(TASK_PREFIX,CloneControl,WIDE( "control" ),name,WIDE( "clone_control" ),void,(uintptr_t,uintptr_t),__LINE__)
 
 #define OnLoadSecurityContext( name ) \
 	__DefineRegistryMethod(TASK_PREFIX,LoadSecurityContext,WIDE( "common/security" ),WIDE( "Load Security" ),name WIDE( "_load_security" ),void,(PCONFIG_HANDLER),__LINE__)
 
 #define OnSaveSecurityContext( name ) \
-	__DefineRegistryMethod(TASK_PREFIX,SaveSecurityContext,WIDE( "common/security" ),WIDE( "Save Security" ),name WIDE( "_save_security" ),void,(FILE*,PTRSZVAL),__LINE__)
+	__DefineRegistryMethod(TASK_PREFIX,SaveSecurityContext,WIDE( "common/security" ),WIDE( "Save Security" ),name WIDE( "_save_security" ),void,(FILE*,uintptr_t),__LINE__)
 
 #define OnAddSecurityContextToken( name ) \
-	__DefineRegistryMethod(TASK_PREFIX,AddSecurityContextToken_,WIDE( "common/security/Add Security Token" ),name, WIDE( "add_token" ),void,(PTRSZVAL,CTEXTSTR),__LINE__)
+	__DefineRegistryMethod(TASK_PREFIX,AddSecurityContextToken_,WIDE( "common/security/Add Security Token" ),name, WIDE( "add_token" ),void,(uintptr_t,CTEXTSTR),__LINE__)
 
 #define OnGetSecurityContextTokens( name ) \
-	__DefineRegistryMethod(TASK_PREFIX,GetSecurityContextToken_,WIDE( "common/security/Get Security Tokens" ),name, WIDE( "get_tokens" ),void,(PTRSZVAL,PLIST*),__LINE__)
+	__DefineRegistryMethod(TASK_PREFIX,GetSecurityContextToken_,WIDE( "common/security/Get Security Tokens" ),name, WIDE( "get_tokens" ),void,(uintptr_t,PLIST*),__LINE__)
 
 /* result INVALID_INDEX - premission denied
  result 0 - no context
  any other result is a result handle that is also closed when complete */
 #define TestSecurityContext( name ) \
-	__DefineRegistryMethod(TASK_PREFIX,TestSecurityContext,WIDE( "common/security" ),WIDE( "Test Security" ),name WIDE( "_test_security" ),PTRSZVAL,(PTRSZVAL),__LINE__)
+	__DefineRegistryMethod(TASK_PREFIX,TestSecurityContext,WIDE( "common/security" ),WIDE( "Test Security" ),name WIDE( "_test_security" ),uintptr_t,(uintptr_t),__LINE__)
 #define EndSecurityContext( name ) \
-	__DefineRegistryMethod(TASK_PREFIX,TestSecurityContext,WIDE( "common/security" ),WIDE( "Close Security" ),name WIDE( "_close_security" ),void,(PTRSZVAL,PTRSZVAL),__LINE__)
+	__DefineRegistryMethod(TASK_PREFIX,TestSecurityContext,WIDE( "common/security" ),WIDE( "Close Security" ),name WIDE( "_close_security" ),void,(uintptr_t,uintptr_t),__LINE__)
 
 #define OnEditSecurityContext( name ) \
-	__DefineRegistryMethod(TASK_PREFIX,EditSecurityContext,WIDE( "common/security" ),WIDE( "Edit Security" ),name,void,(PTRSZVAL),__LINE__)
+	__DefineRegistryMethod(TASK_PREFIX,EditSecurityContext,WIDE( "common/security" ),WIDE( "Edit Security" ),name,void,(uintptr_t),__LINE__)
 
 /* Intended use:edits properties regarding page security... OnPageChange return FALSE to disallow page change...*/
 #define OnEditPageSecurityContext( name ) \

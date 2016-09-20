@@ -191,10 +191,10 @@ enum SlicedImageSection {
 struct SlicedImageFile {
 	struct ImageFile_tag *image;
 	struct ImageFile_tag *slices[9];
-	_32 left, right, top, bottom;
-	_32 center_w, center_h;
-	_32 right_w;
-	_32 bottom_h;
+	uint32_t left, right, top, bottom;
+	uint32_t center_w, center_h;
+	uint32_t right_w;
+	uint32_t bottom_h;
 	LOGICAL output_center;
 	LOGICAL extended_slice;
 };
@@ -212,8 +212,8 @@ struct sprite_tag
 {
 	/* Current location of the sprite's origin. */
 	/* Current location of the sprite's origin. */
-	S_32 curx, cury;  // current x and current y for placement on image.
-	S_32 hotx, hoty;  // int of bitmap hotspot... centers cur on hot
+	int32_t curx, cury;  // current x and current y for placement on image.
+	int32_t hotx, hoty;  // int of bitmap hotspot... centers cur on hot
 	Image image;
 	// curx,y are kept for moving the sprite independantly
 	fixed scalex, scaley;
@@ -228,8 +228,8 @@ struct sprite_tag
 	// int orgx, orgy;  // rotated origin of bitmap.
 
 	// after being drawn the min(x,y) and max(x,y) are set.
-	S_32 minx, maxx; // after draw, these are the extent of the sprite.
-	S_32 miny, maxy; // after draw, these are the extent of the sprite.
+	int32_t minx, maxx; // after draw, these are the extent of the sprite.
+	int32_t miny, maxy; // after draw, these are the extent of the sprite.
 	PSPRITE_METHOD pSpriteMethod;
 };
 /* A Sprite type. Adds position and rotation and motion factors
@@ -255,7 +255,7 @@ typedef struct sprite_tag SPRITE;
 #define INVERTY_NON_INVERTED(i,y)     ((y) - (i)->eff_y)
 
 #if defined(__cplusplus_cli ) && !defined( IMAGE_SOURCE )
-//IMAGE_PROC( PCDATA, ImageAddress )( Image image, S_32 x, S_32 y );
+//IMAGE_PROC( PCDATA, ImageAddress )( Image image, int32_t x, int32_t y );
 //#define IMG_ADDRESS(i,x,y) ImageAddress( i,x,y )
 #else
 #define IMG_ADDRESS(i,x,y)    ((CDATA*) \
@@ -269,7 +269,7 @@ typedef struct sprite_tag SPRITE;
 #if defined( __arm__ ) && defined( IMAGE_LIBRARY_SOURCE ) && !defined( DISPLAY_SOURCE )
 extern unsigned char AlphaTable[256][256];
 
-static CDATA DOALPHA( CDATA over, CDATA in, _8 a )
+static CDATA DOALPHA( CDATA over, CDATA in, uint8_t a )
 {
 	int r, g, b, aout;
 	if( !a )

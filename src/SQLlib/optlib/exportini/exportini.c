@@ -10,11 +10,11 @@ TEXTCHAR *SystemPrefix;
 PVARTEXT pvtIni;
 PVARTEXT pvtSection;
 
-#define BYTEOP_ENCODE(n)  ((((_16)(n))+20) & 0xFF)
+#define BYTEOP_ENCODE(n)  ((((uint16_t)(n))+20) & 0xFF)
 
 void CRYPTOEncryptMemory( POINTER mem, size_t size)
 {
-    _32 i;
+    uint32_t i;
 	 unsigned char *ptr = (unsigned char *)mem;
 	 if( !mem )
 	 {
@@ -30,14 +30,14 @@ void CRYPTOEncryptMemory( POINTER mem, size_t size)
 typedef struct list_fill_tag
 {
 	struct {
-		_32 bSecondLevel : 1;
+		uint32_t bSecondLevel : 1;
 	} flags;
 	int nLevel;
 } LISTFILL, *PLISTFILL;
 
 FILE *output;
 
-int CPROC FillList( PTRSZVAL psv, CTEXTSTR name, POPTION_TREE_NODE ID, int flags )
+int CPROC FillList( uintptr_t psv, CTEXTSTR name, POPTION_TREE_NODE ID, int flags )
 {
    PLISTFILL plf = (PLISTFILL)psv;
 	LISTFILL lf = *plf;
@@ -100,7 +100,7 @@ int CPROC FillList( PTRSZVAL psv, CTEXTSTR name, POPTION_TREE_NODE ID, int flags
 			}
 		}
 	}
-  	EnumOptions( ID, FillList, (PTRSZVAL)&lf );
+  	EnumOptions( ID, FillList, (uintptr_t)&lf );
    //lprintf( WIDE("done with all children under this node.") );
    return TRUE;
 }
@@ -136,7 +136,7 @@ int main( int argc, TEXTCHAR **argv )
 	{
 		LISTFILL lf;
       MemSet( &lf, 0, sizeof( lf ) );
-		EnumOptions( id_root, FillList, (PTRSZVAL)&lf );
+		EnumOptions( id_root, FillList, (uintptr_t)&lf );
 	}
 	{
 		PTEXT pINI = VarTextGet( pvtIni );

@@ -36,14 +36,14 @@ struct menu_button
 	CTEXTSTR font_preset_name; // name of the font used on this control...
 	TEXTCHAR pImage[256]; // button image (instead of or in addition to text?)
 	Image decal_image;
-	_32 decal_horiz_margin;
-	_32 decal_vert_margin;
+	uint32_t decal_horiz_margin;
+	uint32_t decal_vert_margin;
 #ifndef __NO_ANIMATION__
 	char pAnimation[256]; //button animation
 	PMNG_ANIMATION  decal_animation;
 #endif
 
-	S_16 decal_alpha;
+	int16_t decal_alpha;
 	union {
 		PKEY_BUTTON key;
 		PSI_CONTROL control;
@@ -64,10 +64,10 @@ struct menu_button
 		BIT_FIELD bConfigured : 1; // generic configuration was applied to the control; save general parameters, add parsing
 		BIT_FIELD bParsingAdded : 1; // just a sanity flag to prevent multiple AddCommonButtonParameter COnfiguration reading.
 	} flags;
-	PTRSZVAL psvUser;
+	uintptr_t psvUser;
 	TEXTCHAR *pTypeName;
 	TEXTCHAR *pPageName; // change to this page after invoking the button's keypress method
-	void (CPROC *original_keypress)( PTRSZVAL );
+	void (CPROC *original_keypress)( uintptr_t );
 	struct glare_set *glare_set; // glares used on this button
 
 	// if this context is already entered, then the security check is not done.

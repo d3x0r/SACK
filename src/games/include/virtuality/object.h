@@ -93,7 +93,7 @@ VIRTUALITY_EXPORT int IntersectObjectPlanes( POBJECT object );
 #define HANDLE int
 #endif
 
-VIRTUALITY_EXPORT _32 SaveObject( CTEXTSTR filename, POBJECT po );
+VIRTUALITY_EXPORT uint32_t SaveObject( CTEXTSTR filename, POBJECT po );
 VIRTUALITY_EXPORT POBJECT LoadObject( CTEXTSTR filename );
 
 #define FORALLOBJ( pStart, ppo )  \

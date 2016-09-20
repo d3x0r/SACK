@@ -13,9 +13,9 @@ static int myTypeID;
 typedef struct mydatapath_tag {
    DATAPATH common;
    struct {
-   	_32 bInput : 1;
-		_32 bOutput : 1;
-		_32 bLog : 1;
+   	uint32_t bInput : 1;
+		uint32_t bOutput : 1;
+		uint32_t bLog : 1;
    } flags;
    PLINKQUEUE *current;
    PLINKQUEUE input;

@@ -526,7 +526,7 @@ void InvokeExits( void )
 		// just before all memory goes away
 		// global memory goes away (including mine) so deadstart_local_data is invalidated.
 #ifndef __STATIC_GLOBALS__
-		struct deadstart_local_data_ *local_pointer = (struct deadstart_local_data_*)(((PTRSZVAL)deadstart_local_data)-sizeof(PLIST));
+		struct deadstart_local_data_ *local_pointer = (struct deadstart_local_data_*)(((uintptr_t)deadstart_local_data)-sizeof(PLIST));
 #endif
 		PSHUTDOWN_PROC proclist = proc;
 		// link list to myself..
@@ -624,7 +624,7 @@ void BAG_Exit( int code )
 // legacy linking code - might still be usin this for linux...
 LOGICAL is_deadstart_complete( void )
 {
-	//extern _32 deadstart_complete;
+	//extern uint32_t deadstart_complete;
 #ifndef __STATIC_GLOBALS__
 	if( deadstart_local_data )
 		return bInitialDone;//deadstart_complete;

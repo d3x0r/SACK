@@ -34,22 +34,22 @@ enum block_cache_entries
 PREFIX_PACKED struct volume {
 	const char * volname;
 	struct disk *disk;
-	//_32 dirents;  // constant 0
-	//_32 nameents; // constant 1
-	PTRSZVAL dwSize;
+	//uint32_t dirents;  // constant 0
+	//uint32_t nameents; // constant 1
+	uintptr_t dwSize;
 	const char * datakey;  // used for directory signatures
 	const char * userkey;
 	const char * devkey;
 	enum block_cache_entries curseg;
 	BLOCKINDEX segment[BLOCK_CACHE_COUNT];// associated with usekey[n]
 	struct random_context *entropy;
-	P_8 key;  // allow byte encrypting...
-	P_8 segkey;  // allow byte encrypting... key based on sector volume file index
-	P_8 usekey[BLOCK_CACHE_COUNT]; // composite key
+	uint8_t* key;  // allow byte encrypting...
+	uint8_t* segkey;  // allow byte encrypting... key based on sector volume file index
+	uint8_t* usekey[BLOCK_CACHE_COUNT]; // composite key
 	PLIST files; // when reopened file structures need to be updated also...
 	LOGICAL read_only;
 	LOGICAL closed;
-	_32 lock;
+	uint32_t lock;
 } PACKED;
 
 PREFIX_PACKED struct directory_entry
@@ -57,7 +57,7 @@ PREFIX_PACKED struct directory_entry
 	FPI name_offset;  // name offset from beginning of disk
 	BLOCKINDEX first_block;  // first block of data of the file
 	size_t filesize;  // how big the file is
-	//_32 filler;  // extra data(unused)
+	//uint32_t filler;  // extra data(unused)
 } PACKED;
 #define ENTRIES ( BLOCK_SIZE/sizeof( struct directory_entry) )
 
@@ -72,7 +72,7 @@ struct disk
 	BLOCKINDEX BAT[BLOCKS_PER_BAT];
 	//struct directory_entry directory[BLOCK_SIZE/sizeof( struct directory_entry)]; // 256
 	//char  names[BLOCK_SIZE/sizeof(char)];
-	_8  block_data[BLOCKS_PER_BAT][BLOCK_SIZE];
+	uint8_t  block_data[BLOCKS_PER_BAT][BLOCK_SIZE];
 };
 
 struct sack_vfs_file
@@ -94,7 +94,7 @@ struct sack_vfs_file
 #else
 #define HIDDEN
 #endif
-PTRSZVAL vfs_SEEK( struct volume *vol, FPI offset, enum block_cache_entries cache_index ) HIDDEN;
-PTRSZVAL vfs_BSEEK( struct volume *vol, BLOCKINDEX block, enum block_cache_entries cache_index ) HIDDEN;
+uintptr_t vfs_SEEK( struct volume *vol, FPI offset, enum block_cache_entries cache_index ) HIDDEN;
+uintptr_t vfs_BSEEK( struct volume *vol, BLOCKINDEX block, enum block_cache_entries cache_index ) HIDDEN;
 BLOCKINDEX vfs_GetNextBlock( struct volume *vol, BLOCKINDEX block, LOGICAL init, LOGICAL expand );
 

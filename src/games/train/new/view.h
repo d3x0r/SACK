@@ -31,7 +31,7 @@ enum {
 typedef struct view_tag
 {
 	struct {
-		_32 bInited : 1;
+		uint32_t bInited : 1;
 	} flags;
    ViewMouseCallback MouseMethod;
    // used in TimerProc  update...

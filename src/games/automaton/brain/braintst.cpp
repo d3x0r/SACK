@@ -22,7 +22,7 @@ int main( void )
 	init_args( args );
 #define AddComp(type,var,name) PushArgument( args, char *, name ); \
 	PushArgument( args, PANYVALUE, var );  \
-	PushArgument( args, _32, type );
+	PushArgument( args, uint32_t, type );
 
 	AddComp( INPUT, &a, "a value" );
 	AddComp( INPUT, &b, "b value");

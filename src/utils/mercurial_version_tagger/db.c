@@ -155,7 +155,7 @@ INDEX CheckProjectTable( PODBC odbc, CTEXTSTR project_root )
 }
 
 
-static void CPROC CaptureMercurialVersion( PTRSZVAL psv, PTASK_INFO task, CTEXTSTR buffer, size_t size )
+static void CPROC CaptureMercurialVersion( uintptr_t psv, PTASK_INFO task, CTEXTSTR buffer, size_t size )
 {
 	TEXTSTR *result = (TEXTSTR*)psv;
 	(*result) = StrDup( buffer );
@@ -174,7 +174,7 @@ INDEX GetBuildVersion( PODBC odbc, INDEX project_id )
 	InitVersion( odbc );
 
 	snprintf( tmp, 256, "project_version_%d_%d", l.version_id, project_id );
-	if( System( "hg id -i", CaptureMercurialVersion, (PTRSZVAL)(&result) ) )
+	if( System( "hg id -i", CaptureMercurialVersion, (uintptr_t)(&result) ) )
 	{
 		SQLCommandf( odbc, "insert into %s(project_id,hg_id,build_id,version_id)values(%d,'%s',%d,%d)"
 					  , tmp

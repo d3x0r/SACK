@@ -141,7 +141,7 @@ void ShowCaptionButton ( struct physical_device_caption_button *caption_button )
 }
 //---------------------------------------------------------------------------
 
-void SetCaptionButtonOffset( PSI_CONTROL frame, S_32 x, S_32 y )
+void SetCaptionButtonOffset( PSI_CONTROL frame, int32_t x, int32_t y )
 {
 	if( frame )
 	{

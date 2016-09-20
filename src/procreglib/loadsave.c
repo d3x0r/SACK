@@ -44,15 +44,15 @@ PNAMESPACE GetNameSpace( PNAMESPACE NameSpace, int ID )
 
 //---------------------------------------------------------------------------
 
-static int WriteName( POINTER user, PTRSZVAL key )
+static int WriteName( POINTER user, uintptr_t key )
 {
 	struct {
-		_32 bTree : 1;
-		_32 bValue : 1;
-		_32 bIntVal : 1;
-		_32 bProc : 1;
-		_32 nNameSpace : 10;   // 0-4096
-		_32 nNameOfs : 10; // 0-4096
+		uint32_t bTree : 1;
+		uint32_t bValue : 1;
+		uint32_t bIntVal : 1;
+		uint32_t bProc : 1;
+		uint32_t nNameSpace : 10;   // 0-4096
+		uint32_t nNameOfs : 10; // 0-4096
 		// wow still ahve 9 bits left...
 	} minname;
 	PNAME name;
@@ -182,11 +182,11 @@ PROCREG_PROC( PTREEDEF, LoadTreeEx )( PTREEDEF root
 	if( g.file )
 	{
 		struct {
-			_32 bTree : 1;
-			_32 bValue : 1;
-			_32 bProc : 1;
-			_32 nNameSpace : 10;   // 0-4096
-			_32 nNameOfs : 10; // 0-4096
+			uint32_t bTree : 1;
+			uint32_t bValue : 1;
+			uint32_t bProc : 1;
+			uint32_t nNameSpace : 10;   // 0-4096
+			uint32_t nNameOfs : 10; // 0-4096
 			// wow still ahve 9 bits left...
 		} minname;
 		while( fread( &minname, 1, sizeof( minname ), g.file ) )
@@ -216,7 +216,7 @@ PROCREG_PROC( PTREEDEF, LoadTreeEx )( PTREEDEF root
 						name->data.name.sValue = Allocate( len + 1 );
 						fread( (char*)name->data.name.sValue, 1, len, g.file );
 						// now add name...
-						if( !AddBinaryNode( root->Tree, name, (PTRSZVAL)name->name ) )
+						if( !AddBinaryNode( root->Tree, name, (uintptr_t)name->name ) )
 						{
 							Log( WIDE("Failed to add name to tree...") );
 							Release( name );

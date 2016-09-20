@@ -420,7 +420,7 @@ PLINKQUEUE ExpandLinkQueue( PLINKQUEUE *pplq, int entries )
       plqNew->Bottom = 0;
       if( plq->Bottom > plq->Top )
       {
-         _32 bottom_half;
+         uint32_t bottom_half;
          plqNew->Top = (bottom_half = plq->Cnt - plq->Bottom ) + plq->Top;
          MemCpy( plqNew->pNode, plq->pNode + plq->Bottom, sizeof(POINTER)*bottom_half );
          MemCpy( plqNew->pNode + bottom_half, plq->pNode, sizeof(POINTER)*plq->Top );

@@ -20,15 +20,15 @@ typedef struct dictionary_entry_tag
 typedef struct size_file_tag
 {
    PDICT_ENTRY path;
-	S_16 width;
-   S_16 height;
+	int16_t width;
+   int16_t height;
    char file[1];
 } SIZE_FILE, *PSIZE_FILE;
 
 typedef struct font_style_t
 {
 	struct {
-		_32 mono : 1;
+		uint32_t mono : 1;
 	} flags;
 	PDICT_ENTRY name;
    PLIST  files; // list of PSIZE_FILEs (equate size->file)
@@ -43,9 +43,9 @@ typedef struct font_entry_tag
 typedef struct global_tag
 {
 	struct {
-		_32 initialized : 1;
-		_32 show_mono_only : 1;
-		_32 show_prop_only : 1;
+		uint32_t initialized : 1;
+		uint32_t show_mono_only : 1;
+		uint32_t show_prop_only : 1;
 	} flags;
 	// this really has no sorting
    // just a list of FONT_ENTRYs
@@ -125,20 +125,20 @@ int UniqueStrCmp( char *s1, char *s2 )
 
 //-------------------------------------------------------------------------
 
-void DestroyDictEntry( PTRSZVAL psvEntry, PTRSZVAL key )
+void DestroyDictEntry( uintptr_t psvEntry, uintptr_t key )
 {
    Release( (POINTER)psvEntry );
 }
 
 //-------------------------------------------------------------------------
 
-PDICT_ENTRY AddDictEntry( PTREEROOT *root, char *name, _32 ID )
+PDICT_ENTRY AddDictEntry( PTREEROOT *root, char *name, uint32_t ID )
 {
 	PDICT_ENTRY pde;
 	int len;
    if( !*root )
 		*root = CreateBinaryTreeExx( BT_OPT_NODUPLICATES
-											, (int(*)(PTRSZVAL,PTRSZVAL))strcmp
+											, (int(*)(uintptr_t,uintptr_t))strcmp
 											, DestroyDictEntry );
 
    len = strlen( name );
@@ -146,10 +146,10 @@ PDICT_ENTRY AddDictEntry( PTREEROOT *root, char *name, _32 ID )
 	strcpy( pde->word, name );
 	if( ID == INVALID_INDEX )
 	{
-		if( !AddBinaryNode( *root, pde, (PTRSZVAL)pde->word ) )
+		if( !AddBinaryNode( *root, pde, (uintptr_t)pde->word ) )
 		{
 			Release( pde );
-			pde = (PDICT_ENTRY)FindInBinaryTree( *root, (PTRSZVAL)name );
+			pde = (PDICT_ENTRY)FindInBinaryTree( *root, (uintptr_t)name );
 		}
 	}
    else
@@ -167,7 +167,7 @@ PDICT_ENTRY AddDictEntry( PTREEROOT *root, char *name, _32 ID )
 //-------------------------------------------------------------------------
 
 // if ID != 0 use than rather than custom assignment.
-PDICT_ENTRY AddPath( char *filepath, _32 ID, char **file )
+PDICT_ENTRY AddPath( char *filepath, uint32_t ID, char **file )
 {
 	char *p;
 	PDICT_ENTRY ppe;
@@ -193,7 +193,7 @@ PDICT_ENTRY AddPath( char *filepath, _32 ID, char **file )
 void SetIDs( PTREEROOT root )
 {
 	PDICT_ENTRY pde;
-   _32 ID = 0;
+   uint32_t ID = 0;
 	for( pde = (PDICT_ENTRY)GetLeastNode( root );
 		 pde;
 		  pde = (PDICT_ENTRY)GetGreaterNode( root ) )
@@ -210,24 +210,24 @@ PFONT_ENTRY AddFontEntry( PDICT_ENTRY name )
 	PFONT_ENTRY pfe;
 	if( !g.pFontCache )
 	{
-		g.pFontCache = CreateBinaryTreeEx( (int(*)(PTRSZVAL,PTRSZVAL))strcmp
-													, (void(*)(PTRSZVAL,PTRSZVAL))DestroyFontEntry );
+		g.pFontCache = CreateBinaryTreeEx( (int(*)(uintptr_t,uintptr_t))strcmp
+													, (void(*)(uintptr_t,uintptr_t))DestroyFontEntry );
 	}
 
-	pfe = (PFONT_ENTRY)FindInBinaryTree( g.pFontCache, (PTRSZVAL)name->word );
+	pfe = (PFONT_ENTRY)FindInBinaryTree( g.pFontCache, (uintptr_t)name->word );
 	if( !pfe )
 	{
 		pfe = Allocate( sizeof( FONT_ENTRY ) );
 		pfe->name = name;
 		pfe->styles = NULL;
-      AddBinaryNode( g.pFontCache, pfe, (PTRSZVAL)name->word );
+      AddBinaryNode( g.pFontCache, pfe, (uintptr_t)name->word );
 	}
    return pfe;
 }
 
 //-------------------------------------------------------------------------
 
-void AddSizeFile( PFONT_STYLE pfs, S_16 width, S_16 height, PDICT_ENTRY path, char *file )
+void AddSizeFile( PFONT_STYLE pfs, int16_t width, int16_t height, PDICT_ENTRY path, char *file )
 {
 	PSIZE_FILE psf = Allocate( sizeof( SIZE_FILE ) + strlen ( file ) );
 	psf->width = width;
@@ -239,14 +239,14 @@ void AddSizeFile( PFONT_STYLE pfs, S_16 width, S_16 height, PDICT_ENTRY path, ch
 
 //-------------------------------------------------------------------------
 
-void ListFontFile( PTRSZVAL psv, char *name, int flags )
+void ListFontFile( uintptr_t psv, char *name, int flags )
 {
 	FT_Face face;
 	int error;
 	PDICT_ENTRY ppe;
 	PFONT_ENTRY pfe;
    PFONT_STYLE pfs;
-   S_32 size;
+   int32_t size;
    PDICT_ENTRY pFamilyEntry, pStyle;
    char *filename;
 	InitFont();
@@ -503,9 +503,9 @@ void LoadAllFonts( void )
 	{
 		char buf[256];
 		int len;
-		_32 PathID = 0;
-		_32 FamilyID = 0;
-		_32 StyleID = 0;
+		uint32_t PathID = 0;
+		uint32_t FamilyID = 0;
+		uint32_t StyleID = 0;
 		while( fgets( buf, sizeof( buf ), in ) )
 		{
 			char *style, *flags, *next;
@@ -554,7 +554,7 @@ void LoadAllFonts( void )
 					pfe->styles = NULL;
 					if( !g.pFontCache )
 						g.pFontCache = CreateBinaryTreeEx( NULL
-																	, (void(*)(PTRSZVAL,PTRSZVAL))DestroyFontEntry );
+																	, (void(*)(uintptr_t,uintptr_t))DestroyFontEntry );
                AddBinaryNode( g.pFontCache, pfe, pFamily->ID );
            		// add all the files/sizes associated on this line...
 				}
@@ -598,7 +598,7 @@ void LoadAllFonts( void )
 					while( ( width = next ) )
 					{
 						PDICT_ENTRY ppe;
-						S_16 nWidth, nHeight;
+						int16_t nWidth, nHeight;
 						nWidth = atoi( width );
 						if( nWidth >= 0 )
 						{
@@ -638,12 +638,12 @@ int main( void )
    //SetAllocateLogging( TRUE );
 	LoadAllFonts();
 	{
-		_32 a, b, c, d;
+		uint32_t a, b, c, d;
 		GetMemStats( &a, &b, &c, &d );
 		Log4( WIDE("Mem stats: Free: %ld Used: %ld Chunks: %ld FreeChunks: %ld"), a, b, c, d );
 	}
 	{
-		extern void PickFont( S_32 x, S_32 y );
+		extern void PickFont( int32_t x, int32_t y );
 		PickFont( 0, 0 );
 	}
    //DebugDumpMemFile( WIDE("memory.dump") );

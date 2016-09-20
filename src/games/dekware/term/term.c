@@ -33,8 +33,8 @@ static int myTypeID4; // udp server
 
 
 #if 0
-PTEXT CPROC GetClientIP( PTRSZVAL psv, struct entity_tag *pe, PTEXT *lastvalue );
-PTEXT CPROC GetServerIP( PTRSZVAL psv, struct entity_tag *pe, PTEXT *lastvalue );
+PTEXT CPROC GetClientIP( uintptr_t psv, struct entity_tag *pe, PTEXT *lastvalue );
+PTEXT CPROC GetServerIP( uintptr_t psv, struct entity_tag *pe, PTEXT *lastvalue );
 
 static volatile_variable_entry vve_clientIP = { DEFTEXT( WIDE("client_ip") ), GetClientIP, NULL };
 static volatile_variable_entry vve_serverIP = { DEFTEXT( WIDE("server_ip") ), GetServerIP, NULL };
@@ -90,7 +90,7 @@ void CPROC ReadComplete( PCLIENT pc, POINTER pbuf, size_t nSize )
 	}while( !pdp );
 	if( pbuf )
 	{
-		((P_8)pbuf)[nSize] = 0;
+		((uint8_t*)pbuf)[nSize] = 0;
 		pdp->Buffer->data.size = nSize;
 #ifdef _UNICODE 
  		EnqueLink( &pdp->common.Input, SegCreateFromCharLen( (char*)pbuf, nSize ) );
@@ -109,7 +109,7 @@ static void CPROC TerminalCloseCallback( PCLIENT pc )
 {
 	PSENTIENT ps;
 	PMYDATAPATH pdp;
-	_32 tick = GetTickCount();
+	uint32_t tick = GetTickCount();
 	// this code runs in the network thread, whose execution
 	// path should not include ProcessCommand, therefore a
 	// simple lock still works.
@@ -408,8 +408,8 @@ static void CPROC ServerContacted( PCLIENT pListen,PCLIENT pNew  )
 
 		pe = Duplicate( ps->Current );
 
-		//AddVolatileVariable( pe, &vve_clientIP, (PTRSZVAL)pNew );
-		//AddVolatileVariable( pe, &vve_serverIP, (PTRSZVAL)pNew );
+		//AddVolatileVariable( pe, &vve_clientIP, (uintptr_t)pNew );
+		//AddVolatileVariable( pe, &vve_serverIP, (uintptr_t)pNew );
 
 		// this should make this thing's creator the createor fo the socket...
 		// however, this means that the refernce to this object from
@@ -477,8 +477,8 @@ static void CPROC ServerContacted( PCLIENT pListen,PCLIENT pNew  )
 
 		SetNetworkReadComplete( pNew, ServerRecieve );
 		SetNetworkCloseCallback( pNew, ClientDisconnected );
-		SetNetworkLong( pNew, CONTROLLING_SENTIENCE, (PTRSZVAL)psNew );
-		SetNetworkLong( pNew, DATA_PATH, (PTRSZVAL)pdp );
+		SetNetworkLong( pNew, CONTROLLING_SENTIENCE, (uintptr_t)psNew );
+		SetNetworkLong( pNew, DATA_PATH, (uintptr_t)pdp );
 		UnlockAwareness( psNew );
 	}
 	// upon return if read callback is defined, then it will be called NULL, 0
@@ -529,8 +529,8 @@ static PDATAPATH OnInitDevice( WIDE("tcpserver"), WIDE("Telnet server socket con
 		pdp->common.Write = serverwrite;
 		pdp->common.Read = NULL; // not needed cause data appears on a separate thread...
 		//pdp->common.flags.KeepCR = TRUE;
-		SetNetworkLong( pdp->handle, CONTROLLING_SENTIENCE, (PTRSZVAL)ps );
-		SetNetworkLong( pdp->handle, DATA_PATH, (PTRSZVAL)pdp );
+		SetNetworkLong( pdp->handle, CONTROLLING_SENTIENCE, (uintptr_t)ps );
+		SetNetworkLong( pdp->handle, DATA_PATH, (uintptr_t)pdp );
 	}
 	return (PDATAPATH)pdp;
 }
@@ -589,8 +589,8 @@ static PDATAPATH OnInitDevice(WIDE("tcp"), WIDE("Telnet type clear text socket c
 			pdp->nParams = 0;
 			pdp->ParamSet[0] = 0;
 			pdp->flags.bNewLine = FALSE; // start with NEWLINE...
-			SetNetworkLong( pdp->handle, CONTROLLING_SENTIENCE, (PTRSZVAL)ps );
-			SetNetworkLong( pdp->handle, DATA_PATH, (PTRSZVAL)pdp );
+			SetNetworkLong( pdp->handle, CONTROLLING_SENTIENCE, (uintptr_t)ps );
+			SetNetworkLong( pdp->handle, DATA_PATH, (uintptr_t)pdp );
 		}
 		else
 		{
@@ -645,8 +645,8 @@ static PDATAPATH OnInitDevice(WIDE("tls"), WIDE("Telnet type clear text TLS sock
 			pdp->nParams = 0;
 			pdp->ParamSet[0] = 0;
 			pdp->flags.bNewLine = FALSE; // start with NEWLINE...
-			SetNetworkLong( pdp->handle, CONTROLLING_SENTIENCE, (PTRSZVAL)ps );
-			SetNetworkLong( pdp->handle, DATA_PATH, (PTRSZVAL)pdp );
+			SetNetworkLong( pdp->handle, CONTROLLING_SENTIENCE, (uintptr_t)ps );
+			SetNetworkLong( pdp->handle, DATA_PATH, (uintptr_t)pdp );
 		}
 		else
 		{
@@ -781,8 +781,8 @@ static PDATAPATH OnInitDevice(WIDE("udpserver"), WIDE("UDP datagram connection..
 			pdp->common.Write = UDPTransmit;
 			pdp->common.Read = NULL; // not needed cause data appears magically...
 			//pdp->common.flags.KeepCR = TRUE;
-			SetNetworkLong( pdp->handle, CONTROLLING_SENTIENCE, (PTRSZVAL)ps );
-			SetNetworkLong( pdp->handle, DATA_PATH, (PTRSZVAL)pdp );
+			SetNetworkLong( pdp->handle, CONTROLLING_SENTIENCE, (uintptr_t)ps );
+			SetNetworkLong( pdp->handle, DATA_PATH, (uintptr_t)pdp );
 			SetNetworkReadComplete( pdp->handle, (cReadComplete)UDPReceive );
 			UDPReceive( pdp->handle, NULL, 0, NULL ); // intial read queue...
 		}
@@ -839,8 +839,8 @@ static PDATAPATH OnInitDevice(WIDE("udp"), WIDE("UDP datagram connection..."))( 
 			pdp->common.Write = UDPTransmit;
 			pdp->common.Read = NULL; // not needed cause data appears magically...
 			//pdp->common.flags.KeepCR = TRUE;
-			SetNetworkLong( pdp->handle, CONTROLLING_SENTIENCE, (PTRSZVAL)ps );
-			SetNetworkLong( pdp->handle, DATA_PATH, (PTRSZVAL)pdp );
+			SetNetworkLong( pdp->handle, CONTROLLING_SENTIENCE, (uintptr_t)ps );
+			SetNetworkLong( pdp->handle, DATA_PATH, (uintptr_t)pdp );
 			SetNetworkReadComplete( pdp->handle, (cReadComplete)UDPReceive );
 			UDPReceive( pdp->handle, NULL, 0, NULL ); // intial read queue...
 		}
@@ -1138,23 +1138,23 @@ static int HandleCommand(WIDE("Network"), WIDE("trace"), WIDE("Route trace a net
 }
 
 PSENTIENT psScanning;
-_32 dwThreadCount;
+uint32_t dwThreadCount;
 TEXTCHAR *pAddr;
-_16 wPortFrom = 1
+uint16_t wPortFrom = 1
 	, wPortNow = 0
 	, wPortTo = 2048;
-_32 dwMaxThreads = 100;
-//_32 dwThreadCount;
+uint32_t dwMaxThreads = 100;
+//uint32_t dwThreadCount;
 PTEXT pHolder;
 
 // perhaps consider keeping the connection alive
 // long enough to get the first read from the socket...
 
-static PTRSZVAL CPROC ThreadProc( PTHREAD pThread )
+static uintptr_t CPROC ThreadProc( PTHREAD pThread )
 {
-	PTRSZVAL dwPort = GetThreadParam( pThread );
+	uintptr_t dwPort = GetThreadParam( pThread );
 	PCLIENT pc;
-	pc = OpenTCPClientEx( pAddr, (_16)dwPort, NULL, NULL, NULL );
+	pc = OpenTCPClientEx( pAddr, (uint16_t)dwPort, NULL, NULL, NULL );
 	if( pc )
 	{
 		PTEXT pOutput;
@@ -1168,7 +1168,7 @@ static PTRSZVAL CPROC ThreadProc( PTHREAD pThread )
 	return 0;
 }
 
-PTRSZVAL CPROC PortScanner( PTHREAD thread )
+uintptr_t CPROC PortScanner( PTHREAD thread )
 {
 	for( wPortNow = wPortFrom; wPortNow < wPortTo; wPortNow++ )
 	{
@@ -1219,7 +1219,7 @@ static int HandleCommand(WIDE("Network"), WIDE("portscan"), WIDE("scan first 200
 	{
 		while( psScanning )
 			Sleep(0);
-		psOld = (PSENTIENT)LockedExchangePtrSzVal( (PTRSZVAL*)&psScanning, (PTRSZVAL)ps );
+		psOld = (PSENTIENT)LockedExchangePtrSzVal( (uintptr_t*)&psScanning, (uintptr_t)ps );
 	}
 	while( psOld );
 
@@ -1239,12 +1239,12 @@ static int HandleCommand(WIDE("Network"), WIDE("portscan"), WIDE("scan first 200
 
 
 static PTEXT DeviceVolatileVariableGet( WIDE("net object"), WIDE("client_ip"), WIDE("current client side IP") )( PENTITY pe, PTEXT *ppLastValue )
-//PTEXT GetClientIP( PTRSZVAL psv, struct entity_tag *pe, PTEXT *ppLastValue )
+//PTEXT GetClientIP( uintptr_t psv, struct entity_tag *pe, PTEXT *ppLastValue )
 {
 	PCLIENT pc = (PCLIENT)GetLink( &pe->pPlugin, iNetObject );
 	static SOCKADDR_IN saSrc;
 	TEXTCHAR *addr;
-	saSrc.sin_addr.S_un.S_addr = (_32)GetNetworkLong( pc, GNL_IP );
+	saSrc.sin_addr.S_un.S_addr = (uint32_t)GetNetworkLong( pc, GNL_IP );
 	addr = DupCharToText( inet_ntoa( *(struct in_addr*)&saSrc.sin_addr ) );
 	if( *ppLastValue )
 		LineRelease( *ppLastValue );
@@ -1253,12 +1253,12 @@ static PTEXT DeviceVolatileVariableGet( WIDE("net object"), WIDE("client_ip"), W
 }
 
 static PTEXT DeviceVolatileVariableGet( WIDE("net object"), WIDE("server_ip"), WIDE("current remote side IP") )( PENTITY pe, PTEXT *ppLastValue )
-//PTEXT GetServerIP( PTRSZVAL psv, struct entity_tag *pe, PTEXT *ppLastValue )
+//PTEXT GetServerIP( uintptr_t psv, struct entity_tag *pe, PTEXT *ppLastValue )
 {
 	PCLIENT pc = (PCLIENT)GetLink( &pe->pPlugin, iNetObject );
 	static SOCKADDR_IN saSrc;
 	TEXTCHAR *addr;
-	saSrc.sin_addr.S_un.S_addr = (_32)GetNetworkLong( pc, GNL_MYIP );
+	saSrc.sin_addr.S_un.S_addr = (uint32_t)GetNetworkLong( pc, GNL_MYIP );
 	addr = DupCharToText( inet_ntoa( *(struct in_addr*)&saSrc.sin_addr ) );
 	if( *ppLastValue )
 		LineRelease( *ppLastValue );

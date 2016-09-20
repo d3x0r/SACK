@@ -2,15 +2,15 @@
 #include "listhids.h"
 #include <sharemem.h>
 
-//static LOGICAL Win9xListPorts( ListHidsCallback lpCallback, PTRSZVAL psv );
-//static LOGICAL WinNT40ListPorts( ListHidsCallback lpCallback, PTRSZVAL psv );
-static LOGICAL Win2000ListPorts( ListHidsCallback lpCallback, PTRSZVAL psv ); 
-//static LOGICAL WinCEListPorts( ListHidsCallback lpCallback, PTRSZVAL psv);
-static LOGICAL ScanEnumTree( CTEXTSTR lpEnumPath, ListHidsCallback lpCallback, PTRSZVAL psv );
-static _32 OpenSubKeyByIndex( HKEY hKey, _32 dwIndex, REGSAM samDesired, PHKEY phkResult, TEXTSTR* lppSubKeyName ); 
-static _32 QueryStringValue( HKEY hKey, CTEXTSTR lpValueName, TEXTSTR* lppStringValue );
+//static LOGICAL Win9xListPorts( ListHidsCallback lpCallback, uintptr_t psv );
+//static LOGICAL WinNT40ListPorts( ListHidsCallback lpCallback, uintptr_t psv );
+static LOGICAL Win2000ListPorts( ListHidsCallback lpCallback, uintptr_t psv ); 
+//static LOGICAL WinCEListPorts( ListHidsCallback lpCallback, uintptr_t psv);
+static LOGICAL ScanEnumTree( CTEXTSTR lpEnumPath, ListHidsCallback lpCallback, uintptr_t psv );
+static uint32_t OpenSubKeyByIndex( HKEY hKey, uint32_t dwIndex, REGSAM samDesired, PHKEY phkResult, TEXTSTR* lppSubKeyName ); 
+static uint32_t QueryStringValue( HKEY hKey, CTEXTSTR lpValueName, TEXTSTR* lppStringValue );
 
-LOGICAL ListHids( ListHidsCallback lpCallback, PTRSZVAL psv )
+LOGICAL ListHids( ListHidsCallback lpCallback, uintptr_t psv )
 {
 
 #ifdef WIN32
@@ -89,18 +89,18 @@ LOGICAL ListHids( ListHidsCallback lpCallback, PTRSZVAL psv )
 }
 
 /*
-static LOGICAL Win9xListPorts( ListHidsCallback lpCallback, PTRSZVAL psv )
+static LOGICAL Win9xListPorts( ListHidsCallback lpCallback, uintptr_t psv )
 {
 	return ScanEnumTree( WIDE( "ENUM" ), lpCallback, psv );
 }
 */
 
 /*
-static LOGICAL WinNT40ListPorts( ListHidsCallback lpCallback, PTRSZVAL psv )
+static LOGICAL WinNT40ListPorts( ListHidsCallback lpCallback, uintptr_t psv )
 {
-	_32     dwError = 0;
+	uint32_t     dwError = 0;
 	HKEY    hKey = NULL;
-	_32     dwIndex;
+	uint32_t     dwIndex;
 	TEXTSTR lpValueName = NULL;
 	TEXTSTR lpPortName = NULL;
 
@@ -113,8 +113,8 @@ static LOGICAL WinNT40ListPorts( ListHidsCallback lpCallback, PTRSZVAL psv )
 
 	for(dwIndex=0;;++dwIndex)
 	{
-		_32              cbValueName = 32 * sizeof( TEXTCHAR );
-		_32              cbPortName = 32 * sizeof( TEXTCHAR );
+		uint32_t              cbValueName = 32 * sizeof( TEXTCHAR );
+		uint32_t              cbPortName = 32 * sizeof( TEXTCHAR );
 		LISTHIDS_HIDINFO portinfo;
 
 		// loop asking for the value data til we allocated enough memory 
@@ -180,22 +180,22 @@ end:
 }
 */
 
-static LOGICAL Win2000ListPorts( ListHidsCallback lpCallback, PTRSZVAL psv )
+static LOGICAL Win2000ListPorts( ListHidsCallback lpCallback, uintptr_t psv )
 {
   return ScanEnumTree( WIDE( "SYSTEM\\CURRENTCONTROLSET\\ENUM" ), lpCallback, psv );
 }
 /*
-static LOGICAL WinCEListPorts( ListHidsCallback lpCallback, PTRSZVAL psv )
+static LOGICAL WinCEListPorts( ListHidsCallback lpCallback, uintptr_t psv )
 {
-	_32                 dwError = 0;
+	uint32_t                 dwError = 0;
 	HKEY                hKey = NULL;
-	_32                 dwIndex;
+	uint32_t                 dwIndex;
 	TEXTSTR             lpPortName = NULL;
 	HKEY                hkLevel1 = NULL;
 	TEXTSTR             lpFriendlyName = NULL;
 	LISTPORTS_PORTINFO  portinfo;
-	_32                 index;
-	_32                 wordSize = sizeof( _32 );
+	uint32_t                 index;
+	uint32_t                 wordSize = sizeof( uint32_t );
 
 	portinfo.lpPortName = (TEXTSTR)malloc( 64 );
 
@@ -276,15 +276,15 @@ end:
 		return TRUE;
 }
 */
-static LOGICAL ScanEnumTree( CTEXTSTR lpEnumPath, ListHidsCallback lpCallback, PTRSZVAL psv )
+static LOGICAL ScanEnumTree( CTEXTSTR lpEnumPath, ListHidsCallback lpCallback, uintptr_t psv )
 {
-	_32    dwError = 0;
+	uint32_t    dwError = 0;
 	HKEY   hkEnum = NULL;
-	_32    dwIndex1;
+	uint32_t    dwIndex1;
 	HKEY   hkLevel1 = NULL;
-	_32    dwIndex2;
+	uint32_t    dwIndex2;
 	HKEY   hkLevel2 = NULL;
-	_32    dwIndex3;
+	uint32_t    dwIndex3;
 	HKEY   hkLevel3 = NULL;
 	
 	TEXTSTR lpTechnology = NULL;
@@ -431,12 +431,12 @@ end:
 		return TRUE;
 }
 
-static _32 OpenSubKeyByIndex( HKEY hKey, _32 dwIndex, REGSAM samDesired, PHKEY phkResult, TEXTSTR* lppSubKeyName )
+static uint32_t OpenSubKeyByIndex( HKEY hKey, uint32_t dwIndex, REGSAM samDesired, PHKEY phkResult, TEXTSTR* lppSubKeyName )
 {
-	_32              dwError = 0;
+	uint32_t              dwError = 0;
 	LOGICAL          bLocalSubkeyName = FALSE;
 	TEXTSTR          lpSubkeyName = NULL;
-	_32              cbSubkeyName = 128 * sizeof( TEXTCHAR ); // an initial guess 
+	uint32_t              cbSubkeyName = 128 * sizeof( TEXTCHAR ); // an initial guess 
 	FILETIME         filetime;
 
 	if( lppSubKeyName == NULL )
@@ -456,7 +456,7 @@ static _32 OpenSubKeyByIndex( HKEY hKey, _32 dwIndex, REGSAM samDesired, PHKEY p
 			goto end;
 		}
 
-		if( !( dwError = RegEnumKeyEx( hKey, dwIndex, *lppSubKeyName, &cbSubkeyName, 0, NULL, NULL, &filetime ) ) )
+		if( !( dwError = RegEnumKeyEx( hKey, dwIndex, *lppSubKeyName, (LPDWORD)&cbSubkeyName, 0, NULL, NULL, &filetime ) ) )
 		{
 			break; // we did it 
 		}
@@ -482,13 +482,13 @@ end:
 	return dwError;
 }
 
-static _32 QueryStringValue( HKEY hKey, CTEXTSTR lpValueName, TEXTSTR* lppStringValue )
+static uint32_t QueryStringValue( HKEY hKey, CTEXTSTR lpValueName, TEXTSTR* lppStringValue )
 {
-	_32 cbStringValue = 128 * sizeof( TEXTCHAR ); // an initial guess 
+	uint32_t cbStringValue = 128 * sizeof( TEXTCHAR ); // an initial guess 
 
 	for(;;)
 	{
-		_32 dwError;
+		uint32_t dwError;
 
 		free( *lppStringValue );
 
@@ -497,7 +497,7 @@ static _32 QueryStringValue( HKEY hKey, CTEXTSTR lpValueName, TEXTSTR* lppString
 			return ERROR_NOT_ENOUGH_MEMORY;
 		}
 		
-		if( !( dwError = RegQueryValueEx( hKey, lpValueName, NULL, NULL, (LPBYTE)*lppStringValue, &cbStringValue ) ) )
+		if( !( dwError = RegQueryValueEx( hKey, lpValueName, NULL, NULL, (LPBYTE)*lppStringValue, (LPDWORD)&cbStringValue ) ) )
 		{
 			return ERROR_SUCCESS;
 		}

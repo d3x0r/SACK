@@ -49,18 +49,18 @@ typedef struct reel_tag
    INDEX offset; // 96 points...
 	Image images[REEL_LENGTH]; // REEL_LENGTH some unique constant to use in this code.
 	INDEX reel_idx[REEL_LENGTH]; // REEL_LENGTH some unique constant to use in this code.
-	S_32 speed; // positive or negative offset parameter... reels may spin backwards...
+	int32_t speed; // positive or negative offset parameter... reels may spin backwards...
    // this is an idea, but I think that hrm..
-	_32 next_event; // some time that if time now is greater than, do something else
+	uint32_t next_event; // some time that if time now is greater than, do something else
 
-	_32 stop_event; // tick at which we will be stopped.
-	_32 stop_event_now; // the current now that the stop event thinks it is... so it can cat  up to 'now'
-   _32 stop_event_tick;
+	uint32_t stop_event; // tick at which we will be stopped.
+	uint32_t stop_event_now; // the current now that the stop event thinks it is... so it can cat  up to 'now'
+   uint32_t stop_event_tick;
 
-	_32 start_event; // when started, and spinning...
-	_32 start_event_now; // set at now, and itereated at
-   _32 start_event_tick; // tick rate for start_event_now
-   _32 target_idx;
+	uint32_t start_event; // when started, and spinning...
+	uint32_t start_event_now; // set at now, and itereated at
+   uint32_t start_event_tick; // tick rate for start_event_now
+   uint32_t target_idx;
 } REEL, *PREEL;
 
 
@@ -82,10 +82,10 @@ int GetStatus( PSI_CONTROL pc );
 // global ( actually a local since it's not in a .H file. )
 typedef struct global_tag {
 	struct {
-		_32 bBackgroundInitialized : 1;
+		uint32_t bBackgroundInitialized : 1;
 	} flags;
-	S_32 ofs;
-	_32 nReels;
+	int32_t ofs;
+	uint32_t nReels;
    Image background, playing, playagain;
 	Image strip; // raw strip of images loaded from a file.
    // oh I see this is a long lost global variable... wonder why this got lost in the mix....
@@ -110,7 +110,7 @@ typedef struct global_tag {
    Image backgroundsurface;
 	PIMAGE_INTERFACE pii;
 	PRENDER_INTERFACE pdi;
-	_32 idx[NUM_REELS];
+	uint32_t idx[NUM_REELS];
 
 
 } GLOBAL;
@@ -125,19 +125,19 @@ extern CONTROL_REGISTRATION reel_control, status_control;
 
 //-------------------------------------------------------------------------------------------
 
-void DodgeEx( Image dst, Image src[] , _32 step )
+void DodgeEx( Image dst, Image src[] , uint32_t step )
 #define Dodge( d, s ) DodgeEx( d, s, 1 )
 {
    int y, x, row;
 	for( x = 0; x < 96; x+=step)//x++ )
 	{
-		_32 idx;
-      _32 divisor = 1;
-		_8 rvals[96];
-		_8 gvals[96];
-		_8 bvals[96];
-      _8 gain[96];
-		_32 red = 0
+		uint32_t idx;
+      uint32_t divisor = 1;
+		uint8_t rvals[96];
+		uint8_t gvals[96];
+		uint8_t bvals[96];
+      uint8_t gain[96];
+		uint32_t red = 0
 	, green = 0
 	, blue = 0, img = 0;
 		idx = 0;
@@ -186,20 +186,20 @@ void DodgeEx( Image dst, Image src[] , _32 step )
 }
 
 
-void BlurEx( Image dst, Image src[] , _32 step )
+void BlurEx( Image dst, Image src[] , uint32_t step )
 #define Blur( d, s ) BlurEx( d, s, 1 )
 {
    int y, x, row;
 
 	for( x = 0; x < 96; x+=step)//x++ )
 	{
-		_32 idx;
-      _32 divisor = 1;
-		_8 rvals[96];
-		_8 gvals[96];
-		_8 bvals[96];
-      _8 gain[96];
-		_32 red = 0
+		uint32_t idx;
+      uint32_t divisor = 1;
+		uint8_t rvals[96];
+		uint8_t gvals[96];
+		uint8_t bvals[96];
+      uint8_t gain[96];
+		uint32_t red = 0
 	, green = 0
 	, blue = 0, img = 0;
 		idx = 0;
@@ -260,10 +260,10 @@ int CPROC DrawBackground( PSI_CONTROL pc )
    return 1;
 }
 
-PTRSZVAL CPROC ReadInput( PTHREAD thread )
+uintptr_t CPROC ReadInput( PTHREAD thread )
 {
 	char buf[256];
-	PTRSZVAL retval = (PTRSZVAL)(0);
+	uintptr_t retval = (uintptr_t)(0);
    // read buffer, if character is escape, exit nicely.
 	while( fgets( buf, 256, stdin ) || buf[0] == '\x1b' )
 	{
@@ -273,17 +273,17 @@ PTRSZVAL CPROC ReadInput( PTHREAD thread )
 	return retval;//compiler warning: control reaches end of non-void function.  Well, of course it does. you're exiting, why would you return?
 }
 
-void CPROC DrawReels( PTRSZVAL psv )
+void CPROC DrawReels( uintptr_t psv )
 {
 	int n;
 	for( n = 0; n < NUM_REELS; n++ )
 		SmudgeCommon( g.reel_pc[n] );
 }
 
-void CPROC ComputeReels( PTRSZVAL psv )
+void CPROC ComputeReels( uintptr_t psv )
 {
 	int n;
-	_32 now;
+	uint32_t now;
 	now=GetTickCount();
 	for( n = 0; n < NUM_REELS; n++ )
 	{
@@ -292,7 +292,7 @@ void CPROC ComputeReels( PTRSZVAL psv )
 		// with an option for x instead of Y
       if( reel )
 		{
-			S_32 y;
+			int32_t y;
 			if( reel->speed > 1000 )
             DebugBreak();
          lprintf( "speed is %ld", reel->speed );
@@ -421,7 +421,7 @@ void CPROC ComputeReels( PTRSZVAL psv )
 
 int main( void )
 {
-	_32 width, height, imagecount = 0;
+	uint32_t width, height, imagecount = 0;
 	srand( time( NULL ) );
 
 
@@ -487,7 +487,7 @@ int main( void )
 	AddTimer( 10, ComputeReels, 0 );
 	AddTimer( 200, DrawReels, 0 );
 	{
-		_32 start = GetTickCount();
+		uint32_t start = GetTickCount();
 		xlprintf(LOG_NOISE)("Started at %lu"
 								 , start);
 		g.ofs = 0;
@@ -557,7 +557,7 @@ int CPROC DrawReel( PSI_CONTROL pc )
 		// if one wanted to go horizontally. one would rewrite the following code
 		// with an option for x instead of Y
 		{
-			S_32 y;
+			int32_t y;
 			reel->offset += reel->speed;
 
 			if( reel->flags.bReelSpinning )
@@ -598,7 +598,7 @@ int CPROC DrawReel( PSI_CONTROL pc )
 }
 
 
-int CPROC MouseReel( PSI_CONTROL pc, S_32 x, S_32 y, _32 b )
+int CPROC MouseReel( PSI_CONTROL pc, int32_t x, int32_t y, uint32_t b )
 {
 	ValidatedControlData( PREEL, reel_control.TypeID, reel, pc );
 	if( reel )
@@ -663,7 +663,7 @@ int CPROC DrawStatus( PSI_CONTROL pc )
 
 
 //---------------------------------------------------------------------------------------------------
-int CPROC MouseStatus( PSI_CONTROL pc, S_32 x, S_32 y, _32 b )
+int CPROC MouseStatus( PSI_CONTROL pc, int32_t x, int32_t y, uint32_t b )
 {
 	ValidatedControlData( PSTATUS, status_control.TypeID, status, pc );
 	if( status )

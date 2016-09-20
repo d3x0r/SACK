@@ -24,7 +24,7 @@ int main( int argc, TEXTCHAR **argv )
 
 
 		{
-			_32 size = 0;
+			uint32_t size = 0;
 			POINTER mem = OpenSpace( NULL, argv[1], &size );
 			if( mem && size )
 			{

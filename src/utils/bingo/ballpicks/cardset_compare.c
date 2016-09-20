@@ -10,7 +10,7 @@ struct card_relation {
 	DeclareLink( struct card_relation );
 	POINTER card;
 	char *file;
-	_32 number;
+	uint32_t number;
 };
 typedef struct card_relation RELATION;
 typedef struct card_relation *PRELATION;
@@ -32,9 +32,9 @@ void openDups(  void)
 
 void TickLog( LOGICAL force, const char *leader, int max, int n )
 {
-	static _32 tick;
-	static _32 prior;
-	_32 del;
+	static uint32_t tick;
+	static uint32_t prior;
+	uint32_t del;
 	if( !tick )
 	{
 		tick = GetTickCount();
@@ -48,18 +48,18 @@ void TickLog( LOGICAL force, const char *leader, int max, int n )
 	}
 }
 
-POINTER OpenAFile( const char *file, PTRSZVAL *size )
+POINTER OpenAFile( const char *file, uintptr_t *size )
 {
 	POINTER result = OpenSpace( NULL, file, size );
 	return result;
 }
 
 struct params {
-	P_8 p;
-	PTRSZVAL size;
+	uint8_t* p;
+	uintptr_t size;
 };
 
-void classify( char *file, P_8 p, PTRSZVAL size )
+void classify( char *file, uint8_t* p, uintptr_t size )
 {
 	int n;
 	for( n = 0; n < size; n += 12 )
@@ -75,11 +75,11 @@ void classify( char *file, P_8 p, PTRSZVAL size )
 	}
 }
 
-PTRSZVAL CPROC read_ahead( PTHREAD thread )
+uintptr_t CPROC read_ahead( PTHREAD thread )
 {
 	struct params  * p = (struct params  *)GetThreadParam( thread );
-	P_8 p_tmp = p->p;
-	PTRSZVAL n;
+	uint8_t* p_tmp = p->p;
+	uintptr_t n;
 	int a;
 	for( n = 0; n <p->size; n += 4096 ) {
 		a = p_tmp[0];
@@ -88,15 +88,15 @@ PTRSZVAL CPROC read_ahead( PTHREAD thread )
 	return 0;
 }
 
-void self_compare( char *file, POINTER p, PTRSZVAL size )
+void self_compare( char *file, POINTER p, uintptr_t size )
 {
 	int n, m;
-	P_64 p64a = (P_64)p;
-	P_32 p32a = (P_32)(p64a+1);
+	uint64_t* p64a = (uint64_t*)p;
+	uint32_t* p32a = (uint32_t*)(p64a+1);
 	for( n = 0; n < size; n += 12 )
 	{
-		P_64 p64b = (P_64)(p32a + 1);
-		P_32 p32b = (P_32)(p64b + 1);
+		uint64_t* p64b = (uint64_t*)(p32a + 1);
+		uint32_t* p32b = (uint32_t*)(p64b + 1);
 		TickLog( FALSE, "self", size, n);
 		for( m = n + 12; m < size; m += 12 )
 		{
@@ -105,11 +105,11 @@ void self_compare( char *file, POINTER p, PTRSZVAL size )
 						openDups();
 				fprintf( dupout, "overlap on %s %d", file, ( n / 12 ) + 1 );
 			}
-			p64b = (P_64)(p32b + 1);
-			p32b = (P_32)(p64b + 1);
+			p64b = (uint64_t*)(p32b + 1);
+			p32b = (uint32_t*)(p64b + 1);
 		}
-		p64a = (P_64)(p32a + 1);
-		p32a = (P_32)(p64a + 1);
+		p64a = (uint64_t*)(p32a + 1);
+		p32a = (uint32_t*)(p64a + 1);
 	}
 
 
@@ -118,12 +118,12 @@ void self_compare( char *file, POINTER p, PTRSZVAL size )
 void other_compare( struct params *pa, struct params *pb )
 {
 	int n, m;
-	P_64 p64a = (P_64)pa->p;
-	P_32 p32a = (P_32)(p64a + 1);
+	uint64_t* p64a = (uint64_t*)pa->p;
+	uint32_t* p32a = (uint32_t*)(p64a + 1);
 	for( n = 0; n < pa->size; n += 12 )
 	{
-		P_64 p64b = (P_64)(pb->p + (12*(n+1)));
-		P_32 p32b = (P_32)(p64b + 1);
+		uint64_t* p64b = (uint64_t*)(pb->p + (12*(n+1)));
+		uint32_t* p32b = (uint32_t*)(p64b + 1);
 		TickLog( FALSE, "other", pa->size, n );
 		for( m = n + 12; m < pb->size; m++ )
 		{
@@ -133,11 +133,11 @@ void other_compare( struct params *pa, struct params *pb )
 				fprintf( dupout, "overlap on %s %d and %s %d", filea, (n / 12) + 1, fileb, (m/12)+1 );
 				return TRUE;
 			}
-			p64b = (P_64)(p32b + 1);
-			p32b = (P_32)(p64b + 1);
+			p64b = (uint64_t*)(p32b + 1);
+			p32b = (uint32_t*)(p64b + 1);
 		}
-		p64a = (P_64)(p32a + 1);
-		p32a = (P_32)(p64a + 1);
+		p64a = (uint64_t*)(p32a + 1);
+		p32a = (uint32_t*)(p64a + 1);
 	}
 }
 
@@ -155,10 +155,10 @@ LOGICAL classify_compare( LOGICAL have_related_b )
 				PRELATION b = have_related_b?relatedb[i][j] :a->next;
 				while( a && b )
 				{
-					P_64 p64a = (P_64)a->card;
-					P_32 p32a = (P_32)(p64a + 1);
-					P_64 p64b = (P_64)b->card;
-					P_32 p32b = (P_32)(p64b + 1);
+					uint64_t* p64a = (uint64_t*)a->card;
+					uint32_t* p32a = (uint32_t*)(p64a + 1);
+					uint64_t* p64b = (uint64_t*)b->card;
+					uint32_t* p32b = (uint32_t*)(p64b + 1);
 					if( p64a[0] == p64b[0] &&
 						p32a[0] == p32b[0] ) {
 						openDups();
@@ -186,14 +186,14 @@ int main( int argc, char **argv )
 		return 0;
 	}
 	pa.size = 0;
-	pa.p = (P_8)OpenAFile( filea = argv[2], &pa.size );
-	ThreadTo( read_ahead, (PTRSZVAL)&pa );
+	pa.p = (uint8_t*)OpenAFile( filea = argv[2], &pa.size );
+	ThreadTo( read_ahead, (uintptr_t)&pa );
 	classify( filea, pa.p, pa.size );
 	TickLog( TRUE, "A Loaded", pa.size, 0 );
 	if( argc > 3 && argv[3] ) {
 		pb.size = 0;
-		pb.p = (P_8)OpenAFile( fileb = argv[3], &pb.size );
-		ThreadTo( read_ahead, (PTRSZVAL)&pb );
+		pb.p = (uint8_t*)OpenAFile( fileb = argv[3], &pb.size );
+		ThreadTo( read_ahead, (uintptr_t)&pb );
 		memcpy( relatedb, related, sizeof( related ) );
 		classify( fileb, pb.p, pb.size );
 		TickLog( TRUE, "B Loaded", pb.size, 0 );

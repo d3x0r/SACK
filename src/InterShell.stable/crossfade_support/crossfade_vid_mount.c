@@ -17,8 +17,8 @@ struct crossfade_app_tracker
 {
 	CTEXTSTR title;
 	CTEXTSTR classname;
-	S_32 last_x, last_y;
-	_32 last_w, last_h;
+	int32_t last_x, last_y;
+	uint32_t last_w, last_h;
 #ifdef _WIN32
 	HWND hWnd;
 #endif
@@ -57,7 +57,7 @@ static struct {
 	TEXTCHAR video_application[256];
 	TEXTCHAR video_application_args[1024];
 	PLIST video_players;
-	_32 last_attempt;
+	uint32_t last_attempt;
 	PTASK_INFO task;
 	PTHREAD launch_thread;
 } local_crossfade_app_mount;
@@ -101,19 +101,19 @@ static void OnBeginShutdown( WIDE("VLC Stream Host") )( void )
 }
 
 
-void CPROC KilTaskOutput( PTRSZVAL psv, PTASK_INFO task, CTEXTSTR buffer, size_t size )
+void CPROC KilTaskOutput( uintptr_t psv, PTASK_INFO task, CTEXTSTR buffer, size_t size )
 {
 	// pskill output; don't really care
 }
 
-void CPROC KillTaskEnded( PTRSZVAL psv, PTASK_INFO task )
+void CPROC KillTaskEnded( uintptr_t psv, PTASK_INFO task )
 {
 	// don't respawn when exiting.
 	l.flags.kill_complete = TRUE;
 	WakeThread( l.launch_thread );
 }
 
-static void CPROC TaskEnded( PTRSZVAL psv, PTASK_INFO task )
+static void CPROC TaskEnded( uintptr_t psv, PTASK_INFO task )
 {
 	if( task )
 		l.task = NULL;
@@ -176,7 +176,7 @@ static void CPROC TaskEnded( PTRSZVAL psv, PTASK_INFO task )
 //------------------------------------------------------------------------------------------
 
 
-static PTRSZVAL OnEditControl( WIDE( "Crossfade Media Mount" ) )( PTRSZVAL psv, PSI_CONTROL pc_parent )
+static uintptr_t OnEditControl( WIDE( "Crossfade Media Mount" ) )( uintptr_t psv, PSI_CONTROL pc_parent )
 {
 	PSI_CONTROL frame = LoadXMLFrameOver( pc_parent, WIDE("ConfigureApplicationMount.isFrame") );
 	PSI_CONTROL pc = (PSI_CONTROL)psv;
@@ -296,7 +296,7 @@ static void CPROC read_complete( PCLIENT pc, POINTER buffer, size_t size, SOCKAD
 
 void SendHide( struct crossfade_app_address* socket )
 {
-	_32 buffer[2];
+	uint32_t buffer[2];
 	buffer[0] = timeGetTime();
 	buffer[1] = 1;
 	SendUDPEx( socket->pc, buffer, sizeof( buffer ), socket->sendto );
@@ -306,7 +306,7 @@ void SendHide( struct crossfade_app_address* socket )
 
 void SendShow( struct crossfade_app_address* socket )
 {
-	_32 buffer[2];
+	uint32_t buffer[2];
 	buffer[0] = timeGetTime();
 	buffer[1] = 2;
 	SendUDPEx( socket->pc, buffer, sizeof( buffer ), socket->sendto );
@@ -316,7 +316,7 @@ void SendShow( struct crossfade_app_address* socket )
 
 void SendPosition( struct crossfade_app_address* socket, int x, int y, int w, int h )
 {
-	S_32 buffer[6];
+	int32_t buffer[6];
 	buffer[0] = timeGetTime();
 	buffer[1] = 3;
 	buffer[2] = x;
@@ -385,7 +385,7 @@ struct crossfade_app_tracker *FindAppWindow( CTEXTSTR send_to, CTEXTSTR send_fro
 }
 
 
-static PTRSZVAL CPROC WaitForApplication( PTHREAD thread )
+static uintptr_t CPROC WaitForApplication( PTHREAD thread )
 {
 	LOGICAL need_change;
 	LOGICAL need_find;
@@ -464,7 +464,7 @@ static PTRSZVAL CPROC WaitForApplication( PTHREAD thread )
 	return 0;
 }
 
-static PTRSZVAL OnCreateControl( WIDE("Crossfade Media Mount") )( PSI_CONTROL parent, S_32 x, S_32 y, _32 w, _32 h )
+static uintptr_t OnCreateControl( WIDE("Crossfade Media Mount") )( PSI_CONTROL parent, int32_t x, int32_t y, uint32_t w, uint32_t h )
 {
 	PSI_CONTROL pc;
 	pc = MakeNamedControl( parent, WIDE("Crossfade Media Mount"), x, y, w, h, -1 );
@@ -478,7 +478,7 @@ static PTRSZVAL OnCreateControl( WIDE("Crossfade Media Mount") )( PSI_CONTROL pa
 		TaskEnded( 0, NULL );
 		l.waiting = ThreadTo( WaitForApplication, 0 );
 	}
-	return (PTRSZVAL)pc;
+	return (uintptr_t)pc;
 }
 
 static void OnFinishInit( WIDE("Crossfade Media Mount") )( PSI_CONTROL pc_canvas )
@@ -487,19 +487,19 @@ static void OnFinishInit( WIDE("Crossfade Media Mount") )( PSI_CONTROL pc_canvas
 		l.waiting = ThreadTo( WaitForApplication, 0 );
 }
 
-static PSI_CONTROL OnGetControl( WIDE("Crossfade Media Mount") )( PTRSZVAL psv )
+static PSI_CONTROL OnGetControl( WIDE("Crossfade Media Mount") )( uintptr_t psv )
 {
 	return (PSI_CONTROL)psv;
 }
 
-static void OnSaveControl( WIDE("Crossfade Media Mount") )( FILE* file, PTRSZVAL psv )
+static void OnSaveControl( WIDE("Crossfade Media Mount") )( FILE* file, uintptr_t psv )
 {
 	MyValidatedControlData( PMY_CONTROL, control, (PSI_CONTROL)psv );
 	sack_fprintf( file, WIDE("Crossfade Server Address=%s\n"), control->send_to?control->send_to:WIDE("") );
 	sack_fprintf( file, WIDE("Crossfade Send From Address=%s\n"), control->send_from?control->send_from:WIDE("") );
 }
 
-static PTRSZVAL CPROC SetApplicationName( PTRSZVAL psv, arg_list args )
+static uintptr_t CPROC SetApplicationName( uintptr_t psv, arg_list args )
 {
 	PARAM( args, CTEXTSTR, name );
 	MyValidatedControlData( PMY_CONTROL, control, (PSI_CONTROL)psv );
@@ -508,7 +508,7 @@ static PTRSZVAL CPROC SetApplicationName( PTRSZVAL psv, arg_list args )
 	return psv;
 }
 
-static PTRSZVAL CPROC SetApplicationClass( PTRSZVAL psv, arg_list args )
+static uintptr_t CPROC SetApplicationClass( uintptr_t psv, arg_list args )
 {
 	PARAM( args, CTEXTSTR, name );
 	MyValidatedControlData( PMY_CONTROL, control, (PSI_CONTROL)psv );
@@ -517,7 +517,7 @@ static PTRSZVAL CPROC SetApplicationClass( PTRSZVAL psv, arg_list args )
 	return psv;
 }
 
-static PTRSZVAL CPROC SetApplicationSendFrom( PTRSZVAL psv, arg_list args )
+static uintptr_t CPROC SetApplicationSendFrom( uintptr_t psv, arg_list args )
 {
 	PARAM( args, CTEXTSTR, name );
 	MyValidatedControlData( PMY_CONTROL, control, (PSI_CONTROL)psv );
@@ -526,7 +526,7 @@ static PTRSZVAL CPROC SetApplicationSendFrom( PTRSZVAL psv, arg_list args )
 	return psv;
 }
 
-static PTRSZVAL CPROC SetApplicationSendTo( PTRSZVAL psv, arg_list args )
+static uintptr_t CPROC SetApplicationSendTo( uintptr_t psv, arg_list args )
 {
 	PARAM( args, CTEXTSTR, name );
 	MyValidatedControlData( PMY_CONTROL, control, (PSI_CONTROL)psv );
@@ -535,7 +535,7 @@ static PTRSZVAL CPROC SetApplicationSendTo( PTRSZVAL psv, arg_list args )
 	return psv;
 }
 
-static void OnLoadControl( WIDE("Crossfade Media Mount") )( PCONFIG_HANDLER pch, PTRSZVAL psv )
+static void OnLoadControl( WIDE("Crossfade Media Mount") )( PCONFIG_HANDLER pch, uintptr_t psv )
 {
 	AddConfigurationMethod( pch, WIDE("Application Server Address=%m\n"), SetApplicationSendTo );
 	AddConfigurationMethod( pch, WIDE("Application Send From Address=%m\n"), SetApplicationSendFrom );
@@ -562,8 +562,8 @@ static void OnRevealCommon( WIDE("Crossfade Media Mount") )( PSI_CONTROL pc )
 	MyValidatedControlData( PMY_CONTROL, control, pc );
 	if( control )
 	{
-		S_32 x = 0;
-		S_32 y = 0;
+		int32_t x = 0;
+		int32_t y = 0;
 		Image image = GetControlSurface( pc );
 		//lprintf( WIDE("begin show(move)...") );
 		GetPhysicalCoordinate( pc, &x, &y, TRUE );

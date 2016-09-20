@@ -34,7 +34,7 @@ struct MyControl
 
 void SendUnhide( void )
 {
-	_32 buffer[2];
+	uint32_t buffer[2];
 	buffer[0] = GetTickCount();
    buffer[1] = 6;
    SendUDPEx( l.pc, buffer, sizeof( buffer ), l.sendto );
@@ -44,9 +44,9 @@ void SendUnhide( void )
    SendUDPEx( l.pc, buffer, sizeof( buffer ), l.sendto );
 }
 
-void SendUpdate( _32 x, _32 y, _32 w, _32 h )
+void SendUpdate( uint32_t x, uint32_t y, uint32_t w, uint32_t h )
 {
-	_32 buffer[7];
+	uint32_t buffer[7];
 	buffer[0] = GetTickCount();
    buffer[1] = 0;
 	buffer[2] = x;

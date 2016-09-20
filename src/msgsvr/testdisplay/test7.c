@@ -12,7 +12,7 @@ PCONTROL pcList;
 
 
 
-void CPROC AddItem( PTRSZVAL psvEdit, PCONTROL pc )
+void CPROC AddItem( uintptr_t psvEdit, PCONTROL pc )
 {
 	PCONTROL edit = (PCONTROL)psvEdit;
 	char msg[256];
@@ -24,7 +24,7 @@ int main( void )
 {
 	PCOMMON pf;
 	int i;
-        _32 used, free, blocks, freeblocks;
+        uint32_t used, free, blocks, freeblocks;
         SetSystemLog( SYSLOG_FILE, stdout );
 	//SetBlotMethod( BLOT_MMX );
 //#ifdef __STATIC__
@@ -50,7 +50,7 @@ int main( void )
 	}
 	*/
 	MakeButton( pf, 5, 180, 70, 18, BTN_ADD, WIDE("Add Item"), 0, AddItem, 
-		(PTRSZVAL)MakeEditControl( pf, 5, 160, 140, 14, EDT_NEWTEXT, WIDE("New Item"), 0 ) );
+		(uintptr_t)MakeEditControl( pf, 5, 160, 140, 14, EDT_NEWTEXT, WIDE("New Item"), 0 ) );
 
 	AddCommonButtons( pf, &bDone, &bOkay );
 

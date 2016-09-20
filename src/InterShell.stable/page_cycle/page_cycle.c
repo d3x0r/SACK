@@ -10,7 +10,7 @@
 struct page_delay
 {
 	CTEXTSTR page_name;
-	_32 delay;
+	uint32_t delay;
 };
 enum {
 	CHECKBOX_ENABLE = 2000
@@ -23,11 +23,11 @@ static struct page_cycle_local {
 	} flags;
 	int nPage;
 	PLIST delays;
-	_32 timer;
-	_32 delay;
+	uint32_t timer;
+	uint32_t delay;
 } l;
 
-static void CPROC change( PTRSZVAL psv )
+static void CPROC change( uintptr_t psv )
 {
 	PPAGE_DATA page = ShellGetCurrentPage( (PSI_CONTROL)psv );
 	if( l.flags.allow_cycle )
@@ -81,7 +81,7 @@ static void DefineRegistryMethod(TASK_PREFIX,DoPageCycle,WIDE( "page_cycle" ),WI
 
 static void OnFinishInit( WIDE("Page Cycler") )( PSI_CONTROL pc_canvas )
 {
-   l.timer = AddTimer( l.delay, change, (PTRSZVAL)pc_canvas );
+   l.timer = AddTimer( l.delay, change, (uintptr_t)pc_canvas );
 }
 
 static void OnEditModeBegin( WIDE("Page Cycler") )( void )
@@ -173,10 +173,10 @@ static void OnGlobalPropertyEdit( WIDE( "Page Cycle" ) )( PSI_CONTROL parent )
 	}
 }
 
-static PTRSZVAL CPROC LoadDelay( PTRSZVAL psv, arg_list args )
+static uintptr_t CPROC LoadDelay( uintptr_t psv, arg_list args )
 {
 	PARAM( args, CTEXTSTR, name );
-	PARAM( args, S_64, delay_time );
+	PARAM( args, int64_t, delay_time );
 	INDEX idx;
 	struct page_delay *delay;
 	LIST_FORALL( l.delays, idx, struct page_delay *, delay )
@@ -186,13 +186,13 @@ static PTRSZVAL CPROC LoadDelay( PTRSZVAL psv, arg_list args )
 	}
 	if( delay )
 	{
-		delay->delay = (_32)delay_time;
+		delay->delay = (uint32_t)delay_time;
 	}
 	else
 	{
 		delay = New( struct page_delay );
 		delay->page_name = StrDup( name );
-		delay->delay = (_32)delay_time;
+		delay->delay = (uint32_t)delay_time;
 		AddLink( &l.delays, delay );
 	}
 	return psv;

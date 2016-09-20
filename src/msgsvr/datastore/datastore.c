@@ -17,55 +17,55 @@
 typedef struct link_tag
 {
 	// CTEXTSTR name;  ? :)
-	_32 offset;
+	uint32_t offset;
 	INDEX expected_type;
 } LINK, *PLINK;
 
 typedef struct set_link_tag
 {
 	// CTEXTSTR name;  ? :)
-	_32 unit_count; // maxcnt
-	_32 unit_size; // unitsize
-	_32 set_size; // setsize // really this should be implied from maxcnt * unitsize...
-	_32 offset;
+	uint32_t unit_count; // maxcnt
+	uint32_t unit_size; // unitsize
+	uint32_t set_size; // setsize // really this should be implied from maxcnt * unitsize...
+	uint32_t offset;
 } SET_LINK, *PSET_LINK;
 
 typedef struct type_tag
 {
 	PDATALIST link_types;
-	_32 datasize;
-	_32 slabsize;
+	uint32_t datasize;
+	uint32_t slabsize;
 	PGENERICSET member_set;
 	CTEXTSTR name;
 } TYPE, *PTYPE;
 
 typedef struct storage_client_tag
 {
-	_32 pid;
+	uint32_t pid;
 } STORAGE_CLIENT, *PSTORAGE_CLIENT;
 
 typedef struct local_tag
 {
 	struct {
-		_32 bLocal : 1;
-		_32 bClient : 1;
-		_32 bService : 1;
+		uint32_t bLocal : 1;
+		uint32_t bClient : 1;
+		uint32_t bService : 1;
 	} flags;
 	PLIST clients; // PLIST of PSTORAGE_CLIENTs
-	_32 client_msgbase;
-	_32 service_msgbase;
+	uint32_t client_msgbase;
+	uint32_t service_msgbase;
 	PDATALIST types; // PLIST of PTYPEs
 } LOCAL;
 
 static LOCAL l;
 
-int CPROC HandleStorageServiceEvents( _32 SourceRouteID, _32 MsgID, _32 *params, _32 param_len, _32 *result, _32 *result_length );
+int CPROC HandleStorageServiceEvents( uint32_t SourceRouteID, uint32_t MsgID, uint32_t *params, uint32_t param_len, uint32_t *result, uint32_t *result_length );
 
 
 
-_32 FancyMsg2( _32 msg, _32 *response, _32 *buffer, _32 *buffer_result_len, _32 buffers
-				 , POINTER b1, _32 l1
-				 , POINTER b2, _32 l2 )
+uint32_t FancyMsg2( uint32_t msg, uint32_t *response, uint32_t *buffer, uint32_t *buffer_result_len, uint32_t buffers
+				 , POINTER b1, uint32_t l1
+				 , POINTER b2, uint32_t l2 )
 #define FancyMsg1(m,r,b,brl,b1,l1) FancyMsg2(m,r,b,brl,2,b1,l1,NULL,0)
 #define FancyMsg(m,r,b,brl) FancyMsg2(m,r,b,brl,2,NULL,0,NULL,0)
 {
@@ -107,7 +107,7 @@ retry:
 	}
 }
 
-INDEX DataStore_RegisterNamedDataType( CTEXTSTR name, _32 size )
+INDEX DataStore_RegisterNamedDataType( CTEXTSTR name, uint32_t size )
 {
 	TYPE type;
 	type.name = StrDup( name );
@@ -129,8 +129,8 @@ INDEX DataStore_RegisterNamedDataType( CTEXTSTR name, _32 size )
 		}
 
       /*
-		_32 responce;
-      _32 type_result
+		uint32_t responce;
+      uint32_t type_result
 	retry:
 		if( !TransactServerMultiMessage( l.service_msgbase + MSG_RegisterType
 												 , 2
@@ -214,7 +214,7 @@ POINTER DataStore_CreateDataType( INDEX iType )
 	}
 	else if( g.flags.bService )
 	{
-      _32 type_result;
+      uint32_t type_result;
 		if( FancyMsg1( MSG_CreateType, &type_result, sizeof( type_result )
 						 , &iType, sizeof( iType ) ) )
 		{
@@ -244,7 +244,7 @@ POINTER DataStore_CreateDataType( INDEX iType )
 
 }
 
-INDEX DataStore_CreateDataSetLinkEx( INDEX iType, _32 offsetof_set_pointer, _32 setsize, _32 setunits, _32 maxcnt )
+INDEX DataStore_CreateDataSetLinkEx( INDEX iType, uint32_t offsetof_set_pointer, uint32_t setsize, uint32_t setunits, uint32_t maxcnt )
 {
 	PTYPE type = (PTYPE)GetLink( &l.types, iType );
 	SET_LINK link;
@@ -271,7 +271,7 @@ POINTER DataStore_GetFromDataSet( INDEX iType, POINTER member, INDEX iSet )
    return NULL;
 }
 
-INDEX DataStore_CreateLink( INDEX iType, _32 offsetof_pointer, INDEX iTypeLinked )
+INDEX DataStore_CreateLink( INDEX iType, uint32_t offsetof_pointer, INDEX iTypeLinked )
 {
 	// member is ignored for now
    // *** FIX1 ***
@@ -283,7 +283,7 @@ INDEX DataStore_CreateLink( INDEX iType, _32 offsetof_pointer, INDEX iTypeLinked
 }
 
 
-POINTER DataStore_SetLink( INDEX iType, POINTER member, _32 iLink, _32 iOtherType, POINTER othermember )
+POINTER DataStore_SetLink( INDEX iType, POINTER member, uint32_t iLink, uint32_t iOtherType, POINTER othermember )
 {
 	// member->link = othermember
    PTYPE type = (PTYPE)GetLink( &l.types, iType );
@@ -292,10 +292,10 @@ POINTER DataStore_SetLink( INDEX iType, POINTER member, _32 iLink, _32 iOtherTyp
    //PTYPE othertype = (PTYPE)iOtherType;
 	//PLINK otherlink = GetDataItem( &othertype->link_types, iOtherLink );
 
-   (*(POINTER*)(((PTRSZVAL)member) + link->offset) = othermember;
+   (*(POINTER*)(((uintptr_t)member) + link->offset) = othermember;
 }
 
-POINTER DataStore_SetLinkList( INDEX iType, POINTER member, _32 iLink, _32 iOtherType, POINTER othermember )
+POINTER DataStore_SetLinkList( INDEX iType, POINTER member, uint32_t iLink, uint32_t iOtherType, POINTER othermember )
 {
    // AddLink( member->list, othermember )
    PTYPE type = (PTYPE)GetLink( &l.types, iType );
@@ -304,10 +304,10 @@ POINTER DataStore_SetLinkList( INDEX iType, POINTER member, _32 iLink, _32 iOthe
    //PTYPE othertype = (PTYPE)iOtherType;
 	//PLINK otherlink = GetDataItem( &othertype->link_types, iOtherLink );
 
-   (*(POINTER*)(((PTRSZVAL)member) + link->offset) = othermember;
+   (*(POINTER*)(((uintptr_t)member) + link->offset) = othermember;
 }
 
-POINTER SetBiLink( INDEX iType, POINTER member, _32 iLink, _32 iOtherType, POINTER othermember, _32 iOtherLink )
+POINTER SetBiLink( INDEX iType, POINTER member, uint32_t iLink, uint32_t iOtherType, POINTER othermember, uint32_t iOtherLink )
 {
    PTYPE type = (PTYPE)GetLink( &l.types, iType );
 	// member->link = othermember
@@ -315,7 +315,7 @@ POINTER SetBiLink( INDEX iType, POINTER member, _32 iLink, _32 iOtherType, POINT
 
 }
 
-POINTER SetMeLink( INDEX iType, POINTER member, _32 iLink, _32 iOtherType, POINTER othermember, _32 iOtherLink )
+POINTER SetMeLink( INDEX iType, POINTER member, uint32_t iLink, uint32_t iOtherType, POINTER othermember, uint32_t iOtherLink )
 {
    PTYPE type = (PTYPE)GetLink( &l.types, iType );
 	// member->link = othermember
@@ -358,11 +358,11 @@ enum {
 
 };
 
-int CPROC HandleStorageServiceEvents( _32 SourceRouteID, _32 MsgID, _32 *params, _32 param_len, _32 *result, _32 *result_length )
+int CPROC HandleStorageServiceEvents( uint32_t SourceRouteID, uint32_t MsgID, uint32_t *params, uint32_t param_len, uint32_t *result, uint32_t *result_length )
 {
 }
 
-int CPROC HandleStorageEvents( _32 MsgID, _32 *params, _32 paramlen )
+int CPROC HandleStorageEvents( uint32_t MsgID, uint32_t *params, uint32_t paramlen )
 {
 	// events to client - create structure... etc
 	swtich( MsgID )
@@ -372,7 +372,7 @@ int CPROC HandleStorageEvents( _32 MsgID, _32 *params, _32 paramlen )
 			INDEX iType = params[0];
 			PTYPE p = (PTYPE)GetDataItem( &l.types, iType );
 			MemCpy( p, params + 1, sizeof( TYPE ) );
-			p->name = StrDup( (CTEXTSTR)(( (PTRSZVAL)(params + 1)) + sizeof( TYPE )));
+			p->name = StrDup( (CTEXTSTR)(( (uintptr_t)(params + 1)) + sizeof( TYPE )));
 		}
 		break;
 	//case

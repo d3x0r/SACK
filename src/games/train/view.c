@@ -118,7 +118,7 @@ void ComputePlaneRay( PRAY out )
 	ApplyR( EditInfo.TEdit, out, &in );
 }
 
-int CPROC ViewMouse( PTRSZVAL dwView, S_32 x, S_32 y, _32 b )
+int CPROC ViewMouse( uintptr_t dwView, int32_t x, int32_t y, uint32_t b )
 {
 	VIEW *v = (VIEW*)dwView;
 	int SetChanged;
@@ -254,7 +254,7 @@ int InitGL(GLvoid)										// All Setup For OpenGL Goes Here
 }
 
 
-void CPROC _ShowObjects( PTRSZVAL dwView, PRENDERER pRenderer )
+void CPROC _ShowObjects( uintptr_t dwView, PRENDERER pRenderer )
 {
 
 	VIEW *v = (VIEW*)dwView;
@@ -284,7 +284,7 @@ void CPROC _ShowObjects( PTRSZVAL dwView, PRENDERER pRenderer )
 
 char *viewname[] = { "FORWARD", "RIGHT", "LEFT","BACK","UP","DOWN" };
 
-void CPROC TimerProc( PTRSZVAL psv )
+void CPROC TimerProc( uintptr_t psv )
 {
 static VECTOR KeySpeed, KeyRotation;
 extern POBJECT pFirstObject;
@@ -413,7 +413,7 @@ static POBJECT pCurrent;
 			//DrawLine( GetDisplayImage( View->hVideo ), b, m, 0, 10, 0x7f0000 );
 		}
 
-		_ShowObjects( (PTRSZVAL)View, View->hVideo );
+		_ShowObjects( (uintptr_t)View, View->hVideo );
 
 		if( EditInfo.bEditing )
 		{
@@ -442,7 +442,7 @@ static POBJECT pCurrent;
 }
 
 
-void CPROC CloseView( PTRSZVAL dwView )
+void CPROC CloseView( uintptr_t dwView )
 {
    VIEW *V;
    V = (VIEW*)dwView;
@@ -467,9 +467,9 @@ PVIEW CreateViewEx( int nType, ViewMouseCallback pMC, char *Title, int sx, int s
 		return NULL;
 	}
 	//InitGL();
-	SetRedrawHandler( pv->hVideo, _ShowObjects, (PTRSZVAL)pv );
-	SetCloseHandler( pv->hVideo, CloseView, (PTRSZVAL)pv );
-	SetMouseHandler( pv->hVideo, ViewMouse, (PTRSZVAL)pv );
+	SetRedrawHandler( pv->hVideo, _ShowObjects, (uintptr_t)pv );
+	SetCloseHandler( pv->hVideo, CloseView, (uintptr_t)pv );
+	SetMouseHandler( pv->hVideo, ViewMouse, (uintptr_t)pv );
 
 	pv->MouseMethod = pMC;
 

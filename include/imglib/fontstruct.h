@@ -16,12 +16,12 @@ IMAGE_NAMESPACE
 
 typedef struct font_char_tag
 {
-	_16 size;   // size of the character data (length of bitstream)
-	_16 width;  // width to adjust position by (returned from putchar)
-	S_16 offset; // minor width adjustment (leadin)
-	_16 junk;   // I lost this junk padding?!
-	S_16 ascent; // ascent can be negative also..
-	S_16 descent;
+	uint16_t size;   // size of the character data (length of bitstream)
+	uint16_t width;  // width to adjust position by (returned from putchar)
+	int16_t offset; // minor width adjustment (leadin)
+	uint16_t junk;   // I lost this junk padding?!
+	int16_t ascent; // ascent can be negative also..
+	int16_t descent;
 
 	/* *** this bit of structure is for dyanmic rendering on surfaces *** */
 	// data is byte aligned - count of bytes is (size/8) for next line...
@@ -35,19 +35,19 @@ typedef struct font_char_tag
 typedef struct font_tag
 {
    // distance between 'lines' of text - the font may render above and below this height.
-	_16 height; 
+	uint16_t height; 
 	 // distance from top-left origin to character baseline.
 	 // the top of a character is now (y + baseline - ascent)
 	 // if this is more than (y) the remainder must be
 	 // filled with the background color.
 	 // the bottom is ( y + baseline - descent ) - if this is
 	// less than height the remainder must be background filled.
-	_16 baseline;
+	uint16_t baseline;
 	/* if 0 - characters will be 1 - old font - please compensate
 	   for change.... */
-	_32 characters;
-	_8 flags;
-	_8 bias;
+	uint32_t characters;
+	uint8_t flags;
+	uint8_t bias;
 	TEXTCHAR *name;
 	PCHARACTER character[1];
 } FONT, *PFONT;

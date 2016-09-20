@@ -6,15 +6,15 @@
 
 typedef struct
 {
-	_32 MsgBaseServer;
+	uint32_t MsgBaseServer;
 
 }LOCAL;
 #define l local_server_icon_data
 static LOCAL l;
 
 
-static int CPROC ServiceFunction( _32 *params, _32 param_length
-		  , _32 *result, _32 *result_length )
+static int CPROC ServiceFunction( uint32_t *params, uint32_t param_length
+		  , uint32_t *result, uint32_t *result_length )
 {
 	// echo the data we got back to the client...
 // most other things will do useful functions in functions.
@@ -25,8 +25,8 @@ static int CPROC ServiceFunction( _32 *params, _32 param_length
    *result_length = param_length;
    return 3;
 }
-static int CPROC ServerRegisterIcon( _32 *params, _32 param_length
-		  , _32 *result, _32 *result_length )
+static int CPROC ServerRegisterIcon( uint32_t *params, uint32_t param_length
+		  , uint32_t *result, uint32_t *result_length )
 {
 	// echo the data we got back to the client...
 // most other things will do useful functions in functions.
@@ -39,13 +39,13 @@ static int CPROC ServerRegisterIcon( _32 *params, _32 param_length
 
    return 4;
 }
-static int CPROC ServerUnregisterIcon( _32 *params, _32 param_length
-		  , _32 *result, _32 *result_length )
+static int CPROC ServerUnregisterIcon( uint32_t *params, uint32_t param_length
+		  , uint32_t *result, uint32_t *result_length )
 {
    xlprintf(LOG_NOISE)("Yeah, right.  Unregister the icon.  Sounds good.");
 }
-static int CPROC ServerGeneric( _32 *params, _32 param_length
-		  , _32 *result, _32 *result_length )
+static int CPROC ServerGeneric( uint32_t *params, uint32_t param_length
+		  , uint32_t *result, uint32_t *result_length )
 {
    xlprintf(LOG_ALWAYS)("Got a generic.  ");
 
@@ -57,8 +57,8 @@ static int CPROC ServerGeneric( _32 *params, _32 param_length
 
    return 5;
 }
-static int CPROC ServerMateEnded( _32 *params, _32 param_length
-		  , _32 *result, _32 *result_length )
+static int CPROC ServerMateEnded( uint32_t *params, uint32_t param_length
+		  , uint32_t *result, uint32_t *result_length )
 {
    xlprintf(LOG_ALWAYS)("Got a MateEnded. params is %lu by the way. ", &params);
 
@@ -70,8 +70,8 @@ static int CPROC ServerMateEnded( _32 *params, _32 param_length
 
    return 6;
 }
-static int CPROC ServerMateStarted( _32 *params, _32 param_length
-		  , _32 *result, _32 *result_length )
+static int CPROC ServerMateStarted( uint32_t *params, uint32_t param_length
+		  , uint32_t *result, uint32_t *result_length )
 {
 	xlprintf(LOG_ALWAYS)("Got a MateStarted.  Returning %d"
 							  , INVALID_INDEX

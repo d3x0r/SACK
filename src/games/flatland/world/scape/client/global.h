@@ -4,8 +4,8 @@
 #include <world.h>
 
 struct client_global_UpdateCallback_tag {
-	void (CPROC *proc)( PTRSZVAL );
-	PTRSZVAL psv;
+	void (CPROC *proc)( uintptr_t );
+	uintptr_t psv;
 };
 typedef struct client_global_tag {
 	struct {

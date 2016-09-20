@@ -54,10 +54,10 @@ struct spaceweb_node
 	} flags;
 	// island is a debug check - it's a color to make sure all nodes are within the web.
 	// all nodes are contained in a seperate list for debug purposes...
-	_32 island;
-	_32 paint;
-	_32 near_count;
-	_32 id;
+	uint32_t island;
+	uint32_t paint;
+	uint32_t near_count;
+	uint32_t id;
 	// keep this, but migrate the name... otherwise we'll miss translation points...
 	PLIST near_nodes;
 	PLIST links;
@@ -67,7 +67,7 @@ struct spaceweb_node
 	CRITICALSECTION cs;
 #endif
 	PSPACEWEB web; // have to find root node to find islands (please make this go awawy)
-	PTRSZVAL data;
+	uintptr_t data;
 };
 #define MAXSPACEWEB_NODESPERSET 256 
 DeclareSet( SPACEWEB_NODE );
@@ -196,7 +196,7 @@ int CountNear( PSPACEWEB_NODE node )
 //--------------------------------------------------------------------------------------------
 
 static int count;
-PTRSZVAL CPROC IsOrphan( void* thisnode, PTRSZVAL psv )
+uintptr_t CPROC IsOrphan( void* thisnode, uintptr_t psv )
 {
 	PSPACEWEB_NODE node = (PSPACEWEB_NODE)thisnode;
 	if( node->flags.bLinked )
@@ -204,7 +204,7 @@ PTRSZVAL CPROC IsOrphan( void* thisnode, PTRSZVAL psv )
 		count++;
 		{
 			int c = CountNear( node );
-			return (c == 0)?(PTRSZVAL)thisnode:0;
+			return (c == 0)?(uintptr_t)thisnode:0;
 		}
 	}
 	return 0;
@@ -226,7 +226,7 @@ void FindOrphans( PSPACEWEB web )
 }
 //--------------------------------------------------------------------------------------------
 
-PTRSZVAL CPROC IsIsland( void* thisnode, PTRSZVAL psv )
+uintptr_t CPROC IsIsland( void* thisnode, uintptr_t psv )
 {
 	PSPACEWEB_NODE node = (PSPACEWEB_NODE)thisnode;
 
@@ -234,12 +234,12 @@ PTRSZVAL CPROC IsIsland( void* thisnode, PTRSZVAL psv )
 	if( node->island && node->island != psv )
 	{
 		lprintf( WIDE("Node %p not signed."), node );
-		return (PTRSZVAL)node;
+		return (uintptr_t)node;
 	}
 	return 0;
 }
 
-void SignIsland( PSPACEWEB_NODE node, _32 value )
+void SignIsland( PSPACEWEB_NODE node, uint32_t value )
 {
 	if( node->flags.bLinked )
 	{
@@ -261,7 +261,7 @@ void SignIsland( PSPACEWEB_NODE node, _32 value )
 	}
 }
 
-void UnsignIsland( PSPACEWEB_NODE node, _32 old_value, _32 value )
+void UnsignIsland( PSPACEWEB_NODE node, uint32_t old_value, uint32_t value )
 {
 	if( node->flags.bLinked )
 	{
@@ -288,8 +288,8 @@ void UnsignIsland( PSPACEWEB_NODE node, _32 old_value, _32 value )
 
 LOGICAL FindIslands( PSPACEWEB_NODE node )
 {
-	static _32 zzz;
-	_32 zzzz;
+	static uint32_t zzz;
+	uint32_t zzzz;
 	PSPACEWEB web = node->web;
 	PSPACEWEB_NODE orphan;
 	count = 0;
@@ -328,7 +328,7 @@ void UnlinkWebNode( PSPACEWEB_NODE node )
 	PSPACEWEB_NODE anyone_else = NULL;
 	PSPACEWEB_NODE linked;
 	PLIST linked_list = NULL;
-	_32 prior = node->island;
+	uint32_t prior = node->island;
 
 
 	if( node->web->root == node )
@@ -1096,7 +1096,7 @@ void ValidateLink( PSPACEWEB_NODE resident, PCVECTOR new_point, PSPACEWEB_NODE n
 
 
 
-PTRSZVAL CPROC MakeOrphan( POINTER p, PTRSZVAL psv )
+uintptr_t CPROC MakeOrphan( POINTER p, uintptr_t psv )
 {
 	PSPACEWEB_NODE node = (PSPACEWEB_NODE)p;
 	INDEX idx;
@@ -1114,7 +1114,7 @@ PTRSZVAL CPROC MakeOrphan( POINTER p, PTRSZVAL psv )
 
 void RelinkNode( PSPACEWEB web, PSPACEWEB_NODE node );
 
-PTRSZVAL CPROC RebuildOrphan( POINTER p, PTRSZVAL psv )
+uintptr_t CPROC RebuildOrphan( POINTER p, uintptr_t psv )
 {
 	PSPACEWEB_NODE node = (PSPACEWEB_NODE)p;
 	RelinkNode( node->web, node );
@@ -1605,20 +1605,20 @@ void EnumNearNodes( PSPACEWEB web, PSPACEWEB_NODE node )
 
 // this should have
 //  a source node and a destination node, and enumerate possible routes from and to or maybe just points...
-void EnumWebNodes( PSPACEWEB web, void (*f)(PSPACEWEB web, PSPACEWEB_NODE node, PTRSZVAL psvUser ), PTRSZVAL psvUser )
+void EnumWebNodes( PSPACEWEB web, void (*f)(PSPACEWEB web, PSPACEWEB_NODE node, uintptr_t psvUser ), uintptr_t psvUser )
 {
 
 }
 
 
-PTRSZVAL GetNodeData( PSPACEWEB_NODE node )
+uintptr_t GetNodeData( PSPACEWEB_NODE node )
 {
 	if( node )
 		return node->data;
 	return 0;
 }
 
-PSPACEWEB_NODE AddWebNode( PSPACEWEB web, PC_POINT pt, PTRSZVAL psv )
+PSPACEWEB_NODE AddWebNode( PSPACEWEB web, PC_POINT pt, uintptr_t psv )
 {
 	PSPACEWEB_NODE node = GetFromSet( SPACEWEB_NODE, &web->nodes );
 	SetPoint( node->point, pt );
@@ -1679,15 +1679,15 @@ static struct {
 	PSI_CONTROL tester;
 	PRENDERER surface;
 	FILE *file;
-	_32 x, y;
+	uint32_t x, y;
 	INDEX root;
 	PSPACEWEB_NODE pRoot;
 	int paint;
 } test;
 
-static int OnMouseCommon( WIDE("Web Tester") )( PSI_CONTROL pc, S_32 x, S_32 y, _32 b )
+static int OnMouseCommon( WIDE("Web Tester") )( PSI_CONTROL pc, int32_t x, int32_t y, uint32_t b )
 {
-	static _32 _b;
+	static uint32_t _b;
 	if( ( b & MK_LBUTTON ) && !( _b & MK_LBUTTON ) )
 	{
 		// it's an array in some context, and a pointer in most...
@@ -1734,7 +1734,7 @@ static void DrawLine( PCVECTOR a, PCVECTOR b, CDATA c )
 }
 
 
-static PTRSZVAL CPROC something3d( void* thisnode, PTRSZVAL psv )
+static uintptr_t CPROC something3d( void* thisnode, uintptr_t psv )
 {
 	PSPACEWEB_NODE node = (PSPACEWEB_NODE)thisnode;
 	struct drawdata *data = (struct drawdata*)psv;
@@ -1871,7 +1871,7 @@ static PTRSZVAL CPROC something3d( void* thisnode, PTRSZVAL psv )
 	return 0; // don't end scan.... foreach can be used for searching too.
 }
 
-static void OnDraw3d( WIDE("Space Web(3d)") )( PTRSZVAL psv )
+static void OnDraw3d( WIDE("Space Web(3d)") )( uintptr_t psv )
 {
 	if( test.web )
 	{
@@ -1894,14 +1894,14 @@ static void OnDraw3d( WIDE("Space Web(3d)") )( PTRSZVAL psv )
 				FindNearest( &data.path, &data.pathway, test.pRoot, v, 0 );
 			//lprintf( WIDE("Draw.") );
 		}
-		ForAllInSet( SPACEWEB_NODE, test.web->nodes, something3d, (PTRSZVAL)&data );
+		ForAllInSet( SPACEWEB_NODE, test.web->nodes, something3d, (uintptr_t)&data );
 		DeleteList( &data.path );
 		LeaveCriticalSec( &test.web->cs );
 		UnmakeImageFile( data.icon );
 	}
 }
 
-static PTRSZVAL CPROC something( void* thisnode, PTRSZVAL psv )
+static uintptr_t CPROC something( void* thisnode, uintptr_t psv )
 {
 	PSPACEWEB_NODE node = (PSPACEWEB_NODE)thisnode;
 	struct drawdata *data = (struct drawdata*)psv;
@@ -2059,14 +2059,14 @@ static int OnDrawCommon( WIDE("Web Tester") )( PSI_CONTROL pc )
 				FindNearest( &data.path, &data.pathway, test.pRoot, v, 0 );
 			//lprintf( WIDE("Draw.") );
 		}
-		ForAllInSet( SPACEWEB_NODE, test.web->nodes, something, (PTRSZVAL)&data );
+		ForAllInSet( SPACEWEB_NODE, test.web->nodes, something, (uintptr_t)&data );
 		DeleteList( &data.path );
 		LeaveCriticalSec( &test.web->cs );
 	}
 	return 1;
 }
 
-static int OnKeyCommon( WIDE("Web Tester") )( PSI_CONTROL pc, _32 key )
+static int OnKeyCommon( WIDE("Web Tester") )( PSI_CONTROL pc, uint32_t key )
 {
 	if( IsKeyPressed(key) && KEY_CODE(key) == KEY_SPACE )
 		update_pause = 0;
@@ -2085,7 +2085,7 @@ static int OnKeyCommon( WIDE("Web Tester") )( PSI_CONTROL pc, _32 key )
 	return 0;
 }
 
-void CPROC MoveWeb( PTRSZVAL psv )
+void CPROC MoveWeb( uintptr_t psv )
 {
 	PSPACEWEB_NODE node;
 	VECTOR v;
@@ -2121,7 +2121,7 @@ void CPROC MoveWeb( PTRSZVAL psv )
 	SmudgeCommon( test.tester );
 }
 
-static PTRSZVAL OnInit3d( WIDE("Space Web(3d)" ) )(PMatrix projection, PTRANSFORM camera, RCOORD *identity_depth, RCOORD *aspect )
+static uintptr_t OnInit3d( WIDE("Space Web(3d)" ) )(PMatrix projection, PTRANSFORM camera, RCOORD *identity_depth, RCOORD *aspect )
 {
 	return 1;
 }

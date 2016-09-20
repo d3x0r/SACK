@@ -1,7 +1,7 @@
 
 #include <render.h>
 
-void CPROC Draw( PTRSZVAL psv, PRENDERER render )
+void CPROC Draw( uintptr_t psv, PRENDERER render )
 {
 	Image image = GetDisplayImage( render );
 	ClearImageTo( image, psv );

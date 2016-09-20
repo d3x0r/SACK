@@ -37,7 +37,7 @@ static struct local_info
 // loop requires l.pii
 #include "loop.h"
 
-static PTRSZVAL OnInit3d( "Seg Renderer" )( PMatrix projection, PTRANSFORM camera, RCOORD *identity_depth, RCOORD *aspect )
+static uintptr_t OnInit3d( "Seg Renderer" )( PMatrix projection, PTRANSFORM camera, RCOORD *identity_depth, RCOORD *aspect )
 {
 	l.pii = GetImageInterface();
 	l.pr3i = GetRender3dInterface();
@@ -236,11 +236,11 @@ static PTRSZVAL OnInit3d( "Seg Renderer" )( PMatrix projection, PTRANSFORM camer
 	return 1;
 }
 
-static void OnFirstDraw3d( "Seg Renderer" )( PTRSZVAL psvInit )
+static void OnFirstDraw3d( "Seg Renderer" )( uintptr_t psvInit )
 {
 }
 
-static void OnBeginDraw3d( "Seg Renderer" )( PTRSZVAL psvInit, PTRANSFORM camera )
+static void OnBeginDraw3d( "Seg Renderer" )( uintptr_t psvInit, PTRANSFORM camera )
 {
 
 }
@@ -347,7 +347,7 @@ static LOGICAL OnUpdate3d( "Seg Renderer" )( PTRANSFORM origin )
 	return TRUE;
 }
 
-static void OnDraw3d( "Seg Renderer" )( PTRSZVAL psvInit )
+static void OnDraw3d( "Seg Renderer" )( uintptr_t psvInit )
 {
 	INDEX idx;
 	Loop *loop;
@@ -357,7 +357,7 @@ static void OnDraw3d( "Seg Renderer" )( PTRSZVAL psvInit )
 	}
 }
 
-static LOGICAL OnMouse3d( "Virtuality" )( PTRSZVAL psvInit, PRAY mouse, S_32 x, S_32 y, _32 b )
+static LOGICAL OnMouse3d( "Virtuality" )( uintptr_t psvInit, PRAY mouse, int32_t x, int32_t y, uint32_t b )
 {
 	return 0;
 }

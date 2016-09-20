@@ -21,19 +21,19 @@ void UpdateClients( void );
 #define WORLD_STRUCTURES_DEFINED
 
 
-typedef PTRSZVAL PSECTORSET, PSECTOR
+typedef uintptr_t PSECTORSET, PSECTOR
 		 , PNAME, PNAMESET
 		 , PWALLSET, PWALL
 		 , PMYLINESEGSET, PMYLINESEG
 		 , PTEXTURE, PTEXTURESET;
 
 typedef struct local_world_tag {
-	PTRSZVAL real; // the handle of this in the server side.
+	uintptr_t real; // the handle of this in the server side.
 } *PWORLD;
 
 typedef struct named_thing_tag {
    char *name;
-   PTRSZVAL thing;
+   uintptr_t thing;
 } NAMED_THING;
 
 typedef union texture_tag {

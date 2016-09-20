@@ -6,28 +6,28 @@
 typedef struct local_tag
 {
 	struct {
-		_32 bServer : 1;
-		_32 bClient : 1;
+		uint32_t bServer : 1;
+		uint32_t bClient : 1;
 	} flags;
-   _32 MsgBaseClient;
-   _32 MsgBaseServer;
-   _32 waiting;
-	_64 start;
-	_64 end;
-	_64 accum;
-	_64 passes;
-	_64 min;
-	_64 max;
-	_64 bytes;
+   uint32_t MsgBaseClient;
+   uint32_t MsgBaseServer;
+   uint32_t waiting;
+	uint64_t start;
+	uint64_t end;
+	uint64_t accum;
+	uint64_t passes;
+	uint64_t min;
+	uint64_t max;
+	uint64_t bytes;
 
    // buffer to send from...
-   _32 data[4096];
-   _32 data_in[4096];
+   uint32_t data[4096];
+   uint32_t data_in[4096];
 } LOCAL;
 static LOCAL l;
 
 #ifdef __WATCOMC__
-extern _64 GetCPUTicks();
+extern uint64_t GetCPUTicks();
 #pragma aux GetCPUTicks = "rdtsc"
 #define SetTick(var)   ( (var) = GetCPUTicks() )
 #else
@@ -39,8 +39,8 @@ void OpenClient( void ) /*FOLD00*/
    l.MsgBaseClient = LoadService( WIDE("Benchmark Service"), NULL );
 }
 
-static int CPROC ServiceFunction( _32 *params, _32 param_length /*FOLD00*/
-										  , _32 *result, _32 *result_length )
+static int CPROC ServiceFunction( uint32_t *params, uint32_t param_length /*FOLD00*/
+										  , uint32_t *result, uint32_t *result_length )
 {
 	// echo the data we got back to the client...
 // most other things will do useful functions in functions.
@@ -87,10 +87,10 @@ void DumpStats( void ) /*FOLD00*/
 
 void Test1Byte( void ) /*FOLD00*/
 {
-	_32 responce;
-   _32 reslen = 4096;
+	uint32_t responce;
+   uint32_t reslen = 4096;
 	int n;
-   _32 sec = time(NULL);
+   uint32_t sec = time(NULL);
 	while( (sec+5) > time(NULL) )
 	//for( n = 0; n < 10000; n++ )
 	{
@@ -107,7 +107,7 @@ void Test1Byte( void ) /*FOLD00*/
 				lprintf( WIDE("Responce was faillure from the server...") );
 			else
 		{
-			_64 del;
+			uint64_t del;
 			SetTick( l.end );
 			l.accum += (del = l.end - l.start);
 			l.passes++;
@@ -125,10 +125,10 @@ void Test1Byte( void ) /*FOLD00*/
 
 void Test1000Byte( void ) /*FOLD00*/
 {
-	_32 responce;
-   _32 reslen = 4096;
+	uint32_t responce;
+   uint32_t reslen = 4096;
 	int n;
-   _32 sec = time(NULL);
+   uint32_t sec = time(NULL);
 	while( (sec+5) > time(NULL) )
 	//for( n = 0; n < 10000; n++ )
 	{
@@ -145,7 +145,7 @@ void Test1000Byte( void ) /*FOLD00*/
 				lprintf( WIDE("Responce was faillure from the server...") );
 			else
 			{
-				_64 del;
+				uint64_t del;
 				SetTick( l.end );
 				l.accum += (del = l.end - l.start);
 				l.passes++;

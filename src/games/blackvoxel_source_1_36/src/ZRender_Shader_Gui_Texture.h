@@ -33,7 +33,7 @@ class ZRender_Shader_Gui_Texture: public ZRender_Shader_Interface
 	public:
     ZRender_Shader_Gui_Texture( class ZRender_Interface *render );
 
-	PTRSZVAL SetupShader( void );
+	uintptr_t SetupShader( void );
 	void InitShader( PImageShaderTracker tracker );
 
 	void ZRender_Shader_Gui_Texture::Draw( int texture

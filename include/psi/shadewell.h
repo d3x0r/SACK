@@ -114,7 +114,7 @@ PSI_PROC( PSI_CONTROL, EnableColorWellPick )( PSI_CONTROL pc, LOGICAL bEnable );
                     changed.
    user_data :      user data to be passed to the callback when
                     invoked.                                    */
-PSI_PROC( PSI_CONTROL, SetOnUpdateColorWell )( PSI_CONTROL PC, void(CPROC*EventCallback)(PTRSZVAL,CDATA), PTRSZVAL user_data);
+PSI_PROC( PSI_CONTROL, SetOnUpdateColorWell )( PSI_CONTROL PC, void(CPROC*EventCallback)(uintptr_t,CDATA), uintptr_t user_data);
 /* Gets the CDATA color in a color well.
    Parameters
    pc :  "Color Well" control to get the color from */

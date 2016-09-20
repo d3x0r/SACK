@@ -54,7 +54,7 @@ static void EndClient( PSERVICE_CLIENT client )
 			}
 			else if( service->functions && service->functions[MSG_ServiceUnload].function )
 			{
-				_32 resultbuf[1];
+				uint32_t resultbuf[1];
 				size_t resultlen = 4;
 				service->functions[MSG_ServiceUnload].function( &client->route, NULL, 0
 																			 , resultbuf, &resultlen );
@@ -66,8 +66,8 @@ static void EndClient( PSERVICE_CLIENT client )
 		}
 		DeleteList( &client->services );
 		{
-			static _32 msg[2048];
-			S_32 len;
+			static uint32_t msg[2048];
+			int32_t len;
 			//lprintf( "vvv" );
 			while( (len=msgrcv( g.msgq_out, MSGTYPE msg, 8192, client->route.source.process_id, IPC_NOWAIT )) >= 0 )
 				//	errno != ENOMSG )
@@ -92,7 +92,7 @@ static void EndClient( PSERVICE_CLIENT client )
 
 //--------------------------------------------------------------------
 
-void CPROC MonitorClientActive( PTRSZVAL psv )
+void CPROC MonitorClientActive( uintptr_t psv )
 {
 	// for all clients connected send an alive probe to see
 	// if we can free their resources.
@@ -121,7 +121,7 @@ void CPROC MonitorClientActive( PTRSZVAL psv )
 				if( !client->flags.status_queried )
 				{
 					QMSG msg;
-					//_32 msg[3];
+					//uint32_t msg[3];
 #ifdef DEBUG_DATA_XFER
 					DBG_VARSRC;
 #endif
@@ -159,7 +159,7 @@ void CPROC MonitorClientActive( PTRSZVAL psv )
 			lprintf( "Check event handler (Service) %p", pHandler );
 			pNextHandler = pHandler->next;
 			{
-				_32 tick;
+				uint32_t tick;
 				if( ( pHandler->last_check_tick + (CLIENT_TIMEOUT) ) < ( tick = timeGetTime() ) )
 				{
 					pHandler->last_check_tick = tick;
@@ -192,7 +192,7 @@ void CPROC MonitorClientActive( PTRSZVAL psv )
 void ResumeThreads( void )
 {
 #ifndef _WIN32
-	_32 tick;
+	uint32_t tick;
 	if( g.pThread )
 	{
 		lprintf( WIDE("Resume Service") );
@@ -447,7 +447,7 @@ int _InitMessageService( int local )
 	if( !g.my_message_id )
 	{
 #ifdef __LINUX__
-		g.my_message_id = getpid(); //pService->thread->ThreadID & 0x7FFFFFFFUL; /*(_32)getpid()*/;
+		g.my_message_id = getpid(); //pService->thread->ThreadID & 0x7FFFFFFFUL; /*(uint32_t)getpid()*/;
 #else
 		g.my_message_id = GetCurrentProcessId();
 #endif
@@ -583,8 +583,8 @@ void CloseMessageQueues( void )
 		ResumeThreads();
 	}
 	{
-		_32 attempts = 0;
-		_32 time;
+		uint32_t attempts = 0;
+		uint32_t time;
 		g.msgq_in = 0;
 		g.msgq_out = 0;
 		g.msgq_event = 0;
@@ -749,7 +749,7 @@ CLIENTMSG_PROC( void, DumpServiceList )(void )
 	RegisterWithMasterService();
 	mydata.me = MakeThread();
 	lprintf( WIDE("Sending message to server ... list services...") );
-	LogBinary( (P_8)&mydata, sizeof(mydata) );
+	LogBinary( (uint8_t*)&mydata, sizeof(mydata) );
 	SendServerMessage( &g.master_service_route, CLIENT_LIST_SERVICES, &mydata, sizeof(mydata) );
 	// wait for end of list...
 	while( !bDone )

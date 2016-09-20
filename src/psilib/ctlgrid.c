@@ -11,7 +11,7 @@
 typedef struct griditem_tag
 {
   //speaking of this, we should have something to set the cell data up for this cell.
-  PTRSZVAL data;
+  uintptr_t data;
   char *text;
 
 	struct {
@@ -86,33 +86,33 @@ typedef struct gridbox_tag
 
   //a whole bunch of function pointers and their respective purposes
   //DoubleClicker DoubleClickHandler;
-  //PTRSZVAL psvDoubleClick;
+  //uintptr_t psvDoubleClick;
 
   //thickness of the column and row bars
   int ColThickness;
   int RowThickness;
 
-  void (*RenderCell)(PCONTROL, PTRSZVAL);
-  void (*RenderCellSelected)(PCONTROL, PTRSZVAL);
+  void (*RenderCell)(PCONTROL, uintptr_t);
+  void (*RenderCellSelected)(PCONTROL, uintptr_t);
   void (*SingleClickCell)(PCONTROL);
   DoubleClicker CellDClickHandler;
-  PTRSZVAL psvCellDoubleClick;
+  uintptr_t psvCellDoubleClick;
   int CellTimeLastClick;
   int Cellx, Celly, Cellb; // old mouse info;
 
-  void (*RenderRowBarCell)(PCONTROL, PTRSZVAL);
-  void (*RenderRowBarCellSelected)(PCONTROL, PTRSZVAL);
+  void (*RenderRowBarCell)(PCONTROL, uintptr_t);
+  void (*RenderRowBarCellSelected)(PCONTROL, uintptr_t);
   void (*SingleClickRowBarCell)(PCONTROL);
   DoubleClicker TopDClickHandler;  
-  PTRSZVAL psvDoubleClick;
+  uintptr_t psvDoubleClick;
   int RowTimeLastClick;
   int Rowx, Rowy, Rowb; // old mouse info;
 
-  void (*RenderColumnBarCell)(PCONTROL, PTRSZVAL);
-  void (*RenderColumnBarCellSelected)(PCONTROL, PTRSZVAL);
+  void (*RenderColumnBarCell)(PCONTROL, uintptr_t);
+  void (*RenderColumnBarCellSelected)(PCONTROL, uintptr_t);
   void (*SingleClickColumnBarCell)(PCONTROL);
   DoubleClicker ColumnDClickHandler;
-  PTRSZVAL psvColumnDoubleClick;
+  uintptr_t psvColumnDoubleClick;
   int ColumnTimeLastClick;
   int Columnx, Columny, Columnb; // old mouse info;
 
@@ -519,7 +519,7 @@ int GetItemIndexXY( PGRIDBOX pgb, PGRIDITEM pgi )
 
 //---------------------------------------------------------------------------
 
-void ScrollBarUpdateX( PTRSZVAL psvGrid, int type, int current )
+void ScrollBarUpdateX( uintptr_t psvGrid, int type, int current )
 {
 	PGRIDBOX pgb = (PGRIDBOX)psvGrid;
 	if( pgb->common.common.nType == GRIDBOX_CONTROL )
@@ -531,7 +531,7 @@ void ScrollBarUpdateX( PTRSZVAL psvGrid, int type, int current )
 
 //---------------------------------------------------------------------------
 
-void ScrollBarUpdateY( PTRSZVAL psvGrid, int type, int current )
+void ScrollBarUpdateY( uintptr_t psvGrid, int type, int current )
 {
 	PGRIDBOX pgb = (PGRIDBOX)psvGrid;
 	if( pgb->common.common.nType == GRIDBOX_CONTROL )
@@ -583,7 +583,7 @@ void MouseGridBox( PCONTROL pc, int x, int y, int b )
                   clicked_celly_last = pgb->Celly/pgb->viewport_cell_height + pgb->offset_cell_y;
 
                   if(( clicked_cellx == clicked_cellx_last ) && (clicked_celly == clicked_celly_last))
-                    //pgb->DoubleClickHandler( pgb->psvDoubleClick, pc, (PTRSZVAL)pgb->current );
+                    //pgb->DoubleClickHandler( pgb->psvDoubleClick, pc, (uintptr_t)pgb->current );
                     printf("Double click handler invoked\n");
                 }
 
@@ -711,7 +711,7 @@ static void KeyGridControl( PCONTROL pc, int key )
 
 PCONTROL MakeGridBox( PFRAME pf, int options, int x, int y, int w, int h, 
                       int viewport_x, int viewport_y, int total_x, int total_y, 
-                      int row_thickness, int column_thickness, PTRSZVAL nID )
+                      int row_thickness, int column_thickness, uintptr_t nID )
 {
 	PGRIDBOX pgb = (PGRIDBOX)CreateControl( pf, nID, x, y, w, h, BORDER_THIN|BORDER_INVERT
 			 									     , (sizeof( GRIDBOX ) - sizeof( CONTROL )) );
@@ -722,7 +722,7 @@ PCONTROL MakeGridBox( PFRAME pf, int options, int x, int y, int w, int h,
 
    Log4("Making scroll bar from %d, %d size of w=%d h=%d", pgb->common.common.surface_rect.width-15, 0, 15, pgb->common.common.surface_rect.height-15);
 
-   SetScrollUpdateMethod( pgb->pcScroll, ScrollBarUpdateX, (PTRSZVAL)pgb );
+   SetScrollUpdateMethod( pgb->pcScroll, ScrollBarUpdateX, (uintptr_t)pgb );
    //SetScrollParams(pgb->pcScroll, 0, 0, total_x, total_x-viewport_x );
 
    
@@ -734,7 +734,7 @@ PCONTROL MakeGridBox( PFRAME pf, int options, int x, int y, int w, int h,
    //just a note for something to clear up at a later time.  We're probably going
    //to have to decide if we should iterate as the scrollbar is moved, or wait
    //to iterate to it's present position on the ScrollBarUpdate*
-   SetScrollUpdateMethod( pgb->pcScrolly, ScrollBarUpdateY, (PTRSZVAL)pgb );
+   SetScrollUpdateMethod( pgb->pcScrolly, ScrollBarUpdateY, (uintptr_t)pgb );
    //SetScrollParams(pgb->pcScrolly, 0, 0, total_y, total_y-viewport_y );
    
    pgb->ColThickness = row_thickness;
@@ -792,7 +792,7 @@ PCONTROL MakeGridBox( PFRAME pf, int options, int x, int y, int w, int h,
 
 //---------------------------------------------------------------------------
 
-HGRIDITEM AddGridItem( PCONTROL pc, char *text, int x, int y, PTRSZVAL data)
+HGRIDITEM AddGridItem( PCONTROL pc, char *text, int x, int y, uintptr_t data)
 {
 	if( pc->common.nType == GRIDBOX_CONTROL )
 	{
@@ -892,7 +892,7 @@ void SetCurrentItemXY( PCONTROL pc, HGRIDITEM hgi )
 
 //---------------------------------------------------------------------------
 
-void SetItemDataXY( HGRIDITEM hgi, PTRSZVAL psv )
+void SetItemDataXY( HGRIDITEM hgi, uintptr_t psv )
 {
 	PGRIDITEM pgi = (PGRIDITEM)hgi;
 	if( hgi )
@@ -901,7 +901,7 @@ void SetItemDataXY( HGRIDITEM hgi, PTRSZVAL psv )
 
 //---------------------------------------------------------------------------
 
-PTRSZVAL GetItemDataXY( HGRIDITEM hgi )
+uintptr_t GetItemDataXY( HGRIDITEM hgi )
 {
 	PGRIDITEM pgi = (PGRIDITEM)hgi;
 	if( pgi )
@@ -971,7 +971,7 @@ PSI_PROC( HGRIDITEM, FindGridItemXY )( PCONTROL pc, char *text )
 
 //---------------------------------------------------------------------------
 
-PSI_PROC( void, SetGridColumnClickHandler )( PCONTROL pc, DoubleClicker proc, PTRSZVAL psvUser )
+PSI_PROC( void, SetGridColumnClickHandler )( PCONTROL pc, DoubleClicker proc, uintptr_t psvUser )
 {
 	if( pc->common.nType == GRIDBOX_CONTROL )
 	{

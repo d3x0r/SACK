@@ -43,8 +43,8 @@ AL_INLINE(fixed, itofix, (int x),
 })
 
 
-#define uintptr_t P_32
-#define uint32_t _32
+#define uintptr_t uint32_t*
+#define uint32_t uint32_t
 
 #include "platform/al386wat.h"
 #endif

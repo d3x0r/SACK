@@ -113,7 +113,7 @@ PFONT_PRESET _CreateAFont( PCanvasData canvas, CTEXTSTR name, SFTFont font, POIN
 		DestroyFont( &font_preset->font );
 	if( datalen )
 	{
-		font_preset->fontdata = NewArray( _8, datalen );
+		font_preset->fontdata = NewArray( uint8_t, datalen );
 		MemCpy( font_preset->fontdata, data, datalen );
 		font_preset->fontdatalen = datalen;
 	}
@@ -222,7 +222,7 @@ SFTFont *CreateACanvasFont2( PCanvasData canvas, CTEXTSTR name, CTEXTSTR fontfil
 
 
 
-static void CPROC EditPageFont(PTRSZVAL psv, PSI_CONTROL pc )
+static void CPROC EditPageFont(uintptr_t psv, PSI_CONTROL pc )
 {
 	PFONT_SELECT font_select = (PFONT_SELECT)psv;
 	ValidatedControlData( PPAGE_DATA*, new_menu_surface.TypeID, page, pc );
@@ -257,14 +257,14 @@ SFTFont* CreateACanvasFont( PCanvasData canvas, CTEXTSTR name, SFTFont font, POI
 	return NULL;
 }
 
-void CPROC SetCurrentPreset( PTRSZVAL psv, PSI_CONTROL list, PLISTITEM pli )
+void CPROC SetCurrentPreset( uintptr_t psv, PSI_CONTROL list, PLISTITEM pli )
 {
 	PFONT_SELECT font_select = (PFONT_SELECT)psv;
 
 	font_select->selected_font = (PFONT_PRESET)GetItemData( pli );
 }
 
-static void CPROC CreatePageFont( PTRSZVAL psv, PSI_CONTROL pc )
+static void CPROC CreatePageFont( uintptr_t psv, PSI_CONTROL pc )
 {
 	PFONT_SELECT font_select = (PFONT_SELECT)psv;
 	//ValidatedControlData( PPAGE_DATA*, new_menu_surface.TypeID, page,  );
@@ -308,7 +308,7 @@ static void CPROC CreatePageFont( PTRSZVAL psv, PSI_CONTROL pc )
 			font_select->fontdata = &font_preset->fontdata;
 			font_select->fontdatalen = &font_preset->fontdatalen;
 			pli= AddListItem( GetNearControl( pc, LST_FONTS ), font_preset->name );
-			SetItemData( pli, (PTRSZVAL)font_preset );
+			SetItemData( pli, (uintptr_t)font_preset );
 			SetSelectedItem( GetNearControl( pc, LST_FONTS ), pli );
 		}
 	}
@@ -363,8 +363,8 @@ SFTFont *SelectACanvasFont( PCanvasData canvas, PSI_CONTROL parent, CTEXTSTR*def
 		{
 			//could figure out a way to register methods under
 			PSI_CONTROL list = GetControl( frame, LST_FONTS );
-			SetButtonPushMethod( GetControl( frame, BTN_PICKFONT ), CreatePageFont, (PTRSZVAL)&font_select );
-			SetButtonPushMethod( GetControl( frame, BTN_EDITFONT ), EditPageFont, (PTRSZVAL)&font_select );
+			SetButtonPushMethod( GetControl( frame, BTN_PICKFONT ), CreatePageFont, (uintptr_t)&font_select );
+			SetButtonPushMethod( GetControl( frame, BTN_EDITFONT ), EditPageFont, (uintptr_t)&font_select );
 			if( list )
 			{
  				PFONT_PRESET font_preset;
@@ -375,13 +375,13 @@ SFTFont *SelectACanvasFont( PCanvasData canvas, PSI_CONTROL parent, CTEXTSTR*def
 					PFONT_PRESET theme_font_preset;
 					INDEX idx2;
 					PLISTITEM pli = AddListItem( list, font_preset->name );
-					SetItemData( pli, (PTRSZVAL)font_preset );
+					SetItemData( pli, (uintptr_t)font_preset );
 					LIST_FORALL( (*font_preset->font_theme), idx2, PFONT_PRESET, theme_font_preset )
 					{
 						if( !idx2 )
 							continue;
 						SetItemData( AddListItemEx( list, 1, theme_font_preset->name )
-							, (PTRSZVAL)theme_font_preset );
+							, (uintptr_t)theme_font_preset );
 					}
 					if( default_name && default_name[0] && StrCaseCmp( font_preset->name, default_name[0] )==0 )
 					{
@@ -389,7 +389,7 @@ SFTFont *SelectACanvasFont( PCanvasData canvas, PSI_CONTROL parent, CTEXTSTR*def
 						font_select.selected_font = font_preset;
 					}
 				}
-				SetSelChangeHandler( list, SetCurrentPreset, (PTRSZVAL)&font_select );
+				SetSelChangeHandler( list, SetCurrentPreset, (uintptr_t)&font_select );
 			}
 		}
 		DisplayFrameOver( frame, parent );
@@ -443,7 +443,7 @@ static void OnSaveCommon( WIDE( "Common Fonts" ) )( FILE *out )
 }
 
 
-static PTRSZVAL CPROC RecreateFont( PTRSZVAL psv, arg_list args )
+static uintptr_t CPROC RecreateFont( uintptr_t psv, arg_list args )
 {
 	PARAM( args, CTEXTSTR, name );
 	PARAM( args, size_t, length );

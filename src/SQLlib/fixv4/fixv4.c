@@ -13,7 +13,7 @@ struct name_entry
 PTREEROOT names;
 PLIST options;
 
-int CPROC MyCompare( PTRSZVAL a, PTRSZVAL b )
+int CPROC MyCompare( uintptr_t a, uintptr_t b )
 {
 	lprintf( "is %s==%s", a, b );
 	return StrCaseCmp( (CTEXTSTR)a, (CTEXTSTR)b );

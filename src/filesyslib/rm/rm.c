@@ -8,7 +8,7 @@ int force = 1;
 int verbose;
 char *current_mask;
 int delete_level;
-void DeleteAFile( PTRSZVAL psv, char *name, int flags )
+void DeleteAFile( uintptr_t psv, char *name, int flags )
 {
    if( abort_remove )
       return;

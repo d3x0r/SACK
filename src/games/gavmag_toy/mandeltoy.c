@@ -254,13 +254,13 @@ void Render( PRENDERER r, int output )
 	}
 }
 
-void CPROC MyRedrawCallback( PTRSZVAL psv, PRENDERER r )
+void CPROC MyRedrawCallback( uintptr_t psv, PRENDERER r )
 {
    Render( r, FALSE );
 }
 
 
-int CPROC MyMouseCallback( PTRSZVAL psv, S_32 x, S_32 y, _32 b )
+int CPROC MyMouseCallback( uintptr_t psv, int32_t x, int32_t y, uint32_t b )
 {
 	if( b & MK_SCROLL_DOWN )
 	{
@@ -285,7 +285,7 @@ int main( void )
 {
 	PRENDERER render = OpenDisplay( 0 );
 	SetRedrawHandler( render, MyRedrawCallback, 0 );
-   SetMouseHandler( render, MyMouseCallback, (PTRSZVAL)render );
+   SetMouseHandler( render, MyMouseCallback, (uintptr_t)render );
 	UpdateDisplay( render );
 	while( 1 )
       WakeableSleep( 10000 );

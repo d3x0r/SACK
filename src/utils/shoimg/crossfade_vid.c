@@ -16,7 +16,7 @@
 struct video_player {
 	PRENDERER surface;
 	struct my_vlc_interface *vlc;
-   _32 fade_in_time;
+   uint32_t fade_in_time;
 };
 
 typedef struct global_tag {
@@ -27,7 +27,7 @@ typedef struct global_tag {
 		BIT_FIELD bBlacking : 1;
 	}flags;
 
-	_32 tick_to_switch;
+	uint32_t tick_to_switch;
 
 	int show_time; // how long to show the iamge after fading in.
 	int fade_in; // how long fade out is..
@@ -55,7 +55,7 @@ static GLOBAL g;
 Image imgGraphic;
 //Image surface;
 
-_32 width, height;
+uint32_t width, height;
 #define MAX_STEPS 16
 int _ix[MAX_STEPS], _iy[MAX_STEPS];
 int _n;
@@ -66,7 +66,7 @@ int not_first;
 
 
 
-void CPROC Output( PTRSZVAL psv, PRENDERER display )
+void CPROC Output( uintptr_t psv, PRENDERER display )
 {
 	if( g.is_up[psv] )
 	{
@@ -83,9 +83,9 @@ INDEX current_image;
 int target_in;
 int target_in_start;
 
-void CPROC tick( PTRSZVAL psv )
+void CPROC tick( uintptr_t psv )
 {
-	_32 now = GetTickCount();
+	uint32_t now = GetTickCount();
 
 	if( target_in_start )
 	{
@@ -186,7 +186,7 @@ void CPROC tick( PTRSZVAL psv )
 	}
 }
 
-static void CPROC OnStopFade( PTRSZVAL psv )
+static void CPROC OnStopFade( uintptr_t psv )
 {
    struct video_player *player = (struct video_player*)psv;
 	target_in_start = GetTickCount(); // tick now.
@@ -207,7 +207,7 @@ void LoadVideo( CTEXTSTR file )
 													, g.y //0
 													);
 	player->vlc = PlayItemOnEx( player->surface, file, WIDE("--repeat --loop") );
-	SetStopEvent( player->vlc, OnStopFade, (PTRSZVAL)player );
+	SetStopEvent( player->vlc, OnStopFade, (uintptr_t)player );
 
    // only used if there is only 1 video - just show video.
 	AddLink( &g.video_displays, player );
@@ -219,7 +219,7 @@ void LoadVideo( CTEXTSTR file )
 SaneWinMain(argc, argv )
 //int main( int argc, char **argv )
 {
-   _32 width, height;
+   uint32_t width, height;
 	g.pdi = GetDisplayInterface();
 	g.pii = GetImageInterface();
    RegisterIcon( NULL );

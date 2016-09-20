@@ -46,8 +46,8 @@ static struct local_password_frame {
 
 	PRENDER_INTERFACE pri;
 	PIMAGE_INTERFACE pii;
-	_32 width, height;
-	S_32 x, y;
+	uint32_t width, height;
+	int32_t x, y;
 
 	PCanvasData frame;	
 	PRENDERER	renderer;
@@ -106,12 +106,12 @@ static struct local_password_frame {
 	int	charity_id;
 	int	default_room_id;
 
-	_8  bad_login_limit;			 // Login attempt limit for locking a user account
+	uint8_t  bad_login_limit;			 // Login attempt limit for locking a user account
 	CTEXTSTR bad_login_interval;  // Time interval to keep user locked out ( minutes )	
 	// moved to global.h  //int pass_expr_interval;		 // Time interval for password expiration ( days )
-	_8  pass_check_num;			  // Number of passwords to check new against
-	_8  pass_check_days; 
-	_8  pass_min_length;			 // Minimum Length a Password can be 
+	uint8_t  pass_check_num;			  // Number of passwords to check new against
+	uint8_t  pass_check_days; 
+	uint8_t  pass_min_length;			 // Minimum Length a Password can be 
 
 	int password_len;
 	TEXTCHAR password[PASSCODE_BUFFER_SIZE];
@@ -238,7 +238,7 @@ static struct local_password_frame {
 // List Box section
 //--------------------------------------------------------------------------------
 // Selection Change Handler
-void CPROC selection( PTRSZVAL psvUser, PSI_CONTROL pc, PLISTITEM user_list_item )
+void CPROC selection( uintptr_t psvUser, PSI_CONTROL pc, PLISTITEM user_list_item )
 {
 	//l.user_list = pc;
 	//l.selected_user = GetSelectedItem( pc );
@@ -253,14 +253,14 @@ void CPROC selection( PTRSZVAL psvUser, PSI_CONTROL pc, PLISTITEM user_list_item
 
 //--------------------------------------------------------------------------------
 // User List Box
-static PTRSZVAL OnCreateListbox( WIDE("SQL Users/User Selection Control List") )( PSI_CONTROL listbox )
+static uintptr_t OnCreateListbox( WIDE("SQL Users/User Selection Control List") )( PSI_CONTROL listbox )
 {
 	int tmp[5] = { 0, 100, 200, 250, 320 };
 	l.user_list = listbox;
 	SetSelChangeHandler( l.user_list, selection, 0 );
 	SetListBoxTabStops( l.user_list, 5, tmp );
 	SetCommonFont( l.user_list, *( UseACanvasFont( GetCanvas( listbox ), WIDE("User Select List Font") ) ) );
-	return (PTRSZVAL)listbox;
+	return (uintptr_t)listbox;
 }
 
 void CreateToken( CTEXTSTR token, CTEXTSTR description )
@@ -303,8 +303,8 @@ void CreateToken( CTEXTSTR token, CTEXTSTR description )
 
 static LOGICAL HasPermission( PUSER user, CTEXTSTR *tokens, int nTokens )
 {
-	_8 user_added = 0;
-	_8 user_terminated = 0;
+	uint8_t user_added = 0;
+	uint8_t user_terminated = 0;
 	CTEXTSTR *result;
 	PushSQLQuery();
 	DoSQLRecordQueryf( NULL, &result, NULL, WIDE("select terminate from permission_user_info where user_id=%d"), user->id );
@@ -367,9 +367,9 @@ static LOGICAL HasPermission( PUSER user, CTEXTSTR *tokens, int nTokens )
 // Fill User List 
 void FillList( CTEXTSTR *tokens, int nTokens, PSQL_PASSWORD pls )
 {	
-	_8 n = 0;
-	_8 user_added = 0;
-	_8 user_terminated = 0;
+	uint8_t n = 0;
+	uint8_t user_added = 0;
+	uint8_t user_terminated = 0;
 	CTEXTSTR token;	
 
 	if( l.user_list )
@@ -425,7 +425,7 @@ void FillList( CTEXTSTR *tokens, int nTokens, PSQL_PASSWORD pls )
 						{
 							TEXTCHAR tmp[128];
 							snprintf( tmp, 128, WIDE("%s\t%s\tS:%s"), user->full_name, results[3], results[2] );
-							SetItemData( AddListItem( l.user_list, tmp ), (PTRSZVAL)user_entry );
+							SetItemData( AddListItem( l.user_list, tmp ), (uintptr_t)user_entry );
 						}
 						break;
 					}
@@ -461,7 +461,7 @@ void FillList( CTEXTSTR *tokens, int nTokens, PSQL_PASSWORD pls )
 							user_entry->flags.bHasLogin = 0;
 							user_entry->required_login_id = NULL;
 							user_entry->required_login_shift = NULL;
-							SetItemData( AddListItem( l.user_list, user->full_name ), (PTRSZVAL)user_entry );
+							SetItemData( AddListItem( l.user_list, user->full_name ), (uintptr_t)user_entry );
 							break;
 						}
 					}
@@ -505,7 +505,7 @@ void FillList( CTEXTSTR *tokens, int nTokens, PSQL_PASSWORD pls )
 				user_entry->flags.bHasLogin = 0;
 				user_entry->required_login_id = NULL;
 				user_entry->required_login_shift = NULL;
-				SetItemData( AddListItem( l.user_list, user->full_name ), (PTRSZVAL)user_entry );	
+				SetItemData( AddListItem( l.user_list, user->full_name ), (uintptr_t)user_entry );	
 			}
 		}		
 	}
@@ -522,7 +522,7 @@ void FillList( CTEXTSTR *tokens, int nTokens, PSQL_PASSWORD pls )
 			user_entry->flags.bHasLogin = 0;
 			user_entry->required_login_id = NULL;
 			user_entry->required_login_shift = NULL;
-			SetItemData( AddListItem( l.user_list, user->full_name ), (PTRSZVAL)user_entry );				
+			SetItemData( AddListItem( l.user_list, user->full_name ), (uintptr_t)user_entry );				
 		}	
 
 	}
@@ -531,7 +531,7 @@ void FillList( CTEXTSTR *tokens, int nTokens, PSQL_PASSWORD pls )
 //--------------------------------------------------------------------------------
 //--------------------------------------------------------------------------------
 // Selection Change Handler
-void CPROC selection2( PTRSZVAL psvUser, PSI_CONTROL pc, PLISTITEM user_list2_item )
+void CPROC selection2( uintptr_t psvUser, PSI_CONTROL pc, PLISTITEM user_list2_item )
 {
 	l.user_list2 = pc;
 	//l.selected_user2 = GetSelectedItem( pc );
@@ -540,14 +540,14 @@ void CPROC selection2( PTRSZVAL psvUser, PSI_CONTROL pc, PLISTITEM user_list2_it
 }
 //--------------------------------------------------------------------------------
 // User List Box 2
-static PTRSZVAL OnCreateListbox( WIDE("SQL Users/User Selection Control List 2") )( PSI_CONTROL listbox )
+static uintptr_t OnCreateListbox( WIDE("SQL Users/User Selection Control List 2") )( PSI_CONTROL listbox )
 {	
 	int tmp[3] = { 0, 100, 200 };
 	AddLink( &l.user_list2_controls, listbox );
 	SetSelChangeHandler( listbox, selection2, 0 );
 	SetListBoxTabStops( listbox, 3, tmp );
 	SetCommonFont( listbox, *( UseACanvasFont( GetCanvas( listbox ), WIDE("User Select List Font") ) ) );
-	return (PTRSZVAL)listbox;
+	return (uintptr_t)listbox;
 }
 
 
@@ -564,20 +564,20 @@ void FillList2( PSI_CONTROL listbox )
 		INDEX idx;		
 		LIST_FORALL( g.users, idx, PUSER, user )
 		{						
-			SetItemData( AddListItem( listbox, user->full_name ), (PTRSZVAL)user );				
+			SetItemData( AddListItem( listbox, user->full_name ), (uintptr_t)user );				
 		}		
 	}	
 }
 
 //--------------------------------------------------------------------------------
 // Fill List Box 2 on show control
-static void OnShowControl( WIDE("SQL Users/User Selection Control List 2") )( PTRSZVAL psv )
+static void OnShowControl( WIDE("SQL Users/User Selection Control List 2") )( uintptr_t psv )
 {	
 	INDEX idx;
 	PSI_CONTROL listbox;
 	LIST_FORALL( l.user_list2_controls, idx, PSI_CONTROL,  listbox )
 	{
-		if( psv == (PTRSZVAL)listbox )
+		if( psv == (uintptr_t)listbox )
 			FillList2( listbox );
 	}
 }
@@ -585,7 +585,7 @@ static void OnShowControl( WIDE("SQL Users/User Selection Control List 2") )( PT
 //--------------------------------------------------------------------------------
 //--------------------------------------------------------------------------------
 // Selection Change Handler
-void CPROC unlock_selection( PTRSZVAL psvUser, PSI_CONTROL pc, PLISTITEM unlock_list_item )
+void CPROC unlock_selection( uintptr_t psvUser, PSI_CONTROL pc, PLISTITEM unlock_list_item )
 {
 	l.unlock_user_list = pc;
 	//l.selected_user2 = GetSelectedItem( pc );
@@ -594,14 +594,14 @@ void CPROC unlock_selection( PTRSZVAL psvUser, PSI_CONTROL pc, PLISTITEM unlock_
 }
 //--------------------------------------------------------------------------------
 // Unlock User List Box
-static PTRSZVAL OnCreateListbox( WIDE("SQL Users/Unlock User Selection Control List") )( PSI_CONTROL listbox )
+static uintptr_t OnCreateListbox( WIDE("SQL Users/Unlock User Selection Control List") )( PSI_CONTROL listbox )
 {	
 	int tmp[3] = { 0, 100, 200 };
 	AddLink( &l.unlock_user_list_controls, listbox );
 	SetSelChangeHandler( listbox, unlock_selection, 0 );
 	SetListBoxTabStops( listbox, 3, tmp );
 	SetCommonFont( listbox, *( UseACanvasFont( GetCanvas( listbox ), WIDE("User Select List Font") ) ) );
-	return (PTRSZVAL)listbox;
+	return (uintptr_t)listbox;
 }
 
 //--------------------------------------------------------------------------------
@@ -626,7 +626,7 @@ void FillUnlockList( PSI_CONTROL listbox )
 				{
 					DoSQLRecordQueryf( NULL, &result, NULL, WIDE("select system_exception_type_id,log_whenstamp from system_exceptions where user_id=%d and system_exception_type_id in ( 4, 6 ) and log_whenstamp >= now() - interval %s order by system_exception_id desc limit 1"), user->id, l.bad_login_interval );				
 					if( result && ( atoi( result[0] ) != 6 )  )	
-						SetItemData( AddListItem( listbox, user->full_name ), (PTRSZVAL)user );	
+						SetItemData( AddListItem( listbox, user->full_name ), (uintptr_t)user );	
 				}
 			}
 		}		
@@ -635,13 +635,13 @@ void FillUnlockList( PSI_CONTROL listbox )
 
 //--------------------------------------------------------------------------------
 // Fill Unlock List Box on show control
-static void OnShowControl( WIDE("SQL Users/Unlock User Selection Control List") )( PTRSZVAL psv )
+static void OnShowControl( WIDE("SQL Users/Unlock User Selection Control List") )( uintptr_t psv )
 {	
 	INDEX idx;
 	PSI_CONTROL listbox;
 	LIST_FORALL( l.unlock_user_list_controls, idx, PSI_CONTROL, listbox )
 	{
-		if( psv == (PTRSZVAL)listbox )
+		if( psv == (uintptr_t)listbox )
 			FillUnlockList( listbox );
 	}
 }
@@ -654,7 +654,7 @@ static void OnShowControl( WIDE("SQL Users/Unlock User Selection Control List") 
 //--------------------------------------------------------------------------------
 // Selection Change Handler
 // Set information on selection to be used with (Add Group Token)
-void CPROC group_selection( PTRSZVAL psvUser, PSI_CONTROL pc, PLISTITEM group_list_item )
+void CPROC group_selection( uintptr_t psvUser, PSI_CONTROL pc, PLISTITEM group_list_item )
 {	
 	l.perm_group_list = pc;
 	//l.selected_perm_group = GetSelectedItem( pc );	
@@ -664,14 +664,14 @@ void CPROC group_selection( PTRSZVAL psvUser, PSI_CONTROL pc, PLISTITEM group_li
 
 //--------------------------------------------------------------------------------
 // Permission Group List Box 
-static PTRSZVAL OnCreateListbox( WIDE("SQL Users/Permission Group Selection Control List") )( PSI_CONTROL listbox )
+static uintptr_t OnCreateListbox( WIDE("SQL Users/Permission Group Selection Control List") )( PSI_CONTROL listbox )
 {	
 	int tmp[3] = { 0, 100, 200 };	
 	AddLink( &l.group_list_controls, listbox );	
 	SetSelChangeHandler( listbox, group_selection, 0 );
 	SetListBoxTabStops( listbox, 3, tmp );
 	SetCommonFont( listbox, *( UseACanvasFont( GetCanvas( listbox ), WIDE("User Select List Font") ) ) );
-	return (PTRSZVAL)listbox;
+	return (uintptr_t)listbox;
 }
 
 //--------------------------------------------------------------------------------
@@ -687,20 +687,20 @@ void FillGroupList( PSI_CONTROL listbox )
 		PGROUP group;
 		LIST_FORALL( g.groups, idx, PGROUP, group )
 		{
-			SetItemData( AddListItem( listbox, group->name ), (PTRSZVAL)group );
+			SetItemData( AddListItem( listbox, group->name ), (uintptr_t)group );
 		}
 	}
 }
 
 //--------------------------------------------------------------------------------
 // 
-static void OnShowControl( WIDE("SQL Users/Permission Group Selection Control List") )( PTRSZVAL psv )
+static void OnShowControl( WIDE("SQL Users/Permission Group Selection Control List") )( uintptr_t psv )
 {
 	INDEX idx;
 	PSI_CONTROL listbox;
 	LIST_FORALL( l.group_list_controls, idx, PSI_CONTROL, listbox )
 	{
-		if( psv == (PTRSZVAL)listbox )
+		if( psv == (uintptr_t)listbox )
 			FillGroupList( listbox );			
 	}	  	
 }
@@ -708,13 +708,13 @@ static void OnShowControl( WIDE("SQL Users/Permission Group Selection Control Li
 //--------------------------------------------------------------------------------
 //--------------------------------------------------------------------------------
 // Permission Group List Box 2
-static PTRSZVAL OnCreateListbox( WIDE("SQL Users/Permission Group Selection Control List2") )( PSI_CONTROL listbox )
+static uintptr_t OnCreateListbox( WIDE("SQL Users/Permission Group Selection Control List2") )( PSI_CONTROL listbox )
 {	
 	int tmp[3] = { 0, 100, 200 };
 	l.perm_group_list2 = listbox;
 	SetListBoxTabStops( l.perm_group_list2, 3, tmp );
 	SetCommonFont( l.perm_group_list2, *( UseACanvasFont( GetCanvas( listbox ), WIDE("User Select List Font") ) ) );
-	return (PTRSZVAL)listbox;
+	return (uintptr_t)listbox;
 }
 
 //--------------------------------------------------------------------------------
@@ -730,7 +730,7 @@ void FillGroupList2( void )
 		PGROUP group;
 		LIST_FORALL( l.user2->groups, idx, PGROUP, group )
 		{
-			SetItemData( AddListItem( l.perm_group_list2, group->name ), (PTRSZVAL)group );
+			SetItemData( AddListItem( l.perm_group_list2, group->name ), (uintptr_t)group );
 		}
 	}
 }
@@ -742,7 +742,7 @@ void FillGroupList2( void )
 
 //--------------------------------------------------------------------------------
 // Selection Change Handler
-void CPROC token_selection( PTRSZVAL psvUser, PSI_CONTROL pc, PLISTITEM token_list_item )
+void CPROC token_selection( uintptr_t psvUser, PSI_CONTROL pc, PLISTITEM token_list_item )
 {	
 	l.token_list = pc;
 	//l.selected_perm_group = GetSelectedItem( pc );	
@@ -752,14 +752,14 @@ void CPROC token_selection( PTRSZVAL psvUser, PSI_CONTROL pc, PLISTITEM token_li
 
 //--------------------------------------------------------------------------------
 // Token List Box 
-static PTRSZVAL OnCreateListbox( WIDE("SQL Users/Token Selection Control List") )( PSI_CONTROL listbox )
+static uintptr_t OnCreateListbox( WIDE("SQL Users/Token Selection Control List") )( PSI_CONTROL listbox )
 {	
 	int tmp[3] = { 0, 100, 200 };	
 	AddLink( &l.token_list_controls, listbox );	
 	SetSelChangeHandler( listbox, token_selection, 0 );
 	SetListBoxTabStops( listbox, 3, tmp );
 	SetCommonFont( listbox, *( UseACanvasFont( GetCanvas( listbox ), WIDE("User Select List Font") ) ) );
-	return (PTRSZVAL)listbox;
+	return (uintptr_t)listbox;
 }
 
 //--------------------------------------------------------------------------------
@@ -776,20 +776,20 @@ void FillTokenList( PSI_CONTROL listbox )
 		LIST_FORALL( g.tokens, idx, PTOKEN, group_token )
 		{
 			lprintf( WIDE("Added token %s"), group_token->name );
-			SetItemData( AddListItem( listbox, group_token->name ), (PTRSZVAL)group_token );
+			SetItemData( AddListItem( listbox, group_token->name ), (uintptr_t)group_token );
 		}
 	}
 }
 
 //--------------------------------------------------------------------------------
 // 
-static void OnShowControl( WIDE("SQL Users/Token Selection Control List") )( PTRSZVAL psv )
+static void OnShowControl( WIDE("SQL Users/Token Selection Control List") )( uintptr_t psv )
 {
 	INDEX idx;
 	PSI_CONTROL listbox;
 	LIST_FORALL( l.token_list_controls, idx, PSI_CONTROL, listbox )
 	{
-		if( psv == (PTRSZVAL)listbox )
+		if( psv == (uintptr_t)listbox )
 			FillTokenList( listbox );			
 	}				
 }
@@ -798,13 +798,13 @@ static void OnShowControl( WIDE("SQL Users/Token Selection Control List") )( PTR
 // Token List Box 2
 //--------------------------------------------------------------------------------
 // 
-static PTRSZVAL OnCreateListbox( WIDE("SQL Users/Token Selection Control List2") )( PSI_CONTROL listbox )
+static uintptr_t OnCreateListbox( WIDE("SQL Users/Token Selection Control List2") )( PSI_CONTROL listbox )
 {	
 	int tmp[3] = { 0, 100, 200 };
 	l.token_list2 = listbox;
 	SetListBoxTabStops( l.token_list2, 3, tmp );
 	SetCommonFont( l.token_list2, *( UseACanvasFont( GetCanvas( listbox ), WIDE("User Select List Font") ) ) );
-	return (PTRSZVAL)listbox;
+	return (uintptr_t)listbox;
 }
 
 //--------------------------------------------------------------------------------
@@ -820,7 +820,7 @@ void FillTokenList2( void )
 		PTOKEN token;
 		LIST_FORALL( l.group->tokens, idx, PTOKEN, token )
 		{
-			SetItemData( AddListItem( l.token_list2, token->name ), (PTRSZVAL)token );
+			SetItemData( AddListItem( l.token_list2, token->name ), (uintptr_t)token );
 		}
 	}
 }
@@ -836,8 +836,8 @@ void FillTokenList2( void )
 // Update Local Coordinates
 void UpdatePasswordFrame( void )
 {
-	_32 w, h;
-	S_32 x, y;
+	uint32_t w, h;
+	int32_t x, y;
 	GetDisplaySizeEx( 0, &x, &y, &w, &h );
 	lprintf( WIDE("Control is a new size old %d,%d new %d,%d"), l.width, l.height, w, h );
 	if( w != l.width || h != l.height )
@@ -859,8 +859,8 @@ void CreatePasswordFrame( void )
 {
 	if( !l.renderer )
 	{
-		_32 w, h;
-		S_32 x, y;
+		uint32_t w, h;
+		int32_t x, y;
 		GetDisplaySizeEx( 0, &x, &y, &w, &h );
 		l.width = w;
 		l.height = h;
@@ -919,9 +919,9 @@ struct password_info *PromptForPassword( PUSER *result_user, INDEX *result_login
 	TEXTSTR  time = NULL;
 	TEXTSTR  time2 = NULL;
 	struct password_info *password_info = New( struct password_info );
-	_8 unlock = 0;					  // Flag to indicate if the user account unlocked was performed
-	_8 unlocked = 0;					// Flag to indicate if the user account is locked				 
-	_8 expired = 0;					 // Flag to indicate if the user account has expired	
+	uint8_t unlock = 0;					  // Flag to indicate if the user account unlocked was performed
+	uint8_t unlocked = 0;					// Flag to indicate if the user account is locked				 
+	uint8_t expired = 0;					 // Flag to indicate if the user account has expired	
 
 	password_info->login_id = INVALID_INDEX;
 	password_info->actual_login_id = INVALID_INDEX;
@@ -1189,15 +1189,15 @@ void LogOutPassword( INDEX login_id, INDEX actual_login_id, LOGICAL skip_logout 
 }
 //--------------------------------------------------------------------------------
 // Accept Generic
-static PTRSZVAL OnCreateMenuButton( WIDE( "SQL Users/Accept Generic" ) )( PMENU_BUTTON button )
+static uintptr_t OnCreateMenuButton( WIDE( "SQL Users/Accept Generic" ) )( PMENU_BUTTON button )
 {	
 	InterShell_SetButtonStyle( button, WIDE( "bicolor square" ) );
 	InterShell_SetButtonText( button, WIDE( "Okay" ) );
 	InterShell_SetButtonColors( button, BASE_COLOR_WHITE, BASE_COLOR_GREEN, BASE_COLOR_BLACK, COLOR_IGNORE );
-	return (PTRSZVAL)button;
+	return (uintptr_t)button;
 }
 
-static void OnKeyPressEvent( WIDE( "SQL Users/Accept Generic" ) )( PTRSZVAL psv )
+static void OnKeyPressEvent( WIDE( "SQL Users/Accept Generic" ) )( uintptr_t psv )
 {	
 	l.okay = TRUE;
 	l.done = TRUE;
@@ -1205,30 +1205,30 @@ static void OnKeyPressEvent( WIDE( "SQL Users/Accept Generic" ) )( PTRSZVAL psv 
 
 //--------------------------------------------------------------------------------
 // Cancel Generic
-static PTRSZVAL OnCreateMenuButton( WIDE( "SQL Users/Cancel Generic" ) )( PMENU_BUTTON button )
+static uintptr_t OnCreateMenuButton( WIDE( "SQL Users/Cancel Generic" ) )( PMENU_BUTTON button )
 {	
 	InterShell_SetButtonStyle( button, WIDE( "bicolor square" ) );
 	InterShell_SetButtonText( button, WIDE( "Cancel" ) );
 	InterShell_SetButtonColors( button, BASE_COLOR_WHITE, BASE_COLOR_GREEN, BASE_COLOR_BLACK, COLOR_IGNORE );
-	return (PTRSZVAL)button;
+	return (uintptr_t)button;
 }
 
-static void OnKeyPressEvent( WIDE("SQL Users/Cancel Generic") )( PTRSZVAL psv )
+static void OnKeyPressEvent( WIDE("SQL Users/Cancel Generic") )( uintptr_t psv )
 {	
 	l.done = TRUE;
 }
 
 //--------------------------------------------------------------------------------
 // Test Password Dialog
-static PTRSZVAL OnCreateMenuButton( WIDE( "SQL Users/Test Password Dialog" ) )( PMENU_BUTTON button )
+static uintptr_t OnCreateMenuButton( WIDE( "SQL Users/Test Password Dialog" ) )( PMENU_BUTTON button )
 {	
 	InterShell_SetButtonStyle( button, WIDE( "bicolor square" ) );
 	InterShell_SetButtonText( button, WIDE( "Test" ) );
 	InterShell_SetButtonColors( button, BASE_COLOR_WHITE, BASE_COLOR_GREEN, BASE_COLOR_BLACK, COLOR_IGNORE );
-	return (PTRSZVAL)button;
+	return (uintptr_t)button;
 }
 
-static void OnKeyPressEvent( WIDE("SQL Users/Test Password Dialog") )( PTRSZVAL psv )
+static void OnKeyPressEvent( WIDE("SQL Users/Test Password Dialog") )( uintptr_t psv )
 {	
 	PromptForPassword( &l.test_user, &l.test_login_id, NULL, NULL, 0, NULL );
 }
@@ -1251,9 +1251,9 @@ void promptOkay( void )
 		l.selected_user_item = (struct user_list_user_tracker*)GetItemData( l.selected_user );
 		l.user = l.selected_user_item->user;		
 		SHA1Reset( &sc );
-		SHA1Input( &sc, (P_8)l.password, strlen( l.password ) );
-		SHA1Result( &sc, (P_8)sha1 );
-		ConvertFromBinary( l.out, (P_8)sha1, SHA1HashSize );
+		SHA1Input( &sc, (uint8_t*)l.password, strlen( l.password ) );
+		SHA1Result( &sc, (uint8_t*)sha1 );
+		ConvertFromBinary( l.out, (uint8_t*)sha1, SHA1HashSize );
 
 		//ClearSelectedItems( l.user_list );
 		ClearKeyedEntry( l.keyboard );
@@ -1291,15 +1291,15 @@ static void OnKeypadCancelType( WIDE("Password Entry"), WIDE("Enter Password Key
 	l.done = TRUE;
 }
 
-static PTRSZVAL OnCreateMenuButton( WIDE( "SQL Users/Accept Password" ) )( PMENU_BUTTON button )
+static uintptr_t OnCreateMenuButton( WIDE( "SQL Users/Accept Password" ) )( PMENU_BUTTON button )
 {	
 	InterShell_SetButtonStyle( button, WIDE( "bicolor square" ) );
 	InterShell_SetButtonText( button, WIDE( "Okay" ) );
 	InterShell_SetButtonColors( button, BASE_COLOR_WHITE, BASE_COLOR_GREEN, BASE_COLOR_BLACK, COLOR_IGNORE );
-	return (PTRSZVAL)button;
+	return (uintptr_t)button;
 }
 
-static void OnKeyPressEvent( WIDE("SQL Users/Accept Password") )( PTRSZVAL psv )
+static void OnKeyPressEvent( WIDE("SQL Users/Accept Password") )( uintptr_t psv )
 {	
 	promptOkay();
 }
@@ -1422,9 +1422,9 @@ void expirePromptOkay( void )
 				SHA1Context sc;					
 				TEXTCHAR sha1[SHA1HashSize];
 				SHA1Reset( &sc );
-				SHA1Input( &sc, (P_8)l.password, strlen( l.password ) );
-				SHA1Result( &sc, (P_8)sha1 );
-				ConvertFromBinary( l.out, (P_8)sha1, SHA1HashSize );
+				SHA1Input( &sc, (uint8_t*)l.password, strlen( l.password ) );
+				SHA1Result( &sc, (uint8_t*)sha1 );
+				ConvertFromBinary( l.out, (uint8_t*)sha1, SHA1HashSize );
 
 				// Check password hasn't been used
 				if( l.pass_check_num )
@@ -1511,15 +1511,15 @@ static void OnKeypadCancelType( WIDE("Password Update"), WIDE("Expire Password K
 	l.done = TRUE;
 }
 
-static PTRSZVAL OnCreateMenuButton( WIDE("SQL Users/Accept Expired Password") )( PMENU_BUTTON button )
+static uintptr_t OnCreateMenuButton( WIDE("SQL Users/Accept Expired Password") )( PMENU_BUTTON button )
 {	
 	InterShell_SetButtonStyle( button, WIDE( "bicolor square" ) );
 	InterShell_SetButtonText( button, WIDE( "Okay" ) );
 	InterShell_SetButtonColors( button, BASE_COLOR_WHITE, BASE_COLOR_GREEN, BASE_COLOR_BLACK, COLOR_IGNORE );
-	return (PTRSZVAL)button;
+	return (uintptr_t)button;
 }
 
-static void OnKeyPressEvent( WIDE("SQL Users/Accept Expired Password") )( PTRSZVAL psv )
+static void OnKeyPressEvent( WIDE("SQL Users/Accept Expired Password") )( uintptr_t psv )
 {	
 	expirePromptOkay();	
 }
@@ -1683,9 +1683,9 @@ static void OnKeypadEnterType( WIDE("change password"), WIDE("Change Password Ke
 					SHA1Context sc;					
 					TEXTCHAR sha1[SHA1HashSize];
 					SHA1Reset( &sc );
-					SHA1Input( &sc, (P_8)l.password, strlen( l.password ) );
-					SHA1Result( &sc, (P_8)sha1 );
-					ConvertFromBinary( l.out, (P_8)sha1, SHA1HashSize );
+					SHA1Input( &sc, (uint8_t*)l.password, strlen( l.password ) );
+					SHA1Result( &sc, (uint8_t*)sha1 );
+					ConvertFromBinary( l.out, (uint8_t*)sha1, SHA1HashSize );
 
 					// Check password hasn't been used
 					if( l.pass_check_num )
@@ -1789,15 +1789,15 @@ static int OnChangePage( WIDE( "Unlock Account" ) )( PCanvasData pc_canvas )
 
 //--------------------------------------------------------------------------------
 // Unlock Account
-static PTRSZVAL OnCreateMenuButton( WIDE( "SQL Users/Unlock Account" ) )( PMENU_BUTTON button )
+static uintptr_t OnCreateMenuButton( WIDE( "SQL Users/Unlock Account" ) )( PMENU_BUTTON button )
 {
 	InterShell_SetButtonStyle( button, WIDE( "bicolor square" ) );
 	InterShell_SetButtonText( button, WIDE( "Unlock User Account" ) );
 	InterShell_SetButtonColors( button, BASE_COLOR_WHITE, BASE_COLOR_GREEN, BASE_COLOR_BLACK, COLOR_IGNORE );
-	return (PTRSZVAL)button;
+	return (uintptr_t)button;
 }
 
-static void OnKeyPressEvent( WIDE("SQL Users/Unlock Account") )( PTRSZVAL psv )
+static void OnKeyPressEvent( WIDE("SQL Users/Unlock Account") )( uintptr_t psv )
 { 	
 	TEXTCHAR buf[256];		
 
@@ -1841,15 +1841,15 @@ static int OnChangePage( WIDE( "Terminate Account" ) )( PCanvasData pc_canvas )
 }
 //--------------------------------------------------------------------------------
 // Terminate Account
-static PTRSZVAL OnCreateMenuButton( WIDE( "SQL Users/Terminate Account" ) )( PMENU_BUTTON button )
+static uintptr_t OnCreateMenuButton( WIDE( "SQL Users/Terminate Account" ) )( PMENU_BUTTON button )
 {
 	InterShell_SetButtonStyle( button, WIDE( "bicolor square" ) );
 	InterShell_SetButtonText( button, WIDE( "Terminate User Account" ) );
 	InterShell_SetButtonColors( button, BASE_COLOR_WHITE, BASE_COLOR_GREEN, BASE_COLOR_BLACK, COLOR_IGNORE );
-	return (PTRSZVAL)button;
+	return (uintptr_t)button;
 }
 
-static void OnKeyPressEvent( WIDE("SQL Users/Terminate Account") )( PTRSZVAL psv )
+static void OnKeyPressEvent( WIDE("SQL Users/Terminate Account") )( uintptr_t psv )
 { 	
 	int terminate;
 	TEXTCHAR buf[256];
@@ -1917,15 +1917,15 @@ static int OnChangePage( WIDE( "Expire Password" ) )( PCanvasData pc_canvas )
 
 //--------------------------------------------------------------------------------
 // Expire Account
-static PTRSZVAL OnCreateMenuButton( WIDE( "SQL Users/Expire Password" ) )( PMENU_BUTTON button )
+static uintptr_t OnCreateMenuButton( WIDE( "SQL Users/Expire Password" ) )( PMENU_BUTTON button )
 {
 	InterShell_SetButtonStyle( button, WIDE( "bicolor square" ) );
 	InterShell_SetButtonText( button, WIDE( "Expire User Password" ) );
 	InterShell_SetButtonColors( button, BASE_COLOR_WHITE, BASE_COLOR_GREEN, BASE_COLOR_BLACK, COLOR_IGNORE );
-	return (PTRSZVAL)button;
+	return (uintptr_t)button;
 }
 
-static void OnKeyPressEvent( WIDE("SQL Users/Expire Password") )( PTRSZVAL psv )
+static void OnKeyPressEvent( WIDE("SQL Users/Expire Password") )( uintptr_t psv )
 { 	
 	TEXTCHAR buf[256];	
 
@@ -1980,15 +1980,15 @@ static int OnChangePage( WIDE( "Add User Group" ) )( PCanvasData pc_canvas )
 
 //--------------------------------------------------------------------------------
 // Add User Permission Group
-static PTRSZVAL OnCreateMenuButton( WIDE( "SQL Users/Add User Permission Group" ) )( PMENU_BUTTON button )
+static uintptr_t OnCreateMenuButton( WIDE( "SQL Users/Add User Permission Group" ) )( PMENU_BUTTON button )
 {	
 	InterShell_SetButtonStyle( button, WIDE( "bicolor square" ) );
 	InterShell_SetButtonText( button, WIDE( "Add User Group" ) );
 	InterShell_SetButtonColors( button, BASE_COLOR_WHITE, BASE_COLOR_GREEN, BASE_COLOR_BLACK, COLOR_IGNORE );
-	return (PTRSZVAL)button;
+	return (uintptr_t)button;
 }
 
-static void OnKeyPressEvent( WIDE("SQL Users/Add User Permission Group") )( PTRSZVAL psv )
+static void OnKeyPressEvent( WIDE("SQL Users/Add User Permission Group") )( uintptr_t psv )
 {
 	TEXTCHAR buf[256];
 	int group_id;
@@ -2091,15 +2091,15 @@ static int OnChangePage( WIDE( "Remove User Group" ) )( PCanvasData pc_canvas )
 
 //--------------------------------------------------------------------------------
 // Remove User Permission Group
-static PTRSZVAL OnCreateMenuButton( WIDE( "SQL Users/Remove User Permission Group" ) )( PMENU_BUTTON button )
+static uintptr_t OnCreateMenuButton( WIDE( "SQL Users/Remove User Permission Group" ) )( PMENU_BUTTON button )
 {	
 	InterShell_SetButtonStyle( button, WIDE( "bicolor square" ) );
 	InterShell_SetButtonText( button, WIDE( "Remove User Group" ) );
 	InterShell_SetButtonColors( button, BASE_COLOR_WHITE, BASE_COLOR_GREEN, BASE_COLOR_BLACK, COLOR_IGNORE );
-	return (PTRSZVAL)button;
+	return (uintptr_t)button;
 }
 
-static void OnKeyPressEvent( WIDE("SQL Users/Remove User Permission Group") )( PTRSZVAL psv )
+static void OnKeyPressEvent( WIDE("SQL Users/Remove User Permission Group") )( uintptr_t psv )
 {
 	TEXTCHAR buf[256];
 	int group_id;
@@ -2200,15 +2200,15 @@ static int OnChangePage( WIDE( "Add Group Token" ) )( PCanvasData pc_canvas )
 
 //--------------------------------------------------------------------------------
 // Add Group Token
-static PTRSZVAL OnCreateMenuButton( WIDE( "SQL Users/Add Group Token" ) )( PMENU_BUTTON button )
+static uintptr_t OnCreateMenuButton( WIDE( "SQL Users/Add Group Token" ) )( PMENU_BUTTON button )
 {	
 	InterShell_SetButtonStyle( button, WIDE( "bicolor square" ) );
 	InterShell_SetButtonText( button, WIDE( "Add Group Token" ) );
 	InterShell_SetButtonColors( button, BASE_COLOR_WHITE, BASE_COLOR_GREEN, BASE_COLOR_BLACK, COLOR_IGNORE );
-	return (PTRSZVAL)button;
+	return (uintptr_t)button;
 }
 
-static void OnKeyPressEvent( WIDE("SQL Users/Add Group Token") )( PTRSZVAL psv )
+static void OnKeyPressEvent( WIDE("SQL Users/Add Group Token") )( uintptr_t psv )
 {
 	TEXTCHAR buf[256];
 	int token_id;
@@ -2325,15 +2325,15 @@ static int OnChangePage( WIDE( "Remove Group Token" ) )( PCanvasData pc_canvas )
 
 //--------------------------------------------------------------------------------
 // Remove Group Token
-static PTRSZVAL OnCreateMenuButton( WIDE( "SQL Users/Remove Group Token" ) )( PMENU_BUTTON button )
+static uintptr_t OnCreateMenuButton( WIDE( "SQL Users/Remove Group Token" ) )( PMENU_BUTTON button )
 {	
 	InterShell_SetButtonStyle( button, WIDE( "bicolor square" ) );
 	InterShell_SetButtonText( button, WIDE( "Remove Group Token" ) );
 	InterShell_SetButtonColors( button, BASE_COLOR_WHITE, BASE_COLOR_GREEN, BASE_COLOR_BLACK, COLOR_IGNORE );
-	return (PTRSZVAL)button;
+	return (uintptr_t)button;
 }
 
-static void OnKeyPressEvent( WIDE("SQL Users/Remove Group Token") )( PTRSZVAL psv )
+static void OnKeyPressEvent( WIDE("SQL Users/Remove Group Token") )( uintptr_t psv )
 {
 	TEXTCHAR buf[256];
 	int token_id;
@@ -2571,15 +2571,15 @@ static int OnChangePage( WIDE( "Delete Group" ) )( PCanvasData pc_canvas )
 
 //--------------------------------------------------------------------------------
 // Delete Group Button
-static PTRSZVAL OnCreateMenuButton( WIDE( "SQL Users/Delete Group" ) )( PMENU_BUTTON button )
+static uintptr_t OnCreateMenuButton( WIDE( "SQL Users/Delete Group" ) )( PMENU_BUTTON button )
 {	
 	InterShell_SetButtonStyle( button, WIDE( "bicolor square" ) );
 	InterShell_SetButtonText( button, WIDE( "Delete Group" ) );
 	InterShell_SetButtonColors( button, BASE_COLOR_WHITE, BASE_COLOR_GREEN, BASE_COLOR_BLACK, COLOR_IGNORE );
-	return (PTRSZVAL)button;
+	return (uintptr_t)button;
 }
 
-static void OnKeyPressEvent( WIDE("SQL Users/Delete Group") )( PTRSZVAL psv ){
+static void OnKeyPressEvent( WIDE("SQL Users/Delete Group") )( uintptr_t psv ){
 		
 	TEXTCHAR buf[256];
 
@@ -2751,15 +2751,15 @@ static int OnChangePage( WIDE( "Delete Token" ) )( PCanvasData pc_canvas )
 
 //--------------------------------------------------------------------------------
 // Delete Token Button
-static PTRSZVAL OnCreateMenuButton( WIDE( "SQL Users/Delete Token" ) )( PMENU_BUTTON button )
+static uintptr_t OnCreateMenuButton( WIDE( "SQL Users/Delete Token" ) )( PMENU_BUTTON button )
 {	
 	InterShell_SetButtonStyle( button, WIDE( "bicolor square" ) );
 	InterShell_SetButtonText( button, WIDE( "Delete Token" ) );
 	InterShell_SetButtonColors( button, BASE_COLOR_WHITE, BASE_COLOR_GREEN, BASE_COLOR_BLACK, COLOR_IGNORE );
-	return (PTRSZVAL)button;
+	return (uintptr_t)button;
 }
 
-static void OnKeyPressEvent( WIDE("SQL Users/Delete Token") )( PTRSZVAL psv ){
+static void OnKeyPressEvent( WIDE("SQL Users/Delete Token") )( uintptr_t psv ){
 	
 	TEXTCHAR buf[256];
 	int token_id;
@@ -3222,9 +3222,9 @@ static void OnKeypadEnterType( WIDE("create user"), WIDE("Create User Keypad") )
 				SHA1Context sc;				
 				TEXTCHAR sha1[SHA1HashSize]; 	
 				SHA1Reset( &sc );
-				SHA1Input( &sc, (P_8)l.password, strlen( l.password ) );
-				SHA1Result( &sc, (P_8)sha1 );
-				ConvertFromBinary( l.out, (P_8)sha1, SHA1HashSize );
+				SHA1Input( &sc, (uint8_t*)l.password, strlen( l.password ) );
+				SHA1Result( &sc, (uint8_t*)sha1 );
+				ConvertFromBinary( l.out, (uint8_t*)sha1, SHA1HashSize );
 
 				snprintf( l.cCreateUser, MESSAGE_SIZE, WIDE("%s"), WIDE("The user was successfully created.") );
 				l.sCreateUser = l.cCreateUser;	
@@ -3299,113 +3299,113 @@ static int OnChangePage( WIDE( "Create User 2" ) )( PCanvasData pc_canvas )
 
 //--------------------------------------------------------------------------------
 // Staff ID
-static PTRSZVAL OnCreateControl( WIDE( "SQL Users/Create User Form/Staff ID" ) )( PSI_CONTROL parent, S_32 x, S_32 y, _32 w, _32 h )
+static uintptr_t OnCreateControl( WIDE( "SQL Users/Create User Form/Staff ID" ) )( PSI_CONTROL parent, int32_t x, int32_t y, uint32_t w, uint32_t h )
 {
 	PSI_CONTROL pc;
 	pc = MakeNamedControl( parent, EDIT_FIELD_NAME, x, y, w, h, -1 );
 	l.pc_staff_id = pc;
 
-	return (PTRSZVAL) pc;
+	return (uintptr_t) pc;
 }
 
-static PSI_CONTROL OnGetControl( WIDE( "SQL Users/Create User Form/Staff ID" ) )( PTRSZVAL psv )
+static PSI_CONTROL OnGetControl( WIDE( "SQL Users/Create User Form/Staff ID" ) )( uintptr_t psv )
 {
 	return (PSI_CONTROL)psv;
 }
 
 //--------------------------------------------------------------------------------
 // First Name
-static PTRSZVAL OnCreateControl( WIDE( "SQL Users/Create User Form/First Name" ) )( PSI_CONTROL parent, S_32 x, S_32 y, _32 w, _32 h )
+static uintptr_t OnCreateControl( WIDE( "SQL Users/Create User Form/First Name" ) )( PSI_CONTROL parent, int32_t x, int32_t y, uint32_t w, uint32_t h )
 {
 	PSI_CONTROL pc;
 	pc = MakeNamedControl( parent, EDIT_FIELD_NAME, x, y, w, h, -1 );
 	l.pc_first_name = pc;
 
-	return (PTRSZVAL) pc;
+	return (uintptr_t) pc;
 }
 
-static PSI_CONTROL OnGetControl( WIDE( "SQL Users/Create User Form/First Name" ) )( PTRSZVAL psv )
+static PSI_CONTROL OnGetControl( WIDE( "SQL Users/Create User Form/First Name" ) )( uintptr_t psv )
 {
 	return (PSI_CONTROL)psv;
 }
 
 //--------------------------------------------------------------------------------
 // Last Name
-static PTRSZVAL OnCreateControl( WIDE( "SQL Users/Create User Form/Last Name" ) )( PSI_CONTROL parent, S_32 x, S_32 y, _32 w, _32 h )
+static uintptr_t OnCreateControl( WIDE( "SQL Users/Create User Form/Last Name" ) )( PSI_CONTROL parent, int32_t x, int32_t y, uint32_t w, uint32_t h )
 {
 	PSI_CONTROL pc;
 	pc = MakeNamedControl( parent, EDIT_FIELD_NAME, x, y, w, h, -1 );
 	l.pc_last_name = pc;
 
-	return (PTRSZVAL) pc;
+	return (uintptr_t) pc;
 }
 
-static PSI_CONTROL OnGetControl( WIDE( "SQL Users/Create User Form/Last Name" ) )( PTRSZVAL psv )
+static PSI_CONTROL OnGetControl( WIDE( "SQL Users/Create User Form/Last Name" ) )( uintptr_t psv )
 {
 	return (PSI_CONTROL)psv;
 }
 
 //--------------------------------------------------------------------------------
 // User Name
-static PTRSZVAL OnCreateControl( WIDE( "SQL Users/Create User Form/User Name" ) )( PSI_CONTROL parent, S_32 x, S_32 y, _32 w, _32 h )
+static uintptr_t OnCreateControl( WIDE( "SQL Users/Create User Form/User Name" ) )( PSI_CONTROL parent, int32_t x, int32_t y, uint32_t w, uint32_t h )
 {
 	PSI_CONTROL pc;
 	pc = MakeNamedControl( parent, EDIT_FIELD_NAME, x, y, w, h, -1 );
 	l.pc_user_name = pc;
 
-	return (PTRSZVAL) pc;
+	return (uintptr_t) pc;
 }
 
-static PSI_CONTROL OnGetControl( WIDE( "SQL Users/Create User Form/User Name" ) )( PTRSZVAL psv )
+static PSI_CONTROL OnGetControl( WIDE( "SQL Users/Create User Form/User Name" ) )( uintptr_t psv )
 {
 	return (PSI_CONTROL)psv;
 }
 
 //--------------------------------------------------------------------------------
 // Password1
-static PTRSZVAL OnCreateControl( WIDE( "SQL Users/Create User Form/Password 1" ) )( PSI_CONTROL parent, S_32 x, S_32 y, _32 w, _32 h )
+static uintptr_t OnCreateControl( WIDE( "SQL Users/Create User Form/Password 1" ) )( PSI_CONTROL parent, int32_t x, int32_t y, uint32_t w, uint32_t h )
 {
 	PSI_CONTROL pc;
 	pc = MakeNamedControl( parent, EDIT_FIELD_NAME, x, y, w, h, -1 );
 	l.pc_password = pc;
 	SetEditControlPassword( pc, TRUE );
 
-	return (PTRSZVAL) pc;
+	return (uintptr_t) pc;
 }
 
-static PSI_CONTROL OnGetControl( WIDE( "SQL Users/Create User Form/Password 1" ) )( PTRSZVAL psv )
+static PSI_CONTROL OnGetControl( WIDE( "SQL Users/Create User Form/Password 1" ) )( uintptr_t psv )
 {
 	return (PSI_CONTROL)psv;
 }
 
 //--------------------------------------------------------------------------------
 // Password2
-static PTRSZVAL OnCreateControl( WIDE( "SQL Users/Create User Form/Password 2" ) )( PSI_CONTROL parent, S_32 x, S_32 y, _32 w, _32 h )
+static uintptr_t OnCreateControl( WIDE( "SQL Users/Create User Form/Password 2" ) )( PSI_CONTROL parent, int32_t x, int32_t y, uint32_t w, uint32_t h )
 {
 	PSI_CONTROL pc;
 	pc = MakeNamedControl( parent, EDIT_FIELD_NAME, x, y, w, h, -1 );
 	l.pc_password2 = pc;
 	SetEditControlPassword( pc, TRUE );
 
-	return (PTRSZVAL) pc;
+	return (uintptr_t) pc;
 }
 
-static PSI_CONTROL OnGetControl( WIDE( "SQL Users/Create User Form/Password 2" ) )( PTRSZVAL psv )
+static PSI_CONTROL OnGetControl( WIDE( "SQL Users/Create User Form/Password 2" ) )( uintptr_t psv )
 {
 	return (PSI_CONTROL)psv;
 }
 
 //--------------------------------------------------------------------------------
 // Accept Generic
-static PTRSZVAL OnCreateMenuButton( WIDE( "SQL Users/Create User Form/Create User" ) )( PMENU_BUTTON button )
+static uintptr_t OnCreateMenuButton( WIDE( "SQL Users/Create User Form/Create User" ) )( PMENU_BUTTON button )
 {	
 	InterShell_SetButtonStyle( button, WIDE( "bicolor square" ) );
 	InterShell_SetButtonText( button, WIDE( "Create User" ) );
 	InterShell_SetButtonColors( button, BASE_COLOR_WHITE, BASE_COLOR_GREEN, BASE_COLOR_BLACK, COLOR_IGNORE );
-	return (PTRSZVAL)button;
+	return (uintptr_t)button;
 }
 
-static void OnKeyPressEvent( WIDE( "SQL Users/Create User Form/Create User" ) )( PTRSZVAL psv )
+static void OnKeyPressEvent( WIDE( "SQL Users/Create User Form/Create User" ) )( uintptr_t psv )
 {
 	TEXTCHAR buf[256];			  // Used for making descriptions	
 	CTEXTSTR *result;		  // Used for queries
@@ -3615,9 +3615,9 @@ static void OnKeyPressEvent( WIDE( "SQL Users/Create User Form/Create User" ) )(
 				SHA1Context sc;				
 				TEXTCHAR sha1[SHA1HashSize]; 	
 				SHA1Reset( &sc );
-				SHA1Input( &sc, (P_8)l.password, strlen( l.password ) );
-				SHA1Result( &sc, (P_8)sha1 );
-				ConvertFromBinary( l.out, (P_8)sha1, SHA1HashSize );
+				SHA1Input( &sc, (uint8_t*)l.password, strlen( l.password ) );
+				SHA1Result( &sc, (uint8_t*)sha1 );
+				ConvertFromBinary( l.out, (uint8_t*)sha1, SHA1HashSize );
 
 				snprintf( l.cCreateUser2, MESSAGE_SIZE, WIDE("%s"), WIDE("The user was successfully created.") );
 				LabelVariableChanged( l.lvCreateUser2 );							
@@ -3668,15 +3668,15 @@ static void OnKeyPressEvent( WIDE( "SQL Users/Create User Form/Create User" ) )(
 //--------------------------------------------------------------------------------
 //--------------------------------------------------------------------------------
 // User Report
-static PTRSZVAL OnCreateMenuButton( WIDE( "SQL Users/User Report" ) )( PMENU_BUTTON button )
+static uintptr_t OnCreateMenuButton( WIDE( "SQL Users/User Report" ) )( PMENU_BUTTON button )
 {	
 	InterShell_SetButtonStyle( button, WIDE( "bicolor square" ) );
 	InterShell_SetButtonText( button, WIDE( "User Report" ) );
 	InterShell_SetButtonColors( button, BASE_COLOR_WHITE, BASE_COLOR_GREEN, BASE_COLOR_BLACK, COLOR_IGNORE );
-	return (PTRSZVAL)button;
+	return (uintptr_t)button;
 }
 
-static void OnKeyPressEvent( WIDE("SQL Users/User Report") )( PTRSZVAL psv )
+static void OnKeyPressEvent( WIDE("SQL Users/User Report") )( uintptr_t psv )
 {
 #if 0
 	HDC printer = GetPrinterDC(1);
@@ -3684,9 +3684,9 @@ static void OnKeyPressEvent( WIDE("SQL Users/User Report") )( PTRSZVAL psv )
 	int n;
 	TEXTCHAR szString[256];
 	struct {
-		_16 wYr, wMo, wDy, wHr, wMn, wSc;
+		uint16_t wYr, wMo, wDy, wHr, wMn, wSc;
 	} g;
-	_32 now = CAL_GET_FDATETIME();
+	uint32_t now = CAL_GET_FDATETIME();
 
 	// Get User
 	ShellSetCurrentPageEx( l.frame, WIDE("Select User") );
@@ -3719,13 +3719,13 @@ static void OnKeyPressEvent( WIDE("SQL Users/User Report") )( PTRSZVAL psv )
 	{
 		int m;
 		struct {
-			_16 wYr, wMo, wDy, wHr, wMn, wSc;
+			uint16_t wYr, wMo, wDy, wHr, wMn, wSc;
 		} expire;
 		struct { 
-			_16 wYr, wMo, wDy, wHr, wMn, wSc;
+			uint16_t wYr, wMo, wDy, wHr, wMn, wSc;
 		} created;
 		struct { 
-			_16 wYr, wMo, wDy, wHr, wMn, wSc;
+			uint16_t wYr, wMo, wDy, wHr, wMn, wSc;
 		} password_updated;
 		TEXTCHAR buf[256];
 		if( l.user2->name )
@@ -3738,7 +3738,7 @@ static void OnKeyPressEvent( WIDE("SQL Users/User Report") )( PTRSZVAL psv )
 			TEXTCHAR exp_datebuf[13];
 			TEXTCHAR *upd_date;
 			TEXTCHAR upd_datebuf[13];
-			_32 now = CAL_GET_FDATETIME();
+			uint32_t now = CAL_GET_FDATETIME();
 			if( l.user2->dwFutTime > now )
 			{
 				//CAL_P_YMDHMS_OF_FDATETIME( l.user2->dwFutTime, &expire.wYr, &expire.wMo, &expire.wDy, &expire.wHr, &expire.wMn, &expire.wSc );
@@ -3809,30 +3809,30 @@ static void OnKeyPressEvent( WIDE("SQL Users/User Report") )( PTRSZVAL psv )
 //--------------------------------------------------------------------------------
 //--------------------------------------------------------------------------------
 // User History
-static PTRSZVAL OnCreateMenuButton( WIDE( "SQL Users/User History" ) )( PMENU_BUTTON button )
+static uintptr_t OnCreateMenuButton( WIDE( "SQL Users/User History" ) )( PMENU_BUTTON button )
 {	
 	InterShell_SetButtonStyle( button, WIDE( "bicolor square" ) );
 	InterShell_SetButtonText( button, WIDE( "User History" ) );
 	InterShell_SetButtonColors( button, BASE_COLOR_WHITE, BASE_COLOR_GREEN, BASE_COLOR_BLACK, COLOR_IGNORE );
-	return (PTRSZVAL)button;
+	return (uintptr_t)button;
 }
 
-static void OnKeyPressEvent( WIDE("SQL Users/User History") )( PTRSZVAL psv )
+static void OnKeyPressEvent( WIDE("SQL Users/User History") )( uintptr_t psv )
 {
 #if 0
 	HDC printer = GetPrinterDC(0);
 	//int n;
 	TEXTCHAR szString[256];
 	struct {
-		_16 wYr, wMo, wDy, wHr, wMn, wSc;
+		uint16_t wYr, wMo, wDy, wHr, wMn, wSc;
 	} g;
 	struct {
-		_16 wYr, wMo, wDy, wHr, wMn, wSc;
+		uint16_t wYr, wMo, wDy, wHr, wMn, wSc;
 	} report_from;
 	//struct {
-	//	_16 wYr, wMo, wDy, wHr, wMn, wSc;
+	//	uint16_t wYr, wMo, wDy, wHr, wMn, wSc;
 	//} report_to;
-	_32 now = CAL_GET_FDATETIME();
+	uint32_t now = CAL_GET_FDATETIME();
 	FontFromColumns( printer, NULL, NULL, 140, NULL );
 	ClearReportHeaders();
 
@@ -3895,30 +3895,30 @@ static void OnKeyPressEvent( WIDE("SQL Users/User History") )( PTRSZVAL psv )
 //--------------------------------------------------------------------------------
 //--------------------------------------------------------------------------------
 // Permission Report
-static PTRSZVAL OnCreateMenuButton( WIDE("SQL Users/Permission Report") )( PMENU_BUTTON button )
+static uintptr_t OnCreateMenuButton( WIDE("SQL Users/Permission Report") )( PMENU_BUTTON button )
 {	
 	InterShell_SetButtonStyle( button, WIDE( "bicolor square" ) );
 	InterShell_SetButtonText( button, WIDE( "Permission Report" ) );
 	InterShell_SetButtonColors( button, BASE_COLOR_WHITE, BASE_COLOR_GREEN, BASE_COLOR_BLACK, COLOR_IGNORE );
-	return (PTRSZVAL)button;
+	return (uintptr_t)button;
 }
 
-static void OnKeyPressEvent( WIDE("SQL Users/Permission Report") )( PTRSZVAL psv )
+static void OnKeyPressEvent( WIDE("SQL Users/Permission Report") )( uintptr_t psv )
 {	
 	/*
 	HDC printer = GetPrinterDC(1);
 	//int n;
 	TEXTCHAR szString[256];
 	struct {
-		_16 wYr, wMo, wDy, wHr, wMn, wSc;
+		uint16_t wYr, wMo, wDy, wHr, wMn, wSc;
 	} g;
 	struct {
-		_16 wYr, wMo, wDy, wHr, wMn, wSc;
+		uint16_t wYr, wMo, wDy, wHr, wMn, wSc;
 	} report_from;
 	//struct {
-	//	_16 wYr, wMo, wDy, wHr, wMn, wSc;
+	//	uint16_t wYr, wMo, wDy, wHr, wMn, wSc;
 	//} report_to;
-	_32 now = CAL_GET_FDATETIME();
+	uint32_t now = CAL_GET_FDATETIME();
 	FontFromColumns( printer, NULL, NULL, 112, NULL );
 	ClearReportHeaders();
 

@@ -91,7 +91,7 @@ namespace sack {
 #  undef g
 #endif
 
-static PTRSZVAL masks[33] = { ~0U, ~0U, ~1U, 0, ~3U, 0, 0, 0, ~7U, 0, 0, 0, 0, 0, 0, 0, ~15U, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, ~31U };
+static uintptr_t masks[33] = { ~0U, ~0U, ~1U, 0, ~3U, 0, 0, 0, ~7U, 0, 0, 0, 0, 0, 0, 0, ~15U, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, ~31U };
 
 
 #define BASE_MEMORY (POINTER)0x80000000
@@ -99,8 +99,8 @@ static PTRSZVAL masks[33] = { ~0U, ~0U, ~1U, 0, ~3U, 0, 0, 0, ~7U, 0, 0, 0, 0, 0
 #define SYSTEM_CAPACITY  g.dwSystemCapacity
 
 
-#define MALLOC_CHUNK_SIZE(pData) ( ( (pData)?( (_32*)(pData))[-1]:0 ) + offsetof( MALLOC_CHUNK, byData ) )
-//#define CHUNK_SIZE(pData) ( ( (pData)?( (_32*)(pData))[-1]:0 ) +offsetof( CHUNK, byData ) ) )
+#define MALLOC_CHUNK_SIZE(pData) ( ( (pData)?( (uint32_t*)(pData))[-1]:0 ) + offsetof( MALLOC_CHUNK, byData ) )
+//#define CHUNK_SIZE(pData) ( ( (pData)?( (uint32_t*)(pData))[-1]:0 ) +offsetof( CHUNK, byData ) ) )
 #define CHUNK_SIZE ( offsetof( CHUNK, byData ) )
 #define MEM_SIZE  ( offsetof( MEM, pRoot ) )
 
@@ -132,11 +132,11 @@ typedef struct space_tracking_structure {
 	HANDLE  hMem;
 #else
 	struct {
-		_32 bTemporary : 1;
+		uint32_t bTemporary : 1;
 	} flags;
 	int hFile;
 #endif
-   	PTRSZVAL dwSmallSize;
+   	uintptr_t dwSmallSize;
    	DeclareLink( struct space_tracking_structure );
 } SPACE, *PSPACE;
 
@@ -178,7 +178,7 @@ struct global_memory_tag {
 	SYSTEM_INFO si;
 #endif
 	int InAdding; // don't add our tracking to ourselves...
-	_32 bMemInstanced; // set if anybody starts to DIG.
+	uint32_t bMemInstanced; // set if anybody starts to DIG.
    LOGICAL deadstart_finished;
 	PMEM pMemInstance;
 };
@@ -234,11 +234,11 @@ struct global_memory_tag global_memory_data = { 0x10000 * 0x08, 1/* disable debu
 #define MAGIC_SIZE sizeof( void* )
 
 #ifdef __LINUX64__
-#define BLOCK_TAG(pc)  (*(_64*)((pc)->byData + (pc)->dwSize - (pc)->dwPad ))
+#define BLOCK_TAG(pc)  (*(uint64_t*)((pc)->byData + (pc)->dwSize - (pc)->dwPad ))
 // so when we look at memory this stamp is 0123456789ABCDEF
 #define BLOCK_TAG_ID 0xefcdab8967452301LL
 #else
-#define BLOCK_TAG(pc)  (*(_32*)((pc)->byData + (pc)->dwSize - (pc)->dwPad ))
+#define BLOCK_TAG(pc)  (*(uint32_t*)((pc)->byData + (pc)->dwSize - (pc)->dwPad ))
 // so when we look at memory this stamp is 12345678
 #define BLOCK_TAG_ID 0x78563412L
 #endif
@@ -287,9 +287,9 @@ PRIORITY_PRELOAD( InitGlobal, DEFAULT_PRELOAD_PRIORITY )
 #  elif defined __ARM__ || defined __ANDROID__
 //#    define XCHG(p,val)  __atomic_exchange_n(p,val,__ATOMIC_RELAXED)
 #  else
-inline _32 DoXchg( PV_32 p, _32 val ){  __asm__( WIDE("lock xchg (%2),%0"):WIDE( "=a" )(val):WIDE( "0" )(val),WIDE( "c" )(p) ); return val; }
-inline _64 DoXchg64( PV_64 p, _64 val ){  __asm__( WIDE("lock xchg (%2),%0"):WIDE( "=a" )(val):WIDE( "0" )(val),WIDE( "c" )(p) ); return val; }
-#    define XCHG( p,val) ( ( sizeof( val ) > sizeof( _32 ) )?DoXchg64( (PV_64)p, (_64)val ):DoXchg( (PV_32)p, (_32)val ) )
+inline uint32_t DoXchg( volatile uint32_t* p, uint32_t val ){  __asm__( WIDE("lock xchg (%2),%0"):WIDE( "=a" )(val):WIDE( "0" )(val),WIDE( "c" )(p) ); return val; }
+inline uint64_t DoXchg64( volatile int64_t* p, uint64_t val ){  __asm__( WIDE("lock xchg (%2),%0"):WIDE( "=a" )(val):WIDE( "0" )(val),WIDE( "c" )(p) ); return val; }
+#    define XCHG( p,val) ( ( sizeof( val ) > sizeof( uint32_t ) )?DoXchg64( (volatile int64_t*)p, (uint64_t)val ):DoXchg( (volatile uint32_t*)p, (uint32_t)val ) )
 #  endif
 //#  endif
 #else
@@ -297,7 +297,7 @@ inline _64 DoXchg64( PV_64 p, _64 val ){  __asm__( WIDE("lock xchg (%2),%0"):WID
 #endif
 //-------------------------------------------------------------------------
 #if !defined( HAS_ASSEMBLY ) || defined( __CYGWIN__ )
- _32  LockedExchange ( PV_32 p, _32 val )
+ uint32_t  LockedExchange ( volatile uint32_t* p, uint32_t val )
 {
 	// Windows only available - for linux platforms please consult
 	// the assembly version should be consulted
@@ -316,7 +316,7 @@ inline _64 DoXchg64( PV_64 p, _64 val ){  __asm__( WIDE("lock xchg (%2),%0"):WID
 	{
 #warning compiling C fallback locked exchange.  This is NOT atomic, and needs to be
 	// swp is the instruction....
-		_32 prior = *p;
+		uint32_t prior = *p;
 		*p = val;
 		return prior;
 	}
@@ -324,21 +324,21 @@ inline _64 DoXchg64( PV_64 p, _64 val ){  __asm__( WIDE("lock xchg (%2),%0"):WID
 #endif
 }
 
- _64  LockedExchange64 ( PV_64 p, _64 val )
+ uint64_t  LockedExchange64 ( volatile uint64_t* p, uint64_t val )
 {
 	// Windows only available - for linux platforms please consult
 	// the assembly version should be consulted
 #if defined WIN32 && !defined __ANDROID__
 #ifdef _MSC_VER
 #ifdef __64__
-   _64 prior = (_64)InterlockedExchange64( (volatile __int64 *)p, (S_64)val );
+   uint64_t prior = (uint64_t)InterlockedExchange64( (volatile __int64 *)p, (int64_t)val );
 #else
-	// because the value is a LONG (signed) it has to be made unsigned of the same lenght (ULONG) then extended (_64).
+	// because the value is a LONG (signed) it has to be made unsigned of the same lenght (ULONG) then extended (uint64_t).
 	// otherwise the sign extension was a bug.
-   _64 prior = (_64)(ULONG)InterlockedExchange( (PS_32)p, (S_32)val ) | ( (_64)InterlockedExchange( ((PS_32)p)+1, (S_32)(val >> 32) ) << 32 );
+   uint64_t prior = (uint64_t)(ULONG)InterlockedExchange( (DWORD*)p, (DWORD)val ) | ( (uint64_t)InterlockedExchange( ((DWORD*)p)+1, (DWORD)(val >> 32) ) << 32 );
 #endif
 #else
-   _64 prior = InterlockedExchange( (volatile LONG*)p, (S_32)val ) | InterlockedExchange( ((volatile LONG*)p)+1, (_32)(val >> 32) );
+   uint64_t prior = InterlockedExchange( (volatile LONG*)p, (int32_t)val ) | InterlockedExchange( ((volatile LONG*)p)+1, (uint32_t)(val >> 32) );
 #endif
 	return prior;
 #else
@@ -349,7 +349,7 @@ inline _64 DoXchg64( PV_64 p, _64 val ){  __asm__( WIDE("lock xchg (%2),%0"):WID
 	{
 		// swp is the instruction....
       // going to have to set IRQ, PIRQ on arm...
-		_64 prior = *p;
+		uint64_t prior = *p;
 		*p = val;
 		return prior;
 	}
@@ -358,7 +358,7 @@ inline _64 DoXchg64( PV_64 p, _64 val ){  __asm__( WIDE("lock xchg (%2),%0"):WID
 	{
 		// swp is the instruction....
       // going to have to set IRQ, PIRQ on arm...
-		_64 prior = *p;
+		uint64_t prior = *p;
 		*p = val;
 		return prior;
 	}
@@ -369,14 +369,14 @@ inline _64 DoXchg64( PV_64 p, _64 val ){  __asm__( WIDE("lock xchg (%2),%0"):WID
 #endif
 
 //-------------------------------------------------------------------------
- _32  LockedIncrement ( P_32 p)
+ uint32_t  LockedIncrement ( uint32_t* p)
 {
 	if(p)
 		 return (*p)++;
 	return 0;
 }
 //-------------------------------------------------------------------------
- _32  LockedDecrement ( P_32 p )
+ uint32_t  LockedDecrement ( uint32_t* p )
 {
 	if(p)
 		 return (*p)--;
@@ -406,16 +406,16 @@ static void DumpSection( PCRITICALSECTION pcs )
 
 #endif
 #ifndef USE_NATIVE_CRITICAL_SECTION
- _32  CriticalSecOwners ( PCRITICALSECTION pcs )
+ uint32_t  CriticalSecOwners ( PCRITICALSECTION pcs )
 {
    return pcs->dwLocks;
 }
 #endif
 
 #ifndef USE_NATIVE_CRITICAL_SECTION
-S_32  EnterCriticalSecNoWaitEx ( PCRITICALSECTION pcs, THREAD_ID *prior DBG_PASS )
+int32_t  EnterCriticalSecNoWaitEx ( PCRITICALSECTION pcs, THREAD_ID *prior DBG_PASS )
 {
-	//_64 tick, tick2;
+	//uint64_t tick, tick2;
 	THREAD_ID dwCurProc;
 	//static int nEntry;
 
@@ -736,10 +736,10 @@ void  InitializeCriticalSec ( PCRITICALSECTION pcs )
 //-----------------------------------------------------------------
 
 #ifdef _DEBUG
-static _32 dwBlocks; // last values from getmemstats...
-static _32 dwFreeBlocks;
-static _32 dwAllocated;
-static _32 dwFree;
+static uint32_t dwBlocks; // last values from getmemstats...
+static uint32_t dwFreeBlocks;
+static uint32_t dwAllocated;
+static uint32_t dwFree;
 #endif
 
 //------------------------------------------------------------------------------------------------------
@@ -772,7 +772,7 @@ PRIORITY_ATEXIT(ReleaseAllMemory,ATEXIT_PRIORITY_SHAREMEM)
 #ifdef _DEBUG
 				if( !g.bDisableDebug )
 				{
-					lprintf( WIDE("Space: %p mem: %p-%p"), ps, ps->pMem, (P_8)ps->pMem + ps->dwSmallSize );
+					lprintf( WIDE("Space: %p mem: %p-%p"), ps, ps->pMem, (uint8_t*)ps->pMem + ps->dwSmallSize );
 					lprintf( WIDE("Closing tracked space...") );
 				}
 #endif
@@ -825,7 +825,7 @@ void InitSharedMemory( void )
 #endif
 		g.bInit = TRUE;  // onload was definatly a zero.
 		{
-			PTRSZVAL dwSize = sizeof( SPACEPOOL );
+			uintptr_t dwSize = sizeof( SPACEPOOL );
 			g.pSpacePool = (PSPACEPOOL)OpenSpace( NULL, NULL, &dwSize );
 			if( g.pSpacePool )
 			{
@@ -857,7 +857,7 @@ static PSPACE AddSpace( PSPACE pAddAfter
 							, int hFile
 							, int hMem
 #endif
-							, POINTER pMem, PTRSZVAL dwSize, int bLink )
+							, POINTER pMem, uintptr_t dwSize, int bLink )
 {
 	PSPACEPOOL psp;
 	PSPACEPOOL _psp = NULL;
@@ -907,8 +907,8 @@ Retry:
 		goto Retry;
 	}
 	//Log7( WIDE("Managing space (s)%p (pm)%p (hf)%08") _32fx WIDE(" (hm)%08") _32fx WIDE(" (sz)%") _32f WIDE(" %08") _32fx WIDE("-%08") _32fx WIDE("")
-	//				, ps, pMem, (_32)hFile, (_32)hMem, dwSize
-	//				, (_32)pMem, ((_32)pMem + dwSize)
+	//				, ps, pMem, (uint32_t)hFile, (uint32_t)hMem, dwSize
+	//				, (uint32_t)pMem, ((uint32_t)pMem + dwSize)
 	//				);
 	ps->pMem = (PMEM)pMem;
 
@@ -999,7 +999,7 @@ static void DoCloseSpace( PSPACE ps, int bFinal )
 
 //------------------------------------------------------------------------------------------------------
 
- PTRSZVAL  GetSpaceSize ( POINTER pMem )
+ uintptr_t  GetSpaceSize ( POINTER pMem )
 {
 	PSPACE ps;
 	ps = FindSpace( pMem );
@@ -1009,9 +1009,9 @@ static void DoCloseSpace( PSPACE ps, int bFinal )
 }
 
 #if defined( __LINUX__ ) && !defined( __CYGWIN__ )
-PTRSZVAL GetFileSize( int fd )
+uintptr_t GetFileSize( int fd )
 {
-	PTRSZVAL len = lseek( fd, 0, SEEK_END );
+	uintptr_t len = lseek( fd, 0, SEEK_END );
 	lseek( fd, 0, SEEK_SET );
 	return len;
 }
@@ -1020,10 +1020,10 @@ PTRSZVAL GetFileSize( int fd )
 //------------------------------------------------------------------------------------------------------
 
 
- POINTER  OpenSpaceExx ( CTEXTSTR pWhat, CTEXTSTR pWhere, PTRSZVAL address, PTRSZVAL *dwSize, P_32 bCreated )
+ POINTER  OpenSpaceExx ( CTEXTSTR pWhat, CTEXTSTR pWhere, uintptr_t address, uintptr_t *dwSize, uint32_t* bCreated )
 {
 	POINTER pMem = NULL;
-	static _32 bOpening;
+	static uint32_t bOpening;
 #ifndef USE_SIMPLE_LOCK_ON_OPEN
 	static CRITICALSECTION cs;
 	static int first = 1;
@@ -1215,7 +1215,7 @@ PTRSZVAL GetFileSize( int fd )
 			}
 			if( exists )
 			{
-				if( GetFileSize( fd ) < (PTRSZVAL)*dwSize )
+				if( GetFileSize( fd ) < (uintptr_t)*dwSize )
 				{
 					// expands the file...
 					ftruncate( fd, *dwSize );
@@ -1419,11 +1419,11 @@ PTRSZVAL GetFileSize( int fd )
 												, (readonly?PAGE_READONLY:PAGE_READWRITE)
 												/*|SEC_COMMIT|SEC_NOCACHE*/
 #ifdef __64__
-												, (_32)((*dwSize)>>32)
+												, (uint32_t)((*dwSize)>>32)
 #else
 												, 0
 #endif
-												, (_32)(*dwSize)
+												, (uint32_t)(*dwSize)
 												, pWhat );
 				if( hMem )
 				{
@@ -1455,7 +1455,7 @@ PTRSZVAL GetFileSize( int fd )
 #ifdef DEBUG_OPEN_SPACE
 				lprintf( WIDE("Getting existing size of region...") );
 #endif
-				if( SUS_LT( lSize.QuadPart, LONGLONG, (*dwSize), PTRSZVAL ) )
+				if( SUS_LT( lSize.QuadPart, LONGLONG, (*dwSize), uintptr_t ) )
 				{
 #ifdef DEBUG_OPEN_SPACE
 					lprintf( WIDE("Expanding file to size requested.") );
@@ -1469,7 +1469,7 @@ PTRSZVAL GetFileSize( int fd )
 #ifdef DEBUG_OPEN_SPACE
 					lprintf( WIDE("Setting size to size of file (which was larger..") );
 #endif
-					(*dwSize) = (PTRSZVAL)(lSize.QuadPart);
+					(*dwSize) = (uintptr_t)(lSize.QuadPart);
 				}
 			}
 			else
@@ -1584,21 +1584,21 @@ PTRSZVAL GetFileSize( int fd )
 
 //------------------------------------------------------------------------------------------------------
 #undef OpenSpaceEx
- POINTER  OpenSpaceEx ( CTEXTSTR pWhat, CTEXTSTR pWhere, PTRSZVAL address, PTRSZVAL *dwSize )
+ POINTER  OpenSpaceEx ( CTEXTSTR pWhat, CTEXTSTR pWhere, uintptr_t address, uintptr_t *dwSize )
 {
-	_32 bCreated;
+	uint32_t bCreated;
 	return OpenSpaceExx( pWhat, pWhere, address, dwSize, &bCreated );
 }
 
 //------------------------------------------------------------------------------------------------------
 #undef OpenSpace
- POINTER  OpenSpace ( CTEXTSTR pWhat, CTEXTSTR pWhere, PTRSZVAL *dwSize )
+ POINTER  OpenSpace ( CTEXTSTR pWhat, CTEXTSTR pWhere, uintptr_t *dwSize )
 {
 	return OpenSpaceEx( pWhat, pWhere, 0, dwSize );
 }
 //------------------------------------------------------------------------------------------------------
 
- int  InitHeap( PMEM pMem, PTRSZVAL dwSize )
+ int  InitHeap( PMEM pMem, uintptr_t dwSize )
 {
 	//pMem->dwSize = *dwSize - MEM_SIZE;
 	// size of the PMEM block is all inclusive (from pMem(0) to pMem(dwSize))
@@ -1662,7 +1662,7 @@ PTRSZVAL GetFileSize( int fd )
 
 //------------------------------------------------------------------------------------------------------
 
-PMEM DigSpace( TEXTSTR pWhat, TEXTSTR pWhere, PTRSZVAL *dwSize )
+PMEM DigSpace( TEXTSTR pWhat, TEXTSTR pWhere, uintptr_t *dwSize )
 {
 	PMEM pMem = (PMEM)OpenSpace( pWhat, pWhere, dwSize );
 
@@ -1685,7 +1685,7 @@ PMEM DigSpace( TEXTSTR pWhat, TEXTSTR pWhere, PTRSZVAL *dwSize )
 
 //------------------------------------------------------------------------------------------------------
 
-int ExpandSpace( PMEM pHeap, PTRSZVAL dwAmount )
+int ExpandSpace( PMEM pHeap, uintptr_t dwAmount )
 {
 	PSPACE pspace = FindSpace( (POINTER)pHeap ), pnewspace;
 	PMEM pExtend;
@@ -1720,7 +1720,7 @@ static PMEM GrabMemEx( PMEM pMem DBG_PASS )
 		// use default heap...
 		if( !XCHG( &g.bMemInstanced, TRUE ) )
 		{
-			PTRSZVAL MinSize = SYSTEM_CAPACITY;
+			uintptr_t MinSize = SYSTEM_CAPACITY;
 			// generic internal memory, unnamed, unshared, unsaved
 			g.pMemInstance = pMem = DigSpace( NULL, NULL, &MinSize );
 			if( !pMem )
@@ -1776,10 +1776,10 @@ static void DropMemEx( PMEM pMem DBG_PASS )
 
 //------------------------------------------------------------------------------------------------------
 
-POINTER HeapAllocateAlignedEx( PMEM pHeap, PTRSZVAL dwSize, _32 alignment DBG_PASS )
+POINTER HeapAllocateAlignedEx( PMEM pHeap, uintptr_t dwSize, uint32_t alignment DBG_PASS )
 {
    // if a heap is passed, it's a private heap, and allocation is as normal...
-	_32 dwPad = 0;
+	uint32_t dwPad = 0;
 	if( alignment ) {
 		dwSize += (alignment - 1);
 		dwPad = (alignment - 1);
@@ -1805,13 +1805,13 @@ POINTER HeapAllocateAlignedEx( PMEM pHeap, PTRSZVAL dwSize, _32 alignment DBG_PA
 			_lprintf(DBG_RELAY)( WIDE( "alloc %p(%p) %" ) _PTRSZVALfs, pc, pc->byData, dwSize );
 		}
 #endif
-		if( alignment && ( (PTRSZVAL)pc->byData & ~masks[alignment] ) ) {
-			PTRSZVAL retval = ((((PTRSZVAL)pc->byData) + (alignment - 1)) & masks[alignment]);
+		if( alignment && ( (uintptr_t)pc->byData & ~masks[alignment] ) ) {
+			uintptr_t retval = ((((uintptr_t)pc->byData) + (alignment - 1)) & masks[alignment]);
 			if( dwPad < 4 ) {
 				DebugBreak();
 			}
 			pc->dwPad = dwPad - 4;
-			((_32*)(retval - 4))[0] = pc->to_chunk_start = ((((PTRSZVAL)pc->byData) + (alignment - 1)) & masks[alignment]) - (PTRSZVAL)pc->byData;
+			((uint32_t*)(retval - 4))[0] = pc->to_chunk_start = ((((uintptr_t)pc->byData) + (alignment - 1)) & masks[alignment]) - (uintptr_t)pc->byData;
 			return (POINTER)retval;
 		}
 		else {
@@ -1824,7 +1824,7 @@ POINTER HeapAllocateAlignedEx( PMEM pHeap, PTRSZVAL dwSize, _32 alignment DBG_PA
 		PHEAP_CHUNK pc;
 		PMEM pMem, pCurMem = NULL;
 		PSPACE pMemSpace;
-		_32 dwPad = 0;
+		uint32_t dwPad = 0;
 		//_lprintf(DBG_RELAY)( WIDE( "..." ) );
 #ifdef _DEBUG
 		if( !g.bDisableAutoCheck )
@@ -1851,7 +1851,7 @@ POINTER HeapAllocateAlignedEx( PMEM pHeap, PTRSZVAL dwSize, _32 alignment DBG_PA
 		if( !g.bDisableDebug )
 		{
 			dwPad += MAGIC_SIZE;
-			dwSize += MAGIC_SIZE;  // add a _32 at end to mark, and check for application overflow...
+			dwSize += MAGIC_SIZE;  // add a uint32_t at end to mark, and check for application overflow...
 			if( !pMem || !( pMem->dwFlags & HEAP_FLAG_NO_DEBUG ) )
 			{
 				dwPad += MAGIC_SIZE*2;
@@ -1881,7 +1881,7 @@ POINTER HeapAllocateAlignedEx( PMEM pHeap, PTRSZVAL dwSize, _32 alignment DBG_PA
 					// split block
 					if( ( pc->dwSize - dwSize ) <= ( CHUNK_SIZE + g.nMinAllocateSize ) ) // must allocate it all.
 					{
-						pc->dwPad = (_16)(dwPad + ( pc->dwSize - dwSize ));
+						pc->dwPad = (uint16_t)(dwPad + ( pc->dwSize - dwSize ));
 						UnlinkThing( pc );
 						pc->dwOwners = 1;
 						break; // successful allocation....
@@ -1897,12 +1897,12 @@ POINTER HeapAllocateAlignedEx( PMEM pHeap, PTRSZVAL dwSize, _32 alignment DBG_PA
 						if( pNew->dwSize & 0x80000000 )
 							DebugBreak();
 
-						pc->dwPad = (_16)dwPad;
+						pc->dwPad = (uint16_t)dwPad;
 						pc->dwSize = dwSize; // set old size?  this can wait until we have the block.
 						if( pc->dwSize & 0x80000000 )
 							DebugBreak();
 
-						if( (PTRSZVAL)next - (PTRSZVAL)pCurMem < (PTRSZVAL)pCurMem->dwSize )  // not beyond end of memory...
+						if( (uintptr_t)next - (uintptr_t)pCurMem < (uintptr_t)pCurMem->dwSize )  // not beyond end of memory...
 							next->pPrior = pNew;
 
 						pNew->dwOwners = 0;
@@ -1975,9 +1975,9 @@ POINTER HeapAllocateAlignedEx( PMEM pHeap, PTRSZVAL dwSize, _32 alignment DBG_PA
 #endif
 		DropMem( pCurMem );
 		DropMem( pMem );
-		if( alignment && ((PTRSZVAL)pc->byData & ~masks[alignment]) ) {
-			PTRSZVAL retval = ((((PTRSZVAL)pc->byData) + (alignment - 1)) & masks[alignment]);
-			((_32*)(retval - 4))[0] = pc->to_chunk_start = ((((PTRSZVAL)pc->byData) + (alignment - 1)) & masks[alignment]) - (PTRSZVAL)pc->byData;
+		if( alignment && ((uintptr_t)pc->byData & ~masks[alignment]) ) {
+			uintptr_t retval = ((((uintptr_t)pc->byData) + (alignment - 1)) & masks[alignment]);
+			((uint32_t*)(retval - 4))[0] = pc->to_chunk_start = ((((uintptr_t)pc->byData) + (alignment - 1)) & masks[alignment]) - (uintptr_t)pc->byData;
 			return (POINTER)retval;
 		}
 		else {
@@ -1990,23 +1990,23 @@ POINTER HeapAllocateAlignedEx( PMEM pHeap, PTRSZVAL dwSize, _32 alignment DBG_PA
 }
 
 //------------------------------------------------------------------------------------------------------
-POINTER HeapAllocateEx( PMEM pHeap, PTRSZVAL dwSize DBG_PASS ) {
+POINTER HeapAllocateEx( PMEM pHeap, uintptr_t dwSize DBG_PASS ) {
 	return HeapAllocateAlignedEx( pHeap, dwSize, 0 DBG_RELAY );
 }
 
 //------------------------------------------------------------------------------------------------------
 #undef AllocateEx
- POINTER  AllocateEx ( PTRSZVAL dwSize DBG_PASS )
+ POINTER  AllocateEx ( uintptr_t dwSize DBG_PASS )
 {
 	return HeapAllocateAlignedEx( g.pMemInstance, dwSize, 0 DBG_RELAY );
 }
 
 //------------------------------------------------------------------------------------------------------
 
- POINTER  HeapReallocateEx ( PMEM pHeap, POINTER source, PTRSZVAL size DBG_PASS )
+ POINTER  HeapReallocateEx ( PMEM pHeap, POINTER source, uintptr_t size DBG_PASS )
 {
 	POINTER dest;
-	PTRSZVAL min;
+	uintptr_t min;
 
 	dest = HeapAllocateAlignedEx( pHeap, size, 0 DBG_RELAY );
 	if( source )
@@ -2016,7 +2016,7 @@ POINTER HeapAllocateEx( PMEM pHeap, PTRSZVAL dwSize DBG_PASS ) {
 			min = size;
 		MemCpy( dest, source, min );
 		if( min < size )
-			MemSet( ((P_8)dest) + min, 0, size - min );
+			MemSet( ((uint8_t*)dest) + min, 0, size - min );
 		ReleaseEx( source DBG_RELAY );
 	}
 	else
@@ -2028,10 +2028,10 @@ POINTER HeapAllocateEx( PMEM pHeap, PTRSZVAL dwSize DBG_PASS ) {
 
 //------------------------------------------------------------------------------------------------------
 
- POINTER  HeapPreallocateEx ( PMEM pHeap, POINTER source, PTRSZVAL size DBG_PASS )
+ POINTER  HeapPreallocateEx ( PMEM pHeap, POINTER source, uintptr_t size DBG_PASS )
 {
 	POINTER dest;
-	PTRSZVAL min;
+	uintptr_t min;
 
 	dest = HeapAllocateAlignedEx( pHeap, size, 0 DBG_RELAY );
 	if( source )
@@ -2039,7 +2039,7 @@ POINTER HeapAllocateEx( PMEM pHeap, PTRSZVAL dwSize DBG_PASS ) {
 		min = SizeOfMemBlock( source );
 		if( size < min )
 			min = size;
-		MemCpy( (P_8)dest + (size-min), source, min );
+		MemCpy( (uint8_t*)dest + (size-min), source, min );
 		if( min < size )
 			MemSet( dest, 0, size - min );
 		ReleaseEx( source DBG_RELAY );
@@ -2058,14 +2058,14 @@ POINTER HeapAllocateEx( PMEM pHeap, PTRSZVAL dwSize DBG_PASS ) {
 
 //------------------------------------------------------------------------------------------------------
 
- POINTER  ReallocateEx ( POINTER source, PTRSZVAL size DBG_PASS )
+ POINTER  ReallocateEx ( POINTER source, uintptr_t size DBG_PASS )
 {
 	return HeapReallocateEx( g.pMemInstance, source, size DBG_RELAY );
 }
 
 //------------------------------------------------------------------------------------------------------
 
- POINTER  PreallocateEx ( POINTER source, PTRSZVAL size DBG_PASS )
+ POINTER  PreallocateEx ( POINTER source, uintptr_t size DBG_PASS )
 {
 	return HeapPreallocateEx( g.pMemInstance, source, size DBG_RELAY );
 }
@@ -2084,7 +2084,7 @@ static void Bubble( PMEM pMem )
 	next = temp->next;
 	while( temp && next )
 	{
-		if( (PTRSZVAL)next < (PTRSZVAL)temp )
+		if( (uintptr_t)next < (uintptr_t)temp )
 		{
 			UnlinkThing( temp );
 			UnlinkThing( next );
@@ -2118,18 +2118,18 @@ static void Bubble( PMEM pMem )
 //------------------------------------------------------------------------------------------------------
 
 
- PTRSZVAL  SizeOfMemBlock ( CPOINTER pData )
+ uintptr_t  SizeOfMemBlock ( CPOINTER pData )
 {
 	if( pData )
 	{
 		if( USE_CUSTOM_ALLOCER )
 		{
-			register PCHUNK pc = (PCHUNK)(((PTRSIZEVAL)pData) - (((_32*)pData)[-1] + offsetof( CHUNK, byData )));
+			register PCHUNK pc = (PCHUNK)(((PTRSIZEVAL)pData) - (((uint32_t*)pData)[-1] + offsetof( CHUNK, byData )));
 			return pc->dwSize - pc->dwPad;
 		}
 		else
 		{
-			register PMALLOC_CHUNK pc = (PMALLOC_CHUNK)(((PTRSIZEVAL)pData) - (((_32*)pData)[-1] + offsetof( MALLOC_CHUNK, byData )));
+			register PMALLOC_CHUNK pc = (PMALLOC_CHUNK)(((PTRSIZEVAL)pData) - (((uint32_t*)pData)[-1] + offsetof( MALLOC_CHUNK, byData )));
 			return pc->dwSize - ( pc->to_chunk_start + pc->dwPad );
 		}
 	}
@@ -2139,7 +2139,7 @@ static void Bubble( PMEM pMem )
 
  POINTER  MemDupEx ( CPOINTER thing DBG_PASS )
 {
-	PTRSZVAL size = SizeOfMemBlock( thing );
+	uintptr_t size = SizeOfMemBlock( thing );
 	POINTER result;
 	result = AllocateEx( size DBG_RELAY );
 	MemCpy( result, thing, size );
@@ -2158,7 +2158,7 @@ POINTER ReleaseEx ( POINTER pData DBG_PASS )
 	if( pData )
 	{
 		// how to figure if it's a CHUNK or a HEAP_CHUNK?
-		if( !( ((PTRSZVAL)pData) & 0x3FF ) )
+		if( !( ((uintptr_t)pData) & 0x3FF ) )
 		{
 			// system allocated blocks ( OpenSpace ) will be tracked as spaces...
 			// and they will be aligned on large memory blocks (4096 probably)
@@ -2173,12 +2173,12 @@ POINTER ReleaseEx ( POINTER pData DBG_PASS )
 		if( !USE_CUSTOM_ALLOCER )
 		{
 			// register PMEM pMem = (PMEM)(pData - offsetof( MEM, pRoot ));
-			register PMALLOC_CHUNK pc = (PMALLOC_CHUNK)(((PTRSZVAL)pData) - ( ((_32*)pData)[-1] +
+			register PMALLOC_CHUNK pc = (PMALLOC_CHUNK)(((uintptr_t)pData) - ( ((uint32_t*)pData)[-1] +
 													offsetof( MALLOC_CHUNK, byData ) ) );
 			pc->dwOwners--;
 			if( !pc->dwOwners )
 			{
-				extern int  MemChk ( POINTER p, PTRSZVAL val, size_t sz );
+				extern int  MemChk ( POINTER p, uintptr_t val, size_t sz );
 				if( g.bLogAllocate )
 				{
 #ifndef NO_LOGGING
@@ -2210,7 +2210,7 @@ POINTER ReleaseEx ( POINTER pData DBG_PASS )
 		}
       else
 		{
-			register PCHUNK pc = (PCHUNK)(((PTRSZVAL)pData) - ( ( (_32*)pData)[-1] +
+			register PCHUNK pc = (PCHUNK)(((uintptr_t)pData) - ( ( (uint32_t*)pData)[-1] +
 													offsetof( CHUNK, byData ) ) );
 			PMEM pMem, pCurMem;
 			PSPACE pMemSpace;
@@ -2234,8 +2234,8 @@ POINTER ReleaseEx ( POINTER pData DBG_PASS )
 			pMemSpace = FindSpace( pMem );
 
 			while( pMemSpace && ( ( pCurMem = (PMEM)pMemSpace->pMem ),
-										(	( (PTRSZVAL)pData < (PTRSZVAL)pCurMem )
-										||  ( (PTRSZVAL)pData > ( (PTRSZVAL)pCurMem + pCurMem->dwSize ) ) )
+										(	( (uintptr_t)pData < (uintptr_t)pCurMem )
+										||  ( (uintptr_t)pData > ( (uintptr_t)pCurMem + pCurMem->dwSize ) ) )
 									 )
 				 )
 			{
@@ -2328,7 +2328,7 @@ POINTER ReleaseEx ( POINTER pData DBG_PASS )
 				{
 					LOGICAL bCollapsed = FALSE;
 					PCHUNK next, nextNext, pPrior;
-					PTRSZVAL nNext;
+					uintptr_t nNext;
 					// fill memory with a known value...
 					// this will allow me to check usage after release....
 
@@ -2346,7 +2346,7 @@ POINTER ReleaseEx ( POINTER pData DBG_PASS )
 					}
 #endif
 					next = (PCHUNK)(pc->byData + pc->dwSize);
-					if( (nNext = (PTRSZVAL)next - (PTRSZVAL)pCurMem) >= pCurMem->dwSize )
+					if( (nNext = (uintptr_t)next - (uintptr_t)pCurMem) >= pCurMem->dwSize )
 					{
 						// if next is NOT within valid memory...
 						next = NULL;
@@ -2432,7 +2432,7 @@ POINTER ReleaseEx ( POINTER pData DBG_PASS )
 								DebugBreak();
 							nextNext = (PCHUNK)(pc->byData + pc->dwSize );
 
-							if( (((PTRSZVAL)nextNext) - ((PTRSZVAL)pCurMem)) < (PTRSZVAL)pCurMem->dwSize )
+							if( (((uintptr_t)nextNext) - ((uintptr_t)pCurMem)) < (uintptr_t)pCurMem->dwSize )
 							{
 								nextNext->pPrior = pc;
 							}
@@ -2515,9 +2515,9 @@ void  DebugDumpHeapMemEx ( PMEM pHeap, LOGICAL bVerbose )
 	if( USE_CUSTOM_ALLOCER )
 	{
 		PCHUNK pc, _pc;
-		PTRSZVAL nTotalFree = 0;
-		PTRSZVAL nChunks = 0;
-		PTRSZVAL nTotalUsed = 0;
+		uintptr_t nTotalFree = 0;
+		uintptr_t nChunks = 0;
+		uintptr_t nTotalUsed = 0;
 		PSPACE pMemSpace;
 		PMEM pMem = GrabMem( pHeap ), pCurMem;
 
@@ -2534,7 +2534,7 @@ void  DebugDumpHeapMemEx ( PMEM pHeap, LOGICAL bVerbose )
 			pCurMem = (PMEM)pMemSpace->pMem;
 			pc = pCurMem->pRoot; // current pChunk(pc)
 
-			while( (((PTRSZVAL)pc) - ((PTRSZVAL)pCurMem)) < (PTRSZVAL)pCurMem->dwSize ) // while PC not off end of memory
+			while( (((uintptr_t)pc) - ((uintptr_t)pCurMem)) < (uintptr_t)pCurMem->dwSize ) // while PC not off end of memory
 			{
 #ifndef __LINUX__
 				Relinquish(); // allow debug log to work... (OutputDebugString() Win32, also network streams may require)
@@ -2549,7 +2549,7 @@ void  DebugDumpHeapMemEx ( PMEM pHeap, LOGICAL bVerbose )
 						CTEXTSTR pFile =  !IsBadReadPtr( BLOCK_FILE(pc), 1 )
 							?BLOCK_FILE(pc)
 							:WIDE("Unknown");
-						_32 nLine = BLOCK_LINE(pc);
+						uint32_t nLine = BLOCK_LINE(pc);
 						_xlprintf(LOG_ALWAYS DBG_RELAY)( WIDE("Free at %p size: %") _PTRSZVALfs WIDE("(%") _PTRSZVALfx WIDE(") Prior:%p NF:%p"),
 																 pc, pc->dwSize, pc->dwSize,
 																 pc->pPrior,
@@ -2566,7 +2566,7 @@ void  DebugDumpHeapMemEx ( PMEM pHeap, LOGICAL bVerbose )
 						CTEXTSTR pFile =  !IsBadReadPtr( BLOCK_FILE(pc), 1 )
 							?BLOCK_FILE(pc)
 							:WIDE("Unknown");
-						_32 nLine = BLOCK_LINE(pc);
+						uint32_t nLine = BLOCK_LINE(pc);
 						_xlprintf(LOG_ALWAYS DBG_RELAY)( WIDE("Used at %p size: %") _PTRSZVALfs WIDE("(%") _PTRSZVALfx WIDE(") Prior:%p"),
 																 pc, pc->dwSize, pc->dwSize,
 																 pc->pPrior );
@@ -2634,7 +2634,7 @@ void  DebugDumpHeapMemEx ( PMEM pHeap, LOGICAL bVerbose )
 			pCurMem = (PMEM)pMemSpace->pMem;
 			pc = pCurMem->pRoot; // current pChunk(pc)
 
-			while( (((PTRSZVAL)pc) - ((PTRSZVAL)pCurMem)) < (PTRSZVAL)pCurMem->dwSize ) // while PC not off end of memory
+			while( (((uintptr_t)pc) - ((uintptr_t)pCurMem)) < (uintptr_t)pCurMem->dwSize ) // while PC not off end of memory
 			{
 				//Relinquish(); // allow debug log to work...
 				nChunks++;
@@ -2735,7 +2735,7 @@ void  DebugDumpHeapMemEx ( PMEM pHeap, LOGICAL bVerbose )
 	PMEM pMem;
 	if( !ppMemory || !*ppMemory)
 		return FALSE;
-	pc = (PCHUNK)(((PTRSIZEVAL)(*ppMemory)) - (((_32*)pData)[-1] + offsetof( CHUNK, byData )));
+	pc = (PCHUNK)(((PTRSIZEVAL)(*ppMemory)) - (((uint32_t*)pData)[-1] + offsetof( CHUNK, byData )));
 	pMem = GrabMem( pc->pRoot );
 
 		// check if prior block is free... if so - then...
@@ -2776,7 +2776,7 @@ void  DebugDumpHeapMemEx ( PMEM pHeap, LOGICAL bVerbose )
 			PCHUNK next;
 			next = (PCHUNK)( pNew->byData + pNew->dwSize );
 
-			if( (((PTRSZVAL)next) - ((PTRSZVAL)pMem)) < (PTRSZVAL)pMem->dwSize )
+			if( (((uintptr_t)next) - ((uintptr_t)pMem)) < (uintptr_t)pMem->dwSize )
 			{
 				if( !next->dwOwners ) // if next is free.....
 				{
@@ -2787,7 +2787,7 @@ void  DebugDumpHeapMemEx ( PMEM pHeap, LOGICAL bVerbose )
 
 					pNew->dwSize += next->dwSize + CHUNK_SIZE;
 					next = (PCHUNK)( pNew->byData + pNew->dwSize );
-					if( (_32)(((char *)next) - ((char *)pMem)) < pMem->dwSize )
+					if( (uint32_t)(((char *)next) - ((char *)pMem)) < pMem->dwSize )
 					{
 						next->pPrior = pNew;
 					}
@@ -2809,10 +2809,10 @@ void  DebugDumpHeapMemEx ( PMEM pHeap, LOGICAL bVerbose )
 
 //------------------------------------------------------------------------------------------------------
 
- void  GetHeapMemStatsEx ( PMEM pHeap, _32 *pFree, _32 *pUsed, _32 *pChunks, _32 *pFreeChunks DBG_PASS )
+ void  GetHeapMemStatsEx ( PMEM pHeap, uint32_t *pFree, uint32_t *pUsed, uint32_t *pChunks, uint32_t *pFreeChunks DBG_PASS )
 {
 	int nChunks = 0, nFreeChunks = 0, nSpaces = 0;
-	PTRSZVAL nFree = 0, nUsed = 0;
+	uintptr_t nFree = 0, nUsed = 0;
 	PCHUNK pc, _pc;
 	PMEM pMem;
 	PSPACE pMemSpace;
@@ -2828,7 +2828,7 @@ void  DebugDumpHeapMemEx ( PMEM pHeap, LOGICAL bVerbose )
 		PMEM pMemCheck = ((PMEM)pMemSpace->pMem);
 		pc = pMemCheck->pRoot;
 		GrabMem( pMemCheck );
-		while( (((PTRSZVAL)pc) - ((PTRSZVAL)pMemCheck)) < (PTRSZVAL)pMemCheck->dwSize ) // while PC not off end of memory
+		while( (((uintptr_t)pc) - ((uintptr_t)pMemCheck)) < (uintptr_t)pMemCheck->dwSize ) // while PC not off end of memory
 		{
 			nChunks++;
 			if( !pc->dwOwners )
@@ -2876,7 +2876,7 @@ void  DebugDumpHeapMemEx ( PMEM pHeap, LOGICAL bVerbose )
 
 			_pc = pc;
 			pc = (PCHUNK)(pc->byData + pc->dwSize );
-			if( (((PTRSZVAL)pc) - ((PTRSZVAL)pMemCheck)) < (PTRSZVAL)pMemCheck->dwSize  )
+			if( (((uintptr_t)pc) - ((uintptr_t)pMemCheck)) < (uintptr_t)pMemCheck->dwSize  )
 			{
 				if( pc == _pc )
 				{
@@ -2917,9 +2917,9 @@ void  DebugDumpHeapMemEx ( PMEM pHeap, LOGICAL bVerbose )
 	}
 	DropMem( pMem );
 	if( pFree )
-		*pFree = (_32)nFree;
+		*pFree = (uint32_t)nFree;
 	if( pUsed )
-		*pUsed = (_32)nUsed;
+		*pUsed = (uint32_t)nUsed;
 	if( pChunks )
 		*pChunks = nChunks;
 	if( pFreeChunks )
@@ -2928,7 +2928,7 @@ void  DebugDumpHeapMemEx ( PMEM pHeap, LOGICAL bVerbose )
 
 //------------------------------------------------------------------------------------------------------
 
- void  GetMemStats ( _32 *pFree, _32 *pUsed, _32 *pChunks, _32 *pFreeChunks )
+ void  GetMemStats ( uint32_t *pFree, uint32_t *pUsed, uint32_t *pChunks, uint32_t *pFreeChunks )
 {
 	GetHeapMemStats( g.pMemInstance, pFree, pUsed, pChunks, pFreeChunks );
 }
@@ -2994,7 +2994,7 @@ void  DebugDumpHeapMemEx ( PMEM pHeap, LOGICAL bVerbose )
 
 //------------------------------------------------------------------------------------------------------
 #undef GetHeapMemStats
- void  GetHeapMemStats ( PMEM pHeap, _32 *pFree, _32 *pUsed, _32 *pChunks, _32 *pFreeChunks )
+ void  GetHeapMemStats ( PMEM pHeap, uint32_t *pFree, uint32_t *pUsed, uint32_t *pChunks, uint32_t *pFreeChunks )
 {
 	GetHeapMemStatsEx( pHeap, pFree, pUsed, pChunks, pFreeChunks DBG_SRC );
 }
@@ -3030,7 +3030,7 @@ lineNumber)
 	case _HOOK_FREE:
 		lprintf( WIDE( "CRT Free: %p[%"_PTRSZVALfs"](%d) %s(%d)" )
 			, userData
-			, (PTRSZVAL)userData
+			, (uintptr_t)userData
 			, size
 			, filename, lineNumber
 			);

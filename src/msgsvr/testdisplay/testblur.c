@@ -19,11 +19,11 @@
 
 typedef struct global_tag {
 	struct {
-		_32 bSpinning : 1;
+		uint32_t bSpinning : 1;
 	} flags;
-	_32 bReelSpinning[NUM_REELS];
-	S_32 ofs;
-	_32 nReels;
+	uint32_t bReelSpinning[NUM_REELS];
+	int32_t ofs;
+	uint32_t nReels;
    Image background;
 	Image strip;
 	Image images[10];
@@ -42,13 +42,13 @@ void Blur( Image dst, Image src[] )
    int y, n, x, row;
 	for( x = 0; x < 96; x++ )
 	{
-		_32 idx;
-      _32 divisor = 1;
-		_8 rvals[96];
-		_8 gvals[96];
-		_8 bvals[96];
-      _8 gain[96];
-		_32 red = 0
+		uint32_t idx;
+      uint32_t divisor = 1;
+		uint8_t rvals[96];
+		uint8_t gvals[96];
+		uint8_t bvals[96];
+      uint8_t gain[96];
+		uint32_t red = 0
 	, green = 0
 	, blue = 0, img = 0;
 		idx = 0;
@@ -129,7 +129,7 @@ void DrawSpinningReels( void )
    UpdateDisplayPortion( g.render, REEL_OFSX, REEL_OFSY, REEL_STEPX*(g.nReels-1) + 96, 288 );
 }
 
-int CPROC MouseMethod( PTRSZVAL psv, S_32 x, S_32 y, _32 b )
+int CPROC MouseMethod( uintptr_t psv, int32_t x, int32_t y, uint32_t b )
 {
 	if( !g.flags.bSpinning )
 	{
@@ -195,7 +195,7 @@ int CPROC MouseMethod( PTRSZVAL psv, S_32 x, S_32 y, _32 b )
    return 1;
 }
 
-PTRSZVAL CPROC ReadInput( PTHREAD thread )
+uintptr_t CPROC ReadInput( PTHREAD thread )
 {
    char buf[256];
 	while( fgets( buf, 256, stdin ) || buf[0] == '\x1b' )
@@ -227,7 +227,7 @@ PTRSZVAL CPROC ReadInput( PTHREAD thread )
 
 int main( void )
 {
-	_32 width, height;
+	uint32_t width, height;
 	srand( time( NULL ) );
 	g.pdi = GetDisplayInterface();
 	g.pii = GetImageInterface();
@@ -275,7 +275,7 @@ int main( void )
 	DrawReels();
    UpdateDisplay(g.render);
 	{
-		_32 start = GetTickCount();
+		uint32_t start = GetTickCount();
       g.ofs = 0;
 		while( 1 )
 		{

@@ -15,7 +15,7 @@ GLOBAL g;
 
 Image surface;
 PSPRITE sprite;
-void CPROC RedrawTwo( PTRSZVAL psvUser, PRENDERER renderer )
+void CPROC RedrawTwo( uintptr_t psvUser, PRENDERER renderer )
 {
 	Image image = GetDisplayImage( renderer );
    //ClearImage( image );

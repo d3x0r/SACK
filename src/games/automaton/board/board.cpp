@@ -25,15 +25,15 @@
 extern DIR_DELTA DirDeltaMap[8];
 
 // I really do hate having circular dependancies....
-void CPROC BoardRefreshExtern( PTRSZVAL dwUser, PRENDERER renderer );
-void CPROC BoardWindowClose( _32 dwUser );
-void CPROC BoardRefreshExtern( PTRSZVAL dwUser, PRENDERER renderer );
+void CPROC BoardRefreshExtern( uintptr_t dwUser, PRENDERER renderer );
+void CPROC BoardWindowClose( uint32_t dwUser );
+void CPROC BoardRefreshExtern( uintptr_t dwUser, PRENDERER renderer );
 
 //----------------------------------------------------------------------
 typedef class UPDATE *PUPDATE;
 class UPDATE {
-	S_32 _x, _y;
-	_32 _wd, _ht;
+	int32_t _x, _y;
+	uint32_t _wd, _ht;
 	PRENDERER pDisplay;
 	PSI_CONTROL pControl;
 public:
@@ -54,7 +54,7 @@ public:
 	~UPDATE()
 	{
 	}
-	void add( S_32 x, S_32 y, _32 w, _32 h )
+	void add( int32_t x, int32_t y, uint32_t w, uint32_t h )
 	{
 		//Log4( WIDE("Adding update region %d,%d -%d,%d"), x, y, w, h );
 		if( _wd == 0 && _ht == 0 )
@@ -93,10 +93,10 @@ public:
 };
 
 
-PTRSZVAL CPROC faisIsLayerAt( void *_layer, PTRSZVAL psv )
+uintptr_t CPROC faisIsLayerAt( void *_layer, uintptr_t psv )
 {
 	struct xy{
-		S_32 x, y;
+		int32_t x, y;
       PLAYER not_layer;
 	} *pxy = (struct xy*)psv;
 	PLAYER layer = (PLAYER)_layer;
@@ -104,19 +104,19 @@ PTRSZVAL CPROC faisIsLayerAt( void *_layer, PTRSZVAL psv )
 		return 0;
 	if( layer == pxy->not_layer )
       return 0; // lie, we need to return another...
-   return (PTRSZVAL)layer;
+   return (uintptr_t)layer;
 }
 
 class BOARD:public IBOARD
 {
-	_32 cell_width, cell_height;
+	uint32_t cell_width, cell_height;
 	// original cell width/height
 	// cell_width, height are updated to reflect scale
-	_32 _cell_width, _cell_height;
-	PTRSZVAL default_peice_instance;
+	uint32_t _cell_width, _cell_height;
+	uintptr_t default_peice_instance;
 	PIPEICE default_peice;
-	void (CPROC*OnClose)(PTRSZVAL,class IBOARD*);
-	PTRSZVAL psvClose;
+	void (CPROC*OnClose)(uintptr_t,class IBOARD*);
+	uintptr_t psvClose;
 public:
 	INDEX Save( PODBC odbc, CTEXTSTR name );
 	LOGICAL Load( PODBC odbc, CTEXTSTR name );
@@ -139,8 +139,8 @@ private:
 	PLAYER mouse_current_layer;
 	PLAYER route_current_layer;
 	PLAYER move_current_layer;
-	S_32 xStart, yStart, wX, wY;
-	_32 board_width, board_height;
+	int32_t xStart, yStart, wX, wY;
+	uint32_t board_width, board_height;
 	// cached based on current layer definitions...
 	// when layers are updated, this is also updated
 	// when board is scrolled...
@@ -151,24 +151,24 @@ private:
 	// hmm drawing however is bottom-up, and hmm actually this
 	// is a mouse phenomenon - display is a different basis.
 	PCELL *board; //[64*64]; // manually have to compute offset from board_width
-	S_32 board_origin_x, board_origin_y; // [0][0] == this coordinate.
+	int32_t board_origin_x, board_origin_y; // [0][0] == this coordinate.
 
 	struct {
-		_32 bSliding : 1;
-		_32 bDragging : 1;
-		_32 bLockLeft : 1;
-		_32 bLockRight : 1;
-		_32 bLeft : 1;
-		_32 bRight : 1;
+		uint32_t bSliding : 1;
+		uint32_t bDragging : 1;
+		uint32_t bLockLeft : 1;
+		uint32_t bLockRight : 1;
+		uint32_t bLeft : 1;
+		uint32_t bRight : 1;
 		// left changed happend both when a button is clicked
 		// and when it is unclicked.
-		_32 bLeftChanged : 1;
-		_32 bRightChanged : 1;
+		uint32_t bLeftChanged : 1;
+		uint32_t bRightChanged : 1;
 	} flags;
 	int scale;
 	struct {
 		PIPEICE viaset;
-		S_32 _x, _y;
+		int32_t _x, _y;
 	} current_path;
 public:
 	  int GetScale( void )
@@ -186,7 +186,7 @@ public:
 	}
 	void Close( void );
 private:
-	void SetCloseHandler( void (CPROC*)(PTRSZVAL,class IBOARD*), PTRSZVAL );
+	void SetCloseHandler( void (CPROC*)(uintptr_t,class IBOARD*), uintptr_t );
 	void SetBackground( PIPEICE peice )
 	{
 		default_peice = peice;
@@ -194,13 +194,13 @@ private:
 		SmudgeCommon( pControl );
 	}
 
-	void SetCellSize( _32 cx, _32 cy )
+	void SetCellSize( uint32_t cx, uint32_t cy )
 	{
 		cell_width = _cell_width = cx;
 		cell_height = _cell_height = cy;
 	}
 
-	int BeginPath( PIVIA viaset/*, S_32 x, S_32 y*/, PTRSZVAL psv )
+	int BeginPath( PIVIA viaset/*, int32_t x, int32_t y*/, uintptr_t psv )
 	{
 		if( mouse_current_layer )
 		{
@@ -244,7 +244,7 @@ private:
 		return TRUE;
 	}
 
-PLAYER GetLayerAt( S_32 *wX, S_32 *wY, PLAYER notlayer = NULL )
+PLAYER GetLayerAt( int32_t *wX, int32_t *wY, PLAYER notlayer = NULL )
 {
 	PLAYER layer = GetSetMember( LAYER, &LayerPool, 0 );
 	while( layer )
@@ -258,7 +258,7 @@ PLAYER GetLayerAt( S_32 *wX, S_32 *wY, PLAYER notlayer = NULL )
 		layer = layer->next;
 	};
 
- //	if( ( layer = (PLAYER)LayerPool->forall( faisIsLayerAt, (PTRSZVAL)&xy ) ) )
+ //	if( ( layer = (PLAYER)LayerPool->forall( faisIsLayerAt, (uintptr_t)&xy ) ) )
  //  {
  //     (*wX) = xy.x;
  //  	(*wY) = xy.y;
@@ -266,7 +266,7 @@ PLAYER GetLayerAt( S_32 *wX, S_32 *wY, PLAYER notlayer = NULL )
 	return layer;
 }
 
-PLAYER_DATA GetLayerDataAt( S_32 *wX, S_32 *wY, PLAYER notlayer = NULL )
+PLAYER_DATA GetLayerDataAt( int32_t *wX, int32_t *wY, PLAYER notlayer = NULL )
 {
 	PLAYER layer = GetLayerAt( wX, wY, notlayer );
 	if( layer )
@@ -276,7 +276,7 @@ PLAYER_DATA GetLayerDataAt( S_32 *wX, S_32 *wY, PLAYER notlayer = NULL )
 
 
 // viaset is implied by route_current_layer
-	void EndPath( S_32 x, S_32 y )
+	void EndPath( int32_t x, int32_t y )
 	{
 		// really this is lay path also...
 		// however, this pays attention to mouse states
@@ -364,7 +364,7 @@ public:
 	void timer(void);
 	PSI_CONTROL GetControl( void );
 	void DrawLayer( PLAYER layer );
-	void PutPeice( PIPEICE, S_32 x, S_32 y, PTRSZVAL psv );
+	void PutPeice( PIPEICE, int32_t x, int32_t y, uintptr_t psv );
 	void BoardRefresh( void );  // put current board on screen.
 private:
 
@@ -387,7 +387,7 @@ void DoMouse( int X, int Y, int b )
 	wY = SCRN_TO_GRID_Y( Y );
 	//lprintf( WIDE("mouse at %d,%d"), wX, wY );
 	{
-		//S_32 x = wX, y = wY;
+		//int32_t x = wX, y = wY;
 		//PLAYER_DATA pld = GetLayerDataAt( &x, &y );
 		//lprintf( WIDE("%s at %d,%d"), pld?WIDE("something"):WIDE("nothing"), x, y );
 	}
@@ -404,7 +404,7 @@ void DoMouse( int X, int Y, int b )
 	{
 	   if( !route_current_layer )
 	   {
-			S_32 x = wX, y = wY;
+			int32_t x = wX, y = wY;
 			lprintf( WIDE("right at %d,%d"), wX, wY );
 			PLAYER_DATA pld = GetLayerDataAt( &x, &y );
 			if( pld )
@@ -480,7 +480,7 @@ void DoMouse( int X, int Y, int b )
 			// this is 'move neuron'
 			// or disconnect from...
 
-			S_32 x = wX, y = wY;
+			int32_t x = wX, y = wY;
 			PLAYER layer = GetLayerAt( &x, &y, route_current_layer );
 			lprintf( WIDE("event at %d,%d"), wX, wY );
 			if( route_current_layer )
@@ -576,7 +576,7 @@ private:
 public:
 
    BOARD();
-   BOARD(PSI_CONTROL parent, S_32 x, S_32 y, _32 w, _32 h );
+   BOARD(PSI_CONTROL parent, int32_t x, int32_t y, uint32_t w, uint32_t h );
    ~BOARD();
 	PIPEICE CreatePeice( CTEXTSTR name //= WIDE("A Peice")
 								  , Image image //= NULL
@@ -585,12 +585,12 @@ public:
 								  , int hotspot_x
 								  , int hotspot_y
 								  , PPEICE_METHODS methods //= NULL
-								  , PTRSZVAL psv
+								  , uintptr_t psv
 								  );
 	PIVIA CreateVia( CTEXTSTR name //= WIDE("A Peice")
 						, Image image //= NULL
 						, PVIA_METHODS methods //= NULL
-					  , PTRSZVAL psv
+					  , uintptr_t psv
 						);
 	PIPEICE GetFirstPeice( INDEX *idx );
 	PIPEICE GetNextPeice( INDEX *idx );
@@ -639,14 +639,14 @@ int CPROC PSIBoardRefreshExtern( PCOMMON pc )
 }
 #endif
 
-void CPROC BoardRefreshExtern( PTRSZVAL dwUser, PRENDERER renderer )
+void CPROC BoardRefreshExtern( uintptr_t dwUser, PRENDERER renderer )
 {
 	BOARD *pb = (BOARD*)dwUser;
 	pb->BoardRefresh();
 }
 
 
-int CPROC DoMouseExtern( PTRSZVAL dwUser, S_32 x, S_32 y, _32 b )
+int CPROC DoMouseExtern( uintptr_t dwUser, int32_t x, int32_t y, uint32_t b )
 {
    BOARD *pb = (BOARD*)dwUser;
    pb->DoMouse( x, y, b );
@@ -655,7 +655,7 @@ int CPROC DoMouseExtern( PTRSZVAL dwUser, S_32 x, S_32 y, _32 b )
 
 
 #if 0
-void CPROC BoardWindowClose( _32 dwUser )
+void CPROC BoardWindowClose( uint32_t dwUser )
 {
 	BOARD *pb;
 	pb = (BOARD*)dwUser;
@@ -674,7 +674,7 @@ void BOARD::timer( void )
 	LeaveCriticalSec( &cs );
 }
 
-void CPROC BoardRefreshTimer( PTRSZVAL psv )
+void CPROC BoardRefreshTimer( uintptr_t psv )
 {
 	BOARD *board = (BOARD*)psv;
 	board->timer();
@@ -726,28 +726,28 @@ BOARD::BOARD()
 	Init();
 
 	{
-		_32 w, h;
+		uint32_t w, h;
 		GetDisplaySize( &w, &h );
 		pDisplay = OpenDisplaySizedAt( 0, w, h, 0, 0 );
 	}
 	//PSI_CONTROL frame = CreateFrameFromRenderer( WIDE("Brain Editor"), BORDER_RESIZABLE, pDisplay );
 	update = new UPDATE( pDisplay );
 
-	SetMouseHandler( pDisplay, DoMouseExtern, (PTRSZVAL)this );
-	//SetCloseHandler( pDisplay, BoardWindowClose, (_32)this );
+	SetMouseHandler( pDisplay, DoMouseExtern, (uintptr_t)this );
+	//SetCloseHandler( pDisplay, BoardWindowClose, (uint32_t)this );
 
-	SetRedrawHandler( pDisplay, BoardRefreshExtern, (PTRSZVAL)this );
+	SetRedrawHandler( pDisplay, BoardRefreshExtern, (uintptr_t)this );
    //AddCommonDraw( frame, PSIBoardRefreshExtern );
 
 	SetBlotMethod( BLOT_MMX );
 
-	AddTimer( 250, BoardRefreshTimer, (PTRSZVAL)this );
+	AddTimer( 250, BoardRefreshTimer, (uintptr_t)this );
 	UpdateDisplay( pDisplay );
 	//BoardRefresh();
 	// may seem redundant but I think that this is
 	// needed to unhide the initial window...
 	//UpdateDisplay( pDisplay );
-	//timerID = AddTimer( 1000, Timer, (PTRSZVAL)this );
+	//timerID = AddTimer( 1000, Timer, (uintptr_t)this );
 }
 
 extern CONTROL_REGISTRATION board_control; // forward declaration so we have the control ID
@@ -764,7 +764,7 @@ int CPROC DrawBrainEditorControl( PSI_CONTROL pc )
 	return 1;
 }
 
-int CPROC MouseBrainEditorControl( PSI_CONTROL pc, S_32 x, S_32 y, _32 b )
+int CPROC MouseBrainEditorControl( PSI_CONTROL pc, int32_t x, int32_t y, uint32_t b )
 {
 	ValidatedControlData( class BOARD * *, board_control.TypeID, ppBoard, pc );
 	if( ppBoard )
@@ -794,7 +794,7 @@ PRELOAD( RegisterBoardControl )
    DoRegisterControl( &board_control );
 }
 
-BOARD::BOARD(PSI_CONTROL parent, S_32 x, S_32 y, _32 w, _32 h )
+BOARD::BOARD(PSI_CONTROL parent, int32_t x, int32_t y, uint32_t w, uint32_t h )
 {
 	BOARD::Init();
 	pControl = MakeCaptionedControl( parent, board_control.TypeID
@@ -806,7 +806,7 @@ BOARD::BOARD(PSI_CONTROL parent, S_32 x, S_32 y, _32 w, _32 h )
 			(*ppBoard) = this;
 	}
 	update = new UPDATE( pControl );
-	iTimer = AddTimer( 250, BoardRefreshTimer, (PTRSZVAL)this );
+	iTimer = AddTimer( 250, BoardRefreshTimer, (uintptr_t)this );
 	DisplayFrame( pControl );
 }
 
@@ -819,8 +819,8 @@ BOARD::~BOARD()
 	DestroyFrame( &pControl );
 }
 
-void BOARD::SetCloseHandler( void (CPROC*f)(PTRSZVAL,class IBOARD*)
-								, PTRSZVAL psv )
+void BOARD::SetCloseHandler( void (CPROC*f)(uintptr_t,class IBOARD*)
+								, uintptr_t psv )
 {
 	this->OnClose = f;
 	this->psvClose = psv;
@@ -848,8 +848,8 @@ void BOARD::BoardRefresh( void )  // put current board on screen.
 		ClearImage( pImage );
 		// 8 border top, bottom(16),left,right(16)
 		{
-			_32 old_width = board_width;
-			_32 old_height = board_height;
+			uint32_t old_width = board_width;
+			uint32_t old_height = board_height;
 			board_width = ( pImage->width - (2*SCREEN_PAD) + ( cell_width-1) ) / cell_width;
 			board_height = ( pImage->height - (2*SCREEN_PAD) + (cell_height-1) ) / cell_height;
 			if( old_width != board_width || old_height != board_height )
@@ -861,14 +861,14 @@ void BOARD::BoardRefresh( void )  // put current board on screen.
 		}
 		if( default_peice )
 		{
-			_32 rows,cols;
-			S_32 sx, sy;
+			uint32_t rows,cols;
+			int32_t sx, sy;
 			default_peice->getsize( &rows, &cols );
 
 			if( board_origin_x >= 0 )
 				sx = board_origin_x % cols;
 			else
-				sx = -(-board_origin_x % (S_32)cols);
+				sx = -(-board_origin_x % (int32_t)cols);
 
 			if( sx >= 0 )
 				sx -= cols;
@@ -876,7 +876,7 @@ void BOARD::BoardRefresh( void )  // put current board on screen.
 			if( board_origin_y >= 0 )
 				sy = board_origin_y % rows;
 			else
-				sy = -(-board_origin_y % (S_32)rows);
+				sy = -(-board_origin_y % (int32_t)rows);
 
 			if( sy >= 0 )
 				sy -= rows;
@@ -903,8 +903,8 @@ void BOARD::BoardRefresh( void )  // put current board on screen.
 				DrawLayer( (PLAYER)layer );
 			}
 		}
-		//LayerPool->forall( faisDrawLayer, (PTRSZVAL)this );
-		//ForAllInSet( LAYER, LayerPool, faisDrawLayer, (PTRSZVAL)this );
+		//LayerPool->forall( faisDrawLayer, (uintptr_t)this );
+		//ForAllInSet( LAYER, LayerPool, faisDrawLayer, (uintptr_t)this );
 		update->flush();
 		LeaveCriticalSec( &cs );
 	}
@@ -915,12 +915,12 @@ void BOARD::Close( void )
 	delete this;
 }
 
-void BOARD::PutPeice( PIPEICE peice, S_32 x, S_32 y, PTRSZVAL psv )
+void BOARD::PutPeice( PIPEICE peice, int32_t x, int32_t y, uintptr_t psv )
 {
-	//PTRSZVAL psv = peice->Create();
+	//uintptr_t psv = peice->Create();
    // at some point I have to instance the peice to have a neuron...
-	_32 rows, cols;
-	S_32 hotx, hoty;
+	uint32_t rows, cols;
+	int32_t hotx, hoty;
 	if( !peice ) {
 		lprintf( WIDE("PEICE IS NULL!") );
 		return;
@@ -947,7 +947,7 @@ PIBOARD CreateBoard( void )
    return new BOARD();
 }
 
-PIBOARD CreateBoardControl( PSI_CONTROL parent, S_32 x, S_32 y, _32 w, _32 h )
+PIBOARD CreateBoardControl( PSI_CONTROL parent, int32_t x, int32_t y, uint32_t w, uint32_t h )
 {
    return new BOARD(parent, x, y, w, h);
 }
@@ -960,7 +960,7 @@ PIPEICE BOARD::CreatePeice( CTEXTSTR name //= WIDE("A Peice")
 								  , int hotspot_x
 								  , int hotspot_y
 								  , PPEICE_METHODS methods //= NULL
-								  , PTRSZVAL psv
+								  , uintptr_t psv
 								  )
 {
 	PIPEICE peice = DoCreatePeice( this, name, image, rows, cols, hotspot_x, hotspot_y, methods, psv );
@@ -971,7 +971,7 @@ PIPEICE BOARD::CreatePeice( CTEXTSTR name //= WIDE("A Peice")
 PIVIA BOARD::CreateVia( CTEXTSTR  name //= WIDE("A Peice")
 											 , Image image //= NULL
 											 , PVIA_METHODS methods //= NULL
-											 , PTRSZVAL psv
+											 , uintptr_t psv
 											 )
 {
 	PIVIA via = DoCreateVia( this, name, image, methods, psv );
@@ -1008,7 +1008,7 @@ struct save_struct
 };
 
 
-PTRSZVAL CPROC SaveLayer( POINTER p, PTRSZVAL psv )
+uintptr_t CPROC SaveLayer( POINTER p, uintptr_t psv )
 {
 	PLAYER layer = (PLAYER)p;
 	if( layer->pLayerData )
@@ -1022,7 +1022,7 @@ PTRSZVAL CPROC SaveLayer( POINTER p, PTRSZVAL psv )
 	return 0;
 }
 
-PTRSZVAL CPROC BeginSaveLayer( POINTER p, PTRSZVAL psv )
+uintptr_t CPROC BeginSaveLayer( POINTER p, uintptr_t psv )
 {
 	PLAYER layer = (PLAYER)p;
 	struct save_struct *save_struct = (struct save_struct*)psv;
@@ -1054,15 +1054,15 @@ INDEX BOARD::Save( PODBC odbc, CTEXTSTR boardname )
 	//SQLCommandf( odbc, WIDE("update board_info ") );
 	SQLCommandf( odbc, WIDE("delete from board_layer_link where board_info_id = %lu"), save_struct.iBoard );
 
-	ForAllInSet( LAYER, LayerPool, BeginSaveLayer, (PTRSZVAL)&save_struct );
-	ForAllInSet( LAYER, LayerPool, SaveLayer, (PTRSZVAL)&save_struct );
+	ForAllInSet( LAYER, LayerPool, BeginSaveLayer, (uintptr_t)&save_struct );
+	ForAllInSet( LAYER, LayerPool, SaveLayer, (uintptr_t)&save_struct );
 
-	//LayerPool->forall( BeginSaveLayer, (PTRSZVAL)&save_struct );
-	//LayerPool->forall( SaveLayer, (PTRSZVAL)&save_struct );
+	//LayerPool->forall( BeginSaveLayer, (uintptr_t)&save_struct );
+	//LayerPool->forall( SaveLayer, (uintptr_t)&save_struct );
 	return save_struct.iBoard;
 }
 
-PTRSZVAL CPROC DeleteSaveLayer( POINTER p, PTRSZVAL psv )
+uintptr_t CPROC DeleteSaveLayer( POINTER p, uintptr_t psv )
 {
 	PLAYER l = (PLAYER)p;
 	delete l;
@@ -1111,7 +1111,7 @@ LOGICAL BOARD::Load( PODBC odbc, CTEXTSTR boardname )
 			{
 				//PIPEICE peice_type = GetPeice( peices, results[1] );
 				INDEX iLayer = IntCreateFromText( results[0] );
-				PLAYER pl = (PLAYER)ForAllInSet( LAYER, this->LayerPool, CheckIsLayer, (PTRSZVAL)iLayer );
+				PLAYER pl = (PLAYER)ForAllInSet( LAYER, this->LayerPool, CheckIsLayer, (uintptr_t)iLayer );
 				//(PLAYER)this->LayerPool->forall( CheckIsLayer, iLayer );
 				if( !pl )
 				{

@@ -40,8 +40,8 @@ extern CONTROL_REGISTRATION menu_surface;
 
 static struct local_load_save_data {
 	struct {
-		// current psv passed is a PTRSZVAL(custom control result) not a MENU_BUTTON
-		_32 bCustom : 1;
+		// current psv passed is a uintptr_t(custom control result) not a MENU_BUTTON
+		uint32_t bCustom : 1;
 	} flags;
 	PLINKSTACK current_button; // use this cause sometimes psv isn't a MENU_BUTTON
 	PLINKSTACK current_canvas; // this is a stack of PSI_CONTROLs that are type menu_surface.TypeID, (PCanvasData)
@@ -73,7 +73,7 @@ PCONFIG_HANDLER InterShell_GetCurrentConfigHandler( void )
    return my_current_handler;
 }
 
-static PTRSZVAL CPROC SetMenuRowCols( PTRSZVAL psv, arg_list args );
+static uintptr_t CPROC SetMenuRowCols( uintptr_t psv, arg_list args );
 
 PSI_CONTROL InterShell_GetCurrentLoadingCanvas( void )
 {
@@ -93,8 +93,8 @@ void SetDefaultRowsCols( void )
 
 	if( !canvas->flags.bSetResolution )
 	{
-		PushArgument( args, _64, 40 );
-		PushArgument( args, _64, 40 );
+		PushArgument( args, uint64_t, 40 );
+		PushArgument( args, uint64_t, 40 );
 		SetMenuRowCols( 0, pass_args( args ) );
 		PopArguments( args );
 	}
@@ -106,7 +106,7 @@ PMENU_BUTTON InterShell_GetCurrentLoadingControl( void )
 
 }
 
-static PTRSZVAL CPROC AddGenericParameters( PTRSZVAL psv, arg_list args )
+static uintptr_t CPROC AddGenericParameters( uintptr_t psv, arg_list args )
 {
 	PMENU_BUTTON current_button = (PMENU_BUTTON)PeekLink( &l.current_button );
 	current_button->flags.bConfigured = 1;
@@ -114,7 +114,7 @@ static PTRSZVAL CPROC AddGenericParameters( PTRSZVAL psv, arg_list args )
 	return psv;
 }
 
-static PTRSZVAL CPROC ResetConfig( PTRSZVAL psv, arg_list args )
+static uintptr_t CPROC ResetConfig( uintptr_t psv, arg_list args )
 {
 	PMENU_BUTTON current_button = (PMENU_BUTTON)PeekLink( &l.current_button );
 	if( current_button && psv )
@@ -143,7 +143,7 @@ static PTRSZVAL CPROC ResetConfig( PTRSZVAL psv, arg_list args )
 }
 
 //---------------------------------------------------------------------------
-static PTRSZVAL CPROC ResetCanvasConfig( PTRSZVAL psv, arg_list args )
+static uintptr_t CPROC ResetCanvasConfig( uintptr_t psv, arg_list args )
 {
 	PSI_CONTROL pc_canvas = (PSI_CONTROL)PopLink( &l.current_canvas );
 	PCanvasData canvas = GetCanvas( pc_canvas=(PSI_CONTROL)PeekLink( &l.current_canvas ) );
@@ -157,7 +157,7 @@ static PTRSZVAL CPROC ResetCanvasConfig( PTRSZVAL psv, arg_list args )
 	return psv;
 }
 //---------------------------------------------------------------------------
-static PTRSZVAL CPROC ResetMainCanvasConfig( PTRSZVAL psv, arg_list args )
+static uintptr_t CPROC ResetMainCanvasConfig( uintptr_t psv, arg_list args )
 {
    // this is not allowed to pop the current (master/main) canvas.
 	PSI_CONTROL pc_canvas = (PSI_CONTROL)PeekLink( &l.current_canvas );
@@ -170,7 +170,7 @@ static PTRSZVAL CPROC ResetMainCanvasConfig( PTRSZVAL psv, arg_list args )
 	return psv;
 }
 //---------------------------------------------------------------------------
-static PTRSZVAL CPROC SetListMultiSelect( PTRSZVAL psv, arg_list args )
+static uintptr_t CPROC SetListMultiSelect( uintptr_t psv, arg_list args )
 {
 	if( psv )
 	{
@@ -183,7 +183,7 @@ static PTRSZVAL CPROC SetListMultiSelect( PTRSZVAL psv, arg_list args )
 }
 
 //---------------------------------------------------------------------------
-static PTRSZVAL CPROC SetListMultiLazySelect( PTRSZVAL psv, arg_list args )
+static uintptr_t CPROC SetListMultiLazySelect( uintptr_t psv, arg_list args )
 {
 	if( psv )
 	{
@@ -198,7 +198,7 @@ static PTRSZVAL CPROC SetListMultiLazySelect( PTRSZVAL psv, arg_list args )
 
 //---------------------------------------------------------------------------
 
-PTRSZVAL CPROC UnhandledLine( PTRSZVAL psv, CTEXTSTR line )
+uintptr_t CPROC UnhandledLine( uintptr_t psv, CTEXTSTR line )
 {
 	if( line && strlen( line ) )
 	{
@@ -220,7 +220,7 @@ PTRSZVAL CPROC UnhandledLine( PTRSZVAL psv, CTEXTSTR line )
 
 //---------------------------------------------------------------------------
 
-PTRSZVAL CPROC ProcessLast( PTRSZVAL psv )
+uintptr_t CPROC ProcessLast( uintptr_t psv )
 {
 	PMENU_BUTTON   current_button = (PMENU_BUTTON)PeekLink( &l.current_button );
 	if( current_button )
@@ -256,7 +256,7 @@ LOGICAL BeginSubConfigurationEx( PMENU_BUTTON current_button, TEXTCHAR *control_
 		SetConfigurationUnhandled( my_current_handler, UnhandledLine );
 		{
 			TEXTCHAR rootname[256];
-			void (CPROC*f)(PCONFIG_HANDLER,PTRSZVAL);
+			void (CPROC*f)(PCONFIG_HANDLER,uintptr_t);
 			if( !current_button )
 				current_button = (PMENU_BUTTON)PeekLink( &l.current_button );
 #ifdef DEBUG_CONIG_STATE
@@ -266,7 +266,7 @@ LOGICAL BeginSubConfigurationEx( PMENU_BUTTON current_button, TEXTCHAR *control_
 						, current_button );
 
 			snprintf( rootname, sizeof( rootname ), TASK_PREFIX WIDE( "/control/%s" ), control_type_name );
-			f = GetRegisteredProcedure2( rootname, void, WIDE("control_config"), (PCONFIG_HANDLER,PTRSZVAL) );
+			f = GetRegisteredProcedure2( rootname, void, WIDE("control_config"), (PCONFIG_HANDLER,uintptr_t) );
 			if( f )
 			{
 				//lprintf( WIDE( "Gave control a chance to register additional methods on current config... " ) );
@@ -304,7 +304,7 @@ LOGICAL BeginSubConfiguration( TEXTCHAR *control_type_name, const TEXTCHAR *end_
 
 //---------------------------------------------------------------------------
 
-PTRSZVAL CPROC AddAllowedSystemShow( PTRSZVAL psv, arg_list args )
+uintptr_t CPROC AddAllowedSystemShow( uintptr_t psv, arg_list args )
 {
 	PARAM( args, CTEXTSTR, name );
 	PMENU_BUTTON   current_button = (PMENU_BUTTON)PeekLink( &l.current_button );
@@ -318,7 +318,7 @@ PTRSZVAL CPROC AddAllowedSystemShow( PTRSZVAL psv, arg_list args )
 
 //---------------------------------------------------------------------------
 
-PTRSZVAL CPROC AddDisallowedSystemShow( PTRSZVAL psv, arg_list args )
+uintptr_t CPROC AddDisallowedSystemShow( uintptr_t psv, arg_list args )
 {
 	PARAM( args, CTEXTSTR, name );
 	PMENU_BUTTON   current_button = (PMENU_BUTTON)PeekLink( &l.current_button );
@@ -334,16 +334,16 @@ PTRSZVAL CPROC AddDisallowedSystemShow( PTRSZVAL psv, arg_list args )
 
 //---------------------------------------------------------------------------
 
-static PTRSZVAL CPROC CreateNewControl( PTRSZVAL psv, arg_list args )
+static uintptr_t CPROC CreateNewControl( uintptr_t psv, arg_list args )
 {
 	PARAM( args, TEXTCHAR *, type );
-	PARAM( args, _64, col );
-	PARAM( args, _64, row );
+	PARAM( args, uint64_t, col );
+	PARAM( args, uint64_t, row );
 	// this will be backwards compatible if we should
 	// happen to save a new menu, the old menu uhh
 	// will probably puke and die...
-	PARAM( args, _64, width );
-	PARAM( args, _64, height );
+	PARAM( args, uint64_t, width );
+	PARAM( args, uint64_t, height );
 	PSI_CONTROL pc_canvas;
 	//PCanvasData canvas;
 	pc_canvas=(PSI_CONTROL)PeekLink( &l.current_canvas );
@@ -419,7 +419,7 @@ void SetCurrentLoadingButton( PMENU_BUTTON button )
 
 //---------------------------------------------------------------------------
 
-static PTRSZVAL CPROC SetMenuButtonColor( PTRSZVAL psv, arg_list args )
+static uintptr_t CPROC SetMenuButtonColor( uintptr_t psv, arg_list args )
 {
 	PARAM( args, CDATA, color );
 	//lprintf( WIDE("menubutton color..") );
@@ -439,7 +439,7 @@ static PTRSZVAL CPROC SetMenuButtonColor( PTRSZVAL psv, arg_list args )
 
 //---------------------------------------------------------------------------
 
-static PTRSZVAL CPROC SetMenuButtonHighlightColor( PTRSZVAL psv, arg_list args )
+static uintptr_t CPROC SetMenuButtonHighlightColor( uintptr_t psv, arg_list args )
 {
 	PMENU_BUTTON   current_button = (PMENU_BUTTON)PeekLink( &l.current_button );
 	PARAM( args, CDATA, color );
@@ -459,7 +459,7 @@ static PTRSZVAL CPROC SetMenuButtonHighlightColor( PTRSZVAL psv, arg_list args )
 
 //---------------------------------------------------------------------------
 
-static PTRSZVAL CPROC SetMenuButtonSecondaryColor( PTRSZVAL psv, arg_list args )
+static uintptr_t CPROC SetMenuButtonSecondaryColor( uintptr_t psv, arg_list args )
 {
 	PMENU_BUTTON   current_button = (PMENU_BUTTON)PeekLink( &l.current_button );
 	PARAM( args, CDATA, color );
@@ -479,7 +479,7 @@ static PTRSZVAL CPROC SetMenuButtonSecondaryColor( PTRSZVAL psv, arg_list args )
 
 //---------------------------------------------------------------------------
 
-static PTRSZVAL CPROC SetMenuButtonTextColor( PTRSZVAL psv, arg_list args )
+static uintptr_t CPROC SetMenuButtonTextColor( uintptr_t psv, arg_list args )
 {
 	PARAM( args, CDATA, color );
 	// lprintf( WIDE("...") );
@@ -499,9 +499,9 @@ static PTRSZVAL CPROC SetMenuButtonTextColor( PTRSZVAL psv, arg_list args )
 
 //---------------------------------------------------------------------------
 
-static PTRSZVAL CPROC SetMenuButtonThemeColor( PTRSZVAL psv, arg_list args )
+static uintptr_t CPROC SetMenuButtonThemeColor( uintptr_t psv, arg_list args )
 {
-	PARAM( args, S_64, theme_id );
+	PARAM( args, int64_t, theme_id );
 	PARAM( args, CDATA, color );
 	PMENU_BUTTON   current_button = (PMENU_BUTTON)PeekLink( &l.current_button );
 	if( current_button )
@@ -519,9 +519,9 @@ static PTRSZVAL CPROC SetMenuButtonThemeColor( PTRSZVAL psv, arg_list args )
 
 //---------------------------------------------------------------------------
 
-static PTRSZVAL CPROC SetMenuButtonHighlightThemeColor( PTRSZVAL psv, arg_list args )
+static uintptr_t CPROC SetMenuButtonHighlightThemeColor( uintptr_t psv, arg_list args )
 {
-	PARAM( args, S_64, theme_id );
+	PARAM( args, int64_t, theme_id );
 	PARAM( args, CDATA, color );
 	PMENU_BUTTON   current_button = (PMENU_BUTTON)PeekLink( &l.current_button );
 	//lprintf( WIDE("...") );
@@ -540,9 +540,9 @@ static PTRSZVAL CPROC SetMenuButtonHighlightThemeColor( PTRSZVAL psv, arg_list a
 
 //---------------------------------------------------------------------------
 
-static PTRSZVAL CPROC SetMenuButtonSecondaryThemeColor( PTRSZVAL psv, arg_list args )
+static uintptr_t CPROC SetMenuButtonSecondaryThemeColor( uintptr_t psv, arg_list args )
 {
-	PARAM( args, S_64, theme_id );
+	PARAM( args, int64_t, theme_id );
 	PARAM( args, CDATA, color );
 	PMENU_BUTTON   current_button = (PMENU_BUTTON)PeekLink( &l.current_button );
 	if( current_button )
@@ -560,9 +560,9 @@ static PTRSZVAL CPROC SetMenuButtonSecondaryThemeColor( PTRSZVAL psv, arg_list a
 
 //---------------------------------------------------------------------------
 
-static PTRSZVAL CPROC SetMenuButtonTextThemeColor( PTRSZVAL psv, arg_list args )
+static uintptr_t CPROC SetMenuButtonTextThemeColor( uintptr_t psv, arg_list args )
 {
-	PARAM( args, S_64, theme_id );
+	PARAM( args, int64_t, theme_id );
 	PARAM( args, CDATA, color );
 	PMENU_BUTTON   current_button = (PMENU_BUTTON)PeekLink( &l.current_button );
 	if( current_button )
@@ -579,7 +579,7 @@ static PTRSZVAL CPROC SetMenuButtonTextThemeColor( PTRSZVAL psv, arg_list args )
 }
 
 //---------------------------------------------------------------------------
-static PTRSZVAL CPROC SetMenuBackgroundColor( PTRSZVAL psv, arg_list args )
+static uintptr_t CPROC SetMenuBackgroundColor( uintptr_t psv, arg_list args )
 {
 	PARAM( args, CDATA, color );
 	//lprintf( WIDE("...") );
@@ -589,7 +589,7 @@ static PTRSZVAL CPROC SetMenuBackgroundColor( PTRSZVAL psv, arg_list args )
 	return psv;
 }
 
-static PTRSZVAL CPROC SetMenuBackground( PTRSZVAL psv, arg_list args )
+static uintptr_t CPROC SetMenuBackground( uintptr_t psv, arg_list args )
 {
 	PARAM( args, TEXTCHAR *, filename );
 	PCanvasData canvas = GetCanvas( (PSI_CONTROL)PeekLink( &l.current_canvas ) );
@@ -604,9 +604,9 @@ static PTRSZVAL CPROC SetMenuBackground( PTRSZVAL psv, arg_list args )
 	return psv;
 }
 
-static PTRSZVAL CPROC SetMenuBackgroundColorTheme( PTRSZVAL psv, arg_list args )
+static uintptr_t CPROC SetMenuBackgroundColorTheme( uintptr_t psv, arg_list args )
 {
-	PARAM( args, S_64, theme_id );
+	PARAM( args, int64_t, theme_id );
 	PARAM( args, CDATA, color );
 	PCanvasData canvas = GetCanvas( (PSI_CONTROL)PeekLink( &l.current_canvas ) );
 	SetLink( &canvas->current_page->background_colors, (INDEX)theme_id, color );
@@ -614,9 +614,9 @@ static PTRSZVAL CPROC SetMenuBackgroundColorTheme( PTRSZVAL psv, arg_list args )
 	return psv;
 }
 
-static PTRSZVAL CPROC SetMenuBackgroundTheme( PTRSZVAL psv, arg_list args )
+static uintptr_t CPROC SetMenuBackgroundTheme( uintptr_t psv, arg_list args )
 {
-	PARAM( args, S_64, theme_id );
+	PARAM( args, int64_t, theme_id );
 	PARAM( args, TEXTCHAR *, filename );
 	PCanvasData canvas = GetCanvas( (PSI_CONTROL)PeekLink( &l.current_canvas ) );
 	SetLink( &canvas->current_page->backgrounds, (INDEX)theme_id, StrDup( filename ) );
@@ -627,21 +627,21 @@ static PTRSZVAL CPROC SetMenuBackgroundTheme( PTRSZVAL psv, arg_list args )
 
 //---------------------------------------------------------------------------
 
-static PTRSZVAL CPROC SetMenuButtonImageMargin( PTRSZVAL psv, arg_list args )
+static uintptr_t CPROC SetMenuButtonImageMargin( uintptr_t psv, arg_list args )
 {
-	PARAM( args, S_64, hMargin );
-	PARAM( args, S_64, vMargin );
+	PARAM( args, int64_t, hMargin );
+	PARAM( args, int64_t, vMargin );
 	PMENU_BUTTON   current_button = (PMENU_BUTTON)PeekLink( &l.current_button );
 	if( current_button )
 	{
-		current_button->decal_horiz_margin = (_32)hMargin;
-		current_button->decal_vert_margin = (_32)vMargin;
-		SetKeyImageMargin( current_button->control.key, (_32)hMargin, (_32)vMargin );
+		current_button->decal_horiz_margin = (uint32_t)hMargin;
+		current_button->decal_vert_margin = (uint32_t)vMargin;
+		SetKeyImageMargin( current_button->control.key, (uint32_t)hMargin, (uint32_t)vMargin );
 	}
 
 	return psv;
 }
-static PTRSZVAL CPROC SetMenuButtonImage( PTRSZVAL psv, arg_list args )
+static uintptr_t CPROC SetMenuButtonImage( uintptr_t psv, arg_list args )
 {
 	PARAM( args, TEXTCHAR *, text );
 	PMENU_BUTTON   current_button = (PMENU_BUTTON)PeekLink( &l.current_button );
@@ -652,7 +652,7 @@ static PTRSZVAL CPROC SetMenuButtonImage( PTRSZVAL psv, arg_list args )
 
 //---------------------------------------------------------------------------
 
-static PTRSZVAL CPROC SetMenuButtonText( PTRSZVAL psv, arg_list args )
+static uintptr_t CPROC SetMenuButtonText( uintptr_t psv, arg_list args )
 {
 	PARAM( args, TEXTCHAR *, text );
 	PMENU_BUTTON   current_button = (PMENU_BUTTON)PeekLink( &l.current_button );
@@ -667,7 +667,7 @@ static PTRSZVAL CPROC SetMenuButtonText( PTRSZVAL psv, arg_list args )
 
 //---------------------------------------------------------------------------
 
-static PTRSZVAL CPROC SetButtonRound( PTRSZVAL psv, arg_list args )
+static uintptr_t CPROC SetButtonRound( uintptr_t psv, arg_list args )
 {
 	PARAM( args, TEXTCHAR *, type );
 	PMENU_BUTTON   current_button = (PMENU_BUTTON)PeekLink( &l.current_button );
@@ -680,7 +680,7 @@ static PTRSZVAL CPROC SetButtonRound( PTRSZVAL psv, arg_list args )
 
 //---------------------------------------------------------------------------
 
-static PTRSZVAL CPROC SetAllowEdit( PTRSZVAL psv, arg_list args )
+static uintptr_t CPROC SetAllowEdit( uintptr_t psv, arg_list args )
 {
 	PARAM( args, LOGICAL, bAllow );
 	g.flags.bNoEdit = !bAllow;
@@ -690,7 +690,7 @@ static PTRSZVAL CPROC SetAllowEdit( PTRSZVAL psv, arg_list args )
 
 //---------------------------------------------------------------------------
 
-static PTRSZVAL CPROC SetAllowMultiInstance( PTRSZVAL psv, arg_list args )
+static uintptr_t CPROC SetAllowMultiInstance( uintptr_t psv, arg_list args )
 {
 	PARAM( args, LOGICAL, bAllow );
 	if( bAllow )
@@ -705,7 +705,7 @@ static PTRSZVAL CPROC SetAllowMultiInstance( PTRSZVAL psv, arg_list args )
 
 //---------------------------------------------------------------------------
 
-static PTRSZVAL CPROC SetRoundGlare( PTRSZVAL psv, arg_list args )
+static uintptr_t CPROC SetRoundGlare( uintptr_t psv, arg_list args )
 {
 	PARAM( args, CTEXTSTR, type );
 	PARAM( args, CTEXTSTR, filename );
@@ -719,7 +719,7 @@ static PTRSZVAL CPROC SetRoundGlare( PTRSZVAL psv, arg_list args )
 
 //---------------------------------------------------------------------------
 
-static PTRSZVAL CPROC SetRoundUp( PTRSZVAL psv, arg_list args )
+static uintptr_t CPROC SetRoundUp( uintptr_t psv, arg_list args )
 {
 	PARAM( args, CTEXTSTR, type );
 	PARAM( args, CTEXTSTR, filename );
@@ -733,7 +733,7 @@ static PTRSZVAL CPROC SetRoundUp( PTRSZVAL psv, arg_list args )
 
 //---------------------------------------------------------------------------
 
-static PTRSZVAL CPROC SetRoundMonoShade( PTRSZVAL psv, arg_list args )
+static uintptr_t CPROC SetRoundMonoShade( uintptr_t psv, arg_list args )
 {
 	PARAM( args, CTEXTSTR, type );
 	PGLARE_SET glare_set = GetGlareSet( type );
@@ -743,7 +743,7 @@ static PTRSZVAL CPROC SetRoundMonoShade( PTRSZVAL psv, arg_list args )
 
 //---------------------------------------------------------------------------
 
-static PTRSZVAL CPROC SetRoundMultiShade( PTRSZVAL psv, arg_list args )
+static uintptr_t CPROC SetRoundMultiShade( uintptr_t psv, arg_list args )
 {
 	PARAM( args, CTEXTSTR, type );
 	PGLARE_SET glare_set = GetGlareSet( type );
@@ -753,7 +753,7 @@ static PTRSZVAL CPROC SetRoundMultiShade( PTRSZVAL psv, arg_list args )
 
 //---------------------------------------------------------------------------
 
-static PTRSZVAL CPROC SetControlFontPreset( PTRSZVAL psv, arg_list args )
+static uintptr_t CPROC SetControlFontPreset( uintptr_t psv, arg_list args )
 {
 	PARAM( args, CTEXTSTR, fontname );
 	PMENU_BUTTON   current_button = (PMENU_BUTTON)PeekLink( &l.current_button );
@@ -771,7 +771,7 @@ static PTRSZVAL CPROC SetControlFontPreset( PTRSZVAL psv, arg_list args )
 
 //---------------------------------------------------------------------------
 
-static PTRSZVAL CPROC SetRoundDown( PTRSZVAL psv, arg_list args )
+static uintptr_t CPROC SetRoundDown( uintptr_t psv, arg_list args )
 {
 	PARAM( args, CTEXTSTR, type );
 	PARAM( args, CTEXTSTR, filename );
@@ -785,7 +785,7 @@ static PTRSZVAL CPROC SetRoundDown( PTRSZVAL psv, arg_list args )
 
 //---------------------------------------------------------------------------
 
-static PTRSZVAL CPROC SetRoundMask( PTRSZVAL psv, arg_list args )
+static uintptr_t CPROC SetRoundMask( uintptr_t psv, arg_list args )
 {
 	PARAM( args, CTEXTSTR, type );
 	PARAM( args, CTEXTSTR, filename );
@@ -799,7 +799,7 @@ static PTRSZVAL CPROC SetRoundMask( PTRSZVAL psv, arg_list args )
 
 //---------------------------------------------------------------------------
 
-static PTRSZVAL CPROC SetButtonNoPress( PTRSZVAL psv, arg_list args )
+static uintptr_t CPROC SetButtonNoPress( uintptr_t psv, arg_list args )
 {
 	PMENU_BUTTON   current_button = (PMENU_BUTTON)PeekLink( &l.current_button );
 	if( current_button )
@@ -811,11 +811,11 @@ static PTRSZVAL CPROC SetButtonNoPress( PTRSZVAL psv, arg_list args )
 
 //---------------------------------------------------------------------------
 
-PTRSZVAL CPROC SetMenuRowCols( PTRSZVAL psv, arg_list args )
+uintptr_t CPROC SetMenuRowCols( uintptr_t psv, arg_list args )
 {
-	PARAM( args, S_64, cols );
-	PARAM( args, S_64, rows );
-	_32 button_rows, button_cols, button_space;
+	PARAM( args, int64_t, cols );
+	PARAM( args, int64_t, rows );
+	uint32_t button_rows, button_cols, button_space;
 	// 25 PART_RESOLUTION's?
 	PCanvasData canvas = GetCanvas( (PSI_CONTROL)PeekLink( &l.current_canvas ) );
 	{
@@ -829,10 +829,10 @@ PTRSZVAL CPROC SetMenuRowCols( PTRSZVAL psv, arg_list args )
 			InvokePageChange( canvas->pc_canvas );
 		}
 	}
-	//lprintf( WIDE("Page %p gets rows/cols %d/%d"), canvas->current_page, (_32)rows, (_32)cols );
+	//lprintf( WIDE("Page %p gets rows/cols %d/%d"), canvas->current_page, (uint32_t)rows, (uint32_t)cols );
 	button_space = 0;
-	button_rows = (_32)rows;
-	button_cols = (_32)cols;
+	button_rows = (uint32_t)rows;
+	button_cols = (uint32_t)cols;
 
 	if( button_cols == 0 )
 		button_cols = 40;
@@ -847,14 +847,14 @@ PTRSZVAL CPROC SetMenuRowCols( PTRSZVAL psv, arg_list args )
 	return psv;
 }
 
-void CPROC InterShell_SetPageLayout( PSI_CONTROL _canvas, _32 cols, _32 rows )  // width/height, x/y
+void CPROC InterShell_SetPageLayout( PSI_CONTROL _canvas, uint32_t cols, uint32_t rows )  // width/height, x/y
 {
 	va_args args;
 	PCanvasData canvas = GetCanvas( (PSI_CONTROL)_canvas );
 	init_args( args );
 
-	PushArgument( args, _64, cols );
-	PushArgument( args, _64, rows );
+	PushArgument( args, uint64_t, cols );
+	PushArgument( args, uint64_t, rows );
 	PushLink( &l.current_canvas, _canvas );
 	SetMenuRowCols( 0, pass_args( args ) );
 	PopLink( &l.current_canvas );
@@ -866,7 +866,7 @@ void CPROC InterShell_SetPageLayout( PSI_CONTROL _canvas, _32 cols, _32 rows )  
 //---------------------------------------------------------------------------
 
 #if 0
-static PTRSZVAL CPROC EndConfig( PTRSZVAL psv, TEXTCHAR *line )
+static uintptr_t CPROC EndConfig( uintptr_t psv, TEXTCHAR *line )
 {
 	if( line )
 	{
@@ -878,12 +878,12 @@ static PTRSZVAL CPROC EndConfig( PTRSZVAL psv, TEXTCHAR *line )
 }
 #endif
 
-PTRSZVAL GetButtonExtension( PMENU_BUTTON button )
+uintptr_t GetButtonExtension( PMENU_BUTTON button )
 {
 	return button->psvUser;
 }
 
-static PTRSZVAL CPROC ReadNextPage( PTRSZVAL psv, arg_list args )
+static uintptr_t CPROC ReadNextPage( uintptr_t psv, arg_list args )
 {
 	PARAM( args, CTEXTSTR, name );
 	PMENU_BUTTON   current_button = (PMENU_BUTTON)PeekLink( &l.current_button );
@@ -935,7 +935,7 @@ void PublicAddCommonButtonConfig( PMENU_BUTTON button )
 }
 
 
-PTRSZVAL CPROC CreateTitledPage( PTRSZVAL psv, arg_list args )
+uintptr_t CPROC CreateTitledPage( uintptr_t psv, arg_list args )
 {
 	PARAM( args, TEXTCHAR *, title );
 	PSI_CONTROL pc_canvas = (PSI_CONTROL)PeekLink( &l.current_canvas );
@@ -943,7 +943,7 @@ PTRSZVAL CPROC CreateTitledPage( PTRSZVAL psv, arg_list args )
 	return psv;
 }
 
-static PTRSZVAL CPROC AddASystem( PTRSZVAL psv, arg_list args )
+static uintptr_t CPROC AddASystem( uintptr_t psv, arg_list args )
 {
 	PARAM( args, TEXTCHAR *, system );
 	AddSystemName( NULL, system );
@@ -1107,8 +1107,8 @@ void LoadButtonConfig( PSI_CONTROL pc_canvas, TEXTSTR filename )
 	{
 		if( g.flags.forceload )
 		{
-			PTRSZVAL size = 0;
-			PTRSZVAL real_file_size = 0;
+			uintptr_t size = 0;
+			uintptr_t real_file_size = 0;
 			TEXTSTR tmpname = ExpandPath( filename );
 			POINTER mem;
 			FILE *file = sack_fopen( GetFileGroup( WIDE("Resources"), NULL ), tmpname, WIDE("rb") );
@@ -1142,10 +1142,10 @@ void LoadButtonConfig( PSI_CONTROL pc_canvas, TEXTSTR filename )
 #ifndef __ARM__
 		if( g.flags.restoreload )
 		{
-			PTRSZVAL size = 0;
+			uintptr_t size = 0;
 			POINTER mem = OpenSpace( NULL, filename, &size );
 			FILE *file;
-			PTRSZVAL real_file_size = 0;
+			uintptr_t real_file_size = 0;
 			if( mem && size )
 			{
 				file = sack_fopen( GetFileGroup( WIDE("Resources"), NULL ), filename, WIDE( "rb" ) );
@@ -1283,8 +1283,8 @@ void InterShell_SaveCommonButtonParameters( FILE *file )
 
 void DumpGeneric( FILE *file, PMENU_BUTTON button )
 {
-	void (CPROC*f)(FILE*,PMENU_BUTTON,PTRSZVAL);
-	void (CPROC*f2)(FILE*,PTRSZVAL);
+	void (CPROC*f)(FILE*,PMENU_BUTTON,uintptr_t);
+	void (CPROC*f2)(FILE*,uintptr_t);
 	TEXTCHAR rootname[256];
 	saving = button;
 	if( button->pTypeName )
@@ -1313,7 +1313,7 @@ void DumpGeneric( FILE *file, PMENU_BUTTON button )
 		if( !button->flags.bCustom )
 		{
 			snprintf( rootname, sizeof( rootname ), TASK_PREFIX WIDE( "/control/%s" ), button->pTypeName );
-			f = GetRegisteredProcedure2( rootname, void, WIDE("button_save"), (FILE*,PMENU_BUTTON,PTRSZVAL) );
+			f = GetRegisteredProcedure2( rootname, void, WIDE("button_save"), (FILE*,PMENU_BUTTON,uintptr_t) );
 			if( f )
 			{
 				f( file, button,button->psvUser );
@@ -1327,7 +1327,7 @@ void DumpGeneric( FILE *file, PMENU_BUTTON button )
 			InterShell_SaveSecurityInformation( file, button->psvUser );
 		}
 		snprintf( rootname, sizeof( rootname ), TASK_PREFIX WIDE( "/control/%s" ), button->pTypeName );
-		f2 = GetRegisteredProcedure2( rootname, void, WIDE("control_save"), (FILE*,PTRSZVAL) );
+		f2 = GetRegisteredProcedure2( rootname, void, WIDE("control_save"), (FILE*,uintptr_t) );
 		if( f2 )
 		{
 			//DumpCommonButton( file, button );
@@ -1366,8 +1366,8 @@ void DumpGeneric( FILE *file, PMENU_BUTTON button )
 #if 0
 void XML_DumpGeneric( genxWriter w, PMENU_BUTTON button )
 {
-	//void (CPROC*f)(genxWriter,PMENU_BUTTON,PTRSZVAL);
-	void (CPROC*f2)(genxWriter,PTRSZVAL);
+	//void (CPROC*f)(genxWriter,PMENU_BUTTON,uintptr_t);
+	void (CPROC*f2)(genxWriter,uintptr_t);
 	TEXTCHAR rootname[256];
 	MakeElem( w, generic_dump_region, (constUtf8)"control" );
 	MakeAttr( w, location, (constUtf8)"position" );
@@ -1397,7 +1397,7 @@ void XML_DumpGeneric( genxWriter w, PMENU_BUTTON button )
 			AddAttr( attr_lazy, WIDE( "%s" ), lazy?WIDE( "yes" ):WIDE( "no" ) );
 		}
 		snprintf( rootname, sizeof( rootname ), TASK_PREFIX WIDE( "/control/%s" ), button->pTypeName );
-		f2 = GetRegisteredProcedure2( rootname, void, WIDE("control_save_xml"), (genxWriter,PTRSZVAL) );
+		f2 = GetRegisteredProcedure2( rootname, void, WIDE("control_save_xml"), (genxWriter,uintptr_t) );
 		if( f2 )
 		{
 			//DumpCommonButton( w, button );
@@ -1811,7 +1811,7 @@ void SaveButtonConfig( PSI_CONTROL pc_canvas, TEXTCHAR *filename )
 	if( g.flags.bSQLConfig )
 		if( !g.flags.local_config )
 		{
-			PTRSZVAL size = 0;
+			uintptr_t size = 0;
 			TEXTSTR tmpname = ExpandPath( filename );
 			FILE *readfile;
 			POINTER mem = OpenSpace( NULL, tmpname, &size );
@@ -1820,7 +1820,7 @@ void SaveButtonConfig( PSI_CONTROL pc_canvas, TEXTCHAR *filename )
 				readfile = sack_fopen( 0, tmpname, "rb" );
 				if( readfile )
 				{
-					mem = NewArray( _8, size = sack_fsize( readfile ) );
+					mem = NewArray( uint8_t, size = sack_fsize( readfile ) );
 					sack_fread( mem, 1, size, readfile );
 					sack_fclose( readfile );
 				}
@@ -1834,7 +1834,7 @@ void SaveButtonConfig( PSI_CONTROL pc_canvas, TEXTCHAR *filename )
 				{
 					size_t buflen;
 					TEXTCHAR *buffer;
-					PTRSZVAL size2 = 0;
+					uintptr_t size2 = 0;
 					TEXTCHAR tmpname2[256];
 					POINTER mem2;
 					snprintf( tmpname2, 256, WIDE("%s.sql"), tmpname );

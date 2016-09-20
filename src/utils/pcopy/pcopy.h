@@ -11,7 +11,7 @@ typedef struct global_tag
 		BIT_FIELD bIncludeSystem : 1;
 	} flags;
 	TEXTCHAR SystemRoot[256];
-	_32 copied;
+	uint32_t copied;
 	PLIST excludes;
    PLIST additional_paths;
 } GLOBAL;

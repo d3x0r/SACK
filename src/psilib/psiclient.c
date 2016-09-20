@@ -10,7 +10,7 @@
 	PCONTROL Config##name( PCONTROL pc, ... ); \
 	PCONTROL Make##name( PFRAME pFrame, int attr \
 	              , int x, int y, int w, int h \
-	, PTRSZVAL nID, ... ) \
+	, uintptr_t nID, ... ) \
 	{    \
    return NULL;  \
 }                                   \
@@ -25,9 +25,9 @@
 typedef struct global_tag
 {
 	struct {
-		_32 connected : 1;
+		uint32_t connected : 1;
 	} flags;
-   _32 MsgBase;
+   uint32_t MsgBase;
 } GLOBAL;
 
 static GLOBAL g;
@@ -43,16 +43,16 @@ typedef struct client_commmon_control_frame {
 	// although the client itself may not have these referenced
    // on controls...
    CTEXTSTR DrawThySelfName;
-	void CPROC (*DrawThySelf)( PTRSZVAL, struct client_commmon_control_frame * );
-	PTRSZVAL psvDraw;
+	void CPROC (*DrawThySelf)( uintptr_t, struct client_commmon_control_frame * );
+	uintptr_t psvDraw;
 
    CTEXTSTR MouseMethodName;
-	void CPROC (*MouseMethod)( PTRSZVAL psv, S_32 x, S_32 y, _32 b );
-	PTRSZVAL psvMouse;
+	void CPROC (*MouseMethod)( uintptr_t psv, int32_t x, int32_t y, uint32_t b );
+	uintptr_t psvMouse;
 
    CTEXTSTR KeyProcName;
-	void CPROC (*KeyProc)( PTRSZVAL psv, _32 );
-   PTRSZVAL psvKey;
+	void CPROC (*KeyProc)( uintptr_t psv, uint32_t );
+   uintptr_t psvKey;
 
    CTEXTSTR SaveProcName;
 	int CPROC (*SaveProc)( struct client_commmon_control_frame *, FILE *out );
@@ -66,12 +66,12 @@ typedef struct client_commmon_control_frame {
 typedef struct client_control_tag {
    CLIENT_COMMON common;
 	struct {
-		_32 bInitComplete : 1;
+		uint32_t bInitComplete : 1;
 	} flags;
-   PTRSZVAL psvServerControl;
-	_32 ID;
+   uintptr_t psvServerControl;
+	uint32_t ID;
 	ControlInitProc InitProc;
-	PTRSZVAL psvInit;
+	uintptr_t psvInit;
    int InitResult;
    struct control_tag *next, **me;
 } CLIENT_CONTROL, *PCLIENT_CONTROL;
@@ -85,7 +85,7 @@ typedef struct client_frame_tag
 
 PCLIENT_FRAME pClientFrames;
 
-static void ControlEventProcessor( _32 EventMsg, _32 *data, _32 length )
+static void ControlEventProcessor( uint32_t EventMsg, uint32_t *data, uint32_t length )
 {
    Log1( WIDE("Event received... %ld"), EventMsg );
 	switch( EventMsg )
@@ -162,13 +162,13 @@ PSI_PROC( void, SetBaseColor )( INDEX idx, CDATA c )
 //-------- Frame and generic control functions --------------
 PSI_PROC( PFRAME, CreateFrame)( CTEXTSTR caption, int x, int y
 						   			, int w, int h
-						   			, _32 BorderFlags
+						   			, uint32_t BorderFlags
 						   			, PFRAME hAbove )
 {
 	PCLIENT_FRAME pcf = Allocate( sizeof( CLIENT_FRAME ) );
 	PCLIENT_FRAME pcfAbove = (PCLIENT_FRAME)hAbove;
-	_32 result;
-   _32 resultlen = sizeof( pcf->common.server.frame );;
+	uint32_t result;
+   uint32_t resultlen = sizeof( pcf->common.server.frame );;
 	if( TransactServerMultiMessage( MSG_CreateFrame, 3
 											, &result, &pcf->common.server.frame, &resultlen
 											, &x, ParamLength( x, BorderFlags )
@@ -203,42 +203,42 @@ PSI_PROC( void, DisplayFrame)( PFRAME pf )
 	SendServerMessage( MSG_DisplayFrame, &pcf->common.server.frame, sizeof( pcf->common.server.frame ) );
 }
 
-PSI_PROC( void, SizeCommon)( PCOMMON pf, _32 w, _32 h )
+PSI_PROC( void, SizeCommon)( PCOMMON pf, uint32_t w, uint32_t h )
 {
 	PCLIENT_FRAME pcf = (PCLIENT_FRAME)pf;
    pf = pcf->common.server.frame;
 	SendServerMessage( MSG_SizeCommon, &pf, ParamLength( pf, h ) );
 }
 
-PSI_PROC( void, MoveCommon)( PCOMMON pf, S_32 x, S_32 y )
+PSI_PROC( void, MoveCommon)( PCOMMON pf, int32_t x, int32_t y )
 {
 	PCLIENT_FRAME pcf = (PCLIENT_FRAME)pf;
    pf = pcf->common.server.frame;
 	SendServerMessage( MSG_MoveCommon, &pf, ParamLength( pf, y ) );
 }
 
-PSI_PROC( void, SizeMoveCommon)( PCOMMON pf, S_32 x, S_32 y )
+PSI_PROC( void, SizeMoveCommon)( PCOMMON pf, int32_t x, int32_t y )
 {
 	PCLIENT_FRAME pcf = (PCLIENT_FRAME)pf;
    pf = pcf->common.server.frame;
 	SendServerMessage( MSG_MoveSizeCommon, &pf, ParamLength( pf, y ) );
 }
 
-PSI_PROC( void, SizeCommonRel)( PCOMMON pf, _32 w, _32 h )
+PSI_PROC( void, SizeCommonRel)( PCOMMON pf, uint32_t w, uint32_t h )
 {
 	PCLIENT_FRAME pcf = (PCLIENT_FRAME)pf;
    pf = pcf->common.server.frame;
 	SendServerMessage( MSG_SizeCommonRel, &pf, ParamLength( pf, h ) );
 }
 
-PSI_PROC( void, MoveCommonRel)( PCOMMON pf, S_32 x, S_32 y )
+PSI_PROC( void, MoveCommonRel)( PCOMMON pf, int32_t x, int32_t y )
 {
 	PCLIENT_FRAME pcf = (PCLIENT_FRAME)pf;
    pf = pcf->common.server.frame;
 	SendServerMessage( MSG_MoveCommonRel, &pf, ParamLength( pf, y ) );
 }
 
-PSI_PROC( void, SizeMoveCommonRel)( PCOMMON pf, S_32 x, S_32 y )
+PSI_PROC( void, SizeMoveCommonRel)( PCOMMON pf, int32_t x, int32_t y )
 {
 	PCLIENT_FRAME pcf = (PCLIENT_FRAME)pf;
    pf = pcf->common.server.frame;
@@ -248,7 +248,7 @@ PSI_PROC( void, SizeMoveCommonRel)( PCOMMON pf, S_32 x, S_32 y )
 PSI_PROC( PCONTROL, GetControl)( PCOMMON pf, int ID )
 {
 	PCLIENT_FRAME pcf = (PCLIENT_FRAME)pf;
-	_32 responce
+	uint32_t responce
 , control
 , result_length = sizeof( control );
 	pf = pcf->common.server.frame;
@@ -300,18 +300,18 @@ PSI_PROC( int, IsControlEnabled)( PCONTROL pc )
 }
 
 PSI_PROC( PCONTROL, CreateControlExx)( PFRAME pFrame
-                                     , _32 attr  // attributes (custom use per type)
+                                     , uint32_t attr  // attributes (custom use per type)
 												 , int x, int y
 												 , int w, int h
 												 , int nID
 												 , int BorderType
 												 , int extra
 												 , ControlInitProc InitProc
-												 , PTRSZVAL psvInit
+												 , uintptr_t psvInit
 												  DBG_PASS)
 {
-	_32 result;
-	_32 resultlen = sizeof( result );
+	uint32_t result;
+	uint32_t resultlen = sizeof( result );
 	PCLIENT_CONTROL pcc = Allocate( sizeof( CLIENT_CONTROL ) );
    MemSet( &pcc, 0, sizeof( CLIENT_CONTROL ) );
 	pcc->InitProc = InitProc;
@@ -345,15 +345,15 @@ PSI_PROC( Image,GetControlSurface)( PCONTROL pc )
    return NULL;
 }
 
-PSI_PROC( void, SetCommonDraw)( PCOMMON pc, void (*Draw)(PTRSZVAL psv, PCONTROL pc ), PTRSZVAL psv )
+PSI_PROC( void, SetCommonDraw)( PCOMMON pc, void (*Draw)(uintptr_t psv, PCONTROL pc ), uintptr_t psv )
 {
 }
 
-PSI_PROC( void, SetCommonMouse)( PCOMMON pc, void (*MouseMethod)(PTRSZVAL pc, S_32 x, S_32 y, _32 b ), PTRSZVAL psv )
+PSI_PROC( void, SetCommonMouse)( PCOMMON pc, void (*MouseMethod)(uintptr_t pc, int32_t x, int32_t y, uint32_t b ), uintptr_t psv )
 {
 }
 
-PSI_PROC( void, SetCommonKey )( PCOMMON pc, void (*KeyMethod)( PTRSZVAL pc, _32 key ), PTRSZVAL psv )
+PSI_PROC( void, SetCommonKey )( PCOMMON pc, void (*KeyMethod)( uintptr_t pc, uint32_t key ), uintptr_t psv )
 {
 }
 
@@ -407,21 +407,21 @@ PSI_PROC( void, ProcessControlMessages)(void)
 
 //------ BUTTONS ------------
 CONTROL_PROC_DEF( Button, (char *caption
-					 , void (*PushMethod)(PTRSZVAL psv, PCONTROL pc)
-					 , PTRSZVAL Data) )
+					 , void (*PushMethod)(uintptr_t psv, PCONTROL pc)
+					 , uintptr_t Data) )
 {
    return NULL;
 }
 
 CONTROL_PROC_DEF( ImageButton, Image pImage
-                  , void (*PushMethod)(PTRSZVAL psv, PCONTROL pc)
-                  , PTRSZVAL Data )
+                  , void (*PushMethod)(uintptr_t psv, PCONTROL pc)
+                  , uintptr_t Data )
 {
    return NULL;
 }
 
-CONTROL_PROC_DEF( CustomDrawnButton, void (*DrawMethod)(PTRSZVAL, PCONTROL pc)
-                  , void (*PushMethod)(PTRSZVAL psv, PCONTROL pc), PTRSZVAL Data )
+CONTROL_PROC_DEF( CustomDrawnButton, void (*DrawMethod)(uintptr_t, PCONTROL pc)
+                  , void (*PushMethod)(uintptr_t psv, PCONTROL pc), uintptr_t Data )
 {
    return NULL;
 }
@@ -436,15 +436,15 @@ PSI_PROC( int, IsButtonPressed)( PCONTROL pc )
 }
 
 
-CONTROL_PROC_DEF( CheckButton, void (*CheckProc)(PTRSZVAL psv, PCONTROL pc)
-                        , PTRSZVAL psv )
+CONTROL_PROC_DEF( CheckButton, void (*CheckProc)(uintptr_t psv, PCONTROL pc)
+                        , uintptr_t psv )
 {
    return NULL;
 }
 
-CONTROL_PROC_DEF( RadioButton, _32 GroupID, char *text
-						   	, void (*CheckProc)(PTRSZVAL psv, PCONTROL pc)
-						   	, PTRSZVAL psv )
+CONTROL_PROC_DEF( RadioButton, uint32_t GroupID, char *text
+						   	, void (*CheckProc)(uintptr_t psv, PCONTROL pc)
+						   	, uintptr_t psv )
 {
    return NULL;
 }
@@ -476,7 +476,7 @@ CONTROL_PROC_DEF( EditControl, CTEXTSTR text )
 // Use GetControlText/SetControlText
 
 //------- Slider Control --------
-CONTROL_PROC_DEF( Slider, void (*SliderUpdated)(PTRSZVAL, PCONTROL pc, int val), PTRSZVAL psv )
+CONTROL_PROC_DEF( Slider, void (*SliderUpdated)(uintptr_t, PCONTROL pc, int val), uintptr_t psv )
 {
    return NULL;
 }
@@ -530,11 +530,11 @@ PSI_PROC( void, DeleteListItem)( PCONTROL pc, PLISTITEM hli )
 {
 }
 
-PSI_PROC( void, SetItemData)( PLISTITEM hli, PTRSZVAL psv )
+PSI_PROC( void, SetItemData)( PLISTITEM hli, uintptr_t psv )
 {
 }
 
-PSI_PROC( PTRSZVAL, GetItemData)( PLISTITEM hli )
+PSI_PROC( uintptr_t, GetItemData)( PLISTITEM hli )
 {
    return 0;
 }
@@ -567,7 +567,7 @@ PSI_PROC( PLISTITEM, GetNthItem )( PCONTROL pc, int idx )
 }
 
 
-PSI_PROC( void, SetDoubleClickHandler)( PCONTROL pc, DoubleClicker proc, PTRSZVAL psvUser )
+PSI_PROC( void, SetDoubleClickHandler)( PCONTROL pc, DoubleClicker proc, uintptr_t psvUser )
 {
 }
 
@@ -576,7 +576,7 @@ PSI_PROC( void, SetDoubleClickHandler)( PCONTROL pc, DoubleClicker proc, PTRSZVA
 #ifdef __LINUX__
 PSI_PROC(PCONTROL, MakeGridBox)( PFRAME pf, int options, int x, int y, int w, int h
                                , int viewport_x, int viewport_y, int total_x, int total_y
-                               , int row_thickness, int column_thickness, PTRSZVAL nID )
+                               , int row_thickness, int column_thickness, uintptr_t nID )
 {
    return NULL;
 }
@@ -601,17 +601,17 @@ PSI_PROC( void *,GetPopupData)( PMENU pm, int item )
 {
 }
 
-PSI_PROC( PMENUITEM, AppendPopupItem)( PMENU pm, int type, PTRSZVAL dwID, POINTER pData )
+PSI_PROC( PMENUITEM, AppendPopupItem)( PMENU pm, int type, uintptr_t dwID, POINTER pData )
 {
    return (PMENUITEM)NULL;
 }
 
-PSI_PROC( PMENUITEM, CheckPopupItem)( PMENU pm, _32 dwID, _32 state )
+PSI_PROC( PMENUITEM, CheckPopupItem)( PMENU pm, uint32_t dwID, uint32_t state )
 {
    return (PMENUITEM)NULL;
 }
 
-PSI_PROC( PMENUITEM, DeletePopupItem)( PMENU pm, _32 dwID, _32 state )
+PSI_PROC( PMENUITEM, DeletePopupItem)( PMENU pm, uint32_t dwID, uint32_t state )
 {
    return (PMENUITEM)NULL;
 }
@@ -650,8 +650,8 @@ CONTROL_PROC_DEF( ScrollBar  )
 }
 
 PSI_PROC( void, SetScrollUpdateMethod)( PCONTROL pc
-					, void (*UpdateProc)(PTRSZVAL psv, int type, int current)
-					, PTRSZVAL data )
+					, void (*UpdateProc)(uintptr_t psv, int type, int current)
+					, uintptr_t data )
 {
 }
 

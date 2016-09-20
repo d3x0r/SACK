@@ -4,10 +4,10 @@
 #define r2 15
 
 static struct {
-	_32 _8rotor[r1];
-	_32 _9rotor[r2];
+	uint32_t _8rotor[r1];
+	uint32_t _9rotor[r2];
 
-   _32 degrees_offset;
+   uint32_t degrees_offset;
 } l;
 
 

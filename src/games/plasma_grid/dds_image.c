@@ -174,8 +174,8 @@ DDSCAPS2_VOLUME = 0x200000, //	Required for a volume texture.
 
 
 #ifdef __LINUX__
-#define DWORD _32
-#define UINT _32
+#define DWORD uint32_t
+#define UINT uint32_t
 #endif
 
 typedef struct _DDS_PIXELFORMAT {
@@ -255,7 +255,7 @@ union Bits
             int32_t si;
             uint32_t ui;
         };
-float revert( _16 value )
+float revert( uint16_t value )
 {
         {
             union Bits s;
@@ -278,7 +278,7 @@ float revert( _16 value )
         }}
 
 //#endif
-_16 convert(float f)
+uint16_t convert(float f)
 {
   u_u32_s23e8 x;
   unsigned short _h;
@@ -354,7 +354,7 @@ void ReadImage( CTEXTSTR filename )
 			for( r = 0; r < dds.dwHeight; r++ )
 				for( c = 0; c < dds.dwWidth; c++ )
 				{
-					S_16 val;
+					int16_t val;
 					float f;
 					sack_fread( &val, 1, 2, file );
 					f = revert( val );
@@ -437,15 +437,15 @@ void WriteImage( CTEXTSTR filename, RCOORD *data, int width, int height, int pit
 			for( c = 0; c < width; c++ )
 			{
 				float f = data[ r * pitch + c ];
-				S_32 value_x = (_64)((f * 65535));
-				_16 value ;
+				int32_t value_x = (uint64_t)((f * 65535));
+				uint16_t value ;
 				if( value_x > 65535 )
 					value = 65535;
 				else if( value_x < 0 )
 					value = 0;
 				else
 					value = value_x;
-				//_16 value = convert( f );
+				//uint16_t value = convert( f );
 				sack_fwrite( &value, 1, 2, file );
 			}
 	}

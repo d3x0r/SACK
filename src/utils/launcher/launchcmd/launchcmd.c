@@ -30,7 +30,7 @@ static struct local_launchpad_data_tag
 	PLIST client_connections;
 	int clients;
 	int closed_clients;
-	_32 last_receive;
+	uint32_t last_receive;
 	int alive_probes;
 	PTHREAD output_thread;
 } l;
@@ -59,7 +59,7 @@ static int OpenSender( void )
 	if( !l.pcCommand )
 	{
 		srand( GetTickCount() );
-		l.pcCommand = ConnectUDP( NULL, (_16)(3000 + rand() % 10000), WIDE("255.255.255.255"), 3006, NULL, NULL );
+		l.pcCommand = ConnectUDP( NULL, (uint16_t)(3000 + rand() % 10000), WIDE("255.255.255.255"), 3006, NULL, NULL );
 	}
 
 
@@ -79,7 +79,7 @@ static void CPROC Received( PCLIENT pc, POINTER buffer, size_t size )
 	{
 		pns = New( struct network_read_state );
 		MemSet( pns, 0, sizeof( struct network_read_state ) );
-		SetNetworkLong( pc, 0, (PTRSZVAL)pns );
+		SetNetworkLong( pc, 0, (uintptr_t)pns );
 		pns->bufsize = 4096;
 		pns->buffer = Allocate( 4096 );
 	}
@@ -88,7 +88,7 @@ static void CPROC Received( PCLIENT pc, POINTER buffer, size_t size )
 		switch( pns->state )
 		{
 		case NETWORK_STATE_GET_SIZE:
-			pns->toread = *(_32*)(buffer);
+			pns->toread = *(uint32_t*)(buffer);
 			if( pns->toread > pns->bufsize )
 			{
 				Release( pns->buffer );
@@ -137,7 +137,7 @@ static void CPROC Closed( PCLIENT pc )
 
 }
 
-static PTRSZVAL CPROC SendConsoleInput( PTHREAD thread )
+static uintptr_t CPROC SendConsoleInput( PTHREAD thread )
 {
 	TEXTCHAR cmd[4096];
 	PCLIENT pc;
@@ -156,7 +156,7 @@ static PTRSZVAL CPROC SendConsoleInput( PTHREAD thread )
 	return 0;
 }
 
-static PTRSZVAL CPROC MonitorConnection( PTHREAD thread )
+static uintptr_t CPROC MonitorConnection( PTHREAD thread )
 {
 	PCLIENT pc;
 	INDEX idx;
@@ -189,13 +189,13 @@ static void CPROC Connected( PCLIENT pc_server, PCLIENT pc_new )
 	MemSet( pns, 0, sizeof( struct network_read_state ) );
 	//lprintf( WIDE("Recieved connect...") );
 	l.clients++;
-	SetNetworkLong( pc_new, 0, (PTRSZVAL)pns );
+	SetNetworkLong( pc_new, 0, (uintptr_t)pns );
 	SetNetworkReadComplete( pc_new, Received );
 	SetNetworkCloseCallback( pc_new, Closed );
 	AddLink( &l.client_connections, pc_new );
 	if( !l.output_thread )
-		l.output_thread = ThreadTo( SendConsoleInput, (PTRSZVAL)pc_new );
-	ThreadTo( MonitorConnection, (PTRSZVAL)pc_new );
+		l.output_thread = ThreadTo( SendConsoleInput, (uintptr_t)pc_new );
+	ThreadTo( MonitorConnection, (uintptr_t)pc_new );
 #ifdef CONSOLE
 	//lprintf( WIDE("Sending back status 'connect ok'") );
 	printf( WIDE("~CONNECT OK\n") );
@@ -244,7 +244,7 @@ SaneWinMain( argc, argv )
 		int listen_output = 0;
 		int listen_output_remote_connect = 0;
 		int arg_ofs;
-		_32 sequence = GetTickCount(); // this should be fairly unique...
+		uint32_t sequence = GetTickCount(); // this should be fairly unique...
 #ifdef CONSOLE
 		printf( WIDE("launchcmd version %s\n"), VERSION );
 		fflush( stdout );
@@ -374,8 +374,8 @@ SaneWinMain( argc, argv )
 				AddLink( &l.client_connections, pc_launchpad );
 
 				if( !l.output_thread )
-					l.output_thread = ThreadTo( SendConsoleInput, (PTRSZVAL)pc_launchpad );
-				ThreadTo( MonitorConnection, (PTRSZVAL)pc_launchpad );
+					l.output_thread = ThreadTo( SendConsoleInput, (uintptr_t)pc_launchpad );
+				ThreadTo( MonitorConnection, (uintptr_t)pc_launchpad );
 				SendTCP( pc_launchpad, lpCmd, ofs );
 				while( pc_launchpad )
 				{
@@ -410,7 +410,7 @@ SaneWinMain( argc, argv )
 
 		if( listen_output_remote_connect )
 		{
-			_32 tick_start = GetTickCount();
+			uint32_t tick_start = GetTickCount();
 			while( !l.clients && ( ( GetTickCount() - tick_start ) < 6000 ) )
 			{
 				//lprintf( WIDE("waiting a second for reverse connect...") );

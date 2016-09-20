@@ -15,7 +15,7 @@ static GLOBAL g;
 
 int main( int argc, char **argv )
 {
-	_32 width, height;
+	uint32_t width, height;
 	SetSystemLog( SYSLOG_FILE, stdout );
 	g.pdi = GetDisplayInterface();
 	g.pii = GetImageInterface();

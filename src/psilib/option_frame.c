@@ -14,7 +14,7 @@
 
 #ifndef __NO_GUI__
 //#ifdef GRAPHIC_PROMPT
-static void CPROC SetIntTRUE( PTRSZVAL psvInt, PSI_CONTROL unused )
+static void CPROC SetIntTRUE( uintptr_t psvInt, PSI_CONTROL unused )
 {
 	struct done_tag{
       PTHREAD me;
@@ -54,7 +54,7 @@ size_t _SQLPromptINIValue(			 CTEXTSTR lpszSection,
 	tnprintf( text, sizeof( text ), WIDE("%s\n   [%s]\n      %s ="), filename, lpszSection, lpszEntry );
 	MakeTextControl( frame, DIA_X(4), DIA_Y(18), DIA_W(248), DIA_H(28), 123, text, EDIT_READONLY );
 	MakeEditControl( frame, DIA_X(4), DIA_Y(46), DIA_W(248), DIA_H(12), 124, lpszDefault, 0 );
-	MakeButton( frame, DIA_X(4), DIA_Y(63), DIA_W(248), DIA_H(14), IDOK, WIDE("Ok"), 0, SetIntTRUE, (PTRSZVAL)&done );
+	MakeButton( frame, DIA_X(4), DIA_Y(63), DIA_W(248), DIA_H(14), IDOK, WIDE("Ok"), 0, SetIntTRUE, (uintptr_t)&done );
 	DisplayFrame( frame );
 	MakeTopmost( GetFrameRenderer( frame ) );
 	while( !done.done )

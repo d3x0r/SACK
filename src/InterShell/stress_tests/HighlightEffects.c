@@ -24,7 +24,7 @@ void CPROC ReadStuff( PCLIENT pc, POINTER p, int size )
 	{
 		INDEX idx;
 		PMENU_BUTTON button;
-      P_8 bytes = (P_8)p;
+      uint8_t* bytes = (uint8_t*)p;
 		int n;
 		for( n = 0; n < size; n++ )
 		{
@@ -50,12 +50,12 @@ PRELOAD( InterShellButtonBlink_Network )
    pc = OpenTCPListenerEx( 17899, Connected );
 }
 
-OnShowControl( "Network Highlight(Stress3)" )( PTRSZVAL button )
+OnShowControl( "Network Highlight(Stress3)" )( uintptr_t button )
 {
 	InterShell_SetButtonHighlight( (PMENU_BUTTON)button, bHighlight );
 }
 
-OnKeyPressEvent( "Network Highlight(Stress3)" )( PTRSZVAL button )
+OnKeyPressEvent( "Network Highlight(Stress3)" )( uintptr_t button )
 {
    // uhmm whatever.
 }
@@ -63,6 +63,6 @@ OnKeyPressEvent( "Network Highlight(Stress3)" )( PTRSZVAL button )
 OnCreateMenuButton( "Network Highlight(Stress3)" )( PMENU_BUTTON button )
 {
    AddLink( &buttons, button );
-   return (PTRSZVAL)button;
+   return (uintptr_t)button;
 }
 

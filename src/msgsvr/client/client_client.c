@@ -58,7 +58,7 @@ static PSERVICE_ROUTE _LoadService( CTEXTSTR service
 							  , EventHandlerFunctionExx EventHandlerExx
 							  , server_message_handler handler
                        , server_message_handler_ex handler_ex
-							  , PTRSZVAL psv
+							  , uintptr_t psv
 							  )
 {
 	MSGIDTYPE MsgID;
@@ -241,7 +241,7 @@ CLIENTMSG_PROC( PSERVICE_ROUTE, LoadServiceEx)( CTEXTSTR service, EventHandlerFu
 
 //--------------------------------------------------------------------
 
-CLIENTMSG_PROC( PSERVICE_ROUTE, LoadServiceExx)( CTEXTSTR service, EventHandlerFunctionExx EventHandlerEx, PTRSZVAL psv )
+CLIENTMSG_PROC( PSERVICE_ROUTE, LoadServiceExx)( CTEXTSTR service, EventHandlerFunctionExx EventHandlerEx, uintptr_t psv )
 {
 	return _LoadService( service, NULL, NULL, EventHandlerEx, NULL, NULL, psv );
 }

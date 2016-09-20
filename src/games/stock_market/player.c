@@ -67,11 +67,11 @@ int CPROC DrawPlayerToken( PCOMMON pControl )
 	return TRUE;
 }
 
-int CPROC PlayerMouse( PCOMMON pc, S_32 x, S_32 y, _32 b )
+int CPROC PlayerMouse( PCOMMON pc, int32_t x, int32_t y, uint32_t b )
 {
 	ValidatedControlData( PPLAYER*, player_token.TypeID, ppPlayer, pc );
 	PPLAYER pPlayer = (*ppPlayer);
-	static _32 _b;
+	static uint32_t _b;
 	if( g.flags.bSelectPlayer && (b & MK_LBUTTON) && !(_b & MK_LBUTTON ) )
 	{
 		INDEX idx;
@@ -123,13 +123,13 @@ void CreatePlayerToken( PPLAYER pPlayer )
 												  , 0, 0
 												  , 16, 16
 												  , 0, pPlayer );
-	//SetControlDraw( pPlayer->pPlayerToken, DrawPlayerToken, (PTRSZVAL)pPlayer );
-   //SetControlMouse( pPlayer->pPlayerToken, PlayerMouse, (PTRSZVAL)pPlayer );
+	//SetControlDraw( pPlayer->pPlayerToken, DrawPlayerToken, (uintptr_t)pPlayer );
+   //SetControlMouse( pPlayer->pPlayerToken, PlayerMouse, (uintptr_t)pPlayer );
 }
 
 void AllowCurrentPlayerSell( void )
 {
-   _32 cash = 0;
+   uint32_t cash = 0;
 	// do you wish to sell?
    do
 	{
@@ -149,7 +149,7 @@ void AllowCurrentPlayerSell( void )
 
 			if( yes )
 			{
-				_32 cash;
+				uint32_t cash;
 				cash = SellStocks( &g.pCurrentPlayer->portfolio, 0, FALSE );
 				printf( WIDE("%s sold stocks for a profit of $%ld\n")
 						, g.pCurrentPlayer->name
@@ -257,8 +257,8 @@ void StepNextPlayer( void )
 		if( g.pCurrentPlayer->nHistory == g.pCurrentPlayer->nHistoryAvail )
 		{
          g.pCurrentPlayer->nHistoryAvail += 32;
-			g.pCurrentPlayer->History = (_32*)Reallocate( g.pCurrentPlayer->History
-															  , sizeof( _32 ) * g.pCurrentPlayer->nHistoryAvail );
+			g.pCurrentPlayer->History = (uint32_t*)Reallocate( g.pCurrentPlayer->History
+															  , sizeof( uint32_t ) * g.pCurrentPlayer->nHistoryAvail );
 		}
 		g.pCurrentPlayer->History[g.pCurrentPlayer->nHistory++] =
          g.pCurrentPlayer->NetValue;

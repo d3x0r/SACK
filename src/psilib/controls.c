@@ -75,8 +75,8 @@ PSI_NAMESPACE
 #endif
 typedef struct resource_names
 {
-	_32 resource_name_id;
-	_32 resource_name_range;
+	uint32_t resource_name_id;
+	uint32_t resource_name_range;
 	CTEXTSTR resource_name;
 	CTEXTSTR type_name;
 } RESOURCE_NAMES;
@@ -120,8 +120,8 @@ TEXTCHAR *GetResourceIDName( CTEXTSTR pTypeName, int ID )
 			 name2;
 			  name2 = GetNextRegisteredName( &data2 ) )
 		{
-			int value = (int)(PTRSZVAL)(GetRegisteredValueExx( data2, name2, WIDE("value"), TRUE ));
-			int range = (int)(PTRSZVAL)(GetRegisteredValueExx( data2, name2, WIDE("range"), TRUE ));
+			int value = (int)(uintptr_t)(GetRegisteredValueExx( data2, name2, WIDE("value"), TRUE ));
+			int range = (int)(uintptr_t)(GetRegisteredValueExx( data2, name2, WIDE("range"), TRUE ));
 			//lprintf( WIDE("Found Name %s"), name2 );
 			if( (value <= ID) && ((value+range) > ID) )
 			{
@@ -140,7 +140,7 @@ TEXTCHAR *GetResourceIDName( CTEXTSTR pTypeName, int ID )
 
 
 // also fix the name passed in?
-int GetResourceID( PSI_CONTROL parent, CTEXTSTR name, _32 nIDDefault )
+int GetResourceID( PSI_CONTROL parent, CTEXTSTR name, uint32_t nIDDefault )
 {
 	if( !pathchr( name ) )
 	{
@@ -196,8 +196,8 @@ int GetResourceID( PSI_CONTROL parent, CTEXTSTR name, _32 nIDDefault )
 			int range;
 			TEXTCHAR buffer[256];
 			tnprintf( buffer, sizeof( buffer ), PSI_ROOT_REGISTRY WIDE( "/resources/%s" ), name );
-			range = (int)(PTRSZVAL)GetRegisteredValueExx( (PCLASSROOT)PSI_ROOT_REGISTRY WIDE("/resources"), name, WIDE("range"), TRUE );
-			result = (int)(PTRSZVAL)GetRegisteredValueExx( (PCLASSROOT)PSI_ROOT_REGISTRY WIDE("/resources"), name, WIDE("value"), TRUE )/* + offset*/;
+			range = (int)(uintptr_t)GetRegisteredValueExx( (PCLASSROOT)PSI_ROOT_REGISTRY WIDE("/resources"), name, WIDE("range"), TRUE );
+			result = (int)(uintptr_t)GetRegisteredValueExx( (PCLASSROOT)PSI_ROOT_REGISTRY WIDE("/resources"), name, WIDE("value"), TRUE )/* + offset*/;
 			if( !result && !range && ( nIDDefault != -1 ) )
 			{
 				RegisterIntValue( buffer, WIDE("value"), nIDDefault );
@@ -243,9 +243,9 @@ int DoRegisterControl( PCONTROL_REGISTRATION pcr, int nSize )
 		// if we have 50 controls existing we'd be lucky
 		// so creation of 1950 more controls shouldn't happen
 		// within the timespan of xperdex.
-		static _32 ControlID = USER_CONTROL + 2000;
+		static uint32_t ControlID = USER_CONTROL + 2000;
 #else
-		static _32 ControlID = USER_CONTROL;
+		static uint32_t ControlID = USER_CONTROL;
 #endif
 		TEXTCHAR namebuf[64], namebuf2[64];
 		PCLASSROOT root;
@@ -256,10 +256,10 @@ int DoRegisterControl( PCONTROL_REGISTRATION pcr, int nSize )
 		tnprintf( namebuf2, sizeof( namebuf2 ), PSI_ROOT_REGISTRY WIDE("/control/%s")
 				  , pcr->name );
 		root = GetClassRoot( namebuf2 );
-		pcr->TypeID = (int)(PTRSZVAL)GetRegisteredValueExx( root, NULL, WIDE("Type"), TRUE );
+		pcr->TypeID = (int)(uintptr_t)GetRegisteredValueExx( root, NULL, WIDE("Type"), TRUE );
 		if( !pcr->TypeID && (StrCaseCmp( pcr->name, WIDE("FRAME") )!=0) )
 		{
-			ControlID = (_32)(PTRSZVAL)GetRegisteredValueExx( WIDE("PSI/Controls"), NULL, WIDE("User Type ID"), TRUE);
+			ControlID = (uint32_t)(uintptr_t)GetRegisteredValueExx( WIDE("PSI/Controls"), NULL, WIDE("User Type ID"), TRUE);
 			if( !ControlID )
 			{
 #ifdef __cplusplus_cli
@@ -274,7 +274,7 @@ int DoRegisterControl( PCONTROL_REGISTRATION pcr, int nSize )
 					  , ControlID );
 			root = RegisterClassAlias( namebuf2, namebuf );
 			RegisterValueExx( root, NULL, WIDE("Type"), FALSE, pcr->name );
-			RegisterValueExx( root, NULL, WIDE("Type"), TRUE, (CTEXTSTR)(PTRSZVAL)ControlID );
+			RegisterValueExx( root, NULL, WIDE("Type"), TRUE, (CTEXTSTR)(uintptr_t)ControlID );
 			tnprintf( namebuf, sizeof( namebuf ), PSI_ROOT_REGISTRY_OTHER WIDE("/control/%") _32f
 					  , ControlID );
 			root = RegisterClassAlias( namebuf2, namebuf );
@@ -282,7 +282,7 @@ int DoRegisterControl( PCONTROL_REGISTRATION pcr, int nSize )
 				, pcr->name );
 			root = RegisterClassAlias( namebuf2, namebuf );
 			ControlID++; // new control type registered...
-			RegisterIntValueEx( (PCLASSROOT)WIDE("PSI/Controls"), NULL, WIDE("User Type ID"), (PTRSZVAL)ControlID );
+			RegisterIntValueEx( (PCLASSROOT)WIDE("PSI/Controls"), NULL, WIDE("User Type ID"), (uintptr_t)ControlID );
 		}
 		else
 		{
@@ -313,10 +313,10 @@ int DoRegisterControl( PCONTROL_REGISTRATION pcr, int nSize )
 									  , WIDE("void"), WIDE("draw"), WIDE("(PSI_CONTROL)") );
 		if( pcr->mouse )
 			SimpleRegisterMethod( root, pcr->mouse
-									  , WIDE("void"), WIDE("mouse"), WIDE("(PSI_CONTROL,S_32,S_32,_32)") );
+									  , WIDE("void"), WIDE("mouse"), WIDE("(PSI_CONTROL,int32_t,int32_t,uint32_t)") );
 		if( pcr->key )
 			SimpleRegisterMethod( root, pcr->key
-									  , WIDE("void"), WIDE("key"), WIDE("(PSI_CONTROL,_32)") );
+									  , WIDE("void"), WIDE("key"), WIDE("(PSI_CONTROL,uint32_t)") );
 		if( pcr->destroy )
 			SimpleRegisterMethod( root, pcr->destroy
 									  , WIDE("void"), WIDE("destroy"), WIDE("(PSI_CONTROL)") );
@@ -423,7 +423,7 @@ void GetMyInterface( void )
 #ifdef __ANDROID__
 	if( !g.default_font )
 	{
-		_32 w, h;
+		uint32_t w, h;
 		GetDisplaySize( &w, &h );
 		if( h > w )
 			g.default_font = RenderFontFileScaledEx( WIDE("%resources%/fonts/MyriadPro.ttf"), w / 34, h / 48, NULL, NULL, 2/*FONT_FLAG_8BIT*/, NULL, NULL );
@@ -436,7 +436,7 @@ void GetMyInterface( void )
 		TEXTCHAR buffer[256];
       CTEXTSTR default_name;
 
-		_32 w, h;
+		uint32_t w, h;
 		int bias_x, bias_y;
 		GetFileGroup( WIDE( "Resources" ), WIDE( "@/../Resources" ) );
 		//GetDisplaySize( &w, &h );
@@ -1335,8 +1335,8 @@ typedef struct penging_rectangle_tag
 	} flags;
    // this shouldn't be a thread-shared structure.
 	//CRITICALSECTION cs;
-	S_32 x, y;
-   _32 width, height;
+	int32_t x, y;
+   uint32_t width, height;
 } PENDING_RECT, *PPENDING_RECT;
 static void DoUpdateCommonEx( PPENDING_RECT upd, PSI_CONTROL pc, int bDraw, int level DBG_PASS );
 
@@ -1542,8 +1542,8 @@ void AddCommonUpdateRegionEx( PPENDING_RECT update_rect, int bSurface, PSI_CONTR
 #define AddCommonUpdateRegion(upd,surface,pc) AddCommonUpdateRegionEx( upd,surface,pc DBG_SRC )
 {
 	PSI_CONTROL parent;
-	S_32 x, y;
-	_32 wd, ht;
+	int32_t x, y;
+	uint32_t wd, ht;
 	if( !pc )
 		return;
 #ifdef DEBUG_UPDAATE_DRAW
@@ -1644,16 +1644,16 @@ void AddCommonUpdateRegionEx( PPENDING_RECT update_rect, int bSurface, PSI_CONTR
 				update_rect->width += update_rect->x - x;
 				update_rect->x = x;
 			}
-			if( ( x + (S_32)wd ) > ( update_rect->x + (S_32)update_rect->width ) )
-				update_rect->width = ( (S_32)wd + x ) - update_rect->x;
+			if( ( x + (int32_t)wd ) > ( update_rect->x + (int32_t)update_rect->width ) )
+				update_rect->width = ( (int32_t)wd + x ) - update_rect->x;
 
 			if( y < update_rect->y )
 			{
 				update_rect->height += update_rect->y - y;
 				update_rect->y = y;
 			}
-			if( y + (S_32)ht > update_rect->y + (S_32)update_rect->height )
-				update_rect->height = ( y + (S_32)ht ) - update_rect->y;
+			if( y + (int32_t)ht > update_rect->y + (int32_t)update_rect->height )
+				update_rect->height = ( y + (int32_t)ht ) - update_rect->y;
 			//lprintf( WIDE(fs"result (%d,%d)-(%d,%d)")
 		 //       , update_rect->x, update_rect->y
 		 //       , update_rect->width, update_rect->height
@@ -1679,11 +1679,11 @@ void AddCommonUpdateRegionEx( PPENDING_RECT update_rect, int bSurface, PSI_CONTR
 
 //---------------------------------------------------------------------------
 
-void SetUpdateRegionEx( PSI_CONTROL pc, S_32 rx, S_32 ry, _32 rw, _32 rh DBG_PASS )
+void SetUpdateRegionEx( PSI_CONTROL pc, int32_t rx, int32_t ry, uint32_t rw, uint32_t rh DBG_PASS )
 {
 	PSI_CONTROL parent;
-	S_32 x, y;
-	_32 wd, ht;
+	int32_t x, y;
+	uint32_t wd, ht;
 	if( !pc )
 		return;
 
@@ -2345,7 +2345,7 @@ void SmudgeCommonEx( PSI_CONTROL pc DBG_PASS )
 			{
 				if( pc->flags.bCleaning )
 				{
-					_32 tick = timeGetTime();
+					uint32_t tick = timeGetTime();
 					// something changed, and we'll have to draw that control again... as soon as it's done cleaning actually.
 					pc->flags.bDirtied = 1;
 					while( pc->flags.bCleaning && pc->flags.bDirtied && ((tick + 500) < timeGetTime()) )
@@ -2549,17 +2549,17 @@ PROCEDURE RealCreateCommonExx( PSI_CONTROL *pResult
 									  , PSI_CONTROL pContainer
 										// if not typename, must pass type ID...
 									  , CTEXTSTR pTypeName
-									  , _32 nType
+									  , uint32_t nType
 										// position of control
 									  , int x, int y
 									  , int w, int h
-									  , _32 nID
+									  , uint32_t nID
 									  , CTEXTSTR pIDName
 										// ALL controls have a caption...
 									  , CTEXTSTR text
 										// fields in this override the defaults...
 										// if not 0.
-									  , _32 ExtraBorderType
+									  , uint32_t ExtraBorderType
 									  , int bCreate // if !bCreate, return reload type
 										// if this is reloaded...
 										//, PTEXT parameters
@@ -2569,7 +2569,7 @@ PROCEDURE RealCreateCommonExx( PSI_CONTROL *pResult
 	TEXTCHAR mydef[256];
 	PCLASSROOT root;
 	PSI_CONTROL pc = NULL;
-	_32 BorderType;
+	uint32_t BorderType;
 
 #ifdef USE_INTERFACES
 	GetMyInterface();
@@ -2587,7 +2587,7 @@ PROCEDURE RealCreateCommonExx( PSI_CONTROL *pResult
 		tnprintf( mydef, sizeof( mydef ), PSI_ROOT_REGISTRY WIDE("/control/%") _32f , nType );
 	root = GetClassRoot( mydef );
 	if( pTypeName )
-		nType = (int)(PTRSZVAL)GetRegisteredValueExx( root, NULL, WIDE("type"), TRUE );
+		nType = (int)(uintptr_t)GetRegisteredValueExx( root, NULL, WIDE("type"), TRUE );
 	else
 		pTypeName = GetRegisteredValueExx( root, NULL, WIDE("type"), FALSE );
 
@@ -2596,7 +2596,7 @@ PROCEDURE RealCreateCommonExx( PSI_CONTROL *pResult
 	pc->class_root = root;
 	pc->basecolors = basecolor( pContainer );
 	{
-		_32 size = GetRegisteredIntValue( root, WIDE("extra") );
+		uint32_t size = GetRegisteredIntValue( root, WIDE("extra") );
 		if( size )
 		{
 			POINTER data = Allocate( size );
@@ -2619,7 +2619,7 @@ PROCEDURE RealCreateCommonExx( PSI_CONTROL *pResult
 	pc->flags.bTransparent = 1;
 #endif
 	pc->flags.bParentCleaned = 1;
-	BorderType = (int)(PTRSZVAL)GetRegisteredValueExx( root, NULL, WIDE("border"), TRUE );
+	BorderType = (int)(uintptr_t)GetRegisteredValueExx( root, NULL, WIDE("border"), TRUE );
 	BorderType |= ExtraBorderType;
 	//lprintf( WIDE("BorderType is %08x"), BorderType );
 	if( !(BorderType & BORDER_FIXED) )
@@ -2697,13 +2697,13 @@ PROCEDURE RealCreateCommonExx( PSI_CONTROL *pResult
 	root = GetClassRoot( mydef );
 	SetCommonDraw( pc, GetRegisteredProcedureExx(root,(CTEXTSTR)NULL,int,WIDE("draw"),(PSI_CONTROL)));
 	SetCommonDrawDecorations( pc, GetRegisteredProcedureExx(root,(CTEXTSTR)NULL,void,WIDE("decoration_draw"),(PSI_CONTROL)));
-	SetCommonMouse( pc, GetRegisteredProcedureExx(root,(CTEXTSTR)NULL,int,WIDE("mouse"),(PSI_CONTROL,S_32,S_32,_32)));
-	SetCommonKey( pc, GetRegisteredProcedureExx(root,(CTEXTSTR)NULL,int,WIDE("key"),(PSI_CONTROL,_32)));
+	SetCommonMouse( pc, GetRegisteredProcedureExx(root,(CTEXTSTR)NULL,int,WIDE("mouse"),(PSI_CONTROL,int32_t,int32_t,uint32_t)));
+	SetCommonKey( pc, GetRegisteredProcedureExx(root,(CTEXTSTR)NULL,int,WIDE("key"),(PSI_CONTROL,uint32_t)));
 	pc->Destroy        = GetRegisteredProcedureExx(root,(CTEXTSTR)NULL,void,WIDE("destroy"),(PSI_CONTROL));
 	pc->CaptionChanged = GetRegisteredProcedureExx(root,(CTEXTSTR)NULL,void,WIDE("caption_changed"),(PSI_CONTROL));
 	pc->ChangeFocus    = GetRegisteredProcedureExx(root,(CTEXTSTR)NULL,void,WIDE("focus_changed"),(PSI_CONTROL,LOGICAL));
 	pc->AddedControl   = GetRegisteredProcedureExx(root,(CTEXTSTR)NULL,void,WIDE("add_control"),(PSI_CONTROL,PSI_CONTROL));
-	AddCommonAcceptDroppedFiles( pc, GetRegisteredProcedureExx(root,(CTEXTSTR)NULL,LOGICAL,WIDE("drop_accept"),(PSI_CONTROL,CTEXTSTR,S_32,S_32)) );
+	AddCommonAcceptDroppedFiles( pc, GetRegisteredProcedureExx(root,(CTEXTSTR)NULL,LOGICAL,WIDE("drop_accept"),(PSI_CONTROL,CTEXTSTR,int32_t,int32_t)) );
 	pc->Resize         = GetRegisteredProcedureExx(root,(CTEXTSTR)NULL,void,WIDE("resize"),(PSI_CONTROL,LOGICAL));
 	pc->Move         = GetRegisteredProcedureExx(root,(CTEXTSTR)NULL,void,WIDE("position_changing"),(PSI_CONTROL,LOGICAL));
 	pc->Rescale        = GetRegisteredProcedureExx(root,(CTEXTSTR)NULL,void,WIDE("rescale"),(PSI_CONTROL));
@@ -2786,13 +2786,13 @@ PROCEDURE RealCreateCommonExx( PSI_CONTROL *pResult
 #define CreateCommonExx(pc,pt,nt,x,y,w,h,id,cap,ebt,p,ep) CreateCommonExxx(pc,pt,nt,x,y,w,h,id,NULL,cap,ebt,p,ep)
 PSI_PROC( PSI_CONTROL, CreateCommonExxx)( PSI_CONTROL pContainer
 													 , CTEXTSTR pTypeName
-													 , _32 nType
+													 , uint32_t nType
 													 , int x, int y
 													 , int w, int h
-													 , _32 nID
+													 , uint32_t nID
 													 , CTEXTSTR pIDName
 													 , CTEXTSTR caption
-													 , _32 ExtraBorderType
+													 , uint32_t ExtraBorderType
 													 , PTEXT parameters
 													 , POINTER extra_param
 													  DBG_PASS );
@@ -2802,7 +2802,7 @@ PSI_PROC( PSI_CONTROL, CreateCommonExxx)( PSI_CONTROL pContainer
 PSI_PROC( PSI_CONTROL, CreateFrame )( CTEXTSTR caption
 										  , int x, int y
 										  , int w, int h
-										  , _32 BorderTypeFlags
+										  , uint32_t BorderTypeFlags
 										  , PSI_CONTROL hAbove )
 {
 	PSI_CONTROL pc;
@@ -2835,7 +2835,7 @@ PSI_PROC( PSI_CONTROL, CreateFrame )( CTEXTSTR caption
 
 //---------------------------------------------------------------------------
 
-PSI_PROC( PTRSZVAL, GetCommonUserData )( PSI_CONTROL pf )
+PSI_PROC( uintptr_t, GetCommonUserData )( PSI_CONTROL pf )
 {
 	if( pf )
 		return pf->psvUser;
@@ -2844,7 +2844,7 @@ PSI_PROC( PTRSZVAL, GetCommonUserData )( PSI_CONTROL pf )
 
 //---------------------------------------------------------------------------
 
-PSI_PROC( void, SetCommonUserData )( PSI_CONTROL pf, PTRSZVAL psv )
+PSI_PROC( void, SetCommonUserData )( PSI_CONTROL pf, uintptr_t psv )
 {
 	if( pf )
 		pf->psvUser = psv;
@@ -3217,7 +3217,7 @@ PSI_PROC( void, HideControl )( PSI_CONTROL pc )
 
 //---------------------------------------------------------------------------
 
-PSI_PROC( void, SizeCommon )( PSI_CONTROL pc, _32 width, _32 height )
+PSI_PROC( void, SizeCommon )( PSI_CONTROL pc, uint32_t width, uint32_t height )
 {
 	if( pc && pc->Resize )
 		pc->Resize( pc, TRUE );
@@ -3228,7 +3228,7 @@ PSI_PROC( void, SizeCommon )( PSI_CONTROL pc, _32 width, _32 height )
 		//ValidatedControlData( PFRAME, CONTROL_FRAME, pFrame, GetFrame( pc ) );
 		IMAGE_RECTANGLE old;
 		PEDIT_STATE pEditState;
-		S_32 delw, delh;
+		int32_t delw, delh;
 
 		pc->original_rect.width = width;
 		pc->original_rect.height = height;
@@ -3256,8 +3256,8 @@ PSI_PROC( void, SizeCommon )( PSI_CONTROL pc, _32 width, _32 height )
 			}
 			SizeDisplay( pc->device->pActImg, width, height );
 		}
-		delw = (S_32)width - (S_32)pc->rect.width;
-		delh = (S_32)height - (S_32)pc->rect.height;
+		delw = (int32_t)width - (int32_t)pc->rect.width;
+		delh = (int32_t)height - (int32_t)pc->rect.height;
 
 		old = pc->rect;
 		if( pFrame )
@@ -3297,7 +3297,7 @@ PSI_PROC( void, SizeCommon )( PSI_CONTROL pc, _32 width, _32 height )
 
 //---------------------------------------------------------------------------
 
-PSI_PROC( void, SizeCommonRel )( PSI_CONTROL pc, _32 w, _32 h )
+PSI_PROC( void, SizeCommonRel )( PSI_CONTROL pc, uint32_t w, uint32_t h )
 {
 	SizeCommon( pc, w + pc->rect.width, h + pc->rect.height );
 }
@@ -3341,7 +3341,7 @@ void InvokeMotionChange( PSI_CONTROL pc, LOGICAL updating )
 }
 
 
-PSI_PROC( void, MoveCommon )( PSI_CONTROL pc, S_32 x, S_32 y )
+PSI_PROC( void, MoveCommon )( PSI_CONTROL pc, int32_t x, int32_t y )
 {
 	if( pc )
 	{
@@ -3391,7 +3391,7 @@ PSI_PROC( void, MoveCommon )( PSI_CONTROL pc, S_32 x, S_32 y )
 
 //---------------------------------------------------------------------------
 
-void ScaleCoords( PSI_CONTROL pc, PS_32 a, PS_32 b )
+void ScaleCoords( PSI_CONTROL pc, int32_t* a, int32_t* b )
 {
 	while( pc && !pc->flags.bScaled )
 		pc = pc->parent;
@@ -3517,8 +3517,8 @@ void SetCommonFont( PSI_CONTROL pc, SFTFont font )
 {
 	if( pc )
 	{
-		_32 w, h;
-		_32 _w, _h;
+		uint32_t w, h;
+		uint32_t _w, _h;
 #ifdef DEBUG_SCALING
 		//if( 0 )
 		{
@@ -3607,14 +3607,14 @@ SFTFont GetCommonFontEx( PSI_CONTROL pc DBG_PASS )
 
 //---------------------------------------------------------------------------
 
-PSI_PROC( void, MoveCommonRel )( PSI_CONTROL pc, S_32 x, S_32 y )
+PSI_PROC( void, MoveCommonRel )( PSI_CONTROL pc, int32_t x, int32_t y )
 {
    MoveFrame( pc, x + pc->rect.x, y + pc->rect.y );
 }
 
 //---------------------------------------------------------------------------
 
-PSI_PROC( void, MoveSizeCommon )( PSI_CONTROL pc, S_32 x, S_32 y, _32 width, _32 height )
+PSI_PROC( void, MoveSizeCommon )( PSI_CONTROL pc, int32_t x, int32_t y, uint32_t width, uint32_t height )
 {
 	if( pc )
 	{
@@ -3666,7 +3666,7 @@ PSI_PROC( void, MoveSizeCommon )( PSI_CONTROL pc, S_32 x, S_32 y, _32 width, _32
 
 //---------------------------------------------------------------------------
 
-PSI_PROC( void, MoveSizeCommonRel )( PSI_CONTROL pc, S_32 x, S_32 y, _32 width, _32 height )
+PSI_PROC( void, MoveSizeCommonRel )( PSI_CONTROL pc, int32_t x, int32_t y, uint32_t width, uint32_t height )
 {
     MoveSizeFrame( pc
                      , pc->rect.x + x
@@ -3932,7 +3932,7 @@ void LinkInNewControl( PSI_CONTROL parent, PSI_CONTROL elder, PSI_CONTROL child 
 
 //---------------------------------------------------------------------------
 
-void GetControlSize( PSI_CONTROL _pc, P_32 w, P_32 h )
+void GetControlSize( PSI_CONTROL _pc, uint32_t* w, uint32_t* h )
 {
 	if( _pc )
 	{
@@ -3948,17 +3948,17 @@ void GetControlSize( PSI_CONTROL _pc, P_32 w, P_32 h )
 PSI_CONTROL CreateCommonExxx( PSI_CONTROL pContainer
 								 // if not typename, must pass type ID...
 								, CTEXTSTR pTypeName
-								, _32 nType
+								, uint32_t nType
 								 // position of control
 								, int x, int y
 								, int w, int h
-								, _32 nID
+								, uint32_t nID
 								, CTEXTSTR pIDName // if this is NOT NULL, use Named ID to ID the control.
 								// ALL controls have a caption...
 							  , CTEXTSTR text
 								// fields in this override the defaults...
 								// if not 0.
-							  , _32 ExtraBorderType
+							  , uint32_t ExtraBorderType
 								// if this is reloaded...
 							  , PTEXT parameters
                         , POINTER extra_param
@@ -4056,10 +4056,10 @@ PSI_CONTROL CreateCommonExxx( PSI_CONTROL pContainer
 }
 
 PSI_CONTROL MakeControl( PSI_CONTROL pFrame
-					, _32 nType
+					, uint32_t nType
 					, int x, int y
 					, int w, int h
-					, _32 nID
+					, uint32_t nID
 					//, ...
 					)
 {
@@ -4067,10 +4067,10 @@ PSI_CONTROL MakeControl( PSI_CONTROL pFrame
 }
 
 PSI_CONTROL MakeControlParam( PSI_CONTROL pFrame
-								, _32 nType
+								, uint32_t nType
 								, int x, int y
 								, int w, int h
-								, _32 nID
+								, uint32_t nID
 								, POINTER parameter
 								)
 {
@@ -4078,10 +4078,10 @@ PSI_CONTROL MakeControlParam( PSI_CONTROL pFrame
 }
 
 PSI_CONTROL MakePrivateControl( PSI_CONTROL pFrame
-								  , _32 nType
+								  , uint32_t nType
 								  , int x, int y
 								  , int w, int h
-								  , _32 nID
+								  , uint32_t nID
 								  )
 {
 	return CreateCommonExx( pFrame, NULL, nType
@@ -4096,7 +4096,7 @@ PSI_CONTROL MakePrivateNamedControl( PSI_CONTROL pFrame
 								  , CTEXTSTR pType
 								  , int x, int y
 								  , int w, int h
-								  , _32 nID
+								  , uint32_t nID
 								   )
 {
 	return CreateCommonExx( pFrame, pType, 0
@@ -4108,10 +4108,10 @@ PSI_CONTROL MakePrivateNamedControl( PSI_CONTROL pFrame
 }
 
 PSI_CONTROL MakeCaptionedControl( PSI_CONTROL pFrame
-									 , _32 nType
+									 , uint32_t nType
 									 , int x, int y
 									 , int w, int h
-									 , _32 nID
+									 , uint32_t nID
 									 , CTEXTSTR caption
 									 //, ...
 									 )
@@ -4124,7 +4124,7 @@ PSI_PROC( PSI_CONTROL, MakeNamedCaptionedControlByName )( PSI_CONTROL pContainer
 																		  , int x, int y
 																		  , int w, int h
 																		  , CTEXTSTR pIDName
-																		  , _32 nID
+																		  , uint32_t nID
 																		  , CTEXTSTR caption
 																		  )
 {
@@ -4135,7 +4135,7 @@ PSI_PROC( PSI_CONTROL, MakeNamedCaptionedControl )( PSI_CONTROL pContainer
 															 , CTEXTSTR pType
 															 , int x, int y
 															 , int w, int h
-															 , _32 nID
+															 , uint32_t nID
 															 , CTEXTSTR caption
 															 )
 {
@@ -4144,10 +4144,10 @@ PSI_PROC( PSI_CONTROL, MakeNamedCaptionedControl )( PSI_CONTROL pContainer
 
 
 PSI_CONTROL VMakeCaptionedControl( PSI_CONTROL pFrame
-									 , _32 nType
+									 , uint32_t nType
 									 , int x, int y
 									 , int w, int h
-									 , _32 nID
+									 , uint32_t nID
 									 , CTEXTSTR caption
 									  //, va_list args
 									  )
@@ -4160,7 +4160,7 @@ PSI_CONTROL MakeNamedControl( PSI_CONTROL pFrame
                     , CTEXTSTR pType
 						  , int x, int y
 						  , int w, int h
-						  , _32 nID
+						  , uint32_t nID
 								//, ...
 								)
 {
@@ -4170,20 +4170,20 @@ PSI_CONTROL MakeNamedControl( PSI_CONTROL pFrame
 }
 
 PSI_CONTROL VMakeControl( PSI_CONTROL pFrame
-                        , _32 nType
+                        , uint32_t nType
                         , int x, int y
                         , int w, int h
-                        , _32 nID
+                        , uint32_t nID
                         )
 {
    return CreateCommonExx( pFrame, NULL, nType, x, y, w, h, nID, NULL, 0, NULL, NULL DBG_SRC );
 }
 
 PSI_CONTROL RestoreControl( PSI_CONTROL pFrame
-                          , _32 nType
+                          , uint32_t nType
                           , int x, int y
                           , int w, int h
-                          , _32 nID
+                          , uint32_t nID
                           , PTEXT parameters )
 {
    return CreateCommonExx( pFrame, NULL, nType, x, y, w, h, nID, NULL, 0, parameters, NULL DBG_SRC );
@@ -4429,7 +4429,7 @@ PSI_PROC( void, SetControlIDName )( PSI_CONTROL pc, TEXTCHAR *IDName )
 //---------------------------------------------------------------------------
 
 
-BUTTON_CLICK( ButtonOkay, ( PTRSZVAL psv, PSI_CONTROL pc ) )
+BUTTON_CLICK( ButtonOkay, ( uintptr_t psv, PSI_CONTROL pc ) )
 {
 	PCOMMON_BUTTON_DATA pcbd = pc->parent?&pc->parent->pCommonButtonData:NULL;
 	{
@@ -4448,7 +4448,7 @@ BUTTON_CLICK( ButtonOkay, ( PTRSZVAL psv, PSI_CONTROL pc ) )
 
 PSI_PROC( void, InitCommonButton )( PSI_CONTROL pc, int *value )
 {
-   //ConfigButton( pc, NULL, ButtonOkay, (PTRSZVAL)value );
+   //ConfigButton( pc, NULL, ButtonOkay, (uintptr_t)value );
 }
 
 //---------------------------------------------------------------------------
@@ -4460,8 +4460,8 @@ void SetCommonButtons( PSI_CONTROL pf
 	if( pf )
 	{
 		PCOMMON_BUTTON_DATA pcbd;
-		SetButtonPushMethod( GetControl( pf, BTN_CANCEL ), ButtonOkay, (PTRSZVAL)pdone );
-		SetButtonPushMethod( GetControl( pf, BTN_OKAY ), ButtonOkay, (PTRSZVAL)pokay );
+		SetButtonPushMethod( GetControl( pf, BTN_CANCEL ), ButtonOkay, (uintptr_t)pdone );
+		SetButtonPushMethod( GetControl( pf, BTN_OKAY ), ButtonOkay, (uintptr_t)pokay );
 		pcbd = &pf->pCommonButtonData;
 		pcbd->okay_value = pokay;
 		pcbd->done_value = pdone;
@@ -4511,16 +4511,16 @@ void AddCommonButtonsEx( PSI_CONTROL pf
 			pc = MakeButton( pf
 								, x, y
 								, COMMON_BUTTON_WIDTH, COMMON_BUTTON_HEIGHT
-								, BTN_OKAY, okaytext, 0, ButtonOkay, (PTRSZVAL)okay );
-			//SetCommonUserData( pc, (PTRSZVAL)pcbd );
+								, BTN_OKAY, okaytext, 0, ButtonOkay, (uintptr_t)okay );
+			//SetCommonUserData( pc, (uintptr_t)pcbd );
 		}
 		if( done && donetext )
 		{
 			pc = MakeButton( pf
 						  , x2, y
 						  , COMMON_BUTTON_WIDTH, COMMON_BUTTON_HEIGHT
-						  , BTN_CANCEL, donetext, 0, ButtonOkay, (PTRSZVAL)done );
-			//SetCommonUserData( pc, (PTRSZVAL)pcbd );
+						  , BTN_CANCEL, donetext, 0, ButtonOkay, (uintptr_t)done );
+			//SetCommonUserData( pc, (uintptr_t)pcbd );
 		}
 	}
 }
@@ -4823,14 +4823,14 @@ PSI_PROC( void, AdoptCommon )( PSI_CONTROL pFoster, PSI_CONTROL pElder, PSI_CONT
 //---------------------------------------------------------------------------
 
 PSI_CONTROL CreateControlExx( PSI_CONTROL pFrame
-								  , _32 attr
+								  , uint32_t attr
 								  , int x, int y
 								  , int w, int h
 								  , int nID
 								  , int BorderType
 								  , int extra
 								  , ControlInitProc InitProc
-								  , PTRSZVAL psvInit
+								  , uintptr_t psvInit
 									DBG_PASS )
 {
 	return NULL;
@@ -4852,11 +4852,11 @@ void DestroyControlEx(PSI_CONTROL pc DBG_PASS )
 
 //---------------------------------------------------------------------------
 
-void GetPhysicalCoordinate( PSI_CONTROL relative_to, S_32 *_x, S_32 *_y, int include_surface )
+void GetPhysicalCoordinate( PSI_CONTROL relative_to, int32_t *_x, int32_t *_y, int include_surface )
 {
-	S_32 x = (*_x);
-	S_32 y = (*_y);
-	S_32 wx, wy;
+	int32_t x = (*_x);
+	int32_t y = (*_y);
+	int32_t wx, wy;
 	PSI_CONTROL frame = GetFrame( relative_to );
 	if( frame->device && frame->device->pActImg )
 		GetDisplayPosition( frame->device->pActImg, &wx, &wy, NULL, NULL );
@@ -4951,7 +4951,7 @@ void SetCommonDrawDecorations( PSI_CONTROL pc
 //---------------------------------------------------------------------------
 
 void AddCommonMouse( PSI_CONTROL pc
-									  , int (CPROC*MouseMethod)(PSI_CONTROL, S_32 x, S_32 y, _32 b ) )
+									  , int (CPROC*MouseMethod)(PSI_CONTROL, int32_t x, int32_t y, uint32_t b ) )
 {
 	if( MouseMethod )
 	{
@@ -4963,7 +4963,7 @@ void AddCommonMouse( PSI_CONTROL pc
 //---------------------------------------------------------------------------
 
 void SetCommonMouse( PSI_CONTROL pc
-									  , int (CPROC*MouseMethod)(PSI_CONTROL, S_32 x, S_32 y, _32 b ) )
+									  , int (CPROC*MouseMethod)(PSI_CONTROL, int32_t x, int32_t y, uint32_t b ) )
 {
 	if( MouseMethod )
 	{
@@ -5001,7 +5001,7 @@ void SetCommonAcceptDroppedFiles( PSI_CONTROL pc
 //---------------------------------------------------------------------------
 
 void AddCommonKey( PSI_CONTROL pc
-									 ,int (CPROC*Key)(PSI_CONTROL,_32) )
+									 ,int (CPROC*Key)(PSI_CONTROL,uint32_t) )
 {
 	if( Key )
 	{
@@ -5013,7 +5013,7 @@ void AddCommonKey( PSI_CONTROL pc
 //---------------------------------------------------------------------------
 
 void SetCommonKey( PSI_CONTROL pc
-									 ,int (CPROC*Key)(PSI_CONTROL,_32) )
+									 ,int (CPROC*Key)(PSI_CONTROL,uint32_t) )
 {
 	if( Key )
 	{
@@ -5059,7 +5059,7 @@ void SetCommonTransparent( PSI_CONTROL pc, LOGICAL bTransparent )
 
 //---------------------------------------------------------------------------
 
-PSI_PROC( void, GetFramePosition )( PSI_CONTROL pf, S_32 *x, S_32 *y )
+PSI_PROC( void, GetFramePosition )( PSI_CONTROL pf, int32_t *x, int32_t *y )
 {
 	if( pf )
 	{
@@ -5079,7 +5079,7 @@ PSI_PROC( void, GetFramePosition )( PSI_CONTROL pf, S_32 *x, S_32 *y )
 
 //---------------------------------------------------------------------------
 
-PSI_PROC( void, GetFrameSize )( PSI_CONTROL pf, _32 *w, _32 *h )
+PSI_PROC( void, GetFrameSize )( PSI_CONTROL pf, uint32_t *w, uint32_t *h )
 {
 	if( pf )
 	{

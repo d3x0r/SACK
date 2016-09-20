@@ -28,7 +28,7 @@
 namespace loader {
 #endif
 
-ImageFile *ImageGifFile (_8 * buf, long size);
+ImageFile *ImageGifFile (uint8_t * buf, long size);
 #ifdef __cplusplus
 }//namespace loader {
 #endif

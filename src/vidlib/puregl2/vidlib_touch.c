@@ -293,7 +293,7 @@ int Handle3DTouches( struct display_camera *camera, PINPUT_POINT touches, int nT
 					= touch_info.one.x = touches[0].x;
 				l.mouse_y
 					= touch_info.one.y = touches[0].y;
-				if( used = (PRENDERER)OpenGLMouse( (PTRSZVAL)camera, l.mouse_x, l.mouse_y, MK_LBUTTON ) )
+				if( used = (PRENDERER)OpenGLMouse( (uintptr_t)camera, l.mouse_x, l.mouse_y, MK_LBUTTON ) )
 				{
 					l.hCameraCaptured = used;
 					touch_info.owning_surface = used;
@@ -307,7 +307,7 @@ int Handle3DTouches( struct display_camera *camera, PINPUT_POINT touches, int nT
 			{
 				if( touch_info.flags.owned_by_surface )
 				{
-					OpenGLMouse( (PTRSZVAL)camera, l.mouse_x, l.mouse_y, 0 );
+					OpenGLMouse( (uintptr_t)camera, l.mouse_x, l.mouse_y, 0 );
 					l.hCameraCaptured = NULL;
 					touch_info.owning_surface = NULL;
 					touch_info.flags.owned_by_surface = 0;
@@ -321,7 +321,7 @@ int Handle3DTouches( struct display_camera *camera, PINPUT_POINT touches, int nT
 				{
 					l.mouse_x = touches[0].x;
 					l.mouse_y = touches[0].y;
-					if( !OpenGLMouse( (PTRSZVAL)camera, l.mouse_x, l.mouse_y, MK_LBUTTON ) )
+					if( !OpenGLMouse( (uintptr_t)camera, l.mouse_x, l.mouse_y, MK_LBUTTON ) )
 					{
                   touch_info.flags.owned_by_surface = 0;
 					}

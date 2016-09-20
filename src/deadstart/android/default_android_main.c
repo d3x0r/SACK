@@ -49,14 +49,14 @@ static void (*BagVidlibPureglSendTouchEvents)( int nPoints, PINPUT_POINT points 
 static void (*BagVidlibPureglCloseDisplay)(void);  // do cleanup and suspend processing until a new surface is created.
 static void (*BagVidlibPureglSurfaceLost)(void);  // do cleanup and suspend processing until a new surface is created.
 static void (*BagVidlibPureglSurfaceGained)(NativeWindowType);  // do cleanup and suspend processing until a new surface is created.
-static int ProcessEvents( PTRSZVAL );
+static int ProcessEvents( uintptr_t );
 
 static void (*BagVidlibPureglSetTriggerKeyboard)( void(*show)(void)
 																, void(*hide)(void)
 																, int(*get_status_metric)(void)
 																, int(*get_keyboard_metric)(void)
 																, char*(*get_key_text)(void)
-																, int(*process_events)(PTRSZVAL) );  // do cleanup and suspend processing until a new surface is created.
+																, int(*process_events)(uintptr_t) );  // do cleanup and suspend processing until a new surface is created.
 static void (*BagVidlibPureglSetAnimationWake)(void(*wake_animation)(void));  // do cleanup and suspend processing until a new surface is created.
 static void (*BagVidlibPureglSetSleepSuspend)(void(*suspend)(int));  // do cleanup and suspend processing until a new surface is created.
 
@@ -112,7 +112,7 @@ static void ReadEvent( void )
 		}
 }
 
-static int ProcessEvents( PTRSZVAL psvMode )
+static int ProcessEvents( uintptr_t psvMode )
 {
 	if( psvMode )
 	{
@@ -778,7 +778,7 @@ void* BeginNormalProcess( void*param )
 					BagVidlibPureglSetTriggerKeyboard = (void(*)(void(*)(void),void(*)(void),int(*get_status_metric)(void)
 																			  ,int(*get_keyboard_metric)(void)
 																			  ,char*(*get_key_text)(void)
-                                                            , int(*)(PTRSZVAL)
+                                                            , int(*)(uintptr_t)
 																			  ))dlsym( RTLD_DEFAULT, "SACK_Vidlib_SetTriggerKeyboard" );
 					if( BagVidlibPureglSetTriggerKeyboard )
 						BagVidlibPureglSetTriggerKeyboard( show_keyboard, hide_keyboard, AndroidGetStatusMetric, AndroidGetKeyboardMetric, AndroidGetCurrentKeyText, ProcessEvents );
@@ -972,7 +972,7 @@ void BeginNativeProcess( struct engine* engine )
 			}
 }
 
-int LooperProcessEvents( PTRSZVAL psvMode )
+int LooperProcessEvents( uintptr_t psvMode )
 {
 
 

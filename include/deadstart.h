@@ -465,7 +465,7 @@ struct rt_init // structure placed in XI/YI segment
 #endif
 	 CTEXTSTR funcname;
 	 struct rt_init *junk;
-#ifdef __LINUX64__
+#if defined( __GNUC__ ) && defined( __64__)
     // this provides padding - inter-object segments are packed
     // to 32 bytes...
 	 struct rt_init *junk2[3];
@@ -541,7 +541,7 @@ struct rt_init // structure placed in XI/YI segment
                           //   completed entries
     __type_rtp  scheduled; // has this been scheduled? (0 if no)
     __type_rtp  priority; // - priority (0-highest 255-lowest)
-#if defined( __LINUX64__ ) ||defined( __arm__ ) || defined( __CYGWIN__ )
+#if defined( __GNUC__ ) || defined( __LINUX64__ ) || defined( __arm__ ) || defined( __CYGWIN__ )
 #define INIT_PADDING ,{0}
 	 char padding[1]; // need this otherwise it's 23 bytes and that'll be bad.
 #else
@@ -554,7 +554,7 @@ struct rt_init // structure placed in XI/YI segment
 	 CTEXTSTR file;
 	 CTEXTSTR funcname;
 	 struct rt_init *junk;
-#ifdef __LINUX64__
+#if defined( __GNUC__ ) && defined( __64__ )
     // this provides padding - inter-object segments are packed
     // to 32 bytes...
 	 struct rt_init *junk2[3];
@@ -610,23 +610,6 @@ void name( void)
 
 #define PRELOAD(name) PRIORITY_PRELOAD(name,DEFAULT_PRELOAD_PRIORITY)
 
-#ifdef __old_deadstart
-#define InvokeDeadstart() do {  \
-	TEXTCHAR myname[256];HMODULE mod;GetModuleFileName( NULL, (LPSTR)myname, sizeof( myname ) );\
-	mod=LoadLibrary((LPSTR)myname);if(mod){        \
-   void(*rsp)(void); \
-	if((rsp=((void(*)(void))(GetProcAddress( mod, default_name_for_deadstart_runner))))){rsp();}else{lprintf( WIDE("Hey failed to get proc %d"), GetLastError() );}\
-	FreeLibrary( mod);  } \
-	} while(0)
-#endif
-
-#ifdef __old_deadstart
-#define DispelDeadstart() do {  \
-	void *hMe = dlopen(NULL, RTLD_LAZY );   \
-	if(hMe){ void (*f)(void)=(void(*)(void))dlsym( hMe,"ClearDeadstarts" ); if(f)f(); dlclose(hMe); }\
-	} while(0)
-#endif
-
 //------------------------------------------------------------------------------------
 // WIN32 MSVC
 //------------------------------------------------------------------------------------
@@ -654,15 +637,14 @@ void name( void)
 
 //#pragma data_seg(".CRT$XIA")
 #pragma data_seg(".CRT$XIM")
-// this might only be needed for __64__
 #pragma section(".CRT$XIM",long,read)
 
 #pragma data_seg(".CRT$XCY")
-// this might only be needed for __64__
 #pragma section(".CRT$XCY",long,read)
+//#pragma data_seg(".CRT$XIZ")
+
 //#pragma data_seg(".CRT$YCZ")
 #pragma data_seg(".CRT$XTM")
-// this might only be needed for __64__
 #pragma section(".CRT$XTM",long,read)
 #pragma data_seg()
 
@@ -710,8 +692,8 @@ typedef void(*atexit_priority_proc)(void (*)(void),int,CTEXTSTR DBG_PASS);
 #endif
 #define PRELOAD(name) PRIORITY_PRELOAD(name,DEFAULT_PRELOAD_PRIORITY)
 
-//extern _32 deadstart_complete;
-//#define DEADSTART_LINK _32 *deadstart_link_couple = &deadstart_complete; // make sure we reference this symbol
+//extern uint32_t deadstart_complete;
+//#define DEADSTART_LINK uint32_t *deadstart_link_couple = &deadstart_complete; // make sure we reference this symbol
 //#pragma data_seg(".CRT$XCAA")
 //extern void __cdecl __security_init_cookie(void);
 //static _CRTALLOC(".CRT$XCAA") _PVFV init_cookie = __security_init_cookie;

@@ -15,7 +15,7 @@
 #define EINVAL -3
 #define E2BIG -4
 #ifdef DEBUG_DATA_XFER
-#  define msgsnd( q,msg,len,opt) ( lprintf( WIDE("Send Message...") ), LogBinary( (P_8)msg, (len)+4  ), EnqueMsg( q,(msg),(len),(opt)) )
+#  define msgsnd( q,msg,len,opt) ( lprintf( WIDE("Send Message...") ), LogBinary( (uint8_t*)msg, (len)+4  ), EnqueMsg( q,(msg),(len),(opt)) )
 #else
 #  define msgsnd EnqueMsg
 #endif
@@ -85,7 +85,7 @@ int main( void )
 			{
 				lprintf( WIDE("Received %") ssize_tf WIDE(" bytes from queue 1")
 						 , len );
-            LogBinary( (P_8)buffer, len + sizeof( long ) );
+            LogBinary( (uint8_t*)buffer, len + sizeof( long ) );
 			}
 		} while( len != MSGFAIL );
 
@@ -102,7 +102,7 @@ int main( void )
 			if( len != MSGFAIL )
 			{
 				lprintf( WIDE("Received %") ssize_tf WIDE(" bytes from queue 2"), len );
-            LogBinary( (P_8)buffer, len + sizeof( long ) );
+            LogBinary( (uint8_t*)buffer, len + sizeof( long ) );
 			}
 		} while( len != MSGFAIL );
 	}
@@ -118,7 +118,7 @@ int main( void )
 			if( len != MSGFAIL )
 			{
 				lprintf( WIDE("Received %") ssize_tf WIDE(" bytes from queue 3"), len );
-            LogBinary( (P_8)buffer, len + sizeof( long ) );
+            LogBinary( (uint8_t*)buffer, len + sizeof( long ) );
 			}
 		} while( len != MSGFAIL );
 	}
@@ -134,7 +134,7 @@ int main( void )
 			if( len != MSGFAIL )
 			{
 				lprintf( WIDE("Received %") ssize_tf WIDE(" bytes from queue 4"), len );
-            LogBinary( (P_8)buffer, len + sizeof( long ) );
+            LogBinary( (uint8_t*)buffer, len + sizeof( long ) );
 			}
 		} while( len != MSGFAIL );
 	}

@@ -35,8 +35,8 @@ typedef struct command_entry
 {
    DECLTEXTSZTYPE(name, 32);
    DECLTEXTSZTYPE(classname, 25);   
-   S_8 significant; // minimum match
-   S_8 maxlen;      // maximum usable characters
+   int8_t significant; // minimum match
+   int8_t maxlen;      // maximum usable characters
    DECLTEXTSZTYPE(description, 128);
    Function function;
    TEXTCHAR *funcname;
@@ -104,7 +104,7 @@ typedef struct volatile_variable_entry
    GetVariableFunc get;
    SetVariableFunc set;
    PTEXT pLastValue;
-   //PTRSZVAL psv; // this is the first param passed to set/get
+   //uintptr_t psv; // this is the first param passed to set/get
 }volatile_variable_entry;
 
 #include "plugin.h"
@@ -120,7 +120,7 @@ int Process_Command(PSENTIENT  pEntity, PTEXT *Command);
 
 #define CreateMacroList() (PMACROLIST)CreateList()
 
-S_32 CountArguments( PSENTIENT ps, PTEXT args );
+int32_t CountArguments( PSENTIENT ps, PTEXT args );
 CORE_PROC( PMACRO, CreateMacro )( PENTITY pEnt, PLINKQUEUE *ppOutput, PTEXT name );
 CORE_CPROC( void, AddMacroCommand )( PMACRO pMacro, PTEXT pText );
 CORE_PROC( void, DestroyMacro )( PENTITY pe, PMACRO pm );
@@ -156,7 +156,7 @@ CORE_CPROC( PTEXT, GetVariable )( PSENTIENT ps, CTEXTSTR text );
 // you CAN - set ps->Current to the new object (and restore it when done!)
 CORE_PROC( PTEXT, MacroDuplicateExx )( BLOBTYPE sentient_tag *pEntity, PTEXT pText, int bKeepEOL, int bSubst, PTEXT args DBG_PASS);
 CORE_PROC( PMACRO, LocateMacro )( PENTITY pe, CTEXTSTR name );
-CORE_PROC( PMACROSTATE, InvokeMacroEx )( PSENTIENT ps, PMACRO pMacro, PTEXT pArgs, void (CPROC*StopEvent)(PTRSZVAL psvUser, PMACROSTATE pms ), PTRSZVAL psv );
+CORE_PROC( PMACROSTATE, InvokeMacroEx )( PSENTIENT ps, PMACRO pMacro, PTEXT pArgs, void (CPROC*StopEvent)(uintptr_t psvUser, PMACROSTATE pms ), uintptr_t psv );
 CORE_PROC( PMACROSTATE, InvokeMacro )( BLOBTYPE sentient_tag *ps, PMACRO pMacro, PTEXT pArgs );
 #define InvokeMacro(ps,pm,arg) InvokeMacroEx( ps,pm,arg,NULL,0 )
 
@@ -197,7 +197,7 @@ PENTITY ResolveEntity( PSENTIENT ps_out, PENTITY focus, enum FindWhere type, PTE
 CORE_PROC( void, prompt )( BLOBTYPE sentient_tag *ps );
 //--------------- Text Value Converstions ----------------
 //CORE_PROC( double, FltNumber )( PTEXT pText );
-//CORE_PROC( S_64, IntNumber )( PTEXT pText );
+//CORE_PROC( int64_t, IntNumber )( PTEXT pText );
 CORE_PROC( PTEXT, MakeNumberText )( size_t val );
 
 CORE_PROC( PMACRO, GetMacro )( PENTITY pe, CTEXTSTR pNamed );
@@ -214,8 +214,8 @@ CORE_PROC( void, QueueCommand )( PSENTIENT ps, CTEXTSTR Command );
 #define WriteList(s, leader, Output) WriteListNot( s, NULL, leader, Output )
 // if IsNumber returns true, text token is updated
 #define IsNumber(p) IsSegAnyNumberEx( &(p), NULL, NULL, NULL, 0 )
-//CORE_PROC( int, IsNumber )( PTEXT *pText, double *dNumber, S_64 *iNumber, int *bIntNumber );
-//CORE_PROC( int, IsIntNumber )( PTEXT *pText, S_64 *iNumber );
+//CORE_PROC( int, IsNumber )( PTEXT *pText, double *dNumber, int64_t *iNumber, int *bIntNumber );
+//CORE_PROC( int, IsIntNumber )( PTEXT *pText, int64_t *iNumber );
 #define IntNumber IntCreateFromSeg
 #define FltNumber FloatCreateFromSeg
 //----------------------------------------------------------------------

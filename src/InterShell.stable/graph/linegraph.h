@@ -28,32 +28,32 @@ typedef struct target_address
 {
    TEXTCHAR *name;  // target name (text IP address)
    SOCKADDR *addr; // name converted to a network address
-	//_32 dwIP; // dwIP used for PING result
-   //_16 port; // useless, but free.
+	//uint32_t dwIP; // dwIP used for PING result
+   //uint16_t port; // useless, but free.
 } *TARGET_ADDRESS;
 
 
-typedef void (*RenderFunction)( PTRSZVAL psvRenderWhat // user data to pass to render to give render a thing to render
+typedef void (*RenderFunction)( uintptr_t psvRenderWhat // user data to pass to render to give render a thing to render
 										, PDATALIST *points // GRAPH_LINE_SAMPLE output points to draw
-										, _32 from // min tick
-										, _32 to // max tick
-										, _32 resolution  // width to plot
-										, _32 value_resolution // height to plot
+										, uint32_t from // min tick
+										, uint32_t to // max tick
+										, uint32_t resolution  // width to plot
+										, uint32_t value_resolution // height to plot
 										);
 // this is a string from somewhere...
 // application can use it for whatever...
-typedef PTRSZVAL (*InstanceFunction)( TARGET_ADDRESS string );
-typedef void (CPROC *TimerProc)( PTRSZVAL psvTarget );
-typedef void (*DestroyFunction)( PTRSZVAL psv);
+typedef uintptr_t (*InstanceFunction)( TARGET_ADDRESS string );
+typedef void (CPROC *TimerProc)( uintptr_t psvTarget );
+typedef void (*DestroyFunction)( uintptr_t psv);
 
 typedef struct graph_line_struct *GRAPH_LINE;
 
 
 typedef struct graph_line_sample_struct
 {
-	_32 offset; // sparse point support.
-	_32 value;
-	_32 tick;
+	uint32_t offset; // sparse point support.
+	uint32_t value;
+	uint32_t tick;
 } GRAPH_LINE_SAMPLE;
 
 

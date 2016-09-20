@@ -32,8 +32,8 @@ static CTEXTSTR create_tracking =
 
 struct keycode
 {
-	_32 key;
-	_32 key2;
+	uint32_t key;
+	uint32_t key2;
 };
 
 struct loaded_player
@@ -91,10 +91,10 @@ static struct fantasy_football_local
 	CTEXTSTR sysname;
 	TEXTCHAR card_end_char;
 	TEXTCHAR card_begin_char;
-	_64 enable_code;
+	uint64_t enable_code;
 
 	LOGICAL attract_mode;
-	_32 number_collector;
+	uint32_t number_collector;
 	TEXTCHAR value_collector[256];
 	int value_collect_index;
 	TEXTCHAR name_collector[256];
@@ -110,8 +110,8 @@ static struct fantasy_football_local
 	Image banner_image;
 	PRENDERER r_standby;
 	Image standby_image;
-	_32 timer;  // not zero if banner is showing.
-	_32 timer_standby;
+	uint32_t timer;  // not zero if banner is showing.
+	uint32_t timer_standby;
 	TEXTCHAR path[MAX_PATH];
 	PTASK_INFO task;
 	TEXTSTR player_id;
@@ -435,7 +435,7 @@ void PressShift( int key1 )
 
 }
 
-PTRSZVAL CPROC GenerateApplicationStrokes( PTHREAD thread )
+uintptr_t CPROC GenerateApplicationStrokes( PTHREAD thread )
 {
 	int n;
 	lprintf( "Short pause.." );
@@ -756,7 +756,7 @@ void handle_data (void *userData,
 //-------------------------------------------------------------------------
 static struct {
 	CTEXTSTR pFile;
-	_32 nLine;
+	uint32_t nLine;
 } current_loading;
 #if defined( _DEBUG ) || defined( _DEBUG_INFO )
 void * MyAllocate( size_t s ) { return AllocateEx( s, current_loading.pFile, current_loading.nLine ); }
@@ -878,7 +878,7 @@ void ParseXML( POINTER buffer, size_t size, int *first_swipe, int *today_swipes,
 static void ReadXML( int *first, int *today, LOGICAL bQuery )
 {
 	POINTER buffer;
-	PTRSZVAL size;
+	uintptr_t size;
 	TEXTSTR delete_filename = NULL;
 	TEXTCHAR filename[MAX_PATH]; // assume this is the name until later
 	
@@ -912,7 +912,7 @@ static void ReadXML( int *first, int *today, LOGICAL bQuery )
 
 }
 
-static void CPROC redraw( PTRSZVAL psvUser, PRENDERER self )
+static void CPROC redraw( uintptr_t psvUser, PRENDERER self )
 {
 	Image out = GetDisplayImage( ffl.r );
 	//lprintf( "Draw image" );
@@ -920,7 +920,7 @@ static void CPROC redraw( PTRSZVAL psvUser, PRENDERER self )
 	UpdateDisplay( ffl.r );
 }
 
-static void CPROC redraw_standby( PTRSZVAL psvUser, PRENDERER self )
+static void CPROC redraw_standby( uintptr_t psvUser, PRENDERER self )
 {
 	Image out = GetDisplayImage( ffl.r_standby );
 	//lprintf( "Draw image" );
@@ -928,7 +928,7 @@ static void CPROC redraw_standby( PTRSZVAL psvUser, PRENDERER self )
 	UpdateDisplay( ffl.r_standby );
 }
 
-static void CPROC hide_display( PTRSZVAL psv )
+static void CPROC hide_display( uintptr_t psv )
 {
 	lprintf( "hide" );
 	HideDisplay( ffl.r );
@@ -950,7 +950,7 @@ static void BannerNoSwipes( void )
 	//	WakeableSleep( 100 );
 }
 
-static void CPROC StandbyDelay( PTRSZVAL psv )
+static void CPROC StandbyDelay( uintptr_t psv )
 {
 	lprintf( "restore standby" );
 	RestoreDisplay( ffl.r_standby );
@@ -1006,8 +1006,8 @@ static int CanSwipe( void )
 {
 	TEXTCHAR **results = NULL;
 	int available_count = 0;
-	S_32 slot_total = 0;
-	S_32 table_total = 0;
+	int32_t slot_total = 0;
+	int32_t table_total = 0;
 	int first_swipe = 0;
 	int today_swipe = 0;
 	BannerStandby();
@@ -1123,7 +1123,7 @@ static int CanSwipe( void )
 	return available_count > 0;
 }
 
-static LOGICAL CPROC PressSomeKey( PTRSZVAL psv, _32 key_code )
+static LOGICAL CPROC PressSomeKey( uintptr_t psv, uint32_t key_code )
 {
 	TEXTCHAR key;
 	static int last_press_used;
@@ -1244,14 +1244,14 @@ void InitKeys( void )
 	{
 		if( n == 0xA4 || n == 0xA5 || n == 0xA2 || n == 0xA3 )
 			continue;
-		BindEventToKey( NULL, n, KEY_MOD_ALL_CHANGES, PressSomeKey, (PTRSZVAL)0 );
-		BindEventToKey( NULL, n, KEY_MOD_ALL_CHANGES|KEY_MOD_SHIFT, PressSomeKey, (PTRSZVAL)0 );
-		//BindEventToKey( NULL, n, KEY_MOD_ALL_CHANGES, PressSomeKey, (PTRSZVAL)0 );
-		//BindEventToKey( NULL, n, KEY_MOD_ALL_CHANGES|KEY_MOD_SHIFT, PressSomeKey, (PTRSZVAL)0 );
+		BindEventToKey( NULL, n, KEY_MOD_ALL_CHANGES, PressSomeKey, (uintptr_t)0 );
+		BindEventToKey( NULL, n, KEY_MOD_ALL_CHANGES|KEY_MOD_SHIFT, PressSomeKey, (uintptr_t)0 );
+		//BindEventToKey( NULL, n, KEY_MOD_ALL_CHANGES, PressSomeKey, (uintptr_t)0 );
+		//BindEventToKey( NULL, n, KEY_MOD_ALL_CHANGES|KEY_MOD_SHIFT, PressSomeKey, (uintptr_t)0 );
 	}
 }
 
-static void CPROC TaskEnded( PTRSZVAL psv, PTASK_INFO task )
+static void CPROC TaskEnded( uintptr_t psv, PTASK_INFO task )
 {
 	ffl.task = NULL;
 	exit(0);
@@ -1264,7 +1264,7 @@ ATEXIT( KillGame )
 }
 
 
-static int CPROC ChandleHandler(PTRSZVAL psv
+static int CPROC ChandleHandler(uintptr_t psv
 											 , CTEXTSTR filepath
 											 , int bDeleted)
 {
@@ -1369,7 +1369,7 @@ SaneWinMain( argc, argv )
 	ffl.card_end_char = '?';
 	
 	{
-		_32 w, h;
+		uint32_t w, h;
 		GetDisplaySize( &w, &h );
 		//ffl.r = OpenDisplaySizedAt( DISPLAY_ATTRIBUTE_NO_AUTO_FOCUS| DISPLAY_ATTRIBUTE_CHILD, w, h, 0, 0 );
 		ffl.r = OpenDisplaySizedAt( DISPLAY_ATTRIBUTE_NO_AUTO_FOCUS| DISPLAY_ATTRIBUTE_CHILD|DISPLAY_ATTRIBUTE_TOPMOST, w, h, 0, 0 );

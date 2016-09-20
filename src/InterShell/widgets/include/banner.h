@@ -54,8 +54,8 @@ BANNER_PROC( int, CreateBanner2Extended )( PRENDERER parent, PBANNER *ppBanner, 
 BANNER_PROC( int, CreateBanner2Exx )( PRENDERER parent, PBANNER *ppBanner, CTEXTSTR text, int options, int timeout, CDATA textcolor, CDATA basecolor );
 BANNER_PROC( int, CreateBanner2Ex )( PRENDERER parent, PBANNER *ppBanner, CTEXTSTR text, int options, int timeout );
 BANNER_PROC( int, CreateBanner2 )( PRENDERER parent, PBANNER *ppBanner, CTEXTSTR text );
-BANNER_PROC( void, SetBanner2Options )( PBANNER, _32 flags, _32 extra );
-BANNER_PROC( void, SetBanner2OptionsEx )( PBANNER*, _32 flags, _32 extra );
+BANNER_PROC( void, SetBanner2Options )( PBANNER, uint32_t flags, uint32_t extra );
+BANNER_PROC( void, SetBanner2OptionsEx )( PBANNER*, uint32_t flags, uint32_t extra );
 #define SetBanner2Options( banner,flags,extra ) SetBanner2OptionsEx( &(banner), flags,extra )
 
 // click, closed, etc...
@@ -73,7 +73,7 @@ BANNER_PROC( void, RemoveBanner2Ex )( PBANNER *banner DBG_PASS );
 BANNER_PROC( void, RemoveBanner2 )( PBANNER banner );
 #define RemoveBanner2(b) RemoveBanner2Ex( &(b) DBG_SRC )
 BANNER_PROC( SFTFont, GetBanner2Font )( void );
-BANNER_PROC( _32, GetBanner2FontHeight )( void );
+BANNER_PROC( uint32_t, GetBanner2FontHeight )( void );
 
 BANNER_PROC( PRENDERER, GetBanner2Renderer )( PBANNER banner );
 BANNER_PROC( PSI_CONTROL, GetBanner2Control )( PBANNER banner );
@@ -127,8 +127,8 @@ BANNER_PROC( int, CreateBanner3Extended )( PRENDERER parent, PBANNER *ppBanner, 
 BANNER_PROC( int, CreateBanner3Exx )( PRENDERER parent, PBANNER *ppBanner, CTEXTSTR text, int options, int timeout, CDATA textcolor, CDATA basecolor );
 BANNER_PROC( int, CreateBanner3Ex )( PRENDERER parent, PBANNER *ppBanner, CTEXTSTR text, int options, int timeout );
 BANNER_PROC( int, CreateBanner3 )( PRENDERER parent, PBANNER *ppBanner, CTEXTSTR text );
-BANNER_PROC( void, SetBanner3Options )( PBANNER, _32 flags, _32 extra );
-BANNER_PROC( void, SetBanner3OptionsEx )( PBANNER*, _32 flags, _32 extra );
+BANNER_PROC( void, SetBanner3Options )( PBANNER, uint32_t flags, uint32_t extra );
+BANNER_PROC( void, SetBanner3OptionsEx )( PBANNER*, uint32_t flags, uint32_t extra );
 #define SetBanner3Options( banner,flags,extra ) SetBanner3OptionsEx( &(banner), flags,extra )
 
 // click, closed, etc...
@@ -146,7 +146,7 @@ BANNER_PROC( void, RemoveBanner3Ex )( PBANNER *banner DBG_PASS );
 BANNER_PROC( void, RemoveBanner3 )( PBANNER banner );
 #define RemoveBanner3(b) RemoveBanner3Ex( &(b) DBG_SRC )
 BANNER_PROC( SFTFont, GetBanner3Font )( void );
-BANNER_PROC( _32, GetBanner3FontHeight )( void );
+BANNER_PROC( uint32_t, GetBanner3FontHeight )( void );
 
 BANNER_PROC( PRENDERER, GetBanner3Renderer )( PBANNER banner );
 BANNER_PROC( PSI_CONTROL, GetBanner3Control )( PBANNER banner );

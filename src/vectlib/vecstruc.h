@@ -22,12 +22,12 @@ struct motion_frame_tag
    // how long it takes to rotate one unit vector of rotation
 	RCOORD rotation_time_interval;
    // what time the last time we processed this matrix for Move.
-	_32 last_tick;
+	uint32_t last_tick;
    // rotation stepping for consistant rotation
 	int nTime;
-   // list of void(*)(PTRSZVAL,PTRANSFORM)
+   // list of void(*)(uintptr_t,PTRANSFORM)
 	PLIST callbacks;
-   // actually PTRSZVAL storage...
+   // actually uintptr_t storage...
 	PLIST userdata; 
 
 };

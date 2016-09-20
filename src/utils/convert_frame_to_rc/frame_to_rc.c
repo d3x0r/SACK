@@ -14,8 +14,8 @@ PSI_XML_NAMESPACE
 // need to protect this ...
 // ptu it in a structure...
 static struct {
-	void CPROC (*InitProc)(PTRSZVAL,PSI_CONTROL);
-	PTRSZVAL psv; // psvInitProc
+	void CPROC (*InitProc)(uintptr_t,PSI_CONTROL);
+	uintptr_t psv; // psvInitProc
    PSI_CONTROL frame;
 }l;
 XML_Parser xp;
@@ -24,13 +24,13 @@ void XMLCALL start_tags( void *UserData
 							  , const XML_Char *name
 							  , const XML_Char **atts )
 {
-	_32 ID = -1;
-	_32 x, y;
-	_32 edit_set = 0;
-	_32 disable_edit = 0;
-	_32 width, height;
+	uint32_t ID = -1;
+	uint32_t x, y;
+	uint32_t edit_set = 0;
+	uint32_t disable_edit = 0;
+	uint32_t width, height;
 	CTEXTSTR caption = NULL;
-	_32 border;
+	uint32_t border;
 	TEXTSTR font = NULL;
 	TEXTSTR control_data = NULL;
 	TEXTSTR IDName = NULL;
@@ -140,7 +140,7 @@ void XMLCALL start_tags( void *UserData
 	if( font )
 	{
 		POINTER fontbuf = NULL;
-		_32 fontlen;
+		uint32_t fontlen;
 		if( DecodeBinaryConfig( font, &fontbuf, &fontlen ) )
 			SetCommonFont( pc, RenderFontData( (PFONTDATA)fontbuf ) );
 		Release( font );
@@ -164,7 +164,7 @@ void XMLCALL end_tags( void *UserData
 //-------------------------------------------------------------------------
 static struct {
 	CTEXTSTR pFile;
-   _32 nLine;
+   uint32_t nLine;
 } current_loading;
 #ifdef _DEBUG
 void * MyAllocate( size_t s ) { return AllocateEx( s, current_loading.pFile, current_loading.nLine ); }
@@ -178,7 +178,7 @@ static XML_Memory_Handling_Suite XML_memhandler;// = { MyAllocate, MyReallocate,
 //-------------------------------------------------------------------------
 
 // expected character buffer of appropriate size.
-PSI_CONTROL ParseXMLFrameEx( POINTER buffer, _32 size DBG_PASS )
+PSI_CONTROL ParseXMLFrameEx( POINTER buffer, uint32_t size DBG_PASS )
 {
    POINTER xml_buffer;
 	l.frame = NULL;
@@ -205,7 +205,7 @@ PSI_CONTROL LoadXMLFrameOverEx( PSI_CONTROL parent, CTEXTSTR file DBG_PASS )
 	POINTER buffer;
    CTEXTSTR _file; // temp storage for prior value(create frame in place, allow moving later)
 	TEXTSTR tmp = NULL;
-	_32 size;
+	uint32_t size;
    // enter critical section!
    l.frame = NULL;
 #if DBG_AVAILABLE

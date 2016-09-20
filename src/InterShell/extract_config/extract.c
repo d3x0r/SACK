@@ -4,7 +4,7 @@
 int main( int argc, char **argv )
 {
 	POINTER buffer;
-	_32 buflen;
+	uint32_t buflen;
    const char *filename;
 	SACK_GetProfileBlob( WIDE("intershell/configuration"), filename = (argc<2?"issue_pos.config":argv[1] ), &buffer, &buflen );
 	{

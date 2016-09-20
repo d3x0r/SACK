@@ -13,7 +13,7 @@ PSI_SCROLLBAR_NAMESPACE
 
 typedef struct scrollbar_tag
 {
-   _32 attr;
+   uint32_t attr;
 	Image   surface; // this is the surface of the 'bar' itself
 	int min     // smallest value of bar
 	  , current // first line shown?
@@ -29,8 +29,8 @@ typedef struct scrollbar_tag
 		unsigned int bHorizontal : 1;
 	}scrollflags;
 	PSI_CONTROL pcTopButton, pcBottomButton;
-	void (CPROC*UpdatedPos)( PTRSZVAL psv, int type, int current);
-	PTRSZVAL psvUpdate;
+	void (CPROC*UpdatedPos)( uintptr_t psv, int type, int current);
+	uintptr_t psvUpdate;
 } SCROLLBAR, *PSCROLLBAR;
 
 
@@ -168,7 +168,7 @@ void MoveScrollBar( PSI_CONTROL pc, int type )
 
 //---------------------------------------------------------------------------
 
-static int CPROC ScrollBarMouse( PSI_CONTROL pc, S_32 x, S_32 y, _32 b )
+static int CPROC ScrollBarMouse( PSI_CONTROL pc, int32_t x, int32_t y, uint32_t b )
 {
 	ValidatedControlData( PSCROLLBAR, SCROLLBAR_CONTROL, psb, pc );
 	if( psb )
@@ -270,14 +270,14 @@ static int CPROC ScrollBarMouse( PSI_CONTROL pc, S_32 x, S_32 y, _32 b )
 
 //---------------------------------------------------------------------------
 
-static void CPROC BottomPushed( PTRSZVAL psvBar, PSI_CONTROL pc )
+static void CPROC BottomPushed( uintptr_t psvBar, PSI_CONTROL pc )
 {
    MoveScrollBar( (PSI_CONTROL)psvBar, UPD_1DOWN );
 }
 
 //---------------------------------------------------------------------------
 
-static void CPROC DrawBottomButton( PTRSZVAL psv, PSI_CONTROL pc )
+static void CPROC DrawBottomButton( uintptr_t psv, PSI_CONTROL pc )
 {
 	Image surface = pc->Surface;
 	if( surface )
@@ -303,7 +303,7 @@ static void CPROC DrawBottomButton( PTRSZVAL psv, PSI_CONTROL pc )
 
 //---------------------------------------------------------------------------
 
-static void CPROC DrawRightButton( PTRSZVAL psv, PSI_CONTROL pc )
+static void CPROC DrawRightButton( uintptr_t psv, PSI_CONTROL pc )
 {
 	Image surface = pc->Surface;
 	if( surface )
@@ -324,14 +324,14 @@ static void CPROC DrawRightButton( PTRSZVAL psv, PSI_CONTROL pc )
 
 //---------------------------------------------------------------------------
 
-static void CPROC TopPushed( PTRSZVAL psvBar, PSI_CONTROL pc )
+static void CPROC TopPushed( uintptr_t psvBar, PSI_CONTROL pc )
 {
 	MoveScrollBar( (PSI_CONTROL)psvBar, UPD_1UP );
 }
 
 //---------------------------------------------------------------------------
 
-static void CPROC DrawTopButton( PTRSZVAL psv, PSI_CONTROL pc )
+static void CPROC DrawTopButton( uintptr_t psv, PSI_CONTROL pc )
 {
 	Image surface = pc->Surface;
 	if( surface )
@@ -356,7 +356,7 @@ static void CPROC DrawTopButton( PTRSZVAL psv, PSI_CONTROL pc )
 
 //---------------------------------------------------------------------------
 
-static void CPROC DrawLeftButton( PTRSZVAL psv, PSI_CONTROL pc )
+static void CPROC DrawLeftButton( uintptr_t psv, PSI_CONTROL pc )
 {
 	Image surface = pc->Surface;
 	if( surface )
@@ -454,8 +454,8 @@ PSI_CONTROL SetScrollBarAttributes( PSI_CONTROL pc, int attr )
 							  , pc->rect.width - pc->rect.height, 0
 							  , pc->rect.height, pc->rect.height
                        );
-			SetButtonDrawMethod( psb->pcTopButton, DrawLeftButton, (PTRSZVAL)psb );
-			SetButtonDrawMethod( psb->pcBottomButton, DrawRightButton, (PTRSZVAL)psb );
+			SetButtonDrawMethod( psb->pcTopButton, DrawLeftButton, (uintptr_t)psb );
+			SetButtonDrawMethod( psb->pcBottomButton, DrawRightButton, (uintptr_t)psb );
 		}
 		else
 		{
@@ -473,8 +473,8 @@ PSI_CONTROL SetScrollBarAttributes( PSI_CONTROL pc, int attr )
 							  , pc->rect.width, pc->rect.width
                        );
 
-			SetButtonDrawMethod( psb->pcBottomButton, DrawBottomButton, (PTRSZVAL)psb );
-			SetButtonDrawMethod( psb->pcTopButton, DrawTopButton, (PTRSZVAL)psb );
+			SetButtonDrawMethod( psb->pcBottomButton, DrawBottomButton, (uintptr_t)psb );
+			SetButtonDrawMethod( psb->pcTopButton, DrawTopButton, (uintptr_t)psb );
 		}
 	}
    return pc;
@@ -484,7 +484,7 @@ PSI_CONTROL SetScrollBarAttributes( PSI_CONTROL pc, int attr )
 //CONTROL_PROC_DEF( SCROLLBAR_CONTROL, SCROLLBAR, ScrollBar, ()  )
 static int OnCreateCommon( SCROLLBAR_CONTROL_NAME )( PSI_CONTROL pc )
 {
-   //ARG( _32, attr );
+   //ARG( uint32_t, attr );
 	ValidatedControlData( PSCROLLBAR, SCROLLBAR_CONTROL, psb, pc );
 	if( psb )
 	{
@@ -502,14 +502,14 @@ static int OnCreateCommon( SCROLLBAR_CONTROL_NAME )( PSI_CONTROL pc )
 															 , 0, 0
 															 , pc->rect.width, pc->rect.width
 															 , BTN_LESS );
-         SetButtonPushMethod( psb->pcTopButton, TopPushed, (PTRSZVAL)pc );
+         SetButtonPushMethod( psb->pcTopButton, TopPushed, (uintptr_t)pc );
 			psb->pcTopButton->flags.bNoFocus = TRUE;
 
 			psb->pcBottomButton = MakePrivateControl( pc, CUSTOM_BUTTON
 																 , 0, pc->rect.height-pc->rect.width
 																 , pc->rect.width, pc->rect.width
 																 , BTN_MORE );
-         SetButtonPushMethod( psb->pcBottomButton, BottomPushed, (PTRSZVAL)pc );
+         SetButtonPushMethod( psb->pcBottomButton, BottomPushed, (uintptr_t)pc );
 			psb->pcBottomButton->flags.bNoFocus = TRUE;
 
          if( psb->width > psb->height )
@@ -526,8 +526,8 @@ static int OnCreateCommon( SCROLLBAR_CONTROL_NAME )( PSI_CONTROL pc )
 // flags may indicate - horizontal not vertical...
 
 void SetScrollUpdateMethod( PSI_CONTROL pc
-					, void (CPROC*UpdateProc)(PTRSZVAL psv, int type, int current)
-					, PTRSZVAL data )
+					, void (CPROC*UpdateProc)(uintptr_t psv, int type, int current)
+					, uintptr_t data )
 {
    ValidatedControlData( PSCROLLBAR, SCROLLBAR_CONTROL, psb, pc );
 	if( psb )
@@ -544,7 +544,7 @@ static void OnSizeCommon( SCROLLBAR_CONTROL_NAME )( PSI_CONTROL pc, LOGICAL begi
    //lprintf( "Resizing %p", pc );
 	if( psb )
 	{
-		S_32 width = 15;
+		int32_t width = 15;
       //lprintf( "Resize called." );
 		ScaleCoords( (PSI_CONTROL)pc, &width, NULL );
 		// resize the scrollbar accordingly...

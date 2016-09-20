@@ -4,14 +4,14 @@
 #define SECTION_FLAG_STARTUP 0x00002
 
 		struct section {
-			_32 library_length; // length of the library data
-			_32 length; // length of name data
-			_32 flags; // flags
+			uint32_t library_length; // length of the library data
+			uint32_t length; // length of name data
+			uint32_t flags; // flags
 			//char name[];
 		};
 
 	struct section_block {
-		_32 section_length; // sizeof this section - minus this member...
+		uint32_t section_length; // sizeof this section - minus this member...
       struct section info;
 	}; // followed by name, and then data.
 

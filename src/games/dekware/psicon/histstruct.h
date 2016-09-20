@@ -41,17 +41,17 @@ typedef struct history_region_tag {
 	struct {
 		// if next segment is NO_RETURN, force a return
       // if segment is a newline, use that, clear this anyhow.
-		_32 bForceNewline: 1; // set after entering a command 
-		_32 bInsert : 1; // when adding text at a cursor, otherwise overwrite
+		uint32_t bForceNewline: 1; // set after entering a command 
+		uint32_t bInsert : 1; // when adding text at a cursor, otherwise overwrite
    } flags;
 	int nMaxHistoryBlocks;
 	int nHistoryBlocks;
 	int nHistoryBlockSize; // lines per block
 	int nLines;
-	S_32 tabsize;
+	int32_t tabsize;
 
    // cursory is from top down from top of form.
-	//S_32 nCursorX, nCursorY;
+	//int32_t nCursorX, nCursorY;
 	union {
 		HISTORY_BLOCK_LINK root;
 		struct {
@@ -85,10 +85,10 @@ typedef struct history_browser_cursor_tag {
 	// -1 = lastline, -2 next to last line..
 	// pBlock->nLinesUsed + nCursorY = nLine;
 	struct {
-		_32 bWrapText : 1;
-		_32 bNoPrompt : 1;
-		_32 bNoPageBreak : 1; // don't stop at page_breaks...
-		_32 bOwnPageBreak : 1; // dont' stop, but also return the page break segments... I want to render them.
+		uint32_t bWrapText : 1;
+		uint32_t bNoPrompt : 1;
+		uint32_t bNoPageBreak : 1; // don't stop at page_breaks...
+		uint32_t bOwnPageBreak : 1; // dont' stop, but also return the page break segments... I want to render them.
 	} flags;
 
    // visible region...
@@ -101,7 +101,7 @@ typedef struct history_browser_cursor_tag {
 	// current line of historyc block;
 	// if nLine > 0, then the current block
 	// is the base of stuff...
-	S_32 nLine;
+	int32_t nLine;
    PHISTORYBLOCK pBlock;
 
 	// character offset within current segment
@@ -112,14 +112,14 @@ typedef struct history_browser_cursor_tag {
 typedef struct history_line_cursor_tag {
 	PHISTORY_REGION region;
 	PREFIX_PACKED struct {
-		_16 nColumns;
-		_16 nLines;
+		uint16_t nColumns;
+		uint16_t nLines;
 	} PACKED;
 
 	PREFIX_PACKED struct {
 		struct {
 			PHISTORYBLOCK block;
-			S_32 line;
+			int32_t line;
 			// may consider storing these for historical usage...
 			// at the moment though, one current top for clear_page
 			// works well.
@@ -127,12 +127,12 @@ typedef struct history_line_cursor_tag {
 		// cursor position...
 		// -1 = lastline, -2 next to last line..
       // pBlock->nLinesUsed + nCursorY = nLine;
-		S_16 nCursorY;
-		S_16 nCursorX;
+		int16_t nCursorY;
+		int16_t nCursorX;
 
 		//PHISTORYBLOCK pBlock;
 		// current line of historyc block;
-		_32 nLine;
+		uint32_t nLine;
 
 		// current line segment pointer, within which offset is.
 		PTEXTLINE pLine;

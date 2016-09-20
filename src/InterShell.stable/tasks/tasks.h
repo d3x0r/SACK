@@ -35,9 +35,9 @@ typedef struct task_tag
 		BIT_FIELD bNoChangeResolution : 1;
 		BIT_FIELD bWaitForTask : 1;
 	} flags;
-	_32 last_lauch_time;
-   _32 launch_count;
-   _32 launch_width, launch_height;
+	uint32_t last_lauch_time;
+   uint32_t launch_count;
+   uint32_t launch_width, launch_height;
 
 	TEXTCHAR pName[256];
 	TEXTCHAR pTask[256], pPath[256];
@@ -53,7 +53,7 @@ typedef struct task_tag
 	PLIST allowed_run_on;
 	PLIST disallowed_run_on;
 	PTHREAD waiting_thread;
-	PTRSZVAL psvSecurityToken;
+	uintptr_t psvSecurityToken;
 	PLIST security_modules;
 } LOAD_TASK, *PLOAD_TASK;
 
@@ -61,7 +61,7 @@ typedef struct task_tag
 PLOAD_TASK CPROC CreateTask( struct menu_button * );
 void DestroyTask( PLOAD_TASK *ppTask );
 
-//void CPROC RunATask( PTRSZVAL psv );
+//void CPROC RunATask( uintptr_t psv );
 //void KillSpawnedPrograms( void );
 int LaunchAutoTasks( int bNetwork );
 

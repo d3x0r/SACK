@@ -25,7 +25,7 @@ typedef struct global_data_tag
 		unsigned int bShown : 1;  // No DisplayFrame
 		unsigned int bHidden : 1; // HideCommon/RevealCommon
 	} flags;
-   _32 SQLMsgBase;
+   uint32_t SQLMsgBase;
 	//HWND hWndProxy
    //   , hWnd;  // handle of My window...
    //HINSTANCE hInstance;
@@ -36,7 +36,7 @@ typedef struct global_data_tag
    //char **fields;
    //char **record_result_data;
 
-	_32 fail_timer, recover_timer;
+	uint32_t fail_timer, recover_timer;
 	// rather generic information...
 	// scale it down in time... but for now this
    // was the general parameters for gui.c in minicom4.
@@ -46,8 +46,8 @@ typedef struct global_data_tag
    PCOMMON frame;
    //HWND hGlobalWnd;
 	//RECT rc;
-	_32 w, h;
-   _32 x, y;
+	uint32_t w, h;
+   uint32_t x, y;
    //HBRUSH hbr;
    CDATA dwBkRGBInt;
    CDATA dwFgRGBInt;
@@ -123,8 +123,8 @@ static
 	//Fill in "window" wih background color
 	BlatColor( surface, 0, 0, l.w, l.h, l.dwBkRGBInt );
 	{
-		_32 w, h;
-      S_32 x;
+		uint32_t w, h;
+      int32_t x;
 		GetStringSizeFont( l.szMessageInt, &w, &h, l.hfn );
 		x = l.w - w;
 		if( x < 0 )
@@ -232,7 +232,7 @@ static int GenerateCommand( char *command, int nSQLCommand )
 
 //-------------------------------------------------------------------------
 
-void Collect( P_32 buf, _32 len )
+void Collect( uint32_t* buf, uint32_t len )
 {
 	//char buf[257];
 	char *newbuf;
@@ -275,10 +275,10 @@ void Collect( P_32 buf, _32 len )
 
 //-------------------------------------------------------------------------
 
-static int CPROC ClientEventHandlerFunction(_32 SourceID
-														 , _32 MsgID
-														 , _32*params
-														 , _32 paramlen)
+static int CPROC ClientEventHandlerFunction(uint32_t SourceID
+														 , uint32_t MsgID
+														 , uint32_t*params
+														 , uint32_t paramlen)
 {
    lprintf( WIDE("SQL Result .... %d"), MsgID );
 	switch( MsgID )
@@ -356,7 +356,7 @@ static int CPROC ClientEventHandlerFunction(_32 SourceID
 
 //-------------------------------------------------------------------------
 
-void CPROC ConnectionTimer( PTRSZVAL psv )
+void CPROC ConnectionTimer( uintptr_t psv )
 {
 	if( !l.SQLMsgBase )
 		l.SQLMsgBase = LoadServiceEx( WIDE("SQL"), ClientEventHandlerFunction );
@@ -409,7 +409,7 @@ void CPROC ConnectionTimer( PTRSZVAL psv )
 
 int InitSQLStubWindow( void )
 {
-	_32 w, h;
+	uint32_t w, h;
    int nw, nh;
 	// window is independant - but it forces itself
 	// as topmost, so that should be okay...??
@@ -471,7 +471,7 @@ int InitSQLStubWindow( void )
 int WaitForResponce( void )
 {
    // default 1 second ticker...
-	_32 tick = GetTickCount() + 1500;
+	uint32_t tick = GetTickCount() + 1500;
 
    l.flags.bWaitingForResult = 1;
 	while( l.Rv == 0 )

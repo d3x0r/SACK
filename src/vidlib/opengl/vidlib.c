@@ -46,8 +46,8 @@
 
 struct saved_location
 {
-	S_32 x, y;
-	_32 w, h;
+	int32_t x, y;
+	uint32_t w, h;
 };
 
 struct sprite_method_tag
@@ -56,8 +56,8 @@ struct sprite_method_tag
 	Image original_surface;
    Image debug_image;
 	PDATAQUEUE saved_spots;
-	void(CPROC*RenderSprites)(PTRSZVAL psv, PRENDERER renderer, S_32 x, S_32 y, _32 w, _32 h );
-   PTRSZVAL psv;
+	void(CPROC*RenderSprites)(uintptr_t psv, PRENDERER renderer, int32_t x, int32_t y, uint32_t w, uint32_t h );
+   uintptr_t psv;
 };
 
 RENDER_NAMESPACE
@@ -66,7 +66,7 @@ extern KEYDEFINE KeyDefs[];
 
 //----------------------------------------------------------------------------
 
-void CPROC TickDisplay( PTRSZVAL psv )
+void CPROC TickDisplay( uintptr_t psv )
 {
    HVIDEO hVideo = (HVIDEO)psv;
 	/* on a seperate frame timer, output the display image... */
@@ -197,7 +197,7 @@ void CPROC TickDisplay( PTRSZVAL psv )
 			if( 0 && hVideo->sprites )
 			{
 				INDEX idx;
-				_32 _w, _h;
+				uint32_t _w, _h;
 				PSPRITE_METHOD psm;
  
 				// set these to set clipping for sprite routine
@@ -288,8 +288,8 @@ void CPROC TickDisplay( PTRSZVAL psv )
 //----------------------------------------------------------------------------
 
 RENDER_PROC (void, UpdateDisplayPortionEx)( HVIDEO hVideo
-                                          , S_32 x, S_32 y
-                                          , _32 w, _32 h DBG_PASS)
+                                          , int32_t x, int32_t y
+                                          , uint32_t w, uint32_t h DBG_PASS)
 {
    ImageFile *pImage;
    if (hVideo
@@ -319,7 +319,7 @@ RENDER_PROC (void, UpdateDisplayPortionEx)( HVIDEO hVideo
 			_xlprintf( 1 DBG_RELAY )( WIDE("Show Window: %d %d %d %d"), x, y, w, h );
 #endif
 			ShowWindow (hVideo->hWndOutput, SW_NORMAL);
-         AddTimer( 33, TickDisplay, (PTRSZVAL)hVideo );
+         AddTimer( 33, TickDisplay, (uintptr_t)hVideo );
          //SetActiveGLDisplayView( hVideo, 0 );
 
 			if( hVideo->flags.bReady && !hVideo->flags.bHidden && hVideo->pRedrawCallback )
@@ -464,7 +464,7 @@ RENDER_PROC (void, UpdateDisplayPortionEx)( HVIDEO hVideo
 			if( 0 && hVideo->sprites )
 			{
 				INDEX idx;
-				_32 _w, _h;
+				uint32_t _w, _h;
 				PSPRITE_METHOD psm;
  
 				// set these to set clipping for sprite routine
@@ -632,7 +632,7 @@ RENDER_PROC (void, PutDisplayAbove) (HVIDEO hVideo, HVIDEO hAbove)
 #endif
 }
 
-_32 power2( _32 val )
+uint32_t power2( uint32_t val )
 {
 	int n;
 	for( n = 0; n < 32; n++ )
@@ -833,7 +833,7 @@ int CALLBACK
 VideoWindowProc (HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
 	HVIDEO hVideo;
-   _32 _mouse_b = l.mouse_b;
+   uint32_t _mouse_b = l.mouse_b;
 	//static UINT uLastMouseMsg;
    switch (uMsg)
    {
@@ -1095,10 +1095,10 @@ VideoWindowProc (HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       // normal fall through without processing button states
 		if (0)
 		{
-			S_16 wheel;
+			int16_t wheel;
 	case WM_MOUSEWHEEL:
 			l.mouse_b &= ~( MK_SCROLL_UP|MK_SCROLL_DOWN);
-			wheel = (S_16)(( wParam & 0xFFFF0000 ) >> 16);
+			wheel = (int16_t)(( wParam & 0xFFFF0000 ) >> 16);
 			if( wheel >= 120 )
 				l.mouse_b |= MK_SCROLL_UP;
 			if( wheel <= -120 )
@@ -1214,9 +1214,9 @@ VideoWindowProc (HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 			l.mouse_b != l._mouse_b ||
 		   l.mouse_last_vid != hVideo ) // this hvideo!= last hvideo?
 		{
-			_32 msg[4];
+			uint32_t msg[4];
 			l.mouse_last_vid = hVideo;
-			msg[0] = (_32)(l.hCaptured?l.hCaptured:hVideo);
+			msg[0] = (uint32_t)(l.hCaptured?l.hCaptured:hVideo);
 			msg[1] = l.mouse_x;
 			msg[2] = l.mouse_y;
 			msg[3] = l.mouse_b;
@@ -1367,7 +1367,7 @@ RENDER_PROC (BOOL, CreateWindowStuffSizedAt) (HVIDEO hVideo, int x, int y,
    }
    if (wx == CW_USEDEFAULT || wy == CW_USEDEFAULT)
    {
-      _32 w, h;
+      uint32_t w, h;
       GetDisplaySize (&w, &h);
       wx = w * 7 / 10;
       wy = h * 7 / 10;
@@ -1407,7 +1407,7 @@ RENDER_PROC (BOOL, CreateWindowStuffSizedAt) (HVIDEO hVideo, int x, int y,
 
 //----------------------------------------------------------------------------
 
-int CPROC VideoEventHandler( _32 MsgID, _32 *params, _32 paramlen )
+int CPROC VideoEventHandler( uint32_t MsgID, uint32_t *params, uint32_t paramlen )
 {
 #if defined( LOG_MOUSE_EVENTS ) || defined( OTHER_EVENTS_HERE )
 	lprintf( WIDE("Received message %d"), MsgID );
@@ -1589,7 +1589,7 @@ int CPROC VideoEventHandler( _32 MsgID, _32 *params, _32 paramlen )
 									}
 								}
 							}
-							params[1] = (_32)DequeLink( &hVideo->pInput );
+							params[1] = (uint32_t)DequeLink( &hVideo->pInput );
 						} while( params[1] );
 						hVideo->flags.key_dispatched = 0;
 					}
@@ -1753,7 +1753,7 @@ static int CPROC ProcessDisplayMessages(void )
 }
 
 //----------------------------------------------------------------------------
-PTRSZVAL CPROC VideoThreadProc (PTHREAD thread)
+uintptr_t CPROC VideoThreadProc (PTHREAD thread)
 {
 #ifdef LOG_STARTUP
 	Log( WIDE("Video thread...") );
@@ -1776,9 +1776,9 @@ PTRSZVAL CPROC VideoThreadProc (PTHREAD thread)
 		PeekMessage( &msg, NULL, 0, 0, PM_NOREMOVE );
 	}
 	l.dwThreadID = GetCurrentThreadId ();
-	//l.pid = (_32)l.dwThreadID;
+	//l.pid = (uint32_t)l.dwThreadID;
 	l.bThreadRunning = TRUE;
-	AddIdleProc ( (int(CPROC*)(PTRSZVAL))ProcessDisplayMessages, 0);
+	AddIdleProc ( (int(CPROC*)(uintptr_t))ProcessDisplayMessages, 0);
 	//AddIdleProc ( ProcessClientMessages, 0);
 #ifdef LOG_STARTUP
 	Log( WIDE("Registered Idle, and starting message loop") );
@@ -1872,15 +1872,15 @@ LRESULT CALLBACK
          /*
           // I think this is upside down...
           struct {
-          _32 base : 8;
-          _32 extended : 1;
-          _32 nothing : 7;
-          _32 scancode : 8;
-          _32 morenothing : 4;
-          _32 shift : 1;
-          _32 control : 1;
-          _32 alt : 1;
-          _32 down : 1;
+          uint32_t base : 8;
+          uint32_t extended : 1;
+          uint32_t nothing : 7;
+          uint32_t scancode : 8;
+          uint32_t morenothing : 4;
+          uint32_t shift : 1;
+          uint32_t control : 1;
+          uint32_t alt : 1;
+          uint32_t down : 1;
           } keycode;
           */
          key = ( scancode = (wParam & 0xFF) ) // base keystroke
@@ -1930,8 +1930,8 @@ LRESULT CALLBACK
          else
             l.mouse_b &= ~MK_ALT;
 				{
-					_32 Msg[2];
-					Msg[0] = (_32)hVid;
+					uint32_t Msg[2];
+					Msg[0] = (uint32_t)hVid;
 					Msg[1] = key;
                //lprintf( WIDE("Dispatch key from raw handler into event system.") );
 					SendServiceEvent( 0, l.dwMsgBase + MSG_KeyMethod, Msg, sizeof( Msg ) );
@@ -1975,7 +1975,7 @@ RENDER_PROC (char, GetKeyText) (int key)
 
 //----------------------------------------------------------------------------
 
-RENDER_PROC (HVIDEO, OpenDisplaySizedAt) (_32 attr, _32 wx, _32 wy, S_32 x, S_32 y) // if native - we can return and let the messages dispatch...
+RENDER_PROC (HVIDEO, OpenDisplaySizedAt) (uint32_t attr, uint32_t wx, uint32_t wy, int32_t x, int32_t y) // if native - we can return and let the messages dispatch...
 {
    HVIDEO hNextVideo;
    hNextVideo = (HVIDEO)Allocate (sizeof (VIDEO));
@@ -2084,7 +2084,7 @@ RENDER_PROC (HVIDEO, OpenDisplaySizedAt) (_32 attr, _32 wx, _32 wy, S_32 x, S_32
 		}
 		if( hNextVideo )
 		{
-			_32 timeout = GetTickCount() + 5000;
+			uint32_t timeout = GetTickCount() + 5000;
 			hNextVideo->thread = GetMyThreadID();
 			while (!hNextVideo->flags.bReady && timeout > GetTickCount())
 			{
@@ -2114,8 +2114,8 @@ RENDER_PROC (HVIDEO, OpenDisplaySizedAt) (_32 attr, _32 wx, _32 wy, S_32 x, S_32
 
 //----------------------------------------------------------------------------
 
-RENDER_PROC (HVIDEO, OpenDisplayAboveSizedAt) (_32 attr, _32 wx, _32 wy,
-                                               S_32 x, S_32 y, HVIDEO parent)
+RENDER_PROC (HVIDEO, OpenDisplayAboveSizedAt) (uint32_t attr, uint32_t wx, uint32_t wy,
+                                               int32_t x, int32_t y, HVIDEO parent)
 {
    HVIDEO newvid = OpenDisplaySizedAt (attr, wx, wy, x, y);
    if (parent)
@@ -2192,7 +2192,7 @@ RENDER_PROC (void, CloseDisplay) (HVIDEO hVideo)
 
 //----------------------------------------------------------------------------
 
-RENDER_PROC (void, SizeDisplay) (HVIDEO hVideo, _32 w, _32 h)
+RENDER_PROC (void, SizeDisplay) (HVIDEO hVideo, uint32_t w, uint32_t h)
 {
 	SetWindowPos (hVideo->hWndOutput, NULL
 				, 0, 0
@@ -2204,11 +2204,11 @@ RENDER_PROC (void, SizeDisplay) (HVIDEO hVideo, _32 w, _32 h)
 
 //----------------------------------------------------------------------------
 
-RENDER_PROC (void, SizeDisplayRel) (HVIDEO hVideo, S_32 delw, S_32 delh)
+RENDER_PROC (void, SizeDisplayRel) (HVIDEO hVideo, int32_t delw, int32_t delh)
 {
    if (delw || delh)
    {
-      S_32 cx, cy;
+      int32_t cx, cy;
       cx = hVideo->pWindowPos.cx + delw;
       cy = hVideo->pWindowPos.cy + delh;
       if (hVideo->pWindowPos.cx < 50)
@@ -2227,7 +2227,7 @@ RENDER_PROC (void, SizeDisplayRel) (HVIDEO hVideo, S_32 delw, S_32 delh)
 
 //----------------------------------------------------------------------------
 
-RENDER_PROC (void, MoveDisplay) (HVIDEO hVideo, S_32 x, S_32 y)
+RENDER_PROC (void, MoveDisplay) (HVIDEO hVideo, int32_t x, int32_t y)
 {
    SetWindowPos (hVideo->hWndOutput, NULL, x, y, 0, 0,
                  SWP_NOZORDER | SWP_NOSIZE);
@@ -2235,7 +2235,7 @@ RENDER_PROC (void, MoveDisplay) (HVIDEO hVideo, S_32 x, S_32 y)
 
 //----------------------------------------------------------------------------
 
-RENDER_PROC (void, MoveDisplayRel) (HVIDEO hVideo, S_32 x, S_32 y)
+RENDER_PROC (void, MoveDisplayRel) (HVIDEO hVideo, int32_t x, int32_t y)
 {
    if (x || y)
    {
@@ -2251,10 +2251,10 @@ RENDER_PROC (void, MoveDisplayRel) (HVIDEO hVideo, S_32 x, S_32 y)
 
 //----------------------------------------------------------------------------
 
-RENDER_PROC (void, MoveSizeDisplay) (HVIDEO hVideo, S_32 x, S_32 y, S_32 w,
-                                     S_32 h)
+RENDER_PROC (void, MoveSizeDisplay) (HVIDEO hVideo, int32_t x, int32_t y, int32_t w,
+                                     int32_t h)
 {
-   S_32 cx, cy;
+   int32_t cx, cy;
    hVideo->pWindowPos.x = x;
    hVideo->pWindowPos.y = y;
    cx = w;
@@ -2273,10 +2273,10 @@ RENDER_PROC (void, MoveSizeDisplay) (HVIDEO hVideo, S_32 x, S_32 y, S_32 w,
 
 //----------------------------------------------------------------------------
 
-RENDER_PROC (void, MoveSizeDisplayRel) (HVIDEO hVideo, S_32 delx, S_32 dely,
-                                        S_32 delw, S_32 delh)
+RENDER_PROC (void, MoveSizeDisplayRel) (HVIDEO hVideo, int32_t delx, int32_t dely,
+                                        int32_t delw, int32_t delh)
 {
-   S_32 cx, cy;
+   int32_t cx, cy;
    hVideo->pWindowPos.x += delx;
    hVideo->pWindowPos.y += dely;
    cx = hVideo->pWindowPos.cx + delw;
@@ -2312,7 +2312,7 @@ RENDER_PROC (void, UpdateDisplayEx) (HVIDEO hVideo DBG_PASS )
 //----------------------------------------------------------------------------
 
 
-RENDER_PROC (void, SetMousePosition) (HVIDEO hVid, S_32 x, S_32 y)
+RENDER_PROC (void, SetMousePosition) (HVIDEO hVid, int32_t x, int32_t y)
 {
 
    if (hVid->flags.bFull)
@@ -2324,7 +2324,7 @@ RENDER_PROC (void, SetMousePosition) (HVIDEO hVid, S_32 x, S_32 y)
 
 //----------------------------------------------------------------------------
 
-RENDER_PROC (void, GetMousePosition) (S_32 * x, S_32 * y)
+RENDER_PROC (void, GetMousePosition) (int32_t * x, int32_t * y)
 {
    POINT p;
    GetCursorPos (&p);
@@ -2336,7 +2336,7 @@ RENDER_PROC (void, GetMousePosition) (S_32 * x, S_32 * y)
 
 //----------------------------------------------------------------------------
 
-void CPROC GetMouseState(S_32 * x, S_32 * y, _32 *b)
+void CPROC GetMouseState(int32_t * x, int32_t * y, uint32_t *b)
 {
    GetMousePosition( x, y );
 	if( b )
@@ -2347,7 +2347,7 @@ void CPROC GetMouseState(S_32 * x, S_32 * y, _32 *b)
 
 RENDER_PROC (void, SetCloseHandler) (HVIDEO hVideo,
                                      CloseCallback pWindowClose,
-                                     PTRSZVAL dwUser)
+                                     uintptr_t dwUser)
 {
 	if( hVideo )
 	{
@@ -2360,7 +2360,7 @@ RENDER_PROC (void, SetCloseHandler) (HVIDEO hVideo,
 
 RENDER_PROC (void, SetMouseHandler) (HVIDEO hVideo,
                                      MouseCallback pMouseCallback,
-                                     PTRSZVAL dwUser)
+                                     uintptr_t dwUser)
 {
    hVideo->dwMouseData = dwUser;
    hVideo->pMouseCallback = pMouseCallback;
@@ -2370,7 +2370,7 @@ RENDER_PROC (void, SetMouseHandler) (HVIDEO hVideo,
 
 RENDER_PROC (void, SetRedrawHandler) (HVIDEO hVideo,
                                       RedrawCallback pRedrawCallback,
-                                      PTRSZVAL dwUser)
+                                      uintptr_t dwUser)
 {
    hVideo->dwRedrawData = dwUser;
 	if( (hVideo->pRedrawCallback = pRedrawCallback ) )
@@ -2386,7 +2386,7 @@ RENDER_PROC (void, SetRedrawHandler) (HVIDEO hVideo,
 //----------------------------------------------------------------------------
 
 RENDER_PROC (void, SetKeyboardHandler) (HVIDEO hVideo, KeyProc pKeyProc,
-                                        PTRSZVAL dwUser)
+                                        uintptr_t dwUser)
 {
    hVideo->dwKeyData = dwUser;
    hVideo->pKeyProc = pKeyProc;
@@ -2396,7 +2396,7 @@ RENDER_PROC (void, SetKeyboardHandler) (HVIDEO hVideo, KeyProc pKeyProc,
 
 RENDER_PROC (void, SetLoseFocusHandler) (HVIDEO hVideo,
                                          LoseFocusCallback pLoseFocus,
-                                         PTRSZVAL dwUser)
+                                         uintptr_t dwUser)
 {
    hVideo->dwLoseFocus = dwUser;
    hVideo->pLoseFocus = pLoseFocus;
@@ -2511,7 +2511,7 @@ RENDER_PROC (void, RestoreDisplay) (HVIDEO hVideo)
 
 //----------------------------------------------------------------------------
 
-RENDER_PROC (void, GetDisplaySize) (_32 * width, _32 * height)
+RENDER_PROC (void, GetDisplaySize) (uint32_t * width, uint32_t * height)
 {
    RECT r;
    GetWindowRect (GetDesktopWindow (), &r);
@@ -2527,8 +2527,8 @@ RENDER_PROC (void, GetDisplaySize) (_32 * width, _32 * height)
 
 //----------------------------------------------------------------------------
 
-RENDER_PROC (void, GetDisplayPosition) (HVIDEO hVid, S_32 * x, S_32 * y,
-                                        _32 * width, _32 * height)
+RENDER_PROC (void, GetDisplayPosition) (HVIDEO hVid, int32_t * x, int32_t * y,
+                                        uint32_t * width, uint32_t * height)
 {
    if (!hVid)
       return;
@@ -2550,7 +2550,7 @@ RENDER_PROC (LOGICAL, DisplayIsValid) (HVIDEO hVid)
 
 //----------------------------------------------------------------------------
 
-RENDER_PROC (void, SetDisplaySize) (_32 width, _32 height)
+RENDER_PROC (void, SetDisplaySize) (uint32_t width, uint32_t height)
 {
    SizeDisplay (l.hVideoPool, width, height);
 }
@@ -2593,13 +2593,13 @@ RENDER_PROC (PACTIVEMESSAGE, CreateActiveMessage) (int ID, int size,...)
 }
 
 RENDER_PROC (void, SetDefaultHandler) (PRENDERER hVideo,
-                                       GeneralCallback general, PTRSZVAL psv)
+                                       GeneralCallback general, uintptr_t psv)
 {
 }
 
 //----------------------------------------------------------------------------
 
-RENDER_PROC (void, OwnMouseEx) (HVIDEO hVideo, PTRSZVAL own DBG_PASS)
+RENDER_PROC (void, OwnMouseEx) (HVIDEO hVideo, uintptr_t own DBG_PASS)
 {
 	if (own)
 	{
@@ -2651,12 +2651,12 @@ NoProc (void)
 
 //----------------------------------------------------------------------------
 
-RENDER_PROC (PTRSZVAL, GetNativeHandle) (HVIDEO hVideo)
+RENDER_PROC (uintptr_t, GetNativeHandle) (HVIDEO hVideo)
 {
-   return (PTRSZVAL) hVideo->hWndOutput;
+   return (uintptr_t) hVideo->hWndOutput;
 }
 
-RENDER_PROC (int, BeginCalibration) (_32 nPoints)
+RENDER_PROC (int, BeginCalibration) (uint32_t nPoints)
 {
    return 1;
 }
@@ -2717,26 +2717,26 @@ static RENDER_INTERFACE VidInterface = { InitDisplay
                                        , (void CPROC (*)(Image)) SetApplicationIcon
                                        , GetDisplaySize
                                        , SetDisplaySize
-                                       , (PRENDERER CPROC (*)(_32, _32, _32, S_32, S_32)) OpenDisplaySizedAt
-                                       , (PRENDERER CPROC (*)(_32, _32, _32, S_32, S_32, PRENDERER)) OpenDisplayAboveSizedAt
+                                       , (PRENDERER CPROC (*)(uint32_t, uint32_t, uint32_t, int32_t, int32_t)) OpenDisplaySizedAt
+                                       , (PRENDERER CPROC (*)(uint32_t, uint32_t, uint32_t, int32_t, int32_t, PRENDERER)) OpenDisplayAboveSizedAt
                                        , (void CPROC (*)(PRENDERER)) CloseDisplay
-                                       , (void CPROC (*)(PRENDERER, S_32, S_32, _32, _32 DBG_PASS)) UpdateDisplayPortionEx
+                                       , (void CPROC (*)(PRENDERER, int32_t, int32_t, uint32_t, uint32_t DBG_PASS)) UpdateDisplayPortionEx
                                        , (void CPROC (*)(PRENDERER DBG_PASS)) UpdateDisplayEx
                                        , GetDisplayPosition
-                                       , (void CPROC (*)(PRENDERER, S_32, S_32)) MoveDisplay
-                                       , (void CPROC (*)(PRENDERER, S_32, S_32)) MoveDisplayRel
-                                       , (void CPROC (*)(PRENDERER, _32, _32)) SizeDisplay
-                                       , (void CPROC (*)(PRENDERER, S_32, S_32)) SizeDisplayRel
+                                       , (void CPROC (*)(PRENDERER, int32_t, int32_t)) MoveDisplay
+                                       , (void CPROC (*)(PRENDERER, int32_t, int32_t)) MoveDisplayRel
+                                       , (void CPROC (*)(PRENDERER, uint32_t, uint32_t)) SizeDisplay
+                                       , (void CPROC (*)(PRENDERER, int32_t, int32_t)) SizeDisplayRel
                                        , MoveSizeDisplayRel
                                        , (void CPROC (*)(PRENDERER, PRENDERER)) PutDisplayAbove
                                        , (Image CPROC (*)(PRENDERER)) GetDisplayImage
-                                       , (void CPROC (*)(PRENDERER, CloseCallback, PTRSZVAL)) SetCloseHandler
-                                       , (void CPROC (*)(PRENDERER, MouseCallback, PTRSZVAL)) SetMouseHandler
-                                       , (void CPROC (*)(PRENDERER, RedrawCallback, PTRSZVAL)) SetRedrawHandler
-                                       , (void CPROC (*)(PRENDERER, KeyProc, PTRSZVAL)) SetKeyboardHandler
-                                       , (void CPROC (*)(PRENDERER, LoseFocusCallback, PTRSZVAL)) SetLoseFocusHandler, NULL   // default callback
-                                       , (void CPROC (*)(S_32 *, S_32 *)) GetMousePosition
-                                       , (void CPROC (*)(PRENDERER, S_32, S_32)) SetMousePosition
+                                       , (void CPROC (*)(PRENDERER, CloseCallback, uintptr_t)) SetCloseHandler
+                                       , (void CPROC (*)(PRENDERER, MouseCallback, uintptr_t)) SetMouseHandler
+                                       , (void CPROC (*)(PRENDERER, RedrawCallback, uintptr_t)) SetRedrawHandler
+                                       , (void CPROC (*)(PRENDERER, KeyProc, uintptr_t)) SetKeyboardHandler
+                                       , (void CPROC (*)(PRENDERER, LoseFocusCallback, uintptr_t)) SetLoseFocusHandler, NULL   // default callback
+                                       , (void CPROC (*)(int32_t *, int32_t *)) GetMousePosition
+                                       , (void CPROC (*)(PRENDERER, int32_t, int32_t)) SetMousePosition
                                        , HasFocus  // has focus
                                        , NULL         // SendMessage
                                        , NULL         // CrateMessage
@@ -2787,7 +2787,7 @@ RENDER_PROC (void, DropDisplayInterface) (POINTER p)
 {
 }
 
-static void CPROC DefaultExit( PTRSZVAL psv, _32 keycode )
+static void CPROC DefaultExit( uintptr_t psv, uint32_t keycode )
 {
    BAG_Exit(0);
 }
@@ -2816,7 +2816,7 @@ PRIORITY_PRELOAD( VideoRegisterInterface, VIDLIB_PRELOAD_PRIORITY )
 
 typedef struct sprite_method_tag *PSPRITE_METHOD;
 
-RENDER_PROC( PSPRITE_METHOD, EnableSpriteMethod )(PRENDERER render, void(CPROC*RenderSprites)(PTRSZVAL psv, PRENDERER renderer, S_32 x, S_32 y, _32 w, _32 h ), PTRSZVAL psv )
+RENDER_PROC( PSPRITE_METHOD, EnableSpriteMethod )(PRENDERER render, void(CPROC*RenderSprites)(uintptr_t psv, PRENDERER renderer, int32_t x, int32_t y, uint32_t w, uint32_t h ), uintptr_t psv )
 {
 	// add a sprite callback to the image.
 	// enable copy image, and restore image
@@ -2835,7 +2835,7 @@ RENDER_PROC( PSPRITE_METHOD, EnableSpriteMethod )(PRENDERER render, void(CPROC*R
 // and therefore this is handed to the image library via an export into image library
 // this is done this way, because the image library MUST exist before this library
 // therefore relying on the linker to handle this export is not possible.
-static void CPROC SavePortion( PSPRITE_METHOD psm, _32 x, _32 y, _32 w, _32 h )
+static void CPROC SavePortion( PSPRITE_METHOD psm, uint32_t x, uint32_t y, uint32_t w, uint32_t h )
 {
 	struct saved_location location;
    location.x = x;

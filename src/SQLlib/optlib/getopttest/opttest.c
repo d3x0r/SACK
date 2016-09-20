@@ -17,7 +17,7 @@ int main( void )
 
    lprintf( "begin time sync..." );
 	{
-		_32 tick = GetTickCount() + 2000;
+		uint32_t tick = GetTickCount() + 2000;
 		while( tick > GetTickCount() );
 	}
    lprintf( "2 seconds." );

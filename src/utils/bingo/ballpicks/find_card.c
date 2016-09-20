@@ -4,23 +4,23 @@
 int totalNums = 0;
 int nums[25];
 
-POINTER OpenAFile( const char *file, PTRSZVAL *size )
+POINTER OpenAFile( const char *file, uintptr_t *size )
 {
 	POINTER result = OpenSpace( NULL, file, size );
 	return result;
 }
 
 struct params {
-	P_8 p;
-	PTRSZVAL size;
+	uint8_t* p;
+	uintptr_t size;
 };
 
 
-void CPROC ProcessFile( PTRSZVAL psv, CTEXTSTR name, int flags )
+void CPROC ProcessFile( uintptr_t psv, CTEXTSTR name, int flags )
 {
 	struct params pa;
 	pa.size = 0;
-	pa.p = (P_8)OpenAFile( name, &pa.size );
+	pa.p = (uint8_t*)OpenAFile( name, &pa.size );
 	if( pa.p ) {
       int cardOfs = 0;
 		int r = 0;

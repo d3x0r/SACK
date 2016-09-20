@@ -124,7 +124,7 @@ POPTION_TREE GetOptionTreeExxx( PODBC odbc, PFAMILYTREE existing_tree DBG_PASS )
 		else
 		{
          //_lprintf(DBG_RELAY)( "attaching NEW tree..." );
-			tree->option_tree = CreateFamilyTree( (int(CPROC*)(PTRSZVAL,PTRSZVAL))StrCaseCmp, NULL );
+			tree->option_tree = CreateFamilyTree( (int(CPROC*)(uintptr_t,uintptr_t))StrCaseCmp, NULL );
 		}
 		tree->odbc = odbc;
 		tree->odbc_writer = NULL;
@@ -283,7 +283,7 @@ void SetOptionDatabaseOption( PODBC odbc, int bNewVersion )
 	}
 }
 
-static void CPROC OptionsCommited( PTRSZVAL psv, PODBC odbc )
+static void CPROC OptionsCommited( uintptr_t psv, PODBC odbc )
 {
 	INDEX idx;
 	POPTION_TREE_NODE optval;
@@ -312,7 +312,7 @@ void OpenWriterEx( POPTION_TREE option DBG_PASS )
 			if( !global_sqlstub_data->flags.bLogOptionConnection )
 				SetSQLLoggingDisable( option->odbc_writer, TRUE );
 			SetSQLThreadProtect( option->odbc_writer, TRUE );
-			SetSQLAutoTransactCallback( option->odbc_writer, OptionsCommited, (PTRSZVAL)option );
+			SetSQLAutoTransactCallback( option->odbc_writer, OptionsCommited, (uintptr_t)option );
 			//SetSQLAutoClose( option->odbc_writer, TRUE );
 		}
 	}
@@ -390,8 +390,8 @@ retry:
 
 	if( IDName != INVALID_INDEX )
 	{
-		AddBinaryNode( GetTableCache(tree->odbc,table), (POINTER)((PTRSZVAL)(IDName+1))
-						 , (PTRSZVAL)SaveText( name ) );
+		AddBinaryNode( GetTableCache(tree->odbc,table), (POINTER)((uintptr_t)(IDName+1))
+						 , (uintptr_t)SaveText( name ) );
 	}
 	return IDName;
 }
@@ -562,7 +562,7 @@ static POPTION_TREE_NODE GetOptionIndexExxx( PODBC odbc, POPTION_TREE_NODE paren
 #endif
 			{
 				// return is UserData, assume I DO store this as an index.
-				POPTION_TREE_NODE node = (POPTION_TREE_NODE)FamilyTreeFindChild( tree->option_tree, (PTRSZVAL)namebuf );
+				POPTION_TREE_NODE node = (POPTION_TREE_NODE)FamilyTreeFindChild( tree->option_tree, (uintptr_t)namebuf );
 				if( node )
 				{
 #ifdef DETAILED_LOGGING
@@ -616,7 +616,7 @@ static POPTION_TREE_NODE GetOptionIndexExxx( PODBC odbc, POPTION_TREE_NODE paren
 							new_node->value_id = INVALID_INDEX;
 							new_node->name_id = IDName;
 							new_node->value = NULL;
-							new_node->node = FamilyTreeAddChild( &tree->option_tree, new_node, (PTRSZVAL)SaveText( namebuf ) );
+							new_node->node = FamilyTreeAddChild( &tree->option_tree, new_node, (uintptr_t)SaveText( namebuf ) );
 							parent = new_node;
 						}
 						PopODBCEx( odbc );
@@ -645,7 +645,7 @@ static POPTION_TREE_NODE GetOptionIndexExxx( PODBC odbc, POPTION_TREE_NODE paren
 						//MemSet( new_node, 0, sizeof( struct sack_option_tree_family_node ) );
 						new_node->id = IndexCreateFromText( result[0] );
 						new_node->value = NULL;
-						new_node->node = FamilyTreeAddChild( &tree->option_tree, new_node, (PTRSZVAL)SaveText( namebuf ) );
+						new_node->node = FamilyTreeAddChild( &tree->option_tree, new_node, (uintptr_t)SaveText( namebuf ) );
 						parent = new_node;
 					}
 				}
@@ -920,7 +920,7 @@ int GetOptionBlobValueOdbc( PODBC odbc, POPTION_TREE_NODE optval, TEXTCHAR **buf
 			{
 				success = TRUE;
 				(*buffer) = NewArray( TEXTCHAR, (*len)=(size_t)IntCreateFromText( result[1] ));
-				MemCpy( (*buffer), result[0], (PTRSZVAL)(*len) );
+				MemCpy( (*buffer), result[0], (uintptr_t)(*len) );
 			}
 			PopODBCEx( odbc );
 			return success;
@@ -943,7 +943,7 @@ int GetOptionBlobValueOdbc( PODBC odbc, POPTION_TREE_NODE optval, TEXTCHAR **buf
 			{
 				success = TRUE;
 				(*buffer) = NewArray( TEXTCHAR, (*len)=(size_t)IntCreateFromText( result[1] ));
-				MemCpy( (*buffer), result[0], (PTRSZVAL)(*len) );
+				MemCpy( (*buffer), result[0], (uintptr_t)(*len) );
 			}
 			PopODBCEx( odbc );
 			return success;
@@ -969,7 +969,7 @@ int GetOptionBlobValueOdbc( PODBC odbc, POPTION_TREE_NODE optval, TEXTCHAR **buf
 			{
 				success = TRUE;
 				(*buffer) = NewArray( TEXTCHAR, (*len)=(size_t)IntCreateFromText( result[1] ));
-				MemCpy( (*buffer), result[0], (PTRSZVAL)(*len) );
+				MemCpy( (*buffer), result[0], (uintptr_t)(*len) );
 			}
 			PopODBCEx( odbc );
 			return success;
@@ -1353,7 +1353,7 @@ struct check_mask_param
 	PODBC odbc;
 };
 
-static int CPROC CheckMasks( PTRSZVAL psv_params, CTEXTSTR name, POPTION_TREE_NODE this_node, int flags )
+static int CPROC CheckMasks( uintptr_t psv_params, CTEXTSTR name, POPTION_TREE_NODE this_node, int flags )
 {
 	struct check_mask_param *params = (struct check_mask_param*)psv_params;
 	// return 0 to break loop.
@@ -1413,7 +1413,7 @@ static CTEXTSTR CPROC ResolveININame( PODBC odbc, CTEXTSTR pSection, TEXTCHAR *b
 						if( node )
 						{
 							//lprintf( "Node is %p?", node );
-							EnumOptionsEx( odbc, node, CheckMasks, (PTRSZVAL)&params );
+							EnumOptionsEx( odbc, node, CheckMasks, (uintptr_t)&params );
 							//lprintf( "Done enumerating..." );
 						}
 					}
@@ -1594,7 +1594,7 @@ SQLGETOPTION_PROC( size_t, SACK_GetPrivateProfileString )( CTEXTSTR pSection
 }
 //------------------------------------------------------------------------
 
-SQLGETOPTION_PROC( S_32, SACK_GetPrivateProfileIntExx )( PODBC odbc, CTEXTSTR pSection, CTEXTSTR pOptname, S_32 nDefault, CTEXTSTR pINIFile, LOGICAL bQuiet DBG_PASS )
+SQLGETOPTION_PROC( int32_t, SACK_GetPrivateProfileIntExx )( PODBC odbc, CTEXTSTR pSection, CTEXTSTR pOptname, int32_t nDefault, CTEXTSTR pINIFile, LOGICAL bQuiet DBG_PASS )
 {
 	TEXTCHAR buffer[32];
 	TEXTCHAR defaultbuf[32];
@@ -1603,14 +1603,14 @@ SQLGETOPTION_PROC( S_32, SACK_GetPrivateProfileIntExx )( PODBC odbc, CTEXTSTR pS
 	{
 		if( buffer[0] == 'Y' || buffer[0] == 'y' )
 			return 1;
-		return (S_32)IntCreateFromText( buffer );
+		return (int32_t)IntCreateFromText( buffer );
 	}
 	return nDefault;
 }
 
-SQLGETOPTION_PROC( S_32, SACK_GetPrivateProfileIntEx )( CTEXTSTR pSection, CTEXTSTR pOptname, S_32 nDefault, CTEXTSTR pINIFile, LOGICAL bQuiet )
+SQLGETOPTION_PROC( int32_t, SACK_GetPrivateProfileIntEx )( CTEXTSTR pSection, CTEXTSTR pOptname, int32_t nDefault, CTEXTSTR pINIFile, LOGICAL bQuiet )
 {
-	S_32 result;
+	int32_t result;
 	PODBC odbc = GetOptionODBC( GetDefaultOptionDatabaseDSN(), global_sqlstub_data->OptionVersion );
 	result = SACK_GetPrivateProfileIntExx( odbc, pSection, pOptname, nDefault, pINIFile, bQuiet DBG_SRC );
 	DropOptionODBC( odbc );
@@ -1618,7 +1618,7 @@ SQLGETOPTION_PROC( S_32, SACK_GetPrivateProfileIntEx )( CTEXTSTR pSection, CTEXT
 }
 
 
-SQLGETOPTION_PROC( S_32, SACK_GetPrivateProfileInt )( CTEXTSTR pSection, CTEXTSTR pOptname, S_32 nDefault, CTEXTSTR pINIFile )
+SQLGETOPTION_PROC( int32_t, SACK_GetPrivateProfileInt )( CTEXTSTR pSection, CTEXTSTR pOptname, int32_t nDefault, CTEXTSTR pINIFile )
 {
 	return SACK_GetPrivateProfileIntEx( pSection, pOptname, nDefault, pINIFile, FALSE );
 }
@@ -1665,14 +1665,14 @@ SQLGETOPTION_PROC( int, SACK_GetProfileBlob )( CTEXTSTR pSection, CTEXTSTR pOptn
 
 //------------------------------------------------------------------------
 
-SQLGETOPTION_PROC( S_32, SACK_GetProfileIntEx )( CTEXTSTR pSection, CTEXTSTR pOptname, S_32 defaultval, LOGICAL bQuiet )
+SQLGETOPTION_PROC( int32_t, SACK_GetProfileIntEx )( CTEXTSTR pSection, CTEXTSTR pOptname, int32_t defaultval, LOGICAL bQuiet )
 {
    return SACK_GetPrivateProfileIntEx( pSection, pOptname, defaultval, NULL, bQuiet );
 }
 
 //------------------------------------------------------------------------
 
-SQLGETOPTION_PROC( S_32, SACK_GetProfileInt )( CTEXTSTR pSection, CTEXTSTR pOptname, S_32 defaultval )
+SQLGETOPTION_PROC( int32_t, SACK_GetProfileInt )( CTEXTSTR pSection, CTEXTSTR pOptname, int32_t defaultval )
 {
    return SACK_GetPrivateProfileInt( pSection, pOptname, defaultval, NULL );
 }
@@ -1729,7 +1729,7 @@ SQLGETOPTION_PROC( LOGICAL, SACK_WritePrivateOptionString )( PODBC odbc, CTEXTST
 
 //------------------------------------------------------------------------
 
-SQLGETOPTION_PROC( S_32, SACK_WritePrivateProfileInt )( CTEXTSTR pSection, CTEXTSTR pName, S_32 value, CTEXTSTR pINIFile )
+SQLGETOPTION_PROC( int32_t, SACK_WritePrivateProfileInt )( CTEXTSTR pSection, CTEXTSTR pName, int32_t value, CTEXTSTR pINIFile )
 {
 	TEXTCHAR valbuf[32];
 	tnprintf( valbuf, sizeof( valbuf ), WIDE("%") _32fs, value );
@@ -1755,7 +1755,7 @@ SQLGETOPTION_PROC( LOGICAL, SACK_WriteOptionString )( PODBC odbc, CTEXTSTR pSect
 
 //------------------------------------------------------------------------
 
-SQLGETOPTION_PROC( S_32, SACK_WriteProfileInt )( CTEXTSTR pSection, CTEXTSTR pName, S_32 value )
+SQLGETOPTION_PROC( int32_t, SACK_WriteProfileInt )( CTEXTSTR pSection, CTEXTSTR pName, int32_t value )
 {
 	return SACK_WritePrivateProfileInt( pSection, pName, value, NULL );
 }
@@ -1802,8 +1802,8 @@ SQLGETOPTION_PROC( int, SACK_WritePrivateProfileExceptionString )( CTEXTSTR pSec
                                                             , CTEXTSTR pName
                                                             , CTEXTSTR pValue
                                                             , CTEXTSTR pINIFile
-                                                            , _32 from // SQLTIME
-                                                            , _32 to   // SQLTIME
+                                                            , uint32_t from // SQLTIME
+                                                            , uint32_t to   // SQLTIME
                                                             , CTEXTSTR pSystemName )
 {
 	INDEX optval = GetOptionIndexEx( OPTION_ROOT_VALUE, pINIFile, pSection, pName, TRUE DBG_SRC );

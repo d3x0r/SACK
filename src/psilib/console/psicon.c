@@ -107,8 +107,8 @@ PMENU hHistoryMenu;
 
 static int CPROC InitPSIConsole( PSI_CONTROL pc );
 //static int CPROC RenderChildWindow( PCOMMON pc );
-static int CPROC MouseHandler( PCOMMON pc, S_32 x, S_32 y, _32 b );
-static int CPROC KeyEventProc( PCOMMON pc, _32 key );
+static int CPROC MouseHandler( PCOMMON pc, int32_t x, int32_t y, uint32_t b );
+static int CPROC KeyEventProc( PCOMMON pc, uint32_t key );
 
 CONTROL_REGISTRATION ConsoleClass = { WIDE("PSI Console"), { { 640, 480 }, sizeof( CONSOLE_INFO ), BORDER_NORMAL|BORDER_RESIZABLE|BORDER_FIXED }
 												, InitPSIConsole
@@ -122,7 +122,7 @@ CONTROL_REGISTRATION ConsoleClass = { WIDE("PSI Console"), { { 640, 480 }, sizeo
 void CPROC RenderSeparator( PCONSOLE_INFO console, int nStart )
 {
 	//lprintf( WIDE("Render separator %d-%d %d"), 0, console->nWidth, nStart );
-	if( nStart > 0 && (S_64)nStart < console->nHeight )
+	if( nStart > 0 && (int64_t)nStart < console->nHeight )
 	{
 		// Render Command Line Separator
 		do_hline( console->psicon.image, nStart, 0, console->nWidth, cPenHighlight );
@@ -140,7 +140,7 @@ void CPROC PSI_Console_KeystrokePaste( PCONSOLE_INFO console )
 #if defined( WIN32 ) && !defined( __NO_WIN32API__ )
 	if( OpenClipboard(NULL) )
 	{
-		_32 format;
+		uint32_t format;
 		// successful open...
 		format = EnumClipboardFormats( 0 );
 		while( format )
@@ -233,7 +233,7 @@ static int OnDrawCommon( WIDE("PSI Console") )( PCOMMON pc )
 
 //----------------------------------------------------------------------------
 
-int CPROC KeyEventProc( PCOMMON pc, _32 key )
+int CPROC KeyEventProc( PCOMMON pc, uint32_t key )
 {
 	ValidatedControlData( PCONSOLE_INFO, ConsoleClass.TypeID, console, pc );
 	//PCONSOLE_INFO console = (PCONSOLE_INFO)GetCommonUserData( pc );
@@ -265,7 +265,7 @@ int CPROC KeyEventProc( PCOMMON pc, _32 key )
 
 		if( key & KEY_PRESSED )
 		{
-			PSI_KeyPressHandler( console, (_8)(KEY_CODE(key)&0xFF), (_8)KEY_MOD(key), (PTEXT)&stroke );
+			PSI_KeyPressHandler( console, (uint8_t)(KEY_CODE(key)&0xFF), (uint8_t)KEY_MOD(key), (PTEXT)&stroke );
 			//SmudgeCommon( console->psicon.frame );
 		}
 		LeaveCriticalSec( &console->Lock );
@@ -275,10 +275,10 @@ int CPROC KeyEventProc( PCOMMON pc, _32 key )
 
 //----------------------------------------------------------------------------
 
-int CPROC MouseHandler( PCOMMON pc, S_32 x, S_32 y, _32 b )
+int CPROC MouseHandler( PCOMMON pc, int32_t x, int32_t y, uint32_t b )
 {
-	static S_32 _x, _y;
-	static _32 _b;
+	static int32_t _x, _y;
+	static uint32_t _b;
 	//lprintf( WIDE("Mouse thing...%ld,%ld %08lx"), x, y, b );
 	{
 		int xPos, yPos, row, col;
@@ -551,7 +551,7 @@ int RegisterWindows( void )
 		AppendPopupItem( hHistoryMenu, MF_STRING, MNU_HISTORYSIZE50, WIDE( "50%" ) );
 		AppendPopupItem( hHistoryMenu, MF_STRING, MNU_HISTORYSIZE75, WIDE( "75%" ) );
 		AppendPopupItem( hHistoryMenu, MF_STRING, MNU_HISTORYSIZE100, WIDE( "100%" ) );
-		AppendPopupItem( hChildMenu, MF_STRING|MF_POPUP, (PTRSZVAL)hHistoryMenu, WIDE( "History Display Size" ) );
+		AppendPopupItem( hChildMenu, MF_STRING|MF_POPUP, (uintptr_t)hHistoryMenu, WIDE( "History Display Size" ) );
 	}
 	{
 		PMENU hColorMenu, hColorMenu2;
@@ -572,7 +572,7 @@ int RegisterWindows( void )
 		AppendPopupItem( hColorMenu, MF_OWNERDRAW, MNU_LTMAG, (POINTER)DrawMenuItem );
 		AppendPopupItem( hColorMenu, MF_OWNERDRAW, MNU_YELLOW, (POINTER)DrawMenuItem );
 		AppendPopupItem( hColorMenu, MF_OWNERDRAW, MNU_WHITE, (POINTER)DrawMenuItem );
-		AppendPopupItem( hChildMenu, MF_STRING|MF_POPUP, (PTRSZVAL)hColorMenu, WIDE( "Text Color" ) );
+		AppendPopupItem( hChildMenu, MF_STRING|MF_POPUP, (uintptr_t)hColorMenu, WIDE( "Text Color" ) );
 		hColorMenu2 = CreatePopup();
 		AppendPopupItem( hColorMenu2, MF_OWNERDRAW, MNU_BKBLACK, (POINTER)DrawMenuItem );
 		AppendPopupItem( hColorMenu2, MF_OWNERDRAW, MNU_BKBLUE, (POINTER)DrawMenuItem );
@@ -590,7 +590,7 @@ int RegisterWindows( void )
 		AppendPopupItem( hColorMenu2, MF_OWNERDRAW, MNU_BKLTMAG, (POINTER)DrawMenuItem );
 		AppendPopupItem( hColorMenu2, MF_OWNERDRAW, MNU_BKYELLOW, (POINTER)DrawMenuItem );
 		AppendPopupItem( hColorMenu2, MF_OWNERDRAW, MNU_BKWHITE, (POINTER)DrawMenuItem );
-		AppendPopupItem( hChildMenu, MF_STRING|MF_POPUP, (PTRSZVAL)hColorMenu2, WIDE( "Background Color" ) );
+		AppendPopupItem( hChildMenu, MF_STRING|MF_POPUP, (uintptr_t)hColorMenu2, WIDE( "Background Color" ) );
 	}
 	AppendPopupItem( hChildMenu, MF_STRING, MNU_COMMAND_COLOR, WIDE( "Command Color" ) );
 	AppendPopupItem( hChildMenu, MF_STRING, MNU_COMMAND_BACK, WIDE( "Command Background Color" ) );
@@ -704,7 +704,7 @@ PRELOAD(RegisterConsole)
 }
 
 
-void CPROC PSIMeasureString( PTRSZVAL psvConsole, CTEXTSTR s, int nShow, _32 *w, _32 *h, SFTFont font )
+void CPROC PSIMeasureString( uintptr_t psvConsole, CTEXTSTR s, int nShow, uint32_t *w, uint32_t *h, SFTFont font )
 {
 	PCONSOLE_INFO console = (PCONSOLE_INFO)psvConsole;
 	GetStringSizeFontEx( s, nShow, w, h, font?font:GetCommonFont( console->psicon.frame ) );
@@ -716,11 +716,11 @@ void CPROC PSIMeasureString( PTRSZVAL psvConsole, CTEXTSTR s, int nShow, _32 *w,
 
 static void CPROC DrawString( PCONSOLE_INFO console, int x, int y, RECT *r, CTEXTSTR s, int nShown, int nShow )
 {
-	//_32 width;
+	//uint32_t width;
 	//lprintf( WIDE( "Adding string out : %p %s start:%d len:%d at %d,%d #%08lX #%08lX" ), console, s, nShown, nShow,x,y,r->left,r->top
 	//		 , console->psicon.crText, console->psicon.crBack );
 	{
-		_32 w, h;
+		uint32_t w, h;
 		GetStringSizeFontEx( s + nShown, nShow, &w, &h, GetCommonFont( console->psicon.frame ) );
 		r->right = r->left + w;
 		r->bottom = r->top + h;
@@ -890,9 +890,9 @@ int CPROC InitPSIConsole( PSI_CONTROL pc )
 
 		console->pHistory = PSI_CreateHistoryRegion();
 		console->pCursor = PSI_CreateHistoryCursor( console->pHistory );
-		console->pCurrentDisplay = PSI_CreateHistoryBrowser( console->pHistory, PSIMeasureString, (PTRSZVAL)console );
-		console->pHistoryDisplay = PSI_CreateHistoryBrowser( console->pHistory, PSIMeasureString, (PTRSZVAL)console );
-		console->pCommandDisplay = PSI_CreateHistoryBrowser( console->pHistory, PSIMeasureString, (PTRSZVAL)console );
+		console->pCurrentDisplay = PSI_CreateHistoryBrowser( console->pHistory, PSIMeasureString, (uintptr_t)console );
+		console->pHistoryDisplay = PSI_CreateHistoryBrowser( console->pHistory, PSIMeasureString, (uintptr_t)console );
+		console->pCommandDisplay = PSI_CreateHistoryBrowser( console->pHistory, PSIMeasureString, (uintptr_t)console );
 		PSI_SetHistoryBrowserNoPageBreak( console->pHistoryDisplay );
 
 		console->nXPad = 5;

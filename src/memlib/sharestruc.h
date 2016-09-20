@@ -33,15 +33,15 @@ namespace sack {
 // case - debug or release mode.
 #ifdef NO_PRIVATE_DEF
 struct critical_section_tag {
-	volatile _32 dwUpdating; // this is set when entering or leaving (updating)...
-	volatile _32 dwLocks;
+	volatile uint32_t dwUpdating; // this is set when entering or leaving (updating)...
+	volatile uint32_t dwLocks;
 	THREAD_ID dwThreadID; // windows upper 16 is process ID, lower is thread ID
 	THREAD_ID dwThreadWaiting; // ID of thread waiting for this..
 	//PDATAQUEUE pPriorWaiters;
 #ifdef DEBUG_CRITICAL_SECTIONS
-	_32 bCollisions ;
+	uint32_t bCollisions ;
 	CTEXTSTR pFile;
-	_32  nLine;
+	uint32_t  nLine;
 #endif
 };
 typedef struct critical_section_tag CRITICALSECTION;
@@ -68,32 +68,32 @@ namespace sack {
 
 PREFIX_PACKED struct malloc_chunk_tag
 {
-	_16 dwOwners;   // if 0 - block is free
-	_16 dwPad;      // extra bytes 4/12 typical, sometimes pad untill next. (alignment extra bytes)
+	uint16_t dwOwners;   // if 0 - block is free
+	uint16_t dwPad;      // extra bytes 4/12 typical, sometimes pad untill next. (alignment extra bytes)
 #ifdef __64__
-	_32 pad;
+	uint32_t pad;
 #endif
-	PTRSZVAL dwSize;  // limited to allocating 4 billion bytes...
+	uintptr_t dwSize;  // limited to allocating 4 billion bytes...
 #ifdef ENABLE_NATIVE_MALLOC_PROTECTOR
-	_32 LeadProtect[2];
+	uint32_t LeadProtect[2];
 #endif
-	_32 to_chunk_start; // this is additional to subtract to get back to start (aligned allocate)
-	_8 byData[1]; // _8 is the smallest valid datatype could be _0
+	uint32_t to_chunk_start; // this is additional to subtract to get back to start (aligned allocate)
+	uint8_t byData[1]; // uint8_t is the smallest valid datatype could be _0
 } PACKED;
 
 PREFIX_PACKED struct heap_chunk_tag
 {
-	_16 dwOwners;            // if 0 - block is free
-	_16 dwPad;   // extra bytes 4/12 typical, sometimes pad untill next.
+	uint16_t dwOwners;            // if 0 - block is free
+	uint16_t dwPad;   // extra bytes 4/12 typical, sometimes pad untill next.
 	// which is < ( CHUNK_SIZE + nMinAllocate )
 	// real size is then dwSize - dwPad.
 	// this is actually where the end of block tag(s) should begin!
-	PTRSZVAL dwSize;  // limited to allocating 4 billion bytes...
+	uintptr_t dwSize;  // limited to allocating 4 billion bytes...
 	struct heap_chunk_tag *pPrior;         // save some math backwards...
 	struct memory_block_tag * pRoot;  // pointer to master allocation struct (pMEM)
 	DeclareLink( struct heap_chunk_tag );
-	_32 to_chunk_start; // this is additional to subtract to get back to start (aligned allocate)
-	_8 byData[1]; // _8 is the smallest valid datatype could be _0
+	uint32_t to_chunk_start; // this is additional to subtract to get back to start (aligned allocate)
+	uint8_t byData[1]; // uint8_t is the smallest valid datatype could be _0
 } PACKED;
 
 // a chunk of memory in a heap space, heaps are also tracked, so extents
@@ -115,11 +115,11 @@ typedef PREFIX_PACKED struct malloc_chunk_tag MALLOC_CHUNK, *PMALLOC_CHUNK;
 
 struct memory_block_tag
 {
-	PTRSZVAL dwSize;
-	_32 dwHeapID; // unique value 0xbab1f1ea (baby flea);
+	uintptr_t dwSize;
+	uint32_t dwHeapID; // unique value 0xbab1f1ea (baby flea);
 	// lock between multiple processes/threads
 	CRITICALSECTION cs;
-	_32 dwFlags;
+	uint32_t dwFlags;
 	PHEAP_CHUNK pFirstFree;
 	HEAP_CHUNK pRoot[1];
 };

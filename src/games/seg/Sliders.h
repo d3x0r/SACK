@@ -10,7 +10,7 @@ public:
 		int n;
 	};
 
-	static void CPROC UpdateSliderVal( PTRSZVAL psv, PSI_CONTROL pc, int val )
+	static void CPROC UpdateSliderVal( uintptr_t psv, PSI_CONTROL pc, int val )
 	{
 		struct psv_type *psv_arg = (struct psv_type*)psv;
 		psv_arg->_this->values[psv_arg->n] = val;
@@ -21,7 +21,7 @@ public:
 		}
 	}
 
-	static void CPROC SaveColors( PTRSZVAL psv, PSI_CONTROL pc )
+	static void CPROC SaveColors( uintptr_t psv, PSI_CONTROL pc )
 	{
 		struct psv_type *psv_arg = (struct psv_type*)psv;
 		FILE *file = sack_fopen( 0, WIDE("values.dat"), WIDE("wb") );
@@ -33,7 +33,7 @@ public:
 		}
 	}
 
-	static void CPROC LoadColors( PTRSZVAL psv, PSI_CONTROL pc )
+	static void CPROC LoadColors( uintptr_t psv, PSI_CONTROL pc )
 	{
 		struct psv_type *psv_arg = (struct psv_type*)psv;
 		FILE *file = sack_fopen( 0, WIDE("values.dat"), WIDE("rb") );
@@ -65,12 +65,12 @@ public:
 			psv_arg = New( struct psv_type );
 			psv_arg->_this = this;
 			psv_arg->n = n;
-			sliders[n] = MakeSlider( frame, 5 + 25*n, 5, 20, 420, 1, 0, UpdateSliderVal, (PTRSZVAL)psv_arg );
+			sliders[n] = MakeSlider( frame, 5 + 25*n, 5, 20, 420, 1, 0, UpdateSliderVal, (uintptr_t)psv_arg );
 			SetSliderValues( sliders[n], 0, 128, 256 );
 		}
 		PSI_CONTROL pc;
-		pc = MakeButton( frame, 5, 430, 45, 15, 0, "Save", 0, SaveColors, (PTRSZVAL)psv_arg );
-		pc = MakeButton( frame, 55, 430, 45, 15, 0, "Load", 0, LoadColors, (PTRSZVAL)psv_arg );
+		pc = MakeButton( frame, 5, 430, 45, 15, 0, "Save", 0, SaveColors, (uintptr_t)psv_arg );
+		pc = MakeButton( frame, 55, 430, 45, 15, 0, "Load", 0, LoadColors, (uintptr_t)psv_arg );
 		DisplayFrame( frame );
 	}
 };

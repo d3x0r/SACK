@@ -272,8 +272,8 @@ void  HostSystem_InitDisplayInfo( void )
 
 
 void  GetDisplaySizeEx ( int nDisplay
-												 , S_32 *x, S_32 *y
-												 , _32 *width, _32 *height)
+												 , int32_t *x, int32_t *y
+												 , uint32_t *width, uint32_t *height)
 {
 		if( nDisplay > 0 )
 		{

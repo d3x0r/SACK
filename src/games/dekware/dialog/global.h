@@ -6,7 +6,7 @@ typedef struct {
 			// invoke this after the script is invoked...
          // well okay/cancel buttons have this problem...
 			ButtonPushMethod clickproc;
-         PTRSZVAL clickdata;
+         uintptr_t clickdata;
 		} button;
 	} data;
 } MY_CONTROL_DATA, *PMY_CONTROL_DATA;
@@ -15,8 +15,8 @@ typedef struct {
 typedef struct common_tracker COMMON_TRACKER, *PCOMMON_TRACKER;
 struct common_tracker {
 	struct {
-		_32 created_internally : 1;
-		_32 menu : 1;
+		uint32_t created_internally : 1;
+		uint32_t menu : 1;
 	} flags;
 	union {
 		PCOMMON pc;

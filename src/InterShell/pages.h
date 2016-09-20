@@ -28,7 +28,7 @@ struct page_layout_tag
 struct page_history_node
 {
 	enum page_transition prior_transition;
-	_32 time;
+	uint32_t time;
 	struct page_data *page;
 };
 
@@ -53,7 +53,7 @@ struct page_data
 		PLIST tall_controls; // list of PMENU_BUTTONs
 	} layout;
 
-	_32 ID;
+	uint32_t ID;
 	struct {
 		BIT_FIELD bActive : 1; // quick checkable flag to see if page is active (last changed to)
 		BIT_FIELD showing : 1;
@@ -91,9 +91,9 @@ typedef struct page_data PAGE_DATA;
 // so this returns the appropriate one.
 PLIST *GetPageControlList( PPAGE_DATA page, int bWide );
 
-void SetCurrentPageID( PSI_CONTROL pc_canvas, _32 ID ); // MNU_CHANGE_PAGE ID (minus base)
-void DestroyPageID( PSI_CONTROL pc_canvas, _32 ID ); // MNU_DESTROY_PAGE ID (minus base)
-void UnDestroyPageID( PSI_CONTROL pc_canvas, _32 ID ); // MNU_DESTROY_PAGE ID (minus base)
+void SetCurrentPageID( PSI_CONTROL pc_canvas, uint32_t ID ); // MNU_CHANGE_PAGE ID (minus base)
+void DestroyPageID( PSI_CONTROL pc_canvas, uint32_t ID ); // MNU_DESTROY_PAGE ID (minus base)
+void UnDestroyPageID( PSI_CONTROL pc_canvas, uint32_t ID ); // MNU_DESTROY_PAGE ID (minus base)
 
 #ifdef INTERSHELL_SOURCE
 
@@ -104,7 +104,7 @@ void RestorePageEx( PCanvasData canvas, struct page_data * page, int bFull, int 
 struct page_data * GetPageFromFrame( PCanvasData frame );
 
 
-void ChangePageEx( PPAGE_DATA page, enum page_transition direction, _32 how_long DBG_PASS );
+void ChangePageEx( PPAGE_DATA page, enum page_transition direction, uint32_t how_long DBG_PASS );
 //void ChangePagesEx( struct page_data * page DBG_PASS);
 #define ChangePage(p,d,t) ChangePageEx(p,d,t DBG_SRC)
 

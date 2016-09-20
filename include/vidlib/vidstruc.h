@@ -171,8 +171,8 @@ typedef struct HVIDEO_tag
 	// this is the thread that created the hwndoutput (events get dispatched to this.)
 	PTHREAD pThreadWnd;
 	struct {
-		S_32 x;
-		S_32 y;
+		int32_t x;
+		int32_t y;
 	} cursor_bias;
 	WINDOWPOS pWindowPos;  // should always contain current information.
 #ifdef _WIN32
@@ -186,8 +186,8 @@ typedef struct HVIDEO_tag
 #define CW_USEDEFAULT 0x40000000
 	GLWindow *x11_gl_window;
 	struct my_windowpos_clone_tag {
-		S_32 x, y;
-		_32 cx, cy;
+		int32_t x, y;
+		uint32_t cx, cy;
 	} WindowPos;
 #endif
 #  ifdef _OPENGL_ENABLED
@@ -233,34 +233,34 @@ typedef struct HVIDEO_tag
 #endif
 	PTHREAD thread;
 	struct {
-		S_32 x, y;
-		_32 b;
+		int32_t x, y;
+		uint32_t b;
 	} mouse;
 
-	_32 idle_timer_id;
-	_32 top_force_timer_id;
+	uint32_t idle_timer_id;
+	uint32_t top_force_timer_id;
 	MouseCallback pMouseCallback;
-	PTRSZVAL  dwMouseData;
+	uintptr_t  dwMouseData;
 	HideAndRestoreCallback pHideCallback;
-	PTRSZVAL  dwHideData;
+	uintptr_t  dwHideData;
 	HideAndRestoreCallback pRestoreCallback;
-	PTRSZVAL  dwRestoreData;
+	uintptr_t  dwRestoreData;
 
 #if !defined( NO_TOUCH )
 	TouchCallback pTouchCallback;
-	PTRSZVAL dwTouchData;
+	uintptr_t dwTouchData;
 #endif
 	RedrawCallback pRedrawCallback; 
-	PTRSZVAL dwRedrawData;
+	uintptr_t dwRedrawData;
 
 	CloseCallback pWindowClose;
-	PTRSZVAL dwCloseData;
+	uintptr_t dwCloseData;
 
 	KeyProc pKeyProc;
-	PTRSZVAL dwKeyData;
+	uintptr_t dwKeyData;
 
 	RenderReadCallback ReadComplete;
-	PTRSZVAL psvRead;
+	uintptr_t psvRead;
 	PLINKQUEUE pInput;
 
 	struct {
@@ -310,7 +310,7 @@ typedef struct HVIDEO_tag
 		, *pBelow;  // this is below specified window
 
 	LoseFocusCallback pLoseFocus;
-	PTRSZVAL dwLoseFocus;
+	uintptr_t dwLoseFocus;
 	
 
 	void *hOldBitmap;
@@ -341,8 +341,8 @@ typedef struct HVIDEO_tag
 
 	struct video_struct_fullscreen
 	{
-		S_32 x, y;
-		_32 width, height;
+		int32_t x, y;
+		uint32_t width, height;
 		int target_display;
 	}full_screen;
 } VIDEO, *PVIDEO;

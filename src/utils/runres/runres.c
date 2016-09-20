@@ -4,7 +4,7 @@
 PTHREAD mainthread;
 int done;
 
-void CPROC TaskEnded( PTRSZVAL psv, PTASK_INFO task_ended )
+void CPROC TaskEnded( uintptr_t psv, PTASK_INFO task_ended )
 {
    done = 1;
    WakeThread( mainthread );
@@ -68,8 +68,8 @@ static void SetWithFindMode( LPDEVMODE mode, int bRestoreOnCrash )
 		int n;
 		for( n = 0; n < 3; n++ )
 		{
-			_32 flags;
-         _32 result;
+			uint32_t flags;
+         uint32_t result;
 			switch( n )
 			{
 			case 0:
@@ -187,9 +187,9 @@ static void SetWithFindMode( LPDEVMODE mode, int bRestoreOnCrash )
 	}
 }
 #endif
-		_32 prior_w, prior_h;
+		uint32_t prior_w, prior_h;
 
-void GetDisplaySize(_32 * width, _32 * height)
+void GetDisplaySize(uint32_t * width, uint32_t * height)
 {
    RECT r;
    GetWindowRect (GetDesktopWindow (), &r);
@@ -201,7 +201,7 @@ void GetDisplaySize(_32 * width, _32 * height)
 }
 
 
-void SetResolution( _32 w, _32 h )
+void SetResolution( uint32_t w, uint32_t h )
 {
 #ifdef WIN32
 	DEVMODE settings;
@@ -227,7 +227,7 @@ int main( int argc, char const *const *argv )
 	}
 	{
       int arg;
-		_32 width, height, bits = 32;
+		uint32_t width, height, bits = 32;
 		const char *program;
 		GetDisplaySize( &prior_w, &prior_h );
       arg = 1;

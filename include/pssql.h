@@ -325,10 +325,10 @@ struct required_constraint_def
    <code>
    TABLE some_table_var_name = { "table name", FIELDS( some_table_field_array_name ), TABLE_KEYS( some_table_key_array_name ), 1 );
    
-    LOGICAL CheckODBCTable( PODBC odbc, PTABLE table, _32 options )
+    LOGICAL CheckODBCTable( PODBC odbc, PTABLE table, uint32_t options )
         PODBC odbc - may be left NULL to use the default database connection.
         PTABLE table - a pointer to a TABLE structure which has been initialized.
-        _32 options - zero or more of  the following symbols or'ed together.
+        uint32_t options - zero or more of  the following symbols or'ed together.
                    \#define CTO_MATCH 4  // attempt to figure out alter statements to drop or add columns to exact match definition
                    \#define CTO_MERGE 8  // attempt to figure out alter statements to add missing columns, do not drop.  Rename?
    
@@ -432,7 +432,7 @@ typedef struct required_table_tag *PTABLE;
    table :    a table which was created with GetFieldsInSQL, or
               created by filling in a structure.
    options :  Options from CreateTableOptions.                   */
-PSSQL_PROC( LOGICAL, CheckODBCTableEx)( PODBC odbc, PTABLE table, _32 options DBG_PASS );
+PSSQL_PROC( LOGICAL, CheckODBCTableEx)( PODBC odbc, PTABLE table, uint32_t options DBG_PASS );
 /* Checks a table in a database to see if it exists, and that
    all the columns in the table definition passed exist as
    column in the database. Will generate alter statements to the
@@ -442,8 +442,8 @@ PSSQL_PROC( LOGICAL, CheckODBCTableEx)( PODBC odbc, PTABLE table, _32 options DB
    table :    a table which was created with GetFieldsInSQL, or
               created by filling in a structure.
    options :  Options from CreateTableOptions.                   */
-PSSQL_PROC( LOGICAL, CheckODBCTable)( PODBC odbc, PTABLE table, _32 options );
-/* <combine sack::sql::CheckODBCTableEx@PODBC@PTABLE@_32 options>
+PSSQL_PROC( LOGICAL, CheckODBCTable)( PODBC odbc, PTABLE table, uint32_t options );
+/* <combine sack::sql::CheckODBCTableEx@PODBC@PTABLE@uint32_t options>
    
    \ \                                                            */
 #define CheckODBCTable(odbc,t,opt) CheckODBCTableEx(odbc,t,opt DBG_SRC )
@@ -622,15 +622,15 @@ PSSQL_PROC( int, GetSQLTypes )( void );
 PSSQL_PROC( void, ConvertSQLDateEx )( CTEXTSTR date
 												  , int *year, int *month, int *day
 												  , int *hour, int *minute, int *second
-												  , int *msec, S_32 *nsec
+												  , int *msec, int32_t *nsec
 												  , int *zone_hr, int *zone_mn
 												  );
 #endif
-/* <combine sack::sql::ConvertSQLDateEx@CTEXTSTR@int *@int *@int *@int *@int *@int *@int *@S_32 *>
+/* <combine sack::sql::ConvertSQLDateEx@CTEXTSTR@int *@int *@int *@int *@int *@int *@int *@int32_t *>
    
    \ \                                                                                             */
 #define ConvertSQLDate( date, y,m,d) ConvertSQLDateEx( date,y,m,d,NULL,NULL,NULL,NULL,NULL)
-/* <combine sack::sql::ConvertSQLDateEx@CTEXTSTR@int *@int *@int *@int *@int *@int *@int *@S_32 *>
+/* <combine sack::sql::ConvertSQLDateEx@CTEXTSTR@int *@int *@int *@int *@int *@int *@int *@int32_t *>
    
    \ \                                                                                             */
 #define ConvertSQLDateTime( date, y,mo,d,h,mn,s) ConvertSQLDateEx( date,y,mo,d,h,mn,s,NULL,NULL)
@@ -842,8 +842,8 @@ enum CreateTableOptions {
    tablename :     table name to use when actually creating this.
                    May be different from template table name.
    options :       Options from CreateTableOptions.               */
-PSSQL_PROC( int, SQLCreateTableEx )(PODBC odbc, CTEXTSTR filename, CTEXTSTR templatename, CTEXTSTR tablename, _32 options );
-/* <combine sack::sql::SQLCreateTableEx@PODBC@CTEXTSTR@CTEXTSTR@CTEXTSTR@_32>
+PSSQL_PROC( int, SQLCreateTableEx )(PODBC odbc, CTEXTSTR filename, CTEXTSTR templatename, CTEXTSTR tablename, uint32_t options );
+/* <combine sack::sql::SQLCreateTableEx@PODBC@CTEXTSTR@CTEXTSTR@CTEXTSTR@uint32_t>
    
    \ \                                                                        */
 #define SQLCreateTable( odbc, file, table ) SQLCreateTableEx(odbc,file,table,table,0)
@@ -863,8 +863,8 @@ PSSQL_PROC( int, SQLCreateTableEx )(PODBC odbc, CTEXTSTR filename, CTEXTSTR temp
    TRUE if success.
    
    FALSE if failure. (No further information)                     */
-PSSQL_PROC( int, CreateTableEx )( CTEXTSTR filename, CTEXTSTR templatename, CTEXTSTR tablename, _32 options );
-/* <combine sack::sql::CreateTableEx@CTEXTSTR@CTEXTSTR@CTEXTSTR@_32>
+PSSQL_PROC( int, CreateTableEx )( CTEXTSTR filename, CTEXTSTR templatename, CTEXTSTR tablename, uint32_t options );
+/* <combine sack::sql::CreateTableEx@CTEXTSTR@CTEXTSTR@CTEXTSTR@uint32_t>
    
    \ \                                                               */
 #define CreateTable( file, table ) CreateTableEx(file,table,table,0)
@@ -915,29 +915,29 @@ PSSQL_PROC( TEXTCHAR *,EscapeSQLStringEx )( PODBC odbc, CTEXTSTR name DBG_PASS )
 #define EscapeSQLString(odbc, s) EscapeSQLStringEx( odbc, s DBG_SRC )
 
 // the following functions return an allcoated buffer which the application must Release()
-PSSQL_PROC( TEXTSTR ,EscapeBinaryEx )( CTEXTSTR blob, PTRSZVAL bloblen DBG_PASS );
-/* <combine sack::sql::EscapeBinaryEx@CTEXTSTR@PTRSZVAL bloblen>
+PSSQL_PROC( TEXTSTR ,EscapeBinaryEx )( CTEXTSTR blob, uintptr_t bloblen DBG_PASS );
+/* <combine sack::sql::EscapeBinaryEx@CTEXTSTR@uintptr_t bloblen>
    
    \ \                                                           */
 #define EscapeBinary(b,bl) EscapeBinaryEx(b,bl DBG_SRC )
-/* <combine sack::sql::EscapeBinaryEx@CTEXTSTR@PTRSZVAL bloblen>
+/* <combine sack::sql::EscapeBinaryEx@CTEXTSTR@uintptr_t bloblen>
    
    \ \                                                           */
 #define EscapeBinaryOpt(b,bl,q) EscapeSQLBinaryExx(NULL,b,bl,q DBG_SRC )
 
-/* <combine sack::sql::EscapeBinaryEx@CTEXTSTR@PTRSZVAL bloblen>
+/* <combine sack::sql::EscapeBinaryEx@CTEXTSTR@uintptr_t bloblen>
    
    \ \                                                           */
-PSSQL_PROC( TEXTSTR,EscapeSQLBinaryExx )( PODBC odbc, CTEXTSTR blob, PTRSZVAL bloblen, LOGICAL bQuote DBG_PASS );
-/* <combine sack::sql::EscapeBinaryEx@CTEXTSTR@PTRSZVAL bloblen>
+PSSQL_PROC( TEXTSTR,EscapeSQLBinaryExx )( PODBC odbc, CTEXTSTR blob, uintptr_t bloblen, LOGICAL bQuote DBG_PASS );
+/* <combine sack::sql::EscapeBinaryEx@CTEXTSTR@uintptr_t bloblen>
    
    \ \                                                           */
-PSSQL_PROC( TEXTSTR,EscapeSQLBinaryEx )( PODBC odbc, CTEXTSTR blob, PTRSZVAL bloblen DBG_PASS );
-/* <combine sack::sql::EscapeSQLBinaryEx@PODBC@CTEXTSTR@PTRSZVAL bloblen>
+PSSQL_PROC( TEXTSTR,EscapeSQLBinaryEx )( PODBC odbc, CTEXTSTR blob, uintptr_t bloblen DBG_PASS );
+/* <combine sack::sql::EscapeSQLBinaryEx@PODBC@CTEXTSTR@uintptr_t bloblen>
    
    \ \                                                                    */
 #define EscapeSQLBinary(odbc,blob,len) EscapeSQLBinaryEx( odbc,blob,len DBG_SRC )
-/* <combine sack::sql::EscapeSQLBinaryEx@PODBC@CTEXTSTR@PTRSZVAL bloblen>
+/* <combine sack::sql::EscapeSQLBinaryEx@PODBC@CTEXTSTR@uintptr_t bloblen>
    
    \ \                                                                    */
 #define EscapeSQLBinaryOpt(odbc,blob,len,q) EscapeSQLBinaryExx( odbc,blob,len,q DBG_SRC )
@@ -963,7 +963,7 @@ PSSQL_PROC( TEXTSTR ,RevertEscapeString )( CTEXTSTR name );
    a pointer to the string without escapes. (Even though it says
    binary, it's still to and from text?) This result should be
    freed with Release when user is done with it.                 */
-PSSQL_PROC( TEXTSTR ,RevertEscapeBinary )( CTEXTSTR blob, PTRSZVAL *bloblen );
+PSSQL_PROC( TEXTSTR ,RevertEscapeBinary )( CTEXTSTR blob, uintptr_t *bloblen );
 /* Parse a Blob string stored as hex... that is text character
    0-9 and A-F.
    Parameters
@@ -1418,7 +1418,7 @@ PSSQL_PROC( void, DestroySQLTable )( PTABLE table );
 // allow setting and getting of a bit of user data associated with the PODBC...
 // though this can result in memory losses at the moment, cause there is no notification
 // that the PODBC has gone away, and that the user needs to remove his data...
-PSSQL_PROC( PTRSZVAL, SQLGetUserData )( PODBC odbc );
+PSSQL_PROC( uintptr_t, SQLGetUserData )( PODBC odbc );
 /* A PODBC may have a user data assigned to it.
    Parameters
    odbc :  connection to set the data for; shouldn't be NULL.
@@ -1426,7 +1426,7 @@ PSSQL_PROC( PTRSZVAL, SQLGetUserData )( PODBC odbc );
    
    See Also
    SQLGetUserData                                             */
-PSSQL_PROC( void, SQLSetUserData )( PODBC odbc, PTRSZVAL );
+PSSQL_PROC( void, SQLSetUserData )( PODBC odbc, uintptr_t );
 
 
 /* Returns a text string GUID, the guid is saved in psersistant text space and will 
@@ -1443,21 +1443,21 @@ PSSQL_PROC( CTEXTSTR, GuidZero )( void );
 /* convert a string GUID to a binary representation of 16 bytes.
    litte_endian will byte-swap the grouped portions of numbers in a guid so they can be printed appropriately*/
 
-PSSQL_PROC( P_8, GetGUIDBinaryEx )( CTEXTSTR guid, LOGICAL litte_endian );
+PSSQL_PROC( uint8_t*, GetGUIDBinaryEx )( CTEXTSTR guid, LOGICAL litte_endian );
 #define GetGUIDBinary(g) GetGUIDBinaryEx(g, TRUE )
 
 struct guid_binary {
 	union {
 		struct {
-			_8 bytes[16];
-			_8 zero[2];
+			uint8_t bytes[16];
+			uint8_t zero[2];
 		} b;
 		struct {
-			_32 l1;
-			_16 w1;
-			_16 w2;
-			_16 w3;
-			_64 ll1;
+			uint32_t l1;
+			uint16_t w1;
+			uint16_t w2;
+			uint16_t w3;
+			uint64_t ll1;
 		} d;
 	} u;
 };
@@ -1531,7 +1531,7 @@ PSSQL_PROC( void, SetSQLAutoTransact )( PODBC odbc, LOGICAL bEnable );
    Parameters
    odbc :     connection to set auto transact on
    callback :  not NULL to enable, NULL to disable.                         */
-PSSQL_PROC( void, SetSQLAutoTransactCallback )( PODBC odbc, void (CPROC*callback)(PTRSZVAL,PODBC), PTRSZVAL psv );
+PSSQL_PROC( void, SetSQLAutoTransactCallback )( PODBC odbc, void (CPROC*callback)(uintptr_t,PODBC), uintptr_t psv );
 /* Relevant for SQLite databases. After a certain period of
    inactivity the database is closed (allowing the file to be
    not-in-use during idle). PODBC odject remains valid, and

@@ -749,7 +749,7 @@ long sack_tell( INDEX file_handle )
 	HANDLE *holder = (HANDLE*)GetLink( &(*winfile_local).handles, file_handle );
 	HANDLE handle = holder?holder[0]:INVALID_HANDLE_VALUE;
 #ifdef WIN32
-	_32 length = SetFilePointer( handle // must have GENERIC_READ and/or GENERIC_WRITE
+	uint32_t length = SetFilePointer( handle // must have GENERIC_READ and/or GENERIC_WRITE
 								, 0	// do not move pointer 
 								, NULL  // hFile is not large enough to need this pointer 
 								, FILE_CURRENT);  // provides offset from current position 
@@ -1001,7 +1001,6 @@ FILE * sack_fopenEx( INDEX group, CTEXTSTR filename, CTEXTSTR opts, struct file_
 	INDEX idx;
 	LOGICAL memalloc = FALSE;
 	LOGICAL single_mount = (mount != NULL );
-	struct file_system_mounted_interface *test_mount;
 	LocalInit();
 	EnterCriticalSec( &(*winfile_local).cs_files );
 
@@ -1194,7 +1193,8 @@ default_fopen:
 		{
 			wchar_t *tmp = CharWConvert( file->fullname );
 			wchar_t *wopts = CharWConvert( opts );
-			_wfopen_s( &handle, tmp, wopts );
+         handle = _wfopen( tmp, wopts );
+			//_wfopen_s( &handle, tmp, wopts );
 			Deallocate( wchar_t *, tmp );
 			Deallocate( wchar_t *, wopts );
 		}
@@ -1351,19 +1351,13 @@ default_fopen:
 		handle = fopen( file->fullname, opts );
 #  endif
 #else
-#  ifdef _STRSAFE_H_INCLUDED_
-#     ifdef UNICODE
-		char *tmpname = CStrDup( file->fullname );
-		char *tmpopts = CStrDup( opts );
-		handle = _fsopen( tmpname, tmpopts, share_mode );
-		Deallocate( char*, tmpname );
-		Deallocate( char*, tmpopts );
-#     else
-		handle = _fsopen( file->fullname, opts, share_mode );
-#     endif
-#  else
-		handle = fopen( file->fullname, opts );
-#  endif
+		{
+			wchar_t *tmp = CharWConvert( file->fullname );
+			wchar_t *wopts = CharWConvert( opts );
+			handle = _wfsopen( tmp, wopts, share_mode );
+			Deallocate( wchar_t *, tmp );
+			Deallocate( wchar_t *, wopts );
+		}
 #endif
 	}
 	if( !handle )
@@ -1519,7 +1513,7 @@ TEXTSTR sack_fgets ( TEXTSTR buffer, size_t size,FILE *file_file )
 	file = FindFileByFILE( file_file );
 	if( file && file->mount && file->mount->fsi )
 	{
-		int n;
+		size_t n;
 		char *output = buffer;
 		size = size-1;
 		buffer[size] = 0;
@@ -1616,7 +1610,7 @@ int  sack_rename( CTEXTSTR file_source, CTEXTSTR new_name )
 	return sack_renameEx( file_source, new_name, (*winfile_local).default_mount );
 }
 
-size_t GetSizeofFile( TEXTCHAR *name, P_32 unused )
+size_t GetSizeofFile( TEXTCHAR *name, uint32_t* unused )
 {
 	size_t size;
 #ifdef __LINUX__
@@ -1641,9 +1635,9 @@ size_t GetSizeofFile( TEXTCHAR *name, P_32 unused )
 	HANDLE hFile = CreateFile( name, 0, 0, NULL, OPEN_EXISTING, 0, NULL );
 	if( hFile != INVALID_HANDLE_VALUE )
 	{
-		size = GetFileSize( hFile, unused );
+		size = GetFileSize( hFile, (DWORD*)unused );
 		if( sizeof( size ) > 4  && unused )
-			size |= (_64)(*unused) << 32;
+			size |= (uint64_t)(*unused) << 32;
 		CloseHandle( hFile );
 		return size;
 	}
@@ -1654,15 +1648,15 @@ size_t GetSizeofFile( TEXTCHAR *name, P_32 unused )
 
 //-------------------------------------------------------------------------
 
-_32 GetFileTimeAndSize( CTEXTSTR name
+uint32_t GetFileTimeAndSize( CTEXTSTR name
 							, LPFILETIME lpCreationTime
 							,  LPFILETIME lpLastAccessTime
 							,  LPFILETIME lpLastWriteTime
 							, int *IsDirectory
 							)
 {
-	_32 size;
-	_32 extra_size;
+	uint32_t size;
+	uint32_t extra_size;
 #ifdef __LINUX__
 #  ifdef UNICODE
 	char *tmpname = CStrDup( name );
@@ -1680,16 +1674,16 @@ _32 GetFileTimeAndSize( CTEXTSTR name
 		return size;
 	}
 	else
-		return (_32)-1;
+		return (uint32_t)-1;
 #else
 	HANDLE hFile = CreateFile( name, 0, 0, NULL, OPEN_EXISTING, 0, NULL );
 	if( hFile != INVALID_HANDLE_VALUE )
 	{
-		size = GetFileSize( hFile, &extra_size );
+		size = GetFileSize( hFile, (DWORD*)&extra_size );
 		GetFileTime( hFile, lpCreationTime, lpLastAccessTime, lpLastWriteTime );
 		if( IsDirectory )
 		{
-			_32 dwAttr = GetFileAttributes( name );
+			uint32_t dwAttr = GetFileAttributes( name );
 			if( dwAttr & FILE_ATTRIBUTE_DIRECTORY )
 				(*IsDirectory) = 1;
 			else
@@ -1699,7 +1693,7 @@ _32 GetFileTimeAndSize( CTEXTSTR name
 		return size;
 	}
 	else
-		return (_32)-1;
+		return (uint32_t)-1;
 #endif
 }
 
@@ -1730,13 +1724,13 @@ void sack_register_filesystem_interface( CTEXTSTR name, struct file_system_inter
 }
 
 
-static void * CPROC sack_filesys_open( PTRSZVAL psv, const char *filename );
+static void * CPROC sack_filesys_open( uintptr_t psv, const char *filename );
 static int CPROC sack_filesys_close( void*file ) { return fclose(  (FILE*)file ); }
 static size_t CPROC sack_filesys_read( void*file, char*buf, size_t len ) { return fread( buf, 1, len, (FILE*)file ); }
 static size_t CPROC sack_filesys_write( void*file, const char*buf, size_t len ) { return fwrite( buf, 1, len, (FILE*)file ); }
 static size_t CPROC sack_filesys_seek( void*file, size_t pos, int whence) { return fseek( (FILE*)file, pos, whence ); }
 static void CPROC sack_filesys_truncate( void*file ) { sack_ftruncate( (FILE*)file ); }
-static void CPROC sack_filesys_unlink( PTRSZVAL psv, const char*filename ) { 
+static void CPROC sack_filesys_unlink( uintptr_t psv, const char*filename ) { 
 #ifdef UNICODE
 	TEXTCHAR *_filename = DupCStr( filename );
 #  define filename _filename
@@ -1749,7 +1743,7 @@ static void CPROC sack_filesys_unlink( PTRSZVAL psv, const char*filename ) {
 static size_t CPROC sack_filesys_size( void*file ) { return sack_fsize( (FILE*)file ); }
 static size_t CPROC sack_filesys_tell( void*file ) { return sack_ftell( (FILE*)file ); }
 static int CPROC sack_filesys_flush( void*file ) { return sack_fflush( (FILE*)file ); }
-static int CPROC sack_filesys_exists( PTRSZVAL psv, const char*file );
+static int CPROC sack_filesys_exists( uintptr_t psv, const char*file );
 
 static struct file_system_interface native_fsi = {
 	sack_filesys_open
@@ -1773,7 +1767,7 @@ PRIORITY_PRELOAD( InitWinFileSysEarly, OSALOT_PRELOAD_PRIORITY - 1 )
 	if( !sack_get_filesystem_interface( WIDE("native") ) )
 		sack_register_filesystem_interface( WIDE("native" ), &native_fsi );
 	if( !(*winfile_local).default_mount )
-		(*winfile_local).default_mount = sack_mount_filesystem( "native", NULL, 1000, (PTRSZVAL)NULL, TRUE );
+		(*winfile_local).default_mount = sack_mount_filesystem( "native", NULL, 1000, (uintptr_t)NULL, TRUE );
 }
 
 #ifndef __NO_OPTIONS__
@@ -1786,7 +1780,7 @@ PRELOAD( InitWinFileSys )
 
 
 
-static void * CPROC sack_filesys_open( PTRSZVAL psv, const char *filename ) { 
+static void * CPROC sack_filesys_open( uintptr_t psv, const char *filename ) { 
 	void *result;
 #ifdef UNICODE
 	TEXTCHAR *_filename = DupCStr( filename );
@@ -1800,7 +1794,7 @@ static void * CPROC sack_filesys_open( PTRSZVAL psv, const char *filename ) {
 
 	return result;
 }
-static int CPROC sack_filesys_exists( PTRSZVAL psv, const char *filename ) { 
+static int CPROC sack_filesys_exists( uintptr_t psv, const char *filename ) { 
 	int result;
 #ifdef UNICODE
 	TEXTSTR _filename = DupCStr( filename );
@@ -1832,7 +1826,7 @@ void sack_unmount_filesystem( struct file_system_mounted_interface *mount )
 	UnlinkThing( mount );
 }
 
-struct file_system_mounted_interface *sack_mount_filesystem( const char *name, struct file_system_interface *fsi, int priority, PTRSZVAL psvInstance, LOGICAL writable )
+struct file_system_mounted_interface *sack_mount_filesystem( const char *name, struct file_system_interface *fsi, int priority, uintptr_t psvInstance, LOGICAL writable )
 {
 	struct file_system_mounted_interface *root = (*winfile_local).mounted_file_systems;
 	struct file_system_mounted_interface *mount = New( struct file_system_mounted_interface );

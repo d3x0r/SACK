@@ -31,10 +31,10 @@ typedef struct client_world_tracker CLIENT_WORLD_TRACKER, *PCLIENT_WORLD_TRACKER
 
 struct bitset
 {
-	_32 num;
-	_32 *created;
-	_32 *deleted;
-	_32 *updated;
+	uint32_t num;
+	uint32_t *created;
+	uint32_t *deleted;
+	uint32_t *updated;
 };
 
 struct client_world_tracker
@@ -49,7 +49,7 @@ struct client_world_tracker
 struct worldscape_client
 {
 	struct bitset worlds;
-	_32 tracker_count;
+	uint32_t tracker_count;
 	SERVICE_ROUTE pid;
 	PCLIENT_WORLD_TRACKER world_trackers;
 	PCLIENT pc; // websocket that connected here
@@ -76,7 +76,7 @@ typedef struct world_server_world {
 
 static struct worldscape_server_local
 {
-	_32 SrvrMsgBase;
+	uint32_t SrvrMsgBase;
 	PLIST clients; // list of PNETWORK 
 	PLIST worlds; // list of PWorldServerWOrlds
 	PCLASSROOT server_opcodes;
@@ -113,13 +113,13 @@ void ExpandFlagset( struct flagset *pbitset, INDEX least )
 	/* should do something smarter here rather than looping every 32 increment. */
 	if( least >= pbitset->num )
 	{
-		_32 old_count = pbitset->num;
-		_32 *new_created_flags;
+		uint32_t old_count = pbitset->num;
+		uint32_t *new_created_flags;
 		pbitset->num += (32 > (least-pbitset->num))?32:((least+31)& (~31));
 
-		new_created_flags = NewArray( _32, ( pbitset->num / 32 ) );
+		new_created_flags = NewArray( uint32_t, ( pbitset->num / 32 ) );
 
-		MemSet( new_created_flags + ( old_count / 32 ), 0, sizeof( _32 ) );
+		MemSet( new_created_flags + ( old_count / 32 ), 0, sizeof( uint32_t ) );
 
 		if( old_count )
 		{
@@ -137,22 +137,22 @@ void ExpandBitset( struct bitset *pbitset, INDEX least )
 	/* should do something smarter here rather than looping every 32 increment. */
 	if( least >= pbitset->num )
 	{
-		_32 old_count = pbitset->num;
-		_32 *new_created_flags;
-		_32 *new_updated_flags;
-		_32 *new_deleted_flags;
-		_32 *old_created_flags;
-		_32 *old_updated_flags;
-		_32 *old_deleted_flags;
+		uint32_t old_count = pbitset->num;
+		uint32_t *new_created_flags;
+		uint32_t *new_updated_flags;
+		uint32_t *new_deleted_flags;
+		uint32_t *old_created_flags;
+		uint32_t *old_updated_flags;
+		uint32_t *old_deleted_flags;
 
 		pbitset->num += (32 > (least-pbitset->num))?32:((least+31)& (~31));
 
 		old_created_flags	  =  pbitset->created ;
 		old_updated_flags	  =  pbitset->updated ;
 		old_deleted_flags	  =  pbitset->deleted ;
-		new_created_flags = NewArray( _32, ( pbitset->num / 32 ) );
-		new_updated_flags = NewArray( _32, ( pbitset->num / 32 ) );
-		new_deleted_flags = NewArray( _32, ( pbitset->num / 32 ) );
+		new_created_flags = NewArray( uint32_t, ( pbitset->num / 32 ) );
+		new_updated_flags = NewArray( uint32_t, ( pbitset->num / 32 ) );
+		new_deleted_flags = NewArray( uint32_t, ( pbitset->num / 32 ) );
 
       // actually want the very next bit after oldcount to start.
 		MemSet( new_created_flags + ( (old_count+1) / 32 ), 0, (pbitset->num-old_count)/8 );
@@ -255,7 +255,7 @@ void delete_MarkWorldCreated( INDEX iWorld )
 	PWORLDSCAPE_CLIENT client;
 	LIST_FORALL( l.clients, iClient, PWORLDSCAPE_CLIENT, client )
 	{
-		_32 old_count = client->worlds.num;
+		uint32_t old_count = client->worlds.num;
 		ExpandBitset( &client->worlds, iWorld );
 		SETFLAG( client->worlds.created, iWorld );
 	}
@@ -273,7 +273,7 @@ struct set_active_tag
    PCLIENT_WORLD_TRACKER world;
 };
 
-PTRSZVAL CPROC MarkUpdated( INDEX p, PTRSZVAL psv )
+uintptr_t CPROC MarkUpdated( INDEX p, uintptr_t psv )
 {
 	struct set_active_tag *sat = (struct set_active_tag *)psv;
 	lprintf( WIDE("Mark %d updated"), sat->type );
@@ -316,7 +316,7 @@ void MarkAllInWorldUpdated( PSERVICE_ROUTE pidClient, INDEX iWorld )
 	{
 		if( IsSameMsgDest( &client->pid, pidClient ) )
 		{
-			_32 old_count = client->worlds.num;
+			uint32_t old_count = client->worlds.num;
 			ExpandBitset( &client->worlds, iWorld );
 			SETFLAG( client->worlds.created, iWorld );
 			ExpandClientTracking( client );
@@ -328,16 +328,16 @@ void MarkAllInWorldUpdated( PSERVICE_ROUTE pidClient, INDEX iWorld )
 			params.world = client->world_trackers + iWorld;
 
 			params.type = UpdateName;
-			ForEachSetMember( NAME, world->names, MarkUpdated, (PTRSZVAL)&params );
+			ForEachSetMember( NAME, world->names, MarkUpdated, (uintptr_t)&params );
 			params.type = UpdateWall;
 			lprintf( WIDE("Mark the walls updated?") );
-			ForEachSetMember( WALL, world->walls, MarkUpdated, (PTRSZVAL)&params );
+			ForEachSetMember( WALL, world->walls, MarkUpdated, (uintptr_t)&params );
 			params.type = UpdateLine;
-			ForEachSetMember( FLATLAND_MYLINESEG, world->lines, MarkUpdated, (PTRSZVAL)&params );
+			ForEachSetMember( FLATLAND_MYLINESEG, world->lines, MarkUpdated, (uintptr_t)&params );
 			params.type = UpdateTexture;
-			ForEachSetMember( FLATLAND_TEXTURE, world->textures, MarkUpdated, (PTRSZVAL)&params );
+			ForEachSetMember( FLATLAND_TEXTURE, world->textures, MarkUpdated, (uintptr_t)&params );
 			params.type = UpdateSector;
-			ForEachSetMember( SECTOR, world->sectors, MarkUpdated, (PTRSZVAL)&params );
+			ForEachSetMember( SECTOR, world->sectors, MarkUpdated, (uintptr_t)&params );
 
 			SETFLAG( client->worlds.updated, iWorld );
 		}
@@ -373,7 +373,7 @@ void ClientCreateWorld_init( PSERVICE_ROUTE iClient, INDEX iWorld )
 	{
 		if( IsSameMsgDest( &client->pid, iClient ) )
 		{
-			_32 old_count = client->worlds.num;
+			uint32_t old_count = client->worlds.num;
 			ExpandBitset( &client->worlds, iWorld );
 			SETFLAG( client->worlds.created, iWorld );
 			SETFLAG( client->worlds.updated, iWorld );
@@ -598,10 +598,10 @@ void ClientCreateSector( PWORLDSCAPE_CLIENT client, INDEX iWorld, INDEX iSector,
 }
 
 
-PTRSZVAL CPROC DeleteDeletions( void *pointer, PTRSZVAL psv )
+uintptr_t CPROC DeleteDeletions( void *pointer, uintptr_t psv )
 {
 	PWORLD world = (PWORLD)pointer;
-	_32 n;
+	uint32_t n;
 	EnterCriticalSec( &world->csDeletions );
 
 	for( n = 0; n < world->deletions.lines.num; n++ )
@@ -718,8 +718,8 @@ void UpdateClients( void )
 
 
 
-int CPROC ServerCreateWorld(  PSERVICE_ROUTE route, _32 *params, size_t param_length
-							, _32 *result, size_t *result_length
+int CPROC ServerCreateWorld(  PSERVICE_ROUTE route, uint32_t *params, size_t param_length
+							, uint32_t *result, size_t *result_length
 							)
 {
 	extern INDEX ServerSideOpenWorld( PSERVICE_ROUTE iClient, CTEXTSTR name );
@@ -733,16 +733,16 @@ int CPROC ServerCreateWorld(  PSERVICE_ROUTE route, _32 *params, size_t param_le
 	return 1;
 }
 
-int CPROC ServerSaveWorld( PSERVICE_ROUTE route, _32 *params, size_t param_length
-							, _32 *result, size_t *result_length
+int CPROC ServerSaveWorld( PSERVICE_ROUTE route, uint32_t *params, size_t param_length
+							, uint32_t *result, size_t *result_length
 							)
 {
 	result[0] = SaveWorld( ((INDEX*)params)[0] );
 	return 1;
 }
 
-int CPROC ServerLoadWorld( PSERVICE_ROUTE route, _32 *params, size_t param_length
-							, _32 *result, size_t *result_length
+int CPROC ServerLoadWorld( PSERVICE_ROUTE route, uint32_t *params, size_t param_length
+							, uint32_t *result, size_t *result_length
 							)
 {
 	result[0] = LoadWorld( ((INDEX*)params)[0] );
@@ -752,16 +752,16 @@ int CPROC ServerLoadWorld( PSERVICE_ROUTE route, _32 *params, size_t param_lengt
 
 /* create basic world */
 
-int CPROC ServerDestroyWorld( PSERVICE_ROUTE route, _32 *params, size_t param_length
-							, _32 *result, size_t *result_length
+int CPROC ServerDestroyWorld( PSERVICE_ROUTE route, uint32_t *params, size_t param_length
+							, uint32_t *result, size_t *result_length
 							)
 {
 	(*result_length) = INVALID_INDEX;
 	return 1;
 }
 
-int CPROC ServerResetWorld( PSERVICE_ROUTE route, _32 *params, size_t param_length
-							, _32 *result, size_t *result_length
+int CPROC ServerResetWorld( PSERVICE_ROUTE route, uint32_t *params, size_t param_length
+							, uint32_t *result, size_t *result_length
 							)
 {
 	ResetWorld( ((INDEX*)params)[0] );
@@ -776,7 +776,7 @@ void MarkWorldUpdated( INDEX iWorld )
 	PWORLDSCAPE_CLIENT client;
 	LIST_FORALL( l.clients, iClient, PWORLDSCAPE_CLIENT, client )
 	{
-		_32 old_count = client->worlds.num;
+		uint32_t old_count = client->worlds.num;
 		ExpandBitset( &client->worlds, iWorld );
 		/* only update those worlds that this client has 'created' */
 		if( old_count < client->worlds.num )
@@ -803,22 +803,22 @@ void MarkWorldUpdated( INDEX iWorld )
 	}
 }
 
-int CPROC ServerFindSectorAroundPoint( PSERVICE_ROUTE route, _32 *params, size_t param_length
-							, _32 *result, size_t *result_length
+int CPROC ServerFindSectorAroundPoint( PSERVICE_ROUTE route, uint32_t *params, size_t param_length
+							, uint32_t *result, size_t *result_length
 												 )
 {
 
    return 1;
 }
 
-int CPROC ServerCreateSquareSector( PSERVICE_ROUTE route, _32 *params, size_t param_length
-							, _32 *result, size_t *result_length
+int CPROC ServerCreateSquareSector( PSERVICE_ROUTE route, uint32_t *params, size_t param_length
+							, uint32_t *result, size_t *result_length
 							)
 {
 	INDEX iWorld = params[0];
 	INDEX iSector = CreateSquareSector( iWorld
 					, (PC_POINT)params+1
-					, *(RCOORD*)( params + (3*sizeof(RCOORD)/sizeof( _32)) + 1)
+					, *(RCOORD*)( params + (3*sizeof(RCOORD)/sizeof( uint32_t)) + 1)
 					);
 	((INDEX*)result)[0] = iSector;
 
@@ -853,8 +853,8 @@ int CPROC ServerCreateSquareSector( PSERVICE_ROUTE route, _32 *params, size_t pa
 	return TRUE;
 }
 
-int CPROC ServerAddConnectedSector( PSERVICE_ROUTE route, _32 *params, size_t param_length
-							, _32 *result, size_t *result_length
+int CPROC ServerAddConnectedSector( PSERVICE_ROUTE route, uint32_t *params, size_t param_length
+							, uint32_t *result, size_t *result_length
 											 )
 {
 	INDEX iWall;
@@ -868,8 +868,8 @@ int CPROC ServerAddConnectedSector( PSERVICE_ROUTE route, _32 *params, size_t pa
 	return 0;
 }
 
-int CPROC ServerMoveWalls( PSERVICE_ROUTE route, _32 *params, size_t param_length
-							, _32 *result, size_t *result_length
+int CPROC ServerMoveWalls( PSERVICE_ROUTE route, uint32_t *params, size_t param_length
+							, uint32_t *result, size_t *result_length
 								 )
 {
 	int result_code;
@@ -885,15 +885,15 @@ int CPROC ServerMoveWalls( PSERVICE_ROUTE route, _32 *params, size_t param_lengt
 	return result_code;
 }
 
-int CPROC ReceiveLineChanged( PSERVICE_ROUTE route, _32 *params, size_t param_length
-							, _32 *result, size_t *result_length
+int CPROC ReceiveLineChanged( PSERVICE_ROUTE route, uint32_t *params, size_t param_length
+							, uint32_t *result, size_t *result_length
 										  )
 {
 	INDEX iWorld = ((INDEX*)params)[0];
 	INDEX iWall = ((INDEX*)params)[1];
 	INDEX iLine = ((INDEX*)params)[2];
-	_32 no_update = ((_32*)(((INDEX*)params)+3))[0];
-	_32 lock_mating_slopes = ((_32*)(((INDEX*)params)+3))[1];
+	uint32_t no_update = ((uint32_t*)(((INDEX*)params)+3))[0];
+	uint32_t lock_mating_slopes = ((uint32_t*)(((INDEX*)params)+3))[1];
 	PLINESEG pls_new = (PLINESEG)(params + 2 + 3 * (sizeof(INDEX)/sizeof(params[0])) );
 
 	PWORLD world = GetSetMember( WORLD, &g.worlds, iWorld );
@@ -909,8 +909,8 @@ int CPROC ReceiveLineChanged( PSERVICE_ROUTE route, _32 *params, size_t param_le
 	return 1;
 }
 
-int CPROC ServerHandleUpdateLine( PSERVICE_ROUTE route, _32 *params, size_t param_length
-							, _32 *result, size_t *result_length
+int CPROC ServerHandleUpdateLine( PSERVICE_ROUTE route, uint32_t *params, size_t param_length
+							, uint32_t *result, size_t *result_length
 										  )
 {
 	// copy updated line information into the specified line...
@@ -928,16 +928,16 @@ int CPROC ServerHandleUpdateLine( PSERVICE_ROUTE route, _32 *params, size_t para
    return 1;
 }
 
-int CPROC ServerUpdateMatingLines( PSERVICE_ROUTE route, _32 *params, size_t param_length
-							, _32 *result, size_t *result_length
+int CPROC ServerUpdateMatingLines( PSERVICE_ROUTE route, uint32_t *params, size_t param_length
+							, uint32_t *result, size_t *result_length
 											)
 {
    UpdateMatingLines( params[0], params[1], params[2], params[3] );
    return 1;
 }
 
-int CPROC HandleLineChanged( PSERVICE_ROUTE route, _32 *params, size_t param_length
-							, _32 *result, size_t *result_length
+int CPROC HandleLineChanged( PSERVICE_ROUTE route, uint32_t *params, size_t param_length
+							, uint32_t *result, size_t *result_length
 											)
 {
 	INDEX iWorld = ((INDEX*)params)[0];
@@ -972,24 +972,24 @@ int CPROC HandleLineChanged( PSERVICE_ROUTE route, _32 *params, size_t param_len
 	return 1;
 }
 
-int CPROC ServerClearUndo( PSERVICE_ROUTE route, _32 *params, size_t param_length
-							, _32 *result, size_t *result_length
+int CPROC ServerClearUndo( PSERVICE_ROUTE route, uint32_t *params, size_t param_length
+							, uint32_t *result, size_t *result_length
 							)
 {
 	(*result_length) = INVALID_INDEX;
 	return 1;
 }
 
-int CPROC ServerDoUndo( PSERVICE_ROUTE route, _32 *params, size_t param_length
-							, _32 *result, size_t *result_length
+int CPROC ServerDoUndo( PSERVICE_ROUTE route, uint32_t *params, size_t param_length
+							, uint32_t *result, size_t *result_length
 							)
 {
 	(*result_length) = INVALID_INDEX;
 	return 1;
 }
 
-int CPROC ServerAddUndo( PSERVICE_ROUTE route, _32 *params, size_t param_length
-							, _32 *result, size_t *result_length
+int CPROC ServerAddUndo( PSERVICE_ROUTE route, uint32_t *params, size_t param_length
+							, uint32_t *result, size_t *result_length
 							)
 {
 	(*result_length) = INVALID_INDEX;
@@ -997,28 +997,28 @@ int CPROC ServerAddUndo( PSERVICE_ROUTE route, _32 *params, size_t param_length
 }
 
 
-int CPROC ServerEndUndo( PSERVICE_ROUTE route, _32 *params, size_t param_length
-							, _32 *result, size_t *result_length
+int CPROC ServerEndUndo( PSERVICE_ROUTE route, uint32_t *params, size_t param_length
+							, uint32_t *result, size_t *result_length
 							)
 {
 	(*result_length) = INVALID_INDEX;
 	return 1;
 }
 
-int CPROC ServerMoveSectors( PSERVICE_ROUTE route, _32 *params, size_t param_length
-							, _32 *result, size_t *result_length
+int CPROC ServerMoveSectors( PSERVICE_ROUTE route, uint32_t *params, size_t param_length
+							, uint32_t *result, size_t *result_length
 							)
 {
 	int result_code = MoveSectors( ((INDEX*)params)[0]
 		, ( param_length - ( sizeof( INDEX ) + sizeof( _POINT ) ) ) / sizeof(INDEX)
-		, (INDEX*)(params + (sizeof(INDEX)/sizeof(_32)) + ( sizeof( _POINT ) / sizeof( params[0] ) ))
-		, (P_POINT)( params + (sizeof(INDEX)/sizeof(_32)) ) );
+		, (INDEX*)(params + (sizeof(INDEX)/sizeof(uint32_t)) + ( sizeof( _POINT ) / sizeof( params[0] ) ))
+		, (P_POINT)( params + (sizeof(INDEX)/sizeof(uint32_t)) ) );
 	UpdateClients();
 	return result_code;
 }
 
-int CPROC ClientConnect( PSERVICE_ROUTE route, _32 *params, size_t param_length
-							, _32 *result, size_t *result_length
+int CPROC ClientConnect( PSERVICE_ROUTE route, uint32_t *params, size_t param_length
+							, uint32_t *result, size_t *result_length
 							)
 {
 	PWORLDSCAPE_CLIENT client = New( WORLDSCAPE_CLIENT );
@@ -1047,7 +1047,7 @@ static void WorldServerListWorlds( PWORLDSCAPE_CLIENT client, PWorldServerMessag
 
 
 
-PTRSZVAL flatland_server_web_socket_opened( PCLIENT pc, PTRSZVAL psv )
+uintptr_t flatland_server_web_socket_opened( PCLIENT pc, uintptr_t psv )
 {
 	PWORLDSCAPE_CLIENT client = New( WORLDSCAPE_CLIENT );
 	client->tracker_count = 0;
@@ -1055,10 +1055,10 @@ PTRSZVAL flatland_server_web_socket_opened( PCLIENT pc, PTRSZVAL psv )
 	client->worlds.num = 0;
 	client->pc = pc;
 	AddLink( &l.clients, client );
-	return (PTRSZVAL)client;
+	return (uintptr_t)client;
 }
 
-void flatland_server_web_socket_closed( PCLIENT pc, PTRSZVAL psv )
+void flatland_server_web_socket_closed( PCLIENT pc, uintptr_t psv )
 {
 	PWORLDSCAPE_CLIENT client = (PWORLDSCAPE_CLIENT)psv;
 
@@ -1066,7 +1066,7 @@ void flatland_server_web_socket_closed( PCLIENT pc, PTRSZVAL psv )
    Release( client );
 }
 
-void flatland_server_web_socket_error( PCLIENT pc, PTRSZVAL psv, int error )
+void flatland_server_web_socket_error( PCLIENT pc, uintptr_t psv, int error )
 {
 	//PWORLDSCAPE_CLIENT client = (PWORLDSCAPE_CLIENT)psv;
    // ya...I care?
@@ -1074,7 +1074,7 @@ void flatland_server_web_socket_error( PCLIENT pc, PTRSZVAL psv, int error )
 
 #define ServerFunctionResult void
 #define ServerFunctionArgs (PWORLDSCAPE_CLIENT,PWorldServerMessage)
-void flatland_server_web_socket_event( PCLIENT pc, PTRSZVAL psv, POINTER buffer, int msglen )
+void flatland_server_web_socket_event( PCLIENT pc, uintptr_t psv, POINTER buffer, int msglen )
 {
 	PWORLDSCAPE_CLIENT client = (PWORLDSCAPE_CLIENT)psv;
 	WorldServerMessage message;

@@ -190,7 +190,7 @@ void ClearPageList( PCanvasData canvas )
 
 //-------------------------------------------------------------------------
 
-static PTRSZVAL CPROC PageAnimationThread( PTHREAD thread )
+static uintptr_t CPROC PageAnimationThread( PTHREAD thread )
 {
 	PCanvasData canvas = (PCanvasData)GetThreadParam( thread );
 	while( 1 )
@@ -199,7 +199,7 @@ static PTRSZVAL CPROC PageAnimationThread( PTHREAD thread )
 		{
 			if( canvas->flags.bMovingPages )
 			{
-				_32 now = timeGetTime();
+				uint32_t now = timeGetTime();
 				int totalx  = ( now - canvas->page_animation.start_tick ) * canvas->location.width / canvas->page_animation.target_delta;
 				int totaly  = ( now - canvas->page_animation.start_tick ) * canvas->location.height / canvas->page_animation.target_delta;
 				if( total > canvas->location.widdth )
@@ -324,7 +324,7 @@ void UpdateButtonExx( PMENU_BUTTON button, int bEndingEdit DBG_PASS )
 	if( button->flags.bCustom )
 	{
 		TEXTCHAR rootname[256];
-		void (CPROC*f)(PTRSZVAL);
+		void (CPROC*f)(uintptr_t);
 		if( bShow )
 		{
 			if( g.flags.bInitFinished )
@@ -347,7 +347,7 @@ void UpdateButtonExx( PMENU_BUTTON button, int bEndingEdit DBG_PASS )
 				  , sizeof( rootname )
 				  , TASK_PREFIX WIDE( "/button/%s" )
 				  , button->pTypeName );
-		f = GetRegisteredProcedure2( rootname, void, WIDE("show_button"), (PTRSZVAL) );
+		f = GetRegisteredProcedure2( rootname, void, WIDE("show_button"), (uintptr_t) );
 		if( f )
 			f( button->psvUser );
 		// button is a key
@@ -469,7 +469,7 @@ void RestoreCurrentPage( PSI_CONTROL pc_canvas )
 //-------------------------------------------------------------------------
 
 /* this is function has a duplicately named function in main.c */
-static void CPROC ChooseImage( PTRSZVAL psv, PSI_CONTROL button )
+static void CPROC ChooseImage( uintptr_t psv, PSI_CONTROL button )
 {
 	TEXTCHAR buffer[256];
 	// was attempting to make a general select here
@@ -488,7 +488,7 @@ struct add_theme_params
 	PSI_CONTROL frame;
 };
 
-static void CPROC AddPageTheme( PTRSZVAL psv, PSI_CONTROL button )
+static void CPROC AddPageTheme( uintptr_t psv, PSI_CONTROL button )
 {
 	struct add_theme_params *params = (struct add_theme_params*)psv;
 	if( g.max_themes < 2 )
@@ -513,7 +513,7 @@ static void CPROC AddPageTheme( PTRSZVAL psv, PSI_CONTROL button )
 
 //-------------------------------------------------------------------------
 /* this is function has a duplicately named function in main.c */
-static void CPROC ChooseAnimation( PTRSZVAL psv, PSI_CONTROL button )
+static void CPROC ChooseAnimation( uintptr_t psv, PSI_CONTROL button )
 {
 	TEXTCHAR buffer[256];
 	// was attempting to make a general select here
@@ -565,7 +565,7 @@ void HidePageExx( PCanvasData canvas DBG_PASS )
 
 //-------------------------------------------------------------------------
 
-void ChangePageEx( PPAGE_DATA page, enum page_transition direction, _32 how_long DBG_PASS )
+void ChangePageEx( PPAGE_DATA page, enum page_transition direction, uint32_t how_long DBG_PASS )
 {
 	PCanvasData canvas = page->canvas;
 	// page becomes the new current page... the current page
@@ -654,7 +654,7 @@ void ShellReturnCurrentPage( PCanvasData canvas )
 	}
 }
 
-void SetCurrentPageID( PSI_CONTROL pc_canvas, _32 ID, enum page_transition direction, _32 time )
+void SetCurrentPageID( PSI_CONTROL pc_canvas, uint32_t ID, enum page_transition direction, uint32_t time )
 {
 	PCanvasData canvas = GetCanvas( pc_canvas );
 	INDEX idx;
@@ -702,7 +702,7 @@ void DestroyPage( PCanvasData canvas, PPAGE_DATA page )
 	Release( page );
 }
 
-void DestroyPageID( PSI_CONTROL pc_canvas, _32 ID ) // MNU_DESTROY_PAGE ID (minus base)
+void DestroyPageID( PSI_CONTROL pc_canvas, uint32_t ID ) // MNU_DESTROY_PAGE ID (minus base)
 {
 	PCanvasData canvas = GetCanvas( pc_canvas );
 	INDEX idx;
@@ -737,7 +737,7 @@ void DestroyPageID( PSI_CONTROL pc_canvas, _32 ID ) // MNU_DESTROY_PAGE ID (minu
 	}
 }
 
-void UnDestroyPageID( PSI_CONTROL pc_canvas, _32 ID ) // MNU_DESTROY_PAGE ID (minus base)
+void UnDestroyPageID( PSI_CONTROL pc_canvas, uint32_t ID ) // MNU_DESTROY_PAGE ID (minus base)
 {
 	PCanvasData canvas = GetCanvas( pc_canvas );
 	INDEX idx;
@@ -757,7 +757,7 @@ void UnDestroyPageID( PSI_CONTROL pc_canvas, _32 ID ) // MNU_DESTROY_PAGE ID (mi
 }
 
 // used to be a different operation...
-int ShellCallSetCurrentPage( PCanvasData canvas, CTEXTSTR name, enum page_transition direction, _32 time )
+int ShellCallSetCurrentPage( PCanvasData canvas, CTEXTSTR name, enum page_transition direction, uint32_t time )
 {
 	if( canvas )
 	{
@@ -766,7 +766,7 @@ int ShellCallSetCurrentPage( PCanvasData canvas, CTEXTSTR name, enum page_transi
 	return 0;
 }
 
-int ShellSetCurrentPage( PCanvasData canvas, CTEXTSTR name, enum page_transition direction, _32 time )
+int ShellSetCurrentPage( PCanvasData canvas, CTEXTSTR name, enum page_transition direction, uint32_t time )
 {
 	//ValidatedControlData( PCanvasData, menu_surface.TypeID, canvas, pc_canvas );
 	//INDEX idx;
@@ -808,8 +808,8 @@ void AdjustControlPositions( PPAGE_DATA page )
 	PLIST *controls = GetPageControlList( page, canvas->flags.wide_aspect );
 	LIST_FORALL( controls[0], idx, PMENU_BUTTON, control )
 	{
-		_32 w, h;
-		S_32 x, y;
+		uint32_t w, h;
+		int32_t x, y;
 		pc = QueryGetControl( control );
 		GetFrameSize( pc, &w, &h );
 		GetFramePosition( pc, &x, &y );
@@ -829,7 +829,7 @@ void AdjustControlPositions( PPAGE_DATA page )
 
 //---------------------------------------------------------------------------
 
-static void CPROC ListBoxThemeSelectionChanged( PTRSZVAL psv, PSI_CONTROL list, PLISTITEM pli )
+static void CPROC ListBoxThemeSelectionChanged( uintptr_t psv, PSI_CONTROL list, PLISTITEM pli )
 {
 	TEXTCHAR prior_name[256];
 	int n = (int)GetItemData( pli );
@@ -860,7 +860,7 @@ static void CPROC ListBoxThemeSelectionChanged( PTRSZVAL psv, PSI_CONTROL list, 
 
 void EditCurrentPageProperties( PCanvasData canvas, PSI_CONTROL parent, PPAGE_DATA page)
 {
-	//PTRSZVAL CPROC ConfigurePaper( PTRSZVAL psv, PMENU_BUTTON button )
+	//uintptr_t CPROC ConfigurePaper( uintptr_t psv, PMENU_BUTTON button )
 //	if(0)
 {
 	// psv may be passed as NULL, and therefore there was no task assicated with this
@@ -868,7 +868,7 @@ void EditCurrentPageProperties( PCanvasData canvas, PSI_CONTROL parent, PPAGE_DA
 	// basically this should call (psv=CreatePaper(button)) to create a blank button, and then launch
 	// the config, and return the button created.
 	//PMENU_BUTTON button;
-	//PTRSZVAL psv;
+	//uintptr_t psv;
 	PCOMMON frame = LoadXMLFrameOver(  parent, WIDE("InterShellPageProperty.isFrame") );
 	//PPAPER_INFO issue = button->paper;
 	//int created = 0;
@@ -885,10 +885,10 @@ void EditCurrentPageProperties( PCanvasData canvas, PSI_CONTROL parent, PPAGE_DA
 			EnableColorWellPick( MakeColorWell( frame, 130, 97, 18, 18, CLR_BACKGROUND, page->background_color ), TRUE );
 
 			MakeEditControl( frame, 130, 120, 240, 18, TXT_IMAGE_NAME, page->background, 0 );
-			button = MakeButton( frame, 89, 120, 36, 18, BTN_PICKFILE, WIDE("..."), 0, ChooseImage, (PTRSZVAL)frame );
+			button = MakeButton( frame, 89, 120, 36, 18, BTN_PICKFILE, WIDE("..."), 0, ChooseImage, (uintptr_t)frame );
 
 			MakeEditControl( frame, 130, 143, 240, 18, TXT_ANIMATION_NAME, page->background, 0 );
-			button = MakeButton( frame, 89, 143, 36, 18, BTN_PICKANIMFILE, WIDE("..."), 0, ChooseAnimation, (PTRSZVAL)frame );
+			button = MakeButton( frame, 89, 143, 36, 18, BTN_PICKANIMFILE, WIDE("..."), 0, ChooseAnimation, (uintptr_t)frame );
 
 			SaveXMLFrame( frame, WIDE( "InterShellPageProperty.isFrame" ) );
 					//SetCommonUserData( button, l.file_text_field );
@@ -918,12 +918,12 @@ void EditCurrentPageProperties( PCanvasData canvas, PSI_CONTROL parent, PPAGE_DA
 		SetCommonButtons( frame, &done, &okay );
 		EnableColorWellPick( GetControl( frame, CLR_BACKGROUND ), TRUE );
 		SetColorWell( GetControl( frame, CLR_BACKGROUND ), page->background_color );
-		SetButtonPushMethod( GetControl( frame, BTN_PICKFILE ), ChooseImage, (PTRSZVAL)frame );
+		SetButtonPushMethod( GetControl( frame, BTN_PICKFILE ), ChooseImage, (uintptr_t)frame );
 		SetControlText( GetControl( frame, TXT_IMAGE_NAME ), page->background );
 
-		SetButtonPushMethod( GetControl( frame, BTN_PICKANIMFILE ), ChooseAnimation, (PTRSZVAL)frame );
+		SetButtonPushMethod( GetControl( frame, BTN_PICKANIMFILE ), ChooseAnimation, (uintptr_t)frame );
 		SetControlText( GetControl( frame, TXT_ANIMATION_NAME ), page->background );
-		SetButtonPushMethod( GetControl( frame, BTN_ADD_PAGE_THEME ), AddPageTheme, (PTRSZVAL)&params );
+		SetButtonPushMethod( GetControl( frame, BTN_ADD_PAGE_THEME ), AddPageTheme, (uintptr_t)&params );
 		{
 			TEXTCHAR buf[32];
 			int n;
@@ -935,7 +935,7 @@ void EditCurrentPageProperties( PCanvasData canvas, PSI_CONTROL parent, PPAGE_DA
 					snprintf( buf, 32, WIDE("Theme %d"), n );
 				SetItemData( AddListItem( GetControl( frame, LISTBOX_PAGE_THEME ), buf ), n );
 			}
-			SetSelChangeHandler( GetControl( frame, LISTBOX_PAGE_THEME ), ListBoxThemeSelectionChanged, (PTRSZVAL)frame );
+			SetSelChangeHandler( GetControl( frame, LISTBOX_PAGE_THEME ), ListBoxThemeSelectionChanged, (uintptr_t)frame );
 		}
 		{
 			TEXTCHAR buffer[25];
@@ -1100,7 +1100,7 @@ void RenamePage( PPAGE_DATA page )
 // PAGE Change Control
 //---------------------------------------------------------------------------
 
-static PTRSZVAL OnCreateMenuButton( PAGE_CHANGER_NAME )( PMENU_BUTTON button )
+static uintptr_t OnCreateMenuButton( PAGE_CHANGER_NAME )( PMENU_BUTTON button )
 {
 	// add layout, and set title on button...
 	// well...
@@ -1108,13 +1108,13 @@ static PTRSZVAL OnCreateMenuButton( PAGE_CHANGER_NAME )( PMENU_BUTTON button )
 	InterShell_SetButtonStyle( button, WIDE( "bicolor square" ) );
 	InterShell_SetButtonColors( button, BASE_COLOR_WHITE,BASE_COLOR_GREEN,BASE_COLOR_BLACK, 0 );
 	{
-		return (PTRSZVAL)button;//page_changer;
+		return (uintptr_t)button;//page_changer;
 	}
 	return 0;
 }
 
-static void OnDestroyControl( PAGE_CHANGER_NAME )( PTRSZVAL psv )
-//void CPROC DestroyPageChanger( PTRSZVAL psv, PMENU_BUTTON button )
+static void OnDestroyControl( PAGE_CHANGER_NAME )( uintptr_t psv )
+//void CPROC DestroyPageChanger( uintptr_t psv, PMENU_BUTTON button )
 {
 	// release any private data associated with this button...
 	//Release( (PPAGE_DATA)psv );

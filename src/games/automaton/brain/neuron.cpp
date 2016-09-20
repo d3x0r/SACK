@@ -209,7 +209,7 @@ void NEURON::set( NATIVE base, NATIVE range, NATIVE threshold )
 
 //----------------------------------------------------------------------
 
-NATIVE NEURON::Collect( _32 cycle )
+NATIVE NEURON::Collect( uint32_t cycle )
 {
 	int bAdd = FALSE;
 	if( ( nCycle != cycle ) && ( nType != NT_FREE ) ) // from brain...
@@ -311,7 +311,7 @@ void NEURON::SaveBegin( PODBC odbc )
 INDEX NEURON::Save( PODBC odbc, INDEX iParent )
 {
 	NEURON nout;
-	_32 dwW;
+	uint32_t dwW;
 	int nSaveType;
 	if( !iNeuron )
 	{

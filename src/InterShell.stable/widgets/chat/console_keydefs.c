@@ -30,7 +30,7 @@ static void CPROC _Key_KeystrokePaste( PCONSOLE_INFO pmdp )
 //int CommandKeyUp( void * list, PUSER_INPUT_BUFFER pci );
 //int HandleKeyDown(  void * list, PUSER_INPUT_BUFFER pci );
 //int KeyHome( void * list, PUSER_INPUT_BUFFER pci );
-//int KeyEndCmd( PTRSZVAL list, PUSER_INPUT_BUFFER pci );
+//int KeyEndCmd( uintptr_t list, PUSER_INPUT_BUFFER pci );
 
 DECLTEXT( KeyStroke, WIDE("\x7f") ); // DECLTEXT implies 'static'
 
@@ -1049,7 +1049,7 @@ int KeyLeft( PCHAT_LIST list, PUSER_INPUT_BUFFER pci )
 
 //----------------------------------------------------------------------------
 
-int KeyShift( P_32 pKeyState, LOGICAL bDown )
+int KeyShift( uint32_t* pKeyState, LOGICAL bDown )
 {
    if( bDown )
    {
@@ -1064,7 +1064,7 @@ int KeyShift( P_32 pKeyState, LOGICAL bDown )
 
 //----------------------------------------------------------------------------
 
-int KeyControl( P_32 pKeyState, LOGICAL bDown )
+int KeyControl( uint32_t* pKeyState, LOGICAL bDown )
 {
    if( bDown )
    {
@@ -1079,7 +1079,7 @@ int KeyControl( P_32 pKeyState, LOGICAL bDown )
 
 //----------------------------------------------------------------------------
 
-int KeyAlt( P_32 pKeyState, LOGICAL bDown )
+int KeyAlt( uint32_t* pKeyState, LOGICAL bDown )
 {
    if( bDown )
    {
@@ -1451,17 +1451,17 @@ void Widget_WinLogicDoStroke( PCHAT_LIST list, PTEXT stroke )
 typedef struct penging_rectangle_tag
 {
 	struct {
-		_32 bHasContent : 1;
-		_32 bTmpRect : 1;
+		uint32_t bHasContent : 1;
+		uint32_t bTmpRect : 1;
 	} flags;
    CRITICALSECTION cs;
-	S_32 x, y;
-   _32 width, height;
+	int32_t x, y;
+   uint32_t width, height;
 } PENDING_RECT, *PPENDING_RECT;
 
 void Widget_KeyPressHandler( PCHAT_LIST list
-						  , _8 key_index
-						  , _8 mod
+						  , uint8_t key_index
+						  , uint8_t mod
 						  , PTEXT characters
 						  )
 {

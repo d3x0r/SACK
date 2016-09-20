@@ -10,7 +10,7 @@ typedef struct context_tag
    // name of the file we're building..
 	TEXTCHAR *name;
 	//PVARTEXT vt;
-	//_32 nChildren;
+	//uint32_t nChildren;
 	//PCOMMON pc; // current control...
 
 	genxWriter w;

@@ -115,13 +115,13 @@ struct config_element_tag
 		// this structure to the minimal number of bits.
 		BIT_FIELD filler:29;
 	} flags;
-	_32 element_count; // used with vector fields.
+	uint32_t element_count; // used with vector fields.
 	union {
 		PTEXT pText;
 		struct {
 				LOGICAL bTrue;
 		} truefalse;
-		_64 integer_number;
+		uint64_t integer_number;
 		double float_number;
 		TEXTSTR pWord; // also pFilename, pPath, pURL
 		struct {
@@ -184,11 +184,11 @@ struct config_file_tag
 	// added, very importatn first in first process
 	PLIST filters;
 	PLIST filter_data; // a scratch pointer addrss passd to each filter ... (per config handler)
-	//PTRSZVAL (CPROC *filter)(PTRSZVAL,int *,char**);
+	//uintptr_t (CPROC *filter)(uintptr_t,int *,char**);
 
-	PTRSZVAL psvUser;
-	PTRSZVAL (CPROC *EndProcess)( PTRSZVAL );
-	PTRSZVAL (CPROC *Unhandled)( PTRSZVAL, CTEXTSTR );
+	uintptr_t psvUser;
+	uintptr_t (CPROC *EndProcess)( uintptr_t );
+	uintptr_t (CPROC *Unhandled)( uintptr_t, CTEXTSTR );
 
 	PCONFIG_ELEMENTSET elements;
 	PCONFIG_TESTSET test_elements;
@@ -208,9 +208,9 @@ typedef struct configuation_state {
 	LOGICAL recovered;
 	CTEXTSTR name;
 	CONFIG_TEST ConfigTestRoot;
-	PTRSZVAL psvUser;
-	PTRSZVAL (CPROC *EndProcess)( PTRSZVAL );
-	PTRSZVAL (CPROC *Unhandled)( PTRSZVAL, CTEXTSTR );
+	uintptr_t psvUser;
+	uintptr_t (CPROC *EndProcess)( uintptr_t );
+	uintptr_t (CPROC *Unhandled)( uintptr_t, CTEXTSTR );
 } CONFIG_STATE;
 
 struct configscript_global {
@@ -472,7 +472,7 @@ static PTEXT CPROC FilterLines( POINTER *scratch, PTEXT buffer )
 		if( end )
 		{
 			// new character, trim at -1 from here...
-			PTEXT result = SegCreate( (S_32)total_length );
+			PTEXT result = SegCreate( (int32_t)total_length );
 			size_t ofs;
 			buffer = data->linebuf;
 			thisskip = data->skip;
@@ -875,17 +875,17 @@ static CTEXTSTR charset1 = WIDE("0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJK
 static CTEXTSTR charset2 = WIDE("0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXY.-Z+");
 typedef union bintobase{
 	struct {
-		_8 bytes[3];
+		uint8_t bytes[3];
 	} bin;
 
 	// these need to be unsigned.
 	// the warning is 'nonstandard extension used : bit field types other than int'
 	// but 'int' will NOT work, because it's signed.
 	struct {
-		_32 data1 : 6;
-		_32 data2 : 6;
-		_32 data3 : 6;
-		_32 data4 : 6;
+		uint32_t data1 : 6;
+		uint32_t data2 : 6;
+		uint32_t data3 : 6;
+		uint32_t data4 : 6;
 	} base;
 } BINBASE;
 
@@ -895,7 +895,7 @@ void EncodeBinaryConfig( TEXTSTR *encode, POINTER data, size_t length )
 	CTEXTSTR charset = charset2;
 	unsigned char *p;
 	TEXTCHAR *q;
-	_32 l;
+	uint32_t l;
 	int bExtraBytes;
 	q = (TEXTCHAR*)((*encode) = NewArray( TEXTCHAR, ( ( ( 1 + (length + 2) / 3 ) * 4 ) + 3 ) * 2 ));
 	(q++)[0]= '[';
@@ -1050,13 +1050,13 @@ int DoDecodeBinary( PTEXT *start, POINTER *binary_buffer, size_t *buflen )
 		// HANLDE_BURST_EXPLOIT converts .0, .1, .2 into .-+ characters... and sets 'ch'
 		// to the character to find.
 		HANDLE_BURST_PECULIARITY_WITH_DECIMALS_AND_NUMBER_COLLATION();
-		convert.base.data1 = reverse[ch];//(x=StrChr( charset, ch ))?(_32)(x-charset):0;
+		convert.base.data1 = reverse[ch];//(x=StrChr( charset, ch ))?(uint32_t)(x-charset):0;
 		HANDLE_BURST_PECULIARITY_WITH_DECIMALS_AND_NUMBER_COLLATION();
-		convert.base.data2 = reverse[ch];//(x=StrChr( charset, ch ))?(_32)(x-charset):0;
+		convert.base.data2 = reverse[ch];//(x=StrChr( charset, ch ))?(uint32_t)(x-charset):0;
 		HANDLE_BURST_PECULIARITY_WITH_DECIMALS_AND_NUMBER_COLLATION();
-		convert.base.data3 = reverse[ch];//(x=StrChr( charset, ch ))?(_32)(x-charset):0;
+		convert.base.data3 = reverse[ch];//(x=StrChr( charset, ch ))?(uint32_t)(x-charset):0;
 		HANDLE_BURST_PECULIARITY_WITH_DECIMALS_AND_NUMBER_COLLATION();
-		convert.base.data4 = reverse[ch];//(x=StrChr( charset, ch ))?(_32)(x-charset):0;
+		convert.base.data4 = reverse[ch];//(x=StrChr( charset, ch ))?(uint32_t)(x-charset):0;
 		q = (char*)buflen;
 		q[0] = convert.bin.bytes[0];
 		q[1] = convert.bin.bytes[1];
@@ -1068,13 +1068,13 @@ int DoDecodeBinary( PTEXT *start, POINTER *binary_buffer, size_t *buflen )
 		while( p[0] && len )
 		{
 			HANDLE_BURST_PECULIARITY_WITH_DECIMALS_AND_NUMBER_COLLATION();
-			convert.base.data1 = reverse[ch];//(x=StrChr( charset, ch ))?(_32)(x-charset):0;
+			convert.base.data1 = reverse[ch];//(x=StrChr( charset, ch ))?(uint32_t)(x-charset):0;
 			HANDLE_BURST_PECULIARITY_WITH_DECIMALS_AND_NUMBER_COLLATION();
-			convert.base.data2 = reverse[ch];//(x=StrChr( charset, ch ))?(_32)(x-charset):0;
+			convert.base.data2 = reverse[ch];//(x=StrChr( charset, ch ))?(uint32_t)(x-charset):0;
 			HANDLE_BURST_PECULIARITY_WITH_DECIMALS_AND_NUMBER_COLLATION();
-			convert.base.data3 = reverse[ch];//(x=StrChr( charset, ch ))?(_32)(x-charset):0;
+			convert.base.data3 = reverse[ch];//(x=StrChr( charset, ch ))?(uint32_t)(x-charset):0;
 			HANDLE_BURST_PECULIARITY_WITH_DECIMALS_AND_NUMBER_COLLATION();
-			convert.base.data4 = reverse[ch];//(x=StrChr( charset, ch ))?(_32)(x-charset):0;
+			convert.base.data4 = reverse[ch];//(x=StrChr( charset, ch ))?(uint32_t)(x-charset):0;
 			if( len && len-- )
 				(q++)[0] = convert.bin.bytes[0];
 			if( len && len-- )
@@ -1191,14 +1191,14 @@ int GetBooleanVar( PTEXT *start, LOGICAL *data )
 static TEXTCHAR maxbase1[] = WIDE("0123456789abcdefghijklmnopqrstuvwxyz");
 static TEXTCHAR maxbase2[] = WIDE("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ");
 
-int TextToInt( CTEXTSTR text, PS_64 out )
+int TextToInt( CTEXTSTR text, int64_t* out )
 {
 	struct {
-		_32 neg : 1;
-		_32 success : 1;
+		uint32_t neg : 1;
+		uint32_t success : 1;
 	} flags;
-	_32 base;
-	S_64 accum;
+	uint32_t base;
+	int64_t accum;
 	flags.neg = 0;
 	flags.success = 1;
 	if( text[0] == '-' )
@@ -1230,9 +1230,9 @@ int TextToInt( CTEXTSTR text, PS_64 out )
 	while( text[0] )
 	{
 		CTEXTSTR c;
-		_32 val;
-		if( ( c = StrChr( maxbase1, text[0] ) ) ) val = (_32)(c - maxbase1);
-		if( !c ) if( ( c = StrChr( maxbase2, text[0] ) ) ) val = (_32)(c - maxbase2);
+		uint32_t val;
+		if( ( c = StrChr( maxbase1, text[0] ) ) ) val = (uint32_t)(c - maxbase1);
+		if( !c ) if( ( c = StrChr( maxbase2, text[0] ) ) ) val = (uint32_t)(c - maxbase2);
 		if( !c ) { flags.success = 0; break; }
 		if( val < base )
 		{
@@ -1271,7 +1271,7 @@ int TextToInt( CTEXTSTR text, PS_64 out )
 int IsIntegerVar( PCONFIG_ELEMENT pce, PTEXT *start )
 {
 	CTEXTSTR text;
-	S_64 accum;
+	int64_t accum;
 	if( pce->type != CONFIG_INTEGER )
 		return FALSE;
 	text = GetText( *start );
@@ -1309,7 +1309,7 @@ int IsColorVar( PCONFIG_ELEMENT pce, PTEXT *start )
 		// potentially a hex variation...
 		if( val )
 		{
-			_32 accum = 0;
+			uint32_t accum = 0;
 			CTEXTSTR digit;
 			digit = GetText( val ) + ofs;
 			//lprintf( WIDE("COlor testing: %s"), digit );
@@ -1320,12 +1320,12 @@ int IsColorVar( PCONFIG_ELEMENT pce, PTEXT *start )
 				n = 16;
 				p = StrChr( maxbase1, digit[0] );
 				if( p )
-					n = (_32)(p-maxbase1);
+					n = (uint32_t)(p-maxbase1);
 				else
 				{	
 					p = StrChr( maxbase2, digit[0] );
 					if( p )
-						n = (_32)(p-maxbase2);
+						n = (uint32_t)(p-maxbase2);
 				}	
 				if( n < 16 )
 				{
@@ -1350,7 +1350,7 @@ int IsColorVar( PCONFIG_ELEMENT pce, PTEXT *start )
 			}
 
 			{
-				_32 file_color = pce->data[0].Color;
+				uint32_t file_color = pce->data[0].Color;
 				COLOR_CHANNEL a = (COLOR_CHANNEL)( file_color >> 24 ) & 0xFF;
 				COLOR_CHANNEL r = (COLOR_CHANNEL)( file_color >> 16 ) & 0xFF;
 				COLOR_CHANNEL grn = (COLOR_CHANNEL)( file_color >> 8 ) & 0xFF;
@@ -1369,12 +1369,12 @@ int IsColorVar( PCONFIG_ELEMENT pce, PTEXT *start )
 		// potentially a parenthetical variation.
 		PTEXT val;
 		int components = 0;
-		_32 color = 0;
+		uint32_t color = 0;
 		for( val = *start;
 			val && GetText( val )[0] != ')';
 			val = NEXTLINE( val ) )
 		{
-			S_64 accum = 0;
+			int64_t accum = 0;
 			//lprintf( WIDE("Test : %s"), GetText( val ) );
 			if( GetText(val)[0] == ',' )
 				continue;
@@ -1430,7 +1430,7 @@ int IsFloatVar( PCONFIG_ELEMENT pce, PTEXT *start )
 
 int IsFractionVar( PCONFIG_ELEMENT pce, PTEXT *start )
 {
-	S_32 accum1, accum2, accum3;
+	int32_t accum1, accum2, accum3;
 	int neg1, neg2, neg3;
 	PTEXT current;
 	CTEXTSTR text;
@@ -1931,7 +1931,7 @@ int IsAnyVarEx( PCONFIG_ELEMENT pce, PTEXT *start DBG_PASS )
 //#define PopArguments( sz ) Release( parampack )
 //---------------------------------------------------------------------
 
-void DoProcedure( PTRSZVAL *ppsvUser, PCONFIG_TEST Check )
+void DoProcedure( uintptr_t *ppsvUser, PCONFIG_TEST Check )
 {
 	INDEX idx;
 	PCONFIG_ELEMENT pce = NULL;
@@ -1971,7 +1971,7 @@ void DoProcedure( PTRSZVAL *ppsvUser, PCONFIG_TEST Check )
 						}
 						break;
 					case CONFIG_INTEGER:
-						PushArgument( parampack, S_64, pcePush->data[0].integer_number );
+						PushArgument( parampack, int64_t, pcePush->data[0].integer_number );
 						break;
 					case CONFIG_FLOAT:
 						PushArgument( parampack, float, (float)pcePush->data[0].float_number );
@@ -2146,9 +2146,9 @@ static void TestUnicode( PCONFIG_HANDLER pch )
 		size_t char_check;
 		int ascii_unicode = 1;
 		len_read = sack_fread( charbuf, 1, 64, pch->file );
-		if( ( ((_16*)charbuf)[0] == 0xFEFF )
-			|| ( ((_16*)charbuf)[0] == 0xFFFE )
-			|| ( ((_16*)charbuf)[0] == 0xFDEF ) )
+		if( ( ((uint16_t*)charbuf)[0] == 0xFEFF )
+			|| ( ((uint16_t*)charbuf)[0] == 0xFFFE )
+			|| ( ((uint16_t*)charbuf)[0] == 0xFDEF ) )
 		{
 			return_pos = 2;
 			pch->flags.bUnicode = 1;
@@ -2193,7 +2193,7 @@ static void TestUnicode( PCONFIG_HANDLER pch )
 		
 //---------------------------------------------------------------------
 
-CONFIGSCR_PROC( int, ProcessConfigurationFile )( PCONFIG_HANDLER pch, CTEXTSTR name, PTRSZVAL psv )
+CONFIGSCR_PROC( int, ProcessConfigurationFile )( PCONFIG_HANDLER pch, CTEXTSTR name, uintptr_t psv )
 {
 	PTEXT line;
 #ifndef __ANDROID__
@@ -2264,7 +2264,7 @@ CONFIGSCR_PROC( int, ProcessConfigurationFile )( PCONFIG_HANDLER pch, CTEXTSTR n
 
 //---------------------------------------------------------------------
 
-CONFIGSCR_PROC( PTRSZVAL, ProcessConfigurationInput )( PCONFIG_HANDLER pch, CTEXTSTR data, int size, PTRSZVAL psv )
+CONFIGSCR_PROC( uintptr_t, ProcessConfigurationInput )( PCONFIG_HANDLER pch, CTEXTSTR data, int size, uintptr_t psv )
 {
 	pch->psvUser = psv;
 	{
@@ -2444,17 +2444,17 @@ void AddConfigurationEx( PCONFIG_HANDLER pch, CTEXTSTR format, USER_CONFIG_HANDL
 	PTEXT pLine; 
 	PTEXT pWord;
 	struct {
-		_32 vartag : 1;
-		_32 vector : 1;
-		_32 ignore_new : 1;
-		_32 store_next_as_end : 1;
-		_32 also_store_next_as_end : 1;
-		_32 store_as_end : 1;
-		_32 also_store_as_end : 1;
+		uint32_t vartag : 1;
+		uint32_t vector : 1;
+		uint32_t ignore_new : 1;
+		uint32_t store_next_as_end : 1;
+		uint32_t also_store_next_as_end : 1;
+		uint32_t store_as_end : 1;
+		uint32_t also_store_as_end : 1;
 	}flags;
 	PCONFIG_TEST pct;
 	PCONFIG_ELEMENT pceNew, pcePrior;
-	((_32*)&flags)[0] = 0;
+	((uint32_t*)&flags)[0] = 0;
 	//flags.dw = 0;
 
 //#if defined( FULL_TRACE ) || defined( DEBUG_SLOWNESS )
@@ -2805,7 +2805,7 @@ CONFIGSCR_PROC( void, AddConfiguration )( PCONFIG_HANDLER pch, CTEXTSTR format, 
 //---------------------------------------------------------------------
 
 	CONFIGSCR_PROC( void, SetConfigurationEndProc )( PCONFIG_HANDLER pch
-													, PTRSZVAL (CPROC *Process)( PTRSZVAL ) )
+													, uintptr_t (CPROC *Process)( uintptr_t ) )
 {
 	pch->EndProcess = Process;
 }
@@ -2813,7 +2813,7 @@ CONFIGSCR_PROC( void, AddConfiguration )( PCONFIG_HANDLER pch, CTEXTSTR format, 
 //---------------------------------------------------------------------
 
 CONFIGSCR_PROC( void, SetConfigurationUnhandled )( PCONFIG_HANDLER pch
-																, PTRSZVAL (CPROC *Process)( PTRSZVAL, CTEXTSTR ) )
+																, uintptr_t (CPROC *Process)( uintptr_t, CTEXTSTR ) )
 {
 	pch->Unhandled = Process;
 }

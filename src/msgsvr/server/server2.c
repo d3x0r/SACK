@@ -13,7 +13,7 @@ typedef struct service_tag
 {
 	struct service_tag *next, **me;
 	struct {
-		_32 bRemote : 1;
+		uint32_t bRemote : 1;
 	} flags;
 	TEXTCHAR *name;
 
@@ -25,9 +25,9 @@ typedef struct client_tag
    // unique routing ID of this client... services, clients, etc all ahve one.
 	SERVICE_ROUTE route_id; // process only? no thread?
 	struct {
-		_32 valid : 1;
-		_32 error : 1; // uhmm - something like got a message from this but it wasn't known
-		_32 status_queried : 1;
+		uint32_t valid : 1;
+		uint32_t error : 1; // uhmm - something like got a message from this but it wasn't known
+		uint32_t status_queried : 1;
 	} flags;
 	struct client_tag *next, **me;
 } CLIENT, *PCLIENT;
@@ -125,8 +125,8 @@ static PSERVICE FindService( TEXTCHAR *name )
 }
 
 
-static int CPROC MY_CLIENT_CONNECT( PSERVICE_ROUTE route, _32 *params, size_t param_length
-	 , _32 *result, size_t *result_length )
+static int CPROC MY_CLIENT_CONNECT( PSERVICE_ROUTE route, uint32_t *params, size_t param_length
+	 , uint32_t *result, size_t *result_length )
 {
 	PCLIENT client = AddClient( route );
 	if( client )
@@ -142,8 +142,8 @@ static int CPROC MY_CLIENT_CONNECT( PSERVICE_ROUTE route, _32 *params, size_t pa
 	return FALSE;
 }
 
-static int CPROC MY_CLIENT_LOAD_SERVICE( PSERVICE_ROUTE route, _32 *params, size_t param_length
-								  , _32 *result, size_t *result_length )
+static int CPROC MY_CLIENT_LOAD_SERVICE( PSERVICE_ROUTE route, uint32_t *params, size_t param_length
+								  , uint32_t *result, size_t *result_length )
 {
 	// okay now we're to the heart of the matter.
 	// shoudl I have a table of services ? or rely on the client
@@ -163,7 +163,7 @@ static int CPROC MY_CLIENT_LOAD_SERVICE( PSERVICE_ROUTE route, _32 *params, size
 				lprintf( WIDE("Actually this is a remote process... and we're going to forward to it's handler...") );
 				if( ProbeClientAlive( &service->client_id ) )
 				{
-					PQMSG msg = (PQMSG)( ((P_8)params) - (sizeof( SERVICE_ENDPOINT )*2 + sizeof( _32 ) ));
+					PQMSG msg = (PQMSG)( ((uint8_t*)params) - (sizeof( SERVICE_ENDPOINT )*2 + sizeof( uint32_t ) ));
 					PSERVICE_ROUTE msg_route = (PSERVICE_ROUTE)msg;
 					msg_route->dest = service->client_id;
 					msg_route->source.service_id = g.nService++;
@@ -173,7 +173,7 @@ static int CPROC MY_CLIENT_LOAD_SERVICE( PSERVICE_ROUTE route, _32 *params, size
 					// and further conversation will not involve me.
 
 					if(SendOutMessage( msg
-										, param_length + (sizeof( SERVICE_ENDPOINT )*2 + sizeof( _32 ) - sizeof( MSGIDTYPE ) ) ) >= 0 )
+										, param_length + (sizeof( SERVICE_ENDPOINT )*2 + sizeof( uint32_t ) - sizeof( MSGIDTYPE ) ) ) >= 0 )
 					{
 						// this a GOOD result - we do NOT want to respond.
 						// the server at the other end of this will be responsible for responding.
@@ -204,8 +204,8 @@ static int CPROC MY_CLIENT_LOAD_SERVICE( PSERVICE_ROUTE route, _32 *params, size
 	return FALSE;
 }
 
-static int CPROC MY_CLIENT_REGISTER_SERVICE( PSERVICE_ROUTE route, _32 *params, size_t param_length
-	 , _32 *result, size_t *result_length )
+static int CPROC MY_CLIENT_REGISTER_SERVICE( PSERVICE_ROUTE route, uint32_t *params, size_t param_length
+	 , uint32_t *result, size_t *result_length )
 {
 // add this to the list of known services... there's much data
 // within this packet....  no... just a name I guess
@@ -215,8 +215,8 @@ static int CPROC MY_CLIENT_REGISTER_SERVICE( PSERVICE_ROUTE route, _32 *params, 
 	// this should be the responce ID to people loading this service.
 	// message[2] is the real PID of the service process
 	// message + 3 is a text string identifier for this service...
-	// int  value register actually takes a PTRSZVAL which should be
-	// at least _32 to match the process identifier....
+	// int  value register actually takes a uintptr_t which should be
+	// at least uint32_t to match the process identifier....
 		PSERVICE service;
  		for( service = g.services; service; service = service->next )
 		{
@@ -226,7 +226,7 @@ static int CPROC MY_CLIENT_REGISTER_SERVICE( PSERVICE_ROUTE route, _32 *params, 
 
 		if( service )
 		{
-			//_32 Responce;
+			//uint32_t Responce;
 			// service has already been registered...
 			// maybe we could inquire of the previous registered
 			// person and see if they still exist?
@@ -266,33 +266,33 @@ static int CPROC MY_CLIENT_REGISTER_SERVICE( PSERVICE_ROUTE route, _32 *params, 
 	}
 	return FALSE;
 }
-static int CPROC MY_IM_ALIVE( PSERVICE_ROUTE route, _32 *params, size_t param_length
-	 , _32 *result, size_t *result_length )
+static int CPROC MY_IM_ALIVE( PSERVICE_ROUTE route, uint32_t *params, size_t param_length
+	 , uint32_t *result, size_t *result_length )
 {
 	(*result_length) = INVALID_INDEX;
 	return FALSE;
 }
-static int CPROC MY_RU_ALIVE( PSERVICE_ROUTE route, _32 *params, size_t param_length
-	 , _32 *result, size_t *result_length )
+static int CPROC MY_RU_ALIVE( PSERVICE_ROUTE route, uint32_t *params, size_t param_length
+	 , uint32_t *result, size_t *result_length )
 {
 	(*result_length) = 0;
 	return TRUE;
 }
-static int CPROC MY_CLIENT_DISCONNECT( PSERVICE_ROUTE route, _32 *params, size_t param_length
-	 , _32 *result, size_t *result_length )
+static int CPROC MY_CLIENT_DISCONNECT( PSERVICE_ROUTE route, uint32_t *params, size_t param_length
+	 , uint32_t *result, size_t *result_length )
 {
 	(*result_length) = INVALID_INDEX;
 	return FALSE;
 }
-static int CPROC MY_CLIENT_UNLOAD_SERVICE( PSERVICE_ROUTE route, _32 *params, size_t param_length
-	 , _32 *result, size_t *result_length )
+static int CPROC MY_CLIENT_UNLOAD_SERVICE( PSERVICE_ROUTE route, uint32_t *params, size_t param_length
+	 , uint32_t *result, size_t *result_length )
 {
 	(*result_length) = INVALID_INDEX;
 	return FALSE;
 }
 
-static int CPROC MY_CLIENT_LIST_SERVICES( PSERVICE_ROUTE route, _32 *params, size_t param_length
-													 , _32 *result, size_t *result_length )
+static int CPROC MY_CLIENT_LIST_SERVICES( PSERVICE_ROUTE route, uint32_t *params, size_t param_length
+													 , uint32_t *result, size_t *result_length )
 {
 	PREFIX_PACKED struct msg {
 		PLIST *list;

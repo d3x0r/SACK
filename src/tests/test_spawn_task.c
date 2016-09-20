@@ -2,14 +2,14 @@
 
 LOGICAL ended;
 
-void CPROC TaskEnded( PTRSZVAL psv, PTASK_INFO task_ended )
+void CPROC TaskEnded( uintptr_t psv, PTASK_INFO task_ended )
 {
    printf( WIDE("Ended.\n") );
 	fflush( stdout );
    ended = TRUE;
 }
 
-void CPROC HandleTaskOutput( PTRSZVAL psvTaskInfo, PTASK_INFO task, CTEXTSTR buffer, size_t size )
+void CPROC HandleTaskOutput( uintptr_t psvTaskInfo, PTASK_INFO task, CTEXTSTR buffer, size_t size )
 {
 	printf( WIDE("%s"), buffer );
    fflush( stdout );

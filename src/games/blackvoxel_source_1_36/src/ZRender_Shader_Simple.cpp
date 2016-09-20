@@ -118,15 +118,15 @@ void ZRender_Shader_Simple::DrawBox( ZVector3f *p1, ZVector3f *p2, ZVector3f *p3
 }
 
 
-PTRSZVAL ZRender_Shader_Simple::SetupShader( void )
+uintptr_t ZRender_Shader_Simple::SetupShader( void )
 {
 	// no instance for simple tracker
 	//data.data.vert_pos = ImageCreateShaderBuffer( 3, 8, 16 );
 	//data.data.vert_color = ImageCreateShaderBuffer( 4, 8, 16 );
-	return (PTRSZVAL)&data;
+	return (uintptr_t)&data;
 }
 
-static PTRSZVAL CPROC _SetupShader( PTRSZVAL psvInit )
+static uintptr_t CPROC _SetupShader( uintptr_t psvInit )
 {
 	ZRender_Shader_Simple *_this = (ZRender_Shader_Simple*)psvInit;
 	_this->SetupShader();
@@ -154,7 +154,7 @@ void ZRender_Shader_Simple::InitShader( PImageShaderTracker tracker )
 	}
 }
 
-static void CPROC _InitShader( PTRSZVAL psvSetup, PImageShaderTracker tracker )
+static void CPROC _InitShader( uintptr_t psvSetup, PImageShaderTracker tracker )
 {
 	ZRender_Shader_Simple *_this = (ZRender_Shader_Simple*)psvSetup;
 	_this->InitShader( tracker );
@@ -166,6 +166,6 @@ ZRender_Shader_Simple::ZRender_Shader_Simple( ZRender_Interface *render )
 	box_buffer = NULL;
 	shader = ImageGetShaderInit( WIDE("BV Simple Shader")
 		, _SetupShader
-		, _InitShader, (PTRSZVAL)this );
+		, _InitShader, (uintptr_t)this );
 
 }

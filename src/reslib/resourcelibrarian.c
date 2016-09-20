@@ -4,18 +4,18 @@
 typedef struct resource_header_tag
 {
 	struct {
-		_32 bUsed : 1; // this has been referenced.
-		_32 bFree : 1; // this slot is actually empty now.
+		uint32_t bUsed : 1; // this has been referenced.
+		uint32_t bFree : 1; // this slot is actually empty now.
 	} flags;
-	_32 dwNextEntry;
-	_32 dwEntrySize;
-   _32 dwDirectory;
+	uint32_t dwNextEntry;
+	uint32_t dwEntrySize;
+   uint32_t dwDirectory;
 	// Version is encoded date/time of the file...
 	// plus some bits of sub version for quick reference.
 	// Low bytes count XX.YY where the first version is
 	// 1.0
    // this leave 48 bytes for the time information.
-	_64 Version;
+	uint64_t Version;
 	TEXTCHAR name[];
 	// name is a nul terminated sequence of characters...
    // following name is the data of this resource.
@@ -23,8 +23,8 @@ typedef struct resource_header_tag
 
 typedef struct resource_directory_tag
 {
-   _32 parent;
-	_32 next;
+   uint32_t parent;
+	uint32_t next;
    TEXTCHAR name[];
 } RESOURCE_DIRECTORY, *PRESOURCE_DIRECTORY;
 
@@ -43,8 +43,8 @@ int LoadResourceEx( char *address
 						 , char *path
 						 , char *name
 						 , POINTER *buffer
-						, _32 *size
-						, _32 options )
+						, uint32_t *size
+						, uint32_t options )
 {
 	// address may specify a remote host including a mime prefix
 	// http:, ftp:, etc?
@@ -68,7 +68,7 @@ int LoadResourceEx( char *address
 }
 
 void StoreResource( PRESOURCE_SET prs
-						, POINTER data, _32 size
+						, POINTER data, uint32_t size
                   , char *path
 						, char *name )
 {

@@ -29,11 +29,11 @@ public:
 	PCOMMON display;
    PTOOL selected_tool;
    PLIST tools;
-	_32 cell_width, cell_height;
-   _32 b;
+	uint32_t cell_width, cell_height;
+   uint32_t b;
 public:
 	TOOLBIN(PIBOARD boar);
-	TOOLBIN(PIBOARD boar, PSI_CONTROL parent, S_32 x, S_32 y, _32 w, _32 h );
+	TOOLBIN(PIBOARD boar, PSI_CONTROL parent, int32_t x, int32_t y, uint32_t w, uint32_t h );
    void Init( PIBOARD board );
 
 };
@@ -70,7 +70,7 @@ struct toolbin_tool *GetTool( PTOOLBIN toolbin, PIPEICE peice )
 
 
 
-int CPROC MouseToolbin( PCOMMON pc, S_32 x, S_32 y, _32 b )
+int CPROC MouseToolbin( PCOMMON pc, int32_t x, int32_t y, uint32_t b )
 {
 	ValidatedControlData( PTOOLBIN, toolbin_control.TypeID, toolbin, pc );
 	if( toolbin )
@@ -148,7 +148,7 @@ static int OnDrawCommon( WIDE("Board toolbin") )( PCOMMON pc )
 			BlotScaledImageSizedTo( image, tool->image, tool->x, tool->y, tool->w, tool->h );
          PutString( image, tool->x + TILE_SIZE + TILE_PAD, tool->y, BASE_COLOR_WHITE, 0, tool->peice->name() );
 			//if( peice->methods )
-			//	peice->methods->Draw( (PTRSZVAL)NULL, image, peice->getimage(), x, y );
+			//	peice->methods->Draw( (uintptr_t)NULL, image, peice->getimage(), x, y );
 			//peice->methods->getsize( &h, NULL );
 		}
 	}
@@ -190,7 +190,7 @@ TOOLBIN::TOOLBIN( PIBOARD board )
 
 }
 
-TOOLBIN::TOOLBIN( PIBOARD board, PSI_CONTROL parent, S_32 x, S_32 y, _32 w, _32 h )
+TOOLBIN::TOOLBIN( PIBOARD board, PSI_CONTROL parent, int32_t x, int32_t y, uint32_t w, uint32_t h )
 {
    Init( board );
    l.creating = this;
@@ -227,7 +227,7 @@ PTOOLBIN CreateToolbin( PIBOARD board )
    return toolbin;
 }
 
-PSI_CONTROL CreateToolbinControl( PIBOARD board, PSI_CONTROL parent, S_32 x, S_32 y, _32 w, _32 h )
+PSI_CONTROL CreateToolbinControl( PIBOARD board, PSI_CONTROL parent, int32_t x, int32_t y, uint32_t w, uint32_t h )
 {
 
 	PTOOLBIN toolbin = new TOOLBIN( board, parent, x, y, w, h );

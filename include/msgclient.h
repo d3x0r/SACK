@@ -27,7 +27,7 @@ SACK_NAMESPACE
 	_CLIENT_NAMESPACE
 
 
-#define MSG_DEFAULT_RESULT_BUFFER_MAX (sizeof( _32 ) * 16384)
+#define MSG_DEFAULT_RESULT_BUFFER_MAX (sizeof( uint32_t ) * 16384)
 
 	// not realy sure where this doc goes
    //
@@ -56,7 +56,7 @@ CLIENTMSG_PROC( LOGICAL, RegisterServiceExx )( CTEXTSTR name
 																	 , int entries
 																	 , server_message_handler event_handler
 																	 , server_message_handler_ex handler_ex
-																	 , PTRSZVAL psv
+																	 , uintptr_t psv
 																	 );
 #define RegisterServiceEx( n,f,psv ) RegisterServiceExx( n,NULL,16,NULL,f,psv)
 #define RegisterService(n,f,e)        RegisterServiceExx(n,f,e,NULL,NULL,0)
@@ -64,20 +64,20 @@ CLIENTMSG_PROC( LOGICAL, RegisterServiceExx )( CTEXTSTR name
 #define RegisterServiceHandlerEx(n,f,psv)   RegisterServiceExx(n,NULL,16,NULL,f,psv)
 CLIENTMSG_PROC( void, UnregisterService )( CTEXTSTR name );
 
-CLIENTMSG_PROC( int, ProcessClientMessages )( PTRSZVAL unused );
+CLIENTMSG_PROC( int, ProcessClientMessages )( uintptr_t unused );
 
 // returns INVALID_INDEX on failure - else is message base to servic.
 // the core message services may be opened with ID 0 - which serves
 // to dispatch local event queue messages... transactions between client
 // and server hrm - suppose someone could send to this service ID...
 // LoadService( NULL ) will return 0 on success
-#define INVALID_MESSAGE_BASE ((_32)-1)
+#define INVALID_MESSAGE_BASE ((uint32_t)-1)
 CLIENTMSG_PROC( PSERVICE_ROUTE, LoadService )( CTEXTSTR service, EventHandlerFunction );
 CLIENTMSG_PROC( PSERVICE_ROUTE, LoadServiceEx )( CTEXTSTR service, EventHandlerFunctionEx );
-CLIENTMSG_PROC( PSERVICE_ROUTE, LoadServiceExx )( CTEXTSTR service, EventHandlerFunctionExx, PTRSZVAL psv );
+CLIENTMSG_PROC( PSERVICE_ROUTE, LoadServiceExx )( CTEXTSTR service, EventHandlerFunctionExx, uintptr_t psv );
 CLIENTMSG_PROC( PSERVICE_ROUTE, LoadServiceAsServer )( CTEXTSTR service, EventHandlerFunction, server_message_handler );
 CLIENTMSG_PROC( PSERVICE_ROUTE, LoadServiceAsServerEx )( CTEXTSTR service, EventHandlerFunctionEx, server_message_handler );
-CLIENTMSG_PROC( PSERVICE_ROUTE, LoadServiceAsServerExx )( CTEXTSTR service, EventHandlerFunctionExx, server_message_handler_ex, PTRSZVAL psv );
+CLIENTMSG_PROC( PSERVICE_ROUTE, LoadServiceAsServerExx )( CTEXTSTR service, EventHandlerFunctionExx, server_message_handler_ex, uintptr_t psv );
 CLIENTMSG_PROC( void, UnloadService )( CTEXTSTR service );
 
 /*
@@ -95,10 +95,10 @@ CLIENTMSG_PROC( void, UnloadService )( CTEXTSTR service );
 // the destionation process, you can send any message directed to it
 // with this.
 CLIENTMSG_PROC( int, TransactRoutedServerMultiMessageEx )( PSERVICE_ROUTE RouteID
-																			, MSGIDTYPE MsgOut, _32 buffers
+																			, MSGIDTYPE MsgOut, uint32_t buffers
 																			, MSGIDTYPE *MsgIn
 																			, POINTER BufferIn, size_t *LengthIn
-																			, _32 timeout // non zero overrides default timeout
+																			, uint32_t timeout // non zero overrides default timeout
 																			// buffer starts arg list, length is
 																			// not used, but is here for demonstration
 																	, ... );
@@ -112,11 +112,11 @@ CLIENTMSG_PROC( int, ProbeClientAlive )( PSERVICE_ENDPOINT RouteID );
 // in non-zero.
 										 // buffer starts arg list, length is
                                // not used, but is here for demonstration
-typedef  int (CPROC *TSMMProto)(PSERVICE_ROUTE,MSGIDTYPE, _32, MSGIDTYPE *, POINTER , size_t *,...);
+typedef  int (CPROC *TSMMProto)(PSERVICE_ROUTE,MSGIDTYPE, uint32_t, MSGIDTYPE *, POINTER , size_t *,...);
 CLIENTMSG_PROC( TSMMProto, TransactServerMultiMessageExEx )( DBG_VOIDPASS );
 
 CLIENTMSG_PROC( int, TransactServerMultiMessage )( PSERVICE_ROUTE RouteID
-																 , MSGIDTYPE MsgOut, _32 buffers
+																 , MSGIDTYPE MsgOut, uint32_t buffers
 																 , MSGIDTYPE *MsgIn, POINTER BufferIn, size_t *LengthIn
 																  // buffer starts arg list, length is
 																  // not used, but is here for demonstration
@@ -126,14 +126,14 @@ CLIENTMSG_PROC( int, TransactServerMultiMessage )( PSERVICE_ROUTE RouteID
 CLIENTMSG_PROC( int, TransactServerMessageExx)( PSERVICE_ROUTE RouteID
 															 , MSGIDTYPE MsgOut, CPOINTER BufferOut, size_t LengthOut
 															 , MSGIDTYPE *MsgIn, POINTER BufferIn, size_t *LengthIn
-															  , _32 timeout DBG_PASS );
+															  , uint32_t timeout DBG_PASS );
 CLIENTMSG_PROC( int, TransactServerMessageEx )( PSERVICE_ROUTE RouteID
 															 , MSGIDTYPE MsgOut, CPOINTER BufferOut, size_t LengthOut
 															 , MSGIDTYPE *MsgIn, POINTER BufferIn, size_t *LengthIn DBG_PASS);
 CLIENTMSG_PROC( int, TransactServerMultiMessageEx )( PSERVICE_ROUTE RouteID
-																	, MSGIDTYPE MsgOut, _32 buffers
+																	, MSGIDTYPE MsgOut, uint32_t buffers
 																	, MSGIDTYPE *MsgIn, POINTER BufferIn, size_t *LengthIn
-                                                   , _32 timeout
+                                                   , uint32_t timeout
 																	 // buffer starts arg list, length is
 																	 // not used, but is here for demonstration
 																	, ... );
@@ -143,51 +143,51 @@ CLIENTMSG_PROC( int, TransactServerMultiMessageEx )( PSERVICE_ROUTE RouteID
 //#define TransactRoutedMessage(ro,mo,bo,lo,mi,bi,li) TransactMultiServerMessageEx(ro,mo,bi,li,1,&bo DBG_SRC )
 
 // these are provided but are storngly discouraged from use.
-CLIENTMSG_PROC( int, SendRoutedServerMultiMessage )( PSERVICE_ROUTE RouteID, _32 MessageID, _32 buffers, ... );
-CLIENTMSG_PROC( int, SendRoutedServerMessage )( PSERVICE_ROUTE RouteID, _32 MessageID, POINTER msg, size_t len );
+CLIENTMSG_PROC( int, SendRoutedServerMultiMessage )( PSERVICE_ROUTE RouteID, uint32_t MessageID, uint32_t buffers, ... );
+CLIENTMSG_PROC( int, SendRoutedServerMessage )( PSERVICE_ROUTE RouteID, uint32_t MessageID, POINTER msg, size_t len );
 CLIENTMSG_PROC( int, SendServerMultiMessage )( PSERVICE_ROUTE RouteID
-															, _32 MessageID, _32 buffers, ... );
+															, uint32_t MessageID, uint32_t buffers, ... );
 CLIENTMSG_PROC( int, SendServerMessage )( PSERVICE_ROUTE RouteID
-													 , _32 MessageID, POINTER msg, size_t len );
+													 , uint32_t MessageID, POINTER msg, size_t len );
 
 // really I guess the integeration of all message handles [as a msg_base_id] allows some unique opportunities....
 // this message is one of those that does not take a base message ID...
-#define TellClientTardy( client_source_id, new_responce_timeout )  { _32 timeout = new_responce_timeout; lprintf( WIDE("TELL TARDY") ); SendInMessage( (client_source_id), IM_TARDY, &timeout, sizeof( timeout ) ); }
+#define TellClientTardy( client_source_id, new_responce_timeout )  { uint32_t timeout = new_responce_timeout; lprintf( WIDE("TELL TARDY") ); SendInMessage( (client_source_id), IM_TARDY, &timeout, sizeof( timeout ) ); }
 // TellClientTardy( 5000000 ); // tell client to wait a LONG time.
 // TellClientTardy( 3000 ); // reset timeout to 3 seconds
 
 // this may result FALSE if it satisfied no message
 // otherwise it will return true...
 // the waiter then check his PEVENTHANDLER to see if ti was complete.
-//CLIENTMSG_PROC( int, ReceiveServerMessageEx )( _32 *MessageID, POINTER msg, _32 *len DBG_PASS);
+//CLIENTMSG_PROC( int, ReceiveServerMessageEx )( uint32_t *MessageID, POINTER msg, uint32_t *len DBG_PASS);
 //#define ReceiveServerMessage(mid,m,l) ReceiveServerMessageEx( mid,m,l DBG_SRC )
 CLIENTMSG_PROC( void, DumpServiceList )( void );
 CLIENTMSG_PROC( void, GetServiceList )( PLIST *ppList );
 
-CLIENTMSG_PROC( int, SendInMultiMessage )( PSERVICE_ROUTE routeID, _32 MsgID, _32 parts, BUFFER_LENGTH_PAIR *pairs );
-CLIENTMSG_PROC( int, SendInMessage )( PSERVICE_ROUTE routeID, _32 MsgID, POINTER buffer, size_t length );
+CLIENTMSG_PROC( int, SendInMultiMessage )( PSERVICE_ROUTE routeID, uint32_t MsgID, uint32_t parts, BUFFER_LENGTH_PAIR *pairs );
+CLIENTMSG_PROC( int, SendInMessage )( PSERVICE_ROUTE routeID, uint32_t MsgID, POINTER buffer, size_t length );
 
 // now - is there some magic to allow libraries to link to
 // the core application?? - this is in the server's core
 // and is access by the services it loads.
 // add event base - determines which loaded service this
 // event is destined to...
-typedef int (CPROC* SendMultiServiceEventProto)( PSERVICE_ROUTE pid, _32 event
-															  , _32 parts
+typedef int (CPROC* SendMultiServiceEventProto)( PSERVICE_ROUTE pid, uint32_t event
+															  , uint32_t parts
 															  ,... );
 
-CLIENTMSG_PROC(int, SendMultiServiceEventPairs)( PSERVICE_ROUTE pid, _32 event
-															  , _32 parts
+CLIENTMSG_PROC(int, SendMultiServiceEventPairs)( PSERVICE_ROUTE pid, uint32_t event
+															  , uint32_t parts
 															  , BUFFER_LENGTH_PAIR *pairs );
 // SendMultiServiceEvent calls ...Pairs with all information and the address
 // of the var-args...
-CLIENTMSG_PROC(int, SendMultiServiceEvent)( PSERVICE_ROUTE pid, _32 event
-								 , _32 parts
+CLIENTMSG_PROC(int, SendMultiServiceEvent)( PSERVICE_ROUTE pid, uint32_t event
+								 , uint32_t parts
 								 , ... );
 CLIENTMSG_PROC(SendMultiServiceEventProto, SendMultiServiceEventEx)( DBG_VOIDPASS );
 #define SendMultiServiceEvent SendMultiServiceEventEx(DBG_VOIDSRC)
 #define SendServiceEvent(pid,event,data,len) SendMultiServiceEvent(pid,event,1,data,len)
-//void SendServiceEvent( _32 pid, _32 event, _32 *data, _32 len );
+//void SendServiceEvent( uint32_t pid, uint32_t event, uint32_t *data, uint32_t len );
 
 // sends a message on the out queue.  Normally one should use SendServerMessage et al.
 typedef struct message_header_tag *PMSGHDR;

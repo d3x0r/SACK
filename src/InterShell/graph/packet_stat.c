@@ -13,9 +13,9 @@
 
 static struct packet_stat_local {
 	PCLIENT pcServer; // server echo port
-	_64 server_buffer[4096];
+	uint64_t server_buffer[4096];
 	PCLIENT pcClient; // generate commands to server
-	_64 client_buffer[4096];
+	uint64_t client_buffer[4096];
 	PLIST line_data; // UDP_DATA list
 	PLIST clients;
 }l;
@@ -28,8 +28,8 @@ static void CPROC ReadClient( PCLIENT pc, POINTER buffer, size_t size, SOCKADDR 
 	}
 	else
 	{
-		_32 IP;
-		_16 port;
+		uint32_t IP;
+		uint16_t port;
 		lprintf( WIDE("Sending buffer received back to source...") );
 		GetAddressParts( source, &IP, &port );
 		lprintf( WIDE("From %08lx %d"), IP, port );
@@ -40,32 +40,32 @@ static void CPROC ReadClient( PCLIENT pc, POINTER buffer, size_t size, SOCKADDR 
 
 
 typedef struct udp_sample {
-	_32 tick;
-	_64 cpu_tick_delta;
-	_32 dropped;
+	uint32_t tick;
+	uint64_t cpu_tick_delta;
+	uint32_t dropped;
 } UDP_SAMPLE;
 
 typedef struct udp_data {
-	//P_64 buffer;
+	//uint64_t* buffer;
 	TARGET_ADDRESS target;
 	PDATAQUEUE queue; // list of application specific structures which it may wish to use to render
 	PCLIENT client;
 } UDP_DATA;
 typedef struct udp_data *PUDP_DATA;
 
-PTRSZVAL CreateUDPTarget( TARGET_ADDRESS target )
+uintptr_t CreateUDPTarget( TARGET_ADDRESS target )
 {
 	NEW(UDP_DATA, udp_data);
 	udp_data->target = target;
-	//udp_data->buffer = (P_64)Allocate( 4096 );
+	//udp_data->buffer = (uint64_t*)Allocate( 4096 );
 	// enough for a days worth of samples...
 	udp_data->queue = CreateLargeDataQueue( sizeof( UDP_SAMPLE ), 200000 );
 	lprintf( WIDE("result udp thing %p"), udp_data );
 	AddLink( &l.line_data, udp_data );
-	return (PTRSZVAL)udp_data;
+	return (uintptr_t)udp_data;
 }
 
-void DestroyUDPTarget( PTRSZVAL psv )
+void DestroyUDPTarget( uintptr_t psv )
 {
 	PUDP_DATA udp_data = (PUDP_DATA)psv;
 	if( udp_data->client )
@@ -75,19 +75,19 @@ void DestroyUDPTarget( PTRSZVAL psv )
 	Release( udp_data );
 }
 
-void RenderUDPClient( PTRSZVAL psvRenderWhat // user data to pass to render to give render a thing to render
+void RenderUDPClient( uintptr_t psvRenderWhat // user data to pass to render to give render a thing to render
 						  , PDATALIST *points // GRAPH_LINE_SAMPLE output points to draw
-						  , _32 from // min tick
-						  , _32 to // max tick
-						  , _32 resolution  // width to plot
-						  , _32 value_resolution // height to plot
+						  , uint32_t from // min tick
+						  , uint32_t to // max tick
+						  , uint32_t resolution  // width to plot
+						  , uint32_t value_resolution // height to plot
 						  )
 {
 	PUDP_DATA udp_data = (PUDP_DATA)psvRenderWhat;
 	INDEX iSample;
-	_32 tick = from;
+	uint32_t tick = from;
 	UDP_SAMPLE sample;
-	_64 base_value, max_value;
+	uint64_t base_value, max_value;
 	if( !points ) // nowhere to render to.
 		return;
 	if( !(*points) )
@@ -98,7 +98,7 @@ void RenderUDPClient( PTRSZVAL psvRenderWhat // user data to pass to render to g
 		//(*points)->Cnt = 0;
 	}
 	//lprintf( WIDE("emptied data list of points... checking samples") );
-	base_value = (_64)~0;
+	base_value = (uint64_t)~0;
 	max_value = 0;
 	for( iSample = 0; tick < to && PeekDataQueueEx( &udp_data->queue, UDP_SAMPLE, &sample, iSample ); iSample++ )
 	{
@@ -123,7 +123,7 @@ void RenderUDPClient( PTRSZVAL psvRenderWhat // user data to pass to render to g
 					 ( sample.tick - from ) // how much past the from that this is...
 					 * resolution
 					) / (to-from);
-			point.value = (_32)(
+			point.value = (uint32_t)(
 					(
 					 ( sample.cpu_tick_delta - base_value )
 					 * value_resolution
@@ -137,19 +137,19 @@ void RenderUDPClient( PTRSZVAL psvRenderWhat // user data to pass to render to g
 	lprintf( WIDE("done rendering...") );
 }
 
-void RenderUDPClientDrops( PTRSZVAL psvRenderWhat // user data to pass to render to give render a thing to render
+void RenderUDPClientDrops( uintptr_t psvRenderWhat // user data to pass to render to give render a thing to render
 								 , PDATALIST *points // GRAPH_LINE_SAMPLE output points to draw
-								 , _32 from // min tick
-								 , _32 to // max tick
-								 , _32 resolution  // width to plot
-								 , _32 value_resolution // height to plot
+								 , uint32_t from // min tick
+								 , uint32_t to // max tick
+								 , uint32_t resolution  // width to plot
+								 , uint32_t value_resolution // height to plot
 								 )
 {
 	PUDP_DATA udp_data = (PUDP_DATA)psvRenderWhat;
 	INDEX iSample;
-	_32 tick = from;
+	uint32_t tick = from;
 	UDP_SAMPLE sample;
-	_32 base_value, max_value;
+	uint32_t base_value, max_value;
 	if( !points ) // nowhere to render to.
 		return;
 	if( !(*points) )
@@ -160,7 +160,7 @@ void RenderUDPClientDrops( PTRSZVAL psvRenderWhat // user data to pass to render
 		//(*points)->Cnt = 0;
 	}
 	//lprintf( WIDE("emptied data list of points... checking samples") );
-	base_value = (_64)~0;
+	base_value = (uint64_t)~0;
 	max_value = 0;
 	DebugBreak();
 	for( iSample = 0; tick < to && PeekDataQueueEx( &udp_data->queue, UDP_SAMPLE, &sample, iSample ); iSample++ )
@@ -204,8 +204,8 @@ static void CPROC ClientReceive( PCLIENT pc, POINTER buffer, size_t size, SOCKAD
 {
 	if( buffer )
 	{
-		_64 min_tick_in_packet = 0;
-		_64 tick = GetCPUTick();
+		uint64_t min_tick_in_packet = 0;
+		uint64_t tick = GetCPUTick();
 		int dropped = 0;
 		INDEX idx;
 		PUDP_DATA udp_data;
@@ -229,11 +229,11 @@ static void CPROC ClientReceive( PCLIENT pc, POINTER buffer, size_t size, SOCKAD
 
 }
 
-static void CPROC UDPTick( PTRSZVAL psv )
+static void CPROC UDPTick( uintptr_t psv )
 {
 	PUDP_DATA udp_data = (PUDP_DATA)psv;
 	{
-		_64 tick = GetCPUTick();
+		uint64_t tick = GetCPUTick();
 		SendUDPEx( l.pcClient, &tick, sizeof( tick ), udp_data->target->addr );
 	}
 }

@@ -9,35 +9,35 @@
 // data for Message Exception Reply
 PREFIX_PACKED struct command_exception_data
 {
-	_8 exception_code;
+	uint8_t exception_code;
 } PACKED;
 
 // data for Message ID 1,2 (command )
 PREFIX_PACKED struct read_digital_command_data
 {
-	_8 start_address[2];  /* 0-65535 */
-   _8 quantity[2];       /* 0-2000 */
+	uint8_t start_address[2];  /* 0-65535 */
+   uint8_t quantity[2];       /* 0-2000 */
 } PACKED;
 
 // data for Message ID 1,2 (reply)
 PREFIX_PACKED struct read_digital_reply_data
 {
-	_8 byte_count;      /* inputs * 8 */
-   _8 status[1];       /* status of coils  27-20;34-28;etc*/
+	uint8_t byte_count;      /* inputs * 8 */
+   uint8_t status[1];       /* status of coils  27-20;34-28;etc*/
 } PACKED;
 
 // data for Message ID 1 (command )
 PREFIX_PACKED struct read_analog_command_data
 {
-	_8 start_address[2];  /* 0-65535 */
-   _8 quantity[2];       /* 1-125 */
+	uint8_t start_address[2];  /* 0-65535 */
+   uint8_t quantity[2];       /* 1-125 */
 } PACKED;
 
 // data for Message ID 1 (reply)
 PREFIX_PACKED struct read_analog_reply_data
 {
-	_8 byte_count;      /* inputs * 8; bytes * 2*/
-   _8 status[1][2];       /* status of coils  27-20;34-28;etc*/
+	uint8_t byte_count;      /* inputs * 8; bytes * 2*/
+   uint8_t status[1][2];       /* status of coils  27-20;34-28;etc*/
 } PACKED;
 
 
@@ -46,7 +46,7 @@ PREFIX_PACKED struct read_analog_reply_data
 
 PREFIX_PACKED struct modbus_frame
 {
-	_8 msg_command;
+	uint8_t msg_command;
 	union {
       struct command_exception_data     command_exception;
       struct read_digital_command_data  read_digital_command;

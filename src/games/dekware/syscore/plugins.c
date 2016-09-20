@@ -238,7 +238,7 @@ void LoadPlugin( CTEXTSTR pFile, PSENTIENT ps, PTEXT parameters )
 	CommitPlugin();
 }
 
-void CPROC LoadAPlugin( PTRSZVAL psv, CTEXTSTR name, int flags )
+void CPROC LoadAPlugin( uintptr_t psv, CTEXTSTR name, int flags )
 {
 	LoadPlugin( name, NULL, NULL );
 }
@@ -484,7 +484,7 @@ CORE_PROC( int, RegisterDeviceOpts )( CTEXTSTR pName
 											  , CTEXTSTR pDescription
 											  , PDATAPATH (CPROC *Open)( PDATAPATH *ppChannel, PSENTIENT ps, PTEXT params )
 											  , option_entry *pOptions
-											  , _32 nOptions )
+											  , uint32_t nOptions )
 {
 	nTypeID = ++nDevice;
 	if( pName && pDescription )
@@ -505,7 +505,7 @@ CORE_PROC( int, RegisterDeviceOpts )( CTEXTSTR pName
 		
 		if( pOptions && nOptions )
 		{
-			_32 i;
+			uint32_t i;
 			for( i = 0; i < nOptions; i++ )
 			{
 				TEXTCHAR tmp[256];
@@ -633,7 +633,7 @@ int CPROC OptionDevice( PSENTIENT ps, PTEXT params )
 		if( pdp )
 		{
 			PCLASSROOT option_root = GetClassRootEx( pdp->pDeviceRoot, WIDE("options") );
-			//S_32 idx = -1;
+			//int32_t idx = -1;
 			if( params )
 			{
 				PTEXT temp;
@@ -756,7 +756,7 @@ PDATAPATH OpenDevice( PDATAPATH *pChannel, PSENTIENT ps, PTEXT pName, PTEXT para
 			if( !pdp->pDeviceRoot )
 				DumpRegisteredNamesFrom( (PCLASSROOT)WIDE("dekware/devices") );
 			{
-				PTRSZVAL id = GetRegisteredIntValue( pdp->pDeviceRoot, WIDE("TypeID") );
+				uintptr_t id = GetRegisteredIntValue( pdp->pDeviceRoot, WIDE("TypeID") );
 				if( !id )
 				{
 					TEXTCHAR tmp[20];
@@ -888,7 +888,7 @@ CORE_PROC( void, AddVolatileVariables )( PENTITY pe, CTEXTSTR root )
 CORE_PROC( void,  UnregisterObject )( CTEXTSTR pName )
 {
 	// find the named object archtype and remove it from the list of knowns...
-	static _32 unregistering;
+	static uint32_t unregistering;
 	while( LockedExchange( &unregistering, 1 ) )
 	{
 		Relinquish();

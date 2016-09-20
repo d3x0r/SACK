@@ -12,7 +12,7 @@ typedef struct {
 	struct {
 		BIT_FIELD showing : 1;
 	} flags;
-   _32 timer;
+   uint32_t timer;
    PMENU_BUTTON button;
 } MY_BUTTON, *PMY_BUTTON;
 
@@ -21,7 +21,7 @@ OnFinishInit( "Phase 2 Test block update" )( void )
    l.flags.initialized = 1; // on blink timer, actually cause an update, otherwise just update status
 }
 
-static void CPROC Blink( PTRSZVAL psv )
+static void CPROC Blink( uintptr_t psv )
 {
 	PMY_BUTTON me = (PMY_BUTTON)psv;
 	me->flags.showing = !me->flags.showing;
@@ -35,7 +35,7 @@ static void CPROC Blink( PTRSZVAL psv )
 }
 
 /*
-OnQueryShowControl( "Stress Button 2(colors)" )( PTRSZVAL psv )
+OnQueryShowControl( "Stress Button 2(colors)" )( uintptr_t psv )
 {
 	PMY_BUTTON me = (PMY_BUTTON)psv;
 	lprintf( "Blink Button asked for permission to show..." );
@@ -44,7 +44,7 @@ OnQueryShowControl( "Stress Button 2(colors)" )( PTRSZVAL psv )
 */
 //OnFixupControl
 OnShowControl
-("Stress Button 2(colors)" )( PTRSZVAL psv )
+("Stress Button 2(colors)" )( uintptr_t psv )
 {
 	PMY_BUTTON me = (PMY_BUTTON)psv;
    lprintf( "Getting new colors for button..." );
@@ -60,9 +60,9 @@ OnCreateMenuButton( "Stress Button 2(colors)" )( PMENU_BUTTON button )
 {
 	PMY_BUTTON me = New( MY_BUTTON );
 	me->button = button;
-	me->timer = AddTimer( 1000, Blink, (PTRSZVAL)me );
+	me->timer = AddTimer( 1000, Blink, (uintptr_t)me );
 	me->flags.showing = 1;
-   return (PTRSZVAL)me;
+   return (uintptr_t)me;
 }
 
 

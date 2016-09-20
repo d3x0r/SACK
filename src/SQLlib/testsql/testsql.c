@@ -286,7 +286,7 @@ int main( int argc, char **argv )
 		}
 	}
 	{
-		//_32 a,b,c,d;
+		//uint32_t a,b,c,d;
 		//DebugDumpMem();
 	}
 	return 0;

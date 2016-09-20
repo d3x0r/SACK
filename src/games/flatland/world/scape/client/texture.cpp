@@ -20,7 +20,7 @@ typedef struct find_thing_tag {
    char *name;
 } FINDTHING, *PFINDTHING;
 
-static INDEX CPROC FindTextureName( INDEX texture, PTRSZVAL psv )
+static INDEX CPROC FindTextureName( INDEX texture, uintptr_t psv )
 {
 	PFINDTHING pft = ( PFINDTHING)psv;
 	TEXTCHAR textname[256];
@@ -37,7 +37,7 @@ static INDEX CPROC FindTextureName( INDEX texture, PTRSZVAL psv )
 INDEX MakeTexture( INDEX iWorld, INDEX iName )
 {
 	MSGIDTYPE ResultID;
-	_32 Result[1];
+	uint32_t Result[1];
 	size_t ResultLen = sizeof( Result );
 	if( ConnectToServer()
 		&& TransactServerMultiMessage( MSG_ID(MakeTexture), 2
@@ -54,7 +54,7 @@ INDEX MakeTexture( INDEX iWorld, INDEX iName )
 
 //----------------------------------------------------------------------------
 
-static INDEX CPROC DeleteATexture( INDEX iTexture, PTRSZVAL psv )
+static INDEX CPROC DeleteATexture( INDEX iTexture, uintptr_t psv )
 {
 	INDEX iWorld = (INDEX)psv;
 	GETWORLD( iWorld );
@@ -79,7 +79,7 @@ void DeleteTexture( INDEX iWorld, INDEX iTexture )
 void DeleteTextures( INDEX iWorld )
 {
 	GETWORLD( iWorld );
-	ForAllTextures( iWorld, DeleteATexture, (PTRSZVAL)iWorld );
+	ForAllTextures( iWorld, DeleteATexture, (uintptr_t)iWorld );
 	DeleteSet( (GENERICSET**)&world->textures );
 }
 
@@ -88,7 +88,7 @@ void DeleteTextures( INDEX iWorld )
 void SetSolidColor( INDEX iWorld, INDEX iTexture, CDATA color )
 {
 	MSGIDTYPE ResultID;
-	_32 Result[1];
+	uint32_t Result[1];
 	size_t ResultLen = 0;//sizeof( INDEX );
 	if( ConnectToServer()
 		&& TransactServerMultiMessage( MSG_ID(SetSolidColor), 1
@@ -107,8 +107,8 @@ void SetSolidColor( INDEX iWorld, INDEX iTexture, CDATA color )
 
 //----------------------------------------------------------------------------
 // if name is null,
-//PFLATLAND_TEXTURE ScanAllTextures( char *name, void (CPROC*userproc)(PTRSZVAL, PFLATLAND_TEXTURE)
- //  						  , PTRSZVAL userdata )
+//PFLATLAND_TEXTURE ScanAllTextures( char *name, void (CPROC*userproc)(uintptr_t, PFLATLAND_TEXTURE)
+ //  						  , uintptr_t userdata )
 //{
 //   return ForAllTextures( &world->textures, userproc, userdata );
 //}
@@ -121,26 +121,26 @@ void GetTextureData( INDEX iWorld, INDEX iTexture, PFLATLAND_TEXTURE *pptexture 
 	(*pptexture) = GetSetMember( FLATLAND_TEXTURE, &world->textures, iTexture );
 }
 
-PTRSZVAL CPROC TextureFilter( INDEX idx, PTRSZVAL psv )
+uintptr_t CPROC TextureFilter( INDEX idx, uintptr_t psv )
 {
 	struct thisstruc{
-		INDEX(CPROC*f)(INDEX,PTRSZVAL);
-		PTRSZVAL psv;
+		INDEX(CPROC*f)(INDEX,uintptr_t);
+		uintptr_t psv;
 	} *info = (struct thisstruc*)psv;
 	return info->f( idx, info->psv ) + 1; // INDEX 0 is valid, -1 is failure so skew result by 1 to have control work.
 }
 
 
-INDEX ForAllTextures( INDEX iWorld, INDEX(CPROC*f)(INDEX,PTRSZVAL), PTRSZVAL psv )
+INDEX ForAllTextures( INDEX iWorld, INDEX(CPROC*f)(INDEX,uintptr_t), uintptr_t psv )
 {
 	struct {
-		INDEX(CPROC*f)(INDEX,PTRSZVAL);
-		PTRSZVAL psv;
+		INDEX(CPROC*f)(INDEX,uintptr_t);
+		uintptr_t psv;
 	} info;
 	PWORLD world = GetSetMember( WORLD, &g.worlds, iWorld );
 	info.f = f;
 	info.psv = psv;
-	return (INDEX)ForEachSetMember( FLATLAND_TEXTURE, world->textures, TextureFilter, (PTRSZVAL)&info )-1;
+	return (INDEX)ForEachSetMember( FLATLAND_TEXTURE, world->textures, TextureFilter, (uintptr_t)&info )-1;
 }
 
 void GetTextureNameText( INDEX iWorld, INDEX iTexture, TEXTCHAR *buf, int bufsize )
@@ -156,7 +156,7 @@ void GetTextureNameText( INDEX iWorld, INDEX iTexture, TEXTCHAR *buf, int bufsiz
 INDEX SetTexture( INDEX iWorld, INDEX iSector, INDEX iTexture )
 {
 	MSGIDTYPE ResultID;
-	_32 Result[1];
+	uint32_t Result[1];
 	size_t ResultLen = sizeof( Result );
 	if( ConnectToServer()
 		&& TransactServerMultiMessage( MSG_ID(SetTexture), 1

@@ -11,7 +11,7 @@ struct pending_buf {
 typedef struct RelayConnection {
 	int readstate;
 	POINTER buffer;
-	P_8 use_key;
+	uint8_t* use_key;
 	size_t keylen;
 	size_t keyidx;
 	size_t read_keyidx;
@@ -81,7 +81,7 @@ static void SendRelayTCP( PRELAY_CONNECTION pc, TEXTSTR message, size_t message_
 	SendTCP( pc->pc, message, message_length );
 }
 
-static PTRSZVAL CPROC DelaySend( PTHREAD thread )
+static uintptr_t CPROC DelaySend( PTHREAD thread )
 {
 	struct RelayConnection *conn = (struct RelayConnection *)GetThreadParam( thread );
 	struct pending_buf *pending;
@@ -115,7 +115,7 @@ static void RelayServerRead( PCLIENT pc, POINTER buffer, size_t buflen )
 		conn->pending = CreateLinkQueue();
 		buffer = conn->buffer = Allocate( 4096 );
 		conn->pc = pc;
-		SetNetworkLong( pc, 0, (PTRSZVAL)conn );
+		SetNetworkLong( pc, 0, (uintptr_t)conn );
 		toread = 4;
 		AddLink( &l.connections, conn );
 	}
@@ -129,18 +129,18 @@ static void RelayServerRead( PCLIENT pc, POINTER buffer, size_t buflen )
 			RemoveClient( pc );
 			return;
 		case 0:
-			toread = ((_32*)buffer)[0];
+			toread = ((uint32_t*)buffer)[0];
 			conn->readstate = 1;
 			break;
 		case 1:
 			conn->keylen = buflen;
-			conn->use_key = NewArray( _8, buflen );
+			conn->use_key = NewArray( uint8_t, buflen );
 			MemCpy( conn->use_key, buffer, buflen );
 			conn->readstate = 2;
 			toread = 4;
 			break;
 		case 2:
-			toread = ((_32*)buffer)[0];
+			toread = ((uint32_t*)buffer)[0];
 			conn->readstate = 3;
 			break;
 		case 3:
@@ -184,9 +184,9 @@ static void RelayServerRead( PCLIENT pc, POINTER buffer, size_t buflen )
 						struct pending_buf *pend = New( struct pending_buf );
 						pend->data = sendbuf;
 						pend->datalen = buflen;
-						sendbuf = NewArray( _8, buflen );
+						sendbuf = NewArray( uint8_t, buflen );
 						if( !root->delay_send )
-							root->delay_send = ThreadTo( DelaySend, (PTRSZVAL)root );
+							root->delay_send = ThreadTo( DelaySend, (uintptr_t)root );
 					}
 					else
 					{
@@ -203,9 +203,9 @@ static void RelayServerRead( PCLIENT pc, POINTER buffer, size_t buflen )
 								struct pending_buf *pend = New( struct pending_buf );
 								pend->data = sendbuf;
 								pend->datalen = buflen;
-								sendbuf = NewArray( _8, buflen );
+								sendbuf = NewArray( uint8_t, buflen );
 								if( !sendto->delay_send )
-									sendto->delay_send = ThreadTo( DelaySend, (PTRSZVAL)sendto );
+									sendto->delay_send = ThreadTo( DelaySend, (uintptr_t)sendto );
 							}
 							else
 							{
@@ -227,9 +227,9 @@ static void RelayServerRead( PCLIENT pc, POINTER buffer, size_t buflen )
 							struct pending_buf *pend = New( struct pending_buf );
 							pend->data = sendbuf;
 							pend->datalen = buflen;
-							sendbuf = NewArray( _8, buflen );
+							sendbuf = NewArray( uint8_t, buflen );
 							if( !sendto->delay_send )
-								sendto->delay_send = ThreadTo( DelaySend, (PTRSZVAL)sendto );
+								sendto->delay_send = ThreadTo( DelaySend, (uintptr_t)sendto );
 						}
 						else
 						{

@@ -173,7 +173,7 @@ double FrameTime;
 
 
 
-static PTRSZVAL OnInit3d( "BlackVoxel" )(PMatrix projection, PTRANSFORM camera, RCOORD *identity_depth, RCOORD *aspect )
+static uintptr_t OnInit3d( "BlackVoxel" )(PMatrix projection, PTRANSFORM camera, RCOORD *identity_depth, RCOORD *aspect )
 {
 	Ge->display_index++;
 	// worldview; external to modelview.
@@ -184,12 +184,12 @@ static PTRSZVAL OnInit3d( "BlackVoxel" )(PMatrix projection, PTRANSFORM camera, 
 	return Ge->display_index;
 }
 
-static void OnFirstDraw3d( "BlackVoxel" )( PTRSZVAL psvInit )
+static void OnFirstDraw3d( "BlackVoxel" )( uintptr_t psvInit )
 {
 	int result;
 	//result = Init_GraphicMode(InitLog.Sec(1030));        if (!result) return;//(false);
 	{
-		_32 w, h;
+		uint32_t w, h;
 		GetDisplaySize( &w, &h );
 		Ge->HardwareResolution.x
 			= Ge->ScreenResolution.x = w;
@@ -206,7 +206,7 @@ static void OnFirstDraw3d( "BlackVoxel" )( PTRSZVAL psvInit )
 	//if (!result) return(false);
 }
 
-static void OnBeginDraw3d("BlackVoxel")( PTRSZVAL psvInit, PTRANSFORM camera )
+static void OnBeginDraw3d("BlackVoxel")( uintptr_t psvInit, PTRANSFORM camera )
 {
 	//Set Ge->Basic_Renderer->Camera->orientation.quat();
 	Ge->Basic_Renderer->current_gl_camera = psvInit - 1;
@@ -301,7 +301,7 @@ static LOGICAL OnUpdate3d( "BlackVoxel" )( PTRANSFORM origin )
 	return TRUE;
 }
 
-static void OnDraw3d( "BlackVoxel" )( PTRSZVAL psvInit )
+static void OnDraw3d( "BlackVoxel" )( uintptr_t psvInit )
 {
 	ULong Result;
 	Timer_Draw.Start();
@@ -413,7 +413,7 @@ static void OnDraw3d( "BlackVoxel" )( PTRSZVAL psvInit )
 	Timer_Draw.End();
 }
 
-static LOGICAL OnKey3d( "BlackVoxel" )( PTRSZVAL psvInit, _32 key )
+static LOGICAL OnKey3d( "BlackVoxel" )( uintptr_t psvInit, uint32_t key )
 {
 	bool used = false;
 		  ZListItem * Item;
@@ -439,7 +439,7 @@ static LOGICAL OnKey3d( "BlackVoxel" )( PTRSZVAL psvInit, _32 key )
 			return used;
 }
 
-static LOGICAL OnMouse3d( "BlackVoxel" )( PTRSZVAL psvInit, PRAY mouse_ray, S_32 _MouseX, S_32 _MouseY, _32 b ) 
+static LOGICAL OnMouse3d( "BlackVoxel" )( uintptr_t psvInit, PRAY mouse_ray, int32_t _MouseX, int32_t _MouseY, uint32_t b ) 
 {
 	//Ge->EventManager.ConsumerList
 	{
@@ -447,7 +447,7 @@ static LOGICAL OnMouse3d( "BlackVoxel" )( PTRSZVAL psvInit, PRAY mouse_ray, S_32
 
 		  static int in_mouse;
 			static float _x, _y;
-			static _32 _b;
+			static uint32_t _b;
 			float MouseX = (float)_MouseX;
 			float MouseY = (float)_MouseY;
 			float delx, dely;

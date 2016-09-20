@@ -12,7 +12,7 @@
 //----------------------------------------------------------------------
 
 extern INDEX tick;
-extern _64 ticks[20];
+extern uint64_t ticks[20];
 
 // doubly linked list only head needed.
 //POBJECT pFirstObject; // only one needed....

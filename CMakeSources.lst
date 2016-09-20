@@ -361,11 +361,8 @@ else( WIN32 )
 endif( WIN32 )
 
 if( NOT __NO_NETWORK__ )
-set( SACK_PLUSPLUS_HEADERS ${SACK_PLUSPLUS_HEADERS} 
-     ${SOURCES_ROOT}src/netlib/html5.websocket/client/local.h
-     ${SOURCES_ROOT}src/netlib/html5.websocket/json/json.h
-     ${SOURCES_ROOT}src/netlib/html5.websocket/html5.websocket.common.h
-     
+
+set( MATRIXSSL_HEADERS_EXTRA_COPY 
      ${SOURCES_ROOT}src/contrib/MatrixSSL/${MATRIXSSL_VERSION}/matrixssl/matrixsslApi.h
      ${SOURCES_ROOT}src/contrib/MatrixSSL/${MATRIXSSL_VERSION}/matrixssl/matrixsslConfig.h
      ${SOURCES_ROOT}src/contrib/MatrixSSL/${MATRIXSSL_VERSION}/matrixssl/matrixssllib.h
@@ -385,7 +382,13 @@ set( SACK_PLUSPLUS_HEADERS ${SACK_PLUSPLUS_HEADERS}
      ${SOURCES_ROOT}src/contrib/MatrixSSL/${MATRIXSSL_VERSION}/crypto/keyformat/asn1.h
      ${SOURCES_ROOT}src/contrib/MatrixSSL/${MATRIXSSL_VERSION}/crypto/keyformat/x509.h
      ${SOURCES_ROOT}src/contrib/MatrixSSL/${MATRIXSSL_VERSION}/crypto/prng/prng.h
-     
+)     
+
+set( SACK_PLUSPLUS_HEADERS ${SACK_PLUSPLUS_HEADERS} 
+     ${SOURCES_ROOT}src/netlib/html5.websocket/client/local.h
+     ${SOURCES_ROOT}src/netlib/html5.websocket/json/json.h
+     ${SOURCES_ROOT}src/netlib/html5.websocket/html5.websocket.common.h
+ // ${MATRIXSSL_HEADERS_EXTRA_COPY}    
      )
 
 

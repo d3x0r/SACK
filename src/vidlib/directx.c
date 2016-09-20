@@ -24,8 +24,8 @@
 #define __in_bcount(n)
 #define __in_bcount_opt(n)
 
-#define UINT8 _8
-#define UINT  _32
+#define UINT8 uint8_t
+#define UINT  uint32_t
 #include <d3d10.h>
 */
 #include <d3d9.h>

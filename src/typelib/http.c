@@ -27,7 +27,7 @@ struct HttpState {
 	PLIST fields; // list of struct HttpField *, these other the other meta fields in the header.
 	PLIST cgi_fields; // list of HttpField *, taken in from the URL or content (get or post)
 
-	_32 content_length;
+	uint32_t content_length;
 	PTEXT content; // content of the message, POST,PUT,PATCH and replies have this.
 
 	int final; // boolean flag - indicates that the header portion of the http request is finished.
@@ -46,7 +46,7 @@ struct HttpState {
 	size_t read_chunk_length;
 	size_t read_chunk_total_length;
 	enum ReadChunkState read_chunk_state;
-	_32 last_read_tick;
+	uint32_t last_read_tick;
 	PTHREAD waiter;
 };
 
@@ -54,7 +54,7 @@ struct HttpServer {
 	PCLIENT server;
 	PLIST clients;
 	ProcessHttpRequest handle_request;
-	PTRSZVAL psvRequest;
+	uintptr_t psvRequest;
 	CTEXTSTR site;
 	PCLASSROOT methods;
 };
@@ -255,7 +255,7 @@ int ProcessHttp( PCLIENT pc, struct HttpState *pHttpState )
 													if( nextword )
 													{
 														next = NEXTLINE( nextword );
-														// cast from S_64
+														// cast from int64_t
 														pHttpState->numeric_code = (int)IntCreateFromText( GetText( nextword ) );
 														nextword = next;
 														if( nextword )
@@ -356,7 +356,7 @@ int ProcessHttp( PCLIENT pc, struct HttpState *pHttpState )
 			{
 				if( TextLike( field->name, WIDE( "content-length" ) ) )
 				{
-					// down convert from S_64
+					// down convert from int64_t
 					pHttpState->content_length = (int)IntCreateFromSeg( field->value );
 				}
 				if( TextLike( field->name, WIDE( "Transfer-Encoding" ) ) )
@@ -406,10 +406,10 @@ int ProcessHttp( PCLIENT pc, struct HttpState *pHttpState )
 
 LOGICAL AddHttpData( struct HttpState *pHttpState, POINTER buffer, size_t size )
 {
-   pHttpState->last_read_tick = GetTickCount();
+	pHttpState->last_read_tick = GetTickCount();
 	if( pHttpState->read_chunks )
 	{
-		P_8 buf = (P_8)buffer;
+		uint8_t* buf = (uint8_t*)buffer;
 		int ofs = 0;
 		while( ofs < size )
 		{
@@ -582,7 +582,7 @@ PTEXT GetHttpContent( struct HttpState *pHttpState )
 	return NULL;
 }
 
-void ProcessHttpFields( struct HttpState *pHttpState, void (CPROC*f)( PTRSZVAL psv, PTEXT name, PTEXT value ), PTRSZVAL psv )
+void ProcessHttpFields( struct HttpState *pHttpState, void (CPROC*f)( uintptr_t psv, PTEXT name, PTEXT value ), uintptr_t psv )
 {
 	INDEX idx;
 	struct HttpField *field;
@@ -592,7 +592,7 @@ void ProcessHttpFields( struct HttpState *pHttpState, void (CPROC*f)( PTRSZVAL p
 	}
 }
 
-void ProcessCGIFields( struct HttpState *pHttpState, void (CPROC*f)( PTRSZVAL psv, PTEXT name, PTEXT value ), PTRSZVAL psv )
+void ProcessCGIFields( struct HttpState *pHttpState, void (CPROC*f)( uintptr_t psv, PTEXT name, PTEXT value ), uintptr_t psv )
 {
 	INDEX idx;
 	struct HttpField *field;
@@ -715,14 +715,19 @@ static void CPROC HttpReader( PCLIENT pc, POINTER buffer, size_t size )
 					lprintf( WIDE("Sending Request...") );
 					LogBinary( GetText( send ), GetTextSize( send ) );
 				}
+#ifndef NO_SSL
+				// had to wait for handshake, so NULL event
+				// on secure has already had time to build the send
+				// but had to wait until now to do that.
 				ssl_Send( pc, GetText( send ), GetTextSize( send ) );
+#endif
 				LineRelease( send );
 			}
 		}
 		else
 		{
 			buffer = Allocate( 4096 );
-			SetNetworkLong( pc, 1, (PTRSZVAL)buffer );
+			SetNetworkLong( pc, 1, (uintptr_t)buffer );
 		}
 	}
 	else
@@ -772,8 +777,8 @@ HTTPState PostHttpQuery( PTEXT address, PTEXT url, PTEXT content )
 	if( pc )
 	{
 		PTEXT send = VarTextGet( pvtOut );
-		SetNetworkLong( pc, 0, (PTRSZVAL)&pc );
-		SetNetworkLong( pc, 2, (PTRSZVAL)state );
+		SetNetworkLong( pc, 0, (uintptr_t)&pc );
+		SetNetworkLong( pc, 2, (uintptr_t)state );
 		SetNetworkCloseCallback( pc, HttpReaderClose );
 		if( l.flags.bLogReceived )
 		{
@@ -819,8 +824,8 @@ HTTPState GetHttpQuery( PTEXT address, PTEXT url )
 		if( pc )
 		{
 			PTEXT send = VarTextGet( pvtOut );
-			SetNetworkLong( pc, 0, (PTRSZVAL)&pc );
-			SetNetworkLong( pc, 2, (PTRSZVAL)state );
+			SetNetworkLong( pc, 0, (uintptr_t)&pc );
+			SetNetworkLong( pc, 2, (uintptr_t)state );
 			SetNetworkCloseCallback( pc, HttpReaderClose );
 			if( l.flags.bLogReceived )
 			{
@@ -850,9 +855,9 @@ HTTPState GetHttpsQuery( PTEXT address, PTEXT url )
 		pc = OpenTCPClient( GetText( address ), 443, NULL );
 		if( pc )
 		{
-         state->last_read_tick = GetTickCount();
-			SetNetworkLong( pc, 0, (PTRSZVAL)&pc );
-			SetNetworkLong( pc, 2, (PTRSZVAL)state );
+			state->last_read_tick = GetTickCount();
+			SetNetworkLong( pc, 0, (uintptr_t)&pc );
+			SetNetworkLong( pc, 2, (uintptr_t)state );
 			SetNetworkCloseCallback( pc, HttpReaderClose );
 			SetNetworkReadComplete( pc, HttpReader );
 			state->ssl = TRUE;
@@ -860,7 +865,8 @@ HTTPState GetHttpsQuery( PTEXT address, PTEXT url )
 			vtprintf( state->pvtOut, WIDE( "GET %s HTTP/1.1\r\n" ), GetText( url ) );
 			vtprintf( state->pvtOut, WIDE( "host: %s\r\n" ), GetText( address ) );
 			vtprintf( state->pvtOut, WIDE( "\r\n\r\n" ) );
-			if( ssl_BeginClientSession( pc ) )
+#ifndef NO_SSL
+			if( ssl_BeginClientSession( pc, NULL, 0 ) )
 			{
 				state->waiter = MakeThread();
 				while( pc && ( state->last_read_tick > ( GetTickCount() - 20000 ) ) )
@@ -870,6 +876,7 @@ HTTPState GetHttpsQuery( PTEXT address, PTEXT url )
 			}
 			else
 				RemoveClient( pc );
+#endif
 			VarTextDestroy( &state->pvtOut );
 			if( !pc )
 				return state;
@@ -925,12 +932,12 @@ static LOGICAL InvokeMethod( PCLIENT pc, struct HttpServer *server, struct HttpS
 		PCLASSROOT data = NULL;
 		//lprintf( "is a get or post? ");
 		{
-			LOGICAL (CPROC *f)(PTRSZVAL, PCLIENT, struct HttpState *, PTEXT);
+			LOGICAL (CPROC *f)(uintptr_t, PCLIENT, struct HttpState *, PTEXT);
 			LOGICAL status = FALSE;
 			//lprintf( "is %s==%s?", name, GetText( pHttpState->resource ) + 1 );
 			//if( CompareMask( name, GetText( pHttpState->resource ) + 1, FALSE ) )
 			{
-				f = GetRegisteredProcedureExx( server->methods, (PCLASSROOT)(GetText( pHttpState->resource ) + 1), LOGICAL, GetText(request), (PTRSZVAL, PCLIENT, struct HttpState *, PTEXT) );
+				f = GetRegisteredProcedureExx( server->methods, (PCLASSROOT)(GetText( pHttpState->resource ) + 1), LOGICAL, GetText(request), (uintptr_t, PCLIENT, struct HttpState *, PTEXT) );
 				//lprintf( "got for %s %s", (PCLASSROOT)(GetText( pHttpState->resource ) + 1),  GetText( request ) );
 				//if( !f )
 				if( f )
@@ -966,7 +973,7 @@ static void CPROC HandleRequest( PCLIENT pc, POINTER buffer, size_t length )
 		struct HttpState *pHttpState = CreateHttpState();
 		buffer = pHttpState->buffer = Allocate( 4096 );
 		pHttpState->request_socket = pc;
-		SetNetworkLong( pc, 1, (PTRSZVAL)pHttpState );
+		SetNetworkLong( pc, 1, (uintptr_t)pHttpState );
 	}
 	else
 	{
@@ -1003,19 +1010,59 @@ static void CPROC RequestorClosed( PCLIENT pc )
 	struct HttpServer *server = (struct HttpServer *)GetNetworkLong( pc, 0 );
 	struct HttpState *pHttpState = (struct HttpState *)GetNetworkLong( pc, 1 );
 	DeleteLink( &server->clients, pc );
-	DestroyHttpState( pHttpState );
+	if( pHttpState )
+		DestroyHttpState( pHttpState );
 }
 
 static void CPROC AcceptHttpClient( PCLIENT pc_server, PCLIENT pc_new )
 {
-	struct HttpServer *server = (struct HttpServer *)GetNetworkLong( pc_server, 0 );
+	struct HttpServer *server;
+
+	while( !(server = (struct HttpServer *)GetNetworkLong( pc_server, 0 )) ) {
+		Relinquish();
+	}
 	AddLink( &server->clients, pc_new );
-	SetNetworkLong( pc_new, 0, (PTRSZVAL)server );
+	SetNetworkLong( pc_new, 0, (uintptr_t)server );
 	SetNetworkReadComplete( pc_new, HandleRequest );
 	SetNetworkCloseCallback( pc_new, RequestorClosed );
 }
 
-struct HttpServer *CreateHttpServerEx( CTEXTSTR interface_address, CTEXTSTR TargetName, CTEXTSTR site, ProcessHttpRequest handle_request, PTRSZVAL psv )
+#ifndef NO_SSL
+struct HttpServer *CreateHttpsServerEx( CTEXTSTR interface_address, CTEXTSTR TargetName, CTEXTSTR site, ProcessHttpRequest handle_request, uintptr_t psv ) {
+	struct HttpServer *server = New( struct HttpServer );
+	SOCKADDR *tmp;
+	TEXTCHAR class_name[256];
+#ifndef __NO_OPTIONS__
+	l.flags.bLogReceived = SACK_GetProfileIntEx( GetProgramName(), WIDE( "SACK/HTTP/Enable Logging Received Data" ), 0, TRUE );
+#endif
+	server->clients = NULL;
+	server->handle_request = handle_request;
+	server->psvRequest = psv;
+	server->site = StrDup( site );
+	tnprintf( class_name, sizeof( class_name ), WIDE( "SACK/Http/Methods/%s%s%s" )
+		, TargetName ? TargetName : WIDE( "" )
+		, (TargetName && site) ? WIDE( "/" ) : WIDE( "" )
+		, site ? site : WIDE( "" ) );
+	//lprintf( "Server root = %s", class_name );
+	server->methods = GetClassRoot( class_name );
+	NetworkStart();
+	server->server = OpenTCPListenerAddrEx( tmp = CreateSockAddress( interface_address ? interface_address : WIDE( "0.0.0.0" ), 80 )
+		, AcceptHttpClient );
+	SetNetworkLong( server->server, 0, (uintptr_t)server );
+	ssl_BeginServer( server->server, NULL, 0, NULL, 0 );
+	ReleaseAddress( tmp );
+	if( !server->server )
+	{
+		Release( server );
+		return NULL;
+	}
+
+	return server;
+
+}
+#endif
+
+struct HttpServer *CreateHttpServerEx( CTEXTSTR interface_address, CTEXTSTR TargetName, CTEXTSTR site, ProcessHttpRequest handle_request, uintptr_t psv )
 {
 	struct HttpServer *server = New( struct HttpServer );
 	SOCKADDR *tmp;
@@ -1042,7 +1089,7 @@ struct HttpServer *CreateHttpServerEx( CTEXTSTR interface_address, CTEXTSTR Targ
 		Release( server );
 		return NULL;
 	}
-	SetNetworkLong( server->server, 0, (PTRSZVAL)server );
+	SetNetworkLong( server->server, 0, (uintptr_t)server );
 
 	return server;
 }

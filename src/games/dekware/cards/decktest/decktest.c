@@ -64,10 +64,10 @@ typedef struct {
 	PDECK deck;
    PHAND hand;
 
-	_32 _b; // last button state.
+	uint32_t _b; // last button state.
 
-   _32 step_x, step_y;
-   _32 width, height;
+   uint32_t step_x, step_y;
+   uint32_t width, height;
 	Image card_image[4][13];
 
 	int nHand;
@@ -140,7 +140,7 @@ int CPROC TableDraw( PCOMMON pf )
 	return 1;
 }
 
-int CPROC TableMouse( PCOMMON psv, S_32 x, S_32 y, _32 b )
+int CPROC TableMouse( PCOMMON psv, int32_t x, int32_t y, uint32_t b )
 {
 	// what can I do with a mouse?
 	// I can drraw on a frame... I don't need to be a control...
@@ -150,10 +150,10 @@ int CPROC TableMouse( PCOMMON psv, S_32 x, S_32 y, _32 b )
 		int s = y / l.step_y;
 		int f = x / l.step_x;
 		if( s > 3 )
-			if( SUS_LT(y, S_32, ((l.step_y * 3) + l.height), _32 ) )
+			if( SUS_LT(y, int32_t, ((l.step_y * 3) + l.height), uint32_t ) )
 				s = 3;
 		if( f > 12 )
-			if( SUS_LT(x, S_32, ((l.step_x * 13 ) + l.width ), _32 ) )
+			if( SUS_LT(x, int32_t, ((l.step_x * 13 ) + l.width ), uint32_t ) )
             f = 12;
 		lprintf( WIDE("s:%d f:%d %p"), s, f, l.cards[s][f] );
 		if( ( s < 4 && s >= 0 )
@@ -212,8 +212,8 @@ int CPROC TableMouse( PCOMMON psv, S_32 x, S_32 y, _32 b )
 
 //--------------------------------------------------------------------------
 //--------------------------------------------------------------------------
-_32 hands;
-_32 start_tick;
+uint32_t hands;
+uint32_t start_tick;
 int nCards;
 PCARD hand[5];
 int handcount;
@@ -236,7 +236,7 @@ void ProcessHands( int level, int start )
 	handcount++;
 	if( ( handcount & 0xFFF ) == 0 )
 	{
-      _32 tick = GetTickCount();
+      uint32_t tick = GetTickCount();
       lprintf( WIDE("hands %ld in %ld = %ld"), handcount, tick - start_tick, (handcount)/(tick-start_tick));
 			start_tick = tick;
          handcount = 0;
@@ -316,7 +316,7 @@ void ProcessHands( int level, int start )
 	if( level == 0 )
 	{
 		{
-			_32 tick = GetTickCount();
+			uint32_t tick = GetTickCount();
 			lprintf( WIDE("hands %ld in %ld = %ld"), handcount, tick - start_tick, (handcount)/(tick-start_tick));
 			start_tick = tick;
          handcount = 0;

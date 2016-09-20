@@ -20,7 +20,7 @@ SaneWinMain( argc, argv )
    if( NetworkWait(NULL,1,0) )
 	{
 		SOCKADDR *sa = CreateRemote( argv[1], 5555 );
-		_32 IP;
+		uint32_t IP;
 		GetAddressParts( sa, &IP, NULL );
 
 		printf( WIDE("%")_32f WIDE(".%")_32f WIDE(".%")_32f WIDE(".%")_32f WIDE("")

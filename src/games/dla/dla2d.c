@@ -10,7 +10,7 @@
 #define SURFACE_PAD 100
 #define WORK_SIZE ((2*SURFACE_PAD)+SURFACE_SIZE)
 
-#define WORKTYPE _16
+#define WORKTYPE uint16_t
 struct roamer {
    int x, y;
 };
@@ -39,7 +39,7 @@ struct dla_local
 
 
 
-void OnDrawDisplay( PTRSZVAL psvUser, PRENDERER r )
+void OnDrawDisplay( uintptr_t psvUser, PRENDERER r )
 {
 	int x, y;
 	Image output = GetDisplayImage( r );
@@ -113,7 +113,7 @@ void OnDrawDisplay( PTRSZVAL psvUser, PRENDERER r )
 	//WakeThread( l.updater );
 }
 
-void CPROC TickUpdateDisplay( PTRSZVAL psv )
+void CPROC TickUpdateDisplay( uintptr_t psv )
 {
    Redraw( l.r );
 }
@@ -246,7 +246,7 @@ void UpdateRoamers( int start )
 
 }
 
-PTRSZVAL CPROC UpdateRoamerThread( PTHREAD thread )
+uintptr_t CPROC UpdateRoamerThread( PTHREAD thread )
 {
 	int start = GetThreadParam( thread );
 	l.updater = thread;
@@ -376,9 +376,9 @@ void InitSpaceSparks( void )
 	}
 }
 
- void MoreSalt( PTRSZVAL psv, POINTER *salt, size_t *salt_size )
+ void MoreSalt( uintptr_t psv, POINTER *salt, size_t *salt_size )
  {
-	 static _32 val;
+	 static uint32_t val;
 	 val = GetTickCount();
 	 (*salt) = &val;
 	 (*salt_size) = sizeof( val );

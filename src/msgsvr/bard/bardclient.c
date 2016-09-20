@@ -17,16 +17,16 @@
 typedef struct event_dispatch_tag
 {
 	struct {
-		_32 bSimple : 1; // simple event...
+		uint32_t bSimple : 1; // simple event...
 	} flags;
-	_32 EventID;
+	uint32_t EventID;
 	char *name;
 	struct {
 		// extra data attached to simple event message from network
 		// is passed here (timestamp)
 		struct {
-			void (CPROC *proc)(PTRSZVAL,char *extra);
-         PTRSZVAL psv;
+			void (CPROC *proc)(uintptr_t,char *extra);
+         uintptr_t psv;
 		} simple;
 	} dispatch;
 } EVENT_DISPATCHER, *PEVENT_DISPATCHER;
@@ -34,15 +34,15 @@ typedef struct event_dispatch_tag
 typedef struct bard_client_local_tag
 {
 	struct {
-		_32 connected : 1;
-		_32 disconnected : 1;
+		uint32_t connected : 1;
+		uint32_t disconnected : 1;
 	} flags;
-	_32 MsgBase;
+	uint32_t MsgBase;
    PLIST dispatchers;
 } LOCAL;
 static LOCAL l;
 
-static int CPROC EventHandler( _32 EventMsg, _32 *data, _32 length );
+static int CPROC EventHandler( uint32_t EventMsg, uint32_t *data, uint32_t length );
 
 static int ConnectToServer( void )
 {
@@ -64,7 +64,7 @@ static int ConnectToServer( void )
 }
 
 
-PTRSZVAL CPROC ReconnectThread( PTHREAD thread )
+uintptr_t CPROC ReconnectThread( PTHREAD thread )
 {
 	while( 1 )
 	{
@@ -78,10 +78,10 @@ PTRSZVAL CPROC ReconnectThread( PTHREAD thread )
 			{
 				if( event->flags.bSimple )
 				{
-					_32 result[1];
-					_32 response;
-					_32 null = 0;
-					_32 reslen = sizeof( result );
+					uint32_t result[1];
+					uint32_t response;
+					uint32_t null = 0;
+					uint32_t reslen = sizeof( result );
 					if( TransactServerMultiMessage( MSG_RegisterSimpleEvent + l.MsgBase, 2
 															, &response, result, &reslen
 															, &event->EventID, sizeof( event->EventID )
@@ -114,7 +114,7 @@ PTRSZVAL CPROC ReconnectThread( PTHREAD thread )
 }
 
 
-static int CPROC EventHandler( _32 EventMsg, _32 *data, _32 length )
+static int CPROC EventHandler( uint32_t EventMsg, uint32_t *data, uint32_t length )
 {
 	// events for updates are dispatched here, and routed further to the
 	// application specified callback.
@@ -145,12 +145,12 @@ static int CPROC EventHandler( _32 EventMsg, _32 *data, _32 length )
    return 0;
 }
 
-int BARD_RegisterForSimpleEvent ( char *eventname, void (CPROC*eventproc)(PTRSZVAL,char *extra), PTRSZVAL psv )
+int BARD_RegisterForSimpleEvent ( char *eventname, void (CPROC*eventproc)(uintptr_t,char *extra), uintptr_t psv )
 {
-	_32 result[1];
-	_32 response;
-	_32 null = 0;
-	_32 reslen = sizeof( result );
+	uint32_t result[1];
+	uint32_t response;
+	uint32_t null = 0;
+	uint32_t reslen = sizeof( result );
 	PEVENT_DISPATCHER event;
 	if( !ConnectToServer() )return 0;
 	event = (PEVENT_DISPATCHER)Allocate( sizeof( EVENT_DISPATCHER ) );
@@ -178,7 +178,7 @@ int BARD_RegisterForSimpleEvent ( char *eventname, void (CPROC*eventproc)(PTRSZV
 
 int BARD_IssueSimpleEvent( char *eventname )
 {
-   _32 null = 0;
+   uint32_t null = 0;
 	if( !ConnectToServer() )return 0;
 	if( !TransactServerMessage( MSG_IssueSimpleEvent + l.MsgBase
 									  , eventname?eventname:(char*)&null

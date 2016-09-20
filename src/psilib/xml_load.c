@@ -17,8 +17,8 @@ PSI_XML_NAMESPACE
 // ptu it in a structure...
 static struct {
 	CRITICALSECTION cs;
-	void (CPROC*InitProc)(PTRSZVAL,PSI_CONTROL);
-	PTRSZVAL psv; // psvInitProc
+	void (CPROC*InitProc)(uintptr_t,PSI_CONTROL);
+	uintptr_t psv; // psvInitProc
 	PSI_CONTROL frame;
 	struct {
 		BIT_FIELD cs_initialized;
@@ -51,13 +51,13 @@ void XMLCALL start_tags( void *UserData
 							  , const XML_Char **atts )
 {
 	struct xml_userdata *userdata = (struct xml_userdata *)UserData;
-	_32 ID = -1;
-	_32 x, y;
-	_32 edit_set = 0;
-	_32 disable_edit = 0;
-	_32 width, height;
+	uint32_t ID = -1;
+	uint32_t x, y;
+	uint32_t edit_set = 0;
+	uint32_t disable_edit = 0;
+	uint32_t width, height;
 	TEXTSTR caption = NULL;
-	_32 border = 0;
+	uint32_t border = 0;
 	LOGICAL border_set;
 	TEXTSTR font = NULL;
 	TEXTSTR control_data = NULL;
@@ -191,7 +191,7 @@ void XMLCALL end_tags( void *UserData
 //-------------------------------------------------------------------------
 static struct {
 	CTEXTSTR pFile;
-	_32 nLine;
+	uint32_t nLine;
 } current_loading;
 #if defined( _DEBUG ) || defined( _DEBUG_INFO )
 void * MyAllocate( size_t s ) { return AllocateEx( s, current_loading.pFile, current_loading.nLine ); }
@@ -243,7 +243,7 @@ PSI_CONTROL LoadXMLFrameOverExx( PSI_CONTROL parent, CTEXTSTR file, LOGICAL crea
 //PSI_CONTROL  LoadXMLFrame( char *file )
 {
 	POINTER buffer;
-	PTRSZVAL size;
+	uintptr_t size;
 	TEXTSTR delete_filename = NULL;
 	TEXTSTR filename = (TEXTSTR)file; // assume this is the name until later
 	PSI_CONTROL frame;

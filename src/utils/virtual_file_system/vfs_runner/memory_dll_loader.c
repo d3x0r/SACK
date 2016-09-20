@@ -12,7 +12,7 @@
 
 #include "self_compare.h"
 
-#define Seek(a,b) (((PTRSZVAL)a)+(b))
+#define Seek(a,b) (((uintptr_t)a)+(b))
 
 #ifdef WIN32
 # ifndef IMAGE_REL_BASED_ABSOLUTE
@@ -22,7 +22,7 @@
 #    define IMAGE_REL_BASED_DIR64 10
 #  endif
 
-PTRSZVAL ConvertVirtualToPhysical( PIMAGE_SECTION_HEADER sections, int nSections, PTRSZVAL base )
+uintptr_t ConvertVirtualToPhysical( PIMAGE_SECTION_HEADER sections, int nSections, uintptr_t base )
 {
 	int n;
 	for( n = 0; n < nSections; n++ )
@@ -36,7 +36,7 @@ PTRSZVAL ConvertVirtualToPhysical( PIMAGE_SECTION_HEADER sections, int nSections
 
 POINTER GetExtraData( POINTER block )
 {
-	//PTRSZVAL source_memory_length = block_len;
+	//uintptr_t source_memory_length = block_len;
 	POINTER source_memory = block;
 
 	{
@@ -62,8 +62,8 @@ POINTER GetExtraData( POINTER block )
 				+ sizeof( DWORD ) + sizeof( IMAGE_FILE_HEADER )
 				+ source_nt_header->FileHeader.SizeOfOptionalHeader;
 			PIMAGE_SECTION_HEADER source_section = (PIMAGE_SECTION_HEADER)Seek( source_memory, FPISections );
-			PTRSZVAL dwSize = 0;
-			PTRSZVAL newSize;
+			uintptr_t dwSize = 0;
+			uintptr_t newSize;
 			source_section = (PIMAGE_SECTION_HEADER)Seek( source_memory, FPISections );
 			for( n = 0; n < source_nt_header->FileHeader.NumberOfSections; n++ )
 			{
@@ -83,7 +83,7 @@ maybe it returns the library base... */
 POINTER ScanLoadLibraryFromMemory( CTEXTSTR name, POINTER block, size_t block_len, int library, LOGICAL (CPROC*Callback)(CTEXTSTR library) )
 {
 	static int generation;
-	PTRSZVAL source_memory_length = block_len;
+	uintptr_t source_memory_length = block_len;
 	POINTER source_memory = block;
 	static int level;
 	//if( level == 0 )
@@ -137,8 +137,8 @@ POINTER ScanLoadLibraryFromMemory( CTEXTSTR name, POINTER block, size_t block_le
 			PIMAGE_IMPORT_DESCRIPTOR real_import_base;
 			PIMAGE_SECTION_HEADER source_import_section = NULL;
 			PIMAGE_SECTION_HEADER source_text_section = NULL;
-			PTRSZVAL dwSize = 0;
-			PTRSZVAL newSize;
+			uintptr_t dwSize = 0;
+			uintptr_t newSize;
 			source_section = (PIMAGE_SECTION_HEADER)Seek( source_memory, FPISections );
 			// compute size of total of sections
 			// mark a few known sections for later processing
@@ -166,7 +166,7 @@ POINTER ScanLoadLibraryFromMemory( CTEXTSTR name, POINTER block, size_t block_le
 			//	real_import_base = (PIMAGE_IMPORT_DESCRIPTOR)Seek( source_memory, source_import_section->PointerToRawData );
 			//else
 			{
-				PTRSZVAL source_address = ConvertVirtualToPhysical( source_section, source_nt_header->FileHeader.NumberOfSections, dir[IMAGE_DIRECTORY_ENTRY_IMPORT].VirtualAddress );
+				uintptr_t source_address = ConvertVirtualToPhysical( source_section, source_nt_header->FileHeader.NumberOfSections, dir[IMAGE_DIRECTORY_ENTRY_IMPORT].VirtualAddress );
 				real_import_base = (PIMAGE_IMPORT_DESCRIPTOR)Seek( source_memory, source_address );
 			}
 
@@ -270,7 +270,7 @@ POINTER LoadLibraryFromMemory( CTEXTSTR name, POINTER block, size_t block_len, i
 /* This returns the entry point to the library 
 maybe it returns the library base... */
 	static int generation;
-	PTRSZVAL source_memory_length = block_len;
+	uintptr_t source_memory_length = block_len;
 	POINTER source_memory = block;
 	POINTER real_memory;
 	static int level;
@@ -316,8 +316,8 @@ maybe it returns the library base... */
 			PIMAGE_IMPORT_DESCRIPTOR real_import_base;
 			PIMAGE_SECTION_HEADER source_import_section = NULL;
 			PIMAGE_SECTION_HEADER source_text_section = NULL;
-			PTRSZVAL dwSize = 0;
-			PTRSZVAL newSize;
+			uintptr_t dwSize = 0;
+			uintptr_t newSize;
 			source_section = (PIMAGE_SECTION_HEADER)Seek( source_memory, FPISections );
 			// compute size of total of sections
 			// mark a few known sections for later processing
@@ -401,31 +401,31 @@ maybe it returns the library base... */
 				{
 					const char * dll_name = name;
 					int f;
-					PTRSZVAL *dwFunc;
-					PTRSZVAL *dwTargetFunc;
+					uintptr_t *dwFunc;
+					uintptr_t *dwTargetFunc;
 					PIMAGE_IMPORT_BY_NAME import_desc;
 					if( real_import_base[n].Name )
 						dll_name = (const char*) Seek( real_import_base, real_import_base[n].Name - dir[IMAGE_DIRECTORY_ENTRY_IMPORT].VirtualAddress/*source_import_section->VirtualAddress*/ );
 					//char * function_name = (char*) Seek( import_base, import_base[n]. - source_import_section->VirtualAddress );
 					//printf( "thing %s\n", dll_name );
 #if __WATCOMC__ && __WATCOMC__ < 1200
-					dwFunc = (PTRSZVAL*)Seek( real_import_base, real_import_base[n].OrdinalFirstThunk - dir[IMAGE_DIRECTORY_ENTRY_IMPORT].VirtualAddress );
+					dwFunc = (uintptr_t*)Seek( real_import_base, real_import_base[n].OrdinalFirstThunk - dir[IMAGE_DIRECTORY_ENTRY_IMPORT].VirtualAddress );
 #else
-					dwFunc = (PTRSZVAL*)Seek( real_import_base, real_import_base[n].OriginalFirstThunk - dir[IMAGE_DIRECTORY_ENTRY_IMPORT].VirtualAddress );
+					dwFunc = (uintptr_t*)Seek( real_import_base, real_import_base[n].OriginalFirstThunk - dir[IMAGE_DIRECTORY_ENTRY_IMPORT].VirtualAddress );
 #endif
-					dwTargetFunc = (PTRSZVAL*)Seek( real_import_base, real_import_base[n].FirstThunk - dir[IMAGE_DIRECTORY_ENTRY_IMPORT].VirtualAddress );
+					dwTargetFunc = (uintptr_t*)Seek( real_import_base, real_import_base[n].FirstThunk - dir[IMAGE_DIRECTORY_ENTRY_IMPORT].VirtualAddress );
 					for( f = 0; dwFunc[f]; f++ )
 					{
-						if( dwFunc[f] & ( (PTRSZVAL)1 << ( ( sizeof( PTRSZVAL ) * 8 ) - 1 ) ) )
+						if( dwFunc[f] & ( (uintptr_t)1 << ( ( sizeof( uintptr_t ) * 8 ) - 1 ) ) )
 						{
 							//printf( "Oridinal is %d\n", dwFunc[f] & 0xFFFF );
-							dwTargetFunc[f] = (PTRSZVAL)LoadFunction( dll_name, (CTEXTSTR)(dwFunc[f] & 0xFFFF) );
+							dwTargetFunc[f] = (uintptr_t)LoadFunction( dll_name, (CTEXTSTR)(dwFunc[f] & 0xFFFF) );
 						}
 						else
 						{
 							import_desc = (PIMAGE_IMPORT_BY_NAME)Seek( real_memory, dwFunc[f] );
 							//printf( " sub thing %s\n", import_desc->Name );
-							dwTargetFunc[f] = (PTRSZVAL)LoadFunction( dll_name, import_desc->Name );
+							dwTargetFunc[f] = (uintptr_t)LoadFunction( dll_name, import_desc->Name );
 						}
 					}
 				}
@@ -453,19 +453,19 @@ maybe it returns the library base... */
 						pb = (WORD *)Seek( ibr, sizeof( IMAGE_BASE_RELOCATION ) );
 						//lprintf( "Handle relocate block (%d<%d)  %d syms", section_offset, source_section[n].SizeOfRawData
 						//	, num_reloc );
-						//PTRSZVAL *pa = (PTRSZVAL *)Seek( real_memory, ibr->VirtualAddress ) ;
+						//uintptr_t *pa = (uintptr_t *)Seek( real_memory, ibr->VirtualAddress ) ;
 						for( reloc_entry = 0; reloc_entry < num_reloc; reloc_entry++ )
 						{
 							int mode = ( pb[reloc_entry] >> 12 );
 							// Need to do things with real_offset
-							PTRSZVAL *real_offset = (PTRSZVAL *)Seek( real_memory, ibr->VirtualAddress + ( pb[reloc_entry] & 0xFFF ) );
-							PTRSZVAL source_address = ConvertVirtualToPhysical( (PIMAGE_SECTION_HEADER)Seek( source_memory, FPISections ), source_nt_header->FileHeader.NumberOfSections, ibr->VirtualAddress );
-							PTRSZVAL *source_offset = (PTRSZVAL *)Seek( source_memory, source_address + ( pb[reloc_entry] & 0xFFF ) );
+							uintptr_t *real_offset = (uintptr_t *)Seek( real_memory, ibr->VirtualAddress + ( pb[reloc_entry] & 0xFFF ) );
+							uintptr_t source_address = ConvertVirtualToPhysical( (PIMAGE_SECTION_HEADER)Seek( source_memory, FPISections ), source_nt_header->FileHeader.NumberOfSections, ibr->VirtualAddress );
+							uintptr_t *source_offset = (uintptr_t *)Seek( source_memory, source_address + ( pb[reloc_entry] & 0xFFF ) );
 							switch( mode )
 							{
 							case IMAGE_REL_BASED_ABSOLUTE:
 								/* unused; except for padding */
-								//*((_32*)real_offset) = (_32)Seek( real_memory, (*real_offset - source_nt_header->OptionalHeader.ImageBase) );
+								//*((uint32_t*)real_offset) = (uint32_t)Seek( real_memory, (*real_offset - source_nt_header->OptionalHeader.ImageBase) );
 								//lprintf( "unused?");
 								break;
 							case IMAGE_REL_BASED_HIGH :
@@ -477,11 +477,11 @@ maybe it returns the library base... */
 								lprintf( "unused?");
 								break;
 							case IMAGE_REL_BASED_HIGHLOW:
-								*((_32*)real_offset) = (_32)Seek( real_memory, (*real_offset - source_nt_header->OptionalHeader.ImageBase) );
-								//lprintf( "update %p to %08x", real_offset, *(_32*)real_offset );
+								*((uint32_t*)real_offset) = (uint32_t)Seek( real_memory, (*real_offset - source_nt_header->OptionalHeader.ImageBase) );
+								//lprintf( "update %p to %08x", real_offset, *(uint32_t*)real_offset );
 								break;
 							case IMAGE_REL_BASED_DIR64:
-								*(real_offset) = (PTRSZVAL)Seek( real_memory, (*real_offset - source_nt_header->OptionalHeader.ImageBase) );
+								*(real_offset) = (uintptr_t)Seek( real_memory, (*real_offset - source_nt_header->OptionalHeader.ImageBase) );
 								break;
 							default:
 								lprintf( "Failed to determine type for relocation." );
@@ -519,7 +519,7 @@ maybe it returns the library base... */
 									, ( tls->EndAddressOfRawData - tls->StartAddressOfRawData ) + tls->SizeOfZeroFill
 									, tls->AddressOfIndex );
 							*/
-						data = NewArray( _8, size );
+						data = NewArray( uint8_t, size );
 #ifdef __WATCOMC__
                   tls_list = fn1();
 #elif defined( _MSC_VER )
@@ -576,7 +576,7 @@ maybe it returns the library base... */
 						//printf( "%d is %p\n", dwInit, data );
 						//printf( "and it was also %p\n", TlsGetValue( dwInit ));
 						memcpy( data, (POINTER)tls->StartAddressOfRawData, size_init );
-						memset( ((P_8)data) + size_init, 0, tls->SizeOfZeroFill );
+						memset( ((uint8_t*)data) + size_init, 0, tls->SizeOfZeroFill );
 					}
 				}
 			}
@@ -627,7 +627,7 @@ maybe it returns the library base... */
 #ifdef COMPILE_TEST
 static void CompareSelf( void )
 {
-	PTRSZVAL source_memory_length = 0;
+	uintptr_t source_memory_length = 0;
 	void (*f)(void);
 	POINTER source_memory = OpenSpace( NULL, "self_secure.module", &source_memory_length );
 	LoadLibraryFromMemory( "self_secure.module", source_memory, source_memory_length );
@@ -711,8 +711,8 @@ POINTER LoadLibraryFromMemory( CTEXTSTR name, POINTER block, size_t block_len, i
 		lprintf( "unsupported: unknown object type" );
 		return NULL;
 	}
-	entry_point = (POINTER)( (PTRSZVAL)elf->e_entry + (PTRSZVAL)block );
-	p = (ElfN_Phdr*)( (PTRSZVAL)block + elf->e_phoff );
+	entry_point = (POINTER)( (uintptr_t)elf->e_entry + (uintptr_t)block );
+	p = (ElfN_Phdr*)( (uintptr_t)block + elf->e_phoff );
 	// transfer code in memory-file to virtual address space.
 	{
 		size_t minVirt;
@@ -753,13 +753,13 @@ POINTER LoadLibraryFromMemory( CTEXTSTR name, POINTER block, size_t block_len, i
 			{
 			case PT_LOAD:
 				{
-					mmap( ( (PTRSZVAL)realMemory + ( p[n].p_vaddr - minVirt ) ) & ~PAGE_MASK
-						 , p[n].p_memsz + ( ( (PTRSZVAL)realMemory + ( p[n].p_vaddr - minVirt ) ) & PAGE_MASK )
+					mmap( ( (uintptr_t)realMemory + ( p[n].p_vaddr - minVirt ) ) & ~PAGE_MASK
+						 , p[n].p_memsz + ( ( (uintptr_t)realMemory + ( p[n].p_vaddr - minVirt ) ) & PAGE_MASK )
 						 , p[n].p_flags
 						 , MAP_PRIVATE | MAP_ANONYMOUS
 						 , -1, 0 );
-					memcpy( (void*)((PTRSZVAL)realMemory + ( p[n].p_vaddr - minVirt ) )
-							, (void*)((PTRSZVAL)block + p[n].p_offset )
+					memcpy( (void*)((uintptr_t)realMemory + ( p[n].p_vaddr - minVirt ) )
+							, (void*)((uintptr_t)block + p[n].p_offset )
 							, p[n].p_filesz );
 					break;
 				}

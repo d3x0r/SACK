@@ -16,16 +16,16 @@ static void DumpDirectory( struct volume *vol )
 			if( !(next_entries[n].first_block ^ entkey->first_block ) ) continue;// if file is deleted; don't check it's name.
 			{
 				char buf[256];
-				P_8 name = TSEEK( P_8, vol, name_ofs, BLOCK_CACHE_NAMES );
+				uint8_t* name = TSEEK( uint8_t*, vol, name_ofs, BLOCK_CACHE_NAMES );
 				int ch;
-				_8 c;
+				uint8_t c;
 				if( name_ofs < 8192 )
 				{
 					name_ofs -= BLOCK_SIZE;
 					name_ofs += 8192;
 					next_entries[n].name_offset = name_ofs ^ entkey->name_offset;
 					next_entries[n].first_block = entkey->first_block;
-					name = TSEEK( P_8, vol, name_ofs, BLOCK_CACHE_NAMES );
+					name = TSEEK( uint8_t*, vol, name_ofs, BLOCK_CACHE_NAMES );
 				}
 				for( ch = 0; c = (name[ch] ^ vol->usekey[BLOCK_CACHE_NAMES][( name_ofs & BLOCK_MASK ) +ch]); ch++ )
 					buf[ch] = c;

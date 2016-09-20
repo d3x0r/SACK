@@ -31,10 +31,10 @@ typedef struct render_3d_interface_tag
 #define g_d3d_device_context  (USE_RENDER3D_INTERFACE)->current_device_context
 #endif
 
-// static PTRSZVAL OnInit3d( "Virtuality" )( PMatrix projection, PTRANSFORM camera, RCOORD *identity_depth, RCOORD *aspect )
+// static uintptr_t OnInit3d( "Virtuality" )( PMatrix projection, PTRANSFORM camera, RCOORD *identity_depth, RCOORD *aspect )
 // each Init is called once for each display that is opened; the application recevies the reference
 // of the transform used for the camera.  This may be used to clip objects that are out of scene.
-// If you return 0 as the PTRSZVAL result, you will not get any further events.
+// If you return 0 as the uintptr_t result, you will not get any further events.
 //
 // - (passes identity_depth as a reference to identity depty, because if the screen size changes, the identity depth also changes)
 // identity_depth this is relative to how the display was opened.  identity is where there is a 1:1 relation
@@ -42,13 +42,13 @@ typedef struct render_3d_interface_tag
 // This may be arbitrarily overridden to be closer than normal in case the physical display dpi is too dense.
 // identity depth should be used for rendering icons on objects.
 #define OnInit3d(name) \
-	__DefineRegistryMethod(WIDE("sack/render/puregl"),Init3d,WIDE("init3d"),name,WIDE("ExtraInit3d"),PTRSZVAL,(PMatrix projection, PTRANSFORM camera, RCOORD *identity_depth, RCOORD *aspect ),__LINE__)
+	__DefineRegistryMethod(WIDE("sack/render/puregl"),Init3d,WIDE("init3d"),name,WIDE("ExtraInit3d"),uintptr_t,(PMatrix projection, PTRANSFORM camera, RCOORD *identity_depth, RCOORD *aspect ),__LINE__)
 
-// static void OnClose3d( "Virtuality" )(PTRSZVAL psvInit)
+// static void OnClose3d( "Virtuality" )(uintptr_t psvInit)
 // handle event when the specified display context is closed.  The value passed is the result from Init3d();
 // All resources relavent to the 3d engine should be released.  (shaders)  and statuses cleared so reinitialization can occur.
 #define OnClose3d(name) \
-	__DefineRegistryMethod(WIDE("sack/render/puregl"),Close3d,WIDE("draw3d"),name,WIDE("ExtraClose3d"),void,(PTRSZVAL psvInit),__LINE__)
+	__DefineRegistryMethod(WIDE("sack/render/puregl"),Close3d,WIDE("draw3d"),name,WIDE("ExtraClose3d"),void,(uintptr_t psvInit),__LINE__)
 
 // static void OnResume3d( "Virtuality" )( void) { }
 // On Resume is invoked when a significant time has passed and simulations should consider working from 'NOW'
@@ -59,7 +59,7 @@ typedef struct render_3d_interface_tag
 #define OnResume3d(name) \
 	__DefineRegistryMethod(WIDE("sack/render/puregl"),Resume3d,WIDE("draw3d"),name,WIDE("Resume3d"),void,(void),__LINE__)
 
-// static LOGICAL OnUpdate3d( "Virtuality" )( PTRSZVAL psvInit, PTRANSFORM eye_transform );
+// static LOGICAL OnUpdate3d( "Virtuality" )( uintptr_t psvInit, PTRANSFORM eye_transform );
 // called when a new frame will be rendered.  Once per frame.  All others are called per-camera per-frame.
 // can update the common viewpoint here, and it will propagate, otherwise the camera ends up resetting to
 // this point, unless the named transformation matrix is loaded manually.
@@ -70,44 +70,44 @@ typedef struct render_3d_interface_tag
 #define OnUpdate3d(name) \
 	__DefineRegistryMethod(WIDE("sack/render/puregl"),Update3d,WIDE("draw3d"),name,WIDE("Update3d"),LOGICAL,(PTRANSFORM origin ),__LINE__)
 
-// static void OnFirstDraw3d( "Virtuality" )( PTRSZVAL psvInit );
+// static void OnFirstDraw3d( "Virtuality" )( uintptr_t psvInit );
 // called the first time a camera draws itself;
 // allows user code to load geometry into the camera... 
 // it is passed the instance handle returned from Init3d
 #define OnFirstDraw3d(name) \
-	__DefineRegistryMethod(WIDE("sack/render/puregl"),FirstDraw3d,WIDE("draw3d"),name,WIDE("FirstDraw3d"),void,(PTRSZVAL psvInit ),__LINE__)
+	__DefineRegistryMethod(WIDE("sack/render/puregl"),FirstDraw3d,WIDE("draw3d"),name,WIDE("FirstDraw3d"),void,(uintptr_t psvInit ),__LINE__)
 
 
-// static void OnBeginDraw3d( "Virtuality" )( PTRSZVAL psvInit, PTRANSFORM camera )
+// static void OnBeginDraw3d( "Virtuality" )( uintptr_t psvInit, PTRANSFORM camera )
 // this is called once for each display that is opened, and for each OnInit3d that did not return 0.
 // the psvInit is the init value returned, the mouse is the mouse as it is; it will be NULL if the mouse
 // is not in the current display and we are just drawing.
 // opportunity to override the camera position.
 #define OnBeginDraw3d(name) \
-	__DefineRegistryMethod(WIDE("sack/render/puregl"),BeginDraw3d,WIDE("draw3d"),name,WIDE("ExtraBeginDraw3d"),void,(PTRSZVAL psvUser,PTRANSFORM camera),__LINE__)
+	__DefineRegistryMethod(WIDE("sack/render/puregl"),BeginDraw3d,WIDE("draw3d"),name,WIDE("ExtraBeginDraw3d"),void,(uintptr_t psvUser,PTRANSFORM camera),__LINE__)
 
-// static void OnDraw3d( "Virtuality" )( PTRSZVAL psvInit )
+// static void OnDraw3d( "Virtuality" )( uintptr_t psvInit )
 // this is called once for each display that is opened, and for each OnInit3d that did not return 0.
 // the psvInit is the init value returned, the mouse is the mouse as it is; it will be NULL if the mouse
 // is not in the current display and we are just drawing.
 #define OnDraw3d(name) \
-	__DefineRegistryMethod(WIDE("sack/render/puregl"),Draw3d,WIDE("draw3d"),name,WIDE("ExtraDraw3d"),void,(PTRSZVAL psvUser),__LINE__)
+	__DefineRegistryMethod(WIDE("sack/render/puregl"),Draw3d,WIDE("draw3d"),name,WIDE("ExtraDraw3d"),void,(uintptr_t psvUser),__LINE__)
 
-// static LOGICAL OnMouse3d( "Virtuality" )( PTRSZVAL psvInit, PRAY mouse, S_32 x, S_32 y, _32 b )
+// static LOGICAL OnMouse3d( "Virtuality" )( uintptr_t psvInit, PRAY mouse, int32_t x, int32_t y, uint32_t b )
 // this is a real mouse event that is in a display that you returned non 0 during Init3d.
 // PRAY is the line represenging the point that the user has the mouse over at the moemnt.
 // mouse buttons are passed. for mouse state (may also be key state)
 // return FALSE if you did not use the mouse.
 // return TRUE if you did, and therefore the event is used and noonne else should make two things happen...
 #define OnMouse3d(name) \
-	__DefineRegistryMethod(WIDE("sack/render/puregl"),Mouse3d,WIDE("draw3d"),name,WIDE("ExtraMouse3d"),LOGICAL,(PTRSZVAL psvUser, PRAY mouse_ray, S_32 x, S_32 y, _32 b),__LINE__)
+	__DefineRegistryMethod(WIDE("sack/render/puregl"),Mouse3d,WIDE("draw3d"),name,WIDE("ExtraMouse3d"),LOGICAL,(uintptr_t psvUser, PRAY mouse_ray, int32_t x, int32_t y, uint32_t b),__LINE__)
 
-// static LOGICAL OnKey3d( "Virtuality" )( PTRSZVAL psvInit, _32 key )
+// static LOGICAL OnKey3d( "Virtuality" )( uintptr_t psvInit, uint32_t key )
 // this is a real key event that is in a display that you returned non 0 during Init3d.
 // return FALSE if you did not use the key.
 // return TRUE if you did use the key, and therefore the event is used and noonne else should make two things happen...
 #define OnKey3d(name) \
-	__DefineRegistryMethod(WIDE("sack/render/puregl"),Key3d,WIDE("draw3d"),name,WIDE("ExtraKey3d"),LOGICAL,(PTRSZVAL psvUser, _32 key),__LINE__)
+	__DefineRegistryMethod(WIDE("sack/render/puregl"),Key3d,WIDE("draw3d"),name,WIDE("ExtraKey3d"),LOGICAL,(uintptr_t psvUser, uint32_t key),__LINE__)
 
 
 #if !defined( FORCE_NO_INTERFACE ) && !defined( FORCE_NO_RENDER_INTERFACE )

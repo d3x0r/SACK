@@ -14,12 +14,12 @@ static struct countdown_timer_local
 	LOGICAL hidden;
 	CDATA background;
 	CDATA text;
-	_32 target_tick;
-	_32 default_tick_length;
+	uint32_t target_tick;
+	uint32_t default_tick_length;
 	SFTFont *font;
-	struct { S_32 x, y; _32 w, h; } show_location;
+	struct { int32_t x, y; uint32_t w, h; } show_location;
 	PLIST timers;
-	_32 tick_timer; // timer ID of periodic refresh
+	uint32_t tick_timer; // timer ID of periodic refresh
 } countdown_local;
 
 EasyRegisterControl( "Countdown Timer", 0 );
@@ -91,7 +91,7 @@ static LRESULT CALLBACK	MouseHook(int code,		// hook code
 	return CallNextHookEx ( countdown_local.nexthook, code, wParam, lParam);
 }
 
-static PTRSZVAL CPROC MouseThread( PTHREAD unused )
+static uintptr_t CPROC MouseThread( PTHREAD unused )
 {
 	MSG msg;
 	{
@@ -106,7 +106,7 @@ static PTRSZVAL CPROC MouseThread( PTHREAD unused )
 	return 0;
 }
 
-static void CPROC RefreshProc( PTRSZVAL psvTimer )
+static void CPROC RefreshProc( uintptr_t psvTimer )
 {
 	if( !countdown_local.hidden )
 	{
@@ -162,14 +162,14 @@ static int OnDrawCommon( "Countdown Timer" )( PSI_CONTROL pc )
 	{
 
 		TEXTCHAR buf[12];
-		_32 now = GetTickCount();
+		uint32_t now = GetTickCount();
 		ClearImageTo( surface, countdown_local.background );
 		if( countdown_local.target_tick > now )
 			snprintf( buf, 12, "%02d", 1 + ( ( countdown_local.target_tick - now ) / 1000 ) );
 		else
 			snprintf( buf, 12, "00" );
 		{
-			_32 w, h;
+			uint32_t w, h;
 			GetStringSizeFontEx( buf, 2, &w, &h, *countdown_local.font );
 			PutStringFontEx( surface, ( surface->width - w ) / 2, (surface->height - h ) / 2, countdown_local.text, 0, buf, 2, *countdown_local.font );
 		}
@@ -183,19 +183,19 @@ static int OnCreateCommon( "Countdown Timer" )( PSI_CONTROL pc )
 	return 1;
 }
 
-static PTRSZVAL OnCreateControl( "Countdown Timer" )(PSI_CONTROL parent, S_32 x, S_32 y, _32 w, _32 h)
+static uintptr_t OnCreateControl( "Countdown Timer" )(PSI_CONTROL parent, int32_t x, int32_t y, uint32_t w, uint32_t h)
 {
 	if( !countdown_local.font )
 		countdown_local.font = UseACanvasFont( parent, "Countdown Font" );
-	return (PTRSZVAL)MakeNamedControl( parent, "Countdown Timer", x, y, w, h, 0 );
+	return (uintptr_t)MakeNamedControl( parent, "Countdown Timer", x, y, w, h, 0 );
 }
 
-static PSI_CONTROL OnGetControl( "Countdown Timer" )(PTRSZVAL psv)
+static PSI_CONTROL OnGetControl( "Countdown Timer" )(uintptr_t psv)
 {
 	return (PSI_CONTROL)psv;
 }
 
-static LOGICAL OnQueryShowControl( "Countdown Timer" )(PTRSZVAL psv)
+static LOGICAL OnQueryShowControl( "Countdown Timer" )(uintptr_t psv)
 {
 	return !countdown_local.hidden;
 }

@@ -117,13 +117,13 @@ struct CanvasData {
 	//PPAGE_DATA page;
 
 	// each canvas can have a set of pages...
-	_32 nPages;
+	uint32_t nPages;
 	PLIST pages; // PPAGE_DATA list
-	S_32 left_right_page_offset;
+	int32_t left_right_page_offset;
 
 	struct {
-		S_32 x;
-		S_32 y;
+		int32_t x;
+		int32_t y;
 	} slide_state;
 
 	PLIST deleted_pages; // PPAGE_DATA no longer listed in pages... Undelete(?)
@@ -151,16 +151,16 @@ struct CanvasData {
 	// this is maintained for simplicity...
 	// it's a convenience for the PARTX, etc macros below.
 	struct canvas_location {
-		S_32 x, y;
-		_32 width, height;
+		int32_t x, y;
+		uint32_t width, height;
 	} location;
 
 	struct page_animation_state {
-		_32 start_tick;
-		_32 target_delta;
+		uint32_t start_tick;
+		uint32_t target_delta;
 	} page_animation;
 	// each canvas can have a different stting of partsx and partsy
-	//_32 nPartsX, nPartsY;  // finest granulatity of control placement
+	//uint32_t nPartsX, nPartsY;  // finest granulatity of control placement
 
 	PRENDERER edit_glare; // this has it's own direct draw methods.  Without complication of being a control.
 	PSI_CONTROL edit_glare_frame; // cause we need to reference the glare as a frame...
@@ -183,7 +183,7 @@ typedef struct global_tag
 	PTHREAD pMainThread;
 	PRENDERER display; // used to allow external applications to wake me.
 
-	PTRSZVAL psv_edit_security;
+	uintptr_t psv_edit_security;
 
 	PLIST frames;  // list of all canvases that have been created 
 
@@ -192,8 +192,8 @@ typedef struct global_tag
 	TEXTCHAR *config_filename;
 	SFTFont	*_keyfont;
 	PLIST glare_sets;
-	S_32 default_page_x, default_page_y;
-	_32 default_page_width, default_page_height;
+	int32_t default_page_x, default_page_y;
+	uint32_t default_page_width, default_page_height;
 
 	PMENU_BUTTON clonebutton;
 	int _px, _py;  // last part x, part y - marked on drag.
@@ -288,13 +288,13 @@ typedef struct global_tag
 //#define _MODY( canvas,npart, parts )  ( ( ( ( (PART_RESOLUTION) * npart ) ) * ((canvas)->height) ) % ((parts)*PART_RESOLUTION) )
 
 // get the X coordinate of a part
-#define _PARTX(page,part) (S_32)_COMPUTEX(page->canvas,part,(page)->grid.nPartsX)
+#define _PARTX(page,part) (int32_t)_COMPUTEX(page->canvas,part,(page)->grid.nPartsX)
 // get the Y coordinate of a part
-#define _PARTY(page,part) (S_32)_COMPUTEY(page->canvas,part,(page)->grid.nPartsY)
+#define _PARTY(page,part) (int32_t)_COMPUTEY(page->canvas,part,(page)->grid.nPartsY)
 // get the width coordinate of a part width
-#define _PARTW(page,x,w) (_32)(_PARTX(page,x+w)-_PARTX(page,x))
+#define _PARTW(page,x,w) (uint32_t)(_PARTX(page,x+w)-_PARTX(page,x))
 // get the height coordinate of a part height
-#define _PARTH(page,y,h) (_32)(_PARTY(page,y+h)-_PARTY(page,y))
+#define _PARTH(page,y,h) (uint32_t)(_PARTY(page,y+h)-_PARTY(page,y))
 
 // result with current parts
 #define _PARTSX(page) (page)->grid.nPartsX

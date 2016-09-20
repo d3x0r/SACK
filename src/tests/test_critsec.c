@@ -10,7 +10,7 @@ CRITICALSECTION *cs2;
 
 int cycles[10], locked[10];
 
-PTRSZVAL CPROC TestThread( PTHREAD thread )
+uintptr_t CPROC TestThread( PTHREAD thread )
 {
    int t = GetThreadParam( thread );
 	int n;
@@ -36,7 +36,7 @@ void gotoxy( int x, int y )
 #endif
 }
 
-void CPROC Status( PTRSZVAL psv )
+void CPROC Status( uintptr_t psv )
 {
    int n;
 	gotoxy( 0, 0 );
@@ -49,7 +49,7 @@ int main( void )
 {
 	PTHREAD threads[10];
 	int n;
-   _32 size = sizeof( CRITICALSECTION ) * 5;
+   uint32_t size = sizeof( CRITICALSECTION ) * 5;
 	CRITICALSECTION *secs = (CRITICALSECTION*)OpenSpace( "shared_test_crit_sec", NULL, &size );
 	cs1 = secs;
 	cs2 = secs + 1;

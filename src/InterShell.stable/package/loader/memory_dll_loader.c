@@ -11,7 +11,7 @@
 
 //#define DEBUG_LIBRARY_LOADING
 
-#define Seek(a,b) (((PTRSZVAL)a)+(b))
+#define Seek(a,b) (((uintptr_t)a)+(b))
 
 #ifdef WIN32
 #ifndef IMAGE_REL_BASED_ABSOLUTE
@@ -21,7 +21,7 @@
 #define IMAGE_REL_BASED_DIR64 10
 #endif
 
-PTRSZVAL ConvertVirtualToPhysical( PIMAGE_SECTION_HEADER sections, int nSections, PTRSZVAL base )
+uintptr_t ConvertVirtualToPhysical( PIMAGE_SECTION_HEADER sections, int nSections, uintptr_t base )
 {
 	int n;
 	for( n = 0; n < nSections; n++ )
@@ -35,7 +35,7 @@ PTRSZVAL ConvertVirtualToPhysical( PIMAGE_SECTION_HEADER sections, int nSections
 
 POINTER GetExtraData( POINTER block )
 {
-	//PTRSZVAL source_memory_length = block_len;
+	//uintptr_t source_memory_length = block_len;
 	POINTER source_memory = block;
 
 	{
@@ -64,8 +64,8 @@ POINTER GetExtraData( POINTER block )
 				+ sizeof( DWORD ) + sizeof( IMAGE_FILE_HEADER )
 				+ source_nt_header->FileHeader.SizeOfOptionalHeader;
 			PIMAGE_SECTION_HEADER source_section = (PIMAGE_SECTION_HEADER)Seek( source_memory, FPISections );
-			PTRSZVAL dwSize = 0;
-			PTRSZVAL newSize;
+			uintptr_t dwSize = 0;
+			uintptr_t newSize;
 			source_section = (PIMAGE_SECTION_HEADER)Seek( source_memory, FPISections );
 			for( n = 0; n < source_nt_header->FileHeader.NumberOfSections; n++ )
 			{
@@ -87,7 +87,7 @@ maybe it returns the library base... */
 POINTER ScanLoadLibraryFromMemory( CTEXTSTR name, POINTER block, size_t block_len, int library, LOGICAL (CPROC*Callback)(CTEXTSTR library) )
 {
 	static int generation;
-	PTRSZVAL source_memory_length = block_len;
+	uintptr_t source_memory_length = block_len;
 	POINTER source_memory = block;
 	static int level;
 	//if( level == 0 )
@@ -135,8 +135,8 @@ POINTER ScanLoadLibraryFromMemory( CTEXTSTR name, POINTER block, size_t block_le
 			PIMAGE_IMPORT_DESCRIPTOR real_import_base;
 			PIMAGE_SECTION_HEADER source_import_section = NULL;
 			PIMAGE_SECTION_HEADER source_text_section = NULL;
-			PTRSZVAL dwSize = 0;
-			PTRSZVAL newSize;
+			uintptr_t dwSize = 0;
+			uintptr_t newSize;
 			source_section = (PIMAGE_SECTION_HEADER)Seek( source_memory, FPISections );
 			// compute size of total of sections
 			// mark a few known sections for later processing
@@ -164,7 +164,7 @@ POINTER ScanLoadLibraryFromMemory( CTEXTSTR name, POINTER block, size_t block_le
 				real_import_base = (PIMAGE_IMPORT_DESCRIPTOR)Seek( source_memory, source_import_section->VirtualAddress );
 			else
 			{
-				PTRSZVAL source_address = ConvertVirtualToPhysical( source_section, source_nt_header->FileHeader.NumberOfSections, dir[IMAGE_DIRECTORY_ENTRY_IMPORT].VirtualAddress );
+				uintptr_t source_address = ConvertVirtualToPhysical( source_section, source_nt_header->FileHeader.NumberOfSections, dir[IMAGE_DIRECTORY_ENTRY_IMPORT].VirtualAddress );
 				real_import_base = (PIMAGE_IMPORT_DESCRIPTOR)Seek( source_memory, source_address );
 			}
 

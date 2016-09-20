@@ -4,7 +4,7 @@
 
 typedef struct dictionary_entry_tag
 {
-	_32 ID;
+	uint32_t ID;
 	//PLIST pReferences; // entries which reference this.
 	TEXTCHAR word[1];
 } DICT_ENTRY, *PDICT_ENTRY;
@@ -18,66 +18,66 @@ typedef struct alt_size_file_tag
 typedef struct size_tag
 {
 	struct {
-		_32 unusable : 1;
+		uint32_t unusable : 1;
 	} flags;
-	S_16 width;
-	S_16 height;
+	int16_t width;
+	int16_t height;
 } SIZES, *PSIZES;
 
 typedef struct short_size_file_tag
 {
 	struct {
-		_32 unusable : 1;
+		uint32_t unusable : 1;
 	} flags;
 	// and this type of size-file is only used in building the cache...
 	PDICT_ENTRY path; // path name reference
 	PDICT_ENTRY file; // file name reference
-	_32   nAlternate;
+	uint32_t   nAlternate;
 	PLIST pAlternate; // list of alternate files
-	_32   nSizes;
+	uint32_t   nSizes;
 	PLIST sizes; // may be more than one size per size-file
 } SHORT_SIZE_FILE, *PSHORT_SIZE_FILE;
 
 typedef struct size_file_tag
 {
 	struct {
-		_32 unusable : 1;
+		uint32_t unusable : 1;
 	} flags;
 	// and this type of size-file is only used in building the cache...
 	PDICT_ENTRY path; // path name reference
 	PDICT_ENTRY file; // file name reference
-	_32   nAlternate;
+	uint32_t   nAlternate;
 	PLIST pAlternate; // list of alternate files
-	_32   nSizes;
+	uint32_t   nSizes;
 	PLIST sizes; // may be more than one size per size-file
-	_8 SHA1[SHA1HashSize]; // only need on base file...
+	uint8_t SHA1[SHA1HashSize]; // only need on base file...
 } SIZE_FILE, *PSIZE_FILE;
 
 typedef struct app_size_file_tag
 {
 	struct {
-		_32 unusable : 1;
+		uint32_t unusable : 1;
 	} flags;
 	// and this type of size-file is only used in building the cache...
 	TEXTCHAR * path; // path name reference
 	TEXTCHAR * file; // file name reference
-	_32   nAlternate;
+	uint32_t   nAlternate;
 	PALT_SIZE_FILE pAlternate; // list of alternate files
-	_32   nSizes;
+	uint32_t   nSizes;
 	PSIZES sizes; // may be more than one size per size-file
 } APP_SIZE_FILE, *PAPP_SIZE_FILE;
 
-//	_8 SHA1[SHA1HashSize];
+//	uint8_t SHA1[SHA1HashSize];
 typedef struct font_style_t
 {
 	struct {
-		_32 mono : 1;
-		_32 unusable : 1;
-		_32 italic : 1;
-		_32 bold : 1;
+		uint32_t mono : 1;
+		uint32_t unusable : 1;
+		uint32_t italic : 1;
+		uint32_t bold : 1;
 	} flags;
 	PDICT_ENTRY name; // style name
-	_32    nFiles;
+	uint32_t    nFiles;
 	union {
 		PLIST  files;     // list of PSIZE_FILEs (equate size->file)
 		PAPP_SIZE_FILE appfiles;
@@ -87,10 +87,10 @@ typedef struct font_style_t
 typedef struct font_entry_tag
 {
 	struct {
-		_32 unusable : 1;
+		uint32_t unusable : 1;
 	} flags;
 	PDICT_ENTRY name;
-	_32   nStyles;
+	uint32_t   nStyles;
 	PLIST styles; // List of PFONT_STYLEs
 } FONT_ENTRY, *PFONT_ENTRY;
 

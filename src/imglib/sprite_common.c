@@ -61,7 +61,7 @@ void UnmakeSprite( PSPRITE sprite, int bForceImageAlso )
 
 
 
-PSPRITE SetSpriteHotspot( PSPRITE sprite, S_32 x, S_32 y )
+PSPRITE SetSpriteHotspot( PSPRITE sprite, int32_t x, int32_t y )
 {
 	if( sprite )
 	{
@@ -71,7 +71,7 @@ PSPRITE SetSpriteHotspot( PSPRITE sprite, S_32 x, S_32 y )
    return sprite;
 }
 
-PSPRITE SetSpritePosition( PSPRITE sprite, S_32 x, S_32 y )
+PSPRITE SetSpritePosition( PSPRITE sprite, int32_t x, int32_t y )
 {
 	if( sprite )
 	{

@@ -3,12 +3,12 @@
 #include <http.h>
 
 
-void ProcessRequest( PTRSZVAL psv
+void ProcessRequest( uintptr_t psv
 						 , struct HttpState *pHttpState
 						 , CTEXTSTR site
 						 , CTEXTSTR resource
 						  // data may be CGI, but it might be binary like for a file post
-						 , POINTER data, _32 length )
+						 , POINTER data, uint32_t length )
 {
 
 }
@@ -16,7 +16,7 @@ void ProcessRequest( PTRSZVAL psv
 int main( void )
 {
 	POINTER buffer;
-	PTRSZVAL size;
+	uintptr_t size;
 	TEXTCHAR url[256];
 	struct HttpRequestState *http;
 

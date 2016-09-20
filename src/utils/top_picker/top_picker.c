@@ -69,7 +69,7 @@ void ReadPlayers( CTEXTSTR query )
 	}
 }
 
-static void CPROC LocalOutput( PTRSZVAL psv, PTASK_INFO task, CTEXTSTR buffer, size_t size )
+static void CPROC LocalOutput( uintptr_t psv, PTASK_INFO task, CTEXTSTR buffer, size_t size )
 {
 	lprintf( WIDE("Task %p"), task );
 	if( strncmp( (char*)buffer, "~CONNECT OK", 11 )== 0 )
@@ -80,7 +80,7 @@ static void CPROC LocalOutput( PTRSZVAL psv, PTASK_INFO task, CTEXTSTR buffer, s
 	lprintf( WIDE("banner output: %s"), buffer );
 }
 
-static void CPROC RemoteKillEnd( PTRSZVAL psv, PTASK_INFO task )
+static void CPROC RemoteKillEnd( uintptr_t psv, PTASK_INFO task )
 {
 	l.remote_task_end = NULL;
 }
@@ -97,9 +97,9 @@ static void CloseRemote( void )
 	TerminateProgram( l.remote_task );
 }
 
-static void CPROC LocalEnd( PTRSZVAL psv, PTASK_INFO task )
+static void CPROC LocalEnd( uintptr_t psv, PTASK_INFO task )
 {
-	_32 result = GetTaskExitCode( task );
+	uint32_t result = GetTaskExitCode( task );
 	if( result == 1 )
 		l.flags.bResultYes = 1;
 	if( result == 2 )

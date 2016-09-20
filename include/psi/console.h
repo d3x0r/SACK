@@ -30,7 +30,7 @@ PSI_NAMESPACE
 
 typedef struct PSI_console_phrase *PSI_Console_Phrase;
 typedef struct PSI_console_feedback *PSI_Console_Feedback;
-typedef void (*PSI_Console_FeedbackClick)( PTRSZVAL psv_user, PSI_Console_Phrase );
+typedef void (*PSI_Console_FeedbackClick)( uintptr_t psv_user, PSI_Console_Phrase );
 typedef struct PSI_console_draw_context *PSI_Console_DrawContext;
 typedef void (*PSI_ConsoleMeasure)(void);
 typedef void(* PSI_ConsoleOutput)( void );
@@ -45,21 +45,21 @@ PSI_CONSOLE_PROC( int, pcprintf )( PSI_CONTROL pc, CTEXTSTR format, ... );
 PSI_CONSOLE_PROC( PSI_Console_Phrase, PSIConsoleOutput )( PSI_CONTROL pc, PTEXT lines );
 PSI_CONSOLE_PROC( PSI_Console_Phrase, PSIConsoleDirectOutput )( PSI_CONTROL pc, PTEXT lines );
 
-PSI_CONSOLE_PROC( void, PSI_Console_SetPhraseData )( PSI_Console_Phrase phrase, PTRSZVAL psv );
-PSI_CONSOLE_PROC( PTRSZVAL, PSI_Console_GetPhraseData )( PSI_Console_Phrase phrase );
+PSI_CONSOLE_PROC( void, PSI_Console_SetPhraseData )( PSI_Console_Phrase phrase, uintptr_t psv );
+PSI_CONSOLE_PROC( uintptr_t, PSI_Console_GetPhraseData )( PSI_Console_Phrase phrase );
 /* measure and draw */
 
 PSI_CONSOLE_PROC( PSI_Console_DrawContext, PSIConsoleCreateDrawContext )( PSI_CONTROL pc, PSI_ConsoleMeasure, PSI_ConsoleOutput );
-PSI_CONSOLE_PROC( PSI_Console_Phrase, PSIConsoleOwnerDrawnOutput )( PSI_CONTROL pc, PSI_Console_DrawContext, PTRSZVAL psv_user_data );
+PSI_CONSOLE_PROC( PSI_Console_Phrase, PSIConsoleOwnerDrawnOutput )( PSI_CONTROL pc, PSI_Console_DrawContext, uintptr_t psv_user_data );
 
 /* register a callback to get the line that was input into the console by the user */
-PSI_CONSOLE_PROC( void, PSIConsoleInputEvent )( PSI_CONTROL pc, void(CPROC*Event)(PTRSZVAL,PTEXT), PTRSZVAL psv );
+PSI_CONSOLE_PROC( void, PSIConsoleInputEvent )( PSI_CONTROL pc, void(CPROC*Event)(uintptr_t,PTEXT), uintptr_t psv );
 
 /* if TRUE, then the line that was read is immediately queued to the output stream */
 PSI_CONSOLE_PROC( void, PSIConsoleSetLocalEcho )( PSI_CONTROL pc, LOGICAL yesno );
 
 
-PSI_CONSOLE_PROC( PSI_Console_Feedback, PSI_ConsoleDefineFeedback )( PSI_Console_FeedbackClick, PTRSZVAL );
+PSI_CONSOLE_PROC( PSI_Console_Feedback, PSI_ConsoleDefineFeedback )( PSI_Console_FeedbackClick, uintptr_t );
 
 // during a feedback event, this can be used to remove the current mesasge.
 //PSI_CONSOLE_PROC( PSI_Console_Feedback, PSI_Console_FeedbackDelete )( PSI_Feedback context );

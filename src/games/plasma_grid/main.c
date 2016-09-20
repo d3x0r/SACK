@@ -40,14 +40,14 @@ struct plasma_local
 	int digits;
 	int decimal;
 	RCOORD horz_r_scale;
-	S_32 ofs_x, ofs_y;
-	S_32 mouse_x, mouse_y;
-	_32 mouse_b; 
+	int32_t ofs_x, ofs_y;
+	int32_t mouse_x, mouse_y;
+	uint32_t mouse_b; 
 
 	struct grid_reader *grid_reader;
 } l;
 
-int CPROC Mouse( PTRSZVAL psv, S_32 x, S_32 y, _32 b )
+int CPROC Mouse( uintptr_t psv, int32_t x, int32_t y, uint32_t b )
 {
 	if( MAKE_FIRSTBUTTON( b, l.mouse_b ) )
 	{
@@ -70,7 +70,7 @@ int CPROC Mouse( PTRSZVAL psv, S_32 x, S_32 y, _32 b )
 	return 1;
 }
 
-void CPROC DrawPlasma( PTRSZVAL psv, PRENDERER render )
+void CPROC DrawPlasma( uintptr_t psv, PRENDERER render )
 {
 	Image surface = GetDisplayImage( render );
 	LOGICAL use_grid_reader = FALSE;
@@ -132,15 +132,15 @@ void CPROC DrawPlasma( PTRSZVAL psv, PRENDERER render )
 		Release( data );
 }
 
-static void FeedRandom( PTRSZVAL psvPlasma, POINTER *salt, size_t *salt_size )
+static void FeedRandom( uintptr_t psvPlasma, POINTER *salt, size_t *salt_size )
 {
-	static _32 tick;
+	static uint32_t tick;
 	tick = timeGetTime();
 	(*salt) = &tick;
-	(*salt_size) = sizeof( _32 );
+	(*salt_size) = sizeof( uint32_t );
 }
 
-static int CPROC KeyPlasma( PTRSZVAL psv, _32 key )
+static int CPROC KeyPlasma( uintptr_t psv, uint32_t key )
 {
 	if( IsKeyPressed( key ) )
 	{
@@ -202,7 +202,7 @@ static void ComputeRoughness( struct slider_panel *panel )
 	Redraw( l.render );
 }
 
-static void CPROC Slider1UpdateProc(PTRSZVAL psv, PSI_CONTROL pc, int val)
+static void CPROC Slider1UpdateProc(uintptr_t psv, PSI_CONTROL pc, int val)
 {
 	// value is 0-1000 for the digits place
 	struct slider_panel *panel = (struct slider_panel *)psv;
@@ -210,7 +210,7 @@ static void CPROC Slider1UpdateProc(PTRSZVAL psv, PSI_CONTROL pc, int val)
 	ComputeRoughness( panel );
 }
 
-static void CPROC Slider2UpdateProc(PTRSZVAL psv, PSI_CONTROL pc, int val)
+static void CPROC Slider2UpdateProc(uintptr_t psv, PSI_CONTROL pc, int val)
 {
 	// decimal shift left-right
 	struct slider_panel *panel = (struct slider_panel *)psv;
@@ -218,7 +218,7 @@ static void CPROC Slider2UpdateProc(PTRSZVAL psv, PSI_CONTROL pc, int val)
 	ComputeRoughness( panel );
 }
 
-static void CPROC Slider3UpdateProc(PTRSZVAL psv, PSI_CONTROL pc, int val)
+static void CPROC Slider3UpdateProc(uintptr_t psv, PSI_CONTROL pc, int val)
 {
 	// hoirzonatal random modifier compared to center
 	struct slider_panel *panel = (struct slider_panel *)psv;
@@ -226,7 +226,7 @@ static void CPROC Slider3UpdateProc(PTRSZVAL psv, PSI_CONTROL pc, int val)
 	ComputeRoughness( panel );
 }
 
-static void CPROC Slider4UpdateProc(PTRSZVAL psv, PSI_CONTROL pc, int val)
+static void CPROC Slider4UpdateProc(uintptr_t psv, PSI_CONTROL pc, int val)
 {
 	// 
 	struct slider_panel *panel = (struct slider_panel *)psv;
@@ -243,22 +243,22 @@ struct slider_panel *MakeSliderFrame( void )
 	pc = panel->slider1 = MakeNamedControl( panel->frame, SLIDER_CONTROL_NAME, 10, 100, 480, 20, -1 );
 	SetSliderOptions( pc, SLIDER_HORIZ );
 	SetSliderValues( pc, 1, 500, 1000 );
-	SetSliderUpdateHandler( pc, Slider1UpdateProc, (PTRSZVAL)panel );
+	SetSliderUpdateHandler( pc, Slider1UpdateProc, (uintptr_t)panel );
 
 	pc = panel->slider2 = MakeNamedControl( panel->frame, SLIDER_CONTROL_NAME, 10, 120, 480, 20, -1 );
 	SetSliderOptions( pc, SLIDER_HORIZ );
 	SetSliderValues( pc, -10, 0, 10 );
-	SetSliderUpdateHandler( pc, Slider2UpdateProc, (PTRSZVAL)panel );
+	SetSliderUpdateHandler( pc, Slider2UpdateProc, (uintptr_t)panel );
 
 	pc = panel->slider3 = MakeNamedControl( panel->frame, SLIDER_CONTROL_NAME, 10, 140, 480, 20, -1 );
 	SetSliderOptions( pc, SLIDER_HORIZ );
 	SetSliderValues( pc, 1, 100, 200 );
-	SetSliderUpdateHandler( pc, Slider3UpdateProc, (PTRSZVAL)panel );
+	SetSliderUpdateHandler( pc, Slider3UpdateProc, (uintptr_t)panel );
 
 	pc = panel->slider4 = MakeNamedControl( panel->frame, SLIDER_CONTROL_NAME, 10, 160, 480, 20, -1 );
 	SetSliderOptions( pc, SLIDER_HORIZ );
 	SetSliderValues( pc, 1, 100, 100 );
-	SetSliderUpdateHandler( pc, Slider4UpdateProc, (PTRSZVAL)panel );
+	SetSliderUpdateHandler( pc, Slider4UpdateProc, (uintptr_t)panel );
 
 	panel->value1 = MakeNamedControl( panel->frame, STATIC_TEXT_NAME, 10, 10, 100, 20, -1 );
 	panel->value2 = MakeNamedControl( panel->frame, STATIC_TEXT_NAME, 120, 10, 100, 20, -1 );

@@ -2,7 +2,7 @@
 #include <filesys.h>
 
 
-static void CPROC DoFile( PTRSZVAL psv, CTEXTSTR name, int flags )
+static void CPROC DoFile( uintptr_t psv, CTEXTSTR name, int flags )
 {
 	printf( WIDE("%s%s:%s\n"), (flags&SFF_DRIVE)?WIDE("[drive]"):WIDE(""), (flags&SFF_DIRECTORY)?WIDE("path"):WIDE("file"), name );
 	fflush( stdout );

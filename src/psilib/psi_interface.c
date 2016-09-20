@@ -9,7 +9,7 @@
 
 PSI_PROC(PSI_CONTROL, NotNULL)( PCOMMON pf, int options, int x, int y, int w, int h,
                                  int viewport_x, int viewport_y, int total_x, int total_y,
-									 int row_thickness, int column_thickness, PTRSZVAL nID )
+									 int row_thickness, int column_thickness, uintptr_t nID )
 {
    return NULL;
 }

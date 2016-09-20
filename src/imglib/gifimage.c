@@ -99,9 +99,9 @@ typedef struct RGBcolor
 
    
 RGBcolor *Palette;              /* The palette that is used */
-_8 *Raster;       /* The raster data stream, unblocked */
+uint8_t *Raster;       /* The raster data stream, unblocked */
 
-_8 used[256];
+uint8_t used[256];
 int  numused;
 
 const char *id87 = "GIF87a";
@@ -109,16 +109,16 @@ const char *id89 = "GIF89a";
 
 int   ReadCode (void);
 //int   log2 (int);
-void  AddToPixel (_8);
+void  AddToPixel (uint8_t);
 short transparency = -1;
 
-ImageFile *ImageGifFile (_8* ptr, long filesize)
+ImageFile *ImageGifFile (uint8_t* ptr, long filesize)
 {
   ImageFile *file = NULL;
-  _8     *sptr = ptr;  //save pointer
+  uint8_t     *sptr = ptr;  //save pointer
   int       numcols;
   unsigned  char ch, ch1;
-  _8     *ptr1;
+  uint8_t     *ptr1;
   int   i;
 
   /* The hash table used by the decompressor */
@@ -146,7 +146,7 @@ ImageFile *ImageGifFile (_8* ptr, long filesize)
   memset( Suffix, 0, sizeof( Suffix ) );
   memset( OutCode, 0, sizeof( OutCode ) );
 
-  Raster = NewArray( _8, filesize );
+  Raster = NewArray( uint8_t, filesize );
   memset( Raster, 0, filesize );
 
   BitOffset = 0;
@@ -404,7 +404,7 @@ cleanup:
   UnmakeImageFile( file );
   file = NULL;
 file_okay:
-  if (Raster) { Deallocate( _8*, Raster ); Raster = NULL; }
+  if (Raster) { Deallocate( uint8_t*, Raster ); Raster = NULL; }
   if (Palette) { Deallocate( RGBcolor*, Palette ); Palette = NULL; }
 /*
   // stack variables HAH!
@@ -442,18 +442,18 @@ int ReadCode (void)
   return RawCode & ReadMask;
 }
 
-void AddToPixel (_8 Index)
+void AddToPixel (uint8_t Index)
 {
    if (YC<Height)
    {
       PCOLOR p = ImagePixelData + YC * BytesPerScanline + XC;
       if( transparency > -1 && Index == transparency )
       {
-         *(_32*)p = 0;
+         *(uint32_t*)p = 0;
       }
       else
       {
-         *(_32*)p = ( *(_32*)(Palette+Index) & 0x00FFFFFF ) | (0xFF000000);
+         *(uint32_t*)p = ( *(uint32_t*)(Palette+Index) & 0x00FFFFFF ) | (0xFF000000);
       }
    }
 

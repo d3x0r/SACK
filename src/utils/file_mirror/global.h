@@ -22,5 +22,5 @@ extern
 struct filemirror_global global_filemirror_data;
 
 
-void CPROC LogOutput( PTRSZVAL psv, PTASK_INFO task, CTEXTSTR buffer, size_t size );
+void CPROC LogOutput( uintptr_t psv, PTASK_INFO task, CTEXTSTR buffer, size_t size );
 

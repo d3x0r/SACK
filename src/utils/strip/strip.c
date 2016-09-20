@@ -6,7 +6,7 @@ TEXTCHAR *curdir=WIDE(".");
 typedef struct path_mask_tag
 {
 	struct  {
-		_32 ignore : 1;
+		uint32_t ignore : 1;
 	}flags;
 	TEXTCHAR *mask;
 } MASK, *PMASK;
@@ -47,7 +47,7 @@ TEXTCHAR linebuffer[1024 * 64];
 #define KEEP_CASE TRUE
 #endif
 
-void CPROC process( PTRSZVAL psv, CTEXTSTR file, int flags )
+void CPROC process( uintptr_t psv, CTEXTSTR file, int flags )
 {
 	static int count; // used for fix_double processing.
 	TEXTCHAR outfile[256];

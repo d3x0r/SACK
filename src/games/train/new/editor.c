@@ -37,27 +37,27 @@ typedef struct EDITOR_tag {
    IMAGE_POINT ptUpperLeft; // upper left screen coordinate of window...
 } EDITOR, *PEDITOR;
 
-void CPROC EditResizeCallback( PTRSZVAL dwUser );
+void CPROC EditResizeCallback( uintptr_t dwUser );
 
 
-LOGICAL CPROC PageUpKey( PTRSZVAL psv, _32 keycode )
+LOGICAL CPROC PageUpKey( uintptr_t psv, uint32_t keycode )
 {
    PEDITOR pe = (PEDITOR)psv;
 	TranslateRel( pe->TView, 0, 0, -1.0 );
-	EditResizeCallback( (PTRSZVAL)pe );
+	EditResizeCallback( (uintptr_t)pe );
 	return TRUE;
 }
 
 
-LOGICAL CPROC PageDownKey( PTRSZVAL psv, _32 keycode )
+LOGICAL CPROC PageDownKey( uintptr_t psv, uint32_t keycode )
 {
 	PEDITOR pe = (PEDITOR)psv;
 	TranslateRel( pe->TView, 0, 0, 1.0 );
-	EditResizeCallback( (PTRSZVAL)pe );
+	EditResizeCallback( (uintptr_t)pe );
 	return TRUE;
 }
 
-int CPROC EditMouseCallback( PTRSZVAL dwUser, S_32 x, S_32 y, _32 b )
+int CPROC EditMouseCallback( uintptr_t dwUser, int32_t x, int32_t y, uint32_t b )
 {
    static int _x, _y, _right, _left;
    int right, left;
@@ -200,7 +200,7 @@ int CPROC EditMouseCallback( PTRSZVAL dwUser, S_32 x, S_32 y, _32 b )
 
             }
             */
-            EditResizeCallback( (PTRSZVAL)pe ); // update screen...
+            EditResizeCallback( (uintptr_t)pe ); // update screen...
          }
       } 
       else if( pe->bDragNormal )
@@ -214,7 +214,7 @@ int CPROC EditMouseCallback( PTRSZVAL dwUser, S_32 x, S_32 y, _32 b )
             sub( vn, vn, pe->pCurrentLine->r.o );
             Apply( pe->TView, pe->pCurrentLine->r.n, vn ); // apply inverse -> Apply...
             // update Intersecting lines......
-            EditResizeCallback( (PTRSZVAL)pe ); // update screen...
+            EditResizeCallback( (uintptr_t)pe ); // update screen...
          }
       }
       else if( pe->bDragWorld )
@@ -233,7 +233,7 @@ int CPROC EditMouseCallback( PTRSZVAL dwUser, S_32 x, S_32 y, _32 b )
             sub( v1, v2, v1 );
             v1[vForward] = 0; 
             TranslateRelV( pe->TView, v1 );
-            EditResizeCallback( (PTRSZVAL)pe ); // update screen...
+            EditResizeCallback( (uintptr_t)pe ); // update screen...
          }
       }
 
@@ -349,7 +349,7 @@ static void DrawLine( Image pImage, PCVECTOR p, PCVECTOR m, RCOORD t1, RCOORD t2
 #endif
 
 
-void CPROC EditResizeCallback( PTRSZVAL dwUser  )
+void CPROC EditResizeCallback( uintptr_t dwUser  )
 {
    PEDITOR pe = (PEDITOR)dwUser;
    PFACETSET *ppfs;
@@ -431,11 +431,11 @@ PEDITOR CreateEditor( POBJECT po )
 	pe->TView = CreateTransform();
 	pe->hVideo = OpenDisplaySizedAt( 0, -1, -1, -1, -1 );
 	//InitVideo( "World Editor" );
-   SetRedrawHandler( pe->hVideo, (void (CPROC*)(PTRSZVAL,PRENDERER))EditResizeCallback, (PTRSZVAL)pe );
-	SetMouseHandler( pe->hVideo, EditMouseCallback, (PTRSZVAL)pe );
-   BindEventToKey( pe->hVideo, KEY_PGUP, 0, PageUpKey, (PTRSZVAL)pe );
-   BindEventToKey( pe->hVideo, KEY_PGDN, 0, PageDownKey, (PTRSZVAL)pe );
-  // SetCloseHandler( pe->hVideo, EditCloseCallback, (PTRSZVAL)pe );
+   SetRedrawHandler( pe->hVideo, (void (CPROC*)(uintptr_t,PRENDERER))EditResizeCallback, (uintptr_t)pe );
+	SetMouseHandler( pe->hVideo, EditMouseCallback, (uintptr_t)pe );
+   BindEventToKey( pe->hVideo, KEY_PGUP, 0, PageUpKey, (uintptr_t)pe );
+   BindEventToKey( pe->hVideo, KEY_PGDN, 0, PageDownKey, (uintptr_t)pe );
+  // SetCloseHandler( pe->hVideo, EditCloseCallback, (uintptr_t)pe );
 
 				  // menu for this instance....
 #ifdef __WINDOWS__
@@ -458,7 +458,7 @@ PEDITOR CreateEditor( POBJECT po )
 
    pe->bLocked = FALSE;
 
-	EditResizeCallback( (PTRSZVAL)pe);
+	EditResizeCallback( (uintptr_t)pe);
    UpdateDisplay( pe->hVideo );
    return pe;
 }

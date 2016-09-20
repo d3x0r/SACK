@@ -15,7 +15,7 @@ int main( int argc, char **argv )
 		p[n] = Allocate( 4097 );
 	}
 	{
-		_32 free, alloc, block, freeblock;
+		uint32_t free, alloc, block, freeblock;
 		GetMemStats( &free, &alloc, &block, &freeblock );
 		printf( WIDE("Stats: %d free %d allocated %d blocks and %d freeblocks\n"), free, alloc, block, freeblock );
 	}
@@ -25,7 +25,7 @@ int main( int argc, char **argv )
 		Release( p[n] );
 	}
 	{
-		_32 free, alloc, block, freeblock;
+		uint32_t free, alloc, block, freeblock;
 		GetMemStats( &free, &alloc, &block, &freeblock );
 		printf( WIDE("Stats: %d free %d allocated %d blocks and %d freeblocks\n"), free, alloc, block, freeblock );
 	}
@@ -36,14 +36,14 @@ int main( int argc, char **argv )
 		p[n] = Allocate( n * 3737 );
 	}
 	{
-		_32 free, alloc, block, freeblock;
+		uint32_t free, alloc, block, freeblock;
 		GetMemStats( &free, &alloc, &block, &freeblock );
 		printf( WIDE("Stats: %d free %d allocated %d blocks and %d freeblocks\n"), free, alloc, block, freeblock );
 	}
 	for( n = 0; n < 64; n++ )
 		Release( p[n] );
 	{
-		_32 free, alloc, block, freeblock;
+		uint32_t free, alloc, block, freeblock;
 		GetMemStats( &free, &alloc, &block, &freeblock );
 		printf( WIDE("Stats: %d free %d allocated %d blocks and %d freeblocks\n"), free, alloc, block, freeblock );
 	}
@@ -53,14 +53,14 @@ int main( int argc, char **argv )
 		p[n] = Allocate( n * 3737 );
 	}
 	{
-		_32 free, alloc, block, freeblock;
+		uint32_t free, alloc, block, freeblock;
 		GetMemStats( &free, &alloc, &block, &freeblock );
 		printf( WIDE("Stats: %d free %d allocated %d blocks and %d freeblocks\n"), free, alloc, block, freeblock );
 	}
 	for( n = 0; n < 64; n++ )
 		Release( p[n] );
 	{
-		_32 free, alloc, block, freeblock;
+		uint32_t free, alloc, block, freeblock;
 		GetMemStats( &free, &alloc, &block, &freeblock );
 		printf( WIDE("Stats: %d free %d allocated %d blocks and %d freeblocks\n"), free, alloc, block, freeblock );
 	}

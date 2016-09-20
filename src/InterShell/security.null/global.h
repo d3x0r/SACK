@@ -9,8 +9,8 @@ typedef struct null_password *PNULL_PASSWORD;
 
 struct null_password
 {
-	PTRSZVAL button; // object to secure, may not be a button.
-	PTRSZVAL psv;
+	uintptr_t button; // object to secure, may not be a button.
+	uintptr_t psv;
 	FLAGSETTYPE *permissions;
 	int nTokens;
 	TEXTSTR *pTokens;
@@ -42,9 +42,9 @@ struct sql_user
 	TEXTSTR last_name;
     TEXTSTR staff;
 	PLIST groups;
-	_32 dwFutTime; // expiration time...
-	_32 dwFutTime_Created; // account creation
-	_32 dwFutTime_Updated_Password; // last password update
+	uint32_t dwFutTime; // expiration time...
+	uint32_t dwFutTime_Created; // account creation
+	uint32_t dwFutTime_Updated_Password; // last password update
 };
 
 struct _global_null_password {
@@ -63,7 +63,7 @@ struct _global_null_password {
 	} flags;
 
 	PLIST users; // cached list of users
-	_32  prior_user_load; // prevent from reloading an already filled cache, but allow refreshing
+	uint32_t  prior_user_load; // prevent from reloading an already filled cache, but allow refreshing
 	int fDays;
 
 	PTHREAD pWindowThread;
@@ -86,12 +86,12 @@ TEXTSTR getCurrentUser( void );
 
 INDEX getCurrSystemID( void );
 
-PNULL_PASSWORD GetButtonSecurity( PTRSZVAL button, int bCreate );
+PNULL_PASSWORD GetButtonSecurity( uintptr_t button, int bCreate );
 
 void ReloadUserCache( PODBC odbc );
 
 // password_frame.c
 INDEX PromptForPassword( PUSER *result_user, INDEX *result_login_id, CTEXTSTR program, CTEXTSTR *tokens, int ntokens );
-void LogOutPassword( PTRSZVAL psv );
+void LogOutPassword( uintptr_t psv );
 
 #endif

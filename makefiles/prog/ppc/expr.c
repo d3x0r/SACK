@@ -143,8 +143,8 @@ enum { OP_HANG = -1 // used to indicate prior op complete, please hang on tree
 };
 
 char *fullopname[] = { "noop", WIDE("sub-expr")
-					 ,  "_8",  "_16",  "_32",  "_64" // unsigned int
-					 , WIDE("S_8"), WIDE("S_16"), WIDE("S_32"), WIDE("S_64") // signed int
+					 ,  "uint8_t",  "uint16_t",  "uint32_t",  "uint64_t" // unsigned int
+					 , WIDE("int8_t"), WIDE("int16_t"), WIDE("int32_t"), WIDE("int64_t") // signed int
 					 , WIDE("float"), WIDE("double") // float ops
 					 , WIDE("string"), WIDE("character")
 					 , WIDE("="), WIDE("==")

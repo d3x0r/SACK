@@ -19,7 +19,7 @@
 
 
 #define OnCreateSlider(name) \
-	DefineRegistryMethod(TASK_PREFIX,CreateSlider,"control",name,"slider_create",PTRSZVAL,(PSI_CONTROL))
+	DefineRegistryMethod(TASK_PREFIX,CreateSlider,"control",name,"slider_create",uintptr_t,(PSI_CONTROL))
 
 
 
@@ -33,7 +33,7 @@ enum {
 
 static struct {
 	PLIST controllist;      //samle list 
-	_32   value;           //current slider's value
+	uint32_t   value;           //current slider's value
 } l;
 
 
@@ -62,7 +62,7 @@ OnCreateMenuButton( MODULE_NAME "/button plus" )( PMENU_BUTTON button )
 //	InterShell_SetButtonAnimation( button, "images/AnimationWizard1.mng");
 //	UpdateButton( button );
 
-	return (PTRSZVAL)button;
+	return (uintptr_t)button;
 }
 
 
@@ -74,7 +74,7 @@ OnCreateMenuButton( MODULE_NAME "/button minus" )( PMENU_BUTTON button )
 	InterShell_SetButtonAnimation( button, "images/AnimationWizard1.mng");
 	UpdateButton( button );
 
-	return (PTRSZVAL)button;
+	return (uintptr_t)button;
 }
 
 
@@ -94,18 +94,18 @@ OnCreateListbox( MODULE_NAME "/samplelist" )( PSI_CONTROL listbox )
 
 	AddLink( &l.controllist, listbox );
 
-	return (PTRSZVAL)listbox;
+	return (uintptr_t)listbox;
 }
 
 
 
 
-OnSelectListboxItem( MODULE_NAME "/samplelist", MODULE_NAME "" )( PTRSZVAL psvList, PLISTITEM pli )
+OnSelectListboxItem( MODULE_NAME "/samplelist", MODULE_NAME "" )( uintptr_t psvList, PLISTITEM pli )
 /*
 * Update number of selected item
 */
 {
-	_32 n = 0;
+	uint32_t n = 0;
 	PLISTITEM pli_;
 	PSI_CONTROL list = (PSI_CONTROL)psvList;
 
@@ -124,7 +124,7 @@ OnSelectListboxItem( MODULE_NAME "/samplelist", MODULE_NAME "" )( PTRSZVAL psvLi
 
 
 
-OnShowControl( MODULE_NAME "/samplelist" )( PTRSZVAL psvList )
+OnShowControl( MODULE_NAME "/samplelist" )( uintptr_t psvList )
 /*
 * Populate list box whith data fetched from table system 
 */
@@ -161,7 +161,7 @@ OnShowControl( MODULE_NAME "/samplelist" )( PTRSZVAL psvList )
 }
 
 
-OnKeyPressEvent( MODULE_NAME "/button plus" )( PTRSZVAL psvButton )
+OnKeyPressEvent( MODULE_NAME "/button plus" )( uintptr_t psvButton )
 /*
 * Highlight next element on the list
 */
@@ -205,7 +205,7 @@ OnKeyPressEvent( MODULE_NAME "/button plus" )( PTRSZVAL psvButton )
 
 
 
-OnKeyPressEvent( MODULE_NAME "/button minus" )( PTRSZVAL psvButton )
+OnKeyPressEvent( MODULE_NAME "/button minus" )( uintptr_t psvButton )
 /*
 * Highlight previous element on the list
 */

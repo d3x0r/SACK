@@ -503,7 +503,7 @@ CORE_PROC( void, WriteOptionList )( PLINKQUEUE *Output, option_entry *commands
 void RegisterCommands(CTEXTSTR device, command_entry *cmds, INDEX nCommands)
 {
 	INDEX i;
-	//S_32 l;
+	//int32_t l;
 	static int lock;
 	//command_entry temp;
 	while( lock )
@@ -577,7 +577,7 @@ void RegisterOptions(CTEXTSTR device, option_entry *cmds, INDEX nCommands)
 		SimpleRegisterMethod( tmp2, cmds[i].function
 								  , WIDE("int"), name, WIDE("(PDATAPATH,PSENTIENT,PTEXT)") );
 		RegisterValue( tmp, WIDE("Description"), GetText( (PTEXT)&cmds[i].description ) );
-		//RegisterIntValue( tmp, WIDE("option_entry"), (PTRSZVAL)(cmds+i) );
+		//RegisterIntValue( tmp, WIDE("option_entry"), (uintptr_t)(cmds+i) );
 		//RegisterIntValue( tmp, WIDE("significant"), strlen( name ) );
 		//RegisterIntValue( tmp, WIDE("max_length"), strlen( name ) );
 	}
@@ -606,7 +606,7 @@ PTEXT Help( PSENTIENT ps, PTEXT pCommand ) /*FOLD00*/
 {
 	PLINKQUEUE *Output = &ps->Command->Output;
 	PENTITY pEnt = ps->Current;
-	_16 count;
+	uint16_t count;
 	PMACRO pm;
 	{
 		DECLTEXT( leader, WIDE(" --- Builtin Commands ---") );
@@ -657,7 +657,7 @@ PTEXT Methods( PSENTIENT ps ) /*FOLD00*/
 {
 	PLINKQUEUE *Output = &ps->Command->Output;
 	//PENTITY pEnt = ps->Current;
-	_16 count;
+	uint16_t count;
 	int bMethod = FALSE;
 	{
 		PVARTEXT vt = VarTextCreate();
@@ -988,7 +988,7 @@ static PTEXT LookupMacroVariable( CTEXTSTR ptext, PMACROSTATE pms )
 	// also cannot perform substition....
 	if( !strcmp( ptext, WIDE("...") ) ) // may test for 'elispes'?
 	{
-		S_32 i;
+		int32_t i;
 		//lprintf( WIDE("Gathering trailing macro args into one line...")  );
 		if( pms->pMacro->nArgs < 0 )
 		{
@@ -1102,13 +1102,13 @@ LOGICAL IsVariableBreak( PTEXT token )
 // tokens has to be updated if more than varname is used
 PENTITY ResolveEntity( PSENTIENT ps_out, PENTITY focus, enum FindWhere type, PTEXT *tokens, LOGICAL bKeepVarName )
 {
-	S_64 number;
+	int64_t number;
 	PTEXT septoken;
 	PTEXT original_token;
 	PTEXT next_token;
 	PTEXT name_token = NULL;
 	PENTITY result = NULL;
-	S_64 long_count = 1;
+	int64_t long_count = 1;
 	while( 1 )
 	{
 		original_token = (*tokens );
@@ -1238,7 +1238,7 @@ PENTITY ResolveEntity( PSENTIENT ps_out, PENTITY focus, enum FindWhere type, PTE
 CORE_PROC( PTEXT, SubstTokenEx )( PSENTIENT ps, PTEXT *token, int IsVar, int IsLen, PENTITY pe ) /*FOLD00*/
 {
 	PTEXT c;
-	_32 n;
+	uint32_t n;
 	PMACROSTATE pms;
 	PENTITY pEnt;
 	TEXTCHAR *ptext;
@@ -1416,9 +1416,9 @@ CORE_PROC( PTEXT, GetParam )( PSENTIENT ps, PTEXT *from )
 
 //--------------------------------------------------------------------------
 
-S_32 CountArguments( PSENTIENT ps, PTEXT args ) /*FOLD00*/
+int32_t CountArguments( PSENTIENT ps, PTEXT args ) /*FOLD00*/
 {
-	S_32 idx;
+	int32_t idx;
 	PTEXT pSubst;
 	idx = 0;
 	while( ( pSubst = SubstToken( ps, &args, FALSE, FALSE ) ) )
@@ -1439,7 +1439,7 @@ S_32 CountArguments( PSENTIENT ps, PTEXT args ) /*FOLD00*/
 			LineRelease( pSubst );
 	}
 	//xlprintf(LOG_NOISE+1)( WIDE("total args is %d"), idx );
-	return (S_32)idx;
+	return (int32_t)idx;
 }
 
 //--------------------------------------------------------------------------
@@ -1447,7 +1447,7 @@ S_32 CountArguments( PSENTIENT ps, PTEXT args ) /*FOLD00*/
 void DestroyMacro( PENTITY pe, PMACRO pm ) /*FOLD00*/
 {
 	PTEXT temp;
-	PTRSZVAL idx;
+	uintptr_t idx;
 	if( !pm )
 		return;
 	// if the macro is in use (running) just mark that we wish to delete.
@@ -1468,7 +1468,7 @@ void DestroyMacro( PENTITY pe, PMACRO pm ) /*FOLD00*/
 	// find the macro within this entity
 	if( pe )
 	{
-		idx = (PTRSZVAL)DoFindThing( pe, FIND_MACRO_INDEX, NULL, NULL, GetText( pm->pName ) );
+		idx = (uintptr_t)DoFindThing( pe, FIND_MACRO_INDEX, NULL, NULL, GetText( pm->pName ) );
 		if( idx != INVALID_INDEX )
 				SetLink( &pe->pMacros, idx, NULL );
 		// it might be a behavior macro...
@@ -1663,7 +1663,7 @@ PTEXT DeeplyBurst( PTEXT pText ) /*FOLD00*/
 				pNew->flags |= p->flags & IS_DATA_FLAGS;
 				SegSubst( p, pNew );
 				pBurst = burst( p );
-				SetIndirect( pNew, (PTRSZVAL)DeeplyBurst( pBurst ) );
+				SetIndirect( pNew, (uintptr_t)DeeplyBurst( pBurst ) );
 				pNew->flags |= TF_DEEP;
 				LineRelease( p );
 				if( start == p )
@@ -1745,7 +1745,7 @@ CORE_PROC( void, AddVariableExxx )( PSENTIENT ps, PENTITY pe /*FOLD00*/
 					PTEXT pNext;
 					pNext = NEXTLINE( var );
 					LineRelease( GetIndirect( pNext ) );
-					SetIndirect( pNext, (PTRSZVAL)NULL );
+					SetIndirect( pNext, (uintptr_t)NULL );
 					pInd = pNext;
 					bFound = TRUE;
 					break;
@@ -1904,7 +1904,7 @@ int SCRIPT( PSENTIENT ps, PTEXT parameters )  // can actually be done IN script.
 CORE_PROC( PMACRO, GetMacro )( PENTITY pe, CTEXTSTR pNamed ) /*FOLD00*/
 {
 	PMACRO match;
-	_16 idx;
+	uint16_t idx;
 	PLIST pMacroList = pe->pMacros;
 	/* check local objects for the command. */
 	LIST_FORALL( pMacroList, idx, PMACRO, match )
@@ -2083,7 +2083,7 @@ CORE_PROC( PMACRO, LocateMacro )( PENTITY pe, CTEXTSTR name ) /*FOLD00*/
 
 //--------------------------------------------------------------------------
 
-PMACROSTATE InvokeMacroEx( PSENTIENT ps, PMACRO pMacro, PTEXT pArgs, void (CPROC*StopEvent)(PTRSZVAL psvUser, PMACROSTATE pms ), PTRSZVAL psv ) /*FOLD00*/
+PMACROSTATE InvokeMacroEx( PSENTIENT ps, PMACRO pMacro, PTEXT pArgs, void (CPROC*StopEvent)(uintptr_t psvUser, PMACROSTATE pms ), uintptr_t psv ) /*FOLD00*/
 {
 	MACROSTATE MacState;
 	// Begin Macro
@@ -2156,10 +2156,10 @@ int SendLiteral( PSENTIENT ps, PTEXT *RealCommand, PTEXT Command, PTEXT EndLine 
 
 int Process_Command(PSENTIENT ps, PTEXT *RealCommand) /*FOLD00*/
 {
-	S_32 idx = 0;
+	int32_t idx = 0;
 	TEXTCHAR *data;
 	size_t sig;
-	_32 slash_count, syscommand;
+	uint32_t slash_count, syscommand;
 	PTEXT Command = *RealCommand;
 	PTEXT EndLine = NULL;
 

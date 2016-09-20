@@ -40,7 +40,7 @@
 
 
 #define MakeSetFlag( bName )   \
-	PTRSZVAL CPROC SetDeck##bName( PTRSZVAL psv, arg_list args )   \
+	uintptr_t CPROC SetDeck##bName( uintptr_t psv, arg_list args )   \
 {                                                               \
 	MyValidatedControlData( struct card_stack_control *, stack, (PSI_CONTROL)psv ); \
 	PARAM( args, LOGICAL, yesno );                                                  \
@@ -61,8 +61,8 @@
 struct card_game {
 	CTEXTSTR name;
 	PDECK deck;
-	_32 suits;
-	_32 faces;
+	uint32_t suits;
+	uint32_t faces;
 	PLIST controls;
 	PSI_CONTROL selected_stack;
 } ;
@@ -114,7 +114,7 @@ struct card_stack_control {
 
 	PLIST allow_if_has_cards; // can play if any of these stacks have cards
 	PLIST allow_move_to; // can move only to these stacks... defined on the source
-	_32 clone_count; // number of times this was cloned
+	uint32_t clone_count; // number of times this was cloned
 	//{
 	 //  CTEXTSTR hand_stack;
 	//};//PLIST;
@@ -122,24 +122,24 @@ struct card_stack_control {
 	CTEXTSTR deck_stack;
 
 
-	S_32 step_x;
-	S_32 step_y;
-	S_32 scaled_step_x;
-	S_32 scaled_step_y;
+	int32_t step_x;
+	int32_t step_y;
+	int32_t scaled_step_x;
+	int32_t scaled_step_y;
 
-	_32 width;
-	_32 height;
-	_32 real_width; // actual card_width - this is the width to output.
-	_32 real_height;
-	_32 image_width;  // for the mouse to compute
-	_32 image_height;
+	uint32_t width;
+	uint32_t height;
+	uint32_t real_width; // actual card_width - this is the width to output.
+	uint32_t real_height;
+	uint32_t image_width;  // for the mouse to compute
+	uint32_t image_height;
 
 	int nCards; // array, may be by dimensional...
 	Image *card_image;
 	CDATA background;
 	CDATA empty_background;
-	PTRSZVAL psv_update_callback; // reference from registering an update callback for this control - important for edit which may change which part of the deck we watch....
-	_32 _b; // last known button state on this control
+	uintptr_t psv_update_callback; // reference from registering an update callback for this control - important for edit which may change which part of the deck we watch....
+	uint32_t _b; // last known button state on this control
 };
 
 EasyRegisterControl( WIDE("Games/Cards/Card Stack"), sizeof( struct card_stack_control ) );
@@ -298,16 +298,16 @@ static void FixupStackDisplayStep( PSI_CONTROL pc )
 	FRACTION scale;
 	MyValidatedControlData( struct card_stack_control *, stack, pc );
 	SetFraction( scale, stack->real_width, stack->width );
-	stack->scaled_step_x = ScaleValue( &scale, ( stack->step_x * (S_32)stack->width ) / 100 );
+	stack->scaled_step_x = ScaleValue( &scale, ( stack->step_x * (int32_t)stack->width ) / 100 );
 
 	SetFraction( scale, stack->real_height, stack->height );
-	stack->scaled_step_y = ScaleValue( &scale, ( stack->step_y  * (S_32)stack->height ) / 100 );
+	stack->scaled_step_y = ScaleValue( &scale, ( stack->step_y  * (int32_t)stack->height ) / 100 );
 }
 
 static void SetStackCards( PSI_CONTROL pc, Image *images )
 {
-	_32 card_w, card_h;
-	_32 control_w, control_h;
+	uint32_t card_w, card_h;
+	uint32_t control_w, control_h;
 	Image image = GetControlSurface( pc );
 	MyValidatedControlData( struct card_stack_control *, stack, pc );
 	/* this is the only place this variable is set... */
@@ -322,7 +322,7 @@ static void SetStackCards( PSI_CONTROL pc, Image *images )
 	{
 		FRACTION aspect;
 		FRACTION scale;
-		_32 scaled_height;
+		uint32_t scaled_height;
 		// use aspec to compute card height if control_w is used instead of card_w
 		SetFraction( aspect, card_h, card_w );
 		scaled_height = ScaleValue( &aspect, control_w );
@@ -405,7 +405,7 @@ static struct card_game *GetGame( CTEXTSTR name )
 	return game;
 }
 
-static void CPROC SmudgeMe( PTRSZVAL psv )
+static void CPROC SmudgeMe( uintptr_t psv )
 {
 	SmudgeCommon( (PSI_CONTROL)psv );
 }
@@ -421,7 +421,7 @@ static void SetControlGame( PSI_CONTROL pc, CTEXTSTR name )
 		INDEX idx;
 		if( stack->game && stack->deck_stack )
 		{
-			RemoveCardStackUpdateCallback( GetCardStack( stack->game->deck, stack->deck_stack ), (PTRSZVAL)pc );
+			RemoveCardStackUpdateCallback( GetCardStack( stack->game->deck, stack->deck_stack ), (uintptr_t)pc );
 			idx = FindLink( &stack->game->controls, pc );
 			if( idx != INVALID_INDEX )
 				SetLink( &stack->game->controls, idx, NULL );
@@ -430,7 +430,7 @@ static void SetControlGame( PSI_CONTROL pc, CTEXTSTR name )
 		stack->game = game;
 		AddLink( &game->controls, pc );
 		if( stack->deck_stack )
-			AddCardStackUpdateCallback( GetCardStack( stack->game->deck, stack->deck_stack ), SmudgeMe, (PTRSZVAL)pc );
+			AddCardStackUpdateCallback( GetCardStack( stack->game->deck, stack->deck_stack ), SmudgeMe, (uintptr_t)pc );
 	}
 }
 
@@ -718,7 +718,7 @@ LOGICAL DoMoveCards( PSI_CONTROL pc_from, PSI_CONTROL pc_to )
 	return FALSE;
 }
 
-static void OnSaveControl( WIDE("Games/Cards/Card Stack") )( FILE *file, PTRSZVAL psv )
+static void OnSaveControl( WIDE("Games/Cards/Card Stack") )( FILE *file, uintptr_t psv )
 {
 	MyValidatedControlData( struct card_stack_control *, stack, (PSI_CONTROL)psv );
 	fprintf( file, WIDE("Card stack game is \'%s\'\n"), stack->game->name );
@@ -754,7 +754,7 @@ static void OnSaveControl( WIDE("Games/Cards/Card Stack") )( FILE *file, PTRSZVA
 }
 
 
-static PTRSZVAL CPROC SetDeckGame( PTRSZVAL psv, arg_list args )
+static uintptr_t CPROC SetDeckGame( uintptr_t psv, arg_list args )
 {
 	//MyValidatedControlData( struct card_stack_control *, stack, (PSI_CONTROL)psv );
 	PARAM( args, CTEXTSTR, name );
@@ -762,7 +762,7 @@ static PTRSZVAL CPROC SetDeckGame( PTRSZVAL psv, arg_list args )
 	return psv;
 }
 
-static PTRSZVAL CPROC SetDeckStack( PTRSZVAL psv, arg_list args )
+static uintptr_t CPROC SetDeckStack( uintptr_t psv, arg_list args )
 {
 	MyValidatedControlData( struct card_stack_control *, stack, (PSI_CONTROL)psv );
 	PARAM( args, CTEXTSTR, name );
@@ -772,7 +772,7 @@ static PTRSZVAL CPROC SetDeckStack( PTRSZVAL psv, arg_list args )
 	return psv;
 }
 
-static PTRSZVAL CPROC SetAceOnly( PTRSZVAL psv, arg_list args )
+static uintptr_t CPROC SetAceOnly( uintptr_t psv, arg_list args )
 {
 	MyValidatedControlData( struct card_stack_control *, stack, (PSI_CONTROL)psv );
 	PARAM( args, LOGICAL, yesno );
@@ -780,7 +780,7 @@ static PTRSZVAL CPROC SetAceOnly( PTRSZVAL psv, arg_list args )
 	return psv;
 }
 
-static PTRSZVAL CPROC SetKingOnly( PTRSZVAL psv, arg_list args )
+static uintptr_t CPROC SetKingOnly( uintptr_t psv, arg_list args )
 {
 	MyValidatedControlData( struct card_stack_control *, stack, (PSI_CONTROL)psv );
 	PARAM( args, LOGICAL, yesno );
@@ -788,7 +788,7 @@ static PTRSZVAL CPROC SetKingOnly( PTRSZVAL psv, arg_list args )
 	return psv;
 }
 
-static PTRSZVAL CPROC SetSameSuitOnly( PTRSZVAL psv, arg_list args )
+static uintptr_t CPROC SetSameSuitOnly( uintptr_t psv, arg_list args )
 {
 	MyValidatedControlData( struct card_stack_control *, stack, (PSI_CONTROL)psv );
 	PARAM( args, LOGICAL, yesno );
@@ -796,7 +796,7 @@ static PTRSZVAL CPROC SetSameSuitOnly( PTRSZVAL psv, arg_list args )
 	return psv;
 }
 
-PTRSZVAL CPROC SetAltSuitOnly( PTRSZVAL psv, arg_list args )
+uintptr_t CPROC SetAltSuitOnly( uintptr_t psv, arg_list args )
 {
 	MyValidatedControlData( struct card_stack_control *, stack, (PSI_CONTROL)psv );
 	PARAM( args, LOGICAL, yesno );
@@ -804,7 +804,7 @@ PTRSZVAL CPROC SetAltSuitOnly( PTRSZVAL psv, arg_list args )
 	return psv;
 }
 
-PTRSZVAL CPROC SetPlusOneOnly( PTRSZVAL psv, arg_list args )
+uintptr_t CPROC SetPlusOneOnly( uintptr_t psv, arg_list args )
 {
 	MyValidatedControlData( struct card_stack_control *, stack, (PSI_CONTROL)psv );
 	PARAM( args, LOGICAL, yesno );
@@ -812,7 +812,7 @@ PTRSZVAL CPROC SetPlusOneOnly( PTRSZVAL psv, arg_list args )
 	return psv;
 }
 
-PTRSZVAL CPROC SetMinusOneOnly( PTRSZVAL psv, arg_list args )
+uintptr_t CPROC SetMinusOneOnly( uintptr_t psv, arg_list args )
 {
 	MyValidatedControlData( struct card_stack_control *, stack, (PSI_CONTROL)psv );
 	PARAM( args, LOGICAL, yesno );
@@ -820,39 +820,39 @@ PTRSZVAL CPROC SetMinusOneOnly( PTRSZVAL psv, arg_list args )
 	return psv;
 }
 
-PTRSZVAL CPROC SetDrawAtStart( PTRSZVAL psv, arg_list args )
+uintptr_t CPROC SetDrawAtStart( uintptr_t psv, arg_list args )
 {
 	MyValidatedControlData( struct card_stack_control *, stack, (PSI_CONTROL)psv );
-	PARAM( args, S_64, count );
+	PARAM( args, int64_t, count );
 	stack->startup.nDrawAtStart = count;
 	return psv;
 }
 
-PTRSZVAL CPROC SetDrawAtDeal( PTRSZVAL psv, arg_list args )
+uintptr_t CPROC SetDrawAtDeal( uintptr_t psv, arg_list args )
 {
 	MyValidatedControlData( struct card_stack_control *, stack, (PSI_CONTROL)psv );
-	PARAM( args, S_64, count );
+	PARAM( args, int64_t, count );
 	stack->startup.nDrawAtDeal = count;
 	return psv;
 }
 
-PTRSZVAL CPROC SetDrawDownAtStart( PTRSZVAL psv, arg_list args )
+uintptr_t CPROC SetDrawDownAtStart( uintptr_t psv, arg_list args )
 {
 	MyValidatedControlData( struct card_stack_control *, stack, (PSI_CONTROL)psv );
-	PARAM( args, S_64, count );
+	PARAM( args, int64_t, count );
 	stack->startup.nDrawDownAtStart = count;
 	return psv;
 }
 
-PTRSZVAL CPROC SetMustPlayEmpty( PTRSZVAL psv, arg_list args )
+uintptr_t CPROC SetMustPlayEmpty( uintptr_t psv, arg_list args )
 {
 	MyValidatedControlData( struct card_stack_control *, stack, (PSI_CONTROL)psv );
-	PARAM( args, S_64, count );
+	PARAM( args, int64_t, count );
 	stack->active.nMustPlay = count;
 	return psv;
 }
 
-PTRSZVAL CPROC SetNoSelect( PTRSZVAL psv, arg_list args )
+uintptr_t CPROC SetNoSelect( uintptr_t psv, arg_list args )
 {
 	MyValidatedControlData( struct card_stack_control *, stack, (PSI_CONTROL)psv );
 	PARAM( args, LOGICAL, yesno );
@@ -860,7 +860,7 @@ PTRSZVAL CPROC SetNoSelect( PTRSZVAL psv, arg_list args )
 	return psv;
 }
 
-PTRSZVAL CPROC SetDeckStackStacked( PTRSZVAL psv, arg_list args )
+uintptr_t CPROC SetDeckStackStacked( uintptr_t psv, arg_list args )
 {
 	MyValidatedControlData( struct card_stack_control *, stack, (PSI_CONTROL)psv );
 	PARAM( args, LOGICAL, yesno );
@@ -868,7 +868,7 @@ PTRSZVAL CPROC SetDeckStackStacked( PTRSZVAL psv, arg_list args )
 	return psv;
 }
 
-PTRSZVAL CPROC SetDeckStackNotStackedDown( PTRSZVAL psv, arg_list args )
+uintptr_t CPROC SetDeckStackNotStackedDown( uintptr_t psv, arg_list args )
 {
 	MyValidatedControlData( struct card_stack_control *, stack, (PSI_CONTROL)psv );
 	PARAM( args, LOGICAL, yesno );
@@ -876,7 +876,7 @@ PTRSZVAL CPROC SetDeckStackNotStackedDown( PTRSZVAL psv, arg_list args )
 	return psv;
 }
 
-static PTRSZVAL CPROC SetStackBackground( PTRSZVAL psv, arg_list args )
+static uintptr_t CPROC SetStackBackground( uintptr_t psv, arg_list args )
 {
 	MyValidatedControlData( struct card_stack_control *, stack, (PSI_CONTROL)psv );
 	PARAM( args, CDATA, color );
@@ -884,7 +884,7 @@ static PTRSZVAL CPROC SetStackBackground( PTRSZVAL psv, arg_list args )
 	return psv;
 }
 
-static PTRSZVAL CPROC SetStackEmptyBackground( PTRSZVAL psv, arg_list args )
+static uintptr_t CPROC SetStackEmptyBackground( uintptr_t psv, arg_list args )
 {
 	MyValidatedControlData( struct card_stack_control *, stack, (PSI_CONTROL)psv );
 	PARAM( args, CDATA, color );
@@ -908,7 +908,7 @@ MakeSetFlag( bMustPlayWhenEmpty );
 MakeSetFlag( bOnlySame );
 
 
-static void OnLoadControl( WIDE("Games/Cards/Card Stack") )( PCONFIG_HANDLER pch, PTRSZVAL psv )
+static void OnLoadControl( WIDE("Games/Cards/Card Stack") )( PCONFIG_HANDLER pch, uintptr_t psv )
 {
 	//MyValidatedControlData( struct card_stack_control *, stack, psv );
 	MakeAddFlag( WIDE("Card Stack Select"), bSelectSameSuit );
@@ -955,20 +955,20 @@ static int OnDrawCommon( WIDE("Games/Cards/Card Stack") )( PSI_CONTROL pc )
 	ClearImageTo( surface, stack->background );
 	{
 		PCARD card;
-		_32 s_width;
-		_32 s_height;
+		uint32_t s_width;
+		uint32_t s_height;
 		int max_id = stack->game->faces * stack->game->suits;
 		if( !stack->flags.bStacked )
 		{
 			INDEX count = 0;
 			INDEX row = 0;
 			INDEX col = 0;
-			_32 step_width = (((stack->step_x<0)?-stack->step_x:stack->step_x) * stack->width ) / 100;
-			_32 step_height = (((stack->step_y<0)?-stack->step_y:stack->step_y) * stack->height ) / 100;
-			_32 scaled_step_width = (stack->scaled_step_x<0)?-stack->scaled_step_x:stack->scaled_step_x;
-			_32 scaled_step_height = (stack->scaled_step_y<0)?-stack->scaled_step_y:stack->scaled_step_y;
-			S_32 x = (surface->width) - stack->real_width;
-			S_32 y = (surface->height) - stack->real_height;//surface->height - stack->height;
+			uint32_t step_width = (((stack->step_x<0)?-stack->step_x:stack->step_x) * stack->width ) / 100;
+			uint32_t step_height = (((stack->step_y<0)?-stack->step_y:stack->step_y) * stack->height ) / 100;
+			uint32_t scaled_step_width = (stack->scaled_step_x<0)?-stack->scaled_step_x:stack->scaled_step_x;
+			uint32_t scaled_step_height = (stack->scaled_step_y<0)?-stack->scaled_step_y:stack->scaled_step_y;
+			int32_t x = (surface->width) - stack->real_width;
+			int32_t y = (surface->height) - stack->real_height;//surface->height - stack->height;
 
 			PCARD_STACK cardstack = GetCardStack( stack->game->deck, stack->deck_stack );
 			/* should count the cards so we can better position this... */
@@ -1096,7 +1096,7 @@ static int OnDrawCommon( WIDE("Games/Cards/Card Stack") )( PSI_CONTROL pc )
 				if( stack->flags.bVertical )
 				{
 					row++;
-					if( ( y + (S_32)row * stack->scaled_step_x ) < 0 )
+					if( ( y + (int32_t)row * stack->scaled_step_x ) < 0 )
 					{
 						col++;
 						row = 0;
@@ -1105,7 +1105,7 @@ static int OnDrawCommon( WIDE("Games/Cards/Card Stack") )( PSI_CONTROL pc )
 				else
 				{
 					col++;
-					if( ( x + (S_32)col * stack->scaled_step_x ) < 0 )
+					if( ( x + (int32_t)col * stack->scaled_step_x ) < 0 )
 					{
 						row++;
 						col = 0;
@@ -1166,7 +1166,7 @@ static int OnDrawCommon( WIDE("Games/Cards/Card Stack") )( PSI_CONTROL pc )
 }
 
 
-static int OnMouseCommon( WIDE("Games/Cards/Card Stack") )(PSI_CONTROL pc, S_32 x, S_32 y, _32 b )
+static int OnMouseCommon( WIDE("Games/Cards/Card Stack") )(PSI_CONTROL pc, int32_t x, int32_t y, uint32_t b )
 {
 	MyValidatedControlData( struct card_stack_control *, stack, (PSI_CONTROL)pc );
 	// what can I do with a mouse?
@@ -1181,8 +1181,8 @@ static int OnMouseCommon( WIDE("Games/Cards/Card Stack") )(PSI_CONTROL pc, S_32 
 			int card_pos;
 			int row = 0, col = 0;
 			int cols = 7; // short-rows didn't work?
-			_32 scaled_step_width = (stack->scaled_step_x<0)?-stack->scaled_step_x:stack->scaled_step_x;
-			_32 scaled_step_height = (stack->scaled_step_y<0)?-stack->scaled_step_y:stack->scaled_step_y;
+			uint32_t scaled_step_width = (stack->scaled_step_x<0)?-stack->scaled_step_x:stack->scaled_step_x;
+			uint32_t scaled_step_height = (stack->scaled_step_y<0)?-stack->scaled_step_y:stack->scaled_step_y;
 			if( !stack->flags.bVertical )
 			{
 				col = 0;
@@ -1190,14 +1190,14 @@ static int OnMouseCommon( WIDE("Games/Cards/Card Stack") )(PSI_CONTROL pc, S_32 
 				if( y > stack->image_height - stack->real_height )
 					row = 0;
 				else
-					row = 1+ (( (S_32)( stack->image_height - stack->real_height ) - y ) /scaled_step_height);
+					row = 1+ (( (int32_t)( stack->image_height - stack->real_height ) - y ) /scaled_step_height);
 
 				if( x > stack->image_width - stack->real_width )
 					col = 0;
 				else
 				{
 					//lprintf( WIDE("%d %d %d"),( ( stack->image_width - stack->real_width ) - x )/ scaled_step_width);
-					col = 1 + (( (S_32)( stack->image_width - stack->real_width ) - x ) / scaled_step_width);
+					col = 1 + (( (int32_t)( stack->image_width - stack->real_width ) - x ) / scaled_step_width);
 				}
 				card_pos = row * cols + col;
 				if( stack->game->selected_stack &&
@@ -1237,7 +1237,7 @@ static int OnMouseCommon( WIDE("Games/Cards/Card Stack") )(PSI_CONTROL pc, S_32 
 	return 1;
 }
 
-void CPROC ButtonAddStack( PTRSZVAL psv, PSI_CONTROL button )
+void CPROC ButtonAddStack( uintptr_t psv, PSI_CONTROL button )
 {
 	TEXTCHAR buffer[256];
 	//MyValidatedControlData( struct card_stack_control *, stack, (PSI_CONTROL)psv );
@@ -1246,7 +1246,7 @@ void CPROC ButtonAddStack( PTRSZVAL psv, PSI_CONTROL button )
 	AddListItem( GetNearControl( button, LISTBOX_DECK_STACKS ), buffer );
 }
 
-void CPROC ButtonAddGame( PTRSZVAL psv, PSI_CONTROL button )
+void CPROC ButtonAddGame( uintptr_t psv, PSI_CONTROL button )
 {
 	TEXTCHAR buffer[256];
 	//MyValidatedControlData( struct card_stack_control *, stack, (PSI_CONTROL)psv );
@@ -1285,7 +1285,7 @@ void FillGameList( PSI_CONTROL frame, struct card_game *current )
 		LIST_FORALL( l.games, idx, struct card_game *,game )
 		{
 			PLISTITEM pli = AddListItem( list, game->name );
-			SetItemData( pli, (PTRSZVAL)game );
+			SetItemData( pli, (uintptr_t)game );
 			if( game == current )
 				SetSelectedItem( list, pli );
 
@@ -1293,7 +1293,7 @@ void FillGameList( PSI_CONTROL frame, struct card_game *current )
 	}
 }
 
-void CPROC GameSelected( PTRSZVAL psv, PSI_CONTROL pc, PLISTITEM pli )
+void CPROC GameSelected( uintptr_t psv, PSI_CONTROL pc, PLISTITEM pli )
 {
 	TEXTCHAR buffer[256];
 	MyValidatedControlData( struct card_stack_control *, stack, (PSI_CONTROL)psv );
@@ -1315,7 +1315,7 @@ void FillCanMoveIf( PSI_CONTROL frame, struct card_stack_control *stack )
 		LIST_FORALL( stack->game->deck->card_stacks, idx, PCARD_STACK, card_stack )
 		{
 			pli = AddListItem( list, card_stack->name );
-			SetItemData( pli, (PTRSZVAL)card_stack );
+			SetItemData( pli, (uintptr_t)card_stack );
 			{
 				INDEX idx;
 				PCARD_STACK test_stack;
@@ -1343,7 +1343,7 @@ void FillCanMoveTo( PSI_CONTROL frame, struct card_stack_control *stack )
 		LIST_FORALL( stack->game->deck->card_stacks, idx, PCARD_STACK, card_stack )
 		{
 			pli = AddListItem( list, card_stack->name );
-			SetItemData( pli, (PTRSZVAL)card_stack );
+			SetItemData( pli, (uintptr_t)card_stack );
 			{
 				INDEX idx;
 				PCARD_STACK test_stack;
@@ -1360,7 +1360,7 @@ void FillCanMoveTo( PSI_CONTROL frame, struct card_stack_control *stack )
 	}
 }
 
-static PTRSZVAL OnEditControl( WIDE("Games/Cards/Card Stack") )( PTRSZVAL psv, PSI_CONTROL parent )
+static uintptr_t OnEditControl( WIDE("Games/Cards/Card Stack") )( uintptr_t psv, PSI_CONTROL parent )
 {
 	MyValidatedControlData( struct card_stack_control *, stack, (PSI_CONTROL)psv );
 	PSI_CONTROL frame = LoadXMLFrameOver( parent, WIDE("ConfigureGameCardStack.isFrame") );
@@ -1516,15 +1516,15 @@ static int OnCreateCommon( WIDE("Games/Cards/Card Stack") )( PSI_CONTROL pc )
 	return TRUE;
 }
 
-static PTRSZVAL OnCreateControl( WIDE("Games/Cards/Card Stack") )( PSI_CONTROL parent, S_32 x, S_32 y, _32 w, _32 h )
+static uintptr_t OnCreateControl( WIDE("Games/Cards/Card Stack") )( PSI_CONTROL parent, int32_t x, int32_t y, uint32_t w, uint32_t h )
 {
 	PSI_CONTROL pc = MakeControl( parent, MyControlID, x, y, w, h, -1 );
 	//MyValidatedControlData( struct card_stack_control *, stack, pc );
 	//stack->deck = l.game.deck; // use the default deck for starters....
-	return (PTRSZVAL)pc;
+	return (uintptr_t)pc;
 }
 
-static PSI_CONTROL OnGetControl( WIDE("Games/Cards/Card Stack") )( PTRSZVAL psv )
+static PSI_CONTROL OnGetControl( WIDE("Games/Cards/Card Stack") )( uintptr_t psv )
 {
 	return (PSI_CONTROL)psv;
 }
@@ -1545,7 +1545,7 @@ static void OnGlobalPropertyEdit( WIDE("Card Game") )( PSI_CONTROL parent_frame 
 	return;
 }
 
-static void OnCloneControl( WIDE("Games/Cards/Card Stack") )( PTRSZVAL psvNew, PTRSZVAL psvOriginal )
+static void OnCloneControl( WIDE("Games/Cards/Card Stack") )( uintptr_t psvNew, uintptr_t psvOriginal )
 {
 	MyValidatedControlData( struct card_stack_control *, new_stack, (PSI_CONTROL)psvNew );
 	MyValidatedControlData( struct card_stack_control *, original_stack, (PSI_CONTROL)psvOriginal );
@@ -1576,7 +1576,7 @@ static void OnCloneControl( WIDE("Games/Cards/Card Stack") )( PTRSZVAL psvNew, P
 	// other paramters are computed... (during draw time)
 }
 
-static void OnKeyPressEvent( WIDE("Games/Cards/Start Game") )( PTRSZVAL psv )
+static void OnKeyPressEvent( WIDE("Games/Cards/Start Game") )( uintptr_t psv )
 {
 	struct card_game *game = (struct card_game *)psv;
 	Shuffle( game->deck );
@@ -1623,12 +1623,12 @@ static void OnKeyPressEvent( WIDE("Games/Cards/Start Game") )( PTRSZVAL psv )
 }
 
 
-static PTRSZVAL OnCreateMenuButton( WIDE("Games/Cards/Start Game") )( PMENU_BUTTON button )
+static uintptr_t OnCreateMenuButton( WIDE("Games/Cards/Start Game") )( PMENU_BUTTON button )
 {
-	return (PTRSZVAL)GetGame( WIDE("Stud") ); // default button
+	return (uintptr_t)GetGame( WIDE("Stud") ); // default button
 }
 
-static PTRSZVAL OnEditControl( WIDE("Games/Cards/Start Game") )( PTRSZVAL psv, PSI_CONTROL parent )
+static uintptr_t OnEditControl( WIDE("Games/Cards/Start Game") )( uintptr_t psv, PSI_CONTROL parent )
 {
 	//TEXTCHAR buffer[256];
 	PSI_CONTROL frame = LoadXMLFrameOver( parent, WIDE("ConfigureCardGameStartGame.isFrame") );
@@ -1657,19 +1657,19 @@ static PTRSZVAL OnEditControl( WIDE("Games/Cards/Start Game") )( PTRSZVAL psv, P
 }
 
 
-static void OnSaveControl( WIDE("Games/Cards/Start Game") )( FILE *file, PTRSZVAL psv )
+static void OnSaveControl( WIDE("Games/Cards/Start Game") )( FILE *file, uintptr_t psv )
 {
 	struct card_game *game = (struct card_game *)psv;
 	fprintf( file, WIDE("Start card game button game=\'%s\'\n"), game->name );
 }
 
-static PTRSZVAL CPROC SetStartButtonGame( PTRSZVAL psv, arg_list args )
+static uintptr_t CPROC SetStartButtonGame( uintptr_t psv, arg_list args )
 {
 	PARAM( args, CTEXTSTR, name );
-	return (PTRSZVAL)GetGame( name ); // hrm I wonder if this actually gets set to the right place?
+	return (uintptr_t)GetGame( name ); // hrm I wonder if this actually gets set to the right place?
 }
 
-static void OnLoadControl( WIDE("Games/Cards/Start Game") )( PCONFIG_HANDLER pch, PTRSZVAL psv )
+static void OnLoadControl( WIDE("Games/Cards/Start Game") )( PCONFIG_HANDLER pch, uintptr_t psv )
 {
 	//struct card_game *game = (struct card_game *)psv;
 	AddConfigurationMethod( pch, WIDE("Start card game button game=\'%m\'"), SetStartButtonGame );
@@ -1682,7 +1682,7 @@ static void OnLoadControl( WIDE("Games/Cards/Start Game") )( PCONFIG_HANDLER pch
 
 ////-------------------------------------------------------------------------
 
-static void OnKeyPressEvent( WIDE("Games/Cards/Deal Game") )( PTRSZVAL psv )
+static void OnKeyPressEvent( WIDE("Games/Cards/Deal Game") )( uintptr_t psv )
 {
 	struct card_game *game = (struct card_game *)psv;
 	//Shuffle( game->deck );
@@ -1719,12 +1719,12 @@ static void OnKeyPressEvent( WIDE("Games/Cards/Deal Game") )( PTRSZVAL psv )
 }
 
 
-static PTRSZVAL OnCreateMenuButton( WIDE("Games/Cards/Deal Game") )( PMENU_BUTTON button )
+static uintptr_t OnCreateMenuButton( WIDE("Games/Cards/Deal Game") )( PMENU_BUTTON button )
 {
-	return (PTRSZVAL)GetGame( WIDE("Stud") ); // default button
+	return (uintptr_t)GetGame( WIDE("Stud") ); // default button
 }
 
-static PTRSZVAL OnEditControl( WIDE("Games/Cards/Deal Game") )( PTRSZVAL psv, PSI_CONTROL parent )
+static uintptr_t OnEditControl( WIDE("Games/Cards/Deal Game") )( uintptr_t psv, PSI_CONTROL parent )
 {
 	//TEXTCHAR buffer[256];
 	PSI_CONTROL frame = LoadXMLFrame( WIDE("ConfigureCardGameStartGame.isFrame") );
@@ -1753,13 +1753,13 @@ static PTRSZVAL OnEditControl( WIDE("Games/Cards/Deal Game") )( PTRSZVAL psv, PS
 }
 
 
-static void OnSaveControl( WIDE("Games/Cards/Deal Game") )( FILE *file, PTRSZVAL psv )
+static void OnSaveControl( WIDE("Games/Cards/Deal Game") )( FILE *file, uintptr_t psv )
 {
 	struct card_game *game = (struct card_game *)psv;
 	fprintf( file, WIDE("Start card game button game=\'%s\'\n"), game->name );
 }
 
-static void OnLoadControl( WIDE("Games/Cards/Deal Game") )( PCONFIG_HANDLER pch, PTRSZVAL psv )
+static void OnLoadControl( WIDE("Games/Cards/Deal Game") )( PCONFIG_HANDLER pch, uintptr_t psv )
 {
 	//struct card_game *game = (struct card_game *)psv;
 	AddConfigurationMethod( pch, WIDE("Start card game button game=\'%m\'"), SetStartButtonGame );

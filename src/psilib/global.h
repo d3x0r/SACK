@@ -73,8 +73,8 @@ typedef struct psi_global_tag
 	PFrameBorder DefaultBorder;
 #if 0
 	CDATA *defaultcolors;
-	S_32 BorderWidth;
-	S_32 BorderHeight;
+	int32_t BorderWidth;
+	int32_t BorderHeight;
 	struct psi_global_border_info {
 		BIT_FIELD bAnchorTop : 2; // 0 = none, 1=left, 2=center, 3=right
 		BIT_FIELD bAnchorBottom : 2; // 0 = none, 1=left, 2=center, 3=right

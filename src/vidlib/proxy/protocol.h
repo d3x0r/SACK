@@ -9,76 +9,76 @@
 #define MSGBLOCK(type,...) struct commsg_##type { __VA_ARGS__ } type
 PREFIX_PACKED struct opendisplay_data 
 {
-	S_32 x, y;
-	_32 w, h;
-	_32 attr;
-	PTRSZVAL server_display_id;
-	PTRSZVAL over;
-	PTRSZVAL under;
+	int32_t x, y;
+	uint32_t w, h;
+	uint32_t attr;
+	uintptr_t server_display_id;
+	uintptr_t over;
+	uintptr_t under;
 } PACKED;
 
 // also usedf for Flush_display command
 // only info needed is the server_display_ID
 PREFIX_PACKED struct close_display_data 
 {
-	PTRSZVAL server_display_id;
+	uintptr_t server_display_id;
 } PACKED;
 
 PREFIX_PACKED struct transfer_sub_image_data
 {
-	PTRSZVAL image_to_id;
-	PTRSZVAL image_from_id;
+	uintptr_t image_to_id;
+	uintptr_t image_from_id;
 } PACKED;
 
 PREFIX_PACKED struct move_size_display_data
 {
-	PTRSZVAL server_display_id;
-	S_32 x, y;
-	_32 w, h;
+	uintptr_t server_display_id;
+	int32_t x, y;
+	uint32_t w, h;
 } PACKED;
 
 PREFIX_PACKED struct make_image_data 
 {
 	// what the server calls this image; for all further draw ops
-	PTRSZVAL server_image_id;
-	_32 w, h;
+	uintptr_t server_image_id;
+	uint32_t w, h;
 	// so the client can know which to output surface attach to
-	PTRSZVAL server_display_id;
+	uintptr_t server_display_id;
 } PACKED;
 
 PREFIX_PACKED struct image_data_data 
 {
 	// what the server calls this image; for all further draw ops
-	PTRSZVAL server_image_id;
-	_8 data[1];
+	uintptr_t server_image_id;
+	uint8_t data[1];
 } PACKED;
 
 PREFIX_PACKED struct draw_block_data 
 {
 	// what the server calls this image; for all further draw ops
-	PTRSZVAL server_image_id;
-	PTRSZVAL length;
-	_8 data[1];
+	uintptr_t server_image_id;
+	uintptr_t length;
+	uint8_t data[1];
 } PACKED;
 
 PREFIX_PACKED struct put_string_data 
 {
 	// what the server calls this image; for all further draw ops
-	PTRSZVAL server_image_id;
-	S_32 x, y;
+	uintptr_t server_image_id;
+	int32_t x, y;
 	int orientation; // vertical/invert
 	int justification;
-	S_32 width;
-	PTRSZVAL server_font_id;
-	_32 foreground_color;
-	_32 background_color;
+	int32_t width;
+	uintptr_t server_font_id;
+	uint32_t foreground_color;
+	uint32_t background_color;
 	TEXTCHAR string[1];
 } PACKED;
 
 PREFIX_PACKED struct unmake_image_data
 {
 	// what the server calls this image; for all further draw ops
-	PTRSZVAL server_image_id;
+	uintptr_t server_image_id;
 } PACKED;
 
 PREFIX_PACKED struct client_identification_data
@@ -89,122 +89,122 @@ PREFIX_PACKED struct client_identification_data
 
 PREFIX_PACKED struct make_subimage_data 
 {
-	PTRSZVAL server_image_id;
-	S_32 x, y;
-	_32 w, h;
-	PTRSZVAL server_parent_image_id;
+	uintptr_t server_image_id;
+	int32_t x, y;
+	uint32_t w, h;
+	uintptr_t server_parent_image_id;
 } PACKED;
 
 PREFIX_PACKED struct __tmp
 {
-	_32 data;
+	uint32_t data;
 } PACKED;
 
 PREFIX_PACKED struct blatcolor_data
 {
-	PTRSZVAL server_image_id;
-	S_32 x, y;
-	_32 w, h;
+	uintptr_t server_image_id;
+	int32_t x, y;
+	uint32_t w, h;
 	CDATA color;
 } PACKED;
 
 PREFIX_PACKED struct blot_image_data
 {
-	PTRSZVAL server_image_id;
-	S_32 x, y;
-	_32 w, h;
-	S_32 xs, ys;
-	PTRSZVAL image_id;
+	uintptr_t server_image_id;
+	int32_t x, y;
+	uint32_t w, h;
+	int32_t xs, ys;
+	uintptr_t image_id;
 } PACKED;
 
 PREFIX_PACKED struct blot_scaled_image_data
 {
-	PTRSZVAL server_image_id;
-	S_32 x, y;
-	_32 w, h;
-	S_32 xs, ys;
-	_32 ws, hs;
-	PTRSZVAL image_id;
+	uintptr_t server_image_id;
+	int32_t x, y;
+	uint32_t w, h;
+	int32_t xs, ys;
+	uint32_t ws, hs;
+	uintptr_t image_id;
 } PACKED;
 
 PREFIX_PACKED struct line_data
 {
-	PTRSZVAL server_image_id;
-	S_32 x1, y1;
-	S_32 x2, y2;
+	uintptr_t server_image_id;
+	int32_t x1, y1;
+	int32_t x2, y2;
 	CDATA color;
 } PACKED;
 
 
 PREFIX_PACKED struct mouse_event_data
 {
-	PTRSZVAL server_render_id;
-	S_32 x, y;
-	_32 b;
+	uintptr_t server_render_id;
+	int32_t x, y;
+	uint32_t b;
 } PACKED;
 
 PREFIX_PACKED struct flush_event_data
 {
-	PTRSZVAL server_render_id;
+	uintptr_t server_render_id;
 } PACKED;
 
 PREFIX_PACKED struct move_image_data
 {
-	PTRSZVAL server_render_id;
-	S_32 x, y;
+	uintptr_t server_render_id;
+	int32_t x, y;
 } PACKED;
 
 PREFIX_PACKED struct size_image_data
 {
-	PTRSZVAL server_render_id;
-	_32 w, h;
+	uintptr_t server_render_id;
+	uint32_t w, h;
 } PACKED;
 
 PREFIX_PACKED struct key_event_data
 {
-	PTRSZVAL server_render_id;
-	_32 key;
-	_32 pressed;
+	uintptr_t server_render_id;
+	uint32_t key;
+	uint32_t pressed;
 } PACKED;
 
 PREFIX_PACKED struct font_character_data
 {
-	_32 character;
-	S_32 x, y;
-	_32 w, h;
-	S_32 ascent;
+	uint32_t character;
+	int32_t x, y;
+	uint32_t w, h;
+	int32_t ascent;
 } PACKED;
 
 PREFIX_PACKED struct font_color_image_data
 {
-	PTRSZVAL server_image_id;
-	_32 color;
+	uintptr_t server_image_id;
+	uint32_t color;
 } PACKED;
 
 PREFIX_PACKED struct font_data_data
 {
-	PTRSZVAL server_font_id;
-	S_32 baseline;
-	_32 height;
-	S_8 bias_x;
-	S_8 bias_y;
+	uintptr_t server_font_id;
+	int32_t baseline;
+	uint32_t height;
+	int8_t bias_x;
+	int8_t bias_y;
 	/* these translate to JSON easily... but bad for a network structure. */
 	PLIST characters; // list of font_character_data
 	PLIST colors;   // list of font_color_image_data
-	PTRSZVAL image_id;
+	uintptr_t image_id;
 } PACKED;
 
 
 
 PREFIX_PACKED struct common_message {
-	_8 message_id;
+	uint8_t message_id;
 	union
 	{
 		TEXTCHAR UNALIGNED text[1];  // actually is more than one
 		MSGBLOCK( version,
-					_8 bits;
-					 _8 unicode;
-					 _8 number; );
+					uint8_t bits;
+					 uint8_t unicode;
+					 uint8_t number; );
 		struct opendisplay_data opendisplay_data;
 		struct blatcolor_data blatcolor;
 		struct make_image_data make_image;
@@ -226,14 +226,14 @@ PREFIX_PACKED struct common_message {
 		struct draw_block_data draw_block;
 		struct put_string_data put_string;
 		struct font_data_data font_data;
-		MSGBLOCK( open_display_reply,  PTRSZVAL server_display_id; PTRSZVAL client_display_id; );
+		MSGBLOCK( open_display_reply,  uintptr_t server_display_id; uintptr_t client_display_id; );
 	} data;
 } PACKED;
 
 PREFIX_PACKED struct event_msg
 {
 	PCLIENT pc;
-	_32 sendlen;
+	uint32_t sendlen;
 	struct common_message msg;
 } PACKED;
 

@@ -2,6 +2,7 @@
 #include <sharemem.h>
 #include <timers.h>
 #include <network.h>
+#include <http.h>
 
 void CPROC ServerRecieve( PCLIENT pc, POINTER buf, size_t size )
 {
@@ -29,6 +30,18 @@ void CPROC ClientConnected( PCLIENT pListen, PCLIENT pNew )
 	SetNetworkReadComplete( pNew, ServerRecieve );
 }
 
+LOGICAL OnHttpGet( "AppClass", "test" )(uintptr_t psv, PCLIENT pc, struct HttpState *httpState, PTEXT httpBody ) {
+
+	return FALSE;
+}
+
+LOGICAL onRequestCallback( uintptr_t psv
+	, HTTPState pHttpState ) {
+	// default request handling failing finding a OnHttpGet()
+
+	return FALSE;
+}
+
 int main( int argc, char **argv )
 {
 	PCLIENT pcListen;
@@ -39,14 +52,27 @@ int main( int argc, char **argv )
 		printf( WIDE("usage: %s <listen port> (defaulting to telnet)\n"), DupCharToText( argv[0] ) );
 		port = CreateSockAddress( WIDE("localhost:23"), 23 );
 	}
-	else
-		port = CreateSockAddress( DupCharToText( argv[1] ), 23 );
-	pcListen = OpenTCPListenerAddrEx( port, ClientConnected );
+	else {
+		if( argv[1][0] == '-' ) {
+			switch( argv[1][1] ) {
+			case 's': {
+				struct HttpServer *server = CreateHttpsServerEx( argv[1] + 2
+					, "AppClass", argv[3], onRequestCallback, 0 );
+				pcListen = (PCLIENT)-1;
+				break;
+			}
+			}
+		}
+		else {
+			port = CreateSockAddress( DupCharToText( argv[1] ), 23 );
+			pcListen = OpenTCPListenerAddrEx( port, ClientConnected );
+		}
+	}
 	if(pcListen)
 	{
 		while(1)
 		{
-			Sleep(500);
+			WakeableSleep(500);
 		}
 	}
 	else

@@ -279,10 +279,10 @@ void ValidateSpaceRoot( PSPACENODE chunk DBG_PASS )
 	{
 		while( (*root)->parent ) // while there is a parent of this...
 		{
-			if( ((PTRSZVAL)((*root)->parent)) & 3 )
+			if( ((uintptr_t)((*root)->parent)) & 3 )
 			{
 				Log( WIDE("We're in trouble - attempting to fix...") );
-            (*root)->parent = (PSPACENODE)((PTRSZVAL)((*root)->parent) + 1 );
+            (*root)->parent = (PSPACENODE)((uintptr_t)((*root)->parent) + 1 );
 			}
 			root = (*root)->parent->me;
 		}
@@ -525,10 +525,10 @@ PSPACENODE RemoveSpaceNode( PSPACENODE space )
 	{
 		while( (*root)->parent ) // while there is a parent of this...
 		{
-			if( ((PTRSZVAL)((*root)->parent)) & 3 )
+			if( ((uintptr_t)((*root)->parent)) & 3 )
 			{
 				Log( WIDE("We're in trouble - attempting to fix...") );
-            (*root)->parent = (PSPACENODE)((PTRSZVAL)((*root)->parent) + 1 );
+            (*root)->parent = (PSPACENODE)((uintptr_t)((*root)->parent) + 1 );
 			}
 			//Log3( WIDE("step to root...%08x %08x %08x"), (*root), (*root)->parent, (*root)->parent->me );
 			root = (*root)->parent->me;
@@ -1086,7 +1086,7 @@ PSPACENODE FindRectInSpaceEx( PSPACENODE root
 {
    int nDataFinder;
 	PSPACENODE node;
-   static _32 entering;
+   static uint32_t entering;
 	static int bLocks;
    //Log( WIDE("No find stack (first call)") );
    // allow multiple people to do a find in the list
@@ -1699,7 +1699,7 @@ int CountSpaces( PSPACENODE space )
 	return cnt;
 }
 
-void WriteSpaceNodeEx( PTRSZVAL psv, PSPACENODE node, PSPACEPOINT min, PSPACEPOINT max )
+void WriteSpaceNodeEx( uintptr_t psv, PSPACENODE node, PSPACEPOINT min, PSPACEPOINT max )
 {
 	Log4( WIDE("(%d) Node(%p) under %p has %d parts")
 					, levels, WriteNode, WriteNode->parent, CountSpaces( WriteNode ) );
@@ -1724,13 +1724,13 @@ void WriteSpaceNodeEx( PTRSZVAL psv, PSPACENODE node, PSPACEPOINT min, PSPACEPOI
 
 void WriteSpaceNode( POINTER data, PSPACEPOINT min, PSPACEPOINT max )
 {
-   WriteSpaceNodeEx( (PTRSZVAL)data, 0, min, max );
+   WriteSpaceNodeEx( (uintptr_t)data, 0, min, max );
 
 }
 
 void WalkSpaceTreeEx( PSPACENODE root
-						  , void (*Callback)( PTRSZVAL psv, PSPACENODE node, PSPACEPOINT min, PSPACEPOINT max )
-						  , PTRSZVAL psv )
+						  , void (*Callback)( uintptr_t psv, PSPACENODE node, PSPACEPOINT min, PSPACEPOINT max )
+						  , uintptr_t psv )
 {
 	int i;
 	//if( levels > 5 )
@@ -1792,8 +1792,8 @@ void WalkSpaceTree( PSPACENODE root
 }
 
 void BrowseSpaceTreeEx( PSPACENODE root
-							 , void (*Callback)( PTRSZVAL psv, PSPACENODE node, PSPACEPOINT min, PSPACEPOINT max )
-							 , PTRSZVAL psv )
+							 , void (*Callback)( uintptr_t psv, PSPACENODE node, PSPACEPOINT min, PSPACEPOINT max )
+							 , uintptr_t psv )
 {
 	maxlevels = 0;
 	levels = 0;
@@ -1847,7 +1847,7 @@ typedef struct image_table
 } IMAGE_TABLE, *PIMAGE_TABLE;
 
 
-void BuildTableGrid( PTRSZVAL psv, PSPACENODE node, PSPACEPOINT min, PSPACEPOINT max )
+void BuildTableGrid( uintptr_t psv, PSPACENODE node, PSPACEPOINT min, PSPACEPOINT max )
 {
 	PIMAGE_TABLE table = (PIMAGE_TABLE)psv;
 	int i,f,m; // initial, final, mid
@@ -2005,7 +2005,7 @@ void BuildTableGrid( PTRSZVAL psv, PSPACENODE node, PSPACEPOINT min, PSPACEPOINT
 	}
 }
 
-void FitTableGrid( PTRSZVAL psv, PSPACENODE node, PSPACEPOINT min, PSPACEPOINT max )
+void FitTableGrid( uintptr_t psv, PSPACENODE node, PSPACEPOINT min, PSPACEPOINT max )
 {
 	PIMAGE_TABLE table = (PIMAGE_TABLE)psv;
 
@@ -2158,8 +2158,8 @@ void GlobTableGrid( PIMAGE_TABLE table )
 
 void OutputHTMLSpaceTable( PSPACENODE root
 								 , PVARTEXT pvt_output
-								 , void (*Callback)(PTRSZVAL psv, PVARTEXT pvt, POINTER node_data, PSPACEPOINT min, PSPACEPOINT max )
-								 , PTRSZVAL psv )
+								 , void (*Callback)(uintptr_t psv, PVARTEXT pvt, POINTER node_data, PSPACEPOINT min, PSPACEPOINT max )
+								 , uintptr_t psv )
 {
    PIMAGE_TABLE table;
 	while( root->parent )
@@ -2170,7 +2170,7 @@ void OutputHTMLSpaceTable( PSPACENODE root
 	table->row_height = 0;
 	table->col_width = 0;
    table->row_cells = NULL;
-	BrowseSpaceTreeEx( root, BuildTableGrid, (PTRSZVAL)table );
+	BrowseSpaceTreeEx( root, BuildTableGrid, (uintptr_t)table );
 	{
       int n;
 		for( n = 0; n < table->cols; n++ )
@@ -2182,7 +2182,7 @@ void OutputHTMLSpaceTable( PSPACENODE root
          lprintf( WIDE( "row %d is %d" ), n, table->row_height[n] );
 		}
 	}
-	BrowseSpaceTreeEx( root, FitTableGrid, (PTRSZVAL)table );
+	BrowseSpaceTreeEx( root, FitTableGrid, (uintptr_t)table );
 	{
 		INDEX row, col;
       PLIST cols;

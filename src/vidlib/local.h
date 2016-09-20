@@ -73,8 +73,8 @@ extern
 	PVIDEO hCapturedPrior;
 	// kbd.key == KeyboardState
 	KEYBOARD kbd;
-	_32 dwMsgBase;
-	//_32 pid;
+	uint32_t dwMsgBase;
+	//uint32_t pid;
 	//char KeyboardState[256];   // export for key procs to reference...
 	PLIST keyhooks;
 	PLIST ll_keyhooks;
@@ -91,7 +91,7 @@ extern
 #endif
 #endif
 #endif
-	_32 last_mouse_update; // last tick the mouse moved.
+	uint32_t last_mouse_update; // last tick the mouse moved.
 	PRENDERER last_mouse_update_display;
 	PRENDERER invalidated_window;
 } l;

@@ -324,7 +324,7 @@ LRESULT CALLBACK handle_frame( HWND hWndCap, LPVIDEOHDR lpVhdr )
 //   lprintf( "Received frame..." );
 	//l.image = RemakeImage( l.image, lpVhdr->lpData, l.image->width, l.image->height );
 	{
-		P_8 data = lpVhdr->lpData;
+		uint8_t* data = lpVhdr->lpData;
 		int x, y;
 		PCDATA p = GetImageSurface( l.image );
 		for( y = 0; y < l.image->width; y++ )
@@ -365,7 +365,7 @@ int filter1(void)
    return EXCEPTION_EXECUTE_HANDLER;
 }
 
-PTRSZVAL OpenV4W( POINTER p )
+uintptr_t OpenV4W( POINTER p )
 {
 	lprintf( "opening v4w..." );
 

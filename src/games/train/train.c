@@ -27,7 +27,7 @@ void UpdateImage( PRENDERER hVideo )
 	UpdateDisplay( hVideo );
 }
 
-void Resize( PRENDERER hVideo, PTRSZVAL dwUser )
+void Resize( PRENDERER hVideo, uintptr_t dwUser )
 {
 	UpdateImage( hVideo );
 	

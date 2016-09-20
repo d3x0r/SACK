@@ -34,7 +34,7 @@ INDEX iODBC;
 //
 
 static TEXTCHAR byResult[32768]; // largest single record from database (?)
-static _32 ResultLen;
+static uint32_t ResultLen;
 static TEXTSTR pResults[256]; // pointer to start of data in byResult Buffer.
 static int  nResults;
 

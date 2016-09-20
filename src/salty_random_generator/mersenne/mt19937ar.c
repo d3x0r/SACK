@@ -1,6 +1,6 @@
 /* 
  * Panther: modified to support instances of the generator 2014/05/21 *
- * updated to use _32 instead of unknown length 'long' *
+ * updated to use uint32_t instead of unknown length 'long' *
 
  A C-program for MT19937, with initialization improved 2002/1/26.
    Coded by Takuji Nishimura and Makoto Matsumoto.
@@ -60,12 +60,12 @@
 #define LOWER_MASK 0x7fffffffUL /* least significant r bits */
 
 struct mersenne_rng {
-	_32 mt[N]; /* the array for the state vector  */
+	uint32_t mt[N]; /* the array for the state vector  */
 	int mti;//=N+1; /* mti==N+1 means mt[N] is not initialized */
 };
 
 /* initializes mt[N] with a seed */
-struct mersenne_rng *init_genrand(_32  s)
+struct mersenne_rng *init_genrand(uint32_t  s)
 {
 	struct mersenne_rng *rng;
 	rng = New( struct mersenne_rng );
@@ -88,7 +88,7 @@ struct mersenne_rng *init_genrand(_32  s)
 /* init_key is the array for initializing keys */
 /* key_length is its length */
 /* slight change for C++, 2004/2/26 */
-struct mersenne_rng *init_by_array( _32 init_key[], int key_length)
+struct mersenne_rng *init_by_array( uint32_t init_key[], int key_length)
 {
 	int i, j, k;
 	struct mersenne_rng *rng;
@@ -117,10 +117,10 @@ struct mersenne_rng *init_by_array( _32 init_key[], int key_length)
 }
 
 /* generates a random number on [0,0xffffffff]-interval */
-_32 genrand_int32(struct mersenne_rng *rng)
+uint32_t genrand_int32(struct mersenne_rng *rng)
 {
-	_32  y;
-	static _32 mag01[2]={0x0UL, MATRIX_A};
+	uint32_t  y;
+	static uint32_t mag01[2]={0x0UL, MATRIX_A};
 	/* mag01[x] = x * MATRIX_A  for x=0,1 */
 
 	if (rng->mti >= N) { /* generate N words at one time */
@@ -184,7 +184,7 @@ double genrand_real3(struct mersenne_rng *rng)
 /* generates a random number on [0,1) with 53-bit resolution*/
 double genrand_res53(struct mersenne_rng *rng) 
 { 
-	_32 a=genrand_int32(rng)>>5, b=genrand_int32(rng)>>6; 
+	uint32_t a=genrand_int32(rng)>>5, b=genrand_int32(rng)>>6; 
 	return(a*67108864.0+b)*(1.0/9007199254740992.0); 
 } 
 /* These real versions are due to Isaku Wada, 2002/01/09 added */

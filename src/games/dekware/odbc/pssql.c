@@ -64,9 +64,9 @@ typedef struct variable_data_tag {
 typedef struct query_result_object_tag
 {
 	struct {
-		_32 bFailed : 1; // also current_row == INVALID_INDEX
-		_32 bFailedBegin : 1; // current_row == INVALID_INDEX cause seek before begin of set
-		_32 bFailedEnd : 1; // current_row == INVALID_INDEX cause seek past last of set
+		uint32_t bFailed : 1; // also current_row == INVALID_INDEX
+		uint32_t bFailedBegin : 1; // current_row == INVALID_INDEX cause seek before begin of set
+		uint32_t bFailedEnd : 1; // current_row == INVALID_INDEX cause seek past last of set
 	} flags;
    POBJECT_DATA pod; // odbc data that this came from...
    PENTITY pe;  // what entity was created for this data
@@ -141,8 +141,8 @@ command_entry methods[]=
 
 			 };
 
-PTEXT CPROC getsqlrows( PTRSZVAL psv, PENTITY pe, PTEXT *lastvalue );
-PTEXT CPROC getsqlcols( PTRSZVAL psv, PENTITY pe, PTEXT *lastvalue );
+PTEXT CPROC getsqlrows( uintptr_t psv, PENTITY pe, PTEXT *lastvalue );
+PTEXT CPROC getsqlcols( uintptr_t psv, PENTITY pe, PTEXT *lastvalue );
 #endif
 #if 0
 volatile_variable_entry vves[] = { { DEFTEXT( "rows" ), getsqlrows, NULL }
@@ -375,13 +375,13 @@ int DUMP( PSENTIENT ps, PTEXT parameters )
 {
    INDEX row;
 	INDEX idx;
-   _32 *widths;
+   uint32_t *widths;
    // parameters are usless!
 	PQUERY_RESULT_OBJECT pqro = (PQUERY_RESULT_OBJECT)GetLink( &ps->Current->pPlugin, iResult );
 	PVARTEXT pvt = VarTextCreate();
 
-	widths = NewArray( _32, pqro->cols );
-	MemSet( widths, 0, sizeof( _32 ) * pqro->cols );
+	widths = NewArray( uint32_t, pqro->cols );
+	MemSet( widths, 0, sizeof( uint32_t ) * pqro->cols );
 	if( !pqro->fields )
 	{
 		S_MSG( ps, "Object has null data.");
@@ -464,7 +464,7 @@ static PTEXT ObjectVolatileVariableGet( "sql", "cols", "Get number of cols from 
 PTEXT CPROC getsqlvar( PENTITY pe, PTEXT *lastvalue )
 {
 	PQUERY_RESULT_OBJECT pqro = (PQUERY_RESULT_OBJECT)GetLink( &pe->pPlugin, iResult );
-   PTRSZVAL psv = 0;
+   uintptr_t psv = 0;
    // the psv parameter is falable.
    PVARDATA pvd = (PVARDATA)psv;
 	if( pqro )
@@ -679,7 +679,7 @@ int CPROC CreateQUERY( PSENTIENT ps, PTEXT parameters )
 								pvd->volatile_var.get = getsqlvar;
 								//pvd->pqro = pqro;
                         lprintf( "NEED ADD VOLATILE VARIABLE - DYNAMIC!" );
-						/////		AddVolatileVariable( pe, &pvd->volatile_var, (PTRSZVAL)pvd );
+						/////		AddVolatileVariable( pe, &pvd->volatile_var, (uintptr_t)pvd );
 							}
 						}
 						{
@@ -823,7 +823,7 @@ int CPROC REQUERY( PSENTIENT ps, PTEXT parameters )
 						 //  pvd->volatile_var.name.flags = TF_STATIC; // don't delete this name.
 						 //  pvd->volatile_var.get = getsqlvar;
 							//pvd->pqro = pqro;
-							//AddVolatileVariable( pe, &pvd->volatile_var, (PTRSZVAL)pvd );
+							//AddVolatileVariable( pe, &pvd->volatile_var, (uintptr_t)pvd );
 					  // }
 					}
 					FIRST_RECORD( ps, NULL );

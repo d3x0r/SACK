@@ -16,7 +16,7 @@ PRELOAD( LoadConsole )
 }
 
 
-void CPROC tickthing( PTRSZVAL psv )
+void CPROC tickthing( uintptr_t psv )
 {
 	PSI_CONTROL pc = (PSI_CONTROL)psv;
 
@@ -25,16 +25,16 @@ void CPROC tickthing( PTRSZVAL psv )
 }
 
 
-static PTRSZVAL OnCreateControl( WIDE("Dekware Console") )( PSI_CONTROL parent, S_32 x, S_32 y, _32 w, _32 h )
+static uintptr_t OnCreateControl( WIDE("Dekware Console") )( PSI_CONTROL parent, int32_t x, int32_t y, uint32_t w, uint32_t h )
 {
 	PSI_CONTROL pc;
 	pc = MakeNamedControl( parent, WIDE("Dekware PSI Console"), x, y, w, h, -1 );
-	AddTimer( 250, tickthing, (PTRSZVAL)pc );
+	AddTimer( 250, tickthing, (uintptr_t)pc );
 
-	return (PTRSZVAL)pc;
+	return (uintptr_t)pc;
 }
 
-static PSI_CONTROL OnGetControl( WIDE("Dekware Console") )( PTRSZVAL psv )
+static PSI_CONTROL OnGetControl( WIDE("Dekware Console") )( uintptr_t psv )
 {
 	return (PSI_CONTROL)psv;
 }

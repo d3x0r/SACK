@@ -10,17 +10,17 @@ PCONTROL frame;
 
 // list extern procs here
 
-void CPROC GetUserButton(PTRSZVAL psv, PCONTROL pc);
-void CPROC KillRelayButton(PTRSZVAL psv, PCONTROL pc);
-void CPROC RebootUserButton(PTRSZVAL psv, PCONTROL pc);
-void CPROC KillUserButton(PTRSZVAL psv, PCONTROL pc);
-void CPROC ScanUserButton(PTRSZVAL psv, PCONTROL pc);
-void CPROC UpdateUserButton(PTRSZVAL psv, PCONTROL pc);
-void CPROC ScanAllButton(PTRSZVAL psv, PCONTROL pc);
-void CPROC UpdateAllButton(PTRSZVAL psv, PCONTROL pc);
-void CPROC GetMasterStatusButton(PTRSZVAL psv, PCONTROL pc);
-void CPROC UpdateAllButton(PTRSZVAL psv, PCONTROL pc);
-void CPROC RequestWinnersButton( PTRSZVAL psv, PCONTROL pc );
+void CPROC GetUserButton(uintptr_t psv, PCONTROL pc);
+void CPROC KillRelayButton(uintptr_t psv, PCONTROL pc);
+void CPROC RebootUserButton(uintptr_t psv, PCONTROL pc);
+void CPROC KillUserButton(uintptr_t psv, PCONTROL pc);
+void CPROC ScanUserButton(uintptr_t psv, PCONTROL pc);
+void CPROC UpdateUserButton(uintptr_t psv, PCONTROL pc);
+void CPROC ScanAllButton(uintptr_t psv, PCONTROL pc);
+void CPROC UpdateAllButton(uintptr_t psv, PCONTROL pc);
+void CPROC GetMasterStatusButton(uintptr_t psv, PCONTROL pc);
+void CPROC UpdateAllButton(uintptr_t psv, PCONTROL pc);
+void CPROC RequestWinnersButton( uintptr_t psv, PCONTROL pc );
 
 #define COLUMN1 338
 #define COLUMN2 435

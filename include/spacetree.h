@@ -81,12 +81,12 @@ EXPORT_METHOD void DumpSpaceTree( PSPACENODE root );
 EXPORT_METHOD void BrowseSpaceTree( PSPACENODE root	
 											 , void (*Callback)( POINTER data, PSPACEPOINT min, PSPACEPOINT max ) );
 EXPORT_METHOD void BrowseSpaceTreeEx( PSPACENODE root
-												, void (*Callback)( PTRSZVAL, PSPACENODE node, PSPACEPOINT min, PSPACEPOINT max )
-												, PTRSZVAL psv );
+												, void (*Callback)( uintptr_t, PSPACENODE node, PSPACEPOINT min, PSPACEPOINT max )
+												, uintptr_t psv );
 EXPORT_METHOD void OutputHTMLSpaceTable( PSPACENODE root
 													, PVARTEXT pvt_output
-													, void (*Callback)(PTRSZVAL psv, PVARTEXT pvt, POINTER node_data, PSPACEPOINT min, PSPACEPOINT max )
-													, PTRSZVAL psv );
+													, void (*Callback)(uintptr_t psv, PVARTEXT pvt, POINTER node_data, PSPACEPOINT min, PSPACEPOINT max )
+													, uintptr_t psv );
 
 EXPORT_METHOD void ValidateSpaceTreeEx( PSPACENODE root DBG_PASS );
 #define ValidateSpaceTree(r)  ValidateSpaceTreeEx(r DBG_SRC) 

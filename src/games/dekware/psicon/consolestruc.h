@@ -47,7 +47,7 @@
 
 #if !defined( __WINDOWS__ ) && !defined( _WIN32 )
 typedef struct rect_tag {
-   S_32 top,left,right,bottom;
+   int32_t top,left,right,bottom;
 } RECT;
 #endif
 //----------------------------------------------------------------------------
@@ -142,11 +142,11 @@ typedef struct myconsolestruc {
 	} flags;
 
    RECT rArea; // pixel size of the display (if font height/width>1)
-	_32 nFontHeight;
-	_32 nFontWidth;
-	S_32 nXPad; // pixels/lines to padd left/right side...
-	S_32 nYPad; // pixels/lines to padd top/bottom side...
-	S_32 nCmdLinePad; // pixels to raise bar above cmdline
+	uint32_t nFontHeight;
+	uint32_t nFontWidth;
+	int32_t nXPad; // pixels/lines to padd left/right side...
+	int32_t nYPad; // pixels/lines to padd top/bottom side...
+	int32_t nCmdLinePad; // pixels to raise bar above cmdline
 
    HISTORY_BIOS history;
    int nHistoryPercent;
@@ -184,7 +184,7 @@ typedef struct myconsolestruc {
 
 	KEYBIND Keyboard[256][8];
    // is actually current keymod state.
-	_32 dwControlKeyState;
+	uint32_t dwControlKeyState;
 
 	int mark_location;
 	// 0 = command, 1 = display, 2 = history
@@ -213,7 +213,7 @@ typedef struct myconsolestruc {
 	struct {
 		// this is what this union has if nothing else defined
       // winlogic should need no member herein....
-		//_32 dwInterfaceData[32];
+		//uint32_t dwInterfaceData[32];
 #if !defined( __ANDROID__ ) && !defined( __LINUX__ )
       // windows native MDI console
 		struct {
@@ -415,7 +415,7 @@ PCONSOLE_INFO FindMyDatapath( PSENTIENT ps );
 // Merge wincon/psicon/cursecon
 //
 // Revision 1.10  2003/04/20 16:36:57  panther
-// Use KEY_ instead of VK_.  Use _32 not DWORD
+// Use KEY_ instead of VK_.  Use uint32_t not DWORD
 //
 // Revision 1.9  2003/04/20 16:19:53  panther
 // Fixes for history usage... cleaned some logging messages.

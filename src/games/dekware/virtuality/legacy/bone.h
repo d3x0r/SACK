@@ -62,7 +62,7 @@ typedef struct library_tag
 typedef struct body_tag
 {
    // actual instantiation of a form...
-   _8 unused;
+   uint8_t unused;
 } BODY, *PBODY;
 // $Log: bone.h,v $
 // Revision 1.3  2003/03/25 08:59:03  panther

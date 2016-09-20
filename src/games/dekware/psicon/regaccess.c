@@ -364,7 +364,7 @@ int SetRegistryItem( HKEY hRoot, TEXTCHAR *pPrefix,
    {
       dwStatus = RegSetValueEx(hTemp, pKey, 0
                                 , dwType
-                                , (P_8)pValue, (DWORD)nSize );
+                                , (uint8_t*)pValue, (DWORD)nSize );
       RegCloseKey( hTemp );
       if( dwStatus == ERROR_SUCCESS )
       {

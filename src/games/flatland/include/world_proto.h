@@ -3,14 +3,14 @@
 #ifndef WORLD_SERVICE
 WORLD_PROC( INDEX, OpenWorld )( CTEXTSTR world_name );
 #else
-WORLD_PROC( INDEX, OpenWorld )( _32 iClient, CTEXTSTR name );
+WORLD_PROC( INDEX, OpenWorld )( uint32_t iClient, CTEXTSTR name );
 #endif
 WORLD_PROC( void, DestroyWorld )( INDEX world );
 WORLD_PROC( void, ResetWorld )( INDEX pWorld ); // clears the world of all parts.
 
-WORLD_PROC( _32, GetSectorCount )( INDEX iWorld );
-WORLD_PROC( _32, GetWallCount )( INDEX iWorld );
-WORLD_PROC( _32, GetLineCount )( INDEX iWorld );
+WORLD_PROC( uint32_t, GetSectorCount )( INDEX iWorld );
+WORLD_PROC( uint32_t, GetWallCount )( INDEX iWorld );
+WORLD_PROC( uint32_t, GetLineCount )( INDEX iWorld );
 // 10
 WORLD_PROC( int, SaveWorldToFile )( INDEX iWorld );
 WORLD_PROC( int, LoadWorldFromFile )( INDEX iWorld );
@@ -43,7 +43,7 @@ WORLD_PROC( int, DestroySector )( INDEX iWorld, INDEX iSector );
 
 WORLD_PROC( INDEX, FlatlandPointWithin )( INDEX iWorld, int nSectors, INDEX *piSectors, P_POINT p );
 WORLD_PROC( INDEX, FlatlandPointWithinSingle )( INDEX world, INDEX iSector, P_POINT p );
-WORLD_PROC( INDEX, FlatlandPointWithinLoopSingle )( INDEX iSector, PTRSZVAL psv );
+WORLD_PROC( INDEX, FlatlandPointWithinLoopSingle )( INDEX iSector, uintptr_t psv );
 //30
 WORLD_PROC( void, ComputeSectorOrigin )( INDEX iWorld, INDEX iSector );
 WORLD_PROC( void, ComputeSectorSetOrigin )( INDEX iWorld, int nSectors, INDEX *sectors, P_POINT origin );
@@ -86,7 +86,7 @@ WORLD_PROC( INDEX, GetSectorTexture )( INDEX iWorld, INDEX iSector );
 WORLD_PROC( void, GetTextureData )( INDEX iWorld, INDEX iTexture, PFLATLAND_TEXTURE *texture );
 WORLD_PROC( void, GetSectorPoints )( INDEX iWorld, INDEX iSector, _POINT **list, int *npoints );
 
-WORLD_PROC( void, ForAllSectors )( INDEX iWorld, FESMCallback,PTRSZVAL);
+WORLD_PROC( void, ForAllSectors )( INDEX iWorld, FESMCallback,uintptr_t);
 
 // internal only function use
 // BalanceALine and pass world and line index
@@ -110,7 +110,7 @@ WORLD_PROC( void, AddUndo )( INDEX iWorld, int type, ... );
 // 67
 WORLD_PROC( void, EndUndo )( INDEX iWorld, int type, ... );
 
-WORLD_PROC( INDEX, ForAllTextures )( INDEX iWorld, INDEX (CPROC*)(INDEX,PTRSZVAL), PTRSZVAL );
+WORLD_PROC( INDEX, ForAllTextures )( INDEX iWorld, INDEX (CPROC*)(INDEX,uintptr_t), uintptr_t );
 WORLD_PROC( void, GetTextureNameText )( INDEX iWorld, INDEX iTexture, TEXTCHAR *buf, int sizeof_buf );
 // 70
 WORLD_PROC( INDEX, SetTexture )( INDEX iWorld, INDEX iSector, INDEX iTexture );
@@ -125,9 +125,9 @@ WORLD_PROC( void, SetSectorName )( INDEX iWorld, INDEX iSector, INDEX iName );
 /* intended for client application registration for update notifications */
 
 #ifndef WORLD_SCAPE_INTERFACE_NAME
-typedef void (CPROC *WorldScapeUdpateProc)( PTRSZVAL );
+typedef void (CPROC *WorldScapeUdpateProc)( uintptr_t );
 #endif
-WORLD_PROC( void, AddUpdateCallback )( WorldScapeUdpateProc, PTRSZVAL psv );
+WORLD_PROC( void, AddUpdateCallback )( WorldScapeUdpateProc, uintptr_t psv );
 
 //-------------------------------------------------------
 // meant for client->server communication

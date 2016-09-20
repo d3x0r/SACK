@@ -7,7 +7,7 @@ struct part1 {
 };
 
 struct message1 {
-   S_64 integer;
+   int64_t integer;
    RCOORD v[3];
    CTEXTSTR string;
    struct msg_sub1 {
@@ -19,7 +19,7 @@ struct message1 {
 };
 
 struct message2 {
-	S_32 MsgID;
+	int32_t MsgID;
 	CTEXTSTR Msg;
 };
 

@@ -19,7 +19,7 @@
 
 #include <sharemem.h>
 
-#define MY_OFFSETOF( ppstruc, member ) ((PTRSZVAL)&((*ppstruc)->member)) - ((PTRSZVAL)(*ppstruc))
+#define MY_OFFSETOF( ppstruc, member ) ((uintptr_t)&((*ppstruc)->member)) - ((uintptr_t)(*ppstruc))
 
 #include <sack_types.h>
 #include <timers.h>
@@ -47,7 +47,7 @@ namespace sack {
 
 static struct list_local_data
 {
-	volatile _32 lock;
+	volatile uint32_t lock;
 } s_list_local, *_list_local;
 
 #define list_local  ((_list_local)?(*_list_local):(s_list_local))
@@ -74,9 +74,9 @@ PLIST  DeleteListEx ( PLIST *pList DBG_PASS )
 		Relinquish();
 	if( pList &&
 #if defined( _WIN64 ) || defined( __LINUX64__ )
-		( ppList = (PLIST)LockedExchange64( (PVPTRSZVAL)pList, 0 ) )
+		( ppList = (PLIST)LockedExchange64( (uint64_t*)pList, 0 ) )
 #else
-		( ppList = (PLIST)LockedExchange( (PV_32)pList, 0 ) )
+		( ppList = (PLIST)LockedExchange( (volatile uint32_t*)pList, 0 ) )
 #endif
 	  )
 	{
@@ -92,14 +92,14 @@ static PLIST ExpandListEx( PLIST *pList, INDEX amount DBG_PASS )
 {
 	PLIST old_list = (*pList);
 	PLIST pl;
-	PTRSZVAL size;
-	PTRSZVAL old_size;
+	uintptr_t size;
+	uintptr_t old_size;
 	if( !pList )
 		return NULL;
 	if( *pList )
 	{
-		old_size = ((PTRSZVAL)&((*pList)->pNode[(*pList)->Cnt])) - ((PTRSZVAL)(*pList));
-		size = ((PTRSZVAL)&((*pList)->pNode[(*pList)->Cnt+amount])) - ((PTRSZVAL)(*pList));
+		old_size = ((uintptr_t)&((*pList)->pNode[(*pList)->Cnt])) - ((uintptr_t)(*pList));
+		size = ((uintptr_t)&((*pList)->pNode[(*pList)->Cnt+amount])) - ((uintptr_t)(*pList));
 		//old_size = offsetof( LIST, pNode[(*pList)->Cnt]));
 		pl = (PLIST)AllocateEx( size DBG_RELAY );
 	}
@@ -253,10 +253,10 @@ static PLIST ExpandListEx( PLIST *pList, INDEX amount DBG_PASS )
 
 //--------------------------------------------------------------------------
 
- PTRSZVAL  ForAllLinks ( PLIST *pList, ForProc func, PTRSZVAL user )
+ uintptr_t  ForAllLinks ( PLIST *pList, ForProc func, uintptr_t user )
 {
 	INDEX i;
-	PTRSZVAL result = 0;
+	uintptr_t result = 0;
 	while( LockedExchange( list_local_lock, 1 ) )
 		Relinquish();
  	if( pList && *pList )
@@ -289,9 +289,9 @@ static PLIST ExpandListEx( PLIST *pList, INDEX amount DBG_PASS )
 
  //--------------------------------------------------------------------------
 
-static PTRSZVAL CPROC IsLink( PTRSZVAL value, INDEX i, POINTER *link )
+static uintptr_t CPROC IsLink( uintptr_t value, INDEX i, POINTER *link )
 {
-	if( value == (PTRSZVAL)(*link) )
+	if( value == (uintptr_t)(*link) )
 		return i+1; // 0 might be value so add one to make it non zero
 	return 0;
 }
@@ -302,14 +302,14 @@ static PTRSZVAL CPROC IsLink( PTRSZVAL value, INDEX i, POINTER *link )
 {
 	if( !pList || !(*pList ) )
 		return INVALID_INDEX;
-	return ForAllLinks( pList, IsLink, (PTRSZVAL)value ) - 1;
+	return ForAllLinks( pList, IsLink, (uintptr_t)value ) - 1;
 }
 
 //--------------------------------------------------------------------------
 
-static PTRSZVAL CPROC KillLink( PTRSZVAL value, INDEX i, POINTER *link )
+static uintptr_t CPROC KillLink( uintptr_t value, INDEX i, POINTER *link )
 {
-	if( value == (PTRSZVAL)(*link) )
+	if( value == (uintptr_t)(*link) )
 	{
 		(*link) = NULL;
 		return 1; // stop searching
@@ -319,14 +319,14 @@ static PTRSZVAL CPROC KillLink( PTRSZVAL value, INDEX i, POINTER *link )
 
  LOGICAL  DeleteLink ( PLIST *pList, CPOINTER value )
 {
-	if( ForAllLinks( pList, KillLink, (PTRSZVAL)value ) )
+	if( ForAllLinks( pList, KillLink, (uintptr_t)value ) )
 		return TRUE;
 	return FALSE;
 }
 
 //--------------------------------------------------------------------------
 
-static PTRSZVAL CPROC RemoveItem( PTRSZVAL value, INDEX i, POINTER *link )
+static uintptr_t CPROC RemoveItem( uintptr_t value, INDEX i, POINTER *link )
 {
 	*link = NULL;
 	return 0;
@@ -343,7 +343,7 @@ namespace data_list {
 
 static struct data_list_local_data
 {
-	_32 lock;
+	uint32_t lock;
 } s_data_list_local, *_data_list_local;
 #define data_list_local  ((_data_list_local)?(*_data_list_local):(s_data_list_local))
 #define data_list_local_lock  ((_data_list_local)?(&_data_list_local->lock):(&s_data_list_local.lock))
@@ -371,7 +371,7 @@ PDATALIST ExpandDataListEx( PDATALIST *ppdl, INDEX entries DBG_PASS )
 
 //--------------------------------------------------------------------------
 
- PDATALIST  CreateDataListEx ( PTRSZVAL nSize DBG_PASS )
+ PDATALIST  CreateDataListEx ( uintptr_t nSize DBG_PASS )
 {
 	PDATALIST pdl = (PDATALIST)AllocateEx( sizeof( DATALIST ) DBG_RELAY );
 	pdl->Cnt = 0;
@@ -711,7 +711,7 @@ void DeleteDataStackEx( PDATASTACK *pds DBG_PASS )
 
 static struct link_queue_local_data
 {
-	volatile _32 lock;
+	volatile uint32_t lock;
 //#if !USE_CUSTOM_ALLOCER
 	volatile PTHREAD thread;
 //#endif
@@ -1059,7 +1059,7 @@ POINTER  DequeLink ( PLINKQUEUE *pplq )
 #if USE_CUSTOM_ALLOCER
 		int keep_lock = 0;
 #endif
-		_32 priorline;
+		uint32_t priorline;
 #if USE_CUSTOM_ALLOCER
 retry_lock:
 #endif
@@ -1131,7 +1131,7 @@ retry_lock:
 
 static struct data_queue_local_data
 {
-	volatile _32 lock;
+	volatile uint32_t lock;
 } s_data_queue_local, *_data_queue_local;
 
 #define data_queue_local  ((_data_queue_local)?(*_data_queue_local):(s_data_queue_local))
@@ -1170,7 +1170,7 @@ static PDATAQUEUE ExpandDataQueueEx( PDATAQUEUE *ppdq, INDEX entries DBG_PASS )
 	{
 		PDATAQUEUE pdq = *ppdq;
 		//pdq->Cnt += entries;
-		pdqNew = (PDATAQUEUE)AllocateEx( (_32)offsetof( DATAQUEUE, data[0] ) + ((pdq->Cnt+entries)  * pdq->Size) DBG_RELAY );
+		pdqNew = (PDATAQUEUE)AllocateEx( (uint32_t)offsetof( DATAQUEUE, data[0] ) + ((pdq->Cnt+entries)  * pdq->Size) DBG_RELAY );
 		pdqNew->Cnt = pdq->Cnt + entries;
 		pdqNew->ExpandBy = pdq->ExpandBy;
 		pdqNew->Bottom = 0;

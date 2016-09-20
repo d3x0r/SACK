@@ -30,7 +30,7 @@ SACK_NETWORK_NAMESPACE
 // Internal Functions
 void Ping(TEXTSTR pstrHost, int maxTTL);
 void ReportError(PVARTEXT pInto, CTEXTSTR pstrFrom);
-int  WaitForEchoReply(SOCKET s, _32 dwTime);
+int  WaitForEchoReply(SOCKET s, uint32_t dwTime);
 u_short in_cksum(u_short *addr, int len);
 
 // ICMP Echo Request/Reply functions
@@ -40,19 +40,19 @@ int   	RecvEchoReply( PVARTEXT, SOCKET, SOCKADDR_IN*, u_char *);
 #define MAX_HOPS     128 
 #define MAX_NAME_LEN 255
 typedef struct HopEntry_tag{
-   _32 dwIP;                 // IP from returned
-   _32 dwMinTime;
-   _32 dwMaxTime;
-   _32 dwAvgTime;
-   _32 dwDropped;
-//   _32 dwTime;
+   uint32_t dwIP;                 // IP from returned
+   uint32_t dwMinTime;
+   uint32_t dwMaxTime;
+   uint32_t dwAvgTime;
+   uint32_t dwDropped;
+//   uint32_t dwTime;
    TEXTSTR  pName;  // bRDNS resulting...
    int TTL;                    // returned TTL from destination...
 } HOPENT, *PHOPENT;
 
-_32 dwThreadsActive;
+uint32_t dwThreadsActive;
 
-PTRSZVAL CPROC RDNSThread( PTHREAD pThread )
+uintptr_t CPROC RDNSThread( PTHREAD pThread )
 {
    PHOPENT pHopEnt = (PHOPENT)GetThreadParam( pThread );
    struct hostent *phe;
@@ -82,27 +82,27 @@ PTRSZVAL CPROC RDNSThread( PTHREAD pThread )
 
 static LOGICAL DoPingExx( CTEXTSTR pstrHost
 								,int maxTTL
-								,_32 dwTime
+								,uint32_t dwTime
 								,int nCount
 								,PVARTEXT pvtResult
 								,LOGICAL bRDNS
-								,void (*ResultCallback)( _32 dwIP, CTEXTSTR name, int min, int max, int avg, int drop, int hops )
-								,void (*ResultCallbackEx)( PTRSZVAL psv, _32 dwIP, CTEXTSTR name, int min, int max, int avg, int drop, int hops )
-								, PTRSZVAL psvUser )
+								,void (*ResultCallback)( uint32_t dwIP, CTEXTSTR name, int min, int max, int avg, int drop, int hops )
+								,void (*ResultCallbackEx)( uintptr_t psv, uint32_t dwIP, CTEXTSTR name, int min, int max, int avg, int drop, int hops )
+								, uintptr_t psvUser )
 {
 	SOCKET	  rawSocket;
 	struct hostent *lpHost;
 	SOCKADDR_IN saDest;
 	SOCKADDR_IN saSrc;
-	_64	     dwTimeSent;
+	uint64_t	     dwTimeSent;
 	u_char     cTTL;
 	int        nLoop;
 	int        nRet, nResult = 0;
 	int        i;
-	_64      MinTime, MaxTime, AvgTime;
-	_32   Dropped;
+	uint64_t      MinTime, MaxTime, AvgTime;
+	uint32_t   Dropped;
 
-	_32     dwIP,_dwIP;
+	uint32_t     dwIP,_dwIP;
 	static LOGICAL csInit;
    static CRITICALSECTION cs;
    static  HOPENT    Entry[MAX_HOPS];
@@ -267,7 +267,7 @@ static LOGICAL DoPingExx( CTEXTSTR pstrHost
          setsockopt( rawSocket, IPPROTO_IP, IP_TTL, (const char*)&i, sizeof(int));
       }
 
-      MinTime = (_64)-1; // longer than EVER
+      MinTime = (uint64_t)-1; // longer than EVER
       MaxTime = 0;
       AvgTime = 0;
       Dropped = 0;
@@ -297,7 +297,7 @@ static LOGICAL DoPingExx( CTEXTSTR pstrHost
          }
          else
          {
-            _64 dwTimeNow;
+            uint64_t dwTimeNow;
             dwTimeNow = GetCPUTick() - dwTimeSent;
             AvgTime += dwTimeNow;
 
@@ -353,9 +353,9 @@ LoopBreakpoint:
       {
          if( Entry[i].dwIP )
          {
-            //_32 dwID;
+            //uint32_t dwID;
             LockedIncrement( &dwThreadsActive );
-            ThreadTo( RDNSThread, (PTRSZVAL)(Entry+i) );
+            ThreadTo( RDNSThread, (uintptr_t)(Entry+i) );
             /*
 #ifdef _WIN32
             CreateThread( NULL, 0, (LPTHREAD_START_ROUTINE)RDNSThread, Entry+i, 0, &dwID );
@@ -480,23 +480,23 @@ LoopBreakpoint:
 
 NETWORK_PROC( LOGICAL, DoPing )( CTEXTSTR pstrHost,
              int maxTTL, 
-             _32 dwTime, 
+             uint32_t dwTime, 
              int nCount, 
              PVARTEXT pvtResult, 
              LOGICAL bRDNS, 
-             void (*ResultCallback)( _32 dwIP, CTEXTSTR name, int min, int max, int avg, int drop, int hops ) )
+             void (*ResultCallback)( uint32_t dwIP, CTEXTSTR name, int min, int max, int avg, int drop, int hops ) )
 {
    return DoPingExx( pstrHost, maxTTL, dwTime, nCount, pvtResult, bRDNS, ResultCallback, NULL, 0 );
 }
 
 NETWORK_PROC( LOGICAL, DoPingEx )( CTEXTSTR pstrHost,
 											 int maxTTL,
-											 _32 dwTime,
+											 uint32_t dwTime,
 											 int nCount,
 											 PVARTEXT pvtResult,
 											 LOGICAL bRDNS,
-											 void (*ResultCallback)( PTRSZVAL psv, _32 dwIP, CTEXTSTR name, int min, int max, int avg, int drop, int hops )
-											, PTRSZVAL psvUser )
+											 void (*ResultCallback)( uintptr_t psv, uint32_t dwIP, CTEXTSTR name, int min, int max, int avg, int drop, int hops )
+											, uintptr_t psvUser )
 {
    return DoPingExx( pstrHost, maxTTL, dwTime, nCount, pvtResult, bRDNS, NULL, ResultCallback, psvUser );
 }
@@ -588,7 +588,7 @@ void ReportError(PVARTEXT pInto, CTEXTSTR pWhere)
 // WaitForEchoReply()
 // Use select() to determine when
 // data is waiting to be read
-int WaitForEchoReply(SOCKET s, _32 dwTime)
+int WaitForEchoReply(SOCKET s, uint32_t dwTime)
 {
 	struct timeval Timeout;
 	fd_set readfds;

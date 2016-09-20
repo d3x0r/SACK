@@ -220,7 +220,7 @@ static int MouseInHotSpot( PEDIT_STATE pEditState, int x, int y DBG_PASS )
 }
 
 //---------------------------------------------------------------------------
-static int CPROC EditControlKeyProc( PSI_CONTROL pc, _32 key )
+static int CPROC EditControlKeyProc( PSI_CONTROL pc, uint32_t key )
 {
 	PPHYSICAL_DEVICE pf = GetFrame(pc)->device;
 #ifdef HOTSPOT_DEBUG
@@ -277,7 +277,7 @@ static int CPROC EditControlKeyProc( PSI_CONTROL pc, _32 key )
 	}
 	return 0;
 }
-//static int (CPROC*EditControlList)(PSI_CONTROL,_32) = { EditControlKeyProc };
+//static int (CPROC*EditControlList)(PSI_CONTROL,uint32_t) = { EditControlKeyProc };
 
 //---------------------------------------------------------------------------
 _MOUSE_NAMESPACE_END
@@ -560,7 +560,7 @@ static PSI_CONTROL FindControl( PSI_CONTROL pfc, PSI_CONTROL pc, int x, int y, i
 	int _y = y, __y;
 	struct
 	{
-		_32 was_in_surface : 1;
+		uint32_t was_in_surface : 1;
 	} flags;
 	IMAGE_POINT _bias;
 	PPHYSICAL_DEVICE pf = pfc->device;
@@ -599,10 +599,10 @@ static PSI_CONTROL FindControl( PSI_CONTROL pfc, PSI_CONTROL pc, int x, int y, i
 					, pc->rect.width, pc->rect.height );
 #endif
 
-		if( (S_64)x >= 0 &&
-			(S_64)x < pc->rect.width &&
-			(S_64)y >= 0 &&
-			(S_64)y < pc->rect.height )
+		if( (int64_t)x >= 0 &&
+			(int64_t)x < pc->rect.width &&
+			(int64_t)y >= 0 &&
+			(int64_t)y < pc->rect.height )
 		{
 #ifdef DETAILED_MOUSE_DEBUG
 			if( g.flags.bLogDetailedMouse )
@@ -621,10 +621,10 @@ static PSI_CONTROL FindControl( PSI_CONTROL pfc, PSI_CONTROL pc, int x, int y, i
 #endif
 			x -= pc->surface_rect.x;
 			y -= pc->surface_rect.y;
-			if( (S_64)x >= 0 &&
-				(S_64)x < ( pc->surface_rect.width ) &&
-				(S_64)y >= 0 &&
-				(S_64)y < ( pc->surface_rect.height ) )
+			if( (int64_t)x >= 0 &&
+				(int64_t)x < ( pc->surface_rect.width ) &&
+				(int64_t)y >= 0 &&
+				(int64_t)y < ( pc->surface_rect.height ) )
 			{
 #ifdef DETAILED_MOUSE_DEBUG
 				if( g.flags.bLogDetailedMouse )
@@ -787,7 +787,7 @@ static void UpdateCursor( PSI_CONTROL pc, int x, int y, int caption_height, int 
 					{
 						SetDisplayCursor( IDC_SIZENWSE );
 				}
-				else if( (S_64)x > ( ( pc->surface_rect.x 
+				else if( (int64_t)x > ( ( pc->surface_rect.x 
 										+ pc->surface_rect.width ) ) ) // right side edge
 				{
 					SetDisplayCursor( IDC_SIZENESW );
@@ -810,7 +810,7 @@ static void UpdateCursor( PSI_CONTROL pc, int x, int y, int caption_height, int 
 					{
 						SetDisplayCursor( IDC_SIZENWSE );
 				}
-				else if( (S_64)x > ( pc->surface_rect.x 
+				else if( (int64_t)x > ( pc->surface_rect.x 
 								+ pc->surface_rect.width ) )
 				{
 					SetDisplayCursor( IDC_SIZENESW );
@@ -833,7 +833,7 @@ static void UpdateCursor( PSI_CONTROL pc, int x, int y, int caption_height, int 
 				}
 			}
 		}
-		else if( (S_64)y >= ( ( pc->surface_rect.y 
+		else if( (int64_t)y >= ( ( pc->surface_rect.y 
 								+ pc->surface_rect.height ) ) ) // bottom side...
 		{  // very bottom band
 			int do_drag = 0;
@@ -843,7 +843,7 @@ static void UpdateCursor( PSI_CONTROL pc, int x, int y, int caption_height, int 
 			{
 				SetDisplayCursor( IDC_SIZENESW );
 			}
-			else if( (S_64)x > ( ( pc->surface_rect.x 
+			else if( (int64_t)x > ( ( pc->surface_rect.x 
 									+ pc->surface_rect.width ) ) )
 			{
 				SetDisplayCursor( IDC_SIZENWSE );
@@ -881,7 +881,7 @@ static void UpdateCursor( PSI_CONTROL pc, int x, int y, int caption_height, int 
 					SetDisplayCursor( IDC_SIZEWE );
 				}
 			}
-			else if( (S_64)x >= ( ( pc->surface_rect.x
+			else if( (int64_t)x >= ( ( pc->surface_rect.x
 									+ pc->surface_rect.width ) ) )// right side edge
 			{
 				if( do_drag )
@@ -901,11 +901,11 @@ static void UpdateCursor( PSI_CONTROL pc, int x, int y, int caption_height, int 
 	}
 	else
 	{
-		if( ( (S_64)y >= pc->surface_rect.y )
-			&& ( (S_64)y < ( pc->surface_rect.y
+		if( ( (int64_t)y >= pc->surface_rect.y )
+			&& ( (int64_t)y < ( pc->surface_rect.y
 								+ pc->surface_rect.height ) ) // bottom side...
-			&& ( (S_64)x >= pc->surface_rect.x ) // left side edge
-			&& ( (S_64)x < ( pc->surface_rect.x
+			&& ( (int64_t)x >= pc->surface_rect.x ) // left side edge
+			&& ( (int64_t)x < ( pc->surface_rect.x
 								+ pc->surface_rect.width ) ) )// right side edge
 		{
 			SetDisplayCursor( IDC_ARROW );
@@ -945,7 +945,7 @@ static void UpdateCaption( PPHYSICAL_DEVICE pf, PSI_CONTROL pc )
 }
 
 
-static int CPROC FirstFrameMouse( PPHYSICAL_DEVICE pf, S_32 x, S_32 y, _32 b, int bCallOriginal )
+static int CPROC FirstFrameMouse( PPHYSICAL_DEVICE pf, int32_t x, int32_t y, uint32_t b, int bCallOriginal )
 {
 	PSI_CONTROL pc = pf->common;
 	extern void DumpFrameContents( PSI_CONTROL pc );
@@ -1006,7 +1006,7 @@ static int CPROC FirstFrameMouse( PPHYSICAL_DEVICE pf, S_32 x, S_32 y, _32 b, in
 		}
 		else if( pf->flags.bDragging )
 		{
-			S_32 winx, winy;
+			int32_t winx, winy;
 			int dx;
 			int dy;
 			GetDisplayPosition( pf->pActImg, &winx, &winy, NULL, NULL );
@@ -1233,7 +1233,7 @@ static int CPROC FirstFrameMouse( PPHYSICAL_DEVICE pf, S_32 x, S_32 y, _32 b, in
 								pf->flags.bSizing = TRUE;
 								result = 1;
 						}
-						else if( (S_64)x > ( ( pc->surface_rect.x 
+						else if( (int64_t)x > ( ( pc->surface_rect.x 
 												+ pc->surface_rect.width ) ) ) // right side edge
 						{
 #ifdef DETAILED_MOUSE_DEBUG
@@ -1278,7 +1278,7 @@ static int CPROC FirstFrameMouse( PPHYSICAL_DEVICE pf, S_32 x, S_32 y, _32 b, in
 								pf->flags.bSizing = TRUE;
 								result = 1;
 							}
-							else if( (S_64)x > ( pc->surface_rect.x 
+							else if( (int64_t)x > ( pc->surface_rect.x 
 											+ pc->surface_rect.width ) )
 							{
 #ifdef DETAILED_MOUSE_DEBUG
@@ -1335,7 +1335,7 @@ static int CPROC FirstFrameMouse( PPHYSICAL_DEVICE pf, S_32 x, S_32 y, _32 b, in
 							}
 					}
 				}
-				else if( (S_64)y >= ( ( pc->surface_rect.y 
+				else if( (int64_t)y >= ( ( pc->surface_rect.y 
 									 + pc->surface_rect.height ) ) ) // bottom side...
 				{  // very bottom band
 					int do_drag = 0;
@@ -1352,7 +1352,7 @@ static int CPROC FirstFrameMouse( PPHYSICAL_DEVICE pf, S_32 x, S_32 y, _32 b, in
 						 pf->flags.bSizing = TRUE;
 						 result = 1;
 					}
-					else if( (S_64)x > ( ( pc->surface_rect.x 
+					else if( (int64_t)x > ( ( pc->surface_rect.x 
 										 + pc->surface_rect.width ) ) )
 					{
 #ifdef DETAILED_MOUSE_DEBUG
@@ -1418,7 +1418,7 @@ static int CPROC FirstFrameMouse( PPHYSICAL_DEVICE pf, S_32 x, S_32 y, _32 b, in
 						}
 						result = 1;
 					}
-					else if( (S_64)x >= ( ( pc->surface_rect.x
+					else if( (int64_t)x >= ( ( pc->surface_rect.x
 										 + pc->surface_rect.width ) ) )// right side edge
 					{
 #ifdef DETAILED_MOUSE_DEBUG
@@ -1450,11 +1450,11 @@ static int CPROC FirstFrameMouse( PPHYSICAL_DEVICE pf, S_32 x, S_32 y, _32 b, in
 		}
 		else
 		{
-			if( ( (S_64)y >= pc->surface_rect.y )
-				&& ( (S_64)y < ( pc->surface_rect.y
+			if( ( (int64_t)y >= pc->surface_rect.y )
+				&& ( (int64_t)y < ( pc->surface_rect.y
 									+ pc->surface_rect.height ) ) // bottom side...
-				&& ( (S_64)x >= pc->surface_rect.x ) // left side edge
-				&& ( (S_64)x < ( pc->surface_rect.x
+				&& ( (int64_t)x >= pc->surface_rect.x ) // left side edge
+				&& ( (int64_t)x < ( pc->surface_rect.x
 									+ pc->surface_rect.width ) ) )// right side edge
 			{
 				// if within the surface, then forward to the real mouse proc...
@@ -1602,9 +1602,9 @@ PSI_PROC( void, SetFrameMousePosition )( PSI_CONTROL pfc, int x, int y )
 
 int HandleEditStateMouse( PEDIT_STATE pEditState
 								, PSI_CONTROL pfc
-								, S_32 x
-								, S_32 y
-								, _32 b )
+								, int32_t x
+								, int32_t y
+								, uint32_t b )
 {
 	PPHYSICAL_DEVICE pf = pfc->device;
 	//ValidatedControlData( PFRAME, CONTROL_FRAME, pf, pfc );
@@ -1840,7 +1840,7 @@ int HandleEditStateMouse( PEDIT_STATE pEditState
 
 //---------------------------------------------------------------------------
 
-int InvokeMouseMethod( PSI_CONTROL pfc, S_32 x, S_32 y, _32 b )
+int InvokeMouseMethod( PSI_CONTROL pfc, int32_t x, int32_t y, uint32_t b )
 {
 	PPHYSICAL_DEVICE pf = pfc->device;
 	PSI_CONTROL pCurrent;
@@ -1903,7 +1903,7 @@ int InvokeMouseMethod( PSI_CONTROL pfc, S_32 x, S_32 y, _32 b )
 
 //---------------------------------------------------------------------------
 
-int IsMouseInCurrent( PSI_CONTROL pfc, S_32 x, S_32 y, _32 is_surface, _32 b )
+int IsMouseInCurrent( PSI_CONTROL pfc, int32_t x, int32_t y, uint32_t is_surface, uint32_t b )
 {
 	PPHYSICAL_DEVICE pf = pfc->device;
 	//ValidatedControlData( PFRAME, CONTROL_FRAME, pf, pfc );
@@ -1937,9 +1937,9 @@ int IsMouseInCurrent( PSI_CONTROL pfc, S_32 x, S_32 y, _32 is_surface, _32 b )
 		if( pf->CurrentBias.flags.bias_is_surface )
 		{
 			// use tolerance to make the border wider
-			if( (S_64)x >= tolerance[0] && (S_64)y >= tolerance[0] &&
-				(S_64)x < ( pf->pCurrent->surface_rect.width - 2*tolerance[0] ) &&
-				(S_64)y < ( pf->pCurrent->surface_rect.height - 2*tolerance[1] )  )
+			if( (int64_t)x >= tolerance[0] && (int64_t)y >= tolerance[0] &&
+				(int64_t)x < ( pf->pCurrent->surface_rect.width - 2*tolerance[0] ) &&
+				(int64_t)y < ( pf->pCurrent->surface_rect.height - 2*tolerance[1] )  )
 			{
 				PSI_CONTROL pc;
 #ifdef DETAILED_MOUSE_DEBUG
@@ -1977,7 +1977,7 @@ int IsMouseInCurrent( PSI_CONTROL pfc, S_32 x, S_32 y, _32 is_surface, _32 b )
 			else
 			{
 				// still is surface... now check against the suface without the tolerance...
-				if( (S_64)x < 0 || (S_64)y < 0 || (S_64)x > pf->pCurrent->surface_rect.width || (S_64)y > pf->pCurrent->surface_rect.height )
+				if( (int64_t)x < 0 || (int64_t)y < 0 || (int64_t)x > pf->pCurrent->surface_rect.width || (int64_t)y > pf->pCurrent->surface_rect.height )
 				{
 					// okay the mouse has moved outside the surface... re-set the current bias
 					// and try this whole thing again.
@@ -1995,15 +1995,15 @@ int IsMouseInCurrent( PSI_CONTROL pfc, S_32 x, S_32 y, _32 is_surface, _32 b )
 		}
 		else
 		{
-			if( (S_64)x < pf->pCurrent->surface_rect.x ||
-				(S_64)y < pf->pCurrent->surface_rect.y ||
-				(S_64)x > pf->pCurrent->surface_rect.width + pf->pCurrent->surface_rect.x ||
-				(S_64)y > pf->pCurrent->surface_rect.height + pf->pCurrent->surface_rect.y )
+			if( (int64_t)x < pf->pCurrent->surface_rect.x ||
+				(int64_t)y < pf->pCurrent->surface_rect.y ||
+				(int64_t)x > pf->pCurrent->surface_rect.width + pf->pCurrent->surface_rect.x ||
+				(int64_t)y > pf->pCurrent->surface_rect.height + pf->pCurrent->surface_rect.y )
 			{
 				// still in control ( full tolerance is based on full rect.)
-				if( (S_64)x >= -tolerance[0] && (S_64)y >= -tolerance[0] &&
-					(S_64)x < ( pf->pCurrent->rect.width + 2*tolerance[0] ) &&
-					(S_64)y < ( pf->pCurrent->rect.height + 2*tolerance[1] )  )
+				if( (int64_t)x >= -tolerance[0] && (int64_t)y >= -tolerance[0] &&
+					(int64_t)x < ( pf->pCurrent->rect.width + 2*tolerance[0] ) &&
+					(int64_t)y < ( pf->pCurrent->rect.height + 2*tolerance[1] )  )
 				{
 #ifdef DETAILED_MOUSE_DEBUG
 					if( g.flags.bLogDetailedMouse )
@@ -2052,7 +2052,7 @@ int IsMouseInCurrent( PSI_CONTROL pfc, S_32 x, S_32 y, _32 is_surface, _32 b )
 //	Act of finding a control shall
 //---------------------------------------------------------------------------
 
-int CPROC AltFrameMouse( PTRSZVAL psvCommon, S_32 x, S_32 y, _32 b )
+int CPROC AltFrameMouse( uintptr_t psvCommon, int32_t x, int32_t y, uint32_t b )
 {
 	PPHYSICAL_DEVICE pf = (PPHYSICAL_DEVICE)psvCommon;
 	//PFRAME pf = (PFRAME)psvCommon;
@@ -2206,10 +2206,10 @@ int CPROC AltFrameMouse( PTRSZVAL psvCommon, S_32 x, S_32 y, _32 b )
 #endif
 		//pf->pCurrent = pc;
 		InvokeRollover( pf, pc );
-		if( (S_64)x < pc->surface_rect.x ||
-			(S_64)y < pc->surface_rect.y ||
-			(S_64)x > pc->surface_rect.x + pc->surface_rect.width ||
-			(S_64)y > pc->surface_rect.y + pc->surface_rect.height ||
+		if( (int64_t)x < pc->surface_rect.x ||
+			(int64_t)y < pc->surface_rect.y ||
+			(int64_t)x > pc->surface_rect.x + pc->surface_rect.width ||
+			(int64_t)y > pc->surface_rect.y + pc->surface_rect.height ||
 			pf->flags.bSizing || pf->flags.bDragging || pc->pressed_caption_button )
 		{
 			// it's on the frame of this frame (redunant eh?)
@@ -2347,7 +2347,7 @@ int CPROC AltFrameMouse( PTRSZVAL psvCommon, S_32 x, S_32 y, _32 b )
 
 //---------------------------------------------------------------------------
 
-static int OnMouseCommon( WIDE("Frame") )( PSI_CONTROL pc, S_32 x, S_32 y, _32 b )
+static int OnMouseCommon( WIDE("Frame") )( PSI_CONTROL pc, int32_t x, int32_t y, uint32_t b )
 {
 	// okay really frame mouse proc is JUST like every other
 	// control proc- mouse coordinates are relative to the surface.
@@ -2415,7 +2415,7 @@ void CaptureCommonMouse( PSI_CONTROL pc, LOGICAL bCapture )
 	}
 }
 
-void GetMouseButtons( PSI_CONTROL pc, _32 *buttons )
+void GetMouseButtons( PSI_CONTROL pc, uint32_t *buttons )
 {
 	if( buttons )
 	{

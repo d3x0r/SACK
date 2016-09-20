@@ -22,7 +22,7 @@ struct {
 	Image shadow;
 	Image shaded;
 	Image cover;
-	_32 w, h;
+	uint32_t w, h;
 	PRENDERER render;
 
 	CDATA base;
@@ -91,7 +91,7 @@ void DrawAllBubbles( Image image )
 	}
 }
 
-void CPROC UpdateImage( PTRSZVAL psv, PRENDERER renderer )
+void CPROC UpdateImage( uintptr_t psv, PRENDERER renderer )
 {
 	Image image = GetDisplayImage( renderer );
 	ClearImage( image );
@@ -102,7 +102,7 @@ void CPROC UpdateImage( PTRSZVAL psv, PRENDERER renderer )
 	UpdateDisplay( renderer );
 }
 
-void CPROC Ticker( PTRSZVAL psv )
+void CPROC Ticker( uintptr_t psv )
 {
 	MoveBubbles();
 	Redraw( l.render );

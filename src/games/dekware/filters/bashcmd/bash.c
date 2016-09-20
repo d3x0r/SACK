@@ -27,17 +27,17 @@ typedef struct mydatapath_tag {
 	DATAPATH common;
 	PSENTIENT ps;
 	struct {
-		_32 escape : 1;		// set at '\'
-		_32 collect_hex : 1; // set at '\x'
-		_32 collect_oct : 1; // set at '\0'
-		_32 quoted : 1;		// set at "
-		_32 var	 : 1;		// collecting name of a variable...
-		_32 enqued : 1;		// have enqueued something during a buffer eval
-		_32 comment : 1;
-		_32 no_blank_lines : 1;
+		uint32_t escape : 1;		// set at '\'
+		uint32_t collect_hex : 1; // set at '\x'
+		uint32_t collect_oct : 1; // set at '\0'
+		uint32_t quoted : 1;		// set at "
+		uint32_t var	 : 1;		// collecting name of a variable...
+		uint32_t enqued : 1;		// have enqueued something during a buffer eval
+		uint32_t comment : 1;
+		uint32_t no_blank_lines : 1;
 	} flags;
-	_32 valuebuffer;
-	_32 spaces;
+	uint32_t valuebuffer;
+	uint32_t spaces;
 	FORMAT format;
 
 	PVARTEXT vartext;
@@ -98,7 +98,7 @@ static int BreakCollection( PMYDATAPATH pdp )
 				// since it's a monotonic token....
 				var = TextDuplicate( var, FALSE );
 				if( pdp->partial )
-					var->format.position.offset.spaces = (_16)pdp->spaces;
+					var->format.position.offset.spaces = (uint16_t)pdp->spaces;
 			}
 			pdp->partial = SegAppend( pdp->partial, var );
 			pdp->flags.var = 0;
@@ -107,7 +107,7 @@ static int BreakCollection( PMYDATAPATH pdp )
 		else
 		{
 			if( pdp->partial )
-				segs->format.position.offset.spaces = (_16)pdp->spaces;
+				segs->format.position.offset.spaces = (uint16_t)pdp->spaces;
 			pdp->partial = SegAppend( pdp->partial, segs );
 		}
 		pdp->spaces = 0;
@@ -219,7 +219,7 @@ reevaluate_character:
 						}
 						else
 						{
-							_32 value = pdp->valuebuffer;
+							uint32_t value = pdp->valuebuffer;
 							do
 							{
 								VarTextAddCharacter( pdp->vartext, (TEXTCHAR)(value % 256) );
@@ -239,7 +239,7 @@ reevaluate_character:
 						}
 						else
 						{
-							_32 value = pdp->valuebuffer;
+							uint32_t value = pdp->valuebuffer;
 							do
 							{
 								VarTextAddCharacter( pdp->vartext, (TEXTCHAR)(value % 256) );

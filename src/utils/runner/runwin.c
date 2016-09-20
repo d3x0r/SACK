@@ -51,7 +51,7 @@ static void CPROC DoStart( void )
 }
 
 #  ifdef BUILD_SERVICE_THREAD
-static PTRSZVAL CPROC DoStart2( PTHREAD thread )
+static uintptr_t CPROC DoStart2( PTHREAD thread )
 #  else
 static void CPROC DoStart2( void )
 #  endif

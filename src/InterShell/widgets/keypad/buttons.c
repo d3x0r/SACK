@@ -32,8 +32,8 @@ typedef struct text_placement_tag
 {
 	DeclareLink( struct text_placement_tag );
 	struct {
-		_32 bHorizCenter : 1;
-		_32 bDrawRightJust : 1;
+		uint32_t bHorizCenter : 1;
+		uint32_t bDrawRightJust : 1;
 	} flags;
 	int x, y;
 	int orig_x, orig_y;
@@ -55,9 +55,9 @@ typedef struct color_triplet {
 typedef struct key_button_tag
 {
 	PSI_CONTROL button;
-	S_32 x, y;
-	_32 width, height;  // scales images to this size...
-	S_32 real_x, real_y; // physical device coordinates to track the layers above.
+	int32_t x, y;
+	uint32_t width, height;  // scales images to this size...
+	int32_t real_x, real_y; // physical device coordinates to track the layers above.
 	PRENDERER lense_layer;
 	PRENDERER animation_layer;
 	struct {
@@ -92,21 +92,21 @@ typedef struct key_button_tag
 	} multi_shade;
 	struct {
 		Image image;
-		_32 hMargin, vMargin;
+		uint32_t hMargin, vMargin;
 		CDATA color;
-		S_16 alpha;
+		int16_t alpha;
 	}background;
 	TEXTCHAR *content; // nul terminated strings concatenated...
 	//SFTFont font;
 	CDATA text_color;
-	void (CPROC *PressHandler)( PTRSZVAL psv, PKEY_BUTTON key );
-	void (CPROC *SimplePressHandler)( PTRSZVAL psv );
-	PTRSZVAL psvPress;
+	void (CPROC *PressHandler)( uintptr_t psv, PKEY_BUTTON key );
+	void (CPROC *SimplePressHandler)( uintptr_t psv );
+	uintptr_t psvPress;
 	CTEXTSTR value;
 	PTEXT_PLACEMENT layout;
 
 	struct {
-		_32 pressed:1;
+		uint32_t pressed:1;
 	}buttonflags;
    int _b;
 } KEY_BUTTON;
@@ -142,7 +142,7 @@ typedef struct theme_tag {
 
 typedef struct widget_button_local_tag {
 	struct {
-		_32 theme_loaded : 1;
+		uint32_t theme_loaded : 1;
 	} flags;
 	PTHEME default_theme;
 	PLIST theme_name_list;
@@ -165,7 +165,7 @@ void CPROC PressKeyButton( PKEY_BUTTON key, PCONTROL pc )
 	// not really sure I need to do anything here...
 	if( !key->flags.bNoPress && key->PressHandler )
 	{
-		//ThreadTo( (PTRSZVAL(CPROC*)(PTHREAD))PressKeyThread, (PTRSZVAL)key );
+		//ThreadTo( (uintptr_t(CPROC*)(PTHREAD))PressKeyThread, (uintptr_t)key );
 		//ReleaseCommonUse( pc );
 		if( key->PressHandler )
 			key->PressHandler( key->psvPress, key );
@@ -181,10 +181,10 @@ void CPROC PressKeyButton( PKEY_BUTTON key, PCONTROL pc )
 	//}
 }
 
-void CPROC DrawGlareLayer( PTRSZVAL psv_control, PRENDERER renderer );
+void CPROC DrawGlareLayer( uintptr_t psv_control, PRENDERER renderer );
 
 
-static int CPROC HandleMouse( PSI_CONTROL pc, S_32 x, S_32 y, _32 b )
+static int CPROC HandleMouse( PSI_CONTROL pc, int32_t x, int32_t y, uint32_t b )
 {
 	Image image = GetControlSurface( pc );
 	MyValidatedControlData( PKEY_BUTTON, button, pc );
@@ -211,7 +211,7 @@ static int CPROC HandleMouse( PSI_CONTROL pc, S_32 x, S_32 y, _32 b )
 			button->buttonflags.pressed = FALSE;
 			if( button->flags.bLayered )
 			{
-				DrawGlareLayer( (PTRSZVAL)pc, button->lense_layer );
+				DrawGlareLayer( (uintptr_t)pc, button->lense_layer );
 				Redraw( button->lense_layer );
 			}
 			else
@@ -230,7 +230,7 @@ static int CPROC HandleMouse( PSI_CONTROL pc, S_32 x, S_32 y, _32 b )
 				//lprintf( "Draw pressed state?" );
 				if( button->flags.bLayered )
 				{
-					DrawGlareLayer( (PTRSZVAL)pc, button->lense_layer );
+					DrawGlareLayer( (uintptr_t)pc, button->lense_layer );
 					Redraw( button->lense_layer );
 				}
 				else
@@ -256,7 +256,7 @@ static int CPROC HandleMouse( PSI_CONTROL pc, S_32 x, S_32 y, _32 b )
 			{
 				if( button->flags.bLayered )
 				{
-					DrawGlareLayer( (PTRSZVAL)pc, button->lense_layer );
+					DrawGlareLayer( (uintptr_t)pc, button->lense_layer );
 					Redraw( button->lense_layer );
 				}
 				else
@@ -274,7 +274,7 @@ static void OnMoveCommon( BUTTON_NAME )( PSI_CONTROL pc, LOGICAL bMoving )
 	if( !bMoving )
 	{
 		MyValidatedControlData( PKEY_BUTTON, button, pc );
-		S_32 x = 0, y = 0;
+		int32_t x = 0, y = 0;
 
 		GetPhysicalCoordinate( pc, &x, &y, FALSE );
 		button->real_x = x;
@@ -313,12 +313,12 @@ static void OnSizeCommon( BUTTON_NAME )( PSI_CONTROL pc, LOGICAL bSizing )
 	}
 }
 
-static int  OnMouseCommon(BUTTON_NAME)( PSI_CONTROL pc, S_32 x, S_32 y, _32 b )
+static int  OnMouseCommon(BUTTON_NAME)( PSI_CONTROL pc, int32_t x, int32_t y, uint32_t b )
 {
    return HandleMouse( pc, x, y, b );
 }
 
-void CPROC DrawGlareLayer( PTRSZVAL psv_control, PRENDERER renderer )
+void CPROC DrawGlareLayer( uintptr_t psv_control, PRENDERER renderer )
 {
 	PSI_CONTROL pc = (PSI_CONTROL)psv_control;
 	MyValidatedControlData( PKEY_BUTTON, key, pc );
@@ -378,8 +378,8 @@ static int OnCreateCommon(BUTTON_NAME)( PCOMMON pc )
 	{
 		Image surface = GetControlSurface( pc );
 		PRENDERER r = GetFrameRenderer( GetFrame( pc ) );
-		S_32 x = 0;
-		S_32 y = 0;
+		int32_t x = 0;
+		int32_t y = 0;
 		GetPhysicalCoordinate( pc, &x, &y, FALSE );
 		HideControl( pc ); // hide this control - we'll show it when we finish the proper init...
 		button->real_x = x;
@@ -399,8 +399,8 @@ static int OnCreateCommon(BUTTON_NAME)( PCOMMON pc )
 																		, x, y
 																		, r // r may not exist yet... we might just be over a control that is frameless... later we'll relate as child
 																		);
-			SetRedrawHandler( button->lense_layer, DrawGlareLayer, (PTRSZVAL)pc );
-			SetMouseHandler( button->lense_layer, (MouseCallback)HandleMouse, (PTRSZVAL) pc );
+			SetRedrawHandler( button->lense_layer, DrawGlareLayer, (uintptr_t)pc );
+			SetMouseHandler( button->lense_layer, (MouseCallback)HandleMouse, (uintptr_t) pc );
 		}
 	}
 	return 1;
@@ -630,7 +630,7 @@ void UpdateLayoutPosition( PKEY_BUTTON pKey, PTEXT_PLACEMENT layout )
 		 || ( layout->prior_width != pKey->width )
 		 || ( layout->prior_height != pKey->height ) ) )
 	{
-		_32 w, h;
+		uint32_t w, h;
 		layout->prior_width = pKey->width;
 		layout->prior_height = pKey->height;
 		if( layout->font )
@@ -659,8 +659,8 @@ int CPROC DrawButtonText( PSI_CONTROL pc, Image surface, PKEY_BUTTON key )
 		PTEXT_PLACEMENT layout;
 		for( layout = key->layout; layout; layout = NextThing( layout ) )
 		{
-			_32 w, h;
-			S_32 xofs = 0, yofs = 0;
+			uint32_t w, h;
+			int32_t xofs = 0, yofs = 0;
 			UpdateLayoutPosition( key, layout );
 			if( layout->flags.bHorizCenter || layout->flags.bDrawRightJust)
 			{
@@ -757,7 +757,7 @@ int CPROC DrawButtonText( PSI_CONTROL pc, Image surface, PKEY_BUTTON key )
 				{
 					SFTFont font = GetCommonFont( key->button );
 					size_t len = strlen( text );
-					_32 text_width, text_height;
+					uint32_t text_width, text_height;
 					// handle content formatting.
 					text++;
 					GetStringSizeFontEx( text, len-1, &text_width, &text_height, font );
@@ -1074,7 +1074,7 @@ static int OnDrawCommon( BUTTON_NAME )( PCONTROL pc )
 //------------------------------------------------------------------------------------
 
 void SetButtonPosition( PKEY_BUTTON key
-							 , S_32 x, S_32 y )
+							 , int32_t x, int32_t y )
 {
 	MoveControl( key->button, x, y );
 }
@@ -1082,7 +1082,7 @@ void SetButtonPosition( PKEY_BUTTON key
 //------------------------------------------------------------------------------------
 
 void SetButtonSize( PKEY_BUTTON key
-						, _32 width, _32 height )
+						, uint32_t width, uint32_t height )
 {
 	SizeControl( key->button, width, height );
 }
@@ -1101,14 +1101,14 @@ void SetKeyColor( PKEY_BUTTON key, CDATA color )
 
 //------------------------------------------------------------------------------------
 
-void SetKeyImageAlpha( PKEY_BUTTON key, S_16 alpha )
+void SetKeyImageAlpha( PKEY_BUTTON key, int16_t alpha )
 {
 	if( key )
       key->background.alpha = alpha;
 }
 
 //------------------------------------------------------------------------------------
-void SetKeyImageMargin( PKEY_BUTTON key, _32 hMargin, _32 vMargin )
+void SetKeyImageMargin( PKEY_BUTTON key, uint32_t hMargin, uint32_t vMargin )
 {
 	if( key )
 	{
@@ -1272,8 +1272,8 @@ void EnableKeyPresses( PKEY_BUTTON key, LOGICAL bEnable )
 //------------------------------------------------------------------------------------
 
 void SetKeyPressEvent( PKEY_BUTTON key
-						 , void (CPROC *PressHandler)( PTRSZVAL psv, PKEY_BUTTON key )
-							, PTRSZVAL psvPress
+						 , void (CPROC *PressHandler)( uintptr_t psv, PKEY_BUTTON key )
+							, uintptr_t psvPress
 							)
 {
 	if( key )
@@ -1286,8 +1286,8 @@ void SetKeyPressEvent( PKEY_BUTTON key
 //------------------------------------------------------------------------------------
 
 void GetKeyPressEvent( PKEY_BUTTON key
-						 , void (CPROC **PressHandler)( PTRSZVAL psv, PKEY_BUTTON key )
-							, PTRSZVAL *psvPress
+						 , void (CPROC **PressHandler)( uintptr_t psv, PKEY_BUTTON key )
+							, uintptr_t *psvPress
 							)
 {
 	if( key )
@@ -1300,8 +1300,8 @@ void GetKeyPressEvent( PKEY_BUTTON key
 }
 
 void GetKeySimplePressEvent( PKEY_BUTTON key
-						 , void (CPROC **SimplePressHandler)( PTRSZVAL psv )
-							, PTRSZVAL *psvPress
+						 , void (CPROC **SimplePressHandler)( uintptr_t psv )
+							, uintptr_t *psvPress
 							)
 {
 	if( key )
@@ -1313,13 +1313,13 @@ void GetKeySimplePressEvent( PKEY_BUTTON key
 	}
 }
 
-void SetKeyPressNamedEvent( PKEY_BUTTON key, CTEXTSTR PressHandlerName, PTRSZVAL psvPress )
+void SetKeyPressNamedEvent( PKEY_BUTTON key, CTEXTSTR PressHandlerName, uintptr_t psvPress )
 {
 	SimplePressHandler handler;
 	TEXTCHAR realname[256];
 	snprintf( realname, sizeof(realname), WIDE("sack/widgets/keypad/press handler/%s"), PressHandlerName );
 
-	handler = GetRegisteredProcedure2( realname, void, WIDE("on_keypress_event"), (PTRSZVAL) );
+	handler = GetRegisteredProcedure2( realname, void, WIDE("on_keypress_event"), (uintptr_t) );
 	if( handler )
 	{
 		key->SimplePressHandler = handler;
@@ -1333,20 +1333,20 @@ void SetKeyPressNamedEvent( PKEY_BUTTON key, CTEXTSTR PressHandlerName, PTRSZVAL
 //                                         ,
 
 PKEY_BUTTON MakeKeyExx( PCOMMON frame
-							 , S_32 x, S_32 y
-							 , _32 width, _32 height
-							 , _32 ID
+							 , int32_t x, int32_t y
+							 , uint32_t width, uint32_t height
+							 , uint32_t ID
 							 , Image lense
 							 , Image frame_up
 							 , Image frame_down
 							 , Image mask
-							 , _32 flags
+							 , uint32_t flags
 							 , CDATA background
 							 , CTEXTSTR content
 							 , SFTFont font
-							 , void (CPROC *PressHandler)( PTRSZVAL psv, PKEY_BUTTON key )
+							 , void (CPROC *PressHandler)( uintptr_t psv, PKEY_BUTTON key )
 							 , CTEXTSTR PressHandlerName
-							 , PTRSZVAL psvPress
+							 , uintptr_t psvPress
 							 , CTEXTSTR value
 							 )
 {
@@ -1434,57 +1434,57 @@ PKEY_BUTTON MakeKeyExx( PCOMMON frame
 }
 
 PKEY_BUTTON MakeKeyEx( PCOMMON frame
-							, S_32 x, S_32 y
-							, _32 width, _32 height
-							, _32 ID
+							, int32_t x, int32_t y
+							, uint32_t width, uint32_t height
+							, uint32_t ID
 							, Image lense
 							, Image frame_up
 							, Image frame_down
 							, Image mask
-							, _32 flags
+							, uint32_t flags
 							, CDATA background
 							, CTEXTSTR content
 							, SFTFont font
-							, void (CPROC *PressHandler)( PTRSZVAL psv, PKEY_BUTTON key )
-							 , PTRSZVAL psvPress
+							, void (CPROC *PressHandler)( uintptr_t psv, PKEY_BUTTON key )
+							 , uintptr_t psvPress
 							, CTEXTSTR value
 							)
 {
 	return MakeKeyExx( /*PCOMMON */frame
-						  , /*S_32*/ x
-						  , /*S_32*/ y
-						  , /*_32*/ width
-						  , /*_32*/ height
-						  , /*_32*/ ID
+						  , /*int32_t*/ x
+						  , /*int32_t*/ y
+						  , /*uint32_t*/ width
+						  , /*uint32_t*/ height
+						  , /*uint32_t*/ ID
 						  , /*Image*/ lense
 						  , /*Image*/ frame_up
 						  , /*Image*/ frame_down
 						  , /*Image*/ mask
-						  , /*_32*/ flags
+						  , /*uint32_t*/ flags
 						  , /*CDATA*/ background
 						  , /*CTEXTSTR */content
 						  , /*SFTFont*/ font
-						  , /*void (CPROC*PressHandler)( PTRSZVAL psv, PKEY_BUTTON key )*/ PressHandler
+						  , /*void (CPROC*PressHandler)( uintptr_t psv, PKEY_BUTTON key )*/ PressHandler
 						  , NULL
-						  , /*PTRSZVAL*/ psvPress
+						  , /*uintptr_t*/ psvPress
 						  , /*CTEXTSTR */value
 						  );
 }
 
 
 PKEY_BUTTON MakeKey( PCOMMON frame
-							, S_32 x, S_32 y
-							, _32 width, _32 height
-							, _32 ID
+							, int32_t x, int32_t y
+							, uint32_t width, uint32_t height
+							, uint32_t ID
 							, Image lense
 							, Image frame_up
 							, Image frame_down
-							, _32 flags
+							, uint32_t flags
 							, CDATA background
 							, CTEXTSTR content
 							, SFTFont font
-							, void (CPROC *PressHandler)( PTRSZVAL psv, PKEY_BUTTON key )
-							, PTRSZVAL psvPress
+							, void (CPROC *PressHandler)( uintptr_t psv, PKEY_BUTTON key )
+							, uintptr_t psvPress
 							, CTEXTSTR value
 							)
 {
@@ -1540,11 +1540,11 @@ void SetKeyTextFieldColor( PTEXT_PLACEMENT pField, CDATA color )
 	}
 }
 
-PTEXT_PLACEMENT AddKeyLayout( PKEY_BUTTON pKey, int x, int y, SFTFont *font, CDATA color, _32 flags )
+PTEXT_PLACEMENT AddKeyLayout( PKEY_BUTTON pKey, int x, int y, SFTFont *font, CDATA color, uint32_t flags )
 {
 	PTEXT_PLACEMENT layout;
 	//int count;
-   //_32 w, h;
+   //uint32_t w, h;
 	layout = New( TEXT_PLACEMENT );
 	MemSet( layout, 0, sizeof( TEXT_PLACEMENT ) ); // easiest when dealing with flags struct...
 	layout->orig_x = x;
@@ -1701,7 +1701,7 @@ PRENDERER GetButtonAnimationLayer( PSI_CONTROL pc_key_button )
 			key->animation_layer = OpenDisplaySizedAt( DISPLAY_ATTRIBUTE_LAYERED|DISPLAY_ATTRIBUTE_CHILD
 																		 , key->width - 40 , key->height - 40
 																		 , key->real_x + 20 , key->real_y + 20 );
-			//SetRedrawHandler( button->lense_layer, DrawGlareLayer, (PTRSZVAL)pc );
+			//SetRedrawHandler( button->lense_layer, DrawGlareLayer, (uintptr_t)pc );
 			if( key->flags.bOrdered )
 			{
 				//lprintf( "Inserting the animation layer between lense_layer" );

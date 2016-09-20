@@ -8,15 +8,15 @@
 static struct {
 	PCLIENT pc;
 	PRENDERER transparent;
-	_32 last_message_tick;
+	uint32_t last_message_tick;
 	LOGICAL bHidden;
 	LOGICAL bPendingChange;
-	S_32 x, y;
-	_32 w, h;
+	int32_t x, y;
+	uint32_t w, h;
    PTHREAD change_thread;
 } l;
 
-PTRSZVAL CPROC DoUpdateThread( PTHREAD thread )
+uintptr_t CPROC DoUpdateThread( PTHREAD thread )
 {
 	while( 1 )
 	{
@@ -68,7 +68,7 @@ void CPROC NetworkUpdate( PCLIENT pc, POINTER buffer, int size, SOCKADDR *saFrom
 	}
 	else
 	{
-		_32 *array = (_32*)buffer;
+		uint32_t *array = (uint32_t*)buffer;
       //lprintf( "Received data message." );
 		if( array[0] != l.last_message_tick )
 		{
@@ -93,7 +93,7 @@ void CPROC NetworkUpdate( PCLIENT pc, POINTER buffer, int size, SOCKADDR *saFrom
 int main( int argc, char ** argv )
 {
    char *file_to_play;
-	_32 w, h;
+	uint32_t w, h;
 	PLIST names = NULL;
 	if( argc < 2 )
 		return 0;

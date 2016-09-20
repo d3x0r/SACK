@@ -278,7 +278,7 @@ int DayOfYear( int year, int Month, int Day )
    return doy;
 }
 
-int MonthDayofYear( int year, int doy, P_16 Month, P_16 Day )
+int MonthDayofYear( int year, int doy, uint16_t* Month, uint16_t* Day )
 {
    int i;
 

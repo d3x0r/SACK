@@ -221,7 +221,7 @@ void ZRender_Interface::Render_EmptySector(int x, int y, int z, float r, float g
 
 
 
-Bool ZRender_Interface::LoadVoxelTexturesToGPU(PTRSZVAL psvInit)
+Bool ZRender_Interface::LoadVoxelTexturesToGPU(uintptr_t psvInit)
 {
   ULong i;
   ZVoxelType * VoxelType;
@@ -296,7 +296,7 @@ void ZRender_Interface::FreeDisplayData(ZVoxelSector * Sector)
 #endif
 }
 #endif
-Bool ZRender_Interface::LoadTexturesToGPU(PTRSZVAL psvInit)
+Bool ZRender_Interface::LoadTexturesToGPU(uintptr_t psvInit)
 {
   ULong i;
   ULong TextureCount;

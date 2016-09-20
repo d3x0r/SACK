@@ -168,7 +168,7 @@ bool ZGame::Init_GraphicMode(ZLog * InitLog)
   // Note we use a bad way for detection as compiling also lacking windows 8 headers at this time.
 
   {
-	  _32 w, h;
+	  uint32_t w, h;
 	  GetDisplaySize(&w, &h);
 	  DesktopResolution.x = w;
 	  DesktopResolution.y = h;
@@ -496,7 +496,7 @@ bool ZGame::End_Game_Events()
   return(true);
 }
 
-bool ZGame::Init_Renderer(ZLog * InitLog, PTRSZVAL psvInit )
+bool ZGame::Init_Renderer(ZLog * InitLog, uintptr_t psvInit )
 {
   InitLog->Log(1, ZLog::INFO, "Starting : Renderer Init");
   //ZRender_Basic Basic_Renderer;

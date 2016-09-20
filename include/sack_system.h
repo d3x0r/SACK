@@ -48,8 +48,8 @@ SACK_NAMESPACE
 	_SYSTEM_NAMESPACE
 
 typedef struct task_info_tag *PTASK_INFO;
-typedef void (CPROC*TaskEnd)(PTRSZVAL, PTASK_INFO task_ended);
-typedef void (CPROC*TaskOutput)(PTRSZVAL, PTASK_INFO task, CTEXTSTR buffer, size_t size );
+typedef void (CPROC*TaskEnd)(uintptr_t, PTASK_INFO task_ended);
+typedef void (CPROC*TaskOutput)(uintptr_t, PTASK_INFO task, CTEXTSTR buffer, size_t size );
 
 // Run a program completely detached from the current process
 // it runs independantly.  Program does not suspend until it completes.
@@ -64,14 +64,14 @@ SYSTEM_PROC( PTASK_INFO, LaunchPeerProgramExx )( CTEXTSTR program, CTEXTSTR path
 															  , int flags
 															  , TaskOutput OutputHandler
 															  , TaskEnd EndNotice
-															  , PTRSZVAL psv
+															  , uintptr_t psv
 																DBG_PASS
 															  );
 
-SYSTEM_PROC( PTASK_INFO, LaunchProgramEx )( CTEXTSTR program, CTEXTSTR path, PCTEXTSTR args, TaskEnd EndNotice, PTRSZVAL psv );
+SYSTEM_PROC( PTASK_INFO, LaunchProgramEx )( CTEXTSTR program, CTEXTSTR path, PCTEXTSTR args, TaskEnd EndNotice, uintptr_t psv );
 SYSTEM_PROC( PTASK_INFO, LaunchProgram )( CTEXTSTR program, CTEXTSTR path, PCTEXTSTR  args );
-SYSTEM_PROC( PTRSZVAL, TerminateProgram )( PTASK_INFO task );
-SYSTEM_PROC( void, SetProgramUserData )( PTASK_INFO task, PTRSZVAL psv );
+SYSTEM_PROC( uintptr_t, TerminateProgram )( PTASK_INFO task );
+SYSTEM_PROC( void, SetProgramUserData )( PTASK_INFO task, uintptr_t psv );
 
 SYSTEM_PROC( void, ImpersonateInteractiveUser )( void );
 SYSTEM_PROC( void, EndImpersonation )( void );
@@ -88,7 +88,7 @@ SYSTEM_PROC( LOGICAL, StopProgram )( PTASK_INFO task );
 //  PcTextStr is a pointer to strings -
 //   char ** - returns a quoted string if args have spaces (and escape quotes in args?)
 SYSTEM_PROC( TEXTSTR, GetArgsString )( PCTEXTSTR pArgs );
-SYSTEM_PROC( _32, GetTaskExitCode )( PTASK_INFO task );
+SYSTEM_PROC( uint32_t, GetTaskExitCode )( PTASK_INFO task );
 
 SYSTEM_PROC( CTEXTSTR, GetProgramName )( void );
 SYSTEM_PROC( CTEXTSTR, GetProgramPath )( void );
@@ -101,7 +101,7 @@ SYSTEM_PROC( LOGICAL, IsSystemShuttingDown )( void );
 SYSTEM_PROC( PTASK_INFO, LaunchPeerProgramEx )( CTEXTSTR program, CTEXTSTR path, PCTEXTSTR args
 															 , TaskOutput HandlePeerOutput
 															 , TaskEnd EndNotice
-															 , PTRSZVAL psv
+															 , uintptr_t psv
 															  DBG_PASS
 															 );
 #define LaunchPeerProgram(prog,path,args,out,end,psv) LaunchPeerProgramEx(prog,path,args,out,end,psv DBG_SRC)
@@ -109,7 +109,7 @@ SYSTEM_PROC( PTASK_INFO, LaunchPeerProgramEx )( CTEXTSTR program, CTEXTSTR path,
 
 SYSTEM_PROC( PTASK_INFO, SystemEx )( CTEXTSTR command_line
 															  , TaskOutput OutputHandler
-															  , PTRSZVAL psv
+															  , uintptr_t psv
 																DBG_PASS
 											  );
 #define System(command_line,output_handler,user_data) SystemEx( command_line, output_handler, user_data DBG_SRC )

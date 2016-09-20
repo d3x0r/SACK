@@ -271,7 +271,7 @@ void ProcessCurrentSpace( void )
         break;
     case SPACE_BROKER:
         {
-         _32 shares;
+         uint32_t shares;
             UpdateStocks( pSpace->FixedStageAdjust );
             shares = CountShares( &g.pCurrentPlayer->portfolio );
             if( shares )
@@ -309,7 +309,7 @@ void ProcessCurrentSpace( void )
         break;
     case SPACE_STOCKSELL:
         {
-         _32 cash;
+         uint32_t cash;
             PSTOCKACCOUNT pAccount =
                 GetStockAccount( &g.pCurrentPlayer->portfolio
                                     , pSpace->attributes.buy_sell.stock );
@@ -344,7 +344,7 @@ void ProcessCurrentSpace( void )
     case SPACE_HOLDERSMEETING:
         {
             FRACTION result;
-         _32 shares = g.pCurrentPlayer->pMeeting->shares;
+         uint32_t shares = g.pCurrentPlayer->pMeeting->shares;
             ScaleFraction( &result
                              , shares
                              , &pSpace->attributes.split.ratio );
@@ -369,11 +369,11 @@ void ProcessCurrentSpace( void )
                 max_shares = 0; // set max by cash amount...
             }
 				{
-					_32 value;
+					uint32_t value;
 					PSTOCKACCOUNT pAccount =
 						GetStockAccount( &g.pCurrentPlayer->portfolio
 											, pSpace->attributes.buy_sell.stock );
-					_32 shares;
+					uint32_t shares;
 
 					if( pAccount && pAccount->shares )
 					{
@@ -636,9 +636,9 @@ void ValidateBoard( void )
 
 //-----------------------------------------------------------------
 
-PTRSZVAL CPROC AddSpace( PTRSZVAL psv, arg_list args )
+uintptr_t CPROC AddSpace( uintptr_t psv, arg_list args )
 {
-   PARAM( args, S_64, ID );
+   PARAM( args, int64_t, ID );
     if( psv )
     {
         // check for last space's completeness
@@ -651,20 +651,20 @@ PTRSZVAL CPROC AddSpace( PTRSZVAL psv, arg_list args )
       pSpace->left = INVALID_INDEX;
         pSpace->right = INVALID_INDEX;
       pSpace->alternate = INVALID_INDEX;
-        return (PTRSZVAL)pSpace;
+        return (uintptr_t)pSpace;
     }
 }
 
 //-----------------------------------------------------------------
 
-PTRSZVAL CPROC AddCenter( PTRSZVAL psv, arg_list args )
+uintptr_t CPROC AddCenter( uintptr_t psv, arg_list args )
 {
     PARAM( args, TEXTCHAR *, name );
-    PARAM( args, _64, pay );
-    PARAM( args, _64, roll1 );
-    PARAM( args, _64, roll2 );
+    PARAM( args, uint64_t, pay );
+    PARAM( args, uint64_t, roll1 );
+    PARAM( args, uint64_t, roll2 );
     PSPACE pSpace = (PSPACE)psv;
-    Log4( WIDE("Name: %s Pay %d on %d or %d"), name, (_32)pay, (_32)roll1, (_32)roll2 );
+    Log4( WIDE("Name: %s Pay %d on %d or %d"), name, (uint32_t)pay, (uint32_t)roll1, (uint32_t)roll2 );
     pSpace->type = SPACE_PROFESSION;
     pSpace->attributes.profession.name = NewArray( TEXTCHAR, strlen( name ) + 1 );
     strcpy( pSpace->attributes.profession.name, name );
@@ -676,9 +676,9 @@ PTRSZVAL CPROC AddCenter( PTRSZVAL psv, arg_list args )
 
 //-----------------------------------------------------------------
 
-PTRSZVAL CPROC SetMarketUp( PTRSZVAL psv, arg_list args )
+uintptr_t CPROC SetMarketUp( uintptr_t psv, arg_list args )
 {
-   PARAM( args, S_64, amount );
+   PARAM( args, int64_t, amount );
     PSPACE pSpace = (PSPACE)psv;
     pSpace->FixedStageAdjust = amount;
     return psv;
@@ -686,9 +686,9 @@ PTRSZVAL CPROC SetMarketUp( PTRSZVAL psv, arg_list args )
 
 //-----------------------------------------------------------------
 
-PTRSZVAL CPROC SetMarketDown( PTRSZVAL psv, arg_list args )
+uintptr_t CPROC SetMarketDown( uintptr_t psv, arg_list args )
 {
-   PARAM( args, S_64, amount );
+   PARAM( args, int64_t, amount );
     PSPACE pSpace = (PSPACE)psv;
     pSpace->FixedStageAdjust = -amount;
     return psv;
@@ -696,9 +696,9 @@ PTRSZVAL CPROC SetMarketDown( PTRSZVAL psv, arg_list args )
 
 //-----------------------------------------------------------------
 
-PTRSZVAL CPROC SetStockBuy( PTRSZVAL psv, arg_list args )
+uintptr_t CPROC SetStockBuy( uintptr_t psv, arg_list args )
 {
-   PARAM( args, S_64, stock );
+   PARAM( args, int64_t, stock );
     PSPACE pSpace = (PSPACE)psv;
    if( pSpace->type == SPACE_UNKNOWN )
         pSpace->type = SPACE_STOCKBUY;
@@ -708,9 +708,9 @@ PTRSZVAL CPROC SetStockBuy( PTRSZVAL psv, arg_list args )
 
 //-----------------------------------------------------------------
 
-PTRSZVAL CPROC SetStockSell( PTRSZVAL psv, arg_list args )
+uintptr_t CPROC SetStockSell( uintptr_t psv, arg_list args )
 {
-   PARAM( args, S_64, stock );
+   PARAM( args, int64_t, stock );
     PSPACE pSpace = (PSPACE)psv;
    pSpace->type = SPACE_STOCKSELL;
    pSpace->attributes.buy_sell.stock = GetStockByID( stock );
@@ -719,7 +719,7 @@ PTRSZVAL CPROC SetStockSell( PTRSZVAL psv, arg_list args )
 
 //-----------------------------------------------------------------
 
-PTRSZVAL CPROC SetSpaceBroker( PTRSZVAL psv, arg_list args )
+uintptr_t CPROC SetSpaceBroker( uintptr_t psv, arg_list args )
 {
     PSPACE pSpace = (PSPACE)psv;
     pSpace->type = SPACE_BROKER;
@@ -729,9 +729,9 @@ PTRSZVAL CPROC SetSpaceBroker( PTRSZVAL psv, arg_list args )
 
 //-----------------------------------------------------------------
 
-PTRSZVAL CPROC SetSpaceLeft( PTRSZVAL psv, arg_list args )
+uintptr_t CPROC SetSpaceLeft( uintptr_t psv, arg_list args )
 {
-   PARAM( args, S_64, ID );
+   PARAM( args, int64_t, ID );
     PSPACE pSpace = (PSPACE)psv;
    pSpace->left = ID;
    return psv;
@@ -739,9 +739,9 @@ PTRSZVAL CPROC SetSpaceLeft( PTRSZVAL psv, arg_list args )
 
 //-----------------------------------------------------------------
 
-PTRSZVAL CPROC SetSpaceRight( PTRSZVAL psv, arg_list args )
+uintptr_t CPROC SetSpaceRight( uintptr_t psv, arg_list args )
 {
-   PARAM( args, S_64, ID );
+   PARAM( args, int64_t, ID );
     PSPACE pSpace = (PSPACE)psv;
    pSpace->right = ID;
    return psv;
@@ -749,9 +749,9 @@ PTRSZVAL CPROC SetSpaceRight( PTRSZVAL psv, arg_list args )
 
 //-----------------------------------------------------------------
 
-PTRSZVAL CPROC SetHolderEntranceLeft( PTRSZVAL psv, arg_list args )
+uintptr_t CPROC SetHolderEntranceLeft( uintptr_t psv, arg_list args )
 {
-   PARAM( args, S_64, ID );
+   PARAM( args, int64_t, ID );
     PSPACE pSpace = (PSPACE)psv;
     pSpace->alternate = ID;
    pSpace->type = SPACE_HOLDERSENTRANCE;
@@ -761,9 +761,9 @@ PTRSZVAL CPROC SetHolderEntranceLeft( PTRSZVAL psv, arg_list args )
 
 //-----------------------------------------------------------------
 
-PTRSZVAL CPROC SetHolderEntranceRight( PTRSZVAL psv, arg_list args )
+uintptr_t CPROC SetHolderEntranceRight( uintptr_t psv, arg_list args )
 {
-   PARAM( args, S_64, ID );
+   PARAM( args, int64_t, ID );
     PSPACE pSpace = (PSPACE)psv;
    pSpace->type = SPACE_HOLDERSENTRANCE;
    pSpace->alternate = ID;
@@ -773,7 +773,7 @@ PTRSZVAL CPROC SetHolderEntranceRight( PTRSZVAL psv, arg_list args )
 
 //-----------------------------------------------------------------
 
-PTRSZVAL CPROC SetExitLeft( PTRSZVAL psv, arg_list args )
+uintptr_t CPROC SetExitLeft( uintptr_t psv, arg_list args )
 {
     PSPACE pSpace = (PSPACE)psv;
    pSpace->flags.bMoveLeft = 1;
@@ -782,7 +782,7 @@ PTRSZVAL CPROC SetExitLeft( PTRSZVAL psv, arg_list args )
 
 //-----------------------------------------------------------------
 
-PTRSZVAL CPROC SetExitRight( PTRSZVAL psv, arg_list args )
+uintptr_t CPROC SetExitRight( uintptr_t psv, arg_list args )
 {
     PSPACE pSpace = (PSPACE)psv;
    pSpace->flags.bMoveLeft = 0;
@@ -791,7 +791,7 @@ PTRSZVAL CPROC SetExitRight( PTRSZVAL psv, arg_list args )
 
 //-----------------------------------------------------------------
 
-PTRSZVAL CPROC SetSpaceStart( PTRSZVAL psv, arg_list args )
+uintptr_t CPROC SetSpaceStart( uintptr_t psv, arg_list args )
 {
    PSPACE pSpace = (PSPACE)psv;
 	pSpace->type = SPACE_START;
@@ -802,7 +802,7 @@ PTRSZVAL CPROC SetSpaceStart( PTRSZVAL psv, arg_list args )
 
 //-----------------------------------------------------------------
 
-PTRSZVAL CPROC SetStockSplit( PTRSZVAL psv, arg_list args )
+uintptr_t CPROC SetStockSplit( uintptr_t psv, arg_list args )
 {
    PARAM( args, FRACTION, fraction );
     PSPACE pSpace = (PSPACE)psv;
@@ -813,10 +813,10 @@ PTRSZVAL CPROC SetStockSplit( PTRSZVAL psv, arg_list args )
 
 //-----------------------------------------------------------------
 
-PTRSZVAL CPROC SetSpaceSize( PTRSZVAL psv, arg_list args )
+uintptr_t CPROC SetSpaceSize( uintptr_t psv, arg_list args )
 {
-    PARAM( args, S_64, width );
-    PARAM( args, S_64, height );
+    PARAM( args, int64_t, width );
+    PARAM( args, int64_t, height );
     PSPACE pSpace = (PSPACE)psv;
     pSpace->position.width = width;
     pSpace->position.height = height;
@@ -825,10 +825,10 @@ PTRSZVAL CPROC SetSpaceSize( PTRSZVAL psv, arg_list args )
 
 //-----------------------------------------------------------------
 
-PTRSZVAL CPROC SetSpacePosition( PTRSZVAL psv, arg_list args )
+uintptr_t CPROC SetSpacePosition( uintptr_t psv, arg_list args )
 {
-    PARAM( args, S_64, x );
-    PARAM( args, S_64, y );
+    PARAM( args, int64_t, x );
+    PARAM( args, int64_t, y );
     PSPACE pSpace = (PSPACE)psv;
     pSpace->position.x = x;
     pSpace->position.y = y;
@@ -837,7 +837,7 @@ PTRSZVAL CPROC SetSpacePosition( PTRSZVAL psv, arg_list args )
 
 //-----------------------------------------------------------------
 
-PTRSZVAL CPROC SetSpaceColor( PTRSZVAL psv, arg_list args )
+uintptr_t CPROC SetSpaceColor( uintptr_t psv, arg_list args )
 {
     PARAM( args, CDATA, color );
     PSPACE pSpace = (PSPACE)psv;
@@ -847,7 +847,7 @@ PTRSZVAL CPROC SetSpaceColor( PTRSZVAL psv, arg_list args )
 
 //-----------------------------------------------------------------
 
-PTRSZVAL CPROC SetRandomRoll( PTRSZVAL psv, arg_list args )
+uintptr_t CPROC SetRandomRoll( uintptr_t psv, arg_list args )
 {
 	PARAM( args, LOGICAL, yesno );
    g.flags.bRandomRoll = yesno;
@@ -856,7 +856,7 @@ PTRSZVAL CPROC SetRandomRoll( PTRSZVAL psv, arg_list args )
 
 //-----------------------------------------------------------------
 
-PTRSZVAL CPROC SetHorizontalAlignment( PTRSZVAL psv, arg_list args )
+uintptr_t CPROC SetHorizontalAlignment( uintptr_t psv, arg_list args )
 {
     PSPACE pSpace = (PSPACE)psv;
     pSpace->flags.bVertical = FALSE;
@@ -866,7 +866,7 @@ PTRSZVAL CPROC SetHorizontalAlignment( PTRSZVAL psv, arg_list args )
 
 //-----------------------------------------------------------------
 
-PTRSZVAL CPROC SetHorizontalLeftAlignment( PTRSZVAL psv, arg_list args )
+uintptr_t CPROC SetHorizontalLeftAlignment( uintptr_t psv, arg_list args )
 {
     PSPACE pSpace = (PSPACE)psv;
     pSpace->flags.bVertical = FALSE;
@@ -876,7 +876,7 @@ PTRSZVAL CPROC SetHorizontalLeftAlignment( PTRSZVAL psv, arg_list args )
 
 //-----------------------------------------------------------------
 
-PTRSZVAL CPROC SetVerticalUpAlignment( PTRSZVAL psv, arg_list args )
+uintptr_t CPROC SetVerticalUpAlignment( uintptr_t psv, arg_list args )
 {
     PSPACE pSpace = (PSPACE)psv;
     pSpace->flags.bVertical = TRUE;
@@ -886,7 +886,7 @@ PTRSZVAL CPROC SetVerticalUpAlignment( PTRSZVAL psv, arg_list args )
 
 //-----------------------------------------------------------------
 
-PTRSZVAL CPROC SetSpaceQuit( PTRSZVAL psv, arg_list args )
+uintptr_t CPROC SetSpaceQuit( uintptr_t psv, arg_list args )
 {
     PSPACE pSpace = (PSPACE)psv;
     pSpace->type = SPACE_QUIT;
@@ -895,7 +895,7 @@ PTRSZVAL CPROC SetSpaceQuit( PTRSZVAL psv, arg_list args )
 
 //-----------------------------------------------------------------
 
-PTRSZVAL CPROC SetRollDice( PTRSZVAL psv, arg_list args )
+uintptr_t CPROC SetRollDice( uintptr_t psv, arg_list args )
 {
     PSPACE pSpace = (PSPACE)psv;
     pSpace->type = SPACE_ROLL;
@@ -904,7 +904,7 @@ PTRSZVAL CPROC SetRollDice( PTRSZVAL psv, arg_list args )
 
 //-----------------------------------------------------------------
 
-PTRSZVAL CPROC SetPlayerSell( PTRSZVAL psv, arg_list args )
+uintptr_t CPROC SetPlayerSell( uintptr_t psv, arg_list args )
 {
     PSPACE pSpace = (PSPACE)psv;
     pSpace->type = SPACE_SELL;
@@ -913,7 +913,7 @@ PTRSZVAL CPROC SetPlayerSell( PTRSZVAL psv, arg_list args )
 
 //-----------------------------------------------------------------
 
-PTRSZVAL CPROC SetVerticalDownAlignment( PTRSZVAL psv, arg_list args )
+uintptr_t CPROC SetVerticalDownAlignment( uintptr_t psv, arg_list args )
 {
     PSPACE pSpace = (PSPACE)psv;
     pSpace->flags.bVertical = TRUE;
@@ -1248,7 +1248,7 @@ void StopFlash( void )
 
 //---------------------------------------------------------------------------
 
-void CPROC FlashSpaces( PTRSZVAL psv )
+void CPROC FlashSpaces( uintptr_t psv )
 {
 	PSPACE pSpace;
 	CDATA Border;
@@ -1308,13 +1308,13 @@ void CPROC FlashSpaces( PTRSZVAL psv )
 
 //-----------------------------------------------------------------
 
-int CPROC MouseSpace( PCOMMON pc, S_32 x, S_32 y, _32 b )
+int CPROC MouseSpace( PCOMMON pc, int32_t x, int32_t y, uint32_t b )
 {
    PSPACE  pSpace = (PSPACE)GetCommonUserData( pc );
     // hmm not sure how these buttons will work
     // and what I'm supposed to track... maybe alias some of the
 	// combinations...
-   static _32 _b;
+   static uint32_t _b;
     if( ( b & 1 ) && !( _b & 1 ) )
 	 {
 		 INDEX idx;
@@ -1399,9 +1399,9 @@ void CreateBoardDisplay( void )
                                                 , pSpace->position.width * g.scale
                                               , pSpace->position.height * g.scale
 												, 0 );
-        SetCommonUserData( pSpace->region, (PTRSZVAL)pSpace );
-        //SetControlDraw( pSpace->region, (RedrawCallback)DrawSpace, (PTRSZVAL)pSpace );
-        //SetControlMouse( pSpace->region, (MouseCallback)MouseSpace, (PTRSZVAL)pSpace );
+        SetCommonUserData( pSpace->region, (uintptr_t)pSpace );
+        //SetControlDraw( pSpace->region, (RedrawCallback)DrawSpace, (uintptr_t)pSpace );
+        //SetControlMouse( pSpace->region, (MouseCallback)MouseSpace, (uintptr_t)pSpace );
 	}
 	DisplayFrame( g.board );
 }

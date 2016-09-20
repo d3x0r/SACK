@@ -11,8 +11,8 @@ typedef struct fake_canvas
 {
    PAGE page;
    PPAGE current_page;
-	_32 width, height;
-   _32 nPartsX, nPartsY;
+	uint32_t width, height;
+   uint32_t nPartsX, nPartsY;
 } CANVAS, *PCANVAS;
 
 #define PART_RESOLUTION 4096
@@ -30,11 +30,11 @@ typedef struct fake_canvas
 #define _MODX( canvas,npart, parts )  ( ( ( ( (PART_RESOLUTION) * npart ) ) * ((canvas)->width) ) % ((parts)*PART_RESOLUTION) )
 #define _MODY( canvas,npart, parts )  ( ( ( ( (PART_RESOLUTION) * npart ) ) * ((canvas)->height) ) % ((parts)*PART_RESOLUTION) )
 
-#define _PARTX(canvas,part) (S_32)_COMPUTEX(canvas,part,(canvas)->current_page->grid.nPartsX)
-#define _PARTY(canvas,part) (S_32)_COMPUTEY(canvas,part,(canvas)->current_page->grid.nPartsY)
+#define _PARTX(canvas,part) (int32_t)_COMPUTEX(canvas,part,(canvas)->current_page->grid.nPartsX)
+#define _PARTY(canvas,part) (int32_t)_COMPUTEY(canvas,part,(canvas)->current_page->grid.nPartsY)
 
-#define _PARTW(canvas,x,w) (_32)(_PARTX(canvas,x+w)-_PARTX(canvas,x))
-#define _PARTH(canvas,y,h) (_32)(_PARTY(canvas,y+h)-_PARTY(canvas,y))
+#define _PARTW(canvas,x,w) (uint32_t)(_PARTX(canvas,x+w)-_PARTX(canvas,x))
+#define _PARTH(canvas,y,h) (uint32_t)(_PARTY(canvas,y+h)-_PARTY(canvas,y))
 #define _PARTSX(canvas) (canvas)->current_page->grid.nPartsX
 #define _PARTSY(canvas) (canvas)->current_page->grid.nPartsY
 

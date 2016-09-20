@@ -75,7 +75,7 @@ static int OnDrawCommon( EDIT_FIELD_NAME )( PSI_CONTROL pc )
 	CTEXTSTR output_string;
 	int *stringsize;
 
-	_32 height;
+	uint32_t height;
 	BlatColorAlpha( pc->Surface, 0, 0, pc->surface_rect.width, pc->surface_rect.height, basecolor(pc)[EDIT_BACKGROUND] );
 	//ClearImageTo( pc->Surface, basecolor(pc)[EDIT_BACKGROUND] );
 	font = GetFrameFont( pc );
@@ -85,7 +85,7 @@ static int OnDrawCommon( EDIT_FIELD_NAME )( PSI_CONTROL pc )
 		int n;
 		if( pe->flags.bPassword )
 		{
-			_32 w, h;
+			uint32_t w, h;
 			GetStringSizeFontEx( WIDE("*"), 1, &w, &h, font );
 			for( n= 0; n <= pe->nCaptionUsed; n++ )
 			{
@@ -95,7 +95,7 @@ static int OnDrawCommon( EDIT_FIELD_NAME )( PSI_CONTROL pc )
 		}
 		else
 		{
-			_32 w, h;
+			uint32_t w, h;
 			for( n = 0; n <= pe->nCaptionUsed; n++ )
 			{
 				stringsize[n] = GetStringSizeFontEx(caption_text
@@ -156,7 +156,7 @@ static int OnDrawCommon( EDIT_FIELD_NAME )( PSI_CONTROL pc )
 	output_string = GetString( pe, caption_text + pe->Start, pe->cursor_pos-pe->Start );
 	CursX = (pe->cursor_pos?stringsize[pe->cursor_pos]:0) - (pe->Start?stringsize[pe->Start]:0);
 	Release( stringsize );
-	if( USS_LTE( height, _32, pc->Surface->height, int ) )
+	if( USS_LTE( height, uint32_t, pc->Surface->height, int ) )
 		pe->top_side_pad = (pc->Surface->height - height) / 2;
 	else
 		pe->top_side_pad = 0;
@@ -272,14 +272,14 @@ static int OnDrawCommon( EDIT_FIELD_NAME )( PSI_CONTROL pc )
 
 //---------------------------------------------------------------------------
 
-static int OnMouseCommon( EDIT_FIELD_NAME )( PSI_CONTROL pc, S_32 x, S_32 y, _32 b )
+static int OnMouseCommon( EDIT_FIELD_NAME )( PSI_CONTROL pc, int32_t x, int32_t y, uint32_t b )
 {
 	static int _b;
 	ValidatedControlData( PEDIT, EDIT_FIELD, pe, pc );
 	int cx, cy;
 	int found = 0;
 	size_t len = pc->caption.text ? GetTextSize( pc->caption.text ) : 0;
-	_32 width, _width = 0, height;
+	uint32_t width, _width = 0, height;
 	LOGICAL moving_left, moving_right;
 	SFTFont font = GetCommonFont( pc );
 	//lprintf( WIDE("Edit mosue: %d %d %X"), x, y, b );
@@ -312,7 +312,7 @@ static int OnMouseCommon( EDIT_FIELD_NAME )( PSI_CONTROL pc, S_32 x, S_32 y, _32
 					//		 , cx,cx,GetText(pc->caption.text)
 					//		 , width
 					//		 , x );
-					if( USS_GT(( width + LEFT_SIDE_PAD ),_32, x,S_32) )
+					if( USS_GT(( width + LEFT_SIDE_PAD ),uint32_t, x,int32_t) )
 					{
 						// left 1/3 of the currnet character sets the cursor to the left
 						// of the character, otherwise cursor is set on(after) the
@@ -524,7 +524,7 @@ static void Paste( PEDIT pe, PTEXT *caption )
 {
 	if( OpenClipboard(NULL) )
 	{
-		_32 format = 0;
+		uint32_t format = 0;
 		LOGICAL get_unicode = 0;
 		// successful open...
 		for( format = EnumClipboardFormats( format ); format; format =  EnumClipboardFormats( format ) )
@@ -639,7 +639,7 @@ static void Cut( PEDIT pe, PTEXT *caption )
 }
 #endif
 
-static int OnKeyCommon( EDIT_FIELD_NAME )( PSI_CONTROL pc, _32 key )
+static int OnKeyCommon( EDIT_FIELD_NAME )( PSI_CONTROL pc, uint32_t key )
 {
 	ValidatedControlData( PEDIT, EDIT_FIELD, pe, pc );
 	int used_key = 0;
@@ -992,14 +992,14 @@ int CPROC ConfigEditControl( PSI_CONTROL pc )
 
 PSI_CONTROL CPROC MakeEditControl( PSI_CONTROL pFrame, int attr
 									  , int x, int y, int w, int h
-									  , _32 nID, TEXTCHAR *caption )
+									  , uint32_t nID, TEXTCHAR *caption )
 {
 	return VMakeCaptionedControl( pFrame, EDIT_FIELD
 										 , x, y, w, h
 										 , nID, caption );
 }
 
-LOGICAL CPROC GrabFilename( PSI_CONTROL pc, CTEXTSTR name, S_32 x, S_32 y )
+LOGICAL CPROC GrabFilename( PSI_CONTROL pc, CTEXTSTR name, int32_t x, int32_t y )
 {
 	SetControlText( pc, name );
 	return TRUE;

@@ -98,7 +98,7 @@
       return(Image->GetPixel(Image_x,Image_y));
     }
 
-    void ZTileSet::RenderTile( ZRender_Interface *render, PTRSZVAL psvInit, ZVector3f * TopLeft, ZVector3f * BottomRight, UByte TileNum, ZColor3f * Color)
+    void ZTileSet::RenderTile( ZRender_Interface *render, uintptr_t psvInit, ZVector3f * TopLeft, ZVector3f * BottomRight, UByte TileNum, ZColor3f * Color)
     {
       TileCoord * Coord;
 
@@ -119,7 +119,7 @@
     }
 
 
-    void ZTileSet::RenderFont(ZRender_Interface *render, PTRSZVAL psvInit, ZTileStyle const * TileStyle , ZBox3f const * DrawBox, char const * TextToRender, ZColor3f * Color=0)
+    void ZTileSet::RenderFont(ZRender_Interface *render, uintptr_t psvInit, ZTileStyle const * TileStyle , ZBox3f const * DrawBox, char const * TextToRender, ZColor3f * Color=0)
     {
       float x,y, xp,yp, DimX, DimY, LimitX;// LimitY;
       ZColor3f DrawColor;

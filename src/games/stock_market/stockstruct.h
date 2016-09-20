@@ -12,37 +12,37 @@ typedef struct stock_tag {
 	TEXTCHAR      name[64];
 	TEXTCHAR      Symbol[4]; // 4 characters NO terminator.
 	struct {
-		_32 inverse : 1;
+		uint32_t inverse : 1;
 	} flags;
 	CDATA     color;
    FRACTION  Staging[2];
-   S_16      Stage;
-	_16       Baseline;
-	_16       Minimum;
-	_16       Dividend;
-	_16       ID;
+   int16_t      Stage;
+	uint16_t       Baseline;
+	uint16_t       Minimum;
+	uint16_t       Dividend;
+	uint16_t       ID;
 } STOCK, *PSTOCK;
 
 
 typedef struct stock_account_tag {
 	PSTOCK stock;
-	_32    shares;
+	uint32_t    shares;
 } STOCKACCOUNT, *PSTOCKACCOUNT;
 
 typedef PLIST *PORTFOLIO;
 
 typedef struct market_tag {
 	struct {
-		_32 linked : 1;
+		uint32_t linked : 1;
 	} flags;
-	S_16 SecondStaging; // when second staging factor applied
-	S_32 stages;
-   S_32 nStocks;
+	int16_t SecondStaging; // when second staging factor applied
+	int32_t stages;
+   int32_t nStocks;
 	PLIST stocks; // list of PSTOCK structures...
 } MARKET, *PMARKET;
 
-_32 GetStockValue( PSTOCK pStock, int bMin );
-_32 SellAllStocks( PORTFOLIO portfolio, int bForced ); // if forced use minprice
+uint32_t GetStockValue( PSTOCK pStock, int bMin );
+uint32_t SellAllStocks( PORTFOLIO portfolio, int bForced ); // if forced use minprice
 
 void ShowPortfolio( PORTFOLIO portfolio, int bForced, int bMenu );
 

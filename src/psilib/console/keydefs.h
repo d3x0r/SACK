@@ -18,9 +18,9 @@ enum {
 // 2 - display update  (when history starts...)
 // 3 - history update only...
 
-CORECON_PROC( int, KeyShift     )( P_32 pKeyState, LOGICAL bState );
-CORECON_PROC( int, KeyControl   )( P_32 pKeyState, LOGICAL bState );
-CORECON_PROC( int, KeyAlt       )( P_32 pKeyState, LOGICAL bState );
+CORECON_PROC( int, KeyShift     )( uint32_t* pKeyState, LOGICAL bState );
+CORECON_PROC( int, KeyControl   )( uint32_t* pKeyState, LOGICAL bState );
+CORECON_PROC( int, KeyAlt       )( uint32_t* pKeyState, LOGICAL bState );
 
 CORECON_PROC( int, KeyLeft )( void * list, PUSER_INPUT_BUFFER pci );
 CORECON_PROC( int, KeyRight )( void * list, PUSER_INPUT_BUFFER pci );
@@ -28,7 +28,7 @@ CORECON_PROC( int, KeyInsert )( void * list, PUSER_INPUT_BUFFER pci );
 CORECON_PROC( int, CommandKeyUp )( void * list, PUSER_INPUT_BUFFER pci );
 CORECON_PROC( int, HandleKeyDown )(  void * list, PUSER_INPUT_BUFFER pci );
 CORECON_PROC( int, KeyHome )( void * list, PUSER_INPUT_BUFFER pci );
-CORECON_PROC( int, KeyEndCmd )( PTRSZVAL list, PUSER_INPUT_BUFFER pci );
+CORECON_PROC( int, KeyEndCmd )( uintptr_t list, PUSER_INPUT_BUFFER pci );
 
 
 CORECON_PROC( int, KeyEndHst )( PHISTORY_BROWSER pht );
@@ -56,8 +56,8 @@ typedef struct KeyDefine {
       int bFunction;  // true if pStroke is pKeyFunc()
       union {
           PTEXT pStroke; // this may be pKeyFunc()
-          void (CPROC *ControlKey)( P_32 pKeyState, LOGICAL bState );
-          int (CPROC *CommandKey)( PTRSZVAL list, PUSER_INPUT_BUFFER pci );
+          void (CPROC *ControlKey)( uint32_t* pKeyState, LOGICAL bState );
+          int (CPROC *CommandKey)( uintptr_t list, PUSER_INPUT_BUFFER pci );
           int (CPROC *HistoryKey)( PHISTORY_BROWSER pct );
           int (CPROC *SpecialKey)( PCONSOLE_INFO pdp ); // PASTE
        } data;
@@ -98,8 +98,8 @@ CORECON_PROC( int, KeyUnBind )( PDATAPATH pdp, PSENTIENT ps, PTEXT parameters );
 #endif
 CORECON_PROC(int, PSI_DoStroke )( PCONSOLE_INFO pdp, PTEXT stroke );
 void PSI_KeyPressHandler( PCONSOLE_INFO pdp
-												 , _8 key_index
-												 , _8 mod
+												 , uint8_t key_index
+												 , uint8_t mod
 												 , PTEXT characters
 												 );
 

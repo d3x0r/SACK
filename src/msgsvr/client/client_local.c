@@ -8,11 +8,11 @@ MSGCLIENT_NAMESPACE
 
 //--------------------------------------------------------------------
 
-PTRSZVAL CPROC HandleLocalEventMessages( PTHREAD thread )
+uintptr_t CPROC HandleLocalEventMessages( PTHREAD thread )
 {
 	g.pLocalEventThread = thread;
 	g.flags.local_events_ready = TRUE;
-	//g.my_message_id = getpid(); //(_32)( thread->ThreadID & 0xFFFFFFFF );
+	//g.my_message_id = getpid(); //(uint32_t)( thread->ThreadID & 0xFFFFFFFF );
 	while( !g.flags.disconnected )
 	{
 		int r;
@@ -20,12 +20,12 @@ PTRSZVAL CPROC HandleLocalEventMessages( PTHREAD thread )
 		{
 			// thread local storage :)
 			static int levels;
-			static _32 *pBuffer;
-			static _32 MessageEvent[2048]; // 8192 bytes
+			static uint32_t *pBuffer;
+			static uint32_t MessageEvent[2048]; // 8192 bytes
 			if( !levels )
 				pBuffer = MessageEvent;
 			else
-				pBuffer = (_32*)Allocate( sizeof( MessageEvent ) );
+				pBuffer = (uint32_t*)Allocate( sizeof( MessageEvent ) );
 			levels++;
 			//lprintf( WIDE("---- GET A LOCAL EVENT!") );
 			if( ( r = HandleEvents( g.msgq_local, (PQMSG)pBuffer, 0 ) ) < 0 )

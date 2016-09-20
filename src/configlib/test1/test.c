@@ -1,14 +1,14 @@
 #include <stdhdrs.h>
 #include <configscript.h>
 
-PTRSZVAL CPROC EventPlaying( PTRSZVAL psv, arg_list args )
+uintptr_t CPROC EventPlaying( uintptr_t psv, arg_list args )
 {
 	lprintf( " Finished loading VLC." );
 	printf( " Finished loading VLC.\n" );
    return 0;
 }
 
-PTRSZVAL CPROC GenericLog( PTRSZVAL psv, CTEXTSTR line )
+uintptr_t CPROC GenericLog( uintptr_t psv, CTEXTSTR line )
 {
 	lprintf( "%s", line );
 	printf( "%s\n", line );

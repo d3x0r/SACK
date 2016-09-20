@@ -517,10 +517,10 @@ int CPROC INCREMENT( PSENTIENT ps, PTEXT parameters )
 	if( temp )
 	{
 		struct {
-			_32 bIntNumber : 1;
-			_32 bIntAmount : 1;
+			uint32_t bIntNumber : 1;
+			uint32_t bIntAmount : 1;
 		} flags;
-		S_64 iNumber, iAmount;
+		int64_t iNumber, iAmount;
 		double fNumber, fAmount;
 		int bInt;
 		PTEXT pResult;
@@ -545,10 +545,10 @@ int CPROC DECREMENT( PSENTIENT ps, PTEXT parameters )
 	if( temp )
 	{
 		struct {
-			_32 bIntNumber : 1;
-			_32 bIntAmount : 1;
+			uint32_t bIntNumber : 1;
+			uint32_t bIntAmount : 1;
 		} flags;
-		S_64 iNumber, iAmount;
+		int64_t iNumber, iAmount;
 		double fNumber, fAmount;
 		int bInt;
 		PTEXT pResult;
@@ -573,10 +573,10 @@ int CPROC MULTIPLY( PSENTIENT ps, PTEXT parameters )
 	if( temp )
 	{
 		struct {
-			_32 bIntNumber : 1;
-			_32 bIntAmount : 1;
+			uint32_t bIntNumber : 1;
+			uint32_t bIntAmount : 1;
 		} flags;
-		S_64 iNumber, iAmount;
+		int64_t iNumber, iAmount;
 		double fNumber, fAmount;
 		int bInt;
 		PTEXT pResult;
@@ -602,10 +602,10 @@ int CPROC DIVIDE( PSENTIENT ps, PTEXT parameters )
 	if( temp )
 	{
 		struct {
-			_32 bIntNumber : 1;
-			_32 bIntAmount : 1;
+			uint32_t bIntNumber : 1;
+			uint32_t bIntAmount : 1;
 		} flags;
-		S_64 iNumber, iAmount;
+		int64_t iNumber, iAmount;
 		double fNumber, fAmount;
 		int bInt;
 		PTEXT pResult;

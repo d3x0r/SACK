@@ -15,30 +15,30 @@ typedef struct global_tag {
 
 GLOBAL g;
 
-static PTRSZVAL CPROC IsBoard( void *member, PTRSZVAL psv_name )
+static uintptr_t CPROC IsBoard( void *member, uintptr_t psv_name )
 {
 	TEXTSTR name = (TEXTSTR)psv_name;
 	PWHITEBOARD board = (PWHITEBOARD)member;
 	if( stricmp( name, board->name ) )
-		return (PTRSZVAL)board;
+		return (uintptr_t)board;
    return 0;
 }
 
-static PTRSZVAL CPROC IsClient( void *member, PTRSZVAL psv_name )
+static uintptr_t CPROC IsClient( void *member, uintptr_t psv_name )
 {
 	struct param_tag {
 		TEXTSTR name;
-      _32 SourceID;
+      uint32_t SourceID;
 	} *params = (struct param_tag*)psv_name;
 	PBOARD_CLIENT client = (PBOARD_CLIENT)member;
 	if( stricmp( params->name, client->name ) )
-		return (PTRSZVAL)client;
+		return (uintptr_t)client;
    return 0;
 }
 
-PBOARD_CLIENT CPROC FindClientByName( TEXTSTR name, _32 SourceID )
+PBOARD_CLIENT CPROC FindClientByName( TEXTSTR name, uint32_t SourceID )
 {
-	return (PBOARD_CLIENT)ForAllInSet( BOARD_CLIENT, g.clients, IsClient, (PTRSZVAL)&name );
+	return (PBOARD_CLIENT)ForAllInSet( BOARD_CLIENT, g.clients, IsClient, (uintptr_t)&name );
 }
 
 PBOARD_CLIENT FindClient( PWHITEBOARD board, INDEX client_id )
@@ -55,10 +55,10 @@ PBOARD_CLIENT FindClient( PWHITEBOARD board, INDEX client_id )
 
 PWHITEBOARD FindBoard( TEXTSTR name )
 {
-	return (PWHITEBOARD)ForAllInSet( WHITEBOARD, g.boards, IsBoard, (PTRSZVAL)name );
+	return (PWHITEBOARD)ForAllInSet( WHITEBOARD, g.boards, IsBoard, (uintptr_t)name );
 }
 
-PBOARD_POINT CreateBoardPoint( PBOARD_LAYER layer, S_32 x, S_32 y )
+PBOARD_POINT CreateBoardPoint( PBOARD_LAYER layer, int32_t x, int32_t y )
 {
 	PBOARD_POINT point = GetFromSet( BOARD_POINT, &layer->points );
 	point->x = x;
@@ -67,7 +67,7 @@ PBOARD_POINT CreateBoardPoint( PBOARD_LAYER layer, S_32 x, S_32 y )
    return point;
 }
 
-PTRSZVAL CPROC SendCreateLayer( POINTER p, PTRSZVAL psv )
+uintptr_t CPROC SendCreateLayer( POINTER p, uintptr_t psv )
 {
 	PBOARD_CLIENT client = (PBOARD_CLIENT)p;
 	INDEX iLayer = (INDEX)psv;
@@ -92,7 +92,7 @@ PBOARD_LAYER GetCurrentLayer( PBOARD_CLIENT client )
    return client->current_layer;
 }
 
-PTRSZVAL CPROC SendSetCurrentLayer( POINTER p, PTRSZVAL psv )
+uintptr_t CPROC SendSetCurrentLayer( POINTER p, uintptr_t psv )
 {
 	PBOARD_CLIENT client = (PBOARD_CLIENT)p;
 	INDEX iLayer = (INDEX)psv;
@@ -108,7 +108,7 @@ PBOARD_LAYER SetCurrentLayer( PBOARD_CLIENT client, INDEX iLayer )
 	if( !client->current_layer )
 	{
 		INDEX iLayer;
-      _32 msg[2];
+      uint32_t msg[2];
 		client->current_layer = GetFromSet( BOARD_LAYER, &client->layers );
       iLayer = GetMemberIndex( BOARD_LAYER, &client->layers, client->current_layer );
 		client->current_layer->board = client->board;
@@ -119,7 +119,7 @@ PBOARD_LAYER SetCurrentLayer( PBOARD_CLIENT client, INDEX iLayer )
    return client->current_layer;
 }
 
-void CPROC WhiteboardBeginShape( INDEX iClient, INDEX iBoard, enum SHAPE_TYPE type, S_32 x, S_32 y )
+void CPROC WhiteboardBeginShape( INDEX iClient, INDEX iBoard, enum SHAPE_TYPE type, int32_t x, int32_t y )
 {
 	PWHITEBOARD board = GetUsedSetMember( WHITEBOARD, &g.boards, iBoard );
 	if( board )
@@ -133,7 +133,7 @@ void CPROC WhiteboardBeginShape( INDEX iClient, INDEX iBoard, enum SHAPE_TYPE ty
 	}
 }
 
-void CPROC WhiteboardContinueShape( INDEX iClient, INDEX iBoard, S_32 x, S_32 y )
+void CPROC WhiteboardContinueShape( INDEX iClient, INDEX iBoard, int32_t x, int32_t y )
 {
 	PWHITEBOARD board = GetUsedSetMember( WHITEBOARD, &g.boards, iBoard );
 	if( board )
@@ -151,9 +151,9 @@ void CPROC WhiteboardContinueShape( INDEX iClient, INDEX iBoard, S_32 x, S_32 y 
 	}
 }
 
-int CPROC MessageHandler( _32 SourceID, _32 MsgID
-								, _32 *params, _32 param_len
-								, _32 *result, _32 *resultlen )
+int CPROC MessageHandler( uint32_t SourceID, uint32_t MsgID
+								, uint32_t *params, uint32_t param_len
+								, uint32_t *result, uint32_t *resultlen )
 {
 
 	switch( MsgID )

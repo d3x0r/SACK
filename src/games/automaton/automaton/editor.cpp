@@ -284,20 +284,20 @@ void EDITOR::EditCloseCallback( void )
 //   PostQuitMessage();
 }
 
-static int _EditMouseCallback( PTRSZVAL dwUser, S_32 x, S_32 y, _32 b )
+static int _EditMouseCallback( uintptr_t dwUser, int32_t x, int32_t y, uint32_t b )
 {
    class EDITOR *Editor = (class EDITOR*)dwUser;
    Editor->EditMouseCallback( x, y, b );
 	return 0;
 }
 
-static void _EditResizeCallback( PTRSZVAL dwUser, PRENDERER self )
+static void _EditResizeCallback( uintptr_t dwUser, PRENDERER self )
 {
    class EDITOR *Editor = (class EDITOR*)dwUser;
    Editor->EditResizeCallback( );
 }
 
-static void _EditCloseCallback( PTRSZVAL dwUser )
+static void _EditCloseCallback( uintptr_t dwUser )
 {
    class EDITOR *Editor = (class EDITOR*)dwUser;
    Editor->EditCloseCallback(  );
@@ -307,9 +307,9 @@ static void _EditCloseCallback( PTRSZVAL dwUser )
 EDITOR::EDITOR( void )
 {
    hVideo = OpenDisplaySizedAt( 0, 0, 0, 0, 0 );
-	SetMouseHandler( hVideo, _EditMouseCallback, (PTRSZVAL)this );
-	SetRedrawHandler( hVideo, _EditResizeCallback, (PTRSZVAL)this );
-	SetCloseHandler( hVideo, _EditCloseCallback, (PTRSZVAL)this );
+	SetMouseHandler( hVideo, _EditMouseCallback, (uintptr_t)this );
+	SetRedrawHandler( hVideo, _EditResizeCallback, (uintptr_t)this );
+	SetCloseHandler( hVideo, _EditCloseCallback, (uintptr_t)this );
 
    // menu for this instance....
    hMenu = CreatePopupMenu();

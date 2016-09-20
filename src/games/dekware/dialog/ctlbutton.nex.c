@@ -137,7 +137,7 @@ volatile_variable_entry normal_button_vars[] = { { DEFTEXT(WIDE("color")), NULL 
 																 , SetCheckStateVar }
 };
 #endif
-static void CPROC ButtonClick( PTRSZVAL psv, PCOMMON pc )
+static void CPROC ButtonClick( uintptr_t psv, PCOMMON pc )
 {
 	PENTITY pe = (PENTITY)psv;
    InvokeBehavior( WIDE("click"), pe, pe->pControlledBy, NULL );
@@ -156,11 +156,11 @@ static void InitControlObject( PENTITY pe, PCOMMON pc )
 	AddBehavior( pe, WIDE("draw"), WIDE("Button needs to be drawn.") );
    Assimilate( pe, NULL, WIDE("psi_button"), NULL );
    /*
-	AddVolatileVariable( pe, normal_button_vars, (PTRSZVAL)pc );
-	AddVolatileVariable( pe, normal_button_vars+1, (PTRSZVAL)pc );
-	AddVolatileVariable( pe, normal_button_vars+2, (PTRSZVAL)pc );
+	AddVolatileVariable( pe, normal_button_vars, (uintptr_t)pc );
+	AddVolatileVariable( pe, normal_button_vars+1, (uintptr_t)pc );
+	AddVolatileVariable( pe, normal_button_vars+2, (uintptr_t)pc );
    */
-   //SetButtonPushMethod( pc, ButtonClick, (PTRSZVAL)pe );
+   //SetButtonPushMethod( pc, ButtonClick, (uintptr_t)pe );
 }
 
 int CPROC CustomPressButton( PCOMMON pc )

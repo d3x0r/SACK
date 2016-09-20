@@ -3,7 +3,7 @@
 
 static struct reel_local_data
 {
-	_32 ID;
+	uint32_t ID;
 } reel_local;
 
 //---------------------------------------------------------------------------------------------------
@@ -56,7 +56,7 @@ int CPROC DrawReel( PSI_CONTROL pc )
 		// if one wanted to go horizontally. one would rewrite the following code
 		// with an option for x instead of Y
 		{
-			S_32 y;
+			int32_t y;
 			reel->offset += reel->speed;
 
 			if( reel->flags.bReelSpinning )
@@ -97,7 +97,7 @@ int CPROC DrawReel( PSI_CONTROL pc )
 }
 
 
-int CPROC MouseReel( PSI_CONTROL pc, S_32 x, S_32 y, _32 b )
+int CPROC MouseReel( PSI_CONTROL pc, int32_t x, int32_t y, uint32_t b )
 {
 	ValidatedControlData( PREEL, reel_control.TypeID, reel, pc );
 	if( reel )
@@ -123,12 +123,12 @@ PRELOAD( RegisterReel)
 	DoRegisterControl( &reel_control );
 }
 
-static PTRSZVAL OnCreateControl( WIDE("Games/Slots/Slot Reel"))(PSI_CONTROL parent,S_32 x,S_32 y,_32 w,_32 h)
+static uintptr_t OnCreateControl( WIDE("Games/Slots/Slot Reel"))(PSI_CONTROL parent,int32_t x,int32_t y,uint32_t w,uint32_t h)
 {
-	return (PTRSZVAL)MakeNamedControl( parent, reel_control.name, x, y, w, h, reel_local.ID++ );
+	return (uintptr_t)MakeNamedControl( parent, reel_control.name, x, y, w, h, reel_local.ID++ );
 }
 
- static PSI_CONTROL OnGetControl(WIDE("Games/Slots/Slot Reel"))(PTRSZVAL psvInit)
+ static PSI_CONTROL OnGetControl(WIDE("Games/Slots/Slot Reel"))(uintptr_t psvInit)
  { 
 	 return (PSI_CONTROL)psvInit; 
  }

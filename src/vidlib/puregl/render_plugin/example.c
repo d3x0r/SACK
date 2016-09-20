@@ -22,12 +22,12 @@ PRELOAD( Initialization )
 {
 }
 
-static PTRSZVAL OnInit3d( "Example" )( PMatrix projection, PTRANSFORM camera, RCOORD *pIdentityDepth, RCOORD *pAspect )
+static uintptr_t OnInit3d( "Example" )( PMatrix projection, PTRANSFORM camera, RCOORD *pIdentityDepth, RCOORD *pAspect )
 {
    return 1;
 }
 
-static void OnBeginDraw3d( "Example" )( PTRSZVAL psv )
+static void OnBeginDraw3d( "Example" )( uintptr_t psv )
 {
 	// psv is the return value from init
 
@@ -37,7 +37,7 @@ static void OnBeginDraw3d( "Example" )( PTRSZVAL psv )
 
 }
 
-static void Draw3d( "Example" )( PTRSZVAL psv )
+static void Draw3d( "Example" )( uintptr_t psv )
 {
 	// psv is the return value from init
 	// this is called after all normal flat displays are drawn.
@@ -45,7 +45,7 @@ static void Draw3d( "Example" )( PTRSZVAL psv )
    // do normal scene drawing here.
 }
 
-static LOGICAL OnMouse3d( "Example" )( PTRSZVAL psv, PRAY mouse_ray, _32 b )
+static LOGICAL OnMouse3d( "Example" )( uintptr_t psv, PRAY mouse_ray, uint32_t b )
 {
 	// psv is the return value from init.
 	// mouse_ray is a ray that describes a line from the camera point into the scene.

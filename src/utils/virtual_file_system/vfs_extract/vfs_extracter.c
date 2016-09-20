@@ -28,11 +28,11 @@ static struct vfs_runner_local
 // function to process a currently loaded program to get the
 // data offset at the end of the executable.
 
-#define Seek(a,b) (((PTRSZVAL)a)+(b))
+#define Seek(a,b) (((uintptr_t)a)+(b))
 
 POINTER GetExtraData( POINTER block )
 {
-	//PTRSZVAL source_memory_length = block_len;
+	//uintptr_t source_memory_length = block_len;
 	POINTER source_memory = block;
 
 	{
@@ -58,8 +58,8 @@ POINTER GetExtraData( POINTER block )
 				+ sizeof( DWORD ) + sizeof( IMAGE_FILE_HEADER )
 				+ source_nt_header->FileHeader.SizeOfOptionalHeader;
 			PIMAGE_SECTION_HEADER source_section = (PIMAGE_SECTION_HEADER)Seek( source_memory, FPISections );
-			PTRSZVAL dwSize = 0;
-			PTRSZVAL newSize;
+			uintptr_t dwSize = 0;
+			uintptr_t newSize;
 			source_section = (PIMAGE_SECTION_HEADER)Seek( source_memory, FPISections );
 			for( n = 0; n < source_nt_header->FileHeader.NumberOfSections; n++ )
 			{
@@ -77,13 +77,13 @@ POINTER GetExtraData( POINTER block )
 //---------------------------------------------------------------------------
 
 
-static PTRSZVAL CPROC SetDefaultPath( PTRSZVAL psv, arg_list args ) {
+static uintptr_t CPROC SetDefaultPath( uintptr_t psv, arg_list args ) {
 	PARAM( args, CTEXTSTR, path );
 	l.target_path = ExpandPath( path );
 	return psv;
 }
 
-static PTRSZVAL CPROC AddPostInstallCommand( PTRSZVAL psv, arg_list args ) {
+static uintptr_t CPROC AddPostInstallCommand( uintptr_t psv, arg_list args ) {
 	PARAM( args, CTEXTSTR, cmd );
 	PARAM( args, CTEXTSTR, cmd_args );
 	struct command *command = New( struct command );
@@ -110,7 +110,7 @@ static LOGICAL CPROC ExtractFile( CTEXTSTR name )
 			size_t sz = sack_fsize( file );
 			if( sz )
 			{
-				POINTER data = NewArray( _8, sz );
+				POINTER data = NewArray( uint8_t, sz );
 				sack_fread( data, 1, sz, file );
 				ProcessConfigurationInput( l.pch, data, sz, 0 );
 				Release( data );
@@ -125,7 +125,7 @@ static LOGICAL CPROC ExtractFile( CTEXTSTR name )
 			size_t sz = sack_fsize( file );
 			if( sz )
 			{
-				POINTER data = NewArray( _8, sz );
+				POINTER data = NewArray( uint8_t, sz );
 				sack_fread( data, 1, sz, file );
 
 				/* this is where the file should be output */
@@ -164,7 +164,7 @@ static LOGICAL CPROC ExtractFile( CTEXTSTR name )
 	return FALSE;
 }
 
-static void CPROC ShowFile( PTRSZVAL psv, CTEXTSTR file, int flags )
+static void CPROC ShowFile( uintptr_t psv, CTEXTSTR file, int flags )
 {
 	ExtractFile( file );
 }
@@ -212,8 +212,8 @@ PRIORITY_PRELOAD( XSaneWinMain, DEFAULT_PRELOAD_PRIORITY + 20 )//( argc, argv )
 		vfs_memory = GetExtraData( memory );
 		l.fsi = sack_get_filesystem_interface( "sack_shmem.runner" );
 		sack_set_default_filesystem_interface( l.fsi );
-		vol = sack_vfs_use_crypt_volume( vfs_memory, sz-((PTRSZVAL)vfs_memory-(PTRSZVAL)memory), REPLACE_ME_2, REPLACE_ME_3 );
-		l.rom = sack_mount_filesystem( "self", l.fsi, 100, (PTRSZVAL)vol, FALSE );
+		vol = sack_vfs_use_crypt_volume( vfs_memory, sz-((uintptr_t)vfs_memory-(uintptr_t)memory), REPLACE_ME_2, REPLACE_ME_3 );
+		l.rom = sack_mount_filesystem( "self", l.fsi, 100, (uintptr_t)vol, FALSE );
 	}
 #else
 	{
@@ -225,7 +225,7 @@ PRIORITY_PRELOAD( XSaneWinMain, DEFAULT_PRELOAD_PRIORITY + 20 )//( argc, argv )
 #endif
 		sack_set_default_filesystem_interface( l.fsi );
 		vol = sack_vfs_load_crypt_volume( argc> 1? argv[1]:"package.vfs", REPLACE_ME_2, REPLACE_ME_3 );
-		l.rom = sack_mount_filesystem( "self", l.fsi, 100, (PTRSZVAL)vol, TRUE );
+		l.rom = sack_mount_filesystem( "self", l.fsi, 100, (uintptr_t)vol, TRUE );
 	}
 #endif
 	l.target_path = ".";
@@ -233,7 +233,7 @@ PRIORITY_PRELOAD( XSaneWinMain, DEFAULT_PRELOAD_PRIORITY + 20 )//( argc, argv )
 	{
 		POINTER info = NULL;
 		while( ScanFilesEx( NULL, "*", &info, ShowFile, SFF_SUBCURSE | SFF_SUBPATHONLY
-			, (PTRSZVAL)0, FALSE, l.rom ) );
+			, (uintptr_t)0, FALSE, l.rom ) );
 	}
 	//return 0;
 }

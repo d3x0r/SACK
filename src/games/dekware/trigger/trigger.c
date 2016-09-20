@@ -92,7 +92,7 @@ typedef struct trigger_tag {
 					 // then we don't have to constantly alloc and free
 					 // the duplicates....
 	MACRO Actions; // name, arg template, and commands
-	_32 used_count; // the number of times this trigger is in use in a queue
+	uint32_t used_count; // the number of times this trigger is in use in a queue
 	int nOptions;
 	struct trigger_tag *pNext;
 	struct trigger_tag **me;

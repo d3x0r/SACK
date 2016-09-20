@@ -32,7 +32,7 @@
 // All summations will cap at 1.
 
 #define VALUE_CAP 0xFFFFFFFFUL
-typedef _32 VALUE;
+typedef uint32_t VALUE;
 
 
 typedef class NEURON *PNEURON;
@@ -74,7 +74,7 @@ public:
 	IMPORT NEURON( PNEURON );
 	IMPORT NEURON();
 	IMPORT ~NEURON();
-	IMPORT NATIVE Collect( _32 cycle );
+	IMPORT NATIVE Collect( uint32_t cycle );
 	void Emit( void );
 	void Reset( void );
 #undef new
@@ -86,8 +86,8 @@ public:
 	void operator delete( void *ptr );
 	NATIVE get( void ) { return Output.get(); }
 	NATIVE threshold( void ) { return Threshold.get(); }
-	_32 Save( FILE *file, struct synapse_neuron_save_tag *saveinfo  );
-	_32 Load( FILE *file /*va_list *args*/ );
+	uint32_t Save( FILE *file, struct synapse_neuron_save_tag *saveinfo  );
+	uint32_t Load( FILE *file /*va_list *args*/ );
 	IMPORT NATIVE get( PNATIVE input, PNATIVE base, PNATIVE range, PNATIVE threshold, PNATIVE level );
 	IMPORT NATIVE get( PNATIVE base, PNATIVE range, PNATIVE level );
 	IMPORT void set( NATIVE threshold );
@@ -153,7 +153,7 @@ public:
 	void operator delete( void *ptr, struct SYNAPSEset_tag *set );
 #endif
 	void operator delete( void *ptr );
-	IMPORT NATIVE Collect( _32 cycle ); //{ return ( Source->Collect(cycle) * Gain.get() ) / ((NATIVE)256); }
+	IMPORT NATIVE Collect( uint32_t cycle ); //{ return ( Source->Collect(cycle) * Gain.get() ) / ((NATIVE)256); }
 	IMPORT CTEXTSTR name( void );
 	IMPORT void get( PNATIVE gain, PNATIVE level, PNATIVE range );
 	IMPORT NATIVE gain( void );
@@ -166,7 +166,7 @@ public:
 	IMPORT void SaveBegin( PODBC odbc );
 	IMPORT INDEX Save( PODBC odbc, INDEX iParent );
 	//INDEX Save( PODBC odbc );
-    IMPORT PTRSZVAL Load( PODBC odbc, INDEX iParent, INDEX iBrain );
+    IMPORT uintptr_t Load( PODBC odbc, INDEX iParent, INDEX iBrain );
 
 };
 
@@ -175,10 +175,10 @@ DeclareSet( SYNAPSE );
 
 typedef struct synapse_neuron_save_tag {
 	PSYNAPSE pSynapses;
-	_32 nSynapses;
+	uint32_t nSynapses;
 	PNEURON pNeurons;
-	_32 nNeurons;
-	_32 *dwWritten;
+	uint32_t nNeurons;
+	uint32_t *dwWritten;
 	FILE *file;
 } SYNAPSE_SAVE, NEURON_SAVE, *PSAVEINFO;
 

@@ -61,7 +61,7 @@ extern
 
    struct BulletInfo bullet;
   // GLDebugDrawer *debug_drawer;
-   _32 last_tick;  // this is what tick we are rendering for.  (it's more like now than last.)
+   uint32_t last_tick;  // this is what tick we are rendering for.  (it's more like now than last.)
    RCOORD time_scale;
    PTRANSFORM origin;
 }local_ragdoll_data;

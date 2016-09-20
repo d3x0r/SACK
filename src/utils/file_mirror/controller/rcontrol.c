@@ -16,8 +16,8 @@ void CPROC CloseCallback(PCLIENT pc)
 
 void CPROC ReadComplete( PCLIENT pc, POINTER buffer, size_t size )
 {
-    static _64 LastMessage; // this is safe - only ONE connection EVER
-    _64 test;
+    static uint64_t LastMessage; // this is safe - only ONE connection EVER
+    uint64_t test;
     int ToRead = 8;
     if( !buffer )
     {
@@ -29,30 +29,30 @@ void CPROC ReadComplete( PCLIENT pc, POINTER buffer, size_t size )
         if( !LastMessage )
         {
             Log1( WIDE("Message is: %8.8s"), buffer );
-            if( *(_64*)buffer == *(_64*)WIDE("USERLIST") )
+            if( *(uint64_t*)buffer == *(uint64_t*)WIDE("USERLIST") )
             {
                 ToRead = 2;
-                LastMessage = *(_64*)buffer;
+                LastMessage = *(uint64_t*)buffer;
             }
-            else if( *(_64*)buffer == *(_64*)WIDE("USERDEAD") )
+            else if( *(uint64_t*)buffer == *(uint64_t*)WIDE("USERDEAD") )
             {
                 Log( WIDE("User has been terminated!\n") );
                 RemoveClient( pc );
                 return;
             }
-            else if( *(_64*)buffer == *(_64*)WIDE("ALL DONE") )
+            else if( *(uint64_t*)buffer == *(uint64_t*)WIDE("ALL DONE") )
             {
                 RemoveClient( pc );
                 return;
             }
-            else if( *(_64*)buffer == *(_64*)WIDE("MESSAGE!") )
+            else if( *(uint64_t*)buffer == *(uint64_t*)WIDE("MESSAGE!") )
             {
                 ToRead = 1;
-                LastMessage = *(_64*)buffer;
+                LastMessage = *(uint64_t*)buffer;
             }
-            else if( *(_64*)buffer == *(_64*)WIDE("MASTERIS") )
+            else if( *(uint64_t*)buffer == *(uint64_t*)WIDE("MASTERIS") )
             {
-                LastMessage = *(_64*)buffer;
+                LastMessage = *(uint64_t*)buffer;
             }
             else
             {
@@ -62,32 +62,32 @@ void CPROC ReadComplete( PCLIENT pc, POINTER buffer, size_t size )
         else
         {
             Log1( WIDE("Continuing message: %8.8s"), &LastMessage );
-            if( LastMessage == *(_64*)WIDE("MESSAGE!") )
+            if( LastMessage == *(uint64_t*)WIDE("MESSAGE!") )
             {
                 Log( WIDE("(1)") );
-                ToRead = *(_8*)buffer;
+                ToRead = *(uint8_t*)buffer;
                 LastMessage++;
             }
-            else if( (test = ((*(_64*)WIDE("MESSAGE!"))+1)), (LastMessage == test) )
+            else if( (test = ((*(uint64_t*)WIDE("MESSAGE!"))+1)), (LastMessage == test) )
             {
                 Log( WIDE("(2)") );
                 lprintf( WIDE("Relay Message:%s"), buffer );
                 LastMessage = 0;
             }
-            else if( LastMessage == *(_64*)WIDE("MASTERIS") )
+            else if( LastMessage == *(uint64_t*)WIDE("MASTERIS") )
             {
                 lprintf( WIDE("Game Master is: %s"), buffer );
                 LastMessage = 0;
                 RemoveClient( pc );
             }
-            else if( LastMessage == (*(_64*)WIDE("USERLIST")) )
+            else if( LastMessage == (*(uint64_t*)WIDE("USERLIST")) )
             {
                 Log( WIDE("(3)") );
-                ToRead = *(_16*)buffer;
+                ToRead = *(uint16_t*)buffer;
                 Log1( WIDE("User list with size of %d"), ToRead );
                 LastMessage++;
             }
-            else if(  (test = ((*(_64*)WIDE("USERLIST"))+1) ), (LastMessage == test) )
+            else if(  (test = ((*(uint64_t*)WIDE("USERLIST"))+1) ), (LastMessage == test) )
             {
                 TEXTCHAR *userlist = (TEXTCHAR*)buffer;
                 userlist[size] = 0;

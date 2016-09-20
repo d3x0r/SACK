@@ -85,7 +85,7 @@ static int ARG_CLOSED_GOP = 0;
 
 typedef struct compress_tag {
 	struct {
-		_32 bInited : 1;
+		uint32_t bInited : 1;
 	} flags;
    /*XVID_INIT_PARAM*/ xvid_gbl_init_t xinit;
    xvid_gbl_info_t xinfo;
@@ -257,7 +257,7 @@ void InitCompress( PCOMPRESS pCompress, int width, int height )
 }
 
 //int CPROC CompressFrame( PCOMPRESS pCompress, POINTER *data, INDEX *len )
-int CPROC CompressFrame( PTRSZVAL psv, PCAPTURE_DEVICE pDevice )
+int CPROC CompressFrame( uintptr_t psv, PCAPTURE_DEVICE pDevice )
 {
    PCOMPRESS pCompress = (PCOMPRESS)psv;
 	int xerr;
@@ -311,7 +311,7 @@ int CPROC CompressFrame( PTRSZVAL psv, PCAPTURE_DEVICE pDevice )
 }
 
 
-PTRSZVAL OpenCompressor( PCAPTURE_DEVICE pDevice, _32 width, _32 height )
+uintptr_t OpenCompressor( PCAPTURE_DEVICE pDevice, uint32_t width, uint32_t height )
 {
 	PCOMPRESS pCompress = Allocate( sizeof( *pCompress ) );
 	MemSet( pCompress, 0, sizeof( *pCompress ) );
@@ -321,7 +321,7 @@ PTRSZVAL OpenCompressor( PCAPTURE_DEVICE pDevice, _32 width, _32 height )
 	pCompress->xparam.height = height;
 	InitCompress( pCompress, width, height );
 
-	return (PTRSZVAL)pCompress;
+	return (uintptr_t)pCompress;
 }
 
 void DestroyCompressor( PCOMPRESS *ppCompressor )

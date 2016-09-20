@@ -180,7 +180,7 @@ static void jpeg_memory_src (j_decompress_ptr cinfo, char *inbfr, int len)
 
 /* ==== Constructor ==== */
 
-Image ImageJpgFile (_8 * buf, _32 size)
+Image ImageJpgFile (uint8_t * buf, uint32_t size)
 {
    ImageFile *Image;
   struct jpeg_decompress_struct cinfo;
@@ -270,7 +270,7 @@ Image ImageJpgFile (_8 * buf, _32 size)
       row = (char*)buffer[i];
       for( j = Image->width; j > 0; j-- )
       {
-			row[j * 4 - 1] = (_8)0xff;
+			row[j * 4 - 1] = (uint8_t)0xff;
 			if( bGLColorMode )
 			{
 				row[j * 4 - 2] = row[j*3-1];
@@ -364,7 +364,7 @@ Image ImageJpgFile (_8 * buf, _32 size)
  * and a compression quality factor are passed in.
  */
 
-LOGICAL JpgImageFile( Image image, _8 **buf, size_t *size, int Q )
+LOGICAL JpgImageFile( Image image, uint8_t **buf, size_t *size, int Q )
 {
   /* This struct contains the JPEG compression parameters and pointers to
    * working space (which is allocated as needed by the JPEG library).
@@ -385,15 +385,15 @@ LOGICAL JpgImageFile( Image image, _8 **buf, size_t *size, int Q )
   unsigned char *outbuf;
   unsigned long outsize;
   /* More stuff */
-  P_8 tmpbuf = NewArray( _8, image->width * image->height * 3 );
+  uint8_t* tmpbuf = NewArray( uint8_t, image->width * image->height * 3 );
   JSAMPROW row_pointer[1];	/* pointer to JSAMPLE row[s] */
   int row_stride;		/* physical row width in image buffer */
 
   {
 	  int n;
 	  int m = image->pwidth * image->height;
-	  P_8 in = (P_8)image->image;
-	  P_8 out = tmpbuf;
+	  uint8_t* in = (uint8_t*)image->image;
+	  uint8_t* out = tmpbuf;
 	  for( n = 0; n < m; n++ )
 	  {
 			if( bGLColorMode )
@@ -485,7 +485,7 @@ LOGICAL JpgImageFile( Image image, _8 **buf, size_t *size, int Q )
   jpeg_finish_compress(&cinfo);
   /* After finish_compress, we can close the output file. */
   //fclose(outfile);
-  Deallocate( P_8, tmpbuf );
+  Deallocate( uint8_t*, tmpbuf );
   /* Step 7: release JPEG compression object */
   (*buf) = outbuf;
   (*size) = outsize;

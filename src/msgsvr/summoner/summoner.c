@@ -32,7 +32,7 @@ typedef struct required_task_info
 {
 	struct {
 		// just a suggestion
-		_32 bOptional : 1; // flags.bOptional is not a REQUIRED depenandcy
+		uint32_t bOptional : 1; // flags.bOptional is not a REQUIRED depenandcy
 	} flags;
 	char *name;
 	char *address;
@@ -42,21 +42,21 @@ typedef struct required_task_info
 typedef struct my_task_info
 {
 	struct {
-		_32 bSuspend : 1;
-		_32 bStarted : 1;
-		_32 bFailedSpawn : 1;
-		_32 bStopped : 1; // task has been terminated - presumably during our exit-path... a
-		_32 bTooFast : 1; // re-starts happen tooo fast... this stops bad tasks
-		_32 bRestart : 1;
-		_32 bTimeout : 1; // indicates that the ready_timeout is set (might be 0)
-		_32 bRemote : 1; // task is meant for a remote box...
-		_32 bScheduled : 1;
-		_32 bScheduling : 1;
-		_32 bWaiting : 1; // waiting for WHOAMI (so we can start launching tasks again)
-		_32 bWaitForStart : 1; // waiting for IM_STARTING
-		_32 bWaitForReady : 1; // waiting for IM_READY
-		_32 bWaitAgain : 1;
-		_32 bExclusive : 1; // when this is running, no other task may be running
+		uint32_t bSuspend : 1;
+		uint32_t bStarted : 1;
+		uint32_t bFailedSpawn : 1;
+		uint32_t bStopped : 1; // task has been terminated - presumably during our exit-path... a
+		uint32_t bTooFast : 1; // re-starts happen tooo fast... this stops bad tasks
+		uint32_t bRestart : 1;
+		uint32_t bTimeout : 1; // indicates that the ready_timeout is set (might be 0)
+		uint32_t bRemote : 1; // task is meant for a remote box...
+		uint32_t bScheduled : 1;
+		uint32_t bScheduling : 1;
+		uint32_t bWaiting : 1; // waiting for WHOAMI (so we can start launching tasks again)
+		uint32_t bWaitForStart : 1; // waiting for IM_STARTING
+		uint32_t bWaitForReady : 1; // waiting for IM_READY
+		uint32_t bWaitAgain : 1;
+		uint32_t bExclusive : 1; // when this is running, no other task may be running
 	} flags;
 	char *name;
 	char *program;
@@ -64,11 +64,11 @@ typedef struct my_task_info
 	char *path;
    char *group; // name of the group this task is exclusive to...
 	char *remote_address; // identifier of the remote system (IP? Name?)
-	_32 ready_timeout;
-	_32 last_launch_time;
-	_32 min_launch_time;
-   _32 launch_threshold_count; // more than these in min_launch_time
-   _32 launch_count;
+	uint32_t ready_timeout;
+	uint32_t last_launch_time;
+	uint32_t min_launch_time;
+   uint32_t launch_threshold_count; // more than these in min_launch_time
+   uint32_t launch_count;
 // list fo PMYTASK_INFOs which are required
 // during configuration read time, until the end is processed,
 // this is a list of char * task names - which will be converted into
@@ -83,16 +83,16 @@ typedef struct my_task_info
 
 typedef struct network_state_tag
 {
-	_32 state;
-   _32 cmd;
+	uint32_t state;
+   uint32_t cmd;
 } NETSTATE, *PNETSTATE;
 
 typedef struct local_tag
 {
 	struct {
-		_32 something_bad_happened : 1;
-		_32 bSpawnActive : 1; // a task has been spawned, and we are waiting for it to claim its ID
-		_32 bSuspend : 1;
+		uint32_t something_bad_happened : 1;
+		uint32_t bSpawnActive : 1; // a task has been spawned, and we are waiting for it to claim its ID
+		uint32_t bSuspend : 1;
 	} flags;
 	char *configfile;
 	PLIST tasks; // all known tasks.
@@ -104,17 +104,17 @@ typedef struct local_tag
 	PMYTASK_INFO waiting_ready; // waiting for ready status...
 	PMYTASK_INFO ready; // monitor with an alive probe?
 	PCLIENT pcSpawner;
-	_16 peer_port;
-	_16 avatar_port;
+	uint16_t peer_port;
+	uint16_t avatar_port;
 	PTHREAD pLoadingThread;
 } LOCAL;
 static LOCAL l;
 
 //--------------------------------------------------------------------------
 
-static int CPROC SummonerEvents( _32 SourceRouteID, _32 MsgID
-										 , _32 *params, _32 param_length
-										 , _32 *result, _32 *result_length )
+static int CPROC SummonerEvents( uint32_t SourceRouteID, uint32_t MsgID
+										 , uint32_t *params, uint32_t param_length
+										 , uint32_t *result, uint32_t *result_length )
 {
 	// receives messages, and forwards them to the network interface...
 	// this task itself is able to spawn things(?)
@@ -218,7 +218,7 @@ static int CPROC SummonerEvents( _32 SourceRouteID, _32 MsgID
 	default:
 		lprintf( WIDE("Received message %") _32f WIDE(" from %") _32f WIDE(" expecting %") _32f WIDE("... data follows...")
 				 , MsgID, SourceRouteID, result_length?(*result_length):-1 );
-      LogBinary( (P_8)params, param_length );
+      LogBinary( (uint8_t*)params, param_length );
       return FALSE;
 	}
 	return TRUE;
@@ -238,7 +238,7 @@ static void CPROC ReadComplete( PCLIENT pc, POINTER buffer, int len )
 
 //--------------------------------------------------------------------------
 
-int CPROC SpawnerConnect( PTRSZVAL psv, SOCKADDR *responder )
+int CPROC SpawnerConnect( uintptr_t psv, SOCKADDR *responder )
 {
 	if( l.pcSpawner )
       RemoveClient( l.pcSpawner );
@@ -249,17 +249,17 @@ int CPROC SpawnerConnect( PTRSZVAL psv, SOCKADDR *responder )
 //--------------------------------------------------------------------------
 
 //--------------------------------------------------------------------------
-PTRSZVAL CPROC SetTaskReadyTimeout( PTRSZVAL psv, arg_list args )
+uintptr_t CPROC SetTaskReadyTimeout( uintptr_t psv, arg_list args )
 {
-	PARAM( args, _64, timeout );
+	PARAM( args, uint64_t, timeout );
 	PMYTASK_INFO task = (PMYTASK_INFO)psv;
    task->ready_timeout = timeout;
    return psv;
 }
 
-PTRSZVAL CPROC SetTaskMinLaunchTime( PTRSZVAL psv, arg_list args )
+uintptr_t CPROC SetTaskMinLaunchTime( uintptr_t psv, arg_list args )
 {
-	PARAM( args, _64, timeout );
+	PARAM( args, uint64_t, timeout );
 	PMYTASK_INFO task = (PMYTASK_INFO)psv;
    task->min_launch_time = timeout;
    return psv;
@@ -267,7 +267,7 @@ PTRSZVAL CPROC SetTaskMinLaunchTime( PTRSZVAL psv, arg_list args )
 
 //--------------------------------------------------------------------------
 
-PTRSZVAL CPROC AddTaskSuggestion( PTRSZVAL psv, arg_list args )
+uintptr_t CPROC AddTaskSuggestion( uintptr_t psv, arg_list args )
 {
 	PARAM( args, char *, require );
 	PMYTASK_INFO task = (PMYTASK_INFO)psv;
@@ -282,7 +282,7 @@ PTRSZVAL CPROC AddTaskSuggestion( PTRSZVAL psv, arg_list args )
 
 //--------------------------------------------------------------------------
 
-PTRSZVAL CPROC AddTaskRequirement( PTRSZVAL psv, arg_list args )
+uintptr_t CPROC AddTaskRequirement( uintptr_t psv, arg_list args )
 {
 	PARAM( args, char *, require );
 	PMYTASK_INFO task = (PMYTASK_INFO)psv;
@@ -298,7 +298,7 @@ PTRSZVAL CPROC AddTaskRequirement( PTRSZVAL psv, arg_list args )
 
 //--------------------------------------------------------------------------
 
-PTRSZVAL CPROC LoadExternalService( PTRSZVAL psv, arg_list args )
+uintptr_t CPROC LoadExternalService( uintptr_t psv, arg_list args )
 {
 	PARAM( args, char *, name );
 // these are loaded at runtime, and
@@ -310,7 +310,7 @@ PTRSZVAL CPROC LoadExternalService( PTRSZVAL psv, arg_list args )
 
 //--------------------------------------------------------------------------
 
-PTRSZVAL CPROC AddRemoteTaskRequirement( PTRSZVAL psv, arg_list args )
+uintptr_t CPROC AddRemoteTaskRequirement( uintptr_t psv, arg_list args )
 {
 	PARAM( args, char *, require );
 	PARAM( args, char *, address );
@@ -325,7 +325,7 @@ PTRSZVAL CPROC AddRemoteTaskRequirement( PTRSZVAL psv, arg_list args )
 
 //--------------------------------------------------------------------------
 
-PTRSZVAL CPROC SetTaskRestart( PTRSZVAL psv, arg_list args )
+uintptr_t CPROC SetTaskRestart( uintptr_t psv, arg_list args )
 {
    PARAM( args, LOGICAL, bRestart );
 	PMYTASK_INFO task = (PMYTASK_INFO)psv;
@@ -335,7 +335,7 @@ PTRSZVAL CPROC SetTaskRestart( PTRSZVAL psv, arg_list args )
 
 //--------------------------------------------------------------------------
 
-PTRSZVAL CPROC SetTaskExclusive( PTRSZVAL psv, arg_list args )
+uintptr_t CPROC SetTaskExclusive( uintptr_t psv, arg_list args )
 {
 	PARAM( args, LOGICAL, bExclusive );
    PARAM( args, CTEXTSTR, group );
@@ -347,7 +347,7 @@ PTRSZVAL CPROC SetTaskExclusive( PTRSZVAL psv, arg_list args )
 
 //--------------------------------------------------------------------------
 
-PTRSZVAL CPROC SetTaskProgram( PTRSZVAL psv, arg_list args )
+uintptr_t CPROC SetTaskProgram( uintptr_t psv, arg_list args )
 {
 	PARAM( args, char *, program );
    PMYTASK_INFO task = (PMYTASK_INFO)psv;
@@ -440,7 +440,7 @@ void BuildArgs( char ***pppArgs, char *newargs )
 	}
 }
 
-PTRSZVAL CPROC SetTaskArguments( PTRSZVAL psv, arg_list args )
+uintptr_t CPROC SetTaskArguments( uintptr_t psv, arg_list args )
 {
 	PARAM( args, char *, taskargs );
 	PMYTASK_INFO task = (PMYTASK_INFO)psv;
@@ -459,7 +459,7 @@ PTRSZVAL CPROC SetTaskArguments( PTRSZVAL psv, arg_list args )
 
 //--------------------------------------------------------------------------
 
-PTRSZVAL CPROC CreateTaskWithName( PTRSZVAL psv, arg_list args )
+uintptr_t CPROC CreateTaskWithName( uintptr_t psv, arg_list args )
 {
 	PARAM( args, char *, name );
 	PMYTASK_INFO task = (PMYTASK_INFO)psv;
@@ -474,16 +474,16 @@ PTRSZVAL CPROC CreateTaskWithName( PTRSZVAL psv, arg_list args )
 	task->ready_timeout = 2000;
    task->launch_threshold_count = 1;
 	task->name = StrDup( name );
-	return (PTRSZVAL)task;
+	return (uintptr_t)task;
 }
 
-PTRSZVAL CPROC SetSuspendStartup( PTRSZVAL psv, arg_list args )
+uintptr_t CPROC SetSuspendStartup( uintptr_t psv, arg_list args )
 {
    l.flags.bSuspend = TRUE;
    return psv;
 }
 
-PTRSZVAL CPROC SetTaskSuspend( PTRSZVAL psv, arg_list args )
+uintptr_t CPROC SetTaskSuspend( uintptr_t psv, arg_list args )
 {
    PARAM( args, LOGICAL, bSuspend );
 	PMYTASK_INFO task = (PMYTASK_INFO)psv;
@@ -496,7 +496,7 @@ PTRSZVAL CPROC SetTaskSuspend( PTRSZVAL psv, arg_list args )
 
 //--------------------------------------------------------------------------
 
-PTRSZVAL CPROC CreateRemoteTaskWithName( PTRSZVAL psv, arg_list args )
+uintptr_t CPROC CreateRemoteTaskWithName( uintptr_t psv, arg_list args )
 {
 	PARAM( args, char *, name );
 	PARAM( args, char *, address );
@@ -506,7 +506,7 @@ PTRSZVAL CPROC CreateRemoteTaskWithName( PTRSZVAL psv, arg_list args )
    // resolve this address here?  maybe it's not even valid?
    task->remote_address = StrDup( address );
 	task->name = StrDup( name );
-   return (PTRSZVAL)task;
+   return (uintptr_t)task;
 }
 
 //--------------------------------------------------------------------------
@@ -539,7 +539,7 @@ PMYTASK_INFO FindTask( char *address, char *taskname )
 
 void ScheduleTask( PMYTASK_INFO task )
 {
-	_32 tick;
+	uint32_t tick;
    lprintf( "schedule task." );
 	if( !task )
 		return;
@@ -622,7 +622,7 @@ void ScheduleTasks( void )
 
 //--------------------------------------------------------------------------
 
-PTRSZVAL CPROC EndTaskDefs( PTRSZVAL psv )
+uintptr_t CPROC EndTaskDefs( uintptr_t psv )
 {
 	PMYTASK_INFO task = (PMYTASK_INFO)psv;
    AddLink( &l.tasks, task );
@@ -691,7 +691,7 @@ void WriteConfig( char *name )
 
 void ReadConfig( void )
 {
-   //PTRSZVAL psvTask;
+   //uintptr_t psvTask;
 	PCONFIG_HANDLER pch;
 	pch = CreateConfigurationHandler();
    AddConfigurationMethod( pch, WIDE("suspend startup"), SetSuspendStartup );
@@ -779,7 +779,7 @@ void ReadConfig( void )
 
 //--------------------------------------------------------------------------
 
-void CPROC TaskStartOneShot( PTRSZVAL psv )
+void CPROC TaskStartOneShot( uintptr_t psv )
 {
 	PMYTASK_INFO task = (PMYTASK_INFO)psv;
 	// if the task has not
@@ -819,7 +819,7 @@ void KillDependants( PMYTASK_INFO task )
 
 //--------------------------------------------------------------------------
 
-void CPROC TaskEnded( PTRSZVAL psv, PTASK_INFO task_ended )
+void CPROC TaskEnded( uintptr_t psv, PTASK_INFO task_ended )
 {
 	PMYTASK_INFO task = (PMYTASK_INFO)psv;
    lprintf( WIDE("Task %s has exited.\n"), task->name );
@@ -960,11 +960,11 @@ void LoadTasks( void )
 		task_info = LaunchProgramEx( task->program
 											, task->path
 											, (PCTEXTSTR)task->args
-											, TaskEnded, (PTRSZVAL)task );
+											, TaskEnded, (uintptr_t)task );
 
 			if( task_info )
 			{
-            _32 tick = GetTickCount();
+            uint32_t tick = GetTickCount();
             lprintf( WIDE("adding task info to task->spawns %p %p"), &task->spawns, task_info );
 				AddLink( &task->spawns, (POINTER)task_info );
 				if( !task->ready_timeout )
@@ -1041,23 +1041,23 @@ ATEXIT( DoUnloadTasks )
 
 void CPROC AvatarReadComplete( PCLIENT pc, POINTER buffer, int len )
 {
-	_32 toread;
+	uint32_t toread;
 	if( !buffer )
 	{
       PNETSTATE pns;
       buffer = Allocate( 4096 );
-		SetNetworkLong( pc, NL_BUFFER, (PTRSZVAL)buffer );
+		SetNetworkLong( pc, NL_BUFFER, (uintptr_t)buffer );
 
-		SetNetworkLong( pc, NL_STATE, (PTRSZVAL)(pns=(PNETSTATE)Allocate( sizeof( NETSTATE ) )) );
+		SetNetworkLong( pc, NL_STATE, (uintptr_t)(pns=(PNETSTATE)Allocate( sizeof( NETSTATE ) )) );
       pns->state = NET_STATE_RESET;
       toread = 4;
 	}
 	else
 	{
       PNETSTATE pns = (PNETSTATE)GetNetworkLong( pc, NL_STATE );
-		P_32 msg = (P_32)buffer;
+		uint32_t* msg = (uint32_t*)buffer;
 		lprintf( "Received... ");
-      LogBinary( (P_8)buffer, len );
+      LogBinary( (uint8_t*)buffer, len );
 		switch( pns->state )
 		{
 		case NET_STATE_RESET:
@@ -1076,13 +1076,13 @@ void CPROC AvatarReadComplete( PCLIENT pc, POINTER buffer, int len )
             break;
 			case LIST_TASKS:
 				{
-					_32 op = TASK_NAME;
+					uint32_t op = TASK_NAME;
 					PMYTASK_INFO task;
                INDEX idx;
 					LIST_FORALL( l.tasks, idx, PMYTASK_INFO, task )
 					//for( task = l.tasks; task; task = NextThing( task ) )
 					{
-						_32 op = TASK_NAME;
+						uint32_t op = TASK_NAME;
                   char *state;
 						char line[80];
 						if( task->flags.bStarted )
@@ -1118,7 +1118,7 @@ void CPROC AvatarReadComplete( PCLIENT pc, POINTER buffer, int len )
 				{
 				case LIST_TASK_DEPENDS:
 					{
-						_32 op = TASK_DEPEND;
+						uint32_t op = TASK_DEPEND;
 						INDEX cnt = 0;
 						INDEX idx = ((INDEX*)buffer)[0];
 						PMYTASK_INFO task = (PMYTASK_INFO)GetLink( &l.tasks, idx );
@@ -1201,9 +1201,9 @@ void CPROC AvatarConnect( PCLIENT pcServer, PCLIENT pcNew )
    AvatarReadComplete( pcNew, NULL, 0 );
 	{
 		struct {
-			_32 op;
-         _32 system_id;
-         _32 status;
+			uint32_t op;
+         uint32_t system_id;
+         uint32_t status;
 		} msg;
 		msg.op = SYSTEM_STATUS;
       msg.system_id = 0;

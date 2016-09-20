@@ -15,23 +15,23 @@ int test1, test2;
 int bDoLog = 0;
 int nRootLen1, nRootLen2;
 
-static int CPROC MyStrCmp( PTRSZVAL old, PTRSZVAL new_node )
+static int CPROC MyStrCmp( uintptr_t old, uintptr_t new_node )
 {
    if( bDoLog )
 		lprintf( WIDE("Compare %s and %s"), (char*)old+test1, (char*)new_node+test2 );
    return stricmp( (CTEXTSTR)old + test1, (CTEXTSTR)new_node + test2 );
 }
 
-void CPROC AddDir( PTRSZVAL psv, CTEXTSTR name, int flags )
+void CPROC AddDir( uintptr_t psv, CTEXTSTR name, int flags )
 {
    name = StrDup( name );
    test1 = nRootLen1;
 	test2 = nRootLen1;
 	//lprintf( WIDE("Add Dir %s"), name );
-   AddBinaryNode( tree1, (POINTER)name, (PTRSZVAL)name );
+   AddBinaryNode( tree1, (POINTER)name, (uintptr_t)name );
 }
 
-void CPROC FindDir( PTRSZVAL psv,CTEXTSTR name, int flags )
+void CPROC FindDir( uintptr_t psv,CTEXTSTR name, int flags )
 {
 	char *othername;
    name = StrDup( name );
@@ -40,22 +40,22 @@ void CPROC FindDir( PTRSZVAL psv,CTEXTSTR name, int flags )
 	test2 = nRootLen1;
    //bDoLog = 1;
    //lprintf( WIDE("Find Dir %s"), name );
-	othername = (char*)FindInBinaryTree( tree1, (PTRSZVAL)name );
+	othername = (char*)FindInBinaryTree( tree1, (uintptr_t)name );
    test1 = nRootLen2;
    test2 = nRootLen2;
    //lprintf( WIDE("Add Dir %s"), name );
-   AddBinaryNode( tree2, (POINTER)name, (PTRSZVAL)name );
+   AddBinaryNode( tree2, (POINTER)name, (uintptr_t)name );
 	if( !othername )
       printf( WIDE("%s\n"), name );
 }
 
-void CPROC FindDir2( PTRSZVAL psv, CTEXTSTR name, int flags )
+void CPROC FindDir2( uintptr_t psv, CTEXTSTR name, int flags )
 {
 	char *othername;
 
    test1 = nRootLen1;
    test2 = nRootLen2;
-	othername = (char*)FindInBinaryTree( tree2, (PTRSZVAL)name );
+	othername = (char*)FindInBinaryTree( tree2, (uintptr_t)name );
 	if( !othername )
       printf( WIDE("%s\n"), name );
 }

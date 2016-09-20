@@ -2,17 +2,17 @@
 
 sttic struct {
 	struct {
-		_32 connected : 1; // have we already connected?
+		uint32_t connected : 1; // have we already connected?
 	} flags;
 
 	// once we connect to the server, this base
 	// is used to bias all messages which are enumerated
 	// from 0, and are often direct indexes into a table
    // of server message handling functions.
-	_32 MsgBase;
+	uint32_t MsgBase;
 } l;
 
-static void CPROC EventProcessor( _32 EventMsg, _32 *data, _32 length )
+static void CPROC EventProcessor( uint32_t EventMsg, uint32_t *data, uint32_t length )
 {
 	// messages may come back as events....
 	// they are not the result of a previously sent
@@ -77,7 +77,7 @@ static void DisconnectFromServer( void )
 .// all of these are example functions only, 1 simple send with
 // no required responce.
 
-PUBLIC( void, SimpleVoidProc )( _32 width, _32 height )
+PUBLIC( void, SimpleVoidProc )( uint32_t width, uint32_t height )
 {
    if( !ConnectToServer() ) return;
 	SendServerMessage( MSG_SimpleVoidProc + g.MsgBase, &width, ParamLength( width, height ) );
@@ -87,21 +87,21 @@ PUBLIC( void, SimpleVoidProc )( _32 width, _32 height )
 	//							, NULL, NULL, NULL );
 }
 
-PUBLIC( PRENDERER, OpenDisplayAboveSizedAt )   ( _32 attributes, _32 width, _32 height, S_32 x, S_32 y, PRENDERER parent )
+PUBLIC( PRENDERER, OpenDisplayAboveSizedAt )   ( uint32_t attributes, uint32_t width, uint32_t height, int32_t x, int32_t y, PRENDERER parent )
 {
 	if( ConnectToServer() )
 	{
       // this is the message_id of the responce.
-		_32 Responce;
+		uint32_t Responce;
       // this is the message data result
-		_32 data[5];
+		uint32_t data[5];
 		// this is the result length of the buffer, it
 		// is initially the max size of the responce buffer,
 		// it is updated upon successful transmission/responce
       // to be the actual length of data returned.
-		_32 len = 20;
+		uint32_t len = 20;
 		if( TransactServerMessage( MSG_OpenDisplayAboveSizedAt // mesasge ID
-										 , &attributes, 6 * sizeof( _32 ) // out message data, and length
+										 , &attributes, 6 * sizeof( uint32_t ) // out message data, and length
 										 , &Responce, data, &len )  // receive information
 			&& // both conditions MUST be true for success.
 

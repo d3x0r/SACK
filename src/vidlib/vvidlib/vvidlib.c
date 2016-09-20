@@ -13,7 +13,7 @@
 #include "../../psilib/controlstruc.h"
 
 IMAGE_NAMESPACE
-extern LOGICAL PngImageFile ( Image pImage, _8 ** buf, int *size);
+extern LOGICAL PngImageFile ( Image pImage, uint8_t ** buf, int *size);
 IMAGE_NAMESPACE_END
 
 RENDER_NAMESPACE
@@ -23,12 +23,12 @@ struct HVIDEO_tag {
    CTEXTSTR alias;
 	Image image;
    Image sliding_window; // used to send a sub-portion of the image
-	S_32 x, y; // unused?
+	int32_t x, y; // unused?
 	// Sprite sprite; // at some point movies should be streamable?
 	MouseCallback mouse;
-	PTRSZVAL psvMouse;
+	uintptr_t psvMouse;
 	RedrawCallback redraw;
-	PTRSZVAL psvRedraw;
+	uintptr_t psvRedraw;
    PSPACENODE images; // tree of image pointers...
 };
 
@@ -60,7 +60,7 @@ struct network_state
 };
 
 
-static int CPROC MyStrCmp( PTRSZVAL psv1, PTRSZVAL psv2 )
+static int CPROC MyStrCmp( uintptr_t psv1, uintptr_t psv2 )
 {
    return StrCmp( (char*)psv1, (*(char**)psv2) );
 }
@@ -69,12 +69,12 @@ void AddImage( PRENDERER renderer )
 {
 	if( !l.image_root )
       l.image_root = CreateBinaryTreeEx( MyStrCmp, NULL );
-   AddBinaryNode( l.image_root, renderer, (PTRSZVAL)&renderer->name );
+   AddBinaryNode( l.image_root, renderer, (uintptr_t)&renderer->name );
 }
 
 static CTEXTSTR alias_found;
 
-PTRSZVAL CPROC IsAlias( PTRSZVAL psv, arg_list args )
+uintptr_t CPROC IsAlias( uintptr_t psv, arg_list args )
 {
    PARAM( args, CTEXTSTR, name );
 	PARAM( args, CTEXTSTR, alias );
@@ -90,10 +90,10 @@ PTRSZVAL CPROC IsAlias( PTRSZVAL psv, arg_list args )
 void GetImageAlias( PRENDERER renderer )
 {
 	PCONFIG_HANDLER pch_aliases;
-   PTRSZVAL result;
+   uintptr_t result;
    pch_aliases = CreateConfigurationHandler();
 	AddConfigurationMethod( pch_aliases, "<alias name=\"%m\" aka=\"%m\"></alias>", IsAlias );
-	result = ProcessConfigurationFile( pch_aliases, "window_aliases", (PTRSZVAL)renderer );
+	result = ProcessConfigurationFile( pch_aliases, "window_aliases", (uintptr_t)renderer );
 	if( alias_found )
 	{
 		renderer->alias = alias_found;
@@ -101,7 +101,7 @@ void GetImageAlias( PRENDERER renderer )
 	}
 }
 
-void _BuildSpaceTree( PSPACENODE *tree, int level, _32 x_origin, _32 y_origin, PSI_CONTROL pc )
+void _BuildSpaceTree( PSPACENODE *tree, int level, uint32_t x_origin, uint32_t y_origin, PSI_CONTROL pc )
 {
 	//while( image )
 	{
@@ -196,7 +196,7 @@ void SendWindowList( struct network_state *state )
 	VarTextDestroy( &pvt );
 }
 
-void AddMyData( PTRSZVAL psv, PVARTEXT pvt, POINTER node_data, PSPACEPOINT min, PSPACEPOINT max )
+void AddMyData( uintptr_t psv, PVARTEXT pvt, POINTER node_data, PSPACEPOINT min, PSPACEPOINT max )
 {
    PRENDERER renderer = (PRENDERER)psv;
 	//Image image = node_data;
@@ -218,7 +218,7 @@ void SendImagePage( struct network_state *state, PRENDERER renderer )
 
 	OutputHTMLSpaceTable( renderer->images
 							  , pvt
-							  , AddMyData, (PTRSZVAL)renderer );
+							  , AddMyData, (uintptr_t)renderer );
 							  */
 	vtprintf( pvt, "</BODY></HTML>" );
 	{
@@ -349,7 +349,7 @@ int MyCommand( PSENTIENT ps, PTEXT params )
 			}
 			else
 			{
-				window = (PRENDERER)FindInBinaryTree( l.image_root, (PTRSZVAL)GetText( value ) );
+				window = (PRENDERER)FindInBinaryTree( l.image_root, (uintptr_t)GetText( value ) );
 			}
 		}
       if( !window )
@@ -366,7 +366,7 @@ int MyCommand( PSENTIENT ps, PTEXT params )
             //DebugBreak();
 				window->redraw( window->psvRedraw, window );
 			}
-			PngImageFile( image?image:window->image, (P_8*)&data, &length );
+			PngImageFile( image?image:window->image, (uint8_t**)&data, &length );
 			if( image )
             UnmakeImageFile( image );
 			{
@@ -392,7 +392,7 @@ int MyCommand( PSENTIENT ps, PTEXT params )
    return 0;
 }
 
-PRENDERER OpenDisplayAboveSizedAt( _32 attributes, _32 w, _32 h, S_32 x, S_32 y, PRENDERER parent )
+PRENDERER OpenDisplayAboveSizedAt( uint32_t attributes, uint32_t w, uint32_t h, int32_t x, int32_t y, PRENDERER parent )
 {
 	PRENDERER renderer = New( RENDERER );
 	// parent = blah
@@ -408,12 +408,12 @@ PRENDERER OpenDisplayAboveSizedAt( _32 attributes, _32 w, _32 h, S_32 x, S_32 y,
    return renderer;
 }
 
-PRENDERER OpenDisplaySizedAt( _32 attributes, _32 w, _32 h, S_32 x, S_32 y )
+PRENDERER OpenDisplaySizedAt( uint32_t attributes, uint32_t w, uint32_t h, int32_t x, int32_t y )
 {
    return OpenDisplayAboveSizedAt( attributes, w, h, x, y, NULL );
 }
 
-void UpdateDisplayPortionEx( PRENDERER renderer, S_32 x, S_32 y, _32 w, _32 h DBG_PASS )
+void UpdateDisplayPortionEx( PRENDERER renderer, int32_t x, int32_t y, uint32_t w, uint32_t h DBG_PASS )
 {
 	if( renderer->redraw )
 	{
@@ -434,7 +434,7 @@ void CloseDisplay( PRENDERER renderer )
 	}
 	if( test )
 	{
-      RemoveBinaryNode( l.image_root, test, (PTRSZVAL)renderer->name );
+      RemoveBinaryNode( l.image_root, test, (uintptr_t)renderer->name );
 	}
 }
 
@@ -484,7 +484,7 @@ void CPROC OnClose( PCLIENT pc )
 void CPROC Connected( PCLIENT pc_server, PCLIENT pc_client )
 {
 	struct network_state *state = New( struct network_state );
-	SetNetworkLong( pc_client, 0, (PTRSZVAL)state );
+	SetNetworkLong( pc_client, 0, (uintptr_t)state );
    state->pc = pc_client;
 	state->block = SegCreate( 4096 );
    state->name = SegCreateFromText( "http processor" );
@@ -511,7 +511,7 @@ void CPROC Connected( PCLIENT pc_server, PCLIENT pc_client )
 }
 
 
-void SetMouseHandler( PRENDERER renderer, MouseCallback mouse, PTRSZVAL psvMouse )
+void SetMouseHandler( PRENDERER renderer, MouseCallback mouse, uintptr_t psvMouse )
 {
 	// invoke this so that draws can be retriggered...
    // referesh has to happen on the page.
@@ -519,13 +519,13 @@ void SetMouseHandler( PRENDERER renderer, MouseCallback mouse, PTRSZVAL psvMouse
    renderer->psvMouse = psvMouse;
 }
 
-void SetRedrawHandler( PRENDERER renderer, RedrawCallback redraw, PTRSZVAL psvRedraw )
+void SetRedrawHandler( PRENDERER renderer, RedrawCallback redraw, uintptr_t psvRedraw )
 {
 	renderer->redraw = redraw;
    renderer->psvRedraw = psvRedraw;
 }
 
-void SizeDisplay( PRENDERER renderer, _32 w, _32 h )
+void SizeDisplay( PRENDERER renderer, uint32_t w, uint32_t h )
 {
    //DebugBreak();
 	ResizeImage( renderer->image, w, h );
@@ -538,7 +538,7 @@ void SizeDisplay( PRENDERER renderer, _32 w, _32 h )
 
 
 
-void SizeDisplayRel( PRENDERER renderer, S_32 w, S_32 h )
+void SizeDisplayRel( PRENDERER renderer, int32_t w, int32_t h )
 {
 	ResizeImage( renderer->image
 				  , renderer->image->width + w
@@ -550,18 +550,18 @@ void SizeDisplayRel( PRENDERER renderer, S_32 w, S_32 h )
 	//}
 }
 
-void MoveSizeDisplayRel( PRENDERER renderer, S_32 x, S_32 y, S_32 w, S_32 h )
+void MoveSizeDisplayRel( PRENDERER renderer, int32_t x, int32_t y, int32_t w, int32_t h )
 {
    SizeDisplayRel( renderer, w, h );
 }
 
-void MoveSizeDisplay( PRENDERER renderer, S_32 x, S_32 y, S_32 w, S_32 h )
+void MoveSizeDisplay( PRENDERER renderer, int32_t x, int32_t y, int32_t w, int32_t h )
 {
    SizeDisplay( renderer, w, h );
 }
 
 
-void GetDisplaySize( _32 *w, _32 *h )
+void GetDisplaySize( uint32_t *w, uint32_t *h )
 {
 	if( w )
 		(*w) = 1024;
@@ -605,39 +605,39 @@ PRELOAD( InitMe )
 
 	RENDER_PROC_PTR( void , SetApplicationTitle) (const char *title ) )SetApplicationTitle;
 	RENDER_PROC_PTR( void , SetApplicationIcon)  (Image Icon) )DoNothing; //
-	RENDER_PROC_PTR( void , GetDisplaySize)      ( _32 *width, _32 *height ) )GetDisplaySize;
-	RENDER_PROC_PTR( void , SetDisplaySize)      ( _32 width, _32 height ) )DoNothing;
+	RENDER_PROC_PTR( void , GetDisplaySize)      ( uint32_t *width, uint32_t *height ) )GetDisplaySize;
+	RENDER_PROC_PTR( void , SetDisplaySize)      ( uint32_t width, uint32_t height ) )DoNothing;
 
-	RENDER_PROC_PTR( PRENDERER , OpenDisplaySizedAt)     ( _32 attributes, _32 width, _32 height, S_32 x, S_32 y ) )OpenDisplaySizedAt;
-	RENDER_PROC_PTR( PRENDERER , OpenDisplayAboveSizedAt)( _32 attributes, _32 width, _32 height, S_32 x, S_32 y, PRENDERER above ) )OpenDisplayAboveSizedAt;
+	RENDER_PROC_PTR( PRENDERER , OpenDisplaySizedAt)     ( uint32_t attributes, uint32_t width, uint32_t height, int32_t x, int32_t y ) )OpenDisplaySizedAt;
+	RENDER_PROC_PTR( PRENDERER , OpenDisplayAboveSizedAt)( uint32_t attributes, uint32_t width, uint32_t height, int32_t x, int32_t y, PRENDERER above ) )OpenDisplayAboveSizedAt;
 
 	RENDER_PROC_PTR( void        , CloseDisplay) ( PRENDERER ) )CloseDisplay;
 
-	RENDER_PROC_PTR( void, UpdateDisplayPortionEx) ( PRENDERER, S_32 x, S_32 y, _32 width, _32 height DBG_PASS ) )UpdateDisplayPortionEx;
+	RENDER_PROC_PTR( void, UpdateDisplayPortionEx) ( PRENDERER, int32_t x, int32_t y, uint32_t width, uint32_t height DBG_PASS ) )UpdateDisplayPortionEx;
 	RENDER_PROC_PTR( void, UpdateDisplayEx)        ( PRENDERER DBG_PASS) )UpdateDisplayEx;
 
 
-	RENDER_PROC_PTR( void, GetDisplayPosition)   ( PRENDERER, S_32 *x, S_32 *y, _32 *width, _32 *height ) )DoNothing;
-	RENDER_PROC_PTR( void, MoveDisplay)          ( PRENDERER, S_32 x, S_32 y ) )DoNothing;
-	RENDER_PROC_PTR( void, MoveDisplayRel)       ( PRENDERER, S_32 delx, S_32 dely ) )DoNothing;
-	RENDER_PROC_PTR( void, SizeDisplay)          ( PRENDERER, _32 w, _32 h ) )SizeDisplay;
-	RENDER_PROC_PTR( void, SizeDisplayRel)       ( PRENDERER, S_32 delw, S_32 delh ) )SizeDisplay;
+	RENDER_PROC_PTR( void, GetDisplayPosition)   ( PRENDERER, int32_t *x, int32_t *y, uint32_t *width, uint32_t *height ) )DoNothing;
+	RENDER_PROC_PTR( void, MoveDisplay)          ( PRENDERER, int32_t x, int32_t y ) )DoNothing;
+	RENDER_PROC_PTR( void, MoveDisplayRel)       ( PRENDERER, int32_t delx, int32_t dely ) )DoNothing;
+	RENDER_PROC_PTR( void, SizeDisplay)          ( PRENDERER, uint32_t w, uint32_t h ) )SizeDisplay;
+	RENDER_PROC_PTR( void, SizeDisplayRel)       ( PRENDERER, int32_t delw, int32_t delh ) )SizeDisplay;
 	RENDER_PROC_PTR( void, MoveSizeDisplayRel )  ( PRENDERER hVideo
-																, S_32 delx, S_32 dely
-																, S_32 delw, S_32 delh ) )DoNothing;
+																, int32_t delx, int32_t dely
+																, int32_t delw, int32_t delh ) )DoNothing;
 	RENDER_PROC_PTR( void, PutDisplayAbove)      ( PRENDERER, PRENDERER ) )DoNothing; // this that - put this above that
 
 	RENDER_PROC_PTR( Image, GetDisplayImage)     ( PRENDERER ) )GetDisplayImage;
 
-	RENDER_PROC_PTR( void, SetCloseHandler)      ( PRENDERER, CloseCallback, PTRSZVAL ) )DoNothing;
-	RENDER_PROC_PTR( void, SetMouseHandler)      ( PRENDERER, MouseCallback, PTRSZVAL ) )SetMouseHandler;
-	RENDER_PROC_PTR( void, SetRedrawHandler)     ( PRENDERER, RedrawCallback, PTRSZVAL ) )SetRedrawHandler;
-	RENDER_PROC_PTR( void, SetKeyboardHandler)   ( PRENDERER, KeyProc, PTRSZVAL ) )DoNothing;
-	RENDER_PROC_PTR( void, SetLoseFocusHandler)  ( PRENDERER, LoseFocusCallback, PTRSZVAL ) )DoNothing;
-	RENDER_PROC_PTR( void, SetDefaultHandler)    ( PRENDERER, GeneralCallback, PTRSZVAL ) )DoNothing;
+	RENDER_PROC_PTR( void, SetCloseHandler)      ( PRENDERER, CloseCallback, uintptr_t ) )DoNothing;
+	RENDER_PROC_PTR( void, SetMouseHandler)      ( PRENDERER, MouseCallback, uintptr_t ) )SetMouseHandler;
+	RENDER_PROC_PTR( void, SetRedrawHandler)     ( PRENDERER, RedrawCallback, uintptr_t ) )SetRedrawHandler;
+	RENDER_PROC_PTR( void, SetKeyboardHandler)   ( PRENDERER, KeyProc, uintptr_t ) )DoNothing;
+	RENDER_PROC_PTR( void, SetLoseFocusHandler)  ( PRENDERER, LoseFocusCallback, uintptr_t ) )DoNothing;
+	RENDER_PROC_PTR( void, SetDefaultHandler)    ( PRENDERER, GeneralCallback, uintptr_t ) )DoNothing;
 
-	RENDER_PROC_PTR( void, GetMousePosition)     ( S_32 *x, S_32 *y ) )DoNothing;
-	RENDER_PROC_PTR( void, SetMousePosition)     ( PRENDERER, S_32 x, S_32 y ) )DoNothing;
+	RENDER_PROC_PTR( void, GetMousePosition)     ( int32_t *x, int32_t *y ) )DoNothing;
+	RENDER_PROC_PTR( void, SetMousePosition)     ( PRENDERER, int32_t x, int32_t y ) )DoNothing;
 
 	RENDER_PROC_PTR( LOGICAL, HasFocus)          ( PRENDERER ) )DoNothing;
 
@@ -645,12 +645,12 @@ PRELOAD( InitMe )
 	RENDER_PROC_PTR( PACTIVEMESSAGE , CreateActiveMessage) ( int ID, int size, ... ) )DoNothing;
 
 	RENDER_PROC_PTR( char, GetKeyText)           ( int key ) )DoNothing;
-	RENDER_PROC_PTR( _32, IsKeyDown )        ( PRENDERER display, int key ) )DoNothing;
-	RENDER_PROC_PTR( _32, KeyDown )         ( PRENDERER display, int key ) )DoNothing;
+	RENDER_PROC_PTR( uint32_t, IsKeyDown )        ( PRENDERER display, int key ) )DoNothing;
+	RENDER_PROC_PTR( uint32_t, KeyDown )         ( PRENDERER display, int key ) )DoNothing;
 	RENDER_PROC_PTR( LOGICAL, DisplayIsValid )  ( PRENDERER display ) )DoNothing;
 	// own==0 release else mouse owned.
-	RENDER_PROC_PTR( void, OwnMouseEx )            ( PRENDERER display, _32 Own DBG_PASS) )DoNothing;
-	RENDER_PROC_PTR( int, BeginCalibration )       ( _32 points ) )DoNothing;
+	RENDER_PROC_PTR( void, OwnMouseEx )            ( PRENDERER display, uint32_t Own DBG_PASS) )DoNothing;
+	RENDER_PROC_PTR( int, BeginCalibration )       ( uint32_t points ) )DoNothing;
 	RENDER_PROC_PTR( void, SyncRender )            ( PRENDERER pDisplay ) )DoNothing;
 	RENDER_PROC_PTR( int, EnableOpenGL )           ( PRENDERER hVideo ) )DoNothing;
 	RENDER_PROC_PTR( int, SetActiveGLDisplay )     ( PRENDERER hDisplay ) )DoNothing;
@@ -659,8 +659,8 @@ PRELOAD( InitMe )
 	//KeyDouble
 	//GetKeyText
 	RENDER_PROC_PTR( void, MoveSizeDisplay )( PRENDERER hVideo
-														 , S_32 x, S_32 y
-														 , S_32 w, S_32 h ) )DoNothing;
+														 , int32_t x, int32_t y
+														 , int32_t w, int32_t h ) )DoNothing;
 	RENDER_PROC_PTR( void, MakeTopmost )    ( PRENDERER hVideo ) )DoNothing;
 	RENDER_PROC_PTR( void, HideDisplay )      ( PRENDERER hVideo ) )DoNothing;
 	RENDER_PROC_PTR( void, RestoreDisplay )   ( PRENDERER hVideo ) )DoNothing;
@@ -669,13 +669,13 @@ PRELOAD( InitMe )
 	RENDER_PROC_PTR( void, ForceDisplayFront )( PRENDERER display ) )DoNothing;
 	RENDER_PROC_PTR( void, ForceDisplayBack )( PRENDERER display ) )DoNothing;
 
-	RENDER_PROC_PTR( int, BindEventToKey )( PRENDERER pRenderer, _32 scancode, _32 modifier, KeyTriggerHandler trigger, PTRSZVAL psv ) )DoNothing;
-	RENDER_PROC_PTR( int, UnbindKey )( PRENDERER pRenderer, _32 scancode, _32 modifier ) )DoNothing;
+	RENDER_PROC_PTR( int, BindEventToKey )( PRENDERER pRenderer, uint32_t scancode, uint32_t modifier, KeyTriggerHandler trigger, uintptr_t psv ) )DoNothing;
+	RENDER_PROC_PTR( int, UnbindKey )( PRENDERER pRenderer, uint32_t scancode, uint32_t modifier ) )DoNothing;
 	RENDER_PROC_PTR( int, IsTopmost )( PRENDERER hVideo ) )DoNothing;
 	RENDER_PROC_PTR( void, OkaySyncRender )            ( void ) )DoNothing;
 	RENDER_PROC_PTR( int, IsTouchDisplay )( void ) )DoNothing;
-	RENDER_PROC_PTR( void , GetMouseState )        ( S_32 *x, S_32 *y, _32 *b ) )DoNothing;
-	RENDER_PROC_PTR ( PSPRITE_METHOD, EnableSpriteMethod )(PRENDERER render, void(CPROC*RenderSprites)(PTRSZVAL psv, PRENDERER renderer, S_32 x, S_32 y, _32 w, _32 h ), PTRSZVAL psv ) )DoNothing;
+	RENDER_PROC_PTR( void , GetMouseState )        ( int32_t *x, int32_t *y, uint32_t *b ) )DoNothing;
+	RENDER_PROC_PTR ( PSPRITE_METHOD, EnableSpriteMethod )(PRENDERER render, void(CPROC*RenderSprites)(uintptr_t psv, PRENDERER renderer, int32_t x, int32_t y, uint32_t w, uint32_t h ), uintptr_t psv ) )DoNothing;
 
    RegisterInterface( 
 //#ifdef SACK_BAG_EXPORTS  // symbol defined by visual studio sack_bag.vcproj

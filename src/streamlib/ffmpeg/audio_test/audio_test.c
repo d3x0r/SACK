@@ -5,7 +5,7 @@
 struct compressed_phrase
 {
 	int phrase_len;
-	_8 *phrase;
+	uint8_t *phrase;
 };
 
 static struct {
@@ -13,16 +13,16 @@ static struct {
 	PLINKQUEUE compressed_queue;
 } test_local;
 
-static void CPROC callback( PTRSZVAL psv, int max_level, POINTER data, size_t datalen )
+static void CPROC callback( uintptr_t psv, int max_level, POINTER data, size_t datalen )
 {
 	struct compressed_phrase *phrase = New( struct compressed_phrase );
 	phrase->phrase_len = datalen;
-	phrase->phrase = NewArray( _8, datalen );
+	phrase->phrase = NewArray( uint8_t, datalen );
 	MemCpy( phrase->phrase, data, datalen );
 	EnqueLink( &test_local.compressed_queue, phrase );
 }
 
-static PTRSZVAL CPROC OutputThread( PTHREAD thread )
+static uintptr_t CPROC OutputThread( PTHREAD thread )
 {
 	// delay 5 seconds.
 	//WakeableSleep( 5000 );

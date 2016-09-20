@@ -25,19 +25,19 @@ static int myTypeID;
 
 typedef struct mydatapath_tag {
 	DATAPATH common;
-   _32 state;
+   uint32_t state;
 	struct {
-		_32 bInvalid : 1;
-		_32 bGet : 1;
-		_32 bPost : 1;
-		_32 bBinary : 1; // reading the content...
-		_32 bValue : 1;
-		_32 bCollecting : 1;
+		uint32_t bInvalid : 1;
+		uint32_t bGet : 1;
+		uint32_t bPost : 1;
+		uint32_t bBinary : 1; // reading the content...
+		uint32_t bValue : 1;
+		uint32_t bCollecting : 1;
 	} flags;
 	PTEXT partial;
 	PTEXT filename;
 	PTEXT varname, varvalue;
-   _32 content_length;
+   uint32_t content_length;
 	TEXTCHAR *page;
 	TEXTCHAR *cgi;
 	TEXTCHAR *http_vars;
@@ -143,9 +143,9 @@ void ProcessPostCGI( PSENTIENT ps, PTEXT block )
 	PTEXT varname = NULL;
 	PTEXT varvalue = NULL;
 	struct {
-		_32 bBrokenValue : 1;
+		uint32_t bBrokenValue : 1;
 	} flags;
-	_32 state = RESET;
+	uint32_t state = RESET;
    flags.bBrokenValue = 0;
 	while( words )
 	{

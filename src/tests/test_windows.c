@@ -6,7 +6,7 @@ CRITICALSECTION cs;
 PSI_CONTROL pc;
 
 
-PTRSZVAL CPROC Thread1( PTHREAD thread )
+uintptr_t CPROC Thread1( PTHREAD thread )
 {
    while( 1 )
 	if( !pc )
@@ -21,7 +21,7 @@ PTRSZVAL CPROC Thread1( PTHREAD thread )
    return 0;
 }
 
-PTRSZVAL CPROC Thread2( PTHREAD thread )
+uintptr_t CPROC Thread2( PTHREAD thread )
 {
    while( 1 )
 	if( pc )

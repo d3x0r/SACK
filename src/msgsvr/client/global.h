@@ -54,7 +54,7 @@
 
 MSGCLIENT_NAMESPACE
 
-#define MSG_DEFAULT_RESULT_BUFFER_MAX (sizeof( _32 ) * 16384)
+#define MSG_DEFAULT_RESULT_BUFFER_MAX (sizeof( uint32_t ) * 16384)
 
 #ifdef  _DEBUG
 #define DEFAULT_TIMEOUT 300000 // standard transaction timout
@@ -78,7 +78,7 @@ typedef PREFIX_PACKED struct message_header_tag
 // internal message information
 	// transportable across messsage queues or networks
    SERVICE_ENDPOINT source;
-	_32 msgid;
+	uint32_t msgid;
 // #define MSGDATA( msghdr ) ( (&msghdr.sourceid)+1 )
 } PACKED MSGHDR;
 
@@ -86,8 +86,8 @@ typedef PREFIX_PACKED struct full_message_header_tag
 {
 	SERVICE_ENDPOINT dest;
 	MSGHDR hdr;
-#define QMSGDATA( qmsghdr ) ((_32*)( (qmsghdr)+1 ))
-	//_32 data[];
+#define QMSGDATA( qmsghdr ) ((uint32_t*)( (qmsghdr)+1 ))
+	//uint32_t data[];
 } PACKED QMSG;
 
 // these are client structures
@@ -116,7 +116,7 @@ struct ServiceEventHandler_tag
 	EventHandlerFunction Handler;
 	EventHandlerFunctionEx HandlerEx;
 	EventHandlerFunctionExx HandlerExx;
-	PTRSZVAL psv;
+	uintptr_t psv;
 	// this handler's events come from this queue.
 	MSGQ_TYPE msgq_events;
 	////CRITICALSECTION csMsgTransact;
@@ -140,12 +140,12 @@ struct ServiceTransactionHandler_tag
 
 	CRITICALSECTION csMsgTransact;
 	// timeout on this local handler's reception of a responce.
-	_32 wait_for_responce;
+	uint32_t wait_for_responce;
 	MSGIDTYPE LastMsgID; // last outbound resquest - which is waiting for a responce
 	MSGIDTYPE *MessageID; // address of the reply message ID
 	POINTER msg;
 	size_t *len;
-	_32 last_check_tick;
+	uint32_t last_check_tick;
 	PQMSG MessageIn;
 	size_t MessageLen;
 	
@@ -170,14 +170,14 @@ typedef struct service_tag
 	server_function_table functions;
 	server_message_handler handler;
 	server_message_handler_ex handler_ex;
-	PTRSZVAL psv;
-	_32 entries;
-	_32 references;
+	uintptr_t psv;
+	uint32_t entries;
+	uint32_t references;
 	SERVICE_ROUTE route;  // this is a static route that goes to the message server.
 	MSGIDTYPE ServiceID;  // when registered this is our ID for later message handler resolution
 	TEXTCHAR *name;
 	PTHREAD thread;
-	//_32 pid_me; // these pids should be phased out, and given an ID from msgsvr.
+	//uint32_t pid_me; // these pids should be phased out, and given an ID from msgsvr.
 	PLIST service_routes; // these are clients that are connected to this service
 
 	PQMSG recv;
@@ -193,8 +193,8 @@ typedef struct service_tag
 typedef struct service_client_tag
 {
    SERVICE_ROUTE route;
-	//_32 pid; // process only? no thread?
-	_32 last_time_received;
+	//uint32_t pid; // process only? no thread?
+	uint32_t last_time_received;
 	struct {
 		BIT_FIELD valid : 1;
 		BIT_FIELD error : 1; // uhmm - something like got a message from this but it wasn't known
@@ -246,7 +246,7 @@ DeclareSet( BUFFER_LENGTH_PAIR );
 #endif
 
 #ifdef DEBUG_DATA_XFER
-#  define msgsnd( q,msg,len,opt) ( _lprintf(DBG_RELAY)( WIDE("Send Message...%d %d"), len, len+4 ), LogBinary( (P_8)msg, (len)+4  ), EnqueMsg( q,(msg),(len),(opt)) )
+#  define msgsnd( q,msg,len,opt) ( _lprintf(DBG_RELAY)( WIDE("Send Message...%d %d"), len, len+4 ), LogBinary( (uint8_t*)msg, (len)+4  ), EnqueMsg( q,(msg),(len),(opt)) )
 #else
 #  define msgsnd(a,b,c,d) EnqueMsg((PMSGHANDLE)a,b,c,d)
 #endif
@@ -351,7 +351,7 @@ GLOBAL *global_msgclient;
 // register with amster is called as part of _InitMessageService...
 void RegisterWithMasterService( void );
 int _InitMessageService( int local );
-void CPROC MonitorClientActive( PTRSZVAL psv );
+void CPROC MonitorClientActive( uintptr_t psv );
 void CloseMessageQueues( void );
 void DropMessageBuffer( PQMSG msg );
 PQMSG GetMessageBuffer( void );
@@ -360,9 +360,9 @@ PQMSG GetMessageBuffer( void );
 //------ client_input.c -------
 PTRANSACTIONHANDLER GetTransactionHandler( PSERVICE_ROUTE route );
 //int GetAMessageEx( MSGQ_TYPE msgq, CTEXTSTR q, int flags DBG_PASS );
-PTRSZVAL CPROC HandleMessages( PTHREAD thread );
+uintptr_t CPROC HandleMessages( PTHREAD thread );
 int WaitReceiveServerMsg ( PSLEEPER sleeper
-				, _32 MsgOut
+				, uint32_t MsgOut
 					DBG_PASS );
 int QueueWaitReceiveServerMsg ( PSLEEPER sleeper, PTRANSACTIONHANDLER handler
 										  , MSGIDTYPE *MsgIn
@@ -375,15 +375,15 @@ PSERVICE_CLIENT FindClient( PSERVICE_ROUTE pid );
 
 
 //-----  client_event.c ---------
-PTRSZVAL CPROC HandleEventMessages( PTHREAD thread );
+uintptr_t CPROC HandleEventMessages( PTHREAD thread );
 int HandleEvents( MSGQ_TYPE msgq, PQMSG MessageEvent, int initial_flags );
 
 //----- client_local.c -------
-PTRSZVAL CPROC HandleLocalEventMessages( PTHREAD thread );
+uintptr_t CPROC HandleLocalEventMessages( PTHREAD thread );
 
 //----- client_service.c --------
 int ReceiveServerMessageEx( PTRANSACTIONHANDLER handler, PQMSG MessageIn, size_t MessageLen DBG_PASS );
-PTRSZVAL CPROC HandleServiceMessages( PTHREAD thread );
+uintptr_t CPROC HandleServiceMessages( PTHREAD thread );
 LOGICAL HandleCoreMessage( PQMSG msg, size_t msglen DBG_PASS );
 
 

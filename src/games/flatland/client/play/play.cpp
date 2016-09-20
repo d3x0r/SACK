@@ -14,7 +14,7 @@ struct DrawInfo{
 	POBJECT root;
 } DrawThis;
 
-PTRSZVAL CPROC DrawSectorLines( INDEX pSector, PTRSZVAL unused )
+uintptr_t CPROC DrawSectorLines( INDEX pSector, uintptr_t unused )
 {
 	_POINT o, n;
 	POBJECT object = CreateObject();
@@ -141,7 +141,7 @@ int main( int argc, char **argv )
 	WakeableSleep( 500 ); // give the world time to load.
 	
 	{
-		_32 w, h;
+		uint32_t w, h;
 		PBODY body = EnterWorld( l.world );
 		PVIEW view ;
 		GetDisplaySizeEx( 0, NULL,NULL,&w, &h );

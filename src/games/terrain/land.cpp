@@ -829,10 +829,10 @@ class Radar
 #endif
 			union {
 				void  (__thiscall Radar::*Tickx)( void );
-				void (CPROC *Ticky)( PTRSZVAL );
+				void (CPROC *Ticky)( uintptr_t );
 			} cast_f;
 			cast_f.Tickx = &Radar::Tick;
-			AddTimer( 10, cast_f.Ticky, (PTRSZVAL)this );
+			AddTimer( 10, cast_f.Ticky, (uintptr_t)this );
 		}
 
 
@@ -894,7 +894,7 @@ struct position_history {
 };
 
 
-	void SphereBodyCorrect( PTRSZVAL psv, PTRANSFORM pt );
+	void SphereBodyCorrect( uintptr_t psv, PTRANSFORM pt );
 
 
 typedef class Body BODY, *PBODY;
@@ -925,7 +925,7 @@ public:
 
 		own_speed = 10;
 		own_rotation = 2;
-		AddTransformCallback( object->Ti, SphereBodyCorrect, (PTRSZVAL)this );
+		AddTransformCallback( object->Ti, SphereBodyCorrect, (uintptr_t)this );
 		brainstem = new BRAIN_STEM( WIDE("body") );
 		motion[0] = new CONNECTOR( WIDE("forward"), &speed );
 		motion[1] = new CONNECTOR( WIDE("turn"), &rotation );
@@ -983,20 +983,20 @@ public:
 };
 
 // C interface callback..
-	void SphereBodyCorrect( PTRSZVAL psv, PTRANSFORM pt )
+	void SphereBodyCorrect( uintptr_t psv, PTRANSFORM pt )
 	{
 		class Body *body = (class Body*)psv;
 		body->CorrectPosition();
 	}
 
-void RandomTurn( PTRSZVAL psv, PTRANSFORM pt );
+void RandomTurn( uintptr_t psv, PTRANSFORM pt );
 
 class Glider:public Body
 {
 public:
 	Glider( POBJECT object ):Body(object)
 	{
-		AddTransformCallback( object->Ti, RandomTurn, (PTRSZVAL)this );
+		AddTransformCallback( object->Ti, RandomTurn, (uintptr_t)this );
 	}
 	void Move( void )
 	{
@@ -1014,13 +1014,13 @@ public:
 	}
 };
 
-void RandomTurn( PTRSZVAL psv, PTRANSFORM pt )
+void RandomTurn( uintptr_t psv, PTRANSFORM pt )
 {
 	class Glider *glider = (class Glider*)psv;
 	glider->Move();
 }
 
-void InvokeCycleMove( PTRSZVAL psv, PTRANSFORM pt );
+void InvokeCycleMove( uintptr_t psv, PTRANSFORM pt );
 
 class CyberCycle:public Body
 {
@@ -1031,7 +1031,7 @@ class CyberCycle:public Body
 		BIT_FIELD turned_right : 1;
 		BIT_FIELD started : 1;
 	} flags;
-	_32 portion_to_turn; // 360/portion
+	uint32_t portion_to_turn; // 360/portion
 	PCONNECTOR motion[2];
 	struct position_history pos;
 	PDATAQUEUE position_history; // struct position_history queue
@@ -1043,7 +1043,7 @@ public:
 		//motion[0] = new CONNECTOR( WIDE("right"), &speed );
 		//motion[1] = new CONNECTOR( WIDE("left"), &rotation );
       //motion[2] = new CONNECTOR( WIDE("forward_distance"), &rotation );
-	  AddTransformCallback( body_object->Ti, InvokeCycleMove, (PTRSZVAL)this );
+	  AddTransformCallback( body_object->Ti, InvokeCycleMove, (uintptr_t)this );
 	}
 	void Reset( void )
 	{
@@ -1160,7 +1160,7 @@ public:
 	}
 };
 
-void InvokeCycleMove( PTRSZVAL psv, PTRANSFORM pt )
+void InvokeCycleMove( uintptr_t psv, PTRANSFORM pt )
 {
 	class CyberCycle *cycle = (class CyberCycle *)psv;
 	cycle->Move();
@@ -2417,7 +2417,7 @@ void RipplePatch( PHEXPATCH patch )
 	PTRANSFORM T;
 	POBJECT current;
 
-	void CPROC UpdateUserBot( PTRSZVAL unused )
+	void CPROC UpdateUserBot( uintptr_t unused )
 	{
 		static VECTOR KeySpeed, KeyRotation;
 		//static VECTOR move = { 0.01, 0.02, 0.03 };
@@ -2572,7 +2572,7 @@ PRELOAD( RegisterResources )
 	TCam = CreateTransform();
 }
 
-void CPROC ShowBrain( PTRSZVAL psv, PSI_CONTROL button )
+void CPROC ShowBrain( uintptr_t psv, PSI_CONTROL button )
 {
 	PSI_CONTROL list = GetNearControl( button, LISTBOX_BODIES );
 	PLISTITEM pli = GetSelectedItem( list );
@@ -2584,19 +2584,19 @@ void CPROC ShowBrain( PTRSZVAL psv, PSI_CONTROL button )
 	}
 }
 
-static void CPROC BoardCloseEvent( PTRSZVAL psv, PIBOARD board )
+static void CPROC BoardCloseEvent( uintptr_t psv, PIBOARD board )
 {
 	PBODY body = (PBODY)psv;
 	body->board = NULL;
 }
 
-void CPROC ShowSelectedBrain( PTRSZVAL psv, PSI_CONTROL pc, PLISTITEM pli )
+void CPROC ShowSelectedBrain( uintptr_t psv, PSI_CONTROL pc, PLISTITEM pli )
 {
 	PBODY body = (PBODY)GetItemData( pli );
 	if( !body->board )
 	{
 		body->board = CreateBrainBoard( body->brain );
-		GetBoard( body->board )->SetCloseHandler( BoardCloseEvent, (PTRSZVAL)body );
+		GetBoard( body->board )->SetCloseHandler( BoardCloseEvent, (uintptr_t)body );
 	}
 }
 
@@ -2615,7 +2615,7 @@ void CreateBodyInterface( void )
 			{
 				TEXTCHAR name[256];
 				snprintf( name, sizeof( name ), WIDE("Body %d"), idx );
-				SetItemData( AddListItem( list, name ), (PTRSZVAL)body );
+				SetItemData( AddListItem( list, name ), (uintptr_t)body );
 			}
 		}
 		DisplayFrame( frame ); // leave it open forever?
@@ -2725,12 +2725,12 @@ PHEXPATCH patch;
 PVIEW view;
 int bEnabledGL;
 
-static PTRSZVAL OnInit3d( WIDE( "Terrain View" ) )( PMatrix projection, PTRANSFORM transform, RCOORD *identity_depth, RCOORD *aspect )
+static uintptr_t OnInit3d( WIDE( "Terrain View" ) )( PMatrix projection, PTRANSFORM transform, RCOORD *identity_depth, RCOORD *aspect )
 {
 	return 1;
 }
 
-static void OnDraw3d( WIDE("Terrain View") )( PTRSZVAL psvView )
+static void OnDraw3d( WIDE("Terrain View") )( uintptr_t psvView )
 //static int OnDrawCommon( WIDE("Terrain View") )( PSI_CONTROL pc )
 {
 	//PRENDERER pRend = GetFrameRenderer( pc );
@@ -2831,14 +2831,14 @@ static void OnDraw3d( WIDE("Terrain View") )( PTRSZVAL psvView )
 	return;
 }
 
-static int OnMouseCommon( WIDE("Terrain View") )( PSI_CONTROL pc, S_32 x, S_32 y, _32 b )
+static int OnMouseCommon( WIDE("Terrain View") )( PSI_CONTROL pc, int32_t x, int32_t y, uint32_t b )
 {
 	static int _b;
 	static struct {
 		struct {
 			BIT_FIELD bMoving : 1;
 		} flags;
-		S_32 x, y;
+		int32_t x, y;
 	} mouse;
 	if( b & MK_LBUTTON && !( _b &MK_LBUTTON ) )
 	{
@@ -2855,14 +2855,14 @@ static int OnMouseCommon( WIDE("Terrain View") )( PSI_CONTROL pc, S_32 x, S_32 y
 }
 
 
-static void CPROC UpdateView( PTRSZVAL psv )
+static void CPROC UpdateView( uintptr_t psv )
 {
 	SmudgeCommon( (PSI_CONTROL)psv );
 }
 
 CRITICALSECTION csUpdate;
 
-static void CPROC UpdatePositions( PTRSZVAL psv )
+static void CPROC UpdatePositions( uintptr_t psv )
 {
 //	EnterCriticalSec( &csUpdate );
 //	VirtualityUpdate();

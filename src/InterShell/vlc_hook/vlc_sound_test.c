@@ -7,7 +7,7 @@
 int main( int argc, char ** argv )
 {
    char *file_to_play;
-	_32 w, h;
+	uint32_t w, h;
 	PLIST names = NULL;
    int n;
 	SetSystemLog( SYSLOG_FILE, stderr );

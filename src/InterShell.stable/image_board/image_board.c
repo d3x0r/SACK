@@ -31,7 +31,7 @@ static int OnDrawCommon( "Image Paste-board" )( PSI_CONTROL pc )
 }
 
 #if 0
-int OnMouseCommon( "Image Paste-board")( PSI_CONTROL pc,S_32 x, S_32 y, _32 b )
+int OnMouseCommon( "Image Paste-board")( PSI_CONTROL pc,int32_t x, int32_t y, uint32_t b )
 {
 	ValidatedControlData( PMY_IMAGE, MyControlID, image, pc );
 	if( IsKeyDown( NULL, KEY_CONTROL ) && IsKeyDown( NULL, KEY_V ) )
@@ -49,7 +49,7 @@ int KeystrokePaste( PMY_IMAGE image )
 	if( OpenClipboard(NULL) )
 	{
 		int success = 0;
-		_32 format;
+		uint32_t format;
 		// successful open...
 		format = EnumClipboardFormats( 0 );
 		while( format )
@@ -68,7 +68,7 @@ int KeystrokePaste( PMY_IMAGE image )
 				int ofs, n;
 				GlobalUnlock( hData );
 				{
-					_32 w, h;
+					uint32_t w, h;
 					GetStringSize( (CTEXTSTR)pData, &w, &h );
 					image->image = MakeImageFile( w + 15, h + 15 );
 					status = TRUE;
@@ -98,7 +98,7 @@ int KeystrokePaste( PMY_IMAGE image )
             void *bits = (void*)(pData + 1);
 				if( pData)
 				{
-					image->image = ImageRawBMPFile( (P_8)pData, 0 );
+					image->image = ImageRawBMPFile( (uint8_t*)pData, 0 );
 #if 0
 					if( pData->bmiHeader.biBitCount == 32 )
 					{
@@ -131,7 +131,7 @@ int KeystrokePaste( PMY_IMAGE image )
 				HANDLE hDataDIB = GetClipboardData( CF_DIB );
 				BITMAPINFO *pDataDIB = GlobalLock( hDataDIB );
 				POINTER bits = NULL;
-				_32 size = 0;
+				uint32_t size = 0;
 				//DebugBreak();
 				{
 					{
@@ -243,7 +243,7 @@ int KeystrokePaste( PMY_IMAGE image )
 
 }
 
-int OnKeyCommon( "Image Paste-board")( PSI_CONTROL pc,_32 key )
+int OnKeyCommon( "Image Paste-board")( PSI_CONTROL pc,uint32_t key )
 {
 	ValidatedControlData( PMY_IMAGE, MyControlID, image, pc );
 	if( IsKeyDown( NULL, KEY_CONTROL ) && IsKeyDown( NULL, KEY_V ) )
@@ -254,7 +254,7 @@ int OnKeyCommon( "Image Paste-board")( PSI_CONTROL pc,_32 key )
    return 0;
 }
 
-OnGetControl( "Image paste-board" )( PTRSZVAL psv )
+OnGetControl( "Image paste-board" )( uintptr_t psv )
 {
 	PMY_IMAGE image = (PMY_IMAGE)psv;
    if( image )
@@ -262,7 +262,7 @@ OnGetControl( "Image paste-board" )( PTRSZVAL psv )
    return NULL;
 }
 
-OnShowControl( "Image paste-board" )( PTRSZVAL psv )
+OnShowControl( "Image paste-board" )( uintptr_t psv )
 {
    PMY_IMAGE image = (PMY_IMAGE)psv;
 }
@@ -274,7 +274,7 @@ OnShowControl( "Image paste-board" )( PTRSZVAL psv )
 //
 // }
 
-OnCreateControl( "Image Paste-board" )( PSI_CONTROL parent, S_32 x, S_32 y, _32 w, _32 h )
+OnCreateControl( "Image Paste-board" )( PSI_CONTROL parent, int32_t x, int32_t y, uint32_t w, uint32_t h )
 {
 	PSI_CONTROL pc = MakeNamedControl( parent, "Image Paste-board", x, y, w, h, -1 );
 	{
@@ -289,7 +289,7 @@ OnCreateControl( "Image Paste-board" )( PSI_CONTROL parent, S_32 x, S_32 y, _32 
 		}
 
 
-		return (PTRSZVAL)image;
+		return (uintptr_t)image;
 	}
    return 0;
 }

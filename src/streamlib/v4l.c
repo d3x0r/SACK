@@ -29,8 +29,8 @@ typedef int HANDLE;
 typedef struct {
 	PCAPTURE_DEVICE pDev[2];
 
-	S_32 display_x, display_y;
-	_32 display_width, display_height;
+	int32_t display_x, display_y;
+	uint32_t display_width, display_height;
    SOCKADDR *saBroadcast;
 } GLOBAL;
 
@@ -40,7 +40,7 @@ GLOBAL g;
 #define INVALID_HANDLE_VALUE -1
 #endif
 
-int EnqueFrameEx( SIMPLE_QUEUE *que, PTRSZVAL frame, char *qname, int line )
+int EnqueFrameEx( SIMPLE_QUEUE *que, uintptr_t frame, char *qname, int line )
 #define EnqueFrame(q,f) EnqueFrameEx(q,f,#q, __LINE__ )
 {
 	INDEX next_head = (que->head + 1)%que->size;
@@ -54,7 +54,7 @@ int EnqueFrameEx( SIMPLE_QUEUE *que, PTRSZVAL frame, char *qname, int line )
    return 0;
 }
 
-PTRSZVAL DequeFrameEx( SIMPLE_QUEUE *que, char *quename, int line )
+uintptr_t DequeFrameEx( SIMPLE_QUEUE *que, char *quename, int line )
 #define DequeFrame(q) DequeFrameEx(q,#q, __LINE__ )
 {
 	if( que->head != que->tail )
@@ -97,9 +97,9 @@ typedef struct v4l_data_tag
    // capture size parameters
    struct video_window vwin;
 	INDEX curr_channel;
-	_32 channels[256]; // array of valid channels?
-	_32 freq;
-	P_8 map; // pointer to mapped memory..
+	uint32_t channels[256]; // array of valid channels?
+	uint32_t freq;
+	uint8_t* map; // pointer to mapped memory..
 	Image *pFrames;
    SIMPLE_QUEUE done;
    SIMPLE_QUEUE ready;
@@ -114,7 +114,7 @@ typedef struct v4l_data_tag
 
 //--------------------------------------------------------------------
 
-int myioctlEx( HANDLE h, int op, char *pOp, PTRSZVAL data DBG_PASS )
+int myioctlEx( HANDLE h, int op, char *pOp, uintptr_t data DBG_PASS )
 {
 	int ret = ioctl(h,op,(POINTER)data);
 	int err;
@@ -132,7 +132,7 @@ int myioctlEx( HANDLE h, int op, char *pOp, PTRSZVAL data DBG_PASS )
 	return ret;
 }
 
-#define ioctl(h,op,data) myioctlEx((h),(op),#op,(PTRSZVAL)(data) DBG_SRC)
+#define ioctl(h,op,data) myioctlEx((h),(op),#op,(uintptr_t)(data) DBG_SRC)
 
 // return last captured frame
 void CycleReadV4L( PDEVICE_DATA pDevice )
@@ -266,7 +266,7 @@ void CycleReadV4L( PDEVICE_DATA pDevice )
 	}
 }
 
-int CPROC GetCapturedFrame( PTRSZVAL psv, PCAPTURE_DEVICE pDevice )
+int CPROC GetCapturedFrame( uintptr_t psv, PCAPTURE_DEVICE pDevice )
 {
 	PDEVICE_DATA pDevData = (PDEVICE_DATA)psv;
 	if( pDevData->nFrame != INVALID_INDEX )
@@ -287,9 +287,9 @@ int CPROC GetCapturedFrame( PTRSZVAL psv, PCAPTURE_DEVICE pDevice )
 }
 #endif
 
-PTRSZVAL CPROC CycleCallbacks( PTHREAD pThread )
+uintptr_t CPROC CycleCallbacks( PTHREAD pThread )
 {
-	PTRSZVAL psvDev = pThread->param;
+	uintptr_t psvDev = pThread->param;
 	PCAPTURE_DEVICE pDevice = (PCAPTURE_DEVICE)psvDev;
    pDevice->pCallbackThread = pThread;
    while( 1 )
@@ -312,14 +312,14 @@ PCAPTURE_DEVICE CreateCaptureStream( void )
 {
 	PCAPTURE_DEVICE pcd = Allocate( sizeof( CAPTURE_DEVICE) );
 	MemSet( pcd, 0, sizeof( CAPTURE_DEVICE ) );
-	ThreadTo( CycleCallbacks, (PTRSZVAL)pcd );
+	ThreadTo( CycleCallbacks, (uintptr_t)pcd );
    return pcd;
 }
 
 #ifdef __LINUX__
-PTRSZVAL CPROC CycleReadThread( PTHREAD pThread )
+uintptr_t CPROC CycleReadThread( PTHREAD pThread )
 {
-	PTRSZVAL psvDev = pThread->param;
+	uintptr_t psvDev = pThread->param;
    PDEVICE_DATA pDevice = (PDEVICE_DATA)psvDev;
 	while(1)
 	{
@@ -380,7 +380,7 @@ void SetChannelV4L( PDEVICE_DATA pDevice, int chan )
 //--------------------------------------------------------------------
 
 #ifdef __LINUX__
-int GetCaptureSizeV4L( PDEVICE_DATA pDevice, P_32 width, P_32 height )
+int GetCaptureSizeV4L( PDEVICE_DATA pDevice, uint32_t* width, uint32_t* height )
 {
 	if( !pDevice )
 		return FALSE;
@@ -394,7 +394,7 @@ int GetCaptureSizeV4L( PDEVICE_DATA pDevice, P_32 width, P_32 height )
 //--------------------------------------------------------------------
 
 #ifdef __LINUX__
-PTRSZVAL OpenV4L( char *name )
+uintptr_t OpenV4L( char *name )
 {
 	PDEVICE_DATA pDevice;
 	if( !name )
@@ -416,7 +416,7 @@ PTRSZVAL OpenV4L( char *name )
 		}
 		if( !pDevice )
 			lprintf( WIDE("Failed to open default devices enumerated from 0 to 16") );
-		return (PTRSZVAL)pDevice;
+		return (uintptr_t)pDevice;
 	}
 
 	{
@@ -424,7 +424,7 @@ PTRSZVAL OpenV4L( char *name )
 		if( handle == -1 )
 		{
          lprintf( WIDE("attempted open of %s failed"), name );
-			return (PTRSZVAL)NULL;
+			return (uintptr_t)NULL;
 		}
 		lprintf( WIDE("attempted open of %s success!"), name );
 		pDevice = Allocate( sizeof( *pDevice ) );
@@ -480,7 +480,7 @@ PTRSZVAL OpenV4L( char *name )
 		if( ioctl(pDevice->handle, VIDIOCGMBUF, &pDevice->mbuf) == -1 )
 		{
 			CloseV4L( &pDevice );
-			return (PTRSZVAL)NULL;
+			return (uintptr_t)NULL;
 		}
       lprintf( WIDE("Driver claims it has %d frames"), pDevice->mbuf.frames );
 		MemSet( ( pDevice->pFrames = Allocate( sizeof( pDevice->pFrames[0] ) * pDevice->mbuf.frames ) )
@@ -518,7 +518,7 @@ PTRSZVAL OpenV4L( char *name )
 
                  );
 
-			pDevice->map = (P_8)mmap(0
+			pDevice->map = (uint8_t*)mmap(0
 									 , pDevice->mbuf.size//4096 //pDevice->mbuf.size/
 									 , PROT_READ
 									 , MAP_SHARED
@@ -531,7 +531,7 @@ PTRSZVAL OpenV4L( char *name )
             //lprintf( "Failed to mmap... %d %d %d(%d)", pDevice->mbuf.size, pDevice->handle, getpagesize(), pDevice->mbuf.size%getpagesize() );
 				//perror( WIDE("Failed to mmap...") );
 				//CloseV4L( &pDevice );
-				//return (PTRSZVAL)NULL;
+				//return (uintptr_t)NULL;
 				for( n = 0; n < pDevice->mbuf.frames; n++ )
 				{
 					pDevice->pFrames[n] = NULL;
@@ -560,15 +560,15 @@ PTRSZVAL OpenV4L( char *name )
 			}
 		}
       lprintf( "cycle read..." );
-		ThreadTo( CycleReadThread, (PTRSZVAL)pDevice );
-		return (PTRSZVAL)pDevice;
+		ThreadTo( CycleReadThread, (uintptr_t)pDevice );
+		return (uintptr_t)pDevice;
 	}
 }
 #endif
 
 //--------------------------------------------------------------------
 
-void AddCaptureCallback( PCAPTURE_DEVICE pDevice, int (CPROC *callback)(PTRSZVAL psv, PCAPTURE_DEVICE pDev ), PTRSZVAL psv )
+void AddCaptureCallback( PCAPTURE_DEVICE pDevice, int (CPROC *callback)(uintptr_t psv, PCAPTURE_DEVICE pDev ), uintptr_t psv )
 {
 	PCAPTURE_CALLBACK pcc = Allocate( sizeof( *pcc ) );
 	pcc->callback = callback;
@@ -581,12 +581,12 @@ void AddCaptureCallback( PCAPTURE_DEVICE pDevice, int (CPROC *callback)(PTRSZVAL
 
 //--------------------------------------------------------------------
 
-int CPROC DisplayAFrame( PTRSZVAL psv, PCAPTURE_DEVICE pDevice )
+int CPROC DisplayAFrame( uintptr_t psv, PCAPTURE_DEVICE pDevice )
 {
-	static _32 tick;
-	_32 newtick = GetTickCount();
-   static _32 lastloss;
-   static _32 frames; frames++;
+	static uint32_t tick;
+	uint32_t newtick = GetTickCount();
+   static uint32_t lastloss;
+   static uint32_t frames; frames++;
 	if( tick )
 	{
 		if( newtick - tick > 50 )
@@ -624,12 +624,12 @@ int CPROC DisplayAFrame( PTRSZVAL psv, PCAPTURE_DEVICE pDevice )
 
 //--------------------------------------------------------------------
 
-int CPROC DisplayASmallFrame( PTRSZVAL psv, PCAPTURE_DEVICE pDevice )
+int CPROC DisplayASmallFrame( uintptr_t psv, PCAPTURE_DEVICE pDevice )
 {
-	static _32 tick;
-	_32 newtick = GetTickCount();
-   static _32 lastloss;
-   static _32 frames; frames++;
+	static uint32_t tick;
+	uint32_t newtick = GetTickCount();
+   static uint32_t lastloss;
+   static uint32_t frames; frames++;
 	if( tick )
 	{
 		if( newtick - tick > 50 )
@@ -662,8 +662,8 @@ typedef struct codec_tag {
    // data is the data frame shared between compress and decompress gadgets
    POINTER data;
 	PDECOMPRESS pDecompress;
-	_64 bytes;
-   _32 start;
+	uint64_t bytes;
+   uint32_t start;
 } *PCODEC;
 
 
@@ -675,7 +675,7 @@ void GetDeviceData( PCAPTURE_DEVICE pDevice, POINTER *data, INDEX *length )
 }
 
 void SetDeviceDataEx( PCAPTURE_DEVICE pDevice, POINTER data, INDEX length
-						  , ReleaseBitStreamData release,PTRSZVAL psv)
+						  , ReleaseBitStreamData release,uintptr_t psv)
 {
 	if( pDevice->release )
       pDevice->release( pDevice->psv, data, length );
@@ -685,7 +685,7 @@ void SetDeviceDataEx( PCAPTURE_DEVICE pDevice, POINTER data, INDEX length
    pDevice->psv = psv;
 }
 
-PTRSZVAL CPROC SetNetworkBroadcast( PTRSZVAL psv, arg_list args )
+uintptr_t CPROC SetNetworkBroadcast( uintptr_t psv, arg_list args )
 {
 	PARAM( args, char*, addr );
    lprintf( WIDE("~~~~~~~") );
@@ -693,12 +693,12 @@ PTRSZVAL CPROC SetNetworkBroadcast( PTRSZVAL psv, arg_list args )
    return psv;
 }
 
-PTRSZVAL CPROC SetDisplayFilterSize( PTRSZVAL psv, arg_list args )
+uintptr_t CPROC SetDisplayFilterSize( uintptr_t psv, arg_list args )
 {
-   PARAM( args, S_64, x );
-   PARAM( args, S_64, y );
-   PARAM( args, S_64, width );
-	PARAM( args, S_64, height );
+   PARAM( args, int64_t, x );
+   PARAM( args, int64_t, y );
+   PARAM( args, int64_t, width );
+	PARAM( args, int64_t, height );
    g.display_x = x;
    g.display_y = y;
 	g.display_width = width;
@@ -720,7 +720,7 @@ void ReadConfig( char *name )
 #ifndef __LIBRARY__
 int main( int argc, char **argv )
 {
-	_32 width, height;
+	uint32_t width, height;
 	//SetSystemLog( SYSLOG_FILE, stdout );
 	//SystemLogTime( SYSLOG_TIME_HIGH|SYSLOG_TIME_DELTA );
 	SetBlotMethod( BLOT_C );
@@ -733,7 +733,7 @@ int main( int argc, char **argv )
       g.pDev[0] = CreateCaptureStream();
 #ifdef __LINUX__
 		{
-			PTRSZVAL psvCap;
+			uintptr_t psvCap;
 			psvCap = OpenV4L( NULL );
 			//psvCap = OpenV4L( NULL );
 			if( !psvCap )
@@ -746,7 +746,7 @@ int main( int argc, char **argv )
 		}
 #else
 		{
-			PTRSZVAL psvCap;
+			uintptr_t psvCap;
          psvCap = OpenV4W( NULL );
 		}
 //  		AddCaptureCallback( g.pDev[0], GetNetworkCapturedFrame, OpenNetworkCapture( NULL ) );
@@ -758,7 +758,7 @@ int main( int argc, char **argv )
 #endif
 		pRender = OpenDisplaySizedAt( 0, g.display_width, g.display_height, g.display_x, g.display_y );
       UpdateDisplay( pRender );
-		AddCaptureCallback( g.pDev[0], DisplayAFrame, (PTRSZVAL)pRender );
+		AddCaptureCallback( g.pDev[0], DisplayAFrame, (uintptr_t)pRender );
 #ifdef __LINUX__
 		//g.pDev[1] = OpenV4L( NULL );
 		if( !g.pDev[1] )
@@ -767,7 +767,7 @@ int main( int argc, char **argv )
 		}
 		else
 		{
-			AddCaptureCallback( g.pDev[1], DisplayASmallFrame, (PTRSZVAL)pRender );
+			AddCaptureCallback( g.pDev[1], DisplayASmallFrame, (uintptr_t)pRender );
 		}
 #endif
 		//if(0)
@@ -789,7 +789,7 @@ int main( int argc, char **argv )
 //  																, width, height );
 //  					codec->pDecompress = OpenDecompressor( (PCAPTURE_DEVICE)g.pDev[n]
 //  																	 , width, height );
-//					AddCaptureCallback( g.pDev[n], CompressFrame, (PTRSZVAL)codec->pCompress );
+//					AddCaptureCallback( g.pDev[n], CompressFrame, (uintptr_t)codec->pCompress );
 				}
 #endif
 			}

@@ -32,7 +32,7 @@
 
 
 
-void ZFrame_FontFrame::Render2(ZRender_Interface *render, Frame_Dimensions * ParentPosition, PTRSZVAL psvInit )
+void ZFrame_FontFrame::Render2(ZRender_Interface *render, Frame_Dimensions * ParentPosition, uintptr_t psvInit )
 {
   Frame_Dimensions Position;
 
@@ -130,7 +130,7 @@ void ZFrame_FontFrame::GetTextDisplaySize(ZVector2f * OutSize)
 
 
 
-void ZFrame_FontFrame::Render(ZRender_Interface *render, Frame_Dimensions * ParentPosition, PTRSZVAL psvInit)
+void ZFrame_FontFrame::Render(ZRender_Interface *render, Frame_Dimensions * ParentPosition, uintptr_t psvInit)
 {
 
   ZListItem * Item;

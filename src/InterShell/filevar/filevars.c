@@ -36,7 +36,7 @@ struct local
 		BIT_FIELD bLog : 1;
 	} flags;
 	PLIST files;
-	_32 timer;
+	uint32_t timer;
 #define l local_filevar_data
 } l;
 
@@ -50,7 +50,7 @@ PRELOAD( InitFileVars )
 	EasyRegisterResource( WIDE("InterShell/File Vars"), EDIT_FILENAME, EDIT_FIELD_NAME );
 }
 
-static void CPROC CheckFiles( PTRSZVAL psv )
+static void CPROC CheckFiles( uintptr_t psv )
 {
 	INDEX idx;
 	struct input_file *file;
@@ -104,7 +104,7 @@ static void CPROC CheckFiles( PTRSZVAL psv )
 	}
 }
 
-static PTRSZVAL CPROC AddInputFile( PTRSZVAL psv, arg_list args )
+static uintptr_t CPROC AddInputFile( uintptr_t psv, arg_list args )
 {
 	PARAM( args, CTEXTSTR, var_name );
 	PARAM( args, CTEXTSTR, file_name );
@@ -143,7 +143,7 @@ static void OnSaveCommon( WIDE("File Variables") )( FILE *output )
 	}
 }
 
-static void CPROC AddVariable( PTRSZVAL psv, PSI_CONTROL pc )
+static void CPROC AddVariable( uintptr_t psv, PSI_CONTROL pc )
 {
 	TEXTCHAR varname[256];
 	TEXTCHAR filename[256];
@@ -170,13 +170,13 @@ static void CPROC AddVariable( PTRSZVAL psv, PSI_CONTROL pc )
 			{
 				TEXTCHAR tmp[80];
 				snprintf( tmp, sizeof( tmp ), WIDE("%s from file %s"), file->varname, file->filename );
-				SetItemData( AddListItem( listbox, tmp ), (PTRSZVAL)file );
+				SetItemData( AddListItem( listbox, tmp ), (uintptr_t)file );
 			}
 		}
 	}
 }
 
-static void CPROC DelVariable( PTRSZVAL psv, PSI_CONTROL pc )
+static void CPROC DelVariable( uintptr_t psv, PSI_CONTROL pc )
 {
 	PSI_CONTROL listbox = GetNearControl( pc, LISTBOX_VARIABLES );
 	PLISTITEM pli = GetSelectedItem( listbox );
@@ -207,7 +207,7 @@ static void OnGlobalPropertyEdit( WIDE("File Variables") )( PSI_CONTROL parent )
 				if( !file->flags.bDeleted )
 				{
 					snprintf( tmp, sizeof( tmp ), WIDE("%s from file %s"), file->varname, file->filename );
-					SetItemData( AddListItem( listbox, tmp ), (PTRSZVAL)file );
+					SetItemData( AddListItem( listbox, tmp ), (uintptr_t)file );
 				}
 			}
 			SetButtonPushMethod( GetControl( frame, BTN_ADD_VARIABLE), AddVariable, 0 );

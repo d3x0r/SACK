@@ -129,7 +129,7 @@ POPTION_TREE_NODE NewGetOptionIndexExxx( PODBC odbc, POPTION_TREE tree, POPTION_
 
 		{
 			// double convert 'precistion loss 64bit gcc'
-			POPTION_TREE_NODE node = (POPTION_TREE_NODE)FamilyTreeFindChild( tree->option_tree, (PTRSZVAL)namebuf );
+			POPTION_TREE_NODE node = (POPTION_TREE_NODE)FamilyTreeFindChild( tree->option_tree, (uintptr_t)namebuf );
 			if( node )
 			{
 #ifdef DETAILED_LOGGING
@@ -183,7 +183,7 @@ POPTION_TREE_NODE NewGetOptionIndexExxx( PODBC odbc, POPTION_TREE tree, POPTION_
 						new_node->value_id = INVALID_INDEX; // no value (yet?)
 						new_node->name_id = IDName;
 						new_node->value = NULL;
-						FamilyTreeAddChild( &tree->option_tree, new_node, (PTRSZVAL)SaveText( namebuf ) );
+						FamilyTreeAddChild( &tree->option_tree, new_node, (uintptr_t)SaveText( namebuf ) );
 						parent = new_node;
 					}
 					if( !bIKnowItDoesntExist )
@@ -207,7 +207,7 @@ POPTION_TREE_NODE NewGetOptionIndexExxx( PODBC odbc, POPTION_TREE tree, POPTION_
 				new_node->value_id = INVALID_INDEX;
 				new_node->name_id = IDName;
 				new_node->value = NULL;
-				FamilyTreeAddChild( &tree->option_tree, new_node, (PTRSZVAL)SaveText( namebuf ) );
+				FamilyTreeAddChild( &tree->option_tree, new_node, (uintptr_t)SaveText( namebuf ) );
 				parent = new_node;
 			}
 			if( !bIKnowItDoesntExist )

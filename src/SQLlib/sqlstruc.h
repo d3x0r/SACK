@@ -62,12 +62,12 @@ typedef struct data_collection_tag
 	PVARTEXT pvt_errorinfo; // the last error info for this...
 	PSERVICE_ROUTE SourceID;
 	struct odbc_handle_tag *odbc;
-	_32      responce;
-	_32      lastop;
-	_32 *result;
-	_32 *result_len;
+	uint32_t      responce;
+	uint32_t      lastop;
+	uint32_t *result;
+	uint32_t *result_len;
 	TEXTSTR *results;
-	//_32 nResults; // this is columns
+	//uint32_t nResults; // this is columns
 	TEXTSTR *fields;
 #if defined( USE_SQLITE ) || defined( USE_SQLITE_INTERFACE )
 	sqlite3_stmt *stmt;
@@ -81,7 +81,7 @@ typedef struct data_collection_tag
 	SQLSMALLINT *coltypes;
 	DeclareLink( struct data_collection_tag );
 #ifdef WINDOWS_PROXY_EXTENSION
-	_32 MyID;
+	uint32_t MyID;
 	HWND     hLastWnd;
 	HWND     hWnd;
 #endif
@@ -129,18 +129,18 @@ struct odbc_handle_tag{
 		BIT_FIELD bAutoClose : 1; // don't leave the connection open 100%; open when required and close when idle
 		BIT_FIELD bVFS : 1;
 	} flags;
-	_32 last_command_tick;
-	_32 commit_timer;
+	uint32_t last_command_tick;
+	uint32_t commit_timer;
 	PCOLLECT collection;
 	int native; // saved for resulting with native error code...
-	PTRSZVAL psvUser; // allow user to associate some data with this.
+	uintptr_t psvUser; // allow user to associate some data with this.
 	CRITICALSECTION cs;
 	int nProtect; // critical section is currently owned
 	PTHREAD auto_commit_thread;
 	PTHREAD auto_close_thread;
 	struct odbc_queue *queue;
-	void (CPROC*auto_commit_callback)(PTRSZVAL,PODBC);
-	PTRSZVAL auto_commit_callback_psv;
+	void (CPROC*auto_commit_callback)(uintptr_t,PODBC);
+	uintptr_t auto_commit_callback_psv;
 };
 
 struct odbc_queue
@@ -155,7 +155,7 @@ struct pssql_global
 {
 	CRITICALSECTION Init;
 	//POPTION_INTERFACE pOptionInterface;
-	_32 PrimaryLastConnect, BackupLastConnect;
+	uint32_t PrimaryLastConnect, BackupLastConnect;
 	ODBC Primary, Backup;
 	PODBC odbc; // current connection
 #ifdef __cplusplus

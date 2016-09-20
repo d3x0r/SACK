@@ -34,7 +34,7 @@ struct grid_reader *GridReader_Open( CTEXTSTR filename_base )
 RCOORD *GridReader_Read( struct grid_reader *reader, int x, int y, int w, int h )
 {
 	RCOORD *result = NewArray( RCOORD, w*h );
-	S_16 value;
+	int16_t value;
 	RCOORD *tmp;
 	int row, col;
 	int min = 99999;

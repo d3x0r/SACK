@@ -51,7 +51,7 @@ const CTEXTSTR gles_simple_p_shader =
     WIDE( "  gl_FragColor = vColor;" )
     WIDE( "}" );
 
-void CPROC EnableSuperSimpleShader( PImageShaderTracker tracker, PTRSZVAL psv, va_list args )
+void CPROC EnableSuperSimpleShader( PImageShaderTracker tracker, uintptr_t psv, va_list args )
 {
 	float *verts = va_arg( args, float * );
 	float *color = va_arg( args, float * );

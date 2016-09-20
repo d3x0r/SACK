@@ -5,9 +5,9 @@
 	CRITICALSECTION cs2;
 int main( void )
 {
-	_64 ticks = 0;
-   _32 start = GetTickCount();
-	_32 now = start;
+	uint64_t ticks = 0;
+   uint32_t start = GetTickCount();
+	uint32_t now = start;
    InitializeCriticalSection( &cs1 );
 
 	while( ( now - start )<  5000 )

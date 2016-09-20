@@ -9,7 +9,7 @@
 int main( int argc, char **argv )
 {
 	POINTER mem_lock;
-	PTRSZVAL size = 0;
+	uintptr_t size = 0;
 	TEXTCHAR *myname = StrDup( pathrchr( DupCharToText( argv[0] ) ) );
 	TEXTCHAR *endname;
 	TEXTCHAR lockname[256];
