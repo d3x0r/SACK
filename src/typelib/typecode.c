@@ -74,7 +74,7 @@ PLIST  DeleteListEx ( PLIST *pList DBG_PASS )
 		Relinquish();
 	if( pList &&
 #if defined( _WIN64 ) || defined( __LINUX64__ )
-		( ppList = (PLIST)LockedExchange64( (PVPTRSZVAL)pList, 0 ) )
+		( ppList = (PLIST)LockedExchange64( (uint64_t*)pList, 0 ) )
 #else
 		( ppList = (PLIST)LockedExchange( (volatile uint32_t*)pList, 0 ) )
 #endif

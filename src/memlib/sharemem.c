@@ -324,7 +324,7 @@ inline uint64_t DoXchg64( volatile int64_t* p, uint64_t val ){  __asm__( WIDE("l
 #endif
 }
 
- uint64_t  LockedExchange64 ( volatile int64_t* p, uint64_t val )
+ uint64_t  LockedExchange64 ( volatile uint64_t* p, uint64_t val )
 {
 	// Windows only available - for linux platforms please consult
 	// the assembly version should be consulted

@@ -651,21 +651,6 @@ MEM_PROC  void MEM_API  SetMinAllocate ( size_t nSize );
 MEM_PROC  void MEM_API  SetHeapUnit ( size_t dwSize );
 
 
-#ifdef __cplusplus
-/* multi-processor safe exchange the value in a 64 bit variable
-   with another value.
-   Parameters
-   p :    a pointer to a 64 bit value to replace.
-   val :  the value to replace into p
-   Returns
-   the value previously in p.
-   Example
-   <code lang="c++">
-   uint64_t variable = 0;
-   uint64_t oldvalue = InterlockedExchange64( &amp;variable, 1 );
-   </code>                                                      */
-MEM_PROC  uintptr_t MEM_API  LockedExchange64 ( PVPTRSZVAL p, uintptr_t val );
-#endif
 /* Multi-processor safe exchange operation. Returns the prior
    value at the pointer.
    Parameters
@@ -679,7 +664,7 @@ MEM_PROC  uintptr_t MEM_API  LockedExchange64 ( PVPTRSZVAL p, uintptr_t val );
    // old value will be 13
    // value will be 15
    </code>                                                    */
-MEM_PROC  uint64_t MEM_API  LockedExchange64 ( volatile int64_t* p, uint64_t val );
+MEM_PROC  uint64_t MEM_API  LockedExchange64 ( volatile uint64_t* p, uint64_t val );
 /* A multi-processor safe increment of a variable.
    Parameters
    p :  pointer to a 32 bit value to increment.    */
@@ -695,7 +680,7 @@ MEM_PROC  uint32_t MEM_API  LockedDecrement ( uint32_t* p );
 #endif
 
 #ifdef __64__
-#define LockedExchangePtrSzVal(a,b) LockedExchange64((volatile int64_t*)(a),b)
+#define LockedExchangePtrSzVal(a,b) LockedExchange64((volatile uint64_t*)(a),b)
 #else
 #define LockedExchangePtrSzVal(a,b) LockedExchange((volatile uint32_t*)(a),b)
 #endif

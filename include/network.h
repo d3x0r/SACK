@@ -203,7 +203,7 @@ typedef void (CPROC*cppReadComplete)(uintptr_t, POINTER, size_t );
 typedef void (CPROC*cppReadCompleteEx)(uintptr_t,POINTER, size_t, SOCKADDR * );
 typedef void (CPROC*cppCloseCallback)(uintptr_t);
 typedef void (CPROC*cppWriteComplete)(uintptr_t );
-typedef void (CPROC*cppNotifyCallback)(PCLIENT pListener, PCLIENT newClient);
+typedef void (CPROC*cppNotifyCallback)(uintptr_t, PCLIENT newClient);
 typedef void (CPROC*cppConnectCallback)(uintptr_t, int);
 
 NETWORK_PROC( void, SetNetworkWriteComplete )( PCLIENT, cWriteComplete );
@@ -755,8 +755,9 @@ NETWORK_PROC( void, RemoveClientExx )(PCLIENT lpClient, LOGICAL bBlockNofity, LO
 
 
 /* Begin an SSL Connection.  This ends up replacing ReadComplete callback with an inbetween layer*/
-NETWORK_PROC( LOGICAL, ssl_BeginClientSession )( PCLIENT pc );
-NETWORK_PROC( LOGICAL, ssl_BeginServer )( PCLIENT pc );
+NETWORK_PROC( LOGICAL, ssl_BeginClientSession )( PCLIENT pc, POINTER keypair, size_t keylen );
+NETWORK_PROC( LOGICAL, ssl_BeginServer )( PCLIENT pc, POINTER cert, size_t certlen, POINTER keypair, size_t keylen );
+NETWORK_PROC( LOGICAL, ssl_GetPrivateKey )(PCLIENT pc, POINTER *keydata, size_t *keysize);
 
 /* use this to send on SSL Connection instead of SendTCP. */
 NETWORK_PROC( LOGICAL, ssl_Send )( PCLIENT pc, POINTER buffer, size_t length );

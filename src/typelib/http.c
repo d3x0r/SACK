@@ -406,7 +406,7 @@ int ProcessHttp( PCLIENT pc, struct HttpState *pHttpState )
 
 LOGICAL AddHttpData( struct HttpState *pHttpState, POINTER buffer, size_t size )
 {
-   pHttpState->last_read_tick = GetTickCount();
+	pHttpState->last_read_tick = GetTickCount();
 	if( pHttpState->read_chunks )
 	{
 		uint8_t* buf = (uint8_t*)buffer;
@@ -715,7 +715,12 @@ static void CPROC HttpReader( PCLIENT pc, POINTER buffer, size_t size )
 					lprintf( WIDE("Sending Request...") );
 					LogBinary( GetText( send ), GetTextSize( send ) );
 				}
+#ifndef NO_SSL
+				// had to wait for handshake, so NULL event
+				// on secure has already had time to build the send
+				// but had to wait until now to do that.
 				ssl_Send( pc, GetText( send ), GetTextSize( send ) );
+#endif
 				LineRelease( send );
 			}
 		}
@@ -850,7 +855,7 @@ HTTPState GetHttpsQuery( PTEXT address, PTEXT url )
 		pc = OpenTCPClient( GetText( address ), 443, NULL );
 		if( pc )
 		{
-         state->last_read_tick = GetTickCount();
+			state->last_read_tick = GetTickCount();
 			SetNetworkLong( pc, 0, (uintptr_t)&pc );
 			SetNetworkLong( pc, 2, (uintptr_t)state );
 			SetNetworkCloseCallback( pc, HttpReaderClose );
@@ -860,7 +865,8 @@ HTTPState GetHttpsQuery( PTEXT address, PTEXT url )
 			vtprintf( state->pvtOut, WIDE( "GET %s HTTP/1.1\r\n" ), GetText( url ) );
 			vtprintf( state->pvtOut, WIDE( "host: %s\r\n" ), GetText( address ) );
 			vtprintf( state->pvtOut, WIDE( "\r\n\r\n" ) );
-			if( ssl_BeginClientSession( pc ) )
+#ifndef NO_SSL
+			if( ssl_BeginClientSession( pc, NULL, 0 ) )
 			{
 				state->waiter = MakeThread();
 				while( pc && ( state->last_read_tick > ( GetTickCount() - 20000 ) ) )
@@ -870,6 +876,7 @@ HTTPState GetHttpsQuery( PTEXT address, PTEXT url )
 			}
 			else
 				RemoveClient( pc );
+#endif
 			VarTextDestroy( &state->pvtOut );
 			if( !pc )
 				return state;
@@ -1003,17 +1010,57 @@ static void CPROC RequestorClosed( PCLIENT pc )
 	struct HttpServer *server = (struct HttpServer *)GetNetworkLong( pc, 0 );
 	struct HttpState *pHttpState = (struct HttpState *)GetNetworkLong( pc, 1 );
 	DeleteLink( &server->clients, pc );
-	DestroyHttpState( pHttpState );
+	if( pHttpState )
+		DestroyHttpState( pHttpState );
 }
 
 static void CPROC AcceptHttpClient( PCLIENT pc_server, PCLIENT pc_new )
 {
-	struct HttpServer *server = (struct HttpServer *)GetNetworkLong( pc_server, 0 );
+	struct HttpServer *server;
+
+	while( !(server = (struct HttpServer *)GetNetworkLong( pc_server, 0 )) ) {
+		Relinquish();
+	}
 	AddLink( &server->clients, pc_new );
 	SetNetworkLong( pc_new, 0, (uintptr_t)server );
 	SetNetworkReadComplete( pc_new, HandleRequest );
 	SetNetworkCloseCallback( pc_new, RequestorClosed );
 }
+
+#ifndef NO_SSL
+struct HttpServer *CreateHttpsServerEx( CTEXTSTR interface_address, CTEXTSTR TargetName, CTEXTSTR site, ProcessHttpRequest handle_request, uintptr_t psv ) {
+	struct HttpServer *server = New( struct HttpServer );
+	SOCKADDR *tmp;
+	TEXTCHAR class_name[256];
+#ifndef __NO_OPTIONS__
+	l.flags.bLogReceived = SACK_GetProfileIntEx( GetProgramName(), WIDE( "SACK/HTTP/Enable Logging Received Data" ), 0, TRUE );
+#endif
+	server->clients = NULL;
+	server->handle_request = handle_request;
+	server->psvRequest = psv;
+	server->site = StrDup( site );
+	tnprintf( class_name, sizeof( class_name ), WIDE( "SACK/Http/Methods/%s%s%s" )
+		, TargetName ? TargetName : WIDE( "" )
+		, (TargetName && site) ? WIDE( "/" ) : WIDE( "" )
+		, site ? site : WIDE( "" ) );
+	//lprintf( "Server root = %s", class_name );
+	server->methods = GetClassRoot( class_name );
+	NetworkStart();
+	server->server = OpenTCPListenerAddrEx( tmp = CreateSockAddress( interface_address ? interface_address : WIDE( "0.0.0.0" ), 80 )
+		, AcceptHttpClient );
+	SetNetworkLong( server->server, 0, (uintptr_t)server );
+	ssl_BeginServer( server->server, NULL, 0, NULL, 0 );
+	ReleaseAddress( tmp );
+	if( !server->server )
+	{
+		Release( server );
+		return NULL;
+	}
+
+	return server;
+
+}
+#endif
 
 struct HttpServer *CreateHttpServerEx( CTEXTSTR interface_address, CTEXTSTR TargetName, CTEXTSTR site, ProcessHttpRequest handle_request, uintptr_t psv )
 {

@@ -306,7 +306,7 @@ NETWORK_PROC( PCLIENT, CPPOpenTCPListenerAddrExx )( SOCKADDR *pAddr
 		NetworkUnlock( pListen );
 		return NULL;
 	}
-	pListen->connect.CPPClientConnected = (void(CPROC*)(uintptr_t,PCLIENT))NotifyCallback;
+	pListen->connect.CPPClientConnected = NotifyCallback;
 	pListen->psvConnect = psvConnect;
 	pListen->dwFlags |= CF_CPPCONNECT;
 	NetworkUnlock( pListen );

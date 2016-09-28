@@ -257,7 +257,7 @@ But WHO doesn't have stdint?  BTW is sizeof( size_t ) == sizeof( void* )
 #endif
 #endif
 #include <string.h> // typelib requires this
-#if !defined( WIN32 ) && !defined( _WIN32 )
+#if !defined( WIN32 ) && !defined( _WIN32 ) && !defined( _PNACL )
 #include <dlfcn.h>
 #endif
 

@@ -2,7 +2,7 @@
 /* see jconfig.txt for explanations */
 
 #define NO_UNICODE_C
-#include <stdhdrs.h>
+#include <sack_types.h>
 #define HAVE_PROTOTYPES
 #define HAVE_UNSIGNED_CHAR
 #define HAVE_UNSIGNED_SHORT

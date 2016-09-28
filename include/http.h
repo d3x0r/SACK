@@ -158,8 +158,18 @@ typedef LOGICAL (CPROC *ProcessHttpRequest)( uintptr_t psv
 
 HTTP_EXPORT
 /* Intended to create a generic http service, which you can
-   attach URL handlers to. Incomplete                       */
+   attach URL handlers to. Incomplete                      
+   Works mostly?  OnGet has been known to get called....
+   */
 struct HttpServer *CreateHttpServerEx( CTEXTSTR interface_address, CTEXTSTR TargetName, CTEXTSTR site, ProcessHttpRequest handle_request, uintptr_t psv );
+
+
+HTTP_EXPORT
+/* Intended to create a generic http service, which you can
+   attach URL handlers to. Incomplete
+   Works mostly?  OnGet has been known to get called....
+   */
+struct HttpServer *CreateHttpsServerEx( CTEXTSTR interface_address, CTEXTSTR TargetName, CTEXTSTR site, ProcessHttpRequest handle_request, uintptr_t psv );
 
 /* results with just the content of the message; no access to other information avaialble */
 HTTP_EXPORT PTEXT HTTPAPI PostHttp( PTEXT site, PTEXT resource, PTEXT content );

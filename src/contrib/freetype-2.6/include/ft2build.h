@@ -38,7 +38,7 @@
 #  define NO_OPEN_MACRO
 #endif
 #define NO_UNICODE_C
-#include <stdhdrs.h>
+#include <sack_types.h>
 #include <config/ftheader.h>
 
 #endif /* __FT2BUILD_H__ */

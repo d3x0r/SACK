@@ -89,7 +89,7 @@ typedef uint32_t   INDEX;
 typedef void  *POINTER;
 typedef const void *CPOINTER;
 typedef uint32_t LOGICAL;
-typedef uint32_t uintptr_t;
+//typedef uint32_t uintptr_t;
 #ifndef FALSE
 #define FALSE 0
 #endif

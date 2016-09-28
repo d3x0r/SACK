@@ -1,5 +1,6 @@
 #include <stdhdrs.h>
 #include <network.h>
+#include <http.h>
 
 void CPROC ReadComplete( PCLIENT pc, void *bufptr, size_t sz )
 {
@@ -25,6 +26,19 @@ void CPROC Closed( PCLIENT pc )
 	pc_user = NULL;
 }
 
+static void CPROC Connected( PCLIENT pc, int err ) {
+	if( !ssl_BeginClientSession( pc, NULL, 0 ) ) {
+		SystemLog( WIDE( "Failed to create client ssl session" ) );
+		RemoveClient( pc );
+		return FALSE;
+	}
+	{
+		POINTER key;
+		size_t keylen;
+		ssl_GetPrivateKey( pc, &key, &keylen );
+	}
+}
+
 SaneWinMain( argc, argv )
 {
 	SOCKADDR *sa;
@@ -40,24 +54,38 @@ SaneWinMain( argc, argv )
 	for( arg = 1; arg < argc; arg++ ) {
 		if( argv[arg][0] == '-' ) {
 			switch( argv[arg][1] ) {
+				
+			case 'r':
+				{
+					PTEXT del1, del2;
+
+					PTEXT result = GetHttp( del1 = SegCreateFromText( argv[arg]+2 )						, del2 = SegCreateFromText( argv[arg+1] )						, TRUE					);
+					lprintf( "result is [%s]", GetText( result ) );
+					//, del3 = SegCreateFromText( "w=get_version" )					arg++;
+				}
+				break;
+				
 			case 's':
 				if( pc_user ) {
-					if( !ssl_BeginClientSession( pc_user ) ) {
+					// this should also sort of work...
+					// there's a buffer leak of sorts, that we'll get a NULL
+					// read callback twice this way...
+					if( !ssl_BeginClientSession( pc_user, NULL, 0 ) ) {
 						SystemLog( WIDE( "Failed to create client ssl session" ) );
 						return FALSE;
 					}
+					{
+						POINTER key;
+						size_t keylen;
+						ssl_GetPrivateKey( pc_user, &key, &keylen );
+					}
 				}
+				secure = TRUE;
 				break;
 			}
 		} else {
-			sa = CreateSockAddress( argv[1], 23 );
-			pc_user = OpenTCPClientAddrEx( sa, ReadComplete, Closed, NULL );
-			if( pc_user && secure ) {
-				if( !ssl_BeginClientSession( pc_user ) ) {
-					SystemLog( WIDE( "Failed to create client ssl session" ) );
-					return FALSE;
-				}
-			}
+			sa = CreateSockAddress( argv[arg], 23 );
+			pc_user = OpenTCPClientAddrExx( sa, ReadComplete, Closed, NULL, Connected );
 		}
 	}
 

@@ -1193,7 +1193,8 @@ default_fopen:
 		{
 			wchar_t *tmp = CharWConvert( file->fullname );
 			wchar_t *wopts = CharWConvert( opts );
-			_wfopen_s( &handle, tmp, wopts );
+         handle = _wfopen( tmp, wopts );
+			//_wfopen_s( &handle, tmp, wopts );
 			Deallocate( wchar_t *, tmp );
 			Deallocate( wchar_t *, wopts );
 		}
@@ -1350,19 +1351,13 @@ default_fopen:
 		handle = fopen( file->fullname, opts );
 #  endif
 #else
-#  ifdef _STRSAFE_H_INCLUDED_
-#     ifdef UNICODE
-		char *tmpname = CStrDup( file->fullname );
-		char *tmpopts = CStrDup( opts );
-		handle = _fsopen( tmpname, tmpopts, share_mode );
-		Deallocate( char*, tmpname );
-		Deallocate( char*, tmpopts );
-#     else
-		handle = _fsopen( file->fullname, opts, share_mode );
-#     endif
-#  else
-		handle = fopen( file->fullname, opts );
-#  endif
+		{
+			wchar_t *tmp = CharWConvert( file->fullname );
+			wchar_t *wopts = CharWConvert( opts );
+			handle = _wfsopen( tmp, wopts, share_mode );
+			Deallocate( wchar_t *, tmp );
+			Deallocate( wchar_t *, wopts );
+		}
 #endif
 	}
 	if( !handle )
