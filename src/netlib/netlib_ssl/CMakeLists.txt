@@ -157,8 +157,8 @@ set( MORE_DEFS ${MORE_DEFS} MD5_SOURCE )
 set( MORE_DEFS ${MORE_DEFS} SHA1_SOURCE )
 
 
-add_library( netlib SHARED ${NETLIB_SOURCES} )
-add_library( netlibpp SHARED  ${NETLIB_PP_SOURCES} )
+add_library( netlib  ${NETLIB_SOURCES} )
+add_library( netlibpp  ${NETLIB_PP_SOURCES} )
 
 target_link_libraries( netlib  ${SSL_LIBS} )
 target_link_libraries( netlibpp ${SSL_LIBS} )
