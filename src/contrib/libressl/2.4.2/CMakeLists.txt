@@ -271,7 +271,7 @@ add_subdirectory(tls)
 add_subdirectory(include)
 if(NOT MSVC)
 	add_subdirectory(man)
-	add_subdirectory(tests)
+	#add_subdirectory(tests)
 endif()
 
 configure_file(

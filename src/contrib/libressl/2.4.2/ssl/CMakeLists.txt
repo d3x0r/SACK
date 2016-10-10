@@ -6,7 +6,7 @@ include_directories(
 
 set(
 	SSL_SRC
-	bio_ssl.c
+	#bio_ssl.c
 	bs_ber.c
 	bs_cbb.c
 	bs_cbs.c
