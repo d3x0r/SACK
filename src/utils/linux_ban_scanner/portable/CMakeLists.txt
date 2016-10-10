@@ -31,6 +31,7 @@ endif( WIN32 )
 
 set(BASE_SOURCES
 	${FIRST_GCC_PROGRAM_SOURCE} 
+    ../syslog_scanner.c 
     ${SOURCES_ROOT}/src/memlib/sharemem.c
     ${SOURCES_ROOT}/src/memlib/memory_operations.c
     ${SOURCES_ROOT}/src/timerlib/timers.c
@@ -39,7 +40,6 @@ set(BASE_SOURCES
     ${SOURCES_ROOT}/src/configlib/configscript.c
     ${SOURCES_ROOT}/src/sysloglib/syslog.c
     ${SOURCES_ROOT}/src/systemlib/system.c
-    ${SOURCES_ROOT}/src/systemlib/spawntask.c
     ${SOURCES_ROOT}/src/systemlib/args.c
     ${MORE_SYSTEM_SOURCES}
     ${SOURCES_ROOT}/src/typelib/typecode.c

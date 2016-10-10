@@ -2124,12 +2124,12 @@ static void Bubble( PMEM pMem )
 	{
 		if( USE_CUSTOM_ALLOCER )
 		{
-			register PCHUNK pc = (PCHUNK)(((PTRSIZEVAL)pData) - (((uint32_t*)pData)[-1] + offsetof( CHUNK, byData )));
+			register PCHUNK pc = (PCHUNK)(((uintptr_t)pData) - (((uint32_t*)pData)[-1] + offsetof( CHUNK, byData )));
 			return pc->dwSize - pc->dwPad;
 		}
 		else
 		{
-			register PMALLOC_CHUNK pc = (PMALLOC_CHUNK)(((PTRSIZEVAL)pData) - (((uint32_t*)pData)[-1] + offsetof( MALLOC_CHUNK, byData )));
+			register PMALLOC_CHUNK pc = (PMALLOC_CHUNK)(((uintptr_t)pData) - (((uint32_t*)pData)[-1] + offsetof( MALLOC_CHUNK, byData )));
 			return pc->dwSize - ( pc->to_chunk_start + pc->dwPad );
 		}
 	}
@@ -2735,7 +2735,7 @@ void  DebugDumpHeapMemEx ( PMEM pHeap, LOGICAL bVerbose )
 	PMEM pMem;
 	if( !ppMemory || !*ppMemory)
 		return FALSE;
-	pc = (PCHUNK)(((PTRSIZEVAL)(*ppMemory)) - (((uint32_t*)pData)[-1] + offsetof( CHUNK, byData )));
+	pc = (PCHUNK)(((uintptr_t)(*ppMemory)) - (((uint32_t*)pData)[-1] + offsetof( CHUNK, byData )));
 	pMem = GrabMem( pc->pRoot );
 
 		// check if prior block is free... if so - then...

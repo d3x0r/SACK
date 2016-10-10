@@ -115,7 +115,8 @@ static struct ssl_global
 	LOGICAL trace;
 	struct tls_config *tls_config;
 
-	SSL_CTX        *ssl_ctx;
+	SSL_CTX        *ssl_ctx_server;
+	SSL_CTX        *ssl_ctx_client;
 	uint8_t cipherlen;
 }ssl_global;
 
@@ -306,7 +307,7 @@ void CloseSession( PCLIENT pc )
 }
 
 static int logerr( const char *str, size_t len, void *userdata ) {
-	lprintf( "%d: %s", ((int)userdata), str );
+	lprintf( "%p: %s", userdata, str );
 	return 0;
 }
 
@@ -347,6 +348,7 @@ static int handshake( PCLIENT pc ) {
 						ses->obuffer = NewArray( uint8_t, ses->obuflen = pending*2 );
 					}
 					read = BIO_read(ses->wbio, ses->obuffer, pending);
+					lprintf( "send %d for handshake", read );
 					if (read > 0)
 						SendTCP( pc, ses->obuffer, read );
 				}
@@ -537,20 +539,26 @@ static void ssl_ClientConnected( PCLIENT pcServer, PCLIENT pcNew ) {
 	ses = New( struct ssl_session );
 	MemSet( ses, 0, sizeof( struct ssl_session ) );
 
-	ssl_global.ssl_ctx = SSL_CTX_new(TLSv1_2_client_method());
+	if( !ssl_global.ssl_ctx_server ) {
+		ssl_global.ssl_ctx_server = SSL_CTX_new( TLSv1_2_server_method() );
 
-	SSL_CTX_set_cipher_list(ssl_global.ssl_ctx, "ALL:!ADH:!LOW:!EXP:!MD5:@STRENGTH");
+		SSL_CTX_set_cipher_list( ssl_global.ssl_ctx_server, "ALL:!ADH:!LOW:!EXP:!MD5:@STRENGTH" );
 
-	r = SSL_CTX_use_PrivateKey( ssl_global.ssl_ctx, pcServer->ssl_session->privkey );
-	if( r <= 0 ) {
-		ERR_print_errors_cb( logerr, (void*)__LINE__ );
+		r = SSL_CTX_use_PrivateKey( ssl_global.ssl_ctx_server, pcServer->ssl_session->privkey );
+		if( r <= 0 ) {
+			ERR_print_errors_cb( logerr, (void*)__LINE__ );
+		}
+		r = SSL_CTX_use_certificate( ssl_global.ssl_ctx_server, pcServer->ssl_session->cert->x509 );
+		if( r <= 0 ) {
+			ERR_print_errors_cb( logerr, (void*)__LINE__ );
+		}
+
+		r = SSL_CTX_check_private_key( ssl_global.ssl_ctx_server );
+		if( r <= 0 ) {
+			ERR_print_errors_cb( logerr, (void*)__LINE__ );
+		}
 	}
-	r = SSL_CTX_use_certificate( ssl_global.ssl_ctx, pcServer->ssl_session->cert->x509 );
-	if( r <= 0 ) {
-		ERR_print_errors_cb( logerr, (void*)__LINE__ );
-	}
-
-	ses->ssl = SSL_new( ssl_global.ssl_ctx );
+	ses->ssl = SSL_new( ssl_global.ssl_ctx_server );
 
 	ssl_InitSession( ses );
 
@@ -582,14 +590,10 @@ static void ssl_ClientConnected( PCLIENT pcServer, PCLIENT pcNew ) {
 
 LOGICAL ssl_BeginServer( PCLIENT pc, POINTER cert, size_t certlen, POINTER keypair, size_t keylen ) {
 	struct ssl_session * ses;
-
-	ssl_InitLibrary();
-	pc->flags.bSecure = 1;
-
 	ses = New( struct ssl_session );
 	MemSet( ses, 0, sizeof( struct ssl_session ) );
-	if( !ssl_global.ssl_ctx )
-		ssl_global.ssl_ctx = SSL_CTX_new( TLSv1_2_server_method() );
+	ssl_InitLibrary();
+	pc->flags.bSecure = 1;
 
 	if( !cert ) {
 		ses->cert = MakeRequest();
@@ -604,18 +608,15 @@ LOGICAL ssl_BeginServer( PCLIENT pc, POINTER cert, size_t certlen, POINTER keypa
 		ses->privkey = ses->cert->pkey;
 	}
 
-	
 	if( !keypair ) {
 		if( !ses->privkey )
 			ses->privkey = genKey();
-	} 
-	else {
+	} else {
 		BIO *keybuf = BIO_new( BIO_s_mem() );
 		BIO_write( keybuf, keypair, keylen );
 		PEM_read_bio_PrivateKey( keybuf, &ses->privkey, NULL, NULL );
 		BIO_free( keybuf );
 	}
-	
 
 	ses->dwOriginalFlags = pc->dwFlags;
 
@@ -667,21 +668,21 @@ LOGICAL ssl_BeginClientSession( PCLIENT pc, POINTER client_keypair, size_t clien
 
 	ses = New( struct ssl_session );
 	MemSet( ses, 0, sizeof( struct ssl_session ) );
+	if( !ssl_global.ssl_ctx_client ) {
+		ssl_global.ssl_ctx_client = SSL_CTX_new( TLSv1_2_client_method() );
+		SSL_CTX_set_cipher_list( ssl_global.ssl_ctx_client, "ALL:!ADH:!LOW:!EXP:!MD5:@STRENGTH" );
 
-	ssl_global.ssl_ctx = SSL_CTX_new( TLSv1_2_client_method() );
-	SSL_CTX_set_cipher_list( ssl_global.ssl_ctx, "ALL:!ADH:!LOW:!EXP:!MD5:@STRENGTH" );
-
-	if( !client_keypair )
-		ses->privkey = genKey();
-	else {
-		BIO *keybuf = BIO_new( BIO_s_mem() );
-		BIO_write( keybuf, client_keypair, client_keypairlen );
-		PEM_read_bio_PrivateKey( keybuf, &ses->privkey, NULL, NULL );
-		BIO_free( keybuf );
+		if( !client_keypair )
+			ses->privkey = genKey();
+		else {
+			BIO *keybuf = BIO_new( BIO_s_mem() );
+			BIO_write( keybuf, client_keypair, client_keypairlen );
+			PEM_read_bio_PrivateKey( keybuf, &ses->privkey, NULL, NULL );
+			BIO_free( keybuf );
+		}
+		r = SSL_CTX_use_PrivateKey( ssl_global.ssl_ctx_client, ses->privkey );
 	}
-	r = SSL_CTX_use_PrivateKey( ssl_global.ssl_ctx, ses->privkey );
-
-	ses->ssl = SSL_new( ssl_global.ssl_ctx );
+	ses->ssl = SSL_new( ssl_global.ssl_ctx_client );
 	ssl_InitSession( ses );
 
 	SSL_set_connect_state( ses->ssl );
@@ -725,55 +726,6 @@ LOGICAL ssl_BeginClientSession( PCLIENT pc, POINTER client_keypair, size_t clien
 	return TRUE;
 }
 
-static void CPROC keyGenEnd( uintptr_t psv, PTASK_INFO task ){
-	((LOGICAL*)psv)[0] = TRUE;
-
-}
-
-void CreateKeyFile( void )
-{
-	char *args[] = { "openssl", "genrsa", "-out", "privkey.pem", "2048", NULL };
-  // LaunchPeerProgram( "openssl", NULL, args, NULL, keyGenEnd, NULL, 0 );
-}
-
-const char *Something = "[ ca ]   \n\
-default_ca      = CA_default      \n\
-                                  \n\
-[ CA_default ]                    \n\
-serial = 1                        \n\
-crl = ca-crl.pem                  \n\
-database = ca-database.txt        \n\
-name_opt = none                   \n\
-cert_opt = none                   \n\
-default_crl_days = 9999           \n\
-default_md = md5                  \n\
-                                  \n\
-[ req ]                           \n\
-default_bits           = 4096     \n\
-days                   = 9999     \n\
-distinguished_name     = req_distinguished_name\n\
-attributes             = req_attributes        \n\
-prompt                 = no                    \n\
-output_password        = password              \n\
-                                               \n\
-[ req_distinguished_name ]                     \n\
-C                      = US                    \n\
-ST                     = NV                    \n\
-L                      = Las Vegas             \n\
-O                      = Freedom Collective    \n\
-OU                     = experimental          \n\
-CN                     = ca                    \n\
-emailAddress           = noone@nowhere.net     \n\
-                                               \n\
-[ req_attributes ]                             \n\
-challengePassword      = test                  \n";
-
-void genkey2()
-{
-   //System( "openssl req -new -x509 -days 9999 -config ca.cnf -keyout ca-key.pem -out ca-cert.pem -config ca.cnf", NULL, 0 );
-//	System( "openssl rsa -in ca-key.pem -out key.pem", NULL, 0 );
-
-}
 
 
 //--------------------- Make Cert Request

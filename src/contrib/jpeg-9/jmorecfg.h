@@ -195,6 +195,11 @@ typedef unsigned int JDIMENSION;
 #define GLOBAL(type)		type
 /* a reference to a GLOBAL function: */
 //#define EXTERN(type)		extern type
+#ifndef EXPORT_METHOD
+#  define EXPORT_METHOD
+#  define IMPORT_METHOD extern
+#endif
+
 #ifdef JPEG_SOURCE
 #define EXTERN(type)    EXPORT_METHOD type
 #else

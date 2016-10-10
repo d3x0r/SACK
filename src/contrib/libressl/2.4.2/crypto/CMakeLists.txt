@@ -209,7 +209,7 @@ set(
 	bf/bf_skey.c
 	bio/b_dump.c
 	bio/b_print.c
-	bio/b_sock.c
+	#bio/b_sock.c
 	bio/bf_buff.c
 	bio/bf_nbio.c
 	bio/bf_null.c

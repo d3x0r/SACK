@@ -2347,6 +2347,12 @@ NETWORK_PROC( uintptr_t, GetNetworkLong )(PCLIENT lpClient,int nLong)
 			if( lpClient->saClient )
 				return *(uint32_t*)(lpClient->saClient->sa_data+2);
 			break;
+		case GNL_REMOTE_ADDRESS:  // IP of destination
+  			return (uintptr_t)lpClient->saClient;
+			break;
+		case GNL_LOCAL_ADDRESS:  // IP of local side
+  			return (uintptr_t)lpClient->saSource;
+			break;
 		case GNL_PORT:  // port of server...  STUPID PATCH?!  maybe...
 			if( lpClient->saClient )
 				return ntohs( *(uint16_t*)(lpClient->saClient->sa_data) );

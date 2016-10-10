@@ -3,7 +3,7 @@
  * sys/ioctl.h compatibility shim
  */
 
-#ifndef _WIN32
+#if !defined( _WIN32 ) && !defined( _PNACL )
 #include_next <sys/ioctl.h>
 #else
 #include <win32netcompat.h>

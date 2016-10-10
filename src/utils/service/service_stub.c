@@ -22,77 +22,77 @@ static SERVICE_STATUS_HANDLE hStatus;
 static void ControlHandler( DWORD request )
 {
 	//lprintf( WIDE( "Received %08x" ), request );
-   switch(request) 
-   { 
-      case SERVICE_CONTROL_STOP: 
-         //WriteToLog(WIDE( "Monitoring stopped." ));
+	switch(request) 
+	{ 
+		case SERVICE_CONTROL_STOP: 
+			//WriteToLog(WIDE( "Monitoring stopped." ));
 			if( l.Stop )
 				l.Stop();
 
-         ServiceStatus.dwWin32ExitCode = 0; 
-         ServiceStatus.dwCurrentState = SERVICE_STOPPED; 
-         SetServiceStatus (hStatus, &ServiceStatus);
-			WakeThread( l.main_thread );
-         return; 
- 
-      case SERVICE_CONTROL_SHUTDOWN: 
-         //WriteToLog(WIDE( "Monitoring stopped." ));
-			if( l.Stop )
-				l.Stop();
-
-         ServiceStatus.dwWin32ExitCode = 0; 
-         ServiceStatus.dwCurrentState = SERVICE_STOPPED; 
+			ServiceStatus.dwWin32ExitCode = 0; 
+			ServiceStatus.dwCurrentState = SERVICE_STOPPED; 
 			SetServiceStatus (hStatus, &ServiceStatus);
-         WakeThread( l.main_thread );
-         return; 
+			WakeThread( l.main_thread );
+			return; 
+ 
+		case SERVICE_CONTROL_SHUTDOWN: 
+			//WriteToLog(WIDE( "Monitoring stopped." ));
+			if( l.Stop )
+				l.Stop();
+
+			ServiceStatus.dwWin32ExitCode = 0; 
+			ServiceStatus.dwCurrentState = SERVICE_STOPPED; 
+			SetServiceStatus (hStatus, &ServiceStatus);
+			WakeThread( l.main_thread );
+			return; 
 
 	case SERVICE_CONTROL_PAUSE:
 		break;
 	//case SERVICE_CONTROL_RESUME:
-      default:
-         break;
-    } 
+		default:
+			break;
+	 } 
  
-    // Report current status
-    SetServiceStatus (hStatus, &ServiceStatus);
+	 // Report current status
+	 SetServiceStatus (hStatus, &ServiceStatus);
  
-    return; 
+	 return; 
 }
 
 
 static void APIENTRY ServiceMain( DWORD argc, TEXTCHAR **argv )
 {
 
-   int error; 
+	int error; 
  
-   ServiceStatus.dwServiceType = 
-      SERVICE_WIN32; 
-   ServiceStatus.dwCurrentState = 
-      SERVICE_START_PENDING; 
-   ServiceStatus.dwControlsAccepted   =  
-      SERVICE_ACCEPT_STOP | 
+	ServiceStatus.dwServiceType = 
+		SERVICE_WIN32; 
+	ServiceStatus.dwCurrentState = 
+		SERVICE_START_PENDING; 
+	ServiceStatus.dwControlsAccepted	=  
+		SERVICE_ACCEPT_STOP | 
 		SERVICE_ACCEPT_SHUTDOWN;
 
-   ServiceStatus.dwWin32ExitCode = 0; 
-   ServiceStatus.dwServiceSpecificExitCode = 0; 
-   ServiceStatus.dwCheckPoint = 0; 
-   ServiceStatus.dwWaitHint = 0; 
+	ServiceStatus.dwWin32ExitCode = 0; 
+	ServiceStatus.dwServiceSpecificExitCode = 0; 
+	ServiceStatus.dwCheckPoint = 0; 
+	ServiceStatus.dwWaitHint = 0; 
 
 	//lprintf( WIDE( "Register service handler..." ) );
-   hStatus = RegisterServiceCtrlHandler(
-      l.next_service_name,
-      (LPHANDLER_FUNCTION)ControlHandler); 
-   if (hStatus == (SERVICE_STATUS_HANDLE)0) 
-   { 
+	hStatus = RegisterServiceCtrlHandler(
+		l.next_service_name,
+		(LPHANDLER_FUNCTION)ControlHandler); 
+	if (hStatus == (SERVICE_STATUS_HANDLE)0) 
+	{ 
 		// Registering Control Handler failed
-      lprintf( WIDE( "Failed." ) );
-      return; 
+		lprintf( WIDE( "Failed." ) );
+		return; 
 	}
 
 	// Initialize Service
 	if( l.Start )
 	{
-      //lprintf( WIDE( "Send the initialize..." ) );
+		//lprintf( WIDE( "Send the initialize..." ) );
 		l.Start();
 	}
 
@@ -102,32 +102,32 @@ static void APIENTRY ServiceMain( DWORD argc, TEXTCHAR **argv )
 		ThreadTo( l.StartThread, l.psvStartThread );
 	}
 
-   //lprintf( WIDE( "Startup completd." ) );
+	//lprintf( WIDE( "Startup completd." ) );
 
-   error = 0;//InitService();
-   if (error) 
-   {
-      // Initialization failed
-      ServiceStatus.dwCurrentState = 
-         SERVICE_STOPPED; 
-      ServiceStatus.dwWin32ExitCode = -1; 
-      SetServiceStatus(hStatus, &ServiceStatus); 
-      return; 
-   } 
-   // We report the running status to SCM. 
-   ServiceStatus.dwCurrentState = SERVICE_RUNNING;
-   SetServiceStatus (hStatus, &ServiceStatus);
+	error = 0;//InitService();
+	if (error) 
+	{
+		// Initialization failed
+		ServiceStatus.dwCurrentState = 
+			SERVICE_STOPPED; 
+		ServiceStatus.dwWin32ExitCode = -1; 
+		SetServiceStatus(hStatus, &ServiceStatus); 
+		return; 
+	} 
+	// We report the running status to SCM. 
+	ServiceStatus.dwCurrentState = SERVICE_RUNNING;
+	SetServiceStatus (hStatus, &ServiceStatus);
 
 	l.main_thread = MakeThread();
 
-   //MEMORYSTATUS memory;
-   // The worker loop of a service
-   while (ServiceStatus.dwCurrentState == 
-          SERVICE_RUNNING)
+	//MEMORYSTATUS memory;
+	// The worker loop of a service
+	while (ServiceStatus.dwCurrentState == 
+			 SERVICE_RUNNING)
 	{
 		WakeableSleep( 100000 );
-   }
-   return; 
+	}
+	return; 
 }
 
 
@@ -212,21 +212,56 @@ static void CPROC GetOutput( uintptr_t psv, PTASK_INFO task, CTEXTSTR buffer, si
 
 //---------------------------------------------------------------------------
 
-void ServiceInstall( CTEXTSTR ServiceName )
+void ServiceInstallEx( CTEXTSTR ServiceName, CTEXTSTR descrip, CTEXTSTR extraArgs )
 {
 	TEXTCHAR **args;
 	int nArgs;
 	PVARTEXT pvt_cmd = VarTextCreate();
-	vtprintf( pvt_cmd, WIDE( "sc create \"%s\" binpath= %s\\%s.exe start= auto" )
+
+	CTEXTSTR pname = GetProgramName();
+	CTEXTSTR ppath = GetProgramPath();
+
+	vtprintf( pvt_cmd, WIDE( "sc create \"%s\" start= auto binpath= \"" )
 			  , ServiceName
-			  , GetProgramPath()
-			  , GetProgramName() );
+			  );
+
+	if( StrChr( pname, ' ' ) || StrChr( ppath, ' ' ) )
+		vtprintf( pvt_cmd, "\\\"%s\\%s\\\"", ppath, pname );
+	else
+		vtprintf( pvt_cmd, "%s\\%s", ppath, pname );
+	if( extraArgs && extraArgs[0] ) {
+		vtprintf( pvt_cmd, " %s", extraArgs );
+	}
+	vtprintf( pvt_cmd, "\"" );
+	//lprintf( "%s", GetText( VarTextPeek( pvt_cmd ) ) );
 	ParseIntoArgs( GetText( VarTextPeek( pvt_cmd ) ), &nArgs, &args );
+	/*
+	{
+		int n;
+		for( n = 0; n < nArgs; n++ )
+			lprintf( "parsed arg [%d]=%s", n, args[n] );
+	}
+	*/
 	VarTextEmpty( pvt_cmd );
 	LaunchPeerProgram( WIDE( "sc.exe" ), NULL, (PCTEXTSTR)args,  GetOutput, MyTaskEnd, 0 );
 	while( !task_done )
 		WakeableSleep( 100 );
 	task_done = 0;
+	{
+		CTEXTSTR args_tmp[5];
+		args_tmp[0] = "sc";
+		args_tmp[1] = "description";
+		args_tmp[2] = pname;
+		args_tmp[3] = descrip;
+		args_tmp[4] = NULL;
+
+		LaunchPeerProgram( WIDE( "sc.exe" ), NULL, (PCTEXTSTR)args_tmp, GetOutput, MyTaskEnd, 0 );
+		while( !task_done )
+			WakeableSleep( 100 );
+		task_done = 0;
+	}
+
+
 	vtprintf( pvt_cmd, WIDE( "sc start \"%s\"" )
 			  , ServiceName );
 	ParseIntoArgs( GetText( VarTextPeek( pvt_cmd ) ), &nArgs, &args );
@@ -234,6 +269,11 @@ void ServiceInstall( CTEXTSTR ServiceName )
 	LaunchPeerProgram( WIDE( "sc.exe" ), NULL, (PCTEXTSTR)args,  GetOutput, MyTaskEnd, 0 );
 	while( !task_done )
 		WakeableSleep( 100 );
+}
+
+void ServiceInstall( CTEXTSTR ServiceName )
+{
+	ServiceInstallEx( ServiceName, NULL, NULL );
 }
 
 //---------------------------------------------------------------------------
@@ -272,8 +312,8 @@ PTASK_INFO LaunchUserProcess( CTEXTSTR program, CTEXTSTR path, PCTEXTSTR args
 	PTASK_INFO pTask;
 	ImpersonateInteractiveUser();
 	pTask = LaunchPeerProgramExx( program, path, args, flags|LPP_OPTION_IMPERSONATE_EXPLORER, OutputHandler, EndNotice, psv DBG_RELAY );
-   EndImpersonation();
-   return pTask;
+	EndImpersonation();
+	return pTask;
 }
 
 SERVICE_NAMESPACE_END
