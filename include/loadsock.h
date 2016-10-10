@@ -65,7 +65,9 @@ typedef int socklen_t;
 #include <sys/time.h>
 #include <netdb.h>
 #include <errno.h>
-#include <net/if.h>
+#if !defined( _PNACL )
+#  include <net/if.h>
+#endif
 #define SOCKET int
 #define SOCKADDR struct sockaddr
 #define SOCKET_ERROR -1

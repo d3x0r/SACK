@@ -735,7 +735,10 @@ enum GetNetworkLongAccessInternal{
  
  GNL_MAC_LOW = (-5), /* Gets the low 32 bits of a hardware MAC address. */
  
-		GNL_MAC_HIGH= (-6) /* Get MAC address high 16 bits. */
+ GNL_MAC_HIGH= (-6), /* Get MAC address high 16 bits. */
+ GNL_REMOTE_ADDRESS = (-7), /* returns SOCKADDR*  of remote side */
+ GNL_LOCAL_ADDRESS = (-8), /* returns SOCKADDR* of local side  */
+
 		
 };
 

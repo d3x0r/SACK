@@ -19,12 +19,12 @@
 #include <share.h>
 #endif
 
-#if !defined( UNDER_CE ) ||defined( ELTANIN)
+#if !defined( UNDER_CE )
 #include <fcntl.h>
 #if !defined( __LINUX__ )
 #include <io.h>
 #else
-#define LPFILETIME P_64
+#define LPFILETIME uint64_t*
 #define FILETIME uint64_t
 #endif
 #endif
