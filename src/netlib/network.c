@@ -3281,38 +3281,38 @@ NETWORK_PROC( void, NetworkUnlock)( PCLIENT lpClient )
    NetworkUnlockEx( lpClient DBG_SRC );
 }
 
-NETWORK_PROC( void, SackNetwork_SetSocketSecure )( PCLIENT lpClient )
-{
-	if( lpClient )
-	{
-		lpClient->flags.bSecure = 1;
-		if( lpClient->dwFlags & CF_LISTEN )
+NETWORK_PROC( void, GetNetworkAddressBinary )( SOCKADDR *addr, uint8_t **data, size_t *datalen ) {
+	if( addr ) {
+		size_t namelen;
+		size_t addrlen = SOCKADDR_LENGTH( addr );
+		const char * tmp = ((const char**)addr)[-1];
+		if( !( (uintptr_t)tmp & 0xFFFF0000 ) )
 		{
-			// server side; begin accepting handshakes...
-			// should have some sort of in-read injected handling
-
-			// telnet protocols for instance... might be another stream handling system?
+			lprintf( WIDE("corrupted sockaddr.") );
+			DebugBreak();
+		}
+		if( tmp )
+		{
+			namelen = StrLen( tmp );
 		}
 		else
-		{
-			// this needs to be called in the onConnect callback of the socket.
-			// the OnConnect is called, then OnRead(NULL) which will begin READPENDING (unless there's data, which the secure
-			// handler should be reading first anyway.... otherwise; it's supposed to be a client handshake (but really everyone
-			// throws their hands up at the start... so this should be done in OnAccept() handling also.
-			if( ( lpClient->dwFlags & CF_CONNECTED ) && !(lpClient->dwFlags & CF_READPENDING ) )
-			{
-			 //  PSSL_SESSION ses = ssl_InitSession();
-			 //  ssl_BeginClientSession( lpClient, ses );
-			}
-		}
+			namelen = 0;
+		(*datalen) = namelen + 1 + 1 + SOCKADDR_LENGTH( addr );
+		(*data) = NewArray( uint8_t, (*datalen) );
+		MemCpy( (*data), tmp, namelen + 1 );
+		(*data)[namelen+1] = addrlen;
+		MemCpy( (*data) + namelen + 1, addr, addrlen );
 	}
 }
 
-
-NETWORK_PROC( void, SackNetwork_AllowSecurityDowngrade )( PCLIENT lpClient )
-{
-   if( lpClient )
-		lpClient->flags.bAllowDowngrade = 1;
+NETWORK_PROC( SOCKADDR *, MakeNetworkAddressFromBinary )( uint8_t *data, size_t datalen ) {
+	SOCKADDR *addr = AllocAddr();
+	size_t namelen = strlen( (const char*)data );
+	if( namelen ) // if empty name, don't include it.
+		SetAddrName( addr, (const char*)data );
+	SET_SOCKADDR_LENGTH( addr, data[namelen+1] );
+	MemCpy( addr, data + namelen + 2, data[namelen+1] );
+	return addr;
 }
 
 SACK_NETWORK_NAMESPACE_END

@@ -277,6 +277,15 @@ NETWORK_PROC( SOCKADDR *, SetNonDefaultPort )( SOCKADDR *pAddr, uint16_t nDefaul
  *
  */
 NETWORK_PROC( SOCKADDR *, CreateSockAddress )( CTEXTSTR name, uint16_t nDefaultPort );
+/*
+ * set (*data) and (*datalen) to a binary buffer representation of the sockete address.
+ */
+NETWORK_PROC( void, GetNetworkAddressBinary )( SOCKADDR *addr, uint8_t **data, size_t *datalen );
+/*
+ * create a socket address form data and datalen binary buffer representation of the sockete address.
+ */
+NETWORK_PROC( SOCKADDR *, MakeNetworkAddressFromBinary )( uint8_t *data, size_t datalen );
+
 NETWORK_PROC( SOCKADDR *, CreateRemote )( CTEXTSTR lpName,uint16_t nHisPort);
 NETWORK_PROC( SOCKADDR *, CreateLocal )(uint16_t nMyPort);
 NETWORK_PROC( int, GetAddressParts )( SOCKADDR *pAddr, uint32_t *pdwIP, uint16_t *pwPort );
