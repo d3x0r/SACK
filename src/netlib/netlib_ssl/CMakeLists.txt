@@ -127,6 +127,8 @@ set( NETLIB_SOURCES
     ${SOURCES_ROOT}/src/contrib/sha1lib/sha1.c
     ${SOURCES_ROOT}/include/sha1.h
     ${SOURCES_ROOT}/src/contrib/sha2lib/sha2.c
+    ${SOURCES_ROOT}/src/utils/virtual_file_system/vfs.c
+    ${SOURCES_ROOT}/src/utils/virtual_file_system/vfs_internal.h
     
     ${SOURCES_ROOT}/src/deadstart/deadstart_core.c 
 
@@ -140,7 +142,7 @@ endif( NOT __NO_ODBC__ )
 set( MORE_DEFS ${MORE_DEFS} USE_SQLITE )
 
 set( NETLIB_PP_SOURCES )
-set( SACK_BASE .. )
+set( SACK_BASE ../.. )
 COPY_CPLUSPLUS( NETLIB_PP_SOURCES ${NETLIB_SOURCES} )
 
 set( NETLIB_SOURCES ${NETLIB_SOURCES} 
