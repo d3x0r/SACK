@@ -937,14 +937,6 @@ struct internalCert * MakeRequest( void )
     if (!(X509_REQ_sign(cert->req, cert->pkey, EVP_sha1() )))
         fatal("Error signing request"); 
 
-//--------------------- Make Cert Request
-//#include <stdio.h>
-//#include <stdlib.h>
-//#include <openssl/x509.h>
-//#include <openssl/x509v3.h>
-//#include <openssl/err.h>
-//#include <openssl/pem.h>
-//#include <openssl/evp.h>
 
 	/*
     // write output files 

@@ -23,7 +23,7 @@ struct game_group_entry
 };
 
 struct game_message {
-	int32_t ID;
+	S_32 ID;
    CTEXTSTR extra;
 };
 

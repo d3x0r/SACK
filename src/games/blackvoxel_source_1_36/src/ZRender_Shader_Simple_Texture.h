@@ -36,7 +36,7 @@ class ZRender_Shader_Simple_Texture: public ZRender_Shader_Interface
 
     ZRender_Shader_Simple_Texture( class ZRender_Interface *render );
 
-	uintptr_t SetupShader( void );
+	PTRSZVAL SetupShader( void );
 	void InitShader( PImageShaderTracker tracker );
 
 	void DrawLine( ZVector3f *p1, ZVector3f *p2, ZVector4f *c );

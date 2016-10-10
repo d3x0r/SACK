@@ -146,26 +146,26 @@ PRELOAD( setup_io )
 #endif
 } // setup_io
 
-static uintptr_t CPROC SetGPIOPin( uintptr_t psv, arg_list args )
+static PTRSZVAL CPROC SetGPIOPin( PTRSZVAL psv, arg_list args )
 {
-	PARAM( args, int64_t, pin );
+	PARAM( args, S_64, pin );
 	struct gpio_button *button = (struct gpio_button *)psv;
 	button->pin = pin;
 	return psv;
 }
 
-static void OnLoadControl( "rpi.gpio" )( PCONFIG_HANDLER pch, uintptr_t psv )
+static void OnLoadControl( "rpi.gpio" )( PCONFIG_HANDLER pch, PTRSZVAL psv )
 {
 	AddConfigurationMethod( pch, "pin=%i", SetGPIOPin );
 }
 
-static void OnSaveControl( WIDE("rpi.gpio") )( FILE *file, uintptr_t psv )
+static void OnSaveControl( WIDE("rpi.gpio") )( FILE *file, PTRSZVAL psv )
 {
 	struct gpio_button *button = (struct gpio_button *)psv;
 	fprintf( file, "pin=%d\n", button->pin );
 }
 
-static void OnKeyPressEvent(  WIDE("rpi.gpio") )( uintptr_t psv )
+static void OnKeyPressEvent(  WIDE("rpi.gpio") )( PTRSZVAL psv )
 {
 	struct gpio_button *button = (struct gpio_button *)psv;
 	button->on = !button->on;
@@ -181,11 +181,11 @@ static void OnKeyPressEvent(  WIDE("rpi.gpio") )( uintptr_t psv )
 	}
 }
 
-static uintptr_t OnCreateMenuButton( WIDE("rpi.gpio") )( PMENU_BUTTON button )
+static PTRSZVAL OnCreateMenuButton( WIDE("rpi.gpio") )( PMENU_BUTTON button )
 {
 	struct gpio_button *my_button = New( struct gpio_button );
 	my_button->pin = gpio_local.n++;
 	my_button->button = button;
 	my_button->on = FALSE;
-	return (uintptr_t)my_button;
+	return (PTRSZVAL)my_button;
 }

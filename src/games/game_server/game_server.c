@@ -2,22 +2,22 @@
 #include "game_server.h"
 
 
-uintptr_t OnOpen( PCLIENT pc, uintptr_t psv )
+PTRSZVAL OnOpen( PCLIENT pc, PTRSZVAL psv )
 {
 	struct game_client *client = New( struct game_client );
-   SetNetworkLong( pc, 0, (uintptr_t)client );
+   SetNetworkLong( pc, 0, (PTRSZVAL)client );
 }
 
-void OnClose( PCLIENT pc, uintptr_t psv )
+void OnClose( PCLIENT pc, PTRSZVAL psv )
 {
    struct game_client *client = (struct game_client *)GetNetworkLong( pc, 0 );
 }
 
-void OnError( PCLIENT pc, uintptr_t psv, int error )
+void OnError( PCLIENT pc, PTRSZVAL psv, int error )
 {
 }
 
-void OnEvent( PCLIENT pc, uintptr_t psv, POINTER buffer, int msglen )
+void OnEvent( PCLIENT pc, PTRSZVAL psv, POINTER buffer, int msglen )
 {
 	struct game_client *client = (struct game_client *)GetNetworkLong( pc, 0 );
    struct game_message *msg;
