@@ -1506,19 +1506,19 @@ int processArguments( int argc, char **argv ) {
 							argv[i][n + 1] == 'o') )
 						{
 							g.flags.bStdout = 1;
-							n++;
+							n += 1;
 							break;
 						}
 						else if( argv[i][n] == 's' && argv[i][n + 1] &&
 							argv[i][n + 1] == 'd' ) {
 							g.flags.skip_define_processing = 1;
-							n += 3;
+							n += 1;
 							break;
 						}
 						else if( argv[i][n] == 's' && argv[i][n + 1] &&
 							argv[i][n + 1] == 'l' ) {
 							g.flags.skip_logic_processing = 1;
-							n += 3;
+							n += 1;
 							break;
 						}
 						else if( argv[i][n] == 's' && argv[i][n + 1] &&
@@ -1696,6 +1696,7 @@ int processArguments( int argc, char **argv ) {
 						else
 						{
 						unknown_option:
+							fprintf( stderr, "unknown option: %s (+%d)\n", argv[i], n );
 							usage();
 							return 0;
 						}
