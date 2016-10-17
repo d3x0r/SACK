@@ -1446,6 +1446,9 @@ add_subdirectory( include )
 add_subdirectory( src/utils/runner )
 add_subdirectory( src/utils/virtual_file_system )
 
+if( WIN32 )
+	add_subdirectory( src/utils/service )
+endif( WIN32 )
 
 if( BUILD_TESTS )
    add_subdirectory( src/streamlib/ffmpeg/audio_test )

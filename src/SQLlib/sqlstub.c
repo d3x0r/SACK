@@ -28,6 +28,8 @@
 #include <configscript.h>
 #include <procreg.h>
 #include <sqlgetoption.h>
+#include <salty_generator.h>
+#include <sha1.h>
 // please remove this reference ASAP
 //#include <controls.h> // temp graphic interface for debugging....
 #include <systray.h>
@@ -247,19 +249,85 @@ static void SQLiteGetLastInsertID(sqlite3_context*onwhat,int n,sqlite3_value**so
 #endif
 }
 
+static void computeSha1(sqlite3_context*onwhat,int n,sqlite3_value**argv)
+{
+   PVARTEXT pvt = VarTextCreate();
+	PODBC odbc = (PODBC)sqlite3_user_data(onwhat);
+	const char *val = sqlite3_value_text( argv[0] );
+	SHA1Context sha;
+	uint8_t digest[SHA1HashSize];
+	int n;
+   PTEXT result;
+	SHA1Reset( &sha );
+	SHA1Input( &sha, val, strlen( val ) );
+	SHA1Result( &sha, digest );
+   for( n = 0; n < SHA1HashSize; n++ )
+		vtprintf( pvt, "%02X", digest[n] );
+	result = VarTextGet( pvt );
+
+#ifdef _UNICODE
+	{
+		char *tmp_str = WcharConvert( GetText( result ) );
+		sqlite3_result_text( onwhat, tmp_str, (int)(sizeof( tmp_str[0] ) * StrLen( str )), 0 );
+		Deallocate( char *, tmp_str );
+	}
+#else
+	sqlite3_result_text( onwhat, GetText( result ), GetTextSize( result ), 0 );
+#endif
+}
+
+static void computePassword(sqlite3_context*onwhat,int n,sqlite3_value**argv)
+{
+   PVARTEXT pvt = VarTextCreate();
+	PODBC odbc = (PODBC)sqlite3_user_data(onwhat);
+	const char *val = sqlite3_value_text( argv[0] );
+	TEXTCHAR *result = SRG_EncryptString( val );
+#ifdef _UNICODE
+	{
+		char *tmp_str = WcharConvert( result );
+		sqlite3_result_text( onwhat, tmp_str, (int)(sizeof( tmp_str[0] ) * StrLen( str )), 0 );
+		Deallocate( char *, tmp_str );
+	}
+#else
+	sqlite3_result_text( onwhat, result, StrLen( result ), 0 );
+#endif
+   Release( result );
+}
+
+static void computePassword(sqlite3_context*onwhat,int n,sqlite3_value**argv)
+{
+   PVARTEXT pvt = VarTextCreate();
+	PODBC odbc = (PODBC)sqlite3_user_data(onwhat);
+	const char *val = sqlite3_value_text( argv[0] );
+	TEXTCHAR *result = SRG_DecryptString( val );
+#ifdef _UNICODE
+	{
+		char *tmp_str = WcharConvert( result );
+		sqlite3_result_text( onwhat, tmp_str, (int)(sizeof( tmp_str[0] ) * StrLen( str )), 0 );
+		Deallocate( char *, tmp_str );
+	}
+#else
+	sqlite3_result_text( onwhat, result, StrLen( result ), 0 );
+#endif
+   Release( result );
+}
+
+
+
+
   //void (*xStep)(sqlite3_context*,int,sqlite3_value**),
   //void (*xFinal)(sqlite3_context*)
 
-POINTER SimpleAllocate( int size )
+static POINTER SimpleAllocate( int size )
 {
 	return Allocate( size );
 }
-POINTER SimpleReallocate( POINTER p, int size )
+static POINTER SimpleReallocate( POINTER p, int size )
 {
 	return Reallocate( p, size );
 }
 
-void SimpleFree( POINTER size )
+static void SimpleFree( POINTER size )
 {
 	Release( size );
 }
@@ -270,20 +338,18 @@ static int SimpleSize( POINTER p )
 	return (int)SizeOfMemBlock( p );
 }
 
-int SimpleRound( int size )
+static int SimpleRound( int size )
 {
 	return size;
 }
 
-int SimpleInit( POINTER p )
+static int SimpleInit( POINTER p )
 {
 	return TRUE;
 }
-void SimpleShutdown( POINTER p )
+static void SimpleShutdown( POINTER p )
 {
 }
-
-
 
 
 void ExtendConnection( PODBC odbc )
@@ -323,6 +389,48 @@ void ExtendConnection( PODBC odbc )
 										 , SQLITE_UTF8 //int eTextRep,
 										 , (void*)odbc //void*,
 										 , GetCurUser //void (*xFunc)(sqlite3_context*,int,sqlite3_value**),
+										 , NULL //void (*xStep)(sqlite3_context*,int,sqlite3_value**),
+										 , NULL //void (*xFinal)(sqlite3_context*)
+										 );
+	if( rc )
+	{
+		// error..
+	}
+	rc = sqlite3_create_function(
+										  odbc->db //sqlite3 *,
+										 , "sha1"  //const char *zFunctionName,
+										 , 1 //int nArg,
+										 , SQLITE_UTF8 //int eTextRep,
+										 , (void*)odbc //void*,
+										 , computeSha1 //void (*xFunc)(sqlite3_context*,int,sqlite3_value**),
+										 , NULL //void (*xStep)(sqlite3_context*,int,sqlite3_value**),
+										 , NULL //void (*xFinal)(sqlite3_context*)
+										 );
+	if( rc )
+	{
+		// error..
+	}
+	rc = sqlite3_create_function(
+										  odbc->db //sqlite3 *,
+										 , "encrypt"  //const char *zFunctionName,
+										 , 1 //int nArg,
+										 , SQLITE_UTF8 //int eTextRep,
+										 , (void*)odbc //void*,
+										 , computePassword //void (*xFunc)(sqlite3_context*,int,sqlite3_value**),
+										 , NULL //void (*xStep)(sqlite3_context*,int,sqlite3_value**),
+										 , NULL //void (*xFinal)(sqlite3_context*)
+										 );
+	if( rc )
+	{
+		// error..
+	}
+	rc = sqlite3_create_function(
+										  odbc->db //sqlite3 *,
+										 , "decrypt"  //const char *zFunctionName,
+										 , 1 //int nArg,
+										 , SQLITE_UTF8 //int eTextRep,
+										 , (void*)odbc //void*,
+										 , decomputePassword //void (*xFunc)(sqlite3_context*,int,sqlite3_value**),
 										 , NULL //void (*xStep)(sqlite3_context*,int,sqlite3_value**),
 										 , NULL //void (*xFinal)(sqlite3_context*)
 										 );

@@ -140,6 +140,7 @@ else( NOT __ODBC__ )
     set( MORE_DEFS ${MORE_DEFS} __NO_ODBC__ )
 endif( NOT __NO_ODBC__ )
 set( MORE_DEFS ${MORE_DEFS} USE_SQLITE )
+set( MORE_DEFS ${MORE_DEFS} __NO_GUI__ )
 
 set( NETLIB_PP_SOURCES )
 set( SACK_BASE ../.. )
@@ -162,21 +163,20 @@ set( MORE_DEFS ${MORE_DEFS} SHA1_SOURCE )
 add_library( netlib  ${NETLIB_SOURCES} )
 add_library( netlibpp  ${NETLIB_PP_SOURCES} )
 
-target_link_libraries( netlib  ${SSL_LIBS} )
-target_link_libraries( netlibpp ${SSL_LIBS} )
+target_link_libraries( netslib  ${SSL_LIBS} )
+target_link_libraries( netslibpp ${SSL_LIBS} )
 
-SET_PROPERTY(TARGET netlib APPEND PROPERTY COMPILE_DEFINITIONS "TARGET_LABEL=netlib;TARGETNAME=\"${CMAKE_LIBRARY_PREFIX}netlib${CMAKE_LIBRARY_SUFFIX}\""
+SET_PROPERTY(TARGET netslib APPEND PROPERTY COMPILE_DEFINITIONS "TARGET_LABEL=netlib;TARGETNAME=\"${CMAKE_LIBRARY_PREFIX}netlib${CMAKE_LIBRARY_SUFFIX}\""
 		"__NO_INTERFACE_SUPPORT__;NO_LOGGING;SACK_BAG_EXPORTS" ${MORE_DEFS} )
-SET_PROPERTY(TARGET netlibpp APPEND PROPERTY COMPILE_DEFINITIONS "TARGET_LABEL=netlibpp;TARGETNAME=\"${CMAKE_LIBRARY_PREFIX}netlibpp${CMAKE_LIBRARY_SUFFIX}\""
+SET_PROPERTY(TARGET netslibpp APPEND PROPERTY COMPILE_DEFINITIONS "TARGET_LABEL=netlibpp;TARGETNAME=\"${CMAKE_LIBRARY_PREFIX}netlibpp${CMAKE_LIBRARY_SUFFIX}\""
 		"__NO_INTERFACE_SUPPORT__;NO_LOGGING;SACK_BAG_EXPORTS" ${MORE_DEFS} )
 
 
 if( WIN32 )
-   target_link_libraries( netlib ws2_32 winmm iphlpapi odbc32 Rpcrt4 )
-   target_link_libraries( netlibpp ws2_32 winmm iphlpapi odbc32 Rpcrt4 )
+   target_link_libraries( netslib ws2_32 winmm iphlpapi odbc32 Rpcrt4 )
+   target_link_libraries( netslibpp ws2_32 winmm iphlpapi odbc32 Rpcrt4 )
 else( WIN32 )
-   target_link_libraries( netlib odbc )
-   target_link_libraries( netlibpp odbc )
+   target_link_libraries( netslib odbc )
+   target_link_libraries( netslibpp odbc )
 endif( WIN32 )
-
 

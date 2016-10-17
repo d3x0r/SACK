@@ -271,9 +271,9 @@ SYSTEM_PROC( PTASK_INFO, LaunchPeerProgramExx )( CTEXTSTR program, CTEXTSTR path
 		PVARTEXT pvt = VarTextCreateEx( DBG_VOIDRELAY );
 		PTEXT cmdline;
 		PTEXT final_cmdline;
-      LOGICAL needs_quotes;
+		LOGICAL needs_quotes;
 		TEXTSTR expanded_path = ExpandPath( program );
-      char *new_path;
+		char *new_path;
 		TEXTSTR expanded_working_path = path?ExpandPath( path ):ExpandPath( WIDE(".") );
 		int first = TRUE;
 		//TEXTCHAR saved_path[256];
@@ -285,7 +285,7 @@ SYSTEM_PROC( PTASK_INFO, LaunchPeerProgramExx )( CTEXTSTR program, CTEXTSTR path
 			new_path = l.ExternalFindProgram( expanded_path );
 			if( new_path ) {
 				Release( expanded_path );
-            expanded_path = new_path;
+				expanded_path = new_path;
 			}
 		}
 #ifdef _DEBUG

@@ -42,6 +42,8 @@ set( TIMERLIB_SOURCES     ${THIS_FIRST_GCC_SOURCES}
     ../filesyslib/winfiles.c
     ../filesyslib/filesys_local.h
     ../systemlib/system.c    # default log paths setup here
+    ../systemlib/spawntask.c    # default log paths setup here
+    ../systemlib/args.c    # default log paths setup here
     ../systemlib/taskinfo.h
     ../deadstart/deadstart_core.c 
 	${MORE_TIMER_SOURCES}
