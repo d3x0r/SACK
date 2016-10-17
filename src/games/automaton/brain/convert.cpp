@@ -45,7 +45,7 @@ NATIVE ANYVALUE::get( void )
    case VAL_ULONG:
       return (NATIVE)data.ul;
    case VAL_ULONGLONG:
-      return (NATIVE)(S_64)data.ull;
+      return (NATIVE)(int64_t)data.ull;
    case VAL_PTRFLOAT:
       return (NATIVE)*data.pf;
    case VAL_PTRDOUBLE:
@@ -65,7 +65,7 @@ NATIVE ANYVALUE::get( void )
    case VAL_PTRULONG:
       return (NATIVE)*data.pul;
    case VAL_PTRULONGLONG:
-      return (NATIVE)(S_64)*data.pull;
+      return (NATIVE)(int64_t)*data.pull;
    case VAL_EXTERNINPUT:
       return data.Input(aux);
    case VAL_EXTERNOUTPUT:
@@ -103,7 +103,7 @@ int ANYVALUE::get_int( void )
    case VAL_ULONG:
       return (int)data.ul;
    case VAL_ULONGLONG:
-      return (int)(S_64)data.ull;
+      return (int)(int64_t)data.ull;
    case VAL_PTRFLOAT:
       return (int)*data.pf;
    case VAL_PTRDOUBLE:
@@ -123,7 +123,7 @@ int ANYVALUE::get_int( void )
    case VAL_PTRULONG:
       return (int)*data.pul;
    case VAL_PTRULONGLONG:
-      return (int)(S_64)*data.pull;
+      return (int)(int64_t)*data.pull;
    case VAL_EXTERNINPUT:
       return (int)data.Input(aux);
    case VAL_EXTERNOUTPUT:
@@ -152,22 +152,22 @@ void ANYVALUE::set( NATIVE native )
       data.d = native;
       break;
    case VAL_CHAR:
-      data.c = (S_8)native;
+      data.c = (int8_t)native;
       break;
    case VAL_SHORT:
-      data.s = (S_16)native;
+      data.s = (int16_t)native;
       break;
    case VAL_LONG:
       data.l = (int32_t)native;
       break;
    case VAL_LONGLONG:
-      data.ll = (S_64)native;
+      data.ll = (int64_t)native;
       break;
    case VAL_UCHAR:
-      data.uc = (_8)native;
+      data.uc = (uint8_t)native;
       break;
    case VAL_USHORT:
-      data.us = (_16)native;
+      data.us = (uint16_t)native;
       break;
    case VAL_ULONG:
       data.ul = (uint32_t)native;
@@ -185,19 +185,19 @@ void ANYVALUE::set( NATIVE native )
       *data.pc = (char)native;
       break;
    case VAL_PTRSHORT:
-      *data.ps = (S_16)native;
+      *data.ps = (int16_t)native;
       break;
    case VAL_PTRLONG:
       *data.pl = (int32_t)native;
       break;
    case VAL_PTRLONGLONG:
-      *data.pll = (S_64)native;
+      *data.pll = (int64_t)native;
       break;
    case VAL_PTRUCHAR:
-      *data.puc = (_8)native;
+      *data.puc = (uint8_t)native;
       break;
    case VAL_PTRUSHORT:
-      *data.pus = (_16)native;
+      *data.pus = (uint16_t)native;
       break;
    case VAL_PTRULONG:
       *data.pul = (uint32_t)native;
@@ -259,22 +259,22 @@ void value::set( enum type type, ... )
 		value::data.pd = va_arg( args, double*);
 		break;
 	case VAL_PTRCHAR:
-		value::data.pc = va_arg( args, S_8 *);
+		value::data.pc = va_arg( args, int8_t *);
 		break;
 	case VAL_PTRSHORT:
-		value::data.ps = va_arg( args, S_16*);
+		value::data.ps = va_arg( args, int16_t*);
 		break;
 	case VAL_PTRLONG:
 		value::data.pl = va_arg( args, int32_t*);
 		break;
 	case VAL_PTRLONGLONG:
-		value::data.pll = va_arg( args, S_64 *);
+		value::data.pll = va_arg( args, int64_t *);
 		break;
 	case VAL_PTRUCHAR:
-		value::data.puc = va_arg( args, _8 *);
+		value::data.puc = va_arg( args, uint8_t *);
 		break;
 	case VAL_PTRUSHORT:
-		value::data.pus = va_arg( args, _16 *);
+		value::data.pus = va_arg( args, uint16_t *);
 		break;
 	case VAL_PTRULONG:
 		value::data.pul = va_arg( args, uint32_t *);

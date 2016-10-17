@@ -501,7 +501,8 @@ static int CPROC LoadFile( PSENTIENT ps, PTEXT parameters )
 		if( !ps->CurrentMacro )
 			EnqueLink( &ps->Command->Output, &msg );
 	}
-	ps->CurrentMacro->state.flags.bSuccess = 1;
+	if( ps->CurrentMacro )
+		ps->CurrentMacro->state.flags.bSuccess = 1;
 	fclose( file );
 	// storing binary variables overwrites what is there, and does NOT
 	// reallocate space for variable.

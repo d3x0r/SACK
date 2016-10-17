@@ -935,8 +935,8 @@ PPEICE_METHODS BRAINBOARD::FindPeiceMethods( TEXTCHAR *type )
 //---------------------------------------------------
 void BRAINBOARD::SetCellSize( arg_list args )
 {
-	PARAM( args, S_64, x );
-	PARAM( args, S_64, y );
+	PARAM( args, int64_t, x );
+	PARAM( args, int64_t, y );
 	board->SetCellSize( (int)x, (int)y );
 }
 uintptr_t CPROC SetCellSize( uintptr_t psv, arg_list args )

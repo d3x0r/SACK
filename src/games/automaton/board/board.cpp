@@ -594,7 +594,7 @@ public:
 						);
 	PIPEICE GetFirstPeice( INDEX *idx );
 	PIPEICE GetNextPeice( INDEX *idx );
-   void GetSize( P_32 cx, P_32 cy )
+   void GetSize( uint32_t* cx, uint32_t* cy )
 	{
 		// result with the current cell size, so we know
 		// how much to multiply row/column counters by.
@@ -604,7 +604,7 @@ public:
 		if( cy )
          (*cy) = board_height;
 	}
-	void GetCellSize( P_32 cx, P_32 cy, int scale )
+	void GetCellSize( uint32_t* cx, uint32_t* cy, int scale )
 	{
 		// result with the current cell size, so we know
 		// how much to multiply row/column counters by.

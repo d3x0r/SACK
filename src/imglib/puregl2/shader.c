@@ -116,9 +116,15 @@ void FlushShaders( struct glSurfaceData *glSurface )
 			//glDrawArrays( GL_TRIANGLES, op->from, op->to );
 
 			//glDrawArrays( 
-			Release( op );
-			SetLink( &glSurface->shader_local.image_shader_operations, idx, 0 );
+
+			//Release( op );
+			//SetLink( &image_shader_op->output, idx2, 0 );
 		}
+
+		if( image_shader_op->output )
+			DeleteList( &image_shader_op->output );
+		Release( image_shader_op );
+		SetLink( &glSurface->shader_local.image_shader_operations, idx, 0 );
 	}
 	
 	LIST_FORALL( glSurface->shader_local.shader_operations, idx, struct image_shader_op *, op )
@@ -640,7 +646,7 @@ struct image_shader_op * BeginImageShaderOp(PImageShaderTracker tracker, Image t
 		int existing_verts;
 		va_start( args, target );
 		psvKey = tracker->InitShaderOp( tracker, tracker->psvInit, &existing_verts, args );
-		if( image_shader_op->last_op &&
+		if( image_shader_op->last_op && 
 			image_shader_op->last_op->psvKey == psvKey )
 			isibo = image_shader_op->last_op;
 		else

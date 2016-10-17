@@ -77,14 +77,14 @@ public:
 //#endif
 	CONNECTOR_CONSTRUCTOR( float			  ,	pf );
 	CONNECTOR_CONSTRUCTOR( double			 ,	pd );
-	CONNECTOR_CONSTRUCTOR( S_8				,	pc );
-	CONNECTOR_CONSTRUCTOR( S_16			  ,	ps );
-	CONNECTOR_CONSTRUCTOR( S_32				,	pl );
-	CONNECTOR_CONSTRUCTOR( S_64				,  pll );
-	CONNECTOR_CONSTRUCTOR( _8            ,  puc );
-	CONNECTOR_CONSTRUCTOR( _16           ,  pus );
-	CONNECTOR_CONSTRUCTOR( _32          ,  pul );
-	CONNECTOR_CONSTRUCTOR( _64				 , pull );
+	CONNECTOR_CONSTRUCTOR( int8_t				,	pc );
+	CONNECTOR_CONSTRUCTOR( int16_t			  ,	ps );
+	CONNECTOR_CONSTRUCTOR( int32_t				,	pl );
+	CONNECTOR_CONSTRUCTOR( int64_t				,  pll );
+	CONNECTOR_CONSTRUCTOR( uint8_t            ,  puc );
+	CONNECTOR_CONSTRUCTOR( uint16_t           ,  pus );
+	CONNECTOR_CONSTRUCTOR( uint32_t          ,  pul );
+	CONNECTOR_CONSTRUCTOR( uint64_t				 , pull );
 	CONNECTOR_CONSTRUCTOR( bool				, pb );
 };
 #pragma pack()
@@ -94,7 +94,7 @@ class BRAIN_STEM // allocated by the body.
 {
 private:
 	// when cycle updates, set outputs to 0.
-	_32 nCycle;
+	uint32_t nCycle;
 public:
 	// lists had to be made public because iterator didn't work (not thread safe)
 	iList Inputs; // list of PCONNECTORs
@@ -132,7 +132,7 @@ public:
 	//IMPORT PCONNECTOR NextOutput( void );
 	IMPORT CTEXTSTR fullname();
 	IMPORT CTEXTSTR name();
-	IMPORT void update( _32 cycle )
+	IMPORT void update( uint32_t cycle )
 #ifdef BRAIN_SOURCE
 	{
 		if( 0 )
@@ -182,7 +182,7 @@ public:
 	// ended up exposing this, iList iterator failed to work practically
 	iList BrainStems;  // contained by body.
 private:
-	_32 dwThreadId;  // perhaps this should be a handle...
+	uint32_t dwThreadId;  // perhaps this should be a handle...
 
 	PNEURONSET NeuronPool;
 	PSYNAPSESET SynapsePool;
@@ -244,7 +244,7 @@ public:
 	IMPORT LOGICAL Load( PODBC odbc, INDEX idx );
 	//IMPORT INDEX Save( PODBC odbc );
 	IMPORT INDEX Save( PODBC odbc, CTEXTSTR brainname ); // SQL Save
-	//IMPORT _32 Load( FILE *File );
+	//IMPORT uint32_t Load( FILE *File );
 	IMPORT PBRAIN_STEM first( void );
 	IMPORT PBRAIN_STEM next( void );
 	IMPORT PBRAIN_STEM GetBrainStem( INDEX id_stem );
@@ -294,8 +294,8 @@ typedef struct brain_interface {
 	BRAIN_PROC( PBRAIN_STEM, AddComponent )(PBRAIN,int n, CTEXTSTR name, arg_list args );
 	//BRAIN_PROC( PBRAIN_STEM, AddComponent )(int n, CTEXTSTR name, va_list args );
 
-	//BRAIN_PROC( _32, Save )( PBRAIN,HANDLE hFile );
-	//BRAIN_PROC( _32, Load )( PBRAIN,HANDLE hFile );
+	//BRAIN_PROC( uint32_t, Save )( PBRAIN,HANDLE hFile );
+	//BRAIN_PROC( uint32_t, Load )( PBRAIN,HANDLE hFile );
 	BRAIN_PROC( PBRAIN_STEM, first )( PBRAIN );
 	BRAIN_PROC( PBRAIN_STEM, next )( PBRAIN );
 	// once used in menus, the index is knowable... 

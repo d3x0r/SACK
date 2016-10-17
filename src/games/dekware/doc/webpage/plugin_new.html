@@ -31,10 +31,10 @@ typedef struct export_table_tag
 {
    //----------------------------------------------------------------
    //----------- This portion of the table MUST remain constant for ALL FUTURE VERSIONS!
-   POINTER (*AllocateEx)         ( _32 nSize DBG_PASS );
+   POINTER (*AllocateEx)         ( uint32_t nSize DBG_PASS );
    POINTER (*ReleaseEx)          ( POINTER pData DBG_PASS );
    POINTER (*HoldEx)             ( POINTER pData DBG_PASS );
-   _32     (*LockedExchange)     ( _32 *p, _32 val );
+   uint32_t     (*LockedExchange)     ( uint32_t *p, uint32_t val );
    void    (*MemSet)             ( POINTER p, int n, int sz );
    void    (*MemCpy)             ( POINTER pTo, P_0 pFrom, int sz );
    // should soon have LockedExchange, and also EnterCriticalSec()... 
@@ -59,15 +59,15 @@ typedef struct export_table_tag
    PTEXT (*SegInsert   )         ( PTEXT what, PTEXT before );
    PTEXT (*SegGrab     )         ( PTEXT segment ); // removes seg from list, returns seg.
    PTEXT (*SegBreak    )         ( PTEXT segment );
-   PTEXT (*SegConcatEx )         (PTEXT output,PTEXT input,S_32 offset,S_32 length DBG_PASS);
+   PTEXT (*SegConcatEx )         (PTEXT output,PTEXT input,int32_t offset,int32_t length DBG_PASS);
    PTEXT (*SegDuplicateEx)       ( PTEXT pText DBG_PASS );
    PTEXT (*LineDuplicateEx)      ( PTEXT pText DBG_PASS );
    PTEXT (*SegCreateIndirectEx)  ( PTEXT pText DBG_PASS );
    PTEXT (*SegCreateFromTextEx)  ( char *text DBG_PASS );
-   PTEXT (*SegCreateEx)          ( S_32 nSize DBG_PASS );
+   PTEXT (*SegCreateEx)          ( int32_t nSize DBG_PASS );
    void  (*LineReleaseEx)        ( PTEXT line DBG_PASS );
    void  (*UpdateMinSignficants) ( command_entry *commands, INDEX nCommands, PLIST pMacros ); // allow macros to also be short-cutable...
-   S_32  (*GetCommandIndex)      ( command_entry *commands, INDEX nCommands, int sig, char *data );
+   int32_t  (*GetCommandIndex)      ( command_entry *commands, INDEX nCommands, int sig, char *data );
    PSHADOW (*CreateShadowIn )    ( PENTITY pContainer, PENTITY pe );
    PENTITY (*CreateEntityIn)     ( PENTITY Location, PTEXT pName );
    void  (*WriteCommandList)     ( PLINKQUEUE *Output, command_entry *commands, INDEX nCommands, PTEXT pMatch );
@@ -114,7 +114,7 @@ typedef struct export_table_tag
    int      (*CompareStrings)    ( PTEXT pt1, int single1
                                  , PTEXT pt2, int single2
                                  , int bExact );
-   _32      (*LineLengthEx)      ( PTEXT pt, _32 bSingle );
+   uint32_t      (*LineLengthEx)      ( PTEXT pt, uint32_t bSingle );
    PDATASTACK  (*PushData)       ( PDATASTACK *pds, POINTER pdata );
    POINTER     (*PopData)        ( PDATASTACK *pds );
    POINTER     (*PeekData)       ( PDATASTACK *pds ); // keeps data on stack (can be used)

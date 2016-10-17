@@ -92,7 +92,7 @@ void CPROC ReadComplete( PCLIENT pc, POINTER pbuf, size_t nSize )
 	{
 		((uint8_t*)pbuf)[nSize] = 0;
 		pdp->Buffer->data.size = nSize;
-#ifdef _UNICODE 
+#ifdef _UNICODE
  		EnqueLink( &pdp->common.Input, SegCreateFromCharLen( (char*)pbuf, nSize ) );
 #else
  		EnqueLink( &pdp->common.Input, SegDuplicate( pdp->Buffer ) );
@@ -631,7 +631,7 @@ static PDATAPATH OnInitDevice(WIDE("tls"), WIDE("Telnet type clear text TLS sock
                                           NULL,
                                           TerminalConnect );
 		ReleaseAddress( sa );
-		if( pdp->handle && ssl_BeginClientSession( pdp->handle ) )
+		if( pdp->handle && ssl_BeginClientSession( pdp->handle, NULL, 0 ) )
 		{
 			SetTCPNoDelay( pdp->handle, TRUE );
 			pdp->common.Type = 1;//myTypeID;

@@ -386,11 +386,12 @@ static int CPROC WriteSystem( PDATAPATH pdpX )
 			while( seg )
 			{
 #ifdef _WIN32
-   	   	WriteFile( pdp->hStdIn.handle
-      					, GetText( seg )
-		      			, (DWORD)GetTextSize( seg )
-      					, &dwWritten
-      					, NULL );
+				pprintf( pdp->task, "%s", GetText( seg ) );
+   	   	//WriteFile( pdp->hStdIn.handle
+      	//				, GetText( seg )
+		///      			, (DWORD)GetTextSize( seg )
+      		//			, &dwWritten
+      			//		, NULL );
 #else
 				{
 					struct pollfd pfd = { pdp->hStdIn.handle, POLLHUP|POLLERR, 0 };

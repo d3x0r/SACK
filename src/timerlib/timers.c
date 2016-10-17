@@ -206,7 +206,7 @@ static struct {
 	int32_t last_sleep;
 
 #define g (*global_timer_structure)
-	uint32_t lock_thread_create;
+	uintptr_t lock_thread_create;
 	// should be a short list... 10 maybe 15...
 	PLIST thread_events;
 
@@ -528,7 +528,7 @@ static PTHREAD FindWakeup( CTEXTSTR name )
 	if( global_timer_structure )
 	{
 		// don't need locks if init didn't finish, there's now way to have threads in loader lock.
-		while( LockedExchange( &g.lock_thread_create, 1 ) )
+		while( LockedExchangePtrSzVal( &g.lock_thread_create, 1 ) )
 			Relinquish();
 	}
 	else
@@ -579,7 +579,7 @@ static PTHREAD FindThreadWakeup( CTEXTSTR name, THREAD_ID thread )
 	if( global_timer_structure )
 	{
 		// don't need locks if init didn't finish, there's now way to have threads in loader lock.
-		while( LockedExchange( &g.lock_thread_create, 1 ) )
+		while( LockedExchangePtrSzVal( &g.lock_thread_create, 1 ) )
 			Relinquish();
 	}
 	else
@@ -623,7 +623,7 @@ static PTHREAD FindThread( THREAD_ID thread )
 	if( global_timer_structure )
 	{
 		// don't need locks if init didn't finish, there's now way to have threads in loader lock.
-		while( LockedExchange( &g.lock_thread_create, 1 ) )
+		while( LockedExchangePtrSzVal( &g.lock_thread_create, 1 ) )
 			Relinquish();
 	}
 	else
@@ -1197,7 +1197,7 @@ void  UnmakeThread( void )
 {
 	PTHREAD pThread;
 	struct my_thread_info* _MyThreadInfo = GetThreadTLS();
-	while( LockedExchange( &g.lock_thread_create, 1 ) )
+	while( LockedExchangePtrSzVal( &g.lock_thread_create, _MyThreadInfo->nThread ) )
 		Relinquish();
 	pThread
 #ifdef HAS_TLS
@@ -1221,15 +1221,19 @@ void  UnmakeThread( void )
 		// unlink from g.threads list.
 		//if( ( (*pThread->me)=pThread->next ) )
 		//	pThread->next->me = pThread->me;
-		Deallocate( TEXTSTR, pThread->thread_event_name );
+		{
+			int tmp = SetAllocateLogging( FALSE );
+			Deallocate( TEXTSTR, pThread->thread_event_name );
 #ifdef _WIN32
-		Deallocate( TEXTSTR, pThread->thread_event->name );
-		if( global_timer_structure )
-			DeleteLink( &g.thread_events, pThread->thread_event );
-		Deallocate( PTHREAD_EVENT, pThread->thread_event );
+			Deallocate( TEXTSTR, pThread->thread_event->name );
+			if( global_timer_structure )
+				DeleteLink( &g.thread_events, pThread->thread_event );
+			Deallocate( PTHREAD_EVENT, pThread->thread_event );
 #endif
-		if( global_timer_structure )
-			DeleteFromSet( THREAD, g.threadset, pThread ) /*Release( pThread )*/;
+			if( global_timer_structure )
+				DeleteFromSet( THREAD, g.threadset, pThread ) /*Release( pThread )*/;
+			SetAllocateLogging( tmp );
+		}
 	}
 	g.lock_thread_create = 0;
 }
@@ -1345,8 +1349,16 @@ PTHREAD  MakeThread( void )
 		if( !(pThread = FindThread( thread_ident ) ) )
 #endif
 		{
-			while( LockedExchange( &g.lock_thread_create, 1 ) )
+			uintptr_t oldval;
+			LOGICAL dontUnlock = FALSE;
+			while( ( oldval = LockedExchangePtrSzVal( &g.lock_thread_create, thread_ident ) ) && oldval != thread_ident )
+			{
+				if( oldval != thread_ident )
+					g.lock_thread_create = oldval;
 				Relinquish();
+			}
+			if( oldval == thread_ident )
+				dontUnlock = TRUE;
 			pThread = GetFromSet( THREAD, &g.threadset ); /*Allocate( sizeof( THREAD ) )*/;
 			//lprintf( WIDE("Get Thread %p"), pThread );
 			MemSet( pThread, 0, sizeof( THREAD ) );
@@ -1361,7 +1373,8 @@ PTHREAD  MakeThread( void )
 			//g.threads = pThread;
 
 			InitWakeup( pThread, NULL );
-			g.lock_thread_create = 0;
+			if( !dontUnlock )
+				g.lock_thread_create = 0;
 #ifdef LOG_THREAD
 			Log3( WIDE("Created thread address: %p %"PRIxFAST64" at %p")
 				 , pThread->proc, pThread->thread_ident, pThread );
@@ -1406,7 +1419,7 @@ PTHREAD  ThreadToEx( uintptr_t (CPROC*proc)(PTHREAD), uintptr_t param DBG_PASS )
 {
 	int success;
 	PTHREAD pThread;
-	while( LockedExchange( &g.lock_thread_create, 1 ) )
+	while( LockedExchangePtrSzVal( &g.lock_thread_create, 1 ) )
 		Relinquish();
 	do
 	{
@@ -1470,7 +1483,7 @@ PTHREAD  ThreadToEx( uintptr_t (CPROC*proc)(PTHREAD), uintptr_t param DBG_PASS )
 	else
 	{
 		// unlink from g.threads list.
-		while( LockedExchange( &g.lock_thread_create, 1 ) )
+		while( LockedExchangePtrSzVal( &g.lock_thread_create, 1 ) )
 			Relinquish();
 		DeleteFromSet( THREAD, &g.threadset, pThread ) /*Release( pThread )*/;
 		g.lock_thread_create = 0;
@@ -1485,7 +1498,7 @@ PTHREAD  ThreadToSimpleEx( uintptr_t (CPROC*proc)(POINTER), POINTER param DBG_PA
 {
 	int success;
 	PTHREAD pThread;
-	while( LockedExchange( &g.lock_thread_create, 1 ) )
+	while( LockedExchangePtrSzVal( &g.lock_thread_create, 1 ) )
 		Relinquish();
 	pThread = GetFromSet( THREAD, &g.threadset );
 	/*AllocateEx( sizeof( THREAD ) DBG_RELAY );*/
@@ -1543,7 +1556,7 @@ PTHREAD  ThreadToSimpleEx( uintptr_t (CPROC*proc)(POINTER), POINTER param DBG_PA
 	else
 	{
 		// unlink from g.threads list.
-		while( LockedExchange( &g.lock_thread_create, 1 ) )
+		while( LockedExchangePtrSzVal( &g.lock_thread_create, 1 ) )
 			Relinquish();
 		DeleteFromSet( THREAD, &g.threadset, pThread ) /*Release( pThread )*/;
 		g.lock_thread_create = 0;

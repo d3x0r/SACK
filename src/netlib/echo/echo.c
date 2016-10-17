@@ -30,7 +30,7 @@ void CPROC ClientConnected( PCLIENT pListen, PCLIENT pNew )
 	SetNetworkReadComplete( pNew, ServerRecieve );
 }
 
-LOGICAL OnHttpGet( "AppClass", "test" )(uintptr_t psv, PCLIENT pc, struct HttpState *httpState, PTEXT httpBody ) {
+static LOGICAL OnHttpGet( "AppClass", "test" )(uintptr_t psv, PCLIENT pc, struct HttpState *httpState, PTEXT httpBody ) {
 
 	return FALSE;
 }
