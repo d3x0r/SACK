@@ -249,17 +249,17 @@ static void SQLiteGetLastInsertID(sqlite3_context*onwhat,int n,sqlite3_value**so
 #endif
 }
 
-static void computeSha1(sqlite3_context*onwhat,int n,sqlite3_value**argv)
+static void computeSha1(sqlite3_context*onwhat,int argc,sqlite3_value**argv)
 {
    PVARTEXT pvt = VarTextCreate();
 	PODBC odbc = (PODBC)sqlite3_user_data(onwhat);
-	const char *val = sqlite3_value_text( argv[0] );
+	const unsigned char *val = sqlite3_value_text( argv[0] );
 	SHA1Context sha;
 	uint8_t digest[SHA1HashSize];
 	int n;
    PTEXT result;
 	SHA1Reset( &sha );
-	SHA1Input( &sha, val, strlen( val ) );
+	SHA1Input( &sha, val, strlen( (CTEXTSTR)val ) );
 	SHA1Result( &sha, digest );
    for( n = 0; n < SHA1HashSize; n++ )
 		vtprintf( pvt, "%02X", digest[n] );
@@ -276,12 +276,12 @@ static void computeSha1(sqlite3_context*onwhat,int n,sqlite3_value**argv)
 #endif
 }
 
-static void computePassword(sqlite3_context*onwhat,int n,sqlite3_value**argv)
+static void computePassword(sqlite3_context*onwhat,int argc,sqlite3_value**argv)
 {
    PVARTEXT pvt = VarTextCreate();
 	PODBC odbc = (PODBC)sqlite3_user_data(onwhat);
-	const char *val = sqlite3_value_text( argv[0] );
-	TEXTCHAR *result = SRG_EncryptString( val );
+	const unsigned char *val = sqlite3_value_text( argv[0] );
+	TEXTCHAR *result = SRG_EncryptString( (CTEXTSTR)val );
 #ifdef _UNICODE
 	{
 		char *tmp_str = WcharConvert( result );
@@ -294,12 +294,12 @@ static void computePassword(sqlite3_context*onwhat,int n,sqlite3_value**argv)
    Release( result );
 }
 
-static void computePassword(sqlite3_context*onwhat,int n,sqlite3_value**argv)
+static void decomputePassword(sqlite3_context*onwhat,int n,sqlite3_value**argv)
 {
    PVARTEXT pvt = VarTextCreate();
 	PODBC odbc = (PODBC)sqlite3_user_data(onwhat);
-	const char *val = sqlite3_value_text( argv[0] );
-	TEXTCHAR *result = SRG_DecryptString( val );
+	const unsigned char *val = sqlite3_value_text( argv[0] );
+	TEXTCHAR *result = SRG_DecryptString( (CTEXTSTR)val );
 #ifdef _UNICODE
 	{
 		char *tmp_str = WcharConvert( result );
