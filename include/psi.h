@@ -608,7 +608,7 @@ typedef struct ControlRegistration_tag *PCONTROL_REGISTRATION;
    
    /psi/control/\<name\>/rtti/border_measure=(PSI_CONTROL,int*,int*,int*,int*)@void@_@touch_event */
 #define OnMeasureCustomBorder(name)  \
-	__DefineRegistryMethod(PSI_ROOT_REGISTRY,_OnMeasureCustomBorder,WIDE("control"),name WIDE("/rtti"),WIDE("border_draw"),void,(PSI_CONTROL,int*,int*,int*,int*), __LINE__)
+	__DefineRegistryMethod(PSI_ROOT_REGISTRY,_OnMeasureCustomBorder,WIDE("control"),name WIDE("/rtti"),WIDE("border_measure"),void,(PSI_CONTROL,int*,int*,int*,int*), __LINE__)
 
 
 // static LOGICAL OnDropAccept(WIDE(""))(PSI_CONTROL pc_canvas,CTEXTSTR filepath,int x,int y)

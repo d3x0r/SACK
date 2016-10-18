@@ -22,9 +22,9 @@ if( MSVC )
     SET( EXTRACTER_LINK_FLAGS "/level='requireAdministrator' /uiAccess='false'" )
 endif( MSVC )
 
-add_executable(${PROJECT_NAME} ${BASE_SOURCES} )
+sack_add_executable(${PROJECT_NAME} ${BASE_SOURCES} )
+SET_PROPERTY(TARGET ${PROJECT_NAME} APPEND PROPERTY COMPILE_DEFINITIONS "__STATIC__" )
 SET_TARGET_PROPERTIES(${PROJECT_NAME} PROPERTIES
-COMPILE_FLAGS  "-DTARGET_LABEL=${PROJECT_NAME} -D__STATIC__" 
                   FOLDER utils
 )
 target_link_libraries( ${PROJECT_NAME} timerlib )
