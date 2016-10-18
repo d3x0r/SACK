@@ -70,7 +70,7 @@ void DumpLoadedPluginList( PSENTIENT ps )
 PPLUGIN AddPlugin( CTEXTSTR pName, RegisterRoutinesProc RegisterRoutines, void (CPROC *Unload)(void) )
 {
 	PPLUGIN pPlugin;
-	pPlugin = NewPlus( PLUGIN, StrLen( pName ) );
+	pPlugin = NewPlus( PLUGIN, StrLen( pName ) + 1 );
 	MemSet( pPlugin, 0, sizeof( PLUGIN ) );
 	StrCpy( pPlugin->pName, pName );
 	pPlugin->RegisterRoutines = RegisterRoutines;

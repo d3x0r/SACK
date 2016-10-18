@@ -9,8 +9,8 @@
 
 
 typedef struct process_tag {
-   HANDLE hProcess;
-   PTEXT  command;
+	HANDLE hProcess;
+	PTEXT  command;
 	PTEXT  directory;
 	PROCESS_INFORMATION pi;
 	STARTUPINFO  si;
@@ -22,18 +22,18 @@ extern INDEX iProcess;
 int IsDead( PSENTIENT ps, PTEXT parameters )
 {
 	//
-   return 0;
+	return 0;
 }
 
 void DestroyProcess( PENTITY pe )
 {
 	PPROCESS process = (PPROCESS)GetLink( &pe->pPlugin, iProcess );
-   Log( WIDE("Killing process this represents") );
+	Log( WIDE("Killing process this represents") );
 	if( process )
 	{
 		if( WaitForSingleObject( process->pi.hProcess, 0 ) == WAIT_TIMEOUT )
 		{
-         TerminateProcess( process->pi.hProcess, 0xD1E );
+	      TerminateProcess( process->pi.hProcess, 0xD1E );
 		}
 		CloseHandle( process->pi.hProcess );
 		CloseHandle( process->pi.hThread );
@@ -59,10 +59,10 @@ static int StartProcess( PPROCESS process )
 								  &process->si,  // startup info
 								  &process->pi ) )  // process info...
 		{
-         return -1;
+	      return -1;
 		}
 	}
-   return 0;
+	return 0;
 }
 
 int CPROC MakeProcess( PSENTIENT ps, PENTITY peInit, PTEXT parameters )
@@ -72,51 +72,51 @@ int CPROC MakeProcess( PSENTIENT ps, PENTITY peInit, PTEXT parameters )
 	// in the current directory...
 	// /make process test WIDE("command arguments") WIDE("work path") <attributes?>
 	// /make process test WIDE("notepad trigger.txt") 
-   PSENTIENT ps2;
-   PPROCESS process = New( PROCESS );
-   TEXTCHAR MyPath[256];
-   GetCurrentPath( MyPath, sizeof( MyPath ) );
-   ps2 = CreateAwareness( peInit );
+	PSENTIENT ps2;
+	PPROCESS process = New( PROCESS );
+	TEXTCHAR MyPath[256];
+	GetCurrentPath( MyPath, sizeof( MyPath ) );
+	ps2 = CreateAwareness( peInit );
 	MemSet( process, 0, sizeof( PROCESS ) );
 	Log( WIDE("Have a process, and woke it up... setting the link") );
 	SetLink( &peInit->pPlugin, iProcess, process );
 	SetLink( &peInit->pDestroy, iProcess, DestroyProcess );
-   Log( WIDE("Set the link, getting params...") );
-   {
-   	PTEXT text, cmd = NULL;
-   	text = GetParam( ps, &parameters );
-   	if( text && TextIs( text, WIDE("\"") ) )
+	Log( WIDE("Set the link, getting params...") );
+	{
+		PTEXT text, cmd = NULL;
+		text = GetParam( ps, &parameters );
+		if( text && TextIs( text, WIDE("\"") ) )
 		{
-         Log( WIDE("Found a quote, getting command line") );
-   		while( (text = GetParam( ps, &parameters )) && !TextIs( text, WIDE("\"") ) )
-   		{
-   			cmd = SegAppend( cmd, SegDuplicate( text ) );
-   		}
+	      Log( WIDE("Found a quote, getting command line") );
+			while( (text = GetParam( ps, &parameters )) && !TextIs( text, WIDE("\"") ) )
+			{
+				cmd = SegAppend( cmd, SegDuplicate( text ) );
+			}
 			cmd->format.position.offset.spaces = 0;
-   		process->command = BuildLine( cmd );
-   		if( text ) // closed, and may have start path....
-   		{
-   			text = GetParam( ps, &parameters );
+			process->command = BuildLine( cmd );
+			if( text ) // closed, and may have start path....
+			{
+				text = GetParam( ps, &parameters );
 		   	if( text && TextIs( text, WIDE("\"") ) )
 				{
 					Log( WIDE("Found a quote, getting the path") );
-   				while( (text = GetParam( ps, &parameters )) && !TextIs( text, WIDE("\"") ) )
-   				{
-   					cmd = SegAppend( cmd, SegDuplicate( text ) );
+					while( (text = GetParam( ps, &parameters )) && !TextIs( text, WIDE("\"") ) )
+					{
+						cmd = SegAppend( cmd, SegDuplicate( text ) );
 		   		}
 		   		cmd->format.position.offset.spaces = 0;
 		   		process->directory = BuildLine( cmd );
-   			}
-   		}
-   	}
-   	else
-   	{
-   		DECLTEXT( msg, WIDE("Must specify process to execute in quotes (\")") );
-   		EnqueLink( &ps->Command->Output, &msg );
+				}
+			}
+		}
+		else
+		{
+			DECLTEXT( msg, WIDE("Must specify process to execute in quotes (\")") );
+			EnqueLink( &ps->Command->Output, &msg );
 		WakeAThread( ps2 );
-   		return -1; // abort creation.
-   	}
-   }
+			return -1; // abort creation.
+		}
+	}
 	Log2( WIDE("Starting %s in %s"), GetText( process->command ), GetText( process->directory ) );
 	process->si.cb = sizeof( process->si );
 	// remaining startup info members are NULL - specifying we do NOT care
@@ -144,7 +144,7 @@ int CPROC MakeProcess( PSENTIENT ps, PENTITY peInit, PTEXT parameters )
 #include <space.h>
 int MakeProcess( PSENTIENT ps, PENTITY peInit, PTEXT parameters )
 {
-   return 1;
+	return 1;
 }
 
 #endif

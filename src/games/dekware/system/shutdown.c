@@ -362,9 +362,11 @@ static int CPROC WriteSystem( PDATAPATH pdpX )
 			{
 				Log( WIDE("Forwarding a dot command to next layer...") );
       			if( pdp->common.pPrior )
-      			{
+      			{	
+					PTEXT next = NEXTLINE( pLine );
+					SegBreak( next );
       				EnqueLink( &pdp->common.pPrior->Output
-      							, SegBreak( NEXTLINE( pLine ) ) );
+      							, next );
 	      			LineRelease( pLine );
    	   				continue;
       			}
@@ -386,11 +388,12 @@ static int CPROC WriteSystem( PDATAPATH pdpX )
 			while( seg )
 			{
 #ifdef _WIN32
-   	   	WriteFile( pdp->hStdIn.handle
-      					, GetText( seg )
-		      			, (DWORD)GetTextSize( seg )
-      					, &dwWritten
-      					, NULL );
+				pprintf( pdp->task, "%s", GetText( seg ) );
+   	   	//WriteFile( pdp->hStdIn.handle
+      	//				, GetText( seg )
+		///      			, (DWORD)GetTextSize( seg )
+      		//			, &dwWritten
+      			//		, NULL );
 #else
 				{
 					struct pollfd pfd = { pdp->hStdIn.handle, POLLHUP|POLLERR, 0 };

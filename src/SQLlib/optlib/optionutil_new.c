@@ -86,24 +86,24 @@ void NewEnumOptions( PODBC odbc
 }
 
 
-struct complex_args
+struct complex_args_new
 {
 	POPTION_TREE_NODE iNewRoot;
 	POPTION_TREE_NODE iOldRoot;
 	PODBC odbc;
 };
 
-static int CPROC CopyRoot( uintptr_t psvArgs, CTEXTSTR name, POPTION_TREE_NODE ID, int flags )
+static int CPROC newCopyRoot( uintptr_t psvArgs, CTEXTSTR name, POPTION_TREE_NODE ID, int flags )
 {
-	struct complex_args *args = (struct complex_args*)psvArgs;
+	struct complex_args_new *args = (struct complex_args_new*)psvArgs;
 	POPTION_TREE_NODE iCopy = GetOptionIndexEx( args->iNewRoot, NULL, name, NULL, TRUE DBG_SRC );
 	NewDuplicateValue( args->odbc, ID, iCopy );
 
 	{
-		struct complex_args c_args;
+		struct complex_args_new c_args;
 		c_args.iNewRoot = iCopy;
 		c_args.odbc = args->odbc;
-		EnumOptions( ID, CopyRoot, (uintptr_t)&c_args );
+		EnumOptions( ID, newCopyRoot, (uintptr_t)&c_args );
 	}
 	return TRUE;
 }
@@ -115,7 +115,7 @@ void NewDuplicateOption( PODBC odbc, POPTION_TREE_NODE iRoot, CTEXTSTR pNewName 
 	if( SQLQueryf( odbc, &result, WIDE( "select parent_option_id from " ) OPTION_MAP WIDE( " where option_id=%ld" ), iRoot ) && result )
 	{
 		POPTION_TREE_NODE tmp_node = New( OPTION_TREE_NODE );
-		struct complex_args args;
+		struct complex_args_new args;
 		tmp_node->id = IntCreateFromText( result );
 		tmp_node->name_id = INVALID_INDEX;
 		tmp_node->value_id = INVALID_INDEX;
@@ -124,7 +124,7 @@ void NewDuplicateOption( PODBC odbc, POPTION_TREE_NODE iRoot, CTEXTSTR pNewName 
 		iNewName = GetOptionIndexEx( tmp_node, NULL, pNewName, NULL, TRUE DBG_SRC );
 		args.iNewRoot = iNewName;
 		args.odbc = odbc;
-		NewEnumOptions( args.odbc, iRoot, CopyRoot, (uintptr_t)&args );
+		NewEnumOptions( args.odbc, iRoot, newCopyRoot, (uintptr_t)&args );
 	}
 }
 

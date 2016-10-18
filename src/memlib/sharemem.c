@@ -136,15 +136,15 @@ typedef struct space_tracking_structure {
 	} flags;
 	int hFile;
 #endif
-   	uintptr_t dwSmallSize;
-   	DeclareLink( struct space_tracking_structure );
+	uintptr_t dwSmallSize;
+	DeclareLink( struct space_tracking_structure );
 } SPACE, *PSPACE;
 
 typedef struct space_pool_structure {
-   DeclareLink( struct space_pool_structure );
-	SPACE spaces[ (4096 - sizeof( struct space_pool_structure *)
-							- sizeof( struct space_pool_structure **) )
-											 / sizeof( SPACE )];
+	DeclareLink( struct space_pool_structure );
+	SPACE spaces[(4096 - sizeof( struct space_pool_structure * )
+		- sizeof( struct space_pool_structure ** ))
+		/ sizeof( SPACE )];
 } SPACEPOOL, *PSPACEPOOL;
 
 #define MAX_PER_BLOCK (4096 - sizeof( struct space_pool_structure *) \
@@ -153,7 +153,7 @@ typedef struct space_pool_structure {
 
 
 #ifdef _WIN32
-					//(0x10000 * 0x1000) //256 megs?
+//(0x10000 * 0x1000) //256 megs?
 #define FILE_GRAN g.si.dwAllocationGranularity
 #else
 #define FILE_GRAN g.pagesize
@@ -166,20 +166,21 @@ struct global_memory_tag {
 	int bDisableDebug;
 	int bDisableAutoCheck;
 	int bLogCritical;
-//#endif
+	//#endif
 	size_t nMinAllocateSize;
 	int pagesize;
 	int bLogAllocate;
 	int bLogAllocateWithHold;
 	LOGICAL bCustomAllocer;  // this option couldn't work; different block tracking methods are incompatible
 	LOGICAL bInit;
+	LOGICAL allowLogging;
 	PSPACEPOOL pSpacePool;
 #ifdef _WIN32
 	SYSTEM_INFO si;
 #endif
 	int InAdding; // don't add our tracking to ourselves...
 	uint32_t bMemInstanced; // set if anybody starts to DIG.
-   LOGICAL deadstart_finished;
+	LOGICAL deadstart_finished;
 	PMEM pMemInstance;
 };
 
@@ -188,7 +189,7 @@ static struct global_memory_tag global_memory_data = { 0x10000 * 0x08, 0, 0
 													, 0 /* log criticalsec */
 													, 0 /* min alloc */
 													, 0 /* pagesize */
-													, 0/*logging*/ 
+													, 0/*logging*/
 													, 0 /* log holds also */
 													, USE_CUSTOM_ALLOCER
 };
@@ -215,7 +216,7 @@ struct global_memory_tag global_memory_data = { 0x10000 * 0x08, 1/* disable debu
 															, 0/*log allocates*/
 															, 0  /* log holds */
 															, USE_CUSTOM_ALLOCER  // custom allocer
-											};
+};
 // this one has memory logging enabled by default...
 //struct global_memory_tag global_memory_data = { 0x10000 * 0x08, 0, 1, 0, 0, 0, 1 };
 #  endif
@@ -253,8 +254,8 @@ struct global_memory_tag global_memory_data = { 0x10000 * 0x08, 1/* disable debu
 
 PRIORITY_PRELOAD( Deadstart_finished_enough, GLOBAL_INIT_PRELOAD_PRIORITY + 1 )
 {
-   g.deadstart_finished = 1;
-   //g.bLogAllocate = 1;
+	g.deadstart_finished = 1;
+	//g.bLogAllocate = 1;
 }
 
 PRIORITY_PRELOAD( InitGlobal, DEFAULT_PRELOAD_PRIORITY )
@@ -263,7 +264,7 @@ PRIORITY_PRELOAD( InitGlobal, DEFAULT_PRELOAD_PRIORITY )
 	g.bLogCritical = SACK_GetProfileIntEx( GetProgramName(), WIDE( "SACK/Memory Library/Log critical sections" ), g.bLogCritical, TRUE );
 	g.bLogAllocate = SACK_GetProfileIntEx( GetProgramName(), WIDE( "SACK/Memory Library/Enable Logging" ), g.bLogAllocate, TRUE );
 	if( g.bLogAllocate )
-		lprintf( WIDE("Memory allocate logging enabled.") );
+		lprintf( WIDE( "Memory allocate logging enabled." ) );
 	g.bLogAllocateWithHold = SACK_GetProfileIntEx( GetProgramName(), WIDE( "SACK/Memory Library/Enable Logging Holds" ), g.bLogAllocateWithHold, TRUE );
 	//USE_CUSTOM_ALLOCER = SACK_GetProfileIntEx( GetProgramName(), WIDE( "SACK/Memory Library/Custom Allocator" ), USE_CUSTOM_ALLOCER, TRUE );
 	g.bDisableDebug = SACK_GetProfileIntEx( GetProgramName(), WIDE( "SACK/Memory Library/Disable Debug" ), !USE_DEBUG_LOGGING, TRUE );
@@ -271,6 +272,7 @@ PRIORITY_PRELOAD( InitGlobal, DEFAULT_PRELOAD_PRIORITY )
 	//g.bLogAllocate = 1;
 #endif
 	g.nMinAllocateSize = 32;
+	g.allowLogging = 1;
 }
 
 #if __GNUC__ 
@@ -287,8 +289,8 @@ PRIORITY_PRELOAD( InitGlobal, DEFAULT_PRELOAD_PRIORITY )
 #  elif defined __ARM__ || defined __ANDROID__
 //#    define XCHG(p,val)  __atomic_exchange_n(p,val,__ATOMIC_RELAXED)
 #  else
-inline uint32_t DoXchg( volatile uint32_t* p, uint32_t val ){  __asm__( WIDE("lock xchg (%2),%0"):WIDE( "=a" )(val):WIDE( "0" )(val),WIDE( "c" )(p) ); return val; }
-inline uint64_t DoXchg64( volatile int64_t* p, uint64_t val ){  __asm__( WIDE("lock xchg (%2),%0"):WIDE( "=a" )(val):WIDE( "0" )(val),WIDE( "c" )(p) ); return val; }
+inline uint32_t DoXchg( volatile uint32_t* p, uint32_t val ) { __asm__( WIDE( "lock xchg (%2),%0" ) :WIDE( "=a" )(val) : WIDE( "0" )(val), WIDE( "c" )(p) ); return val; }
+inline uint64_t DoXchg64( volatile int64_t* p, uint64_t val ) { __asm__( WIDE( "lock xchg (%2),%0" ) :WIDE( "=a" )(val) : WIDE( "0" )(val), WIDE( "c" )(p) ); return val; }
 #    define XCHG( p,val) ( ( sizeof( val ) > sizeof( uint32_t ) )?DoXchg64( (volatile int64_t*)p, (uint64_t)val ):DoXchg( (volatile uint32_t*)p, (uint32_t)val ) )
 #  endif
 //#  endif
@@ -297,7 +299,7 @@ inline uint64_t DoXchg64( volatile int64_t* p, uint64_t val ){  __asm__( WIDE("l
 #endif
 //-------------------------------------------------------------------------
 #if !defined( HAS_ASSEMBLY ) || defined( __CYGWIN__ )
- uint32_t  LockedExchange ( volatile uint32_t* p, uint32_t val )
+uint32_t  LockedExchange( volatile uint32_t* p, uint32_t val )
 {
 	// Windows only available - for linux platforms please consult
 	// the assembly version should be consulted
@@ -311,12 +313,12 @@ inline uint64_t DoXchg64( volatile int64_t* p, uint64_t val ){  __asm__( WIDE("l
 #else
 #  if ( defined( __LINUX__ ) || defined( __LINUX64__ ) ) //&& !( defined __ARM__ || defined __ANDROID__ )
 	return XCHG( p, val );
-//   return __atomic_exchange_n(p,val,__ATOMIC_RELAXED);
+	//   return __atomic_exchange_n(p,val,__ATOMIC_RELAXED);
 #  else /* some other system, not windows, not linux... */
 	{
-#warning compiling C fallback locked exchange.  This is NOT atomic, and needs to be
-	// swp is the instruction....
-		uint32_t prior = *p;
+		#warning compiling C fallback locked exchange.This is NOT atomic, and needs to be
+			// swp is the instruction....
+			uint32_t prior = *p;
 		*p = val;
 		return prior;
 	}
@@ -324,31 +326,31 @@ inline uint64_t DoXchg64( volatile int64_t* p, uint64_t val ){  __asm__( WIDE("l
 #endif
 }
 
- uint64_t  LockedExchange64 ( volatile uint64_t* p, uint64_t val )
+uint64_t  LockedExchange64( volatile uint64_t* p, uint64_t val )
 {
 	// Windows only available - for linux platforms please consult
 	// the assembly version should be consulted
 #if defined WIN32 && !defined __ANDROID__
 #ifdef _MSC_VER
 #ifdef __64__
-   uint64_t prior = (uint64_t)InterlockedExchange64( (volatile __int64 *)p, (int64_t)val );
+	uint64_t prior = (uint64_t)InterlockedExchange64( (volatile __int64 *)p, (int64_t)val );
 #else
 	// because the value is a LONG (signed) it has to be made unsigned of the same lenght (ULONG) then extended (uint64_t).
 	// otherwise the sign extension was a bug.
-   uint64_t prior = (uint64_t)(ULONG)InterlockedExchange( (DWORD*)p, (DWORD)val ) | ( (uint64_t)InterlockedExchange( ((DWORD*)p)+1, (DWORD)(val >> 32) ) << 32 );
+	uint64_t prior = (uint64_t)(ULONG)InterlockedExchange( (DWORD*)p, (DWORD)val ) | ((uint64_t)InterlockedExchange( ((DWORD*)p) + 1, (DWORD)(val >> 32) ) << 32);
 #endif
 #else
-   uint64_t prior = InterlockedExchange( (volatile LONG*)p, (int32_t)val ) | InterlockedExchange( ((volatile LONG*)p)+1, (uint32_t)(val >> 32) );
+	uint64_t prior = InterlockedExchange( (volatile LONG*)p, (int32_t)val ) | InterlockedExchange( ((volatile LONG*)p) + 1, (uint32_t)(val >> 32) );
 #endif
 	return prior;
 #else
 #  if defined __GNUC__
 #     if !defined( __ANDROID__ ) || ( ANDROID_NDK_TARGET_PLATFORM > 16 )
-	return XCHG(p,val);//__atomic_exchange_n(p,val,__ATOMIC_RELAXED);
+	return XCHG( p, val );//__atomic_exchange_n(p,val,__ATOMIC_RELAXED);
 #else
 	{
 		// swp is the instruction....
-      // going to have to set IRQ, PIRQ on arm...
+	  // going to have to set IRQ, PIRQ on arm...
 		uint64_t prior = *p;
 		*p = val;
 		return prior;
@@ -357,7 +359,7 @@ inline uint64_t DoXchg64( volatile int64_t* p, uint64_t val ){  __asm__( WIDE("l
 #  else
 	{
 		// swp is the instruction....
-      // going to have to set IRQ, PIRQ on arm...
+	  // going to have to set IRQ, PIRQ on arm...
 		uint64_t prior = *p;
 		*p = val;
 		return prior;
@@ -369,17 +371,17 @@ inline uint64_t DoXchg64( volatile int64_t* p, uint64_t val ){  __asm__( WIDE("l
 #endif
 
 //-------------------------------------------------------------------------
- uint32_t  LockedIncrement ( uint32_t* p)
+uint32_t  LockedIncrement( uint32_t* p )
 {
-	if(p)
-		 return (*p)++;
+	if( p )
+		return (*p)++;
 	return 0;
 }
 //-------------------------------------------------------------------------
- uint32_t  LockedDecrement ( uint32_t* p )
+uint32_t  LockedDecrement( uint32_t* p )
 {
-	if(p)
-		 return (*p)--;
+	if( p )
+		return (*p)--;
 	return 0;
 }
 //-------------------------------------------------------------------------
@@ -388,12 +390,12 @@ inline uint64_t DoXchg64( volatile int64_t* p, uint64_t val ){  __asm__( WIDE("l
 #if 0
 static void DumpSection( PCRITICALSECTION pcs )
 {
-	lprintf( WIDE("Critical Section.....") );
-	lprintf( WIDE("------------------------------") );
-	lprintf( WIDE("Update: %08x"), pcs->dwUpdating );
-	lprintf( WIDE("Current Process: %16"_64fx""), pcs->dwThreadID );
-	lprintf( WIDE("Next Process:    %16"_64fx""), pcs->dwThreadWaiting );
-	lprintf( WIDE("Last update: %s(%d)"), pcs->pFile?pcs->pFile:"unknown", pcs->nLine );
+	lprintf( WIDE( "Critical Section....." ) );
+	lprintf( WIDE( "------------------------------" ) );
+	lprintf( WIDE( "Update: %08x" ), pcs->dwUpdating );
+	lprintf( WIDE( "Current Process: %16"_64fx"" ), pcs->dwThreadID );
+	lprintf( WIDE( "Next Process:    %16"_64fx"" ), pcs->dwThreadWaiting );
+	lprintf( WIDE( "Last update: %s(%d)" ), pcs->pFile ? pcs->pFile : "unknown", pcs->nLine );
 }
 #endif
 #endif
@@ -406,309 +408,309 @@ static void DumpSection( PCRITICALSECTION pcs )
 
 #endif
 #ifndef USE_NATIVE_CRITICAL_SECTION
- uint32_t  CriticalSecOwners ( PCRITICALSECTION pcs )
-{
-   return pcs->dwLocks;
-}
+		uint32_t  CriticalSecOwners( PCRITICALSECTION pcs )
+		{
+			return pcs->dwLocks;
+		}
 #endif
 
 #ifndef USE_NATIVE_CRITICAL_SECTION
-int32_t  EnterCriticalSecNoWaitEx ( PCRITICALSECTION pcs, THREAD_ID *prior DBG_PASS )
-{
-	//uint64_t tick, tick2;
-	THREAD_ID dwCurProc;
-	//static int nEntry;
-
-	dwCurProc = GetMyThreadID();
-#ifndef NO_LOGGING
-	if( g.bLogCritical > 0 && g.bLogCritical < 2 )
-		_lprintf( DBG_RELAY )( WIDE(" [%16")_64fx WIDE("] Attempt enter critical Section %p %08") _32fx
-									, dwCurProc
-									, pcs
-									, pcs->dwLocks );
-#endif
-	// need to aquire lock on section...
-   // otherwise our old mechanism allowed an enter in another thread
-   // to falsely identify the section as its own while the real owner
-	// tried to exit...
-
-	if( XCHG( &pcs->dwUpdating, 1 ) )
-	{
-#ifdef DEBUG_CRITICAL_SECTIONS
-		pcs->bCollisions++;
-#endif
-		return -1;
-	}
-#ifdef DEBUG_CRITICAL_SECTIONS
-	if( pcs->bCollisions > 1 )
-	{
-#  ifndef NO_LOGGING
-		if( g.bLogCritical > 0 && g.bLogCritical < 2 )
-			_lprintf(DBG_RELAY)( WIDE("Section is was updating %") _32f WIDE(" cycles"), pcs->bCollisions );
-#  endif
-		pcs->bCollisions = 0;
-	}
-#  ifndef NO_LOGGING
-	else
-		if( g.bLogCritical > 0 && g.bLogCritical < 2 )
-			_lprintf(DBG_RELAY)( WIDE("Locked....for enter") );
-#  endif
-#endif
-
-	if( !pcs->dwThreadID )
-	{
-		// section is unowned...
-		if( pcs->dwThreadWaiting )
+		int32_t  EnterCriticalSecNoWaitEx( PCRITICALSECTION pcs, THREAD_ID *prior DBG_PASS )
 		{
-			// someone was waiting for it...
-			if( pcs->dwThreadWaiting != dwCurProc )
+			//uint64_t tick, tick2;
+			THREAD_ID dwCurProc;
+			//static int nEntry;
+
+			dwCurProc = GetMyThreadID();
+#ifndef NO_LOGGING
+			if( g.bLogCritical > 0 && g.bLogCritical < 2 )
+				_lprintf( DBG_RELAY )(WIDE( " [%16" )_64fx WIDE( "] Attempt enter critical Section %p %08" ) _32fx
+					, dwCurProc
+					, pcs
+					, pcs->dwLocks);
+#endif
+			// need to aquire lock on section...
+		   // otherwise our old mechanism allowed an enter in another thread
+		   // to falsely identify the section as its own while the real owner
+			// tried to exit...
+
+			if( XCHG( &pcs->dwUpdating, 1 ) )
 			{
 #ifdef DEBUG_CRITICAL_SECTIONS
-				lprintf( WIDE("waiter is not myself... someone else wanted to own this section (more recently) than me.") );
+				pcs->bCollisions++;
 #endif
-				if( prior && !(*prior) )
-				{
+				return -1;
+			}
 #ifdef DEBUG_CRITICAL_SECTIONS
-					lprintf( WIDE("Inserting myself as waiter...") );
+			if( pcs->bCollisions > 1 )
+			{
+#  ifndef NO_LOGGING
+				if( g.bLogCritical > 0 && g.bLogCritical < 2 )
+					_lprintf( DBG_RELAY )(WIDE( "Section is was updating %" ) _32f WIDE( " cycles" ), pcs->bCollisions);
+#  endif
+				pcs->bCollisions = 0;
+			}
+#  ifndef NO_LOGGING
+			else
+				if( g.bLogCritical > 0 && g.bLogCritical < 2 )
+					_lprintf( DBG_RELAY )(WIDE( "Locked....for enter" ));
+#  endif
 #endif
-					(*prior) = pcs->dwThreadWaiting;
-					pcs->dwThreadWaiting = dwCurProc;
-					//pcs->dwUpdating = 0;
-					//return 0;
-					// actually need to continue as if I had just
-					// claimed the section...
+
+			if( !pcs->dwThreadID )
+			{
+				// section is unowned...
+				if( pcs->dwThreadWaiting )
+				{
+					// someone was waiting for it...
+					if( pcs->dwThreadWaiting != dwCurProc )
+					{
+#ifdef DEBUG_CRITICAL_SECTIONS
+						lprintf( WIDE( "waiter is not myself... someone else wanted to own this section (more recently) than me." ) );
+#endif
+						if( prior && !(*prior) )
+						{
+#ifdef DEBUG_CRITICAL_SECTIONS
+							lprintf( WIDE( "Inserting myself as waiter..." ) );
+#endif
+							(*prior) = pcs->dwThreadWaiting;
+							pcs->dwThreadWaiting = dwCurProc;
+							//pcs->dwUpdating = 0;
+							//return 0;
+							// actually need to continue as if I had just
+							// claimed the section...
+						}
+					}
 				}
 			}
-		}
-	}
 
 
-	if( !pcs->dwThreadID || dwCurProc == pcs->dwThreadID )
-	{
-		// is unowned, and there was a waiting thread...
-		if( (!pcs->dwThreadID) && pcs->dwThreadWaiting )
-		{
-			// someone was waiting... is the last one waiting me?
-			if( pcs->dwThreadWaiting != dwCurProc )
+			if( !pcs->dwThreadID || dwCurProc == pcs->dwThreadID )
 			{
+				// is unowned, and there was a waiting thread...
+				if( (!pcs->dwThreadID) && pcs->dwThreadWaiting )
+				{
+					// someone was waiting... is the last one waiting me?
+					if( pcs->dwThreadWaiting != dwCurProc )
+					{
 
 #ifdef DEBUG_CRITICAL_SECTIONS
-				if( g.bLogCritical )
-					lprintf( WIDE("Was woken up as wrong thread.. %016Lx %016Lx %016Lx"), dwCurProc, pcs->dwThreadWaiting, prior?(*prior):0 );
+						if( g.bLogCritical )
+							lprintf( WIDE( "Was woken up as wrong thread.. %016Lx %016Lx %016Lx" ), dwCurProc, pcs->dwThreadWaiting, prior ? (*prior) : 0 );
 #endif
-				// wake the correct thread...
-				if( prior && !( *prior ) )
-				{
-					(*prior) = pcs->dwThreadWaiting;
-				}
+						// wake the correct thread...
+						if( prior && !(*prior) )
+						{
+							(*prior) = pcs->dwThreadWaiting;
+						}
 #ifdef DEBUG_CRITICAL_SECTIONS
-				else if( prior )
-				{
-					lprintf( WIDE("Already saved the prior waiter and are setting self as waiter.") );
-				}
+						else if( prior )
+						{
+							lprintf( WIDE( "Already saved the prior waiter and are setting self as waiter." ) );
+						}
 #endif
-				pcs->dwThreadWaiting = dwCurProc;
+						pcs->dwThreadWaiting = dwCurProc;
 
+						pcs->dwUpdating = 0;
+						WakeNamedThreadSleeper( WIDE( "sack.critsec" ), pcs->dwThreadWaiting );
+						//WakeThreadID( pcs->dwThreadWaiting );
+						Relinquish();
+						return 0;
+					}
+					else
+					{
+#ifdef DEBUG_CRITICAL_SECTIONS
+						if( g.bLogCritical )
+							lprintf( WIDE( "Was woken up as correct thread.. %016Lx %016Lx %016Lx" ), dwCurProc, pcs->dwThreadWaiting, prior ? (*prior) : 0 );
+#endif
+						// is me... unowned section, and prior waiter is me.
+						if( prior && (*prior) )
+						{
+#ifdef DEBUG_CRITICAL_SECTIONS
+							lprintf( WIDE( "Moving prior into waiting... %08x %08x" ), pcs->dwThreadWaiting, *prior );
+#endif
+							pcs->dwThreadWaiting = *prior;
+							*prior = 0;
+						}
+						else
+						{
+							pcs->dwThreadWaiting = 0;
+						}
+					}
+				}
+				else
+				{
+					// otherwise threadID (is me) or !dwThreadWaiting
+				}
+				// otherwise 1) I won the thread already... (threadID == me )
+				// or 2) there was not someone waiting...
+				pcs->dwLocks++;
+				if( g.bLogCritical > 0 && g.bLogCritical < 2 )
+					lprintf( WIDE( "Locks are %08" )_32fx, pcs->dwLocks );
+#ifdef DEBUG_CRITICAL_SECTIONS
+#  ifndef NO_LOGGING
+				if( (pcs->dwLocks & 0xFFFFF) > 1 )
+				{
+					if( pFile != __FILE__ )
+					{
+						if( g.bLogCritical > 0 && g.bLogCritical < 2 )
+							_xlprintf( 1 DBG_RELAY )(WIDE( "!!!!  %p  Multiple Double entery! %" )_32fx, pcs, pcs->dwLocks);
+					}
+				}
+#  endif
+				pcs->pFile = pFile;
+				pcs->nLine = nLine;
+#endif
+				pcs->dwThreadID = dwCurProc;
 				pcs->dwUpdating = 0;
-				WakeNamedThreadSleeper( WIDE("sack.critsec"), pcs->dwThreadWaiting );
-				//WakeThreadID( pcs->dwThreadWaiting );
+				if( g.bLogCritical > 0 && g.bLogCritical < 2 )
+					lprintf( WIDE( "Entered, and unlocked for entry" ) );
+				//nEntry--;
+				return 1;
+			}
+			else // if( pcs->dwThreadID ) ... and it's not me
+			{
+				//if( !(pcs->dwLocks & SECTION_LOGGED_WAIT) )
+				{
+					pcs->dwLocks |= SECTION_LOGGED_WAIT;
+#ifdef DEBUG_CRITICAL_SECTIONS
+					if( g.bLogCritical )
+						lprintf( WIDE( "Waiting on critical section owned by %s(%d) %08lx %016Lx." ), (pcs->pFile) ? (pcs->pFile) : WIDE( "Unknown" ), pcs->nLine, pcs->dwLocks, pcs->dwThreadID );
+#endif
+				}
+				// if the prior is wante to be saved...
+				if( prior )
+				{
+					if( *prior )
+					{
+						if( pcs->dwThreadWaiting != dwCurProc )
+						{
+							lprintf( WIDE( "thread to wake is not this one... fail. %016" )_64fx WIDE( " %016" )_64fx, pcs->dwThreadWaiting, dwCurProc );
+							// assume that someone else kept our waiting ID...
+							// cause we're not the one waiting, and we have someone elses ID..
+							// we are awake out of order..
+							pcs->dwUpdating = 0;
+							return 0;
+						}
+					}
+					if( pcs->dwThreadWaiting != dwCurProc )
+					{
+						if( prior && !(*prior) )
+						{
+#ifdef DEBUG_CRITICAL_SECTIONS
+							if( g.bLogCritical )
+								lprintf( WIDE( "Setting prior to %016Lx and prior was %016Lx" ), pcs->dwThreadWaiting, (*prior) );
+#endif
+							*prior = pcs->dwThreadWaiting;
+						}
+						else if( prior && (*prior) )
+						{
+							lprintf( WIDE( "prior was set already... no room to store dwThreadWaiting..." ) );
+							DebugBreak();
+						}
+						pcs->dwThreadWaiting = dwCurProc;
+					}
+				}
+				else
+				{
+					// else no prior... so don't set the dwthreadwaiting...
+#ifdef DEBUG_CRITICAL_SECTIONS
+		 // this is enter try no wait...
+			//_lprintf(DBG_RELAY)( WIDE( "No prior... not setting wake ID" ) );
+#endif
+				}
+				//else
+				//	pcs->dwThreadWaiting = dwCurProc;
+				pcs->dwUpdating = 0;
+#  ifndef NO_LOGGING
+				if( g.bLogCritical > 0 && g.bLogCritical < 2 )
+					_lprintf( DBG_RELAY )(WIDE( "Unlocked... for enter" ));
+#  endif
+				//nEntry--;
+			}
+			//lprintf( WIDE("Enter section : %"PRIdFAST64"\n"),tick2-tick );
+			return 0;
+		}
+#endif
+
+		//-------------------------------------------------------------------------
+
+#ifndef USE_NATIVE_CRITICAL_SECTION
+		static LOGICAL LeaveCriticalSecNoWakeEx( PCRITICALSECTION pcs DBG_PASS )
+#define LeaveCriticalSecNoWake(pcs) LeaveCriticalSecNoWakeEx( pcs DBG_SRC )
+		{
+			THREAD_ID dwCurProc = GetMyThreadID();
+			while( XCHG( &pcs->dwUpdating, 1 ) )
 				Relinquish();
-				return 0;
+#  ifndef NO_LOGGING
+			if( g.bLogCritical > 0 && g.bLogCritical < 2 )
+				_lprintf( DBG_RELAY )(WIDE( "Locked %p for leaving..." ), pcs);
+#  endif
+			if( !(pcs->dwLocks & ~SECTION_LOGGED_WAIT) )
+			{
+				if( g.bLogCritical > 0 && g.bLogCritical < 2 )
+					lprintf( DBG_FILELINEFMT WIDE( "Leaving a blank critical section" ) DBG_RELAY );
+				//while( 1 );
+				pcs->dwUpdating = 0;
+				return FALSE;
+			}
+#ifdef DEBUG_CRITICAL_SECTIONS
+			//if( g.bLogCritical > 1 )
+			// lprintf( DBG_FILELINEFMT WIDE( "Leaving %"_64fx"x %"_64fx"x %p" ) DBG_RELAY ,pcs->dwThreadID, dwCurProc, pcs );
+#endif
+			if( pcs->dwThreadID == dwCurProc )
+			{
+				pcs->dwLocks--;
+				if( pcs->dwLocks & SECTION_LOGGED_WAIT )
+				{
+					if( !(pcs->dwLocks & ~(SECTION_LOGGED_WAIT)) )
+					{
+#ifdef DEBUG_CRITICAL_SECTIONS
+						pcs->pFile = pFile;
+						pcs->nLine = nLine;
+#endif
+						pcs->dwLocks = 0;
+						pcs->dwThreadID = 0;
+						// better be 0 already...
+						//pcs->dwThreadWaiting = 0;
+						Relinquish(); // allow whoever was waiting to go now...
+					}
+				}
+				else
+				{
+					if( !pcs->dwLocks )
+						pcs->dwThreadID = 0;
+				}
+				// don't wake the prior (if there is one sleeping)
+				// pcs->dwThreadID = 0;
 			}
 			else
 			{
 #ifdef DEBUG_CRITICAL_SECTIONS
-				if( g.bLogCritical )
-					lprintf( WIDE("Was woken up as correct thread.. %016Lx %016Lx %016Lx"), dwCurProc, pcs->dwThreadWaiting, prior?(*prior):0 );
-#endif
-				// is me... unowned section, and prior waiter is me.
-				if( prior && (*prior ) )
 				{
-#ifdef DEBUG_CRITICAL_SECTIONS
-					lprintf( WIDE("Moving prior into waiting... %08x %08x"), pcs->dwThreadWaiting, *prior );
-#endif
-					pcs->dwThreadWaiting = *prior;
-					*prior = 0;
-				}
-				else
-				{
-					pcs->dwThreadWaiting = 0;
-				}
-			}
-		}
-		else
-		{
-			// otherwise threadID (is me) or !dwThreadWaiting
-		}
-		// otherwise 1) I won the thread already... (threadID == me )
-		// or 2) there was not someone waiting...
-		pcs->dwLocks++;
-		if( g.bLogCritical > 0 && g.bLogCritical < 2 )
-			lprintf( WIDE("Locks are %08")_32fx, pcs->dwLocks );
-#ifdef DEBUG_CRITICAL_SECTIONS
-#  ifndef NO_LOGGING
-		if( ( pcs->dwLocks & 0xFFFFF ) > 1 )
-		{
-			if( pFile != __FILE__ )
-			{
-				if( g.bLogCritical > 0 && g.bLogCritical < 2 )
-					_xlprintf( 1 DBG_RELAY )( WIDE("!!!!  %p  Multiple Double entery! %")_32fx, pcs, pcs->dwLocks );
-			}
-		}
-#  endif
-		pcs->pFile = pFile;
-		pcs->nLine = nLine;
-#endif
-		pcs->dwThreadID = dwCurProc;
-		pcs->dwUpdating = 0;
-		if( g.bLogCritical > 0 && g.bLogCritical < 2 )
-			lprintf( WIDE("Entered, and unlocked for entry") );
-		//nEntry--;
-		return 1;
-	}
-	else // if( pcs->dwThreadID ) ... and it's not me
-	{
-		//if( !(pcs->dwLocks & SECTION_LOGGED_WAIT) )
-		{
-			pcs->dwLocks |= SECTION_LOGGED_WAIT;
-#ifdef DEBUG_CRITICAL_SECTIONS
-			if( g.bLogCritical )
-				lprintf( WIDE("Waiting on critical section owned by %s(%d) %08lx %016Lx."), (pcs->pFile)?(pcs->pFile):WIDE("Unknown"), pcs->nLine, pcs->dwLocks, pcs->dwThreadID );
-#endif
-		}
-		// if the prior is wante to be saved...
-		if( prior )
-		{
-			if( *prior )
-			{
-				if( pcs->dwThreadWaiting != dwCurProc )
-				{
-					lprintf( WIDE("thread to wake is not this one... fail. %016")_64fx WIDE(" %016")_64fx, pcs->dwThreadWaiting, dwCurProc );
-					// assume that someone else kept our waiting ID...
-					// cause we're not the one waiting, and we have someone elses ID..
-					// we are awake out of order..
-					pcs->dwUpdating = 0;
-					return 0;
-				}
-			}
-			if( pcs->dwThreadWaiting != dwCurProc )
-			{
-				if( prior && !(*prior) )
-				{
-#ifdef DEBUG_CRITICAL_SECTIONS
-					if( g.bLogCritical )
-						lprintf( WIDE("Setting prior to %016Lx and prior was %016Lx"), pcs->dwThreadWaiting, (*prior) );
-#endif
-					*prior = pcs->dwThreadWaiting;
-				}
-				else if( prior && (*prior ) )
-				{
-					lprintf( WIDE( "prior was set already... no room to store dwThreadWaiting..." ) );
+					_xlprintf( 0 DBG_RELAY )(WIDE( "Sorry - you can't leave a section owned by %08Lx %08lx %s(%d)..." )
+						, pcs->dwThreadID
+						, pcs->dwLocks
+						, (pcs->pFile) ? (pcs->pFile) : WIDE( "Unknown" ), pcs->nLine);
 					DebugBreak();
 				}
-				pcs->dwThreadWaiting = dwCurProc;
-			}
-		}
-		else
-		{
-			// else no prior... so don't set the dwthreadwaiting...
-#ifdef DEBUG_CRITICAL_SECTIONS
-         // this is enter try no wait...
-			//_lprintf(DBG_RELAY)( WIDE( "No prior... not setting wake ID" ) );
-#endif
-		}
-		//else
-		//	pcs->dwThreadWaiting = dwCurProc;
-		pcs->dwUpdating = 0;
-#  ifndef NO_LOGGING
-		if( g.bLogCritical > 0 && g.bLogCritical < 2 )
-			_lprintf(DBG_RELAY)( WIDE( "Unlocked... for enter" ) );
-#  endif
-		//nEntry--;
-	}
-	//lprintf( WIDE("Enter section : %"PRIdFAST64"\n"),tick2-tick );
-	return 0;
-}
-#endif
-
-//-------------------------------------------------------------------------
-
-#ifndef USE_NATIVE_CRITICAL_SECTION
-static LOGICAL LeaveCriticalSecNoWakeEx( PCRITICALSECTION pcs DBG_PASS )
-#define LeaveCriticalSecNoWake(pcs) LeaveCriticalSecNoWakeEx( pcs DBG_SRC )
-{
-	THREAD_ID dwCurProc = GetMyThreadID();
-	while( XCHG( &pcs->dwUpdating, 1 ) )
-		Relinquish();
-#  ifndef NO_LOGGING
-	if( g.bLogCritical > 0 && g.bLogCritical < 2 )
-		_lprintf(DBG_RELAY)( WIDE("Locked %p for leaving..."), pcs );
-#  endif
-	if( !( pcs->dwLocks & ~SECTION_LOGGED_WAIT ) )
-	{
-		if( g.bLogCritical > 0 && g.bLogCritical < 2 )
-			lprintf( DBG_FILELINEFMT WIDE( "Leaving a blank critical section" ) DBG_RELAY );
-		//while( 1 );
-		pcs->dwUpdating = 0;
-		return FALSE;
-	}
-#ifdef DEBUG_CRITICAL_SECTIONS
-	//if( g.bLogCritical > 1 )
-	// lprintf( DBG_FILELINEFMT WIDE( "Leaving %"_64fx"x %"_64fx"x %p" ) DBG_RELAY ,pcs->dwThreadID, dwCurProc, pcs );
-#endif
-	if( pcs->dwThreadID == dwCurProc )
-	{
-		pcs->dwLocks--;
-		if( pcs->dwLocks & SECTION_LOGGED_WAIT )
-		{
-			if( !( pcs->dwLocks & ~(SECTION_LOGGED_WAIT) ) )
-			{
-#ifdef DEBUG_CRITICAL_SECTIONS
-				pcs->pFile = pFile;
-				pcs->nLine = nLine;
-#endif
-				pcs->dwLocks = 0;
-				pcs->dwThreadID = 0;
-				// better be 0 already...
-				//pcs->dwThreadWaiting = 0;
-				Relinquish(); // allow whoever was waiting to go now...
-			}
-		}
-		else
-		{
-			if( !pcs->dwLocks )
-				pcs->dwThreadID = 0;
-		}
-		// don't wake the prior (if there is one sleeping)
-		// pcs->dwThreadID = 0;
-	}
-	else
-	{
-#ifdef DEBUG_CRITICAL_SECTIONS
-		{
-			_xlprintf( 0 DBG_RELAY )( WIDE("Sorry - you can't leave a section owned by %08Lx %08lx %s(%d)...")
-											, pcs->dwThreadID
-											, pcs->dwLocks
-											, (pcs->pFile)?(pcs->pFile):WIDE( "Unknown" ), pcs->nLine );
-			DebugBreak();
-		}
 #else
-		lprintf( WIDE("Sorry - you can't leave a section you don't own...") );
+				lprintf( WIDE( "Sorry - you can't leave a section you don't own..." ) );
 #endif
-		pcs->dwUpdating = 0;
-		return FALSE;
-	}
-	// allow other locking threads immediate access to section
-	// but I know when that happens - since the waiting process
-	// will flag - SECTION_LOGGED_WAIT
-	//Relinquish();
-	pcs->dwUpdating = 0;
+				pcs->dwUpdating = 0;
+				return FALSE;
+			}
+			// allow other locking threads immediate access to section
+			// but I know when that happens - since the waiting process
+			// will flag - SECTION_LOGGED_WAIT
+			//Relinquish();
+			pcs->dwUpdating = 0;
 #  ifndef NO_LOGGING
-	if( g.bLogCritical > 0 && g.bLogCritical < 2 )
-		_lprintf(DBG_RELAY)( WIDE( "Unocked %p for leaving..." ), pcs );
+			if( g.bLogCritical > 0 && g.bLogCritical < 2 )
+				_lprintf( DBG_RELAY )(WIDE( "Unocked %p for leaving..." ), pcs);
 #  endif
-	return TRUE;
-}
+			return TRUE;
+		}
 #else
 #define LeaveCriticalSecNoWake(pcs) LeaveCriticalSection(pcs)
 #endif
@@ -716,17 +718,17 @@ static LOGICAL LeaveCriticalSecNoWakeEx( PCRITICALSECTION pcs DBG_PASS )
 
 //-------------------------------------------------------------------------
 #ifndef USE_NATIVE_CRITICAL_SECTION
-void  InitializeCriticalSec ( PCRITICALSECTION pcs )
-{
-	if( g.bLogCritical )
-		lprintf( WIDE( "CLEARING CRITICAL SECTION" ) );
-	MemSet( pcs, 0, sizeof( CRITICALSECTION ) );
-	return;
-}
+		void  InitializeCriticalSec( PCRITICALSECTION pcs )
+		{
+			if( g.bLogCritical )
+				lprintf( WIDE( "CLEARING CRITICAL SECTION" ) );
+			MemSet( pcs, 0, sizeof( CRITICALSECTION ) );
+			return;
+		}
 #endif
 
 #ifdef __cplusplus
-}; // namespace timers {
+	}; // namespace timers {
 	namespace memory { // resume memory namespace
 #endif
 //-------------------------------------------------------------------------
@@ -745,6 +747,78 @@ static uint32_t dwFree;
 //------------------------------------------------------------------------------------------------------
 static void DoCloseSpace( PSPACE ps, int bFinal );
 //------------------------------------------------------------------------------------------------------
+
+LOGICAL OpenRootMemory()
+{
+	uintptr_t size = sizeof( SPACEPOOL );
+	uint32_t created;
+	TEXTCHAR spacename[32];
+	if( g.pSpacePool != NULL )
+	{
+		// if local already has something, just return.
+		return FALSE;
+	}
+#ifdef DEBUG_GLOBAL_REGISTRATION
+	lprintf( WIDE( "Opening space..." ) );
+#endif
+#ifdef UNICODE
+#define _S WIDE("ls")
+#else
+#define _S WIDE("s")
+#endif
+
+#ifdef WIN32
+	tnprintf( spacename, sizeof( spacename ), WIDE( "memory:%08lX" ), GetCurrentProcessId() );
+#else
+	tnprintf( spacename, sizeof( spacename ), WIDE( "%" )_S WIDE( ":%08X" ), name, getpid() );
+#  ifdef DEBUG_FIRST_UNICODE_OPERATION
+	{
+		wchar_t buf[32];
+		strcpy( (char*)buf, "abcdefghijklmn" );
+		swprintf( buf, 32, L"%s", L"some_name" );
+		{
+			char tmpmsg[256];
+			int chars;
+			int ofs = 0;
+			ofs = snprintf( tmpmsg, 256, "in the beginning(w):" );
+			for( chars = 0; chars < 32; chars++ )
+				ofs += snprintf( tmpmsg + ofs, 256 - ofs, "%02x ", ((char*)buf)[chars] );
+
+			__android_log_print( ANDROID_LOG_INFO, "org.d3x0r.sack.xxxx", tmpmsg );
+
+			ofs = snprintf( tmpmsg, 256, "in the beginning(w):" );
+			for( chars = 0; chars < 32; chars++ )
+				ofs += snprintf( tmpmsg + ofs, 256 - ofs, "%c", (buf)[chars] );
+
+			__android_log_print( ANDROID_LOG_INFO, "org.d3x0r.sack.xxxx", tmpmsg );
+
+
+			ofs = snprintf( tmpmsg, 256, "in the beginning(w):" );
+			for( chars = 0; chars < 32; chars++ )
+				ofs += snprintf( tmpmsg + ofs, 256 - ofs, "%c", (name)[chars] );
+
+			__android_log_print( ANDROID_LOG_INFO, "org.d3x0r.sack.xxxx", tmpmsg );
+
+			ofs = snprintf( tmpmsg, 256, "in the beginning(w):" );
+			for( chars = 0; chars < 32; chars++ )
+				ofs += snprintf( tmpmsg + ofs, 256 - ofs, "%c", (spacename)[chars] );
+
+			__android_log_print( ANDROID_LOG_INFO, "org.d3x0r.sack.xxxx", tmpmsg );
+
+		}
+
+	}
+#  endif
+#endif
+	// hmm application only shared space?
+	// how do I get that to happen?
+	 g.pSpacePool = (PSPACEPOOL)OpenSpaceExx( spacename, NULL, 0, &size, &created );
+	// I myself must have a global space, which is kept sepearte from named spaces
+	// but then... blah
+	return created;
+}
+
+
 
 // hmm this runs
 PRIORITY_ATEXIT(ReleaseAllMemory,ATEXIT_PRIORITY_SHAREMEM)
@@ -825,11 +899,9 @@ void InitSharedMemory( void )
 #endif
 		g.bInit = TRUE;  // onload was definatly a zero.
 		{
-			uintptr_t dwSize = sizeof( SPACEPOOL );
-			g.pSpacePool = (PSPACEPOOL)OpenSpace( NULL, NULL, &dwSize );
-			if( g.pSpacePool )
+			if( OpenRootMemory() )
 			{
-				MemSet( g.pSpacePool, 0, dwSize );
+				MemSet( g.pSpacePool, 0, sizeof( SPACEPOOL ) );
 				g.pSpacePool->me = &g.pSpacePool;
 #ifdef VERBOSE_LOGGING
 				if( !g.bDisableDebug )
@@ -1779,10 +1851,10 @@ static void DropMemEx( PMEM pMem DBG_PASS )
 POINTER HeapAllocateAlignedEx( PMEM pHeap, uintptr_t dwSize, uint32_t alignment DBG_PASS )
 {
    // if a heap is passed, it's a private heap, and allocation is as normal...
-	uint32_t dwPad = 0;
+	uint32_t dwAlignPad = 0;
 	if( alignment ) {
 		dwSize += (alignment - 1);
-		dwPad = (alignment - 1);
+		dwAlignPad = (alignment - 1);
 	}
 	if( !pHeap && !USE_CUSTOM_ALLOCER )
 	{
@@ -1798,7 +1870,7 @@ POINTER HeapAllocateAlignedEx( PMEM pHeap, uintptr_t dwSize, uint32_t alignment 
 #endif
 		pc->dwOwners = 1;
 		pc->dwSize = dwSize;
-		pc->dwPad = dwPad;
+		pc->dwPad = dwAlignPad;
 #ifndef NO_LOGGING
 		if( g.bLogAllocate )
 		{
@@ -1807,10 +1879,10 @@ POINTER HeapAllocateAlignedEx( PMEM pHeap, uintptr_t dwSize, uint32_t alignment 
 #endif
 		if( alignment && ( (uintptr_t)pc->byData & ~masks[alignment] ) ) {
 			uintptr_t retval = ((((uintptr_t)pc->byData) + (alignment - 1)) & masks[alignment]);
-			if( dwPad < 4 ) {
+			if( dwAlignPad < 4 ) {
 				DebugBreak();
 			}
-			pc->dwPad = dwPad - 4;
+			pc->dwPad = dwAlignPad - 4;
 			((uint32_t*)(retval - 4))[0] = pc->to_chunk_start = ((((uintptr_t)pc->byData) + (alignment - 1)) & masks[alignment]) - (uintptr_t)pc->byData;
 			return (POINTER)retval;
 		}
@@ -1949,14 +2021,6 @@ POINTER HeapAllocateAlignedEx( PMEM pHeap, uintptr_t dwSize, uint32_t alignment 
 			DropMem( pMem );
 			return NULL;
 		}
-		//#if DBG_AVAILABLE
-#ifndef NO_LOGGING
-		if( g.bLogAllocate )
-		{
-			_xlprintf( 2 DBG_RELAY )( WIDE("Allocate : %p(%p) - %") _PTRSZVALfs WIDE(" bytes") , pc->byData, pc, pc->dwSize );
-		}
-#endif
-		//#endif
 
 #if defined( _DEBUG ) //|| !defined( __NO_WIN32API__ )
 		if( !g.bDisableDebug )
@@ -1975,6 +2039,14 @@ POINTER HeapAllocateAlignedEx( PMEM pHeap, uintptr_t dwSize, uint32_t alignment 
 #endif
 		DropMem( pCurMem );
 		DropMem( pMem );
+		//#if DBG_AVAILABLE
+#ifndef NO_LOGGING
+		if( g.bLogAllocate && g.allowLogging )
+		{
+			_xlprintf( 2 DBG_RELAY )(WIDE( "Allocate : %p(%p) - %" ) _PTRSZVALfs WIDE( " bytes" ), pc->byData, pc, pc->dwSize);
+		}
+#endif
+		//#endif
 		if( alignment && ((uintptr_t)pc->byData & ~masks[alignment]) ) {
 			uintptr_t retval = ((((uintptr_t)pc->byData) + (alignment - 1)) & masks[alignment]);
 			((uint32_t*)(retval - 4))[0] = pc->to_chunk_start = ((((uintptr_t)pc->byData) + (alignment - 1)) & masks[alignment]) - (uintptr_t)pc->byData;
@@ -2221,6 +2293,17 @@ POINTER ReleaseEx ( POINTER pData DBG_PASS )
 			if( !g.bDisableAutoCheck )
 				GetHeapMemStatsEx(pc->pRoot, &dwFree,&dwAllocated,&dwBlocks,&dwFreeBlocks DBG_RELAY);
 #endif
+			if( g.bLogAllocate )
+			{
+#ifndef NO_LOGGING
+#  ifdef _DEBUG
+				if( !g.bDisableDebug )
+					_xlprintf( 2 DBG_RELAY )(WIDE( "Release  : %p(%p) - %" ) _PTRSZVALfs WIDE( " bytes %s(%d)" ), pc->byData, pc, pc->dwSize, BLOCK_FILE( pc ), BLOCK_LINE( pc ));
+				else
+					_xlprintf( 2 DBG_RELAY )(WIDE( "Release  : %p(%p) - %" ) _PTRSZVALfs WIDE( " bytes" ), pc->byData, pc, pc->dwSize);
+#  endif
+#endif
+			}
 
 			pMem = GrabMem( pc->pRoot );
 			if( !pMem )
@@ -2256,17 +2339,6 @@ POINTER ReleaseEx ( POINTER pData DBG_PASS )
 				return NULL;
 			}
 			pCurMem = (PMEM)pMemSpace->pMem;
-			if( g.bLogAllocate )
-			{
-#ifndef NO_LOGGING
-#  ifdef _DEBUG
-				if( !g.bDisableDebug )
-					_xlprintf( 2 DBG_RELAY)( WIDE("Release  : %p(%p) - %") _PTRSZVALfs WIDE(" bytes %s(%d)"), pc->byData, pc, pc->dwSize, BLOCK_FILE(pc), BLOCK_LINE(pc) );
-				else
-					_xlprintf( 2 DBG_RELAY )( WIDE("Release  : %p(%p) - %") _PTRSZVALfs WIDE(" bytes"), pc->byData, pc, pc->dwSize );
-#  endif
-#endif
-			}
 			if( pData && pc )
 			{
 				if( !pc->dwOwners )

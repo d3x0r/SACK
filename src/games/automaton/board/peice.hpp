@@ -69,18 +69,18 @@ class IPEICE
 {
 public:
 	PPEICE_METHODS methods;
-	PTRSZVAL psvCreate;
+	uintptr_t psvCreate;
 	virtual void Destroy( void ) = 0;
 	virtual CTEXTSTR name(void) = 0;
 	virtual Image getimage(void) = 0;
 	virtual Image getimage(int scale) = 0;
-	virtual Image getcell( S_32 x, S_32 y ) = 0;
-	virtual Image getcell( S_32 x, S_32 y, int scale ) = 0;
-	virtual void gethotspot( PS_32 x, PS_32 y ) = 0;
-	virtual void getsize( P_32 rows, P_32 cols ) = 0;
-	virtual void SaveBegin( PODBC odbc, PTRSZVAL psvInstance ) = 0;
-	virtual INDEX Save( PODBC odbc, INDEX iParent, PTRSZVAL psvInstance ) = 0;
-	virtual PTRSZVAL Load( PODBC odbc, INDEX iInstance ) = 0;
+	virtual Image getcell( int32_t x, int32_t y ) = 0;
+	virtual Image getcell( int32_t x, int32_t y, int scale ) = 0;
+	virtual void gethotspot( int32_t* x, int32_t* y ) = 0;
+	virtual void getsize( uint32_t* rows, uint32_t* cols ) = 0;
+	virtual void SaveBegin( PODBC odbc, uintptr_t psvInstance ) = 0;
+	virtual INDEX Save( PODBC odbc, INDEX iParent, uintptr_t psvInstance ) = 0;
+	virtual uintptr_t Load( PODBC odbc, INDEX iInstance ) = 0;
 };
 
 class PEICE_METHODS {
@@ -91,44 +91,44 @@ public:
 	PEICE_PROC( CTEXTSTR, name )(void);
 	PEICE_PROC( void, SetPeice )( PIPEICE peice ) { master = peice; }
 	PEICE_PROC( Image, getimage )(void) { return master->getimage(); };
-	PEICE_PROC( Image, getcell )( S_32 x, S_32 y ) { return master->getcell(x,y); };
+	PEICE_PROC( Image, getcell )( int32_t x, int32_t y ) { return master->getcell(x,y); };
 	PEICE_PROC( Image, getimage )(int scale) { return master->getimage(scale); };
-	PEICE_PROC( Image, getcell )( S_32 x, S_32 y, int scale ) { return master->getcell(x,y,scale); };
-	PEICE_PROC( void, gethotspot )( PS_32 x, PS_32 y ) { master->gethotspot(x,y); };
-	PEICE_PROC( void, getsize )( P_32 rows, P_32 cols ) { master->getsize(rows,cols); };
+	PEICE_PROC( Image, getcell )( int32_t x, int32_t y, int scale ) { return master->getcell(x,y,scale); };
+	PEICE_PROC( void, gethotspot )( int32_t* x, int32_t* y ) { master->gethotspot(x,y); };
+	PEICE_PROC( void, getsize )( uint32_t* rows, uint32_t* cols ) { master->getsize(rows,cols); };
 
 	// --- these are intended to be overridden.
 	// the above are sufficient for static usage, and should not be
 	// defined by derived peices...
 
-	virtual PEICE_PROC( PTRSZVAL, Create )( PTRSZVAL psv_userdata );
-	virtual PEICE_PROC( void, Destroy )( PTRSZVAL );
+	virtual PEICE_PROC( uintptr_t, Create )( uintptr_t psv_userdata );
+	virtual PEICE_PROC( void, Destroy )( uintptr_t );
 	// return 0 to disallow beginning of a connection, current path never really exists...
-	virtual PEICE_PROC( int, ConnectBegin )( PTRSZVAL psv_to_instance, S_32 x, S_32 y
-														, PIPEICE peice_from, PTRSZVAL psv_from_instance );
+	virtual PEICE_PROC( int, ConnectBegin )( uintptr_t psv_to_instance, int32_t x, int32_t y
+														, PIPEICE peice_from, uintptr_t psv_from_instance );
 	// return 0 to disallow connection, current path dissappears.
-	virtual PEICE_PROC( int, ConnectEnd )( PTRSZVAL psv_to_instance, S_32 x, S_32 y
-													 , PIPEICE peice_from, PTRSZVAL psv_from_instance );
+	virtual PEICE_PROC( int, ConnectEnd )( uintptr_t psv_to_instance, int32_t x, int32_t y
+													 , PIPEICE peice_from, uintptr_t psv_from_instance );
 	// can return 0 to disallow disconnect...
-	virtual PEICE_PROC( int, Disconnect )( PTRSZVAL psv_to_instance );
-													 //, PIPEICE peice_to_disconnect, PTRSZVAL psv_to_disconnect_instance );
-	virtual PEICE_PROC( void, OnMove )( PTRSZVAL psvInstance );
-	virtual PEICE_PROC( int, OnClick )( PTRSZVAL psvInstance, S_32 x, S_32 y );
-	virtual PEICE_PROC( int, OnRightClick )( PTRSZVAL psvInstance, S_32 x, S_32 y );
-	virtual PEICE_PROC( int, OnDoubleClick )( PTRSZVAL psvInstance, S_32 x, S_32 y );
+	virtual PEICE_PROC( int, Disconnect )( uintptr_t psv_to_instance );
+													 //, PIPEICE peice_to_disconnect, uintptr_t psv_to_disconnect_instance );
+	virtual PEICE_PROC( void, OnMove )( uintptr_t psvInstance );
+	virtual PEICE_PROC( int, OnClick )( uintptr_t psvInstance, int32_t x, int32_t y );
+	virtual PEICE_PROC( int, OnRightClick )( uintptr_t psvInstance, int32_t x, int32_t y );
+	virtual PEICE_PROC( int, OnDoubleClick )( uintptr_t psvInstance, int32_t x, int32_t y );
 
-	virtual PEICE_PROC( void, Update )( PTRSZVAL psvInstance, _32 cycle );
-	virtual PEICE_PROC( void, Draw )( PTRSZVAL psvInstance, Image surface, Image peice, S_32 x, S_32 y );
+	virtual PEICE_PROC( void, Update )( uintptr_t psvInstance, uint32_t cycle );
+	virtual PEICE_PROC( void, Draw )( uintptr_t psvInstance, Image surface, Image peice, int32_t x, int32_t y );
 
 	// result with the instance ID in the database
-	virtual PEICE_PROC( void, SaveBegin )( PODBC odbc, PTRSZVAL psvInstance );
-	virtual PEICE_PROC( INDEX, Save )( PODBC odbc, INDEX iParent, PTRSZVAL psvInstance );
-	virtual PEICE_PROC( PTRSZVAL, Load )( PODBC odbc, INDEX iInstance );
-	//virtual PEICE_PROC( void, Save )( FILE *file, PTRSZVAL psvInstance );
-	//virtual PEICE_PROC( void, Draw )( PTRSZVAL psvInstance
+	virtual PEICE_PROC( void, SaveBegin )( PODBC odbc, uintptr_t psvInstance );
+	virtual PEICE_PROC( INDEX, Save )( PODBC odbc, INDEX iParent, uintptr_t psvInstance );
+	virtual PEICE_PROC( uintptr_t, Load )( PODBC odbc, INDEX iInstance );
+	//virtual PEICE_PROC( void, Save )( FILE *file, uintptr_t psvInstance );
+	//virtual PEICE_PROC( void, Draw )( uintptr_t psvInstance
 	//										  , Image surface
 	//										  , int x, int y );
-	//virtual PEICE_PROC( void, Draw )( PTRSZVAL psvInstance
+	//virtual PEICE_PROC( void, Draw )( uintptr_t psvInstance
 	//										  , Image surface
 	//										  , int x, int y
 												// these two are the cell offset if cells
@@ -144,13 +144,13 @@ typedef class IVIA *PIVIA;
 class VIA_METHODS: public PEICE_METHODS {
 public:
 	PIVIA via_master;
-	//virtual int OnRelease( PTRSZVAL psv );
-	//virtual int OnRouteClick( PTRSZVAL psv );
+	//virtual int OnRelease( uintptr_t psv );
+	//virtual int OnRouteClick( uintptr_t psv );
 	//virtual int Reroute();
 	PEICE_PROC( void, SetPeice )( PIVIA peice ) { via_master = peice; PEICE_METHODS::master = (PIPEICE)peice; }
-	virtual PEICE_PROC( int, OnClick )( PTRSZVAL psvInstance, S_32 x, S_32 y );
-	virtual PEICE_PROC( int, OnRightClick )( PTRSZVAL psvInstance, S_32 x, S_32 y );
-	virtual PEICE_PROC( int, OnDoubleClick )( PTRSZVAL psvInstance, S_32 x, S_32 y );
+	virtual PEICE_PROC( int, OnClick )( uintptr_t psvInstance, int32_t x, int32_t y );
+	virtual PEICE_PROC( int, OnRightClick )( uintptr_t psvInstance, int32_t x, int32_t y );
+	virtual PEICE_PROC( int, OnDoubleClick )( uintptr_t psvInstance, int32_t x, int32_t y );
 };
 
 class IVIA: public IPEICE
@@ -172,7 +172,7 @@ public:
 
 
 struct PEICE_INSTANCE {
-	PTRSZVAL psvInstance;
+	uintptr_t psvInstance;
 	PIPEICE peice;
 	PEICE_METHODS methods;
 };
@@ -185,12 +185,12 @@ extern "C" {
 							 , int hotspot_x
 							 , int hotspot_y
 							 , PPEICE_METHODS methods //= NULL
-							 , PTRSZVAL psv
+							 , uintptr_t psv
 							 );
 PEICE_PROC(PIVIA,DoCreateVia)( PIBOARD board, CTEXTSTR name //= "A Peice"
 											 , Image image //= NULL
 											 , PVIA_METHODS methods //= NULL
-											 , PTRSZVAL psv
+											 , uintptr_t psv
 											 );
 
 }

@@ -765,6 +765,8 @@ retry_lock:
 		Relinquish();
 		goto retry_lock;
 	}
+	(*pplq)->Lock = 1;
+	link_queue_local_lock[0] = 0;
 #endif
 
 	if( pplq )
@@ -777,7 +779,7 @@ retry_lock:
 	if( _link_queue_local )
 		_link_queue_local->thread = NULL;
 #endif
-	link_queue_local_lock[0] = 0;
+	//link_queue_local_lock[0] = 0;
 }
 
 //--------------------------------------------------------------------------

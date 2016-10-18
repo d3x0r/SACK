@@ -997,6 +997,8 @@ int DoDecodeBinary( PTEXT *start, POINTER *binary_buffer, size_t *buflen )
 	if( !binary_buffer )
 		binary_buffer = &failsafe_buffer;
 
+	(*buflen) = 0;
+	(*binary_buffer) = NULL;
 	if( GetText( *start )[0] == '{' )
 	{
 		reverse = reverse1;
@@ -1041,8 +1043,6 @@ int DoDecodeBinary( PTEXT *start, POINTER *binary_buffer, size_t *buflen )
 			&& GetText( NEXTLINE( NEXTLINE( *start  ) ) )[0] != ']' )
 		)
 		{
-			(*binary_buffer) = NULL;
-			(*buflen) = 0;
 			return FALSE;
 		}
 
@@ -1061,7 +1061,6 @@ int DoDecodeBinary( PTEXT *start, POINTER *binary_buffer, size_t *buflen )
 		q[0] = convert.bin.bytes[0];
 		q[1] = convert.bin.bytes[1];
 		q[2] = convert.bin.bytes[2];
-		q[3] = 0;
 		// may be as much as 2 extra bytes (expressed as 3)
 		(*binary_buffer) = Allocate( len = (*buflen) );
 		q = (char*)(*binary_buffer);

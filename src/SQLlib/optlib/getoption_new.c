@@ -1,4 +1,3 @@
-#define OPTION_MAIN_SOURCE
 #ifndef GETOPTION_SOURCE
 #define GETOPTION_SOURCE
 #endif

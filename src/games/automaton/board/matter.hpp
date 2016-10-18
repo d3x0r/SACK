@@ -6,8 +6,8 @@
 typedef class IMATTER_FACTORY *PIMATTER_FACTORY;
 class IMATTER_FACTORY {
 public:
-//	virtual PTRSZVAL Summon( void );
-// virtual PTRSZVAL Banish( void );
+//	virtual uintptr_t Summon( void );
+// virtual uintptr_t Banish( void );
 };
 
 class MATTER_FACTORY:public IMATTER_FACTORY {

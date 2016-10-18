@@ -134,7 +134,7 @@ struct complex_args
 	PODBC odbc;
 };
 
-static int CPROC CopyRoot( uintptr_t psvArgs, CTEXTSTR name, POPTION_TREE_NODE ID, int flags )
+static int CPROC v4CopyRoot( uintptr_t psvArgs, CTEXTSTR name, POPTION_TREE_NODE ID, int flags )
 {
 	struct complex_args *args = (struct complex_args*)psvArgs;
 	POPTION_TREE_NODE iCopy = GetOptionIndexEx( args->iNewRoot, NULL, name, NULL, TRUE DBG_SRC );
@@ -144,7 +144,7 @@ static int CPROC CopyRoot( uintptr_t psvArgs, CTEXTSTR name, POPTION_TREE_NODE I
 		struct complex_args c_args;
 		c_args.iNewRoot = iCopy;
 		c_args.odbc = args->odbc;
-		EnumOptions( ID, CopyRoot, (uintptr_t)&c_args );
+		EnumOptions( ID, v4CopyRoot, (uintptr_t)&c_args );
 	}
 	return TRUE;
 }
@@ -165,7 +165,7 @@ void New4DuplicateOption( PODBC odbc, POPTION_TREE_NODE iRoot, CTEXTSTR pNewName
 		iNewName = GetOptionIndexEx( tmp_node, NULL, pNewName, NULL, TRUE DBG_SRC );
 		args.iNewRoot = iNewName;
 		args.odbc = odbc;
-		New4EnumOptions( args.odbc, iRoot, CopyRoot, (uintptr_t)&args );
+		New4EnumOptions( args.odbc, iRoot, v4CopyRoot, (uintptr_t)&args );
 	}
 }
 

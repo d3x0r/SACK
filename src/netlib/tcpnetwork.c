@@ -1541,11 +1541,11 @@ LOGICAL TCPDrainRead( PCLIENT pClient )
 		{
 			if( g.flags.bShortLogReceivedData )
 			{
-				LogBinary( byBuffer, min( nDrainRead, 64 ) );
+				LogBinary( (uint8_t*)byBuffer, min( nDrainRead, 64 ) );
 			}
 			if( g.flags.bLogReceivedData )
 			{
-				LogBinary( byBuffer, nDrainRead );
+				LogBinary( (uint8_t*)byBuffer, nDrainRead );
 			}
 		}
 		if( nDrainRead == 0 )

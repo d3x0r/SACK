@@ -101,7 +101,7 @@ static void UpdateLabel( struct virtuality_object *vobj, CTEXTSTR text )
 static int GetVector( VECTOR pos, PSENTIENT ps, PTEXT *parameters, LOGICAL log_error )
 {
 	PTEXT original = parameters?parameters[0]:NULL;
-	S_64 iNumber;
+	int64_t iNumber;
 	double fNumber;
 	int bInt;
 	PTEXT pResult;
