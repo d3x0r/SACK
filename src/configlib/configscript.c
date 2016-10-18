@@ -1062,6 +1062,8 @@ int DoDecodeBinary( PTEXT *start, POINTER *binary_buffer, size_t *buflen )
 		q[1] = convert.bin.bytes[1];
 		q[2] = convert.bin.bytes[2];
 		q[3] = 0;
+		if( sizeof( size_t ) > 4 )
+			(*((uint32*)(q+4))) = 0;
 		// may be as much as 2 extra bytes (expressed as 3)
 		(*binary_buffer) = Allocate( len = (*buflen) );
 		q = (char*)(*binary_buffer);
