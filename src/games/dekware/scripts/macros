@@ -1,7 +1,7 @@
 #/debug
 
 /mac common_start
-    /command usercmd bash
+    /command usercmd token	
     /command aliae trigger
     
     /scr version

@@ -857,6 +857,8 @@ PRIORITY_ATEXIT(ReleaseAllMemory,ATEXIT_PRIORITY_SHAREMEM)
 					DoCloseSpace( ps, TRUE );
 			}
 		}
+		if( !(*psp->me) )
+			break;
 		if( ( (*psp->me) = psp->next ) )
 			psp->next->me = psp->me;
 #ifdef _WIN32

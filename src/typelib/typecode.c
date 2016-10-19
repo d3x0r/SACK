@@ -766,8 +766,8 @@ retry_lock:
 		goto retry_lock;
 	}
 	(*pplq)->Lock = 1;
-	link_queue_local_lock[0] = 0;
 #endif
+	link_queue_local_lock[0] = 0;
 
 	if( pplq )
 	{

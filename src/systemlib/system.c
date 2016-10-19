@@ -67,15 +67,15 @@ static CTEXTSTR working_path;
 
 void SACKSystemSetProgramPath( char *path )
 {
-   program_path = DupCStr( path );
+	program_path = DupCStr( path );
 }
 void SACKSystemSetProgramName( char *name )
 {
-   program_name = DupCStr( name );
+	program_name = DupCStr( name );
 }
 void SACKSystemSetWorkingPath( char *name )
 {
-   working_path = DupCStr( name );
+	working_path = DupCStr( name );
 }
 #endif
 
@@ -110,7 +110,7 @@ CTEXTSTR OSALOT_GetEnvironmentVariable(CTEXTSTR name)
 		if( result )
 			ReleaseEx( result DBG_SRC );
 		result = DupCStr( getenv( tmpname ) );
-      ReleaseEx( tmpname DBG_SRC );
+		ReleaseEx( tmpname DBG_SRC );
 	}
 #else
 	return getenv( name );
@@ -127,9 +127,9 @@ void OSALOT_SetEnvironmentVariable(CTEXTSTR name, CTEXTSTR value)
 	{
 		char *tmpname = CStrDup( name );
 		char * tmpvalue = CStrDup( value );
-      setenv( tmpname, tmpvalue, TRUE );
-      ReleaseEx( tmpname DBG_SRC );
-      ReleaseEx( tmpvalue DBG_SRC );
+		setenv( tmpname, tmpvalue, TRUE );
+		ReleaseEx( tmpname DBG_SRC );
+		ReleaseEx( tmpvalue DBG_SRC );
 	}
 #else
 	setenv( name, value, TRUE );
@@ -161,7 +161,7 @@ void OSALOT_AppendEnvironmentVariable(CTEXTSTR name, CTEXTSTR value)
 #ifdef UNICODE
 	char *tmpname = CStrDup( name );
 	char *_oldpath = getenv( tmpname );
-   TEXTCHAR *oldpath = DupCStr( _oldpath );
+	TEXTCHAR *oldpath = DupCStr( _oldpath );
 #else
 	char *oldpath = getenv( name );
 
@@ -173,10 +173,10 @@ void OSALOT_AppendEnvironmentVariable(CTEXTSTR name, CTEXTSTR value)
 #ifdef UNICODE
 	{
 		char * tmpvalue = CStrDup( newpath );
-      setenv( tmpname, tmpvalue, TRUE );
-      ReleaseEx( tmpvalue DBG_SRC );
+		setenv( tmpname, tmpvalue, TRUE );
+		ReleaseEx( tmpvalue DBG_SRC );
 	}
-   ReleaseEx( oldpath DBG_SRC );
+	ReleaseEx( oldpath DBG_SRC );
 	ReleaseEx( tmpname DBG_SRC );
 #else
 	setenv( name, newpath, TRUE );
@@ -210,7 +210,7 @@ void OSALOT_PrependEnvironmentVariable(CTEXTSTR name, CTEXTSTR value)
 #ifdef UNICODE
 	char *tmpname = CStrDup( name );
 	char *_oldpath = getenv( tmpname );
-   TEXTCHAR *oldpath = DupCStr( _oldpath );
+	TEXTCHAR *oldpath = DupCStr( _oldpath );
 #else
 	char *oldpath = getenv( name );
 #endif
@@ -222,9 +222,9 @@ void OSALOT_PrependEnvironmentVariable(CTEXTSTR name, CTEXTSTR value)
 	{
 		char *tmpname = CStrDup( name );
 		char * tmpvalue = CStrDup( newpath );
-      setenv( tmpname, tmpvalue, TRUE );
-      ReleaseEx( tmpname DBG_SRC );
-      ReleaseEx( tmpvalue DBG_SRC );
+		setenv( tmpname, tmpvalue, TRUE );
+		ReleaseEx( tmpname DBG_SRC );
+		ReleaseEx( tmpvalue DBG_SRC );
 	}
 #else
 	setenv( name, newpath, TRUE );
@@ -328,7 +328,7 @@ static void CPROC SetupSystemServices( POINTER mem, uintptr_t size )
 #    ifdef __ANDROID__
 	(*init_l).filename = GetProgramName();
 	(*init_l).load_path = GetProgramPath();
-   if( !(*init_l).filename || !(*init_l).load_path )
+	if( !(*init_l).filename || !(*init_l).load_path )
 	{
 		char buf[256];
 		FILE *maps = fopen( "/proc/self/maps", "rt" );
@@ -340,15 +340,15 @@ static void CPROC SetupSystemServices( POINTER mem, uintptr_t size )
 			sscanf( buf+9, "%lx", &end );
 			if( ((unsigned long)SetupSystemServices >= start ) && ((unsigned long)SetupSystemServices <= end ) )
 			{
-            char *myname;
+				char *myname;
 				char *mypath;
 				void *lib;
-            char *myext;
+				char *myext;
 				void (*InvokeDeadstart)(void );
 				void (*MarkRootDeadstartComplete)(void );
 
 				fclose( maps );
-            maps = NULL;
+				maps = NULL;
 
 				if( strlen( buf ) > 49 )
 				mypath = strdup( buf + 49 );
@@ -363,21 +363,21 @@ static void CPROC SetupSystemServices( POINTER mem, uintptr_t size )
 					myname = mypath;
 				if( myext )
 				{
-               myext[0] = 0;
+					myext[0] = 0;
 				}
-            //LOGI( "my path [%s][%s]", mypath, myname );
+				//LOGI( "my path [%s][%s]", mypath, myname );
 				// do not auto load libraries
 				SACKSystemSetProgramPath( mypath );
 				(*init_l).load_path =  DupCStr( mypath );
 				SACKSystemSetProgramName( myname );
 				(*init_l).filename = DupCStr( myname );
 				SACKSystemSetWorkingPath( buf );
-            break;
+				break;
 			}
 		}
 	}
 #    else
-   //if( !(*init_l).filename || !(*init_l).load_path )
+	//if( !(*init_l).filename || !(*init_l).load_path )
 	{
 		/* #include unistd.h, stdio.h, string.h */
 		{
@@ -501,13 +501,13 @@ static BOOL CALLBACK CheckWindowAndSendKill( HWND hWnd, LPARAM lParam )
 	PTASK_INFO task = (PTASK_INFO)lParam;
 	idThread = GetWindowThreadProcessId( hWnd, (LPDWORD)&idProcess );
 
-   /*
+	/*
 	{
 		TEXTCHAR title[256];
 		GetWindowText( hWnd, title, sizeof( title ) );
 		lprintf( "Window [%s] = %d %d", title, idProcess, idThread );
 	}
-   */
+	*/
 	if( task->pi.dwProcessId == idProcess )
 	{
 		// found the window to kill...
@@ -527,30 +527,70 @@ int CPROC EndTaskWindow( PTASK_INFO task )
 #endif
 
 //--------------------------------------------------------------------------
+#if _MSC_VER
+#pragma runtime_checks( "sru", off )
+#endif
+static DWORD STDCALL SendCtrlCThreadProc( void *data )
+{
+	return GenerateConsoleCtrlEvent( CTRL_BREAK_EVENT, 0 );
+}
+#if _MSC_VER
+#pragma runtime_checks( "sru", restore )
+#endif
+
 
 LOGICAL CPROC StopProgram( PTASK_INFO task )
 {
+	task->flags.process_ended = 1;
+	if( task->pOutputThread )
+		WakeThread( task->pOutputThread );
+
 #ifdef WIN32
 #ifndef UNDER_CE
 	int error;
 	if( !GenerateConsoleCtrlEvent( CTRL_C_EVENT, task->pi.dwProcessId ) )
 	{
-      error = GetLastError();
-      lprintf( WIDE( "Failed to send CTRL_C_EVENT %d" ), error );
+		error = GetLastError();
+		lprintf( WIDE( "Failed to send CTRL_C_EVENT %d" ), error );
 		if( !GenerateConsoleCtrlEvent( CTRL_BREAK_EVENT, task->pi.dwProcessId ) )
 		{
-         error = GetLastError();
+			error = GetLastError();
 			lprintf( WIDE( "Failed to send CTRL_BREAK_EVENT %d" ), error );
 		}
 	}
+	// try and copy some code to it..
+	{
+		POINTER mem = VirtualAllocEx( task->pi.hProcess, NULL, 4096, MEM_COMMIT | MEM_RESERVE, PAGE_EXECUTE_READWRITE );
+		DWORD err = GetLastError();
+		if( mem ) {
+			DWORD written;
+			if( WriteProcessMemory( task->pi.hProcess, mem,
+				SendCtrlCThreadProc, 1024, &written ) ) {
+				DWORD dwThread;
+				HANDLE hThread = CreateRemoteThreadEx( task->pi.hProcess, NULL, 0
+					, (LPTHREAD_START_ROUTINE)mem, NULL, 0, NULL, &dwThread );
+				err = GetLastError();
+				if( hThread )
+					if( WaitForSingleObject( task->pi.hProcess, 50 ) != WAIT_OBJECT_0 )
+						return FALSE;
+					else
+						return TRUE;
+			}
+		}
+	}
 #endif
+	if( WaitForSingleObject( task->pi.hProcess, 1 ) != WAIT_OBJECT_0 )
+		return FALSE;
+	else
+		return TRUE;
 #else
-        // kill( ) ?
+		  // kill( ) ?
 #endif
 
 
-    return TRUE;
+	 return FALSE;
 }
+
 
 uintptr_t CPROC TerminateProgram( PTASK_INFO task )
 {
@@ -578,7 +618,7 @@ uintptr_t CPROC TerminateProgram( PTASK_INFO task )
 					{
 						xlprintf(LOG_LEVEL_DEBUG+1)( WIDE("failed to find task window to send postquitmessage...") );
 						// didn't find the window - result was continue_enum with no more (1)
-                  // so didn't find the window - nothing to wait for, fall through
+						// so didn't find the window - nothing to wait for, fall through
 						nowait = 1;
 					}
 				}
@@ -617,7 +657,7 @@ uintptr_t CPROC TerminateProgram( PTASK_INFO task )
 //			else
 //				lprintf( WIDE( "Would have close handles rudely." ) );
 #else
-         kill( task->pid, SIGTERM );
+			kill( task->pid, SIGTERM );
 			// wait a moment for it to die...
 #endif
 		}
@@ -678,7 +718,7 @@ uintptr_t CPROC WaitForTaskEnd( PTHREAD pThread )
 		if( task->hStdOut.hThread )
 		{
 #ifdef _WIN32
-         // vista++ so this won't work for XP support...
+			// vista++ so this won't work for XP support...
 			static BOOL (WINAPI *MyCancelSynchronousIo)( HANDLE hThread ) = (BOOL(WINAPI*)(HANDLE))-1;
 			if( (uintptr_t)MyCancelSynchronousIo == (uintptr_t)-1 )
 				MyCancelSynchronousIo = (BOOL(WINAPI*)(HANDLE))LoadFunction( WIDE( "kernel32.dll" ), WIDE( "CancelSynchronousIo" ) );
@@ -751,7 +791,7 @@ static int DumpError( void )
 #ifdef WIN32
 
 static BOOL CALLBACK EnumDesktopProc( LPTSTR lpszDesktop,
-												  LPARAM lParam
+												 LPARAM lParam
 												)
 {
 	lprintf( WIDE( "Desktop found [%s]" ), lpszDesktop );
@@ -761,12 +801,12 @@ static BOOL CALLBACK EnumDesktopProc( LPTSTR lpszDesktop,
 
 void EnumDesktop( void )
 {
-   // I'm running on some windows station, right?
-   //HWINSTA GetProcessWindowStation();
+	// I'm running on some windows station, right?
+	//HWINSTA GetProcessWindowStation();
 	if( EnumDesktops( NULL, EnumDesktopProc, (LPARAM)(uintptr_t)0 ) )
 	{
-      // returned non-zero value from enumdesktopproc?
-      // failed to find?
+		// returned non-zero value from enumdesktopproc?
+		// failed to find?
 	}
 
 }
@@ -774,7 +814,7 @@ void EnumDesktop( void )
 static BOOL CALLBACK EnumStationProc( LPTSTR lpszWindowStation, LPARAM lParam )
 {
 	lprintf( WIDE( "station found [%s]" ), lpszWindowStation );
-   return 1;
+	return 1;
 }
 
 void EnumStations( void )
@@ -790,32 +830,32 @@ void SetDefaultDesktop( void )
 	{
 	HDESK lngDefaultDesktop;
 	HWINSTA lngWinSta0;
-   HWINSTA station = GetProcessWindowStation();
+	HWINSTA station = GetProcessWindowStation();
 	HDESK desk = GetThreadDesktop( GetCurrentThreadId() );
 	DWORD length;
-   char buffer[256];
+	char buffer[256];
 
 	lprintf( WIDE( "Desktop this is %p %p" ), station, desk );
 
 	GetUserObjectInformation( desk, UOI_NAME, buffer, sizeof( buffer ), &length );
-   lprintf( WIDE( "desktop is %s" ), buffer );
+	lprintf( WIDE( "desktop is %s" ), buffer );
 	GetUserObjectInformation( station, UOI_NAME, buffer, sizeof( buffer ), &length );
-   lprintf( WIDE( "station is %s" ), buffer );
+	lprintf( WIDE( "station is %s" ), buffer );
 
 	EnumDesktop();
-   EnumStations();
+	EnumStations();
 
-   // these should be const strings, but they're not... add typecast for GCC
+	// these should be const strings, but they're not... add typecast for GCC
 	lngWinSta0 = OpenWindowStation( (LPTSTR)WIDE( "WinSta0" ), FALSE, WINSTA_ALL_ACCESS );
 	//lngWinSta0 = OpenWindowStation(WIDE( "msswindowstation" ), FALSE, WINSTA_ALL_ACCESS );
-   lprintf( WIDE( "sta = %p %d" ), lngWinSta0, GetLastError() );
+	lprintf( WIDE( "sta = %p %d" ), lngWinSta0, GetLastError() );
 	if( !SetProcessWindowStation(lngWinSta0) )
-      lprintf( WIDE( "Failed station set?" ) );
+		lprintf( WIDE( "Failed station set?" ) );
 
-   // these should be const strings, but they're not... add typecast for GCC
+	// these should be const strings, but they're not... add typecast for GCC
 	lngDefaultDesktop = OpenDesktop( (LPTSTR)WIDE( "Default" ), 0, FALSE, 0x10000000);
 	//lngDefaultDesktop = OpenDesktop(WIDE( "WinSta0" ), 0, FALSE, 0x10000000);
-   lprintf( WIDE( "defa = %p" ), lngDefaultDesktop );
+	lprintf( WIDE( "defa = %p" ), lngDefaultDesktop );
 	if( !SetThreadDesktop(lngDefaultDesktop) )
 		lprintf( WIDE( "Failed desktop set?" ) );
 	}
@@ -831,7 +871,7 @@ void SetDefaultDesktop( void )
 
 DWORD GetExplorerProcessID()
 {
-   static TEXTCHAR process_find[128];
+	static TEXTCHAR process_find[128];
 	HANDLE hSnapshot;
 	PROCESSENTRY32 pe32;
 	DWORD temp = 0;
@@ -895,10 +935,10 @@ void ImpersonateInteractiveUser( void )
 										TOKEN_QUERY_SOURCE |
 										TOKEN_WRITE |
 										TOKEN_DUPLICATE |
-									   TOKEN_IMPERSONATE,
+										TOKEN_IMPERSONATE,
 										&hToken))
 			{
-            //lprintf( WIDE( "Sucess opening token" ) );
+				//lprintf( WIDE( "Sucess opening token" ) );
 				if( ImpersonateLoggedOnUser( hToken ) )
 					;
 				else
@@ -923,9 +963,9 @@ HANDLE GetImpersonationToken( void )
 
 	DWORD processID;
 	processID = GetExplorerProcessID();
-   //lprintf( WIDE( "Enum EDesktops..." ) );
+	//lprintf( WIDE( "Enum EDesktops..." ) );
 	//EnumDesktop();
-   //lprintf( WIDE( "explorer is %p" ), processID );
+	//lprintf( WIDE( "explorer is %p" ), processID );
 	if( processID)
 	{
 		hProcess =
@@ -936,7 +976,7 @@ HANDLE GetImpersonationToken( void )
 
 		if( hProcess)
 		{
-         //lprintf( WIDE( "Success getting process %p" ), hProcess );
+			//lprintf( WIDE( "Success getting process %p" ), hProcess );
 			if( OpenProcessToken(
 										hProcess,
 										TOKEN_EXECUTE |
@@ -946,26 +986,26 @@ HANDLE GetImpersonationToken( void )
 										TOKEN_QUERY_SOURCE |
 										TOKEN_WRITE |
 										TOKEN_DUPLICATE |
-									   TOKEN_IMPERSONATE,
+										TOKEN_IMPERSONATE,
 										&hToken))
 			{
-            //lprintf( WIDE( "Sucess opening token" ) );
+				//lprintf( WIDE( "Sucess opening token" ) );
 				//if( ImpersonateLoggedOnUser( hToken ) )
-            //   ;
+				//   ;
 				//else
-            //   lprintf( WIDE( "Fail impersonate %d" ), GetLastError() );
+				//   lprintf( WIDE( "Fail impersonate %d" ), GetLastError() );
 				//CloseHandle( hToken );
 			}
 			else
-            lprintf( WIDE( "Failed opening token %d" ), GetLastError() );
+				lprintf( WIDE( "Failed opening token %d" ), GetLastError() );
 			CloseHandle( hProcess );
 		}
 		else
 			lprintf( WIDE( "Failed open process: %d" ), GetLastError() );
 	}
-   else
+	else
 		lprintf( WIDE( "Failed get explorer process: %d" ), GetLastError() );
-   return hToken;
+	return hToken;
 }
 
 void EndImpersonation( void )
@@ -1066,191 +1106,13 @@ int TryShellExecute( PTASK_INFO task, CTEXTSTR path, CTEXTSTR program, PTEXT cmd
 SYSTEM_PROC( PTASK_INFO, LaunchProgramEx )( CTEXTSTR program, CTEXTSTR path, PCTEXTSTR args, TaskEnd EndNotice, uintptr_t psv )
 {
 	return LaunchPeerProgramExx( program, path, args
-                              , LPP_OPTION_DO_NOT_HIDE | LPP_OPTION_NEW_GROUP
+						            , LPP_OPTION_DO_NOT_HIDE | LPP_OPTION_NEW_GROUP
 										, NULL, EndNotice, psv DBG_SRC );
-#if 0
-	PTASK_INFO task;
-	if( program && program[0] )
-	{
-#ifdef WIN32
-	PVARTEXT pvt = VarTextCreate();
-	PTEXT cmdline;
-	int first = TRUE;
-	//TEXTCHAR saved_path[256];
-	TEXTSTR expanded_path = ExpandPath( program );
-	TEXTSTR expanded_working_path = path?ExpandPath( path ):ExpandPath( WIDE(".") );
-	LOGICAL needs_quotes;
-	task = New( TASK_INFO );
-	MemSet( task, 0, sizeof( TASK_INFO ) );
-	task->psvEnd = psv;
-	task->EndNotice = EndNotice;
-	if( StrCmp( path, WIDE( "." ) ) == 0 )
-	{
-		path = NULL;
-		Deallocate( TEXTSTR, expanded_working_path );
-		expanded_working_path = NULL;
-	}
-
-	if( expanded_path && StrChr( expanded_path, ' ' ) )
-		needs_quotes = TRUE;
-	else if( expanded_working_path && StrChr( expanded_working_path, ' ' ) )
-		needs_quotes = TRUE;
-	else
-		needs_quotes = FALSE;
-
-	xlprintf(LOG_LEVEL_DEBUG+1)( WIDE( "quotes?%s path[%s] program[%s]" ), needs_quotes?WIDE( "yes" ):WIDE( "no" ), expanded_working_path, expanded_path );
-
-	if( needs_quotes )
-		vtprintf( pvt, WIDE( "\"" ) );
-
-	if( !IsAbsolutePath( expanded_path ) && expanded_working_path )
-	{
-		//lprintf( "needs working path too" );
-		vtprintf( pvt, WIDE("%s/"), expanded_working_path );
-	}
-	vtprintf( pvt, WIDE("%s"), expanded_path );
-
-	if( needs_quotes )
-		vtprintf( pvt, WIDE( "\"" ) );
-
-	if( args && args[0] )// arg[0] is passed with linux programs, and implied with windows.
-		args++;
-	while( args && args[0] )
-	{
-		/* restore quotes around parameters with spaces */
-		if( args[0][0] == 0 )
-			vtprintf( pvt, WIDE(" \"\"" ) );
-		else if( StrChr( args[0], ' ' ) )
-			vtprintf( pvt, WIDE(" \"%s\"" ), args[0] );
-		else
-			vtprintf( pvt, WIDE(" %s"), args[0] );
-		first = FALSE;
-		args++;
-	}
-	cmdline = VarTextGet( pvt );
-	VarTextDestroy( &pvt );
-	MemSet( &task->si, 0, sizeof( STARTUPINFO ) );
-	task->si.cb = sizeof( STARTUPINFO );
-
-	if( ( CreateProcess( NULL //program
-						  , GetText( cmdline )
-						  , NULL, NULL, FALSE
-						  , 
-#ifdef UNDER_CE 
-						  0
-#else
-						  CREATE_NEW_PROCESS_GROUP|CREATE_NEW_CONSOLE
-#endif
-						  , NULL
-						  , expanded_working_path
-						  , &task->si
-						  , &task->pi ) || DumpError() ) ||
-		( CreateProcess( program
-						 , GetText( cmdline )
-						 , NULL, NULL, FALSE
-						 , 
-#ifdef UNDER_CE 
-						  0
-#else
-						  CREATE_NEW_PROCESS_GROUP|CREATE_NEW_CONSOLE
-#endif
-						 , NULL
-						 , expanded_working_path
-						 , &task->si
-						 , &task->pi ) || DumpError() ) ||
-		( TryShellExecute( task, expanded_working_path, program, cmdline ) ) ||
-		( CreateProcess( program
-						 , NULL // GetText( cmdline )
-						 , NULL, NULL, FALSE
-						 , 
-#ifdef UNDER_CE 
-						  0
-#else
-						  CREATE_NEW_PROCESS_GROUP|CREATE_NEW_CONSOLE
-#endif
-						 , NULL
-						 , expanded_working_path
-						 , &task->si
-						 , &task->pi ) || DumpError() ) ||
-      0
-	  )
-	{
-		xlprintf(LOG_LEVEL_DEBUG+1)( WIDE("Success running %s[%s] %p: %d"), program, GetText( cmdline ), task->pi.hProcess, GetLastError() );
-		if( EndNotice )
-			ThreadTo( WaitForTaskEnd, (uintptr_t)task );
-	}
-	else
-	{
-		xlprintf(LOG_LEVEL_DEBUG+1)( WIDE("Failed to run %s[%s]: %d"), program, GetText( cmdline ), GetLastError() );
-		ReleaseEx( task DBG_SRC );
-		task = NULL;
-	}
-	Deallocate( TEXTSTR, expanded_path );
-	Deallocate( TEXTSTR, expanded_working_path );
-	LineRelease( cmdline );
-	return task;
-#endif
-#ifdef __LINUX__
-	{
-		pid_t newpid;
-		task = New( TASK_INFO );
-		MemSet( task, 0, sizeof( TASK_INFO ) );
-		task->psvEnd = psv;
-		task->EndNotice = EndNotice;
-		//if( EndNotice )
-		ThreadTo( WaitForTaskEnd, (uintptr_t)task );
-		if( !( newpid = fork() ) )
-		{
-		// in case exec fails, we need to
-		// drop any registered exit procs...
-			DispelDeadstart();
-			SetCurrentPath( path );
-#ifdef UNICODE
-			{
-            char *tmpprogram = CStrDup( program );
-				execve( tmpprogram, (char *const*)args, environ );
-            ReleaseEx( tmpprogram DBG_SRC );
-			}
-#else
-			execve( program, (char *const*)args, environ );
-#endif
-                        {
-                            char *tmp = strdup( getenv( "PATH" ) );
-                            char *tok;
-                            for( tok = strtok( tmp, ":" ); tok; tok = strtok( NULL, ":" ) )
-                            {
-                                char fullname[256];
-                                snprintf( fullname, sizeof( fullname ), "%s/%s", tok, program );
-
-                                lprintf( WIDE("program:[%s][%s][%s]"), fullname,args[0], getenv("PATH") );
-                                ((char**)args)[0] = fullname;
-                                execve( fullname, (char*const*)args, environ );
-                            }
-                        }
-			lprintf( WIDE("exec failed - and this is ALLL bad...[%s]%d"), program, errno );
-			//DebugBreak();
-			// well as long as this runs before
-			// the other all will be well...
-			task = NULL;
-			// shit - what can I do now?!
-			exit(0); // just in case exec fails... need to fault this.
-		}
-		task->pid = newpid;
-		//lprintf( WIDE("Forked, and set the pid..") );
-		// how can I know if the command failed?
-		// well I can't - but the user's callback will be invoked
-		// when the above exits.
-		return task;
-	}
-#endif
-	}
-	return FALSE;
-#endif
 }
 
 SYSTEM_PROC( PTASK_INFO, LaunchProgram )( CTEXTSTR program, CTEXTSTR path, PCTEXTSTR args )
 {
-   return LaunchProgramEx( program, path, args, NULL, 0 );
+	return LaunchProgramEx( program, path, args, NULL, 0 );
 }
 
 //--------------------------------------------------------------------------
@@ -1319,7 +1181,7 @@ static void LoadExistingLibraries( void )
 #ifdef __LINUX__
 	{
 		FILE *maps;
-      char buf[256];
+		char buf[256];
 		maps = sack_fopenEx( 0, "/proc/self/maps", "rt", sack_get_mounted_filesystem( "native" ) );
 		while( maps && sack_fgets( buf, 256, maps ) )
 		{
@@ -1334,17 +1196,17 @@ static void LoadExistingLibraries( void )
 				int scanned;
 				offset = strlen( buf );
 				if( offset < 2 )
-               continue;
-            buf[offset-1] = 0;
+					continue;
+				buf[offset-1] = 0;
 				scanned = sscanf( buf, "%zx-%zx %s %zx", &start, &end, perms, &offset );
 				if( scanned == 4 && offset == 0 )
 				{
 					if( ( perms[2] == 'x' )
-					   && ( ( end - start ) > 4 ) )
+						&& ( ( end - start ) > 4 ) )
 						if( ( ((unsigned char*)start)[0] == ELFMAG0 )
-                     && ( ((unsigned char*)start)[1] == ELFMAG1 )
-                     && ( ((unsigned char*)start)[2] == ELFMAG2 )
-						   && ( ((unsigned char*)start)[3] == ELFMAG3 ) )
+						   && ( ((unsigned char*)start)[1] == ELFMAG1 )
+						   && ( ((unsigned char*)start)[2] == ELFMAG2 )
+							&& ( ((unsigned char*)start)[3] == ELFMAG3 ) )
 						{
 							//lprintf( "Add library %s %p", dll_name + 1, start );
 							AddMappedLibrary( dll_name + 1, (POINTER)start );
@@ -1352,7 +1214,7 @@ static void LoadExistingLibraries( void )
 				}
 			}
 		}
-      sack_fclose( maps );
+		sack_fclose( maps );
 	}
 #endif
 }
@@ -1622,7 +1484,7 @@ SYSTEM_PROC( generic_function, LoadFunctionExx )( CTEXTSTR libname, CTEXTSTR fun
 			if( !library->library )
 			{
 				_xlprintf( 2 DBG_RELAY)( WIDE("Attempt to load  %s%s(%s) failed: %s."), bPrivate?WIDE("(local)"):WIDE("(global)"), library->full_name, funcname?funcname:WIDE("all"), dlerror() );
-            UnlinkThing( library );
+				UnlinkThing( library );
 				ReleaseEx( library DBG_SRC );
 				ResumeDeadstart();
 				return NULL;
@@ -1931,7 +1793,7 @@ SYSTEM_PROC( int, UnloadFunctionEx )( generic_function *f DBG_PASS )
 				if( nFind == library->nLibrary )
 				{
 #ifdef _WIN32
-               // should make sure noone has loaded a specific function.
+					// should make sure noone has loaded a specific function.
 					FreeLibrary ( library->library );
 					UnlinkThing( library );
 					ReleaseEx( library DBG_SRC );
@@ -1945,7 +1807,7 @@ SYSTEM_PROC( int, UnloadFunctionEx )( generic_function *f DBG_PASS )
 		PFUNCTION function = (PFUNCTION)FindInBinaryTree( l.pFunctionTree, (uintptr_t)(*f) );
 		PLIBRARY library;
 		if( function &&
-		    !(--function->references) )
+			 !(--function->references) )
 		{
 			UnlinkThing( function );
 			lprintf( WIDE( "Should remove the node from the tree here... but it crashes intermittantly. (tree list is corrupted)" ) );
@@ -1982,8 +1844,8 @@ SYSTEM_PROC( PTHREAD, SpawnProcess )( CTEXTSTR filename, va_list args )
 	if( newmain )
 	{
 		// hmm... suppose I should even thread through my own little header here
-      // then when the thread exits I can get a positive acknowledgement?
-      return ThreadTo( newmain, (uintptr_t)args );
+		// then when the thread exits I can get a positive acknowledgement?
+		return ThreadTo( newmain, (uintptr_t)args );
 	}
 	return NULL;
 }
@@ -2072,12 +1934,12 @@ LOGICAL IsSystemShuttingDown( void )
 #ifdef WIN32
 	static HANDLE h = INVALID_HANDLE_VALUE;
 	if( h == INVALID_HANDLE_VALUE )
-      h = CreateEvent( NULL, TRUE, FALSE, WIDE( "Windows Is Shutting Down" ) );
+		h = CreateEvent( NULL, TRUE, FALSE, WIDE( "Windows Is Shutting Down" ) );
 	if( h != INVALID_HANDLE_VALUE )
 		if( WaitForSingleObject( h, 0 ) == WAIT_OBJECT_0 )
 			return TRUE;
 #endif
-   return FALSE;
+	return FALSE;
 }
 
 void SetExternalLoadLibrary( LOGICAL (CPROC*f)(const char *) )
