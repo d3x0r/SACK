@@ -49,7 +49,7 @@ RCOORD *GridReader_Read( struct grid_reader *reader, int x, int y, int w, int h 
 	for( col = x; col < (x+w); col++ )
 		for( row = y; row < (y+h); row++ )
 		{
-			value = ((PS_16)reader->file_data)[ col + row * reader->file_stride/2 ];
+			value = ((int16_t*)reader->file_data)[ col + row * reader->file_stride/2 ];
 			if( value == -9999 )
 				value = 0;
 			result[ ( col - x ) + ( row - y ) * w ] = (RCOORD)value;

@@ -2306,18 +2306,20 @@ Recheck:
 		DECLTEXT( dev2, WIDE("ansi") );
 		DECLTEXT( dev2opt, WIDE("inbound newline") );
 		DECLTEXT( dev2name, WIDE("system parse") );
+		PTEXT exclam;
 		if( data[1] )
 		{
-			PTEXT exclam;
 			//Log( WIDE("Do split on line...") );
-				exclam = SegAppend( SegCreateFromText( WIDE("!") )
-							, SegCreateFromText( data+1 ) );
+			exclam = SegAppend( SegCreateFromText( WIDE( "!" ) )
+				, SegCreateFromText( data + 1 ) );
 			exclam->format.position.offset.spaces = Command->format.position.offset.spaces;
 			exclam->flags = Command->flags & (IS_DATA_FLAGS);
 			LineRelease( SegSubst( Command, exclam ) );
 			*RealCommand = exclam;
-			Command = NEXTLINE( exclam );
 		}
+		else
+			exclam = Command;
+		Command = NEXTLINE( exclam );
 		evalcommand = MacroDuplicateEx( ps, Command, FALSE, TRUE );
 		if( ( pdp = OpenDevice( &ps->Data, ps, (PTEXT)&dev, evalcommand ) ) )
 		{

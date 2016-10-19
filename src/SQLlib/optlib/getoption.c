@@ -1,3 +1,4 @@
+#define OPTION_MAIN_SOURCE
 #define NO_UNICODE_C
 #ifndef GETOPTION_SOURCE
 #define GETOPTION_SOURCE
@@ -1328,7 +1329,7 @@ size_t SQLPromptINIValue(
 	if( _SQLPromptINIValue )
 		return _SQLPromptINIValue(lpszSection, lpszEntry, lpszDefault, lpszReturnBuffer, cbReturnBuffer, filename );
 #else
-	return _SQLPromptINIValue(lpszSection, lpszEntry, lpszDefault, lpszReturnBuffer, cbReturnBuffer, filename );
+	//return _SQLPromptINIValue(lpszSection, lpszEntry, lpszDefault, lpszReturnBuffer, cbReturnBuffer, filename );
 #endif
 #endif
 #if prompt_stdout
@@ -1498,11 +1499,11 @@ SQLGETOPTION_PROC( size_t, SACK_GetPrivateProfileStringExxx )( PODBC odbc
 			}
 			// issue dialog
 		do_defaulting:
-			if( !bQuiet && og.flags.bPromptDefault )
-			{
-				SQLPromptINIValue( pSection, pOptname, pDefaultbuf, pBuffer, nBuffer, pINIFile );
-			}
-			else
+			//if( !bQuiet && og.flags.bPromptDefault )
+			//{
+			//	SQLPromptINIValue( pSection, pOptname, pDefaultbuf, pBuffer, nBuffer, pINIFile );
+			//}
+			//else
 			{
 				if( pDefaultbuf )
 					StrCpyEx( pBuffer, pDefaultbuf, nBuffer/sizeof( TEXTCHAR ) );
@@ -1631,6 +1632,7 @@ SQLGETOPTION_PROC( size_t, SACK_GetProfileStringEx )( CTEXTSTR pSection, CTEXTST
 	return SACK_GetPrivateProfileStringEx( pSection, pOptname, pDefaultbuf, pBuffer, nBuffer, NULL, bQuiet );
 }
 
+#undef SACK_GetProfileString
 SQLGETOPTION_PROC( size_t, SACK_GetProfileString )( CTEXTSTR pSection, CTEXTSTR pOptname, CTEXTSTR pDefaultbuf, TEXTCHAR *pBuffer, size_t nBuffer )
 {
 	return SACK_GetPrivateProfileString( pSection, pOptname, pDefaultbuf, pBuffer, nBuffer, NULL );
@@ -1671,7 +1673,7 @@ SQLGETOPTION_PROC( int32_t, SACK_GetProfileIntEx )( CTEXTSTR pSection, CTEXTSTR 
 }
 
 //------------------------------------------------------------------------
-
+#undef SACK_GetProfileInt
 SQLGETOPTION_PROC( int32_t, SACK_GetProfileInt )( CTEXTSTR pSection, CTEXTSTR pOptname, int32_t defaultval )
 {
    return SACK_GetPrivateProfileInt( pSection, pOptname, defaultval, NULL );

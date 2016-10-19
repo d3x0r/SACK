@@ -362,9 +362,11 @@ static int CPROC WriteSystem( PDATAPATH pdpX )
 			{
 				Log( WIDE("Forwarding a dot command to next layer...") );
       			if( pdp->common.pPrior )
-      			{
+      			{	
+					PTEXT next = NEXTLINE( pLine );
+					SegBreak( next );
       				EnqueLink( &pdp->common.pPrior->Output
-      							, SegBreak( NEXTLINE( pLine ) ) );
+      							, next );
 	      			LineRelease( pLine );
    	   				continue;
       			}

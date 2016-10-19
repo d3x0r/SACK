@@ -2648,8 +2648,8 @@ namespace udp {
 #endif
 NETWORK_PROC( void, DumpAddrEx)( CTEXTSTR name, SOCKADDR *sa DBG_PASS )
 	{
-		LogBinary( sa, SOCKADDR_LENGTH( sa ) );
-		if( sa->sa_family == AF_INET )
+		LogBinary( (uint8_t *)sa, SOCKADDR_LENGTH( sa ) );
+		if( sa->sa_family == AF_INET ) {
 			lprintf( WIDE("%s: (%s) %03d %03d.%03d.%03d.%03d "), name
 					, ( ((uintptr_t*)sa)[-1] & 0xFFFF0000 )?( ((char**)sa)[-1] ) : "no name" 
 					  //*(((unsigned char *)sa)+0),
@@ -2659,7 +2659,7 @@ NETWORK_PROC( void, DumpAddrEx)( CTEXTSTR name, SOCKADDR *sa DBG_PASS )
 					  *(((unsigned char *)sa)+5),
 					  *(((unsigned char *)sa)+6),
 					  *(((unsigned char *)sa)+7) );
-		else if( sa->sa_family == AF_INET6 )
+		} else if( sa->sa_family == AF_INET6 )
 		{
 			lprintf( WIDE( "Socket address binary: %s" ), name );
 			lprintf( WIDE("%s: (%s) %03d %04x:%04x:%04x:%04x:%04x:%04x:%04x:%04x ")

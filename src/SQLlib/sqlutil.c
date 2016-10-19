@@ -11,7 +11,7 @@
 
 SQL_NAMESPACE
 
-static struct pssql_global *global_sqlstub_data;
+extern struct pssql_global *global_sqlstub_data;
 #define g (*global_sqlstub_data)
 PRIORITY_PRELOAD( InitGlobalSqlUtil, GLOBAL_INIT_PRELOAD_PRIORITY )
 {
@@ -1544,9 +1544,9 @@ retry:
 									vtprintf( pvtCreate, WIDE("%sUNIQUE `primary` (")
 											  , first?WIDE(""):WIDE(",") );
 								}
-								if( strcmp( auto_increment_column, table->keys.key[n].colnames[0] ) )
+								if( strcmp( auto_increment_column, table->keys.key[n].colnames[0] ) ) {
 									lprintf( WIDE( "SQLITE ERROR: auto_increment column was not the PRMIARY KEY" ) );
-								else
+								} else
 								{
 									// ignore key
 									continue;
