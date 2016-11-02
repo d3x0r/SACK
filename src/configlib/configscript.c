@@ -1832,7 +1832,6 @@ int IsFilePathVar( PCONFIG_ELEMENT pce, PTEXT *start )
 		{
 			if( IsAnyVar( pEnd, start ) ) {
 				pce->data[0].multiword.pWhichEnd = pEnd;
-				lprintf( "Matched one of several?  set next to %p", pEnd->next );
 				pce->next = pEnd->next;
 				break;
 			}
@@ -1844,6 +1843,15 @@ int IsFilePathVar( PCONFIG_ELEMENT pce, PTEXT *start )
 	}
 	if( pWords )
 	{
+		INDEX idx;
+		LIST_FORALL( pce->data[0].multiword.pEnds, idx, struct config_element_tag *, pEnd )
+		{
+			if( IsAnyVar( pEnd, start ) ) {
+				pce->data[0].multiword.pWhichEnd = pEnd;
+				pce->next = pEnd->next;
+				break;
+			}
+		}
 		pWords->format.position.offset.spaces = 0;
 		{
 			PTEXT out = BuildLine( pWords );
@@ -1910,6 +1918,10 @@ int IsAnyVarEx( PCONFIG_ELEMENT pce, PTEXT *start DBG_PASS )
 	}
 	if( g.flags.bLogTrace )
 		_lprintf(DBG_RELAY)( WIDE("IsAnyVar") );
+
+	if( pce->type == CONFIG_NOTHING && !(*start) )
+		return TRUE;
+
 	return( ( IsConstText( pce, start ) ) ||
 			( IsBooleanVar( pce, start ) ) ||
 			( IsBinaryVar( pce, start ) ) ||
@@ -2065,7 +2077,7 @@ void ProcessConfigurationLine( PCONFIG_HANDLER pch, PTEXT line )
 
 									found = 1;
 									if( g.flags.bLogTrace )
-										lprintf( "pce->next is %p", pce->next );
+										lprintf( "pce->next is %p  word is %p(%s)", pce->next, word, GetText( word ) );
 									Check = pce->next;
 									break;
 								}
