@@ -836,6 +836,9 @@ PRIORITY_ATEXIT(ReleaseAllMemory,ATEXIT_PRIORITY_SHAREMEM)
 	while( ( psp = g.pSpacePool ) )
 	{
 		int i;
+		// I didn't allocate at the root; someone else is responsible.
+		if( psp->me != &g.pSpacePool )
+			break;
 		for( i = 0; i < (((int)(MAX_PER_BLOCK))-1); i++ )
 		{
 			ps = psp->spaces + i;

@@ -4118,13 +4118,14 @@ PRIORITY_ATEXIT( RemoveKeyHook, 100 )
 			if (!d)
 			{
 				uint32_t error = GetLastError();
-				
 				if( error == ERROR_INVALID_THREAD_ID )
 				{
+					lprintf( "Have to skip waiting..." );
+					PostQuitMessage( 0 );
 					l.bThreadRunning = 0;
 					break;
 				}
-				Log1( WIDE("Failed to post shutdown message...%d" ), error );
+				//Log1( WIDE("Failed to post shutdown message...%d" ), error );
 				cnt--;
 			}
 			Relinquish();
@@ -4146,6 +4147,7 @@ PRIORITY_ATEXIT( RemoveKeyHook, 100 )
 			//  lprintf( WIDE( "Had to give up waiting for video thread to exit..." ) );
 		}
 	}
+	lprintf( "did we skip waking?" );
 }
 #endif
 
