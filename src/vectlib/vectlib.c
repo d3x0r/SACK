@@ -1787,5 +1787,85 @@ void EXTERNAL_NAME(GetPointOnPlane)( PRAY plane, PCVECTOR up, PCVECTOR size, PCV
 	DOFUNC(crossproduct)( right, plane->n, up );
 }
 
+//-------------
+// code to be moved to vectlib
+//-------------
+
+RCOORD EXTERNAL_NAME(IntersectLineWithPlane)( PCVECTOR Slope, PCVECTOR Origin,  // line m, b
+									 PCVECTOR n, PCVECTOR o,  // plane n, o
+										RCOORD *time )
+//#define IntersectLineWithPlane( s,o,n,o2,t ) IntersectLineWithPlane(s,o,n,o2,t DBG_SRC )
+{
+	RCOORD a,b,c,cosPhi, t; // time of intersection
+
+	// intersect a line with a plane.
+
+//   v € w = (1/2)(|v + w|2 - |v|2 - |w|2) 
+//  (v € w)/(|v| |w|) = cos ß     
+
+	//cosPhi = CosAngle( Slope, n );
+
+	a = ( Slope[0] * n[0] +
+			Slope[1] * n[1] +
+			Slope[2] * n[2] );
+
+	if( !a )
+	{
+		//Log1( DBG_FILELINEFMT "Bad choice - slope vs normal is 0" DBG_RELAY, 0 );
+		//PrintVector( Slope );
+		//PrintVector( n );
+		return 0;
+	}
+
+	b = EXTERNAL_NAME(Length)( Slope );
+	c = EXTERNAL_NAME(Length)( n );
+	if( !b || !c )
+	{
+		Log( WIDE("Slope and or n are near 0") );
+		return 0; // bad vector choice - if near zero length...
+	}
+
+	cosPhi = a / ( b * c );
+
+	t = ( n[0] * ( o[0] - Origin[0] ) +
+			n[1] * ( o[1] - Origin[1] ) +
+			n[2] * ( o[2] - Origin[2] ) ) / a;
+
+//   lprintf( WIDE(" a: %g b: %g c: %g t: %g cos: %g pldF: %g pldT: %g \n"), a, b, c, t, cosTheta,
+//                  pl->dFrom, pl->dTo );
+
+//   if( cosTheta > e1 ) //global epsilon... probably something custom
+
+//#define 
+
+	if( cosPhi > 0 ||
+		 cosPhi < 0 ) // at least some degree of insident angle
+	{
+		*time = t;
+		return cosPhi;
+	}
+	else
+	{
+		Log1( WIDE("Parallel... %g\n"), cosPhi );
+		EXTERNAL_NAME(PrintVector)( "Slope", Slope );
+		EXTERNAL_NAME(PrintVector)( "n", n );
+		// plane and line are parallel if slope and normal are perpendicular
+		//lprintf(WIDE("Parallel...\n"));
+		return 0;
+	}
+}
+
+
+RCOORD EXTERNAL_NAME( PointToPlaneT )( PCVECTOR n, PCVECTOR o, PCVECTOR p ) {
+	VECTOR i;
+	RCOORD t;
+	SetPoint( i, n );
+	EXTERNAL_NAME( Invert)( i );
+	EXTERNAL_NAME( IntersectLineWithPlane)( i, p, n, o, &t );
+	return t;
+}
+
+
+
 VECTOR_NAMESPACE_END
 

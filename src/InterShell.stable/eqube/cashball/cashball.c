@@ -134,7 +134,7 @@ static int OnDrawCommon( "Cashball" )( PSI_CONTROL pc )
 	Image surface = GetControlSurface( pc );
 	{
 		uint32_t now = GetTickCount();
-		ClearImageTo( surface, cashball_local.background );
+		BlatColorAlpha( surface, 0, 0, surface->width, surface->height, cashball_local.background );
 
 		{
 			uint32_t w, h;
@@ -148,6 +148,7 @@ static int OnDrawCommon( "Cashball" )( PSI_CONTROL pc )
 
 static int OnCreateCommon( "Cashball" )( PSI_CONTROL pc )
 {
+   SetCommonTransparent( pc, TRUE );
 	AddLink( &cashball_local.timers, pc );
 	return 1;
 }

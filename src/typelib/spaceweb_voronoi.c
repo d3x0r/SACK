@@ -26,10 +26,13 @@ typedef struct spaceweb_link_data SPACEWEB_LINK_DATA, *PSPACEWEB_LINK_DATA;
 
 struct spaceweb_link_data
 {
-	PSPACEWEB_NODE primary;
-	PSPACEWEB_NODE secondary;
-	int valence;
+	//PSPACEWEB_NODE primary;
+	//PSPACEWEB_NODE secondary;
+	//int valence;
 	int paint; // when drawing.. mark the links as drawn.
+	RAY plane;
+	PSPACEWEB_LINK from;
+	PSPACEWEB_LINK to;
 	//LOGICAL edge;
 };
 
@@ -41,6 +44,8 @@ struct spaceweb_link
 	//  elasticity, spring, gravitation, repulsion
 	//  the link is shared between the two nodes.
 	PSPACEWEB_LINK_DATA data; // shared between both - links exest on both sides independantly... reduces need compare if (this or other)
+
+	LOGICAL invert; 
 };
 
 struct spaceweb_node
@@ -51,15 +56,17 @@ struct spaceweb_node
 		BIT_FIELD bLinked : 1;
 		BIT_FIELD bDeleted : 1;
 		BIT_FIELD bBucketed : 1;
+		BIT_FIELD bNegative : 1; // two negatives are a NULL; two postiives are a NULL; a positive is allowed entity space.
 	} flags;
 	// island is a debug check - it's a color to make sure all nodes are within the web.
 	// all nodes are contained in a seperate list for debug purposes...
-	uint32_t island;
+	uintptr_t island;
 	uint32_t paint;
 	uint32_t near_count;
 	uint32_t id;
 	// keep this, but migrate the name... otherwise we'll miss translation points...
-	PLIST near_nodes;
+	//PLIST near_nodes;  // link through an edge
+
 	PLIST links;
 
 #ifdef CS_PROTECT_NODES
@@ -73,6 +80,7 @@ struct spaceweb_node
 DeclareSet( SPACEWEB_NODE );
 
 #define NodeIndex( node ) GetMemberIndex( SPACEWEB_NODE, &node->web->nodes, node )
+#define LinkIndex( link ) GetMemberIndex( SPACEWEB_NODE, &link->node->web->links, node )
 
 #define MAXSPACEWEB_LINKSPERSET (6*MAXSPACEWEB_NODESPERSET)
 DeclareSet( SPACEWEB_LINK );
@@ -102,91 +110,13 @@ struct spaceweb_cursor
 */
 
 
-//-------------
-// code to be moved to vectlib
-//-------------
-
-RCOORD IntersectLineWithPlane( PCVECTOR Slope, PCVECTOR Origin,  // line m, b
-									 PCVECTOR n, PCVECTOR o,  // plane n, o
-										RCOORD *time )
-//#define IntersectLineWithPlane( s,o,n,o2,t ) IntersectLineWithPlane(s,o,n,o2,t DBG_SRC )
-{
-	RCOORD a,b,c,cosPhi, t; // time of intersection
-
-	// intersect a line with a plane.
-
-//   v € w = (1/2)(|v + w|2 - |v|2 - |w|2) 
-//  (v € w)/(|v| |w|) = cos ß     
-
-	//cosPhi = CosAngle( Slope, n );
-
-	a = ( Slope[0] * n[0] +
-			Slope[1] * n[1] +
-			Slope[2] * n[2] );
-
-	if( !a )
-	{
-		//Log1( DBG_FILELINEFMT "Bad choice - slope vs normal is 0" DBG_RELAY, 0 );
-		//PrintVector( Slope );
-		//PrintVector( n );
-		return 0;
-	}
-
-	b = Length( Slope );
-	c = Length( n );
-	if( !b || !c )
-	{
-		Log( WIDE("Slope and or n are near 0") );
-		return 0; // bad vector choice - if near zero length...
-	}
-
-	cosPhi = a / ( b * c );
-
-	t = ( n[0] * ( o[0] - Origin[0] ) +
-			n[1] * ( o[1] - Origin[1] ) +
-			n[2] * ( o[2] - Origin[2] ) ) / a;
-
-//   lprintf( WIDE(" a: %g b: %g c: %g t: %g cos: %g pldF: %g pldT: %g \n"), a, b, c, t, cosTheta,
-//                  pl->dFrom, pl->dTo );
-
-//   if( cosTheta > e1 ) //global epsilon... probably something custom
-
-//#define 
-
-	if( cosPhi > 0 ||
-		 cosPhi < 0 ) // at least some degree of insident angle
-	{
-		*time = t;
-		return cosPhi;
-	}
-	else
-	{
-		Log1( WIDE("Parallel... %g\n"), cosPhi );
-		PrintVector( Slope );
-		PrintVector( n );
-		// plane and line are parallel if slope and normal are perpendicular
-		//lprintf(WIDE("Parallel...\n"));
-		return 0;
-	}
-}
-
-
-RCOORD PointToPlaneT( PCVECTOR n, PCVECTOR o, PCVECTOR p ) {
-	VECTOR i;
-	RCOORD t;
-	SetPoint( i, n );
-	Invert( i );
-	IntersectLineWithPlane( i, p, n, o, &t );
-	return t;
-}
-
 
 int CountNear( PSPACEWEB_NODE node )
 {
 	int c = 0;
 	INDEX idx;
-	PSPACEWEB_NODE tmp;
-	LIST_FORALL( node->near_nodes, idx, PSPACEWEB_NODE, tmp ) c++;
+	POINTER tmp;
+	LIST_FORALL( node->links, idx, POINTER, tmp ) c++;
 	return c;
 }
 
@@ -239,7 +169,7 @@ uintptr_t CPROC IsIsland( void* thisnode, uintptr_t psv )
 	return 0;
 }
 
-void SignIsland( PSPACEWEB_NODE node, uint32_t value )
+void SignIsland( PSPACEWEB_NODE node, uintptr_t value )
 {
 	if( node->flags.bLinked )
 	{
@@ -252,16 +182,16 @@ void SignIsland( PSPACEWEB_NODE node, uint32_t value )
 		node->island = value;
 		{
 			INDEX idx;
-			PSPACEWEB_NODE tmp;
-			LIST_FORALL( node->near_nodes, idx, PSPACEWEB_NODE, tmp )
+			PSPACEWEB_LINK tmp;
+			LIST_FORALL( node->links, idx, PSPACEWEB_LINK, tmp )
 			{
-				SignIsland( tmp, value );
+				SignIsland( tmp->node, value );
 			}
 		}
 	}
 }
 
-void UnsignIsland( PSPACEWEB_NODE node, uint32_t old_value, uint32_t value )
+void UnsignIsland( PSPACEWEB_NODE node, uintptr_t old_value, uintptr_t value )
 {
 	if( node->flags.bLinked )
 	{
@@ -274,12 +204,12 @@ void UnsignIsland( PSPACEWEB_NODE node, uint32_t old_value, uint32_t value )
 		//LeaveCriticalSec( &node->cs );
 		{
 			INDEX idx;
-			PSPACEWEB_NODE tmp;
-			LIST_FORALL( node->near_nodes, idx, PSPACEWEB_NODE, tmp )
+			PSPACEWEB_LINK tmp;
+			LIST_FORALL( node->links, idx, PSPACEWEB_LINK, tmp )
 			{
 				// I just signed these...
-				if( tmp->island == (old_value) )
-					UnsignIsland( tmp, old_value, value );
+				if( tmp->node->island == (old_value) )
+					UnsignIsland( tmp->node, old_value, value );
 			}
 		}
 	}
@@ -289,7 +219,6 @@ void UnsignIsland( PSPACEWEB_NODE node, uint32_t old_value, uint32_t value )
 LOGICAL FindIslands( PSPACEWEB_NODE node )
 {
 	static uint32_t zzz;
-	uint32_t zzzz;
 	PSPACEWEB web = node->web;
 	PSPACEWEB_NODE orphan;
 	count = 0;
@@ -320,15 +249,35 @@ void BreakSingleNodeLinkEx( PSPACEWEB_NODE node, PSPACEWEB_NODE other DBG_PASS )
 int LinkWebNodeEx( PSPACEWEB_NODE node, PSPACEWEB_NODE linkto DBG_PASS );
 #define LinkWebNode( node, linkto ) LinkWebNodeEx( node,linkto DBG_SRC )
 
+static void DeleteNodeLink( PLIST *links, PSPACEWEB_NODE delMe ) {
+	INDEX idx;
+	PSPACEWEB_LINK_DATA data;
+	PSPACEWEB_LINK link;
+	PSPACEWEB_LINK other_link;
+
+	LIST_FORALL( (*links), idx, PSPACEWEB_LINK, link ) {
+		data = link->data;
+		other_link = link->invert?data->from:data->to;
+
+		if( link->node == delMe ) {
+			SetLink( links, idx, NULL );
+			SetLink( &other_link->node->links, FindLink( &other_link->node->links, other_link ), NULL );
+			DeleteFromSet( SPACEWEB_LINK_DATA, &delMe->web->link_data, link->data );
+			DeleteFromSet( SPACEWEB_LINK, &delMe->web->links, link );
+			DeleteFromSet( SPACEWEB_LINK, &delMe->web->links, other_link );
+		}
+	}
+}
+
 
 void UnlinkWebNode( PSPACEWEB_NODE node )
 {
 	INDEX idx;
-	 PLIST needs_someone = NULL;
-	PSPACEWEB_NODE anyone_else = NULL;
-	PSPACEWEB_NODE linked;
+	PLIST needs_someone = NULL;
+	PSPACEWEB_LINK anyone_else = NULL;
+	PSPACEWEB_LINK linked;
 	PLIST linked_list = NULL;
-	uint32_t prior = node->island;
+	uintptr_t prior = node->island;
 
 
 	if( node->web->root == node )
@@ -336,7 +285,7 @@ void UnlinkWebNode( PSPACEWEB_NODE node )
 #if ( DEBUG_ALL )
 		lprintf( WIDE("Going to have to pivot root.") );
 #endif
-		LIST_FORALL( node->near_nodes, idx, PSPACEWEB_NODE, linked )
+		LIST_FORALL( node->links, idx, PSPACEWEB_LINK, linked )
 		{
 			if( !anyone_else )
 			{
@@ -346,63 +295,63 @@ void UnlinkWebNode( PSPACEWEB_NODE node )
 				anyone_else = linked;
 			}
 			else
-				LinkWebNode( anyone_else, linked );
+				LinkWebNode( anyone_else->node, linked->node );
 			AddLink( &linked_list, linked );
 		}
 
-		LIST_FORALL( linked_list, idx, PSPACEWEB_NODE, linked )
+		LIST_FORALL( linked_list, idx, PSPACEWEB_LINK, linked )
 		{
 #if ( DEBUG_ALL )
 			lprintf( WIDE("Safely break each link between %p and %p"), node, linked );
 #endif
-			BreakSingleNodeLink( node, linked );
+			BreakSingleNodeLink( node, linked->node );
 		}
-		LIST_FORALL( linked_list, idx, PSPACEWEB_NODE, linked )
+		LIST_FORALL( linked_list, idx, PSPACEWEB_LINK, linked )
 		{
-			InvalidateLinks( linked, NULL, 0 );
+			InvalidateLinks( linked->node, NULL, 0 );
 		}
 		DeleteList( &linked_list );
-		node->web->root = anyone_else;
+		node->web->root = anyone_else->node;
 	}
 
 	anyone_else = NULL;
 #if ( DEBUG_ALL )
 	lprintf( WIDE("Eiher we pivoted the root, and have no links, or search naers...") );
 #endif
-	LIST_FORALL( node->near_nodes, idx, PSPACEWEB_NODE, linked )
+	LIST_FORALL( node->links, idx, PSPACEWEB_LINK, linked )
 	{
 		if( anyone_else )
 		{
 #if ( DEBUG_ALL )
 			lprintf( WIDE("Someone else is %p... going to link %p"), anyone_else, linked );
 #endif
-			LinkWebNode( anyone_else, linked );
+			LinkWebNode( anyone_else->node, linked->node );
 		}
 
 		AddLink( &linked_list, linked );
 		anyone_else = linked;
 	}
 
-	LIST_FORALL( linked_list, idx, PSPACEWEB_NODE, linked )
+	LIST_FORALL( linked_list, idx, PSPACEWEB_LINK, linked )
 	{
 #if ( DEBUG_ALL )
 		lprintf( WIDE("okay now we can break all links... %p to %p"), node, linked );
 #endif
-		BreakSingleNodeLink( node, linked );
+		BreakSingleNodeLink( node, linked->node );
 	}
-	LIST_FORALL( linked_list, idx, PSPACEWEB_NODE, linked )
+	LIST_FORALL( linked_list, idx, PSPACEWEB_LINK, linked )
 	{
-		InvalidateLinks( linked, NULL, 0 );
+		InvalidateLinks( linked->node, NULL, 0 );
 	}
 //		DeleteLink( &linked->near_nodes, node );
   // 	SetLink( &node->near_nodes, idx, NULL );
 
-	LIST_FORALL( linked_list, idx, PSPACEWEB_NODE, linked )
+	LIST_FORALL( linked_list, idx, PSPACEWEB_LINK, linked )
 	{
 #if ( DEBUG_ALL )
 		lprintf( WIDE("Validate %p"), linked );
 #endif
-		InvalidateLinks( linked, NULL, 0 );
+		InvalidateLinks( linked->node, NULL, 0 );
 	}
 	DeleteList( &linked_list );
 #if ( DEBUG_ALL )
@@ -412,33 +361,33 @@ void UnlinkWebNode( PSPACEWEB_NODE node )
 	return;
 
 	anyone_else = NULL;
-	LIST_FORALL( node->near_nodes, idx, PSPACEWEB_NODE, linked )
+	LIST_FORALL( node->links, idx, PSPACEWEB_LINK, linked )
 	{
 		lprintf( WIDE("divorce nodes %p and %p"), node, linked );
-		DeleteLink( &linked->near_nodes, node );
-		linked->near_count--;
-		SetLink( &node->near_nodes, idx, NULL );
+		DeleteNodeLink( &linked->node->links, node );
+		linked->node->near_count--;
+		SetLink( &node->links, idx, NULL );
 		node->near_count--;
 		if( IsOrphan( linked, 0 ) )
 		{
 			if( anyone_else )
 			{
 				lprintf( WIDE("already know someone else in the web, use them and relink orphan") );
-				RelinkANode( anyone_else, NULL, linked, 0 );
+				RelinkANode( anyone_else->node, NULL, linked->node, 0 );
 			}
 			else
 			{
 				if( node->web && node == node->web->root )
 				{
 					lprintf( WIDE("had to fix root...") );
-					node->web->root = linked;
+					node->web->root = linked->node;
 					node->web = NULL;
 					anyone_else = linked;
 				}
 				else
 				{
 					lprintf( WIDE("Don't know anyone stable, making orphan in list.") );
-					if( linked != node->web->root )
+					if( linked->node != node->web->root )
 						AddLink( &needs_someone, linked );
 					else
 					{
@@ -452,7 +401,7 @@ void UnlinkWebNode( PSPACEWEB_NODE node )
 		{
 			if( !node->web )
 			{
-				SignIsland( anyone_else->web->root, prior-1 );
+				SignIsland( anyone_else->node->web->root, prior-1 );
 			}
 			else
 			{
@@ -466,13 +415,13 @@ void UnlinkWebNode( PSPACEWEB_NODE node )
 				if( anyone_else )
 				{
 					lprintf( WIDE("What about the peers of this? "));
-					LinkWebNode( anyone_else, linked );
+					LinkWebNode( anyone_else->node, linked->node );
 					//RelinkANode( anyone_else, linked );
 				}
 				else
 				{
 					lprintf( WIDE("didn't know anyone, but since it's just a relink, add to needs?") );
-					if( linked != linked->web->root )
+					if( linked->node != linked->node->web->root )
 						AddLink( &needs_someone, linked );
 					else
 					{
@@ -507,7 +456,7 @@ void UnlinkWebNode( PSPACEWEB_NODE node )
 	if( !node->web )
 	{
 		// restore this...
-		node->web = anyone_else->web;
+		node->web = anyone_else->node->web;
 	}
 
 }
@@ -518,12 +467,7 @@ PSPACEWEB_LINK_DATA IsLinked( PSPACEWEB_NODE node, PSPACEWEB_NODE other );
 void BreakSingleNodeLinkEx( PSPACEWEB_NODE node, PSPACEWEB_NODE other DBG_PASS )
 #define BreakSingleNodeLink(a,b) BreakSingleNodeLinkEx(a,b DBG_SRC )
 {
-	//#if ( DEBUG_ALL )
-  // if( ( NodeIndex(node) == 39 && NodeIndex(other)==38)
-  // 	||( NodeIndex(node) == 38 && NodeIndex(other)==39) )
-		//update_pause = 1000;
 	_lprintf(DBG_RELAY)( WIDE("Seperate nodes %d and %d"), NodeIndex( node ), NodeIndex( other ) );
-//#endif
 	if( IsLinked( node, other ) )
 	{
 #if 0
@@ -607,12 +551,12 @@ void BreakSingleNodeLinkEx( PSPACEWEB_NODE node, PSPACEWEB_NODE other DBG_PASS )
 			}
 		}
 		*/
-		DeleteLink( &node->near_nodes, other );
-		DeleteLink( &other->near_nodes, node );
+		DeleteNodeLink( &node->links, other ); // deletes both sides - entire link.
 	}
 	else
 		lprintf( WIDE("Link didn't exist.") );
 }
+
 
 PSPACEWEB_LINK_DATA IsLinked( PSPACEWEB_NODE node, PSPACEWEB_NODE other )
 {
@@ -620,14 +564,14 @@ PSPACEWEB_LINK_DATA IsLinked( PSPACEWEB_NODE node, PSPACEWEB_NODE other )
 	PSPACEWEB_LINK link;
 	LIST_FORALL( node->links, idx, PSPACEWEB_LINK, link )
 	{
-		if( link->node == other )
+		if( (link->invert?link->data->from:link->data->to)->node == other )
 			break;
 	}
 	if( link )
 	{
 		LIST_FORALL( other->links, idx, PSPACEWEB_LINK, link )
 		{
-			if( link->node == node )
+			if( (link->invert ? link->data->from : link->data->to)->node == node )
 				return link->data;
 		}
 		DebugBreak();  // not reflective link
@@ -636,12 +580,11 @@ PSPACEWEB_LINK_DATA IsLinked( PSPACEWEB_NODE node, PSPACEWEB_NODE other )
 	{
 		LIST_FORALL( other->links, idx, PSPACEWEB_LINK, link )
 		{
-			if( link->node == node )
+			if( (link->invert ? link->data->from : link->data->to)->node == node )
 				DebugBreak(); // not reflective link.
 		}
 	}
 	return NULL;
-
 }
 
 // return the(a) node that invalidates this link... (it's beyond this. (may be others))
@@ -649,19 +592,21 @@ PSPACEWEB_NODE IsNodeWithinEx( PSPACEWEB_NODE node, PCVECTOR new_point, PSPACEWE
 {
 	{
 		INDEX idx;
-		PSPACEWEB_NODE near_node;
 		PSPACEWEB_LINK link;
 		LIST_FORALL( node->links, idx, PSPACEWEB_LINK, link )
 		{
 			_POINT p;
 			if( link->node == test_node )
 				continue;
+
 			sub( p, link->node->point, new_point?new_point:node->point );
 			{
 				RCOORD t;
 
-				t = PointToPlaneT( p, new_point?new_point:node->point, new_test_point?new_test_point:test_node->point );
-				if( t > 1 )
+				t = PointToPlaneT( link->data->plane.n, link->data->plane.o, new_test_point?new_test_point:test_node->point );
+				if( link->invert )
+					t = -t;
+				if( t > 0.5 )
 					return link->node;
 			}
 			//lprintf( WIDE("node %d is near..."), NodeIndex( link->node ) );
@@ -688,42 +633,48 @@ int LinkWebNodeEx( PSPACEWEB_NODE node, PSPACEWEB_NODE linkto DBG_PASS )
 		DebugBreak();
 	if( linked_data = IsLinked( node, linkto ) )
 	{
-		if( linkto == linked_data->primary )
+		//DebugBreak();
+		if( linkto == linked_data->from->node ||
+			linkto == linked_data->to->node
+			)
 		{
+			/*
 			if( !linked_data->secondary )
 				linked_data->secondary = linkto;
 			if( linked_data->valence == 1 )
 				linked_data->valence = 2;
+			*/
 		}
-		linked_data->valence += 0x10;
+		//linked_data->valence += 0x10;
 		_lprintf(DBG_RELAY)( WIDE("Link already exists...(%d to %d)"), NodeIndex( node ), NodeIndex( linkto ) );
 		return 0;
 	}
-	// be ultra safe - only one instance of a link should exist!
-	//#if ( DEBUG_ALL )
-	//if( NodeIndex( node ) == 4 &&  NodeIndex( linkto ) == 20 )
-	//   update_pause = 150000;
 	_lprintf(DBG_RELAY)( WIDE("link %d to %d"), NodeIndex( node ), NodeIndex( linkto ) );
-	//#endif
-	//BreakSingleNodeLink( node, linkto );
 
 	{
 		PSPACEWEB_LINK link = GetFromSet( SPACEWEB_LINK, &node->web->links );
 		PSPACEWEB_LINK_DATA data = GetFromSet( SPACEWEB_LINK_DATA, &node->web->link_data );
+		SetPoint( data->plane.o, node->point );
+		sub( data->plane.n, linkto->point, node->point );
+		addscaled( data->plane.o, data->plane.o, data->plane.n, 0.5 );
+
+		data->from = link;
+
 		link->node = node;
 		link->data = data;
-		data->primary = node;
-		data->secondary = NULL;
-		data->valence = 1;
-		AddLink( &linkto->links, link );
-		AddLink( &linkto->near_nodes, node );
-		linkto->near_count++;
+		link->invert = FALSE;
+
+		AddLink( &node->links, link );
+		node->near_count++;
+
 		link = GetFromSet( SPACEWEB_LINK, &node->web->links );
+		data->to = link;
+
 		link->node = linkto;
 		link->data = data;
-		AddLink( &node->links, link );//near_nodes, linkto );
-		AddLink( &node->near_nodes, linkto );
-		node->near_count++;
+		link->invert = TRUE;
+		AddLink( &linkto->links, link );
+		linkto->near_count++;
 	}
 	return 1;
 }
@@ -731,34 +682,34 @@ int LinkWebNodeEx( PSPACEWEB_NODE node, PSPACEWEB_NODE linkto DBG_PASS )
 void CheckOkLink( PSPACEWEB_NODE node, PSPACEWEB_NODE linkto, PSPACEWEB_NODE memberof )
 {
 	INDEX idx;
-	PSPACEWEB_NODE check;
+	PSPACEWEB_LINK check;
 
 	// current
 	if( memberof )
 	{
 	recheck_list:
 
-		LIST_FORALL( linkto->near_nodes, idx, PSPACEWEB_NODE, check )
+		LIST_FORALL( linkto->links, idx, PSPACEWEB_LINK, check )
 		{
 			_POINT p;
 			RCOORD t;
 			// don't check the node against itself.
-			if( check == node )
+			if( check->node == node )
 			{
 				DebugBreak(); // we shouldn't already be linked ?
 				continue;
 			}
 
-			sub( p, check->point, linkto->point );
-			t = PointToPlaneT( p, check->point, node->point );
+			sub( p, check->node->point, linkto->point );
+			t = PointToPlaneT( p, check->node->point, node->point );
 
 			if( t < -1.0 )
 			{
 				// point is on the outside of this point... so it's probably nearer to this point.
-				UnlinkWebNode( check );
+				UnlinkWebNode( check->node );
 				// uhmm yeah... this check is beyond this new point... so link that one to node
 				//RelinkNode( node, check );
-				CheckOkLink( check, node, linkto );
+				CheckOkLink( check->node, node, linkto );
 				//LinkWebNode( node, check );
 				goto recheck_list;
 			}
@@ -835,51 +786,54 @@ LOGICAL IsBeyond( PSPACEWEB_NODE node, PCVECTOR new_point, PSPACEWEB_NODE check1
 }
 
 
-int PrevalLink( PSPACEWEB_NODE check, PSPACEWEB_NODE check2, PSPACEWEB_NODE removing, PCVECTOR new_point )
+int PrevalLink( PSPACEWEB_LINK check, PSPACEWEB_LINK check2, PSPACEWEB_NODE removing, PCVECTOR new_point )
 {
 	int keep_link = 0;
 	int okay = 1;
-	lprintf( WIDE("Check to see that linking %d to %d is ok, was near %d"), NodeIndex( check ), NodeIndex(check2 ), NodeIndex( removing ) );
+	lprintf( WIDE("Check to see that linking %d to %d is ok, was near %d"), NodeIndex( check->node ), NodeIndex(check2->node ), NodeIndex( removing ) );
 	{
 		INDEX idx;
 		_POINT p3;
-		PSPACEWEB_NODE check_near;
+		PSPACEWEB_LINK check_near;
 		LOGICAL a, b;
 		// have to check if it's going to come through this point
 
 
-		a=CameThrough( removing, NULL, check, check2 );
-		b=CameThrough( removing, new_point, check, check2 );
-		if( !(a) && !(b) )
+		a=CameThrough( removing, NULL, check->node, check2->node );
+		b=CameThrough( removing, new_point, check->node, check2->node );
+		if( (a) && (b) )
 		{
+			lprintf( "check ->node -> check2 is a chain, and check to check2 should not be kept." );
 			keep_link = 0;
-			okay = 1;
-			lprintf( WIDE("check and check2 dont and will not go through removing, need link! *ddon't break*") );
+			okay = 0;
 			//lprintf( WIDE("we also need to do this link, if it's valid.") );
 		}
-		else
-		{
+		else if( !a && !b ) {
+			keep_link = 1;
+			okay = 1;
+			//lprintf( WIDE("we also need to do this link, if it's valid.") );
+		}else {
 			if( !a && b )
 			{
-				lprintf( WIDE("check and check2 are not related through removing (okay this causes another break... thought I had that solution too... we'll see.") );
-				keep_link= 1;
+				lprintf( WIDE("wasn't related, and now is") );
+				keep_link= 0;
 			}
 			else
 			{
-				lprintf( WIDE("won't go through, and does or does not go through?") );
+				lprintf( WIDE("a and !b? was a passthrough and now isn't?") );
 				//okay = 0;
 			}
 		}
 		if( okay )
 		{
-			sub( p3, check2->point, check->point );
-			LIST_FORALL( check2->near_nodes, idx, PSPACEWEB_NODE, check_near )
+			sub( p3, check2->node->point, check->node->point );
+			LIST_FORALL( check2->node->links, idx, PSPACEWEB_LINK, check_near )
 			{
 				RCOORD t3;
-				if( check_near == removing )
+				if( check_near->node == removing )
 					continue;
-				t3 = PointToPlaneT( sub( p3, check_near->point, check2->point )
-										, check_near->point, check->point );
+				t3 = PointToPlaneT( sub( p3, check_near->node->point, check2->node->point )
+										, check_near->node->point, check->node->point );
 				//lprintf( WIDE("%d->%d v %d = %g"), NodeIndex( check ), NodeIndex( check2 ), NodeIndex( check_near ), t3 );
 				if( t3 > 0 )
 				{
@@ -890,15 +844,15 @@ int PrevalLink( PSPACEWEB_NODE check, PSPACEWEB_NODE check2, PSPACEWEB_NODE remo
 		}
 		if( okay )
 		{
-			sub( p3, check->point, check2->point );
-			LIST_FORALL( check->near_nodes, idx, PSPACEWEB_NODE, check_near )
+			sub( p3, check->node->point, check2->node->point );
+			LIST_FORALL( check->node->links, idx, PSPACEWEB_LINK, check_near )
 			{
 				RCOORD t3;
-				if( check_near == removing )
+				if( check_near->node == removing )
 					continue;
 
-				t3 = PointToPlaneT( sub( p3, check_near->point, check->point )
-												 , check_near->point, check2->point );
+				t3 = PointToPlaneT( sub( p3, check_near->node->point, check->node->point )
+												 , check_near->node->point, check2->node->point );
 				//lprintf( WIDE("%d->%d v %d = %g"), NodeIndex( check2 ), NodeIndex( check ), NodeIndex( check_near ), t3 );
 				if( t3 > 0 )
 				{
@@ -910,10 +864,30 @@ int PrevalLink( PSPACEWEB_NODE check, PSPACEWEB_NODE check2, PSPACEWEB_NODE remo
 
 	}
 	if( okay )
-		LinkWebNode( check, check2 );
+		LinkWebNode( check->node, check2->node );
 
-	return !keep_link;
+	return keep_link;
 }
+
+//--------------------------------------------------------------------------
+
+static uintptr_t CPROC IsLink( uintptr_t value, INDEX i, POINTER *link )
+{
+	if( value == (uintptr_t)(*link) )
+		return i + 1; // 0 might be value so add one to make it non zero
+	return 0;
+}
+
+//--------------------------------------------------------------------------
+
+INDEX  FindNodeLink( PLIST *pList, POINTER value )
+{
+	if( !pList || !(*pList) )
+		return INVALID_INDEX;
+	return ForAllLinks( pList, IsLink, (uintptr_t)value ) - 1;
+}
+
+
 
 LOGICAL ValidLink( PSPACEWEB_NODE node, PSPACEWEB_NODE other_node )
 {
@@ -927,27 +901,30 @@ LOGICAL ValidLink( PSPACEWEB_NODE node, PSPACEWEB_NODE other_node )
 // (if they are valid for what they are linked to, they must also stay
 void InvalidateLinks( PSPACEWEB_NODE node, PCVECTOR new_point, int bPrevalLink )
 {
-	PSPACEWEB_NODE check;
+	PSPACEWEB_LINK _check;
 	INDEX idx;
 
 
-	LIST_FORALL( node->near_nodes, idx, PSPACEWEB_NODE, check )
+	LIST_FORALL( node->links, idx, PSPACEWEB_LINK, _check )
 	{
-		PSPACEWEB_NODE check2;
+		PSPACEWEB_LINK check = (_check->invert ? _check->data->from : _check->data->to);
+		PSPACEWEB_LINK _check2;
 		_POINT p;
 		INDEX idx2;
 		idx2 = idx;
-		sub( p, check->point, new_point?new_point:node->point );
-		LIST_NEXTALL( node->near_nodes, idx, PSPACEWEB_NODE, check2 )
+		sub( p, check->node->point, new_point?new_point:node->point );
+		LIST_NEXTALL( node->links, idx, PSPACEWEB_LINK, _check2 )
 		{
+			PSPACEWEB_LINK check2 = (_check2->invert ? _check2->data->from : _check2->data->to);
 			// test check2 point above node->check1
-			RCOORD t = PointToPlaneT( p, new_point?new_point:node->point, check2->point );
+			PSPACEWEB_NODE other = check2->node;
+			RCOORD t = PointToPlaneT( p, new_point?new_point:node->point, other->point );
 			_POINT p2;
 			{
 			// test check point above node->check2
-			RCOORD t2 = PointToPlaneT( sub( p2, check2->point, new_point?new_point:node->point ), new_point?new_point:node->point, check->point );
+			RCOORD t2 = PointToPlaneT( sub( p2, other->point, new_point?new_point:node->point ), new_point?new_point:node->point, check->node->point );
 //#if ( DEBUG_ALL )
-			lprintf( WIDE("Hrm..%d(base) %d vs %d %g  %g"), NodeIndex( node ), NodeIndex( check ), NodeIndex( check2 ), t, t2 );
+			lprintf( WIDE("Hrm..%d(base) %d vs %d %g  %g"), NodeIndex( node ), NodeIndex( check->node ), NodeIndex( other ), t, t2 );
 			//#endif
 
 #if 0
@@ -999,7 +976,7 @@ void InvalidateLinks( PSPACEWEB_NODE node, PCVECTOR new_point, int bPrevalLink )
 			}
 
 #endif
-			if( t >= 1  )
+			if( t >= 1  || t <= -1 )
 			{
 //#if ( DEBUG_ALL )
 				lprintf( WIDE("Removing node to check2...") );
@@ -1008,14 +985,15 @@ void InvalidateLinks( PSPACEWEB_NODE node, PCVECTOR new_point, int bPrevalLink )
 				// remove check2 from self...
 
 				// remove self, so linking won't fail. (though, if link fails... do we get orphans)
-				if( PrevalLink( check, check2, node, new_point ) )
-					BreakSingleNodeLink( check2, node );
+				if( PrevalLink( check, check2, node, new_point ) ) {
+					BreakSingleNodeLink( check2->node, node );
+				}
 				//else
 				//	lprintf( WIDE("nevermind, it was already linked with a via.") );
 				//InvalidateLinks( check );
 				//InvalidateLinks( check2 );
 			}
-			else if( t2 >= 1 )
+			else if( t2 >= 1 || t2 <= -1 )
 			{
 //#if ( DEBUG_ALL )
 				lprintf( WIDE("Removing node to check...") );
@@ -1023,23 +1001,23 @@ void InvalidateLinks( PSPACEWEB_NODE node, PCVECTOR new_point, int bPrevalLink )
 				if( PrevalLink( check2, check, node, new_point ) )
 				{
 					INDEX idx;
-					PSPACEWEB_NODE near_node;
-					LIST_FORALL( node->near_nodes, idx, PSPACEWEB_NODE, near_node )
+					PSPACEWEB_LINK near_node;
+					LIST_FORALL( node->links, idx, PSPACEWEB_LINK, near_node )
 					{
-						if( near_node == check2 )
+						if( near_node->node == check2->node )
 							continue;
-						if( near_node == check )
+						if( near_node->node == check->node )
 							continue;
-						if( CameThrough( node, NULL, check, near_node ) )
+						if( CameThrough( node, NULL, check->node, near_node->node ) )
 						{
 						}
 
-						if( CameThrough( node, new_point, check, near_node ) )
+						if( CameThrough( node, new_point, check->node, near_node->node ) )
 						{
 							lprintf( WIDE("maybe we have to spare this link?") );
 						}
 					}
-					BreakSingleNodeLink( check, node );
+					BreakSingleNodeLink( check->node, node );
 				}
 				//PrevalLink( check, check2 );
 				//else
@@ -1058,8 +1036,9 @@ void ValidateLink( PSPACEWEB_NODE resident, PCVECTOR new_point, PSPACEWEB_NODE n
 {
 	INDEX idx2;
 	PSPACEWEB_NODE near2;
+	PSPACEWEB_LINK link;
 	_POINT p;
-	// node was recently linked to near_point.
+	// node was recently linked to this resident node (already belongs to the web).
 
 	// this checks all other links from near_point (the resident)
 	// versus this new point, if the point is beyond this new point, then
@@ -1068,26 +1047,35 @@ void ValidateLink( PSPACEWEB_NODE resident, PCVECTOR new_point, PSPACEWEB_NODE n
 	// from resident -> node delta
 	sub( p, new_point?new_point:node->point, resident->point );
 
-	LIST_FORALL( resident->near_nodes, idx2, PSPACEWEB_NODE, near2 )
+	LIST_FORALL( resident->links, idx2, PSPACEWEB_LINK, link )
 	{
 		RCOORD t;
+		PSPACEWEB_LINK_DATA data = link->data;
 		// don't check the node against itself.
+		near2 = (link->invert ? data->from : data->to)->node;
 		if( near2 == node )
 			continue;
 
 		// compare node base point versus near2 (the relative of near that I'm linked against)
-		t = PointToPlaneT( p, new_point?new_point:resident->point, near2->point );
+		t = PointToPlaneT( data->plane.o, data->plane.n, near2->point );
+		if( link->invert ) t = -t;
+
+
 		lprintf( WIDE("%d->%d v %d is %g"), NodeIndex( resident ), NodeIndex( node ), NodeIndex( near2 ), t );
-		if( t > 1.0 )
+		if( t > 1)
 		{
-			lprintf( WIDE("So we steal the link to me %d , and remove from resident %d  (%d)"), NodeIndex( node ), NodeIndex( resident ), NodeIndex( near2 ) );
+			lprintf( WIDE("So we steal the link to me %d , and remove from resident %d  (%d)")
+					, NodeIndex( node ), NodeIndex( resident ), NodeIndex( near2 ) );
 			// one for one exchange
-			LinkWebNode( node, near2 );
+			/*
+			LinkWebNode( node, resident );
+			//BreakSingleNodeLink( resident, near2 );
 
 			if( IsNodeWithin( near2, NULL, resident ) )
 				BreakSingleNodeLink( resident, near2 );
 			lprintf( WIDE("And again validate my own links? considering the near2 as resident and me new") );
 			//ValidateLink( near2, NULL, node );
+			*/
 		}
 		else
 			lprintf( WIDE("ok..") );
@@ -1100,12 +1088,13 @@ uintptr_t CPROC MakeOrphan( POINTER p, uintptr_t psv )
 {
 	PSPACEWEB_NODE node = (PSPACEWEB_NODE)p;
 	INDEX idx;
-	PSPACEWEB_NODE linked;
-	LIST_FORALL( node->near_nodes, idx, PSPACEWEB_NODE, linked )
+	PSPACEWEB_LINK linked;
+	LIST_FORALL( node->links, idx, PSPACEWEB_LINK, linked )
 	{
 		lprintf( WIDE("divorce nodes %p and %p"), node, linked );
-		DeleteLink( &linked->near_nodes, node );
-		SetLink( &node->near_nodes, idx, NULL );
+		DeleteLink( &linked->node->links, node );
+		SetLink( &node->links, idx, NULL );
+		//DeleteFromSet( node->web->, linked )
 	}
 
 	return 0;
@@ -1129,7 +1118,7 @@ void MigrateLink( PSPACEWEB_NODE node, PCVECTOR p_dest )
 	INDEX idx;
 
 	PSPACEWEB_NODE any_node = NULL;
-	PSPACEWEB_NODE check;
+	PSPACEWEB_LINK check;
 	if( migrating )
 		return;
 	migrating = 1;
@@ -1149,18 +1138,17 @@ void MigrateLink( PSPACEWEB_NODE node, PCVECTOR p_dest )
 	{
 		INDEX idx;
 		PSPACEWEB_NODE any_near = NULL;
-		PSPACEWEB_NODE check;
+		PSPACEWEB_LINK check;
 
 		// self's links maybe invalid now... so, use the regular check on this node
-		LIST_FORALL( node->near_nodes, idx, PSPACEWEB_NODE, check )
+		LIST_FORALL( node->links, idx, PSPACEWEB_LINK, check )
 		{
-			PSPACEWEB_NODE check2;
 			_POINT p;
 			RCOORD t;
 			INDEX idx2 = idx;
-			sub( p, check->point, node->point );
+			sub( p, check->node->point, node->point );
 			t = PointToPlaneT( p, node->point, p_dest );
-			lprintf( WIDE("%d->%d  %g"), NodeIndex( node ), NodeIndex( check ), t );
+			lprintf( WIDE("%d->%d  %g"), NodeIndex( node ), NodeIndex( check->node ), t );
 			if( t > 1 )
 				break;
 		}
@@ -1177,6 +1165,7 @@ void MigrateLink( PSPACEWEB_NODE node, PCVECTOR p_dest )
 			{
 				INDEX idx;
 				PSPACEWEB_NODE near_node;
+				PSPACEWEB_LINK near_link;
 				INDEX idx2;
 				PSPACEWEB_NODE near2;
 				LIST_FORALL( pListNear, idx, PSPACEWEB_NODE, near_node )
@@ -1184,16 +1173,16 @@ void MigrateLink( PSPACEWEB_NODE node, PCVECTOR p_dest )
 					lprintf( WIDE("node %d is near..."), NodeIndex( near_node ) );
 				}
 
-				LIST_FORALL( node->near_nodes, idx, PSPACEWEB_NODE, near_node )
+				LIST_FORALL( node->links, idx, PSPACEWEB_LINK, near_link )
 				{
-					BreakSingleNodeLink( node, near_node );
+					BreakSingleNodeLink( node, near_link->node );
 				}
 
-				LIST_FORALL( node->near_nodes, idx, PSPACEWEB_NODE, near_node )
+				LIST_FORALL( node->links, idx, PSPACEWEB_LINK, near_link )
 				{
 					LIST_FORALL( pListNear, idx2, PSPACEWEB_NODE, near2 )
 					{
-						if( near2 == near_node )
+						if( near2 == near_link->node )
 						{
 							break;
 						}
@@ -1208,9 +1197,9 @@ void MigrateLink( PSPACEWEB_NODE node, PCVECTOR p_dest )
     				//DebugBreak();
 				LIST_FORALL( pListNear, idx2, PSPACEWEB_NODE, near2 )
 				{
-					LIST_FORALL( node->near_nodes, idx, PSPACEWEB_NODE, near_node )
+					LIST_FORALL( node->links, idx, PSPACEWEB_LINK, near_link )
 					{
-						if( near2 == near_node )
+						if( near2 == near_link->node )
 						{
 							break;
 						}
@@ -1267,10 +1256,10 @@ void MigrateLink( PSPACEWEB_NODE node, PCVECTOR p_dest )
 
 	// migrate this node...
 	lprintf( WIDE("migration - first - check validity uhhmm... between node(near) and node(near(near)) from (near) to (near(near)) vs point") );
-	LIST_FORALL( node->near_nodes, idx, PSPACEWEB_NODE, check )
+	LIST_FORALL( node->links, idx, PSPACEWEB_LINK, check )
 	{
 		INDEX idx2;
-		PSPACEWEB_NODE check2;
+		PSPACEWEB_LINK check2;
 		//if( NEAR( node->point, check->point ) )
 		{
 			// points are invalid, cause they are the same point.
@@ -1278,13 +1267,13 @@ void MigrateLink( PSPACEWEB_NODE node, PCVECTOR p_dest )
 			//lprintf( WIDE("die...") );
 #endif
 		}
-		LIST_FORALL( check->near_nodes, idx2, PSPACEWEB_NODE, check2 )
+		LIST_FORALL( check->node->links, idx2, PSPACEWEB_LINK, check2 )
 		{
-			if( check2 == node )
+			if( check2->node == node )
 				continue;
 			{
 				_POINT p;
-				RCOORD t = PointToPlaneT( sub( p, check2->point, check->point ), check2->point, node->point );
+				RCOORD t = PointToPlaneT( sub( p, check2->node->point, check->node->point ), check2->node->point, node->point );
 #if ( DEBUG_MIGRATE )
 				lprintf( WIDE("point is %g ..."), t );
 #endif
@@ -1297,17 +1286,17 @@ void MigrateLink( PSPACEWEB_NODE node, PCVECTOR p_dest )
 #if ( DEBUG_MIGRATE )
 					lprintf( WIDE(" -- unlink finished, now to link... ") );
 #endif
-					LinkWebNode( check2, node );
+					LinkWebNode( check2->node, node );
 					//RelinkANode( check2, node );
 					{
 						int c = 0;
 						INDEX idx;
 						PSPACEWEB_NODE tmp;
-						LIST_FORALL( node->near_nodes, idx, PSPACEWEB_NODE, tmp ) c++;
+						LIST_FORALL( node->links, idx, PSPACEWEB_NODE, tmp ) c++;
 						if( c == 0 )
 						{
 							lprintf( WIDE(" *** Oops dropped the node entirely.") ) ;
-							RelinkANode( check, NULL, node, 0 );
+							RelinkANode( check->node, NULL, node, 0 );
 						}
 					}
 					migrating = 0;
@@ -1330,26 +1319,26 @@ void MigrateLink( PSPACEWEB_NODE node, PCVECTOR p_dest )
 	//if(0)
 	{
 		//
-		LIST_FORALL( node->near_nodes, idx, PSPACEWEB_NODE, check )
+		LIST_FORALL( node->links, idx, PSPACEWEB_LINK, check )
 		{
 			INDEX idx2 = idx;
-			PSPACEWEB_NODE check2;
-			LIST_NEXTALL( node->near_nodes, idx, PSPACEWEB_NODE, check2 )
+			PSPACEWEB_LINK check2;
+			LIST_NEXTALL( node->links, idx, PSPACEWEB_LINK, check2 )
 			{
 				lprintf( WIDE("compare %d v %d"), idx2, idx );
 				// this is certainly one way to do this :)
-				if( !IsLinked( check, check2 ) )
+				if( check->data != check2->data )
 				{
 					int okay = 1;
 					INDEX idx3;
-					PSPACEWEB_NODE check3;
+					PSPACEWEB_LINK check3;
 					_POINT p;
 					RCOORD t;
-					LIST_FORALL( check->near_nodes, idx3, PSPACEWEB_NODE, check3 )
+					LIST_FORALL( check->node->links, idx3, PSPACEWEB_LINK, check3 )
 					{
 
-						sub( p, check3->point, check->point );
-						t = PointToPlaneT( p, check->point, check2->point );
+						sub( p, check3->node->point, check->node->point );
+						t = PointToPlaneT( p, check->node->point, check2->node->point );
 						if( t > 2.0 )
 						{
 #if ( DEBUG_MIGRATE )
@@ -1362,11 +1351,11 @@ void MigrateLink( PSPACEWEB_NODE node, PCVECTOR p_dest )
 					}
 					if( okay )
 					{
-						LIST_FORALL( check2->near_nodes, idx3, PSPACEWEB_NODE, check3 )
+						LIST_FORALL( check2->node->links, idx3, PSPACEWEB_LINK, check3 )
 						{
 
-							sub( p, check3->point, check2->point );
-							t = PointToPlaneT( p, check2->point, check->point );
+							sub( p, check3->node->point, check2->node->point );
+							t = PointToPlaneT( p, check2->node->point, check->node->point );
 							if( t > 2.0 )
 							{
 #if ( DEBUG_MIGRATE )
@@ -1381,8 +1370,8 @@ void MigrateLink( PSPACEWEB_NODE node, PCVECTOR p_dest )
 					if( okay )
 					{
 						lprintf( WIDE("check and check2 should link now.") );
-						LinkWebNode( check, check2 );
-						InvalidateLinks( check2, NULL, 0 );
+						LinkWebNode( check->node, check2->node );
+						InvalidateLinks( check2->node, NULL, 0 );
 					}
 				}
 			}
@@ -1391,6 +1380,7 @@ void MigrateLink( PSPACEWEB_NODE node, PCVECTOR p_dest )
 	}
 	migrating = 0;
 }
+
 
 
 // find nearest does a recusive search and finds nodes
@@ -1403,10 +1393,10 @@ PSPACEWEB_NODE FindNearest( PLIST *nodes, PLIST *came_from, PSPACEWEB_NODE from,
 	int moved;
 	int successes = 0;
 	PSPACEWEB_NODE current = from;
-	PSPACEWEB_NODE check;
+	PSPACEWEB_LINK check;
 	PLINKQUEUE maybe = CreateLinkQueue();
 	PLIST _came_from = NULL;
-	int log = 0;
+	int log = 1;
 	if( log ) lprintf( WIDE("Begin Find.") );
 	if( !came_from )
 		came_from = &_came_from;
@@ -1422,21 +1412,17 @@ PSPACEWEB_NODE FindNearest( PLIST *nodes, PLIST *came_from, PSPACEWEB_NODE from,
 		}
 		AddLink( came_from, current );
 		if( log ) lprintf( WIDE("Begin check %d"), NodeIndex( current ) );
-		LIST_FORALL( current->near_nodes, idx, PSPACEWEB_NODE, check )
+		LIST_FORALL( current->links, idx, PSPACEWEB_LINK, check )
 		{
 			_POINT p;
 			RCOORD t;
-			if( log ) lprintf( WIDE("checking near %d"), NodeIndex( check ) );
-			// don't check the node against itself.
-			//if( check == to )
-			{
-				//if( log ) lprintf( WIDE("myself...") );
-				//continue;
-			}
-			if( FindLink( came_from, check ) != INVALID_INDEX )
+			PSPACEWEB_LINK otherCheck = check->invert ? check->data->from : check->data->to;
+
+			if( log ) lprintf( WIDE("checking near %d"), NodeIndex( otherCheck->node ) );
+			if( FindLink( came_from, otherCheck->node ) != INVALID_INDEX )
 			{
 				if( log ) lprintf( WIDE("already checked...(or will be)") );
-				t = PointToPlaneT( sub( p, check->point, current->point ), current->point, to );
+				t = PointToPlaneT( sub( p, check->node->point, current->point ), current->point, to );
 				if( t > 1.0 )
 				{
 					if( log ) lprintf( WIDE("might not have been checked in this direction, so checked, and discovered it's not a valid near.") );
@@ -1445,24 +1431,23 @@ PSPACEWEB_NODE FindNearest( PLIST *nodes, PLIST *came_from, PSPACEWEB_NODE from,
 				continue;
 			}
 
-			t = PointToPlaneT( sub( p, check->point, current->point ), current->point, to );
+			t = PointToPlaneT( sub( p, otherCheck->node->point, current->point ), current->point, to );
 
-			//#if ( DEBUG_ALL )
 			if( log ) lprintf( WIDE("??%d vs %d->%d is %g")
 					 , 0//GetMemberIndex( SPACEWEB_NODE, &to->web->nodes, to )
 					 , GetMemberIndex( SPACEWEB_NODE, &current->web->nodes, current )
-					 , GetMemberIndex( SPACEWEB_NODE, &check->web->nodes, check )
+					 , GetMemberIndex( SPACEWEB_NODE, &otherCheck->node->web->nodes, check )
 					 , t );
 			if( ( t > 0 ) || ( successes == 0 && t < 1 ) )
 			{
-				if( FindLink( came_from, check ) == INVALID_INDEX )
+				if( FindLink( came_from, otherCheck->node ) == INVALID_INDEX )
 				{
-					check->paint = paint;
+					check->node->paint = paint;
 					if( log ) lprintf( WIDE("Adding check to maybe..") );
-					EnqueLink( &maybe, check );
+					EnqueLink( &maybe, otherCheck->node );
 				}
 				else
-					if( log ) lprintf( WIDE("came from %d"), NodeIndex( check ) );
+					if( log ) lprintf( WIDE("came from %d"), NodeIndex( check->node ) );
 				if( t > 1 )
 					okay = 0;
 			}
@@ -1490,9 +1475,7 @@ PSPACEWEB_NODE FindNearest( PLIST *nodes, PLIST *came_from, PSPACEWEB_NODE from,
 void RelinkANode( PSPACEWEB_NODE web, PSPACEWEB_NODE came_from, PSPACEWEB_NODE node, int final )
 {
 	PSPACEWEB_NODE current = web;
-	INDEX idx;
 	int linked = 0;
-	PSPACEWEB_NODE check;
 	PLIST list = NULL;
 	static int levels;
 	static int paint;
@@ -1516,41 +1499,13 @@ void RelinkANode( PSPACEWEB_NODE web, PSPACEWEB_NODE came_from, PSPACEWEB_NODE n
 	{
 		INDEX idx;
 		PSPACEWEB_NODE near_node;
-#if 0
-		int new_near = 0;
-		//PLIST pWant = NULL;
-		LIST_FORALL( list, idx, PSPACEWEB_NODE, near_node )
-		{
-			INDEX idx2;
-			PSPACEWEB_NODE near_node2;
-
-			LIST_FORALL( node->near, idx2, PSPACEWEB_NODE, near_node2 )
-			{
-				if( near_node == near_node2 )
-				{
-					SetLink( &list, idx, NULL );
-					break;
-				}
-			}
-			//AddLink( &pWant, near_node );
-			//LinkWebNode( near_node, node );
-			//ValidateLink( near_node, node );
-		}
-
-		LIST_FORALL( list, idx, PSPACEWEB_NODE, near_node )
-		{
-			new_near++;
-		}
-
-		if( new_near )
-		{
-#endif
-
 		LIST_FORALL( list, idx, PSPACEWEB_NODE, near_node )
 		{
 			INDEX idx2 = idx;
 			PSPACEWEB_NODE near2;
-			LIST_NEXTALL( list, idx, PSPACEWEB_NODE, near2 )
+			lprintf( "nearest is %d %d %d", GetMemberIndex( SPACEWEB_NODE, &near_node->web->nodes, near_node ),
+				(int32_t)node->point[0], (int32_t)node->point[2] );
+				LIST_NEXTALL( list, idx, PSPACEWEB_NODE, near2 )
 			{
 				if( !IsWithin( node, near_node, near2 ) )
 				{
@@ -1625,7 +1580,7 @@ PSPACEWEB_NODE AddWebNode( PSPACEWEB web, PC_POINT pt, uintptr_t psv )
 	node->web = web;
 	node->data = psv;
 	node->island = 0;
-	node->near_nodes = NULL;
+	node->links = NULL;
 	EnterCriticalSec( &web->cs );
 	RelinkNode( web, node );
 	node->flags.bLinked = 1;
@@ -1668,7 +1623,7 @@ PSPACEWEB CreateSpaceWeb( void )
 #ifdef BUILD_WEB_TESTER
 #include <psi.h>
 
-EasyRegisterControl( WIDE("Web Tester"), 0 );
+EasyRegisterControl( WIDE("VWeb Tester"), 0 );
 
 static struct {
 	PSPACEWEB web;
@@ -1685,7 +1640,7 @@ static struct {
 	int paint;
 } test;
 
-static int OnMouseCommon( WIDE("Web Tester") )( PSI_CONTROL pc, int32_t x, int32_t y, uint32_t b )
+static int OnMouseCommon( WIDE("VWeb Tester") )( PSI_CONTROL pc, int32_t x, int32_t y, uint32_t b )
 {
 	static uint32_t _b;
 	if( ( b & MK_LBUTTON ) && !( _b & MK_LBUTTON ) )
@@ -1693,8 +1648,8 @@ static int OnMouseCommon( WIDE("Web Tester") )( PSI_CONTROL pc, int32_t x, int32
 		// it's an array in some context, and a pointer in most...
 		// the size is the sizeof [nDimensions] but address of that is not PVECTOR
 		VECTOR v;
-		v[vRight] = x;
-		v[vForward] = y;
+		v[vRight] = (RCOORD)x;
+		v[vForward] = (RCOORD)y;
 		v[vUp] = 0;
 		lprintf( WIDE("----------------- NEW NODE -----------------------") );
 		fprintf( test.file, WIDE("%d,%d\n"), x, y );
@@ -1744,13 +1699,11 @@ static uintptr_t CPROC something3d( void* thisnode, uintptr_t psv )
 
 	{
 		TEXTCHAR tmp[32];
-		INDEX idx;
-		PSPACEWEB_NODE zz;
 		int c = 0;
 		int len;
-		LIST_FORALL( node->near_nodes, idx, PSPACEWEB_NODE, zz ) c++;
+		c = CountNear( node );
 
-		len = snprintf( tmp, sizeof( tmp ), WIDE("%d[%d]"), node->paint, NodeIndex( node ) );
+		len = snprintf( tmp, sizeof( tmp ), WIDE("%d[%zd]"), node->paint, NodeIndex( node ) );
 		Render3dText( tmp, len, 0xFFFFFFFF, NULL, node->point, TRUE );
 	}
 
@@ -1887,8 +1840,8 @@ static void OnDraw3d( WIDE("Space Web(3d)") )( uintptr_t psv )
 		EnterCriticalSec( &test.web->cs );
 		{
 			VECTOR v;
-			v[vRight] = test.x;
-			v[vForward] = test.y;
+			v[vRight] = (RCOORD)test.x;
+			v[vForward] = (RCOORD)test.y;
 			v[vUp] = 0;
 			if( test.pRoot )
 				FindNearest( &data.path, &data.pathway, test.pRoot, v, 0 );
@@ -1906,20 +1859,19 @@ static uintptr_t CPROC something( void* thisnode, uintptr_t psv )
 	PSPACEWEB_NODE node = (PSPACEWEB_NODE)thisnode;
 	struct drawdata *data = (struct drawdata*)psv;
 	CDATA c, c2;
-	if( !node->flags.bLinked )
-		return 0;
 
 	{
 		TEXTCHAR tmp[32];
-		INDEX idx;
-		PSPACEWEB_NODE zz;
 		int c = 0;
-		LIST_FORALL( node->near_nodes, idx, PSPACEWEB_NODE, zz ) c++;
+		c = CountNear( node );
 
-		snprintf( tmp, sizeof( tmp ), WIDE("%d[%d]"), node->paint, NodeIndex( node ) );
-		PutString( data->surface, node->point[vRight], node->point[vForward], BASE_COLOR_WHITE, 0, tmp );
+		snprintf( tmp, sizeof( tmp ), WIDE("%d[%zd]"), node->paint, NodeIndex( node ) );
+		PutString( data->surface, (int32_t)node->point[vRight], (int32_t)node->point[vForward], BASE_COLOR_WHITE, 0, tmp );
 	}
-	plot( data->surface, node->point[vRight], node->point[vForward], BASE_COLOR_GREEN );
+	plot( data->surface, (int32_t)node->point[vRight], (int32_t)node->point[vForward], BASE_COLOR_GREEN );
+
+	if( !node->flags.bLinked )
+		return 0;
 
 	c = ColorAverage( BASE_COLOR_RED, BASE_COLOR_YELLOW, data->step, 32 );
 	c2 = ColorAverage( BASE_COLOR_GREEN, BASE_COLOR_MAGENTA, data->step, 32 );
@@ -1939,15 +1891,15 @@ static uintptr_t CPROC something( void* thisnode, uintptr_t psv )
 			if( link->data->paint == data->paint )
 				continue;
 			link->data->paint = data->paint;
-			dest = link->node;
+			dest = (link->invert?link->data->from:link->data->to)->node;
 			//lprintf( WIDE("a near node! %d -> %d  v:%d"), NodeIndex( node ), NodeIndex( link->node ), link->data->valence );
 #if ( DEBUG_ALL )
 			lprintf( WIDE("a near node! %d %d %d %d")
 					 ,(int)node->point[vRight], (int)node->point[vForward]
 					 , (int)dest->point[vRight], (int)dest->point[ vUp ] );
 #endif
-			do_line( data->surface, node->point[vRight], node->point[vForward]
-					 , dest->point[vRight], dest->point[ vForward ]
+			do_line( data->surface, (int32_t)node->point[vRight], (int32_t)node->point[vForward]
+					 , (int32_t)dest->point[vRight], (int32_t)dest->point[ vForward ]
 					 , c );
 
 			// draw the perpendicular lines at caps ( 2d perp only)
@@ -1965,13 +1917,13 @@ static uintptr_t CPROC something( void* thisnode, uintptr_t psv )
 				m[vRight] = tmp;
 				addscaled( p1, node->point, m, 0.125 );
 				addscaled( p2, node->point, m, -0.125 );
-				do_line( data->surface, p1[vRight], p1[vForward]
-						 , p2[vRight], p2[ vForward ]
+				do_line( data->surface, (int32_t)p1[vRight], (int32_t)p1[vForward]
+						 , (int32_t)p2[vRight], (int32_t)p2[ vForward ]
 						 , c2 );
 				addscaled( p1, dest->point, m, 0.125 );
 				addscaled( p2, dest->point, m, -0.125 );
-				do_line( data->surface, p1[vRight], p1[vForward]
-						 , p2[vRight], p2[ vForward ]
+				do_line( data->surface, (int32_t)p1[vRight], (int32_t)p1[vForward]
+						 , (int32_t)p2[vRight], (int32_t)p2[ vForward ]
 						 , c2 );
 			}
 
@@ -1991,10 +1943,10 @@ static uintptr_t CPROC something( void* thisnode, uintptr_t psv )
 				SetPoint( p2, p1 );
 				p2[vRight] += AAA;
 				p2[vForward] += AAA;
-				do_line( data->surface, p1[vRight], p1[vForward]
-						 , p2[vRight], p2[vForward], BASE_COLOR_WHITE);
-				do_line( data->surface, p2[vRight], p1[vForward]
-						 , p1[vRight], p2[vForward], BASE_COLOR_WHITE);
+				do_line( data->surface, (int32_t)p1[vRight], (int32_t)p1[vForward]
+						 , (int32_t)p2[vRight], (int32_t)p2[vForward], BASE_COLOR_WHITE);
+				do_line( data->surface, (uint32_t)p2[vRight], (int32_t)p1[vForward]
+						 , (int32_t)p1[vRight], (int32_t)p2[vForward], BASE_COLOR_WHITE);
 			}
 		}
 		{
@@ -2010,10 +1962,10 @@ static uintptr_t CPROC something( void* thisnode, uintptr_t psv )
 				p2[vRight] += 3;
 				p2[vForward] += 4;
 				lprintf( WIDE("path %d,%d"), is_path->point[vRight], is_path->point[vForward] );
-				do_line( data->surface, p1[vRight], p1[vForward]
-						 , p2[vRight], p2[vForward], BASE_COLOR_LIGHTCYAN);
-				do_line( data->surface, p2[vRight], p1[vForward]
-						 , p1[vRight], p2[vForward], BASE_COLOR_LIGHTCYAN);
+				do_line( data->surface, (int32_t)p1[vRight], (int32_t)p1[vForward]
+						 , (int32_t)p2[vRight], (int32_t)p2[vForward], BASE_COLOR_LIGHTCYAN);
+				do_line( data->surface, (uint32_t)p2[vRight], (int32_t)p1[vForward]
+						 , (int32_t)p1[vRight], (int32_t)p2[vForward], BASE_COLOR_LIGHTCYAN);
 			}
 		}
 		if( !lines )
@@ -2036,7 +1988,7 @@ static uintptr_t CPROC something( void* thisnode, uintptr_t psv )
 	return 0; // don't end scan.... foreach can be used for searching too.
 }
 
-static int OnDrawCommon( WIDE("Web Tester") )( PSI_CONTROL pc )
+static int OnDrawCommon( WIDE("VWeb Tester") )( PSI_CONTROL pc )
 {
 	Image surface = GetControlSurface( pc );
 	ClearImageTo( surface, SetAlpha( BASE_COLOR_BLUE, 32 ) );
@@ -2044,6 +1996,7 @@ static int OnDrawCommon( WIDE("Web Tester") )( PSI_CONTROL pc )
 	{
 		// for each node in web, draw it.
 		struct drawdata data;
+		data.step = 0;
 		data.surface = surface;
 		data.prior = NULL;
 		data.paint = ++test.paint;
@@ -2052,8 +2005,8 @@ static int OnDrawCommon( WIDE("Web Tester") )( PSI_CONTROL pc )
 		EnterCriticalSec( &test.web->cs );
 		{
 			VECTOR v;
-			v[vRight] = test.x;
-			v[vForward] = test.y;
+			v[vRight] = (RCOORD)test.x;
+			v[vForward] = (RCOORD)test.y;
 			v[vUp] = 0;
 			if( test.pRoot )
 				FindNearest( &data.path, &data.pathway, test.pRoot, v, 0 );
@@ -2066,13 +2019,12 @@ static int OnDrawCommon( WIDE("Web Tester") )( PSI_CONTROL pc )
 	return 1;
 }
 
-static int OnKeyCommon( WIDE("Web Tester") )( PSI_CONTROL pc, uint32_t key )
+static int OnKeyCommon( WIDE("VWeb Tester") )( PSI_CONTROL pc, uint32_t key )
 {
 	if( IsKeyPressed(key) && KEY_CODE(key) == KEY_SPACE )
 		update_pause = 0;
 	if( IsKeyPressed(key) && KEY_CODE(key) == KEY_N )
 	{
-		PSPACEWEB_NODE check;
 		test.root++;
 		test.pRoot = GetUsedSetMember( SPACEWEB_NODE, &test.web->nodes, test.root );
 		if( !test.pRoot )
@@ -2110,9 +2062,9 @@ void CPROC MoveWeb( uintptr_t psv )
 	{
 		if( idx %10 == 0 )
 		{
-			v[vRight] = (rand() %13)-6;
-			v[vForward] = (rand() %13)-6;
-			v[vUp] = (rand() %13)-6;
+			v[vRight] = (RCOORD)(rand() %13)-6;
+			v[vForward] = (RCOORD)(rand() %13)-6;
+			v[vUp] = (RCOORD)(rand() %13)-6;
 			add( v, v, node->point );
 			MoveWebNode( node, v );
 		}
@@ -2132,7 +2084,7 @@ SaneWinMain( argc,argv )
 	InvokeDeadstart();
 	test.file = fopen( "points.dat", "at+" );
 	fseek( test.file, 0, SEEK_SET );
-	test.tester = MakeNamedCaptionedControl( NULL, WIDE("Web Tester"), 0, 0, 512, 512, -1, WIDE("Test Space Web") );
+	test.tester = MakeNamedCaptionedControl( NULL, WIDE("VWeb Tester"), 0, 0, 512, 512, -1, WIDE("Test Space Web") );
 	test.surface = OpenDisplaySizedAt( DISPLAY_ATTRIBUTE_LAYERED, 512, 512, 0, 0 );
 	AttachFrameToRenderer( test.tester, test.surface );
 	DisplayFrame( test.tester );
@@ -2145,8 +2097,8 @@ SaneWinMain( argc,argv )
 			for( y = 0; y < 400; y += 50 )
 			{
 				VECTOR v;
-				v[vRight] = rand()%500;
-				v[vForward] = rand()%500;
+				v[vRight] = (RCOORD)(rand()%500);
+				v[vForward] = (RCOORD)(rand()%500);
 				v[vUp] = 0;
 				AddWebNode( test.web, v, 0 );
 			}
@@ -2159,8 +2111,8 @@ SaneWinMain( argc,argv )
 		{
 			VECTOR v;
 			sscanf( buf, WIDE("%d,%d"), &x, &y );
-			v[vRight] = x;
-			v[vForward] = y;
+			v[vRight] = (RCOORD)x;
+			v[vForward] = (RCOORD)y;
 			v[vUp] = 0;
 			lprintf( WIDE("----------------- NEW NODE -----------------------") );
 			//fprintf( test.file, WIDE("%d,%d\n"), x, y );
