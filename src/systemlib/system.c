@@ -563,7 +563,7 @@ LOGICAL CPROC StopProgram( PTASK_INFO task )
 		POINTER mem = VirtualAllocEx( task->pi.hProcess, NULL, 4096, MEM_COMMIT | MEM_RESERVE, PAGE_EXECUTE_READWRITE );
 		DWORD err = GetLastError();
 		if( mem ) {
-			DWORD written;
+			SIZE_T written;
 			if( WriteProcessMemory( task->pi.hProcess, mem,
 				SendCtrlCThreadProc, 1024, &written ) ) {
 				DWORD dwThread;

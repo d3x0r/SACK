@@ -572,6 +572,7 @@ INTERSHELL_PROC_PTR( void, GetSecurityModules )( PLIST *list );
 //INTERSHELL_PROC_PTR( CTEXTSTR, InterShell_GetSaveIndent1 )( void ); // returns one level more than here
 INTERSHELL_PROC_PTR( void, InterShell_SetCloneButton )( PMENU_BUTTON button );
 INTERSHELL_PROC_PTR( CTEXTSTR, InterShell_GetCurrentPageName )( PSI_CONTROL canvas );
+INTERSHELL_PROC_PTR( CTEXTSTR, InterShell_GetCurrentlyCreatingButtonType )( void );
 
 };  //struct intershell_interface {
 
@@ -852,6 +853,7 @@ PRIORITY_PRELOAD( InitInterShellInterface, DEFAULT_PRELOAD_PRIORITY - 3)
 #define  InterShell_HideEx											   if( InterShell )InterShell->InterShell_HideEx
 //#define  InterShell_Reveal										   if( InterShell )InterShell->InterShell_Reveal
 #define  InterShell_RevealEx										   if( InterShell )InterShell->InterShell_RevealEx
+#define  InterShell_GetCurrentlyCreatingButtonType         (!InterShell)?NULL:InterShell->InterShell_GetCurrentlyCreatingButtonType
 #define  GetPageSize										   if( InterShell )InterShell->GetPageSize 
 #define  SetButtonTextField									   if( InterShell )InterShell->SetButtonTextField 
 #define  AddButtonLayout									   ( !InterShell )?NULL:InterShell->AddButtonLayout
