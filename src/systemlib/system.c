@@ -80,7 +80,7 @@ void SACKSystemSetWorkingPath( char *name )
 }
 void SACKSystemSetLibraryPath( char *name )
 {
-   library_path = DupCStr( name );
+	library_path = DupCStr( name );
 }
 #endif
 
