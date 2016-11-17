@@ -1358,6 +1358,7 @@ static LOGICAL InvokeButtonCreate( PSI_CONTROL pc_canvas, PMENU_BUTTON button, L
 	uintptr_t (CPROC*f)(PSI_CONTROL,int32_t x, int32_t y, uint32_t w, uint32_t h);
 	snprintf( rootname, sizeof( rootname ), TASK_PREFIX WIDE( "/control/%s" ), button->pTypeName );
 	button->flags.bNoCreateMethod = TRUE; // assume there's no creator for this control
+	g.CurrentlyCreatingButtonType = button->pTypeName;
 	//lprintf( "..." );
 	//if( StrCmp( button->pTypeName, "Task" ) == 0 )
 	//	DebugBreak();
@@ -1489,6 +1490,7 @@ static LOGICAL InvokeButtonCreate( PSI_CONTROL pc_canvas, PMENU_BUTTON button, L
 			}
 		}
 	}
+	g.CurrentlyCreatingButtonType = NULL;
 	//lprintf( "..." );
 	return TRUE;
 }
@@ -4514,7 +4516,7 @@ static int OnKeyCommon( WIDE("Menu Canvas") )( PSI_CONTROL pc, uint32_t key )
 		{
 			if( ( KEY_CODE( key ) == KEY_C ) )
 			{
-				//ConfigureKeys( pc, key );
+				ConfigureKeys( pc, key );
 				return TRUE;
 			}
 		}
@@ -5177,6 +5179,11 @@ PMENU_BUTTON InterShell_GetCurrentlyCreatingButton( void )
 	return g.CurrentlyCreatingButton;
 }
 
+PMENU_BUTTON InterShell_GetCurrentlyCreatingButtonType( void )
+{
+	return g.CurrentlyCreatingButtonType;
+}
+
 static void CPROC MyHandleSQLFeedback( CTEXTSTR message )
 {
 	lprintf( WIDE("SQLMessage %s"), message );
@@ -5706,7 +5713,8 @@ GetCommonButtonControls
 																				 , GetSecurityModules
 
 																				 , InterShell_SetCloneButton
-                                                             , InterShell_GetCurrentPageName
+																				 , InterShell_GetCurrentPageName
+                                                             , InterShell_GetCurrentlyCreatingButtonType
 };
 
 static POINTER CPROC LoadInterShellInterface( void )

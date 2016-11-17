@@ -217,6 +217,7 @@ typedef struct global_tag
 	PMENU pSelectionMenu;
 	PMENU pGlobalPropertyMenu;
 	PMENU_BUTTON CurrentlyCreatingButton;
+   CTEXTSTR CurrentlyCreatingButtonType;
 
 	int theme_index;
 	int max_themes; // 0==1, at 2 there's the default and 1 theme

@@ -521,8 +521,8 @@ static void HandleDefaultSingleTouch( PSI_CONTROL canvas, PINPUT_POINT touch1, P
 	}
 	else // touch is a motion, between down and up
 	{
-		int tmpx;
-		int tmpy;
+		//int tmpx;
+		//int tmpy;
 		/*
 		SetPageOffsetRelative( canvas->current_page
 			, touch_state.prior_x - (tmpx=(( (touch1->x + touch2->x) / 2 ) /100))

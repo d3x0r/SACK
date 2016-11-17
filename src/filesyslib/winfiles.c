@@ -296,6 +296,14 @@ TEXTSTR ExpandPathEx( CTEXTSTR path, struct file_system_interface *fsi )
 			{
 				CTEXTSTR here;
 				size_t len;
+				here = GetLibraryPath();
+				tmp_path = NewArray( TEXTCHAR, len = ( StrLen( here ) + StrLen( path ) ) );
+				tnprintf( tmp_path, len, WIDE( "%s/%s" ), here, path + 2 );
+			}
+			else if( ( path[0] == '#' ) && ( ( path[1] == '/' ) || ( path[1] == '\\' ) ) )
+			{
+				CTEXTSTR here;
+				size_t len;
 				here = GetProgramPath();
 				tmp_path = NewArray( TEXTCHAR, len = ( StrLen( here ) + StrLen( path ) ) );
 				tnprintf( tmp_path, len, WIDE( "%s/%s" ), here, path + 2 );

@@ -964,6 +964,7 @@ endif()
 #------------
 else( BUILD_MONOLITHIC )
 #------------
+if( NOT NO_C )
 
 add_library( bag SHARED 
   ${FIRST_GCC_LIBRARY_SOURCE} 
@@ -992,6 +993,7 @@ SET_TARGET_PROPERTIES(bag PROPERTIES
                   COMPILE_DEFINITIONS "${ExtraDefinitions};TARGET_LABEL=bag;TARGETNAME=\"${CMAKE_SHARED_LIBRARY_PREFIX}bag${CMAKE_SHARED_LIBRARY_SUFFIX}\";${ExtraRenderFlags}"
                   LINK_FLAGS "${extra_link_flags}"
 )
+endif( NOT NO_C )
 
 if( __WINDOWS_ARM_CE__ )
 SET_TARGET_PROPERTIES( bag PROPERTIES LINK_LIBRARIES "" )
@@ -1130,6 +1132,8 @@ set( EXTERNALS bag.externals )
 endif()
 ###########
 
+if( NOT NO_C )
+
 add_library( bag.psi SHARED 
   ${FIRST_GCC_LIBRARY_SOURCE} 
   ${PSI_SOURCES} 
@@ -1146,6 +1150,7 @@ SET_TARGET_PROPERTIES(bag.psi PROPERTIES
                   FOLDER "Control Library" 
                   LINK_FLAGS "${extra_link_flags}"
 )
+endif( NOT NO_C )
 
 if( NOT __NO_CPLUSPLUS )
   if( NOT FORCE_CXX )
@@ -1161,16 +1166,20 @@ if( NOT __NO_CPLUSPLUS )
                   FOLDER "Control Library" 
                   LINK_FLAGS "${extra_link_flags}"
     )
-    my_target_link_libraries( ${BAG_PSI_PLUSPLUS} bag ${BAG_PLUSPLUS} ${EXTERNALS} ${PLATFORM_LIBRARIES} )
-    set( SACK_PSI_LIBRARY ${BAG_PSI_PLUSPLUS} bag.psi )
-    if( __ANDROID__ )
-        install_mode_dest( bag bag.psi ${BAG_PLUSPLUS} ${BAG_PSI_PLUSPLUS} ${EXTERNALS} )
-    else()
-        install_mode_dest( bag bag.psi ${BAG_PLUSPLUS} ${BAG_PSI_PLUSPLUS} ${EXTERNALS} )
-    endif( __ANDROID__ )
+    if( NOT NO_C )
+      my_target_link_libraries( ${BAG_PSI_PLUSPLUS} bag ${BAG_PLUSPLUS} ${EXTERNALS} ${PLATFORM_LIBRARIES} )
+      set( SACK_PSI_LIBRARY ${BAG_PSI_PLUSPLUS} bag.psi )
+      if( __ANDROID__ )
+          install_mode_dest( bag bag.psi ${BAG_PLUSPLUS} ${BAG_PSI_PLUSPLUS} ${EXTERNALS} )
+      else()
+          install_mode_dest( bag bag.psi ${BAG_PLUSPLUS} ${BAG_PSI_PLUSPLUS} ${EXTERNALS} )
+      endif( __ANDROID__ )
+    endif( NOT NO_C )
   else( NOT FORCE_CXX )
-    set( SACK_PSI_LIBRARY bag.psi )
-    install_mode_dest( bag bag.psi ${EXTERNALS} )
+    if( NOT NO_C )
+      set( SACK_PSI_LIBRARY bag.psi )
+      install_mode_dest( bag bag.psi ${EXTERNALS} )
+    endif( NOT NO_C )
   endif( NOT FORCE_CXX )
 else( NOT __NO_CPLUSPLUS )
     if( __ANDROID__ )
@@ -1180,17 +1189,30 @@ else( NOT __NO_CPLUSPLUS )
     endif( __ANDROID__ )
 endif( NOT __NO_CPLUSPLUS )
 
-my_target_link_libraries( bag.psi bag ${EXTERNALS} ${PLATFORM_LIBRARIES} )
+if( NOT NO_C )
+  my_target_link_libraries( bag.psi bag ${EXTERNALS} ${PLATFORM_LIBRARIES} )
 
-if( NOT NEED_FREETYPE )
-  my_target_link_libraries( bag.psi  ${Freetype_LIBRARIES} )
-  if( NOT __NO_CPLUSPLUS )
-    if( NOT FORCE_CXX )
-      my_target_link_libraries( ${BAG_PLUSPLUS}  ${Freetype_LIBRARIES}  )
-    endif( NOT FORCE_CXX )
-  endif( NOT __NO_CPLUSPLUS )
-  include_directories( ${Freetype_INCLUDE_DIRS} )
-endif()
+  if( NOT NEED_FREETYPE )
+    my_target_link_libraries( bag.psi  ${Freetype_LIBRARIES} )
+    if( NOT __NO_CPLUSPLUS )
+      if( NOT FORCE_CXX )
+        my_target_link_libraries( ${BAG_PLUSPLUS}  ${Freetype_LIBRARIES}  )
+      endif( NOT FORCE_CXX )
+    endif( NOT __NO_CPLUSPLUS )
+  endif()
+else( NOT NO_C )
+  if( NOT NEED_FREETYPE )
+    if( NOT __NO_CPLUSPLUS )
+      if( NOT FORCE_CXX )
+        my_target_link_libraries( ${BAG_PLUSPLUS}  ${Freetype_LIBRARIES}  )
+      endif( NOT FORCE_CXX )
+    endif( NOT __NO_CPLUSPLUS )
+  endif()
+endif( NOT NO_C )
+
+  if( NOT NEED_FREETYPE )
+    include_directories( ${Freetype_INCLUDE_DIRS} )
+  endif()
 
 ###########
 

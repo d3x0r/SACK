@@ -802,7 +802,7 @@ void DrawFrameCaption( PSI_CONTROL pc )
 							outh = h+2;
 						else
 							routh = out->height;
-						if ( outw < out->width )
+						if ( USS_LT( outw, uint32_t, out->width, int ) )
 						{
 							outx = out->width/2 - (outw)/2;
 						}
@@ -884,13 +884,13 @@ void DrawFrameCaption( PSI_CONTROL pc )
 							outh = h+2;
 						else
 							routh = out->height;
-						if ( outw < out->width )
+						if ( USS_LT( outw, uint32_t, out->width, int ) )
 						{
 							outx = out->width/2 - (outw)/2;
 						}
 						else
 						{
-							outw = out->width;						
+							outw = out->width;
 						}
 						BlotScaledImageSizedEx( pc->Window, out, xofs, yofs, routw, routh, outx, outy, outw, outh, ALPHA_TRANSPARENT, BLOT_COPY );
 					}

@@ -63,6 +63,7 @@ typedef struct task_info_tag TASK_INFO;
 #ifdef __ANDROID__
 static CTEXTSTR program_name;
 static CTEXTSTR program_path;
+static CTEXTSTR library_path;
 static CTEXTSTR working_path;
 
 void SACKSystemSetProgramPath( char *path )
@@ -76,6 +77,10 @@ void SACKSystemSetProgramName( char *name )
 void SACKSystemSetWorkingPath( char *name )
 {
    working_path = DupCStr( name );
+}
+void SACKSystemSetLibraryPath( char *name )
+{
+   library_path = DupCStr( name );
 }
 #endif
 
@@ -257,6 +262,18 @@ static void CPROC SetupSystemServices( POINTER mem, uintptr_t size )
 		else
 		{
 			(*init_l).filename = StrDupEx( filepath DBG_SRC );
+			(*init_l).load_path = StrDupEx( WIDE("") DBG_SRC );
+		}
+
+		GetModuleFileName( LoadLibrary( TARGETNAME ), filepath, sizeof( filepath ) );
+		e1 = (TEXTSTR)pathrchr( filepath );
+		if( e1 )
+		{
+			e1[0] = 0;
+			(*init_l).library_path = StrDupEx( filepath DBG_SRC );
+		}
+		else
+		{
 			(*init_l).load_path = StrDupEx( WIDE("") DBG_SRC );
 		}
 
@@ -1043,11 +1060,11 @@ int TryShellExecute( PTASK_INFO task, CTEXTSTR path, CTEXTSTR program, PTEXT cmd
 		}
 		else
 		{
-			switch( (uintptr_t)execinfo.hInstApp )
+			//switch( (uintptr_t)execinfo.hInstApp )
 			{
-			default:
+			//default:
 				lprintf( WIDE( "Shell exec error : %p (gle:%d)" ), (uintptr_t)execinfo.hInstApp , GetLastError() );
-				break;
+				//break;
 			}
 			return FALSE;
 		}
@@ -1732,8 +1749,8 @@ SYSTEM_PROC( generic_function, LoadFunctionExx )( CTEXTSTR libname, CTEXTSTR fun
 											fname++;
 										if( fname[0] )
 											fname++;
-										tmpname = NewArray( char, len = ( fname - name ) + 5 );
-										snprintf( tmpname, len, "%*.*s.dll", (fname-name)-1,(fname-name)-1, name );
+										tmpname = NewArray( char, len = (int)( fname - name ) + 5 );
+										snprintf( tmpname, len, "%*.*s.dll", (int)(fname-name)-1, (int)(fname-name)-1, name );
 										//lprintf( "%s:%s = %s:%s", library->name, funcname, tmpname, fname );
 #  ifdef UNICODE
 										_tmp_fname = DupCStr(tmpname);
@@ -2046,6 +2063,24 @@ CTEXTSTR GetProgramPath( void )
 		}
 	}
 	return l.load_path;
+#endif
+}
+
+CTEXTSTR GetLibraryPath( void )
+{
+#ifdef __ANDROID__
+	return library_path;
+#else
+	if( !local_systemlib || l.library_path )
+	{
+		SystemInit();
+		if( !l.library_path )
+		{
+			DebugBreak();
+			return NULL;
+		}
+	}
+	return l.library_path;
 #endif
 }
 

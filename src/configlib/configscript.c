@@ -2244,6 +2244,15 @@ CONFIGSCR_PROC( int, ProcessConfigurationFile )( PCONFIG_HANDLER pch, CTEXTSTR n
 	if( !pch->file && !absolute_path )
 	{
 		TEXTCHAR pathname[255];
+		tnprintf( pathname, sizeof( pathname ), WIDE("#/%s"), name );
+#	ifdef _MSC_VER
+		pathname[sizeof(pathname)/sizeof(pathname[0])-1]=0;
+#	endif
+		pch->file = sack_fopen( 0, pathname, WIDE("rb") );
+	}
+	if( !pch->file && !absolute_path )
+	{
+		TEXTCHAR pathname[255];
 		tnprintf( pathname, sizeof( pathname ), WIDE("/etc/%s"), name );
 #  ifdef _MSC_VER
 		pathname[sizeof(pathname)/sizeof(pathname[0])-1]=0;

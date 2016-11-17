@@ -814,14 +814,14 @@ SFTFont PickScaledFontWithUpdate( int32_t x, int32_t y
                   TEXTCHAR buf[128];
 						PFONTDATA pResult;// = (PFONTDATA)Allocate( resultsize );
 						snprintf( buf, 256, "pick,%d,%d,%d,%d,%d,%d,%s/%s"
-								  , (fdData.pFontEntry - fg.pFontCache)
-								  , fdData.pFontStyle - fdData.pFontEntry->styles
-								  , fdData.pSizeFile - fdData.pFontStyle->files
-								  , fdData.nWidth
-								  , fdData.nHeight
-								  , fdData.flags.render_depth
-								  , fdData.pSizeFile->path
-								  , fdData.pSizeFile->file
+								  , (int)(fdData.pFontEntry - fg.pFontCache)
+								  , (int)(fdData.pFontStyle - fdData.pFontEntry->styles)
+								  , (int)(fdData.pSizeFile - fdData.pFontStyle->files)
+								  , (int)fdData.nWidth
+								  , (int)fdData.nHeight
+								  , (int)fdData.flags.render_depth
+								  , (int)fdData.pSizeFile->path
+								  , (int)fdData.pSizeFile->file
 								  );
                   resultsize = StrLen( buf );
 						pResult = (PFONTDATA)StrDup( buf );

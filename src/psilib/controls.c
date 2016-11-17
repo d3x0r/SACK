@@ -5102,8 +5102,11 @@ PSI_PROC( void, GetFrameSize )( PSI_CONTROL pf, uint32_t *w, uint32_t *h )
 CTEXTSTR GetControlTypeName( PSI_CONTROL pc )
 {
 	TEXTCHAR mydef[32];
-	tnprintf( mydef, sizeof( mydef ), PSI_ROOT_REGISTRY WIDE("/control/%d"), pc->nType );
-	return GetRegisteredValueExx( mydef, NULL, WIDE("type"), FALSE );
+	if( !pc->pTypeName ) {
+		tnprintf( mydef, sizeof( mydef ), PSI_ROOT_REGISTRY WIDE( "/control/%d" ), pc->nType );
+		return GetRegisteredValueExx( mydef, NULL, WIDE( "type" ), FALSE );
+	}
+	else return pc->pTypeName;
 }
 
 void BeginUpdate( PSI_CONTROL pc )
@@ -5117,7 +5120,6 @@ void EndUpdate( PSI_CONTROL pc )
 	if( pc )
 		pc->flags.bDirectUpdating = 0;
 }
-
 
 PSI_NAMESPACE_END
 

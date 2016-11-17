@@ -60,6 +60,7 @@ typedef void (CPROC*TaskOutput)(uintptr_t, PTASK_INFO task, CTEXTSTR buffer, siz
 #define LPP_OPTION_FIRST_ARG_IS_ARG      4
 #define LPP_OPTION_NEW_GROUP             8
 #define LPP_OPTION_NEW_CONSOLE          16
+
 SYSTEM_PROC( PTASK_INFO, LaunchPeerProgramExx )( CTEXTSTR program, CTEXTSTR path, PCTEXTSTR args
 															  , int flags
 															  , TaskOutput OutputHandler
@@ -69,11 +70,20 @@ SYSTEM_PROC( PTASK_INFO, LaunchPeerProgramExx )( CTEXTSTR program, CTEXTSTR path
 															  );
 
 SYSTEM_PROC( PTASK_INFO, LaunchProgramEx )( CTEXTSTR program, CTEXTSTR path, PCTEXTSTR args, TaskEnd EndNotice, uintptr_t psv );
+// launch a process, program name (including leading path), a optional path to start in (defaults to
+// current process' current working directory.  And a array of character pointers to args
+// args should be the NULL.
 SYSTEM_PROC( PTASK_INFO, LaunchProgram )( CTEXTSTR program, CTEXTSTR path, PCTEXTSTR  args );
+// abort task, no kill signal, sigabort basically.  Use StopProgram for a more graceful terminate.
+// if (!StopProgram(task)) TerminateProgram(task) would be appropriate.
 SYSTEM_PROC( uintptr_t, TerminateProgram )( PTASK_INFO task );
+// before luanchProgramEx, there was no userdata...
 SYSTEM_PROC( void, SetProgramUserData )( PTASK_INFO task, uintptr_t psv );
 
+// attempt to implement a method on windows that allows a service to launch a user process
+// current systems don't have such methods
 SYSTEM_PROC( void, ImpersonateInteractiveUser )( void );
+// after launching a process should revert to a protected state.
 SYSTEM_PROC( void, EndImpersonation )( void );
 
 
@@ -88,12 +98,21 @@ SYSTEM_PROC( LOGICAL, StopProgram )( PTASK_INFO task );
 //  PcTextStr is a pointer to strings -
 //   char ** - returns a quoted string if args have spaces (and escape quotes in args?)
 SYSTEM_PROC( TEXTSTR, GetArgsString )( PCTEXTSTR pArgs );
+
+// after a task has exited, this can return its code.
+// undefined if task has not exited (probably 0)
 SYSTEM_PROC( uint32_t, GetTaskExitCode )( PTASK_INFO task );
 
+// returns the name of the executable that is this process (without last . extension   .exe for instance)
 SYSTEM_PROC( CTEXTSTR, GetProgramName )( void );
+// returns the path of the executable that is this process
 SYSTEM_PROC( CTEXTSTR, GetProgramPath )( void );
+// returns the path that was the working directory when the program started
 SYSTEM_PROC( CTEXTSTR, GetStartupPath )( void );
+// returns the path of the current sack library.
+SYSTEM_PROC( CTEXTSTR, GetLibraryPath )( void );
 
+// on windows, queries an event that indicates the system is rebooting.
 SYSTEM_PROC( LOGICAL, IsSystemShuttingDown )( void );
 
 // HandlePeerOutput is called whenever a peer task has generated output on stdout or stderr
@@ -115,7 +134,11 @@ SYSTEM_PROC( PTASK_INFO, SystemEx )( CTEXTSTR command_line
 #define System(command_line,output_handler,user_data) SystemEx( command_line, output_handler, user_data DBG_SRC )
 
 // generate output to a task... read by peer task on standard input pipe
+// if a task has been opened with an output handler, than IO is trapped, and this is a method of
+// sending output to a task.
 SYSTEM_PROC( int, pprintf )( PTASK_INFO task, CTEXTSTR format, ... );
+// if a task has been opened with an otuput handler, than IO is trapped, and this is a method of
+// sending output to a task.
 SYSTEM_PROC( int, vpprintf )( PTASK_INFO task, CTEXTSTR format, va_list args );
 
 typedef void (CPROC*generic_function)(void);
@@ -147,6 +170,8 @@ SYSTEM_PROC( void, SetExternalLoadLibrary )( LOGICAL (CPROC*f)(const char *) );
 // the callback should search for the file specified, if required, download or extract it
 // and then return with a Release'able utf-8 char *.
 SYSTEM_PROC( void, SetExternalFindProgram )( char * (CPROC*f)(const char *) );
+// override the default program name.
+// Certain program wrappers might use this to change log location, configuration, etc other defaults.
 SYSTEM_PROC( void, SetProgramName )( CTEXTSTR filename );
 
 

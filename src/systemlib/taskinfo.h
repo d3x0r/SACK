@@ -47,7 +47,6 @@ struct task_info_tag {
 #endif
 };
 
-
 typedef struct loaded_function_tag
 {
 	uint32_t references;
@@ -55,7 +54,7 @@ typedef struct loaded_function_tag
 	struct loaded_library_tag *library;
 	DeclareLink( struct loaded_function_tag );
 	CTEXTSTR name;  // can be an integer value... instead of a string...
-	TEXTCHAR _name[];
+	TEXTCHAR _name[1]; // this is more than 1; allocation pads extra bytes for the name.
 } FUNCTION, *PFUNCTION;
 
 #ifdef WIN32
@@ -68,11 +67,11 @@ typedef struct loaded_library_tag
 	uintptr_t nLibrary; // when unloading...
 	HLIBRARY library;
 	LOGICAL mapped;
-	PFUNCTION functions;
+	PFUNCTION functions; 
 	DeclareLink( struct loaded_library_tag );
-	TEXTCHAR *name;
+	TEXTCHAR *name; // points into full_name after last slash - just library name
 	int loading;
-	TEXTCHAR full_name[];
+	TEXTCHAR full_name[1];// this is more than 1; allocation pads extra bytes for the name.
 } LIBRARY, *PLIBRARY;
 
 #ifndef SYSTEM_CORE_SOURCE
@@ -80,6 +79,7 @@ extern
 #endif
   struct local_systemlib_data {
 	CTEXTSTR load_path;
+	CTEXTSTR library_path;
 	CTEXTSTR common_data_path;
 	struct system_local_flags{
 		BIT_FIELD bLog : 1;

@@ -71,7 +71,6 @@ static PTEXT GetTime( PCLOCK_CONTROL clock, int bNewline ) /*FOLD00*/
 				timenow->data.size = tnprintf( timenow->data.data, 80*sizeof(TEXTCHAR), WIDE("%02d/%02d/%d%c%02d:%02d:%02d.%03d%s")
 													  , st.wMonth, st.wDay, st.wYear
 													  , bNewline?'\n':' '
-													  , st.wHour
 													  , clock->flags.bAmPm?(st.wHour == 0?12:(st.wHour > 12?st.wHour-12:st.wHour)):st.wHour
 													  , st.wMinute, st.wSecond, st.wMilliseconds
 													  , clock->flags.bAmPm?((st.wHour >= 12)?"P":"A"):""

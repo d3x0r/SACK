@@ -708,6 +708,10 @@ VECTOR_METHOD( void, SetGLMatrix, ( PMATRIX in, PTRANSFORM pt ) );
 
 VECTOR_METHOD( void, SetRotationMatrix, ( PTRANSFORM pt, RCOORD *quat ) );
 VECTOR_METHOD( void, GetRotationMatrix, ( PTRANSFORM pt, RCOORD *quat ) );
+VECTOR_METHOD( RCOORD, IntersectLineWithPlane, (PCVECTOR Slope, PCVECTOR Origin,  // line m, b
+	PCVECTOR n, PCVECTOR o,  // plane n, o
+	RCOORD *time) );
+VECTOR_METHOD( RCOORD, PointToPlaneT, (PCVECTOR n, PCVECTOR o, PCVECTOR p) );
 
 #if !defined( VECTOR_LIBRARY_SOURCE ) && !defined( NO_AUTO_VECTLIB_NAMES )
 #define add EXTERNAL_NAME(add)
@@ -739,6 +743,7 @@ VECTOR_METHOD( void, GetRotationMatrix, ( PTRANSFORM pt, RCOORD *quat ) );
 
 #define addscaled EXTERNAL_NAME(addscaled)
 #define Length EXTERNAL_NAME(Length)
+#define PointToPlaneT EXTERNAL_NAME(PointToPlaneT)
 #define normalize EXTERNAL_NAME(normalize)
 #define Translate EXTERNAL_NAME(Translate)
 #define TranslateV EXTERNAL_NAME(TranslateV)
