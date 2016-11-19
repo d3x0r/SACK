@@ -249,6 +249,7 @@ static void SQLiteGetLastInsertID(sqlite3_context*onwhat,int n,sqlite3_value**so
 #endif
 }
 
+#ifndef NO_CRYPT
 static void computeSha1(sqlite3_context*onwhat,int argc,sqlite3_value**argv)
 {
 	PVARTEXT pvt = VarTextCreate();
@@ -317,7 +318,7 @@ static void decomputePassword(sqlite3_context*onwhat,int n,sqlite3_value**argv)
 	//Release( result );
 }
 
-
+#endif
 
 
   //void (*xStep)(sqlite3_context*,int,sqlite3_value**),
@@ -401,6 +402,7 @@ void ExtendConnection( PODBC odbc )
 	{
 		// error..
 	}
+#ifndef NO_CRYPT
 	rc = sqlite3_create_function(
 										  odbc->db //sqlite3 *,
 										 , "sha1"  //const char *zFunctionName,
@@ -443,6 +445,7 @@ void ExtendConnection( PODBC odbc )
 	{
 		// error..
 	}
+#endif
 	rc = sqlite3_create_function(
 										  odbc->db //sqlite3 *,
 										 , "LAST_INSERT_ID"  //const char *zFunctionName,
