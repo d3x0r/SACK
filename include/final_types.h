@@ -11,7 +11,7 @@
 #  ifdef _WIN32
 
 #    include <stdio.h>
-#    include <baseTsd.h>
+#    include <basetsd.h>
 #    include <windef.h>
 #    include <winbase.h>  // this redefines lprintf sprintf etc... and strsafe is preferred
 #    include <winuser.h> // more things that need override by strsafe.h
