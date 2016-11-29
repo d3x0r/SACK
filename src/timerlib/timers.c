@@ -1197,7 +1197,7 @@ void  UnmakeThread( void )
 {
 	PTHREAD pThread;
 	struct my_thread_info* _MyThreadInfo = GetThreadTLS();
-	while( LockedExchangePtrSzVal( &g.lock_thread_create, _MyThreadInfo->nThread ) )
+	while( LockedExchangePtrSzVal( &g.lock_thread_create, (uintptr_t)_MyThreadInfo->nThread ) )
 		Relinquish();
 	pThread
 #ifdef HAS_TLS
@@ -1351,7 +1351,7 @@ PTHREAD  MakeThread( void )
 		{
 			uintptr_t oldval;
 			LOGICAL dontUnlock = FALSE;
-			while( ( oldval = LockedExchangePtrSzVal( &g.lock_thread_create, thread_ident ) ) && oldval != thread_ident )
+			while( ( oldval = LockedExchangePtrSzVal( &g.lock_thread_create, (uintptr_t)thread_ident ) ) && oldval != thread_ident )
 			{
 				if( oldval != thread_ident )
 					g.lock_thread_create = oldval;
@@ -1471,7 +1471,7 @@ PTHREAD  ThreadToEx( uintptr_t (CPROC*proc)(PTHREAD), uintptr_t param DBG_PASS )
 		//g.threads = pThread;
 		pThread->flags.bReady = 1;
 		{
-			int now = GetTickCount();
+			uint32_t now = GetTickCount();
 			while( !pThread->thread_event && ( now + 250 ) > GetTickCount()  )
 				Relinquish();
 		}

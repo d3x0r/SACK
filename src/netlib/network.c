@@ -3300,7 +3300,7 @@ NETWORK_PROC( void, GetNetworkAddressBinary )( SOCKADDR *addr, uint8_t **data, s
 		(*datalen) = namelen + 1 + 1 + SOCKADDR_LENGTH( addr );
 		(*data) = NewArray( uint8_t, (*datalen) );
 		MemCpy( (*data), tmp, namelen + 1 );
-		(*data)[namelen+1] = addrlen;
+		(*data)[namelen+1] = (uint8_t)addrlen;
 		MemCpy( (*data) + namelen + 1, addr, addrlen );
 	}
 }

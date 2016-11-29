@@ -820,7 +820,7 @@ struct find_info {
 	int thisent;
 };
 
-static struct find_info * CPROC sack_vfs_find_create_cursor(uintptr_t psvInst,const char *base,const char *mask )
+struct find_info * CPROC sack_vfs_find_create_cursor(uintptr_t psvInst,const char *base,const char *mask )
 {
 	struct find_info *info = New( struct find_info );
 	info->base = base;
@@ -874,16 +874,16 @@ static int iterate_find( struct find_info *info ) {
 	return 0;
 }
 
-static int CPROC sack_vfs_find_first( struct find_info *info ) {
+int CPROC sack_vfs_find_first( struct find_info *info ) {
 	info->this_dir_block = 0;
 	info->thisent = 0;
 	return iterate_find( info );
 }
 
-static int CPROC sack_vfs_find_close( struct find_info *info ) { Deallocate( struct find_info*, info ); return 0; }
-static int CPROC sack_vfs_find_next( struct find_info *info ) { return iterate_find( info ); }
-static char * CPROC sack_vfs_find_get_name( struct find_info *info ) { return info->filename; }
-static size_t CPROC sack_vfs_find_get_size( struct find_info *info ) { return info->filesize; }
+int CPROC sack_vfs_find_close( struct find_info *info ) { Deallocate( struct find_info*, info ); return 0; }
+int CPROC sack_vfs_find_next( struct find_info *info ) { return iterate_find( info ); }
+char * CPROC sack_vfs_find_get_name( struct find_info *info ) { return info->filename; }
+size_t CPROC sack_vfs_find_get_size( struct find_info *info ) { return info->filesize; }
 
 static LOGICAL CPROC sack_vfs_rename( uintptr_t psvInstance, const char *original, const char *newname ) {
 	struct volume *vol = (struct volume *)psvInstance;

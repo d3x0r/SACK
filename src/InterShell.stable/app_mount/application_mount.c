@@ -312,20 +312,15 @@ static uintptr_t CPROC WaitForApplication( PTHREAD thread )
 {
 	LOGICAL need_change;
 	LOGICAL need_find;
-	PSI_CONTROL pc;
 	do
 	{
-		struct application_tracker *app;
 		//xlprintf(2100)( "awake..." );
 		need_change = FALSE;
 		need_find = FALSE;
-		//LIST_FORALL( l.apps, idx, struct application_tracker *, app )
 		{
-			INDEX idx2;
 			INDEX idx;
 			struct application_tracker *app;
 			LIST_FORALL( l.apps, idx, struct application_tracker *, app )
-			//LIST_FORALL( l.controls, idx2, PSI_CONTROL, pc )
 			{
 				if( app->classname || app->title )
 				{

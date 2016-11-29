@@ -3,11 +3,40 @@ cmake_minimum_required(VERSION 2.8)
 
 project( service_test.portable )
 
-if( WIN32 AND CMAKE_COMPILER_IS_GNUCC )
-    SET( EXTRACTER_MORE_SOURCES ${CURRENT_CMAKE_SOURCE_DIR}/extracter.manifest )
-    #SET( EXTRACTER_LINK_FLAGS "/MANIFEST:NO" )
-endif( WIN32 AND CMAKE_COMPILER_IS_GNUCC )
 
+if( __ANDROID__ )
+	set( MORE_DEFS "__ANDROID__=1" )
+	set( MORE_DEFS ${MORE_DEFS} "__LINUX__=1" )
+endif( __ANDROID__ )
+
+  
+if( WIN32 )
+	set( MORE_TIMER_SOURCES ../../../systemlib/oswin.c )
+endif( WIN32 )
+
+set( TIMERLIB_SOURCES     
+    ../../../timerlib/timers.c
+    ../../../memlib/sharemem.c 
+    ../../../memlib/memory_operations.c 
+    ../../../memlib/sharestruc.h
+    ../../../typelib/typecode.c 
+    ../../../typelib/sets.c 
+    ../../../idlelib/idle.c 
+    ../../../typelib/text.c 
+    ../../../typelib/binarylist.c 
+    ../../../procreglib/names.c
+    ../../../procreglib/registry.h
+    ../../../sysloglib/syslog.c
+    ../../../filesyslib/pathops.c  # syslog requires all of these... 
+    ../../../filesyslib/winfiles.c
+    ../../../filesyslib/filesys_local.h
+    ../../../systemlib/system.c    # default log paths setup here
+    ../../../systemlib/spawntask.c    # default log paths setup here
+    ../../../systemlib/args.c    # default log paths setup here
+    ../../../systemlib/taskinfo.h
+    ../../../deadstart/deadstart_core.c 
+    ${MORE_TIMER_SOURCES}
+    )
 
 add_subdirectory( "../../../timerlib.build" minlib )
 
@@ -15,18 +44,20 @@ set(BASE_SOURCES
 ${FIRST_GCC_PROGRAM_SOURCE} 
     ../service_stub.c
     ../service_test.c
+    ${TIMERLIB_SOURCES}
+    ${SERVICE_MORE_SOURCES}
 ${LAST_GCC_PROGRAM_SOURCE}
 )
 
-if( MSVC )
-    SET( EXTRACTER_LINK_FLAGS "/level='requireAdministrator' /uiAccess='false'" )
-endif( MSVC )
 
 sack_add_executable(${PROJECT_NAME} ${BASE_SOURCES} )
 SET_PROPERTY(TARGET ${PROJECT_NAME} APPEND PROPERTY COMPILE_DEFINITIONS "__STATIC__" )
 SET_TARGET_PROPERTIES(${PROJECT_NAME} PROPERTIES
-                  FOLDER utils
-)
+	LINK_FLAGS "${SERVICE_LINK_FLAGS}" 
+        FOLDER utils 
+        )
+SET_PROPERTY(TARGET ${PROJECT_NAME} APPEND PROPERTY COMPILE_DEFINITIONS "__NO_INTERFACE_SUPPORT__;__NO_OPTIONS__;__STATIC__;SACK_BAG_EXPORTS" )
+
 target_link_libraries( ${PROJECT_NAME} timerlib )
 
 target_link_libraries( ${PROJECT_NAME} ws2_32 )

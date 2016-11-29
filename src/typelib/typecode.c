@@ -1035,7 +1035,7 @@ POINTER  PeekQueueEx	 ( PLINKQUEUE plq, int idx )
 			if( idx != INVALID_INDEX )
 			{
 				top++;
-				if( (top)>=plq->Cnt)
+				if( SUS_GTE(top,int,plq->Cnt,uint32_t) )
 					top=(top)-plq->Cnt;
 			}
 		}

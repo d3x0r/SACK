@@ -118,7 +118,7 @@ INDEX GetNameIndexExtended( PODBC odbc
 			  );
 	if( SQLQueryEx( odbc, query, &result DBG_RELAY) && result )
 	{
-		IDName = IntCreateFromText( result );
+		IDName = (INDEX)IntCreateFromText( result );
 		DebugBreak();
 		PopODBCEx( odbc );
 	}
@@ -1904,8 +1904,8 @@ LOGICAL BackupDatabase( PODBC source, PODBC dest )
 			sqlite3_backup_finish( sb );
 			return TRUE;
 		}
-		return FALSE;
 	}
+  	return FALSE;
 }
 
 SQL_NAMESPACE_END
