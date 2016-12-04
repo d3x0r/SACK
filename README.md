@@ -1,6 +1,7 @@
 # SACK
 
-[![Gitter](https://badges.gitter.im/d3x0r/SACK.svg)](https://gitter.im/d3x0r/SACK?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+[![Gitter](https://badges.gitter.im/FreedomCollective/Sack.svg)](https://gitter.im/FreedomCollective/Sack?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
 
 A document published from header document information - http://sack.sf.net  ( https://sourceforge.net/projects/sack/ )
 
