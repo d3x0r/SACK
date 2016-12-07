@@ -332,8 +332,8 @@ static int handshake( PCLIENT pc ) {
 		if (r < 0) {
 
 			r = SSL_get_error(ses->ssl, r);
-			lprintf("SSL_Read failed... %d", r);
 			if( SSL_ERROR_SSL == r ) {
+				lprintf( "SSL_Read failed... %d", r );
 				ERR_print_errors_cb( logerr, (void*)__LINE__ );
 				return -1;
 			}
@@ -403,7 +403,8 @@ static void ssl_ReadComplete( PCLIENT pc, POINTER buffer, size_t length )
 			else if( hs_rc == 1 )
 			{
 				len = SSL_read( pc->ssl_session->ssl, pc->ssl_session->dbuffer, pc->ssl_session->dbuflen );
-				if( len == -1 ) {
+				lprintf( "normal read - just get the data from the other buffer : %d", len );
+					if( len == -1 ) {
 					lprintf( "SSL_Read failed." );
 					ERR_print_errors_cb( logerr, (void*)__LINE__ );
 					RemoveClient( pc );
@@ -489,7 +490,7 @@ static LOGICAL ssl_InitLibrary( void ){
 		SSL_load_error_strings();
 		ERR_load_BIO_strings();
 		OpenSSL_add_all_algorithms();
-
+		ssl_global.flags.bInited = 1;
 	}
 	return TRUE;
 }
@@ -506,7 +507,7 @@ static void ssl_CloseCallback( PCLIENT pc ) {
 	struct ssl_session *ses = pc->ssl_session;
 	if (!ses) {
 		lprintf("already closed?");
-			return;
+		return;
 	}
 	pc->ssl_session = NULL;
 

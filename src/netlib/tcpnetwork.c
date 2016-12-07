@@ -157,7 +157,7 @@ void AcceptClient(PCLIENT pListen)
 		pNewClient->event = WSACreateEvent();
 		WSAEventSelect( pNewClient->Socket, pNewClient->event, FD_READ|FD_WRITE|FD_CLOSE );
 #  else
-		if( WSAAsyncSelect( pNewClient->Socket,g.ghWndNetwork,SOCKMSG_TCP,
+		if( WSAAsyncSelect( pNewClient->Socket,globalNetworkData.ghWndNetwork,SOCKMSG_TCP,
                                FD_READ | FD_WRITE | FD_CLOSE))
 		{ // if there was a select error...
 			lprintf(WIDE( " Accept select Error" ));
@@ -267,7 +267,7 @@ NETWORK_PROC( PCLIENT, CPPOpenTCPListenerAddrExx )( SOCKADDR *pAddr
 	pListen->event = WSACreateEvent();
 	WSAEventSelect( pListen->Socket, pListen->event, FD_ACCEPT|FD_CLOSE );
 #  else
-	if( WSAAsyncSelect( pListen->Socket, g.ghWndNetwork,
+	if( WSAAsyncSelect( pListen->Socket, globalNetworkData.ghWndNetwork,
                        SOCKMSG_TCP, FD_ACCEPT|FD_CLOSE ) )
 	{
 		lprintf( WIDE("Windows AsynchSelect failed: %d"), WSAGetLastError() );
@@ -313,12 +313,12 @@ NETWORK_PROC( PCLIENT, CPPOpenTCPListenerAddrExx )( SOCKADDR *pAddr
 	AddActive( pListen );
    // make sure to schedule this socket for events (connect)
 #ifdef USE_WSA_EVENTS
-	if( g.flags.bLogNotices )
+	if( globalNetworkData.flags.bLogNotices )
 		lprintf( WIDE( "SET GLOBAL EVENT (listener added)" ) );
-	WSASetEvent( g.hMonitorThreadControlEvent );
+	WSASetEvent( globalNetworkData.hMonitorThreadControlEvent );
 #endif
 #ifdef __LINUX__
-	WakeThread( g.pThread );
+	WakeThread( globalNetworkData.pThread );
 #endif
 	return pListen;
 }
@@ -450,7 +450,7 @@ static PCLIENT InternalTCPClientAddrFromAddrExxx(SOCKADDR *lpAddr, SOCKADDR *pFr
 			pResult->event = WSACreateEvent();
 			WSAEventSelect( pResult->Socket, pResult->event, FD_READ|FD_WRITE|FD_CONNECT|FD_CLOSE );
 #  else
-			if( WSAAsyncSelect( pResult->Socket,g.ghWndNetwork,SOCKMSG_TCP,
+			if( WSAAsyncSelect( pResult->Socket,globalNetworkData.ghWndNetwork,SOCKMSG_TCP,
 									 FD_READ|FD_WRITE|FD_CLOSE|FD_CONNECT) )
 			{
 				lprintf( WIDE(" Select NewClient Fail! %d"), WSAGetLastError() );
@@ -538,21 +538,21 @@ static PCLIENT InternalTCPClientAddrFromAddrExxx(SOCKADDR *lpAddr, SOCKADDR *pFr
 
 			// socket should now get scheduled for events, after unlocking it?
 #ifdef USE_WSA_EVENTS
-			if( g.flags.bLogNotices )
+			if( globalNetworkData.flags.bLogNotices )
 				lprintf( WIDE( "SET GLOBAL EVENT (wait for connect)" ) );
-			WSASetEvent( g.hMonitorThreadControlEvent );
-			if( this_thread == g.root_thread )
+			WSASetEvent( globalNetworkData.hMonitorThreadControlEvent );
+			if( this_thread == globalNetworkData.root_thread )
 				ProcessNetworkMessages( this_thread, 1 );
 			else
-				WSASetEvent( g.hMonitorThreadControlEvent );
+				WSASetEvent( globalNetworkData.hMonitorThreadControlEvent );
 			while( !pResult->this_thread )
 				Idle(); // wait for it to be added to waiting lists?
 
 #endif
 #ifdef __LINUX__
 			{
-				//kill( (uint32_t)(g.pThread->ThreadID), SIGHUP );
-				WakeThread( g.pThread );
+				//kill( (uint32_t)(globalNetworkData.pThread->ThreadID), SIGHUP );
+				WakeThread( globalNetworkData.pThread );
 			}
 #endif
 			if( !pConnectComplete )
@@ -564,7 +564,7 @@ static PCLIENT InternalTCPClientAddrFromAddrExxx(SOCKADDR *lpAddr, SOCKADDR *pFr
 				pResult->dwFlags |= CF_CONNECT_WAITING;
 				// caller was expecting connect to block....
 				while( !( pResult->dwFlags & (CF_CONNECTED|CF_CONNECTERROR|CF_CONNECT_CLOSED) ) &&
-						( ( (GetTickCount()&0xFFFFFFF) - Start ) < g.dwConnectTimeout ) )
+						( ( (GetTickCount()&0xFFFFFFF) - Start ) < globalNetworkData.dwConnectTimeout ) )
 				{
 					// may be this thread itself which connects...
 					if( this_thread )
@@ -590,7 +590,7 @@ static PCLIENT InternalTCPClientAddrFromAddrExxx(SOCKADDR *lpAddr, SOCKADDR *pFr
 					if( bProcessing == 2 )
 					{
 						pResult->pWaiting = MakeThread();
-						if( g.flags.bLogNotices )
+						if( globalNetworkData.flags.bLogNotices )
 							lprintf( WIDE( "Falling asleep 3 seconds waiting for connect on %p." ), pResult );
 						pResult->tcp_delay_count++;
 						WakeableSleep( 3000 );
@@ -947,12 +947,12 @@ size_t FinishPendingRead(PCLIENT lpClient DBG_PASS )  // only time this should b
 			}
 			else
 			{
-				if( g.flags.bShortLogReceivedData )
+				if( globalNetworkData.flags.bShortLogReceivedData )
 				{
 					LogBinary( (uint8_t*)lpClient->RecvPending.buffer.p +
 							 lpClient->RecvPending.dwUsed, min( nRecv, 64 ) );
 				}
-				if( g.flags.bLogReceivedData )
+				if( globalNetworkData.flags.bLogReceivedData )
 				{
 					LogBinary( (uint8_t*)lpClient->RecvPending.buffer.p +
 							 lpClient->RecvPending.dwUsed, nRecv );
@@ -1147,7 +1147,7 @@ NETWORK_PROC( size_t, doReadExx2)(PCLIENT lpClient,POINTER lpBuffer,size_t nByte
 			//  no data to read...
 			//lprintf( WIDE( "Not sure if READREADY" ) );
 			if( !( lpClient->dwFlags & CF_PROCESSING ) )
-				WakeThread( g.pThread );
+				WakeThread( globalNetworkData.pThread );
 		}
 #else
 		//FinishPendingRead( lpClient DBG_SRC );
@@ -1171,7 +1171,7 @@ NETWORK_PROC( size_t, doReadExx2)(PCLIENT lpClient,POINTER lpBuffer,size_t nByte
 	}
 	if( bWait )
 	{
-		int this_timeout = user_timeout?user_timeout:g.dwReadTimeout;
+		int this_timeout = user_timeout?user_timeout:globalNetworkData.dwReadTimeout;
 		int timeout = 0;
 		//lprintf( WIDE("Waiting for TCP data result...") );
 		{
@@ -1277,7 +1277,7 @@ int TCPWriteEx(PCLIENT pc DBG_PASS)
 
 		if( pc->lpFirstPending->dwAvail )
 		{
-			if( g.flags.bLogSentData )
+			if( globalNetworkData.flags.bLogSentData )
 			{
 				LogBinary( (uint8_t*)pc->lpFirstPending->buffer.c +
 							 pc->lpFirstPending->dwUsed,
@@ -1300,7 +1300,7 @@ int TCPWriteEx(PCLIENT pc DBG_PASS)
 					//if( !(pc->dwFlags & CF_WRITEISPENDED ) )
 					//{
 					//	   lprintf( WIDE("Sending signal") );
-					//    WakeThread( g.pThread );
+					//    WakeThread( globalNetworkData.pThread );
 					//}
 					//else
 					//    lprintf( WIDE("Yes... it was already pending..(no signal)") );
@@ -1391,13 +1391,13 @@ int TCPWriteEx(PCLIENT pc DBG_PASS)
 					{
 						pc->dwFlags |= CF_WRITEPENDING;
 #ifdef USE_WSA_EVENTS
-						if( g.flags.bLogNotices )
+						if( globalNetworkData.flags.bLogNotices )
 							lprintf( WIDE( "SET GLOBAL EVENT (write pending)" ) );
-						WSASetEvent( g.hMonitorThreadControlEvent );
+						WSASetEvent( globalNetworkData.hMonitorThreadControlEvent );
 #endif
 #ifdef __LINUX__
-						//kill( (uint32_t)(g.pThread->ThreadID), SIGHUP );
-						WakeThread( g.pThread );
+						//kill( (uint32_t)(globalNetworkData.pThread->ThreadID), SIGHUP );
+						WakeThread( globalNetworkData.pThread );
 #endif
 					}
 					return TRUE;
@@ -1527,7 +1527,7 @@ LOGICAL TCPDrainRead( PCLIENT pClient )
          			pClient->nDrainLength = 0;
 				break;
 			}
-			lprintf(WIDE(" Network Error during drain: %d (from: %d  to: %p  has: %") _size_f WIDE("  toget: %") _size_f WIDE(")"),
+			lprintf(WIDE(" Network Error during drain: %d (from: %p  to: %p  has: %") _size_f WIDE("  toget: %") _size_f WIDE(")"),
                       WSAGetLastError(),
                       pClient->Socket,
                       pClient->RecvPending.buffer.p,
@@ -1539,11 +1539,11 @@ LOGICAL TCPDrainRead( PCLIENT pClient )
 		}
 		else
 		{
-			if( g.flags.bShortLogReceivedData )
+			if( globalNetworkData.flags.bShortLogReceivedData )
 			{
 				LogBinary( (uint8_t*)byBuffer, min( nDrainRead, 64 ) );
 			}
-			if( g.flags.bLogReceivedData )
+			if( globalNetworkData.flags.bLogReceivedData )
 			{
 				LogBinary( (uint8_t*)byBuffer, nDrainRead );
 			}

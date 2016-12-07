@@ -16,6 +16,7 @@
 #include <procreg.h>
 #include <deadstart.h>
 #include <sqlgetoption.h>
+#include <filesys.h>
 #define FULL_TRACE
 #define LOG_LINES_READ
 ////#define DEBUG_SLOWNESS

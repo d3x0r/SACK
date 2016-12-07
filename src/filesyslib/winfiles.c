@@ -47,7 +47,7 @@ static void UpdateLocalDataPath( void )
 #ifdef _WIN32
 	TEXTCHAR path[MAX_PATH];
 	TEXTCHAR *realpath;
-	int len;
+	size_t len;
 #ifndef SHGFP_TYPE_CURRENT
 #define SHGFP_TYPE_CURRENT 0
 #endif
@@ -703,7 +703,7 @@ LOGICAL sack_set_eof ( HANDLE file_handle )
 		if( file->mount )
 		{
 			file->mount->fsi->truncate( (void*)file_handle );
-			lprintf( WIDE("result is %d"), file->mount->fsi->size( (void*)file_handle ) );
+			//lprintf( WIDE("result is %d"), file->mount->fsi->size( (void*)file_handle ) );
 		}
 		else
 		{
@@ -853,7 +853,7 @@ INDEX sack_iopen( INDEX group, CTEXTSTR filename, int opts, ... )
 	}
 	LeaveCriticalSec( &(*winfile_local).cs_files );
 	if( (*winfile_local).flags.bLogOpenClose )
-		lprintf( WIDE( "return iopen of [%s]=%d(%")_size_f WIDE(")?" ), filename, h, result );
+		lprintf( WIDE( "return iopen of [%s]=%p(%")_size_f WIDE(")?" ), filename, h, (size_t)result );
 	return result;
 }
 
@@ -880,7 +880,7 @@ int sack_ilseek( INDEX file_handle, size_t pos, int whence )
 		 HANDLE *holder = (HANDLE*)GetLink( &(*winfile_local).handles, file_handle );
 		 HANDLE handle = holder?holder[0]:INVALID_HANDLE_VALUE;
 #ifdef _WIN32
-		result = SetFilePointer(handle,pos,NULL,whence);
+		result = SetFilePointer(handle,(LONG)pos,NULL,whence);
 #else
 		result = lseek( handle, pos, whence );
 #endif
@@ -1076,7 +1076,7 @@ FILE * sack_fopenEx( INDEX group, CTEXTSTR filename, CTEXTSTR opts, struct file_
 			{
 				file->fullname = PrependBasePathEx( group, filegroup, file->name, !mount );
 				if( (*winfile_local).flags.bLogOpenClose )
-					lprintf( WIDE("full is %s %d"), file->fullname, group );
+					lprintf( WIDE("full is %s %d"), file->fullname, (int)group );
 			}
 			//file->fullname = file->name;
 		}
@@ -1400,7 +1400,7 @@ size_t sack_fsize ( FILE *file_file )
 		size_t length;
 		fseek( file_file, 0, SEEK_END );
 		length = ftell( file_file );
-		fseek( file_file, here, SEEK_SET );
+		fseek( file_file, (long)here, SEEK_SET );
 		return length;
 	}
 }
@@ -1422,7 +1422,7 @@ size_t  sack_fseek ( FILE *file_file, size_t pos, int whence )
 	{
 		return file->mount->fsi->seek( file_file, pos, whence );
 	}
-	if( fseek( file_file, pos, whence ) )
+	if( fseek( file_file, (long)pos, whence ) )
 		return -1;
 	//struct file *file = FindFileByFILE( file_file );
 	return ftell( file_file );
@@ -1546,7 +1546,7 @@ TEXTSTR sack_fgets ( TEXTSTR buffer, size_t size,FILE *file_file )
 			return buffer;
 		return NULL;
 	}
-	return fgets( buffer, size, file_file );
+	return fgets( buffer, (int)size, file_file );
 #endif
 }
 
@@ -1736,7 +1736,7 @@ static void * CPROC sack_filesys_open( uintptr_t psv, const char *filename );
 static int CPROC sack_filesys_close( void*file ) { return fclose(  (FILE*)file ); }
 static size_t CPROC sack_filesys_read( void*file, char*buf, size_t len ) { return fread( buf, 1, len, (FILE*)file ); }
 static size_t CPROC sack_filesys_write( void*file, const char*buf, size_t len ) { return fwrite( buf, 1, len, (FILE*)file ); }
-static size_t CPROC sack_filesys_seek( void*file, size_t pos, int whence) { return fseek( (FILE*)file, pos, whence ); }
+static size_t CPROC sack_filesys_seek( void*file, size_t pos, int whence) { return fseek( (FILE*)file, (long)pos, whence ); }
 static void CPROC sack_filesys_truncate( void*file ) { sack_ftruncate( (FILE*)file ); }
 static void CPROC sack_filesys_unlink( uintptr_t psv, const char*filename ) { 
 #ifdef UNICODE

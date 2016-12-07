@@ -82,7 +82,7 @@
 #endif
 
 #  ifdef _MSC_VER
-#define SUFFER_WITH_NO_SNPRINTF
+#    define SUFFER_WITH_NO_SNPRINTF
 #    ifndef SUFFER_WITH_NO_SNPRINTF
 #      define vnsprintf protable_vsnprintf
 //   this one gives deprication warnings
@@ -134,9 +134,9 @@
 
 #  endif // _MSC_VER
 
-#ifdef  __GNUC__
+#  ifdef  __GNUC__
 #      if defined( _UNICODE )
-#define VSNPRINTF_FAILS_RETURN_SIZE
+#        define VSNPRINTF_FAILS_RETURN_SIZE
 #        define tnprintf  swprintf
 #        define vtnprintf vswprintf
 #        if !defined( NO_UNICODE_C )
@@ -157,10 +157,10 @@
 #    endif
 #      endif
 
-#endif // __GNUC__
+#  endif // __GNUC__
 
 
-#ifdef __WATCOMC__
+#  ifdef __WATCOMC__
 #      if defined( _UNICODE )
 #        define tnprintf  _snwprintf
 #        define vtnprintf _vsnwprintf
@@ -178,6 +178,6 @@
 #      endif
 #        define snwprintf  _snwprintf
 
-#endif // __WATCOMC__
+#  endif // __WATCOMC__
 
 #endif

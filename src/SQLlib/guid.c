@@ -104,13 +104,15 @@ CTEXTSTR GetSeqGUID( void )
 	return SaveText( text_guid );
 }
 #else
-#ifdef __INTERNAL_UUID__
-#include "../contrib/uuid-1.6.2/uuid.h"
-#else
-#include <uuid/uuid.h>
-#endif
+#  ifdef __INTERNAL_UUID__
+#    include "../contrib/uuid-1.6.2/uuid.h"
+#  else
+#    include <uuid/uuid.h>
+#  endif
 
 SQL_NAMESPACE
+
+#  ifdef __INTERNAL_UUID__
 
 CTEXTSTR GetGUID( void )
 {
@@ -140,6 +142,41 @@ CTEXTSTR GetSeqGUID( void )
 	Release( out_guid );
 	return out_guid2;
 }
+
+#  else
+CTEXTSTR GetGUID( void )
+{
+	uuid_t tmp;
+   char str[37];
+	TEXTCHAR *out_guid;
+	CTEXTSTR out_guid2;
+	uuid_generate_random ( tmp );
+   uuid_unparse( tmp, str );
+   //uuid_unparse_lower( tmp, str );
+   //uuid_unparse_upper( tmp, str );
+	out_guid = DupCharToText( str );
+	out_guid2 = SaveText( out_guid );
+	Release( out_guid );
+	return out_guid2;
+}
+CTEXTSTR GetSeqGUID( void )
+{
+	uuid_t tmp;
+   char str[37];
+	TEXTCHAR *out_guid;
+	CTEXTSTR out_guid2;
+	uuid_generate_time( tmp );
+   uuid_unparse( tmp, str );
+   //uuid_unparse_lower( tmp, str );
+   //uuid_unparse_upper( tmp, str );
+	out_guid = DupCharToText( str );
+	out_guid2 = SaveText( out_guid );
+	Release( out_guid );
+	return out_guid2;
+}
+
+#  endif
+
 #endif
 
 uint8_t* GetGUIDBinaryEx( CTEXTSTR guid, LOGICAL little_endian )

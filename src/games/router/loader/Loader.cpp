@@ -6,7 +6,7 @@
 PRELOAD( LoadBoard )
 {
    LoadFunction( WIDE("network_objects.netplug"), NULL );
-   LoadFunction( WIDE("eltanin_tables.plugin"), NULL );
+   LoadFunction( WIDE("tables.plugin"), NULL );
 }
 
 static PIBOARD last_board;

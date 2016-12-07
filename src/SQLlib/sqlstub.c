@@ -27,6 +27,7 @@
 #include <sqlgetoption.h>
 #include <configscript.h>
 #include <procreg.h>
+#include <filesys.h>
 #include <sqlgetoption.h>
 #include <salty_generator.h>
 #include <sha1.h>
@@ -933,9 +934,9 @@ LOGICAL EnsureLogOpen( PODBC odbc )
 				attempt++;
 				// this is going to be more hassle to conserve
 				// than benefit merits.
-				Fopen( g.pSQLLog, logname, WIDE("at+") );
+				g.pSQLLog = sack_fopen( 0, logname, WIDE("at+") );
 				if( !g.pSQLLog )
-					Fopen( g.pSQLLog, logname, WIDE("wt") );
+					g.pSQLLog = sack_fopen( 0, logname, WIDE("wt") );
 			}
 			while( !g.pSQLLog );
 		}
@@ -1072,8 +1073,8 @@ PRIORITY_PRELOAD( FinalDeadstart, SYSLOG_PRELOAD_PRIORITY + 1 )
 int OpenSQLConnectionEx( PODBC odbc DBG_PASS )
 {
 	int state = 0;
-	RETCODE rc;
 #ifdef USE_ODBC
+	RETCODE rc;
 	PTEXT pConnect;
 #endif
 	if( !odbc->info.pDSN )
@@ -1138,7 +1139,6 @@ int OpenSQLConnectionEx( PODBC odbc DBG_PASS )
 
 		if( !odbc->hdbc && !odbc->flags.bSkipODBC )
 		{
-			RETCODE rc;
 #ifdef LOG_EVERYTHING
 			lprintf( WIDE("get hdbc") );
 #endif
@@ -2428,7 +2428,9 @@ void CloseDatabase( PODBC odbc )
 int __DoSQLCommandEx( PODBC odbc, PCOLLECT collection DBG_PASS )
 {
 	int retry = 0;
+#ifdef USE_ODBC
 	RETCODE rc;
+#endif
 	PTEXT cmd;
 	if( !odbc )
 	{
@@ -2901,7 +2903,9 @@ int __GetSQLResult( PODBC odbc, PCOLLECT collection, int bMore )
 #endif
 	  )
 	{
+#ifdef USE_ODBC
 		RETCODE rc;
+#endif
 #if defined( USE_SQLITE ) || defined( USE_SQLITE_INTERFACE )
 		int rc3;
 #endif
@@ -3495,7 +3499,9 @@ int __DoSQLQueryEx( PODBC odbc, PCOLLECT collection, CTEXTSTR query DBG_PASS )
 	size_t querylen;
 	PTEXT tmp = NULL;
 	int retry = 0;
+#ifdef USE_ODBC
 	RETCODE rc;
+#endif
 #if defined( USE_SQLITE ) || defined( USE_SQLITE_INTERFACE )
 	int rc3;
 #endif
@@ -3681,7 +3687,7 @@ int __DoSQLQueryEx( PODBC odbc, PCOLLECT collection, CTEXTSTR query DBG_PASS )
 		if( rc != SQL_SUCCESS && rc != SQL_SUCCESS_WITH_INFO )
 		{
 #ifdef LOG_EVERYTHING
-			lprintf( WIDE( "rc is %d [not success]" ), rc );
+			lprintf( WIDE( "rc is %d [not success]" ),rc );
 #endif
 			in_error = 1;
 		}

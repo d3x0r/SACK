@@ -770,7 +770,7 @@ LOGICAL OpenRootMemory()
 #ifdef WIN32
 	tnprintf( spacename, sizeof( spacename ), WIDE( "memory:%08lX" ), GetCurrentProcessId() );
 #else
-	tnprintf( spacename, sizeof( spacename ), WIDE( "%" )_S WIDE( ":%08X" ), name, getpid() );
+	tnprintf( spacename, sizeof( spacename ), WIDE( "memory:%08X" ), getpid() );
 #  ifdef DEBUG_FIRST_UNICODE_OPERATION
 	{
 		wchar_t buf[32];
@@ -1884,11 +1884,11 @@ POINTER HeapAllocateAlignedEx( PMEM pHeap, uintptr_t dwSize, uint32_t alignment 
 #endif
 		if( alignment && ( (uintptr_t)pc->byData & ~masks[alignment] ) ) {
 			uintptr_t retval = ((((uintptr_t)pc->byData) + (alignment - 1)) & masks[alignment]);
-			if( dwAlignPad < 4 ) {
+			if( dwAlignPad < sizeof(uintptr_t) ) {
 				DebugBreak();
 			}
-			pc->dwPad = dwAlignPad - 4;
-			((uint32_t*)(retval - 4))[0] = pc->to_chunk_start = ((((uintptr_t)pc->byData) + (alignment - 1)) & masks[alignment]) - (uintptr_t)pc->byData;
+			pc->dwPad = dwAlignPad - sizeof(uintptr_t);
+			((uintptr_t*)(retval - sizeof(uintptr_t)))[0] = pc->to_chunk_start = ((((uintptr_t)pc->byData) + (alignment - 1)) & masks[alignment]) - (uintptr_t)pc->byData;
 			return (POINTER)retval;
 		}
 		else {
@@ -2011,7 +2011,7 @@ POINTER HeapAllocateAlignedEx( PMEM pHeap, uintptr_t dwSize, uint32_t alignment 
 				if( ExpandSpace( pMem, dwSize + (CHUNK_SIZE*4) + MEM_SIZE + 8 * MAGIC_SIZE ) )
 				{
 #ifndef NO_LOGGING
-					_lprintf(DBG_RELAY)( WIDE("Creating a new expanded space... %d"), dwSize + (CHUNK_SIZE*4) + MEM_SIZE + 8 * MAGIC_SIZE );
+					_lprintf(DBG_RELAY)( WIDE("Creating a new expanded space... %")_size_fs, dwSize + (CHUNK_SIZE*4) + MEM_SIZE + 8 * MAGIC_SIZE );
 #endif
 					goto search_for_free_memory;
 				}
@@ -3077,7 +3077,8 @@ void  DebugDumpHeapMemEx ( PMEM pHeap, LOGICAL bVerbose )
 }
 
 
-#ifdef _MSC_VER 
+#if 0
+#  ifdef _MSC_VER
 //>= 900
 
 _CRT_ALLOC_HOOK prior_hook;
@@ -3139,6 +3140,7 @@ PRELOAD( ShareMemToVSAllocHook )
 	//prior_hook = _CrtSetAllocHook(	allocHook ); 
 	//_set_new_handler( pn );
 }
+#  endif
 #endif
 
 #ifdef __cplusplus

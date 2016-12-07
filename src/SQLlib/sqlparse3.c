@@ -2,6 +2,7 @@
 #include <stdhdrs.h>
 #include <sack_types.h>
 #include <sharemem.h>
+#include <filesys.h>
 #include <pssql.h>
 
 SQL_NAMESPACE
@@ -504,22 +505,22 @@ int GetTableExtra( PTABLE table, PTEXT *word )
 void LogTable( PTABLE table )
 {
 	FILE *out;
-	Fopen( out, WIDE("sparse.txt"), WIDE("at") );
+	out = sack_fopen( 0, WIDE("sparse.txt"), WIDE("at") );
 	if( out )
 	{
 		if( table )
 		{
 			int n;
-			fprintf( out, WIDE( "\n" ) );
-			fprintf( out, WIDE( "//--------------------------------------------------------------------------\n" ) );
-			fprintf( out, WIDE( "// %s \n" ), table->name );
-			fprintf( out, WIDE( "// Total number of fields = %d\n" ), table->fields.count );
-			fprintf( out, WIDE( "// Total number of keys = %d\n" ), table->keys.count );
-			fprintf( out, WIDE( "//--------------------------------------------------------------------------\n" ) );
-			fprintf( out, WIDE( "\n" ) );
-			fprintf( out, WIDE( "FIELD %s_fields[] = {\n" ), table->name );
+			sack_fprintf( out, WIDE( "\n" ) );
+			sack_fprintf( out, WIDE( "//--------------------------------------------------------------------------\n" ) );
+			sack_fprintf( out, WIDE( "// %s \n" ), table->name );
+			sack_fprintf( out, WIDE( "// Total number of fields = %d\n" ), table->fields.count );
+			sack_fprintf( out, WIDE( "// Total number of keys = %d\n" ), table->keys.count );
+			sack_fprintf( out, WIDE( "//--------------------------------------------------------------------------\n" ) );
+			sack_fprintf( out, WIDE( "\n" ) );
+			sack_fprintf( out, WIDE( "FIELD %s_fields[] = {\n" ), table->name );
 			for( n = 0; n < table->fields.count; n++ )
-				fprintf( out, WIDE( "\t%s{%s%s%s, %s%s%s, %s%s%s }\n" )
+				sack_fprintf( out, WIDE( "\t%s{%s%s%s, %s%s%s, %s%s%s }\n" )
 					, n?WIDE( ", " ):WIDE( "" )
 					, table->fields.field[n].name?WIDE("\""):WIDE( "" )
 					, table->fields.field[n].name?table->fields.field[n].name:WIDE( "NULL" )
@@ -531,16 +532,16 @@ void LogTable( PTABLE table )
 					, table->fields.field[n].extra?table->fields.field[n].extra:WIDE( "NULL" )
 					, table->fields.field[n].extra?WIDE("\""):WIDE( "" )
 				);
-			fprintf( out, WIDE( "};\n" ) );
-			fprintf( out, WIDE( "\n" ) );
+			sack_fprintf( out, WIDE( "};\n" ) );
+			sack_fprintf( out, WIDE( "\n" ) );
 			if( table->keys.count )
 			{
-				fprintf( out, WIDE( "DB_KEY_DEF %s_keys[] = { \n" ), table->name );
+				sack_fprintf( out, WIDE( "DB_KEY_DEF %s_keys[] = { \n" ), table->name );
 				for( n = 0; n < table->keys.count; n++ )
 				{
 					int m;
-					fprintf( out, WIDE( "#ifdef __cplusplus\n" ) );
-					fprintf( out, WIDE("\t%srequired_key_def( %d, %d, %s%s%s, \"%s\" )\n")
+					sack_fprintf( out, WIDE( "#ifdef __cplusplus\n" ) );
+					sack_fprintf( out, WIDE("\t%srequired_key_def( %d, %d, %s%s%s, \"%s\" )\n")
 							 , n?", ":""
 							 , table->keys.key[n].flags.bPrimary
 							 , table->keys.key[n].flags.bUnique
@@ -549,9 +550,9 @@ void LogTable( PTABLE table )
 							 , table->keys.key[n].name?WIDE("\""):WIDE("")
 							 , table->keys.key[n].colnames[0] );
 					if( table->keys.key[n].colnames[1] )
-						fprintf( out, WIDE( ", ... columns are short this is an error.\n" ) );
-					fprintf( out, WIDE( "#else\n" ) );
-					fprintf( out, WIDE( "\t%s{ {%d,%d}, %s%s%s, { " )
+						sack_fprintf( out, WIDE( ", ... columns are short this is an error.\n" ) );
+					sack_fprintf( out, WIDE( "#else\n" ) );
+					sack_fprintf( out, WIDE( "\t%s{ {%d,%d}, %s%s%s, { " )
 							 , n?WIDE( ", " ):WIDE( "" )
 							 , table->keys.key[n].flags.bPrimary
 							 , table->keys.key[n].flags.bUnique
@@ -560,36 +561,36 @@ void LogTable( PTABLE table )
 							 , table->keys.key[n].name?WIDE("\""):WIDE( "" )
 							 );
 					for( m = 0; table->keys.key[n].colnames[m]; m++ )
-						fprintf( out, WIDE("%s\"%s\"")
+						sack_fprintf( out, WIDE("%s\"%s\"")
 								 , m?WIDE( ", " ):WIDE( "" )
 								 , table->keys.key[n].colnames[m] );
-					fprintf( out, WIDE( " } }\n" ) );
-					fprintf( out, WIDE( "#endif\n" ) );
+					sack_fprintf( out, WIDE( " } }\n" ) );
+					sack_fprintf( out, WIDE( "#endif\n" ) );
 				}
-				fprintf( out, WIDE( "};\n" ) );
-				fprintf( out, WIDE( "\n" ) );
+				sack_fprintf( out, WIDE( "};\n" ) );
+				sack_fprintf( out, WIDE( "\n" ) );
 			}
-			fprintf( out, WIDE( "\n" ) );
-			fprintf( out, WIDE("TABLE %s = { \"%s\" \n"), table->name, table->name );
-			fprintf( out, WIDE( "	 , FIELDS( %s_fields )\n" ), table->name );
+			sack_fprintf( out, WIDE( "\n" ) );
+			sack_fprintf( out, WIDE("TABLE %s = { \"%s\" \n"), table->name, table->name );
+			sack_fprintf( out, WIDE( "	 , FIELDS( %s_fields )\n" ), table->name );
          if( table->keys.count )
-				fprintf( out, WIDE( "	 , TABLE_KEYS( %s_keys )\n" ), table->name );
+				sack_fprintf( out, WIDE( "	 , TABLE_KEYS( %s_keys )\n" ), table->name );
          else
-				fprintf( out, WIDE( "	 , { 0, NULL }\n" ) );
-			fprintf( out, WIDE( "	, { 0 }\n" ) );
-			fprintf( out, WIDE( "	, NULL\n" ) );
-			fprintf( out, WIDE( "	, NULL\n" ) );
-			fprintf( out, WIDE( "	,NULL\n" ) );
-			fprintf( out, WIDE( "};\n" ) );
-			fprintf( out, WIDE( "\n" ) );
+				sack_fprintf( out, WIDE( "	 , { 0, NULL }\n" ) );
+			sack_fprintf( out, WIDE( "	, { 0 }\n" ) );
+			sack_fprintf( out, WIDE( "	, NULL\n" ) );
+			sack_fprintf( out, WIDE( "	, NULL\n" ) );
+			sack_fprintf( out, WIDE( "	,NULL\n" ) );
+			sack_fprintf( out, WIDE( "};\n" ) );
+			sack_fprintf( out, WIDE( "\n" ) );
 		}
 		else
 		{
-			fprintf( out, WIDE( "//--------------------------------------------------------------------------\n" ) );
-			fprintf( out, WIDE( "// No Table\n" ) );
-			fprintf( out, WIDE( "//--------------------------------------------------------------------------\n" ) );
+			sack_fprintf( out, WIDE( "//--------------------------------------------------------------------------\n" ) );
+			sack_fprintf( out, WIDE( "// No Table\n" ) );
+			sack_fprintf( out, WIDE( "//--------------------------------------------------------------------------\n" ) );
 		}
-		fclose( out );
+		sack_fclose( out );
 	}
 }
 

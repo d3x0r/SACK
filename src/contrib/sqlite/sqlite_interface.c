@@ -5,6 +5,7 @@
 #include <share.h>
 #endif
 #include <procreg.h>
+#include <filesys.h>
 #include <deadstart.h>
 #ifndef USE_SQLITE_INTERFACE
 #define USE_SQLITE_INTERFACE

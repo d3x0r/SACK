@@ -2,6 +2,7 @@
 #include <stdhdrs.h> // all for outputdebug string
 //#include <winbase.h>
 #include <procreg.h>
+#include <filesys.h>
 #include <math.h>
 #include <sharemem.h>
 #include <logging.h>
@@ -93,6 +94,7 @@ static struct {
 // no inline support at all....
 
 #define INLINEFUNC(type, name, params)  type EXTERNAL_NAME(name) params
+#define REALVOIDFUNCT(type, name, params, callparams ) 
 #define REALFUNCT(type, name, params, callparams ) 
 #define REALFUNCT(type, name, params, callparams ) 
 #define REALFUNC( name, params, callparams ) 
@@ -1759,23 +1761,23 @@ void EXTERNAL_NAME(showstd)( PTRANSFORM pt, char *header )
 void EXTERNAL_NAME(SaveTransform)( PTRANSFORM pt, CTEXTSTR filename )
 {
 	FILE *file;
-	Fopen( file, filename, WIDE("wb") );
+	file = sack_fopen( 0, filename, WIDE("wb") );
 	if( file )
 	{
-		fwrite( pt, 1, sizeof( *pt ), file );
-		fclose( file );
+		sack_fwrite( pt, 1, sizeof( *pt ), file );
+		sack_fclose( file );
 	}
 
 }
 void EXTERNAL_NAME(LoadTransform)( PTRANSFORM pt, CTEXTSTR filename )
 {
 	FILE *file;
-	Fopen( file, filename, WIDE("rb" ) );
+	file = sack_fopen( 0, filename, WIDE("rb" ) );
 	if( file )
 	{
-		fread( pt, 1, sizeof( *pt ), file );
+		sack_fread( pt, 1, sizeof( *pt ), file );
       pt->motion = NULL;
-		fclose( file );
+		sack_fclose( file );
 	}
 
 }

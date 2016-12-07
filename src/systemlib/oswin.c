@@ -1,3 +1,6 @@
+
+#ifndef __LINUX__
+
 #include <windows.h>
 #include <objbase.h>
 
@@ -13,4 +16,6 @@ void InitCo( void )
 #ifdef __cplusplus
 }
 }
+#endif
+
 #endif

@@ -79,7 +79,8 @@ POINTER GetExtraData( POINTER block )
 
 static uintptr_t CPROC SetDefaultPath( uintptr_t psv, arg_list args ) {
 	PARAM( args, CTEXTSTR, path );
-	l.target_path = ExpandPath( path );
+   if( !l.target_path ) // otherwise it was already set on the commandline
+		l.target_path = ExpandPath( path );
 	return psv;
 }
 
@@ -207,6 +208,8 @@ PRIORITY_PRELOAD( XSaneWinMain, DEFAULT_PRELOAD_PRIORITY + 20 )//( argc, argv )
 		POINTER vfs_memory;
 		if( argc > 1 ) {
 			SetCurrentPath( argv[1] );
+         l.target_path = ExpandPath( argv[1] );
+
 		}
 		SetSystemLog( SYSLOG_FILE, stderr ); 
 		vfs_memory = GetExtraData( memory );

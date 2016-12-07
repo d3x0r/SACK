@@ -1,3 +1,5 @@
+#ifndef __LINUX__
+
 ///////////////////////////////////////////////////////////////////////////
 //
 // Filename    -  Network.C
@@ -29,31 +31,31 @@ SOCKET OpenSocket( LOGICAL v4, LOGICAL bStream, LOGICAL bRaw, int another_offset
 	{
 		SOCKET result;
       // need to index into saved sockets and try another provider.
-		result = WSASocket(v4?AF_INET:AF_INET6
+		result = WSASocketW(v4?AF_INET:AF_INET6
 										 , bRaw?SOCK_RAW:0
 										 , 0
 										 , v4
 										  ?bStream
-										  ?g.pProtos+g.tcp_protocol
-										  :g.pProtos+g.udp_protocol
+										  ?globalNetworkData.pProtos+globalNetworkData.tcp_protocol
+										  :globalNetworkData.pProtos+globalNetworkData.udp_protocol
 										  :bStream
-										  ?g.pProtos+g.tcp_protocolv6
-										  :g.pProtos+g.udp_protocolv6
+										  ?globalNetworkData.pProtos+globalNetworkData.tcp_protocolv6
+										  :globalNetworkData.pProtos+globalNetworkData.udp_protocolv6
 										 , 0, 0 );
 		return result;
 	}
 	else
 	{
-		SOCKET result = WSASocket(v4?AF_INET:AF_INET6
+		SOCKET result = WSASocketW(v4?AF_INET:AF_INET6
 										 , bRaw?SOCK_RAW:0
 										 , 0
 										 , v4
 										  ?bStream
-										  ?g.pProtos+g.tcp_protocol
-										  :g.pProtos+g.udp_protocol
+										  ?globalNetworkData.pProtos+globalNetworkData.tcp_protocol
+										  :globalNetworkData.pProtos+globalNetworkData.udp_protocol
 										  :bStream
-										  ?g.pProtos+g.tcp_protocolv6
-										  :g.pProtos+g.udp_protocolv6
+										  ?globalNetworkData.pProtos+globalNetworkData.tcp_protocolv6
+										  :globalNetworkData.pProtos+globalNetworkData.udp_protocolv6
 										 , 0, 0 );
 		return result;
 	}
@@ -65,18 +67,18 @@ int SystemCheck( void )
 	int i;
 	int protoIndex = -1;
 	int size;
-	//lprintf( "Global is %d %p", sizeof( g ), &g.uNetworkPauseTimer, &g.nProtos );
+	//lprintf( "Global is %d %p", sizeof( globalNetworkData ), &globalNetworkData.uNetworkPauseTimer, &globalNetworkData.nProtos );
 
 	if (WSAStartup(MAKEWORD(2, 0), &wd) != 0)
 	{
 		lprintf(WIDE( "WSAStartup 2.0 failed: %d" ), h_errno);
 		return 0;
 	}
-	if( g.flags.bLogProtocols )
+	if( globalNetworkData.flags.bLogProtocols )
 		lprintf(WIDE( "Winsock Version: %d.%d" ), LOBYTE(wd.wVersion), HIBYTE(wd.wVersion));
 
 	size = 0;
-	if ((g.nProtos = WSAEnumProtocols(NULL, NULL, (DWORD *) &size)) == -1)
+	if ((globalNetworkData.nProtos = WSAEnumProtocolsW(NULL, NULL, (DWORD *) &size)) == -1)
 	{
 		if( WSAGetLastError() != WSAENOBUFS )
 		{
@@ -85,35 +87,35 @@ int SystemCheck( void )
 		}
 	}
 
-	g.pProtos = (WSAPROTOCOL_INFO*)Allocate( size );
-	if ((g.nProtos = WSAEnumProtocols(NULL, g.pProtos, (DWORD *) &size)) == -1)
+	globalNetworkData.pProtos = (WSAPROTOCOL_INFOW*)Allocate( size );
+	if ((globalNetworkData.nProtos = WSAEnumProtocolsW(NULL, globalNetworkData.pProtos, (DWORD *) &size)) == -1)
 	{
 		lprintf(WIDE( "WSAEnumProtocols: %d" ), h_errno);
 		return 0;
 	}
-	for (i = 0; i < g.nProtos; i++)
+	for (i = 0; i < globalNetworkData.nProtos; i++)
 	{
 		// IPv6
-		if (strcmp(g.pProtos[i].szProtocol, WIDE( "MSAFD Tcpip [TCP/IP]" )) == 0)
+		if (wcscmp(globalNetworkData.pProtos[i].szProtocol, L"MSAFD Tcpip [TCP/IP]" ) == 0)
 		{
-			g.tcp_protocol = i;
+			globalNetworkData.tcp_protocol = i;
 			protoIndex = i;
 		}
-		if (strcmp(g.pProtos[i].szProtocol, WIDE( "MSAFD Tcpip [UDP/IP]" )) == 0)
+		if (wcscmp(globalNetworkData.pProtos[i].szProtocol, L"MSAFD Tcpip [UDP/IP]" ) == 0)
 		{
-			g.udp_protocol = i;
+			globalNetworkData.udp_protocol = i;
 		}
-		if (strcmp(g.pProtos[i].szProtocol, WIDE( "MSAFD Tcpip [TCP/IPv6]" )) == 0)
+		if (wcscmp(globalNetworkData.pProtos[i].szProtocol, L"MSAFD Tcpip [TCP/IPv6]" ) == 0)
 		{
-			g.tcp_protocolv6 = i;
+			globalNetworkData.tcp_protocolv6 = i;
 		}
-		if (strcmp(g.pProtos[i].szProtocol, WIDE( "MSAFD Tcpip [UDP/IPv6]" )) == 0)
+		if (wcscmp(globalNetworkData.pProtos[i].szProtocol, L"MSAFD Tcpip [UDP/IPv6]" ) == 0)
 		{
-			g.udp_protocolv6 = i;
+			globalNetworkData.udp_protocolv6 = i;
 		}
-		if( g.flags.bLogProtocols )
-			lprintf(WIDE( "Index #%d - name: '%s', type: %d, proto: %d" ), i, g.pProtos[i].szProtocol,
-					  g.pProtos[i].iSocketType, g.pProtos[i].iProtocol);
+		if( globalNetworkData.flags.bLogProtocols )
+			lprintf(WIDE( "Index #%d - name: '%S', type: %d, proto: %d" ), i, globalNetworkData.pProtos[i].szProtocol,
+					  globalNetworkData.pProtos[i].iSocketType, globalNetworkData.pProtos[i].iProtocol);
 	}
 	if (protoIndex == -1)
 	{
@@ -125,3 +127,4 @@ int SystemCheck( void )
 
 SACK_NETWORK_NAMESPACE_END
 
+#endif

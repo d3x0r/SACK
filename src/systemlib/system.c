@@ -544,6 +544,7 @@ int CPROC EndTaskWindow( PTASK_INFO task )
 #endif
 
 //--------------------------------------------------------------------------
+#ifdef WIN32
 #if _MSC_VER
 #pragma runtime_checks( "sru", off )
 #endif
@@ -554,7 +555,7 @@ static DWORD STDCALL SendCtrlCThreadProc( void *data )
 #if _MSC_VER
 #pragma runtime_checks( "sru", restore )
 #endif
-
+#endif
 
 LOGICAL CPROC StopProgram( PTASK_INFO task )
 {
@@ -601,7 +602,7 @@ LOGICAL CPROC StopProgram( PTASK_INFO task )
 	else
 		return TRUE;
 #else
-		  // kill( ) ?
+   lprintf( "need to send kill() to signal process to top" );
 #endif
 
 
