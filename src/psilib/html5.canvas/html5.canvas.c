@@ -2,7 +2,7 @@
 #define PSI_HTML5_CANVAS_SOURCE
 
 #include <stdhdrs.h>
-
+#include <filesys.h>
 #include <http.h>
 
 #include "../controlstruc.h"

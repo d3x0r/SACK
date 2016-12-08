@@ -1,4 +1,5 @@
 #include <stdhdrs.h>
+#include <filesys.h>
 #include <deadstart.h>
 #include <sack_vfs.h>
 #include <sack_system.h>
@@ -114,6 +115,8 @@ static LOGICAL CPROC ExtractFile( CTEXTSTR name )
 				POINTER data = NewArray( uint8_t, sz );
 				sack_fread( data, 1, sz, file );
 				ProcessConfigurationInput( l.pch, data, sz, 0 );
+				if( !l.target_path )
+               l.target_path = ".";
 				Release( data );
 			}
          sack_fclose( file );
@@ -209,7 +212,6 @@ PRIORITY_PRELOAD( XSaneWinMain, DEFAULT_PRELOAD_PRIORITY + 20 )//( argc, argv )
 		if( argc > 1 ) {
 			SetCurrentPath( argv[1] );
          l.target_path = ExpandPath( argv[1] );
-
 		}
 		SetSystemLog( SYSLOG_FILE, stderr ); 
 		vfs_memory = GetExtraData( memory );
@@ -231,7 +233,7 @@ PRIORITY_PRELOAD( XSaneWinMain, DEFAULT_PRELOAD_PRIORITY + 20 )//( argc, argv )
 		l.rom = sack_mount_filesystem( "self", l.fsi, 100, (uintptr_t)vol, TRUE );
 	}
 #endif
-	l.target_path = ".";
+	//l.target_path = ".";
 	if( vol )
 	{
 		POINTER info = NULL;

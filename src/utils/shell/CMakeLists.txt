@@ -16,6 +16,14 @@ foreach(flag_var
    endif(${flag_var} MATCHES "-br")
 endforeach(flag_var)
 
+if( WIN32 AND CMAKE_COMPILER_IS_GNUCC )
+    SET( SHELL_MORE_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/shell.manifest )
+endif( WIN32 AND CMAKE_COMPILER_IS_GNUCC )
+if( MSVC )
+    SET( SHELL_LINK_FLAGS "/level='requireAdministrator' /uiAccess='false'" )
+endif( MSVC )
+
+
 if( WATCOM )
 string( REGEX REPLACE "library clbrdll.lib" "" CMAKE_C_STANDARD_LIBRARIES "${CMAKE_C_STANDARD_LIBRARIES}" )
 string( REGEX REPLACE "library plbrdll.lib" "" CMAKE_C_STANDARD_LIBRARIES "${CMAKE_C_STANDARD_LIBRARIES}" )
@@ -83,6 +91,7 @@ ${FIRST_GCC_PROGRAM_SOURCE}
     ${SOURCES_ROOT}/filesyslib/filescan.c
     ${SOURCES_ROOT}/filesyslib/pathops.c
     ${SOURCES_ROOT}/filesyslib/winfiles.c
+    ${SHELL_MORE_SOURCES}
     ${SNPRINTF_SOURCES}
 ########################
 # SOURCES
@@ -101,6 +110,19 @@ set( project shell )
 set( NO_AUTO_DEADSTART_CORE ON )
 add_portable_program(${project} ${BASE_SOURCES} )
 SET_PROPERTY(TARGET ${project} APPEND PROPERTY COMPILE_DEFINITIONS "__STATIC__;SACK_BAG_EXPORTS;__NO_MSGSVR__;__NO_OPTIONS__;__NO_DEFAULT_INTERFACES__;__NO_NETWORK__;__DISABLE_UDP_SYSLOG__" )
+SET_TARGET_PROPERTIES(${project} PROPERTIES
+		LINK_FLAGS "${SHELL_LINK_FLAGS}"
+)
+if( WIN32 AND ${CMAKE_COMPILER_IS_GNUCC} )
+add_custom_command(TARGET
+                     ${project}
+                   POST_BUILD
+                   COMMAND
+                     "mt.exe" -manifest \"${CMAKE_CURRENT_SOURCE_DIR}\\shell.manifest\" -outputresource:\"${CMAKE_CURRENT_BINARY_DIR}\\shell.exe\"\;\#1
+                   COMMENT
+                     "Adding custom manifest containing MSVCRT80 dependency..." 
+                  )
+endif( WIN32 AND ${CMAKE_COMPILER_IS_GNUCC} )
 SET_TARGET_PROPERTIES(${project} PROPERTIES
                   FOLDER utils
 )
@@ -144,6 +166,7 @@ ${FIRST_GCC_PROGRAM_SOURCE}
     ${SOURCES_ROOT}/filesyslib/pathops.c
     ${SOURCES_ROOT}/filesyslib/winfiles.c
     ${SNPRINTF_SOURCES}
+    ${SHELL_MORE_SOURCES}
 ########################
 # SOURCES
 ########################
@@ -156,9 +179,18 @@ set( project wshell )
 
 
 set( NO_AUTO_DEADSTART_CORE ON )
+
+if (WIN32)
+    #set(CMAKE_SHARED_LINKER_FLAGS /MANIFEST:NO)
+endif()
+
+
 add_portable_program(${project} WIN32 ${BASE_SOURCES} )
 SET_PROPERTY(TARGET ${project} APPEND PROPERTY COMPILE_DEFINITIONS "__STATIC__;SACK_BAG_EXPORTS;__NO_MSGSVR__;__NO_OPTIONS__;__NO_DEFAULT_INTERFACES__;__NO_NETWORK__;__DISABLE_UDP_SYSLOG__" )
 
+SET_TARGET_PROPERTIES(${project} PROPERTIES
+		LINK_FLAGS "${SHELL_LINK_FLAGS}"
+)
 SET_TARGET_PROPERTIES(${project} PROPERTIES
                   FOLDER utils
 )
@@ -166,7 +198,16 @@ if( WIN32 )
 #ws2_32 wsock32 
 target_link_libraries( ${project}  winmm odbc32)
 endif( WIN32 )
-
+if( WIN32 AND ${CMAKE_COMPILER_IS_GNUCC} )
+add_custom_command(TARGET
+                     ${project}
+                   POST_BUILD
+                   COMMAND
+                     "mt.exe" -manifest \"${CMAKE_CURRENT_SOURCE_DIR}\\shell.manifest\" -outputresource:\"${CMAKE_CURRENT_BINARY_DIR}\\wshell.exe\"\;\#1
+                   COMMENT
+                     "Adding custom manifest containing MSVCRT80 dependency..." 
+                  )
+endif( WIN32 AND ${CMAKE_COMPILER_IS_GNUCC} )
 install( TARGETS ${project} DESTINATION bin )
 
 

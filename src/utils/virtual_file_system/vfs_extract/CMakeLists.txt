@@ -2,7 +2,7 @@ set( PROJECT sack_vfs_extracter )
 
 
 if( WIN32 AND CMAKE_COMPILER_IS_GNUCC )
-    SET( EXTRACTER_MORE_SOURCES ${CURRENT_CMAKE_SOURCE_DIR}/extracter.manifest )
+    SET( EXTRACTER_MORE_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/extracter.manifest )
     #SET( EXTRACTER_LINK_FLAGS "/MANIFEST:NO" )
 endif( WIN32 AND CMAKE_COMPILER_IS_GNUCC )
 
@@ -31,7 +31,7 @@ elseif( WATCOM )
 endif()
 
 set(BASE_SOURCES
-    vfs_extracter.c ${EXTRACTER_MORE_SORUCES} ${MORE_RESOURCES}
+    vfs_extracter.c ${EXTRACTER_MORE_SOURCES} ${MORE_RESOURCES}
 )
 
 sack_add_executable( ${PROJECT} ${BASE_SOURCES} )

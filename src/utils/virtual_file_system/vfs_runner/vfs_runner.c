@@ -1,4 +1,5 @@
 #include <stdhdrs.h>
+#include <filesys.h>
 #include <deadstart.h>
 #include <sack_vfs.h>
 
