@@ -16,6 +16,7 @@
 #include <procreg.h>
 #include <deadstart.h>
 #include <sqlgetoption.h>
+#include <filesys.h>
 #define FULL_TRACE
 #define LOG_LINES_READ
 ////#define DEBUG_SLOWNESS
@@ -1017,7 +1018,6 @@ int DoDecodeBinary( PTEXT *start, POINTER *binary_buffer, size_t *buflen )
 		size_t len;
 		CTEXTSTR p = GetText( NEXTLINE( *start ) );
 		// looks like a good chance this is a binary blob
-		CTEXTSTR x;
 		char *q;
 		TEXTCHAR ch;
 #define HANDLE_BURST_PECULIARITY_WITH_DECIMALS_AND_NUMBER_COLLATION()  \
@@ -1050,13 +1050,13 @@ int DoDecodeBinary( PTEXT *start, POINTER *binary_buffer, size_t *buflen )
 		// HANLDE_BURST_EXPLOIT converts .0, .1, .2 into .-+ characters... and sets 'ch'
 		// to the character to find.
 		HANDLE_BURST_PECULIARITY_WITH_DECIMALS_AND_NUMBER_COLLATION();
-		convert.base.data1 = reverse[ch];//(x=StrChr( charset, ch ))?(uint32_t)(x-charset):0;
+		convert.base.data1 = reverse[ch];
 		HANDLE_BURST_PECULIARITY_WITH_DECIMALS_AND_NUMBER_COLLATION();
-		convert.base.data2 = reverse[ch];//(x=StrChr( charset, ch ))?(uint32_t)(x-charset):0;
+		convert.base.data2 = reverse[ch];
 		HANDLE_BURST_PECULIARITY_WITH_DECIMALS_AND_NUMBER_COLLATION();
-		convert.base.data3 = reverse[ch];//(x=StrChr( charset, ch ))?(uint32_t)(x-charset):0;
+		convert.base.data3 = reverse[ch];
 		HANDLE_BURST_PECULIARITY_WITH_DECIMALS_AND_NUMBER_COLLATION();
-		convert.base.data4 = reverse[ch];//(x=StrChr( charset, ch ))?(uint32_t)(x-charset):0;
+		convert.base.data4 = reverse[ch];
 		q = (char*)buflen;
 		q[0] = convert.bin.bytes[0];
 		q[1] = convert.bin.bytes[1];
@@ -1067,13 +1067,13 @@ int DoDecodeBinary( PTEXT *start, POINTER *binary_buffer, size_t *buflen )
 		while( p[0] && len )
 		{
 			HANDLE_BURST_PECULIARITY_WITH_DECIMALS_AND_NUMBER_COLLATION();
-			convert.base.data1 = reverse[ch];//(x=StrChr( charset, ch ))?(uint32_t)(x-charset):0;
+			convert.base.data1 = reverse[ch];
 			HANDLE_BURST_PECULIARITY_WITH_DECIMALS_AND_NUMBER_COLLATION();
-			convert.base.data2 = reverse[ch];//(x=StrChr( charset, ch ))?(uint32_t)(x-charset):0;
+			convert.base.data2 = reverse[ch];
 			HANDLE_BURST_PECULIARITY_WITH_DECIMALS_AND_NUMBER_COLLATION();
-			convert.base.data3 = reverse[ch];//(x=StrChr( charset, ch ))?(uint32_t)(x-charset):0;
+			convert.base.data3 = reverse[ch];
 			HANDLE_BURST_PECULIARITY_WITH_DECIMALS_AND_NUMBER_COLLATION();
-			convert.base.data4 = reverse[ch];//(x=StrChr( charset, ch ))?(uint32_t)(x-charset):0;
+			convert.base.data4 = reverse[ch];
 			if( len && len-- )
 				(q++)[0] = convert.bin.bytes[0];
 			if( len && len-- )
@@ -2490,7 +2490,6 @@ void AddConfigurationEx( PCONFIG_HANDLER pch, CTEXTSTR format, USER_CONFIG_HANDL
 	pWord = pLine;
 	while( pWord )
 	{
-		TEXTRUNE ch;
 		if( g.flags.bLogTrace )
 			lprintf( WIDE("Evaluating %s ... "), GetText( pWord ) );
 		if( flags.vartag )

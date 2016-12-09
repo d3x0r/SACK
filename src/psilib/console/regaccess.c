@@ -350,7 +350,7 @@ int SetRegistryItem( HKEY hRoot, CTEXTSTR pPrefix,
       DWORD dwDisposition;
       dwStatus = RegCreateKeyEx( hRoot, 
                                  pszString, 0
-                             , WIDE( "" )
+                             , NULL
                              , REG_OPTION_NON_VOLATILE
                              , KEY_WRITE
                              , NULL

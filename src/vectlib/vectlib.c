@@ -2,6 +2,7 @@
 #include <stdhdrs.h> // all for outputdebug string
 //#include <winbase.h>
 #include <procreg.h>
+#include <filesys.h>
 #include <math.h>
 #include <sharemem.h>
 #include <logging.h>
@@ -66,11 +67,13 @@ static struct {
 #if defined( _MSC_VER ) || defined( __WATCOMC__ )
 #define INLINEFUNC(type, name, params) _inline type _##name params
 #define REALFUNCT(type, name, params, callparams ) type EXTERNAL_NAME(name) params { return _##name callparams; } 
+#define REALVOIDFUNCT(type, name, params, callparams ) type EXTERNAL_NAME(name) params { _##name callparams; }
 #define REALFUNC( name, params, callparams ) void EXTERNAL_NAME(name) params { _##name callparams; } 
 #define DOFUNC(name) _##name
 #elif defined( __LCC__ )
 #define INLINEFUNC(type, name, params) inline type _INL_##name params
 #define REALFUNC( name, params, callparams ) void EXTERNAL_NAME(name) params { _INL_##name callparams; } 
+#define REALVOIDFUNCT(type, name, params, callparams ) type EXTERNAL_NAME(name) params { _INL_##name callparams; }
 #define REALFUNCT(type, name, params, callparams ) type EXTERNAL_NAME(name) params { return _INL_##name callparams; }
 #define DOFUNC(name) _INL_##name
 #elif defined( __BORLANDC__ )
@@ -91,6 +94,8 @@ static struct {
 // no inline support at all....
 
 #define INLINEFUNC(type, name, params)  type EXTERNAL_NAME(name) params
+#define REALVOIDFUNCT(type, name, params, callparams ) 
+#define REALFUNCT(type, name, params, callparams ) 
 #define REALFUNCT(type, name, params, callparams ) 
 #define REALFUNC( name, params, callparams ) 
 #define DOFUNC(name) EXTERNAL_NAME(name)
@@ -101,7 +106,7 @@ static struct {
 #define COS cos
 #else
 #  ifdef MAKE_RCOORD_SINGLE
-#    define sqrt (float)sqrt
+#    define sqrt(n) ((float)sqrt(n))
 #    ifdef __WATCOMC__
 #define SIN (float)sin
 #define COS (float)cos
@@ -205,7 +210,7 @@ RCOORD EXTERNAL_NAME(Distance)( PC_POINT v1, PC_POINT v2 )
    if( k != 0 )
 		DOFUNC(scale)( pv, pv, ONE / k );
 }
- REALFUNCT( void,  normalize, ( P_POINT pv ), (pv) )
+ REALVOIDFUNCT( void,  normalize, ( P_POINT pv ), (pv) )
 //----------------------------------------------------------------
 
  INLINEFUNC( void, crossproduct, ( P_POINT pr, PC_POINT pv1, PC_POINT pv2 ) )
@@ -217,7 +222,7 @@ RCOORD EXTERNAL_NAME(Distance)( PC_POINT v1, PC_POINT v2 )
   pr[1] = pv2[0] * pv1[2] - pv2[2] * pv1[0]; //a2c1-c2a1 ( - determinaent )
   pr[2] = pv2[1] * pv1[0] - pv2[0] * pv1[1]; //b2a1-a2b1 
 }
-REALFUNCT( void, crossproduct, ( P_POINT pr, PC_POINT pv1, PC_POINT pv2 ), (pr,pv1,pv2) )
+REALVOIDFUNCT( void, crossproduct, ( P_POINT pr, PC_POINT pv1, PC_POINT pv2 ), (pr,pv1,pv2) )
 // hmmm
 // 2 4 dimensional vectors would be insufficient to determine
 // a single perpendicular vector... as it could lay  in a perpendular
@@ -1557,23 +1562,23 @@ z = (Qyx-Qxy)*s
 		quat[3] = (pt->m[1][0]-pt->m[0][1])*s;
 	}
 	else if ((pt->m[0][0] > pt->m[1][1])&&(pt->m[0][0] > pt->m[2][2])) { 
-		float S = sqrt(1.0 + pt->m[0][0] - pt->m[1][1] - pt->m[2][2]) * 2; // S=4*qx 
+		RCOORD S = sqrt(1.0 + pt->m[0][0] - pt->m[1][1] - pt->m[2][2]) * ((RCOORD)2); // S=4*qx 
 		quat[0] = (pt->m[2][1] - pt->m[1][2]) / S;
-		quat[1] = 0.25 * S;
+		quat[1] = ((RCOORD)0.25) * S;
 		quat[2] = (pt->m[0][1] + pt->m[1][0]) / S; 
 		quat[3] = (pt->m[0][2] + pt->m[2][0]) / S; 
 	} else if (pt->m[1][1] > pt->m[2][2]) { 
-		float S = sqrt(1.0 + pt->m[1][1] - pt->m[0][0] - pt->m[2][2]) * 2; // S=4*qy
+		RCOORD S = sqrt(1.0 + pt->m[1][1] - pt->m[0][0] - pt->m[2][2]) * ((RCOORD)2); // S=4*qy
 		quat[0] = (pt->m[0][2] - pt->m[2][0]) / S;
 		quat[1] = (pt->m[0][1] + pt->m[1][0]) / S; 
-		quat[2] = 0.25 * S;
+		quat[2] = ((RCOORD)0.25) * S;
 		quat[3] = (pt->m[1][2] + pt->m[2][1]) / S; 
 	} else { 
-		float S = sqrt(1.0 + pt->m[2][2] - pt->m[0][0] - pt->m[1][1]) * 2; // S=4*qz
+		RCOORD S = sqrt(1.0 + pt->m[2][2] - pt->m[0][0] - pt->m[1][1]) * ((RCOORD)2); // S=4*qz
 		quat[0] = (pt->m[1][0] - pt->m[0][1]) / S;
 		quat[1] = (pt->m[0][2] + pt->m[2][0]) / S;
 		quat[2] = (pt->m[1][2] + pt->m[2][1]) / S;
-		quat[3] = 0.25 * S;
+		quat[3] = ((RCOORD)0.25) * S;
 	}
 
 	{
@@ -1756,23 +1761,23 @@ void EXTERNAL_NAME(showstd)( PTRANSFORM pt, char *header )
 void EXTERNAL_NAME(SaveTransform)( PTRANSFORM pt, CTEXTSTR filename )
 {
 	FILE *file;
-	Fopen( file, filename, WIDE("wb") );
+	file = sack_fopen( 0, filename, WIDE("wb") );
 	if( file )
 	{
-		fwrite( pt, 1, sizeof( *pt ), file );
-		fclose( file );
+		sack_fwrite( pt, 1, sizeof( *pt ), file );
+		sack_fclose( file );
 	}
 
 }
 void EXTERNAL_NAME(LoadTransform)( PTRANSFORM pt, CTEXTSTR filename )
 {
 	FILE *file;
-	Fopen( file, filename, WIDE("rb" ) );
+	file = sack_fopen( 0, filename, WIDE("rb" ) );
 	if( file )
 	{
-		fread( pt, 1, sizeof( *pt ), file );
+		sack_fread( pt, 1, sizeof( *pt ), file );
       pt->motion = NULL;
-		fclose( file );
+		sack_fclose( file );
 	}
 
 }

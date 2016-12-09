@@ -1,5 +1,5 @@
 #include <pssql.h>
-
+#include <filesys.h>
 #ifndef SQL_STRUCT_DEFINED
 #define SQL_STRUCT_DEFINED
 

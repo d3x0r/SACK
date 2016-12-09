@@ -1,5 +1,6 @@
 #define NO_FILEOP_ALIAS
 #include <stdhdrs.h>
+#include <filesys.h>
 #include <sack_vfs.h>
 #include <filesys.h>
 
@@ -77,9 +78,57 @@ static void ExtractFile( CTEXTSTR filename )
 	}
 }
 
-#ifdef VIRUS_SCANNER_PARANOIA
 #define Seek(a,b) (((uintptr_t)a)+(b))
 
+POINTER GetExtraData( POINTER block )
+{
+	//uintptr_t source_memory_length = block_len;
+	POINTER source_memory = block;
+
+	{
+		PIMAGE_DOS_HEADER source_dos_header = (PIMAGE_DOS_HEADER)source_memory;
+		PIMAGE_NT_HEADERS source_nt_header = (PIMAGE_NT_HEADERS)Seek( source_memory, source_dos_header->e_lfanew );
+		if( source_dos_header->e_magic != IMAGE_DOS_SIGNATURE ) {
+			lprintf( "Basic signature check failed; not a library" );
+         return NULL;
+		}
+
+		if( source_nt_header->Signature != IMAGE_NT_SIGNATURE ) {
+			lprintf( "Basic NT signature check failed; not a library" );
+         return NULL;
+		}
+
+		if( source_nt_header->FileHeader.SizeOfOptionalHeader )
+		{
+			if( source_nt_header->OptionalHeader.Magic != IMAGE_NT_OPTIONAL_HDR_MAGIC )
+			{
+				lprintf( "Optional header signature is incorrect..." );
+				return NULL;
+			}
+		}
+		{
+			int n;
+			long FPISections = source_dos_header->e_lfanew
+				+ sizeof( DWORD ) + sizeof( IMAGE_FILE_HEADER )
+				+ source_nt_header->FileHeader.SizeOfOptionalHeader;
+			PIMAGE_SECTION_HEADER source_section = (PIMAGE_SECTION_HEADER)Seek( source_memory, FPISections );
+			uintptr_t dwSize = 0;
+			uintptr_t newSize;
+			source_section = (PIMAGE_SECTION_HEADER)Seek( source_memory, FPISections );
+			for( n = 0; n < source_nt_header->FileHeader.NumberOfSections; n++ )
+			{
+				newSize = (source_section[n].PointerToRawData) + source_section[n].SizeOfRawData;
+				if( newSize > dwSize )
+					dwSize = newSize;
+			}
+			dwSize += 0xFFF;
+			dwSize &= ~0xFFF;
+			return (POINTER)Seek( source_memory, dwSize );
+		}
+	}
+}
+
+//#ifdef VIRUS_SCANNER_PARANOIA
 void SetExtraData( POINTER block, size_t length )
 {
 	//uintptr_t source_memory_length = block_len;
@@ -127,7 +176,7 @@ void SetExtraData( POINTER block, size_t length )
 		}
 	}
 }
-#endif
+//#endif
 
 
 static void AppendFilesAs( CTEXTSTR filename1, CTEXTSTR filename2, CTEXTSTR outputname )
@@ -155,10 +204,21 @@ static void AppendFilesAs( CTEXTSTR filename1, CTEXTSTR filename2, CTEXTSTR outp
 	sack_fread( buffer, 1, file1_size, file1 );
 	sack_fwrite( buffer, 1, file1_size, file_out );
 	{
-		int fill = 4096 - ( file1_size & 0xFFF );
-		int n;
-		if( fill < 4096 )
-			for( n = 0; n < fill; n++ ) sack_fwrite( "", 1, 1, file_out );
+		POINTER extra = GetExtraData( buffer );
+		if( ((uintptr_t)extra - (uintptr_t)buffer) < (file1_size + (4096 - ( file1_size & 0xFFF ))) )
+		{
+			sack_fseek( file_out, ((uintptr_t)extra - (uintptr_t)buffer), SEEK_SET );
+		}
+		else {
+			{
+				int fill = 4096 - ( file1_size & 0xFFF );
+				int n;
+				if( fill < 4096 )
+					for( n = 0; n < fill; n++ ) sack_fwrite( "", 1, 1, file_out );
+			}
+		}
+		//lprintf( "Filesize raw is %d (padded %d)", file1_size, file1_size + (4096 - ( file1_size & 0xFFF )) );
+		//lprintf( "extra offset is %d", (uintptr_t)extra - (uintptr_t)buffer );
 	}
 	//SetExtraData( buffer, file2_size );
 

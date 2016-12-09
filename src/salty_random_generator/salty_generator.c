@@ -41,7 +41,7 @@ static void NeedBits( struct random_context *ctx )
 	if( ctx->use_version2 )
 	{
 		if( ctx->salt_size )
-			sha512_update( &ctx->sha512, (const uint8_t*)ctx->salt, ctx->salt_size );
+			sha512_update( &ctx->sha512, (const uint8_t*)ctx->salt, (unsigned int)ctx->salt_size );
 		sha512_final( &ctx->sha512, ctx->entropy2 );
 		sha512_init( &ctx->sha512 );
 		sha512_update( &ctx->sha512, ctx->entropy2, SHA512_DIGEST_SIZE );
@@ -94,7 +94,7 @@ void SRG_GetEntropyBuffer( struct random_context *ctx, uint32_t *buffer, uint32_
 {
 	uint32_t tmp;
 	uint32_t partial_tmp;
-	int partial_bits = 0;
+	uint32_t partial_bits = 0;
 	uint32_t get_bits;
 
 	do

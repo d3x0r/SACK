@@ -18,17 +18,13 @@
 #include <stdlib.h>
 #include <stddef.h>
 #include <stdio.h>
+#include <stdint.h>
 
 #if _MSC_VER 
 #  ifdef EXCLUDE_SAFEINT_H
 #    define _INTSAFE_H_INCLUDED_
 #  endif
 #endif //_MSC_VER 
-
-#if ( _MSC_VER > 1600 )
-// I don't use these limit anyway... so not having them should be harmless
-#  include <stdint.h>
-#endif
 
 #ifndef WINVER
 #  define WINVER 0x0601
@@ -63,31 +59,31 @@
 // #define NOGDI                     // All GDI defines and routines                               
 // #define NOKERNEL                  // All KERNEL defines and routines                            
 // #define NOUSER                    // All USER defines and routines
-#ifndef _ARM_
-#  ifndef _INCLUDE_NLS
-#    define NONLS                     // All NLS defines and routines                               
+#  ifndef _ARM_
+#    ifndef _INCLUDE_NLS
+#      define NONLS                     // All NLS defines and routines
+#    endif
 #  endif
-#endif
 // #define NOMB                      // MB_* and MessageBox()                                      
-#define NOMEMMGR                  // GMEM_*, LMEM_*, GHND, LHND, associated routines            
-#define NOMETAFILE                // typedef METAFILEPICT                                       
+#  define NOMEMMGR                  // GMEM_*, LMEM_*, GHND, LHND, associated routines
+#  define NOMETAFILE                // typedef METAFILEPICT
 // #define NOMINMAX                  // Macros min(a,b) and max(a,b)                               
 // #define NOMSG                     // typedef MSG and associated routines                        
 // #define NOOPENFILE                // OpenFile(), OemToAnsi, AnsiToOem, and OF_*                 
 // #define NOSCROLL                  // SB_* and scrolling routines                                
-#define NOSERVICE                 // All Service Controller routines, SERVICE_ equates, etc.    
+#  define NOSERVICE                 // All Service Controller routines, SERVICE_ equates, etc.
 //#define NOSOUND                   // Sound driver routines                                      
-// #define NOTEXTMETRIC              // typedef TEXTMETRIC and associated routines                 
+#  define NOTEXTMETRIC              // typedef TEXTMETRIC and associated routines
 // #define NOWH                      // SetWindowsHook and WH_*                                    
 // #define NOWINOFFSETS              // GWL_*, GCL_*, associated routines                          
 // #define NOCOMM                    // COMM driver routines                                       
-#define NOKANJI                   // Kanji support stuff.                                       
-// #define NOHELP                    // Help engine interface.                                     
-#define NOPROFILER                // Profiler interface.                                        
+#  define NOKANJI                   // Kanji support stuff.
+#  define NOHELP                    // Help engine interface.
+#  define NOPROFILER                // Profiler interface.
 //#define NODEFERWINDOWPOS          // DeferWindowPos routines                                    
-#define NOMCX                     // Modem Configuration Extensions                             
-#define NO_SHLWAPI_STRFCNS   // no StrCat StrCmp StrCpy etc functions.  (used internally)
-#define STRSAFE_NO_DEPRECATE  // This also has defines that override StrCmp StrCpy etc... but no override
+#  define NOMCX                     // Modem Configuration Extensions
+#  define NO_SHLWAPI_STRFCNS   // no StrCat StrCmp StrCpy etc functions.  (used internally)
+#  define STRSAFE_NO_DEPRECATE  // This also has defines that override StrCmp StrCpy etc... but no override
 
 #  ifdef _MSC_VER
 #    ifndef _WIN32_WINDOWS
@@ -117,15 +113,20 @@
 #  define _WINSOCKAPI_
 #  include <windows.h>
 #  undef _WINSOCKAPI_
-#  if defined( WIN32 ) && !defined( NO_SHLOBJ )
+#  if defined( WIN32 ) && defined( NEED_SHLOBJ )
 #    include <shlobj.h>
 #  endif
 
-#  include <windowsx.h>
+//#  include <windowsx.h>
 // we like timeGetTime() instead of GetTickCount()
-#  include <mmsystem.h>
+//#  include <mmsystem.h>
+#ifdef __cplusplus
+extern "C"
+#endif
+__declspec(dllimport) DWORD timeGetTime(void);
 
-#  ifndef NO_SHLWAPI
+
+#  if defined( NEED_SHLAPI )
 #    include <shlwapi.h>
 #    include <shellapi.h>
 #  endif
@@ -133,31 +134,26 @@
 #  ifdef NEED_V4W
 #    include <vfw.h>
 #  endif
-#include <sack_types.h>
 
-// incldue this first so we avoid a conflict.
-// hopefully this comes from sack system?
-#include <sack_system.h>
-#if defined( HAVE_ENVIRONMENT )
-#define getenv(name)       OSALOT_GetEnvironmentVariable(name)
-#define setenv(name,val)   SetEnvironmentVariable(name,val)
-#endif
-#define Relinquish()       Sleep(0)
+#  if defined( HAVE_ENVIRONMENT )
+#    define getenv(name)       OSALOT_GetEnvironmentVariable(name)
+#    define setenv(name,val)   SetEnvironmentVariable(name,val)
+#  endif
+#  define Relinquish()       Sleep(0)
 //#pragma pragnoteonly("GetFunctionAddress is lazy and has no library cleanup - needs to be a lib func")
 //#define GetFunctionAddress( lib, proc ) GetProcAddress( LoadLibrary( lib ), (proc) )
 
-#ifdef __cplusplus
-#  ifdef __GNUC__
-#    ifndef min
-#      warning had to hack in a min() def
-#      define min(a,b) ((a)<(b))?(a):(b)
+#  ifdef __cplusplus
+#    ifdef __GNUC__
+#      ifndef min
+#        define min(a,b) ((a)<(b))?(a):(b)
+#      endif
 #    endif
 #  endif
-#endif
 
 #  ifdef __cplusplus_cli
-# include <vcclr.h>
-# define DebugBreak() System::Console::WriteLine( /*lprintf( */gcnew System::String( WIDE__FILE__ WIDE("(") STRSYM(__LINE__) WIDE(") Would DebugBreak here...") ) );
+#    include <vcclr.h>
+#    define DebugBreak() System::Console::WriteLine( /*lprintf( */gcnew System::String( WIDE__FILE__ WIDE("(") STRSYM(__LINE__) WIDE(") Would DebugBreak here...") ) );
 //typedef unsigned int HANDLE;
 //typedef unsigned int HMODULE;
 //typedef unsigned int HWND;
@@ -167,26 +163,15 @@
 //typedef unsigned int HINSTANCE;
 #  endif
 
-#if !defined( UNDER_CE ) ||defined( ELTANIN)
-#include <fcntl.h>
-#include <io.h>
-#endif
-
-# include <filedotnet.h>
-
 #else // ifdef unix/linux
-#include <pthread.h>
-#include <sched.h>
-#include <unistd.h>
-#include <sack_types.h>
-#include <sys/time.h>
-#include <errno.h>
-#include <sack_types.h>
-#include <sack_system.h>
-# include <filedotnet.h>
-#if defined( __ARM__ )
-#  define DebugBreak()
-#else
+#  include <pthread.h>
+#  include <sched.h>
+#  include <unistd.h>
+#  include <sys/time.h>
+#  include <errno.h>
+#  if defined( __ARM__ )
+#    define DebugBreak()
+#  else
 /* A symbol used to cause a debugger to break at a certain
    point. Sometimes dynamicly loaded plugins can be hard to set
    the breakpoint in the debugger, so it becomes easier to
@@ -195,38 +180,45 @@
    <code lang="c++">
    DebugBreak();
 	</code>                                                      */
-#  ifdef __ANDROID__
-#    define DebugBreak()
-#  else
-#    define DebugBreak()  asm("int $3\n" )
+#    ifdef __ANDROID__
+#      define DebugBreak()
+#    else
+#      define DebugBreak()  asm("int $3\n" )
+#    endif
 #  endif
-#endif
 
-#ifdef __ANDROID_OLD_PLATFORM_SUPPORT__
+#  ifdef __ANDROID_OLD_PLATFORM_SUPPORT__
 extern __sighandler_t bsd_signal(int, __sighandler_t);
 
-#endif
+#  endif
 
 // moved into timers - please linnk vs timers to get Sleep...
 //#define Sleep(n) (usleep((n)*1000))
-#define Relinquish() sched_yield()
-#define GetLastError() (int32_t)errno
+#  define Relinquish() sched_yield()
+#  define GetLastError() (int32_t)errno
 /* return with a THREAD_ID that is a unique, universally
    identifier for the thread for inter process communication. */
-#define GetCurrentProcessId() ((uint32_t)getpid())
-#define GetCurrentThreadId() ((uint32_t)getpid())
+#  define GetCurrentProcessId() ((uint32_t)getpid())
+#  define GetCurrentThreadId() ((uint32_t)getpid())
 
 /* Define a min(a,b) macro when the compiler lacks it. */
-#ifndef min
-#  define min(a,b) (((a)<(b))?(a):(b))
-#endif
+#  ifndef min
+#    define min(a,b) (((a)<(b))?(a):(b))
+#  endif
 /* Why not add the max macro, also? */
-#ifndef max
-#  define max(a,b) (((a)>(b))?(a):(b))
-#endif
+#  ifndef max
+#    define max(a,b) (((a)>(b))?(a):(b))
+#  endif
+
+#endif  // end if( !__LINUX__ )
+
+#  include <sack_types.h>
+
+// incldue this first so we avoid a conflict.
+// hopefully this comes from sack system?
+#  include <sack_system.h>
 
 
-#endif
 #if defined( _MSC_VER )|| defined(__LCC__) || defined( __WATCOMC__ ) || defined( __GNUC__ )
 #  include "loadsock.h"
 #  include <malloc.h>               // _heapmin() included here

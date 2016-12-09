@@ -93,7 +93,8 @@ endif( BUILD_TESTS )
 
 #############  EXTRAS #####################
 
-if( BUILD_EXTRAS )
+# these became not so 'extra'
+#if( BUILD_EXTRAS )
 
 add_subdirectory( vfs_command )
 add_subdirectory( vfs_extract )
@@ -103,5 +104,5 @@ add_subdirectory( vfs_extract )
    add_subdirectory( vfs_runner )
 #endif( WIN32 )
 
-endif( BUILD_EXTRAS )
+#endif( BUILD_EXTRAS )
 endif( NOT __CLR__ )

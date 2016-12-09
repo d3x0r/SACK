@@ -1,5 +1,6 @@
 #include <stdhdrs.h>
 #include <procreg.h>
+#include <filesys.h>
 #define TRANSLATION_SOURCE
 #include <translation.h>
 

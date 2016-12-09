@@ -76,6 +76,18 @@ SET_TARGET_PROPERTIES(${project} PROPERTIES
 target_link_libraries( ${project} ${PLATFORM_LIBRARIES} )
 install_default_dest( ${project} )
 
+if( WIN32 AND ${CMAKE_COMPILER_IS_GNUCC} )
+add_custom_command(TARGET
+                     ${project}
+                   POST_BUILD
+                   COMMAND
+                     "mt.exe" -manifest \"${EXTRACTER_MORE_SOURCES}\" -outputresource:\"${CMAKE_CURRENT_BINARY_DIR}\\${project}.exe\"\;\#1
+                   COMMENT
+                     "Adding custom manifest containing MSVCRT80 dependency..." 
+                  )
+endif( WIN32 AND ${CMAKE_COMPILER_IS_GNUCC} )
+
+
 
 
 set( project sack_vfs_extracter_sfx_win )
@@ -89,6 +101,17 @@ SET_TARGET_PROPERTIES(${project} PROPERTIES
 target_link_libraries( ${project} ${PLATFORM_LIBRARIES} )
 install_default_dest( ${project} )
 
+if( WIN32 AND ${CMAKE_COMPILER_IS_GNUCC} )
+add_custom_command(TARGET
+                     ${project}
+                   POST_BUILD
+                   COMMAND
+                     "mt.exe" -manifest \"${EXTRACTER_MORE_SOURCES}\" -outputresource:\"${CMAKE_CURRENT_BINARY_DIR}\\${project}.exe\"\;\#1
+                   COMMENT
+                     "Adding custom manifest containing MSVCRT80 dependency..." 
+                  )
+endif( WIN32 AND ${CMAKE_COMPILER_IS_GNUCC} )
+
 
 
 set( project sack_vfs_extracter_min )
@@ -101,5 +124,17 @@ SET_TARGET_PROPERTIES(${project} PROPERTIES
 )
 target_link_libraries( ${project} ${PLATFORM_LIBRARIES} )
 install_default_dest( ${project} )
+
+
+if( WIN32 AND ${CMAKE_COMPILER_IS_GNUCC} )
+add_custom_command(TARGET
+                     ${project}
+                   POST_BUILD
+                   COMMAND
+                     "mt.exe" -manifest \"${EXTRACTER_MORE_SOURCES}\" -outputresource:\"${CMAKE_CURRENT_BINARY_DIR}\\${project}.exe\"\;\#1
+                   COMMENT
+                     "Adding custom manifest containing MSVCRT80 dependency..." 
+                  )
+endif( WIN32 AND ${CMAKE_COMPILER_IS_GNUCC} )
 
 

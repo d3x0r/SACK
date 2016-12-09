@@ -356,7 +356,7 @@ void sack_vfs_shrink_volume( struct volume * vol ) {
 	int n;
 	int b = 0;
 	int found_free; // this block has free data; should be last BAT?
-	int last_block = 0;
+	BLOCKINDEX last_block = 0;
 	int last_bat = 0;
 	BLOCKINDEX *current_BAT = TSEEK( BLOCKINDEX*, vol, 0, BLOCK_CACHE_FILE );
 	do {
@@ -438,8 +438,8 @@ const char *sack_vfs_get_signature( struct volume *vol ) {
 		{
 			{
 				int n;
-				int this_dir_block = 0;
-				int next_dir_block;
+				BLOCKINDEX this_dir_block = 0;
+				BLOCKINDEX next_dir_block;
 				BLOCKINDEX *next_entries;
 				do {
 					next_entries = BTSEEK( BLOCKINDEX *, vol, this_dir_block, BLOCK_CACHE_DATAKEY );
@@ -477,8 +477,8 @@ const char *sack_vfs_get_signature( struct volume *vol ) {
 
 static struct directory_entry * ScanDirectory( struct volume *vol, const char * filename, struct directory_entry *dirkey ) {
 	int n;
-	int this_dir_block = 0;
-	int next_dir_block;
+	BLOCKINDEX this_dir_block = 0;
+	BLOCKINDEX next_dir_block;
 	struct directory_entry *next_entries;
 	do {
 		next_entries = BTSEEK( struct directory_entry *, vol, this_dir_block, BLOCK_CACHE_DIRECTORY );
@@ -513,7 +513,7 @@ static struct directory_entry * ScanDirectory( struct volume *vol, const char * 
 // this results in an absolute disk position
 static FPI SaveFileName( struct volume *vol, const char * filename ) {
 	size_t n;
-	int this_name_block = 1;
+	BLOCKINDEX this_name_block = 1;
 	while( 1 ) {
 		TEXTSTR names = BTSEEK( TEXTSTR, vol, this_name_block, BLOCK_CACHE_NAMES );
 		unsigned char *name = (unsigned char*)names;
@@ -547,7 +547,7 @@ static FPI SaveFileName( struct volume *vol, const char * filename ) {
 
 static struct directory_entry * GetNewDirectory( struct volume *vol, const char * filename ) {
 	int n;
-	int this_dir_block = 0;
+	BLOCKINDEX this_dir_block = 0;
 	struct directory_entry *next_entries;
 	do {
 		next_entries = BTSEEK( struct directory_entry *, vol, this_dir_block, BLOCK_CACHE_DIRECTORY );
@@ -638,7 +638,7 @@ size_t CPROC sack_vfs_seek( struct sack_vfs_file *file, size_t pos, int whence )
 	}
 	{
 		size_t n = 0;
-		int b = file->entry->first_block ^ file->dirent_key.first_block;
+		BLOCKINDEX b = file->entry->first_block ^ file->dirent_key.first_block;
 		while( n * BLOCK_SIZE < ( pos & ~BLOCK_MASK ) ) {
 			b = vfs_GetNextBlock( file->vol, b, FALSE, TRUE );
 			n++;
@@ -649,7 +649,7 @@ size_t CPROC sack_vfs_seek( struct sack_vfs_file *file, size_t pos, int whence )
 	return file->fpi;
 }
 
-static void MaskBlock( struct volume *vol, uint8_t* usekey, uint8_t* block, BLOCKINDEX block_ofs, int ofs, const char *data, size_t length ) {
+static void MaskBlock( struct volume *vol, uint8_t* usekey, uint8_t* block, BLOCKINDEX block_ofs, size_t ofs, const char *data, size_t length ) {
 	size_t n;
 	block += block_ofs;
 	usekey += ofs;
@@ -757,7 +757,7 @@ size_t CPROC sack_vfs_read( struct sack_vfs_file *file, char * data, size_t leng
 }
 
 static void sack_vfs_unlink_file_entry( struct volume *vol, struct directory_entry *entry, struct directory_entry *entkey ) {
-	int block, _block;
+	BLOCKINDEX block, _block;
 	struct sack_vfs_file *file_found = NULL;
 	struct sack_vfs_file *file;
 	INDEX idx;
@@ -820,7 +820,7 @@ struct find_info {
 	int thisent;
 };
 
-static struct find_info * CPROC sack_vfs_find_create_cursor(uintptr_t psvInst,const char *base,const char *mask )
+struct find_info * CPROC sack_vfs_find_create_cursor(uintptr_t psvInst,const char *base,const char *mask )
 {
 	struct find_info *info = New( struct find_info );
 	info->base = base;
@@ -874,16 +874,16 @@ static int iterate_find( struct find_info *info ) {
 	return 0;
 }
 
-static int CPROC sack_vfs_find_first( struct find_info *info ) {
+int CPROC sack_vfs_find_first( struct find_info *info ) {
 	info->this_dir_block = 0;
 	info->thisent = 0;
 	return iterate_find( info );
 }
 
-static int CPROC sack_vfs_find_close( struct find_info *info ) { Deallocate( struct find_info*, info ); return 0; }
-static int CPROC sack_vfs_find_next( struct find_info *info ) { return iterate_find( info ); }
-static char * CPROC sack_vfs_find_get_name( struct find_info *info ) { return info->filename; }
-static size_t CPROC sack_vfs_find_get_size( struct find_info *info ) { return info->filesize; }
+int CPROC sack_vfs_find_close( struct find_info *info ) { Deallocate( struct find_info*, info ); return 0; }
+int CPROC sack_vfs_find_next( struct find_info *info ) { return iterate_find( info ); }
+char * CPROC sack_vfs_find_get_name( struct find_info *info ) { return info->filename; }
+size_t CPROC sack_vfs_find_get_size( struct find_info *info ) { return info->filesize; }
 
 static LOGICAL CPROC sack_vfs_rename( uintptr_t psvInstance, const char *original, const char *newname ) {
 	struct volume *vol = (struct volume *)psvInstance;

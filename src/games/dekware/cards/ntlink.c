@@ -120,7 +120,7 @@ static int DoDiscard( PSENTIENT ps, PENTITY pe, PTEXT pCards )
          {
             PCARD pCurrent;
             pCurrent = GetCardStackFromHand( ph, WIDE("Cards") )->cards;
-            nCard = IntNumber( pCard );
+            nCard = (INDEX)IntNumber( pCard );
             while( nCard > 1 && pCurrent ) // one based list
             {
                nCard--;

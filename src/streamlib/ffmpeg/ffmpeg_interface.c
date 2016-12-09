@@ -19,7 +19,7 @@
 //#define DEBUG_LOG_INFO
 
 #include <stdhdrs.h>
-#include <stdint.h>
+#include <filesys.h>
 #include <sqlgetoption.h>
 #define USE_RENDER_INTERFACE l.pdi
 #define USE_IMAGE_INTERFACE l.pii

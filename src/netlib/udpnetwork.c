@@ -111,7 +111,7 @@ NETWORK_PROC( PCLIENT, CPPServeUDPAddrEx )( SOCKADDR *pAddr
 	WSAEventSelect( pc->Socket, pc->event, FD_READ|FD_WRITE );
 #  else
 	if (WSAAsyncSelect( pc->Socket, 
-                       g.ghWndNetwork,
+                       globalNetworkData.ghWndNetwork,
                        SOCKMSG_UDP, 
                        FD_READ|FD_WRITE ) )
 	{
@@ -147,9 +147,9 @@ NETWORK_PROC( PCLIENT, CPPServeUDPAddrEx )( SOCKADDR *pAddr
 	AddActive( pc );
 	NetworkUnlock( pc );
 #ifdef USE_WSA_EVENTS
-	if( g.flags.bLogNotices )
+	if( globalNetworkData.flags.bLogNotices )
 		lprintf( WIDE( "SET GLOBAL EVENT (new udp socket %p)" ), pc );
-	WSASetEvent( g.hMonitorThreadControlEvent );
+	WSASetEvent( globalNetworkData.hMonitorThreadControlEvent );
 #endif
    return pc;
 }
@@ -493,13 +493,13 @@ NETWORK_PROC( int, doUDPRead )( PCLIENT pc, POINTER lpBuffer, int nBytes )
 
 		// we are now able to read, so schedule the socket.
 #ifdef USE_WSA_EVENTS
-		if( g.flags.bLogNotices )
+		if( globalNetworkData.flags.bLogNotices )
 			lprintf( WIDE( "SET GLOBAL EVENT (set readpending)" ) );
-		WSASetEvent( g.hMonitorThreadControlEvent );
+		WSASetEvent( globalNetworkData.hMonitorThreadControlEvent );
 #endif
 #ifdef __LINUX__
 		{
-			WakeThread( g.pThread );
+			WakeThread( globalNetworkData.pThread );
 		}
 #endif
 	}
@@ -545,13 +545,13 @@ int FinishUDPRead( PCLIENT pc )
 		case WSAEWOULDBLOCK: // NO data returned....
 			pc->dwFlags |= CF_READPENDING;
 #ifdef USE_WSA_EVENTS
-			if( g.flags.bLogNotices )
+			if( globalNetworkData.flags.bLogNotices )
 				 lprintf( WIDE( "SET GLOBAL EVENT (set read pending)" ) );
-			WSASetEvent( g.hMonitorThreadControlEvent );
+			WSASetEvent( globalNetworkData.hMonitorThreadControlEvent );
 #endif
 #ifdef __LINUX__
 			{
-				WakeThread( g.pThread );
+				WakeThread( globalNetworkData.pThread );
 			}
 #endif
 			return TRUE;
@@ -570,13 +570,13 @@ int FinishUDPRead( PCLIENT pc )
 
    }
    //Log1( WIDE("UDPRead:%d bytes"), nReturn );
-	if( g.flags.bShortLogReceivedData )
+	if( globalNetworkData.flags.bShortLogReceivedData )
 	{
 		DumpAddr( WIDE("UDPRead at"), pc->saSource );
 		LogBinary( (uint8_t*)pc->RecvPending.buffer.p +
 					 pc->RecvPending.dwUsed, min( nReturn, 64 ) );
 	}
-	if( g.flags.bLogReceivedData )
+	if( globalNetworkData.flags.bLogReceivedData )
 	{
 		DumpAddr( WIDE("UDPRead at"), pc->saSource );
 		LogBinary( (uint8_t*)pc->RecvPending.buffer.p +

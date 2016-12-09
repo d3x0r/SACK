@@ -158,7 +158,7 @@ POPTION_TREE_NODE NewGetOptionIndexExxx( PODBC odbc, POPTION_TREE tree, POPTION_
 					// this is the only place where ID must be set explicit...
 						// otherwise our root node creation failes if said root is gone.
 					//lprintf( WIDE( "New entry... create it..." ) );
-						tnprintf( query, sizeof( query ), WIDE( "Insert into " )OPTION_MAP WIDE( "(`parent_option_id`,`name_id`) values (%ld,%lu)" ), parent->id, IDName );
+						tnprintf( query, sizeof( query ), WIDE( "Insert into " )OPTION_MAP WIDE( "(`parent_option_id`,`name_id`) values (%")_size_f WIDE(",%")_size_f WIDE(")" ), parent->id, IDName );
 					OpenWriter( tree );
 					if( SQLCommand( tree->odbc_writer, query ) )
 					{
@@ -190,7 +190,7 @@ POPTION_TREE_NODE NewGetOptionIndexExxx( PODBC odbc, POPTION_TREE tree, POPTION_
 					continue; // get out of this loop, continue outer.
 				}
 #ifdef DETAILED_LOGGING
-				_lprintf(DBG_RELAY)( WIDE("Option tree corrupt.  No option option_id=%ld"), ID );
+				_lprintf(DBG_RELAY)( WIDE("Option tree corrupt.  No option option_id=%")_size_f WIDE(""), ID );
 #endif
 				if( !bIKnowItDoesntExist )
 					PopODBCEx( tree->odbc );
@@ -254,7 +254,7 @@ size_t NewGetOptionStringValue( PODBC odbc, POPTION_TREE_NODE optval, TEXTCHAR *
 #endif
 
 	PushSQLQueryEx( odbc );
-	tnprintf( query, sizeof( query ), WIDE( "select string from " )OPTION_VALUES WIDE( " where option_id=%ld" ), optval->id );
+	tnprintf( query, sizeof( query ), WIDE( "select string from " )OPTION_VALUES WIDE( " where option_id=%")_size_f WIDE("" ), optval->id );
 	// have to push here, the result of the prior is kept outstanding
 	// if this was not pushed, the prior result would evaporate.
 	buffer[0] = 0;
@@ -294,7 +294,7 @@ int NewGetOptionBlobValueOdbc( PODBC odbc, POPTION_TREE_NODE optval, TEXTCHAR **
 	lprintf( WIDE("do query for value string...") );
 #endif
 	if( SQLRecordQueryf( odbc, NULL, &result, NULL
-							  , WIDE( "select `binary`,length(`binary`) from " )OPTION_BLOBS WIDE( " where option_id=%ld" )
+							  , WIDE( "select `binary`,length(`binary`) from " )OPTION_BLOBS WIDE( " where option_id=%")_size_f
 							  , optval->id ) )
 	{
       int success = FALSE;
@@ -322,11 +322,11 @@ LOGICAL NewCreateValue( POPTION_TREE tree, POPTION_TREE_NODE value, CTEXTSTR pVa
 	TEXTSTR newval = EscapeSQLBinaryOpt( tree->odbc_writer, pValue, StrLen( pValue ), TRUE );
 	LOGICAL retval = TRUE;
 	if( pValue == NULL )
-		tnprintf( insert, sizeof( insert ), WIDE( "insert into " )OPTION_BLOBS WIDE( " (`option_id`,`binary` ) values (%lu,'')" )
+		tnprintf( insert, sizeof( insert ), WIDE( "insert into " )OPTION_BLOBS WIDE( " (`option_id`,`binary` ) values (%")_size_f WIDE(",'')" )
 				  , value->id
 				  );
 	else
-		tnprintf( insert, sizeof( insert ), WIDE( "insert into " )OPTION_VALUES WIDE( " (`option_id`,`string` ) values (%lu,%s)" )
+		tnprintf( insert, sizeof( insert ), WIDE( "insert into " )OPTION_VALUES WIDE( " (`option_id`,`string` ) values (%")_size_f WIDE(",%s)" )
 				  , value->id
 				  , pValue?newval:WIDE( "NULL" )
 				  );

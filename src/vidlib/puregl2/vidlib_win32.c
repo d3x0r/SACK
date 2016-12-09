@@ -1,7 +1,7 @@
 #define NO_UNICODE_C
 
 #define FIX_RELEASE_COM_COLLISION
-
+#define NEED_SHLAPI
 #include <stdhdrs.h>
 #include <idle.h>
 

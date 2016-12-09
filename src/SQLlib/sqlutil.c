@@ -118,7 +118,7 @@ INDEX GetNameIndexExtended( PODBC odbc
 			  );
 	if( SQLQueryEx( odbc, query, &result DBG_RELAY) && result )
 	{
-		IDName = IntCreateFromText( result );
+		IDName = (INDEX)IntCreateFromText( result );
 		DebugBreak();
 		PopODBCEx( odbc );
 	}
@@ -678,7 +678,7 @@ TEXTSTR RevertEscapeString( CTEXTSTR name )
 		TEXTCHAR sec_file[284];
 		FILE *file;
       sec_file[0] = 0;
-		Fopen( file, filename, WIDE("rt") );
+		file = sack_fopen( 0, filename, WIDE("rt") );
 		if( !file )
 		{
 			if( !pathchr( filename ) )
@@ -689,7 +689,7 @@ TEXTSTR RevertEscapeString( CTEXTSTR name )
 #else
 				tnprintf( sec_file, sizeof( sec_file ), WIDE( "%s" ), filename );
 #endif
-            Fopen( file, sec_file, WIDE("rt") );
+            file = sack_fopen( 0, sec_file, WIDE("rt") );
 			}
 		}
 		if( file )
@@ -702,7 +702,7 @@ TEXTSTR RevertEscapeString( CTEXTSTR name )
 			INDEX nOfs = 0;
 			if( !odbc->flags.bNoLogging )
 				lprintf( WIDE("Opened %s to read for table %s(%s)"), sec_file[0]?sec_file:filename, tablename,templatename );
-			while( fgets( fgets_buf, sizeof( fgets_buf ), file ) )
+			while( sack_fgets( fgets_buf, sizeof( fgets_buf ), file ) )
 			{
 				TEXTCHAR *p;
 				buf = fgets_buf;
@@ -808,7 +808,7 @@ TEXTSTR RevertEscapeString( CTEXTSTR name )
 			}
 			//lprintf( WIDE("Done with create...") );
 			VarTextDestroy( &pvt_cmd );
-			fclose( file );
+			sack_fclose( file );
 		}
 		else
 		{
@@ -1904,8 +1904,8 @@ LOGICAL BackupDatabase( PODBC source, PODBC dest )
 			sqlite3_backup_finish( sb );
 			return TRUE;
 		}
-		return FALSE;
 	}
+  	return FALSE;
 }
 
 SQL_NAMESPACE_END

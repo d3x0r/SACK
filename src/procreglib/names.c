@@ -1986,7 +1986,6 @@ static uintptr_t CPROC SetOptionSet( uintptr_t psv, arg_list args )
 #ifndef __NO_OPTIONS__
 	PARAM( args, TEXTSTR, key );
 	PARAM( args, CTEXTSTR, value );
-	TEXTCHAR buf[256];
 	if( l.flags.bFindEndif || l.flags.bFindElse )
 		return psv;
 	if( key[0] != '/' && key[0] != '\\' )

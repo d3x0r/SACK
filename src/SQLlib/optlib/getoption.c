@@ -580,7 +580,7 @@ static POPTION_TREE_NODE GetOptionIndexExxx( PODBC odbc, POPTION_TREE_NODE paren
 				{
 					PushSQLQueryEx(odbc);
 					tnprintf( query, sizeof( query )
-							  , WIDE("select node_id,value_id from option_map where parent_node_id=%ld and name_id=%") _size_fs
+							  , WIDE("select node_id,value_id from option_map where parent_node_id=%")_size_f WIDE(" and name_id=%") _size_f
 							  , parent->id
 							  , IDName );
 				}
@@ -592,7 +592,7 @@ static POPTION_TREE_NODE GetOptionIndexExxx( PODBC odbc, POPTION_TREE_NODE paren
 						// this is the only place where ID must be set explicit...
 						// otherwise our root node creation failes if said root is gone.
 						//lprintf( "New entry... create it..." );
-						tnprintf( query, sizeof( query ), WIDE("Insert into option_map(`parent_node_id`,`name_id`) values (%ld,%lu)"), parent->id, IDName );
+						tnprintf( query, sizeof( query ), WIDE("Insert into option_map(`parent_node_id`,`name_id`) values (%")_size_f WIDE(",%")_size_f WIDE(")"), parent->id, IDName );
 						OpenWriterEx( tree DBG_RELAY );
 						if( SQLCommand( tree->odbc_writer, query ) )
 						{
@@ -624,7 +624,7 @@ static POPTION_TREE_NODE GetOptionIndexExxx( PODBC odbc, POPTION_TREE_NODE paren
 						continue; // get out of this loop, continue outer.
 					}
 #ifdef DETAILED_LOGGING
-					_lprintf(DBG_RELAY)( WIDE("Option tree corrupt.  No option node_id=%ld"), ID );
+					_lprintf(DBG_RELAY)( WIDE("Option tree corrupt.  No option node_id=%"), ID );
 #endif
 					if( !bIKnowItDoesntExist )
 						PopODBCEx( odbc );
@@ -696,13 +696,13 @@ POPTION_TREE_NODE GetOptionValueIndexEx( PODBC odbc, POPTION_TREE_NODE ID )
 		CTEXTSTR result = NULL;
 		if( ID )
 		{
-			tnprintf( query, sizeof( query ), WIDE("select value_id from option_map where node_id=%ld"), ID->id );
+			tnprintf( query, sizeof( query ), WIDE("select value_id from option_map where node_id=%")_size_f , ID->id );
 			//lprintf( WIDE("push get value index.") );
 			PushSQLQueryEx( odbc );
 			if( !SQLQuery( odbc, query, &result )
 				|| !result )
 			{
-				lprintf( WIDE("Option tree corrupt.  No option node_id=%ld"), ID->id );
+				lprintf( WIDE("Option tree corrupt.  No option node_id=%")_size_f , ID->id );
 				return NULL;
 			}
 			//lprintf( WIDE("okay and then we pop!?") );
@@ -770,7 +770,7 @@ POPTION_TREE_NODE NewDuplicateValue( PODBC odbc, POPTION_TREE_NODE iOriginalOpti
 	if( results && results[0] )
 	{
 		tnprintf( query, sizeof( query )
-			  , WIDE( "replace into " )OPTION_VALUES WIDE( " (option_id,`string`) values (%ld,%s)" )
+			  , WIDE( "replace into " )OPTION_VALUES WIDE( " (option_id,`string`) values (%")_size_f WIDE(",%s)" )
 				  , iNewOption->id, tmp = EscapeSQLBinaryOpt( odbc, results[0], StrLen( results[0] ), TRUE ) );
 		Release( tmp );
 		SQLEndQuery( odbc );
@@ -782,7 +782,7 @@ POPTION_TREE_NODE NewDuplicateValue( PODBC odbc, POPTION_TREE_NODE iOriginalOpti
 	if( results && results[0] )
 	{
 		tnprintf( query, sizeof( query )
-				  , WIDE( "replace into " )OPTION_BLOBS WIDE( " (option_id,`binary`) values (%ld,%s)" )
+				  , WIDE( "replace into " )OPTION_BLOBS WIDE( " (option_id,`binary`) values (%")_size_f WIDE(",%s)" )
 				  , iNewOption->id, tmp = EscapeSQLBinaryOpt( odbc, results[0], StrLen( results[0] ), TRUE ) );
 		Release( tmp );
 		SQLEndQuery( odbc );
@@ -814,7 +814,7 @@ POPTION_TREE_NODE DuplicateValue( POPTION_TREE_NODE iOriginalValue, POPTION_TREE
 	{
 		TEXTCHAR query[256];
 		tnprintf( query, sizeof( query )
-				  , WIDE( "insert into option_values select 0,`string`,`binary` from option_values where value_id=%ld" )
+				  , WIDE( "insert into option_values select 0,`string`,`binary` from option_values where value_id=%")_size_f WIDE("" )
 				  , iOriginalValue->value_id );
 		OpenWriter( tree );
 		SQLCommand( tree->odbc_writer, query );
@@ -851,8 +851,8 @@ size_t GetOptionStringValueEx( PODBC odbc, POPTION_TREE_NODE optval, TEXTCHAR *b
 		tnprintf( query, sizeof( query ), WIDE( "select override_value_id from option_exception " )
 				WIDE( "where ( apply_from<=now() or apply_from=0 )" )
 				WIDE( "and ( apply_until>now() or apply_until=0 )" )
-				WIDE( "and ( system_id=%")_size_fs WIDE(" or system_id=0 )" )
-				WIDE( "and value_id=%" ) _size_fs
+				WIDE( "and ( system_id=%")_size_f WIDE(" or system_id=0 )" )
+				WIDE( "and value_id=%" ) _size_f
 			   , og.SystemID
 			   , optval->value_id );
 		last_was_session = 0;
@@ -865,7 +865,7 @@ size_t GetOptionStringValueEx( PODBC odbc, POPTION_TREE_NODE optval, TEXTCHAR *b
 				optval = _optval;
 			optval->value_id = IndexCreateFromText( result );
 		}
-		tnprintf( query, sizeof( query ), WIDE("select string from option_values where value_id=%ld"), optval->value_id );
+		tnprintf( query, sizeof( query ), WIDE("select string from option_values where value_id=%")_size_f , optval->value_id );
 		// have to push here, the result of the prior is kept outstanding
 		// if this was not pushed, the prior result would evaporate.
 		PushSQLQueryEx( odbc );
@@ -912,7 +912,7 @@ int GetOptionBlobValueOdbc( PODBC odbc, POPTION_TREE_NODE optval, TEXTCHAR **buf
 			len = &tmplen;
 		PushSQLQueryEx( odbc );
 		if( SQLRecordQueryf( odbc, NULL, &result, NULL
-								 , WIDE("select `binary`,length(`binary`) from ")OPTION_BLOBS WIDE(" where option_id=%lu")
+								 , WIDE("select `binary`,length(`binary`) from ")OPTION_BLOBS WIDE(" where option_id=%")_size_f 
 								 , optval->id ) )
 		{
 			int success = FALSE;
@@ -961,7 +961,7 @@ int GetOptionBlobValueOdbc( PODBC odbc, POPTION_TREE_NODE optval, TEXTCHAR **buf
 		lprintf( WIDE("do query for value string...") );
 #endif
 		if( SQLRecordQueryf( odbc, NULL, &result, NULL
-								 , WIDE("select `binary`,length(`binary`) from option_values where value_id=%ld")
+								 , WIDE("select `binary`,length(`binary`) from option_values where value_id=%")_size_f 
 								 , optval->value_id ) )
 		{
 			int success = FALSE;
@@ -1059,7 +1059,7 @@ LOGICAL SetOptionValueEx( POPTION_TREE tree, POPTION_TREE_NODE optval )
 		TEXTCHAR update[128];
 		CTEXTSTR result = NULL;
 		// should escape quotes passed in....
-		tnprintf( update, sizeof( update ), WIDE("update option_map set value_id=%ld where node_id=%ld"), optval->value_id, optval->id );
+		tnprintf( update, sizeof( update ), WIDE("update option_map set value_id=%")_size_f WIDE(" where node_id=%")_size_f , optval->value_id, optval->id );
 		if( !SQLCommand( tree->odbc_writer, update ) )
 		{
 			FetchSQLResult( tree->odbc_writer, &result );
@@ -1163,7 +1163,7 @@ LOGICAL SetOptionStringValue( POPTION_TREE tree, POPTION_TREE_NODE optval, CTEXT
 	{
 		// should escape quotes passed in....
 		//if( IDValue && IDValue != INVALID_INDEX )
-		//	tnprintf( update, sizeof( update ), WIDE("select string from %s where %s=%lu")
+		//	tnprintf( update, sizeof( update ), WIDE("select string from %s where %s=%")_size_f 
 		//			  , tree->flags.bNewVersion?OPTION_VALUES:"option_values"
 		//			  , tree->flags.bNewVersion?"option_id":"value_id"
 		//			  , IDValue );
@@ -1198,7 +1198,7 @@ LOGICAL SetOptionStringValue( POPTION_TREE tree, POPTION_TREE_NODE optval, CTEXT
 		//lprintf( "ID is %d", IDValue );
 		if( optval && ( optval->value_id != INVALID_INDEX ) )
 		{
-			tnprintf( update, sizeof( update ), WIDE("replace into %s (string,%s) values (%s,%ld)")
+			tnprintf( update, sizeof( update ), WIDE("replace into %s (string,%s) values (%s,%")_size_f WIDE(")")
 					  , tree->flags.bNewVersion?OPTION_VALUES:WIDE( "option_values" )
 					  , tree->flags.bNewVersion?WIDE( "option_id" ):WIDE( "value_id" )
 					  , newval
@@ -1241,7 +1241,7 @@ static LOGICAL SetOptionBlobValueEx( POPTION_TREE tree, POPTION_TREE_NODE optval
 		{
 			TEXTSTR newval = EscapeSQLBinaryOpt( tree->odbc_writer, (CTEXTSTR)buffer, length, TRUE );
 			LOGICAL retval =
-				SQLCommandf( tree->odbc_writer, WIDE( "replace into " )OPTION_BLOBS WIDE( " (`option_id`,`binary` ) values (%lu,%s)" )
+				SQLCommandf( tree->odbc_writer, WIDE( "replace into " )OPTION_BLOBS WIDE( " (`option_id`,`binary` ) values (%")_size_f WIDE(",%s)" )
 							  , optval->id
 							  , newval
 							  );
@@ -1279,7 +1279,7 @@ static LOGICAL SetOptionBlobValueEx( POPTION_TREE tree, POPTION_TREE_NODE optval
 		if( retval )
 		{
 			TEXTCHAR *tmp = EscapeSQLBinaryOpt( tree->odbc_writer, (CTEXTSTR)buffer, length, TRUE );
-			if( !SQLCommandf( tree->odbc_writer, WIDE("update option_values set `binary`=%s where value_id=%ld"), tmp, optval->value_id ) )
+			if( !SQLCommandf( tree->odbc_writer, WIDE("update option_values set `binary`=%s where value_id=%")_size_f , tmp, optval->value_id ) )
 			{
 				FetchSQLError( tree->odbc_writer, &result );
 				lprintf( WIDE("Update value failed: %s"), result );
@@ -1822,8 +1822,8 @@ SQLGETOPTION_PROC( int, SACK_WritePrivateProfileExceptionString )( CTEXTSTR pSec
 		INDEX IDValue = CreateValue( og.Option, optval,pValue );
 		system = GetSystemIndex( pSystemName );
 
-		tnprintf( exception, sizeof( exception ), WIDE("insert into option_exception (`apply_from`,`apply_to`,`value_id`,`override_value_idvalue_id`,`system`) ")
-																	  WIDE( "values( \'%04d%02d%02d%02d%02d\', \'%04d%02d%02d%02d%02d\', %ld, %ld,%" _size_f )
+		tnprintf( exception, sizeof( exception ), WIDE("insert into option_exception (`apply_from`,`apply_to`,`value_id`,`override_value_id`,`system`) ")
+																	  WIDE( "values( \'%04d%02d%02d%02d%02d\', \'%04d%02d%02d%02d%02d\', %")_size_f WIDE(", %")_size_f WIDE(",%" _size_f )
              , wYrFrom, wMoFrom, wDyFrom
              , wHrFrom, wMnFrom,wScFrom
              , wYrTo, wMoTo, wDyTo

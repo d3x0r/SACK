@@ -303,7 +303,6 @@ int main( int argc, char **argv )
 
       {
 			const char *replace_start;
-			const char *replace_end;
 #define package "some sort of name here @@@"
 			replace_start = strstr( package, "@@@" );
 			if( replace_start )

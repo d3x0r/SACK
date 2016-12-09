@@ -210,7 +210,7 @@ typedef struct NetworkClient CLIENT;
 
 //LOCATION CRITICALSECTION csNetwork;
 
-#define MAX_NETCLIENTS  g.nMaxClients
+#define MAX_NETCLIENTS  globalNetworkData.nMaxClients
 
 typedef struct client_slab_tag {
 	uint32_t count;
@@ -240,7 +240,7 @@ LOCATION struct network_global_data{
 	CTEXTSTR system_name;
 #ifdef WIN32
    int nProtos;
-	WSAPROTOCOL_INFO *pProtos;
+	WSAPROTOCOL_INFOW *pProtos;
 
 	INDEX tcp_protocol;
 	INDEX udp_protocol;
@@ -269,9 +269,9 @@ LOCATION struct network_global_data{
 	WNDCLASS wc;
 #endif
 }
-*global_network_data; // aka 'g'
+*global_network_data; // aka 'globalNetworkData'
 
-#define g (*global_network_data)
+#define globalNetworkData (*global_network_data)
 
 #ifdef _WIN32
 #ifndef errno

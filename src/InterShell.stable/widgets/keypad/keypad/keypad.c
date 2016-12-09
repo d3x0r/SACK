@@ -790,7 +790,7 @@ static uintptr_t OnEditControl( WIDE( "Keypad Hotkey 2" ) )( uintptr_t psv, PSI_
 		else
 		{
 			TEXTCHAR value[32];
-			snprintf( value, sizeof( value ), WIDE( "%Ld" ), hotkey->value );
+			snprintf( value, sizeof( value ), WIDE( "%" ) _64fs, hotkey->value );
 			SetControlText( GetControl( frame, TXT_CONTROL_TEXT ), value );
 		}
 
@@ -813,7 +813,7 @@ static uintptr_t OnEditControl( WIDE( "Keypad Hotkey 2" ) )( uintptr_t psv, PSI_
 				hotkey->flags.bNegative = TRUE;
 			}
 			
-			else if( !sscanf( buffer, WIDE( "%Ld" ), &hotkey->value ) )
+			else if( !sscanf( buffer, WIDE( "%" ) _64fs, &hotkey->value ) )
 				Banner2Message(WIDE( "It's No Good!" ) );
 
 			UpdateButton( hotkey->button );
@@ -909,7 +909,7 @@ static void OnFixupControl( WIDE( "Keypad Hotkey 2" ) )( uintptr_t psv )
 
 	else
 	{
-		len = snprintf( buffer, sizeof(buffer), WIDE( "%Ld" ), hotkey->value );
+		len = snprintf( buffer, sizeof(buffer), WIDE( "%" ) _64fs, hotkey->value );
 		buffer[len+1] = 0; // double null terminate
 		InterShell_SetButtonText( hotkey->button, buffer );
 	}

@@ -52,7 +52,7 @@ SQLGETOPTION_PROC( void, EnumOptionsEx )( PODBC odbc, POPTION_TREE_NODE parent
 				  , WIDE( "select node_id,m.name_id,value_id,n.name" )
 					WIDE( " from option_map as m" )
 					WIDE( " join option_name as n on n.name_id=m.name_id" )
-					WIDE( " where parent_node_id=%ld" )
+					WIDE( " where parent_node_id=%")_size_f WIDE("" )
                WIDE( " order by name" )
 				  , parent?parent->id:0 );
 		popodbc = 0;
@@ -63,7 +63,7 @@ SQLGETOPTION_PROC( void, EnumOptionsEx )( PODBC odbc, POPTION_TREE_NODE parent
 			CTEXTSTR optname;
 			POPTION_TREE_NODE tmp_node = New( OPTION_TREE_NODE );
 			popodbc = 1;
-			tscanf( result, WIDE("%lu,%lu,%lu"), &tmp_node->id, &tmp_node->name_id, &tmp_node->value_id );
+			tscanf( result, WIDE("%")_size_f WIDE(",%")_size_f WIDE(",%")_size_f , &tmp_node->id, &tmp_node->name_id, &tmp_node->value_id );
 			optname = strrchr( result, ',' );
 			if( optname )
 				optname++;
@@ -123,7 +123,7 @@ SQLGETOPTION_PROC( void, DuplicateOptionEx )( PODBC odbc, POPTION_TREE_NODE iRoo
 		NewDuplicateOption( odbc, iRoot, pNewName );
 		return;
 	}
-	if( SQLQueryf( odbc, &result, WIDE("select parent_node_id from option_map where node_id=%ld"), iRoot ) && result )
+	if( SQLQueryf( odbc, &result, WIDE("select parent_node_id from option_map where node_id=%")_size_f , iRoot ) && result )
 	{
 		POPTION_TREE_NODE tmp_node = New( OPTION_TREE_NODE );
 		tmp_node->id = IndexCreateFromText( result );
@@ -175,9 +175,9 @@ static void FixOrphanedBranches( void )
 				if( (parent > 1) && !GetLink( &options, parent-1 ) )
 				{
 					deleted = 1;
-					lprintf( WIDE("node %ld has parent id %ld which does not exist."), idx, parent-1 );
+					lprintf( WIDE("node %")_size_f WIDE(" has parent id %")_size_f WIDE(" which does not exist."), idx, parent-1 );
 					SetLink( &options, idx, NULL );
-					SQLCommandf( odbc, WIDE("delete from option_map where node_id=%ld"), idx );
+					SQLCommandf( odbc, WIDE("delete from option_map where node_id=%")_size_f , idx );
 				}
 			}
 		}while( deleted );
@@ -201,7 +201,7 @@ SQLGETOPTION_PROC( void, DeleteOption )( POPTION_TREE_NODE iRoot )
 	}
 	else
 	{
-		SQLCommandf( odbc, WIDE("delete from option_map where node_id=%ld"), iRoot->id );
+		SQLCommandf( odbc, WIDE("delete from option_map where node_id=%")_size_f , iRoot->id );
 	   	FixOrphanedBranches();
 	}
 	DropOptionODBC( odbc );

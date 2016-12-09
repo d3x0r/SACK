@@ -213,36 +213,34 @@ But WHO doesn't have stdint?  BTW is sizeof( size_t ) == sizeof( void* )
 /* Defined when SACK_BAG_EXPORTS is defined. This was an
    individual library module once upon a time.           */
 	/* define RENDER SOURCE when building monolithic. */
-#ifndef RENDER_LIBRARY_SOURCE
-#define RENDER_LIBRARY_SOURCE
-#endif
+#     ifndef RENDER_LIBRARY_SOURCE
+#       define RENDER_LIBRARY_SOURCE
+#     endif
 
 
-#ifndef __NO_WIN32API__
+#     ifndef __NO_WIN32API__
 // this is moved to a CMake option (based on whter it's arm or not right now)
 //#define _OPENGL_ENABLED
-#endif
+#     endif
 // define a type that is a public name struct type...
 // good thing that typedef and struct were split
 // during the process of port to /clr option.
 //#define PUBLIC_TYPE public
-#else
+#  else
 //#define PUBLIC_TYPE
-#ifdef __cplusplus_CLR
-#include <vcclr.h>
+#    ifdef __cplusplus_CLR
+#      include <vcclr.h>
 //using namespace System;
+#    endif
+
+
+#  endif
 #endif
 
-#ifdef __CYGWIN__
 #include <wchar.h> // wchar for X_16 definition
-#endif
-#ifdef _MSC_VER
+#include <sys/types.h>
 #include <sys/stat.h>
-#endif
 
-
-#endif
-#endif
 
 #ifndef MY_TYPES_INCLUDED
 #define MY_TYPES_INCLUDED
@@ -451,10 +449,6 @@ But WHO doesn't have stdint?  BTW is sizeof( size_t ) == sizeof( void* )
 SACK_NAMESPACE
 
 
-#ifndef __LINUX__
-//#include <sys/types.h>
-//typedef int pid_t;
-#endif
 
 #ifdef BCC16
 #define __inline__

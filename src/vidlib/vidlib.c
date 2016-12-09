@@ -4147,7 +4147,7 @@ PRIORITY_ATEXIT( RemoveKeyHook, 100 )
 			//  lprintf( WIDE( "Had to give up waiting for video thread to exit..." ) );
 		}
 	}
-	lprintf( "did we skip waking?" );
+	//lprintf( "did we skip waking?" );
 }
 #endif
 

@@ -544,6 +544,7 @@ int CPROC EndTaskWindow( PTASK_INFO task )
 #endif
 
 //--------------------------------------------------------------------------
+#ifdef WIN32
 #if _MSC_VER
 #pragma runtime_checks( "sru", off )
 #endif
@@ -554,7 +555,7 @@ static DWORD STDCALL SendCtrlCThreadProc( void *data )
 #if _MSC_VER
 #pragma runtime_checks( "sru", restore )
 #endif
-
+#endif
 
 LOGICAL CPROC StopProgram( PTASK_INFO task )
 {
@@ -582,10 +583,10 @@ LOGICAL CPROC StopProgram( PTASK_INFO task )
 		if( mem ) {
 			SIZE_T written;
 			if( WriteProcessMemory( task->pi.hProcess, mem,
-				SendCtrlCThreadProc, 1024, &written ) ) {
+				(LPCVOID)SendCtrlCThreadProc, 1024, &written ) ) {
 				DWORD dwThread;
-				HANDLE hThread = CreateRemoteThreadEx( task->pi.hProcess, NULL, 0
-					, (LPTHREAD_START_ROUTINE)mem, NULL, 0, NULL, &dwThread );
+				HANDLE hThread = CreateRemoteThread( task->pi.hProcess, NULL, 0
+					, (LPTHREAD_START_ROUTINE)mem, NULL, 0, &dwThread );
 				err = GetLastError();
 				if( hThread )
 					if( WaitForSingleObject( task->pi.hProcess, 50 ) != WAIT_OBJECT_0 )
@@ -601,7 +602,7 @@ LOGICAL CPROC StopProgram( PTASK_INFO task )
 	else
 		return TRUE;
 #else
-		  // kill( ) ?
+   lprintf( "need to send kill() to signal process to top" );
 #endif
 
 

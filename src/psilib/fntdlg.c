@@ -820,8 +820,8 @@ SFTFont PickScaledFontWithUpdate( int32_t x, int32_t y
 								  , (int)fdData.nWidth
 								  , (int)fdData.nHeight
 								  , (int)fdData.flags.render_depth
-								  , (int)fdData.pSizeFile->path
-								  , (int)fdData.pSizeFile->file
+								  , fdData.pSizeFile->path
+								  , fdData.pSizeFile->file
 								  );
                   resultsize = StrLen( buf );
 						pResult = (PFONTDATA)StrDup( buf );

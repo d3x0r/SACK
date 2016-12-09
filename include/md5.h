@@ -43,12 +43,3 @@ MD5_PROC( void, MD5Init )(MD5_CTX *);
 MD5_PROC( void, MD5Update )(MD5_CTX *, unsigned char *, unsigned int);
 MD5_PROC( void, MD5Final )(unsigned char [16], MD5_CTX *);
 
-//----------------------------------------------------------------------------
-// $Log: md5.h,v $
-// Revision 1.1  2003/11/21 16:25:48  jim
-// INitial commit - port from eltanin
-//
-// Revision 1.2  2002/11/19 18:06:42  brad
-// CVS logging added
-//
-//

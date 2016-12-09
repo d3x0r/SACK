@@ -2,6 +2,8 @@
 #include <network.h>
 #include <http.h>
 
+int secure = FALSE;
+
 void CPROC ReadComplete( PCLIENT pc, void *bufptr, size_t sz )
 {
 	char *buf = (char*)bufptr;
@@ -14,6 +16,13 @@ void CPROC ReadComplete( PCLIENT pc, void *bufptr, size_t sz )
 	else
 	{
 		buf = (char*)Allocate( 4097 );
+		if( secure ) {
+#define REQ "GET / HTTP/1.1\r\n"   \
+				"\r\n"
+
+
+			ssl_Send( pc, REQ, sizeof(REQ)-1 );
+		}
 		//SendTCP( pc, "Yes, I've connected", 12 );
 	}
 	ReadTCP( pc, buf, 4096 );
@@ -27,11 +36,12 @@ void CPROC Closed( PCLIENT pc )
 }
 
 static void CPROC Connected( PCLIENT pc, int err ) {
-	if( !ssl_BeginClientSession( pc, NULL, 0 ) ) {
-		SystemLog( WIDE( "Failed to create client ssl session" ) );
-		RemoveClient( pc );
-		return FALSE;
-	}
+	if( secure )
+		if( !ssl_BeginClientSession( pc, NULL, 0 ) ) {
+			SystemLog( WIDE( "Failed to create client ssl session" ) );
+			RemoveClient( pc );
+			return FALSE;
+		}
 	{
 		POINTER key;
 		size_t keylen;
@@ -43,7 +53,7 @@ SaneWinMain( argc, argv )
 {
 	SOCKADDR *sa;
 	int arg;
-	int secure = FALSE;
+	SetSystemLog( SYSLOG_FILE, stderr );
 	if( argc < 2 )
 	{
 		printf( "usage: %s [-s] <Telnet IP[:port]>\n", argv[0] );

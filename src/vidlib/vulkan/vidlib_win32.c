@@ -1,5 +1,5 @@
 #define NO_UNICODE_C
-
+#define NEED_SHLAPI
 #define FIX_RELEASE_COM_COLLISION
 
 #include <stdhdrs.h>
