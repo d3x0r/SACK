@@ -663,9 +663,9 @@ void SendHttpResponse ( struct HttpState *pHttpState, PCLIENT pc, int numeric, C
 	if( l.flags.bLogReceived )
 	{
 		lprintf( WIDE("Sending response...") );
-		LogBinary( GetText( header ), GetTextSize( header ) );
+		LogBinary( (uint8_t*)GetText( header ), GetTextSize( header ) );
 		if( content_type )
-			LogBinary( GetText( body ), GetTextSize( body ) );
+			LogBinary( (uint8_t*)GetText( body ), GetTextSize( body ) );
 	}
 	if( !pc )
 		pc = pHttpState->request_socket;
@@ -691,7 +691,7 @@ void SendHttpMessage ( struct HttpState *pHttpState, PCLIENT pc, PTEXT body )
 	if( l.flags.bLogReceived )
 	{
 		lprintf( WIDE(" Response Message:" ));
-		LogBinary( GetText( message ), GetTextSize( message ));
+		LogBinary( (uint8_t*)GetText( message ), GetTextSize( message ));
 	}
 	SendTCP( pc, GetText( message ), GetTextSize( message ));		
 }
@@ -713,7 +713,7 @@ static void CPROC HttpReader( PCLIENT pc, POINTER buffer, size_t size )
 				if( l.flags.bLogReceived )
 				{
 					lprintf( WIDE("Sending Request...") );
-					LogBinary( GetText( send ), GetTextSize( send ) );
+					LogBinary( (uint8_t*)GetText( send ), GetTextSize( send ) );
 				}
 #ifndef NO_SSL
 				// had to wait for handshake, so NULL event
@@ -783,7 +783,7 @@ HTTPState PostHttpQuery( PTEXT address, PTEXT url, PTEXT content )
 		if( l.flags.bLogReceived )
 		{
 			lprintf( WIDE("Sending POST...") );
-			LogBinary( GetText( send ), GetTextSize( send ) );
+			LogBinary( (uint8_t*)GetText( send ), GetTextSize( send ) );
 		}
 		SendTCP( pc, GetText( send ), GetTextSize( send ) );
 		LineRelease( send );
@@ -830,7 +830,7 @@ HTTPState GetHttpQuery( PTEXT address, PTEXT url )
 			if( l.flags.bLogReceived )
 			{
 				lprintf( WIDE("Sending POST...") );
-				LogBinary( GetText( send ), GetTextSize( send ) );
+				LogBinary( (uint8_t*)GetText( send ), GetTextSize( send ) );
 			}
 			SendTCP( pc, GetText( send ), GetTextSize( send ) );
 			LineRelease( send );
@@ -937,7 +937,7 @@ static LOGICAL InvokeMethod( PCLIENT pc, struct HttpServer *server, struct HttpS
 			//lprintf( "is %s==%s?", name, GetText( pHttpState->resource ) + 1 );
 			//if( CompareMask( name, GetText( pHttpState->resource ) + 1, FALSE ) )
 			{
-				f = GetRegisteredProcedureExx( server->methods, (PCLASSROOT)(GetText( pHttpState->resource ) + 1), LOGICAL, GetText(request), (uintptr_t, PCLIENT, struct HttpState *, PTEXT) );
+				f = (LOGICAL (CPROC*)(uintptr_t, PCLIENT, struct HttpState *, PTEXT))GetRegisteredProcedureExxx( server->methods, (PCLASSROOT)(GetText( pHttpState->resource ) + 1), "LOGICAL", GetText(request), "(uintptr_t, PCLIENT, struct HttpState *, PTEXT)" );
 				//lprintf( "got for %s %s", (PCLASSROOT)(GetText( pHttpState->resource ) + 1),  GetText( request ) );
 				//if( !f )
 				if( f )
@@ -983,7 +983,7 @@ static void CPROC HandleRequest( PCLIENT pc, POINTER buffer, size_t length )
 		if( l.flags.bLogReceived )
 		{
 			lprintf( WIDE("Received web request...") );
-			LogBinary( buffer, length );
+			LogBinary( (uint8_t*)buffer, length );
 		}
 
 		AddHttpData( pHttpState, buffer, length );

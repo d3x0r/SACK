@@ -63,3 +63,14 @@ target_link_libraries( ${PROJECT_NAME} timerlib )
 target_link_libraries( ${PROJECT_NAME} ws2_32 )
 install_default_dest( ${PROJECT_NAME} )
 
+if( WIN32 AND ${CMAKE_COMPILER_IS_GNUCC} )
+add_custom_command(TARGET
+                     ${PROJECT_NAME}
+                   POST_BUILD
+                   COMMAND
+                     "mt.exe" -manifest \"${CMAKE_CURRENT_SOURCE_DIR}/../service.manifest\" -outputresource:\"${CMAKE_CURRENT_BINARY_DIR}\\${PROJECT_NAME}.exe\"\;\#1
+                   COMMENT
+                     "Adding custom manifest containing MSVCRT80 dependency..." 
+                  )
+endif( WIN32 AND ${CMAKE_COMPILER_IS_GNUCC} )
+

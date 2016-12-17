@@ -6,6 +6,7 @@ include(CheckTypeSize)
 
 project (LibreSSL C)
 
+set( BUILD_AMALGAM on )
 enable_testing()
 
 file(READ ${CMAKE_CURRENT_SOURCE_DIR}/ssl/VERSION SSL_VERSION)
@@ -270,6 +271,14 @@ add_subdirectory(ssl)
 add_subdirectory(apps)
 add_subdirectory(tls)
 add_subdirectory(include)
+
+if( BUILD_AMALGAM ) 
+
+   set( ALL_SOURCES ${CRYPTO_SRC} ${SSL_SRC} ${TLS_SRC} )
+
+
+endif( BUILD_AMALGAM ) 
+
 if(NOT MSVC)
 	add_subdirectory(man)
 	#add_subdirectory(tests)
@@ -282,3 +291,41 @@ configure_file(
 
 add_custom_target(uninstall
 	COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake)
+
+
+get_directory_property( iDirDefs1 DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} INCLUDE_DIRECTORIES )
+get_directory_property( iDirDefs2 DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/crypto INCLUDE_DIRECTORIES )
+get_directory_property( iDirDefs3 DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/ssl INCLUDE_DIRECTORIES )
+get_directory_property( iDirDefs4 DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tls INCLUDE_DIRECTORIES )
+get_directory_property( DirDefs1 DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} COMPILE_DEFINITIONS )
+get_directory_property( DirDefs2 DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/crypto COMPILE_DEFINITIONS )
+get_directory_property( DirDefs3 DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/ssl COMPILE_DEFINITIONS )
+get_directory_property( DirDefs4 DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tls COMPILE_DEFINITIONS )
+message( "something ${iDirDefs1}" )
+message( "something ${iDirDefs2}" )
+message( "something ${iDirDefs3}" )
+message( "something ${iDirDefs4}" )
+
+FILE( WRITE ${CMAKE_BINARY_DIR}/config.ppc "/*CMake Option defined*/\n" )
+
+foreach( DEF ${DEFINITIONS} )
+   #ADD_DEFINITIONS( -D${DEF} )
+   FILE( APPEND ${CMAKE_BINARY_DIR}/config.ppc  "#define ${DEF}\n" )
+ENDFOREACH()
+
+
+set( AMALG_COMMAND c:/tools/ppc.exe -c -K -once -ssio -sd ${INCLUDES} -p -o${CMAKE_CURRENT_SOURCE_DIR}/src/libressl.c ${CRYPTO_SRC} ${SSL_SRC} ${TLS_SRC} )
+set( AMALG_COMMAND c:/tools/ppc.exe -c -K -once -ssio -sd ${INCLUDES} -p -o${CMAKE_CURRENT_SOURCE_DIR}/src/libressl.c ${CRYPTO_SRC} ${SSL_SRC} ${TLS_SRC} )
+set( AMALG_COMMAND c:/tools/ppc.exe -c -K -once -ssio -sd ${INCLUDES} -p -o${CMAKE_CURRENT_SOURCE_DIR}/src/libressl.c ${CRYPTO_SRC} ${SSL_SRC} ${TLS_SRC} )
+
+#  add_custom_command( OUTPUT ${CMAKE_CURRENT_SOURCE_DIR}/src/sack.cc
+#  			#COMMAND cmake -E echo ${AMALG_COMMAND}
+#   			 COMMAND ${AMALG_COMMAND}
+#                        #COMMAND cmake -E echo ${AMALG_COMMAND2}
+#   			COMMAND ${AMALG_COMMAND2}
+#                   DEPENDS ${EXTRA_SOURCES} ${HEADER_SOURCES}
+#				   WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+#  )                                   
+#  add_custom_target( doit DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/src/sack.cc )
+
+

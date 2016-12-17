@@ -2,7 +2,7 @@
 #define NEED_REAL_IMAGE_STRUCTURE
 #include <imglib/imagestruct.h>
 #include <imglib/fontstruct.h>
-
+#include <filesys.h>
 #include <render.h>
 #include <render3d.h>
 #include <image3d.h>
@@ -1209,12 +1209,16 @@ static void WebSockEvent( PCLIENT pc, uintptr_t psv, POINTER buffer, int msglen 
 	POINTER msg = NULL;
 	struct server_proxy_client *client= (struct server_proxy_client *)psv;
 	struct json_context_object *json_object;
+	PDATALIST parsedMsg;
 #ifdef _UNICODE
 	CTEXTSTR buf = CharWConvertExx( (char*)buffer, msglen DBG_SRC );
-	if( json_parse_message( l.json_reply_context, buf, msglen, &json_object, &msg ) )
+	json_parse_message( buf, msglen, &parsedMsg );
+	if( json_decode_message( l.json_reply_context, parsedMsg, &json_object ) )
 	//lprintf( WIDE("Received:%*.*") _cstring_f, msglen,msglen,buffer );
 #else
-	if( json_parse_message( l.json_reply_context, buffer, msglen, &json_object, &msg ) )
+	json_parse_message( buffer, msglen, &parsedMsg );
+	if( json_decode_message( l.json_reply_context, parsedMsg, &json_object, &msg ) )
+	//if( json_parse_message( l.json_reply_context, buffer, msglen, &json_object, &msg ) )
 #endif
 	{
 		struct common_message *message = (struct common_message *)msg;
@@ -1300,7 +1304,7 @@ static void WebSockEvent( PCLIENT pc, uintptr_t psv, POINTER buffer, int msglen 
 			break;
 		}
 		//lprintf( "Success" );
-		json_dispose_message( json_object,  msg );
+		json_dispose_message( msg );
 	}
 	else
 		lprintf( WIDE("Failed to reverse map message...") );

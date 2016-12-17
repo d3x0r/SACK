@@ -1,3 +1,6 @@
+#ifndef SACK_HTML5_WEBSOCKET_COMMON_DEFINED
+#define SACK_HTML5_WEBSOCKET_COMMON_DEFINED
+
 #include <network.h>
 #include <html5.websocket.client.h>
 
@@ -59,3 +62,4 @@ struct web_socket_output_state
 EXTERN void SendWebSocketMessage( PCLIENT pc, int opcode, int final, int do_mask, uint8_t* payload, size_t length );
 EXTERN void ProcessWebSockProtocol( WebSocketInputState websock, PCLIENT pc, uint8_t* msg, size_t length );
 
+#endif

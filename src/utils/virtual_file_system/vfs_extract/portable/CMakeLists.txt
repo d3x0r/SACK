@@ -76,6 +76,10 @@ SET_TARGET_PROPERTIES(${project} PROPERTIES
 target_link_libraries( ${project} ${PLATFORM_LIBRARIES} )
 install_default_dest( ${project} )
 
+if( NOT CMAKE_COMPILER_IS_GNUCC )
+	set( CMAKE_COMPILER_IS_GNUCC OFF )
+endif( NOT CMAKE_COMPILER_IS_GNUCC )
+
 if( WIN32 AND ${CMAKE_COMPILER_IS_GNUCC} )
 add_custom_command(TARGET
                      ${project}
