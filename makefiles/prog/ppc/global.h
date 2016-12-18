@@ -83,3 +83,5 @@ extern
 #endif
 GLOBAL g;
 
+void DumpSegs( PTEXT pOp );
+

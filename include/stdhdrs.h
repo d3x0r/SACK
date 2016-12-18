@@ -123,7 +123,7 @@
 #ifdef __cplusplus
 extern "C"
 #endif
-__declspec(dllimport) DWORD timeGetTime(void);
+__declspec(dllimport) DWORD WINAPI timeGetTime(void);
 
 
 #  if defined( NEED_SHLAPI )

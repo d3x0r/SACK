@@ -4,7 +4,7 @@
 //#include <stdio.h>
 #include "./types.h"
 #include "mem.h"
-
+#include "fileio.h"
 #include "text.h"
 
 #define min(a,b) (((a)<(b))?(a):(b))

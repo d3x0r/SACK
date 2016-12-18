@@ -2,7 +2,4 @@ format_version "1"
 
 new_manifest [0000000000000000000000000000000000000002]
 
-old_revision [3fba670c3d326b3e2492d208975426dd889d547a]
-
-add_file "src/utils/shell/shell.manifest"
- content [544e098a13500d993130584a097fe0c35260cc33]
+old_revision [95411eb1e55bd8bc1f0811ebc64e9b588af1aecf]

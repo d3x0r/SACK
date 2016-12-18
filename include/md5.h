@@ -23,7 +23,8 @@ These notices must be retained in any copies of any part of this
 documentation and/or software.
  */
 
-
+#ifndef MD5_ALGORITHM_DEFINED
+#define MD5_ALGORITHM_DEFINED
 #ifdef MD5_SOURCE
 #define MD5_PROC(type,name) EXPORT_METHOD type name
 #else
@@ -43,3 +44,4 @@ MD5_PROC( void, MD5Init )(MD5_CTX *);
 MD5_PROC( void, MD5Update )(MD5_CTX *, unsigned char *, unsigned int);
 MD5_PROC( void, MD5Final )(unsigned char [16], MD5_CTX *);
 
+#endif

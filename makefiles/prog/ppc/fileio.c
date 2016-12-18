@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <errno.h>
 
 #include "mem.h"
@@ -103,7 +104,7 @@ PFILEDEP AddDepend( PFILEDEP root, char *basename, char *filename )
 	PFILEDEP pfd = root;
 	if( !root )
 		root = FileDependancyRoot;
-	fprintf( stderr, WIDE("Adding dependancy for: %s %s\n"), root?root->full_name:"Base File", filename );
+	//fprintf( stderr, WIDE("Adding dependancy for: %s %s\n"), root?root->full_name:"Base File", filename );
 	while( pfd && pfd->pDependedBy )
 		pfd = pfd->pDependedBy;
 	if( !( pfd = FindDependFile( pfd, basename ) ) )
@@ -278,7 +279,21 @@ char *FixName( char *file )
 		sprintf( realname, WIDE("%s/%s"), g.pWorkPath, file );
 	else
 		strcpy( realname, file );
-
+	{
+		char *tmp;
+		while( tmp = strstr( realname, ".." ) ) {
+			if( tmp == realname ) {
+				break;
+			}
+			if( tmp[-1] == '/' || tmp[-1] == '\\' ) {
+				char *start;
+				tmp[-1] = 0;
+				start = pathrchr( realname );
+				{ int n; for( n = 0; start[n] = tmp[2+n]; n++ ); }
+			}
+		}
+	}
+   //printf( "file %s becomes %s\n", file, realname );
 	return realname;
 }
 
@@ -450,7 +465,7 @@ int OpenInputFile( char *basename, char *file )
 		pft->pNextWord = NULL;
 		pft->prior = g.pFileStack;
 		//fprintf( stderr, WIDE("Add in OpenInputFile\n") );
-		pft->pFileDep = AddDepend( NULL, basename, file );
+		pft->pFileDep = AddDepend( NULL, basename, tmp );
 		g.pFileStack = pft;
 	}
 	else
@@ -502,7 +517,7 @@ int OpenNewInputFile( char *basename, char *name, char *pFile, int nLine, int bD
 		if( bDepend && ( pft->pFileDep ) )
 		{
 			//fprintf( stderr, WIDE("Add in OpenNewInputFile\n") );
-			pftNew->pFileDep = AddDepend( pft->pFileDep, basename, name );
+			pftNew->pFileDep = AddDepend( pft->pFileDep, basename, tmp );
 		}
 		else
 			pftNew->pFileDep = NULL;

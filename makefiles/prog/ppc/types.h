@@ -73,12 +73,12 @@ typedef TEXTCHAR *TEXTSTR;
 
 #ifdef _WIN32
 #ifndef CALLBACK
-#pragma message ("Setting CALLBACK to __stcall" )
+//#pragma message ("Setting CALLBACK to __stcall" )
 #define CALLBACK    __stdcall
 #endif
 #else
 #ifndef CALLBACK
-#pragma message ("Setting CALLBACK to c call" )
+//#pragma message ("Setting CALLBACK to c call" )
 #define CALLBACK
 #endif
 #endif

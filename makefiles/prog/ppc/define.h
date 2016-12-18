@@ -40,5 +40,4 @@ void  EvalSubstitutions( PTEXT *subst, int more );
 
 
 void FixQuoting( PTEXT test );
-void DumpSegs( PTEXT pOp );
 

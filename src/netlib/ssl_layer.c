@@ -38,6 +38,8 @@ SACK_NETWORK_NAMESPACE_END
 
 SACK_NETWORK_NAMESPACE
 
+//#define RSA_KEY_SIZE (1024)
+const int serverKBits = 4096;
 const int kBits = 1024;// 4096;
 const int kExp = RSA_F4;
 
@@ -739,11 +741,19 @@ LOGICAL ssl_BeginClientSession( PCLIENT pc, POINTER client_keypair, size_t clien
 //#include <openssl/evp.h>
 
 // Fatal error; abort with message, including file and line number 
-// 
-void fatal_error(const char *file, int line, const char *msg) 
+//
+static int cb(const char *str, size_t len, void *u)  {
+	lprintf( "%s", str);
+   return 1;
+
+}
+
+static void fatal_error(const char *file, int line, const char *msg)
 { 
-    fprintf(stderr, "**FATAL** %s:%i %s\n", file, line, msg); 
-    ERR_print_errors_fp(stderr); 
+	fprintf(stderr, "**FATAL** %s:%i %s\n", file, line, msg);
+	fprintf( stderr, "specific error available, but not dumped; ERR_print_errors_fp is gone" );
+   ERR_print_errors_cb( cb, 0 );
+    //ERR_print_errors_fp(stderr);
     exit(-1); 
 } 
 
@@ -751,7 +761,6 @@ void fatal_error(const char *file, int line, const char *msg)
 
 // Parameter settings for this cert 
 // 
-#define RSA_KEY_SIZE (1024) 
 #define ENTRIES (sizeof(entries)/sizeof(entries[0]))
 
 
@@ -780,7 +789,7 @@ struct internalCert * MakeRequest( void )
 { 
     int i; 
     RSA *rsakey; 
-	RSA *rsakey_ca;
+	 RSA *rsakey_ca;
     X509_NAME *subj; 
     EVP_MD *digest; 
 	 FILE *fp;
@@ -819,10 +828,22 @@ struct internalCert * MakeRequest( void )
 		 Deallocate( void *, key );
 		 PEM_read_bio_PrivateKey( keybuf, &cert->pkey, NULL, NULL );
 	} else {
-		rsakey = RSA_generate_key( RSA_KEY_SIZE, RSA_F4, NULL, NULL );
-		if( !(EVP_PKEY_set1_RSA( cert->pkey, rsakey )) )
+      RSA *rsa = RSA_new();
+		BIGNUM *bne = BN_new();
+		int ret;
+		ret = BN_set_word( bne, kExp );
+		if( ret != 1 ) {
+			BN_free( bne );
+			RSA_free( rsa );
+			fatal( "Could not set Bignum?" );
+			return NULL;
+		}
+		RSA_generate_key_ex( rsa, serverKBits, bne, NULL );
+		if( !(EVP_PKEY_set1_RSA( cert->pkey, rsa )) )
 			fatal( "Could not assign RSA key to EVP object" );
 
+		BN_free( bne );
+		RSA_free( rsa );
 		{
 			PEM_write_bio_PrivateKey( keybuf, cert->pkey,               /* our key from earlier */
 				NULL, //EVP_des_ede3_cbc(), /* default cipher for encrypting the key on disk */

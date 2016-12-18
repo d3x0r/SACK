@@ -125,25 +125,48 @@ JSON_EMITTER_PROC( TEXTSTR, json_build_message )( struct json_context_object *fo
 
 // take a json string and a format and fill in a structure from the text.
 // tests all formats, to first-match; 
-JSON_EMITTER_PROC( LOGICAL, json_parse_message )( struct json_context *format
-																, CTEXTSTR msg
-																, size_t msglen
-																, struct json_context_object **result_format
-																, POINTER *msg_data_out
-																);
 // take a json string and a format and fill in a structure from the text.
 // if object does not fit all members (may have extra, but must have at least all members in message in format to return TRUE)
 // then it returns false; that is if a member is in the 'msg' parameter that is not in
 // the format, then the result is FALSE.
-JSON_EMITTER_PROC( LOGICAL, json_parse_message_format )( struct json_context_object *format
-																		 , CTEXTSTR msg
-																		 , size_t msglen
-																		 , POINTER *msg_data_out
-																		 );
+//  PDATALIST is full of struct json_value_container
+JSON_EMITTER_PROC( LOGICAL, json_parse_message )(  CTEXTSTR msg
+													, size_t msglen
+													, PDATALIST *msg_data_out
+																);
+
+JSON_EMITTER_PROC( LOGICAL, json_decode_message )(  struct json_context *format
+																 , PDATALIST parsedMsg
+                                                 , struct json_context_object **result_format
+																, POINTER *msg_data_out
+												);
+
+enum json_value_types {
+	VALUE_UNDEFINED = -1
+	, VALUE_NULL = 1
+	, VALUE_TRUE = 2
+	, VALUE_FALSE = 3
+	, VALUE_STRING = 4
+	, VALUE_NUMBER = 5
+	, VALUE_OBJECT = 6
+};
+
+struct json_value_container {
+	PTEXT name;
+	enum json_value_types value_type;
+	PTEXT string;
+	int result_value;
+	int float_result;
+	double result_d;
+	int64_t result_n;
+	PDATALIST contains;
+};
+
+
 // any allocate mesage parts are released.
-JSON_EMITTER_PROC( void, json_dispose_message )( struct json_context_object *format
-															  , POINTER msg_data
-															  );
+JSON_EMITTER_PROC( void, json_dispose_message )( PDATALIST *msg_data );
+JSON_EMITTER_PROC( void, json_dispose_decoded_message )(struct json_context_object *format
+	, POINTER msg_data);
 
 #ifdef __cplusplus
 } } SACK_NAMESPACE_END
