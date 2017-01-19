@@ -248,10 +248,8 @@ endif( USE_SQLITE )
 if( NOT __NO_OPTIONS__ )
 SET( OPTION_SOURCE
    ${SOURCES_ROOT}src/SQLlib/optlib/getoption.c
-   ${SOURCES_ROOT}src/SQLlib/optlib/getoption_new.c
    ${SOURCES_ROOT}src/SQLlib/optlib/getoption_v4.c
    ${SOURCES_ROOT}src/SQLlib/optlib/optionutil.c
-   ${SOURCES_ROOT}src/SQLlib/optlib/optionutil_new.c
    ${SOURCES_ROOT}src/SQLlib/optlib/optionutil_v4.c
    )
 SET_SOURCE_FILES_PROPERTIES( ${OPTION_SOURCE} PROPERTIES 

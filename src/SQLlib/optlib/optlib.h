@@ -36,8 +36,6 @@ struct sack_option_tree_family {
 	PODBC odbc_writer; // a second connection which handles all inserts and updates
 	PFAMILYNODE system_mask_root;
 	struct {
-		BIT_FIELD bNewVersion : 1;
-		BIT_FIELD bVersion4 : 1;
 		BIT_FIELD bCreated : 1;
 	} flags;
 	PLIST uncommited; // list of option values that were written.
@@ -86,8 +84,8 @@ LOGICAL SetOptionValueEx( POPTION_TREE tree, POPTION_TREE_NODE optval );
 //INDEX SetOptionValue( INDEX optval, INDEX iValue );
 
 POPTION_TREE_NODE DuplicateValue( POPTION_TREE_NODE iOriginalValue, POPTION_TREE_NODE iNewValue );
-POPTION_TREE_NODE NewDuplicateValue( PODBC odbc, POPTION_TREE_NODE iOriginalValue, POPTION_TREE_NODE iNewValue );
 POPTION_TREE_NODE New4DuplicateValue( PODBC odbc, POPTION_TREE_NODE iOriginalValue, POPTION_TREE_NODE iNewValue );
+void New4DuplicateOption( PODBC odbc, POPTION_TREE_NODE iRoot, CTEXTSTR pNewName );
 
 
 
@@ -96,11 +94,8 @@ POPTION_TREE_NODE New4DuplicateValue( PODBC odbc, POPTION_TREE_NODE iOriginalVal
 PFAMILYTREE* GetOptionTree( PODBC odbc );
 
 
-POPTION_TREE_NODE NewGetOptionIndexExxx( PODBC odbc, POPTION_TREE tree, POPTION_TREE_NODE parent, CTEXTSTR system, CTEXTSTR program, CTEXTSTR file, CTEXTSTR pBranch, CTEXTSTR pValue, int bCreate, int bIKnowItDoesntExist DBG_PASS );
 POPTION_TREE_NODE New4GetOptionIndexExxx( PODBC odbc, POPTION_TREE tree, POPTION_TREE_NODE parent, CTEXTSTR system, CTEXTSTR program, CTEXTSTR file, CTEXTSTR pBranch, CTEXTSTR pValue, int bCreate, int bIKnowItDoesntExist DBG_PASS );
-size_t NewGetOptionStringValue( PODBC odbc, POPTION_TREE_NODE optval, TEXTCHAR *buffer, size_t len DBG_PASS );
 size_t New4GetOptionStringValue( PODBC odbc, POPTION_TREE_NODE optval, TEXTCHAR *buffer, size_t len DBG_PASS );
-LOGICAL NewCreateValue( POPTION_TREE odbc, POPTION_TREE_NODE value, CTEXTSTR pValue );
 LOGICAL New4CreateValue( POPTION_TREE odbc, POPTION_TREE_NODE value, CTEXTSTR pValue );
 void New4DeleteOption( PODBC odbc, POPTION_TREE_NODE iRoot );
 
@@ -111,7 +106,6 @@ void New4EnumOptions( PODBC odbc, POPTION_TREE_NODE parent
 					 , int (CPROC *Process)(uintptr_t psv, CTEXTSTR name, POPTION_TREE_NODE ID, int flags )
 												  , uintptr_t psvUser );
 
-void NewDeleteOption( PODBC odbc, POPTION_TREE_NODE iRoot );
 void OpenWriterEx( POPTION_TREE option DBG_PASS);
 #define OpenWriter(o) OpenWriterEx( o DBG_SRC )
 
@@ -119,9 +113,7 @@ INDEX ReadOptionNameTable( POPTION_TREE tree, CTEXTSTR name, CTEXTSTR table, CTE
 
 LOGICAL SetOptionStringValue( POPTION_TREE tree, POPTION_TREE_NODE optval, CTEXTSTR pValue );
 
-void NewDuplicateOption( PODBC odbc, POPTION_TREE_NODE iRoot, CTEXTSTR pNewName );
 INDEX IndexCreateFromText( CTEXTSTR string );
 
-int NewGetOptionBlobValueOdbc( PODBC odbc, POPTION_TREE_NODE optval, TEXTCHAR **buffer, size_t *len );
 void New4FindOptions( POPTION_TREE odbc, PLIST *result_list, CTEXTSTR name );
 

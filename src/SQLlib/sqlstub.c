@@ -721,28 +721,6 @@ static uintptr_t CPROC SetOptionDSN( uintptr_t psv, arg_list args )
 	return psv;
 }
 
-static uintptr_t CPROC SetOptionDSNVersion( uintptr_t psv, arg_list args )
-{
-	PARAM( args, LOGICAL, bNewVersion );
-#ifndef __NO_OPTIONS__
-	SetOptionDatabaseOption( &g.OptionDb, bNewVersion );
-#endif
-	global_sqlstub_data->OptionVersion = bNewVersion?2:1;
-	return psv;
-}
-
-static uintptr_t CPROC SetOptionDSNVersion4( uintptr_t psv, arg_list args )
-{
-	PARAM( args, LOGICAL, bNewVersion );
-#ifndef __NO_OPTIONS__
-	if( bNewVersion )
-		SetOptionDatabaseOption( &g.OptionDb, 2 );
-#endif
-	global_sqlstub_data->OptionVersion = bNewVersion?4:global_sqlstub_data->OptionVersion;
-
-	return psv;
-}
-
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 static uintptr_t CPROC SetBackupDSN( uintptr_t psv, arg_list args )
 {
@@ -971,7 +949,6 @@ void InitLibrary( void )
 #   endif
 #endif
 		// default to new option database.
-		g.OptionVersion = 4;
 #ifndef __NO_OPTIONS__
 		//SetOptionDatabaseOption( &g.OptionDb, TRUE );
 #endif
@@ -979,8 +956,6 @@ void InitLibrary( void )
 			LOGICAL success = FALSE;
 			PCONFIG_HANDLER pch = CreateConfigurationHandler();
 			AddConfigurationMethod( pch, WIDE("Option DSN=%m"), SetOptionDSN );
-			AddConfigurationMethod( pch, WIDE("Option Use New Version=%b"), SetOptionDSNVersion );
-			AddConfigurationMethod( pch, WIDE("Option Use Version 4=%b"), SetOptionDSNVersion4 );
 			AddConfigurationMethod( pch, WIDE("Primary DSN=%m"), SetPrimaryDSN );
 			AddConfigurationMethod( pch, WIDE("Primary User=%m"), SetUser );
 			AddConfigurationMethod( pch, WIDE("Primary Connection String=%m"), SetConnString );
@@ -1017,8 +992,6 @@ void InitLibrary( void )
 				if( file )
 				{
 					sack_fprintf( file, "Option DSN=%s\n", g.OptionDb.info.pDSN );
-					sack_fprintf( file, "Option Use New Version=off\n" );
-					sack_fprintf( file, "Option Use Version 4=on\n" );
 					sack_fprintf( file, "Primary DSN=MySQL\n" );
 					sack_fprintf( file, "#Primary User=\n" );
 					sack_fprintf( file, "#Primary Password=\n" );

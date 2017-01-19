@@ -169,7 +169,7 @@ void New4DuplicateOption( PODBC odbc, POPTION_TREE_NODE iRoot, CTEXTSTR pNewName
 	}
 }
 
-
+#if 0
 static void New4FixOrphanedBranches( void )
 {
 	PLIST options = CreateList();
@@ -219,7 +219,7 @@ static void New4FixOrphanedBranches( void )
 	}
 	DeleteList( &options );
 }
-
+#endif
 
 void New4DeleteOption( PODBC odbc, POPTION_TREE_NODE iRoot )
 {

@@ -194,7 +194,6 @@ struct pssql_global
 	FILE *pSQLLog;
 	void (CPROC*feedback_handler)(CTEXTSTR message);
 	ODBC OptionDb; // a third, well-known DSN used for option library by default.  May be SQLite.
-	int OptionVersion;
 	PLIST date_offsets;
 	PLIST odbc_queues;
 };

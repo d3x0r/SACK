@@ -202,12 +202,12 @@ POPTION_TREE_NODE New4GetOptionIndexExxx( PODBC odbc, POPTION_TREE tree, POPTION
 		// remove references of 'here' during parsing.
 		if( strcmp( namebuf, WIDE( "." ) ) == 0 )
 			continue;
-      // trim trailing spaces from option names.
+		// trim trailing spaces from option names.
 		{
-         int n = StrLen( namebuf ) - 1;
+			int n = StrLen( namebuf ) - 1;
 			while( n >= 0 && namebuf[n] == ' ' )
 			{
-            namebuf[n] = 0;
+				namebuf[n] = 0;
 				n--;
 			}
 		}
@@ -381,7 +381,7 @@ size_t New4GetOptionStringValue( PODBC odbc, POPTION_TREE_NODE optval, TEXTCHAR 
 	for( SQLQuery( odbc, query, &result ); result; FetchSQLResult( odbc, &result ) )
 	{
 		if( !pvtResult )
-         pvtResult = VarTextCreate();
+			pvtResult = VarTextCreate();
 		vtprintf( pvtResult, WIDE("%s"), result );
 
 		//lprintf( WIDE(" query succeeded....") );
@@ -415,11 +415,11 @@ int New4GetOptionBlobValueOdbc( PODBC odbc, POPTION_TREE_NODE optval, TEXTCHAR *
 							  , WIDE( "select `binary`,length(`binary`) from " )OPTION4_BLOBS WIDE( " where option_id='%s'" )
 							  , optval->guid ) )
 	{
-      int success = FALSE;
+		int success = FALSE;
 		//lprintf( WIDE(" query succeeded....") );
 		if( buffer && result && result[0] && result[1] )
 		{
-         success = TRUE;
+			success = TRUE;
 			(*buffer) = NewArray( TEXTCHAR, (*len)=(size_t)IntCreateFromText( result[1] ));
 			MemCpy( (*buffer), result[0], (*len) );
 		}
