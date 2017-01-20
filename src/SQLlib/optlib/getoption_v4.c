@@ -130,7 +130,7 @@ void DumpFamilyTree( PFAMILYTREE tree )
 //#define OPTION_ROOT_VALUE INVALID_INDEX
 #define OPTION_ROOT_VALUE 0
 
-POPTION_TREE_NODE New4GetOptionIndexExxx( PODBC odbc, POPTION_TREE tree, POPTION_TREE_NODE parent, const TEXTCHAR *system, const TEXTCHAR *program, const TEXTCHAR *file, const TEXTCHAR *pBranch, const TEXTCHAR *pValue, int bCreate, int bIKnowItDoesntExist DBG_PASS )
+POPTION_TREE_NODE New4GetOptionIndexExxx( PODBC odbc, POPTION_TREE tree, POPTION_TREE_NODE parent, const TEXTCHAR *system, const TEXTCHAR *program, const TEXTCHAR *file, const TEXTCHAR *pBranch, const TEXTCHAR *pValue, int bCreate, int bBypassParsing, int bIKnowItDoesntExist DBG_PASS )
 //#define GetOptionIndex( f,b,v ) GetOptionIndexEx( OPTION_ROOT_VALUE, f, b, v, FALSE )
 {
 	const TEXTCHAR **start = NULL;
@@ -177,7 +177,7 @@ POPTION_TREE_NODE New4GetOptionIndexExxx( PODBC odbc, POPTION_TREE tree, POPTION
 			}
 			if( !start || !(*start) ) continue;
 		}
-		p = pathchr( *start );
+		p = bBypassParsing?NULL:pathchr( *start );
 		if( p )
 		{
 			if( p-(*start) > 0 )
