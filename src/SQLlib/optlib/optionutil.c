@@ -19,13 +19,6 @@ SACK_OPTION_NAMESPACE
 
 #include "optlib.h"
 
-#define og (*sack_global_option_data)
-extern struct sack_option_global_tag *sack_global_option_data;
-
-#define ENUMOPT_FLAG_HAS_VALUE 1
-#define ENUMOPT_FLAG_HAS_CHILDREN 2
-
-
 SQLGETOPTION_PROC( void, EnumOptionsEx )( PODBC odbc, POPTION_TREE_NODE parent
 					 , int (CPROC *Process)(uintptr_t psv, CTEXTSTR name, POPTION_TREE_NODE ID, int flags )
 											  , uintptr_t psvUser )
@@ -55,52 +48,6 @@ SQLGETOPTION_PROC( void, DuplicateOption )( POPTION_TREE_NODE iRoot, CTEXTSTR pN
 	DuplicateOptionEx( odbc, iRoot, pNewName );
    	DropOptionODBC( odbc );
 }
-
-static void FixOrphanedBranches( void )
-{
-	PLIST options = CreateList();
-	CTEXTSTR *result = NULL;
-	CTEXTSTR result2 = NULL;
-   	PODBC odbc = GetOptionODBC( GetDefaultOptionDatabaseDSN() );
-	SQLQuery( odbc, WIDE("select count(*) from option_map"), &result2 );
-	// expand the options list to max extent real quickk....
-	SetLink( &options, IntCreateFromText( result2 ) + 1, 0 );
-	for( SQLRecordQuery( odbc, WIDE("select node_id,parent_node_id from option_map"), NULL, &result, NULL );
-		  result;
-		  GetSQLRecord( &result ) )
-	{
-		INDEX node_id, parent_node_id;
-		node_id = IndexCreateFromText( result[0] );
-		parent_node_id = IndexCreateFromText( result[1] );
-		//sscanf( result, WIDE("%ld,%ld"), &node_id, &parent_node_id );
-		SetLink( &options, node_id, (POINTER)(parent_node_id+1) );
-	}
-	{
-		INDEX idx;
-   		int deleted;
-		INDEX parent;
-		do
-		{
-			deleted = 0;
-			LIST_FORALL( options, idx, INDEX, parent )
-			{
-				//lprintf( WIDE("parent node is...%ld"), parent );
-				// node ID parent of 0 or -1 is a parent node...
-				// so nodeID+1 of 0 is 1
-				if( (parent > 1) && !GetLink( &options, parent-1 ) )
-				{
-					deleted = 1;
-					lprintf( WIDE("node %")_size_f WIDE(" has parent id %")_size_f WIDE(" which does not exist."), idx, parent-1 );
-					SetLink( &options, idx, NULL );
-					SQLCommandf( odbc, WIDE("delete from option_map where node_id=%")_size_f , idx );
-				}
-			}
-		}while( deleted );
-	}
-	DeleteList( &options );
-   DropOptionODBC( odbc );
-}
-
 
 SQLGETOPTION_PROC( void, DeleteOption )( POPTION_TREE_NODE iRoot )
 {

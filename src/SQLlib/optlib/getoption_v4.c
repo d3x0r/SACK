@@ -333,20 +333,44 @@ POPTION_TREE_NODE New4GetOptionIndexExxx( PODBC odbc, POPTION_TREE tree, POPTION
 
 //------------------------------------------------------------------------
 
-size_t New4GetOptionStringValue( PODBC odbc, POPTION_TREE_NODE optval, TEXTCHAR *buffer, size_t len DBG_PASS )
+struct resultBuffer {
+	TEXTCHAR *buffer;
+	size_t buflen;
+};
+
+static void expandResultBuffer( struct resultBuffer *buf, int x ) {
+	TEXTCHAR *newbuf = NewArray( TEXTCHAR, buf->buflen+x );
+	MemCpy( newbuf, buf->buffer, buf->buflen );
+	buf->buflen += x;
+	if( buf->buffer ) Release( buf->buffer );
+	buf->buffer = newbuf;
+}
+
+static struct resultBuffer plqBuffers[16];
+static int nBuffer;
+
+size_t New4GetOptionStringValue( PODBC odbc, POPTION_TREE_NODE optval, TEXTCHAR **buffer, size_t *len DBG_PASS )
 {
 	TEXTCHAR query[256];
 	CTEXTSTR result = NULL;
 	size_t result_len = 0;
+	struct resultBuffer *buf;
 	PVARTEXT pvtResult = NULL;
-	len--;
-
+	buf = &plqBuffers[nBuffer++];
+	if( nBuffer >= 16 ) nBuffer = 0;
+	
 	if( optval->uncommited_write )
 	{
-		result_len = StrLen( optval->value );
-		StrCpyEx( buffer, optval->value, min(len+1,result_len+1) );
-		buffer[result_len = min(len,result_len)] = 0;
-		return result_len;
+		if( !optval->value ) {
+			(*buffer) = NULL;
+			return 0;
+		}
+		result_len = StrLen( optval->value ) + 1;
+		if(result_len > buf->buflen)  expandResultBuffer( buf, result_len * 2 );
+		StrCpyEx( buf->buffer, optval->value, result_len+1 );
+		buf->buffer[result_len-1] = 0;
+		(*buffer) = buf->buffer;
+		return result_len-1;
 	}
 
 #if 0
@@ -372,7 +396,7 @@ size_t New4GetOptionStringValue( PODBC odbc, POPTION_TREE_NODE optval, TEXTCHAR 
 	tnprintf( query, sizeof( query ), WIDE( "select string from " )OPTION4_VALUES WIDE( " where option_id='%s' order by segment" ), optval->guid );
 	// have to push here, the result of the prior is kept outstanding
 	// if this was not pushed, the prior result would evaporate.
-	buffer[0] = 0;
+	(*buffer) = NULL;
 	//lprintf( WIDE("do query for value string...") );
 	result_len = (size_t)-1;
 	optval->value = NULL;
@@ -390,8 +414,12 @@ size_t New4GetOptionStringValue( PODBC odbc, POPTION_TREE_NODE optval, TEXTCHAR 
 	{
 		PTEXT pResult = VarTextGet( pvtResult );
 		result_len = GetTextSize( pResult );
-		StrCpyEx( buffer, GetText( pResult ), min(len+1,result_len+1) );
-		buffer[result_len = min(len,result_len)] = 0;
+
+		if( result_len > buf->buflen )  expandResultBuffer( buf, result_len * 2 );
+		(*buffer) = buf->buffer;
+
+		StrCpyEx( (*buffer), GetText( pResult ), result_len );
+		(*buffer)[result_len] = 0;
 		optval->value = StrDup( GetText( pResult ) );
 		LineRelease( pResult );
 		VarTextDestroy( &pvtResult );
@@ -460,7 +488,6 @@ LOGICAL New4CreateValue( POPTION_TREE tree, POPTION_TREE_NODE value, CTEXTSTR pV
 					  , newval
 					  , segment
 					  );
-			OpenWriter( tree );
 			if( SQLCommand( tree->odbc_writer, insert ) )
 			{
 				value->value_guid = value->guid;
@@ -481,7 +508,6 @@ LOGICAL New4CreateValue( POPTION_TREE tree, POPTION_TREE_NODE value, CTEXTSTR pV
 				  , newval
 				  , segment
 				  );
-		OpenWriter( tree );
 		if( SQLCommand( tree->odbc_writer, insert ) )
 		{
 		}
@@ -492,7 +518,6 @@ LOGICAL New4CreateValue( POPTION_TREE tree, POPTION_TREE_NODE value, CTEXTSTR pV
 	}
 	// save the value that we last wrote; then we can get it without worrying about the commit state
 	value->value = StrDup( pValue );
-	OpenWriter( tree );
 	value->uncommited_write = tree->odbc_writer;
 	AddLink( &tree->uncommited, value );
 	if( SQLCommand( tree->odbc_writer, insert ) )
@@ -508,6 +533,7 @@ LOGICAL New4CreateValue( POPTION_TREE tree, POPTION_TREE_NODE value, CTEXTSTR pV
 	Release( newval );
 	return retval;
 }
+
 
 int ResolveOptionName( POPTION_TREE options, CTEXTSTR parent_id, CTEXTSTR option_id, CTEXTSTR name_id, CTEXTSTR option_name, TEXTSTR output_buffer, size_t output_buffer_size )
 {

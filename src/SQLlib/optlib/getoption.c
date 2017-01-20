@@ -78,6 +78,22 @@ static int CPROC MyStrCaseCmp( const TEXTCHAR *a, const TEXTCHAR *b )
 	return StrCaseCmp( a, b );
 }
 
+SQLGETOPTION_PROC( void,SetOptionStringValueEx )( PODBC odbc, POPTION_TREE_NODE node, CTEXTSTR pValue ) 
+{
+	int drop_odbc = FALSE;
+	if( !odbc )
+	{
+		odbc = GetOptionODBC( GetDefaultOptionDatabaseDSN() );
+		drop_odbc = TRUE;
+	}
+	POPTION_TREE tree = GetOptionTreeExxx( odbc, NULL DBG_SRC );
+	OpenWriter( tree );
+	New4CreateValue( tree, node, pValue );
+	if( drop_odbc )
+		DropOptionODBC( odbc );
+	
+}
+
 SQLGETOPTION_PROC( POPTION_TREE_NODE, GetOptionIndexEx )( POPTION_TREE_NODE parent, const TEXTCHAR *file, const TEXTCHAR *pBranch, const TEXTCHAR *pValue, int bCreate, int bBypassParsing DBG_PASS );
 #define GetOptionIndex(p,f,b,v) GetOptionIndexEx( p,f,b,v,FALSE,FALSE DBG_SRC )
 SQLGETOPTION_PROC( void, CreateOptionDatabaseEx )( PODBC odbc, POPTION_TREE tree );
@@ -488,13 +504,13 @@ POPTION_TREE_NODE DuplicateValue( POPTION_TREE_NODE iOriginalValue, POPTION_TREE
 
 //------------------------------------------------------------------------
 
-size_t GetOptionStringValueEx( PODBC odbc, POPTION_TREE_NODE optval, TEXTCHAR *buffer, size_t len DBG_PASS )
+size_t GetOptionStringValueEx( PODBC odbc, POPTION_TREE_NODE optval, TEXTCHAR **buffer, size_t *len DBG_PASS )
 {
 	POPTION_TREE tree = GetOptionTreeExxx( odbc, NULL DBG_RELAY );
 	return New4GetOptionStringValue( odbc, optval, buffer, len DBG_RELAY );
 }
 
-size_t GetOptionStringValue( POPTION_TREE_NODE optval, TEXTCHAR *buffer, size_t len )
+size_t GetOptionStringValue( POPTION_TREE_NODE optval, TEXTCHAR **buffer, size_t *len )
 {
 	size_t result;
 	PODBC odbc = GetOptionODBC( GetDefaultOptionDatabaseDSN() );
@@ -538,8 +554,8 @@ int GetOptionBlobValue( POPTION_TREE_NODE optval, TEXTCHAR **buffer, size_t *len
 
 LOGICAL GetOptionIntValue( POPTION_TREE_NODE optval, int *result_value DBG_PASS )
 {
-	TEXTCHAR value[3];
-	if( GetOptionStringValueEx( og.Option, optval, value, sizeof( value ) DBG_RELAY ) != INVALID_INDEX )
+	TEXTCHAR *value;
+	if( GetOptionStringValueEx( og.Option, optval, &value, NULL DBG_RELAY ) != INVALID_INDEX )
 	{
 		if( value[0] == 'y' || value[0] == 'Y' || ( value[0] == 't' || value[0] == 'T' ) )
 			*result_value = 1;
@@ -554,6 +570,7 @@ LOGICAL GetOptionIntValue( POPTION_TREE_NODE optval, int *result_value DBG_PASS 
 
 static LOGICAL CreateValue( POPTION_TREE tree, POPTION_TREE_NODE iOption, CTEXTSTR pValue )
 {
+	OpenWriter( tree );
 	return New4CreateValue( tree, iOption, pValue );
 }
 
@@ -565,6 +582,7 @@ LOGICAL SetOptionStringValue( POPTION_TREE tree, POPTION_TREE_NODE optval, CTEXT
 {
 	LOGICAL retval = TRUE;
 	EnterCriticalSec( &og.cs_option );
+	OpenWriter( tree );
 	retval = New4CreateValue( tree, optval, pValue );
 	LeaveCriticalSec( &og.cs_option );
 	return retval;
@@ -786,11 +804,12 @@ SQLGETOPTION_PROC( size_t, SACK_GetPrivateProfileStringExxx )( PODBC odbc
 		opt_node = GetOptionIndexExx( odbc, OPTION_ROOT_VALUE, NULL, pINIFile, pSection, pOptname, TRUE, FALSE DBG_RELAY );
 		if( !opt_node )
 		{
+			int x;
 			// this actually implies to delete the entry... but since it doesn't exist no worries...
 			if( !pDefaultbuf )
 			{
 				if( drop_odbc )
-               DropOptionODBC( odbc );
+					DropOptionODBC( odbc );
 				LeaveCriticalSec( &og.cs_option );
 				return 0;
 			}
@@ -808,6 +827,7 @@ SQLGETOPTION_PROC( size_t, SACK_GetPrivateProfileStringExxx )( PODBC odbc
 					pBuffer[0] = 0;
 			}
 			// create the option branch since it doesn't exist...
+			{
 				if( SetOptionStringValue( GetOptionTreeExxx( odbc, NULL DBG_SRC ), opt_node, pBuffer ) )
 					x = (int)StrLen( pBuffer );
 				else
@@ -823,7 +843,10 @@ SQLGETOPTION_PROC( size_t, SACK_GetPrivateProfileStringExxx )( PODBC odbc
 		}
 		else
 		{
-			size_t x = GetOptionStringValueEx( odbc, opt_node, pBuffer, nBuffer DBG_RELAY );
+			TEXTCHAR *buf;
+			size_t buflen;
+			size_t x = GetOptionStringValueEx( odbc, opt_node, &buf, &buflen DBG_RELAY );
+			MemCpy( pBuffer, buf, x = min(buflen,(nBuffer-1) ) );
 			if( (x == (size_t)-1) && pDefaultbuf && pDefaultbuf[0] )
 			{
 				if( global_sqlstub_data->flags.bLogOptionConnection )
@@ -948,7 +971,7 @@ SQLGETOPTION_PROC( int, SACK_GetProfileBlobOdbc )( PODBC odbc, CTEXTSTR pSection
 	}
 	else
 	{
-		return GetOptionBlobValueOdbc( odbc, GetOptionValueIndexEx( odbc, optval ), pBuffer, pnBuffer );
+		return GetOptionBlobValueOdbc( odbc, optval, pBuffer, pnBuffer );
 	}
 	return FALSE;
 //   int status = SACK_GetProfileString( );

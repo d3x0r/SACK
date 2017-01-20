@@ -47,7 +47,7 @@ typedef struct node_data_tag
 	PLISTITEM pli_fake;
 } NODE_DATA, *PNODE_DATA;
 
-static struct instance_local
+struct instance_local
 {
 	POPTION_TREE tree;
 	PNODE_DATA last_node;
@@ -156,7 +156,7 @@ PUBLIC( int, InitOptionList )( PODBC odbc, PCONTROL pc, uint32_t ID )
 
 static void CPROC OptionSelectionChanged( uintptr_t psvUser, PCONTROL pc, PLISTITEM hli )
 {
-	static TEXTCHAR buffer[4096];
+	//static TEXTCHAR buffer[4096];
 	PNODE_DATA pnd = (PNODE_DATA)GetItemData( hli );
 	if( !option_thread )
 		option_thread = default_local;
@@ -164,10 +164,12 @@ static void CPROC OptionSelectionChanged( uintptr_t psvUser, PCONTROL pc, PLISTI
 	l.last_node = pnd;
 	if( pnd->option_text )
 	{
+		size_t buflen;
+		char *buffer;
 		if( !pnd->ID_Option )
-			pnd->ID_Option = GetOptionIndexExx( (PODBC)psvUser, NULL, pnd->option_text, NULL, NULL, NULL, FALSE DBG_SRC );
-		GetOptionStringValueEx( (PODBC)psvUser, pnd->ID_Option, buffer, sizeof( buffer ) DBG_SRC );
-		StrCpyEx( l.last_value, buffer, sizeof(l.last_value)/sizeof(l.last_value[0]) );
+			pnd->ID_Option = GetOptionIndexExx( (PODBC)psvUser, NULL, pnd->option_text, NULL, NULL, NULL, FALSE, FALSE DBG_SRC );
+		GetOptionStringValueEx( (PODBC)psvUser, pnd->ID_Option, &buffer, &buflen DBG_SRC );
+		StrCpyEx( l.last_value, buffer, buflen );
 		SetControlText( GetNearControl( pc, EDT_OPTIONVALUE ), buffer );
 	}
 	else
@@ -175,8 +177,10 @@ static void CPROC OptionSelectionChanged( uintptr_t psvUser, PCONTROL pc, PLISTI
 		if( pnd->ID_Value )
 		{
 			//lprintf( WIDE("Set value to real value.") );
-			GetOptionStringValueEx( (PODBC)psvUser, pnd->ID_Value, buffer, sizeof( buffer ) DBG_SRC );
-			StrCpyEx( l.last_value, buffer, sizeof(l.last_value)/sizeof(l.last_value[0]) );
+			char *buffer;
+			size_t buflen;
+			GetOptionStringValueEx( (PODBC)psvUser, pnd->ID_Value, &buffer, &buflen DBG_SRC );
+			StrCpyEx( l.last_value, buffer, buflen );
 			SetControlText( GetNearControl( pc, EDT_OPTIONVALUE ), buffer );
 		}
 		else
@@ -258,7 +262,7 @@ static void CPROC CreateEntryQueryResult( uintptr_t psv, LOGICAL success )
 	struct query_params  *params = (struct query_params  *)psv;
 	if( success )
 	{
-		GetOptionIndexExx( (PODBC)psv, l.last_option, NULL, params->result, NULL, NULL, TRUE DBG_SRC );
+		GetOptionIndexExx( (PODBC)psv, l.last_option, NULL, params->result, NULL, NULL, TRUE, FALSE DBG_SRC );
 		//DuplicateOption( l.last_option, result );
 		ResetList( GetNearControl( params->pc, LST_OPTIONMAP ) );
 		ResetOptionMap( (PODBC)psv );
@@ -402,7 +406,7 @@ static void OnDisplayConnect( WIDE( "EditOption Display" ) )( struct display_app
 	(*local) = (struct display_app_local**)&option_thread;
 
 	frame = CreateOptionFrame( NULL, TRUE, &l.done1 );
-	InitOptionList( GetOptionODBC( NULL, 0 ), GetControl( frame, LST_OPTIONMAP ), LST_OPTIONMAP );
+	InitOptionList( GetOptionODBC( NULL ), GetControl( frame, LST_OPTIONMAP ), LST_OPTIONMAP );
 	DisplayFrame( frame );
 }
 
@@ -416,7 +420,7 @@ int EditOptions
 	PCOMMON frame;// = LoadFrame( WIDE("edit.frame"), NULL, NULL, 0 );
 	int done = FALSE;
 	if( !odbc )
-		odbc = GetOptionODBC( NULL, 0 );
+		odbc = GetOptionODBC( NULL );
 
 	//if( !frame )
 	if( !RenderIsInstanced() )
@@ -446,35 +450,12 @@ int EditOptions
 SaneWinMain( argc, argv )
 {
 	PODBC o = NULL;
-#ifdef UNICODE
-	TEXTSTR arg1 = (argc > 1)?argv[1]:NULL;
-	TEXTSTR arg2 = (argc > 2)?argv[2]:NULL;
-#else
-	char *arg1 = (argc > 1)?argv[1]:NULL;
-	char *arg2 = (argc > 2)?argv[2]:NULL;
-#endif
 	if( argc > 1 )
 	{
-		int arg_ofs = 0;
-		if( arg1[0] == '-' && arg1[1] == 'o' )
-		{
-			o = GetOptionODBC( arg2, 1 );
-		}
-		else if( arg1[0] == '-' && arg1[1] == 'n' )
-		{
-			o = GetOptionODBC( arg2, 4 );
-		}
-		else if( arg1[0] == '-' && arg1[1] == '2' )
-		{
-			o = GetOptionODBC( arg2, 2 );
-		}
-		else
-		{
-			o = GetOptionODBC( arg1, 2 );
-		}
+		o = GetOptionODBC( argv[1] );
 	}
 	else
-		o = GetOptionODBC( NULL, 0 );
+		o = GetOptionODBC( NULL );
 	EditOptions( o, NULL );
 	return 0;
 }

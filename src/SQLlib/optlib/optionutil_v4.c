@@ -137,7 +137,7 @@ struct complex_args
 static int CPROC v4CopyRoot( uintptr_t psvArgs, CTEXTSTR name, POPTION_TREE_NODE ID, int flags )
 {
 	struct complex_args *args = (struct complex_args*)psvArgs;
-	POPTION_TREE_NODE iCopy = GetOptionIndexEx( args->iNewRoot, NULL, name, NULL, TRUE DBG_SRC );
+	POPTION_TREE_NODE iCopy = GetOptionIndexEx( args->iNewRoot, NULL, name, NULL, TRUE, FALSE DBG_SRC );
 	New4DuplicateValue( args->odbc, ID, iCopy );
 
 	{
@@ -162,72 +162,17 @@ void New4DuplicateOption( PODBC odbc, POPTION_TREE_NODE iRoot, CTEXTSTR pNewName
 		tmp_node->value_guid = NULL;
 		tmp_node->value = NULL;
 		SQLEndQuery( odbc );
-		iNewName = GetOptionIndexEx( tmp_node, NULL, pNewName, NULL, TRUE DBG_SRC );
+		iNewName = GetOptionIndexEx( tmp_node, NULL, pNewName, NULL, TRUE, FALSE DBG_SRC );
 		args.iNewRoot = iNewName;
 		args.odbc = odbc;
 		New4EnumOptions( args.odbc, iRoot, v4CopyRoot, (uintptr_t)&args );
 	}
 }
 
-#if 0
-static void New4FixOrphanedBranches( void )
-{
-	PLIST options = CreateList();
-	PLIST options2 = CreateList();
-	CTEXTSTR *result = NULL;
-	CTEXTSTR result2 = NULL;
-	lprintf( WIDE("Orphan branches not fixable at this time.") );
-	return;
-
-	SQLQuery( og.Option, WIDE( "select count(*) from " ) OPTION_MAP, &result2 );
-	// expand the options list to max extent real quickk....
-	SetLink( &options, (uintptr_t)IntCreateFromText( result2 ) + 1, 0 );
-	SetLink( &options2, (uintptr_t)IntCreateFromText( result2 ) + 1, 0 );
-
-	for( SQLRecordQuery( og.Option, WIDE( "select option_id,parent_option_id from " ) OPTION4_MAP, NULL, &result, NULL );
-		  result;
-		  FetchSQLRecord( og.Option, &result ) )
-	{
-		CTEXTSTR node_id, parent_option_id;
-		node_id = StrDup( result[0] );
-		parent_option_id = StrDup( result[1] );
-		AddLink( &options2, parent_option_id );
-		//sscanf( result, WIDE("%ld,%ld"), &node_id, &parent_option_id );
-		AddLink( &options, node_id );
-	}
-	{
-		INDEX idx;
-		int deleted;
-		CTEXTSTR parent;
-		do
-		{
-			deleted = 0;
-			LIST_FORALL( options, idx, CTEXTSTR, parent )
-			{
-				//lprintf( WIDE("parent node is...%ld"), parent );
-				// node ID parent of 0 or -1 is a parent node...
-				// so nodeID+1 of 0 is 1
-				//if( (parent > 1) && !GetLink( &options, parent-1 ) )
-				{
-					deleted = 1;
-					//lprintf( WIDE("node %ld has parent id %ld which does not exist."), idx, parent-1 );
-					SetLink( &options, idx, NULL );
-					SQLCommandf( og.Option, WIDE( "delete from " )OPTION4_MAP WIDE( " where option_id='%s'" ), "some-guid"  );
-				}
-			}
-		}while( deleted );
-	}
-	DeleteList( &options );
-}
-#endif
-
 void New4DeleteOption( PODBC odbc, POPTION_TREE_NODE iRoot )
 {
 	SQLCommandf( odbc, WIDE( "delete from " )OPTION4_MAP WIDE( " where option_id='%s'" ), iRoot->guid );
 	//   foriegn keys should be cascade, so these will disappear without specifically removing.
-	//SQLCommandf( odbc, WIDE( "delete from " )OPTION4_VALUES WIDE( " where option_id='%s'" ), iRoot->guid );
-	//SQLCommandf( odbc, WIDE( "delete from " )OPTION4_BLOBS WIDE( " where option_id='%s'" ), iRoot->guid );
-	//New4FixOrphanedBranches();
 }
 
 SACK_OPTION_NAMESPACE_END
