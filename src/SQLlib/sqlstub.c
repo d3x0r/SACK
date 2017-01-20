@@ -693,19 +693,6 @@ static PCOLLECT CreateCollectorEx( PSERVICE_ROUTE SourceID, PODBC odbc, LOGICAL 
 
 //----------------------------------------------------------------------
 
-#define BYTEOP_ENCODE(n)  (char)((((uint16_t)(n))+20) & 0xFF)
-#define BYTEOP_DECODE(n)  (char)((((uint16_t)(n))-20) & 0xFF)
-
-PTEXT CPROC TranslateINICrypt( PTEXT buffer )
-{
-	size_t n;
-	TEXTSTR out = GetText( buffer );
-	size_t len = GetTextSize( buffer );
-	for( n = 0; n < len; n++ )
-		out[n] = BYTEOP_DECODE( out[n] );
-	return buffer;
-}
-
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 static uintptr_t CPROC SetPrimaryDSN( uintptr_t psv, arg_list args )
 {
@@ -972,7 +959,7 @@ void InitLibrary( void )
 			AddConfigurationMethod( pch, WIDE("Require Primary Connection=%b"), SetRequirePrimaryConnection );
 			AddConfigurationMethod( pch, WIDE("Require Backup Connection=%b"), SetRequireBackupConnection );
 			// If source is encrypted enable tranlation
-			//AddConfigurationFilter( pch, TranslateINICrypt );
+			//AddConfigurationFilter( pch, TranslateCrypt );
 			{
 				TEXTCHAR tmp[256];
 				tnprintf( tmp, 256, WIDE("%s.sql.config"), GetProgramName() );
@@ -2894,6 +2881,7 @@ int __GetSQLResult( PODBC odbc, PCOLLECT collection, int bMore )
 		uintptr_t byTmpResultLen = 0;
 		// SQLPrepare
 		// includes the table to list... therefore list the fields in the table.
+		//lprintf( "am I logging: %d %d %d", (!odbc->flags.bNoLogging) , (!g.flags.bNoLog) , g.flags.bLogData )
 		if( (!odbc->flags.bNoLogging) && (!g.flags.bNoLog) && g.flags.bLogData )
 			pvtData = VarTextCreate();
 		else
@@ -3302,6 +3290,9 @@ int __GetSQLResult( PODBC odbc, PCOLLECT collection, int bMore )
 		}
 		if( pvtData )
 		{
+			PTEXT data = VarTextGet( pvtData );
+			lprintf( "%s", GetText( data ) );
+         LineRelease( data );
 			//lprintf( WIDE( "%s" ), GetText( VarTextPeek( pvtData ) ) );
 			VarTextDestroy( &pvtData );
 		}

@@ -507,7 +507,8 @@ POPTION_TREE_NODE DuplicateValue( POPTION_TREE_NODE iOriginalValue, POPTION_TREE
 size_t GetOptionStringValueEx( PODBC odbc, POPTION_TREE_NODE optval, TEXTCHAR **buffer, size_t *len DBG_PASS )
 {
 	POPTION_TREE tree = GetOptionTreeExxx( odbc, NULL DBG_RELAY );
-	return New4GetOptionStringValue( odbc, optval, buffer, len DBG_RELAY );
+	size_t res = New4GetOptionStringValue( odbc, optval, buffer, len DBG_RELAY );
+	return res;
 }
 
 size_t GetOptionStringValue( POPTION_TREE_NODE optval, TEXTCHAR **buffer, size_t *len )
@@ -844,9 +845,13 @@ SQLGETOPTION_PROC( size_t, SACK_GetPrivateProfileStringExxx )( PODBC odbc
 		else
 		{
 			TEXTCHAR *buf;
+			TEXTCHAR **ppBuf = &buf;
 			size_t buflen;
-			size_t x = GetOptionStringValueEx( odbc, opt_node, &buf, &buflen DBG_RELAY );
-			MemCpy( pBuffer, buf, x = min(buflen,(nBuffer-1) ) );
+			(*ppBuf) = (TEXTCHAR*)0x12345;
+			size_t x = GetOptionStringValueEx( odbc, opt_node, ppBuf, &buflen DBG_RELAY );
+			if( buf )
+				MemCpy( pBuffer, buf, x = min(buflen+1,(nBuffer) ) );
+			
 			if( (x == (size_t)-1) && pDefaultbuf && pDefaultbuf[0] )
 			{
 				if( global_sqlstub_data->flags.bLogOptionConnection )

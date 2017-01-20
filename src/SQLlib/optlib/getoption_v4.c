@@ -370,6 +370,7 @@ size_t New4GetOptionStringValue( PODBC odbc, POPTION_TREE_NODE optval, TEXTCHAR 
 		StrCpyEx( buf->buffer, optval->value, result_len+1 );
 		buf->buffer[result_len-1] = 0;
 		(*buffer) = buf->buffer;
+		(*len) = result_len-1;
 		return result_len-1;
 	}
 
@@ -413,19 +414,20 @@ size_t New4GetOptionStringValue( PODBC odbc, POPTION_TREE_NODE optval, TEXTCHAR 
 	if( pvtResult )
 	{
 		PTEXT pResult = VarTextGet( pvtResult );
-		result_len = GetTextSize( pResult );
+		result_len = GetTextSize( pResult ) + 1;
 
 		if( result_len > buf->buflen )  expandResultBuffer( buf, result_len * 2 );
 		(*buffer) = buf->buffer;
+		(*len) = result_len-1;
 
 		StrCpyEx( (*buffer), GetText( pResult ), result_len );
-		(*buffer)[result_len] = 0;
+		(*buffer)[result_len-1] = 0;
 		optval->value = StrDup( GetText( pResult ) );
 		LineRelease( pResult );
 		VarTextDestroy( &pvtResult );
 	}
 	PopODBCEx( odbc );
-	return result_len;
+	return result_len-1;
 }
 
 
@@ -434,7 +436,7 @@ int New4GetOptionBlobValueOdbc( PODBC odbc, POPTION_TREE_NODE optval, TEXTCHAR *
 	CTEXTSTR *result = NULL;
 	size_t tmplen;
 	if( !len )
-      len = &tmplen;
+		len = &tmplen;
 	PushSQLQueryEx( odbc );
 #ifdef DETAILED_LOGGING
 	lprintf( WIDE("do query for value string...") );
