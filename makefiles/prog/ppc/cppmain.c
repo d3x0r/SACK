@@ -704,9 +704,13 @@ int PreProcessLine( void )
 		{
 			//fprintf( stderr, WIDE("Include segments...") );
 			//DumpSegs( pDirective );
-			ProcessInclude( TRUE );
-			if( g.flags.keep_includes && !g.flags.bIncludedLastFile )
+			if( g.flags.keep_includes )
 				SetCurrentWord( pFirstWord );
+			else {
+				ProcessInclude( TRUE );
+				if( g.flags.keep_includes && !g.flags.bIncludedLastFile )
+					SetCurrentWord( pFirstWord );
+			}
 			return g.flags.keep_includes;
 		}
 //== DEFINE =======================================================

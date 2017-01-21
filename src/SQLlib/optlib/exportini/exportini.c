@@ -75,11 +75,12 @@ int CPROC FillList( uintptr_t psv, CTEXTSTR name, POPTION_TREE_NODE ID, int flag
 		}
 		else if( lf.nLevel >= 3 )
 		{
-			POPTION_TREE_NODE ID_Value = GetOptionValueIndex( ID );
+			POPTION_TREE_NODE ID_Value = ID;
 			if( ID_Value )
 			{
-				TEXTCHAR buffer[256];
-				if( (int)GetOptionStringValue( ID_Value, buffer, sizeof( buffer ) ) > 0 )
+				TEXTCHAR *buffer;
+            size_t buflen;
+				if( (int)GetOptionStringValue( ID_Value, &buffer, &buflen ) > 0 )
 				{
 					if( VarTextPeek( pvtSection ) )
 					{

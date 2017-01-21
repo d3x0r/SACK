@@ -6,7 +6,7 @@ include(CheckTypeSize)
 
 project (LibreSSL C)
 
-set( BUILD_AMALGAM on )
+#set( BUILD_AMALGAM off )
 enable_testing()
 
 file(READ ${CMAKE_CURRENT_SOURCE_DIR}/ssl/VERSION SSL_VERSION)
@@ -272,12 +272,6 @@ add_subdirectory(apps)
 add_subdirectory(tls)
 add_subdirectory(include)
 
-if( BUILD_AMALGAM ) 
-
-   set( ALL_SOURCES ${CRYPTO_SRC} ${SSL_SRC} ${TLS_SRC} )
-
-
-endif( BUILD_AMALGAM ) 
 
 if(NOT MSVC)
 	add_subdirectory(man)
@@ -301,10 +295,10 @@ get_directory_property( DirDefs1 DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} COMPILE_D
 get_directory_property( DirDefs2 DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/crypto COMPILE_DEFINITIONS )
 get_directory_property( DirDefs3 DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/ssl COMPILE_DEFINITIONS )
 get_directory_property( DirDefs4 DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tls COMPILE_DEFINITIONS )
-message( "something ${iDirDefs1}" )
-message( "something ${iDirDefs2}" )
-message( "something ${iDirDefs3}" )
-message( "something ${iDirDefs4}" )
+#message( "something ${iDirDefs1}" )
+#message( "something ${iDirDefs2}" )
+#message( "something ${iDirDefs3}" )
+#message( "something ${iDirDefs4}" )
 
 FILE( WRITE ${CMAKE_BINARY_DIR}/config.ppc "/*CMake Option defined*/\n" )
 
@@ -327,5 +321,4 @@ set( AMALG_COMMAND c:/tools/ppc.exe -c -K -once -ssio -sd ${INCLUDES} -p -o${CMA
 #				   WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
 #  )                                   
 #  add_custom_target( doit DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/src/sack.cc )
-
 

@@ -494,7 +494,7 @@ void LoadOptions( void )
 		SetLink( &l.cameras, 0, default_camera );
 	}
 	{
-		PODBC option = GetOptionODBC( NULL, 0 );
+		PODBC option = GetOptionODBC( NULL );
 		l.flags.bLogMessageDispatch = SACK_GetOptionIntEx( option, GetProgramName(), WIDE("SACK/Video Render/log message dispatch"), 0, TRUE );
 		l.flags.bLogFocus = SACK_GetOptionIntEx( option, GetProgramName(), WIDE("SACK/Video Render/log focus event"), 0, TRUE );
 		l.flags.bLogKeyEvent = SACK_GetOptionIntEx( option, GetProgramName(), WIDE("SACK/Video Render/log key event"), 0, TRUE );
