@@ -2,6 +2,7 @@
 #include <network.h>
 #include <deadstart.h>
 #include <sack_vfs.h>
+#include <filesys.h>
 
 #include "memory_dll_loader.h"
 //#include "app-signature.h"
