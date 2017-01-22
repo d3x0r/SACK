@@ -1,6 +1,7 @@
 #include <stdhdrs.h>
 //#define NO_LOGGING
 #include <logging.h>
+#include <filesys.h>
 #include "sharemem.h"
 #define PLUGIN_MODULE
 #define DEFINES_DEKWARE_INTERFACE
@@ -171,7 +172,7 @@ static void EndTriggerAlias( PSENTIENT ps, PMACROSTATE pms, int bAlias )
 			if( pTrig )
 				pTrig->used_count--;
 
-			if( (int)pArgs == 1 )
+			if( (uintptr_t)pArgs == 1 )
 				pArgs = NULL;
 
 			if( pTrig && pTrig->Actions.flags.un.macro.bDelete )

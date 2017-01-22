@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <sharemem.h>
 #include <logging.h>
+#include <filesys.h>
 #include "space.h"
 
 #if defined( WIN32 ) || defined( _WIN32 )

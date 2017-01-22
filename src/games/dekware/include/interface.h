@@ -73,7 +73,7 @@ struct dekware_interface {
 													  , PTEXT pMatch );
 
    CORE_PROC_PTR( Function, GetRoutineRegistered )( TEXTSTR prefix, PTEXT Command );
-   CORE_PROC_PTR( Function, GetOptionRegistered )( TEXTSTR prefix, PTEXT Command );
+   CORE_PROC_PTR( OptionHandler, GetOptionRegistered )( TEXTSTR prefix, PTEXT Command );
 
 	CORE_PROC_PTR( PDATAPATH, FindOpenDevice )( PSENTIENT ps, PTEXT pName );
 	CORE_PROC_PTR( PDATAPATH, FindDataDatapath )( PSENTIENT ps, int type );
