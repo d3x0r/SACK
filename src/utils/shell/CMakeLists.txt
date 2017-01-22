@@ -113,16 +113,18 @@ SET_PROPERTY(TARGET ${project} APPEND PROPERTY COMPILE_DEFINITIONS "__STATIC__;S
 SET_TARGET_PROPERTIES(${project} PROPERTIES
 		LINK_FLAGS "${SHELL_LINK_FLAGS}"
 )
-if( WIN32 AND ${CMAKE_COMPILER_IS_GNUCC} )
+if( WIN32 AND CMAKE_COMPILER_IS_GNUCC )
+STRING ( REPLACE "/" "\\" THISDIR ${CMAKE_CURRENT_BINARY_DIR} )
+STRING ( REPLACE "/" "\\" SRCDIR ${CMAKE_CURRENT_SOURCE_DIR} )
 add_custom_command(TARGET
                      ${project}
                    POST_BUILD
                    COMMAND
-                     "mt.exe" -manifest \"${CMAKE_CURRENT_SOURCE_DIR}\\shell.manifest\" -outputresource:\"${CMAKE_CURRENT_BINARY_DIR}\\shell.exe\"\;\#1
+                     "mt.exe" -manifest \"${SRCDIR}\\shell.manifest\" -outputresource:\"${THISDIR}\\shell.exe\"\;\#1
                    COMMENT
                      "Adding custom manifest containing MSVCRT80 dependency..." 
                   )
-endif( WIN32 AND ${CMAKE_COMPILER_IS_GNUCC} )
+endif( WIN32 AND CMAKE_COMPILER_IS_GNUCC )
 SET_TARGET_PROPERTIES(${project} PROPERTIES
                   FOLDER utils
 )
@@ -198,16 +200,16 @@ if( WIN32 )
 #ws2_32 wsock32 
 target_link_libraries( ${project}  winmm odbc32)
 endif( WIN32 )
-if( WIN32 AND ${CMAKE_COMPILER_IS_GNUCC} )
+if( WIN32 AND CMAKE_COMPILER_IS_GNUCC )
 add_custom_command(TARGET
                      ${project}
                    POST_BUILD
                    COMMAND
-                     "mt.exe" -manifest \"${CMAKE_CURRENT_SOURCE_DIR}\\shell.manifest\" -outputresource:\"${CMAKE_CURRENT_BINARY_DIR}\\wshell.exe\"\;\#1
+                     "mt.exe" -manifest \"${SRCDIR}\\shell.manifest\" -outputresource:\"${THISDIR}\\wshell.exe\"\;\#1
                    COMMENT
                      "Adding custom manifest containing MSVCRT80 dependency..." 
                   )
-endif( WIN32 AND ${CMAKE_COMPILER_IS_GNUCC} )
+endif( WIN32 AND CMAKE_COMPILER_IS_GNUCC )
 install( TARGETS ${project} DESTINATION bin )
 
 

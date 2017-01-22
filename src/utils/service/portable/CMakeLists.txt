@@ -68,11 +68,13 @@ if( NOT CMAKE_COMPILER_IS_GNUCC )
 endif( NOT CMAKE_COMPILER_IS_GNUCC )
   
 if( WIN32 AND CMAKE_COMPILER_IS_GNUCC )
+STRING ( REPLACE "/" "\\" THISDIR ${CMAKE_CURRENT_BINARY_DIR} )
+STRING ( REPLACE "/" "\\" SRCDIR ${CMAKE_CURRENT_SOURCE_DIR} )
 add_custom_command(TARGET
                      ${PROJECT_NAME}
                    POST_BUILD
                    COMMAND
-                     "mt.exe" -manifest \"${CMAKE_CURRENT_SOURCE_DIR}/../service.manifest\" -outputresource:\"${CMAKE_CURRENT_BINARY_DIR}\\${PROJECT_NAME}.exe\"\;\#1
+                     "mt.exe" -manifest \"${SRCDIR}\\..\\service.manifest\" -outputresource:\"${THISDIR}\\${PROJECT_NAME}.exe\"\;\#1
                    COMMENT
                      "Adding custom manifest containing MSVCRT80 dependency..." 
                   )

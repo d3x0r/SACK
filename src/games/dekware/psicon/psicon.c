@@ -1,7 +1,9 @@
 //#define DO_LOGGING
 #ifdef _WIN32
 #define _INCLUDE_CLIPBOARD
+#define _INCLUDE_TEXTMETRIC
 #endif
+
 #ifndef FORCE_NO_INTERFACES
 #define USE_IMAGE_INTERFACE l.pii
 #define USE_RENDER_INTERFACE l.pdi
@@ -526,7 +528,7 @@ int RegisterWindows( void )
 		 AppendPopupItem( hHistoryMenu, MF_STRING, MNU_HISTORYSIZE50, WIDE("50%") );
 		 AppendPopupItem( hHistoryMenu, MF_STRING, MNU_HISTORYSIZE75, WIDE("75%") );
 		 AppendPopupItem( hHistoryMenu, MF_STRING, MNU_HISTORYSIZE100, WIDE("100%") );
-		 AppendPopupItem( hChildMenu, MF_STRING|MF_POPUP, (int)hHistoryMenu, WIDE("History Display Size") );
+		 AppendPopupItem( hChildMenu, MF_STRING|MF_POPUP, (uintptr_t)hHistoryMenu, WIDE("History Display Size") );
 	 }
 	{
 		PMENU hColorMenu, hColorMenu2;
@@ -547,7 +549,7 @@ int RegisterWindows( void )
 		AppendPopupItem( hColorMenu, MF_OWNERDRAW, MNU_LTMAG, DrawMenuItem );
 		AppendPopupItem( hColorMenu, MF_OWNERDRAW, MNU_YELLOW, DrawMenuItem );
 		AppendPopupItem( hColorMenu, MF_OWNERDRAW, MNU_WHITE, DrawMenuItem );
-		AppendPopupItem( hChildMenu, MF_STRING|MF_POPUP, (int)hColorMenu, WIDE("Text Color") );
+		AppendPopupItem( hChildMenu, MF_STRING|MF_POPUP, (uintptr_t)hColorMenu, WIDE("Text Color") );
 		hColorMenu2 = CreatePopup();
 		AppendPopupItem( hColorMenu2, MF_OWNERDRAW, MNU_BKBLACK, DrawMenuItem );
 		AppendPopupItem( hColorMenu2, MF_OWNERDRAW, MNU_BKBLUE, DrawMenuItem );
@@ -565,7 +567,7 @@ int RegisterWindows( void )
 		AppendPopupItem( hColorMenu2, MF_OWNERDRAW, MNU_BKLTMAG, DrawMenuItem );
 		AppendPopupItem( hColorMenu2, MF_OWNERDRAW, MNU_BKYELLOW, DrawMenuItem );
 		AppendPopupItem( hColorMenu2, MF_OWNERDRAW, MNU_BKWHITE, DrawMenuItem );
-		AppendPopupItem( hChildMenu, MF_STRING|MF_POPUP, (int)hColorMenu2, WIDE("Background Color") );
+		AppendPopupItem( hChildMenu, MF_STRING|MF_POPUP, (uintptr_t)hColorMenu2, WIDE("Background Color") );
 	}
 	AppendPopupItem( hChildMenu, MF_STRING, MNU_COMMAND_COLOR, WIDE("Command Color") );
 	AppendPopupItem( hChildMenu, MF_STRING, MNU_COMMAND_BACK, WIDE("Command Background Color") );

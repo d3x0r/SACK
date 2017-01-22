@@ -132,7 +132,7 @@ static void LocalInit( void )
    //if( gbLog )
 	//	lprintf( "Reading... %d", nSize );
 	while( offset < nSize &&
-	       ReadFile( (HANDLE)nCom, pBytes + offset, 1, (DWORD*)&nRead, NULL ) &&
+	       ReadFile( (HANDLE)(intptr_t)nCom, pBytes + offset, 1, (DWORD*)&nRead, NULL ) &&
 	       nRead )
 	{
 		offset += nRead;
@@ -153,7 +153,7 @@ int WriteComm( int nCom, POINTER buffer, uint32_t nSize )
 		#endif
 		LogBinary( (uint8_t*)buffer, nOut );
 	}
-	if( WriteFile( (HANDLE)nCom, buffer, nSize, (DWORD*)&nWritten, NULL ) )
+	if( WriteFile( (HANDLE)(intptr_t)nCom, buffer, nSize, (DWORD*)&nWritten, NULL ) )
 		return nWritten;
 	return -1;
 }
@@ -187,13 +187,13 @@ uintptr_t OpenComm( CTEXTSTR name, int nInQueue, int nOutQueue )
 //-----------------------------------------------------------------------
 int CloseComm( int nDevice )
 {
-	return CloseHandle( (HANDLE)nDevice );
+	return CloseHandle( (HANDLE)(intptr_t)nDevice );
 }
 //-----------------------------------------------------------------------
 int GetCommError( int nCom, COMSTAT *pcs )
 {
 	uint32_t dwErrors;
-	return ClearCommError( (HANDLE)nCom, (DWORD*)&dwErrors, pcs );
+	return ClearCommError( (HANDLE)(intptr_t)nCom, (DWORD*)&dwErrors, pcs );
 }
 //-----------------------------------------------------------------------
 int FlushComm( int nComm, int nQueues )
@@ -865,13 +865,13 @@ void DumpTermios( struct termios *opts )
 					, pct->dcb.fRtsControl
 					);
 
-				//EscapeCommFunction( (HANDLE)iCommId, SETDTR );
-				//EscapeCommFunction( (HANDLE)iCommId, SETRTS );
+				//EscapeCommFunction( (HANDLE)(intptr_t)iCommId, SETDTR );
+				//EscapeCommFunction( (HANDLE)(intptr_t)iCommId, SETRTS );
 				//SETDTR
 #ifdef BCC16
 		      if ( SetCommState( &pct->dcb ) )
 #else
-		      if ( !SetCommState( (HANDLE)iCommId, &pct->dcb ) )
+		      if ( !SetCommState( (HANDLE)(intptr_t)iCommId, &pct->dcb ) )
 #endif
 		      {
 #ifdef _WIN32
@@ -1090,7 +1090,7 @@ void DumpTermios( struct termios *opts )
 #ifdef BCC16
 	return GetCommState( iCommId, lpDcb );
 #else
-	return GetCommState( (HANDLE)iCommId, lpDcb );
+	return GetCommState( (HANDLE)(intptr_t)iCommId, lpDcb );
 #endif
 #else
     if (!IsBadWritePtr(lpDcb, sizeof(DCB))) //Return passed DCB
@@ -1221,7 +1221,7 @@ void DumpTermios( struct termios *opts )
 	   if( iEvents & EV_RLSDS )
 #else
 		uint32_t iEvents;
-		GetCommMask( (HANDLE)iCommId, (DWORD*)&iEvents );
+		GetCommMask( (HANDLE)(intptr_t)iCommId, (DWORD*)&iEvents );
 		if( !(iEvents & EV_RLSD ) )
 #endif
 	   {
@@ -1327,7 +1327,7 @@ void DumpTermios( struct termios *opts )
 	   		if( !(iEvents & EV_RLSDS) )
 #else
 	   		uint32_t iEvents;
-				GetCommMask( (HANDLE)iCommId, (DWORD*)&iEvents );
+				GetCommMask( (HANDLE)(intptr_t)iCommId, (DWORD*)&iEvents );
 				if( !(iEvents & EV_RLSD ) )
 #endif
 	   		{
@@ -1524,7 +1524,7 @@ void SetCommRTS( int nCommID, int iRTS )
 		else
 			pct->dcb.fRtsControl = RTS_CONTROL_DISABLE;
       EnterCriticalSec( &pct->csOp );
-		if ( SetCommState( (HANDLE)nCommID, &pct->dcb ) )
+		if ( SetCommState( (HANDLE)(intptr_t)nCommID, &pct->dcb ) )
 		{
 		}
       LeaveCriticalSec( &pct->csOp );

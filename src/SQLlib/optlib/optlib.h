@@ -11,9 +11,6 @@ typedef struct sack_option_tree_family OPTION_TREE;
 typedef struct sack_option_tree_family_node OPTION_TREE_NODE;
 
 struct sack_option_tree_family_node {
-	INDEX id;
-	INDEX name_id;
-	INDEX value_id;
 	CTEXTSTR name;
 	CTEXTSTR guid;
 	CTEXTSTR name_guid;
@@ -45,7 +42,6 @@ struct sack_option_tree_family {
 struct option_odbc_tracker
 {
 	CTEXTSTR name;
-	int version;
 	PLINKQUEUE available;
 	PLIST outstanding;
 	PFAMILYTREE shared_option_tree;

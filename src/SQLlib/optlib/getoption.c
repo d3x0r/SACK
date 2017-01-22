@@ -124,8 +124,6 @@ POPTION_TREE GetOptionTreeExxx( PODBC odbc, PFAMILYTREE existing_tree DBG_PASS )
 		MemSet( tree, 0, sizeof( struct sack_option_tree_family ) );
 		tree->root = GetFromSet( OPTION_TREE_NODE, &tree->nodes );
 		//MemSet( tree->root, 0, sizeof( struct sack_option_tree_family_node ) );
-		tree->root->name_id = INVALID_INDEX;
-		tree->root->value_id = INVALID_INDEX;
 
 		tree->root->guid = GuidZero();
 		tree->root->name_guid = NULL;
@@ -214,12 +212,14 @@ SQLGETOPTION_PROC( void, CreateOptionDatabaseEx )( PODBC odbc, POPTION_TREE tree
 			{
 				// this needs a self-looped root to satisfy constraints.
 				CTEXTSTR result;
-				if( !SQLQueryf( tree->odbc, &result, WIDE("select parent_option_id from option4_map where option_id='00000000-0000-0000-0000-000000000000'") )
+				if( !SQLQueryf( tree->odbc, &result, WIDE("select parent_option_id from option4_map where option_id='%s'"), GuidZero() )
 					|| !result )
 				{
 					OpenWriter( tree );
-					SQLCommandf( tree->odbc_writer, WIDE("insert into option4_map (option_id,parent_option_id,name_id)values('00000000-0000-0000-0000-000000000000','00000000-0000-0000-0000-000000000000','%s' )")
-									, New4ReadOptionNameTable(tree,WIDE("."),OPTION4_NAME,WIDE( "name_id" ),WIDE( "name" ),1 DBG_SRC)
+					SQLCommandf( tree->odbc_writer
+					           , WIDE("insert into option4_map (option_id,parent_option_id,name_id)values('%s','%s','%s' )")
+					           , GuidZero(), GuidZero()
+					           , New4ReadOptionNameTable(tree,WIDE("."),OPTION4_NAME,WIDE( "name_id" ),WIDE( "name" ),1 DBG_SRC)
 									);
 				}
 				SQLEndQuery( tree->odbc );
@@ -799,11 +799,16 @@ SQLGETOPTION_PROC( size_t, SACK_GetPrivateProfileStringExxx )( PODBC odbc
 	{
 		// first try, do it as false, so we can fill in default values.
 		POPTION_TREE_NODE opt_node;
+		char *buffer;
+		size_t buflen;
 		// maybe do an if( l.flags.bLogOptionsRead )
 		if( global_sqlstub_data->flags.bLogOptionConnection )
 			_lprintf(DBG_RELAY)( WIDE( "Getting option {%s}[%s]%s=%s" ), pINIFile, pSection, pOptname, pDefaultbuf );
 		opt_node = GetOptionIndexExx( odbc, OPTION_ROOT_VALUE, NULL, pINIFile, pSection, pOptname, TRUE, FALSE DBG_RELAY );
-		if( !opt_node )
+		// used to have a test - get option value index; but option index == node_id
+		// so it just returned the same node; but not quite, huh?
+		GetOptionStringValue( opt_node, &buffer, &buflen );
+		if( !buffer )
 		{
 			int x;
 			// this actually implies to delete the entry... but since it doesn't exist no worries...
@@ -822,49 +827,37 @@ SQLGETOPTION_PROC( size_t, SACK_GetPrivateProfileStringExxx )( PODBC odbc
 			//}
 			//else
 			{
-				if( pDefaultbuf )
+				if( pDefaultbuf ){
 					StrCpyEx( pBuffer, pDefaultbuf, nBuffer/sizeof( TEXTCHAR ) );
-				else
+					buflen = StrLen( pBuffer );
+				} else {
 					pBuffer[0] = 0;
+					buflen = 0;
+				}
 			}
 			// create the option branch since it doesn't exist...
 			{
-				if( SetOptionStringValue( GetOptionTreeExxx( odbc, NULL DBG_SRC ), opt_node, pBuffer ) )
-					x = (int)StrLen( pBuffer );
-				else
-					x = 0;
+				SetOptionStringValue( GetOptionTreeExxx( odbc, NULL DBG_SRC ), opt_node, pBuffer );
 				if( global_sqlstub_data->flags.bLogOptionConnection )
-					lprintf( WIDE("Result [%s]"), pBuffer );
+					lprintf( WIDE("default Result [%s]"), pBuffer );
 				if( drop_odbc )
 					DropOptionODBC( odbc );
 				LeaveCriticalSec( &og.cs_option );
-				return x;
+				return buflen;
 			}
 			//strcpy( pBuffer, pDefaultbuf );
 		}
 		else
 		{
-			TEXTCHAR *buf;
-			TEXTCHAR **ppBuf = &buf;
-			size_t buflen;
-			(*ppBuf) = (TEXTCHAR*)0x12345;
-			size_t x = GetOptionStringValueEx( odbc, opt_node, ppBuf, &buflen DBG_RELAY );
-			if( buf )
-				MemCpy( pBuffer, buf, x = min(buflen+1,(nBuffer) ) );
-			
-			if( (x == (size_t)-1) && pDefaultbuf && pDefaultbuf[0] )
-			{
-				if( global_sqlstub_data->flags.bLogOptionConnection )
-					lprintf( WIDE( "No value result, get or set default..." ) );
-				// if there's no default, doesn't matter if it's set or not.
-				goto do_defaulting;
-			}
+			MemCpy( pBuffer, buffer, buflen = min(buflen+1,(nBuffer) ) );
+			buflen--;
+			pBuffer[buflen] = 0;
 			if( global_sqlstub_data->flags.bLogOptionConnection )
 				lprintf( WIDE( "buffer result is [%s]" ), pBuffer );
 			if( drop_odbc )
 				DropOptionODBC( odbc );
 			LeaveCriticalSec( &og.cs_option );
-			return x;
+			return buflen;
 		}
 	}
 }

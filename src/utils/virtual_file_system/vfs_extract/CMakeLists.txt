@@ -3,6 +3,8 @@ set( PROJECT sack_vfs_extracter )
 
 if( WIN32 AND CMAKE_COMPILER_IS_GNUCC )
     SET( EXTRACTER_MORE_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/extracter.manifest )
+    STRING( REPLACE "/" "\\" MT_EXTRACTER_MORE_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/extracter.manifest )
+
     #SET( EXTRACTER_LINK_FLAGS "/MANIFEST:NO" )
 endif( WIN32 AND CMAKE_COMPILER_IS_GNUCC )
 
@@ -39,6 +41,19 @@ sack_add_executable( ${PROJECT} ${BASE_SOURCES} )
 if( MSVC )
     SET( EXTRACTER_LINK_FLAGS "/level='requireAdministrator' /uiAccess='false'" )
 endif( MSVC )
+
+if( WIN32 AND CMAKE_COMPILER_IS_GNUCC )
+STRING ( REPLACE "/" "\\" THISDIR ${CMAKE_CURRENT_BINARY_DIR} )
+add_custom_command(TARGET
+                     ${PROJECT}
+                   POST_BUILD
+                   COMMAND
+                     "mt.exe" -manifest \"${MT_EXTRACTER_MORE_SOURCES}\" -outputresource:\"${THISDIR}\\${PROJECT}.exe\"\;\#1
+                   COMMENT
+                     "Adding custom manifest containing MSVCRT80 dependency..." 
+                  )
+endif( WIN32 AND CMAKE_COMPILER_IS_GNUCC )
+
 
 SET_TARGET_PROPERTIES(${PROJECT} PROPERTIES
 		LINK_FLAGS "${EXTRACTER_LINK_FLAGS}"

@@ -345,7 +345,7 @@ int HandleEvents( MSGQ_TYPE msgq, PQMSG MessageEvent, int initial_flags )
 					{
 						//lprintf( WIDE("ex handler...%d"), Msg );
 						result_yesno = pHandler->HandlerExx( pHandler->psv
-																	  , (PSERVICE_ROUTE)MessageEvent->hdr.source.process_id
+																	  , (PSERVICE_ROUTE)(uintptr_t)MessageEvent->hdr.source.process_id
 																	  , Msg
 																	  , (uint32_t*)((&MessageEvent->hdr)+1)
 																	  , MessageLen - sizeof( MSGHDR ) );

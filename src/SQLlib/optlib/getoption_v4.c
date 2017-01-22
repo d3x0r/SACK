@@ -133,6 +133,7 @@ void DumpFamilyTree( PFAMILYTREE tree )
 POPTION_TREE_NODE New4GetOptionIndexExxx( PODBC odbc, POPTION_TREE tree, POPTION_TREE_NODE parent, const TEXTCHAR *system, const TEXTCHAR *program, const TEXTCHAR *file, const TEXTCHAR *pBranch, const TEXTCHAR *pValue, int bCreate, int bBypassParsing, int bIKnowItDoesntExist DBG_PASS )
 //#define GetOptionIndex( f,b,v ) GetOptionIndexEx( OPTION_ROOT_VALUE, f, b, v, FALSE )
 {
+	POPTION_TREE_NODE node; // temp
 	const TEXTCHAR **start = NULL;
 	TEXTCHAR namebuf[256];
 	TEXTCHAR query[256];
@@ -215,38 +216,12 @@ POPTION_TREE_NODE New4GetOptionIndexExxx( PODBC odbc, POPTION_TREE tree, POPTION
 		lprintf( "Find [%s]", namebuf );
 #endif
 		//DumpFamilyTree( tree->option_tree );
-		{
-			POPTION_TREE_NODE node = (POPTION_TREE_NODE)FamilyTreeFindChild( tree->option_tree, (uintptr_t)namebuf );
-			if( node )
-			{
-#ifdef DETAILED_LOGGING
-				lprintf( WIDE("Which is found, and new parent ID result...%p %s"), node, node->guid );
-#endif
-				if( !node->guid )
-				{
-					node->guid = GetSeqGUID();
-					OpenWriter( tree );
-					if( SQLCommandf( tree->odbc_writer
-										, WIDE( "Insert into " )OPTION4_MAP WIDE( "(`option_id`,`parent_option_id`,`name_id`) values ('%s','%s','%s')" )
-										, parent?parent->guid:WIDE("00000000-0000-0000-0000-000000000000")
-										, node->guid, node->name_guid ) )
-					{
-					}
-					else
-					{
-						CTEXTSTR error;
-						FetchSQLError( tree->odbc, &error );
-#ifdef DETAILED_LOGGING
-						lprintf( WIDE("Error inserting option: %s"), error );
-#endif
-						node->guid = NULL;
-					}
-				}
-				parent = node;
-				continue;
-			}
+		node = (POPTION_TREE_NODE)FamilyTreeFindChildEx( tree->option_tree, parent?parent->node:NULL, (uintptr_t)namebuf );
+		if( node ) {
+			parent = node;
+			continue;
 		}
-
+		// else parent is ; and new node needs to be...
 		{
 			CTEXTSTR IDName = New4ReadOptionNameTable(tree,namebuf,OPTION4_NAME,WIDE( "name_id" ),WIDE( "name" ),1 DBG_RELAY);
 			if( !bIKnowItDoesntExist )
@@ -254,7 +229,7 @@ POPTION_TREE_NODE New4GetOptionIndexExxx( PODBC odbc, POPTION_TREE tree, POPTION
 				PushSQLQueryExEx(tree->odbc DBG_RELAY );
 				tnprintf( query, sizeof( query )
 						  , WIDE( "select option_id from " )OPTION4_MAP WIDE( " where parent_option_id='%s' and name_id='%s'" )
-						  , parent->guid
+						  , parent?parent->guid:GuidZero()
 						  , IDName );
 			}
 			//lprintf( WIDE( "doing %s" ), query );
@@ -292,7 +267,7 @@ POPTION_TREE_NODE New4GetOptionIndexExxx( PODBC odbc, POPTION_TREE tree, POPTION
 						new_node->name_guid = IDName;
 						new_node->name = SaveText( namebuf );
 						new_node->value = NULL;
-						new_node->node = FamilyTreeAddChild( &tree->option_tree, new_node, (uintptr_t)new_node->name );
+						new_node->node = FamilyTreeAddChild( &tree->option_tree, parent?parent->node:NULL, new_node, (uintptr_t)new_node->name );
 						//lprintf( "New parent has been created in the tree... %p %s", new_node, new_node->guid );
 						parent = new_node;
 					}
@@ -319,7 +294,7 @@ POPTION_TREE_NODE New4GetOptionIndexExxx( PODBC odbc, POPTION_TREE tree, POPTION
 				new_node->name_guid = IDName;
 				new_node->name = SaveText( namebuf );
 				new_node->value = NULL;
-				new_node->node = FamilyTreeAddChild( &tree->option_tree, new_node, (uintptr_t)new_node->name );
+				new_node->node = FamilyTreeAddChild( &tree->option_tree, parent?parent->node:NULL, new_node, (uintptr_t)new_node->name );
 
 				//lprintf( "New parent has been created in the tree...2 %p %s", new_node, new_node->guid );
 				parent = new_node;
@@ -540,9 +515,8 @@ LOGICAL New4CreateValue( POPTION_TREE tree, POPTION_TREE_NODE value, CTEXTSTR pV
 int ResolveOptionName( POPTION_TREE options, CTEXTSTR parent_id, CTEXTSTR option_id, CTEXTSTR name_id, CTEXTSTR option_name, TEXTSTR output_buffer, size_t output_buffer_size )
 {
 	CTEXTSTR *results;
-	if( StrCaseCmp( parent_id, WIDE("00000000-0000-0000-0000-000000000000") ) == 0 )
+	if( StrCaseCmp( parent_id, GuidZero() ) == 0 )
 	{
-		output_buffer[0] = 0;
 		return tnprintf( output_buffer, output_buffer_size, WIDE("%s"), option_name );
 	}
 	PushSQLQueryEx( options->odbc ); 

@@ -634,7 +634,7 @@ HANDLE sack_openfile( INDEX group,CTEXTSTR filename, OFSTRUCT *of, int flags )
 	return result;
 #else
 #undef OpenFile
-	return (HANDLE)OpenFile(filename,of,flags);
+	return (HANDLE)(uintptr_t)OpenFile(filename,of,flags);
 #endif
 }
 #endif

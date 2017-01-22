@@ -80,16 +80,17 @@ if( NOT CMAKE_COMPILER_IS_GNUCC )
 	set( CMAKE_COMPILER_IS_GNUCC OFF )
 endif( NOT CMAKE_COMPILER_IS_GNUCC )
 
-if( WIN32 AND ${CMAKE_COMPILER_IS_GNUCC} )
+STRING ( REPLACE "/" "\\" THISDIR ${CMAKE_CURRENT_BINARY_DIR} )
+if( WIN32 AND CMAKE_COMPILER_IS_GNUCC )
 add_custom_command(TARGET
                      ${project}
                    POST_BUILD
                    COMMAND
-                     "mt.exe" -manifest \"${EXTRACTER_MORE_SOURCES}\" -outputresource:\"${CMAKE_CURRENT_BINARY_DIR}\\${project}.exe\"\;\#1
+                     "mt.exe" -manifest \"${MT_EXTRACTER_MORE_SOURCES}\" -outputresource:\"${THISDIR}\\${project}.exe\"\;\#1
                    COMMENT
                      "Adding custom manifest containing MSVCRT80 dependency..." 
                   )
-endif( WIN32 AND ${CMAKE_COMPILER_IS_GNUCC} )
+endif( WIN32 AND CMAKE_COMPILER_IS_GNUCC )
 
 
 
@@ -105,16 +106,16 @@ SET_TARGET_PROPERTIES(${project} PROPERTIES
 target_link_libraries( ${project} ${PLATFORM_LIBRARIES} )
 install_default_dest( ${project} )
 
-if( WIN32 AND ${CMAKE_COMPILER_IS_GNUCC} )
+if( WIN32 AND CMAKE_COMPILER_IS_GNUCC )
 add_custom_command(TARGET
                      ${project}
                    POST_BUILD
                    COMMAND
-                     "mt.exe" -manifest \"${EXTRACTER_MORE_SOURCES}\" -outputresource:\"${CMAKE_CURRENT_BINARY_DIR}\\${project}.exe\"\;\#1
+                     "mt.exe" -manifest \"${MT_EXTRACTER_MORE_SOURCES}\" -outputresource:\"${THISDIR}\\${project}.exe\"\;\#1
                    COMMENT
                      "Adding custom manifest containing MSVCRT80 dependency..." 
                   )
-endif( WIN32 AND ${CMAKE_COMPILER_IS_GNUCC} )
+endif( WIN32 AND CMAKE_COMPILER_IS_GNUCC )
 
 
 
@@ -130,15 +131,15 @@ target_link_libraries( ${project} ${PLATFORM_LIBRARIES} )
 install_default_dest( ${project} )
 
 
-if( WIN32 AND ${CMAKE_COMPILER_IS_GNUCC} )
+if( WIN32 AND CMAKE_COMPILER_IS_GNUCC )
 add_custom_command(TARGET
                      ${project}
                    POST_BUILD
                    COMMAND
-                     "mt.exe" -manifest \"${EXTRACTER_MORE_SOURCES}\" -outputresource:\"${CMAKE_CURRENT_BINARY_DIR}\\${project}.exe\"\;\#1
+                     "mt.exe" -manifest \"${MT_EXTRACTER_MORE_SOURCES}\" -outputresource:\"${THISDIR}\\${project}.exe\"\;\#1
                    COMMENT
                      "Adding custom manifest containing MSVCRT80 dependency..." 
                   )
-endif( WIN32 AND ${CMAKE_COMPILER_IS_GNUCC} )
+endif( WIN32 AND CMAKE_COMPILER_IS_GNUCC )
 
 

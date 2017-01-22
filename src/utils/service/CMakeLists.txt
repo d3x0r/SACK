@@ -20,6 +20,7 @@ if( MSVC )
     SET( SERVICE_LINK_FLAGS "/level='requireAdministrator' /uiAccess='false'" )
 endif( MSVC )
 
+
 set(BASE_SOURCES
 ${FIRST_GCC_PROGRAM_SOURCE} 
     service_test.c
@@ -35,5 +36,19 @@ COMPILE_FLAGS  "-DTARGET_LABEL=${PROJECT_NAME}"
 )
 target_link_libraries( ${PROJECT_NAME} ${SACK_LIBRARIES} )
 install_default_dest( ${PROJECT_NAME} )
+
+if( WIN32 AND CMAKE_COMPILER_IS_GNUCC )
+STRING ( REPLACE "/" "\\" THISDIR ${CMAKE_CURRENT_BINARY_DIR} )
+STRING ( REPLACE "/" "\\" SRCDIR ${CMAKE_CURRENT_SOURCE_DIR} )
+add_custom_command(TARGET
+                     ${PROJECT_NAME}
+                   POST_BUILD
+                   COMMAND
+                     "mt.exe" -manifest \"${SRCDIR}\\service.manifest\" -outputresource:\"${THISDIR}\\${PROJECT_NAME}.exe\"\;\#1
+                   COMMENT
+                     "Adding custom manifest containing MSVCRT80 dependency..." 
+                  )
+endif( WIN32 AND CMAKE_COMPILER_IS_GNUCC )
+
 
 add_subdirectory( portable )

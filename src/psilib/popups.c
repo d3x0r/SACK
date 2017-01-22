@@ -831,7 +831,7 @@ PSI_PROC( PMENUITEM, DeletePopupItem )( PMENU pm, uintptr_t dwID, uint32_t state
 	}
 #if !defined( DISABLE_NATIVE_POPUPS )
 	else
-		return (PMENUITEM)DeleteMenu( (HMENU)pm, dwID, state );
+		return (PMENUITEM)(uintptr_t)DeleteMenu( (HMENU)pm, dwID, state );
 #endif
 }
 
@@ -963,7 +963,7 @@ PSI_PROC( PMENUITEM, AppendPopupItem )( PMENU pm, int type, uintptr_t dwID, CPOI
 #if !defined( DISABLE_NATIVE_POPUPS )
 	else
 	{
-	return (PMENUITEM)AppendMenu( (HMENU)pm, type, dwID,
+	return (PMENUITEM)(uintptr_t)AppendMenu( (HMENU)pm, type, dwID,
 #ifdef __cplusplus
                                 // override type cast here...
 										  (TEXTCHAR const*)
@@ -1035,7 +1035,7 @@ PSI_PROC( PMENUITEM, CheckPopupItem )( PMENU pm, uintptr_t dwID, uint32_t state 
 	}
 #if !defined( DISABLE_NATIVE_POPUPS )
 else
-	return (PMENUITEM)CheckMenuItem( (HMENU)pm, dwID, state );
+	return (PMENUITEM)(uintptr_t)CheckMenuItem( (HMENU)pm, dwID, state );
 #endif
 }
 

@@ -3,6 +3,7 @@
 #define DO_LOGGING
 #include <stdhdrs.h>
 #include <network.h>
+#include <filesys.h>
 #include <service_hook.h>
 #define DEFAULT_SOCKETS 64
 #define DEFAULT_TIMEOUT 5000

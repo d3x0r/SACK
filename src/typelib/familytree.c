@@ -195,7 +195,7 @@ void  FamilyTreeReset ( PFAMILYTREE *option_tree )
 
 //----------------------------------------------------------------------------
 
-PFAMILYNODE  FamilyTreeAddChild ( PFAMILYTREE *root, POINTER userdata, uintptr_t key )
+PFAMILYNODE  FamilyTreeAddChild ( PFAMILYTREE *root, PFAMILYNODE parent, POINTER userdata, uintptr_t key )
 {
 	if( root )
 	{
@@ -208,7 +208,7 @@ PFAMILYNODE  FamilyTreeAddChild ( PFAMILYTREE *root, POINTER userdata, uintptr_t
 		node->flags.bUsed = 0;
 		node->userdata = userdata;
 		node->key = key;
-		node->parent = (*root)->prior;
+		node->parent = parent;//(*root)->prior;
 		if( !node->parent )
 		{
 			if( ( node->elder = (*root)->family ) )
@@ -228,6 +228,7 @@ PFAMILYNODE  FamilyTreeAddChild ( PFAMILYTREE *root, POINTER userdata, uintptr_t
 	}
 	return NULL;
 }
+
 #ifdef __cplusplus
 }; //namespace family {
 }; //namespace containers {

@@ -263,7 +263,7 @@ void LoadTranslationDataFromFile( FILE *input )
 			{
 				index = ((STRING_INDEX_TYPE*)( space->buffer + offset ))[0];
 				SetLink( &translate_local.index_list, index - 1, string = ( space->buffer + offset + 4 ) );
-				AddBinaryNode( translate_local.index, (CPOINTER)(index), (uintptr_t)string );
+				AddBinaryNode( translate_local.index, (CPOINTER)((uintptr_t)index), (uintptr_t)string );
 
 				offset += StrLen( string ) + 4;
 			}
@@ -292,7 +292,7 @@ CTEXTSTR TranslateText( CTEXTSTR text )
 	{
 		CTEXTSTR index_text = SaveString( &translate_local.index_strings, translate_local.string_count+1, text );
 		PLIST list = SetLink( &translate_local.index_list, translate_local.string_count, index_text );
-		AddBinaryNode( translate_local.index, (CPOINTER)(translate_local.string_count+1), (uintptr_t)index_text );
+		AddBinaryNode( translate_local.index, (CPOINTER)((uintptr_t)translate_local.string_count+1), (uintptr_t)index_text );
 		translate_local.string_count++;
 		psvIndex = translate_local.string_count;
 	}

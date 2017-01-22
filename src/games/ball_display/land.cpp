@@ -6,6 +6,7 @@
 #define NEED_VECTLIB_COMPARE
 #define TERRAIN_MAIN_SOURCE
 #include <math.h>
+#include <filesys.h>
 #include <render.h>
 #include <render3d.h>
 #include <vectlib.h>

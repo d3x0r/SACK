@@ -4,7 +4,7 @@
 
 
 #include <stdhdrs.h>
-#include <sharemem.h>
+#include <filesys.h>
 
 #define OBJECT_SOURCE
 #include <virtuality.h>

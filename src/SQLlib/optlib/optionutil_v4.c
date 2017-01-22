@@ -35,7 +35,7 @@ static LOGICAL CPROC New4CheckOption( uintptr_t psvForeach, uintptr_t psvNode )
 	POPTION_TREE_NODE option_node = (POPTION_TREE_NODE)psvNode;
 	struct new4_enum_params *params = (struct new4_enum_params *)psvForeach;
 	return params->Process( params->psvEnum, option_node->name, option_node
-								 , ((option_node->value_id)?1:0) );
+								 , ((option_node->value_guid)?1:0) );
 }
 
 void New4EnumOptions( PODBC odbc
@@ -101,19 +101,19 @@ void New4EnumOptions( PODBC odbc
 			{
 				tmp_node = New( OPTION_TREE_NODE );
 				MemSet( tmp_node, 0, sizeof( struct sack_option_tree_family_node ) );
-				tmp_node->guid = StrDup( results[0] );
-				tmp_node->name_guid = StrDup( results[2] );
+				tmp_node->guid = SaveText( results[0] );
+				tmp_node->name_guid = SaveText( results[2] );
 				tmp_node->value_guid = NULL;
 
 				popodbc = 1;
 				tmp_node->name = SaveText( results[1] );
-				tmp_node->node = FamilyTreeAddChild( &node->option_tree, tmp_node, (uintptr_t)tmp_node->name );
+				tmp_node->node = FamilyTreeAddChild( &node->option_tree, parent->node, tmp_node, (uintptr_t)tmp_node->name );
 
 				// psv is a pointer to args in some cases...
 				//lprintf( WIDE( "Enum %s %ld" ), optname, node );
 				//ReadFromNameTable( name, WIDE(""OPTION_NAME""), WIDE("name_id"), &result);
 				if( !Process( psvUser, tmp_node->name, tmp_node
-								, ((tmp_node->value_id)?1:0)
+								, ((tmp_node->value_guid)?1:0)
 								) )
 				{
 					break;

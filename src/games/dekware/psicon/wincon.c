@@ -1,4 +1,5 @@
 #define _INCLUDE_CLIPBOARD
+#define _INCLUDE_TEXTMETRIC
 #include <stdhdrs.h>
 #include <stdio.h> // sprintf ?
 #include <string.h> // strchr
@@ -247,7 +248,7 @@ HWND hWndFocused;
 
 //----------------------------------------------------------------------------
 
-int CALLBACK NameDialog( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam )
+INT_PTR CALLBACK NameDialog( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam )
 {
 	static TEXTCHAR NameBuffer[256];
 	switch( uMsg )
@@ -1044,7 +1045,7 @@ int RegisterWindows( void )
 		AppendMenu( hHistoryMenu, MF_STRING, MNU_HISTORYSIZE50, WIDE("50%") );
 		AppendMenu( hHistoryMenu, MF_STRING, MNU_HISTORYSIZE75, WIDE("75%") );
 		AppendMenu( hHistoryMenu, MF_STRING, MNU_HISTORYSIZE100, WIDE("100%") );
-		AppendMenu( hChildMenu, MF_STRING|MF_POPUP, (int)hHistoryMenu, WIDE("History Display Size") );
+		AppendMenu( hChildMenu, MF_STRING|MF_POPUP, (uintptr_t)hHistoryMenu, WIDE("History Display Size") );
 	}
 	{
 		HMENU hColorMenu, hColorMenu2;
@@ -1065,7 +1066,7 @@ int RegisterWindows( void )
 		AppendMenu( hColorMenu, MF_OWNERDRAW, MNU_LTMAG, (LPCTSTR)13 );
 		AppendMenu( hColorMenu, MF_OWNERDRAW, MNU_YELLOW, (LPCTSTR)14 );
 		AppendMenu( hColorMenu, MF_OWNERDRAW, MNU_WHITE, (LPCTSTR)15 );
-		AppendMenu( hChildMenu, MF_STRING|MF_POPUP, (int)hColorMenu, WIDE("Text Color") );
+		AppendMenu( hChildMenu, MF_STRING|MF_POPUP, (uintptr_t)hColorMenu, WIDE("Text Color") );
 		hColorMenu2 = CreatePopupMenu();
 		AppendMenu( hColorMenu2, MF_OWNERDRAW, MNU_BKBLACK, (LPCTSTR)0 );
 		AppendMenu( hColorMenu2, MF_OWNERDRAW, MNU_BKBLUE, (LPCTSTR)1 );
@@ -1083,7 +1084,7 @@ int RegisterWindows( void )
 		AppendMenu( hColorMenu2, MF_OWNERDRAW, MNU_BKLTMAG, (LPCTSTR)13 );
 		AppendMenu( hColorMenu2, MF_OWNERDRAW, MNU_BKYELLOW, (LPCTSTR)14 );
 		AppendMenu( hColorMenu2, MF_OWNERDRAW, MNU_BKWHITE, (LPCTSTR)15 );
-		AppendMenu( hChildMenu, MF_STRING|MF_POPUP, (int)hColorMenu2, WIDE("Background Color") );
+		AppendMenu( hChildMenu, MF_STRING|MF_POPUP, (uintptr_t)hColorMenu2, WIDE("Background Color") );
 	}
 	AppendMenu( hChildMenu, MF_STRING, 0, WIDE("Command Color") );
 	AppendMenu( hChildMenu, MF_STRING, 0, WIDE("Command Background Color") );
@@ -1135,12 +1136,12 @@ void UnregisterWindows( void )
 	}
 	if( aClassFrame )
 	{
-		UnregisterClass( (TEXTCHAR*)aClassFrame, hInstMe );
+		UnregisterClass( (TEXTCHAR*)(uintptr_t)aClassFrame, hInstMe );
 		aClassFrame = 0;
 	}
 	if( aClassChild )
 	{
-		UnregisterClass( (TEXTCHAR*)aClassChild, hInstMe );
+		UnregisterClass( (TEXTCHAR*)(uintptr_t)aClassChild, hInstMe );
 		aClassChild = 0;
 	}
 	if( hChildMenu )
