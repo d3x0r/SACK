@@ -32,7 +32,7 @@ static struct {
 	struct directory_entry zero_entkey;
 	uint8_t zerokey[BLOCK_SIZE];
 } l;
-
+#define EOFBLOCK  (~(BLOCKINDEX)0)
 static BLOCKINDEX GetFreeBlock( struct volume *vol, LOGICAL init );
 
 static char mytolower( int c ) {	if( c == '\\' ) return '/'; return tolower( c ); }
@@ -85,7 +85,7 @@ static LOGICAL ValidateBAT( struct volume *vol ) {
 			for( m = 0; m < BLOCKS_PER_BAT; m++ )
 			{
 				BLOCKINDEX block = BAT[m] ^ ((BLOCKINDEX*)vol->usekey[BLOCK_CACHE_BAT])[m];
-				if( block == ~0 ) continue;
+				if( block == EOFBLOCK ) continue;
 				if( block >= last_block ) return FALSE;
 			}
 			//vol->key_lock[BLOCK_CACHE_BAT] = 0;
@@ -96,7 +96,7 @@ static LOGICAL ValidateBAT( struct volume *vol ) {
 			BLOCKINDEX *BAT = (BLOCKINDEX*)(((uint8_t*)vol->disk) + n * BLOCK_SIZE);
 			for( m = 0; m < BLOCKS_PER_BAT; m++ ) {
 				BLOCKINDEX block = BAT[m];
-				if( block == ~0 ) continue;
+				if( block == EOFBLOCK ) continue;
 				if( block >= last_block ) return FALSE;
 			}
 		}
@@ -156,8 +156,8 @@ static void ExpandVolume( struct volume *vol ) {
 	if( !oldsize ) {
 		// can't recover dirents and nameents dynamically; so just assume
 		// use the GetFreeBlock because it will update encypted
-		//vol->disk->BAT[0] = ~0;  // allocate 1 directory entry block
-		//vol->disk->BAT[1] = ~0;  // allocate 1 name block
+		//vol->disk->BAT[0] = EOFBLOCK;  // allocate 1 directory entry block
+		//vol->disk->BAT[1] = EOFBLOCK;  // allocate 1 name block
 		/* vol->dirents = */GetFreeBlock( vol, TRUE );
 		/* vol->nameents = */GetFreeBlock( vol, TRUE );
 	}
@@ -208,7 +208,7 @@ static BLOCKINDEX GetFreeBlock( struct volume *vol, LOGICAL init )
 				// adn thsi result will overwrite previous EOF.
 				if( vol->key )
 				{
-					current_BAT[n] = ~0 ^ ((BLOCKINDEX*)vol->usekey[BLOCK_CACHE_FILE])[n];
+					current_BAT[n] = EOFBLOCK ^ ((BLOCKINDEX*)vol->usekey[BLOCK_CACHE_FILE])[n];
 					if( init )
 					{
 						vol->segment[BLOCK_CACHE_FILE] = b * (BLOCKS_PER_SECTOR) + n + 1 + 1;  
@@ -218,7 +218,7 @@ static BLOCKINDEX GetFreeBlock( struct volume *vol, LOGICAL init )
 						memcpy( ((uint8_t*)vol->disk) + (vol->segment[BLOCK_CACHE_FILE]-1) * BLOCK_SIZE, vol->usekey[BLOCK_CACHE_FILE], BLOCK_SIZE );
 					}
 				} else {
-					current_BAT[n] = ~0;
+					current_BAT[n] = EOFBLOCK;
 				}
 				return b * BLOCKS_PER_BAT + n;
 			}
@@ -243,7 +243,7 @@ BLOCKINDEX vfs_GetNextBlock( struct volume *vol, BLOCKINDEX block, LOGICAL init,
 		}
 		check_val ^= ((BLOCKINDEX*)vol->usekey[BLOCK_CACHE_FILE])[block & (BLOCKS_PER_BAT-1)];
 	}
-	if( check_val == ~0 ) {
+	if( check_val == EOFBLOCK ) {
 		if( expand ) {
 			BLOCKINDEX key = vol->key?((BLOCKINDEX*)vol->usekey[BLOCK_CACHE_FILE])[block & (BLOCKS_PER_BAT-1)]:0;
 			check_val = GetFreeBlock( vol, init );
@@ -453,7 +453,7 @@ const char *sack_vfs_get_signature( struct volume *vol ) {
 						DebugBreak();
 					this_dir_block = next_dir_block;
 				}
-				while( next_dir_block != ~0 );
+				while( next_dir_block != EOFBLOCK );
 			}
 		}
 		if( !vol->entropy )
@@ -779,7 +779,7 @@ static void sack_vfs_unlink_file_entry( struct volume *vol, struct directory_ent
 			block = vfs_GetNextBlock( vol, block, FALSE, FALSE );
 			this_BAT[_block & (BLOCKS_PER_BAT-1)] = _thiskey;
 			_block = block;
-		} while( block != ~0 );
+		} while( block != EOFBLOCK );
 	}
 }
 
@@ -870,7 +870,7 @@ static int iterate_find( struct find_info *info ) {
 		info->thisent = 0; // new block, set new starting index.
 		info->this_dir_block = vfs_GetNextBlock( info->vol, info->this_dir_block, FALSE, FALSE );
 	}
-	while( info->this_dir_block != ~0 );
+	while( info->this_dir_block != EOFBLOCK );
 	return 0;
 }
 
