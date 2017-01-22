@@ -585,7 +585,7 @@ static uintptr_t CPROC SetMenuBackgroundColor( uintptr_t psv, arg_list args )
 	//lprintf( WIDE("...") );
 	PCanvasData canvas = GetCanvas( (PSI_CONTROL)PeekLink( &l.current_canvas ) );
 	canvas->current_page->background_color = color;
-	SetLink( &canvas->current_page->background_colors, 0, color );
+	SetLink( &canvas->current_page->background_colors, 0, (uintptr_t)color );
 	return psv;
 }
 
@@ -609,7 +609,7 @@ static uintptr_t CPROC SetMenuBackgroundColorTheme( uintptr_t psv, arg_list args
 	PARAM( args, int64_t, theme_id );
 	PARAM( args, CDATA, color );
 	PCanvasData canvas = GetCanvas( (PSI_CONTROL)PeekLink( &l.current_canvas ) );
-	SetLink( &canvas->current_page->background_colors, (INDEX)theme_id, color );
+	SetLink( &canvas->current_page->background_colors, (INDEX)theme_id, (uintptr_t)color );
 	AddTheme( (int)theme_id );
 	return psv;
 }
@@ -1069,7 +1069,7 @@ void LoadButtonConfig( PSI_CONTROL pc_canvas, TEXTSTR filename )
 #ifndef __NO_OPTIONS__
 #ifndef __NO_SQL__
 #ifndef __ARM__
-         odbc = GetOptionODBC( g.configuration_dsn, g.configuration_version );
+         odbc = GetOptionODBC( g.configuration_dsn );
 			if( SACK_GetProfileBlobOdbc( odbc
 						               , WIDE("intershell/configuration"), name_only, &buffer, &buflen ) )
 			{
@@ -1828,7 +1828,7 @@ void SaveButtonConfig( PSI_CONTROL pc_canvas, TEXTCHAR *filename )
 
 			if( mem && size )
 			{
-				PODBC odbc = GetOptionODBC( g.configuration_dsn, g.configuration_version );
+				PODBC odbc = GetOptionODBC( g.configuration_dsn );
 				g.flags.forceload = 0;
 				do
 				{

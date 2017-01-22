@@ -30,10 +30,10 @@ static struct local_login_mon
 	HHOOK gKeyboardHook;
 
 	// Process info
-	uint32_t pidList1[1024];
-	uint32_t pidListLength1;
-	uint32_t pidList2[1024];
-	uint32_t pidListLength2;
+	DWORD pidList1[1024];
+	DWORD pidListLength1;
+	DWORD pidList2[1024];
+	DWORD pidListLength2;
 
 	// Timer data
 	uint32_t iTimerHandle;
@@ -298,7 +298,7 @@ PRELOAD( InitLoginMon )
 
 		// Set up for pulling options
 		SACK_GetProfileString( WIDE("SECURITY/SQL Passwords"), WIDE( "password DSN" ), GetDefaultOptionDatabaseDSN(), l.option_dsn, sizeof( l.option_dsn ) );
-		odbc = GetOptionODBC( l.option_dsn, 0 );
+		odbc = GetOptionODBC( l.option_dsn );
 
 		// Get Idle Time ( Minutes )
 		l.iIdleTime = SACK_GetPrivateOptionInt( odbc, WIDE("SECURITY/Login/Timeouts"), WIDE("idle"), 30, NULL );

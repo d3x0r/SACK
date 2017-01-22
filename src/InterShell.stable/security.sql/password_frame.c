@@ -36,8 +36,8 @@ struct user_list_user_tracker
 		BIT_FIELD bHasLogin : 1;
 		BIT_FIELD bHasOverride : 1;
 	} flags;
-	CTEXTSTR required_login_id;
-	CTEXTSTR required_login_shift;
+	TEXTSTR required_login_id;
+	TEXTSTR required_login_shift;
 };
 
 //--------------------------------------------------------------------------------
@@ -4157,7 +4157,7 @@ PRIORITY_PRELOAD( Init_password_frame, DEFAULT_PRELOAD_PRIORITY-1 )
 		// Set Up for pulling options
 		TEXTCHAR option_dsn[64];
 		SACK_GetProfileString( WIDE("SECURITY/SQL Passwords"), WIDE("password DSN"), GetDefaultOptionDatabaseDSN(), option_dsn, sizeof( option_dsn ) );
-		odbc = GetOptionODBC( option_dsn, 0 );
+		odbc = GetOptionODBC( option_dsn );
 	}
 	 	
 	l.bad_login_limit = SACK_GetPrivateOptionInt( odbc, WIDE("SECURITY/SYSTEM/Login Failure"), WIDE("Limit"), 5, NULL );
