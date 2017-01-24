@@ -22,7 +22,7 @@ typedef class TOOLBIN *PTOOLBIN;
 extern "C"
 {
 	TOOLBIN_PROC( PTOOLBIN, CreateToolbin )( PIBOARD board );
-	TOOLBIN_PROC( PSI_CONTROL, CreateToolbinControl )( PIBOARD board, PSI_CONTROL parent, S_32 x, S_32 y, _32 w, _32 h );
+	TOOLBIN_PROC( PSI_CONTROL, CreateToolbinControl )( PIBOARD board, PSI_CONTROL parent, int32_t x, int32_t y, uint32_t w, uint32_t h );
    TOOLBIN_PROC( PTOOLBIN, GetToolbinFromControl )( PSI_CONTROL control );
 
 };

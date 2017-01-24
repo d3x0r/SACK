@@ -12,13 +12,34 @@ ADD_DEFINITIONS( -DUSE_GLES2 )
 endif( __ANDROID__ )
 
 
-set( PROJECT virtuality )
-ADD_DEFINITIONS( -DMAKE_RCOORD_SINGLE )
-
 ADD_DEFINITIONS( -DVIRTUALITY_LIBRARY_SOURCE ) 
 include_directories( "../include" )
-ADD_LIBRARY( ${PROJECT} SHARED editor.cpp key.cpp object.cpp plane.cpp shapes.cpp view.cpp )
 
+set( PROJECT virtuality )
+ADD_LIBRARY( ${PROJECT} SHARED editor.cpp key.cpp object.cpp plane.cpp shapes.cpp view.cpp )
+TARGET_LINK_LIBRARIES( ${PROJECT} ${SACK_LIBRARIES} ${SACK_PLATFORM_LIBRARIES} )
+SET_TARGET_PROPERTIES(${PROJECT} PROPERTIES
+                  COMPILE_DEFINITIONS "MAKE_RCOORD_SINGLE"
+                  #LINK_FLAGS "${extra_link_flags}"
+)
+
+if( WIN32 )
+	# On Windows platforms, the dynamic libs should
+	# go in the same dir as the executables.
+	install( TARGETS ${PROJECT}
+	        RUNTIME DESTINATION bin                     
+        	LIBRARY DESTINATION bin
+	        ARCHIVE DESTINATION lib )
+else( WIN32 )
+	install( TARGETS ${PROJECT}
+	        RUNTIME DESTINATION bin 
+        	LIBRARY DESTINATION lib
+	        ARCHIVE DESTINATION lib )
+endif( WIN32 )
+
+
+set( PROJECT virtualityd )
+ADD_LIBRARY( ${PROJECT} SHARED editor.cpp key.cpp object.cpp plane.cpp shapes.cpp view.cpp )
 TARGET_LINK_LIBRARIES( ${PROJECT} ${SACK_LIBRARIES} ${SACK_PLATFORM_LIBRARIES} )
 
 if( WIN32 )
@@ -35,4 +56,8 @@ else( WIN32 )
 	        ARCHIVE DESTINATION lib )
 endif( WIN32 )
 
+SET_TARGET_PROPERTIES(${PROJECT} PROPERTIES
+                  COMPILE_DEFINITIONS ""
+                  #LINK_FLAGS "${extra_link_flags}"
+)
 

@@ -761,7 +761,7 @@ public:
 	PIPEICE GetFirstPeice( INDEX *idx );
 	PIPEICE GetPeice( CTEXTSTR );
 	PIPEICE GetNextPeice( INDEX *idx );
-   void GetSize( P_32 cx, P_32 cy )
+   void GetSize( uint32_t* cx, uint32_t* cy )
 	{
 		// result with the current cell size, so we know
 		// how much to multiply row/column counters by.
@@ -771,7 +771,7 @@ public:
 		if( cy )
          (*cy) = board_height;
 	}
-	void GetCellSize( P_32 cx, P_32 cy, int scale )
+	void GetCellSize( uint32_t* cx, uint32_t* cy, int scale )
 	{
 		// result with the current cell size, so we know
 		// how much to multiply row/column counters by.
@@ -929,14 +929,14 @@ static int OnCreateCommon( WIDE("Brain Edit Control") )( PSI_CONTROL pc )
 		{
 			creating_board->update = new UPDATE( pc );
 			(*ppBoard) = creating_board;
-         (*ppBoard)->pControl = pc;
+			(*ppBoard)->pControl = pc;
 			creating_board = NULL;
 		}
 		else
 		{
-         (*ppBoard) = new BOARD();
+			(*ppBoard) = new BOARD();
 			(*ppBoard)->pControl = pc;
-         (*ppBoard)->update = new UPDATE( pc );
+			(*ppBoard)->update = new UPDATE( pc );
 		}
 	}
 	// hrm how do I set this data ?
@@ -1404,8 +1404,8 @@ LOGICAL BOARD::Load( PODBC odbc, CTEXTSTR boardname )
 
 void BOARD::ConfigSetCellSize( arg_list args )
 {
-	PARAM( args, S_64, x );
-	PARAM( args, S_64, y );
+	PARAM( args, int64_t, x );
+	PARAM( args, int64_t, y );
 	SetCellSize( (int)x, (int)y );
 }
 uintptr_t CPROC ConfigSetCellSize( uintptr_t psv, arg_list args )

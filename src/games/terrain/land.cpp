@@ -5,6 +5,7 @@
 #define NEED_VECTLIB_COMPARE
 #define TERRAIN_MAIN_SOURCE
 #include <math.h>
+#include <filesys.h>
 #include <render.h>
 #include <render3d.h>
 #include <vectlib.h>
@@ -925,7 +926,7 @@ public:
 
 		own_speed = 10;
 		own_rotation = 2;
-		AddTransformCallback( object->Ti, SphereBodyCorrect, (uintptr_t)this );
+		AddTransformCallbackd( object->Ti, SphereBodyCorrect, (uintptr_t)this );
 		brainstem = new BRAIN_STEM( WIDE("body") );
 		motion[0] = new CONNECTOR( WIDE("forward"), &speed );
 		motion[1] = new CONNECTOR( WIDE("turn"), &rotation );
@@ -945,7 +946,7 @@ public:
 			VECTOR vertical;
 			GetOriginV( object->Ti, vertical );
 			Invert( vertical );
-			RotateMast( object->Ti, vertical );
+			RotateMastd( object->Ti, vertical );
 			if( !Near( vertical, VectorConst_0 ) )
 			{
 				VECTOR force;
@@ -996,7 +997,7 @@ class Glider:public Body
 public:
 	Glider( POBJECT object ):Body(object)
 	{
-		AddTransformCallback( object->Ti, RandomTurn, (uintptr_t)this );
+		AddTransformCallbackd( object->Ti, RandomTurn, (uintptr_t)this );
 	}
 	void Move( void )
 	{
@@ -1006,10 +1007,10 @@ public:
 
 			if( ( rand() & 0xFF ) > 0x80 )
 			{
-				RotateAroundMast( object->Ti, (float)rand() / 600000.0 );
+				RotateAroundMastd( object->Ti, (float)rand() / 600000.0 );
 			}
 			else
-				RotateAroundMast( object->Ti, (float)rand() / -600000.0 );
+				RotateAroundMastd( object->Ti, (float)rand() / -600000.0 );
 		}
 	}
 };
@@ -1043,7 +1044,7 @@ public:
 		//motion[0] = new CONNECTOR( WIDE("right"), &speed );
 		//motion[1] = new CONNECTOR( WIDE("left"), &rotation );
       //motion[2] = new CONNECTOR( WIDE("forward_distance"), &rotation );
-	  AddTransformCallback( body_object->Ti, InvokeCycleMove, (uintptr_t)this );
+	  AddTransformCallbackd( body_object->Ti, InvokeCycleMove, (uintptr_t)this );
 	}
 	void Reset( void )
 	{
@@ -1106,12 +1107,12 @@ public:
 		if( flags.turn_left && !flags.turned_left )
 		{
 			//RotateAroundMast( object->Ti, -M_PI/2 );
-			RotateAroundMast( object->Ti, -M_PI/10 );
+			RotateAroundMastd( object->Ti, -M_PI/10 );
 		}
 		if( flags.turn_right && !flags.turned_right )
 		{
-			//RotateAroundMast( object->Ti, M_PI/2 );
-			RotateAroundMast( object->Ti, M_PI/10 );
+			RotateAroundMastd( object->Ti, M_PI/2 );
+			//RotateAroundd( object->Ti, M_PI/10 );
 		}
 		own_speed = ( PLANET_CIRCUM / (HEX_SIZE * 6) )  / 10;
 		//Forward( object->Ti, 100.0 );
@@ -2524,7 +2525,7 @@ void RipplePatch( PHEXPATCH patch )
 				fprintf( last, WIDE("%d"), n );
 				fclose( last );
 			}
-			SaveTransform( T, filename );
+			SaveTransformd( T, filename );
 		}
 		//SaveTransform( T, WIDE("recoverme") );
 	}
@@ -2676,9 +2677,9 @@ POBJECT CreateWorldCubeThing( VECTOR v, CDATA color )
 	POBJECT pWorld;
 	{
 		pWorld = Virtuality_MakeCube( 2 );
-      TranslateV( pWorld->Ti, v );
+		TranslateV( pWorld->Ti, v );
 		SetObjectColor( pWorld, color );
-      /// is also the same as AddRootObject
+		/// is also the same as AddRootObject
 		SetRootObject( pWorld );
 		{
 			VECTOR r;
@@ -2759,7 +2760,7 @@ static void OnDraw3d( WIDE("Terrain View") )( uintptr_t psvView )
 			}
 			snprintf( buffer, sizeof( buffer ), WIDE("state-%d"), n );
 			lprintf( WIDE("Loading transform %d"), n );
-			LoadTransform( tmp[d], buffer );
+			LoadTransformd( tmp[d], buffer );
 			ShowTransform( tmp[d] );
 			//if( ( tmp[d].m[0][1] > 0.983537 )
 			//  &&( tmp[d].m[0][1] < 0.983539 ) )

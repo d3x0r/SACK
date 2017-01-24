@@ -8,7 +8,7 @@ ${FIRST_GCC_PROGRAM_SOURCE}
   land.cpp key.cpp gps_grid.cpp
 ${LAST_GCC_PROGRAM_SOURCE} 
 )
-TARGET_LINK_LIBRARIES( ${PROJECT_NAME} ${SACK_LIBRARIES} ${SACK_PLATFORM_LIBRARIES} virtuality automaton.brain automaton.brain.board )
+TARGET_LINK_LIBRARIES( ${PROJECT_NAME} ${SACK_LIBRARIES} ${SACK_PLATFORM_LIBRARIES} virtualityd automaton.brain automaton.brain.board )
 
 string( REPLACE "." "_" TARGET_LABEL ${PROJECT_NAME} )
 SET_TARGET_PROPERTIES(${PROJECT_NAME} PROPERTIES

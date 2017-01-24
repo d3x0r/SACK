@@ -44,11 +44,11 @@ typedef struct layer_flags_tag
 } LAYER_FLAGS;
 
 
-typedef void (CPROC *UpdateProc)( PTRSZVAL psv, CDATA colors[3] );
+typedef void (CPROC *UpdateProc)( uintptr_t psv, CDATA colors[3] );
 
 typedef struct LAYER_PATH_NODE_tag{
 	LAYER_FLAGS flags; // 8 bits need 9 values (-1 being nowhere) 0-7, -1 ( 0xF )
-	S_32 x, y;
+	int32_t x, y;
 } LAYER_PATH_NODE, *PLAYER_PATH_NODE;
 
 // definition moved to peice.hpp (included by this)
@@ -56,20 +56,20 @@ typedef struct LAYER_PATH_NODE_tag{
 class LAYER_DATA
 {
 // common content of a layer....
-	//_32 ref; // reference count...
-   //_32 _cycle;
+	//uint32_t ref; // reference count...
+   //uint32_t _cycle;
    //CDATA cData[3]; // current colors...
 	struct LAYER_DATAset_tag **pool;
    // especially for things like via peices...
    //PDATASTACK pds_path;
    // keep a copy of this from peice getsize...
 public:
-	//_32 rows, cols;
+	//uint32_t rows, cols;
    // master peice archtype
 	PIPEICE peice;
    // psv will be PNEURON or PSYNAPSE;
    // the instance of peice which this relates to
-	PTRSZVAL psvInstance;
+	uintptr_t psvInstance;
    TEXTSTR atext;
 public:
 	void Init( void );
@@ -83,9 +83,9 @@ public:
 #ifndef __WATCOMC__
 	void operator delete( void *ptr, struct LAYER_DATAset_tag **frompool );
 #endif
-	void Update( _32 cycle );
+	void Update( uint32_t cycle );
 	// image and position to draw this layer onto...
-	void Draw( PIBOARD, Image, S_32 x, S_32 y );
+	void Draw( PIBOARD, Image, int32_t x, int32_t y );
 	friend class LAYER;
 };
 
@@ -109,11 +109,11 @@ public: // ended up exposing this so that save could work correctly...
    // maybe save should be a property of layer.. but then calling it ?
 	struct {
 		PLAYER layer;
-		S_32 x, y; // where this is linked to the other layer
+		int32_t x, y; // where this is linked to the other layer
 	}route_start_layer;
 	struct {
 		PLAYER layer;
-		S_32 x, y; // where this is linked to the other layer
+		int32_t x, y; // where this is linked to the other layer
 	}route_end_layer;
 	PLAYER stacked_on; // my relative coordinates are really realtive to what I'm stacked on's hotspot
    PLIST holding; // peices held should also move... statically relative to this holder
@@ -124,27 +124,27 @@ private:
 		// whether the first node on the route
 		// must remain in this direction
 		// of if it may be changed.
-		_32 bForced : 1;
-		_32 bEnded : 1; // layed an end peice.
+		uint32_t bForced : 1;
+		uint32_t bEnded : 1; // layed an end peice.
 		// is a set of vias, and pds_path is used
 		// to hold how, what, and where to draw.
 		// all segments represent a single object (psvInstance)
-		_32 bRoute : 1;
-		_32 bRoot : 1; // member 0 of pool is 'root'
+		uint32_t bRoute : 1;
+		uint32_t bRoot : 1; // member 0 of pool is 'root'
 	} flags;
 public: // exposed to saveLayer
 	PDATASTACK pds_path; // PLAYER_PATH_NODE list
 private:
-	//S_32 row, col; // which row/col of peice this is
+	//int32_t row, col; // which row/col of peice this is
 	struct LAYERset_tag **pool; // same member - different classes...
 	//wonder how to union inheritance...
 public:
-	void move( S_32 del_x, S_32 del_y );
+	void move( int32_t del_x, int32_t del_y );
 	void isolate( void );
 	void link_top(void );
 	// link via to another (via or peice) at x, y
 	// x, y save where this is linked to 
-	void Link( PLAYER via, int linktype, S_32 x = 0, S_32 y = 0 );
+	void Link( PLAYER via, int linktype, int32_t x = 0, int32_t y = 0 );
 	// unlinks a layer, first, if the end isl inked
 	// it unlinks that, then if the start is linked it
 	// unlinks that (probably resulting in distruction? )
@@ -153,12 +153,12 @@ public:
 	PLAYER prior;
 	//what_i_am_over, what_i_am_under;
 	PLAYER_DATA pLayerData;
-	S_32 x, y;
+	int32_t x, y;
 	// for via sets, the minimum until the width, height
 	// is the whole span.
-	S_32 min_x, min_y;
-	_32 w, h;
-   S_32 hotx, hoty;
+	int32_t min_x, min_y;
+	uint32_t w, h;
+   int32_t hotx, hoty;
 
 public:
 	PEICE_PROC(,LAYER)();
@@ -186,18 +186,18 @@ public:
 	void operator delete( void *ptr, struct LAYERset_tag **frompool, struct LAYER_DATAset_tag **fromdatapool );
 #endif
 	void operator delete( void *ptr );
-	void Draw( PIBOARD, Image, S_32 x, S_32 y );
+	void Draw( PIBOARD, Image, int32_t x, int32_t y );
 	PIPEICE GetPeice(void );
 	PLAYER FindLayer( INDEX iLayer );
 	// this begin path just sets the point, and any direction is valid
 	// origin point rotates to accomodate.
-	void BeginPath( S_32 x, S_32 y );
+	void BeginPath( int32_t x, int32_t y );
 	// this path must begin from NOWHERE to direction.
-	void BeginPath( S_32 x, S_32 y, int direction );
-	int IsLayerAt( S_32 *x, S_32 *y );
+	void BeginPath( int32_t x, int32_t y, int direction );
+	int IsLayerAt( int32_t *x, int32_t *y );
 	// end at this point.
 	// final node will be foredir=NOWHERE
-	void LayPath( S_32 x, S_32 y );
+	void LayPath( int32_t x, int32_t y );
 	//void LayPath( int x, int y );
 	int GetLastBackDirection( void );
 	int GetLastForeDirection( void );
@@ -224,7 +224,7 @@ public: //-- this section used by SaveLayer
 	INDEX Save( PODBC odbc );
 	LOGICAL Load( PODBC odbc, INDEX iItem );
 
-	int MoveResizeLayer( S_32 x_del, S_32 y_del, S_32 width_del, S_32 height_del );
+	int MoveResizeLayer( int32_t x_del, int32_t y_del, int32_t width_del, int32_t height_del );
 };
 
 enum {
@@ -246,7 +246,7 @@ typedef struct layer_module_tag {
 
 // can include the bacground texturing on the board....
 
-PTRSZVAL CPROC CheckIsLayer( POINTER p, PTRSZVAL psv );
+uintptr_t CPROC CheckIsLayer( POINTER p, uintptr_t psv );
 
 extern "C"
 {

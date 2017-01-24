@@ -9,7 +9,7 @@ class IBOARD
 {
 public:
 #undef SetCloseHandler
-	virtual void SetCloseHandler( void (CPROC*)(PTRSZVAL,class IBOARD*), PTRSZVAL ) = 0;
+	virtual void SetCloseHandler( void (CPROC*)(uintptr_t,class IBOARD*), uintptr_t ) = 0;
 	virtual void Close( void ) = 0;
 	// put a peice defined by PPEICE with part referenced by
 	// row, col at the position x, y
@@ -23,43 +23,43 @@ public:
 										, int hotspot_y = 0
 										 // force images to this size
 										, PPEICE_METHODS methods = NULL 
-										, PTRSZVAL psvCreate = 0 ) = 0;
+										, uintptr_t psvCreate = 0 ) = 0;
 
 	virtual PIVIA CreateVia( CTEXTSTR name
 											, Image image = NULL
 											, PVIA_METHODS methods = NULL 
-										, PTRSZVAL psvCreate = 0 ) = 0;
+										, uintptr_t psvCreate = 0 ) = 0;
 	virtual PIPEICE GetFirstPeice( INDEX *idx ) = 0;
 	virtual PIPEICE GetNextPeice( INDEX *idx ) = 0;
 	virtual PIPEICE GetPeice( CTEXTSTR name ) = 0;
-	virtual void GetSize( P_32 cx, P_32 cy ) = 0;
-	virtual void SetCellSize( _32 cx, _32 cy ) = 0;
-	virtual void GetCellSize( P_32 cx, P_32 cy, int scale ) = 0;
+	virtual void GetSize( uint32_t* cx, uint32_t* cy ) = 0;
+	virtual void SetCellSize( uint32_t cx, uint32_t cy ) = 0;
+	virtual void GetCellSize( uint32_t* cx, uint32_t* cy, int scale ) = 0;
 
-   virtual void GetCurrentPeiceSize( S_32 *wX, S_32 *wY ) = 0;
-	virtual void GetCurrentPeiceHotSpot( S_32 *wX, S_32 *wY ) = 0;
+   virtual void GetCurrentPeiceSize( int32_t *wX, int32_t *wY ) = 0;
+	virtual void GetCurrentPeiceHotSpot( int32_t *wX, int32_t *wY ) = 0;
 
 //   virtual void SetPeiceText( P
 
 	// define the graphic for the background...
 	// without a background the application can get no events.
-	virtual void SetBackground( PIPEICE peice, PTRSZVAL psvCreate ) = 0;
+	virtual void SetBackground( PIPEICE peice, uintptr_t psvCreate ) = 0;
 	virtual void SetScale( int scale ) = 0;
 	virtual int GetScale( void ) = 0;
 
-	virtual PLAYER PutPeice( PIPEICE peice, S_32 x, S_32 y, PTRSZVAL psv ) = 0;
+	virtual PLAYER PutPeice( PIPEICE peice, int32_t x, int32_t y, uintptr_t psv ) = 0;
 	virtual void SetSelectedTool( PIPEICE peice ) = 0;
-   virtual PLAYER CreateActivePeice( S_32 x, S_32 y, PTRSZVAL psvCreate ) = 0;
-   virtual PLAYER CreatePeice( CTEXTSTR name, S_32 x, S_32 y, PTRSZVAL psvCreate ) = 0;
+   virtual PLAYER CreateActivePeice( int32_t x, int32_t y, uintptr_t psvCreate ) = 0;
+   virtual PLAYER CreatePeice( CTEXTSTR name, int32_t x, int32_t y, uintptr_t psvCreate ) = 0;
 
 
 	// begin path invokes some things like connect_to_peice...
 	// failure can result from invalid conditions from the connection
 	// methods... this reuslts back to the application here.
-	virtual int BeginPath( PIVIA peice/*, S_32 x, S_32 y*/, PTRSZVAL psv ) = 0;
-	virtual void EndPath( S_32 x, S_32 y ) = 0;
+	virtual int BeginPath( PIVIA peice/*, int32_t x, int32_t y*/, uintptr_t psv ) = 0;
+	virtual void EndPath( int32_t x, int32_t y ) = 0;
 	virtual void UnendPath( void ) = 0;
-	virtual PLAYER GetLayerAt( S_32 *wX, S_32 *wY, PLAYER notlayer = NULL ) = 0;
+	virtual PLAYER GetLayerAt( int32_t *wX, int32_t *wY, PLAYER notlayer = NULL ) = 0;
 
 	virtual void BoardRefresh( void ) = 0;  // put current board on screen.
 
@@ -82,7 +82,7 @@ public:
 };
 
 PEICE_PROC( PIBOARD, CreateBoard )();
-PEICE_PROC( PSI_CONTROL, CreateBoardControl )(PSI_CONTROL, S_32,S_32,_32,_32);
+PEICE_PROC( PSI_CONTROL, CreateBoardControl )(PSI_CONTROL, int32_t,int32_t,uint32_t,uint32_t);
 PEICE_PROC( PIBOARD, GetBoardFromControl )( PSI_CONTROL board );
 
 PIPEICE GetPeice( PLIST peices, CTEXTSTR peice_name );

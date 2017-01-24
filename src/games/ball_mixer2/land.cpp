@@ -55,6 +55,7 @@
 #define TERRAIN_MAIN_SOURCE
 #define MAKE_RCOORD_SINGLE
 #include <sqlgetoption.h>
+#include <filesys.h>
 #include <math.h>
 #include <render.h>
 #include <render3d.h>

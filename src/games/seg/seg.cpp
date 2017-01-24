@@ -12,6 +12,7 @@
 // define local instance.
 #define TERRAIN_MAIN_SOURCE  
 #include <vectlib.h>
+#include <filesys.h>
 #include <render.h>
 #include <render3d.h>
 

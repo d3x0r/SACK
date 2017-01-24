@@ -7,6 +7,11 @@
 #include "board.hpp"
 #include "peice.hpp"
 #include "global.h"
+
+// this is scale(double)
+#undef scaled
+#undef scale
+
 #ifdef __WINDOWS__
 #define IMPORT __declspec(dllexport)
 #else
@@ -32,7 +37,7 @@ PEICE_EXTERN(DIR_DELTA, DirDeltaMap[8]) = { { 0, -1 },
 	}
 	int PEICE_METHODS::Disconnect( uintptr_t psv1 /*, PIPEICE peice, uintptr_t psv2*/ )
 	{
-      return 0;
+		return 0;
 	}
 	void PEICE_METHODS::Destroy( uintptr_t )
 	{
@@ -55,7 +60,7 @@ PEICE_EXTERN(DIR_DELTA, DirDeltaMap[8]) = { { 0, -1 },
 	int PEICE_METHODS::ConnectBegin ( uintptr_t psv_to_instance, int32_t x, int32_t y
 											  , PIPEICE peice_from, uintptr_t psv_from_instance )
 	{
-      return 0;
+		return 0;
 	}
 	int PEICE_METHODS::ConnectEnd ( uintptr_t psv_to_instance, int32_t x, int32_t y
 											  , PIPEICE peice_from, uintptr_t psv_from_instance )
@@ -112,11 +117,11 @@ static class PEICE_METHODS DefaultMethods;
 class DEFAULT_VIA_METHODS:public VIA_METHODS {
 	int Move( void )
 	{
-      return 0;
+		return 0;
 	}
 	int Stop( void )
 	{
-      return 0;
+		return 0;
 	}
 } DefaultViaMethods;
 
@@ -362,14 +367,14 @@ Image getcell( int32_t x, int32_t y, int scale )
 }
 
 
-void getsize( P_32 rows, P_32 cols )
+void getsize( uint32_t* rows, uint32_t* cols )
 {
 	if( rows )
 		*rows = PEICE_DATA::rows;
 	if( cols )
 		*cols = PEICE_DATA::cols;
 }
-void gethotspot( PS_32 x, PS_32 y )
+void gethotspot( int32_t* x, int32_t* y )
 {
 	if( x ) (*x) = PEICE_DATA::hotx;
 	if( y ) (*y) = PEICE_DATA::hoty;
@@ -636,14 +641,14 @@ public:
 
 
 
-	void getsize( P_32 _rows, P_32 _cols )
+	void getsize( uint32_t* _rows, uint32_t* _cols )
 	{
 		if( _rows )
 			*_rows = rows;
 		if( _cols )
 			*_cols = cols;
 	}
-	void gethotspot( PS_32 _x, PS_32 _y )
+	void gethotspot( int32_t* _x, int32_t* _y )
 	{
 		if( _x ) (*_x) = hotx;
 		if( _y ) (*_y) = hoty;
