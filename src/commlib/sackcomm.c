@@ -101,16 +101,16 @@ static struct commlib_local_tag
 	struct {
 		BIT_FIELD bInited : 1;
 	} flags;
-} l;
+} sack_com_local;
 
 
-static void LocalInit( void )
+static void ComLocalInit( void )
 {
-	if( !l.flags.bInited )
+	if( !sack_com_local.flags.bInited )
 	{
 		bLogDataXfer = SACK_GetPrivateProfileInt( WIDE("COM PORTS"), WIDE("Log IO"), 0, WIDE("comports.ini") );
 		gbLog = SACK_GetPrivateProfileIntEx( WIDE("COM PORTS"), WIDE("allow logging"), 0, WIDE("comports.ini"), TRUE );
-		l.flags.bInited = 1;
+		sack_com_local.flags.bInited = 1;
 	}
 }
 
@@ -160,7 +160,7 @@ int WriteComm( int nCom, POINTER buffer, uint32_t nSize )
 //-----------------------------------------------------------------------
 uintptr_t OpenComm( CTEXTSTR name, int nInQueue, int nOutQueue )
 {
-   LocalInit();
+   ComLocalInit();
 	if( gbLog )
 		Log1( WIDE("Going to open:%s"), name );
 	{
@@ -252,7 +252,7 @@ int WriteComm( int nCom, POINTER buffer, uint32_t nSize )
 //-----------------------------------------------------------------------
 uintptr_t OpenComm( CTEXTSTR name, int nInQueue, int nOutQueue )
 {
-   LocalInit();
+   ComLocalInit();
 	if( gbLog )
 		Log1( WIDE("Going to open:%s"), name );
    return open( name, O_RDWR|O_NONBLOCK|O_NOCTTY );
@@ -768,7 +768,7 @@ void DumpTermios( struct termios *opts )
 {
 #ifdef USE_REAL_FUNCTIONS
 	PCOM_TRACK pct;
-   LocalInit();
+   ComLocalInit();
 	{
 	  int iPar, iData, iStop, iCarrier, iRTS, iRTSFlow;
 	  uint32_t wBaud;

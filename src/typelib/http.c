@@ -1113,3 +1113,4 @@ PTEXT GetHttpResource( struct HttpState *pHttpState )
 
 
 HTTP_NAMESPACE_END
+#undef l
