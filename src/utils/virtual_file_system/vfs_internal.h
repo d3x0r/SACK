@@ -59,7 +59,7 @@ PREFIX_PACKED struct directory_entry
 	size_t filesize;  // how big the file is
 	//uint32_t filler;  // extra data(unused)
 } PACKED;
-#define ENTRIES ( BLOCK_SIZE/sizeof( struct directory_entry) )
+#define VFS_DIRECTORY_ENTRIES ( BLOCK_SIZE/sizeof( struct directory_entry) )
 
 struct disk
 {

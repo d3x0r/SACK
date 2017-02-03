@@ -482,12 +482,12 @@ static struct directory_entry * ScanDirectory( struct volume *vol, const char * 
 	struct directory_entry *next_entries;
 	do {
 		next_entries = BTSEEK( struct directory_entry *, vol, this_dir_block, BLOCK_CACHE_DIRECTORY );
-		for( n = 0; n < ENTRIES; n++ ) {
+		for( n = 0; n < VFS_DIRECTORY_ENTRIES; n++ ) {
 			struct directory_entry *entkey = ( vol->key)?((struct directory_entry *)vol->usekey[BLOCK_CACHE_DIRECTORY])+n:&l.zero_entkey;
 			const char * testname;
 			FPI name_ofs = next_entries[n].name_offset ^ entkey->name_offset;
 			if( !name_ofs )	return NULL;
-			LoG( "%d name_ofs = %"_size_f"(%"_size_f") block = %d"
+			LoG( "%d name_ofs = %" _size_f "(%" _size_f ") block = %d"
 			   , n, name_ofs
 			   , next_entries[n].name_offset ^ entkey->name_offset
 			   , next_entries[n].first_block ^ entkey->first_block );
@@ -496,7 +496,7 @@ static struct directory_entry * ScanDirectory( struct volume *vol, const char * 
 			testname = TSEEK( const char *, vol, name_ofs, BLOCK_CACHE_NAMES );
 			if( MaskStrCmp( vol, filename, name_ofs ) == 0 ) {
 				dirkey[0] = (*entkey);
-				LoG( "return found entry: %p (%"_size_f":%"_size_f")", next_entries+n, name_ofs, next_entries[n].first_block ^ dirkey->first_block );
+				LoG( "return found entry: %p (%" _size_f ":%" _size_f ")", next_entries+n, name_ofs, next_entries[n].first_block ^ dirkey->first_block );
 				return next_entries + n;
 			}
 		}
@@ -551,7 +551,7 @@ static struct directory_entry * GetNewDirectory( struct volume *vol, const char 
 	struct directory_entry *next_entries;
 	do {
 		next_entries = BTSEEK( struct directory_entry *, vol, this_dir_block, BLOCK_CACHE_DIRECTORY );
-		for( n = 0; n < ENTRIES; n++ ) {
+		for( n = 0; n < VFS_DIRECTORY_ENTRIES; n++ ) {
 			struct directory_entry *entkey = ( vol->key )?((struct directory_entry *)vol->usekey[BLOCK_CACHE_DIRECTORY])+n:&l.zero_entkey;
 			struct directory_entry *ent = next_entries + n;
 			FPI name_ofs = ent->name_offset ^ entkey->name_offset;
@@ -834,7 +834,7 @@ static int iterate_find( struct find_info *info ) {
 	int n;
 	do {
 		next_entries = BTSEEK( struct directory_entry *, info->vol, info->this_dir_block, BLOCK_CACHE_DIRECTORY );
-		for( n = info->thisent; n < ENTRIES; n++ ) {
+		for( n = info->thisent; n < VFS_DIRECTORY_ENTRIES; n++ ) {
 			struct directory_entry *entkey = ( info->vol->key)?((struct directory_entry *)info->vol->usekey[BLOCK_CACHE_DIRECTORY])+n:&l.zero_entkey;
 			const char * testname;
 			FPI name_ofs = next_entries[n].name_offset ^ entkey->name_offset;

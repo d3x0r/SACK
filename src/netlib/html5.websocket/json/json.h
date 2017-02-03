@@ -1,4 +1,5 @@
 
+#include <json_emitter.h>
 
 #ifdef __cplusplus
 SACK_NAMESPACE namespace network { namespace json {

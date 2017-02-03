@@ -1282,7 +1282,11 @@ static uintptr_t CPROC ThreadWrapper( PTHREAD pThread )
 	//lprintf( WIDE("%s(%d):Thread is exiting... "), pThread->pFile, pThread->nLine );
 	//DeAttachThreadToLibraries( FALSE );
 	UnmakeThread();
+#ifdef __LINUX__
+	pThread->hThread = 0;
+#else
 	pThread->hThread = NULL;
+#endif
 	//lprintf( WIDE("%s(%d):Thread is exiting... "), pThread->pFile, pThread->nLine );
 #ifdef __WATCOMC__
 	return (void*)result;

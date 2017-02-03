@@ -697,12 +697,12 @@ struct file *FindFileByFILE( FILE *file_file )
 LOGICAL sack_set_eof ( HANDLE file_handle )
 {
 	struct file *file;
-	file = FindFileByFILE( (FILE*)file_handle );
+	file = FindFileByFILE( (FILE*)(uintptr_t)file_handle );
 	if( file )
 	{
 		if( file->mount )
 		{
-			file->mount->fsi->truncate( (void*)file_handle );
+			file->mount->fsi->truncate( (void*)(uintptr_t)file_handle );
 			//lprintf( WIDE("result is %d"), file->mount->fsi->size( (void*)file_handle ) );
 		}
 		else
@@ -710,7 +710,7 @@ LOGICAL sack_set_eof ( HANDLE file_handle )
 #ifdef _WIN32
 			;
 #else
-			truncate( file->fullname, sack_ftell( (FILE*)file_handle ) );
+			truncate( file->fullname, sack_ftell( (FILE*)(uintptr_t)file_handle ) );
 #endif
 		}
 		return TRUE;
@@ -1877,7 +1877,7 @@ int sack_vfprintf( FILE *file_handle, const char *format, va_list args )
 	PVARTEXT pvt = VarTextCreate();
 	PTEXT output;
 	struct file *file;
-	file = FindFileByFILE( (FILE*)file_handle );
+	file = FindFileByFILE( file_handle );
 
 	if( file->mount && file->mount->fsi )
 	{
