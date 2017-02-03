@@ -1,9 +1,12 @@
 PROJECT( intershell_deploy )
-
-FILE( STRINGS ${CMAKE_SOURCE_DIR}/../../.hgtags TMP_tags )
-LIST( GET TMP_tags -1 TMP_TAG )
-STRING( REPLACE " " ";" NEWLIST ${TMP_TAG} )
-LIST( GET NEWLIST -1 CURRENT_REPO_REVISION )
+if( EXISTS ${CMAKE_SOURCE_DIR}/../../.hgtags )
+  FILE( STRINGS ${CMAKE_SOURCE_DIR}/../../.hgtags TMP_tags )
+  LIST( GET TMP_tags -1 TMP_TAG )
+  STRING( REPLACE " " ";" NEWLIST ${TMP_TAG} )
+  LIST( GET NEWLIST -1 CURRENT_REPO_REVISION )
+else()
+  set( CURRENT_REPO_REVISION "??" )
+endif()
 message( "InterShell revision: ${CURRENT_REPO_REVISION}" )
 
   configure_file( deploy.cm.cm ${CMAKE_BINARY_DIR}/deploy.cm.tmp @ONLY )
