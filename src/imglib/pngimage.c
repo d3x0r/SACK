@@ -250,11 +250,14 @@ no_mem2:
 					row_pointers[row] = (png_bytep)(pImage->image + row * pImage->pwidth);
 			}
 			// Read image data
+			png_read_image (png_ptr, row_pointers);
+			/*
 			if( !png_read_image (png_ptr, row_pointers) )
 			{
 				UnmakeImageFile( pImage );
 				pImage = NULL;
 			}
+			*/
 			// read rest of file, and get additional chunks in info_ptr
 			png_read_end (png_ptr, (png_infop)NULL);
 		}

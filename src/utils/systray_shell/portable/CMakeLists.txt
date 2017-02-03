@@ -59,7 +59,6 @@ if( __ANDROID__ )
 set( NEED_UUID 1 )
 endif( __ANDROID__ )
 
-
 set( USE_SQLITE ON )
 set( NO_SSL ON )
 include( ../../../../CMakeSources.lst )

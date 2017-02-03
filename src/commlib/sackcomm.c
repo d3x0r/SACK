@@ -16,7 +16,7 @@
 #include <sys/ioctl.h>
 #include <unistd.h>
 #include <termios.h>
-//#include <fcntl.h>
+#include <fcntl.h> // O_RDWR
 #endif
 
 #define USE_REAL_FUNCTIONS

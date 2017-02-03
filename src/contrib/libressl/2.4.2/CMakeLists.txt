@@ -268,7 +268,7 @@ add_definitions(-DSIZEOF_TIME_T=${SIZEOF_TIME_T})
 
 add_subdirectory(crypto)
 add_subdirectory(ssl)
-add_subdirectory(apps)
+#add_subdirectory(apps)
 add_subdirectory(tls)
 add_subdirectory(include)
 

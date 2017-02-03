@@ -56,7 +56,7 @@ ${LAST_GCC_LIBRARY_SOURCE}
 SET_PROPERTY(TARGET bag.video.vulkan APPEND PROPERTY COMPILE_DEFINITIONS "RENDER_LIBRARY_SOURCE;_OPENGL_ENABLED;_OPENGL_DRIVER;MAKE_RCOORD_SINGLE" )
 SET_TARGET_PROPERTIES( bag.video.vulkan PROPERTIES FOLDER "Video Renderer"   )
 
-  my_target_link_libraries( bag.video.vulkan  vulkan-1 )
+  my_target_link_libraries( bag.video.vulkan  vulkan )
 
 if( __ANDROID__ OR __QNX__ )
   # glOrthof is GLES1 and is used by 'glues' PROJECT

@@ -117,12 +117,12 @@ SQL_NAMESPACE
 CTEXTSTR GetGUID( void )
 {
 	uuid_t *tmp;
-   char *str = NULL;
+	char *str = NULL;
 	TEXTCHAR *out_guid;
 	CTEXTSTR out_guid2;
 	uuid_create( &tmp );
 	uuid_make( tmp, UUID_MAKE_V1 );
-   uuid_export( tmp, UUID_FMT_STR, &str, NULL );
+	uuid_export( tmp, UUID_FMT_STR, &str, NULL );
 	out_guid = DupCharToText( str );
 	out_guid2 = SaveText( out_guid );
 	Release( out_guid );
@@ -131,12 +131,12 @@ CTEXTSTR GetGUID( void )
 CTEXTSTR GetSeqGUID( void )
 {
 	uuid_t *tmp;
-   char *str = NULL;
+	char *str = NULL;
 	TEXTCHAR *out_guid;
 	CTEXTSTR out_guid2;
 	uuid_create( &tmp );
 	uuid_make( tmp, UUID_MAKE_V1 );
-   uuid_export( tmp, UUID_FMT_STR, &str, NULL );
+	uuid_export( tmp, UUID_FMT_STR, &str, NULL );
 	out_guid = DupCharToText( str );
 	out_guid2 = SaveText( out_guid );
 	Release( out_guid );
