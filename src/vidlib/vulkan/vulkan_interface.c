@@ -1,5 +1,9 @@
+#if WIN32
 #define VK_USE_PLATFORM_WIN32_KHR
-//#define VK_USE_PLATFORM_XCB_KHR
+#endif
+#if __LINUX__
+#define VK_USE_PLATFORM_XCB_KHR
+#endif
 
 #include <stdhdrs.h>
 #include <vulkan/vulkan.h>
@@ -354,7 +358,7 @@ LOGICAL swapChainPlatformConnect( struct SwapChain *swapChain,
 	vl.surfaceCreateInfo.sType = VK_STRUCTURE_TYPE_ANDROID_SURFACE_CREATE_INFO_KHR;
 	vl.surfaceCreateInfo.window = window;
 	result = vkCreateAndroidSurfaceKHR( swapChain->instance,
-		&surfaceCreateInfo,
+		&vl.surfaceCreateInfo,
 		NULL,
 		&swapChain->surface );
 #else
@@ -362,7 +366,7 @@ LOGICAL swapChainPlatformConnect( struct SwapChain *swapChain,
 	vl.surfaceCreateInfo.connection = connection;
 	vl.surfaceCreateInfo.window = window;
 	result = vkCreateXcbSurfaceKHR( swapChain->instance,
-		&surfaceCreateInfo,
+		&vl.surfaceCreateInfo,
 		NULL,
 		&swapChain->surface );
 #endif
@@ -819,5 +823,9 @@ void EnableVulkan( xcb_connection_t *connection,
 	CreateDevice( useDevice );
 
 	swapChainConnect( &chain );
-	swapChainPlatformConnect( &chain, hInstance, camera->hWndInstance );
+	#if WIN32
+		swapChainPlatformConnect( &chain, hInstance, camera->hWndInstance );
+	#else
+		swapChainPlatformConnect( &chain, vl.surfaceCreateInfo.connection, vl.surfaceCreateInfo.window );
+	#endif
 }

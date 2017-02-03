@@ -80,6 +80,8 @@ static void ExtractFile( CTEXTSTR filename )
 
 #define Seek(a,b) (((uintptr_t)a)+(b))
 
+#if WIN32
+
 POINTER GetExtraData( POINTER block )
 {
 	//uintptr_t source_memory_length = block_len;
@@ -177,7 +179,7 @@ void SetExtraData( POINTER block, size_t length )
 	}
 }
 //#endif
-
+#endif
 
 static void AppendFilesAs( CTEXTSTR filename1, CTEXTSTR filename2, CTEXTSTR outputname )
 {
@@ -204,7 +206,12 @@ static void AppendFilesAs( CTEXTSTR filename1, CTEXTSTR filename2, CTEXTSTR outp
 	sack_fread( buffer, 1, file1_size, file1 );
 	sack_fwrite( buffer, 1, file1_size, file_out );
 	{
+#ifdef WIN32
 		POINTER extra = GetExtraData( buffer );
+#else		
+		POINTER extra = file1_size;
+		lprintf( "linux append is probably wrong here..." );
+#endif
 		if( ((uintptr_t)extra - (uintptr_t)buffer) < (file1_size + (4096 - ( file1_size & 0xFFF ))) )
 		{
 			sack_fseek( file_out, ((uintptr_t)extra - (uintptr_t)buffer), SEEK_SET );

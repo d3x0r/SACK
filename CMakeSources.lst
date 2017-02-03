@@ -360,34 +360,11 @@ endif( WIN32 )
 
 if( NOT __NO_NETWORK__ )
 
-set( MATRIXSSL_HEADERS_EXTRA_COPY 
-     ${SOURCES_ROOT}src/contrib/MatrixSSL/${MATRIXSSL_VERSION}/matrixssl/matrixsslApi.h
-     ${SOURCES_ROOT}src/contrib/MatrixSSL/${MATRIXSSL_VERSION}/matrixssl/matrixsslConfig.h
-     ${SOURCES_ROOT}src/contrib/MatrixSSL/${MATRIXSSL_VERSION}/matrixssl/matrixssllib.h
-     ${SOURCES_ROOT}src/contrib/MatrixSSL/${MATRIXSSL_VERSION}/matrixssl/version.h
-     ${SOURCES_ROOT}src/contrib/MatrixSSL/${MATRIXSSL_VERSION}/core/coreApi.h
-     ${SOURCES_ROOT}src/contrib/MatrixSSL/${MATRIXSSL_VERSION}/core/osdep.h
-     ${SOURCES_ROOT}src/contrib/MatrixSSL/${MATRIXSSL_VERSION}/core/list.h
-     ${SOURCES_ROOT}src/contrib/MatrixSSL/${MATRIXSSL_VERSION}/core/psmalloc.h
-     ${SOURCES_ROOT}src/contrib/MatrixSSL/${MATRIXSSL_VERSION}/core/coreConfig.h
-     ${SOURCES_ROOT}src/contrib/MatrixSSL/${MATRIXSSL_VERSION}/crypto/cryptoApi.h
-     ${SOURCES_ROOT}src/contrib/MatrixSSL/${MATRIXSSL_VERSION}/crypto/cryptolib.h
-     ${SOURCES_ROOT}src/contrib/MatrixSSL/${MATRIXSSL_VERSION}/crypto/cryptoConfig.h
-     ${SOURCES_ROOT}src/contrib/MatrixSSL/${MATRIXSSL_VERSION}/crypto/symmetric/symmetric.h
-     ${SOURCES_ROOT}src/contrib/MatrixSSL/${MATRIXSSL_VERSION}/crypto/math/pstm.h
-     ${SOURCES_ROOT}src/contrib/MatrixSSL/${MATRIXSSL_VERSION}/crypto/digest/digest.h
-     ${SOURCES_ROOT}src/contrib/MatrixSSL/${MATRIXSSL_VERSION}/crypto/pubkey/pubkey.h
-     ${SOURCES_ROOT}src/contrib/MatrixSSL/${MATRIXSSL_VERSION}/crypto/keyformat/asn1.h
-     ${SOURCES_ROOT}src/contrib/MatrixSSL/${MATRIXSSL_VERSION}/crypto/keyformat/x509.h
-     ${SOURCES_ROOT}src/contrib/MatrixSSL/${MATRIXSSL_VERSION}/crypto/prng/prng.h
-)     
-
 set( SACK_PLUSPLUS_HEADERS ${SACK_PLUSPLUS_HEADERS} 
      ${SOURCES_ROOT}src/netlib/html5.websocket/client/local.h
      ${SOURCES_ROOT}src/netlib/html5.websocket/json/json.h
      ${SOURCES_ROOT}src/netlib/html5.websocket/html5.websocket.common.h
- // ${MATRIXSSL_HEADERS_EXTRA_COPY}    
-     )
+OQ     )
 
 
 endif( NOT __NO_NETWORK__ )

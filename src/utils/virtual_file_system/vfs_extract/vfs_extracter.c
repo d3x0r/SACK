@@ -31,6 +31,7 @@ static struct vfs_runner_local
 
 #define Seek(a,b) (((uintptr_t)a)+(b))
 
+#ifdef WIN32
 POINTER GetExtraData( POINTER block )
 {
 	//uintptr_t source_memory_length = block_len;
@@ -74,7 +75,7 @@ POINTER GetExtraData( POINTER block )
 		}
 	}
 }
-
+#endif
 //---------------------------------------------------------------------------
 
 
@@ -179,11 +180,11 @@ static void CPROC ShowFile( uintptr_t psv, CTEXTSTR file, int flags )
 PRIORITY_PRELOAD( XSaneWinMain, DEFAULT_PRELOAD_PRIORITY + 20 )//( argc, argv )
 {
 	struct volume *vol;
+	int argc;
+	char **argv;
 #if _WIN32 
 	wchar_t * wcmd = GetCommandLineW();
 	char *cmd = WcharConvert( wcmd );
-	int argc;
-	char **argv;
 	ParseIntoArgs( cmd, &argc, &argv );
 #else //if defined( __LINUX__ )
 	static char buf[4096], *pb;
@@ -212,11 +213,16 @@ PRIORITY_PRELOAD( XSaneWinMain, DEFAULT_PRELOAD_PRIORITY + 20 )//( argc, argv )
 		POINTER memory = OpenSpace( NULL, argv[0], &sz );
 		POINTER vfs_memory;
 		if( argc > 1 ) {
-         l.target_path = ExpandPath( argv[1] );
+			l.target_path = ExpandPath( argv[1] );
 			SetCurrentPath( l.target_path );
 		}
 		SetSystemLog( SYSLOG_FILE, stderr ); 
+	#ifdef WIN32
 		vfs_memory = GetExtraData( memory );
+	#else
+		vfs_memory = 0;
+	#endif
+		
 		l.fsi = sack_get_filesystem_interface( "sack_shmem.runner" );
 		sack_set_default_filesystem_interface( l.fsi );
 		vol = sack_vfs_use_crypt_volume( vfs_memory, sz-((uintptr_t)vfs_memory-(uintptr_t)memory), REPLACE_ME_2, REPLACE_ME_3 );

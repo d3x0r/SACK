@@ -83,7 +83,9 @@ static LOGICAL CPROC LoadLibraryDependant( CTEXTSTR name )
 #ifdef DEBUG_LIBRARY_LOADING
 				lprintf( "written file... closed file...now scanning and then load %d %d", read, written );
 #endif
+#ifdef WIN32
 				ScanLoadLibraryFromMemory( name, data, sz, TRUE, LoadLibraryDependant );
+#endif
 				//if( !LoadFunction( name, NULL ) )
 				{
 					LoadFunction( tmpnam, NULL );

@@ -5,42 +5,22 @@
 #define USE_IMAGE_INTERFACE l.gl_image_interface
 #endif
 
-#if defined( _D3D11_DRIVER )
-
-#include <atlbase.h>
-#include <D3D11.h>
-#include <D2d1.h> // only took them (1996-2008... 12 years) to get direct draw right LOL
-#include <Dwmapi.h>
-#ifndef NTDDI_WIN8
-#  define WINDDI_WIN8 0x06020000
+#if WIN32
+#define VK_USE_PLATFORM_WIN32_KHR
 #endif
-#if ( NTDDI_VERSION >= NTDDI_WIN8 )
-#  include <dcomp.h>
+#if __LINUX__
+#define VK_USE_PLATFORM_XCB_KHR
 #endif
 
-//#include <D3D11Misc.h>
-#include <DirectXMath.h>
-using namespace DirectX;
+#include <stdhdrs.h>
+#include <vulkan/vulkan.h>
 
-// transparent window support ( not needed if solid output?)
-#include <Wincodec.h>
-#elif defined( _D3D10_DRIVER )
-#include <atlbase.h>
-#include <D3D10_1.h>
-#include <D2d1.h> // only took them (1996-2008... 12 years) to get direct draw right LOL
-#include <D3D10Misc.h>
-//#include <d3dx10.h>
-#include <D3dx10math.h>
 
-// transparent window support ( not needed if solid output?)
-#include <Wincodec.h>
-#elif defined( _D3D_DRIVER )
-#include <d3d9.h>
-#include <d3dx9.h>
-#include <D3dx9math.h>
-//#include <d3d11.h>
+
+
+#if defined(VK_USE_PLATFORM_XLIB_KHR) || defined(VK_USE_PLATFORM_XCB_KHR)
+#include <X11/Xutil.h>
 #endif
-
 
 #if defined( __QNX__ )
 #include <gf/gf.h>
