@@ -20,13 +20,13 @@ static struct fuse_private_local
 	struct fuse_chan* mount;
 	struct fuse_session *session;
 	CTEXTSTR private_mount_point;
-   pid_t myself;
+	pid_t myself;
 	struct directory_entry zero_entkey;
 	uint8_t zerokey[BLOCK_SIZE];
 	uid_t uid;
-   gid_t gid;
+	gid_t gid;
 #ifdef BUILD_TEST
-   struct volume *volume;
+	struct volume *volume;
 	PTHREAD main;
 #endif
 } fpl;
@@ -39,23 +39,23 @@ static int doStat(fuse_ino_t ino, struct stat *attr, double *timeout)
 	lprintf( "request attr %ld", ino );
 	memset( attr, 0, sizeof( *attr ) );
 	attr->st_dev = 1;
-   attr->st_nlink = 1;
+	attr->st_nlink = 1;
 	attr->st_ino = ino;
 	attr->st_uid = fpl.uid;
 	attr->st_gid = fpl.gid;
 	attr->st_size = 1234;
 	attr->st_blocks = 4321;
 	attr->st_blksize = 1;
-   if( fpl.volume->read_only )
+	if( fpl.volume->read_only )
 		if( ino == 1 ) {
 			attr->st_mode = S_IFDIR | 0500;
-         (*timeout) = 10000.0;
+	(*timeout) = 10000.0;
 		}
 		else {
 			attr->st_mode = S_IFREG | 0400;
-         (*timeout) = 1.0;
+			(*timeout) = 1.0;
 		}
-   else
+	else
 		if( ino == 1 ) {
 			attr->st_mode = S_IFDIR | 0700;
          (*timeout) = 10000.0;
@@ -156,7 +156,7 @@ static void DumpDirectory( struct volume *vol, fuse_req_t req, struct dirbuf *b 
 	do
 	{
 		next_entries = BTSEEK( struct directory_entry *, vol, this_dir_block, BLOCK_CACHE_DIRECTORY );
-		for( n = 0; n < ENTRIES; n++ )
+		for( n = 0; n < VFS_DIRECTORY_ENTRIES; n++ )
 		{
 			struct directory_entry *entkey = ( vol->key )?((struct directory_entry *)vol->usekey[BLOCK_CACHE_DIRECTORY])+n:&fpl.zero_entkey;
 			FPI name_ofs = next_entries[n].name_offset ^ entkey->name_offset;
