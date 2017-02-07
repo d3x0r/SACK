@@ -129,14 +129,14 @@ static void InitBanScan( void )
    SetConfigurationUnhandled( lbs.pch_scanner, Unhandled );
 }
 
-static uintptr_t CPROC setFirwallCommand( uintptr_t psv, arg_list args )
+static uintptr_t CPROC setFirewallCommand( uintptr_t psv, arg_list args )
 {
 	PARAM( args, CTEXTSTR, path );
 	lbs.command = StrDup( path );
    return psv;
 }
 
-static uintptr_t CPROC setFirwallBanlist( uintptr_t psv, arg_list args )
+static uintptr_t CPROC setFirewallBanlist( uintptr_t psv, arg_list args )
 {
 	PARAM( args, CTEXTSTR, path );
 	lbs.output = StrDup( path );

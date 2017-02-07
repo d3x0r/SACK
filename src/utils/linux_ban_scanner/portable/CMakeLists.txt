@@ -31,7 +31,6 @@ endif( WIN32 )
 
 set(BASE_SOURCES
 	${FIRST_GCC_PROGRAM_SOURCE} 
-    ../syslog_scanner.c 
     ${SOURCES_ROOT}/src/memlib/sharemem.c
     ${SOURCES_ROOT}/src/memlib/memory_operations.c
     ${SOURCES_ROOT}/src/timerlib/timers.c
