@@ -420,6 +420,7 @@ static void CPROC SetupSystemServices( POINTER mem, uintptr_t size )
 			//lprintf( WIDE("My execution: %s"), buf);
 			(*init_l).filename = StrDupEx( pb + 1 DBG_SRC );
 			(*init_l).load_path = StrDupEx( buf DBG_SRC );
+			(*init_l).library_path = StrDupEx( buf DBG_SRC );
 			setenv( WIDE("MY_LOAD_PATH"), buf, TRUE );
 			//strcpy( pMyPath, buf );
 
