@@ -511,6 +511,15 @@ size_t GetOptionStringValueEx( PODBC odbc, POPTION_TREE_NODE optval, TEXTCHAR **
 	return res;
 }
 
+size_t GetOptionStringValue( POPTION_TREE_NODE optval, TEXTCHAR **buffer, size_t *len )
+{
+	size_t result;
+	PODBC odbc = GetOptionODBC( GetDefaultOptionDatabaseDSN() );
+	result = GetOptionStringValueEx( odbc, optval, buffer, len DBG_SRC );
+	DropOptionODBC( odbc );
+	return result;
+}
+
 int GetOptionBlobValueOdbc( PODBC odbc, POPTION_TREE_NODE optval, TEXTCHAR **buffer, size_t *len )
 {
 	POPTION_TREE tree = GetOptionTreeExxx( odbc, NULL DBG_SRC );

@@ -276,7 +276,7 @@ typedef int errno_t;
 extern errno_t memset_s(void *s, rsize_t smax, int c, rsize_t n);
 #endif
 
-#define memzero_s(S,N) memset_s(S, N, 0x0, N)
+#define memzero_s(S,N) memset(S, 0x0, N)
 
 /******************************************************************************/
 /*

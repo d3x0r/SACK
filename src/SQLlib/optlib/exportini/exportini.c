@@ -39,12 +39,12 @@ FILE *output;
 
 int CPROC FillList( uintptr_t psv, CTEXTSTR name, POPTION_TREE_NODE ID, int flags )
 {
-   PLISTFILL plf = (PLISTFILL)psv;
+	PLISTFILL plf = (PLISTFILL)psv;
 	LISTFILL lf = *plf;
 	if( StrCmp( name, WIDE(".") ) == 0 )
-      return TRUE;
+		return TRUE;
 	lf.nLevel++;
-   lf.flags.bSecondLevel = 1;
+	lf.flags.bSecondLevel = 1;
 	lprintf( WIDE("%d - %s (%p)"), plf->nLevel, name, ID );
 	{
 		if( lf.nLevel == 1 )
@@ -56,15 +56,15 @@ int CPROC FillList( uintptr_t psv, CTEXTSTR name, POPTION_TREE_NODE ID, int flag
 				if( output )
 				{
 					fwrite( GetText(pINI), 1, GetTextSize( pINI ), output );
-               LineRelease( pINI );
+					LineRelease( pINI );
 					fclose( output );
 					output = NULL;
 				}
 				VarTextDestroy( &pvtIni );
 			}
-         // if it's this branch, then don't auto export it.
+			// if it's this branch, then don't auto export it.
 			if( StrCmp( name, WIDE("INI Store") ) == 0 )
-            return TRUE;
+				return TRUE;
 			pvtIni = VarTextCreate();
 			output = sack_fopen( 0, name, WIDE("wt") );
 		}
@@ -79,7 +79,7 @@ int CPROC FillList( uintptr_t psv, CTEXTSTR name, POPTION_TREE_NODE ID, int flag
 			if( ID_Value )
 			{
 				TEXTCHAR *buffer;
-            size_t buflen;
+				size_t buflen;
 				if( (int)GetOptionStringValue( ID_Value, &buffer, &buflen ) > 0 )
 				{
 					if( VarTextPeek( pvtSection ) )
