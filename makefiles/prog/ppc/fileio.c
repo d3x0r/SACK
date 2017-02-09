@@ -43,17 +43,6 @@ void FixSlashes( char *path )
 
 //----------------------------------------------------------------------
 
-// unused thought the CPP main might use this ...
-int CurrentFileDepend( void )
-{
-	if( g.pFileStack )
-		return (int)g.pFileStack->pFileDep;
-	return 0;
-}
-
-//----------------------------------------------------------------------
-
-// unused thought the CPP main might use this ...
 int CurrentFileDepth( void )
 {
 	int n = 0;
@@ -61,7 +50,6 @@ int CurrentFileDepth( void )
 	for( pft = g.pFileStack; pft; n++, pft = pft->prior );
 	return n;
 }
-
 
 //----------------------------------------------------------------------
 
@@ -616,14 +604,14 @@ Restart:
 		int bContinue;
 		PTEXT current;
 	GetNewLine: // loop this far when comments consume entire line...
-	if( (pft->pParsed == pft->line) )
-		DebugBreak();
+		if( pft->line && (pft->pParsed == pft->line) )
+			DebugBreak();
 		if( pft->line )
 			LineReleaseEx( &pft->line DBG_RELAY );
 		pft->line = NULL;
 		if( !Append && ( pft->pParsed != pft->line ) )
 		{
-		  current = pft->pParsed;
+			current = pft->pParsed;
 			do {
 				if( ( ( (uintptr_t)current)&0xFFFF0000) == (uintptr_t)0xDDDD0000U )
 				{
@@ -657,7 +645,7 @@ Restart:
 				if( !current->format.spaces )
 					current->format.spaces = 1;
 			}
-			if( current->data.data[current->data.size-1] == '\\' )
+			if( current->data.size > 0 && current->data.data[current->data.size-1] == '\\' )
 			{
 				current->data.data[current->data.size = (current->data.size-1)] = 0;
 				bContinue = 1;

@@ -211,9 +211,9 @@ void DumpMemory( void )
 void MemSet( void *p, int v, int n) {memset(p,v,n);}
 void MemCpy( void *p, const void *p2, int n) {memcpy(p,p2,n);}
 
-unsigned long LockedExchange( unsigned long *p, unsigned long val )
+uint32_t LockedExchange( uint32_t *p, uint32_t val )
 {
-	long x;
+	uint32_t x;
 	x = *p;
 	*p = val;
 	return x;

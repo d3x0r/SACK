@@ -2906,7 +2906,7 @@ int __GetSQLResult( PODBC odbc, PCOLLECT collection, int bMore )
 				lprintf( WIDE("Database is corrupt: %s"), sqlite3_errmsg(odbc->db ) );
 				break;
 			default:
-				lprintf( WIDE("Step status %d:%s"), rc3, sqlite3_errmsg(odbc->db ) );
+				lprintf( WIDE("Step status %d:%s %08x"), rc3, sqlite3_errmsg(odbc->db ), sqlite3_extended_errcode(odbc->db) );
 				break;
 			}
 		}

@@ -22,7 +22,7 @@ void CPROC ReleaseExx( void ** DBG_PASS );
 
 void DumpMemory( void );
 
-unsigned long CPROC LockedExchange( unsigned long *p, unsigned long val );
+uint32_t CPROC LockedExchange( uint32_t *p, uint32_t val );
 
 void CPROC MemSet( POINTER p, uint32_t v, uint32_t n);
 void CPROC MemCpy( POINTER p, POINTER p2, uint32_t n);

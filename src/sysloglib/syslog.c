@@ -525,7 +525,7 @@ void InitSyslog( int ignore_options )
 #else
 #  if defined( _DEBUG ) || 1
 		{
-#    ifdef __LINUX__
+#    if defined( __LINUX__ ) && 0
 			logtype = SYSLOG_SOCKET_SYSLOGD;
 			(*syslog_local).flags.bLogProgram = 1;
 			
@@ -534,7 +534,8 @@ void InitSyslog( int ignore_options )
 			* it is opened on demand.
 			*/
 
-			logtype = SYSLOG_AUTO_FILE;
+			logtype = SYSLOG_FILE;
+			(*syslog_local).file = stderr;
 			(*syslog_local).flags.bLogOpenBackup = 1;
 			(*syslog_local).flags.bUseDeltaTime = 1;
 			(*syslog_local).flags.bLogCPUTime = 1;
