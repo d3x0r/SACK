@@ -10,7 +10,7 @@
 #ifndef __cplusplus
 typedef LOGICAL bool;
 #else
-#define bool LOGICAL
+//#define bool LOGICAL
 #endif
 
 #ifdef CORE_SOURCE
