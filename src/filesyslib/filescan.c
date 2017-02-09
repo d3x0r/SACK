@@ -403,8 +403,9 @@ typedef struct myfinddata {
 		}
 		if( findbasename(pInfo)[0] )
 			tnprintf( findmask, sizeof(findmask), WIDE("%s/*"), findbasename(pInfo) );
-		else
+		else {
 			tnprintf( findmask, sizeof( findmask ), WIDE( "*" ) );
+		}
 		if( pData->scanning_mount?pData->scanning_mount->fsi:NULL )
 			if( pData->scanning_mount->fsi->find_first( findcursor(pInfo) ) )
 				findhandle(pInfo) = 0;
@@ -415,8 +416,14 @@ typedef struct myfinddata {
 #if WIN32
 			findhandle(pInfo) = findfirst( findmask, finddata(pInfo) );
 #else
-			//lprintf( "opendir %s", findbasename(pInfo) );
-			findhandle( pInfo ) = opendir( findbasename(pInfo) );
+			lprintf( "opendir [%s]", findbasename(pInfo) );
+			if( !findbasename(pInfo)[0] ) {
+				TEXTSTR tmp;
+				tmp = ExpandPathEx( ".", pData->scanning_mount?pData->scanning_mount->fsi:NULL );
+				findhandle( pInfo ) = opendir( tmp );
+				Deallocate( TEXTSTR, tmp );
+			} else
+				findhandle( pInfo ) = opendir( findbasename(pInfo) );
 			if( !findhandle(pInfo ) )
 				findhandle(pInfo) = (HANDLECAST)-1;
 			else
@@ -560,7 +567,7 @@ getnext:
 #  endif
 #else
 			tnprintf( pData->file_buffer, MAX_PATH_NAME, WIDE("%s"), de->d_name );
-			tnprintf( pData->buffer, MAX_PATH_NAME, WIDE("%s/%s"), findbasename(pInfo), de->d_name );
+			tnprintf( pData->buffer, MAX_PATH_NAME, WIDE("%s%s%s"), findbasename(pInfo), findbasename( pInfo )[0]?"/":"", de->d_name );
 #endif
 		}
 	}

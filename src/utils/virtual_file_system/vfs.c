@@ -127,6 +127,7 @@ static void ExpandVolume( struct volume *vol ) {
 	vol->dwSize += BLOCKS_PER_SECTOR*BLOCK_SIZE;
 
 	new_disk = (struct disk*)OpenSpaceExx( NULL, vol->volname, 0, &vol->dwSize, &created );
+	LoG( "created expanded volume: %p from %p size:%" _size_f, new_disk, vol->disk, vol->dwSize );
 	if( new_disk != vol->disk ) {
 		INDEX idx;
 		struct sack_vfs_file *file;
@@ -487,16 +488,17 @@ static struct directory_entry * ScanDirectory( struct volume *vol, const char * 
 			const char * testname;
 			FPI name_ofs = next_entries[n].name_offset ^ entkey->name_offset;
 			if( !name_ofs )	return NULL;
-			LoG( "%d name_ofs = %" _size_f "(%" _size_f ") block = %d"
-			   , n, name_ofs
-			   , next_entries[n].name_offset ^ entkey->name_offset
-			   , next_entries[n].first_block ^ entkey->first_block );
+			//LoG( "%d name_ofs = %" _size_f "(%" _size_f ") block = %d  vs %s"
+			//   , n, name_ofs
+			//   , next_entries[n].name_offset ^ entkey->name_offset
+			//   , next_entries[n].first_block ^ entkey->first_block
+			//   , filename );
 			// if file is deleted; don't check it's name.
 			if( !(next_entries[n].first_block ^ entkey->first_block ) ) continue;
 			testname = TSEEK( const char *, vol, name_ofs, BLOCK_CACHE_NAMES );
 			if( MaskStrCmp( vol, filename, name_ofs ) == 0 ) {
 				dirkey[0] = (*entkey);
-				LoG( "return found entry: %p (%" _size_f ":%" _size_f ")", next_entries+n, name_ofs, next_entries[n].first_block ^ dirkey->first_block );
+				LoG( "return found entry: %p (%" _size_f ":%" _size_f ") %s", next_entries+n, name_ofs, next_entries[n].first_block ^ dirkey->first_block, filename );
 				return next_entries + n;
 			}
 		}
@@ -519,10 +521,11 @@ static FPI SaveFileName( struct volume *vol, const char * filename ) {
 		unsigned char *name = (unsigned char*)names;
 		while( name < ( (unsigned char*)names + BLOCK_SIZE ) ) {
 			int c = name[0];
-			if( vol->key )	c = c ^ vol->usekey[BLOCK_CACHE_NAMES][name-(unsigned char*)names];
+			if( vol->key ) c = c ^ vol->usekey[BLOCK_CACHE_NAMES][name-(unsigned char*)names];
 			if( !c ) {
 				size_t namelen;
 				if( ( namelen = StrLen( filename ) ) < (size_t)( ( (unsigned char*)names + BLOCK_SIZE ) - name ) ) {
+					LoG( "using unused entry for new file...%" _size_f "  %" _size_f " %s", this_name_block, (uintptr_t)name - (uintptr_t)names, filename );
 					if( vol->key ) {						
 						for( n = 0; n < namelen + 1; n++ )
 							name[n] = filename[n] ^ vol->usekey[BLOCK_CACHE_NAMES][n + (name-(unsigned char*)names)];
@@ -532,15 +535,19 @@ static FPI SaveFileName( struct volume *vol, const char * filename ) {
 				}
 			}
 			else
-				if( MaskStrCmp( vol, filename, name - (unsigned char*)vol->disk ) == 0 )
+				if( MaskStrCmp( vol, filename, name - (unsigned char*)vol->disk ) == 0 ) {
+					LoG( "using existing entry for new file...%s", filename );
 					return ((uintptr_t)name) - ((uintptr_t)vol->disk);
+				}
 			if( vol->key ) {
 				while( ( name[0] ^ vol->usekey[BLOCK_CACHE_NAMES][name-(unsigned char*)names] ) ) name++;
 				name++;
 			} else
 				name = name + StrLen( (const char*)name ) + 1;
+			LoG( "new position is %" _size_f "  %" _size_f, this_name_block, (uintptr_t)name - (uintptr_t)names );
 		}
 		this_name_block = vfs_GetNextBlock( vol, this_name_block, TRUE, TRUE );
+		LoG( "Need a new directory block....", this_name_block );
 	}
 }
 
@@ -662,7 +669,8 @@ static void MaskBlock( struct volume *vol, uint8_t* usekey, uint8_t* block, BLOC
 size_t CPROC sack_vfs_write( struct sack_vfs_file *file, const char * data, size_t length ) {
 	size_t written = 0;
 	size_t ofs = file->fpi & BLOCK_MASK;
-	while( LockedExchange( &file->vol->lock, 1 ) ) 	Relinquish();
+	while( LockedExchange( &file->vol->lock, 1 ) ) Relinquish();
+	LoG( "Write to file %" _size_f "  @%" _size_f, length, ofs );
 	if( ofs ) {
 		uint8_t* block = (uint8_t*)vfs_BSEEK( file->vol, file->block, BLOCK_CACHE_FILE );
 		if( length >= ( BLOCK_SIZE - ( ofs ) ) ) {
@@ -817,6 +825,7 @@ struct find_info {
 	size_t base_len;
 	size_t filenamelen;
 	size_t filesize;
+	CTEXTSTR mask;
 	int thisent;
 };
 
@@ -825,6 +834,7 @@ struct find_info * CPROC sack_vfs_find_create_cursor(uintptr_t psvInst,const cha
 	struct find_info *info = New( struct find_info );
 	info->base = base;
 	info->base_len = StrLen( base );
+	info->mask = mask;
 	info->vol = (struct volume *)psvInst;
 	return info;
 }
@@ -853,12 +863,14 @@ static int iterate_find( struct find_info *info ) {
 					name_ofs++;
 				}
 				info->filename[info->filenamelen]	 = c;
+				LoG( "Scan return filename: %s", info->filename );
 				if( info->base
 					&& ( info->base[0] != '.' && info->base_len != 1 )
 					&& StrCaseCmpEx( info->base, info->filename, info->base_len ) )
 					continue;
 			} else {
 				StrCpy( info->filename, (const char *)(((uint8_t*)info->vol->disk) + name_ofs) );
+				LoG( "Scan return filename: %s", info->filename );
 				if( info->base
 					&& ( info->base[0] != '.' && info->base_len != 1 )
 					&& StrCaseCmpEx( info->base, info->filename, info->base_len ) )

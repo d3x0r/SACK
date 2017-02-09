@@ -34,23 +34,28 @@ static void StoreFileAs( CTEXTSTR filename, CTEXTSTR asfile )
 
 static void CPROC _StoreFile( uintptr_t psv,  CTEXTSTR filename, int flags )
 {
-	FILE *in = sack_fopenEx( 0, filename, "rb", sack_get_default_mount() );
-	if( l.verbose ) printf( " Opened file %s = %p\n", filename, in );
-	if( in )
-	{
-		size_t size = sack_fsize( in );
-		if( l.verbose ) printf( " file size (%d)\n", size );
+	if( flags & SFF_DIRECTORY ) {
+		// don't need to do anything with directories... already
+      // doing subcurse option.
+	} else {
+		FILE *in = sack_fopenEx( 0, filename, "rb", sack_get_default_mount() );
+		if( l.verbose ) printf( " Opened file %s = %p\n", filename, in );
+		if( in )
 		{
-			FILE *out = sack_fopenEx( 0, filename, "wb", l.current_mount );
-			POINTER data = NewArray( uint8_t, size );
-			if( l.verbose ) printf( " Opened file %s = %p (%d)\n", filename, out, size );
-			sack_fread( data, 1, size, in );
-			if( l.verbose ) printf( " read %d\n", size );
-			sack_fwrite( data, 1, size, out );
-			sack_fclose( in );
-			sack_ftruncate( out );
-			sack_fclose( out );
-			Release( data );
+			size_t size = sack_fsize( in );
+			if( l.verbose ) printf( " file size (%d)\n", size );
+			{
+				FILE *out = sack_fopenEx( 0, filename, "wb", l.current_mount );
+				POINTER data = NewArray( uint8_t, size );
+				if( l.verbose ) printf( " Opened file %s = %p (%d)\n", filename, out, size );
+				sack_fread( data, 1, size, in );
+				if( l.verbose ) printf( " read %d\n", size );
+				sack_fwrite( data, 1, size, out );
+				sack_fclose( in );
+				sack_ftruncate( out );
+				sack_fclose( out );
+				Release( data );
+			}
 		}
 	}
 }
@@ -209,7 +214,7 @@ static void AppendFilesAs( CTEXTSTR filename1, CTEXTSTR filename2, CTEXTSTR outp
 #ifdef WIN32
 		POINTER extra = GetExtraData( buffer );
 #else		
-		POINTER extra = file1_size;
+		POINTER extra = (POINTER)file1_size;
 		lprintf( "linux append is probably wrong here..." );
 #endif
 		if( ((uintptr_t)extra - (uintptr_t)buffer) < (file1_size + (4096 - ( file1_size & 0xFFF ))) )
@@ -260,7 +265,10 @@ static void ExtractFileAs( CTEXTSTR filename, CTEXTSTR asfile )
 
 static void CPROC ShowFile( uintptr_t psv, CTEXTSTR file, int flags )
 {
-	void *f = l.fsi->open( (uintptr_t)psv, file + 2 );
+	size_t ofs = 0;
+	void *f;
+	if( file[0] == '.' && file[1] == '/' ) ofs = 2;
+	f = l.fsi->open( (uintptr_t)psv, file + ofs );
 	printf( "%9d %s\n", l.fsi->size( f ), file );
 	l.fsi->_close( f );
 }

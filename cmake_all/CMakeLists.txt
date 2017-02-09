@@ -89,7 +89,7 @@ endif()
 if( EXISTS /usr/include/uuid/uuid.h )
 DEFINE_DEFAULT( NEED_UUID OFF )
 else()
-DEFINE_DEFAULT( NEED_UUID OFF )
+DEFINE_DEFAULT( NEED_UUID ON )
 endif()
 endif( WIN32 OR __ANDROID__ )
 

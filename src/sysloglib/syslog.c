@@ -649,7 +649,7 @@ CTEXTSTR GetPackedTime( void )
 
 #if defined( WIN32 ) && !defined( __ANDROID__ )
 	static TEXTCHAR timebuffer[256];
-   SYSTEMTIME st;
+	SYSTEMTIME st;
 	GetLocalTime( &st );
 
 	tnprintf( timebuffer, sizeof(timebuffer), WIDE("%04d%02d%02d%02d%02d%02d")
@@ -659,7 +659,7 @@ CTEXTSTR GetPackedTime( void )
 
 #else
 	static TEXTCHAR *timebuffer;
-   static char c_timebuffer[256];
+	static char c_timebuffer[256];
 	struct tm *timething;
 	time_t timevalnow;
 	time(&timevalnow);
@@ -670,7 +670,7 @@ CTEXTSTR GetPackedTime( void )
 				, timething );
 	if( timebuffer )
 		Release( timebuffer );
-   timebuffer = DupCStr( c_timebuffer );
+	timebuffer = DupCStr( c_timebuffer );
 #endif
 	return timebuffer;
 }
