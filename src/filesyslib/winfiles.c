@@ -928,18 +928,6 @@ int sack_unlinkEx( INDEX group, CTEXTSTR filename, struct file_system_mounted_in
 {
 	while( mount )
 	{
-#ifdef __LINUX__
-		int okay;
-		TEXTSTR tmp = PrependBasePath( group, NULL, filename );
-#  ifdef UNICODE
-		char *tmpname = CStrDup( tmp );
-		okay = unlink( tmpname );
-		Deallocate( char*, tmpname );
-#  else
-		okay = unlink( filename );
-#  endif
-		Deallocate( TEXTCHAR*, tmp );
-#else
 		int okay = 1;
 		if( mount->fsi )
 		{
@@ -960,10 +948,21 @@ int sack_unlinkEx( INDEX group, CTEXTSTR filename, struct file_system_mounted_in
 		else
 		{
 			TEXTSTR tmp = PrependBasePath( group, NULL, filename );
+#ifdef WIN32
 			okay = DeleteFile(tmp);
+#else
+#  ifdef UNICODE
+			char *_filename = CStrDup( filename );
+#    define filename _filename
+#  endif
+			okay = unlink( filename );
+#  ifdef UNICODE
+			Deallocate( char *, _filename );
+#    undef filename
+#  endif
+#endif
 			Deallocate( TEXTCHAR*, tmp );
 		}
-#endif
 		if( !okay )
 			return !okay;
 		mount = mount->next;

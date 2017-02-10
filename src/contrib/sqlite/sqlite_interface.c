@@ -17,7 +17,7 @@
 #include "sqlite3.h"
 
 #ifndef UNICODE  // fix strings
-//#define LOG_OPERATIONS
+//#  define LOG_OPERATIONS
 #endif
 
 SQL_NAMESPACE
@@ -52,6 +52,7 @@ struct sqlite_interface my_sqlite_interface = {
 															 , sqlite3_backup_step
 															 , sqlite3_backup_remaining
 															 , sqlite3_backup_finish
+															 , sqlite3_extended_errcode
 };
 
 
@@ -595,8 +596,14 @@ void InitVFS( CTEXTSTR name, struct file_system_mounted_interface *mount )
 	}
 }
 
+
+void errorLogCallback(void *pArg, int iErrCode, const char *zMsg){
+	lprintf( "Sqlite3 Err: (%d) %s", iErrCode, zMsg);
+}
+
 static void DoInitVFS( void )
 {
+	sqlite3_config( SQLITE_CONFIG_LOG, errorLogCallback, 0);
 	InitVFS( WIDE("sack"), NULL );	
 }
 

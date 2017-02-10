@@ -288,6 +288,7 @@ struct sqlite_interface
 	int ( FIXREF2*sqlite3_backup_remaining)(sqlite3_backup *p);
 	//int ( FIXREF2*sqlite3_backup_pagecount)(sqlite3_backup *p);
 	int ( FIXREF2*sqlite3_backup_finish)(sqlite3_backup *p);
+	int ( FIXREF2*sqlite3_extended_errcode)(sqlite3 *db);
 };
 
 #ifdef USE_SQLITE_INTERFACE
@@ -328,6 +329,7 @@ PRIORITY_PRELOAD( LoadSQLiteInterface, SQL_PRELOAD_PRIORITY-1 )
 #    define sqlite3_backup_step          (FIXDEREF2 (sqlite_iface->sqlite3_backup_step))
 #    define sqlite3_backup_finish        (FIXDEREF2 (sqlite_iface->sqlite3_backup_finish))
 #    define sqlite3_backup_remaining     (FIXDEREF2 (sqlite_iface->sqlite3_backup_remaining))
+#    define sqlite3_extended_errcode     (FIXDEREF2 (sqlite_iface->sqlite3_extended_errcode))
 #  endif
 #endif
 
