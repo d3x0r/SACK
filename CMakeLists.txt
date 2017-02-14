@@ -1477,7 +1477,8 @@ endif( WIN32 )
 
 if( BUILD_TESTS )
    add_subdirectory( src/streamlib/ffmpeg/audio_test )
-
+   add_subdirectory( src/filesyslib/test_file_scan )
+   
    #add_subdirectory( src/bench/mem )
 
  if( NOT __NO_GUI__ AND NOT __NO_MSGSVR__ )
@@ -1485,9 +1486,12 @@ if( BUILD_TESTS )
    if( NOT __ANDROID__ )
       add_subdirectory( src/msgsvr/client/client_server )
       add_subdirectory( src/msgsvr/client/client_client )
-      add_subdirectory( src/filesyslib/filemon/filemonitor )
    endif( NOT __ANDROID__ )
  endif( NOT __NO_GUI__ AND NOT __NO_MSGSVR__ )
+
+   if( NOT __ANDROID__ )
+      add_subdirectory( src/filesyslib/filemon/filemonitor )
+   endif( NOT __ANDROID__ )
 
    add_subdirectory( src/configlib/test1 )
    # these opengl plugins used GLEW, and did their program at very low level
