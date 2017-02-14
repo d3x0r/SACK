@@ -1,0 +1,19 @@
+
+project( test_file_scan )
+
+set(BASE_SOURCES
+    test_file_scan.c
+)
+
+ADD_PROGRAM(${PROJECT_NAME} ${BASE_SOURCES} )
+
+SET_TARGET_PROPERTIES(${PROJECT_NAME} PROPERTIES
+                  FOLDER tests
+)
+SET_PROPERTY(TARGET ${project} APPEND PROPERTY
+                  COMPILE_FLAGS  "${LibraryExtraFlags}"
+      )
+
+install_mode_dest( ${PROJECT_NAME} )
+
+
