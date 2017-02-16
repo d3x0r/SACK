@@ -108,8 +108,13 @@ static void ComLocalInit( void )
 {
 	if( !sack_com_local.flags.bInited )
 	{
+#ifdef __NO_OPTIONS__
+		bLogDataXfer = 0;
+		gbLog = 0;
+#else
 		bLogDataXfer = SACK_GetPrivateProfileInt( WIDE("COM PORTS"), WIDE("Log IO"), 0, WIDE("comports.ini") );
 		gbLog = SACK_GetPrivateProfileIntEx( WIDE("COM PORTS"), WIDE("allow logging"), 0, WIDE("comports.ini"), TRUE );
+#endif
 		sack_com_local.flags.bInited = 1;
 	}
 }
@@ -173,7 +178,12 @@ uintptr_t OpenComm( CTEXTSTR name, int nInQueue, int nOutQueue )
 									  , OPEN_EXISTING
 									  , FILE_ATTRIBUTE_NORMAL
 									  , NULL );
-		timeout.ReadIntervalTimeout = SACK_GetPrivateProfileInt( name, WIDE( "port timeout" ), 100, WIDE( "comports.ini" ) );
+		timeout.ReadIntervalTimeout = 
+#ifndef __NO_OPTIONS__
+					SACK_GetPrivateProfileInt( name, WIDE( "port timeout" ), 100, WIDE( "comports.ini" ) );
+#else
+					100;
+#endif
 		timeout.ReadTotalTimeoutMultiplier = 1;
 		timeout.ReadTotalTimeoutConstant = 1;
 		timeout.WriteTotalTimeoutMultiplier = 1;
@@ -776,7 +786,16 @@ void DumpTermios( struct termios *opts )
 	  TEXTCHAR szInit[64];
 	  // capital letters on carrier, rts, rtsflow mean to enable - otherwise
 	  // don't pay attention to those signals.
+#ifndef __NO_OPTIONS__
 	  SACK_GetPrivateProfileString( WIDE("COM PORTS"), szPort, WIDE("57600,N,8,1,cARRIER,RTS,rTSFLOW"), szInit, sizeof( szInit ), WIDE("comports.ini") );
+#else
+	  GetPrivateProfileString( WIDE("COM PORTS"), szPort, WIDE(""), szInit, sizeof( szInit ), WIDE("comports.ini") );
+		if( !szPort[0] ) {
+			  WritePrivateProfileString( WIDE("COM PORTS"), szPort, WIDE("57600,N,8,1,cARRIER,RTS,rTSFLOW"), WIDE("comports.ini") );
+
+		}
+#endif
+
 #if defined(  _WIN32 ) || defined( __LINUX__ )
 	  if( !iTimerId )
 	  {

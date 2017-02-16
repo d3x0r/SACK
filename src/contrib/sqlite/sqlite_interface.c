@@ -601,10 +601,69 @@ void errorLogCallback(void *pArg, int iErrCode, const char *zMsg){
 	lprintf( "Sqlite3 Err: (%d) %s", iErrCode, zMsg);
 }
 
+
+static POINTER SimpleAllocate( int size )
+{
+	return Allocate( size );
+}
+static POINTER SimpleReallocate( POINTER p, int size )
+{
+	return Reallocate( p, size );
+}
+
+static void SimpleFree( POINTER size )
+{
+	Release( size );
+}
+
+// this routine must return 'int' which is what sqlite expects for its interface
+static int SimpleSize( POINTER p )
+{
+	return (int)SizeOfMemBlock( p );
+}
+
+static int SimpleRound( int size )
+{
+	return size;
+}
+
+static int SimpleInit( POINTER p )
+{
+	return TRUE;
+}
+static void SimpleShutdown( POINTER p )
+{
+}
+
 static void DoInitVFS( void )
 {
 	sqlite3_config( SQLITE_CONFIG_LOG, errorLogCallback, 0);
-	InitVFS( WIDE("sack"), NULL );	
+
+   {
+#if SQLITE_VERSION_NUMBER >= 3006011
+		static sqlite3_mem_methods mem_routines;
+		if( mem_routines.pAppData == NULL )
+		{
+			sqlite3_config( SQLITE_CONFIG_GETMALLOC, &mem_routines );
+			mem_routines.xMalloc = SimpleAllocate;
+			mem_routines.xFree = SimpleFree;
+			mem_routines.xRealloc = SimpleReallocate;
+			mem_routines.xSize = SimpleSize;
+			//mem_routines.xRoundUp = SimpleRound;
+			//mem_routines.xInit = SimpleInit;
+			//mem_routines.xShutdown = SimpleShutdown;
+			mem_routines.pAppData = &mem_routines;
+//#if SQLITE_VERSION_NUMBER >= 3006023
+//			sqlite3_db_config( odbc->db, SQLITE_CONFIG_MALLOC, &mem_routines );
+//#else
+			sqlite3_config( SQLITE_CONFIG_MALLOC, &mem_routines );
+//#endif
+		}
+#endif
+	}
+
+
+	InitVFS( WIDE("sack"), NULL );
 }
 
 

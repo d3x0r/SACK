@@ -325,40 +325,6 @@ static void decomputePassword(sqlite3_context*onwhat,int n,sqlite3_value**argv)
   //void (*xStep)(sqlite3_context*,int,sqlite3_value**),
   //void (*xFinal)(sqlite3_context*)
 
-static POINTER SimpleAllocate( int size )
-{
-	return Allocate( size );
-}
-static POINTER SimpleReallocate( POINTER p, int size )
-{
-	return Reallocate( p, size );
-}
-
-static void SimpleFree( POINTER size )
-{
-	Release( size );
-}
-
-// this routine must return 'int' which is what sqlite expects for its interface
-static int SimpleSize( POINTER p )
-{
-	return (int)SizeOfMemBlock( p );
-}
-
-static int SimpleRound( int size )
-{
-	return size;
-}
-
-static int SimpleInit( POINTER p )
-{
-	return TRUE;
-}
-static void SimpleShutdown( POINTER p )
-{
-}
-
-
 void ExtendConnection( PODBC odbc )
 {
 	int rc = sqlite3_create_function(
@@ -468,29 +434,6 @@ void ExtendConnection( PODBC odbc )
 		//DebugBreak();
 	}
 
-	{
-#if SQLITE_VERSION_NUMBER >= 3006011
-		static sqlite3_mem_methods mem_routines;
-		if( mem_routines.pAppData == NULL )
-		{
-			sqlite3_config( SQLITE_CONFIG_GETMALLOC, &mem_routines );
-			mem_routines.xMalloc = SimpleAllocate;
-			mem_routines.xFree = SimpleFree;
-			mem_routines.xRealloc = SimpleReallocate;
-			mem_routines.xSize = SimpleSize;
-			//mem_routines.xRoundUp = SimpleRound;
-			//mem_routines.xInit = SimpleInit;
-			//mem_routines.xShutdown = SimpleShutdown;
-			mem_routines.pAppData = &mem_routines;
-#if SQLITE_VERSION_NUMBER >= 3006023
-			sqlite3_db_config( odbc->db, SQLITE_CONFIG_MALLOC, &mem_routines );
-#else
-			sqlite3_config( SQLITE_CONFIG_MALLOC, &mem_routines );
-#endif
-		}
-#endif
-	}
-
 	//SQLCommandf( odbc, "PRAGMA read_uncommitted=True" );
 	//if( !odbc->flags.bVFS )
 	{
@@ -515,7 +458,7 @@ static void DumpODBCInfo( PODBC odbc )
 {
 	if( g.odbc && odbc == g.odbc )
 	{
-		lprintf( WIDE( "GLBOAL ODBC:" ) );
+		lprintf( WIDE( "GLOBAL ODBC:" ) );
 	}
 	if( !odbc )
 		return;
@@ -1542,7 +1485,7 @@ void BeginTransact( PODBC odbc )
 				odbc->auto_commit_thread = ThreadTo( CommitThread, (uintptr_t)odbc );
 			}
 			odbc->flags.bAutoTransact = 0;
-#ifdef USE_SQLITE
+#if defined( USE_SQLITE ) || defined( USE_SQLITE_INTERFACE )
 			if( odbc->flags.bSQLite_native )
 			{
 				SQLCommand( odbc, WIDE( "BEGIN TRANSACTION" ) );
@@ -2343,7 +2286,7 @@ void ReleaseODBC( PODBC odbc )
 void CloseDatabaseEx( PODBC odbc, LOGICAL ReleaseConnection )
 {
 	ReleaseODBC( odbc );
-#ifdef USE_SQLITE
+#if defined( USE_SQLITE ) || defined( USE_SQLITE_INTERFACE )
 	if( odbc->flags.bSQLite_native )
 	{
 		int err = sqlite3_close( odbc->db );

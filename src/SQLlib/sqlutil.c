@@ -1217,7 +1217,7 @@ LOGICAL CPROC CheckMySQLODBCTable( PODBC odbc, PTABLE table, uint32_t options )
 	}
 	cmd = NewArray( TEXTCHAR, 1024);
 	buflen = 0;
-#ifdef USE_SQLITE
+#if defined( USE_SQLITE ) || defined( USE_SQLITE_INTERFACE )
 	if( odbc->flags.bSQLite_native )
 		buflen += tnprintf( cmd+buflen , 1024-buflen,WIDE("select tbl_name,sql from sqlite_master where type='table' and name='%s'")
 								, table->name );

@@ -189,7 +189,11 @@ static int32_t loadRsaKeys( sslKeys_t *keys, LOGICAL client )
 			 Build the CA list first for potential client auth usage
 			 */
 			priv_key_len = 0;
+#ifndef __NO_OPTIONS__
 			SACK_GetProfileString( "SSL/Private Key", "filename", "myprivkey.pem", privkey_buf, 256 );
+#else
+         strcpy( prikey_buf, "myprivkey.pem" );
+#endif
 			file = sack_fopen( fileGroup, privkey_buf, "rb" );
 			if( file )
 			{
@@ -202,8 +206,11 @@ static int32_t loadRsaKeys( sslKeys_t *keys, LOGICAL client )
 			else
 				priv_key = NULL;
 		}
-
+#ifndef __NO_OPTIONS__
 		SACK_GetProfileString( "SSL/Cert Authority Extra", "filename", "mycert.pem", cert_buf, 256 );
+#else
+         strcpy( cer_buf, "mycert.pem" );
+#endif
 		file = sack_fopen( fileGroup, cert_buf, "rb" );
 		if( file )
 		{
@@ -245,7 +252,11 @@ static int32_t loadRsaKeys( sslKeys_t *keys, LOGICAL client )
 		Build the CA list first for potential client auth usage
 	*/
 		cert_key_len = 0;
+#ifndef __NO_OPTIONS__
 		SACK_GetProfileString( "SSL/Certificate", "filename", "mycert.pem", cert_buf, 256 );
+#else
+		strcpy( cert_buf, "mycert.pem" );
+#endif
 		file = sack_fopen( fileGroup, cert_buf, "rb" );
 		if( file )
 		{
@@ -807,10 +818,17 @@ struct internalCert * MakeRequest( void )
 		 fatal( "Could not create EVP object" );
 
 
+#ifndef __NO_OPTIONS__
 	 ca_len = SACK_GetProfileInt( "TLS", "CA Length", 0 );
+#else
+	 ca_len = 0;
+#endif
 	 if( ca_len ) {
 		 ca = NewArray( char, ca_len + 2 );
+
+#ifndef __NO_OPTIONS__
 		 SACK_GetProfileString( "TLS", "CA Cert", "", ca, ca_len + 1 );
+#endif
 		 BIO_write( keybuf, ca, ca_len );
 		 Deallocate( void *, ca );
 
@@ -820,10 +838,16 @@ struct internalCert * MakeRequest( void )
 
 
 
-	key_len = SACK_GetProfileInt( "TLS", "Key Length", 0 );
+#ifndef __NO_OPTIONS__
+	 key_len = SACK_GetProfileInt( "TLS", "Key Length", 0 );
+#else
+	 key_len = 0;
+#endif
 	if( key_len ) {
 		 key = NewArray( char, key_len + 2 );
+#ifndef __NO_OPTIONS__
 		 SACK_GetProfileString( "TLS", "Key", "", (TEXTCHAR*)key, key_len + 1 );
+#endif
 		 BIO_write( keybuf, key, key_len );
 		 Deallocate( void *, key );
 		 PEM_read_bio_PrivateKey( keybuf, &cert->pkey, NULL, NULL );
@@ -889,9 +913,15 @@ struct internalCert * MakeRequest( void )
 			TEXTCHAR commonName[48];
 			TEXTCHAR org[48];
 			TEXTCHAR country[8];
+#ifndef __NO_OPTIONS__
 			SACK_GetProfileString( "TLS", "Default CA Common Name", "d3x0r.org", commonName, 48 );
 			SACK_GetProfileString( "TLS", "Default CA Org", "Freedom Collective", org, 48 );
 			SACK_GetProfileString( "TLS", "Default CA Country", "US", country, 8 );
+#else
+			strcpy( commonName, "d3x0r.org" );
+			strcpy( org, "Freedom Collective" );
+         strcpy( country, "US" );
+#endif
 			name = X509_get_subject_name( x509 );
 			X509_NAME_add_entry_by_txt( name, "C", MBSTRING_ASC,
 				(unsigned char *)country, -1, -1, 0 );
