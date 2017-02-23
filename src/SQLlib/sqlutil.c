@@ -182,7 +182,7 @@ CTEXTSTR FetchLastInsertKeyEx( PODBC odbc, CTEXTSTR table, CTEXTSTR col DBG_PASS
 		}
 	}
 #endif
-#ifdef USE_SQLITE
+#if defined( USE_SQLITE ) || defined( USE_SQLITE_INTERFACE )
 	// extended sqlite functions with LAST_INSERT_ID() so the following code would work alos.
 	if( odbc->flags.bSQLite_native )
 	{
@@ -248,7 +248,7 @@ TEXTSTR EscapeSQLBinaryExx( PODBC odbc, CTEXTSTR blob, uintptr_t bloblen, LOGICA
 	int targetlen;
 
 	if( odbc && ( odbc->flags.bSQLite
-#ifdef USE_SQLITE
+#if defined( USE_SQLITE ) || defined( USE_SQLITE_INTERFACE )
 					 || odbc->flags.bSQLite_native
 #endif
 					) )
@@ -1443,7 +1443,7 @@ retry:
 				vtprintf( pvtCreate, WIDE("create table `%s` ("), table->name );
 				for( n = 0; n < table->fields.count; n++ )
 				{
-#ifdef USE_SQLITE
+#if defined( USE_SQLITE ) || defined( USE_SQLITE_INTERFACE )
 					if( odbc->flags.bSQLite_native )
 					{
 						if( table->fields.field[n].extra
@@ -1505,7 +1505,7 @@ retry:
 								  , table->fields.field[n].extra?table->fields.field[n].extra:WIDE("")
 								  );
 
-#ifdef USE_SQLITE
+#if defined( USE_SQLITE ) || defined( USE_SQLITE_INTERFACE )
                if( odbc->flags.bSQLite_native )
 					{
 						int k;
@@ -1533,7 +1533,7 @@ retry:
 					int colfirst = 1;
 					if( table->keys.key[n].flags.bPrimary )
 					{
-#ifdef USE_SQLITE
+#if defined( USE_SQLITE ) || defined( USE_SQLITE_INTERFACE )
 						if( odbc->flags.bSQLite_native )
 						{
 							if( auto_increment_column )
@@ -1579,7 +1579,7 @@ retry:
 					else
 					{
 
-#ifdef USE_SQLITE
+#if defined( USE_SQLITE ) || defined( USE_SQLITE_INTERFACE )
 						if( odbc->flags.bSQLite_native )
 						{
 							if( table->keys.key[n].flags.bUnique )
@@ -1675,7 +1675,7 @@ retry:
 					}
 				}
 				vtprintf( pvtCreate, WIDE(")") ) ; // closing paren of all columns...
-#ifdef USE_SQLITE
+#if defined( USE_SQLITE ) || defined( USE_SQLITE_INTERFACE )
 				if( !odbc->flags.bSQLite_native )
 #endif
 				{

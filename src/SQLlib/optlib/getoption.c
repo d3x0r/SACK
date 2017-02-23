@@ -186,6 +186,9 @@ PFAMILYTREE* GetOptionTree( PODBC odbc )
 
 SQLGETOPTION_PROC( void, CreateOptionDatabaseEx )( PODBC odbc, POPTION_TREE tree )
 {
+#ifdef DETAILED_LOGGING
+	lprintf( "Create Option Database. %d", tree->flags.bCreated );
+#endif
 	if( !global_sqlstub_data->flags.bLogOptionConnection )
 		SetSQLLoggingDisable( tree->odbc, TRUE );
 	{
@@ -1309,7 +1312,9 @@ PODBC GetOptionODBCEx( CTEXTSTR dsn  DBG_PASS )
 		PODBC odbc = (PODBC)DequeLink( &tracker->available );
 		if( !odbc )
 		{
-			//lprintf( "none available, create new connection." );
+#ifdef DETAILED_LOGGING
+			lprintf( "none available, create new connection." );
+#endif
 			odbc = ConnectToDatabaseExx( tracker->name, TRUE DBG_RELAY );
 			if( !tracker->shared_option_tree )
 			{
@@ -1319,6 +1324,9 @@ PODBC GetOptionODBCEx( CTEXTSTR dsn  DBG_PASS )
 			}
 			else
 			{
+#ifdef DETAILED_LOGGING
+				lprintf( "get the tree...." );
+#endif
 				GetOptionTreeExxx( odbc, tracker->shared_option_tree DBG_RELAY );
 			}
 			// only if it's a the first connection should we leave created as false.
@@ -1331,7 +1339,9 @@ PODBC GetOptionODBCEx( CTEXTSTR dsn  DBG_PASS )
 		}
 		AddLink( &tracker->outstanding, odbc );
 		//xx++;
-		//_lprintf( DBG_RELAY )( "%d  %p result...", xx, odbc );
+#ifdef DETAILED_LOGGING
+		_lprintf( DBG_RELAY )( "%d  %p result...", xx, odbc );
+#endif
 		return odbc;
 	}
 }
