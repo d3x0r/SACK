@@ -10,6 +10,7 @@
 
 
 struct command {
+	TEXTSTR exists;
 	TEXTSTR cmd;
 	TEXTSTR args;
 };
@@ -18,6 +19,7 @@ static struct vfs_runner_local
 {
 	char *first_file;
 	PLIST commands;
+	PLIST preCommands;
 	struct file_system_interface *fsi;
 	struct file_system_mounted_interface *rom;
 	char *target_path;
@@ -31,9 +33,9 @@ static struct vfs_runner_local
 
 #define Seek(a,b) (((uintptr_t)a)+(b))
 
-#ifdef WIN32
 POINTER GetExtraData( POINTER block )
 {
+#ifdef WIN32
 	//uintptr_t source_memory_length = block_len;
 	POINTER source_memory = block;
 
@@ -74,8 +76,11 @@ POINTER GetExtraData( POINTER block )
 			return (POINTER)Seek( source_memory, dwSize );
 		}
 	}
-}
+#else
+	// need to get elf size...
+	return 0;
 #endif
+}
 //---------------------------------------------------------------------------
 
 
@@ -98,9 +103,22 @@ static uintptr_t CPROC AddPostInstallCommand( uintptr_t psv, arg_list args ) {
 	return psv;
 }
 
+static uintptr_t CPROC AddPreInstallCommand( uintptr_t psv, arg_list args ) {
+	PARAM( args, CTEXTSTR, exists );
+	PARAM( args, CTEXTSTR, cmd );
+	PARAM( args, CTEXTSTR, cmd_args );
+	struct command *command = New( struct command );
+	command->exists = StrDup( exists );
+	command->cmd = StrDup( cmd );
+	command->args = StrDup( cmd_args );
+	AddLink( &l.preCommands, command );
+	return psv;
+}
+
 static void InitConfigHandler( void ) {
 	l.pch = CreateConfigurationHandler();
 	AddConfigurationMethod( l.pch, "defaultPath \"%m\"", SetDefaultPath );
+	AddConfigurationMethod( l.pch, "pre-run \"%m\" \"%m\" \"%m\"", AddPreInstallCommand );
 	AddConfigurationMethod( l.pch, "run \"%m\" \"%m\"", AddPostInstallCommand );
 }
 
@@ -199,14 +217,9 @@ PRIORITY_PRELOAD( XSaneWinMain, DEFAULT_PRELOAD_PRIORITY + 20 )//( argc, argv )
 		POINTER vfs_memory;
 		if( argc > 1 ) {
 			l.target_path = ExpandPath( argv[1] );
-			SetCurrentPath( l.target_path );
 		}
 		SetSystemLog( SYSLOG_FILE, stderr ); 
-	#ifdef WIN32
 		vfs_memory = GetExtraData( memory );
-	#else
-		vfs_memory = 0;
-	#endif
 		
 		l.fsi = sack_get_filesystem_interface( "sack_shmem.runner" );
 		sack_set_default_filesystem_interface( l.fsi );
@@ -216,11 +229,11 @@ PRIORITY_PRELOAD( XSaneWinMain, DEFAULT_PRELOAD_PRIORITY + 20 )//( argc, argv )
 #else
 	{
 		SetSystemLog( SYSLOG_FILE, stderr );
-#ifdef ALT_VFS_NAME
+#  ifdef ALT_VFS_NAME
 		l.fsi = sack_get_filesystem_interface( "sack_shmem.runner" );
-#else
+#  else
 		l.fsi = sack_get_filesystem_interface( "sack_shmem" );
-#endif
+#  endif
 		sack_set_default_filesystem_interface( l.fsi );
 		vol = sack_vfs_load_crypt_volume( argc> 1? argv[1]:"package.vfs", REPLACE_ME_2, REPLACE_ME_3 );
 		l.rom = sack_mount_filesystem( "self", l.fsi, 100, (uintptr_t)vol, TRUE );
@@ -245,6 +258,24 @@ PRIORITY_PRELOAD( XSaneWinMain, DEFAULT_PRELOAD_PRIORITY + 20 )//( argc, argv )
 			}
 			sack_fclose( file );
 		}
+		{
+			INDEX idx;
+			struct command *command;
+			static TEXTCHAR buf[4096];
+			LIST_FORALL( l.preCommands, idx, struct command *, command ) {
+				snprintf( buf, 4096, "%s/%s"
+				        , l.target_path
+				        , command->exists );
+				if( sack_exists( buf ) ) {
+					snprintf( buf, 4096, "\"%s\\%s\"%s%s"
+					        , l.target_path
+					        , command->cmd
+					        , command->args ? " ":""
+					        , command->args?command->args:"" );
+					System( buf, NULL, 0 );
+				}
+			}
+		}
 
 		while( ScanFilesEx( NULL, "*", &info, ShowFile, SFF_SUBCURSE | SFF_SUBPATHONLY
 			, (uintptr_t)0, FALSE, l.rom ) );
@@ -258,12 +289,11 @@ SaneWinMain(argc,argv)
 	struct command *command;
 	static TEXTCHAR buf[4096];
 	LIST_FORALL( l.commands, idx, struct command *, command ) {
-		snprintf( buf, 4096, "\"%s/%s\"%s%s"
+		snprintf( buf, 4096, "\"%s\\%s\"%s%s"
 		        , l.target_path
 		        , command->cmd
 		        , command->args ? " ":""
 		        , command->args?command->args:"" );
-		lprintf( "run:%s", buf );
 		System( buf, NULL, 0 );
 	}
 	return 0;
