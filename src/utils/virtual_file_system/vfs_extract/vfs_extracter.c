@@ -108,64 +108,49 @@ static void InitConfigHandler( void ) {
 
 static LOGICAL CPROC ExtractFile( CTEXTSTR name )
 {
-	if( StrCmp( name, ".app.config" ) == 0 ) {
-		FILE *file = sack_fopenEx( 0, name, "rb", l.rom );
-		if( file )
-		{
-			size_t sz = sack_fsize( file );
-			if( sz )
-			{
-				POINTER data = NewArray( uint8_t, sz );
-				sack_fread( data, 1, sz, file );
-				ProcessConfigurationInput( l.pch, data, sz, 0 );
-				if( !l.target_path )
-               l.target_path = ".";
-				Release( data );
-			}
-         sack_fclose( file );
-		}
-	} else {
-		FILE *file;
-		file = sack_fopenEx( 0, name, "rb", l.rom );
-		if( file )
-		{
-			size_t sz = sack_fsize( file );
-			if( sz )
-			{
-				POINTER data = NewArray( uint8_t, sz );
-				sack_fread( data, 1, sz, file );
+	FILE *file;
+	size_t sz;
+	POINTER data;
 
-				/* this is where the file should be output */
-				{
-					char target[256];
-					char *tmp;
-					snprintf( target, 256, "%s/%s", l.target_path, name );
-					tmp = (char*)pathrchr( target );
-					if( tmp ) {
-						tmp[0] = 0;
-						if( !l.prior_output_path 
-							|| StrCmp( l.prior_output_path, target ) ) {
-							l.prior_output_path = strdup( target );
-							MakePath( target );
-						}
-						tmp[0] = '/';
+	file = sack_fopenEx( 0, name, "rb", l.rom );
+	if( file )
+	{
+		sz = sack_fsize( file );
+		if( sz )
+		{
+			data = NewArray( uint8_t, sz );
+			sack_fread( data, 1, sz, file );
+
+			/* this is where the file should be output */
+			{
+				char target[256];
+				char *tmp;
+				snprintf( target, 256, "%s/%s", l.target_path, name );
+				tmp = (char*)pathrchr( target );
+				if( tmp ) {
+					tmp[0] = 0;
+					if( !l.prior_output_path 
+						|| StrCmp( l.prior_output_path, target ) ) {
+						l.prior_output_path = strdup( target );
+						MakePath( target );
 					}
-					{
-						FILE *out;
-						out = sack_fopenEx( 0, target, "wb", sack_get_default_mount() );
- 						if( out ) {
-							if( !l.first_file )
-								l.first_file = strdup( target );
-							sack_fwrite( data, 1, sz, out );
-							sack_fclose( out );
-						}
+					tmp[0] = '/';
+				}
+				{
+					FILE *out;
+					out = sack_fopenEx( 0, target, "wb", sack_get_default_mount() );
+					if( out ) {
+						if( !l.first_file )
+							l.first_file = strdup( target );
+						sack_fwrite( data, 1, sz, out );
+						sack_fclose( out );
 					}
 				}
-				Release( data );
 			}
-			sack_fclose( file );
-			return TRUE;
+			Release( data );
 		}
+		sack_fclose( file );
+		return TRUE;
 	}
 
 	return FALSE;
@@ -245,6 +230,22 @@ PRIORITY_PRELOAD( XSaneWinMain, DEFAULT_PRELOAD_PRIORITY + 20 )//( argc, argv )
 	if( vol )
 	{
 		POINTER info = NULL;
+		FILE *file = sack_fopenEx( 0, ".app.config", "rb", l.rom );
+		if( file )
+		{
+			size_t sz = sack_fsize( file );
+			if( sz )
+			{
+				POINTER data = NewArray( uint8_t, sz );
+				sack_fread( data, 1, sz, file );
+				ProcessConfigurationInput( l.pch, data, sz, 0 );
+				if( !l.target_path )
+					l.target_path = ".";
+				Deallocate( POINTER, data );
+			}
+			sack_fclose( file );
+		}
+
 		while( ScanFilesEx( NULL, "*", &info, ShowFile, SFF_SUBCURSE | SFF_SUBPATHONLY
 			, (uintptr_t)0, FALSE, l.rom ) );
 	}
@@ -262,6 +263,7 @@ SaneWinMain(argc,argv)
 		        , command->cmd
 		        , command->args ? " ":""
 		        , command->args?command->args:"" );
+		lprintf( "run:%s", buf );
 		System( buf, NULL, 0 );
 	}
 	return 0;
