@@ -88,7 +88,6 @@ static uintptr_t CPROC SetDefaultPath( uintptr_t psv, arg_list args ) {
 	PARAM( args, CTEXTSTR, path );
 	if( !l.target_path ) { // otherwise it was already set on the commandline
 		l.target_path = ExpandPath( path );
- 		SetCurrentPath( l.target_path );
 	}
 	return psv;
 }
@@ -99,6 +98,7 @@ static uintptr_t CPROC AddPostInstallCommand( uintptr_t psv, arg_list args ) {
 	struct command *command = New( struct command );
 	command->cmd = StrDup( cmd );
 	command->args = StrDup( cmd_args );
+	{ char *c = command->cmd; while( c[0] ){ if( c[0]=='/' ) c[0]='\\'; c++; } }
 	AddLink( &l.commands, command );
 	return psv;
 }
@@ -111,6 +111,7 @@ static uintptr_t CPROC AddPreInstallCommand( uintptr_t psv, arg_list args ) {
 	command->exists = StrDup( exists );
 	command->cmd = StrDup( cmd );
 	command->args = StrDup( cmd_args );
+	{ char *c = command->cmd; while( c[0] ){ if( c[0]=='/' ) c[0]='\\'; c++; } }
 	AddLink( &l.preCommands, command );
 	return psv;
 }
@@ -272,6 +273,7 @@ PRIORITY_PRELOAD( XSaneWinMain, DEFAULT_PRELOAD_PRIORITY + 20 )//( argc, argv )
 					        , command->cmd
 					        , command->args ? " ":""
 					        , command->args?command->args:"" );
+					lprintf( "pre-run:%s", buf );
 					System( buf, NULL, 0 );
 				}
 			}
@@ -294,6 +296,7 @@ SaneWinMain(argc,argv)
 		        , command->cmd
 		        , command->args ? " ":""
 		        , command->args?command->args:"" );
+		lprintf( "run:%s", buf );
 		System( buf, NULL, 0 );
 	}
 	return 0;
