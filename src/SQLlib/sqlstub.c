@@ -1338,7 +1338,11 @@ void SQLCommit( PODBC odbc )
 	// someone might not want it now, but we already started a thread for it....
 	//if( odbc->flags.bAutoTransact )
 	{
-		EnterCriticalSec( &odbc->cs );
+		if( odbc->flags.bThreadProtect )
+		{
+			EnterCriticalSec( &odbc->cs );
+			odbc->nProtect++;
+		}
 		// we will own the odbc here, so the timer will either block, or
 		// have completed, releasing this.
 
@@ -1364,7 +1368,11 @@ void SQLCommit( PODBC odbc )
 			if( odbc->auto_commit_callback )
 				odbc->auto_commit_callback( odbc->auto_commit_callback_psv, odbc );
 		}
-		LeaveCriticalSec( &odbc->cs );
+		if( odbc->flags.bThreadProtect )
+		{
+			odbc->nProtect--;
+			LeaveCriticalSec( &odbc->cs );
+		}
 	}
 }
 
