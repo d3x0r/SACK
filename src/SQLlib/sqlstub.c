@@ -281,11 +281,11 @@ static void computeSha1(sqlite3_context*onwhat,int argc,sqlite3_value**argv)
 
 static void computePassword(sqlite3_context*onwhat,int argc,sqlite3_value**argv)
 {
-   PVARTEXT pvt = VarTextCreate();
+	PVARTEXT pvt = VarTextCreate();
 	PODBC odbc = (PODBC)sqlite3_user_data(onwhat);
 	const unsigned char *val = sqlite3_value_text( argv[0] );
 	static TEXTCHAR *result;
-   if( result ) Release( result );
+	if( result ) Release( result );
 	result = SRG_EncryptString( (CTEXTSTR)val );
 #ifdef _UNICODE
 	{
@@ -305,7 +305,7 @@ static void decomputePassword(sqlite3_context*onwhat,int n,sqlite3_value**argv)
 	PODBC odbc = (PODBC)sqlite3_user_data(onwhat);
 	const unsigned char *val = sqlite3_value_text( argv[0] );
 	static TEXTCHAR *result;
-   if( result ) Release( result );
+	if( result ) Release( result );
 	result = SRG_DecryptString( (CTEXTSTR)val );
 #ifdef _UNICODE
 	{
@@ -1336,7 +1336,7 @@ int OpenSQLConnection( PODBC odbc )
 void SQLCommit( PODBC odbc )
 {
 	// someone might not want it now, but we already started a thread for it....
-	if( odbc->flags.bAutoTransact )
+	//if( odbc->flags.bAutoTransact )
 	{
 		EnterCriticalSec( &odbc->cs );
 		// we will own the odbc here, so the timer will either block, or
@@ -1458,7 +1458,7 @@ static uintptr_t CPROC CommitThread( PTHREAD thread )
 
 //----------------------------------------------------------------------
 
-void BeginTransact( PODBC odbc )
+static void BeginTransactEx( PODBC odbc, int force )
 {
 	// I Only test this for SQLITE, specifically the optiondb.
 	// this transaction phrase is not really as important on server based systems.
@@ -1467,7 +1467,7 @@ void BeginTransact( PODBC odbc )
 		odbc = g.odbc;
 	if( !odbc )
 		return;
-	if( odbc->flags.bAutoTransact )
+	if( odbc->flags.bAutoTransact || force )
 	{
 		uint32_t newtick = timeGetTime();
 		//lprintf( WIDE( "Allowed. %lu" ), odbc->last_command_tick );
@@ -1477,13 +1477,15 @@ void BeginTransact( PODBC odbc )
 		//    okay if there IS a tick, then the OR is triggered, which sets the time, and it will be non zero,
 		//    so that will fail the IF, but set the time.
 		// if there is NOT a last command tick, then we add the timer
-		if( !odbc->last_command_tick )
+		if( force || !odbc->last_command_tick )
 		{
+			int prior;
 			odbc->last_command_tick = newtick;
-			if( !odbc->auto_commit_thread )
+			if( !force && !odbc->auto_commit_thread )
 			{
 				odbc->auto_commit_thread = ThreadTo( CommitThread, (uintptr_t)odbc );
 			}
+			prior = odbc->flags.bAutoTransact;
 			odbc->flags.bAutoTransact = 0;
 #if defined( USE_SQLITE ) || defined( USE_SQLITE_INTERFACE )
 			if( odbc->flags.bSQLite_native )
@@ -1493,13 +1495,14 @@ void BeginTransact( PODBC odbc )
 			else
 #endif
 				if( odbc->flags.bAccess )
-			{
+				{
+					lprintf( "Unhandled; access driver, begintransaction..." );
 			}
 			else
 			{
 				SQLCommand( odbc, WIDE( "START TRANSACTION" ) );
 			}
-			odbc->flags.bAutoTransact = 1;
+			odbc->flags.bAutoTransact = prior;
 		}
 		else // update the tick.
 			odbc->last_command_tick = newtick;
@@ -1507,6 +1510,12 @@ void BeginTransact( PODBC odbc )
 	}
 	//else
 	//   lprintf( WIDE( "No auto transact here." ) );
+}
+
+//----------------------------------------------------------------------
+
+void SQLBeginTransact( PODBC odbc ) {
+	BeginTransactEx( odbc, 1 );
 }
 
 //----------------------------------------------------------------------
@@ -2569,7 +2578,7 @@ SQLPROXY_PROC( int, SQLCommandEx )( PODBC odbc, CTEXTSTR command DBG_PASS )
 	if( use_odbc )
 	{
 		PCOLLECT pCollector;
-		BeginTransact( use_odbc );
+		BeginTransactEx( use_odbc, 0 );
 		do
 		{
 #ifdef LOG_COLLECTOR_STATES
@@ -3229,7 +3238,7 @@ int __GetSQLResult( PODBC odbc, PCOLLECT collection, int bMore )
 		{
 			PTEXT data = VarTextGet( pvtData );
 			lprintf( "%s", GetText( data ) );
-         LineRelease( data );
+			LineRelease( data );
 			//lprintf( WIDE( "%s" ), GetText( VarTextPeek( pvtData ) ) );
 			VarTextDestroy( &pvtData );
 		}
@@ -3740,7 +3749,9 @@ int SQLRecordQueryEx( PODBC odbc
 		(*result) = NULL;
 	if( nResults )
 		*nResults = 0;
-
+	// if not a [sS]elect then begin a transaction.... some code uses query record for everything.
+	if( query[0] != 's' && query[0] != 'S' )
+		BeginTransactEx( use_odbc, 0 );
 	do
 	{
 		if( !IsSQLOpenEx( odbc DBG_RELAY ) )
@@ -3809,6 +3820,9 @@ int SQLQueryEx( PODBC odbc, CTEXTSTR query, CTEXTSTR *result DBG_PASS )
 	// clean up our result data....
 	if( *result )
 		(*result) = NULL;
+	// if not a [sS]elect then begin a transaction.... some code might use query for everything.
+	if( query[0] != 's' && query[0] != 'S' )
+		BeginTransactEx( use_odbc, 0 );
 	do
 	{
 		if( !IsSQLOpen( odbc ) )

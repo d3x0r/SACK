@@ -474,6 +474,10 @@ PSSQL_PROC( int, DoSQLCommandEx )( CTEXTSTR command DBG_PASS);
    odbc :  connection to database to commit                      */
 PSSQL_PROC( void, SQLCommit )( PODBC odbc );
 
+/* generates the begin transaction for a commection.
+   Parameters
+   odbc :  connection to database to start a transaction        */
+PSSQL_PROC( void, SQLBeginTransact )( PODBC odbc );
 
 // parameters to this are pairs of "name", type, WIDE("value")
 //  type == 0 - value is text, do not quote
@@ -1525,7 +1529,9 @@ PSSQL_PROC( void, SetSQLAutoTransact )( PODBC odbc, LOGICAL bEnable );
 /* Enable using 'BEGIN TRANSACTION' and 'COMMIT' commands automatically
    around commands. If there is a lull of 500ms (1/2 second),
    then the commit automatically fires. SQLCommit can be called
-   to trigger this process early.
+	to trigger this process early.
+	if Callback is set, automatically enables AutoTransact
+   if Callback is NULL, automatically clears AutoTransact
    
    
    Parameters
