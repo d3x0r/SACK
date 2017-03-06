@@ -10,6 +10,9 @@ static struct vfs_command_local
 	struct volume *current_vol;
 	struct file_system_mounted_interface *current_mount;
 	LOGICAL verbose;
+
+	struct volume *current_vol_source;
+	struct file_system_mounted_interface *current_mount_source;
 } l;
 
 static void StoreFileAs( CTEXTSTR filename, CTEXTSTR asfile )
@@ -60,11 +63,78 @@ static void CPROC _StoreFile( uintptr_t psv,  CTEXTSTR filename, int flags )
 	}
 }
 
+static void CPROC _PatchFile( uintptr_t psv,  CTEXTSTR filename, int flags )
+{
+	if( flags & SFF_DIRECTORY ) {
+		// don't need to do anything with directories... already
+      // doing subcurse option.
+	} else {
+		FILE *in = sack_fopenEx( 0, filename, "rb", sack_get_default_mount() );
+		FILE *in2 = sack_fopenEx( 0, filename, "rb", l.current_mount_source );
+		if( l.verbose ) printf( " Opened file %s = %p\n", filename, in );
+		if( in )
+		{
+			size_t size = sack_fsize( in );
+			size_t size2 = in2?sack_fsize( in2 ):0;
+			POINTER data = NewArray( uint8_t, size );
+			sack_fread( data, 1, size, in );
+			if( l.verbose ) printf( " file sizes (%d) (%d)\n", size, size2 );
+			if( size == size2 )
+			{			
+				POINTER data2 = NewArray( uint8_t, size2 );
+				sack_fread( data2, 1, size2, in2 );
+				if( l.verbose ) printf( " read %d\n", size );
+				if( memcmp( data, data2, size ) ) {
+					size2 = -1;
+					if( l.verbose ) printf( "data compared inequal; including in output\n", size );
+				}
+				sack_fclose( in2 );
+				Deallocate( POINTER, data2 );
+			}
+			if( ( size != size2 )
+			   || (strcasecmp( filename, ".app.config" ) == 0) 
+			   || (strcasecmp( filename, "./.app.config" ) == 0) )
+			{
+				FILE *out = sack_fopenEx( 0, filename, "wb", l.current_mount );
+				if( l.verbose ) printf( " Opened file %s = %p (%d)\n", filename, out, size );
+				sack_fwrite( data, 1, size, out );
+				sack_ftruncate( out );
+				sack_fclose( out );
+			}
+			sack_fclose( in );
+			Release( data );
+		}
+	}
+}
+
 static void StoreFile( CTEXTSTR filemask )
 {
 	void *info = NULL;
 	while( ScanFilesEx( NULL, filemask, &info, _StoreFile, SFF_DIRECTORIES|SFF_SUBCURSE|SFF_SUBPATHONLY, 0, FALSE, sack_get_default_mount() ) );
 }
+
+static int PatchFile( CTEXTSTR vfsName, CTEXTSTR filemask, CTEXTSTR key1, CTEXTSTR key2 )
+{
+	void *info = NULL;
+	if( l.current_vol_source )
+		sack_vfs_unload_volume( l.current_vol_source );
+	if( key1 && key2 ) {
+		l.current_vol_source = sack_vfs_load_crypt_volume( vfsName, key1, key2 );
+
+	}else {
+		l.current_vol_source = sack_vfs_load_volume( vfsName );
+	}
+	if( !l.current_vol_source )
+	{
+		printf( "Failed to load vfs: %s", vfsName );
+		return 2;
+	}
+	l.current_mount_source = sack_mount_filesystem( "vfs2", l.fsi, 10, (uintptr_t)l.current_vol_source, 1 );
+
+	while( ScanFilesEx( NULL, filemask, &info, _PatchFile, SFF_DIRECTORIES|SFF_SUBCURSE|SFF_SUBPATHONLY, 0, FALSE, sack_get_default_mount() ) );
+	return 0;
+}
+
 
 static void ExtractFile( CTEXTSTR filename )
 {
@@ -291,6 +361,8 @@ static void usage( void )
 	printf( "   rm <filename>                       : delete file within VFS.\n" );
 	printf( "   delete <filename>                   : delete file within VFS.\n" );
 	printf( "   store <filemask>                    : store files that match the name in the VFS from local filesystem.\n" );
+	printf( "   patch <vfsName> <filemask>          : store files that match the name and are different from those in the VFS.\n" );
+	printf( "   cpatch <vfsName> <key1> <key2> <filemask> : store files that match the name and are different from those in the VFS.\n" );
 	printf( "   extract <filemask>                  : extract files that match the name in the VFS to local filesystem.\n" );
 	printf( "   storeas <filename> <as file>        : store file from <filename> into VFS as <as file>.\n" );
 	printf( "   extractas <filename> <as file>      : extract file <filename> from VFS as <as file>.\n" );
@@ -363,6 +435,20 @@ SaneWinMain( argc, argv )
 		{
 			StoreFile( argv[arg+1] );
 			arg++;
+		}
+		else if( StrCaseCmp( argv[arg], "patch" ) == 0 )
+		{
+			if( (arg+2) <= argc )
+				if( PatchFile( argv[arg+1], argv[arg+2], NULL, NULL ) ) 
+					return 2;
+			arg+=2;
+		}
+		else if( StrCaseCmp( argv[arg], "cpatch" ) == 0 )
+		{
+			if( (arg+4) <= argc )
+				if( PatchFile( argv[arg+1], argv[arg+4], argv[arg+2], argv[arg+3] ) )
+					return 2;
+			arg+=4;
 		}
 		else if( StrCaseCmp( argv[arg], "extract" ) == 0 )
 		{
