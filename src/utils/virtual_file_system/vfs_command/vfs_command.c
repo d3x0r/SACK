@@ -86,14 +86,14 @@ static void CPROC _PatchFile( uintptr_t psv,  CTEXTSTR filename, int flags )
 				if( l.verbose ) printf( " read %d\n", size );
 				if( memcmp( data, data2, size ) ) {
 					size2 = -1;
-					if( l.verbose ) printf( "data compared inequal; including in output\n", size );
+					if( l.verbose ) printf( "data compared inequal; including in output\n" );
 				}
 				sack_fclose( in2 );
 				Deallocate( POINTER, data2 );
 			}
 			if( ( size != size2 )
-			   || (strcasecmp( filename, ".app.config" ) == 0) 
-			   || (strcasecmp( filename, "./.app.config" ) == 0) )
+			   || (StrCaseCmp( filename, ".app.config" ) == 0) 
+			   || (StrCaseCmp( filename, "./.app.config" ) == 0) )
 			{
 				FILE *out = sack_fopenEx( 0, filename, "wb", l.current_mount );
 				if( l.verbose ) printf( " Opened file %s = %p (%d)\n", filename, out, size );
@@ -167,12 +167,12 @@ POINTER GetExtraData( POINTER block )
 		PIMAGE_NT_HEADERS source_nt_header = (PIMAGE_NT_HEADERS)Seek( source_memory, source_dos_header->e_lfanew );
 		if( source_dos_header->e_magic != IMAGE_DOS_SIGNATURE ) {
 			lprintf( "Basic signature check failed; not a library" );
-         return NULL;
+         		return NULL;
 		}
 
 		if( source_nt_header->Signature != IMAGE_NT_SIGNATURE ) {
 			lprintf( "Basic NT signature check failed; not a library" );
-         return NULL;
+         		return NULL;
 		}
 
 		if( source_nt_header->FileHeader.SizeOfOptionalHeader )
