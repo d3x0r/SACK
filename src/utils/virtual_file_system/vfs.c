@@ -195,6 +195,7 @@ static void ExpandVolume( struct volume *vol ) {
 	
 	if( oldsize ) CloseSpace( vol->diskReal );
 
+        vol->dwSize += ((uintptr_t)vol->disk - (uintptr_t)vol->diskReal);
 	// a BAT plus the sectors it references... ( BLOCKS_PER_BAT + 1 ) * BLOCK_SIZE
 	vol->dwSize += BLOCKS_PER_SECTOR*BLOCK_SIZE;
 
