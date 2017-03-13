@@ -46,6 +46,9 @@ PREFIX_PACKED struct volume {
 	struct random_context *entropy;
 	uint8_t* key;  // allow byte encrypting...
 	uint8_t* segkey;  // allow byte encrypting... key based on sector volume file index
+	uint8_t* sigkey;  // signature of executable attached as header
+	uint8_t* sigsalt;  // signature of executable attached as header
+	size_t sigkeyLength;
 	uint8_t* usekey[BLOCK_CACHE_COUNT]; // composite key
 	PLIST files; // when reopened file structures need to be updated also...
 	LOGICAL read_only;

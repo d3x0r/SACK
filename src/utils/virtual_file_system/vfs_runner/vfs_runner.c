@@ -319,7 +319,7 @@ PRIORITY_PRELOAD( XSaneWinMain, DEFAULT_PRELOAD_PRIORITY + 20 )//( argc, argv )
 		struct volume *vol;
 		struct volume *vol2;
 		SetSystemLog( SYSLOG_FILE, stderr ); 
-		vfs_memory = GetExtraData( memory );
+		vfs_memory = memory;
 		l.fsi = sack_get_filesystem_interface( "sack_shmem.runner" );
 		sack_set_default_filesystem_interface( l.fsi );
 		SetExternalLoadLibrary( LoadLibraryDependant );

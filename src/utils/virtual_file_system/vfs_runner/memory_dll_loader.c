@@ -34,6 +34,7 @@ uintptr_t ConvertVirtualToPhysical( PIMAGE_SECTION_HEADER sections, int nSection
 }
 
 
+/*
 POINTER GetExtraData( POINTER block )
 {
 	//uintptr_t source_memory_length = block_len;
@@ -77,6 +78,7 @@ POINTER GetExtraData( POINTER block )
 		}
 	}
 }
+*/
 
 /* This returns the entry point to the library 
 maybe it returns the library base... */

@@ -4,6 +4,8 @@
 #include <sack_vfs.h>
 #include <filesys.h>
 
+#include "../vfs_internal.h"  // for BLOCK_SIZE
+
 static struct vfs_command_local
 {
 	struct file_system_interface *fsi;
@@ -198,7 +200,7 @@ POINTER GetExtraData( POINTER block )
 				if( newSize > dwSize )
 					dwSize = newSize;
 			}
-			dwSize += 0xFFF;
+			dwSize += 0x1FFF;
 			dwSize &= ~0xFFF;
 			return (POINTER)Seek( source_memory, dwSize );
 		}
@@ -287,17 +289,24 @@ static void AppendFilesAs( CTEXTSTR filename1, CTEXTSTR filename2, CTEXTSTR outp
 		POINTER extra = (POINTER)file1_size;
 		lprintf( "linux append is probably wrong here..." );
 #endif
-		if( ((uintptr_t)extra - (uintptr_t)buffer) < (file1_size + (4096 - ( file1_size & 0xFFF ))) )
+		// there's probably a better expression...
+		if( ((uintptr_t)extra - (uintptr_t)buffer) < ( (file1_size + BLOCK_SIZE )& ~(BLOCK_SIZE-1) ) ) 
 		{
 			sack_fseek( file_out, ((uintptr_t)extra - (uintptr_t)buffer), SEEK_SET );
 		}
 		else {
 			{
-				int fill = 4096 - ( file1_size & 0xFFF );
+				int fill = file1_size - (extra-buffer);
 				int n;
-				if( fill < 4096 )
+				if( fill > 0 )
 					for( n = 0; n < fill; n++ ) sack_fwrite( "", 1, 1, file_out );
 			}
+		}
+
+		sack_fseek( file_out, ((uintptr_t)extra - (uintptr_t)buffer)-BLOCK_SIZE, SEEK_SET );
+		{
+			const uint8_t *sig = sack_vfs_get_signature2( (POINTER)((uintptr_t)extra-BLOCK_SIZE), buffer );
+			sack_fwrite( sig, 1, BLOCK_SIZE, file_out );
 		}
 		//lprintf( "Filesize raw is %d (padded %d)", file1_size, file1_size + (4096 - ( file1_size & 0xFFF )) );
 		//lprintf( "extra offset is %d", (uintptr_t)extra - (uintptr_t)buffer );
@@ -309,7 +318,6 @@ static void AppendFilesAs( CTEXTSTR filename1, CTEXTSTR filename2, CTEXTSTR outp
 	buffer = NewArray( uint8_t, file2_size );
 	sack_fread( buffer, 1, file2_size, file2 );
 	sack_fwrite( buffer, 1, file2_size, file_out );
-
 
 	sack_fclose( file1 );
 	sack_fclose( file2 );
