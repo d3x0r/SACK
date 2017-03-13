@@ -169,13 +169,24 @@ PRIORITY_PRELOAD( XSaneWinMain, DEFAULT_PRELOAD_PRIORITY + 20 )//( argc, argv )
 			l.target_path = ExpandPath( argv[1] );
 		}
 		SetSystemLog( SYSLOG_FILE, stderr ); 
+		if( !memory ) {
+			lprintf( "Please launch with full application name/path" );
+			return;
+		}
 		// raw EXE images can be passed to VFS module now and it internally figures an offset
 		// includes verification of the EXE signature.
+lprintf( "Memory: %p %d", memory, sz );
 		vfs_memory = memory;
 		
 		l.fsi = sack_get_filesystem_interface( "sack_shmem.runner" );
 		sack_set_default_filesystem_interface( l.fsi );
+lprintf( "use crypt.." );
 		vol = sack_vfs_use_crypt_volume( vfs_memory, sz-((uintptr_t)vfs_memory-(uintptr_t)memory), REPLACE_ME_2, REPLACE_ME_3 );
+		if( !vol ) {
+			lprintf( "Failed to load attached vault." );
+			return;
+		}
+lprintf( "mount... %p", vol );
 		l.rom = sack_mount_filesystem( "self", l.fsi, 100, (uintptr_t)vol, FALSE );
 	}
 #else
@@ -201,6 +212,7 @@ PRIORITY_PRELOAD( XSaneWinMain, DEFAULT_PRELOAD_PRIORITY + 20 )//( argc, argv )
 	{
 		POINTER info = NULL;
 		FILE *file = sack_fopenEx( 0, ".app.config", "rb", l.rom );
+lprintf( "open aoppconfig = %p", file );
 		if( file )
 		{
 			size_t sz = sack_fsize( file );
@@ -246,6 +258,7 @@ SaneWinMain(argc,argv)
 	INDEX idx;
 	struct command *command;
 	static TEXTCHAR buf[4096];
+	lprintf( "commands...." );
 	LIST_FORALL( l.commands, idx, struct command *, command ) {
 		snprintf( buf, 4096, "\"%s\\%s\"%s%s"
 		        , l.target_path
