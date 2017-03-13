@@ -484,7 +484,6 @@ struct volume *sack_vfs_use_crypt_volume( POINTER memory, size_t sz, const char 
 			if( ((char*)memory)[0] == 'M' && ((char*)memory)[1] == 'Z' ) {
 				actual_disk = (struct disk*)GetExtraData( memory );
 				if( actual_disk ) {
-				lprintf( "%d %d",  ( (uintptr_t)actual_disk - (uintptr_t)memory ), vol->dwSize );
 					if( ( ( (uintptr_t)actual_disk - (uintptr_t)memory ) < vol->dwSize ) ) {
 						const uint8_t *sig = sack_vfs_get_signature2( (POINTER)((uintptr_t)actual_disk-BLOCK_SIZE), memory );
 						if( memcmp( sig, (POINTER)(((uintptr_t)actual_disk)-BLOCK_SIZE), BLOCK_SIZE ) ) {
