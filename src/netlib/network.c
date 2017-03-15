@@ -2114,7 +2114,7 @@ void ReallocClients( uint32_t wClients, int nUserData )
 	uint8_t* pUserData;
 	PCLIENT_SLAB pClientSlab;
 	if( !global_network_data )
-		LowLevelInit();
+		LowLevelNetworkInit();
 
 	if( !MAX_NETCLIENTS )
 	{
@@ -2194,7 +2194,7 @@ NETWORK_PROC( LOGICAL, NetworkWait )(HWND hWndNotify,uint32_t wClients,int wUser
 {
 	// want to start the thead; clear quit.
 	if( !global_network_data )
-		LowLevelInit();
+		LowLevelNetworkInit();
 	globalNetworkData.bQuit = FALSE;
 
 	ReallocClients( wClients, wUserData );
