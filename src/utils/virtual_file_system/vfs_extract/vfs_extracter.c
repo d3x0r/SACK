@@ -5,9 +5,13 @@
 #include <sack_system.h>
 #include <configscript.h>
 
-#define REPLACE_ME_2  (argc>2)?argv[2]:NULL
-#define REPLACE_ME_3  (argc>3)?argv[3]:NULL
-
+#ifdef STANDALONE_HEADER
+#  define REPLACE_ME_2  (argc>2)?argv[2]:NULL
+#  define REPLACE_ME_3  (argc>3)?argv[3]:NULL
+#else
+#  define REPLACE_ME_2  (argc>3)?argv[3]:NULL
+#  define REPLACE_ME_3  (argc>4)?argv[4]:NULL
+#endif
 
 struct command {
 	TEXTSTR exists;
@@ -27,62 +31,7 @@ static struct vfs_runner_local
 	PCONFIG_HANDLER pch;
 }l;
 
-//-------------------------------------------------------
-// function to process a currently loaded program to get the
-// data offset at the end of the executable.
-
-#define Seek(a,b) (((uintptr_t)a)+(b))
-
-POINTER GetExtraData( POINTER block )
-{
-#ifdef WIN32
-	//uintptr_t source_memory_length = block_len;
-	POINTER source_memory = block;
-
-	{
-		PIMAGE_DOS_HEADER source_dos_header = (PIMAGE_DOS_HEADER)source_memory;
-		PIMAGE_NT_HEADERS source_nt_header = (PIMAGE_NT_HEADERS)Seek( source_memory, source_dos_header->e_lfanew );
-		if( source_dos_header->e_magic != IMAGE_DOS_SIGNATURE )
-			lprintf( "Basic signature check failed; not a library" );
-
-
-		if( source_nt_header->Signature != IMAGE_NT_SIGNATURE )
-			lprintf( "Basic NT signature check failed; not a library" );
-
-		if( source_nt_header->FileHeader.SizeOfOptionalHeader )
-		{
-			if( source_nt_header->OptionalHeader.Magic != IMAGE_NT_OPTIONAL_HDR_MAGIC )
-			{
-				lprintf( "Optional header signature is incorrect..." );
-			}
-		}
-		{
-			int n;
-			long FPISections = source_dos_header->e_lfanew
-				+ sizeof( DWORD ) + sizeof( IMAGE_FILE_HEADER )
-				+ source_nt_header->FileHeader.SizeOfOptionalHeader;
-			PIMAGE_SECTION_HEADER source_section = (PIMAGE_SECTION_HEADER)Seek( source_memory, FPISections );
-			uintptr_t dwSize = 0;
-			uintptr_t newSize;
-			source_section = (PIMAGE_SECTION_HEADER)Seek( source_memory, FPISections );
-			for( n = 0; n < source_nt_header->FileHeader.NumberOfSections; n++ )
-			{
-				newSize = (source_section[n].PointerToRawData) + source_section[n].SizeOfRawData;
-				if( newSize > dwSize )
-					dwSize = newSize;
-			}
-			dwSize += 0xFFF;
-			dwSize &= ~0xFFF;
-			return (POINTER)Seek( source_memory, dwSize );
-		}
-	}
-#else
-	// need to get elf size...
-	return 0;
-#endif
-}
 //---------------------------------------------------------------------------
-
 
 static uintptr_t CPROC SetDefaultPath( uintptr_t psv, arg_list args ) {
 	PARAM( args, CTEXTSTR, path );
@@ -220,11 +169,23 @@ PRIORITY_PRELOAD( XSaneWinMain, DEFAULT_PRELOAD_PRIORITY + 20 )//( argc, argv )
 			l.target_path = ExpandPath( argv[1] );
 		}
 		SetSystemLog( SYSLOG_FILE, stderr ); 
-		vfs_memory = GetExtraData( memory );
+		if( !memory ) {
+			lprintf( "Please launch with full application name/path" );
+			return;
+		}
+		// raw EXE images can be passed to VFS module now and it internally figures an offset
+		// includes verification of the EXE signature.
+		//lprintf( "Memory: %p %d", memory, sz );
 		
 		l.fsi = sack_get_filesystem_interface( "sack_shmem.runner" );
 		sack_set_default_filesystem_interface( l.fsi );
-		vol = sack_vfs_use_crypt_volume( vfs_memory, sz-((uintptr_t)vfs_memory-(uintptr_t)memory), REPLACE_ME_2, REPLACE_ME_3 );
+		//lprintf( "use crypt.." );
+		vol = sack_vfs_use_crypt_volume( memory, sz, REPLACE_ME_2, REPLACE_ME_3 );
+		if( !vol ) {
+			lprintf( "Failed to load attached vault." );
+			return;
+		}
+		//lprintf( "mount... %p", vol );
 		l.rom = sack_mount_filesystem( "self", l.fsi, 100, (uintptr_t)vol, FALSE );
 	}
 #else
@@ -235,6 +196,11 @@ PRIORITY_PRELOAD( XSaneWinMain, DEFAULT_PRELOAD_PRIORITY + 20 )//( argc, argv )
 #  else
 		l.fsi = sack_get_filesystem_interface( "sack_shmem" );
 #  endif
+		if( argc > 2 ) {
+			l.target_path = ExpandPath( argv[2] );
+		} else {
+			l.target_path = ExpandPath( "." );
+		}
 		sack_set_default_filesystem_interface( l.fsi );
 		vol = sack_vfs_load_crypt_volume( argc> 1? argv[1]:"package.vfs", REPLACE_ME_2, REPLACE_ME_3 );
 		l.rom = sack_mount_filesystem( "self", l.fsi, 100, (uintptr_t)vol, TRUE );
@@ -245,6 +211,7 @@ PRIORITY_PRELOAD( XSaneWinMain, DEFAULT_PRELOAD_PRIORITY + 20 )//( argc, argv )
 	{
 		POINTER info = NULL;
 		FILE *file = sack_fopenEx( 0, ".app.config", "rb", l.rom );
+		//lprintf( "open aoppconfig = %p", file );
 		if( file )
 		{
 			size_t sz = sack_fsize( file );

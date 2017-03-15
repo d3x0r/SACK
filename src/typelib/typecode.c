@@ -1003,7 +1003,7 @@ retry_lock:
 //--------------------------------------------------------------------------
 POINTER  PeekQueueEx	 ( PLINKQUEUE plq, int idx )
 {
-	int top;
+	size_t top;
 	if( !plq )
 		return NULL;
 	if( idx < 0 )

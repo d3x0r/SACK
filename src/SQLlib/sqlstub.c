@@ -275,7 +275,7 @@ static void computeSha1(sqlite3_context*onwhat,int argc,sqlite3_value**argv)
 		Deallocate( char *, tmp_str );
 	}
 #else
-	sqlite3_result_text( onwhat, GetText( result ), GetTextSize( result ), 0 );
+	sqlite3_result_text( onwhat, GetText( result ), (int)GetTextSize( result ), 0 );
 #endif
 }
 
@@ -294,7 +294,7 @@ static void computePassword(sqlite3_context*onwhat,int argc,sqlite3_value**argv)
 		Deallocate( char *, tmp_str );
 	}
 #else
-	sqlite3_result_text( onwhat, result, StrLen( result ), 0 );
+	sqlite3_result_text( onwhat, result, (int)StrLen( result ), 0 );
 #endif
 	//Release( result );
 }
@@ -314,7 +314,7 @@ static void decomputePassword(sqlite3_context*onwhat,int n,sqlite3_value**argv)
 		Deallocate( char *, tmp_str );
 	}
 #else
-	sqlite3_result_text( onwhat, result, StrLen( result ), 0 );
+	sqlite3_result_text( onwhat, result, (int)StrLen( result ), 0 );
 #endif
 	//Release( result );
 }
@@ -3014,7 +3014,6 @@ int __GetSQLResult( PODBC odbc, PCOLLECT collection, int bMore )
 			do
 			{
 				SQLULEN colsize;
-				short coltype;
 #if defined( USE_SQLITE ) || defined( USE_SQLITE_INTERFACE )
 				if( odbc->flags.bSQLite_native )
 				{
@@ -3054,6 +3053,7 @@ int __GetSQLResult( PODBC odbc, PCOLLECT collection, int bMore )
 #endif
 #ifdef USE_ODBC
 				{
+					short coltype;
 					rc = SQLDescribeCol( collection->hstmt
 											 , (SQLUSMALLINT)idx
 											 , NULL, 0 // colname, bufsize
@@ -3752,14 +3752,12 @@ int SQLRecordQueryEx( PODBC odbc
 						  , CTEXTSTR **result, CTEXTSTR **fields DBG_PASS )
 {
 	PODBC use_odbc;
+   int once = 0;
 	// clean up what we think of as our result set data (reset to nothing)
 	if( result )
 		(*result) = NULL;
 	if( nResults )
 		*nResults = 0;
-	// if not a [sS]elect then begin a transaction.... some code uses query record for everything.
-	if( query[0] != 's' && query[0] != 'S' )
-		BeginTransactEx( use_odbc, 0 );
 	do
 	{
 		if( !IsSQLOpenEx( odbc DBG_RELAY ) )
@@ -3769,6 +3767,11 @@ int SQLRecordQueryEx( PODBC odbc
 			// setup error as invalid databse handle... well.. try the default one also
 			// but mostly fail.
 			use_odbc = g.odbc;
+		}
+		// if not a [sS]elect then begin a transaction.... some code uses query record for everything.
+		if( !once && query[0] != 's' && query[0] != 'S' ) {
+         once = 1;
+			BeginTransactEx( use_odbc, 0 );
 		}
 		// collection is very important to have - even if we will have to be opened,
 		// we ill need one, so make at least one.
@@ -3825,12 +3828,11 @@ int SQLRecordQueryEx( PODBC odbc
 int SQLQueryEx( PODBC odbc, CTEXTSTR query, CTEXTSTR *result DBG_PASS )
 {
 	PODBC use_odbc;
+	LOGICAL once = 0;
 	// clean up our result data....
 	if( *result )
 		(*result) = NULL;
 	// if not a [sS]elect then begin a transaction.... some code might use query for everything.
-	if( query[0] != 's' && query[0] != 'S' )
-		BeginTransactEx( use_odbc, 0 );
 	do
 	{
 		if( !IsSQLOpen( odbc ) )
@@ -3843,6 +3845,10 @@ int SQLQueryEx( PODBC odbc, CTEXTSTR query, CTEXTSTR *result DBG_PASS )
 			use_odbc = g.odbc;
 		}
 
+		if( !once && query[0] != 's' && query[0] != 'S' ) {
+			BeginTransactEx( use_odbc, 0 );
+			once = 1;
+		}
 		// this would be hard to come by...
 		// there's a collector stil around from the open command.
 		if( !use_odbc->collection || !use_odbc->collection->flags.bTemporary )

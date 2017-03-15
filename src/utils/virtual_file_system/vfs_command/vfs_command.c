@@ -4,6 +4,8 @@
 #include <sack_vfs.h>
 #include <filesys.h>
 
+#include "../vfs_internal.h"  // for BLOCK_SIZE
+
 static struct vfs_command_local
 {
 	struct file_system_interface *fsi;
@@ -84,23 +86,25 @@ static void CPROC _PatchFile( uintptr_t psv,  CTEXTSTR filename, int flags )
 				POINTER data2 = NewArray( uint8_t, size2 );
 				sack_fread( data2, 1, size2, in2 );
 				if( l.verbose ) printf( " read %d\n", size );
-				if( memcmp( data, data2, size ) )  {
+				if( memcmp( data, data2, size ) ) {
 					size2 = -1;
-					if( l.verbose ) printf( "data compared inequal; including in output\n", size );
+					if( l.verbose ) printf( "data compared inequal; including in output\n" );
 				}
-				fclose( in2 );
+				sack_fclose( in2 );
 				Deallocate( POINTER, data2 );
 			}
-			if( size != size2 )				
+			if( ( size != size2 )
+			   || (StrCaseCmp( filename, ".app.config" ) == 0) 
+			   || (StrCaseCmp( filename, "./.app.config" ) == 0) )
 			{
 				FILE *out = sack_fopenEx( 0, filename, "wb", l.current_mount );
 				if( l.verbose ) printf( " Opened file %s = %p (%d)\n", filename, out, size );
 				sack_fwrite( data, 1, size, out );
-				sack_fclose( in );
 				sack_ftruncate( out );
 				sack_fclose( out );
-				Release( data );
 			}
+			sack_fclose( in );
+			Release( data );
 		}
 	}
 }
@@ -111,7 +115,7 @@ static void StoreFile( CTEXTSTR filemask )
 	while( ScanFilesEx( NULL, filemask, &info, _StoreFile, SFF_DIRECTORIES|SFF_SUBCURSE|SFF_SUBPATHONLY, 0, FALSE, sack_get_default_mount() ) );
 }
 
-static void PatchFile( CTEXTSTR filemask, CTEXTSTR vfsName, CTEXTSTR key1, CTEXTSTR key1 )
+static int PatchFile( CTEXTSTR vfsName, CTEXTSTR filemask, CTEXTSTR key1, CTEXTSTR key2 )
 {
 	void *info = NULL;
 	if( l.current_vol_source )
@@ -130,6 +134,7 @@ static void PatchFile( CTEXTSTR filemask, CTEXTSTR vfsName, CTEXTSTR key1, CTEXT
 	l.current_mount_source = sack_mount_filesystem( "vfs2", l.fsi, 10, (uintptr_t)l.current_vol_source, 1 );
 
 	while( ScanFilesEx( NULL, filemask, &info, _PatchFile, SFF_DIRECTORIES|SFF_SUBCURSE|SFF_SUBPATHONLY, 0, FALSE, sack_get_default_mount() ) );
+	return 0;
 }
 
 
@@ -164,12 +169,12 @@ POINTER GetExtraData( POINTER block )
 		PIMAGE_NT_HEADERS source_nt_header = (PIMAGE_NT_HEADERS)Seek( source_memory, source_dos_header->e_lfanew );
 		if( source_dos_header->e_magic != IMAGE_DOS_SIGNATURE ) {
 			lprintf( "Basic signature check failed; not a library" );
-         return NULL;
+         		return NULL;
 		}
 
 		if( source_nt_header->Signature != IMAGE_NT_SIGNATURE ) {
 			lprintf( "Basic NT signature check failed; not a library" );
-         return NULL;
+         		return NULL;
 		}
 
 		if( source_nt_header->FileHeader.SizeOfOptionalHeader )
@@ -195,7 +200,7 @@ POINTER GetExtraData( POINTER block )
 				if( newSize > dwSize )
 					dwSize = newSize;
 			}
-			dwSize += 0xFFF;
+			dwSize += 0x1FFF;
 			dwSize &= ~0xFFF;
 			return (POINTER)Seek( source_memory, dwSize );
 		}
@@ -284,17 +289,24 @@ static void AppendFilesAs( CTEXTSTR filename1, CTEXTSTR filename2, CTEXTSTR outp
 		POINTER extra = (POINTER)file1_size;
 		lprintf( "linux append is probably wrong here..." );
 #endif
-		if( ((uintptr_t)extra - (uintptr_t)buffer) < (file1_size + (4096 - ( file1_size & 0xFFF ))) )
+		// there's probably a better expression...
+		if( ((uintptr_t)extra - (uintptr_t)buffer) < ( (file1_size + BLOCK_SIZE )& ~(BLOCK_SIZE-1) ) ) 
 		{
 			sack_fseek( file_out, ((uintptr_t)extra - (uintptr_t)buffer), SEEK_SET );
 		}
 		else {
 			{
-				int fill = 4096 - ( file1_size & 0xFFF );
+				int fill = file1_size - (extra-buffer);
 				int n;
-				if( fill < 4096 )
+				if( fill > 0 )
 					for( n = 0; n < fill; n++ ) sack_fwrite( "", 1, 1, file_out );
 			}
+		}
+
+		sack_fseek( file_out, ((uintptr_t)extra - (uintptr_t)buffer)-BLOCK_SIZE, SEEK_SET );
+		{
+			const uint8_t *sig = sack_vfs_get_signature2( (POINTER)((uintptr_t)extra-BLOCK_SIZE), buffer );
+			sack_fwrite( sig, 1, BLOCK_SIZE, file_out );
 		}
 		//lprintf( "Filesize raw is %d (padded %d)", file1_size, file1_size + (4096 - ( file1_size & 0xFFF )) );
 		//lprintf( "extra offset is %d", (uintptr_t)extra - (uintptr_t)buffer );
@@ -306,7 +318,6 @@ static void AppendFilesAs( CTEXTSTR filename1, CTEXTSTR filename2, CTEXTSTR outp
 	buffer = NewArray( uint8_t, file2_size );
 	sack_fread( buffer, 1, file2_size, file2 );
 	sack_fwrite( buffer, 1, file2_size, file_out );
-
 
 	sack_fclose( file1 );
 	sack_fclose( file2 );
@@ -436,13 +447,15 @@ SaneWinMain( argc, argv )
 		else if( StrCaseCmp( argv[arg], "patch" ) == 0 )
 		{
 			if( (arg+2) <= argc )
-				PatchFile( argv[arg+1], argv[arg+2], NULL, NULL );
+				if( PatchFile( argv[arg+1], argv[arg+2], NULL, NULL ) ) 
+					return 2;
 			arg+=2;
 		}
 		else if( StrCaseCmp( argv[arg], "cpatch" ) == 0 )
 		{
 			if( (arg+4) <= argc )
-				PatchFile( argv[arg+1], argv[arg+4], argv[arg+2], argv[arg+3] );
+				if( PatchFile( argv[arg+1], argv[arg+4], argv[arg+2], argv[arg+3] ) )
+					return 2;
 			arg+=4;
 		}
 		else if( StrCaseCmp( argv[arg], "extract" ) == 0 )

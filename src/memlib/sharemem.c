@@ -1888,8 +1888,8 @@ POINTER HeapAllocateAlignedEx( PMEM pHeap, uintptr_t dwSize, uint32_t alignment 
 			if( dwAlignPad < sizeof(uintptr_t) ) {
 				DebugBreak();
 			}
-			pc->dwPad = dwAlignPad - sizeof(uintptr_t);
-			((uintptr_t*)(retval - sizeof(uintptr_t)))[0] = pc->to_chunk_start = ((((uintptr_t)pc->byData) + (alignment - 1)) & masks[alignment]) - (uintptr_t)pc->byData;
+			pc->dwPad = (uint16_t)( dwAlignPad - sizeof(uintptr_t) );
+			((uintptr_t*)(retval - sizeof(uintptr_t)))[0] = pc->to_chunk_start = (uint32_t)(((((uintptr_t)pc->byData) + (alignment - 1)) & masks[alignment]) - (uintptr_t)pc->byData);
 			return (POINTER)retval;
 		}
 		else {
@@ -2055,7 +2055,7 @@ POINTER HeapAllocateAlignedEx( PMEM pHeap, uintptr_t dwSize, uint32_t alignment 
 		//#endif
 		if( alignment && ((uintptr_t)pc->byData & ~masks[alignment]) ) {
 			uintptr_t retval = ((((uintptr_t)pc->byData) + (alignment - 1)) & masks[alignment]);
-			((uint32_t*)(retval - 4))[0] = pc->to_chunk_start = ((((uintptr_t)pc->byData) + (alignment - 1)) & masks[alignment]) - (uintptr_t)pc->byData;
+			((uint32_t*)(retval - 4))[0] = pc->to_chunk_start = (uint32_t)(((((uintptr_t)pc->byData) + (alignment - 1)) & masks[alignment]) - (uintptr_t)pc->byData);
 			return (POINTER)retval;
 		}
 		else {

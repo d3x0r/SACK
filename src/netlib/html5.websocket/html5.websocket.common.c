@@ -86,10 +86,10 @@ void SendWebSocketMessage( PCLIENT pc, int opcode, int final, int do_mask, uint8
 		}
 	}
 	else
-		msgout[1] = length;
+		msgout[1] = (uint8_t)length;
 	if( do_mask )
 	{
-		int mask_offset = (length_out-length) - 4;
+		int mask_offset = (int)(length_out-length) - 4;
 		msgout[1] |= 0x80;
 		msgout[mask_offset+0] = (uint8_t)(use_mask[3]);
 		msgout[mask_offset+1] = (uint8_t)(use_mask[2]);

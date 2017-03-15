@@ -1892,7 +1892,7 @@ int sack_vfprintf( FILE *file_handle, const char *format, va_list args )
 		Deallocate( TEXTCHAR*, _format );
 #  undef format
 #endif
-		r = file->mount->fsi->_write( file_handle, (char*)GetText( output ), GetTextSize( output ) * sizeof( TEXTCHAR ) );
+		r = (int)file->mount->fsi->_write( file_handle, (char*)GetText( output ), GetTextSize( output ) * sizeof( TEXTCHAR ) );
 		LineRelease( output );
 		return r;
 	}	
@@ -1912,7 +1912,7 @@ int sack_fputs( const char *format,FILE *file )
 	if( format )
 	{
 		size_t len = strlen( format );
-		return sack_fwrite( format, 1, len, file );
+		return (int)( sack_fwrite( format, 1, (int)len, file ) & 0x7FFFFFFF );
 	}
 	return 0;
 }

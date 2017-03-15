@@ -1,7 +1,0 @@
-
-
-mm.exe: mmf.c
-	lcc mmf.c
-	lcclnk /out:$@ mmf.obj
-        
-makefile.lcc: ;

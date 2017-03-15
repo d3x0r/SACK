@@ -1,4 +1,6 @@
-#define NEED_SHLOBJ
+#ifndef NEED_SHLOBJ
+#  define NEED_SHLOBJ
+#endif
 #include <stdhdrs.h>
 #include <pssql.h>
 #include <procreg.h>
@@ -8,7 +10,7 @@
 
 SQL_NAMESPACE
 
-PRELOAD( InitCo )
+PRELOAD( SqlPreloadInitCo )
 {
    CoInitializeEx( NULL, COINIT_MULTITHREADED );
 }

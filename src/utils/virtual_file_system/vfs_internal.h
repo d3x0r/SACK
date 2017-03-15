@@ -34,6 +34,7 @@ enum block_cache_entries
 PREFIX_PACKED struct volume {
 	const char * volname;
 	struct disk *disk;
+	struct disk *diskReal; // disk might be offset from diskReal because it's a .exe attached.
 	//uint32_t dirents;  // constant 0
 	//uint32_t nameents; // constant 1
 	uintptr_t dwSize;
@@ -45,9 +46,13 @@ PREFIX_PACKED struct volume {
 	struct random_context *entropy;
 	uint8_t* key;  // allow byte encrypting...
 	uint8_t* segkey;  // allow byte encrypting... key based on sector volume file index
+	uint8_t* sigkey;  // signature of executable attached as header
+	uint8_t* sigsalt;  // signature of executable attached as header
+	size_t sigkeyLength;
 	uint8_t* usekey[BLOCK_CACHE_COUNT]; // composite key
 	PLIST files; // when reopened file structures need to be updated also...
 	LOGICAL read_only;
+	LOGICAL external_memory;
 	LOGICAL closed;
 	uint32_t lock;
 } PACKED;

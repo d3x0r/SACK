@@ -6,9 +6,9 @@ foreach(flag_var
         CMAKE_C_FLAGS CMAKE_C_FLAGS_DEBUG CMAKE_C_FLAGS_RELEASE
         CMAKE_C_FLAGS_MINSIZEREL CMAKE_C_FLAGS_RELWITHDEBINFO
         )
-#   if(${flag_var} MATCHES "/MD")
-#      string(REGEX REPLACE "/MD" "/MT" ${flag_var} "${${flag_var}}")
-#   endif(${flag_var} MATCHES "/MD")
+   if(${flag_var} MATCHES "/MD")
+      string(REGEX REPLACE "/MD" "/MT" ${flag_var} "${${flag_var}}")
+   endif(${flag_var} MATCHES "/MD")
    if(${flag_var} MATCHES "-br")
       string(REGEX REPLACE "-br" "" ${flag_var} "${${flag_var}}")
    endif(${flag_var} MATCHES "-br")
@@ -118,11 +118,11 @@ add_custom_command(TARGET
 endif( WIN32 AND CMAKE_COMPILER_IS_GNUCC )
 
 
-
+# MIN is for portable console extracter(not standalong header)
 set( project sack_vfs_extracter_min )
 
 sack_add_executable(${project} ${BASE_SOURCES} )
-SET_PROPERTY(TARGET ${project} APPEND PROPERTY COMPILE_DEFINITIONS "STANDALONE_HEADER;${FLAGS}" )
+SET_PROPERTY(TARGET ${project} APPEND PROPERTY COMPILE_DEFINITIONS "${FLAGS}" )
 SET_TARGET_PROPERTIES(${project} PROPERTIES
 		LINK_FLAGS "${EXTRACTER_LINK_FLAGS}"
       FOLDER utils/vfs
@@ -142,4 +142,29 @@ add_custom_command(TARGET
                   )
 endif( WIN32 AND CMAKE_COMPILER_IS_GNUCC )
 
+if( WIN32 )
+# MIN_WIN is for portable window-mode extracter (not standalong header)
+set( project sack_vfs_extracter_min_win )
 
+sack_add_executable(${project} WIN32 ${BASE_SOURCES} )
+SET_PROPERTY(TARGET ${project} APPEND PROPERTY COMPILE_DEFINITIONS "${FLAGS}" )
+SET_TARGET_PROPERTIES(${project} PROPERTIES
+		LINK_FLAGS "${EXTRACTER_LINK_FLAGS}"
+      FOLDER utils/vfs
+)
+target_link_libraries( ${project} ${PLATFORM_LIBRARIES} )
+install_default_dest( ${project} )
+
+
+if( WIN32 AND CMAKE_COMPILER_IS_GNUCC )
+add_custom_command(TARGET
+                     ${project}
+                   POST_BUILD
+                   COMMAND
+                     "mt.exe" -manifest \"${MT_EXTRACTER_MORE_SOURCES}\" -outputresource:\"${THISDIR}\\${project}.exe\"\;\#1
+                   COMMENT
+                     "Adding custom manifest containing MSVCRT80 dependency..." 
+                  )
+endif( WIN32 AND CMAKE_COMPILER_IS_GNUCC )
+
+endif( WIN32 )

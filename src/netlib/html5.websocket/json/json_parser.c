@@ -473,7 +473,6 @@ static void FillDataToElement( struct json_context_object_element *element
 								, struct json_value_container *val
 								, POINTER msg_output )
 {
-	PTEXT string;
 	if( !val->name )
 		return;
 	// remove name; indicate that the value has been used.

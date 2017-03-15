@@ -109,7 +109,7 @@ PRELOAD( InitNetworkGlobalOptions )
 #endif
 }
 
-void LowLevelInit( void )
+static void LowLevelNetworkInit( void )
 {
 	if( !global_network_data )
 		SimpleRegisterAndCreateGlobal( global_network_data );
@@ -117,7 +117,7 @@ void LowLevelInit( void )
 
 PRIORITY_PRELOAD( InitNetworkGlobal, CONFIG_SCRIPT_PRELOAD_PRIORITY - 1 )
 {
-	LowLevelInit();
+	LowLevelNetworkInit();
 	if( !globalNetworkData.system_name )
 	{
 		globalNetworkData.system_name = WIDE("no.network");
@@ -228,10 +228,12 @@ NETWORK_PROC( int, GetMacAddress)(PCLIENT pc, uint8_t* buf, size_t *buflen )//in
 #ifdef WIN32
     HRESULT hr;
     ULONG   ulLen;
-	ulLen = (*buflen);
+	// I don't understand this useless cast - from size_t to ULONG?
+	// isn't that the same thing?
+	ulLen = (ULONG)(*buflen);
     
 	//needs ws2_32.lib and iphlpapi.lib in the linker.
-	hr = SendARP ( GetNetworkLong(pc,GNL_MYIP), GetNetworkLong(pc,GNL_MYIP), (PULONG)buf, &ulLen);
+	hr = SendARP ( (IPAddr)GetNetworkLong(pc,GNL_MYIP), (IPAddr)GetNetworkLong(pc,GNL_MYIP), (PULONG)buf, &ulLen);
 	(*buflen) = ulLen;
 //  The second parameter of SendARP is a PULONG, which is typedef'ed to a pointer to 
 //  an unsigned long.  The pc->hwClient is a pointer to an array of uint8_t (unsigned chars), 
@@ -327,7 +329,7 @@ NETWORK_PROC( PLIST, GetMacAddresses)( void )//int get_mac_addr (char *device, u
 	ulLen = 6;
     
 	//needs ws2_32.lib and iphlpapi.lib in the linker.
-	hr = SendARP (GetNetworkLong(NULL,GNL_IP), 0x100007f, (PULONG)&hwClient, &ulLen);
+	hr = SendARP ((IPAddr)GetNetworkLong(NULL,GNL_IP), 0x100007f, (PULONG)&hwClient, &ulLen);
 //  The second parameter of SendARP is a PULONG, which is typedef'ed to a pointer to 
 //  an unsigned long.  The pc->hwClient is a pointer to an array of uint8_t (unsigned chars), 
 //  actually defined in netstruc.h as uint8_t hwClient[6]; Well, in the end, they are all
@@ -2401,7 +2403,7 @@ NETWORK_PROC( SOCKADDR *, DuplicateAddress )( SOCKADDR *pAddr ) // return a copy
 	MemCpy( tmp2, tmp, MAGIC_SOCKADDR_LENGTH + 2*sizeof(uintptr_t) );
 	if( (POINTER)( ( (uintptr_t)pAddr ) - sizeof(uintptr_t) ) )
 		( (char**)( ( (uintptr_t)dup ) - sizeof(uintptr_t) ) )[0]
-				= strdup( ((char**)( ( (uintptr_t)pAddr ) - sizeof(uintptr_t) ))[0] );
+				= StrDup( ((char**)( ( (uintptr_t)pAddr ) - sizeof(uintptr_t) ))[0] );
 	return dup;
 }
 

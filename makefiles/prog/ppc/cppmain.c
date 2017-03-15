@@ -1565,7 +1565,7 @@ int processArguments( int argc, char **argv ) {
 								*tmp = 0; // terminate prior;
 							AddLink( g.pSysIncludePath, SegCreateFromText( arg ) );
 						}
-						else if( strcmp( argv[i]+n, "once" ) == 0 )
+						else if( strncmp( argv[i]+n, "once", 4 ) == 0 )
 						{
 							g.flags.load_once = 1;
 						}
@@ -1786,6 +1786,9 @@ int main( char argc, char **argv, char **env )
 	AddLink( g.pUserIncludePath, (PTEXT)&g.pCurrentPath );
 	SetCurrentPath( WIDE(".") );
 
+	if( argc == 1 ) {
+		usage(); return 0;
+	}
 	InitDefines(); // set current date/time macros....
 	if( 0 && !g.flags.skip_define_processing )
 	{

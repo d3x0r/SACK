@@ -17,12 +17,12 @@ LOGICAL ssl_Send( PCLIENT pc, POINTER buffer, size_t length ) {
    return FALSE;
 }
 
-LOGICAL ssl_BeginServer( PCLIENT pc ) {
-   return FALSE;
+LOGICAL ssl_BeginServer( PCLIENT pc, POINTER cert, size_t certlen, POINTER keypair, size_t keylen ) {
+	return FALSE;
 }
 
-LOGICAL ssl_BeginClientSession( PCLIENT pc ) {
-   return FALSE;
+LOGICAL ssl_BeginClientSession( PCLIENT pc, POINTER client_keypair, size_t client_keypairlen ) {
+	return FALSE;
 }
 SACK_NETWORK_NAMESPACE_END
 
@@ -56,8 +56,8 @@ struct internalCert * MakeRequest( void );
 
 EVP_PKEY *genKey() {
 	EVP_PKEY *keypair = EVP_PKEY_new();
-	int keylen;
-	char *pem_key;
+	//int keylen;
+	//char *pem_key;
 	//BN_GENCB cb = { }
 	BIGNUM          *bne = BN_new();
 	RSA *rsa = RSA_new();
@@ -352,7 +352,7 @@ static int handshake( PCLIENT pc ) {
 			}
 			if (SSL_ERROR_WANT_READ == r) 
 			{
-				int pending = BIO_ctrl_pending( ses->wbio);
+				size_t pending = BIO_ctrl_pending( ses->wbio);
 				if (pending > 0) {
 					int read;
 					if( pending > ses->obuflen ) {
@@ -360,7 +360,7 @@ static int handshake( PCLIENT pc ) {
 							Deallocate( uint8_t *, ses->obuffer );
 						ses->obuffer = NewArray( uint8_t, ses->obuflen = pending*2 );
 					}
-					read = BIO_read(ses->wbio, ses->obuffer, pending);
+					read = BIO_read(ses->wbio, ses->obuffer, (int)pending);
 					lprintf( "send %d for handshake", read );
 					if (read > 0)
 						SendTCP( pc, ses->obuffer, read );
@@ -387,10 +387,9 @@ static void ssl_ReadComplete( PCLIENT pc, POINTER buffer, size_t length )
 	{
 		if( buffer )
 		{
-			unsigned char *buf;
-			int len;
+			size_t len;
 			int hs_rc;
-			len = BIO_write( pc->ssl_session->rbio, buffer, length );
+			len = BIO_write( pc->ssl_session->rbio, buffer, (int)length );
 			lprintf( "Wrote %d", len );
 			if( len < length ) {
 				lprintf( "Protocol failure?" );
@@ -415,7 +414,7 @@ static void ssl_ReadComplete( PCLIENT pc, POINTER buffer, size_t length )
 			}
 			else if( hs_rc == 1 )
 			{
-				len = SSL_read( pc->ssl_session->ssl, pc->ssl_session->dbuffer, pc->ssl_session->dbuflen );
+				len = SSL_read( pc->ssl_session->ssl, pc->ssl_session->dbuffer, (int)pc->ssl_session->dbuflen );
 				lprintf( "normal read - just get the data from the other buffer : %d", len );
 					if( len == -1 ) {
 					lprintf( "SSL_Read failed." );
@@ -429,10 +428,10 @@ static void ssl_ReadComplete( PCLIENT pc, POINTER buffer, size_t length )
 
 			{
 				// the read generated write data, output that data
-				int pending = BIO_ctrl_pending( pc->ssl_session->wbio );
+				size_t pending = BIO_ctrl_pending( pc->ssl_session->wbio );
 				lprintf( "pending to send is %d", pending );
 				if( pending > 0 ) {
-					int read = BIO_read( pc->ssl_session->wbio, pc->ssl_session->obuffer, pc->ssl_session->obuflen );
+					int read = BIO_read( pc->ssl_session->wbio, pc->ssl_session->obuffer, (int)pc->ssl_session->obuflen );
 					lprintf( "Send pending %p %d", pc->ssl_session->obuffer, read );
 					SendTCP( pc, pc->ssl_session->obuffer, read );
 				}
@@ -469,7 +468,7 @@ LOGICAL ssl_Send( PCLIENT pc, POINTER buffer, size_t length )
 	int32_t len_out;
 	struct ssl_session *ses = pc->ssl_session;
 	while( length ) {
-		len = SSL_write( pc->ssl_session->ssl, buffer, length );
+		len = SSL_write( pc->ssl_session->ssl, buffer, (int)length );
 		if (len < 0) {
 			ERR_print_errors_cb(logerr, (void*)__LINE__);
 			return FALSE;
@@ -482,7 +481,7 @@ LOGICAL ssl_Send( PCLIENT pc, POINTER buffer, size_t length )
 			ses->obuffer = NewArray( uint8_t, len * 2 );
 			ses->obuflen = len * 2;
 		}
-		len_out = BIO_read( pc->ssl_session->wbio, ses->obuffer, ses->obuflen );
+		len_out = BIO_read( pc->ssl_session->wbio, ses->obuffer, (int)ses->obuflen );
 		SendTCP( pc, ses->obuffer, len_out );
 	}
 
@@ -615,7 +614,7 @@ LOGICAL ssl_BeginServer( PCLIENT pc, POINTER cert, size_t certlen, POINTER keypa
 	} else {
 		struct internalCert *cert = New( struct internalCert );
 		BIO *keybuf = BIO_new( BIO_s_mem() );
-		BIO_write( keybuf, cert, certlen );
+		BIO_write( keybuf, cert, (int)certlen );
 		PEM_read_bio_X509( keybuf, &cert->x509, NULL, NULL );
 		BIO_free( keybuf );
 		ses->cert = cert;
@@ -627,7 +626,7 @@ LOGICAL ssl_BeginServer( PCLIENT pc, POINTER cert, size_t certlen, POINTER keypa
 			ses->privkey = genKey();
 	} else {
 		BIO *keybuf = BIO_new( BIO_s_mem() );
-		BIO_write( keybuf, keypair, keylen );
+		BIO_write( keybuf, keypair, (int)keylen );
 		PEM_read_bio_PrivateKey( keybuf, &ses->privkey, NULL, NULL );
 		BIO_free( keybuf );
 	}
@@ -656,7 +655,7 @@ LOGICAL ssl_GetPrivateKey( PCLIENT pc, POINTER *keyoutbuf, size_t *keylen ) {
 		PEM_write_bio_PrivateKey( keybuf, ses->privkey, NULL, NULL, 0, NULL, NULL );
 		(*keylen) = BIO_pending( keybuf );
 		(*keyoutbuf) = NewArray( uint8_t, (*keylen) + 1 );
-		BIO_read( keybuf, (*keyoutbuf), (*keylen) );
+		BIO_read( keybuf, (*keyoutbuf), (int)(*keylen) );
 		((char*)*keyoutbuf)[(*keylen)] = 0;
 		return TRUE;
 	}
@@ -672,9 +671,6 @@ LOGICAL ssl_GetPrivateKey( PCLIENT pc, POINTER *keyoutbuf, size_t *keylen ) {
 
 LOGICAL ssl_BeginClientSession( PCLIENT pc, POINTER client_keypair, size_t client_keypairlen )
 {
-	int32_t result;
-	unsigned char	*ext;
-	int32_t			extLen;
 	const char *hostname = GetAddrName( pc->saClient );
 	struct ssl_session * ses;
 	int r;
@@ -690,7 +686,7 @@ LOGICAL ssl_BeginClientSession( PCLIENT pc, POINTER client_keypair, size_t clien
 			ses->privkey = genKey();
 		else {
 			BIO *keybuf = BIO_new( BIO_s_mem() );
-			BIO_write( keybuf, client_keypair, client_keypairlen );
+			BIO_write( keybuf, client_keypair, (int)client_keypairlen );
 			PEM_read_bio_PrivateKey( keybuf, &ses->privkey, NULL, NULL );
 			BIO_free( keybuf );
 		}
@@ -722,7 +718,7 @@ LOGICAL ssl_BeginClientSession( PCLIENT pc, POINTER client_keypair, size_t clien
 		}
 		{
 			// the read generated write data, output that data
-			int pending = BIO_ctrl_pending( pc->ssl_session->wbio );
+			size_t pending = BIO_ctrl_pending( pc->ssl_session->wbio );
 			if( pending > 0 ) {
 				int read;
 				if( pending > ses->obuflen ) {
@@ -730,7 +726,7 @@ LOGICAL ssl_BeginClientSession( PCLIENT pc, POINTER client_keypair, size_t clien
 						Deallocate( uint8_t *, ses->obuffer );
 					ses->obuffer = NewArray( uint8_t, ses->obuflen = pending * 2 );
 				}
-				read = BIO_read( pc->ssl_session->wbio, pc->ssl_session->obuffer, pc->ssl_session->obuflen );
+				read = BIO_read( pc->ssl_session->wbio, pc->ssl_session->obuffer, (int)pc->ssl_session->obuflen );
 				SendTCP( pc, pc->ssl_session->obuffer, read );
 			}
 		}
@@ -798,12 +794,6 @@ struct entry entries[] =
 //int main(int argc, char *argv[])
 struct internalCert * MakeRequest( void )
 { 
-    int i; 
-    RSA *rsakey; 
-	 RSA *rsakey_ca;
-    X509_NAME *subj; 
-    EVP_MD *digest; 
-	 FILE *fp;
 	 struct internalCert *cert = NewArray( struct internalCert, 1 );
 	 int ca_len;
 	 int key_len; // already cached key
@@ -935,7 +925,6 @@ struct internalCert * MakeRequest( void )
 			X509_sign( x509, cert->pkey, EVP_sha512() );
 
 			{
-				FILE * f;
 				PEM_write_bio_X509( keybuf, x509 );
 				ca_len = BIO_pending( keybuf );
 				ca = NewArray( char, ca_len + 1 );
