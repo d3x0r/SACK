@@ -205,7 +205,7 @@ POPTION_TREE_NODE New4GetOptionIndexExxx( PODBC odbc, POPTION_TREE tree, POPTION
 			continue;
 		// trim trailing spaces from option names.
 		{
-			int n = StrLen( namebuf ) - 1;
+			size_t n = StrLen( namebuf ) - 1;
 			while( n >= 0 && namebuf[n] == ' ' )
 			{
 				namebuf[n] = 0;
@@ -313,7 +313,7 @@ struct resultBuffer {
 	size_t buflen;
 };
 
-static void expandResultBuffer( struct resultBuffer *buf, int x ) {
+static void expandResultBuffer( struct resultBuffer *buf, size_t x ) {
 	TEXTCHAR *newbuf = NewArray( TEXTCHAR, buf->buflen+x );
 	MemCpy( newbuf, buf->buffer, buf->buflen );
 	buf->buflen += x;

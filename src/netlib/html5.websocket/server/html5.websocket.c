@@ -176,8 +176,8 @@ static void HandleData( HTML5WebSocket socket, PCLIENT pc, POINTER buffer, size_
 {
 	size_t n;
 	uint8_t okay = 0;
-	int randNum;
-	TEXTCHAR output[25];
+	//int randNum;
+	//TEXTCHAR output[25];
 	uint8_t* bytes = (uint8_t*)buffer;
 	for( n = 0; n < length; n++ )
 	{

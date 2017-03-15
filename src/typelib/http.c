@@ -27,7 +27,7 @@ struct HttpState {
 	PLIST fields; // list of struct HttpField *, these other the other meta fields in the header.
 	PLIST cgi_fields; // list of HttpField *, taken in from the URL or content (get or post)
 
-	uint32_t content_length;
+	size_t content_length;
 	PTEXT content; // content of the message, POST,PUT,PATCH and replies have this.
 
 	int final; // boolean flag - indicates that the header portion of the http request is finished.
@@ -249,7 +249,7 @@ int ProcessHttp( PCLIENT pc, struct HttpState *pHttpState )
 											if( TextSimilar( tmp, WIDE("HTTP/") ) )
 											{
 												TEXTCHAR *tmp2 = (TEXTCHAR*)StrChr( GetText( tmp ), '.' );
-												pHttpState->response_version = ( IntCreateFromText( GetText( tmp ) + 5 ) * 100 ) + IntCreateFromText( tmp2 + 1 );
+												pHttpState->response_version = (int)(( IntCreateFromText( GetText( tmp ) + 5 ) * 100 ) + IntCreateFromText( tmp2 + 1 ));
 												{
 													PTEXT nextword = next;
 													if( nextword )

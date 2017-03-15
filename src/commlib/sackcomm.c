@@ -55,7 +55,7 @@ typedef struct callback_tag {
 
 typedef struct com_tracking_tag {
 	TEXTCHAR  portname[24];
-	int     iCommId;
+	uintptr_t     iCommId;
 	int     iUsers;
 	struct {
 		BIT_FIELD bUseCarrierDetect : 1;
@@ -317,7 +317,7 @@ PCOM_TRACK FindComByNumber( int iCommId )
 
 //-----------------------------------------------------------------------
 
-PCOM_TRACK AddComTracking( CTEXTSTR szPort, int iCommId )
+PCOM_TRACK AddComTracking( CTEXTSTR szPort, uintptr_t iCommId )
 {
 	PCOM_TRACK pComTrack = New( COM_TRACK );
 	memset( pComTrack, 0, sizeof( *pComTrack ) );
@@ -667,7 +667,7 @@ CALLBACKPROC( void, ReadTimer)( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPar
 			int len;
 			pct->flags.bInTimer = 1;
          EnterCriticalSec( &pct->csOp );
-			len = ReadComm( pct->iCommId
+			len = ReadComm( (int)pct->iCommId
 							  , pct->pReadBuffer + pct->nReadLen
 							  , pct->nReadTotal - pct->nReadLen);
 			LeaveCriticalSec( &pct->csOp );
@@ -717,7 +717,7 @@ issue_callbacks:
 						{
 							if( !pcc->flags.skip_read )
 								pcc->func( pcc->psvUserRead
-											, pct->iCommId
+											, (int)pct->iCommId
 											, pct->pReadBuffer
 											, pct->nReadLen );
 						}
@@ -838,7 +838,7 @@ void DumpTermios( struct termios *opts )
 			if( gbLog )
 				Log1( WIDE("Resulting in comm already open...: %s"), szPort );
 			pct->iUsers++;
-			return pct->iCommId;
+			return (int)pct->iCommId;
 		}
 		else
 		{
@@ -851,8 +851,8 @@ void DumpTermios( struct termios *opts )
 				if( StrCaseCmpEx( szPort, WIDE("lpt"), 3 ) != 0 )
 				{
 					pct->flags.bOutputOnly = 0;
-				   SackFlushComm( iCommId, 0 );
-				   	SackFlushComm( iCommId, 1 );
+				   	SackFlushComm( (int)iCommId, 0 );
+				   	SackFlushComm( (int)iCommId, 1 );
 #ifndef __LINUX__
 #ifdef BCC16
 		   	pct->dcb.Id          = iCommId;
@@ -896,7 +896,7 @@ void DumpTermios( struct termios *opts )
 #ifdef _WIN32
 					lprintf( WIDE("Open: Invalid initialization string %d"), GetLastError() );
 #endif
-				SackCloseComm( iCommId );
+				SackCloseComm( (int)iCommId );
 				iCommId = -1;
 				}
 #else
@@ -955,7 +955,7 @@ void DumpTermios( struct termios *opts )
 				}
 			}
 			//xlprintf(LOG_NOISE)( WIDE("Resulting to the client...") );
-			return  iCommId;
+			return  (int)iCommId;
 		}
 	}
 #else
@@ -1495,8 +1495,8 @@ void DumpTermios( struct termios *opts )
 	PCOM_TRACK pct = FindComByNumber( nCommID );
 	if( pct )
 	{
-		FlushComm( pct->iCommId, 0 );
-		FlushComm( pct->iCommId, 1 );
+		FlushComm( (int)pct->iCommId, 0 );
+		FlushComm( (int)pct->iCommId, 1 );
 	}
 	{
 //#if 0
@@ -1509,7 +1509,7 @@ void DumpTermios( struct termios *opts )
 
     do
     {
-		  nCharsRead = ReadComm ( pComTrack->iCommId
+		  nCharsRead = ReadComm ( (int)pComTrack->iCommId
                 , cBuf
                 , 100 );
         //Log1( WIDE("Read com chars: %d"), nCharsRead );

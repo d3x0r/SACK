@@ -109,7 +109,7 @@ void SRG_GetEntropyBuffer( struct random_context *ctx, uint32_t *buffer, uint32_
 		{
 			if( ctx->bits_avail - ctx->bits_used )
 			{
-				partial_bits = ctx->bits_avail - ctx->bits_used;
+				partial_bits = (uint32_t)(ctx->bits_avail - ctx->bits_used);
 				if( partial_bits > sizeof( partial_tmp ) * 8 )
 					partial_bits = sizeof( partial_tmp ) * 8;
 				if( ctx->use_version2 )

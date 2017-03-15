@@ -275,7 +275,7 @@ static void computeSha1(sqlite3_context*onwhat,int argc,sqlite3_value**argv)
 		Deallocate( char *, tmp_str );
 	}
 #else
-	sqlite3_result_text( onwhat, GetText( result ), GetTextSize( result ), 0 );
+	sqlite3_result_text( onwhat, GetText( result ), (int)GetTextSize( result ), 0 );
 #endif
 }
 
@@ -294,7 +294,7 @@ static void computePassword(sqlite3_context*onwhat,int argc,sqlite3_value**argv)
 		Deallocate( char *, tmp_str );
 	}
 #else
-	sqlite3_result_text( onwhat, result, StrLen( result ), 0 );
+	sqlite3_result_text( onwhat, result, (int)StrLen( result ), 0 );
 #endif
 	//Release( result );
 }
@@ -314,7 +314,7 @@ static void decomputePassword(sqlite3_context*onwhat,int n,sqlite3_value**argv)
 		Deallocate( char *, tmp_str );
 	}
 #else
-	sqlite3_result_text( onwhat, result, StrLen( result ), 0 );
+	sqlite3_result_text( onwhat, result, (int)StrLen( result ), 0 );
 #endif
 	//Release( result );
 }
@@ -3014,7 +3014,6 @@ int __GetSQLResult( PODBC odbc, PCOLLECT collection, int bMore )
 			do
 			{
 				SQLULEN colsize;
-				short coltype;
 #if defined( USE_SQLITE ) || defined( USE_SQLITE_INTERFACE )
 				if( odbc->flags.bSQLite_native )
 				{
@@ -3054,6 +3053,7 @@ int __GetSQLResult( PODBC odbc, PCOLLECT collection, int bMore )
 #endif
 #ifdef USE_ODBC
 				{
+					short coltype;
 					rc = SQLDescribeCol( collection->hstmt
 											 , (SQLUSMALLINT)idx
 											 , NULL, 0 // colname, bufsize

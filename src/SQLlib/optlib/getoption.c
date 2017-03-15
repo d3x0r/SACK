@@ -546,6 +546,7 @@ int GetOptionBlobValueOdbc( PODBC odbc, POPTION_TREE_NODE optval, TEXTCHAR **buf
 		PopODBCEx( odbc );
 		return success;
 	}
+   return FALSE;
 }
 
 
@@ -813,7 +814,6 @@ SQLGETOPTION_PROC( size_t, SACK_GetPrivateProfileStringExxx )( PODBC odbc
 		GetOptionStringValueEx( odbc, opt_node, &buffer, &buflen DBG_RELAY );
 		if( !buffer )
 		{
-			int x;
 			// this actually implies to delete the entry... but since it doesn't exist no worries...
 			if( !pDefaultbuf )
 			{
@@ -823,7 +823,7 @@ SQLGETOPTION_PROC( size_t, SACK_GetPrivateProfileStringExxx )( PODBC odbc
 				return 0;
 			}
 			// issue dialog
-		do_defaulting:
+		//do_defaulting:
 			//if( !bQuiet && og.flags.bPromptDefault )
 			//{
 			//	SQLPromptINIValue( pSection, pOptname, pDefaultbuf, pBuffer, nBuffer, pINIFile );

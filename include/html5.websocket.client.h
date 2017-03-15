@@ -33,7 +33,7 @@ length, and what is received will be exactly like the block that was sent.
 typedef uintptr_t (*web_socket_opened)( PCLIENT pc, uintptr_t psv );
 typedef void (*web_socket_closed)( PCLIENT pc, uintptr_t psv );
 typedef void (*web_socket_error)( PCLIENT pc, uintptr_t psv, int error );
-typedef void (*web_socket_event)( PCLIENT pc, uintptr_t psv, POINTER buffer, int msglen );
+typedef void (*web_socket_event)( PCLIENT pc, uintptr_t psv, POINTER buffer, size_t msglen );
 
 
 // create a websocket connection.

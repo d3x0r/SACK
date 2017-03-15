@@ -202,7 +202,7 @@ struct url_data * SACK_URLParse( CTEXTSTR url )
 				outbuf[outchar] = 0;
 				outchar = 0;
 				// should validate port is in numeric.
-				data->port = IntCreateFromText( outbuf );
+				data->port = (int)IntCreateFromText( outbuf );
 				state = PARSE_STATE_COLLECT_RESOURCE_PATH;
 			}
 			else if( state == PARSE_STATE_COLLECT_ADDRESS )
@@ -216,7 +216,7 @@ struct url_data * SACK_URLParse( CTEXTSTR url )
 			{
 				outbuf[outchar] = 0;
 				outchar = 0;
-				data->port = IntCreateFromText( outbuf );
+				data->port = (int)IntCreateFromText( outbuf );
 				//AppendBuffer( &data->port, NULL, outbuf );
 				state = PARSE_STATE_COLLECT_RESOURCE_PATH;
 			}
@@ -330,7 +330,7 @@ struct url_data * SACK_URLParse( CTEXTSTR url )
 		data->user = NULL;
 		outbuf[outchar] = 0;
 		outchar = 0;
-		data->port = IntCreateFromText( outbuf );
+		data->port = (int)IntCreateFromText( outbuf );
 		//AppendBuffer( &data->port, NULL, outbuf );
 		break;
 	case PARSE_STATE_COLLECT_CGI_NAME:

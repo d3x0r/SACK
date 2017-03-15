@@ -286,6 +286,7 @@ uintptr_t GetProramAddress( PTASK_INFO task ) {
 
 }
 
+#if 0
 void LoadReadExe( PTASK_INFO task, uintptr_t base )
    //-------------------------------------------------------
 // function to process a currently loaded program to get the
@@ -349,7 +350,7 @@ void LoadReadExe( PTASK_INFO task, uintptr_t base )
 #endif
 }
 
-
+#endif
 
 //--------------------------------------------------------------------------
 #ifdef WIN32

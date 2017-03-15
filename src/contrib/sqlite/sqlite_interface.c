@@ -142,7 +142,7 @@ int xWrite(sqlite3_file*file, const void*buffer, int iAmt, sqlite3_int64 iOfst)
 #endif
 	{
 		size_t filesize = sack_fsize( my_file->file );
-		if( filesize < iOfst )
+		if( USS_LT( filesize, size_t, iOfst, sqlite3_int64 ) )
 		{
 			static unsigned char *filler;
 			if( !filler )
@@ -151,7 +151,7 @@ int xWrite(sqlite3_file*file, const void*buffer, int iAmt, sqlite3_int64 iOfst)
 				MemSet( filler, 0, 512 );
 			}
 			sack_fseek( my_file->file, 0, SEEK_END );
-			while( filesize < iOfst )
+			while( USS_LT( filesize, size_t, iOfst, sqlite3_int64 ) )
 			{
 				if( ( iOfst - filesize ) >= 512 )
 				{
@@ -160,7 +160,7 @@ int xWrite(sqlite3_file*file, const void*buffer, int iAmt, sqlite3_int64 iOfst)
 				}
 				else
 				{
-					sack_fwrite( filler, 1, ( iOfst - filesize ), my_file->file );
+					sack_fwrite( filler, 1, (int)( iOfst - filesize ), my_file->file );
 					filesize += ( iOfst - filesize );
 				}
 			}
@@ -495,7 +495,6 @@ static int xAccess(
 	if( flags==SQLITE_ACCESS_READ )			eAccess = R_OK;
 	//if( flags & SQLITE_ACCESS_EXISTS )
 	{
-		FILE *tmp;
 #ifdef UNICODE
 		CTEXTSTR _zPath = DupCStr(zPath);
 #       define zPath _zPath
