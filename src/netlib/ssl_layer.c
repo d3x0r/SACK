@@ -17,12 +17,12 @@ LOGICAL ssl_Send( PCLIENT pc, POINTER buffer, size_t length ) {
    return FALSE;
 }
 
-LOGICAL ssl_BeginServer( PCLIENT pc ) {
-   return FALSE;
+LOGICAL ssl_BeginServer( PCLIENT pc, POINTER cert, size_t certlen, POINTER keypair, size_t keylen ) {
+	return FALSE;
 }
 
-LOGICAL ssl_BeginClientSession( PCLIENT pc ) {
-   return FALSE;
+LOGICAL ssl_BeginClientSession( PCLIENT pc, POINTER client_keypair, size_t client_keypairlen ) {
+	return FALSE;
 }
 SACK_NETWORK_NAMESPACE_END
 

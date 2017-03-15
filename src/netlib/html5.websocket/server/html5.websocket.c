@@ -382,7 +382,7 @@ static void CPROC connected( PCLIENT pc_server, PCLIENT pc_new )
 	SetNetworkReadComplete( pc_new, read_complete );
 }
 
-static LOGICAL CPROC HandleRequest( uintptr_t psv, HTTPState pHttpState )
+static LOGICAL CPROC HandleWebsockRequest( uintptr_t psv, HTTPState pHttpState )
 {
    return 0;
 }

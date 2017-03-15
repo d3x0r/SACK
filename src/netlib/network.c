@@ -109,7 +109,7 @@ PRELOAD( InitNetworkGlobalOptions )
 #endif
 }
 
-void LowLevelInit( void )
+static void LowLevelNetworkInit( void )
 {
 	if( !global_network_data )
 		SimpleRegisterAndCreateGlobal( global_network_data );
@@ -117,7 +117,7 @@ void LowLevelInit( void )
 
 PRIORITY_PRELOAD( InitNetworkGlobal, CONFIG_SCRIPT_PRELOAD_PRIORITY - 1 )
 {
-	LowLevelInit();
+	LowLevelNetworkInit();
 	if( !globalNetworkData.system_name )
 	{
 		globalNetworkData.system_name = WIDE("no.network");
