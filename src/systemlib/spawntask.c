@@ -247,6 +247,111 @@ static int FixHandles( PTASK_INFO task )
 }
 
 //--------------------------------------------------------------------------
+
+void ResumeProgram( PTASK_INFO task )
+{
+#ifdef WIN32
+	//DWORD WINAPI ResumeThread(  _In_ HANDLE hThread);
+	ResumeThread( task->pi.hThread );
+#endif
+}
+
+uintptr_t GetProramAddress( PTASK_INFO task ) {
+#ifdef WIN32
+
+   /*
+   BOOL WINAPI GetThreadContext(
+  _In_    HANDLE    hThread,
+  _Inout_ LPCONTEXT lpContext
+  );
+  */
+	uintptr_t memstart;
+   CONTEXT ctx;
+#ifdef __64__
+   WOW64_CONTEXT ctx64;
+	ctx64.ContextFlags = CONTEXT_INTEGER;
+	Wow64GetThreadContext( task->pi.hThread, &ctx64 );
+	memstart = ctx64.Ebx;
+	ctx.ContextFlags = CONTEXT_INTEGER;
+	GetThreadContext( task->pi.hThread, &ctx );
+	//memstart = ctx.Ebx;
+   return memstart;
+#else
+	GetThreadContext( task->pi.hThread, &ctx );
+	memstart = ctx.Ebx;
+   return memstart;
+#endif
+#endif
+
+
+}
+
+void LoadReadExe( PTASK_INFO task, uintptr_t base )
+   //-------------------------------------------------------
+// function to process a currently loaded program to get the
+// data offset at the end of the executable.
+
+{
+#ifdef WIN32
+#  define Seek(a,b) (((uintptr_t)a)+(b))
+	//uintptr_t source_memory_length = block_len;
+	//POINTER source_memory = block;
+
+	{
+		IMAGE_DOS_HEADER source_dos_header;// = (PIMAGE_DOS_HEADER)source_memory;
+		PIMAGE_NT_HEADERS source_nt_header;// = (PIMAGE_NT_HEADERS)Seek( source_memory, source_dos_header->e_lfanew );
+	      SIZE_T nRead;
+		ReadProcessMemory( task->pi.hProcess, (void*)base, (void*)&source_dos_header, sizeof( source_dos_header ), &nRead );
+      LogBinary((uint8_t*) &source_dos_header, sizeof( source_dos_header ));
+		if( source_dos_header.e_magic != IMAGE_DOS_SIGNATURE ) {
+			LoG( "Basic signature check failed; not a library" );
+			return ;
+		}
+/*
+		if( source_nt_header->Signature != IMAGE_NT_SIGNATURE ) {
+			LoG( "Basic NT signature check failed; not a library" );
+			return NULL;
+		}
+
+		if( source_nt_header->FileHeader.SizeOfOptionalHeader )
+		{
+			if( source_nt_header->OptionalHeader.Magic != IMAGE_NT_OPTIONAL_HDR_MAGIC )
+			{
+				LoG( "Optional header signature is incorrect..." );
+				return NULL;
+			}
+		}
+		{
+			int n;
+			long FPISections = source_dos_header->e_lfanew
+				+ sizeof( DWORD ) + sizeof( IMAGE_FILE_HEADER )
+				+ source_nt_header->FileHeader.SizeOfOptionalHeader;
+			PIMAGE_SECTION_HEADER source_section = (PIMAGE_SECTION_HEADER)Seek( source_memory, FPISections );
+			uintptr_t dwSize = 0;
+			uintptr_t newSize;
+			source_section = (PIMAGE_SECTION_HEADER)Seek( source_memory, FPISections );
+			for( n = 0; n < source_nt_header->FileHeader.NumberOfSections; n++ )
+			{
+				newSize = (source_section[n].PointerToRawData) + source_section[n].SizeOfRawData;
+				if( newSize > dwSize )
+					dwSize = newSize;
+			}
+			dwSize += (BLOCK_SIZE*2)-1; // pad 1 full block, plus all but 1 byte of a full block(round up)
+			dwSize &= ~(BLOCK_SIZE-1); // mask off the low bits; floor result to block boundary
+			return (POINTER)Seek( source_memory, dwSize );
+			}
+      */
+	}
+#  undef Seek
+#else
+	// need to get elf size...
+	return 0;
+#endif
+}
+
+
+
+//--------------------------------------------------------------------------
 #ifdef WIN32
 extern HANDLE GetImpersonationToken( void );
 #endif
@@ -267,6 +372,7 @@ SYSTEM_PROC( PTASK_INFO, LaunchPeerProgramExx )( CTEXTSTR program, CTEXTSTR path
 #ifdef WIN32
 		int launch_flags = ( ( flags & LPP_OPTION_NEW_CONSOLE ) ? CREATE_NEW_CONSOLE : 0 )
 		                 | ( ( flags & LPP_OPTION_NEW_GROUP ) ? CREATE_NEW_PROCESS_GROUP : 0 )
+		                 | ( ( flags & LPP_OPTION_SUSPEND ) ? CREATE_SUSPENDED : 0 )
 			;
 		PVARTEXT pvt = VarTextCreateEx( DBG_VOIDRELAY );
 		PTEXT cmdline;

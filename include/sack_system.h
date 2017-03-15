@@ -60,6 +60,7 @@ typedef void (CPROC*TaskOutput)(uintptr_t, PTASK_INFO task, CTEXTSTR buffer, siz
 #define LPP_OPTION_FIRST_ARG_IS_ARG      4
 #define LPP_OPTION_NEW_GROUP             8
 #define LPP_OPTION_NEW_CONSOLE          16
+#define LPP_OPTION_SUSPEND              32
 
 SYSTEM_PROC( PTASK_INFO, LaunchPeerProgramExx )( CTEXTSTR program, CTEXTSTR path, PCTEXTSTR args
 															  , int flags
@@ -77,6 +78,8 @@ SYSTEM_PROC( PTASK_INFO, LaunchProgram )( CTEXTSTR program, CTEXTSTR path, PCTEX
 // abort task, no kill signal, sigabort basically.  Use StopProgram for a more graceful terminate.
 // if (!StopProgram(task)) TerminateProgram(task) would be appropriate.
 SYSTEM_PROC( uintptr_t, TerminateProgram )( PTASK_INFO task );
+SYSTEM_PROC( void, ResumeProgram )( PTASK_INFO task );
+SYSTEM_PROC( uintptr_t, GetProramAddress )( PTASK_INFO task );
 // before luanchProgramEx, there was no userdata...
 SYSTEM_PROC( void, SetProgramUserData )( PTASK_INFO task, uintptr_t psv );
 
