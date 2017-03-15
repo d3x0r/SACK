@@ -38,7 +38,7 @@ static int CPROC MyParmCmp( uintptr_t s1, uintptr_t s2 )
 	else
 		return 1;
 }
-static int CPROC MyStrCmp( uintptr_t s1, uintptr_t s2 )
+static int CPROC MySqlUtilStrCmp( uintptr_t s1, uintptr_t s2 )
 {
 	return StrCaseCmp( (TEXTCHAR*)s1, (TEXTCHAR*)s2 );
 }
@@ -66,7 +66,7 @@ PTREEROOT GetTableCache( PODBC odbc, CTEXTSTR tablename )
 		//lprintf( WIDE("Failed to find entry, create new tree for cache") );
 		AddBinaryNode( tables
 						 , newcache = CreateBinaryTreeExx( BT_OPT_NODUPLICATES
-																	, MyStrCmp
+																	, MySqlUtilStrCmp
 																	, NULL )
 						 , (uintptr_t)saveparams );
 	}

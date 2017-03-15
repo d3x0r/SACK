@@ -8,7 +8,7 @@
 
 SQL_NAMESPACE
 
-PRELOAD( InitCo )
+PRELOAD( SqlPreloadInitCo )
 {
    CoInitializeEx( NULL, COINIT_MULTITHREADED );
 }
