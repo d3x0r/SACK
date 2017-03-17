@@ -18,6 +18,7 @@ SYSTEM_PROC( void, ParseIntoArgs )( TEXTCHAR *lpCmdLine, int *pArgc, TEXTCHAR **
    int escape = 0;
 	int count = 0;
 	int lastchar;
+
 	lastchar = ' '; // auto continue spaces...
 	//lprintf( WIDE("Got args: %s"), args );
 	p = args;

@@ -396,7 +396,7 @@ SYSTEM_PROC( PTASK_INFO, LaunchPeerProgramExx )( CTEXTSTR program, CTEXTSTR path
 			}
 		}
 #ifdef _DEBUG
-		xlprintf(LOG_NOISE)( WIDE("%s[%s]"), path, expanded_working_path );
+		//xlprintf(LOG_NOISE)( WIDE("%s[%s]"), path, expanded_working_path );
 #endif
 		if( StrCmp( path, WIDE(".") ) == 0 )
 		{
@@ -451,7 +451,7 @@ SYSTEM_PROC( PTASK_INFO, LaunchPeerProgramExx )( CTEXTSTR program, CTEXTSTR path
 		task->si.cb = sizeof( STARTUPINFO );
 
 #ifdef _DEBUG
-		xlprintf(LOG_NOISE)( WIDE( "quotes?%s path [%s] program [%s]  [cmd.exe (%s)]"), needs_quotes?WIDE( "yes"):WIDE( "no"), expanded_working_path, expanded_path, GetText( final_cmdline ) );
+		//xlprintf(LOG_NOISE)( WIDE( "quotes?%s path [%s] program [%s]  [cmd.exe (%s)]"), needs_quotes?WIDE( "yes"):WIDE( "no"), expanded_working_path, expanded_path, GetText( final_cmdline ) );
 #endif
       /*
 		if( path )
@@ -538,15 +538,7 @@ SYSTEM_PROC( PTASK_INFO, LaunchPeerProgramExx )( CTEXTSTR program, CTEXTSTR path
 			else
 #endif
 			{
-				if( ( CreateProcess( NULL //program
-										 , GetText( cmdline )
-										 , NULL, NULL, TRUE
-										 , launch_flags | ( OutputHandler?CREATE_NO_WINDOW:0 )//CREATE_NEW_PROCESS_GROUP
-										 , NULL
-										 , expanded_working_path
-										 , &task->si
-										 , &task->pi ) || FixHandles(task) || DumpError() ) ||
-					( CreateProcess( program
+				if( ( CreateProcess( program
 										, GetText( cmdline )
 										, NULL, NULL, TRUE
 										, launch_flags | ( OutputHandler?CREATE_NO_WINDOW:0 )//CREATE_NEW_PROCESS_GROUP
@@ -554,6 +546,14 @@ SYSTEM_PROC( PTASK_INFO, LaunchPeerProgramExx )( CTEXTSTR program, CTEXTSTR path
 										, expanded_working_path
 										, &task->si
 										, &task->pi ) || FixHandles(task) || DumpError() ) ||
+					( CreateProcess( NULL //program
+										 , GetText( cmdline )
+										 , NULL, NULL, TRUE
+										 , launch_flags | ( OutputHandler?CREATE_NO_WINDOW:0 )//CREATE_NEW_PROCESS_GROUP
+										 , NULL
+										 , expanded_working_path
+										 , &task->si
+										 , &task->pi ) || FixHandles(task) || DumpError() ) ||
 					( CreateProcess( program
 										, NULL // GetText( cmdline )
 										, NULL, NULL, TRUE
@@ -582,7 +582,7 @@ SYSTEM_PROC( PTASK_INFO, LaunchPeerProgramExx )( CTEXTSTR program, CTEXTSTR path
 				//CloseHandle( task->hReadIn );
 				//CloseHandle( task->hWriteOut );
 #ifdef _DEBUG
-				xlprintf(LOG_NOISE)( WIDE("Success running %s[%s] in %s (%p): %d"), program, GetText( cmdline ), expanded_working_path, task->pi.hProcess, GetLastError() );
+				//xlprintf(LOG_NOISE)( WIDE("Success running %s[%s] in %s (%p): %d"), program, GetText( cmdline ), expanded_working_path, task->pi.hProcess, GetLastError() );
 #endif
 				if( OutputHandler )
 				{
