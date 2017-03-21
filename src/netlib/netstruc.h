@@ -265,7 +265,7 @@ LOCATION struct network_global_data{
 		BIT_FIELD bLogProtocols : 1;
 	} flags;
 	struct peer_thread_info *root_thread;
-#if !defined( USE_WSA_EVENTS ) && !( defined( __LINUX__ ) || defined( __LINUX64__ ) )
+#if !defined( USE_WSA_EVENTS ) && !( defined( __LINUX__ )
 	WNDCLASS wc;
 #endif
 }

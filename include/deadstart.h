@@ -450,7 +450,7 @@ struct rt_init // structure placed in XI/YI segment
                           //   completed entries
     __type_rtp  scheduled; // has this been scheduled? (0 if no)
     __type_rtp  priority; // - priority (0-highest 255-lowest)
-#if defined( __LINUX64__ ) ||defined( __arm__ )||defined( __GNUC__ )
+#if defined( __64__ ) ||defined( __arm__ )||defined( __GNUC__ )
 #define INIT_PADDING ,{0}
 	 char padding[1]; // need this otherwise it's 23 bytes and that'll be bad.
 #else
@@ -541,7 +541,7 @@ struct rt_init // structure placed in XI/YI segment
                           //   completed entries
     __type_rtp  scheduled; // has this been scheduled? (0 if no)
     __type_rtp  priority; // - priority (0-highest 255-lowest)
-#if defined( __GNUC__ ) || defined( __LINUX64__ ) || defined( __arm__ ) || defined( __CYGWIN__ )
+#if defined( __GNUC__ ) || defined( __64__ ) || defined( __arm__ ) || defined( __CYGWIN__ )
 #define INIT_PADDING ,{0}
 	 char padding[1]; // need this otherwise it's 23 bytes and that'll be bad.
 #else

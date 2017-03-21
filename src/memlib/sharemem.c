@@ -266,7 +266,7 @@ struct global_memory_tag global_memory_data = { 0x10000 * 0x08, 1/* disable debu
 
 #define MAGIC_SIZE sizeof( void* )
 
-#ifdef __LINUX64__
+#ifdef __64__
 #define BLOCK_TAG(pc)  (*(uint64_t*)((pc)->byData + (pc)->dwSize - (pc)->dwPad ))
 // so when we look at memory this stamp is 0123456789ABCDEF
 #define BLOCK_TAG_ID 0xefcdab8967452301LL
@@ -343,7 +343,7 @@ uint32_t  LockedExchange( volatile uint32_t* p, uint32_t val )
 	return InterlockedExchange( (volatile LONG *)p, val );
 #  endif
 #else
-#  if ( defined( __LINUX__ ) || defined( __LINUX64__ ) ) //&& !( defined __ARM__ || defined __ANDROID__ )
+#  if ( defined( __LINUX__ ) ) //&& !( defined __ARM__ || defined __ANDROID__ )
 	return XCHG( p, val );
 	//   return __atomic_exchange_n(p,val,__ATOMIC_RELAXED);
 #  else /* some other system, not windows, not linux... */
@@ -1757,11 +1757,7 @@ uintptr_t GetFileSize( int fd )
 				, pMem->pRoot[0].dwSize );
 #endif
 		MemSet( pMem->pRoot[0].byData, 0x1BADCAFE, pMem->pRoot[0].dwSize );
-#ifdef __LINUX64__
 		BLOCK_TAG( pMem->pRoot ) = BLOCK_TAG_ID;
-#else
-		BLOCK_TAG( pMem->pRoot ) = BLOCK_TAG_ID;
-#endif
 	}
 	{
 		pMem->pRoot[0].dwPad += 2*MAGIC_SIZE;

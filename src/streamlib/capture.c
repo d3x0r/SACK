@@ -779,7 +779,7 @@ uintptr_t CPROC ThreadThing( PTHREAD thread )
 			int n;
          for( n = 0; n < 2; n++ )
 			{
-#ifndef __LINUX64__
+#ifndef __64__
 				if( g.pDev[n] )
 				{
 					PCODEC codec = Allocate( sizeof( *codec ) );
@@ -796,7 +796,7 @@ uintptr_t CPROC ThreadThing( PTHREAD thread )
 #endif
 			}
 		}
-#ifndef __LINUX64__
+#ifndef __64__
 		{
 //  			AddCaptureCallback( g.pDev[0], RenderNetworkFrame, OpenNetworkRender( NULL ) );
 		}

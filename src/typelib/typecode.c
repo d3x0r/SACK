@@ -73,11 +73,7 @@ PLIST  DeleteListEx ( PLIST *pList DBG_PASS )
 	while( LockedExchange( list_local_lock, 1 ) )
 		Relinquish();
 	if( pList &&
-#if defined( _WIN64 ) || defined( __LINUX64__ ) || defined( __64__ )
-		( ppList = (PLIST)LockedExchange64( (uint64_t*)pList, 0 ) )
-#else
-		( ppList = (PLIST)LockedExchange( (volatile uint32_t*)pList, 0 ) )
-#endif
+		( ppList = (PLIST)LockedExchangePtrSzVal( (uintptr_t*)pList, 0 ) )
 	  )
 	{
 		ReleaseEx( ppList DBG_RELAY );
