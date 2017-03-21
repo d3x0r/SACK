@@ -318,22 +318,19 @@ TEXTSTR StrStr( TEXTSTR s1, CTEXTSTR s2 )
 		{
 			t1 = *(unsigned char*)s1;
 			t2 = *(unsigned char*)s2;
-			if( ( t1 ) == ( t2 ) )
-			{
+			if( ( t1 ) == ( t2 ) ) {
 				(pos)++;
 				s1 = (void*)(((uintptr_t)s1) + 1);
 				s2 = (void*)(((uintptr_t)s2) + 1);
-			}
-			else if( t1 > t2 )
-			{
+			} else if( t1 > t2 ) {
 				if( r )
 					*r = pos;
 				return 1;
-			}
-			else
+			} else {
 				if( r )
 					*r = pos;
 				return -1;
+			}
 		}
 	}
 	if( r )
@@ -500,9 +497,9 @@ TEXTSTR     DupCharToTextEx( const char * original DBG_PASS )
 	if( s1 == s2 )
       return 0; // ==0 is success.
 	for( ;s1[0] && s2[0] && ( s1[0] == s2[0] ) && maxlen; s1++, s2++, maxlen-- );
-   if( maxlen )
+	if( maxlen )
 		return s1[0] - s2[0];
-   return 0;
+	return 0;
 }
 
  int  StrCaseCmpEx ( CTEXTSTR s1, CTEXTSTR s2, size_t maxlen )
@@ -520,9 +517,9 @@ TEXTSTR     DupCharToTextEx( const char * original DBG_PASS )
 	for( ;s1[0] && s2[0] && (((s1[0] >='a' && s1[0] <='z' )?s1[0]-('a'-'A'):s1[0])
 									 == ((s2[0] >='a' && s2[0] <='z' )?s2[0]-('a'-'A'):s2[0]) ) && maxlen;
 		  s1++, s2++, maxlen-- );
-   if( maxlen )
+	if( maxlen )
 		return tolower(s1[0]) - tolower(s2[0]);
-   return 0;
+	return 0;
 }
 
  int  StriCmp ( CTEXTSTR pOne, CTEXTSTR pTwo )

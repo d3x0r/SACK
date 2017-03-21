@@ -69,7 +69,7 @@ TEXTSTR GetCurrentPath( TEXTSTR path, int len )
 #	  ifdef UNICODE
 	{
 		char _path[256];
-		TEXTCHAR *tmppath;
+		//TEXTCHAR *tmppath;
 		//getcwd( _path, 256 );
 		//tmppath = DupCStr( _path );
 		//StrCpyEx( path, tmppath, len );
@@ -144,7 +144,7 @@ uint64_t GetTimeAsFileTime ( void )
 		Release( tmpname );
 	}
 #else
-	stat( name, &statbuf );
+	stat( tmppath, &statbuf );
 #endif
 	convert( &realtime, (time_t*)&statbuf.st_mtime );
 	return realtime;
@@ -328,10 +328,10 @@ LOGICAL  IsPath ( CTEXTSTR path )
 
  int  MakePath ( CTEXTSTR path )
 {
-	int status;
 	if( !path )
 		return 0;
 #ifdef _WIN32
+	int status;
 	status = CreateDirectory( path, NULL );
 	if( !status )
 	{

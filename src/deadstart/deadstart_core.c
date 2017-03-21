@@ -162,7 +162,7 @@ void EnqueStartupProc( PSTARTUP_PROC *root, PSTARTUP_PROC proc )
 
 		if( proc->next || proc->me )
 		{
-			if( (*proc->me) = proc->next )
+			if( ( (*proc->me) = proc->next ) )
 				proc->next->me = proc->me;
 		}
 		for( last = check = (*root); check; check = check->next )
@@ -462,7 +462,7 @@ void RegisterPriorityShutdownProc( void (CPROC*proc)(void), CTEXTSTR func, int p
 		 (1
 #endif
 		  && l.flags.bLog ))
-		lprintf( WIDE("Exit Proc %s(%p) from %s(%d) registered...")
+		lprintf( WIDE("Exit Proc %s(%p) from ") DBG_FILELINEFMT_MIN WIDE(" registered...")
 				 , func
 				 , proc DBG_RELAY );
 	shutdown_procs[nShutdownProcs].proc = proc;

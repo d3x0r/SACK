@@ -536,7 +536,7 @@ int GetClassPath( TEXTSTR out, size_t len, PTREEDEF root )
 	{
 		PushLink( &pls, current->self );
 	}
-	while( name = (PNAME)PopLink( &pls ) )
+	while( ( name = (PNAME)PopLink( &pls ) ) )
 	{
 		//pcr->
 		ofs += tnprintf( out + ofs, len - ofs, WIDE("/%s"), name->name );
@@ -585,13 +585,13 @@ static CTEXTSTR  my_pathchr ( CTEXTSTR path )
 	{
 		if( end1 < end2 )
 			return end1;
-	  return end2;
+		return end2;
 	}
 	else if( end1 )
 		return end1;
 	else if( end2 )
-	  return end2;
-   return NULL;
+		return end2;
+	return NULL;
 }
 
 //---------------------------------------------------------------------------
@@ -1869,7 +1869,7 @@ static TEXTSTR SubstituteNameVars( CTEXTSTR name )
 	const TEXTCHAR *this_var = name;
 	const TEXTCHAR *end;
 
-	while( this_var = StrChr( start, '%' ) )
+	while( ( this_var = StrChr( start, '%' ) ) )
 	{
 		// allow specifying %% for a single %.
 		// emit the stuff from start to the variable

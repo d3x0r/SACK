@@ -215,7 +215,7 @@ TEXTSTR ExpandPathVariable( CTEXTSTR path )
 
 	if( path )
 	{
-		while( subst_path = (TEXTSTR)StrChr( tmp_path, '%' ) )
+		while( ( subst_path = (TEXTSTR)StrChr( tmp_path, '%' ) ) )
 		{
 			end = (TEXTSTR)StrChr( ++subst_path, '%' );
 			//lprintf( WIDE( "Found magic subst in string" ) );
@@ -453,7 +453,7 @@ static TEXTSTR PrependBasePathEx( INDEX groupid, struct Group *group, CTEXTSTR f
 		//SetDefaultFilePath( GetProgramPath() );
 		if( !group )
 		{
-			if( groupid >= 0 )
+			if( groupid < 4096 )
 				group = (struct Group *)GetLink( &(*winfile_local).groups, groupid );
 		}
 	}
@@ -853,7 +853,7 @@ INDEX sack_iopen( INDEX group, CTEXTSTR filename, int opts, ... )
 	}
 	LeaveCriticalSec( &(*winfile_local).cs_files );
 	if( (*winfile_local).flags.bLogOpenClose )
-		lprintf( WIDE( "return iopen of [%s]=%p(%")_size_f WIDE(")?" ), filename, h, (size_t)result );
+		lprintf( WIDE( "return iopen of [%s]=%p(%")_size_f WIDE(")?" ), filename, (void*)h, (size_t)result );
 	return result;
 }
 
@@ -1557,7 +1557,7 @@ LOGICAL sack_existsEx ( const char *filename, struct file_system_mounted_interfa
 		int result = fsi->fsi->exists( fsi->psvInstance, filename );
 		return result;
 	}
-	else if( tmp = fopen( filename, "rb" ) )
+	else if( ( tmp = fopen( filename, "rb" ) ) )
 	{
 		fclose( tmp );
 		return TRUE;
@@ -1663,7 +1663,6 @@ uint32_t GetFileTimeAndSize( CTEXTSTR name
 							)
 {
 	uint32_t size;
-	uint32_t extra_size;
 #ifdef __LINUX__
 #  ifdef UNICODE
 	char *tmpname = CStrDup( name );
@@ -1684,6 +1683,7 @@ uint32_t GetFileTimeAndSize( CTEXTSTR name
 		return (uint32_t)-1;
 #else
 	HANDLE hFile = CreateFile( name, 0, 0, NULL, OPEN_EXISTING, 0, NULL );
+	uint32_t extra_size;
 	if( hFile != INVALID_HANDLE_VALUE )
 	{
 		size = GetFileSize( hFile, (DWORD*)&extra_size );
@@ -1765,8 +1765,15 @@ static struct file_system_interface native_fsi = {
 		, sack_filesys_flush
 		, sack_filesys_exists
 		, NULL // same as sack_filesys_copy_write_buffer() { return FALSE; }
-		, 
-};
+		, NULL // find_create_cursor( uintptr_t psvInstance, const char *root, const char *filemask );
+		, NULL // sack_filesys_find_first
+		, NULL // sack_filesys_find_close
+		, NULL // sack_filesys_find_next
+		, NULL // find_get_name
+		, NULL // find_get_size
+																 , NULL // is_directory( path)
+                                                 , NULL // rename
+} ;
 
 PRIORITY_PRELOAD( InitWinFileSysEarly, OSALOT_PRELOAD_PRIORITY - 1 )
 {

@@ -638,10 +638,10 @@ getnext:
 #  define pDataBuffer pData->buffer
 #endif
 	//lprintf( "Check if %s is a directory...", pData->buffer );
-	if( (flags & (SFF_DIRECTORIES | SFF_SUBCURSE))
+	if( ((flags & (SFF_DIRECTORIES | SFF_SUBCURSE))
 		&& (pData->scanning_mount && pData->scanning_mount->fsi
 			&& (pData->scanning_mount->fsi->is_directory
-				&& pData->scanning_mount->fsi->is_directory( pDataBuffer )))
+				&& pData->scanning_mount->fsi->is_directory( pDataBuffer ))))
 		|| (!(pData->scanning_mount ? pData->scanning_mount->fsi : NULL)
 #ifdef WIN32
 #  ifdef UNDER_CE
@@ -672,30 +672,29 @@ getnext:
 		}
 		if( flags & SFF_SUBCURSE )
 		{
-			void *data = NULL;
-			int ofs = 0;
+			//int ofs = 0;
 			TEXTCHAR tmpbuf[MAX_PATH_NAME];
 			if( flags & SFF_NAMEONLY )
 			{
 				// even in name only - need to have this full buffer for subcurse.
 				if( pData->scanning_mount && pData->scanning_mount->fsi )
 				{
-					ofs = tnprintf( tmpbuf, sizeof( tmpbuf ), WIDE( "%s/%s" ), findbasename( pInfo ), pData->scanning_mount->fsi->find_get_name( findcursor( pInfo ) ) );
+					/*ofs = */tnprintf( tmpbuf, sizeof( tmpbuf ), WIDE( "%s/%s" ), findbasename( pInfo ), pData->scanning_mount->fsi->find_get_name( findcursor( pInfo ) ) );
 				}
 				else
 				{
 #ifdef WIN32
 #  ifdef UNDER_CE
-					ofs = tnprintf( tmpbuf, sizeof( tmpbuf ), WIDE( "%s/%s" ), findbasename( pInfo ), finddata( pInfo )->cFileName );
+					/*ofs = */tnprintf( tmpbuf, sizeof( tmpbuf ), WIDE( "%s/%s" ), findbasename( pInfo ), finddata( pInfo )->cFileName );
 #  else
 #    ifdef UNICODE
-					ofs = snwprintf( tmpbuf, sizeof( tmpbuf ), WIDE( "%s/%s" ), findbasename( pInfo ), finddata( pInfo )->name );
+					/*ofs = */snwprintf( tmpbuf, sizeof( tmpbuf ), WIDE( "%s/%s" ), findbasename( pInfo ), finddata( pInfo )->name );
 #    else
-					ofs = tnprintf( tmpbuf, sizeof( tmpbuf ), WIDE( "%s/%s" ), findbasename( pInfo ), finddata( pInfo )->name );
+					/*ofs = */tnprintf( tmpbuf, sizeof( tmpbuf ), WIDE( "%s/%s" ), findbasename( pInfo ), finddata( pInfo )->name );
 #    endif
 #  endif
 #else	
-					ofs = tnprintf( tmpbuf, sizeof( tmpbuf ), WIDE( "%s/%s" ), findbasename( pInfo ), de->d_name );
+					/*ofs = */tnprintf( tmpbuf, sizeof( tmpbuf ), WIDE( "%s/%s" ), findbasename( pInfo ), de->d_name );
 #endif
 				}
 				//lprintf( "process sub... %s %s", tmpbuf, findmask(pInfo)  );

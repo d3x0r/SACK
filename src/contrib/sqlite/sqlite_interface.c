@@ -481,12 +481,12 @@ static int xAccess(
 	struct my_sqlite3_vfs *my_vfs = (struct my_sqlite3_vfs *)pVfs;
 	int rc = 0;                         /* access() return code */
 	int eAccess = F_OK;             /* Second argument to access() */
-	/*
-	assert( flags==SQLITE_ACCESS_EXISTS       /* access(zPath, F_OK) 
-       || flags==SQLITE_ACCESS_READ         /* access(zPath, R_OK) 
-       || flags==SQLITE_ACCESS_READWRITE    /* access(zPath, R_OK|W_OK) 
+#if 0
+	assert( flags==SQLITE_ACCESS_EXISTS       /* access(zPath, F_OK)*/
+       || flags==SQLITE_ACCESS_READ         /* access(zPath, R_OK)*/ 
+       || flags==SQLITE_ACCESS_READWRITE    /* access(zPath, R_OK|W_OK)*/ 
   );
-  */
+#endif
 #ifdef LOG_OPERATIONS
 	//lprintf( "Open file: %s (vfs:%s)", zName, vfs->zName );
 	//lprintf( "Access on %s %s", zPath, pVfs->zName );

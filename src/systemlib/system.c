@@ -1532,18 +1532,18 @@ SYSTEM_PROC( generic_function, LoadFunctionExx )( CTEXTSTR libname, CTEXTSTR fun
 		}
 		InvokeLibraryLoad();
 	//}
-	get_function_name:
+#ifdef _WIN32
+get_function_name:
+#endif
 	if( funcname )
 	{
 		PFUNCTION function = library->functions;
 		while( function )
 		{
-			if( ((uintptr_t)function->name & 0xFFFF ) == (uintptr_t)function->name )
+			if( ((uintptr_t)function->name & 0xFFFF ) == (uintptr_t)function->name ) {
 				if( function->name == funcname )
 					break;
-				else
-					;
-			else
+			} else
 				if( StrCmp( function->name, funcname ) == 0 )
 					break;
 			function = function->next;
@@ -1745,10 +1745,6 @@ SYSTEM_PROC( generic_function, LoadFunctionExx )( CTEXTSTR libname, CTEXTSTR fun
 			if( !l.pFunctionTree )
 				l.pFunctionTree = CreateBinaryTree();
 			//lprintf( WIDE("Adding function %p"), function->function );
-			if( (uintptr_t)function->name & 0xFF000000 )
-			{
-				int a =3;
-			}
 			AddBinaryNode( l.pFunctionTree, function, (uintptr_t)function->function );
 			LinkThing( library->functions, function );
 		}

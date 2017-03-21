@@ -260,7 +260,7 @@ struct url_data * SACK_URLParse( CTEXTSTR url )
 				outchar = 0;
 				AppendBuffer( &data->protocol, NULL, outbuf );
 				{
-					int n;
+					size_t n;
 					for( n = 0; n < num_defaults; n++ )
 					{
 						if( strcmp( outbuf, default_ports[n].name ) == 0 )

@@ -73,7 +73,7 @@ PLIST  DeleteListEx ( PLIST *pList DBG_PASS )
 	while( LockedExchange( list_local_lock, 1 ) )
 		Relinquish();
 	if( pList &&
-#if defined( _WIN64 ) || defined( __LINUX64__ )
+#if defined( _WIN64 ) || defined( __LINUX64__ ) || defined( __64__ )
 		( ppList = (PLIST)LockedExchange64( (uint64_t*)pList, 0 ) )
 #else
 		( ppList = (PLIST)LockedExchange( (volatile uint32_t*)pList, 0 ) )
@@ -1014,9 +1014,8 @@ POINTER  PeekQueueEx	 ( PLINKQUEUE plq, int idx )
 			  ; )
 		{
 			idx++;
-			top--;
-			if( (top)< 0)
-				top = (top) + plq->Cnt;
+			if( !top ) top = plq->Cnt - 1;
+			else top--;
 		}
 		if( idx == 0 )
 		{
@@ -1028,18 +1027,17 @@ POINTER  PeekQueueEx	 ( PLINKQUEUE plq, int idx )
 	else
 	{
 		for( top = plq->Bottom
-			 ; idx != INVALID_INDEX && top != plq->Top
+			 ; idx != -1 && top != plq->Top
 			  ; )
 		{
-			idx--;
-			if( idx != INVALID_INDEX )
-			{
+			if( idx ) {
 				top++;
-				if( SUS_GTE(top,int,plq->Cnt,uint32_t) )
-					top=(top)-plq->Cnt;
-			}
+				if( top >= plq->Cnt )
+					top-=plq->Cnt;
+				idx--;
+			}else { idx = -1; break; }
 		}
-		if( idx == INVALID_INDEX )
+		if( idx == -1 )
 			return plq->pNode[top];
 	}
 	return NULL;
@@ -1065,7 +1063,7 @@ POINTER  DequeLink ( PLINKQUEUE *pplq )
 #if USE_CUSTOM_ALLOCER
 retry_lock:
 #endif
-		while( priorline = LockedExchange( link_queue_local_lock, __LINE__ ) )
+		while( ( priorline = LockedExchange( link_queue_local_lock, __LINE__ ) ) )
 		{
 #if USE_CUSTOM_ALLOCER
 			if( link_queue_local_thread == MakeThread() )

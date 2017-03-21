@@ -908,11 +908,12 @@ PTEXT TextParse( PTEXT input, CTEXTSTR punctuation, CTEXTSTR filter_space, int b
 					}
 				} else if(0) {
 				case '-':  // work seperations flaming-long-sword
-					if( has_minus == -1 )
+					if( has_minus == -1 ) {
 						if( !punctuation || StrChr( punctuation, '-' ) )
 							has_minus = 1;
 						else
 							has_minus = 0;
+					}
 					if( !has_minus )
 					{
 						VarTextAddCharacterEx( &out, '-' DBG_OVERRIDE );
@@ -921,11 +922,12 @@ PTEXT TextParse( PTEXT input, CTEXTSTR punctuation, CTEXTSTR filter_space, int b
 				case '+':
 				{
 					int c;
-					if( has_plus == -1 )
+					if( has_plus == -1 ) {
 						if( !punctuation || StrChr( punctuation, '-' ) )
 							has_plus = 1;
 						else
 							has_plus = 0;
+					}
 					if( !has_plus )
 					{
 						VarTextAddCharacterEx( &out, '-' DBG_OVERRIDE );
@@ -1825,7 +1827,7 @@ double FloatCreateFromText( CTEXTSTR p, CTEXTSTR *vp )
 	{
 		if( vp )
 			(*vp) = p;
-		 return 0;
+		return 0;
 	}
 	s = 0;
 	num = 0;
@@ -2249,7 +2251,6 @@ INDEX VarTextLength( PVARTEXT pvt )
 INDEX vvtprintf( PVARTEXT pvt, CTEXTSTR format, va_list args )
 {
 	INDEX len;
-	int tries = 0;
 #if ( defined( UNDER_CE ) || defined( _WIN32 ) ) && !defined( MINGW_SUX )// this might be unicode...
 #  ifdef USE_UCRT
 	{
@@ -2278,6 +2279,7 @@ INDEX vvtprintf( PVARTEXT pvt, CTEXTSTR format, va_list args )
 		vsnprintf( pvt->collect_text + pvt->collect_used, len+1, format, args );
 	}
 #  else
+	int tries = 0;
 	while( 1 )
 	{
 		size_t destlen;
@@ -2651,7 +2653,7 @@ TEXTSTR ConvertTextURI( CTEXTSTR text, INDEX length, int skip_slash )
 			out_pos[0] = text[i];
 			out_pos++;
 		}
-		else if( char_pos = StrChr( reserved_uri, text[i] ) )
+		else if( ( char_pos = StrChr( reserved_uri, text[i] ) ) )
 		{
 #ifdef __cplusplus
 			sack::memory::
@@ -2814,7 +2816,6 @@ char * WcharConvertExx ( const wchar_t *wch, size_t len DBG_PASS )
 	// WideCharToMultiByte()
 	// wcstombs_s()
 	// ... etc
-	size_t convertedChars = 0;
 	size_t  sizeInBytes;
 	char  tmp[2];
 	char	 *ch;
@@ -2969,7 +2970,6 @@ wchar_t * CharWConvertExx ( const char *wch, size_t len DBG_PASS )
 	// WideCharToMultiByte()
 	// wcstombs_s()
 	// ... etc
-	size_t convertedChars = 0;
 	size_t  sizeInBytes;
 	wchar_t	*ch;
 	wchar_t   *_ch;
@@ -3299,7 +3299,7 @@ size_t GetDisplayableCharacterCount( CTEXTSTR string, size_t max_bytes )
 {
 	int ch;
 	size_t count = 0;
-	while( ch = Step( &string, &max_bytes ) )
+	while( ( ch = Step( &string, &max_bytes ) ) )
 	{
 		count++;
 	}
@@ -3309,7 +3309,6 @@ size_t GetDisplayableCharacterCount( CTEXTSTR string, size_t max_bytes )
 CTEXTSTR GetDisplayableCharactersAtCount( CTEXTSTR string, size_t nLen )
 {
 	int ch;
-	size_t count = 0;
 	while( nLen > 0 && 
 		 ( ch = Step( &string, NULL ) ) )
 	{
