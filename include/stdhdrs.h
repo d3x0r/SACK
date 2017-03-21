@@ -223,7 +223,11 @@ extern __sighandler_t bsd_signal(int, __sighandler_t);
 
 #if defined( _MSC_VER )|| defined(__LCC__) || defined( __WATCOMC__ ) || defined( __GNUC__ )
 #  include "loadsock.h"
-#  include <malloc.h>               // _heapmin() included here
+#  if defined( __MAC__ )
+#    include <stdlib.h>
+#  else
+#    include <malloc.h>               // _heapmin() included here
+#  endif
 #else
 //#include "loadsock.h"
 #endif
