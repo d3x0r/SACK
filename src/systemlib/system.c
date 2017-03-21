@@ -620,7 +620,6 @@ uintptr_t CPROC TerminateProgram( PTASK_INFO task )
 #endif
 		if( !task->flags.closed )
 		{
-			int nowait = 0;
 			task->flags.closed = 1;
 
 			//lprintf( WIDE( "%ld, %ld %p %p" ), task->pi.dwProcessId, task->pi.dwThreadId, task->pi.hProcess, task->pi.hThread );
@@ -628,6 +627,7 @@ uintptr_t CPROC TerminateProgram( PTASK_INFO task )
 #if defined( WIN32 )
 			if( WaitForSingleObject( task->pi.hProcess, 0 ) != WAIT_OBJECT_0 )
 			{
+				int nowait = 0;
 				// try using ctrl-c, ctrl-break to end process...
 				if( !StopProgram( task ) )
 				{

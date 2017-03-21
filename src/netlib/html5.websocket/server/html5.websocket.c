@@ -52,7 +52,7 @@ static LOGICAL ComputeReplyKey2( PVARTEXT pvt_output, HTML5WebSocket socket, PTE
 	uint64_t number2;
 	int spaces1 = 0;
 	int spaces2 = 0;
-	int c;
+	size_t c;
 	size_t len;
 	TEXTCHAR *check;
 	// test overrides
@@ -175,7 +175,6 @@ static LOGICAL ComputeReplyKey2( PVARTEXT pvt_output, HTML5WebSocket socket, PTE
 static void HandleData( HTML5WebSocket socket, PCLIENT pc, POINTER buffer, size_t length )
 {
 	size_t n;
-	uint8_t okay = 0;
 	//int randNum;
 	//TEXTCHAR output[25];
 	uint8_t* bytes = (uint8_t*)buffer;

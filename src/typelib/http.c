@@ -109,7 +109,7 @@ void ProcessURL_CGI( struct HttpState *pHttpState, PTEXT params )
 		PTEXT name = tmp;
 		/*PTEXT equals = */( next = NEXTLINE( tmp ) );
 		PTEXT value = ( next = NEXTLINE( next ) );
-		PTEXT ampersand = ( next = NEXTLINE( next ) );
+		/*PTEXT ampersand = */( next = NEXTLINE( next ) );
 
 		struct HttpField *field = New( struct HttpField );
 		field->name = SegDuplicate( name );
@@ -434,7 +434,7 @@ LOGICAL AddHttpData( struct HttpState *pHttpState, POINTER buffer, size_t size )
 				{
 					pHttpState->read_chunk_total_length += pHttpState->read_chunk_length;
 					if( l.flags.bLogReceived ) {
-						lprintf( "Chunck will be %d", pHttpState->read_chunk_length );
+						lprintf( "Chunck will be %zd", pHttpState->read_chunk_length );
 					}
 					pHttpState->read_chunk_state = READ_VALUE_LF;
 				}
@@ -508,7 +508,7 @@ LOGICAL AddHttpData( struct HttpState *pHttpState, POINTER buffer, size_t size )
 			ofs++;
 		}
 		if( l.flags.bLogReceived ) {
-			lprintf( "chunk read is %u of %u", pHttpState->read_chunk_byte, pHttpState->read_chunk_total_length );
+			lprintf( "chunk read is %zd of %zd", pHttpState->read_chunk_byte, pHttpState->read_chunk_total_length );
 		}
 		return FALSE;
 	}
@@ -638,7 +638,7 @@ void DestroyHttpState( struct HttpState *pHttpState )
 
 void SendHttpResponse ( struct HttpState *pHttpState, PCLIENT pc, int numeric, CTEXTSTR text, CTEXTSTR content_type, PTEXT body )
 {
-	int offset = 0;
+	//int offset = 0;
 	PVARTEXT pvt_message = VarTextCreate();
 	PTEXT header;
 	PTEXT tmp_content;
@@ -679,16 +679,15 @@ void SendHttpResponse ( struct HttpState *pHttpState, PCLIENT pc, int numeric, C
 void SendHttpMessage ( struct HttpState *pHttpState, PCLIENT pc, PTEXT body )
 {	
 	PTEXT message;
-	size_t offset = 0;
 	PVARTEXT pvt_message = VarTextCreate();
 	PTEXT content_type;
 
-	offset += vtprintf( pvt_message, WIDE( "%s" ),  WIDE("HTTP/1.1 200 OK\r\n") );
-	offset += vtprintf( pvt_message, WIDE( "Content-Length: %d\r\n" ), GetTextSize( body ));	
-	offset += vtprintf( pvt_message, WIDE( "Content-Type: %s\r\n" )
+	vtprintf( pvt_message, WIDE( "%s" ),  WIDE("HTTP/1.1 200 OK\r\n") );
+	vtprintf( pvt_message, WIDE( "Content-Length: %d\r\n" ), GetTextSize( body ));	
+	vtprintf( pvt_message, WIDE( "Content-Type: %s\r\n" )
 		, (content_type = GetHttpField( pHttpState, WIDE("Accept") ))?GetText(content_type):WIDE("text/plain" ));	
-	offset += vtprintf( pvt_message, WIDE( "\r\n" )  );	
-	offset += vtprintf( pvt_message, WIDE( "%s" ), GetText( body ));	
+	vtprintf( pvt_message, WIDE( "\r\n" )  );	
+	vtprintf( pvt_message, WIDE( "%s" ), GetText( body ));	
 	message = VarTextGet( pvt_message );
 	if( l.flags.bLogReceived )
 	{
@@ -737,7 +736,7 @@ static void CPROC HttpReader( PCLIENT pc, POINTER buffer, size_t size )
 		struct HttpState *state = (struct HttpState *)GetNetworkLong( pc, 2 );
 		if( l.flags.bLogReceived )
 		{
-			lprintf( WIDE("Received web request... %u"), size );
+			lprintf( WIDE("Received web request... %zu"), size );
 			//LogBinary( buffer, size );
 		}
 		if( AddHttpData( state, buffer, size ) )

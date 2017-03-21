@@ -49,7 +49,6 @@ void New4EnumOptions( PODBC odbc
 	POPTION_TREE node = GetOptionTreeExxx( odbc, NULL DBG_SRC );
 	TEXTCHAR query[256];
 	static PODBC pending;
-	int first_result, popodbc;
 	POPTION_TREE_NODE tmp_node;
 	CTEXTSTR *results = NULL;
 	if( !odbc )
@@ -86,8 +85,7 @@ void New4EnumOptions( PODBC odbc
 				WIDE( "where parent_option_id='%s' " )
 				WIDE( "order by n.name" )
 			  , parent->guid?parent->guid:GuidZero() );
-		popodbc = 0;
-		for( first_result = SQLRecordQuery( odbc, query, NULL, &results, NULL );
+		for( SQLRecordQuery( odbc, query, NULL, &results, NULL );
 			 results;
 			  FetchSQLRecord( odbc, &results ) )
 		{
@@ -105,7 +103,6 @@ void New4EnumOptions( PODBC odbc
 				tmp_node->name_guid = SaveText( results[2] );
 				tmp_node->value_guid = NULL;
 
-				popodbc = 1;
 				tmp_node->name = SaveText( results[1] );
 				tmp_node->node = FamilyTreeAddChild( &node->option_tree, parent->node, tmp_node, (uintptr_t)tmp_node->name );
 

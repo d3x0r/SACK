@@ -375,10 +375,12 @@ struct sqlite3_io_methods my_methods = { 1
 													, xFileControl
 													, xSectorSize
 													, xDeviceCharacteristics
-													//, xShmMap
-													//, xShmLock
-													//, xShmBarrier
-													//, xShmUnmap
+                                       , NULL //, xShmMap
+                                       , NULL //, xShmLock
+                                       , NULL //, xShmBarrier
+                                       , NULL //, xShmUnmap
+                                       , NULL  // xfetch
+                                       , NULL // xunfetch
 };
 
 int xOpen(sqlite3_vfs* vfs, const char *zName, sqlite3_file*file,
@@ -480,7 +482,7 @@ static int xAccess(
 ){
 	struct my_sqlite3_vfs *my_vfs = (struct my_sqlite3_vfs *)pVfs;
 	int rc = 0;                         /* access() return code */
-	int eAccess = F_OK;             /* Second argument to access() */
+	//int eAccess = F_OK;             /* Second argument to access() */
 #if 0
 	assert( flags==SQLITE_ACCESS_EXISTS       /* access(zPath, F_OK)*/
        || flags==SQLITE_ACCESS_READ         /* access(zPath, R_OK)*/ 
@@ -491,8 +493,8 @@ static int xAccess(
 	//lprintf( "Open file: %s (vfs:%s)", zName, vfs->zName );
 	//lprintf( "Access on %s %s", zPath, pVfs->zName );
 #endif
-	if( flags==SQLITE_ACCESS_READWRITE ) eAccess = R_OK|W_OK;
-	if( flags==SQLITE_ACCESS_READ )			eAccess = R_OK;
+	//if( flags==SQLITE_ACCESS_READWRITE ) eAccess = R_OK|W_OK;
+	//if( flags==SQLITE_ACCESS_READ )			eAccess = R_OK;
 	//if( flags & SQLITE_ACCESS_EXISTS )
 	{
 #ifdef UNICODE

@@ -308,7 +308,7 @@ PCOM_TRACK FindComByNumber( int iCommId )
 	PCOM_TRACK check = pTracking;
 	while( check )
 	{
-		if( check->iCommId == iCommId )
+		if( check->iCommId == (uintptr_t)iCommId )
 			return check;
 		check = check->next;
 	}

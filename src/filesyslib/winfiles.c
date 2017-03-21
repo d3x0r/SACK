@@ -853,7 +853,7 @@ INDEX sack_iopen( INDEX group, CTEXTSTR filename, int opts, ... )
 	}
 	LeaveCriticalSec( &(*winfile_local).cs_files );
 	if( (*winfile_local).flags.bLogOpenClose )
-		lprintf( WIDE( "return iopen of [%s]=%p(%")_size_f WIDE(")?" ), filename, (void*)h, (size_t)result );
+		lprintf( WIDE( "return iopen of [%s]=%p(%")_size_f WIDE(")?" ), filename, (void*)(uintptr_t)h, (size_t)result );
 	return result;
 }
 

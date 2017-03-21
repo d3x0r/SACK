@@ -72,11 +72,6 @@ SQL table create is in 'mkopttabs.sql'
 #include "makeopts.mysql"
 ;
 
-static int CPROC MyStrCaseCmp( const TEXTCHAR *a, const TEXTCHAR *b )
-{
-	lprintf( WIDE("compare %s with %s"),a , b );
-	return StrCaseCmp( a, b );
-}
 
 SQLGETOPTION_PROC( void,SetOptionStringValueEx )( PODBC odbc, POPTION_TREE_NODE node, CTEXTSTR pValue ) 
 {
@@ -509,7 +504,6 @@ POPTION_TREE_NODE DuplicateValue( POPTION_TREE_NODE iOriginalValue, POPTION_TREE
 
 size_t GetOptionStringValueEx( PODBC odbc, POPTION_TREE_NODE optval, TEXTCHAR **buffer, size_t *len DBG_PASS )
 {
-	POPTION_TREE tree = GetOptionTreeExxx( odbc, NULL DBG_RELAY );
 	size_t res = New4GetOptionStringValue( odbc, optval, buffer, len DBG_RELAY );
 	return res;
 }
@@ -525,7 +519,6 @@ size_t GetOptionStringValue( POPTION_TREE_NODE optval, TEXTCHAR **buffer, size_t
 
 int GetOptionBlobValueOdbc( PODBC odbc, POPTION_TREE_NODE optval, TEXTCHAR **buffer, size_t *len )
 {
-	POPTION_TREE tree = GetOptionTreeExxx( odbc, NULL DBG_SRC );
 	CTEXTSTR *result = NULL;
 	size_t tmplen;
 	if( !len )
@@ -573,12 +566,13 @@ LOGICAL GetOptionIntValue( POPTION_TREE_NODE optval, int *result_value DBG_PASS 
 
 //------------------------------------------------------------------------
 
+/*
 static LOGICAL CreateValue( POPTION_TREE tree, POPTION_TREE_NODE iOption, CTEXTSTR pValue )
 {
 	OpenWriter( tree );
 	return New4CreateValue( tree, iOption, pValue );
 }
-
+*/
 
 
 //------------------------------------------------------------------------
@@ -700,74 +694,74 @@ static int CPROC CheckMasks( uintptr_t psv_params, CTEXTSTR name, POPTION_TREE_N
 
 static CTEXTSTR CPROC ResolveININame( PODBC odbc, CTEXTSTR pSection, TEXTCHAR *buf, CTEXTSTR pINIFile )
 {
-	if( pINIFile[0] == '.' && pINIFile[1] == '/' || pINIFile[1] == '\\' )
+	if( pINIFile[0] == '.' && ( pINIFile[1] == '/' || pINIFile[1] == '\\' ) )
 		pINIFile += 2;
 
-		while( pINIFile[0] == '/' || pINIFile[0] == '\\' )
-			pINIFile++;
-		if( !pathchr( pINIFile ) )
+	while( pINIFile[0] == '/' || pINIFile[0] == '\\' )
+	pINIFile++;
+	if( !pathchr( pINIFile ) )
+	{
+		if( ( pINIFile != DEFAULT_PUBLIC_KEY )
+			&& ( StrCaseCmp( pINIFile, DEFAULT_PUBLIC_KEY ) != 0 ) )
 		{
-			if( ( pINIFile != DEFAULT_PUBLIC_KEY )
-				&& ( StrCaseCmp( pINIFile, DEFAULT_PUBLIC_KEY ) != 0 ) )
+			//lprintf( "(Convert %s)", pINIFile );
+			if( og.flags.bEnableSystemMapping == 2 )
+				og.flags.bEnableSystemMapping = SACK_GetPrivateProfileIntExx( odbc, WIDE( "System Settings")
+																									 , WIDE( "Enable System Mapping" ), 0, NULL, TRUE DBG_SRC );
+			if( og.flags.bEnableSystemMapping )
 			{
-				//lprintf( "(Convert %s)", pINIFile );
-				if( og.flags.bEnableSystemMapping == 2 )
-					og.flags.bEnableSystemMapping = SACK_GetPrivateProfileIntExx( odbc, WIDE( "System Settings")
-																										 , WIDE( "Enable System Mapping" ), 0, NULL, TRUE DBG_SRC );
-				if( og.flags.bEnableSystemMapping )
-				{
-					TEXTCHAR resultbuf[12];
-					struct check_mask_param params;
-					params.is_mapped = FALSE;
-					params.is_found = FALSE;
+				TEXTCHAR resultbuf[12];
+				struct check_mask_param params;
+				params.is_mapped = FALSE;
+				params.is_found = FALSE;
 
-					// check masks first for wildcarded relocations.
+				// check masks first for wildcarded relocations.
+				{
+					POPTION_TREE_NODE node;
+					params.section_name = pSection;
+					params.file_name = pINIFile;
+					params.odbc = odbc;
+					//lprintf( "FILE is not mapped entirly, check enumerated options..." );
+					tnprintf( buf, 128, WIDE("System Settings/Map INI Local Masks/%s"), pINIFile );
+					//lprintf( "buf is %s", buf );
+					node = GetOptionIndexExxx( odbc, NULL, DEFAULT_PUBLIC_KEY, NULL, NULL, buf, TRUE, FALSE, FALSE DBG_SRC );
+					if( node )
 					{
-						POPTION_TREE_NODE node;
-						params.section_name = pSection;
-						params.file_name = pINIFile;
-						params.odbc = odbc;
-						//lprintf( "FILE is not mapped entirly, check enumerated options..." );
-						tnprintf( buf, 128, WIDE("System Settings/Map INI Local Masks/%s"), pINIFile );
-						//lprintf( "buf is %s", buf );
-						node = GetOptionIndexExxx( odbc, NULL, DEFAULT_PUBLIC_KEY, NULL, NULL, buf, TRUE, FALSE, FALSE DBG_SRC );
-						if( node )
-						{
-							//lprintf( "Node is %p?", node );
-							EnumOptionsEx( odbc, node, CheckMasks, (uintptr_t)&params );
-							//lprintf( "Done enumerating..." );
-						}
+						//lprintf( "Node is %p?", node );
+						EnumOptionsEx( odbc, node, CheckMasks, (uintptr_t)&params );
+						//lprintf( "Done enumerating..." );
 					}
-					if( !params.is_found )
+				}
+				if( !params.is_found )
+				{
+					SACK_GetPrivateProfileStringExxx( odbc, WIDE("System Settings/Map INI Local"), pINIFile, WIDE("0"), resultbuf, 12, NULL, TRUE DBG_SRC );
+					if( resultbuf[0] != '0' )
 					{
-						SACK_GetPrivateProfileStringExxx( odbc, WIDE("System Settings/Map INI Local"), pINIFile, WIDE("0"), resultbuf, 12, NULL, TRUE DBG_SRC );
-						if( resultbuf[0] != '0' )
-						{
-							params.is_found = 1;
-							params.is_mapped = 1;
-						}
+						params.is_found = 1;
+						params.is_mapped = 1;
 					}
-					if( !params.is_found )
-					{
-						tnprintf( buf, 128, WIDE("System Settings/Map INI Local/%s"), pINIFile );
-						SACK_GetPrivateProfileStringExxx( odbc, buf, pSection, WIDE("0"), resultbuf, 12, NULL, TRUE DBG_SRC );
-						if( resultbuf[0] != '0' )
-							params.is_mapped = TRUE;
-					}
+				}
+				if( !params.is_found )
+				{
+					tnprintf( buf, 128, WIDE("System Settings/Map INI Local/%s"), pINIFile );
+					SACK_GetPrivateProfileStringExxx( odbc, buf, pSection, WIDE("0"), resultbuf, 12, NULL, TRUE DBG_SRC );
+					if( resultbuf[0] != '0' )
+						params.is_mapped = TRUE;
+				}
 
 #ifndef __NO_NETWORK__
-					if( params.is_mapped )
-					{
-						tnprintf( buf, 128, WIDE("System Settings/%s/%s"), GetSystemName(), pINIFile );
-						buf[127] = 0;
-						pINIFile = buf;
-					}
-#endif
+				if( params.is_mapped )
+				{
+					tnprintf( buf, 128, WIDE("System Settings/%s/%s"), GetSystemName(), pINIFile );
+					buf[127] = 0;
+					pINIFile = buf;
 				}
-				//lprintf( "(result %s)", pINIFile );
-			}
-		}
-      return pINIFile;
+#endif
+  			}
+  			//lprintf( "(result %s)", pINIFile );
+  		}
+  	}
+   return pINIFile;
 }
 
 
@@ -1279,7 +1273,6 @@ SQLGETOPTION_PROC( CTEXTSTR, GetDefaultOptionDatabaseDSN )( void )
 	return global_sqlstub_data->OptionDb.info.pDSN;
 }
 
-static int xx;
 PODBC GetOptionODBCEx( CTEXTSTR dsn  DBG_PASS )
 {
 	INDEX idx;
@@ -1338,9 +1331,8 @@ PODBC GetOptionODBCEx( CTEXTSTR dsn  DBG_PASS )
 			SetOptionDatabaseOption( odbc );
 		}
 		AddLink( &tracker->outstanding, odbc );
-		//xx++;
 #ifdef DETAILED_LOGGING
-		_lprintf( DBG_RELAY )( "%d  %p result...", xx, odbc );
+		_lprintf( DBG_RELAY )( "%p result...", odbc );
 #endif
 		return odbc;
 	}
@@ -1356,8 +1348,7 @@ void DropOptionODBCEx( PODBC odbc DBG_PASS )
 {
 	INDEX idx;
 	struct option_odbc_tracker *tracker;
-	//xx--;
-	//_lprintf( DBG_RELAY )( "%d  %p Drop...", xx, odbc );
+	//_lprintf( DBG_RELAY )( "%p Drop...", odbc );
 	LIST_FORALL( og.odbc_list, idx, struct option_odbc_tracker *, tracker )
 	{
 		INDEX idx2;

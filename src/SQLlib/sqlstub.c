@@ -281,9 +281,7 @@ static void computeSha1(sqlite3_context*onwhat,int argc,sqlite3_value**argv)
 
 static void computePassword(sqlite3_context*onwhat,int argc,sqlite3_value**argv)
 {
-	PVARTEXT pvt = VarTextCreate();
-	PODBC odbc = (PODBC)sqlite3_user_data(onwhat);
-	const unsigned char *val = sqlite3_value_text( argv[0] );
+   const unsigned char *val = sqlite3_value_text( argv[0] );
 	static TEXTCHAR *result;
 	if( result ) Release( result );
 	result = SRG_EncryptString( (CTEXTSTR)val );
@@ -301,9 +299,7 @@ static void computePassword(sqlite3_context*onwhat,int argc,sqlite3_value**argv)
 
 static void decomputePassword(sqlite3_context*onwhat,int n,sqlite3_value**argv)
 {
-	PVARTEXT pvt = VarTextCreate();
-	PODBC odbc = (PODBC)sqlite3_user_data(onwhat);
-	const unsigned char *val = sqlite3_value_text( argv[0] );
+   const unsigned char *val = sqlite3_value_text( argv[0] );
 	static TEXTCHAR *result;
 	if( result ) Release( result );
 	result = SRG_DecryptString( (CTEXTSTR)val );
@@ -1973,8 +1969,8 @@ void ReleaseCollectionResults( PCOLLECT pCollect, int bEntire )
 void DestroyCollectorEx( PCOLLECT pCollect DBG_PASS )
 #define DestroyCollector(c) DestroyCollectorEx(c DBG_SRC )
 {
-	PODBC odbc = pCollect?pCollect->odbc:NULL;
 #ifdef LOG_COLLECTOR_STATES
+	PODBC odbc = pCollect?pCollect->odbc:NULL;
 	// added to supprot 'collectors'
 	_lprintf(DBG_RELAY)( "Destroying a state, restoring prior if any... %s"
 							 ,odbc?odbc->collection?odbc->collection->flags.bPushed?"pushed":"":"":"No ODBC"
@@ -2823,7 +2819,6 @@ int __GetSQLResult( PODBC odbc, PCOLLECT collection, int bMore )
 #if defined( USE_SQLITE ) || defined( USE_SQLITE_INTERFACE )
 		int rc3;
 #endif
-		int bDuplicated = FALSE;
 		//INDEX idx;
 		int lines = 0;
 #ifdef USE_ODBC
@@ -2832,7 +2827,10 @@ int __GetSQLResult( PODBC odbc, PCOLLECT collection, int bMore )
 #endif
 		PVARTEXT pvtData;
 		TEXTCHAR *tmpResult = NULL;
+#ifdef USE_ODBC
+      // used as a buffer length to get odbc result
 		uintptr_t byTmpResultLen = 0;
+#endif
 		// SQLPrepare
 		// includes the table to list... therefore list the fields in the table.
 		//lprintf( "am I logging: %d %d %d", (!odbc->flags.bNoLogging) , (!g.flags.bNoLog) , g.flags.bLogData )
@@ -3009,7 +3007,6 @@ int __GetSQLResult( PODBC odbc, PCOLLECT collection, int bMore )
 #endif
 			idx = 1;
 			lines++;
-			bDuplicated = TRUE;
 			//lprintf( WIDE("Yes, so lets' get the data to result with..") );
 			do
 			{
@@ -4626,7 +4623,7 @@ void SQLDropAndCloseODBC( CTEXTSTR dsn )
 		if( StrCaseCmp( dsn, queue->name ) == 0 )
 		{
 			PODBC odbc;
-			while( odbc = (PODBC)DequeLink( &queue->connections ) )
+			while( ( odbc = (PODBC)DequeLink( &queue->connections ) ) )
 				CloseDatabase( odbc );
 			break;
 		}
