@@ -117,7 +117,7 @@ int xRead(sqlite3_file*file, void*buffer, int iAmt, sqlite3_int64 iOfst)
 	lprintf( "read %s %d  %d", my_file->filename, iAmt, iOfst );
 #endif
 	sack_fseek( my_file->file, (size_t)iOfst, SEEK_SET );
-	if( ( actual = sack_fread( buffer, 1, iAmt, my_file->file ) ) == iAmt )
+	if( ( actual = sack_fread( buffer, 1, iAmt, my_file->file ) ) == (size_t)iAmt )
 	{
 #ifdef LOG_OPERATIONS
 		//LogBinary( buffer, iAmt );
@@ -168,7 +168,7 @@ int xWrite(sqlite3_file*file, const void*buffer, int iAmt, sqlite3_int64 iOfst)
 	}
 	sack_fseek( my_file->file, (size_t)iOfst, SEEK_SET );
 
-	if( iAmt == ( actual = sack_fwrite( buffer, 1, iAmt, my_file->file ) ) )
+	if( (size_t)iAmt == ( actual = sack_fwrite( buffer, 1, iAmt, my_file->file ) ) )
 	{
 #ifdef LOG_OPERATIONS
 		lprintf( "file  %s is now %d", my_file->filename, sack_fsize( my_file->file ) );
@@ -271,8 +271,8 @@ int xCheckReservedLock(sqlite3_file*file, int *pResOut)
 
 int xFileControl(sqlite3_file*file, int op, void *pArg)
 {
-	struct my_file_data *my_file = (struct my_file_data*)file;
 #ifdef LOG_OPERATIONS
+	struct my_file_data *my_file = (struct my_file_data*)file;
 	lprintf( WIDE("file %s control op: %d %p"), my_file->filename, op, pArg );
 #endif
 	switch( op )
@@ -309,8 +309,7 @@ int xFileControl(sqlite3_file*file, int op, void *pArg)
 	case SQLITE_FCNTL_PRAGMA:
 		{
 			char **files = (char**)pArg;
-			char *name = files[3];
-			
+			//char *name = files[3];			
 			files[0] = sqlite3_mprintf( "%s", files[2] );
 			//xOpen( my_file->
 		}
@@ -321,13 +320,13 @@ int xFileControl(sqlite3_file*file, int op, void *pArg)
 
 int xSectorSize(sqlite3_file*file)
 {
-	struct my_file_data *my_file = (struct my_file_data*)file;
+	//struct my_file_data *my_file = (struct my_file_data*)file;
 	return 512;
 }
 
 int xDeviceCharacteristics(sqlite3_file*file)
 {
-	struct my_file_data *my_file = (struct my_file_data*)file;
+	//struct my_file_data *my_file = (struct my_file_data*)file;
 	return SQLITE_IOCAP_ATOMIC|SQLITE_IOCAP_SAFE_APPEND|SQLITE_IOCAP_UNDELETABLE_WHEN_OPEN|SQLITE_IOCAP_POWERSAFE_OVERWRITE;
 }
 

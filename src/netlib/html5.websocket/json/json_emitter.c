@@ -583,14 +583,14 @@ static int GetNumber( CTEXTSTR *start )
 
 uintptr_t ParseFormat( struct json_context *context, CTEXTSTR format, uintptr_t object )
 {
-	int padding = 0;
+	size_t padding = 0;
 	int member_offset;
 	uintptr_t current_obj_ofs = object;
 	CTEXTSTR start = format;
 	CTEXTSTR _start;
 	TEXTCHAR namebuf[256];
 #define namebuf_size (sizeof(namebuf)/sizeof(namebuf[0]))
-	int name_end;
+	size_t name_end;
 
 	padding = GetNumber( &start );
 
@@ -694,6 +694,12 @@ static size_t GetDefaultObjectSize( enum JSON_ObjectElementTypes type )
 {
 	switch( type )
 	{
+	case JSON_Element_Array:
+	case JSON_Element_UserRoutine:
+	case JSON_Element_Raw_Object:
+		lprintf( "Returning invalid object size for this type." );
+		return 0;
+
 	case JSON_Element_Integer_8:
 		return sizeof( int8_t );
 	case JSON_Element_Integer_16:
@@ -920,7 +926,7 @@ JSON_EMITTER_PROC( struct json_context_object *, json_add_object_member_object_a
 																												  , size_t count_offset
 																												  )
 {
-	struct json_context *context = object->context;
+	//struct json_context *context = object->context;
 	struct json_context_object_element *member = New( struct json_context_object_element );
 	MemSet( member, 0, sizeof( struct json_context_object_element ) );
 	member->name = StrDup( name );
@@ -930,10 +936,30 @@ JSON_EMITTER_PROC( struct json_context_object *, json_add_object_member_object_a
 	member->count_offset = count_offset;
 	switch( type )
 	{
+
 	case JSON_Element_Object:
 	case JSON_Element_ObjectPointer:
 		member->object = child_object;
 		break;
+	case JSON_Element_Integer_8:
+	case JSON_Element_Integer_16:
+	case JSON_Element_Integer_32:
+	case JSON_Element_Integer_64:
+	case JSON_Element_Unsigned_Integer_8:
+	case JSON_Element_Unsigned_Integer_16:
+	case JSON_Element_Unsigned_Integer_32:
+	case JSON_Element_Unsigned_Integer_64:
+	case JSON_Element_Float:
+	case JSON_Element_Double:
+	case JSON_Element_Array:
+	case JSON_Element_List:
+	case JSON_Element_Text:
+	case JSON_Element_CharArray:
+	case JSON_Element_String:
+	case JSON_Element_PTRSZVAL:
+	case JSON_Element_PTRSZVAL_BLANK_0:
+	case JSON_Element_UserRoutine:
+	case JSON_Element_Raw_Object:
 	default:
 		lprintf( WIDE("incompatible type") );
 		break;

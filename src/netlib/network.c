@@ -289,7 +289,6 @@ NETWORK_PROC( PLIST, GetMacAddresses)( void )//int get_mac_addr (char *device, u
    /* this code queries the arp table to figure out who the other side is */
 	//int fd;
 	struct arpreq arpr;
-	struct ifconf ifc;
 	MemSet( &arpr, 0, sizeof( arpr ) );
 #if 0
 	lprintf( WIDE( "this is broken." ) );

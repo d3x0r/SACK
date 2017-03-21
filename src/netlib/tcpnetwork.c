@@ -1519,7 +1519,7 @@ LOGICAL TCPDrainRead( PCLIENT pClient )
 		nDrainRead = recv( pClient->Socket
 							  , byBuffer
 						 , (int)nDrainRead, 0 );
-		if( nDrainRead == SOCKET_ERROR )
+		if( nDrainRead == 0 )//SOCKET_ERROR )
 		{
 			if( WSAGetLastError() == WSAEWOULDBLOCK )
 			{

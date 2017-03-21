@@ -844,7 +844,7 @@ void DumpTermios( struct termios *opts )
 		{
 			uintptr_t iCommId = OpenComm( szPort, uiRcvQ, uiSendQ );
 			if( gbLog )
-				lprintf( WIDE("attempted to open: %s result %d"), szPort, iCommId );
+				lprintf( WIDE("attempted to open: %s result %p"), szPort, (void*)iCommId );
 			if( (int)iCommId >= 0 )
 			{
 				pct = AddComTracking( szPort, iCommId );
@@ -939,7 +939,7 @@ void DumpTermios( struct termios *opts )
 			}
 			//else
 			//	xlprintf(LOG_NOISE)( WIDE("Failed!") );
-			if( iCommId >= 0 )
+			if( (int)iCommId >= 0 )
 			{
 				if( func )
 				{
@@ -1427,7 +1427,9 @@ void DumpTermios( struct termios *opts )
  int  SackCommWriteBufferEx( int iCommId, char *buffer, int len
 												  , uint32_t timeout DBG_PASS)
 {
+#ifndef __LINUX__
 	PCOM_TRACK pComTrack = FindComByNumber( iCommId );
+#endif
 	int sendofs = 0;
 	int sendlen = len;
 	uint32_t dwEnd = GetTickCount() + timeout;
