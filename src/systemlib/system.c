@@ -36,7 +36,9 @@
 #include <stdio.h>
 #include <string.h>
 extern char **environ;
-#include <elf.h>
+#ifndef __MAC__
+#  include <elf.h>
+#endif
 #endif
 
 
@@ -1208,7 +1210,9 @@ static void LoadExistingLibraries( void )
 			char *split = strchr( buf, '-' );
 			if( libpath && split )
 			{
+#ifndef __MAC__
 				char *dll_name = strrchr( libpath, '/' );
+#endif
 				size_t start, end;
 				char perms[8];
 				size_t offset;
@@ -1222,6 +1226,7 @@ static void LoadExistingLibraries( void )
 				{
 					if( ( perms[2] == 'x' )
 						&& ( ( end - start ) > 4 ) )
+#ifndef __MAC__
 						if( ( ((unsigned char*)start)[0] == ELFMAG0 )
 						   && ( ((unsigned char*)start)[1] == ELFMAG1 )
 						   && ( ((unsigned char*)start)[2] == ELFMAG2 )
@@ -1230,6 +1235,7 @@ static void LoadExistingLibraries( void )
 							//lprintf( "Add library %s %p", dll_name + 1, start );
 							AddMappedLibrary( dll_name + 1, (POINTER)start );
 						}
+#endif
 				}
 			}
 		}
