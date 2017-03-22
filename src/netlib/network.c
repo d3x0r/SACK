@@ -2426,6 +2426,9 @@ NETWORK_PROC( SOCKADDR *,CreateAddress_hton)( uint32_t dwIP,uint16_t nHisPort)
  #define UNIX_PATH_MAX    108
 
 struct sockaddr_un {
+#ifdef __MAC__
+	u_char   sa_len;
+#endif
 	sa_family_t  sun_family;		/* AF_UNIX */
 	char	       sun_path[UNIX_PATH_MAX]; /* pathname */
 };
@@ -2447,6 +2450,10 @@ NETWORK_PROC( SOCKADDR *,CreateUnixAddress)( CTEXTSTR path )
 #else
 	strncpy( lpsaAddr->sun_path, path, 107 );
 #endif
+
+#ifdef __MAC__
+   lpsaAddr->sa_len = 2+strlen( lpsaAddr->sun_path );
+#endif
    return((SOCKADDR*)lpsaAddr);
 }
 #else
@@ -2463,7 +2470,7 @@ SOCKADDR *CreateAddress( uint32_t dwIP,uint16_t nHisPort)
    SOCKADDR_IN *lpsaAddr=(SOCKADDR_IN*)AllocAddr();
    if (!lpsaAddr)
       return(NULL);
-	SET_SOCKADDR_LENGTH( lpsaAddr, 16 );
+   SET_SOCKADDR_LENGTH( lpsaAddr, 16 );
    lpsaAddr->sin_family       = AF_INET;         // InetAddress Type.
    lpsaAddr->sin_addr.S_un.S_addr  = dwIP;
    lpsaAddr->sin_port         = htons(nHisPort);

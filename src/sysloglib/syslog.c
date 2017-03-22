@@ -879,15 +879,21 @@ static CTEXTSTR GetLogTime( void )
 //----------------------------------------------------------------------------
 #ifndef __DISABLE_UDP_SYSLOG__
 
-#if !defined( FBSD ) && !defined(__QNX__)
+#  if !defined( FBSD ) && !defined(__QNX__)
+#    if defined( __MAC__ )
+static SOCKADDR saLogBroadcast  = { 8, 2, { 0x02, 0x02, (char)0xff, (char)0xff, (char)0xff, (char)0xff } };
+static SOCKADDR saLog  = { 8, 2, { 0x02, 0x02, 0x7f, 0x00, 0x00, 0x01 } };
+static SOCKADDR saBind = { 8, 2, { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 } };
+#    else
 static SOCKADDR saLogBroadcast  = { 2, { 0x02, 0x02, (char)0xff, (char)0xff, (char)0xff, (char)0xff } };
 static SOCKADDR saLog  = { 2, { 0x02, 0x02, 0x7f, 0x00, 0x00, 0x01 } };
 static SOCKADDR saBind = { 2, { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 } };
-#else
+#    endif
+#  else
 static SOCKADDR saLogBroadcast  = { 2, 0x02, 0x02, (char)0xff, (char)0xff, (char)0xff, (char)0xff };
 static SOCKADDR saLog  = { 2, 0x02, 0x02, 0x7f, 0x00, 0x00, 0x01  };
 static SOCKADDR saBind = { 2, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00  };
-#endif
+#  endif
 
 static void UDPSystemLog( const TEXTCHAR *message )
 {
@@ -966,7 +972,11 @@ static void UDPSystemLog( const TEXTCHAR *message )
 #  ifndef __DISABLE_SYSLOGD_SYSLOG__
 
 #    if !defined( FBSD ) && !defined(__QNX__)
+#       if defined( __MAC__ )
+static struct sockaddr_un saSyslogdAddr  = { 11, AF_UNIX, "/dev/log" };
+#       else
 static struct sockaddr_un saSyslogdAddr  = { AF_UNIX, "/dev/log" };
+#       endif
 #    else
 static struct sockaddr_un saSyslogdAddr  = { AF_UNIX, {"/dev/log"} };
 #    endif

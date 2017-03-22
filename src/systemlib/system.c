@@ -36,7 +36,9 @@
 #include <stdio.h>
 #include <string.h>
 extern char **environ;
-#include <elf.h>
+#  ifndef __MAC__
+#    include <elf.h>
+#  endif
 #endif
 
 
@@ -1220,6 +1222,7 @@ static void LoadExistingLibraries( void )
 				scanned = sscanf( buf, "%zx-%zx %s %zx", &start, &end, perms, &offset );
 				if( scanned == 4 && offset == 0 )
 				{
+#ifndef __MAC__
 					if( ( perms[2] == 'x' )
 						&& ( ( end - start ) > 4 ) )
 						if( ( ((unsigned char*)start)[0] == ELFMAG0 )
@@ -1230,6 +1233,7 @@ static void LoadExistingLibraries( void )
 							//lprintf( "Add library %s %p", dll_name + 1, start );
 							AddMappedLibrary( dll_name + 1, (POINTER)start );
 						}
+#endif
 				}
 			}
 		}

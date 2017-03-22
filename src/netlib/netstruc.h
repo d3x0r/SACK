@@ -41,8 +41,11 @@ SACK_NETWORK_NAMESPACE
 
 // this might have to be like sock_addr_len_t
 #define SOCKADDR_LENGTH(sa) ( (int)*(uintptr_t*)( ( (uintptr_t)(sa) ) - 2*sizeof(uintptr_t) ) )
-#define SET_SOCKADDR_LENGTH(sa,size) ( ( *(uintptr_t*)( ( (uintptr_t)(sa) ) - 2*sizeof(uintptr_t) ) ) = size )
-
+#ifdef __MAC__
+#  define SET_SOCKADDR_LENGTH(sa,size) ( ( ( *(uintptr_t*)( ( (uintptr_t)(sa) ) - 2*sizeof(uintptr_t) ) ) = size ), ( sa->sa_len = size ) )
+#else
+#  define SET_SOCKADDR_LENGTH(sa,size) ( ( *(uintptr_t*)( ( (uintptr_t)(sa) ) - 2*sizeof(uintptr_t) ) ) = size )
+#endif
 // used by the network thread dispatched network layer messages...
 #define SOCKMSG_UDP (WM_USER+1)  // messages for UDP use this window Message
 #define SOCKMSG_TCP (WM_USER+2)  // Messages for TCP use this Window Message
