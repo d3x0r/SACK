@@ -1855,7 +1855,7 @@ static int CPROC ProcessTimers( uintptr_t psvForce )
 	{
 		// there are timers - and there's one which wants to be added...
 		// if there's no timers - just sleep here...
-		while( !globalTimerData.add_timer && !globalTimerData.timers || globalTimerData.flags.bHaltTimers )
+		while( ( !globalTimerData.add_timer && !globalTimerData.timers ) || globalTimerData.flags.bHaltTimers )
 		{
 			if( !psvForce )
 				return 1;
@@ -1958,7 +1958,7 @@ static int CPROC ProcessTimers( uintptr_t psvForce )
 						lprintf( WIDE("%d Dispatching timer %")_32fs WIDE(" freq %")_32fs WIDE(" %s(%d)"), level, timer->ID, timer->frequency
 								 , timer->pFile, timer->nLine );
 #else
-						lprintf( WIDE("%d Dispatching timer %ld freq %ld"), level, timer->ID, timer->frequency );
+						lprintf( WIDE("%d Dispatching timer %") _32fs WIDE(" freq %") _32fs, level, timer->ID, timer->frequency );
 #endif
 					}
 					//#endif
@@ -2479,8 +2479,6 @@ LOGICAL  LeaveCriticalSecEx( PCRITICALSECTION pcs DBG_PASS )
 
 			if( pcs->dwThreadWaiting )
 			{
-				THREAD_ID wake = pcs->dwThreadWaiting;
-				//pcs->dwThreadWaiting = 0;
 				pcs->dwUpdating = 0;
 #ifdef ENABLE_CRITICALSEC_LOGGING
 				if( global_timer_structure && globalTimerData.flags.bLogCriticalSections )

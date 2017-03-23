@@ -56,8 +56,8 @@ LOGICAL json_parse_message( CTEXTSTR msg
 	int word;
 	TEXTRUNE c;
 	LOGICAL status = TRUE;
-	TEXTRUNE quote = 0;
-	LOGICAL use_char = FALSE;
+	//TEXTRUNE quote = 0;
+	//LOGICAL use_char = FALSE;
 	PLINKSTACK element_lists = NULL;
 
 	PLINKSTACK context_stack = NULL;
@@ -68,12 +68,12 @@ LOGICAL json_parse_message( CTEXTSTR msg
 	int parse_context = CONTEXT_UNKNOWN;
 	struct json_value_container val;
 
-	POINTER msg_output;
+	//POINTER msg_output;
 	if( !_msg_output )
 		return FALSE;
 
 	elements = CreateDataList( sizeof( val ) );
-	msg_output = (*_msg_output);
+	//msg_output = (*_msg_output);
 
 	val.value_type = VALUE_UNDEFINED;
 	val.result_value = 0;
@@ -417,7 +417,7 @@ LOGICAL json_parse_message( CTEXTSTR msg
 
 	{
 		struct json_parse_context *old_context;
-		while( old_context = (struct json_parse_context *)PopLink( &context_stack ) ) {
+		while( ( old_context = (struct json_parse_context *)PopLink( &context_stack ) ) ) {
 			lprintf( "warning unclosed contexts...." );
 			Release( old_context );
 		}
@@ -524,6 +524,22 @@ static void FillDataToElement( struct json_context_object_element *element
 			case VALUE_TRUE:
 				switch( element->type )
 				{
+				case JSON_Element_String:
+				case JSON_Element_CharArray:
+				case JSON_Element_Float:
+				case JSON_Element_Double:
+				case JSON_Element_Array:
+				case JSON_Element_Object:
+				case JSON_Element_ObjectPointer:
+				case JSON_Element_List:
+				case JSON_Element_Text:
+				case JSON_Element_PTRSZVAL:
+				case JSON_Element_PTRSZVAL_BLANK_0:
+				case JSON_Element_UserRoutine:
+				case JSON_Element_Raw_Object:
+					lprintf( "Uhandled element conversion." );
+					break;
+
 				case JSON_Element_Integer_64:
 				case JSON_Element_Unsigned_Integer_64:
 					((int8_t*)( ((uintptr_t)msg_output) + element->offset + object_offset ))[0] = 1;
@@ -545,6 +561,22 @@ static void FillDataToElement( struct json_context_object_element *element
 			case VALUE_FALSE:
 				switch( element->type )
 				{
+				case JSON_Element_String:
+				case JSON_Element_CharArray:
+				case JSON_Element_Float:
+				case JSON_Element_Double:
+				case JSON_Element_Array:
+				case JSON_Element_Object:
+				case JSON_Element_ObjectPointer:
+				case JSON_Element_List:
+				case JSON_Element_Text:
+				case JSON_Element_PTRSZVAL:
+				case JSON_Element_PTRSZVAL_BLANK_0:
+				case JSON_Element_UserRoutine:
+				case JSON_Element_Raw_Object:
+					lprintf( "Uhandled element conversion." );
+					break;
+
 				case JSON_Element_Integer_64:
 				case JSON_Element_Unsigned_Integer_64:
 					((int8_t*)( ((uintptr_t)msg_output) + element->offset + object_offset ))[0] = 0;

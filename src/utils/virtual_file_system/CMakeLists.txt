@@ -102,6 +102,7 @@ add_subdirectory( vfs_extract )
 # some assembly required...
 #if( WIN32 )
    add_subdirectory( vfs_runner )
+   add_subdirectory( vfs_node_runner )
 #endif( WIN32 )
 
 #endif( BUILD_EXTRAS )

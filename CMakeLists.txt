@@ -81,17 +81,15 @@ else( __LINUX__ AND __64__ )
 	set( linux64_default OFF )
 endif( __LINUX__ AND __64__ )
 
-DEFINE_DEFAULT( __LINUX64__   ${linux64_default} )
-SET( __LINUX64__ ${__LINUX64__} CACHE BOOL "Enable Linux-x64 specific features" )
 
 
-if( NOT __LINUX__ AND NOT __LINUX64__ )
+if( NOT __LINUX__  )
 set(WIN32_VERSION "0x0601" CACHE STRING
       "Set minimum windows build version")
   set_property(CACHE WIN32_VERSION PROPERTY STRINGS
                "0x0601" "0x501" "0x0500" "0x0400")
 add_definitions( -D_WIN32_WINNT=${WIN32_VERSION} -DWINVER=${WIN32_VERSION})
-endif( NOT __LINUX__ AND NOT __LINUX64__ )
+endif( NOT __LINUX__  )
 
 DEFINE_DEFAULT( ALLOW_IMAGE_INTERFACES OFF )
 DEFINE_DEFAULT( __ANDROID__ OFF )
@@ -241,7 +239,6 @@ OPTION( BUILD_TESTS "Enable building test" OFF )
 if( NOT __LINUX__ )
 OPTION( __LINUX__ "Enable specific linux features (disable WIN32)" ${UNIX} )
 endif( NOT __LINUX__ )
-OPTION( __LINUX64__ "Enable specific linux features (disable WIN32)" OFF )
 if( NOT __ARM__ )
 OPTION( __ARM__ "Enable specific arm-linux features (disable WIN32)" OFF )
 endif( NOT __ARM__ )
@@ -436,10 +433,6 @@ set( ExtraDefinitions ${ExtraDefinitions};SACK_CORE_BUILD )
 if( __LINUX__ )
    add_definitions( -D__LINUX__ )
 endif( __LINUX__ )
-if( __LINUX64__ )
-   set( __64__ ON )
-   add_definitions( -D__LINUX64__ )
-endif( __LINUX64__ )
 
 if( __64__ )
    add_definitions( -D__64__ )

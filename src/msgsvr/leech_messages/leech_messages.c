@@ -47,7 +47,7 @@
 
 int main( void )
 {
-#ifdef __LINUX64__
+#ifdef __64__
 #define ssize_tf WIDE("lu")
 #else
 #define ssize_tf WIDE("u")

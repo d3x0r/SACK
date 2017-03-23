@@ -104,12 +104,12 @@ void ProcessURL_CGI( struct HttpState *pHttpState, PTEXT params )
 	PTEXT next = start;
 	PTEXT tmp;
 	//lprintf( "Input was %s", GetText( params ) );
-	while( tmp = next )
+	while( ( tmp = next ) )
 	{
 		PTEXT name = tmp;
-		PTEXT equals = ( next = NEXTLINE( tmp ) );
+		/*PTEXT equals = */( next = NEXTLINE( tmp ) );
 		PTEXT value = ( next = NEXTLINE( next ) );
-		PTEXT ampersand = ( next = NEXTLINE( next ) );
+		/*PTEXT ampersand = */( next = NEXTLINE( next ) );
 
 		struct HttpField *field = New( struct HttpField );
 		field->name = SegDuplicate( name );
@@ -132,12 +132,11 @@ int ProcessHttp( PCLIENT pc, struct HttpState *pHttpState )
 	}
 	else
 	{
-		PTEXT pCurrent, pStart;
-		PTEXT pLine = NULL,
-			 pHeader = NULL;
+		PTEXT pCurrent;//, pStart;
+		PTEXT pLine = NULL;
 		TEXTCHAR *c, *line;
 		size_t size, pos, len;
-		int bLine;
+		size_t bLine;
 		INDEX start = 0;
 		PTEXT pMergedLine;
 		PTEXT pInput = VarTextGet( pHttpState->pvt_collector );
@@ -146,7 +145,7 @@ int ProcessHttp( PCLIENT pc, struct HttpState *pHttpState )
 		LineRelease( pNewLine );
 		pHttpState->partial = pMergedLine;
 		pCurrent = pHttpState->partial;
-		pStart = pCurrent; // at lest is this block....
+		//pStart = pCurrent; // at lest is this block....
 		len = 0;
 
 		// we always start without having a line yet, because all input is already merged
@@ -314,7 +313,7 @@ int ProcessHttp( PCLIENT pc, struct HttpState *pHttpState )
 						{
 							// end of header
 							// copy the previous line out...
-							pStart = pCurrent;
+							//pStart = pCurrent;
 							len = size - pos; // remaing size
 							break;
 						}
@@ -341,7 +340,7 @@ int ProcessHttp( PCLIENT pc, struct HttpState *pHttpState )
 		}
 		if( start )
 		{
-			PTEXT tmp = SegSplit( &pCurrent, start );
+			/*PTEXT tmp = */SegSplit( &pCurrent, start );
 			pHttpState->partial = NEXTLINE( pCurrent );
 			LineRelease( SegGrab( pCurrent ) );
 			start = 0;
@@ -410,7 +409,7 @@ LOGICAL AddHttpData( struct HttpState *pHttpState, POINTER buffer, size_t size )
 	if( pHttpState->read_chunks )
 	{
 		uint8_t* buf = (uint8_t*)buffer;
-		int ofs = 0;
+		size_t ofs = 0;
 		while( ofs < size )
 		{
 			switch( pHttpState->read_chunk_state )
@@ -435,7 +434,7 @@ LOGICAL AddHttpData( struct HttpState *pHttpState, POINTER buffer, size_t size )
 				{
 					pHttpState->read_chunk_total_length += pHttpState->read_chunk_length;
 					if( l.flags.bLogReceived ) {
-						lprintf( "Chunck will be %d", pHttpState->read_chunk_length );
+						lprintf( "Chunck will be %zd", pHttpState->read_chunk_length );
 					}
 					pHttpState->read_chunk_state = READ_VALUE_LF;
 				}
@@ -446,6 +445,9 @@ LOGICAL AddHttpData( struct HttpState *pHttpState, POINTER buffer, size_t size )
 					return FALSE;
 				}
 				break;
+			case READ_VALUE_CR:
+            // didn't actually implement to get into this state... just looks for newlines really.
+            break;
 			case READ_VALUE_LF:
 				if( buf[ofs] == '\n' )
 				{
@@ -506,7 +508,7 @@ LOGICAL AddHttpData( struct HttpState *pHttpState, POINTER buffer, size_t size )
 			ofs++;
 		}
 		if( l.flags.bLogReceived ) {
-			lprintf( "chunk read is %d of %d", pHttpState->read_chunk_byte, pHttpState->read_chunk_total_length );
+			lprintf( "chunk read is %zd of %zd", pHttpState->read_chunk_byte, pHttpState->read_chunk_total_length );
 		}
 		return FALSE;
 	}
@@ -636,7 +638,7 @@ void DestroyHttpState( struct HttpState *pHttpState )
 
 void SendHttpResponse ( struct HttpState *pHttpState, PCLIENT pc, int numeric, CTEXTSTR text, CTEXTSTR content_type, PTEXT body )
 {
-	int offset = 0;
+	//int offset = 0;
 	PVARTEXT pvt_message = VarTextCreate();
 	PTEXT header;
 	PTEXT tmp_content;
@@ -677,16 +679,15 @@ void SendHttpResponse ( struct HttpState *pHttpState, PCLIENT pc, int numeric, C
 void SendHttpMessage ( struct HttpState *pHttpState, PCLIENT pc, PTEXT body )
 {	
 	PTEXT message;
-	size_t offset = 0;
 	PVARTEXT pvt_message = VarTextCreate();
 	PTEXT content_type;
 
-	offset += vtprintf( pvt_message, WIDE( "%s" ),  WIDE("HTTP/1.1 200 OK\r\n") );
-	offset += vtprintf( pvt_message, WIDE( "Content-Length: %d\r\n" ), GetTextSize( body ));	
-	offset += vtprintf( pvt_message, WIDE( "Content-Type: %s\r\n" )
+	vtprintf( pvt_message, WIDE( "%s" ),  WIDE("HTTP/1.1 200 OK\r\n") );
+	vtprintf( pvt_message, WIDE( "Content-Length: %d\r\n" ), GetTextSize( body ));	
+	vtprintf( pvt_message, WIDE( "Content-Type: %s\r\n" )
 		, (content_type = GetHttpField( pHttpState, WIDE("Accept") ))?GetText(content_type):WIDE("text/plain" ));	
-	offset += vtprintf( pvt_message, WIDE( "\r\n" )  );	
-	offset += vtprintf( pvt_message, WIDE( "%s" ), GetText( body ));	
+	vtprintf( pvt_message, WIDE( "\r\n" )  );	
+	vtprintf( pvt_message, WIDE( "%s" ), GetText( body ));	
 	message = VarTextGet( pvt_message );
 	if( l.flags.bLogReceived )
 	{
@@ -735,7 +736,7 @@ static void CPROC HttpReader( PCLIENT pc, POINTER buffer, size_t size )
 		struct HttpState *state = (struct HttpState *)GetNetworkLong( pc, 2 );
 		if( l.flags.bLogReceived )
 		{
-			lprintf( WIDE("Received web request... %d"), size );
+			lprintf( WIDE("Received web request... %zu"), size );
 			//LogBinary( buffer, size );
 		}
 		if( AddHttpData( state, buffer, size ) )
@@ -929,7 +930,6 @@ static LOGICAL InvokeMethod( PCLIENT pc, struct HttpServer *server, struct HttpS
 	PTEXT request = TextParse( pHttpState->response_status, WIDE( "?#" ), WIDE( " " ), 1, 1 DBG_SRC );
 	if( TextLike( request, WIDE( "get" ) ) || TextLike( request, WIDE( "post" ) ) )
 	{
-		PCLASSROOT data = NULL;
 		//lprintf( "is a get or post? ");
 		{
 			LOGICAL (CPROC *f)(uintptr_t, PCLIENT, struct HttpState *, PTEXT);
@@ -969,7 +969,6 @@ static void CPROC HandleRequest( PCLIENT pc, POINTER buffer, size_t length )
 {
 	if( !buffer )
 	{
-		struct HttpServer *server = (struct HttpServer *)GetNetworkLong( pc, 0 );
 		struct HttpState *pHttpState = CreateHttpState();
 		buffer = pHttpState->buffer = Allocate( 4096 );
 		pHttpState->request_socket = pc;
@@ -978,7 +977,6 @@ static void CPROC HandleRequest( PCLIENT pc, POINTER buffer, size_t length )
 	else
 	{
 		int result;
-		//struct HttpServer *server = (struct HttpServer *)GetNetworkLong( pc, 0 );
 		struct HttpState *pHttpState = (struct HttpState *)GetNetworkLong( pc, 1 );
 		if( l.flags.bLogReceived )
 		{

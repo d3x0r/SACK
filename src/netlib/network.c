@@ -154,14 +154,15 @@ LOGICAL APIENTRY DllMain( HINSTANCE hModule,
 //    GetMacAddress( version cpg01032007 )
 //
 //----------------------------------------------------------------------------
-
-#define INCLUDE_MAC_SUPPORT
+#ifndef __MAC__
+#  define INCLUDE_MAC_SUPPORT
+#endif
 
 NETWORK_PROC( int, GetMacAddress)(PCLIENT pc, uint8_t* buf, size_t *buflen )//int get_mac_addr (char *device, unsigned char *buffer)
 {
 #ifdef INCLUDE_MAC_SUPPORT
-#ifdef __LINUX__
-#ifdef __THIS_CODE_GETS_MY_MAC_ADDRESS___
+#  ifdef __LINUX__
+#    ifdef __THIS_CODE_GETS_MY_MAC_ADDRESS___
 	int fd;
 	struct ifreq ifr;
 
@@ -191,7 +192,7 @@ NETWORK_PROC( int, GetMacAddress)(PCLIENT pc, uint8_t* buf, size_t *buflen )//in
 	memcpy (pc->hwClient, ifr.ifr_hwaddr.sa_data, 6);
 
 	return 0;
-#endif
+#    endif
    /* this code queries the arp table to figure out who the other side is */
 	//int fd;
 	struct arpreq arpr;
@@ -224,8 +225,8 @@ NETWORK_PROC( int, GetMacAddress)(PCLIENT pc, uint8_t* buf, size_t *buflen )//in
 	}
 
 	return 0;
-#endif
-#ifdef WIN32
+#  endif
+#  ifdef WIN32
     HRESULT hr;
     ULONG   ulLen;
 	// I don't understand this useless cast - from size_t to ULONG?
@@ -244,7 +245,7 @@ NETWORK_PROC( int, GetMacAddress)(PCLIENT pc, uint8_t* buf, size_t *buflen )//in
     //lprintf (WIDE("Return %08x, length %8d\n"), hr, ulLen);
 
 	return hr == S_OK;
-#endif
+#  endif
 #else
 	return 0;
 
@@ -289,7 +290,6 @@ NETWORK_PROC( PLIST, GetMacAddresses)( void )//int get_mac_addr (char *device, u
    /* this code queries the arp table to figure out who the other side is */
 	//int fd;
 	struct arpreq arpr;
-	struct ifconf ifc;
 	MemSet( &arpr, 0, sizeof( arpr ) );
 #if 0
 	lprintf( WIDE( "this is broken." ) );
@@ -2427,6 +2427,9 @@ NETWORK_PROC( SOCKADDR *,CreateAddress_hton)( uint32_t dwIP,uint16_t nHisPort)
  #define UNIX_PATH_MAX    108
 
 struct sockaddr_un {
+#ifdef __MAC__
+	u_char   sa_len;
+#endif
 	sa_family_t  sun_family;		/* AF_UNIX */
 	char	       sun_path[UNIX_PATH_MAX]; /* pathname */
 };
@@ -2448,6 +2451,10 @@ NETWORK_PROC( SOCKADDR *,CreateUnixAddress)( CTEXTSTR path )
 #else
 	strncpy( lpsaAddr->sun_path, path, 107 );
 #endif
+
+#ifdef __MAC__
+   lpsaAddr->sa_len = 2+strlen( lpsaAddr->sun_path );
+#endif
    return((SOCKADDR*)lpsaAddr);
 }
 #else
@@ -2464,7 +2471,7 @@ SOCKADDR *CreateAddress( uint32_t dwIP,uint16_t nHisPort)
    SOCKADDR_IN *lpsaAddr=(SOCKADDR_IN*)AllocAddr();
    if (!lpsaAddr)
       return(NULL);
-	SET_SOCKADDR_LENGTH( lpsaAddr, 16 );
+   SET_SOCKADDR_LENGTH( lpsaAddr, 16 );
    lpsaAddr->sin_family       = AF_INET;         // InetAddress Type.
    lpsaAddr->sin_addr.S_un.S_addr  = dwIP;
    lpsaAddr->sin_port         = htons(nHisPort);

@@ -28,7 +28,7 @@ void SendWebSocketMessage( PCLIENT pc, int opcode, int final, int do_mask, uint8
 		{
 			if( 1 ) // auto fragment large packets
 			{
-				int block;
+				size_t block;
 				for( block = 0; block < ( length / 8100 ); block++ )
 				{
 					SendWebSocketMessage( pc, block == 0 ?opcode:0, 0, do_mask, payload + block * 8100, 8100);
@@ -248,10 +248,6 @@ void ProcessWebSockProtocol( WebSocketInputState websock, PCLIENT pc, uint8_t* m
 			// if there was no data, then there's nothing to demask
 			if( websock->fragment_collection )
 			{
-				if( websock->fragment_collection_length >= websock->fragment_collection_avail )
-				{
-					int a  =3 ;;
-				}
 				websock->fragment_collection[websock->fragment_collection_length++]
 					= msg[n] ^ websock->mask_key[(websock->fragment_collection_index++) % 4];
 			}

@@ -12,12 +12,13 @@ SYSTEM_PROC( void, ParseIntoArgs )( TEXTCHAR *lpCmdLine, int *pArgc, TEXTCHAR **
 	TEXTCHAR *args = lpCmdLine;
 	TEXTCHAR  *p;
 	TEXTCHAR **pp;
-   TEXTCHAR argc; // result variable, count is a temp counter...
+   //TEXTCHAR argc; // result variable, count is a temp counter...
    TEXTCHAR **argv; // result variable, pp is a temp pointer
 	TEXTCHAR quote = 0;
    int escape = 0;
 	int count = 0;
 	int lastchar;
+
 	lastchar = ' '; // auto continue spaces...
 	//lprintf( WIDE("Got args: %s"), args );
 	p = args;
@@ -75,7 +76,7 @@ SYSTEM_PROC( void, ParseIntoArgs )( TEXTCHAR *lpCmdLine, int *pArgc, TEXTCHAR **
 		lastchar = ' '; // auto continue spaces...
       //lprintf( "Array is %d (+2?)", count );
 		pp = argv = NewArray( TEXTCHAR*, count + 2 );
-		argc = count - 2;
+		//argc = count - 2;
 		p = args;
 		quote = 0;
 		count = 0;

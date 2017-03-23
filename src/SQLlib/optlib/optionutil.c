@@ -23,7 +23,6 @@ SQLGETOPTION_PROC( void, EnumOptionsEx )( PODBC odbc, POPTION_TREE_NODE parent
 					 , int (CPROC *Process)(uintptr_t psv, CTEXTSTR name, POPTION_TREE_NODE ID, int flags )
 											  , uintptr_t psvUser )
 {
-	POPTION_TREE tree = GetOptionTreeExxx( odbc, NULL DBG_SRC );
 	New4EnumOptions( odbc, parent, Process, psvUser );
 }
 
@@ -38,7 +37,6 @@ SQLGETOPTION_PROC( void, EnumOptions )( POPTION_TREE_NODE parent
 
 SQLGETOPTION_PROC( void, DuplicateOptionEx )( PODBC odbc, POPTION_TREE_NODE iRoot, CTEXTSTR pNewName )
 {
-	POPTION_TREE tree = GetOptionTreeExxx( odbc, NULL DBG_SRC );
 	New4DuplicateOption( odbc, iRoot, pNewName );
 }
 
@@ -52,7 +50,6 @@ SQLGETOPTION_PROC( void, DuplicateOption )( POPTION_TREE_NODE iRoot, CTEXTSTR pN
 SQLGETOPTION_PROC( void, DeleteOption )( POPTION_TREE_NODE iRoot )
 {
 	PODBC odbc = GetOptionODBC( GetDefaultOptionDatabaseDSN() );
-	POPTION_TREE tree = GetOptionTreeExxx( odbc, NULL DBG_SRC );
 	New4DeleteOption( odbc, iRoot );
 	DropOptionODBC( odbc );
 }

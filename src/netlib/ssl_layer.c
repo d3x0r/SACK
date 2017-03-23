@@ -382,7 +382,7 @@ static int handshake( PCLIENT pc ) {
 
 static void ssl_ReadComplete( PCLIENT pc, POINTER buffer, size_t length )
 {
-	lprintf( "SSL Read complete %p %d", buffer, length );
+	lprintf( "SSL Read complete %p %zd", buffer, length );
 	if( pc->ssl_session )
 	{
 		if( buffer )
@@ -390,7 +390,7 @@ static void ssl_ReadComplete( PCLIENT pc, POINTER buffer, size_t length )
 			size_t len;
 			int hs_rc;
 			len = BIO_write( pc->ssl_session->rbio, buffer, (int)length );
-			lprintf( "Wrote %d", len );
+			lprintf( "Wrote %zd", len );
 			if( len < length ) {
 				lprintf( "Protocol failure?" );
 				Release( pc->ssl_session );
@@ -415,7 +415,7 @@ static void ssl_ReadComplete( PCLIENT pc, POINTER buffer, size_t length )
 			else if( hs_rc == 1 )
 			{
 				len = SSL_read( pc->ssl_session->ssl, pc->ssl_session->dbuffer, (int)pc->ssl_session->dbuflen );
-				lprintf( "normal read - just get the data from the other buffer : %d", len );
+				lprintf( "normal read - just get the data from the other buffer : %zd", len );
 					if( len == -1 ) {
 					lprintf( "SSL_Read failed." );
 					ERR_print_errors_cb( logerr, (void*)__LINE__ );
@@ -429,7 +429,7 @@ static void ssl_ReadComplete( PCLIENT pc, POINTER buffer, size_t length )
 			{
 				// the read generated write data, output that data
 				size_t pending = BIO_ctrl_pending( pc->ssl_session->wbio );
-				lprintf( "pending to send is %d", pending );
+				lprintf( "pending to send is %zd", pending );
 				if( pending > 0 ) {
 					int read = BIO_read( pc->ssl_session->wbio, pc->ssl_session->obuffer, (int)pc->ssl_session->obuflen );
 					lprintf( "Send pending %p %d", pc->ssl_session->obuffer, read );
@@ -671,9 +671,7 @@ LOGICAL ssl_GetPrivateKey( PCLIENT pc, POINTER *keyoutbuf, size_t *keylen ) {
 
 LOGICAL ssl_BeginClientSession( PCLIENT pc, POINTER client_keypair, size_t client_keypairlen )
 {
-	const char *hostname = GetAddrName( pc->saClient );
 	struct ssl_session * ses;
-	int r;
 	ssl_InitLibrary();
 
 	ses = New( struct ssl_session );
@@ -690,7 +688,7 @@ LOGICAL ssl_BeginClientSession( PCLIENT pc, POINTER client_keypair, size_t clien
 			PEM_read_bio_PrivateKey( keybuf, &ses->privkey, NULL, NULL );
 			BIO_free( keybuf );
 		}
-		r = SSL_CTX_use_PrivateKey( ssl_global.ssl_ctx_client, ses->privkey );
+		SSL_CTX_use_PrivateKey( ssl_global.ssl_ctx_client, ses->privkey );
 	}
 	ses->ssl = SSL_new( ssl_global.ssl_ctx_client );
 	ssl_InitSession( ses );

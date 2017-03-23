@@ -777,7 +777,7 @@ int main( int argc, char **argv )
 			int n;
          for( n = 0; n < 2; n++ )
 			{
-#ifndef __LINUX64__
+#ifndef __64__
 				if( g.pDev[n] )
 				{
 					PCODEC codec = Allocate( sizeof( *codec ) );
@@ -794,7 +794,7 @@ int main( int argc, char **argv )
 #endif
 			}
 		}
-#ifndef __LINUX64__
+#ifndef __64__
 		{
 //  			AddCaptureCallback( g.pDev[0], RenderNetworkFrame, OpenNetworkRender( NULL ) );
 		}

@@ -192,7 +192,17 @@ static struct global_memory_tag global_memory_data = { 0x10000 * 0x08, 0, 0
 													, 0 /* pagesize */
 													, 0/*logging*/
 													, 0 /* log holds also */
-													, USE_CUSTOM_ALLOCER
+																	  , USE_CUSTOM_ALLOCER
+																	  , 0
+																	  , 0
+																	  , NULL
+#ifdef _WIN32
+																	  , { 0 }
+#endif
+																	  , 0
+																	  , 0
+																	  , FALSE
+                                                     , NULL
 };
 #  define g (global_memory_data)
 
@@ -208,7 +218,18 @@ struct global_memory_tag global_memory_data = { 0x10000 * 0x08, 0, 0/*auto check
 															, 0 /* pagesize */
 															, 0 /*log allocates*/
 															, 0 /* logging too */
-															, USE_CUSTOM_ALLOCER /* custom allocer*/ };
+															 , USE_CUSTOM_ALLOCER /* custom allocer*/
+																	  , 0
+																	  , 0
+																	  , NULL
+#ifdef _WIN32
+																	  , { 0 }
+#endif
+																	  , 0
+																	  , 0
+																	  , FALSE
+                                                     , NULL
+};
 // this one has memory logging enabled by default...
 //struct global_memory_tag global_memory_data = { 0x10000 * 0x08, 0, 1, 0, 0, 0, 1 };
 #  else
@@ -217,6 +238,16 @@ struct global_memory_tag global_memory_data = { 0x10000 * 0x08, 1/* disable debu
 															, 0/*log allocates*/
 															, 0  /* log holds */
 															, USE_CUSTOM_ALLOCER  // custom allocer
+																	  , 0
+																	  , 0
+																	  , NULL
+#ifdef _WIN32
+																	  , { 0 }
+#endif
+																	  , 0
+																	  , 0
+																	  , FALSE
+                                                     , NULL
 };
 // this one has memory logging enabled by default...
 //struct global_memory_tag global_memory_data = { 0x10000 * 0x08, 0, 1, 0, 0, 0, 1 };
@@ -235,7 +266,7 @@ struct global_memory_tag global_memory_data = { 0x10000 * 0x08, 1/* disable debu
 
 #define MAGIC_SIZE sizeof( void* )
 
-#ifdef __LINUX64__
+#ifdef __64__
 #define BLOCK_TAG(pc)  (*(uint64_t*)((pc)->byData + (pc)->dwSize - (pc)->dwPad ))
 // so when we look at memory this stamp is 0123456789ABCDEF
 #define BLOCK_TAG_ID 0xefcdab8967452301LL
@@ -312,7 +343,7 @@ uint32_t  LockedExchange( volatile uint32_t* p, uint32_t val )
 	return InterlockedExchange( (volatile LONG *)p, val );
 #  endif
 #else
-#  if ( defined( __LINUX__ ) || defined( __LINUX64__ ) ) //&& !( defined __ARM__ || defined __ANDROID__ )
+#  if ( defined( __LINUX__ ) ) //&& !( defined __ARM__ || defined __ANDROID__ )
 	return XCHG( p, val );
 	//   return __atomic_exchange_n(p,val,__ATOMIC_RELAXED);
 #  else /* some other system, not windows, not linux... */
@@ -1101,7 +1132,10 @@ uintptr_t GetFileSize( int fd )
  POINTER  OpenSpaceExx ( CTEXTSTR pWhat, CTEXTSTR pWhere, uintptr_t address, uintptr_t *dwSize, uint32_t* bCreated )
 {
 	POINTER pMem = NULL;
+#ifdef USE_SIMPLE_LOCK_ON_OPEN
 	static uint32_t bOpening;
+#endif
+
 #ifndef USE_SIMPLE_LOCK_ON_OPEN
 	static CRITICALSECTION cs;
 	static int first = 1;
@@ -1129,7 +1163,6 @@ uintptr_t GetFileSize( int fd )
 		Relinquish();
 #endif
 	{
-		LOGICAL didCreate = FALSE;
 #ifdef __LINUX__
 		char *filename = NULL;
 		int fd = -1;
@@ -1355,6 +1388,7 @@ uintptr_t GetFileSize( int fd )
 
 #elif defined( _WIN32 )
 #ifndef UNDER_CE
+		LOGICAL didCreate = FALSE;
 		HANDLE hFile;
 		HANDLE hMem = NULL;
 		*dwSize = ( ( (*dwSize) + ( FILE_GRAN - 1 ) ) / FILE_GRAN ) * FILE_GRAN;
@@ -1723,11 +1757,7 @@ uintptr_t GetFileSize( int fd )
 				, pMem->pRoot[0].dwSize );
 #endif
 		MemSet( pMem->pRoot[0].byData, 0x1BADCAFE, pMem->pRoot[0].dwSize );
-#ifdef __LINUX64__
 		BLOCK_TAG( pMem->pRoot ) = BLOCK_TAG_ID;
-#else
-		BLOCK_TAG( pMem->pRoot ) = BLOCK_TAG_ID;
-#endif
 	}
 	{
 		pMem->pRoot[0].dwPad += 2*MAGIC_SIZE;
@@ -2624,10 +2654,12 @@ void  DebugDumpHeapMemEx ( PMEM pHeap, LOGICAL bVerbose )
 #ifndef NO_LOGGING
 					if( bVerbose )
 					{
+#ifdef _DEBUG
 						CTEXTSTR pFile =  !IsBadReadPtr( BLOCK_FILE(pc), 1 )
 							?BLOCK_FILE(pc)
 							:WIDE("Unknown");
 						uint32_t nLine = BLOCK_LINE(pc);
+#endif
 						_xlprintf(LOG_ALWAYS DBG_RELAY)( WIDE("Free at %p size: %") _PTRSZVALfs WIDE("(%") _PTRSZVALfx WIDE(") Prior:%p NF:%p"),
 																 pc, pc->dwSize, pc->dwSize,
 																 pc->pPrior,
@@ -2641,10 +2673,12 @@ void  DebugDumpHeapMemEx ( PMEM pHeap, LOGICAL bVerbose )
 #ifndef NO_LOGGING
 					if( bVerbose )
 					{
+#ifdef _DEBUG
 						CTEXTSTR pFile =  !IsBadReadPtr( BLOCK_FILE(pc), 1 )
 							?BLOCK_FILE(pc)
 							:WIDE("Unknown");
 						uint32_t nLine = BLOCK_LINE(pc);
+#endif
 						_xlprintf(LOG_ALWAYS DBG_RELAY)( WIDE("Used at %p size: %") _PTRSZVALfs WIDE("(%") _PTRSZVALfx WIDE(") Prior:%p"),
 																 pc, pc->dwSize, pc->dwSize,
 																 pc->pPrior );

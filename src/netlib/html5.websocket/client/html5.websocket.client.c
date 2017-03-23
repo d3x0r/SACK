@@ -57,7 +57,7 @@ static void CPROC WebSocketTimer( uintptr_t psv )
 		// do auto ping...
 		if( !websock->input_state.flags.closed )
 		{
-			if( websock->ping_delay )
+			if( websock->ping_delay ) {
 				if( !websock->input_state.flags.sent_ping )
 				{
 					if( ( now - websock->input_state.last_reception ) > websock->ping_delay )
@@ -74,6 +74,7 @@ static void CPROC WebSocketTimer( uintptr_t psv )
 						RescheduleTimerEx( wsc_local.timer, 0 );
 					}
 				}
+			}
 		}
 	}
 }

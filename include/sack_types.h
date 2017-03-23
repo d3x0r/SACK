@@ -28,17 +28,22 @@ But WHO doesn't have stdint?  BTW is sizeof( size_t ) == sizeof( void* )
 #define USE_CUSTOM_ALLOCER 0
 #endif
 
+#ifndef __64__
+#  if defined( _WIN64 ) || defined( ENVIRONMENT64) || defined( __x86_64__ ) || defined( __ia64 )
+#    define __64__ 1
+#  endif
+#endif
 
 #ifdef _MSC_VER
-#ifndef _WIN32_WINNT
-#define _WIN32_WINNT 0x501
-#endif
+#  ifndef _WIN32_WINNT
+#    define _WIN32_WINNT 0x501
+#  endif
 
-#ifndef WIN32
-#ifdef _WIN32
-#define WIN32 _WIN32
-#endif
-#endif
+#  ifndef WIN32
+#    ifdef _WIN32
+#      define WIN32 _WIN32
+#    endif
+#  endif
 
 // force windows on __MSVC
 #  ifndef WIN32

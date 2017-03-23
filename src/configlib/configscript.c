@@ -722,7 +722,7 @@ static PTEXT get_line(PCONFIG_HANDLER pch /*FOLD00*/
 					{
 						if( !one_more_read )
 						{
-							if( readlen = sack_fread( wbuffer, sizeof( wchar_t ), WORKSPACE-1, source ) )
+							if( ( readlen = sack_fread( wbuffer, sizeof( wchar_t ), WORKSPACE-1, source ) ) )
 							{
 								wbuffer[readlen] = 0;
 								newline = SegCreateFromWideLen( wbuffer, readlen );
@@ -740,7 +740,7 @@ static PTEXT get_line(PCONFIG_HANDLER pch /*FOLD00*/
 					{
 						if( !one_more_read )
 						{
-							if( readlen = sack_fread( buffer, sizeof( char ), WORKSPACE-1, source ) )
+							if( ( readlen = sack_fread( buffer, sizeof( char ), WORKSPACE-1, source ) ) )
 							{
 								buffer[readlen] = 0;
 								newline = SegCreateFromCharLen( buffer, readlen );
@@ -989,8 +989,8 @@ int DoDecodeBinary( PTEXT *start, POINTER *binary_buffer, size_t *buflen )
 		int c;
 		for( c = 0; charset2[c]; c++ )
 		{
-			reverse1[charset1[c]] = c;
-			reverse2[charset2[c]] = c;
+			reverse1[(int)charset1[c]] = c;
+			reverse2[(int)charset2[c]] = c;
 		}
 	}
 	if( !buflen )
@@ -1050,13 +1050,13 @@ int DoDecodeBinary( PTEXT *start, POINTER *binary_buffer, size_t *buflen )
 		// HANLDE_BURST_EXPLOIT converts .0, .1, .2 into .-+ characters... and sets 'ch'
 		// to the character to find.
 		HANDLE_BURST_PECULIARITY_WITH_DECIMALS_AND_NUMBER_COLLATION();
-		convert.base.data1 = reverse[ch];
+		convert.base.data1 = reverse[(int)ch];
 		HANDLE_BURST_PECULIARITY_WITH_DECIMALS_AND_NUMBER_COLLATION();
-		convert.base.data2 = reverse[ch];
+		convert.base.data2 = reverse[(int)ch];
 		HANDLE_BURST_PECULIARITY_WITH_DECIMALS_AND_NUMBER_COLLATION();
-		convert.base.data3 = reverse[ch];
+		convert.base.data3 = reverse[(int)ch];
 		HANDLE_BURST_PECULIARITY_WITH_DECIMALS_AND_NUMBER_COLLATION();
-		convert.base.data4 = reverse[ch];
+		convert.base.data4 = reverse[(int)ch];
 		q = (char*)buflen;
 		q[0] = convert.bin.bytes[0];
 		q[1] = convert.bin.bytes[1];
@@ -1067,13 +1067,13 @@ int DoDecodeBinary( PTEXT *start, POINTER *binary_buffer, size_t *buflen )
 		while( p[0] && len )
 		{
 			HANDLE_BURST_PECULIARITY_WITH_DECIMALS_AND_NUMBER_COLLATION();
-			convert.base.data1 = reverse[ch];
+			convert.base.data1 = reverse[(int)ch];
 			HANDLE_BURST_PECULIARITY_WITH_DECIMALS_AND_NUMBER_COLLATION();
-			convert.base.data2 = reverse[ch];
+			convert.base.data2 = reverse[(int)ch];
 			HANDLE_BURST_PECULIARITY_WITH_DECIMALS_AND_NUMBER_COLLATION();
-			convert.base.data3 = reverse[ch];
+			convert.base.data3 = reverse[(int)ch];
 			HANDLE_BURST_PECULIARITY_WITH_DECIMALS_AND_NUMBER_COLLATION();
-			convert.base.data4 = reverse[ch];
+			convert.base.data4 = reverse[(int)ch];
 			if( len && len-- )
 				(q++)[0] = convert.bin.bytes[0];
 			if( len && len-- )
@@ -2164,7 +2164,7 @@ static void TestUnicode( PCONFIG_HANDLER pch )
 			return_pos = 2;
 			pch->flags.bUnicode = 1;
 		}
-		else if( ( charbuf[0] == 0xef ) && ( charbuf[1] == 0xbb ) && ( charbuf[0] == 0xbf ) )
+		else if( ( charbuf[0] == (char)0xef ) && ( charbuf[1] == (char)0xbb ) && ( charbuf[0] == (char)0xbf ) )
 		{
 			return_pos = 1;
 			pch->flags.bUnicode8 = 1;
@@ -2934,6 +2934,7 @@ void DestroyConfigElement( PCONFIG_HANDLER pch, PCONFIG_ELEMENT pce )
 	case CONFIG_INTEGER:
 	case CONFIG_FRACTION:
 	case CONFIG_FLOAT:
+	case CONFIG_NOTHING:
 		break;
 	}
 	DeleteFromSet( CONFIG_ELEMENT, pch->elements, pce );

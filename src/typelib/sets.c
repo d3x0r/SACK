@@ -95,7 +95,7 @@ PGENERICSET GetFromSetPoolEx( GENERICSET **pSetSet, int setsetsizea, int setunit
 		int n;
 		set = *pSet;
 ExtendSet:
-		while( set->nUsed == maxcnt )
+		while( (size_t)set->nUsed == (size_t)maxcnt )
 		{
 			if( !set->next )
 			{
@@ -544,8 +544,7 @@ uintptr_t ForEachSetMember( GENERICSET *pSet, int unitsize, int max, FESMCallbac
 	if( f )
 	{
 		int total = 0;
-		int ofs, n;
-		ofs = ( ( max + 31) / 32 ) * 4;
+		int n;
 		while( pSet )
 		{
 			int nFound = 0;

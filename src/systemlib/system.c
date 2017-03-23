@@ -36,7 +36,9 @@
 #include <stdio.h>
 #include <string.h>
 extern char **environ;
-#include <elf.h>
+#  ifndef __MAC__
+#    include <elf.h>
+#  endif
 #endif
 
 
@@ -620,7 +622,6 @@ uintptr_t CPROC TerminateProgram( PTASK_INFO task )
 #endif
 		if( !task->flags.closed )
 		{
-			int nowait = 0;
 			task->flags.closed = 1;
 
 			//lprintf( WIDE( "%ld, %ld %p %p" ), task->pi.dwProcessId, task->pi.dwThreadId, task->pi.hProcess, task->pi.hThread );
@@ -628,6 +629,7 @@ uintptr_t CPROC TerminateProgram( PTASK_INFO task )
 #if defined( WIN32 )
 			if( WaitForSingleObject( task->pi.hProcess, 0 ) != WAIT_OBJECT_0 )
 			{
+				int nowait = 0;
 				// try using ctrl-c, ctrl-break to end process...
 				if( !StopProgram( task ) )
 				{
@@ -1208,7 +1210,9 @@ static void LoadExistingLibraries( void )
 			char *split = strchr( buf, '-' );
 			if( libpath && split )
 			{
+#ifndef __MAC__
 				char *dll_name = strrchr( libpath, '/' );
+#endif
 				size_t start, end;
 				char perms[8];
 				size_t offset;
@@ -1220,6 +1224,7 @@ static void LoadExistingLibraries( void )
 				scanned = sscanf( buf, "%zx-%zx %s %zx", &start, &end, perms, &offset );
 				if( scanned == 4 && offset == 0 )
 				{
+#ifndef __MAC__
 					if( ( perms[2] == 'x' )
 						&& ( ( end - start ) > 4 ) )
 						if( ( ((unsigned char*)start)[0] == ELFMAG0 )
@@ -1230,6 +1235,7 @@ static void LoadExistingLibraries( void )
 							//lprintf( "Add library %s %p", dll_name + 1, start );
 							AddMappedLibrary( dll_name + 1, (POINTER)start );
 						}
+#endif
 				}
 			}
 		}
@@ -1532,18 +1538,18 @@ SYSTEM_PROC( generic_function, LoadFunctionExx )( CTEXTSTR libname, CTEXTSTR fun
 		}
 		InvokeLibraryLoad();
 	//}
-	get_function_name:
+#ifdef _WIN32
+get_function_name:
+#endif
 	if( funcname )
 	{
 		PFUNCTION function = library->functions;
 		while( function )
 		{
-			if( ((uintptr_t)function->name & 0xFFFF ) == (uintptr_t)function->name )
+			if( ((uintptr_t)function->name & 0xFFFF ) == (uintptr_t)function->name ) {
 				if( function->name == funcname )
 					break;
-				else
-					;
-			else
+			} else
 				if( StrCmp( function->name, funcname ) == 0 )
 					break;
 			function = function->next;
@@ -1745,10 +1751,6 @@ SYSTEM_PROC( generic_function, LoadFunctionExx )( CTEXTSTR libname, CTEXTSTR fun
 			if( !l.pFunctionTree )
 				l.pFunctionTree = CreateBinaryTree();
 			//lprintf( WIDE("Adding function %p"), function->function );
-			if( (uintptr_t)function->name & 0xFF000000 )
-			{
-				int a =3;
-			}
 			AddBinaryNode( l.pFunctionTree, function, (uintptr_t)function->function );
 			LinkThing( library->functions, function );
 		}

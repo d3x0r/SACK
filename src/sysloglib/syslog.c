@@ -207,7 +207,7 @@ void TestCPUTick( void )
 	for( n = 0; n < 10000000; n++ )
 	{
 #ifdef GCC
-      //asm( "cpuid\n" );
+		//asm( "cpuid\n" );
 #endif
 		tick = GetCPUTick();
 		if( tick > _tick )
@@ -217,9 +217,9 @@ void TestCPUTick( void )
 		}
 		else
 		{
-         lprintf( "CPU TICK FAILED!" );
+			lprintf( "CPU TICK FAILED!" );
 			bCPUTickWorks = 0;
-         break;
+			break;
 		}
 		Relinquish();
 	}
@@ -337,16 +337,14 @@ uint64_t GetCPUFrequency( void )
 		tick = _tick = timeGetTime()/*GetTickCount()*/;
 		cpu_tick_freq = 0;
 		while( bCPUTickWorks && ( ( tick = timeGetTime()/*GetTickCount()*/ ) - _tick ) < 25 );
-		{
-			cpu_tick = GetCPUTick();
-		}
+		cpu_tick = GetCPUTick();
 		if( bCPUTickWorks )
 			cpu_tick_freq = ( ( cpu_tick - _cpu_tick ) / ( tick - _tick ) )  / 1000; // microseconds;
 	}
 #else
 	cpu_tick_freq = 1;
 #endif
-   return cpu_tick_freq;
+	return cpu_tick_freq;
 }
 
 void SetDefaultName( CTEXTSTR path, CTEXTSTR name, CTEXTSTR extra )
@@ -358,7 +356,7 @@ void SetDefaultName( CTEXTSTR path, CTEXTSTR name, CTEXTSTR extra )
 	if( path )
 	{
 		if( filepath )
-         Release( (POINTER)filepath );
+			Release( (POINTER)filepath );
 		filepath = StrDup( path );
 	}
 	if( name )
@@ -372,9 +370,9 @@ void SetDefaultName( CTEXTSTR path, CTEXTSTR name, CTEXTSTR extra )
 	if( !filename )
 		filename = StrDup( GetProgramName() );
 	if( !filename )
-      filename = "org.d3x0r.sack";
+		filename = "org.d3x0r.sack";
 	// this has to come from C heap.. my init isn't done yet probably and
-   // sharemem will just fai(*syslog_local).  (it's probably trying to log... )
+	// sharemem will just fai(*syslog_local).  (it's probably trying to log... )
 	newpath = (TEXTCHAR*)malloc( len = sizeof(TEXTCHAR)*(9 + StrLen( filepath ) + StrLen( filename ) + (extra?StrLen(extra):0) + 5) );
 #ifdef __cplusplus_cli
 	tnprintf( newpath, len, WIDE("%s/%s%s.cli.log"), filepath, filename, extra?extra:WIDE("") );
@@ -573,7 +571,7 @@ void InitSyslog( int ignore_options )
 
 PRIORITY_PRELOAD( InitSyslogPreload, SYSLOG_PRELOAD_PRIORITY )
 {
-   InitSyslog( 1 );
+	InitSyslog( 1 );
 }
 
 // delay reading options (unless we had to because of a logging requirement) but all core
@@ -582,18 +580,18 @@ PRIORITY_PRELOAD( InitSyslogPreload, SYSLOG_PRELOAD_PRIORITY )
 // but still fairly early...
 PRIORITY_PRELOAD( InitSyslogPreloadWithOptions, NAMESPACE_PRELOAD_PRIORITY + 1 )
 {
-   InitSyslog( 0 );
+	InitSyslog( 0 );
 }
 
 PRIORITY_PRELOAD( InitSyslogPreloadAllowGroups, DEFAULT_PRELOAD_PRIORITY + 1 )
 {
-   (*syslog_local).flags.group_ok = 1;
+	(*syslog_local).flags.group_ok = 1;
 }
 
 //----------------------------------------------------------------------------
 CTEXTSTR GetTimeEx( int bUseDay )
 {
-   /* used by sqlite extension to support now() */
+	/* used by sqlite extension to support now() */
 #ifdef _WIN32
 #ifndef WIN32
 #define WIN32 _WIN32
@@ -602,16 +600,16 @@ CTEXTSTR GetTimeEx( int bUseDay )
 
 #if defined( WIN32 ) && !defined( __ANDROID__ )
 	static TEXTCHAR timebuffer[256];
-   SYSTEMTIME st;
+	SYSTEMTIME st;
 	GetLocalTime( &st );
 
 	if( bUseDay )
-	   tnprintf( timebuffer, sizeof(timebuffer), WIDE("%02d/%02d/%d %02d:%02d:%02d")
-   	                  , st.wMonth, st.wDay, st.wYear
-      	               , st.wHour, st.wMinute, st.wSecond );
+		tnprintf( timebuffer, sizeof(timebuffer), WIDE("%02d/%02d/%d %02d:%02d:%02d")
+		       , st.wMonth, st.wDay, st.wYear
+		       , st.wHour, st.wMinute, st.wSecond );
 	else
-	   tnprintf( timebuffer, sizeof(timebuffer), WIDE("%02d:%02d:%02d")
-      	               , st.wHour, st.wMinute, st.wSecond );
+		tnprintf( timebuffer, sizeof(timebuffer), WIDE("%02d:%02d:%02d")
+		       , st.wHour, st.wMinute, st.wSecond );
 
 #else
 	static TEXTCHAR *timebuffer;
@@ -626,7 +624,7 @@ CTEXTSTR GetTimeEx( int bUseDay )
 			  , timething );
 	if( timebuffer )
 		Release( timebuffer );
-   timebuffer = DupCStr( c_timebuffer );
+	timebuffer = DupCStr( c_timebuffer );
 
 #endif
 	return timebuffer;
@@ -634,14 +632,14 @@ CTEXTSTR GetTimeEx( int bUseDay )
 
 CTEXTSTR GetTime( void )
 {
-   return GetTimeEx( (*syslog_local).flags.bUseDay );
+	return GetTimeEx( (*syslog_local).flags.bUseDay );
 }
 
 
 
 CTEXTSTR GetPackedTime( void )
 {
-   /* used by sqlite extension to support now() */
+	/* used by sqlite extension to support now() */
 #ifdef _WIN32
 #ifndef WIN32
 #define WIN32 _WIN32
@@ -654,9 +652,9 @@ CTEXTSTR GetPackedTime( void )
 	GetLocalTime( &st );
 
 	tnprintf( timebuffer, sizeof(timebuffer), WIDE("%04d%02d%02d%02d%02d%02d")
-			  , st.wYear
-			  , st.wMonth, st.wDay
-			  , st.wHour, st.wMinute, st.wSecond );
+	        , st.wYear
+	        , st.wMonth, st.wDay
+	        , st.wHour, st.wMinute, st.wSecond );
 
 #else
 	static TEXTCHAR *timebuffer;
@@ -666,9 +664,9 @@ CTEXTSTR GetPackedTime( void )
 	time(&timevalnow);
 	timething = localtime( &timevalnow );
 	strftime( c_timebuffer
-				, sizeof( c_timebuffer )
-				, "%Y%m%d%H%M%S"
-				, timething );
+	        , sizeof( c_timebuffer )
+	        , "%Y%m%d%H%M%S"
+	        , timething );
 	if( timebuffer )
 		Release( timebuffer );
 	timebuffer = DupCStr( c_timebuffer );
@@ -681,7 +679,7 @@ CTEXTSTR GetPackedTime( void )
 static TEXTCHAR *GetTimeHigh( void )
 {
 #if defined WIN32 && !defined( __ANDROID__ )
-    static TEXTCHAR timebuffer[256];
+	 static TEXTCHAR timebuffer[256];
 	static SYSTEMTIME _st;
 	SYSTEMTIME st, st_save;
 
@@ -726,7 +724,7 @@ static TEXTCHAR *GetTimeHigh( void )
 		        , st.wHour, st.wMinute, st.wSecond, st.wMilliseconds );
 #else
 	static TEXTCHAR *timebuffer;
-   static char c_timebuffer[256];
+	static char c_timebuffer[256];
 	static struct timeval _tv;
 	static struct tm _tm;
 	struct timeval tv, tv_save;
@@ -775,15 +773,15 @@ static TEXTCHAR *GetTimeHigh( void )
 	}
 
 	len = strftime( c_timebuffer
-                  , sizeof( c_timebuffer )
-                  , ((*syslog_local).flags.bUseDay)?"%m/%d/%Y %H:%M:%S":"%H:%M:%S"
+	               , sizeof( c_timebuffer )
+	               , ((*syslog_local).flags.bUseDay)?"%m/%d/%Y %H:%M:%S":"%H:%M:%S"
 					  , &tm );
 #undef snprintf
 	snprintf( c_timebuffer + len, 5, ".%03ld", tv.tv_usec / 1000 );
 	if( timebuffer )
 		Release( timebuffer );
-   timebuffer = DupCStr( c_timebuffer );
-   /*
+	timebuffer = DupCStr( c_timebuffer );
+	/*
     // this code is kept in case borland's compiler don't like it.
     {
     time_t timevalnow;
@@ -794,7 +792,7 @@ static TEXTCHAR *GetTimeHigh( void )
     , WIDE("%m/%d/%Y %H:%M:%S.000")
     , timething );
     }
-    */
+	 */
 #endif
 	return timebuffer;
 }
@@ -813,7 +811,7 @@ uint32_t ConvertTickToMicrosecond( uint64_t tick )
 		return (uint32_t)(tick / cpu_tick_freq);
 	}
 	else
-      return (uint32_t)tick;
+		return (uint32_t)tick;
 }
 
 
@@ -827,7 +825,7 @@ void PrintCPUDelta( TEXTCHAR *buffer, size_t buflen, uint64_t tick_start, uint64
 				 , ((tick_end-tick_start) / cpu_tick_freq ) / 1000
 				 , ((tick_end-tick_start) / cpu_tick_freq ) % 1000
 				 );
-   else
+	else
 #endif
 		tnprintf( buffer, buflen, WIDE("%")_64fs, tick_end - tick_start
 		   	 );
@@ -881,15 +879,21 @@ static CTEXTSTR GetLogTime( void )
 //----------------------------------------------------------------------------
 #ifndef __DISABLE_UDP_SYSLOG__
 
-#if !defined( FBSD ) && !defined(__QNX__)
+#  if !defined( FBSD ) && !defined(__QNX__)
+#    if defined( __MAC__ )
+static SOCKADDR saLogBroadcast  = { 8, 2, { 0x02, 0x02, (char)0xff, (char)0xff, (char)0xff, (char)0xff } };
+static SOCKADDR saLog  = { 8, 2, { 0x02, 0x02, 0x7f, 0x00, 0x00, 0x01 } };
+static SOCKADDR saBind = { 8, 2, { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 } };
+#    else
 static SOCKADDR saLogBroadcast  = { 2, { 0x02, 0x02, (char)0xff, (char)0xff, (char)0xff, (char)0xff } };
 static SOCKADDR saLog  = { 2, { 0x02, 0x02, 0x7f, 0x00, 0x00, 0x01 } };
 static SOCKADDR saBind = { 2, { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 } };
-#else
+#    endif
+#  else
 static SOCKADDR saLogBroadcast  = { 2, 0x02, 0x02, (char)0xff, (char)0xff, (char)0xff, (char)0xff };
 static SOCKADDR saLog  = { 2, 0x02, 0x02, 0x7f, 0x00, 0x00, 0x01  };
 static SOCKADDR saBind = { 2, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00  };
-#endif
+#  endif
 
 static void UDPSystemLog( const TEXTCHAR *message )
 {
@@ -938,7 +942,7 @@ static void UDPSystemLog( const TEXTCHAR *message )
 #endif
 	}
 	{
-		INDEX nSent;
+		//INDEX nSent;
 		int nSend;
 		static TEXTCHAR realmsg[1024];
 		nSend = tnprintf( realmsg, sizeof( realmsg ), /*"[%s]"*/ WIDE("%s")
@@ -951,7 +955,7 @@ static void UDPSystemLog( const TEXTCHAR *message )
 #else
 #define SENDBUF message
 #endif
-		nSent = sendto( hSock, (const char *)SENDBUF, nSend, 0
+		/*nSent = */sendto( hSock, (const char *)SENDBUF, nSend, 0
 						  ,(logtype == SYSLOG_UDPBROADCAST)?&saLogBroadcast:&saLog, sizeof( SOCKADDR ) );
 #ifdef __cplusplus_cli
 		Release( tmp );
@@ -968,7 +972,11 @@ static void UDPSystemLog( const TEXTCHAR *message )
 #  ifndef __DISABLE_SYSLOGD_SYSLOG__
 
 #    if !defined( FBSD ) && !defined(__QNX__)
+#       if defined( __MAC__ )
+static struct sockaddr_un saSyslogdAddr  = { 11, AF_UNIX, "/dev/log" };
+#       else
 static struct sockaddr_un saSyslogdAddr  = { AF_UNIX, "/dev/log" };
+#       endif
 #    else
 static struct sockaddr_un saSyslogdAddr  = { AF_UNIX, {"/dev/log"} };
 #    endif
@@ -985,7 +993,6 @@ static void SyslogdSystemLog( const TEXTCHAR *message )
 	(*syslog_local).bSyslogdLogging = 1;
 	if( (*syslog_local).hSyslogdSock == INVALID_SOCKET )
 	{
-		LOGICAL bEnable = TRUE;
 		(*syslog_local).hSyslogdSock = socket(AF_UNIX,SOCK_DGRAM,0);
 		if( (*syslog_local).hSyslogdSock == INVALID_SOCKET )
 		{
@@ -1025,12 +1032,12 @@ LOGICAL IsBadReadPtr( CPOINTER pointer, uintptr_t len )
 {
 	static FILE *maps;
 	//return FALSE;
-   //DebugBreak();
+	//DebugBreak();
 	if( !maps )
 		maps = fopen( "/proc/self/maps", "rt" );
 	else
-      fseek( maps, 0, SEEK_SET );
-   //fprintf( stderr, WIDE("Testing a pointer..\n") );
+		fseek( maps, 0, SEEK_SET );
+	//fprintf( stderr, WIDE("Testing a pointer..\n") );
 	if( maps )
 	{
 		uintptr_t ptr = (uintptr_t)pointer;
@@ -1049,8 +1056,8 @@ LOGICAL IsBadReadPtr( CPOINTER pointer, uintptr_t len )
 		}
 		//fclose( maps );
 	}
-   //fprintf( stderr, WIDE("%p is not valid. %d"), pointer, errno );
-   return TRUE;
+	//fprintf( stderr, WIDE("%p is not valid. %d"), pointer, errno );
+	return TRUE;
 }
 
 //---------------------------------------------------------------------------
@@ -1129,7 +1136,7 @@ void DoSystemLog( const TEXTCHAR *buffer )
 		UDPSystemLog( buffer );
 #else
 	if( 0 )
-      ;
+		;
 #endif
 	else if( ( logtype == SYSLOG_FILE ) || ( logtype == SYSLOG_AUTO_FILE ) )
 	{
@@ -1200,12 +1207,12 @@ void DoSystemLog( const TEXTCHAR *buffer )
 #  else
 #    ifdef __ANDROID__
 		{
-         static char *program_string;
+			static char *program_string;
 			char *string = CStrDup( buffer );
 			if( !program_string )
 				program_string = CStrDup( GetProgramName() );
 			if( !program_string )
-            program_string = "com.unknown.app";
+				program_string = "com.unknown.app";
 			__android_log_print( ANDROID_LOG_INFO, program_string, string );
 			Release( string );
 		}
@@ -1317,7 +1324,7 @@ void SystemLogEx ( const TEXTCHAR *message DBG_PASS )
 			}
 	}
 #endif
-   // should make this expression something in signed_usigned_comparison...
+	// should make this expression something in signed_usigned_comparison...
 	while( nOut && !( nOut & ( ((size_t)1) << ( ( sizeof( nOut ) * CHAR_BIT ) - 1 ) ) ) )
 	{
 		TEXTCHAR cOut[96];
@@ -1451,16 +1458,17 @@ static struct next_lprint_info *GetNextInfo( void )
 
 static INDEX CPROC _null_vlprintf ( CTEXTSTR format, va_list args )
 {
-   return 0;
+	return 0;
 }
 
 
 
 static INDEX CPROC _real_vlprintf ( CTEXTSTR format, va_list args )
 {
-   // this can be used to force logging early to stdout
+#ifdef _DEBUG
+	// this can be used to force logging early to stdout
 	struct next_lprint_info *_next_lprintf = GetNextInfo();
-
+#endif
 	if( cannot_log )
 		return 0;
 	if( logtype != SYSLOG_NONE )
@@ -1497,7 +1505,7 @@ static INDEX CPROC _real_vlprintf ( CTEXTSTR format, va_list args )
 		{
 			StringCbPrintf( buffer, 4096, WIDE("%s|")
 							  , logtime );
-		   ofs = StrLen( buffer );
+			ofs = StrLen( buffer );
 		}
 #else
 			ofs = tnprintf( buffer, 4095, WIDE("%s|")
@@ -1535,7 +1543,7 @@ static INDEX CPROC _real_vlprintf ( CTEXTSTR format, va_list args )
 			{
 				if( (*syslog_local).flags.bProtectLoggedFilenames )
 					if( IsBadReadPtr( pFile, 2 ) )
-                  pFile = WIDE("(Unloaded file?)");
+						pFile = WIDE("(Unloaded file?)");
 #   ifndef _LOG_FULL_FILE_NAMES
 				for( p = pFile + StrLen(pFile) -1;p > pFile;p-- )
 					if( p[0] == '/' || p[0] == '\\' )
@@ -1594,6 +1602,7 @@ RealVLogFunction  _vxlprintf ( uint32_t level DBG_PASS )
 	struct next_lprint_info *_next_lprintf;
 	//EnterCriticalSec( &next_lprintf.cs );
 	_next_lprintf = GetNextInfo();
+	next_lprintf.nLevel = level;
 #if _DEBUG
 	next_lprintf.pFile = pFile;
 	next_lprintf.nLine = nLine;

@@ -226,6 +226,8 @@ PRIORITY_PRELOAD( XSaneWinMain, DEFAULT_PRELOAD_PRIORITY + 20 )//( argc, argv )
 			}
 			sack_fclose( file );
 		}
+		else 
+			if( !l.target_path ) l.target_path = GetProgramName();
 		{
 			INDEX idx;
 			struct command *command;
