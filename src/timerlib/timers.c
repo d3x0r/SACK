@@ -17,7 +17,7 @@
 #define USE_PIPE_SEMS
 #endif
 
-#ifdef __QNX__
+#if defined( __QNX__ ) || defined( __MAC__) 
 #define USE_PIPE_SEMS
 // no semtimedop; no semctl, etc
 //#include <sys/sem.h>
