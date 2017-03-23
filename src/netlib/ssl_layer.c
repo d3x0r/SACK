@@ -414,9 +414,10 @@ static void ssl_ReadComplete( PCLIENT pc, POINTER buffer, size_t length )
 			}
 			else if( hs_rc == 1 )
 			{
-				len = SSL_read( pc->ssl_session->ssl, pc->ssl_session->dbuffer, (int)pc->ssl_session->dbuflen );
-				lprintf( "normal read - just get the data from the other buffer : %zd", len );
-					if( len == -1 ) {
+				int result;
+				result = SSL_read( pc->ssl_session->ssl, pc->ssl_session->dbuffer, (int)pc->ssl_session->dbuflen );
+				lprintf( "normal read - just get the data from the other buffer : %d", result );
+				if( result == -1 ) {
 					lprintf( "SSL_Read failed." );
 					ERR_print_errors_cb( logerr, (void*)__LINE__ );
 					RemoveClient( pc );
@@ -464,7 +465,7 @@ static void ssl_ReadComplete( PCLIENT pc, POINTER buffer, size_t length )
 
 LOGICAL ssl_Send( PCLIENT pc, POINTER buffer, size_t length )
 {
-	int32_t len;
+	int len;
 	int32_t len_out;
 	struct ssl_session *ses = pc->ssl_session;
 	while( length ) {
@@ -473,8 +474,11 @@ LOGICAL ssl_Send( PCLIENT pc, POINTER buffer, size_t length )
 			ERR_print_errors_cb(logerr, (void*)__LINE__);
 			return FALSE;
 		}
-		length -= len;
+		length -= (size_t)len;
 
+		// signed/unsigned comparison here.
+		// the signed value is known to be greater than 0 and less than max unsigned int
+		// so it is in a valid range to check, and is NOT a warning or error condition EVER.
 		if( len > ses->obuflen )
 		{
 			Release( ses->obuffer );
