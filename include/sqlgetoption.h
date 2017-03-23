@@ -108,15 +108,17 @@ SQLGETOPTION_PROC( int, SACK_WriteProfileBlob )( CTEXTSTR pSection, CTEXTSTR pOp
    \ \                                                                                                            */
 SQLGETOPTION_PROC( int, SACK_WriteProfileBlobOdbc )( PODBC odbc, CTEXTSTR pSection, CTEXTSTR pOptname, TEXTCHAR *pBuffer, size_t nBuffer );
 /* <combinewith sack::sql::options::SACK_WritePrivateProfileStringEx@CTEXTSTR@CTEXTSTR@CTEXTSTR@CTEXTSTR@LOGICAL>
-   
+   returns boolean true/false whether the write worked or not.
    \ \                                                                                                            */
 SQLGETOPTION_PROC( int, SACK_WritePrivateProfileBlob )( CTEXTSTR pSection, CTEXTSTR pOptname, TEXTCHAR *pBuffer, size_t nBuffer, CTEXTSTR app );
 /* <combinewith sack::sql::options::SACK_WritePrivateProfileStringEx@CTEXTSTR@CTEXTSTR@CTEXTSTR@CTEXTSTR@LOGICAL>
    
+   returns boolean true/false whether the write worked or not.
    \ \                                                                                                            */
 SQLGETOPTION_PROC( int, SACK_WritePrivateProfileBlobOdbc )( PODBC odbc, CTEXTSTR pSection, CTEXTSTR pOptname, TEXTCHAR *pBuffer, size_t nBuffer,  CTEXTSTR app);
 /* <combinewith sack::sql::options::SACK_WritePrivateProfileStringEx@CTEXTSTR@CTEXTSTR@CTEXTSTR@CTEXTSTR@LOGICAL>
    
+   returns boolean true/false whether the write worked or not.
    \ \                                                                                                            */
 SQLGETOPTION_PROC( int32_t, SACK_WriteProfileInt )( CTEXTSTR pSection, CTEXTSTR pName, int32_t value );
 
