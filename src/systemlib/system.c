@@ -1210,7 +1210,9 @@ static void LoadExistingLibraries( void )
 			char *split = strchr( buf, '-' );
 			if( libpath && split )
 			{
+#ifndef __MAC__
 				char *dll_name = strrchr( libpath, '/' );
+#endif
 				size_t start, end;
 				char perms[8];
 				size_t offset;
