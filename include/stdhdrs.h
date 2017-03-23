@@ -145,14 +145,6 @@ __declspec(dllimport) DWORD WINAPI timeGetTime(void);
 //#pragma pragnoteonly("GetFunctionAddress is lazy and has no library cleanup - needs to be a lib func")
 //#define GetFunctionAddress( lib, proc ) GetProcAddress( LoadLibrary( lib ), (proc) )
 
-#  ifdef __cplusplus
-#    ifdef __GNUC__
-#      ifndef min
-#        define min(a,b) ((a)<(b))?(a):(b)
-#      endif
-#    endif
-#  endif
-
 #  ifdef __cplusplus_cli
 #    include <vcclr.h>
 #    define DebugBreak() System::Console::WriteLine( /*lprintf( */gcnew System::String( WIDE__FILE__ WIDE("(") STRSYM(__LINE__) WIDE(") Would DebugBreak here...") ) );
@@ -203,6 +195,18 @@ extern __sighandler_t bsd_signal(int, __sighandler_t);
 #  define GetCurrentProcessId() ((uint32_t)getpid())
 #  define GetCurrentThreadId() ((uint32_t)getpid())
 
+#endif  // end if( !__LINUX__ )
+
+#ifndef NO_MIN_MAX_MACROS
+
+#  ifdef __cplusplus
+#    ifdef __GNUC__
+#      ifndef min
+#        define min(a,b) ((a)<(b))?(a):(b)
+#      endif
+#    endif
+#  endif
+
 /* Define a min(a,b) macro when the compiler lacks it. */
 #  ifndef min
 #    define min(a,b) (((a)<(b))?(a):(b))
@@ -211,8 +215,7 @@ extern __sighandler_t bsd_signal(int, __sighandler_t);
 #  ifndef max
 #    define max(a,b) (((a)>(b))?(a):(b))
 #  endif
-
-#endif  // end if( !__LINUX__ )
+#endif
 
 #  include <sack_types.h>
 

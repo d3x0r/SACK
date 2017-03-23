@@ -85,34 +85,39 @@ typedef struct hostent *PHOSTENT;
 #endif
 
 struct win_in_addr {
-        union {
-                struct { uint8_t s_b1,s_b2,s_b3,s_b4; } S_un_b;
-                struct { uint16_t s_w1,s_w2; } S_un_w;
-                uint32_t S_addr;
-        } S_un;
+	union {
+		struct { uint8_t s_b1,s_b2,s_b3,s_b4; } S_un_b;
+		struct { uint16_t s_w1,s_w2; } S_un_w;
+		uint32_t S_addr;
+	} S_un;
 
 #ifndef __ANDROID__
 #define s_addr  S_un.S_addr
-                                /* can be used for most tcp & ip code */
+/* can be used for most tcp & ip code */
 #define s_host  S_un.S_un_b.s_b2
-                                /* host on imp */
+	/* host on imp */
 #define s_net   S_un.S_un_b.s_b1
-                                /* network */
+	/* network */
 #define s_imp   S_un.S_un_w.s_w2
-                                /* imp */
+	/* imp */
 #define s_impno S_un.S_un_b.s_b4
-                                /* imp # */
+	/* imp # */
 #define s_lh    S_un.S_un_b.s_b3
-		  /* logical host */
+	/* logical host */
 #endif
 };
 
 
 struct win_sockaddr_in {
-        short   sin_family;
-        uint16_t sin_port;
-        struct  win_in_addr sin_addr;
-        char    sin_zero[8];
+#ifdef __MAC__
+	uint8_t sa_len;
+	uint8_t sin_family;
+#else
+	short   sin_family;
+#endif
+	uint16_t sin_port;
+	struct  win_in_addr sin_addr;
+	char    sin_zero[8];
 };
 
 typedef struct win_sockaddr_in SOCKADDR_IN;
