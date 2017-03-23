@@ -184,7 +184,7 @@ CTEXTSTR GetSeqGUID( void )
 uint8_t* GetGUIDBinaryEx( CTEXTSTR guid, LOGICAL little_endian )
 {
 	static uint8_t buf[18];
-	static uint8_t char_lookup[256];
+	static int8_t char_lookup[256];
 	int n;
    int b;
 	if( char_lookup['1'] == 0 )

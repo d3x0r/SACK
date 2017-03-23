@@ -1086,7 +1086,7 @@ SQLGETOPTION_PROC( int, SACK_WritePrivateProfileBlobOdbc )( PODBC odbc, CTEXTSTR
 	else
 	{
 		POPTION_TREE tree = GetOptionTreeExxx( odbc, NULL DBG_SRC );
-		return SetOptionBlobValueEx( tree, optval, pBuffer, nBuffer ) != INVALID_INDEX;
+		return SetOptionBlobValueEx( tree, optval, pBuffer, nBuffer );
 	}
 	return 0;
 }
