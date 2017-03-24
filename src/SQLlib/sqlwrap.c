@@ -91,8 +91,10 @@ int SQLCommandf( PODBC odbc, CTEXTSTR fmt, ... )
 		result = SQLCommandEx( odbc, GetText( cmd ) DBG_ARGS(SQLCommandf) );
 		LineRelease( cmd );
 	}
-	else
+	else {
+      result = 0;
 		lprintf( WIDE("ERROR: Sql format failed: %s"), fmt );
+	}
 	return result;
 }
 

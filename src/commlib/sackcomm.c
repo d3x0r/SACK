@@ -1306,6 +1306,8 @@ void DumpTermios( struct termios *opts )
 
 #ifndef __LINUX__
 			nCommError = SackGetCommError ( iCommId, &pComTrack->cs );
+#else 
+	nCommError = 0;
 #endif
       tnprintf ( cOut, sizeof( cOut ), WIDE("SackCommReadBuffer: read %d chars, error=%d")
                , nCharsRead, nCommError );
