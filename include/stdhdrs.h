@@ -238,11 +238,11 @@ extern __sighandler_t bsd_signal(int, __sighandler_t);
 #include <stdarg.h>
 #include <string.h>
 #ifdef __CYGWIN__
-#include <errno.h> // provided by -lgcc
+#  include <errno.h> // provided by -lgcc
 // lots of things end up including 'setjmp.h' which lacks sigset_t defined here.
-#include <sys/types.h>
+#  include <sys/types.h>
 // lots of things end up including 'setjmp.h' which lacks sigset_t defined here.
-#include <sys/signal.h>
+#  include <sys/signal.h>
 
 #endif
 
