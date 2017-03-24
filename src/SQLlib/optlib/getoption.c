@@ -846,7 +846,7 @@ SQLGETOPTION_PROC( size_t, SACK_GetPrivateProfileStringExxx )( PODBC odbc
 		}
 		else
 		{
-			MemCpy( pBuffer, buffer, buflen = min(buflen+1,(nBuffer) ) );
+			MemCpy( pBuffer, buffer, buflen = ((buflen+1<(nBuffer) )?(buflen+1):nBuffer) );
 			buflen--;
 			pBuffer[buflen] = 0;
 			if( global_sqlstub_data->flags.bLogOptionConnection )

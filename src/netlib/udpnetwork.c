@@ -574,7 +574,7 @@ int FinishUDPRead( PCLIENT pc )
 	{
 		DumpAddr( WIDE("UDPRead at"), pc->saSource );
 		LogBinary( (uint8_t*)pc->RecvPending.buffer.p +
-					 pc->RecvPending.dwUsed, min( nReturn, 64 ) );
+					 pc->RecvPending.dwUsed, ( nReturn< 64 )?nReturn:64 );
 	}
 	if( globalNetworkData.flags.bLogReceivedData )
 	{

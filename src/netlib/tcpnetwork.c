@@ -950,7 +950,7 @@ size_t FinishPendingRead(PCLIENT lpClient DBG_PASS )  // only time this should b
 				if( globalNetworkData.flags.bShortLogReceivedData )
 				{
 					LogBinary( (uint8_t*)lpClient->RecvPending.buffer.p +
-							 lpClient->RecvPending.dwUsed, min( nRecv, 64 ) );
+							 lpClient->RecvPending.dwUsed,  (nRecv < 64) ? nRecv:64 );
 				}
 				if( globalNetworkData.flags.bLogReceivedData )
 				{
@@ -1541,7 +1541,7 @@ LOGICAL TCPDrainRead( PCLIENT pClient )
 		{
 			if( globalNetworkData.flags.bShortLogReceivedData )
 			{
-				LogBinary( (uint8_t*)byBuffer, min( nDrainRead, 64 ) );
+				LogBinary( (uint8_t*)byBuffer, (nDrainRead<64 )?nDrainRead:64 );
 			}
 			if( globalNetworkData.flags.bLogReceivedData )
 			{
