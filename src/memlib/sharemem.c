@@ -2114,17 +2114,17 @@ POINTER HeapAllocateEx( PMEM pHeap, uintptr_t dwSize DBG_PASS ) {
  POINTER  HeapReallocateEx ( PMEM pHeap, POINTER source, uintptr_t size DBG_PASS )
 {
 	POINTER dest;
-	uintptr_t min;
+	uintptr_t minSize;
 
 	dest = HeapAllocateAlignedEx( pHeap, size, 0 DBG_RELAY );
 	if( source )
 	{
-		min = SizeOfMemBlock( source );
-		if( size < min )
-			min = size;
-		MemCpy( dest, source, min );
-		if( min < size )
-			MemSet( ((uint8_t*)dest) + min, 0, size - min );
+		minSize = SizeOfMemBlock( source );
+		if( size < minSize )
+			minSize = size;
+		MemCpy( dest, source, minSize );
+		if( minSize < size )
+			MemSet( ((uint8_t*)dest) + minSize, 0, size - minSize );
 		ReleaseEx( source DBG_RELAY );
 	}
 	else
@@ -2139,17 +2139,17 @@ POINTER HeapAllocateEx( PMEM pHeap, uintptr_t dwSize DBG_PASS ) {
  POINTER  HeapPreallocateEx ( PMEM pHeap, POINTER source, uintptr_t size DBG_PASS )
 {
 	POINTER dest;
-	uintptr_t min;
+	uintptr_t minSize;
 
 	dest = HeapAllocateAlignedEx( pHeap, size, 0 DBG_RELAY );
 	if( source )
 	{
-		min = SizeOfMemBlock( source );
-		if( size < min )
-			min = size;
-		MemCpy( (uint8_t*)dest + (size-min), source, min );
-		if( min < size )
-			MemSet( dest, 0, size - min );
+		minSize = SizeOfMemBlock( source );
+		if( size < minSize )
+			minSize = size;
+		MemCpy( (uint8_t*)dest + (size-minSize), source, minSize );
+		if( minSize < size )
+			MemSet( dest, 0, size - minSize );
 		ReleaseEx( source DBG_RELAY );
 	}
 	else
@@ -2232,12 +2232,12 @@ static void Bubble( PMEM pMem )
 	{
 		if( USE_CUSTOM_ALLOCER )
 		{
-			register PCHUNK pc = (PCHUNK)(((uintptr_t)pData) - (((uint32_t*)pData)[-1] + offsetof( CHUNK, byData )));
+			PCHUNK pc = (PCHUNK)(((uintptr_t)pData) - (((uint32_t*)pData)[-1] + offsetof( CHUNK, byData )));
 			return pc->dwSize - pc->dwPad;
 		}
 		else
 		{
-			register PMALLOC_CHUNK pc = (PMALLOC_CHUNK)(((uintptr_t)pData) - (((uint32_t*)pData)[-1] + offsetof( MALLOC_CHUNK, byData )));
+			PMALLOC_CHUNK pc = (PMALLOC_CHUNK)(((uintptr_t)pData) - (((uint32_t*)pData)[-1] + offsetof( MALLOC_CHUNK, byData )));
 			return pc->dwSize - ( pc->to_chunk_start + pc->dwPad );
 		}
 	}
@@ -2280,8 +2280,8 @@ POINTER ReleaseEx ( POINTER pData DBG_PASS )
 
 		if( !USE_CUSTOM_ALLOCER )
 		{
-			// register PMEM pMem = (PMEM)(pData - offsetof( MEM, pRoot ));
-			register PMALLOC_CHUNK pc = (PMALLOC_CHUNK)(((uintptr_t)pData) - ( ((uint32_t*)pData)[-1] +
+			//PMEM pMem = (PMEM)(pData - offsetof( MEM, pRoot ));
+			PMALLOC_CHUNK pc = (PMALLOC_CHUNK)(((uintptr_t)pData) - ( ((uint32_t*)pData)[-1] +
 													offsetof( MALLOC_CHUNK, byData ) ) );
 			pc->dwOwners--;
 			if( !pc->dwOwners )
@@ -2318,7 +2318,7 @@ POINTER ReleaseEx ( POINTER pData DBG_PASS )
 		}
       else
 		{
-			register PCHUNK pc = (PCHUNK)(((uintptr_t)pData) - ( ( (uint32_t*)pData)[-1] +
+			PCHUNK pc = (PCHUNK)(((uintptr_t)pData) - ( ( (uint32_t*)pData)[-1] +
 													offsetof( CHUNK, byData ) ) );
 			PMEM pMem, pCurMem;
 			PSPACE pMemSpace;

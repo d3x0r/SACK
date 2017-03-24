@@ -310,7 +310,7 @@ TEXTSTR StrStr( TEXTSTR s1, CTEXTSTR s2 )
 // *r contains the position of difference
  int  CmpMem8 ( void *s1, void *s2, unsigned long n, unsigned long *r )
 {
-	register int t1, t2;
+	int t1, t2;
 	uint32_t pos;
 	{
 		pos = 0;
