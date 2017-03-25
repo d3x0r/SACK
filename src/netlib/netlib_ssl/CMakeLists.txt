@@ -60,7 +60,7 @@ include_directories( ${SOURCES_ROOT}/src/contrib/libressl/${LIBRESSL_VERSION}/in
 set( NETLIB_SSL_SOURCES ${SOURCES_ROOT}/src/netlib/ssl_layer.c )
 set( SSL_LIBS ssl tls crypto )
 
-SET( SQLITE_VERSION 3.16.2 )
+SET( SQLITE_VERSION 3.18.0 )
 SET( SQLITE_SOURCES ${BAG_SQLITE_INTERFACE} ${SOURCES_ROOT}/src/contrib/sqlite/${SQLITE_VERSION}/sqlite3.c )
 include_directories( ${SOURCES_ROOT}/src/contrib/sqlite/${SQLITE_VERSION} )
 
