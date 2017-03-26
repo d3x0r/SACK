@@ -11,12 +11,14 @@ struct web_socket_client
 	{
 		BIT_FIELD connected : 1; // if not connected, then parse data as http, otherwise process as websock protocol.
 		BIT_FIELD want_close : 1; // schedule to close
+		BIT_FIELD use_ssl : 1;
 	} flags;
 	PCLIENT pc;
 
 	CTEXTSTR host;
 	CTEXTSTR address_url;
 	struct url_data *url;
+	CTEXTSTR protocols;
 
 	POINTER buffer;
 	HTTPState pHttpState;

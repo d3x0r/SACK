@@ -218,13 +218,6 @@ int OpenSQL( DBG_VOIDPASS );
 #    define FIXREF2
 #    define FIXDEREF2
 #  endif
-#else
-#  define FIXREF
-#  define FIXDEREF
-#  define FIXREF2
-#  define FIXDEREF2
-#endif
-
 struct sqlite_interface
 {
 	void(FIXREF2 *sqlite3_result_text)(sqlite3_context*, const char*, int, void(*)(void*));
@@ -252,9 +245,9 @@ struct sqlite_interface
 	const char* (FIXREF2*sqlite3_errmsg)(sqlite3*);
 	int (FIXREF2*sqlite3_finalize)(sqlite3_stmt *);
 	int (FIXREF2*sqlite3_close)(sqlite3*);
-#if ( SQLITE_VERSION_NUMBER > 3007013 )
+#  if ( SQLITE_VERSION_NUMBER > 3007013 )
 	int (FIXREF2*sqlite3_close_v2)(sqlite3*);
-#endif
+#  endif
 	int (FIXREF2*sqlite3_prepare_v2)(
 	  sqlite3 *db,            
 	  const char *zSql,       
@@ -291,7 +284,6 @@ struct sqlite_interface
 	int ( FIXREF2*sqlite3_extended_errcode)(sqlite3 *db);
 };
 
-#ifdef USE_SQLITE_INTERFACE
 #  ifndef DEFINES_SQLITE_INTERFACE
 extern
 #  endif
@@ -332,11 +324,6 @@ PRIORITY_PRELOAD( LoadSQLiteInterface, SQL_PRELOAD_PRIORITY-1 )
 #    define sqlite3_extended_errcode     (FIXDEREF2 (sqlite_iface->sqlite3_extended_errcode))
 #  endif
 #endif
-
-//-----------------------------------------------
-// Private Exports for plugins to use...
-
-//#define SQL
 
 SQL_NAMESPACE_END
 

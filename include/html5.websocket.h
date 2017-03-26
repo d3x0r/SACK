@@ -16,7 +16,7 @@
 #define HTML5_WEBSOCKET_STUFF_DEFINED
 
 #include <procreg.h>
-#include <controls.h>
+//#include <controls.h>
 
 // should consider merging these headers(?)
 #include <html5.websocket.client.h>
@@ -51,8 +51,11 @@ HTML5_WEBSOCKET_NAMESPACE
 																	, web_socket_error on_error
 																	, uintptr_t psv
 																	);
-
-
+// during open, server may need to switch behavior based on protocols
+// this can be used to return the protocols requested by the client.
+HTML5_WEBSOCKET_PROC( const char *, WebSocketGetProtocols )( PCLIENT pc );
+// after examining protocols, this is a reply to the client which protocol has been accepted.
+HTML5_WEBSOCKET_PROC( PCLIENT, WebSocketSetProtocols )( PCLIENT pc, const char *protocols );
 /* define a callback which uses a HTML5WebSocket collector to build javascipt to render the control.
  * example:
  *       static int OnDrawToHTML("Control Name")(CONTROL, HTML5WebSocket ){ }

@@ -658,9 +658,9 @@ if(NOT HAVE_ASPRINTF)
 	set(CRYPTO_SRC ${CRYPTO_SRC} compat/bsd-asprintf.c)
 endif()
 
-if(NOT HAVE_INET_PTON)
+#if(NOT HAVE_INET_PTON)
 	set(CRYPTO_SRC ${CRYPTO_SRC} compat/inet_pton.c)
-endif()
+#endif()
 
 if(NOT HAVE_REALLOCARRAY)
 	set(CRYPTO_SRC ${CRYPTO_SRC} compat/reallocarray.c)

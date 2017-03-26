@@ -1562,7 +1562,6 @@ get_function_name:
 #ifdef WIN32
 
 				PIMAGE_DOS_HEADER source_dos_header = (PIMAGE_DOS_HEADER)library->library;
-#  define Seek(a,b) (((uintptr_t)a)+(b))
 				PIMAGE_NT_HEADERS source_nt_header = (PIMAGE_NT_HEADERS)Seek( library->library, source_dos_header->e_lfanew );
 				if( source_dos_header->e_magic != IMAGE_DOS_SIGNATURE )
 					lprintf( WIDE("Basic signature check failed; not a library") );
@@ -2000,6 +1999,8 @@ void SetProgramName( CTEXTSTR filename )
 	SystemInit();
 	l.filename = filename;
 }
+
+#undef Seek
 
 SACK_SYSTEM_NAMESPACE_END
 

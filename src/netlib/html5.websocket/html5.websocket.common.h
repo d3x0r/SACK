@@ -55,11 +55,12 @@ struct web_socket_output_state
 		// apparently clients did not implement back masking??
       // I get a close; probably because of the length exception
 		BIT_FIELD expect_masking : 1;
+		BIT_FIELD use_ssl : 1;
 	} flags;
 };
 
 
-EXTERN void SendWebSocketMessage( PCLIENT pc, int opcode, int final, int do_mask, uint8_t* payload, size_t length );
-EXTERN void ProcessWebSockProtocol( WebSocketInputState websock, PCLIENT pc, uint8_t* msg, size_t length );
+EXTERN void SendWebSocketMessage( PCLIENT pc, int opcode, int final, int do_mask, const uint8_t* payload, size_t length, int use_ssl );
+EXTERN void ProcessWebSockProtocol( WebSocketInputState websock, PCLIENT pc, const uint8_t* msg, size_t length );
 
 #endif

@@ -33,36 +33,42 @@ length, and what is received will be exactly like the block that was sent.
 typedef uintptr_t (*web_socket_opened)( PCLIENT pc, uintptr_t psv );
 typedef void (*web_socket_closed)( PCLIENT pc, uintptr_t psv );
 typedef void (*web_socket_error)( PCLIENT pc, uintptr_t psv, int error );
-typedef void (*web_socket_event)( PCLIENT pc, uintptr_t psv, POINTER buffer, size_t msglen );
+typedef void (*web_socket_event)( PCLIENT pc, uintptr_t psv, CPOINTER buffer, size_t msglen );
 
+//enum WebSockClientOptions {
+//   WebSockClientOption_Protocols
+//};
 
 // create a websocket connection.
 //  If web_socket_opened is passed as NULL, this function will wait until the negotiation has passed.
 //  since these packets are collected at a lower layer, buffers passed to receive event are allocated for
 //  the application, and the application does not need to setup an  initial read.
+//  if protocols is NULL none are specified, otherwise the list of
+//  available protocols is sent to the server.
 WEBSOCKET_EXPORT PCLIENT WebSocketOpen( CTEXTSTR address
-															 , int options
-															 , web_socket_opened
-															 , web_socket_event
-															 , web_socket_closed
-															 , web_socket_error
-															 , uintptr_t psv );
+                                      , int options
+                                      , web_socket_opened
+                                      , web_socket_event
+                                      , web_socket_closed
+                                      , web_socket_error
+                                      , uintptr_t psv
+                                      , const char *protocols );
 
 // end a websocket connection nicely.
 WEBSOCKET_EXPORT void WebSocketClose( PCLIENT );
 
 
 // there is a control bit for whether the content is text or binary or a continuation
-WEBSOCKET_EXPORT void WebSocketBeginSendText( PCLIENT, POINTER, size_t ); // UTF8 RFC3629
+WEBSOCKET_EXPORT void WebSocketBeginSendText( PCLIENT, CPOINTER, size_t ); // UTF8 RFC3629
 
 // literal binary sending; this may happen to be base64 encoded too
-WEBSOCKET_EXPORT void WebSocketBeginSendBinary( PCLIENT, POINTER, size_t );
+WEBSOCKET_EXPORT void WebSocketBeginSendBinary( PCLIENT, CPOINTER, size_t );
 
 // there is a control bit for whether the content is text or binary or a continuation
-WEBSOCKET_EXPORT void WebSocketSendText( PCLIENT, POINTER, size_t ); // UTF8 RFC3629
+WEBSOCKET_EXPORT void WebSocketSendText( PCLIENT, CPOINTER, size_t ); // UTF8 RFC3629
 
 // literal binary sending; this may happen to be base64 encoded too
-WEBSOCKET_EXPORT void WebSocketSendBinary( PCLIENT, POINTER, size_t ); 
+WEBSOCKET_EXPORT void WebSocketSendBinary( PCLIENT, CPOINTER, size_t );
 
 WEBSOCKET_EXPORT void WebSocketEnableAutoPing( PCLIENT websock, uint32_t delay );
 

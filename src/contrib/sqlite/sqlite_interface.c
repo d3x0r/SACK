@@ -1,26 +1,23 @@
+
 #define NO_UNICODE_C
 #include <stdhdrs.h>
 #ifdef __WATCOMC__
 // definition of SH_DENYNO
-#include <share.h>
+#  include <share.h>
 #endif
 #include <procreg.h>
 #include <filesys.h>
 #include <deadstart.h>
-#ifndef USE_SQLITE_INTERFACE
-#define USE_SQLITE_INTERFACE
-#endif
 #define SQLLIB_SOURCE
 #define BUILDS_INTERFACE
 #define DEFINES_SQLITE_INTERFACE
 #include "../../SQLlib/sqlstruc.h"
 #include "sqlite3.h"
 
-#ifndef UNICODE  // fix strings
-//#  define LOG_OPERATIONS
-#endif
+#ifdef USE_SQLITE_INTERFACE
 
 SQL_NAMESPACE
+
 static void InitVFS( CTEXTSTR name, struct file_system_mounted_interface *fsi );
 
 struct sqlite_interface my_sqlite_interface = {
@@ -692,3 +689,4 @@ PUBLIC( void, AtLeastOneExport )( void )
 }
 #endif
 SQL_NAMESPACE_END
+#endif

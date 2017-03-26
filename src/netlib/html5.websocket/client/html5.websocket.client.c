@@ -23,12 +23,17 @@ static void SendRequestHeader( WebSocketClient websock )
 			  , websock->url->port?websock->url->port:websock->url->default_port );
 	vtprintf( pvtHeader, WIDE("Upgrade: websocket\r\n"));
 	vtprintf( pvtHeader, WIDE("Connection: Upgrade\r\n"));
+	if( websock->protocols )
+		vtprintf( pvtHeader, WIDE("Sec-WebSocket-Protocol: %s\r\n"), websock->protocols );
 	vtprintf( pvtHeader, WIDE("Sec-WebSocket-Key: x3JJHMbDL1EzLkh9GBhXDw==\r\n") );
 	vtprintf( pvtHeader, WIDE("Sec-WebSocket-Version: 13\r\n") );
 	vtprintf( pvtHeader, WIDE("\r\n") );
 	{
 		PTEXT text = VarTextPeek( pvtHeader ); // just leave the buffer in-place
-		SendTCP( websock->pc, GetText( text ), GetTextSize( text ) );
+		if( websock->output_state.flags.use_ssl )
+			ssl_Send( websock->pc, GetText( text ), GetTextSize( text ) );
+		else
+			SendTCP( websock->pc, GetText( text ), GetTextSize( text ) );
 	}
 	VarTextDestroy( &pvtHeader );
 }
@@ -51,7 +56,7 @@ static void CPROC WebSocketTimer( uintptr_t psv )
 			} msg;
 			msg.reason = 1000; // normal
 			websock->input_state.flags.closed = 1;
-			SendWebSocketMessage( websock->pc, 8, 1, 0, (uint8_t*)&msg, 2 );
+			SendWebSocketMessage( websock->pc, 8, 1, 0, (uint8_t*)&msg, 2, websock->output_state.flags.use_ssl );
 		}
 
 		// do auto ping...
@@ -62,7 +67,7 @@ static void CPROC WebSocketTimer( uintptr_t psv )
 				{
 					if( ( now - websock->input_state.last_reception ) > websock->ping_delay )
 					{
-						SendWebSocketMessage( websock->pc, 0x09, 1, 0, NULL, 0 );
+						SendWebSocketMessage( websock->pc, 0x09, 1, 0, NULL, 0, websock->output_state.flags.use_ssl );
 					}
 				}
 				else
@@ -88,9 +93,10 @@ static void CPROC WebSocketClientReceive( PCLIENT pc, POINTER buffer, size_t len
 		{
 			if( wsc_local.opening_client )
 			{
-				SetTCPNoDelay( pc, TRUE );
-				SetNetworkLong( pc, 0, (uintptr_t)wsc_local.opening_client );
-				SetNetworkLong( pc, 1, (uintptr_t)&wsc_local.opening_client->output_state );
+				//SetTCPNoDelay( pc, TRUE );
+
+				//SetNetworkLong( pc, 0, (uintptr_t)wsc_local.opening_client );
+				//SetNetworkLong( pc, 1, (uintptr_t)&wsc_local.opening_client->output_state );
 				wsc_local.opening_client = NULL; // clear this to allow open to return.
 			}
 			else
@@ -100,6 +106,7 @@ static void CPROC WebSocketClientReceive( PCLIENT pc, POINTER buffer, size_t len
 		}
 		else
 			buffer = websock->buffer;
+		SendRequestHeader( websock );
 	}
 	else
 	{
@@ -166,15 +173,14 @@ static void CPROC WebSocketClientConnected( PCLIENT pc, int error )
 
 	if( !error )
 	{
-		// connect succeeded.
-		SendRequestHeader( websock );
-		SetTCPNoDelay( pc, TRUE );
+		if( websock->output_state.flags.use_ssl )
+			ssl_BeginClientSession( websock->pc, NULL, 0 );
 	}
 	else
 	{
 		wsc_local.opening_client = NULL;
 		if( websock->input_state.on_close )
-         websock->input_state.on_close( NULL, websock->input_state.psv_on );
+			websock->input_state.on_close( NULL, websock->input_state.psv_on );
 	}
 }
 
@@ -189,9 +195,12 @@ PCLIENT WebSocketOpen( CTEXTSTR url_address
 							, web_socket_event on_event
 							, web_socket_closed on_closed
 							, web_socket_error on_error
-							, uintptr_t psv )
+							, uintptr_t psv
+	, const char *protocols )
 {
 	WebSocketClient websock = New( struct web_socket_client );
+	//va_arg args;
+	//va_start( args, psv );
 	if( !wsc_local.timer )
 		wsc_local.timer = AddTimer( 2000, WebSocketTimer, 0 );
 
@@ -202,7 +211,7 @@ PCLIENT WebSocketOpen( CTEXTSTR url_address
 	websock->input_state.on_close = on_closed;
 	websock->input_state.on_error = on_error;
 	websock->input_state.psv_on = psv;
-
+	websock->protocols = protocols;
 	websock->output_state.flags.expect_masking = 1; // client to server is MUST mask because of proxy handling in that direction
 
 	websock->url = SACK_URLParse( url_address );
@@ -219,21 +228,17 @@ PCLIENT WebSocketOpen( CTEXTSTR url_address
 												);
 		if( websock->pc )
 		{
+			SetNetworkLong( websock->pc, 0, (uintptr_t)websock );
+			SetNetworkLong( websock->pc, 1, (uintptr_t)&websock->output_state );
+#ifndef NO_SSL
+			if( StrCaseCmp( websock->url->protocol, "wss" ) == 0 )
+				websock->output_state.flags.use_ssl = 1;
+#endif
 			if( !on_open )
 			{	
-				// send request if we got connected, if there is a on_open callback, then we're delay waiting
-				// so this will be sent in the socket on-open event.
-				SendRequestHeader( websock );
 				while( !websock->flags.connected && !websock->input_state.flags.closed )
 					Idle();
 			}
-			else
-			{
-				SetNetworkLong( websock->pc, 0, (uintptr_t)websock );
-				SetNetworkLong( websock->pc, 1, (uintptr_t)&websock->output_state );
-			}
-			while( wsc_local.opening_client )
-				Idle();
 		}
 		else
 			wsc_local.opening_client = NULL;	
@@ -261,5 +266,6 @@ void WebSocketEnableAutoPing( PCLIENT pc, uint32_t delay )
 PRELOAD( InitWebSocketServer )
 {
 //   wsc_local.timer = AddTimer( 2000, WebSocketTimer, 0 );
+	InitializeCriticalSec( &wsc_local.cs_opening );
 }
 

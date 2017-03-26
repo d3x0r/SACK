@@ -1898,6 +1898,7 @@ CTEXTSTR GetSQLName( CTEXTSTR table_name, INDEX iName )
 
 LOGICAL BackupDatabase( PODBC source, PODBC dest )
 {
+#if defined( USE_SQLITE ) || defined( USE_SQLITE_INTERFACE )
 	if( source->flags.bSQLite_native && dest->flags.bSQLite_native ) {
 		sqlite3_backup *sb = sqlite3_backup_init( dest->db, "main", source->db, "main" );
 		if( sb )
@@ -1908,6 +1909,7 @@ LOGICAL BackupDatabase( PODBC source, PODBC dest )
 			return TRUE;
 		}
 	}
+#endif
   	return FALSE;
 }
 

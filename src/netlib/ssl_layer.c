@@ -9,7 +9,9 @@
 
 #include "netstruc.h"
 
-#if 0
+//#define DEBUG_SSL_IO
+
+#if NO_SSL
 
 SACK_NETWORK_NAMESPACE
 
@@ -330,23 +332,31 @@ static int handshake( PCLIENT pc ) {
    struct ssl_session *ses = pc->ssl_session;
 	if (!SSL_is_init_finished(ses->ssl)) {
 		int r;
+#ifdef DEBUG_SSL_IO
 		lprintf( "doing handshake...." );
+#endif
 		/* NOT INITIALISED */
 
 		r = SSL_do_handshake(ses->ssl);
+#ifdef DEBUG_SSL_IO
 		lprintf( "handle data posted to SSL? %d", r );
+#endif
 		if( r == 0 ) {
 			ERR_print_errors_cb( logerr, (void*)__LINE__ );
 			r = SSL_get_error( ses->ssl, r );
 			ERR_print_errors_cb( logerr, (void*)__LINE__ );
+#ifdef DEBUG_SSL_IO
 			lprintf( "SSL_Read failed... %d", r );
+#endif
 			return -1;
 		}
 		if (r < 0) {
 
 			r = SSL_get_error(ses->ssl, r);
 			if( SSL_ERROR_SSL == r ) {
+#ifdef DEBUG_SSL_IO
 				lprintf( "SSL_Read failed... %d", r );
+#endif
 				ERR_print_errors_cb( logerr, (void*)__LINE__ );
 				return -1;
 			}
@@ -361,7 +371,9 @@ static int handshake( PCLIENT pc ) {
 						ses->obuffer = NewArray( uint8_t, ses->obuflen = pending*2 );
 					}
 					read = BIO_read(ses->wbio, ses->obuffer, (int)pending);
+#ifdef DEBUG_SSL_IO
 					lprintf( "send %d for handshake", read );
+#endif
 					if (read > 0)
 						SendTCP( pc, ses->obuffer, read );
 				}
@@ -382,7 +394,9 @@ static int handshake( PCLIENT pc ) {
 
 static void ssl_ReadComplete( PCLIENT pc, POINTER buffer, size_t length )
 {
+#ifdef DEBUG_SSL_IO
 	lprintf( "SSL Read complete %p %zd", buffer, length );
+#endif
 	if( pc->ssl_session )
 	{
 		if( buffer )
@@ -390,7 +404,9 @@ static void ssl_ReadComplete( PCLIENT pc, POINTER buffer, size_t length )
 			size_t len;
 			int hs_rc;
 			len = BIO_write( pc->ssl_session->rbio, buffer, (int)length );
+#ifdef DEBUG_SSL_IO
 			lprintf( "Wrote %zd", len );
+#endif
 			if( len < length ) {
 				lprintf( "Protocol failure?" );
 				Release( pc->ssl_session );
@@ -399,7 +415,10 @@ static void ssl_ReadComplete( PCLIENT pc, POINTER buffer, size_t length )
 			}
 
 			if( !( hs_rc = handshake( pc ) ) ) {
+#ifdef DEBUG_SSL_IO
+            // normal condition...
 				lprintf( "Receive handshake not complete iBuffer" );
+#endif
 				ReadTCP( pc, pc->ssl_session->ibuffer, pc->ssl_session->ibuflen );
 				return;
 			}
@@ -416,7 +435,9 @@ static void ssl_ReadComplete( PCLIENT pc, POINTER buffer, size_t length )
 			{
 				int result;
 				result = SSL_read( pc->ssl_session->ssl, pc->ssl_session->dbuffer, (int)pc->ssl_session->dbuflen );
+#ifdef DEBUG_SSL_IO
 				lprintf( "normal read - just get the data from the other buffer : %d", result );
+#endif
 				if( result == -1 ) {
 					lprintf( "SSL_Read failed." );
 					ERR_print_errors_cb( logerr, (void*)__LINE__ );
@@ -430,10 +451,14 @@ static void ssl_ReadComplete( PCLIENT pc, POINTER buffer, size_t length )
 			{
 				// the read generated write data, output that data
 				size_t pending = BIO_ctrl_pending( pc->ssl_session->wbio );
+#ifdef DEBUG_SSL_IO
 				lprintf( "pending to send is %zd", pending );
+#endif
 				if( pending > 0 ) {
 					int read = BIO_read( pc->ssl_session->wbio, pc->ssl_session->obuffer, (int)pc->ssl_session->obuflen );
+#ifdef DEBUG_SSL_IO
 					lprintf( "Send pending %p %d", pc->ssl_session->obuffer, read );
+#endif
 					SendTCP( pc, pc->ssl_session->obuffer, read );
 				}
 			}
@@ -457,6 +482,29 @@ static void ssl_ReadComplete( PCLIENT pc, POINTER buffer, size_t length )
 		else {
 			pc->ssl_session->ibuffer = NewArray( uint8_t, pc->ssl_session->ibuflen = 4096 );
 			pc->ssl_session->dbuffer = NewArray( uint8_t, pc->ssl_session->dbuflen = 4096 );
+			{
+				int r;
+				if( ( r = SSL_do_handshake( pc->ssl_session->ssl ) ) < 0 ) {
+					//char buf[256];
+					//r = SSL_get_error( ses->ssl, r );
+					ERR_print_errors_cb( logerr, (void*)__LINE__ );
+					//lprintf( "err: %s", ERR_error_string( r, buf ) );
+				}
+				{
+					// the read generated write data, output that data
+					size_t pending = BIO_ctrl_pending( pc->ssl_session->wbio );
+					if( pending > 0 ) {
+						int read;
+						if( pending > pc->ssl_session->obuflen ) {
+							if( pc->ssl_session->obuffer )
+								Deallocate( uint8_t *, pc->ssl_session->obuffer );
+							pc->ssl_session->obuffer = NewArray( uint8_t, pc->ssl_session->obuflen = pending * 2 );
+						}
+						read = BIO_read( pc->ssl_session->wbio, pc->ssl_session->obuffer, (int)pc->ssl_session->obuflen );
+						SendTCP( pc, pc->ssl_session->obuffer, read );
+					}
+				}
+			}
 		}
 		if( pc->ssl_session )
 			ReadTCP( pc, pc->ssl_session->ibuffer, pc->ssl_session->ibuflen );
@@ -708,8 +756,10 @@ LOGICAL ssl_BeginClientSession( PCLIENT pc, POINTER client_keypair, size_t clien
 	pc->ssl_session = ses;
 
 	//ssl_accept( pc->ssl_session->ssl );
-
+	lprintf( "Warning: This is meant to be called during connect; no longer internally auto handshakes here; but should upon returning from here instead." );
+/*
 	ssl_ReadComplete( pc, NULL, 0 );
+
 	{
 		int r;
 		if( ( r = SSL_do_handshake( ses->ssl ) ) < 0 ) {
@@ -733,7 +783,7 @@ LOGICAL ssl_BeginClientSession( PCLIENT pc, POINTER client_keypair, size_t clien
 			}
 		}
 	}
-
+*/
 
 	return TRUE;
 }

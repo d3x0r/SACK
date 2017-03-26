@@ -2801,6 +2801,7 @@ int __GetSQLResult( PODBC odbc, PCOLLECT collection, int bMore )
 #endif
 	if( bMore )
 		result_cmd = WM_SQL_RESULT_MORE;
+#if defined( USE_SQLITE ) || defined( USE_SQLITE_INTERFACE ) || defined( USE_ODBC )
 	if(
 #if defined( USE_SQLITE ) || defined( USE_SQLITE_INTERFACE )
 		( odbc->flags.bSQLite_native && collection->stmt )
@@ -3285,6 +3286,7 @@ int __GetSQLResult( PODBC odbc, PCOLLECT collection, int bMore )
 		lprintf( WIDE("result error") );
 		result_cmd = WM_SQL_RESULT_ERROR;
 	}
+#endif
 	GenerateResponce( collection, result_cmd );
 	if( odbc->flags.bThreadProtect )
 	{

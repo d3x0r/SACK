@@ -2209,8 +2209,8 @@ void ReadConfiguration( void )
 			}
 			if( !success )
 			{
-				lprintf( WIDE("Failed to open interface configuration file:%s - assuming it will never exist, and aborting trying this again")
-						 , l.config_filename?l.config_filename:WIDE("interface.conf") );
+				//lprintf( WIDE("Failed to open interface configuration file:%s - assuming it will never exist, and aborting trying this again")
+				//		 , l.config_filename?l.config_filename:WIDE("interface.conf") );
 			}
 			if( loadname )
 				Release( loadname );
