@@ -269,10 +269,12 @@ struct global_memory_tag global_memory_data = { 0x10000 * 0x08, 1/* disable debu
 #ifdef __64__
 #define BLOCK_TAG(pc)  (*(uint64_t*)((pc)->byData + (pc)->dwSize - (pc)->dwPad ))
 // so when we look at memory this stamp is 0123456789ABCDEF
+#define TAG_FORMAT_MODIFIER "ll"
 #define BLOCK_TAG_ID 0xefcdab8967452301LL
 #else
 #define BLOCK_TAG(pc)  (*(uint32_t*)((pc)->byData + (pc)->dwSize - (pc)->dwPad ))
 // so when we look at memory this stamp is 12345678
+#define TAG_FORMAT_MODIFIER ""
 #define BLOCK_TAG_ID 0x78563412L
 #endif
 // file/line info are at the very end of the physical block...
@@ -2964,7 +2966,7 @@ void  DebugDumpHeapMemEx ( PMEM pHeap, LOGICAL bVerbose )
 						if( BLOCK_TAG(pc) != BLOCK_TAG_ID )
 						{
 #ifndef NO_LOGGING
-							ll_lprintf( WIDE("memory block: %p %08x insted of %08x"), pc->byData, BLOCK_TAG(pc), BLOCK_TAG_ID );
+							ll_lprintf( WIDE("memory block: %p %08") TAG_FORMAT_MODIFIER WIDE("x insted of %08")TAG_FORMAT_MODIFIER WIDE("x"), pc->byData, BLOCK_TAG(pc), BLOCK_TAG_ID );
 							if( !(pMemCheck->dwFlags & HEAP_FLAG_NO_DEBUG ) )
 							{
 								CTEXTSTR file = BLOCK_FILE(pc);

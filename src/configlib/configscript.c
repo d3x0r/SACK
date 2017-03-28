@@ -2284,7 +2284,7 @@ CONFIGSCR_PROC( int, ProcessConfigurationFile )( PCONFIG_HANDLER pch, CTEXTSTR n
 
 //---------------------------------------------------------------------
 
-CONFIGSCR_PROC( uintptr_t, ProcessConfigurationInput )( PCONFIG_HANDLER pch, CTEXTSTR data, int size, uintptr_t psv )
+CONFIGSCR_PROC( uintptr_t, ProcessConfigurationInput )( PCONFIG_HANDLER pch, CTEXTSTR data, size_t size, uintptr_t psv )
 {
 	pch->psvUser = psv;
 	{

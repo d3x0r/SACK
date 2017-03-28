@@ -87,7 +87,7 @@ static LOGICAL CPROC ExtractFile( CTEXTSTR name )
 		if( sz )
 		{
 			data = NewArray( uint8_t, sz );
-			sack_fread( data, 1, sz, file );
+			sack_fread( data, sz, 1, file );
 
 			/* this is where the file should be output */
 			{
@@ -110,7 +110,7 @@ static LOGICAL CPROC ExtractFile( CTEXTSTR name )
 					if( out ) {
 						if( !l.first_file )
 							l.first_file = strdup( target );
-						sack_fwrite( data, 1, sz, out );
+						sack_fwrite( data, sz, 1, out );
 						sack_fclose( out );
 					}
 				}
@@ -164,7 +164,6 @@ PRIORITY_PRELOAD( XSaneWinMain, DEFAULT_PRELOAD_PRIORITY + 20 )//( argc, argv )
 	{
 		size_t sz = 0;
 		POINTER memory = OpenSpace( NULL, argv[0], &sz );
-		POINTER vfs_memory;
 		if( argc > 1 ) {
 			l.target_path = ExpandPath( argv[1] );
 		}
@@ -218,7 +217,7 @@ PRIORITY_PRELOAD( XSaneWinMain, DEFAULT_PRELOAD_PRIORITY + 20 )//( argc, argv )
 			if( sz )
 			{
 				POINTER data = NewArray( uint8_t, sz );
-				sack_fread( data, 1, sz, file );
+				sack_fread( data, sz, 1, file );
 				ProcessConfigurationInput( l.pch, data, sz, 0 );
 				if( !l.target_path )
 					l.target_path = ".";
@@ -227,7 +226,7 @@ PRIORITY_PRELOAD( XSaneWinMain, DEFAULT_PRELOAD_PRIORITY + 20 )//( argc, argv )
 			sack_fclose( file );
 		}
 		else 
-			if( !l.target_path ) l.target_path = GetProgramName();
+			if( !l.target_path ) l.target_path = (char*)GetProgramName();
 		{
 			INDEX idx;
 			struct command *command;

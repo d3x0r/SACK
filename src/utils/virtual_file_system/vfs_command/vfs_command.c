@@ -27,9 +27,9 @@ static void StoreFileAs( CTEXTSTR filename, CTEXTSTR asfile )
 		size_t size = sack_fsize( in );
 		POINTER data = NewArray( uint8_t, size );
 		if( l.verbose ) printf( " Opened file %s = %p\n", asfile, out );
-		sack_fread( data, 1, size, in );
-		if( l.verbose ) printf( " read %d\n", size );
-		sack_fwrite( data, 1, size, out );
+		sack_fread( data, size, 1, in );
+		if( l.verbose ) printf( " read %zd\n", size );
+		sack_fwrite( data, size, 1, out );
 		sack_fclose( in );
 		sack_ftruncate( out );
 		sack_fclose( out );
@@ -48,14 +48,14 @@ static void CPROC _StoreFile( uintptr_t psv,  CTEXTSTR filename, int flags )
 		if( in )
 		{
 			size_t size = sack_fsize( in );
-			if( l.verbose ) printf( " file size (%d)\n", size );
+			if( l.verbose ) printf( " file size (%zd)\n", size );
 			{
 				FILE *out = sack_fopenEx( 0, filename, "wb", l.current_mount );
 				POINTER data = NewArray( uint8_t, size );
-				if( l.verbose ) printf( " Opened file %s = %p (%d)\n", filename, out, size );
-				sack_fread( data, 1, size, in );
-				if( l.verbose ) printf( " read %d\n", size );
-				sack_fwrite( data, 1, size, out );
+				if( l.verbose ) printf( " Opened file %s = %p (%zd)\n", filename, out, size );
+				sack_fread( data, size, 1, in );
+				if( l.verbose ) printf( " read %zd\n", size );
+				sack_fwrite( data, size, 1, out );
 				sack_fclose( in );
 				sack_ftruncate( out );
 				sack_fclose( out );
@@ -79,13 +79,13 @@ static void CPROC _PatchFile( uintptr_t psv,  CTEXTSTR filename, int flags )
 			size_t size = sack_fsize( in );
 			size_t size2 = in2?sack_fsize( in2 ):0;
 			POINTER data = NewArray( uint8_t, size );
-			sack_fread( data, 1, size, in );
-			if( l.verbose ) printf( " file sizes (%d) (%d)\n", size, size2 );
+			sack_fread( data, size, 1, in );
+			if( l.verbose ) printf( " file sizes (%zd) (%zd)\n", size, size2 );
 			if( size == size2 )
 			{			
 				POINTER data2 = NewArray( uint8_t, size2 );
-				sack_fread( data2, 1, size2, in2 );
-				if( l.verbose ) printf( " read %d\n", size );
+				sack_fread( data2, size2, 1, in2 );
+				if( l.verbose ) printf( "read %zd\n", size );
 				if( memcmp( data, data2, size ) ) {
 					size2 = -1;
 					if( l.verbose ) printf( "data compared inequal; including in output\n" );
@@ -98,8 +98,8 @@ static void CPROC _PatchFile( uintptr_t psv,  CTEXTSTR filename, int flags )
 			   || (StrCaseCmp( filename, "./.app.config" ) == 0) )
 			{
 				FILE *out = sack_fopenEx( 0, filename, "wb", l.current_mount );
-				if( l.verbose ) printf( " Opened file %s = %p (%d)\n", filename, out, size );
-				sack_fwrite( data, 1, size, out );
+				if( l.verbose ) printf( " Opened file %s = %p (%zd)\n", filename, out, size );
+				sack_fwrite( data, size, 1, out );
 				sack_ftruncate( out );
 				sack_fclose( out );
 			}
@@ -146,8 +146,8 @@ static void ExtractFile( CTEXTSTR filename )
 		FILE *out = sack_fopenEx( 0, filename, "wb", sack_get_default_mount() );
 		size_t size = sack_fsize( in );
 		POINTER data = NewArray( uint8_t, size );
-		sack_fread( data, 1, size, in );
-		sack_fwrite( data, 1, size, out );
+		sack_fread( data, size, 1, in );
+		sack_fwrite( data, size, 1, out );
 		sack_fclose( in );
 		sack_ftruncate( out );
 		sack_fclose( out );
@@ -169,12 +169,12 @@ POINTER GetExtraData( POINTER block )
 		PIMAGE_NT_HEADERS source_nt_header = (PIMAGE_NT_HEADERS)Seek( source_memory, source_dos_header->e_lfanew );
 		if( source_dos_header->e_magic != IMAGE_DOS_SIGNATURE ) {
 			lprintf( "Basic signature check failed; not a library" );
-         		return NULL;
+			return NULL;
 		}
 
 		if( source_nt_header->Signature != IMAGE_NT_SIGNATURE ) {
 			lprintf( "Basic NT signature check failed; not a library" );
-         		return NULL;
+			return NULL;
 		}
 
 		if( source_nt_header->FileHeader.SizeOfOptionalHeader )
@@ -280,8 +280,8 @@ static void AppendFilesAs( CTEXTSTR filename1, CTEXTSTR filename2, CTEXTSTR outp
 	file_out_size = sack_fsize( file_out );
 
 	buffer = NewArray( uint8_t, file1_size );
-	sack_fread( buffer, 1, file1_size, file1 );
-	sack_fwrite( buffer, 1, file1_size, file_out );
+	sack_fread( buffer, file1_size, 1, file1 );
+	sack_fwrite( buffer, file1_size, 1, file_out );
 	{
 #ifdef WIN32
 		POINTER extra = GetExtraData( buffer );
@@ -295,12 +295,10 @@ static void AppendFilesAs( CTEXTSTR filename1, CTEXTSTR filename2, CTEXTSTR outp
 			sack_fseek( file_out, ((uintptr_t)extra - (uintptr_t)buffer), SEEK_SET );
 		}
 		else {
-			{
-				int fill = file1_size - (extra-buffer);
-				int n;
-				if( fill > 0 )
-					for( n = 0; n < fill; n++ ) sack_fwrite( "", 1, 1, file_out );
-			}
+			size_t fill = file1_size - ((uintptr_t)extra-(uintptr_t)buffer);
+			size_t n;
+			if( fill > 0 )
+				for( n = 0; n < fill; n++ ) sack_fwrite( "", 1, 1, file_out );
 		}
 
 		sack_fseek( file_out, ((uintptr_t)extra - (uintptr_t)buffer)-BLOCK_SIZE, SEEK_SET );
@@ -316,8 +314,8 @@ static void AppendFilesAs( CTEXTSTR filename1, CTEXTSTR filename2, CTEXTSTR outp
 	Release( buffer );
 
 	buffer = NewArray( uint8_t, file2_size );
-	sack_fread( buffer, 1, file2_size, file2 );
-	sack_fwrite( buffer, 1, file2_size, file_out );
+	sack_fread( buffer, file2_size, 1, file2 );
+	sack_fwrite( buffer, file2_size, 1, file_out );
 
 	sack_fclose( file1 );
 	sack_fclose( file2 );
@@ -332,8 +330,8 @@ static void ExtractFileAs( CTEXTSTR filename, CTEXTSTR asfile )
 		FILE *out = sack_fopenEx( 0, asfile, "wb", sack_get_default_mount() );
 		size_t size = sack_fsize( in );
 		POINTER data = NewArray( uint8_t, size );
-		sack_fread( data, 1, size, in );
-		sack_fwrite( data, 1, size, out );
+		sack_fread( data, size, 1, in );
+		sack_fwrite( data, size, 1, out );
 		sack_fclose( in );
 		sack_ftruncate( out );
 		sack_fclose( out );
@@ -347,7 +345,7 @@ static void CPROC ShowFile( uintptr_t psv, CTEXTSTR file, int flags )
 	void *f;
 	if( file[0] == '.' && file[1] == '/' ) ofs = 2;
 	f = l.fsi->open( (uintptr_t)psv, file + ofs );
-	printf( "%9d %s\n", l.fsi->size( f ), file );
+	printf( "%9zd %s\n", l.fsi->size( f ), file );
 	l.fsi->_close( f );
 }
 

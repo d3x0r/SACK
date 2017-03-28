@@ -44,10 +44,10 @@ static TEXTSTR CPROC LoadLibraryDependant( CTEXTSTR name )
 #endif
 			if( sz && tmp )
 			{
-				int written, read ;
+				size_t written, read ;
 				POINTER data = NewArray( uint8_t, sz );
-				read = sack_fread( data, 1, sz, file );
-				written = sack_fwrite( data, 1, sz, tmp );
+				read = sack_fread( data, sz, 1, file );
+				written = sack_fwrite( data, sz, 1, tmp );
 				sack_fclose( tmp );
 				Release( data );
 			}

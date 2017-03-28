@@ -243,7 +243,7 @@ PSI_CONTROL LoadXMLFrameOverExx( PSI_CONTROL parent, CTEXTSTR file, LOGICAL crea
 //PSI_CONTROL  LoadXMLFrame( char *file )
 {
 	POINTER buffer;
-	uintptr_t size;
+	size_t size;
 	TEXTSTR delete_filename = NULL;
 	TEXTSTR filename = (TEXTSTR)file; // assume this is the name until later
 	PSI_CONTROL frame;
@@ -271,7 +271,7 @@ PSI_CONTROL LoadXMLFrameOverExx( PSI_CONTROL parent, CTEXTSTR file, LOGICAL crea
 		{
 			size = sack_fsize( file_read );
 			buffer = Allocate( size );
-			fread( buffer, 1, size, file_read );
+			sack_fread( buffer, size, 1, file_read );
 			sack_fclose( file_read );
 			lprintf( WIDE( "loaded font blob %s %d %p" ), file, size, buffer );
 		}
@@ -292,7 +292,7 @@ PSI_CONTROL LoadXMLFrameOverExx( PSI_CONTROL parent, CTEXTSTR file, LOGICAL crea
 			{
 				size = sack_fsize( file_read );
 				buffer = Allocate( size );
-				sack_fread( buffer, 1, size, file_read );
+				sack_fread( buffer, size, 1, file_read );
 				sack_fclose( file_read );
 				//lprintf( "loaded font blob %s %d %p", file, zz, buffer );
 			}

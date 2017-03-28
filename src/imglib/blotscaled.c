@@ -84,7 +84,7 @@ typedef struct rect_tag {
 			erry -= (signed)dhd;							 \
 			_pi = (CDATA*)(((char*)_pi) + srcpwidth); /* go to next line start*/\
 			{ \
-				int psvDel = ( __pi - _pi ); \
+				int psvDel = (int)( __pi - _pi ); \
 				psvDel /= (-srcpwidth/sizeof(CDATA)); \
 				if( psvDel > dhs ) return; \
 			} \

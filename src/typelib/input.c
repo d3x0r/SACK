@@ -739,7 +739,7 @@ LOGICAL  SetUserInputPosition ( PUSER_INPUT_BUFFER pci, int nPos, int whence )
 			SetStart( start );
 			while( start )
 			{
-				nPos -= ( tmpstart = GetTextSize( lastseg  = start ) );
+				nPos -= (int)( tmpstart = GetTextSize( lastseg  = start ) );
 				if( nPos < 0 )
 				{
 					pci->CollectionBuffer = start;
@@ -764,11 +764,11 @@ LOGICAL  SetUserInputPosition ( PUSER_INPUT_BUFFER pci, int nPos, int whence )
 		SetStart( start );
 		while( start != pci->CollectionBuffer )
 		{
-			totalpos += GetTextSize( start );
+			totalpos += (int)GetTextSize( start );
 			start = NEXTLINE( start );
 		}
 
-		totalpos += pci->CollectionIndex;
+		totalpos += (int)pci->CollectionIndex;
 		SetStart( start );
 		if( nPos > 0 )
 		{
@@ -801,14 +801,14 @@ LOGICAL  SetUserInputPosition ( PUSER_INPUT_BUFFER pci, int nPos, int whence )
 						tmp--;
 				}
 			}
-			nPos = total + ( cursor - start );
+			nPos = (int)total + (int)( cursor - start );
 		}
 		else
 		{
 			int tmp;
 			int total = 0;
 			int start;
-			int cursor = pci->CollectionIndex;
+			int cursor = (int)pci->CollectionIndex;
 			PTEXT curseg = pci->CollectionBuffer;
 			TEXTRUNE ch;
 			start = cursor;
@@ -818,7 +818,7 @@ LOGICAL  SetUserInputPosition ( PUSER_INPUT_BUFFER pci, int nPos, int whence )
 				{
 					curseg = PRIORLINE( curseg );
 					if( curseg )
-						start = cursor = curseg->data.size;
+						start = cursor = (int)curseg->data.size;
 				}
 				if( !curseg )
 					break;
@@ -828,7 +828,7 @@ LOGICAL  SetUserInputPosition ( PUSER_INPUT_BUFFER pci, int nPos, int whence )
 					total += cursor - start;
 					curseg = PRIORLINE( curseg );
 					if( curseg )
-						start = cursor = curseg->data.size;
+						start = (int)cursor = (int)curseg->data.size;
 					else 
 						break;
 				}
@@ -842,7 +842,7 @@ LOGICAL  SetUserInputPosition ( PUSER_INPUT_BUFFER pci, int nPos, int whence )
 			totalpos += nPos;
 			while( start && ( totalpos > ( tmpstart = GetTextSize( lastseg = start ) ) ) )
 			{
-				totalpos -= tmpstart;
+				totalpos -= (int)tmpstart;
 				start = NEXTLINE( start );
 			}
 			if( !start )

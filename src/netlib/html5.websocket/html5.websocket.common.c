@@ -141,7 +141,7 @@ static void ResetInputState( WebSocketInputState websock )
       *  %xA denotes a pong
       *  %xB-F are reserved for further control frames
 */
-void ProcessWebSockProtocol( WebSocketInputState websock, PCLIENT pc, uint8_t* msg, size_t length )
+void ProcessWebSockProtocol( WebSocketInputState websock, PCLIENT pc, const uint8_t* msg, size_t length )
 {
 	size_t n;
 

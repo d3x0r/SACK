@@ -114,19 +114,19 @@ void SaveTranslationDataToFile( FILE *output )
 		struct translation *translation;
 		LIST_FORALL( translate_local.translations, idx, struct translation *, translation )
 		{
-			int len;
+			size_t len;
 			INDEX string_idx;
 			uint32_t tmp;
 			uint8_t length[3];
 			CTEXTSTR string;
 			len = StrLen( translation->name );
-			sack_fwrite( &len, 1, sizeof( len ), output );
-			sack_fwrite( translation->name, 1, len, output );
+			sack_fwrite( &len, sizeof( len ), 1, output );
+			sack_fwrite( translation->name, len, 1, output );
 			LIST_FORALL( translation->strings, string_idx, CTEXTSTR, string )
 			{
-				tmp = string_idx + 1;
+				tmp = (uint32_t)(string_idx + 1);
 				sack_fwrite( &tmp, 1, 4, output );
-				tmp = StrLen( string );
+				tmp = (uint32_t)StrLen( string );
 				if( tmp > 127 )
 				{
 					if( tmp > 32768 )
@@ -202,7 +202,6 @@ void LoadTranslationDataFromFile( FILE *input )
 		last = strings;
 	}
 	{
-		INDEX idx;
 		uint32_t len;
 		TEXTSTR string = NULL; // buffer used to read string into
 		uint32_t maxlen = 0; // length of buffer to use to read string
@@ -256,8 +255,8 @@ void LoadTranslationDataFromFile( FILE *input )
 		PSTRINGSPACE space;
 		for( space = translate_local.index_strings; space; space = space->next )
 		{
-			uint32_t offset = 0;
-			uint32_t index;
+			size_t offset = 0;
+			STRING_INDEX_TYPE index;
 			CTEXTSTR string;
 			for(offset = 0; offset < space->nextname; offset++ )
 			{

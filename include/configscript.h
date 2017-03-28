@@ -128,7 +128,7 @@ CONFIGSCR_PROC( int, ProcessConfigurationFile )( PCONFIG_HANDLER pch
 															  , CTEXTSTR name
 															  , uintptr_t psv
 															  );
-CONFIGSCR_PROC( uintptr_t, ProcessConfigurationInput )( PCONFIG_HANDLER pch, CTEXTSTR block, int size, uintptr_t psv );
+CONFIGSCR_PROC( uintptr_t, ProcessConfigurationInput )( PCONFIG_HANDLER pch, CTEXTSTR block, size_t size, uintptr_t psv );
 
 /*
  * TO BE IMPLEMENTED

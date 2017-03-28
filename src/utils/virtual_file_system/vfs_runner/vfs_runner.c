@@ -75,10 +75,10 @@ static LOGICAL CPROC LoadLibraryDependant( CTEXTSTR name )
 #endif
 			if( sz && tmp )
 			{
-				int written, read ;
+				size_t written, read ;
 				POINTER data = NewArray( uint8_t, sz );
-				read = sack_fread( data, 1, sz, file );
-				written = sack_fwrite( data, 1, sz, tmp );
+				read = sack_fread( data, sz, 1, file );
+				written = sack_fwrite( data, sz, 1, tmp );
 				sack_fclose( tmp );
 #ifdef DEBUG_LIBRARY_LOADING
 				lprintf( "written file... closed file...now scanning and then load %d %d", read, written );
@@ -204,10 +204,10 @@ static char * FindProgram( const char *name ) {
 #endif
 				if( tmp )
 				{
-					int written, read ;
+					size_t written, read ;
 					POINTER data = NewArray( uint8_t, sz );
-					read = sack_fread( data, 1, sz, file );
-					written = sack_fwrite( data, 1, sz, tmp );
+					read = sack_fread( data, sz, 1, file );
+					written = sack_fwrite( data, sz, 1, tmp );
 					sack_fclose( tmp );
 #ifdef DEBUG_LIBRARY_LOADING
 					lprintf( "written file... closed file...now scanning and then load %d %d", read, written );
@@ -241,7 +241,7 @@ void FixupMyTLS( void )
 		AddLink( &new_list, 0 );
 		for( n = 0; n < count; n++ )
 		{
-			POINTER data;
+			//POINTER data;
 			DWORD dwInit;
 			//size_t size_init = ( tls->EndAddressOfRawData - tls->StartAddressOfRawData );
 			//size_t size = size_init + tls->SizeOfZeroFill;
@@ -255,9 +255,9 @@ void FixupMyTLS( void )
 #if defined( _MSC_VER )
 			dwInit = (*((DWORD*)tls->AddressOfIndex));
 			{
-				POINTER data;
 #  ifdef __64__
 #  else
+				POINTER data;
 				{
 					_asm mov ecx, fs:[2ch];
 					_asm mov eax, dwInit;
@@ -334,7 +334,7 @@ PRIORITY_PRELOAD( XSaneWinMain, DEFAULT_PRELOAD_PRIORITY + 20 )//( argc, argv )
 			FILE *file = sack_fopenEx( 0, "0", "rb", l.rom );
 			size_t sz = sack_fsize( file );
 			POINTER data = NewArray( uint8_t, sz );
-			sack_fread( data, 1, sz, file );
+			sack_fread( data, sz, 1, file );
 			sack_fclose( file );
 			l.entry_point = (int(WINAPI*)(HINSTANCE,HINSTANCE,LPSTR,int))
 				   LoadLibraryFromMemory( "program.exe", data, sz, FALSE, LoadLibraryDependant );
@@ -368,7 +368,7 @@ PRIORITY_PRELOAD( XSaneWinMain, DEFAULT_PRELOAD_PRIORITY + 20 )//( argc, argv )
 			size_t sz = sack_fsize( file );
 			POINTER data = NewArray( uint8_t, sz );
 
-			sack_fread( data, 1, sz, file );
+			sack_fread( data, sz, 1, file );
 			sack_fclose( file );
 			l.entry_point = (int(WINAPI*)(HINSTANCE,HINSTANCE,LPSTR,int))
 				   LoadLibraryFromMemory( "program.exe", data, sz, FALSE, LoadLibraryDependant );

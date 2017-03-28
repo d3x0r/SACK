@@ -211,13 +211,13 @@ void DumpSystemMemory( POINTER p_match )
 		HANDLE hHeap = GetProcessHeap();
 		PROCESS_HEAP_ENTRY entry;
 		size_t total = 0;
-		int nHeap;
-		int n = 0;
+		DWORD nHeap;
+		DWORD n = 0;
 		nHeaps = GetProcessHeaps( 1024, pHeaps );
 		{
-			int n = 256;
+			size_t n = 256;
 			HMODULE *modules = NewArray( HMODULE, 256 );
-			DWORD needed;
+			DWORD needed = 0;
 			//l.EnumProcessModules( GetCurrentProcess(), modules, sizeof( HMODULE ) * 256, &needed );
 			if( needed / sizeof( HMODULE ) == n )
 				lprintf( "loaded module overflow" );
@@ -506,8 +506,7 @@ maybe it returns the library base... */
 					{
 						POINTER data;
 						DWORD dwInit;
-						PLIST prior_list;
-						POINTER *tls_list;
+						POINTER *tls_list = (POINTER*)&tls_list;
 #ifdef __WATCOMC__
                   extern void **fn1( void );
 #pragma aux fn1 = "mov eax, fs:[2ch]";

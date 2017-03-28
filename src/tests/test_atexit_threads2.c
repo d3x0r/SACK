@@ -25,6 +25,7 @@ static size_t __cdecl ThreadWrapper( void* pThread )
 		Sleep( 0 );
    printf( "thread leaving...\n" );
    thread_finished = 1;
+   return 0;
 }
 
 __declspec(dllexport) void Library_main( void )
