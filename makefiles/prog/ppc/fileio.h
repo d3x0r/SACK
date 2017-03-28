@@ -78,7 +78,7 @@ PTEXT ReadLineEx( int Append DBG_PASS );
 void WriteLineInfo( char *file, int line );
 void WriteCurrentLineInfo( void );
 
-void WriteLine( int len, char *line );
+void WriteLine( size_t len, char *line );
 
 void DumpDepends( void );
 void DestoyDepends( void );

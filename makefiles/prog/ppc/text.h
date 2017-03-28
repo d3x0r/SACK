@@ -75,7 +75,7 @@ char *GetTextEx( PTEXT segment );
 #define TextIs(text,string) ( !stricmp( GetText(text), string ) )
 #define TextLike(text,string) ( !stricmp( GetText(text), string ) )
 
-PTEXT SegCreateEx( int32_t nSize DBG_PASS );
+PTEXT SegCreateEx( size_t nSize DBG_PASS );
 #define SegCreate(s) SegCreateEx(s DBG_SRC)
 PTEXT SegCreateFromTextEx( char *text DBG_PASS );
 #define SegCreateFromText(t) SegCreateFromTextEx(t DBG_SRC)
@@ -120,10 +120,10 @@ PTEXT SegSubst    ( PTEXT _this, PTEXT that );
 PTEXT SegSubstRangeEx( PTEXT *_this, PTEXT end, PTEXT that DBG_PASS);
 #define SegSubstRange(this,end,that) SegSubstRangeEx(this,end,that DBG_SRC)
 
-PTEXT SegSplitEx( PTEXT *pLine, int nPos DBG_PASS);
+PTEXT SegSplitEx( PTEXT *pLine, size_t nPos DBG_PASS);
 #define SegSplit(line,pos) SegSplitEx( line, pos DBG_SRC )
 
-uint32_t LineLength( PTEXT pt, int bSingle );
+size_t LineLength( PTEXT pt, int bSingle );
 PTEXT BuildLineEx( PTEXT pt, int bSingle DBG_PASS );
 #define BuildLine(from) BuildLineEx( from, FALSE DBG_SRC )
 
@@ -153,7 +153,7 @@ TYPELIB_PROC( void, VarTextAddCharacterEx)( PVARTEXT pvt, char c DBG_PASS );
 // returns true if any data was added...
 TYPELIB_PROC( PTEXT, VarTextEndEx)( PVARTEXT pvt DBG_PASS ); // move any collected text to commit...
 #define VarTextEnd(pvt) VarTextEndEx( (pvt) DBG_SRC )
-TYPELIB_PROC( int, VarTextLength)( PVARTEXT pvt );
+TYPELIB_PROC( size_t, VarTextLength)( PVARTEXT pvt );
 TYPELIB_PROC( PTEXT, VarTextGetEx)( PVARTEXT pvt DBG_PASS );
 #define VarTextGet(pvt) VarTextGetEx( (pvt) DBG_SRC )
 TYPELIB_PROC( void, VarTextExpandEx)( PVARTEXT pvt, int size DBG_PASS );

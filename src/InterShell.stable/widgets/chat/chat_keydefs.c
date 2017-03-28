@@ -141,7 +141,7 @@ int Chat_KeyEndCmd( PCHAT_LIST list, PUSER_INPUT_BUFFER pci )
 		{
 			size_t index = GetInputIndex( pci );
 			old_index = index;
-			list->input.command_mark_start = list->input.command_mark_end = index;
+			list->input.command_mark_start = list->input.command_mark_end = (int)index;
 		}
 	}
 	else
@@ -153,9 +153,9 @@ int Chat_KeyEndCmd( PCHAT_LIST list, PUSER_INPUT_BUFFER pci )
 	{
 		size_t index = GetInputIndex( pci );
 		if( index > list->input.command_mark_end )
-			list->input.command_mark_start = index;
+			list->input.command_mark_start = (int)index;
 		else if( index != old_index )
-			list->input.command_mark_start = index;
+			list->input.command_mark_start = (int)index;
 	}
 	return UPDATE_COMMAND;
 }
@@ -179,7 +179,7 @@ int Chat_KeyRight( PCHAT_LIST list, PUSER_INPUT_BUFFER pci )
 		{
 			size_t index = GetInputIndex( pci );
 			old_index = index;
-			list->input.command_mark_start = list->input.command_mark_end = index;
+			list->input.command_mark_start = list->input.command_mark_end = (int)index;
 		}
 	}
 	else
@@ -191,9 +191,9 @@ int Chat_KeyRight( PCHAT_LIST list, PUSER_INPUT_BUFFER pci )
 	{
 		size_t index = GetInputIndex( pci );
 		if( index > list->input.command_mark_end )
-			list->input.command_mark_end = index;
+			list->input.command_mark_end = (int)index;
 		else if( index != old_index )
-			list->input.command_mark_start = index;
+			list->input.command_mark_start = (int)index;
 	}
 	return UPDATE_COMMAND;
 }
@@ -209,7 +209,7 @@ int Chat_KeyLeft( PCHAT_LIST list, PUSER_INPUT_BUFFER pci )
 		{
 			size_t index = GetInputIndex( pci );
 			old_index = index;
-			list->input.command_mark_start = list->input.command_mark_end = index;
+			list->input.command_mark_start = list->input.command_mark_end = (int)index;
 		}
 	}
 	else

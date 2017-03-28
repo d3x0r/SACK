@@ -126,7 +126,7 @@ PTEXT SetNextLineEx( PTEXT seg, PTEXT newnext DBG_PASS )
 //---------------------------------------------------------------------------
 //---------------------------------------------------------------------------
 
-PTEXT SegCreateEx( int32_t size DBG_PASS )
+PTEXT SegCreateEx( size_t size DBG_PASS )
 {
    PTEXT pTemp;
    pTemp = AllocateEx( sizeof(TEXT) + size DBG_RELAY ); // good thing [1] is already counted.
@@ -194,7 +194,7 @@ int GetTextFlags( PTEXT segment )
 PTEXT SegDuplicateEx( PTEXT pText DBG_PASS )
 {
    PTEXT t;
-   uint32_t n;
+   size_t n;
    if( pText )
    {
       if( pText->flags & TF_INDIRECT )
@@ -247,7 +247,7 @@ PTEXT TextDuplicateEx( PTEXT pText DBG_PASS )
 PTEXT SegCreateFromTextEx( char *text DBG_PASS )
 {
    PTEXT pTemp;
-   int   nSize;
+   size_t   nSize;
    if( text )
    {
       pTemp = SegCreateEx( nSize = strlen( text ) DBG_RELAY );
@@ -563,12 +563,12 @@ PTEXT SegSubstRangeEx( PTEXT *pp_this, PTEXT end, PTEXT that DBG_PASS )
 
 //---------------------------------------------------------------------------
 
-PTEXT SegSplitEx( PTEXT *pLine, int nPos  DBG_PASS)
+PTEXT SegSplitEx( PTEXT *pLine, size_t nPos  DBG_PASS)
 {
 	// there includes the character at nPos - so all calculations
 	// on there are +1...
    PTEXT here, there;
-   int nLen;
+   size_t nLen;
    nLen = GetTextSize( *pLine );
    if( nPos > nLen )
    {
@@ -614,13 +614,13 @@ PTEXT SegSplitEx( PTEXT *pLine, int nPos  DBG_PASS)
 //---------------------------------------------------------------------------
 //---------------------------------------------------------------------------
 
-uint32_t LineLength( PTEXT pt, int bSingle )
+size_t LineLength( PTEXT pt, int bSingle )
 {
    int   TopSingle = bSingle;
    PTEXT pStack[32];
    int   nStack;
    int   skipspaces = ( PRIORLINE(pt) != NULL );
-   uint32_t length = 0;
+   size_t length = 0;
    nStack = 0;
    while( pt )
    {
@@ -741,7 +741,7 @@ PTEXT BuildLineEx( PTEXT pt, int bSingle DBG_PASS )
          }
          else
          {
-             int len;
+             size_t len;
              MemCpy( buf+ofs, GetText( pt ), len = GetTextSize( pt ) );
              ofs += len;
          }
@@ -861,7 +861,7 @@ PTEXT VarTextEndEx( PVARTEXT pvt DBG_PASS )
 	if( pvt->collect_used ) // otherwise ofs will be 0...
 	{
 		PTEXT segs;
-       segs = SegSplitEx( &pvt->collect, pvt->collect_used DBG_RELAY );
+		segs = SegSplitEx( &pvt->collect, pvt->collect_used DBG_RELAY );
 		//fprintf( stderr, WIDE("Breaking collection adding... %s\n"), GetText( segs ) );
 		// so now the remaining buffer( if any ) 
 		// is assigned to collect into.
@@ -927,7 +927,7 @@ void VarTextExpandEx( PVARTEXT pvt, int size DBG_PASS)
 
 //---------------------------------------------------------------------------
 
-int VarTextLength( PVARTEXT pvt )
+size_t VarTextLength( PVARTEXT pvt )
 {
 	//Log1( WIDE("Length is : %d"), pvt->collect_used );
 	return pvt->collect_used;

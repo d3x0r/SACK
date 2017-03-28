@@ -45,7 +45,7 @@ PLIST DeleteListEx( PLIST *pList DBG_PASS )
 
 //--------------------------------------------------------------------------
 
-PLIST ExpandListEx( PLIST *pList, INDEX amount DBG_PASS )
+PLIST ExpandListEx( PLIST *pList, size_t amount DBG_PASS )
 {
    PLIST pl;
    INDEX size;
@@ -250,7 +250,7 @@ POINTER PopLink( PLINKSTACK pls )
 
 //--------------------------------------------------------------------------
 
-PLINKSTACK ExpandStack( PLINKSTACK stack, int entries )
+PLINKSTACK ExpandStack( PLINKSTACK stack, size_t entries )
 #define ExpandStack(s,n)  ((s)=ExpandStack((s),(n)))
 {
    PLINKSTACK pNewStack;
@@ -304,7 +304,7 @@ POINTER PopData( PDATASTACK *pds )
 
 //--------------------------------------------------------------------------
 
-PDATASTACK ExpandDataStack( PDATASTACK *pds, int entries )
+PDATASTACK ExpandDataStack( PDATASTACK *pds, size_t entries )
 {
    PDATASTACK pNewStack;
    if( (*pds) )

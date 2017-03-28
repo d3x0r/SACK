@@ -108,48 +108,48 @@ typedef struct DataBlock {
 
 typedef struct LinkBlock
 {
-   uint32_t     Cnt;
+   size_t     Cnt;
    uint32_t     Lock;
    POINTER pNode[1];
 } LIST, *PLIST;
 
 typedef struct DataListBlock
 {
-   uint32_t     Cnt;
-   uint32_t     Size;
+	size_t     Cnt;
+   size_t     Size;
    uint8_t      data[1];
 } DATALIST, *PDATALIST; 
 
 typedef struct LinkStack
 {
-   uint32_t     Top;
-   uint32_t     Cnt;
+	size_t     Top;
+   size_t     Cnt;
    POINTER pNode[1];
 } LINKSTACK, *PLINKSTACK;
 
 typedef struct DataListStack
 {
-   uint32_t     Top; // next avail...
-   uint32_t     Cnt;
-   uint32_t     Size;
+	size_t     Top; // next avail...
+	size_t     Cnt;
+	size_t     Size;
    uint8_t      data[1];
 } DATASTACK, *PDATASTACK;
 
 typedef struct LinkQueue
 {
-   uint32_t     Top;
-   uint32_t     Bottom;
-   uint32_t     Cnt;
+   size_t     Top;
+   size_t     Bottom;
+   size_t     Cnt;
    uint32_t     Lock;  // thread interlock using InterlockedExchange semaphore
    POINTER pNode[2]; // need two to have distinct empty/full conditions
 } LINKQUEUE, *PLINKQUEUE;
 
 typedef struct LinkStackQueue // additional step function... 
 {
-   uint32_t     Top;
-   uint32_t     Bottom;
-   uint32_t     Next;
-   uint32_t     Cnt;
+	size_t     Top;
+   size_t     Bottom;
+   size_t     Next;
+   size_t     Cnt;
    POINTER pNode[2]; // need two to have distinct empty/full conditions
 } LINKSTACKQUEUE, *PLINKSTACKQUEUE;
 

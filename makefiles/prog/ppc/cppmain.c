@@ -9,6 +9,7 @@
 #endif
 
 #include <stdio.h>
+#include <stdlib.h>
 #include "fileio.h"
 #include "mem.h"
 #include "./types.h"

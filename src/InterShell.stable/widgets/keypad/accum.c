@@ -242,7 +242,7 @@ PACCUMULATOR GetAccumulator( CTEXTSTR name, uint32_t flags )
 		}
 		if( !pHeap )
 		{
-			lprintf( stderr, WIDE("Abort! Could not allocate accumulators!") );
+			lprintf( WIDE("Abort! Could not allocate accumulators!") );
 			exit(1);
 		}
 	}
@@ -300,7 +300,7 @@ void SetAccumulatorUpdateProc( PACCUMULATOR accum
         update->psvUpdated = psvUser;
 		if( update->next = accum->updates )
 			accum->updates->me = &update->next;
-		accum->me = &accum->updates;
+		update->me = &accum->updates;
 		accum->updates = update;
 	}
 }

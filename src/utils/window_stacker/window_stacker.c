@@ -82,7 +82,7 @@ static void CheckWindow( PENUM_STATE enum_state, HWND hWnd )
 											sizeof(szEXEName)/sizeof(TCHAR));
 
 					{
-						TEXTCHAR *extension = StrRChr( szEXEName, WIDE('.') );
+						TEXTCHAR *extension = (TEXTCHAR*)StrRChr( szEXEName, WIDE('.') );
 						PWINDOW_TRACKER tracker;
 						if( extension )
 							extension[0] = 0;

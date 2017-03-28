@@ -1,7 +1,7 @@
 #if defined( __WINTIME__ )
 #include <windows.h>
 #endif
-
+#include <stdlib.h>
 #include "mem.h"
 #include "define.h"
 #include "global.h"
@@ -760,7 +760,7 @@ int ProcessDefine( int type )
 	}
 	if( g.bDebugLog & DEBUG_SUBST )
 	{
-		fprintf( stderr, WIDE("searching for %s(%d) ... \n")
+		fprintf( stderr, WIDE("searching for %s(%zd) ... \n")
 				 ,GetText( pCurrentDefine->pName)
 				 , pCurrentDefine->pParams
 				  ? pCurrentDefine->bVarParams
@@ -774,7 +774,7 @@ int ProcessDefine( int type )
 										  , pCurrentDefine->pParams
 											? pCurrentDefine->bVarParams
 											?-(int)pCurrentDefine->pParams->Cnt
-											:pCurrentDefine->pParams->Cnt
+											:(int)pCurrentDefine->pParams->Cnt
 											: 0 );
 		if( pOld )
 		{
@@ -1136,7 +1136,7 @@ PDEF AddArgumentEx( PLIST *pArgVals, PTEXT *pVal, INDEX *pi, PDEF pDefine, int *
 		if( *pi >= pDefine->pParams->Cnt )
 		{
 			if( g.bDebugLog & DEBUG_SUBST )
-				fprintf( stddbg, WIDE("Too many paramters for %s (%zd of %d) - try var arg\n")
+				fprintf( stddbg, WIDE("Too many paramters for %s (%zd of %zd) - try var arg\n")
 						 , GetText( pDefine->pName )
 						 , *pi, pDefine->pParams->Cnt );
 			if( !pDefine->bVarParams )
@@ -1527,7 +1527,7 @@ void EvalSubstitutions( PTEXT *subst, int more )
 				if( ( g.bDebugLog & DEBUG_SUBST )
 					&& pDefine && pDefine->pParams ) // could be useful to dump arguments....
 				{
-					PTEXT arg;
+					//PTEXT arg;
 					INDEX idx;
 					if( g.bDebugLog & DEBUG_SUBST )
 						fprintf( stddbg, WIDE("Macro Arguments: \n") );
@@ -1774,7 +1774,7 @@ void EvalSubstitutions( PTEXT *subst, int more )
 				}
 				else
 				{
-					fprintf( stderr, WIDE("%s(%d): Could not match macro(%s) with specified (%d) parameters...\n")
+					fprintf( stderr, WIDE("%s(%d): Could not match macro(%s) with specified (%zd) parameters...\n")
 							 , GetCurrentFileName(), GetCurrentLine()
 							 , GetText( pStart )
 							 , pArgVals?pArgVals->Cnt:0 );

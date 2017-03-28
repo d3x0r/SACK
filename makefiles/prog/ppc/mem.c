@@ -67,7 +67,7 @@ void DisableMemoryValidate( int bDisable )
 	bDisableValidate = bDisable;
 }
 
-void *AllocateEx( int size DBG_PASS ) {
+void *AllocateEx( size_t size DBG_PASS ) {
 	PMEMBLOCK mem;
 #ifdef VALIDATE
 	ValidateMemory();
@@ -197,7 +197,7 @@ void DumpMemory( void )
 	PMEMBLOCK mem = root;
 	while( mem )
 	{
-	   fprintf( stddbg, WIDE("Block: %zd %p ")
+	   fprintf( stddbg, WIDE("Block: %d %p ")
 #ifdef _DEBUG
 	   					"%s(%d)"
 #endif
@@ -210,8 +210,8 @@ void DumpMemory( void )
 	}
 }
 
-void MemSet( void *p, int v, int n) {memset(p,v,n);}
-void MemCpy( void *p, const void *p2, int n) {memcpy(p,p2,n);}
+void MemSet( void *p, int v, size_t n) {memset(p,v,n);}
+void MemCpy( void *p, const void *p2, size_t n) {memcpy(p,p2,n);}
 
 uint32_t LockedExchange( uint32_t *p, uint32_t val )
 {

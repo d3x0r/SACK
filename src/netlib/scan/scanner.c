@@ -15,7 +15,7 @@ void ConnectProc( PCLIENT pc, int n )
 	{
 		if( n != 10061 ) // refused...
 		{
-			printf( WIDE("\rConnect on %d = %d\n"), i, n );
+			printf( WIDE("\rConnect on %zd = %d\n"), i, n );
  		}
 	}
 	else
@@ -25,7 +25,7 @@ void ConnectProc( PCLIENT pc, int n )
 	}
 	if( !n )
    {
-      fprintf( stderr, WIDE("\rSuccessful on %d\n"), i );
+      fprintf( stderr, WIDE("\rSuccessful on %zd\n"), i );
    }
    //else
       // should be noted that an error will result in the socket closing

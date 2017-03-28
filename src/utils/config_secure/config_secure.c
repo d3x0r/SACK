@@ -15,7 +15,7 @@ SaneWinMain( argc, argv )
 		length = sack_fseek( file, 0, SEEK_END );
 		buf = NewArray( uint8_t, length );
 		sack_fseek( file, 0, SEEK_SET );
-		sack_fread( buf, 1, length, file );
+		sack_fread( buf, length, 1, file );
 		sack_fclose( file );
 		result = SRG_EncryptData( buf, length );
 		{
