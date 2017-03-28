@@ -152,10 +152,12 @@ void ReleaseExx( void **pp DBG_PASS ) {
                   , p
 #ifdef _DEBUG
                   , mem->file, mem->line
-                  , pFile, nLine
 #endif
                   , mem->owners
-                  );
+#ifdef _DEBUG
+                  , pFile, nLine
+#endif
+	  );
       g.ErrorCount++;
       exit(g.ErrorCount);
    }
@@ -195,7 +197,7 @@ void DumpMemory( void )
 	PMEMBLOCK mem = root;
 	while( mem )
 	{
-	   fprintf( stddbg, WIDE("Block: %d %08x ")
+	   fprintf( stddbg, WIDE("Block: %zd %p ")
 #ifdef _DEBUG
 	   					"%s(%d)"
 #endif
@@ -230,7 +232,7 @@ uint32_t LockedExchange( uint32_t *p, uint32_t val )
 
 char *StrDupEx( const char *original DBG_PASS )
 {
-	int len = strlen( original ) + 1;
+	size_t len = strlen( original ) + 1;
 	char *result = AllocateEx( len DBG_RELAY );
 	MemCpy( result, original, len );
 	return result;

@@ -42,10 +42,10 @@ typedef struct file_dependancy_tag
 
 
 void SetCurrentPath( char *path );
-int OpenInputFile( char *basename, char *file );
-int OpenOutputFile( char *newfile );
-int OpenStdOutputFile( void );
-int OpenNewInputFile( char *basename, char *name, char *pFile, int nLine, int bDepend, int bNext );
+uintptr_t OpenInputFile( char *basename, char *file );
+uintptr_t OpenOutputFile( char *newfile );
+uintptr_t OpenStdOutputFile( void );
+uintptr_t OpenNewInputFile( char *basename, char *name, char *pFile, int nLine, int bDepend, int bNext );
 void CloseInputFileEx( DBG_VOIDPASS );
 #define CloseInputFile() CloseInputFileEx( DBG_VOIDSRC )
 

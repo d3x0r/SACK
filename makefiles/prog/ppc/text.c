@@ -288,7 +288,7 @@ PTEXT SegCreateIndirectEx( PTEXT pText DBG_PASS )
    if( pText && !(pText->flags & TF_STATIC ) )
       HoldEx( pText DBG_RELAY );
 */
-   pSeg->data.size = (int)pText;
+   pSeg->data.size = (uintptr_t)pText;
    return pSeg;
 }
 
@@ -522,7 +522,7 @@ PTEXT SegSubstRangeEx( PTEXT *pp_this, PTEXT end, PTEXT that DBG_PASS )
    PTEXT after_end = NEXTLINE( end );
    if( !_this || !end )
    {
-		fprintf( stderr, WIDE("%s(%d): returned early from segsubstrange:%lp %lp %lp\n")
+		fprintf( stderr, WIDE("%s(%d): returned early from segsubstrange:%p %p %p\n")
 				, GetCurrentFileName()
 				, GetCurrentLine()
 				, _this, end, that );
@@ -685,7 +685,7 @@ PTEXT BuildLineEx( PTEXT pt, int bSingle DBG_PASS )
    int   nStack, spaces = 0, firstadded;
    int   skipspaces = ( PRIORLINE(pt) != NULL );
    PTEXT pOut;
-   uint32_t ofs;
+   uintptr_t ofs;
    //DebugBreak();
 
    {
@@ -731,9 +731,9 @@ PTEXT BuildLineEx( PTEXT pt, int bSingle DBG_PASS )
       	// reconstructed correctly...
 
          if( pt->flags&TF_INDIRECT )
-			{
+         {
             bSingle = FALSE; // will be restored when we get back to top.
-				pStack[nStack++] = pt;
+            pStack[nStack++] = pt;
             pt = GetIndirect( pt );
             //if( nStack >= 32 )
             //   DebugBreak();
@@ -741,9 +741,9 @@ PTEXT BuildLineEx( PTEXT pt, int bSingle DBG_PASS )
          }
          else
          {
-				int len;
-				MemCpy( buf+ofs, GetText( pt ), len = GetTextSize( pt ) );
-         	ofs += len;
+             int len;
+             MemCpy( buf+ofs, GetText( pt ), len = GetTextSize( pt ) );
+             ofs += len;
          }
 
 stack_resume: ;

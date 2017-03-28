@@ -132,7 +132,6 @@ SaneWinMain( argc, argv )
 		MakeTopmost( l.render );
 		{
 			int n;
-			int x;
 			for( n = 0; n < 40; n++ )
 
 			{

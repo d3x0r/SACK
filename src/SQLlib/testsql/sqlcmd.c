@@ -1,4 +1,5 @@
 #include <stdhdrs.h>
+#include <filesys.h>
 #include <stdio.h>
 #include <pssql.h>
 #include <sharemem.h>
@@ -74,7 +75,7 @@ int main( int argc, char **argv )
 	pvt_cmd = VarTextCreateExx( 10000, 50000 );
 
 
-	while( (buf = readbuf), fgets( readbuf + offset
+	while( (buf = readbuf), sack_fgets( readbuf + offset
 					, sizeof( readbuf ) - offset
 					, input ) )
 	{

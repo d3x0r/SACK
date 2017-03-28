@@ -235,7 +235,7 @@ void ParseURI( CTEXTSTR string )
 					HTTPCollapse( &varname );
 					if( TextLike( varname, WIDE("content-length") ) )
 					{
-						content_length= IntCreateFromText( GetText( varvalue ) );
+						content_length= (int)IntCreateFromText( GetText( varvalue ) );
 					}
 					{
 						struct VAR *v = New( struct VAR );
@@ -406,19 +406,19 @@ int main( void )
          int x, y, width, height;
 			Image image = LoadImageFile( file );
          if( x_source )
-				x = IntCreateFromSeg( x_source );
+				x = (int)IntCreateFromSeg( x_source );
 			else
 				x = 0;
          if( y_source )
-				y = IntCreateFromSeg( y_source );
+				y = (int)IntCreateFromSeg( y_source );
 			else
 				y = 0;
          if( width_source )
-				width = IntCreateFromSeg( width_source );
+				width = (int)IntCreateFromSeg( width_source );
 			else
 				width = image->width;
          if( height_source )
-				height = IntCreateFromSeg( height_source );
+				height = (int)IntCreateFromSeg( height_source );
 			else
 				height = image->height;
 
@@ -444,7 +444,7 @@ int main( void )
 					uint8_t *buf;
 					if( PngImageFile( out, &buf, &size ) )
 					{
-						printf( "content-length:%d\r\n", size );
+						printf( "content-length:%zd\r\n", size );
 						printf( "content-type:image/png\r\n" );
 						printf( "\r\n" );
 						fwrite( buf, 1, size, stdout );

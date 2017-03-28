@@ -28,7 +28,7 @@ int CPROC KeyGetGatheredLine( PCHAT_LIST list, PUSER_INPUT_BUFFER pci )
 	list->input.command_mark_start = list->input.command_mark_end = 0;
 	if( line && GetTextSize( line ) )
 	{
-		list->input.phb_Input->pBlock->pLines[0].nLineLength = LineLengthExEx( list->input.CommandInfo->CollectionBuffer, FALSE, 8, NULL );
+		list->input.phb_Input->pBlock->pLines[0].nLineLength = (int)LineLengthExEx( list->input.CommandInfo->CollectionBuffer, FALSE, 8, NULL );
 		list->input.phb_Input->pBlock->pLines[0].pLine = list->input.CommandInfo->CollectionBuffer;
 		BuildDisplayInfoLines( list->input.phb_Input, list->input_font );
 		if( line )
@@ -112,7 +112,7 @@ int Chat_KeyHome( PCHAT_LIST list, PUSER_INPUT_BUFFER pci )
 		{
 			size_t index = GetInputIndex( pci );
 			old_index = index;
-			list->input.command_mark_start = list->input.command_mark_end = index;
+			list->input.command_mark_start = list->input.command_mark_end = (int)index;
 		}
 	}
 	else
@@ -124,9 +124,9 @@ int Chat_KeyHome( PCHAT_LIST list, PUSER_INPUT_BUFFER pci )
 	{
 		size_t index = GetInputIndex( pci );
 		if( index < list->input.command_mark_start )
-			list->input.command_mark_start = index;
+			list->input.command_mark_start = (int)index;
 		else if( index != old_index )
-			list->input.command_mark_end = index;
+			list->input.command_mark_end = (int)index;
 	}
 	return UPDATE_COMMAND; 
 }

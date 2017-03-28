@@ -1,5 +1,6 @@
 
 #include <stdhdrs.h>
+#include <filesys.h>
 #include <http.h>
 
 LOGICAL CPROC FallbackHandler( uintptr_t psv, struct HttpState *state )
@@ -13,7 +14,7 @@ LOGICAL CPROC FallbackHandler( uintptr_t psv, struct HttpState *state )
 		FILE *input = sack_fopen( 0, GetText( resource ) + 1, WIDE("rb") );
 		if( input )
 		{
-			int x;
+			size_t x;
 			result = SegCreate( result_size );
 			x = fread( GetText( result ), 1, result_size, input );
 			SetTextSize( result, result_size );

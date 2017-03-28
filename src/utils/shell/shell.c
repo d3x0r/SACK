@@ -9,14 +9,14 @@ PTASK_INFO task;
 
 void CPROC output( uintptr_t psv, PTASK_INFO task, CTEXTSTR buffer, size_t size )
 {
-	fprintf( stdout, WIDE("%*.*s"), size, size, buffer );
-   fflush( stdout );
+	fprintf( stdout, WIDE("%*.*s"), (int)size, (int)size, buffer );
+	fflush( stdout );
 }
 
 void CPROC ended( uintptr_t psv, PTASK_INFO task )
 {
-   fprintf( stderr, WIDE("Task has ended.") );
-   done = 1;
+	fprintf( stderr, WIDE("Task has ended.") );
+	done = 1;
 }
 
 

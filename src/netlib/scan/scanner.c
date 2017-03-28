@@ -9,13 +9,13 @@ TEXTCHAR *pAddress;
 
 void ConnectProc( PCLIENT pc, int n )
 {
-	int i = GetNetworkLong( pc, 0 );
+	uintptr_t i = GetNetworkLong( pc, 0 );
 
 	if( n != 10049 )
 	{
 		if( n != 10061 ) // refused...
 		{
-         printf( WIDE("\rConnect on %d = %d\n"), i, n );
+			printf( WIDE("\rConnect on %d = %d\n"), i, n );
  		}
 	}
 	else

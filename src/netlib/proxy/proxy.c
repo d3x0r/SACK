@@ -424,7 +424,7 @@ void ReadConfig( FILE *file )
 		}
 		else if( !strcmp( start, WIDE("timeout") ) )
 		{
-			dwTimeout = IntCreateFromText( end );
+			dwTimeout = (uint32_t)IntCreateFromText( end );
 			if( !dwTimeout )
 				dwTimeout = DEFAULT_TIMEOUT;
 			xlprintf( 2100 )( WIDE("Setting socket connect timeout to %")_32f WIDE(" milliseconds"), dwTimeout );

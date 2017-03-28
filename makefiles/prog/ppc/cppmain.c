@@ -92,7 +92,7 @@ int KillQuotes( char *string )
 		string++;
 	}
 	*out = 0;
-	return out - in; // bad form - but in never changes so this is length out.
+	return (int)(out - in); // bad form - but in never changes so this is length out.
 }
 
 //----------------------------------------------------------------------
@@ -142,7 +142,7 @@ int CollapseQuotes( char *string )
 		string++;
 	}
 	*out = 0;
-	return out - in; // bad form - but in never changes so this is length out.
+	return (int)(out - in); // bad form - but in never changes so this is length out.
 }
 
 //---------------------------------------------------------------------------
@@ -276,7 +276,7 @@ int ProcessInclude( int bNext )
 				int count;
 				char *dir = pathrchr( g.pFileStack->longname );
 				if( dir )
-					count = (dir - g.pFileStack->longname);
+					count = (int)(dir - g.pFileStack->longname);
 				else
 					count = 0;
 #if( _MSC_VER && ( _MSC_VER < 1800 ) )
@@ -1317,7 +1317,7 @@ int processArguments( int argc, char **argv ) {
 					{
 						int tmpargc;
 						char **tmpargv;
-						int len = strlen(buf);
+						int len = (int)strlen(buf);
 						if( buf[len-1] == '\n' )
 							buf[len-1] = 0;
 						ParseIntoArgs( buf, &tmpargc, &tmpargv );

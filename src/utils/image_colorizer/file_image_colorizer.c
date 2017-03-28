@@ -1,4 +1,5 @@
 #include <stdhdrs.h>
+#include <stdio.h>
 #include <configscript.h>
 
 #define DEFINE_DEFAULT_IMAGE_INTERFACE
@@ -54,7 +55,8 @@ SaneWinMain( argc, argv )
 					if( PngImageFile( out, &buf, &size ) )
 					{
 						FILE *output = sack_fopen( 0, argv[5], WIDE("wb") );
-						fwrite( buf, 1, size, output );
+						sack_fwrite( buf, 1, size, output );
+						fclose( output );
 					}
 				}
 			}

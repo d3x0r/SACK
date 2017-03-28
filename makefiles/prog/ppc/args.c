@@ -3,7 +3,9 @@
 #include "mem.h"
 
 #define NewArray(a,n)  (a*)Allocate( sizeof( a ) * n )
-#define NULL (void*)0
+#ifndef NULL
+#  define NULL (void*)0
+#endif
 void ParseIntoArgs( char *lpCmdLine, int *pArgc, char ***pArgv )
 {
 	char *args = lpCmdLine;

@@ -1,5 +1,5 @@
 #include <stdhdrs.h>
-#include <stdio.h>
+#include <filesys.h>
 #include <sharemem.h>
 
 #include <network.h>
@@ -303,7 +303,7 @@ void CPROC KillUserButton(uintptr_t psv, PCONTROL pcButton)
 		char msg[256];
 		int len;
 		len = sprintf( msg, "KILLUSER%s",
-					GetItemData(
+					(char*)GetItemData(
 						GetSelectedItem(
 							GetControl( frame, LST_USERS ) ) ) );
 		SendTCP( pc, msg, len );
@@ -321,7 +321,7 @@ void CPROC RebootUserButton(uintptr_t psv, PCONTROL pcButton)
 		char msg[256];
 		int len;
 		len = sprintf( msg, "REBOOT!!%s",
-					GetItemData(
+			(char*)GetItemData(
 						GetSelectedItem(
 							GetControl( frame, LST_USERS ) ) ) );
 		SendTCP( pc, msg, len );
@@ -339,7 +339,7 @@ void CPROC ScanUserButton(uintptr_t psv, PCONTROL pcButton)
 		char msg[256];
 		int len;
 		len = sprintf( msg, "DO SCAN!%s",
-					GetItemData(
+			(char*)GetItemData(
 						GetSelectedItem(
 							GetControl( frame, LST_USERS ) ) ) );
 		SendTCP( pc, msg, len );
@@ -357,7 +357,7 @@ void CPROC UpdateUserButton(uintptr_t psv, PCONTROL pcButton)
 		char msg[256];
 		int len;
 		len = sprintf( msg, "UPDATE  %s",
-					GetItemData(
+			(char*)GetItemData(
 						GetSelectedItem(
 							GetControl( frame, LST_USERS ) ) ) );
 		SendTCP( pc, msg, len );

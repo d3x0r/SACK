@@ -2,6 +2,7 @@
 //__NO_GUI__=1 this will never work.
 
 #include <stdhdrs.h>
+#include <filesys.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <systray.h>
@@ -80,8 +81,8 @@ void CPROC Output( uintptr_t psv, PRENDERER display )
 
 int target_out;
 INDEX current_image;
-int target_in;
-int target_in_start;
+uint32_t target_in;
+uint32_t target_in_start;
 
 void CPROC tick( uintptr_t psv )
 {
@@ -273,15 +274,15 @@ SaneWinMain(argc, argv )
 				TEXTCHAR filename[256];
 				while( fgets( filename, sizeof( filename ), file ) )
 				{
-					int len = StrLen( filename );
+					int len = (int)StrLen( filename );
 					if( len < 2 )
 						continue;
 					if( filename[0] == '#' )
 						continue;
 					if( isdigit( filename[0] ) && (len < 12))
 					{
-                  g.next_fade_in = atoi( filename );
-                  continue;
+						g.next_fade_in = atoi( filename );
+						continue;
 					}
 					if( filename[StrLen( filename )-1] == '\n' )
 						filename[StrLen( filename )-1] = 0;

@@ -25,7 +25,7 @@ struct video_player {
 	int paused;
 };
 
-typedef struct video_element {
+struct video_element {
 	int type;
 	struct video_player *player;
 	Image image;
@@ -33,7 +33,7 @@ typedef struct video_element {
 	uint32_t display_time; // how long to next image
 };
 
-typedef struct video_sequence {
+struct video_sequence {
 	int sequence;
 
 	int nImages; // convenience counter of the length of images.
@@ -463,7 +463,7 @@ static uintptr_t CPROC SetDefaultPrizeCount( uintptr_t psv, arg_list args )
 	TEXTCHAR value[32];
 	struct video_sequence *seq = GetSequence( (int)index );
 	tnprintf( value, 32, "%d", (int)index );
-	seq->prize_count = SACK_GetProfileInt( "Prize Counts", value, count );
+	seq->prize_count = SACK_GetProfileInt( "Prize Counts", value, (int32_t)count );
 	g.prize_total += seq->prize_count;
 	return psv;
 }

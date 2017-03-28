@@ -88,17 +88,16 @@ SaneWinMain( argc, argv )
 	main_thread = MakeThread();
 	while( !done )
 	{
-		TEXTCHAR buf[256];
 		if( nowait )
 			WakeableSleep( 1000 );
 		else
 		{
-         nowait = 1;
+			nowait = 1;
 		}
 	}
-   if( task_monitor )
+	if( task_monitor )
 		SendMessage( FindWindow( WIDE("TaskMonClass"), WIDE("Task Completion Monitor") ), WM_USER+500, 0, 0 );
-   fprintf( stdout, WIDE("Shell Completed.") );
-   return 0;
+	fprintf( stdout, WIDE("Shell Completed.") );
+	return 0;
 }
 EndSaneWinMain()

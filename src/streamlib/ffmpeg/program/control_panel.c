@@ -127,9 +127,9 @@ static void CPROC video_position_update( uintptr_t psvPanel, uint64_t tick )
 {
 	struct media_control_panel *panel = ( struct media_control_panel *)psvPanel;
 	panel->flags.setting_position = 1;
-	SetSliderValues( panel->seek_slider, 0, tick / (100000), 10000 );  // 100.00%
+	SetSliderValues( panel->seek_slider, 0, (int)(tick / (100000)), 10000 );  // 100.00%
 	panel->flags.setting_position = 0;
-	UpdateProgress( panel, tick / 100000 );
+	UpdateProgress( panel, (int)(tick / 100000) );
 
 }
 

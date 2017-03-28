@@ -536,21 +536,21 @@ void LogExpression( POPNODE root )
 		{
 			fprintf( stderr, WIDE("( ") );
 			LogExpression( root->data.sub );
-         fprintf( stderr, WIDE(" )") );
+			fprintf( stderr, WIDE(" )") );
 		}
-      else
+		else
 		{
-			fprintf( stderr, WIDE("(%s = %Ld)"), fullopname[root->op],root->data.i );
+			fprintf( stderr, WIDE("(%s = %lld)"), fullopname[root->op],root->data.i );
 		}
 #ifdef __LINUX__
 		if( root->right )
 			if( root->right->left != root )
 				asm( WIDE("int $3\n") );
 #endif
-      root = root->right;
+		root = root->right;
 	}
 	level--;
-   if( !level )
+	if( !level )
 		fprintf( stderr, WIDE("\n") );
 }
 
@@ -634,7 +634,7 @@ POPNODE BuildExpression( void ) // expression is queued
 			}
 			else if( ThisOp->op == OP_CHARACTER_CONST )
 			{
-				int n, len = GetTextSize( thisword );
+				int n, len = (int)GetTextSize( thisword );
 				for( n = 0; n < thisword->format.spaces; n++ )
 				{
 					if( !overflow && 

@@ -150,7 +150,7 @@ PFILEDEP AddDepend( PFILEDEP root, char *basename, char *filename )
 //----------------------------------------------------------------------
 
 PFILEDEP AddFileDepend( PFILETRACK pft, char *basename, char *filename ) {
-	AddDepend( pft->pFileDep, basename, filename );
+	return AddDepend( pft->pFileDep, basename, filename );
 }
 
 //----------------------------------------------------------------------
@@ -352,12 +352,12 @@ void WriteCurrentLineInfo( void )
 
 //----------------------------------------------------------------------
 
-void WriteLine( int len, char *line )
+void WriteLine( size_t len, char *line )
 {
 	FILE *out = GetCurrentOutput();
 	if( out )
 	{
-		fwrite( line, 1, len, out );
+		fwrite( line, len, 1, out );
 		fputc( '\n', out );
 		//fflush( out );
 	}
@@ -423,7 +423,7 @@ PTEXT StepCurrentWord( void )
 
 //----------------------------------------------------------------------
 // root level open.
-int OpenInputFile( char *basename, char *file )
+uintptr_t OpenInputFile( char *basename, char *file )
 {
 	PFILETRACK pft;
 	FILE *fp;
@@ -458,12 +458,12 @@ int OpenInputFile( char *basename, char *file )
 	}
 	else
 		pft = NULL;
-	return (int)pft;
+	return (uintptr_t)pft;
 }
 
 //----------------------------------------------------------------------
 
-int OpenNewInputFile( char *basename, char *name, char *pFile, int nLine, int bDepend, int bNext )
+uintptr_t OpenNewInputFile( char *basename, char *name, char *pFile, int nLine, int bDepend, int bNext )
 {
 	PFILETRACK pft = g.pFileStack;
 	PFILETRACK pftNew = NULL;
@@ -511,12 +511,12 @@ int OpenNewInputFile( char *basename, char *name, char *pFile, int nLine, int bD
 			pftNew->pFileDep = NULL;
 		g.pFileStack = pftNew;
 	}
-	return (int)pftNew;
+	return (uintptr_t)pftNew;
 }
 
 //----------------------------------------------------------------------
 
-int OpenOutputFile( char *newfile )
+uintptr_t OpenOutputFile( char *newfile )
 {
 	//PFILETRACK pft = g.pFileStack;
 	//if( pft )
@@ -532,7 +532,7 @@ int OpenOutputFile( char *newfile )
 
 //----------------------------------------------------------------------
 
-int OpenStdOutputFile( void )
+uintptr_t OpenStdOutputFile( void )
 {
 	PFILETRACK pft = g.pFileStack;
 	if( pft )
@@ -898,8 +898,6 @@ Restart:
 
 						if( nSlash >= 2 )
 						{
-							PTEXT pout;
-
 							if( pStart == pNew )
 							{
 								// releasing the whole line...

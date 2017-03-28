@@ -25,7 +25,6 @@ char NextCharEx( PTEXT input, INDEX idx )
 
 PTEXT BreakAndAddEx( char character, PTEXT outdata, VARTEXT *out, uint32_t *spaces )
 {
-   PTEXT tmp;
 	PTEXT word;
 
 	if( ( word = VarTextGetEx( out DBG_SRC ) ) )
@@ -597,7 +596,7 @@ PTEXT get_line(FILE *source, int *line)
 {
    #define WORKSPACE 128  // characters for workspace
    PTEXT workline=(PTEXT)NULL,pNew;
-   uint32_t length = 0;
+   uintptr_t length = 0;
    if( !source )
       return NULL;
    do

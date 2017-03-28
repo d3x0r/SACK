@@ -1997,13 +1997,13 @@ static CTEXTSTR SubstituteNameVars( CTEXTSTR name )
 	while( this_var = StrChr( start, '%' ) )
 	{
 		if( start < this_var )
-			vtprintf( pvt, "%*.*s", this_var-start, this_var-start, start );
+			vtprintf( pvt, "%*.*s", (int)(this_var-start), (int)(this_var-start), start );
 		end = StrChr( this_var + 1, '%' );
 		if( end )
 		{
 			TEXTCHAR *tmpvar = NewArray( TEXTCHAR, end - this_var );
 			CTEXTSTR envvar;
-			snprintf( tmpvar, end-this_var, "%*.*s", end-this_var-1, end-this_var-1, this_var + 1 );
+			snprintf( tmpvar, end-this_var, "%*.*s", (int)(end-this_var-1), (int)(end-this_var-1), this_var + 1 );
 			envvar = OSALOT_GetEnvironmentVariable( tmpvar );
 			if( envvar )
 				vtprintf( pvt, "%s", OSALOT_GetEnvironmentVariable( tmpvar ) );

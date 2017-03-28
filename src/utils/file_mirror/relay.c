@@ -1474,20 +1474,20 @@ static void UpdateStatus( PACCOUNT account )
 	TEXTCHAR msg[256];
 	if( account->flags.manifest_process )
 	{
-		snprintf( msg, sizeof( msg ), "Files(%d) %d bytes", account->manifest_files.count, account->manifest_files.size );
+		snprintf( msg, sizeof( msg ), "Files(%zd) %zd bytes", account->manifest_files.count, account->manifest_files.size );
 		SetControlText( GetControl( account->client.frame, 1 ), msg );
 	}
 	else
 	{
-		snprintf( msg, sizeof( msg ), "Blocks: %d of %d", account->finished_files.count, account->files.count );
+		snprintf( msg, sizeof( msg ), "Blocks: %zd of %zd", account->finished_files.count, account->files.count );
 		SetControlText( GetControl( account->client.frame, 1 ), msg );
-		snprintf( msg, sizeof( msg ), "Bytes: %d of %d", account->finished_files.size, account->files.size );
+		snprintf( msg, sizeof( msg ), "Bytes: %zd of %zd", account->finished_files.size, account->files.size );
 		SetControlText( GetControl( account->client.frame, 2 ), msg );
 		if( ( now - account->files.start ) / 1000 )
 		{
-			snprintf( msg, sizeof( msg ), "Blocks/sec: %d", account->finished_files.count / ( ( now - account->files.start ) / 1000 ) );
+			snprintf( msg, sizeof( msg ), "Blocks/sec: %zd", account->finished_files.count / ( ( now - account->files.start ) / 1000 ) );
 			SetControlText( GetControl( account->client.frame, 3 ), msg );
-			snprintf( msg, sizeof( msg ), "Bytes/sec: %d", account->finished_files.size * 10 / ( ( now - account->files.start ) / 100 ) );
+			snprintf( msg, sizeof( msg ), "Bytes/sec: %zd", account->finished_files.size * 10 / ( ( now - account->files.start ) / 100 ) );
 			SetControlText( GetControl( account->client.frame, 4 ), msg );
 		}
 	}
@@ -1556,8 +1556,8 @@ uintptr_t CPROC ClientTimerProc( PTHREAD thread )
 								lprintf( WIDE("need login - try lock?"));
 								lprintf( WIDE("Connected, and logging in as %s"), account->unique_name );
 								len = sprintf( msg, "VERS%c%sUSER%c%s"
-												 , strlen( RELAY_VERSION ), RELAY_VERSION
-												 , strlen( account->unique_name ), account->unique_name );
+												 , (int)strlen( RELAY_VERSION ), RELAY_VERSION
+												 , (int)strlen( account->unique_name ), account->unique_name );
 								pns->version = MakeVersionCode( RELAY_VERSION );
 								SendTCP( account->client.TCPClient, msg, len );
 								account->flags.sent_login = 1;

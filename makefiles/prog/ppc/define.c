@@ -1136,7 +1136,7 @@ PDEF AddArgumentEx( PLIST *pArgVals, PTEXT *pVal, INDEX *pi, PDEF pDefine, int *
 		if( *pi >= pDefine->pParams->Cnt )
 		{
 			if( g.bDebugLog & DEBUG_SUBST )
-				fprintf( stddbg, WIDE("Too many paramters for %s (%d of %d) - try var arg\n")
+				fprintf( stddbg, WIDE("Too many paramters for %s (%zd of %d) - try var arg\n")
 						 , GetText( pDefine->pName )
 						 , *pi, pDefine->pParams->Cnt );
 			if( !pDefine->bVarParams )
@@ -1332,7 +1332,7 @@ void EvalSubstitutions( PTEXT *subst, int more )
 			PLIST pArgVals = NULL;
 			if( g.bDebugLog & DEBUG_SUBST )
 			{
-				fprintf( stddbg, WIDE("Found substitution for %s params:%lp\n"), GetText( pWord ), pDefine->pParams );
+				fprintf( stddbg, WIDE("Found substitution for %s params:%p\n"), GetText( pWord ), pDefine->pParams );
 			}
 			// don't use it yet....
 			//pDefine->bUsed = TRUE;
@@ -1541,7 +1541,7 @@ void EvalSubstitutions( PTEXT *subst, int more )
 								fprintf( stddbg, WIDE("%s = %s (%p)\n")
 										, name?GetText( name ):"..."
 										, GetText( full )
-										, arg );
+										, pArgVals->pNode[idx] );
 								LineRelease( full );
 						}
 					}

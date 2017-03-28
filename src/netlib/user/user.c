@@ -40,7 +40,7 @@ static void CPROC Connected( PCLIENT pc, int err ) {
 		if( !ssl_BeginClientSession( pc, NULL, 0 ) ) {
 			SystemLog( WIDE( "Failed to create client ssl session" ) );
 			RemoveClient( pc );
-			return FALSE;
+			return;
 		}
 	{
 		POINTER key;

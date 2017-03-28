@@ -6,7 +6,7 @@
 static int SetRegistryItem( HKEY hRoot, TCHAR *pPrefix,
                      TCHAR *pKey, 
                      DWORD dwType,
-                     TCHAR *pValue, int nSize )
+                     TCHAR *pValue, size_t nSize )
 {
    DWORD dwStatus;
    HKEY hTemp;
@@ -58,10 +58,9 @@ SaneWinMain( argc, argv )
 	int arg;
 	int state = 0;
 
-   DWORD dwType;
+	DWORD dwType;
 	TCHAR * reg_path;
-   TCHAR * reg_value;
-   TCHAR * reg_entry;
+	TCHAR * reg_entry;
 	HKEY hkey_root;
 	if( argc < 2 )
 	{

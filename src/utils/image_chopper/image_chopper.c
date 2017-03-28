@@ -1,5 +1,6 @@
 
 #include <stdhdrs.h>
+#include <filesys.h>
 #define USE_IMAGE_INTERFACE l.pii
 
 #include <image.h>

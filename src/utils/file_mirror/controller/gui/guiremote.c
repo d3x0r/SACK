@@ -1,5 +1,5 @@
-#include <stdio.h>
-#include <stdio.h>
+#include <stdhdrs.h>
+#include <filesys.h>
 #include <controls.h>
 #include "resources.h"
 

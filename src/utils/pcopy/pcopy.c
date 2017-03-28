@@ -262,7 +262,6 @@ int ScanFile( PFILESOURCE pfs )
 	MY_IMAGE_DOS_HEADER dos_header;
 	MY_IMAGE_NT_HEADERS nt_header;
 	MY_IMAGE_OPTIONAL_HEADER nt_optional_header;
-	MY_IMAGE_OPTIONAL_HEADER other_optional_header;
 	MY_IMAGE_OPTIONAL_HEADER *pother_optional_header;
 	pother_optional_header = (MY_IMAGE_OPTIONAL_HEADER*)&nt_optional_header;
 	//printf("Attempt to scan: %s\n", pfs->name );
@@ -383,7 +382,6 @@ int ScanFile( PFILESOURCE pfs )
 					{
 						char *data;
 						MY_IMAGE_IMPORT_DESCRIPTOR *iid;
-						IMAGE_IMPORT_DESCRIPTOR *iid_real;
 						long v = dir[1].VirtualAddress;
 						MY_IMAGE_IMPORT_DESCRIPTOR *directory;
 						int m;
@@ -400,7 +398,7 @@ int ScanFile( PFILESOURCE pfs )
 							fseek( file, v, SEEK_SET );
 							fread( data, 1, section->SizeOfRawData/*dir[1].Size*/, file );
 						}
-						directory = (data + dir[1].VirtualAddress - section->VirtualAddress);
+						directory = (MY_IMAGE_IMPORT_DESCRIPTOR*)(data + dir[1].VirtualAddress - section->VirtualAddress);
 						//printf( "Import data at %08x\n", section.VirtualAddress );
 
 						for( m = 0; (iid = (MY_IMAGE_IMPORT_DESCRIPTOR*)(directory+m))// (data + directory + sizeof( *iid ) * m))
@@ -461,7 +459,6 @@ int ScanFile( PFILESOURCE pfs )
 			}
 			if( pe64 )
 			{
-				uint32_t buffer[28];
 				uint64_t value;
 				int count;
 				int offset = 
@@ -520,7 +517,7 @@ int ScanFile( PFILESOURCE pfs )
 				TEXTSTR path = (TEXTSTR)OSALOT_GetEnvironmentVariable( WIDE("PATH") );
 				TEXTSTR tmp;
 				static TEXTCHAR tmpfile[256 + 64];
-				while( tmp = StrChr( path, ';' ) )
+				while( tmp = (TEXTSTR)StrChr( path, ';' ) )
 				{
 					tmp[0] = 0;
 #ifdef _MSC_VER

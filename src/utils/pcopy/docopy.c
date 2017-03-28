@@ -88,7 +88,7 @@ void AddFileCopy( CTEXTSTR name )
 				snprintf( real_tmp, len, WIDE("%s") PATHCHAR WIDE("%s"), path, tmp );
 #endif
 				Release( tmp );
-				while( path = StrStr( real_tmp, WIDE("..") ) )
+				while( path = (TEXTSTR)StrStr( real_tmp, WIDE("..") ) )
 				{
 					TEXTSTR prior;
 					path[-1] = 0;

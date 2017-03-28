@@ -84,8 +84,8 @@ typedef TEXTCHAR *TEXTSTR;
 #endif
 //#define SOCKADDR    sockaddr
 
-typedef uint32_t   INDEX;
-#define INVALID_INDEX ((uint32_t)-1) 
+typedef size_t   INDEX;
+#define INVALID_INDEX ((size_t)-1) 
 typedef void  *POINTER;
 typedef const void *CPOINTER;
 typedef uint32_t LOGICAL;
@@ -98,10 +98,10 @@ typedef uint32_t LOGICAL;
 #endif
 
 
-#define DECLDATA(name,sz) struct {uint32_t size; uint8_t data[sz];} name
+#define DECLDATA(name,sz) struct {uintptr_t size; uint8_t data[sz];} name
 
 typedef struct DataBlock {
-   uint32_t size;     // size is sometimes a pointer value...
+   uintptr_t size;     // size is sometimes a pointer value...
                  // this means bad thing when we change platforms...
    uint8_t  data[1]; // beginning of var data - this is created size+sizeof(VPA)
 } DATA, *PDATA;

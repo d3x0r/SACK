@@ -35,7 +35,7 @@ PCLIENT pc_user;
 
 void CPROC Closed( PCLIENT pc )
 {
-	int sock = GetNetworkLong( pc, 0 );
+	uintptr_t sock = GetNetworkLong( pc, 0 );
 	lprintf( "connection %p %d closed... reopen", pc, sock );
 	if( sock )
 	{

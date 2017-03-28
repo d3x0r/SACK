@@ -1881,7 +1881,7 @@ static void DrawTextEntry( PSI_CONTROL pc, PCHAT_LIST list, LOGICAL update )
 
 		{
 			int nLine, nCursorLine, nDisplayLine;
-			uint32_t cursor_pos = list->input.CommandInfo->CollectionIndex;
+			size_t cursor_pos = list->input.CommandInfo->CollectionIndex;
 			uint32_t counter;
 			DISPLAYED_LINE *pCurrentLine;
 			PDATALIST *ppCurrentLineInfo;
@@ -1939,7 +1939,7 @@ static void DrawTextEntry( PSI_CONTROL pc, PCHAT_LIST list, LOGICAL update )
 						PTEXT tmp;
 						uint32_t amount = cursor_pos;
 						uint32_t seg_amount;
-						uint32_t seg_start = pCurrentLine->nFirstSegOfs;
+						size_t seg_start = pCurrentLine->nFirstSegOfs;
 						for( tmp = pCurrentLine->start; cursor_pos && tmp; tmp = NEXTLINE( tmp ) )
 						{
 							seg_amount = GetTextSize( tmp ) - seg_start;
@@ -2106,7 +2106,7 @@ static int OnDrawCommon( CONTROL_NAME )( PSI_CONTROL pc )
 	return 1;
 }
 
-uint32_t GetChatInputCursor( PCHAT_LIST list, int x, int y )
+size_t GetChatInputCursor( PCHAT_LIST list, int x, int y )
 {
 	PDATALIST *ppCurrentLineInfo = GetDisplayInfo( list->input.phb_Input );
 	int nLine = list->input.command_skip_lines + ( list->input.command_lines - ( 1 + y / list->nFontHeight ) ); 
