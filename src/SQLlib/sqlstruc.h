@@ -129,7 +129,8 @@ struct odbc_handle_tag{
 		BIT_FIELD bAutoClose : 1; // don't leave the connection open 100%; open when required and close when idle
 		BIT_FIELD bVFS : 1;
 	} flags;
-	uint32_t last_command_tick;
+	uint32_t last_command_tick; // this one tracks auto commit state; it is cleared when a commit happens
+	uint32_t last_command_tick_; // this one tracks truly the last operation on a connection
 	uint32_t commit_timer;
 	PCOLLECT collection;
 	int native; // saved for resulting with native error code...

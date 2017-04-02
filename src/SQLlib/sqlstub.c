@@ -323,6 +323,12 @@ static void decomputePassword(sqlite3_context*onwhat,int n,sqlite3_value**argv)
 
 void ExtendConnection( PODBC odbc )
 {
+	if( odbc->flags.bAutoClose )
+	{
+		lprintf( "Extned found autoclose" );
+		if( !odbc->auto_close_thread )
+			odbc->auto_close_thread = ThreadTo( AutoCloseThread, (uintptr_t)odbc );
+	}
 	int rc = sqlite3_create_function(
 												odbc->db //sqlite3 *,
 											  , "now"  //const char *zFunctionName,
@@ -440,6 +446,8 @@ void ExtendConnection( PODBC odbc )
 		//if( result )
 		//	lprintf( WIDE( "Journal is now %s" ), result );
 		SQLEndQuery( odbc );
+		SQLQueryf( odbc, &result, WIDE( "PRAGMA wal_checkpoint;" ) );
+		SQLEndQuery( odbc );
 		odbc->flags.bNoLogging = n;
 		//SQLQueryf( odbc, &result, WIDE( "PRAGMA journal_mode" ) );
 		//lprintf( WIDE( "Journal is now %s" ), result );
@@ -527,6 +535,25 @@ void SQLSetFeedbackHandler( void (CPROC*HandleSQLFeedback)(CTEXTSTR message) )
 	g.feedback_handler = HandleSQLFeedback;
 }
 //----------------------------------------------------------------------
+
+static LOGICAL IsOdbcIdle( PODBC odbc ) {
+	PCOLLECT pCollect;
+	pCollect = odbc?odbc->collection:NULL;
+	for( ;pCollect;pCollect=NextThing(pCollect) )
+#if defined( USE_SQLITE ) || defined( USE_SQLITE_INTERFACE )
+		// still has an active statement.
+		if( pCollect->stmt )
+			return FALSE;
+#endif
+#if defined( USE_ODBC )
+		// still has an active statement.
+		if( pCollect->hstmt )
+			return FALSE;
+#endif
+	return TRUE;
+}
+
+
 #ifdef LOG_COLLECTOR_STATES
 		static int collectors;
 #endif
@@ -565,7 +592,7 @@ static PCOLLECT CreateCollectorEx( PSERVICE_ROUTE SourceID, PODBC odbc, LOGICAL 
 			if( odbc->flags.bPushed )
 			{
 				pCollect->flags.bPushed = 1;
-				pCollect->flags.bTemporary = 1; 
+				pCollect->flags.bTemporary = 1;
 				odbc->flags.bPushed = 0;
 			}
 			return pCollect; // already have a temp available.. use it.
@@ -581,7 +608,7 @@ static PCOLLECT CreateCollectorEx( PSERVICE_ROUTE SourceID, PODBC odbc, LOGICAL 
 			if( odbc->flags.bPushed )
 			{
 				pCollect->flags.bPushed = 1;
-				pCollect->flags.bTemporary = 1; 
+				pCollect->flags.bTemporary = 1;
 				odbc->flags.bPushed = 0;
 			}
 			return pCollect;
@@ -624,7 +651,7 @@ static PCOLLECT CreateCollectorEx( PSERVICE_ROUTE SourceID, PODBC odbc, LOGICAL 
 	if( odbc->flags.bPushed )
 	{
 		pCollect->flags.bPushed = 1;
-		pCollect->flags.bTemporary = 1; 
+		pCollect->flags.bTemporary = 1;
 		odbc->flags.bPushed = 0;
 	}
 	return pCollect;
@@ -805,7 +832,9 @@ void SetSQLAutoClose( PODBC odbc, LOGICAL bEnable )
 		odbc->flags.bAutoClose = bEnable;
 		if( bEnable )
 		{
-			if( !odbc->auto_close_thread )
+			// no thread already, and it is connected (otherwise later, connection will be made, and this scheduled)
+lprintf( "Start autoclose..." );
+			if( !odbc->auto_close_thread && odbc->flags.bConnected )
 				odbc->auto_close_thread = ThreadTo( AutoCloseThread, (uintptr_t)odbc );
 		}
 		else
@@ -910,8 +939,8 @@ void InitLibrary( void )
 				FILE *file;
 				file = sack_fopen( 1
 					, WIDE("*/sql.config")
-					, WIDE("wt") 
-#ifdef _UNICODE 
+					, WIDE("wt")
+#ifdef _UNICODE
 					WIDE(", ccs=UNICODE")
 #endif
 					);
@@ -1096,7 +1125,7 @@ int OpenSQLConnectionEx( PODBC odbc DBG_PASS )
 								//, odbc->info.pPASSWORD[0]?WIDE(";PWD="):WIDE("")
 								//, odbc->info.pPASSWORD[0]?odbc->info.pPASSWORD:WIDE("")
 							  );
-				else 
+				else
 					continue;
 
 				pConnect = VarTextGet( pvt );
@@ -1265,14 +1294,14 @@ int OpenSQLConnectionEx( PODBC odbc DBG_PASS )
 						TEXTCHAR *_vfs_name = DupCStr( vfs_name );
 						char *_tmpvfsvfs = CStrDup( tmpvfsvfs );
 #    define vfs_name _vfs_name
-#    define tmpvfsvfs _tmpvfsvfs 
+#    define tmpvfsvfs _tmpvfsvfs
 #  endif
 						sqlite_iface->InitVFS( vfs_name, sack_get_mounted_filesystem( tmpvfsvfs ) );
 #  ifdef UNICODE
 						Deallocate( TEXTCHAR *,_vfs_name );
 						Deallocate( char *, _tmpvfsvfs );
-#    undef vfs_name 
-#    undef tmpvfsvsf 
+#    undef vfs_name
+#    undef tmpvfsvsf
 #  endif
 #endif
 					}
@@ -1388,37 +1417,39 @@ uintptr_t CPROC AutoCloseThread( PTHREAD thread )
 	uintptr_t psv = GetThreadParam( thread );
 	PODBC odbc = (PODBC)psv;
 	int tick = 0;
-	//lprintf( "begin..." );
-	while( odbc->last_command_tick && odbc->flags.bAutoClose )
+	// initialize this to something; this is called when a connection opens...
+	// so that makes the first operation the database open tick.
+	odbc->last_command_tick_ = timeGetTime();
+	while( odbc->flags.bAutoClose )
 	{
-		//lprintf( WIDE( "waiting..." ) );
 		// if it expires, set tick and get out of loop
 		// clearing last_command_tick will also end the thread (a manual sqlcommit on the connection)
-		if( odbc->last_command_tick < ( timeGetTime() - 1000 ) )
+		if( !odbc->auto_commit_thread // let commits finish first...
+		  &&( odbc->last_command_tick_ < ( timeGetTime() - 1000 ) )
+		  // is idle; no statements active in the collections on the connection
+		  && IsOdbcIdle( odbc ) )
 		{
+			// make sure we still need to close (modeled more after commit; this could be less paranoid)
 			if( ( !odbc->flags.bAutoClose )
-				|| EnterCriticalSecNoWait( &odbc->cs, NULL ) )
+			// and then claim the thread protection to prevent more statements from starting while we close this
+			  || (( odbc->flags.bThreadProtect )?EnterCriticalSecNoWait( &odbc->cs, NULL ):1) )
 			{
-				//lprintf( WIDE( "tick and out " ));
 				tick = 1;
 				break;
 			}
 		}
 		WakeableSleep( 250 );
 	}
-
 	// a SQLCommit may have happened outside of this, which cleas last_command_tick
-	if( odbc->last_command_tick && tick && odbc->flags.bAutoClose )
+	if( tick && odbc->flags.bAutoClose )
 	{
+		// this will close any in progress result sets... still need a check
 		CloseDatabaseEx( odbc, FALSE );
-		odbc->auto_close_thread = NULL;
+		// release our lock allowing any statement that started JUST as this ticked to resume.
+		if( odbc->flags.bThreadProtect )
+			LeaveCriticalSec( &odbc->cs );
 	}
-	else
-	{
-		odbc->auto_close_thread = NULL;
-	}
-
-
+	odbc->auto_close_thread = NULL;
 	return 0;
 }
 
@@ -1487,6 +1518,7 @@ static void BeginTransactEx( PODBC odbc, int force )
 		//    okay if there IS a tick, then the OR is triggered, which sets the time, and it will be non zero,
 		//    so that will fail the IF, but set the time.
 		// if there is NOT a last command tick, then we add the timer
+		odbc->last_command_tick_ = newtick;
 		if( force || !odbc->last_command_tick )
 		{
 			int prior;
@@ -1850,7 +1882,7 @@ void FailConnection( PODBC odbc )
 			DumpInfo( odbc, pvt, SQL_HANDLE_DBC, &odbc->hdbc, odbc->flags.bNoLogging );
 			if( odbc->flags.bFailEnvOnDbcFail )
 				DumpInfo( odbc, pvt, SQL_HANDLE_ENV, &odbc->env, odbc->flags.bNoLogging );
-			
+
 		}
 #endif
 		text = VarTextPeek( pvt );
@@ -2424,8 +2456,9 @@ int __DoSQLCommandEx( PODBC odbc, PCOLLECT collection DBG_PASS )
 		const TEXTCHAR *tail;
 		char *tmp_cmd;
 retry:
+		odbc->last_command_tick_ = timeGetTime();
 		if( odbc->last_command_tick )
-			odbc->last_command_tick = timeGetTime();
+			odbc->last_command_tick = odbc->last_command_tick_;
 		tmp_cmd = DupTextToChar( GetText( cmd ) );
 		// can get back what was not used when parsing...
 #ifdef UNICODE
@@ -2527,7 +2560,7 @@ retry:
 		}
 		{
 			rc = SQLExecDirect( collection->hstmt,
-#ifdef _UNICODE 
+#ifdef _UNICODE
 									 (SQLWCHAR*)GetText( cmd )
 #else
 									 (SQLCHAR*)GetText( cmd )
@@ -2794,6 +2827,9 @@ int __GetSQLResult( PODBC odbc, PCOLLECT collection, int bMore )
 		return 0;
 	}
 #if !defined( SQLPROXY_LIBRARY_SOURCE ) && !defined( SQLPROXY_SOURCE )
+	// really this shouldn't be done in get result
+	// if the connection failed between query and result there wouldn't be a result anyway?
+	// so I guess this is just to protect getresult if the connection did fail.?
 	if( !OpenSQLConnectionEx( odbc DBG_SRC ) )
 	{
 		GenerateResponce( collection, WM_SQL_RESULT_ERROR );
@@ -2934,7 +2970,7 @@ int __GetSQLResult( PODBC odbc, PCOLLECT collection, int bMore )
 							rc = SQLDescribeCol( collection->hstmt
 													 , idx
 													 ,
-#ifdef _UNICODE 
+#ifdef _UNICODE
 													  (SQLWCHAR*)colname
 													  , sizeof(colname)
 #else
@@ -2975,7 +3011,7 @@ int __GetSQLResult( PODBC odbc, PCOLLECT collection, int bMore )
 				lprintf( WIDE("no data") );
 				VarTextDestroy( &pvtData );
 			}
-											
+
 			result_cmd = WM_SQL_RESULT_NO_DATA;
 			collection->flags.bTemporary = 1;
 			collection->flags.bEndOfFile = 1;
@@ -3460,8 +3496,9 @@ int __DoSQLQueryEx( PODBC odbc, PCOLLECT collection, CTEXTSTR query DBG_PASS )
 	{
 		return FALSE;
 	}
+	odbc->last_command_tick_ = timeGetTime();
 	if( odbc->last_command_tick )
-		odbc->last_command_tick = timeGetTime();
+		odbc->last_command_tick = odbc->last_command_tick_;
 	if( odbc->flags.bThreadProtect )
 	{
 		EnterCriticalSec( &odbc->cs );
@@ -3497,7 +3534,7 @@ int __DoSQLQueryEx( PODBC odbc, PCOLLECT collection, CTEXTSTR query DBG_PASS )
 #endif
 
 	// try and get query from collector if NULL
-	if( query ) 
+	if( query )
 	{
 		VarTextEmpty( collection->pvt_out );
 		vtprintf( collection->pvt_out, WIDE( "%s" ), query );
@@ -3976,7 +4013,7 @@ int PushSQLQueryExEx( PODBC odbc DBG_PASS )
 #endif
 		CreateCollectorEx( 0, odbc, FALSE DBG_RELAY );
 		odbc->collection->flags.bPushed = 1;
-		odbc->collection->flags.bTemporary = 1; 
+		odbc->collection->flags.bTemporary = 1;
 #ifdef LOG_COLLECTOR_STATES
 		_lprintf(DBG_RELAY)( WIDE("pushing the query onto stack... creating new state.") );
 #endif
@@ -4214,7 +4251,7 @@ void ConvertSQLDateEx( CTEXTSTR date
 			natoi( n, p, 3 ); if( msec ) *msec = n;
 		}
 	}
-	else 
+	else
 	{
 		if( hour ) *hour = 0;
 		if( minute ) *minute = 0;

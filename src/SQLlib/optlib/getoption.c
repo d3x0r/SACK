@@ -234,8 +234,6 @@ void SetOptionDatabaseOption( PODBC odbc )
 	POPTION_TREE tree = GetOptionTreeExxx( odbc, NULL DBG_SRC );
 	if( tree )
 	{
-		//tree->flags.bCreated = FALSE;
-		//lprintf( "Set tree %p to newversion %d", tree, bNewVersion );
 		if( global_sqlstub_data->flags.bInited )
 			CreateOptionDatabaseEx( odbc, tree );
 	}
@@ -1314,6 +1312,7 @@ PODBC GetOptionODBCEx( CTEXTSTR dsn  DBG_PASS )
 			lprintf( "none available, create new connection." );
 #endif
 			odbc = ConnectToDatabaseExx( tracker->name, TRUE DBG_RELAY );
+			SetSQLAutoClose( odbc, TRUE );
 			if( !tracker->shared_option_tree )
 			{
 				POPTION_TREE option = GetOptionTreeExxx( odbc, NULL DBG_RELAY );
