@@ -1395,6 +1395,8 @@ void SQLCommit( PODBC odbc )
 			odbc->flags.bAutoTransact = 0;
 			// the commit command itself will cause SQLCommit to be called - so we turn off autotransact and would create a transaction thread etc...
 			SQLCommand( odbc, WIDE( "COMMIT" ) );
+			if( odbc->flags.bSQLite_native )
+				SQLCommand( odbc, WIDE( "PRAGMA wal_checkpoint" ) );
 			odbc->flags.bAutoTransact = n;
 			if( odbc->auto_commit_callback )
 				odbc->auto_commit_callback( odbc->auto_commit_callback_psv, odbc );

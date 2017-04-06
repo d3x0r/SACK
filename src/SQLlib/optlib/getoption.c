@@ -1312,7 +1312,7 @@ PODBC GetOptionODBCEx( CTEXTSTR dsn  DBG_PASS )
 			lprintf( "none available, create new connection." );
 #endif
 			odbc = ConnectToDatabaseExx( tracker->name, TRUE DBG_RELAY );
-			SetSQLAutoClose( odbc, TRUE );
+			//SetSQLAutoClose( odbc, TRUE );
 			if( !tracker->shared_option_tree )
 			{
 				POPTION_TREE option = GetOptionTreeExxx( odbc, NULL DBG_RELAY );
