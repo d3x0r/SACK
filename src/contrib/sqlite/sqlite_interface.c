@@ -50,6 +50,7 @@ struct sqlite_interface my_sqlite_interface = {
 															 , sqlite3_backup_remaining
 															 , sqlite3_backup_finish
 															 , sqlite3_extended_errcode
+                                              , sqlite3_stmt_readonly
 };
 
 
@@ -158,7 +159,7 @@ int xWrite(sqlite3_file*file, const void*buffer, int iAmt, sqlite3_int64 iOfst)
 				else
 				{
 					sack_fwrite( filler, 1, (int)( iOfst - filesize ), my_file->file );
-					filesize += ( iOfst - filesize );
+					filesize += ( (size_t)iOfst - filesize );
 				}
 			}
 		}
@@ -178,7 +179,7 @@ int xWrite(sqlite3_file*file, const void*buffer, int iAmt, sqlite3_int64 iOfst)
 int xTruncate(sqlite3_file*file, sqlite3_int64 size)
 {
 	struct my_file_data *my_file = (struct my_file_data*)file;
-	sack_fseek( my_file->file, size, SEEK_SET );
+	sack_fseek( my_file->file, (size_t)size, SEEK_SET );
 	sack_ftruncate( my_file->file ); // works through file system interface...
 	//SetFileLength( my_file->filename, (size_t)size );
 	return SQLITE_OK;
@@ -415,14 +416,14 @@ int xOpen(sqlite3_vfs* vfs, const char *zName, sqlite3_file*file,
 #endif
 			if( my_vfs->mount )
 			{
-            //lprintf( "try on mount..%s .%p", my_file->filename, my_vfs->mount );
+				//lprintf( "try on mount..%s .%p", my_file->filename, my_vfs->mount );
 				my_file->file = sack_fsopenEx( 0, my_file->filename, WIDE("rb+"), _SH_DENYNO, my_vfs->mount );//KWfopen( zName );
 				if( my_file->file )
 				{
 					InitializeCriticalSec( &my_file->cs );
 					return SQLITE_OK;
 				}
-            //lprintf( "failed..." );
+				//lprintf( "failed..." );
 			}
 			else
 			{
@@ -595,7 +596,14 @@ void InitVFS( CTEXTSTR name, struct file_system_mounted_interface *mount )
 
 
 void errorLogCallback(void *pArg, int iErrCode, const char *zMsg){
-	lprintf( "Sqlite3 Err: (%d) %s", iErrCode, zMsg);
+	if( iErrCode == SQLITE_NOTICE_RECOVER_WAL ) {
+		extern struct pssql_global *global_sqlstub_data;
+		lprintf( "Sqlite3 Notice: wal recovered: generating checkpoint:%s", zMsg);
+		// after open returns, generate an automatic wal_checkpoint.
+		global_sqlstub_data->flags.bAutoCheckpointRecover = 1;
+	}
+	else
+		lprintf( "Sqlite3 Err: (%d) %s", iErrCode, zMsg);
 }
 
 
@@ -636,7 +644,7 @@ static void DoInitVFS( void )
 {
 	sqlite3_config( SQLITE_CONFIG_LOG, errorLogCallback, 0);
 
-   {
+	{
 #if SQLITE_VERSION_NUMBER >= 3006011
 		static sqlite3_mem_methods mem_routines;
 		if( mem_routines.pAppData == NULL )
@@ -666,7 +674,6 @@ static void DoInitVFS( void )
 
 static POINTER CPROC GetSQLiteInterface( void )
 {
-	//RealSQLiteInterface._global_font_data = GetGlobalFonts();
 	//sqlite3_enable_shared_cache( 1 );
 	DoInitVFS();
 	return &my_sqlite_interface;

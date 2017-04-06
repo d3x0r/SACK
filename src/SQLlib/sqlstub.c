@@ -118,6 +118,7 @@ delete ss;
 #define SQL_INI WIDE( "SQLPROXY.INI" )
 
 static uintptr_t CPROC AutoCloseThread( PTHREAD thread );
+static uintptr_t CPROC AutoCheckpointThread( PTHREAD thread );
 void CloseDatabaseEx( PODBC odbc, LOGICAL ReleaseConnection );
 
 int __DoSQLQueryEx(  PODBC odbc, PCOLLECT collection, CTEXTSTR query DBG_PASS );
@@ -166,14 +167,14 @@ struct pssql_global *global_sqlstub_data;
 
 //----------------------------------------------------------------------
 
-void InitLibrary( void );
+static void SqlStubInitLibrary( void );
 
 
 PRIORITY_PRELOAD( InitGlobalData, SQL_PRELOAD_PRIORITY )
 {
 	// is null initialized.
 	SimpleRegisterAndCreateGlobal( global_sqlstub_data );
-	InitLibrary();
+	SqlStubInitLibrary();
 
 }
 
@@ -321,6 +322,15 @@ static void decomputePassword(sqlite3_context*onwhat,int n,sqlite3_value**argv)
   //void (*xStep)(sqlite3_context*,int,sqlite3_value**),
   //void (*xFinal)(sqlite3_context*)
 
+static void startAutoCheckpoint( PODBC odbc ) {
+	if( odbc->flags.bAutoCheckpoint )
+	{
+		lprintf( "enabling oneshot idle chckpoint generator" );
+		if( !odbc->auto_checkpoint_thread )
+			odbc->auto_checkpoint_thread = ThreadTo( AutoCheckpointThread, (uintptr_t)odbc );
+	}
+}
+
 void ExtendConnection( PODBC odbc )
 {
 	if( odbc->flags.bAutoClose )
@@ -446,8 +456,11 @@ void ExtendConnection( PODBC odbc )
 		//if( result )
 		//	lprintf( WIDE( "Journal is now %s" ), result );
 		SQLEndQuery( odbc );
-		SQLQueryf( odbc, &result, WIDE( "PRAGMA wal_checkpoint;" ) );
-		SQLEndQuery( odbc );
+		if( g.flags.bAutoCheckpointRecover ) {
+			SQLQueryf( odbc, &result, WIDE( "PRAGMA wal_checkpoint;" ) );
+			SQLEndQuery( odbc );
+			g.flags.bAutoCheckpointRecover = 0;
+		}
 		odbc->flags.bNoLogging = n;
 		//SQLQueryf( odbc, &result, WIDE( "PRAGMA journal_mode" ) );
 		//lprintf( WIDE( "Journal is now %s" ), result );
@@ -773,6 +786,12 @@ static uintptr_t CPROC SetLoggingEnabled3( uintptr_t psv, arg_list args )
 	return psv;
 }
 
+static uintptr_t CPROC SetAutoCheckpoint( uintptr_t psv, arg_list args ) {
+	PARAM( args, LOGICAL, bEnable );
+	g.flags.bAutoCheckpoint = bEnable;
+	return psv;
+}
+
 static uintptr_t CPROC SetLogOptions( uintptr_t psv, arg_list args )
 {
 	PARAM( args, LOGICAL, bEnable );
@@ -807,9 +826,7 @@ void SetSQLThreadProtect( PODBC odbc, LOGICAL bEnable )
 void SetSQLAutoTransact( PODBC odbc, LOGICAL bEnable )
 {
 	if( odbc )
-	{
 		odbc->flags.bAutoTransact = bEnable;
-	}
 }
 
 void SetSQLAutoTransactCallback( PODBC odbc, void (CPROC*callback)(uintptr_t,PODBC), uintptr_t psv )
@@ -833,7 +850,6 @@ void SetSQLAutoClose( PODBC odbc, LOGICAL bEnable )
 		if( bEnable )
 		{
 			// no thread already, and it is connected (otherwise later, connection will be made, and this scheduled)
-lprintf( "Start autoclose..." );
 			if( !odbc->auto_close_thread && odbc->flags.bConnected )
 				odbc->auto_close_thread = ThreadTo( AutoCloseThread, (uintptr_t)odbc );
 		}
@@ -845,6 +861,33 @@ lprintf( "Start autoclose..." );
 			}
 		}
 	}
+}
+
+void SetSQLAutoCheckpoint( PODBC odbc, LOGICAL bEnable )
+{
+	if( odbc )
+	{
+		odbc->flags.bAutoCheckpoint = bEnable;
+		if( bEnable )
+		{
+			// next command will enable checkpoint thread.
+		}
+		else
+		{
+			// if disabling, wake up an in-progress thread so it can quit
+			if( odbc->auto_checkpoint_thread )
+			{
+				WakeThread( odbc->auto_checkpoint_thread );
+			}
+		}
+	}
+}
+
+LOGICAL GetSQLAutoCheckpoint( PODBC odbc )
+{
+	if( odbc )
+		return odbc->flags.bAutoCheckpoint;
+	return 0;
 }
 
 LOGICAL EnsureLogOpen( PODBC odbc )
@@ -878,7 +921,7 @@ LOGICAL EnsureLogOpen( PODBC odbc )
 	return FALSE;
 }
 
-void InitLibrary( void )
+void SqlStubInitLibrary( void )
 {
 	if( !g.flags.bCriticalSectionInited )
 	{
@@ -907,9 +950,11 @@ void InitLibrary( void )
 #ifndef __NO_OPTIONS__
 		//SetOptionDatabaseOption( &g.OptionDb, TRUE );
 #endif
+  		g.flags.bAutoCheckpoint = 1;
 		{
 			LOGICAL success = FALSE;
 			PCONFIG_HANDLER pch = CreateConfigurationHandler();
+			AddConfigurationMethod( pch, WIDE("Auto Checkpoint=%b"), SetAutoCheckpoint );
 			AddConfigurationMethod( pch, WIDE("Option DSN=%m"), SetOptionDSN );
 			AddConfigurationMethod( pch, WIDE("Primary DSN=%m"), SetPrimaryDSN );
 			AddConfigurationMethod( pch, WIDE("Primary User=%m"), SetUser );
@@ -946,6 +991,7 @@ void InitLibrary( void )
 					);
 				if( file )
 				{
+					sack_fprintf( file, "Auto Checkpoint=Yes\n" );
 					sack_fprintf( file, "Option DSN=%s\n", g.OptionDb.info.pDSN );
 					sack_fprintf( file, "Primary DSN=MySQL\n" );
 					sack_fprintf( file, "#Primary User=\n" );
@@ -1014,7 +1060,7 @@ int OpenSQLConnectionEx( PODBC odbc DBG_PASS )
 		return TRUE;
 	}
 #ifdef SQLPROXY_LIBRARY_SOURCE
-	InitLibrary();
+	SqlStubInitLibrary();
 #endif
 
 	bOpening = TRUE;
@@ -1190,8 +1236,11 @@ int OpenSQLConnectionEx( PODBC odbc DBG_PASS )
 							lprintf( WIDE("Driver name = %s"), buffer );
 						if( strcmp( buffer, WIDE("odbcjt32.dll") ) == 0 )
 							odbc->flags.bAccess = 1;
-						if( strcmp( buffer, WIDE("sqlite3odbc.dll") ) == 0 || strcmp( buffer, WIDE("sqliteodbc.dll") ) == 0 )
+						if( strcmp( buffer, WIDE("sqlite3odbc.dll") ) == 0 || strcmp( buffer, WIDE("sqliteodbc.dll") ) == 0 ) {
 							odbc->flags.bSQLite = 1;
+						}
+						if( !odbc->flags.bSQLite )
+							odbc->flags.bAutoCheckpoint = 0;
 						SQLGetInfo( odbc->hdbc, SQL_DRIVER_ODBC_VER, buffer, (SQLSMALLINT)sizeof( buffer ), &reslen );
 #ifdef LOG_EVERYTHING
 						lprintf( WIDE("Driver name = %s"), buffer );
@@ -1395,8 +1444,6 @@ void SQLCommit( PODBC odbc )
 			odbc->flags.bAutoTransact = 0;
 			// the commit command itself will cause SQLCommit to be called - so we turn off autotransact and would create a transaction thread etc...
 			SQLCommand( odbc, WIDE( "COMMIT" ) );
-			if( odbc->flags.bSQLite_native )
-				SQLCommand( odbc, WIDE( "PRAGMA wal_checkpoint" ) );
 			odbc->flags.bAutoTransact = n;
 			if( odbc->auto_commit_callback )
 				odbc->auto_commit_callback( odbc->auto_commit_callback_psv, odbc );
@@ -1452,6 +1499,50 @@ uintptr_t CPROC AutoCloseThread( PTHREAD thread )
 			LeaveCriticalSec( &odbc->cs );
 	}
 	odbc->auto_close_thread = NULL;
+	return 0;
+}
+
+//----------------------------------------------------------------------
+// had to create this thread - stalling out in the timer thread prevents
+// all further commit action (which may unlock the Sqlite database this is
+// intended for.
+uintptr_t CPROC AutoCheckpointThread( PTHREAD thread )
+{
+	uintptr_t psv = GetThreadParam( thread );
+	PODBC odbc = (PODBC)psv;
+	int tick = 0;
+	// initialize this to something; this is called when a connection opens...
+	// so that makes the first operation the database open tick.
+	odbc->last_command_tick_ = timeGetTime();
+	while( odbc->flags.bAutoCheckpoint )
+	{
+		// if it expires, set tick and get out of loop
+		// clearing last_command_tick will also end the thread (a manual sqlcommit on the connection)
+		if( !odbc->auto_commit_thread // let commits finish first...
+		  &&( odbc->last_command_tick_ < ( timeGetTime() - 250 ) )
+		  // is idle; no statements active in the collections on the connection
+		  && IsOdbcIdle( odbc ) )
+		{
+			tick = 1;
+			break;
+		}
+		WakeableSleep( 125 );
+	}
+	// a SQLCommit may have happened outside of this, which cleas last_command_tick
+	if( tick && odbc->flags.bAutoCheckpoint )
+	{
+		int oldCommit = odbc->flags.bAutoTransact;
+		if( odbc->flags.bThreadProtect )
+			EnterCriticalSec( &odbc->cs );
+		odbc->flags.bAutoTransact = 0;
+		// this will checkpoint any in progress result sets... still need a check
+		SQLCommand( odbc, WIDE( "PRAGMA wal_checkpoint" ) );
+		odbc->flags.bAutoTransact = oldCommit;
+		// release our lock allowing any statement that started JUST as this ticked to resume.
+		if( odbc->flags.bThreadProtect )
+			LeaveCriticalSec( &odbc->cs );
+	}
+	odbc->auto_checkpoint_thread = NULL;
 	return 0;
 }
 
@@ -2072,7 +2163,7 @@ void DestroyCollectorEx( PCOLLECT pCollect DBG_PASS )
 PODBC ConnectToDatabaseLogin( CTEXTSTR DSN, CTEXTSTR user, CTEXTSTR pass, LOGICAL bRequireConnection DBG_PASS )
 {
 	PODBC pODBC;
-	InitLibrary();
+	SqlStubInitLibrary();
 	pODBC = New( ODBC );
 	AddLink( &g.pOpenODBC, pODBC );
 	MemSet( pODBC, 0, sizeof( ODBC ) );
@@ -2081,6 +2172,7 @@ PODBC ConnectToDatabaseLogin( CTEXTSTR DSN, CTEXTSTR user, CTEXTSTR pass, LOGICA
 	if( pass )
 		StrCpy( pODBC->info.pPASSWORD, pass );
 	pODBC->info.pDSN = StrDup( DSN );
+	pODBC->flags.bAutoCheckpoint = g.flags.bAutoCheckpoint;
 	pODBC->flags.bForceConnection = bRequireConnection;
 	// source ID is not known...
 	// is probably static link to library, rather than proxy operation
@@ -2097,7 +2189,7 @@ PODBC ConnectToDatabaseExx( CTEXTSTR DSN, LOGICAL bRequireConnection DBG_PASS )
 #undef ConnectToDatabaseEx
 PODBC ConnectToDatabaseEx( CTEXTSTR DSN, LOGICAL bRequireConnection )
 {
-	return ConnectToDatabaseExx( DSN, bRequireConnection DBG_SRC );
+	return ConnectToDatabaseLogin( DSN, NULL, NULL, bRequireConnection DBG_SRC );
 }
 
 //----------------------------------------------------------------------
@@ -2105,7 +2197,7 @@ PODBC ConnectToDatabaseEx( CTEXTSTR DSN, LOGICAL bRequireConnection )
 #undef ConnectToDatabase
 PODBC ConnectToDatabase( CTEXTSTR DSN )
 {
-	return ConnectToDatabaseEx( DSN, g.flags.bRequireConnection );
+	return ConnectToDatabaseLogin( DSN, NULL, NULL, g.flags.bRequireConnection DBG_SRC );
 }
 
 //----------------------------------------------------------------------
@@ -2495,6 +2587,8 @@ retry:
 		}
 		else
 		{
+			if( odbc->flags.bAutoCheckpoint && !sqlite3_stmt_readonly( collection->stmt ) )				
+				startAutoCheckpoint( odbc );
 			Release( tmp_cmd );
 			rc3 = sqlite3_step( collection->stmt );
 			switch( rc3 )
@@ -3574,6 +3668,7 @@ int __DoSQLQueryEx( PODBC odbc, PCOLLECT collection, CTEXTSTR query DBG_PASS )
 	{
 		const TEXTCHAR *tail;
 		// can get back what was not used when parsing...
+      startAutoCheckpoint( odbc );
 		retry:
 #ifdef UNICODE
 		rc3 = sqlite3_prepare16_v2( odbc->db, (void*)query, (int)(querylen) * sizeof( TEXTCHAR ), &collection->stmt, (const void**)&tail );
@@ -3605,6 +3700,9 @@ int __DoSQLQueryEx( PODBC odbc, PCOLLECT collection, CTEXTSTR query DBG_PASS )
 				fflush( g.pSQLLog );
 			}
 			in_error = 1;
+		} else {
+			if( odbc->flags.bAutoCheckpoint && !sqlite3_stmt_readonly( collection->stmt ) )				
+				startAutoCheckpoint( odbc );
 		}
 		// here don't step, wait for the GetResult to step. (fetch row)
 	}
@@ -4515,7 +4613,7 @@ int CPROC SQLServiceHandler( PSERVICE_ROUTE SourceRouteID
 void SQLBeginService( void )
 //int main( void )
 {
-	InitLibrary();
+	SqlStubInitLibrary();
 	// provide task interface
 #ifndef __NO_MSGSVR__
 	RegisterServiceHandler( WIDE("SQL"), SQLServiceHandler );

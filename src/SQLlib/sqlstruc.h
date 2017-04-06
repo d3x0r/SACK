@@ -127,6 +127,7 @@ struct odbc_handle_tag{
 		BIT_FIELD bAutoTransact : 1;
 		BIT_FIELD bThreadProtect : 1; // use enter/leave critical section on this connector (auto transact protector)
 		BIT_FIELD bAutoClose : 1; // don't leave the connection open 100%; open when required and close when idle
+		BIT_FIELD bAutoCheckpoint : 1; // sqlite; alternative to closing; generate wal_checkpoints automatically on idle.
 		BIT_FIELD bVFS : 1;
 	} flags;
 	uint32_t last_command_tick; // this one tracks auto commit state; it is cleared when a commit happens
@@ -139,6 +140,7 @@ struct odbc_handle_tag{
 	int nProtect; // critical section is currently owned
 	PTHREAD auto_commit_thread;
 	PTHREAD auto_close_thread;
+	PTHREAD auto_checkpoint_thread;
 	struct odbc_queue *queue;
 	void (CPROC*auto_commit_callback)(uintptr_t,PODBC);
 	uintptr_t auto_commit_callback_psv;
@@ -189,6 +191,8 @@ struct pssql_global
 		BIT_FIELD  bLogOptionConnection : 1;
 		BIT_FIELD bCriticalSectionInited : 1;
 		BIT_FIELD bDeadstartCompleted : 1;
+		BIT_FIELD bAutoCheckpoint : 1;
+		BIT_FIELD bAutoCheckpointRecover : 1;
 	} flags;
 	struct update_task_def *UpdateTasks;
 	PSERVICE_ROUTE SQLMsgBase;
@@ -283,6 +287,7 @@ struct sqlite_interface
 	//int ( FIXREF2*sqlite3_backup_pagecount)(sqlite3_backup *p);
 	int ( FIXREF2*sqlite3_backup_finish)(sqlite3_backup *p);
 	int ( FIXREF2*sqlite3_extended_errcode)(sqlite3 *db);
+   int ( FIXREF2*sqlite3_stmt_readonly)(sqlite3_stmt *pStmt);
 };
 
 #  ifndef DEFINES_SQLITE_INTERFACE
@@ -323,6 +328,7 @@ PRIORITY_PRELOAD( LoadSQLiteInterface, SQL_PRELOAD_PRIORITY-1 )
 #    define sqlite3_backup_finish        (FIXDEREF2 (sqlite_iface->sqlite3_backup_finish))
 #    define sqlite3_backup_remaining     (FIXDEREF2 (sqlite_iface->sqlite3_backup_remaining))
 #    define sqlite3_extended_errcode     (FIXDEREF2 (sqlite_iface->sqlite3_extended_errcode))
+#    define sqlite3_stmt_readonly        (FIXDEREF2 (sqlite_iface->sqlite3_stmt_readonly))
 #  endif
 #endif
 
