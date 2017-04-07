@@ -325,7 +325,7 @@ static void decomputePassword(sqlite3_context*onwhat,int n,sqlite3_value**argv)
 static void startAutoCheckpoint( PODBC odbc ) {
 	if( odbc->flags.bAutoCheckpoint )
 	{
-		lprintf( "enabling oneshot idle chckpoint generator" );
+		//lprintf( "enabling oneshot idle chckpoint generator" );
 		if( !odbc->auto_checkpoint_thread )
 			odbc->auto_checkpoint_thread = ThreadTo( AutoCheckpointThread, (uintptr_t)odbc );
 	}
