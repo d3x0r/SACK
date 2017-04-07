@@ -322,15 +322,6 @@ static void decomputePassword(sqlite3_context*onwhat,int n,sqlite3_value**argv)
   //void (*xStep)(sqlite3_context*,int,sqlite3_value**),
   //void (*xFinal)(sqlite3_context*)
 
-static void startAutoCheckpoint( PODBC odbc ) {
-	if( odbc->flags.bAutoCheckpoint )
-	{
-		//lprintf( "enabling oneshot idle chckpoint generator" );
-		if( !odbc->auto_checkpoint_thread )
-			odbc->auto_checkpoint_thread = ThreadTo( AutoCheckpointThread, (uintptr_t)odbc );
-	}
-}
-
 void ExtendConnection( PODBC odbc )
 {
 	if( odbc->flags.bAutoClose )
@@ -451,7 +442,9 @@ void ExtendConnection( PODBC odbc )
 	{
 		CTEXTSTR result;
 		int n = odbc->flags.bNoLogging;
+		int m = odbc->flags.bAutoCheckpoint;
 		odbc->flags.bNoLogging = 1;
+		odbc->flags.bAutoCheckpoint = 0;
 		SQLQueryf( odbc, &result, WIDE( "PRAGMA journal_mode=WAL;" ) );
 		//if( result )
 		//	lprintf( WIDE( "Journal is now %s" ), result );
@@ -462,6 +455,7 @@ void ExtendConnection( PODBC odbc )
 			g.flags.bAutoCheckpointRecover = 0;
 		}
 		odbc->flags.bNoLogging = n;
+		odbc->flags.bAutoCheckpoint = m;
 		//SQLQueryf( odbc, &result, WIDE( "PRAGMA journal_mode" ) );
 		//lprintf( WIDE( "Journal is now %s" ), result );
 	}
@@ -564,6 +558,16 @@ static LOGICAL IsOdbcIdle( PODBC odbc ) {
 			return FALSE;
 #endif
 	return TRUE;
+}
+
+static void startAutoCheckpoint( PODBC odbc ) {
+	if( odbc->flags.bAutoCheckpoint )
+	{
+		lprintf( "enabling oneshot idle chckpoint generator" );
+		DumpODBCInfo( odbc );
+		if( !odbc->auto_checkpoint_thread )
+			odbc->auto_checkpoint_thread = ThreadTo( AutoCheckpointThread, (uintptr_t)odbc );
+	}
 }
 
 
@@ -1532,16 +1536,20 @@ uintptr_t CPROC AutoCheckpointThread( PTHREAD thread )
 	if( tick && odbc->flags.bAutoCheckpoint )
 	{
 		int oldCommit = odbc->flags.bAutoTransact;
+		int oldCheckpoint = odbc->flags.bAutoCheckpoint;
 		if( odbc->flags.bThreadProtect )
 			EnterCriticalSec( &odbc->cs );
 		odbc->flags.bAutoTransact = 0;
+		odbc->flags.bAutoCheckpoint = 0;
 		// this will checkpoint any in progress result sets... still need a check
 		SQLCommand( odbc, WIDE( "PRAGMA wal_checkpoint" ) );
 		odbc->flags.bAutoTransact = oldCommit;
+		odbc->flags.bAutoCheckpoint = oldCheckpoint;
 		// release our lock allowing any statement that started JUST as this ticked to resume.
+		odbc->auto_checkpoint_thread = NULL;
 		if( odbc->flags.bThreadProtect )
 			LeaveCriticalSec( &odbc->cs );
-	}
+	}// redundant; because I want to claer this before unlocking the connection
 	odbc->auto_checkpoint_thread = NULL;
 	return 0;
 }
@@ -2587,7 +2595,7 @@ retry:
 		}
 		else
 		{
-			if( odbc->flags.bAutoCheckpoint && !sqlite3_stmt_readonly( collection->stmt ) )				
+			if( odbc->flags.bAutoCheckpoint && (!sqlite3_stmt_readonly( collection->stmt )) )
 				startAutoCheckpoint( odbc );
 			Release( tmp_cmd );
 			rc3 = sqlite3_step( collection->stmt );
@@ -3668,7 +3676,6 @@ int __DoSQLQueryEx( PODBC odbc, PCOLLECT collection, CTEXTSTR query DBG_PASS )
 	{
 		const TEXTCHAR *tail;
 		// can get back what was not used when parsing...
-      startAutoCheckpoint( odbc );
 		retry:
 #ifdef UNICODE
 		rc3 = sqlite3_prepare16_v2( odbc->db, (void*)query, (int)(querylen) * sizeof( TEXTCHAR ), &collection->stmt, (const void**)&tail );
