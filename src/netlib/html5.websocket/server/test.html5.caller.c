@@ -26,7 +26,7 @@ void my_web_socket_event( PCLIENT pc, uintptr_t psv, CPOINTER buffer, size_t msg
 
 int main( void )
 {
-	PCLIENT socket = WebSocketCreate( WIDE("0.0.0.0:9998"), 0
+	PCLIENT socket = WebSocketCreate( WIDE("0.0.0.0:9998")
 											  , my_web_socket_opened
 											  , my_web_socket_event
 											  , my_web_socket_error
