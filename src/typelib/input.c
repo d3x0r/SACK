@@ -828,7 +828,7 @@ LOGICAL  SetUserInputPosition ( PUSER_INPUT_BUFFER pci, int nPos, int whence )
 					total += cursor - start;
 					curseg = PRIORLINE( curseg );
 					if( curseg )
-						start = (int)cursor = (int)curseg->data.size;
+						start = cursor = (int)curseg->data.size;
 					else 
 						break;
 				}
