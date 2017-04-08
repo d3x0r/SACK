@@ -1,5 +1,6 @@
 #ifndef MY_TYPES_INCLUDED
 #define MY_TYPES_INCLUDED
+#include <stdlib.h>
 
 #ifdef __LINUX__
 #define DebugBreak() asm( WIDE("int $3\n") )
