@@ -563,8 +563,8 @@ static LOGICAL IsOdbcIdle( PODBC odbc ) {
 static void startAutoCheckpoint( PODBC odbc ) {
 	if( odbc->flags.bAutoCheckpoint )
 	{
-		lprintf( "enabling oneshot idle chckpoint generator" );
-		DumpODBCInfo( odbc );
+		//lprintf( "enabling oneshot idle chckpoint generator" );
+		//DumpODBCInfo( odbc );
 		if( !odbc->auto_checkpoint_thread )
 			odbc->auto_checkpoint_thread = ThreadTo( AutoCheckpointThread, (uintptr_t)odbc );
 	}
