@@ -53,81 +53,92 @@ struct json_parse_context {
 	struct json_context_object *object;
 };
 
+#define RESET_VAL()  {  \
+	val.value_type = VALUE_UNDEFINED; \
+	val.contains = NULL;              \
+	val.name = NULL;                  \
+	val.string = NULL; }
 
-LOGICAL json_parse_message( CTEXTSTR msg
+typedef struct json_parse_context PARSE_CONTEXT, *PPARSE_CONTEXT;
+#define MAXPARSE_CONTEXTSPERSET 128
+DeclareSet( PARSE_CONTEXT );
+PPARSE_CONTEXTSET parseContexts;
+
+LOGICAL json_parse_message( TEXTSTR msg
                                  , size_t msglen
                                  , PDATALIST *_msg_output )
 {
-	PVARTEXT pvt_collector;
 	/* I guess this is a good parser */
 	PDATALIST elements = NULL;
+	size_t m = 0; // m is the output path; leave text inline; but escaped chars can offset/change the content
+
 	size_t n = 0; // character index;
+	size_t _n = 0; // character index; (restore1)
 	int word = WORD_POS_RESET;
 	TEXTRUNE c;
 	LOGICAL status = TRUE;
-	//TEXTRUNE quote = 0;
-	//LOGICAL use_char = FALSE;
-	PLINKSTACK element_lists = NULL;
 
 	PLINKSTACK context_stack = NULL;
 
 	LOGICAL first_token = TRUE;
 	//enum json_parse_state state;
-
+	PPARSE_CONTEXT context = GetFromSet( PARSE_CONTEXT, &parseContexts );
 	int parse_context = CONTEXT_UNKNOWN;
 	struct json_value_container val;
 
-	//POINTER msg_output;
+	char const * msg_input = (char const *)msg;
+	char const * _msg_input;
+	char *token_begin;
+
 	if( !_msg_output )
 		return FALSE;
 
 	elements = CreateDataList( sizeof( val ) );
-	//msg_output = (*_msg_output);
 
 	val.value_type = VALUE_UNDEFINED;
-	val.result_value = 0;
 	val.contains = NULL;
 	val.name = NULL;
 	val.string = NULL;
 
-	pvt_collector = VarTextCreate();
-
 //	static CTEXTSTR keyword[3] = { "false", "null", "true" };
 
-	while( status && ( n < msglen ) && ( c = GetUtfCharIndexed( msg, &n ) ) )
+	while( status && ( n < msglen ) && ( c = GetUtfChar( &msg_input ) ) )
 	{
+		n = msg_input - msg;
+
 		switch( c )
 		{
 		case '{':
 			{
-				struct json_parse_context *old_context = New( struct json_parse_context );
+				struct json_parse_context *old_context = GetFromSet( PARSE_CONTEXT, &parseContexts );
+				val.value_type = VALUE_OBJECT;
+				val.contains = CreateDataList( sizeof( val ) );
 
 				AddDataItem( &elements, &val );
-				val.value_type = VALUE_OBJECT;
-				val.contains = elements;
 
 				old_context->context = parse_context;
 				old_context->elements = elements;
-				elements = CreateDataList( sizeof( val ) );
+				elements = val.contains;
 				PushLink( &context_stack, old_context );
-				
+				RESET_VAL();
 				parse_context = CONTEXT_IN_OBJECT;
 			}
 			break;
 
 		case '[':
 			{
-				struct json_parse_context *old_context = New( struct json_parse_context );
+				struct json_parse_context *old_context = GetFromSet( PARSE_CONTEXT, &parseContexts );
 
-				AddDataItem( &elements, &val );
 				val.value_type = VALUE_ARRAY;
-				val.contains = elements;
+				val.contains = CreateDataList( sizeof( val ) );
+				AddDataItem( &elements, &val );
 
 				old_context->context = parse_context;
 				old_context->elements = elements;
-				elements = CreateDataList( sizeof( val ) );
+				elements = val.contains;
 				PushLink( &context_stack, old_context );
 
+				RESET_VAL();
 				parse_context = CONTEXT_IN_ARRAY;
 			}
 			break;
@@ -137,9 +148,11 @@ LOGICAL json_parse_message( CTEXTSTR msg
 			{
 				if( val.name ) {
 					lprintf( "two names single value?" );
-					LineRelease( val.name );
 				}
-				val.name = VarTextGet( pvt_collector );
+				val.name = val.string;
+				val.string = NULL;
+
+				val.value_type = VALUE_UNDEFINED;
 			}
 			else
 			{
@@ -154,29 +167,20 @@ LOGICAL json_parse_message( CTEXTSTR msg
 			if( parse_context == CONTEXT_IN_OBJECT )
 			{
 				// first, add the last value
-				if( VarTextLength( pvt_collector ) ) {
-					val.value_type = VALUE_STRING;
-					val.string = VarTextGet( pvt_collector );
-				}
-				if( val.value_type != VALUE_UNDEFINED )
+				if( val.value_type != VALUE_UNDEFINED ) {
 					AddDataItem( &elements, &val );
-				lprintf( "don't know why whe're here but val is undefined now...(new val)");	
-				val.value_type = VALUE_UNDEFINED;
-				val.name = NULL;
-				val.contains = NULL;
-				val.string = NULL;
+				}
+				RESET_VAL();
 
 				{
 					struct json_parse_context *old_context = (struct json_parse_context *)PopLink( &context_stack );
 					struct json_value_container *oldVal = (struct json_value_container *)GetDataItem( &old_context->elements, old_context->elements->Cnt-1 );
 					oldVal->contains = elements;  // save updated elements list in the old value in the last pushed list.
-
+					
 					parse_context = old_context->context;
 					elements = old_context->elements;
+					DeleteFromSet( PARSE_CONTEXT, parseContexts, old_context );
 
-					
-
-					Release( old_context );
 				}
 				//n++;
 			}
@@ -188,18 +192,10 @@ LOGICAL json_parse_message( CTEXTSTR msg
 		case ']':
 			if( parse_context == CONTEXT_IN_ARRAY )
 			{
-				if( VarTextLength( pvt_collector ) ) {
-					val.value_type = VALUE_STRING;
-					val.string = VarTextGet( pvt_collector );
-				}
-				if( val.value_type != VALUE_UNDEFINED )
+				if( val.value_type != VALUE_UNDEFINED ) {
 					AddDataItem( &elements, &val );
-				lprintf( "don't know why whe're here but val is undefined now...(new val)");	
-				val.value_type = VALUE_UNDEFINED;
-				val.name = NULL;
-				val.contains = NULL;
-				val.string = NULL;
-
+				}
+				RESET_VAL();
 				{
 					struct json_parse_context *old_context = (struct json_parse_context *)PopLink( &context_stack );
 					struct json_value_container *oldVal = (struct json_value_container *)GetDataItem( &old_context->elements, old_context->elements->Cnt-1 );
@@ -207,7 +203,7 @@ LOGICAL json_parse_message( CTEXTSTR msg
 					
 					parse_context = old_context->context;
 					elements = old_context->elements;
-					Release( old_context );
+					DeleteFromSet( PARSE_CONTEXT, parseContexts, old_context );
 				}
 			}
 			else
@@ -219,17 +215,10 @@ LOGICAL json_parse_message( CTEXTSTR msg
 			if( ( parse_context == CONTEXT_IN_ARRAY ) 
 			   || ( parse_context == CONTEXT_IN_OBJECT ) )
 			{
-				if( VarTextLength( pvt_collector ) ) {
-					val.value_type = VALUE_STRING;
-					val.string = VarTextGet( pvt_collector );
-				}
-				if( val.value_type != VALUE_UNDEFINED )
+				if( val.value_type != VALUE_UNDEFINED ) {
 					AddDataItem( &elements, &val );
-				lprintf( "don't know why whe're here but val is undefined now...(new val)");	
-				val.value_type = VALUE_UNDEFINED;
-				val.name = NULL;
-				val.contains = NULL;
-				val.string = NULL;
+				}
+				RESET_VAL();
 			}
 			else
 			{
@@ -254,18 +243,22 @@ LOGICAL json_parse_message( CTEXTSTR msg
 				{
 					// collect a string
 					int escape = 0;
-					lprintf( "start a quoted string..." );
-					while( ( n < msglen ) && ( c = GetUtfCharIndexed( msg, &n ) ) )
+					val.string = msg + m;
+					while( (_n=n), (( n < msglen ) && (c = GetUtfChar( &msg_input ) )) )
 					{
 						if( c == '\\' )
 						{
-							if( escape ) VarTextAddCharacter( pvt_collector, '\\' );
+							if( escape ) msg[m++] = '\\';
 							else escape = 1;
 						}
 						else if( c == '"' )
 						{
-							if( escape ) VarTextAddCharacter( pvt_collector, '\"' );
-							else break;
+							if( escape ) msg[m++] = '\"';
+							else {								
+								//AddDataItem( &elements, &val );
+								//RESET_VAL();								
+								break;
+							}
 						}
 						else
 						{
@@ -276,22 +269,22 @@ LOGICAL json_parse_message( CTEXTSTR msg
 								case '/':
 								case '\\':
 								case '"':
-									VarTextAddRune( pvt_collector, c );
+									msg[m++] = c;
 									break;
 								case 't':
-									VarTextAddCharacter( pvt_collector, '\t' );
+									msg[m++] = '\t';
 									break;
 								case 'b':
-									VarTextAddCharacter( pvt_collector, '\b' );
+									msg[m++] = '\b';
 									break;
 								case 'n':
-									VarTextAddCharacter( pvt_collector, '\n' );
+									msg[m++] = '\n';
 									break;
 								case 'r':
-									VarTextAddCharacter( pvt_collector, '\r' );
+									msg[m++] = '\r';
 									break;
 								case 'f':
-									VarTextAddCharacter( pvt_collector, '\f' );
+									msg[m++] = '\f';
 									break;
 								case 'u':
 									{
@@ -299,7 +292,7 @@ LOGICAL json_parse_message( CTEXTSTR msg
 										int ofs;
 										for( ofs = 0; ofs < 4; ofs++ )
 										{
-											c = GetUtfCharIndexed( msg, &n );
+											c = GetUtfChar( &msg_input );
 											hex_char *= 16;
 											if( c >= '0' && c <= '9' )      hex_char += c - '0';
 											else if( c >= 'A' && c <= 'F' ) hex_char += ( c - 'A' ) + 10;
@@ -312,7 +305,7 @@ LOGICAL json_parse_message( CTEXTSTR msg
 														 , msg + n + 1
 														 );// fault
 										}
-										VarTextAddRune( pvt_collector, hex_char );
+										m += ConvertToUTF8( msg + m, hex_char );
 									}
 									break;
 								default:
@@ -326,10 +319,12 @@ LOGICAL json_parse_message( CTEXTSTR msg
 								}
 								escape = 0;
 							}
-							else
-								VarTextAddRune( pvt_collector, c );
+							else {
+								m += ConvertToUTF8( msg + m, c );
+							}
 						}
 					}
+					msg[m++] = 0;  // terminate the string.
 					val.value_type = VALUE_STRING;
 					break;
 				}
@@ -417,9 +412,12 @@ LOGICAL json_parse_message( CTEXTSTR msg
 					// always reset this here....
 					// keep it set to determine what sort of value is ready.
 					val.float_result = 0;
-					VarTextAddRune( pvt_collector, c );
-					while( ( n < msglen ) && ( c = GetUtfCharIndexed( msg, &n) ) )
+
+					val.string = msg + m;
+					msg[m++] = c;  // terminate the string.
+					while( (_msg_input=msg_input),(( n < msglen ) && (c = GetUtfChar( &msg_input )) ) )
 					{
+						n = (msg_input - msg );
 						// leading zeros should be forbidden.
 						if( ( c >= '0' && c <= '9' )
 							|| ( c == '-' )
@@ -427,12 +425,12 @@ LOGICAL json_parse_message( CTEXTSTR msg
 							|| ( c == '+' )
 						  )
 						{
-							VarTextAddRune( pvt_collector, c );
+							msg[m++] = c;
 						}
 						else if( ( c =='e' ) || ( c == 'E' ) || ( c == '.' ) )
 						{
 							val.float_result = 1;
-							VarTextAddRune( pvt_collector, c );
+							msg[m++] = c;
 						}
 						else
 						{
@@ -440,17 +438,20 @@ LOGICAL json_parse_message( CTEXTSTR msg
 						}
 					}
 					{
-						PTEXT number = VarTextGet( pvt_collector );
+						msg[m++] = 0;
+
 						if( val.float_result )
 						{
-							val.result_d = FloatCreateFromSeg( number );
+							CTEXTSTR endpos;
+							val.result_d = FloatCreateFromText( val.string, &endpos );
 						}
 						else
 						{
-							val.result_n = IntCreateFromSeg( number );
+							val.result_n = IntCreateFromText( val.string );
 						}
-						LineRelease( number );
 					}
+					msg_input = _msg_input;
+					n = msg_input - msg;
 					val.value_type = VALUE_NUMBER;
 				}
 				else
@@ -473,28 +474,17 @@ LOGICAL json_parse_message( CTEXTSTR msg
 		struct json_parse_context *old_context;
 		while( ( old_context = (struct json_parse_context *)PopLink( &context_stack ) ) ) {
 			lprintf( "warning unclosed contexts...." );
-			Release( old_context );
+			DeleteFromSet( PARSE_CONTEXT, parseContexts, old_context );
 		}
 		if( context_stack )
 			DeleteLinkStack( &context_stack );
 	}
-	if( element_lists )
-		DeleteLinkStack( &element_lists );
 
-	lprintf( "did we get a val? %d", val.value_type );
-	if( val.value_type == VALUE_STRING )
-		val.string = VarTextGet( pvt_collector );
-
-	if( val.value_type != VALUE_UNDEFINED )
+	if( val.value_type != VALUE_UNDEFINED ) 
 		AddDataItem( &elements, &val );
-
-	if( !elements->Cnt )
-		if( val.value_type != VALUE_UNDEFINED )
-			AddDataItem( &elements, &val );
 
 	(*_msg_output) = elements;
 	// clean all contexts
-	VarTextDestroy( &pvt_collector );
 
 	if( !status )
 	{
@@ -517,8 +507,8 @@ void json_dispose_message( PDATALIST *msg_data )
 	INDEX idx;
 	DATA_FORALL( (*msg_data), idx, struct json_value_container*, val )
 	{
-		if( val->name ) LineRelease( val->name );
-		if( val->string ) LineRelease( val->string );
+		//if( val->name ) Release( val->name );
+		//if( val->string ) Release( val->string );
 		if( val->value_type == VALUE_OBJECT )
 			json_dispose_message( &val->contains );
 	}
@@ -537,7 +527,7 @@ static void FillDataToElement( struct json_context_object_element *element
 	if( !val->name )
 		return;
 	// remove name; indicate that the value has been used.
-	LineRelease( val->name );
+	Release( val->name );
 	val->name = NULL;
 	switch( element->type )
 	{
@@ -556,10 +546,10 @@ static void FillDataToElement( struct json_context_object_element *element
 				((CTEXTSTR*)( ((uintptr_t)msg_output) + element->offset + object_offset ))[0] = NULL;
 				break;
 			case VALUE_STRING:
-				((CTEXTSTR*)( ((uintptr_t)msg_output) + element->offset + object_offset ))[0] = StrDup( GetText( val->string ) );
+				((CTEXTSTR*)( ((uintptr_t)msg_output) + element->offset + object_offset ))[0] = StrDup( val->string );
 				break;
 			default:
-				lprintf( WIDE("Expected a string, but parsed result was a %d"), val->result_value );
+				lprintf( WIDE("Expected a string, but parsed result was a %d"), val->value_type );
 				break;
 			}
 		}
@@ -668,7 +658,7 @@ static void FillDataToElement( struct json_context_object_element *element
 				}
 				break;
 			default:
-				lprintf( WIDE("Expected a string, but parsed result was a %d"), val->result_value );
+				lprintf( WIDE("Expected a string, but parsed result was a %d"), val->value_type );
 				break;
 			}
 		}
@@ -707,7 +697,7 @@ static void FillDataToElement( struct json_context_object_element *element
 				}
 				break;
 			default:
-				lprintf( WIDE("Expected a float, but parsed result was a %d"), val->result_value );
+				lprintf( WIDE("Expected a float, but parsed result was a %d"), val->value_type );
 				break;
 			}
 
