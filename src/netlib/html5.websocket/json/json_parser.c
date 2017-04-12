@@ -164,8 +164,8 @@ LOGICAL json_parse_message( CTEXTSTR msg
 
 				{
 					struct json_parse_context *old_context = (struct json_parse_context *)PopLink( &context_stack );
-					struct json_value_container *oldVal = (struct json_value_container *)GetDataLink( &old_context->elements, old_context->elements->Cnt-1 );
-					oldVal.contains = elements;  // save updated elements list in the old value in the last pushed list.
+					struct json_value_container *oldVal = (struct json_value_container *)GetDataItem( &old_context->elements, old_context->elements->Cnt-1 );
+					oldVal->contains = elements;  // save updated elements list in the old value in the last pushed list.
 
 					parse_context = old_context->context;
 					elements = old_context->elements;
@@ -195,8 +195,8 @@ LOGICAL json_parse_message( CTEXTSTR msg
 
 				{
 					struct json_parse_context *old_context = (struct json_parse_context *)PopLink( &context_stack );
-					struct json_value_container *oldVal = (struct json_value_container *)GetDataLink( &old_context->elements, old_context->elements->Cnt-1 );
-					oldVal.contains = elements;  // save updated elements list in the old value in the last pushed list.
+					struct json_value_container *oldVal = (struct json_value_container *)GetDataItem( &old_context->elements, old_context->elements->Cnt-1 );
+					oldVal->contains = elements;  // save updated elements list in the old value in the last pushed list.
 					
 					parse_context = old_context->context;
 					elements = old_context->elements;
@@ -234,7 +234,7 @@ LOGICAL json_parse_message( CTEXTSTR msg
 				lprintf( WIDE("first token; fault parsing '%c' unexpected %") _size_f, c, n );// fault
 				//status = FALSE;
 			}
-			if( prase_context == CONTEXT_UNKNOWN ) {
+			if( parse_context == CONTEXT_UNKNOWN ) {
 				lprintf( "parser does not support simple value results." );
 				return FALSE;
 			}
@@ -361,6 +361,7 @@ LOGICAL json_parse_message( CTEXTSTR msg
 			case 'n':
 				if( word == WORD_POS_RESET ) word = WORD_POS_NULL_1;
 				else if( word == WORD_POS_UNDEFINED_1 ) word = WORD_POS_UNDEFINED_2;
+				else if( word == WORD_POS_UNDEFINED_6 ) word = WORD_POS_UNDEFINED_7;
 				else lprintf( WIDE("fault parsing '%c' unexpected %") _size_f, c, n );// fault
 				break;
 			case 'd':
@@ -370,10 +371,6 @@ LOGICAL json_parse_message( CTEXTSTR msg
 				break;
 			case 'i':
 				if( word == WORD_POS_UNDEFINED_5 ) word = WORD_POS_UNDEFINED_6;
-				else lprintf( WIDE("fault parsing '%c' unexpected %") _size_f, c, n );// fault
-				break;
-			case 'n':
-				if( word == WORD_POS_UNDEFINED_6 ) word = WORD_POS_UNDEFINED_7;
 				else lprintf( WIDE("fault parsing '%c' unexpected %") _size_f, c, n );// fault
 				break;
 			case 'l':

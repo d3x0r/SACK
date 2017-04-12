@@ -34,7 +34,7 @@ set( SACK_BASE ${PROJECT_SOURCE_DIR} )
 set( CMAKE_MODULE_PATH ${SACK_SOURCE_DIR}/makefiles/cmake )
 
 
-set( LIBRESSL_VERSION 2.4.2 )
+set( LIBRESSL_VERSION 2.5.2 )
 
 
 include( DefaultInstall )
