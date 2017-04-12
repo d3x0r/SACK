@@ -130,7 +130,7 @@ JSON_EMITTER_PROC( TEXTSTR, json_build_message )( struct json_context_object *fo
 // then it returns false; that is if a member is in the 'msg' parameter that is not in
 // the format, then the result is FALSE.
 //  PDATALIST is full of struct json_value_container
-JSON_EMITTER_PROC( LOGICAL, json_parse_message )(  CTEXTSTR msg
+JSON_EMITTER_PROC( LOGICAL, json_parse_message )(  TEXTSTR msg
 													, size_t msglen
 													, PDATALIST *msg_data_out
 																);
@@ -153,14 +153,13 @@ enum json_value_types {
 };
 
 struct json_value_container {
-	PTEXT name;
-	enum json_value_types value_type;
-	PTEXT string;
-	int result_value;
-	int float_result;
+	char * name;  // name of this value (if it's contained in an object)
+	enum json_value_types value_type; // value from above indiciating the type of this value
+	char *string;   // the string value of this value (strings and number types only)
+	int float_result;  // boolean whether to use result_n or result_d
 	double result_d;
 	int64_t result_n;
-	PDATALIST contains;
+	PDATALIST contains;  // list of struct json_value_container that this contains.
 };
 
 
