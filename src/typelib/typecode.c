@@ -369,9 +369,9 @@ PDATALIST ExpandDataListEx( PDATALIST *ppdl, INDEX entries DBG_PASS )
 
  PDATALIST  CreateDataListEx ( uintptr_t nSize DBG_PASS )
 {
-	PDATALIST pdl = (PDATALIST)AllocateEx( sizeof( DATALIST ) DBG_RELAY );
+	PDATALIST pdl = (PDATALIST)AllocateEx( sizeof( DATALIST ) + ( nSize * 8 ) - 1 DBG_RELAY );
 	pdl->Cnt = 0;
-	pdl->Avail = 0;
+	pdl->Avail = 8;
 	pdl->Size = nSize;
 	return pdl;
 }
