@@ -3073,8 +3073,8 @@ void  DebugDumpHeapMemEx ( PMEM pHeap, LOGICAL bVerbose )
 {
 #ifdef _DEBUG
 	int save = g.bDisableDebug;
-	g.bDisableDebug = bDisable;
-	g.bDisableAutoCheck = bDisable;
+	g.bDisableDebug = !bDisable;
+	g.bDisableAutoCheck = !bDisable;
 	return save;
 #else
    return 1;
