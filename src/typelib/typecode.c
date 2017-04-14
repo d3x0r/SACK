@@ -1407,10 +1407,10 @@ void  EmptyDataQueue ( PDATAQUEUE *ppdq )
 PRIORITY_PRELOAD( InitLocals, NAMESPACE_PRELOAD_PRIORITY + 1 )
 {
 #ifdef __cplusplus
-	RegisterAndCreateGlobal((POINTER*)&list::_list_local, sizeof( list::_list_local ), WIDE("_list_local") );
-	RegisterAndCreateGlobal((POINTER*)&data_list::_data_list_local, sizeof( data_list::_data_list_local ), WIDE("_data_list_local") );
-	RegisterAndCreateGlobal((POINTER*)&queue::_link_queue_local, sizeof( queue::_link_queue_local ), WIDE("_link_queue_local") );
-	RegisterAndCreateGlobal((POINTER*)&data_queue::_data_queue_local, sizeof( data_queue::_data_queue_local ), WIDE("_data_queue_local") );
+	RegisterAndCreateGlobal((POINTER*)&list::_list_local, sizeof( *list::_list_local ), WIDE("_list_local") );
+	RegisterAndCreateGlobal((POINTER*)&data_list::_data_list_local, sizeof( *data_list::_data_list_local ), WIDE("_data_list_local") );
+	RegisterAndCreateGlobal((POINTER*)&queue::_link_queue_local, sizeof( *queue::_link_queue_local ), WIDE("_link_queue_local") );
+	RegisterAndCreateGlobal((POINTER*)&data_queue::_data_queue_local, sizeof( *data_queue::_data_queue_local ), WIDE("_data_queue_local") );
 
 #else
 	SimpleRegisterAndCreateGlobal( _list_local );
