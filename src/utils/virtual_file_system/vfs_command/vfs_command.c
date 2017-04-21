@@ -289,8 +289,9 @@ static void AppendFilesAs( CTEXTSTR filename1, CTEXTSTR filename2, CTEXTSTR outp
 		POINTER extra = (POINTER)file1_size;
 		lprintf( "linux append is probably wrong here..." );
 #endif
+		//printf( "output is... %zd %p %zd\n", file1_size, extra, (uintptr_t)extra - (uintptr_t)buffer );
 		// there's probably a better expression...
-		if( ((uintptr_t)extra - (uintptr_t)buffer) < ( (file1_size + BLOCK_SIZE )& ~(BLOCK_SIZE-1) ) ) 
+		if( ((uintptr_t)extra - (uintptr_t)buffer) <= ( (file1_size + (2*BLOCK_SIZE-1) )& ~(BLOCK_SIZE-1) ) ) 
 		{
 			sack_fseek( file_out, ((uintptr_t)extra - (uintptr_t)buffer), SEEK_SET );
 		}
