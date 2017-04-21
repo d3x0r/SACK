@@ -531,9 +531,11 @@ void InitSyslog( int ignore_options )
 			/* using SYSLOG_AUTO_FILE option does not require this to be open.
 			* it is opened on demand.
 			*/
+			logtype = SYSLOG_AUTO_FILE;
+			//(*syslog_local).file = stderr;
 
-			logtype = SYSLOG_FILE;
-			(*syslog_local).file = stderr;
+			//logtype = SYSLOG_FILE;
+			//(*syslog_local).file = stderr;
 			(*syslog_local).flags.bLogOpenBackup = 1;
 			(*syslog_local).flags.bUseDeltaTime = 1;
 			(*syslog_local).flags.bLogCPUTime = 1;
