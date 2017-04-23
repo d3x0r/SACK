@@ -192,10 +192,11 @@ const uint8_t *sack_vfs_get_signature2( POINTER disk, POINTER diskReal ) {
 // add some space to the volume....
 static LOGICAL ExpandVolume( struct volume *vol ) {
 	LOGICAL created;
+	LOGICAL path_checked = FALSE; 
 	struct disk* new_disk;
 	size_t oldsize = vol->dwSize;
 	if( vol->read_only ) return TRUE;
-	
+	do {	
 	if( !vol->dwSize ) {
 		new_disk = (struct disk*)OpenSpaceExx( NULL, vol->volname, 0, &vol->dwSize, &created );
 		if( new_disk && vol->dwSize ) {
@@ -229,9 +230,26 @@ static LOGICAL ExpandVolume( struct volume *vol ) {
 #endif
 			vol->disk = new_disk;
 			return TRUE;
-		} else
+		} else {
+			if( !new_disk ) if( !path_checked ) {
+				char *tmp = StrDup( vol->volname );
+				char *dir = pathrchr( tmp );
+				path_checked = TRUE;
+				if( dir ) {
+					 dir[0] = 0;
+					if( !IsPath( tmp ) ) {
+						MakePath( tmp );
+						Deallocate( char*, tmp );
+						continue;
+					}
+				}
+				Deallocate( char*, tmp );
+			}
 			created = 1;
+		}
+		break;
 	}
+	} while(1);
 	
 	if( oldsize ) CloseSpace( vol->diskReal );
 
@@ -261,7 +279,7 @@ static LOGICAL ExpandVolume( struct volume *vol ) {
 					}
 					vol->dwSize -= ((uintptr_t)actual_disk - (uintptr_t)new_disk);
 					new_disk = actual_disk;
-				}{}
+				}
 			}
 		}
 #endif
