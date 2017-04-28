@@ -1829,7 +1829,7 @@ struct file_system_mounted_interface *sack_get_mounted_filesystem( const char *n
 	struct file_system_mounted_interface *root = (*winfile_local).mounted_file_systems;
 	while( root )
 	{
-		if( stricmp( root->name, name ) == 0 ) break;
+		if( root->name ) if( stricmp( root->name, name ) == 0 ) break;
 		root = NextThing( root );
 	}
 	return root;
@@ -1844,7 +1844,7 @@ struct file_system_mounted_interface *sack_mount_filesystem( const char *name, s
 {
 	struct file_system_mounted_interface *root = (*winfile_local).mounted_file_systems;
 	struct file_system_mounted_interface *mount = New( struct file_system_mounted_interface );
-	mount->name = strdup( name );
+	mount->name = name?strdup( name ):NULL;
 	mount->priority = priority;
 	mount->psvInstance = psvInstance;
 	mount->writeable = writable;
