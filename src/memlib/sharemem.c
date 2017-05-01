@@ -1524,6 +1524,7 @@ uintptr_t GetFileSize( int fd )
 
 			if( hFile == INVALID_HANDLE_VALUE )
 			{
+            // might still be able to open it by shared name; even if the file share is disabled
 				readonly = 0;
 #ifdef DEBUG_OPEN_SPACE
 				ll_lprintf( WIDE("file is still invalid(alreadyexist?)... new size is %d %d on %p"), (*dwSize), FILE_GRAN, hFile );
