@@ -351,7 +351,7 @@ LOGICAL  IsPath ( CTEXTSTR path )
 	}
 	return status;
 #else
-#ifdef UNICODE
+#  ifdef UNICODE
 	{
 		int status;
 		char *tmppath = CStrDup( path );
@@ -359,7 +359,7 @@ LOGICAL  IsPath ( CTEXTSTR path )
 		Release( tmppath );
 		return !status;
 	}
-#else
+  #else
 
 	if( ( status = mkdir( path, -1 ) ) < 0 ) // make directory with full umask permissions
 	{
@@ -369,13 +369,13 @@ LOGICAL  IsPath ( CTEXTSTR path )
 		{
 			last[0] = 0;
 			if( MakePath( tmppath ) )
-				status = mkdir
+				status = mkdir( path, -1 );
 		}
 		Release( tmppath );
 	}
 	return !status
 
-#endif
+#  endif
 #endif
 }
 
