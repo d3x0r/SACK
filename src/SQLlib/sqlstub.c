@@ -1308,7 +1308,7 @@ int OpenSQLConnectionEx( PODBC odbc DBG_PASS )
 				{
 					char *vfs_name;
 					CTEXTSTR vfs_end = StrChr( odbc->info.pDSN + 1, '@' );
-					CTEXTSTR vfs_vfs_end = StrChr( odbc->info.pDSN + 1, '$' );
+					CTEXTSTR vfs_vfs_end = StrRChr( vfs_end?vfs_end:(odbc->info.pDSN + 1), '$' );
 					TEXTCHAR *tmpvfs;
 					TEXTCHAR *tmpvfsvfs;
 					if( vfs_vfs_end )
