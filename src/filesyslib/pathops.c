@@ -352,15 +352,29 @@ LOGICAL  IsPath ( CTEXTSTR path )
 	return status;
 #else
 #ifdef UNICODE
-	 {
-		 int status;
-	   char *tmppath = CStrDup( path );
-		 status = mkdir( tmppath, -1 ); // make directory with full umask permissions
-		 Release( tmppath );
-		 return !status;
-	 }
+	{
+		int status;
+		char *tmppath = CStrDup( path );
+		status = mkdir( tmppath, -1 ); // make directory with full umask permissions
+		Release( tmppath );
+		return !status;
+	}
 #else
-	 return !mkdir( path, -1 ); // make directory with full umask permissions
+
+	if( ( status = mkdir( path, -1 ) ) < 0 ) // make directory with full umask permissions
+	{
+		TEXTSTR tmppath = StrDup( path );
+		TEXTSTR last = (TEXTSTR)pathrchr( tmppath );
+		if( last )
+		{
+			last[0] = 0;
+			if( MakePath( tmppath ) )
+				status = mkdir
+		}
+		Release( tmppath );
+	}
+	return !status
+
 #endif
 #endif
 }
