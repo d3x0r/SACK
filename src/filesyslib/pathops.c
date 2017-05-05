@@ -313,11 +313,14 @@ LOGICAL  IsPath ( CTEXTSTR path )
 		 {
 			 int status;
 			 char *tmppath = CStrDup( path );
-			 stat( tmppath, &statbuf );
-		  Release( tmppath );
+			 status = stat( tmppath, &statbuf );
+			 Release( tmppath );
+			 if( status < 0 )
+				 return 0;
 		 }
 #else
-		 stat( path, &statbuf );
+		 if( stat( path, &statbuf ) < 0 )
+			 return 0;
 #endif
 		 return S_ISDIR( statbuf.st_mode );
 	 }
