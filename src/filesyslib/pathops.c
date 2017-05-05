@@ -329,12 +329,12 @@ LOGICAL  IsPath ( CTEXTSTR path )
 
 //-----------------------------------------------------------------------
 
- int  MakePath ( CTEXTSTR path )
+int  MakePath ( CTEXTSTR path )
 {
+	int status;
 	if( !path )
 		return 0;
 #ifdef _WIN32
-	int status;
 	status = CreateDirectory( path, NULL );
 	if( !status )
 	{
@@ -359,8 +359,7 @@ LOGICAL  IsPath ( CTEXTSTR path )
 		Release( tmppath );
 		return !status;
 	}
-  #else
-
+#  else
 	if( ( status = mkdir( path, -1 ) ) < 0 ) // make directory with full umask permissions
 	{
 		TEXTSTR tmppath = StrDup( path );
@@ -373,8 +372,7 @@ LOGICAL  IsPath ( CTEXTSTR path )
 		}
 		Release( tmppath );
 	}
-	return !status
-
+	return !status;
 #  endif
 #endif
 }
