@@ -30,9 +30,26 @@ SET_TARGET_PROPERTIES(${PROJECT} PROPERTIES
 )
 
 if( ANDROID )
-  my_target_link_libraries( ${PROJECT}.code ${SACK_LIBRARIES} )#salty_generator)
+  my_target_link_libraries( ${PROJECT}.code ${SACK_LIBRARIES} )
 else( ANDROID )
-  my_target_link_libraries( ${PROJECT} ${SACK_LIBRARIES} )#salty_generator)
+  my_target_link_libraries( ${PROJECT} ${SACK_LIBRARIES} )
 endif( ANDROID )
 install_mode_dest( ${PROJECT} )
+
+
+set( PROJECT test_salty_id_generator )
+
+add_program( ${PROJECT}  test_salty_id_generator.c )
+
+SET_TARGET_PROPERTIES(${PROJECT} PROPERTIES
+                  FOLDER utils/salty_generator
+)
+
+if( ANDROID )
+  my_target_link_libraries( ${PROJECT}.code ${SACK_LIBRARIES} )
+else( ANDROID )
+  my_target_link_libraries( ${PROJECT} ${SACK_LIBRARIES} )
+endif( ANDROID )
+install_mode_dest( ${PROJECT} )
+
 endif( BUILD_TESTS )

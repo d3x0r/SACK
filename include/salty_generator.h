@@ -69,5 +69,5 @@ SRG_EXPORT TEXTCHAR * SRG_EncryptData( CPOINTER buffer, size_t buflen );
 SRG_EXPORT TEXTCHAR * SRG_EncryptString( CTEXTSTR buffer );
 
 // return a unique ID
-SRC_EXPORT char * SRG_ID_Generator( void );
+SRG_EXPORT char * SRG_ID_Generator( void );
 

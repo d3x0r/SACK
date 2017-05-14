@@ -3393,7 +3393,7 @@ PRELOAD( initTables ) {
 			b64xor_table[encodings2[n]][encodings2[m]] = encodings2[n^m];
 			u8xor_table[encodings2[n]][encodings2[m]] = n^m;
 	}
-	b64x0r_table['=']['='] = '=';
+	b64xor_table['=']['='] = '=';
 }
 
 char * b64xor( const char *a, const char *b ) {
@@ -3418,7 +3418,7 @@ char * u8xor( const char *a, const char *b, int *ofs ) {
 		if( (v & 0xE0) == 0xC0 ) 	{mask=0x3;}
 		else if( (v & 0xF0) == 0xE0 ) {mask=0xF;}
 		else if( (v & 0xF8) == 0xF0 ) {mask=0x7;}
-		out[n] = (v & ~mask ) | ( u8xor_table[v & mask ][b[(n+o)%(keylen)]] & mask )
+		out[n] = (v & ~mask ) | ( u8xor_table[v & mask ][b[(n+o)%(keylen)]] & mask );
 	}
 	out[n] = 0;
 	ofs[0] = (ofs[0]+outlen)%keylen;
@@ -3435,7 +3435,7 @@ static void encodeblock( unsigned char in[3], TEXTCHAR out[4], size_t len, const
 	out[3] = (len > 2 ? base64[ in[2] & 0x3f ] : base64[64]);
 }
 
-static void b64decodeblock( unsigned char in[4], char out[3], size_t len, const char *base64 )
+static void decodeblock( unsigned char in[4], char out[3], size_t len, const char *base64 )
 {
 	const char *index[4];
 	int n;
@@ -3468,7 +3468,7 @@ TEXTCHAR *EncodeBase64Ex( uint8_t* buf, size_t length, size_t *outsize, const ch
 			blocklen = length - n*3;
 			if( blocklen > 3 )
 				blocklen = 3;
-			encodeblock( ((uint8_t*)buf) + n * 3, real_output + n*4, blocklen );
+			encodeblock( ((uint8_t*)buf) + n * 3, real_output + n*4, blocklen, base64 );
 		}
 		(*outsize) = n*4 + 1;
 		real_output[n*4] = 0;
@@ -3492,7 +3492,7 @@ char *DecodeBase64Ex( uint8_t* buf, size_t length, size_t *outsize, const char *
 			blocklen = length - n*4;
 			if( blocklen > 4 )
 				blocklen = 4;
-			decodeblock( ((uint8_t*)buf) + n * 4, real_output + n*3, blocklen );
+			decodeblock( ((uint8_t*)buf) + n * 4, real_output + n*3, blocklen, base64 );
 		}
 		real_output[n*3] = 0;
 	}
