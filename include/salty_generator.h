@@ -68,3 +68,6 @@ SRG_EXPORT TEXTCHAR * SRG_EncryptData( CPOINTER buffer, size_t buflen );
 // calls EncrytpData with buffer and string length + 1 to include the null for decryption.
 SRG_EXPORT TEXTCHAR * SRG_EncryptString( CTEXTSTR buffer );
 
+// return a unique ID
+SRC_EXPORT char * SRG_ID_Generator( void );
+

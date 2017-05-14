@@ -175,6 +175,22 @@ void SRG_RestoreState( struct random_context *ctx, POINTER external_buffer_holde
 }
 
 
+static void getSalt (uintptr_t psv, POINTER *salt, size_t *salt_size ) {
+	static uint32_t tick = GetTickCount();
+	salt[0] = &tick;
+	salt_size[0] = sizeof( tick );
+}
+
+char *SRG_ID_Generator( void ) {
+	static struct ramdom_context *ctx;
+	uint32_t buf[2*(16+16)];
+	char *out;
+	if( !ctx ) ctx = SRG_CreateEntropy2( salt_generator, 0 );
+	SRG_GetEntropyBuffer( ctx, buf, 8*(16+16) );
+	return EncodeBase64Ex( buf, 8*(16+16), &outlen, (const char *)1 );
+}
+
+
 #if WIN32
 #if 0  
 // if standalone?
