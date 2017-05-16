@@ -3408,7 +3408,7 @@ char * b64xor( const char *a, const char *b ) {
 
 char * u8xor( const char *a, const char *b, int *ofs ) {
 	int n;
-	int keylen = strlen(b)-5;
+	size_t keylen = strlen(b)-5;
 	int o = ofs[0];
 	size_t outlen;
 	char *out = NewArray( char, (outlen=strlen(a)) + 1);
