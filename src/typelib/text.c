@@ -3421,7 +3421,7 @@ char * u8xor( const char *a, const char *b, int *ofs ) {
 		out[n] = (v & ~mask ) | ( u8xor_table[v & mask ][b[(n+o)%(keylen)]] & mask );
 	}
 	out[n] = 0;
-	ofs[0] = (ofs[0]+outlen)%keylen;
+	ofs[0] = (int)((ofs[0]+outlen)%keylen);
 	return out;
 }
 
