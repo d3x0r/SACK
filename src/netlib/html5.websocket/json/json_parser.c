@@ -88,7 +88,7 @@ LOGICAL json_parse_message( TEXTSTR msg
 
 	char const * msg_input = (char const *)msg;
 	char const * _msg_input;
-	char *token_begin;
+	//char *token_begin;
 
 	if( !_msg_output )
 		return FALSE;

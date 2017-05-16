@@ -3410,7 +3410,7 @@ char * u8xor( const char *a, const char *b, int *ofs ) {
 	int n;
 	int keylen = strlen(b)-5;
 	int o = ofs[0];
-	int outlen;
+	size_t outlen;
 	char *out = NewArray( char, (outlen=strlen(a)) + 1);
 	for( n = 0; a[n]; n++ ) {
 		char v = a[n];
@@ -3446,9 +3446,9 @@ static void decodeblock( unsigned char in[4], char out[3], size_t len, const cha
 		//	last_byte = 1;
 	}
 	//if( 
-	out[0] = ( index[0] - base64 ) << 2 | ( index[1] - base64 ) >> 4;
-	out[1] = ( index[1] - base64 ) << 4 | ( ( ( index[2] - base64 ) >> 2 ) & 0x0f );
-	out[2] = ( index[2] - base64 ) << 6 | ( ( index[3] - base64 ) & 0x3F );
+	out[0] = (char)(( index[0] - base64 ) << 2 | ( index[1] - base64 ) >> 4);
+	out[1] = (char)(( index[1] - base64 ) << 4 | ( ( ( index[2] - base64 ) >> 2 ) & 0x0f ));
+	out[2] = (char)(( index[2] - base64 ) << 6 | ( ( index[3] - base64 ) & 0x3F ));
 	//out[] = (len > 2 ? base64[ in[2] & 0x3f ] : 0);
 }
 
