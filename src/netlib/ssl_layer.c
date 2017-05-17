@@ -527,7 +527,7 @@ LOGICAL ssl_Send( PCLIENT pc, POINTER buffer, size_t length )
 		// signed/unsigned comparison here.
 		// the signed value is known to be greater than 0 and less than max unsigned int
 		// so it is in a valid range to check, and is NOT a warning or error condition EVER.
-		if( len > ses->obuflen )
+		if( SUS_GT( len, int, ses->obuflen, size_t ) )
 		{
 			Release( ses->obuffer );
 			ses->obuffer = NewArray( uint8_t, len * 2 );

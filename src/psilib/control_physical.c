@@ -513,8 +513,8 @@ static void HandleDefaultSingleTouch( PSI_CONTROL canvas, PINPUT_POINT touch1, P
 {
 	if( touch1->flags.new_event || touch2->flags.new_event )
 	{
-		touch_state.prior_x = ( (touch1->x + touch2->x) / 2 ) / 100;
-		touch_state.prior_y = ( (touch1->y + touch2->y) / 2 ) / 100;
+		touch_state.prior_x = (int)(( (touch1->x + touch2->x) / 2 ) / 100);
+		touch_state.prior_y = (int)(( (touch1->y + touch2->y) / 2 ) / 100);
 	}
 	else if( touch1->flags.end_event || touch2->flags.end_event )
 	{

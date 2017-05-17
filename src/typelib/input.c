@@ -786,7 +786,7 @@ LOGICAL  SetUserInputPosition ( PUSER_INPUT_BUFFER pci, int nPos, int whence )
 					return FALSE;
 				start = cursor = 0;
 			}
-			for( tmp = 0; tmp < nPos; tmp++ )
+			for( tmp = 0; tmp < (size_t)nPos; tmp++ )
 			{
 				if( cursor < curseg->data.size )
 					ch = GetUtfCharIndexed( curseg->data.data, &cursor );
@@ -840,7 +840,7 @@ LOGICAL  SetUserInputPosition ( PUSER_INPUT_BUFFER pci, int nPos, int whence )
 		if( ( totalpos + nPos ) > 0 )
 		{
 			totalpos += nPos;
-			while( start && ( totalpos > ( tmpstart = GetTextSize( lastseg = start ) ) ) )
+			while( start && SUS_GT( totalpos, int, ( tmpstart = GetTextSize( lastseg = start ) ), size_t ) )
 			{
 				totalpos -= (int)tmpstart;
 				start = NEXTLINE( start );
