@@ -2707,7 +2707,7 @@ TYPELIB_PROC  char * TYPELIB_CALLTYPE  DecodeBase64Ex( uint8_t* buf, size_t leng
    although technically this can result in invalid character encoding where upper bits get zeroed 
    result should be Release()'d
 */
-TYPELIB_PROC  char * TYPELIB_CALLTYPE  u8xor( const char *a, const char *b, int *ofs );
+TYPELIB_PROC  char * TYPELIB_CALLTYPE  u8xor( const char *a, size_t alen, const char *b, size_t blen, int *ofs );
 /* xor two base64 encoded strings, resulting in a base64 string 
    result should be Release()'d
 */
