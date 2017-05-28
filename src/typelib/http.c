@@ -67,6 +67,11 @@ static struct local_http_data
 }local_http_data;
 #define l local_http_data
 
+struct instance_data {
+	PTHREAD waiter;
+	PCLIENT *pc;
+};
+
 void GatherHttpData( struct HttpState *pHttpState )
 {
 	if( pHttpState->content_length )
@@ -234,12 +239,41 @@ int ProcessHttp( PCLIENT pc, struct HttpState *pHttpState )
 											pHttpState->numeric_code = HTTP_STATE_RESULT_CONTENT; // initialize to assume it's incomplete; NOT OK.  (requests should be OK)
 											request = NEXTLINE( request );
 										}
-										if( TextSimilar( request, WIDE( "POST" ) ) )
+										else if( TextSimilar( request, WIDE( "POST" ) ) )
 										{
 											pHttpState->numeric_code = HTTP_STATE_RESULT_CONTENT; // initialize to assume it's incomplete; NOT OK.  (requests should be OK)
 											lprintf( WIDE("probably shouldn't post final until content length is also received...") );
 											request = NEXTLINE( request );
 										}
+										// this loop is used for both client and server http requests... 
+										// this will be the first part of a HTTP response (this one will have a result code, the other is just version)
+										else if( TextSimilar( request, WIDE( "HTTP/" ) ) )
+										{
+											TEXTCHAR *tmp2 = (TEXTCHAR*)StrChr( GetText( request ), '.' );
+											pHttpState->response_version = (int)((IntCreateFromText( GetText( request ) + 5 ) * 100) + IntCreateFromText( tmp2 + 1 ));
+											{
+												PTEXT nextword = NEXTLINE( request );
+												if( nextword )
+												{
+													next = NEXTLINE( nextword );
+													// cast from int64_t
+													pHttpState->numeric_code = (int)IntCreateFromText( GetText( nextword ) );
+													nextword = next;
+													if( nextword )
+													{
+														next = NEXTLINE( nextword );
+														if( pHttpState->text_code )
+															Release( pHttpState->text_code );
+														pHttpState->text_code = StrDup( GetText( nextword ) );
+													}
+												}
+												else
+												{
+													lprintf( WIDE( "failed to find result code in %s" ), line );
+												}
+											}
+										}
+
 										for( tmp = request; tmp; tmp = next )
 										{
 											//lprintf( WIDE( "word %s" ), GetText( tmp ) );
@@ -249,27 +283,6 @@ int ProcessHttp( PCLIENT pc, struct HttpState *pHttpState )
 											{
 												TEXTCHAR *tmp2 = (TEXTCHAR*)StrChr( GetText( tmp ), '.' );
 												pHttpState->response_version = (int)(( IntCreateFromText( GetText( tmp ) + 5 ) * 100 ) + IntCreateFromText( tmp2 + 1 ));
-												{
-													PTEXT nextword = next;
-													if( nextword )
-													{
-														next = NEXTLINE( nextword );
-														// cast from int64_t
-														pHttpState->numeric_code = (int)IntCreateFromText( GetText( nextword ) );
-														nextword = next;
-														if( nextword )
-														{
-															next = NEXTLINE( nextword );
-															if( pHttpState->text_code )
-																Release( pHttpState->text_code );
-															pHttpState->text_code = StrDup( GetText( nextword ) );
-														}
-													}
-													else
-													{
-														lprintf( WIDE( "failed to find result code in %s" ), line );
-													}
-												}
 											}
 											else if( GetText(tmp)[0] == '?' )
 											{
@@ -290,6 +303,7 @@ int ProcessHttp( PCLIENT pc, struct HttpState *pHttpState )
 												else
 												{
 													resource_path = SegAppend( resource_path, SegGrab( tmp ) );
+													if( request == tmp ) request = next;
 												}
 											}
 										}
@@ -366,7 +380,7 @@ int ProcessHttp( PCLIENT pc, struct HttpState *pHttpState )
 						pHttpState->read_chunks = TRUE;
 						pHttpState->read_chunk_state = READ_VALUE;
 						pHttpState->read_chunk_length = 0;
-                  pHttpState->read_chunk_total_length = 0;
+						pHttpState->read_chunk_total_length = 0;
 					}
 				}
 				if( TextLike( field->name, WIDE( "Expect" ) ) )
@@ -384,7 +398,9 @@ int ProcessHttp( PCLIENT pc, struct HttpState *pHttpState )
 		}
 	}
 	if( pHttpState->final && 
-		( ( pHttpState->content_length && ( GetTextSize( pHttpState->partial ) >= pHttpState->content_length ) ) 
+		( ( pHttpState->content_length 
+			&& ( ( GetTextSize( pHttpState->partial ) >= pHttpState->content_length ) 
+				||( GetTextSize( pHttpState->content ) >= pHttpState->content_length ) ) ) 
 			|| ( !pHttpState->content_length ) 
 			) )
 	{
@@ -748,7 +764,7 @@ static void CPROC HttpReader( PCLIENT pc, POINTER buffer, size_t size )
 	}
 
 	// read is handled by the SSL layer instead of here.  Just trust that someone will give us data later
-	if( buffer && ( state && !state->ssl ) )
+	if( buffer && ( !state || !state->ssl ) )
 	{
 		ReadTCP( pc, buffer, 4096 );
 	}
@@ -760,9 +776,11 @@ static void CPROC HttpReaderClose( PCLIENT pc )
 	if( buf )
 		Release( buf );
 	{
-		PCLIENT *ppc = (PCLIENT*)GetNetworkLong( pc, 0 );
+		struct instance_data *data = (struct instance_data*)GetNetworkLong( pc, 0 );
+		PCLIENT *ppc = data->pc;// (PCLIENT*)GetNetworkLong( pc, 0 );
 		if( ppc )
 			ppc[0] = NULL;
+		if( data->waiter ) WakeThread( data->waiter );
 	}
 }
 
@@ -778,7 +796,10 @@ HTTPState PostHttpQuery( PTEXT address, PTEXT url, PTEXT content )
 	if( pc )
 	{
 		PTEXT send = VarTextGet( pvtOut );
-		SetNetworkLong( pc, 0, (uintptr_t)&pc );
+		struct instance_data inst;
+		inst.pc = &pc;
+		inst.waiter = MakeThread();
+		SetNetworkLong( pc, 0, (uintptr_t)&inst );
 		SetNetworkLong( pc, 2, (uintptr_t)state );
 		SetNetworkCloseCallback( pc, HttpReaderClose );
 		if( l.flags.bLogReceived )
@@ -817,31 +838,37 @@ HTTPState GetHttpQuery( PTEXT address, PTEXT url )
 		return NULL;
 	{
 		PCLIENT pc = OpenTCPClient( GetText( address ), 80, HttpReader );
-		struct HttpState *state = CreateHttpState();
-		PVARTEXT pvtOut = VarTextCreate();
-		vtprintf( pvtOut, WIDE( "GET %s HTTP/1.1\r\n" ), GetText( url ) );
-		vtprintf( pvtOut, WIDE( "host: %s\r\n" ), GetText( address ) );
-		vtprintf( pvtOut, WIDE( "\r\n\r\n" ) );
-		if( pc )
-		{
-			PTEXT send = VarTextGet( pvtOut );
-			SetNetworkLong( pc, 0, (uintptr_t)&pc );
-			SetNetworkLong( pc, 2, (uintptr_t)state );
-			SetNetworkCloseCallback( pc, HttpReaderClose );
-			if( l.flags.bLogReceived )
+		if( pc ) {
+			struct HttpState *state = CreateHttpState();
+			PVARTEXT pvtOut = VarTextCreate();
+			SetTCPNoDelay( pc, TRUE );
+			vtprintf( pvtOut, WIDE( "GET %s HTTP/1.1\r\n" ), GetText( url ) );
+			vtprintf( pvtOut, WIDE( "host: %s\r\n" ), GetText( address ) );
+			vtprintf( pvtOut, WIDE( "\r\n\r\n" ) );
+			if( pc )
 			{
-				lprintf( WIDE("Sending POST...") );
-				LogBinary( (uint8_t*)GetText( send ), GetTextSize( send ) );
+				PTEXT send = VarTextGet( pvtOut );
+				struct instance_data inst;
+				inst.pc = &pc;
+				inst.waiter = MakeThread();
+				SetNetworkLong( pc, 0, (uintptr_t)&inst );// pc );
+				SetNetworkLong( pc, 2, (uintptr_t)state );
+				SetNetworkCloseCallback( pc, HttpReaderClose );
+				if( l.flags.bLogReceived )
+				{
+					lprintf( WIDE( "Sending POST..." ) );
+					LogBinary( (uint8_t*)GetText( send ), GetTextSize( send ) );
+				}
+				SendTCP( pc, GetText( send ), GetTextSize( send ) );
+				LineRelease( send );
+				while( pc )
+				{
+					WakeableSleep( 100 );
+				}
 			}
-			SendTCP( pc, GetText( send ), GetTextSize( send ) );
-			LineRelease( send );
-			while( pc )
-			{
-				WakeableSleep( 100 );
-			}
+			VarTextDestroy( &pvtOut );
+			return state;
 		}
-		VarTextDestroy( &pvtOut );
-		return state;
 	}
 	return NULL;
 }
@@ -856,8 +883,11 @@ HTTPState GetHttpsQuery( PTEXT address, PTEXT url )
 		pc = OpenTCPClient( GetText( address ), 443, NULL );
 		if( pc )
 		{
+			struct instance_data inst;
+			inst.pc = &pc;
+			inst.waiter = MakeThread();
 			state->last_read_tick = GetTickCount();
-			SetNetworkLong( pc, 0, (uintptr_t)&pc );
+			SetNetworkLong( pc, 0, (uintptr_t)&inst );
 			SetNetworkLong( pc, 2, (uintptr_t)state );
 			SetNetworkCloseCallback( pc, HttpReaderClose );
 			SetNetworkReadComplete( pc, HttpReader );
