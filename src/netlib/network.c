@@ -193,7 +193,7 @@ NETWORK_PROC( int, GetMacAddress)(PCLIENT pc, uint8_t* buf, size_t *buflen )//in
 
 	return 0;
 #    endif
-   /* this code queries the arp table to figure out who the other side is */
+	   /* this code queries the arp table to figure out who the other side is */
 	//int fd;
 	struct arpreq arpr;
 	struct ifconf ifc;
@@ -207,7 +207,7 @@ NETWORK_PROC( int, GetMacAddress)(PCLIENT pc, uint8_t* buf, size_t *buflen )//in
 		ifc.ifc_buf = buf;
 		ioctl( pc->Socket, SIOCGIFCONF, &ifc );
 		{
-         int i;
+			int i;
 			struct ifreq *IFR;
 			IFR = ifc.ifc_req;
 			for( i = ifc.ifc_len / sizeof( struct ifreq); --i >=0; IFR++ )
@@ -227,12 +227,12 @@ NETWORK_PROC( int, GetMacAddress)(PCLIENT pc, uint8_t* buf, size_t *buflen )//in
 	return 0;
 #  endif
 #  ifdef WIN32
-    HRESULT hr;
-    ULONG   ulLen;
+	HRESULT hr;
+	ULONG   ulLen;
 	// I don't understand this useless cast - from size_t to ULONG?
 	// isn't that the same thing?
 	ulLen = (ULONG)(*buflen);
-    
+
 	//needs ws2_32.lib and iphlpapi.lib in the linker.
 	hr = SendARP ( (IPAddr)GetNetworkLong(pc,GNL_MYIP), (IPAddr)GetNetworkLong(pc,GNL_MYIP), (PULONG)buf, &ulLen);
 	(*buflen) = ulLen;
@@ -301,7 +301,7 @@ NETWORK_PROC( PLIST, GetMacAddresses)( void )//int get_mac_addr (char *device, u
 		ifc.ifc_buf = buf;
 		ioctl( pc->Socket, SIOCGIFCONF, &ifc );
 		{
-         int i;
+			int i;
 			struct ifreq *IFR;
 			IFR = ifc.ifc_req;
 			for( i = ifc.ifc_len / sizeof( struct ifreq); --i >=0; IFR++ )
@@ -323,11 +323,11 @@ NETWORK_PROC( PLIST, GetMacAddresses)( void )//int get_mac_addr (char *device, u
 #endif
 #ifdef WIN32
 
-    HRESULT hr;
-    ULONG   ulLen;
+	HRESULT hr;
+	ULONG   ulLen;
 	uint8_t hwClient[6];
 	ulLen = 6;
-    
+
 	//needs ws2_32.lib and iphlpapi.lib in the linker.
 	hr = SendARP ((IPAddr)GetNetworkLong(NULL,GNL_IP), 0x100007f, (PULONG)&hwClient, &ulLen);
 //  The second parameter of SendARP is a PULONG, which is typedef'ed to a pointer to 
@@ -336,7 +336,7 @@ NETWORK_PROC( PLIST, GetMacAddresses)( void )//int get_mac_addr (char *device, u
 //  just addresses, whether they be address to information of eight bits in length, or
 //  of (sizeof(unsigned)) in length.  Although this may, in the future, throw a warning.
 	//hr = SendARP (GetNetworkLong(pc,GNL_IP), 0, (PULONG)pc->hwClient, &ulLen);
-    lprintf (WIDE("Return %08x, length %8d\n"), hr, ulLen);
+	lprintf (WIDE("Return %08x, length %8d\n"), hr, ulLen);
 
 	return 0;
 #endif
@@ -740,34 +740,34 @@ restart:
 
 static int NetworkStartup( void )
 {
-   static int attempt = 0;
-   static int nStep = 0,
-              nError;
-   static SOCKET sockMaster;
-   static SOCKADDR remSin;
-   //WSADATA ws;  // used to start up the socket services...
-   // can tick before the timer happens...
+	static int attempt = 0;
+	static int nStep = 0,
+	          nError;
+	static SOCKET sockMaster;
+	static SOCKADDR remSin;
+	//WSADATA ws;  // used to start up the socket services...
+	// can tick before the timer happens...
 	//if( !uNetworkPauseTimer )
 	//	return 2;
-   switch( nStep )
-   {
+	switch( nStep )
+	{
 	case 0 :
 		//lprintf( "Global is %d %p", sizeof( globalNetworkData ), &globalNetworkData.uNetworkPauseTimer, &globalNetworkData.nProtos );
 		SystemCheck();
-      /*
+		/*
 
-      if( WSAStartup( MAKEWORD(2,0), &ws ) )
-      {
-         nError = WSAGetLastError();
-         Log1( WIDE("Failed network startup! (%d)"), nError );
-         nStep = 0; // reset...
-         return NetworkQuit();
+		if( WSAStartup( MAKEWORD(2,0), &ws ) )
+		{
+			nError = WSAGetLastError();
+			Log1( WIDE("Failed network startup! (%d)"), nError );
+			nStep = 0; // reset...
+			return NetworkQuit();
 		}
 		lprintf("Winsock Version: %d.%d", LOBYTE(ws.wVersion), HIBYTE(ws.wVersion));
-      */
-      nStep++;
-      attempt = 0;
-   case 1 :
+		*/
+		nStep++;
+		attempt = 0;
+	case 1 :
 		// Sit around, waiting for the network to start...
 
 		//--------------------
@@ -791,58 +791,58 @@ static int NetworkStartup( void )
 		//--------------------
 
 
-      if( sockMaster == INVALID_SOCKET )
+		if( sockMaster == INVALID_SOCKET )
 		{
 			nError = WSAGetLastError();
 
 			lprintf( WIDE( "Failed to create a socket - error is %ld" ), WSAGetLastError() );
 			if( nError == 10106 ) // provvider init fail )
 			{
-            if( ++attempt >= 30 ) return NetworkQuit();
-            return -2;
+				if( ++attempt >= 30 ) return NetworkQuit();
+				return -2;
 			}
-         if( nError == WSAENETDOWN )
-         {
-            if( ++attempt >= 30 ) return NetworkQuit();
-            //else return NetworkPause(WIDE( "Socket is delaying..." ));
-         }
-          nStep = 0; // reset...
+			if( nError == WSAENETDOWN )
+			{
+				if( ++attempt >= 30 ) return NetworkQuit();
+				//else return NetworkPause(WIDE( "Socket is delaying..." ));
+			}
+			 nStep = 0; // reset...
 			if( ++attempt >= 30 ) return NetworkQuit();
-         return 1;//NetworkQuit();
-      }
+			return 1;//NetworkQuit();
+		}
 
-      // Retrieve my IP address and UDP Port number
-      remSin.sa_family=AF_INET;
-      remSin.sa_data[0]=0;
-      remSin.sa_data[1]=0;
-      ((SOCKADDR_IN*)&remSin)->sin_addr.s_addr=INADDR_ANY;
+		// Retrieve my IP address and UDP Port number
+		remSin.sa_family=AF_INET;
+		remSin.sa_data[0]=0;
+		remSin.sa_data[1]=0;
+		((SOCKADDR_IN*)&remSin)->sin_addr.s_addr=INADDR_ANY;
 
-      nStep++;
-      attempt = 0;
-      // Fall into next state..............
-   case 2 :
+		nStep++;
+		attempt = 0;
+		// Fall into next state..............
+	case 2 :
 		// Associate an address with a socket. (bind)
-      if( bind( sockMaster, (PSOCKADDR)&remSin, sizeof(remSin))
-          == SOCKET_ERROR )
-      {
-         if( WSAGetLastError() == WSAENETDOWN )
-         {
-            if( ++attempt >= 30 ) return NetworkQuit();
-            //else return NetworkPause(WIDE( "Bind is Delaying" ));
-         }
-         nStep = 0; // reset...
-         return NetworkQuit();
-      }
-      nStep++;
-      attempt = 0;
-      // Fall into next state..............
+		if( bind( sockMaster, (PSOCKADDR)&remSin, sizeof(remSin))
+			 == SOCKET_ERROR )
+		{
+			if( WSAGetLastError() == WSAENETDOWN )
+			{
+				if( ++attempt >= 30 ) return NetworkQuit();
+				//else return NetworkPause(WIDE( "Bind is Delaying" ));
+			}
+			nStep = 0; // reset...
+			return NetworkQuit();
+		}
+		nStep++;
+		attempt = 0;
+		// Fall into next state..............
 	case 3 :
-      closesocket(sockMaster);
-      sockMaster = INVALID_SOCKET;
-      nStep = 0; // reset...
-      break;
-   }
-   return 0;
+		closesocket(sockMaster);
+		sockMaster = INVALID_SOCKET;
+		nStep = 0; // reset...
+		break;
+	}
+	return 0;
 }
 
 //----------------------------------------------------------------------------
@@ -853,8 +853,8 @@ void CPROC NetworkPauseTimer( uintptr_t psv )
 	nResult = NetworkStartup();
 	if( nResult == 0 )
 	{
-   		while( !globalNetworkData.uNetworkPauseTimer )
-   			Relinquish();
+		while( !globalNetworkData.uNetworkPauseTimer )
+			Relinquish();
 		RemoveTimer( globalNetworkData.uNetworkPauseTimer );
 		globalNetworkData.flags.bNetworkReady = TRUE;
 		globalNetworkData.flags.bThreadInitOkay = TRUE;
@@ -917,7 +917,7 @@ void HandleEvent( PCLIENT pClient )
 #endif
 				while( !NetworkLock( pClient ) )
 				{
-               // done with events; inactive sockets can't have events
+					// done with events; inactive sockets can't have events
 					if( !(pClient->dwFlags & CF_ACTIVE ) )
 					{
 						pClient->dwFlags &= ~CF_PROCESSING;
@@ -999,7 +999,7 @@ void HandleEvent( PCLIENT pClient )
 					else
 					{
 						// got a network event, and won't get another until recv is called.
-                  // mark that the socket has data, then the pend_read code will trigger the finishpendingread.
+						// mark that the socket has data, then the pend_read code will trigger the finishpendingread.
 						if( FinishPendingRead( pClient DBG_SRC ) == 0 )
 						{
 							pClient->dwFlags |= CF_READREADY;
@@ -1080,10 +1080,10 @@ void HandleEvent( PCLIENT pClient )
 NETWORK_PROC( void, SetNetworkWriteComplete)( PCLIENT pClient,
                                          cWriteComplete WriteComplete )
 {
-   if( pClient && IsValid( pClient->Socket ) )
-   {
-   	pClient->write.WriteComplete = WriteComplete;
-   }
+	if( pClient && IsValid( pClient->Socket ) )
+	{
+		pClient->write.WriteComplete = WriteComplete;
+	}
 }
 
 //----------------------------------------------------------------------------
@@ -1092,12 +1092,12 @@ NETWORK_PROC( void, SetCPPNetworkWriteComplete)( PCLIENT pClient
                                          , cppWriteComplete WriteComplete 
                                          , uintptr_t psv)
 {                                        
-   if( pClient && IsValid( pClient->Socket ) )
-   {
-   	pClient->write.CPPWriteComplete = WriteComplete;
-   	pClient->psvWrite = psv;
-   	pClient->dwFlags |= CF_CPPWRITE;
-   }
+	if( pClient && IsValid( pClient->Socket ) )
+	{
+		pClient->write.CPPWriteComplete = WriteComplete;
+		pClient->psvWrite = psv;
+		pClient->dwFlags |= CF_CPPWRITE;
+	}
 }
 
 //----------------------------------------------------------------------------
@@ -1105,10 +1105,10 @@ NETWORK_PROC( void, SetCPPNetworkWriteComplete)( PCLIENT pClient
 NETWORK_PROC( void, SetNetworkCloseCallback)( PCLIENT pClient,
                                          cCloseCallback CloseCallback )
 {
-   if( pClient && IsValid(pClient->Socket) )
-   {
-      pClient->close.CloseCallback = CloseCallback;
-   }
+	if( pClient && IsValid(pClient->Socket) )
+	{
+		pClient->close.CloseCallback = CloseCallback;
+	}
 }
 
 //----------------------------------------------------------------------------
@@ -1117,12 +1117,12 @@ NETWORK_PROC( void, SetCPPNetworkCloseCallback)( PCLIENT pClient
                                          , cppCloseCallback CloseCallback 
                                          , uintptr_t psv)
 {
-   if( pClient && IsValid(pClient->Socket) )
-   {
-      pClient->close.CPPCloseCallback = CloseCallback;
-      pClient->psvClose = psv;
-      pClient->dwFlags |= CF_CPPCLOSE;
-   }
+	if( pClient && IsValid(pClient->Socket) )
+	{
+		pClient->close.CPPCloseCallback = CloseCallback;
+		pClient->psvClose = psv;
+		pClient->dwFlags |= CF_CPPCLOSE;
+	}
 }
 
 //----------------------------------------------------------------------------
@@ -1130,10 +1130,10 @@ NETWORK_PROC( void, SetCPPNetworkCloseCallback)( PCLIENT pClient
 NETWORK_PROC( void, SetNetworkReadComplete)( PCLIENT pClient,
                                         cReadComplete pReadComplete )
 {
-   if( pClient && IsValid(pClient->Socket) )
-   {
-      pClient->read.ReadComplete = pReadComplete;
-   }
+	if( pClient && IsValid(pClient->Socket) )
+	{
+		pClient->read.ReadComplete = pReadComplete;
+	}
 }
 
 //----------------------------------------------------------------------------
@@ -1142,12 +1142,12 @@ NETWORK_PROC( void, SetCPPNetworkReadComplete)( PCLIENT pClient
                                         , cppReadComplete pReadComplete 
                                         , uintptr_t psv)
 {
-   if( pClient && IsValid(pClient->Socket) )
-   {
-      pClient->read.CPPReadComplete = pReadComplete;
-      pClient->psvRead = psv;
-      pClient->dwFlags |= CF_CPPREAD;
-   }
+	if( pClient && IsValid(pClient->Socket) )
+	{
+		pClient->read.CPPReadComplete = pReadComplete;
+		pClient->psvRead = psv;
+		pClient->dwFlags |= CF_CPPREAD;
+	}
 }
 
 //----------------------------------------------------------------------------
@@ -1274,7 +1274,7 @@ static void WakeNewThreadEvents( struct peer_thread_info *info )
 		first_peer = first_peer->parent_peer;
 	for( peer = first_peer; peer; peer = peer->child_peer )
 	{
-      // this will be the parent of all; so his parent will be null, and we're already awake.
+		// this will be the parent of all; so his parent will be null, and we're already awake.
 		if( peer->parent_peer && peer->nEvents != peer->nWaitEvents )
 		{
 #if LOG_NETWORK_EVENT_THREAD
@@ -1473,7 +1473,7 @@ int CPROC ProcessNetworkMessages( struct peer_thread_info *thread, uintptr_t qui
 			}
 		}
 		// result 0... we had nothing to do
-      // but we are this thread.
+		// but we are this thread.
 		//DeleteList( &clients );
 		//DeleteList( &events );
 #  else
@@ -1544,7 +1544,7 @@ uintptr_t CPROC NetworkThreadProc( PTHREAD thread )
 		globalNetworkData.root_thread = &this_thread;
 
 	if( !peer_thread )
-      globalNetworkData.hMonitorThreadControlEvent = this_thread.hThread;
+		globalNetworkData.hMonitorThreadControlEvent = this_thread.hThread;
 
 #  endif
 	while( !globalNetworkData.pThreads ) // creator won't pass until bThreadInitComplete is set.
@@ -1581,8 +1581,8 @@ uintptr_t CPROC NetworkThreadProc( PTHREAD thread )
 		if( this_thread.parent_peer->child_peer = this_thread.child_peer )
 			this_thread.child_peer->parent_peer = this_thread.parent_peer;
 	}
-   // this used to be done in the WM_DESTROY
-   DeleteLink( &globalNetworkData.pThreads, thread );
+	// this used to be done in the WM_DESTROY
+	DeleteLink( &globalNetworkData.pThreads, thread );
 #  endif
 	globalNetworkData.flags.bThreadExit = TRUE;
 
@@ -1616,8 +1616,8 @@ uintptr_t CPROC NetworkThreadProc( PTHREAD thread )
 #  ifdef LOG_NETWORK_LOCKING
 	lprintf( WIDE( "NetworkThread(exit) left global" ) );
 #  endif
-	DeleteCriticalSec( &globalNetworkData.csNetwork );    //spv:980303
-   return 0;
+	DeleteCriticalSec( &globalNetworkData.csNetwork );	 //spv:980303
+	return 0;
 }
 #else // if !__LINUX__
 
@@ -1638,7 +1638,7 @@ int CPROC ProcessNetworkMessages( struct peer_thread_info *thread, uintptr_t unu
 		EnterCriticalSec( &globalNetworkData.csNetwork );
 		for( pc = globalNetworkData.ActiveClients; pc; pc = pc->next )
 		{
-         // socket might not be quite opened yet...
+			// socket might not be quite opened yet...
 			if( !IsValid( pc->Socket ) )
 				continue;
 			if( pc->dwFlags & (CF_LISTEN|CF_READPENDING) )
@@ -1693,11 +1693,11 @@ int CPROC ProcessNetworkMessages( struct peer_thread_info *thread, uintptr_t unu
 				return 1;
 			if( errno == EBADF )
 			{
-            PCLIENT next;
+				PCLIENT next;
 				EnterCriticalSec( &globalNetworkData.csNetwork );
 				for( pc = globalNetworkData.ActiveClients; pc; pc = next )
 				{
-               next = pc->next;
+					next = pc->next;
 					if( IsValid( pc->Socket ) )
 					{
 						if( pc->Socket >= maxcnt )
@@ -1727,14 +1727,14 @@ int CPROC ProcessNetworkMessages( struct peer_thread_info *thread, uintptr_t unu
 		if( cnt > 0 )
 		{
 			THREAD_ID prior = 0;
-         PCLIENT next;
+			PCLIENT next;
 		start_lock:
 			EnterCriticalSec( &globalNetworkData.csNetwork );
 			for( pc = globalNetworkData.ActiveClients; pc; pc = next )
 			{
 				next = pc->next;
 				if( !IsValid( pc->Socket ) )
-               continue;
+					continue;
 				if( pc->dwFlags & CF_WANTS_GLOBAL_LOCK)
 				{
 					LeaveCriticalSec( &globalNetworkData.csNetwork );
@@ -1856,7 +1856,7 @@ int CPROC ProcessNetworkMessages( struct peer_thread_info *thread, uintptr_t unu
 								if( globalNetworkData.flags.bLogNotices )
 									lprintf( WIDE( "Got connect event, waking waiter.." ) );
 #endif
-							    WakeThread( pc->pWaiting );
+								 WakeThread( pc->pWaiting );
 							}
 							if( pc->connect.ThisConnected )
 								pc->connect.ThisConnected( pc, error );
@@ -1991,10 +1991,10 @@ static uintptr_t CPROC NetworkThreadProc( PTHREAD thread )
 	//lprintf( "So we're good to go; set all flags as sucess, and begin doing nothing." );
 	//lprintf( WIDE("Network Thread Began...") );
 
-   while( !globalNetworkData.bQuit )
+	while( !globalNetworkData.bQuit )
 	{
-      int n = ProcessNetworkMessages( NULL, 0 );
-      if( n < 0 )
+		int n = ProcessNetworkMessages( NULL, 0 );
+		if( n < 0 )
 			break;
 		else if( !n )
 		{
@@ -2007,7 +2007,7 @@ static uintptr_t CPROC NetworkThreadProc( PTHREAD thread )
 		PCLIENT_SLAB slab;
 		LIST_FORALL( globalNetworkData.ClientSlabs, idx, PCLIENT_SLAB, slab )
 		{
-         Deallocate( PCLIENT_SLAB, slab );
+			Deallocate( PCLIENT_SLAB, slab );
 		}
 	}
 #ifdef LOG_NETWORK_EVENT_THREAD
@@ -2018,7 +2018,7 @@ static uintptr_t CPROC NetworkThreadProc( PTHREAD thread )
 	globalNetworkData.pUserData = NULL;
 	globalNetworkData.pThreads = NULL; // confirm thread exit.
 	globalNetworkData.flags.bNetworkReady = FALSE;
-   return 0;
+	return 0;
 }
 
 #endif
@@ -2059,7 +2059,7 @@ int NetworkQuit(void)
 	WSASetEvent( globalNetworkData.hMonitorThreadControlEvent );
 #else
 #  ifndef __LINUX__
-   if( IsWindow( globalNetworkData.ghWndNetwork ) )
+	if( IsWindow( globalNetworkData.ghWndNetwork ) )
 	{
 		// okay forget this... at exit, cannot guarantee that
 		// any other thread other than myself has any rights to do anything.
@@ -2068,8 +2068,8 @@ int NetworkQuit(void)
 			lprintf( WIDE( "Post SOCKMSG_CLOSE" ) );
 #    endif
 		PostMessage( globalNetworkData.ghWndNetwork, SOCKMSG_CLOSE, 0, 0 );
-      // also remove PCLIENT clients, and all client->pUserData allocated...
-   }
+		// also remove PCLIENT clients, and all client->pUserData allocated...
+	}
 #  else
 	//while( globalNetworkData.pThread )
 	//	Sleep(0);
@@ -2078,7 +2078,7 @@ int NetworkQuit(void)
 #endif
 	globalNetworkData.flags.bThreadInitComplete = FALSE;
 	//RemoveIdleProc( ProcessNetworkMessages );
-   if( globalNetworkData.pThreads )
+	if( globalNetworkData.pThreads )
 	{
 		uint32_t started = timeGetTime() + 500;
 		Relinquish(); // allow network thread to gracefully exit
@@ -2091,8 +2091,8 @@ int NetworkQuit(void)
 #endif
 		}
 	}
-   globalNetworkData.root_thread = NULL;
-   return -1;
+	globalNetworkData.root_thread = NULL;
+	return -1;
 }
 
 ATEXIT( NetworkShutdown )
@@ -2130,7 +2130,7 @@ void ReallocClients( uint32_t wClients, int nUserData )
 	if( !nUserData )
 		nUserData = 16;
 
-   // keep the max of specified connections..
+	// keep the max of specified connections..
 	if( wClients < MAX_NETCLIENTS )
 		wClients = MAX_NETCLIENTS;
 	if( wClients > MAX_NETCLIENTS )
@@ -2149,7 +2149,7 @@ void ReallocClients( uint32_t wClients, int nUserData )
 		AddLink( &globalNetworkData.ClientSlabs, pClientSlab );
 	}
 
-   // keep the max of specified data..
+	// keep the max of specified data..
 	if( nUserData < globalNetworkData.nUserData )
 		nUserData = globalNetworkData.nUserData;
 
@@ -2202,11 +2202,11 @@ NETWORK_PROC( LOGICAL, NetworkWait )(HWND hWndNotify,uint32_t wClients,int wUser
 	//-------------------------
 	// please be mindful of the following data declared immediate...
 	if( globalNetworkData.pThreads )
-   {
+	{
 		xlprintf(2400)( WIDE("Thread already active...") );
-      // might do something... might not...
+		// might do something... might not...
 		return TRUE; // network thread active, do not realloc
-   }
+	}
 	AddLink( &globalNetworkData.pThreads, ThreadTo( NetworkThreadProc, (uintptr_t)/*peer_thread==*/NULL ) );
 	AddIdleProc( IdleProcessNetworkMessages, 1 );
 	//lprintf( WIDE("Network Initialize..."));
@@ -2232,9 +2232,9 @@ NETWORK_PROC( LOGICAL, NetworkWait )(HWND hWndNotify,uint32_t wClients,int wUser
 		struct addrinfo *result;
 		struct addrinfo *test;
 #ifdef _UNICODE
-      char *tmp = WcharConvert( globalNetworkData.system_name );
+		char *tmp = WcharConvert( globalNetworkData.system_name );
 		getaddrinfo( tmp, NULL, NULL, (struct addrinfo**)&result );
-      Deallocate( char*, tmp );
+		Deallocate( char*, tmp );
 #else
 		getaddrinfo( globalNetworkData.system_name, NULL, NULL, (struct addrinfo**)&result );
 #endif
@@ -2242,17 +2242,17 @@ NETWORK_PROC( LOGICAL, NetworkWait )(HWND hWndNotify,uint32_t wClients,int wUser
 		{
 			//if( test->ai_family == AF_INET )
 			{
-            SOCKADDR *tmp;
+				SOCKADDR *tmp;
 				AddLink( &globalNetworkData.addresses, tmp = AllocAddr() );
-            ((uintptr_t*)tmp)[-1] = test->ai_addrlen;
-            MemCpy( tmp, test->ai_addr, test->ai_addrlen );
+				((uintptr_t*)tmp)[-1] = test->ai_addrlen;
+				MemCpy( tmp, test->ai_addr, test->ai_addrlen );
 			}
 		}
 	}
 #endif
 
-   //lprintf( WIDE("Network Initialize Complete!") );
-   return globalNetworkData.flags.bThreadInitOkay;  // return status of thread initialization
+	//lprintf( WIDE("Network Initialize Complete!") );
+	return globalNetworkData.flags.bThreadInitOkay;  // return status of thread initialization
 }
 
 //----------------------------------------------------------------------------
@@ -2273,7 +2273,7 @@ get_client:
 		// oterhwise we'll deadlock the closing client...
 		// an opening condition has global lock (above)
 		// and a closing socket will want the global lock before it's done.
-   		pClient = GrabClient( pClient );
+		pClient = GrabClient( pClient );
 #ifdef USE_NATIVE_CRITICAL_SECTION
 		EnterCriticalSec( &pClient->csLock );
 #else
@@ -2303,18 +2303,18 @@ get_client:
 #ifdef LOG_NETWORK_LOCKING
 	lprintf( WIDE("GetFreeNetworkClient left global") );
 #endif
-   return pClient;
+	return pClient;
 }
 
 //----------------------------------------------------------------------------
 
 NETWORK_PROC( void, SetNetworkLong )(PCLIENT lpClient, int nLong, uintptr_t dwValue)
 {
-   if( lpClient && ( nLong < globalNetworkData.nUserData ) )
-   {
-      *(uintptr_t*)(lpClient->lpUserData+(nLong * sizeof(uintptr_t))) = dwValue;
-   }
-   return;
+	if( lpClient && ( nLong < globalNetworkData.nUserData ) )
+	{
+		*(uintptr_t*)(lpClient->lpUserData+(nLong * sizeof(uintptr_t))) = dwValue;
+	}
+	return;
 }
 
 //----------------------------------------------------------------------------
@@ -2329,10 +2329,10 @@ int GetAddressParts( SOCKADDR *sa, uint32_t *pdwIP, uint16_t *pdwPort )
 				(*pdwIP) = (uint32_t)(((SOCKADDR_IN*)sa)->sin_addr.S_un.S_addr);
 			if( pdwPort )
 				(*pdwPort) = ntohs((uint16_t)( (SOCKADDR_IN*)sa)->sin_port);
-         return TRUE;
+			return TRUE;
 		}
 	}
-   return FALSE;
+	return FALSE;
 }
 
 NETWORK_PROC( uintptr_t, GetNetworkLong )(PCLIENT lpClient,int nLong)
@@ -2384,10 +2384,10 @@ NETWORK_PROC( uintptr_t, GetNetworkLong )(PCLIENT lpClient,int nLong)
 /*
 NETWORK_PROC( uint16_t, GetNetworkWord )(PCLIENT lpClient,int nWord)
 {
-   if( !lpClient )
-      return 0xFFFF;
-   if( nWord < (globalNetworkData.nUserData *2) )
-	   return(*(uint16_t*)(lpClient->lpUserData + (nWord * 2)));
+	if( !lpClient )
+		return 0xFFFF;
+	if( nWord < (globalNetworkData.nUserData *2) )
+		return(*(uint16_t*)(lpClient->lpUserData + (nWord * 2)));
 	return 0xFFFF;
 }
 */
@@ -2403,7 +2403,7 @@ NETWORK_PROC( SOCKADDR *, DuplicateAddress )( SOCKADDR *pAddr ) // return a copy
 	MemCpy( tmp2, tmp, MAGIC_SOCKADDR_LENGTH + 2*sizeof(uintptr_t) );
 	if( (POINTER)( ( (uintptr_t)pAddr ) - sizeof(uintptr_t) ) )
 		( (char**)( ( (uintptr_t)dup ) - sizeof(uintptr_t) ) )[0]
-				= StrDup( ((char**)( ( (uintptr_t)pAddr ) - sizeof(uintptr_t) ))[0] );
+				= strdup( ((char**)( ( (uintptr_t)pAddr ) - sizeof(uintptr_t) ))[0] );
 	return dup;
 }
 
@@ -2412,19 +2412,19 @@ NETWORK_PROC( SOCKADDR *, DuplicateAddress )( SOCKADDR *pAddr ) // return a copy
 
 NETWORK_PROC( SOCKADDR *,CreateAddress_hton)( uint32_t dwIP,uint16_t nHisPort)
 {
-   SOCKADDR_IN *lpsaAddr=(SOCKADDR_IN*)AllocAddr();
-   if (!lpsaAddr)
-      return(NULL);
+	SOCKADDR_IN *lpsaAddr=(SOCKADDR_IN*)AllocAddr();
+	if (!lpsaAddr)
+		return(NULL);
 	SET_SOCKADDR_LENGTH( lpsaAddr, 16 );
-   lpsaAddr->sin_family       = AF_INET;         // InetAddress Type.
-   lpsaAddr->sin_addr.S_un.S_addr  = htonl(dwIP);
-   lpsaAddr->sin_port         = htons(nHisPort);
-   return((SOCKADDR*)lpsaAddr);
+	lpsaAddr->sin_family       = AF_INET;         // InetAddress Type.
+	lpsaAddr->sin_addr.S_un.S_addr  = htonl(dwIP);
+	lpsaAddr->sin_port         = htons(nHisPort);
+	return((SOCKADDR*)lpsaAddr);
 }
 
 //---------------------------------------------------------------------------
 #if defined( __LINUX__ ) && !defined( __CYGWIN__ )
- #define UNIX_PATH_MAX    108
+ #define UNIX_PATH_MAX	 108
 
 struct sockaddr_un {
 #ifdef __MAC__
@@ -2441,41 +2441,41 @@ NETWORK_PROC( SOCKADDR *,CreateUnixAddress)( CTEXTSTR path )
 	char *tmp_path = CStrDup( path );
 #endif
    lpsaAddr=(struct sockaddr_un*)AllocAddr();
-   if (!lpsaAddr)
+	if (!lpsaAddr)
 		return(NULL);
 	((uintptr_t*)lpsaAddr)[-1] = StrLen( path ) + 1;
 	lpsaAddr->sun_family = PF_UNIX;
 #ifdef UNICODE
 	strncpy( lpsaAddr->sun_path, tmp_path, 107 );
-   Deallocate( char*, tmp_path );
+	Deallocate( char*, tmp_path );
 #else
 	strncpy( lpsaAddr->sun_path, path, 107 );
 #endif
 
 #ifdef __MAC__
-   lpsaAddr->sa_len = 2+strlen( lpsaAddr->sun_path );
+	lpsaAddr->sa_len = 2+strlen( lpsaAddr->sun_path );
 #endif
-   return((SOCKADDR*)lpsaAddr);
+	return((SOCKADDR*)lpsaAddr);
 }
 #else
 NETWORK_PROC( SOCKADDR *,CreateUnixAddress)( CTEXTSTR path )
 {
-   lprintf( WIDE( "-- CreateUnixAddress -- not available. " ) );
-   return NULL;
+	lprintf( WIDE( "-- CreateUnixAddress -- not available. " ) );
+	return NULL;
 }
 #endif
 //---------------------------------------------------------------------------
 
 SOCKADDR *CreateAddress( uint32_t dwIP,uint16_t nHisPort)
 {
-   SOCKADDR_IN *lpsaAddr=(SOCKADDR_IN*)AllocAddr();
-   if (!lpsaAddr)
-      return(NULL);
-   SET_SOCKADDR_LENGTH( lpsaAddr, 16 );
-   lpsaAddr->sin_family       = AF_INET;         // InetAddress Type.
-   lpsaAddr->sin_addr.S_un.S_addr  = dwIP;
-   lpsaAddr->sin_port         = htons(nHisPort);
-   return((SOCKADDR*)lpsaAddr);
+	SOCKADDR_IN *lpsaAddr=(SOCKADDR_IN*)AllocAddr();
+	if (!lpsaAddr)
+		return(NULL);
+	SET_SOCKADDR_LENGTH( lpsaAddr, 16 );
+	lpsaAddr->sin_family	    = AF_INET;         // InetAddress Type.
+	lpsaAddr->sin_addr.S_un.S_addr  = dwIP;
+	lpsaAddr->sin_port         = htons(nHisPort);
+	return((SOCKADDR*)lpsaAddr);
 }
 
 //---------------------------------------------------------------------------
@@ -2532,7 +2532,7 @@ SOCKADDR *CreateRemote( CTEXTSTR lpName,uint16_t nHisPort)
 	else 	if( lpName &&
 				( ( lpName[0] >= '0' && lpName[0] <= '9' )
 				 || ( lpName[0] >= 'a' && lpName[0] <= 'f' )
-             || ( lpName[0] >= 'A' && lpName[0] <= 'F' )
+				 || ( lpName[0] >= 'A' && lpName[0] <= 'F' )
 				 || lpName[0] == ':' )
 				&& StrChr( lpName, ':' )!=StrRChr( lpName, ':' ) )
 	{
@@ -2609,13 +2609,13 @@ SOCKADDR *CreateRemote( CTEXTSTR lpName,uint16_t nHisPort)
 					SET_SOCKADDR_LENGTH( lpsaAddr, 26 );
 					lpsaAddr->sin_family = AF_INET6;         // InetAddress Type.
 #if note
-  {
-    __SOCKADDR_COMMON (sin6_);
-    in_port_t sin6_port;        /* Transport layer port # */
-    uint32_t sin6_flowinfo;     /* IPv6 flow information */
-    struct in6_addr sin6_addr;  /* IPv6 address */
-    uint32_t sin6_scope_id;     /* IPv6 scope-id */
-  };
+	{
+		__SOCKADDR_COMMON (sin6_);
+		n_port_t sin6_port;        /* Transport layer port # */
+		uint32_t sin6_flowinfo;     /* IPv6 flow information */
+		struct in6_addr sin6_addr;  /* IPv6 address */
+		uint32_t sin6_scope_id;     /* IPv6 scope-id */
+	};
 #endif
 
 					memcpy( ((struct sockaddr_in6*)lpsaAddr)->sin6_addr.s6_addr,           // save IP address from host entry.
@@ -2704,7 +2704,7 @@ NETWORK_PROC( SOCKADDR *, SetAddressPort )( SOCKADDR *pAddr, uint16_t nDefaultPo
 NETWORK_PROC( SOCKADDR *, SetNonDefaultPort )( SOCKADDR *pAddr, uint16_t nDefaultPort )
 {
 	if( pAddr && !((SOCKADDR_IN *)pAddr)->sin_port )
-      ((SOCKADDR_IN *)pAddr)->sin_port = htons(nDefaultPort);
+		((SOCKADDR_IN *)pAddr)->sin_port = htons(nDefaultPort);
 	return pAddr;
 }
 
@@ -2752,13 +2752,13 @@ NETWORK_PROC( SOCKADDR *,CreateSockAddress)(CTEXTSTR name, uint16_t nDefaultPort
 					//return NULL;
 					wPort = nDefaultPort;
 				}
-            else
+				else
 					wPort = htons(se->s_port);
 				//Log1( WIDE("port alpha - name resolve to %d"), wPort );
 			}
 		}
 		else
-         wPort = nDefaultPort;
+			wPort = nDefaultPort;
 #ifdef UNICODE
 #  undef name
 #endif
@@ -2784,14 +2784,14 @@ NETWORK_PROC( SOCKADDR *,CreateSockAddress)(CTEXTSTR name, uint16_t nDefaultPort
 
 SOCKADDR *CreateLocal(uint16_t nMyPort)
 {
-   char lpHostName[HOSTNAME_LEN];
+	char lpHostName[HOSTNAME_LEN];
 
-   if (gethostname(lpHostName,HOSTNAME_LEN))
-   {
-//      EventLog(SOH_VER_HOST_NAME,gwCategory,0,NULL,0,NULL);
-      return(NULL);
-   }
-   return CreateRemote( WIDE("0.0.0.0"), nMyPort );
+	if (gethostname(lpHostName,HOSTNAME_LEN))
+	{
+//		EventLog(SOH_VER_HOST_NAME,gwCategory,0,NULL,0,NULL);
+		return(NULL);
+	}
+	return CreateRemote( WIDE("0.0.0.0"), nMyPort );
 }
 
 //----------------------------------------------------------------------------
@@ -2849,14 +2849,14 @@ LOGICAL CompareAddressEx( SOCKADDR *sa1, SOCKADDR *sa2, int method )
 
 LOGICAL CompareAddress( SOCKADDR *sa1, SOCKADDR *sa2 )
 {
-   return CompareAddressEx( sa1, sa2, SA_COMPARE_FULL );
+	return CompareAddressEx( sa1, sa2, SA_COMPARE_FULL );
 }
 
 //----------------------------------------------------------------------------
 
 PLIST GetLocalAddresses( void )
 {
-   return globalNetworkData.addresses;
+	return globalNetworkData.addresses;
 }
 
 //----------------------------------------------------------------------------
@@ -2875,12 +2875,12 @@ LOGICAL IsThisAddressMe( SOCKADDR *addr, uint16_t myport )
 				{
 					if( MemCmp( &((SOCKADDR_IN*)addr)->sin_addr, &((SOCKADDR_IN*)test_addr)->sin_addr, sizeof(((SOCKADDR_IN*)addr)->sin_addr)  ) == 0 )
 					{
-                  return TRUE;
+						return TRUE;
 					}
 				}
-            break;
+				break;
 			default:
-            lprintf( WIDE( "Unknown comparison" ) );
+				lprintf( WIDE( "Unknown comparison" ) );
 			}
 		}
 	}
@@ -2904,18 +2904,18 @@ void ReleaseAddress(SOCKADDR *lpsaAddr)
 // creates class C broadcast address
 SOCKADDR *CreateBroadcast(uint16_t nPort)
 {
-   SOCKADDR_IN *bcast=(SOCKADDR_IN*)AllocAddr();
-   SOCKADDR *lpMyAddr;
-   if (!bcast)
-      return(NULL);
-   lpMyAddr = CreateLocal(0);
+	SOCKADDR_IN *bcast=(SOCKADDR_IN*)AllocAddr();
+	SOCKADDR *lpMyAddr;
+	if (!bcast)
+		return(NULL);
+	lpMyAddr = CreateLocal(0);
 	SET_SOCKADDR_LENGTH( bcast, 16 );
-   bcast->sin_family       = AF_INET;
-   bcast->sin_addr.S_un.S_addr  = ((SOCKADDR_IN*)lpMyAddr)->sin_addr.S_un.S_addr;
-   bcast->sin_addr.S_un.S_un_b.s_b4 = 0xFF; // Fake a subnet broadcast address
-   bcast->sin_port        = htons(nPort);
-   ReleaseAddress(lpMyAddr);
-   return((SOCKADDR*)bcast);
+	bcast->sin_family	    = AF_INET;
+	bcast->sin_addr.S_un.S_addr  = ((SOCKADDR_IN*)lpMyAddr)->sin_addr.S_un.S_addr;
+	bcast->sin_addr.S_un.S_un_b.s_b4 = 0xFF; // Fake a subnet broadcast address
+	bcast->sin_port        = htons(nPort);
+	ReleaseAddress(lpMyAddr);
+	return((SOCKADDR*)bcast);
 }
 
 //----------------------------------------------------------------------------
@@ -2924,7 +2924,7 @@ void DumpSocket( PCLIENT pc )
 {
 	DumpAddr( WIDE("REMOT"), pc->saClient );
 	DumpAddr( WIDE("LOCAL"), pc->saSource );
-   return;
+	return;
 }
 
 #ifdef __cplusplus
@@ -2933,7 +2933,7 @@ namespace udp {
 #undef DumpAddr
 NETWORK_PROC( void, DumpAddr)( CTEXTSTR name, SOCKADDR *sa )
 {
-   DumpAddrEx( name, sa DBG_SRC );
+	DumpAddrEx( name, sa DBG_SRC );
 }
 
 #ifdef __cplusplus
@@ -3058,7 +3058,7 @@ void InternalRemoveClientExx(PCLIENT lpClient, LOGICAL bBlockNofity, LOGICAL bLi
 					}
 				*/
 			}
-			if( 0 )
+			if( 1 )
 			{
 				struct linger lingerSet;
 				lingerSet.l_onoff = 1; // on , with no time = off.
@@ -3073,10 +3073,10 @@ void InternalRemoveClientExx(PCLIENT lpClient, LOGICAL bBlockNofity, LOGICAL bLi
 			}
 		}
 
-   	if( !(lpClient->dwFlags & CF_ACTIVE) )
-   	{
-   		if( lpClient->dwFlags & CF_AVAILABLE )
-   		{
+	if( !(lpClient->dwFlags & CF_ACTIVE) )
+	{
+		if( lpClient->dwFlags & CF_AVAILABLE )
+		{
 				lprintf( WIDE("Client was inactive?!?!?! removing from list and putting in available") );
 				AddAvailable( GrabClient( lpClient ) );
 			}
@@ -3090,10 +3090,10 @@ void InternalRemoveClientExx(PCLIENT lpClient, LOGICAL bBlockNofity, LOGICAL bLi
 				AddClosed( GrabClient( lpClient ) );
 			}
 #ifdef LOG_DEBUG_CLOSING
-   		else
+		else
 				lprintf( WIDE("Client's state is CLOSED") );
 #endif
-   		return;
+		return;
 		}
 
 		while( !NetworkLock( lpClient ) )
@@ -3123,14 +3123,14 @@ void InternalRemoveClientExx(PCLIENT lpClient, LOGICAL bBlockNofity, LOGICAL bLi
 #ifdef LOG_DEBUG_CLOSING
 				lprintf( WIDE( "Marked closing first, and dispatching callback?" ) );
 #endif
-         		lpClient->dwFlags |= CF_CLOSING;
+				lpClient->dwFlags |= CF_CLOSING;
 				if( lpClient->close.CloseCallback )
 				{
 					// during thisi if it wants a lock... and the application
 					// is dispatching like
-            		if( lpClient->dwFlags & CF_CPPCLOSE )
+					if( lpClient->dwFlags & CF_CPPCLOSE )
 						lpClient->close.CPPCloseCallback( lpClient->psvClose );
-            		else
+					else
 						lpClient->close.CloseCallback( lpClient );
 				}
 #ifdef LOG_DEBUG_CLOSING
@@ -3139,7 +3139,7 @@ void InternalRemoveClientExx(PCLIENT lpClient, LOGICAL bBlockNofity, LOGICAL bLi
 #endif
 				// leave the flag closing set... we'll use that later
 				// to avoid the double-lock;
-	         	//lpClient->dwFlags &= ~CF_CLOSING;
+				//lpClient->dwFlags &= ~CF_CLOSING;
 			}
 #ifdef LOG_DEBUG_CLOSING
 			else
@@ -3190,13 +3190,13 @@ void InternalRemoveClientExx(PCLIENT lpClient, LOGICAL bBlockNofity, LOGICAL bLi
 		//LeaveCriticalSec( &lpClient->csLock );
 		//lprintf( WIDE( "Leaving network critical section" ) );
 		LeaveCriticalSec( &globalNetworkData.csNetwork );
-      NetworkUnlock( lpClient );
+		NetworkUnlock( lpClient );
 		//lprintf( WIDE( "And no nothing is locked?!" ) );
 	}
 #ifdef LOG_DEBUG_CLOSING
 	else
 	{
-   		lprintf( WIDE("No Client, or socket already closed?") );
+		lprintf( WIDE("No Client, or socket already closed?") );
 	}
 #endif
 }
@@ -3223,7 +3223,7 @@ CTEXTSTR GetSystemName( void )
 		struct ifconf buffer;
 		struct ifreq ifr[10];
 		int ifc_num;
-      int n;
+		int n;
 		buffer.ifc_len = sizeof(ifr);
 		buffer.ifc_ifcu.ifcu_buf = (char*)ifr;
 		ioctl( sock_startup, SIOCGIFCONF, &buffer);
@@ -3238,34 +3238,34 @@ CTEXTSTR GetSystemName( void )
 		{
 			int sd, ifc_num, addr, bcast, mask, network;
 			lprintf( "interface %d : %s", n, ifr[n].ifr_name );
-                if (ifr[n].ifr_addr.sa_family != AF_INET)
-                {
-                    continue;
-                }
+			if (ifr[n].ifr_addr.sa_family != AF_INET)
+			{
+				continue;
+			}
 
-                /* display the interface name */
-                lprintf("%d) interface: %s\n", n+1, ifr[n].ifr_name);
+			/* display the interface name */
+			lprintf("%d) interface: %s\n", n+1, ifr[n].ifr_name);
 
-                /* Retrieve the IP address, broadcast address, and subnet mask. */
-                if (ioctl(sd, SIOCGIFADDR, &ifr[n]) == 0)
-                {
-                    addr = ((struct sockaddr_in *)(&ifr[n].ifr_addr))->sin_addr.s_addr;
-                    lprintf("%d) address: %d.%d.%d.%d\n", n+1, INT_TO_ADDR(addr));
-                }
-                if (ioctl(sd, SIOCGIFBRDADDR, &ifr[n]) == 0)
-                {
-                    bcast = ((struct sockaddr_in *)(&ifr[n].ifr_broadaddr))->sin_addr.s_addr;
-                    lprintf("%d) broadcast: %d.%d.%d.%d\n", n+1, INT_TO_ADDR(bcast));
-                }
-                if (ioctl(sd, SIOCGIFNETMASK, &ifr[n]) == 0)
-                {
-                    mask = ((struct sockaddr_in *)(&ifr[n].ifr_netmask))->sin_addr.s_addr;
-                    lprintf("%d) netmask: %d.%d.%d.%d\n", n+1, INT_TO_ADDR(mask));
-                }                
+			/* Retrieve the IP address, broadcast address, and subnet mask. */
+			if (ioctl(sd, SIOCGIFADDR, &ifr[n]) == 0)
+			{
+				addr = ((struct sockaddr_in *)(&ifr[n].ifr_addr))->sin_addr.s_addr;
+				lprintf("%d) address: %d.%d.%d.%d\n", n+1, INT_TO_ADDR(addr));
+			}
+			if (ioctl(sd, SIOCGIFBRDADDR, &ifr[n]) == 0)
+			{
+				bcast = ((struct sockaddr_in *)(&ifr[n].ifr_broadaddr))->sin_addr.s_addr;
+				lprintf("%d) broadcast: %d.%d.%d.%d\n", n+1, INT_TO_ADDR(bcast));
+			}
+			if (ioctl(sd, SIOCGIFNETMASK, &ifr[n]) == 0)
+			{
+				mask = ((struct sockaddr_in *)(&ifr[n].ifr_netmask))->sin_addr.s_addr;
+				lprintf("%d) netmask: %d.%d.%d.%d\n", n+1, INT_TO_ADDR(mask));
+			}
 
-                /* Compute the current network value from the address and netmask. */
-                network = addr & mask;
-                lprintf("%d) network: %d.%d.%d.%d\n", n+1, INT_TO_ADDR(network));
+			/* Compute the current network value from the address and netmask. */
+			network = addr & mask;
+			lprintf("%d) network: %d.%d.%d.%d\n", n+1, INT_TO_ADDR(network));
 		}
 		close( sock_startup );
 	}
@@ -3273,21 +3273,21 @@ CTEXTSTR GetSystemName( void )
 #endif
 		globalNetworkData.system_name = WIDE("No Name Available");
 #else
-   NetworkStart();
+	NetworkStart();
 #endif
-   return globalNetworkData.system_name;
+	return globalNetworkData.system_name;
 }
 
 #undef NetworkLock
 #undef NetworkUnlock
 NETWORK_PROC( PCLIENT, NetworkLock)( PCLIENT lpClient )
 {
-   return NetworkLockEx( lpClient DBG_SRC );
+	return NetworkLockEx( lpClient DBG_SRC );
 }
 
 NETWORK_PROC( void, NetworkUnlock)( PCLIENT lpClient )
 {
-   NetworkUnlockEx( lpClient DBG_SRC );
+	NetworkUnlockEx( lpClient DBG_SRC );
 }
 
 NETWORK_PROC( void, GetNetworkAddressBinary )( SOCKADDR *addr, uint8_t **data, size_t *datalen ) {
