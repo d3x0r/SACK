@@ -25,7 +25,7 @@ LOGICAL CPROC FallbackHandler( uintptr_t psv, struct HttpState *state )
 			return TRUE;
 		}
 	}
-    return FALSE;
+	return FALSE;
 }
 
 static void LoadPlugins( CTEXTSTR listfile )
@@ -38,9 +38,9 @@ static void LoadPlugins( CTEXTSTR listfile )
 		{
 			if( buf[StrLen(buf)-1] == '\n' )
 				buf[StrLen(buf)-1] = 0;
-         LoadFunction( buf, NULL );
+			LoadFunction( buf, NULL );
 		}
-      fclose( input );
+		fclose( input );
 	}
 }
 
@@ -54,7 +54,7 @@ SaneWinMain( argc, argv )
 		{
 			if( argv[0][0] == '@' )
 			{
-            LoadPlugins( argv[0]+1 );
+				LoadPlugins( argv[0]+1 );
 			}
 			else if( argv[0][0] == '-' )
 			{
@@ -66,12 +66,12 @@ SaneWinMain( argc, argv )
 						argv++;
 						serve_interface = argv[0];
 					}
-               break;
+					break;
 				}
 			}
 			else
 			{
-            site = argv[0];
+				site = argv[0];
 			}
 		}
 	}
