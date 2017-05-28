@@ -546,7 +546,7 @@ void SQLSetFeedbackHandler( void (CPROC*HandleSQLFeedback)(CTEXTSTR message) )
 static LOGICAL IsOdbcIdle( PODBC odbc ) {
 	PCOLLECT pCollect;
 	pCollect = odbc?odbc->collection:NULL;
-	for( ;pCollect;pCollect=NextThing(pCollect) )
+	for( ; pCollect; pCollect = NextThing( pCollect ) ) {
 #if defined( USE_SQLITE ) || defined( USE_SQLITE_INTERFACE )
 		// still has an active statement.
 		if( pCollect->stmt )
@@ -557,6 +557,7 @@ static LOGICAL IsOdbcIdle( PODBC odbc ) {
 		if( pCollect->hstmt )
 			return FALSE;
 #endif
+	}
 	return TRUE;
 }
 
