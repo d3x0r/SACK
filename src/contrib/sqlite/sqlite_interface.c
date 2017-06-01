@@ -602,6 +602,9 @@ void errorLogCallback(void *pArg, int iErrCode, const char *zMsg){
 		// after open returns, generate an automatic wal_checkpoint.
 		global_sqlstub_data->flags.bAutoCheckpointRecover = 1;
 	}
+	else if( iErrCode == SQLITE_NOTICE_RECOVER_ROLLBACK ) {
+		lprintf( "Sqlite3 Notice: jounral rollback:%s", zMsg );
+	}
 	else
 		lprintf( "Sqlite3 Err: (%d) %s", iErrCode, zMsg);
 }
