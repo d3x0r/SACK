@@ -14,17 +14,17 @@
 
 typedef struct memblock
 {
-   short owners;
-   short size;
+	short owners;
+	short size;
 #ifdef _DEBUG
-   char *file;
-   int   line;
+	char *file;
+	int   line;
 #endif
 	struct memblock **me, *next;
 #ifdef _DEBUG
-   unsigned long start_tag;
+	unsigned long start_tag;
 #endif
-   char data[1];
+	char data[1];
 } MEMBLOCK, *PMEMBLOCK;
 
 PMEMBLOCK root;
@@ -34,31 +34,31 @@ int bDisableValidate;
 
 void ValidateMemory( void )
 {
-   PMEMBLOCK mem = root;
-   while( mem )
+	PMEMBLOCK mem = root;
+	while( mem )
 	{
 		if( (mem->start_tag) != 0x12345678 )
 		{
 #ifdef _DEBUG
 			fprintf( stddbg, WIDE("Block %s(%d) underflowed\n"), mem->file, mem->line );
 #else
- 	      fprintf( stddbg, WIDE("Block %p underflowed\n"), mem );
+ 			fprintf( stddbg, WIDE("Block %p underflowed\n"), mem );
 #endif
 			g.ErrorCount++;
 			exit(g.ErrorCount);
 		}
-      if( *(long*)(mem->data + mem->size ) != 0x12345678 )
+		if( *(long*)(mem->data + mem->size ) != 0x12345678 )
 		{
 #ifdef _DEBUG
 			fprintf( stddbg, WIDE("Block %s(%d) overflowed\n"), mem->file, mem->line );
 #else
- 	      fprintf( stddbg, WIDE("Block %p overflowed\n"), mem );
+ 			fprintf( stddbg, WIDE("Block %p overflowed\n"), mem );
 #endif
 			g.ErrorCount++;
 			exit(g.ErrorCount);
-      }
-      mem = mem->next;
-   }
+		}
+		mem = mem->next;
+	}
 }
 #endif
 
@@ -73,100 +73,100 @@ void *AllocateEx( size_t size DBG_PASS ) {
 	ValidateMemory();
 #endif
 	g.nAllocates++;
-   g.nAllocSize += size;
+	g.nAllocSize += size;
 	mem = malloc(sizeof(MEMBLOCK)+4+size);
-   if( !mem )
-   {
+	if( !mem )
+	{
 #ifdef _DEBUG
-      fprintf( stddbg, WIDE("%s(%d) Out of memory.\n"), pFile, nLine );
+		fprintf( stddbg, WIDE("%s(%d) Out of memory.\n"), pFile, nLine );
 #else
-      fprintf( stddbg, WIDE("Out of memory.\n") );
+		fprintf( stddbg, WIDE("Out of memory.\n") );
 #endif
-      g.ErrorCount++;
-      exit(g.ErrorCount);
+		g.ErrorCount++;
+		exit(g.ErrorCount);
 	}
 #ifdef _DEBUG
 #ifdef MEMLOG
-   if( g.bDebugLog ) {
-	   fprintf( stddbg, WIDE( "%s(%d): Allocate %d %p\n" ), pFile, nLine, size, mem->data );
-	   fflush( stddbg );
-   }
+	if( g.bDebugLog ) {
+		fprintf( stddbg, WIDE( "%s(%d): Allocate %zd %p\n" ), pFile, nLine, size, mem->data );
+		fflush( stddbg );
+	}
 #endif
 #endif
 
 	if( mem->next = root )
-      root->me = &mem->next;
-   mem->me = &root;
+		root->me = &mem->next;
+	mem->me = &root;
 	root = mem;
 
-   mem->owners = 1;
-   mem->size = size;
+	mem->owners = 1;
+	mem->size = (short)size;
 #ifdef _DEBUG
-   mem->file = pFile;
-   mem->line = nLine;
+	mem->file = pFile;
+	mem->line = nLine;
 #endif
 #ifdef VALIDATE
 	mem->start_tag = 0x12345678;
 	*(long*)(mem->data + size) = 0x12345678;
 	if( !bDisableValidate )
 	{
-   	ValidateMemory( );
+		ValidateMemory( );
 	}
 #endif
-   return &mem->data[0];
+	return &mem->data[0];
 }
 
 void ReleaseExx( void **pp DBG_PASS ) {
-   void *p = *pp;
-   PMEMBLOCK mem = (PMEMBLOCK)(((char*)p) - offsetof( MEMBLOCK, data ));
-   g.nReleases++;
+	void *p = *pp;
+	PMEMBLOCK mem = (PMEMBLOCK)(((char*)p) - offsetof( MEMBLOCK, data ));
+	g.nReleases++;
 #ifdef MEMLOG
-   if( g.bDebugLog ) {
+	if( g.bDebugLog ) {
 #ifdef _DEBUG
-	   fprintf( stddbg, WIDE( "%s(%d): Release %p\n" )
-		   , pFile, nLine
-		   , p );
-	   fprintf( stddbg, WIDE( "%s(%d): %s(%d)Release %p\n" )
-		   , pFile, nLine
-		   , mem->file, mem->line
-		   , p );
-	   fflush( stddbg );
+		fprintf( stddbg, WIDE( "%s(%d): Release %p\n" )
+			, pFile, nLine
+			, p );
+		fprintf( stddbg, WIDE( "%s(%d): %s(%d)Release %p\n" )
+			, pFile, nLine
+			, mem->file, mem->line
+			, p );
+		fflush( stddbg );
 #else
-   	fprintf( stddbg, WIDE("Release %lp\n")
+		fprintf( stddbg, WIDE("Release %lp\n")
 			, p );
 #endif
-   }
+	}
 #endif
 #ifdef VALIDATE
 	if( !bDisableValidate )
 	{
-	   ValidateMemory();
+		ValidateMemory();
 	}
 #endif
-   if( mem->owners != 1 )
-   {
-      fprintf( stddbg, WIDE("Block %p already free from: %s(%d) - or long ago freed (%d)...")
+	if( mem->owners != 1 )
+	{
+		fprintf( stddbg, WIDE("Block %p already free from: %s(%d) - or long ago freed (%d)...")
 #ifdef _DEBUG
-                  " %s(%d)"
+						" %s(%d)"
 #endif
-                  , p
+						, p
 #ifdef _DEBUG
-                  , mem->file, mem->line
+						, mem->file, mem->line
 #endif
-                  , mem->owners
+						, mem->owners
 #ifdef _DEBUG
-                  , pFile, nLine
+						, pFile, nLine
 #endif
-	  );
-      g.ErrorCount++;
-      exit(g.ErrorCount);
-   }
+		);
+		g.ErrorCount++;
+		exit(g.ErrorCount);
+	}
 
 #ifdef _DEBUG
 #ifdef VALIDATE
-   if( ( *(long*)(mem->data + mem->size ) != 0x12345678 ||
-	     mem->start_tag != 0x12345678 ) )
-   {
+	if( ( *(long*)(mem->data + mem->size ) != 0x12345678 ||
+		  mem->start_tag != 0x12345678 ) )
+	{
 		fprintf( stddbg, WIDE("Application overflowed memory.%p(%d) %s(%d)")
 				 " %s(%d)"
 				, mem->data
@@ -174,22 +174,22 @@ void ReleaseExx( void **pp DBG_PASS ) {
 				, mem->file, mem->line
 				  DBG_RELAY );
 		g.ErrorCount++;
-      exit(g.ErrorCount);
+		exit(g.ErrorCount);
 	}
 #endif
 #endif
 
-   if( *mem->me = mem->next )
+	if( *mem->me = mem->next )
 		mem->next->me = mem->me;
 
 #ifdef _DEBUG
-   mem->file = pFile;
-   mem->line = nLine;
+	mem->file = pFile;
+	mem->line = nLine;
 #endif
 
-   mem->owners = 0;
+	mem->owners = 0;
 	free(mem);
-   *pp = NULL;
+	*pp = NULL;
 }
 
 void DumpMemory( void )
@@ -197,15 +197,15 @@ void DumpMemory( void )
 	PMEMBLOCK mem = root;
 	while( mem )
 	{
-	   fprintf( stddbg, WIDE("Block: %d %p ")
+		fprintf( stddbg, WIDE("Block: %d %p ")
 #ifdef _DEBUG
-	   					"%s(%d)"
+							"%s(%d)"
 #endif
-	   					"\n", mem->size, mem->data
+							"\n", mem->size, mem->data
 #ifdef _DEBUG
-	   		,mem->file, mem->line
+				,mem->file, mem->line
 #endif
-	   		 );
+				 );
 		mem = mem->next;	
 	}
 }
@@ -241,12 +241,12 @@ char *StrDupEx( const char *original DBG_PASS )
 #if defined( __GNUC__ ) && !defined( _WIN32 )
 int stricmp( char *one, char *two )
 {
-   return strcasecmp( one, two );
+	return strcasecmp( one, two );
 }
 
 int strnicmp( char *one, char *two, int len )
 {
-   return strncasecmp( one, two, len );
+	return strncasecmp( one, two, len );
 }
 #endif
 

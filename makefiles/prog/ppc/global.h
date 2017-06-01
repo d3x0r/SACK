@@ -7,9 +7,9 @@
 
 typedef struct include_reference_tag {
 	struct {
-      uint32_t bMacros;
+		uint32_t bMacros;
 	} flags;
-   char *name;
+	char *name;
 } INCLUDE_REF, *PINCLUDE_REF;
 
 
@@ -61,7 +61,7 @@ typedef struct global_tag
 	int nIfLevels;
 	unsigned long nAllocates;
 	unsigned long nReleases;
-	unsigned long nAllocSize;
+	size_t nAllocSize;
 	unsigned char AutoTargetName[256]; // target name to reference when
 	                                   //building auto depend...
 	PLINKSTACK pIncludeList;

@@ -9,7 +9,8 @@
 #define PRIOR_COLOR 0xF6 // this does not change the color....
 typedef struct format_info_tag
 {
-   int spaces; // for restoration of spaces in strings?
+	int spaces; // for restoration of spaces in strings?
+	int tabs;
 } FORMAT, *PFORMAT;
 
 
@@ -37,10 +38,10 @@ typedef struct format_info_tag
 
 typedef struct text_segment_tag
 {
-   uint32_t flags;  // then here I could overlap with pEnt .bshadow, bmacro, btext ?
-   struct text_segment_tag *Next, *Prior;
-   FORMAT format; // valid if TF_FORMAT is set...
-   DATA data; // must be last since var character data is included
+	uint32_t flags;  // then here I could overlap with pEnt .bshadow, bmacro, btext ?
+	struct text_segment_tag *Next, *Prior;
+	FORMAT format; // valid if TF_FORMAT is set...
+	DATA data; // must be last since var character data is included
 } TEXT, *PTEXT;
 
 #define DEFTEXT(str) {TF_STATIC,NULL,NULL,{0},{sizeof(str)-1,str}}

@@ -1649,6 +1649,8 @@ int processArguments( int argc, char **argv ) {
 							{
 								g.bDebugLog = atoi( argv[i] + n+1 );
 								printf( WIDE("Debug set to %d\n"), g.bDebugLog );
+								if( g.bDebugLog )
+									g.dbgout = fopen( "debug.log", "wt" );
 							}
 							else
 								g.bDebugLog = TRUE;
@@ -1824,7 +1826,7 @@ int main( char argc, char **argv, char **env )
 	DeinitDefines();
 	if( g.bDebugLog )
 	{
-		fprintf( stderr, WIDE("Allocates: %ld(%ld) Releases: %ld\n"), g.nAllocates, g.nAllocSize, g.nReleases );
+		fprintf( stderr, WIDE("Allocates: %ld(%zd) Releases: %ld\n"), g.nAllocates, g.nAllocSize, g.nReleases );
 		DumpMemory();
 	}
 	if( g.flags.skip_define_processing )

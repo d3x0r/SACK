@@ -68,7 +68,7 @@ PFILEDEP FindDependFile( PFILEDEP root, char *filename )
 	{
 		next = pDep->pAlso;
 		if( (!strcmp( pDep->base_name, filename )) ||
-			 ( pDep = FindDependFile( pDep->pDependsOn, filename ) ) )
+		    ( pDep = FindDependFile( pDep->pDependsOn, filename ) ) )
 		{
 			return pDep;
 		}
@@ -315,7 +315,7 @@ void WriteLineInfo( char *name, int line )
 	{
 		LastLineWritten++; 
 		if( strcmp( name, LastFileWritten ) || // not match
-			 line != LastLineWritten )
+		    line != LastLineWritten )
 		{
 			strcpy( LastFileWritten, GetCurrentFileName() );
 			LastLineWritten = line;
@@ -324,19 +324,19 @@ void WriteLineInfo( char *name, int line )
 			if( g.flags.bLineUsesLineKeyword )
 			{
 				fprintf( out, WIDE("#line %d \"%s\"\n")
-						  //"//line %s(%d)\n"
-						 , LastLineWritten
-						 , LastFileWritten
-						 );
+				       //"//line %s(%d)\n"
+				       , LastLineWritten
+				       , LastFileWritten
+				       );
 			}
 			else
 			{
 				// gcc is wonderful, eh?
 				fprintf( out, WIDE("# %d \"%s\"\n")
-						  //"//line %s(%d)\n"
-						 , LastLineWritten
-						 , LastFileWritten
-						 );
+				       //"//line %s(%d)\n"
+				       , LastLineWritten
+				       , LastFileWritten
+				       );
 			}
 			}
 		}
@@ -554,8 +554,8 @@ void CloseInputFileEx( DBG_VOIDPASS )
 	if( pft->nIfLevel != g.nIfLevels )
 	{
 		fprintf( stderr, WIDE("Warning: Unmatched #if/#endif in %s (%d extra #if)\n")
-				, pft->longname
-				 , g.nIfLevels - pft->nIfLevel );
+		       , pft->longname
+		       , g.nIfLevels - pft->nIfLevel );
 	}
 	if( pft->file )
 	{
@@ -642,7 +642,7 @@ Restart:
 			}
 			else
 			{
-				if( !current->format.spaces )
+				if( !current->format.spaces && pft->line != current )
 					current->format.spaces = 1;
 			}
 			if( current->data.size > 0 && current->data.data[current->data.size-1] == '\\' )
@@ -792,7 +792,7 @@ Restart:
 										fprintf( stddbg, WIDE("while line In block comment...") );
 									}
 									if( g.flags.keep_comments /*&&
-										( !g.flags.bSkipSystemIncludeOut && !g.flags.doing_system_file )*/
+									   ( !g.flags.bSkipSystemIncludeOut && !g.flags.doing_system_file )*/
 									   )
 									{
 										PTEXT pOut;
@@ -888,7 +888,7 @@ Restart:
 					{
 						if( nSlash )
 						{
-						  	if( p->format.spaces )
+							if( p->format.spaces )
 							{
 								nSlash = 1; // reset/set count...
 								continue;
@@ -975,8 +975,8 @@ Restart:
 					{
 						if( p->format.spaces )
 						{
-						 	nStar = 1; // set/reset count.
-						 	continue;
+							nStar = 1; // set/reset count.
+							continue;
 						}
 						if( g.bDebugLog & DEBUG_READING )
 						{
@@ -1063,7 +1063,7 @@ Restart:
 				}
 				else
 				{
-				  	//printf( WIDE("In Block comment(3)...\n") );
+					//printf( WIDE("In Block comment(3)...\n") );
 					// ignore this line completely!
 					if( g.flags.keep_comments )
 					{

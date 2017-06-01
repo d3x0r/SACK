@@ -11,7 +11,7 @@
 
 char NextCharEx( PTEXT input, INDEX idx )
 {
-	if( ( ++idx ) >= input->data.size ) 
+	if( ( ++idx ) >= input->data.size )
 	{
 		idx -= input->data.size;
 		input = NEXTLINE( input );
@@ -23,7 +23,7 @@ char NextCharEx( PTEXT input, INDEX idx )
 #define NextChar() NextCharEx( input, index )
 //----------------------------------------------------------------------
 
-PTEXT BreakAndAddEx( char character, PTEXT outdata, VARTEXT *out, uint32_t *spaces )
+static PTEXT BreakAndAddEx( char character, PTEXT outdata, VARTEXT *out, uint32_t *spaces, uint32_t *tabs )
 {
 	PTEXT word;
 
@@ -31,7 +31,9 @@ PTEXT BreakAndAddEx( char character, PTEXT outdata, VARTEXT *out, uint32_t *spac
 	{
 		outdata = SegAdd( outdata, word );
 		word->format.spaces = (uint16_t)*spaces;
+		word->format.tabs = (uint16_t)*tabs;
 		*spaces = 0;
+		*tabs = 0;
 		VarTextAddCharacterEx( out, character DBG_SRC );
 		word = VarTextGetEx( out DBG_SRC );
 		outdata = SegAdd( outdata, word );
@@ -42,19 +44,21 @@ PTEXT BreakAndAddEx( char character, PTEXT outdata, VARTEXT *out, uint32_t *spac
 		word = VarTextGetEx( out DBG_SRC );
 
 		word->format.spaces = (uint16_t)*spaces;
+		word->format.tabs = (uint16_t)*tabs;
 		*spaces = 0;
+		*tabs = 0;
 		outdata = SegAdd( outdata, word );
 	}
-   return outdata;
+	return outdata;
 }
-#define BreakAndAdd(c) outdata = BreakAndAddEx( c, outdata, &out, &spaces )
+#define BreakAndAdd(c) outdata = BreakAndAddEx( c, outdata, &out, &spaces, &tabs )
 
 //----------------------------------------------------------------------------
 // translation trigraphs.....
 /*
 allll occurances of the following three character sets are
 replaced without regard.
-??= #  
+??= #
 ??( [
 ??/ \
 ??) ]
@@ -86,61 +90,61 @@ static union {
 			uint32_t bQuestion1 : 1;
 			uint32_t bQuestion2 : 1;
 		};
-      uint32_t dw;
+		uint32_t dw;
 	} flags;
 
 #define DBG_OVERRIDE DBG_RELAY
 
-PTEXT OutputDanglingCharsEx( PTEXT outdata, VARTEXT *out, uint32_t *spaces)
-#define OutputDanglingChars() outdata = OutputDanglingCharsEx( outdata, &out, &spaces )
-{                               
-   int n = 0;                   
-	if( flags.bPercent )         
-	{                            
-      n++;                      
-		outdata = BreakAndAddEx( '%', outdata, out, spaces );
-		flags.bPercent = 0;       
-	}                            
-	if( flags.bColon )           
-	{                            
-      n++;                      
-		outdata = BreakAndAddEx( ':', outdata, out, spaces  );
+static PTEXT OutputDanglingCharsEx( PTEXT outdata, VARTEXT *out, uint32_t *spaces, uint32_t *tabs )
+#define OutputDanglingChars() outdata = OutputDanglingCharsEx( outdata, &out, &spaces, &tabs )
+{
+	int n = 0;
+	if( flags.bPercent )
+	{
+		n++;
+		outdata = BreakAndAddEx( '%', outdata, out, spaces, tabs );
+		flags.bPercent = 0;
+	}
+	if( flags.bColon )
+	{
+		n++;
+		outdata = BreakAndAddEx( ':', outdata, out, spaces, tabs );
 		flags.bColon = 0;
 	}
 	if( flags.bLesser )
 	{
-      n++;
-		outdata = BreakAndAddEx( '<', outdata, out, spaces  );
+		n++;
+		outdata = BreakAndAddEx( '<', outdata, out, spaces, tabs );
 		flags.bLesser = 0;
 	}
 	if( flags.bGreater )
 	{
-      n++;
-		outdata = BreakAndAddEx( '>', outdata, out, spaces  );
+		n++;
+		outdata = BreakAndAddEx( '>', outdata, out, spaces, tabs );
 		flags.bGreater = 0;
 	}
 	if( flags.bQuestion2 )
 	{
-      n++;
-		outdata = BreakAndAddEx( '?', outdata, out, spaces  );
-		outdata = BreakAndAddEx( '?', outdata, out, spaces  );
+		n++;
+		outdata = BreakAndAddEx( '?', outdata, out, spaces, tabs );
+		outdata = BreakAndAddEx( '?', outdata, out, spaces, tabs );
 		flags.bQuestion2 = 0;
 		flags.bQuestion1 = 0;
 	}
 	if( flags.bQuestion1 )
 	{
-      n++;
-		outdata = BreakAndAddEx( '?', outdata, out, spaces  );
-		flags.bQuestion1 = 0;     
-	}                            
-	if( n > 1 )                  
-	{                            
-		fprintf( stderr, WIDE("%s(%d): Fixed %d dangling character - perhaps misordered output\n")
-				 , GetCurrentFileName(), GetCurrentLine()
-				 , n
-				 );
+		n++;
+		outdata = BreakAndAddEx( '?', outdata, out, spaces, tabs );
+		flags.bQuestion1 = 0;
 	}
-   return outdata;
+	if( n > 1 )
+	{
+		fprintf( stderr, WIDE("%s(%d): Fixed %d dangling character - perhaps misordered output\n")
+		       , GetCurrentFileName(), GetCurrentLine()
+		       , n
+		);
+	}
+	return outdata;
 }
 
 
@@ -148,267 +152,273 @@ PTEXT burstEx( PTEXT input DBG_PASS )
 // returns a TEXT list of parsed data
 {
 //#define DBG_OVERRIDE DBG_SRC
-   /* takes a line of input and creates a line equivalent to it, but
-      burst into its block peices.*/
-   VARTEXT out;
-   PTEXT outdata=(PTEXT)NULL,
-         word;
-   char *tempText;
+	/* takes a line of input and creates a line equivalent to it, but
+	   burst into its block peices.*/
+	VARTEXT out;
+	PTEXT outdata=(PTEXT)NULL,
+	      word;
+	char *tempText;
 
-   uint32_t index;
-   INDEX size;
-   uint8_t character;
+	uint32_t index;
+	INDEX size;
+	uint8_t character;
 	uint32_t elipses = FALSE
-       , spaces = 0
-       , escape = 0
+	    , spaces = 0
+	    , tabs= 0
+	    , escape = 0
 	    , quote = 0; // just used for bi-graph/tri-graph stuff...
 	flags.dw = 0;
-   if (!input)        // if nothing new to process- return nothing processed.
-      return((PTEXT)NULL);
+	if (!input)        // if nothing new to process- return nothing processed.
+		return((PTEXT)NULL);
 
 	VarTextInitEx( &out DBG_OVERRIDE );
 
-   while (input)  // while there is data to process...
-   {
-      tempText = GetText(input);  // point to the data to process...
-      size = GetTextSize(input);
-      if( spaces )
-      {
-      	//Log( WIDE("Need to figure out - new word, new spaces? old word? new spaces?") );
-	      //outdata = Collapse( outdata );
-         //outdata->format.spaces = spaces;
-         //spaces = 0;
-         //set_offset = TRUE;
-      }
-      if( input->format.spaces )
-      {
-      	word = VarTextGetEx( &out DBG_OVERRIDE );
-      	if( word )
-      	{
-      		word->format.spaces = (uint16_t)spaces;
-      		spaces = 0;
-      		outdata = SegAdd( outdata, word );
-      	}
-      }
-      spaces += input->format.spaces;
-      //Log1( WIDE("Assuming %d spaces... "), spaces );
-      for (index=0;(character = tempText[index]),
-                   (index < size); index++) // while not at the
-                                         // end of the line.
-      {
-         if( elipses && character != '.' )
-         {
-         	if( VarTextEndEx( &out DBG_OVERRIDE ) )
-         	{
-         		PTEXT word = VarTextGetEx( &out DBG_OVERRIDE );
-         		if( word )
-         		{
-	         		word->format.spaces = (uint16_t)spaces;
-   	      		spaces = 0;
-      	      	outdata = SegAdd( outdata, word );
-      	      }
-      	      //else
-      	      //	Log( WIDE("VarTextGet Failed to result.") );
-         	}
-            elipses = FALSE;
-         }
-         else if( elipses ) // elipses and character is . - continue
-         {
-         	VarTextAddCharacterEx( &out, character DBG_OVERRIDE );
-            continue;
+	while (input)  // while there is data to process...
+	{
+		tempText = GetText(input);  // point to the data to process...
+		size = GetTextSize(input);
+		if( spaces )
+		{
+			//Log( WIDE("Need to figure out - new word, new spaces? old word? new spaces?") );
+			//outdata = Collapse( outdata );
+			//outdata->format.spaces = spaces;
+			//spaces = 0;
+			//set_offset = TRUE;
+		}
+		if( input->format.spaces || input->format.tabs )
+		{
+			word = VarTextGetEx( &out DBG_OVERRIDE );
+			if( word )
+			{
+				word->format.spaces = (uint16_t)spaces;
+				word->format.tabs = (uint16_t)tabs;
+				spaces = 0;
+				tabs = 0;
+				outdata = SegAdd( outdata, word );
+			}
+		}
+		spaces += input->format.spaces;
+		tabs += input->format.tabs;
+		//Log1( WIDE("Assuming %d spaces... "), spaces );
+		for (index=0;(character = tempText[index]),
+		             (index < size); index++) // while not at the
+		                                   // end of the line.
+		{
+			if( elipses && character != '.' )
+			{
+				if( VarTextEndEx( &out DBG_OVERRIDE ) )
+				{
+					PTEXT word = VarTextGetEx( &out DBG_OVERRIDE );
+					if( word )
+					{
+						word->format.spaces = (uint16_t)spaces;
+						word->format.tabs = (uint16_t)tabs;
+						spaces = 0;
+						tabs = 0;
+						outdata = SegAdd( outdata, word );
+					}
+					//else
+					//	Log( WIDE("VarTextGet Failed to result.") );
+				}
+				elipses = FALSE;
+			}
+			else if( elipses ) // elipses and character is . - continue
+			{
+				VarTextAddCharacterEx( &out, character DBG_OVERRIDE );
+				continue;
 			}
 
 			if( !quote )
 			{
- 	 			if( character == '<' )
- 	 			{
- 	 				if( flags.bLesser )
- 	 				{
-                   BreakAndAdd( '<' );
- 	 				}
- 	 				else
- 	 				{
-                   OutputDanglingChars();
- 	 					flags.bLesser = 1;
- 	 				}
- 	 				continue;
- 	 			}
- 	 			else if( character == '>' )
+				if( character == '<' )
 				{
- 	 				if( flags.bGreater )
- 	 				{
-                   BreakAndAdd( '>' );
- 	 				}
- 	 				else if( flags.bColon )
- 	 				{
-                   BreakAndAdd( ']' );
- 	 					flags.bColon = 0;
- 	 				}
- 	 				else if( flags.bPercent )
- 	 				{
- 	 					BreakAndAdd( '}' );
- 	 					flags.bPercent = 0;
- 	 				}
- 	 				else
- 	 				{
-                   OutputDanglingChars();
-                   flags.bGreater = 1;
- 	 				}
- 	 				continue;
- 	 			}
- 	 			else if( character == ':' )
- 	 			{
- 	 				if( flags.bLesser )
- 	 				{
+					if( flags.bLesser )
+					{
+						BreakAndAdd( '<' );
+					}
+					else
+					{
+						OutputDanglingChars();
+						flags.bLesser = 1;
+					}
+					continue;
+				}
+				else if( character == '>' )
+				{
+					if( flags.bGreater )
+					{
+						BreakAndAdd( '>' );
+					}
+					else if( flags.bColon )
+					{
+						BreakAndAdd( ']' );
+						flags.bColon = 0;
+					}
+					else if( flags.bPercent )
+					{
+						BreakAndAdd( '}' );
+						flags.bPercent = 0;
+					}
+					else
+					{
+						OutputDanglingChars();
+						flags.bGreater = 1;
+					}
+					continue;
+				}
+				else if( character == ':' )
+				{
+					if( flags.bLesser )
+					{
 						BreakAndAdd( '[' );
 						flags.bLesser = 0;
- 	 				}
- 	 				else if( flags.bPercent )
- 	 				{
- 	 					BreakAndAdd( '#' );
- 	 					flags.bPercent = 0;
- 	 				}
- 	 				else if( flags.bColon )
- 	 				{
- 	 					BreakAndAdd( ':' );
- 	 				}
- 	 				else
- 	 				{
+					}
+					else if( flags.bPercent )
+					{
+						BreakAndAdd( '#' );
+						flags.bPercent = 0;
+					}
+					else if( flags.bColon )
+					{
+						BreakAndAdd( ':' );
+					}
+					else
+					{
 						OutputDanglingChars();
 						flags.bColon = 1;
- 	 				}
- 	 				continue;
- 	 			}
+					}
+					continue;
+				}
 				else if( character == '%' )
- 	 			{
- 	 				if( flags.bLesser )
+				{
+					if( flags.bLesser )
 					{
 						BreakAndAdd( '{' );
 						flags.bLesser = 0;
 					}
- 	 				else if( flags.bPercent )
- 	 				{
-                   BreakAndAdd( '%' );
- 	 				}
- 	 				else
- 	 				{
-                   OutputDanglingChars();
- 	 					flags.bPercent = 1;
- 	 				}
- 	 				continue;
+					else if( flags.bPercent )
+					{
+						BreakAndAdd( '%' );
+					}
+					else
+					{
+						OutputDanglingChars();
+						flags.bPercent = 1;
+					}
+					continue;
 				}
 				else
-               OutputDanglingChars();
+					OutputDanglingChars();
 			}
 			else if( flags.bQuestion2 )
 			{
 				if( character == '<' )
 				{
 					BreakAndAdd( '{' );
-               flags.bQuestion2 = 0;
+					flags.bQuestion2 = 0;
 					flags.bQuestion1 = 0;
 				}
 				else if( character == '>' )
 				{
 					BreakAndAdd( '}' );
-               flags.bQuestion2 = 0;
+					flags.bQuestion2 = 0;
 					flags.bQuestion1 = 0;
 				}
 				else if( character == '=' )
 				{
- 	 				BreakAndAdd( '#' );
-                flags.bQuestion2 = 0;
-                flags.bQuestion1 = 0;
-                continue;
- 	 			}
- 	 			else if( character == '(' )
- 	 			{
- 	 				BreakAndAdd( '[' );
-                flags.bQuestion2 = 0;
-                flags.bQuestion1 = 0;
-                continue;
- 	 			}
- 	 			else if( character == '/' )
- 	 			{
- 	 				BreakAndAdd( '\\' );
-                flags.bQuestion2 = 0;
-                flags.bQuestion1 = 0;
-                continue;
- 	 			}
- 	 			else if( flags.bQuestion2 &&
- 	 					  character == ')' )
- 	 			{
- 	 				BreakAndAdd( ']' );
-                flags.bQuestion2 = 0;
-                flags.bQuestion1 = 0;
-                continue;
- 	 			}
- 	 			else if( flags.bQuestion2 &&
- 	 					  character == '\'' )
- 	 			{
- 	 				BreakAndAdd( '^' );
-                flags.bQuestion2 = 0;
-                flags.bQuestion1 = 0;
-                continue;
- 	 			}
- 	 			else if( flags.bQuestion2 &&
- 	 					  character == '<' )
- 	 			{
- 	 				BreakAndAdd( '{' );
-                flags.bQuestion2 = 0;
-                flags.bQuestion1 = 0;
-                continue;
- 	 			}
- 	 			else if( flags.bQuestion2 &&
- 	 					  character == '!' )
- 	 			{
- 	 				BreakAndAdd( '|' );
-                flags.bQuestion2 = 0;
-                flags.bQuestion1 = 0;
-                continue;
- 	 			}
- 	 			else if( flags.bQuestion2 &&
- 	 					  character == '>' )
- 	 			{
- 	 				BreakAndAdd( '}' );
-                flags.bQuestion2 = 0;
-                flags.bQuestion1 = 0;
-                continue;
- 	 			}
- 	 			else if( flags.bQuestion2 &&
- 	 					  character == '-' )
- 	 			{
- 	 				BreakAndAdd( '~' );
-                flags.bQuestion2 = 0;
-                flags.bQuestion1 = 0;
-                continue;
+					BreakAndAdd( '#' );
+					flags.bQuestion2 = 0;
+					flags.bQuestion1 = 0;
+					continue;
+				}
+				else if( character == '(' )
+				{
+					BreakAndAdd( '[' );
+					flags.bQuestion2 = 0;
+					flags.bQuestion1 = 0;
+					continue;
+				}
+				else if( character == '/' )
+				{
+					BreakAndAdd( '\\' );
+					flags.bQuestion2 = 0;
+					flags.bQuestion1 = 0;
+					continue;
+				}
+				else if( flags.bQuestion2
+				       && character == ')' )
+				{
+					BreakAndAdd( ']' );
+					flags.bQuestion2 = 0;
+					flags.bQuestion1 = 0;
+					continue;
+				}
+				else if( flags.bQuestion2 &&
+				         character == '\'' )
+				{
+					BreakAndAdd( '^' );
+					flags.bQuestion2 = 0;
+					flags.bQuestion1 = 0;
+					continue;
+				}
+				else if( flags.bQuestion2 &&
+				         character == '<' )
+				{
+					BreakAndAdd( '{' );
+					flags.bQuestion2 = 0;
+					flags.bQuestion1 = 0;
+					continue;
+				}
+				else if( flags.bQuestion2 &&
+				         character == '!' )
+				{
+					BreakAndAdd( '|' );
+					flags.bQuestion2 = 0;
+					flags.bQuestion1 = 0;
+					continue;
+				}
+				else if( flags.bQuestion2 &&
+				         character == '>' )
+				{
+					BreakAndAdd( '}' );
+					flags.bQuestion2 = 0;
+					flags.bQuestion1 = 0;
+					continue;
+				}
+				else if( flags.bQuestion2 &&
+				         character == '-' )
+				{
+					BreakAndAdd( '~' );
+					flags.bQuestion2 = 0;
+					flags.bQuestion1 = 0;
+					continue;
 				}
 				else if( character == '?' )
 				{
-               BreakAndAdd( '?' );
+					BreakAndAdd( '?' );
 				}
 				else
 				{
 					fprintf( stderr, WIDE("%s(%d): Error unrecognized trigraph sequence!\n")
 							, GetCurrentFileName()
 							, GetCurrentLine() );
-               OutputDanglingChars();
+					OutputDanglingChars();
 				}
 			}
 			else if( g.flags.do_trigraph &&
-					  character == '?' )
+			         character == '?' )
 			{
 				if( flags.bQuestion2 )
 				{
-               BreakAndAdd( '?' );
+					BreakAndAdd( '?' );
 				}
 				else if( flags.bQuestion1 )
 				{
-               flags.bQuestion2 = 1;
+					flags.bQuestion2 = 1;
 				}
 				else
 					flags.bQuestion1 = 1;
-            continue;
+				continue;
 			}
 			else
 			{
@@ -432,114 +442,127 @@ PTEXT burstEx( PTEXT input DBG_PASS )
 					}
 					else
 						escape = 0;
-            else
+				else
 					escape = 0;
 			}
 
-         switch(character)
-         {
-         case '\n':
-            if( ( word = VarTextGetEx( &out DBG_OVERRIDE ) ) )
-            {
-            	word->format.spaces = (uint16_t)spaces;
-            	spaces = 0; // fake a space next line...
-            	outdata = SegAdd( outdata, word );
-            }
-            outdata = SegAdd( outdata, SegCreate( 0 ) ); // add a line-break packet
-            break;
-         case ' ':
-         case '\t':
-            if( ( word = VarTextGetEx( &out DBG_OVERRIDE ) ) )
-            {
-            	word->format.spaces = (uint16_t)spaces;
-            	spaces = 0;
-            	outdata = SegAdd( outdata, word );
-            }
-            spaces++;
-            break;
-         case '\r': // a space space character...
-            if( ( word = VarTextGetEx( &out DBG_OVERRIDE ) ) )
-            {
-            	word->format.spaces = (uint16_t)spaces;
-            	spaces = 0;
-            	outdata = SegAdd( outdata, word );
-            }
+			switch(character)
+			{
+			case '\n':
+				if( ( word = VarTextGetEx( &out DBG_OVERRIDE ) ) )
+				{
+					word->format.spaces = (uint16_t)spaces;
+					word->format.tabs = (uint16_t)tabs;
+					spaces = 0; // fake a space next line...
+					tabs = 0; // fake a space next line...
+					outdata = SegAdd( outdata, word );
+				}
+				outdata = SegAdd( outdata, SegCreate( 0 ) ); // add a line-break packet
+				break;
+			case ' ':
+			case '\t':
+				if( ( word = VarTextGetEx( &out DBG_OVERRIDE ) ) )
+				{
+					word->format.spaces = (uint16_t)spaces;
+					word->format.tabs = (uint16_t)tabs;
+					spaces = 0;
+					tabs = 0;
+					outdata = SegAdd( outdata, word );
+				}
+				if( character == ' ' )
+					spaces++;
+				else
+					tabs++;
+				break;
+			case '\r': // a space space character...
+				if( ( word = VarTextGetEx( &out DBG_OVERRIDE ) ) )
+				{
+					word->format.spaces = (uint16_t)spaces;
+					word->format.tabs = (uint16_t)tabs;
+					spaces = 0;
+					tabs = 0;
+					outdata = SegAdd( outdata, word );
+				}
 				break;
 
-         case '.': // handle multiple periods grouped (elipses)
-            //goto NormalPunctuation;
-            {
-               char c;
-               if( ( !elipses &&
-                     ( c = NextChar() ) &&
-                     ( c == '.' ) ) )
-               {
-                  if( ( word = VarTextGetEx( &out DBG_OVERRIDE ) ) )
-                  {
-                  	outdata = SegAdd( outdata, word );
-                     word->format.spaces = (uint16_t)spaces;
-                     spaces = 0;
-                  }
-                  VarTextAddCharacterEx( &out, '.' DBG_OVERRIDE );
-                  elipses = TRUE;
-                  break;
-               }
-               if( ( c = NextChar() ) &&
-                   ( c >= '0' && c <= '9' ) )
-               {
-                  // gather together as a floating point number...
-                  VarTextAddCharacterEx( &out, '.' DBG_OVERRIDE );
-                  break;
-               }
+			case '.': // handle multiple periods grouped (elipses)
+				//goto NormalPunctuation;
+				{
+					char c;
+					if( ( !elipses &&
+							( c = NextChar() ) &&
+							( c == '.' ) ) )
+					{
+						if( ( word = VarTextGetEx( &out DBG_OVERRIDE ) ) )
+						{
+							outdata = SegAdd( outdata, word );
+							word->format.spaces = (uint16_t)spaces;
+							word->format.tabs = (uint16_t)tabs;
+							spaces = 0;
+							tabs = 0;
+						}
+						VarTextAddCharacterEx( &out, '.' DBG_OVERRIDE );
+						elipses = TRUE;
+						break;
+					}
+					if( ( c = NextChar() ) &&
+					    ( c >= '0' && c <= '9' ) )
+					{
+						// gather together as a floating point number...
+						VarTextAddCharacterEx( &out, '.' DBG_OVERRIDE );
+						break;
+					}
 				}
-         case '\'': // single quote bound
+			case '\'': // single quote bound
 			case '\"': // double quote bound
 			case '\\': // escape next thingy... unusable in c processor
 
-         case '(': // expression bounders
-  			case '{':
-  			case '[':
-         case ')': // expression closers
-         case '}':
-         case ']':
+			case '(': // expression bounders
+			case '{':
+			case '[':
+			case ')': // expression closers
+			case '}':
+			case ']':
 
-         case '-':  // work seperations flaming-long-sword
-         case '@':  // email addresses
-         case '/':
-         case ',':
-         case ';':
-         case '!':
-         case '?':
-         case '=':
-         case '+':
-         case '*':
-         case '&':
+			case '-':  // work seperations flaming-long-sword
+			case '@':  // email addresses
+			case '/':
+			case ',':
+			case ';':
+			case '!':
+			case '?':
+			case '=':
+			case '+':
+			case '*':
+			case '&':
 			case '|':
-         case '$':
-         case '^':
-         case '~':
-         case '#':
-  			case '`':
-            BreakAndAdd( character );
-            break;
+			case '$':
+			case '^':
+			case '~':
+			case '#':
+			case '`':
+				BreakAndAdd( character );
+				break;
 
-         default:
-            if( elipses )
-            {
-            	if( ( word = VarTextGetEx( &out DBG_OVERRIDE ) ) )
-            	{
-            		outdata = SegAdd( outdata, word );
-            		word->format.spaces = (uint16_t)spaces;
-                  spaces = 0;
-            	}
-               elipses = FALSE;
-            }
-            VarTextAddCharacterEx( &out, character DBG_OVERRIDE );
-            break;
+			default:
+				if( elipses )
+				{
+					if( ( word = VarTextGetEx( &out DBG_OVERRIDE ) ) )
+					{
+						outdata = SegAdd( outdata, word );
+						word->format.spaces = (uint16_t)spaces;
+						word->format.tabs = (uint16_t)tabs;
+						spaces = 0;
+						tabs = 0;
+					}
+					elipses = FALSE;
+				}
+				VarTextAddCharacterEx( &out, character DBG_OVERRIDE );
+				break;
 			}
-      }
-      input=NEXTLINE(input);
-   }
+		}
+		input=NEXTLINE(input);
+	}
 
 	if( flags.bPercent )
 	{
@@ -571,14 +594,16 @@ PTEXT burstEx( PTEXT input DBG_PASS )
 		BreakAndAdd( '?' );
 		flags.bQuestion1 = 0;
 	}
-   if( ( word = VarTextGetEx( &out DBG_OVERRIDE ) ) ) // any generic outstanding data?
-   {
-   	outdata = SegAdd( outdata, word );
-      word->format.spaces = (uint16_t)spaces;
-      spaces = 0;
-   }
+	if( ( word = VarTextGetEx( &out DBG_OVERRIDE ) ) ) // any generic outstanding data?
+	{
+		outdata = SegAdd( outdata, word );
+		word->format.spaces = (uint16_t)spaces;
+		word->format.tabs = (uint16_t)tabs;
+		spaces = 0;
+		tabs = 0;
+	}
 
-   SetStart(outdata);
+	SetStart(outdata);
 
 	VarTextEmptyEx( &out DBG_OVERRIDE );
 	if( g.bDebugLog & DEBUG_READING )
@@ -587,84 +612,84 @@ PTEXT burstEx( PTEXT input DBG_PASS )
 		DumpSegs( outdata );
 		fprintf( stddbg, WIDE("\n") );
 	}
-   return(outdata);
+	return(outdata);
 }
 
 
 
 PTEXT get_line(FILE *source, int *line)
 {
-   #define WORKSPACE 128  // characters for workspace
-   PTEXT workline=(PTEXT)NULL,pNew;
-   uintptr_t length = 0;
-   if( !source )
-      return NULL;
-   do
-   {
-   LineContinues:
-      // create a workspace to read input from the file.
-      workline=SegAdd(workline,pNew=SegCreate(WORKSPACE));
-      //workline = pNew;
-      // SetEnd( workline );
+	#define WORKSPACE 128  // characters for workspace
+	PTEXT workline=(PTEXT)NULL,pNew;
+	uintptr_t length = 0;
+	if( !source )
+		return NULL;
+	do
+	{
+	LineContinues:
+		// create a workspace to read input from the file.
+		workline=SegAdd(workline,pNew=SegCreate(WORKSPACE));
+		//workline = pNew;
+		// SetEnd( workline );
 
-      // read a line of input from the file.
-      if( !fgets( GetText(workline), WORKSPACE, source) ) // if no input read.
-      {
-         if (PRIORLINE(workline)) // if we've read some.
-         {
-            PTEXT t;
-            t=PRIORLINE(workline); // go back one.
-            SegBreak(workline);
-            LineRelease(workline);  // destroy the current segment.
-            workline = t;
-         }
-         else
-         {
-            LineRelease(workline);            // destory only segment.
-            workline = NULL;
-         }
-         break;  // get out of the loop- there is no more to read.
-      }
-      {
-      	// this section of code shall map character trigraphs into a single
-      	// character... this preprocessor should/shall be unicode in nature
-      	// the FUTURE man not the past!
-      }
-      length = strlen(GetText(workline));  // get the length of the line.
-      if( workline )
-         workline->data.size = length;
-   }
+		// read a line of input from the file.
+		if( !fgets( GetText(workline), WORKSPACE, source) ) // if no input read.
+		{
+			if (PRIORLINE(workline)) // if we've read some.
+			{
+				PTEXT t;
+				t=PRIORLINE(workline); // go back one.
+				SegBreak(workline);
+				LineRelease(workline);  // destroy the current segment.
+				workline = t;
+			}
+			else
+			{
+				LineRelease(workline);				// destory only segment.
+				workline = NULL;
+			}
+			break;  // get out of the loop- there is no more to read.
+		}
+		{
+			// this section of code shall map character trigraphs into a single
+			// character... this preprocessor should/shall be unicode in nature
+			// the FUTURE man not the past!
+		}
+		length = strlen(GetText(workline));  // get the length of the line.
+		if( workline )
+			workline->data.size = length;
+	}
 	while (GetText(workline)[length-1]!='\n'); //while not at the end of the line.
 	if( length > 2 )
 	{
 		// auto drop \r from \r\n ...
-      // since Linux refuses to be kind to dumb animals...
+		// since Linux refuses to be kind to dumb animals...
 		if( GetText(workline)[length-2] == '\r' )
 		{
-         GetText(workline)[length-2] = GetText(workline)[length-1];
-         length--;
+			GetText(workline)[length-2] = GetText(workline)[length-1];
+			length--;
 		}
 	}
-   (*line)++;
-   if( workline && (GetText(workline)[length-1]=='\n' ) )
-   {
-   	if( length > 1 && GetText(workline)[length-2] == '\\' )
+	(*line)++;
+	if( workline && (GetText(workline)[length-1]=='\n' ) )
+	{
+		if( length > 1 && GetText(workline)[length-2] == '\\' )
 		{
 			workline->data.data[length-2] = 0;
-	      workline->data.size = length-2;
-	      goto LineContinues;
-		}   		
+			workline->data.size = length-2;
+			goto LineContinues;
+		}
 		else
 		{
 			// consider the possibility of ignoring whitespace between a \ \n
 			// this will ease some effort on editing to kill end of line spaces...
 			// but as of yet is non standard - and is non comilant to iso9899:1999
-	      workline->data.data[length-1] = 0;
-   	   workline->data.size = length-1;
+			workline->data.data[length-1] = 0;
+			workline->data.size = length-1;
 		}
-   }
-   if (workline)  // if I got a line, and there was some length to it.
-      SetStart(workline);   // set workline to the beginning.
-   return(workline);      // return the line read from the file.
+	}
+	if (workline)  // if I got a line, and there was some length to it.
+		SetStart(workline);   // set workline to the beginning.
+	return(workline);      // return the line read from the file.
 }
 
