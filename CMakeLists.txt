@@ -34,7 +34,7 @@ set( SACK_BASE ${PROJECT_SOURCE_DIR} )
 set( CMAKE_MODULE_PATH ${SACK_SOURCE_DIR}/makefiles/cmake )
 
 
-set( LIBRESSL_VERSION 2.4.2 )
+set( LIBRESSL_VERSION 2.5.4 )
 
 
 include( DefaultInstall )
@@ -1472,6 +1472,8 @@ if( BUILD_TESTS )
    add_subdirectory( src/streamlib/ffmpeg/audio_test )
    add_subdirectory( src/filesyslib/test_file_scan )
    
+   add_subdirectory( src/bench/http )
+   add_subdirectory( src/utils/http_server )
    #add_subdirectory( src/bench/mem )
 
  if( NOT __NO_GUI__ AND NOT __NO_MSGSVR__ )
