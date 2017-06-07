@@ -1443,7 +1443,7 @@ void SQLCommit( PODBC odbc )
 				while( odbc->auto_commit_thread && ( ( start + 500 )> timeGetTime() ) )
 					Relinquish();
 				if( odbc->auto_commit_thread )
-					lprintf( WIDE( "Thread is already dead?!" ) );
+					lprintf( WIDE( "Auto commit thread stalled." ) );
 			}
 			// need to end the thread here too....
 			odbc->flags.bAutoTransact = 0;
@@ -2440,6 +2440,18 @@ void ReleaseODBC( PODBC odbc )
 void CloseDatabaseEx( PODBC odbc, LOGICAL ReleaseConnection )
 {
 	ReleaseODBC( odbc );
+	odbc->flags.bAutoCheckpoint = 0;
+	odbc->last_command_tick = 0;
+	while( odbc->auto_checkpoint_thread ) {
+		WakeThread( odbc->auto_checkpoint_thread );
+		Relinquish();
+	}
+	while( odbc->auto_commit_thread )
+	{
+		SQLCommit( odbc );
+		WakeThread( odbc->auto_commit_thread );
+	}
+				
 #if defined( USE_SQLITE ) || defined( USE_SQLITE_INTERFACE )
 	if( odbc->flags.bSQLite_native )
 	{
