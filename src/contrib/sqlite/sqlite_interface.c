@@ -603,7 +603,7 @@ void errorLogCallback(void *pArg, int iErrCode, const char *zMsg){
 		global_sqlstub_data->flags.bAutoCheckpointRecover = 1;
 	}
 	else if( iErrCode == SQLITE_NOTICE_RECOVER_ROLLBACK ) {
-		lprintf( "Sqlite3 Notice: jounral rollback:%s", zMsg );
+		lprintf( "Sqlite3 Notice: journal rollback:%s", zMsg );
 	}
 	else
 		lprintf( "Sqlite3 Err: (%d) %s", iErrCode, zMsg);
