@@ -1,1 +1,0 @@
-wlink  system nt_dll  option nodefaultlibs option quiet name 'salty_generator.dll'   option caseexact  file {salty_generator.c.obj block_shuffle.c.obj } library ..\..\..\..\bag.lib 
