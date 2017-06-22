@@ -111,31 +111,12 @@ static uintptr_t CPROC Unhandled( uintptr_t psv, CTEXTSTR line )
 static void InitBanScan( void )
 {
 	lbs.pch_scanner = CreateConfigurationHandler();
-	AddConfigurationMethod( lbs.pch_scanner, "%m Did not receive identification string from %w", failed_user_single );
-
-	AddConfigurationMethod( lbs.pch_scanner, "%m Disconnected from %w port %w [preauth]", failed_pass3 );
-	AddConfigurationMethod( lbs.pch_scanner, "%m Did not receive identification string from %w port %i", failed_pass3 );
-	AddConfigurationMethod( lbs.pch_scanner, "%m Failed password for invalid user %w from %w port %i ssh2", failed_pass2 );
-	AddConfigurationMethod( lbs.pch_scanner, "%m Connection closed by %w port %w [preauth]", failed_pass3 );
-	AddConfigurationMethod( lbs.pch_scanner, "%m Unable to negotiate with %w port %w: no matching key exchange method found. Their offer: diffie-hellman-group1-sha1", failed_pass3 );
-	AddConfigurationMethod( lbs.pch_scanner, "%m Unable to negotiate with %w port %w: no matching key exchange method found. Their offer: diffie-hellman-group1-sha1 [preauth]", failed_pass3 );
-	AddConfigurationMethod( lbs.pch_scanner, "%m Bad protocol version identification %m from  %w port %i", failed_pass );
-
-	AddConfigurationMethod( lbs.pch_scanner, "%m Failed password for %w from %w port %i ssh2", failed_pass );
-	AddConfigurationMethod( lbs.pch_scanner, "%m Failed password for %w from %w", failed_pass );
-	AddConfigurationMethod( lbs.pch_scanner, "%m Invalid user %w from %w", failed_pass );
-	AddConfigurationMethod( lbs.pch_scanner, "%m Invalid user %w from %w port %i", failed_pass );
-
 
 	AddConfigurationMethod( lbs.pch_scanner, "%w - - [%m] \"GET /CherryWeb %m", failed_pass0 );
 	AddConfigurationMethod( lbs.pch_scanner, "%w - - [%m] \"GET //a2billing/customer/templates/default/footer.tpl %m", failed_pass0 );
 	AddConfigurationMethod( lbs.pch_scanner, "%w - - [%m] \"GET /assets/jnkp.php  %m", failed_pass0 );
 	AddConfigurationMethod( lbs.pch_scanner, "%w - - [%m] \"GET /recordings%m", failed_pass0 );
 
-
-
-	//AddConfigurationMethod( lbs.pch_scanner, "%m sshd %m: Received disconnect from %i", failed_pass2 );
-	//AddConfigurationMethod( lbs.pch_scanner, "%m sshd %m: Invalid user %w from %i", failed_user );
 	SetConfigurationUnhandled( lbs.pch_scanner, Unhandled );
 }
 
