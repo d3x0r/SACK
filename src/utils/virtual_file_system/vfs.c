@@ -57,6 +57,27 @@ static int MaskStrCmp( struct volume *vol, const char * filename, FPI name_offse
 	}
 }
 
+#ifdef DEBUG_TRACE_LOG
+static void MaskStrCpy( char *output, size_t outlen, struct volume *vol, FPI name_offset ) {
+	if( vol->key ) {
+		int c;
+		FPI name_start = name_offset;
+		while(  ( c = ( ((uint8_t*)vol->disk)[name_offset] ^ vol->usekey[BLOCK_CACHE_NAMES][name_offset&BLOCK_MASK] ) ) ) {
+			if( ( name_offset - name_start ) < outlen )
+				output[name_offset-name_start] = c;
+			name_offset++;
+		}
+		if( ( name_offset - name_start ) < outlen )
+			output[name_offset-name_start] = 0;
+		else
+			output[outlen-1] = 0;
+	} else {
+		//LoG( "doesn't volume always have a key?" );
+		StrCpyEx( output, (const char *)(((uint8_t*)vol->disk) + name_offset), outlen );
+	}
+}
+#endif
+
 static void UpdateSegmentKey( struct volume *vol, enum block_cache_entries cache_idx )
 {
 	SRG_ResetEntropy( vol->entropy );
@@ -174,18 +195,18 @@ static void AddSalt2( uintptr_t psv, POINTER *salt, size_t *salt_size ) {
 	data->start = NULL; 
 }
 const uint8_t *sack_vfs_get_signature2( POINTER disk, POINTER diskReal ) {
-		if( disk != diskReal ) { 
-			static uint8_t usekey[BLOCK_SIZE];
-			static struct random_context *entropy;
-			static struct datatype { void* start; size_t length; } data;
-			data.start = diskReal;
-			data.length = ((uintptr_t)disk - (uintptr_t)diskReal) - BLOCK_SIZE;
-			if( !entropy ) entropy = SRG_CreateEntropy2( AddSalt2, (uintptr_t)&data );
-			SRG_ResetEntropy( entropy );
-			SRG_GetEntropyBuffer( entropy, (uint32_t*)usekey, BLOCK_SIZE*CHAR_BIT );
-			return usekey;
-		}
-		return NULL;
+	if( disk != diskReal ) { 
+		static uint8_t usekey[BLOCK_SIZE];
+		static struct random_context *entropy;
+		static struct datatype { void* start; size_t length; } data;
+		data.start = diskReal;
+		data.length = ((uintptr_t)disk - (uintptr_t)diskReal) - BLOCK_SIZE;
+		if( !entropy ) entropy = SRG_CreateEntropy2( AddSalt2, (uintptr_t)&data );
+		SRG_ResetEntropy( entropy );
+		SRG_GetEntropyBuffer( entropy, (uint32_t*)usekey, BLOCK_SIZE*CHAR_BIT );
+		return usekey;
+	}
+	return NULL;
 }
 
 
@@ -489,32 +510,32 @@ struct volume *sack_vfs_use_crypt_volume( POINTER memory, size_t sz, const char 
 	vol->diskReal = (struct disk*)memory;
 	vol->dwSize = sz;
 #ifdef WIN32
-// elf has a different signature to check for .so extended data...
-			struct disk *actual_disk;
-			if( ((char*)memory)[0] == 'M' && ((char*)memory)[1] == 'Z' ) {
-				actual_disk = (struct disk*)GetExtraData( memory );
-				if( actual_disk ) {
-					if( ( ( (uintptr_t)actual_disk - (uintptr_t)memory ) < vol->dwSize ) ) {
-						const uint8_t *sig = sack_vfs_get_signature2( (POINTER)((uintptr_t)actual_disk-BLOCK_SIZE), memory );
-						if( memcmp( sig, (POINTER)(((uintptr_t)actual_disk)-BLOCK_SIZE), BLOCK_SIZE ) ) {
-							lprintf( "Signature failed comparison; the core has changed since it was attached" );
-							vol->diskReal = NULL;
-							vol->dwSize = 0;
-							sack_vfs_unload_volume( vol );
-							return FALSE;
-						}
-						vol->dwSize -= ((uintptr_t)actual_disk - (uintptr_t)memory);
-						memory = (POINTER)actual_disk;
-					} else {
-						lprintf( "Signature failed comparison; the core is not attached to anything." );
-						vol->diskReal = NULL;
-						vol->disk = NULL;
-						vol->dwSize = 0;
-						sack_vfs_unload_volume( vol );
-						return NULL;
-					}
+	// elf has a different signature to check for .so extended data...
+	struct disk *actual_disk;
+	if( ((char*)memory)[0] == 'M' && ((char*)memory)[1] == 'Z' ) {
+		actual_disk = (struct disk*)GetExtraData( memory );
+		if( actual_disk ) {
+			if( ( ( (uintptr_t)actual_disk - (uintptr_t)memory ) < vol->dwSize ) ) {
+				const uint8_t *sig = sack_vfs_get_signature2( (POINTER)((uintptr_t)actual_disk-BLOCK_SIZE), memory );
+				if( memcmp( sig, (POINTER)(((uintptr_t)actual_disk)-BLOCK_SIZE), BLOCK_SIZE ) ) {
+					lprintf( "Signature failed comparison; the core has changed since it was attached" );
+					vol->diskReal = NULL;
+					vol->dwSize = 0;
+					sack_vfs_unload_volume( vol );
+					return FALSE;
 				}
+				vol->dwSize -= ((uintptr_t)actual_disk - (uintptr_t)memory);
+				memory = (POINTER)actual_disk;
+			} else {
+				lprintf( "Signature failed comparison; the core is not attached to anything." );
+				vol->diskReal = NULL;
+				vol->disk = NULL;
+				vol->dwSize = 0;
+				sack_vfs_unload_volume( vol );
+				return NULL;
 			}
+		}
+	}
 #endif
 	vol->disk = (struct disk*)memory;
 
@@ -863,7 +884,7 @@ size_t CPROC sack_vfs_write( struct sack_vfs_file *file, const char * data, size
 	size_t written = 0;
 	size_t ofs = file->fpi & BLOCK_MASK;
 	while( LockedExchange( &file->vol->lock, 1 ) ) Relinquish();
-	LoG( "Write to file %" _size_f "  @%" _size_f, length, ofs );
+	LoG( "Write to file %p %" _size_f "  @%" _size_f, file, length, ofs );
 	if( ofs ) {
 		uint8_t* block = (uint8_t*)vfs_BSEEK( file->vol, file->block, BLOCK_CACHE_FILE );
 		if( length >= ( BLOCK_SIZE - ( ofs ) ) ) {
@@ -1022,6 +1043,15 @@ size_t CPROC sack_vfs_truncate( struct sack_vfs_file *file ) { file->entry->file
 
 int CPROC sack_vfs_close( struct sack_vfs_file *file ) { 
 	while( LockedExchange( &file->vol->lock, 1 ) ) Relinquish();
+#ifdef DEBUG_TRACE_LOG
+	{
+		static char fname[256];
+		FPI name_ofs = file->entry->name_offset ^ file->dirent_key.name_offset;
+		TSEEK( const char *, file->vol, name_ofs, BLOCK_CACHE_NAMES ); // have to do the seek to the name block otherwise it might not be loaded.
+		MaskStrCpy( fname, sizeof( fname ), file->vol, name_ofs );
+		LoG( "close file:%s(%p)", fname, file );
+	}
+#endif
 	DeleteLink( &file->vol->files, file ); 
 	if( file->delete_on_close ) sack_vfs_unlink_file_entry( file->vol, file->entry, &file->dirent_key );  
 	file->vol->lock = 0;
@@ -1035,6 +1065,7 @@ void CPROC sack_vfs_unlink_file( uintptr_t psv, const char * filename ) {
 	struct directory_entry entkey;
 	struct directory_entry *entry;
 	while( LockedExchange( &vol->lock, 1 ) ) Relinquish();
+	LoG( "unlink file:%s", filename );
 	if( ( entry  = ScanDirectory( vol, filename, &entkey ) ) )
 		sack_vfs_unlink_file_entry( vol, entry, &entkey );
 	vol->lock = 0;
@@ -1168,9 +1199,9 @@ static struct file_system_interface sack_vfs_fsi = {
                                                    , (int(CPROC*)(struct find_cursor*))             sack_vfs_find_close
                                                    , (int(CPROC*)(struct find_cursor*))             sack_vfs_find_next
                                                    , (char*(CPROC*)(struct find_cursor*))           sack_vfs_find_get_name
-												   , (size_t(CPROC*)(struct find_cursor*))          sack_vfs_find_get_size
-												   , sack_vfs_is_directory
-												   , sack_vfs_rename
+                                                   , (size_t(CPROC*)(struct find_cursor*))          sack_vfs_find_get_size
+                                                   , sack_vfs_is_directory
+                                                   , sack_vfs_rename
                                                    };
 
 PRIORITY_PRELOAD( Sack_VFS_Register, CONFIG_SCRIPT_PRELOAD_PRIORITY - 2 )
