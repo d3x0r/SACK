@@ -276,7 +276,7 @@ LOGICAL json_parse_message( TEXTSTR msg
 						else if( ( c == '"' ) || ( c == '\'' ) )
 						{
 							if( escape ) msg[m++] = c;
-							else if( c === start_c ) {
+							else if( c == start_c ) {
 								//AddDataItem( &elements, &val );
 								//RESET_VAL();
 								break;

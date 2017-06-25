@@ -3410,7 +3410,7 @@ char * b64xor( const char *a, const char *b ) {
 }
 
 char * u8xor( const char *a, size_t alen, const char *b, size_t blen, int *ofs ) {
-	int n;
+	size_t n;
 	size_t keylen = blen-5;
 	int o = ofs[0];
 	size_t outlen;

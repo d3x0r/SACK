@@ -1,5 +1,6 @@
 
 #include <stdhdrs.h>
+#include <filesys.h>
 #include <pssql.h>
 
 

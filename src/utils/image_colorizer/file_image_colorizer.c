@@ -1,4 +1,5 @@
 #include <stdhdrs.h>
+#include <filesys.h>
 #include <stdio.h>
 #include <configscript.h>
 
@@ -22,10 +23,10 @@ SaneWinMain( argc, argv )
 			Image image = LoadImageFile( file );
 			if( argc > 9 )
 			{
-				x = IntCreateFromText( argv[6] );
-				y = IntCreateFromText( argv[7] );
-				width = IntCreateFromText( argv[8] );
-				height = IntCreateFromText( argv[9] );
+				x = (int)IntCreateFromText( argv[6] );
+				y = (int)IntCreateFromText( argv[7] );
+				width = (int)IntCreateFromText( argv[8] );
+				height = (int)IntCreateFromText( argv[9] );
 			}
 			else
 			{
