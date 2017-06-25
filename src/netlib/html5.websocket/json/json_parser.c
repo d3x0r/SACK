@@ -64,6 +64,26 @@ typedef struct json_parse_context PARSE_CONTEXT, *PPARSE_CONTEXT;
 DeclareSet( PARSE_CONTEXT );
 PPARSE_CONTEXTSET parseContexts;
 
+TEXTSTR json_escape_string( CTEXTSTR string ) {
+	size_t n;
+	size_t m = 0;
+	TEXTSTR output;
+	if( !string ) return NULL;
+	for( n = 0; string[n]; n++ ) {
+		if( string[n] == '"' )
+			m++;
+	}
+	output = NewArray( TEXTCHAR, n+m+1 );
+	m = 0;
+	for( n = 0; string[n]; n++ ) {
+		if( string[n] == '"' ) {
+			output[m++] = '\\';
+		}
+		output[m++] = string[n];
+	}
+	return output;
+}
+
 LOGICAL json_parse_message( TEXTSTR msg
                                  , size_t msglen
                                  , PDATALIST *_msg_output )
