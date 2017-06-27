@@ -584,7 +584,7 @@ static int DetectUnicodeBOM( FILE *file ) {
 		bytelength = sack_fread( bytes, 1, 5, file );
 		sack_fseek( file, 0, SEEK_SET );
 		if( bytelength < 5 ) {
-			int n;
+			size_t n;
 			for( n = bytelength; n < 5; n++ )
 				bytes[n] = 0;		
 		}
@@ -620,8 +620,58 @@ static int DetectUnicodeBOM( FILE *file ) {
 			
 		}
 	}
-	
 }
+
+static void DecodeFopenOpts( struct file *file, CTEXTSTR opts ) {
+	CTEXTSTR op = opts;
+	for( ; op[0]; op++ ) {
+		if( op[0] == 'w' || op[0] == 'a' || op[0] == 'r' || op[0] == '+' )
+			continue;
+		if( op[0] == ' ' ) continue;
+
+		if( op[0] == 't' ) {
+         file->textmode = TM_UNKNOWN;
+		} else if( op[0] == 'b' ) {
+         file->textmode = TM_BINARY; // also the default.
+		} else if( op[0] == ',' ) {
+         const char *restore = op;
+			op++;
+			while( op[0] == ' ' ) op++;
+			if( op[0] == 'c' ) op++; else { op = restore; continue; }
+			if( op[0] == 'c' ) op++; else { op = restore; continue; }
+			if( op[0] == 's' ) op++; else { op = restore; continue; }
+			while( op[0] == ' ' ) op++;
+			if( op[0] == '=' ) op++; else { op = restore; continue; }
+			while( op[0] == ' ' ) op++;
+			if( StrCaseCmpEx( op, "unicode", 7 ) == 0 ) {
+				file->textmode = TM_UTF16LE;
+            op += 6; // minus 1, becuase for loop will increment.
+			}
+			else if( StrCaseCmpEx( op, "utf-16le", 8 ) == 0 ) {
+				file->textmode = TM_UTF16LE;
+            op += 7; // minus 1, becuase for loop will increment.
+			}
+			else if( ( StrCaseCmpEx( op, "utf-8", 5 ) == 0 ) ) {
+				file->textmode = TM_UTF8;
+            op += 4; // minus 1, becuase for loop will increment.
+			}
+			else if( ( StrCaseCmpEx( op, "utf-16be", 8 ) == 0 ) ) {
+				file->textmode = TM_UTF16BE;
+            op += 7; // minus 1, becuase for loop will increment.
+			}
+			else if( ( StrCaseCmpEx( op, "utf-32le", 8 ) == 0 ) ) {
+				file->textmode = TM_UTF32LE;
+            op += 7; // minus 1, becuase for loop will increment.
+			}
+			else if( ( StrCaseCmpEx( op, "utf-32be", 8 ) == 0 ) ) {
+				file->textmode = TM_UTF32BE;
+            op += 7; // minus 1, becuase for loop will increment.
+			}
+		}
+	}
+}
+
+
 
 HANDLE sack_open( INDEX group, CTEXTSTR filename, int opts, ... )
 {
@@ -752,6 +802,8 @@ struct file *FindFileByHandle( HANDLE file_file )
 	return file;
 }
 
+//----------------------------------------------------------------------------
+
 LOGICAL sack_iset_eof ( INDEX file_handle )
 {
 	HANDLE *holder = (HANDLE*)GetLink( &(*winfile_local).handles, file_handle );
@@ -763,6 +815,8 @@ LOGICAL sack_iset_eof ( INDEX file_handle )
 #endif
 
 }
+
+//----------------------------------------------------------------------------
 
 struct file *FindFileByFILE( FILE *file_file )
 {
@@ -819,6 +873,8 @@ LOGICAL sack_set_eof ( HANDLE file_handle )
 	}
 }
 
+//----------------------------------------------------------------------------
+
 int sack_ftruncate( FILE *file_file )
 {
 	struct file *file;
@@ -843,6 +899,7 @@ int sack_ftruncate( FILE *file_file )
 	return FALSE;
 }
 
+//----------------------------------------------------------------------------
 
 long sack_tell( INDEX file_handle )
 {
@@ -859,12 +916,14 @@ long sack_tell( INDEX file_handle )
 #endif
 }
 
+//----------------------------------------------------------------------------
 
 HANDLE sack_creat( INDEX group, CTEXTSTR file, int opts, ... )
 {
 	return sack_open( group, file, opts | O_CREAT );
 }
 
+//----------------------------------------------------------------------------
 
 int sack_lseek( HANDLE file_handle, int pos, int whence )
 {
@@ -874,6 +933,8 @@ int sack_lseek( HANDLE file_handle, int pos, int whence )
 	return lseek( file_handle, pos, whence );
 #endif
 }
+
+//----------------------------------------------------------------------------
 
 int sack_read( HANDLE file_handle, POINTER buffer, int size )
 {
@@ -886,6 +947,8 @@ int sack_read( HANDLE file_handle, POINTER buffer, int size )
 #endif
 }
 
+//----------------------------------------------------------------------------
+
 int sack_write( HANDLE file_handle, CPOINTER buffer, int size )
 {
 #ifdef _WIN32
@@ -896,10 +959,14 @@ int sack_write( HANDLE file_handle, CPOINTER buffer, int size )
 #endif
 }
 
+//----------------------------------------------------------------------------
+
 INDEX sack_icreat( INDEX group, CTEXTSTR file, int opts, ... )
 {
 	return sack_iopen( group, file, opts | O_CREAT );
 }
+
+//----------------------------------------------------------------------------
 
 int sack_close( HANDLE file_handle )
 {
@@ -925,6 +992,8 @@ int sack_close( HANDLE file_handle )
 	return 0;
 }
 
+//----------------------------------------------------------------------------
+
 INDEX sack_iopen( INDEX group, CTEXTSTR filename, int opts, ... )
 {
 	HANDLE h;
@@ -949,6 +1018,8 @@ INDEX sack_iopen( INDEX group, CTEXTSTR filename, int opts, ... )
 	return result;
 }
 
+//----------------------------------------------------------------------------
+
 int sack_iclose( INDEX file_handle )
 {
 	int result;
@@ -963,6 +1034,8 @@ int sack_iclose( INDEX file_handle )
 	LeaveCriticalSec( &(*winfile_local).cs_files );
 	return result;
 }
+
+//----------------------------------------------------------------------------
 
 int sack_ilseek( INDEX file_handle, size_t pos, int whence )
 {
@@ -981,6 +1054,8 @@ int sack_ilseek( INDEX file_handle, size_t pos, int whence )
 	return result;
 }
 
+//----------------------------------------------------------------------------
+
 int sack_iread( INDEX file_handle, POINTER buffer, int size )
 {
 	EnterCriticalSec( &(*winfile_local).cs_files );
@@ -998,6 +1073,8 @@ int sack_iread( INDEX file_handle, POINTER buffer, int size )
 	}
 }
 
+//----------------------------------------------------------------------------
+
 int sack_iwrite( INDEX file_handle, CPOINTER buffer, int size )
 {
 	EnterCriticalSec( &(*winfile_local).cs_files );
@@ -1014,7 +1091,7 @@ int sack_iwrite( INDEX file_handle, CPOINTER buffer, int size )
 	}
 }
 
-
+//----------------------------------------------------------------------------
 
 int sack_unlinkEx( INDEX group, CTEXTSTR filename, struct file_system_mounted_interface *mount )
 {
@@ -1062,10 +1139,14 @@ int sack_unlinkEx( INDEX group, CTEXTSTR filename, struct file_system_mounted_in
 	return 0;
 }
 
+//----------------------------------------------------------------------------
+
 int sack_unlink( INDEX group, CTEXTSTR filename )
 {
 	return sack_unlinkEx( group, filename, (*winfile_local).mounted_file_systems );
 }
+
+//----------------------------------------------------------------------------
 
 int sack_rmdir( INDEX group, CTEXTSTR filename )
 {
@@ -1093,6 +1174,8 @@ int sack_rmdir( INDEX group, CTEXTSTR filename )
 #undef open
 #undef fopen
 
+//----------------------------------------------------------------------------
+
 FILE * sack_fopenEx( INDEX group, CTEXTSTR filename, CTEXTSTR opts, struct file_system_mounted_interface *mount )
 {
 	FILE *handle = NULL;
@@ -1117,6 +1200,7 @@ FILE * sack_fopenEx( INDEX group, CTEXTSTR filename, CTEXTSTR opts, struct file_
 
 	if( (*winfile_local).flags.bLogOpenClose )
 		lprintf( WIDE("open %s %p(%s) %s (%d)"), filename, mount, mount->name, opts, mount?mount->writeable:1 );
+
 	LIST_FORALL( (*winfile_local).files, idx, struct file *, file )
 	{
 		if( ( file->group == group )
@@ -1126,6 +1210,7 @@ FILE * sack_fopenEx( INDEX group, CTEXTSTR filename, CTEXTSTR opts, struct file_
 			break;
 		}
 	}
+   
 	LeaveCriticalSec( &(*winfile_local).cs_files );
 
 	if( !file )
@@ -1135,6 +1220,7 @@ FILE * sack_fopenEx( INDEX group, CTEXTSTR filename, CTEXTSTR opts, struct file_
 		file = New( struct file );
 		memalloc = TRUE;
 
+      DecodeFopenOpts( file, opts );
 		if( StrChr( filename, '%' ) )
 		{
 			tmpname = ExpandPathVariable( filename );
@@ -1172,27 +1258,28 @@ FILE * sack_fopenEx( INDEX group, CTEXTSTR filename, CTEXTSTR opts, struct file_
 			//file->fullname = file->name;
 		}
 		file->group = group;
+
+		if( (file->fullname[0] == '@') || (file->fullname[0] == '*') || (file->fullname[0] == '~') )
+		{
+			TEXTSTR tmpname = ExpandPathEx( file->fullname, NULL );
+			Deallocate( TEXTSTR, file->fullname );
+			file->fullname = tmpname;
+		}
+		if( StrChr( file->fullname, '%' ) )
+		{
+			if( memalloc )
+			{
+				DeleteLink( &(*winfile_local).files, file );
+				Deallocate( TEXTCHAR*, file->name );
+				Deallocate( TEXTCHAR*, file->fullname );
+				Deallocate( struct file *, file );
+			}
+			//DebugBreak();
+			return NULL;
+		}
 		EnterCriticalSec( &(*winfile_local).cs_files );
 		AddLink( &(*winfile_local).files,file );
 		LeaveCriticalSec( &(*winfile_local).cs_files );
-	}
-	if( (file->fullname[0] == '@') || (file->fullname[0] == '*') || (file->fullname[0] == '~') )
-	{
-		TEXTSTR tmpname = ExpandPathEx( file->fullname, NULL );
-		Deallocate( TEXTSTR, file->fullname );
-		file->fullname = tmpname;
-	}
-	if( StrChr( file->fullname, '%' ) )
-	{
-		if( memalloc )
-		{
-			DeleteLink( &(*winfile_local).files, file );
-			Deallocate( TEXTCHAR*, file->name );
-			Deallocate( TEXTCHAR*, file->fullname );
-			Deallocate( struct file *, file );
-		}
-		//DebugBreak();
-		return NULL;
 	}
 	if( (*winfile_local).flags.bLogOpenClose )
 		lprintf( WIDE( "Open File: [%s]" ), file->fullname );
@@ -1319,10 +1406,14 @@ default_fopen:
 	return handle;
 }
 
+//----------------------------------------------------------------------------
+
 FILE*  sack_fopen ( INDEX group, CTEXTSTR filename, CTEXTSTR opts )
 {
 	return sack_fopenEx( group, filename, opts, NULL );
 }
+
+//----------------------------------------------------------------------------
 
 FILE*  sack_fsopenEx( INDEX group
 					 , CTEXTSTR filename
@@ -1362,6 +1453,7 @@ FILE*  sack_fsopenEx( INDEX group
 	{
 		struct Group *filegroup = (struct Group *)GetLink( &(*winfile_local).groups, group );
 		file = New( struct file );
+      DecodeFopenOpts( file, opts );
 		file->handles = NULL;
 		file->files = NULL;
 		file->name = StrDup( filename );
@@ -1475,10 +1567,14 @@ default_fopen:
 	return handle;
 }
 
+//----------------------------------------------------------------------------
+
 FILE*  sack_fsopen( INDEX group, CTEXTSTR filename, CTEXTSTR opts, int share_mode )
 {
 	return sack_fsopenEx( group, filename, opts, share_mode, NULL/*(*winfile_local).mounted_file_systems*/ );
 }
+
+//----------------------------------------------------------------------------
 
 size_t sack_fsize ( FILE *file_file )
 {
@@ -1535,6 +1631,7 @@ int  sack_fflush ( FILE *file_file )
 	return fflush( file_file );
 }
 
+//----------------------------------------------------------------------------
 
 int  sack_fclose ( FILE *file_file )
 {
@@ -1568,7 +1665,20 @@ int  sack_fclose ( FILE *file_file )
 
 	return fclose( file_file );
 }
- size_t  sack_fread ( POINTER buffer, size_t size, int count,FILE *file_file )
+
+//----------------------------------------------------------------------------
+
+static void transcodeOutputText( struct file *file, POINTER buffer, size_t size, POINTER *outbuf, size_t *outsize ) {
+}
+
+//----------------------------------------------------------------------------
+
+static void transcodeInputText( struct file *file, POINTER buffer, size_t size, POINTER *outbuf, size_t *outsize ) {
+}
+
+//----------------------------------------------------------------------------
+
+size_t  sack_fread ( POINTER buffer, size_t size, int count,FILE *file_file )
 {
 	struct file *file;
 	file = FindFileByFILE( file_file );
@@ -1576,7 +1686,10 @@ int  sack_fclose ( FILE *file_file )
 		return file->mount->fsi->_read( file_file, (char*)buffer, size * count );
 	return fread( buffer, size, count, file_file );
 }
- size_t  sack_fwrite ( CPOINTER buffer, size_t size, int count,FILE *file_file )
+
+//----------------------------------------------------------------------------
+
+size_t  sack_fwrite ( CPOINTER buffer, size_t size, int count,FILE *file_file )
 {
 	struct file *file;
 	file = FindFileByFILE( file_file );
@@ -1596,6 +1709,8 @@ int  sack_fclose ( FILE *file_file )
 	}
 	return fwrite( (POINTER)buffer, size, count, file_file );
 }
+
+//----------------------------------------------------------------------------
 
 
 TEXTSTR sack_fgets ( TEXTSTR buffer, size_t size,FILE *file_file )
@@ -1641,6 +1756,8 @@ TEXTSTR sack_fgets ( TEXTSTR buffer, size_t size,FILE *file_file )
 #endif
 }
 
+//----------------------------------------------------------------------------
+
 LOGICAL sack_existsEx ( const char *filename, struct file_system_mounted_interface *fsi )
 {
 	FILE *tmp;
@@ -1657,6 +1774,8 @@ LOGICAL sack_existsEx ( const char *filename, struct file_system_mounted_interfa
 	return FALSE;
 }
 
+//----------------------------------------------------------------------------
+
 LOGICAL sack_exists( const char * filename )
 {
 	struct file_system_mounted_interface *mount = (*winfile_local).mounted_file_systems;
@@ -1671,6 +1790,8 @@ LOGICAL sack_exists( const char * filename )
 	}
 	return FALSE;
 }
+
+//----------------------------------------------------------------------------
 
 int  sack_renameEx ( CTEXTSTR file_source, CTEXTSTR new_name, struct file_system_mounted_interface *mount )
 {
@@ -1704,10 +1825,14 @@ int  sack_renameEx ( CTEXTSTR file_source, CTEXTSTR new_name, struct file_system
 	return status;
 }
 
+//----------------------------------------------------------------------------
+
 int  sack_rename( CTEXTSTR file_source, CTEXTSTR new_name )
 {
 	return sack_renameEx( file_source, new_name, (*winfile_local).default_mount );
 }
+
+//----------------------------------------------------------------------------
 
 size_t GetSizeofFile( TEXTCHAR *name, uint32_t* unused )
 {
