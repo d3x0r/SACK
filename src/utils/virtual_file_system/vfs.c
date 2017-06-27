@@ -452,37 +452,33 @@ static BLOCKINDEX vfs_GetNextBlock( struct volume *vol, BLOCKINDEX block, int in
 	return check_val;
 }
 
-struct volume *sack_vfs_load_volume( const char * filepath )
-{
-	struct volume *vol = New( struct volume );
-	memset( vol, 0, sizeof( struct volume ) );
-	vol->volname = SaveText( filepath );
-	if( !ExpandVolume( vol ) || !ValidateBAT( vol ) ) { Deallocate( struct volume*, vol ); return NULL; }
-	return vol;
-}
-
 static void AddSalt( uintptr_t psv, POINTER *salt, size_t *salt_size ) {
 	struct volume *vol = (struct volume *)psv;
 	if( vol->sigsalt ) {
 		(*salt_size) = vol->sigkeyLength;
 		(*salt) = (POINTER)vol->sigsalt;
 		vol->sigsalt = NULL;
-	} else if( vol->datakey ) {
+	}
+	else if( vol->datakey ) {
 		(*salt_size) = BLOCK_SIZE;
 		(*salt) = (POINTER)vol->datakey;
 		vol->datakey = NULL;
-	} else if( vol->userkey ) {
+	}
+	else if( vol->userkey ) {
 		(*salt_size) = StrLen( vol->userkey );
 		(*salt) = (POINTER)vol->userkey;
 		vol->userkey = NULL;
-	} else if( vol->devkey ) {
+	}
+	else if( vol->devkey ) {
 		(*salt_size) = StrLen( vol->devkey );
 		(*salt) = (POINTER)vol->devkey;
 		vol->devkey = NULL;
-	} else if( vol->segment[vol->curseg] ) {
+	}
+	else if( vol->segment[vol->curseg] ) {
 		(*salt_size) = sizeof( vol->segment[vol->curseg] );
 		(*salt) = &vol->segment[vol->curseg];
-	} else 
+	}
+	else
 		(*salt_size) = 0;
 }
 
@@ -500,15 +496,31 @@ static void AssignKey( struct volume *vol, const char *key1, const char *key2 )
 			SRG_ResetEntropy( vol->entropy );
 		vol->key = (uint8_t*)OpenSpace( NULL, NULL, &size );
 		for( n = 0; n < BLOCK_CACHE_COUNT; n++ )
-			vol->usekey[n] = vol->key + (n+1) * BLOCK_SIZE;
-		vol->segkey = vol->key + BLOCK_SIZE * (BLOCK_CACHE_COUNT+1);
-		vol->sigkey = vol->key + BLOCK_SIZE * (BLOCK_CACHE_COUNT+1) + SHORTKEY_LENGTH;
+			vol->usekey[n] = vol->key + (n + 1) * BLOCK_SIZE;
+		vol->segkey = vol->key + BLOCK_SIZE * (BLOCK_CACHE_COUNT + 1);
+		vol->sigkey = vol->key + BLOCK_SIZE * (BLOCK_CACHE_COUNT + 1) + SHORTKEY_LENGTH;
 		vol->curseg = BLOCK_CACHE_DIRECTORY;
 		vol->segment[BLOCK_CACHE_DIRECTORY] = 0;
 		SRG_GetEntropyBuffer( vol->entropy, (uint32_t*)vol->key, BLOCK_SIZE * 8 );
 	}
-	else
+	else {
+		int n;
+		for( n = 0; n < BLOCK_CACHE_COUNT; n++ )
+			vol->usekey[n] = l.zerokey;
+		vol->segkey = l.zerokey;
+		vol->sigkey = l.zerokey;
 		vol->key = NULL;
+	}
+}
+
+struct volume *sack_vfs_load_volume( const char * filepath )
+{
+	struct volume *vol = New( struct volume );
+	memset( vol, 0, sizeof( struct volume ) );
+	vol->volname = SaveText( filepath );
+	AssignKey( vol, NULL, NULL );
+	if( !ExpandVolume( vol ) || !ValidateBAT( vol ) ) { Deallocate( struct volume*, vol ); return NULL; }
+	return vol;
 }
 
 struct volume *sack_vfs_load_crypt_volume( const char * filepath, const char * userkey, const char * devkey ) {
@@ -563,7 +575,7 @@ struct volume *sack_vfs_use_crypt_volume( POINTER memory, size_t sz, const char 
 	if( !ValidateBAT( vol ) ) { sack_vfs_unload_volume( vol );  return NULL; }
 	return vol;
 }
-                	
+
 void sack_vfs_unload_volume( struct volume * vol ) {
 	INDEX idx;
 	struct sack_vfs_file *file;
