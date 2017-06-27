@@ -417,7 +417,7 @@ SaneWinMain( argc, argv )
 				return 2;
 			}
 			l.current_mount = sack_mount_filesystem( "vfs", l.fsi, 10, (uintptr_t)l.current_vol, 1 );
-			arg += 2;
+			arg += 3;
 		}
 		else if( StrCaseCmp( argv[arg], "vfs" ) == 0 )
 		{

@@ -94,12 +94,11 @@ struct sack_vfs_file
 #define BTSEEK(type,v,o,c) ((type)vfs_BSEEK(v,o,c))
 
 #ifdef __GNUC__
-#define HIDDEN
-//__attribute__ ((visibility ("hidden")))
+#define HIDDEN __attribute__ ((visibility ("hidden")))
 #else
 #define HIDDEN
 #endif
 uintptr_t vfs_SEEK( struct volume *vol, FPI offset, enum block_cache_entries cache_index ) HIDDEN;
 uintptr_t vfs_BSEEK( struct volume *vol, BLOCKINDEX block, enum block_cache_entries cache_index ) HIDDEN;
-BLOCKINDEX vfs_GetNextBlock( struct volume *vol, BLOCKINDEX block, LOGICAL init, LOGICAL expand );
+//BLOCKINDEX vfs_GetNextBlock( struct volume *vol, BLOCKINDEX block, int init, LOGICAL expand );
 

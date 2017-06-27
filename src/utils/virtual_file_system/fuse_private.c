@@ -151,7 +151,7 @@ static void DumpDirectory( struct volume *vol, fuse_req_t req, struct dirbuf *b 
 	int n;
 	int this_dir_block = 0;
 	int next_dir_block;
-   fuse_ino_t ino = 100;
+	fuse_ino_t ino = 100;
 	struct directory_entry *next_entries;
 	do
 	{
@@ -167,17 +167,17 @@ static void DumpDirectory( struct volume *vol, fuse_req_t req, struct dirbuf *b 
 				uint8_t* name = TSEEK( uint8_t*, vol, name_ofs, BLOCK_CACHE_NAMES );
 				int ch;
 				uint8_t c;
-            if( vol->key )
+				if( vol->key )
 					for( ch = 0; c = (name[ch] ^ vol->usekey[BLOCK_CACHE_NAMES][( name_ofs & BLOCK_MASK ) +ch]); ch++ )
 						buf[ch] = c;
-            else
+				else
 					for( ch = 0; c = name[ch]; ch++ )
 					{
-                  if( c == '/' ) c = '\\';
+						if( c == '/' ) c = '\\';
 						buf[ch] = c;
 					}
 				buf[ch] = c;
-            dirbuf_add( req, b, buf, ino++ );
+            			dirbuf_add( req, b, buf, ino++ );
 			}
 		}
 		next_dir_block = vfs_GetNextBlock( vol, this_dir_block, TRUE, TRUE );
