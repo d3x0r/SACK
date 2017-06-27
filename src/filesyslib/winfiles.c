@@ -17,6 +17,21 @@
 
 FILESYS_NAMESPACE
 
+enum textModes {
+	TM_BINARY = 0,
+	TM_UNKNOWN,
+	TM_UTF8,
+	TM_UTF16BE,
+	TM_UTF16LE,
+	TM_UTF32BE,
+	TM_UTF32LE,
+	TM_UTF7,
+	TM_UTF1,
+	TM_UTF_EBCDIC,
+	TM_UTF_SCSU,
+	TM_UTF_BOCU,
+	TM_UTF_GB_18030
+};
 
 struct file{
 	TEXTSTR name;
@@ -26,6 +41,8 @@ struct file{
 	PLIST handles; // HANDLE 's
 	PLIST files; // FILE *'s
 	INDEX group;
+	enum textModes textmode;
+	size_t file_start_offset;  // text file modes; skip existing BOM for seek purposes.
 	struct file_system_mounted_interface *mount;
 };
 
@@ -530,6 +547,81 @@ TEXTSTR sack_prepend_path( INDEX group, CTEXTSTR filename )
 #define INVALID_HANDLE_VALUE -1
 #endif
 
+static int DetectUnicodeBOM( FILE *file ) {
+   //00 00 FE FF     UTF-32, big-endian
+   //FF FE 00 00     UTF-32, little-endian
+   //FE FF           UTF-16, big-endian
+   //FF FE           UTF-16, little-endian
+   //EF BB BF        UTF-8
+
+
+//Encoding	Representation (hexadecimal)	Representation (decimal)	Bytes as CP1252 characters
+//UTF-8[t 1]		EF BB BF		239 187 191	ï»¿
+//UTF-16 (BE)		FE FF			254 255	þÿ      þÿ
+//UTF-16 (LE)		FF FE			255 254	ÿþ      ÿþ
+//UTF-32 (BE)		00 00 FE FF		0 0 254 255	??þÿ (? refers to the ASCII null character)
+//UTF-32 (LE)		FF FE 00 00[t 2]	255 254 0 0	ÿþ?? (? refers to the ASCII null character)
+//UTF-7[t 1]		2B 2F 76 38             43 47 118 56	+/v9
+//			2B 2F 76 39		43 47 118 43	+/v+
+//			2B 2F 76 2B             43 47 118 47	+/v/
+//			2B 2F 76 2F[t 3]	43 47 118 57	+/v8
+//			2B 2F 76 38 2D[t 4]	43 47 118 56 45	+/v8-
+//		
+//UTF-1[t 1]		F7 64 4C	247 100 76	÷dL
+//UTF-EBCDIC[t 1]	DD 73 66 73	221 115 102 115	Ýsfs
+//SCSU[t 1]		0E FE FF[t 5]	14 254 255	?þÿ (? represents the ASCII "shift out" character)
+//BOCU-1[t 1]		FB EE 28	251 238 40	ûî(
+//GB-18030[t 1]		84 31 95 33	132 49 149 51	„1•3
+	struct file* _file = (struct file*)file;
+	// file was opened with 't' flag, test what sort of 't' the file might be.
+	// can result in conversion based on UNICODE (utf-16) compilation flag is set or not (UTF8).
+	
+	if( _file->textmode == TM_UNKNOWN ) {
+		uint8_t bytes[5];
+		enum textModes textmode = _file->textmode;
+		size_t bytelength;
+		_file->textmode = TM_BINARY;
+		bytelength = sack_fread( bytes, 1, 5, file );
+		sack_fseek( file, 0, SEEK_SET );
+		if( bytelength < 5 ) {
+			int n;
+			for( n = bytelength; n < 5; n++ )
+				bytes[n] = 0;		
+		}
+		if( bytes[0] == 0xEF ) {
+			// UTF8 test
+			if( bytes[1] == 0xBB && bytes[2] == 0xBF ) {
+				_file->textmode = TM_UTF8;
+				sack_fseek( file, 3, SEEK_SET );
+			} else {
+				_file->textmode = TM_UTF8;
+			}
+		} else if( bytes[0] == 0xFF ) {
+			// UTF32/16 LE test
+			if( bytes[1] == 0xFE ) {
+				if( bytes[2] == 0 && bytes[3] == 0 ) {
+					_file->textmode = TM_UTF32LE;
+				}
+			}
+		} else if( bytes[0] == 0xFE ) {
+			// UTF16ZBE test
+			if( bytes[1] == 0xFF ) {
+				_file->textmode = TM_UTF16BE;
+			} else {
+				_file->textmode = TM_UTF8;
+			}
+		} else if( bytes[0] == 0 && bytes[1] == 0 ) {
+			// UTF32BE test...
+			if( bytes[2] == 0xFE && bytes[3] == 0xFF ) {
+				_file->textmode = TM_UTF32BE;
+			} else
+				_file->textmode = TM_UTF8;
+		} else {
+			
+		}
+	}
+	
+}
 
 HANDLE sack_open( INDEX group, CTEXTSTR filename, int opts, ... )
 {
