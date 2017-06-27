@@ -173,7 +173,7 @@ int GetSoundList( PSENTIENT ps, PLIST *pList, PTEXT pName )
 	return cnt;
 }
 
-#ifdef __LCC__
+#ifdef WIN32
 #include <mmsystem.h>
 #endif
 
