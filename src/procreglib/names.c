@@ -526,13 +526,13 @@ PRIORITY_PRELOAD( InitProcreg, NAMESPACE_PRELOAD_PRIORITY )
 
 //---------------------------------------------------------------------------
 
-int GetClassPath( TEXTSTR out, size_t len, PTREEDEF root )
+int GetClassPath( TEXTSTR out, size_t len, PCLASSROOT root )
 {
 	int ofs = 0;
 	PLINKSTACK pls = CreateLinkStack();
 	PTREEDEF current;
 	PNAME name;
-	for( current = root; current->self && current; current = current->self->parent )
+	for( current = (PTREEDEF)root; current->self && current; current = current->self->parent )
 	{
 		PushLink( &pls, current->self );
 	}
@@ -768,29 +768,29 @@ PTREEDEF GetClassTreeEx( PTREEDEF root, PTREEDEF _name_class, PTREEDEF alias, LO
 //---------------------------------------------------------------------------
 PROCREG_PROC( PCLASSROOT, CheckClassRoot )( CTEXTSTR name_class )
 {
-	return GetClassTreeEx( NULL, (PCLASSROOT)name_class, NULL, FALSE );
+	return (PCLASSROOT)GetClassTreeEx( NULL, (PTREEDEF)name_class, NULL, FALSE );
 }
 
 //---------------------------------------------------------------------------
 
-PROCREG_PROC( PTREEDEF, GetClassRootEx )( PCLASSROOT root, CTEXTSTR name_class )
+PROCREG_PROC( PCLASSROOT, GetClassRootEx )( PCLASSROOT root, CTEXTSTR name_class )
 {
-	return GetClassTreeEx( root, (PCLASSROOT)name_class, NULL, TRUE );
+	return (PCLASSROOT)GetClassTreeEx( (PTREEDEF)root, (PTREEDEF)name_class, NULL, TRUE );
 }
 
-PROCREG_PROC( PTREEDEF, GetClassRoot )( CTEXTSTR name_class )
+PROCREG_PROC( PCLASSROOT, GetClassRoot )( CTEXTSTR name_class )
 {
-	return GetClassTreeEx( l.Names, (PCLASSROOT)name_class, NULL, TRUE );
+	return (PCLASSROOT)GetClassTreeEx( l.Names, (PTREEDEF)name_class, NULL, TRUE );
 }
 #ifdef __cplusplus
 PROCREG_PROC( PTREEDEF, GetClassRootEx )( PCLASSROOT root, PCLASSROOT name_class )
 {
-	return GetClassTreeEx( root, (PCLASSROOT)name_class, NULL, TRUE );
+	return GetClassTreeEx( root, (PTREEDEF)name_class, NULL, TRUE );
 }
 
 PROCREG_PROC( PTREEDEF, GetClassRoot )( PCLASSROOT name_class )
 {
-	return GetClassTreeEx( l.Names, (PCLASSROOT)name_class, NULL, TRUE );
+	return GetClassTreeEx( l.Names, (PTREEDEF)name_class, NULL, TRUE );
 }
 #endif
 //---------------------------------------------------------------------------
@@ -1151,7 +1151,7 @@ PROCREG_PROC( PROCEDURE, GetRegisteredProcedureExxx )( CTEXTSTR root, PCLASSROOT
 PROCREG_PROC( PROCEDURE, GetRegisteredProcedureEx )( PCLASSROOT name_class, CTEXTSTR returntype, CTEXTSTR name, CTEXTSTR args )
 {
 	Init();
-   return GetRegisteredProcedureExx( l.Names, name_class, returntype, name, args );
+   return GetRegisteredProcedureExx( (PCLASSROOT)l.Names, name_class, returntype, name, args );
 }
 #ifdef __cplusplus
 PROCREG_PROC( PROCEDURE, GetRegisteredProcedureEx )( CTEXTSTR name_class, CTEXTSTR returntype, CTEXTSTR name, CTEXTSTR args )
@@ -1242,8 +1242,8 @@ void DumpRegisteredNamesWork( PTREEDEF tree, int level )
 
 struct browse_index
 {
-	PCLASSROOT current_limbs;
-	PCLASSROOT current_branch;
+	PTREEDEF current_limbs;
+	PTREEDEF current_branch;
 };
 
 PROCREG_PROC( int, NameHasBranches )( PCLASSROOT *data )
@@ -1280,7 +1280,7 @@ PROCREG_PROC( PCLASSROOT, GetCurrentRegisteredTree )( PCLASSROOT *data )
 	class_root = (PTREEDEF)*data;
 	name = (PNAME)GetCurrentNodeEx( class_root->Tree, &class_root->cursor );
 	if( name )
-		return &name->tree;
+		return (PCLASSROOT)&name->tree;
 	return NULL;
 }
 
@@ -1294,7 +1294,7 @@ PROCREG_PROC( CTEXTSTR, GetFirstRegisteredNameEx )( PCLASSROOT root, CTEXTSTR cl
 	PTREEDEF class_root;
 	PNAME name;
 	*data =
-		class_root = GetClassTree( root, (PCLASSROOT)classname );
+		class_root = (PTREEDEF)GetClassTree( (PTREEDEF)root, (PCLASSROOT)classname );
 	if( class_root )
 	{
 		name = (PNAME)GetLeastNodeEx( class_root->Tree, &class_root->cursor );
@@ -1416,7 +1416,7 @@ PROCREG_PROC( int, RegisterValueExx )( PCLASSROOT root, CTEXTSTR name_class, CTE
 PROCREG_PROC( int, RegisterValueEx )( CTEXTSTR name_class, CTEXTSTR name, int bIntVal, CTEXTSTR value )
 {
 	Init();
-	return RegisterValueExx( l.Names, name_class, name, bIntVal, value );
+	return RegisterValueExx( (PCLASSROOT)l.Names, name_class, name, bIntVal, value );
 }
 //---------------------------------------------------------------------------
 
@@ -1489,7 +1489,7 @@ PROCREG_PROC( CTEXTSTR, GetRegisteredValueExx )( CTEXTSTR root, CTEXTSTR name_cl
 PROCREG_PROC( CTEXTSTR, GetRegisteredValueEx )( CTEXTSTR name_class, CTEXTSTR name, int bIntVal )
 {
 	Init();
-	return GetRegisteredValueExx( l.Names, name_class, name, bIntVal );
+	return GetRegisteredValueExx( (PCLASSROOT)l.Names, name_class, name, bIntVal );
 }
 //---------------------------------------------------------------------------
 
@@ -1536,7 +1536,7 @@ PROCREG_PROC( int, GetRegisteredIntValue )( PCLASSROOT name_class, CTEXTSTR name
 PROCREG_PROC( PCLASSROOT, RegisterClassAliasEx )( PCLASSROOT root, CTEXTSTR original, CTEXTSTR alias )
 {
 	PTREEDEF class_root = GetClassTreeEx( root, (PCLASSROOT)original, NULL, TRUE );
-	return GetClassTreeEx( root, (PCLASSROOT)alias, class_root, TRUE );
+	return (PCLASSROOT)GetClassTreeEx( root, (PCLASSROOT)alias, class_root, TRUE );
 }
 
 //---------------------------------------------------------------------------
@@ -1544,7 +1544,7 @@ PROCREG_PROC( PCLASSROOT, RegisterClassAliasEx )( PCLASSROOT root, CTEXTSTR orig
 PROCREG_PROC( PCLASSROOT, RegisterClassAlias )( CTEXTSTR original, CTEXTSTR alias )
 {
 	Init();
-	return RegisterClassAliasEx( l.Names, original, alias );
+	return (PCLASSROOT)RegisterClassAliasEx( (PCLASSROOT)l.Names, original, alias );
 }
 
 //---------------------------------------------------------------------------
@@ -1588,7 +1588,7 @@ PROCREG_PROC( uintptr_t, RegisterDataType )( CTEXTSTR classname
 												 , void (CPROC *Close)(POINTER,uintptr_t) )
 {
 	Init();
-	return RegisterDataTypeEx( l.Names, classname, name, size, Open, Close );
+	return RegisterDataTypeEx( (PCLASSROOT)l.Names, classname, name, size, Open, Close );
 }
 
 //---------------------------------------------------------------------------
@@ -1727,7 +1727,7 @@ PROCREG_PROC( uintptr_t, CreateRegisteredDataType)( CTEXTSTR classname
 																 , CTEXTSTR instancename )
 {
 	Init();
-	return CreateRegisteredDataTypeEx( l.Names, classname, name, instancename );
+	return CreateRegisteredDataTypeEx( (PCLASSROOT)l.Names, classname, name, instancename );
 }
 
 //---------------------------------------------------------------------------
@@ -2466,13 +2466,13 @@ void RegisterAndCreateGlobalWithInit( POINTER *ppGlobal, uintptr_t global_size, 
 		Init();
 		// RTLD_DEFAULT
 		ppGlobalMain = &p;
-		p = (POINTER)CreateRegisteredDataTypeEx( l.Names, WIDE("system/global data"), name, name );
+		p = (POINTER)CreateRegisteredDataTypeEx( (PCLASSROOT)l.Names, WIDE("system/global data"), name, name );
 		if( !p )
 		{
 			RegisterDataType( WIDE("system/global data"), name, global_size
 								 , Open
 								 , NULL );
-			p = (POINTER)CreateRegisteredDataTypeEx( l.Names, WIDE("system/global data"), name, name );
+			p = (POINTER)CreateRegisteredDataTypeEx( (PCLASSROOT)l.Names, WIDE("system/global data"), name, name );
 			if( !p )
 				ppGlobalMain = NULL;
 #ifdef DEBUG_GLOBAL_REGISTRATION
