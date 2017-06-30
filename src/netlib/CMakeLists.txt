@@ -41,11 +41,11 @@ else( CMAKE_SIZEOF_VOID_P EQUAL 8 )
     DEFINE_DEFAULT( __64__ OFF )
 endif( CMAKE_SIZEOF_VOID_P EQUAL 8 )
 
+set( LIBRESSL_VERSION 2.5.4 )
 
-set( MATRIXSSL_VERSION 3.8.4 )
-
-add_subdirectory( ../contrib/MatrixSSL/${MATRIXSSL_VERSION} MatrixSSL )
-INCLUDE_DIRECTORIES( ../contrib/MatrixSSL/${MATRIXSSL_VERSION} )
+add_subdirectory( ../../src/contrib/libressl/${LIBRESSL_VERSION} libressl )
+include_directories( ../../src/contrib/libressl/${LIBRESSL_VERSION}/include )
+set( SSL_LIBS ssl tls crypto )
 
 set( NETLIB_SOURCES    
     ${FIRST_GCC_SOURCES}
@@ -84,11 +84,9 @@ set( NETLIB_PP_SOURCES )
 set( SACK_BASE .. )
 COPY_CPLUSPLUS( NETLIB_PP_SOURCES ${NETLIB_SOURCES} )
 
-add_library( netlib  ${NETLIB_SOURCES} )
-add_library( netlibpp  ${NETLIB_PP_SOURCES} )
+add_library( netlib  ${NETLIB_SOURCES} ${SSL_LIBS} )
+add_library( netlibpp  ${NETLIB_PP_SOURCES} ${SSL_LIBS} )
 
-target_link_libraries( netlib  MatrixSSL )
-target_link_libraries( netlibpp  MatrixSSL )
 
 SET_PROPERTY(TARGET netlib APPEND PROPERTY COMPILE_DEFINITIONS "TARGET_LABEL=netlib;TARGETNAME=\"${CMAKE_LIBRARY_PREFIX}netlib${CMAKE_LIBRARY_SUFFIX}\""
 		"__NO_INTERFACE_SUPPORT__;NO_LOGGING;__NO_OPTIONS__;SACK_BAG_EXPORTS" ${MORE_DEFS} )
