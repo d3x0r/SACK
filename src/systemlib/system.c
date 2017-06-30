@@ -249,16 +249,16 @@ static void CPROC SetupSystemServices( POINTER mem, uintptr_t size )
 	InitCo();
 	{
 		TEXTCHAR filepath[256];
-		TEXTCHAR *ext, *e1;
+		TEXTCHAR *ext, *ext1;
 		GetModuleFileName( NULL, filepath, sizeof( filepath ) );
 		ext = (TEXTSTR)StrRChr( (CTEXTSTR)filepath, '.' );
 		if( ext )
 			ext[0] = 0;
-		e1 = (TEXTSTR)pathrchr( filepath );
-		if( e1 )
+		ext1 = (TEXTSTR)pathrchr( filepath );
+		if( ext1 )
 		{
-			e1[0] = 0;
-			(*init_l).filename = StrDupEx( e1 + 1 DBG_SRC );
+			ext1[0] = 0;
+			(*init_l).filename = StrDupEx( ext1 + 1 DBG_SRC );
 			(*init_l).load_path = StrDupEx( filepath DBG_SRC );
 		}
 		else
@@ -268,10 +268,10 @@ static void CPROC SetupSystemServices( POINTER mem, uintptr_t size )
 		}
 
 		GetModuleFileName( LoadLibrary( TARGETNAME ), filepath, sizeof( filepath ) );
-		e1 = (TEXTSTR)pathrchr( filepath );
-		if( e1 )
+		ext1 = (TEXTSTR)pathrchr( filepath );
+		if( ext1 )
 		{
-			e1[0] = 0;
+			ext1[0] = 0;
 			(*init_l).library_path = StrDupEx( filepath DBG_SRC );
 		}
 		else
