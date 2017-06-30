@@ -9,7 +9,7 @@ struct volume *volume;
 
 void test1( void )
 {
-	void*file = fsi->open( (uintptr_t)volume, "apple" );
+	void*file = fsi->open( (uintptr_t)volume, "apple", "unused" );
 	if( file )
 	{
 		lprintf( "file size is now: %d", fsi->size( file ) );
@@ -28,7 +28,7 @@ void test2( void )
 	for( n = 0; n < 10000; n++ )
 	{
 		snprintf( buf, 256, "file.%d", n );
-		file = fsi->open( (uintptr_t)volume, buf );
+		file = fsi->open( (uintptr_t)volume, buf, "unused" );
 		fsi->_close( file );
 	}
 }

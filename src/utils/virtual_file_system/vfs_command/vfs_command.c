@@ -345,7 +345,7 @@ static void CPROC ShowFile( uintptr_t psv, CTEXTSTR file, int flags )
 	size_t ofs = 0;
 	void *f;
 	if( file[0] == '.' && file[1] == '/' ) ofs = 2;
-	f = l.fsi->open( (uintptr_t)psv, file + ofs );
+	f = l.fsi->open( (uintptr_t)psv, file + ofs, "rb" );
 	printf( "%9zd %s\n", l.fsi->size( f ), file );
 	l.fsi->_close( f );
 }

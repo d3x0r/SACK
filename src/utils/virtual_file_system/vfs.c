@@ -708,7 +708,7 @@ const char *sack_vfs_get_signature( struct volume *vol ) {
 		vol->curseg = BLOCK_CACHE_DIRECTORY;
 		vol->segment[vol->curseg] = 0;
 		vol->datakey = (const char *)datakey;
-		SRG_GetEntropyBuffer( vol->entropy, (uint32_t*)usekey, 128 );
+		SRG_GetEntropyBuffer( vol->entropy, (uint32_t*)usekey, 128 * 8 );
 		{
 			int n;
 			for( n = 0; n < 128; n++ ) {
@@ -863,7 +863,9 @@ struct sack_vfs_file * CPROC sack_vfs_openfile( struct volume *vol, const char *
 	return file;
 }
 
-struct sack_vfs_file * CPROC sack_vfs_open( uintptr_t psvInstance, const char * filename ) { return sack_vfs_openfile( (struct volume*)psvInstance, filename ); }
+static struct sack_vfs_file * CPROC sack_vfs_open( uintptr_t psvInstance, const char * filename, const char *opts ) {
+	return sack_vfs_openfile( (struct volume*)psvInstance, filename ); 
+}
 
 int CPROC _sack_vfs_exists( struct volume *vol, const char * file ) {
 	struct directory_entry entkey;
@@ -1199,10 +1201,12 @@ int CPROC sack_vfs_find_first( struct find_info *info ) {
 	return iterate_find( info );
 }
 
-int CPROC sack_vfs_find_close( struct find_info *info ) { Deallocate( struct find_info*, info ); return 0; }
-int CPROC sack_vfs_find_next( struct find_info *info ) { return iterate_find( info ); }
-char * CPROC sack_vfs_find_get_name( struct find_info *info ) { return info->filename; }
-size_t CPROC sack_vfs_find_get_size( struct find_info *info ) { return info->filesize; }
+static int CPROC sack_vfs_find_close( struct find_info *info ) { Deallocate( struct find_info*, info ); return 0; }
+static int CPROC sack_vfs_find_next( struct find_info *info ) { return iterate_find( info ); }
+static char * CPROC sack_vfs_find_get_name( struct find_info *info ) { return info->filename; }
+static size_t CPROC sack_vfs_find_get_size( struct find_info *info ) { return info->filesize; }
+static LOGICAL CPROC sack_vfs_find_is_directory( struct find_cursor *cursor ) { return FALSE; }
+static LOGICAL CPROC sack_vfs_is_directory( const char *cursor ) { return FALSE; }
 
 static LOGICAL CPROC sack_vfs_rename( uintptr_t psvInstance, const char *original, const char *newname ) {
 	struct volume *vol = (struct volume *)psvInstance;
@@ -1223,14 +1227,13 @@ static LOGICAL CPROC sack_vfs_rename( uintptr_t psvInstance, const char *origina
 	return FALSE;
 }
 
-static LOGICAL CPROC sack_vfs_is_directory( const char *name ) { return FALSE; }
 
 
 
 //#ifndef NO_SACK_INTERFACE
 
 static struct file_system_interface sack_vfs_fsi = { 
-                                                     (void*(CPROC*)(uintptr_t,const char *))sack_vfs_open
+                                                     (void*(CPROC*)(uintptr_t,const char *, const char*))sack_vfs_open
                                                    , (int(CPROC*)(void*))sack_vfs_close
                                                    , (size_t(CPROC*)(void*,char*,size_t))sack_vfs_read
                                                    , (size_t(CPROC*)(void*,const char*,size_t))sack_vfs_write
@@ -1248,6 +1251,7 @@ static struct file_system_interface sack_vfs_fsi = {
                                                    , (int(CPROC*)(struct find_cursor*))             sack_vfs_find_next
                                                    , (char*(CPROC*)(struct find_cursor*))           sack_vfs_find_get_name
                                                    , (size_t(CPROC*)(struct find_cursor*))          sack_vfs_find_get_size
+                                                   , sack_vfs_find_is_directory
                                                    , sack_vfs_is_directory
                                                    , sack_vfs_rename
                                                    };
