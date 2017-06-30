@@ -1512,13 +1512,13 @@ void LoadAllFonts( void )
 				{
 				case '@':
 					fg.build.nPaths = (uint32_t)IntCreateFromText( buf + 2 );
-					fg.build.pPathNames = NewArray( TEXTCHAR, IntCreateFromText( strchr( buf, ',' ) + 1 ) );
+					fg.build.pPathNames = NewArray( TEXTCHAR, (size_t)IntCreateFromText( strchr( buf, ',' ) + 1 ) );
 					fg.build.pPathList = NewArray( TEXTCHAR*, fg.build.nPaths );
 					break;
 				case '$':
 					fg.build.nStyle = 0;
 					fg.build.nFamilies = (uint32_t)IntCreateFromText( buf + 2 );
-					fg.build.pFamilyNames = NewArray( TEXTCHAR, IntCreateFromText( strchr( buf, ',' ) + 1 ) );
+					fg.build.pFamilyNames = NewArray( TEXTCHAR, (size_t)IntCreateFromText( strchr( buf, ',' ) + 1 ) );
 					fg.build.pFamilyList = NewArray( TEXTCHAR*, fg.build.nFamilies );
 
 					fg.nFonts     = fg.build.nFamilies;
@@ -1526,12 +1526,12 @@ void LoadAllFonts( void )
 					break;
 				case '*':
 					fg.build.nStyles = (uint32_t)IntCreateFromText( buf + 2 );
-					fg.build.pStyleNames = NewArray( TEXTCHAR, IntCreateFromText( strchr( buf, ',' ) + 1 ) );
+					fg.build.pStyleNames = NewArray( TEXTCHAR, (size_t)IntCreateFromText( strchr( buf, ',' ) + 1 ) );
 					fg.build.pStyleList = NewArray( TEXTCHAR*, fg.build.nStyles );
 					break;
 				case '&':
 					fg.build.nFiles = (int)IntCreateFromText( buf + 2 );
-					fg.build.pFileNames = NewArray( TEXTCHAR, IntCreateFromText( strchr( buf, ',' ) + 1 ) );
+					fg.build.pFileNames = NewArray( TEXTCHAR, (size_t)IntCreateFromText( strchr( buf, ',' ) + 1 ) );
 					fg.build.pFileList = NewArray( TEXTCHAR*, fg.build.nFiles );
 					break;
 				case '#':

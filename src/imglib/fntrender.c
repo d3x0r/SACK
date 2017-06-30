@@ -71,7 +71,6 @@ PRIORITY_PRELOAD( CreateFontRenderGlobal, IMAGE_PRELOAD_PRIORITY )
 void PrintLeadinJS( CTEXTSTR name, SFTFont font, int bits )
 {
 	//fprintf( output, WIDE( "var font = {};\n" ) );
-uint32_t i;
 	fprintf( output, WIDE( "var font = { \nheight:%d, baseline:%d, flags:%d, characters:[")
 	       , font->height 
 	       , font->baseline
@@ -327,7 +326,7 @@ void PrintFontTable( CTEXTSTR name, PFONT font )
 		if( font->character[i] )
 			fprintf( output, WIDE(" %c(PCHARACTER)&_char_%d\n"), (i)?',':' ', i );
 		else
-			fprintf( output, WIDE(" %cNULL\n"), (i)?',':' ', i );
+			fprintf( output, WIDE(" %cNULL\n"), (i)?',':' ' );
 
 	}
 	fprintf( output, WIDE("\n} };") );
@@ -374,7 +373,6 @@ void DumpFontFile( CTEXTSTR name, SFTFont font_to_dump )
 			uint32_t charid;
 			for	( charid = 0; charid < font_to_dump->characters; charid++ )
 			{
-				PCHARACTER character;
 				void InternalRenderFontCharacter( PFONT_RENDERER renderer, PFONT font, INDEX idx );
 				InternalRenderFontCharacter( NULL, font_to_dump, charid );
 			}
@@ -1923,17 +1921,17 @@ SFTFont RenderScaledFontData( PFONTDATA pfd, PFRACTION width_scale, PFRACTION he
 						, &family, &style, &file
 						, &width, &height, &flags );
             //lprintf( "%d,%d,%d,%d,%d,%d", family, style, file, width, height, flags );
-				if( family < fg.nFonts )
+				if( family < (int)fg.nFonts )
 				{
                lprintf( "family %s", fg.pFontCache[family].name );
 					ofs = snprintf( buf, 256, "%s", fg.pFontCache[family].name );
 					ofs += 1;
-					if( style < fg.pFontCache[family].nStyles )
+					if( style < (int)fg.pFontCache[family].nStyles )
 					{
                   lprintf( "style %s", fg.pFontCache[family].styles[style].name );
 						ofs += snprintf( buf + ofs, 256-ofs,"%s", fg.pFontCache[family].styles[style].name );
 						ofs += 1;
-						if( file < fg.pFontCache[family].styles[style].nFiles )
+						if( file < (int)fg.pFontCache[family].styles[style].nFiles )
 						{
                      lprintf( "file %s", fg.pFontCache[family].styles[style].files[file].file );
 							ofs += snprintf( buf + ofs, 256-ofs,"%s", fg.pFontCache[family].styles[style].files[file].file );
@@ -2269,7 +2267,6 @@ SFTFont RenderScaledFontEx( CTEXTSTR name, uint32_t width, uint32_t height, PFRA
 										  , height_scale
 										  , flags );
 	{
-		size_t chars;
 		TEXTCHAR buf[256];
 		(*pnFontDataSize) = snprintf( buf, 256, "%d,%d,%d,%s", width, height, flags, name );
 		(*pnFontDataSize) += 1; // save the null in the binary.
