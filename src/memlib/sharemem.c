@@ -25,7 +25,9 @@
 
 
 // this variable controls whether allocate/release is logged.
-#define NO_FILEOP_ALIAS
+#ifndef NO_FILEOP_ALIAS
+#  define NO_FILEOP_ALIAS
+#endif
 #define NO_UNICODE_C
 //#define USE_SIMPLE_LOCK_ON_OPEN
 
@@ -33,7 +35,6 @@
 #include <stdio.h>
 
 #ifdef __LINUX__
-#define NO_FILEOP_ALIAS
 #include <fcntl.h>
 #include <sys/mman.h>
 #include <sys/stat.h>

@@ -2037,7 +2037,7 @@ struct find_cursor_data {
 	const char *root;
 	const char *filemask;
 #ifdef WIN32
-   int findHandle;
+	intptr_t findHandle;
 	struct _finddata_t fileinfo;
 #else
 	DIR* handle;

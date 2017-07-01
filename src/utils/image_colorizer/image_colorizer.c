@@ -1,4 +1,6 @@
-#define NO_FILEOP_ALIAS
+#ifndef NO_FILEOP_ALIAS
+#  define NO_FILEOP_ALIAS
+#endif
 #define NO_UNICODE_C
 #include <stdhdrs.h>
 #include <configscript.h>

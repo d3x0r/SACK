@@ -3,7 +3,9 @@
 #define SYSTEM_CORE_SOURCE
 #define FIX_RELEASE_COM_COLLISION
 #define TASK_INFO_DEFINED
-#define NO_FILEOP_ALIAS
+#ifndef NO_FILEOP_ALIAS
+#  define NO_FILEOP_ALIAS
+#endif
 #include <stdhdrs.h>
 #include <string.h>
 #ifdef WIN32

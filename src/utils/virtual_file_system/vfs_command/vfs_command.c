@@ -1,4 +1,6 @@
-#define NO_FILEOP_ALIAS
+#ifndef NO_FILEOP_ALIAS
+#  define NO_FILEOP_ALIAS
+#endif
 #include <stdhdrs.h>
 #include <filesys.h>
 #include <sack_vfs.h>
