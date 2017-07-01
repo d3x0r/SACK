@@ -2176,24 +2176,15 @@ PRELOAD( InitWinFileSys )
 
 static void * CPROC sack_filesys_open( uintptr_t psv, const char *filename, const char *opts ) { 
 	void *result;
-	static const char *opening;
 #ifdef UNICODE
 	TEXTCHAR *_filename = DupCStr( filename );
 #  define filename _filename
 #endif
-	if( !opening )
-		opening = filename;
-	else if( StrCmp( opening, filename ) == 0 ) {
-		opening = NULL;
-		return NULL;
-	}
-	result = sack_fopenEx( 0, filename, opts, (*winfile_local).default_mount );
-	opening = NULL;
+	result = fopen( filename, opts );
 #ifdef UNICODE
 	Deallocate( TEXTCHAR *, _filename );
 #  undef filename
 #endif
-
 	return result;
 }
 static int CPROC sack_filesys_exists( uintptr_t psv, const char *filename ) { 
