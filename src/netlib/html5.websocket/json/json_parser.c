@@ -118,6 +118,7 @@ LOGICAL json_parse_message( TEXTSTR msg
 	PPARSE_CONTEXT context = GetFromSet( PARSE_CONTEXT, &parseContexts );
 	int parse_context = CONTEXT_UNKNOWN;
 	struct json_value_container val;
+	int comment = 0;
 
 	char const * msg_input = (char const *)msg;
 	char const * _msg_input;
@@ -329,7 +330,7 @@ LOGICAL json_parse_message( TEXTSTR msg
 								case '\r':
 									continue;
 								case '\n':
-									escape = false;
+									escape = FALSE;
 									continue;
 								case '/':
 								case '\\':
@@ -479,11 +480,11 @@ LOGICAL json_parse_message( TEXTSTR msg
 				break;
 			case 'N':
 				if( word == WORD_POS_RESET ) word = WORD_POS_NAN_1;
-				else if( word == WORD_POS_NAN_2 ) { val.value_type = negative?VALUE_NEG_NAN:VALUE_NAN; word = WORD_POS_RESET }
+				else if( word == WORD_POS_NAN_2 ) { val.value_type = negative ? VALUE_NEG_NAN : VALUE_NAN; word = WORD_POS_RESET; }
 				else lprintf( WIDE("fault while parsing; '%c' unexpected at %") _size_f, c, n );// fault
 				break;
 			case 'y':
-				if( word == WORD_POS_INFINITY_7 ) { val.value_type = negative?VAL_NEG_INFINITY:VALUE_INFINITY; word = WORD_POS_RESET; }
+				if( word == WORD_POS_INFINITY_7 ) { val.value_type = negative ? VALUE_NEG_INFINITY : VALUE_INFINITY; word = WORD_POS_RESET; }
 				else lprintf( WIDE("fault while parsing; '%c' unexpected at %") _size_f, c, n );// fault
 				break;
 		//
