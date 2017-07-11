@@ -32,6 +32,9 @@
 #else
 #  include <dirent.h> // opendir etc..
 #  include <sys/stat.h>
+#ifndef MAX_PATH_NAME
+#   define MAX_PATH_NAME PATH_MAX
+#endif
 #endif
 
 //#undef DeleteList

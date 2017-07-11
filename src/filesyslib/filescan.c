@@ -14,6 +14,7 @@
 #include <io.h>  // findfirst,findnext, fileinfo
 #endif
 #else
+#define
 #include <dirent.h> // opendir etc..
 #include <sys/stat.h>
 #endif
