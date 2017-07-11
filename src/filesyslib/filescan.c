@@ -14,7 +14,6 @@
 #include <io.h>  // findfirst,findnext, fileinfo
 #endif
 #else
-#define
 #include <dirent.h> // opendir etc..
 #include <sys/stat.h>
 #endif
@@ -24,8 +23,9 @@ FILESYS_NAMESPACE
 
 #include "filesys_local.h"
 
-#define MAX_PATH_NAME 512
-
+#ifndef MAX_PATH_NAME
+#  define MAX_PATH_NAME 512
+#endif
 // DEBUG_COMPARE 1 == full debug
 // DEBUG_COMPARE 2 == quieter debug
 #ifdef _DEBUG
