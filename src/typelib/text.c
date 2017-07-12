@@ -3109,91 +3109,75 @@ TEXTRUNE GetUtfChar( CTEXTSTR *from )
 	unsigned int result = (unsigned char)(*from)[0];
 	if( !result ) return result;
 #ifdef _UNICODE
-	if( ( ( (*from)[0] & 0xFC00 ) >= 0xD800 )
-		&& ( ( (*from)[0] & 0xFC00 ) <= 0xDF00 ) )
+	if( ( ( result & 0xFC00 ) >= 0xD800 )
+		&& ( ( result & 0xFC00 ) <= 0xDF00 ) )
 	{
-		result = 0x10000 + ( ( ( (*from)[0] & 0x3ff ) << 10 ) | ( ( (*from)[1] & 0x3ff ) ) );
-		(*from) += 2;
-	}
-	else 
-	{
-		(*from)++;
+		result = 0x10000 + ( ( ( result & 0x3ff ) << 10 ) | ( ( (*from)[1] & 0x3ff ) ) );
+		(*from) ++;
 	}
 #else
-	if( (*from)[0] & 0x80 )
+	if( result & 0x80 )
 	{
-		if( ( (*from)[0] & 0xE0 ) == 0xC0 )
+		if( ( result & 0xE0 ) == 0xC0 )
 		{
 			if( ( (*from)[1] & 0xC0 ) == 0x80 )
 			{
-				result = ( ( (unsigned int)(*from)[0] & 0x1F ) << 6 ) | ( (unsigned int)(*from)[1] & 0x3f );
-				(*from) += 2;
+				result = ( ( (unsigned int)result & 0x1F ) << 6 ) | ( (unsigned int)(*from)[1] & 0x3f );
+				(*from) += 1;
 			}
 			else
 			{
 				result = 0;
 				//lprintf( "a 2 byte code with improper continuation encodings following it was found. %02x %02x" 
-				//		, (*from)[0] 
+				//		, result 
 				//		, (*from)[1] 
 				//		);
-				(*from)++;
 			}
 		}
-		else if( ( (*from)[0] & 0xF0 ) == 0xE0 )
+		else if( ( result & 0xF0 ) == 0xE0 )
 		{
 			if( ( ( (*from)[1] & 0xC0 ) == 0x80 ) && ( ( (*from)[2] & 0xC0 ) == 0x80 ) )
 			{
-				result = ( ( (unsigned int)(*from)[0] & 0xF ) << 12 ) | ( ( (unsigned int)(*from)[1] & 0x3F ) << 6 ) | ( (unsigned int)(*from)[2] & 0x3f );
-				(*from) += 3;
+				result = ( ( (unsigned int)result & 0xF ) << 12 ) | ( ( (unsigned int)(*from)[1] & 0x3F ) << 6 ) | ( (unsigned int)(*from)[2] & 0x3f );
+				(*from) += 2;
 			}
 			else
 			{
 				result = 0;
 				//lprintf( "a 3 byte code with improper continuation encodings following it was found. %02x %02x %02x"
-				//	, (*from)[0] 
+				//	, result 
 				//	, (*from)[1] 
 				//	, (*from)[2] 
 				//	);
-				(*from)++;
 			}
 		}
-		else if( ( (*from)[0] & 0xF8 ) == 0xF0 )
+		else if( ( result & 0xF8 ) == 0xF0 )
 		{
 			if( ( ( (*from)[1] & 0xC0 ) == 0x80 ) && ( ( (*from)[2] & 0xC0 ) == 0x80 ) && ( ( (*from)[3] & 0xC0 ) == 0x80 ) )
 			{
-				result =   ( ( (unsigned int)(*from)[0] & 0x7 ) << 18 ) 
+				result =   ( ( (unsigned int)result & 0x7 ) << 18 ) 
 						| ( ( (unsigned int)(*from)[1] & 0x3F ) << 12 )
 						| ( ( (unsigned int)(*from)[2] & 0x3f ) << 6 )
 						| ( (unsigned int)(*from)[3] & 0x3f );
-				(*from) += 4;
+				(*from) += 3;
 			}
 			else
 			{
 				result = 0;
 				//lprintf( "a 4 byte code with improper continuation encodings following it was found." );
-				(*from)++;
 			}
 		}
-		else if( ( (*from)[0] & 0xC0 ) == 0x80 )
+		else if( ( result & 0xC0 ) == 0x80 )
 		{
 			// things like 0x9F, 0x9A is OK; is a single byte character, is a unicode application escape 
 			//lprintf( "a continuation encoding was found." );
 			
-			//result = (unsigned char)(*from)[0];
-			(*from)++;
+			//result = (unsigned char)result;
+			//(*from)++;
 		}
-		else
-		{
-			//result = (unsigned char)(*from)[0];
-			(*from)++;
-		}
-	}
-	else
-	{
-		result = (unsigned char)(*from)[0];
-		(*from)++;
 	}
 #endif
+  	(*from)++;
 	return result;
 }
 
