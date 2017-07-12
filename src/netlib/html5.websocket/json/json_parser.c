@@ -96,13 +96,15 @@ TEXTSTR json_escape_string( CTEXTSTR string ) {
 	return output;
 }
 
+
 LOGICAL json_parse_message( TEXTSTR msg
                                  , size_t msglen
                                  , PDATALIST *_msg_output )
 {
 	/* I guess this is a good parser */
 	PDATALIST elements = NULL;
-	size_t m = 0; // m is the output path; leave text inline; but escaped chars can offset/change the content
+	//size_t m = 0; // m is the output path; leave text inline; but escaped chars can offset/change the content
+	TEXTSTR mOut = msg;// = NewArray( char, msglen );
 
 	size_t n = 0; // character index;
 	size_t _n = 0; // character index; (restore1)
@@ -123,7 +125,6 @@ LOGICAL json_parse_message( TEXTSTR msg
 	char const * msg_input = (char const *)msg;
 	char const * _msg_input;
 	//char *token_begin;
-
 	if( !_msg_output )
 		return FALSE;
 
@@ -289,22 +290,22 @@ LOGICAL json_parse_message( TEXTSTR msg
 					// collect a string
 					int escape = 0;
 					TEXTRUNE start_c = c;
-					val.string = msg + m;
+					val.string = mOut;
 					while( (_n=n), (( n < msglen ) && (c = GetUtfChar( &msg_input ) )) )
 					{
 						if( c == '\\' )
 						{
-							if( escape ) msg[m++] = '\\';
+							if( escape ) (*mOut++) = '\\';
 							else escape = 1;
 						}
 						else if( ( c == '"' ) || ( c == '\'' ) )
 						{
-							if( escape ) { msg[m++] = c; escape = FALSE; }
+							if( escape ) { (*mOut++) = c; escape = FALSE; }
 							else if( c == start_c ) {
 								//AddDataItem( &elements, &val );
 								//RESET_VAL();
 								break;
-							} else msg[m++] = c; // other else is not valid close quote; just store as content.
+							} else (*mOut++) = c; // other else is not valid close quote; just store as content.
 						}
 						else
 						{
@@ -320,22 +321,22 @@ LOGICAL json_parse_message( TEXTSTR msg
 								case '/':
 								case '\\':
 								case '"':
-									msg[m++] = c;
+									(*mOut++) = c;
 									break;
 								case 't':
-									msg[m++] = '\t';
+									(*mOut++) = '\t';
 									break;
 								case 'b':
-									msg[m++] = '\b';
+									(*mOut++) = '\b';
 									break;
 								case 'n':
-									msg[m++] = '\n';
+									(*mOut++) = '\n';
 									break;
 								case 'r':
-									msg[m++] = '\r';
+									(*mOut++) = '\r';
 									break;
 								case 'f':
-									msg[m++] = '\f';
+									(*mOut++) = '\f';
 									break;
 								case 'u':
 									{
@@ -356,7 +357,7 @@ LOGICAL json_parse_message( TEXTSTR msg
 														 , msg + n + 1
 														 );// fault
 										}
-										m += ConvertToUTF8( msg + m, hex_char );
+										mOut += ConvertToUTF8( mOut, hex_char );
 									}
 									break;
 								default:
@@ -371,11 +372,11 @@ LOGICAL json_parse_message( TEXTSTR msg
 								escape = 0;
 							}
 							else {
-								m += ConvertToUTF8( msg + m, c );
+								mOut += ConvertToUTF8( mOut, c );
 							}
 						}
 					}
-					msg[m++] = 0;  // terminate the string.
+					(*mOut++) = 0;  // terminate the string.
 					val.value_type = VALUE_STRING;
 					break;
 				}
@@ -487,8 +488,8 @@ LOGICAL json_parse_message( TEXTSTR msg
 					// keep it set to determine what sort of value is ready.
 					val.float_result = 0;
 
-					val.string = msg + m;
-					msg[m++] = c;  // terminate the string.
+					val.string = mOut;
+					(*mOut++) = c;  // terminate the string.
 					while( (_msg_input=msg_input),(( n < msglen ) && (c = GetUtfChar( &msg_input )) ) )
 					{
 						n = (msg_input - msg );
@@ -498,13 +499,13 @@ LOGICAL json_parse_message( TEXTSTR msg
 							|| ( c == '+' )
 						  )
 						{
-							msg[m++] = c;
+							(*mOut++) = c;
 						}
 						else if( c == 'x' ) {
 							// hex conversion.
 							if( !fromHex ) {
 								fromHex = TRUE;
-								msg[m++] = c;
+								(*mOut++) = c;
 							}
 							else {
 								lprintf( WIDE("fault wile parsing; '%c' unexpected at %") _size_f, c, n );
@@ -514,7 +515,7 @@ LOGICAL json_parse_message( TEXTSTR msg
 						else if( ( c =='e' ) || ( c == 'E' ) || ( c == '.' ) )
 						{
 							val.float_result = 1;
-							msg[m++] = c;
+							(*mOut++) = c;
 						}
 						else
 						{
@@ -522,7 +523,7 @@ LOGICAL json_parse_message( TEXTSTR msg
 						}
 					}
 					{
-						msg[m++] = 0;
+						(*mOut++) = 0;
 
 						if( val.float_result )
 						{
@@ -602,7 +603,6 @@ void json_dispose_message( PDATALIST *msg_data )
 	DeleteDataList( msg_data );
 
 }
-
 
 // puts the current collected value into the element; assumes conversion was correct
 static void FillDataToElement( struct json_context_object_element *element
