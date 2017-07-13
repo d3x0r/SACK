@@ -11,8 +11,14 @@ typedef unsigned int GLuint;
 
 IMAGE_NAMESPACE
 
-
-#if defined( __3D__ )
+#if defined( _VULKAN_DRIVER )
+struct vkSurfaceImageData {
+	struct vkSurfaceImageData_flags {
+		BIT_FIELD updated : 1;
+	} flags;
+	uint32_t index;
+};
+#elif defined( __3D__ )
 // this is actually specific, and is not common, but common needs it in CLR
 // because of tight typechecking.
 struct glSurfaceImageData {

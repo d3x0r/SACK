@@ -29,6 +29,8 @@
 #endif
 #ifdef PURE_OPENGL2_ENABLED
 #include "puregl2/local.h"
+#elif defined( _VULKAN_DRIVER )
+#include "vulkan/local.h"
 #elif defined( _D3D11_DRIVER )
 #include "pured3d11/local.h"
 #elif defined( _D3D10_DRIVER )

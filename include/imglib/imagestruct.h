@@ -14,6 +14,11 @@
 #include <D3D11.h>
 #endif
 
+#ifdef _VULKAN_DRIVER
+#include <vulkan/vulkan.h>
+#endif
+
+
 #include <vectlib.h>
 
 #if defined( _WIN32 ) && !defined( _INVERT_IMAGE ) && !defined( _OPENGL_DRIVER ) && !defined( _D3D_DRIVER )
@@ -167,6 +172,11 @@ struct ImageFile_tag
 	/* gl context? */
 	PLIST Surfaces;
 	IDirect3DBaseTexture9 *pActiveSurface;
+#endif
+#ifdef _VULKAN_DRIVER
+	PLIST vkSurface;
+	int vkActiveSurface; // most things will still use this, since reload image is called first, reload will set active
+	VECTOR coords[4];  // updated with SetTransformRelation, otherwise defaults to image size.
 #endif
 #ifdef __cplusplus
 #ifndef __WATCOMC__ // watcom limits protections in structs to protected and public
