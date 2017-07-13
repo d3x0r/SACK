@@ -5,32 +5,52 @@
 
 #include "json.h"
 
+#include "unicode_non_identifiers.h"
+//#define DEBUG_PARSING
+
+/*
+Code Point	Name	Abbreviation	Usage
+U+200C	ZERO WIDTH NON-JOINER	<ZWNJ>	IdentifierPart
+U+200D	ZERO WIDTH JOINER	<ZWJ>	IdentifierPart
+U+FEFF	ZERO WIDTH NO-BREAK SPACE	<ZWNBSP>	WhiteSpace
+*/
+
+/*
+ID_Start       XID_Start        Uppercase letters, lowercase letters, titlecase letters, modifier letters
+                                , other letters, letter numbers, stability extensions
+ID_Continue    XID_Continue     All of the above, plus nonspacing marks, spacing combining marks, decimal numbers
+                                , connector punctuations, stability extensions. 
+                                These are also known simply as Identifier Characters, since they are a superset of 
+                                the ID_Start. The set of ID_Start characters minus the ID_Continue characters are 
+                                known as ID_Only_Continue characters.
+*/
 
 #ifdef __cplusplus
 SACK_NAMESPACE namespace network { namespace json {
 #endif
 
-static PPARSE_CONTEXTSET parseContexts;
+static PPARSE_CONTEXTSET parseContexts6;
 
-TEXTSTR json_escape_string( CTEXTSTR string ) {
+TEXTSTR json6_escape_string( CTEXTSTR string ) {
 	size_t n;
 	size_t m = 0;
 	TEXTSTR output;
+	TEXTSTR _output;
 	if( !string ) return NULL;
 	for( n = 0; string[n]; n++ ) {
-		if( string[n] == '"' )
+		if( ( string[n] == '"' ) || ( string[n] == '\\' ) || (string[n] == '`') || (string[n] == '\''))
 			m++;
 	}
-	output = NewArray( TEXTCHAR, n+m+1 );
-	m = 0;
+	_output = output = NewArray( TEXTCHAR, n+m+1 );
 	for( n = 0; string[n]; n++ ) {
-		if( string[n] == '"' ) {
-			output[m++] = '\\';
+		if( ( string[n] == '"' ) || ( string[n] == '\\' ) || ( string[n] == '`' )|| ( string[n] == '\'' )) {
+			(*output++) = '\\';
 		}
-		output[m++] = string[n];
+		(*output++) = string[n];
 	}
-	return output;
+	return _output;
 }
+
 
 #define _2char(result,from) (((*from) += 2),( ( result & 0x1F ) << 6 ) | ( ( result & 0x3f00 )>>8))
 #define _zero(result,from)  ((*from)++,0) 
@@ -60,7 +80,194 @@ TEXTSTR json_escape_string( CTEXTSTR string ) {
 
 #define GetUtfChar(x) __GetUtfChar(c,x)
 
-LOGICAL json_parse_message( TEXTSTR msg
+static LOGICAL gatherString( TEXTSTR msg, CTEXTSTR *msg_input, size_t msglen, TEXTSTR *pmOut, size_t *line, size_t *col, TEXTRUNE start_c, int literalString ) {
+	char *mOut = (*pmOut);
+	// collect a string
+	LOGICAL status = TRUE;
+	size_t n;
+	int escape;
+	LOGICAL cr_escaped;
+	TEXTRUNE c;
+	escape = 0;
+	cr_escaped = FALSE;
+	while( ( n = (*msg_input) - msg ), (( n < msglen ) && (c = GetUtfChar( msg_input ) )) && status )
+	{
+		(*col)++;
+		if( c == '\\' )
+		{
+			if( escape ) (*mOut++) = '\\';
+			else escape = 1;
+		}
+		else if( ( c == '"' ) || ( c == '\'' ) || ( c == '`' ) )
+		{
+			if( escape ) { (*mOut++) = c; escape = FALSE; }
+			else if( c == start_c ) {
+				break;
+			} else (*mOut++) = c; // other else is not valid close quote; just store as content.
+		}
+		else
+		{
+			if( cr_escaped ) {
+				cr_escaped = FALSE;								
+				if( c == '\n' ) {
+					line[0]++;
+					col[0] = 1;
+					escape = FALSE;
+					continue;
+				}
+			}
+			if( escape )
+			{
+				switch( c )
+				{
+				case '\r':
+					cr_escaped = TRUE;
+					continue;
+				case '\n':
+					line[0]++;
+					col[0] = 1;
+					if( cr_escaped ) cr_escaped = FALSE;
+					// fall through to clear escape status <CR><LF> support.
+				case 2028: // LS (Line separator)
+				case 2029: // PS (paragraph separate)
+					escape = FALSE;
+					continue;
+				case '/':
+				case '\\':
+				case '"':
+					(*mOut++) = c;
+					break;
+				case 't':
+					(*mOut++) = '\t';
+					break;
+				case 'b':
+					(*mOut++) = '\b';
+					break;
+				case 'n':
+					(*mOut++) = '\n';
+					break;
+				case 'r':
+					(*mOut++) = '\r';
+					break;
+				case 'f':
+					(*mOut++) = '\f';
+					break;
+				case '0': case '1': case '2': case '3': 
+					{
+						TEXTRUNE oct_char = c - '0';
+						int ofs;
+						for( ofs = 0; ofs < 2; ofs++ )
+						{
+							c = GetUtfChar( msg_input );
+							oct_char *= 8;
+							if( c >= '0' && c <= '9' )  oct_char += c - '0';
+							else { msg_input--; break; }
+						}
+						if( oct_char > 255 ) {
+							lprintf( WIDE("(escaped character, parsing octal escape val=%d) fault while parsing; )") WIDE(" (near %*.*s[%c]%s)")
+							                 , oct_char
+									 , (int)( (n>3)?3:n ), (int)( (n>3)?3:n )
+									 , (*msg_input) - ( (n>3)?3:n )
+									 , c
+									 , (*msg_input) + 1
+									 );// fault
+							status = FALSE;
+							break;
+						} else { 
+							if( oct_char < 128 ) (*mOut++) = oct_char;
+							else mOut += ConvertToUTF8( mOut, oct_char );
+						}
+					}
+					break;
+				case 'x':
+					{
+						TEXTRUNE hex_char;
+						int ofs;
+						hex_char = 0;
+						for( ofs = 0; ofs < 2; ofs++ )
+						{
+							c = GetUtfChar( msg_input );
+							hex_char *= 16;
+							if( c >= '0' && c <= '9' )      hex_char += c - '0';
+							else if( c >= 'A' && c <= 'F' ) hex_char += ( c - 'A' ) + 10;
+							else if( c >= 'a' && c <= 'f' ) hex_char += ( c - 'F' ) + 10;
+							else {
+								lprintf( WIDE("(escaped character, parsing hex of \\x) fault while parsing; '%c' unexpected at %")_size_f WIDE(" (near %*.*s[%c]%s)"), c, n
+										 , (int)( (n>3)?3:n ), (int)( (n>3)?3:n )
+										 , (*msg_input) - ( (n>3)?3:n )
+										 , c
+										 , (*msg_input) + 1
+										 );// fault
+								status = FALSE;
+							}
+						}
+						if( hex_char < 128 ) (*mOut++) = hex_char;
+						else mOut += ConvertToUTF8( mOut, hex_char );
+					}
+					break;
+				case 'u':
+					{
+						TEXTRUNE hex_char;
+						int ofs;
+						int codePointLen;
+						TEXTRUNE endCode;
+						hex_char = 0;
+						codePointLen = 4;
+						endCode = 0;
+						for( ofs = 0; ofs < codePointLen && ( c != endCode ); ofs++ )
+						{
+							c = GetUtfChar( msg_input );
+							if( !ofs && c == '{' ) {
+								codePointLen = 5; // collect up to 5 chars.
+								endCode = '}';
+								continue;
+							} 
+							if( c == '}' ) continue;
+							hex_char *= 16;
+							if( c >= '0' && c <= '9' )      hex_char += c - '0';
+							else if( c >= 'A' && c <= 'F' ) hex_char += ( c - 'A' ) + 10;
+							else if( c >= 'a' && c <= 'f' ) hex_char += ( c - 'F' ) + 10;
+							else
+								lprintf( WIDE("(escaped character, parsing hex of \\u) fault while parsing; '%c' unexpected at %")_size_f WIDE(" (near %*.*s[%c]%s)"), c, n
+										 , (int)( (n>3)?3:n ), (int)( (n>3)?3:n )
+										 , (*msg_input) - ( (n>3)?3:n )
+										 , c
+										 , (*msg_input) + 1
+										 );// fault
+						}
+						mOut += ConvertToUTF8( mOut, hex_char );
+					}
+					break;
+				default:
+					if( cr_escaped ) {
+						cr_escaped = FALSE;
+						escape = FALSE;
+						mOut += ConvertToUTF8( mOut, c );
+					}										
+					else {
+						lprintf( WIDE("(escaped character) fault while parsing; '%c' unexpected %")_size_f WIDE(" (near %*.*s[%c]%s)"), c, n
+							 , (int)( (n>3)?3:n ), (int)( (n>3)?3:n )
+							 , (*msg_input) - ( (n>3)?3:n )
+							 , c
+							 , (*msg_input) + 1
+							 );// fault
+						status = FALSE;
+					}
+					break;
+				}
+				escape = 0;
+			}
+			else {
+				mOut += ConvertToUTF8( mOut, c );
+			}
+		}
+	}
+	(*mOut++) = 0;  // terminate the string.
+	(*pmOut) = mOut;
+	return status;
+}
+
+LOGICAL json6_parse_message( TEXTSTR msg
                                  , size_t msglen
                                  , PDATALIST *_msg_output )
 {
@@ -68,19 +275,20 @@ LOGICAL json_parse_message( TEXTSTR msg
 	PDATALIST elements = NULL;
 	//size_t m = 0; // m is the output path; leave text inline; but escaped chars can offset/change the content
 	TEXTSTR mOut = msg;// = NewArray( char, msglen );
-
+	size_t line = 1;
+	size_t col = 1;
 	size_t n = 0; // character index;
-	size_t _n = 0; // character index; (restore1)
+	//size_t _n = 0; // character index; (restore1)
 	int word = WORD_POS_RESET;
 	TEXTRUNE c;
 	LOGICAL status = TRUE;
 	LOGICAL negative = FALSE;
+	LOGICAL literalString = FALSE;
 
 	PLINKSTACK context_stack = NULL;
 
 	LOGICAL first_token = TRUE;
-	//enum json_parse_state state;
-	PPARSE_CONTEXT context = GetFromSet( PARSE_CONTEXT, &parseContexts );
+	PPARSE_CONTEXT context = GetFromSet( PARSE_CONTEXT, &parseContexts6 );
 	int parse_context = CONTEXT_UNKNOWN;
 	struct json_value_container val;
 	int comment = 0;
@@ -100,11 +308,12 @@ LOGICAL json_parse_message( TEXTSTR msg
 
 	while( status && ( n < msglen ) && ( c = GetUtfChar( &msg_input ) ) )
 	{
+		col++;
 		n = msg_input - msg;
 		if( comment ) {
 			if( comment == 1 ) {
 				if( c == '*' ) { comment = 3; continue; }
-				if( c != '/' ) { lprintf( WIDE("Fault while parsing; unexpected %c at %") _size_f, c, n ); status = FALSE; }
+				if( c != '/' ) { lprintf( WIDE("Fault while parsing; unexpected %c at %") _size_f WIDE("  %") _size_f WIDE(":%") _size_f, c, n, line, col ); status = FALSE; }
 				else comment = 2;
 				continue;
 			}
@@ -128,24 +337,33 @@ LOGICAL json_parse_message( TEXTSTR msg
 			break;
 		case '{':
 			{
-				struct json_parse_context *old_context = GetFromSet( PARSE_CONTEXT, &parseContexts );
+				struct json_parse_context *old_context = GetFromSet( PARSE_CONTEXT, &parseContexts6 );
+#ifdef _DEBUG_PARSING
+				lprintf( "Begin a new object; previously pushed into elements; but wait until trailing comma or close previously:%d", val.value_type );
+#endif				
 				val.value_type = VALUE_OBJECT;
 				val.contains = CreateDataList( sizeof( val ) );
-
 				AddDataItem( &elements, &val );
-
 				old_context->context = parse_context;
 				old_context->elements = elements;
 				elements = val.contains;
 				PushLink( &context_stack, old_context );
 				RESET_VAL();
-				parse_context = CONTEXT_IN_OBJECT;
+				parse_context = CONTEXT_OBJECT_FIELD;
 			}
 			break;
 
 		case '[':
+			if( parse_context == CONTEXT_OBJECT_FIELD ) {
+				lprintf( WIDE("Fault while parsing; while getting field name unexpected %c at %") _size_f WIDE("  %") _size_f WIDE(":%") _size_f, c, n, line, col );
+				status = FALSE;
+				break;
+			}
 			{
-				struct json_parse_context *old_context = GetFromSet( PARSE_CONTEXT, &parseContexts );
+				struct json_parse_context *old_context = GetFromSet( PARSE_CONTEXT, &parseContexts6 );
+#ifdef _DEBUG_PARSING
+				lprintf( "Begin a new array; previously pushed into elements; but wait until trailing comma or close previously:%d", val.value_type );
+#endif				
 
 				val.value_type = VALUE_ARRAY;
 				val.contains = CreateDataList( sizeof( val ) );
@@ -162,29 +380,51 @@ LOGICAL json_parse_message( TEXTSTR msg
 			break;
 
 		case ':':
-			if( parse_context == CONTEXT_IN_OBJECT )
+			if( parse_context == CONTEXT_OBJECT_FIELD )
 			{
+				(*mOut++) = 0;
+				word = WORD_POS_RESET;
 				if( val.name ) {
 					lprintf( "two names single value?" );
 				}
 				val.name = val.string;
 				val.string = NULL;
-
+				parse_context = CONTEXT_OBJECT_FIELD_VALUE;
 				val.value_type = VALUE_UNSET;
 			}
 			else
 			{
 				if( parse_context == CONTEXT_IN_ARRAY )
-					lprintf( WIDE("(in array, got colon out of string):parsing fault; unexpected %c at %") _size_f, c, n );
+					lprintf( WIDE("(in array, got colon out of string):parsing fault; unexpected %c at %") _size_f WIDE("  %") _size_f WIDE(":%") _size_f, c, n, line, col );
 				else
-					lprintf( WIDE("(outside any object, got colon out of string):parsing fault; unexpected %c at %") _size_f, c, n );
+					lprintf( WIDE("(outside any object, got colon out of string):parsing fault; unexpected %c at %") _size_f WIDE("  %") _size_f WIDE(":%") _size_f, c, n, line, col );
 				status = FALSE;
 			}
 			break;
 		case '}':
-			if( parse_context == CONTEXT_IN_OBJECT )
+			// coming back after pushing an array or sub-object will reset the contxt to FIELD, so an end with a field should still push value.
+			if( ( parse_context == CONTEXT_OBJECT_FIELD ) ) {
+#ifdef _DEBUG_PARSING
+				lprintf( "close object; empty object %d", val.value_type );				
+#endif
+				RESET_VAL();
+
+				{
+					struct json_parse_context *old_context = (struct json_parse_context *)PopLink( &context_stack );
+					struct json_value_container *oldVal = (struct json_value_container *)GetDataItem( &old_context->elements, old_context->elements->Cnt-1 );
+					oldVal->contains = elements;  // save updated elements list in the old value in the last pushed list.
+					parse_context = old_context->context; // this will restore as IN_ARRAY or OBJECT_FIELD
+					elements = old_context->elements;
+					DeleteFromSet( PARSE_CONTEXT, parseContexts6, old_context );
+
+				}
+			}
+			else if( ( parse_context == CONTEXT_OBJECT_FIELD_VALUE ) )
 			{
 				// first, add the last value
+#ifdef _DEBUG_PARSING
+				lprintf( "close object; push item %s %d", val.name, val.value_type );
+#endif                          
 				if( val.value_type != VALUE_UNSET ) {
 					AddDataItem( &elements, &val );
 				}
@@ -194,22 +434,25 @@ LOGICAL json_parse_message( TEXTSTR msg
 					struct json_parse_context *old_context = (struct json_parse_context *)PopLink( &context_stack );
 					struct json_value_container *oldVal = (struct json_value_container *)GetDataItem( &old_context->elements, old_context->elements->Cnt-1 );
 					oldVal->contains = elements;  // save updated elements list in the old value in the last pushed list.
-					
-					parse_context = old_context->context;
+					parse_context = old_context->context; // this will restore as IN_ARRAY or OBJECT_FIELD
 					elements = old_context->elements;
-					DeleteFromSet( PARSE_CONTEXT, parseContexts, old_context );
+					DeleteFromSet( PARSE_CONTEXT, parseContexts6, old_context );
 
 				}
 				//n++;
 			}
 			else
 			{
-				lprintf( WIDE("Fault while parsing; unexpected %c at %") _size_f, c, n );
+				lprintf( WIDE("Fault while parsing; unexpected %c at %") _size_f WIDE("  %") _size_f WIDE(":%") _size_f, c, n, line, col );
+				status = FALSE;
 			}
 			break;
 		case ']':
 			if( parse_context == CONTEXT_IN_ARRAY )
 			{
+#ifdef _DEBUG_PARSING
+				lprintf( "close array, push last element: %d", val.value_type );
+#endif
 				if( val.value_type != VALUE_UNSET ) {
 					AddDataItem( &elements, &val );
 				}
@@ -221,64 +464,170 @@ LOGICAL json_parse_message( TEXTSTR msg
 					
 					parse_context = old_context->context;
 					elements = old_context->elements;
-					DeleteFromSet( PARSE_CONTEXT, parseContexts, old_context );
+					DeleteFromSet( PARSE_CONTEXT, parseContexts6, old_context );
 				}
 			}
 			else
 			{
-				lprintf( WIDE("bad context %d; fault while parsing; '%c' unexpected at %") _size_f, parse_context, c, n );// fault
+				lprintf( WIDE("bad context %d; fault while parsing; '%c' unexpected at %") _size_f WIDE("  %") _size_f WIDE(":%") _size_f, parse_context, c, n, line, col );// fault
+				status = FALSE;
 			}
 			break;
 		case ',':
-			if( ( parse_context == CONTEXT_IN_ARRAY ) 
-			   || ( parse_context == CONTEXT_IN_OBJECT ) )
+			if( parse_context == CONTEXT_IN_ARRAY )
 			{
 				if( val.value_type != VALUE_UNSET ) {
+#ifdef _DEBUG_PARSING
+					lprintf( "back in array; push item %d", val.value_type );
+#endif
 					AddDataItem( &elements, &val );
+					RESET_VAL();
 				}
+				val.value_type = VALUE_UNDEFINED; // in an array, elements after a comma should init as undefined...
+				// undefined allows [,,,] to be 4 values and [1,2,3,] to be 4 values with an undefined at end.
+			}
+			else if( parse_context == CONTEXT_OBJECT_FIELD_VALUE )
+			{
+				// after an array value, it will have returned to OBJECT_FIELD anyway	
+#ifdef _DEBUG_PARSING
+				lprintf( "comma after field value, push field to object: %s", val.name );
+#endif
+				parse_context = CONTEXT_OBJECT_FIELD;
+				if( val.value_type != VALUE_UNSET )
+					AddDataItem( &elements, &val );
 				RESET_VAL();
 			}
 			else
 			{
-				lprintf( WIDE("bad context; fault while parsing; '%c' unexpected at %") _size_f, c, n );// fault
+				status = FALSE;
+				lprintf( WIDE("bad context; fault while parsing; '%c' unexpected at %") _size_f WIDE("  %") _size_f WIDE(":%") _size_f, c, n, line, col );// fault
 			}
 			break;
 
 		default:
-			switch( c )
+			if( parse_context == CONTEXT_OBJECT_FIELD ) {
+				if( c < 0xFF ) {
+					if( nonIdentifiers8[c] ) {
+						// invalid start/continue
+						status = FALSE;
+						lprintf( WIDE("fault while parsing object field name; \\u00%02X unexpected at %") _size_f WIDE("  %") _size_f WIDE(":%") _size_f, c, n, line, col );	// fault
+						break;
+					} 
+				} else {
+					int n;
+					for( n = 0; n < ( sizeof( nonIdentifiers ) / sizeof( nonIdentifiers[0] ) ); n++ ) {
+						if( c == nonIdentifiers[n] ) {
+							status = FALSE;
+							lprintf( WIDE("fault while parsing object field name; \\u00%02X unexpected at %") _size_f WIDE("  %") _size_f WIDE(":%") _size_f, c, n, line, col );	// fault
+							break;
+						}
+					}
+					if( c < ( sizeof( nonIdentifiers ) / sizeof( nonIdentifiers[0] ) ) )
+						break;
+				}
+				switch( c )
+				{
+				case '`':
+					val.string = mOut;
+					status = gatherString( msg, &msg_input, msglen, &mOut, &line, &col, c, TRUE );
+					if( status ) val.value_type = VALUE_STRING;
+					break;
+					// yes, fall through to normal quote processing.
+				case '"':
+				case '\'':
+					val.string = mOut;
+					status = gatherString( msg, &msg_input, msglen, &mOut, &line, &col, c, FALSE );
+					if( status ) val.value_type = VALUE_STRING;
+					break;
+				case '\n':
+					line++;
+					col = 1;
+					// fall through to normal space handling - just updated line/col position
+				case ' ':
+				case '\t':
+				case '\r':
+				case 0xFEFF: // ZWNBS is WS though
+					if( word == WORD_POS_RESET )
+						break;
+					else if( word == WORD_POS_FIELD ) {
+						word = WORD_POS_AFTER_FIELD;
+					}
+					status = FALSE;
+					lprintf( WIDE("fault while parsing; whitespace unexpected at %") _size_f WIDE("  %") _size_f WIDE(":%") _size_f, n, line, col );	// fault
+					// skip whitespace
+					//n++;
+					//lprintf( "whitespace skip..." );
+					break;
+				default:
+					if( word == WORD_POS_RESET ) {
+						word = WORD_POS_FIELD;
+						val.string = mOut;
+					}
+					if( c < 128 ) (*mOut++) = c;
+					else mOut += ConvertToUTF8( mOut, c );
+					break; // default
+				}
+								
+			}
+			else switch( c )
 			{
+			case '`':
+				val.string = mOut;
+				status = gatherString( msg, &msg_input, msglen, &mOut, &line, &col, c, TRUE );
+				if( status ) val.value_type = VALUE_STRING;
+				break;
+				// yes, fall through to normal quote processing.
 			case '"':
 			case '\'':
+				val.string = mOut;
+				status = gatherString( msg, &msg_input, msglen, &mOut, &line, &col, c, FALSE );
+				if( status ) val.value_type = VALUE_STRING;
+				break;
+#if 0
 				{
 					// collect a string
-					int escape = 0;
-					TEXTRUNE start_c = c;
+					int escape;
+					TEXTRUNE start_c;
+					LOGICAL cr_escaped;
+					escape = 0;
+					start_c = c;
+					cr_escaped = FALSE;
 					val.string = mOut;
-					while( (_n=n), (( n < msglen ) && (c = GetUtfChar( &msg_input ) )) )
+					while( (_n=n), (( n < msglen ) && (c = GetUtfChar( &msg_input ) )) && status )
 					{
 						if( c == '\\' )
 						{
 							if( escape ) (*mOut++) = '\\';
 							else escape = 1;
 						}
-						else if( ( c == '"' ) || ( c == '\'' ) )
+						else if( ( c == '"' ) || ( c == '\'' ) || ( c == '`' ) )
 						{
 							if( escape ) { (*mOut++) = c; escape = FALSE; }
 							else if( c == start_c ) {
-								//AddDataItem( &elements, &val );
-								//RESET_VAL();
 								break;
 							} else (*mOut++) = c; // other else is not valid close quote; just store as content.
 						}
 						else
 						{
+							if( cr_escaped ) {
+								cr_escaped = FALSE;								
+								if( c == '\n' ) {
+									escape = FALSE;
+									continue;
+								}
+							}
 							if( escape )
 							{
 								switch( c )
 								{
 								case '\r':
+									cr_escaped = TRUE;
 									continue;
 								case '\n':
+									if( cr_escaped ) cr_escaped = FALSE;
+									// fall through to clear escape status <CR><LF> support.
+								case 2028: // LS (Line separator)
+								case 2029: // PS (paragraph separate)
 									escape = FALSE;
 									continue;
 								case '/':
@@ -301,13 +650,77 @@ LOGICAL json_parse_message( TEXTSTR msg
 								case 'f':
 									(*mOut++) = '\f';
 									break;
-								case 'u':
+								case '0': case '1': case '2': case '3': 
 									{
-										TEXTRUNE hex_char = 0;
+										TEXTRUNE oct_char = c - '0';
 										int ofs;
-										for( ofs = 0; ofs < 4; ofs++ )
+										for( ofs = 0; ofs < 2; ofs++ )
 										{
 											c = GetUtfChar( &msg_input );
+											oct_char *= 8;
+											if( c >= '0' && c <= '9' )  hex_char += c - '0';
+											else { msg_input--; break; }
+										}
+										if( oct_char > 255 ) {
+											lprintf( WIDE("(escaped character, parsing octal escape val=%d) fault while parsing; )") WIDE(" (near %*.*s[%c]%s)")
+											                 , oct_char
+													 , (int)( (n>3)?3:n ), (int)( (n>3)?3:n )
+													 , msg + n - ( (n>3)?3:n )
+													 , c
+													 , msg + n + 1
+													 );// fault
+											status = FALSE;
+											break;
+										} else { 
+											if( oct_char < 128 ) (*mOut++) = oct_char;
+											else mOut += ConvertToUTF8( mOut, oct_char );
+										}
+									}
+									break;
+								case 'x':
+									{
+										TEXTRUNE hex_char;
+										int ofs;
+										hex_char = 0;
+										for( ofs = 0; ofs < 2; ofs++ )
+										{
+											c = GetUtfChar( &msg_input );
+											hex_char *= 16;
+											if( c >= '0' && c <= '9' )      hex_char += c - '0';
+											else if( c >= 'A' && c <= 'F' ) hex_char += ( c - 'A' ) + 10;
+											else if( c >= 'a' && c <= 'f' ) hex_char += ( c - 'F' ) + 10;
+											else {
+												lprintf( WIDE("(escaped character, parsing hex of \\x) fault while parsing; '%c' unexpected at %")_size_f WIDE(" (near %*.*s[%c]%s)"), c, n
+														 , (int)( (n>3)?3:n ), (int)( (n>3)?3:n )
+														 , msg + n - ( (n>3)?3:n )
+														 , c
+														 , msg + n + 1
+														 );// fault
+												status = FALSE;
+											}
+										}
+										if( hex_char < 128 ) (*mOut++) = hex_char;
+										else mOut += ConvertToUTF8( mOut, hex_char );
+									}
+									break;
+								case 'u':
+									{
+										TEXTRUNE hex_char;
+										int ofs;
+										int codePointLen;
+										TEXTRUNE endCode;
+										hex_char = 0;
+										codePointLen = 4;
+										endCode = 0;
+										for( ofs = 0; ofs < codePointLen && ( c != endCode ); ofs++ )
+										{
+											c = GetUtfChar( &msg_input );
+											if( !ofs && c == '{' ) {
+												codePointLen = 5; // collect up to 5 chars.
+												endCode = '}';
+												continue;
+											} 
+											if( c == '}' ) continue;
 											hex_char *= 16;
 											if( c >= '0' && c <= '9' )      hex_char += c - '0';
 											else if( c >= 'A' && c <= 'F' ) hex_char += ( c - 'A' ) + 10;
@@ -324,12 +737,20 @@ LOGICAL json_parse_message( TEXTSTR msg
 									}
 									break;
 								default:
-									lprintf( WIDE("(escaped character) fault while parsing; '%c' unexpected %")_size_f WIDE(" (near %*.*s[%c]%s)"), c, n
+									if( cr_escaped ) {
+										cr_escaped = FALSE;
+										escape = FALSE;
+										mOut += ConvertToUTF8( mOut, c );
+									}										
+									else {
+										lprintf( WIDE("(escaped character) fault while parsing; '%c' unexpected %")_size_f WIDE(" (near %*.*s[%c]%s)"), c, n
 											 , (int)( (n>3)?3:n ), (int)( (n>3)?3:n )
 											 , msg + n - ( (n>3)?3:n )
 											 , c
 											 , msg + n + 1
 											 );// fault
+										status = FALSE;
+									}
 									break;
 								}
 								escape = 0;
@@ -343,11 +764,21 @@ LOGICAL json_parse_message( TEXTSTR msg
 					val.value_type = VALUE_STRING;
 					break;
 				}
+#endif
 
 			case ' ':
 			case '\t':
 			case '\r':
+				if( 0 ) {
 			case '\n':
+					line++;
+					col = 1;
+				}
+			case 0xFEFF:
+				if( word == WORD_POS_RESET )
+					break;
+				status = FALSE;
+				lprintf( WIDE("fault while parsing; whitespace unexpected at %") _size_f WIDE("  %") _size_f WIDE(":%") _size_f, n );	// fault
 				// skip whitespace
 				//n++;
 				//lprintf( "whitespace skip..." );
@@ -358,17 +789,17 @@ LOGICAL json_parse_message( TEXTSTR msg
 			case 't':
 				if( word == WORD_POS_RESET ) word = WORD_POS_TRUE_1;
 				else if( word == WORD_POS_INFINITY_6 ) word = WORD_POS_INFINITY_7;
-				else lprintf( WIDE("fault while parsing; '%c' unexpected at %") _size_f, c, n );// fault
+				else { status = FALSE; lprintf( WIDE("fault while parsing; '%c' unexpected at %") _size_f WIDE("  %") _size_f WIDE(":%") _size_f, c, n, line, col ); }// fault
 				break;
 			case 'r':
 				if( word == WORD_POS_TRUE_1 ) word = WORD_POS_TRUE_2;
-				else lprintf( WIDE("fault while parsing; '%c' unexpected at %") _size_f, c, n );// fault
+				else { status = FALSE; lprintf( WIDE("fault while parsing; '%c' unexpected at %") _size_f WIDE("  %") _size_f WIDE(":%") _size_f, c, n, line, col ); }// fault
 				break;
 			case 'u':
 				if( word == WORD_POS_TRUE_2 ) word = WORD_POS_TRUE_3;
 				else if( word == WORD_POS_NULL_1 ) word = WORD_POS_NULL_2;
 				else if( word == WORD_POS_RESET ) word = WORD_POS_UNDEFINED_1;
-				else lprintf( WIDE("fault while parsing; '%c' unexpected at %") _size_f, c, n );// fault
+				else { status = FALSE; lprintf( WIDE("fault while parsing; '%c' unexpected at %") _size_f WIDE("  %") _size_f WIDE(":%") _size_f, c, n, line, col ); }// fault
 				break;
 			case 'e':
 				if( word == WORD_POS_TRUE_3 ) {
@@ -379,26 +810,26 @@ LOGICAL json_parse_message( TEXTSTR msg
 					word = WORD_POS_RESET;
 				} else if( word == WORD_POS_UNDEFINED_3 ) word = WORD_POS_UNDEFINED_4;
 				else if( word == WORD_POS_UNDEFINED_7 ) word = WORD_POS_UNDEFINED_8;
-				else lprintf( WIDE("fault while parsing; '%c' unexpected at %") _size_f, c, n );// fault
+				else { status = FALSE; lprintf( WIDE("fault while parsing; '%c' unexpected at %") _size_f WIDE("  %") _size_f WIDE(":%") _size_f, c, n, line, col ); }// fault
 				break;
 			case 'n':
 				if( word == WORD_POS_RESET ) word = WORD_POS_NULL_1;
 				else if( word == WORD_POS_UNDEFINED_1 ) word = WORD_POS_UNDEFINED_2;
 				else if( word == WORD_POS_UNDEFINED_6 ) word = WORD_POS_UNDEFINED_7;
 				else if( word == WORD_POS_INFINITY_1 ) word = WORD_POS_INFINITY_2;
-				else if( word == WORD_POS_INFINITY_5 ) word = WORD_POS_INFINITY_6;
-				else lprintf( WIDE("fault while parsing; '%c' unexpected at %") _size_f, c, n );// fault
+				else if( word == WORD_POS_INFINITY_4 ) word = WORD_POS_INFINITY_5;
+				else { status = FALSE; lprintf( WIDE("fault while parsing; '%c' unexpected at %") _size_f WIDE("  %") _size_f WIDE(":%") _size_f, c, n, line, col ); }// fault
 				break;
 			case 'd':
 				if( word == WORD_POS_UNDEFINED_2 ) word = WORD_POS_UNDEFINED_3;
 				else if( word == WORD_POS_UNDEFINED_8 ) { val.value_type=VALUE_UNDEFINED; word = WORD_POS_RESET; }
-				else lprintf( WIDE("fault while parsing; '%c' unexpected at %") _size_f, c, n );// fault
+				else { status = FALSE; lprintf( WIDE("fault while parsing; '%c' unexpected at %") _size_f WIDE("  %") _size_f WIDE(":%") _size_f, c, n, line, col ); }// fault
 				break;
 			case 'i':
 				if( word == WORD_POS_UNDEFINED_5 ) word = WORD_POS_UNDEFINED_6;
 				else if( word == WORD_POS_INFINITY_3 ) word = WORD_POS_INFINITY_4;
 				else if( word == WORD_POS_INFINITY_5 ) word = WORD_POS_INFINITY_6;
-				else lprintf( WIDE("fault while parsing; '%c' unexpected at %") _size_f, c, n );// fault
+				else { status = FALSE; lprintf( WIDE("fault while parsing; '%c' unexpected at %") _size_f WIDE("  %") _size_f WIDE(":%") _size_f, c, n, line, col ); }// fault
 				break;
 			case 'l':
 				if( word == WORD_POS_NULL_2 ) word = WORD_POS_NULL_3;
@@ -406,35 +837,35 @@ LOGICAL json_parse_message( TEXTSTR msg
 					val.value_type = VALUE_NULL;
 					word = WORD_POS_RESET;
 				} else if( word == WORD_POS_FALSE_2 ) word = WORD_POS_FALSE_3;
-				else lprintf( WIDE("fault while parsing; '%c' unexpected at %") _size_f, c, n );// fault
+				else { status = FALSE; lprintf( WIDE("fault while parsing; '%c' unexpected at %") _size_f WIDE("  %") _size_f WIDE(":%") _size_f, c, n, line, col ); }// fault
 				break;
 			case 'f':
 				if( word == WORD_POS_RESET ) word = WORD_POS_FALSE_1;
 				else if( word == WORD_POS_UNDEFINED_4 ) word = WORD_POS_UNDEFINED_5;
 				else if( word == WORD_POS_INFINITY_2 ) word = WORD_POS_INFINITY_3;
-				else lprintf( WIDE("fault while parsing; '%c' unexpected at %") _size_f, c, n );// fault
+				else { status = FALSE; lprintf( WIDE("fault while parsing; '%c' unexpected at %") _size_f WIDE("  %") _size_f WIDE(":%") _size_f, c, n, line, col ); }// fault
 				break;
 			case 'a':
 				if( word == WORD_POS_FALSE_1 ) word = WORD_POS_FALSE_2;
 				else if( word == WORD_POS_NAN_1 ) word = WORD_POS_NAN_2;
-				else lprintf( WIDE("fault while parsing; '%c' unexpected at %") _size_f, c, n );// fault
+				else { status = FALSE; lprintf( WIDE("fault while parsing; '%c' unexpected at %") _size_f WIDE("  %") _size_f WIDE(":%") _size_f, c, n, line, col ); }// fault
 				break;
 			case 's':
 				if( word == WORD_POS_FALSE_3 ) word = WORD_POS_FALSE_4;
-				else lprintf( WIDE("fault while parsing; '%c' unexpected at %") _size_f, c, n );// fault
+				else { status = FALSE; lprintf( WIDE("fault while parsing; '%c' unexpected at %") _size_f WIDE("  %") _size_f WIDE(":%") _size_f, c, n, line, col ); }// fault
 				break;
 			case 'I':
 				if( word == WORD_POS_RESET ) word = WORD_POS_INFINITY_1;
-				else lprintf( WIDE("fault while parsing; '%c' unexpected at %") _size_f, c, n );// fault
+				else { status = FALSE; lprintf( WIDE("fault while parsing; '%c' unexpected at %") _size_f WIDE("  %") _size_f WIDE(":%") _size_f, c, n, line, col ); }// fault
 				break;
 			case 'N':
 				if( word == WORD_POS_RESET ) word = WORD_POS_NAN_1;
 				else if( word == WORD_POS_NAN_2 ) { val.value_type = negative ? VALUE_NEG_NAN : VALUE_NAN; word = WORD_POS_RESET; }
-				else lprintf( WIDE("fault while parsing; '%c' unexpected at %") _size_f, c, n );// fault
+				else { status = FALSE; lprintf( WIDE("fault while parsing; '%c' unexpected at %") _size_f WIDE("  %") _size_f WIDE(":%") _size_f, c, n, line, col ); }// fault
 				break;
 			case 'y':
 				if( word == WORD_POS_INFINITY_7 ) { val.value_type = negative ? VALUE_NEG_INFINITY : VALUE_INFINITY; word = WORD_POS_RESET; }
-				else lprintf( WIDE("fault while parsing; '%c' unexpected at %") _size_f, c, n );// fault
+				else { status = FALSE; lprintf( WIDE("fault while parsing; '%c' unexpected at %") _size_f WIDE("  %") _size_f WIDE(":%") _size_f, c, n, line, col ); }// fault
 				break;
 		//
  	 	//----------------------------------------------------------
@@ -455,6 +886,7 @@ LOGICAL json_parse_message( TEXTSTR msg
 					(*mOut++) = c;  // terminate the string.
 					while( (_msg_input=msg_input),(( n < msglen ) && (c = GetUtfChar( &msg_input )) ) )
 					{
+						col++;
 						n = (msg_input - msg );
 						// leading zeros should be forbidden.
 						if( ( c >= '0' && c <= '9' )
@@ -464,14 +896,15 @@ LOGICAL json_parse_message( TEXTSTR msg
 						{
 							(*mOut++) = c;
 						}
-						else if( c == 'x' ) {
+						else if( c == 'x' || c == 'b' ) {
 							// hex conversion.
 							if( !fromHex ) {
 								fromHex = TRUE;
 								(*mOut++) = c;
 							}
 							else {
-								lprintf( WIDE("fault wile parsing; '%c' unexpected at %") _size_f, c, n );
+								status = FALSE;
+								lprintf( WIDE("fault wile parsing; '%c' unexpected at %") _size_f WIDE("  %") _size_f WIDE(":%") _size_f, c, n, line, col );
 								break;
 							}
 						}
@@ -507,6 +940,7 @@ LOGICAL json_parse_message( TEXTSTR msg
 				else
 				{
 					// fault, illegal characer (whitespace?)
+					status = FALSE;
 					lprintf( WIDE("fault parsing '%c' unexpected %")_size_f WIDE(" (near %*.*s[%c]%s)"), c, n
 							 , (int)( (n>3)?3:n ), (int)( (n>3)?3:n )
 							 , msg + n - ( (n>3)?3:n )
@@ -524,7 +958,7 @@ LOGICAL json_parse_message( TEXTSTR msg
 		struct json_parse_context *old_context;
 		while( ( old_context = (struct json_parse_context *)PopLink( &context_stack ) ) ) {
 			lprintf( "warning unclosed contexts...." );
-			DeleteFromSet( PARSE_CONTEXT, parseContexts, old_context );
+			DeleteFromSet( PARSE_CONTEXT, parseContexts6, old_context );
 		}
 		if( context_stack )
 			DeleteLinkStack( &context_stack );
@@ -544,14 +978,14 @@ LOGICAL json_parse_message( TEXTSTR msg
 	return status;
 }
 
-void json_dispose_decoded_message( struct json_context_object *format
+void json6_dispose_decoded_message( struct json6_context_object *format
                                  , POINTER msg_data )
 {
 	// a complex format might have sub-parts .... but for now we'll assume simple flat structures
-	Release( msg_data );
+	//Release( msg_data );
 }
 
-void json_dispose_message( PDATALIST *msg_data )
+void json6_dispose_message( PDATALIST *msg_data )
 {
 	struct json_value_container *val;
 	INDEX idx;
@@ -568,7 +1002,7 @@ void json_dispose_message( PDATALIST *msg_data )
 }
 
 // puts the current collected value into the element; assumes conversion was correct
-static void FillDataToElement( struct json_context_object_element *element
+static void FillDataToElement6( struct json_context_object_element *element
 							    , size_t object_offset
 								, struct json_value_container *val
 								, POINTER msg_output )
@@ -784,7 +1218,7 @@ static void FillDataToElement( struct json_context_object_element *element
 }
 
 
-LOGICAL json_decode_message( struct json_context *format
+LOGICAL json6_decode_message( struct json_context *format
 								, PDATALIST msg_data
 								, struct json_context_object **result_format
 								, POINTER *_msgbuf )
