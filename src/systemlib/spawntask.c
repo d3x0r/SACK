@@ -43,7 +43,7 @@ static int DumpErrorEx( DBG_VOIDPASS )
 #define DumpError() DumpErrorEx( DBG_VOIDSRC )
 {
 	_lprintf(DBG_RELAY)( WIDE("Failed create process:%d"), GetLastError() );
-   return 0;
+	return 0;
 }
 #endif
 
@@ -217,7 +217,7 @@ static uintptr_t CPROC HandleTaskOutput(PTHREAD thread )
 			//close( phi->handle );
 			close( task->hStdIn.pair[1] );
 			close( task->hStdOut.pair[0] );
-         //close( task->hStdErr.pair[0] );
+			//close( task->hStdErr.pair[0] );
 #define INVALID_HANDLE_VALUE -1
 #endif
 			if( phi->handle == task->hStdIn.handle )
@@ -244,7 +244,7 @@ static int FixHandles( PTASK_INFO task )
 		CloseHandle( task->pi.hThread );
 	task->pi.hThread = 0;
 #endif
-   return 0; // must return 0 so expression continues
+	return 0; // must return 0 so expression continues
 }
 
 //--------------------------------------------------------------------------
@@ -260,31 +260,31 @@ void ResumeProgram( PTASK_INFO task )
 uintptr_t GetProgramAddress( PTASK_INFO task ) {
 #ifdef WIN32
 
-   /*
-   BOOL WINAPI GetThreadContext(
-  _In_    HANDLE    hThread,
+	/*
+	BOOL WINAPI GetThreadContext(
+  _In_	 HANDLE    hThread,
   _Inout_ LPCONTEXT lpContext
   );
   */
 	uintptr_t memstart;
-   CONTEXT ctx;
+	CONTEXT ctx;
 #ifdef __64__
-   WOW64_CONTEXT ctx64;
+	WOW64_CONTEXT ctx64;
 	ctx64.ContextFlags = CONTEXT_INTEGER;
 	Wow64GetThreadContext( task->pi.hThread, &ctx64 );
 	memstart = ctx64.Ebx;
 	ctx.ContextFlags = CONTEXT_INTEGER;
 	GetThreadContext( task->pi.hThread, &ctx );
 	//memstart = ctx.Ebx;
-   return memstart;
+	return memstart;
 #else
 	GetThreadContext( task->pi.hThread, &ctx );
 	memstart = ctx.Ebx;
-   return memstart;
+	return memstart;
 #endif
 #else
-   lprintf( "non-windows system; cannot find program address... yet" );
-   return 0;
+	lprintf( "non-windows system; cannot find program address... yet" );
+	return 0;
 #endif
 
 
@@ -305,9 +305,9 @@ void LoadReadExe( PTASK_INFO task, uintptr_t base )
 	{
 		IMAGE_DOS_HEADER source_dos_header;// = (PIMAGE_DOS_HEADER)source_memory;
 		PIMAGE_NT_HEADERS source_nt_header;// = (PIMAGE_NT_HEADERS)Seek( source_memory, source_dos_header->e_lfanew );
-	      SIZE_T nRead;
+		SIZE_T nRead;
 		ReadProcessMemory( task->pi.hProcess, (void*)base, (void*)&source_dos_header, sizeof( source_dos_header ), &nRead );
-      LogBinary((uint8_t*) &source_dos_header, sizeof( source_dos_header ));
+		LogBinary((uint8_t*) &source_dos_header, sizeof( source_dos_header ));
 		if( source_dos_header.e_magic != IMAGE_DOS_SIGNATURE ) {
 			LoG( "Basic signature check failed; not a library" );
 			return ;
@@ -345,7 +345,7 @@ void LoadReadExe( PTASK_INFO task, uintptr_t base )
 			dwSize &= ~(BLOCK_SIZE-1); // mask off the low bits; floor result to block boundary
 			return (POINTER)Seek( source_memory, dwSize );
 			}
-      */
+		*/
 	}
 #  undef Seek
 #else
@@ -417,13 +417,13 @@ SYSTEM_PROC( PTASK_INFO, LaunchPeerProgramExx )( CTEXTSTR program, CTEXTSTR path
 		if( needs_quotes )
 			vtprintf( pvt, WIDE( "\"" ) );
 
-      /*
+		/*
 		if( !IsAbsolutePath( expanded_path ) && expanded_working_path )
 		{
 			//lprintf( "needs working path too" );
 			vtprintf( pvt, WIDE("%s/"), expanded_working_path );
 		}
-      */
+		*/
 		vtprintf( pvt, WIDE("%s"), expanded_path );
 
 		if( needs_quotes )
@@ -457,13 +457,13 @@ SYSTEM_PROC( PTASK_INFO, LaunchPeerProgramExx )( CTEXTSTR program, CTEXTSTR path
 #ifdef _DEBUG
 		//xlprintf(LOG_NOISE)( WIDE( "quotes?%s path [%s] program [%s]  [cmd.exe (%s)]"), needs_quotes?WIDE( "yes"):WIDE( "no"), expanded_working_path, expanded_path, GetText( final_cmdline ) );
 #endif
-      /*
+		/*
 		if( path )
 		{
 			GetCurrentPath( saved_path, sizeof( saved_path ) );
 			SetCurrentPath( path );
 		}
-      */
+		*/
 		task->OutputEvent = OutputHandler;
 		if( OutputHandler )
 		{
@@ -575,7 +575,7 @@ SYSTEM_PROC( PTASK_INFO, LaunchPeerProgramExx )( CTEXTSTR program, CTEXTSTR path
 										, expanded_working_path
 										, &task->si
 										, &task->pi ) || FixHandles(task) || DumpError() ) ||
-               0
+				   0
 				  )
 				{
 					success = 1;
@@ -626,28 +626,28 @@ SYSTEM_PROC( PTASK_INFO, LaunchPeerProgramExx )( CTEXTSTR program, CTEXTSTR path
 		LineRelease( final_cmdline );
 		Release( expanded_working_path );
 		Release( expanded_path );
-      /*
-      if( path )
+		/*
+		if( path )
 		SetCurrentPath( saved_path );
-      */
+		*/
 		return task;
 #endif
 #ifdef __LINUX__
 		{
 			pid_t newpid;
 			TEXTCHAR saved_path[256];
-         xlprintf(LOG_ALWAYS)( WIDE("Expand Path was not implemented in linux code!") );
+			xlprintf(LOG_ALWAYS)( WIDE("Expand Path was not implemented in linux code!") );
 			task = (PTASK_INFO)Allocate( sizeof( TASK_INFO ) );
 			MemSet( task, 0, sizeof( TASK_INFO ) );
 			task->psvEnd = psv;
 			task->EndNotice = EndNotice;
 			task->OutputEvent = OutputHandler;
-         if( OutputHandler )
+			if( OutputHandler )
 			{
-				pipe(task->hStdIn.pair);
+				if( pipe(task->hStdIn.pair) < 0 ) return NULL;
 				task->hStdIn.handle = task->hStdIn.pair[1];
 
-				pipe(task->hStdOut.pair);
+				if( pipe(task->hStdOut.pair) < 0 ) return NULL;
 				task->hStdOut.handle = task->hStdOut.pair[0];
 			}
 
@@ -660,7 +660,7 @@ SYSTEM_PROC( PTASK_INFO, LaunchPeerProgramExx )( CTEXTSTR program, CTEXTSTR path
 			}
 			if( !( newpid = fork() ) )
 			{
-            char *_program = CStrDup( program );
+				char *_program = CStrDup( program );
 				// in case exec fails, we need to
 				// drop any registered exit procs...
 				//close( task->hStdIn.pair[1] );
@@ -739,7 +739,7 @@ SYSTEM_PROC( PTASK_INFO, LaunchPeerProgramEx )( CTEXTSTR program, CTEXTSTR path,
                                                 DBG_PASS
 															  )
 {
-   return LaunchPeerProgramExx( program, path, args, LPP_OPTION_DO_NOT_HIDE, OutputHandler, EndNotice, psv DBG_RELAY );
+	return LaunchPeerProgramExx( program, path, args, LPP_OPTION_DO_NOT_HIDE, OutputHandler, EndNotice, psv DBG_RELAY );
 }
 
 //------------- System() ---------- simplest form of launch process (with otuput handler, and pprintf support )
@@ -749,7 +749,7 @@ struct task_end_notice
 	PTHREAD thread;
 	LOGICAL ended;
 	uintptr_t psv_output;
-   TaskOutput output_handler;
+	TaskOutput output_handler;
 };
 
 static void CPROC SystemTaskEnd( uintptr_t psvUser, PTASK_INFO task )
@@ -806,7 +806,7 @@ SYSTEM_PROC( PTASK_INFO, SystemEx )( CTEXTSTR command_line
 			else
 				Relinquish();
 #else
-         WakeableSleep( 25 );
+			WakeableSleep( 25 );
 #endif
 		}
 		DeleteLink( &(*local_systemlib).system_tasks, result );
@@ -820,7 +820,7 @@ SYSTEM_PROC( PTASK_INFO, SystemEx )( CTEXTSTR command_line
 		}
 		Release( tmp );
 	}
-   return result;
+	return result;
 }
 
 //----------------------- Utility to send to launched task's stdin ----------------------------
@@ -842,19 +842,19 @@ int vpprintf( PTASK_INFO task, CTEXTSTR format, va_list args )
 #ifdef _WIN32
 		DWORD dwWritten;
 #endif
-      //lprintf( "Allowing write to process pipe..." );
+		//lprintf( "Allowing write to process pipe..." );
 		{
 			PTEXT seg = output;
 			while( seg )
 			{
 #ifdef _WIN32
-            //LogBinary( GetText( seg )
-		      //			, GetTextSize( seg ) );
-   				WriteFile( task->hStdIn.handle
-      					, GetText( seg )
-		      			, (DWORD)GetTextSize( seg )
-      					, &dwWritten
-      					, NULL );
+				//LogBinary( GetText( seg )
+				//			, GetTextSize( seg ) );
+					WriteFile( task->hStdIn.handle
+							, GetText( seg )
+							, (DWORD)GetTextSize( seg )
+							, &dwWritten
+							, NULL );
 #else
 				{
 					struct pollfd pfd = { task->hStdIn.handle, POLLHUP|POLLERR, 0 };
