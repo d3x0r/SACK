@@ -1766,6 +1766,7 @@ int64_t IntCreateFromText( CTEXTSTR p )
 	int begin;
 	int64_t num;
 	LOGICAL altBase = FALSE;
+	LOGICAL altBase2 = FALSE;
 	int64_t base = 10;
 	//p = GetText( pText );
 	if( !p )
@@ -1789,9 +1790,9 @@ int64_t IntCreateFromText( CTEXTSTR p )
 		}
 		else if( *p < '0' || *p > '9' )
 		{
-			if( !altBase ) {
-				if( *p == 'x' ) { altBase = TRUE; base = 16; }
-				else if( *p == 'b' ) { altBase = TRUE; base = 2; }
+			if( !altBase2 ) {
+				if( *p == 'x' ) { altBase2 = TRUE; base = 16; }
+				else if( *p == 'b' ) { altBase2 = TRUE; base = 2; }
 				else break;
 			} else {
 				if( base > 10 ) {
@@ -1810,8 +1811,8 @@ int64_t IntCreateFromText( CTEXTSTR p )
 		}
 		else
 		{
-			if( !altBase ) { altBase = TRUE; base = 8; }
-			else if( (*p - '0') >= base ) break;
+			if( ( !altBase ) && (*p == '0') ) { altBase = TRUE; base = 8; }
+			else if( (*p - '0') >= base ) { break; }
 			num *= base;
 			num += *p - '0';
 		}
