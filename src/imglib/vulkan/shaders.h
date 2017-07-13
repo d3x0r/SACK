@@ -4,32 +4,21 @@
 #define __need___va_list
 #include <stdarg.h>
 
-#ifdef USE_GLES2
-#include <GLES2/gl2.h>
-#endif
+#include <shaderc/shaderc.h>
 
 #ifdef _MSC_VER
-#include <GL/GLU.h>
 #define CheckErr()  				{    \
-					GLenum err = glGetError();  \
-					if( err )                   \
-						lprintf( WIDE("err=%d (%") _cstring_f WIDE(")"),err, gluErrorString( err ) ); \
+						lprintf( WIDE("CheckErr is not implemented in vulkan")  ); \
 				}                               
 #define CheckErrf(f,...)  				{    \
-					GLenum err = glGetError();  \
-					if( err )                   \
-					lprintf( WIDE("err=%d ") f,err,##__VA_ARGS__ ); \
+						lprintf( WIDE("CheckErr is not implemented in vulkan")  ); \
 				}                               
 #else
 #define CheckErr()  				{    \
-					GLenum err = glGetError();  \
-					if( err )                   \
-						lprintf( WIDE("err=%d "),err ); \
+						lprintf( WIDE("CheckErr is not implemented in vulkan")  ); \
 				}                               
 #define CheckErrf(f,...)  				{    \
-					GLenum err = glGetError();  \
-					if( err )                   \
-					lprintf( WIDE("err=%d ")f,err,##__VA_ARGS__ ); \
+						lprintf( WIDE("CheckErr is not implemented in vulkan")  ); \
 				}                               
 #endif
 
@@ -45,6 +34,15 @@
 IMAGE_NAMESPACE
 typedef struct image_shader_tracker ImageShaderTracker;
 
+struct image_shader_thread_instance {
+	PTHREAD thread;
+	shaderc_compilation_result_t compiled;
+	uint32_t *spv_vertex;
+	uint32_t *spv_fragment;
+	// shaderc_result_release(compiled);
+};
+
+// one of these per shader per output surface...
 struct image_shader_tracker
 {
 	struct image_shader_flags
@@ -53,10 +51,12 @@ struct image_shader_tracker
 		BIT_FIELD failed : 1; // shader compilation failed, abort enable; and don't reinitialize
 		BIT_FIELD set_modelview : 1;
 	} flags;
+	PLIST instances;
+
 	CTEXTSTR name;
-	int glProgramId;
-	int glVertexProgramId;
-	int glFragProgramId;
+	int vkProgramId;
+	int vkVertexProgramId;
+	int vkFragProgramId;
 
 	int eye_point;
 	int position_attrib;
@@ -89,7 +89,7 @@ struct image_shader_op
 
 struct image_shader_image_buffer
 {
-	GLboolean depth;
+	LOGICAL depth;
 	struct image_shader_tracker *tracker;
 	Image target;
 	PLIST output;
@@ -132,8 +132,8 @@ void CPROC InitSimpleMultiShadedTextureShader( uintptr_t psv, PImageShaderTracke
 
 void DumpAttribs( PImageShaderTracker tracker, int program );
 
-void CloseShaders( struct glSurfaceData *glSurface );
-void FlushShaders( struct glSurfaceData *glSurface );
+void CloseShaders( struct vkSurfaceData *glSurface );
+void FlushShaders( struct vkSurfaceData *glSurface );
 
 struct shader_buffer *CPROC CreateShaderBuffer( int dimensions, int start_size, int expand_by );
 void CPROC AppendShaderData( struct image_shader_op *op, struct shader_buffer *buffer, float *data );

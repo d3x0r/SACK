@@ -17,14 +17,6 @@
 #include <stdhdrs.h>
 #include <sharemem.h>
 
-#if defined( USE_GLES2 )
-//#include <GLES/gl.h>
-#include <GLES2/gl2.h>
-#else
-#include <GL/glew.h>
-#include <GL/gl.h>         // Header File For The OpenGL32 Library
-#endif
-
 #include <imglib/imagestruct.h>
 #include <image.h>
 
@@ -500,14 +492,14 @@ IMAGE_NAMESPACE
 		Image topmost_parent;
 
 		ReloadOpenGlTexture( pifSrc, 0 );
-		if( !pifSrc->glActiveSurface )
+		if( !pifSrc->vkActiveSurface )
 		{
-	        //lprintf( WIDE( "gl texture hasn't updated or went away?" ) );
-		    lock = 0;
+			//lprintf( WIDE( "gl texture hasn't updated or went away?" ) );
+			lock = 0;
 			return;
 		}
 		//lprintf( WIDE( "use regular texture %p (%d,%d)" ), pifSrc, pifSrc->width, pifSrc->height );
-      //DebugBreak();        g
+		//DebugBreak();        g
 
 		// closed loop to get the top imgae size.
 		for( topmost_parent = pifSrc; topmost_parent->pParent; topmost_parent = topmost_parent->pParent );
@@ -588,7 +580,7 @@ IMAGE_NAMESPACE
 			/**///glBindTexture(GL_TEXTURE_2D, pifSrc->glActiveSurface);				// Select Our Texture
 			if( method == BLOT_COPY )
 			{
-				op = BeginImageShaderOp( GetShader( WIDE("Simple Texture") ), pifDest, pifSrc->glActiveSurface  );
+				op = BeginImageShaderOp( GetShader( WIDE("Simple Texture") ), pifDest, pifSrc->vkActiveSurface  );
 				AppendImageShaderOpTristrip( op, 2, v[vi], texture_v );
 			}
 			else if( method == BLOT_SHADED )
@@ -600,7 +592,7 @@ IMAGE_NAMESPACE
 				_color[2] = BlueVal( tmp ) / 255.0f;
 				_color[3] = AlphaVal( tmp ) / 255.0f;
 
-				op = BeginImageShaderOp( GetShader( WIDE("Simple Shaded Texture") ), pifDest, pifSrc->glActiveSurface, _color  );
+				op = BeginImageShaderOp( GetShader( WIDE("Simple Shaded Texture") ), pifDest, pifSrc->vkActiveSurface, _color  );
 				AppendImageShaderOpTristrip( op, 2, v[vi], texture_v );
 			}
 			else if( method == BLOT_MULTISHADE )
@@ -624,17 +616,19 @@ IMAGE_NAMESPACE
 				b_color[2] = BlueVal( b ) / 255.0f;
 				b_color[3] = AlphaVal( b ) / 255.0f;
 
-				op = BeginImageShaderOp( GetShader( WIDE("Simple MultiShaded Texture") ), pifDest, pifSrc->glActiveSurface, r_color, g_color, b_color );
+				op = BeginImageShaderOp( GetShader( WIDE("Simple MultiShaded Texture") ), pifDest, pifSrc->vkActiveSurface, r_color, g_color, b_color );
 				AppendImageShaderOpTristrip( op, 2, v[vi], texture_v );
 			}
 			else if( method == BLOT_INVERTED )
 			{
+#if PORTED
 #if !defined( __ANDROID__ ) && !defined( __QNX__ )
-				if( l.glActiveSurface->shader.inverse_shader )
+				if( l.vkActiveSurface->shader.inverse_shader )
 				{
 					int err;
-		 			glEnable(GL_FRAGMENT_PROGRAM_ARB);
-					glUseProgram( l.glActiveSurface->shader.inverse_shader );
+					lprintf( "need to add this to command stream....")
+		 			//glEnable(GL_FRAGMENT_PROGRAM_ARB);
+					//glUseProgram( l.vkActiveSurface->shader.inverse_shader );
 					err = glGetError();
 				}
 				else
@@ -645,6 +639,7 @@ IMAGE_NAMESPACE
 					/**///glBindTexture( GL_TEXTURE_2D, output_image->glActiveSurface );
 					;/**///glColor4ub( 255,255,255,255 );
 				}
+#endif
 			}
 
 			//glDrawArrays( GL_TRIANGLE_STRIP, 0, 4 );

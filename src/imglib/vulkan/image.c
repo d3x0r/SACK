@@ -11,7 +11,9 @@
 #endif
 
 #include <stdhdrs.h>
-#if defined( USE_GLES2 )
+#if defined( _VULKAN_DRIVER )
+#include <vulkan/vulkan.h>
+#elif defined( USE_GLES2 )
 //#include <GLES/gl.h>
 #include <GLES2/gl2.h>
 #else
@@ -49,31 +51,10 @@ IMAGE_NAMESPACE
 
 static void OnFirstDraw3d( WIDE( "@00 PUREGL Image Library" ) )( uintptr_t psv )
 {
-	GLboolean tmp;
-	const GLubyte * val;
-	l.glActiveSurface = (struct glSurfaceData *)psv;
+	LOGICAL tmp;
+	const uint8_t * val;
+	l.vkActiveSurface = (struct vkSurfaceData *)psv;
 
-#if !defined( USE_GLES2 )
-	if (GLEW_OK != glewInit() )
-	{
-		return;
-	}
-#endif
-	tmp = 123;
-	glGetBooleanv( GL_SHADER_COMPILER, &tmp );
-	lprintf( WIDE("Shader Compiler = %d"), tmp );
-	{
-		int high, low;
-		val = glGetString(GL_SHADING_LANGUAGE_VERSION);
-		sscanf( (const char*)val, "%d.%d", &high, &low );
-		l.glslVersion = high * 100 + low;
-	}
-	lprintf( WIDE("Shader Version:%s"), glGetString(GL_SHADING_LANGUAGE_VERSION) );
-	if( !tmp )
-	{
-		lprintf( WIDE("No Shader Compiler") );
-	}
-	else
 	{
 		l.simple_shader = GetShaderInit( WIDE("Simple Shader"), SetupSuperSimpleShader, InitSuperSimpleShader, 0 );
 		l.simple_texture_shader = GetShaderInit( WIDE("Simple Texture"), SetupSimpleTextureShader, InitSimpleTextureShader, 0 );
@@ -86,75 +67,75 @@ static void OnFirstDraw3d( WIDE( "@00 PUREGL Image Library" ) )( uintptr_t psv )
 static uintptr_t OnInit3d( WIDE( "@00 PUREGL Image Library" ) )( PMatrix projection, PTRANSFORM camera, RCOORD *pIdentity_depty, RCOORD *aspect )
 {
 	INDEX idx;
-	struct glSurfaceData *glSurface;
-	LIST_FORALL( l.glSurface, idx, struct glSurfaceData *, glSurface )
+	struct vkSurfaceData *vkSurface;
+	LIST_FORALL( l.vkSurface, idx, struct vkSurfaceData *, vkSurface )
 	{
-		if( ( glSurface->T_Camera == camera )
-         && ( glSurface->identity_depth == pIdentity_depty )
-         && ( glSurface->aspect == aspect )
-			&& ( glSurface->M_Projection == projection ) )
+		if( (vkSurface->T_Camera == camera )
+         && (vkSurface->identity_depth == pIdentity_depty )
+         && (vkSurface->aspect == aspect )
+			&& ( vkSurface->M_Projection == projection ) )
 		{
 			break;
 		}
 	}
-	if( !glSurface )
+	if( !vkSurface )
 	{
-		glSurface = New( struct glSurfaceData );
-		MemSet( glSurface, 0, sizeof( *glSurface ) );
-		glSurface->M_Projection = projection;
-		glSurface->T_Camera = camera;
-		glSurface->identity_depth = pIdentity_depty;
-		glSurface->aspect = aspect;
-		AddLink( &l.glSurface, glSurface );
+		vkSurface = New( struct vkSurfaceData );
+		MemSet( vkSurface, 0, sizeof( *vkSurface ) );
+		vkSurface->M_Projection = projection;
+		vkSurface->T_Camera = camera;
+		vkSurface->identity_depth = pIdentity_depty;
+		vkSurface->aspect = aspect;
+		AddLink( &l.vkSurface, vkSurface );
 		{
 			INDEX idx;
 			struct glSurfaceData *data;
-			LIST_FORALL( l.glSurface, idx, struct glSurfaceData *, data )
-				if( data == glSurface )
+			LIST_FORALL( l.vkSurface, idx, struct glSurfaceData *, data )
+				if( data == vkSurface )
 				{
-					glSurface->index = idx;
+					vkSurface->index = idx;
 					break;
 			}
 		}
 	}
-	l.glActiveSurface = glSurface;
+	l.vkActiveSurface = vkSurface;
 
-	return (uintptr_t)glSurface;
+	return (uintptr_t)vkSurface;
 }
 
 static uintptr_t CPROC ReleaseTexture( POINTER p, uintptr_t psv )
 {
    Image image = (Image)p;
-	struct glSurfaceData *glSurface = ((struct glSurfaceData *)psv);
+	struct vkSurfaceData *vkSurface = ((struct vkSurfaceData *)psv);
 	// if this image has no gl surfaces don't check it (it might make some)
    //lprintf( "Release Texture %p", p );
-	if( !image->glSurface )
+	if( !image->vkSurface )
 	{
       // didn't download this texture to opengl
 		//lprintf( "ReleaseTextures: no glSurface" );
 		return 0;
 	}
-	if( glSurface )
+	if( vkSurface )
 	{
-		struct glSurfaceImageData *image_data =
-			(struct glSurfaceImageData *)GetLink( &image->glSurface, glSurface->index );
-		if( image_data && image_data->glIndex )
+		struct vkSurfaceImageData *image_data =
+			(struct vkSurfaceImageData *)GetLink( &image->vkSurface, vkSurface->index );
+		if( image_data && image_data->index )
 		{
 			//lprintf( WIDE("Release Texture %d"), image_data->glIndex );
-			glDeleteTextures( 1, &image_data->glIndex );
-			image_data->glIndex = 0;
+			//////glDeleteTextures( 1, &image_data->index );
+			image_data->index = 0;
 		}
 	}
 	else
 	{
 		INDEX idx;
-		struct glSurfaceImageData * image_data;
-      //lprintf( "no surf..." );
-		LIST_FORALL( image->glSurface, idx, struct glSurfaceImageData *, image_data )
+		struct vkSurfaceImageData * image_data;
+		//lprintf( "no surf..." );
+		LIST_FORALL( image->vkSurface, idx, struct vkSurfaceImageData *, image_data )
 		{
 			//lprintf( WIDE("Release Texture %d"), image_data->glIndex );
-			glDeleteTextures( 1, &image_data->glIndex );
-			image_data->glIndex = 0;
+			glDeleteTextures( 1, &image_data->index );
+			image_data->index = 0;
 		}
 	}
    return 0;
@@ -176,8 +157,8 @@ static void OnClose3d( WIDE( "@00 PUREGL Image Library" ) )( uintptr_t psvInit )
 
 static void OnBeginDraw3d( WIDE( "@00 PUREGL Image Library" ) )( uintptr_t psvInit, PTRANSFORM camera )
 {
-	l.glActiveSurface = (struct glSurfaceData *)psvInit;
-	l.glImageIndex = l.glActiveSurface->index;
+	l.vkActiveSurface = (struct vkSurfaceData *)psvInit;
+	l.vkImageIndex = l.vkActiveSurface->index;
 	l.camera = camera;
 	//PrintMatrixEx( "camera", (POINTER)camera DBG_SRC );
 	l.flags.projection_read = 0;
@@ -200,27 +181,27 @@ int ReloadOpenGlTexture( Image child_image, int option )
 	for( image = child_image; image && image->pParent; image = image->pParent );
 
 	{
-		struct glSurfaceImageData *image_data = 
-			(struct glSurfaceImageData *)GetLink( &image->glSurface
-			                                    , l.glImageIndex );
+		struct vkSurfaceImageData *image_data =
+			(struct vkSurfaceImageData *)GetLink( &image->vkSurface
+			                                    , l.vkImageIndex );
 		//GLuint glIndex;
 
 		if( !image_data )
 		{
 			// just call this to create the data then
 			MarkImageUpdated( image );
-			image_data = (struct glSurfaceImageData *)GetLink( &image->glSurface
-			                                    , l.glImageIndex );
+			image_data = (struct vkSurfaceImageData *)GetLink( &image->vkSurface
+			                                    , l.vkImageIndex );
 		}
 		// might have no displays open, so no GL contexts...
 		if( image_data )
 		{
 			//lprintf( WIDE( "Reload %p %d" ), image, option );
 			// should be checked outside.
-			if( image_data->glIndex == 0 )
+			if( image_data->index == 0 )
 			{
-				glGenTextures(1, &image_data->glIndex);			// Create One Texture
-				if( glGetError() || !image_data->glIndex)
+				glGenTextures(1, &image_data->index);			// Create One Texture
+				if( glGetError() || !image_data->index)
 				{
 					lprintf( WIDE( "gen text %d or bad surafce" ), glGetError() );
 					return 0;
@@ -234,32 +215,32 @@ int ReloadOpenGlTexture( Image child_image, int option )
 				int err;
 				//lprintf( WIDE( "gen text %d" ), glGetError() );
 				// Create Linear Filtered Texture
-				glBindTexture(GL_TEXTURE_2D, image_data->glIndex);
+				///////glBindTexture(GL_TEXTURE_2D, image_data->index);
 #ifdef USE_GLES2
-				glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, image->real_width, image->real_height
-								, 0, GL_RGBA, GL_UNSIGNED_BYTE
-								, image->image );
+				///////glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, image->real_width, image->real_height
+				///////				, 0, GL_RGBA, GL_UNSIGNED_BYTE
+				///////				, image->image );
 #else
-				glTexImage2D(GL_TEXTURE_2D, 0, 4, image->real_width, image->real_height
-								, 0, (option&1)?GL_BGRA_EXT:GL_RGBA, GL_UNSIGNED_BYTE
-								, image->image );
+				///////glTexImage2D(GL_TEXTURE_2D, 0, 4, image->real_width, image->real_height
+				///////				, 0, (option&1)?GL_BGRA_EXT:GL_RGBA, GL_UNSIGNED_BYTE
+				///////				, image->image );
 #endif
 				if( option & 2 )
 				{
 #ifndef USE_GLES2
-					glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_S,GL_CLAMP);  // No Wrapping, Please!
-					glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_T,GL_CLAMP);
+					///////glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_S,GL_CLAMP);  // No Wrapping, Please!
+					///////glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_T,GL_CLAMP);
 #endif
 				}
 				if( option & 4 )
 				{
 #ifndef USE_GLES2
-					glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_S,GL_REPEAT);  // No Wrapping, Please!
-					glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_T,GL_REPEAT);
+					///////glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_S,GL_REPEAT);  // No Wrapping, Please!
+					///////glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_T,GL_REPEAT);
 #endif
 				}
-				glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
-				glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR);
+				///////glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
+				///////glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR);
 				/**///glColor4ub( 255, 255, 255, 255 );
 				if( err = glGetError() )
 				{
@@ -283,11 +264,11 @@ int ReloadOpenGlTexture( Image child_image, int option )
 				}
 				image_data->flags.updated = 0;
 			}
- 			image->glActiveSurface = image_data->glIndex;
-			child_image->glActiveSurface = image->glActiveSurface;
+ 			image->vkActiveSurface = image_data->index;
+			child_image->vkActiveSurface = image->vkActiveSurface;
 		}
 	}
-	return image->glActiveSurface;
+	return image->vkActiveSurface;
 }
 
 int ReloadOpenGlShadedTexture( Image child_image, int option, CDATA color )
@@ -302,21 +283,21 @@ int ReloadOpenGlMultiShadedTexture( Image child_image, int option, CDATA r, CDAT
 	{
 		Image output_image;
 		output_image = GetShadedImage( child_image, r, g, b );
-		return output_image->glActiveSurface;//ReloadOpenGlTexture( child_image, option );
+		return output_image->vkActiveSurface;//ReloadOpenGlTexture( child_image, option );
 	}
 }
 
 static void CloseGLTextures( Image image )
 {
 	INDEX idx;
-	struct glSurfaceImageData * image_data;
-	LIST_FORALL( image->glSurface, idx, struct glSurfaceImageData *, image_data )
+	struct vkSurfaceImageData * image_data;
+	LIST_FORALL( image->vkSurface, idx, struct vkSurfaceImageData *, image_data )
 	{
 		//lprintf( WIDE("Release Texture %d"), image_data->glIndex );
-		glDeleteTextures( 1, &image_data->glIndex );
-		image_data->glIndex = 0;
+		glDeleteTextures( 1, &image_data->index );
+		image_data->index = 0;
 	}
-   DeleteList( &image->glSurface );
+   DeleteList( &image->vkSurface );
 }
 
 //------------------------------------------
@@ -331,26 +312,26 @@ void MarkImageUpdated( Image child_image )
 
 	{
 		INDEX idx;
-		struct glSurfaceData *data;
-		struct glSurfaceImageData *current_image_data = NULL;
-		LIST_FORALL( l.glSurface, idx, struct glSurfaceData *, data )
+		struct vkSurfaceData *data;
+		struct vkSurfaceImageData *current_image_data = NULL;
+		LIST_FORALL( l.vkSurface, idx, struct vkSurfaceData *, data )
 		{
-			struct glSurfaceImageData *image_data;
-			image_data = (struct glSurfaceImageData *)GetLink( &image->glSurface, idx );
+			struct vkSurfaceImageData *image_data;
+			image_data = (struct vkSurfaceImageData *)GetLink( &image->vkSurface, idx );
 			if( !image_data )
 			{
-				image_data = New( struct glSurfaceImageData );
+				image_data = New( struct vkSurfaceImageData );
             //lprintf( "add %p to image %p index %d", image_data, image, idx );
-				image_data->glIndex = 0;
+				image_data->index = 0;
 				image_data->flags.updated = 1;
-				SetLink( &image->glSurface, idx, image_data );
+				SetLink( &image->vkSurface, idx, image_data );
 				image->extra_close = CloseGLTextures;
 			}
-			if( image_data->glIndex )
+			if( image_data->index )
 			{
 				image_data->flags.updated = 1;
 			}
-			if( data == l.glActiveSurface )
+			if( data == l.vkActiveSurface )
 				current_image_data = image_data;
 		}
 		//return current_image_data;
@@ -636,7 +617,7 @@ void CPROC plotraw( Image pi, int32_t x, int32_t y, CDATA c )
 		v[2] = 0.0f;
 		EnableShader( GetShader( WIDE("Simple Shader") ), v, _color );
 
-      glDrawArrays( GL_POINTS, 0, 1 );
+		//////glDrawArrays( GL_POINTS, 0, 1 );
 		CheckErr();
 	}
 	else
@@ -938,7 +919,7 @@ void Render3dImage( Image pifSrc, PCVECTOR o, LOGICAL render_pixel_scaled )
 	for( tmp->topmost_parent = pifSrc; tmp->topmost_parent->pParent; tmp->topmost_parent = tmp->topmost_parent->pParent );
 
 	ReloadOpenGlTexture( pifSrc, 0 );
-	if( !pifSrc->glActiveSurface )
+	if( !pifSrc->vkActiveSurface )
 	{
 		lprintf( WIDE( "gl texture hasn't downloaded or went away?" ) );
 		return;
@@ -973,10 +954,10 @@ void Render3dImage( Image pifSrc, PCVECTOR o, LOGICAL render_pixel_scaled )
 			// no point, it's behind the camera.
 			if( tmp->del < 1.0 )
 				return;
-			scale( tmp->v[1-tmp->vi][0], tmp->v[tmp->vi][0], ( (l.glActiveSurface->aspect[0])*tmp->del ) / l.glActiveSurface->identity_depth[0] );
-			scale( tmp->v[1-tmp->vi][1], tmp->v[tmp->vi][1], ( (l.glActiveSurface->aspect[0])*tmp->del ) / l.glActiveSurface->identity_depth[0] );
-			scale( tmp->v[1-tmp->vi][2], tmp->v[tmp->vi][2], ( (l.glActiveSurface->aspect[0])*tmp->del ) / l.glActiveSurface->identity_depth[0] );
-			scale( tmp->v[1-tmp->vi][3], tmp->v[tmp->vi][3], ( (l.glActiveSurface->aspect[0])*tmp->del ) / l.glActiveSurface->identity_depth[0] );
+			scale( tmp->v[1-tmp->vi][0], tmp->v[tmp->vi][0], ( (l.vkActiveSurface->aspect[0])*tmp->del ) / l.vkActiveSurface->identity_depth[0] );
+			scale( tmp->v[1-tmp->vi][1], tmp->v[tmp->vi][1], ( (l.vkActiveSurface->aspect[0])*tmp->del ) / l.vkActiveSurface->identity_depth[0] );
+			scale( tmp->v[1-tmp->vi][2], tmp->v[tmp->vi][2], ( (l.vkActiveSurface->aspect[0])*tmp->del ) / l.vkActiveSurface->identity_depth[0] );
+			scale( tmp->v[1-tmp->vi][3], tmp->v[tmp->vi][3], ( (l.vkActiveSurface->aspect[0])*tmp->del ) / l.vkActiveSurface->identity_depth[0] );
 			tmp->vi = 1-tmp->vi;
 		}
 
@@ -1025,8 +1006,8 @@ void Render3dImage( Image pifSrc, PCVECTOR o, LOGICAL render_pixel_scaled )
 		tmp->v_image[3][0] = tmp->x_size2;
 		tmp->v_image[3][1] = tmp->y_size2;
 
-		EnableShader( GetShader( WIDE("Simple Texture") ), tmp->v[tmp->vi], pifSrc->glActiveSurface, tmp->v_image );
-		glDrawArrays( GL_TRIANGLE_STRIP, 0, 4 );
+		EnableShader( GetShader( WIDE("Simple Texture") ), tmp->v[tmp->vi], pifSrc->vkActiveSurface, tmp->v_image );
+		//////glDrawArrays( GL_TRIANGLE_STRIP, 0, 4 );
 
 		//Deallocate( struct workspace *, tmp );
 	}
@@ -1062,7 +1043,7 @@ void Render3dText( CTEXTSTR string, int characters, CDATA color, SFTFont font, P
 			// no point, it's behind the camera.
 			if( tmp_del < 1.0 )
 				return;
-			tmp_del = l.glActiveSurface->identity_depth[0] / tmp_del;
+			tmp_del = l.vkActiveSurface->identity_depth[0] / tmp_del;
 			Scale( output.transform, tmp_del
 						,  tmp_del, tmp_del
 						);

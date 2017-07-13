@@ -2,20 +2,10 @@
 #include <imglib/imagestruct.h>
 #include <imglib/fontstruct.h>
 
-#if defined( USE_GLES )
-#include <GLES/gl.h>
-#endif
-#if defined( USE_GLES2 )
-//#include <GLES/gl.h>
-#include <GLES2/gl2.h>
-#else
-#define USE_OPENGL
-#include <GL/glew.h>
-#include <GL/gl.h>         // Header File For The OpenGL32 Library
-#endif
+#include <vulkan/vulkan.h>
 
 IMAGE_NAMESPACE
-struct glSurfaceData;
+struct vkSurfaceData;
 IMAGE_NAMESPACE_END
 
 #include "../image_common.h"
@@ -23,20 +13,20 @@ IMAGE_NAMESPACE_END
 
 IMAGE_NAMESPACE
 
-struct glSurfaceData 
+struct vkSurfaceData 
 {
 	PMatrix M_Projection;
 	PTRANSFORM T_Camera;
 	RCOORD *identity_depth;
 	RCOORD *aspect;
 	int index;
-	struct gl_shader_data {
-		GLuint multi_shader;
+	struct vk_shader_data {
+		uint32_t multi_shader;
 		struct {
 			BIT_FIELD init_ok : 1;
 			BIT_FIELD shader_ok : 1;
 		} flags;
-		GLuint inverse_shader;
+		uint32_t inverse_shader;
 	} shader;
 	PLIST shaders;
 	struct {
@@ -49,6 +39,11 @@ struct glSurfaceData
 
 };
 
+struct thread_compiler {
+	PTHREAD thread;
+	shaderc_compiler_t compiler;
+};
+
 #ifndef IMAGE_LIBRARY_SOURCE_MAIN
 extern
 #endif
@@ -57,9 +52,9 @@ struct local_puregl_image_data_tag {
 		BIT_FIELD projection_read : 1;
 		BIT_FIELD worldview_read : 1;
 	} flags;
-	GLuint glImageIndex;
-	PLIST glSurface; // list of struct glSurfaceData *
-	struct glSurfaceData *glActiveSurface;
+	uint32_t vkImageIndex;
+	PLIST vkSurface; // list of struct vkSurfaceData *
+	struct vkSurfaceData *vkActiveSurface;
 	RCOORD scale;
 	PTRANSFORM camera; // active camera at begindraw
 
@@ -70,7 +65,9 @@ struct local_puregl_image_data_tag {
 	PImageShaderTracker simple_shaded_texture_shader;
 	PImageShaderTracker simple_multi_shaded_texture_shader;
 	PImageShaderTracker simple_inverse_texture_shader;
-   int glslVersion;
+
+	PLIST compilerPool;
+	//int glslVersion;
 } local_puregl_image_data;
 #define l local_puregl_image_data
 

@@ -5,15 +5,16 @@
 
 #include "shaders.h"
 
+
 IMAGE_NAMESPACE
 
 PImageShaderTracker GetShaderInit( CTEXTSTR name, uintptr_t (CPROC*Setup)(uintptr_t), void (CPROC*Init)(uintptr_t,PImageShaderTracker), uintptr_t psvSetup )
 {
 	PImageShaderTracker tracker;
 	INDEX idx;
-	if( !l.glActiveSurface )
+	if( !l.vkActiveSurface )
 		return NULL;
-	LIST_FORALL( l.glActiveSurface->shaders, idx, PImageShaderTracker, tracker )
+	LIST_FORALL( l.vkActiveSurface->shaders, idx, PImageShaderTracker, tracker )
 	{
 		if( StrCaseCmp( tracker->name, name ) == 0 )
 			return tracker;
@@ -22,6 +23,15 @@ PImageShaderTracker GetShaderInit( CTEXTSTR name, uintptr_t (CPROC*Setup)(uintpt
 	{
 		tracker = New( ImageShaderTracker );
 		MemSet( tracker, 0, sizeof( ImageShaderTracker ));
+		{
+			VkCommandPoolCreateInfo cpci;
+			cpci.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
+			cpci.next = NULL;
+			cpci.flags = 0;
+			//cpci.flags |= VK_COMMAND_POOL_CREATE_TRANSIENT_BIT
+			cpci.flags |= VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT
+			cpci.queueFamilyIndex = 0;
+		}
 		tracker->name = StrDup( name );
 		tracker->Init = Init;
 		tracker->Setup = Setup;
@@ -30,7 +40,7 @@ PImageShaderTracker GetShaderInit( CTEXTSTR name, uintptr_t (CPROC*Setup)(uintpt
 			tracker->psvInit =	tracker->Setup( tracker->psvSetup );
 		if( tracker->Init )
 			tracker->Init( tracker->psvInit, tracker );
-		AddLink( &l.glActiveSurface->shaders, tracker );
+		AddLink( &l.vkActiveSurface->shaders, tracker );
 		return tracker;
 	}
 	return NULL;
@@ -60,32 +70,33 @@ void CPROC  SetShaderOpInit( PImageShaderTracker tracker, uintptr_t (CPROC*InitO
 	tracker->InitShaderOp = InitOp;
 }
 
-void CloseShaders( struct glSurfaceData *glSurface )
+void CloseShaders( struct vkSurfaceData *vkSurface )
 {
 	PImageShaderTracker tracker;
 	INDEX idx;
-	LIST_FORALL( glSurface->shaders, idx, PImageShaderTracker, tracker )
+	LIST_FORALL( vkSurface->shaders, idx, PImageShaderTracker, tracker )
 	{
 		tracker->flags.set_matrix = 0;
 		// all other things are indexes
-		if( tracker->glProgramId )
+		if( tracker->vkProgramId )
 		{
 			// the shaders are deleted as we read the common variable indexes
-			glDeleteProgram( tracker->glProgramId );
-			tracker->glProgramId = 0;
+			//  glDeleteProgram( tracker->vkProgramId );
+
+			tracker->vkProgramId = 0;
 		}
 	}
 }
 
-void FlushShaders( struct glSurfaceData *glSurface )
+void FlushShaders( struct vkSurfaceData *vkSurface )
 {
 	struct image_shader_image_buffer *image_shader_op;
 	struct image_shader_op *op;
 	INDEX idx;
 	INDEX idx2;
-	GLboolean depth_enabled;
-	glGetBooleanv( GL_DEPTH_TEST, &depth_enabled );
-	LIST_FORALL( glSurface->shader_local.image_shader_operations, idx, struct image_shader_image_buffer *, image_shader_op )
+	LOGICAL depth_enabled;
+	//glGetBooleanv( GL_DEPTH_TEST, &depth_enabled );
+	LIST_FORALL( vkSurface->shader_local.image_shader_operations, idx, struct image_shader_image_buffer *, image_shader_op )
 	{
 		// target image has a translation....
 		if( image_shader_op->depth )
@@ -93,7 +104,7 @@ void FlushShaders( struct glSurfaceData *glSurface )
 			if( !depth_enabled )
 			{
 				depth_enabled = 1;
-				glEnable( GL_DEPTH_TEST );
+				//glEnable( GL_DEPTH_TEST );
 			}
 		}
 		else
@@ -101,7 +112,7 @@ void FlushShaders( struct glSurfaceData *glSurface )
 			if( depth_enabled )
 			{
 				depth_enabled = 0;
-				glDisable( GL_DEPTH_TEST );
+				//glDisable( GL_DEPTH_TEST );
 			}
 		}
 		LIST_FORALL( image_shader_op->output, idx2, struct image_shader_op *, op )
@@ -117,11 +128,11 @@ void FlushShaders( struct glSurfaceData *glSurface )
 
 			//glDrawArrays( 
 			Release( op );
-			SetLink( &glSurface->shader_local.image_shader_operations, idx, 0 );
+			SetLink( &vkSurface->shader_local.image_shader_operations, idx, 0 );
 		}
 	}
 	
-	LIST_FORALL( glSurface->shader_local.shader_operations, idx, struct image_shader_op *, op )
+	LIST_FORALL( vkSurface->shader_local.shader_operations, idx, struct image_shader_op *, op )
 	{
 		lprintf( WIDE( "Shader %") _string_f WIDE( " %d -> %d  %d" ), op->tracker->name, op->from, op->to, op->to - op->from );
 		if( op->tracker->Output )
@@ -129,17 +140,17 @@ void FlushShaders( struct glSurfaceData *glSurface )
 		if( op->tracker->Reset )
 			op->tracker->Reset( op->tracker, op->tracker->psvInit, op->psvKey );
 		Release( op );
-		SetLink( &glSurface->shader_local.shader_operations, idx, 0 );
+		SetLink( &vkSurface->shader_local.shader_operations, idx, 0 );
 	}
 	
-	glSurface->shader_local.last_operation = NULL;
+	vkSurface->shader_local.last_operation = NULL;
 }
 
 void ClearShaders( void )
 {
 	PImageShaderTracker tracker;
 	INDEX idx;
-	LIST_FORALL( l.glActiveSurface->shaders, idx, PImageShaderTracker, tracker )
+	LIST_FORALL( l.vkActiveSurface->shaders, idx, PImageShaderTracker, tracker )
 	{
 		tracker->flags.set_modelview = 1;
 		tracker->flags.set_matrix = 0;
@@ -151,7 +162,7 @@ void EnableShader( PImageShaderTracker tracker, ... )
 {
 	if( !tracker )
 		return;
-	if( !tracker->glProgramId )
+	if( !tracker->vkProgramId )
 	{
 		if( tracker->flags.failed )
 		{
@@ -160,7 +171,7 @@ void EnableShader( PImageShaderTracker tracker, ... )
 		}
 		if( tracker->Init )
 			tracker->Init( tracker->psvInit, tracker );
-		if( !tracker->glProgramId )
+		if( !tracker->vkProgramId )
 		{
 			lprintf( WIDE("Shader initialization failed to produce a program; marking shader broken so we don't retry") );
 			tracker->flags.failed = 1;
@@ -169,15 +180,16 @@ void EnableShader( PImageShaderTracker tracker, ... )
 	}
 
 	//xlprintf( LOG_NOISE+1 )( WIDE("Enable shader %s"), tracker->name );
-	glUseProgram( tracker->glProgramId );
-	CheckErrf( WIDE("Failed glUseProgram (%s)"), tracker->name );
+	///////glUseProgram( tracker->vkProgramId );
+	///////CheckErrf( WIDE("Failed glUseProgram (%s)"), tracker->name );
 
 	if( tracker->flags.set_modelview && tracker->modelview >= 0 )
 	{
-		//glUseProgram( tracker->glProgramId );
+		//glUseProgram( tracker->vkProgramId );
 		//CheckErr();
 		//lprintf( "Set modelview (identity)" );
-		glUniformMatrix4fv( tracker->modelview, 1, GL_FALSE, (float const*)VectorConst_I );
+
+		////glUniformMatrix4fv( tracker->modelview, 1, GL_FALSE, (float const*)VectorConst_I );
 		CheckErr();
 		tracker->flags.set_modelview = 0;
 	}
@@ -187,20 +199,21 @@ void EnableShader( PImageShaderTracker tracker, ... )
 		if( !l.flags.worldview_read )
 		{
 			// T_Camera is the same as l.camera  (camera matrixes are really static)
-			GetGLCameraMatrix( l.glActiveSurface->T_Camera, l.worldview );
+
+			////GetGLCameraMatrix( l.glActiveSurface->T_Camera, l.worldview );
 			l.flags.worldview_read = 1;
 		}
 		//PrintMatrix( l.worldview );
 		if( tracker->worldview >=0 )
 		{
-			glUniformMatrix4fv( tracker->worldview, 1, GL_FALSE, (RCOORD*)l.worldview );
+			/////glUniformMatrix4fv( tracker->worldview, 1, GL_FALSE, (RCOORD*)l.worldview );
 			CheckErrf( WIDE(" (%s)"), tracker->name );
 		}
 				
 		//PrintMatrix( l.glActiveSurface->M_Projection );
 		if( tracker->projection >=0 )
 		{
-			glUniformMatrix4fv( tracker->projection, 1, GL_FALSE, (RCOORD*)l.glActiveSurface->M_Projection );
+			/////glUniformMatrix4fv( tracker->projection, 1, GL_FALSE, (RCOORD*)l.glActiveSurface->M_Projection );
 			CheckErr();
 		}
 		tracker->flags.set_matrix = 1;
@@ -251,24 +264,24 @@ void AppendShaderTristrip( struct image_shader_op * op, int triangles, ... )
 static void SetupCommon( PImageShaderTracker tracker )
 {
 	tracker->projection
-		= glGetUniformLocation(tracker->glProgramId, "Projection");
+		= glGetUniformLocation(tracker->vkProgramId, "Projection");
 	CheckErr();
 	tracker->worldview
-		= glGetUniformLocation(tracker->glProgramId, "worldView");
+		= glGetUniformLocation(tracker->vkProgramId, "worldView");
 	CheckErr();
 	tracker->modelview
-		= glGetUniformLocation(tracker->glProgramId, "modelView");
+		= glGetUniformLocation(tracker->vkProgramId, "modelView");
 	CheckErr();
 
-	if( tracker->glFragProgramId )
+	if( tracker->vkFragProgramId )
 	{
-		glDeleteShader( tracker->glFragProgramId );
-		tracker->glFragProgramId = 0;
+		glDeleteShader( tracker->vkFragProgramId );
+		tracker->vkFragProgramId = 0;
 	}
-	if( tracker->glVertexProgramId )
+	if( tracker->vkVertexProgramId )
 	{
-		glDeleteShader( tracker->glVertexProgramId );
-		tracker->glVertexProgramId = 0;
+		glDeleteShader( tracker->vkVertexProgramId );
+		tracker->vkVertexProgramId = 0;
 	}
 }
 
@@ -278,7 +291,7 @@ void DumpAttribs( PImageShaderTracker tracker, int program )
 	int m;
 	lprintf( WIDE("---- Program %s(%d) -----"), tracker->name, program );
 
-	glGetProgramiv( program, GL_ACTIVE_ATTRIBUTES, &m );
+	///////glGetProgramiv( program, GL_ACTIVE_ATTRIBUTES, &m );
 	for( n = 0; n < m; n++ )
 	{
 		char tmp[64];
@@ -287,167 +300,153 @@ void DumpAttribs( PImageShaderTracker tracker, int program )
 		unsigned int type;
 		int index;
 
-		glGetActiveAttrib( program, n, 64, &length, &size, &type, tmp );
-		index = glGetAttribLocation(program, tmp );
+		///////glGetActiveAttrib( program, n, 64, &length, &size, &type, tmp );
+		///////index = glGetAttribLocation(program, tmp );
 		lprintf( WIDE("attribute [%") _cstring_f WIDE("] %d %d %d"), tmp, index, size, type );
 	}
 
-	glGetProgramiv( program, GL_ACTIVE_UNIFORMS, &m );
+	///////glGetProgramiv( program, GL_ACTIVE_UNIFORMS, &m );
 	for( n = 0; n < m; n++ )
 	{
 		char tmp[64];
 		int length;
 		int size;
 		unsigned int type;
-		glGetActiveUniform( program, n, 64, &length, &size, &type, tmp );
+		///////glGetActiveUniform( program, n, 64, &length, &size, &type, tmp );
 		lprintf( WIDE("uniform [%")_cstring_f  WIDE("] %d %d"), tmp, size, type );
 	}
 }
 
+
+struct thread_compiler *GetCompiler() {
+	PTHREAD me = MakeThread();
+	struct thread_compiler *compiler;
+	INDEX idx;
+	LIST_FORALL( l.compilerPool, idx, struct thread_compiler*, compiler ) {
+		if( compiler->thread == me )
+			break;
+	}
+	if( !compiler ) {
+		compiler = New(struct thread_compiler);
+		compiler->thread = me;
+		compiler->compiler = shaderc_compiler_initialize();
+		AddLink( &l.compilerPool, compiler );
+	}
+	return compiler;
+}
+
+//      shaderc_compiler_t compiler = shaderc_compiler_initialize();
+//      shaderc_compilation_result_t result = shaderc_compile_into_spv(
+//          compiler, "#version 450\nvoid main() {}", 27
+//          , shaderc_glsl_vertex_shader, "main.vert", "main"
+//          , nullptr);
+//      // Do stuff with compilation results.
+//      shaderc_result_release(result);
+//      shaderc_compiler_release(compiler);
+
+static struct image_shader_thread_instance * GetInstance( PImageShaderTracker tracker ) {
+	struct image_shader_thread_instance *inst;
+	PTHREAD me = MakeThread();
+	INDEX idx;
+	LIST_FORALL( tracker->instances, idx, struct image_shader_thread_instance *, inst ) {
+		if( inst->thread == me )
+			break;
+	}
+	if( !inst ) {
+		inst = New( struct image_shader_thread_instance );
+		MemSet( inst, 0, sizeof( struct image_shader_thread_instance ) );
+		inst->thread = me;
+	}
+	return inst;
+}
 
 int CompileShaderEx( PImageShaderTracker tracker
 					  , char const*const*vertex_code, int vertex_blocks
 					  , char const*const*frag_code, int frag_blocks
 					  , struct image_shader_attribute_order *attrib_order, int nAttribs )
 {
-	GLint result=123;
-
-	if( result = glGetError() )
-	{
-		lprintf( WIDE("unhandled error before shader: %d"), result );
+	uint32_t result=123;
+	struct thread_compiler *compiler = GetCompiler();
+	struct image_shader_thread_instance *instance = GetInstance( tracker );
+	shaderc_compilation_result_t vresult;
+	shaderc_compilation_result_t fresult;
+	char *code;
+	int n;
+	int blocklen = 0;
+	int len = 0;
+	for( n = 0; n < vertex_blocks; n++ ) {
+		len += StrLen( vertex_code[n] );
+	}
+	code = NewArray( char, len + 1 );
+	len = 0;
+	for( n = 0; n < vertex_blocks; n++ ) {
+		MemCpy( code + len, vertex_code[n], blocklen = StrLen( vertex_code[n] ) );
+		len += blocklen;
 	}
 
-	//Obtain a valid handle to a vertex shader object.
-	tracker->glVertexProgramId = glCreateShader(GL_VERTEX_SHADER);
-	CheckErrf(WIDE("vertex shader fail"));
+	vresult = shaderc_compile_into_spv(
+		compiler->compiler
+		, code, len
+		, shaderc_glsl_vertex_shader
+		, "vert_source"
+		, "main"
+		, NULL );
+	Deallocate( char*, code );
 
+	if( shaderc_result_get_num_errors( vresult ) ) {
+		const char *err;
+		shaderc_result_get_error_message( vresult );
+		shaderc_result_release( vresult );
+		lprintf( "Errors found compiling vertex shader: %s", err );
+		return -1;
+	}
+
+	len = 0;
+	for( n = 0; n < frag_blocks; n++ ) {
+		len += StrLen( frag_code[n] );
+	}
+	code = NewArray( char, len + 1 );
+	len = 0;
+	for( n = 0; n < frag_blocks; n++ ) {
+		MemCpy( code + len, frag_code[n], blocklen = StrLen( frag_code[n] ) );
+		len += blocklen;
+	}
+
+	fresult = shaderc_compile_into_spv(
+		compiler->compiler
+		, code, len
+		, shaderc_glsl_fragment_shader
+		, "frag_source"
+		, "main"
+		, NULL );
+	Deallocate( char*, code );
+
+	
+
+	instance->spv_vertex = (uint32_t*)shaderc_result_get_bytes( vresult );
+	instance->spv_fragment = (uint32_t*)shaderc_result_get_bytes( fresult );
+
+	shaderc_result_release( vresult );
+	shaderc_result_release( fresult );
+
+	return 0;
 	//Now, compile the shader source. 
 	//Note that glShaderSource takes an array of chars. This is so that one can load multiple vertex shader files at once.
 	//This is similar in function to linking multiple C++ files together. Note also that there can only be one "void main" definition
 	//In all of the linked source files that are compiling with this funciton.
-	glShaderSource(
-		tracker->glVertexProgramId, //The handle to our shader
-		vertex_blocks, //The number of files.
-		(const GLchar **)vertex_code, //An array of const char * data, which represents the source code of theshaders
-		(const GLint *)NULL); //An array of string leng7ths. For have null terminated strings, pass NULL.
-	 
-	//Attempt to compile the shader.
-	glCompileShader(tracker->glVertexProgramId);
-	{
-		//Error checking.
-#ifdef USE_GLES2
-		glGetShaderiv(tracker->glVertexProgramId, GL_COMPILE_STATUS, &result);
-#else
-		glGetObjectParameterivARB(tracker->glVertexProgramId, GL_OBJECT_COMPILE_STATUS_ARB, &result);
-#endif
-		if (!result)
-		{
-			GLint length;
-			GLsizei final;
-			char *buffer;
-			//We failed to compile.
-			lprintf(WIDE("Vertex shader %s:'program A' failed compilation.\n")
-					 , tracker->name );
-			//Attempt to get the length of our error log.
-#ifdef USE_GLES2
-			lprintf( WIDE("length starts at %d"), length );
-			glGetShaderiv(tracker->glVertexProgramId, GL_INFO_LOG_LENGTH, &length);
 
-#else
-			glGetObjectParameterivARB(tracker->glVertexProgramId, GL_OBJECT_INFO_LOG_LENGTH_ARB, &length);
-#endif
-			buffer = NewArray( char, length );
-			//Create a buffer.
-			buffer[0] = 0;
-					
-			//Used to get the final length of the log.
+#if PORTED 
+
 #ifdef USE_GLES2
-			glGetShaderInfoLog( tracker->glVertexProgramId, length, &final, buffer);
+	glAttachShader(tracker->vkProgramId, tracker->glVertexProgramId );
 #else
-			glGetInfoLogARB(tracker->glVertexProgramId, length, &final, buffer);
-#endif
-			//Convert our buffer into a string.
-			lprintf( WIDE("message: (%d of %d)%s"),  final, length, DupCStr(buffer) );
-
-
-			if (final > length)
-			{
-				//The buffer does not contain all the shader log information.
-				lprintf(WIDE("Shader Log contained more information!\n"));
-			}
-			Deallocate( char*, buffer );
-		}
-	}
-
-	tracker->glFragProgramId = glCreateShader(GL_FRAGMENT_SHADER);
-	CheckErrf(WIDE("create shader"));
-	glShaderSource(
-		tracker->glFragProgramId, //The handle to our shader
-		frag_blocks, //The number of files.
-		(const GLchar **)frag_code, //An array of const char * data, which represents the source code of theshaders
-		(const GLint *)NULL); //An array of string lengths. For have null terminated strings, pass NULL.
-	CheckErrf(WIDE("set source fail"));
-	 
-	//Attempt to compile the shader.
-	glCompileShader(tracker->glFragProgramId);
-	CheckErrf(WIDE("compile fail %d"), tracker->glFragProgramId);
-
-	{
-		//Error checking.
-#ifdef USE_GLES2
-		glGetShaderiv(tracker->glFragProgramId, GL_COMPILE_STATUS, &result);
-#else
-		glGetObjectParameterivARB(tracker->glFragProgramId, GL_OBJECT_COMPILE_STATUS_ARB, &result);
-#endif
-		if (!result)
-		{
-			GLint length;
-			GLsizei final;
-			char *buffer;
-			//We failed to compile.
-			lprintf(WIDE("Vertex shader %s:'program B' failed compilation.\n")
-					 , tracker->name );
-			//Attempt to get the length of our error log.
-#ifdef USE_GLES2
-			glGetShaderiv(tracker->glFragProgramId, GL_INFO_LOG_LENGTH, &length);
-#else
-			glGetObjectParameterivARB(tracker->glFragProgramId, GL_OBJECT_INFO_LOG_LENGTH_ARB, &length);
-#endif
-			buffer = NewArray( char, length );
-			buffer[0] = 0;
-			//Create a buffer.
-					
-			//Used to get the final length of the log.
-#ifdef USE_GLES2
-			glGetShaderInfoLog( tracker->glFragProgramId, length, &final, buffer);
-#else
-			glGetInfoLogARB(tracker->glFragProgramId, length, &final, buffer);
-#endif
-			//Convert our buffer into a string.
-			lprintf( WIDE("message: %s"), buffer );
-
-
-			if (final > length)
-			{
-				//The buffer does not contain all the shader log information.
-				printf(WIDE("Shader Log contained more information!\n"));
-			}
-			Deallocate( char*, buffer );
-		
-		}
-	}
-	tracker->glProgramId = glCreateProgram();
-	CheckErrf(WIDE("create fail %d"), tracker->glProgramId);
-#ifdef USE_GLES2
-	glAttachShader(tracker->glProgramId, tracker->glVertexProgramId );
-#else
-	glAttachObjectARB(tracker->glProgramId, tracker->glVertexProgramId );
+	glAttachObjectARB(tracker->vkProgramId, tracker->glVertexProgramId );
 #endif
 	CheckErrf(WIDE("attach fail"));
 #ifdef USE_GLES2
-	glAttachShader(tracker->glProgramId, tracker->glFragProgramId );
+	glAttachShader(tracker->vkProgramId, tracker->glFragProgramId );
 #else
-	glAttachObjectARB(tracker->glProgramId, tracker->glFragProgramId );
+	glAttachObjectARB(tracker->vkProgramId, tracker->glFragProgramId );
 #endif
 	CheckErrf( WIDE(" attach2 fail") );
 
@@ -460,20 +459,20 @@ int CompileShaderEx( PImageShaderTracker tracker
 #else
 			lprintf( WIDE("Bind Attrib Location: %d %s"), attrib_order[n].n, attrib_order[n].name );
 #endif
-			glBindAttribLocation(tracker->glProgramId, attrib_order[n].n, attrib_order[n].name );
+			glBindAttribLocation(tracker->vkProgramId, attrib_order[n].n, attrib_order[n].name );
 			CheckErrf( WIDE("bind attrib location") );
 		}
 	}
 
 
-	glLinkProgram(tracker->glProgramId);
+	glLinkProgram(tracker->vkProgramId);
 	CheckErr();
-	glUseProgram(tracker->glProgramId);
+	glUseProgram(tracker->vkProgramId);
 	CheckErr();
 	SetupCommon( tracker );
-
-	DumpAttribs( tracker, tracker->glProgramId );
-	return tracker->glProgramId;
+#endif
+	DumpAttribs( tracker, tracker->vkProgramId );
+	return tracker->vkProgramId;
 }
 
 
@@ -486,11 +485,11 @@ void SetShaderModelView( PImageShaderTracker tracker, RCOORD *matrix )
 {
 	if( tracker )
 	{
-		glUseProgram(tracker->glProgramId);
-		CheckErrf( WIDE("SetModelView for (%s)"), tracker->name );
+		///////glUseProgram(tracker->vkProgramId);
+		///////CheckErrf( WIDE("SetModelView for (%s)"), tracker->name );
 
-		glUniformMatrix4fv( tracker->modelview, 1, GL_FALSE, matrix );
-		CheckErrf( WIDE("SetModelView for (%s)"), tracker->name );
+		///////glUniformMatrix4fv( tracker->modelview, 1, GL_FALSE, matrix );
+		///////CheckErrf( WIDE("SetModelView for (%s)"), tracker->name );
 
 		// modelview already set for shader... so do not set it on enable?
 		tracker->flags.set_modelview = 0;
@@ -561,7 +560,7 @@ static struct image_shader_op * GetShaderOp(PImageShaderTracker tracker, uintptr
 		INDEX idx;
 		struct image_shader_op *last_use;
 		struct image_shader_op *found_use = NULL;
-		LIST_FORALL( l.glActiveSurface->shader_local.tracked_shader_operations, idx, struct image_shader_op *, last_use )
+		LIST_FORALL( l.vkActiveSurface->shader_local.tracked_shader_operations, idx, struct image_shader_op *, last_use )
 		{
 			// if it's found, have to keep going, because we want to find the last one
 			if( last_use->tracker == tracker && last_use->psvKey == tracker->psvInit )
@@ -578,7 +577,7 @@ static struct image_shader_op * GetShaderOp(PImageShaderTracker tracker, uintptr
 			op->from = found_use?found_use->to : 0;
 			op->to = found_use?found_use->to : 0;
 			//glGetBooleanv( GL_DEPTH_TEST, &op->depth_enabled );
-			AddLink( &l.glActiveSurface->shader_local.tracked_shader_operations, op );
+			AddLink( &l.vkActiveSurface->shader_local.tracked_shader_operations, op );
 		}
 		else
 			op = found_use;
@@ -610,29 +609,29 @@ struct image_shader_op * BeginImageShaderOp(PImageShaderTracker tracker, Image t
 {
 	struct image_shader_op *isibo;
 	struct image_shader_image_buffer *image_shader_op;
-	GLboolean depth;
+	LOGICAL depth;
 	if( !tracker )
 		return NULL;
-	glGetBooleanv(GL_DEPTH_TEST, &depth ); 
+	///////glGetBooleanv(GL_DEPTH_TEST, &depth ); 
 
-	if( l.glActiveSurface->shader_local.last_operation 
-		&& l.glActiveSurface->shader_local.last_operation->tracker == tracker
-		&& l.glActiveSurface->shader_local.last_operation->target == target
-		&& l.glActiveSurface->shader_local.last_operation->depth == depth
+	if( l.vkActiveSurface->shader_local.last_operation 
+		&& l.vkActiveSurface->shader_local.last_operation->tracker == tracker
+		&& l.vkActiveSurface->shader_local.last_operation->target == target
+		&& l.vkActiveSurface->shader_local.last_operation->depth == depth
 		)
-		image_shader_op = l.glActiveSurface->shader_local.last_operation;
+		image_shader_op = l.vkActiveSurface->shader_local.last_operation;
 	else
 	{
 		image_shader_op = New( struct image_shader_image_buffer );
-		if( l.glActiveSurface->shader_local.last_operation )
-			l.glActiveSurface->shader_local.last_operation->last_op = NULL;
+		if( l.vkActiveSurface->shader_local.last_operation )
+			l.vkActiveSurface->shader_local.last_operation->last_op = NULL;
 		image_shader_op->target = target;
 		image_shader_op->tracker = tracker;
 		image_shader_op->depth = depth;
 		image_shader_op->output = NULL;
 		image_shader_op->last_op = NULL;
-		AddLink( &l.glActiveSurface->shader_local.image_shader_operations, image_shader_op );
-		l.glActiveSurface->shader_local.last_operation = image_shader_op;
+		AddLink( &l.vkActiveSurface->shader_local.image_shader_operations, image_shader_op );
+		l.vkActiveSurface->shader_local.last_operation = image_shader_op;
 	}
 	{
 		va_list args;

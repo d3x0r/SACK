@@ -1,5 +1,21 @@
 
-set( VULKAN_API c:/general/tools/VulkanSDK/1.0.8.0 )
+if( WIN32 )
+	#GET_FILENAME_COMPONENT(VULKAN_API "[HKEY_LOCAL_MACHINE\\SOFTWARE\\LunarG\\VulkanSDK;VK_SDK_PATHs]" ABSOLUTE CACHE)
+	set( VULKAN_API $ENV{EnvironmentVariableName} )
+message( "VULKAN FROM ENVIRONMENT:" ${VULKAN_API} )
+set( VULKAN_API c:/tools/vulkansdk/1.0.51.0 )
+	STRING( REPLACE ";" "" VULKAN_API ${VULKAN_API})
+	if( NOT VULKAN_API )
+		message( FATAL_ERROR "Environment 'VULKAN_API' has not been set" )
+	endif( NOT VULKAN_API )
+	message( "Vulkan API found at ${VULKAN_API}" )
+else(WIN32)
+	set( VULKAN_API c:/tools/vulkansdk/1.0.51.0 )
+endif( WIN32 )
+SET( SHADERC_SKIP_TESTS ON )
+SET( SHADERC_SKIP_INSTALL ON )
+add_subdirectory( ${VULKAN_API}/shaderc shaderc )
+
 INCLUDE_DIRECTORIES( ${VULKAN_API}/Include )
 if( __64__ )
    LINK_DIRECTORIES( ${VULKAN_API}/Source/lib )
@@ -9,26 +25,13 @@ endif()
 
 project( bag.image.vulkan )
 
-if( WIN32 )
-  INCLUDE_DIRECTORIES( ../../vidlib/puregl/glew-1.9.0/include )
-endif( WIN32 )
-
-if( __ANDROID__ OR __QNX__ )
-ADD_DEFINITIONS( -DUSE_GLES2 )
-endif( __ANDROID__ OR __QNX__ )
-
 ADD_DEFINITIONS( -D__3D__ )
-
-if( ( __NO_ODBC__ AND NOT USE_SQLITE ) OR NOT USE_OPTIONS )
-   ADD_DEFINITIONS( -D__NO_OPTIONS__ )
-endif( ( __NO_ODBC__ AND NOT USE_SQLITE ) OR NOT USE_OPTIONS )
 
 set( font_sources ../font.c ../fntcache.c ../fntrender.c ../lucidaconsole2.c )
 set( loader_sources ../bmpimage.c ../gifimage.c ../pngimage.c ../jpgimage.c )
 set( sprite_sources ../sprite_common.c )
 
-add_library_force_source( ${PROJECT_NAME} SHARED
-${FIRST_GCC_LIBRARY_SOURCE}
+sack_add_library( ${PROJECT_NAME} SHARED
   ../alphatab.c 
   ../alphastab.c
   blotscaled.c blotdirect.c image.c ../image_common.c 
@@ -37,22 +40,24 @@ ${FIRST_GCC_LIBRARY_SOURCE}
   ${font_sources}
   shader simple_shader simple_texture_shader
   simple_multi_shaded_texture_shader.c
-${LAST_GCC_LIBRARY_SOURCE}
 )
 
+SET_PROPERTY(TARGET ${PROJECT_NAME} APPEND PROPERTY COMPILE_DEFINITIONS "_VULKAN_DRIVER" )
+
 SET_TARGET_PROPERTIES(${PROJECT_NAME} PROPERTIES 
-        COMPILE_DEFINITIONS "TARGET_LABEL=${TARGET_LABEL};_OPENGL_DRIVER;MAKE_RCOORD_SINGLE;PURE_OPENGL2_ENABLED" 
         FOLDER "Image Library" 
 )
 
 my_target_link_libraries( ${PROJECT_NAME} ${SACK_CORE_LIBRARY} ${SACK_PLATFORM_LIBRARIES} )
-if( WIN32 )
-my_target_link_libraries( ${PROJECT_NAME} glew glu32 )  # private GLEW library
-endif( WIN32 )
-if( __ANDROID__ OR __QNX__ )
-  my_target_link_libraries( ${PROJECT_NAME} GLESv2 )
-endif( __ANDROID__ OR __QNX__ )
 
-my_target_link_libraries( ${PROJECT_NAME} bag.psi )
+if( __LINUX__ OR __ANDROID__ )
+    set( VULKAN_SHADERC shaderc_combined )
+else()
+    set( VULKAN_SHADERC shaderc )
+endif()
+
+my_target_link_libraries( ${PROJECT_NAME} vulkan-1.lib shaderc )
+
+#my_target_link_libraries( ${PROJECT_NAME} bag.psi )
 
 install_mode_dest( ${PROJECT_NAME} )

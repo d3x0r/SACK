@@ -1,14 +1,5 @@
 #include <stdhdrs.h>
 
-#ifdef USE_GLES2
-//#include <GLES/gl.h>
-#include <GLES2/gl2.h>
-#else
-#define GLEW_NO_GLU
-#include <GL/glew.h>
-#include <GL/gl.h>
-//#include <GL/glu.h>
-#endif
 
 #include "local.h"
 
@@ -100,17 +91,17 @@ void CPROC SimpleShader_Output( PImageShaderTracker tracker, uintptr_t psv, uint
 	//struct simple_shader_op_data *shaderOp = (struct simple_shader_op_data *)psvKey;
 ;
 	EnableShader( tracker );
-	glEnableVertexAttribArray(0);
-	glEnableVertexAttribArray(1);
-	glDisableVertexAttribArray(2);
+	//////glEnableVertexAttribArray(0);
+	//////glEnableVertexAttribArray(1);
+	//////glDisableVertexAttribArray(2);
 
-	glVertexAttribPointer( 0, 3, GL_FLOAT, FALSE, 0, data->data.vert_pos->data );
-	glVertexAttribPointer( 1, 4, GL_FLOAT, FALSE, 0, data->data.vert_color->data );
+	//////glVertexAttribPointer( 0, 3, GL_FLOAT, FALSE, 0, data->data.vert_pos->data );
+	//////glVertexAttribPointer( 1, 4, GL_FLOAT, FALSE, 0, data->data.vert_color->data );
 	//lprintf( WIDE("Set data %p %p  %d,%d"), data->vert_pos->data, data->vert_color->data, from,to );
 	//CheckErr();
 	//glUniform4fv( psv, 1, color );
 	//CheckErr();
-	glDrawArrays( GL_TRIANGLES, from, to- from);
+	//////glDrawArrays( GL_TRIANGLES, from, to- from);
 	CheckErr();
 }
 
@@ -175,7 +166,7 @@ void InitSuperSimpleShader( uintptr_t psv, PImageShaderTracker tracker )
 	const char *v_codeblocks[2];
 	const char *p_codeblocks[2];
 
-	if( l.glslVersion < 140 )
+	if( TRUE ) //////l.glslVersion < 140 )
 	{
 		v_codeblocks[0] = gles_simple_v_shader_1_30;
 		v_codeblocks[1] = NULL;
@@ -191,7 +182,7 @@ void InitSuperSimpleShader( uintptr_t psv, PImageShaderTracker tracker )
 	}
 	if( CompileShader( tracker, v_codeblocks, 1, p_codeblocks, 1 ) )
 	{
-		data->color_attrib = glGetAttribLocation(tracker->glProgramId, "in_Color" );
+		///////data->color_attrib = glGetAttribLocation(tracker->glProgramId, "in_Color" );
 		SetShaderOpInit( tracker, SimpleShader_OpInit );
 		SetShaderOutput( tracker, SimpleShader_Output );
 		SetShaderReset( tracker, SimpleShader_Reset );

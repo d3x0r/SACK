@@ -193,7 +193,7 @@ void SetupDevice()
 				, VK_VERSION_PATCH( deviceProperties.apiVersion ) );
 			{
 				uint32_t queueFamilyCount = 0;
-				uint32_t i , j;
+				uint32_t j;
 				VkQueueFamilyProperties *familyProperties;
 				vkGetPhysicalDeviceQueueFamilyProperties( vl.physicalDevices[i], &queueFamilyCount, NULL );
 				familyProperties = NewArray( VkQueueFamilyProperties, (queueFamilyCount) );
@@ -201,19 +201,17 @@ void SetupDevice()
 				vkGetPhysicalDeviceQueueFamilyProperties( vl.physicalDevices[i], &queueFamilyCount, familyProperties );
 
 				// Print the families
-				for( i = 0; i < deviceCount; i++ ) {
-					for( j = 0; j < queueFamilyCount; j++ ) {
-						printf( "Count of Queues: %d", familyProperties[j].queueCount );
-						printf( "Supported operationg on this queue:" );
-						if( familyProperties[j].queueFlags & VK_QUEUE_GRAPHICS_BIT )
-							lprintf( "\t\t Graphics" );
-						if( familyProperties[j].queueFlags & VK_QUEUE_COMPUTE_BIT )
-							lprintf( "\t\t Compute" );
-						if( familyProperties[j].queueFlags & VK_QUEUE_TRANSFER_BIT )
-							lprintf( "\t\t Transfer" );
-						if( familyProperties[j].queueFlags & VK_QUEUE_SPARSE_BINDING_BIT )
-							lprintf( "\t\t Sparse Binding" );
-					}
+				for( j = 0; j < queueFamilyCount; j++ ) {
+					lprintf( "Count of Queues: %d", familyProperties[j].queueCount );
+					lprintf( "Supported operationg on this queue:" );
+					if( familyProperties[j].queueFlags & VK_QUEUE_GRAPHICS_BIT )
+						lprintf( "\t\t Graphics" );
+					if( familyProperties[j].queueFlags & VK_QUEUE_COMPUTE_BIT )
+						lprintf( "\t\t Compute" );
+					if( familyProperties[j].queueFlags & VK_QUEUE_TRANSFER_BIT )
+						lprintf( "\t\t Transfer" );
+					if( familyProperties[j].queueFlags & VK_QUEUE_SPARSE_BINDING_BIT )
+						lprintf( "\t\t Sparse Binding" );
 				}
 			}
 		}

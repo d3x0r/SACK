@@ -1,10 +1,16 @@
 
 if( WIN32 )
-	GET_FILENAME_COMPONENT(VULKAN_API "[HKEY_LOCAL_MACHINE\\SOFTWARE\\LunarG\\VulkanSDK;VK_SDK_PATHs]" ABSOLUTE CACHE)
+	#GET_FILENAME_COMPONENT(VULKAN_API "[HKEY_LOCAL_MACHINE\\SOFTWARE\\LunarG\\VulkanSDK;VK_SDK_PATHs]" ABSOLUTE CACHE)
+	set( VULKAN_API $ENV{EnvironmentVariableName} )
+message( "VULKAN FROM ENVIRONMENT:" ${VULKAN_API} )
+set( VULKAN_API c:/tools/vulkansdk/1.0.51.0 )
 	STRING( REPLACE ";" "" VULKAN_API ${VULKAN_API})
+	if( NOT VULKAN_API )
+		message( FATAL_ERROR "Environment 'VULKAN_API' has not been set" )
+	endif( NOT VULKAN_API )
 	message( "Vulkan API found at ${VULKAN_API}" )
 else(WIN32)
-	set( VULKAN_API c:/general/tools/VulkanSDK/1.0.8.0 )
+	set( VULKAN_API c:/tools/vulkansdk/1.0.51.0 )
 endif( WIN32 )
 
 
@@ -47,9 +53,7 @@ else( __LINUX__ )
 endif( __LINUX__ )
 
 sack_add_library( bag.video.vulkan SHARED
-${FIRST_GCC_LIBRARY_SOURCE}
      ${SOURCES}
-${LAST_GCC_LIBRARY_SOURCE}
 )
 
 # _OPENGL_ENABLED flag controls member additions to the vidlib structure; HRC for instance
@@ -62,21 +66,7 @@ else()
   my_target_link_libraries( bag.video.vulkan  vulkan )
 endif()
 
-if( __ANDROID__ OR __QNX__ )
-  # glOrthof is GLES1 and is used by 'glues' PROJECT
-  my_target_link_libraries( bag.video.vulkan ${SACK_CORE_LIBRARY} EGL GLESv2 GLESv1_CM android log )
-  #DD_DEFINITIONS( -D__USE_FREEGLUT__ )
-  #nclude_directories( ${SOURCES_ROOT}src/freeglut/freeglut-SVN/include )
-  if( NOT __QNX__ )
-  my_target_link_libraries( bag.video.vulkan  m )
-  endif( NOT __QNX__ )
-else( __ANDROID__ OR __QNX__ )
-  if( __LINUX__ )
-    my_target_link_libraries( bag.video.vulkan ${SACK_CORE_LIBRARY} ${SACK_PLATFORM_LIBRARIES} )
-  else( __LINUX__ )
-    my_target_link_libraries( bag.video.vulkan ${SACK_CORE_LIBRARY} opengl32 glu32 glew )
-  endif( __LINUX__ )
-endif( __ANDROID__ OR __QNX__ )
+ my_target_link_libraries( bag.video.vulkan ${SACK_CORE_LIBRARY} ${SACK_PLATFORM_LIBRARIES} )
 
 install_mode_dest( bag.video.vulkan )
 

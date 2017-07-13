@@ -1,15 +1,5 @@
 #include <stdhdrs.h>
 
-#ifdef USE_GLES2
-//#include <GLES/gl.h>
-#include <GLES2/gl2.h>
-#else
-#define GLEW_NO_GLU
-#include <GL/glew.h>
-#include <GL/gl.h>
-//#include <GL/glu.h>
-#endif
-
 #include "local.h"
 
 #include "shaders.h"
@@ -180,27 +170,27 @@ static void CPROC SimpleTextureOutput( PImageShaderTracker tracker, uintptr_t ps
 	struct private_shader_texture_data *texture;
 
 	//glUniform4fv( tracker->color_attrib, 1, GL_FALSE, color );
-	glEnableVertexAttribArray(0);
-	glEnableVertexAttribArray(data->texture_attrib);
-	glDisableVertexAttribArray(2);
+	///////glEnableVertexAttribArray(0);
+	///////glEnableVertexAttribArray(data->texture_attrib);
+	///////glDisableVertexAttribArray(2);
 
 	EnableShader( tracker );
 	texture = (struct private_shader_texture_data *)psvKey;
 	//LIST_FORALL( data->vert_data, idx, struct private_shader_texture_data *, texture )
 	{
 
-		glVertexAttribPointer( 0, 3, GL_FLOAT, FALSE, 0, texture->vert_pos->data );
-		CheckErr();
-		glVertexAttribPointer( data->texture_attrib, 2, GL_FLOAT, FALSE, 0, texture->vert_texture_uv->data );            
-		CheckErr();
-		glActiveTexture(GL_TEXTURE0 + 0);
-		CheckErr();
-		glBindTexture(GL_TEXTURE_2D+0, texture->texture);
-		CheckErr();
-		glUniform1i( data->texture_uniform, 0 );
-		CheckErr();
+		//////glVertexAttribPointer( 0, 3, GL_FLOAT, FALSE, 0, texture->vert_pos->data );
+		//////CheckErr();
+		//////glVertexAttribPointer( data->texture_attrib, 2, GL_FLOAT, FALSE, 0, texture->vert_texture_uv->data );            
+		//////CheckErr();
+		//////glActiveTexture(GL_TEXTURE0 + 0);
+		//////CheckErr();
+		//////glBindTexture(GL_TEXTURE_2D+0, texture->texture);
+		//////CheckErr();
+		//////glUniform1i( data->texture_uniform, 0 );
+		//////CheckErr();
 		//lprintf( WIDE("Set data %p %p %d,%d"), texture->vert_pos->data, texture->vert_texture_uv->data, from,to );
-		glDrawArrays( GL_TRIANGLES, from, to - from );
+		//////glDrawArrays( GL_TRIANGLES, from, to - from );
 
 		//texture->vert_pos->used = 0;
 		//texture->vert_texture_uv->used = 0;
@@ -276,7 +266,7 @@ void InitSimpleTextureShader( uintptr_t psv_data, PImageShaderTracker tracker )
 	SetShaderOpInit( tracker, SimpleTextureShader_OpInit );
 	SetShaderAppendTristrip( tracker, SimpleTexture_AppendTristrip );
 
-	if( l.glslVersion < 140 )
+	if( TRUE ) ///////l.glslVersion < 140 )
 	{
 		v_codeblocks[0] = gles_simple_v_shader_1_30;
 		v_codeblocks[1] = NULL;
@@ -297,8 +287,8 @@ void InitSimpleTextureShader( uintptr_t psv_data, PImageShaderTracker tracker )
 			data = New( struct private_shader_data );
 			data->vert_data = NULL;
 		}
-		data->texture_uniform = glGetUniformLocation(tracker->glProgramId, "tex");
-		data->texture_attrib =  glGetAttribLocation(tracker->glProgramId, "in_texCoord" );
+		///////data->texture_uniform = glGetUniformLocation(tracker->glProgramId, "tex");
+		///////data->texture_attrib =  glGetAttribLocation(tracker->glProgramId, "in_texCoord" );
 		//data->color_attrib =  glGetAttribLocation(tracker->glProgramId, "in_color" );
 		//return (uintptr_t)data;
 	}
@@ -321,30 +311,30 @@ static void CPROC SimpleTextureOutput2( PImageShaderTracker tracker, uintptr_t p
 {
 	struct private_shader_data *data = (struct private_shader_data *)psv;
 	struct private_shader_texture_data *texture;
-	glEnableVertexAttribArray(0);	CheckErr();
-	glEnableVertexAttribArray(data->texture_attrib);	CheckErr();
-	glEnableVertexAttribArray(data->color_attrib);	CheckErr();
+	///////glEnableVertexAttribArray(0);	CheckErr();
+	///////glEnableVertexAttribArray(data->texture_attrib);	CheckErr();
+	///////glEnableVertexAttribArray(data->color_attrib);	CheckErr();
 	EnableShader( tracker );
 	//lprintf( WIDE("Specific is %p"), psvKey );
 	texture = (struct private_shader_texture_data *)psvKey;
 	//LIST_FORALL( data->vert_data, idx, struct private_shader_texture_data *, texture )
 	{
-		glVertexAttribPointer( 0, 3, GL_FLOAT, FALSE, 0, texture->vert_pos->data );  
-		CheckErr();
-		glVertexAttribPointer( data->texture_attrib, 2, GL_FLOAT, FALSE, 0, texture->vert_texture_uv->data );  
-		CheckErr();
-		glVertexAttribPointer( data->color_attrib, 4, GL_FLOAT, FALSE, 0, texture->vert_color->data );  
-		CheckErr();
+		//////glVertexAttribPointer( 0, 3, GL_FLOAT, FALSE, 0, texture->vert_pos->data );  
+		//////CheckErr();
+		//////glVertexAttribPointer( data->texture_attrib, 2, GL_FLOAT, FALSE, 0, texture->vert_texture_uv->data );  
+		//////CheckErr();
+		//////glVertexAttribPointer( data->color_attrib, 4, GL_FLOAT, FALSE, 0, texture->vert_color->data );  
+		//////CheckErr();
 
 		//When rendering an objectwith this program.
-		glActiveTexture(GL_TEXTURE0 + 0);
-		CheckErr();
-		glBindTexture(GL_TEXTURE_2D+0, texture->texture);
-		CheckErr();
-		glUniform1i( data->texture_uniform, 0 );
-		CheckErr();
+		//////glActiveTexture(GL_TEXTURE0 + 0);
+		//////CheckErr();
+		//////glBindTexture(GL_TEXTURE_2D+0, texture->texture);
+		//////CheckErr();
+		//////glUniform1i( data->texture_uniform, 0 );
+		//////CheckErr();
 		//lprintf( WIDE("Set data %p %p %p %d,%d"), texture->vert_pos->data, texture->vert_color->data,  texture->vert_texture_uv->data, from,to );
-		glDrawArrays( GL_TRIANGLES, from, to - from );
+		//////glDrawArrays( GL_TRIANGLES, from, to - from );
 	}
 }
 
@@ -423,7 +413,7 @@ void InitSimpleShadedTextureShader( uintptr_t psv, PImageShaderTracker tracker )
 	SetShaderReset( tracker, SimpleTextureReset2 );
 	SetShaderOpInit( tracker, SimpleTextureShader_OpInit2 );
 
-	if( l.glslVersion < 140 )
+	if( TRUE ) //////l.glslVersion < 140 )
 	{
 		v_codeblocks[0] = gles_simple_v_shader_shaded_texture_1_30;
 		v_codeblocks[1] = NULL;
@@ -439,9 +429,9 @@ void InitSimpleShadedTextureShader( uintptr_t psv, PImageShaderTracker tracker )
 	}
 	if( CompileShaderEx( tracker, v_codeblocks, 1, p_codeblocks, 1, attribs, 3 ) )
 	{
-		data->color_attrib = glGetAttribLocation(tracker->glProgramId, "in_Color" );
-		data->texture_attrib =  glGetAttribLocation(tracker->glProgramId, "in_texCoord" );
-		data->texture_uniform = glGetUniformLocation(tracker->glProgramId, "tex");
+		//////data->color_attrib = glGetAttribLocation(tracker->glProgramId, "in_Color" );
+		//////data->texture_attrib =  glGetAttribLocation(tracker->glProgramId, "in_texCoord" );
+		//////data->texture_uniform = glGetUniformLocation(tracker->glProgramId, "tex");
 		//return (uintptr_t)data;
 	}
   // return 0;
