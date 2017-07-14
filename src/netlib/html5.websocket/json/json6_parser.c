@@ -874,7 +874,7 @@ LOGICAL json6_parse_message( TEXTSTR msg
 				break;
 
 			default:
-				if( ( c >= '0' && c <= '9' ) || ( c == '+' ) )
+				if( ( c >= '0' && c <= '9' ) || ( c == '+' ) || ( c == '.' ) )
 				{
 					LOGICAL fromHex;
 					fromHex = FALSE;
@@ -890,7 +890,6 @@ LOGICAL json6_parse_message( TEXTSTR msg
 						n = (msg_input - msg );
 						// leading zeros should be forbidden.
 						if( ( c >= '0' && c <= '9' )
-							|| ( c == '-' )
 							|| ( c == '+' )
 						  )
 						{
