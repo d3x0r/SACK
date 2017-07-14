@@ -83,7 +83,6 @@ LOGICAL json_parse_message( TEXTSTR msg
 	PPARSE_CONTEXT context = GetFromSet( PARSE_CONTEXT, &parseContexts );
 	int parse_context = CONTEXT_UNKNOWN;
 	struct json_value_container val;
-	int comment = 0;
 
 	char const * msg_input = (char const *)msg;
 	char const * _msg_input;
@@ -101,31 +100,8 @@ LOGICAL json_parse_message( TEXTSTR msg
 	while( status && ( n < msglen ) && ( c = GetUtfChar( &msg_input ) ) )
 	{
 		n = msg_input - msg;
-		if( comment ) {
-			if( comment == 1 ) {
-				if( c == '*' ) { comment = 3; continue; }
-				if( c != '/' ) { lprintf( WIDE("Fault while parsing; unexpected %c at %") _size_f, c, n ); status = FALSE; }
-				else comment = 2;
-				continue;
-			}
-			if( comment == 2 ) {
-				if( c == '\n' ) { comment = 0; continue; }
-				else continue;
-			}
-			if( comment == 3 ){
-				if( c == '*' ) { comment = 4; continue; }
-				else continue;
-			}
-			if( comment == 4 ) {
-				if( c == '/' ) { comment = 0; continue; }
-				else { if( c != '*' ) comment = 3; continue; }
-			}
-		}
 		switch( c )
 		{
-		case '/':
-			if( !comment ) comment = 1;
-			break;
 		case '{':
 			{
 				struct json_parse_context *old_context = GetFromSet( PARSE_CONTEXT, &parseContexts );
@@ -357,7 +333,6 @@ LOGICAL json_parse_message( TEXTSTR msg
 		//  catch characters for true/false/null/undefined which are values outside of quotes
 			case 't':
 				if( word == WORD_POS_RESET ) word = WORD_POS_TRUE_1;
-				else if( word == WORD_POS_INFINITY_6 ) word = WORD_POS_INFINITY_7;
 				else lprintf( WIDE("fault while parsing; '%c' unexpected at %") _size_f, c, n );// fault
 				break;
 			case 'r':
@@ -385,8 +360,6 @@ LOGICAL json_parse_message( TEXTSTR msg
 				if( word == WORD_POS_RESET ) word = WORD_POS_NULL_1;
 				else if( word == WORD_POS_UNDEFINED_1 ) word = WORD_POS_UNDEFINED_2;
 				else if( word == WORD_POS_UNDEFINED_6 ) word = WORD_POS_UNDEFINED_7;
-				else if( word == WORD_POS_INFINITY_1 ) word = WORD_POS_INFINITY_2;
-				else if( word == WORD_POS_INFINITY_5 ) word = WORD_POS_INFINITY_6;
 				else lprintf( WIDE("fault while parsing; '%c' unexpected at %") _size_f, c, n );// fault
 				break;
 			case 'd':
@@ -396,8 +369,6 @@ LOGICAL json_parse_message( TEXTSTR msg
 				break;
 			case 'i':
 				if( word == WORD_POS_UNDEFINED_5 ) word = WORD_POS_UNDEFINED_6;
-				else if( word == WORD_POS_INFINITY_3 ) word = WORD_POS_INFINITY_4;
-				else if( word == WORD_POS_INFINITY_5 ) word = WORD_POS_INFINITY_6;
 				else lprintf( WIDE("fault while parsing; '%c' unexpected at %") _size_f, c, n );// fault
 				break;
 			case 'l':
@@ -411,29 +382,14 @@ LOGICAL json_parse_message( TEXTSTR msg
 			case 'f':
 				if( word == WORD_POS_RESET ) word = WORD_POS_FALSE_1;
 				else if( word == WORD_POS_UNDEFINED_4 ) word = WORD_POS_UNDEFINED_5;
-				else if( word == WORD_POS_INFINITY_2 ) word = WORD_POS_INFINITY_3;
 				else lprintf( WIDE("fault while parsing; '%c' unexpected at %") _size_f, c, n );// fault
 				break;
 			case 'a':
 				if( word == WORD_POS_FALSE_1 ) word = WORD_POS_FALSE_2;
-				else if( word == WORD_POS_NAN_1 ) word = WORD_POS_NAN_2;
 				else lprintf( WIDE("fault while parsing; '%c' unexpected at %") _size_f, c, n );// fault
 				break;
 			case 's':
 				if( word == WORD_POS_FALSE_3 ) word = WORD_POS_FALSE_4;
-				else lprintf( WIDE("fault while parsing; '%c' unexpected at %") _size_f, c, n );// fault
-				break;
-			case 'I':
-				if( word == WORD_POS_RESET ) word = WORD_POS_INFINITY_1;
-				else lprintf( WIDE("fault while parsing; '%c' unexpected at %") _size_f, c, n );// fault
-				break;
-			case 'N':
-				if( word == WORD_POS_RESET ) word = WORD_POS_NAN_1;
-				else if( word == WORD_POS_NAN_2 ) { val.value_type = negative ? VALUE_NEG_NAN : VALUE_NAN; word = WORD_POS_RESET; }
-				else lprintf( WIDE("fault while parsing; '%c' unexpected at %") _size_f, c, n );// fault
-				break;
-			case 'y':
-				if( word == WORD_POS_INFINITY_7 ) { val.value_type = negative ? VALUE_NEG_INFINITY : VALUE_INFINITY; word = WORD_POS_RESET; }
 				else lprintf( WIDE("fault while parsing; '%c' unexpected at %") _size_f, c, n );// fault
 				break;
 		//
