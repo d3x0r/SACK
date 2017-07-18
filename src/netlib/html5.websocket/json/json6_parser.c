@@ -877,7 +877,10 @@ LOGICAL json6_parse_message( TEXTSTR msg
 				if( ( c >= '0' && c <= '9' ) || ( c == '+' ) || ( c == '.' ) )
 				{
 					LOGICAL fromHex;
+					LOGICAL fromDate;
 					fromHex = FALSE;
+					fromDate = FALSE;
+
 					// always reset this here....
 					// keep it set to determine what sort of value is ready.
 					val.float_result = 0;
@@ -895,6 +898,18 @@ LOGICAL json6_parse_message( TEXTSTR msg
 						{
 							(*mOut++) = c;
 						}
+#if 0
+// to be implemented
+ 						else if( c == ':' || c == '-' || c == 'Z' || c == '+' ) {
+/* toISOString()
+var today = new Date('05 October 2011 14:48 UTC');
+console.log(today.toISOString()); 
+// Returns 2011-10-05T14:48:00.000Z
+*/
+							(*mOut++) = c;
+							
+						}
+#endif
 						else if( c == 'x' || c == 'b' ) {
 							// hex conversion.
 							if( !fromHex ) {
