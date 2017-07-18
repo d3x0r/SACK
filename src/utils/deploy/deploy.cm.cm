@@ -295,16 +295,14 @@ if( WIN32 )
                         loginfo.module 
                         seed_random.module 
                         sack_vfs.module 
+                        sack_vfs.pp.module 
                     )
-		#SET( literal_libfile_list ${literal_libfile_list} 
-                #        ${CMAKE_SHARED_LIBRARY_PREFIX}MatrixSSL${CMAKE_SHARED_LIBRARY_SUFFIX} )
-                #        
                     if( INSTALL_EXTRAS )
-		SET( literal_libfile_list ${literal_libfile_list} 
+		SET( profile_list ${progfile_list} 
                         sack_vfs_command.exe
                         )
                     if( NOT MINGW )
-		SET( literal_libfile_list ${literal_libfile_list} 
+		SET( progfile_list ${progfile_list} 
                         sack_vfs_runner.exe
                         sack_vfs_runner_min.exe
                         sack_vfs_runner_sfx.exe
@@ -404,23 +402,16 @@ endif( DIRECTX_SDK AND NOT WATCOM AND NOT CMAKE_C_COMPILER_ID STREQUAL "GNU" )
 		FILE( APPEND ${FILEOUT} "endif( \"$" "{ARGV2}\" STREQUAL \"\" )\n" )
 
 
-		foreach( lib ${ffmpeg_libraries} ${openal_libraries} )
-			FILE( APPEND ${FILEOUT} "install( PROGRAMS $" "{SACK_BASE}/${SHARED_LIBPATH}/${lib} DESTINATION $" "{LIBRARY_OUTPUT_DIR} )\n" )
-                endforeach( lib )
+		FILE( APPEND ${FILEOUT} "install( PROGRAMS $" "{ffmpeg_libraries} $" "{openal_libraries} DESTINATION $" "{LIBRARY_OUTPUT_DIR} )\n" )
                 
                 foreach( lib ${CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS} )              
 			FILE( APPEND ${FILEOUT} "install( PROGRAMS \"${lib}\" DESTINATION $" "{LIBRARY_OUTPUT_DIR} )\n" )
                 endforeach( lib  )              
-                foreach( lib ${libfile_list} )              
-			FILE( APPEND ${FILEOUT} "install( PROGRAMS $" "{SACK_BASE}/${SHARED_LIBPATH}/@CMAKE_SHARED_LIBRARY_PREFIX@${lib}@CMAKE_SHARED_LIBRARY_SUFFIX@ DESTINATION $" "{LIBRARY_OUTPUT_DIR} )\n" )
-                endforeach( lib  )              
+
+		FILE( APPEND ${FILEOUT} "install( PROGRAMS $" "{sack_libfile_list} DESTINATION $" "{LIBRARY_OUTPUT_DIR} )\n" )
 if( NOT __ANDROID__ )                
-                foreach( lib ${literal_libfile_list} )              
-			FILE( APPEND ${FILEOUT} "install( PROGRAMS $" "{SACK_BASE}/${SHARED_LIBPATH}/${lib} DESTINATION $" "{LIBRARY_OUTPUT_DIR} )\n" )
-                endforeach( lib  )              
-                foreach( lib ${progfile_list} )              
-			FILE( APPEND ${FILEOUT} "install( PROGRAMS $" "{SACK_BASE}/${SHARED_BINPATH}/${lib}@CMAKE_EXECUTABLE_SUFFIX@ DESTINATION $" "{dest} )\n" )
-                endforeach( lib  )              
+		FILE( APPEND ${FILEOUT} "install( PROGRAMS $" "{sack_literal_libfile_list} DESTINATION $" "{LIBRARY_OUTPUT_DIR} )\n" )
+		FILE( APPEND ${FILEOUT} "install( PROGRAMS $" "{sack_progfile_list} DESTINATION $" "{LIBRARY_OUTPUT_DIR} )\n" )
 else( NOT __ANDROID__ )                
                 foreach( lib ${literal_libfile_list} )              
 			FILE( APPEND ${FILEOUT} "install( PROGRAMS $" "{SACK_BASE}/${SHARED_LIBPATH}/${lib} DESTINATION $" "{LIBRARY_OUTPUT_DIR} )\n" )
