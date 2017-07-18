@@ -1812,7 +1812,7 @@ int64_t IntCreateFromText( CTEXTSTR p )
 		else
 		{
 			if( ( !altBase ) && (*p == '0') ) { altBase = TRUE; base = 8; }
-			else if( (*p - '0') >= base ) { break; }
+			else { if( (*p - '0') >= base ) { break; } altBase = TRUE; }
 			num *= base;
 			num += *p - '0';
 		}
