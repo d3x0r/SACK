@@ -237,8 +237,8 @@ typedef struct HVIDEO_tag
 		uint32_t b;
 	} mouse;
 
-	uint32_t idle_timer_id;
-	uint32_t top_force_timer_id;
+	uintptr_t idle_timer_id;
+	uintptr_t top_force_timer_id;
 	MouseCallback pMouseCallback;
 	uintptr_t  dwMouseData;
 	HideAndRestoreCallback pHideCallback;
@@ -345,6 +345,10 @@ typedef struct HVIDEO_tag
 		uint32_t width, height;
 		int target_display;
 	}full_screen;
+	struct video_struct_portion_update {
+		LOGICAL pending;
+		uint32_t x, y, w, h;
+	} portion_update;
 } VIDEO, *PVIDEO;
 
 RENDER_NAMESPACE_END
