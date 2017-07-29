@@ -734,12 +734,37 @@ RENDER_PROC (void, UpdateDisplayPortionEx)( PVIDEO hVideo
 				if( !thread )
 				{
 					RECT r;
+					hVideo->portion_update.pending = TRUE;
+					if( x < 0 ) {
+						if( (x + (int)w ) < 1 )
+							return;
+						else {
+							hVideo->portion_update.x = 0;
+							hVideo->portion_update.w = (uint32_t)(w + x);
+						}	
+					}
+					else {
+						hVideo->portion_update.x = (uint32_t)x;
+						hVideo->portion_update.w = w;
+					}
+					if( y < 0 ) {
+						if( (y + (int)h ) < 1 )
+							return;
+						else {
+							hVideo->portion_update.y = 0;
+							hVideo->portion_update.h = (uint32_t)(h + y);
+						}	
+					}
+					else {
+						hVideo->portion_update.y = (uint32_t)y;
+						hVideo->portion_update.h = h;
+					}
+
 					if( l.flags.bPostedInvalidate )
 					{
 						//lprintf( WIDE( "saving from double posting... still processing prior update." ) );
 						return;
 					}
-
 					r.left = x;
 					r.top = y;
 					r.right = r.left + w;
@@ -1359,7 +1384,7 @@ LRESULT CALLBACK
 						{
 							if( l.flags.bLogKeyEvent )
 								lprintf( WIDE( "already dispatched, delay it." ) );
-							EnqueLink( &hVideo->pInput, (POINTER)key );
+							EnqueLink( &hVideo->pInput, (POINTER)(uintptr_t)key );
 						}
 						else
 						{
@@ -1413,7 +1438,7 @@ LRESULT CALLBACK
 										lprintf( WIDE( "lost active window." ) );
 									break;
 								}
-								key = (uint32_t)DequeLink( &hVideo->pInput );
+								key = (uint32_t)(uintptr_t)DequeLink( &hVideo->pInput );
 								if( l.flags.bLogKeyEvent )
 									lprintf( WIDE( "key from deque : %p" ), key );
 							} while( key );
@@ -1620,7 +1645,7 @@ LRESULT CALLBACK
 						hVideo->flags.event_dispatched = 1;
 						//lprintf( WIDE("Dispatched KEY!") );
 						if( hVideo->flags.key_dispatched )
-							EnqueLink( &hVideo->pInput, (POINTER)key );
+							EnqueLink( &hVideo->pInput, (POINTER)(uintptr_t)key );
 						else
 						{
 							hVideo->flags.key_dispatched = 1;
@@ -1663,7 +1688,7 @@ LRESULT CALLBACK
 								}
 								if( FindLink( &l.pActiveList, hVideo ) == INVALID_INDEX )
 									break;
-								key = (uint32_t)DequeLink( &hVideo->pInput );
+								key = (uint32_t)(uintptr_t)DequeLink( &hVideo->pInput );
 							} while( key );
 							hVideo->flags.key_dispatched = 0;
 						}
@@ -3027,7 +3052,13 @@ WM_DROPFILES
 				if( l.invalidated_window == hVideo )
 				{
 					l.flags.bPostedInvalidate = 0;
-					UpdateDisplayPortion (hVideo, 0, 0, 0, 0);
+					if( hVideo->portion_update.pending ) {
+						hVideo->portion_update.pending = FALSE;
+						UpdateDisplayPortion( hVideo
+						                     , hVideo->portion_update.x, hVideo->portion_update.y
+						                     , hVideo->portion_update.w, hVideo->portion_update.h );
+					} else
+						UpdateDisplayPortion (hVideo, 0, 0, 0, 0);
 					if( l.flags.bPostedInvalidate )
 						lprintf( WIDE("triggered to draw too soon!") );
 					l.flags.bPostedInvalidate = 0;
@@ -3038,8 +3069,8 @@ WM_DROPFILES
 		}
 		//lprintf( "redraw... WM_PAINT" );
 		ValidateRect (hWnd, NULL);
-				if( l.flags.bPostedInvalidate )
-					lprintf( WIDE( "triggered to draw too soon!") );
+		if( l.flags.bPostedInvalidate )
+			lprintf( WIDE( "triggered to draw too soon!") );
 		//lprintf( "redraw... WM_PAINT" );
 		/// allow a second invalidate to post.
 #ifdef NOISY_LOGGING
@@ -3264,7 +3295,7 @@ WM_DROPFILES
 			{
 				hVideo = (PVIDEO)pcs->lpCreateParams; // user passed param...
 
-				if ((LONG) hVideo == 1)
+				if ((LONG)(uintptr_t)hVideo == 1)
 					break;
 
 				if (!hVideo)
@@ -3519,19 +3550,19 @@ int CPROC VideoEventHandler( uint32_t MsgID, uint32_t *params, uint32_t paramlen
 		break;
 	case MSG_LoseFocusMethod:
 		{
-			PVIDEO hVideo = (PVIDEO)params[0];
+			PVIDEO hVideo = (PVIDEO)((uintptr_t*)params)[0];
 			if( l.flags.bLogFocus )
 				lprintf( WIDE("Got a losefocus for %p at %P"), params[0], params[1] );
 			if( FindLink( &l.pActiveList, hVideo ) != INVALID_INDEX )
 			{
 				if( hVideo && hVideo->pLoseFocus )
-					hVideo->pLoseFocus (hVideo->dwLoseFocus, (PVIDEO)params[1] );
+					hVideo->pLoseFocus (hVideo->dwLoseFocus, (PVIDEO)((uintptr_t*)params)[1] );
 			}
 		}
 		break;
 	case MSG_RedrawMethod:
 		{
-			PVIDEO hVideo = (PVIDEO)params[0];
+			PVIDEO hVideo = (PVIDEO)((uintptr_t*)params)[0];
 			//lprintf( WIDE("Show video %p"), hVideo );
 				/* Oh neat a safe window list... we should use this more places! */
 			if( FindLink( &l.pActiveList, hVideo ) != INVALID_INDEX )
@@ -3558,7 +3589,7 @@ int CPROC VideoEventHandler( uint32_t MsgID, uint32_t *params, uint32_t paramlen
 		break;
 	case MSG_MouseMethod:
 		{
-			PVIDEO hVideo = (PVIDEO)params[0];
+			PVIDEO hVideo = (PVIDEO)((uintptr_t*)params)[0];
 #ifdef LOG_MOUSE_EVENTS
 			if( l.flags.bLogMouseEvents )
 			{
@@ -3617,14 +3648,14 @@ int CPROC VideoEventHandler( uint32_t MsgID, uint32_t *params, uint32_t paramlen
 	case MSG_KeyMethod:
 		{
 			int dispatch_handled = 0;
-			PVIDEO hVideo = (PVIDEO)params[0];
+			PVIDEO hVideo = (PVIDEO)((uintptr_t*)params)[0];
 			if( FindLink( &l.pActiveList, hVideo ) != INVALID_INDEX )
 				if( hVideo && hVideo->pKeyProc )
 				{
 					hVideo->flags.event_dispatched = 1;
 					//lprintf( WIDE("Dispatched KEY!") );
 					if( hVideo->flags.key_dispatched )
-						EnqueLink( &hVideo->pInput, (POINTER)params[1] );
+						EnqueLink( &hVideo->pInput, (POINTER)((uintptr_t*)params)[1] );
 					else
 					{
 						hVideo->flags.key_dispatched = 1;
@@ -3650,7 +3681,7 @@ int CPROC VideoEventHandler( uint32_t MsgID, uint32_t *params, uint32_t paramlen
 									}
 								}
 							}
-							params[1] = (uint32_t)DequeLink( &hVideo->pInput );
+							params[1] = (uint32_t)(uintptr_t)DequeLink( &hVideo->pInput );
 						} while( params[1] );
 						hVideo->flags.key_dispatched = 0;
 					}
@@ -3671,7 +3702,7 @@ int CPROC VideoEventHandler( uint32_t MsgID, uint32_t *params, uint32_t paramlen
 void HandleDestroyMessage( PVIDEO hVidDestroy )
 {
 	{
-		PVIDEO old_above, old_below;
+		PVIDEO old_above;// , old_below;
 #ifdef LOG_DESTRUCTION
 		lprintf( WIDE("To destroy! %p %d"), 0 /*Msg.lParam*/, hVidDestroy->hWndOutput );
 #endif
@@ -4222,7 +4253,7 @@ void CPROC Vidlib_SetDisplayFullScreen( PRENDERER hVideo, int target_display )
 			{
 				int w =  hVideo->pImage->width * hVideo->full_screen.width / hVideo->pImage->width;
 				int h =  hVideo->pImage->height * hVideo->full_screen.width / hVideo->pImage->width;
-				if( h > hVideo->full_screen.height )
+				if( SUS_GT( h, int, hVideo->full_screen.height, uint32_t ) )
 				{
 					w =  hVideo->pImage->width * hVideo->full_screen.height / hVideo->pImage->height;
 					h =  hVideo->pImage->height * hVideo->full_screen.height / hVideo->pImage->height;
@@ -4287,17 +4318,17 @@ static int CPROC DefaultMouse( PRENDERER r, int32_t x, int32_t y, uint32_t b )
 							{
 								int w =  r->pImage->width * r->full_screen.width / r->pImage->width;
 								int h =  r->pImage->height * r->full_screen.width / r->pImage->width;
-								if( h > r->full_screen.height )
+								if( SUS_GT( h, int, r->full_screen.height, uint32_t ) )
 								{
 									w =  r->pImage->width * r->full_screen.height / r->pImage->height;
 									h =  r->pImage->height * r->full_screen.height / r->pImage->height;
 								}
-                        if( l.flags.bDoNotPreserveAspectOnFullScreen )
+								if( l.flags.bDoNotPreserveAspectOnFullScreen )
 									MoveSizeDisplay( r
 										, r->full_screen.x// + (( r->full_screen.width - w ) / 2)
 										, r->full_screen.y// + (( r->full_screen.height - h ) / 2)
 													, r->full_screen.width, r->full_screen.height );
-                        else
+								else
 									MoveSizeDisplay( r
 										, r->full_screen.x + (( r->full_screen.width - w ) / 2)
 										, r->full_screen.y + (( r->full_screen.height - h ) / 2)

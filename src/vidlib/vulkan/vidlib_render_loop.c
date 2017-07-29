@@ -10,7 +10,7 @@ RENDER_NAMESPACE
 
 int IsVidThread( void )
 {
-   // used by opengl to allow selecting context.
+	// used by opengl to allow selecting context.
 	if( IsThisThread( l.actual_thread ) )
 		return TRUE;
 	return FALSE;
@@ -33,32 +33,32 @@ void Redraw( PVIDEO hVideo )
 void MygluPerspective(GLfloat fovy, GLfloat aspect, GLfloat zNear, GLfloat zFar)
 {
 #define m l.fProjection
-    //GLfloat m[4][4];
-    GLfloat sine, cotangent, deltaZ;
-    GLfloat radians=(GLfloat)(fovy/2.0f*M_PI/180.0f);
+	//GLfloat m[4][4];
+	GLfloat sine, cotangent, deltaZ;
+	GLfloat radians=(GLfloat)(fovy/2.0f*M_PI/180.0f);
 
-    /*m[0][0] = 1.0f;*/ m[0][1] = 0.0f; m[0][2] = 0.0f; m[0][3] = 0.0f;
-    m[1][0] = 0.0f; /*m[1][1] = 1.0f;*/ m[1][2] = 0.0f; m[1][3] = 0.0f;
-    m[2][0] = 0.0f; m[2][1] = 0.0f; /*m[2][2] = 1.0f; m[2][3] = 0.0f;*/
+	/*m[0][0] = 1.0f;*/ m[0][1] = 0.0f; m[0][2] = 0.0f; m[0][3] = 0.0f;
+	m[1][0] = 0.0f; /*m[1][1] = 1.0f;*/ m[1][2] = 0.0f; m[1][3] = 0.0f;
+	m[2][0] = 0.0f; m[2][1] = 0.0f; /*m[2][2] = 1.0f; m[2][3] = 0.0f;*/
 	 m[3][0] = 0.0f; m[3][1] = 0.0f; /*m[3][2] = 0.0f; m[3][3] = 1.0f;*/
 
-    deltaZ=zFar-zNear;
-    sine=(GLfloat)sin(radians);
-    if ((deltaZ==0.0f) || (sine==0.0f) || (aspect==0.0f))
-    {
-        return;
-    }
-    cotangent=(GLfloat)(cos(radians)/sine);
+	deltaZ=zFar-zNear;
+	sine=(GLfloat)sin(radians);
+	if ((deltaZ==0.0f) || (sine==0.0f) || (aspect==0.0f))
+	{
+		return;
+	}
+	cotangent=(GLfloat)(cos(radians)/sine);
 
-    m[0][0] = cotangent / aspect;
-	 m[1][1] = cotangent;
+	m[0][0] = cotangent / aspect;
+	m[1][1] = cotangent;
 #if defined( _D3D_DRIVER ) || defined( _D3D10_DRIVER )
-    m[2][2] = (zFar + zNear) / deltaZ;
-    m[2][3] = 1.0f;
-    m[3][2] = -1.0f * zNear * zFar / deltaZ;
+	m[2][2] = (zFar + zNear) / deltaZ;
+	m[2][3] = 1.0f;
+	m[3][2] = -1.0f * zNear * zFar / deltaZ;
 #else
-    m[2][2] = -(zFar + zNear) / deltaZ;
-    m[2][3] = -1.0f;
+	m[2][2] = -(zFar + zNear) / deltaZ;
+	m[2][3] = -1.0f;
 	 m[3][2] = -2.0f * zNear * zFar / deltaZ;
 #endif
 	 m[3][3] = 0;
@@ -119,7 +119,7 @@ void Render3D( struct display_camera *camera )
 		}
 	}
 
-  	l.current_render_camera = camera;
+	l.current_render_camera = camera;
 	l.flags.bViewVolumeUpdated = 1;
 #ifdef __3D__
 	Init3D( camera );
@@ -182,7 +182,7 @@ void Render3D( struct display_camera *camera )
 			RotateRight( camera->origin_camera, vForward, vUp );
 			break;
 		case 2:
-         // forward; this is default mode... no-op
+		 // forward; this is default mode... no-op
 			break;
 		case 3:
 			RotateRight( camera->origin_camera, vUp, vForward );
@@ -212,7 +212,7 @@ void Render3D( struct display_camera *camera )
 				Render3d.current_device->SetTransform( D3DTS_WORLD, &out );
 			}
 		}
-         /* some kinda init; no? */
+		 /* some kinda init; no? */
 		Render3d.current_device->SetRenderState( D3DRS_ALPHATESTENABLE, TRUE );
 		Render3d.current_device->SetRenderState(D3DRS_ALPHABLENDENABLE,true);
 		Render3d.current_device->SetRenderState(D3DRS_SRCBLEND,D3DBLEND_SRCALPHA);
@@ -259,7 +259,7 @@ void Render3D( struct display_camera *camera )
 		}
 
 
-      /* some kinda init; no? */
+		/* some kinda init; no? */
 		Render3d.current_device->OMSetBlendState( g_pBlendState, 0, 0xffffffff);
 #endif
 
@@ -298,8 +298,8 @@ void Render3D( struct display_camera *camera )
 		}
 
 
-      /* some kinda init; no? */
-	  // Render3d.current_device->OMSetBlendState( g_pBlendState, 0, 0xffffffff);
+		/* some kinda init; no? */
+		// Render3d.current_device->OMSetBlendState( g_pBlendState, 0, 0xffffffff);
 #endif
 
 		if( l.flags.bLogRenderTiming )
@@ -397,7 +397,7 @@ void Render3D( struct display_camera *camera )
 
 void drawCamera( struct display_camera *camera )
 {
-   // skip the 'default' camera.
+	// skip the 'default' camera.
 	// if plugins or want update, don't continue.
 	if( !camera->plugins && !l.flags.bUpdateWanted )
 	{

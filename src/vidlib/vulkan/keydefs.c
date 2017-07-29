@@ -363,7 +363,7 @@ int DispatchKeyEvent( PRENDERER hVideo, uint32_t key )
 			{
 				if( l.flags.bLogKeyEvent )
 					lprintf( WIDE("already dispatched, delay it.") );
-				EnqueLink( &hVideo->pInput, (POINTER)key );
+				EnqueLink( &hVideo->pInput, (POINTER)(uintptr_t)key );
 			}
 			else
 			{
@@ -420,7 +420,7 @@ int DispatchKeyEvent( PRENDERER hVideo, uint32_t key )
 							lprintf( WIDE( "lost active window." ) );
 						break;
 					}
-					key = (uint32_t)DequeLink( &hVideo->pInput );
+					key = (uint32_t)(uintptr_t)DequeLink( &hVideo->pInput );
 					if( l.flags.bLogKeyEvent )
 						lprintf( WIDE( "key from deque : %p" ), key );
 				} while( key );

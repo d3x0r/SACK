@@ -208,21 +208,21 @@ int Handle3DTouches( struct display_camera *camera, PINPUT_POINT touches, int nT
 				v_n_new[vUp] = touches[1].y - touches[0].y;
 				v_n_new[vForward] = 0;
 
-            new_length = Length( v_n_new );
-            addscaled( v_mid_new, v_o_new, v_n_new, 0.5f );
+				new_length = Length( v_n_new );
+				addscaled( v_mid_new, v_o_new, v_n_new, 0.5f );
 
-            v_o_old[vRight] = touch_info.one.x - camera->w/2;
-            v_o_old[vUp] = camera->h/2 - touch_info.one.y;
+				v_o_old[vRight] = touch_info.one.x - camera->w/2;
+				v_o_old[vUp] = camera->h/2 - touch_info.one.y;
 				v_o_old[vForward] = 0;
 
 				v_n_old[vRight] = touch_info.two.x - touch_info.one.x;
 				v_n_old[vUp] = touch_info.two.y - touch_info.one.y;
 				v_n_old[vForward] = 0;
 
-            old_length = Length( v_n_old );
+				old_length = Length( v_n_old );
 				addscaled( v_mid_old, v_o_old, v_n_old, 0.5f );
 
-				ComputeMouseRay( camera, FALSE, &rotate_axis, v_mid_new[vRight] + camera->w/2, camera->h/2 - v_mid_new[vUp] );
+				ComputeMouseRay( camera, FALSE, &rotate_axis, (int32_t)(v_mid_new[vRight] + camera->w/2), (int32_t)(camera->h/2 - v_mid_new[vUp]) );
 
 				sub( v_delta_pos, v_mid_new, v_mid_old );
 				add( v_o_old, v_o_old, v_delta_pos );
@@ -231,17 +231,17 @@ int Handle3DTouches( struct display_camera *camera, PINPUT_POINT touches, int nT
 #ifdef DEBUG_TOUCH_INPUTS
 				PrintVector( v_delta_pos );
 #endif
-            // update old origin to new; for computing rotation point versus translateion
+				// update old origin to new; for computing rotation point versus translateion
 
-            MoveRight( l.origin, -v_delta_pos[vRight] );
+				MoveRight( l.origin, -v_delta_pos[vRight] );
 				MoveUp( l.origin, -v_delta_pos[vUp] );
-            MoveForward( l.origin, ( ( new_length - old_length ) / old_length ) * camera->identity_depth * l.scale );
+				MoveForward( l.origin, ( ( new_length - old_length ) / old_length ) * camera->identity_depth * l.scale );
 				//TranslateRelV( l.origin, v_delta_pos );
 
 				{
 					static int toggle;
 					RCOORD angle_one;
-					angle_one = atan2( v_n_new[vUp], v_n_new[vRight] ) - atan2( v_n_old[vUp], v_n_old[vRight] );
+					angle_one = (RCOORD)(atan2( v_n_new[vUp], v_n_new[vRight] ) - atan2( v_n_old[vUp], v_n_old[vRight] ));
 #ifdef DEBUG_TOUCH_INPUTS
 					lprintf( "Rotation angle is %g", angle_one );
 #endif
@@ -256,10 +256,10 @@ int Handle3DTouches( struct display_camera *camera, PINPUT_POINT touches, int nT
 						result = FindIntersectionTime( &dt1, v_n_old, v_o_old
 															  , &dt2, v_n_new, v_o_new );
 
-                  lprintf( "Result is %d %g %g", result, dt1, dt2 );
+						lprintf( "Result is %d %g %g", result, dt1, dt2 );
 						if( result )
 						{
-                     VECTOR v1;
+							VECTOR v1;
 							addscaled( v1, v_o_old, v_n_old, dt1 );
 							v1[vForward] = camera->identity_depth;
 							// intersect is valid.   Otherwise ... I use the halfway point?
@@ -268,18 +268,18 @@ int Handle3DTouches( struct display_camera *camera, PINPUT_POINT touches, int nT
 						}
 						//else
 						{
-                  //   lprintf( "not enough angle? more like a move action?" );
+						//   lprintf( "not enough angle? more like a move action?" );
 						}
 #endif
 					}
-               else
+					else
 						RotateRel( l.origin, 0, 0, angle_one );
 				}
-            MarkDisplayUpdated( NULL ); // trigger redraw
-            touch_info.one.x = touches[0].x;
-            touch_info.one.y = touches[0].y;
-            touch_info.two.x = touches[1].x;
-            touch_info.two.y = touches[1].y;
+				MarkDisplayUpdated( NULL ); // trigger redraw
+				touch_info.one.x = touches[0].x;
+				touch_info.one.y = touches[0].y;
+				touch_info.two.x = touches[1].x;
+				touch_info.two.y = touches[1].y;
 			}
 		}
 		else if( nTouches == 1 )
@@ -290,10 +290,10 @@ int Handle3DTouches( struct display_camera *camera, PINPUT_POINT touches, int nT
 				//lprintf( WIDE("begin  (is it a touch on a window?)") );
 				// begin touch
 				l.mouse_x
-					= touch_info.one.x = touches[0].x;
+					= (int)(touch_info.one.x = touches[0].x);
 				l.mouse_y
-					= touch_info.one.y = touches[0].y;
-				if( used = (PRENDERER)OpenGLMouse( (uintptr_t)camera, l.mouse_x, l.mouse_y, MK_LBUTTON ) )
+					= (int)(touch_info.one.y = touches[0].y);
+				if( used = OpenGLMouse( (uintptr_t)camera, l.mouse_x, l.mouse_y, MK_LBUTTON ) )
 				{
 					l.hCameraCaptured = used;
 					touch_info.owning_surface = used;
@@ -319,11 +319,11 @@ int Handle3DTouches( struct display_camera *camera, PINPUT_POINT touches, int nT
 			{
 				if( touch_info.flags.owned_by_surface )
 				{
-					l.mouse_x = touches[0].x;
-					l.mouse_y = touches[0].y;
+					l.mouse_x = (int)(touches[0].x);
+					l.mouse_y = (int)(touches[0].y);
 					if( !OpenGLMouse( (uintptr_t)camera, l.mouse_x, l.mouse_y, MK_LBUTTON ) )
 					{
-                  touch_info.flags.owned_by_surface = 0;
+						touch_info.flags.owned_by_surface = 0;
 					}
 				}
 				else
@@ -331,11 +331,11 @@ int Handle3DTouches( struct display_camera *camera, PINPUT_POINT touches, int nT
 					// drag
 					int delx, dely;
 					//lprintf( WIDE("drag") );
-					delx = -touch_info.one.x + touches[0].x;
-					dely = -touch_info.one.y + touches[0].y;
+					delx = (int)(-touch_info.one.x + touches[0].x);
+					dely = (int)(-touch_info.one.y + touches[0].y);
 					{
-						RCOORD delta_x = -delx;
-						RCOORD delta_y = -dely;
+						RCOORD delta_x = (RCOORD)(-delx);
+						RCOORD delta_y = (RCOORD)(-dely);
 						static int toggle;
 						delta_x /= camera->w;
 						delta_y /= camera->h;

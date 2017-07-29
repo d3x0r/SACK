@@ -396,7 +396,7 @@ void GetViewVolume( PRAY *planes )
 	}
 }
 
-int CPROC OpenGLMouse( uintptr_t psvMouse, int32_t x, int32_t y, uint32_t b )
+PRENDERER CPROC OpenGLMouse( uintptr_t psvMouse, int32_t x, int32_t y, uint32_t b )
 {
 	int used = 0;
 	PRENDERER check = NULL;
@@ -522,7 +522,7 @@ int CPROC OpenGLMouse( uintptr_t psvMouse, int32_t x, int32_t y, uint32_t b )
 			}
 		}
 	}
-	return (int)check;
+	return check;
 }
 
 RENDER_NAMESPACE_END

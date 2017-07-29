@@ -151,7 +151,7 @@ LRESULT CALLBACK
 			}
 			else
 			{
-				hVid = (PVIDEO) GetWindowLong (hWndFocus, WD_HVIDEO);
+				hVid = (PVIDEO)GetWindowLongPtr(hWndFocus, WD_HVIDEO);
 				if( hVid )
 				{
 					INDEX idx;
@@ -285,7 +285,7 @@ LRESULT CALLBACK
 #ifdef LOG_FOCUSEVENTS
 			lprintf( WIDE("hVid from focus") );
 #endif
-			hVid = (PVIDEO) GetWindowLong (hWndFocus, WD_HVIDEO);
+			hVid = (PVIDEO) GetWindowLongPtr (hWndFocus, WD_HVIDEO);
 			if( hVid )
 			{
 				INDEX idx;
