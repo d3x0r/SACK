@@ -299,13 +299,13 @@ if( WIN32 )
                     )
                     if( INSTALL_EXTRAS )
 		SET( profile_list ${progfile_list} 
-                        sack_vfs_command.exe
+                        sack_vfs_command
                         )
                     if( NOT MINGW )
 		SET( progfile_list ${progfile_list} 
-                        sack_vfs_runner.exe
-                        sack_vfs_runner_min.exe
-                        sack_vfs_runner_sfx.exe
+                        sack_vfs_runner
+                        sack_vfs_runner_min
+                        sack_vfs_runner_sfx
                         )
 		       endif( NOT MINGW )                    
                     endif( INSTALL_EXTRAS )
