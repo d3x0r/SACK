@@ -274,7 +274,10 @@ static void CPROC SetupSystemServices( POINTER mem, uintptr_t size )
 		if( ext1 )
 		{
 			ext1[0] = 0;
-			(*init_l).library_path = StrDupEx( filepath DBG_SRC );
+			if( filepath[0] == '\\' && filepath[1] == '\\' && filepath[2] == '?' && filepath[3] == '\\' )
+				(*init_l).library_path = StrDupEx( filepath +4 DBG_SRC );
+			else
+				(*init_l).library_path = StrDupEx( filepath DBG_SRC );
 		}
 		else
 		{
@@ -506,9 +509,12 @@ PRIORITY_PRELOAD( SetupPath, OSALOT_PRELOAD_PRIORITY )
 #ifndef __NO_OPTIONS__
 PRELOAD( SetupSystemOptions )
 {
+	lprintf( "SYSTEM OPTION INIT" );
 	l.flags.bLog = SACK_GetProfileIntEx( GetProgramName(), WIDE( "SACK/System/Enable Logging" ), 0, TRUE );
-	if( SACK_GetProfileIntEx( GetProgramName(), WIDE( "SACK/System/Auto prepend program location to PATH environment" ), 0, TRUE ) )
+	if( SACK_GetProfileIntEx( GetProgramName(), WIDE( "SACK/System/Auto prepend program location to PATH environment" ), 0, TRUE ) ){
+		lprintf( "Add %s to path", l.load_path );
 		OSALOT_PrependEnvironmentVariable( WIDE("PATH"), l.load_path );
+	}
 
 }
 #endif
@@ -1388,20 +1394,25 @@ SYSTEM_PROC( generic_function, LoadFunctionExx )( CTEXTSTR libname, CTEXTSTR fun
 	// don't really NEED anything else, in case we need to start before deadstart invokes.
 	if( !library )
 	{
-		size_t maxlen = StrLen( l.load_path ) + 1 + StrLen( libname ) + 1;
+		size_t fullnameLen;
+		size_t maxlen = ( fullnameLen = StrLen( l.load_path ) + 1 + StrLen( libname ) + 1 ) + StrLen( l.library_path ) + 1 + StrLen(libname) + 1;
 		library = NewPlus( LIBRARY, sizeof(TEXTCHAR)*((maxlen<0xFFFFFF)?(uint32_t)maxlen:0) );
+		library->alt_full_name = library->full_name + fullnameLen;
 		//lprintf( "New library %s", libname );
 		if( !IsAbsolutePath( libname ) )
 		{
 			library->name = library->full_name
 				+ tnprintf( library->full_name, maxlen, WIDE("%s/"), l.load_path );
+			tnprintf( library->alt_full_name, maxlen, WIDE( "%s/%s" ), l.library_path, libname );
+
 			tnprintf( library->name
-				, maxlen - (library->name-library->full_name)
+				, fullnameLen - (library->name-library->full_name)
 				, WIDE("%s"), libname );
 		}
 		else
 		{
 			StrCpy( library->full_name, libname );
+			library->alt_full_name = library->full_name;
 			library->name = (char*)pathrchr( library->full_name );
 			library->loading = 0;
 			if( library->name )
@@ -1464,21 +1475,25 @@ SYSTEM_PROC( generic_function, LoadFunctionExx )( CTEXTSTR libname, CTEXTSTR fun
 			library->library = LoadLibrary( library->full_name );
 			if( !library->library )
 			{
-#  ifdef DEBUG_LIBRARY_LOADING
-				lprintf( "trying load...%s", library->name );
-#  endif
-				library->library = LoadLibrary( library->name );
+				library->library = LoadLibrary( library->alt_full_name );
 				if( !library->library )
 				{
-					if( !library->loading )
+#  ifdef DEBUG_LIBRARY_LOADING
+					lprintf( "trying load...%s", library->name );
+#  endif
+					library->library = LoadLibrary( library->name );
+					if( !library->library )
 					{
-						if( l.flags.bLog )
-							_xlprintf( 2 DBG_RELAY)( WIDE("Attempt to load %s[%s](%s) failed: %d."), libname, library->full_name, funcname?funcname:WIDE("all"), GetLastError() );
-						UnlinkThing( library );
-						ReleaseEx( library DBG_SRC );
+						if( !library->loading )
+						{
+							if( l.flags.bLog )
+								_xlprintf( 2 DBG_RELAY )(WIDE( "Attempt to load %s[%s](%s) failed: %d." ), libname, library->full_name, funcname ? funcname : WIDE( "all" ), GetLastError());
+							UnlinkThing( library );
+							ReleaseEx( library DBG_SRC );
+						}
+						ResumeDeadstart();
+						return NULL;
 					}
-					ResumeDeadstart();
-					return NULL;
 				}
 			}
 		}
