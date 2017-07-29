@@ -1969,6 +1969,8 @@ void Redraw( PVIDEO hVideo )
 		{
 			if( l.flags.bLogWrites )
 				lprintf( WIDE( "Posting invalidate rect..." ) );
+			l.flags.bPostedInvalidate = 1;
+			l.invalidated_window = hVideo;
 			InvalidateRect( hVideo->hWndOutput, NULL, FALSE );
 		}
 	}
