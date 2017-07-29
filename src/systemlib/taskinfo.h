@@ -71,7 +71,8 @@ typedef struct loaded_library_tag
 	DeclareLink( struct loaded_library_tag );
 	TEXTCHAR *name; // points into full_name after last slash - just library name
 	int loading;
-	TEXTCHAR full_name[1];// this is more than 1; allocation pads extra bytes for the name.
+	TEXTCHAR *alt_full_name;// this is appended after full_name and is l.library_path
+	TEXTCHAR full_name[1];// this is more than 1; allocation pads extra bytes for the name. prefixed iwth l.load_path
 } LIBRARY, *PLIBRARY;
 
 #ifndef SYSTEM_CORE_SOURCE
