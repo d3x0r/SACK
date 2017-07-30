@@ -461,6 +461,7 @@ PSI_PROC( int, PickColorEx )( CDATA *result, CDATA original, PSI_CONTROL hAbove,
 	PSI_CONTROL pf = NULL;
 	PICK_COLOR_DATA pcd;
 	MemSet( &pcd, 0, sizeof( pcd ) );
+	GetMyInterface();
 	InitColorData( &pcd, original );
 	// remove test for debugging save/load..
 	// don't parse the NUL at the end.
