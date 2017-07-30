@@ -570,10 +570,11 @@ RENDER_PROC (void, UpdateDisplayPortionEx)( PVIDEO hVideo
 				return;
 
 			{
-				PTHREAD thread;
+				PTHREAD thread = NULL;
 
 				{
 					INDEX idx;
+					if( !l.flags.bPostedInvalidate )
 					LIST_FORALL( l.threads, idx, PTHREAD, thread )
 					{
 						// okay if it's layered, just let the draws through always.
@@ -582,6 +583,7 @@ RENDER_PROC (void, UpdateDisplayPortionEx)( PVIDEO hVideo
 							if( hVideo->flags.bOpenGL )
 								if( l.actual_thread != thread )
 									 continue;
+							lprintf( "Is a thread." );
 							EnterCriticalSec( &hVideo->cs );
 							if( hVideo->flags.bDestroy )
 							{
@@ -734,35 +736,57 @@ RENDER_PROC (void, UpdateDisplayPortionEx)( PVIDEO hVideo
 				if( !thread )
 				{
 					RECT r;
-					hVideo->portion_update.pending = TRUE;
-					if( x < 0 ) {
-						if( (x + (int)w ) < 1 )
-							return;
-						else {
-							hVideo->portion_update.x = 0;
-							hVideo->portion_update.w = (uint32_t)(w + x);
-						}	
+					if( hVideo->portion_update.pending ) {
+						if( x < hVideo->portion_update.x )
+						{
+							hVideo->portion_update.w += hVideo->portion_update.x - x;
+							hVideo->portion_update.x = x;
+						}
+						if( y < hVideo->portion_update.y )
+						{
+							hVideo->portion_update.h += hVideo->portion_update.y - y;
+							hVideo->portion_update.y = y;
+						}
+						if( (x + w) > ( hVideo->portion_update.x + hVideo->portion_update.w ) )
+						{
+							hVideo->portion_update.w = (x + w) - hVideo->portion_update.x;
+						}
+						if( (y + h) > (hVideo->portion_update.y + hVideo->portion_update.h) )
+						{
+							hVideo->portion_update.h = (y + h) - hVideo->portion_update.y;
+						}
 					}
 					else {
-						hVideo->portion_update.x = (uint32_t)x;
-						hVideo->portion_update.w = w;
-					}
-					if( y < 0 ) {
-						if( (y + (int)h ) < 1 )
-							return;
+						hVideo->portion_update.pending = TRUE;
+						if( x < 0 ) {
+							if( (x + (int)w) < 1 )
+								return;
+							else {
+								hVideo->portion_update.x = 0;
+								hVideo->portion_update.w = (uint32_t)(w + x);
+							}
+						}
 						else {
-							hVideo->portion_update.y = 0;
-							hVideo->portion_update.h = (uint32_t)(h + y);
-						}	
+							hVideo->portion_update.x = (uint32_t)x;
+							hVideo->portion_update.w = w;
+						}
+						if( y < 0 ) {
+							if( (y + (int)h) < 1 )
+								return;
+							else {
+								hVideo->portion_update.y = 0;
+								hVideo->portion_update.h = (uint32_t)(h + y);
+							}
+						}
+						else {
+							hVideo->portion_update.y = (uint32_t)y;
+							hVideo->portion_update.h = h;
+						}
 					}
-					else {
-						hVideo->portion_update.y = (uint32_t)y;
-						hVideo->portion_update.h = h;
-					}
-
 					if( l.flags.bPostedInvalidate )
 					{
-						//lprintf( WIDE( "saving from double posting... still processing prior update." ) );
+						if( l.flags.bLogWrites )
+							lprintf( WIDE( "saving from double posting... still processing prior update." ) );
 						return;
 					}
 					r.left = x;
