@@ -583,7 +583,7 @@ RENDER_PROC (void, UpdateDisplayPortionEx)( PVIDEO hVideo
 							if( hVideo->flags.bOpenGL )
 								if( l.actual_thread != thread )
 									 continue;
-							lprintf( "Is a thread." );
+							//lprintf( "Is a thread." );
 							EnterCriticalSec( &hVideo->cs );
 							if( hVideo->flags.bDestroy )
 							{
