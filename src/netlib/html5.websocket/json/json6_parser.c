@@ -31,7 +31,7 @@ SACK_NAMESPACE namespace network { namespace json {
 
 static PPARSE_CONTEXTSET parseContexts6;
 
-TEXTSTR json6_escape_string( CTEXTSTR string ) {
+char *json6_escape_string( const char *string ) {
 	size_t n;
 	size_t m = 0;
 	TEXTSTR output;
@@ -267,7 +267,7 @@ static LOGICAL gatherString( TEXTSTR msg, CTEXTSTR *msg_input, size_t msglen, TE
 	return status;
 }
 
-LOGICAL json6_parse_message( TEXTSTR msg
+LOGICAL json6_parse_message( char * msg
                                  , size_t msglen
                                  , PDATALIST *_msg_output )
 {

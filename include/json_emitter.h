@@ -132,7 +132,7 @@ JSON_EMITTER_PROC( TEXTSTR, json_build_message )( struct json_context_object *fo
 //  PDATALIST is full of struct json_value_container
 // turns out numbers can be  hex, octal and binary numbers  (0x[A-F,a-f,0-9]*, 0b[0-1]*, 0[0-9]*)
 // slightly faster (17%) than json6_parse_message because of fewer possible checks.
-JSON_EMITTER_PROC( LOGICAL, json_parse_message )(  TEXTSTR msg
+JSON_EMITTER_PROC( LOGICAL, json_parse_message )( char * msg
 													, size_t msglen
 													, PDATALIST *msg_data_out
 																);
@@ -147,7 +147,8 @@ JSON_EMITTER_PROC( LOGICAL, json_parse_message )(  TEXTSTR msg
 //       unquoted field names must be a valid javascript keyword using unicode ID_Start/ID_Continue states to determine valid characters.
 //       this is arbitrary though; and could be reverted to just accepting any character other than ':'.
 //   JSON(6?) support - undefined keyword value
-JSON_EMITTER_PROC( LOGICAL, json6_parse_message )(  TEXTSTR msg
+//       accept \uXXXX, \xXX, \[0-3]xx octal, \u{xxxxx} encodings in strings
+JSON_EMITTER_PROC( LOGICAL, json6_parse_message )( char * msg
 													, size_t msglen
 													, PDATALIST *msg_data_out
 																);
@@ -172,6 +173,7 @@ enum json_value_types {
 	, VALUE_NAN = 9
 	, VALUE_NEG_INFINITY = 10
 	, VALUE_INFINITY = 11
+	, VALUE_DATE = 12
 };
 
 struct json_value_container {
@@ -194,10 +196,10 @@ JSON_EMITTER_PROC( void, json_dispose_decoded_message )(struct json_context_obje
 
 // sanitize strings to send in JSON so quotes don't prematurely end strings and output is still valid.
 // require Release the result.
-JSON_EMITTER_PROC( TEXTSTR, json_escape_string )( CTEXTSTR string );
+JSON_EMITTER_PROC( char*, json_escape_string )( const char * string );
 // sanitize strings to send in JSON so quotes don't prematurely end strings and output is still valid.
 // require Release the result.  Also escapes not just double-quotes ("), but also single and ES6 Format quotes (', `)
-JSON_EMITTER_PROC( TEXTSTR, json6_escape_string )( CTEXTSTR string );
+JSON_EMITTER_PROC( char*, json6_escape_string )( const char * string );
 
 #ifdef __cplusplus
 } } SACK_NAMESPACE_END

@@ -12,7 +12,7 @@ SACK_NAMESPACE namespace network { namespace json {
 
 static PPARSE_CONTEXTSET parseContexts;
 
-TEXTSTR json_escape_string( CTEXTSTR string ) {
+char *json_escape_string( const char *string ) {
 	size_t n;
 	size_t m = 0;
 	TEXTSTR output;
@@ -20,12 +20,22 @@ TEXTSTR json_escape_string( CTEXTSTR string ) {
 	for( n = 0; string[n]; n++ ) {
 		if( string[n] == '"' )
 			m++;
+		if( string[n] == '\n' )
+         m++;
+		if( string[n] == '\t' )
+         m++;
 	}
-	output = NewArray( TEXTCHAR, n+m+1 );
+	output = NewArray( char, n+m+1 );
 	m = 0;
 	for( n = 0; string[n]; n++ ) {
 		if( string[n] == '"' ) {
 			output[m++] = '\\';
+		}
+		if( string[n] == '\n' ) {
+			output[m++] = '\\'; output[m++] = 'n'; continue;
+		}
+		if( string[n] == '\t' ) {
+			output[m++] = '\\'; output[m++] = 't'; continue;
 		}
 		output[m++] = string[n];
 	}
@@ -60,7 +70,7 @@ TEXTSTR json_escape_string( CTEXTSTR string ) {
 
 #define GetUtfChar(x) __GetUtfChar(c,x)
 
-LOGICAL json_parse_message( TEXTSTR msg
+LOGICAL json_parse_message( char * msg
                                  , size_t msglen
                                  , PDATALIST *_msg_output )
 {
