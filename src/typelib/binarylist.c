@@ -517,9 +517,9 @@ void DumpTree( PTREEROOT root
 				 , int (*Dump)( CPOINTER user, uintptr_t key ) )
 {
 	maxlevel = 0;
-	lprintf( WIDE("Tree %p has %")_32f WIDE(" nodes. %p is root"), root, root->children, root->tree );
+	if( !Dump ) lprintf( WIDE("Tree %p has %")_32f WIDE(" nodes. %p is root"), root, root->children, root->tree );
 	DumpNode( root->tree, 1, Dump );
-	lprintf( WIDE("Tree had %d levels."), maxlevel );
+	if( !Dump ) lprintf( WIDE("Tree had %d levels."), maxlevel );
 }
 
 //---------------------------------------------------------------------------
