@@ -94,14 +94,25 @@ static CTEXTSTR SaveString( PSTRINGSPACE *root, uint32_t index, CTEXTSTR text )
 
 //---------------------------------------------------------------------------
 
+static FILE *dumpOutput;
+static LOGICAL dumpFirst;
+static int Dump( CPOINTER user, uintptr_t key )
+{
+	sack_fprintf( dumpOutput, "\t\t%s\"%d\":\"%s\"\n", dumpFirst?"":",", (uint32_t)(uintptr_t)user, key );
+	dumpFirst = FALSE;
+	return 0;
+}
+
+//---------------------------------------------------------------------------
+
 void SaveTranslationDataToFile( FILE *output )
 {
-	uint32_t n;
-	PSTRINGSPACE strings;
+	//uint32_t n;
+	//PSTRINGSPACE strings;
+	/*
 	for( n = 0, strings = translate_local.index_strings;
 		 strings;
 		  n++, strings = strings->next );
-
 	sack_fwrite( &n, 1, sizeof( n ), output );
 	for( strings = translate_local.index_strings;
 		 strings;
@@ -109,21 +120,39 @@ void SaveTranslationDataToFile( FILE *output )
 	{
 		sack_fwrite( strings, 1, sizeof( strings[0] ), output );
 	}
+	*/
+	sack_fprintf( output, "{\n" );
 	{
 		INDEX idx;
+		LOGICAL firstTranslation = TRUE;
+		LOGICAL first = TRUE;
+		//TEXTCHAR *string;
 		struct translation *translation;
+		sack_fprintf( output, "\t\"DEFAULT\":{\n" );
+		dumpOutput = output;
+		dumpFirst = TRUE;
+		DumpTree( translate_local.index, Dump );
+
+		sack_fprintf( output, "\t}\n" );
 		LIST_FORALL( translate_local.translations, idx, struct translation *, translation )
 		{
-			size_t len;
+			//size_t len;
 			INDEX string_idx;
-			uint32_t tmp;
-			uint8_t length[3];
+			//uint32_t tmp;
+			//uint8_t length[3];
 			CTEXTSTR string;
-			len = StrLen( translation->name );
-			sack_fwrite( &len, sizeof( len ), 1, output );
-			sack_fwrite( translation->name, len, 1, output );
+			first = TRUE;
+			sack_fprintf( output,"\t,\"%s\":{\n", translation->name );
+			//len = StrLen( translation->name );
+			//sack_fwrite( &len, sizeof( len ), 1, output );
+			//sack_fwrite( translation->name, len, 1, output );
 			LIST_FORALL( translation->strings, string_idx, CTEXTSTR, string )
 			{
+				char *tmp;
+				sack_fprintf( output,"\t\t%s\"%d\":\"%s\"\n", (first)?"":",", string_idx, tmp = json_escape_string(string) );
+				first = FALSE;
+				Deallocate( char *, tmp );
+/*
 				tmp = (uint32_t)(string_idx + 1);
 				sack_fwrite( &tmp, 1, 4, output );
 				tmp = (uint32_t)StrLen( string );
@@ -146,11 +175,14 @@ void SaveTranslationDataToFile( FILE *output )
 				else
 					sack_fwrite( &tmp, 1, 1, output );
 				sack_fwrite( string, 1, tmp, output );
+*/
 			}
-			tmp = 0;
-			sack_fwrite( &tmp, 1, 4, output );
+			sack_fprintf( output, "\t}\n");
+			//tmp = 0;
+			//sack_fwrite( &tmp, 1, 4, output );
 		}
 	}
+	sack_fprintf( output, "}\n");
 }
 
 //---------------------------------------------------------------------------
@@ -168,13 +200,55 @@ void SaveTranslationDataEx( const char *filename )
 
 void SaveTranslationData( void )
 {
-	SaveTranslationDataEx( "strings.dat" );
+	SaveTranslationDataEx( "strings.json" );
 }
 
 //---------------------------------------------------------------------------
 
-void LoadTranslationDataFromFile( FILE *input )
+void LoadTranslationDataFromFile( POINTER input, size_t length )
 {
+	PDATALIST data = NULL;
+	char *_input = NewArray( char, length );
+	memcpy( _input, input, length );
+	if( json_parse_message( (char*)_input, length, &data ) ) {
+		struct json_value_container *val;
+		INDEX idx;
+		struct json_value_container *val3;
+		INDEX idx3;
+		DATA_FORALL( data, idx3, struct json_value_container *, val3 ) {
+			if( val3->value_type == VALUE_OBJECT ) {
+				DATA_FORALL( val3->contains, idx, struct json_value_container *, val ) {
+					if( val->value_type != VALUE_OBJECT ) 
+						continue;
+					struct json_value_container *val2;
+					INDEX idx2;
+					if( StrCmp( val->name, "DEFAULT" ) == 0 ) {
+	        
+						DATA_FORALL( val->contains, idx2, struct json_value_container *, val2 ) {
+							if( val2->value_type != VALUE_STRING ) continue;
+					lprintf( "recover:%s=%s", val2->name, val2->string );
+							CTEXTSTR index_text = SaveString( &translate_local.index_strings, (uint32_t)IntCreateFromText( val2->name ), val2->string );
+							PLIST list = SetLink( &translate_local.index_list, translate_local.string_count, index_text );
+							AddBinaryNode( translate_local.index, (CPOINTER)((uintptr_t)translate_local.string_count+1), (uintptr_t)index_text );
+							translate_local.string_count++;
+						}
+					
+					} else {
+						struct translation *translation = CreateTranslation( val->name );
+						DATA_FORALL( val->contains, idx2, struct json_value_container *, val2 ) {
+							uint64_t index = IntCreateFromText( val2->name );
+							SetTranslatedString( translation, index, val2->string ); 
+						}
+					
+					}
+					
+				}
+			}
+		}
+		json_dispose_message( &data );
+	}
+	Deallocate( char *, _input );
+#if 0
 	uint32_t n;
 	uint32_t b;
 	PSTRINGSPACE strings;
@@ -275,24 +349,28 @@ void LoadTranslationDataFromFile( FILE *input )
 			}
 		}
 	}
+#endif
 }
 
 //---------------------------------------------------------------------------
 void LoadTranslationDataEx( const char *filename )
 {
-	FILE *input;
-	input = sack_fopen( 0, filename, WIDE("rb") );
-	if( input )
+	size_t size = 0;
+	char *tmp = ExpandPath( filename );
+	POINTER file = OpenSpace( NULL, tmp, &size );
+	Deallocate( char *, tmp );
+lprintf( "load file:%p", file );
+	if( file )
 	{
-		LoadTranslationDataFromFile( input );
-		sack_fclose( input );
+		LoadTranslationDataFromFile( file, size );
+		CloseSpace( file );
 	}
 }
 //---------------------------------------------------------------------------
 
 void LoadTranslationData( void )
 {
-	LoadTranslationDataEx( "strings.dat" );
+	LoadTranslationDataEx( "strings.json" );
 }
 //---------------------------------------------------------------------------
 
@@ -301,9 +379,9 @@ CTEXTSTR TranslateText( CTEXTSTR text )
 	uintptr_t psvIndex = (uintptr_t)FindInBinaryTree( translate_local.index, (uintptr_t)text );
 	if( !psvIndex )
 	{
-		CTEXTSTR index_text = SaveString( &translate_local.index_strings, translate_local.string_count+1, text );
-		PLIST list = SetLink( &translate_local.index_list, translate_local.string_count, index_text );
-		AddBinaryNode( translate_local.index, (CPOINTER)((uintptr_t)translate_local.string_count+1), (uintptr_t)index_text );
+		text = SaveString( &translate_local.index_strings, translate_local.string_count+1, text );
+		SetLink( &translate_local.index_list, translate_local.string_count, text );
+		AddBinaryNode( translate_local.index, (CPOINTER)((uintptr_t)translate_local.string_count+1), (uintptr_t)text );
 		translate_local.string_count++;
 		psvIndex = translate_local.string_count;
 	}
