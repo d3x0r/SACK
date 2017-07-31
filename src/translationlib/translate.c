@@ -33,6 +33,7 @@ static struct translation_local_tag
 	uint32_t string_count;
 	PLIST translations;
 	struct translation *current_translation;
+	LOGICAL updated;
 } *_translate_local;
 #define translate_local (*_translate_local)
 
@@ -51,6 +52,7 @@ static CTEXTSTR SaveString( PSTRINGSPACE *root, uint32_t index, CTEXTSTR text )
 	PSTRINGSPACE space = root[0];
 	TEXTCHAR *p;
 	size_t len = StrLen( text ) + sizeof( TEXTCHAR );
+	translate_local.updated = TRUE;
 	for( ; space; space = space->next )
 	{
 		//lprintf( "Finding next name space free %p %p %p", l.NameSpace, space, space->next );
@@ -189,11 +191,13 @@ void SaveTranslationDataToFile( FILE *output )
 
 void SaveTranslationDataEx( const char *filename )
 {
-	FILE *output = sack_fopen( 0, filename, WIDE("wb") );
-	if( !output )
-		return;
-	SaveTranslationDataToFile( output );
-	sack_fclose( output );
+	if( translate_local.updated ) {
+		FILE *output = sack_fopen( 0, filename, WIDE("wb") );
+		if( !output )
+			return;
+		SaveTranslationDataToFile( output );
+		sack_fclose( output );
+	}
 }
 
 //---------------------------------------------------------------------------
@@ -226,7 +230,6 @@ void LoadTranslationDataFromFile( POINTER input, size_t length )
 	        
 						DATA_FORALL( val->contains, idx2, struct json_value_container *, val2 ) {
 							if( val2->value_type != VALUE_STRING ) continue;
-					lprintf( "recover:%s=%s", val2->name, val2->string );
 							CTEXTSTR index_text = SaveString( &translate_local.index_strings, (uint32_t)IntCreateFromText( val2->name ), val2->string );
 							PLIST list = SetLink( &translate_local.index_list, translate_local.string_count, index_text );
 							AddBinaryNode( translate_local.index, (CPOINTER)((uintptr_t)translate_local.string_count+1), (uintptr_t)index_text );
@@ -248,108 +251,7 @@ void LoadTranslationDataFromFile( POINTER input, size_t length )
 		json_dispose_message( &data );
 	}
 	Deallocate( char *, _input );
-#if 0
-	uint32_t n;
-	uint32_t b;
-	PSTRINGSPACE strings;
-	PSTRINGSPACE next;
-	PSTRINGSPACE last;
-	for( n = 0, strings = translate_local.index_strings;
-		 strings;
-		  n++, strings = next )
-	{
-		next = strings->next;
-		Release( strings );
-	}
-	translate_local.index_strings = NULL;
-
-	sack_fread( &n, 1, sizeof( n ), input );
-	for( b = 0; b < n; b++ )
-	{
-		strings = New( STRINGSPACE );
-		sack_fread( strings, 1, sizeof( strings[0] ), input );
-		if( !translate_local.index_strings )
-		{
-			translate_local.index_strings = strings;
-			strings->me = &translate_local.index_strings;
-			strings->next = NULL;
-		}
-		else
-		{
-			last->next = strings;
-			strings->me = &last->next;
-			strings->next = NULL;
-		}
-		last = strings;
-	}
-	{
-		uint32_t len;
-		TEXTSTR string = NULL; // buffer used to read string into
-		uint32_t maxlen = 0; // length of buffer to use to read string
-		struct translation *translation;
-		while( sack_fread( &len, 1, sizeof( len ), input ) )
-		{
-			INDEX string_idx;
-			uint32_t tmp;
-			uint8_t length[3];
-			translation = New( struct translation );
-			AddLink( &translate_local.translations, translation );
-			translation->strings = NULL;
-			translation->name = NewArray( TEXTCHAR, len + 1 );
-
-			sack_fread( translation->name, 1, len, input );
-			translation->name[len] = 0;
-
-			while( sack_fread( &string_idx, 1, 4, input ) && string_idx )
-			{
-				fread( length, 1, 1, input );
-				if( length[0] & 0x80 )
-				{
-					fread( length + 1, 1, 1, input );
-					if( length[0] & 0x80 )
-					{
-						fread( length + 2, 1, 1, input );
-						tmp = ( ( ( length[0] & 0x7f ) << 7 ) | ( length[1] & 0x7f ) ) << 7 | length[2];
-					}
-					else
-						tmp = ( ( length[0] & 0x7f ) << 7 ) | length[1];
-				}
-				else
-					tmp = length[0];
-				if( tmp > maxlen )
-				{
-					if( string )
-						Release( string );
-					string = NewArray( TEXTCHAR, tmp + 16 );
-					maxlen = tmp + 16;
-				}
-				sack_fread( string, 1, tmp, input );
-				string[tmp] = 0;
-				SetLink( &translation->strings, string_idx - 1
-					, SaveString( &translate_local.translated_strings, 0, string ) );
-			}
-		}
-		Deallocate( TEXTSTR, string );
-	}
-
-	{
-		PSTRINGSPACE space;
-		for( space = translate_local.index_strings; space; space = space->next )
-		{
-			size_t offset = 0;
-			STRING_INDEX_TYPE index;
-			CTEXTSTR string;
-			for(offset = 0; offset < space->nextname; offset++ )
-			{
-				index = ((STRING_INDEX_TYPE*)( space->buffer + offset ))[0];
-				SetLink( &translate_local.index_list, index - 1, string = ( space->buffer + offset + 4 ) );
-				AddBinaryNode( translate_local.index, (CPOINTER)((uintptr_t)index), (uintptr_t)string );
-
-				offset += StrLen( string ) + 4;
-			}
-		}
-	}
-#endif
+	translate_local.updated = FALSE;
 }
 
 //---------------------------------------------------------------------------
@@ -359,7 +261,7 @@ void LoadTranslationDataEx( const char *filename )
 	char *tmp = ExpandPath( filename );
 	POINTER file = OpenSpace( NULL, tmp, &size );
 	Deallocate( char *, tmp );
-lprintf( "load file:%p", file );
+	//lprintf( "load file:%p", file );
 	if( file )
 	{
 		LoadTranslationDataFromFile( file, size );
@@ -442,6 +344,7 @@ struct translation * CreateTranslation( CTEXTSTR language )
 			return translation;
 		}
 	}
+	translate_local.updated = TRUE;
 	translation = New( struct translation );
 	translation->name = StrDup( language );
 	translation->strings = NULL;
