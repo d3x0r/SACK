@@ -340,7 +340,7 @@ int AddBinaryNodeEx( PTREEROOT root
 
 #undef AddBinaryNode
 int AddBinaryNode( PTREEROOT root
-						, POINTER userdata
+						, CPOINTER userdata
 					  , uintptr_t key )
 {
 	return AddBinaryNodeEx( root, userdata, key DBG_SRC );

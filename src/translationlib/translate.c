@@ -6,10 +6,10 @@
 
 TRANSLATION_NAMESPACE 
 
-struct translation {
-	TEXTSTR name;
-	PLIST strings;
-};
+//struct translation {
+//	TEXTSTR name;
+//	PLIST strings;
+//};
 
 #define STRING_INDEX_TYPE uint32_t
 
@@ -155,13 +155,20 @@ void SaveTranslationDataToFile( FILE *output )
 
 //---------------------------------------------------------------------------
 
-void SaveTranslationData( void )
+void SaveTranslationDataEx( const char *filename )
 {
-	FILE *output = sack_fopen( 0, WIDE("strings.dat"), WIDE("wb") );
+	FILE *output = sack_fopen( 0, filename, WIDE("wb") );
 	if( !output )
 		return;
 	SaveTranslationDataToFile( output );
 	sack_fclose( output );
+}
+
+//---------------------------------------------------------------------------
+
+void SaveTranslationData( void )
+{
+	SaveTranslationDataEx( "strings.dat" );
 }
 
 //---------------------------------------------------------------------------
@@ -271,10 +278,10 @@ void LoadTranslationDataFromFile( FILE *input )
 }
 
 //---------------------------------------------------------------------------
-void LoadTranslationData( void )
+void LoadTranslationDataEx( const char *filename )
 {
 	FILE *input;
-	input = sack_fopen( 0, WIDE("strings.dat"), WIDE("rb") );
+	input = sack_fopen( 0, filename, WIDE("rb") );
 	if( input )
 	{
 		LoadTranslationDataFromFile( input );
@@ -283,6 +290,11 @@ void LoadTranslationData( void )
 }
 //---------------------------------------------------------------------------
 
+void LoadTranslationData( void )
+{
+	LoadTranslationDataEx( "strings.dat" );
+}
+//---------------------------------------------------------------------------
 
 CTEXTSTR TranslateText( CTEXTSTR text )
 {

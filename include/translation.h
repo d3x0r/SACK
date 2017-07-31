@@ -39,6 +39,11 @@ SACK_NAMESPACE
 #    define TRANSLATION_PROC IMPORT_METHOD
 #  endif
 
+struct translation {
+	TEXTSTR name;
+	PLIST strings;
+};
+
 typedef struct translation *PTranslation;
 
 
@@ -52,9 +57,11 @@ TRANSLATION_PROC struct translation * TRANSLATION_API GetTranslation( CTEXTSTR l
 TRANSLATION_PROC void TRANSLATION_API SetTranslatedString( PTranslation translation, INDEX idx, CTEXTSTR string );
 TRANSLATION_PROC CTEXTSTR TRANSLATION_API GetTranslationName( PTranslation translation );
 
+TRANSLATION_PROC void TRANSLATION_API SaveTranslationDataEx( const char *filename );
 TRANSLATION_PROC void TRANSLATION_API SaveTranslationData( void );
 TRANSLATION_PROC void TRANSLATION_API SaveTranslationDataToFile( FILE *output );
 
+TRANSLATION_PROC void TRANSLATION_API LoadTranslationDataEx( const char *filename );
 TRANSLATION_PROC void TRANSLATION_API LoadTranslationData( void );
 TRANSLATION_PROC void TRANSLATION_API LoadTranslationDataFromFile( FILE *input );
 
