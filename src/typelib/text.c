@@ -350,6 +350,9 @@ PTEXT SegCreateFromWideEx( const wchar_t *text DBG_PASS )
 
 //---------------------------------------------------------------------------
 
+//#pragma GCC diagnostic push
+//#pragma GCC diagnostic ignored "-Wformat-overflow"
+//#pragma GCC diagnostic ignored "-Wformat-truncation"
 PTEXT SegCreateFromIntEx( int value DBG_PASS )
 {
 	PTEXT pResult;
@@ -392,6 +395,7 @@ PTEXT SegCreateFromFloatEx( float value DBG_PASS )
 	pResult->data.data[31] = 0;
 	return pResult;
 }
+//#pragma GCC diagnostic pop
 
 //---------------------------------------------------------------------------
 
