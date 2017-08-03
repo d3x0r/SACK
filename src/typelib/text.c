@@ -350,8 +350,11 @@ PTEXT SegCreateFromWideEx( const wchar_t *text DBG_PASS )
 
 //---------------------------------------------------------------------------
 
-//#pragma GCC diagnostic push
-//#pragma GCC diagnostic ignored "-Wformat-overflow"
+#ifdef __GNUC__
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wformat"
+#endif
+//#pragma GCC diagnostic ignored "-Wformat-length"
 //#pragma GCC diagnostic ignored "-Wformat-truncation"
 PTEXT SegCreateFromIntEx( int value DBG_PASS )
 {
@@ -395,7 +398,9 @@ PTEXT SegCreateFromFloatEx( float value DBG_PASS )
 	pResult->data.data[31] = 0;
 	return pResult;
 }
-//#pragma GCC diagnostic pop
+#ifdef __GNUC__
+#pragma GCC diagnostic pop
+#endif
 
 //---------------------------------------------------------------------------
 
@@ -2148,15 +2153,20 @@ void VarTextAddRuneEx( PVARTEXT pvt, TEXTRUNE c DBG_PASS )
 
 void VarTextAddDataEx( PVARTEXT pvt, CTEXTSTR block, size_t length DBG_PASS )
 {
+   LOGICAL endOnNul = FALSE;
 	if( !pvt->collect )
 		VarTextInitEx( pvt DBG_RELAY );
+	if( length > 0x1000000 )
+		endOnNul = TRUE;
+
 #ifdef VERBOSE_DEBUG_VARTEXT
-	Log1( WIDE("Adding character %c"), c );
+	Log1( WIDE("Adding string") );
 #endif
 	{
 		uint32_t n;
 		for( n = 0; n < length; n++ )
 		{
+			if( endOnNul && !block[n] ) break;
 			pvt->collect_text[pvt->collect_used++] = block[n];
 			if( pvt->collect_used >= pvt->collect_avail )
 			{
