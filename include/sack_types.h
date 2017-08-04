@@ -1054,6 +1054,8 @@ typedef char            TEXTCHAR;
 /* a character rune.  Strings should be interpreted as UTF-8 or 16 depending on UNICODE compile option.
    GetUtfChar() from strings.  */
 typedef uint32_t             TEXTRUNE;
+/* Used to handle returned values that are invalid runes; past end or beginning of string for instance */
+#define INVALID_RUNE  0x80000000
 
 
 //typedef enum { FALSE, TRUE } LOGICAL; // smallest information

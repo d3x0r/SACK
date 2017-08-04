@@ -3269,13 +3269,19 @@ TEXTRUNE GetUtfChar( const char * *from )
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-TEXTRUNE GetUtfCharIndexed( const char * pc, size_t *n )
+TEXTRUNE GetUtfCharIndexed( const char * pc, size_t *n, size_t length )
 {
 	CTEXTSTR orig = pc + n[0];
 	CTEXTSTR tmp = orig;
 	TEXTRUNE result = GetUtfChar( &tmp );
-	n[0] += tmp - orig;
-	return result;
+	if( (tmp-orig) <= length ) {
+		n[0] += tmp - orig;
+		return result;
+	}
+	// if illformed character was at the end... return 0
+   // cap result to length.
+   (*n) = length;
+	return 0;
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -3297,7 +3303,7 @@ TEXTRUNE GetPriorUtfChar( const char *start, const char * *from )
 			result = GetUtfChar( from );
 			(*from) = end;
 		}
-		else 
+		else
 			result = 0;
 	}
 	else
@@ -3317,10 +3323,12 @@ TEXTRUNE GetPriorUtfCharIndexed( const char *pc, size_t *n )
 		CTEXTSTR orig = pc + n[0];
 		CTEXTSTR tmp = orig;
 		TEXTRUNE result = GetPriorUtfChar( pc, &tmp );
-		n[0] += tmp - orig;
-		return result;
+		if( orig <= tmp ) {
+			n[0] += tmp - orig;
+			return result;
+		}
 	}
-	return 0;
+	return INVALID_RUNE;
 }
 
 //---------------------------------------------------------------------------
