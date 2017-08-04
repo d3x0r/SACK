@@ -2597,7 +2597,7 @@ TYPELIB_PROC  void TYPELIB_CALLTYPE  VarTextEmptyEx( PVARTEXT pvt DBG_PASS);
    c :         character to add
    DBG_PASS :  optional debug information         */
 TYPELIB_PROC  void TYPELIB_CALLTYPE  VarTextAddCharacterEx( PVARTEXT pvt, TEXTCHAR c DBG_PASS );
-TYPELIB_PROC  void TYPELIB_CALLTYPE  VarTextAddRuneEx( PVARTEXT pvt, TEXTRUNE c DBG_PASS );
+TYPELIB_PROC  void TYPELIB_CALLTYPE  VarTextAddRuneEx( PVARTEXT pvt, TEXTRUNE c, LOGICAL overlong DBG_PASS );
 /* Adds a single character to a PVARTEXT collector.
    
    
@@ -2615,7 +2615,7 @@ TYPELIB_PROC  void TYPELIB_CALLTYPE  VarTextAddRuneEx( PVARTEXT pvt, TEXTRUNE c 
    PVARTEXT pvt = VarTextCreate();
    VarTextAddRune( pvt, 'a' );
    </code>                                          */
-#define VarTextAddRune(pvt,c) VarTextAddRuneEx( (pvt),(c) DBG_SRC )
+#define VarTextAddRune(pvt,c) VarTextAddRuneEx( (pvt),(c), FALSE DBG_SRC )
 /* Adds a length of data to the vartext. This allows strings
    with nuls included to be added.
    

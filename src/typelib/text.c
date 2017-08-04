@@ -2103,7 +2103,7 @@ void VarTextAddCharacterEx( PVARTEXT pvt, TEXTCHAR c DBG_PASS )
 	}
 }
 
-void VarTextAddRuneEx( PVARTEXT pvt, TEXTRUNE c DBG_PASS )
+void VarTextAddRuneEx( PVARTEXT pvt, TEXTRUNE c, LOGICAL overlong DBG_PASS )
 {
 	int chars;
 	int n;
@@ -2112,7 +2112,7 @@ void VarTextAddRuneEx( PVARTEXT pvt, TEXTRUNE c DBG_PASS )
 	chars = ConvertToUTF16( output, c );
 #else
 	char output[6];
-	chars = ConvertToUTF8( output, c );
+	chars = ConvertToUTF8Ex( output, c, overlong );
 #endif
 	for( n = 0; n < chars; n++ )
 		VarTextAddCharacterEx( pvt, output[n] DBG_RELAY );
