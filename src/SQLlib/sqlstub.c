@@ -2439,10 +2439,11 @@ void ReleaseODBC( PODBC odbc )
 
 void CloseDatabaseEx( PODBC odbc, LOGICAL ReleaseConnection )
 {
+	uint32_t tick = GetTickCount();
 	ReleaseODBC( odbc );
 	odbc->flags.bAutoCheckpoint = 0;
 	odbc->last_command_tick = 0;
-	while( odbc->auto_checkpoint_thread ) {
+	while( ( (GetTickCount()-tick) < 100 ) && odbc->auto_checkpoint_thread ) {
 		WakeThread( odbc->auto_checkpoint_thread );
 		Relinquish();
 	}
