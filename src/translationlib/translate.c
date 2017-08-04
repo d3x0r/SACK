@@ -1,6 +1,7 @@
 #include <stdhdrs.h>
 #include <procreg.h>
 #include <filesys.h>
+#include <json_emitter.h>
 #define TRANSLATION_SOURCE
 #include <translation.h>
 
@@ -227,7 +228,7 @@ void LoadTranslationDataFromFile( POINTER input, size_t length )
 					struct json_value_container *val2;
 					INDEX idx2;
 					if( StrCmp( val->name, "DEFAULT" ) == 0 ) {
-	        
+
 						DATA_FORALL( val->contains, idx2, struct json_value_container *, val2 ) {
 							if( val2->value_type != VALUE_STRING ) continue;
 							CTEXTSTR index_text = SaveString( &translate_local.index_strings, (uint32_t)IntCreateFromText( val2->name ), val2->string );
