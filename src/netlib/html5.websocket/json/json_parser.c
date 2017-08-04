@@ -421,6 +421,8 @@ LOGICAL json_parse_message( char * msg
 					(*mOut++) = c;  // terminate the string.
 					while( (_msg_input=msg_input),(( n < msglen ) && (c = GetUtfChar( &msg_input )) ) )
 					{
+						if( c == '_' )
+							continue;
 						n = (msg_input - msg );
 						// leading zeros should be forbidden.
 						if( ( c >= '0' && c <= '9' )
