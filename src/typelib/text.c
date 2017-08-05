@@ -2131,6 +2131,8 @@ void VarTextAddDataEx( PVARTEXT pvt, CTEXTSTR block, size_t length DBG_PASS )
 		uint32_t n;
 		for( n = 0; n < length; n++ )
 		{
+			if( !block[n] && ( length == VARTEXT_ADD_DATA_NULTERM ) )
+				break;
 			pvt->collect_text[pvt->collect_used++] = block[n];
 			if( pvt->collect_used >= pvt->collect_avail )
 			{
