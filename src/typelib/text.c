@@ -1765,9 +1765,12 @@ int64_t IntCreateFromText( CTEXTSTR p )
 	int s;
 	int begin;
 	int64_t num;
+	LOGICAL altBase = FALSE;
+	LOGICAL altBase2 = FALSE;
+	int64_t base = 10;
 	//p = GetText( pText );
 	if( !p )
-		return FALSE;
+		return 0;
 	//if( pText->flags & TF_INDIRECT )
 	//   return IntCreateFromSeg( GetIndirect( pText ) );
 
@@ -1787,17 +1790,36 @@ int64_t IntCreateFromText( CTEXTSTR p )
 		}
 		else if( *p < '0' || *p > '9' )
 		{
-			break;
+			if( !altBase2 ) {
+				if( *p == 'x' ) { altBase2 = TRUE; base = 16; }
+				else if( *p == 'b' ) { altBase2 = TRUE; base = 2; }
+				else break;
+			} else {
+				if( base > 10 ) {
+					if( *p >= 'a' && *p <= 'f' ) {
+						num *= base;
+						num += *p - 'a' + 10;
+					}
+					else if( *p >= 'A' && *p <= 'F' ) {
+						num *= base;
+						num += *p - 'A' + 10;
+					}
+					else break;
+				}
+				else break;
+			}
 		}
 		else
 		{
-			num *= 10;
+			if( ( !altBase ) && (*p == '0') ) { altBase = TRUE; base = 8; }
+			else { if( (*p - '0') >= base ) { break; } altBase = TRUE; }
+			num *= base;
 			num += *p - '0';
 		}
 		begin = FALSE;
 		p++;
 	}
-	if( s )
+	if( s & 1 )
 		num *= -1;
 	return num;
 }
