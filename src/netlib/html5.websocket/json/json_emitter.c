@@ -1,6 +1,8 @@
 #include <stdhdrs.h>
 
-#define JSON_EMITTER_SOURCE
+#ifndef JSON_EMITTER_SOURCE
+#  define JSON_EMITTER_SOURCE
+#endif
 #include <json_emitter.h>
 
 #include "json.h"
