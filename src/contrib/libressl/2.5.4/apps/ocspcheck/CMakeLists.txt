@@ -36,7 +36,9 @@ endif()
 add_executable(ocspcheck ${OCSPCHECK_SRC})
 target_link_libraries(ocspcheck tls ${OPENSSL_LIBS})
 
+    if( NOT DO_NOT_INSTALL )
 install(TARGETS ocspcheck DESTINATION bin)
 install(FILES ocspcheck.8 DESTINATION share/man/man8)
+    endif( NOT DO_NOT_INSTALL )
 
 endif()

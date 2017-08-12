@@ -34,7 +34,7 @@ set( SACK_BASE ${PROJECT_SOURCE_DIR} )
 set( CMAKE_MODULE_PATH ${SACK_SOURCE_DIR}/makefiles/cmake )
 
 
-set( LIBRESSL_VERSION 2.5.4 )
+set( LIBRESSL_VERSION 2.6.0 )
 
 
 include( DefaultInstall )
@@ -459,6 +459,7 @@ include( CMakeSources.lst )
 if( NOT __CLR__ )
 	#add_subdirectory( src/contrib/MatrixSSL/${MATRIXSSL_VERSION} )
         #include_directories( src/contrib/MatrixSSL/${MATRIXSSL_VERSION} )
+	set( LIBRESSL_SKIP_INSTALL ON )
 	add_subdirectory( src/contrib/libressl/${LIBRESSL_VERSION} )
         include_directories( src/contrib/libressl/${LIBRESSL_VERSION}/include )
         set( SSL_LIBS ssl tls crypto )

@@ -84,5 +84,8 @@ if(NOT "${OPENSSLDIR}" STREQUAL "")
 else()
 	set(CONF_DIR "${CMAKE_INSTALL_PREFIX}/etc/ssl")
 endif()
+
+    if( NOT DO_NOT_INSTALL )
 install(FILES cert.pem openssl.cnf x509v3.cnf DESTINATION ${CONF_DIR})
 install(DIRECTORY DESTINATION ${CONF_DIR}/cert)
+    endif( NOT DO_NOT_INSTALL )
