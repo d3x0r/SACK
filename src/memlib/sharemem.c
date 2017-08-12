@@ -1900,7 +1900,7 @@ POINTER HeapAllocateAlignedEx( PMEM pHeap, uintptr_t dwSize, uint32_t alignment 
 	{
 		PMALLOC_CHUNK pc;
 #ifdef ENABLE_NATIVE_MALLOC_PROTECTOR
-		pc = (PMALLOC_CHUNK)malloc( sizeof( MALLOC_CHUNK ) + aligment + dwSize + sizeof( pc->LeadProtect ) );
+		pc = (PMALLOC_CHUNK)malloc( sizeof( MALLOC_CHUNK ) + alignment + dwSize + sizeof( pc->LeadProtect ) );
 		if( !pc )
 			DebugBreak();
 		MemSet( pc->LeadProtect, LEAD_PROTECT_TAG, sizeof( pc->LeadProtect ) );
