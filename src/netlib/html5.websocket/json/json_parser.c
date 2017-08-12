@@ -1,6 +1,7 @@
 #include <stdhdrs.h>
-
-#define JSON_EMITTER_SOURCE
+#ifndef JSON_EMITTER_SOURCE
+#  define JSON_EMITTER_SOURCE
+#endif
 #include <json_emitter.h>
 
 #include "json.h"
@@ -21,9 +22,9 @@ char *json_escape_string( const char *string ) {
 		if( string[n] == '"' )
 			m++;
 		if( string[n] == '\n' )
-         m++;
+			m++;
 		if( string[n] == '\t' )
-         m++;
+			m++;
 	}
 	output = NewArray( char, n+m+1 );
 	m = 0;
@@ -70,6 +71,42 @@ char *json_escape_string( const char *string ) {
 
 #define GetUtfChar(x) __GetUtfChar(c,x)
 
+
+/* I guess this is a good parser */
+struct json_parse_state * json_begin_parse_message( void )
+{
+	struct json_parse_state *state = New( struct json_parse_state );
+
+	//size_t m = 0; // m is the output path; leave text inline; but escaped chars can offset/change the content
+	//TEXTSTR mOut = msg;// = NewArray( char, msglen );
+
+	state->n = 0; // character index;
+	//state->_n = 0; // character index; (restore1)
+	state->word = WORD_POS_RESET;
+	state->status = TRUE;
+	state->negative = FALSE;
+
+	state->context_stack = NULL;
+
+	state->first_token = TRUE;
+	//enum json_parse_state state;
+	state->context = GetFromSet( PARSE_CONTEXT, &parseContexts );
+	state->parse_context = CONTEXT_UNKNOWN;
+	
+	//char const * msg_input = (char const *)msg;
+	//char const * _msg_input;
+
+	state->elements = CreateDataList( sizeof( state->val ) );
+
+	state->val.value_type = VALUE_UNSET;
+	state->val.contains = NULL;
+	state->val.name = NULL;
+	state->val.string = NULL;
+
+	return state;
+}
+
+
 LOGICAL json_parse_message( char * msg
                                  , size_t msglen
                                  , PDATALIST *_msg_output )
@@ -91,7 +128,7 @@ LOGICAL json_parse_message( char * msg
 	LOGICAL first_token = TRUE;
 	//enum json_parse_state state;
 	PPARSE_CONTEXT context = GetFromSet( PARSE_CONTEXT, &parseContexts );
-	int parse_context = CONTEXT_UNKNOWN;
+	enum parse_context_modes parse_context = CONTEXT_UNKNOWN;
 	struct json_value_container val;
 
 	char const * msg_input = (char const *)msg;
@@ -343,17 +380,17 @@ LOGICAL json_parse_message( char * msg
 		//  catch characters for true/false/null/undefined which are values outside of quotes
 			case 't':
 				if( word == WORD_POS_RESET ) word = WORD_POS_TRUE_1;
-				else lprintf( WIDE("fault while parsing; '%c' unexpected at %") _size_f, c, n );// fault
+				else {status=FALSE;lprintf( WIDE("fault while parsing; '%c' unexpected at %") _size_f, c, n );}// fault
 				break;
 			case 'r':
 				if( word == WORD_POS_TRUE_1 ) word = WORD_POS_TRUE_2;
-				else lprintf( WIDE("fault while parsing; '%c' unexpected at %") _size_f, c, n );// fault
+				else {status=FALSE;lprintf( WIDE("fault while parsing; '%c' unexpected at %") _size_f, c, n );}// fault
 				break;
 			case 'u':
 				if( word == WORD_POS_TRUE_2 ) word = WORD_POS_TRUE_3;
 				else if( word == WORD_POS_NULL_1 ) word = WORD_POS_NULL_2;
 				else if( word == WORD_POS_RESET ) word = WORD_POS_UNDEFINED_1;
-				else lprintf( WIDE("fault while parsing; '%c' unexpected at %") _size_f, c, n );// fault
+				else {status=FALSE;lprintf( WIDE("fault while parsing; '%c' unexpected at %") _size_f, c, n );}// fault
 				break;
 			case 'e':
 				if( word == WORD_POS_TRUE_3 ) {
@@ -364,22 +401,22 @@ LOGICAL json_parse_message( char * msg
 					word = WORD_POS_RESET;
 				} else if( word == WORD_POS_UNDEFINED_3 ) word = WORD_POS_UNDEFINED_4;
 				else if( word == WORD_POS_UNDEFINED_7 ) word = WORD_POS_UNDEFINED_8;
-				else lprintf( WIDE("fault while parsing; '%c' unexpected at %") _size_f, c, n );// fault
+				else {status=FALSE;lprintf( WIDE("fault while parsing; '%c' unexpected at %") _size_f, c, n );}// fault
 				break;
 			case 'n':
 				if( word == WORD_POS_RESET ) word = WORD_POS_NULL_1;
 				else if( word == WORD_POS_UNDEFINED_1 ) word = WORD_POS_UNDEFINED_2;
 				else if( word == WORD_POS_UNDEFINED_6 ) word = WORD_POS_UNDEFINED_7;
-				else lprintf( WIDE("fault while parsing; '%c' unexpected at %") _size_f, c, n );// fault
+				else {status=FALSE;lprintf( WIDE("fault while parsing; '%c' unexpected at %") _size_f, c, n );}// fault
 				break;
 			case 'd':
 				if( word == WORD_POS_UNDEFINED_2 ) word = WORD_POS_UNDEFINED_3;
 				else if( word == WORD_POS_UNDEFINED_8 ) { val.value_type=VALUE_UNDEFINED; word = WORD_POS_RESET; }
-				else lprintf( WIDE("fault while parsing; '%c' unexpected at %") _size_f, c, n );// fault
+				else {status=FALSE;lprintf( WIDE("fault while parsing; '%c' unexpected at %") _size_f, c, n );}// fault
 				break;
 			case 'i':
 				if( word == WORD_POS_UNDEFINED_5 ) word = WORD_POS_UNDEFINED_6;
-				else lprintf( WIDE("fault while parsing; '%c' unexpected at %") _size_f, c, n );// fault
+				else {status=FALSE;lprintf( WIDE("fault while parsing; '%c' unexpected at %") _size_f, c, n );}// fault
 				break;
 			case 'l':
 				if( word == WORD_POS_NULL_2 ) word = WORD_POS_NULL_3;
@@ -387,20 +424,20 @@ LOGICAL json_parse_message( char * msg
 					val.value_type = VALUE_NULL;
 					word = WORD_POS_RESET;
 				} else if( word == WORD_POS_FALSE_2 ) word = WORD_POS_FALSE_3;
-				else lprintf( WIDE("fault while parsing; '%c' unexpected at %") _size_f, c, n );// fault
+				else {status=FALSE;lprintf( WIDE("fault while parsing; '%c' unexpected at %") _size_f, c, n );}// fault
 				break;
 			case 'f':
 				if( word == WORD_POS_RESET ) word = WORD_POS_FALSE_1;
 				else if( word == WORD_POS_UNDEFINED_4 ) word = WORD_POS_UNDEFINED_5;
-				else lprintf( WIDE("fault while parsing; '%c' unexpected at %") _size_f, c, n );// fault
+				else {status=FALSE;lprintf( WIDE("fault while parsing; '%c' unexpected at %") _size_f, c, n );}// fault
 				break;
 			case 'a':
 				if( word == WORD_POS_FALSE_1 ) word = WORD_POS_FALSE_2;
-				else lprintf( WIDE("fault while parsing; '%c' unexpected at %") _size_f, c, n );// fault
+				else {status=FALSE;lprintf( WIDE("fault while parsing; '%c' unexpected at %") _size_f, c, n );}// fault
 				break;
 			case 's':
 				if( word == WORD_POS_FALSE_3 ) word = WORD_POS_FALSE_4;
-				else lprintf( WIDE("fault while parsing; '%c' unexpected at %") _size_f, c, n );// fault
+				else {status=FALSE;lprintf( WIDE("fault while parsing; '%c' unexpected at %") _size_f, c, n );}// fault
 				break;
 		//
  	 	//----------------------------------------------------------
@@ -476,10 +513,10 @@ LOGICAL json_parse_message( char * msg
 				{
 					// fault, illegal characer (whitespace?)
 					lprintf( WIDE("fault parsing '%c' unexpected %")_size_f WIDE(" (near %*.*s[%c]%s)"), c, n
-							 , (int)( (n>3)?3:n ), (int)( (n>3)?3:n )
-							 , msg + n - ( (n>3)?3:n )
+							 , (int)( (n>4)?3:(n-1) ), (int)( (n>4)?3: (n - 1))
+							 , msg + n - ( (n>4)?4:n )
 							 , c
-							 , msg + n + 1
+							 , msg + n 
 							 );// fault
 				}
 				break; // default
