@@ -1316,7 +1316,7 @@ SYSTEM_PROC( void, AddMappedLibrary)( CTEXTSTR libname, POINTER image_memory )
 		library = NewPlus( LIBRARY, sizeof(TEXTCHAR)*((maxlen<0xFFFFFF)?(uint32_t)maxlen:0) );
 		library->alt_full_name = NULL;
 		StrCpy( library->full_name, libname );
-		library->name = pathrchr( library->full_name );
+		library->name = (char*)pathrchr( library->full_name );
 		if( library->name )
 			library->name++;
 		else
