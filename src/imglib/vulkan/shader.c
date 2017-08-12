@@ -26,10 +26,10 @@ PImageShaderTracker GetShaderInit( CTEXTSTR name, uintptr_t (CPROC*Setup)(uintpt
 		{
 			VkCommandPoolCreateInfo cpci;
 			cpci.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
-			cpci.next = NULL;
+			cpci.pNext = NULL;
 			cpci.flags = 0;
 			//cpci.flags |= VK_COMMAND_POOL_CREATE_TRANSIENT_BIT
-			cpci.flags |= VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT
+			cpci.flags |= VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
 			cpci.queueFamilyIndex = 0;
 		}
 		tracker->name = StrDup( name );
