@@ -62,6 +62,8 @@ add_subpath( ../src/netlib/proxy )
 add_subpath( ../src/netlib/scan )
 add_subpath( ../src/psilib/calctl )
 
+add_subpath( ../src/utils/factorio )
+
 add_subpath( ../src/SQLlib/testsql )
 add_subpath( ../src/utils/launcher )
 add_subpath( ../src/streamlib/ffmpeg/program )
