@@ -3298,7 +3298,7 @@ TEXTRUNE GetUtfCharIndexed( const char * pc, size_t *n, size_t length )
 	CTEXTSTR orig = pc + n[0];
 	CTEXTSTR tmp = orig;
 	TEXTRUNE result = GetUtfChar( &tmp );
-	if( (tmp-orig) <= length ) {
+	if( (size_t)(tmp-orig) <= length ) {
 		n[0] += tmp - orig;
 		return result;
 	}

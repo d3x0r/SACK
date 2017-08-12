@@ -605,7 +605,7 @@ void DeleteUserInput( PUSER_INPUT_BUFFER pci )
 	}
 	if( pNext )
 	{
-		GetUtfCharIndexed( pNext->data.data, &len );
+		GetUtfCharIndexed( pNext->data.data, &len, maxlen );
 		charlen = len - cursor;
 		if( ( maxlen - charlen ) > 0 )
 		{
@@ -789,7 +789,7 @@ LOGICAL  SetUserInputPosition ( PUSER_INPUT_BUFFER pci, int nPos, int whence )
 			for( tmp = 0; tmp < (size_t)nPos; tmp++ )
 			{
 				if( cursor < curseg->data.size )
-					ch = GetUtfCharIndexed( curseg->data.data, &cursor );
+					ch = GetUtfCharIndexed( curseg->data.data, &cursor, curseg->data.size );
 				else
 					ch = 0;
 				if( !ch || ( cursor == curseg->data.size ) )
