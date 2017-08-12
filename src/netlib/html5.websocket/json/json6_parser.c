@@ -1059,10 +1059,10 @@ int json6_parse_add_data( struct json_parse_state *state
 						state->status = FALSE;
 						if( !state->pvtError ) state->pvtError = VarTextCreate();
 						vtprintf( state->pvtError, WIDE( "fault parsing '%c' unexpected %" )_size_f WIDE( " (near %*.*s[%c]%s)" ), c, state->n
-							, (int)((state->n > 3) ? 3 : state->n), (int)((state->n > 3) ? 3 : state->n)
+							, (int)((state->n > 4) ? 3 : (state->n-1)), (int)((state->n > 4) ? 3 : (state->n-1))
 							, input->buf + state->n - ((state->n > 3) ? 3 : state->n)
 							, c
-							, input->buf + state->n + 1
+							, input->buf + state->n
 						);// fault
 					}
 					break; // default
@@ -1770,10 +1770,10 @@ console.log(today.toISOString());
 					// fault, illegal characer (whitespace?)
 					status = FALSE;
 					lprintf( WIDE("fault parsing '%c' unexpected %")_size_f WIDE(" (near %*.*s[%c]%s)"), c, n
-							 , (int)( (n>3)?3:n ), (int)( (n>3)?3:n )
-							 , msg + n - ( (n>3)?3:n )
+							 , (int)( (n>4)?3:(n-1) ), (int)( (n>4)?3:(n-1) )
+							 , msg + n - ( (n>4)?4:n )
 							 , c
-							 , msg + n + 1
+							 , msg + n
 							 );// fault
 				}
 				break; // default
