@@ -44,7 +44,8 @@ struct json_context
 
 
 enum word_char_states {
-	WORD_POS_RESET = 0,
+	WORD_POS_RESET = 0, // not in a keyword
+	WORD_POS_END,  // at end of a word, waiting for separator
 	WORD_POS_TRUE_1,
 	WORD_POS_TRUE_2,
 	WORD_POS_TRUE_3,
@@ -80,14 +81,16 @@ enum word_char_states {
 	WORD_POS_AFTER_FIELD, 
 };
 
-#define CONTEXT_UNKNOWN 0
-#define CONTEXT_IN_ARRAY 1
-#define CONTEXT_IN_OBJECT 2
-#define CONTEXT_OBJECT_FIELD 3
-#define CONTEXT_OBJECT_FIELD_VALUE 4
+enum parse_context_modes {
+ CONTEXT_UNKNOWN = 0,
+ CONTEXT_IN_ARRAY = 1,
+ CONTEXT_IN_OBJECT = 2,
+ CONTEXT_OBJECT_FIELD = 3,
+ CONTEXT_OBJECT_FIELD_VALUE = 4
+};
 
 struct json_parse_context {
-	int context;
+	enum parse_context_modes context;
 	PDATALIST elements;
 	
 	struct json_context_object *object;
@@ -99,10 +102,75 @@ struct json_parse_context {
 	val.name = NULL;                  \
 	val.string = NULL;                \
 	negative = FALSE; }
+#define RESET_STATE_VAL()  {  \
+	state->val.value_type = VALUE_UNSET; \
+	state->val.contains = NULL;              \
+	state->val.name = NULL;                  \
+	state->val.string = NULL;                \
+	state->negative = FALSE; }
 
 typedef struct json_parse_context PARSE_CONTEXT, *PPARSE_CONTEXT;
 #define MAXPARSE_CONTEXTSPERSET 128
 DeclareSet( PARSE_CONTEXT );
+
+struct json_input_buffer {
+	char const * buf;      // prior input buffer
+	size_t       size; // size of prior input buffer
+	char const * pos;  // last position in _input if context closed before end of buffer
+};
+
+struct json_output_buffer {
+	char * buf;      // prior input buffer
+	size_t  size; // size of prior input buffer
+	char * pos;  // last position in _input if context closed before end of buffer
+};
+
+typedef struct json_input_buffer PARSE_BUFFER, *PPARSE_BUFFER;
+#define MAXPARSE_BUFFERSPERSET 128
+DeclareSet( PARSE_BUFFER );
+
+
+struct json_parse_state {
+	/* I guess this is a good parser */
+	PDATALIST elements;
+	PLINKSTACK outBuffers; // 
+	PLINKQUEUE outQueue; // matches input queue
+	PLIST outValBuffers;
+	//TEXTSTR mOut;// = NewArray( char, msglen );
+
+	size_t line;
+	size_t col;
+	size_t n; // character index;
+	//size_t _n = 0; // character index; (restore1)
+	enum word_char_states word;
+	LOGICAL status;
+	LOGICAL negative;
+	LOGICAL literalString;
+
+	PLINKSTACK context_stack;
+
+	LOGICAL first_token;
+	PPARSE_CONTEXT context;
+	enum parse_context_modes parse_context;
+	struct json_value_container val;
+	int comment;
+
+	PLINKQUEUE inBuffers;
+	//char const * input;     // current input buffer start
+	//char const * msg_input; // current input buffer position (incremented while reading)
+
+	LOGICAL completed;
+	LOGICAL complete_at_end;
+	LOGICAL gatheringString;
+	TEXTRUNE gatheringStringFirstChar;
+	LOGICAL gatheringNumber;
+	LOGICAL numberExponent;
+	LOGICAL numberFromHex;
+	LOGICAL numberFromDate;
+
+	PVARTEXT pvtError;
+	//char *token_begin;
+};
 
 
 #ifdef __cplusplus
