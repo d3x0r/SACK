@@ -1912,10 +1912,12 @@ POINTER HeapAllocateAlignedEx( PMEM pHeap, uintptr_t dwSize, uint32_t alignment 
 		pc->dwSize = dwSize;
 		pc->dwPad = dwAlignPad;
 #ifndef NO_LOGGING
+#  ifdef _DEBUG
 		if( g.bLogAllocate )
 		{
 			ll__lprintf(DBG_RELAY)( WIDE( "alloc %p(%p) %" ) _PTRSZVALfs, pc, pc->byData, dwSize );
 		}
+#  endif
 #endif
 		if( alignment && ( (uintptr_t)pc->byData & ~masks[alignment] ) ) {
 			uintptr_t retval = ((((uintptr_t)pc->byData) + (alignment - 1)) & masks[alignment]);
@@ -1937,6 +1939,7 @@ POINTER HeapAllocateAlignedEx( PMEM pHeap, uintptr_t dwSize, uint32_t alignment 
 		PMEM pMem, pCurMem = NULL;
 		PSPACE pMemSpace;
 		uint32_t dwPad = 0;
+		uint32_t dwMin = 0;
 		//ll__lprintf(DBG_RELAY)( WIDE( "..." ) );
 #ifdef _DEBUG
 		if( !g.bDisableAutoCheck )
@@ -1960,17 +1963,18 @@ POINTER HeapAllocateAlignedEx( PMEM pHeap, uintptr_t dwSize, uint32_t alignment 
 #endif
 
 #ifdef _DEBUG
+		if( pMem && !(pMem->dwFlags & HEAP_FLAG_NO_DEBUG) )
+		{
+			dwPad += MAGIC_SIZE * 2;
+			dwSize += MAGIC_SIZE * 2; // pFile, nLine per block...
+									  //ll_lprintf( WIDE("Adding 8 bytes to block size...") );
+		}
 		if( !g.bDisableDebug )
 		{
 			dwPad += MAGIC_SIZE;
 			dwSize += MAGIC_SIZE;  // add a uint32_t at end to mark, and check for application overflow...
-			if( !pMem || !( pMem->dwFlags & HEAP_FLAG_NO_DEBUG ) )
-			{
-				dwPad += MAGIC_SIZE*2;
-				dwSize += MAGIC_SIZE*2; // pFile, nLine per block...
-				//ll_lprintf( WIDE("Adding 8 bytes to block size...") );
-			}
 		}
+		dwMin = dwPad;
 #endif
 
 		// re-search for memory should step long back...
@@ -1991,7 +1995,7 @@ POINTER HeapAllocateAlignedEx( PMEM pHeap, uintptr_t dwSize, uint32_t alignment 
 				if( pc->dwSize >= dwSize ) // if free block size is big enough...
 				{
 					// split block
-					if( ( pc->dwSize - dwSize ) <= ( CHUNK_SIZE + g.nMinAllocateSize ) ) // must allocate it all.
+					if( ( pc->dwSize - dwSize ) <= ( dwMin + CHUNK_SIZE + g.nMinAllocateSize ) ) // must allocate it all.
 					{
 						pc->dwPad = (uint16_t)(dwPad + ( pc->dwSize - dwSize ));
 						UnlinkThing( pc );
@@ -2005,9 +2009,25 @@ POINTER HeapAllocateAlignedEx( PMEM pHeap, uintptr_t dwSize, uint32_t alignment 
 						next = (PHEAP_CHUNK)( pc->byData + pc->dwSize );
 						pNew = (PHEAP_CHUNK)(pc->byData + dwSize);
 						pNew->dwPad = 0;
-						pNew->dwSize = ( ( pc->dwSize - CHUNK_SIZE ) - dwSize );
-						if( pNew->dwSize & 0x80000000 )
+						pNew->dwSize = ((pc->dwSize - CHUNK_SIZE) - dwSize);
+#ifdef _DEBUG
+						if( pNew->dwSize > 0x80000000 )
 							DebugBreak();
+						if( pMem && !(pMem->dwFlags & HEAP_FLAG_NO_DEBUG) )
+						{
+							pNew->dwPad += MAGIC_SIZE * 2;
+						}
+						if( !g.bDisableDebug )
+						{
+							pNew->dwPad += MAGIC_SIZE;
+							BLOCK_TAG( pNew ) = BLOCK_TAG_ID;
+						}
+						if( pMem && !(pMem->dwFlags & HEAP_FLAG_NO_DEBUG) )
+						{
+							BLOCK_FILE( pNew ) = pFile;
+							BLOCK_LINE( pNew ) = nLine;
+						}
+#endif
 
 						pc->dwPad = (uint16_t)dwPad;
 						pc->dwSize = dwSize; // set old size?  this can wait until we have the block.
@@ -2073,6 +2093,8 @@ POINTER HeapAllocateAlignedEx( PMEM pHeap, uintptr_t dwSize, uint32_t alignment 
 		}
 		if( !(pMem->dwFlags & HEAP_FLAG_NO_DEBUG ) )
 		{
+			if( pc->dwPad < 16 )
+				DebugBreak();
 			BLOCK_FILE(pc) = pFile;
 			BLOCK_LINE(pc) = nLine;
 		}
@@ -2081,10 +2103,12 @@ POINTER HeapAllocateAlignedEx( PMEM pHeap, uintptr_t dwSize, uint32_t alignment 
 		DropMem( pMem );
 		//#if DBG_AVAILABLE
 #ifndef NO_LOGGING
+#  ifdef _DEBUG
 		if( g.bLogAllocate && g.allowLogging )
 		{
 			_xlprintf( 2 DBG_RELAY )(WIDE( "Allocate : %p(%p) - %" ) _PTRSZVALfs WIDE( " bytes" ), pc->byData, pc, pc->dwSize);
 		}
+#  endif
 #endif
 		//#endif
 		if( alignment && ((uintptr_t)pc->byData & ~masks[alignment]) ) {
@@ -2098,7 +2122,7 @@ POINTER HeapAllocateAlignedEx( PMEM pHeap, uintptr_t dwSize, uint32_t alignment 
 		}
 	}
 
-   return NULL;
+	return NULL;
 }
 
 //------------------------------------------------------------------------------------------------------
@@ -2291,12 +2315,14 @@ POINTER ReleaseEx ( POINTER pData DBG_PASS )
 			if( !pc->dwOwners )
 			{
 				extern int  MemChk ( POINTER p, uintptr_t val, size_t sz );
+#ifndef NO_LOGGING
+#  ifdef _DEBUG
 				if( g.bLogAllocate )
 				{
-#ifndef NO_LOGGING
 					ll__lprintf(DBG_RELAY)( WIDE( "Release %p(%p)" ), pc, pc->byData );
-#endif
 				}
+#  endif
+#endif
 #ifdef ENABLE_NATIVE_MALLOC_PROTECTOR
 				if( !MemChk( pc->LeadProtect, LEAD_PROTECT_TAG, sizeof( pc->LeadProtect ) ) ||
 					!MemChk( pc->byData + pc->dwSize, LEAD_PROTECT_BLOCK_TAIL, sizeof( pc->LeadProtect ) ) )
@@ -2311,16 +2337,16 @@ POINTER ReleaseEx ( POINTER pData DBG_PASS )
 			}
 			else
 			{
+#ifndef NO_LOGGING
 				if( g.bLogAllocate && g.bLogAllocateWithHold )
 				{
-#ifndef NO_LOGGING
 					ll__lprintf(DBG_RELAY)( WIDE( "Release(holding) %p(%p)" ), pc, pc->byData );
-#endif
 				}
+#endif
 			}
 			return pData;
 		}
-      else
+		else
 		{
 			PCHUNK pc = (PCHUNK)(((uintptr_t)pData) - ( ( (uint32_t*)pData)[-1] +
 													offsetof( CHUNK, byData ) ) );
@@ -2333,17 +2359,17 @@ POINTER ReleaseEx ( POINTER pData DBG_PASS )
 			if( !g.bDisableAutoCheck )
 				GetHeapMemStatsEx(pc->pRoot, &dwFree,&dwAllocated,&dwBlocks,&dwFreeBlocks DBG_RELAY);
 #endif
-			if( g.bLogAllocate )
-			{
 #ifndef NO_LOGGING
 #  ifdef _DEBUG
+			if( g.bLogAllocate )
+			{
 				if( !g.bDisableDebug )
 					_xlprintf( 2 DBG_RELAY )(WIDE( "Release  : %p(%p) - %" ) _PTRSZVALfs WIDE( " bytes %s(%d)" ), pc->byData, pc, pc->dwSize, BLOCK_FILE( pc ), BLOCK_LINE( pc ));
 				else
 					_xlprintf( 2 DBG_RELAY )(WIDE( "Release  : %p(%p) - %" ) _PTRSZVALfs WIDE( " bytes" ), pc->byData, pc, pc->dwSize);
+			}
 #  endif
 #endif
-			}
 
 			pMem = GrabMem( pc->pRoot );
 			if( !pMem )
@@ -2477,19 +2503,28 @@ POINTER ReleaseEx ( POINTER pData DBG_PASS )
 							if( !g.bDisableDebug )
 							{
 								pPrior->dwPad = MAGIC_SIZE;
+								if( !(pMem->dwFlags & HEAP_FLAG_NO_DEBUG) )
+								{
+									pPrior->dwPad += 2 * MAGIC_SIZE;
+									BLOCK_FILE( pPrior ) = pFile;
+									BLOCK_LINE( pPrior ) = nLine;
+								}
 								BLOCK_TAG( pPrior ) = BLOCK_TAG_ID;
+								MemSet( pPrior->byData, FREE_MEMORY_TAG, pPrior->dwSize - pPrior->dwPad );
 							}
 							else
 #endif
+							{
 								pPrior->dwPad = 0; // *** NEEDFILELINE ***
 #ifdef _DEBUG
-							if( !(pMem->dwFlags & HEAP_FLAG_NO_DEBUG ) )
-							{
-								pPrior->dwPad += 2*MAGIC_SIZE;
-								BLOCK_FILE(pPrior) = pFile;
-								BLOCK_LINE(pPrior) = nLine;
-							}
+								if( !(pMem->dwFlags & HEAP_FLAG_NO_DEBUG) )
+								{
+									pPrior->dwPad += 2 * MAGIC_SIZE;
+									BLOCK_FILE( pPrior ) = pFile;
+									BLOCK_LINE( pPrior ) = nLine;
+								}
 #endif
+							}
 							if( pPrior->dwSize & 0x80000000 )
 								DebugBreak();
 							pc = pPrior; // use prior block as base ....
@@ -2520,25 +2555,32 @@ POINTER ReleaseEx ( POINTER pData DBG_PASS )
 							}
 #ifdef _DEBUG
 							//if( bLogAllocate )
-							{
 								//ll_lprintf( WIDE("Collapsing freed block with next block...%p %p"), pc, next );
-							}
 							if( !g.bDisableDebug )
 							{
 								pc->dwPad = MAGIC_SIZE;
+								if( !(pMem->dwFlags & HEAP_FLAG_NO_DEBUG) )
+								{
+									pc->dwPad += 2 * MAGIC_SIZE;
+									BLOCK_FILE( pc ) = pFile;
+									BLOCK_LINE( pc ) = nLine;
+								}
 								BLOCK_TAG( pc ) = BLOCK_TAG_ID;
+								MemSet( pc->byData, FREE_MEMORY_TAG, pc->dwSize - pc->dwPad );
 							}
 							else
 #endif
+							{
 								pc->dwPad = 0; // *** NEEDFILELINE ***
 #ifdef _DEBUG
-							if( !(pMem->dwFlags & HEAP_FLAG_NO_DEBUG ) )
-							{
-								pc->dwPad += 2*MAGIC_SIZE;
-								BLOCK_FILE(pc) = pFile;
-								BLOCK_LINE(pc) = nLine;
-							}
+								if( !(pMem->dwFlags & HEAP_FLAG_NO_DEBUG) )
+								{
+									pc->dwPad += 2 * MAGIC_SIZE;
+									BLOCK_FILE( pc ) = pFile;
+									BLOCK_LINE( pc ) = nLine;
+								}
 #endif
+							}
 
 							if( pc->dwSize & 0x80000000 )
 								DebugBreak();
@@ -2965,7 +3007,10 @@ void  DebugDumpHeapMemEx ( PMEM pHeap, LOGICAL bVerbose )
 					}
 					else
 					{
-						if( BLOCK_TAG(pc) != BLOCK_TAG_ID )
+						int minPad = MAGIC_SIZE;
+						if( pMem && !(pMem->dwFlags & HEAP_FLAG_NO_DEBUG) )
+							minPad += MAGIC_SIZE * 2;
+						if( pc->dwPad >= minPad && BLOCK_TAG(pc) != BLOCK_TAG_ID )
 						{
 #ifndef NO_LOGGING
 							ll_lprintf( WIDE("memory block: %p %08") TAG_FORMAT_MODIFIER WIDE("x insted of %08")TAG_FORMAT_MODIFIER WIDE("x"), pc->byData, BLOCK_TAG(pc), BLOCK_TAG_ID );
