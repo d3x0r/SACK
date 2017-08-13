@@ -130,8 +130,9 @@ typedef struct json_input_buffer PARSE_BUFFER, *PPARSE_BUFFER;
 DeclareSet( PARSE_BUFFER );
 
 
+// this is the stack state that can be saved between parsing for streaming.
 struct json_parse_state {
-	/* I guess this is a good parser */
+	//TEXTRUNE c;
 	PDATALIST elements;
 	PLINKSTACK outBuffers; // 
 	PLINKQUEUE outQueue; // matches input queue
