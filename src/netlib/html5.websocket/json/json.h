@@ -170,8 +170,18 @@ struct json_parse_state {
 	LOGICAL numberFromDate;
 
 	PVARTEXT pvtError;
+	LOGICAL fromHex;
 	//char *token_begin;
 };
+
+struct json_parser_shared_data {
+	PPARSE_CONTEXTSET parseContexts;
+	PPARSE_CONTEXTSET parseBuffers;
+};
+#ifndef JSON_PARSER_MAIN_SOURCE
+extern
+#endif
+struct json_parser_shared_data jpsd;
 
 
 #ifdef __cplusplus
