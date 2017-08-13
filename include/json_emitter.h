@@ -132,7 +132,7 @@ JSON_EMITTER_PROC( TEXTSTR, json_build_message )( struct json_context_object *fo
 //  PDATALIST is full of struct json_value_container
 // turns out numbers can be  hex, octal and binary numbers  (0x[A-F,a-f,0-9]*, 0b[0-1]*, 0[0-9]*)
 // slightly faster (17%) than json6_parse_message because of fewer possible checks.
-JSON_EMITTER_PROC( LOGICAL, json_parse_message )( char * msg
+JSON_EMITTER_PROC( LOGICAL, json_parse_message )(const char * msg
                                                 , size_t msglen
                                                 , PDATALIST *msg_data_out
 																);
@@ -144,15 +144,17 @@ JSON_EMITTER_PROC( struct json_parse_state *, json_begin_parse )( void );
 // still unconsumed data that can begin a new object.  Call this with NULL, 0 for data
 // to consume this internal data.  if this returns FALSE, then ther is no further object
 // to retrieve.
-JSON_EMITTER_PROC( LOGICAL, json_parse_add_data )( struct json_parse_state *context
-                                                 , char * msg
+JSON_EMITTER_PROC( int, json_parse_add_data )( struct json_parse_state *context
+                                                 , const char * msg
                                                  , size_t msglen
                                                  );
 
-JSON_EMITTER_PROC( PDATALIST, json_parse_get_data )( struct json_parse_state *context );
 
+// these are common functions that work for json or json6 stream parsers
+JSON_EMITTER_PROC( PDATALIST, json_parse_get_data )( struct json_parse_state *context );
 JSON_EMITTER_PROC( void, json_parse_dispose_state )( struct json_parse_state **context );
 JSON_EMITTER_PROC( void, json_parse_clear_state )(struct json_parse_state *context);
+JSON_EMITTER_PROC( PTEXT, json_parse_get_error )(struct json_parse_state *context);
 
 // take a json string and a format and fill in a structure from the text.
 // tests all formats, to first-match; 
@@ -167,7 +169,7 @@ JSON_EMITTER_PROC( void, json_parse_clear_state )(struct json_parse_state *conte
 //   JSON(6?) support - undefined keyword value
 //       accept \uXXXX, \xXX, \[0-3]xx octal, \u{xxxxx} encodings in strings
 //       allow underscores in numbers to separate number groups ( works as ZWNBSP )
-JSON_EMITTER_PROC( LOGICAL, json6_parse_message )( char * msg
+JSON_EMITTER_PROC( LOGICAL, json6_parse_message )(const char * msg
 													, size_t msglen
 													, PDATALIST *msg_data_out
 																);
@@ -175,8 +177,6 @@ JSON_EMITTER_PROC( LOGICAL, _json6_parse_message )(char * msg
 	, size_t msglen
 	, PDATALIST *msg_data_out
 	);
-
-JSON_EMITTER_PROC( struct json_parse_state *, json6_begin_parse )( void );
 
 // Add some data to parse for json stream (which may consist of multiple values)
 // return 1 when a completed value/object is available.
@@ -186,15 +186,10 @@ JSON_EMITTER_PROC( struct json_parse_state *, json6_begin_parse )( void );
 // to retrieve.
 // if this returns -1, an error in parsing has occured, and no further parsing can happen.
 JSON_EMITTER_PROC( int, json6_parse_add_data )( struct json_parse_state *context
-                                                 , char * msg
+                                                 , const char * msg
                                                  , size_t msglen
                                                  );
 
-JSON_EMITTER_PROC( PDATALIST, json6_parse_get_data )( struct json_parse_state *context );
-
-JSON_EMITTER_PROC( void, json6_parse_dispose_state )( struct json_parse_state **context );
-JSON_EMITTER_PROC( void, json6_parse_clear_state )(struct json_parse_state *context);
-JSON_EMITTER_PROC( PTEXT, json6_parse_get_error )(struct json_parse_state *context);
 
 
 JSON_EMITTER_PROC( LOGICAL, json_decode_message )(  struct json_context *format
