@@ -2,7 +2,9 @@
 #ifndef JSON_EMITTER_SOURCE
 #  define JSON_EMITTER_SOURCE
 #endif
-#define JSON_PARSER_MAIN_SOURCE
+#ifndef JSON_PARSER_MAIN_SOURCE
+#  define JSON_PARSER_MAIN_SOURCE
+#endif
 #include <json_emitter.h>
 
 #include "json.h"
