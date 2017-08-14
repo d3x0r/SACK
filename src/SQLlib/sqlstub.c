@@ -443,12 +443,23 @@ void ExtendConnection( PODBC odbc )
 		CTEXTSTR result;
 		int n = odbc->flags.bNoLogging;
 		int m = odbc->flags.bAutoCheckpoint;
-		odbc->flags.bNoLogging = 1;
+		odbc->flags.bNoLogging = 0;
 		odbc->flags.bAutoCheckpoint = 0;
-		SQLQueryf( odbc, &result, WIDE( "PRAGMA journal_mode=WAL;" ) );
+		{
+			INDEX idx;
+			CTEXTSTR cmd;
+			LIST_FORALL( g.database_init, idx, CTEXTSTR, cmd ) {
+				SQLQueryf( odbc, &result, cmd );
+				//if( result )
+				//	lprintf( WIDE( " %s" ), result );
+				SQLEndQuery( odbc );
+			}
+		}
+		//SQLQueryf( odbc, &result, WIDE( "PRAGMA journal_mode=WAL;" ) );
 		//if( result )
 		//	lprintf( WIDE( "Journal is now %s" ), result );
-		SQLEndQuery( odbc );
+		//SQLEndQuery( odbc );
+
 		if( g.flags.bAutoCheckpointRecover ) {
 			SQLQueryf( odbc, &result, WIDE( "PRAGMA wal_checkpoint;" ) );
 			SQLEndQuery( odbc );
@@ -678,6 +689,23 @@ static PCOLLECT CreateCollectorEx( PSERVICE_ROUTE SourceID, PODBC odbc, LOGICAL 
 //----------------------------------------------------------------------
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+static uintptr_t CPROC AddDatabaseInit( uintptr_t psv, arg_list args )
+{
+	PARAM( args, CTEXTSTR, initSQL );
+	if( initSQL && strlen( initSQL ) )
+		AddLink( &g.option_database_init, StrDup( initSQL ) );
+	return psv;
+}
+
+static uintptr_t CPROC AddOptionDatabaseInit( uintptr_t psv, arg_list args )
+{
+	PARAM( args, CTEXTSTR, initSQL );
+	if( initSQL && strlen( initSQL ) )
+		AddLink( &g.database_init, StrDup( initSQL ) );
+	return psv;
+}
+
 static uintptr_t CPROC SetPrimaryDSN( uintptr_t psv, arg_list args )
 {
 	PARAM( args, CTEXTSTR, pDSN );
@@ -976,6 +1004,8 @@ void SqlStubInitLibrary( void )
 			AddConfigurationMethod( pch, WIDE("Require Connection=%b"), SetRequireConnection );
 			AddConfigurationMethod( pch, WIDE("Require Primary Connection=%b"), SetRequirePrimaryConnection );
 			AddConfigurationMethod( pch, WIDE("Require Backup Connection=%b"), SetRequireBackupConnection );
+			AddConfigurationMethod( pch, WIDE("Database Init SQL=%m"), AddDatabaseInit );
+			AddConfigurationMethod( pch, WIDE("Option Database Init SQL=%m"), AddOptionDatabaseInit );
 			// If source is encrypted enable tranlation
 			//AddConfigurationFilter( pch, TranslateCrypt );
 			{
@@ -1012,6 +1042,8 @@ void SqlStubInitLibrary( void )
 					sack_fprintf( file, "Require Connection=No\n" );
 					sack_fprintf( file, "Require Primary Connection=Yes\n" );
 					sack_fprintf( file, "Require Backup Connection=No\n" );
+					sack_fprintf( file, "Database Init SQL=\n" );
+					sack_fprintf( file, "Option Database Init SQL=\n" );
 					sack_fclose( file );
 				}
 				ProcessConfigurationFile( pch, WIDE("sql.config"), 0 );

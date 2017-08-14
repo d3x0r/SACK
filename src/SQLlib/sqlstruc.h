@@ -201,6 +201,8 @@ struct pssql_global
 	ODBC OptionDb; // a third, well-known DSN used for option library by default.  May be SQLite.
 	PLIST date_offsets;
 	PLIST odbc_queues;
+	PLIST option_database_init;
+	PLIST database_init;
 };
 #endif
 

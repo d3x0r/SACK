@@ -1312,6 +1312,19 @@ PODBC GetOptionODBCEx( CTEXTSTR dsn  DBG_PASS )
 			lprintf( "none available, create new connection." );
 #endif
 			odbc = ConnectToDatabaseExx( tracker->name, TRUE DBG_RELAY );
+
+			{
+				INDEX idx;
+				CTEXTSTR cmd;
+				CTEXTSTR result;
+				LIST_FORALL( global_sqlstub_data->option_database_init, idx, CTEXTSTR, cmd ) {
+					SQLQueryf( odbc, &result, cmd );
+					//if( result )
+					//	lprintf( WIDE( " %s" ), result );
+					SQLEndQuery( odbc );
+				}
+			}
+
 			//SetSQLAutoClose( odbc, TRUE );
 			if( !tracker->shared_option_tree )
 			{
