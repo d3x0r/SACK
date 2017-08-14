@@ -322,7 +322,6 @@ int json_parse_add_data( struct json_parse_state *state
 	int retval = 0;
 	int string_status;
 
-
 	if( msg && msglen ) {
 		input = GetFromSet( PARSE_BUFFER, &jpsd.parseBuffers );
 		input->pos = input->buf = msg;
@@ -651,7 +650,7 @@ int json_parse_add_data( struct json_parse_state *state
 						// always reset this here....
 						// keep it set to determine what sort of value is ready.
 						if( !state->gatheringNumber ) {
-							//exponent = FALSE;
+							state->exponent = FALSE;
 							state->fromHex = FALSE;
 							//fromDate = FALSE;
 							state->val.float_result = 0;
@@ -687,7 +686,32 @@ int json_parse_add_data( struct json_parse_state *state
 									break;
 								}
 							}
-							else if( (c == 'e') || (c == 'E') || (c == '.') )
+							else if( (c == 'e') || (c == 'E') )
+							{
+								if( !state->exponent ) {
+									state->val.float_result = 1;
+									(*output->pos++) = c;
+									state->exponent = TRUE;
+								}
+								else {
+									state->status = FALSE;
+									if( !state->pvtError ) state->pvtError = VarTextCreate();
+									vtprintf( state->pvtError, WIDE( "fault wile parsing; '%c' unexpected at %" ) _size_f WIDE( "  %" ) _size_f WIDE( ":%" ) _size_f, c, state->n, state->line, state->col );
+									break;
+								}
+							}
+							else if( c == '-' ) {
+								if( !state->exponent ) {
+									state->status = FALSE;
+									if( !state->pvtError ) state->pvtError = VarTextCreate();
+									vtprintf( state->pvtError, WIDE( "fault wile parsing; '%c' unexpected at %" ) _size_f WIDE( "  %" ) _size_f WIDE( ":%" ) _size_f, c, state->n, state->line, state->col );
+									break;
+								}
+								else {
+									(*output->pos++) = c;
+								}
+							}
+							else if( c == '.' )
 							{
 								state->val.float_result = 1;
 								(*output->pos++) = c;
@@ -698,7 +722,6 @@ int json_parse_add_data( struct json_parse_state *state
 								/*
 								if( c == ' ' || c == '\t' || c == '\n' || c == '\r' || c == 0xFEFF
 								|| c == ',' || c == '\'' || c == '\"' || c == '`' ) {
-
 								}
 								*/
 								//lprintf( "Non numeric character received; push the value we have" );

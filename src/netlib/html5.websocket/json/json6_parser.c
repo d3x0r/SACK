@@ -701,9 +701,14 @@ int json6_parse_add_data( struct json_parse_state *state
 					if( state->word == WORD_POS_RESET ) {
 						break;
 					}
-					state->status = FALSE;
-					if( !state->pvtError ) state->pvtError = VarTextCreate();
-					vtprintf( state->pvtError, WIDE( "fault while parsing; whitespace unexpected at %" ) _size_f WIDE( "  %" ) _size_f WIDE( ":%" ) _size_f, state->n );	// fault
+					else if( state->word == WORD_POS_FIELD ) {
+						state->word = WORD_POS_AFTER_FIELD;
+					}
+					else {
+						state->status = FALSE;
+						if( !state->pvtError ) state->pvtError = VarTextCreate();
+						vtprintf( state->pvtError, WIDE( "fault while parsing; whitespace unexpected at %" ) _size_f WIDE( "  %" ) _size_f WIDE( ":%" ) _size_f, state->n );	// fault
+					}
 					// skip whitespace
 					//n++;
 					//lprintf( "whitespace skip..." );
@@ -875,13 +880,11 @@ int json6_parse_add_data( struct json_parse_state *state
 					if( (c >= '0' && c <= '9') || (c == '+') || (c == '.') )
 					{
 						LOGICAL fromDate;
-						LOGICAL exponent;
 						const char *_msg_input; // to unwind last character past number.
-			continueNumber:
 						// always reset this here....
 						// keep it set to determine what sort of value is ready.
 						if( !state->gatheringNumber ) {
-							exponent = FALSE;
+							state->exponent = FALSE;
 							fromDate = FALSE;
 							state->fromHex = FALSE;
 							state->val.float_result = 0;
@@ -890,7 +893,7 @@ int json6_parse_add_data( struct json_parse_state *state
 						}
 						else
 						{
-							exponent = state->numberExponent;
+						continueNumber:
 							fromDate = state->numberFromDate;
 						}
 						while( (_msg_input = input->pos), ((state->n < input->size) && (c = GetUtfChar( &input->pos ))) )
@@ -935,16 +938,27 @@ int json6_parse_add_data( struct json_parse_state *state
 							}
 							else if( (c == 'e') || (c == 'E') )
 							{
-								if( !exponent ) {
+								if( !state->exponent ) {
 									state->val.float_result = 1;
 									(*output->pos++) = c;
-									exponent = TRUE;
+									state->exponent = TRUE;
 								}
 								else {
 									state->status = FALSE;
 									if( !state->pvtError ) state->pvtError = VarTextCreate();
 									vtprintf( state->pvtError, WIDE( "fault wile parsing; '%c' unexpected at %" ) _size_f WIDE( "  %" ) _size_f WIDE( ":%" ) _size_f, c, state->n, state->line, state->col );
 									break;
+								}
+							}
+							else if( c == '-' ) {
+								if( !state->exponent ) {
+									state->status = FALSE;
+									if( !state->pvtError ) state->pvtError = VarTextCreate();
+									vtprintf( state->pvtError, WIDE( "fault wile parsing; '%c' unexpected at %" ) _size_f WIDE( "  %" ) _size_f WIDE( ":%" ) _size_f, c, state->n, state->line, state->col );
+									break;
+								}
+								else {
+									(*output->pos++) = c;
 								}
 							}
 							else if( c == '.' )
@@ -982,7 +996,6 @@ int json6_parse_add_data( struct json_parse_state *state
 						{
 							//lprintf( "completion mode is not end of string; and at end of string" );
 							state->gatheringNumber = TRUE;
-							state->numberExponent = exponent;
 							state->numberFromDate = fromDate;
 						}
 						else

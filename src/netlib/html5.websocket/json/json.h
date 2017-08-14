@@ -171,6 +171,7 @@ struct json_parse_state {
 
 	PVARTEXT pvtError;
 	LOGICAL fromHex;
+	LOGICAL exponent;
 	//char *token_begin;
 };
 
