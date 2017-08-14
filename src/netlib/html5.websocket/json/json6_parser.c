@@ -297,13 +297,15 @@ int json6_parse_add_data( struct json_parse_state *state
 			output = (struct json_output_buffer*)DequeLink( &state->outQueue );
 			//lprintf( "output from before is %p", output );
 			offset = (output->pos - output->buf);
-			offset2 = state->val.string - output->buf;
+			offset2 = state->val.string ? (state->val.string - output->buf) : 0;
 			AddLink( &state->outValBuffers, output->buf );
 			output->buf = NewArray( char, output->size + msglen );
-			MemCpy( output->buf + offset2, state->val.string, offset-offset2 );
+			if( state->val.string ) {
+				MemCpy( output->buf + offset2, state->val.string, offset - offset2 );
+				state->val.string = output->buf + offset2;
+			}
 			output->size += msglen;
 			//lprintf( "previous val:%s", state->val.string, state->val.string );
-			state->val.string = output->buf + offset2;
 			output->pos = output->buf + offset;
 			PrequeLink( &state->outQueue, output );
 		}
@@ -312,6 +314,33 @@ int json6_parse_add_data( struct json_parse_state *state
 			output->pos = output->buf = NewArray( char, msglen );
 			output->size = msglen;
 			EnqueLink( &state->outQueue, output );
+		}
+	}
+	else {
+		// zero length input buffer... terminate a number.
+		if( state->gatheringNumber ) {
+			//console.log( "Force completed.")
+			output = (struct json_output_buffer*)DequeLink( &state->outQueue );
+			output->pos[0] = 0;
+			PushLink( &state->outBuffers, output );
+			state->gatheringNumber = FALSE;
+			//lprintf( "result with number:%s", state->val.string );
+			if( state->val.float_result )
+			{
+				CTEXTSTR endpos;
+				state->val.result_d = FloatCreateFromText( state->val.string, &endpos );
+				if( state->negative ) { state->val.result_d = -state->val.result_d; state->negative = FALSE; }
+			}
+			else
+			{
+				state->val.result_n = IntCreateFromText( state->val.string );
+				if( state->negative ) { state->val.result_n = -state->val.result_n; state->negative = FALSE; }
+			}
+			state->val.value_type = VALUE_NUMBER;
+			if( state->parse_context == CONTEXT_UNKNOWN ) {
+				state->completed = TRUE;
+			}
+			retval = 1;
 		}
 	}
 
@@ -422,7 +451,8 @@ int json6_parse_add_data( struct json_parse_state *state
 				if( state->parse_context == CONTEXT_OBJECT_FIELD )
 				{
 					if( state->word != WORD_POS_RESET
-						&& state->word != WORD_POS_FIELD ) {
+						&& state->word != WORD_POS_FIELD
+						&& state->word != WORD_POS_AFTER_FIELD ) {
 						// allow starting a new word
 						state->status = FALSE;
 						if( !state->pvtError ) state->pvtError = VarTextCreate();
@@ -988,11 +1018,12 @@ int json6_parse_add_data( struct json_parse_state *state
 								break;
 							}
 						}
-						input->pos = _msg_input;
-						state->n = (input->pos - input->buf);
-
+						if( input ) {
+							input->pos = _msg_input;
+							state->n = (input->pos - input->buf);
+						}
 						//LogBinary( (uint8_t*)output->buf, output->size );
-						if( (!state->complete_at_end) && state->n == input->size )
+						if( input && (!state->complete_at_end) && state->n == input->size )
 						{
 							//lprintf( "completion mode is not end of string; and at end of string" );
 							state->gatheringNumber = TRUE;
@@ -1000,8 +1031,8 @@ int json6_parse_add_data( struct json_parse_state *state
 						}
 						else
 						{
-							state->gatheringNumber = FALSE;
 							(*output->pos++) = 0;
+							state->gatheringNumber = FALSE;
 							//lprintf( "result with number:%s", state->val.string );
 
 							if( state->val.float_result )
@@ -1046,29 +1077,30 @@ int json6_parse_add_data( struct json_parse_state *state
 			}
 		}
 		//lprintf( "at end... %d %d comp:%d", state->n, input->size, state->completed );
-
-		if( state->n == input->size ) {
-			DeleteFromSet( PARSE_BUFFER, jpsd.parseBuffers, input );
-			if( state->gatheringString || state->gatheringNumber || state->parse_context == CONTEXT_OBJECT_FIELD ) {
-				//lprintf( "output is still incomplete? " );
-				PrequeLink( &state->outQueue, output );
-				retval = 0;
+		if( input ) {
+			if( state->n == input->size ) {
+				DeleteFromSet( PARSE_BUFFER, jpsd.parseBuffers, input );
+				if( state->gatheringString || state->gatheringNumber || state->parse_context == CONTEXT_OBJECT_FIELD ) {
+					//lprintf( "output is still incomplete? " );
+					PrequeLink( &state->outQueue, output );
+					retval = 0;
+				}
+				else {
+					PushLink( &state->outBuffers, output );
+					if( state->parse_context == CONTEXT_UNKNOWN ) {
+						state->completed = TRUE;
+						retval = 1;
+					}
+				}
+				//lprintf( "Is complete already?%d", state->completed );
 			}
 			else {
-				PushLink( &state->outBuffers, output );
-				if( state->parse_context == CONTEXT_UNKNOWN ) {
-					state->completed = TRUE;
-					retval = 1;
-				}
+				// put these back into the stack.
+				//lprintf( "put buffers back into queues..." );
+				PrequeLink( &state->inBuffers, input );
+				PrequeLink( &state->outQueue, output );
+				retval = 2;  // if returning buffers, then obviously there's more in this one.
 			}
-			//lprintf( "Is complete already?%d", state->completed );
-		}
-		else {
-			// put these back into the stack.
-			//lprintf( "put buffers back into queues..." );
-			PrequeLink( &state->inBuffers, input );
-			PrequeLink( &state->outQueue, output );
-			retval = 2;  // if returning buffers, then obviously there's more in this one.
 		}
 		if( state->completed )
 			break;
