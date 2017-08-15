@@ -577,6 +577,9 @@ int json6_parse_add_data( struct json_parse_state *state
 				}
 				if( state->parse_context == CONTEXT_IN_ARRAY )
 				{
+					if( state->val.value_type == VALUE_UNSET )
+						state->val.value_type = VALUE_EMPTY; // in an array, elements after a comma should init as undefined...
+																 // undefined allows [,,,] to be 4 values and [1,2,3,] to be 4 values with an undefined at end.
 					if( state->val.value_type != VALUE_UNSET ) {
 #ifdef _DEBUG_PARSING
 						lprintf( "back in array; push item %d", state->val.value_type );
@@ -584,8 +587,6 @@ int json6_parse_add_data( struct json_parse_state *state
 						AddDataItem( &state->elements, &state->val );
 						RESET_STATE_VAL();
 					}
-					state->val.value_type = VALUE_UNDEFINED; // in an array, elements after a comma should init as undefined...
-					// undefined allows [,,,] to be 4 values and [1,2,3,] to be 4 values with an undefined at end.
 				}
 				else if( state->parse_context == CONTEXT_OBJECT_FIELD_VALUE )
 				{
@@ -1111,16 +1112,13 @@ int json6_parse_add_data( struct json_parse_state *state
 		return -1;
 	}
 
-	if( !state->gatheringNumber && !state->gatheringString )
+	if( state->completed ) {
 		if( state->val.value_type != VALUE_UNSET ) {
 			AddDataItem( &state->elements, &state->val );
 			RESET_STATE_VAL();
 		}
-	
-	if( state->completed ) {
 		state->completed = FALSE;
 	}
-
 	return retval;
 }
 
