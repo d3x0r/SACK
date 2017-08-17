@@ -51,12 +51,15 @@ struct image_info {
 	const char *prefix;
 	const char *variant;
 	int w, h;
-	RCOORD ox, oy;
+	int ox, oy;
 	LOGICAL _3variations;
+	int *high_x, *high_y;
+	int *low_x, *low_y;
 	Image low[12];
 	Image lowMask;
 	Image high[12];
 	Image highMask;
+
 };
 
 #define TOTAL_HALF_UNITS 80
@@ -78,22 +81,38 @@ struct image_info {
 //#define X_UNITS 32
 //#define Y_UNITS 32
 
+ int coords[][3] = { 
+	 { 1120,1248,1376 },{ 32,32,32 },{ 576,640,704 },{ 32,32,32 },
+	 { 32,32,32 },{ 1120,1248,1376 },{ 32,32,32 },{ 576,640,704 },
+	 { 608,480,352 },{ 352,480,608 },{ 320,256,192 },{ 192,256,320 },
+	 { 1824,1952,2080 },{ 352,480,608 },{ 928,992,1056 },{ 192,256,320 },
+	 { 2080,1952,1824 },{ 1824,1952,2080 },{ 1056,992,928 },{ 928,992,1056 },
+	 { 608,480,352 },{ 2080,1952,1824 },{ 320,256,192 },{ 1056,992,928 },
+	 { 2240,0,0 },{ 1504,0,0 },{ 1136,0,0 },{ 768,0,0 },
+	 { 0,0,0 },{ 1504,0,0 },{ 16,0,0 },{ 768,0,0 },
+	 { 0,0,0 },{ 544,0,0 },{ 16,0,0 },{ 288,0,0 },
+	 { 2240,0,0 },{ 544,0,0 },{ 1136,0,0 },{ 288,0,0 },
+	 { 1504,0,0 },{ 2240,0,0 },{ 768,0,0 },{ 1136,0,0 },
+	 { 544,0,0 },{ 2240,0,0 },{ 288,0,0 },{ 1136,0,0 },
+	 { 544,0,0 },{ 0,0,0 },{ 288,0,0 },{ 16,0,0 },
+	 { 1504,0,0 },{ 0,0,0 },{ 768,0,0 },{ 16,0,0 }, };
+
 
 struct image_info image_srcs[] = {
-	{STR|HOR,"straight-rail", "horizontal", 64, 128, 0, 0, TRUE},
-	{ STR | VER,"straight-rail", "vertical", 128, 64, 0, 0, TRUE},
-	{DIA|LFT|TOP,"straight-rail", "diagonal-left-top", 96, 96, 1, 1, TRUE},
-	{DIA|RGT|TOP,"straight-rail", "diagonal-right-top", 96, 96, -1, 1, TRUE},
-	{DIA|RGT|BOT,"straight-rail", "diagonal-right-bottom", 96, 96, -1, -1, TRUE},
-	{DIA|LFT|BOT,"straight-rail", "diagonal-left-bottom", 96, 96, 1, -1, TRUE},
-	{ CRV | VER | LFT | TOP,"curved-rail", "vertical-left-top", 192, 288, 1, 1},
-	{ CRV | VER | RGT | TOP,"curved-rail", "vertical-right-top", 192, 288, -1, 1},
-	{ CRV | VER | RGT | BOT,"curved-rail", "vertical-right-bottom", 192, 288, -1, -1},
-	{ CRV | VER | LFT | BOT,"curved-rail", "vertical-left-bottom", 192, 288, 1, -1},
-	{ CRV | HOR | LFT | TOP,"curved-rail" ,"horizontal-left-top", 288, 192, 1, 1 },
-	{ CRV | HOR | RGT | TOP,"curved-rail" ,"horizontal-right-top", 288, 192, -1, 1 },
-	{ CRV | HOR | RGT | BOT,"curved-rail" ,"horizontal-right-bottom", 288, 192, -1, -1 },
-	{ CRV | HOR | LFT | BOT,"curved-rail" ,"horizontal-left-bottom", 288, 192, 1, -1}
+	{STR|HOR               ,"straight-rail", "horizontal"             , 64 , 128,  0,  0, TRUE , coords[0], coords[1], coords[2], coords[3] },
+	{STR | VER             ,"straight-rail", "vertical"               , 128, 64 ,  0,  0, TRUE , coords[(4 *  1) + 0], coords[(4 *  1) + 1], coords[(4 *  1) + 2], coords[(4 *  1) + 3] },
+	{DIA|LFT|TOP           ,"straight-rail", "diagonal-left-top"      , 96 , 96 ,  1,  1, TRUE , coords[(4 *  2) + 0], coords[(4 *  2) + 1], coords[(4 *  2) + 2], coords[(4 *  2) + 3] },
+	{DIA|RGT|TOP           ,"straight-rail", "diagonal-right-top"     , 96 , 96 , -1,  1, TRUE , coords[(4 *  3) + 0], coords[(4 *  3) + 1], coords[(4 *  3) + 2], coords[(4 *  3) + 3] },
+	{DIA|RGT|BOT           ,"straight-rail", "diagonal-right-bottom"  , 96 , 96 , -1, -1, TRUE , coords[(4 *  4) + 0], coords[(4 *  4) + 1], coords[(4 *  4) + 2], coords[(4 *  4) + 3] },
+	{DIA|LFT|BOT           ,"straight-rail", "diagonal-left-bottom"   , 96 , 96 ,  1, -1, TRUE , coords[(4 *  5) + 0], coords[(4 *  5) + 1], coords[(4 *  5) + 2], coords[(4 *  5) + 3] },
+	{ CRV | VER | LFT | TOP,"curved-rail"  , "vertical-left-top"      , 192, 288,  1,  1, FALSE, coords[(4 *  6) + 0], coords[(4 *  6) + 1], coords[(4 *  6) + 2], coords[(4 *  6) + 3] },
+	{ CRV | VER | RGT | TOP,"curved-rail"  , "vertical-right-top"     , 192, 288, -1,  1, FALSE, coords[(4 *  7) + 0], coords[(4 *  7) + 1], coords[(4 *  7) + 2], coords[(4 *  7) + 3] },
+	{ CRV | VER | RGT | BOT,"curved-rail"  , "vertical-right-bottom"  , 192, 288, -1, -1, FALSE, coords[(4 *  8) + 0], coords[(4 *  8) + 1], coords[(4 *  8) + 2], coords[(4 *  8) + 3] },
+	{ CRV | VER | LFT | BOT,"curved-rail"  , "vertical-left-bottom"   , 192, 288,  1, -1, FALSE, coords[(4 *  9) + 0], coords[(4 *  9) + 1], coords[(4 *  9) + 2], coords[(4 *  9) + 3] },
+	{ CRV | HOR | LFT | TOP,"curved-rail"  , "horizontal-left-top"    , 288, 192,  1,  1, FALSE, coords[(4 * 10) + 0], coords[(4 * 10) + 1], coords[(4 * 10) + 2], coords[(4 * 10) + 3] },
+	{ CRV | HOR | RGT | TOP,"curved-rail"  , "horizontal-right-top"   , 288, 192, -1,  1, FALSE, coords[(4 * 11) + 0], coords[(4 * 11) + 1], coords[(4 * 11) + 2], coords[(4 * 11) + 3] },
+	{ CRV | HOR | RGT | BOT,"curved-rail"  , "horizontal-right-bottom", 288, 192, -1, -1, FALSE, coords[(4 * 12) + 0], coords[(4 * 12) + 1], coords[(4 * 12) + 2], coords[(4 * 12) + 3] },
+	{ CRV | HOR | LFT | BOT,"curved-rail"  , "horizontal-left-bottom" , 288, 192,  1, -1, FALSE, coords[(4 * 13) + 0], coords[(4 * 13) + 1], coords[(4 * 13) + 2], coords[(4 * 13) + 3] },
 };
 
 #define hrz  "horizontal"
@@ -133,6 +152,7 @@ struct segment {
 	int type;
 	int type_index;
 	int variant;
+	int save_coords;
 	struct {
 		int x, y;
 	} pos;
@@ -141,73 +161,95 @@ struct segment {
 #define segment_count (sizeof(circle)/sizeof(circle[0]))
 
 const struct segment circle[] = {
-	{ STR | VER        , 1, 0,{ CENTER - CENTER , CENTER - 6 } },
-	{ STR|VER        , 1, 1, { CENTER - CENTER, CENTER - 2 } },
-	{ STR|VER        , 1, 2, { CENTER - CENTER, CENTER + 2 } },
-	{ STR|VER        , 1, 0, { CENTER + CENTER-8, CENTER - 6 } },
-	{ STR|VER        , 1, 1, { CENTER + CENTER-8, CENTER - 2 } },
-	{ STR|VER        , 1, 2, { CENTER + CENTER-8, CENTER + 2 } },
+	{ STR|VER        , 1, 0, 1, { CENTER - CENTER , CENTER - 6 } },
+	{ STR|VER        , 1, 1, 1, { CENTER - CENTER, CENTER - 2 } },
+	{ STR|VER        , 1, 2, 1, { CENTER - CENTER, CENTER + 2 } },
+	{ STR|VER        , 1, 0, 0, { CENTER + CENTER-8, CENTER - 6 } },
+	{ STR|VER        , 1, 1, 0, { CENTER + CENTER-8, CENTER - 2 } },
+	{ STR|VER        , 1, 2, 0, { CENTER + CENTER-8, CENTER + 2 } },
 
-	{ STR|HOR        , 0, 0, { CENTER - 6 , CENTER - CENTER   } },
-	{ STR|HOR        , 0, 1, { CENTER - 2 , CENTER - CENTER   } },
-	{ STR|HOR        , 0, 2, { CENTER + 2 , CENTER - CENTER   } },
-	{ STR|HOR        , 0, 0, { CENTER - 6 , CENTER + CENTER-8 } },
-	{ STR|HOR        , 0, 1, { CENTER - 2 , CENTER + CENTER-8 } },
-	{ STR|HOR        , 0, 2, { CENTER + 2 , CENTER + CENTER-8 } },
+	{ STR|HOR        , 0, 0, 1, { CENTER - 6 , CENTER - CENTER   } },
+	{ STR|HOR        , 0, 1, 1, { CENTER - 2 , CENTER - CENTER   } },
+	{ STR|HOR        , 0, 2, 1, { CENTER + 2 , CENTER - CENTER   } },
+	{ STR|HOR        , 0, 0, 0, { CENTER - 6 , CENTER + CENTER-8 } },
+	{ STR|HOR        , 0, 1, 0, { CENTER - 2 , CENTER + CENTER-8 } },
+	{ STR|HOR        , 0, 2, 0, { CENTER + 2 , CENTER + CENTER-8 } },
 
-	{ CRV|VER|RGT|TOP, 7, 0, { CENTER - CENTER, CENTER + (6) -1 } },
-	{ CRV|VER|RGT|BOT, 8, 0, { CENTER - CENTER, CENTER - (18 + 6) +1 } },
-	{ CRV|VER|LFT|TOP, 6, 0, { CENTER + CENTER - 12, CENTER + (6) -1 } },
-	{ CRV|VER|LFT|BOT, 9, 0, { CENTER + CENTER - 12, CENTER - (18 + 6) + 1 } },
+	{ CRV|VER|RGT|TOP, 7, 0, 1, { CENTER - CENTER, CENTER + (6) -1 } },
+	{ CRV|VER|RGT|BOT, 8, 0, 1,{ CENTER - CENTER, CENTER - (18 + 6) +1 } },
+	{ CRV|VER|LFT|TOP, 6, 0, 1,{ CENTER + CENTER - 12, CENTER + (6) -1 } },
+	{ CRV|VER|LFT|BOT, 9, 0, 1,{ CENTER + CENTER - 12, CENTER - (18 + 6) + 1 } },
 
-	{ CRV|HOR|RGT|BOT, 12, 0, { CENTER - 16 - 8 +1, CENTER - CENTER + 0  } },
-	{ CRV|HOR|RGT|TOP, 11, 0, { CENTER - 16 - 8 +1, CENTER + CENTER - 12 } },
-	{ CRV|HOR|LFT|BOT, 13, 0, { CENTER + 6 - 1, CENTER - CENTER + 0 } },
-	{ CRV|HOR|LFT|TOP, 10, 0, { CENTER + 6 - 1, CENTER + CENTER - 12 } },
+	{ CRV|HOR|RGT|BOT, 12, 0, 1,{ CENTER - 16 - 8 +1, CENTER - CENTER + 0  } },
+	{ CRV|HOR|RGT|TOP, 11, 0, 1,{ CENTER - 16 - 8 +1, CENTER + CENTER - 12 } },
+	{ CRV|HOR|LFT|BOT, 13, 0, 1,{ CENTER + 6 - 1, CENTER - CENTER + 0 } },
+	{ CRV|HOR|LFT|TOP, 10, 0, 1,{ CENTER + 6 - 1, CENTER + CENTER - 12 } },
 
 	
-	{ STR|DIA|RGT|BOT, 4, 0, { CENTER-CENTER + 12 - 3, CENTER  - (6+18 + 4) + 1 } },
-	{ STR|DIA|RGT|BOT, 4, 1, { CENTER-CENTER + 12+4 - 3, CENTER - (6+18 + 4)-4 + 1 } },
-	//{ STR|DIA|RGT|BOT, 4, 2, { CENTER-CENTER + 12+8 - 1, CENTER - (6+18 + 4)-8 } },
-	{ STR|DIA|RGT|BOT, 4, 2, { CENTER + (6 + 18) -8 + 1, CENTER + (6+18) - 0 +1 } },
-	{ STR | DIA | RGT | BOT, 4, 1,{ CENTER + (6 + 18) -4 + 1, CENTER + (6 + 18) - 4 +1 } },
-	{ STR | DIA | RGT | BOT, 4, 0,{ CENTER + (6 + 18) +0 +1, CENTER + (6 + 18) - 8 +1 } },
+	{ STR|DIA|RGT|BOT, 4, 0, 0, { CENTER-CENTER + 12 - 3, CENTER  - (6+18 + 4) + 1 } },
+	{ STR|DIA|RGT|BOT, 4, 1, 0, { CENTER-CENTER + 12+4 - 3, CENTER - (6+18 + 4)-4 + 1 } },
+	{ STR|DIA|RGT|BOT, 4, 2, 1, { CENTER + (6 + 18) -8 + 1, CENTER + (6+18) - 0 +1 } },
+	{ STR|DIA|RGT|BOT, 4, 1, 1, { CENTER + (6 + 18) -4 + 1, CENTER + (6 + 18) - 4 +1 } },
+	{ STR|DIA|RGT|BOT, 4, 0, 1, { CENTER + (6 + 18) +0 +1, CENTER + (6 + 18) - 8 +1 } },
 	
-	{ STR | DIA | LFT | TOP, 2, 2,{ CENTER - CENTER + 12 + 0 - 3, CENTER - (6 + 18) + 3 -2 } },
-	{ STR | DIA | LFT | TOP, 2, 1,{ CENTER - CENTER + 12 + 4 - 3, CENTER - (6 + 18) - 1 -2 } },
-	{ STR | DIA | LFT | TOP, 2, 0,{ CENTER - CENTER + 12 + 8 - 3, CENTER - (6 + 18) - 5 - 2 } },
-	{ STR|DIA|LFT|TOP, 2, 0, { CENTER + (6+18) - 4 + 1, CENTER + (6+16)+4 -1 } },
-	{ STR|DIA|LFT|TOP, 2, 1, { CENTER + (6+18) + 0 + 1, CENTER + (6+16)-0 -1 } },
+	{ STR | DIA | LFT | TOP, 2, 2,1,{ CENTER - CENTER + 12 + 0 - 3, CENTER - (6 + 18) + 3 -2 } },
+	{ STR | DIA | LFT | TOP, 2, 1,1,{ CENTER - CENTER + 12 + 4 - 3, CENTER - (6 + 18) - 1 -2 } },
+	{ STR | DIA | LFT | TOP, 2, 0,1,{ CENTER - CENTER + 12 + 8 - 3, CENTER - (6 + 18) - 5 - 2 } },
+	{ STR|DIA|LFT|TOP, 2, 0, 0,{ CENTER + (6+18) - 4 + 1, CENTER + (6+16)+4 -1 } },
+	{ STR|DIA|LFT|TOP, 2, 1, 0,{ CENTER + (6+18) + 0 + 1, CENTER + (6+16)-0 -1 } },
 	//{ STR|DIA|LFT|TOP, 2, 2, { CENTER+CENTER - (8-1)-12, CENTER + (3+16)+3 + 8 } },
 
-	{ STR|DIA|LFT|BOT, 5, 0, { CENTER - (6+18- 4) -3, CENTER+(6+18) + 1 } },
-	{ STR|DIA|LFT|BOT, 5, 1, { CENTER - (6 + 18 + 0) -3, CENTER+(6+18)-4 + 1 } },
-	{ STR|DIA|LFT|BOT, 5, 2, { CENTER - (6 + 18 + 4) -3, CENTER+(6+18)-8 +1 } },
-	{ STR|DIA|LFT|BOT, 5, 0, { CENTER + (18 + 6) - 4 +1 , CENTER - (6+18)-4 - 4+1} },
-	{ STR|DIA|LFT|BOT, 5, 1, { CENTER + (18+6)+4 - 4 + 1, CENTER - (6+18)-4  +1} },
+	{ STR|DIA|LFT|BOT, 5, 0, 1,{ CENTER - (6+18- 4) -3, CENTER+(6+18) + 1 } },
+	{ STR|DIA|LFT|BOT, 5, 1, 1,{ CENTER - (6 + 18 + 0) -3, CENTER+(6+18)-4 + 1 } },
+	{ STR|DIA|LFT|BOT, 5, 2, 1,{ CENTER - (6 + 18 + 4) -3, CENTER+(6+18)-8 +1 } },
+	{ STR|DIA|LFT|BOT, 5, 0, 0,{ CENTER + (18 + 6) - 4 +1 , CENTER - (6+18)-4 - 4+1} },
+	{ STR|DIA|LFT|BOT, 5, 1, 0,{ CENTER + (18+6)+4 - 4 + 1, CENTER - (6+18)-4  +1} },
 	//{ STR|DIA|LFT|BOT, 5, 2, { CENTER+CENTER - (8-1)-12, CENTER + (3+16)-3 - 8 } },
 
-	{ STR|DIA|RGT|TOP, 3, 0, { CENTER - ( 6+18) - 4 +1, CENTER+(6+18)+2 -1  } },
-	{ STR|DIA|RGT|TOP, 3, 1, { CENTER - (6 + 18) - 8 +1 , CENTER+(6+18)+2-4 -1 } },
+	{ STR|DIA|RGT|TOP, 3, 0, 0,{ CENTER - ( 6+18) - 4 +1, CENTER+(6+18)+2 -1  } },
+	{ STR|DIA|RGT|TOP, 3, 1, 0,{ CENTER - (6 + 18) - 8 +1 , CENTER+(6+18)+2-4 -1 } },
 	//{ STR|DIA|RGT|TOP, 3, 2, { CENTER + 8-1+8, CENTER-(3+16)+3-8 } },
-	{ STR|DIA|RGT|TOP, 3, 0, { CENTER + (6+18) - 8 +1 , CENTER - (6+18) - 4 - 4 + 1 } },
-	{ STR|DIA|RGT|TOP, 3, 1, { CENTER + (6 + 18) - 4 +1 , CENTER - (6+18) + 0 - 4 + 1 } },
-	{ STR|DIA|RGT|TOP, 3, 2, { CENTER + (6 + 18) + 0 +1, CENTER - (6+18) + 4 - 4 + 1 } },
-
-
+	{ STR|DIA|RGT|TOP, 3, 0, 1,{ CENTER + (6+18) - 8 +1 , CENTER - (6+18) - 4 - 4 + 1 } },
+	{ STR|DIA|RGT|TOP, 3, 1, 1,{ CENTER + (6 + 18) - 4 +1 , CENTER - (6+18) + 0 - 4 + 1 } },
+	{ STR|DIA|RGT|TOP, 3, 2, 1,{ CENTER + (6 + 18) + 0 +1, CENTER - (6+18) + 4 - 4 + 1 } },
 };
-
 
 static struct local_data{
 	const char *curve_path;
 	const char *straight_path;
 	const char *base_path;
+	const char *output_path;
 	PRENDERER render;
 	RCOORD scale;
 	PLIST images;
 	int half_size;
 	Image half_temp;
 	Image full_temp;
+	struct {
+		Image hcurve; // 288x192   12x8
+		Image vcurve; // 192x288    8x12 
+		Image hor;  // 192x128  (  12*X_HALF_UNITS  x 8*(X_HALF_UNITS) )
+		Image ver;  // 384x64  (  24*X_HALF_UNITS  x 4*(X_HALF_UNITS) )
+		Image small2;  // 288x96  (  18*X_HALF_UNITS  x 6*(X_HALF_UNITS) )
+		Image raw_hcurve; // 288x192   12x8
+		Image raw_vcurve; // 192x288    8x12 
+		Image raw_hor;  // 192x128  (  12*X_HALF_UNITS  x 8*(X_HALF_UNITS) )
+		Image raw_ver;  // 384x64  (  24*X_HALF_UNITS  x 4*(X_HALF_UNITS) )
+		Image raw_small2;  // 288x96  (  18*X_HALF_UNITS  x 6*(X_HALF_UNITS) )
+	} low;
+	struct {
+		Image hcurve; // 288x192   12x8
+		Image vcurve; // 192x288    8x12 
+		Image hor;  // 192x128  (  12*X_HALF_UNITS  x 8*(X_HALF_UNITS) )
+		Image ver;  // 384x64  (  24*X_HALF_UNITS  x 4*(X_HALF_UNITS) )
+		Image small2;  // 288x96  (  18*X_HALF_UNITS  x 6*(X_HALF_UNITS) )
+		Image raw_hcurve; // 288x192   12x8
+		Image raw_vcurve; // 192x288    8x12 
+		Image raw_hor;  // 192x128  (  12*X_HALF_UNITS  x 8*(X_HALF_UNITS) )
+		Image raw_ver;  // 384x64  (  24*X_HALF_UNITS  x 4*(X_HALF_UNITS) )
+		Image raw_small2;  // 288x96  (  18*X_HALF_UNITS  x 6*(X_HALF_UNITS) )
+	} high;
+
 	PIMAGE_INTERFACE pii;
 } l;
 
@@ -223,26 +265,43 @@ static void drawImages( Image dest, int drawpart, int rem, int hr, int xofs, int
 	for( part = (drawpart?drawpart-1:0)+(rem?5:0); part < (drawpart?drawpart:num_parts) + (rem ? 5 : 0); part++ ) {
 		for( seg = 0; seg < 40	//segment_count
 				; seg++ ) {
+			int type = circle[seg].type_index;
+			//if( !drawpart )
+			//	if( !circle[seg].save_coords )
+			//		continue;
+			if( circle[seg].save_coords ) {
+				if( hr ) {
+					image_srcs[type].high_x[circle[seg].variant] = xStart + (ulX = (circle[seg].pos.x + image_srcs[circle[seg].type_index].ox) * X_HALF_UNITS *2/ SCALE);
+					image_srcs[type].high_y[circle[seg].variant] = yStart + (ulY = (circle[seg].pos.y + image_srcs[circle[seg].type_index].oy) * Y_HALF_UNITS*2 / SCALE);
+				}
+				else {
+					image_srcs[type].low_x[circle[seg].variant] = xStart + (ulX = (circle[seg].pos.x + image_srcs[circle[seg].type_index].ox) * X_HALF_UNITS  / SCALE);
+					image_srcs[type].low_y[circle[seg].variant] = yStart + (ulY = (circle[seg].pos.y + image_srcs[circle[seg].type_index].oy) * Y_HALF_UNITS / SCALE);
+				}
+			}
+
+			//circle[seg].variant * image_srcs[circle[seg].type_index].w*(hr ? 2 : 1)
+
 			BlotScaledImageSizedEx( dest, hr? image_srcs[circle[seg].type_index].high[part] :image_srcs[circle[seg].type_index].low[part]
-										, xStart+ ( ulX = (circle[seg].pos.x +image_srcs[circle[seg].type_index].ox) * X_HALF_UNITS *(hr?2:1) / SCALE )
-										, yStart+ ( ulY = (circle[seg].pos.y + image_srcs[circle[seg].type_index].oy) * Y_HALF_UNITS*(hr ? 2 : 1) / SCALE )
-										, image_srcs[circle[seg].type_index].w*(hr ? 2 : 1) /SCALE, image_srcs[circle[seg].type_index].h*(hr ? 2 : 1) / SCALE
-										, circle[seg].variant * image_srcs[circle[seg].type_index].w*(hr ? 2 : 1), 0
-										, image_srcs[circle[seg].type_index].w*(hr ? 2 : 1)
-										, image_srcs[circle[seg].type_index].h*(hr ? 2 : 1)
-										, ALPHA_TRANSPARENT
-										, BLOT_COPY );
+									, xStart+ ( ulX = (circle[seg].pos.x +image_srcs[circle[seg].type_index].ox) * X_HALF_UNITS *(hr?2:1) / SCALE )
+									, yStart+ ( ulY = (circle[seg].pos.y + image_srcs[circle[seg].type_index].oy) * Y_HALF_UNITS*(hr ? 2 : 1) / SCALE )
+									, image_srcs[circle[seg].type_index].w*(hr ? 2 : 1) /SCALE, image_srcs[circle[seg].type_index].h*(hr ? 2 : 1) / SCALE
+									, circle[seg].variant * image_srcs[circle[seg].type_index].w*(hr ? 2 : 1), 0
+									, image_srcs[circle[seg].type_index].w*(hr ? 2 : 1)
+									, image_srcs[circle[seg].type_index].h*(hr ? 2 : 1)
+									, ALPHA_TRANSPARENT
+									, BLOT_COPY );
 			if( drawMask )
-			if( drawpart?part == (drawpart-1) : !part )
-			BlotScaledImageSizedEx( dest, hr ? image_srcs[circle[seg].type_index].highMask : image_srcs[circle[seg].type_index].lowMask
-				, xStart + (ulX = (circle[seg].pos.x + image_srcs[circle[seg].type_index].ox) * X_HALF_UNITS *(hr ? 2 : 1) / SCALE)
-				, yStart + (ulY = (circle[seg].pos.y + image_srcs[circle[seg].type_index].oy) * Y_HALF_UNITS*(hr ? 2 : 1) / SCALE)
-				, image_srcs[circle[seg].type_index].w*(hr ? 2 : 1) / SCALE, image_srcs[circle[seg].type_index].h*(hr ? 2 : 1) / SCALE
-				, circle[seg].variant * image_srcs[circle[seg].type_index].w*(hr ? 2 : 1), 0
-				, image_srcs[circle[seg].type_index].w*(hr ? 2 : 1)
-				, image_srcs[circle[seg].type_index].h*(hr ? 2 : 1)
-				, ALPHA_TRANSPARENT
-				, BLOT_COPY );
+				if( drawpart ? part == (drawpart - 1) : !part )
+					BlotScaledImageSizedEx( dest, hr ? image_srcs[circle[seg].type_index].highMask : image_srcs[circle[seg].type_index].lowMask
+						, xStart + (ulX = (circle[seg].pos.x + image_srcs[circle[seg].type_index].ox) * X_HALF_UNITS *(hr ? 2 : 1) / SCALE)
+						, yStart + (ulY = (circle[seg].pos.y + image_srcs[circle[seg].type_index].oy) * Y_HALF_UNITS*(hr ? 2 : 1) / SCALE)
+						, image_srcs[circle[seg].type_index].w*(hr ? 2 : 1) / SCALE, image_srcs[circle[seg].type_index].h*(hr ? 2 : 1) / SCALE
+						, circle[seg].variant * image_srcs[circle[seg].type_index].w*(hr ? 2 : 1), 0
+						, image_srcs[circle[seg].type_index].w*(hr ? 2 : 1)
+						, image_srcs[circle[seg].type_index].h*(hr ? 2 : 1)
+						, ALPHA_TRANSPARENT
+						, BLOT_COPY );
 #if 0
 			do_hline( dest, yStart + ((circle[seg].pos.y + image_srcs[circle[seg].type_index].oy) * Y_HALF_UNITS*(hr ? 2 : 1) / SCALE)
 				, xStart + ((circle[seg].pos.x + image_srcs[circle[seg].type_index].ox) * X_HALF_UNITS *(hr ? 2 : 1) / SCALE)
@@ -380,7 +439,7 @@ static Image createSegmentMask( int type, int hiRes ) {
 					}
 					out++;
 				}
-				out -= units * 24;
+				out -= ((maxx * 3) + maxx);
 			}
 			break;
 		case BOT | RGT:
@@ -418,7 +477,7 @@ static Image createSegmentMask( int type, int hiRes ) {
 					}
 					out++;
 				}
-				out -= units * 24;
+				out -= ((maxx * 3) + maxx);
 			}
 			break;
 		case TOP | LFT:
@@ -441,14 +500,14 @@ static Image createSegmentMask( int type, int hiRes ) {
 						out[units * 12] = c;
 					}
 					else if( y < (units * 5) ) {
-						if( x > (y - units * 4) ) {
+						if( x >= (y - units * 4) ) {
 							out[0] = c;
 							out[units * 6] = c;
 							out[units * 12] = c;
 						}
 					}
 					else {
-						if( x > units ) {
+						if( x >= units ) {
 							out[0] = c;
 							out[units * 6] = c;
 							out[units * 12] = c;
@@ -456,7 +515,7 @@ static Image createSegmentMask( int type, int hiRes ) {
 					}
 					out++;
 				}
-				out -= units * 24;
+				out -= ( (maxx *3) + maxx );
 			}
 			break;
 		case BOT | LFT:
@@ -494,7 +553,7 @@ static Image createSegmentMask( int type, int hiRes ) {
 					}
 					out++;
 				}
-				out -= units * 24;
+				out -= ((maxx * 3) + maxx);
 			}
 			break;
 		}
@@ -505,8 +564,8 @@ static Image createSegmentMask( int type, int hiRes ) {
 			c = SetAlpha( BASE_COLOR_RED, 64 );
 			image = MakeImageFile( (maxx = 12 * units), maxy = 18 * units );
 			ClearImage( image );
-			image->flags &= ~IF_FLAG_INVERTED;
-			out = GetImageSurface( image );
+			//image->flags &= ~IF_FLAG_INVERTED;
+			out = GetImageSurface( image ) + (maxy - 1)*maxx ;
 			for( y = 0; y < maxy; y++ ) {
 				for( x = 0; x < maxx; x++ ) {
 					if( y < units * 11 ) {
@@ -529,14 +588,15 @@ static Image createSegmentMask( int type, int hiRes ) {
 							out[0] = c;
 					out++;
 				}
+				out -= maxx * 2;
 			}
 			break;
 		case VER | RGT | BOT:
 			c = SetAlpha( BASE_COLOR_BLUE, 64 );
 			image = MakeImageFile( (maxx = 12 * units), maxy = 18 * units );
 			ClearImage( image );
-			image->flags &= ~IF_FLAG_INVERTED;
-			out = GetImageSurface( image );
+			//image->flags &= ~IF_FLAG_INVERTED;
+			out = GetImageSurface( image ) + (maxy - 1)*maxx;
 			for( y = 0; y < maxy; y++ ) {
 				for( x = 0; x < maxx; x++ ) {
 					if( y < units ) {
@@ -559,14 +619,15 @@ static Image createSegmentMask( int type, int hiRes ) {
 						out[0] = c;
 					out++;
 				}
+				out -= maxx * 2;
 			}
 			break;
 		case VER | LFT | TOP:
 			c = SetAlpha( BASE_COLOR_GREEN, 64 );
 			image = MakeImageFile( (maxx = 12 * units), maxy = 18 * units );
 			ClearImage( image );
-			image->flags &= ~IF_FLAG_INVERTED;
-			out = GetImageSurface( image );
+			//image->flags &= ~IF_FLAG_INVERTED;
+			out = GetImageSurface( image ) + (maxy - 1)*maxx;
 			for( y = 0; y < maxy; y++ ) {
 				for( x = 0; x < maxx; x++ ) {
 					if( y < units * 11 ) {
@@ -589,14 +650,15 @@ static Image createSegmentMask( int type, int hiRes ) {
 							out[0] = c;
 					out++;
 				}
+				out -= maxx * 2;
 			}
 			break;
 		case VER | LFT | BOT:
 			c = SetAlpha( BASE_COLOR_NICE_ORANGE, 64 );
 			image = MakeImageFile( (maxx = 12 * units), maxy = 18 * units );
 			ClearImage( image );
-			image->flags &= ~IF_FLAG_INVERTED;
-			out = GetImageSurface( image );
+			//image->flags &= ~IF_FLAG_INVERTED;
+			out = GetImageSurface( image ) + (maxy - 1)*maxx;
 			for( y = 0; y < maxy; y++ ) {
 				for( x = 0; x < maxx; x++ ) {
 					if( y < units ) {
@@ -619,14 +681,15 @@ static Image createSegmentMask( int type, int hiRes ) {
 						out[0] = c;
 					out++;
 				}
+				out -= maxx * 2;
 			}
 			break;
 		case HOR | RGT | BOT:
 			c = SetAlpha( BASE_COLOR_RED, 64 );
 			image = MakeImageFile( (maxx = 18 * units), maxy = 12 * units );
 			ClearImage( image );
-			image->flags &= ~IF_FLAG_INVERTED;
-			out = GetImageSurface( image );
+			//image->flags &= ~IF_FLAG_INVERTED;
+			out = GetImageSurface( image ) + (maxy - 1)*maxx;
 			for( y = 0; y < maxy; y++ ) {
 				for( x = 0; x < maxx; x++ ) {
 					if( y < units * 9 ) {
@@ -645,14 +708,15 @@ static Image createSegmentMask( int type, int hiRes ) {
 							out[0] = c;
 					out++;
 				}
+				out -= maxx * 2;
 			}
 			break;
 		case HOR | RGT | TOP:
 			c = SetAlpha( BASE_COLOR_RED, 64 );
 			image = MakeImageFile( (maxx = 18 * units), maxy = 12 * units );
 			ClearImage( image );
-			image->flags &= ~IF_FLAG_INVERTED;
-			out = GetImageSurface( image );
+			//image->flags &= ~IF_FLAG_INVERTED;
+			out = GetImageSurface( image ) + (maxy - 1)*maxx;
 			for( y = 0; y < maxy; y++ ) {
 				for( x = 0; x < maxx; x++ ) {
 					if( y < units ) {
@@ -671,14 +735,15 @@ static Image createSegmentMask( int type, int hiRes ) {
 						out[0] = c;
 					out++;
 				}
+				out -= maxx * 2;
 			}
 			break;
 		case HOR | LFT | BOT:
 			c = SetAlpha( BASE_COLOR_RED, 64 );
 			image = MakeImageFile( (maxx = 18 * units), maxy = 12 * units );
 			ClearImage( image );
-			image->flags &= ~IF_FLAG_INVERTED;
-			out = GetImageSurface( image );
+			//image->flags &= ~IF_FLAG_INVERTED;
+			out = GetImageSurface( image ) + (maxy - 1)*maxx;
 			for( y = 0; y < maxy; y++ ) {
 				for( x = 0; x < maxx; x++ ) {
 					if( y < units * 9 ) {
@@ -697,14 +762,15 @@ static Image createSegmentMask( int type, int hiRes ) {
 							out[0] = c;
 					out++;
 				}
+				out -= maxx * 2;
 			}
 			break;
 		case HOR | LFT | TOP:
 			c = SetAlpha( BASE_COLOR_RED, 64 );
 			image = MakeImageFile( (maxx = 18 * units), maxy = 12 * units );
 			ClearImage( image );
-			image->flags &= ~IF_FLAG_INVERTED;
-			out = GetImageSurface( image );
+			//image->flags &= ~IF_FLAG_INVERTED;
+			out = GetImageSurface( image ) + (maxy - 1)*maxx;
 			for( y = 0; y < maxy; y++ ) {
 				for( x = 0; x < maxx; x++ ) {
 					if( y < units ) {
@@ -723,6 +789,7 @@ static Image createSegmentMask( int type, int hiRes ) {
 						out[0] = c;
 					out++;
 				}
+				out -= maxx*2;
 			}
 			break;
 		}
@@ -730,6 +797,468 @@ static Image createSegmentMask( int type, int hiRes ) {
 	//FlipImage( image );
 	return image;
 }
+
+
+static Image applySegmentMask( int type, int hiRes, Image input, Image output ) {
+	int x, y;
+	int maxx, maxy;
+	int units = X_HALF_UNITS * (hiRes ? 2 : 1);
+	Image image = output;
+	CDATA c;
+	CDATA *out;
+	CDATA *in;
+	ClearImage( output );
+	if( type & STR ) {
+		if( type & HOR ) {
+			(maxx = 4 * units) * 3, maxy = 8 * units;
+		}
+		if( type & VER ) {
+			(maxx = 8 * units) * 3, maxy = 16 * units;
+		}
+		BlotImage( output, input, 0, 0 );
+	}
+	else if( type & DIA ) {
+		switch( type & (TOP | BOT | LFT | RGT) ) {
+		case TOP | RGT:
+			c = SetAlpha( BASE_COLOR_BLUE, 64 );
+			(maxx = 6 * units), maxy = 6 * units;
+
+			//image->flags |= IF_FLAG_INVERTED;
+			//input->flags |= IF_FLAG_INVERTED;
+			out = GetImageSurface( image ) + (maxy - 1)*maxx * 3;
+			in = GetImageSurface( input ) + (maxy - 1)*maxx * 3;
+			for( y = 0; y < maxy; y++ ) {
+				for( x = 0; x < maxx; x++ ) {
+					if( y < units ) {
+						while( 1 ) {
+							if( x < units )
+								break;
+							if( x < (2 * units - y) )
+								break;
+							out[0] = (in[0]);
+							out[units * 6] = (in[units * 6]);
+							out[units * 12] = (in[units * 12]);
+							break;
+						}
+					}
+					else if( y < (units * 4) ) {
+						out[0] = in[0];
+						out[units * 6] = in[units*6];
+						out[units * 12] = in[units * 12];
+					}
+					else  if( y < (units * 5) ) {
+						if( x < (units * 6 - (y - units * 4)) ) {
+							out[0] = in[0];
+							out[units * 6] = in[units * 6];
+							out[units * 12] = in[units * 12];
+						}
+					}
+					else {
+						if( x < units * 5 ) {
+							out[0] = in[0];
+							out[units * 6] = in[units * 6];
+							out[units * 12] = in[units * 12];
+						}
+					}
+					out++;
+					in++;
+				}
+				out -= (maxx * 3) + maxx;
+				in -= (maxx * 3) + maxx;
+			}
+			break;
+		case BOT | RGT:
+			c = SetAlpha( BASE_COLOR_RED, 64 );
+			(maxx = 6 * units), maxy = 6 * units;
+			//image->flags |= IF_FLAG_INVERTED;
+			//input->flags |= IF_FLAG_INVERTED;
+			out = GetImageSurface( image ) + (maxy - 1)*maxx * 3;
+			in = GetImageSurface( input ) + (maxy - 1)*maxx * 3;
+			for( y = 0; y < maxy; y++ ) {
+				for( x = 0; x < maxx; x++ ) {
+					if( y < units ) {
+						if( x < units * 5 ) {
+							out[0] = in[0];
+							out[units * 6] = in[units * 6];
+							out[units * 12] = in[units * 12];
+						}
+					}
+					else if( y < 2 * units ) {
+						if( x < (units * 4 + y) ) {
+							out[0] = in[0];
+							out[units * 6] = in[units * 6];
+							out[units * 12] = in[units * 12];
+						}
+					}
+					else if( y < (units * 5) ) {
+						out[0] = in[0];
+						out[units * 6] = in[units * 6];
+						out[units * 12] = in[units * 12];
+					}
+					else {
+						if( x >= units + (y - units * 5) ) {
+							out[0] = in[0];
+							out[units * 6] = in[units * 6];
+							out[units * 12] = in[units * 12];
+						}
+					}
+					out++;
+					in++;
+				}
+				out -= (maxx * 3) + maxx;
+				in -= (maxx * 3) + maxx;
+			}
+			break;
+		case TOP | LFT:
+			c = SetAlpha( BASE_COLOR_GREEN, 64 );
+			(maxx = 6 * units), maxy = 6 * units;
+			//image->flags |= IF_FLAG_INVERTED;
+			//input->flags |= IF_FLAG_INVERTED;
+			out = GetImageSurface( image ) + (maxy - 1)*maxx * 3;
+			in = GetImageSurface( input ) + (maxy - 1)*maxx * 3;
+			for( y = 0; y < maxy; y++ ) {
+				for( x = 0; x < maxx; x++ ) {
+					if( y < units ) {
+						if( x <= (units * 4 + y) ) {
+							out[0] = in[0];
+							out[units * 6] = in[units * 6];
+							out[units * 12] = in[units * 12];
+						}
+					}
+					else if( y < (units * 4) ) {
+						out[0] = in[0];
+						out[units * 6] = in[units * 6];
+						out[units * 12] = in[units * 12];
+					}
+					else if( y < (units * 5) ) {
+						if( x >= ( y - units * 4 ) ) {
+							out[0] = in[0];
+							out[units * 6] = in[units * 6];
+							out[units * 12] = in[units * 12];
+						}
+					}
+					else {
+						if( x >= units ) {
+							out[0] = in[0];
+							out[units * 6] = in[units * 6];
+							out[units * 12] = in[units * 12];
+						}
+					}
+					out++;
+					in++;
+				}
+				out -= (maxx * 3) + maxx;
+				in -= (maxx * 3) + maxx;
+			}
+			break;
+		case BOT | LFT:
+			c = SetAlpha( BASE_COLOR_NICE_ORANGE, 64 );
+			(maxx = 6 * units), maxy = 6 * units;
+			//image->flags |= IF_FLAG_INVERTED;
+			//input->flags |= IF_FLAG_INVERTED;
+			out = GetImageSurface( image ) + (maxy - 1)*maxx * 3;
+			in = GetImageSurface( input ) + (maxy - 1)*maxx * 3;
+			for( y = 0; y < maxy; y++ ) {
+				for( x = 0; x < maxx; x++ ) {
+					if( y < units ) {
+						if( x >= units ) {
+							out[0] = in[0];
+							out[units * 6] = in[units * 6];
+							out[units * 12] = in[units * 12];
+						}
+					}
+					else if( y < (units * 2) ) {
+						if( x >= (2 * units - y) ) {
+							out[0] = in[0];
+							out[units * 6] = in[units * 6];
+							out[units * 12] = in[units * 12];
+						}
+					}
+					else if( y < (units * 5) ) {
+						out[0] = in[0];
+						out[units * 6] = in[units * 6];
+						out[units * 12] = in[units * 12];
+					}
+					else {
+						if( x < (10 * units - y) ) {
+							out[0] = in[0];
+							out[units * 6] = in[units * 6];
+							out[units * 12] = in[units * 12];
+						}
+					}
+					out++;
+					in++;
+				}
+				out -= (maxx * 3) + maxx;
+				in -= (maxx * 3) + maxx;
+			}
+			break;
+		}
+	}
+	else if( type & CRV ) {
+		switch( type & (VER | HOR | RGT | LFT | TOP | BOT) ) {
+		case VER | RGT | TOP:
+			c = SetAlpha( BASE_COLOR_RED, 64 );
+			(maxx = 12 * units), maxy = 18 * units;
+			//image->flags &= ~IF_FLAG_INVERTED;
+			//input->flags &= ~IF_FLAG_INVERTED;
+			out = GetImageSurface( image ) + (maxy - 1)*maxx;
+			in = GetImageSurface( input ) + (maxy - 1)*maxx;
+			for( y = 0; y < maxy; y++ ) {
+				for( x = 0; x < maxx; x++ ) {
+					if( y < units * 11 ) {
+						out[0] = in[0];
+					}
+					else if( y < units * 12 ) {
+						if( x < (units * 12 + (units * 11 - y)) )
+							out[0] = in[0];
+					}
+					else if( y < units * 16 ) {
+						if( x < (units * 11) )
+							out[0] = in[0];
+					}
+					else if( y < units * 17 ) {
+						if( x < (units * 10 - (y - units * 17)) )
+							out[0] = in[0];
+					}
+					else
+						if( x < units * 9 )
+							out[0] = in[0];
+					out++;
+					in++;
+				}
+				out -= maxx*2;
+				in -= maxx*2;
+			}
+			break;
+		case VER | RGT | BOT:
+			c = SetAlpha( BASE_COLOR_BLUE, 64 );
+			(maxx = 12 * units), maxy = 18 * units;
+			//image->flags &= ~IF_FLAG_INVERTED;
+			//input->flags &= ~IF_FLAG_INVERTED;
+			out = GetImageSurface( image ) + (maxy - 1)*maxx;
+			in = GetImageSurface( input ) + (maxy - 1)*maxx;
+			for( y = 0; y < maxy; y++ ) {
+				for( x = 0; x < maxx; x++ ) {
+					if( y < units ) {
+						if( x < units * 9 )
+							out[0] = in[0];
+					}
+					else if( y < units * 2 ) {
+						if( x < (units * 9 + y) )
+							out[0] = in[0];
+					}
+					else if( y < units * 6 ) {
+						if( x < (units * 11) )
+							out[0] = in[0];
+					}
+					else if( y < units * 7 ) {
+						if( x < (units * 11 + (y - units * 6)) )
+							out[0] = in[0];
+					}
+					else
+						out[0] = in[0];
+					out++;
+					in++;
+				}
+				out -= maxx * 2;
+				in -= maxx * 2;
+			}
+			break;
+		case VER | LFT | TOP:
+			c = SetAlpha( BASE_COLOR_GREEN, 64 );
+			(maxx = 12 * units), maxy = 18 * units;
+			//image->flags &= ~IF_FLAG_INVERTED;
+			//input->flags &= ~IF_FLAG_INVERTED;
+			out = GetImageSurface( image ) + (maxy - 1)*maxx;
+			in = GetImageSurface( input ) + (maxy - 1)*maxx;
+			for( y = 0; y < maxy; y++ ) {
+				for( x = 0; x < maxx; x++ ) {
+					if( y < units * 11 ) {
+						out[0] = in[0];
+					}
+					else if( y < units * 12 ) {
+						if( x >= ((y - units * 11)) )
+							out[0] = in[0];
+					}
+					else if( y < units * 16 ) {
+						if( x >= units )
+							out[0] = in[0];
+					}
+					else if( y < units * 17 ) {
+						if( x >= units + (y - units * 16) )
+							out[0] = in[0];
+					}
+					else
+						if( x >= units * 3 )
+							out[0] = in[0];
+					out++;
+					in++;
+				}
+				out -= maxx * 2;
+				in -= maxx * 2;
+			}
+			break;
+		case VER | LFT | BOT:
+			c = SetAlpha( BASE_COLOR_NICE_ORANGE, 64 );
+			(maxx = 12 * units), maxy = 18 * units;
+			//image->flags &= ~IF_FLAG_INVERTED;
+			//input->flags &= ~IF_FLAG_INVERTED;
+			out = GetImageSurface( image ) + (maxy - 1)*maxx;
+			in = GetImageSurface( input ) + (maxy - 1)*maxx;
+			for( y = 0; y < maxy; y++ ) {
+				for( x = 0; x < maxx; x++ ) {
+					if( y < units ) {
+						if( x >= (units * 3) )
+							out[0] = in[0];
+					}
+					else if( y < units * 2 ) {
+						if( x >= (units * 1 + (2 * units - y)) )
+							out[0] = in[0];
+					}
+					else if( y < units * 6 ) {
+						if( x >= (units) )
+							out[0] = in[0];
+					}
+					else if( y < units * 7 ) {
+						if( x >= ((units * 7 - y)) )
+							out[0] = in[0];
+					}
+					else
+						out[0] = in[0];
+					out++;
+					in++;
+				}
+				out -= maxx * 2;
+				in -= maxx * 2;
+			}
+			break;
+		case HOR | RGT | BOT:
+			c = SetAlpha( BASE_COLOR_RED, 64 );
+			(maxx = 18 * units), maxy = 12 * units;
+			//image->flags &= ~IF_FLAG_INVERTED;
+			//input->flags &= ~IF_FLAG_INVERTED;
+			out = GetImageSurface( image ) + (maxy - 1)*maxx;
+			in = GetImageSurface( input ) + (maxy - 1)*maxx;
+			for( y = 0; y < maxy; y++ ) {
+				for( x = 0; x < maxx; x++ ) {
+					if( y < units * 9 ) {
+						out[0] = in[0];
+					}
+					else if( y < units * 10 ) {
+						if( x >= (units) )
+							out[0] = in[0];
+					}
+					else if( y < units * 11 ) {
+						if( x >= (units + (y - units * 10)) )
+							out[0] = in[0];
+					}
+					else
+						if( x >= units * 6 + (y - units * 11) )
+							out[0] = in[0];
+					out++;
+					in++;
+				}
+				out -= maxx * 2;
+				in -= maxx * 2;
+			}
+			break;
+		case HOR | RGT | TOP:
+			c = SetAlpha( BASE_COLOR_RED, 64 );
+			(maxx = 18 * units), maxy = 12 * units;
+			//image->flags &= ~IF_FLAG_INVERTED;
+			//input->flags &= ~IF_FLAG_INVERTED;
+			out = GetImageSurface( image ) + (maxy - 1)*maxx;
+			in = GetImageSurface( input ) + (maxy - 1)*maxx;
+			for( y = 0; y < maxy; y++ ) {
+				for( x = 0; x < maxx; x++ ) {
+					if( y < units ) {
+						if( x >= (units * 7 - y) )
+							out[0] = in[0];
+					}
+					else if( y < units * 2 ) {
+						if( x >= (units)+(units * 2 - y) )
+							out[0] = in[0];
+					}
+					else if( y < units * 3 ) {
+						if( x >= units )
+							out[0] = in[0];
+					}
+					else
+						out[0] = in[0];
+					out++;
+					in++;
+				}
+				out -= maxx * 2;
+				in -= maxx * 2;
+			}
+			break;
+		case HOR | LFT | BOT:
+			c = SetAlpha( BASE_COLOR_RED, 64 );
+			(maxx = 18 * units), maxy = 12 * units;
+			//image->flags &= ~IF_FLAG_INVERTED;
+			//input->flags &= ~IF_FLAG_INVERTED;
+			out = GetImageSurface( image ) + (maxy - 1)*maxx;
+			in = GetImageSurface( input ) + (maxy - 1)*maxx;
+			for( y = 0; y < maxy; y++ ) {
+				for( x = 0; x < maxx; x++ ) {
+					if( y < units * 9 ) {
+						out[0] = in[0];
+					}
+					else if( y < units * 10 ) {
+						if( x < (units * 17) )
+							out[0] = in[0];
+					}
+					else if( y < units * 11 ) {
+						if( x < (units * 17 - (y - units * 10)) )
+							out[0] = in[0];
+					}
+					else
+						if( x < (units * 11) + (units * 12 - y) )
+							out[0] = in[0];
+					out++;
+					in++;
+				}
+				out -= maxx * 2;
+				in -= maxx * 2;
+			}
+			break;
+		case HOR | LFT | TOP:
+			c = SetAlpha( BASE_COLOR_RED, 64 );
+			(maxx = 18 * units), maxy = 12 * units;
+			//image->flags &= ~IF_FLAG_INVERTED;
+			//input->flags &= ~IF_FLAG_INVERTED;
+			out = GetImageSurface( image ) + (maxy - 1)*maxx;
+			in = GetImageSurface( input ) + (maxy - 1)*maxx;
+			for( y = 0; y < maxy; y++ ) {
+				for( x = 0; x < maxx; x++ ) {
+					if( y < units ) {
+						if( x < units * 11 + y )
+							out[0] = in[0];
+					}
+					else if( y < units * 2 ) {
+						if( x < (units * 16) + (y - units) )
+							out[0] = in[0];
+					}
+					else if( y < units * 3 ) {
+						if( x < units * 17 )
+							out[0] = in[0];
+					}
+					else
+						out[0] = in[0];
+					out++;
+					in++;
+				}
+				out -= maxx * 2;
+				in -= maxx * 2;
+			}
+			break;
+		}
+	}
+	//FlipImage( image );
+	return image;
+}
+
 
 
 static Image createMask( Image fromImage ) {
@@ -750,6 +1279,139 @@ static Image createMask( Image fromImage ) {
 	return output;
 }
 
+static void Slice( INDEX i, int p, int res, Image *slice, Image *sliceMask ) {
+	Image sliceTarget;
+	if( image_srcs[i].type & STR ) {
+		if( image_srcs[i].type & VER ) {
+			(*slice) = sliceTarget = res ? l.high.raw_ver : l.low.raw_ver;
+			(*sliceMask) = res ? l.high.ver : l.low.ver;
+		}
+		else {
+			(*slice) = sliceTarget = res ? l.high.raw_hor : l.low.raw_hor;
+			(*sliceMask) = res ? l.high.hor : l.low.hor;
+		}
+
+	} 
+	else if( image_srcs[i].type &  DIA ) {
+		(*slice) = sliceTarget = res ? l.high.raw_small2 : l.low.raw_small2;
+		(*sliceMask) = res ? l.high.small2 : l.low.small2;
+	}
+	else
+		if( image_srcs[i].type & VER ) {
+			(*slice) = sliceTarget = res ? l.high.raw_vcurve : l.low.raw_vcurve;
+			(*sliceMask) = res ? l.high.vcurve : l.low.vcurve;
+		}
+		else {
+			(*slice) = sliceTarget = res ? l.high.raw_hcurve : l.low.raw_hcurve;
+			(*sliceMask) = res ? l.high.hcurve : l.low.hcurve;
+		}
+
+	{
+		Image src = (Image)GetLink( &l.images, p + (res?10:0) );
+		int v;
+		ClearImage( sliceTarget );
+		for( v = 0; v < (image_srcs[i]._3variations ? 3 : 1); v++ ) {
+			BlotImageSizedTo( sliceTarget, src
+				, v*image_srcs[i].w*(res ? 2 : 1), 0
+				, res ? image_srcs[i].high_x[v]:image_srcs[i].low_x[v], (res ? image_srcs[i].high_y[v] : image_srcs[i].low_y[v])
+				, image_srcs[i].w*(res ? 2 : 1), image_srcs[i].h*(res ? 2 : 1) );
+		}
+	}
+	//return sliceTarget;
+}
+
+static void sliceComposites( void ) {
+	INDEX i;
+	int p;
+	char buf[256];
+
+	for( i = 0; i < 14; i++ ) {
+		int res;
+		for( res = 0; res < 2; res++ ) {
+			for( p = 0; p < num_parts * 2; p++ ) {
+				Image slice;
+				Image slice_mask;
+				const char *base;
+				if( image_srcs[i].type & (STR | DIA) )
+					base = l.straight_path;
+				else
+					base = l.curve_path;
+
+				Slice( i, p, res, &slice, &slice_mask );
+				applySegmentMask( image_srcs[i].type, res, slice, slice_mask );
+
+				snprintf( buf, 256, "%s/%s%s-%s-%s%s%s.png"
+					, base, res ? "hr-" : "", image_srcs[i].prefix, image_srcs[i].variant
+					, parts[p%num_parts]
+					, p >= num_parts ? "-" : ""
+					, p >= num_parts ? remnant : "" );
+
+				{
+					uint8_t *imgbuf = NULL;
+					size_t size = 0;
+					PngImageFile( slice_mask, &imgbuf, &size );
+					{
+						FILE *out;
+						//printf( "write:%s\n", buf );
+						out = sack_fopen( 0, buf, "wb" );
+						sack_fwrite( imgbuf, size, 1, out );
+						sack_fclose( out );
+					}
+					Release( imgbuf );
+				}
+			}
+		}
+	}
+
+}
+
+static void loadAndSlice( void ) {
+
+	{
+		int p;
+		int r;
+		char outname[256];
+		for( r = 0; r < 2; r++ )
+			for( p = 0; p < 5; p++ ) {
+				snprintf( outname, 256, "%s/layer-%s%s.png", l.base_path, parts[p%5], r ? "-remnant" : "" );
+				SetLink( &l.images, r*5+p, LoadImageFile( outname ) );
+
+				snprintf( outname, 256, "%s/hr-layer-%s%s.png", l.base_path, parts[p%5], r ? "-remnant" : "" );
+				SetLink( &l.images, 10 + (r * 5) + p, LoadImageFile( outname ) );
+			}
+	}
+
+	{
+		l.low.raw_hcurve = MakeImageFile( 18 * X_HALF_UNITS, 12 * X_HALF_UNITS );
+		l.low.raw_vcurve = MakeImageFile( 12 * X_HALF_UNITS, 18 * X_HALF_UNITS );
+		l.low.raw_hor = MakeImageFile( 12 * X_HALF_UNITS, 8 * X_HALF_UNITS );
+		l.low.raw_ver = MakeImageFile( 24 * X_HALF_UNITS, 4 * X_HALF_UNITS );
+		l.low.raw_small2 = MakeImageFile( 18 * X_HALF_UNITS, 6 * X_HALF_UNITS );
+
+		l.high.raw_hcurve = MakeImageFile( 2 * 18 * X_HALF_UNITS, 2 * 12 * X_HALF_UNITS );
+		l.high.raw_vcurve = MakeImageFile( 2 * 12 * X_HALF_UNITS, 2 * 18 * X_HALF_UNITS );
+		l.high.raw_hor = MakeImageFile( 2 * 12 * X_HALF_UNITS, 2 * 8 * X_HALF_UNITS );
+		l.high.raw_ver = MakeImageFile( 2 * 24 * X_HALF_UNITS, 2 * 4 * X_HALF_UNITS );
+		l.high.raw_small2 = MakeImageFile( 2 * 18 * X_HALF_UNITS, 2 * 6 * X_HALF_UNITS );
+
+		l.low.hcurve = MakeImageFile( 18 * X_HALF_UNITS, 12 * X_HALF_UNITS );
+		l.low.vcurve = MakeImageFile( 12 * X_HALF_UNITS, 18 * X_HALF_UNITS );
+		l.low.hor = MakeImageFile( 12 * X_HALF_UNITS, 8 * X_HALF_UNITS );
+		l.low.ver = MakeImageFile( 24 * X_HALF_UNITS, 4 * X_HALF_UNITS );
+		l.low.small2 = MakeImageFile( 18 * X_HALF_UNITS, 6 * X_HALF_UNITS );
+
+		l.high.hcurve = MakeImageFile( 2* 18 * X_HALF_UNITS, 2 * 12 * X_HALF_UNITS );
+		l.high.vcurve = MakeImageFile( 2 * 12 * X_HALF_UNITS, 2 * 18 * X_HALF_UNITS );
+		l.high.hor = MakeImageFile( 2 * 12 * X_HALF_UNITS, 2 * 8 * X_HALF_UNITS );
+		l.high.ver = MakeImageFile( 2 * 24 * X_HALF_UNITS, 2 * 4 * X_HALF_UNITS );
+		l.high.small2 = MakeImageFile( 2 * 18 * X_HALF_UNITS, 2 * 6 * X_HALF_UNITS );
+
+		sliceComposites();
+		
+	}
+
+}
+
 static void loadImages( void ){
 	INDEX i;
 	int p;
@@ -766,17 +1428,19 @@ static void loadImages( void ){
 				if( res ) {
 					if( !p )
 						image_srcs[i].highMask = createSegmentMask( image_srcs[i].type, res );
+					//printf( "Load:%s\n", buf );
 					image_srcs[i].high[p] = LoadImageFile( buf );
 				}
 				else {
 					if( !p )
 						image_srcs[i].lowMask = createSegmentMask( image_srcs[i].type, res );
+					//printf( "Load:%s\n", buf );
 					image_srcs[i].low[p] = LoadImageFile( buf );
 				}
 			}
 		}
 	}
-
+	printf( "Loaded all fragments....\n" );
 	for( i = 6+0; i < 6+8; i++ ) {
 		int res;
 		for( res = 0; res < 2; res++ ) {
@@ -797,7 +1461,7 @@ static void loadImages( void ){
 			}
 		}
 	}
-	l.half_size = 82 * X_HALF_UNITS;// (circle[15].pos.x + image_srcs[circle[15].type_index].ox + 1) * X_HALF_UNITS + image_srcs[9].low[0]->width;
+	l.half_size = 84 * X_HALF_UNITS;// (circle[15].pos.x + image_srcs[circle[15].type_index].ox + 1) * X_HALF_UNITS + image_srcs[9].low[0]->width;
 	l.half_temp = MakeImageFile( l.half_size, l.half_size );
 	l.full_temp = MakeImageFile( l.half_size*2, l.half_size * 2 );
 
@@ -811,9 +1475,9 @@ static void loadImages( void ){
 		UnmakeImageFile( mask );
 		{
 			FILE *out;
-			snprintf( outname, 256, "dia-top-lft-mask.png" );
+			snprintf( outname, 256, "%s/dia-top-lft-mask.png", l.output_path );
 			out = sack_fopen( 0, outname, "wb" );
-			sack_fwrite( buf, 1, size, out );
+			sack_fwrite( buf, size, 1, out );
 			sack_fclose( out );
 		}
 		Release( buf );
@@ -822,9 +1486,9 @@ static void loadImages( void ){
 		UnmakeImageFile( mask );
 		{
 			FILE *out;
-			snprintf( outname, 256, "dia-top-rgt-mask.png" );
+			snprintf( outname, 256, "%s/dia-top-rgt-mask.png", l.output_path );
 			out = sack_fopen( 0, outname, "wb" );
-			sack_fwrite( buf, 1, size, out );
+			sack_fwrite( buf, size, 1, out );
 			sack_fclose( out );
 		}
 		Release( buf );
@@ -833,9 +1497,9 @@ static void loadImages( void ){
 		UnmakeImageFile( mask );
 		{
 			FILE *out;
-			snprintf( outname, 256, "dia-bot-lft-mask.png" );
+			snprintf( outname, 256, "%s/dia-bot-lft-mask.png", l.output_path );
 			out = sack_fopen( 0, outname, "wb" );
-			sack_fwrite( buf, 1, size, out );
+			sack_fwrite( buf, size, 1, out );
 			sack_fclose( out );
 		}
 		Release( buf );
@@ -844,9 +1508,9 @@ static void loadImages( void ){
 		UnmakeImageFile( mask );
 		{
 			FILE *out;
-			snprintf( outname, 256, "dia-bot-rgt-mask.png" );
+			snprintf( outname, 256, "%s/dia-bot-rgt-mask.png", l.output_path );
 			out = sack_fopen( 0, outname, "wb" );
-			sack_fwrite( buf, 1, size, out );
+			sack_fwrite( buf, size, 1, out );
 			sack_fclose( out );
 		}
 		Release( buf );
@@ -856,9 +1520,9 @@ static void loadImages( void ){
 		UnmakeImageFile( mask );
 		{
 			FILE *out;
-			snprintf( outname, 256, "crv-ver-rgt-top-mask.png" );
+			snprintf( outname, 256, "%s/crv-ver-rgt-top-mask.png", l.output_path );
 			out = sack_fopen( 0, outname, "wb" );
-			sack_fwrite( buf, 1, size, out );
+			sack_fwrite( buf, size, 1, out );
 			sack_fclose( out );
 		}
 		Release( buf );
@@ -868,9 +1532,9 @@ static void loadImages( void ){
 		UnmakeImageFile( mask );
 		{
 			FILE *out;
-			snprintf( outname, 256, "crv-ver-rgt-bot-mask.png" );
+			snprintf( outname, 256, "%s/crv-ver-rgt-bot-mask.png", l.output_path );
 			out = sack_fopen( 0, outname, "wb" );
-			sack_fwrite( buf, 1, size, out );
+			sack_fwrite( buf, size, 1, out );
 			sack_fclose( out );
 		}
 		Release( buf );
@@ -880,9 +1544,9 @@ static void loadImages( void ){
 		UnmakeImageFile( mask );
 		{
 			FILE *out;
-			snprintf( outname, 256, "crv-ver-lft-top-mask.png" );
+			snprintf( outname, 256, "%s/crv-ver-lft-top-mask.png", l.output_path );
 			out = sack_fopen( 0, outname, "wb" );
-			sack_fwrite( buf, 1, size, out );
+			sack_fwrite( buf, size, 1, out );
 			sack_fclose( out );
 		}
 		Release( buf );
@@ -892,9 +1556,9 @@ static void loadImages( void ){
 		UnmakeImageFile( mask );
 		{
 			FILE *out;
-			snprintf( outname, 256, "crv-ver-lft-bot-mask.png" );
+			snprintf( outname, 256, "%s/crv-ver-lft-bot-mask.png", l.output_path );
 			out = sack_fopen( 0, outname, "wb" );
-			sack_fwrite( buf, 1, size, out );
+			sack_fwrite( buf, size, 1, out );
 			sack_fclose( out );
 		}
 		Release( buf );
@@ -904,9 +1568,9 @@ static void loadImages( void ){
 		UnmakeImageFile( mask );
 		{
 			FILE *out;
-			snprintf( outname, 256, "crv-hor-rgt-top-mask.png" );
+			snprintf( outname, 256, "%s/crv-hor-rgt-top-mask.png", l.output_path );
 			out = sack_fopen( 0, outname, "wb" );
-			sack_fwrite( buf, 1, size, out );
+			sack_fwrite( buf, size, 1, out );
 			sack_fclose( out );
 		}
 		Release( buf );
@@ -916,9 +1580,9 @@ static void loadImages( void ){
 		UnmakeImageFile( mask );
 		{
 			FILE *out;
-			snprintf( outname, 256, "crv-hor-rgt-bot-mask.png" );
+			snprintf( outname, 256, "%s/crv-hor-rgt-bot-mask.png", l.output_path );
 			out = sack_fopen( 0, outname, "wb" );
-			sack_fwrite( buf, 1, size, out );
+			sack_fwrite( buf, size, 1, out );
 			sack_fclose( out );
 		}
 		Release( buf );
@@ -928,9 +1592,9 @@ static void loadImages( void ){
 		UnmakeImageFile( mask );
 		{
 			FILE *out;
-			snprintf( outname, 256, "crv-hor-lft-top-mask.png" );
+			snprintf( outname, 256, "%s/crv-hor-lft-top-mask.png", l.output_path );
 			out = sack_fopen( 0, outname, "wb" );
-			sack_fwrite( buf, 1, size, out );
+			sack_fwrite( buf, size, 1, out );
 			sack_fclose( out );
 		}
 		Release( buf );
@@ -940,48 +1604,50 @@ static void loadImages( void ){
 		UnmakeImageFile( mask );
 		{
 			FILE *out;
-			snprintf( outname, 256, "crv-hor-lft-bot-mask.png" );
+			snprintf( outname, 256, "%s/crv-hor-lft-bot-mask.png", l.output_path );
 			out = sack_fopen( 0, outname, "wb" );
-			sack_fwrite( buf, 1, size, out );
+			sack_fwrite( buf, size, 1, out );
 			sack_fclose( out );
 		}
 		Release( buf );
 
 	}
+	printf( "wrote masks....\n" );
 	{
 		int p;
 		int r;
 		char outname[256];
 		for( r = 0; r < 2; r++ )
-		for( p = 0; p <= 5; p++ ) {
-			ClearImage( l.half_temp );
-			drawImages( l.half_temp, p, r, 0, 1, 1,  p?0:1 );
-			ClearImage( l.full_temp );
-			drawImages( l.full_temp, p, r, 1, 1, 1,  p?0:1 );
-			{
-				uint8_t *buf;
-				size_t size;
-				PngImageFile( l.half_temp, &buf, &size );
+			for( p = 0; p <= 5; p++ ) {
+				ClearImage( l.half_temp );
+				drawImages( l.half_temp, p, r, 0, 2, 2,  p?0:1 );
+				ClearImage( l.full_temp );
+				drawImages( l.full_temp, p, r, 1, 2, 2,  p?0:1 );
 				{
-					FILE *out;
-					snprintf( outname, 256, "layer-%s%s.png", p ? parts[p - 1] : "composite", r?"-remnant":"" );
-					out = sack_fopen( 0, outname, "wb" );
-					sack_fwrite( buf, 1, size, out );
-					sack_fclose( out );
+					uint8_t *buf;
+					size_t size;
+					PngImageFile( l.half_temp, &buf, &size );
+					{
+						FILE *out;
+						snprintf( outname, 256, "%s/layer-%s%s.png", l.output_path, p ? parts[p - 1] : "composite", r?"-remnant":"" );
+						out = sack_fopen( 0, outname, "wb" );
+						sack_fwrite( buf, size, 1, out );
+						sack_fclose( out );
+					}
+					Release( buf );
+					PngImageFile( l.full_temp, &buf, &size );
+					{
+						FILE *out;
+						snprintf( outname, 256, "%s/hr-layer-%s%s.png", l.output_path, p?parts[p-1]:"composite", r ? "-remnant" : "" );
+						out = sack_fopen( 0, outname, "wb" );
+						sack_fwrite( buf, size, 1, out );
+						sack_fclose( out );
+					}
+					Release( buf );
 				}
-				Release( buf );
-				PngImageFile( l.full_temp, &buf, &size );
-				{
-					FILE *out;
-					snprintf( outname, 256, "hr-layer-%s%s.png", p?parts[p-1]:"composite", r ? "-remnant" : "" );
-					out = sack_fopen( 0, outname, "wb" );
-					sack_fwrite( buf, 1, size, out );
-					sack_fclose( out );
-				}
-				Release( buf );
 			}
-		}
 	}
+	printf( "wrote composites....\n" );
 }
 
 
@@ -990,9 +1656,22 @@ SaneWinMain( argc, argv ) {
 	int arg;
 	int slice = 0;
 	int composite = 1;
+	l.output_path = ".";
 	for( arg = 1; arg < argc; arg++ ) {
 		if( argv[arg][0] == '-' ) {
 			switch( argv[arg][1] ) {
+			case 'o':
+				if( argv[arg][2] ) {
+					l.output_path = StrDup( argv[arg] + 2 );
+					printf( "Setting output path to: %s\n", l.output_path );
+				}
+				else
+				{
+					l.output_path = StrDup( argv[arg+1] );
+					printf( "Setting output path to: %s\n", l.output_path );
+					arg++;
+				}
+				break;
 			case 's':
 				slice = 1;
 				break;
@@ -1002,34 +1681,71 @@ SaneWinMain( argc, argv ) {
 			}
 		}
 		else {
-			if( slice ) {
-				l.base_path = argv[arg];
-			}
-			else 
-				if( !l.straight_path ) {
-					snprintf( buf, 256, "%s/straight-rail/", argv[arg] );
-					l.straight_path = StrDup( buf );
-					snprintf( buf, 256, "%s/curved-rail/", argv[arg] );
-					l.curve_path = StrDup( buf );
-				}
-				else
-					l.base_path = argv[arg];
-
+			l.base_path = argv[arg];
 		}
 	}
-	if( !l.straight_path )
+	if( !l.base_path ) {
+		printf( "base input path not specified.\n" );
 		exit( 0 );
-	l.pii = GetImageInterface();
-	loadImages();
-
-	l.render = OpenDisplaySizedAt( 0, l.half_size + X_HALF_UNITS*4, l.half_size + Y_HALF_UNITS * 4, 0, 0 );
-	{
-		//Image  surface = MakeSubImage( GetDisplayImage( l.render ), + X_HALF_UNITS*2, Y_HALF_UNITS*2, l.half_size - X_HALF_UNITS)
-		SetRedrawHandler( l.render, MyDraw, 0 );
 	}
-	UpdateDisplay( l.render );
-	while( 1 )
-		WakeableSleep( 10000 );
-	return 0;
+	if( slice ) {
+		snprintf( buf, 256, "%s/straight-rail", l.output_path );
+		l.straight_path = StrDup( buf );
+		MakePath( l.straight_path );
+		snprintf( buf, 256, "%s/curved-rail", l.output_path );
+		l.curve_path = StrDup( buf );
+		MakePath( l.curve_path );
+	}
+	else {
+		snprintf( buf, 256, "%s/straight-rail", l.base_path );
+		l.straight_path = StrDup( buf );
+		lprintf( "set stright:%s", l.straight_path );
+		snprintf( buf, 256, "%s/curved-rail", l.base_path );
+		l.curve_path = StrDup( buf );
+		lprintf( "set stright:%s", l.curve_path );
+	}
+	MakePath( l.output_path );
+
+	l.pii = GetImageInterface();
+	if( slice ) {
+		loadAndSlice();
+	}
+	//if( composite )
+	{
+		loadImages();
+
+#ifdef _DEBUG
+		{
+			int n;
+			for( n = 0; n < 14; n++ ) {
+				printf( "{%d,%d,%d},{%d,%d,%d},{%d,%d,%d},{%d,%d,%d},\n"
+					, image_srcs[n].high_x[0]
+					, image_srcs[n].high_x[1]
+					, image_srcs[n].high_x[2]
+					, image_srcs[n].high_y[0]
+					, image_srcs[n].high_y[1]
+					, image_srcs[n].high_y[2]
+					, image_srcs[n].low_x[0]
+					, image_srcs[n].low_x[1]
+					, image_srcs[n].low_x[2]
+					, image_srcs[n].low_y[0]
+					, image_srcs[n].low_y[1]
+					, image_srcs[n].low_y[2]
+				);
+			}
+		}
+#endif
+		/*
+		l.render = OpenDisplaySizedAt( 0, l.half_size + X_HALF_UNITS * 4, l.half_size + Y_HALF_UNITS * 4, 0, 0 );
+		{
+			//Image  surface = MakeSubImage( GetDisplayImage( l.render ), + X_HALF_UNITS*2, Y_HALF_UNITS*2, l.half_size - X_HALF_UNITS)
+			SetRedrawHandler( l.render, MyDraw, 0 );
+		}
+		UpdateDisplay( l.render );
+		while( 1 )
+			WakeableSleep( 10000 );
+		return 0;
+		*/
+	}
 }
 EndSaneWinMain()
