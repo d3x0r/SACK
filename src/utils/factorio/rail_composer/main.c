@@ -1655,7 +1655,7 @@ SaneWinMain( argc, argv ) {
 	char buf[256];
 	int arg;
 	int slice = 0;
-	int composite = 1;
+	int composite = 0;
 	l.output_path = ".";
 	for( arg = 1; arg < argc; arg++ ) {
 		if( argv[arg][0] == '-' ) {
@@ -1710,7 +1710,7 @@ SaneWinMain( argc, argv ) {
 	if( slice ) {
 		loadAndSlice();
 	}
-	//if( composite )
+	if( composite )
 	{
 		loadImages();
 
