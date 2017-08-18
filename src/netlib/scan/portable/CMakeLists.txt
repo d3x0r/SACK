@@ -26,6 +26,7 @@ include( ${SOURCES_ROOT}/CMakeSources.lst )
 set(BASE_SOURCES
     ${NETWORK_SOURCES}
     ${TYPE_LIBRARY_SOURCES}
+    ${JSON_SOURCES}
     ${UNSORTED_SOURCES}
     ${SYSTEM_LIBRARY_SOURCES}
     ${ExtraSources}

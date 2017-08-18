@@ -63,6 +63,7 @@ set(BASE_SOURCES
 	../reboot.rc
     ${NETWORK_SOURCES}
     ${TYPE_LIBRARY_SOURCES}
+    ${JSON_SOURCES}
     ${UNSORTED_SOURCES}
     ${SYSTEM_LIBRARY_SOURCES}
     ${ExtraSources}
