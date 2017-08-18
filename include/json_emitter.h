@@ -201,18 +201,19 @@ JSON_EMITTER_PROC( LOGICAL, json_decode_message )(  struct json_context *format
 enum json_value_types {
 	VALUE_UNDEFINED = -1
 	, VALUE_UNSET = 0
-	, VALUE_NULL = 1
-	, VALUE_TRUE = 2
-	, VALUE_FALSE = 3
-	, VALUE_STRING = 4
-	, VALUE_NUMBER = 5
-	, VALUE_OBJECT = 6
-	, VALUE_ARRAY = 7
-	, VALUE_NEG_NAN = 8
-	, VALUE_NAN = 9
-	, VALUE_NEG_INFINITY = 10
-	, VALUE_INFINITY = 11
-	, VALUE_DATE = 12
+	, VALUE_NULL //= 1
+	, VALUE_TRUE //= 2
+	, VALUE_FALSE //= 3
+	, VALUE_STRING //= 4
+	, VALUE_NUMBER //= 5
+	, VALUE_OBJECT //= 6
+	, VALUE_ARRAY //= 7
+	, VALUE_NEG_NAN //= 8
+	, VALUE_NAN //= 9
+	, VALUE_NEG_INFINITY //= 10
+	, VALUE_INFINITY //= 11
+	, VALUE_DATE  // = 12
+	, VALUE_EMPTY
 };
 
 struct json_value_container {
