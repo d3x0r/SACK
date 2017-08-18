@@ -134,7 +134,7 @@ static uintptr_t CPROC ReleaseTexture( POINTER p, uintptr_t psv )
 		LIST_FORALL( image->vkSurface, idx, struct vkSurfaceImageData *, image_data )
 		{
 			//lprintf( WIDE("Release Texture %d"), image_data->glIndex );
-			glDeleteTextures( 1, &image_data->index );
+			////glDeleteTextures( 1, &image_data->index );
 			image_data->index = 0;
 		}
 	}
@@ -200,13 +200,15 @@ int ReloadOpenGlTexture( Image child_image, int option )
 			// should be checked outside.
 			if( image_data->index == 0 )
 			{
+				/*
 				glGenTextures(1, &image_data->index);			// Create One Texture
+
 				if( glGetError() || !image_data->index)
 				{
 					lprintf( WIDE( "gen text %d or bad surafce" ), glGetError() );
 					return 0;
 				}
-
+				*/
 				//lprintf( WIDE("texture is %p %p %d"), image, image_data, image_data->glIndex );
 				image_data->flags.updated = 1;
 			}
@@ -242,10 +244,12 @@ int ReloadOpenGlTexture( Image child_image, int option )
 				///////glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
 				///////glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR);
 				/**///glColor4ub( 255, 255, 255, 255 );
+				/*
 				if( err = glGetError() )
 				{
 					lprintf( WIDE( "gen text error %d" ), err );
 				}
+				*/
 				if( 0)
 				{
 					uint8_t *data;
@@ -294,7 +298,7 @@ static void CloseGLTextures( Image image )
 	LIST_FORALL( image->vkSurface, idx, struct vkSurfaceImageData *, image_data )
 	{
 		//lprintf( WIDE("Release Texture %d"), image_data->glIndex );
-		glDeleteTextures( 1, &image_data->index );
+		//glDeleteTextures( 1, &image_data->index );
 		image_data->index = 0;
 	}
    DeleteList( &image->vkSurface );

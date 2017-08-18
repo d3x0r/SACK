@@ -649,7 +649,7 @@ void CPROC cBlotScaledMultiTImgAI( SCALED_BLOT_WORK_PARAMS
 					//lprintf( WIDE( "HAVE SHADER %d" ), l.glActiveSurface->shader.inverse_shader );
 					//////glEnable(GL_FRAGMENT_PROGRAM_ARB);
 					//////glUseProgram( l.vkActiveSurface->shader.inverse_shader );
-					err = glGetError();
+					//err = glGetError();
 				}
 				else
 #endif

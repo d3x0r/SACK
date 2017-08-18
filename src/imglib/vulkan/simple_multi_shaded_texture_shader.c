@@ -274,10 +274,10 @@ void InitSimpleMultiShadedTextureShader( uintptr_t psvInst, PImageShaderTracker 
 	SetShaderReset( tracker, SimpleMultiShadedTextureReset );
 	SetShaderOpInit( tracker, SimpleMultiShadedTextureShader_OpInit );
 
-	if( result = glGetError() )
-	{
-		lprintf( WIDE("unhandled error before shader") );
-	}
+	//if( result = glGetError() )
+	//{
+//		lprintf( WIDE("unhandled error before shader") );
+	//}
 
 	if( TRUE ) //////l.glslVersion < 140 )
 	{
