@@ -371,14 +371,18 @@ set( SACK_PLUSPLUS_HEADERS ${SACK_PLUSPLUS_HEADERS}
 endif( NOT __NO_NETWORK__ )
 
 if( NOT __NO_NETWORK__ )
+SET( JSON_SOURCES 
+		${SOURCES_ROOT}src/netlib/html5.websocket/json/json_emitter.c
+		${SOURCES_ROOT}src/netlib/html5.websocket/json/json_parser.c
+		${SOURCES_ROOT}src/netlib/html5.websocket/json/json6_parser.c
+	)
+
 SET( HTML5_SOURCES 
 		${SOURCES_ROOT}src/psilib/html5.canvas/html5.canvas.c
         	${SOURCES_ROOT}src/netlib/html5.websocket/html5.websocket.common.c
         	${SOURCES_ROOT}src/netlib/html5.websocket/server/html5.websocket.c
 		${SOURCES_ROOT}src/netlib/html5.websocket/client/html5.websocket.client.c
-		${SOURCES_ROOT}src/netlib/html5.websocket/json/json_emitter.c
-		${SOURCES_ROOT}src/netlib/html5.websocket/json/json_parser.c
-		${SOURCES_ROOT}src/netlib/html5.websocket/json/json6_parser.c
+		${JSON_SOURCES}
 	)
 SET_SOURCE_FILES_PROPERTIES( ${HTML5_SOURCES} PROPERTIES 
 		FOLDER "Source Files\\HTML5 Support" )
