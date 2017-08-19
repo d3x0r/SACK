@@ -25,9 +25,10 @@ enum block_cache_entries
 {
 	BLOCK_CACHE_DIRECTORY
 	, BLOCK_CACHE_NAMES
-	, BLOCK_CACHE_FILE
 	, BLOCK_CACHE_BAT
 	, BLOCK_CACHE_DATAKEY
+	, BLOCK_CACHE_FILE
+	, BLOCK_CACHE_FILE_LAST = BLOCK_CACHE_FILE + 10
 	, BLOCK_CACHE_COUNT
 };
 
@@ -42,7 +43,10 @@ PREFIX_PACKED struct volume {
 	const char * userkey;
 	const char * devkey;
 	enum block_cache_entries curseg;
+	BLOCKINDEX _segment[BLOCK_CACHE_COUNT];// cached segment with usekey[n]
 	BLOCKINDEX segment[BLOCK_CACHE_COUNT];// associated with usekey[n]
+	uint8_t fileCacheAge[BLOCK_CACHE_FILE_LAST - BLOCK_CACHE_FILE];
+	uint8_t fileNextAge;
 	struct random_context *entropy;
 	uint8_t* key;  // allow byte encrypting...
 	uint8_t* segkey;  // allow byte encrypting... key based on sector volume file index
@@ -90,15 +94,15 @@ struct sack_vfs_file
 	LOGICAL delete_on_close;  // someone already deleted this...
 };
 
-#define TSEEK(type,v,o,c) ((type)vfs_SEEK(v,o,c))
-#define BTSEEK(type,v,o,c) ((type)vfs_BSEEK(v,o,c))
+#define TSEEK(type,v,o,c) ((type)vfs_SEEK(v,o,&c))
+#define BTSEEK(type,v,o,c) ((type)vfs_BSEEK(v,o,&c))
 
 #ifdef __GNUC__
 #define HIDDEN __attribute__ ((visibility ("hidden")))
 #else
 #define HIDDEN
 #endif
-uintptr_t vfs_SEEK( struct volume *vol, FPI offset, enum block_cache_entries cache_index ) HIDDEN;
-uintptr_t vfs_BSEEK( struct volume *vol, BLOCKINDEX block, enum block_cache_entries cache_index ) HIDDEN;
+uintptr_t vfs_SEEK( struct volume *vol, FPI offset, enum block_cache_entries *cache_index ) HIDDEN;
+uintptr_t vfs_BSEEK( struct volume *vol, BLOCKINDEX block, enum block_cache_entries *cache_index ) HIDDEN;
 //BLOCKINDEX vfs_GetNextBlock( struct volume *vol, BLOCKINDEX block, int init, LOGICAL expand );
 
