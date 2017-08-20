@@ -81,21 +81,23 @@ struct image_info {
 //#define X_UNITS 32
 //#define Y_UNITS 32
 
- int coords[][3] = { 
-	 { 1120,1248,1376 },{ 32,32,32 },{ 576,640,704 },{ 32,32,32 },
-	 { 32,32,32 },{ 1120,1248,1376 },{ 32,32,32 },{ 576,640,704 },
-	 { 608,480,352 },{ 352,480,608 },{ 320,256,192 },{ 192,256,320 },
-	 { 1824,1952,2080 },{ 352,480,608 },{ 928,992,1056 },{ 192,256,320 },
-	 { 2080,1952,1824 },{ 1824,1952,2080 },{ 1056,992,928 },{ 928,992,1056 },
-	 { 608,480,352 },{ 2080,1952,1824 },{ 320,256,192 },{ 1056,992,928 },
-	 { 2240,0,0 },{ 1504,0,0 },{ 1136,0,0 },{ 768,0,0 },
-	 { 0,0,0 },{ 1504,0,0 },{ 16,0,0 },{ 768,0,0 },
-	 { 0,0,0 },{ 544,0,0 },{ 16,0,0 },{ 288,0,0 },
-	 { 2240,0,0 },{ 544,0,0 },{ 1136,0,0 },{ 288,0,0 },
-	 { 1504,0,0 },{ 2240,0,0 },{ 768,0,0 },{ 1136,0,0 },
-	 { 544,0,0 },{ 2240,0,0 },{ 288,0,0 },{ 1136,0,0 },
-	 { 544,0,0 },{ 0,0,0 },{ 288,0,0 },{ 16,0,0 },
-	 { 1504,0,0 },{ 0,0,0 },{ 768,0,0 },{ 16,0,0 }, };
+int coords[][3] = {
+	{1120,1248,1376},{32,32,32},{560,624,688},{16,16,16},
+	{32,32,32},{1120,1248,1376},{16,16,16},{560,624,688},
+	{608,480,352},{352,480,608},{304,240,176},{176,240,304},
+	{1824,1952,2080},{352,480,608},{912,976,1040},{176,240,304},
+	{2080,1952,1824},{1824,1952,2080},{1040,976,912},{912,976,1040},
+	{608,480,352},{2080,1952,1824},{304,240,176},{1040,976,912},
+	{2240,0,0},{1504,0,0},{1120,0,0},{752,0,0},
+	{0,0,0},{1504,0,0},{0,0,0},{752,0,0},
+	{0,0,0},{544,0,0},{0,0,0},{272,0,0},
+	{2240,0,0},{544,0,0},{1120,0,0},{272,0,0},
+	{1504,0,0},{2240,0,0},{752,0,0},{1120,0,0},
+	{544,0,0},{2240,0,0},{272,0,0},{1120,0,0},
+	{544,0,0},{0,0,0},{272,0,0},{0,0,0},
+	{1504,0,0},{0,0,0},{752,0,0},{0,0,0},
+
+};
 
 
 struct image_info image_srcs[] = {
@@ -255,13 +257,18 @@ static struct local_data{
 
 static void drawImages( Image dest, int drawpart, int rem, int hr, int xofs, int yofs, int drawMask )
 {
-#define SCALE 1
-	int xStart = X_HALF_UNITS * xofs;
-	int yStart = Y_HALF_UNITS * xofs;
+	int xStart = xofs;
+	int yStart = yofs;
 	int ulX;
 	int ulY;
 	int part;
 	int seg;
+	int hrneg = 0;
+	if( hr < 0 )
+	{
+		hr = (-hr) - 1;
+		hrneg = 1;
+	}
 	for( part = (drawpart?drawpart-1:0)+(rem?5:0); part < (drawpart?drawpart:num_parts) + (rem ? 5 : 0); part++ ) {
 		for( seg = 0; seg < 40	//segment_count
 				; seg++ ) {
@@ -269,104 +276,107 @@ static void drawImages( Image dest, int drawpart, int rem, int hr, int xofs, int
 			//if( !drawpart )
 			//	if( !circle[seg].save_coords )
 			//		continue;
-			if( circle[seg].save_coords ) {
-				if( hr ) {
-					image_srcs[type].high_x[circle[seg].variant] = xStart + (ulX = (circle[seg].pos.x + image_srcs[circle[seg].type_index].ox) * X_HALF_UNITS *2/ SCALE);
-					image_srcs[type].high_y[circle[seg].variant] = yStart + (ulY = (circle[seg].pos.y + image_srcs[circle[seg].type_index].oy) * Y_HALF_UNITS*2 / SCALE);
+			ulX = (xStart + circle[seg].pos.x + image_srcs[circle[seg].type_index].ox) * X_HALF_UNITS * (hr ? 2 : 1);
+			ulY = (yStart + circle[seg].pos.y + image_srcs[circle[seg].type_index].oy) * Y_HALF_UNITS * (hr ? 2 : 1);
+			if( !hrneg ) {
+				if( hr && circle[seg].save_coords ) {
+					image_srcs[type].high_x[circle[seg].variant] = ulX;
+					image_srcs[type].high_y[circle[seg].variant] = ulY;
 				}
-				else {
-					image_srcs[type].low_x[circle[seg].variant] = xStart + (ulX = (circle[seg].pos.x + image_srcs[circle[seg].type_index].ox) * X_HALF_UNITS  / SCALE);
-					image_srcs[type].low_y[circle[seg].variant] = yStart + (ulY = (circle[seg].pos.y + image_srcs[circle[seg].type_index].oy) * Y_HALF_UNITS / SCALE);
+				else if( circle[seg].save_coords ) {
+					image_srcs[type].low_x[circle[seg].variant] = ulX;
+					image_srcs[type].low_y[circle[seg].variant] = ulY;
 				}
+
+				//circle[seg].variant * image_srcs[circle[seg].type_index].w*(hr ? 2 : 1)
+				BlotScaledImageSizedEx( dest, hr ? image_srcs[circle[seg].type_index].high[part] : image_srcs[circle[seg].type_index].low[part]
+					, ulX
+					, ulY
+					, image_srcs[circle[seg].type_index].w*(hr ? 2 : 1), image_srcs[circle[seg].type_index].h*(hr ? 2 : 1)
+					, circle[seg].variant * image_srcs[circle[seg].type_index].w*(hr ? 2 : 1), 0
+					, image_srcs[circle[seg].type_index].w*(hr ? 2 : 1), image_srcs[circle[seg].type_index].h*(hr ? 2 : 1)
+					, ALPHA_TRANSPARENT
+					, BLOT_COPY );
 			}
-
-			//circle[seg].variant * image_srcs[circle[seg].type_index].w*(hr ? 2 : 1)
-
-			BlotScaledImageSizedEx( dest, hr? image_srcs[circle[seg].type_index].high[part] :image_srcs[circle[seg].type_index].low[part]
-									, xStart+ ( ulX = (circle[seg].pos.x +image_srcs[circle[seg].type_index].ox) * X_HALF_UNITS *(hr?2:1) / SCALE )
-									, yStart+ ( ulY = (circle[seg].pos.y + image_srcs[circle[seg].type_index].oy) * Y_HALF_UNITS*(hr ? 2 : 1) / SCALE )
-									, image_srcs[circle[seg].type_index].w*(hr ? 2 : 1) /SCALE, image_srcs[circle[seg].type_index].h*(hr ? 2 : 1) / SCALE
-									, circle[seg].variant * image_srcs[circle[seg].type_index].w*(hr ? 2 : 1), 0
-									, image_srcs[circle[seg].type_index].w*(hr ? 2 : 1)
-									, image_srcs[circle[seg].type_index].h*(hr ? 2 : 1)
-									, ALPHA_TRANSPARENT
-									, BLOT_COPY );
+				
 			if( drawMask )
 				if( drawpart ? part == (drawpart - 1) : !part )
 					BlotScaledImageSizedEx( dest, hr ? image_srcs[circle[seg].type_index].highMask : image_srcs[circle[seg].type_index].lowMask
-						, xStart + (ulX = (circle[seg].pos.x + image_srcs[circle[seg].type_index].ox) * X_HALF_UNITS *(hr ? 2 : 1) / SCALE)
-						, yStart + (ulY = (circle[seg].pos.y + image_srcs[circle[seg].type_index].oy) * Y_HALF_UNITS*(hr ? 2 : 1) / SCALE)
-						, image_srcs[circle[seg].type_index].w*(hr ? 2 : 1) / SCALE, image_srcs[circle[seg].type_index].h*(hr ? 2 : 1) / SCALE
+						, ulX
+						, ulY
+						, image_srcs[circle[seg].type_index].w*(hr ? 2 : 1), image_srcs[circle[seg].type_index].h*(hr ? 2 : 1)
 						, circle[seg].variant * image_srcs[circle[seg].type_index].w*(hr ? 2 : 1), 0
 						, image_srcs[circle[seg].type_index].w*(hr ? 2 : 1)
 						, image_srcs[circle[seg].type_index].h*(hr ? 2 : 1)
 						, ALPHA_TRANSPARENT
 						, BLOT_COPY );
-#if 0
-			do_hline( dest, yStart + ((circle[seg].pos.y + image_srcs[circle[seg].type_index].oy) * Y_HALF_UNITS*(hr ? 2 : 1) / SCALE)
-				, xStart + ((circle[seg].pos.x + image_srcs[circle[seg].type_index].ox) * X_HALF_UNITS *(hr ? 2 : 1) / SCALE)
-				, xStart + ((circle[seg].pos.x + image_srcs[circle[seg].type_index].ox) * X_HALF_UNITS *(hr ? 2 : 1) / SCALE) + (image_srcs[circle[seg].type_index].w*(hr ? 2 : 1))
-				, BASE_COLOR_GREEN
-			);
-			do_hline( dest, yStart + ((circle[seg].pos.y + image_srcs[circle[seg].type_index].oy) * Y_HALF_UNITS*(hr ? 2 : 1) / SCALE) + (image_srcs[circle[seg].type_index].h*(hr ? 2 : 1)) -1
-				, xStart + ((circle[seg].pos.x + image_srcs[circle[seg].type_index].ox) * X_HALF_UNITS *(hr ? 2 : 1) / SCALE)
-				, xStart + ((circle[seg].pos.x + image_srcs[circle[seg].type_index].ox) * X_HALF_UNITS *(hr ? 2 : 1) / SCALE) + (image_srcs[circle[seg].type_index].w*(hr ? 2 : 1)) 
-				, BASE_COLOR_RED
-			);
+			if( drawMask && hrneg ) 
+				if( drawpart ? part == (drawpart - 1) : !part )
+				{
+					do_hline( dest, ulY
+						, ulX
+						, ulX + (image_srcs[circle[seg].type_index].w*(hr ? 2 : 1))
+						, BASE_COLOR_GREEN
+					);
+					do_hline( dest, ulY + (image_srcs[circle[seg].type_index].h*(hr ? 2 : 1)) - 1
+						, ulX
+						, ulX + (image_srcs[circle[seg].type_index].w*(hr ? 2 : 1))
+						, BASE_COLOR_RED
+					);
 
 
-			do_hline( dest, yStart + ((circle[seg].pos.y + image_srcs[circle[seg].type_index].oy) * Y_HALF_UNITS*(hr ? 2 : 1) / SCALE) + (image_srcs[circle[seg].type_index].h*(hr ? 2 : 1)) / 2
-				, xStart + ((circle[seg].pos.x + image_srcs[circle[seg].type_index].ox) * X_HALF_UNITS *(hr ? 2 : 1) / SCALE) + (image_srcs[circle[seg].type_index].w*(hr ? 2 : 1))/2 - 10
-				, xStart + ((circle[seg].pos.x + image_srcs[circle[seg].type_index].ox) * X_HALF_UNITS *(hr ? 2 : 1) / SCALE) + (image_srcs[circle[seg].type_index].w*(hr ? 2 : 1)) / 2 + 10
-				, BASE_COLOR_WHITE
-			);
+					do_hline( dest, ulY + (image_srcs[circle[seg].type_index].h*(hr ? 2 : 1)) / 2
+						, ulX + (image_srcs[circle[seg].type_index].w*(hr ? 2 : 1)) / 2 - 10
+						, ulX + (image_srcs[circle[seg].type_index].w*(hr ? 2 : 1)) / 2 + 10
+						, BASE_COLOR_WHITE
+					);
 
-			do_vline( dest, xStart + ((circle[seg].pos.x + image_srcs[circle[seg].type_index].ox) * X_HALF_UNITS*(hr ? 2 : 1) / SCALE)
-				, yStart + ((circle[seg].pos.y + image_srcs[circle[seg].type_index].oy) * Y_HALF_UNITS*(hr ? 2 : 1) / SCALE)
-				, yStart + ((circle[seg].pos.y + image_srcs[circle[seg].type_index].oy) * Y_HALF_UNITS*(hr ? 2 : 1) / SCALE) + (image_srcs[circle[seg].type_index].h*(hr ? 2 : 1))
-				, BASE_COLOR_GREEN
-			);
-			do_vline( dest, xStart + ((circle[seg].pos.x + image_srcs[circle[seg].type_index].ox) * X_HALF_UNITS*(hr ? 2 : 1) / SCALE) + (image_srcs[circle[seg].type_index].w*(hr ? 2 : 1)) -1
-				, yStart + ((circle[seg].pos.y + image_srcs[circle[seg].type_index].oy) * Y_HALF_UNITS*(hr ? 2 : 1) / SCALE)
-				, yStart + ((circle[seg].pos.y + image_srcs[circle[seg].type_index].oy) * Y_HALF_UNITS*(hr ? 2 : 1) / SCALE) + (image_srcs[circle[seg].type_index].h*(hr ? 2 : 1))
-				, BASE_COLOR_RED
-			);
+					do_vline( dest, ulX
+						, ulY
+						, ulY + (image_srcs[circle[seg].type_index].h*(hr ? 2 : 1))
+						, BASE_COLOR_GREEN
+					);
+					do_vline( dest, ulX + (image_srcs[circle[seg].type_index].w*(hr ? 2 : 1)) - 1
+						, ulY
+						, ulY + (image_srcs[circle[seg].type_index].h*(hr ? 2 : 1))
+						, BASE_COLOR_RED
+					);
 
-			do_vline( dest, xStart + ((circle[seg].pos.x + image_srcs[circle[seg].type_index].ox) * X_HALF_UNITS*(hr ? 2 : 1) / SCALE) + (image_srcs[circle[seg].type_index].w*(hr ? 2 : 1)) / 2
-				, yStart+((circle[seg].pos.y + image_srcs[circle[seg].type_index].oy) * Y_HALF_UNITS*(hr ? 2 : 1) / SCALE) + (image_srcs[circle[seg].type_index].h*(hr ? 2 : 1))/2 - 10
-				, yStart + ((circle[seg].pos.y + image_srcs[circle[seg].type_index].oy) * Y_HALF_UNITS*(hr ? 2 : 1) / SCALE) + (image_srcs[circle[seg].type_index].h*(hr ? 2 : 1)) / 2 + 10
-				, BASE_COLOR_WHITE
-			);
+					do_vline( dest, ulX + (image_srcs[circle[seg].type_index].w*(hr ? 2 : 1)) / 2
+						, ulY + (image_srcs[circle[seg].type_index].h*(hr ? 2 : 1)) / 2 - 10
+						, ulY + (image_srcs[circle[seg].type_index].h*(hr ? 2 : 1)) / 2 + 10
+						, BASE_COLOR_WHITE
+					);
 
-			if( circle[seg].type & DIA ) {
-				switch( circle[seg].type & (LFT | RGT | TOP | BOT) ) {
-				case LFT|TOP:
-					do_line( dest, xStart + (ulX + X_HALF_UNITS * 4), yStart + (ulY + Y_HALF_UNITS * 0), xStart + (ulX + X_HALF_UNITS * 5), yStart + (ulY + Y_HALF_UNITS * 1), BASE_COLOR_CYAN );
-					do_line( dest, xStart + (ulX + X_HALF_UNITS * 5), yStart + (ulY + Y_HALF_UNITS * 1), xStart + (ulX + X_HALF_UNITS * 6), yStart + (ulY + Y_HALF_UNITS * 1), BASE_COLOR_CYAN );
-					do_line( dest, xStart + (ulX + X_HALF_UNITS * 0), yStart + (ulY + Y_HALF_UNITS * 4), xStart + (ulX + X_HALF_UNITS * 1), yStart + (ulY + Y_HALF_UNITS * 5), BASE_COLOR_MAGENTA );
-					do_line( dest, xStart + (ulX + X_HALF_UNITS * 1), yStart + (ulY + Y_HALF_UNITS * 5), xStart + (ulX + X_HALF_UNITS * 1), yStart + (ulY + Y_HALF_UNITS * 6), BASE_COLOR_MAGENTA );
-					break;
-				case RGT | TOP:
-					do_line( dest, xStart + ( ulX + X_HALF_UNITS * 2 ), yStart + ( ulY + Y_HALF_UNITS*0 ), xStart + ( ulX + X_HALF_UNITS*1 ), yStart + ( ulY + Y_HALF_UNITS*1), BASE_COLOR_CYAN );
-					do_line( dest, xStart + (ulX + X_HALF_UNITS * 1), yStart + (ulY + Y_HALF_UNITS*1), xStart + (ulX + X_HALF_UNITS*0), yStart + (ulY + Y_HALF_UNITS * 1), BASE_COLOR_CYAN );
-					do_line( dest, xStart + (ulX + X_HALF_UNITS * 5), yStart + (ulY + Y_HALF_UNITS*6), xStart + (ulX + X_HALF_UNITS*5), yStart + (ulY + Y_HALF_UNITS * 5), BASE_COLOR_MAGENTA );
-					do_line( dest, xStart + (ulX + X_HALF_UNITS * 5), yStart + (ulY + Y_HALF_UNITS * 5), xStart + (ulX + X_HALF_UNITS * 6), yStart + (ulY + Y_HALF_UNITS * 4), BASE_COLOR_MAGENTA );
-					break;
-				case LFT | BOT:
-					do_line( dest, xStart + (ulX + X_HALF_UNITS * 0), yStart + (ulY + Y_HALF_UNITS*2), xStart + (ulX + X_HALF_UNITS*1), yStart + (ulY + Y_HALF_UNITS * 1), BASE_COLOR_CYAN );
-					do_line( dest, xStart + (ulX + X_HALF_UNITS * 1), yStart + (ulY + Y_HALF_UNITS * 1), xStart + (ulX + X_HALF_UNITS * 1), yStart + (ulY + Y_HALF_UNITS * 0), BASE_COLOR_CYAN );
-					do_line( dest, xStart + (ulX + X_HALF_UNITS * 6), yStart + (ulY + Y_HALF_UNITS * 5), xStart + (ulX + X_HALF_UNITS * 5), yStart + (ulY + Y_HALF_UNITS * 5), BASE_COLOR_MAGENTA );
-					do_line( dest, xStart + (ulX + X_HALF_UNITS * 5), yStart + (ulY + Y_HALF_UNITS * 5), xStart + (ulX + X_HALF_UNITS * 4), yStart + (ulY + Y_HALF_UNITS * 6), BASE_COLOR_MAGENTA );
-					break;
-				case RGT | BOT:
-					do_line( dest, xStart + (ulX + X_HALF_UNITS * 0), yStart + (ulY + Y_HALF_UNITS * 5), xStart + (ulX + X_HALF_UNITS * 1), yStart + (ulY + Y_HALF_UNITS * 5), BASE_COLOR_CYAN );
-					do_line( dest, xStart + (ulX + X_HALF_UNITS * 1), yStart + (ulY + Y_HALF_UNITS * 5), xStart + (ulX + X_HALF_UNITS * 2), yStart + (ulY + Y_HALF_UNITS * 6), BASE_COLOR_CYAN );
-					do_line( dest, xStart + (ulX + X_HALF_UNITS * 5), yStart + (ulY + Y_HALF_UNITS * 0), xStart + (ulX + X_HALF_UNITS * 5), yStart + (ulY + Y_HALF_UNITS * 1), BASE_COLOR_MAGENTA );
-					do_line( dest, xStart + (ulX + X_HALF_UNITS * 5), yStart + (ulY + Y_HALF_UNITS * 1), xStart + (ulX + X_HALF_UNITS * 6), yStart + (ulY + Y_HALF_UNITS * 2), BASE_COLOR_MAGENTA );
-					break;
+					if( circle[seg].type & DIA ) {
+						switch( circle[seg].type & (LFT | RGT | TOP | BOT) ) {
+						case LFT | TOP:
+							do_line( dest, (ulX + X_HALF_UNITS * 4 * (hr ? 2 : 1)), (ulY + Y_HALF_UNITS * 0 * (hr ? 2 : 1)), (ulX + X_HALF_UNITS * 5 * (hr ? 2 : 1)), yStart + (ulY + Y_HALF_UNITS * 1 * (hr ? 2 : 1)), BASE_COLOR_CYAN );
+							do_line( dest, (ulX + X_HALF_UNITS * 5 * (hr ? 2 : 1)), (ulY + Y_HALF_UNITS * 1 * (hr ? 2 : 1)), (ulX + X_HALF_UNITS * 6 * (hr ? 2 : 1)), yStart + (ulY + Y_HALF_UNITS * 1 * (hr ? 2 : 1)), BASE_COLOR_CYAN );
+							do_line( dest, (ulX + X_HALF_UNITS * 0 * (hr ? 2 : 1)), (ulY + Y_HALF_UNITS * 4 * (hr ? 2 : 1)), (ulX + X_HALF_UNITS * 1 * (hr ? 2 : 1)), yStart + (ulY + Y_HALF_UNITS * 5 * (hr ? 2 : 1)), BASE_COLOR_MAGENTA );
+							do_line( dest, (ulX + X_HALF_UNITS * 1 * (hr ? 2 : 1)), (ulY + Y_HALF_UNITS * 5 * (hr ? 2 : 1)), (ulX + X_HALF_UNITS * 1 * (hr ? 2 : 1)), yStart + (ulY + Y_HALF_UNITS * 6 * (hr ? 2 : 1)), BASE_COLOR_MAGENTA );
+							break;
+						case RGT | TOP:
+							do_line( dest, (ulX + X_HALF_UNITS * 2 * (hr ? 2 : 1)), (ulY + Y_HALF_UNITS * 0 * (hr ? 2 : 1)), (ulX + X_HALF_UNITS * 1 * (hr ? 2 : 1)), yStart + (ulY + Y_HALF_UNITS * 1 * (hr ? 2 : 1)), BASE_COLOR_CYAN );
+							do_line( dest, (ulX + X_HALF_UNITS * 1 * (hr ? 2 : 1)), (ulY + Y_HALF_UNITS * 1 * (hr ? 2 : 1)), (ulX + X_HALF_UNITS * 0 * (hr ? 2 : 1)), yStart + (ulY + Y_HALF_UNITS * 1 * (hr ? 2 : 1)), BASE_COLOR_CYAN );
+							do_line( dest, (ulX + X_HALF_UNITS * 5 * (hr ? 2 : 1)), (ulY + Y_HALF_UNITS * 6 * (hr ? 2 : 1)), (ulX + X_HALF_UNITS * 5 * (hr ? 2 : 1)), yStart + (ulY + Y_HALF_UNITS * 5 * (hr ? 2 : 1)), BASE_COLOR_MAGENTA );
+							do_line( dest, (ulX + X_HALF_UNITS * 5 * (hr ? 2 : 1)), (ulY + Y_HALF_UNITS * 5 * (hr ? 2 : 1)), (ulX + X_HALF_UNITS * 6 * (hr ? 2 : 1)), yStart + (ulY + Y_HALF_UNITS * 4 * (hr ? 2 : 1)), BASE_COLOR_MAGENTA );
+							break;
+						case LFT | BOT:
+							do_line( dest, (ulX + X_HALF_UNITS * 0 * (hr ? 2 : 1)), (ulY + Y_HALF_UNITS * 2 * (hr ? 2 : 1)), (ulX + X_HALF_UNITS * 1 * (hr ? 2 : 1)), yStart + (ulY + Y_HALF_UNITS * 1 * (hr ? 2 : 1)), BASE_COLOR_CYAN );
+							do_line( dest, (ulX + X_HALF_UNITS * 1 * (hr ? 2 : 1)), (ulY + Y_HALF_UNITS * 1 * (hr ? 2 : 1)), (ulX + X_HALF_UNITS * 1 * (hr ? 2 : 1)), yStart + (ulY + Y_HALF_UNITS * 0 * (hr ? 2 : 1)), BASE_COLOR_CYAN );
+							do_line( dest, (ulX + X_HALF_UNITS * 6 * (hr ? 2 : 1)), (ulY + Y_HALF_UNITS * 5 * (hr ? 2 : 1)), (ulX + X_HALF_UNITS * 5 * (hr ? 2 : 1)), yStart + (ulY + Y_HALF_UNITS * 5 * (hr ? 2 : 1)), BASE_COLOR_MAGENTA );
+							do_line( dest, (ulX + X_HALF_UNITS * 5 * (hr ? 2 : 1)), (ulY + Y_HALF_UNITS * 5 * (hr ? 2 : 1)), (ulX + X_HALF_UNITS * 4 * (hr ? 2 : 1)), yStart + (ulY + Y_HALF_UNITS * 6 * (hr ? 2 : 1)), BASE_COLOR_MAGENTA );
+							break;
+						case RGT | BOT:
+							do_line( dest, (ulX + X_HALF_UNITS * 0 * (hr ? 2 : 1)), (ulY + Y_HALF_UNITS * 5 * (hr ? 2 : 1)), (ulX + X_HALF_UNITS * 1 * (hr ? 2 : 1)), yStart + (ulY + Y_HALF_UNITS * 5 * (hr ? 2 : 1)), BASE_COLOR_CYAN );
+							do_line( dest, (ulX + X_HALF_UNITS * 1 * (hr ? 2 : 1)), (ulY + Y_HALF_UNITS * 5 * (hr ? 2 : 1)), (ulX + X_HALF_UNITS * 2 * (hr ? 2 : 1)), yStart + (ulY + Y_HALF_UNITS * 6 * (hr ? 2 : 1)), BASE_COLOR_CYAN );
+							do_line( dest, (ulX + X_HALF_UNITS * 5 * (hr ? 2 : 1)), (ulY + Y_HALF_UNITS * 0 * (hr ? 2 : 1)), (ulX + X_HALF_UNITS * 5 * (hr ? 2 : 1)), yStart + (ulY + Y_HALF_UNITS * 1 * (hr ? 2 : 1)), BASE_COLOR_MAGENTA );
+							do_line( dest, (ulX + X_HALF_UNITS * 5 * (hr ? 2 : 1)), (ulY + Y_HALF_UNITS * 1 * (hr ? 2 : 1)), (ulX + X_HALF_UNITS * 6 * (hr ? 2 : 1)), yStart + (ulY + Y_HALF_UNITS * 2 * (hr ? 2 : 1)), BASE_COLOR_MAGENTA );
+							break;
+						}
+					}
 				}
-			}
-#endif
 		}
 	}
 }
@@ -1619,13 +1629,37 @@ static void loadImages( void ){
 		char outname[256];
 		for( r = 0; r < 2; r++ )
 			for( p = 0; p <= 5; p++ ) {
-				ClearImage( l.half_temp );
-				drawImages( l.half_temp, p, r, 0, 2, 2,  p?0:1 );
-				ClearImage( l.full_temp );
-				drawImages( l.full_temp, p, r, 1, 2, 2,  p?0:1 );
+				ClearImageTo( l.half_temp, SetAlpha( BASE_COLOR_WHITE, 0 ) );
+				ClearImageTo( l.full_temp, SetAlpha( BASE_COLOR_WHITE, 0 ) );
 				{
 					uint8_t *buf;
 					size_t size;
+					if( p == 0 ) {
+						drawImages( l.half_temp, p, r, -1, 1, 1, p ? 0 : 1 );
+						drawImages( l.full_temp, p, r, -2, 1, 1, p ? 0 : 1 );
+						PngImageFile( l.half_temp, &buf, &size );
+						{
+							FILE *out;
+							snprintf( outname, 256, "%s/layer-%s%s.png", l.output_path, p ? parts[p - 1] : "mask", r ? "-remnant" : "" );
+							out = sack_fopen( 0, outname, "wb" );
+							sack_fwrite( buf, size, 1, out );
+							sack_fclose( out );
+						}
+						Release( buf );
+						PngImageFile( l.full_temp, &buf, &size );
+						{
+							FILE *out;
+							snprintf( outname, 256, "%s/hr-layer-%s%s.png", l.output_path, p ? parts[p - 1] : "mask", r ? "-remnant" : "" );
+							out = sack_fopen( 0, outname, "wb" );
+							sack_fwrite( buf, size, 1, out );
+							sack_fclose( out );
+						}
+						Release( buf );
+						ClearImageTo( l.half_temp, SetAlpha( BASE_COLOR_WHITE, 0) );
+						ClearImageTo( l.full_temp, SetAlpha( BASE_COLOR_WHITE, 0 ) );
+					}
+					drawImages( l.half_temp, p, r, 0, 1, 1, p ? 0 : 1 *0 );
+					drawImages( l.full_temp, p, r, 1, 1, 1, p ? 0 : 1 * 0 );
 					PngImageFile( l.half_temp, &buf, &size );
 					{
 						FILE *out;
