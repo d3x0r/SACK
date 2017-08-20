@@ -178,6 +178,7 @@ struct json_parse_state {
 struct json_parser_shared_data {
 	PPARSE_CONTEXTSET parseContexts;
 	PPARSE_CONTEXTSET parseBuffers;
+	struct json_parse_state *last_parse_state;
 };
 #ifndef JSON_PARSER_MAIN_SOURCE
 extern

@@ -369,6 +369,7 @@ int json_parse_add_data( struct json_parse_state *state
 			{
 				state->gatheringString = FALSE;
 				state->n = input->pos - input->buf;
+				//state->val.stringLen = output->pos - state->val.string;
 				if( state->status ) state->val.value_type = VALUE_STRING;
 			}
 			else {
@@ -426,6 +427,7 @@ int json_parse_add_data( struct json_parse_state *state
 						lprintf( "two names single value?" );
 					}
 					state->val.name = state->val.string;
+					//state->val.nameLen = state->val.stringLen;
 					state->val.string = NULL;
 
 					state->val.value_type = VALUE_UNSET;
@@ -540,6 +542,7 @@ int json_parse_add_data( struct json_parse_state *state
 					state->n = input->pos - input->buf;
 
 					if( state->status ) {
+						//state->val.stringLen = output->pos - state->val.string;
 						state->val.value_type = VALUE_STRING;
 						if( state->complete_at_end ) {
 							if( state->parse_context == CONTEXT_UNKNOWN ) {

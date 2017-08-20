@@ -459,6 +459,10 @@ int json6_parse_add_data( struct json_parse_state *state
 						vtprintf( state->pvtError, WIDE( "unquoted keyword used as object field name:parsing fault; unexpected %c at %" ) _size_f WIDE( "  %" ) _size_f WIDE( ":%" ) _size_f, c, state->n, state->line, state->col );
 						break;
 					}
+					else if( state->word == WORD_POS_FIELD ) {
+						//state->val.stringLen = output->pos - state->val.string;
+						//lprintf( "Set string length:%d", state->val.stringLen );
+					}
 					(*output->pos++) = 0;
 					state->word = WORD_POS_RESET;
 					if( state->val.name ) {
@@ -466,6 +470,8 @@ int json6_parse_add_data( struct json_parse_state *state
 						vtprintf( state->pvtError, "two names single value?" );
 					}
 					state->val.name = state->val.string;
+					//lprintf( "Set name length:%d", state->val.stringLen );
+					//state->val.nameLen = state->val.stringLen;
 					state->val.string = NULL;
 					state->parse_context = CONTEXT_OBJECT_FIELD_VALUE;
 					state->val.value_type = VALUE_UNSET;
@@ -649,7 +655,11 @@ int json6_parse_add_data( struct json_parse_state *state
 						else if( string_status > 0 )
 							state->gatheringString = FALSE;
 						state->n = input->pos - input->buf;
-						if( state->status ) state->val.value_type = VALUE_STRING;
+						if( state->status ) {
+							state->val.value_type = VALUE_STRING;
+							//state->val.stringLen = (output->pos - state->val.string - 1);
+							//lprintf( "Set string length:%d", state->val.stringLen );
+						}
 						break;
 					case '\n':
 						state->line++;
@@ -663,6 +673,8 @@ int json6_parse_add_data( struct json_parse_state *state
 							break;
 						else if( state->word == WORD_POS_FIELD ) {
 							state->word = WORD_POS_AFTER_FIELD;
+							//state->val.stringLen = output->pos - state->val.string;
+							//lprintf( "Set string length:%d", state->val.stringLen );
 							break;
 						}
 						state->status = FALSE;
@@ -673,7 +685,12 @@ int json6_parse_add_data( struct json_parse_state *state
 						//lprintf( "whitespace skip..." );
 						break;
 					default:
-						if( state->word == WORD_POS_RESET ) {
+						if( state->word == WORD_POS_AFTER_FIELD ) {
+							state->status = FALSE;
+							if( !state->pvtError ) state->pvtError = VarTextCreate();
+							vtprintf( state->pvtError, WIDE( "fault while parsing; unquoted space in field name at %" ) _size_f WIDE( "  %" ) _size_f WIDE( ":%" ) _size_f, state->n, state->line, state->col );	// fault
+							break;
+						} else if( state->word == WORD_POS_RESET ) {
 							state->word = WORD_POS_FIELD;
 							state->val.string = output->pos;
 						}
@@ -1169,6 +1186,10 @@ void json_parse_clear_state( struct json_parse_state *state ) {
 }
 
 PTEXT json_parse_get_error( struct json_parse_state *state ) {
+	if( !state )
+		state = jpsd.last_parse_state;
+	if( !state )
+		return NULL;
 	if( state->pvtError ) {
 		PTEXT error = VarTextGet( state->pvtError );
 		return error;
@@ -1206,7 +1227,7 @@ void json_parse_dispose_state( struct json_parse_state **ppState ) {
 	DeleteFromSet( PARSE_CONTEXT, jpsd.parseContexts, state->context );
 
 	while( (old_context = (struct json_parse_context *)PopLink( &state->context_stack )) ) {
-		lprintf( "warning unclosed contexts...." );
+		//lprintf( "warning unclosed contexts...." );
 		DeleteFromSet( PARSE_CONTEXT, jpsd.parseContexts, old_context );
 	}
 	if( state->context_stack )
@@ -1230,11 +1251,12 @@ LOGICAL json6_parse_message( const char * msg
 		return TRUE;
 	}
 	(*_msg_output) = NULL;
-	json_parse_dispose_state( &state );
+	jpsd.last_parse_state = state;
+	_state = state;
 	return FALSE;
 }
 
-
+#if 0
 LOGICAL _json6_parse_message( char * msg
                                  , size_t msglen
                                  , PDATALIST *_msg_output )
@@ -1355,7 +1377,9 @@ LOGICAL _json6_parse_message( char * msg
 					lprintf( "two names single value?" );
 				}
 				val.name = val.string;
+				val.nameLen = val.stringLen;
 				val.string = NULL;
+				//val.stringLen = 0;
 				parse_context = CONTEXT_OBJECT_FIELD_VALUE;
 				val.value_type = VALUE_UNSET;
 			}
@@ -1499,7 +1523,10 @@ LOGICAL _json6_parse_message( char * msg
 				case '\'':
 					val.string = mOut;
 					status = gatherString6( msg, &msg_input, msglen, &mOut, &line, &col, c ) >= 0;
-					if( status ) val.value_type = VALUE_STRING;
+					if( status ) {
+						val.value_type = VALUE_STRING;
+						//val.stringLen = (mOut - val.string - 1);
+					}
 					break;
 				case '\n':
 					line++;
@@ -1538,7 +1565,10 @@ LOGICAL _json6_parse_message( char * msg
 			case '\'':
 				val.string = mOut;
 				status = gatherString6( msg, &msg_input, msglen, &mOut, &line, &col, c ) >= 0;
-				if( status ) val.value_type = VALUE_STRING;
+				if( status ) {
+					val.value_type = VALUE_STRING;
+					//val.stringLen = (mOut - val.string - 1);
+				}
 				break;
 			case ' ':
 			case '\t':
@@ -1788,6 +1818,7 @@ console.log(today.toISOString());
 	}
 	return status;
 }
+#endif
 
 void json6_dispose_decoded_message( struct json6_context_object *format
                                  , POINTER msg_data )
