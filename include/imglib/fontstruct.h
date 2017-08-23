@@ -22,7 +22,7 @@ typedef struct font_char_tag
 	uint16_t junk;   // I lost this junk padding?!
 	int16_t ascent; // ascent can be negative also..
 	int16_t descent;
-
+	uint32_t render_flags;  // low 2 bits indicate render flags... overrides render flags
 	/* *** this bit of structure is for dyanmic rendering on surfaces *** */
 	// data is byte aligned - count of bytes is (size/8) for next line...
 	struct ImageFile_tag *cell;
