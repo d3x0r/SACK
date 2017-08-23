@@ -2275,13 +2275,13 @@ struct file_system_mounted_interface *sack_mount_filesystem( const char *name, s
 
 int sack_vfprintf( FILE *file_handle, const char *format, va_list args )
 {
-	PVARTEXT pvt = VarTextCreate();
-	PTEXT output;
 	struct file *file;
 	file = FindFileByFILE( file_handle );
 
 	if( file->mount && file->mount->fsi )
 	{
+		PVARTEXT pvt;
+		PTEXT output;
 		int r;
 #ifdef UNICODE
 		TEXTCHAR *_format = DupCStr( format );
@@ -2289,13 +2289,13 @@ int sack_vfprintf( FILE *file_handle, const char *format, va_list args )
 #endif
 		pvt = VarTextCreate();
 		vvtprintf( pvt, format, args );
-		output = VarTextGet( pvt );
+		output = VarTextPeek( pvt );
 #ifdef UNICODE
 		Deallocate( TEXTCHAR*, _format );
 #  undef format
 #endif
 		r = (int)file->mount->fsi->_write( file_handle, (char*)GetText( output ), GetTextSize( output ) * sizeof( TEXTCHAR ) );
-		LineRelease( output );
+		VarTextDestroy( &pvt );
 		return r;
 	}	
 	else
