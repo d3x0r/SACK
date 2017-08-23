@@ -120,12 +120,12 @@ static int OnDrawCommon( EDIT_FIELD_NAME )( PSI_CONTROL pc )
 			}
 			if( ( stringsize[ pe->cursor_pos ] 
 			     - start_pos ) 
-					 >= ( ( pc->surface_rect.width * 4 ) / 5 )  )
+					 >= (int)( ( pc->surface_rect.width * 4 ) / 5 )  )
 			{
 				//lprintf( WIDE( "cursor is off the right..." ) );
-				for( n = pe->cursor_pos; n; n-- )
+				for( n = (int)pe->cursor_pos; n; n-- )
 				{
-					if( ( stringsize[pe->cursor_pos] - stringsize[n] ) > ((pc->surface_rect.width *4)/ 5) )
+					if( ( stringsize[pe->cursor_pos] - stringsize[n] ) > (int)((pc->surface_rect.width *4)/ 5) )
 					{
 						//lprintf( WIDE( "New start : %d" ), pe->Start );
 						pe->Start = n+1;
@@ -140,9 +140,9 @@ static int OnDrawCommon( EDIT_FIELD_NAME )( PSI_CONTROL pc )
 		}
 		start_pos = (pe->Start?stringsize[pe->Start-1]:0);
 		pe->MaxShowLen = GetDisplayableCharacterCount( caption_text, -1 );
-		for( n = pe->Start; n <= pe->nCaptionUsed; n++ )
+		for( n = (int)pe->Start; n <= (int)pe->nCaptionUsed; n++ )
 		{
-			if( ( stringsize[n] - start_pos ) > pc->surface_rect.width )
+			if( ( stringsize[n] - start_pos ) > (int)pc->surface_rect.width )
 			{
 				pe->MaxShowLen = ( n - 1 ) - pe->Start;
 				break;
@@ -334,7 +334,7 @@ static int OnMouseCommon( EDIT_FIELD_NAME )( PSI_CONTROL pc, int32_t x, int32_t 
 	// cx is 0 at beginning.
 	if( !found )
 	{
-		cx = len - pe->Start;
+		cx = (int)len - (int)pe->Start;
 		// cx max...
 		//lprintf( WIDE("Past end of string...") );
 	}
@@ -432,6 +432,9 @@ void CutEditText( PEDIT pe, PTEXT *caption )
 			}
 			pe->nCaptionDisplayableChars = GetDisplayableCharacterCount( GetText( *caption ), -1 );
 			pe->cursor_pos = pe->select_start;
+			if( pe->cursor_pos < pe->Start ) {
+				pe->Start = pe->cursor_pos;
+			}
 		}
 	}
 	pe->flags.bSelectSet = 0;
@@ -470,9 +473,11 @@ static void InsertAChar( PEDIT pe, PTEXT *caption, TEXTCHAR ch )
 void TypeIntoEditControl( PSI_CONTROL pc, CTEXTSTR text )
 {
 	ValidatedControlData( PEDIT, EDIT_FIELD, pe, pc );
-	if( pc )
+	if( pc && pe )
 	{
-		int start_pos = pe->cursor_pos_byte;
+		int start_pos = (int)pe->cursor_pos_byte;
+		if( pe->flags.bSelectSet )
+			CutEditText( pe, &pc->caption.text );
 		pe->cursor_pos_byte = GetDisplayableCharacterBytes( GetText( pc->caption.text ), pe->cursor_pos );
 		while( text[0] )
 		{
@@ -481,6 +486,8 @@ void TypeIntoEditControl( PSI_CONTROL pc, CTEXTSTR text )
 		}
 		pe->cursor_pos += GetDisplayableCharacterCount( GetText( pc->caption.text ) + start_pos
 			, pe->cursor_pos_byte - start_pos );
+		if( pc->CaptionChanged )
+			pc->CaptionChanged( pc );
 	}
 	SmudgeCommon( pc );
 }
@@ -839,6 +846,8 @@ static int OnKeyCommon( EDIT_FIELD_NAME )( PSI_CONTROL pc, uint32_t key )
 				CutEditText( pe, &pc->caption.text );
 				updated = 1;
 			}
+			if( pc->CaptionChanged )
+				pc->CaptionChanged( pc );
 			if( updated )
 				SmudgeCommon( pc );
 			used_key = 1;
@@ -862,6 +871,8 @@ static int OnKeyCommon( EDIT_FIELD_NAME )( PSI_CONTROL pc, uint32_t key )
 					updated = 1;
 				}
 			}
+			if( pc->CaptionChanged )
+				pc->CaptionChanged( pc );
 			if( updated )
 				SmudgeCommon( pc );
 			used_key = 1;
@@ -882,8 +893,6 @@ static int OnKeyCommon( EDIT_FIELD_NAME )( PSI_CONTROL pc, uint32_t key )
 			{
 				if( (unsigned char)ch[0] == 0xFF )
 					ch = 0;
-				if( pe->flags.bSelectSet )
-					CutEditText( pe, &pc->caption.text );
 				pe->cursor_pos_byte = GetDisplayableCharacterBytes( GetText( pc->caption.text ), pe->cursor_pos );
 				TypeIntoEditControl( pc, ch );
 				pe->cursor_pos = GetDisplayableCharacterCount( GetText( pc->caption.text ), pe->cursor_pos_byte );
@@ -950,6 +959,18 @@ static void OnChangeCaption( EDIT_FIELD_NAME )( PSI_CONTROL pc )
 	pe->select_end = pe->nCaptionDisplayableChars-1;
 	
 	SmudgeCommon(pc);
+}
+
+void SetEditControlSelection( PSI_CONTROL pc, int start, int end ) {
+	ValidatedControlData( PEDIT, EDIT_FIELD, pe, pc );
+	if( pe ) {
+		pe->select_start = start;
+		if( end < 0 )
+			pe->select_end = pe->nCaptionDisplayableChars - 1;
+		else
+			pe->select_end = end;
+		pe->flags.bSelectSet = 1;
+	}
 }
 
 //---------------------------------------------------------------------------

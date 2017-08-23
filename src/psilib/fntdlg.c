@@ -18,6 +18,8 @@ PSI_FONTS_NAMESPACE
 #define DIALOG_WIDTH 420+50
 #define DIALOG_HEIGHT 300+200
 
+#define MAX_FONT_HEIGHT 250
+
 enum {
 	LST_FONT_NAMES = 100
 	  , LST_FONT_STYLES
@@ -44,6 +46,8 @@ typedef struct font_dialog_tag
 	} flags;
 	PSI_CONTROL pFrame;
 	PSI_CONTROL pSample, pHorSlider, pVerSlider;
+	PSI_CONTROL pVerValue, pVerLabel;
+	PSI_CONTROL pHorValue, pHorLabel;
 	SFTFont pFont;   // temp font for drawing sample
 	int done, okay;
 	PFONT_ENTRY pFontEntry;
@@ -207,13 +211,30 @@ void CPROC UpdateCharRect( uintptr_t psv, PSI_CONTROL pc, int val )
 	PFONT_DIALOG pfd = (PFONT_DIALOG)psv;
 	if( GetControlID( pc ) == SLD_WIDTH )
 	{
-		pfd->nSliderWidth = val;
+		if( pfd->nSliderWidth != val ) {
+			pfd->nSliderWidth = val;
+			{
+				char buf[12];
+				snprintf( buf, 12, "%d", val );
+				SetEditControlSelection( pfd->pHorValue, 0, -1 );
+				TypeIntoEditControl( pfd->pHorValue, buf );
+			}
+
+		}
 		if( pfd->flags.showing_scalable )
 			pfd->nWidth = pfd->nSliderWidth;
 	}
 	else if( GetControlID( pc ) == SLD_HEIGHT )
 	{
-		pfd->nSliderHeight = -val;
+		if( pfd->nSliderHeight != -val ) {
+			pfd->nSliderHeight = -val;
+			{
+				char buf[12];
+				snprintf( buf, 12, "%d", -val );
+				SetEditControlSelection( pfd->pVerValue, 0, -1 );
+				TypeIntoEditControl( pfd->pVerValue, buf );
+			}
+		}
 		if( pfd->flags.showing_scalable )
 			pfd->nHeight = pfd->nSliderHeight;
 	}
@@ -296,7 +317,7 @@ static void CPROC StyleSelected( uintptr_t psv, PSI_CONTROL pc, PLISTITEM pli )
 {
 	PFONT_DIALOG pfd = (PFONT_DIALOG)psv;
 	PSI_CONTROL pcSizes;
-	int npfs = GetItemData( pli );
+	int npfs = (int)GetItemData( pli );
 	PFONT_STYLE pfs = pfd->pFontEntry->styles + npfs;
 	ResetList( pcSizes = GetNearControl( pc, LST_FONT_SIZES ) );
 	pfd->pFontStyle = pfs;
@@ -560,6 +581,63 @@ PRIORITY_PRELOAD( RegisterFont, PSI_PRELOAD_PRIORITY )
 }
 
 
+void CPROC heightChanged( PSI_CONTROL pc ) {
+	static int fixing;
+	FONT_DIALOG  *pfdData = (FONT_DIALOG*)GetFrameUserData( GetParentControl( pc ) );
+	char buf[12];
+	int n;
+	if( fixing ) return;
+	GetControlText( pc, buf, 12 );
+	n = (int)IntCreateFromText( buf );
+	if( pfdData->nSliderHeight == n )
+		return;
+	if( n > MAX_FONT_HEIGHT ) {
+		n = MAX_FONT_HEIGHT;
+		snprintf( buf, 12, "%d", n );
+		SetEditControlSelection( pc, 0, -1 );
+		fixing = 1;
+		TypeIntoEditControl( pc, buf );
+		fixing = 0;
+	}
+	if( n )
+	{
+		//pfdData->nHeight = n;
+		pfdData->nSliderHeight = n;
+		SetSliderValues( pfdData->pVerSlider, -MAX_FONT_HEIGHT, -n, 0 );
+		if( pfdData->flags.showing_scalable )
+			UpdateSampleFont( pfdData );
+		SmudgeCommon( GetNearControl( pc, CST_CHAR_SIZE ) );
+	}
+}
+void CPROC widthChanged( PSI_CONTROL pc ) {
+	static int fixing;
+	FONT_DIALOG  *pfdData = (FONT_DIALOG*)GetFrameUserData( GetParentControl( pc ) );
+	char buf[12];
+	int n;
+	if( fixing ) return;
+	GetControlText( pc, buf, 12 );
+	n = (int)IntCreateFromText( buf );
+	if( pfdData->nSliderWidth == n )
+		return;
+	if( n > MAX_FONT_HEIGHT ) {
+		n = MAX_FONT_HEIGHT;
+		snprintf( buf, 12, "%d", n );
+		SetEditControlSelection( pc, 0, -1 );
+		fixing = 1;
+		TypeIntoEditControl( pc, buf );
+		fixing = 0;
+	}
+	if( n )
+	{
+		pfdData->nSliderWidth = n;
+		SetSliderValues( pfdData->pHorSlider, 0, n, MAX_FONT_HEIGHT );
+			//pfdData->nWidth = n;
+		if( pfdData->flags.showing_scalable )
+			UpdateSampleFont( pfdData );
+		SmudgeCommon( GetNearControl( pc, CST_CHAR_SIZE ) );
+	}
+}
+
 //-------------------------------------------------------------------------
 
 PSI_FONTS_NAMESPACE_END
@@ -758,7 +836,6 @@ SFTFont PickScaledFontWithUpdate( int32_t x, int32_t y
 											, SLD_WIDTH
 											 , SLIDER_HORIZ
 											, UpdateCharRect, (uintptr_t)&fdData  );
-	SetSliderValues( fdData.pHorSlider, 1, fdData.nSliderWidth, 220 );
 	fdData.pVerSlider = MakeSlider( fdData.pFrame
 											, 300,  135
 											, 20, 80
@@ -766,7 +843,19 @@ SFTFont PickScaledFontWithUpdate( int32_t x, int32_t y
 											 , SLIDER_VERT
 											, UpdateCharRect, (uintptr_t)&fdData );
 	// this makes the slider behave in a natural way
-	SetSliderValues( fdData.pVerSlider, -220, -fdData.nSliderHeight, -1 );
+
+	fdData.pHorLabel = MakeTextControl( fdData.pFrame, 325, 161, 80, 20, TXT_STATIC, "Width", 0 );
+	fdData.pHorValue = MakeEditControl( fdData.pFrame, 405, 161, 80, 20, TXT_STATIC, NULL, 0 );
+	SetCaptionChangedMethod( fdData.pHorValue, widthChanged );
+	//SetTextChan
+
+	fdData.pVerLabel = MakeTextControl( fdData.pFrame, 325, 136, 80, 20, TXT_STATIC, "Height", 0 );
+	fdData.pVerValue = MakeEditControl( fdData.pFrame, 405, 136, 80, 20, TXT_STATIC, NULL, 0 );
+	SetCaptionChangedMethod( fdData.pVerValue, heightChanged );
+
+	SetSliderValues( fdData.pHorSlider, 1, fdData.nSliderWidth, MAX_FONT_HEIGHT );
+	SetSliderValues( fdData.pVerSlider, -MAX_FONT_HEIGHT, -fdData.nSliderHeight, -1 );
+
 	AddCommonButtons( fdData.pFrame, &fdData.done, &fdData.okay );
 	{
 		PCOMMON pc = GetControl( fdData.pFrame, BTN_OKAY );

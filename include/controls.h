@@ -1033,6 +1033,7 @@ PSI_PROC( void, SetCaptionButtonImages )( struct physical_device_caption_button 
 PSI_PROC( void, HideCaptionButton )( struct physical_device_caption_button * );
 PSI_PROC( void, ShowCaptionButton )( struct physical_device_caption_button * );
 PSI_PROC( void, SetCaptionButtonOffset )( PSI_CONTROL frame, int32_t x, int32_t y );
+PSI_PROC( void, SetCaptionChangedMethod )(PSI_CONTROL frame, void (CPROC*_CaptionChanged)    (struct common_control_frame *));
 /*
 
 
@@ -1606,6 +1607,12 @@ PSI_PROC( PSI_CONTROL, SetEditControlReadOnly )( PSI_CONTROL pc, LOGICAL bReadOn
    bPassword :  if TRUE, Sets style to password, if FALSE, clears
                 password style.                                   */
 PSI_PROC( PSI_CONTROL, SetEditControlPassword )( PSI_CONTROL pc, LOGICAL bPassword );
+
+/* Set edit control selection paramets; for use with keyinto control to  clear
+existing data and enter new data.
+*/
+PSI_PROC( void, SetEditControlSelection )( PSI_CONTROL pc, int start, int end );
+
 //PSI_PROC( void, SetEditFont )( PSI_CONTROL pc, SFTFont font );
 // Use GetControlText/SetControlText
 _EDIT_NAMESPACE_END
