@@ -5121,6 +5121,12 @@ void EndUpdate( PSI_CONTROL pc )
 		pc->flags.bDirectUpdating = 0;
 }
 
+void SetCaptionChangedMethod( PSI_CONTROL frame, void (CPROC*_CaptionChanged)    (struct common_control_frame *) )
+{
+	frame->CaptionChanged = _CaptionChanged;
+}
+
+
 PSI_NAMESPACE_END
 
 //---------------------------------------------------------------------------
