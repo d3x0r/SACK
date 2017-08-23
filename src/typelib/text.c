@@ -3474,6 +3474,7 @@ size_t GetDisplayableCharacterBytes( CTEXTSTR string, size_t character_count )
 {
 	CTEXTSTR original = string;
 	int ch;
+	if( !string ) return 0;
 	while( character_count && 
 		( ch = Step( &string, NULL ) ) )
 	{
@@ -3486,6 +3487,7 @@ size_t GetDisplayableCharacterCount( CTEXTSTR string, size_t max_bytes )
 {
 	int ch;
 	size_t count = 0;
+	if( !string ) return 0;
 	while( ( ch = Step( &string, &max_bytes ) ) )
 	{
 		count++;
@@ -3496,7 +3498,8 @@ size_t GetDisplayableCharacterCount( CTEXTSTR string, size_t max_bytes )
 CTEXTSTR GetDisplayableCharactersAtCount( CTEXTSTR string, size_t nLen )
 {
 	int ch;
-	while( nLen > 0 && 
+	if( !string ) return 0;
+	while( nLen > 0 &&
 		 ( ch = Step( &string, NULL ) ) )
 	{
 		nLen--;
