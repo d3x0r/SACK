@@ -47,8 +47,11 @@ typedef struct font_dialog_tag
 	SFTFont pFont;   // temp font for drawing sample
 	int done, okay;
 	PFONT_ENTRY pFontEntry;
+	int nFontEntry;
 	PFONT_STYLE pFontStyle;
+	int nFontStyle;
 	PSIZE_FILE  pSizeFile;
+	int nSizeFile;
 	TEXTCHAR *filename;
 	int32_t nWidth, nSliderWidth;
 	int32_t nHeight, nSliderHeight;
@@ -61,12 +64,12 @@ typedef struct font_dialog_tag
 
 PRIORITY_PRELOAD( InitFontDialogGlobal, IMAGE_PRELOAD_PRIORITY + 2 )
 {
-   // static variable.
+	// static variable.
 #define fg (*global_font_data)
 	SimpleRegisterAndCreateGlobal( global_font_data );
 	if( !fg.library )
 	{
-      lprintf( WIDE( "image library didn't load?" ) );
+		lprintf( WIDE( "image library didn't load?" ) );
 	}
 }
 
@@ -83,12 +86,13 @@ static int HasMonoSpacing( PFONT_ENTRY pfe )
 {
 	INDEX idx;
 	PFONT_STYLE pfs;
-   for( idx = 0; pfs = pfe->styles + idx, idx < pfe->nStyles; idx++ )
+	for( idx = 0; idx < pfe->nStyles; idx++ )
 	{
+		pfs = pfe->styles + idx;
 		if( pfs->flags.mono )
-         return TRUE;
+			return TRUE;
 	}
-   return FALSE;
+	return FALSE;
 }
 
 //-------------------------------------------------------------------------
@@ -96,13 +100,14 @@ static int HasMonoSpacing( PFONT_ENTRY pfe )
 static int HasPropSpacing( PFONT_ENTRY pfe )
 {
 	INDEX idx;
-   PFONT_STYLE pfs;
-   for( idx = 0; pfs = pfe->styles + idx, idx < pfe->nStyles; idx++ )
+	PFONT_STYLE pfs;
+	for( idx = 0; idx < pfe->nStyles; idx++ )
 	{
+		pfs = pfe->styles + idx;
 		if( !pfs->flags.mono )
-         return TRUE;
+			return TRUE;
 	}
-   return FALSE;
+	return FALSE;
 }
 
 //-------------------------------------------------------------------------
@@ -122,7 +127,7 @@ static int CPROC UpdateSample( PCOMMON pc )
 						 , WIDE("The Quick Brown Fox")
 						 , pfd->pFont );
 	}
-   return 1;
+	return 1;
 }
 
 //-------------------------------------------------------------------------
@@ -138,8 +143,8 @@ int UpdateSampleFont( PFONT_DIALOG pfd )
 	{
 		// need to build this into a structure that can be resulted to render a font
 		pfd->pFont = InternalRenderFont( (uint32_t)(pfd->pFontEntry - fg.pFontCache)
-												 , (uint32_t)(pfd->pFontStyle - pfd->pFontEntry->styles)
-												 , (uint32_t)(pfd->pSizeFile - pfd->pFontStyle->files)
+												 , (uint32_t)(pfd->nFontStyle)
+												 , (uint32_t)(pfd->nSizeFile)
 												 , pfd->nWidth
 												 , pfd->nHeight
 												 , (pfd->width_scale)
@@ -147,7 +152,7 @@ int UpdateSampleFont( PFONT_DIALOG pfd )
 												 , pfd->flags.render_depth );
 		if( !pfd->pFont )
 		{
-         return FALSE;
+			return FALSE;
 		}
 		SmudgeCommon( pfd->pSample );
 	}
@@ -159,7 +164,7 @@ int UpdateSampleFont( PFONT_DIALOG pfd )
 											, pfd->flags.render_depth );
 		SmudgeCommon( pfd->pSample );
 	}
-   return TRUE;
+	return TRUE;
 }
 
 
@@ -223,8 +228,9 @@ void CPROC UpdateCharRect( uintptr_t psv, PSI_CONTROL pc, int val )
 static void CPROC SizeSelected( uintptr_t psv, PSI_CONTROL pc, PLISTITEM pli )
 {
 	PFONT_DIALOG pfd = (PFONT_DIALOG)psv;
-	PSIZE_FILE psf = (PSIZE_FILE)GetItemData( pli );
-	pfd->pSizeFile = psf;
+	PSIZE_FILE psf;// = (PSIZE_FILE)GetItemData( pli );
+	pfd->nSizeFile = (int)GetItemData( pli );
+	psf = pfd->pSizeFile = pfd->pFontStyle->files + pfd->nSizeFile;
 	if( psf )
 	{
 		TEXTCHAR size[15], *tmp;
@@ -290,7 +296,8 @@ static void CPROC StyleSelected( uintptr_t psv, PSI_CONTROL pc, PLISTITEM pli )
 {
 	PFONT_DIALOG pfd = (PFONT_DIALOG)psv;
 	PSI_CONTROL pcSizes;
-	PFONT_STYLE pfs = (PFONT_STYLE)GetItemData( pli );
+	int npfs = GetItemData( pli );
+	PFONT_STYLE pfs = pfd->pFontEntry->styles + npfs;
 	ResetList( pcSizes = GetNearControl( pc, LST_FONT_SIZES ) );
 	pfd->pFontStyle = pfs;
 	if( pfs )
@@ -331,7 +338,7 @@ static void CPROC StyleSelected( uintptr_t psv, PSI_CONTROL pc, PLISTITEM pli )
 				}
 				bAdded++;
 				hli =	AddListItem( pcSizes, entry );
-				SetItemData( hli, (uintptr_t)psf );
+				SetItemData( hli, (uintptr_t)idx );
 			}
 		}
 		if( !bAdded )
@@ -357,9 +364,9 @@ static void CPROC StyleSelected( uintptr_t psv, PSI_CONTROL pc, PLISTITEM pli )
 static void CPROC FamilySelected( uintptr_t psv, PSI_CONTROL pc, PLISTITEM pli )
 {
 	PFONT_ENTRY pfe = (PFONT_ENTRY)GetItemData( pli );
-   PFONT_DIALOG pfd = (PFONT_DIALOG)psv;
+	PFONT_DIALOG pfd = (PFONT_DIALOG)psv;
 	INDEX idx;
-   int selected = 0;
+	int selected = 0;
 	PFONT_STYLE pfs;
 	PSI_CONTROL pcStyle;
 	int bAdded = 0;
@@ -369,9 +376,10 @@ static void CPROC FamilySelected( uintptr_t psv, PSI_CONTROL pc, PLISTITEM pli )
 	pfd->pFontEntry = pfe;
 	if( pfe )
 	{
-		for( idx = 0; pfs = pfe->styles + idx, idx < pfe->nStyles; idx++ )
+		for( idx = 0; idx < pfe->nStyles; idx++ )
 		{
 			PLISTITEM hli;
+			pfs = pfe->styles + idx;
 			if( pfs->flags.unusable )
 				continue;
 			if( pfs->flags.mono && pfd->flags.show_prop_only )
@@ -380,7 +388,7 @@ static void CPROC FamilySelected( uintptr_t psv, PSI_CONTROL pc, PLISTITEM pli )
 				continue;
 			bAdded++;
 			hli = AddListItem( pcStyle, pfs->name );
-			SetItemData( hli, (uintptr_t)pfs );
+			SetItemData( hli, (uintptr_t)idx );
 			if( pfd->pFontStyle == pfs )
 			{
 				SetSelectedItem( pcStyle, hli );
@@ -399,12 +407,12 @@ static void CPROC FamilySelected( uintptr_t psv, PSI_CONTROL pc, PLISTITEM pli )
 	else
 	{
 		SetSelectedItem( pcStyle, AddListItem( pcStyle, WIDE("only style") ) );
-      selected = 1;
+		selected = 1;
 	}
-   if( !selected )
+	if( !selected )
 		SetSelectedItem( pcStyle, GetNthItem( pcStyle, 0 ) );
-   DisableUpdateListBox( GetNearControl( pc, LST_FONT_SIZES ), FALSE );
-   DisableUpdateListBox( pcStyle, FALSE );
+	DisableUpdateListBox( GetNearControl( pc, LST_FONT_SIZES ), FALSE );
+	DisableUpdateListBox( pcStyle, FALSE );
 }
 
 //-------------------------------------------------------------------------
@@ -446,33 +454,33 @@ static void CPROC FillFamilyList( PFONT_DIALOG pfd )
 	}
 	if( !pliSelect )
 	{
-      lprintf( "attempt select %d", pfd->pFontEntry?((uint32_t)(pfd->pFontEntry - fg.pFontCache)):0 );
+		lprintf( "attempt select %d", pfd->pFontEntry?((uint32_t)(pfd->pFontEntry - fg.pFontCache)):0 );
 		pliSelect = GetNthItem( pc
 									 , pfd->pFontEntry?((uint32_t)(pfd->pFontEntry - fg.pFontCache)):0 );
 	}
 	SetSelectedItem( pc, pliSelect );
-   DisableUpdateListBox( pc, FALSE );
+	DisableUpdateListBox( pc, FALSE );
 }
 
 //-------------------------------------------------------------------------
 
 static void CPROC SetFontSpacingSelection( uintptr_t psv, PSI_CONTROL pc )
 {
-   PFONT_DIALOG pfd = (PFONT_DIALOG)psv;
+	PFONT_DIALOG pfd = (PFONT_DIALOG)psv;
 	switch( GetControlID( pc ) )
 	{
 	case CHK_MONO_SPACE:
-      pfd->flags.show_mono_only = 1;
-      pfd->flags.show_prop_only = 0;
-      break;
+		pfd->flags.show_mono_only = 1;
+		pfd->flags.show_prop_only = 0;
+		break;
 	case CHK_PROP_SPACE:
-      pfd->flags.show_mono_only = 0;
-      pfd->flags.show_prop_only = 1;
-      break;
+		pfd->flags.show_mono_only = 0;
+		pfd->flags.show_prop_only = 1;
+		break;
 	case CHK_BOTH_SPACE:
-      pfd->flags.show_mono_only = 0;
-      pfd->flags.show_prop_only = 0;
-      break;
+		pfd->flags.show_mono_only = 0;
+		pfd->flags.show_prop_only = 0;
+		break;
 	}
 	pfd->pFontEntry = NULL;
 	FillFamilyList( pfd );
@@ -524,12 +532,12 @@ extern CONTROL_REGISTRATION font_sample;
 
 int CPROC InitFontSample( PCOMMON pc, va_list args )
 {
-   return 1;
+	return 1;
 }
 
 int CPROC InitFontSizer( PCOMMON pc, va_list args )
 {
-   return 1;
+	return 1;
 }
 
 //-------------------------------------------------------------------------
@@ -547,8 +555,8 @@ CONTROL_REGISTRATION char_size = { WIDE("Font Size Control"), { { 80, 80 }, 0, B
 };
 PRIORITY_PRELOAD( RegisterFont, PSI_PRELOAD_PRIORITY )
 {
-   DoRegisterControl( &font_sample );
-   DoRegisterControl( &char_size );
+	DoRegisterControl( &font_sample );
+	DoRegisterControl( &char_size );
 }
 
 
@@ -556,7 +564,7 @@ PRIORITY_PRELOAD( RegisterFont, PSI_PRELOAD_PRIORITY )
 
 PSI_FONTS_NAMESPACE_END
 IMAGE_NAMESPACE
-     extern uint64_t fontcachetime;
+	  extern uint64_t fontcachetime;
 IMAGE_NAMESPACE_END
 PSI_FONTS_NAMESPACE
 
@@ -581,10 +589,10 @@ SFTFont PickScaledFontWithUpdate( int32_t x, int32_t y
 #endif
 	//SetControlInterface( GetDisplayInterface() );
 	//SetControlImageInterface( GetImageInterface() );
-   //fdData.pFont = GetDefaultFont();
+	//fdData.pFont = GetDefaultFont();
 	MemSet( &fdData, 0, sizeof( fdData ) );
 	// attempt to see if passed in data is reasonable
-   // then try and use it as default dialogdata...
+	// then try and use it as default dialogdata...
 	if( pFontData
 		&& (*pFontData )
 		&& pFontDataSize
@@ -597,14 +605,14 @@ SFTFont PickScaledFontWithUpdate( int32_t x, int32_t y
 			if( strncmp( (char*)pResult, "pick,", 5 ) == 0 )
 			{
 				PFONTDATA pfd = New( FONTDATA );
-            lprintf( "Recover pick font data..." );
+				lprintf( "Recover pick font data..." );
 				pfd->magic = MAGIC_PICK_FONT;
 				{
 					int family, style, file, width, height, flags;
 					sscanf( (((char*)pResult) + 5), "%d,%d,%d,%d,%d,%d"
 							, &family, &style, &file
 							, &width, &height, &flags );
-               lprintf( "%d,%d,%d,%d", family, style, file, flags );
+					lprintf( "%d,%d,%d,%d", family, style, file, flags );
 					pfd->nWidth = width;
 					pfd->nHeight = height;
 					pfd->flags = flags;
@@ -612,7 +620,7 @@ SFTFont PickScaledFontWithUpdate( int32_t x, int32_t y
 					pfd->nStyle = style;
 					pfd->nFile = file;
 				}
-            pResult = pfd;
+				pResult = pfd;
 			}
 			else
 			{
@@ -643,7 +651,8 @@ SFTFont PickScaledFontWithUpdate( int32_t x, int32_t y
 				if( pResult->nStyle < fdData.pFontEntry->nStyles )
 				{
 					fdData.pFontStyle = fdData.pFontEntry->styles + pResult->nStyle;
-               if( pResult->nFile < fdData.pFontStyle->nFiles )
+					fdData.nFontStyle = pResult->nStyle;
+					if( pResult->nFile < fdData.pFontStyle->nFiles )
 						fdData.pSizeFile = fdData.pFontStyle->files + pResult->nFile;
 				}
 				fdData.flags.render_depth = pResult->flags;
@@ -652,7 +661,7 @@ SFTFont PickScaledFontWithUpdate( int32_t x, int32_t y
 		else
 		{
 			PRENDER_FONTDATA pResult = (PRENDER_FONTDATA)(*pFontData);
-         lprintf( "wasn't a pick font stuct..." );
+			lprintf( "wasn't a pick font stuct..." );
 			fdData.flags.render_depth = pResult->flags;
 			fdData.filename = pResult->filename;
 		}
@@ -673,7 +682,7 @@ SFTFont PickScaledFontWithUpdate( int32_t x, int32_t y
 										, pAbove );
 	if( !fdData.pFrame )
 		return NULL;
-   SetFrameUserData( fdData.pFrame, (uintptr_t)&fdData );
+	SetFrameUserData( fdData.pFrame, (uintptr_t)&fdData );
 	MakeEditControl( fdData.pFrame, 5, 5
 						, 210, 15, TXT_STATIC, WIDE("name..."), 0 );
 	pc = MakeListBox( fdData.pFrame, 5, 25
@@ -683,12 +692,12 @@ SFTFont PickScaledFontWithUpdate( int32_t x, int32_t y
 	pc = MakeListBox( fdData.pFrame
 						 , 220, 25
 						 , 125, 58, LST_FONT_STYLES, 0 );
-   SetSelChangeHandler( pc, StyleSelected, (uintptr_t)&fdData );
+	SetSelChangeHandler( pc, StyleSelected, (uintptr_t)&fdData );
 
 	pc = MakeListBox( fdData.pFrame
 						 , 350, 25
 						 , 65, 58, LST_FONT_SIZES, 0 );
-   SetSelChangeHandler( pc, SizeSelected, (uintptr_t)&fdData );
+	SetSelChangeHandler( pc, SizeSelected, (uintptr_t)&fdData );
 
 	MakeRadioButton( fdData.pFrame
 						, 220, 88
@@ -706,14 +715,14 @@ SFTFont PickScaledFontWithUpdate( int32_t x, int32_t y
 						, 220, 116
 						, 95, 15
 							  , CHK_BOTH_SPACE, WIDE("Both"), 1
-                        , RADIO_CALL_CHECKED
+								, RADIO_CALL_CHECKED
 							  , SetFontSpacingSelection, (uintptr_t)&fdData );
 
 	pc = MakeRadioButton( fdData.pFrame
 						, 320, 88
 						, 95, 15
 						, CHK_8BIT, WIDE("8 bit"), 1
-                   , RADIO_CALL_CHECKED
+						 , RADIO_CALL_CHECKED
 						, SetFontAlphaSelection, (uintptr_t)&fdData );
 	if( fdData.flags.render_depth == 3 )
 		SetCheckState( pc, TRUE );
@@ -721,7 +730,7 @@ SFTFont PickScaledFontWithUpdate( int32_t x, int32_t y
 						, 320, 102
 						, 95, 15
 						, CHK_2BIT, WIDE("2 bit"), 1
-                   , RADIO_CALL_CHECKED
+						 , RADIO_CALL_CHECKED
 						, SetFontAlphaSelection, (uintptr_t)&fdData );
 	if( fdData.flags.render_depth == 2 )
 		SetCheckState( pc, TRUE );
@@ -729,13 +738,13 @@ SFTFont PickScaledFontWithUpdate( int32_t x, int32_t y
 							  , 320, 116
 							  , 95, 15
 							  , CHK_MONO, WIDE("mono"), 1
-                        , RADIO_CALL_CHECKED
+								, RADIO_CALL_CHECKED
 							  , SetFontAlphaSelection, (uintptr_t)&fdData );
 	if( fdData.flags.render_depth == 0 ||
 		fdData.flags.render_depth == 1 )
 		SetCheckState( pc, TRUE );
 	fdData.pSample = MakeNamedControl( fdData.pFrame, WIDE("Font Sample")
-                                     , 5, 240
+												 , 5, 240
 												, DIALOG_WIDTH - 10, DIALOG_HEIGHT - 245
 												, CST_FONT_SAMPLE );
 	pc = MakeNamedControl( fdData.pFrame, WIDE("Font Size Control")
@@ -747,17 +756,17 @@ SFTFont PickScaledFontWithUpdate( int32_t x, int32_t y
 											, 220,  215
 											, 80, 20
 											, SLD_WIDTH
-                                  , SLIDER_HORIZ
+											 , SLIDER_HORIZ
 											, UpdateCharRect, (uintptr_t)&fdData  );
 	SetSliderValues( fdData.pHorSlider, 1, fdData.nSliderWidth, 220 );
 	fdData.pVerSlider = MakeSlider( fdData.pFrame
 											, 300,  135
 											, 20, 80
 											, SLD_HEIGHT
-                                  , SLIDER_VERT
+											 , SLIDER_VERT
 											, UpdateCharRect, (uintptr_t)&fdData );
-   // this makes the slider behave in a natural way
-   SetSliderValues( fdData.pVerSlider, -220, -fdData.nSliderHeight, -1 );
+	// this makes the slider behave in a natural way
+	SetSliderValues( fdData.pVerSlider, -220, -fdData.nSliderHeight, -1 );
 	AddCommonButtons( fdData.pFrame, &fdData.done, &fdData.okay );
 	{
 		PCOMMON pc = GetControl( fdData.pFrame, BTN_OKAY );
@@ -792,7 +801,7 @@ SFTFont PickScaledFontWithUpdate( int32_t x, int32_t y
 	DisplayFrameOver( fdData.pFrame, pAbove );
 	while( 1 )
 	{
-      CommonWait( fdData.pFrame );
+		CommonWait( fdData.pFrame );
 		if( fdData.done || fdData.okay )
 		{
 #ifdef _DEBUG
@@ -811,21 +820,21 @@ SFTFont PickScaledFontWithUpdate( int32_t x, int32_t y
 							+ (l3=StrLen( fdData.pSizeFile->path ))
 							+ (l4=StrLen( fdData.pSizeFile->file ))
 							+ 4;
-                  TEXTCHAR buf[128];
+						TEXTCHAR buf[128];
 						PFONTDATA pResult;// = (PFONTDATA)Allocate( resultsize );
 						snprintf( buf, 256, "pick,%d,%d,%d,%d,%d,%d,%s/%s"
-								  , (int)(fdData.pFontEntry - fg.pFontCache)
-								  , (int)(fdData.pFontStyle - fdData.pFontEntry->styles)
-								  , (int)(fdData.pSizeFile - fdData.pFontStyle->files)
+								  , (int)(fdData.nFontEntry)
+								  , (int)(fdData.nFontStyle)
+								  , (int)(fdData.nSizeFile)
 								  , (int)fdData.nWidth
 								  , (int)fdData.nHeight
 								  , (int)fdData.flags.render_depth
 								  , fdData.pSizeFile->path
 								  , fdData.pSizeFile->file
 								  );
-                  resultsize = StrLen( buf );
+						resultsize = StrLen( buf );
 						pResult = (PFONTDATA)StrDup( buf );
-                  /*
+						/*
 						pResult->magic = MAGIC_PICK_FONT;
 						pResult->cachefile_time = fontcachetime;
 						pResult->nFamily = (uint32_t)(fdData.pFontEntry - fg.pFontCache);
@@ -848,7 +857,7 @@ SFTFont PickScaledFontWithUpdate( int32_t x, int32_t y
 											  , fdData.pSizeFile->file
 											  );
 
-                  */
+						*/
 
 						//if( *pFontData )
 						//{
@@ -867,12 +876,12 @@ SFTFont PickScaledFontWithUpdate( int32_t x, int32_t y
 								  , fdData.nWidth
 								  , fdData.nHeight
 								  , fdData.flags.render_depth
-                           , fdData.filename
+									, fdData.filename
 								  );
 						*pFontData = (POINTER)StrDup( buf );
-                  *pFontDataSize = strlen( buf ) + 1;
-                  /*
-                  size_t chars;
+						*pFontDataSize = strlen( buf ) + 1;
+						/*
+						size_t chars;
 						size_t resultsize = sizeof(RENDER_FONTDATA)
 							+ (chars=StrLen( fdData.filename ) + 1)*sizeof(TEXTCHAR);
 						PRENDER_FONTDATA pResult = (PRENDER_FONTDATA)Allocate( resultsize );
@@ -889,7 +898,7 @@ SFTFont PickScaledFontWithUpdate( int32_t x, int32_t y
 						*pFontData = (POINTER)pResult;
 						if( pFontDataSize )
 						*pFontDataSize = resultsize;
-                  */
+						*/
 						SetFontRendererData( fdData.pFont, *pFontData, *pFontDataSize );
 					}
 				}
@@ -902,14 +911,14 @@ SFTFont PickScaledFontWithUpdate( int32_t x, int32_t y
 					fdData.pFont = NULL;
 				}
 			}
-         break;
+			break;
 		}
 		fdData.okay = 0;
-      fdData.done = 0;
+		fdData.done = 0;
 	}
 	DestroyFrame( &fdData.pFrame );
-   UnloadAllFonts();
-   return fdData.pFont;
+	UnloadAllFonts();
+	return fdData.pFont;
 }
 
 //-------------------------------------------------------------------------
@@ -923,12 +932,12 @@ PSI_PROC( SFTFont, PickFontWithUpdate )( int32_t x, int32_t y
 										  , void (CPROC *UpdateFont)( uintptr_t psv, SFTFont font )
 										  , uintptr_t psvUpdate )
 {
-   return PickScaledFontWithUpdate( x, y, NULL, NULL, pFontDataSize, pFontData, pAbove, UpdateFont, psvUpdate );
+	return PickScaledFontWithUpdate( x, y, NULL, NULL, pFontDataSize, pFontData, pAbove, UpdateFont, psvUpdate );
 }
 
 void CPROC UpdateCommonFont( uintptr_t psvCommon, SFTFont font )
 {
-   SetCommonFont( (PCOMMON)psvCommon, font );
+	SetCommonFont( (PCOMMON)psvCommon, font );
 }
 
 PSI_PROC( SFTFont, PickFontFor )( int32_t x, int32_t y
@@ -939,13 +948,13 @@ PSI_PROC( SFTFont, PickFontFor )( int32_t x, int32_t y
 									  , PCOMMON pAbove
 									  , PCOMMON pUpdateFontFor )
 {
-   return PickFontWithUpdate( x, y, pFontDataSize, pFontData, pAbove, UpdateCommonFont, (uintptr_t)pUpdateFontFor );
+	return PickFontWithUpdate( x, y, pFontDataSize, pFontData, pAbove, UpdateCommonFont, (uintptr_t)pUpdateFontFor );
 }
 
 PSI_PROC( SFTFont, PickFont )( int32_t x, int32_t y
 								  , size_t * pFontDataSize
 									// resulting parameters for the data and size of data
-                           // which may be passe dto RenderFontData
+									// which may be passe dto RenderFontData
 								  , POINTER *pFontData
 								  , PCOMMON pAbove )
 {
@@ -957,7 +966,7 @@ PSI_PROC( SFTFont, PickFont )( int32_t x, int32_t y
 								  , size_t * size, POINTER *pFontData
 								  , PFRAME pAbove )
 {
-   return NULL;
+	return NULL;
 }
 
 
