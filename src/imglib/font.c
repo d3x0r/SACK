@@ -792,19 +792,19 @@ static uint32_t PutCharacterFontX ( ImageFile *pImage
 		// but we should still assume that black is transparent...
 		size = pchar->size;
 		width = pchar->width;
-		if( ( UseFont->flags & 3 ) == FONT_FLAG_MONO )
+		if( ( pchar->render_flags & 3 ) == FONT_FLAG_MONO )
 		{
 			CharPlotAlphax = CharPlotAlpha1;
 			CharDatax = CharData1;
 			inc = (pchar->size+7)/8;
 		}
-		else if( ( UseFont->flags & 3 ) == FONT_FLAG_2BIT )
+		else if( (pchar->render_flags & 3 ) == FONT_FLAG_2BIT )
 		{
 			CharPlotAlphax = CharPlotAlpha2;
 			CharDatax = CharData2;
 			inc = (pchar->size+3)/4;
 		}
-		else if( ( UseFont->flags & 3 ) == 3 || ( UseFont->flags & 3 )  == FONT_FLAG_8BIT )
+		else if( (pchar->render_flags & 3 ) == FONT_FLAG_8BIT /*|| ( UseFont->flags & 3 )  == FONT_FLAG_8BIT*/ )
 		{
 			CharPlotAlphax = CharPlotAlpha8;
 			CharDatax = CharData8;

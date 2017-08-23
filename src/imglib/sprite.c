@@ -1022,48 +1022,6 @@ static void TranslatePoints( Image dest, PSPRITE sprite )
 #endif
 }
 
-
-/*
-
-static PSPRITE MakeSpriteEx( DBG_VOIDPASS )
-{
-   PSPRITE ps;
-   ps = (PSPRITE)AllocateEx( sizeof( SPRITE ) DBG_RELAY );
-   MemSet( ps, 0, sizeof( SPRITE ) );
-   return ps;
-}
-
-  PSPRITE  MakeSpriteImageEx ( ImageFile *Image DBG_PASS)
-{
-   PSPRITE ps = MakeSpriteEx( DBG_VOIDRELAY );
-   ps->image = Image;
-   return ps;
-}
-
-  PSPRITE  MakeSpriteImageFileEx ( CTEXTSTR fname DBG_PASS )
-{
-   PSPRITE ps = MakeSpriteEx( DBG_VOIDRELAY );
-   ps->image = LoadImageFileEx( fname DBG_RELAY );
-   if( !ps->image )
-   {
-      ReleaseEx( ps DBG_RELAY );
-      return NULL;
-   }
-   return ps;
-}
-*/
-
-/*
-void UnmakeSprite( PSPRITE sprite, int bForceImageAlso )
-{
-	if( bForceImageAlso )// of if the sprite was created by name...
-	{
-      UnmakeImageFile( sprite->image );
-	}
-   Release( sprite );
-}
-*/
-
 /* rotate_scaled_sprite:
  *  Draws a sprite image onto a bitmap at the specified position, rotating 
  *  it by the specified angle. The angle is a fixed point 16.16 number in 
@@ -1071,7 +1029,7 @@ void UnmakeSprite( PSPRITE sprite, int bForceImageAlso )
  *  to a full circle, 64 a right angle, etc. This function can draw onto
  *  both linear and mode-X bitmaps.
  */
-  void  rotate_scaled_sprite (ImageFile *bmp, SPRITE *sprite, fixed angle, fixed scale_width, fixed scale_height)
+void  rotate_scaled_sprite (ImageFile *bmp, SPRITE *sprite, fixed angle, fixed scale_width, fixed scale_height)
 {
    //lprintf( "rotate_scaled_sprite..." );
 #ifdef DEBUG_TIMING
@@ -1093,128 +1051,12 @@ void UnmakeSprite( PSPRITE sprite, int bForceImageAlso )
  *  to a full circle, 64 a right angle, etc. This function can draw onto
  *  both linear and mode-X bitmaps.
  */
-  void  rotate_sprite (ImageFile *bmp, SPRITE *sprite, fixed angle)
+void  rotate_sprite (ImageFile *bmp, SPRITE *sprite, fixed angle)
 {
 	rotate_scaled_sprite(bmp, sprite, angle, 0x10000, 0x10000 );
 }
 
 
-
-  void  BlotSprite ( ImageFile *pdest, SPRITE *ps ) // hotspot bitmaps...
-{
-   PCOLOR po, pi;
-#ifdef __CYGWIN__
-   int i;
-#endif
-   int h, w, x ,y, oo, oi ;
-
-   if( !pdest ||
-       !pdest->image ||
-       !ps ||
-       !ps->image )
-      return;
-
-   x = ps->curx - ps->hotx - ps->image->width / 2;
-
-   y = ps->cury - ps->hoty - ps->image->height / 2;
-
-   pi = ps->image->image;
-
-   w = ps->image->width;
-
-   if( x < 0 )
-   {
-      w += x;
-      if( w <= 0 ) return;  // shifted completely offscreen.
-      pi -= x;  // start at correct incoming offset...
-      x = 0;
-      lprintf( WIDE( "Fixed PI because of input x.." ) );
-   }
-
-
-   if( (x + w) >= pdest->width )
-   {
-      w = (pdest->width - x) -1;
-      if( w <= 0 ) return;
-   }
-
-   h = ps->image->height;
-
-   if( y < 0 )
-   {
-      h += y;
-      if( h <= 0 ) return; // shifted completely offscreen
-      pi -= ps->image->width * y; // y is negative so subtract to add...
-      y = 0;
-      lprintf( WIDE( "Fixed PI because of input Y.." ) );
-   }
-
-   if( (h + y) >= pdest->height )
-   {
-      h = (pdest->height - y) - 1;
-      if( h <= 0 ) return;
-   }
-
-   po = pdest->image + x + ( y * pdest->width );
-
-   oo = 4*(pdest->width - w);     // w is how much we can copy...
-   oi = 4*(ps->image->width - w); // adding remaining width...
-#ifdef __CYGWIN__
-
-   asm(  ""
-         "LoopTop:\n"
-         : : "S"(pi), WIDE("D")(po), WIDE("d")(0), WIDE("b")(h) );
-   asm(
-         "cmpl %%ebx, %%edx\n"
-         "jl   Label\n"
-         "jmp  Done\n"
-         "Label:\n"
-         : : "c"(w)
-      );
-   asm(
-         "lodsl\n"
-         "or %%eax,%%eax\n"
-         "jz Label2\n"
-         "stosl\n"
-         "loop Label\n"
-         "jmp Label3\n"
-      : : : "%eax");
-   asm(  "Label2:\n"
-         "addl $4, %edi\n"
-         "loop Label\n"
-         "Label3:\n"
-      );
-   asm(  "addl %0, %%edi\n"
-         "addl %1, %%esi\n"
-         "inc %%edx\n"
-         "jmp LoopTop\n"
-         "Done:\n"
-         : : "a"(oo), WIDE("c")(oi) );
-#else
-#endif
-}
-
-/*
-PSPRITE SetSpriteHotspot( PSPRITE sprite, int32_t x, int32_t y )
-{
-	if( sprite )
-	{
-		sprite->hotx = x;
-		sprite->hoty = y;
-	}
-   return sprite;
-}
-
-PSPRITE SetSpritePosition( PSPRITE sprite, int32_t x, int32_t y )
-{
-	if( sprite )
-	{
-		sprite->curx = x;
-		sprite->cury = y;
-	}
-   return sprite;
-}
-*/
 IMAGE_NAMESPACE_END
 
 // $Log: sprite.c,v $
