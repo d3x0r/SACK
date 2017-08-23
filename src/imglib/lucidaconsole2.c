@@ -10,10 +10,10 @@
 	namespace default_font {
 #endif
 
-#define EXTRA_STRUCT  struct ImageFile_tag *cell; RCOORD x1, x2, y1, y2; struct font_char_tag *next_in_line;
-#define EXTRA_INIT  0,0,0,0,0,0
+#define EXTRA_STRUCT  uint32_t rg; struct ImageFile_tag *cell; RCOORD x1, x2, y1, y2; struct font_char_tag *next_in_line;
+#define EXTRA_INIT  0,0,0,0,0,0,0
 typedef char CHARACTER, *PCHARACTER;
-static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[9]; } _char_0 =
+static struct { short s, w, o, j; short a, d; EXTRA_STRUCT unsigned char data[9]; } _char_0 =
 {  6,  8,  1, 0,  9,  1, EXTRA_INIT , { 
                   XXXXXX__,
                   X____X__,

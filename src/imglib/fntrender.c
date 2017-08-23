@@ -79,7 +79,7 @@ void PrintLeadinJS( CTEXTSTR name, SFTFont font, int bits )
 
 }
 
-void PrintLeadin( int bits )
+void PrintLeadin( CTEXTSTR name, SFTFont font, int bits )
 {
 	sack_fprintf( output, WIDE( "#include <vectlib.h>\n" ) );
 	sack_fprintf( output, WIDE( "#undef _X\n" ) );
@@ -96,7 +96,7 @@ void PrintLeadin( int bits )
 	sack_fprintf( output, WIDE( "#endif\n") );
 	sack_fprintf( output, WIDE( "\n") );
 	sack_fprintf( output, WIDE( "#define EXTRA_STRUCT  struct ImageFile_tag *cell; RCOORD x1, x2, y1, y2; struct font_char_tag *next_in_line;\n") );
-	sack_fprintf( output, WIDE( "#define EXTRA_INIT  ,0,0,0,0,0,0\n") );
+	sack_fprintf( output, WIDE( "#define EXTRA_INIT  0,0,0,0,0,0\n") );
 
 	sack_fprintf( output, WIDE("typedef char CHARACTER, *PCHARACTER;\n") );
 }
@@ -172,7 +172,9 @@ int PrintChar( int bits, int charnum, PCHARACTER character, int height )
 {
 	int  outwidth;
 	TEXTCHAR charid[64];
-	char *data = (char*)character->data;
+	char *data;
+	if( !character ) return 0;
+	data = (char*)character->data;
 	tnprintf( charid, sizeof( charid ), WIDE("_char_%d"), charnum );
 
 	#define LINEPAD WIDE("                  ")
@@ -183,20 +185,21 @@ int PrintChar( int bits, int charnum, PCHARACTER character, int height )
 	else
 		outwidth = ((character->size+7) & 0xF8 ); // round up to next byte increments size.
 
-	if( ((outwidth)/(8/bits))*( ( character->ascent - character->descent ) + 1 ))
-		sack_fprintf( output, WIDE("static struct{ char s, w, o, j; short a, d; EXTRA_STRUCT unsigned char data[%d]; } %s =\n"),
+	if( ((outwidth) / (8 / bits))*((character->ascent - character->descent) + 1) )
+		sack_fprintf( output, WIDE( "static struct{ char s, w, o, j; short a, d; uint32_t rf; EXTRA_STRUCT unsigned char data[%d]; } %s =\n" ),
 						((outwidth)/(8/bits))*( ( character->ascent - character->descent ) + 1 )
 						, charid );
 	else
 		sack_fprintf( output, WIDE("static struct{ char s, w, o, j; short a, d; EXTRA_STRUCT } %s =\n")
 						, charid );
 
-	sack_fprintf( output, WIDE("{ %2d, %2d, %2d, 0, %2d, %2d EXTRA_INIT ")
+	sack_fprintf( output, WIDE("{ %2d, %2d, %2d, 0, %2d, %2d, %d EXTRA_INIT ")
 							, character->size
 							, character->width
 							, (signed)character->offset
 							, character->ascent
 							, character->descent
+							, (bits == 8 ) ?FONT_FLAG_8BIT:(bits==2)?FONT_FLAG_2BIT:FONT_FLAG_MONO
 							);
 
 	if( character->size )
@@ -365,6 +368,25 @@ void PrintFooter( void )
 void DumpFontFile( CTEXTSTR name, SFTFont font_to_dump )
 {
 	PFONT font = (PFONT)font_to_dump;
+	int JS = 0;
+	void( *printLeadin )(CTEXTSTR name, SFTFont font, int bits);
+	int( *printChar )(int bits, int charnum, PCHARACTER character, int height);
+	void (*printFooter)( void );
+	void( *printFontTable )(CTEXTSTR name, PFONT font);
+
+		if( JS )
+		{
+			printLeadin = PrintLeadinJS;
+			printChar = PrintCharJS;
+			printFooter = PrintFooterJS;
+			printFontTable = PrintFontTableJS;
+		}
+		else {
+			printLeadin = PrintLeadin;
+			printChar = PrintChar;
+			printFooter = PrintFooter;
+			printFontTable = PrintFontTable;
+		}
 	if( font )
 	{
 		output = sack_fopen( 0, name, WIDE("wt") );
@@ -376,29 +398,29 @@ void DumpFontFile( CTEXTSTR name, SFTFont font_to_dump )
 				void InternalRenderFontCharacter( PFONT_RENDERER renderer, PFONT font, INDEX idx );
 				InternalRenderFontCharacter( NULL, font_to_dump, charid );
 			}
-			PrintLeadinJS(  name, font, (font->flags&3)==FONT_FLAG_2BIT?2
+			printLeadin(  name, font, (font->flags&3)==FONT_FLAG_2BIT?2
 							: (font->flags&3)==FONT_FLAG_8BIT?8
 							: 1  );
 					//		(font->flags&3)==FONT_FLAG_2BIT?2
 					//		: (font->flags&3)==FONT_FLAG_8BIT?8
 				//			: 1 );
 			{
-				uint32_t tmp = 0;
 				for	( charid = 0; charid < font_to_dump->characters; charid++ )
 				{
 					PCHARACTER character;
 					void InternalRenderFontCharacter( PFONT_RENDERER renderer, PFONT font, INDEX idx );
 					InternalRenderFontCharacter( NULL, font_to_dump, charid );
 					character = font->character[charid];
-						PrintCharJS( (font->flags&3) == FONT_FLAG_8BIT?8
+						PrintChar( (font->flags&3) == FONT_FLAG_8BIT?8
 									 :(font->flags&3) == FONT_FLAG_2BIT?2
 									 :1
-									,tmp, character, font->height );
-						tmp = 1;
+									, charid, character, font->height );
+						//if( charid > 40 )
+						//	DebugDumpMem();
 				}
 			}
-			//PrintFontTableJS( font->name, font );
-			PrintFooterJS();
+			printFooter();
+			printFontTable( font->name, font );
 			sack_fclose( output );
 		}
 	}
