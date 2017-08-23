@@ -341,9 +341,12 @@ typedef struct myfinddata {
 			}
 			if( pData->scanning_mount->fsi )
 			{
+				char *tmp1, *tmp2;
 				//lprintf( "create cursor" );
 				tmp_base = ExpandPathEx( base, pData->scanning_mount->fsi );
-				pData->cursor = pData->scanning_mount->fsi->find_create_cursor( pData->scanning_mount->psvInstance, CStrDup( tmp_base ), CStrDup( mask ) );
+				pData->cursor = pData->scanning_mount->fsi->find_create_cursor( pData->scanning_mount->psvInstance, tmp2 = CStrDup( tmp_base ), tmp1 = CStrDup( mask ) );
+				Deallocate( char*, tmp1 );
+				Deallocate( char*, tmp2 );
 			}
 			else
 			{

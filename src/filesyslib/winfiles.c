@@ -2050,9 +2050,12 @@ struct find_cursor_data {
 
 static	struct find_cursor * CPROC sack_filesys_find_create_cursor ( uintptr_t psvInstance, const char *root, const char *filemask ){
 	struct find_cursor_data *cursor = New( struct find_cursor_data );
-	MemSet( cursor, 0, sizeof( cursor ) );
+	char maskbuf[512];
+	MemSet( cursor, 0, sizeof( *cursor ) );
+	snprintf( maskbuf, 512, "%s/*", root ? root : "." );
+
 	cursor->root = StrDup( root?root:"." );
-	cursor->filemask = StrDup( filemask?filemask:"*" );
+	cursor->filemask = ExpandPath( maskbuf );// StrDup( filemask ? filemask : "*" );
 #ifdef WIN32
    // windows mode is delayed until findfirst
 #else
@@ -2064,6 +2067,11 @@ static	int CPROC sack_filesys_find_first( struct find_cursor *_cursor ){
 	struct find_cursor_data *cursor = (struct find_cursor_data *)_cursor;
 #ifdef WIN32
 	cursor->findHandle = findfirst( cursor->filemask, &cursor->fileinfo );
+	if( cursor->findHandle == -1 )
+	{
+		int err = errno;
+		lprintf( "error:%d", err );
+	}
 	return ( cursor->findHandle != -1 );
 #else
 	if( cursor->handle ) {
