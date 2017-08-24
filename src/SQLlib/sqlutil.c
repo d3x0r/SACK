@@ -1233,7 +1233,6 @@ LOGICAL CPROC CheckMySQLODBCTable( PODBC odbc, PTABLE table, uint32_t options )
 		cmd[1023] = 0;
 	retry = 0;
 retry:
-	PushSQLQueryEx( odbc );
 	if( ( success = SQLRecordQueryf( odbc, &columns, &result, &fields, cmd, table->name ) )
 		&& result )
 			//    if( DoSQLQuery( cmd, &result ) && result )
@@ -1242,6 +1241,7 @@ retry:
 		PTABLE pTestTable;
 		//lprintf("Does this work or not?");
 		pTestTable = GetFieldsInSQL( result[1] , 0 );
+		SQLEndQuery( odbc );
 		//lprintf(" ---------------Table to test-----------------------------------------" );
 		//DumpSQLTable( pTestTable );
 		//lprintf(" ---------------original table -----------------------------------------" );
@@ -1290,7 +1290,6 @@ retry:
 									SQLCommandf( odbc, WIDE("drop table `%s`"), table->name );
 								goto do_create_table;
 							}
-							ReleaseODBC( odbc ); // release so that the alter statement may be done.
 							if( f_odbc )
 							{
 								fprintf( f_odbc
@@ -1322,7 +1321,6 @@ retry:
 											  , table->fields.field[m].previous_names[prev] );
 							}
 						}
-						ReleaseODBC( odbc ); // release all prior locks on the table...
 						if( !( options & CTO_MERGE ) )
 						{
 							if( options & CTO_DROP )
@@ -1391,7 +1389,6 @@ retry:
 							  , table->fields.field[n].extra?table->fields.field[n].extra:WIDE("")
 							  );
 					txt_cmd = VarTextGet( pvtCreate );
-					ReleaseODBC( odbc ); // release so that the alter statement may be done.
 					if( f_odbc )
 						fprintf( f_odbc, WIDE( "%s;\n" ), GetText( txt_cmd ) );
 					else
@@ -1400,7 +1397,6 @@ retry:
 				}
 			}
 		}
-		PopODBCEx(odbc);
 		DestroySQLTable( pTestTable );
 	}
 	else
