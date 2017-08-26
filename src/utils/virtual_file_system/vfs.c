@@ -933,7 +933,7 @@ static struct sack_vfs_file * CPROC sack_vfs_open( uintptr_t psvInstance, const 
 	return sack_vfs_openfile( (struct volume*)psvInstance, filename ); 
 }
 
-int CPROC _sack_vfs_exists( struct volume *vol, const char * file ) {
+int CPROC sack_vfs_exists( struct volume *vol, const char * file ) {
 	struct directory_entry entkey;
 	struct directory_entry *ent;
 	while( LockedExchange( &vol->lock, 1 ) ) Relinquish();
@@ -944,8 +944,6 @@ int CPROC _sack_vfs_exists( struct volume *vol, const char * file ) {
 	if( ent ) return TRUE;
 	return FALSE;
 }
-
-int CPROC sack_vfs_exists( uintptr_t psvInstance, const char * file ) { return _sack_vfs_exists( (struct volume*)psvInstance, file ); }
 
 size_t CPROC sack_vfs_tell( struct sack_vfs_file *file ) { return file->fpi; }
 
@@ -1182,15 +1180,19 @@ int CPROC sack_vfs_close( struct sack_vfs_file *file ) {
 	return 0; 
 }
 
-void CPROC sack_vfs_unlink_file( uintptr_t psv, const char * filename ) {
-	struct volume *vol = (struct volume *)psv;
+int CPROC sack_vfs_unlink_file( struct volume *vol, const char * filename ) {
+   int result = 0;
 	struct directory_entry entkey;
 	struct directory_entry *entry;
+	if( !vol ) return 0;
 	while( LockedExchange( &vol->lock, 1 ) ) Relinquish();
 	LoG( "unlink file:%s", filename );
-	if( ( entry  = ScanDirectory( vol, filename, &entkey ) ) )
+	if( ( entry  = ScanDirectory( vol, filename, &entkey ) ) ) {
 		sack_vfs_unlink_file_entry( vol, entry, &entkey );
+      result = 1;
+	}
 	vol->lock = 0;
+   return result;
 }
 
 int CPROC sack_vfs_flush( struct sack_vfs_file *file ) {	/* noop */	return 0; }
@@ -1315,11 +1317,11 @@ static struct file_system_interface sack_vfs_fsi = {
                                                    , (size_t(CPROC*)(void*,const char*,size_t))sack_vfs_write
                                                    , (size_t(CPROC*)(void*,size_t,int))sack_vfs_seek
                                                    , (void(CPROC*)(void*))sack_vfs_truncate
-                                                   , sack_vfs_unlink_file
+                                                   , (int(CPROC*)(uintptr_t,const char*))sack_vfs_unlink_file
                                                    , (size_t(CPROC*)(void*))sack_vfs_size
                                                    , (size_t(CPROC*)(void*))sack_vfs_tell
                                                    , (int(CPROC*)(void*))sack_vfs_flush
-                                                   , sack_vfs_exists
+                                                   , (int(CPROC*)(uintptr_t,const char*))sack_vfs_exists
                                                    , sack_vfs_need_copy_write
                                                    , (struct find_cursor*(CPROC*)(uintptr_t,const char *,const char *))             sack_vfs_find_create_cursor
                                                    , (int(CPROC*)(struct find_cursor*))             sack_vfs_find_first

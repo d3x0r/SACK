@@ -111,7 +111,7 @@ struct file_system_interface {
 	size_t (CPROC *_write)(void*,const char *, size_t);                    //file *, buffer, length (to write)
 	size_t (CPROC *seek)( void *, size_t, int whence);
 	void  (CPROC *truncate)( void *);
-	void (CPROC *_unlink)( uintptr_t psvInstance, const char *);
+	int (CPROC *_unlink)( uintptr_t psvInstance, const char *);
 	size_t (CPROC *size)( void *); // get file size
 	size_t (CPROC *tell)( void *); // get file current position
 	int (CPROC *flush )(void *kp);
@@ -377,6 +377,7 @@ FILESYS_PROC  void FILESYS_API sack_set_default_filesystem_interface( struct fil
 
 FILESYS_PROC  void FILESYS_API sack_register_filesystem_interface( CTEXTSTR name, struct file_system_interface *fsi );
 FILESYS_PROC  int FILESYS_API  sack_fclose ( FILE *file_file );
+FILESYS_PROC  size_t FILESYS_API  sack_fseekEx ( FILE *file_file, size_t pos, int whence, struct file_system_mounted_interface *mount );
 FILESYS_PROC  size_t FILESYS_API  sack_fseek ( FILE *file_file, size_t pos, int whence );
 FILESYS_PROC  size_t FILESYS_API  sack_ftell ( FILE *file_file );
 FILESYS_PROC  size_t FILESYS_API  sack_fsize ( FILE *file_file );

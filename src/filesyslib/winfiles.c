@@ -925,7 +925,7 @@ int sack_ftruncate( FILE *file_file )
 		else
 		{
 #ifdef _WIN32
-			;
+			_chsize( fileno( file_file ), ftell( file_file ) );
 #else
 			truncate( file->fullname, sack_ftell( (FILE*)file_file ) );
 #endif
@@ -1430,6 +1430,11 @@ default_fopen:
 	}
 	if( !handle )
 	{
+		DeleteLink( &(*winfile_local).files, file );
+		Deallocate( TEXTCHAR*, file->name );
+		Deallocate( TEXTCHAR*, file->fullname );
+		Deallocate( struct file*, file );
+
 		if( (*winfile_local).flags.bLogOpenClose )
 			lprintf( WIDE( "Failed to open file [%s]=[%s]" ), file->name, file->fullname );
 		return NULL;
@@ -2017,21 +2022,34 @@ static void * CPROC sack_filesys_open( uintptr_t psv, const char *filename, cons
 static int CPROC sack_filesys_close( void*file ) { return fclose(  (FILE*)file ); }
 static size_t CPROC sack_filesys_read( void*file, char*buf, size_t len ) { return fread( buf, 1, len, (FILE*)file ); }
 static size_t CPROC sack_filesys_write( void*file, const char*buf, size_t len ) { return fwrite( buf, 1, len, (FILE*)file ); }
-static size_t CPROC sack_filesys_seek( void*file, size_t pos, int whence) { return sack_fseekEx( (FILE*)file, (long)pos, whence, NULL ); }
-static void CPROC sack_filesys_truncate( void*file ) { sack_ftruncate( (FILE*)file ); }
-static void CPROC sack_filesys_unlink( uintptr_t psv, const char*filename ) { 
+static size_t CPROC sack_filesys_seek( void*file, size_t pos, int whence) { return fseek( (FILE*)file, (long)pos, whence ); }
+static int CPROC sack_filesys_unlink( uintptr_t psv, const char*filename ) {
+	int okay = 0;
 #ifdef UNICODE
 	TEXTCHAR *_filename = DupCStr( filename );
 #  define filename _filename
 #endif
-	sack_unlinkEx( 0, filename, NULL); 
+#ifdef WIN32
+	okay = DeleteFileA( filename );
+#else
+	okay = unlink( filename );
+#endif
 #ifdef UNICODE
+	Deallocate( char *, _filename );
 #  undef filename
 #endif
+	return okay;
 }
-static size_t CPROC sack_filesys_size( void*file ) { return sack_fsizeEx( (FILE*)file, NULL ); }
-static size_t CPROC sack_filesys_tell( void*file ) { return sack_ftellEx( (FILE*)file, NULL ); }
-static int CPROC sack_filesys_flush( void*file ) { return sack_fflushEx( (FILE*)file, NULL ); }
+static size_t CPROC sack_filesys_size( void*file ) { return sack_fsizeEx( (FILE*)file, (*winfile_local).default_mount ); }
+static size_t CPROC sack_filesys_tell( void*file ) { return ftell( (FILE*)file ); }
+static void CPROC sack_filesys_truncate( void*file ) {
+#if _WIN32
+	_chsize
+#else
+		ftruncate
+#endif
+		( fileno( (FILE*)file), ftell((FILE*)file) ); }
+static int CPROC sack_filesys_flush( void*file ) { return fflush( (FILE*)file ); }
 static int CPROC sack_filesys_exists( uintptr_t psv, const char*file );
 static LOGICAL CPROC sack_filesys_rename( uintptr_t psvInstance, const char *original_name, const char *new_name );
 static LOGICAL CPROC sack_filesys_copy_write_buffer( void ) { return FALSE; }
@@ -2117,9 +2135,17 @@ static	char * CPROC sack_filesys_find_get_name( struct find_cursor *_cursor ){
    return cursor->de->d_name;
 #endif
 }
-static	size_t CPROC sack_filesys_find_get_size( struct find_cursor *_cursor ){
+static	size_t CPROC sack_filesys_find_get_size( struct find_cursor *_cursor ) {
 	struct find_cursor_data *cursor = (struct find_cursor_data *)_cursor;
-	lprintf( "This interface function is not complete." );
+#ifdef WIN32
+	if( cursor )
+		return cursor->fileinfo.size;
+	return 0;
+#else
+	if( cursor ) {
+		return sack_filesys_size( cursor->de->d_name );
+	}
+#endif
 	return 0;
 }
 
