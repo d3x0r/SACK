@@ -800,7 +800,9 @@ int json_parse_add_data( struct json_parse_state *state
 			}
 			else {
 				PushLink( &state->outBuffers, output );
-				if( state->parse_context == CONTEXT_UNKNOWN && state->elements->Cnt ) {
+					if( state->parse_context == CONTEXT_UNKNOWN
+					  && ( state->val.value_type != VALUE_UNSET
+					     || state->elements->Cnt ) ) {
 					state->completed = TRUE;
 					retval = 1;
 				}
