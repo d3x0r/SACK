@@ -166,7 +166,7 @@ PRIORITY_ATEXIT( CleanSyslog, ATEXIT_PRIORITY_SYSLOG )
 	case SYSLOG_FILE:  // usually this is stderr ... don't do anything
 		break;
 	case SYSLOG_FILENAME:
-		fclose( (*syslog_local).file );
+		sack_fclose( (*syslog_local).file );
 		break;
 #ifdef __LINUX__
 #  ifndef __DISABLE_SYSLOGD_SYSLOG__
@@ -1052,11 +1052,9 @@ LOGICAL IsBadReadPtr( CPOINTER pointer, uintptr_t len )
 			//		 , line, pointer, low, high );
 			if( ptr >= low && ptr <= high )
 			{
-				//fclose( maps );
 				return FALSE;
 			}
 		}
-		//fclose( maps );
 	}
 	//fprintf( stderr, WIDE("%p is not valid. %d"), pointer, errno );
 	return TRUE;
@@ -1371,7 +1369,7 @@ void  SetSystemLog ( enum syslog_types type, const void *data )
 {
 	if( (*syslog_local).file && ( logtype != SYSLOG_FILE ) )
 	{
-		fclose( (*syslog_local).file );
+		sack_fclose( (*syslog_local).file );
 		(*syslog_local).file = NULL;
 	}
 	if( type == SYSLOG_FILE )
