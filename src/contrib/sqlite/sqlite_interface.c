@@ -79,8 +79,6 @@ struct my_sqlite3_vfs
 #define l local_sqlite_interface
 
 struct local_data {
-	int volume;
-	struct karaway_interface* kwe;
 	PLIST registered_vfs;
 } local_sqlite_interface;
 
@@ -400,46 +398,46 @@ int xOpen(sqlite3_vfs* vfs, const char *zName, sqlite3_file*file,
 #ifdef LOG_OPERATIONS
 	lprintf( "Open file: %s (vfs:%s)", zName, vfs->zName );
 #endif
-	/* also open the file... */
-	{
-		//int hResult = KWloadVolume( "core.volume" );
-		//if( hResult < 0 )
-		//	hResult = KWcreateVolume( "core.volume", 10*1024*1024 );
-		//if( hResult == 0 )
-		{
-			//lprintf( WIDE("is it ok?") );
-			my_file->filename = DupCStr( zName );
+
+	my_file->filename = DupCStr( zName );
 #if defined( __GNUC__ )
-			//__ANDROID__
+	//__ANDROID__
 #define sack_fsopen(a,b,c,d) sack_fopen(a,b,c)
 #define sack_fsopenEx(a,b,c,d,fsi) sack_fopenEx(a,b,c, fsi)
 #endif
-			if( my_vfs->mount )
-			{
-				//lprintf( "try on mount..%s .%p", my_file->filename, my_vfs->mount );
-				my_file->file = sack_fsopenEx( 0, my_file->filename, WIDE("rb+"), _SH_DENYNO, my_vfs->mount );//KWfopen( zName );
-				if( my_file->file )
-				{
-					InitializeCriticalSec( &my_file->cs );
-					return SQLITE_OK;
-				}
-				//lprintf( "failed..." );
-			}
-			else
-			{
-				my_file->file = sack_fsopen( 0, my_file->filename, WIDE("rb+"), _SH_DENYNO );//KWfopen( zName );
-				if( !my_file->file )
-					my_file->file = sack_fsopen( 0, my_file->filename, WIDE("wb+"), _SH_DENYNO );//KWfopen( zName );
-				if( my_file->file )
-				{
-					InitializeCriticalSec( &my_file->cs );
-					return SQLITE_OK;
-				}
-			}
+	if( my_vfs->mount )
+	{
+		//lprintf( "try on mount..%s .%p", my_file->filename, my_vfs->mount );
+		if( (flags & (SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE)) == (SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE) ) {
+			if( !(my_file->file = sack_fsopenEx( 0, my_file->filename, WIDE("rb+"), _SH_DENYNO, my_vfs->mount ) ) )
+				my_file->file = sack_fsopenEx( 0, my_file->filename, WIDE("wb+"), _SH_DENYNO, my_vfs->mount );
+		} else if( flags & (SQLITE_OPEN_READWRITE) )
+			my_file->file = sack_fsopenEx( 0, my_file->filename, WIDE( "rb+" ), _SH_DENYNO, my_vfs->mount );
+		else if( flags & SQLITE_OPEN_CREATE )
+			my_file->file = sack_fsopenEx( 0, my_file->filename, WIDE( "wb" ), _SH_DENYNO, my_vfs->mount );
+		if( my_file->file )
+		{
+			InitializeCriticalSec( &my_file->cs );
+			return SQLITE_OK;
 		}
-		//else
-		//  lprintf( WIDE("hResult = %08x"), hResult );
+		//lprintf( "failed..." );
 	}
+	else
+	{
+		my_file->file = sack_fsopen( 0, my_file->filename, WIDE("rb+"), _SH_DENYNO );
+		if( !my_file->file )
+			my_file->file = sack_fsopen( 0, my_file->filename, WIDE("wb+"), _SH_DENYNO );
+		if( my_file->file )
+		{
+			InitializeCriticalSec( &my_file->cs );
+			return SQLITE_OK;
+		}
+	}
+#if defined( __GNUC__ )
+	//__ANDROID__
+#undefine sack_fsopen
+#undefine sack_fsopenEx
+#endif
 	return SQLITE_ERROR;
 }
 
@@ -692,11 +690,7 @@ PRIORITY_PRELOAD( RegisterSQLiteInterface, SQL_PRELOAD_PRIORITY-2 )
 
 }
 
-#ifdef __WATCOMC__
-// watcom requires at least one export
-PUBLIC( void, AtLeastOneExport )( void )
-{
-}
-#endif
+#undef l
+
 SQL_NAMESPACE_END
 #endif

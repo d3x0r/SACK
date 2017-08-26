@@ -1766,7 +1766,7 @@ size_t  sack_fwrite ( CPOINTER buffer, size_t size, int count,FILE *file_file )
 	if( file && file->mount && file->mount->fsi )
 	{
 		size_t result;
-		if( !file->mount->fsi->copy_write_buffer || file->mount->fsi->copy_write_buffer() )
+		if( file->mount->fsi->copy_write_buffer && file->mount->fsi->copy_write_buffer() )
 		{
 			POINTER dupbuf = malloc( size*count + 3 );
 			memcpy( dupbuf, buffer, size*count );
@@ -2022,7 +2022,7 @@ static void * CPROC sack_filesys_open( uintptr_t psv, const char *filename, cons
 static int CPROC sack_filesys_close( void*file ) { return fclose(  (FILE*)file ); }
 static size_t CPROC sack_filesys_read( void*file, char*buf, size_t len ) { return fread( buf, 1, len, (FILE*)file ); }
 static size_t CPROC sack_filesys_write( void*file, const char*buf, size_t len ) { return fwrite( buf, 1, len, (FILE*)file ); }
-static size_t CPROC sack_filesys_seek( void*file, size_t pos, int whence) { return fseek( (FILE*)file, (long)pos, whence ); }
+static size_t CPROC sack_filesys_seek( void*file, size_t pos, int whence ) { return fseek( (FILE*)file, (long)pos, whence ), ftell( (FILE*)file ); }
 static int CPROC sack_filesys_unlink( uintptr_t psv, const char*filename ) {
 	int okay = 0;
 #ifdef UNICODE
@@ -2040,7 +2040,14 @@ static int CPROC sack_filesys_unlink( uintptr_t psv, const char*filename ) {
 #endif
 	return okay;
 }
-static size_t CPROC sack_filesys_size( void*file ) { return sack_fsizeEx( (FILE*)file, (*winfile_local).default_mount ); }
+static size_t CPROC sack_filesys_size( void*file ) { 
+	size_t here = ftell( (FILE*)file );
+	size_t length;
+	fseek( (FILE*)file, 0, SEEK_END );
+	length = ftell( (FILE*)file );
+	fseek( (FILE*)file, (long)here, SEEK_SET );
+	return length;
+}
 static size_t CPROC sack_filesys_tell( void*file ) { return ftell( (FILE*)file ); }
 static void CPROC sack_filesys_truncate( void*file ) {
 #if _WIN32
