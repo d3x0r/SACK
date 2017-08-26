@@ -70,7 +70,7 @@ SACK_VFS_PROC const uint8_t * CPROC sack_vfs_get_signature2( POINTER disk, POINT
 // open a file, creates if does not exist.
 SACK_VFS_PROC struct sack_vfs_file * CPROC sack_vfs_openfile( struct volume *vol, CTEXTSTR filename );
 // check if a file exists (if it does not exist, and you don't want it created, can use this and not openfile)
-SACK_VFS_PROC int CPROC sack_vfs_exists( uintptr_t psvInstance, const char * file );
+SACK_VFS_PROC int CPROC sack_vfs_exists( struct volume *vol, const char * file );
 // close a file.
 SACK_VFS_PROC int CPROC sack_vfs_close( struct sack_vfs_file *file );
 // get the current File Position Index (FPI).
@@ -87,7 +87,7 @@ SACK_VFS_PROC size_t CPROC sack_vfs_read( struct sack_vfs_file *file, char * dat
 SACK_VFS_PROC size_t CPROC sack_vfs_truncate( struct sack_vfs_file *file );
 // psv should be struct volume *vol;
 // delete a filename.  Clear the space it was occupying.
-SACK_VFS_PROC void CPROC sack_vfs_unlink_file( uintptr_t psv, const char * filename );
+SACK_VFS_PROC int CPROC sack_vfs_unlink_file( struct volume *vol, const char * filename );
 
 // -----------  directory interface commands. ----------------------
 
