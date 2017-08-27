@@ -142,6 +142,15 @@ static int CPROC SavedNameCmpEx(CTEXTSTR dst, CTEXTSTR src, size_t srclen)
 static int CPROC SavedNameCmp(CTEXTSTR dst, CTEXTSTR src)
 {
 	//lprintf( WIDE("Compare names... (tree) %s,%s"), dst, src );
+	if( !src && !dst )
+		return 0;
+	if( !src ) {
+		DebugBreak();
+		return 1;
+	}
+	if( !dst && src )
+		return -1;
+
 	return SavedNameCmpEx( dst, src, src[-1]-2 );
 }
 //---------------------------------------------------------------------------
@@ -1099,7 +1108,7 @@ void DumpRegisteredNamesWork( PTREEDEF tree, int level );
 PROCREG_PROC( PROCEDURE, GetRegisteredProcedureExxx )( PCLASSROOT root, PCLASSROOT name_class, CTEXTSTR returntype, CTEXTSTR name, CTEXTSTR args )
 #define GetRegisteredProcedureExx GetRegisteredProcedureExxx
 {
-	PTREEDEF class_root = GetClassTree( root, name_class );
+	PTREEDEF class_root = GetClassTreeEx( root, name_class, NULL, FALSE );
 	if( class_root )
 	{
 		PNAME oldname;
