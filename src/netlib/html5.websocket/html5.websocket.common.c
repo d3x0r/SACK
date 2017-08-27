@@ -153,6 +153,8 @@ void ProcessWebSockProtocol( WebSocketInputState websock, PCLIENT pc, const uint
 			if( msg[n] & 0x80 )
 				websock->final = 1;
 			websock->opcode = ( msg[n] & 0xF );
+			if( websock->opcode == 1 ) websock->input_type = 0;
+			else if( websock->opcode == 2 ) websock->input_type = 1;
 			websock->input_msg_state++;
 			break;
 		case 1: // mask bit, and 7 bits of frame_length(payload)
@@ -267,13 +269,12 @@ void ProcessWebSockProtocol( WebSocketInputState websock, PCLIENT pc, const uint
 				switch( websock->opcode )
 				{
 				case 0x02: //binary
-					websock->input_type = 1;
 				case 0x01: //text
 				case 0x00: // continuation
 					/// single packet, final...
 					//LogBinary( websock->fragment_collection, websock->fragment_collection_length );
 					if( websock->on_event )
-						websock->on_event( pc, websock->psv_open, websock->fragment_collection, websock->fragment_collection_length );
+						websock->on_event( pc, websock->psv_open, websock->input_type, websock->fragment_collection, websock->fragment_collection_length );
 					websock->fragment_collection_length = 0;
 					break;
 				case 0x08: // close

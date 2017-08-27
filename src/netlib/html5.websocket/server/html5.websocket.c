@@ -404,7 +404,7 @@ PCLIENT WebSocketCreate( CTEXTSTR hosturl
 	socket->input_state.on_error = on_error;
 	socket->input_state.psv_on = psv;
 	url = SACK_URLParse( hosturl );
-	socket->pc = OpenTCPListenerAddrEx( CreateSockAddress( url->host, url->port ), connected );
+	socket->pc = OpenTCPListenerAddrEx( CreateSockAddress( url->host, url->port?url->port:url->default_port ), connected );
 	SACK_ReleaseURL( url );
 	socket->http_state = CreateHttpState();
 	SetNetworkLong( socket->pc, 0, (uintptr_t)socket );
