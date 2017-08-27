@@ -103,7 +103,7 @@ void CPROC ReadComplete( PCLIENT pc, POINTER buffer, size_t size )
 			}
 			else
 			{
-				printf( WIDE("Unknown responce from relay: %8.8s"), buffer );
+				printf( WIDE("Unknown responce from relay: %8.8s"), (char*)buffer );
 			}
 		}
 		else
@@ -207,7 +207,7 @@ void CPROC ReadComplete( PCLIENT pc, POINTER buffer, size_t size )
 							endname++;
 						endname[0] = 0;
 						realname = NewArray( TEXTCHAR, ( endname - userlist ) + 1 );
-						StrCpyEx( realname, userlist, max( ( endname - userlist ), size ) );
+						StrCpyEx( realname, userlist, max( (size_t)( endname - userlist ), size ) );
 						SetItemData( hli, (uintptr_t)realname );
 			   		endline++;
 				   	userlist = endline;

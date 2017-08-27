@@ -921,7 +921,7 @@ int NextFileChange( uintptr_t psv
 			//	name++;
 			charmsg = (char*)msg;
 			len += sprintf( charmsg+len, "%c%s"
-							  , strlen( name )
+							  , (char)strlen( name )
 							  , name );
 			if( g.flags.log_file_ops )
 				lprintf( "Announced %4.4s %s (%d,%lld,%lld,%lld) %d", msg

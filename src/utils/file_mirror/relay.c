@@ -197,7 +197,7 @@ LOGICAL CompareTime( SYSTEMTIME *st1, SYSTEMTIME *st2, int seconds )
 		li2.u.LowPart = ft2.dwLowDateTime;
 		li2.u.HighPart = ft2.dwHighDateTime;
 
-		if( abs( li1.QuadPart - li2.QuadPart ) > ( (uint64_t)seconds * ( ( 10LL /* microsecond scale*/) * ( 1000LL /*millisecond scale*/ ) * ( 1000 /* second scale */ ) ) ) )
+		if( llabs( li1.QuadPart - li2.QuadPart ) > ( (uint64_t)seconds * ( ( 10LL /* microsecond scale*/) * ( 1000LL /*millisecond scale*/ ) * ( 1000 /* second scale */ ) ) ) )
 			return FALSE;
 		return TRUE;
 }
@@ -646,7 +646,7 @@ static void CPROC TCPRead( PCLIENT pc, POINTER buffer, size_t size ) /*FOLD00*/
 						// SO - tell the other side we're a windows system and are going to
 						// give badly cased files - set forcelower, and this side will do only
 						// case-insensitive comparisons on directories and names given.
-						len = snprintf( msg, sizeof( msg ), WIDE("OPTS%s:end")
+						len = snprintf( msg, sizeof( msg ), WIDE("OPTS%s%s:end")
 										  , (g.flags.bServeClean || login->flags.bClean)?WIDE(":cln"):WIDE("")
 										  , g.flags.bServeWindows?WIDE(":win"):WIDE("") );
 						lprintf( WIDE("Sending message: %s(%d)"), msg, len );
@@ -1012,7 +1012,7 @@ static void CPROC TCPRead( PCLIENT pc, POINTER buffer, size_t size ) /*FOLD00*/
 					}
 					snprintf( filename, 256, "%s/%s"
 							 , ((PDIRECTORY)GetLink( &account->Directories, pns->filepath ))->path
-							 , buffer );
+							 , (char*)buffer );
 					lprintf( WIDE("%s is deleting %s"), account->unique_name, filename );
 					if( remove( filename ) < 0 )
 						lprintf( WIDE("Failed while deleting file %s"), filename );
@@ -1474,18 +1474,18 @@ static void UpdateStatus( PACCOUNT account )
 	TEXTCHAR msg[256];
 	if( account->flags.manifest_process )
 	{
-		snprintf( msg, sizeof( msg ), "Files(%zd) %zd bytes", account->manifest_files.count, account->manifest_files.size );
+		snprintf( msg, sizeof( msg ), "Files(%d) %zd bytes", account->manifest_files.count, account->manifest_files.size );
 		SetControlText( GetControl( account->client.frame, 1 ), msg );
 	}
 	else
 	{
-		snprintf( msg, sizeof( msg ), "Blocks: %zd of %zd", account->finished_files.count, account->files.count );
+		snprintf( msg, sizeof( msg ), "Blocks: %d of %zd", account->finished_files.count, account->files.count );
 		SetControlText( GetControl( account->client.frame, 1 ), msg );
 		snprintf( msg, sizeof( msg ), "Bytes: %zd of %zd", account->finished_files.size, account->files.size );
 		SetControlText( GetControl( account->client.frame, 2 ), msg );
 		if( ( now - account->files.start ) / 1000 )
 		{
-			snprintf( msg, sizeof( msg ), "Blocks/sec: %zd", account->finished_files.count / ( ( now - account->files.start ) / 1000 ) );
+			snprintf( msg, sizeof( msg ), "Blocks/sec: %d", account->finished_files.count / ( ( now - account->files.start ) / 1000 ) );
 			SetControlText( GetControl( account->client.frame, 3 ), msg );
 			snprintf( msg, sizeof( msg ), "Bytes/sec: %zd", account->finished_files.size * 10 / ( ( now - account->files.start ) / 100 ) );
 			SetControlText( GetControl( account->client.frame, 4 ), msg );
