@@ -7,9 +7,10 @@ LOGICAL CPROC FallbackHandler( uintptr_t psv, struct HttpState *state )
 {
 	PTEXT resource = GetHttpResource( state );
 	PTEXT result;
-	uint32_t result_size = GetSizeofFile( GetText( resource ) + 1, NULL );
-	lprintf( WIDE("Serve resource: %s"), GetText( resource ) );
-	if( result_size != (uint32_t)-1 )
+	size_t result_size = GetSizeofFile( GetText( resource ) + 1, NULL );
+	//lprintf( WIDE("Serve resource: %s"), GetText( resource ) );
+
+	if( result_size != (size_t)-1 )
 	{
 		FILE *input = sack_fopen( 0, GetText( resource ) + 1, WIDE("rb") );
 		if( input )
@@ -75,6 +76,7 @@ SaneWinMain( argc, argv )
 			}
 		}
 	}
+	NetworkWait( NULL, 1024, 16 );
 	{
 		struct HttpServer *server = CreateHttpServerEx( serve_interface, NULL, site, FallbackHandler, 0 );
 		if( server )
