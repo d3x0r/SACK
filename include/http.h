@@ -27,7 +27,7 @@
 /* A macro to end just the HTTP sub namespace. */
 #define _HTTP_NAMESPACE_END }
 #else
-#define _HTTP_NAMESPACE 
+#define _HTTP_NAMESPACE
 #define _HTTP_NAMESPACE_END
 #endif
 /* HTTP full namespace  */
@@ -71,7 +71,7 @@ HTTP_EXPORT /* Add another bit of data to the block. After adding data,
    Parameters
    pHttpState :  state to add data to
    buffer :      pointer to some data bytes
-   size :        length of data bytes                            
+   size :        length of data bytes                           
    Returns: TRUE if content is added... if collecting chunked encoding may return FALSE.
    */
 LOGICAL HTTPAPI AddHttpData( HTTPState pHttpState, POINTER buffer, size_t size );
@@ -96,6 +96,10 @@ HTTP_EXPORT int HTTPAPI ProcessHttp( PCLIENT pc, HTTPState pHttpState );
 HTTP_EXPORT /* Gets the specific result code at the header of the packet -
    http 2.0 OK sort of thing.                                  */
 PTEXT HTTPAPI GetHttpResponce( HTTPState pHttpState );
+
+/* Get the method of the request in ht e http state.
+*/
+HTTP_EXPORT PTEXT HTTPAPI GetHttpMethod( struct HttpState *pHttpState );
 
 HTTP_EXPORT /*Get the value of a HTTP header field, by name
    Parameters
@@ -218,7 +222,7 @@ struct url_data
 	CTEXTSTR user;
 	CTEXTSTR password;
 	CTEXTSTR host;
-	int default_port;  
+	int default_port;
 	int port;  // encoding RFC3986 http://tools.ietf.org/html/rfc3986  specifies port characters are in the set of digits.
 	//CTEXTSTR port_data;  // during collection, the password may be in the place of 'port'
 	CTEXTSTR resource_path;
