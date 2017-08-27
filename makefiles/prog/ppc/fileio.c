@@ -80,8 +80,12 @@ PFILEDEP FindDependFile( PFILEDEP root, char *filename )
 
 LOGICAL AlreadyLoaded( char *filename )
 {
-	if( FindDependFile( FileDependancyRoot, filename ) )
+	PFILEDEP dep;
+	if( dep = FindDependFile( FileDependancyRoot, filename ) ) {
+		if( dep->bAllowMultipleInclude )
+			return FALSE;
 		return TRUE;
+	}
 	return FALSE;
 }
 
@@ -100,6 +104,7 @@ PFILEDEP AddDepend( PFILEDEP root, char *basename, char *filename )
 		pfd = Allocate( sizeof( FILEDEP ) );
 		strcpy( pfd->base_name, basename );
 		strcpy( pfd->full_name, filename );
+		pfd->bAllowMultipleInclude = FALSE;
 		pfd->pAlso = NULL;
 		pfd->pDependsOn = NULL;
 		pfd->pDependedBy = NULL;

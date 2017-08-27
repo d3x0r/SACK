@@ -760,13 +760,14 @@ int ProcessDefine( int type )
 	}
 	if( g.bDebugLog & DEBUG_SUBST )
 	{
-		fprintf( stderr, WIDE("searching for %s(%zd) ... \n")
+		fprintf( stddbg, WIDE("searching for %s(%zd) ... %s\n")
 				 ,GetText( pCurrentDefine->pName)
 				 , pCurrentDefine->pParams
 				  ? pCurrentDefine->bVarParams
 				  ?-(int)pCurrentDefine->pParams->Cnt
 				  :pCurrentDefine->pParams->Cnt
-				  : 0 );
+				  : 0
+				);
 	}
 
 	{
@@ -796,7 +797,7 @@ int ProcessDefine( int type )
 	HangNode( &pDefineRoot, pCurrentDefine );
 	pCurrentDefine = NULL;
 	if( g.bDebugLog & DEBUG_DEFINES )
-		fprintf( stderr, WIDE("done with define...\n") );
+		fprintf( stddbg, WIDE("done with define...\n") );
 	return TRUE;
 }
 

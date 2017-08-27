@@ -76,6 +76,7 @@ typedef struct global_tag
 #define DEBUG_SUBST 0x02
 #define DEBUG_DEFINES 0x04
 #define DEBUG_READING 0x08
+#define DEBUG_MEMORY 0x10
 
 
 #ifndef CPP_MAIN_SOURCE

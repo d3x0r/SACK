@@ -20,7 +20,6 @@ typedef struct file_tracking_tag
 	struct file_dependancy_tag *pFileDep;
 	int  bBlockComment; // state remains multi-lines
 	int nIfLevel; // level of ifs started when this file is opened.
-
 				  // -- state tracking per file --
 				  /*
 				  int nState;
@@ -35,6 +34,7 @@ typedef struct file_dependancy_tag
 {
 	char full_name[__MAX_PATH__];
 	char base_name[__MAX_PATH__];
+	int bAllowMultipleInclude;
 	struct file_dependancy_tag *pDependedBy  // what file included this
 		, *pDependsOn // first file this one depends on
 		, *pAlso;  // next file which pDepended by depends on

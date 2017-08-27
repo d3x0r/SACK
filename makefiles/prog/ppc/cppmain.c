@@ -151,6 +151,7 @@ int CollapseQuotes( char *string )
 void DumpSegs( PTEXT pOp )
 {
 	PTEXT tmp = pOp;
+	fprintf( stddbg, "SEG:%p", pOp );
 	//if( !g.bDebugLog )
 	//	return;
 	while( tmp )
@@ -717,14 +718,16 @@ int PreProcessLine( void )
 //== DEFINE =======================================================
 		else if( TextLike( pDirective, WIDE("define") ) )
 		{
-			if( g.flags.skip_define_processing ) {
-				SetCurrentWord( pFirstWord );
-				return TRUE;
-			}
 			if( !NEXTLINE( pDirective ) )
 			{
 				fprintf( stderr, WIDE("\"#define\" keyword alone is NOT allowed...") );
 				return FALSE; // can still continue....
+			}
+
+			if( g.flags.skip_define_processing ) {
+				ProcessDefine( DEFINE_ALL );
+				SetCurrentWord( pFirstWord );
+				return TRUE;
 			}
 			ProcessDefine( DEFINE_FILE );
 			if( g.flags.skip_logic_processing ) {
@@ -907,7 +910,11 @@ int PreProcessLine( void )
 			// pragmas occur with all data on a single line.
 			// evaluate substitutions... (already done)
 			PTEXT pOp = GetCurrentWord();
-			if( TextLike( pOp, WIDE("message") ) )
+			if( TextLike( pOp, WIDE( "multiinclude" ) ) )
+			{
+				g.pFileStack->pFileDep->bAllowMultipleInclude = TRUE;
+			}
+			else if( TextLike( pOp, WIDE( "message" ) ) )
 			{
 				PTEXT pOut;
 				pOut = BuildLineEx( NEXTLINE( pOp ), FALSE DBG_SRC );

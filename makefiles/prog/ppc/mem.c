@@ -87,7 +87,7 @@ void *AllocateEx( size_t size DBG_PASS ) {
 	}
 #ifdef _DEBUG
 #ifdef MEMLOG
-	if( g.bDebugLog ) {
+	if( g.bDebugLog & DEBUG_MEMORY ) {
 		fprintf( stddbg, WIDE( "%s(%d): Allocate %zd %p\n" ), pFile, nLine, size, mem->data );
 		fflush( stddbg );
 	}
@@ -121,7 +121,7 @@ void ReleaseExx( void **pp DBG_PASS ) {
 	PMEMBLOCK mem = (PMEMBLOCK)(((char*)p) - offsetof( MEMBLOCK, data ));
 	g.nReleases++;
 #ifdef MEMLOG
-	if( g.bDebugLog ) {
+	if( g.bDebugLog & DEBUG_MEMORY ) {
 #ifdef _DEBUG
 		fprintf( stddbg, WIDE( "%s(%d): Release %p\n" )
 			, pFile, nLine
