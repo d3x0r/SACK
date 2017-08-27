@@ -153,7 +153,7 @@ int UpdateSampleFont( PFONT_DIALOG pfd )
 												 , pfd->nHeight
 												 , (pfd->width_scale)
 												 , (pfd->height_scale)
-												 , pfd->flags.render_depth );
+												 , (pfd->flags.render_depth == 3)?2/*FONT_FLAG_8BIT*/:(pfd->flags.render_depth==2)?1/*FONT_FLAG_2BIT*/:0/*FONT_FLAG_MONO*/ );
 		if( !pfd->pFont )
 		{
 			return FALSE;
