@@ -21,7 +21,7 @@ struct HttpState {
 	// add input into pvt_collector
 	PVARTEXT pvt_collector;
 	PTEXT partial;  // an accumulator that moves data from collector into whatever we've got leftover
-
+	PTEXT method;
 	PTEXT response_status; // the first line of the http responce... (or request)
 	PTEXT resource; // the path of the resource - mostly for when this is used to receive requests.
 	PLIST fields; // list of struct HttpField *, these other the other meta fields in the header.
@@ -48,6 +48,13 @@ struct HttpState {
 	enum ReadChunkState read_chunk_state;
 	uint32_t last_read_tick;
 	PTHREAD waiter;
+	struct httpStateFlags {
+		BIT_FIELD keep_alive : 1;
+		BIT_FIELD close : 1;
+		BIT_FIELD upgrade : 1;
+		BIT_FIELD h2c_upgrade : 1;
+		BIT_FIELD ws_upgrade : 1;
+	}flags;
 };
 
 struct HttpServer {
@@ -72,6 +79,12 @@ struct instance_data {
 	PCLIENT *pc;
 };
 
+PRELOAD( loadOption ) {
+#ifndef __NO_OPTIONS__
+	l.flags.bLogReceived = SACK_GetProfileIntEx( GetProgramName(), WIDE( "SACK/HTTP/Enable Logging Received Data" ), 0, TRUE );
+#endif
+}
+
 void GatherHttpData( struct HttpState *pHttpState )
 {
 	if( pHttpState->content_length )
@@ -82,7 +95,7 @@ void GatherHttpData( struct HttpState *pHttpState )
 		pMergedLine = SegConcat( NULL, pNewLine, 0, GetTextSize( pHttpState->partial ) + GetTextSize( pInput ) );
 		LineRelease( pNewLine );
 		pHttpState->partial = pMergedLine;
-		if( GetTextSize( pHttpState->partial ) >= pHttpState->content_length ) 
+		if( GetTextSize( pHttpState->partial ) >= pHttpState->content_length )
 		{
 			pHttpState->content = SegSplit( &pHttpState->partial, pHttpState->content_length );
 			pHttpState->partial = NEXTLINE( pHttpState->partial );		
@@ -211,6 +224,15 @@ int ProcessHttp( PCLIENT pc, struct HttpState *pHttpState )
 										struct HttpField *field = New( struct HttpField );
 										field->name = SegGrab( field_name );
 										field->value = SegGrab( value );
+										if( TextLike( field->name, "connection" ) )
+										{
+											if( TextLike( field->value, "keep-alive" ) ) {
+												pHttpState->flags.keep_alive = 1;
+											}
+											if( TextLike( field->value, "close" ) ) {
+												pHttpState->flags.close = 1;
+											}
+										}
 										LineRelease( trash );
 										AddLink( &pHttpState->fields, field );
 									}
@@ -238,14 +260,16 @@ int ProcessHttp( PCLIENT pc, struct HttpState *pHttpState )
 										{
 											pHttpState->numeric_code = HTTP_STATE_RESULT_CONTENT; // initialize to assume it's incomplete; NOT OK.  (requests should be OK)
 											request = NEXTLINE( request );
+											pHttpState->method = SegBreak( request );
 										}
 										else if( TextSimilar( request, WIDE( "POST" ) ) )
 										{
 											pHttpState->numeric_code = HTTP_STATE_RESULT_CONTENT; // initialize to assume it's incomplete; NOT OK.  (requests should be OK)
 											lprintf( WIDE("probably shouldn't post final until content length is also received...") );
 											request = NEXTLINE( request );
+											pHttpState->method = SegBreak( request );
 										}
-										// this loop is used for both client and server http requests... 
+										// this loop is used for both client and server http requests...
 										// this will be the first part of a HTTP response (this one will have a result code, the other is just version)
 										else if( TextSimilar( request, WIDE( "HTTP/" ) ) )
 										{
@@ -273,7 +297,12 @@ int ProcessHttp( PCLIENT pc, struct HttpState *pHttpState )
 												}
 											}
 										}
+										else {
+											lprintf( "Unsupported Command:%s", GetText( request ) );
+											request = NEXTLINE( request );
+											pHttpState->method = SegBreak( request );
 
+										}
 										for( tmp = request; tmp; tmp = next )
 										{
 											//lprintf( WIDE( "word %s" ), GetText( tmp ) );
@@ -303,7 +332,7 @@ int ProcessHttp( PCLIENT pc, struct HttpState *pHttpState )
 												else
 												{
 													resource_path = SegAppend( resource_path, SegGrab( tmp ) );
-													if( request == tmp ) request = next;
+													request = next;
 												}
 											}
 										}
@@ -372,7 +401,22 @@ int ProcessHttp( PCLIENT pc, struct HttpState *pHttpState )
 					// down convert from int64_t
 					pHttpState->content_length = (int)IntCreateFromSeg( field->value );
 				}
-				if( TextLike( field->name, WIDE( "Transfer-Encoding" ) ) )
+				else if( TextLike( field->name, WIDE( "upgrade" ) ) )
+				{
+					if( TextLike( field->value, "websocket" ) ) {
+						pHttpState->flags.ws_upgrade = 1;
+					}
+					else if( TextLike( field->value, "h2c" ) ) {
+						pHttpState->flags.h2c_upgrade = 1;
+					}
+				}
+				else if( TextLike( field->name, WIDE( "connection" ) ) )
+				{
+					if( TextLike( field->value, "upgrade" ) ) {
+						pHttpState->flags.upgrade = 1;
+					}
+				}
+				else if( TextLike( field->name, WIDE( "Transfer-Encoding" ) ) )
 				{
 					if( TextLike( field->value, "chunked" ) )
 					{
@@ -383,7 +427,7 @@ int ProcessHttp( PCLIENT pc, struct HttpState *pHttpState )
 						pHttpState->read_chunk_total_length = 0;
 					}
 				}
-				if( TextLike( field->name, WIDE( "Expect" ) ) )
+				else if( TextLike( field->name, WIDE( "Expect" ) ) )
 				{
 					if( TextLike( field->value, WIDE( "100-continue" ) ) )
 					{
@@ -397,11 +441,11 @@ int ProcessHttp( PCLIENT pc, struct HttpState *pHttpState )
 			GatherHttpData( pHttpState );
 		}
 	}
-	if( pHttpState->final && 
-		( ( pHttpState->content_length 
-			&& ( ( GetTextSize( pHttpState->partial ) >= pHttpState->content_length ) 
-				||( GetTextSize( pHttpState->content ) >= pHttpState->content_length ) ) ) 
-			|| ( !pHttpState->content_length ) 
+	if( pHttpState->final &&
+		( ( pHttpState->content_length
+			&& ( ( GetTextSize( pHttpState->partial ) >= pHttpState->content_length )
+				||( GetTextSize( pHttpState->content ) >= pHttpState->content_length ) ) )
+			|| ( !pHttpState->content_length )
 			) )
 	{
 		if( pHttpState->numeric_code == 500 )
@@ -538,9 +582,6 @@ LOGICAL AddHttpData( struct HttpState *pHttpState, POINTER buffer, size_t size )
 struct HttpState *CreateHttpState( void )
 {
 	struct HttpState *pHttpState;
-#ifndef __NO_OPTIONS__
-	l.flags.bLogReceived = SACK_GetProfileIntEx( GetProgramName(), WIDE("SACK/HTTP/Enable Logging Received Data"), 0, TRUE );
-#endif
 
 	pHttpState = New( struct HttpState );
 	MemSet( pHttpState, 0, sizeof( struct HttpState ) );
@@ -554,7 +595,9 @@ void EndHttp( struct HttpState *pHttpState )
 	pHttpState->final = 0;
 
 	pHttpState->content_length = 0;
+	LineRelease( pHttpState->method );
 	LineRelease( pHttpState->content );
+	LineRelease( pHttpState->resource );
 	if( pHttpState->partial != pHttpState->content )
 	{
 		LineRelease( pHttpState->partial );
@@ -642,6 +685,16 @@ PTEXT GetHttpRequest( struct HttpState *pHttpState )
 	return pHttpState->resource;
 }
 
+PTEXT GetHttpResource( struct HttpState *pHttpState )
+{
+	return pHttpState->resource;
+}
+
+PTEXT GetHttpMethod( struct HttpState *pHttpState )
+{
+	return pHttpState->method;
+}
+
 void DestroyHttpState( struct HttpState *pHttpState )
 {
 	EndHttp( pHttpState ); // empties variables
@@ -661,7 +714,7 @@ void SendHttpResponse ( struct HttpState *pHttpState, PCLIENT pc, int numeric, C
 	//TEXTCHAR message[500];
 
 	vtprintf( pvt_message, WIDE( "HTTP/1.1 %d %s\r\n" ), numeric, text );
-	if( content_type )
+	if( content_type && body )
 	{
 		vtprintf( pvt_message, WIDE( "Content-Length: %d\r\n" ), GetTextSize(body));
 		vtprintf( pvt_message, WIDE( "Content-Type: %s\r\n" )
@@ -669,14 +722,14 @@ void SendHttpResponse ( struct HttpState *pHttpState, PCLIENT pc, int numeric, C
 					:(tmp_content=GetHttpField( pHttpState, WIDE("Accept") ))?GetText(tmp_content)
 					:WIDE("text/plain; charset=utf-8")  );
 	}
-	else
-		vtprintf( pvt_message, WIDE( "%s\r\n" ), GetText( body ) );
+	//else
+	//	vtprintf( pvt_message, WIDE( "%s\r\n" ), GetText( body ) );
 	vtprintf( pvt_message, WIDE( "Server: SACK Core Library 2.x\r\n" )  );
 
+	if( body )
+		vtprintf( pvt_message, WIDE( "\r\n" )  );
 
-	vtprintf( pvt_message, WIDE( "\r\n" )  );
-
-	header = VarTextGet( pvt_message );
+	header = VarTextPeek( pvt_message );
 	//offset += snprintf( message + offset, sizeof( message ) - offset, WIDE( "%s" ),  "Body");
 	if( l.flags.bLogReceived )
 	{
@@ -690,6 +743,7 @@ void SendHttpResponse ( struct HttpState *pHttpState, PCLIENT pc, int numeric, C
 	SendTCP( pc, GetText( header ), GetTextSize( header ) );
 	if( content_type )
 		SendTCP( pc, GetText( body ), GetTextSize( body ) );
+	VarTextDestroy( &pvt_message );
 }
 
 void SendHttpMessage ( struct HttpState *pHttpState, PCLIENT pc, PTEXT body )
@@ -957,41 +1011,33 @@ PTEXT GetHttps( PTEXT address, PTEXT url )
 
 static LOGICAL InvokeMethod( PCLIENT pc, struct HttpServer *server, struct HttpState *pHttpState )
 {
-	PTEXT request = TextParse( pHttpState->response_status, WIDE( "?#" ), WIDE( " " ), 1, 1 DBG_SRC );
-	if( TextLike( request, WIDE( "get" ) ) || TextLike( request, WIDE( "post" ) ) )
+	PTEXT method = GetHttpMethod( pHttpState );
+	//PTEXT request = TextParse( pHttpState->response_status, WIDE( "?#" ), WIDE( " " ), 1, 1 DBG_SRC );
+	if( TextLike( method, WIDE( "get" ) ) || TextLike( method, WIDE( "post" ) ) )
 	{
-		//lprintf( "is a get or post? ");
+		LOGICAL (CPROC *f)(uintptr_t, PCLIENT, struct HttpState *, PTEXT);
+		LOGICAL status = FALSE;
+		f = (LOGICAL (CPROC*)(uintptr_t, PCLIENT, struct HttpState *, PTEXT))GetRegisteredProcedureExxx( server->methods, (PCLASSROOT)(GetText( pHttpState->resource ) + 1), "LOGICAL", GetText(method), "(uintptr_t, PCLIENT, struct HttpState *, PTEXT)" );
+		//lprintf( "got for %s %s", (PCLASSROOT)(GetText( pHttpState->resource ) + 1),  GetText( request ) );
+		if( f )
+			status = f( server->psvRequest, pc, pHttpState, pHttpState->content );
+
+		if( !status )
 		{
-			LOGICAL (CPROC *f)(uintptr_t, PCLIENT, struct HttpState *, PTEXT);
-			LOGICAL status = FALSE;
-			//lprintf( "is %s==%s?", name, GetText( pHttpState->resource ) + 1 );
-			//if( CompareMask( name, GetText( pHttpState->resource ) + 1, FALSE ) )
-			{
-				f = (LOGICAL (CPROC*)(uintptr_t, PCLIENT, struct HttpState *, PTEXT))GetRegisteredProcedureExxx( server->methods, (PCLASSROOT)(GetText( pHttpState->resource ) + 1), "LOGICAL", GetText(request), "(uintptr_t, PCLIENT, struct HttpState *, PTEXT)" );
-				//lprintf( "got for %s %s", (PCLASSROOT)(GetText( pHttpState->resource ) + 1),  GetText( request ) );
-				//if( !f )
-				if( f )
-					status = f( server->psvRequest, pc, pHttpState, pHttpState->content );
-			}
-			if( !status )
-			{
-				if( server->handle_request )
-					status = server->handle_request( server->psvRequest, pHttpState );
-			}
-			if( !status )
-			{
-				PTEXT body = SegCreateFromText( WIDE( "<HTML><HEAD><TITLE>Bad Request</TITLE></HEAD><BODY>Resource handler not found" ) );
-				SendHttpResponse( pHttpState, NULL, 404, WIDE("NOT FOUND"), WIDE("text/html"), body );
-				LineRelease( body );
-			}
+			if( server->handle_request )
+				status = server->handle_request( server->psvRequest, pHttpState );
 		}
-		LineRelease( request );
+		if( !status )
+		{
+			DECLTEXT( body, WIDE( "<HTML><HEAD><TITLE>Bad Request</TITLE></HEAD><BODY>Resource handler not found" ) );
+			SendHttpResponse( pHttpState, NULL, 404, WIDE("NOT FOUND"), WIDE("text/html"), (PTEXT)&body );
+		}
 		return 1;
 	}
 	else
 		lprintf( WIDE("not a get or a post?") );
 
-	LineRelease( request );
+	//LineRelease( request );
 	return 0;
 }
 
@@ -1017,13 +1063,22 @@ static void CPROC HandleRequest( PCLIENT pc, POINTER buffer, size_t length )
 		AddHttpData( pHttpState, buffer, length );
 		while( ( result = ProcessHttp( pc, pHttpState ) ) )
 		{
+			int status;
 			struct HttpServer *server = (struct HttpServer *)GetNetworkLong( pc, 0 );
 			//lprintf( "result = %d", result );
 			switch( result )
 			{
 			case HTTP_STATE_RESULT_CONTENT:
-				InvokeMethod( pc, server, pHttpState );
-				EndHttp( pHttpState );
+				status = InvokeMethod( pc, server, pHttpState );
+				if( status
+					&& ( ( pHttpState->response_version == 9 )
+					|| (pHttpState->response_version == 100 && !pHttpState->flags.keep_alive)
+					||( pHttpState->response_version == 101 && pHttpState->flags.close ) ) ) {
+					RemoveClientEx( pc, 0, 1 );
+					return;
+				}
+				else
+					EndHttp( pHttpState );
 				break;
 			case HTTP_STATE_RESULT_CONTINUE:
 				break;
@@ -1060,9 +1115,6 @@ struct HttpServer *CreateHttpsServerEx( CTEXTSTR interface_address, CTEXTSTR Tar
 	struct HttpServer *server = New( struct HttpServer );
 	SOCKADDR *tmp;
 	TEXTCHAR class_name[256];
-#ifndef __NO_OPTIONS__
-	l.flags.bLogReceived = SACK_GetProfileIntEx( GetProgramName(), WIDE( "SACK/HTTP/Enable Logging Received Data" ), 0, TRUE );
-#endif
 	server->clients = NULL;
 	server->handle_request = handle_request;
 	server->psvRequest = psv;
@@ -1095,9 +1147,6 @@ struct HttpServer *CreateHttpServerEx( CTEXTSTR interface_address, CTEXTSTR Targ
 	struct HttpServer *server = New( struct HttpServer );
 	SOCKADDR *tmp;
 	TEXTCHAR class_name[256];
-#ifndef __NO_OPTIONS__
-	l.flags.bLogReceived = SACK_GetProfileIntEx( GetProgramName(), WIDE("SACK/HTTP/Enable Logging Received Data"), 0, TRUE );
-#endif
 	server->clients = NULL;
 	server->handle_request = handle_request;
 	server->psvRequest = psv;
@@ -1133,12 +1182,6 @@ PTEXT GetHTTPField( struct HttpState *pHttpState, CTEXTSTR name )
 	}
 	return NULL;
 }
-
-PTEXT GetHttpResource( struct HttpState *pHttpState )
-{
-	return pHttpState->resource;
-}
-
 
 HTTP_NAMESPACE_END
 #undef l
