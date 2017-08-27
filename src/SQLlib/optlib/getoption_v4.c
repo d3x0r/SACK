@@ -397,7 +397,7 @@ size_t New4GetOptionStringValue( PODBC odbc, POPTION_TREE_NODE optval, TEXTCHAR 
 
 		StrCpyEx( (*buffer), GetText( pResult ), result_len );
 		(*buffer)[result_len-1] = 0;
-		optval->value = StrDup( GetText( pResult ) );
+		//optval->value = StrDup( GetText( pResult ) );
 		LineRelease( pResult );
 		VarTextDestroy( &pvtResult );
 	}
