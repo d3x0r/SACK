@@ -336,7 +336,7 @@ struct ffmpeg_file
 	int ffmpeg_buffers_avail;
 	int ffmpeg_buffers_count;
 	int ffmpeg_buffers_first;
-	int *ffmpeg_buffer_sizes;
+	size_t *ffmpeg_buffer_sizes;
 	uint8_t* *ffmpeg_buffers;
 
 	uint8_t* ffmpeg_buffer;
@@ -746,7 +746,7 @@ static void RequeueAudio( struct ffmpeg_file *file )
 	while( buffer = (struct al_buffer*)DequeLink( &file->al_reque_buffer_queue ) )
 	{
 		samples_added++;
-		openal.alBufferData(buffer->buffer, file->al_format, buffer->samplebuf, buffer->size, file->pAudioCodecCtx->sample_rate);
+		openal.alBufferData(buffer->buffer, file->al_format, buffer->samplebuf, (ALsizei)buffer->size, file->pAudioCodecCtx->sample_rate);
 		openal.alSourceQueueBuffers(file->sound_device->al_source, 1, &buffer->buffer);
 		EnqueLink( &file->al_used_buffer_queue, buffer );
 	}
@@ -927,7 +927,7 @@ static void ClearRequeueAudio( struct ffmpeg_file *file )
 		//LogTime(file, FALSE, WIDE("audio deque") DBG_SRC );
 		EnqueLink( &file->al_free_buffer_queue, buffer );
 		if( GetQueueLength( file->al_free_buffer_queue ) > file->max_in_queue )
-			file->max_in_queue = GetQueueLength( file->al_free_buffer_queue );
+			file->max_in_queue = (int)GetQueueLength( file->al_free_buffer_queue );
 	}
 	{
 		AVPacket *packet;
@@ -1063,7 +1063,7 @@ static void GetAudioBuffer( struct ffmpeg_file * file, POINTER data, size_t sz
 	if( file->videoFrame )
 		SetAudioPlay( file );
 #else
-	openal.alBufferData(buffer->buffer, file->al_format, data, sz, file->pAudioCodecCtx->sample_rate);
+	openal.alBufferData(buffer->buffer, file->al_format, data, (ALsizei)sz, file->pAudioCodecCtx->sample_rate);
 	openal.alSourceQueueBuffers(file->sound_device->al_source, 1, &buffer->buffer);
 	if(( error = openal.alGetError()) != AL_NO_ERROR)
 	{
@@ -1195,12 +1195,12 @@ static void PushBuffer( struct ffmpeg_file *file )
 {
 	if( file->ffmpeg_buffers_count == file->ffmpeg_buffers_avail )
 	{
-		int *new_sizes;
+		size_t *new_sizes;
 		uint8_t* *new_bufs;
 		int n;
 		file->ffmpeg_buffers_avail += 16;
 		new_bufs = NewArray( uint8_t*, file->ffmpeg_buffers_avail );
-		new_sizes = NewArray( int, file->ffmpeg_buffers_avail );
+		new_sizes = NewArray( size_t, file->ffmpeg_buffers_avail );
 		for( n = file->ffmpeg_buffers_first; n < file->ffmpeg_buffers_count; n++ )
 		{
 			new_bufs[n] = file->ffmpeg_buffers[n];
@@ -1256,7 +1256,7 @@ int CPROC ffmpeg_read_packet(void *opaque, uint8_t *buf, int buf_size)
 #endif
 	if( ANDROID_MODE )
 	{
-		int result_size = buf_size;
+		size_t result_size = buf_size;
 		if( buf_size > ( file->ffmpeg_buffer_size - file->ffmpeg_buffer_used ) )
 		{
 			if( file->ffmpeg_buffer_partial )
@@ -1352,7 +1352,7 @@ int CPROC ffmpeg_read_packet(void *opaque, uint8_t *buf, int buf_size)
 	}
 	else
 	{
-		int result_size;
+		size_t result_size;
 		if( file->file_memory ) {
 			if( (file->file_position_index + buf_size) > file->file_size )
 				buf_size = file->file_size - file->file_position_index;
@@ -1360,7 +1360,7 @@ int CPROC ffmpeg_read_packet(void *opaque, uint8_t *buf, int buf_size)
 			file->file_position_index += buf_size;
 		} 
 		else
-			result_size = sack_fread( buf, 1, buf_size, file->file_device );
+			result_size = sack_fread( buf, buf_size, 1, file->file_device );
 
 		//lprintf( WIDE("data copied to read buffer...") );
 		//LogBinary( buf, (256<result_size)?256:result_size );
@@ -1372,7 +1372,7 @@ int CPROC ffmpeg_write_packet(void *opaque, uint8_t *buf, int buf_size)
 {
 	struct ffmpeg_file *file = 	(struct ffmpeg_file *)opaque;
 	if( file->file_device )
-		return sack_fwrite( buf, 1, buf_size, file->file_device );
+		return (int)sack_fwrite( buf, buf_size, 1, file->file_device );
 	return 0;
 }
 
@@ -1423,7 +1423,7 @@ int64_t CPROC ffmpeg_seek(void *opaque, int64_t offset, int whence)
 			{
 				if( whence == 0 && file->ffmpeg_buffers_count )
 				{
-					int tmpofs = offset;
+					size_t tmpofs = offset;
 					int n;
 					lprintf( WIDE("seeking into existing buffers...") );
 					for( n = 0; n < file->ffmpeg_buffers_count; n++ )
@@ -1442,7 +1442,7 @@ int64_t CPROC ffmpeg_seek(void *opaque, int64_t offset, int whence)
 					file->ffmpeg_buffer_used = offset+file->ffmpeg_buffer_used;
 				else
 				{
-					int need_blocks = whence==0?offset:whence==2?(file->file_size-offset):whence==1?(file->ffmpeg_buffer_used+offset ):0;
+					size_t need_blocks = whence==0?offset:whence==2?(file->file_size-offset):whence==1?(file->ffmpeg_buffer_used+offset ):0;
 					lprintf( WIDE("only valid if this seek happens during the first block! this size is %d"), file->ffmpeg_buffer_size );
 					need_blocks = need_blocks - file->ffmpeg_buffer_size;
 					need_blocks = need_blocks - file->ffmpeg_buffer_used_total;
@@ -2092,7 +2092,7 @@ static void LogTime( struct ffmpeg_file *file, LOGICAL video, CTEXTSTR leader, i
 	}
 	//if( pause_wait )
 	//	_lprintf(DBG_RELAY)( WIDE("%s %s"), leader, file->szTime );
-	tnprintf( file->szTime, 256, WIDE("%s%s%s %d %d %d %02")_64fs WIDE(":%02")_64fs WIDE(":%03")_64fs WIDE("A(%02")_64fs WIDE(":%02")_64fs WIDE(".%03")_64fs WIDE(") (%02")_64fs WIDE(".%03")_64fs WIDE(") V: %")_64fs WIDE(" (%02")_64fs WIDE(":%02")_64fs WIDE(".%03")_64fs WIDE(") (%02")_64fs WIDE(":%02")_64fs WIDE(".%03")_64fs WIDE(")")
+	tnprintf( file->szTime, 256, WIDE("%s%s%s %zd %zd %zd %02")_64fs WIDE(":%02")_64fs WIDE(":%03")_64fs WIDE("A(%02")_64fs WIDE(":%02")_64fs WIDE(".%03")_64fs WIDE(") (%02")_64fs WIDE(".%03")_64fs WIDE(") V: %")_64fs WIDE(" (%02")_64fs WIDE(":%02")_64fs WIDE(".%03")_64fs WIDE(") (%02")_64fs WIDE(":%02")_64fs WIDE(".%03")_64fs WIDE(")")
 		, file->flags.need_audio_frame?WIDE("(A)"):WIDE("")
 		, file->flags.need_video_frame?WIDE("(V)"):WIDE("")
 		, file->flags.reading_frames?WIDE("(R)"):WIDE("")
@@ -2473,7 +2473,7 @@ static void OutputFrame( struct ffmpeg_file * file, struct ffmpeg_video_frame *f
 						else if( surface )
 						{
 #ifdef _INVERT_IMAGE
-							int row;
+							uint32_t row;
 							for( row = 0; row < file->output_height; row++ )
 							{
 								memcpy( surface + ( out_surface->y + file->output_height - row - 1 ) * out_surface->pwidth//file->output_width
@@ -2532,10 +2532,10 @@ static uintptr_t CPROC UpdateOutputFrames( PTHREAD thread )
 		frame = (struct ffmpeg_video_frame *)DequeLink( &file->pDecodedVideoFrames );
 
 		if( frame ) {
-			uint64_t now = ffmpeg.av_gettime();
+			int64_t now = ffmpeg.av_gettime();
 			if( now < frame->video_current_pts_time ) {
 				//lprintf( "sleep for %" _64fs, (frame->video_current_pts_time - now) / 1000 );
-				WakeableSleep( ( frame->video_current_pts_time - now ) / 1000 );
+				WakeableSleep( (uint32_t)(( frame->video_current_pts_time - now ) / 1000) );
 			}
 			OutputFrame( file, frame );
 			EnqueLink( &file->pEmptyVideoFrames, frame );
@@ -3012,7 +3012,7 @@ static uintptr_t CPROC ProcessFrames( PTHREAD thread )
 						if( file->flags.using_video_frame || file->flags.video_decoder_sleeping_on_output ) {
 							// it's using a frame, give it some time ... 
 							//lprintf( "sleep...." );
-							WakeableSleep( file->frame_del / 1000 );
+							WakeableSleep( (uint32_t)(file->frame_del / 1000) );
 						}
 					}
 					if( file->videoThread )
@@ -3637,7 +3637,6 @@ void audio_ResumeCapture( struct audio_device *device )
 static uintptr_t CPROC ProcessPlaybackAudioFrame( PTHREAD thread )
 {
 	struct audio_device * file = (struct audio_device*)GetThreadParam( thread );
-	int frameFinished;
 #ifdef DEBUG_LOG_INFO
 	lprintf(WIDE(" This thread is playing audio for %s"), file->filename );
 #endif
@@ -3741,7 +3740,7 @@ static uintptr_t CPROC ProcessPlaybackAudioFrame( PTHREAD thread )
 							//LogTime(file, FALSE, WIDE("audio deque"), 1 DBG_SRC );
 							EnqueLink( &file->al_free_buffer_queue, buffer );
 							if( GetQueueLength( file->al_free_buffer_queue ) > file->max_in_queue )
-								file->max_in_queue = GetQueueLength( file->al_free_buffer_queue );
+								file->max_in_queue = (int)GetQueueLength( file->al_free_buffer_queue );
 						}
 						else
 						{
@@ -3849,7 +3848,7 @@ static void GetPlaybackAudioBuffer( struct audio_device * file, POINTER data, si
 #else
 	EnterCriticalSec( &l.cs_audio_out );
 	openal.alcMakeContextCurrent(file->alc_context);
-	openal.alBufferData(buffer->buffer, file->al_format, data, sz, DEFAULT_SAMPLE_RATE );
+	openal.alBufferData(buffer->buffer, file->al_format, data, (ALsizei)sz, DEFAULT_SAMPLE_RATE );
 	openal.alSourceQueueBuffers(file->al_source, 1, &buffer->buffer); // expects array, so address of buffer int
 	if(( error = openal.alGetError()) != AL_NO_ERROR)
 	{
