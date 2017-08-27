@@ -289,17 +289,17 @@ void  BlatColor ( Image pifDest, int32_t x, int32_t y, uint32_t w, uint32_t h, C
 
 		TranslateCoord( pifDest, &x, &y );
 
-		v1[v][0] = x;
-		v1[v][1] = y;
+		v1[v][0] = (RCOORD)x;
+		v1[v][1] = (RCOORD)y;
 		v1[v][2] = 0.0;
-		v2[v][0] = x+w;
-		v2[v][1] = y;
+		v2[v][0] = (RCOORD)(x+w);
+		v2[v][1] = (RCOORD)y;
 		v2[v][2] = 0.0;
-		v3[v][0] = x;
-		v3[v][1] = y+h;
+		v3[v][0] = (RCOORD)x;
+		v3[v][1] = (RCOORD)(y+h);
 		v3[v][2] = 0.0;
-		v4[v][0] = x+w;
-		v4[v][1] = y+h;
+		v4[v][0] = (RCOORD)(x+w);
+		v4[v][1] = (RCOORD)(y+h);
 		v4[v][2] = 0.0;
 
 		while( pifDest && pifDest->pParent )
@@ -422,17 +422,17 @@ void  BlatColorAlpha ( ImageFile *pifDest, int32_t x, int32_t y, uint32_t w, uin
 
 		TranslateCoord( pifDest, &x, &y );
 
-		v1[v][0] = x;
-		v1[v][1] = y;
+		v1[v][0] = (RCOORD)x;
+		v1[v][1] = (RCOORD)y;
 		v1[v][2] = 0.0;
-		v2[v][0] = x+w;
-		v2[v][1] = y;
+		v2[v][0] = (RCOORD)(x+w);
+		v2[v][1] = (RCOORD)y;
 		v2[v][2] = 0.0;
-		v3[v][0] = x;
-		v3[v][1] = y+h;
+		v3[v][0] = (RCOORD)x;
+		v3[v][1] = (RCOORD)(y+h);
 		v3[v][2] = 0.0;
-		v4[v][0] = x+w;
-		v4[v][1] = y+h;
+		v4[v][0] = (RCOORD)(x+w);
+		v4[v][1] = (RCOORD)(y+h);
 		v4[v][2] = 0.0;
 
 		while( pifDest && pifDest->pParent )
@@ -606,37 +606,37 @@ void SetImageTransformRelation( Image pImage, enum image_translation_relation re
 		pImage->coords[0][1] = 0;
 		pImage->coords[0][2] = 0;
 
-		pImage->coords[1][0] = pImage->width;
+		pImage->coords[1][0] = (RCOORD)pImage->width;
 		pImage->coords[1][1] = 0;
 		pImage->coords[1][2] = 0;
 
-		pImage->coords[2][0] = pImage->width;
-		pImage->coords[2][1] = pImage->height;
+		pImage->coords[2][0] = (RCOORD)pImage->width;
+		pImage->coords[2][1] = (RCOORD)pImage->height;
 		pImage->coords[2][2] = 0;
 
 		pImage->coords[3][0] = 0;
-		pImage->coords[3][1] = pImage->height;
+		pImage->coords[3][1] = (RCOORD)pImage->height;
 		pImage->coords[3][2] = 0;
 		break;
 	case IMAGE_TRANSFORM_RELATIVE_BOTTOM_RIGHT:
-		pImage->coords[0][0] = -pImage->width;
-		pImage->coords[0][1] = -pImage->height;
+		pImage->coords[0][0] = (RCOORD)-pImage->width;
+		pImage->coords[0][1] = (RCOORD)-pImage->height;
 		pImage->coords[0][2] = 0;
 
 		pImage->coords[1][0] = 0;
-		pImage->coords[1][1] = -pImage->height;
+		pImage->coords[1][1] = (RCOORD)-pImage->height;
 		pImage->coords[1][2] = 0;
 
 		pImage->coords[2][0] = 0;
 		pImage->coords[2][1] = 0;
 		pImage->coords[2][2] = 0;
 
-		pImage->coords[3][0] = -pImage->width;
+		pImage->coords[3][0] = (RCOORD)-pImage->width;
 		pImage->coords[3][1] = 0;
 		pImage->coords[3][2] = 0;
 		break;
 	case IMAGE_TRANSFORM_RELATIVE_TOP_RIGHT:
-		pImage->coords[0][0] = -pImage->width;
+		pImage->coords[0][0] = (RCOORD)-pImage->width;
 		pImage->coords[0][1] = 0;
 		pImage->coords[0][2] = 0;
 
@@ -645,23 +645,23 @@ void SetImageTransformRelation( Image pImage, enum image_translation_relation re
 		pImage->coords[1][2] = 0;
 
 		pImage->coords[2][0] = 0;
-		pImage->coords[2][1] = pImage->height;
+		pImage->coords[2][1] = (RCOORD)pImage->height;
 		pImage->coords[2][2] = 0;
 
-		pImage->coords[3][0] = -pImage->width;
-		pImage->coords[3][1] = pImage->height;
+		pImage->coords[3][0] = (RCOORD)-pImage->width;
+		pImage->coords[3][1] = (RCOORD)pImage->height;
 		pImage->coords[3][2] = 0;
 		break;
 	case IMAGE_TRANSFORM_RELATIVE_BOTTOM_LEFT:
 		pImage->coords[0][0] = 0;
-		pImage->coords[0][1] = -pImage->height;
+		pImage->coords[0][1] = (RCOORD)-pImage->height;
 		pImage->coords[0][2] = 0;
 
-		pImage->coords[1][0] = pImage->width;
-		pImage->coords[1][1] = -pImage->height;
+		pImage->coords[1][0] = (RCOORD)pImage->width;
+		pImage->coords[1][1] = (RCOORD)-pImage->height;
 		pImage->coords[1][2] = 0;
 
-		pImage->coords[2][0] = pImage->width;
+		pImage->coords[2][0] = (RCOORD)pImage->width;
 		pImage->coords[2][1] = 0;
 		pImage->coords[2][2] = 0;
 
@@ -670,105 +670,105 @@ void SetImageTransformRelation( Image pImage, enum image_translation_relation re
 		pImage->coords[3][2] = 0;
 		break;
 	case IMAGE_TRANSFORM_RELATIVE_BOTTOM:
-		pImage->coords[0][0] = 0 - (pImage->width/2);
-		pImage->coords[0][1] = 0 - (pImage->height);
+		pImage->coords[0][0] = (RCOORD)- (pImage->width/2);
+		pImage->coords[0][1] = (RCOORD)- (pImage->height);
 		pImage->coords[0][2] = 0;
 
-		pImage->coords[1][0] = pImage->width - (pImage->width/2);
-		pImage->coords[1][1] = 0 - (pImage->height);
+		pImage->coords[1][0] = (RCOORD)(pImage->width - (pImage->width/2));
+		pImage->coords[1][1] = (RCOORD)(0 - (pImage->height));
 		pImage->coords[1][2] = 0;
 
-		pImage->coords[2][0] = pImage->width - (pImage->width/2);
+		pImage->coords[2][0] = (RCOORD)(pImage->width - (pImage->width/2));
 		pImage->coords[2][1] = 0;
 		pImage->coords[2][2] = 0;
 
-		pImage->coords[3][0] = 0 - (pImage->width/2);
+		pImage->coords[3][0] = (RCOORD)(0 - (pImage->width/2));
 		pImage->coords[3][1] = 0;
 		pImage->coords[3][2] = 0;
 		break;
 	case IMAGE_TRANSFORM_RELATIVE_LEFT:
 		pImage->coords[0][0] = 0;
-		pImage->coords[0][1] = 0 - (pImage->height/2);
+		pImage->coords[0][1] = (RCOORD)(0 - (pImage->height/2));
 		pImage->coords[0][2] = 0;
 
-		pImage->coords[1][0] = pImage->width;
-		pImage->coords[1][1] = 0 - (pImage->height/2);
+		pImage->coords[1][0] = (RCOORD)pImage->width;
+		pImage->coords[1][1] = (RCOORD)(0 - (pImage->height/2));
 		pImage->coords[1][2] = 0;
 
-		pImage->coords[2][0] = pImage->width;
-		pImage->coords[2][1] = pImage->height - (pImage->height/2);
+		pImage->coords[2][0] = (RCOORD)pImage->width;
+		pImage->coords[2][1] = (RCOORD)(pImage->height - (pImage->height/2));
 		pImage->coords[2][2] = 0;
 
 		pImage->coords[3][0] = 0;
-		pImage->coords[3][1] = pImage->height - (pImage->height/2);
+		pImage->coords[3][1] = (RCOORD)(pImage->height - (pImage->height/2));
 		pImage->coords[3][2] = 0;
 		break;
 	case IMAGE_TRANSFORM_RELATIVE_TOP:
-		pImage->coords[0][0] = 0 - (pImage->width/2);
+		pImage->coords[0][0] = (RCOORD)(0 - (pImage->width/2));
 		pImage->coords[0][1] = 0;
 		pImage->coords[0][2] = 0;
 
-		pImage->coords[1][0] = pImage->width - (pImage->width/2);
+		pImage->coords[1][0] = (RCOORD)(pImage->width - (pImage->width/2));
 		pImage->coords[1][1] = 0;
 		pImage->coords[1][2] = 0;
 
-		pImage->coords[2][0] = pImage->width - (pImage->width/2);
-		pImage->coords[2][1] = pImage->height;
+		pImage->coords[2][0] = (RCOORD)(pImage->width - (pImage->width/2));
+		pImage->coords[2][1] = (RCOORD)(pImage->height);
 		pImage->coords[2][2] = 0;
 
-		pImage->coords[3][0] = 0 - (pImage->width/2);
-		pImage->coords[3][1] = pImage->height;
+		pImage->coords[3][0] = (RCOORD)(0 - (pImage->width/2));
+		pImage->coords[3][1] = (RCOORD)pImage->height;
 		pImage->coords[3][2] = 0;
 		break;
 	case IMAGE_TRANSFORM_RELATIVE_RIGHT:
-		pImage->coords[0][0] = -pImage->width;
-		pImage->coords[0][1] = 0 - (pImage->height/2);
+		pImage->coords[0][0] = (RCOORD)-pImage->width;
+		pImage->coords[0][1] = (RCOORD)-(pImage->height/2);
 		pImage->coords[0][2] = 0;
 
 		pImage->coords[1][0] = 0;
-		pImage->coords[1][1] = 0 - (pImage->height/2);
+		pImage->coords[1][1] = (RCOORD)- (pImage->height/2);
 		pImage->coords[1][2] = 0;
 
 		pImage->coords[2][0] = 0;
-		pImage->coords[2][1] = pImage->height - (pImage->height/2);
+		pImage->coords[2][1] = (RCOORD)(pImage->height - (pImage->height/2));
 		pImage->coords[2][2] = 0;
 
-		pImage->coords[3][0] = -pImage->width;
-		pImage->coords[3][1] = pImage->height - (pImage->height/2);
+		pImage->coords[3][0] = (RCOORD)-pImage->width;
+		pImage->coords[3][1] = (RCOORD)(pImage->height - (pImage->height/2));
 		pImage->coords[3][2] = 0;
 		break;
 	case IMAGE_TRANSFORM_RELATIVE_CENTER:
-		pImage->coords[0][0] = 0 - (pImage->width/2);
-		pImage->coords[0][1] = 0 - (pImage->height/2);
+		pImage->coords[0][0] = (RCOORD)(0 - (pImage->width/2));
+		pImage->coords[0][1] = (RCOORD)(0 - (pImage->height/2));
 		pImage->coords[0][2] = 0;
 
-		pImage->coords[1][0] = pImage->width - (pImage->width/2);
-		pImage->coords[1][1] = 0 - (pImage->height/2);
+		pImage->coords[1][0] = (RCOORD)(pImage->width - (pImage->width/2));
+		pImage->coords[1][1] = (RCOORD)(0 - (pImage->height/2));
 		pImage->coords[1][2] = 0;
 
-		pImage->coords[2][0] = pImage->width - (pImage->width/2);
-		pImage->coords[2][1] = pImage->height - (pImage->height/2);
+		pImage->coords[2][0] = (RCOORD)(pImage->width - (pImage->width/2));
+		pImage->coords[2][1] = (RCOORD)(pImage->height - (pImage->height/2));
 		pImage->coords[2][2] = 0;
 
-		pImage->coords[3][0] = 0 - (pImage->width/2);
-		pImage->coords[3][1] = pImage->height - (pImage->height/2);
+		pImage->coords[3][0] = (RCOORD)(0 - (pImage->width/2));
+		pImage->coords[3][1] = (RCOORD)(pImage->height - (pImage->height/2));
 		pImage->coords[3][2] = 0;
 		break;
 	case IMAGE_TRANSFORM_RELATIVE_OTHER:
-		pImage->coords[0][0] = 0 - (pImage->width/2);
-		pImage->coords[0][1] = 0 - (pImage->height/2);
+		pImage->coords[0][0] = (RCOORD)(0 - (pImage->width/2));
+		pImage->coords[0][1] = (RCOORD)(0 - (pImage->height/2));
 		pImage->coords[0][2] = 0;
 
-		pImage->coords[1][0] = pImage->width - (pImage->width/2);
-		pImage->coords[1][1] = 0 - (pImage->height/2);
+		pImage->coords[1][0] = (RCOORD)(pImage->width - (pImage->width/2));
+		pImage->coords[1][1] = (RCOORD)(0 - (pImage->height/2));
 		pImage->coords[1][2] = 0;
 
-		pImage->coords[2][0] = pImage->width - (pImage->width/2);
-		pImage->coords[2][1] = pImage->height - (pImage->height/2);
+		pImage->coords[2][0] = (RCOORD)(pImage->width - (pImage->width/2));
+		pImage->coords[2][1] = (RCOORD)(pImage->height - (pImage->height/2));
 		pImage->coords[2][2] = 0;
 
-		pImage->coords[3][0] = 0 - (pImage->width/2);
-		pImage->coords[3][1] = pImage->height - (pImage->height/2);
+		pImage->coords[3][0] = (RCOORD)(0 - (pImage->width/2));
+		pImage->coords[3][1] = (RCOORD)(pImage->height - (pImage->height/2));
 		pImage->coords[3][2] = 0;
 		if( aux )
 		{

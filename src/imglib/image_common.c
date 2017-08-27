@@ -783,7 +783,7 @@ Image DecodeMemoryToImage( uint8_t* buf, uint32_t size )
 
 ImageFile*  LoadImageFileFromGroupEx ( INDEX group, CTEXTSTR filename DBG_PASS )
 {
-	uint32_t size;
+	size_t size;
 	uint8_t* buf;
 	ImageFile* file = NULL;
 	FILE* fp;
@@ -1184,13 +1184,13 @@ void SetImageRotation( Image pImage, int edge_flag, RCOORD offset_x, RCOORD offs
 	if( edge_flag & IMAGE_ROTATE_FLAG_TOP )
 		y = 0;
 	else if( edge_flag & IMAGE_ROTATE_FLAG_BOTTOM )
-		y = pImage->real_height;
+		y = (int)pImage->real_height;
 	else
 		y = ((RCOORD)pImage->real_height) / 2;
 	if( edge_flag & IMAGE_ROTATE_FLAG_LEFT )
 		x = 0;
 	else if( edge_flag & IMAGE_ROTATE_FLAG_RIGHT )
-		x = pImage->real_width;
+		x = (int)pImage->real_width;
 	else
 		x = ((RCOORD)pImage->real_width) / 2;
 	Translate( trans, x, y, 0.0 );
