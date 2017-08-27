@@ -126,7 +126,7 @@ PRIORITY_PRELOAD( InitNetworkGlobal, CONFIG_SCRIPT_PRELOAD_PRIORITY - 1 )
 
 //----------------------------------------------------------------------------
 // forward declaration for the window proc...
-_TCP_NAMESPACE 
+_TCP_NAMESPACE
 void AcceptClient(PCLIENT pc);
 int TCPWriteEx(PCLIENT pc DBG_PASS);
 #define TCPWrite(pc) TCPWriteEx(pc DBG_SRC)
@@ -236,8 +236,8 @@ NETWORK_PROC( int, GetMacAddress)(PCLIENT pc, uint8_t* buf, size_t *buflen )//in
 	//needs ws2_32.lib and iphlpapi.lib in the linker.
 	hr = SendARP ( (IPAddr)GetNetworkLong(pc,GNL_MYIP), (IPAddr)GetNetworkLong(pc,GNL_MYIP), (PULONG)buf, &ulLen);
 	(*buflen) = ulLen;
-//  The second parameter of SendARP is a PULONG, which is typedef'ed to a pointer to 
-//  an unsigned long.  The pc->hwClient is a pointer to an array of uint8_t (unsigned chars), 
+//  The second parameter of SendARP is a PULONG, which is typedef'ed to a pointer to
+//  an unsigned long.  The pc->hwClient is a pointer to an array of uint8_t (unsigned chars),
 //  actually defined in netstruc.h as uint8_t hwClient[6]; Well, in the end, they are all
 //  just addresses, whether they be address to information of eight bits in length, or
 //  of (sizeof(unsigned)) in length.  Although this may, in the future, throw a warning.
@@ -330,8 +330,8 @@ NETWORK_PROC( PLIST, GetMacAddresses)( void )//int get_mac_addr (char *device, u
 
 	//needs ws2_32.lib and iphlpapi.lib in the linker.
 	hr = SendARP ((IPAddr)GetNetworkLong(NULL,GNL_IP), 0x100007f, (PULONG)&hwClient, &ulLen);
-//  The second parameter of SendARP is a PULONG, which is typedef'ed to a pointer to 
-//  an unsigned long.  The pc->hwClient is a pointer to an array of uint8_t (unsigned chars), 
+//  The second parameter of SendARP is a PULONG, which is typedef'ed to a pointer to
+//  an unsigned long.  The pc->hwClient is a pointer to an array of uint8_t (unsigned chars),
 //  actually defined in netstruc.h as uint8_t hwClient[6]; Well, in the end, they are all
 //  just addresses, whether they be address to information of eight bits in length, or
 //  of (sizeof(unsigned)) in length.  Although this may, in the future, throw a warning.
@@ -573,7 +573,7 @@ void ClearClient( PCLIENT pc )
 	ReleaseAddress( pc->saSource );
 
 	// sets socket to 0 - so it's not quite == INVALID_SOCKET
-#if LOG_NETWORK_EVENT_THREAD
+#ifdef LOG_NETWORK_EVENT_THREAD
 	if( globalNetworkData.flags.bLogNotices )
 		lprintf( WIDE( "Clear Client %p" ), pc );
 #endif
@@ -607,6 +607,9 @@ void TerminateClosedClientEx( PCLIENT pc DBG_PASS )
 #ifdef VERBOSE_DEBUG
 			lprintf( WIDE( "close socket." ) );
 #endif
+#if defined( USE_WSA_EVENTS )
+			WSACloseEvent( pc->event );
+#endif
 			closesocket( pc->Socket );
 			while( pc->lpFirstPending )
 			{
@@ -618,18 +621,14 @@ void TerminateClosedClientEx( PCLIENT pc DBG_PASS )
 				if( pc->lpFirstPending != &pc->FirstWritePending )
 				{
 #ifdef LOG_PENDING
-					{
-						lprintf( WIDE(WIDE( "Data queued...Deleting in remove." )) );
-					}
+					lprintf( WIDE(WIDE( "Data queued...Deleting in remove." )) );
 #endif
 					Deallocate( PendingBuffer*, pc->lpFirstPending);
 				}
 				else
 				{
 #ifdef LOG_PENDING
-					{
-						lprintf( WIDE("Normal send queued...Deleting in remove.") );
-					}
+					lprintf( WIDE("Normal send queued...Deleting in remove.") );
 #endif
 				}
 				if (!lpNext)
@@ -889,7 +888,7 @@ void HandleEvent( PCLIENT pClient )
 		return;
 	}
 	pClient->dwFlags |= CF_PROCESSING;
-#if LOG_NETWORK_EVENT_THREAD
+#ifdef LOG_NETWORK_EVENT_THREAD
 	if( globalNetworkData.flags.bLogNotices )
 		lprintf( WIDE( "Client event on %p" ), pClient );
 #endif
@@ -900,8 +899,10 @@ void HandleEvent( PCLIENT pClient )
 			{
 				if( networkEvents.lNetworkEvents & FD_READ )
 				{
+#ifdef LOG_NOTICES
 					if( globalNetworkData.flags.bLogNotices )
 						lprintf( WIDE( "Got UDP FD_READ" ) );
+#endif
 					FinishUDPRead( pClient );
 				}
 			}
@@ -931,7 +932,7 @@ void HandleEvent( PCLIENT pClient )
 #endif
 				// if an unknown socket issued a
 				// notification - close it - unknown handling of unknown socket.
-#if LOG_NETWORK_EVENT_THREAD
+#ifdef LOG_NETWORK_EVENT_THREAD
 				if( globalNetworkData.flags.bLogNotices )
 					lprintf( WIDE( "events : %08x on %p" ), networkEvents.lNetworkEvents, pClient );
 #endif
@@ -939,14 +940,18 @@ void HandleEvent( PCLIENT pClient )
 				{
 					{
 						uint16_t wError = networkEvents.iErrorCode[FD_CONNECT_BIT];
+#ifdef LOG_NOTICES
 						if( globalNetworkData.flags.bLogNotices )
 							lprintf( WIDE("FD_CONNECT on %p"), pClient );
+#endif
 						if( !wError )
 							pClient->dwFlags |= CF_CONNECTED;
 						else
 						{
+#ifdef LOG_NOTICES
 							if( globalNetworkData.flags.bLogNotices )
 								lprintf( WIDE("Connect error: %d"), wError );
+#endif
 							pClient->dwFlags |= CF_CONNECTERROR;
 						}
 						if( !( pClient->dwFlags & CF_CONNECTERROR ) )
@@ -962,8 +967,10 @@ void HandleEvent( PCLIENT pClient )
 						pClient->dwFlags &= ~CF_CONNECTING;
 						if( pClient->connect.ThisConnected )
 						{
+#ifdef LOG_NOTICES
 							if( globalNetworkData.flags.bLogNotices )
 								lprintf( WIDE( "Post connect to application %p  error:%d" ), pClient, wError );
+#endif
 							if( pClient->dwFlags & CF_CPPCONNECT )
 								pClient->connect.CPPThisConnected( pClient->psvConnect, wError );
 							else
@@ -983,15 +990,19 @@ void HandleEvent( PCLIENT pClient )
 						}
 						if( pClient->pWaiting )
 							WakeThread( pClient->pWaiting );
+#ifdef LOG_NOTICES
 						if( globalNetworkData.flags.bLogNotices )
 							lprintf( WIDE( "FD_CONNECT Completed" ) );
+#endif
 						//lprintf( WIDE("Returned from application inital read complete.") );
 					}
 				}
 				if( networkEvents.lNetworkEvents & FD_READ )
 				{
+#ifdef LOG_NOTICES
 					if( globalNetworkData.flags.bLogNotices )
 						lprintf( WIDE( "FD_READ" ) );
+#endif
 					if( pClient->bDraining )
 					{
 						TCPDrainRead( pClient );
@@ -1013,8 +1024,10 @@ void HandleEvent( PCLIENT pClient )
 				}
 				if( networkEvents.lNetworkEvents & FD_WRITE )
 				{
+#ifdef LOG_NOTICES
 					if( globalNetworkData.flags.bLogNotices )
 						lprintf( WIDE("FD_Write") );
+#endif
 					TCPWrite(pClient);
 				}
 
@@ -1026,7 +1039,7 @@ void HandleEvent( PCLIENT pClient )
 						// act of reading can result in a close...
 						// there are things like IE which close and send
 						// adn we might get the close notice at application level indicating there might still be data...
-						while( ( bytes_read = FinishPendingRead( pClient DBG_SRC) ) > 0 
+						while( ( bytes_read = FinishPendingRead( pClient DBG_SRC) ) > 0
 							&& bytes_read != (size_t)-1 ); // try and read...
 						//if( pClient->dwFlags & CF_TOCLOSE )
 						{
@@ -1034,8 +1047,10 @@ void HandleEvent( PCLIENT pClient )
 							//InternalRemoveClientEx( pc, TRUE, FALSE );
 						}
 					}
+#ifdef LOG_NOTICES
 					if( globalNetworkData.flags.bLogNotices )
 						lprintf(WIDE( "FD_CLOSE... %p" ), pClient );
+#endif
 					if( pClient->dwFlags & CF_ACTIVE )
 					{
 						// might already be cleared and gone..
@@ -1047,8 +1062,10 @@ void HandleEvent( PCLIENT pClient )
 				}
 				if( networkEvents.lNetworkEvents & FD_ACCEPT )
 				{
+#ifdef LOG_NOTICES
 					if( globalNetworkData.flags.bLogNotices )
 						lprintf( WIDE("FD_ACCEPT on %p"), pClient );
+#endif
 					AcceptClient(pClient);
 				}
 				//lprintf( WIDE("leaveing event handler...") );
@@ -1089,7 +1106,7 @@ NETWORK_PROC( void, SetNetworkWriteComplete)( PCLIENT pClient,
 //----------------------------------------------------------------------------
 
 NETWORK_PROC( void, SetCPPNetworkWriteComplete)( PCLIENT pClient
-                                         , cppWriteComplete WriteComplete 
+                                         , cppWriteComplete WriteComplete
                                          , uintptr_t psv)
 {                                        
 	if( pClient && IsValid( pClient->Socket ) )
@@ -1114,7 +1131,7 @@ NETWORK_PROC( void, SetNetworkCloseCallback)( PCLIENT pClient,
 //----------------------------------------------------------------------------
 
 NETWORK_PROC( void, SetCPPNetworkCloseCallback)( PCLIENT pClient
-                                         , cppCloseCallback CloseCallback 
+                                         , cppCloseCallback CloseCallback
                                          , uintptr_t psv)
 {
 	if( pClient && IsValid(pClient->Socket) )
@@ -1139,7 +1156,7 @@ NETWORK_PROC( void, SetNetworkReadComplete)( PCLIENT pClient,
 //----------------------------------------------------------------------------
 
 NETWORK_PROC( void, SetCPPNetworkReadComplete)( PCLIENT pClient
-                                        , cppReadComplete pReadComplete 
+                                        , cppReadComplete pReadComplete
                                         , uintptr_t psv)
 {
 	if( pClient && IsValid(pClient->Socket) )
@@ -1164,7 +1181,7 @@ static void ClearThreadEvents( struct peer_thread_info *info )
 {
 	struct peer_thread_info *first_peer = info;
 	struct peer_thread_info *peer;
-#if LOG_NETWORK_EVENT_THREAD
+#ifdef LOG_NETWORK_EVENT_THREAD
 	if( globalNetworkData.flags.bLogNotices )
 		lprintf( WIDE( "Clear Events." ) );
 #endif
@@ -1173,7 +1190,7 @@ static void ClearThreadEvents( struct peer_thread_info *info )
 		PCLIENT next;
 		for( pc = globalNetworkData.ClosedClients; pc; pc = next )
 		{
-#if LOG_NETWORK_EVENT_THREAD
+#ifdef LOG_NETWORK_EVENT_THREAD
 			if( globalNetworkData.flags.bLogNotices )
 				lprintf( WIDE( "reclaim closed client... %p" ), pc );
 #endif
@@ -1221,7 +1238,7 @@ static void AddThreadEvent( PCLIENT pc, struct peer_thread_info *info )
 
 	if( pc->dwFlags & CF_PROCESSING )
 	{
-#if LOG_NETWORK_EVENT_THREAD
+#ifdef LOG_NETWORK_EVENT_THREAD
 		if( globalNetworkData.flags.bLogNotices )
 			lprintf( WIDE("This is a socket that is processing, don't put in schedule.") );
 #endif
@@ -1239,7 +1256,7 @@ static void AddThreadEvent( PCLIENT pc, struct peer_thread_info *info )
 
 	if( !peer )
 	{
-#if LOG_NETWORK_EVENT_THREAD
+#ifdef LOG_NETWORK_EVENT_THREAD
 		if( globalNetworkData.flags.bLogNotices )
 			lprintf( WIDE( "Now at event capacity, creating another thread" ) );
 #endif
@@ -1265,7 +1282,7 @@ static void WakeNewThreadEvents( struct peer_thread_info *info )
 {
 	struct peer_thread_info *first_peer = info;
 	struct peer_thread_info *peer;
-#if LOG_NETWORK_EVENT_THREAD
+#ifdef LOG_NETWORK_EVENT_THREAD
 	if( globalNetworkData.flags.bLogNotices )
 		lprintf( WIDE( "Wake New Events." ) );
 #endif
@@ -1277,7 +1294,7 @@ static void WakeNewThreadEvents( struct peer_thread_info *info )
 		// this will be the parent of all; so his parent will be null, and we're already awake.
 		if( peer->parent_peer && peer->nEvents != peer->nWaitEvents )
 		{
-#if LOG_NETWORK_EVENT_THREAD
+#ifdef LOG_NETWORK_EVENT_THREAD
 			if( globalNetworkData.flags.bLogNotices )
 				lprintf( WIDE( "wake parent thread %p" ), peer );
 #endif
@@ -1311,7 +1328,7 @@ int CPROC ProcessNetworkMessages( struct peer_thread_info *thread, uintptr_t qui
 		//static PLIST clients = NULL; // clients are added parallel, so events are in order too.
 		PCLIENT pc;
 		// disallow changing of the lists.
-#if LOG_NETWORK_EVENT_THREAD
+#ifdef LOG_NETWORK_EVENT_THREAD
 		if( globalNetworkData.flags.bLogNotices )
 			lprintf( WIDE("End - thread processing") );
 #endif
@@ -1339,7 +1356,7 @@ int CPROC ProcessNetworkMessages( struct peer_thread_info *thread, uintptr_t qui
 						lprintf(WIDE( " Found closed? %p" ), pc );
 						continue;
 					}
-#if LOG_NETWORK_EVENT_THREAD
+#ifdef LOG_NETWORK_EVENT_THREAD
 					if( globalNetworkData.flags.bLogNotices )
 						lprintf( WIDE( "Added to schedule : %p" ), pc );
 #endif
@@ -1398,7 +1415,7 @@ int CPROC ProcessNetworkMessages( struct peer_thread_info *thread, uintptr_t qui
 		{
 			int32_t result;
 			// want to wait here anyhow...
-#if LOG_NETWORK_EVENT_THREAD
+#ifdef LOG_NETWORK_EVENT_THREAD
 			if( globalNetworkData.flags.bLogNotices )
 				lprintf( WIDE( "%p Waiting on %d events" ), thread, thread->nEvents );
 #endif
@@ -1413,14 +1430,14 @@ int CPROC ProcessNetworkMessages( struct peer_thread_info *thread, uintptr_t qui
 			// where we probably do want to be woken on a 0 event.
 			if( result != WSA_WAIT_EVENT_0 )
 			{
-#if LOG_NETWORK_EVENT_THREAD
+#ifdef LOG_NETWORK_EVENT_THREAD
 				if( globalNetworkData.flags.bLogNotices )
 					lprintf( WIDE("Begin - thread processing %d"), result );
 #endif
 				thread->flags.bProcessing = 1;
 				thread->nWaitEvents = 0;
 			}
-#if LOG_NETWORK_EVENT_THREAD
+#ifdef LOG_NETWORK_EVENT_THREAD
 			if( globalNetworkData.flags.bLogNotices )
 				lprintf( WIDE("Event Wait Result was %d"), result );
 #endif
@@ -1926,7 +1943,7 @@ int CPROC ProcessNetworkMessages( struct peer_thread_info *thread, uintptr_t unu
 					if( !pc->bDraining )
 					{
 						size_t bytes_read;
-						while( ( bytes_read = FinishPendingRead( pc DBG_SRC ) ) > 0 
+						while( ( bytes_read = FinishPendingRead( pc DBG_SRC ) ) > 0
 								&& bytes_read != (size_t)-1 ); // try and read...
 					}
 #ifdef LOG_NOTICES
@@ -2486,7 +2503,7 @@ SOCKADDR *CreateRemote( CTEXTSTR lpName,uint16_t nHisPort)
 	int conversion_success = FALSE;
 #ifdef UNICODE
 	char *_lpName = CStrDup( lpName );
-#  define lpName _lpName 
+#  define lpName _lpName
 #endif
 #ifndef WIN32
 	PHOSTENT phe;
@@ -2643,7 +2660,7 @@ SOCKADDR *CreateRemote( CTEXTSTR lpName,uint16_t nHisPort)
 	}
 #ifdef UNICODE
 	Deallocate( char *, _lpName );
-#  undef lpName 
+#  undef lpName
 #endif
 	// put in his(destination) port number...
 	lpsaAddr->sin_port         = htons(nHisPort);
@@ -2660,7 +2677,7 @@ NETWORK_PROC( void, DumpAddrEx)( CTEXTSTR name, SOCKADDR *sa DBG_PASS )
 		LogBinary( (uint8_t *)sa, SOCKADDR_LENGTH( sa ) );
 		if( sa->sa_family == AF_INET ) {
 			lprintf( WIDE("%s: (%s) %03d %03d.%03d.%03d.%03d "), name
-					, ( ((uintptr_t*)sa)[-1] & 0xFFFF0000 )?( ((char**)sa)[-1] ) : "no name" 
+					, ( ((uintptr_t*)sa)[-1] & 0xFFFF0000 )?( ((char**)sa)[-1] ) : "no name"
 					  //*(((unsigned char *)sa)+0),
 					  //*(((unsigned char *)sa)+1),
 					  , ntohs(*(((unsigned short *)((unsigned char*)sa+2))))
@@ -2673,7 +2690,7 @@ NETWORK_PROC( void, DumpAddrEx)( CTEXTSTR name, SOCKADDR *sa DBG_PASS )
 			lprintf( WIDE( "Socket address binary: %s" ), name );
 			lprintf( WIDE("%s: (%s) %03d %04x:%04x:%04x:%04x:%04x:%04x:%04x:%04x ")
 					 , name
-					, ( ((uintptr_t*)sa)[-1] & 0xFFFF0000 )?( ((char**)sa)[-1] ) : "no name" 
+					, ( ((uintptr_t*)sa)[-1] & 0xFFFF0000 )?( ((char**)sa)[-1] ) : "no name"
 					 , ntohs(*(((unsigned short *)((unsigned char*)sa+2))))
 					 , ntohs(*(((unsigned short *)((unsigned char*)sa+8))))
 					 , ntohs(*(((unsigned short *)((unsigned char*)sa+10))))
@@ -3060,9 +3077,12 @@ void InternalRemoveClientExx(PCLIENT lpClient, LOGICAL bBlockNofity, LOGICAL bLi
 			}
 			if( 1 )
 			{
+				// www.serverframework.com/asynchronousevents/2011/01/time-wait-and-its-design-implications-for-protocols-and-scalable-servers.html
+				//  the idea is to NEVER do this; but I had to do this for lots of parallel connections that were short lived...
+				// windows registry http://technet.microsoft.com/en-us/library/cc938217.aspx 240 seconds time_wait timeout
 				struct linger lingerSet;
 				lingerSet.l_onoff = 1; // on , with no time = off.
-				lingerSet.l_linger = 0;
+				lingerSet.l_linger = 0; // 0 timeout sends reset.
 				// set server to allow reuse of socket port
 				if (setsockopt(lpClient->Socket, SOL_SOCKET, SO_LINGER,
 									(char*)&lingerSet, sizeof(lingerSet)) <0 )
@@ -3070,6 +3090,19 @@ void InternalRemoveClientExx(PCLIENT lpClient, LOGICAL bBlockNofity, LOGICAL bLi
 					lprintf( WIDE( "error setting no linger in close." ) );
 					//cerr << "NFMSim:setHost:ERROR: could not set socket to linger." << endl;
 				}
+			}
+		}
+		else {
+			struct linger lingerSet;
+			// linger ON causes delay on close... otherwise close returns immediately
+			lingerSet.l_onoff = 0; // on , with no time = off.
+			lingerSet.l_linger = 0;
+			// set server to allow reuse of socket port
+			if( setsockopt( lpClient->Socket, SOL_SOCKET, SO_LINGER,
+				(char*)&lingerSet, sizeof( lingerSet ) ) <0 )
+			{
+				lprintf( WIDE( "error setting no linger in close." ) );
+				//cerr << "NFMSim:setHost:ERROR: could not set socket to linger." << endl;
 			}
 		}
 

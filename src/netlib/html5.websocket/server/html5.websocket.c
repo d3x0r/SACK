@@ -19,7 +19,7 @@ HTML5_WEBSOCKET_NAMESPACE
 typedef struct html5_web_socket *HTML5WebSocket;
 
 struct html5_web_socket {
-   uint32_t Magic; // this value must be 0x20130912
+	uint32_t Magic; // this value must be 0x20130912
 	HTTPState http_state;
 	PCLIENT pc;
 	struct web_socket_flags
@@ -28,8 +28,8 @@ struct html5_web_socket {
 		BIT_FIELD rfc6455 : 1;
 	} flags;
 
-   struct web_socket_input_state input_state;
-   struct web_socket_output_state output_state;
+	struct web_socket_input_state input_state;
+	struct web_socket_output_state output_state;
 };
 
 const TEXTCHAR *base64 = WIDE("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=");
