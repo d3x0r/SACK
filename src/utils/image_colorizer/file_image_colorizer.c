@@ -51,7 +51,7 @@ SaneWinMain( argc, argv )
 				BlotImageSizedEx( out, image, 0, 0, x, y, width, height, ALPHA_TRANSPARENT, BLOT_MULTISHADE, cred, cgreen, cblue );
 
 				{
-					int size;
+					size_t size;
 					uint8_t *buf;
 					if( PngImageFile( out, &buf, &size ) )
 					{
