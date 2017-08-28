@@ -204,14 +204,14 @@ static int CPROC inflateBackOutput( void* state, unsigned char *output, unsigned
 }
 
 /* opcodes
-      *  %x0 denotes a continuation frame
-      *  %x1 denotes a text frame
-      *  %x2 denotes a binary frame
-      *  %x3-7 are reserved for further non-control frames
-      *  %x8 denotes a connection close
-      *  %x9 denotes a ping
-      *  %xA denotes a pong
-      *  %xB-F are reserved for further control frames
+ *  %x0 denotes a continuation frame
+ *  %x1 denotes a text frame
+ *  %x2 denotes a binary frame
+ *  %x3-7 are reserved for further non-control frames
+ *  %x8 denotes a connection close
+ *  %x9 denotes a ping
+ *  %xA denotes a pong
+ *  %xB-F are reserved for further control frames
 */
 void ProcessWebSockProtocol( WebSocketInputState websock, PCLIENT pc, const uint8_t* msg, size_t length )
 {
@@ -479,34 +479,64 @@ void WebSocketSendText( PCLIENT pc, CPOINTER buffer, size_t length ) // UTF8 RFC
 // there is a control bit for whether the content is text or binary or a continuation
 void WebSocketBeginSendText( PCLIENT pc, CPOINTER buffer, size_t length ) // UTF8 RFC3629
 {
-   struct web_socket_output_state *output = (struct web_socket_output_state *)GetNetworkLong(pc, 1);
+	struct web_socket_output_state *output = (struct web_socket_output_state *)GetNetworkLong(pc, 1);
 #ifdef _UNICODE
-   int real_len = CStrLen( outbuf );
-   //lprintf( WIDE( "send %s"), buffer );
-   SendWebSocketMessage( pc, output->flags.sent_type?0:1, 1, output->flags.expect_masking, (uint8_t*)outbuf, length, output->flags.use_ssl );
-   Deallocate( char *, outbuf );
+	int real_len = CStrLen( outbuf );
+	//lprintf( WIDE( "send %s"), buffer );
+	SendWebSocketMessage( pc, output->flags.sent_type?0:1, 1, output->flags.expect_masking, (uint8_t*)outbuf, length, output->flags.use_ssl );
+	Deallocate( char *, outbuf );
 #else
-   SendWebSocketMessage( pc, output->flags.sent_type?0:1, 0, output->flags.expect_masking, (const uint8_t*)buffer, length, output->flags.use_ssl );
+	SendWebSocketMessage( pc, output->flags.sent_type?0:1, 0, output->flags.expect_masking, (const uint8_t*)buffer, length, output->flags.use_ssl );
 #endif
-   output->flags.sent_type = 1;
+	output->flags.sent_type = 1;
 
 }
 
 // literal binary sending; this may happen to be base64 encoded too
 void WebSocketSendBinary( PCLIENT pc, CPOINTER buffer, size_t length )
 {
-   struct web_socket_output_state *output = (struct web_socket_output_state *)GetNetworkLong(pc, 1);
-   SendWebSocketMessage( pc, output->flags.sent_type?0:2, 1, output->flags.expect_masking, (const uint8_t*)buffer, length, output->flags.use_ssl );
+	struct web_socket_output_state *output = (struct web_socket_output_state *)GetNetworkLong(pc, 1);
+	SendWebSocketMessage( pc, output->flags.sent_type?0:2, 1, output->flags.expect_masking, (const uint8_t*)buffer, length, output->flags.use_ssl );
+	output->flags.sent_type = 0;
 }
 
 // literal binary sending; this may happen to be base64 encoded too
 void WebSocketBeginSendBinary( PCLIENT pc, CPOINTER buffer, size_t length )
 {
-   struct web_socket_output_state *output = (struct web_socket_output_state *)GetNetworkLong(pc, 1);
-   SendWebSocketMessage( pc, output->flags.sent_type?0:2, 0, output->flags.expect_masking, (const uint8_t*)buffer, length, output->flags.use_ssl );
-   output->flags.sent_type = 1;
+	struct web_socket_output_state *output = (struct web_socket_output_state *)GetNetworkLong(pc, 1);
+	SendWebSocketMessage( pc, output->flags.sent_type?0:2, 0, output->flags.expect_masking, (const uint8_t*)buffer, length, output->flags.use_ssl );
+	output->flags.sent_type = 1;
 }
 
+void SetWebSocketAcceptCallback( PCLIENT pc, web_socket_accept callback )
+{
+	if( pc ) {
+		struct web_socket_input_state *input_state = (struct web_socket_input_state*)GetNetworkLong( pc, 2 );
+		input_state->on_accept = callback;
+	}
+}
 
+void SetWebSocketReadCallback( PCLIENT pc, web_socket_event callback )
+{
+	if( pc ) {
+		struct web_socket_input_state *input_state = (struct web_socket_input_state*)GetNetworkLong( pc, 2 );
+		input_state->on_event = callback;
+	}
+}
 
+void SetWebSocketCloseCallback( PCLIENT pc, web_socket_closed callback )
+{
+	if( pc ) {
+		struct web_socket_input_state *input_state = (struct web_socket_input_state*)GetNetworkLong( pc, 2 );
+		input_state->on_close = callback;
+	}
+}
+
+void SetWebSocketErrorCallback( PCLIENT pc, web_socket_error callback )
+{
+	if( pc ) {
+		struct web_socket_input_state *input_state = (struct web_socket_input_state*)GetNetworkLong( pc, 2 );
+		input_state->on_error = callback;
+	}
+}
 
