@@ -10,7 +10,7 @@
 #endif
 
 
-void SendWebSocketMessage( PCLIENT pc, int opcode, int final, int do_mask, const uint8_t* payload, size_t length, int use_ssl )
+static void _SendWebSocketMessage( PCLIENT pc, int opcode, int final, int do_mask, const uint8_t* payload, size_t length, int use_ssl )
 {
 	uint8_t* msgout;
 	uint8_t* use_mask;
@@ -54,8 +54,7 @@ void SendWebSocketMessage( PCLIENT pc, int opcode, int final, int do_mask, const
 	}
 
 	msgout = NewArray( uint8_t, length_out );
-	MemSet( msgout, 0x12345678, length_out );
-	msgout[0] = (final?0x80:0x00) | opcode;
+	msgout[0] = opcode;
 	if( length > 125 )
 	{
 		if( length > 32767 )
@@ -100,9 +99,26 @@ void SendWebSocketMessage( PCLIENT pc, int opcode, int final, int do_mask, const
 	{
 		size_t n;
 		uint8_t* data_out = msgout + (length_out-length);
-		for( n = 0; n < length; n++ )
+		size_t mlen = length / 4;
+		for( n = 0; n < mlen; n++ )
 		{
-			(*data_out++) = payload[n] ^ use_mask[n&3];
+			(*data_out++) = (*payload++) ^ use_mask[0];
+			(*data_out++) = (*payload++) ^ use_mask[1];
+			(*data_out++) = (*payload++) ^ use_mask[2];
+			(*data_out++) = (*payload++) ^ use_mask[3];
+		}
+		n <<= 2;
+		if( n < length ) {
+			(*data_out++) = (*payload++) ^ use_mask[0];
+			n++;
+		}
+		if( n < length ) {
+			(*data_out++) = (*payload++) ^ use_mask[1];
+			n++;
+		}
+		if( n < length ) {
+			(*data_out++) = (*payload++) ^ use_mask[2];
+			n++;
 		}
 	}
 	if( use_ssl )
@@ -112,6 +128,47 @@ void SendWebSocketMessage( PCLIENT pc, int opcode, int final, int do_mask, const
 	Deallocate( uint8_t*, msgout );
 }
 
+void SendWebSocketMessage( PCLIENT pc, int opcode, int final, int do_mask, const uint8_t* payload, size_t length, int use_ssl ) {
+	struct web_socket_input_state *input = (struct web_socket_input_state *)GetNetworkLong( pc, 2 );
+
+	if( input->flags.deflate && opcode < 3 ) {
+		int r;
+		if( opcode ) opcode |= 0x40;
+		input->deflater.next_in = (Bytef*)payload;
+		input->deflater.avail_in = (uInt)length;
+		input->deflater.next_out = (Bytef*)input->deflateBuf;
+		input->deflater.avail_out = (uInt)input->deflateBufLen;
+		do {
+			r = deflate( &input->deflater, Z_FINISH );
+			if( r == Z_STREAM_END )
+				break;
+			if( r == Z_BUF_ERROR ) {
+				lprintf( "Zlib error: buffer error" );
+				//Z_BUF_ERROR( )
+			}
+			else if( r ) {
+				lprintf( "Unhandled ZLIB error: %d", r );
+			}
+			if( input->deflater.avail_out == 0 ) {
+				input->deflateBuf = Reallocate( input->deflateBuf, input->deflateBufLen + 4096 );
+				input->deflater.next_out = (Bytef*)(((uintptr_t)input->deflateBuf) + input->deflateBufLen);
+				input->deflateBufLen += 4096;
+				input->deflater.avail_out += 4096;
+				continue;
+			}
+			else
+				break;
+		} while( 1 );
+		opcode = (final ? 0x80 : 0x00) | opcode;
+		_SendWebSocketMessage( pc, opcode, final, do_mask, (uint8_t*)input->deflateBuf, input->deflater.total_out, use_ssl );
+		deflateReset( &input->deflater );
+	}
+	else {
+		opcode = (final ? 0x80 : 0x00) | opcode;
+		_SendWebSocketMessage( pc, opcode, final, do_mask, payload, length, use_ssl );
+	}
+
+}
 
 
 static void ResetInputState( WebSocketInputState websock )
@@ -130,6 +187,21 @@ static void ResetInputState( WebSocketInputState websock )
 }
 
 
+//typedef unsigned( *in_func ) OF( (void FAR *,
+//		z_const unsigned char FAR * FAR *) );
+//typedef int( *out_func ) OF( (void FAR *, unsigned char FAR *, unsigned) );
+static unsigned CPROC inflateBackInput( void* state, unsigned char **output ) {
+	WebSocketInputState websock = (WebSocketInputState)state;
+	(*output) = (unsigned char *)websock->fragment_collection;
+	return (unsigned)websock->fragment_collection_avail;
+}
+
+static int CPROC inflateBackOutput( void* state, unsigned char *output, unsigned outlen ) {
+	WebSocketInputState websock = (WebSocketInputState)state;
+	memcpy( websock->inflateBuf, output, outlen );
+	websock->inflateBufUsed += outlen;
+	return Z_OK;
+}
 
 /* opcodes
       *  %x0 denotes a continuation frame
@@ -153,6 +225,7 @@ void ProcessWebSockProtocol( WebSocketInputState websock, PCLIENT pc, const uint
 			if( msg[n] & 0x80 )
 				websock->final = 1;
 			websock->opcode = ( msg[n] & 0xF );
+			websock->_RSV1 = (msg[n] & 0x40);
 			if( websock->opcode == 1 ) websock->input_type = 0;
 			else if( websock->opcode == 2 ) websock->input_type = 1;
 			websock->input_msg_state++;
@@ -261,7 +334,6 @@ void ProcessWebSockProtocol( WebSocketInputState websock, PCLIENT pc, const uint
 			// dispatch the opcode.
 			if( websock->final && ( websock->fragment_collection_length == websock->frame_length ) )
 			{
-
 				//lprintf( WIDE("Final: %d  opcode %d  mask %d length %Ld ")
 				//		 , websock->final, websock->opcode, websock->mask, websock->frame_length );
 				websock->last_reception = timeGetTime();
@@ -270,11 +342,44 @@ void ProcessWebSockProtocol( WebSocketInputState websock, PCLIENT pc, const uint
 				{
 				case 0x02: //binary
 				case 0x01: //text
+					websock->RSV1 = websock->_RSV1;
 				case 0x00: // continuation
 					/// single packet, final...
 					//LogBinary( websock->fragment_collection, websock->fragment_collection_length );
-					if( websock->on_event )
-						websock->on_event( pc, websock->psv_open, websock->input_type, websock->fragment_collection, websock->fragment_collection_length );
+					if( websock->on_event ) {
+						if( websock->flags.deflate && ( websock->RSV1 & 0x40 ) ) {
+							int r;
+							websock->inflateBufUsed = 0;
+							websock->inflater.next_in = websock->fragment_collection;
+							websock->inflater.avail_in = (uInt)websock->fragment_collection_length;
+							websock->inflater.next_out = (Bytef*)websock->inflateBuf;
+							websock->inflater.avail_out = (uInt)websock->inflateBufLen;
+							do {
+								//r = inflateBack( &websock->inflater, inflateBackInput, websock, inflateBackOutput, websock );
+								r = inflate( &websock->inflater, Z_FINISH );
+								if( r == Z_DATA_ERROR ) {
+									lprintf( "zlib Data Error..." );
+								}
+								else if( r != Z_OK && r != Z_BUF_ERROR )
+									lprintf( "unhandle zlib inflate error... %d", r );
+								if( websock->inflater.avail_out == 0 ) {
+									websock->inflateBuf = Reallocate( websock->inflateBuf, websock->inflateBufLen + 4096 );
+									websock->inflater.next_out = (Bytef*)(((uintptr_t)websock->inflateBuf) + websock->inflateBufLen);
+									websock->inflateBufLen += 4096;
+									websock->inflater.avail_out += 4096;
+									continue;
+								}
+								else
+									break;
+							} while( r != Z_STREAM_END || r != Z_BUF_ERROR );
+							websock->inflateBufUsed = websock->inflater.total_out;
+							websock->on_event( pc, websock->psv_open, websock->input_type
+								, websock->inflateBuf, websock->inflateBufUsed );
+							inflateReset( &websock->inflater );
+						}
+						else
+							websock->on_event( pc, websock->psv_open, websock->input_type, websock->fragment_collection, websock->fragment_collection_length );
+					}
 					websock->fragment_collection_length = 0;
 					break;
 				case 0x08: // close
@@ -299,13 +404,14 @@ void ProcessWebSockProtocol( WebSocketInputState websock, PCLIENT pc, const uint
 					// 4000-4999 - reserved for private use; cannot be registerd;
 					if( !websock->flags.closed )
 					{
-						struct web_socket_output_state *output = (struct web_socket_output_state *)GetNetworkLong(pc, 1);
+						struct web_socket_output_state *output = (struct web_socket_output_state *)GetNetworkLong( pc, 1 );
 						SendWebSocketMessage( pc, 0x08, 1, output->flags.expect_masking, websock->fragment_collection, websock->frame_length, output->flags.use_ssl );
 						websock->flags.closed = 1;
 					}
 					if( websock->on_close )
 						websock->on_close( pc, websock->psv_open );
 					websock->fragment_collection_length = 0;
+					RemoveClientEx( pc, 0, 1 );
 					break;
 				case 0x09: // ping
 					{
@@ -352,6 +458,7 @@ void WebSocketPing( PCLIENT pc, uint32_t timeout )
 // there is a control bit for whether the content is text or binary or a continuation
 void WebSocketSendText( PCLIENT pc, CPOINTER buffer, size_t length ) // UTF8 RFC3629
 {
+	struct web_socket_input_state *input = (struct web_socket_input_state *)GetNetworkLong( pc, 2 );
 	struct web_socket_output_state *output = (struct web_socket_output_state *)GetNetworkLong(pc, 1);
 	if( output )
 	{
