@@ -596,8 +596,10 @@ void EndHttp( struct HttpState *pHttpState )
 
 	pHttpState->content_length = 0;
 	LineRelease( pHttpState->method );
+	pHttpState->method = NULL;
 	LineRelease( pHttpState->content );
 	LineRelease( pHttpState->resource );
+	pHttpState->resource = NULL;
 	if( pHttpState->partial != pHttpState->content )
 	{
 		LineRelease( pHttpState->partial );

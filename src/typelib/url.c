@@ -34,16 +34,17 @@ enum URLParseState
 	PARSE_STATE_COLLECT_PROTOCOL = 0  // find ':', store characters in buffer
 	, PARSE_STATE_COLLECT_PROTOCOL_1  // find '/', eat /
 	, PARSE_STATE_COLLECT_PROTOCOL_2  // eat '/', eat /
-		, PARSE_STATE_COLLECT_USER
-		, PARSE_STATE_COLLECT_PASSWORD
-		, PARSE_STATE_COLLECT_ADDRESS
-		, PARSE_STATE_COLLECT_PORT
-		, PARSE_STATE_COLLECT_RESOURCE_PATH
-		, PARSE_STATE_COLLECT_RESOURCE_NAME
-		, PARSE_STATE_COLLECT_RESOURCE_EXTENSION
-		, PARSE_STATE_COLLECT_RESOURCE_ANCHOR
-		, PARSE_STATE_COLLECT_CGI_NAME
-		, PARSE_STATE_COLLECT_CGI_VALUE
+	, PARSE_STATE_COLLECT_USER
+	, PARSE_STATE_COLLECT_PASSWORD
+	, PARSE_STATE_COLLECT_ADDRESS
+	, PARSE_STATE_COLLECT_PORT
+	, PARSE_STATE_COLLECT_RESOURCE_PATH
+	, PARSE_STATE_COLLECT_RESOURCE_NAME
+	, PARSE_STATE_COLLECT_RESOURCE_EXTENSION
+	, PARSE_STATE_COLLECT_RESOURCE_ANCHOR
+	, PARSE_STATE_COLLECT_CGI_NAME
+	, PARSE_STATE_COLLECT_CGI_VALUE
+	, PARSE_STATE_COLLECT_IPV6
 };
 
 static void AppendBuffer( CTEXTSTR *output, CTEXTSTR seperator, CTEXTSTR input )
@@ -68,24 +69,76 @@ static void AppendBuffer( CTEXTSTR *output, CTEXTSTR seperator, CTEXTSTR input )
 	}
 }
 
-struct url_data * SACK_URLParse( CTEXTSTR url )
+struct url_data * SACK_URLParse( const char *url )
 {
+	const char *_url = url;;
 	struct url_data *data = New( struct url_data );
 	struct url_cgi_data *cgi_data;
-
-	int inchar = 0;
+	TEXTRUNE ch;
 	int outchar = 0;
-	TEXTSTR outbuf = NewArray( TEXTCHAR, StrLen( url ) + 1 );
+	char * outbuf = NewArray( TEXTCHAR, StrLen( url ) + 1 );
+	char *_outbuf = outbuf;
 	int _state, state;
+	char *newUrl = outbuf;
+	int decode = 0;
+	while( _url[0] ) {
+		if( decode ) {
+			ch *= 16;
+			if( _url[0] >= '0' && _url[0] <= '9' )
+				ch += _url[0] - '0';
+			else if( _url[0] >= 'A' && _url[0] <= 'A' )
+				ch += (_url[0] - 'A') + 10;
+			else if( _url[0] >= '0' && _url[0] <= '9' )
+				ch += (_url[0] - 'a' ) + 10;
+			else {
+				Deallocate( char *, outbuf );
+				return NULL;
+			}
+			decode--;
+			if( !decode )
+				newUrl[0] = (char)decode;
+			newUrl++;
+		}
+		else if( _url[0] == '%' ) {
+			ch = 0;
+			decode = 2;
+		}
+		else {
+			newUrl[0] = _url[0];
+			newUrl++;
+		}
+		_url++;
+	}
+	newUrl[0] = _url[0];
+	_url = url = outbuf;
+
 	_state = -1;
 	state = PARSE_STATE_COLLECT_PROTOCOL;
 	MemSet( data, 0, sizeof( struct url_data ) );
-	while( url[inchar] )
+	while( ch = GetUtfChar(&url) )
 	{
 		int use_char;
 		use_char = 0;
-		switch( url[inchar] )
+		switch( ch )
 		{
+		case '[':
+			if( ( state == PARSE_STATE_COLLECT_ADDRESS )
+				||( state == PARSE_STATE_COLLECT_USER ) ) {
+				state = PARSE_STATE_COLLECT_IPV6;
+				use_char = 1;
+			}
+			break;
+		case ']':
+			if( state == PARSE_STATE_COLLECT_IPV6 ) {
+				// hit the colon between address and port
+				outbuf[outchar++] = ch;
+				outbuf[outchar] = 0;
+				outchar = 0;
+				AppendBuffer( &data->host, NULL, outbuf );
+				state = PARSE_STATE_COLLECT_ADDRESS;
+				continue;
+			}
+			break;
 		case '&':
 			if( state == PARSE_STATE_COLLECT_CGI_NAME )
 			{
@@ -126,6 +179,7 @@ struct url_data * SACK_URLParse( CTEXTSTR url )
 				outchar = 0;
 				AppendBuffer( &data->resource_extension, NULL, outbuf );
 				state = PARSE_STATE_COLLECT_CGI_NAME;
+				continue;
 			}
 			if( state == PARSE_STATE_COLLECT_RESOURCE_NAME )
 			{
@@ -270,6 +324,7 @@ struct url_data * SACK_URLParse( CTEXTSTR url )
 					}
 				}
 				state = PARSE_STATE_COLLECT_PROTOCOL_1;
+				continue;
 			}
 			else if( state == PARSE_STATE_COLLECT_USER )  // hit the colon between user and password
 			{
@@ -277,6 +332,11 @@ struct url_data * SACK_URLParse( CTEXTSTR url )
 				outchar = 0;
 				AppendBuffer( &data->user, NULL, outbuf );
 				state = PARSE_STATE_COLLECT_PASSWORD;
+				continue;
+			}
+			else if( state == PARSE_STATE_COLLECT_IPV6 )  // hit the colon between address and port
+			{
+				use_char = 1;
 			}
 			else if( state == PARSE_STATE_COLLECT_ADDRESS )  // hit the colon between address and port
 			{
@@ -284,6 +344,7 @@ struct url_data * SACK_URLParse( CTEXTSTR url )
 				outchar = 0;
 				AppendBuffer( &data->host, NULL, outbuf );
 				state = PARSE_STATE_COLLECT_PORT;
+				continue;
 			}
 			else
 			{
@@ -304,15 +365,14 @@ struct url_data * SACK_URLParse( CTEXTSTR url )
 			break;
 		}
 		if( use_char )
-			outbuf[outchar++] = url[inchar++];
+			outchar += ConvertToUTF8( outbuf + outchar, ch );
 		else
 		{
 			if( _state == state 
 				&& ( state != PARSE_STATE_COLLECT_RESOURCE_NAME )  // after starting the path, look for fliename, if the extension or other is not found
 				&& ( state != PARSE_STATE_COLLECT_CGI_NAME ) // blank cgi names go & to & and stay in the same state
 				)
-				lprintf( WIDE("Dropping character (%d) '%c' in %s"), inchar, url[inchar], url );
-			inchar++;
+				lprintf( WIDE("Dropping character (%d) '%c' in %s"), url - _outbuf, ch, _outbuf );
 		}
 		_state = state;
 	}
@@ -375,7 +435,7 @@ struct url_data * SACK_URLParse( CTEXTSTR url )
 	return data;
 }
 
-CTEXTSTR SACK_BuildURL( struct url_data *data )
+char *SACK_BuildURL( struct url_data *data )
 {
 	PVARTEXT pvt = VarTextCreate();
 	CTEXTSTR tmp = NULL;
@@ -469,7 +529,7 @@ CTEXTSTR SACK_BuildURL( struct url_data *data )
 	}
 	{
 		PTEXT text_result = VarTextGet( pvt );
-		CTEXTSTR result = StrDup( GetText( text_result ) );
+		char *result = StrDup( GetText( text_result ) );
 		return result;
 	}
 }
