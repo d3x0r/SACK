@@ -3,6 +3,7 @@
 
 #include <network.h>
 #include <html5.websocket.client.h>
+#include <zlib.h>
 
 #ifndef WEBSOCKET_COMMON_SOURCE
 #define EXTERN extern
@@ -19,8 +20,16 @@ struct web_socket_input_state
 		BIT_FIELD closed : 1;
 		BIT_FIELD received_pong : 1;
 		BIT_FIELD sent_ping : 1;
+		BIT_FIELD deflate : 1;
 	} flags;
 
+	z_stream deflater;
+	POINTER deflateBuf;
+	size_t deflateBufLen;
+	z_stream inflater;
+	POINTER inflateBuf;
+	size_t inflateBufLen;
+	size_t inflateBufUsed;
 
 	size_t fragment_collection_avail;
 	size_t fragment_collection_length;
@@ -33,15 +42,17 @@ struct web_socket_input_state
 	LOGICAL mask;
 	uint8_t mask_key[4];
 	int opcode;
+	int RSV1;
+	int _RSV1;
 	size_t frame_length;
 	int input_msg_state;
 	int input_type; // text or binary
-
 
 	web_socket_event on_event;
 	web_socket_closed on_close;
 	web_socket_opened on_open;
 	web_socket_error on_error;
+	web_socket_accept on_accept;
 	uintptr_t psv_on;
 	uintptr_t psv_open; // result of the open, to pass to read
 
