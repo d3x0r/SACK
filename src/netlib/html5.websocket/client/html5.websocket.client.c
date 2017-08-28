@@ -150,18 +150,18 @@ static void CPROC WebSocketClientReceive( PCLIENT pc, POINTER buffer, size_t len
 		// process buffer?
 
 	}
-   ReadTCP( pc, buffer, 4096 );
+	ReadTCP( pc, buffer, 4096 );
 }
 
 static void CPROC WebSocketClientClosed( PCLIENT pc )
 {
 	WebSocketClient websock = (WebSocketClient)GetNetworkLong( pc, 0 );
-   if( websock )
+	if( websock )
 	{
 		Release( websock->buffer );
 		DestroyHttpState( websock->pHttpState );
-      SACK_ReleaseURL( websock->url );
-      Release( websock );
+		SACK_ReleaseURL( websock->url );
+		Release( websock );
 	}
 }
 
@@ -250,7 +250,7 @@ PCLIENT WebSocketOpen( CTEXTSTR url_address
 // end a websocket connection nicely.
 void WebSocketClose( PCLIENT pc )
 {
-   RemoveClient( pc );
+   RemoveClientEx( pc, 0, 1 );
 }
 
 void WebSocketEnableAutoPing( PCLIENT pc, uint32_t delay )
