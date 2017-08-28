@@ -233,8 +233,8 @@ struct url_data
 	PLIST cgi_parameters;
 };
 
-HTTP_EXPORT struct url_data * HTTPAPI SACK_URLParse( CTEXTSTR url );
-HTTP_EXPORT CTEXTSTR HTTPAPI SACK_BuildURL( struct url_data *data );
+HTTP_EXPORT struct url_data * HTTPAPI SACK_URLParse( const char *url );
+HTTP_EXPORT char *HTTPAPI SACK_BuildURL( struct url_data *data );
 HTTP_EXPORT void HTTPAPI SACK_ReleaseURL( struct url_data *data );
 
 
