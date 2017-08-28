@@ -1058,6 +1058,10 @@ NETWORK_PROC( size_t, doReadExx2)(PCLIENT lpClient,POINTER lpBuffer,size_t nByte
 #endif
 	if( !lpClient || !lpBuffer )
 		return 0; // nothing read.... ???
+	// don't try to read closed/inactive sockets.
+	if( !(lpClient->dwFlags & CF_ACTIVE ) )
+		return 0;
+
 	if( TCPDrainRead( lpClient ) &&  //draining....
 		lpClient->RecvPending.dwAvail ) // and already queued next read.
 	{

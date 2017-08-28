@@ -2735,11 +2735,18 @@ NETWORK_PROC( SOCKADDR *,CreateSockAddress)(CTEXTSTR name, uint16_t nDefaultPort
 	SOCKADDR *sa = NULL;
 	char *port;
 	uint16_t wPort;
+	CTEXTSTR portName = name;
+
 #ifdef UNICODE
 	char *_name = CStrDup( name );
 #  define name _name
 #endif
-	if( name && ( port = (char*)strrchr( name, ':' ) ) )
+	if( name[0] == '[' ) {
+		while( portName[0] && portName[0] != ']' )
+			portName++;
+		if( portName[0] ) portName++;
+	}
+	if( name && portName[0] && ( port = (char*)strrchr( portName, ':' ) ) )
 	{
 		tmp = StrDup( name );
 		bTmpName = 1;
