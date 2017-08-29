@@ -28,10 +28,6 @@ set( MORE_SYSTEM_SOURCES   ${SOURCES_ROOT}/src/systemlib/oswin.c )
 endif( WIN32 )
 
 
-if( SNPRINTF_SOURCES )
-set( SNPRINTF_SOURCES    ${SOURCES_ROOT}/src/../${SNPRINTF_SOURCES} )
-endif(SNPRINTF_SOURCES)
-
 set(BASE_SOURCES
 ${FIRST_GCC_PROGRAM_SOURCE} 
     ../launchcmd.c
@@ -58,7 +54,6 @@ ${FIRST_GCC_PROGRAM_SOURCE}
     ${SOURCES_ROOT}/src/filesyslib/filescan.c
     ${SOURCES_ROOT}/src/filesyslib/pathops.c
     ${SOURCES_ROOT}/src/filesyslib/winfiles.c
-    ${SNPRINTF_SOURCES}
 ${LAST_GCC_PROGRAM_SOURCE}
     ${SOURCES_ROOT}/src/deadstart/deadstart_core.c 
 )

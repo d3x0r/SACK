@@ -29,10 +29,6 @@ endif( MINGW OR MSVC )
 set( SOURCES_ROOT ${CMAKE_CURRENT_SOURCE_DIR}/../../../../../ )
 include( ${SOURCES_ROOT}CMakeSources.lst )
 
-if( SNPRINTF_SOURCES )
-#set( SNPRINTF_SOURCES    ${SOURCES_ROOT}src/../${SNPRINTF_SOURCES} )
-endif(SNPRINTF_SOURCES)
-
 if( WIN32 )
 set( NET_SOURCES     ${SOURCES_ROOT}src/netlib/net_winsock2.c  )
 set( MORE_SYSTEM_SOURCES   ${SOURCES_ROOT}src/systemlib/oswin.c 
@@ -76,7 +72,6 @@ ${FIRST_GCC_PROGRAM_SOURCE}
     ${SOURCES_ROOT}src/filesyslib/winfiles.c
     ${SOURCES_ROOT}src/systemlib/spawntask.c
     ${SOURCES_ROOT}src/systemlib/args.c
-    ${SNPRINTF_SOURCES}
 ${LAST_GCC_PROGRAM_SOURCE}
     ${SOURCES_ROOT}src/deadstart/deadstart_core.c 
 )
@@ -137,9 +132,6 @@ if( WIN32 )
 set( project launchpad.portable.service )
 
 
-if( SNPRINTF_SOURCES )
-#set( SNPRINTF_SOURCES    ${SOURCES_ROOT}src/../${SNPRINTF_SOURCES} )
-endif(SNPRINTF_SOURCES)
 
 if( WIN32 )
 set( NET_SOURCES     ${SOURCES_ROOT}src/netlib/net_winsock2.c  )
@@ -194,7 +186,6 @@ ${FIRST_GCC_PROGRAM_SOURCE}
 #    ${SOURCES_ROOT}src/sqlite/sqlite_interface.c
 #    ${SOURCES_ROOT}src/psilib/option_frame.c
 #    ${SQLITE_SOURCES}
-    ${SNPRINTF_SOURCES}
 ${LAST_GCC_PROGRAM_SOURCE}
     ${SOURCES_ROOT}src/deadstart/deadstart_core.c 
 )
