@@ -219,12 +219,14 @@ PCLIENT WebSocketOpen( CTEXTSTR url_address
 	EnterCriticalSec( &wsc_local.cs_opening );
 	wsc_local.opening_client = websock;
 	{
-		websock->pc = OpenTCPClientExx( websock->url->host
-												, websock->url->port?websock->url->port:websock->url->default_port
+		SOCKADDR *lpsaDest = CreateSockAddress( websock->url->host, websock->url->port ? websock->url->port : websock->url->default_port );
+		websock->pc = OpenTCPClientAddrExxx( lpsaDest
 												, WebSocketClientReceive
 												, WebSocketClientClosed
 												, NULL
 												, on_open?WebSocketClientConnected:NULL // if there is an on-open event, then register for async open
+												, 0
+												DBG_SRC
 												);
 		if( websock->pc )
 		{

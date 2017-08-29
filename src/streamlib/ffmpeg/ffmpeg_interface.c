@@ -1324,7 +1324,7 @@ int CPROC ffmpeg_read_packet(void *opaque, uint8_t *buf, int buf_size)
 			if( file->ffmpeg_buffer_partial )
 			{
 				memcpy( buf, file->ffmpeg_buffer_partial, file->ffmpeg_buffer_partial_avail );
-				buf_size -= file->ffmpeg_buffer_partial_avail;
+				buf_size -= (int)file->ffmpeg_buffer_partial_avail;
 				buf += file->ffmpeg_buffer_partial_avail;
 				//lprintf( WIDE("release partial %d"), file->ffmpeg_buffer_partial_avail );
 				Release( file->ffmpeg_buffer_partial );
@@ -1335,7 +1335,7 @@ int CPROC ffmpeg_read_packet(void *opaque, uint8_t *buf, int buf_size)
 				if( buf_size >= ( file->ffmpeg_buffer_size - file->ffmpeg_buffer_used ) )
 				{
 					result_size -= buf_size - ( file->ffmpeg_buffer_size - file->ffmpeg_buffer_used );
-					buf_size = ( file->ffmpeg_buffer_size - file->ffmpeg_buffer_used );
+					buf_size = (int)( file->ffmpeg_buffer_size - file->ffmpeg_buffer_used );
 					lprintf( WIDE("adjusted sizes %d %d"), result_size, buf_size );
 				}
 				if( buf_size )
@@ -1343,9 +1343,9 @@ int CPROC ffmpeg_read_packet(void *opaque, uint8_t *buf, int buf_size)
 					memcpy( buf, file->ffmpeg_buffer + file->ffmpeg_buffer_used, buf_size );
 				}
 				file->ffmpeg_buffer_used += buf_size;
-				return result_size;
+				return (int)result_size;
 			}
-			return file->ffmpeg_buffer_partial_avail;
+			return (int)file->ffmpeg_buffer_partial_avail;
 		}
 		//lprintf( WIDE("data copied to read buffer...%d"), result_size );
 		//LogBinary( buf, (256<result_size)?256:result_size );
@@ -1355,7 +1355,7 @@ int CPROC ffmpeg_read_packet(void *opaque, uint8_t *buf, int buf_size)
 		size_t result_size;
 		if( file->file_memory ) {
 			if( (file->file_position_index + buf_size) > file->file_size )
-				buf_size = file->file_size - file->file_position_index;
+				buf_size = (int)(file->file_size - file->file_position_index);
 			memcpy( buf, file->file_memory + file->file_position_index, result_size = buf_size );
 			file->file_position_index += buf_size;
 		} 
@@ -1364,7 +1364,7 @@ int CPROC ffmpeg_read_packet(void *opaque, uint8_t *buf, int buf_size)
 
 		//lprintf( WIDE("data copied to read buffer...") );
 		//LogBinary( buf, (256<result_size)?256:result_size );
-		return result_size;
+		return (int)result_size;
 	}
 }
 

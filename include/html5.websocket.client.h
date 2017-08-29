@@ -37,6 +37,12 @@ typedef void (*web_socket_event)( PCLIENT pc, uintptr_t psv, LOGICAL binary, CPO
 // protocolsAccepted value set can be released in opened callback, or it may be simply assigned as protocols passed...
 typedef LOGICAL ( *web_socket_accept )(PCLIENT pc, uintptr_t psv, const char *protocols, const char *resource, char **protocolsAccepted);
 
+// these should be a combination of bit flags
+// options used for WebSocketOpen
+enum WebSocketOptions {
+	WS_DELAY_OPEN = 1,  
+};
+
 //enum WebSockClientOptions {
 //   WebSockClientOption_Protocols
 //};
@@ -48,13 +54,17 @@ typedef LOGICAL ( *web_socket_accept )(PCLIENT pc, uintptr_t psv, const char *pr
 //  if protocols is NULL none are specified, otherwise the list of
 //  available protocols is sent to the server.
 WEBSOCKET_EXPORT PCLIENT WebSocketOpen( CTEXTSTR address
-                                      , int options
+                                      , enum WebSocketOptions options
                                       , web_socket_opened
                                       , web_socket_event
                                       , web_socket_closed
                                       , web_socket_error
                                       , uintptr_t psv
                                       , const char *protocols );
+
+// if WS_DELAY_OPEN is used, WebSocketOpen does not do immediate connect.  
+// calling this begins the connection sequence.
+WEBSOCKET_EXPORT void WebSocketConnect( PCLIENT );
 
 // end a websocket connection nicely.
 WEBSOCKET_EXPORT void WebSocketClose( PCLIENT );

@@ -46,7 +46,7 @@ SaneWinMain( argc, argv )
 		DumpAddr( "address", a );
 
 	local.listener = OpenTCPListenerEx( 16666, ListenerConnect );
-   //addr = CreateSockAddress( "127.0.0.1", 16666 );
+	//addr = CreateSockAddress( "127.0.0.1", 16666 );
 
 	LIST_FORALL( addresses, idx, CTEXTSTR, a )
 	{

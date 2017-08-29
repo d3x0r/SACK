@@ -169,7 +169,7 @@ void FormatTextToBlockEx( CTEXTSTR input, TEXTSTR *output, int* pixel_width, int
 				break;
 			len = pdl->nToShow;
 			if( pdl->nToShow > maxlen )
-				maxlen = len;
+				maxlen = (int)len;
 			//lprintf( "line %d len %d", lines, len );
 			//if( len == 0 )
 			//	break;

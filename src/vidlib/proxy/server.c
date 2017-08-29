@@ -1204,7 +1204,7 @@ static void WebSockError( PCLIENT pc, uintptr_t psv, int error )
 {
 }
 
-static void WebSockEvent( PCLIENT pc, uintptr_t psv, POINTER buffer, int msglen )
+static void WebSockEvent( PCLIENT pc, uintptr_t psv, LOGICAL binary, CPOINTER buffer, int msglen )
 {
 	POINTER msg = NULL;
 	struct server_proxy_client *client= (struct server_proxy_client *)psv;

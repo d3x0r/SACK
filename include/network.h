@@ -92,7 +92,7 @@ SACK_NAMESPACE
 	       NetworkStart();
 	       SystemLog( "Started the network" );
 	       sa = CreateSockAddress( argv[1], 23 );
-	       pc_user = OpenTCPClientAddrEx( sa, ReadComplete, Closed, NULL );
+	       pc_user = OpenTCPClientAddrEx( sa, ReadComplete, Closed, NULL, 0 );
 	       if( !pc_user )
 	       {
 	           SystemLog( "Failed to open some port as telnet" );
@@ -398,6 +398,7 @@ NETWORK_PROC( PCLIENT, OpenTCPListenerExx )( uint16_t wPort, cNotifyCallback Not
    \ \                                                                 */
 #define OpenTCPServerAddrEx OpenTCPListenerAddrEx
 
+#define OPEN_TCP_FLAG_DELAY_CONNECT 1
 
 #ifdef __cplusplus
 /* <combine sack::network::tcp::OpenTCPClientAddrExx@SOCKADDR *@cReadComplete@cCloseCallback@cWriteComplete@cConnectCallback>
@@ -407,25 +408,29 @@ NETWORK_PROC( PCLIENT, CPPOpenTCPClientAddrExxx )(SOCKADDR *lpAddr,
 																  cppReadComplete  pReadComplete, uintptr_t,
 																  cppCloseCallback CloseCallback, uintptr_t,
 																  cppWriteComplete WriteComplete, uintptr_t,
-																  cppConnectCallback pConnectComplete,  uintptr_t DBG_PASS );
-#define CPPOpenTCPClientAddrExx(a,b,c,d,e,f,g,h,i) CPPOpenTCPClientAddrExxx(a,b,c,d,e,f,g,h,i DBG_SRC )
+																  cppConnectCallback pConnectComplete,  uintptr_t, int DBG_PASS );
+#define CPPOpenTCPClientAddrExx(a,b,c,d,e,f,g,h,i,j) CPPOpenTCPClientAddrExxx(a,b,c,d,e,f,g,h,i,j DBG_SRC )
 #endif
 
-NETWORK_PROC( PCLIENT, OpenTCPClientAddrFromAddrEx )(SOCKADDR *lpAddr, SOCKADDR *pFromAddr
-															  , cReadComplete     pReadComplete
-															  , cCloseCallback    CloseCallback
-															  , cWriteComplete    WriteComplete
-															  , cConnectCallback  pConnectComplete
-                                               DBG_PASS
-															 );
-#define OpenTCPClientAddrFromAddr( a,f,r,cl,wr,cc ) OpenTCPClientAddrFromAddrEx( a,f,r,cl,wr,cc DBG_SRC )
-NETWORK_PROC( PCLIENT, OpenTCPClientAddrFromEx )(SOCKADDR *lpAddr, int port
-															  , cReadComplete     pReadComplete															  , cCloseCallback    CloseCallback
-															  , cWriteComplete    WriteComplete
-															  , cConnectCallback  pConnectComplete
-                                               DBG_PASS
-															 );
-#define OpenTCPClientAddrFrom( a,f,r,cl,wr,cc ) OpenTCPClientAddrFromEx( a,f,r,cl,wr,cc DBG_SRC )
+NETWORK_PROC( PCLIENT, OpenTCPClientAddrFromAddrEx )( SOCKADDR *lpAddr, SOCKADDR *pFromAddr
+                                                     , cReadComplete     pReadComplete
+                                                     , cCloseCallback    CloseCallback
+                                                     , cWriteComplete    WriteComplete
+                                                     , cConnectCallback  pConnectComplete
+                                                     , int flags
+                                                     DBG_PASS
+                                                     );
+#define OpenTCPClientAddrFromAddr( a,f,r,cl,wr,cc ) OpenTCPClientAddrFromAddrEx( a,f,r,cl,wr,cc, 0 DBG_SRC )
+
+NETWORK_PROC( PCLIENT, OpenTCPClientAddrFromEx )( SOCKADDR *lpAddr, int port
+                                                , cReadComplete     pReadComplete															  
+                                                , cCloseCallback    CloseCallback
+                                                , cWriteComplete    WriteComplete
+                                                , cConnectCallback  pConnectComplete
+                                                , int flags
+                                                DBG_PASS
+                                                );
+#define OpenTCPClientAddrFrom( a,f,r,cl,wr,cc ) OpenTCPClientAddrFromEx( a,f,r,cl,wr,cc,0 DBG_SRC )
 /* Opens a socket which connects to an already existing,
    listening, socket.
    Parameters
@@ -457,22 +462,26 @@ NETWORK_PROC( PCLIENT, OpenTCPClientAddrFromEx )(SOCKADDR *lpAddr, int port
    The read_complete callback, if specified, will be called,
    with a NULL pointer and 0 size, before the connect complete.   */
 NETWORK_PROC( PCLIENT, OpenTCPClientAddrExxx )(SOCKADDR *lpAddr,
-                         cReadComplete  pReadComplete,
-                         cCloseCallback CloseCallback,
-                         cWriteComplete WriteComplete,
-															 cConnectCallback pConnectComplete DBG_PASS );
+                                               cReadComplete  pReadComplete,
+                                               cCloseCallback CloseCallback,
+                                               cWriteComplete WriteComplete,
+                                               cConnectCallback pConnectComplete,
+                                               int flags
+                                               DBG_PASS );
 /* <combine sack::network::tcp::OpenTCPClientAddrExx@SOCKADDR *@cReadComplete@cCloseCallback@cWriteComplete@cConnectCallback>
    
    \ \                                                                                                                        */
-#define OpenTCPClientAddrExx(a,r,clo,w,con) OpenTCPClientAddrExxx( a,r,clo,w,con DBG_SRC )
+#define OpenTCPClientAddrExx(a,r,clo,w,con) OpenTCPClientAddrExxx( a,r,clo,w,con,0 DBG_SRC )
 #ifdef __cplusplus
 /* <combine sack::network::tcp::OpenTCPClientAddrExx@SOCKADDR *@cReadComplete@cCloseCallback@cWriteComplete@cConnectCallback>
    
    \ \                                                                                                                        */
 NETWORK_PROC( PCLIENT, CPPOpenTCPClientAddrEx )(SOCKADDR *
-								, cppReadComplete, uintptr_t 
-                        , cppCloseCallback, uintptr_t 
-															  , cppWriteComplete, uintptr_t  );
+                                               , cppReadComplete, uintptr_t 
+                                               , cppCloseCallback, uintptr_t 
+                                               , cppWriteComplete, uintptr_t 
+                                               , int flags
+                                               );
 #endif
 /* <combine sack::network::tcp::OpenTCPClientAddrExx@SOCKADDR *@cReadComplete@cCloseCallback@cWriteComplete@cConnectCallback>
    
@@ -491,17 +500,18 @@ NETWORK_PROC( PCLIENT, CPPOpenTCPClientExEx )(CTEXTSTR lpName,uint16_t wPort
                          , cppReadComplete  pReadComplete, uintptr_t
                          , cppCloseCallback CloseCallback, uintptr_t
                          , cppWriteComplete WriteComplete, uintptr_t
-															, cppConnectCallback pConnectComplete, uintptr_t DBG_PASS );
-#define CPPOpenTCPClientExx(name,port,read,rd,close,cd,write,wd,connect,cod) CPPOpenTCPClientExEx(name,port,read,rd,close,cd,write,wd,connect,cod DBG_SRC)
+															, cppConnectCallback pConnectComplete, uintptr_t, int DBG_PASS );
+#define CPPOpenTCPClientExx(name,port,read,rd,close,cd,write,wd,connect,cod,flg) CPPOpenTCPClientExEx(name,port,read,rd,close,cd,write,wd,connect,cod,flg DBG_SRC)
 #endif
 /* <combine sack::network::tcp::OpenTCPClientAddrExx@SOCKADDR *@cReadComplete@cCloseCallback@cWriteComplete@cConnectCallback>
    
    \ \                                                                                                                        */
-NETWORK_PROC( PCLIENT, OpenTCPClientExxx )(CTEXTSTR lpName,uint16_t wPort,
-														 cReadComplete  pReadComplete,
-														 cCloseCallback CloseCallback,
-														 cWriteComplete WriteComplete,
-														 cConnectCallback pConnectComplete DBG_PASS );
+NETWORK_PROC( PCLIENT, OpenTCPClientExxx )(CTEXTSTR lpName,uint16_t wPort
+                                           , cReadComplete  pReadComplete
+                                           , cCloseCallback CloseCallback
+                                           , cWriteComplete WriteComplete
+                                           , cConnectCallback pConnectComplete
+                                           DBG_PASS );
 /* <combine sack::network::tcp::OpenTCPClientAddrExx@SOCKADDR *@cReadComplete@cCloseCallback@cWriteComplete@cConnectCallback>
    
    \ \                                                                                                                        */
@@ -1037,6 +1047,7 @@ public:
 									, (uintptr_t)this 
 									, WrapClientConnectComplete 
 									, (uintptr_t)this 
+									, 0
 									);
 		return (int)(pc!=NULL);
 	};
@@ -1052,6 +1063,7 @@ public:
 									, (uintptr_t)this 
 									, WrapClientConnectComplete 
 									, (uintptr_t)this 
+									, 0
 									);
 		return (int)(pc!=NULL);
 	};

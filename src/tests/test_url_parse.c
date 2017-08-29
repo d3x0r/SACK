@@ -21,16 +21,16 @@ int main( int argc, char **argv )
 
 	if( !data->cgi_parameters )
 		printf( WIDE("No CGI Parameters.\n") );
-   else
+	else
 	{
 		INDEX idx;
 		struct url_cgi_data *cgi_data;
 		LIST_FORALL( data->cgi_parameters, idx, struct url_cgi_data *, cgi_data )
 		{
-			printf( WIDE("CGI PARAM %d: %s=%s\n"), idx, cgi_data->name, cgi_data->value );
+			printf( WIDE("CGI PARAM %d: %s=%s\n"), (int)idx, cgi_data->name, cgi_data->value );
 		}
 	}
-   return 0;
+	return 0;
 }
 
 

@@ -123,7 +123,7 @@ static uint8_t* GetMessageBuf( struct client_proxy_image * image, POINTER buffer
 		image->buffer = newbuf;
 	}
 	resultbuf = image->buffer + image->sendlen;
-	((uint32_t*)resultbuf)[0] = size + 4;
+	((uint32_t*)resultbuf)[0] = (uint32_t)(size + 4);
 	MemCpy( ((uint32_t*)resultbuf) + 1, buffer, size );
 	image->sendlen += size + 4;
 	return resultbuf;
@@ -319,7 +319,7 @@ void HandleMessage( PCLIENT pc, struct common_message*msg, size_t size )
 				UnmakeImageFile( image->image );
 			if( image->in_buflen )
 			{
-            lprintf( WIDE( "already had some data collected... %d %d"), image->in_buflen, image->in_buf_avail );
+				lprintf( WIDE( "already had some data collected... %d %d"), image->in_buflen, image->in_buf_avail );
 				if( ( image->in_buflen + size ) > image->in_buf_avail )
 				{
 					uint8_t *newbuf = NewArray( uint8_t, image->in_buflen + size );
@@ -331,9 +331,9 @@ void HandleMessage( PCLIENT pc, struct common_message*msg, size_t size )
 				}
 				else
 				{
-               lprintf( WIDE( "buffer is already big enough to hold this...") );
+					lprintf( WIDE( "buffer is already big enough to hold this...") );
 				}
-            image->in_buflen += size - ( sizeof( struct image_data_data ) );
+				image->in_buflen += size - ( sizeof( struct image_data_data ) );
 				image->image = DecodeMemoryToImage( image->in_buffer, image->in_buflen );
 			}
 			else

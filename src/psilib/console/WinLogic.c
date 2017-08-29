@@ -129,7 +129,7 @@ static void RenderTextLine(
 		if( allow_segment_coloring )
 			if( pdp->SetCurrentColor )
 				pdp->SetCurrentColor( pdp, COLOR_DEFAULT, NULL );
-		nShown = pCurrentLine->nFirstSegOfs;
+		nShown = (int)pCurrentLine->nFirstSegOfs;
 #ifdef DEBUG_HISTORY_RENDER
 		if( !pText )
 			lprintf( WIDE("Okay no text to show... end up filling line blank.") );
@@ -160,13 +160,13 @@ static void RenderTextLine(
 				lprintf( WIDE("nShown < nLen... char %d len %d toshow %d"), nChar, nLen, pCurrentLine->nToShow );
 #endif
 				if( nChar + nLen > pCurrentLine->nToShow )
-					nShow = pCurrentLine->nToShow - nChar;
+					nShow = (int)(pCurrentLine->nToShow - nChar);
 				else
 				{
 #ifdef DEBUG_HISTORY_RENDER
 					lprintf( WIDE("nShow is what's left of now to nLen from nShown... %d,%d"), nLen, nShown );
 #endif
-					nShow = nLen - nShown;
+					nShow = (int)(nLen - nShown);
 				}
 				if( !nShow )
 				{
@@ -195,7 +195,7 @@ static void RenderTextLine(
 									nChar < pdp->mark_end.col )
 								{
 									if( nChar + nShow > pdp->mark_end.col )
-										nShow = pdp->mark_end.col - nChar;
+										nShow = (int)(pdp->mark_end.col - nChar);
 									if( allow_segment_coloring )
 										if( pdp->SetCurrentColor )
 											pdp->SetCurrentColor( pdp, COLOR_MARK, pText );
@@ -211,7 +211,7 @@ static void RenderTextLine(
 								}
 								else if( nChar + nShow > pdp->mark_start.col )
 								{
-									nShow = pdp->mark_start.col - nChar;
+									nShow = (int)(pdp->mark_start.col - nChar);
 								}
 							}
 							else
@@ -229,7 +229,7 @@ static void RenderTextLine(
 									else if( nChar + nShow > pdp->mark_start.col )
 									{
 										// current segment up to the next part...
-										nShow = pdp->mark_start.col - nChar;
+										nShow = (int)(pdp->mark_start.col - nChar);
 									}
 								}
 								if( ( nLine ) < pdp->mark_start.row

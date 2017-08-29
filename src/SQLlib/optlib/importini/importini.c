@@ -14,10 +14,8 @@ void ProcessINIFile( CTEXTSTR filename, TEXTCHAR *pData, uint32_t nData )
 	TEXTCHAR *section = NULL;
 	TEXTCHAR *entry = NULL;
 	//	int start_line = TRUE;
-	int ftnsys = 0;
 	int find_nextline = 0;
 	TEXTCHAR *p = (TEXTSTR)pathrchr( (CTEXTSTR)filename );
-	TEXTCHAR filebuf[256];
 	if( p )
 		filename = p + 1;
 
@@ -27,9 +25,6 @@ void ProcessINIFile( CTEXTSTR filename, TEXTCHAR *pData, uint32_t nData )
 		snprintf( tmpbuf, sizeof( tmpbuf ), WIDE("%s/%s"), SystemPrefix, filename );
 		filename = tmpbuf;
 	}
-
-	if( StrCaseCmp( filename, WIDE("ftnsys.ini") ) == 0 )
-      ftnsys = 1;
 
 	while( nData && pData[0] )
 	{
@@ -56,7 +51,7 @@ void ProcessINIFile( CTEXTSTR filename, TEXTCHAR *pData, uint32_t nData )
 				sec[0] = 0;
 				if( section ) Release( section );
   				section = StrDup( pData + 1 );
-				nData -= ( sec - pData ) + 1;
+				nData -= (uint32_t)(( sec - pData ) + 1);
 				pData = sec + 1;
 				find_nextline = 1;
 			}
@@ -97,37 +92,17 @@ void ProcessINIFile( CTEXTSTR filename, TEXTCHAR *pData, uint32_t nData )
 					if( optend[0] )
 					{
 						optend[0] = 0;
-						lprintf( WIDE("SQLWrite: (%s)[%s] %s=%s"), ftnsys?WIDE("NULL"):filename, section,entry,optval );
-						if( ftnsys )
-							SACK_WriteProfileString( section, entry, optval );
-						else
-							SACK_WritePrivateProfileString( section, entry, optval, filename );
+						lprintf( WIDE("SQLWrite: (%s)[%s] %s=%s"), filename, section,entry,optval );
+						SACK_WritePrivateProfileString( section, entry, optval, filename );
 						//DebugDumpMem();
 					}
 					pData = optend + 1;
-					nData -= ( optend - pData ) + 1;
+					nData -= (uint32_t)(( optend - pData ) + 1);
 				}
 				find_nextline = 1;
 			}
 		}
 	}
-}
-
-#define BYTEOP_DECODE(n)  ((((uint16_t)(n))-20) & 0xFF)
-
-void CRYPTODecryptMemory( POINTER mem, uint32_t size)
-{
-    uint32_t i;
-	 unsigned char *ptr = (unsigned char *)mem;
-	 if( !mem )
-	 {
-		 return;
-	 }
-    for (i=0; i<size; i++)
-	 {
-        *ptr = BYTEOP_DECODE(*ptr);
-        ptr++;
-    }
 }
 
 
@@ -137,21 +112,19 @@ void CPROC ReadINIFile( uintptr_t psv,  CTEXTSTR filename, int flags )
 	FILE *handle;
 	handle = sack_fopen( 0, filename, WIDE("rb") );
 	printf( WIDE("Process file: %s\n"), filename );
-   if( handle )
+	if( handle )
 	{
-      uint32_t nsize;
+		uint32_t nsize;
 		fseek( handle, 0L, SEEK_END );
 		nsize = ftell( handle );
 		fseek( handle, 0L, SEEK_SET );
-      if( nsize )
+		if( nsize )
 		{
 			char *filedata = NewArray( char, nsize + 1);
-         TEXTSTR unicode_data;
+			TEXTSTR unicode_data;
 			filedata[nsize] = 0; // make sure it's null terminated :)
 			/*allocate memory*/
 			fread( filedata, 1, nsize, handle );
-         if( filedata[0] != '[' )
-				CRYPTODecryptMemory ( filedata, nsize );
 #ifdef UNICODE
 			unicode_data = DupCharToText( filedata );
 			ProcessINIFile( filename, unicode_data, nsize );
@@ -159,7 +132,7 @@ void CPROC ReadINIFile( uintptr_t psv,  CTEXTSTR filename, int flags )
 			ProcessINIFile( filename, filedata, nsize );
 #endif
 			Release( filedata );
-	   }
+		}
 		fclose( handle );
 	}
 }
@@ -178,7 +151,7 @@ int main( int argc, char **argv )
 			{
 				snprintf( tmp, sizeof( tmp ), WIDE("/System Settings/%s"), argv[2] );
 				argc--;
-            argv++;
+				argv++;
 			}
 			else
 			{
@@ -192,11 +165,11 @@ int main( int argc, char **argv )
 		}
 	}
 	//CreateOptionDatabase();
-   BeginBatchUpdate();
-   for( n = 1; n < argc; n++ )
+	BeginBatchUpdate();
+	for( n = 1; n < argc; n++ )
 	{
 		//cpg27dec2006  		char *mask, *rootpath;
-      TEXTCHAR *mask, *rootpath;
+		TEXTCHAR *mask, *rootpath;
 		StrCpyEx( path, DupCharToText( argv[n] ), 256 );
 		mask = (TEXTSTR)pathrchr( path );
 		rootpath = path;
@@ -207,11 +180,11 @@ int main( int argc, char **argv )
 			//uint32_t a,b,c,d;
 			//GetMemStats( &a, &b, &c, &d );
 			//lprintf( "stats: %d %d %d %d", a, b, c, d );
-         //DebugDumpMem();
+			//DebugDumpMem();
 		}
 	}
-   EndBatchUpdate();
-   return 0;
+	EndBatchUpdate();
+	return 0;
 }
 
 

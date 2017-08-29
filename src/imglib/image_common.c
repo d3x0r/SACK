@@ -744,7 +744,7 @@ static void SmearFlag( Image image, int flag )
 
 //----------------------------------------------------------------------
 
-Image DecodeMemoryToImage( uint8_t* buf, uint32_t size )
+Image DecodeMemoryToImage( uint8_t* buf, size_t size )
 {
 	Image file = NULL;
 	//lprintf( WIDE("Attempting to decode an image...") );

@@ -1770,7 +1770,7 @@ typedef struct image_interface_tag
     /* <combine sack::image::DecodeMemoryToImage@uint8_t*@uint32_t>
        
        \ \                                                */
-    IMAGE_PROC_PTR( Image, DecodeMemoryToImage )( uint8_t* buf, uint32_t size );
+    IMAGE_PROC_PTR( Image, DecodeMemoryToImage )( uint8_t* buf, size_t size );
 
    /* <combine sack::image::InternalRenderFontFile@CTEXTSTR@int32_t@int32_t@uint32_t>
       

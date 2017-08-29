@@ -17,7 +17,7 @@ IMAGE_NAMESPACE
 #ifdef __cplusplus
 namespace loader {
 #endif
-extern LOGICAL PngImageFile ( Image pImage, uint8_t ** buf, size_t *size);
+IMAGE_PROC LOGICAL PngImageFile ( Image pImage, uint8_t ** buf, size_t *size);
 #ifdef __cplusplus
 };
 using namespace sack::image::loader;
@@ -247,7 +247,7 @@ static uint8_t* EncodeImage( size_t ID, Image image, LOGICAL bmp, size_t *outsiz
 					TEXTCHAR tmpname[32];
 					static int n;
 					FILE *out;
-					tnprintf( tmpname, 32, WIDE("blah%d.png"), ID );
+					tnprintf( tmpname, 32, WIDE("blah%zd.png"), ID );
 					out = sack_fopenEx( 0, tmpname, WIDE("wb"), sack_get_mounted_filesystem( "native" ) );
 					fwrite( buf, 1, *outsize, out );
 					fclose( out );
@@ -721,11 +721,11 @@ static void SendCompressedBuffer( PCLIENT pc, PVPImage image )
 #ifdef _UNICODE
 			encoded_data = CStrDup( (CTEXTSTR)image->websock_buffer );
 			// do not include the NULL...
-			compress2( output, &destlen, (const Bytef*)encoded_data, CStrLen( encoded_data ), Z_BEST_COMPRESSION );
+			compress2( output, &destlen, (const Bytef*)encoded_data, (uLong)CStrLen( encoded_data ), Z_BEST_COMPRESSION );
 			Deallocate( char *, encoded_data );
 #else
 			// this is includnig the close ] of the buffer to this state...
-			compress2( output, &destlen, image->websock_buffer, image->websock_sendlen + 1, Z_BEST_COMPRESSION );
+			compress2( output, &destlen, image->websock_buffer, (uLong)image->websock_sendlen + 1, Z_BEST_COMPRESSION );
 #endif
 
 			text_encoded_data = Encode64Image( WIDE("application/zip"), output, TRUE, destlen, &outlen );
@@ -1062,12 +1062,12 @@ static void WebSockError( PCLIENT pc, uintptr_t psv, int error )
 {
 }
 
-static void WebSockEvent( PCLIENT pc, uintptr_t psv, POINTER buffer, int msglen )
+static void WebSockEvent( PCLIENT pc, uintptr_t psv, LOGICAL binary, CPOINTER buffer, size_t msglen )
 {
 	POINTER msg = NULL;
 	struct server_socket_state *client= (struct server_socket_state *)psv;
 	struct json_context_object *json_object;
-   PDATALIST parseMsg;
+	PDATALIST parseMsg;
 #ifdef _UNICODE
 	CTEXTSTR buf;
 #endif
@@ -1076,12 +1076,12 @@ static void WebSockEvent( PCLIENT pc, uintptr_t psv, POINTER buffer, int msglen 
 #ifdef _UNICODE
 	buf = CharWConvertExx( (char*)buffer, msglen DBG_SRC );
 	lprintf( WIDE("Received:%*.*S"), msglen,msglen,buffer );
-   if( json_parse_message( buf, msglen, &parseMsg ) )
+	if( json_parse_message( buf, msglen, &parseMsg ) )
 	if( json_decode_message( l.json_reply_context, parseMsg, &json_object, &msg ) )
 	//lprintf( WIDE("Received:%*.*") _cstring_f, msglen,msglen,buffer );
 #else
 	lprintf( WIDE("Received:%*.*s"), msglen,msglen,buffer );
-   if( json_parse_message( buffer, msglen, &parseMsg ) )
+	if( json_parse_message( buffer, msglen, &parseMsg ) )
 	if( json_decode_message( l.json_reply_context, parseMsg, &json_object, &msg ) )
 #endif
 	{
@@ -1205,7 +1205,7 @@ static void WebSockEvent( PCLIENT pc, uintptr_t psv, POINTER buffer, int msglen 
 					l.key_states[message->data.key_event.key & 0xFF] &= ~0x80;  //(unpressed)
 				}
 #if defined( __LINUX__ )
-            // windows doesn't need this translation
+				// windows doesn't need this translation
 				lprintf( WIDE("so.... do the state...") );
 				SACK_Vidlib_ProcessKeyState( message->data.key_event.pressed, message->data.key_event.key, &used );
 #endif
@@ -1555,7 +1555,7 @@ static const TEXTCHAR * CPROC VidlibProxy_GetKeyText		 ( int key )
 			return text;
 		}
 	}
-   return 0;
+	return 0;
 #else
 	if( key & KEY_MOD_DOWN )
 		return 0;

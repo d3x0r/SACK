@@ -328,7 +328,7 @@ static void CPROC read_complete( PCLIENT pc, POINTER buffer, size_t length )
 						PTEXT protocols = GetHTTPField( socket->http_state, WIDE( "Sec-WebSocket-Protocol" ) );
 						PTEXT resource = GetHttpResource( socket->http_state );
 						if( socket->input_state.on_accept ) {
-							socket->flags.accepted = socket->input_state.on_accept( pc, socket->input_state.psv_on, GetText( protocols ), GetText( resource ), &socket->protocols );
+							socket->flags.accepted = socket->input_state.on_accept( pc, socket->input_state.psv_open, GetText( protocols ), GetText( resource ), &socket->protocols );
 						}
 						else
 							socket->flags.accepted = 1;
