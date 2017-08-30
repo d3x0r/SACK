@@ -37,6 +37,8 @@ typedef void (*web_socket_event)( PCLIENT pc, uintptr_t psv, LOGICAL binary, CPO
 // protocolsAccepted value set can be released in opened callback, or it may be simply assigned as protocols passed...
 typedef LOGICAL ( *web_socket_accept )(PCLIENT pc, uintptr_t psv, const char *protocols, const char *resource, char **protocolsAccepted);
 
+typedef uintptr_t ( *web_socket_http_request )(PCLIENT pc, uintptr_t psv); // passed psv used in server create; since it is sort of an open, return a psv for next states(if any)
+
 // these should be a combination of bit flags
 // options used for WebSocketOpen
 enum WebSocketOptions {
@@ -92,6 +94,21 @@ WEBSOCKET_EXPORT void SetWebSocketAcceptCallback( PCLIENT pc, web_socket_accept 
 WEBSOCKET_EXPORT void SetWebSocketReadCallback( PCLIENT pc, web_socket_event callback );
 WEBSOCKET_EXPORT void SetWebSocketCloseCallback( PCLIENT pc, web_socket_closed callback );
 WEBSOCKET_EXPORT void SetWebSocketErrorCallback( PCLIENT pc, web_socket_error callback );
+WEBSOCKET_EXPORT void SetWebSocketHttpCallback( PCLIENT pc, web_socket_http_request callback );
+
+// if set in server accept callback, this will return without extension set
+// on client socket (default), does not request permessage-deflate
+#define WEBSOCK_DEFLATE_DISABLE 0
+// if set in server accept callback (or if not set, default); accept client request to deflate per message
+// if set on client socket, sends request for permessage-deflate to server.
+#define WEBSOCK_DEFLATE_ENABLE 1
+// if set in server accept callback; accept client request to deflate per message, but do not deflate outbound messages
+// if set on client socket, sends request for permessage-deflate to server, but does not deflate outbound messages(?)
+#define WEBSOCK_DEFLATE_ALLOW 2
+
+// set permessage-deflate option for client requests.
+// allow server side to disable this when responding to a client.
+WEBSOCKET_EXPORT void SetWebSocketDeflate( PCLIENT pc, int enable_flags );
 
 
 #endif

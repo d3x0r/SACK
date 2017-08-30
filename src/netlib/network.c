@@ -407,34 +407,63 @@ LOGICAL IsAddressV6( SOCKADDR *addr )
 const char * GetAddrName( SOCKADDR *addr )
 {
 	char * tmp = ((char**)addr)[-1];
-	if( !( (uintptr_t)tmp & 0xFFFF0000 ) )
-	{
-		lprintf( WIDE("corrupted sockaddr.") );
-		DebugBreak();
-	}
 	if( !tmp )
 	{
 		{
 			char buf[256];
 
 			if( addr->sa_family == AF_INET )
-				snprintf( buf, 256, "%03d.%03d.%03d.%03d"
+				snprintf( buf, 256, "%d.%d.%d.%d"
 						  ,*(((unsigned char *)addr)+4),
 						  *(((unsigned char *)addr)+5),
 						  *(((unsigned char *)addr)+6),
 						  *(((unsigned char *)addr)+7) );
 			else if( addr->sa_family == AF_INET6 )
 			{
-				snprintf( buf, 256, "%04x:%04x:%04x:%04x:%04x:%04x:%04x:%04x "
-						 , ntohs(*(((unsigned short *)((unsigned char*)addr+8))))
-						 , ntohs(*(((unsigned short *)((unsigned char*)addr+10))))
-						 , ntohs(*(((unsigned short *)((unsigned char*)addr+12))))
-						 , ntohs(*(((unsigned short *)((unsigned char*)addr+14))))
-						 , ntohs(*(((unsigned short *)((unsigned char*)addr+16))))
-						 , ntohs(*(((unsigned short *)((unsigned char*)addr+18))))
-						 , ntohs(*(((unsigned short *)((unsigned char*)addr+20))))
-						 , ntohs(*(((unsigned short *)((unsigned char*)addr+22))))
-						 );
+				int first0 = 8;
+				int last0 = 0;
+				int after0 = 0;
+				int n;
+				int ofs = 0;
+				uint32_t peice;
+				for( n = 0; n < 8; n++ ) {
+					int peice;
+					peice = (*(((unsigned short *)((unsigned char*)addr + 8 + (n * 2)))));
+					if( peice ) {
+						if( first0 < 8 )
+							after0 = 1;
+						if( !ofs ) {
+							ofs += snprintf( buf + ofs, 256 - ofs, "%x", ntohs( peice ) );
+						}
+						else {
+							//console.log( last0, n );
+							if( last0 == 4 && first0 == 0 )
+								if( peice == 0xFFFF ) {
+									snprintf( buf, 256, "::%d.%d.%d.%d",
+										(*((unsigned char*)addr + 20)),
+										(*((unsigned char*)addr + 21)),
+										(*((unsigned char*)addr + 22)),
+										(*((unsigned char*)addr + 23)) );
+									break;
+								}
+							ofs += snprintf( buf + ofs, 256 - ofs, ":%x", ntohs(peice) );
+						}
+					}
+					else {
+						if( !after0 ) {
+							if( first0 > n ) {
+								first0 = n;
+								ofs += snprintf( buf + ofs, 256 - ofs, ":" );
+							}
+							if( last0 < n )
+								last0 = n;
+						}
+						if( last0 < n )
+							ofs += snprintf( buf + ofs, 256 - ofs, ":%x", ntohs( peice ) );
+					}
+				}
+				if( !after0 )
+					ofs += snprintf( buf + ofs, 256 - ofs, ":" );
 			}
 			else
 				snprintf( buf, 256, "unknown protocol" );
@@ -967,6 +996,20 @@ void HandleEvent( PCLIENT pClient )
 						pClient->dwFlags &= ~CF_CONNECTING;
 						if( pClient->connect.ThisConnected )
 						{
+							if( !wError && !pClient->saSource ) {
+#ifdef __LINUX__
+								socklen_t
+#else
+								int
+#endif
+									nLen = MAGIC_SOCKADDR_LENGTH;
+								if( !pClient->saSource )
+									pClient->saSource = AllocAddr();
+								if( getsockname( pClient->Socket, pClient->saSource, &nLen ) )
+								{
+									lprintf( WIDE( "getsockname errno = %d" ), errno );
+								}
+							}
 #ifdef LOG_NOTICES
 							if( globalNetworkData.flags.bLogNotices )
 								lprintf( WIDE( "Post connect to application %p  error:%d" ), pClient, wError );

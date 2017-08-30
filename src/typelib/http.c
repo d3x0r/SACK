@@ -8,11 +8,6 @@
 HTTP_NAMESPACE
 
 
-struct HttpField {
-	PTEXT name;
-	PTEXT value;
-};
-
 enum ReadChunkState {
 	READ_VALUE, READ_VALUE_CR, READ_VALUE_LF, READ_CR, READ_LF, READ_BYTES
 };
@@ -29,6 +24,7 @@ struct HttpState {
 
 	size_t content_length;
 	PTEXT content; // content of the message, POST,PUT,PATCH and replies have this.
+	LOGICAL returned_content;
 
 	int final; // boolean flag - indicates that the header portion of the http request is finished.
 
@@ -146,7 +142,13 @@ int ProcessHttp( PCLIENT pc, struct HttpState *pHttpState )
 	{
 		GatherHttpData( pHttpState );
 		if( pHttpState->content )
-			return HTTP_STATE_RESULT_CONTENT;
+		{
+			if( !pHttpState->returned_content ) {
+				pHttpState->returned_content = 1;
+				return HTTP_STATE_RESULT_CONTENT;
+			}
+			return HTTP_STATE_RESULT_NOTHING;
+		}
 	}
 	else
 	{
@@ -953,7 +955,7 @@ HTTPState GetHttpsQuery( PTEXT address, PTEXT url )
 			vtprintf( state->pvtOut, WIDE( "host: %s\r\n" ), GetText( address ) );
 			vtprintf( state->pvtOut, WIDE( "\r\n\r\n" ) );
 #ifndef NO_SSL
-			if( ssl_BeginClientSession( pc, NULL, 0 ) )
+			if( ssl_BeginClientSession( pc, NULL, 0, NULL, 0 ) )
 			{
 				state->waiter = MakeThread();
 				while( pc && ( state->last_read_tick > ( GetTickCount() - 20000 ) ) )
@@ -1184,6 +1186,12 @@ PTEXT GetHTTPField( struct HttpState *pHttpState, CTEXTSTR name )
 	}
 	return NULL;
 }
+
+PLIST GetHttpHeaderFields( HTTPState pHttpState )
+{
+	return pHttpState->fields;
+}
+
 
 HTTP_NAMESPACE_END
 #undef l

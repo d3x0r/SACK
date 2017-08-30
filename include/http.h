@@ -49,6 +49,11 @@ _TEXT_NAMESPACE
 	   fields name-value pairs and the packet content.               */
 	_HTTP_NAMESPACE
 
+struct HttpField {
+	PTEXT name;
+	PTEXT value;
+};
+
 typedef struct HttpState *HTTPState;
 enum ProcessHttpResult{
 	HTTP_STATE_RESULT_NOTHING = 0,
@@ -101,26 +106,33 @@ PTEXT HTTPAPI GetHttpResponce( HTTPState pHttpState );
 */
 HTTP_EXPORT PTEXT HTTPAPI GetHttpMethod( struct HttpState *pHttpState );
 
-HTTP_EXPORT /*Get the value of a HTTP header field, by name
+/*Get the value of a HTTP header field, by name
    Parameters
 	pHttpState: the state to get the header field from.
 	name: name of the field to get (checked case insensitive)
 */
-PTEXT HTTPAPI GetHTTPField( HTTPState pHttpState, CTEXTSTR name );
+HTTP_EXPORT PTEXT HTTPAPI GetHTTPField( HTTPState pHttpState, CTEXTSTR name );
 
 
-HTTP_EXPORT /* Gets the specific request code at the header of the packet -
+/* Gets the specific request code at the header of the packet -
    http 2.0 OK sort of thing.                                  */
-PTEXT HTTPAPI GetHttpRequest( HTTPState pHttpState );
-HTTP_EXPORT /* \Returns the body of the HTTP packet (the part of data
+HTTP_EXPORT PTEXT HTTPAPI GetHttpRequest( HTTPState pHttpState );
+/* \Returns the body of the HTTP packet (the part of data
    specified by content-length or by termination of the
    connection(? think I didn't implement that right)      */
-PTEXT HTTPAPI GetHttpContent( HTTPState pHttpState );
+HTTP_EXPORT PTEXT HTTPAPI GetHttpContent( HTTPState pHttpState );
 
-HTTP_EXPORT /* \Returns the resource path/name of the HTTP packet (the part of data
+/* \Returns the resource path/name of the HTTP packet (the part of data
    specified by content-length or by termination of the
    connection(? think I didn't implement that right)      */
-PTEXT HTTPAPI GetHttpResource( HTTPState pHttpState );
+HTTP_EXPORT PTEXT HTTPAPI GetHttpResource( HTTPState pHttpState );
+
+/* Returns a list of fields that were included in a request header.
+   members of the list are of type struct HttpField.
+   see also: ProcessHttpFields and ProcessCGIFields
+*/
+HTTP_EXPORT PLIST HTTPAPI GetHttpHeaderFields( HTTPState pHttpState );
+
 
 HTTP_EXPORT /* Enumerates the various http header fields by passing them
    each sequentially to the specified callback.

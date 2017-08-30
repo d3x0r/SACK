@@ -16,7 +16,7 @@
 SACK_NETWORK_NAMESPACE
 
 LOGICAL ssl_Send( PCLIENT pc, POINTER buffer, size_t length ) {
-   return FALSE;
+	return FALSE;
 }
 
 LOGICAL ssl_BeginServer( PCLIENT pc, POINTER cert, size_t certlen, POINTER keypair, size_t keylen ) {
@@ -37,6 +37,7 @@ SACK_NETWORK_NAMESPACE_END
 
 #include <openssl/rsa.h>
 #include <openssl/pem.h>
+#include <openssl/pkcs12.h>
 
 SACK_NETWORK_NAMESPACE
 
@@ -86,6 +87,7 @@ EVP_PKEY *genKey() {
 
 
 struct ssl_session {
+	SSL_CTX        *ctx;
 
 	BIO *rbio;
 	BIO *wbio;
@@ -120,7 +122,6 @@ static struct ssl_global
 	struct tls_config *tls_config;
 
 	SSL_CTX        *ssl_ctx_server;
-	SSL_CTX        *ssl_ctx_client;
 	uint8_t cipherlen;
 }ssl_global;
 
@@ -194,7 +195,7 @@ static int32_t loadRsaKeys( sslKeys_t *keys, LOGICAL client )
 #ifndef __NO_OPTIONS__
 			SACK_GetProfileString( "SSL/Private Key", "filename", "myprivkey.pem", privkey_buf, 256 );
 #else
-         strcpy( prikey_buf, "myprivkey.pem" );
+			strcpy( prikey_buf, "myprivkey.pem" );
 #endif
 			file = sack_fopen( fileGroup, privkey_buf, "rb" );
 			if( file )
@@ -211,7 +212,7 @@ static int32_t loadRsaKeys( sslKeys_t *keys, LOGICAL client )
 #ifndef __NO_OPTIONS__
 		SACK_GetProfileString( "SSL/Cert Authority Extra", "filename", "mycert.pem", cert_buf, 256 );
 #else
-         strcpy( cer_buf, "mycert.pem" );
+		strcpy( cer_buf, "mycert.pem" );
 #endif
 		file = sack_fopen( fileGroup, cert_buf, "rb" );
 		if( file )
@@ -329,7 +330,7 @@ static int logerr( const char *str, size_t len, void *userdata ) {
 
 
 static int handshake( PCLIENT pc ) {
-   struct ssl_session *ses = pc->ssl_session;
+	struct ssl_session *ses = pc->ssl_session;
 	if (!SSL_is_init_finished(ses->ssl)) {
 		int r;
 #ifdef DEBUG_SSL_IO
@@ -416,7 +417,7 @@ static void ssl_ReadComplete( PCLIENT pc, POINTER buffer, size_t length )
 
 			if( !( hs_rc = handshake( pc ) ) ) {
 #ifdef DEBUG_SSL_IO
-            // normal condition...
+				// normal condition...
 				lprintf( "Receive handshake not complete iBuffer" );
 #endif
 				ReadTCP( pc, pc->ssl_session->ibuffer, pc->ssl_session->ibuflen );
@@ -591,6 +592,7 @@ static void ssl_CloseCallback( PCLIENT pc ) {
 		Release( ses->cert );
 	}
 	SSL_free( ses->ssl );
+	SSL_CTX_free( ses->ctx );
 	// these are closed... with the ssl connection.
 	//BIO_free( ses->rbio );
 	//BIO_free( ses->wbio );
@@ -666,8 +668,17 @@ LOGICAL ssl_BeginServer( PCLIENT pc, POINTER cert, size_t certlen, POINTER keypa
 	} else {
 		struct internalCert *cert = New( struct internalCert );
 		BIO *keybuf = BIO_new( BIO_s_mem() );
+		X509 *x509, *result;
+		STACK_OF( X509 ) *chain = NULL;
+		chain = sk_X509_new_null();
+		//PKCS12_parse( )
 		BIO_write( keybuf, cert, (int)certlen );
-		PEM_read_bio_X509( keybuf, &cert->x509, NULL, NULL );
+		do {
+			x509 = X509_new();
+			result = PEM_read_bio_X509( keybuf, &x509, NULL, NULL );
+			if( result )
+				sk_X509_push( chain, x509 );
+		} while( result );
 		BIO_free( keybuf );
 		ses->cert = cert;
 		ses->privkey = ses->cert->pkey;
@@ -721,16 +732,16 @@ LOGICAL ssl_GetPrivateKey( PCLIENT pc, POINTER *keyoutbuf, size_t *keylen ) {
 
 
 
-LOGICAL ssl_BeginClientSession( PCLIENT pc, POINTER client_keypair, size_t client_keypairlen )
+LOGICAL ssl_BeginClientSession( PCLIENT pc, POINTER client_keypair, size_t client_keypairlen, POINTER rootCert, size_t rootCertLen )
 {
 	struct ssl_session * ses;
 	ssl_InitLibrary();
 
 	ses = New( struct ssl_session );
 	MemSet( ses, 0, sizeof( struct ssl_session ) );
-	if( !ssl_global.ssl_ctx_client ) {
-		ssl_global.ssl_ctx_client = SSL_CTX_new( TLSv1_2_client_method() );
-		SSL_CTX_set_cipher_list( ssl_global.ssl_ctx_client, "ALL:!ADH:!LOW:!EXP:!MD5:@STRENGTH" );
+	{
+		ses->ctx = SSL_CTX_new( TLSv1_2_client_method() );
+		SSL_CTX_set_cipher_list( ses->ctx, "ALL:!ADH:!LOW:!EXP:!MD5:@STRENGTH" );
 
 		if( !client_keypair )
 			ses->privkey = genKey();
@@ -740,9 +751,18 @@ LOGICAL ssl_BeginClientSession( PCLIENT pc, POINTER client_keypair, size_t clien
 			PEM_read_bio_PrivateKey( keybuf, &ses->privkey, NULL, NULL );
 			BIO_free( keybuf );
 		}
-		SSL_CTX_use_PrivateKey( ssl_global.ssl_ctx_client, ses->privkey );
+		SSL_CTX_use_PrivateKey( ses->ctx, ses->privkey );
 	}
-	ses->ssl = SSL_new( ssl_global.ssl_ctx_client );
+	ses->ssl = SSL_new( ses->ctx );
+	if( rootCert ) {
+		BIO *keybuf = BIO_new( BIO_s_mem() );
+		X509 *cert;
+		cert = X509_new();
+		BIO_write( keybuf, rootCert, (int)rootCertLen );
+		PEM_read_bio_X509( keybuf, &cert, NULL, NULL );
+		BIO_free( keybuf );
+		SSL_CTX_add_extra_chain_cert( ses->ctx, cert );
+	}
 	ssl_InitSession( ses );
 
 	SSL_set_connect_state( ses->ssl );
@@ -752,6 +772,8 @@ LOGICAL ssl_BeginClientSession( PCLIENT pc, POINTER client_keypair, size_t clien
 	ses->cpp_user_read = pc->read.CPPReadComplete;
 	pc->read.ReadComplete = ssl_ReadComplete;
 	pc->dwFlags &= ~CF_CPPREAD;
+
+	//SSL_use_certificate( )
 
 	pc->ssl_session = ses;
 
@@ -803,7 +825,7 @@ LOGICAL ssl_BeginClientSession( PCLIENT pc, POINTER client_keypair, size_t clien
 //
 static int cb(const char *str, size_t len, void *u)  {
 	lprintf( "%s", str);
-   return 1;
+	return 1;
 
 }
 
@@ -811,9 +833,9 @@ static void fatal_error(const char *file, int line, const char *msg)
 { 
 	fprintf(stderr, "**FATAL** %s:%i %s\n", file, line, msg);
 	fprintf( stderr, "specific error available, but not dumped; ERR_print_errors_fp is gone" );
-   ERR_print_errors_cb( cb, 0 );
-    //ERR_print_errors_fp(stderr);
-    exit(-1); 
+	ERR_print_errors_cb( cb, 0 );
+	//ERR_print_errors_fp(stderr);
+	exit(-1); 
 } 
 
 #define fatal(msg) fatal_error(__FILE__, __LINE__, msg) 
@@ -894,7 +916,7 @@ struct internalCert * MakeRequest( void )
 		 Deallocate( void *, key );
 		 PEM_read_bio_PrivateKey( keybuf, &cert->pkey, NULL, NULL );
 	} else {
-      RSA *rsa = RSA_new();
+		RSA *rsa = RSA_new();
 		BIGNUM *bne = BN_new();
 		int ret;
 		ret = BN_set_word( bne, kExp );
@@ -962,7 +984,7 @@ struct internalCert * MakeRequest( void )
 #else
 			strcpy( commonName, "d3x0r.org" );
 			strcpy( org, "Freedom Collective" );
-         strcpy( country, "US" );
+			strcpy( country, "US" );
 #endif
 			name = X509_get_subject_name( x509 );
 			X509_NAME_add_entry_by_txt( name, "C", MBSTRING_ASC,

@@ -28,12 +28,12 @@ struct html5_web_socket {
 		BIT_FIELD initial_handshake_done : 1;
 		BIT_FIELD rfc6455 : 1;
 		BIT_FIELD accepted : 1;
+		BIT_FIELD http_request_only : 1;
 	} flags;
 	char *protocols;
-	int client_max_bits;
-	int server_max_bits;
+	web_socket_http_request on_request;  // callback to send unhandled requests to a handler
+
 	struct web_socket_input_state input_state;
-	struct web_socket_output_state output_state;
 };
 
 const TEXTCHAR *base64 = WIDE("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=");
@@ -240,8 +240,25 @@ static void CPROC read_complete( PCLIENT pc, POINTER buffer, size_t length )
 				case HTTP_STATE_RESULT_CONTENT:
 				{
 					PVARTEXT pvt_output = VarTextCreate();
-					PTEXT value;
+					PTEXT value, value2;
 					PTEXT key1, key2;
+					value = GetHTTPField( socket->http_state, WIDE( "Connection" ) );
+					value2 = GetHTTPField( socket->http_state, WIDE( "Upgrade" ) );
+					if( !value || !value2 
+						|| !TextLike( value, "upgrade" ) 
+						|| !TextLike( value2, "websocket" ) ) {
+						lprintf( "request is not an upgrade for websocket." );
+						VarTextDestroy( &pvt_output );
+						socket->flags.initial_handshake_done = 1;
+						socket->flags.http_request_only = 1;
+						if( socket->on_request )
+							socket->on_request( pc, socket->input_state.psv_on );
+						else {
+							RemoveClient( pc );
+							return;
+						}
+						break;
+					}
 
 					value = GetHTTPField( socket->http_state, WIDE( "Sec-WebSocket-Extensions" ) );
 					if( value )
@@ -255,15 +272,15 @@ static void CPROC read_complete( PCLIENT pc, POINTER buffer, size_t length )
 							// "client_max_window_bits"
 							if( TextLike( opt, "permessage-deflate" ) ) {
 								socket->input_state.flags.deflate = 1;
-								socket->server_max_bits = 15;
-								socket->client_max_bits = 15;
+								socket->input_state.server_max_bits = 15;
+								socket->input_state.client_max_bits = 15;
 							}
 							else if( TextLike( opt, "client_max_window_bits" ) ) {
 								opt = NEXTLINE( opt );
 								if( opt ) {
 									if( GetText( opt )[0] == '=' ) {
 										opt = NEXTLINE( opt );
-										socket->client_max_bits = (int)IntCreateFromSeg( opt );
+										socket->input_state.client_max_bits = (int)IntCreateFromSeg( opt );
 									}
 									else
 										opt = PRIORLINE( opt );
@@ -275,7 +292,7 @@ static void CPROC read_complete( PCLIENT pc, POINTER buffer, size_t length )
 								if( opt ) {
 									if( GetText( opt )[0] == '=' ) {
 										opt = NEXTLINE( opt );
-										socket->server_max_bits = (int)IntCreateFromSeg( opt );
+										socket->input_state.server_max_bits = (int)IntCreateFromSeg( opt );
 									}
 								}
 								else {
@@ -296,14 +313,14 @@ static void CPROC read_complete( PCLIENT pc, POINTER buffer, size_t length )
 						if( socket->input_state.flags.deflate ) {
 							if( deflateInit2( &socket->input_state.deflater
 								, Z_BEST_SPEED, Z_DEFLATED
-								, -socket->server_max_bits
+								, -socket->input_state.server_max_bits
 								, 8
 								, Z_DEFAULT_STRATEGY ) != Z_OK )
 								socket->input_state.flags.deflate = 0;
 						}
 						if( socket->input_state.flags.deflate ) {
 							//socket->inflateWindow = NewArray( uint8_t, (size_t)(1 << (socket->client_max_bits&0x1f)) );
-							if( inflateInit2( &socket->input_state.inflater, -socket->client_max_bits ) != Z_OK ) {
+							if( inflateInit2( &socket->input_state.inflater, -socket->input_state.client_max_bits ) != Z_OK ) {
 							//if( inflateBackInit( &socket->input_state.inflater, socket->client_max_bits, socket->inflateWindow ) != Z_OK ) {
 								deflateEnd( &socket->input_state.deflater );
 								socket->input_state.flags.deflate = 0;
@@ -328,7 +345,7 @@ static void CPROC read_complete( PCLIENT pc, POINTER buffer, size_t length )
 						PTEXT protocols = GetHTTPField( socket->http_state, WIDE( "Sec-WebSocket-Protocol" ) );
 						PTEXT resource = GetHttpResource( socket->http_state );
 						if( socket->input_state.on_accept ) {
-							socket->flags.accepted = socket->input_state.on_accept( pc, socket->input_state.psv_open, GetText( protocols ), GetText( resource ), &socket->protocols );
+							socket->flags.accepted = socket->input_state.on_accept( pc, socket->input_state.psv_on, GetText( protocols ), GetText( resource ), &socket->protocols );
 						}
 						else
 							socket->flags.accepted = 1;
@@ -407,7 +424,7 @@ static void CPROC read_complete( PCLIENT pc, POINTER buffer, size_t length )
 							}
 						}
 						if( socket->input_state.flags.deflate ) {
-							vtprintf( pvt_output, WIDE( "Sec-WebSocket-Extensions: permessage-deflate; client_no_context_takeover; server_max_window_bits=%d\r\n" ), socket->server_max_bits );
+							vtprintf( pvt_output, WIDE( "Sec-WebSocket-Extensions: permessage-deflate; client_no_context_takeover; server_max_window_bits=%d\r\n" ), socket->input_state.server_max_bits );
 						}
 						if( socket->protocols )
 							vtprintf( pvt_output, WIDE( "Sec-WebSocket-Protocol: %s\r\n" ), socket->protocols );
@@ -435,7 +452,8 @@ static void CPROC read_complete( PCLIENT pc, POINTER buffer, size_t length )
 					}
 					if( socket->input_state.on_open )
 						socket->input_state.psv_open = socket->input_state.on_open( pc, socket->input_state.psv_on );
-					EndHttp( socket->http_state );
+					// keep this until close, application might want resource and/or headers from this.
+					//EndHttp( socket->http_state );
 					socket->flags.initial_handshake_done = 1;
 					break;
 				}
@@ -483,12 +501,12 @@ static void CPROC connected( PCLIENT pc_server, PCLIENT pc_new )
 	MemSet( socket, 0, sizeof( struct html5_web_socket ) );
 	socket->Magic = 0x20130912;
 	socket->pc = pc_new;
-	socket->input_state = server_socket->input_state;
-	socket->http_state = CreateHttpState();
+	socket->input_state = server_socket->input_state; // clone callback methods and config flags
+	socket->on_request = server_socket->on_request;
+	socket->http_state = CreateHttpState(); // start a new http state collector
 
 	SetNetworkLong( pc_new, 0, (uintptr_t)socket );
-	SetNetworkLong( pc_new, 1, (uintptr_t)&socket->output_state );
-	SetNetworkLong( pc_new, 2, (uintptr_t)&socket->input_state );
+	SetNetworkLong( pc_new, 1, (uintptr_t)&socket->input_state );
 	SetNetworkReadComplete( pc_new, read_complete );
 	SetNetworkCloseCallback( pc_new, closed );
 }
@@ -520,11 +538,25 @@ PCLIENT WebSocketCreate( CTEXTSTR hosturl
 	SACK_ReleaseURL( url );
 	socket->http_state = CreateHttpState();
 	SetNetworkLong( socket->pc, 0, (uintptr_t)socket );
-	SetNetworkLong( socket->pc, 1, (uintptr_t)&socket->output_state );
-	SetNetworkLong( socket->pc, 2, (uintptr_t)&socket->input_state );
+	SetNetworkLong( socket->pc, 1, (uintptr_t)&socket->input_state );
 	return socket->pc;
 }
 
+PLIST GetWebSocketHeaders( PCLIENT pc ) {
+	HTML5WebSocket socket = (HTML5WebSocket)GetNetworkLong( pc, 0 );
+	if( socket && socket->Magic == 0x20130912 ) {
+		return GetHttpHeaderFields( socket->http_state );
+	}
+	return NULL;
+}
+
+PTEXT GetWebSocketResource( PCLIENT pc ) {
+	HTML5WebSocket socket = (HTML5WebSocket)GetNetworkLong( pc, 0 );
+	if( socket && socket->Magic == 0x20130912 ) {
+		return GetHttpResource( socket->http_state );
+	}
+	return NULL;
+}
 
 HTML5_WEBSOCKET_NAMESPACE_END
 

@@ -27,10 +27,13 @@ static void SendRequestHeader( WebSocketClient websock )
 		vtprintf( pvtHeader, WIDE("Sec-WebSocket-Protocol: %s\r\n"), websock->protocols );
 	vtprintf( pvtHeader, WIDE("Sec-WebSocket-Key: x3JJHMbDL1EzLkh9GBhXDw==\r\n") );
 	vtprintf( pvtHeader, WIDE("Sec-WebSocket-Version: 13\r\n") );
+	if( websock->input_state.flags.deflate ) {
+		vtprintf( pvtHeader, WIDE( "Sec-WebSocket-Extensions: 13\r\n" ) );
+	}
 	vtprintf( pvtHeader, WIDE("\r\n") );
 	{
 		PTEXT text = VarTextPeek( pvtHeader ); // just leave the buffer in-place
-		if( websock->output_state.flags.use_ssl )
+		if( websock->input_state.flags.use_ssl )
 			ssl_Send( websock->pc, GetText( text ), GetTextSize( text ) );
 		else
 			SendTCP( websock->pc, GetText( text ), GetTextSize( text ) );
@@ -56,7 +59,7 @@ static void CPROC WebSocketTimer( uintptr_t psv )
 			} msg;
 			msg.reason = 1000; // normal
 			websock->input_state.flags.closed = 1;
-			SendWebSocketMessage( websock->pc, 8, 1, 0, (uint8_t*)&msg, 2, websock->output_state.flags.use_ssl );
+			SendWebSocketMessage( websock->pc, 8, 1, 0, (uint8_t*)&msg, 2, websock->input_state.flags.use_ssl );
 		}
 
 		// do auto ping...
@@ -67,7 +70,7 @@ static void CPROC WebSocketTimer( uintptr_t psv )
 				{
 					if( ( now - websock->input_state.last_reception ) > websock->ping_delay )
 					{
-						SendWebSocketMessage( websock->pc, 0x09, 1, 0, NULL, 0, websock->output_state.flags.use_ssl );
+						SendWebSocketMessage( websock->pc, 0x09, 1, 0, NULL, 0, websock->input_state.flags.use_ssl );
 					}
 				}
 				else
@@ -91,12 +94,11 @@ static void CPROC WebSocketClientReceive( PCLIENT pc, POINTER buffer, size_t len
 	{
 		if( !websock )
 		{
-			if( wsc_local.opening_client )
+			if( websock = wsc_local.opening_client )
 			{
 				//SetTCPNoDelay( pc, TRUE );
-
-				//SetNetworkLong( pc, 0, (uintptr_t)wsc_local.opening_client );
-				//SetNetworkLong( pc, 1, (uintptr_t)&wsc_local.opening_client->output_state );
+				SetNetworkLong( pc, 0, (uintptr_t)wsc_local.opening_client );
+				SetNetworkLong( pc, 1, (uintptr_t)&wsc_local.opening_client->input_state );
 				wsc_local.opening_client = NULL; // clear this to allow open to return.
 			}
 			else
@@ -124,7 +126,7 @@ static void CPROC WebSocketClientReceive( PCLIENT pc, POINTER buffer, size_t len
 				{
 					PTEXT content = GetHttpContent( websock->pHttpState );
 					if( websock->input_state.on_open )
-						websock->input_state.on_open( pc, websock->input_state.psv_on );
+						websock->input_state.psv_open = websock->input_state.on_open( pc, websock->input_state.psv_on );
 					if( content )
 						ProcessWebSockProtocol( &websock->input_state, websock->pc, (uint8_t*)GetText( content ), GetTextSize( content ) );
 				}
@@ -173,8 +175,8 @@ static void CPROC WebSocketClientConnected( PCLIENT pc, int error )
 
 	if( !error )
 	{
-		if( websock->output_state.flags.use_ssl )
-			ssl_BeginClientSession( websock->pc, NULL, 0 );
+		if( websock->input_state.flags.use_ssl )
+			ssl_BeginClientSession( websock->pc, NULL, 0, NULL, 0 );
 	}
 	else
 	{
@@ -190,7 +192,7 @@ static void CPROC WebSocketClientConnected( PCLIENT pc, int error )
 //  since these packets are collected at a lower layer, buffers passed to receive event are allocated for
 //  the application, and the application does not need to setup an  initial read.
 PCLIENT WebSocketOpen( CTEXTSTR url_address
-							, int options
+							, enum WebSocketOptions options
 							, web_socket_opened on_open
 							, web_socket_event on_event
 							, web_socket_closed on_closed
@@ -199,6 +201,8 @@ PCLIENT WebSocketOpen( CTEXTSTR url_address
 	, const char *protocols )
 {
 	WebSocketClient websock = New( struct web_socket_client );
+	MemSet( websock, 0, sizeof( struct web_socket_client ) );
+
 	//va_arg args;
 	//va_start( args, psv );
 	if( !wsc_local.timer )
@@ -212,7 +216,7 @@ PCLIENT WebSocketOpen( CTEXTSTR url_address
 	websock->input_state.on_error = on_error;
 	websock->input_state.psv_on = psv;
 	websock->protocols = protocols;
-	websock->output_state.flags.expect_masking = 1; // client to server is MUST mask because of proxy handling in that direction
+	websock->input_state.flags.expect_masking = 1; // client to server is MUST mask because of proxy handling in that direction
 
 	websock->url = SACK_URLParse( url_address );
 
@@ -224,17 +228,17 @@ PCLIENT WebSocketOpen( CTEXTSTR url_address
 												, WebSocketClientReceive
 												, WebSocketClientClosed
 												, NULL
-												, on_open?WebSocketClientConnected:NULL // if there is an on-open event, then register for async open
+												, WebSocketClientConnected // if there is an on-open event, then register for async open
 												, 0
 												DBG_SRC
 												);
 		if( websock->pc )
 		{
 			SetNetworkLong( websock->pc, 0, (uintptr_t)websock );
-			SetNetworkLong( websock->pc, 1, (uintptr_t)&websock->output_state );
+			SetNetworkLong( websock->pc, 1, (uintptr_t)&websock->input_state );
 #ifndef NO_SSL
 			if( StrCaseCmp( websock->url->protocol, "wss" ) == 0 )
-				websock->output_state.flags.use_ssl = 1;
+				websock->input_state.flags.use_ssl = 1;
 #endif
 			if( !on_open )
 			{	
@@ -247,6 +251,10 @@ PCLIENT WebSocketOpen( CTEXTSTR url_address
 	}
 	LeaveCriticalSec( &wsc_local.cs_opening );
 	return  websock->pc;
+}
+
+void WebSocketConnect( PCLIENT pc ) {
+	NetworkConnectTCP( pc );
 }
 
 // end a websocket connection nicely.

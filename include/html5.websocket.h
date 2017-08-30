@@ -64,6 +64,14 @@ HTML5_WEBSOCKET_PROC( PCLIENT, WebSocketSetProtocols )( PCLIENT pc, const char *
 //	__DefineRegistryMethodP(PRELOAD_PRIORITY,ROOT_REGISTRY,_OnDrawCommon,WIDE("control"),name WIDE("/rtti"),WIDE("draw_to_canvas"),int,(CONTROL, HTML5WebSocket ), __LINE__)
 
 
+/* a server side utility to get the request headers that came in.
+this is for going through proxy agents mostly where the header might have x-forwarded-for
+*/
+HTML5_WEBSOCKET_PROC( PLIST, GetWebSocketHeaders )( PCLIENT pc );
+/* for server side sockets, get the requested resource path from the client request.
+*/
+HTML5_WEBSOCKET_PROC( PTEXT, GetWebSocketResource )( PCLIENT pc );
+
 
 
 HTML5_WEBSOCKET_NAMESPACE_END

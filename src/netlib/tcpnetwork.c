@@ -276,6 +276,10 @@ NETWORK_PROC( PCLIENT, CPPOpenTCPListenerAddrExx )( SOCKADDR *pAddr
 		return NULL;
 	}
 #  endif
+	{
+		int t = FALSE;
+		setsockopt( pListen->Socket, IPPROTO_IPV6, IPV6_V6ONLY, (const char *)&t, 4 );
+	}
 #else
 	{
 		int t = TRUE;
@@ -289,7 +293,7 @@ NETWORK_PROC( PCLIENT, CPPOpenTCPListenerAddrExx )( SOCKADDR *pAddr
 		unlink( (char*)(((uint16_t*)pAddr)+1));
 #endif
 
-   if (!pAddr || 
+	if (!pAddr || 
 		 bind(pListen->Socket ,pAddr, SOCKADDR_LENGTH( pAddr ) ) )
 	{
 		_lprintf(DBG_RELAY)( WIDE("Cannot bind to address..:%d"), WSAGetLastError() );

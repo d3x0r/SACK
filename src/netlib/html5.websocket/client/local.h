@@ -6,7 +6,7 @@ typedef struct web_socket_client *WebSocketClient;
 
 struct web_socket_client
 {
-   uint32_t Magic; // this value must be 0x20130911
+	uint32_t Magic; // this value must be 0x20130911
 	struct web_socket_client_flags
 	{
 		BIT_FIELD connected : 1; // if not connected, then parse data as http, otherwise process as websock protocol.
@@ -26,14 +26,13 @@ struct web_socket_client
 	uint32_t ping_delay; // when set by enable auto_ping is the delay between packets to generate a ping
 
 	struct web_socket_input_state input_state;
-   struct web_socket_output_state output_state;
 };
 
 
 struct web_socket_client_local
 {
-   uint32_t timer;
+	uint32_t timer;
 	PLIST clients;
-   CRITICALSECTION cs_opening;
+	CRITICALSECTION cs_opening;
 	struct web_socket_client *opening_client;
 } wsc_local;

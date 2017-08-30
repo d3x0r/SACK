@@ -530,6 +530,14 @@ NETWORK_PROC( PCLIENT, OpenTCPClientExEx )( CTEXTSTR, uint16_t, cReadComplete,
    \ \                                                                                                                      */
 #define OpenTCPClientEx( addr,port,read,close,write ) OpenTCPClientExEx( addr,port,read,close,write DBG_SRC )
 
+/* Do the connect to 
+*/
+int NetworkConnectTCPEx( PCLIENT pc DBG_PASS );
+#define NetworkConnectTCP( pc ) NetworkConnectTCPEx( pc DBG_SRC )
+
+
+
+
 /* Drain is an operation on a TCP socket to just drop the next X
    bytes. They are ignored and not stored into any user buffer.
    Drain reads take precedence over any other queued reads.
@@ -777,7 +785,7 @@ NETWORK_PROC( void, RemoveClientExx )(PCLIENT lpClient, LOGICAL bBlockNofity, LO
 
 
 /* Begin an SSL Connection.  This ends up replacing ReadComplete callback with an inbetween layer*/
-NETWORK_PROC( LOGICAL, ssl_BeginClientSession )( PCLIENT pc, POINTER keypair, size_t keylen );
+NETWORK_PROC( LOGICAL, ssl_BeginClientSession )( PCLIENT pc, POINTER keypair, size_t keylen, POINTER rootCert, size_t rootCertLen );
 NETWORK_PROC( LOGICAL, ssl_BeginServer )( PCLIENT pc, POINTER cert, size_t certlen, POINTER keypair, size_t keylen );
 NETWORK_PROC( LOGICAL, ssl_GetPrivateKey )(PCLIENT pc, POINTER *keydata, size_t *keysize);
 
