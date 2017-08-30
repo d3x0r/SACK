@@ -1369,8 +1369,9 @@ void  SetSystemLog ( enum syslog_types type, const void *data )
 {
 	if( (*syslog_local).file && ( logtype != SYSLOG_FILE ) )
 	{
-		sack_fclose( (*syslog_local).file );
-		(*syslog_local).file = NULL;
+		FILE *close_file = (*syslog_local).file;
+		(*syslog_local).file = NULL;  // reset this first, in case logging closing.
+		sack_fclose( close_file );
 	}
 	if( type == SYSLOG_FILE )
 	{

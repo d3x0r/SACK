@@ -1779,6 +1779,10 @@ int  sack_fclose ( FILE *file_file )
 			status = file->mount->fsi->_close( file_file );
 		else
 			status = fclose( file_file );
+#if !defined( __NO_OPTIONS__ ) && !defined( __FILESYS_NO_FILE_LOGGING__ )
+		if( (*winfile_local).flags.bLogOpenClose )
+			lprintf( WIDE( "deleted FILE* %p and list is %p" ), file_file, file->files );
+#endif
 		DeleteLink( &file->files, file_file );
 		if( !GetLinkCount( file->files ) ) {
 			DeleteListEx( &file->files DBG_SRC );
@@ -1788,10 +1792,6 @@ int  sack_fclose ( FILE *file_file )
 			Deallocate( TEXTCHAR*, file->fullname );
 			Deallocate( struct file*, file );
 		}
-#if !defined( __NO_OPTIONS__ ) && !defined( __FILESYS_NO_FILE_LOGGING__ )
-		if( (*winfile_local).flags.bLogOpenClose )
-			lprintf( WIDE( "deleted FILE* %p and list is %p" ), file_file, file->files );
-#endif
 		LeaveCriticalSec( &(*winfile_local).cs_files );
 		return status;
 	}
