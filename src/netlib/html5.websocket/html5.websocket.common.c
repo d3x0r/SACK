@@ -132,7 +132,7 @@ static void _SendWebSocketMessage( PCLIENT pc, int opcode, int final, int do_mas
 void SendWebSocketMessage( PCLIENT pc, int opcode, int final, int do_mask, const uint8_t* payload, size_t length, int use_ssl ) {
 	struct web_socket_input_state *input = (struct web_socket_input_state *)GetNetworkLong( pc, 1 );
 
-	if( input->flags.deflate && opcode < 3 ) {
+	if( (!input->flags.do_not_deflate) && input->flags.deflate && opcode < 3 ) {
 		int r;
 		if( opcode ) opcode |= 0x40;
 		input->deflater.next_in = (Bytef*)payload;

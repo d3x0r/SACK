@@ -254,9 +254,11 @@ static void CPROC read_complete( PCLIENT pc, POINTER buffer, size_t length )
 							// "server_max_window_bits"
 							// "client_max_window_bits"
 							if( TextLike( opt, "permessage-deflate" ) ) {
-								socket->input_state.flags.deflate = 1;
-								socket->input_state.server_max_bits = 15;
-								socket->input_state.client_max_bits = 15;
+								socket->input_state.flags.deflate = socket->input_state.flags.deflate & 1;
+								if( socket->input_state.flags.deflate ) {
+									socket->input_state.server_max_bits = 15;
+									socket->input_state.client_max_bits = 15;
+								}
 							}
 							else if( TextLike( opt, "client_max_window_bits" ) ) {
 								opt = NEXTLINE( opt );
@@ -293,7 +295,7 @@ static void CPROC read_complete( PCLIENT pc, POINTER buffer, size_t length )
 							opt = NEXTLINE( opt );
 						}
 						LineRelease( options );
-						if( socket->input_state.flags.deflate ) {
+						if( socket->input_state.flags.deflate && !socket->input_state.flags.do_not_deflate ) {
 							if( deflateInit2( &socket->input_state.deflater
 								, Z_BEST_SPEED, Z_DEFLATED
 								, -socket->input_state.server_max_bits
@@ -404,6 +406,7 @@ static void CPROC read_complete( PCLIENT pc, POINTER buffer, size_t length )
 									// s3pPLMBiTxaQ9kYGzzhZRbK+xOo=
 									vtprintf( pvt_output, WIDE( "Sec-WebSocket-Accept: %s\r\n" ), output );
 								}
+								Deallocate( char *, resultval );
 							}
 						}
 						if( socket->input_state.flags.deflate ) {
@@ -431,7 +434,7 @@ static void CPROC read_complete( PCLIENT pc, POINTER buffer, size_t length )
 #else
 						SendTCP( pc, GetText( value ), GetTextSize( value ) );
 #endif
-						lprintf( "Sent http reply." );
+						//lprintf( "Sent http reply." );
 						VarTextDestroy( &pvt_output );
 						if( socket->input_state.on_open )
 							socket->input_state.psv_open = socket->input_state.on_open( pc, socket->input_state.psv_on );
@@ -477,6 +480,7 @@ static void CPROC closed( PCLIENT pc_client ) {
 		Deallocate( POINTER, socket->input_state.inflateBuf );
 		Deallocate( POINTER, socket->input_state.deflateBuf );
 	}
+	Deallocate( uint8_t*, socket->input_state.fragment_collection );
 	DestroyHttpState( socket->http_state );
 	Deallocate( POINTER, socket->buffer );
 	Deallocate( HTML5WebSocket, socket );
@@ -516,6 +520,7 @@ PCLIENT WebSocketCreate( CTEXTSTR hosturl
 	NetworkStart();
 	MemSet( socket, 0, sizeof( struct html5_web_socket ) );
 	socket->Magic = 0x20130912;
+	socket->input_state.flags.deflate = 1;
 	socket->input_state.on_open = on_open;
 	socket->input_state.on_event = on_event;
 	socket->input_state.on_close = on_closed;

@@ -192,6 +192,7 @@ static void CPROC WebSocketClientClosed( PCLIENT pc )
 			websock->input_state.on_close( pc, websock->input_state.psv_on );
 			websock->input_state.on_close = NULL;
 		}
+		Deallocate( uint8_t*, websock->input_state.fragment_collection );
 		Release( websock->buffer );
 		DestroyHttpState( websock->pHttpState );
 		SACK_ReleaseURL( websock->url );
