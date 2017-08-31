@@ -303,7 +303,7 @@ NETWORK_PROC( PCLIENT, CPPOpenTCPListenerAddrExx )( SOCKADDR *pAddr
 	}
 	pListen->saSource = DuplicateAddress( pAddr );
 
-	if(listen(pListen->Socket,5) == SOCKET_ERROR )
+	if(listen(pListen->Socket, SOMAXCONN ) == SOCKET_ERROR )
 	{
 		lprintf( WIDE("listen(5) failed: %d"), WSAGetLastError() );
 		InternalRemoveClientEx( pListen, TRUE, FALSE );
