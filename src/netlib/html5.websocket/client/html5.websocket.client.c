@@ -2,9 +2,20 @@
 #include <idle.h>
 #define SACK_WEBSOCKET_CLIENT_SOURCE
 #include <html5.websocket.client.h>
+#include <salty_generator.h>
 #include "../html5.websocket.common.h"
 
 #include "local.h"
+
+static const TEXTCHAR *base64 = WIDE( "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=" );
+
+static void encodeblock( unsigned char in[3], TEXTCHAR out[4], int len )
+{
+	out[0] = base64[in[0] >> 2];
+	out[1] = base64[((in[0] & 0x03) << 4) | ((in[1] & 0xf0) >> 4)];
+	out[2] = (unsigned char)(len > 1 ? base64[((in[1] & 0x0f) << 2) | ((in[2] & 0xc0) >> 6)] : '=');
+	out[3] = (unsigned char)(len > 2 ? base64[in[2] & 0x3f] : '=');
+}
 
 
 static void SendRequestHeader( WebSocketClient websock )
@@ -25,7 +36,24 @@ static void SendRequestHeader( WebSocketClient websock )
 	vtprintf( pvtHeader, WIDE("Connection: Upgrade\r\n"));
 	if( websock->protocols )
 		vtprintf( pvtHeader, WIDE("Sec-WebSocket-Protocol: %s\r\n"), websock->protocols );
-	vtprintf( pvtHeader, WIDE("Sec-WebSocket-Key: x3JJHMbDL1EzLkh9GBhXDw==\r\n") );
+	vtprintf( pvtHeader, WIDE( "Sec-WebSocket-Key:" ) );
+	{
+		uint8_t buf[16];
+		TEXTCHAR output[32];
+		int n;
+		SRG_GetEntropyBuffer( wsc_local.rng, (uint32_t*)buf, 16 * 8 );
+		for( n = 0; n < (16 + 2) / 3; n++ )
+		{
+			int blocklen;
+			blocklen = 16 - n * 3;
+			if( blocklen > 3 )
+				blocklen = 3;
+			encodeblock( buf + n * 3, output + n * 4, blocklen );
+		}
+		output[n * 4 + 0] = 0;
+		vtprintf( pvtHeader, "%s\r\n", output );
+	}
+	//x3JJHMbDL1EzLkh9GBhXDw == \r\n") );
 	vtprintf( pvtHeader, WIDE("Sec-WebSocket-Version: 13\r\n") );
 	if( websock->input_state.flags.deflate ) {
 		vtprintf( pvtHeader, WIDE( "Sec-WebSocket-Extensions: 13\r\n" ) );
@@ -160,6 +188,10 @@ static void CPROC WebSocketClientClosed( PCLIENT pc )
 	WebSocketClient websock = (WebSocketClient)GetNetworkLong( pc, 0 );
 	if( websock )
 	{
+		if( websock->input_state.on_close ) {
+			websock->input_state.on_close( pc, websock->input_state.psv_on );
+			websock->input_state.on_close = NULL;
+		}
 		Release( websock->buffer );
 		DestroyHttpState( websock->pHttpState );
 		SACK_ReleaseURL( websock->url );
@@ -181,11 +213,17 @@ static void CPROC WebSocketClientConnected( PCLIENT pc, int error )
 	else
 	{
 		wsc_local.opening_client = NULL;
-		if( websock->input_state.on_close )
-			websock->input_state.on_close( NULL, websock->input_state.psv_on );
+		RemoveClient( pc );
 	}
 }
 
+
+static void getRandomSalt( uintptr_t inst, POINTER *salt, size_t *salt_size ) {
+	static uint32_t tick;
+	tick = GetTickCount();
+	(*salt) = &tick;
+	(*salt_size) = 4;
+}
 
 // create a websocket connection.
 //  If web_socket_opened is passed as NULL, this function will wait until the negotiation has passed.
@@ -201,8 +239,11 @@ PCLIENT WebSocketOpen( CTEXTSTR url_address
 	, const char *protocols )
 {
 	WebSocketClient websock = New( struct web_socket_client );
+	if( !wsc_local.rng ) {
+		wsc_local.rng = SRG_CreateEntropy2( getRandomSalt, 0 );
+	}
 	MemSet( websock, 0, sizeof( struct web_socket_client ) );
-
+	websock->Magic = 0x20130911;
 	//va_arg args;
 	//va_start( args, psv );
 	if( !wsc_local.timer )
@@ -260,7 +301,32 @@ void WebSocketConnect( PCLIENT pc ) {
 // end a websocket connection nicely.
 void WebSocketClose( PCLIENT pc )
 {
-   RemoveClientEx( pc, 0, 1 );
+	WebSocketClient websock = (WebSocketClient)GetNetworkLong( pc, 0 );
+	if( websock->Magic == 0x20130912 ) {
+		struct html5_web_socket *serverSock = (struct html5_web_socket*)websock;
+		if( serverSock->flags.initial_handshake_done ) {
+			//lprintf( "Send server side close with no payload." );
+			SendWebSocketMessage( pc, 8, 1, serverSock->input_state.flags.expect_masking, NULL, 0, serverSock->input_state.flags.use_ssl );
+			serverSock->input_state.flags.closed = 1;
+		}
+		else {
+			//lprintf( "Negotiation incomplete, don't send close; just close." );
+			RemoveClientEx( pc, 0, 1 );
+		}
+	}
+	else {
+		if( websock->Magic == 0x20130911 ) {
+			//lprintf( "send client side close?" );
+			if( websock->flags.connected ) {
+				SendWebSocketMessage( pc, 8, 1, websock->input_state.flags.expect_masking, NULL, 0, websock->input_state.flags.use_ssl );
+				websock->input_state.flags.closed = 1;
+			}
+			else {
+				//lprintf( "Negotiation incomplete, don't send close; just close." );
+				RemoveClientEx( pc, 0, 1 );
+			}
+		}
+	}
 }
 
 void WebSocketEnableAutoPing( PCLIENT pc, uint32_t delay )

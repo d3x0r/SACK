@@ -24,7 +24,7 @@ struct HttpState {
 
 	size_t content_length;
 	PTEXT content; // content of the message, POST,PUT,PATCH and replies have this.
-	LOGICAL returned_content;
+	LOGICAL returned_status;
 
 	int final; // boolean flag - indicates that the header portion of the http request is finished.
 
@@ -141,14 +141,11 @@ int ProcessHttp( PCLIENT pc, struct HttpState *pHttpState )
 	if( pHttpState->final )
 	{
 		GatherHttpData( pHttpState );
-		if( pHttpState->content )
-		{
-			if( !pHttpState->returned_content ) {
-				pHttpState->returned_content = 1;
-				return HTTP_STATE_RESULT_CONTENT;
-			}
-			return HTTP_STATE_RESULT_NOTHING;
+		if( !pHttpState->returned_status ) {
+			pHttpState->returned_status = 1;
+			return pHttpState->numeric_code;
 		}
+		return HTTP_STATE_RESULT_NOTHING;
 	}
 	else
 	{
@@ -443,6 +440,7 @@ int ProcessHttp( PCLIENT pc, struct HttpState *pHttpState )
 			GatherHttpData( pHttpState );
 		}
 	}
+
 	if( pHttpState->final &&
 		( ( pHttpState->content_length
 			&& ( ( GetTextSize( pHttpState->partial ) >= pHttpState->content_length )
@@ -450,10 +448,12 @@ int ProcessHttp( PCLIENT pc, struct HttpState *pHttpState )
 			|| ( !pHttpState->content_length )
 			) )
 	{
+		pHttpState->returned_status = 1;
 		if( pHttpState->numeric_code == 500 )
 			return HTTP_STATE_INTERNAL_SERVER_ERROR;
-		if( pHttpState->content && ( pHttpState->numeric_code == 200 ) )
+		if( pHttpState->content && (pHttpState->numeric_code == 200) ) {
 			return HTTP_STATE_RESULT_CONTENT;
+		}
 		if( pHttpState->numeric_code == 100 )
 			return HTTP_STATE_RESULT_CONTINUE;
 		if( pHttpState->numeric_code == 404 )

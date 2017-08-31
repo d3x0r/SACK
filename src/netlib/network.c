@@ -427,7 +427,6 @@ const char * GetAddrName( SOCKADDR *addr )
 				int ofs = 0;
 				uint32_t peice;
 				for( n = 0; n < 8; n++ ) {
-					int peice;
 					peice = (*(((unsigned short *)((unsigned char*)addr + 8 + (n * 2)))));
 					if( peice ) {
 						if( first0 < 8 )
@@ -600,7 +599,13 @@ void ClearClient( PCLIENT pc )
 
 	ReleaseAddress( pc->saClient );
 	ReleaseAddress( pc->saSource );
-
+#if _WIN32
+#if defined( USE_WSA_EVENTS )
+	if( pc->event ) {
+		WSACloseEvent( pc->event );
+	}
+#endif
+#endif
 	// sets socket to 0 - so it's not quite == INVALID_SOCKET
 #ifdef LOG_NETWORK_EVENT_THREAD
 	if( globalNetworkData.flags.bLogNotices )
@@ -628,16 +633,12 @@ void TerminateClosedClientEx( PCLIENT pc DBG_PASS )
 	if( pc->dwFlags & CF_CLOSED )
 	{
 		PendingBuffer * lpNext;
-		//lprintf( "Terminate Closed Client" );
 		EnterCriticalSec( &globalNetworkData.csNetwork );
 		//lprintf( WIDE( "Terminating closed client..." ) );
 		if( IsValid( pc->Socket ) )
 		{
 #ifdef VERBOSE_DEBUG
 			lprintf( WIDE( "close socket." ) );
-#endif
-#if defined( USE_WSA_EVENTS )
-			WSACloseEvent( pc->event );
 #endif
 			closesocket( pc->Socket );
 			while( pc->lpFirstPending )
@@ -1097,7 +1098,7 @@ void HandleEvent( PCLIENT pClient )
 					if( pClient->dwFlags & CF_ACTIVE )
 					{
 						// might already be cleared and gone..
-						InternalRemoveClient( pClient );
+						InternalRemoveClientEx( pClient, FALSE, TRUE );
 						TerminateClosedClient( pClient );
 					}
 					// section will be blank after termination...(correction, we keep the section state now)
@@ -2108,9 +2109,9 @@ int NetworkQuit(void)
 	}
 	while( globalNetworkData.ActiveClients )
 	{
-		if( globalNetworkData.flags.bLogNotices )
-			lprintf( WIDE("Remove active client %p"), globalNetworkData.ActiveClients );
-		InternalRemoveClient( globalNetworkData.ActiveClients );
+		//if( globalNetworkData.flags.bLogNotices )
+			lprintf( WIDE("NetworkQuit - Remove active client %p"), globalNetworkData.ActiveClients );
+		InternalRemoveClientEx( globalNetworkData.ActiveClients, TRUE, FALSE );
 	}
 	globalNetworkData.bQuit = TRUE;
 	WakeThread( globalNetworkData.pThread );
@@ -3144,6 +3145,7 @@ void InternalRemoveClientExx(PCLIENT lpClient, LOGICAL bBlockNofity, LOGICAL bLi
 			}
 		}
 		else {
+#if 0
 			struct linger lingerSet;
 			// linger ON causes delay on close... otherwise close returns immediately
 			lingerSet.l_onoff = 0; // on , with no time = off.
@@ -3155,6 +3157,7 @@ void InternalRemoveClientExx(PCLIENT lpClient, LOGICAL bBlockNofity, LOGICAL bLi
 				lprintf( WIDE( "error setting no linger in close." ) );
 				//cerr << "NFMSim:setHost:ERROR: could not set socket to linger." << endl;
 			}
+#endif
 		}
 
 	if( !(lpClient->dwFlags & CF_ACTIVE) )

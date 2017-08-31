@@ -86,7 +86,8 @@ static void _SendWebSocketMessage( PCLIENT pc, int opcode, int final, int do_mas
 	}
 	else
 		msgout[1] = (uint8_t)length;
-	if( do_mask )
+
+	if( do_mask && length )
 	{
 		int mask_offset = (int)(length_out-length) - 4;
 		msgout[1] |= 0x80;
@@ -167,7 +168,6 @@ void SendWebSocketMessage( PCLIENT pc, int opcode, int final, int do_mask, const
 		opcode = (final ? 0x80 : 0x00) | opcode;
 		_SendWebSocketMessage( pc, opcode, final, do_mask, payload, length, use_ssl );
 	}
-
 }
 
 
@@ -216,7 +216,6 @@ static int CPROC inflateBackOutput( void* state, unsigned char *output, unsigned
 void ProcessWebSockProtocol( WebSocketInputState websock, PCLIENT pc, const uint8_t* msg, size_t length )
 {
 	size_t n;
-
 	for( n = 0; n < length; n++ )
 	{
 		switch( websock->input_msg_state )
@@ -246,7 +245,11 @@ void ProcessWebSockProtocol( WebSocketInputState websock, PCLIENT pc, const uint
 					return;
 				}
 			}
-
+			if( !websock->frame_length ) {
+				websock->input_msg_state = 17;
+				// re-process this byte but in the new state.
+				n--;
+			}
 			if( websock->frame_length == 126 )
 			{
 				websock->frame_length = 0;
@@ -324,7 +327,7 @@ void ProcessWebSockProtocol( WebSocketInputState websock, PCLIENT pc, const uint
 			// fall through, no break statement; add the byte to the buffer
 		case 17:
 			// if there was no data, then there's nothing to demask
-			if( websock->fragment_collection )
+			if( websock->fragment_collection && (websock->fragment_collection_length < websock->frame_length) )
 			{
 				websock->fragment_collection[websock->fragment_collection_length++]
 					= msg[n] ^ websock->mask_key[(websock->fragment_collection_index++) % 4];
@@ -402,14 +405,18 @@ void ProcessWebSockProtocol( WebSocketInputState websock, PCLIENT pc, const uint
 					// 1000-2999 - reserved for this protocol, reserved for specification
 					// 3000-3999 - libarry/framework/application.  Registered with IANA.  Defined by protocol.
 					// 4000-4999 - reserved for private use; cannot be registerd;
+					//lprintf( "Got close...%d", websock->flags.closed );
 					if( !websock->flags.closed )
 					{
 						struct web_socket_input_state *output = (struct web_socket_input_state *)GetNetworkLong( pc, 1 );
+						//lprintf( "reply close with same payload." );
 						SendWebSocketMessage( pc, 0x08, 1, output->flags.expect_masking, websock->fragment_collection, websock->frame_length, output->flags.use_ssl );
 						websock->flags.closed = 1;
 					}
-					if( websock->on_close )
+					if( websock->on_close ) {
 						websock->on_close( pc, websock->psv_open );
+						websock->on_close = NULL;
+					}
 					websock->fragment_collection_length = 0;
 					RemoveClientEx( pc, 0, 1 );
 					break;
@@ -546,3 +553,9 @@ void SetWebSocketDeflate( PCLIENT pc, int enable ) {
 	}
 }
 
+void SetWebSocketMasking( PCLIENT pc, int enable ) {
+	if( pc ) {
+		struct web_socket_input_state *input_state = (struct web_socket_input_state*)GetNetworkLong( pc, 1 );
+		input_state->flags.expect_masking = enable;
+	}
+}

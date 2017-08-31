@@ -4,6 +4,7 @@
 #include <network.h>
 #include <html5.websocket.client.h>
 #include <zlib.h>
+#include <http.h>
 
 #ifndef WEBSOCKET_COMMON_SOURCE
 #define EXTERN extern
@@ -69,5 +70,49 @@ struct web_socket_input_state
 
 EXTERN void SendWebSocketMessage( PCLIENT pc, int opcode, int final, int do_mask, const uint8_t* payload, size_t length, int use_ssl );
 EXTERN void ProcessWebSockProtocol( WebSocketInputState websock, PCLIENT pc, const uint8_t* msg, size_t length );
+
+
+struct html5_web_socket {
+	uint32_t Magic; // this value must be 0x20130912
+	HTTPState http_state;
+	PCLIENT pc;
+	POINTER buffer;
+	struct web_socket_flags
+	{
+		BIT_FIELD initial_handshake_done : 1;
+		BIT_FIELD rfc6455 : 1;
+		BIT_FIELD accepted : 1;
+		BIT_FIELD http_request_only : 1;
+	} flags;
+	char *protocols;
+	web_socket_http_request on_request;  // callback to send unhandled requests to a handler
+
+	struct web_socket_input_state input_state;
+};
+
+struct web_socket_client
+{
+	uint32_t Magic; // this value must be 0x20130911
+	struct web_socket_client_flags
+	{
+		BIT_FIELD connected : 1; // if not connected, then parse data as http, otherwise process as websock protocol.
+		BIT_FIELD want_close : 1; // schedule to close
+		BIT_FIELD use_ssl : 1;
+	} flags;
+	PCLIENT pc;
+
+	CTEXTSTR host;
+	CTEXTSTR address_url;
+	struct url_data *url;
+	CTEXTSTR protocols;
+
+	POINTER buffer;
+	HTTPState pHttpState;
+
+	uint32_t ping_delay; // when set by enable auto_ping is the delay between packets to generate a ping
+
+	struct web_socket_input_state input_state;
+};
+
 
 #endif

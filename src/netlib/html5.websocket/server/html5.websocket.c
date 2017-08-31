@@ -18,23 +18,6 @@ HTML5_WEBSOCKET_NAMESPACE
 
 typedef struct html5_web_socket *HTML5WebSocket;
 
-struct html5_web_socket {
-	uint32_t Magic; // this value must be 0x20130912
-	HTTPState http_state;
-	PCLIENT pc;
-	POINTER buffer;
-	struct web_socket_flags
-	{
-		BIT_FIELD initial_handshake_done : 1;
-		BIT_FIELD rfc6455 : 1;
-		BIT_FIELD accepted : 1;
-		BIT_FIELD http_request_only : 1;
-	} flags;
-	char *protocols;
-	web_socket_http_request on_request;  // callback to send unhandled requests to a handler
-
-	struct web_socket_input_state input_state;
-};
 
 const TEXTCHAR *base64 = WIDE("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=");
 	
@@ -448,10 +431,15 @@ static void CPROC read_complete( PCLIENT pc, POINTER buffer, size_t length )
 #else
 						SendTCP( pc, GetText( value ), GetTextSize( value ) );
 #endif
+						lprintf( "Sent http reply." );
 						VarTextDestroy( &pvt_output );
+						if( socket->input_state.on_open )
+							socket->input_state.psv_open = socket->input_state.on_open( pc, socket->input_state.psv_on );
 					}
-					if( socket->input_state.on_open )
-						socket->input_state.psv_open = socket->input_state.on_open( pc, socket->input_state.psv_on );
+					else {
+						WebSocketClose( pc );
+						return;
+					}
 					// keep this until close, application might want resource and/or headers from this.
 					//EndHttp( socket->http_state );
 					socket->flags.initial_handshake_done = 1;

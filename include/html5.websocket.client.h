@@ -110,5 +110,10 @@ WEBSOCKET_EXPORT void SetWebSocketHttpCallback( PCLIENT pc, web_socket_http_requ
 // allow server side to disable this when responding to a client.
 WEBSOCKET_EXPORT void SetWebSocketDeflate( PCLIENT pc, int enable_flags );
 
+// default is client masks, server does not
+// this can be used to disable masking on client or enable on server
+// (masked output from server to client is not supported by browsers)
+WEBSOCKET_EXPORT void SetWebSocketMasking( PCLIENT pc, int enable );
+
 
 #endif
