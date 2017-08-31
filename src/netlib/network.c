@@ -100,7 +100,9 @@ PRELOAD( InitNetworkGlobalOptions )
 	globalNetworkData.flags.bShortLogReceivedData = SACK_GetProfileIntEx( WIDE( "SACK" ), WIDE( "Network/Log Network Received Data(64 byte max)" ), 0, TRUE );
 	globalNetworkData.flags.bLogReceivedData = SACK_GetProfileIntEx( WIDE( "SACK" ), WIDE( "Network/Log Network Received Data" ), 0, TRUE );
 	globalNetworkData.flags.bLogSentData = SACK_GetProfileIntEx( WIDE( "SACK" ), WIDE( "Network/Log Network Sent Data" ), globalNetworkData.flags.bLogReceivedData, TRUE );
+#  ifdef LOG_NOTICES
 	globalNetworkData.flags.bLogNotices = SACK_GetProfileIntEx( WIDE( "SACK" ), WIDE( "Network/Log Network Notifications" ), 0, TRUE );
+#  endif
 	globalNetworkData.dwReadTimeout = SACK_GetProfileIntEx( WIDE( "SACK" ), WIDE( "Network/Read wait timeout" ), 5000, TRUE );
 	globalNetworkData.dwConnectTimeout = SACK_GetProfileIntEx( WIDE( "SACK" ), WIDE( "Network/Connect timeout" ), 10000, TRUE );
 #else
@@ -1526,8 +1528,10 @@ int CPROC ProcessNetworkMessages( struct peer_thread_info *thread, uintptr_t qui
 				}
 				else
 				{
+#ifdef LOG_NOTICES
 					if( globalNetworkData.flags.bLogNotices )
 						lprintf( WIDE( "RESET GLOBAL EVENT" ) );
+#endif
 					WSAResetEvent( thread->hThread );
 				}
 				return 1;
@@ -2109,15 +2113,19 @@ int NetworkQuit(void)
 	}
 	while( globalNetworkData.ActiveClients )
 	{
-		//if( globalNetworkData.flags.bLogNotices )
+#ifdef LOG_NOTICES
+		if( globalNetworkData.flags.bLogNotices )
 			lprintf( WIDE("NetworkQuit - Remove active client %p"), globalNetworkData.ActiveClients );
+#endif
 		InternalRemoveClientEx( globalNetworkData.ActiveClients, TRUE, FALSE );
 	}
 	globalNetworkData.bQuit = TRUE;
 	WakeThread( globalNetworkData.pThread );
 #ifdef USE_WSA_EVENTS
+#  ifdef LOG_NOTICES
 	if( globalNetworkData.flags.bLogNotices )
 		lprintf( WIDE( "SET GLOBAL EVENT (trigger quit)" ) );
+#  endif
 	WSASetEvent( globalNetworkData.hMonitorThreadControlEvent );
 #else
 #  ifndef __LINUX__
@@ -3262,11 +3270,13 @@ void InternalRemoveClientExx(PCLIENT lpClient, LOGICAL bBlockNofity, LOGICAL bLi
 			{
 				EnqueLink( &globalNetworkData.event_schedule, tmp_scheduled );
 			}
+#ifdef LOG_NOTICES
 			else
 			{
 				if( globalNetworkData.flags.bLogNotices )
 					lprintf( WIDE( "Removed from schedule : %p" ), tmp_scheduled );
 			}
+#endif
 			// no longer in events.
 			lpClient->flags.bAddedToEvents = 0;
 		}
