@@ -19,11 +19,11 @@
 #define _UDP_NAMESPACE_END }
 #define USE_UDP_NAMESPACE using namespace tcp;
 #else
-#define _NETWORK_NAMESPACE  
+#define _NETWORK_NAMESPACE
 #define _NETWORK_NAMESPACE_END
-#define _TCP_NAMESPACE  
+#define _TCP_NAMESPACE
 #define _TCP_NAMESPACE_END
-#define _UDP_NAMESPACE  
+#define _UDP_NAMESPACE
 #define _UDP_NAMESPACE_END
 #define USE_TCP_NAMESPACE
 #define USE_UDP_NAMESPACE
@@ -39,10 +39,10 @@
 
 SACK_NAMESPACE
 	/* Event based networking interface.
-	   
-	   
-	   
-	   
+
+
+
+
 	   Example
 	   \Example One : A simple client side application. Reads
 	   standard input, and writes it to a server it connects to. Read
@@ -55,7 +55,7 @@ SACK_NAMESPACE
 	   \#include \<sharemem.h\>
 	   </code>
 	   <code lang="c++">
-	   
+
 	   void CPROC ReadComplete( PCLIENT pc, void *bufptr, int sz )
 	   {
 	      char *buf = (char*)bufptr;
@@ -72,14 +72,14 @@ SACK_NAMESPACE
 	       }
 	       ReadTCP( pc, buf, 4096 );
 	   }
-	   
+
 	   PCLIENT pc_user;
-	   
+
 	   void CPROC Closed( PCLIENT pc )
 	   {
 	      pc_user = NULL;
 	   }
-	   
+
 	   int main( int argc, char** argv )
 	   {
 	       SOCKADDR *sa;
@@ -121,7 +121,7 @@ SACK_NAMESPACE
 	   \#include \<sharemem.h\>
 	   \#include \<timers.h\>
 	   \#include \<network.h\>
-	   
+
 	   void CPROC ServerRecieve( PCLIENT pc, POINTER buf, int size )
 	   {
 	       //int bytes;
@@ -132,22 +132,22 @@ SACK_NAMESPACE
 	       }
 	       //else
 	           //SendTCP( pc, buf, size );
-	   
+
 	       // test for waitread support...
 	       // read will not result until the data is read.
 	       //bytes = WaitReadTCP( pc, buf, 4096 );
 	       //if( bytes \> 0 )
 	       //   SendTCP( pc, buf, bytes );
-	   
+
 	       ReadTCP( pc, buf, 4095 );
 	       // buffer does not have anything in it....
 	   }
-	   
+
 	   void CPROC ClientConnected( PCLIENT pListen, PCLIENT pNew )
 	   {
 	       SetNetworkReadComplete( pNew, ServerRecieve );
 	   }
-	   
+
 	   int main( int argc, char **argv )
 	   {
 	       PCLIENT pcListen;
@@ -167,7 +167,7 @@ SACK_NAMESPACE
 	           printf( "Failed to listen on port %s\\n", argv[1] );
 	       return 0;
 	   }
-	   
+
 	   </code>                                                                                    */
 	_NETWORK_NAMESPACE
 
@@ -185,11 +185,11 @@ NETWORK_PROC( CTEXTSTR, GetSystemName )( void );
 NETWORK_PROC( PCLIENT, NetworkLockEx )( PCLIENT pc DBG_PASS );
 NETWORK_PROC( void, NetworkUnlockEx )( PCLIENT pc DBG_PASS );
 /* <combine sack::network::NetworkLockEx@PCLIENT pc>
-   
+
    \ \                                               */
 #define NetworkLock(pc) NetworkLockEx( pc DBG_SRC )
 /* <combine sack::network::NetworkUnlockEx@PCLIENT pc>
-   
+
    \ \                                                 */
 #define NetworkUnlock(pc) NetworkUnlockEx( pc DBG_SRC )
 
@@ -209,34 +209,35 @@ typedef void (CPROC*cppConnectCallback)(uintptr_t, int);
 NETWORK_PROC( void, SetNetworkWriteComplete )( PCLIENT, cWriteComplete );
 #ifdef __cplusplus
 /* <combine sack::network::SetNetworkWriteComplete@PCLIENT@cWriteComplete>
-   
+
    \ \                                                                     */
 NETWORK_PROC( void, SetCPPNetworkWriteComplete )( PCLIENT, cppWriteComplete, uintptr_t );
 #endif
 /* <combine sack::network::SetNetworkWriteComplete@PCLIENT@cWriteComplete>
-   
+
    \ \                                                                     */
 #define SetWriteCallback SetNetworkWriteComplete
 NETWORK_PROC( void, SetNetworkReadComplete )( PCLIENT, cReadComplete );
 #ifdef __cplusplus
 /* <combine sack::network::SetNetworkReadComplete@PCLIENT@cReadComplete>
-   
+
    \ \                                                                   */
 NETWORK_PROC( void, SetCPPNetworkReadComplete )( PCLIENT, cppReadComplete, uintptr_t );
 #endif
 /* <combine sack::network::SetNetworkReadComplete@PCLIENT@cReadComplete>
-   
+
    \ \                                                                   */
 #define SetReadCallback SetNetworkReadComplete
 NETWORK_PROC( void, SetNetworkCloseCallback )( PCLIENT, cCloseCallback );
 #ifdef __cplusplus
 /* <combine sack::network::SetNetworkCloseCallback@PCLIENT@cCloseCallback>
-   
+
    \ \                                                                     */
 NETWORK_PROC( void, SetCPPNetworkCloseCallback )( PCLIENT, cppCloseCallback, uintptr_t );
 #endif
+
 /* <combine sack::network::SetNetworkCloseCallback@PCLIENT@cCloseCallback>
-   
+
    \ \                                                                     */
 #define SetCloseCallback SetNetworkCloseCallback
 
@@ -247,7 +248,7 @@ NETWORK_PROC( LOGICAL, NetworkWait )(POINTER unused,uint32_t wClients,int wUserD
 NETWORK_PROC( LOGICAL, NetworkWait )(HWND hWndNotify,uint32_t wClients,int wUserData);
 #endif
 /* <combine sack::network::NetworkWait@HWND@uint16_t@int>
-   
+
    \ \                                               */
 #define NetworkStart() NetworkWait( NULL, 0, 0 )
 NETWORK_PROC( LOGICAL, NetworkAlive )( void ); // returns true if network layer still active...
@@ -305,16 +306,16 @@ NETWORK_PROC( LOGICAL, IsThisAddressMe )( SOCKADDR *addr, uint16_t myport );
  */
 NETWORK_PROC( PLIST, GetLocalAddresses )( void );
 
-/* 
+/*
  * Return the text of a socket's IP address
  */
 NETWORK_PROC( const char *, GetAddrName )( SOCKADDR *addr );
-/* 
+/*
  * Return the numeric form of the address (might have been created by name).
  */
 NETWORK_PROC( const char *, GetAddrString )(SOCKADDR *addr);
 
-/* 
+/*
  * test an address to see if it is v6 (switch connect From behavior at application level)
  */
 NETWORK_PROC( LOGICAL, IsAddressV6 )( SOCKADDR *addr );
@@ -334,7 +335,7 @@ NETWORK_PROC( void, SackNetwork_AllowSecurityDowngrade )( PCLIENT lpClient );
 _TCP_NAMESPACE
 #ifdef __cplusplus
 /* <combine sack::network::tcp::OpenTCPListenerAddrEx@SOCKADDR *@cNotifyCallback>
-   
+
    \ \                                                                            */
 NETWORK_PROC( PCLIENT, CPPOpenTCPListenerAddrExx )( SOCKADDR *, cppNotifyCallback NotifyCallback, uintptr_t psvConnect DBG_PASS );
 #define CPPOpenTCPListenerAddrEx(a,b,c)  CPPOpenTCPListenerAddrExx(a,b,c DBG_SRC )
@@ -353,53 +354,53 @@ NETWORK_PROC( PCLIENT, CPPOpenTCPListenerAddrExx )( SOCKADDR *, cppNotifyCallbac
    NotifyCallback :  user callback which will be invoked when a
                      new connection to the TCP server has been
                      made.
-   
+
    Returns
    NULL if no clients available, or if address bind on listen
    side fails.
-   
+
    otherwise is a valid network connection to send and receive
    UDP data on.
-   
+
    The read_complete callback, if specified, will be called,
    with a NULL pointer and 0 size, before the connect complete.   */
 NETWORK_PROC( PCLIENT, OpenTCPListenerAddrExx )( SOCKADDR *, cNotifyCallback NotifyCallback DBG_PASS );
 #define OpenTCPListenerAddrEx(sa,ca) OpenTCPListenerAddrExx( sa, ca DBG_SRC )
 /* <combine sack::network::tcp::OpenTCPListenerAddrEx@SOCKADDR *@cNotifyCallback>
-   
+
    \ \                                                                            */
 #define OpenTCPListenerAddr( pAddr ) OpenTCPListenerAddrEx( paddr, NULL );
 #ifdef __cplusplus
 /* <combine sack::network::tcp::OpenTCPListenerEx@uint16_t@cNotifyCallback>
-   
+
    \ \                                                                 */
 NETWORK_PROC( PCLIENT, CPPOpenTCPListenerExx )( uint16_t wPort, cppNotifyCallback NotifyCallback, uintptr_t psvConnect DBG_PASS );
 #define CPPOpenTCPListenerEx(a,b,c) CPPOpenTCPListenerExx(a,b,c DBG_SRC )
 #endif
 /* <combine sack::network::tcp::OpenTCPListenerAddrEx@SOCKADDR *@cNotifyCallback>
-   
+
    \ \                                                                            */
 NETWORK_PROC( PCLIENT, OpenTCPListenerExx )( uint16_t wPort, cNotifyCallback NotifyCallback DBG_PASS );
 #define OpenTCPListenerEx(a,b) OpenTCPListenerExx(a,b DBG_SRC )
 /* <combine sack::network::tcp::OpenTCPListenerEx@uint16_t@cNotifyCallback>
-   
+
    \ \                                                                 */
 #define OpenTCPListener( wPort )    OpenTCPListenerEx( wPort, NULL )
 
 /* <combine sack::network::tcp::OpenTCPListener>
-   
+
    \ \                                           */
 #define OpenTCPServer OpenTCPListener
 /* <combine sack::network::tcp::OpenTCPListenerEx@uint16_t@cNotifyCallback>
-   
+
    \ \                                                                 */
 #define OpenTCPServerEx OpenTCPListenerEx
 /* <combine sack::network::tcp::OpenTCPListenerAddrEx@SOCKADDR *@cNotifyCallback>
-   
+
    \ \                                                                            */
 #define OpenTCPServerAddr OpenTCPListenerAddr
 /* <combine sack::network::tcp::OpenTCPListenerEx@uint16_t@cNotifyCallback>
-   
+
    \ \                                                                 */
 #define OpenTCPServerAddrEx OpenTCPListenerAddrEx
 
@@ -407,7 +408,7 @@ NETWORK_PROC( PCLIENT, OpenTCPListenerExx )( uint16_t wPort, cNotifyCallback Not
 
 #ifdef __cplusplus
 /* <combine sack::network::tcp::OpenTCPClientAddrExx@SOCKADDR *@cReadComplete@cCloseCallback@cWriteComplete@cConnectCallback>
-   
+
    \ \                                                                                                                        */
 NETWORK_PROC( PCLIENT, CPPOpenTCPClientAddrExxx )(SOCKADDR *lpAddr,
 																  cppReadComplete  pReadComplete, uintptr_t,
@@ -428,7 +429,7 @@ NETWORK_PROC( PCLIENT, OpenTCPClientAddrFromAddrEx )( SOCKADDR *lpAddr, SOCKADDR
 #define OpenTCPClientAddrFromAddr( a,f,r,cl,wr,cc ) OpenTCPClientAddrFromAddrEx( a,f,r,cl,wr,cc, 0 DBG_SRC )
 
 NETWORK_PROC( PCLIENT, OpenTCPClientAddrFromEx )( SOCKADDR *lpAddr, int port
-                                                , cReadComplete     pReadComplete															  
+                                                , cReadComplete     pReadComplete
                                                 , cCloseCallback    CloseCallback
                                                 , cWriteComplete    WriteComplete
                                                 , cConnectCallback  pConnectComplete
@@ -447,10 +448,10 @@ NETWORK_PROC( PCLIENT, OpenTCPClientAddrFromEx )( SOCKADDR *lpAddr, int port
                        CreateSockAddress, and that address is
                        passed as a lpAddr.
    pReadComplete :     user callback which is invoked when a
-                       buffer now contains data. 
+                       buffer now contains data.
    CloseCallback :     user callback when this socket is closed.
    WriteComplete :     user callback which is invoked when a
-                       write operation completes. 
+                       write operation completes.
    pConnectComplete :  user callback which is called when this
                        client connects. The callback gets this
                        network connection as the first parameter.
@@ -460,10 +461,10 @@ NETWORK_PROC( PCLIENT, OpenTCPClientAddrFromEx )( SOCKADDR *lpAddr, int port
    Returns
    NULL if no clients available, or if address bind on listen
    side fails.
-   
+
    otherwise is a valid network connection to send and receive
    UDP data on.
-   
+
    The read_complete callback, if specified, will be called,
    with a NULL pointer and 0 size, before the connect complete.   */
 NETWORK_PROC( PCLIENT, OpenTCPClientAddrExxx )(SOCKADDR *lpAddr,
@@ -474,32 +475,32 @@ NETWORK_PROC( PCLIENT, OpenTCPClientAddrExxx )(SOCKADDR *lpAddr,
                                                int flags
                                                DBG_PASS );
 /* <combine sack::network::tcp::OpenTCPClientAddrExx@SOCKADDR *@cReadComplete@cCloseCallback@cWriteComplete@cConnectCallback>
-   
+
    \ \                                                                                                                        */
 #define OpenTCPClientAddrExx(a,r,clo,w,con) OpenTCPClientAddrExxx( a,r,clo,w,con,0 DBG_SRC )
 #ifdef __cplusplus
 /* <combine sack::network::tcp::OpenTCPClientAddrExx@SOCKADDR *@cReadComplete@cCloseCallback@cWriteComplete@cConnectCallback>
-   
+
    \ \                                                                                                                        */
 NETWORK_PROC( PCLIENT, CPPOpenTCPClientAddrEx )(SOCKADDR *
-                                               , cppReadComplete, uintptr_t 
-                                               , cppCloseCallback, uintptr_t 
-                                               , cppWriteComplete, uintptr_t 
+                                               , cppReadComplete, uintptr_t
+                                               , cppCloseCallback, uintptr_t
+                                               , cppWriteComplete, uintptr_t
                                                , int flags
                                                );
 #endif
 /* <combine sack::network::tcp::OpenTCPClientAddrExx@SOCKADDR *@cReadComplete@cCloseCallback@cWriteComplete@cConnectCallback>
-   
+
    \ \                                                                                                                        */
 NETWORK_PROC( PCLIENT, OpenTCPClientAddrExEx )(SOCKADDR *, cReadComplete,
                          cCloseCallback, cWriteComplete DBG_PASS );
 /* <combine sack::network::tcp::OpenTCPClientAddrExx@SOCKADDR *@cReadComplete@cCloseCallback@cWriteComplete@cConnectCallback>
-   
+
    \ \                                                                                                                        */
 #define OpenTCPClientAddrEx(a,b,c,d) OpenTCPClientAddrExEx(a,b,c,d DBG_SRC )
 #ifdef __cplusplus
 /* <combine sack::network::tcp::OpenTCPClientExx@CTEXTSTR@uint16_t@cReadComplete@cCloseCallback@cWriteComplete@cConnectCallback>
-   
+
    \ \                                                                                                                      */
 NETWORK_PROC( PCLIENT, CPPOpenTCPClientExEx )(CTEXTSTR lpName,uint16_t wPort
                          , cppReadComplete  pReadComplete, uintptr_t
@@ -509,7 +510,7 @@ NETWORK_PROC( PCLIENT, CPPOpenTCPClientExEx )(CTEXTSTR lpName,uint16_t wPort
 #define CPPOpenTCPClientExx(name,port,read,rd,close,cd,write,wd,connect,cod,flg) CPPOpenTCPClientExEx(name,port,read,rd,close,cd,write,wd,connect,cod,flg DBG_SRC)
 #endif
 /* <combine sack::network::tcp::OpenTCPClientAddrExx@SOCKADDR *@cReadComplete@cCloseCallback@cWriteComplete@cConnectCallback>
-   
+
    \ \                                                                                                                        */
 NETWORK_PROC( PCLIENT, OpenTCPClientExxx )(CTEXTSTR lpName,uint16_t wPort
                                            , cReadComplete  pReadComplete
@@ -518,24 +519,24 @@ NETWORK_PROC( PCLIENT, OpenTCPClientExxx )(CTEXTSTR lpName,uint16_t wPort
                                            , cConnectCallback pConnectComplete
                                            DBG_PASS );
 /* <combine sack::network::tcp::OpenTCPClientAddrExx@SOCKADDR *@cReadComplete@cCloseCallback@cWriteComplete@cConnectCallback>
-   
+
    \ \                                                                                                                        */
 #define OpenTCPClientExx( lpName, wPort, pReadComplete, CloseCallback, WriteComplete, pConnectComplete ) OpenTCPClientExxx( lpName, wPort, pReadComplete, CloseCallback, WriteComplete, pConnectComplete DBG_SRC )
 /* <combine sack::network::tcp::OpenTCPClientExx@CTEXTSTR@uint16_t@cReadComplete@cCloseCallback@cWriteComplete@cConnectCallback>
-   
+
    \ \                                                                                                                      */
 #define OpenTCPClient( name, port, read ) OpenTCPClientExx(name,port,read,NULL,NULL,NULL)
 /* <combine sack::network::tcp::OpenTCPClientExx@CTEXTSTR@uint16_t@cReadComplete@cCloseCallback@cWriteComplete@cConnectCallback>
-   
+
    \ \                                                                                                                      */
 NETWORK_PROC( PCLIENT, OpenTCPClientExEx )( CTEXTSTR, uint16_t, cReadComplete,
 													  cCloseCallback, cWriteComplete DBG_PASS );
 /* <combine sack::network::tcp::OpenTCPClientExx@CTEXTSTR@uint16_t@cReadComplete@cCloseCallback@cWriteComplete@cConnectCallback>
-   
+
    \ \                                                                                                                      */
 #define OpenTCPClientEx( addr,port,read,close,write ) OpenTCPClientExEx( addr,port,read,close,write DBG_SRC )
 
-/* Do the connect to 
+/* Do the connect to
 */
 int NetworkConnectTCPEx( PCLIENT pc DBG_PASS );
 #define NetworkConnectTCP( pc ) NetworkConnectTCPEx( pc DBG_SRC )
@@ -555,7 +556,7 @@ int NetworkConnectTCPEx( PCLIENT pc DBG_PASS );
               further data is available now.                     */
 NETWORK_PROC( LOGICAL, TCPDrainEx )( PCLIENT pClient, size_t nLength, int bExact );
 /* <combine sack::network::tcp::TCPDrainEx@PCLIENT@int@int>
-   
+
    \ \                                                      */
 #define TCPDrain(c,l) TCPDrainEx( (c), (l), TRUE )
 
@@ -577,7 +578,7 @@ NETWORK_PROC( void, SetTCPNoDelay )( PCLIENT pClient, int bEnable );
    bEnable :  TRUE to enable keep\-alive else disable keep\-alive. */
 NETWORK_PROC( void, SetClientKeepAlive)( PCLIENT pClient, int bEnable );
 
-/* \ \ 
+/* \ \
    Parameters
    lpClient :   network client to read from
    lpBuffer :   buffer to read into
@@ -596,13 +597,13 @@ NETWORK_PROC( void, SetClientKeepAlive)( PCLIENT pClient, int bEnable );
                 uses internal configurable timeout if 0.
    Returns
    size of the packet read if bWait is TRUE,
-   
+
    else TRUE for sent, FALSE if the packet could not be sent.
-   
+
    This buffer needs to continue existing until the socket is
    closed, or the read callback returns.
-   
-   
+
+
    Example
    Used in a normal read callback...
    <code lang="c++">
@@ -616,11 +617,11 @@ NETWORK_PROC( void, SetClientKeepAlive)( PCLIENT pClient, int bEnable );
        }
        ReadTCP( pc, buffer, 4096 );
    }
-   
-   
+
+
    </code>                                                         */
 NETWORK_PROC( size_t, doReadExx2)(PCLIENT lpClient,POINTER lpBuffer,size_t nBytes, LOGICAL bIsStream, LOGICAL bWait, int user_timeout );
-/* \ \ 
+/* \ \
    Parameters
    lpClient :   network client to read from
    lpBuffer :   buffer to read into
@@ -637,13 +638,13 @@ NETWORK_PROC( size_t, doReadExx2)(PCLIENT lpClient,POINTER lpBuffer,size_t nByte
                 notified later by callback.
    Returns
    size of the packet read if bWait is TRUE,
-   
+
    else TRUE for sent, FALSE if the packet could not be sent.
-   
+
    This buffer needs to continue existing until the socket is
    closed, or the read callback returns.
-   
-   
+
+
    Example
    Used in a normal read callback...
    <code lang="c++">
@@ -657,39 +658,39 @@ NETWORK_PROC( size_t, doReadExx2)(PCLIENT lpClient,POINTER lpBuffer,size_t nByte
        }
        ReadTCP( pc, buffer, 4096 );
    }
-   
-   
+
+
    </code>                                                         */
 NETWORK_PROC( size_t, doReadExx )(PCLIENT lpClient, POINTER lpBuffer, size_t nBytes
 										, LOGICAL bIsStream, LOGICAL bWait );
 /* <combine sack::network::tcp::doReadExx@PCLIENT@POINTER@int@LOGICAL@LOGICAL>
-   
-   \ \ 
+
+   \ \
    Remarks
    if bWait is not specifed, it is passed as FALSE.                            */
 NETWORK_PROC( size_t, doReadEx )(PCLIENT lpClient,POINTER lpBuffer,size_t nBytes, LOGICAL bIsStream);
 /* <combine sack::network::tcp::doReadExx@PCLIENT@POINTER@int@LOGICAL@LOGICAL>
-   
+
    \ \                                                                         */
 #define ReadStream(pc,pBuf,nSize) doReadExx( pc, pBuf, nSize, TRUE, FALSE )
 /* <combine sack::network::tcp::doReadExx@PCLIENT@POINTER@int@LOGICAL@LOGICAL>
-   
+
    \ \                                                                         */
 #define doRead(pc,pBuf,nSize)     doReadExx(pc, pBuf, nSize, FALSE, FALSE )
 /* <combine sack::network::tcp::doReadExx@PCLIENT@POINTER@int@LOGICAL@LOGICAL>
-   
+
    \ \                                                                         */
-#define ReadTCP ReadStream 
+#define ReadTCP ReadStream
 /* <combine sack::network::tcp::doReadExx@PCLIENT@POINTER@int@LOGICAL@LOGICAL>
-   
+
    \ \                                                                         */
 #define ReadTCPMsg doRead
 /* <combine sack::network::tcp::doReadExx@PCLIENT@POINTER@int@LOGICAL@LOGICAL>
-   
+
    \ \                                                                         */
 #define WaitReadTCP(pc,buf,nSize)    doReadExx(pc,buf, nSize, TRUE, TRUE )
 /* <combine sack::network::tcp::doReadExx@PCLIENT@POINTER@int@LOGICAL@LOGICAL>
-   
+
    \ \                                                                         */
 #define WaitReadTCPMsg(pc,buf,nSize) doReadExx(pc,buf, nSize, FALSE, TRUE )
 
@@ -707,7 +708,7 @@ NETWORK_PROC( size_t, doReadEx )(PCLIENT lpClient,POINTER lpBuffer,size_t nBytes
                   been sent so the application might delete the
                   buffer.
    failpending :  Uhmm... maybe if it goes to pending, fail?
-   
+
    Remarks
    If bLongBuffer is not set, then if the write cannot
    immediately complete, then a new buffer is allocated
@@ -718,24 +719,24 @@ NETWORK_PROC( size_t, doReadEx )(PCLIENT lpClient,POINTER lpBuffer,size_t nBytes
    passed to this write.                                         */
 NETWORK_PROC( LOGICAL, doTCPWriteExx )( PCLIENT lpClient
 						, CPOINTER pInBuffer
-						, size_t nInLen, int bLongBuffer 
+						, size_t nInLen, int bLongBuffer
                                    , int failpending
                                    DBG_PASS
                                   );
 /* <combine sack::network::tcp::doTCPWriteExx@PCLIENT@CPOINTER@int@int@int failpending>
-   
+
    \ \                                                                                  */
 #define doTCPWriteEx( c,b,l,f1,f2) doTCPWriteExx( (c),(b),(l),(f1),(f2) DBG_SRC )
 /* <combine sack::network::tcp::doTCPWriteExx@PCLIENT@CPOINTER@int@int@int failpending>
-   
+
    \ \                                                                                  */
 #define SendTCPEx( c,b,l,p) doTCPWriteExx( c,b,l,FALSE,p DBG_SRC)
 /* <combine sack::network::tcp::doTCPWriteExx@PCLIENT@CPOINTER@int@int@int failpending>
-   
+
    \ \                                                                                  */
 #define SendTCP(c,b,l) doTCPWriteExx(c,b,l, FALSE, FALSE DBG_SRC)
 /* <combine sack::network::tcp::doTCPWriteExx@PCLIENT@CPOINTER@int@int@int failpending>
-   
+
    \ \                                                                                  */
 #define SendTCPLong(c,b,l) doTCPWriteExx(c,b,l, TRUE, FALSE DBG_SRC)
 _TCP_NAMESPACE_END
@@ -754,24 +755,24 @@ NETWORK_PROC( uint16_t, GetNetworkWord )(PCLIENT lpClient,int nLong);
 enum GetNetworkLongAccessInternal{
  GNL_IP      = (-1), /* Gets the IP of the remote side of the connection, if
     applicable. UDP Sockets don't have a bound destination. */
- 
+
  GNL_PORT    = (-4), /* Gets the port at the remote side of the connection that is
     being sent to.                                             */
- 
+
  GNL_MYIP    = (-3), /* Gets the 4 byte IPv4 address that is what I am using on my
     side. After a socket has sent, it will have a set source IP
     under windows.                                              */
- 
+
  GNL_MYPORT  = (-2), /* Gets the 16 bit port of the TCP or UDP connection that you
     are sending from locally.                                  */
- 
+
  GNL_MAC_LOW = (-5), /* Gets the low 32 bits of a hardware MAC address. */
- 
+
  GNL_MAC_HIGH= (-6), /* Get MAC address high 16 bits. */
  GNL_REMOTE_ADDRESS = (-7), /* returns SOCKADDR*  of remote side */
  GNL_LOCAL_ADDRESS = (-8), /* returns SOCKADDR* of local side  */
 
-		
+
 };
 
 NETWORK_PROC( int, GetMacAddress)(PCLIENT pc, uint8_t* buf, size_t *buflen );//int get_mac_addr (char *device, unsigned char *buffer)
@@ -780,11 +781,11 @@ NETWORK_PROC( PLIST, GetMacAddresses)( void );//int get_mac_addr (char *device, 
 
 NETWORK_PROC( void, RemoveClientExx )(PCLIENT lpClient, LOGICAL bBlockNofity, LOGICAL bLinger DBG_PASS );
 /* <combine sack::network::RemoveClientExx@PCLIENT@LOGICAL@LOGICAL bLinger>
-   
+
    \ \                                                                      */
 #define RemoveClientEx(c,b,l) RemoveClientExx(c,b,l DBG_SRC)
 /* <combine sack::network::RemoveClientExx@PCLIENT@LOGICAL@LOGICAL bLinger>
-   
+
    \ \                                                                      */
 #define RemoveClient(c) RemoveClientEx(c, FALSE, FALSE )
 
@@ -816,14 +817,14 @@ _UDP_NAMESPACE
                     completes on a UDP socket.
    Close :          close callback which is invoked when the new
                     network connection is closed.
-   
+
    Returns
    NULL if no clients available, or if address bind on listen
    side fails.
-   
+
    otherwise is a valid network connection to send and receive
    UDP data on.
-   
+
    The read_complete callback, if specified, will be called,
 	with a NULL pointer and 0 size, before the connect complete.   */
 
@@ -853,11 +854,11 @@ NETWORK_PROC( PCLIENT, ServeUDPEx )( CTEXTSTR pAddr, uint16_t wPort,
    Close :          user callback to be invoked when the network
                     connection is closed. (network interface
                     disabled?)
-   
+
    Returns
    NULL if no sockets are available, or the bind fails. (consult
    log?)
-   
+
    \returns a network connection which is listening on the
    specified address. The read complete will be called. if it is
 	specified, before this function returns.                      */
@@ -867,7 +868,7 @@ NETWORK_PROC( PCLIENT, ServeUDPAddrEx )( SOCKADDR *pAddr,
 													 cCloseCallback Close DBG_PASS );
 #define ServeUDPAddr(addr,read,close) ServeUDPAddrEx( addr,read,close DBG_SRC )
 
-/* \ \ 
+/* \ \
    Parameters
    address :         Address to listen at (interface
                      specification). Can be NULL to specify ANY
@@ -882,14 +883,14 @@ NETWORK_PROC( PCLIENT, ServeUDPAddrEx )( SOCKADDR *pAddr,
                      data is read from the socket.
    close_callback :  user event handler which is invoked when
                      this socket is closed.
-   
+
    Returns
    NULL if no clients available, or if address bind on listen
    side fails.
-   
+
    otherwise is a valid network connection to send and receive
    UDP data on.
-   
+
    The read_complete callback, if specified, will be called,
    with a NULL pointer and 0 size, before the connect complete. */
 NETWORK_PROC( PCLIENT, ConnectUDPEx )( CTEXTSTR , uint16_t ,
@@ -897,7 +898,7 @@ NETWORK_PROC( PCLIENT, ConnectUDPEx )( CTEXTSTR , uint16_t ,
                     cReadCompleteEx,
 												  cCloseCallback DBG_PASS );
 #define ConnectUDP(a,b,c,d,e,f) ConnectUDPEx(a,b,c,d,e,f DBG_SRC )
-/* \ \ 
+/* \ \
    Parameters
    sa :             address to listen for UDP messages at.
    saTo :           address to send UDP messages to, if the sa
@@ -906,16 +907,16 @@ NETWORK_PROC( PCLIENT, ConnectUDPEx )( CTEXTSTR , uint16_t ,
                     reads complete on the network connection.
    Close :          user callback which will be invoked when the
                     listening socket closes.
-   
+
    Returns
    NULL if no sockets are available, or the bind fails. (consult
    log?)
-   
+
    \returns a network connection which is listening on the
    specified address. The read complete will be called. if it is
    specified, before this function returns.                      */
 NETWORK_PROC( PCLIENT, ConnectUDPAddrEx )( SOCKADDR *sa,
-                        SOCKADDR *saTo, 
+                        SOCKADDR *saTo,
                     cReadCompleteEx pReadComplete,
 													 cCloseCallback Close DBG_PASS );
 #define ConnectUDPAddr(a,b,c,d)  ConnectUDPAddrEx(a,b,c,d DBG_SRC )
@@ -928,7 +929,7 @@ NETWORK_PROC( PCLIENT, ConnectUDPAddrEx )( SOCKADDR *sa,
    wPort :    16 bit port address to connect to.
    Returns
    TRUE if it was a valid address specification.
-   
+
    FALSE if it could not set the address.                       */
 NETWORK_PROC( LOGICAL, ReconnectUDP )( PCLIENT pc, CTEXTSTR pToAddr, uint16_t wPort );
 /* Sets the target default address of a UDP connection.
@@ -955,13 +956,13 @@ NETWORK_PROC( void, UDPEnableBroadcast )( PCLIENT pc, int bEnable );
    sa :     pointer to a SOCKADDR which this message is destined
             to. Can be NULL, if GuaranteeAddr, or ConnectUDP is
             used.
-   
+
    Returns
    The number of bytes in the buffer sent? Probably a TRUE if
    success else failure?                                         */
 NETWORK_PROC( LOGICAL, SendUDPEx )( PCLIENT pc, CPOINTER pBuf, size_t nSize, SOCKADDR *sa );
 /* <combine sack::network::udp::SendUDPEx@PCLIENT@CPOINTER@int@SOCKADDR *>
-   
+
    \ \                                                                     */
 #define SendUDP(pc,pbuf,size) SendUDPEx( pc, pbuf, size, NULL )
 /* Queue a read to a UDP socket. A read cannot complete if it
@@ -974,7 +975,7 @@ NETWORK_PROC( LOGICAL, SendUDPEx )( PCLIENT pc, CPOINTER pBuf, size_t nSize, SOC
    nBytes :    size of the buffer.                                 */
 NETWORK_PROC( int, doUDPRead )( PCLIENT pc, POINTER lpBuffer, int nBytes );
 /* <combine sack::network::udp::doUDPRead@PCLIENT@POINTER@int>
-   
+
    \ \                                                         */
 #define ReadUDP doUDPRead
 
@@ -984,24 +985,38 @@ NETWORK_PROC( int, doUDPRead )( PCLIENT pc, POINTER lpBuffer, int nBytes );
    sa :    the socket address to dump.                   */
 NETWORK_PROC( void, DumpAddrEx )( CTEXTSTR name, SOCKADDR *sa DBG_PASS );
 /* <combine sack::network::udp::DumpAddrEx@CTEXTSTR@SOCKADDR *sa>
-   
+
    \ \                                                            */
 #define DumpAddr(n,sa) DumpAddrEx(n,sa DBG_SRC )
+
+NETWORK_PROC( int, SetSocketReuseAddress )( PCLIENT pClient, int32_t enable );
+NETWORK_PROC( int, SetSocketReusePort )( PCLIENT pClient, int32_t enable );
+
 _UDP_NAMESPACE_END
 USE_UDP_NAMESPACE
 
+struct interfaceAddress {
+	SOCKADDR *sa;
+	SOCKADDR *saBroadcast;
+	SOCKADDR *saMask;
+};
+
+NETWORK_PROC( SOCKADDR*, GetBroadcastAddressForInterface )(SOCKADDR *addr);
+NETWORK_PROC( SOCKADDR*, GetInterfaceAddressForBroadcast )(SOCKADDR *addr);
+NETWORK_PROC( void, LoadNetworkAddresses )(void);
+
 //----- PING.C ------
 NETWORK_PROC( LOGICAL, DoPing )( CTEXTSTR pstrHost,
-             int maxTTL, 
-             uint32_t dwTime, 
-             int nCount, 
+             int maxTTL,
+             uint32_t dwTime,
+             int nCount,
              PVARTEXT pResult,
              LOGICAL bRDNS,
              void (*ResultCallback)( uint32_t dwIP, CTEXTSTR name, int min, int max, int avg, int drop, int hops ) );
 NETWORK_PROC( LOGICAL, DoPingEx )( CTEXTSTR pstrHost,
-             int maxTTL, 
-             uint32_t dwTime, 
-             int nCount, 
+             int maxTTL,
+             uint32_t dwTime,
+             int nCount,
              PVARTEXT pResult,
              LOGICAL bRDNS,
 											 void (*ResultCallback)( uintptr_t psv, uint32_t dwIP, CTEXTSTR name, int min, int max, int avg, int drop, int hops )
@@ -1014,7 +1029,7 @@ NETWORK_PROC( LOGICAL, DoWhois )( CTEXTSTR pHost, CTEXTSTR pServer, PVARTEXT pvt
 
 typedef class network *PNETWORK;
 /* <combine sack::network::network>
-   
+
    \ \                              */
 typedef class network
 {
@@ -1051,15 +1066,15 @@ public:
 	inline int Connect( SOCKADDR *sa )
 	{
 		if( !pc )
-		pc = CPPOpenTCPClientAddrExx( sa 
+		pc = CPPOpenTCPClientAddrExx( sa
 									, WrapTCPReadComplete
-									, (uintptr_t)this 
+									, (uintptr_t)this
 									, WrapCloseCallback
-									, (uintptr_t)this 
+									, (uintptr_t)this
 									, WrapWriteComplete
-									, (uintptr_t)this 
-									, WrapClientConnectComplete 
-									, (uintptr_t)this 
+									, (uintptr_t)this
+									, WrapClientConnectComplete
+									, (uintptr_t)this
 									, 0
 									);
 		return (int)(pc!=NULL);
@@ -1069,13 +1084,13 @@ public:
 		if( !pc )
 		pc = CPPOpenTCPClientExx( name, port
 									, WrapTCPReadComplete
-									, (uintptr_t)this 
+									, (uintptr_t)this
 									, WrapCloseCallback
-									, (uintptr_t)this 
+									, (uintptr_t)this
 									, WrapWriteComplete
-									, (uintptr_t)this 
-									, WrapClientConnectComplete 
-									, (uintptr_t)this 
+									, (uintptr_t)this
+									, WrapClientConnectComplete
+									, (uintptr_t)this
 									, 0
 									);
 		return (int)(pc!=NULL);
@@ -1086,7 +1101,7 @@ public:
 		{
 			if( ( pc = CPPOpenTCPListenerAddrEx( sa
 				                        , (cppNotifyCallback)WrapServerConnectComplete
-												, (uintptr_t)this 
+												, (uintptr_t)this
 														)  ) != NULL )
 			{
 				SetRead( pc, (cppReadComplete)WrapTCPReadComplete, (uintptr_t)this );
@@ -1141,7 +1156,7 @@ public:
 	}
 	inline uintptr_t GetLong( int l )
 	{
-		if( pc ) 
+		if( pc )
 			return GetNetworkLong( pc, l );
       	return 0;
 	}
