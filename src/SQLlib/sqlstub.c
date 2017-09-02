@@ -1102,7 +1102,7 @@ int OpenSQLConnectionEx( PODBC odbc DBG_PASS )
 
 	bOpening = TRUE;
 
-	if( StrStr( odbc->info.pDSN, WIDE(".db") ) )
+	if( StrStr( odbc->info.pDSN, WIDE(".db") ) || ( StrCmp( odbc->info.pDSN, ":memory:" ) == 0 ) )
 		odbc->flags.bSkipODBC = 1;
 	else
 		odbc->flags.bSkipODBC = 0; // make sure it's set to something...

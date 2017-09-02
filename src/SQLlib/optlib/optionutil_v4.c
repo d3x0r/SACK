@@ -54,6 +54,8 @@ void New4EnumOptions( PODBC odbc
 	if( !odbc )
 		odbc = pending;
 	if( !odbc )
+		odbc = node->odbc;
+	if( !odbc )
 		return;
 
 	if( !parent )
