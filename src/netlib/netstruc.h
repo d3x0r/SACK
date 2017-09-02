@@ -39,6 +39,9 @@ SACK_NETWORK_NAMESPACE
 
 #define MAGIC_SOCKADDR_LENGTH ( sizeof(SOCKADDR_IN)< 256?256:sizeof( SOCKADDR_IN) )
 
+#define IN_SOCKADDR_LENGTH sizeof(struct sockaddr_in)
+#define IN6_SOCKADDR_LENGTH sizeof(struct sockaddr_in6)
+
 // this might have to be like sock_addr_len_t
 #define SOCKADDR_LENGTH(sa) ( (int)*(uintptr_t*)( ( (uintptr_t)(sa) ) - 2*sizeof(uintptr_t) ) )
 #ifdef __MAC__
@@ -131,6 +134,7 @@ struct peer_thread_info
 	} flags;
 	PTHREAD thread;
 };
+
 
 struct NetworkClient
 {

@@ -56,6 +56,7 @@
 #include <net/if.h>
 #include <net/if_arp.h>
 #include <arpa/inet.h>
+#include <ifaddrs.h>
 //*******************8
 
 #endif
@@ -1343,7 +1344,8 @@ static void AddThreadEvent( PCLIENT pc, struct peer_thread_info *info )
 	struct peer_thread_info *first_peer;
 	struct peer_thread_info *last_peer;
 	struct peer_thread_info *peer;
-
+	//struct peer_thread_info *_peer;
+	int minPeers = 60, maxPeers = 0, nPeers = 0;
 	if( pc->dwFlags & CF_PROCESSING )
 	{
 #ifdef LOG_NETWORK_EVENT_THREAD
@@ -1360,7 +1362,19 @@ static void AddThreadEvent( PCLIENT pc, struct peer_thread_info *info )
 
 	for( first_peer = info; first_peer && first_peer->parent_peer; first_peer = first_peer->parent_peer );
 	for( last_peer = info; last_peer && last_peer->child_peer; last_peer = last_peer->child_peer );
-	for( peer = first_peer; peer && ( ( peer->nEvents >= 60 ) || peer->flags.bProcessing ); peer = peer->child_peer );
+	for( peer = first_peer; peer ; peer = peer->child_peer ){
+		nPeers++;
+		if( peer->nEvents < minPeers )
+			minPeers = peer->nEvents;
+		if( peer->nEvents > maxPeers )
+			maxPeers = peer->nEvents;
+	}
+
+	for( peer = first_peer;
+	     peer && ( ( ( peer->nEvents > nPeers )
+	               || ( peer->nEvents > 60 ) )
+	             || peer->flags.bProcessing );
+	     peer = peer->child_peer );
 
 	if( !peer )
 	{
@@ -2359,7 +2373,9 @@ NETWORK_PROC( LOGICAL, NetworkWait )(HWND hWndNotify,uint32_t wClients,int wUser
 		if( gethostname( buffer, sizeof( buffer ) ) == 0)
 			globalNetworkData.system_name = DupCStr( buffer );
 	}
-#ifdef WIN32
+	LoadNetworkAddresses();
+#if 0
+//#ifdef WIN32
 	{
 		struct addrinfo *result;
 		struct addrinfo *test;
@@ -2381,8 +2397,8 @@ NETWORK_PROC( LOGICAL, NetworkWait )(HWND hWndNotify,uint32_t wClients,int wUser
 			}
 		}
 	}
+//#endif
 #endif
-
 	//lprintf( WIDE("Network Initialize Complete!") );
 	return globalNetworkData.flags.bThreadInitOkay;  // return status of thread initialization
 }
@@ -2536,18 +2552,17 @@ NETWORK_PROC( uint16_t, GetNetworkWord )(PCLIENT lpClient,int nWord)
 
 
 
-NETWORK_PROC( SOCKADDR *, DuplicateAddress )( SOCKADDR *pAddr ) // return a copy of this address...
+SOCKADDR* DuplicateAddress( SOCKADDR *pAddr ) // return a copy of this address...
 {
 	POINTER tmp = (POINTER)( ( (uintptr_t)pAddr ) - 2*sizeof(uintptr_t) );
 	SOCKADDR *dup = AllocAddr();
 	POINTER tmp2 = (POINTER)( ( (uintptr_t)dup ) - 2*sizeof(uintptr_t) );
-	MemCpy( tmp2, tmp, MAGIC_SOCKADDR_LENGTH + 2*sizeof(uintptr_t) );
+	MemCpy( tmp2, tmp, SOCKADDR_LENGTH( pAddr ) + 2*sizeof(uintptr_t) );
 	if( (POINTER)( ( (uintptr_t)pAddr ) - sizeof(uintptr_t) ) )
 		( (char**)( ( (uintptr_t)dup ) - sizeof(uintptr_t) ) )[0]
 				= strdup( ((char**)( ( (uintptr_t)pAddr ) - sizeof(uintptr_t) ))[0] );
 	return dup;
 }
-
 
 //---------------------------------------------------------------------------
 
@@ -2556,7 +2571,7 @@ NETWORK_PROC( SOCKADDR *,CreateAddress_hton)( uint32_t dwIP,uint16_t nHisPort)
 	SOCKADDR_IN *lpsaAddr=(SOCKADDR_IN*)AllocAddr();
 	if (!lpsaAddr)
 		return(NULL);
-	SET_SOCKADDR_LENGTH( lpsaAddr, 16 );
+	SET_SOCKADDR_LENGTH( lpsaAddr, IN_SOCKADDR_LENGTH );
 	lpsaAddr->sin_family       = AF_INET;         // InetAddress Type.
 	lpsaAddr->sin_addr.S_un.S_addr  = htonl(dwIP);
 	lpsaAddr->sin_port         = htons(nHisPort);
@@ -2612,7 +2627,7 @@ SOCKADDR *CreateAddress( uint32_t dwIP,uint16_t nHisPort)
 	SOCKADDR_IN *lpsaAddr=(SOCKADDR_IN*)AllocAddr();
 	if (!lpsaAddr)
 		return(NULL);
-	SET_SOCKADDR_LENGTH( lpsaAddr, 16 );
+	SET_SOCKADDR_LENGTH( lpsaAddr, IN_SOCKADDR_LENGTH );
 	lpsaAddr->sin_family	    = AF_INET;         // InetAddress Type.
 	lpsaAddr->sin_addr.S_un.S_addr  = dwIP;
 	lpsaAddr->sin_port         = htons(nHisPort);
@@ -2656,7 +2671,7 @@ SOCKADDR *CreateRemote( CTEXTSTR lpName,uint16_t nHisPort)
 		char *tmp = CStrDup( lpName );
 		if( inet_pton( AF_INET, tmp, (struct in_addr*)&lpsaAddr->sin_addr ) > 0 )
 		{
-			SET_SOCKADDR_LENGTH( lpsaAddr, 16 );
+			SET_SOCKADDR_LENGTH( lpsaAddr, IN_SOCKADDR_LENGTH );
 			lpsaAddr->sin_family       = AF_INET;         // InetAddress Type.
 			conversion_success = TRUE;
 		}
@@ -2664,7 +2679,7 @@ SOCKADDR *CreateRemote( CTEXTSTR lpName,uint16_t nHisPort)
 #else
 		if( inet_pton( AF_INET, lpName, (struct in6_addr*)&lpsaAddr->sin_addr ) > 0 )
 		{
-			SET_SOCKADDR_LENGTH( lpsaAddr, 16 );
+			SET_SOCKADDR_LENGTH( lpsaAddr, IN_SOCKADDR_LENGTH );
 			lpsaAddr->sin_family       = AF_INET;         // InetAddress Type.
 			conversion_success = TRUE;
 		}
@@ -2681,7 +2696,7 @@ SOCKADDR *CreateRemote( CTEXTSTR lpName,uint16_t nHisPort)
 		char *tmp = CStrDup( lpName );
 		if( inet_pton( AF_INET6, tmp, (struct in_addr*)&lpsaAddr->sin_addr ) > 0 )
 		{
-			SET_SOCKADDR_LENGTH( lpsaAddr, 24 );
+			SET_SOCKADDR_LENGTH( lpsaAddr, IN6_SOCKADDR_LENGTH );
 			lpsaAddr->sin_family       = AF_INET6;         // InetAddress Type.
 			conversion_success = TRUE;
 		}
@@ -2689,7 +2704,7 @@ SOCKADDR *CreateRemote( CTEXTSTR lpName,uint16_t nHisPort)
 #else
 		if( inet_pton( AF_INET6, lpName, (struct in6_addr*)&lpsaAddr->sin_addr ) > 0 )
 		{
-			SET_SOCKADDR_LENGTH( lpsaAddr, 24 );
+			SET_SOCKADDR_LENGTH( lpsaAddr, IN6_SOCKADDR_LENGTH );
 			lpsaAddr->sin_family       = AF_INET6;         // InetAddress Type.
 			conversion_success = TRUE;
 		}
@@ -2738,7 +2753,7 @@ SOCKADDR *CreateRemote( CTEXTSTR lpName,uint16_t nHisPort)
 					else
 					{
 						lprintf( WIDE( "Strange, gethostbyname failed, but AF_INET worked..." ) );
-						SET_SOCKADDR_LENGTH( lpsaAddr, 16 );
+						SET_SOCKADDR_LENGTH( lpsaAddr, IN_SOCKADDR_LENGTH );
 						lpsaAddr->sin_family = AF_INET;
 						memcpy( &lpsaAddr->sin_addr.S_un.S_addr,           // save IP address from host entry.
 							 phe->h_addr,
@@ -2747,7 +2762,7 @@ SOCKADDR *CreateRemote( CTEXTSTR lpName,uint16_t nHisPort)
 				}
 				else
 				{
-					SET_SOCKADDR_LENGTH( lpsaAddr, 26 );
+					SET_SOCKADDR_LENGTH( lpsaAddr, IN6_SOCKADDR_LENGTH );
 					lpsaAddr->sin_family = AF_INET6;         // InetAddress Type.
 #if note
 	{
@@ -2767,7 +2782,7 @@ SOCKADDR *CreateRemote( CTEXTSTR lpName,uint16_t nHisPort)
 			else
 			{
 				Deallocate( char *, tmp );
-				SET_SOCKADDR_LENGTH( lpsaAddr, 16 );
+				SET_SOCKADDR_LENGTH( lpsaAddr, IN_SOCKADDR_LENGTH );
 				lpsaAddr->sin_family = AF_INET;         // InetAddress Type.
 				memcpy( &lpsaAddr->sin_addr.S_un.S_addr,           // save IP address from host entry.
 					 phe->h_addr,
@@ -2779,7 +2794,7 @@ SOCKADDR *CreateRemote( CTEXTSTR lpName,uint16_t nHisPort)
 		{
 			lpsaAddr->sin_family      = AF_INET;         // InetAddress Type.
 			lpsaAddr->sin_addr.S_un.S_addr = 0;
-			SET_SOCKADDR_LENGTH( lpsaAddr, 16 );
+			SET_SOCKADDR_LENGTH( lpsaAddr, IN_SOCKADDR_LENGTH );
 		}
 	}
 #ifdef UNICODE
@@ -3011,19 +3026,97 @@ PLIST GetLocalAddresses( void )
 
 LOGICAL IsThisAddressMe( SOCKADDR *addr, uint16_t myport )
 {
-	SOCKADDR *test_addr;
+	struct interfaceAddress *test_addr;
 	INDEX idx;
-	LIST_FORALL( globalNetworkData.addresses, idx, SOCKADDR*, test_addr )
+
+	LIST_FORALL( globalNetworkData.addresses, idx, struct interfaceAddress *, test_addr )
 	{
-		if( ((SOCKADDR_IN*)addr)->sin_family == ((SOCKADDR_IN*)test_addr)->sin_family )
+		if( ((SOCKADDR_IN*)addr)->sin_family == ((SOCKADDR_IN*)test_addr->sa)->sin_family )
 		{
 			switch( ((SOCKADDR_IN*)addr)->sin_family )
 			{
 			case AF_INET:
 				{
-					if( MemCmp( &((SOCKADDR_IN*)addr)->sin_addr, &((SOCKADDR_IN*)test_addr)->sin_addr, sizeof(((SOCKADDR_IN*)addr)->sin_addr)  ) == 0 )
+					if( MemCmp( &((SOCKADDR_IN*)addr)->sin_addr, &((SOCKADDR_IN*)test_addr->sa)->sin_addr, sizeof(((SOCKADDR_IN*)addr)->sin_addr)  ) == 0 )
 					{
 						return TRUE;
+					}
+				}
+				break;
+			default:
+				lprintf( WIDE( "Unknown comparison" ) );
+			}
+		}
+	}
+	return FALSE;
+}
+
+//----------------------------------------------------------------------------
+
+SOCKADDR* GetBroadcastAddressForInterface( SOCKADDR *addr )
+{
+	struct interfaceAddress *test_addr;
+	INDEX idx;
+	if( !globalNetworkData.addresses )
+		LoadNetworkAddresses();
+	LIST_FORALL( globalNetworkData.addresses, idx, struct interfaceAddress *, test_addr )
+	{
+		if( ((SOCKADDR_IN*)addr)->sin_family == ((SOCKADDR_IN*)test_addr->sa)->sin_family )
+		{
+			switch( ((SOCKADDR_IN*)addr)->sin_family )
+			{
+			case AF_INET:
+				{
+					if( MemCmp( &((SOCKADDR_IN*)addr)->sin_addr, test_addr->sa->sa_data + 2, sizeof(((SOCKADDR_IN*)addr)->sin_addr)  ) == 0 )
+					{
+						return test_addr->saBroadcast;
+					}
+				}
+				break;
+			case AF_INET6:
+				{
+					if( MemCmp( &((SOCKADDR_IN*)addr)->sin_addr, test_addr->sa->sa_data + 2, 16 ) == 0 )
+					{
+						return test_addr->saBroadcast;
+					}
+				}
+				break;
+			default:
+				lprintf( WIDE( "Unknown comparison" ) );
+			}
+		}
+	}
+	return FALSE;
+}
+
+//----------------------------------------------------------------------------
+
+SOCKADDR* GetInterfaceAddressForBroadcast( SOCKADDR *addr )
+{
+	struct interfaceAddress *test_addr;
+	INDEX idx;
+	if( !globalNetworkData.addresses )
+		LoadNetworkAddresses();
+
+	LIST_FORALL( globalNetworkData.addresses, idx, struct interfaceAddress *, test_addr )
+	{
+		if( ((SOCKADDR_IN*)addr)->sin_family == ((SOCKADDR_IN*)test_addr->sa)->sin_family )
+		{
+			switch( ((SOCKADDR_IN*)addr)->sin_family )
+			{
+			case AF_INET:
+				{
+					if( MemCmp( &((SOCKADDR_IN*)addr)->sin_addr, test_addr->saBroadcast->sa_data + 2, 4 ) == 0 )
+					{
+						return test_addr->sa;
+					}
+				}
+				break;
+			case AF_INET6:
+				{
+					if( MemCmp( &((SOCKADDR_IN*)addr)->sin_addr, test_addr->saBroadcast->sa_data + 2, 16  ) == 0 )
+					{
+						return test_addr->sa;
 					}
 				}
 				break;
@@ -3057,7 +3150,7 @@ SOCKADDR *CreateBroadcast(uint16_t nPort)
 	if (!bcast)
 		return(NULL);
 	lpMyAddr = CreateLocal(0);
-	SET_SOCKADDR_LENGTH( bcast, 16 );
+	SET_SOCKADDR_LENGTH( bcast, IN_SOCKADDR_LENGTH );
 	bcast->sin_family	    = AF_INET;
 	bcast->sin_addr.S_un.S_addr  = ((SOCKADDR_IN*)lpMyAddr)->sin_addr.S_un.S_addr;
 	bcast->sin_addr.S_un.S_un_b.s_b4 = 0xFF; // Fake a subnet broadcast address
@@ -3482,15 +3575,210 @@ NETWORK_PROC( void, GetNetworkAddressBinary )( SOCKADDR *addr, uint8_t **data, s
 	}
 }
 
-NETWORK_PROC( SOCKADDR *, MakeNetworkAddressFromBinary )( uint8_t *data, size_t datalen ) {
+NETWORK_PROC( SOCKADDR *, MakeNetworkAddressFromBinary )( uintptr_t *data, size_t datalen ) {
 	SOCKADDR *addr = AllocAddr();
 	size_t namelen = strlen( (const char*)data );
 	if( namelen ) // if empty name, don't include it.
 		SetAddrName( addr, (const char*)data );
-	SET_SOCKADDR_LENGTH( addr, data[namelen+1] );
-	MemCpy( addr, data + namelen + 2, data[namelen+1] );
+	SET_SOCKADDR_LENGTH( addr, data[1] );
+	MemCpy( addr, data + 2, data[1] );
 	return addr;
 }
+
+
+#ifdef __LINUX__
+
+void LoadNetworkAddresses( void ) {
+	struct ifaddrs *addrs, *tmp;
+
+	getifaddrs( &addrs );
+	tmp = addrs;
+
+	for( ; tmp; tmp = tmp->ifa_next )
+	{
+		struct interfaceAddress *ia;
+		SOCKADDR *dup;
+		if( !tmp->ifa_addr )
+			continue;
+		if( tmp->ifa_addr && tmp->ifa_addr->sa_family == AF_PACKET )
+			continue;
+
+		ia = New( struct interfaceAddress );
+		dup = AllocAddr();
+
+		if( tmp->ifa_addr->sa_family == AF_INET6 ) {
+			memcpy( dup, tmp->ifa_addr, IN6_SOCKADDR_LENGTH );
+			SET_SOCKADDR_LENGTH( dup, IN6_SOCKADDR_LENGTH );
+		}
+		else {
+			memcpy( dup, tmp->ifa_addr, IN_SOCKADDR_LENGTH );
+			SET_SOCKADDR_LENGTH( dup, IN_SOCKADDR_LENGTH );
+		}
+		ia->sa = dup;
+
+		dup = AllocAddr();
+
+		if( tmp->ifa_addr->sa_family == AF_INET6 ) {
+			memcpy( dup, tmp->ifa_netmask, IN6_SOCKADDR_LENGTH );
+			SET_SOCKADDR_LENGTH( dup, IN6_SOCKADDR_LENGTH );
+		}
+		else {
+			memcpy( dup, tmp->ifa_netmask, IN_SOCKADDR_LENGTH );
+			SET_SOCKADDR_LENGTH( dup, IN_SOCKADDR_LENGTH );
+		}
+		ia->saMask = dup;
+
+		ia->saBroadcast = AllocAddr();
+		ia->saBroadcast->sa_family = ia->sa->sa_family;
+		ia->saBroadcast->sa_data[0] = 0;
+		ia->saBroadcast->sa_data[1] = 0;
+		ia->saBroadcast->sa_data[2] = (ia->sa->sa_data[2] & ia->saMask->sa_data[2]) | (~ia->saMask->sa_data[2]);
+		ia->saBroadcast->sa_data[3] = (ia->sa->sa_data[3] & ia->saMask->sa_data[3]) | (~ia->saMask->sa_data[3]);
+		ia->saBroadcast->sa_data[4] = (ia->sa->sa_data[4] & ia->saMask->sa_data[4]) | (~ia->saMask->sa_data[4]);
+		ia->saBroadcast->sa_data[5] = (ia->sa->sa_data[5] & ia->saMask->sa_data[5]) | (~ia->saMask->sa_data[5]);
+
+		AddLink( &globalNetworkData.addresses, ia );
+	}
+
+	freeifaddrs( addrs );
+}
+
+#endif
+
+#ifdef _WIN32
+#if 0
+
+#ifdef WIN32
+	{
+		struct addrinfo *result;
+		struct addrinfo *test;
+#ifdef _UNICODE
+		char *tmp = WcharConvert( globalNetworkData.system_name );
+		getaddrinfo( tmp, NULL, NULL, (struct addrinfo**)&result );
+		Deallocate( char*, tmp );
+#else
+		getaddrinfo( globalNetworkData.system_name, NULL, NULL, (struct addrinfo**)&result );
+#endif
+		for( test = result; test; test = test->ai_next )
+		{
+			//if( test->ai_family == AF_INET )
+			{
+				SOCKADDR *tmp;
+				AddLink( &globalNetworkData.addresses, tmp = AllocAddr() );
+				((uintptr_t*)tmp)[-1] = test->ai_addrlen;
+				MemCpy( tmp, test->ai_addr, test->ai_addrlen );
+				lprintf( "initialize addres..." );
+				DumpAddr( "blah", tmp );
+			}
+		}
+	}
+#endif
+#endif
+
+void LoadNetworkAddresses( void ) {
+	// Declare and initialize variables
+	PIP_INTERFACE_INFO pInfo;
+	pInfo = (IP_INTERFACE_INFO *) malloc( sizeof(IP_INTERFACE_INFO) );
+	DWORD dwRetVal = 0;
+
+	PIP_ADAPTER_INFO pAdapterInfo;
+	PIP_ADAPTER_INFO pAdapter = NULL;
+
+	ULONG ulOutBufLen = sizeof (IP_ADAPTER_INFO);
+	pAdapterInfo = New(IP_ADAPTER_INFO);
+	if (pAdapterInfo == NULL) {
+		lprintf("Error allocating memory needed to call GetAdaptersinfo\n");
+		return;
+	}
+	// Make an initial call to GetAdaptersInfo to get
+	// the necessary size into the ulOutBufLen variable
+	if (GetAdaptersInfo(pAdapterInfo, &ulOutBufLen) == ERROR_BUFFER_OVERFLOW) {
+		Deallocate( PIP_ADAPTER_INFO, pAdapterInfo);
+		pAdapterInfo = (IP_ADAPTER_INFO *) NewArray(uint8_t, ulOutBufLen);
+		if (pAdapterInfo == NULL) {
+			lprintf("Error allocating memory needed to call GetAdaptersinfo\n");
+			return;
+		}
+	}
+
+	if ((dwRetVal = GetAdaptersInfo(pAdapterInfo, &ulOutBufLen)) == NO_ERROR) {
+		pAdapter = pAdapterInfo;
+		while (pAdapter) {
+
+			PIP_ADDR_STRING ipadd = &pAdapter->IpAddressList;
+			for( ; ipadd; ipadd = ipadd->Next ) {
+			/*
+			typedef struct _IP_ADDR_STRING {
+			  struct _IP_ADDR_STRING  *Next;
+			  IP_ADDRESS_STRING      IpAddress;
+			  IP_MASK_STRING         IpMask;
+			  DWORD                  Context;
+			} IP_ADDR_STRING, *PIP_ADDR_STRING;
+			*/
+				if( StrCmp( ipadd->IpAddress.String, "0.0.0.0" ) == 0 )
+					continue;
+				struct interfaceAddress *ia = New( struct interfaceAddress );
+				ia->sa = CreateRemote( ipadd->IpAddress.String, 0 );
+				ia->saMask = CreateRemote( ipadd->IpMask.String, 0 );
+				ia->saBroadcast = AllocAddr();
+				ia->saBroadcast->sa_family = ia->sa->sa_family;
+				ia->saBroadcast->sa_data[0] = 0;
+				ia->saBroadcast->sa_data[1] = 0;
+				ia->saBroadcast->sa_data[2] = (ia->sa->sa_data[2] & ia->saMask->sa_data[2]) | (~ia->saMask->sa_data[2]);
+				ia->saBroadcast->sa_data[3] = (ia->sa->sa_data[3] & ia->saMask->sa_data[3]) | (~ia->saMask->sa_data[3]);
+				ia->saBroadcast->sa_data[4] = (ia->sa->sa_data[4] & ia->saMask->sa_data[4]) | (~ia->saMask->sa_data[4]);
+				ia->saBroadcast->sa_data[5] = (ia->sa->sa_data[5] & ia->saMask->sa_data[5]) | (~ia->saMask->sa_data[5]);
+				AddLink( &globalNetworkData.addresses, ia );
+			}
+
+			pAdapter = pAdapter->Next;
+		}
+	}
+	else {
+		lprintf( "GetAdaptersInfo failed with error: %d\n", dwRetVal );
+	}
+#if 0
+https://msdn.microsoft.com/en-us/library/windows/desktop/aa365915%28v=vs.85%29.aspx?f=255&MSPPError=-2147217396
+    PIP_ADAPTER_ADDRESSES pAddresses = NULL;
+    ULONG outBufLen = 0;
+    ULONG Iterations = 0;
+
+    PIP_ADAPTER_ADDRESSES pCurrAddresses = NULL;
+    PIP_ADAPTER_UNICAST_ADDRESS pUnicast = NULL;
+    PIP_ADAPTER_ANYCAST_ADDRESS pAnycast = NULL;
+    PIP_ADAPTER_MULTICAST_ADDRESS pMulticast = NULL;
+    IP_ADAPTER_DNS_SERVER_ADDRESS *pDnServer = NULL;
+    IP_ADAPTER_PREFIX *pPrefix = NULL;
+
+  do {
+
+        pAddresses = (IP_ADAPTER_ADDRESSES *) MALLOC(outBufLen);
+        if (pAddresses == NULL) {
+            printf
+                ("Memory allocation failed for IP_ADAPTER_ADDRESSES struct\n");
+            exit(1);
+        }
+
+        dwRetVal =
+            GetAdaptersAddresses(AF_UNSPEC
+		, GAA_FLAG_SKIP_DNS_SERVER|GAA_FLAG_SKIP_FRIENDLY_NAME|GAA_FLAG_INCLUDE_ALL_INTERFACES
+		, NULL, pAddresses, &outBufLen);
+
+        if (dwRetVal == ERROR_BUFFER_OVERFLOW) {
+            FREE(pAddresses);
+            pAddresses = NULL;
+        } else {
+            break;
+        }
+
+        Iterations++;
+
+    } while ((dwRetVal == ERROR_BUFFER_OVERFLOW) && (Iterations < MAX_TRIES));
+#endif
+
+}
+
+#endif
 
 SACK_NETWORK_NAMESPACE_END
 
