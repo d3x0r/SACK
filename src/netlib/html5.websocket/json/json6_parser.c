@@ -96,7 +96,10 @@ static int gatherString6( CTEXTSTR msg, CTEXTSTR *msg_input, size_t msglen, TEXT
 		(*col)++;
 		if( c == '\\' )
 		{
-			if( escape ) (*mOut++) = '\\';
+			if( escape ) {
+				(*mOut++) = '\\';
+				escape = 0;
+			}
 			else escape = 1;
 		}
 		else if( ( c == '"' ) || ( c == '\'' ) || ( c == '`' ) )
@@ -135,24 +138,28 @@ static int gatherString6( CTEXTSTR msg, CTEXTSTR *msg_input, size_t msglen, TEXT
 					escape = FALSE;
 					continue;
 				case '/':
-				case '\\':
-				case '"':
 					(*mOut++) = c;
+					escape = FALSE;
 					break;
 				case 't':
 					(*mOut++) = '\t';
+					escape = FALSE;
 					break;
 				case 'b':
 					(*mOut++) = '\b';
+					escape = FALSE;
 					break;
 				case 'n':
 					(*mOut++) = '\n';
+					escape = FALSE;
 					break;
 				case 'r':
 					(*mOut++) = '\r';
+					escape = FALSE;
 					break;
 				case 'f':
 					(*mOut++) = '\f';
+					escape = FALSE;
 					break;
 				case '0': case '1': case '2': case '3': 
 					{
@@ -180,6 +187,7 @@ static int gatherString6( CTEXTSTR msg, CTEXTSTR *msg_input, size_t msglen, TEXT
 							else mOut += ConvertToUTF8( mOut, oct_char );
 						}
 					}
+					escape = FALSE;
 					break;
 				case 'x':
 					{
@@ -206,6 +214,7 @@ static int gatherString6( CTEXTSTR msg, CTEXTSTR *msg_input, size_t msglen, TEXT
 						if( hex_char < 128 ) (*mOut++) = hex_char;
 						else mOut += ConvertToUTF8( mOut, hex_char );
 					}
+					escape = FALSE;
 					break;
 				case 'u':
 					{
@@ -239,6 +248,7 @@ static int gatherString6( CTEXTSTR msg, CTEXTSTR *msg_input, size_t msglen, TEXT
 						}
 						mOut += ConvertToUTF8( mOut, hex_char );
 					}
+					escape = FALSE;
 					break;
 				default:
 					if( cr_escaped ) {
