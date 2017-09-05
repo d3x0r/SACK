@@ -14,13 +14,13 @@
 #include <html5.websocket.h>
 
 HTML5_WEBSOCKET_NAMESPACE
-  
+
 
 typedef struct html5_web_socket *HTML5WebSocket;
 
 
 const TEXTCHAR *base64 = WIDE("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=");
-	
+
 static void encodeblock( unsigned char in[3], TEXTCHAR out[4], int len )
 {
     out[0] = base64[ in[0] >> 2 ];
@@ -124,7 +124,7 @@ static LOGICAL ComputeReplyKey2( PVARTEXT pvt_output, HTML5WebSocket socket, PTE
 				VarTextAddCharacter( pvt_output, result[n] );
 		}
 		//md5( buf );
-		//vtprintf( 
+		//vtprintf(
 	}
 
 // passes test here
@@ -227,8 +227,8 @@ static void CPROC read_complete( PCLIENT pc, POINTER buffer, size_t length )
 					PTEXT key1, key2;
 					value = GetHTTPField( socket->http_state, WIDE( "Connection" ) );
 					value2 = GetHTTPField( socket->http_state, WIDE( "Upgrade" ) );
-					if( !value || !value2 
-						|| !TextLike( value, "upgrade" ) 
+					if( !value || !value2
+						|| !TextLike( value, "upgrade" )
 						|| !TextLike( value2, "websocket" ) ) {
 						lprintf( "request is not an upgrade for websocket." );
 						VarTextDestroy( &pvt_output );
@@ -283,7 +283,7 @@ static void CPROC read_complete( PCLIENT pc, POINTER buffer, size_t length )
 								else {
 									lprintf( "required server_max_window_bits value is missing" );
 								}
-								
+
 								//socket->flags.max_window_bits = 1;
 							}
 							else if( TextLike( opt, "client_no_context_takeover" ) ) {
@@ -317,6 +317,9 @@ static void CPROC read_complete( PCLIENT pc, POINTER buffer, size_t length )
 								socket->input_state.deflateBufLen = 4096;
 							}
 						}
+					}
+					else {
+						socket->input_state.flags.deflate = 0;
 					}
 
 					value = GetHTTPField( socket->http_state, WIDE( "Sec-WebSocket-Protocol" ) );
@@ -424,7 +427,7 @@ static void CPROC read_complete( PCLIENT pc, POINTER buffer, size_t length )
 						}
 
 						value = VarTextPeek( pvt_output );
-#ifdef _UNICODE	
+#ifdef _UNICODE
 						{
 							char *output;
 							output = DupTextToChar( GetText( value ) );
@@ -484,6 +487,7 @@ static void CPROC closed( PCLIENT pc_client ) {
 	DestroyHttpState( socket->http_state );
 	Deallocate( POINTER, socket->buffer );
 	Deallocate( HTML5WebSocket, socket );
+	SetNetworkLong( pc_client, 0, 0 );
 }
 
 static void CPROC connected( PCLIENT pc_server, PCLIENT pc_new )
@@ -552,4 +556,3 @@ PTEXT GetWebSocketResource( PCLIENT pc ) {
 }
 
 HTML5_WEBSOCKET_NAMESPACE_END
-
