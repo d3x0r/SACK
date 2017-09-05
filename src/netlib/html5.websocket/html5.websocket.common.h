@@ -29,6 +29,7 @@ struct web_socket_input_state
 		BIT_FIELD expect_masking : 1;
 		BIT_FIELD use_ssl : 1;
 	} flags;
+	uint32_t last_reception; // (last message tick) for automatic ping/keep alive/idle death
 
 	int client_max_bits;  // max bits used on (deflater if server, inflater if client)
 	int server_max_bits;  // max bits used on (inflater if server, deflater if client)
@@ -46,17 +47,15 @@ struct web_socket_input_state
 	size_t fragment_collection_index;  // used for selecting mask byte
 	uint8_t* fragment_collection;
 
-	uint32_t last_reception; // (last message tick) for automatic ping/keep alive/idle death
-
 	LOGICAL final;
 	LOGICAL mask;
 	uint8_t mask_key[4];
 	int opcode;
 	int RSV1;  // input bit of RSV1 bit on each message
 	int _RSV1; // input bit of the first RSV1 bit on a fragmented packet; used for permessage-deflate
-	size_t frame_length;
 	int input_msg_state;
 	int input_type; // text or binary
+	size_t frame_length;
 
 	web_socket_event on_event;
 	web_socket_closed on_close;
@@ -74,9 +73,6 @@ EXTERN void ProcessWebSockProtocol( WebSocketInputState websock, PCLIENT pc, con
 
 struct html5_web_socket {
 	uint32_t Magic; // this value must be 0x20130912
-	HTTPState http_state;
-	PCLIENT pc;
-	POINTER buffer;
 	struct web_socket_flags
 	{
 		BIT_FIELD initial_handshake_done : 1;
@@ -84,6 +80,9 @@ struct html5_web_socket {
 		BIT_FIELD accepted : 1;
 		BIT_FIELD http_request_only : 1;
 	} flags;
+	HTTPState http_state;
+	PCLIENT pc;
+	POINTER buffer;
 	char *protocols;
 	web_socket_http_request on_request;  // callback to send unhandled requests to a handler
 

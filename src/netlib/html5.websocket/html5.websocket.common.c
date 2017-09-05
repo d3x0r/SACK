@@ -419,6 +419,9 @@ void ProcessWebSockProtocol( WebSocketInputState websock, PCLIENT pc, const uint
 					}
 					websock->fragment_collection_length = 0;
 					RemoveClientEx( pc, 0, 1 );
+					// resetInputstate after this would squash next memory....
+					return;
+
 					break;
 				case 0x09: // ping
 					{
