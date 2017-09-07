@@ -5,7 +5,7 @@
  *
  *   Adds functionality of timers that run dispatched from a single thread
  *   timer delay is trackable to provide self adjusting reliable frequency dispatch.
- *   
+ *
  *   RemoveTimer( AddTimer( tick_frequency, timer_callback, user_data ) );
  *
  */
@@ -17,7 +17,7 @@
 #define USE_PIPE_SEMS
 #endif
 
-#if defined( __QNX__ ) || defined( __MAC__) 
+#if defined( __QNX__ ) || defined( __MAC__)
 #define USE_PIPE_SEMS
 // no semtimedop; no semctl, etc
 //#include <sys/sem.h>
@@ -73,7 +73,7 @@
 #ifndef _SHARED_MEMORY_LIBRARY
 #  include "../memlib/sharestruc.h"
 #endif
-#ifdef __cplusplus 
+#ifdef __cplusplus
 namespace sack {
 	namespace timers {
 		using namespace sack::containers;
@@ -360,7 +360,7 @@ static uintptr_t threadrunning( POINTER p, uintptr_t psv )
 		return 1;
 	return 0;
 }
-	
+
 // sharemem exit priority +1 (exit after everything else, except emmory; globals at memory+1)
 PRIORITY_ATEXIT( CloseAllWakeups, ATEXIT_PRIORITY_THREAD_SEMS )
 {
@@ -477,14 +477,14 @@ static void InitWakeup( PTHREAD thread, CTEXTSTR event_name )
 	}
 
 #else
-	thread->semaphore = semget( IPC_PRIVATE 
+	thread->semaphore = semget( IPC_PRIVATE
 									  , 1, IPC_CREAT | 0600 );
 	if( thread->semaphore == -1 )
 	{
 		// basically this can't really happen....
 		if( errno ==  EEXIST )
 		{
-			thread->semaphore = semget( IPC_PRIVATE 
+			thread->semaphore = semget( IPC_PRIVATE
 											  , 1, 0 );
 			if( thread->semaphore == -1 )
 				lprintf( WIDE("FAILED TO CREATE SEMAPHORE! : %d"), errno );
@@ -564,7 +564,7 @@ uintptr_t CPROC check_thread_name_and_id( POINTER p, uintptr_t psv )
 {
 	struct name_and_id_params *params = (struct name_and_id_params*)psv;
 	PTHREAD thread = (PTHREAD)p;
-	if( thread->thread_ident == params->thread 
+	if( thread->thread_ident == params->thread
 		&& StrCaseCmp( thread->thread_event_name, params->name ) == 0 )
 		return (uintptr_t)p;
 	return 0;
@@ -801,7 +801,7 @@ void  WakeThreadIDEx( THREAD_ID thread DBG_PASS )
 }
 
 //--------------------------------------------------------------------------
-#undef WakeThreadID 
+#undef WakeThreadID
 void  WakeThreadID( THREAD_ID thread )
 {
 	WakeThreadIDEx( thread DBG_SRC );
@@ -1583,7 +1583,7 @@ void  EndThread( PTHREAD thread )
 		TerminateThread( thread->hThread, 0xD1E );
 #ifdef LOG_THREAD
 		lprintf( WIDE("Killing thread...") );
-#endif 
+#endif
 		CloseHandle( thread->thread_event->hEvent );
 #endif
 	}
@@ -2355,29 +2355,14 @@ LOGICAL  EnterCriticalSecEx( PCRITICALSECTION pcs DBG_PASS )
 #ifdef ENABLE_CRITICALSEC_LOGGING
 #ifdef _DEBUG
 	if( global_timer_structure && globalTimerData.flags.bLogCriticalSections )
-		_lprintf( DBG_RELAY )( WIDE("Enter critical section %p %")_64fx, pcs, GetMyThreadID() );
+		_lprintf( DBG_RELAY )( WIDE("Enter critical section %p (owner) %")_64fx, pcs, pcs->dwThreadID );
 #endif
 #endif
 	do
 	{
 		d=EnterCriticalSecNoWaitEx( pcs, &prior DBG_RELAY );
 		if( d < 0 )
-		{
-			// lock critical failed - couldn't update.
 			Relinquish();
-#ifdef _DEBUG
-			{
-				uint32_t curtick = timeGetTime();//GetTickCount();
-				if( ( curtick+2000) < timeGetTime() )//GetTickCount() )
-				{
-					xlprintf(1)( WIDE( "Timeout during critical section wait for lock.  No lock should take more than 1 task cycle %")_32fs WIDE(" %" )_32fs, curtick, timeGetTime() );//GetTickCount() );
-					DebugBreak();
-					return FALSE;
-				}
-				curtick = timeGetTime();//GetTickCount();
-			}
-#endif
-		}
 		else if( d == 0 )
 		{
 			if( pcs->dwThreadID )
@@ -2385,10 +2370,9 @@ LOGICAL  EnterCriticalSecEx( PCRITICALSECTION pcs DBG_PASS )
 #ifdef ENABLE_CRITICALSEC_LOGGING
 #  ifdef _DEBUG
 				if( global_timer_structure && globalTimerData.flags.bLogCriticalSections )
-					lprintf( WIDE("Failed to enter section... sleeping...") );
+					lprintf( WIDE("Failed to enter section... sleeping (forever)...") );
 #  endif
 #endif
-
 				WakeableNamedThreadSleepEx( WIDE("sack.critsec"), SLEEP_FOREVER DBG_RELAY );
 #ifdef ENABLE_CRITICALSEC_LOGGING
 #  ifdef _DEBUG
@@ -2407,6 +2391,16 @@ LOGICAL  EnterCriticalSecEx( PCRITICALSECTION pcs DBG_PASS )
 #  endif
 #endif
 		}
+		else {
+			if( prior ) {
+#ifdef ENABLE_CRITICALSEC_LOGGING
+#  ifdef _DEBUG
+				if( global_timer_structure && globalTimerData.flags.bLogCriticalSections )
+					lprintf( WIDE("Entered section, restore prior waiting thread. %") _64fx  WIDE(" %" ) _64fx, prior, pcs->dwThreadWaiting );
+#  endif
+#endif
+			}
+		}
 		// after waking up, this will re-aquire a lock, and
 		// set the prior waiting ID into the criticalsection
 		// this will then wake that process when this lock is left.
@@ -2420,15 +2414,15 @@ LOGICAL  EnterCriticalSecEx( PCRITICALSECTION pcs DBG_PASS )
 #ifndef USE_NATIVE_CRITICAL_SECTION
 LOGICAL  LeaveCriticalSecEx( PCRITICALSECTION pcs DBG_PASS )
 {
-	THREAD_ID dwCurProc = GetMyThreadID();
+	THREAD_ID dwCurProc;
 #ifdef _DEBUG
 	uint32_t curtick = timeGetTime();//GetTickCount();
 #endif
 #ifdef ENABLE_CRITICALSEC_LOGGING
 	if( global_timer_structure && globalTimerData.flags.bLogCriticalSections )
-		_xlprintf( LOG_NOISE DBG_RELAY )( WIDE("Begin leave critical section %p %") _64fx, pcs, GetMyThreadID() );
+		_xlprintf( LOG_NOISE DBG_RELAY )( WIDE("Begin leave critical section %p %") _64fx, pcs, pcs->dwThreadWaiting );
 #endif
-	while( LockedExchange( &pcs->dwUpdating, 1 ) 
+	while( LockedExchange( &pcs->dwUpdating, 1 )
 #ifdef _DEBUG
 			&& ( (curtick+2000) > timeGetTime() )//GetTickCount() )
 #endif
@@ -2440,11 +2434,12 @@ LOGICAL  LeaveCriticalSecEx( PCRITICALSECTION pcs DBG_PASS )
 #endif
 		Relinquish();
 	}
+	dwCurProc = GetMyThreadID();
 #ifdef _DEBUG
 	if( (curtick+2000) < timeGetTime() )//GetTickCount() )
 	{
 		lprintf( WIDE( "Timeout during critical section wait for lock.  No lock should take more than 1 task cycle" ) );
-		DebugBreak(); 
+		DebugBreak();
 		return FALSE;
 	}
 #endif
@@ -2482,7 +2477,7 @@ LOGICAL  LeaveCriticalSecEx( PCRITICALSECTION pcs DBG_PASS )
 				pcs->dwUpdating = 0;
 #ifdef ENABLE_CRITICALSEC_LOGGING
 				if( global_timer_structure && globalTimerData.flags.bLogCriticalSections )
-					_lprintf( DBG_RELAY )( WIDE("%8")_64fx WIDE(" Waking a thread which is waiting..."), wake );
+					_lprintf( DBG_RELAY )( WIDE("%8")_64fx WIDE(" Waking a thread which is waiting..."), pcs->dwThreadWaiting );
 #endif
 				// don't clear waiting... so the proper thread can
 				// allow itself to claim section...
@@ -2540,7 +2535,7 @@ HANDLE  GetWakeEvent( void )
 }
 #endif
 
-#ifdef __cplusplus 
+#ifdef __cplusplus
 };//	namespace timers {
 };//namespace sack {
 #endif
