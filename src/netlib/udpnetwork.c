@@ -139,6 +139,7 @@ PCLIENT CPPServeUDPAddrEx( SOCKADDR *pAddr
 #ifdef USE_WSA_EVENTS
 	if( globalNetworkData.flags.bLogNotices )
 		lprintf( WIDE( "SET GLOBAL EVENT (new udp socket %p)" ), pc );
+	EnqueLink( &globalNetworkData.client_schedule, pc );
 	WSASetEvent( globalNetworkData.hMonitorThreadControlEvent );
 #endif
 	return pc;
@@ -456,11 +457,6 @@ NETWORK_PROC( int, doUDPRead )( PCLIENT pc, POINTER lpBuffer, int nBytes )
 		pc->dwFlags |= CF_READPENDING;
 
 		// we are now able to read, so schedule the socket.
-#ifdef USE_WSA_EVENTS
-		if( globalNetworkData.flags.bLogNotices )
-			lprintf( WIDE( "SET GLOBAL EVENT (set readpending)" ) );
-		WSASetEvent( globalNetworkData.hMonitorThreadControlEvent );
-#endif
 #ifdef __LINUX__
 		{
 			WakeThread( globalNetworkData.pThread );
@@ -511,11 +507,6 @@ int FinishUDPRead( PCLIENT pc )
 		{
 		case WSAEWOULDBLOCK: // NO data returned....
 			pc->dwFlags |= CF_READPENDING;
-#ifdef USE_WSA_EVENTS
-			if( globalNetworkData.flags.bLogNotices )
-				 lprintf( WIDE( "SET GLOBAL EVENT (set read pending)" ) );
-			WSASetEvent( globalNetworkData.hMonitorThreadControlEvent );
-#endif
 #ifdef __LINUX__
 			{
 				WakeThread( globalNetworkData.pThread );
