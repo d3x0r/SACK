@@ -123,8 +123,13 @@ struct peer_thread_info
 	struct peer_thread_info *child_peer;
 	PLIST monitor_list;   // list of PCLIENT which are waiting on
 	PDATALIST event_list; // list of HANDLE which is waited on
-#ifdef USE_WSA_EVENTS
+	PTHREAD thread;
+#ifdef _WIN32
 	WSAEVENT hThread;
+#endif
+#ifdef __LINUX__
+
+	//struct pollfd *events;
 #endif
 	int nEvents;
 	int nWaitEvents; // updated with count thread is waiting on
@@ -132,7 +137,6 @@ struct peer_thread_info
 		BIT_FIELD bProcessing : 1;
 		BIT_FIELD bBuildingList : 1;
 	} flags;
-	PTHREAD thread;
 };
 
 
@@ -181,7 +185,7 @@ struct NetworkClient
 	}write;
 	uintptr_t psvWrite;
 
-	LOGICAL 	      bWriteComplete; // set during bWriteComplete Notify...
+	LOGICAL        bWriteComplete; // set during bWriteComplete Notify...
 
 	LOGICAL        bDraining;    // byte sink functions.... JAB:980202
 	LOGICAL        bDrainExact;  // length does not matter - read until one empty read.
@@ -236,7 +240,8 @@ LOCATION struct network_global_data{
 	PLIST   pThreads; // list of all threads - needed because of limit of 64 sockets per multiplewait
 	PCLIENT AvailableClients;
 	PCLIENT ActiveClients;
-	PLINKQUEUE event_schedule;
+	//PLINKQUEUE event_schedule;
+	PLINKQUEUE client_schedule;  // shorter list of new sockets to monitor than the full list
 	PCLIENT ClosedClients;
 	CRITICALSECTION csNetwork;
 	uint32_t uNetworkPauseTimer;
@@ -271,6 +276,7 @@ LOCATION struct network_global_data{
 		BIT_FIELD bThreadInitOkay : 1;
 		BIT_FIELD bLogProtocols : 1;
 	} flags;
+	int nPeers; // how many peer threads do we have
 	struct peer_thread_info *root_thread;
 #if !defined( USE_WSA_EVENTS ) && defined( WIN32 )
 	WNDCLASS wc;
