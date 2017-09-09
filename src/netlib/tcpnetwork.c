@@ -45,10 +45,10 @@ return 0;
 #include <timers.h>
 #include "netstruc.h"
 #include <network.h>
+#include <idle.h>
 #ifndef UNDER_CE
 #include <fcntl.h>
 #endif
-#include <idle.h>
 #ifdef __LINUX__
 #include <unistd.h>
 #ifdef __LINUX__
@@ -235,10 +235,10 @@ void AcceptClient(PCLIENT pListen)
 
 //----------------------------------------------------------------------------
 
-NETWORK_PROC( PCLIENT, CPPOpenTCPListenerAddrExx )( SOCKADDR *pAddr
-																 , cppNotifyCallback NotifyCallback
-																 , uintptr_t psvConnect
-																  DBG_PASS )
+PCLIENT CPPOpenTCPListenerAddrExx( SOCKADDR *pAddr
+                                 , cppNotifyCallback NotifyCallback
+                                 , uintptr_t psvConnect
+                                 DBG_PASS )
 {
 	PCLIENT pListen;
 	if( !pAddr )
@@ -340,19 +340,10 @@ NETWORK_PROC( PCLIENT, CPPOpenTCPListenerAddrExx )( SOCKADDR *pAddr
 	return pListen;
 }
 
-#undef CPPOpenTCPListenerAddrEx
-NETWORK_PROC( PCLIENT, CPPOpenTCPListenerAddrEx )( SOCKADDR *pAddr
-																 , cppNotifyCallback NotifyCallback
-																 , uintptr_t psvConnect
-																  DBG_PASS )
-{
-   return CPPOpenTCPListenerAddrExx( pAddr, NotifyCallback, psvConnect DBG_RELAY );
-}
-
 //----------------------------------------------------------------------------
 
-NETWORK_PROC( PCLIENT, OpenTCPListenerAddrExx )(SOCKADDR *pAddr
-															, cNotifyCallback NotifyCallback DBG_PASS )
+PCLIENT OpenTCPListenerAddrExx( SOCKADDR *pAddr
+                              , cNotifyCallback NotifyCallback DBG_PASS )
 {
 	PCLIENT result = CPPOpenTCPListenerAddrExx( pAddr, (cppNotifyCallback)NotifyCallback, 0 DBG_RELAY );
 	if( result )
@@ -360,27 +351,20 @@ NETWORK_PROC( PCLIENT, OpenTCPListenerAddrExx )(SOCKADDR *pAddr
 	return result;
 }
 
-#undef OpenTCPListenerAddrEx
-NETWORK_PROC( PCLIENT, OpenTCPListenerAddrEx )(SOCKADDR *pAddr
-															 , cNotifyCallback NotifyCallback )
-{
-   return OpenTCPListenerAddrExx( pAddr, NotifyCallback DBG_SRC );
-}
-
 //----------------------------------------------------------------------------
 
-NETWORK_PROC( PCLIENT, CPPOpenTCPListenerExx )(uint16_t wPort
-															 , cppNotifyCallback NotifyCallback
-															 , uintptr_t psvConnect
-                                               DBG_PASS
-															 )
+PCLIENT CPPOpenTCPListenerExx( uint16_t wPort
+                             , cppNotifyCallback NotifyCallback
+                             , uintptr_t psvConnect
+                             DBG_PASS
+                             )
 {
 	SOCKADDR *lpMyAddr = CreateLocal(wPort);
 	PCLIENT pc = CPPOpenTCPListenerAddrExx( lpMyAddr, NotifyCallback, psvConnect DBG_RELAY );
 	ReleaseAddress( lpMyAddr );
 	if( pc )
 	{
-      // have to have the base one open or pcOther cannot be set.
+		// have to have the base one open or pcOther cannot be set.
 		lpMyAddr = CreateSockAddress( WIDE(":::"), wPort );
 		pc->pcOther = CPPOpenTCPListenerAddrExx( lpMyAddr, NotifyCallback, psvConnect DBG_RELAY );
 		ReleaseAddress( lpMyAddr );
@@ -388,27 +372,14 @@ NETWORK_PROC( PCLIENT, CPPOpenTCPListenerExx )(uint16_t wPort
 	return pc;
 }
 
-#undef CPPOpenTCPListenerEx
-NETWORK_PROC( PCLIENT, CPPOpenTCPListenerEx )(uint16_t wPort
-                                          , cppNotifyCallback NotifyCallback
-                                          , uintptr_t psvConnect )
-{
-   return CPPOpenTCPListenerExx( wPort, NotifyCallback, psvConnect DBG_SRC );
-}
 //----------------------------------------------------------------------------
 
-NETWORK_PROC( PCLIENT, OpenTCPListenerExx )(uint16_t wPort, cNotifyCallback NotifyCallback DBG_PASS )
+PCLIENT OpenTCPListenerExx(uint16_t wPort, cNotifyCallback NotifyCallback DBG_PASS )
 {
 	PCLIENT result = CPPOpenTCPListenerExx( wPort, (cppNotifyCallback)NotifyCallback, 0 DBG_RELAY );
 	if( result )
 		result->dwFlags &= ~CF_CPPCONNECT;
 	return result;
-}
-
-#undef OpenTCPListenerEx
-NETWORK_PROC( PCLIENT, OpenTCPListenerEx )(uint16_t wPort, cNotifyCallback NotifyCallback )
-{
-	return OpenTCPListenerExx( wPort, NotifyCallback DBG_SRC );
 }
 
 //----------------------------------------------------------------------------
@@ -463,7 +434,6 @@ int NetworkConnectTCPEx( PCLIENT pc DBG_PASS ) {
 }
 
 //----------------------------------------------------------------------------
-#define TCP_CLIENT_FLAG_DELAY_TCP_CONNECT 1
 
 static PCLIENT InternalTCPClientAddrFromAddrExxx( SOCKADDR *lpAddr, SOCKADDR *pFromAddr, 
                                                   int bCPP,
@@ -479,7 +449,7 @@ static PCLIENT InternalTCPClientAddrFromAddrExxx( SOCKADDR *lpAddr, SOCKADDR *pF
                                                   DBG_PASS
                                                 )
 {
-   // Server's Port and Name.
+	// Server's Port and Name.
 	PCLIENT pResult;
 	if( !lpAddr )
 		return NULL;
@@ -689,11 +659,11 @@ static PCLIENT InternalTCPClientAddrFromAddrExxx( SOCKADDR *lpAddr, SOCKADDR *pF
 	}
 
 LeaveNow:
-   if( !pResult )  // didn't break out of the loop with a good return.
-   {
-      //lprintf( WIDE("Failed Open TCP Client.") );
-   }   
-   return pResult;
+	if( !pResult )  // didn't break out of the loop with a good return.
+	{
+		//lprintf( WIDE("Failed Open TCP Client.") );
+	}
+	return pResult;
 }
 
 //----------------------------------------------------------------------------
@@ -716,33 +686,15 @@ NETWORK_PROC( PCLIENT, CPPOpenTCPClientAddrExxx )(SOCKADDR *lpAddr
 											 , pConnectComplete, psvConnect, flags DBG_RELAY );
 }
 
-#undef CPPOpenTCPClientAddrExx
-NETWORK_PROC( PCLIENT, CPPOpenTCPClientAddrExx )(SOCKADDR *lpAddr, 
-             cppReadComplete  pReadComplete,
-             uintptr_t psvRead,
-             cppCloseCallback CloseCallback,
-             uintptr_t psvClose,
-             cppWriteComplete WriteComplete,
-             uintptr_t psvWrite,
-             cppConnectCallback pConnectComplete,
-             uintptr_t psvConnect
-																)
-{
-	return InternalTCPClientAddrFromAddrExxx( lpAddr, NULL, TRUE
-											 , pReadComplete, psvRead
-											 , CloseCallback, psvClose
-											 , WriteComplete, psvWrite
-											 , pConnectComplete, psvConnect, 0 DBG_SRC );
-}
 //----------------------------------------------------------------------------
-NETWORK_PROC( PCLIENT, OpenTCPClientAddrExxx )( SOCKADDR *lpAddr
-                                              , cReadComplete     pReadComplete
-                                              , cCloseCallback    CloseCallback
-                                              , cWriteComplete    WriteComplete
-                                              , cConnectCallback  pConnectComplete
-                                              , int flags
-                                              DBG_PASS
-															 )
+PCLIENT OpenTCPClientAddrExxx( SOCKADDR *lpAddr
+                             , cReadComplete     pReadComplete
+                             , cCloseCallback    CloseCallback
+                             , cWriteComplete    WriteComplete
+                             , cConnectCallback  pConnectComplete
+                             , int flags
+                             DBG_PASS
+                             )
 {
 	return InternalTCPClientAddrFromAddrExxx( lpAddr, NULL, FALSE
 											 , (cppReadComplete)pReadComplete, 0
@@ -751,7 +703,7 @@ NETWORK_PROC( PCLIENT, OpenTCPClientAddrExxx )( SOCKADDR *lpAddr
 											 , (cppConnectCallback)pConnectComplete, 0, flags DBG_RELAY );
 }
 
-NETWORK_PROC( PCLIENT, OpenTCPClientAddrFromAddrEx )(SOCKADDR *lpAddr, SOCKADDR *pFromAddr
+PCLIENT OpenTCPClientAddrFromAddrEx(SOCKADDR *lpAddr, SOCKADDR *pFromAddr
 															  , cReadComplete     pReadComplete
 															  , cCloseCallback    CloseCallback
 															  , cWriteComplete    WriteComplete
@@ -768,7 +720,7 @@ NETWORK_PROC( PCLIENT, OpenTCPClientAddrFromAddrEx )(SOCKADDR *lpAddr, SOCKADDR 
 											 , (cppConnectCallback)pConnectComplete, 0, flags DBG_RELAY );
 }
 
-NETWORK_PROC( PCLIENT, OpenTCPClientAddrFromEx )(SOCKADDR *lpAddr, int port
+PCLIENT OpenTCPClientAddrFromEx(SOCKADDR *lpAddr, int port
 															  , cReadComplete     pReadComplete															  , cCloseCallback    CloseCallback
 															  , cWriteComplete    WriteComplete
 															  , cConnectCallback  pConnectComplete
@@ -788,37 +740,19 @@ NETWORK_PROC( PCLIENT, OpenTCPClientAddrFromEx )(SOCKADDR *lpAddr, int port
 }
 
 
-#undef OpenTCPClientAddrExx
-NETWORK_PROC( PCLIENT, OpenTCPClientAddrExx )(SOCKADDR *lpAddr, 
-             cReadComplete     pReadComplete,
-             cCloseCallback    CloseCallback,
-             cWriteComplete    WriteComplete,
-															 cConnectCallback  pConnectComplete 
-	)
-{
-   return OpenTCPClientAddrExxx( lpAddr, pReadComplete, CloseCallback, WriteComplete, pConnectComplete, 0 DBG_SRC );
-}
 //----------------------------------------------------------------------------
-NETWORK_PROC( PCLIENT, OpenTCPClientAddrExEx )(SOCKADDR *lpAddr
-															 , cReadComplete  pReadComplete
-															 , cCloseCallback CloseCallback
-															 , cWriteComplete WriteComplete
-															 DBG_PASS )
+PCLIENT OpenTCPClientAddrExEx( SOCKADDR *lpAddr
+                             , cReadComplete  pReadComplete
+                             , cCloseCallback CloseCallback
+                             , cWriteComplete WriteComplete
+                             DBG_PASS )
 {
    return OpenTCPClientAddrExxx( lpAddr, pReadComplete, CloseCallback, WriteComplete, NULL, 0 DBG_RELAY );
 }
 
-#undef OpenTCPClientAddrEx
-NETWORK_PROC( PCLIENT, OpenTCPClientAddrEx )(SOCKADDR *lpAddr
-															, cReadComplete  pReadComplete
-															, cCloseCallback CloseCallback
-															, cWriteComplete WriteComplete )
-{
-	return OpenTCPClientAddrExEx( lpAddr, pReadComplete, CloseCallback, WriteComplete DBG_SRC );
-}
 //----------------------------------------------------------------------------
 
-NETWORK_PROC( PCLIENT, CPPOpenTCPClientExEx )(CTEXTSTR lpName,uint16_t wPort,
+PCLIENT CPPOpenTCPClientExEx(CTEXTSTR lpName,uint16_t wPort,
              cppReadComplete	 pReadComplete, uintptr_t psvRead,
              cppCloseCallback CloseCallback, uintptr_t psvClose,
              cppWriteComplete WriteComplete, uintptr_t psvWrite,
@@ -830,17 +764,17 @@ NETWORK_PROC( PCLIENT, CPPOpenTCPClientExEx )(CTEXTSTR lpName,uint16_t wPort,
 	if( lpName && 
 	   (lpsaDest = CreateSockAddress(lpName,wPort) ) )
 	{
-		pClient = CPPOpenTCPClientAddrExxx( lpsaDest,
-													  pReadComplete,
-													  psvRead,
-													  CloseCallback,
-													  psvClose,
-													  WriteComplete,
-													  psvWrite,
-													  pConnectComplete,
-													  psvConnect,
-			flags
-                                         DBG_RELAY
+		pClient = CPPOpenTCPClientAddrExxx( lpsaDest
+		                                  , pReadComplete
+		                                  , psvRead
+		                                  , CloseCallback
+		                                  , psvClose
+		                                  , WriteComplete
+		                                  , psvWrite
+		                                  , pConnectComplete
+		                                  , psvConnect
+		                                  , flags
+		                                    DBG_RELAY
 													 );
 		ReleaseAddress( lpsaDest );
 	}   
@@ -849,7 +783,7 @@ NETWORK_PROC( PCLIENT, CPPOpenTCPClientExEx )(CTEXTSTR lpName,uint16_t wPort,
 
 //----------------------------------------------------------------------------
 
-NETWORK_PROC( PCLIENT, OpenTCPClientExxx )(CTEXTSTR lpName,uint16_t wPort,
+PCLIENT OpenTCPClientExxx(CTEXTSTR lpName,uint16_t wPort,
              cReadComplete  pReadComplete,
              cCloseCallback CloseCallback,
              cWriteComplete WriteComplete,
@@ -861,45 +795,28 @@ NETWORK_PROC( PCLIENT, OpenTCPClientExxx )(CTEXTSTR lpName,uint16_t wPort,
 	if( lpName &&
 		(lpsaDest = CreateSockAddress(lpName,wPort) ) )
 	{
-		pClient = OpenTCPClientAddrExxx( lpsaDest,
-												  pReadComplete,
-												  CloseCallback,
-												  WriteComplete,
-												  pConnectComplete, 0 DBG_RELAY );
+		pClient = OpenTCPClientAddrExxx( lpsaDest
+		                               , pReadComplete
+		                               , CloseCallback
+		                               , WriteComplete
+		                               , pConnectComplete, 0 DBG_RELAY );
 		ReleaseAddress( lpsaDest );
 	}
 	return pClient;
 }
 
-#undef OpenTCPClientExx
-NETWORK_PROC( PCLIENT, OpenTCPClientExx )(CTEXTSTR lpName,uint16_t wPort,
-             cReadComplete	 pReadComplete,
-				 cCloseCallback CloseCallback,
-             cWriteComplete WriteComplete,
-														cConnectCallback pConnectComplete )
-{
-	return OpenTCPClientExxx( lpName, wPort, pReadComplete, CloseCallback, WriteComplete, pConnectComplete DBG_SRC );
-}
 //----------------------------------------------------------------------------
 
-NETWORK_PROC( PCLIENT, OpenTCPClientExEx)(CTEXTSTR lpName,uint16_t wPort,
-														cReadComplete	 pReadComplete,
-														cCloseCallback CloseCallback,
-														cWriteComplete WriteComplete
-														DBG_PASS )
+PCLIENT OpenTCPClientExEx(CTEXTSTR lpName,uint16_t wPort,
+                          cReadComplete	 pReadComplete,
+                          cCloseCallback CloseCallback,
+                          cWriteComplete WriteComplete
+                          DBG_PASS )
 {
 	return OpenTCPClientExxx( lpName, wPort, pReadComplete, CloseCallback, WriteComplete, NULL DBG_RELAY );
 }
 
 
-#undef OpenTCPClientEx
-NETWORK_PROC( PCLIENT, OpenTCPClientEx)(CTEXTSTR lpName,uint16_t wPort,
-             cReadComplete	 pReadComplete,
-				 cCloseCallback CloseCallback,
-													 cWriteComplete WriteComplete )
-{
-   return OpenTCPClientExEx( lpName, wPort, pReadComplete, CloseCallback, WriteComplete DBG_SRC );
-}
 //----------------------------------------------------------------------------
 
 size_t FinishPendingRead(PCLIENT lpClient DBG_PASS )  // only time this should be called is when there IS, cause
@@ -990,7 +907,7 @@ size_t FinishPendingRead(PCLIENT lpClient DBG_PASS )  // only time this should b
 				}
 			}
 			else if (!nRecv) // channel closed if received 0 bytes...
-			{           // otherwise WSAEWOULDBLOCK would be generated.
+			{   // otherwise WSAEWOULDBLOCK would be generated.
 				//_lprintf( DBG_RELAY )( WIDE("Closing closed socket... Hope there's also an event... "));
 				lpClient->dwFlags |= CF_TOCLOSE;
 				break; // while dwAvail... try read...
@@ -1096,11 +1013,9 @@ size_t FinishPendingRead(PCLIENT lpClient DBG_PASS )  // only time this should b
 	} while ( 1 );
 }
 
-
-
 //----------------------------------------------------------------------------
 
-NETWORK_PROC( size_t, doReadExx2)(PCLIENT lpClient,POINTER lpBuffer,size_t nBytes, LOGICAL bIsStream, LOGICAL bWait, int user_timeout DBG_PASS )
+size_t doReadExx2(PCLIENT lpClient,POINTER lpBuffer,size_t nBytes, LOGICAL bIsStream, LOGICAL bWait, int user_timeout DBG_PASS )
 {
 #ifdef LOG_PENDING
 	lprintf( WIDE( "Reading ... %p(%d) int %p %d (%s,%s)" ), lpClient, lpClient->Socket, lpBuffer, (uint32_t)nBytes, bIsStream?WIDE( "stream" ):WIDE( "block" ), bWait?WIDE( "Wait" ):WIDE( "NoWait" ) );
@@ -1166,9 +1081,6 @@ NETWORK_PROC( size_t, doReadExx2)(PCLIENT lpClient,POINTER lpBuffer,size_t nByte
 		}
 		//else
 		//   lprintf( WIDE("No read waiting... allow forward going...") );
-		//Log2( WIDE("Setting Read buffer pending for next select...%d(%d)")
-		//				, lpClient - Clients
-		//				, lpClient->Socket);
 		if( lpClient->dwFlags & CF_READREADY )
 		{
 #ifdef LOG_PENDING
@@ -1273,57 +1185,44 @@ NETWORK_PROC( size_t, doReadExx2)(PCLIENT lpClient,POINTER lpBuffer,size_t nByte
 	return 0; // unknown result really... success prolly
 }
 
-#undef doReadExx
-size_t doReadExx(PCLIENT lpClient, POINTER lpBuffer, size_t nBytes, LOGICAL bIsStream, LOGICAL bWait)
-{
-	return doReadExx2( lpClient, lpBuffer, nBytes, bIsStream, bWait, 0 DBG_SRC );
-}
-
-#undef doReadEx
-size_t doReadEx(PCLIENT lpClient, POINTER lpBuffer, size_t nBytes, LOGICAL bIsStream)
-{
-	return doReadExx( lpClient, lpBuffer, nBytes, bIsStream, FALSE );
-}
-
 //----------------------------------------------------------------------------
 
 static void PendWrite( PCLIENT pClient
-							, CPOINTER lpBuffer
-							, size_t nLen, int bLongBuffer )
+                     , CPOINTER lpBuffer
+                     , size_t nLen, int bLongBuffer )
 {
-   PendingBuffer *lpPend;
+	PendingBuffer *lpPend;
 #ifdef LOG_PENDING
-   {
-      lprintf( WIDE("Pending %d Bytes to network...") , nLen );
-   }
+	{
+		lprintf( WIDE("Pending %d Bytes to network...") , nLen );
+	}
 #endif
-   lpPend = New( PendingBuffer );
+	lpPend = New( PendingBuffer );
 
-   lpPend->dwAvail  = nLen;
-   lpPend->dwUsed   = 0;
-   lpPend->lpNext   = NULL;
-   if( !bLongBuffer )
-   {
-       lpPend->s.bDynBuffer = TRUE;
-       lpPend->buffer.p = Allocate( nLen );
-       MemCpy( lpPend->buffer.p, lpBuffer, nLen );
-   }
-   else
-   {
-       lpPend->s.bDynBuffer = FALSE;
-       lpPend->buffer.c = lpBuffer;
-   }
-   if (pClient->lpLastPending)
-      pClient->lpLastPending->lpNext = lpPend;
-   else
-      pClient->lpFirstPending = lpPend;
-   pClient->lpLastPending = lpPend;
+	lpPend->dwAvail  = nLen;
+	lpPend->dwUsed	= 0;
+	lpPend->lpNext	= NULL;
+	if( !bLongBuffer )
+	{
+		 lpPend->s.bDynBuffer = TRUE;
+		 lpPend->buffer.p = Allocate( nLen );
+		 MemCpy( lpPend->buffer.p, lpBuffer, nLen );
+	}
+	else
+	{
+		 lpPend->s.bDynBuffer = FALSE;
+		 lpPend->buffer.c = lpBuffer;
+	}
+	if (pClient->lpLastPending)
+		pClient->lpLastPending->lpNext = lpPend;
+	else
+		pClient->lpFirstPending = lpPend;
+	pClient->lpLastPending = lpPend;
 }
 
 //----------------------------------------------------------------------------
 
 int TCPWriteEx(PCLIENT pc DBG_PASS)
-#define TCPWrite(pc) TCPWriteEx(pc DBG_SRC)
 {
 	int nSent;
 	PendingBuffer *lpNext;
@@ -1414,9 +1313,7 @@ int TCPWriteEx(PCLIENT pc DBG_PASS)
 					if( pc->lpFirstPending != &pc->FirstWritePending )
 					{
 #ifdef LOG_PENDING
-						{
-							lprintf( WIDE("Finished sending a pending buffer.") );
-						}
+						lprintf( WIDE("Finished sending a pending buffer.") );
 #endif
 						Release(pc->lpFirstPending );
 					}
@@ -1496,7 +1393,6 @@ LOGICAL doTCPWriteExx( PCLIENT lpClient
 			LogBinary( (uint8_t*)pInBuffer, nInLen );
 			return FALSE;
 		}
-		//Idle();
 		Relinquish();
 	}
 	if( !(lpClient->dwFlags & CF_ACTIVE ) )
@@ -1520,7 +1416,7 @@ LOGICAL doTCPWriteExx( PCLIENT lpClient
 			lprintf( WIDE("Queuing pending data anyhow...") );
 #endif
 			PendWrite( lpClient, pInBuffer, nInLen, bLongBuffer );
-			TCPWrite( lpClient ); // make sure we don't lose a write event during the queuing...
+			TCPWriteEx( lpClient DBG_SRC ); // make sure we don't lose a write event during the queuing...
 			NetworkUnlockEx( lpClient DBG_SRC );
 			return TRUE;
 		}
@@ -1547,7 +1443,7 @@ LOGICAL doTCPWriteExx( PCLIENT lpClient
 
 		lpClient->lpLastPending = 
 		lpClient->lpFirstPending = &lpClient->FirstWritePending;
-		if( TCPWrite( lpClient ) )
+		if( TCPWriteEx( lpClient DBG_SRC ) )
 		{
 #ifdef VERBOSE_DEBUG
 			Log2( WIDE("Data not sent, pending buffer... %d bytes %d remain"), nInLen, lpClient->FirstWritePending.dwAvail );
@@ -1661,10 +1557,9 @@ NETWORK_PROC( LOGICAL, TCPDrainEx)( PCLIENT pClient, size_t nLength, int bExact 
 	return 0;
 }
 
-
 //----------------------------------------------------------------------------
 
-NETWORK_PROC( void, SetTCPNoDelay)( PCLIENT pClient, int bEnable )
+void SetTCPNoDelay( PCLIENT pClient, int bEnable )
 {
 	if( setsockopt( pClient->Socket, IPPROTO_TCP,
 						TCP_NODELAY,
@@ -1677,7 +1572,7 @@ NETWORK_PROC( void, SetTCPNoDelay)( PCLIENT pClient, int bEnable )
 
 //----------------------------------------------------------------------------
 
-NETWORK_PROC( void, SetClientKeepAlive)( PCLIENT pClient, int bEnable )
+void SetClientKeepAlive( PCLIENT pClient, int bEnable )
 {
 	if( setsockopt( pClient->Socket, SOL_SOCKET,
 						SO_KEEPALIVE,

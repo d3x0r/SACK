@@ -73,49 +73,63 @@ typedef struct PendingBuffer
    struct PendingBuffer *lpNext; // Next Pending Message to be handled
 }PendingBuffer;
 
-#define CF_UDP           0x0001
-#define CF_TCP           0x0000  // no flag... is NOT UDP....
+enum NetworkConnectionFlags {
+	CF_UDP = 0x0001
+	// no flag... is NOT UDP....
+	, CF_TCP = 0x0000
+	, CF_LISTEN = 0x0002
+	, CF_CONNECT = 0x0000
+	// some write is left hanging to output
+	, CF_WRITEPENDING = 0x0004
+	// set if buffers have been set by a read
+	, CF_READPENDING = 0x0008
+	// set if next read to pend should recv also
+	, CF_READREADY = 0x0010
+	// set if reading application is waiting in-line for result.
+	, CF_READWAITING = 0x8000
+	// set when FD_CONNECT is issued...
+	, CF_CONNECTED = 0x0020
+	, CF_CONNECTERROR = 0x0040
+	, CF_CONNECTING = 0x0080
+	, CF_CONNECT_WAITING = 0x8000
+	, CF_CONNECT_CLOSED = 0x100000
+	, CF_TOCLOSE = 0x0100
+	, CF_WRITEISPENDED = 0x0200
+	, CF_CLOSING = 0x0400
+	, CF_DRAINING = 0x0800
+	// closed, handled everything except releasing the socket.
+	, CF_CLOSED = 0x1000
+	, CF_ACTIVE = 0x2000
+	, CF_AVAILABLE = 0x4000
+	, CF_CPPCONNECT = 0x010000
+	// server/client is implied in usage....
+	// much like Read, ReadEX are implied in TCP/UDP usage...
+	//#define CF_CPPSERVERCONNECT 0x010000
+	//#define CF_CPPCLIENTCONNECT 0x020000
+	, CF_CPPREAD = 0x020000
+	, CF_CPPCLOSE = 0x040000
+	, CF_CPPWRITE = 0x080000
+	, CF_CALLBACKTYPES = 0x010000 | 0x020000 | 0x040000 | 0x080000//(CF_CPPCONNECT | CF_CPPREAD | CF_CPPCLOSE | CF_CPPWRITE)
+	, CF_STATEFLAGS = 0x1000 | 0x2000 | 0x4000  //( CF_ACTIVE | CF_AVAILABLE | CF_CLOSED)
+	//, CF_WANTS_GLOBAL_LOCK = 0x10000000
+	, CF_PROCESSING = 0x20000000
+};
 
-#define CF_LISTEN        0x0002
-#define CF_CONNECT       0x0000
-
-#define CF_WRITEPENDING  0x0004 // some write is left hanging to output
-
-#define CF_READPENDING   0x0008 // set if buffers have been set by a read
-#define CF_READREADY     0x0010 // set if next read to pend should recv also
-#define CF_READWAITING   0x8000 // set if reading application is waiting in-line for result.
-
-#define CF_CONNECTED     0x0020 // set when FD_CONNECT is issued...
-#define CF_CONNECTERROR  0x0040
-#define CF_CONNECTING    0x0080
-#define CF_CONNECT_WAITING 0x8000
-#define CF_CONNECT_CLOSED 0x100000
-
-#define CF_TOCLOSE       0x0100
-
-#define CF_WRITEISPENDED 0x0200
-
-#define CF_CLOSING       0x0400
-#define CF_DRAINING      0x0800
-
-#define CF_CLOSED        0x1000 // closed, handled everything except releasing the socket.
-#define CF_ACTIVE        0x2000
-#define CF_AVAILABLE     0x4000
-
-
-#define CF_CPPCONNECT       0x010000
-// server/client is implied in usage....
-// much like Read, ReadEX are implied in TCP/UDP usage...
-//#define CF_CPPSERVERCONNECT 0x010000
-//#define CF_CPPCLIENTCONNECT 0x020000
-#define CF_CPPREAD          0x020000
-#define CF_CPPCLOSE         0x040000
-#define CF_CPPWRITE         0x080000
-#define CF_CALLBACKTYPES ( CF_CPPCONNECT|CF_CPPREAD|CF_CPPCLOSE|CF_CPPWRITE )
-#define CF_STATEFLAGS (CF_ACTIVE|CF_AVAILABLE|CF_CLOSED)
-
-#define CF_WANTS_GLOBAL_LOCK 0x10000000
-#define CF_PROCESSING        0x20000000
+#ifdef __cplusplus
+#  ifndef DEFINE_ENUM_FLAG_OPERATORS
+#    define DEFINE_ENUM_FLAG_OPERATORS(ENUMTYPE) \
+        extern "C++" { \
+        inline ENUMTYPE operator | ( ENUMTYPE a, ENUMTYPE b ) { return ENUMTYPE( ((_ENUM_FLAG_SIZED_INTEGER<ENUMTYPE>::type)a) | ((_ENUM_FLAG_SIZED_INTEGER<ENUMTYPE>::type)b) ); } \
+        inline ENUMTYPE &operator |= ( ENUMTYPE &a, ENUMTYPE b ) { return (ENUMTYPE &)(((_ENUM_FLAG_SIZED_INTEGER<ENUMTYPE>::type &)a) |= ((_ENUM_FLAG_SIZED_INTEGER<ENUMTYPE>::type)b)); } \
+        inline ENUMTYPE operator & ( ENUMTYPE a, ENUMTYPE b ) { return ENUMTYPE( ((_ENUM_FLAG_SIZED_INTEGER<ENUMTYPE>::type)a) & ((_ENUM_FLAG_SIZED_INTEGER<ENUMTYPE>::type)b) ); } \
+        inline ENUMTYPE &operator &= ( ENUMTYPE &a, ENUMTYPE b ) { return (ENUMTYPE &)(((_ENUM_FLAG_SIZED_INTEGER<ENUMTYPE>::type &)a) &= ((_ENUM_FLAG_SIZED_INTEGER<ENUMTYPE>::type)b)); } \
+        inline ENUMTYPE operator ~ ( ENUMTYPE a ) { return ENUMTYPE( ~((_ENUM_FLAG_SIZED_INTEGER<ENUMTYPE>::type)a) ); } \
+        inline ENUMTYPE operator ^ ( ENUMTYPE a, ENUMTYPE b ) { return ENUMTYPE( ((_ENUM_FLAG_SIZED_INTEGER<ENUMTYPE>::type)a) ^ ((_ENUM_FLAG_SIZED_INTEGER<ENUMTYPE>::type)b) ); } \
+        inline ENUMTYPE &operator ^= ( ENUMTYPE &a, ENUMTYPE b ) { return (ENUMTYPE &)(((_ENUM_FLAG_SIZED_INTEGER<ENUMTYPE>::type &)a) ^= ((_ENUM_FLAG_SIZED_INTEGER<ENUMTYPE>::type)b)); } \
+        }
+#  endif
+DEFINE_ENUM_FLAG_OPERATORS( NetworkConnectionFlags )
+#endif
 
 struct peer_thread_info
 {
@@ -157,7 +171,7 @@ struct NetworkClient
 	//     connect(UDP) results in?
 
 	SOCKET      Socket;
-	uint32_t         dwFlags; // CF_
+	enum NetworkConnectionFlags  dwFlags; // CF_
 	uint8_t        *lpUserData;
 
 	union {

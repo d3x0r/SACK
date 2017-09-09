@@ -3,6 +3,7 @@
 #define MD5_SOURCE
 #endif
 #define HTML5_WEBSOCKET_SOURCE
+#define SACK_WEBSOCKET_CLIENT_SOURCE // websocketclose is a common...
 
 #include <stdhdrs.h>
 #include <stdlib.h>

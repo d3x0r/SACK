@@ -14,8 +14,6 @@
 #include <network.h>
 #include <signed_unsigned_comparisons.h>
 #include <sharemem.h>
-#include <deadstart.h>
-#include <procreg.h>
 //#define NO_LOGGING // force neverlog....
 #define DO_LOGGING
 #include "logging.h"
@@ -145,19 +143,8 @@ PCLIENT CPPServeUDPAddrEx( SOCKADDR *pAddr
 	return pc;
 }
 
-#undef CPPServeUDPAddr
-PCLIENT CPPServeUDPAddr( SOCKADDR *pAddr
-                       , cReadCompleteEx pReadComplete
-                       , uintptr_t psvRead
-                       , cCloseCallback Close
-                       , uintptr_t psvClose
-                       , int bCPP )
-{
-	return CPPServeUDPAddrEx( pAddr, pReadComplete, psvRead, Close, psvClose, bCPP DBG_SRC );
-}
 //----------------------------------------------------------------------------
 
-#undef ServeUDPAddr
 PCLIENT ServeUDPAddrEx( SOCKADDR *pAddr
                       , cReadCompleteEx pReadComplete
                       , cCloseCallback Close DBG_PASS )
@@ -168,12 +155,6 @@ PCLIENT ServeUDPAddrEx( SOCKADDR *pAddr
 	return result;
 }
 
-PCLIENT ServeUDPAddr( SOCKADDR *pAddr
-                    , cReadCompleteEx pReadComplete
-                    , cCloseCallback Close)
-{
-	return ServeUDPAddrEx( pAddr, pReadComplete, Close DBG_SRC );
-}
 //----------------------------------------------------------------------------
 
 PCLIENT ServeUDPEx( CTEXTSTR pAddr, uint16_t wPort
@@ -195,14 +176,8 @@ PCLIENT ServeUDPEx( CTEXTSTR pAddr, uint16_t wPort
 	return ServeUDPAddrEx( lpMyAddr, pReadComplete, Close DBG_RELAY );
 }
 
-#undef ServeUDP
-PCLIENT ServeUDP( CTEXTSTR pAddr, uint16_t wPort
-                , cReadCompleteEx pReadComplete
-                , cCloseCallback Close)
-{
-	return ServeUDPEx( pAddr, wPort, pReadComplete, Close DBG_SRC );
-}
 //----------------------------------------------------------------------------
+
 void UDPEnableBroadcast( PCLIENT pc, int bEnable )
 {
 	if( pc )
@@ -307,24 +282,16 @@ PCLIENT ConnectUDPAddrEx( SOCKADDR *sa
 	return result;	
 }
 
-#undef ConnectUDPAddr
-PCLIENT ConnectUDPAddr( SOCKADDR *sa
-                      , SOCKADDR *saTo
-                      , cReadCompleteEx pReadComplete
-                      , cCloseCallback Close )
-{
-	return ConnectUDPAddrEx( sa, saTo, pReadComplete, Close DBG_SRC );
-}
 //----------------------------------------------------------------------------
 
-static PCLIENT CPPConnectUDPExx ( CTEXTSTR pFromAddr, uint16_t wFromPort
-                                , CTEXTSTR pToAddr, uint16_t wToPort
-                                , cReadCompleteEx pReadComplete
-                                , uintptr_t psvRead
-                                , cCloseCallback Close
-                                , uintptr_t psvClose
-                                , LOGICAL bCPP
-                                DBG_PASS )
+static PCLIENT CPPConnectUDPExx( CTEXTSTR pFromAddr, uint16_t wFromPort
+                               , CTEXTSTR pToAddr, uint16_t wToPort
+                               , cReadCompleteEx pReadComplete
+                               , uintptr_t psvRead
+                               , cCloseCallback Close
+                               , uintptr_t psvClose
+                               , LOGICAL bCPP
+                               DBG_PASS )
 {
 	PCLIENT pc;
 
@@ -370,17 +337,6 @@ PCLIENT CPPConnectUDPEx( CTEXTSTR pFromAddr, uint16_t wFromPort,
 	return CPPConnectUDPExx( pFromAddr, wFromPort, pToAddr, wToPort, pReadComplete, psvRead, Close, psvClose, TRUE DBG_RELAY );
 }
 
-#undef CPPConnectUDP
-PCLIENT CPPConnectUDP( CTEXTSTR pFromAddr, uint16_t wFromPort,
-                       CTEXTSTR pToAddr, uint16_t wToPort,
-                       cReadCompleteEx pReadComplete,
-                       uintptr_t psvRead,
-                       cCloseCallback Close,
-                       uintptr_t psvClose )
-{
-	return CPPConnectUDPExx( pFromAddr, wFromPort, pToAddr, wToPort, pReadComplete, psvRead, Close, psvClose, TRUE DBG_SRC );
-}
-
 PCLIENT ConnectUDPEx( CTEXTSTR pFromAddr, uint16_t wFromPort,
                       CTEXTSTR pToAddr, uint16_t wToPort,
                       cReadCompleteEx pReadComplete,
@@ -389,14 +345,6 @@ PCLIENT ConnectUDPEx( CTEXTSTR pFromAddr, uint16_t wFromPort,
 	return CPPConnectUDPExx( pFromAddr, wFromPort, pToAddr, wToPort, pReadComplete, 0, Close, 0, FALSE DBG_RELAY );
 }
 
-#undef ConnectUDP
-PCLIENT ConnectUDP( CTEXTSTR pFromAddr, uint16_t wFromPort,
-                    CTEXTSTR pToAddr, uint16_t wToPort,
-                    cReadCompleteEx pReadComplete,
-                    cCloseCallback Close )
-{
-	return CPPConnectUDPExx( pFromAddr, wFromPort, pToAddr, wToPort, pReadComplete, 0, Close, 0, FALSE DBG_SRC );
-}
 //----------------------------------------------------------------------------
 
 NETWORK_PROC( LOGICAL, SendUDPEx )( PCLIENT pc, CPOINTER pBuf, size_t nSize, SOCKADDR *sa )
@@ -409,12 +357,12 @@ NETWORK_PROC( LOGICAL, SendUDPEx )( PCLIENT pc, CPOINTER pBuf, size_t nSize, SOC
 	if( !pc )
 		return FALSE;
 	nSent = sendto( pc->Socket
-					  , (const char*)pBuf
-					  , (int)nSize
-					  , 0
-					  , (sa)
-					  , SOCKADDR_LENGTH((sa))
-					  );
+	              , (const char*)pBuf
+	              , (int)nSize
+	              , 0
+	              , (sa)
+	              , SOCKADDR_LENGTH((sa))
+	              );
 	if( nSent < 0 )
 	{
 		Log1( WIDE("SendUDP: Error (%d)"), WSAGetLastError() );

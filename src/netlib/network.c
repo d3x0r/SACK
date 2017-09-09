@@ -562,7 +562,7 @@ void ClearClient( PCLIENT pc DBG_PASS )
 	PCLIENT *me;
 	CRITICALSECTION cs;
 	// keep the closing flag until it's really been closed. (getfreeclient will try to nab it)
-	uint32_t   dwFlags = pc->dwFlags & (CF_STATEFLAGS|CF_CLOSING|CF_CONNECT_WAITING|CF_CONNECT_CLOSED);
+	enum NetworkConnectionFlags  dwFlags = pc->dwFlags & (CF_STATEFLAGS | CF_CLOSING | CF_CONNECT_WAITING | CF_CONNECT_CLOSED);
 #ifdef VERBOSE_DEBUG
 	lprintf( WIDE("CLEAR CLIENT!") );
 #endif
@@ -1785,11 +1785,11 @@ int CPROC ProcessNetworkMessages( struct peer_thread_info *thread, uintptr_t unu
 				next = pc->next;
 				if( !IsValid( pc->Socket ) )
 					continue;
-				if( pc->dwFlags & CF_WANTS_GLOBAL_LOCK)
-				{
-					LeaveCriticalSec( &globalNetworkData.csNetwork );
-					goto start_lock;
-				}
+				//if( pc->dwFlags & CF_WANTS_GLOBAL_LOCK)
+				//{
+				//	LeaveCriticalSec( &globalNetworkData.csNetwork );
+				//	goto start_lock;
+				//}
 
 				if( FD_ISSET( pc->Socket, &read ) )
 				{
@@ -3131,7 +3131,7 @@ NETWORK_PROC( PCLIENT, NetworkLockEx)( PCLIENT lpClient DBG_PASS )
 		if( EnterCriticalSecNoWaitEx( &globalNetworkData.csNetwork, NULL DBG_RELAY ) < 1 )
 #endif
 		{
-			lpClient->dwFlags &= ~CF_WANTS_GLOBAL_LOCK;
+			//lpClient->dwFlags &= ~CF_WANTS_GLOBAL_LOCK;
 #ifdef LOG_NETWORK_LOCKING
 			_lprintf(DBG_RELAY)( WIDE( "Failed enter global?" ) );
 #endif
