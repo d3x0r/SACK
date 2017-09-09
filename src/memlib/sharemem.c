@@ -470,7 +470,11 @@ static void DumpSection( PCRITICALSECTION pcs )
 
 			if( XCHG( &pcs->dwUpdating, 1 ) )
 				return -1;
+#ifdef USE_CUSTOM_ALLOCER
+			dwCurProc = _GetMyThreadID();
+#else
 			dwCurProc = GetMyThreadID();
+#endif
 
 			if( !(pcs->dwLocks & ~(SECTION_LOGGED_WAIT)) )
 			{
@@ -654,9 +658,14 @@ static void DumpSection( PCRITICALSECTION pcs )
 		static LOGICAL LeaveCriticalSecNoWakeEx( PCRITICALSECTION pcs DBG_PASS )
 #define LeaveCriticalSecNoWake(pcs) LeaveCriticalSecNoWakeEx( pcs DBG_SRC )
 		{
-			THREAD_ID dwCurProc = GetMyThreadID();
+			THREAD_ID dwCurProc;
 			while( XCHG( &pcs->dwUpdating, 1 ) )
 				Relinquish();
+#ifdef USE_CUSTOM_ALLOCER
+			dwCurProc = _GetMyThreadID();
+#else
+			dwCurProc = GetMyThreadID();
+#endif
 #  ifdef DEBUG_CRITICAL_SECTIONS
 #    ifndef NO_LOGGING
 			if( g.bLogCritical > 0 && g.bLogCritical < 2 )
@@ -1214,16 +1223,16 @@ uintptr_t GetFileSize( int fd )
 		{
 #ifdef __ANDROID__
 			//fd = ashmem_create_region( filename , size );
-         if( pWhat )
+			if( pWhat )
 			{
 				fd = open(filename, O_RDWR);
 				if (fd < 0 )
 				{
-               int ret;
+					int ret;
 					if( !(*dwSize ) )
 					{
 						ll_lprintf( WIDE("Region didn't exist... and no size... return") );
-                  return NULL;
+						return NULL;
 					}
 #   ifdef DEBUG_SHARED_REGION_CREATE
 					ll_lprintf( WIDE("Shared region didn't already exist...: %s"), filename );
@@ -1250,16 +1259,16 @@ uintptr_t GetFileSize( int fd )
 						ll_lprintf( WIDE("Failed to set IOCTL size to %d"), (*dwSize) );
 						//goto error;
 					}
-               /*
+					/*
 					 {
-                // unpin; pages will be pined to start (I think)
+						// unpin; pages will be pined to start (I think)
 						struct ashmem_pin pin = {
 							.offset = 0,
 							.len    = (*dwSize)
 						};
 						ret = ioctl(fd, ASHMEM_UNPIN, &pin);
 					}
-               */
+					*/
 				}
 				else
 				{
@@ -1408,7 +1417,7 @@ uintptr_t GetFileSize( int fd )
 						LeaveCriticalSecNoWake( &cs );
 					}
 #else
-               bOpening = 0;
+					bOpening = 0;
 #endif
 					return p;
 				}
@@ -1451,7 +1460,7 @@ uintptr_t GetFileSize( int fd )
 		}
 
 		hFile = INVALID_HANDLE_VALUE;
-      // I would have hmem here if the file was validly opened....
+		// I would have hmem here if the file was validly opened....
 		if( !hMem )
 		{
 			hFile = CreateFile( pWhere, GENERIC_READ|GENERIC_WRITE
@@ -1511,7 +1520,7 @@ uintptr_t GetFileSize( int fd )
 
 			if( hFile == INVALID_HANDLE_VALUE )
 			{
-            // might still be able to open it by shared name; even if the file share is disabled
+				// might still be able to open it by shared name; even if the file share is disabled
 				readonly = 0;
 #ifdef DEBUG_OPEN_SPACE
 				ll_lprintf( WIDE("file is still invalid(alreadyexist?)... new size is %d %d on %p"), (*dwSize), FILE_GRAN, hFile );
@@ -1543,7 +1552,7 @@ uintptr_t GetFileSize( int fd )
 					LeaveCriticalSecNoWake( &cs );
 				}
 #else
-            bOpening = 0;
+				bOpening = 0;
 #endif
 				return NULL;
 			}
@@ -2052,7 +2061,7 @@ POINTER HeapAllocateAlignedEx( PMEM pHeap, uintptr_t dwSize, uint32_t alignment 
 				if( ExpandSpace( pMem, dwSize + (CHUNK_SIZE*4) + MEM_SIZE + 8 * MAGIC_SIZE ) )
 				{
 #ifndef NO_LOGGING
-					ll__lprintf(DBG_RELAY)( WIDE("Creating a new expanded space... %")_size_fs, dwSize + (CHUNK_SIZE*4) + MEM_SIZE + 8 * MAGIC_SIZE );
+					//ll__lprintf(DBG_RELAY)( WIDE("Creating a new expanded space... %")_size_fs, dwSize + (CHUNK_SIZE*4) + MEM_SIZE + 8 * MAGIC_SIZE );
 #endif
 					goto search_for_free_memory;
 				}
@@ -2591,8 +2600,8 @@ POINTER ReleaseEx ( POINTER pData DBG_PASS )
 			if( !g.bDisableAutoCheck )
 				GetHeapMemStatsEx(pc->pRoot, &dwFree,&dwAllocated,&dwBlocks,&dwFreeBlocks DBG_RELAY);
 #endif
-       }
-   }
+		}
+	}
 	return NULL;
 }
 
@@ -2733,7 +2742,7 @@ void  DebugDumpHeapMemEx ( PMEM pHeap, LOGICAL bVerbose )
 		DropMem( pMem );
 	}
 	else
-      xlprintf(LOG_ALWAYS)( WIDE( "Cannot log chunks allocated that are not using custom allocer." ) );
+		xlprintf(LOG_ALWAYS)( WIDE( "Cannot log chunks allocated that are not using custom allocer." ) );
 }
 
 	//------------------------------------------------------------------------------------------------------
@@ -2769,7 +2778,7 @@ void  DebugDumpHeapMemEx ( PMEM pHeap, LOGICAL bVerbose )
 			char  byDebug[256];
 			snprintf( byDebug, sizeof( byDebug ), "FirstFree : %p",
 						pMem->pFirstFree );
-         byDebug[255] = 0;
+			byDebug[255] = 0;
 			fprintf( file, "%s\n", byDebug );
 		}
 
@@ -3085,7 +3094,7 @@ void  DebugDumpHeapMemEx ( PMEM pHeap, LOGICAL bVerbose )
 {
 	LOGICAL prior = g.bLogAllocate;
 	g.bLogAllocate = bTrueFalse;
-   return prior;
+	return prior;
 }
 
 //------------------------------------------------------------------------------------------------------
@@ -3093,11 +3102,11 @@ void  DebugDumpHeapMemEx ( PMEM pHeap, LOGICAL bVerbose )
  int  SetCriticalLogging ( LOGICAL bTrueFalse )
 {
 #ifdef _DEBUG
-   int prior = g.bLogCritical;
+	int prior = g.bLogCritical;
 	g.bLogCritical = bTrueFalse;
 	return prior;
 #else
-   return 0;
+	return 0;
 #endif
 }
 //------------------------------------------------------------------------------------------------------
@@ -3110,7 +3119,7 @@ void  DebugDumpHeapMemEx ( PMEM pHeap, LOGICAL bVerbose )
 	g.bDisableAutoCheck = !bDisable;
 	return save;
 #else
-   return 1;
+	return 1;
 #endif
 }
 
@@ -3121,7 +3130,7 @@ void  DebugDumpHeapMemEx ( PMEM pHeap, LOGICAL bVerbose )
 	g.bDisableAutoCheck = bDisable;
 	return save;
 #else
-   return 1;
+	return 1;
 #endif
 }
 
