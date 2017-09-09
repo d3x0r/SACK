@@ -905,9 +905,8 @@ retry_lock:
 	*pplq = plq;
 #if USE_CUSTOM_ALLOCER
 	plq->Lock = 0;
-#else
-	link_queue_local_lock[0] = 0;
 #endif
+	link_queue_local_lock[0] = 0;
 	return plq;
 }
 
@@ -966,9 +965,8 @@ retry_lock:
 	}
 #if USE_CUSTOM_ALLOCER
 	plq->Lock = 0;
-#else
-	link_queue_local_lock[0] = 0;
 #endif
+	link_queue_local_lock[0] = 0;
 	return plq;
 }
 
@@ -1039,7 +1037,7 @@ POINTER  PeekQueueEx	 ( PLINKQUEUE plq, int idx )
 	return NULL;
 }
 
- POINTER  PeekQueue ( PLINKQUEUE plq )
+POINTER  PeekQueue ( PLINKQUEUE plq )
 {
 	return PeekQueueEx( plq, 0 );
 }
@@ -1110,9 +1108,8 @@ retry_lock:
 	}
 #if USE_CUSTOM_ALLOCER
 	(*pplq)->Lock = 0;
-#else
-	link_queue_local_lock[0] = 0;
 #endif
+	link_queue_local_lock[0] = 0;
 	return p;
 }
 #ifdef __cplusplus
