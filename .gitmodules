@@ -1,3 +1,0 @@
-[submodule "src/contrib/MatrixSSL/3.8.4"]
-	path = src/contrib/MatrixSSL/3.8.4
-	url = https://d3x0r@github.com/d3x0r/matrixssl.git
