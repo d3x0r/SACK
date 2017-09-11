@@ -338,12 +338,15 @@ uint32_t  LockedExchange( volatile uint32_t* p, uint32_t val )
 {
 	// Windows only available - for linux platforms please consult
 	// the assembly version should be consulted
-#if ( defined( _WIN32 ) || defined( WIN32 ) || defined( WIN32 ) ) && !defined( __ANDROID__ )
+#if ( defined( _WIN32 ) || defined( WIN32 ) ) && !defined( __ANDROID__ )
 #  if !defined(_MSC_VER)
 	return InterlockedExchange( (volatile LONG *)p, val );
 #  else
+	//return _InterlockedExchange_HLEAcquire( (volatile long*)p, val );
+	return _InterlockedExchange( (volatile long*)p, val );
+
 	// windows wants this as a LONG not ULONG
-	return InterlockedExchange( (volatile LONG *)p, val );
+	//return InterlockedExchange( (volatile LONG *)p, val );
 #  endif
 #else
 #  if ( defined( __LINUX__ ) ) //&& !( defined __ARM__ || defined __ANDROID__ )
@@ -406,20 +409,6 @@ uint64_t  LockedExchange64( volatile uint64_t* p, uint64_t val )
 #endif
 
 //-------------------------------------------------------------------------
-uint32_t  LockedIncrement( uint32_t* p )
-{
-	if( p )
-		return (*p)++;
-	return 0;
-}
-//-------------------------------------------------------------------------
-uint32_t  LockedDecrement( uint32_t* p )
-{
-	if( p )
-		return (*p)--;
-	return 0;
-}
-//-------------------------------------------------------------------------
 
 #ifdef DEBUG_CRITICAL_SECTIONS
 #if 0
@@ -434,8 +423,6 @@ static void DumpSection( PCRITICALSECTION pcs )
 }
 #endif
 #endif
-
-
 
 #ifdef __cplusplus
 }; // namespace memory {
@@ -453,7 +440,7 @@ static void DumpSection( PCRITICALSECTION pcs )
 		int32_t  EnterCriticalSecNoWaitEx( PCRITICALSECTION pcs, THREAD_ID *prior DBG_PASS )
 		{
 			THREAD_ID dwCurProc;
-#ifdef DEBUG_CRITICAL_SECTIONS
+#ifdef LOG_DEBUG_CRITICAL_SECTIONS
 #  ifndef NO_LOGGING
 			if( g.bLogCritical > 0 && g.bLogCritical < 2 )
 				ll__lprintf( DBG_RELAY )(WIDE( "Attempt enter critical Section %") _64fx WIDE( " %" ) _64fx WIDE( " %") _64fx WIDE(" %08" ) _32fx
@@ -486,17 +473,30 @@ static void DumpSection( PCRITICALSECTION pcs )
 					{
 						if( prior ) {
 							if( !(*prior) ) {
-#ifdef DEBUG_CRITICAL_SECTIONS
+#ifdef LOG_DEBUG_CRITICAL_SECTIONS
 								ll__lprintf( DBG_RELAY )(WIDE( "waiter is not myself... this is more recent than him... claim now. %" ) _64fx WIDE( " %" ) _64fx WIDE( " %" ) _64fx, pcs->dwThreadWaiting, prior ? (*prior) : -1LL, pcs->dwThreadID);
 #endif
 								// this would stack me on top anyway so just allow the waitier to keep waiting....
 								pcs->dwLocks = 1;
 								pcs->dwThreadID = dwCurProc;
+#ifdef DEBUG_CRITICAL_SECTIONS
+#  ifdef _DEBUG
+								pcs->pFile[pcs->nPrior] = pFile;
+								pcs->nLine[pcs->nPrior] = nLine;
+#  else
+								pcs->pFile[pcs->nPrior] = __FILE__;
+								pcs->nLine[pcs->nPrior] = __LINE__;
+#  endif
+								pcs->nLineCS[pcs->nPrior] = __LINE__;
+								pcs->isLock[pcs->nPrior] = 1;
+								pcs->dwThreadPrior[pcs->nPrior] = dwCurProc;
+								pcs->nPrior = (pcs->nPrior + 1) % MAX_SECTION_LOG_QUEUE;
+#endif
 								pcs->dwUpdating = 0;
 								return 1;
 							}
 							else {
-#ifdef DEBUG_CRITICAL_SECTIONS
+#ifdef LOG_DEBUG_CRITICAL_SECTIONS
 								ll__lprintf( DBG_RELAY )(WIDE( "waiter is not myself... AND am in stack of waiter. %" ) _64fx WIDE( " %" ) _64fx WIDE( " %" ) _64fx, pcs->dwThreadWaiting, prior ? (*prior) : -1LL, pcs->dwThreadID);
 #endif
 								// prior is set, so someone has set their prior to me....
@@ -505,18 +505,31 @@ static void DumpSection( PCRITICALSECTION pcs )
 							return 0;
 						}
 						else {
-#ifdef DEBUG_CRITICAL_SECTIONS
+#ifdef LOG_DEBUG_CRITICAL_SECTIONS
 							ll__lprintf( DBG_RELAY )(WIDE( "Waiter which is quick-wait does not sleep; claiming section... %" ) _64fx WIDE( " %" ) _64fx WIDE( " %" ) _64fx, pcs->dwThreadWaiting, prior ? (*prior) : -1LL, pcs->dwThreadID);
 #endif
 							pcs->dwLocks = 1;
 							pcs->dwThreadID = dwCurProc;
+#ifdef DEBUG_CRITICAL_SECTIONS
+#  ifdef _DEBUG
+							pcs->pFile[pcs->nPrior] = pFile;
+							pcs->nLine[pcs->nPrior] = nLine;
+#  else
+							pcs->pFile[pcs->nPrior] = __FILE__;
+							pcs->nLine[pcs->nPrior] = __LINE__;
+#  endif
+							pcs->nLineCS[pcs->nPrior] = __LINE__;
+							pcs->isLock[pcs->nPrior] = 1;
+							pcs->dwThreadPrior[pcs->nPrior] = dwCurProc;
+							pcs->nPrior = (pcs->nPrior + 1) % MAX_SECTION_LOG_QUEUE;
+#endif
 							pcs->dwUpdating = 0;
 							return 1;
 
 						}
 					}
 					else { //  waiting is me
-#ifdef DEBUG_CRITICAL_SECTIONS
+#ifdef LOG_DEBUG_CRITICAL_SECTIONS
 						ll_lprintf( WIDE( "@@@ Woke up after waiting, set prior waiter as next waiter... %" ) _64fx, prior ? (*prior) : -1LL );
 #endif
 						if( prior && (*prior) ) {
@@ -531,6 +544,19 @@ static void DumpSection( PCRITICALSECTION pcs )
 							pcs->dwThreadWaiting = 0;
 						pcs->dwThreadID = dwCurProc; // claim the section and return success
 						pcs->dwLocks = 1;
+#ifdef DEBUG_CRITICAL_SECTIONS
+#  ifdef _DEBUG
+						pcs->pFile[pcs->nPrior] = pFile;
+						pcs->nLine[pcs->nPrior] = nLine;
+#  else
+						pcs->pFile[pcs->nPrior] = __FILE__;
+						pcs->nLine[pcs->nPrior] = __LINE__;
+#  endif
+						pcs->nLineCS[pcs->nPrior] = __LINE__;
+						pcs->isLock[pcs->nPrior] = 1;
+						pcs->dwThreadPrior[pcs->nPrior] = dwCurProc;
+						pcs->nPrior = (pcs->nPrior + 1) % MAX_SECTION_LOG_QUEUE;
+#endif
 						pcs->dwUpdating = 0;
 						return 1;
 					}
@@ -540,11 +566,24 @@ static void DumpSection( PCRITICALSECTION pcs )
 						// shouldn't happen, if there's no waiter set, then there shouldn't be a prior.
 						DebugBreak();
 					}
-#ifdef DEBUG_CRITICAL_SECTIONS
+#ifdef LOG_DEBUG_CRITICAL_SECTIONS
 					ll_lprintf( WIDE( "Claimed critical section." ) );
 #endif
 					pcs->dwThreadID = dwCurProc; // claim the section and return success
 					pcs->dwLocks = 1;
+#ifdef DEBUG_CRITICAL_SECTIONS
+#  ifdef _DEBUG
+					pcs->pFile[pcs->nPrior] = pFile;
+					pcs->nLine[pcs->nPrior] = nLine;
+#  else
+					pcs->pFile[pcs->nPrior] = __FILE__;
+					pcs->nLine[pcs->nPrior] = __LINE__;
+#  endif
+					pcs->nLineCS[pcs->nPrior] = __LINE__;
+					pcs->isLock[pcs->nPrior] = 1;
+					pcs->dwThreadPrior[pcs->nPrior] = dwCurProc;
+					pcs->nPrior = (pcs->nPrior + 1) % MAX_SECTION_LOG_QUEUE;
+#endif
 					pcs->dwUpdating = 0;
 					return 1;
 				}
@@ -555,34 +594,42 @@ static void DumpSection( PCRITICALSECTION pcs )
 				pcs->dwLocks++;
 #ifdef DEBUG_CRITICAL_SECTIONS
 #  ifndef NO_LOGGING
+#    ifdef LOG_DEBUG_CRITICAL_SECTIONS
 				if( g.bLogCritical > 0 && g.bLogCritical < 2 )
 					ll_lprintf( WIDE( "Locks are %08" )_32fx, pcs->dwLocks );
+#    endif
 				if( (pcs->dwLocks & 0xFFFFF) > 1 )
 				{
-					if( pFile != __FILE__ )
-					{
-						if( g.bLogCritical > 0 && g.bLogCritical < 2 )
-							_xlprintf( 1 DBG_RELAY )(WIDE( "!!!!  %p  Multiple Double entry! %" )_32fx, pcs, pcs->dwLocks);
-					}
+#    ifdef LOG_DEBUG_CRITICAL_SECTIONS
+					if( g.bLogCritical > 0 && g.bLogCritical < 2 )
+						_xlprintf( 1 DBG_RELAY )(WIDE( "!!!!  %p  Multiple Double entry! %" )_32fx, pcs, pcs->dwLocks);
+#    endif
 				}
 #  endif
-				pcs->pFile = pFile;
-				pcs->nLine = nLine;
+#  ifdef _DEBUG
+				pcs->pFile[pcs->nPrior] = pFile;
+				pcs->nLine[pcs->nPrior] = nLine;
+#  else
+				pcs->pFile[pcs->nPrior] = __FILE__;
+				pcs->nLine[pcs->nPrior] = __LINE__;
+#  endif
+				pcs->nLineCS[pcs->nPrior] = __LINE__;
+				pcs->isLock[pcs->nPrior] = 1;
+				pcs->dwThreadPrior[pcs->nPrior] = dwCurProc;
+				pcs->nPrior = (pcs->nPrior + 1) % MAX_SECTION_LOG_QUEUE;
 #endif
-				pcs->dwThreadID = dwCurProc;
 				pcs->dwUpdating = 0;
-#ifdef DEBUG_CRITICAL_SECTIONS
+#ifdef LOG_DEBUG_CRITICAL_SECTIONS
 				if( g.bLogCritical > 0 && g.bLogCritical < 2 )
 					ll_lprintf( WIDE( "Entered, and unlocked for entry" ) );
 #endif
-				//nEntry--;
 				return 1;
 			}
 			else //... and it's not me
 			{
 				//if( !(pcs->dwLocks & SECTION_LOGGED_WAIT) )
 				{
-#ifdef DEBUG_CRITICAL_SECTIONS
+#ifdef LOG_DEBUG_CRITICAL_SECTIONS
 					pcs->dwLocks |= SECTION_LOGGED_WAIT;
 					if( g.bLogCritical )
 						ll_lprintf( WIDE( "Waiting on critical section owned by %s(%d) %08lx %." ) _64fx, (pcs->pFile) ? (pcs->pFile) : WIDE( "Unknown" ), pcs->nLine, pcs->dwLocks, pcs->dwThreadID );
@@ -608,7 +655,7 @@ static void DumpSection( PCRITICALSECTION pcs )
 									(*prior) = 0;
 								}
 								else {
-#ifdef DEBUG_CRITICAL_SECTIONS
+#ifdef LOG_DEBUG_CRITICAL_SECTIONS
 									ll_lprintf( WIDE( "Someone stole the critical section that we were wiating on before we reentered. fail. %" )_64fx WIDE( " %" ) _64fx WIDE( " %" ) _64fx, pcs->dwThreadWaiting, dwCurProc, *prior );
 #endif
 								}
@@ -626,14 +673,14 @@ static void DumpSection( PCRITICALSECTION pcs )
 					else if( pcs->dwThreadWaiting != dwCurProc )
 					{
 						if( pcs->dwThreadWaiting ) {
-#ifdef DEBUG_CRITICAL_SECTIONS
+#ifdef LOG_DEBUG_CRITICAL_SECTIONS
 							if( g.bLogCritical )
 								ll_lprintf( WIDE( "@@@ Setting prior to % " ) _64fx WIDE( " and prior was %" ) _64fx, pcs->dwThreadWaiting, (*prior) );
 #endif
 							*prior = pcs->dwThreadWaiting;
 						}
 						else {
-#ifdef DEBUG_CRITICAL_SECTIONS
+#ifdef LOG_DEBUG_CRITICAL_SECTIONS
 							if( g.bLogCritical )
 								ll_lprintf( WIDE( "@@@ Setting prior to % " ) _64fx WIDE( " and prior was %" ) _64fx, pcs->dwThreadWaiting, (*prior) );
 #endif
@@ -666,7 +713,7 @@ static void DumpSection( PCRITICALSECTION pcs )
 #else
 			dwCurProc = GetMyThreadID();
 #endif
-#  ifdef DEBUG_CRITICAL_SECTIONS
+#  ifdef LOG_DEBUG_CRITICAL_SECTIONS
 #    ifndef NO_LOGGING
 			if( g.bLogCritical > 0 && g.bLogCritical < 2 )
 				ll__lprintf( DBG_RELAY )(WIDE( "Locked %p for leaving..." ), pcs);
@@ -676,6 +723,7 @@ static void DumpSection( PCRITICALSECTION pcs )
 			{
 				if( g.bLogCritical > 0 && g.bLogCritical < 2 )
 					ll_lprintf( DBG_FILELINEFMT WIDE( "Leaving a blank critical section" ) DBG_RELAY );
+				DebugBreak();
 				//while( 1 );
 				pcs->dwUpdating = 0;
 				return FALSE;
@@ -692,20 +740,43 @@ static void DumpSection( PCRITICALSECTION pcs )
 					if( !(pcs->dwLocks & ~(SECTION_LOGGED_WAIT)) )
 					{
 #ifdef DEBUG_CRITICAL_SECTIONS
-						pcs->pFile = pFile;
-						pcs->nLine = nLine;
+#  ifdef _DEBUG
+						pcs->pFile[pcs->nPrior] = pFile;
+						pcs->nLine[pcs->nPrior] = nLine;
+#  else
+						pcs->pFile[pcs->nPrior] = __FILE__;
+						pcs->nLine[pcs->nPrior] = __LINE__;
+#  endif
+						pcs->nLineCS[pcs->nPrior] = __LINE__;
+						pcs->isLock[pcs->nPrior] = 0;
+						pcs->dwThreadPrior[pcs->nPrior] = dwCurProc;
+						pcs->nPrior = (pcs->nPrior + 1) % MAX_SECTION_LOG_QUEUE;
 #endif
 						pcs->dwLocks = 0;
 						pcs->dwThreadID = 0;
-						// better be 0 already...
-						//pcs->dwThreadWaiting = 0;
+						pcs->dwUpdating = 0;
 						Relinquish(); // allow whoever was waiting to go now...
+						return TRUE;
 					}
 				}
 				else
 				{
-					if( !pcs->dwLocks )
+					if( !pcs->dwLocks ) {
+#ifdef DEBUG_CRITICAL_SECTIONS
+#  ifdef _DEBUG
+						pcs->pFile[pcs->nPrior] = pFile;
+						pcs->nLine[pcs->nPrior] = nLine;
+#  else
+						pcs->pFile[pcs->nPrior] = __FILE__;
+						pcs->nLine[pcs->nPrior] = __LINE__;
+#  endif
+						pcs->nLineCS[pcs->nPrior] = __LINE__;
+						pcs->isLock[pcs->nPrior] = 1;
+						pcs->dwThreadPrior[pcs->nPrior] = dwCurProc;
+						pcs->nPrior = (pcs->nPrior + 1) % MAX_SECTION_LOG_QUEUE;
+#endif
 						pcs->dwThreadID = 0;
+					}
 				}
 				// don't wake the prior (if there is one sleeping)
 				// pcs->dwThreadID = 0;
@@ -717,11 +788,12 @@ static void DumpSection( PCRITICALSECTION pcs )
 					_xlprintf( 0 DBG_RELAY )(WIDE( "Sorry - you can't leave a section owned by %") _64fx WIDE(" %08lx %s(%d)..." )
 						, pcs->dwThreadID
 						, pcs->dwLocks
-						, (pcs->pFile) ? (pcs->pFile) : WIDE( "Unknown" ), pcs->nLine);
+						, (pcs->pFile[(pcs->nPrior + 15) % MAX_SECTION_LOG_QUEUE]) ? (pcs->pFile[(pcs->nPrior + 15) % MAX_SECTION_LOG_QUEUE]) : WIDE( "Unknown" ), pcs->nLine[(pcs->nPrior + 15) % MAX_SECTION_LOG_QUEUE]);
 					DebugBreak();
 				}
 #else
 				lprintf( WIDE( "Sorry - you can't leave a section you don't own..." ) );
+				DebugBreak();
 #endif
 				pcs->dwUpdating = 0;
 				return FALSE;
@@ -729,14 +801,7 @@ static void DumpSection( PCRITICALSECTION pcs )
 			// allow other locking threads immediate access to section
 			// but I know when that happens - since the waiting process
 			// will flag - SECTION_LOGGED_WAIT
-			//Relinquish();
 			pcs->dwUpdating = 0;
-#  ifdef DEBUG_CRITICAL_SECTIONS
-#    ifndef NO_LOGGING
-			if( g.bLogCritical > 0 && g.bLogCritical < 2 )
-				ll__lprintf( DBG_RELAY )(WIDE( "Unocked %p for leaving..." ), pcs);
-#    endif
-#  endif
 			return TRUE;
 		}
 #else
@@ -748,11 +813,7 @@ static void DumpSection( PCRITICALSECTION pcs )
 #ifndef USE_NATIVE_CRITICAL_SECTION
 		void  InitializeCriticalSec( PCRITICALSECTION pcs )
 		{
-#ifdef DEBUG_CRITICAL_SECTIONS
-			if( g.bLogCritical )
-				ll_lprintf( WIDE( "CLEARING CRITICAL SECTION" ) );
-#endif
-			MemSet( pcs, 0, sizeof( CRITICALSECTION ) );
+			memset( pcs, 0, sizeof( CRITICALSECTION ) );
 			return;
 		}
 #endif
@@ -762,10 +823,6 @@ static void DumpSection( PCRITICALSECTION pcs )
 	namespace memory { // resume memory namespace
 #endif
 //-------------------------------------------------------------------------
-
-
-
-//-----------------------------------------------------------------
 
 #ifdef _DEBUG
 static uint32_t dwBlocks; // last values from getmemstats...
@@ -1819,6 +1876,21 @@ int ExpandSpace( PMEM pHeap, uintptr_t dwAmount )
 
 //------------------------------------------------------------------------------------------------------
 
+static PMEM InitMemory( void ) {
+	uintptr_t MinSize = SYSTEM_CAPACITY;
+	// generic internal memory, unnamed, unshared, unsaved
+	g.pMemInstance = DigSpace( NULL, NULL, &MinSize );
+	if( !g.pMemInstance )
+	{
+		g.bMemInstanced = FALSE;
+		ODS( WIDE( "Failed to allocate memory - assuming fatailty at Allocation service level." ) );
+		return NULL;
+	}
+	return g.pMemInstance;
+}
+
+//------------------------------------------------------------------------------------------------------
+
 static PMEM GrabMemEx( PMEM pMem DBG_PASS )
 #define GrabMem(m) GrabMemEx( m DBG_SRC )
 {
@@ -1826,24 +1898,16 @@ static PMEM GrabMemEx( PMEM pMem DBG_PASS )
 	{
 		// use default heap...
 		if( !XCHG( &g.bMemInstanced, TRUE ) )
-		{
-			uintptr_t MinSize = SYSTEM_CAPACITY;
-			// generic internal memory, unnamed, unshared, unsaved
-			g.pMemInstance = pMem = DigSpace( NULL, NULL, &MinSize );
-			if( !pMem )
-			{
-				g.bMemInstanced = FALSE;
-				ODS( WIDE("Failed to allocate memory - assuming fatailty at Allocation service level.") );
-				return NULL;
-			}
-		}
+			pMem = InitMemory();
 		else
 			return 0;
 	}
 	//ll_lprintf( WIDE("grabbing memory %p"), pMem );
 	{
+#ifdef LOG_DEBUG_CRITICAL_SECTIONS
 		int log = g.bLogCritical;
 		g.bLogCritical = 0;
+#endif
 #ifdef USE_NATIVE_CRITICAL_SECTION
 		while( !TryEnterCriticalSection( &pMem->cs ) )
 		{
@@ -1855,9 +1919,10 @@ static PMEM GrabMemEx( PMEM pMem DBG_PASS )
 			Relinquish();
 		}
 #endif
+#ifdef LOG_DEBUG_CRITICAL_SECTIONS
 		g.bLogCritical = log;
+#endif
 	}
-
 	return pMem;
 }
 
@@ -1868,16 +1933,20 @@ static void DropMemEx( PMEM pMem DBG_PASS )
 {
 	if( !pMem )
 		return;
-   //ll_lprintf( WIDE("dropping memory %p"), pMem );
+	//ll_lprintf( WIDE("dropping memory %p"), pMem );
 	{
-      int log = g.bLogCritical;
+#ifdef LOG_DEBUG_CRITICAL_SECTIONS
+		int log = g.bLogCritical;
 		g.bLogCritical = 0;
+#endif
 #ifdef USE_NATIVE_CRITICAL_SECTION
 		LeaveCriticalSection( &pMem->cs );
 #else
 		LeaveCriticalSecNoWakeEx( &pMem->cs DBG_RELAY );
 #endif
+#ifdef LOG_DEBUG_CRITICAL_SECTIONS
 		g.bLogCritical = log;
+#endif
 	}
 }
 
@@ -2229,25 +2298,19 @@ static void Bubble( PMEM pMem )
 		{
 			prior = &temp->next;
 			temp = *prior;
+#ifdef _DEBUG
 			if( temp->next == temp )
 			{
 				ll_lprintf( WIDE("OOps this block is way bad... how'd that happen? %s(%d)"), BLOCK_FILE( temp ), BLOCK_LINE( temp ) );
 				DebugBreak();
 			}
+#endif
 			next = temp->next;
 		}
 	}
 }
 
 //------------------------------------------------------------------------------------------------------
-
-//static void CollapsePrior( PCHUNK pThis )
-//{
-//
-//}
-
-//------------------------------------------------------------------------------------------------------
-
 
  uintptr_t  SizeOfMemBlock ( CPOINTER pData )
 {
@@ -2425,20 +2488,7 @@ POINTER ReleaseEx ( POINTER pData DBG_PASS )
 				if( !g.bDisableDebug )
 					if( BLOCK_TAG( pc ) != BLOCK_TAG_ID )
 					{
-						// if this tag is invalid, then probably the file/line
-						// data in the block has alse been squished.
-						//if( !(pCurMem->dwFlags & HEAP_FLAG_NO_DEBUG ) )
-						//{
-						//ll_lprintf( WIDE("%s(%d): Application overflowed memory:%p")
-						//		, BLOCK_FILE(pc)
-						//		, BLOCK_LINE(pc)
-						//		, pc->byData
-						//		);
-						//}
-						//else
-						{
-							ll_lprintf( WIDE("Application overflowed memory:%p"), pc->byData );
-						}
+						ll_lprintf( WIDE("Application overflowed memory:%p"), pc->byData );
 						DebugDumpHeapMemEx( pc->pRoot, 1 );
 						DebugBreak();
 					}
@@ -2598,7 +2648,7 @@ POINTER ReleaseEx ( POINTER pData DBG_PASS )
 			DropMem( pMem );
 #ifdef _DEBUG
 			if( !g.bDisableAutoCheck )
-				GetHeapMemStatsEx(pc->pRoot, &dwFree,&dwAllocated,&dwBlocks,&dwFreeBlocks DBG_RELAY);
+				GetHeapMemStatsEx(pMem, &dwFree,&dwAllocated,&dwBlocks,&dwFreeBlocks DBG_RELAY);
 #endif
 		}
 	}
