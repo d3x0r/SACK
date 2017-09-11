@@ -2352,7 +2352,7 @@ LOGICAL  EnterCriticalSecEx( PCRITICALSECTION pcs DBG_PASS )
 {
 	int d;
 	THREAD_ID prior = 0;
-#ifdef ENABLE_CRITICALSEC_LOGGING
+#ifdef LOG_DEBUG_CRITICAL_SECTIONS
 #ifdef _DEBUG
 	if( global_timer_structure && globalTimerData.flags.bLogCriticalSections )
 		_lprintf( DBG_RELAY )( WIDE("Enter critical section %p (owner) %")_64fx, pcs, pcs->dwThreadID );
@@ -2436,7 +2436,7 @@ LOGICAL  LeaveCriticalSecEx( PCRITICALSECTION pcs DBG_PASS )
 	}
 	dwCurProc = GetMyThreadID();
 #ifdef _DEBUG
-	if( (curtick+2000) < timeGetTime() )//GetTickCount() )
+	if( (curtick+2000) <= timeGetTime() )//GetTickCount() )
 	{
 		lprintf( WIDE( "Timeout during critical section wait for lock.  No lock should take more than 1 task cycle" ) );
 		DebugBreak();
@@ -2449,6 +2449,7 @@ LOGICAL  LeaveCriticalSecEx( PCRITICALSECTION pcs DBG_PASS )
 		if( global_timer_structure && globalTimerData.flags.bLogCriticalSections )
 			_lprintf( DBG_RELAY )( WIDE("Leaving a blank critical section") );
 #endif
+		DebugBreak();
 		pcs->dwUpdating = 0;
 		return FALSE;
 	}
@@ -2456,8 +2457,17 @@ LOGICAL  LeaveCriticalSecEx( PCRITICALSECTION pcs DBG_PASS )
 	if( pcs->dwThreadID == dwCurProc )
 	{
 #ifdef DEBUG_CRITICAL_SECTIONS
-		pcs->pFile = pFile;
-		pcs->nLine = nLine;
+#  ifdef _DEBUG
+		pcs->pFile[pcs->nPrior] = pFile;
+		pcs->nLine[pcs->nPrior] = nLine;
+#  else
+		pcs->pFile[pcs->nPrior] = __FILE__;
+		pcs->nLine[pcs->nPrior] = __LINE__;
+#  endif
+		pcs->nLineCS[pcs->nPrior] = __LINE__;
+		pcs->isLock[pcs->nPrior] = 0;
+		pcs->dwThreadPrior[pcs->nPrior] = dwCurProc;
+		pcs->nPrior = (pcs->nPrior + 1) % MAX_SECTION_LOG_QUEUE;
 #endif
 		pcs->dwLocks--;
 #ifdef ENABLE_CRITICALSEC_LOGGING
@@ -2469,8 +2479,6 @@ LOGICAL  LeaveCriticalSecEx( PCRITICALSECTION pcs DBG_PASS )
 			pcs->dwLocks = 0;
 			pcs->dwThreadID = 0;
 			// wake the prior (if there is one sleeping)
-			if( pcs->dwLocks & SECTION_LOGGED_WAIT)
-				DebugBreak();
 
 			if( pcs->dwThreadWaiting )
 			{
@@ -2486,36 +2494,34 @@ LOGICAL  LeaveCriticalSecEx( PCRITICALSECTION pcs DBG_PASS )
 			}
 			else
 				pcs->dwUpdating = 0;
+			return TRUE;
 		}
-		else
-			pcs->dwUpdating = 0;
 	}
-	else
-	{
+	else {
 #ifdef ENABLE_CRITICALSEC_LOGGING
 		if( global_timer_structure && globalTimerData.flags.bLogCriticalSections )
 		{
-			_lprintf( DBG_RELAY )( WIDE("Sorry - you can't leave a section owned by %016")_64fx WIDE(" locks:%08" )_32fx
+			_lprintf( DBG_RELAY )(WIDE( "Sorry - you can't leave a section owned by %016" )_64fx WIDE( " locks:%08" )_32fx
 #  ifdef DEBUG_CRITICAL_SECTIONS
-										 WIDE(  "%s(%d)...")
+				WIDE( "%s(%d)..." )
 #  endif
-										, pcs->dwThreadID
-										, pcs->dwLocks
+				, pcs->dwThreadID
+				, pcs->dwLocks
 #  ifdef DEBUG_CRITICAL_SECTIONS
-										, (pcs->pFile)?(pcs->pFile):WIDE("Unknown"), pcs->nLine
+				, (pcs->pFile[(pcs->nPrior + 15) % MAX_SECTION_LOG_QUEUE]) ? (pcs->pFile[(pcs->nPrior + 15) % MAX_SECTION_LOG_QUEUE]) : WIDE( "Unknown" ), pcs->nLine[(pcs->nPrior + 15) % MAX_SECTION_LOG_QUEUE]
 #  endif
-										);
+				);
 		}
 #endif
-		pcs->dwUpdating = 0;
-		return FALSE;
+		DebugBreak();
 	}
-	return TRUE;
+	pcs->dwUpdating = 0;
+	return FALSE;
 }
 #endif
 //--------------------------------------------------------------------------
 
-void  DeleteCriticalSec( PCRITICALSECTION pcs )
+void DeleteCriticalSec( PCRITICALSECTION pcs )
 {
 	// ya I don't have anything to do here...
 	return;
