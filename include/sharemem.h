@@ -6,7 +6,7 @@
 #include <sack_types.h>
 
 #if defined (_WIN32)
-#define USE_NATIVE_CRITICAL_SECTION
+//#define USE_NATIVE_CRITICAL_SECTION
 #endif
 
 #if defined( _SHLWAPI_H ) || defined( _INC_SHLWAPI )
@@ -100,9 +100,15 @@ struct critical_section_tag {
 	THREAD_ID dwThreadID; // windows upper 16 is process ID, lower is thread ID
 	THREAD_ID dwThreadWaiting; // ID of thread waiting for this..
 #ifdef DEBUG_CRITICAL_SECTIONS
+#define MAX_SECTION_LOG_QUEUE 16
 	uint32_t bCollisions ;
-	CTEXTSTR pFile;
-	uint32_t  nLine;
+	CTEXTSTR pFile[16];
+	uint32_t  nLine[16];
+	uint32_t  nLineCS[16];
+	THREAD_ID dwThreadPrior[16]; // windows upper 16 is process ID, lower is thread ID
+	uint8_t isLock[16]; // windows upper 16 is process ID, lower is thread ID
+	int nPrior;
+
 #endif
 };
 
