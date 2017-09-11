@@ -891,6 +891,7 @@ static void HandleEvent( PCLIENT pClient )
 		lprintf( WIDE( "How did a NULL client get here?!" ) );
 		return;
 	}
+
 	pClient->dwFlags |= CF_PROCESSING;
 #ifdef LOG_NETWORK_EVENT_THREAD
 	//if( globalNetworkData.flags.bLogNotices )
@@ -927,16 +928,6 @@ static void HandleEvent( PCLIENT pClient )
 						 , &globalNetworkData.ClosedClients, globalNetworkData.ClosedClients, globalNetworkData.ClosedClients?globalNetworkData.ClosedClients->Socket:0
 						 );
 #endif
-				while( !NetworkLockEx( pClient DBG_SRC ) )
-				{
-					// done with events; inactive sockets can't have events
-					if( !(pClient->dwFlags & CF_ACTIVE ) )
-					{
-						pClient->dwFlags &= ~CF_PROCESSING;
-						return;
-					}
-					Relinquish();
-				}
 
 #ifdef LOG_NETWORK_LOCKING
 				lprintf( WIDE( "Handle Event left global" ) );
@@ -1095,7 +1086,6 @@ static void HandleEvent( PCLIENT pClient )
 				}
 				//lprintf( WIDE("leaveing event handler...") );
 				//lprintf( WIDE("Left event handler CS.") );
-				NetworkUnlockEx( pClient DBG_SRC );
 			}
 		}
 	}
@@ -1351,162 +1341,172 @@ int CPROC ProcessNetworkMessages( struct peer_thread_info *thread, uintptr_t qui
 	//lprintf( WIDE("Check messages.") );
 	if( globalNetworkData.bQuit )
 		return -1;
-	if( IsNetworkThread( ) )
+	if( thread->flags.bProcessing )
+		return 0;
+	// disallow changing of the lists.
+	if( !thread->parent_peer )
 	{
-		// disallow changing of the lists.
-		if( !thread->parent_peer )
+		EnterCriticalSec( &globalNetworkData.csNetwork );
 		{
-			EnterCriticalSec( &globalNetworkData.csNetwork );
+			PCLIENT pc;
+			PCLIENT next;
+			for( pc = globalNetworkData.ClosedClients; pc; pc = next )
 			{
-				PCLIENT pc;
-				PCLIENT next;
-				for( pc = globalNetworkData.ClosedClients; pc; pc = next )
-				{
 #    ifdef LOG_NOTICES
-					lprintf( "Have a closed client to check..." );
+				lprintf( "Have a closed client to check..." );
 #    endif
-					next = pc->next;
-					if( +GetTickCount() > (pc->LastEvent + 1000) )
-					{
-						lprintf( "Remove thread event on closed thread (should be terminate here..)" );
-						TerminateClosedClient( pc );  // also does the remove.
-						//RemoveThreadEvent( pc ); // also does the close.
-					}
-				}
-			}
-			{
-				PCLIENT pc;
-				while( pc = (PCLIENT)DequeLink( &globalNetworkData.client_schedule ) )
+				next = pc->next;
+				if( +GetTickCount() > (pc->LastEvent + 1000) )
 				{
-					// use this for "added to schedule".  Closing removes from schedule.
-					if( !pc->flags.bAddedToEvents )
-					{
-						if( pc->dwFlags & CF_CLOSED || (!(pc->dwFlags & CF_ACTIVE)) )
-						{
-							lprintf( WIDE( " Found closed? %p" ), pc );
-							continue;
-						}
-#ifdef LOG_NETWORK_EVENT_THREAD
-						if( globalNetworkData.flags.bLogNotices )
-							lprintf( WIDE( "Added to schedule : %p %08x" ), pc, pc->dwFlags );
-#endif
-						AddThreadEvent( pc );
-					}
-					else
-						lprintf( "Client in schedule queue, but it is already schedule?! %p", pc );
+					lprintf( "Remove thread event on closed thread (should be terminate here..)" );
+					TerminateClosedClient( pc );  // also does the remove.
+					//RemoveThreadEvent( pc ); // also does the close.
 				}
 			}
-			LeaveCriticalSec( &globalNetworkData.csNetwork );
+		}
+		{
+			PCLIENT pc;
+			while( pc = (PCLIENT)DequeLink( &globalNetworkData.client_schedule ) )
+			{
+				// use this for "added to schedule".  Closing removes from schedule.
+				if( !pc->flags.bAddedToEvents )
+				{
+					if( pc->dwFlags & CF_CLOSED || (!(pc->dwFlags & CF_ACTIVE)) )
+					{
+						lprintf( WIDE( " Found closed? %p" ), pc );
+						continue;
+					}
+#ifdef LOG_NETWORK_EVENT_THREAD
+					if( globalNetworkData.flags.bLogNotices )
+						lprintf( WIDE( "Added to schedule : %p %08x" ), pc, pc->dwFlags );
+#endif
+					AddThreadEvent( pc );
+				}
+				else
+					lprintf( "Client in schedule queue, but it is already schedule?! %p", pc );
+			}
+		}
+		LeaveCriticalSec( &globalNetworkData.csNetwork );
 #ifdef LOG_NETWORK_LOCKING
-			lprintf( WIDE( "Process Network left global" ) );
+		lprintf( WIDE( "Process Network left global" ) );
 #endif
-		}
-		else
+	}
+	else
+	{
+		// wait for master thread to set up the proper wait
+		while( thread->nEvents == 0 )
+			Relinquish();
+	}
+	while( 1 )
+	{
+		int32_t result;
+		// want to wait here anyhow...
+#ifdef LOG_NETWORK_EVENT_THREAD
+		//if( globalNetworkData.flags.bLogNotices )
+		//	lprintf( WIDE( "%p Waiting on %d events" ), thread, thread->nEvents );
+#endif
+		thread->nWaitEvents = thread->nEvents;
+		thread->flags.bProcessing = 0;
+		result = WSAWaitForMultipleEvents( thread->nEvents
+													, (const HANDLE *)thread->event_list->data
+													, FALSE
+													, (quick_check)?0:WSA_INFINITE
+													, FALSE
+													);
+		if( globalNetworkData.bQuit )
+			return -1;
+#ifdef LOG_NETWORK_EVENT_THREAD
+		//if( globalNetworkData.flags.bLogNotices )
+		//	lprintf( WIDE( "Event Wait Result was %d" ), result );
+#endif
+		// this should never be 0, but we're awake, not sleeping, and should say we're in a place
+		// where we probably do want to be woken on a 0 event.
+		if( result != WSA_WAIT_EVENT_0 )
 		{
-			// wait for master thread to set up the proper wait
-			while( thread->nEvents == 0 )
-				Relinquish();
-		}
-		while( 1 )
-		{
-			int32_t result;
-			// want to wait here anyhow...
 #ifdef LOG_NETWORK_EVENT_THREAD
 			//if( globalNetworkData.flags.bLogNotices )
-			//	lprintf( WIDE( "%p Waiting on %d events" ), thread, thread->nEvents );
+			//	lprintf( WIDE("Begin - thread processing %d"), result );
 #endif
-			thread->nWaitEvents = thread->nEvents;
-			thread->flags.bProcessing = 0;
-			result = WSAWaitForMultipleEvents( thread->nEvents
-														, (const HANDLE *)thread->event_list->data
-														, FALSE
-														, (quick_check)?0:WSA_INFINITE
-														, FALSE
-														);
-			if( globalNetworkData.bQuit )
-				return -1;
-#ifdef LOG_NETWORK_EVENT_THREAD
-			//if( globalNetworkData.flags.bLogNotices )
-			//	lprintf( WIDE( "Event Wait Result was %d" ), result );
-#endif
-			// this should never be 0, but we're awake, not sleeping, and should say we're in a place
-			// where we probably do want to be woken on a 0 event.
-			if( result != WSA_WAIT_EVENT_0 )
+			thread->flags.bProcessing = 1;
+		}
+		thread->nWaitEvents = 0;
+		if( result == WSA_WAIT_FAILED )
+		{
+			DWORD dwError = WSAGetLastError();
+			if( dwError == WSA_INVALID_HANDLE )
 			{
-#ifdef LOG_NETWORK_EVENT_THREAD
-				//if( globalNetworkData.flags.bLogNotices )
-				//	lprintf( WIDE("Begin - thread processing %d"), result );
-#endif
-				thread->flags.bProcessing = 1;
-			}
-			thread->nWaitEvents = 0;
-			if( result == WSA_WAIT_FAILED )
-			{
-				DWORD dwError = WSAGetLastError();
-				if( dwError == WSA_INVALID_HANDLE )
-				{
-					lprintf( WIDE( "Rebuild list, have a bad event handle somehow." ) );
-					break;
-				}
-				lprintf( WIDE( "error of wait is %d   %p" ), dwError, thread );
-				LogBinary( thread->event_list->data, 64 );
+				lprintf( WIDE( "Rebuild list, have a bad event handle somehow." ) );
 				break;
 			}
+			lprintf( WIDE( "error of wait is %d   %p" ), dwError, thread );
+			LogBinary( thread->event_list->data, 64 );
+			break;
+		}
 #ifndef UNDER_CE
-			else if( result == WSA_WAIT_IO_COMPLETION )
-			{
-				// reselect... not sure where io completion fits for network...
-				continue;
-			}
+		else if( result == WSA_WAIT_IO_COMPLETION )
+		{
+			// reselect... not sure where io completion fits for network...
+			continue;
+		}
 #endif
-			else if( result == WSA_WAIT_TIMEOUT )
+		else if( result == WSA_WAIT_TIMEOUT )
+		{
+			if( quick_check )
+				return 1;
+		}
+		else if( result >= WSA_WAIT_EVENT_0 )
+		{
+			// if result is _0, then it's the global event, and we just return.
+			if( result > WSA_WAIT_EVENT_0 )
 			{
-				if( quick_check )
-					return 1;
-			}
-			else if( result >= WSA_WAIT_EVENT_0 )
-			{
-				// if result is _0, then it's the global event, and we just return.
-				if( result > WSA_WAIT_EVENT_0 )
+				PCLIENT pc = (PCLIENT)GetLink( &thread->monitor_list, result - (WSA_WAIT_EVENT_0) );
+				PCLIENT pcLock;
+				//lprintf( "index is %d", result-(WSA_WAIT_EVENT_0) );
+				while( !(pcLock = NetworkLockEx( pc DBG_SRC ) ) )
 				{
-					PCLIENT pc = (PCLIENT)GetLink( &thread->monitor_list, result - (WSA_WAIT_EVENT_0) );
-					//lprintf( "index is %d", result-(WSA_WAIT_EVENT_0) );
+					// done with events; inactive sockets can't have events
+					if( !(pc->dwFlags & CF_ACTIVE) )
+					{
+						pcLock = NULL;
+						break;
+					}
+					Relinquish();
+				}
+				if( pcLock ) {
 					if( pc->dwFlags & CF_AVAILABLE ) {
 						lprintf( "thread event happened on a now available client." );
 					}
 					else
 						HandleEvent( pc );
-					/*
-					if( thread->parent_peer )
-					{
-						// if this is a child worker, wait for main to rebuild events.
-						// if this was the main thread, it would wake us anyway...
-						WSASetEvent( globalNetworkData.hMonitorThreadControlEvent );
-						while( thread->nEvents != 1 )
-							Relinquish();
-					}
-					*/
-					if( !quick_check )
-						continue;
+					NetworkUnlock( pc );
 				}
-				//else
+				/*
+				if( thread->parent_peer )
 				{
-#ifdef LOG_NOTICES
-					if( globalNetworkData.flags.bLogNotices )
-						lprintf( thread->parent_peer?WIDE("RESET THREAD EVENT"):WIDE( "RESET GLOBAL EVENT" ) );
-#endif
-					WSAResetEvent( thread->hThread );
+					// if this is a child worker, wait for main to rebuild events.
+					// if this was the main thread, it would wake us anyway...
+					WSASetEvent( globalNetworkData.hMonitorThreadControlEvent );
+					while( thread->nEvents != 1 )
+						Relinquish();
 				}
-				return 1;
+				*/
+				if( !quick_check )
+					continue;
 			}
+			//else
+			{
+#ifdef LOG_NOTICES
+				if( globalNetworkData.flags.bLogNotices )
+					lprintf( thread->parent_peer?WIDE("RESET THREAD EVENT"):WIDE( "RESET GLOBAL EVENT" ) );
+#endif
+				WSAResetEvent( thread->hThread );
+			}
+			return 1;
 		}
-		// result 0... we had nothing to do
-		// but we are this thread.
-		return 0;
 	}
-	// return -1, in case we are an idle proc, this will
-	// de-elect this proc as an idle candiate for this thread
-	return -1;
+	// result 0... we had nothing to do
+	// but we are this thread.
+	return 0;
 }
 
 //----------------------------------------------------------------------------
