@@ -235,6 +235,14 @@ typedef struct MY_IMAGE_NT_HEADERS {
 	MY_IMAGE_OPTIONAL_HEADER OptionalHeader;
 } MY_IMAGE_NT_HEADERS,*PMY_IMAGE_NT_HEADERS;
 
+#define num64Machines (sizeof(_64bitMachines)/sizeof(_64bitMachines[0]))
+WORD _64bitMachines[] = {
+	0x8664,   /*IMAGE_FILE_MACHINE_AMD64*/
+	0x0200,   /*IMAGE_FILE_MACHINE_IA64*/
+	0x0284,   /*IMAGE_FILE_MACHINE_ALPHA64*/
+};
+
+
 void FixResourceDirEntry( char *resources, PMY_IMAGE_RESOURCE_DIRECTORY pird )
 {
 	int x;
@@ -252,32 +260,259 @@ void FixResourceDirEntry( char *resources, PMY_IMAGE_RESOURCE_DIRECTORY pird )
 	}
 }
 
+static int parse64( FILE *file, PFILESOURCE pfs 
+	, MY_IMAGE_DOS_HEADER *dos_header
+	, MY_IMAGE_NT_HEADERS *nt_header
+	) {
+	MY_IMAGE_OPTIONAL_HEADER nt_optional_header;
+			
+	sack_fread( &nt_optional_header, nt_header->FileHeader.SizeOfOptionalHeader, 1, file );
+
+
+	// track down and kill resources.
+	{
+		int n;
+		long FPISections = dos_header->e_lfanew
+			+ sizeof( nt_header->FileHeader ) + sizeof( nt_header->Signature )
+			+ nt_header->FileHeader.SizeOfOptionalHeader;
+		PLIST sections = NULL;
+		PMY_IMAGE_SECTION_HEADER section;
+		PMY_IMAGE_DATA_DIRECTORY dir = (PMY_IMAGE_DATA_DIRECTORY)nt_header->OptionalHeader.PE64.DataDirectory;
+		//sack_fseek( file, FPISections, SEEK_SET );
+		for( n = 0; n < nt_header->FileHeader.NumberOfSections; n++ )
+		{
+			section = New( MY_IMAGE_SECTION_HEADER );
+			sack_fseek( file, FPISections + n * sizeof( *section ), SEEK_SET );
+			sack_fread( section, 1, sizeof( *section ), file );
+			AddLink( &sections, section );
+			//lprintf( "Read section '%s' %d of %d", section.Name, n, nt_header->FileHeader.NumberOfSections );
+			//if( ( strcmp( section.Name, ".idata" ) == 0 ) )
+		}
+				//cpg27dec 2006 c:\work\sack\src\utils\pcopy\pcopy.c(295): Warning! W202: Symbol 'iilt' has been defined, but not referenced
+				//data = (char*)malloc( section.SizeOfRawData );
+				//sack_fseek( file, section.PointerToRawData, SEEK_SET );
+				//sack_fread( data, 1, section.SizeOfRawData, file );
+		{
+				//FixResourceDirEntry( data, (MY_IMAGE_RESOURCE_DIRECTORY *)data );
+				//sack_fseek( file, section.PointerToRawData, SEEK_SET );
+				//sack_fwrite( data, 1, section.SizeOfRawData, file );
+			{
+				char *data;
+				MY_IMAGE_IMPORT_DESCRIPTOR *iid;
+				long v = dir[1].VirtualAddress;
+				MY_IMAGE_IMPORT_DESCRIPTOR *directory;
+				int m;
+				INDEX i;
+				LIST_FORALL( sections, i, PMY_IMAGE_SECTION_HEADER, section ) {
+					if( section->VirtualAddress < dir[1].VirtualAddress &&
+						(section->VirtualAddress + section->SizeOfRawData) > dir[1].VirtualAddress )
+						break;
+				}
+				v = section->PointerToRawData;
+				{
+
+					data = Allocate( section->SizeOfRawData/*dir[1].Size*/ );
+					sack_fseek( file, v, SEEK_SET );
+					sack_fread( data, 1, section->SizeOfRawData/*dir[1].Size*/, file );
+				}
+				directory = (MY_IMAGE_IMPORT_DESCRIPTOR*)(data + dir[1].VirtualAddress - section->VirtualAddress);
+				//printf( "Import data at %08x\n", section.VirtualAddress );
+
+				for( m = 0; (iid = (MY_IMAGE_IMPORT_DESCRIPTOR*)(directory+m))// (data + directory + sizeof( *iid ) * m))
+						, ( iid->Characteristics || iid->TimeDateStamp || iid->Name ||
+									iid->FirstThunk || iid->ForwarderChain )
+						; m++ )
+				{
+					//IMAGE_IMPORT_BY_NAME **iibn = (IMAGE_IMPORT_BY_NAME**)(data + ( iid->Characteristics - section->VirtualAddress ));
+					TEXTSTR tmpname = DupCharToText( data+( iid->Name - section->VirtualAddress ) );
+					AddDependCopy( pfs, tmpname );
+#ifdef DEBUG_DISCOVERY
+					printf( "%s %08x %08x %08x\n"
+							, data +( iid->Name - section.VirtualAddress )
+								, ( iid->Name - section.VirtualAddress )
+							, iid->Characteristics
+							, iid->FirstThunk );
+#endif
+				}
+
+#if 0
+				{
+					MY_IMAGE_IMPORT_LOOKUP_TABLE iilt;
+					do
+					{
+						printf( "Reading %d\n", sizeof( iilt ) );
+						fread( &iilt, sizeof( iilt ), 1, file );
+						if( !iilt.NameIsString )
+						{
+							printf( "Name at %08x\n", iilt.Name - section.VirtualAddress + section.PointerToRawData );
+						}
+						else
+							printf( "Oridinal %d\n", iilt.Id );
+					} while( iilt.Name );
+
+					do
+					{
+						printf( "Reading %d\n", sizeof( iilt ) );
+						fread( &iilt, sizeof( iilt ), 1, file );
+						if( !iilt.NameIsString )
+						{
+							printf( "Name at %08x\n", iilt.Name - section.VirtualAddress + section.PointerToRawData );
+						}
+						else
+							printf( "Oridinal %d\n", iilt.Id );
+					} while( iilt.Name );
+				}
+#endif
+				//free( data );
+
+			}
+        //else
+			//	printf( "%*.*s\n"
+			//			, MY_IMAGE_SIZEOF_SHORT_NAME
+			//			, MY_IMAGE_SIZEOF_SHORT_NAME
+			//			, section.Name );
+					
+		}
+	}
+
+
+	sack_fclose( file );
+	return 0;
+}
+
+static int parse32( FILE *file, PFILESOURCE pfs 
+	, MY_IMAGE_DOS_HEADER *dos_header
+	, MY_IMAGE_NT_HEADERS *nt_header
+	) {
+
+	MY_IMAGE_OPTIONAL_HEADER nt_optional_header;
+			
+	sack_fread( &nt_optional_header, nt_header->FileHeader.SizeOfOptionalHeader, 1, file );
+
+	if( nt_optional_header.Magic == 0x10b /*MAGE_NT_OPTIONAL_HDR32_MAGIC*/ )
+	{
+	}
+	if( nt_optional_header.Magic == 0x20b /*MAGE_NT_OPTIONAL_HDR64_MAGIC*/ )
+	{
+	}
+
+
+	// track down and kill resources.
+	{
+		int n;
+		long FPISections = dos_header->e_lfanew
+			+ sizeof( nt_header->FileHeader ) + sizeof( nt_header->Signature )
+			+ nt_header->FileHeader.SizeOfOptionalHeader;
+		PLIST sections = NULL;
+		PMY_IMAGE_SECTION_HEADER section;
+		PMY_IMAGE_DATA_DIRECTORY dir = (PMY_IMAGE_DATA_DIRECTORY)nt_header->OptionalHeader.PE32.DataDirectory;
+		//sack_fseek( file, FPISections, SEEK_SET );
+		for( n = 0; n < nt_header->FileHeader.NumberOfSections; n++ )
+		{
+			section = New( MY_IMAGE_SECTION_HEADER );
+			sack_fseek( file, FPISections + n * sizeof( *section ), SEEK_SET );
+			sack_fread( section, 1, sizeof( *section ), file );
+			AddLink( &sections, section );
+			//lprintf( "Read section '%s' %d of %d", section.Name, n, nt_header->FileHeader.NumberOfSections );
+			//if( ( strcmp( section.Name, ".idata" ) == 0 ) )
+		}
+				//cpg27dec 2006 c:\work\sack\src\utils\pcopy\pcopy.c(295): Warning! W202: Symbol 'iilt' has been defined, but not referenced
+				//data = (char*)malloc( section.SizeOfRawData );
+				//sack_fseek( file, section.PointerToRawData, SEEK_SET );
+				//sack_fread( data, 1, section.SizeOfRawData, file );
+		{
+				//FixResourceDirEntry( data, (MY_IMAGE_RESOURCE_DIRECTORY *)data );
+				//sack_fseek( file, section.PointerToRawData, SEEK_SET );
+				//sack_fwrite( data, 1, section.SizeOfRawData, file );
+			{
+				char *data;
+				MY_IMAGE_IMPORT_DESCRIPTOR *iid;
+				long v = dir[1].VirtualAddress;
+				MY_IMAGE_IMPORT_DESCRIPTOR *directory;
+				int m;
+				INDEX i;
+				LIST_FORALL( sections, i, PMY_IMAGE_SECTION_HEADER, section ) {
+					if( section->VirtualAddress < dir[1].VirtualAddress &&
+						(section->VirtualAddress + section->SizeOfRawData) > dir[1].VirtualAddress )
+						break;
+				}
+				v = section->PointerToRawData;
+				{
+
+					data = Allocate( section->SizeOfRawData/*dir[1].Size*/ );
+					sack_fseek( file, v, SEEK_SET );
+					sack_fread( data, 1, section->SizeOfRawData/*dir[1].Size*/, file );
+				}
+				directory = (MY_IMAGE_IMPORT_DESCRIPTOR*)(data + dir[1].VirtualAddress - section->VirtualAddress);
+				//printf( "Import data at %08x\n", section.VirtualAddress );
+
+				for( m = 0; (iid = (MY_IMAGE_IMPORT_DESCRIPTOR*)(directory+m))// (data + directory + sizeof( *iid ) * m))
+					 , ( iid->Characteristics || iid->TimeDateStamp || iid->Name ||
+								 iid->FirstThunk || iid->ForwarderChain )
+					 ; m++ )
+				{
+					//IMAGE_IMPORT_BY_NAME **iibn = (IMAGE_IMPORT_BY_NAME**)(data + ( iid->Characteristics - section->VirtualAddress ));
+					TEXTSTR tmpname = DupCharToText( data+( iid->Name - section->VirtualAddress ) );
+					AddDependCopy( pfs, tmpname );
+#ifdef DEBUG_DISCOVERY
+					printf( "%s %08x %08x %08x\n"
+							, data +( iid->Name - section.VirtualAddress )
+							 , ( iid->Name - section.VirtualAddress )
+							, iid->Characteristics
+							, iid->FirstThunk );
+#endif
+				}
+
+#if 0
+				{
+					MY_IMAGE_IMPORT_LOOKUP_TABLE iilt;
+					do
+					{
+						printf( "Reading %d\n", sizeof( iilt ) );
+						fread( &iilt, sizeof( iilt ), 1, file );
+						if( !iilt.NameIsString )
+						{
+							printf( "Name at %08x\n", iilt.Name - section.VirtualAddress + section.PointerToRawData );
+						}
+						else
+							printf( "Oridinal %d\n", iilt.Id );
+					} while( iilt.Name );
+
+					do
+					{
+						printf( "Reading %d\n", sizeof( iilt ) );
+						fread( &iilt, sizeof( iilt ), 1, file );
+						if( !iilt.NameIsString )
+						{
+							printf( "Name at %08x\n", iilt.Name - section.VirtualAddress + section.PointerToRawData );
+						}
+						else
+							printf( "Oridinal %d\n", iilt.Id );
+					} while( iilt.Name );
+				}
+#endif
+				//free( data );
+
+			}
+			//else
+			//	printf( "%*.*s\n"
+			//			, MY_IMAGE_SIZEOF_SHORT_NAME
+			//			, MY_IMAGE_SIZEOF_SHORT_NAME
+			//			, section.Name );
+			
+		}
+	}
+	sack_fclose( file );
+	return 0;
+}
+
 
 int ScanFile( PFILESOURCE pfs )
 {
 	FILE *file;
-//cpg27dec2006 c:\work\sack\src\utils\pcopy\pcopy.c(226): Warning! W202: Symbol 'n' has been defined, but not referenced
-//cpg27dec2006 	int n;
 	LOGICAL pe64 = FALSE;
 	MY_IMAGE_DOS_HEADER dos_header;
 	MY_IMAGE_NT_HEADERS nt_header;
-	MY_IMAGE_OPTIONAL_HEADER nt_optional_header;
-	MY_IMAGE_OPTIONAL_HEADER *pother_optional_header;
-	pother_optional_header = (MY_IMAGE_OPTIONAL_HEADER*)&nt_optional_header;
-	//printf("Attempt to scan: %s\n", pfs->name );
-	{
-		//INDEX idx;
-		//CTEXTSTR exclude;
-		//LIST_FORALL( g.excludes, idx, CTEXTSTR, exclude )
-		{
-			/*
-			if( stristr( pfs->name, exclude ) )
-			{
-				return 0;
-				}
-            */
-		}
-	}
 	{
 		if( !g.flags.bIncludeSystem )
 		{
@@ -292,25 +527,34 @@ int ScanFile( PFILESOURCE pfs )
 		if( file )
 		{
 			pfs->flags.bScanned = 1;
-			fread( &dos_header, 1, sizeof( dos_header ), file );
+			sack_fread( &dos_header, 1, sizeof( dos_header ), file );
 			if( dos_header.e_magic != MY_IMAGE_DOS_SIGNATURE )
 			{
 				//fprintf( stderr, WIDE("warning: \'%s\' is not a program.\n"), pfs->name );
 				// copy it anyway.
-				fclose( file );
+				sack_fclose( file );
 				return 0;
 			}
-			fseek( file, dos_header.e_lfanew, SEEK_SET );
-			fread( &nt_header, sizeof( nt_header ), 1, file );
+			sack_fseek( file, dos_header.e_lfanew, SEEK_SET );
+			sack_fread( &nt_header, sizeof( nt_header ), 1, file );
 			if( nt_header.Signature != MY_IMAGE_NT_SIGNATURE )
 			{
 				fprintf( stderr, "warning: \'%s\' is not a 32 bit windows program.\n", pfs->name );
-				fclose( file );
+				sack_fclose( file );
 				return 1;
 			}
-			//lprintf( "%d", sizeof( nt_optional_header ) );
-			//lprintf( "%d", sizeof( other_optional_header ) );
-			//lprintf( "%d", nt_header.FileHeader.SizeOfOptionalHeader );
+
+			if( 0 )
+			{
+				int n;
+				for( n = 0; n < num64Machines; n++ )
+					if( nt_header.FileHeader.Machine == _64bitMachines[n] ) {
+						parse64( file, pfs, &dos_header, &nt_header );
+						break;
+					}
+			}
+
+			pfs->flags.bInvalid = 1;
 			if( nt_header.FileHeader.SizeOfOptionalHeader == 240 )
 			{
 				pe64 = TRUE;
@@ -322,6 +566,7 @@ int ScanFile( PFILESOURCE pfs )
 					else
 						fprintf( stderr, "WARNING: Mixing x86 and x64 sources to same target.\n" );
 				}
+				pfs->flags.bInvalid = parse64( file, pfs, &dos_header, &nt_header );
 			}
 			else
 			{
@@ -333,165 +578,12 @@ int ScanFile( PFILESOURCE pfs )
 					else
 						fprintf( stderr, "WARNING: Mixing x86 and x64 sources to same target.\n" );
 				}
+				pfs->flags.bInvalid = parse32( file, pfs, &dos_header, &nt_header );
 			}
-
-			fread( &nt_optional_header, nt_header.FileHeader.SizeOfOptionalHeader, 1, file );
-
-			if( nt_optional_header.Magic == 0x10b /*MAGE_NT_OPTIONAL_HDR32_MAGIC*/ )
-			{
-			}
-			if( nt_optional_header.Magic == 0x20b /*MAGE_NT_OPTIONAL_HDR64_MAGIC*/ )
-			{
-			}
-
-			//fseek( file, nt_optional_header.PE32.DataDirectory[1].VirtualAddress, SEEK_SET );
-			{
-            //fread( &
-			}
-
-
-			// track down and kill resources.
-			{
-				int n;
-				long FPISections = dos_header.e_lfanew
-					+ sizeof( nt_header.FileHeader ) + sizeof( nt_header.Signature )
-					+ nt_header.FileHeader.SizeOfOptionalHeader;
-				PLIST sections = NULL;
-				PMY_IMAGE_SECTION_HEADER section;
-				PMY_IMAGE_DATA_DIRECTORY dir = (PMY_IMAGE_DATA_DIRECTORY)nt_header.OptionalHeader.PE32.DataDirectory;
-				//fseek( file, FPISections, SEEK_SET );
-				for( n = 0; n < nt_header.FileHeader.NumberOfSections; n++ )
-				{
-					section = New( MY_IMAGE_SECTION_HEADER );
-					fseek( file, FPISections + n * sizeof( *section ), SEEK_SET );
-					fread( section, 1, sizeof( *section ), file );
-					AddLink( &sections, section );
-					//lprintf( "Read section '%s' %d of %d", section.Name, n, nt_header.FileHeader.NumberOfSections );
-					//if( ( strcmp( section.Name, ".idata" ) == 0 ) )
-				}
-						//cpg27dec 2006 c:\work\sack\src\utils\pcopy\pcopy.c(295): Warning! W202: Symbol 'iilt' has been defined, but not referenced
-//cpg27dec 2006 c:\work\sack\src\utils\pcopy\pcopy.c(226): Warning! W202: Symbol 'n' has been defined, but not referenced
-//cpg27dec 2006 						int n;
-						//data = (char*)malloc( section.SizeOfRawData );
-						//fseek( file, section.PointerToRawData, SEEK_SET );
-						//fread( data, 1, section.SizeOfRawData, file );
-				{
-						//FixResourceDirEntry( data, (MY_IMAGE_RESOURCE_DIRECTORY *)data );
-						//fseek( file, section.PointerToRawData, SEEK_SET );
-						//fwrite( data, 1, section.SizeOfRawData, file );
-					{
-						char *data;
-						MY_IMAGE_IMPORT_DESCRIPTOR *iid;
-						long v = dir[1].VirtualAddress;
-						MY_IMAGE_IMPORT_DESCRIPTOR *directory;
-						int m;
-						INDEX i;
-						LIST_FORALL( sections, i, PMY_IMAGE_SECTION_HEADER, section ) {
-							if( section->VirtualAddress < dir[1].VirtualAddress &&
-								(section->VirtualAddress + section->SizeOfRawData) > dir[1].VirtualAddress )
-								break;
-						}
-						v = section->PointerToRawData;
-						{
-
-							data = Allocate( section->SizeOfRawData/*dir[1].Size*/ );
-							fseek( file, v, SEEK_SET );
-							fread( data, 1, section->SizeOfRawData/*dir[1].Size*/, file );
-						}
-						directory = (MY_IMAGE_IMPORT_DESCRIPTOR*)(data + dir[1].VirtualAddress - section->VirtualAddress);
-						//printf( "Import data at %08x\n", section.VirtualAddress );
-
-						for( m = 0; (iid = (MY_IMAGE_IMPORT_DESCRIPTOR*)(directory+m))// (data + directory + sizeof( *iid ) * m))
-							 , ( iid->Characteristics || iid->TimeDateStamp || iid->Name ||
-										 iid->FirstThunk || iid->ForwarderChain )
-							 ; m++ )
-						{
-							//IMAGE_IMPORT_BY_NAME **iibn = (IMAGE_IMPORT_BY_NAME**)(data + ( iid->Characteristics - section->VirtualAddress ));
-							TEXTSTR tmpname = DupCharToText( data+( iid->Name - section->VirtualAddress ) );
-							AddDependCopy( pfs, tmpname );
-#ifdef DEBUG_DISCOVERY
-							printf( "%s %08x %08x %08x\n"
-									, data +( iid->Name - section.VirtualAddress )
-									 , ( iid->Name - section.VirtualAddress )
-									, iid->Characteristics
-									, iid->FirstThunk );
-#endif
-						}
-
-#if 0
-						{
-							MY_IMAGE_IMPORT_LOOKUP_TABLE iilt;
-							do
-							{
-								printf( "Reading %d\n", sizeof( iilt ) );
-								fread( &iilt, sizeof( iilt ), 1, file );
-								if( !iilt.NameIsString )
-								{
-									printf( "Name at %08x\n", iilt.Name - section.VirtualAddress + section.PointerToRawData );
-								}
-								else
-									printf( "Oridinal %d\n", iilt.Id );
-							} while( iilt.Name );
-
-							do
-							{
-								printf( "Reading %d\n", sizeof( iilt ) );
-								fread( &iilt, sizeof( iilt ), 1, file );
-								if( !iilt.NameIsString )
-								{
-									printf( "Name at %08x\n", iilt.Name - section.VirtualAddress + section.PointerToRawData );
-								}
-								else
-									printf( "Oridinal %d\n", iilt.Id );
-							} while( iilt.Name );
-						}
-#endif
-						//free( data );
-
-					}
-               //else
-					//	printf( "%*.*s\n"
-					//			, MY_IMAGE_SIZEOF_SHORT_NAME
-					//			, MY_IMAGE_SIZEOF_SHORT_NAME
-					//			, section.Name );
-					
-				}
-			}
-			if( pe64 )
-			{
-				uint64_t value;
-				int count;
-				int offset = 
-					+ nt_header.FileHeader.SizeOfOptionalHeader // sizeof optional header
-					+ dos_header.e_lfanew //sizeof( MY_IMAGE_DOS_HEADER )
-					+ sizeof( MY_IMAGE_NT_HEADERS ) 
-					+ sizeof( MY_IMAGE_SECTION_HEADER ) * nt_header.FileHeader.NumberOfSections;
-				int section_size;
-				TEXTCHAR *sections;
-				value = 1;
-				count = 0;
-				for( fread( &value, 1, sizeof( uint64_t), file ); value; fread( &value, 1, sizeof( uint64_t), file ) )
-					count++;
-				//fread( buffer, 1, sizeof( buffer ), file );
-				offset += count * sizeof( uint64_t );
-				sections = NewArray( TEXTCHAR, section_size = ( nt_optional_header.PE64.SizeOfHeaders - offset ) );
-				
-				//fseek( file, offset, SEEK_SET );
-				fread( sections, 1, section_size, file );
-				{
-					TEXTCHAR *name = sections;
-					while( name[0] && ( (name-sections) < section_size )
-						  && ( ( name[0] <= 127 ) && ( name[0] >= 33 ) )
-						)
-					{
-						AddDependCopy( pfs, name );
-						name = name + StrLen( name ) + 1;
-					}
-				}
-			}
-
-
-			fclose( file );
+			
+			if( pfs->flags.bInvalid )
+				fprintf( stderr, "Failed to open %s\n", pfs->name );
+			return 1;
 		}
 		else
 		{
@@ -500,7 +592,7 @@ int ScanFile( PFILESOURCE pfs )
 			static TEXTCHAR name[256];
 
 			if( g.flags.bVerbose )
-            printf( "Locating %s\n", pfs->name );
+				printf( "Locating %s\n", pfs->name );
 			hModule = LoadLibrary( pfs->name );
 			if( hModule )
 			{
@@ -546,7 +638,7 @@ int ScanFile( PFILESOURCE pfs )
 						if( file )
 						{
 							AddDependCopy( pfs, tmpfile )->flags.bExternal = 1;
-							fclose( file );
+							sack_fclose( file );
 							return 0;
 						}
 					}
@@ -555,10 +647,6 @@ int ScanFile( PFILESOURCE pfs )
 
 			}
 #endif
-			pfs->flags.bInvalid = 1;
-			if( pfs->flags.bInvalid )
-				fprintf( stderr, "Failed to open %s\n", pfs->name );
-			return 1;
 		}
 	}
 	return 0;
