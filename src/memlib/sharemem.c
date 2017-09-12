@@ -437,6 +437,9 @@ static void DumpSection( PCRITICALSECTION pcs )
 #endif
 
 #ifndef USE_NATIVE_CRITICAL_SECTION
+#  ifdef _MSC_VER
+#    pragma optimize( "st", off )
+#  endif
 		int32_t  EnterCriticalSecNoWaitEx( PCRITICALSECTION pcs, THREAD_ID *prior DBG_PASS )
 		{
 			THREAD_ID dwCurProc;
@@ -536,7 +539,7 @@ static void DumpSection( PCRITICALSECTION pcs )
 							if( (*prior) == 1 ) {
 								pcs->dwThreadWaiting = 0;
 							}
-							else 
+							else
 								pcs->dwThreadWaiting = (*prior);
 							(*prior) = 0;
 						}
@@ -619,82 +622,75 @@ static void DumpSection( PCRITICALSECTION pcs )
 				pcs->nPrior = (pcs->nPrior + 1) % MAX_SECTION_LOG_QUEUE;
 #endif
 				pcs->dwUpdating = 0;
-#ifdef LOG_DEBUG_CRITICAL_SECTIONS
-				if( g.bLogCritical > 0 && g.bLogCritical < 2 )
-					ll_lprintf( WIDE( "Entered, and unlocked for entry" ) );
-#endif
 				return 1;
 			}
-			else //... and it's not me
+			//if( !(pcs->dwLocks & SECTION_LOGGED_WAIT) )
 			{
-				//if( !(pcs->dwLocks & SECTION_LOGGED_WAIT) )
-				{
+				pcs->dwLocks |= SECTION_LOGGED_WAIT;
 #ifdef LOG_DEBUG_CRITICAL_SECTIONS
-					pcs->dwLocks |= SECTION_LOGGED_WAIT;
-					if( g.bLogCritical )
-						ll_lprintf( WIDE( "Waiting on critical section owned by %s(%d) %08lx %." ) _64fx, (pcs->pFile) ? (pcs->pFile) : WIDE( "Unknown" ), pcs->nLine, pcs->dwLocks, pcs->dwThreadID );
+				if( g.bLogCritical )
+					ll_lprintf( WIDE( "Waiting on critical section owned by %s(%d) %08lx %." ) _64fx, (pcs->pFile) ? (pcs->pFile) : WIDE( "Unknown" ), pcs->nLine, pcs->dwLocks, pcs->dwThreadID );
 #endif
-				}
-				// if the prior is wante to be saved...
-				if( prior )
-				{
-					if( *prior )
-					{
-						if( pcs->dwThreadWaiting != dwCurProc )
-						{
-							if( !pcs->dwThreadWaiting ) {
-								DebugBreak();
-								// go back to sleep again.
-								ll_lprintf( WIDE( "@@@ Someone stole the critical section that we were wiating on before we reentered. fail. %" )_64fx WIDE( " %" ) _64fx WIDE( " %" ) _64fx, pcs->dwThreadWaiting, dwCurProc, *prior );
-								pcs->dwThreadWaiting = dwCurProc;
-							} 
-							else {
-								if( (*prior) == pcs->dwThreadWaiting ) {
-									ll_lprintf( WIDE( "prior is thread wiaiting (normal?!) %" )_64fx WIDE( " %" ) _64fx, pcs->dwThreadWaiting, *prior );
-									DebugBreak();
-									(*prior) = 0;
-								}
-								else {
-#ifdef LOG_DEBUG_CRITICAL_SECTIONS
-									ll_lprintf( WIDE( "Someone stole the critical section that we were wiating on before we reentered. fail. %" )_64fx WIDE( " %" ) _64fx WIDE( " %" ) _64fx, pcs->dwThreadWaiting, dwCurProc, *prior );
-#endif
-								}
-							}
-							// assume that someone else kept our waiting ID...
-							// cause we're not the one waiting, and we have someone elses ID..
-							// we are awake out of order..
-							pcs->dwUpdating = 0;
-							return 0;
-						}
-						else {
-							// waiting is the current threadproc; but someone claimed the section ahead of this.
-						}
-					}
-					else if( pcs->dwThreadWaiting != dwCurProc )
-					{
-						if( pcs->dwThreadWaiting ) {
-#ifdef LOG_DEBUG_CRITICAL_SECTIONS
-							if( g.bLogCritical )
-								ll_lprintf( WIDE( "@@@ Setting prior to % " ) _64fx WIDE( " and prior was %" ) _64fx, pcs->dwThreadWaiting, (*prior) );
-#endif
-							*prior = pcs->dwThreadWaiting;
-						}
-						else {
-#ifdef LOG_DEBUG_CRITICAL_SECTIONS
-							if( g.bLogCritical )
-								ll_lprintf( WIDE( "@@@ Setting prior to % " ) _64fx WIDE( " and prior was %" ) _64fx, pcs->dwThreadWaiting, (*prior) );
-#endif
-							*prior = 1;
-						}
-						pcs->dwThreadWaiting = dwCurProc;
-					}
-				}
-				else
-				{
-					// else no prior... so don't set the dwthreadwaiting...
-				}
-				pcs->dwUpdating = 0;
 			}
+			// if the prior is wanted to be saved...
+			if( prior )
+			{
+				if( *prior )
+				{
+					if( pcs->dwThreadWaiting != dwCurProc )
+					{
+						if( !pcs->dwThreadWaiting ) {
+							DebugBreak();
+							// go back to sleep again.
+							ll_lprintf( WIDE( "@@@ Someone stole the critical section that we were wiating on before we reentered. fail. %" )_64fx WIDE( " %" ) _64fx WIDE( " %" ) _64fx, pcs->dwThreadWaiting, dwCurProc, *prior );
+							pcs->dwThreadWaiting = dwCurProc;
+						}
+						else {
+							if( (*prior) == pcs->dwThreadWaiting ) {
+								ll_lprintf( WIDE( "prior is thread wiaiting (normal?!) %" )_64fx WIDE( " %" ) _64fx, pcs->dwThreadWaiting, *prior );
+								DebugBreak();
+								(*prior) = 0;
+							}
+							else {
+#ifdef LOG_DEBUG_CRITICAL_SECTIONS
+								ll_lprintf( WIDE( "Someone stole the critical section that we were wiating on before we reentered. fail. %" )_64fx WIDE( " %" ) _64fx WIDE( " %" ) _64fx, pcs->dwThreadWaiting, dwCurProc, *prior );
+#endif
+							}
+						}
+						// assume that someone else kept our waiting ID...
+						// cause we're not the one waiting, and we have someone elses ID..
+						// we are awake out of order..
+						pcs->dwUpdating = 0;
+						return 0;
+					}
+					else {
+						// waiting is the current threadproc; but someone claimed the section ahead of this.
+					}
+				}
+				else if( pcs->dwThreadWaiting != dwCurProc )
+				{
+					if( pcs->dwThreadWaiting ) {
+#ifdef LOG_DEBUG_CRITICAL_SECTIONS
+						if( g.bLogCritical )
+							ll_lprintf( WIDE( "@@@ Setting prior to % " ) _64fx WIDE( " and prior was %" ) _64fx, pcs->dwThreadWaiting, (*prior) );
+#endif
+						*prior = pcs->dwThreadWaiting;
+					}
+					else {
+#ifdef LOG_DEBUG_CRITICAL_SECTIONS
+						if( g.bLogCritical )
+							ll_lprintf( WIDE( "@@@ Setting prior to % " ) _64fx WIDE( " and prior was %" ) _64fx, pcs->dwThreadWaiting, (*prior) );
+#endif
+						*prior = 1;
+					}
+					pcs->dwThreadWaiting = dwCurProc;
+				}
+			}
+			else
+			{
+				// else no prior... so don't set the dwthreadwaiting...
+			}
+			pcs->dwUpdating = 0;
 			return 0;
 		}
 #endif
@@ -702,6 +698,9 @@ static void DumpSection( PCRITICALSECTION pcs )
 		//-------------------------------------------------------------------------
 
 #ifndef USE_NATIVE_CRITICAL_SECTION
+#  ifdef _MSC_VER
+#    pragma optimize( "st", off )
+#  endif
 		static LOGICAL LeaveCriticalSecNoWakeEx( PCRITICALSECTION pcs DBG_PASS )
 #define LeaveCriticalSecNoWake(pcs) LeaveCriticalSecNoWakeEx( pcs DBG_SRC )
 		{
