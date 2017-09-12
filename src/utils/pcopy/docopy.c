@@ -173,13 +173,13 @@ void copy( TEXTCHAR *src, TEXTCHAR *dst )
 		if( in && out )
 		{
 			size_t len;
-			while( len = fread( buffer, 1, sizeof( buffer ), in ) )
-				fwrite( buffer, 1, len, out );
+			while( len = sack_fread( buffer, sizeof( buffer ), 1, in ) )
+				sack_fwrite( buffer, len, 1, out );
 		}
 		if( in )
-			fclose( in );
+			sack_fclose( in );
 		if( out )
-			fclose( out );
+			sack_fclose( out );
 		SetFileWriteTime( dst, filetime );
 	}
 	g.copied++;
