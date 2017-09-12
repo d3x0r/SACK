@@ -2348,6 +2348,9 @@ void  ChangeTimerEx( uint32_t ID, uint32_t initial, uint32_t frequency )
 //--------------------------------------------------------------------------
 
 #ifndef USE_NATIVE_CRITICAL_SECTION
+#ifdef _MSC_VER
+#  pragma optimize( "st", off )
+#endif
 LOGICAL  EnterCriticalSecEx( PCRITICALSECTION pcs DBG_PASS )
 {
 	int d;
@@ -2412,6 +2415,9 @@ LOGICAL  EnterCriticalSecEx( PCRITICALSECTION pcs DBG_PASS )
 //-------------------------------------------------------------------------
 
 #ifndef USE_NATIVE_CRITICAL_SECTION
+#ifdef _MSC_VER
+#  pragma optimize( "st", off )
+#endif
 LOGICAL  LeaveCriticalSecEx( PCRITICALSECTION pcs DBG_PASS )
 {
 	THREAD_ID dwCurProc;
