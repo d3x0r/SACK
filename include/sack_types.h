@@ -19,7 +19,7 @@ But WHO doesn't have stdint?  BTW is sizeof( size_t ) == sizeof( void* )
 #define HAS_STDINT
 #include <stdint.h>
 
-#define USE_SACK_CUSTOM_MEMORY_ALLOCATION
+//#define USE_SACK_CUSTOM_MEMORY_ALLOCATION
 	// this has to be a compile option (option from cmake)
    // enables debug dump mem...
 #ifdef USE_SACK_CUSTOM_MEMORY_ALLOCATION

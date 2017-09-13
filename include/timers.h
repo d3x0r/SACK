@@ -452,6 +452,10 @@ TIMER_PROC( void, DeleteCriticalSec )( PCRITICALSECTION pcs );
 	TIMER_PROC( HANDLE, GetThreadHandle )( PTHREAD thread );
 #endif
 
+#ifdef __LINUX__
+	TIMER_PROC( pthread_t, GetThreadHandle )(PTHREAD thread);
+#endif
+
 #ifdef USE_NATIVE_CRITICAL_SECTION
 #define EnterCriticalSec(pcs) EnterCriticalSection( pcs )
 #define LeaveCriticalSec(pcs) LeaveCriticalSection( pcs )
