@@ -1598,6 +1598,15 @@ HANDLE GetThreadHandle( PTHREAD thread )
 }
 #endif
 
+#ifdef __LINUX__
+pthread_t GetThreadHandle( PTHREAD thread )
+{
+	if( thread )
+		return thread->hThread;
+	return INVALID_HANDLE_VALUE;
+}
+#endif
+
 //--------------------------------------------------------------------------
 
 static void DoInsertTimer( PTIMER timer )
