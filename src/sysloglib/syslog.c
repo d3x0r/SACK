@@ -612,22 +612,18 @@ CTEXTSTR GetTimeEx( int bUseDay )
 	else
 		tnprintf( timebuffer, sizeof(timebuffer), WIDE("%02d:%02d:%02d")
 		       , st.wHour, st.wMinute, st.wSecond );
+	return timebuffer;
 
 #else
-	static TEXTCHAR *timebuffer;
-	static char c_timebuffer[256];
+	static char timebuffer[256];
 	struct tm *timething;
 	time_t timevalnow;
 	time(&timevalnow);
 	timething = localtime( &timevalnow );
-	strftime( c_timebuffer
-				, sizeof( c_timebuffer )
+	strftime( timebuffer
+				, sizeof( timebuffer )
 				, (bUseDay)?"%m/%d/%Y %H:%M:%S":"%H:%M:%S"
 			  , timething );
-	if( timebuffer )
-		Release( timebuffer );
-	timebuffer = DupCStr( c_timebuffer );
-
 #endif
 	return timebuffer;
 }
@@ -659,19 +655,15 @@ CTEXTSTR GetPackedTime( void )
 	        , st.wHour, st.wMinute, st.wSecond );
 
 #else
-	static TEXTCHAR *timebuffer;
-	static char c_timebuffer[256];
+	static char timebuffer[256];
 	struct tm *timething;
 	time_t timevalnow;
 	time(&timevalnow);
 	timething = localtime( &timevalnow );
-	strftime( c_timebuffer
-	        , sizeof( c_timebuffer )
+	strftime( timebuffer
+	        , sizeof( timebuffer )
 	        , "%Y%m%d%H%M%S"
 	        , timething );
-	if( timebuffer )
-		Release( timebuffer );
-	timebuffer = DupCStr( c_timebuffer );
 #endif
 	return timebuffer;
 }
@@ -725,8 +717,7 @@ static TEXTCHAR *GetTimeHigh( void )
 		tnprintf( timebuffer, sizeof(timebuffer), WIDE("%02d:%02d:%02d.%03d")
 		        , st.wHour, st.wMinute, st.wSecond, st.wMilliseconds );
 #else
-	static TEXTCHAR *timebuffer;
-	static char c_timebuffer[256];
+	static char timebuffer[256];
 	static struct timeval _tv;
 	static struct tm _tm;
 	struct timeval tv, tv_save;
@@ -774,15 +765,12 @@ static TEXTCHAR *GetTimeHigh( void )
 		tm = *timething;
 	}
 
-	len = strftime( c_timebuffer
-	               , sizeof( c_timebuffer )
+	len = strftime( timebuffer
+	               , sizeof( timebuffer )
 	               , ((*syslog_local).flags.bUseDay)?"%m/%d/%Y %H:%M:%S":"%H:%M:%S"
 					  , &tm );
 #undef snprintf
-	snprintf( c_timebuffer + len, 5, ".%03ld", tv.tv_usec / 1000 );
-	if( timebuffer )
-		Release( timebuffer );
-	timebuffer = DupCStr( c_timebuffer );
+	snprintf( timebuffer + len, 5, ".%03ld", tv.tv_usec / 1000 );
 	/*
     // this code is kept in case borland's compiler don't like it.
     {
