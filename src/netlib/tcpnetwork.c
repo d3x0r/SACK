@@ -218,6 +218,9 @@ void AcceptClient(PCLIENT pListen)
 			EnqueLink( &globalNetworkData.client_schedule, pNewClient );
 			WSASetEvent( globalNetworkData.hMonitorThreadControlEvent );
 #endif
+#ifdef __LINUX__
+			AddThreadEvent( pNewClient );
+#endif
 		}
 	}
 	else // accept failed...
@@ -335,7 +338,7 @@ PCLIENT CPPOpenTCPListenerAddrExx( SOCKADDR *pAddr
 	WSASetEvent( globalNetworkData.hMonitorThreadControlEvent );
 #endif
 #ifdef __LINUX__
-	WakeThread( globalNetworkData.pThread );
+	AddThreadEvent( pListen );
 #endif
 	return pListen;
 }
@@ -565,10 +568,7 @@ static PCLIENT InternalTCPClientAddrFromAddrExxx( SOCKADDR *lpAddr, SOCKADDR *pF
 
 #endif
 #ifdef __LINUX__
-			{
-				//kill( (uint32_t)(globalNetworkData.pThread->ThreadID), SIGHUP );
-				WakeThread( globalNetworkData.pThread );
-			}
+			AddThreadEvent( pResult );
 #endif
 			if( !pConnectComplete )
 			{
@@ -1355,8 +1355,7 @@ int TCPWriteEx(PCLIENT pc DBG_PASS)
 						WSASetEvent( globalNetworkData.hMonitorThreadControlEvent );
 #endif
 #ifdef __LINUX__
-						//kill( (uint32_t)(globalNetworkData.pThread->ThreadID), SIGHUP );
-						WakeThread( globalNetworkData.pThread );
+						AddThreadEvent( pc );
 #endif
 					}
 					return TRUE;

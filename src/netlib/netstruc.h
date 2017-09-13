@@ -117,6 +117,35 @@ enum NetworkConnectionFlags {
 
 #ifdef __cplusplus
 #  ifndef DEFINE_ENUM_FLAG_OPERATORS
+#    ifdef __GNUC__
+// used as an approximation of std::underlying_type<T>
+template <size_t S>
+struct _ENUM_FLAG_INTEGER_FOR_SIZE;
+
+template <>
+struct _ENUM_FLAG_INTEGER_FOR_SIZE<1>
+{
+	typedef int8_t type;
+};
+
+template <>
+struct _ENUM_FLAG_INTEGER_FOR_SIZE<2>
+{
+	typedef int16_t type;
+};
+
+template <>
+struct _ENUM_FLAG_INTEGER_FOR_SIZE<4>
+{
+	typedef int32_t type;
+};
+
+template <class T>
+struct _ENUM_FLAG_SIZED_INTEGER
+{
+	typedef typename _ENUM_FLAG_INTEGER_FOR_SIZE<sizeof( T )>::type type;
+};
+#    endif
 #    define DEFINE_ENUM_FLAG_OPERATORS(ENUMTYPE) \
         extern "C++" { \
         inline ENUMTYPE operator | ( ENUMTYPE a, ENUMTYPE b ) { return ENUMTYPE( ((_ENUM_FLAG_SIZED_INTEGER<ENUMTYPE>::type)a) | ((_ENUM_FLAG_SIZED_INTEGER<ENUMTYPE>::type)b) ); } \
@@ -140,13 +169,14 @@ struct peer_thread_info
 	PTHREAD thread;
 #ifdef _WIN32
 	WSAEVENT hThread;
-#endif
-#ifdef __LINUX__
-
-	//struct pollfd *events;
-#endif
 	int nEvents;
 	int nWaitEvents; // updated with count thread is waiting on
+#endif
+#ifdef __LINUX__
+	int epoll_fd;
+	//struct pollfd *events;
+	uint32_t nEvents;
+#endif
 	struct {
 		BIT_FIELD bProcessing : 1;
 		BIT_FIELD bBuildingList : 1;
@@ -254,18 +284,16 @@ LOCATION struct network_global_data{
 	PLIST   pThreads; // list of all threads - needed because of limit of 64 sockets per multiplewait
 	PCLIENT AvailableClients;
 	PCLIENT ActiveClients;
-	//PLINKQUEUE event_schedule;
-	PLINKQUEUE client_schedule;  // shorter list of new sockets to monitor than the full list
 	PCLIENT ClosedClients;
 	CRITICALSECTION csNetwork;
 	uint32_t uNetworkPauseTimer;
-   uint32_t uPendingTimer;
+	uint32_t uPendingTimer;
 #ifndef __LINUX__
 	HWND ghWndNetwork;
 #endif
 	CTEXTSTR system_name;
 #ifdef WIN32
-   int nProtos;
+	int nProtos;
 	WSAPROTOCOL_INFOW *pProtos;
 
 	INDEX tcp_protocol;
@@ -275,6 +303,7 @@ LOCATION struct network_global_data{
 #endif
 #if defined( USE_WSA_EVENTS )
    HANDLE hMonitorThreadControlEvent;
+   PLINKQUEUE client_schedule;  // shorter list of new sockets to monitor than the full list
 #endif
 	uint32_t dwReadTimeout;
 	uint32_t dwConnectTimeout;

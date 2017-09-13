@@ -140,6 +140,9 @@ PCLIENT CPPServeUDPAddrEx( SOCKADDR *pAddr
 	EnqueLink( &globalNetworkData.client_schedule, pc );
 	WSASetEvent( globalNetworkData.hMonitorThreadControlEvent );
 #endif
+#ifdef __LINUX__
+	AddThreadEvent( pc );
+#endif
 	return pc;
 }
 
