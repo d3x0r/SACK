@@ -10,24 +10,7 @@
  *
  */
 //#define ENABLE_CRITICALSEC_LOGGING
-
-// this is a method replacement to use PIPEs instead of SEMAPHORES
-// replacement code only affects linux.
-#if __ANDROID__
-#define USE_PIPE_SEMS
-#endif
-
-#if defined( __QNX__ ) || defined( __MAC__)
-#define USE_PIPE_SEMS
-// no semtimedop; no semctl, etc
-//#include <sys/sem.h>
-#endif
-
 #define NO_UNICODE_C
-
-#ifdef USE_PIPE_SEMS
-#define _NO_SEMTIMEDOP_
-#endif
 
 // this is a cheat to get the critical section
 // object... otherwise we'd have had circular
@@ -915,7 +898,7 @@ static void  InternalWakeableNamedSleepEx( CTEXTSTR name, uint32_t n, LOGICAL th
 
 #  ifdef DEBUG_PIPE_USAGE
 							lprintf(" Begin select-read on thread %p %d ", pThread, n );
-                     //_lprintf(DBG_RELAY)( "Select  %p %d  %d  %d", pThread, pThread->pipe_ends[0], pThread->pipe_ends[1],n );
+							//_lprintf(DBG_RELAY)( "Select  %p %d  %d  %d", pThread, pThread->pipe_ends[0], pThread->pipe_ends[1],n );
 #  endif
 							stat = select(pThread->pipe_ends[0] + 1, &set, NULL, NULL, &timeout);
 							if(stat == -1)
@@ -959,7 +942,7 @@ static void  InternalWakeableNamedSleepEx( CTEXTSTR name, uint32_t n, LOGICAL th
 					else
 					{
 #ifdef USE_PIPE_SEMS
-                  char buf;
+						char buf;
 #  ifdef DEBUG_PIPE_USAGE
 						_lprintf(DBG_RELAY)(" Begin read on thread %p", pThread );
 #  endif
@@ -983,9 +966,9 @@ static void  InternalWakeableNamedSleepEx( CTEXTSTR name, uint32_t n, LOGICAL th
 						}
 						if( errno == EAGAIN )
 						{
-						//lprintf( WIDE("EAGAIN?") );
-						// timeout elapsed on semtimedop - or IPC_NOWAIT was specified
-						// but since it's not, it must be the timeout condition.
+							//lprintf( WIDE("EAGAIN?") );
+							// timeout elapsed on semtimedop - or IPC_NOWAIT was specified
+							// but since it's not, it must be the timeout condition.
 							break;
 						}
 						if( errno == EIDRM )
@@ -1038,6 +1021,13 @@ static void  InternalWakeableNamedSleepEx( CTEXTSTR name, uint32_t n, LOGICAL th
 		lprintf( WIDE("You, as a thread, do not exist, sorry.") );
 	}
 }
+
+#ifdef USE_PIPE_SEMS
+int GetThreadSleeper( PTHREAD thread )
+{
+	return thread->pipe_ends[0];
+}
+#endif
 
 void  WakeableNamedThreadSleepEx( CTEXTSTR name, uint32_t n DBG_PASS )
 {
