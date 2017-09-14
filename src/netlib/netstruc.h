@@ -202,7 +202,7 @@ struct NetworkClient
 
 	SOCKET      Socket;
 	enum NetworkConnectionFlags  dwFlags; // CF_
-	uint8_t        *lpUserData;
+	uintptr_t        *lpUserData;
 
 	union {
 		void (CPROC*ClientConnected)( struct NetworkClient *old, struct NetworkClient *newclient ); // new incoming client.
@@ -269,18 +269,18 @@ typedef struct NetworkClient CLIENT;
 
 typedef struct client_slab_tag {
 	uint32_t count;
-   CLIENT client[1];
+	uintptr_t* pUserData;
+	CLIENT client[1];
 } CLIENT_SLAB, *PCLIENT_SLAB;
 
 // global network data goes here...
 LOCATION struct network_global_data{
 	uint32_t     nMaxClients;
 	int     nUserData;     // number of longs.
-	uint8_t*     pUserData;
+	//uint8_t*     pUserData;
 	PLIST   ClientSlabs;
 	LOGICAL bLog;
 	LOGICAL bQuit;
-	PTHREAD pThread;
 	PLIST   pThreads; // list of all threads - needed because of limit of 64 sockets per multiplewait
 	PCLIENT AvailableClients;
 	PCLIENT ActiveClients;

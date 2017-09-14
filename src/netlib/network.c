@@ -97,8 +97,10 @@ PRELOAD( InitNetworkGlobalOptions )
 
 static void LowLevelNetworkInit( void )
 {
-	if( !global_network_data )
+	if( !global_network_data ) {
 		SimpleRegisterAndCreateGlobal( global_network_data );
+		InitializeCriticalSec( &globalNetworkData.csNetwork );
+	}
 }
 
 PRIORITY_PRELOAD( InitNetworkGlobal, CONFIG_SCRIPT_PRELOAD_PRIORITY - 1 )
@@ -556,7 +558,7 @@ PCLIENT AddClosed( PCLIENT pClient )
 
 void ClearClient( PCLIENT pc DBG_PASS )
 {
-	POINTER pbtemp;
+	uintptr_t* pbtemp;
 	PCLIENT next;
 	PCLIENT *me;
 	CRITICALSECTION cs;
@@ -586,7 +588,7 @@ void ClearClient( PCLIENT pc DBG_PASS )
 #endif
 	MemSet( pc, 0, sizeof( CLIENT ) ); // clear all information...
 	pc->csLock = cs;
-	pc->lpUserData = (uint8_t*)pbtemp;
+	pc->lpUserData = pbtemp;
 	if( pc->lpUserData )
 		MemSet( pc->lpUserData, 0, globalNetworkData.nUserData * sizeof( uintptr_t ) );
 	pc->next = next;
@@ -1679,7 +1681,13 @@ int CPROC ProcessNetworkMessages( struct peer_thread_info *thread, uintptr_t unu
 			PCLIENT next;
 			for( n = 0; n < cnt; n++ ) {
 				pc = (PCLIENT)events[n].data.ptr;
-
+				if( pc == (PCLIENT)1 ) {
+					//char buf;
+					//stat = read( GetThreadSleeper( thread->pThread ), &buf, 1 );
+					//call wakeable sleep to just clear the sleep; because this is an event on the sleep pipe.
+					WakeableSleep( SLEEP_FOREVER );
+					return 1;
+				}
 				while( !NetworkLock( pc ) )
 					Relinquish();
 
@@ -1872,6 +1880,12 @@ uintptr_t CPROC NetworkThreadProc( PTHREAD thread )
 	//this_thread.event_list = CreateDataList( sizeof( struct pollfd ) );
 #ifdef __LINUX__
 	this_thread.epoll_fd = epoll_create1( EPOLL_CLOEXEC ); // close on exec (no inherit)
+	{
+		struct epoll_event ev;
+		ev.data.ptr = (void*)1;
+		ev.events = EPOLLIN;
+		epoll_ctl( this_thread.epoll_fd, EPOLL_CTL_ADD, GetThreadSleeper( thread ), &ev );
+	}
 #endif
 
 #endif
@@ -1923,7 +1937,6 @@ uintptr_t CPROC NetworkThreadProc( PTHREAD thread )
 	xlprintf( 2100 )(WIDE( "Shut down network thread." ));
 
 	globalNetworkData.flags.bThreadInitComplete = FALSE;
-	globalNetworkData.pThread = NULL;
 	globalNetworkData.flags.bNetworkReady = FALSE;
 	LeaveCriticalSec( &globalNetworkData.csNetwork );
 #  ifdef LOG_NETWORK_LOCKING
@@ -1969,7 +1982,17 @@ int NetworkQuit(void)
 		InternalRemoveClientEx( globalNetworkData.ActiveClients, TRUE, FALSE );
 	}
 	globalNetworkData.bQuit = TRUE;
-	WakeThread( globalNetworkData.pThread );
+	{
+		PTHREAD thread;
+		INDEX idx;
+		LIST_FORALL( globalNetworkData.pThreads, idx, PTHREAD, thread ) {
+			WakeThread( thread );
+#ifdef USE_WSA_EVENTS
+			struct peer_thread_info *peer_thread = (struct peer_thread_info*)GetThreadParam( thread );
+			WSASetEvent( peer_thread->hThread );
+#endif
+		}
+	}
 #ifdef _WIN32
 #  ifdef LOG_NOTICES
 	if( globalNetworkData.flags.bLogNotices )
@@ -2028,77 +2051,78 @@ LOGICAL NetworkAlive( void )
 
 //----------------------------------------------------------------------------
 
-static void ReallocClients( uint32_t wClients, int nUserData )
-{
-	uint8_t* pUserData;
+static void AddClients( void ) {
 	PCLIENT_SLAB pClientSlab;
-	if( !global_network_data )
-		LowLevelNetworkInit();
-
-	if( !MAX_NETCLIENTS )
-	{
-		//lprintf( WIDE("Starting Network Init!") );
-		InitializeCriticalSec( &globalNetworkData.csNetwork );
-	}
-	// else lprintf( WIDE("Restarting network init!") );
 
 	// protect all structures.
 	EnterCriticalSec( &globalNetworkData.csNetwork );
-	if( !wClients )
-		wClients = 16;  // default 16 clients...
-	if( !nUserData )
-		nUserData = 16;
 
-	// keep the max of specified connections..
-	if( wClients < MAX_NETCLIENTS )
-		wClients = MAX_NETCLIENTS;
-	if( wClients > MAX_NETCLIENTS )
 	{
 		size_t n;
 		//Log1( WIDE("Creating %d Client Resources"), MAX_NETCLIENTS );
-		pClientSlab = NULL;
-		pClientSlab = (PCLIENT_SLAB)NewArray( CLIENT_SLAB, wClients - MAX_NETCLIENTS );
-		MemSet( pClientSlab, 0, (wClients - MAX_NETCLIENTS)*sizeof(CLIENT_SLAB) ); // can't clear the lpUserData Address!!!
-		pClientSlab->count = wClients - MAX_NETCLIENTS;
+		pClientSlab = NewPlus( CLIENT_SLAB, (MAX_NETCLIENTS - 1 )* sizeof( CLIENT ) );
+		pClientSlab->pUserData = NewArray( uintptr_t, MAX_NETCLIENTS * globalNetworkData.nUserData );
+		MemSet( pClientSlab->client, 0, (MAX_NETCLIENTS) * sizeof( CLIENT ) ); // can't clear the lpUserData Address!!!
+		MemSet( pClientSlab->pUserData, 0, (MAX_NETCLIENTS) * globalNetworkData.nUserData * sizeof( uintptr_t ) );
+		pClientSlab->count = MAX_NETCLIENTS;
+
 		for( n = 0; n < pClientSlab->count; n++ )
 		{
 			pClientSlab->client[n].Socket = INVALID_SOCKET; // unused sockets on all clients.
+			pClientSlab->client[n].lpUserData = pClientSlab->pUserData + (n * globalNetworkData.nUserData);
+			InitializeCriticalSec( &pClientSlab->client[n].csLock );
 			AddAvailable( pClientSlab->client + n );
 		}
 		AddLink( &globalNetworkData.ClientSlabs, pClientSlab );
 	}
 
+	LeaveCriticalSec( &globalNetworkData.csNetwork );
+}
+
+//----------------------------------------------------------------------------
+
+
+static void ReallocClients( uint32_t wClients, int nUserData )
+{
+
+	// protect all structures.
+	EnterCriticalSec( &globalNetworkData.csNetwork );
+	if( !wClients )
+		wClients = 32;  // default 32 clients per slab...
+	if( !nUserData )
+		nUserData = 4;  // defualt to 4 pointer words per socket; most applications only use 1.
+
 	// keep the max of specified data..
 	if( nUserData < globalNetworkData.nUserData )
 		nUserData = globalNetworkData.nUserData;
 
-	if( nUserData > globalNetworkData.nUserData || wClients > MAX_NETCLIENTS )
+	// keep the max of specified connections..
+	if( wClients < MAX_NETCLIENTS )
+		wClients = MAX_NETCLIENTS;
+
+	// if the client slab size increases, new slabs will be the new size; old slabs will still be the old size.
+
+	if( nUserData > globalNetworkData.nUserData ) // have to reallocate the user data for all sockets
 	{
 		INDEX idx;
 		PCLIENT_SLAB slab;
 		uint32_t n;
-		int tot = 0;
-		//globalNetworkData.nUserData = nUserData;
-		pUserData = (uint8_t*)NewArray( uint8_t, nUserData * sizeof( uintptr_t ) * wClients );
-		MemSet( pUserData, 0, nUserData * sizeof( uintptr_t ) * wClients );
+		// for all existing client slabs...
 		LIST_FORALL( globalNetworkData.ClientSlabs, idx, PCLIENT_SLAB, slab )
 		{
+			uintptr_t* pUserData;
+			pUserData = NewArray( uintptr_t, nUserData * sizeof( uintptr_t ) * slab->count );// slab->pUserData;
 			for( n = 0; n < slab->count; n++ )
 			{
 				if( slab->client[n].lpUserData )
-					MemCpy( (char*)pUserData + (tot * (nUserData * sizeof( uintptr_t )))
+					MemCpy( (char*)pUserData + (n * (nUserData * sizeof( uintptr_t )))
 					      , slab->client[n].lpUserData
 					      , globalNetworkData.nUserData * sizeof( uintptr_t ) );
-				slab->client[n].lpUserData = (unsigned char*)pUserData + (tot * (nUserData * sizeof( uintptr_t )));
-
-				InitializeCriticalSec( &slab->client[n].csLock );
-
-				tot++;
+				slab->client[n].lpUserData = pUserData + (n * nUserData);
 			}
+			Deallocate( uintptr_t*, slab->pUserData );
+			slab->pUserData = pUserData;
 		}
-		if( globalNetworkData.pUserData )
-			Deallocate( uint8_t*, globalNetworkData.pUserData );
-		globalNetworkData.pUserData = pUserData;
 	}
 	MAX_NETCLIENTS = wClients;
 	globalNetworkData.nUserData = nUserData;
@@ -2114,18 +2138,21 @@ NETWORK_PROC( LOGICAL, NetworkWait )(HWND hWndNotify,uint32_t wClients,int wUser
 	// want to start the thead; clear quit.
 	if( !global_network_data )
 		LowLevelNetworkInit();
+
+	// allow network to restart with new NetworkWait after NetworkQuit
 	globalNetworkData.bQuit = FALSE;
 
 	ReallocClients( wClients, wUserData );
 
 	//-------------------------
 	// please be mindful of the following data declared immediate...
-	if( globalNetworkData.pThreads )
+	if( GetLinkCount( globalNetworkData.pThreads ) )
 	{
-		xlprintf(2400)( WIDE("Thread already active...") );
+		xlprintf(200)( WIDE("Threads already active...") );
 		// might do something... might not...
 		return TRUE; // network thread active, do not realloc
 	}
+
 	AddLink( &globalNetworkData.pThreads, ThreadTo( NetworkThreadProc, (uintptr_t)/*peer_thread==*/NULL ) );
 	globalNetworkData.nPeers++;
 	AddIdleProc( IdleProcessNetworkMessages, 1 );
@@ -2148,32 +2175,6 @@ NETWORK_PROC( LOGICAL, NetworkWait )(HWND hWndNotify,uint32_t wClients,int wUser
 			globalNetworkData.system_name = DupCStr( buffer );
 	}
 	LoadNetworkAddresses();
-#if 0
-//#ifdef WIN32
-	{
-		struct addrinfo *result;
-		struct addrinfo *test;
-#ifdef _UNICODE
-		char *tmp = WcharConvert( globalNetworkData.system_name );
-		getaddrinfo( tmp, NULL, NULL, (struct addrinfo**)&result );
-		Deallocate( char*, tmp );
-#else
-		getaddrinfo( globalNetworkData.system_name, NULL, NULL, (struct addrinfo**)&result );
-#endif
-		for( test = result; test; test = test->ai_next )
-		{
-			//if( test->ai_family == AF_INET )
-			{
-				SOCKADDR *tmp;
-				AddLink( &globalNetworkData.addresses, tmp = AllocAddr() );
-				((uintptr_t*)tmp)[-1] = test->ai_addrlen;
-				MemCpy( tmp, test->ai_addr, test->ai_addrlen );
-			}
-		}
-	}
-//#endif
-#endif
-	//lprintf( WIDE("Network Initialize Complete!") );
 	return globalNetworkData.flags.bThreadInitOkay;  // return status of thread initialization
 }
 
@@ -2187,6 +2188,8 @@ get_client:
 #ifdef LOG_NETWORK_LOCKING
 	lprintf( WIDE("GetFreeNetworkClient in global") );
 #endif
+	if( !globalNetworkData.AvailableClients ) // if there's none available, add some with current config
+		AddClients();
 	for( pClient = globalNetworkData.AvailableClients; pClient; pClient = pClient->next )
 		if( !( pClient->dwFlags & CF_CLOSING ) )
 			break;
@@ -2243,7 +2246,7 @@ NETWORK_PROC( void, SetNetworkLong )(PCLIENT lpClient, int nLong, uintptr_t dwVa
 {
 	if( lpClient && ( nLong < globalNetworkData.nUserData ) )
 	{
-		*(uintptr_t*)(lpClient->lpUserData+(nLong * sizeof(uintptr_t))) = dwValue;
+		lpClient->lpUserData[nLong] = dwValue;
 	}
 	return;
 }
@@ -2313,7 +2316,7 @@ NETWORK_PROC( uintptr_t, GetNetworkLong )(PCLIENT lpClient,int nLong)
 	}
 	else if( nLong < globalNetworkData.nUserData )
 	{
-		return(*(uintptr_t*)(lpClient->lpUserData + (nLong * sizeof(uintptr_t))));
+		return lpClient->lpUserData[nLong];
 	}
 
 	return (uintptr_t)-1;   //spv:980303
@@ -2423,7 +2426,7 @@ SOCKADDR *CreateRemote( CTEXTSTR lpName,uint16_t nHisPort)
 		return CreateUnixAddress( lpName );
 #endif
 	if( lpName[0] == '[' && lpName[StrLen( lpName ) - 1] == ']' ) {
-		int len;
+		size_t len;
 		tmpName = NewArray( char, len = StrLen( lpName ) );
 		memcpy( tmpName, lpName + 1, len - 2 );
 		tmpName[len - 2] = 0;

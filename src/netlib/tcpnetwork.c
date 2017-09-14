@@ -958,9 +958,6 @@ size_t FinishPendingRead(PCLIENT lpClient DBG_PASS )  // only time this should b
 					// otherwise the on-close notificatino can cause this to dispatch again.
 					size_t length = lpClient->RecvPending.dwUsed;
 					lpClient->RecvPending.dwUsed = 0;
-#ifdef __LINUX__
-					lpClient->dwFlags |= CF_PROCESSING;
-#endif
 #ifdef LOG_PENDING
 					lprintf( WIDE( "Send to application...." ) );
 #endif
@@ -980,9 +977,6 @@ size_t FinishPendingRead(PCLIENT lpClient DBG_PASS )  // only time this should b
 						return -1;
 #ifdef LOG_PENDING
 					lprintf( WIDE( "back from applciation... (loop to next)" ) ); // new read probably pending ehre...
-#endif
-#ifdef __LINUX__
-					lpClient->dwFlags &= ~CF_PROCESSING;
 #endif
 					continue;
 				}
@@ -1088,35 +1082,6 @@ size_t doReadExx2(PCLIENT lpClient,POINTER lpBuffer,size_t nBytes, LOGICAL bIsSt
 #endif
 			FinishPendingRead( lpClient DBG_SRC );
 		}
-#ifdef __LINUX__
-		// if not unix, then the socket is already generating
-		// WindowsMessage_ReadReady when there is something to
-		// read...
-		if( lpClient->dwFlags & CF_READREADY )
-		{
-			lprintf( WIDE("Data already present for read...") );
-			int status = FinishPendingRead( lpClient DBG_SRC );
-			if( lpClient->dwFlags & CF_ACTIVE )
-			{
-				NetworkUnlockEx( lpClient DBG_SRC );
-				return status; // returns bytes pending...
-			}
-			// else we shouldn't leave a critical section
-			// of a client object which is not active...
-			lprintf( WIDE("Leaving read from a bad state... adn we do not unlock.") );
-			NetworkUnlockEx( lpClient DBG_SRC );
-			return 0;
-		}
-		else
-		{
-			//  no data to read...
-			//lprintf( WIDE( "Not sure if READREADY" ) );
-			if( !( lpClient->dwFlags & CF_PROCESSING ) )
-				WakeThread( globalNetworkData.pThread );
-		}
-#else
-		//FinishPendingRead( lpClient DBG_SRC );
-#endif
 	}
 	else
 	{

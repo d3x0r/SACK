@@ -406,13 +406,7 @@ NETWORK_PROC( int, doUDPRead )( PCLIENT pc, POINTER lpBuffer, int nBytes )
 	pc->RecvPending.buffer.p = lpBuffer;
 	{
 		pc->dwFlags |= CF_READPENDING;
-
 		// we are now able to read, so schedule the socket.
-#ifdef __LINUX__
-		{
-			WakeThread( globalNetworkData.pThread );
-		}
-#endif
 	}
 	//FinishUDPRead( pc );  // do actual read.... (results in read callback)
 	return TRUE;
@@ -458,11 +452,6 @@ int FinishUDPRead( PCLIENT pc )
 		{
 		case WSAEWOULDBLOCK: // NO data returned....
 			pc->dwFlags |= CF_READPENDING;
-#ifdef __LINUX__
-			{
-				WakeThread( globalNetworkData.pThread );
-			}
-#endif
 			return TRUE;
 #ifdef _WIN32
 		// this happens on WIN2K/XP - ICMP Port Unreachable (nothing listening there)
