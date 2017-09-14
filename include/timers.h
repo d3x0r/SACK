@@ -33,6 +33,19 @@
 #endif
 #endif
 
+// this is a method replacement to use PIPEs instead of SEMAPHORES
+// replacement code only affects linux.
+#if defined( __QNX__ ) || defined( __MAC__) || defined( __LINUX__ ) || defined( __ANDROID__ )
+#  define USE_PIPE_SEMS
+// no semtimedop; no semctl, etc
+//#include <sys/sem.h>
+#endif
+
+#ifdef USE_PIPE_SEMS
+#  define _NO_SEMTIMEDOP_
+#endif
+
+
 SACK_NAMESPACE
 /* This namespace contains methods for working with timers and
    threads. Since timers are implemented in an asynchronous
@@ -322,6 +335,9 @@ TIMER_PROC( void, WakeableNamedThreadSleepEx )( CTEXTSTR name, uint32_t n DBG_PA
 TIMER_PROC( void, WakeNamedThreadSleeperEx )( CTEXTSTR name, THREAD_ID therad DBG_PASS );
 #define WakeNamedThreadSleeper( name, thread )   WakeNamedThreadSleeperEx( name, thread DBG_SRC )
 
+#ifdef USE_PIPE_SEMS
+TIMER_PROC( int, GetThreadSleeper )( PTHREAD thread );
+#endif
 /* <combine sack::timers::WakeableSleepEx@uint32_t milliseconds>
    
    \ \                                                      */
