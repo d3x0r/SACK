@@ -701,7 +701,7 @@ MEM_PROC  uint32_t MEM_API  LockedDecrement ( uint32_t* p );
    Example
    <code>
    uint32_t variable = 0;
-   uint32_t oldvalue = InterlockedExchange( &amp;variable, 1 );
+   uint32_t oldvalue = LockedExchange( &amp;variable, 1 );
    </code>                                                       */
 MEM_PROC  uint32_t MEM_API  LockedExchange ( volatile uint32_t* p, uint32_t val );
 /* Sets a 32 bit value into memory. If the length to set is not
