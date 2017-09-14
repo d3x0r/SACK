@@ -173,8 +173,11 @@ struct peer_thread_info
 	int nWaitEvents; // updated with count thread is waiting on
 #endif
 #ifdef __LINUX__
+#  ifdef __MAC__
+	int kqueue;
+#  else
 	int epoll_fd;
-	//struct pollfd *events;
+#  endif
 	uint32_t nEvents;
 #endif
 	struct {
