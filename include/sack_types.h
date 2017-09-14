@@ -29,7 +29,7 @@ But WHO doesn't have stdint?  BTW is sizeof( size_t ) == sizeof( void* )
 #endif
 
 #ifndef __64__
-#  if defined( _WIN64 ) || defined( ENVIRONMENT64) || defined( __x86_64__ ) || defined( __ia64 )
+#  if defined( _WIN64 ) || defined( ENVIRONMENT64 ) || defined( __x86_64__ ) || defined( __ia64 ) || defined( __ppc64__ ) || defined( __LP64__ )
 #    define __64__ 1
 #  endif
 #endif
