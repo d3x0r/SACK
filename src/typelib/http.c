@@ -955,7 +955,7 @@ HTTPState GetHttpsQuery( PTEXT address, PTEXT url )
 			vtprintf( state->pvtOut, WIDE( "host: %s\r\n" ), GetText( address ) );
 			vtprintf( state->pvtOut, WIDE( "\r\n\r\n" ) );
 #ifndef NO_SSL
-			if( ssl_BeginClientSession( pc, NULL, 0, NULL, 0 ) )
+			if( ssl_BeginClientSession( pc, NULL, 0, NULL, 0, NULL, 0 ) )
 			{
 				state->waiter = MakeThread();
 				while( pc && ( state->last_read_tick > ( GetTickCount() - 20000 ) ) )
@@ -1133,7 +1133,7 @@ struct HttpServer *CreateHttpsServerEx( CTEXTSTR interface_address, CTEXTSTR Tar
 	server->server = OpenTCPListenerAddrEx( tmp = CreateSockAddress( interface_address ? interface_address : WIDE( "0.0.0.0" ), 80 )
 		, AcceptHttpClient );
 	SetNetworkLong( server->server, 0, (uintptr_t)server );
-	ssl_BeginServer( server->server, NULL, 0, NULL, 0 );
+	ssl_BeginServer( server->server, NULL, 0, NULL, 0, NULL, 0 );
 	ReleaseAddress( tmp );
 	if( !server->server )
 	{
@@ -1192,6 +1192,9 @@ PLIST GetHttpHeaderFields( HTTPState pHttpState )
 	return pHttpState->fields;
 }
 
+int GetHttpVersion( HTTPState pHttpState ) {
+	return pHttpState->response_version;
+}
 
 HTTP_NAMESPACE_END
 #undef l
