@@ -208,7 +208,7 @@ static void CPROC WebSocketClientConnected( PCLIENT pc, int error )
 
 	if( !error )
 	{
-		if( websock->input_state.flags.use_ssl )
+		if( websock->input_state.flags.use_ssl && !ssl_IsClientSecure( websock->pc ) )
 			ssl_BeginClientSession( websock->pc, NULL, 0, NULL, 0, NULL, 0 );
 	}
 	else

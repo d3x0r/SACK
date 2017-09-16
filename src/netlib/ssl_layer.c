@@ -430,10 +430,19 @@ static void ssl_ReadComplete( PCLIENT pc, POINTER buffer, size_t length )
 			// == 1 if is already done, and not newly done
 			if( hs_rc == 2 ) {
 				// newly completed handshake.
-				if( pc->ssl_session->dwOriginalFlags & CF_CPPREAD )
-					pc->ssl_session->cpp_user_read( pc->psvRead, NULL, 0 );
-				else
-					pc->ssl_session->user_read( pc, NULL, 0 );
+				if( !(pc->dwFlags & CF_READPENDING) ) {
+					if( SSL_get_peer_certificate( pc->ssl_session->ssl ) ) {
+						int r;
+						if( ( r = SSL_get_verify_result( pc->ssl_session->ssl ) ) != X509_V_OK ) {
+							lprintf( "Server identity failed." );
+							ERR_print_errors_cb( logerr, (void*)__LINE__ );
+						}
+					}
+					if( pc->ssl_session->dwOriginalFlags & CF_CPPREAD )
+						pc->ssl_session->cpp_user_read( pc->psvRead, NULL, 0 );
+					else
+						pc->ssl_session->user_read( pc, NULL, 0 );
+				}
 				len = 0;
 			}
 			else if( hs_rc == 1 )
@@ -789,7 +798,12 @@ LOGICAL ssl_BeginClientSession( PCLIENT pc, POINTER client_keypair, size_t clien
 			BIO_write( keybuf, client_keypair, (int)client_keypairlen );
 			params.password = (char*)keypass;
 			params.passlen = (int)keypasslen;
-			PEM_read_bio_PrivateKey( keybuf, &ses->cert->pkey, pem_password, &params );
+			ses->cert->pkey = EVP_PKEY_new();
+			if( !PEM_read_bio_PrivateKey( keybuf, &ses->cert->pkey, pem_password, &params ) ) {
+				lprintf( "failed decode key..." );
+				BIO_free( keybuf );
+				return FALSE;
+			}
 			BIO_free( keybuf );
 		}
 		SSL_CTX_use_PrivateKey( ses->ctx, ses->cert->pkey );
@@ -802,10 +816,10 @@ LOGICAL ssl_BeginClientSession( PCLIENT pc, POINTER client_keypair, size_t clien
 		BIO_write( keybuf, rootCert, (int)rootCertLen );
 		PEM_read_bio_X509( keybuf, &cert, NULL, NULL );
 		BIO_free( keybuf );
-		SSL_CTX_add_extra_chain_cert( ses->ctx, cert );
+		X509_STORE *store = SSL_CTX_get_cert_store( ses->ctx );
+		X509_STORE_add_cert( store, cert );
 	}
 	ssl_InitSession( ses );
-
 	SSL_set_connect_state( ses->ssl );
 
 	ses->dwOriginalFlags = pc->dwFlags;
@@ -814,39 +828,8 @@ LOGICAL ssl_BeginClientSession( PCLIENT pc, POINTER client_keypair, size_t clien
 	pc->read.ReadComplete = ssl_ReadComplete;
 	pc->dwFlags &= ~CF_CPPREAD;
 
-	//SSL_use_certificate( )
 
 	pc->ssl_session = ses;
-
-	//ssl_accept( pc->ssl_session->ssl );
-	lprintf( "Warning: This is meant to be called during connect; no longer internally auto handshakes here; but should upon returning from here instead." );
-/*
-	ssl_ReadComplete( pc, NULL, 0 );
-
-	{
-		int r;
-		if( ( r = SSL_do_handshake( ses->ssl ) ) < 0 ) {
-			//char buf[256];
-			//r = SSL_get_error( ses->ssl, r );
-			ERR_print_errors_cb( logerr, (void*)__LINE__ );
-			//lprintf( "err: %s", ERR_error_string( r, buf ) );
-		}
-		{
-			// the read generated write data, output that data
-			size_t pending = BIO_ctrl_pending( pc->ssl_session->wbio );
-			if( pending > 0 ) {
-				int read;
-				if( pending > ses->obuflen ) {
-					if( ses->obuffer )
-						Deallocate( uint8_t *, ses->obuffer );
-					ses->obuffer = NewArray( uint8_t, ses->obuflen = pending * 2 );
-				}
-				read = BIO_read( pc->ssl_session->wbio, pc->ssl_session->obuffer, (int)pc->ssl_session->obuflen );
-				SendTCP( pc, pc->ssl_session->obuffer, read );
-			}
-		}
-	}
-*/
 
 	return TRUE;
 }
