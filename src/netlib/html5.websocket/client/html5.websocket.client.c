@@ -24,7 +24,7 @@ static void SendRequestHeader( WebSocketClient websock )
 	vtprintf( pvtHeader, WIDE("GET /%s%s%s%s%s HTTP/1.1\r\n")
 			  , websock->url->resource_path?websock->url->resource_path:WIDE("")
 			  , websock->url->resource_path?WIDE("/"):WIDE("")
-			  , websock->url->resource_file
+			  , websock->url->resource_file?websock->url->resource_file:WIDE("")
 			  , websock->url->resource_extension?WIDE("."):WIDE("")
 			  , websock->url->resource_extension?websock->url->resource_extension:WIDE("")
 
@@ -56,7 +56,7 @@ static void SendRequestHeader( WebSocketClient websock )
 	//x3JJHMbDL1EzLkh9GBhXDw == \r\n") );
 	vtprintf( pvtHeader, WIDE("Sec-WebSocket-Version: 13\r\n") );
 	if( websock->input_state.flags.deflate ) {
-		vtprintf( pvtHeader, WIDE( "Sec-WebSocket-Extensions: 13\r\n" ) );
+		vtprintf( pvtHeader, WIDE( "Sec-WebSocket-Extensions: permessage-deflate\r\n" ) );
 	}
 	vtprintf( pvtHeader, WIDE("\r\n") );
 	{
@@ -189,7 +189,7 @@ static void CPROC WebSocketClientClosed( PCLIENT pc )
 	if( websock )
 	{
 		if( websock->input_state.on_close ) {
-			websock->input_state.on_close( pc, websock->input_state.psv_on );
+			websock->input_state.on_close( pc, websock->input_state.psv_on, 1006, NULL );
 			websock->input_state.on_close = NULL;
 		}
 		Deallocate( uint8_t*, websock->input_state.fragment_collection );
@@ -300,14 +300,25 @@ void WebSocketConnect( PCLIENT pc ) {
 }
 
 // end a websocket connection nicely.
-void WebSocketClose( PCLIENT pc )
+void WebSocketClose( PCLIENT pc, int code, const char *reason )
 {
 	WebSocketClient websock = (WebSocketClient)GetNetworkLong( pc, 0 );
+	char buf[130];
+	size_t buflen;
+	if( code ) {
+		buf[0] = code / 256;
+		buf[1] = code % 256;
+		StrCpyEx( buf + 2, reason, 124 );
+		buflen = 2 + strlen( buf + 2 );
+	}
+	else {
+		buflen = 0;
+	}
 	if( websock->Magic == 0x20130912 ) {
 		struct html5_web_socket *serverSock = (struct html5_web_socket*)websock;
 		if( serverSock->flags.initial_handshake_done ) {
 			//lprintf( "Send server side close with no payload." );
-			SendWebSocketMessage( pc, 8, 1, serverSock->input_state.flags.expect_masking, NULL, 0, serverSock->input_state.flags.use_ssl );
+			SendWebSocketMessage( pc, 8, 1, serverSock->input_state.flags.expect_masking, (const uint8_t*)buf, buflen, serverSock->input_state.flags.use_ssl );
 			serverSock->input_state.flags.closed = 1;
 		}
 		else {
@@ -321,7 +332,7 @@ void WebSocketClose( PCLIENT pc )
 			if( websock->flags.connected ) {
 				while( !NetworkLockEx( pc DBG_SRC ) )
 					Relinquish();
-				SendWebSocketMessage( pc, 8, 1, websock->input_state.flags.expect_masking, NULL, 0, websock->input_state.flags.use_ssl );
+				SendWebSocketMessage( pc, 8, 1, websock->input_state.flags.expect_masking, (const uint8_t*)buf, buflen, websock->input_state.flags.use_ssl );
 				websock->input_state.flags.closed = 1;
 				NetworkUnlock( pc );
 			}

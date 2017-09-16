@@ -432,10 +432,16 @@ static void CPROC read_complete( PCLIENT pc, POINTER buffer, size_t length )
 							char *output;
 							output = DupTextToChar( GetText( value ) );
 							//LogBinary( output, GetTextSize( value ) );
-							SendTCP( pc, output, GetTextSize( value ) );
+							if( socket->input_state.flags.use_ssl )
+								ssl_Send( pc, output, GetTextSize( value ) );
+							else
+								SendTCP( pc, output, GetTextSize( value ) );
 						}
 #else
-						SendTCP( pc, GetText( value ), GetTextSize( value ) );
+						if( socket->input_state.flags.use_ssl )
+							ssl_Send( pc, GetText( value ), GetTextSize( value ) );
+						else
+							SendTCP( pc, GetText( value ), GetTextSize( value ) );
 #endif
 						//lprintf( "Sent http reply." );
 						VarTextDestroy( &pvt_output );
@@ -443,7 +449,7 @@ static void CPROC read_complete( PCLIENT pc, POINTER buffer, size_t length )
 							socket->input_state.psv_open = socket->input_state.on_open( pc, socket->input_state.psv_on );
 					}
 					else {
-						WebSocketClose( pc );
+						WebSocketClose( pc, 0, NULL );
 						return;
 					}
 					// keep this until close, application might want resource and/or headers from this.
@@ -498,6 +504,8 @@ static void CPROC connected( PCLIENT pc_server, PCLIENT pc_new )
 	socket->Magic = 0x20130912;
 	socket->pc = pc_new;
 	socket->input_state = server_socket->input_state; // clone callback methods and config flags
+	if( ssl_IsClientSecure( pc_new ) )
+		socket->input_state.flags.use_ssl = 1;
 	socket->http_state = CreateHttpState(); // start a new http state collector
 
 	SetNetworkLong( pc_new, 0, (uintptr_t)socket );

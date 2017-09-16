@@ -21,7 +21,6 @@ static void _SendWebSocketMessage( PCLIENT pc, int opcode, int final, int do_mas
 		lprintf( WIDE("Invalid send, control packet with large payload. (opcode %d  length %") _size_f WIDE(")"), opcode, length );
 		return;
 	}
-
 	if( length > 125 )
 	{
 		if( length > 32767 )
@@ -414,7 +413,22 @@ void ProcessWebSockProtocol( WebSocketInputState websock, PCLIENT pc, const uint
 						websock->flags.closed = 1;
 					}
 					if( websock->on_close ) {
-						websock->on_close( pc, websock->psv_open );
+						int code;
+						char buf[128];
+						if( websock->frame_length > 2 ) {
+							StrCpyEx( buf, (char*)(websock->fragment_collection + 2), websock->frame_length - 2 );
+							buf[websock->frame_length - 2] = 0;
+							code = ((int)buf[0] << 8) + buf[1];
+						}
+						else if( websock->frame_length ) {
+							code = ((int)buf[0] << 8) + buf[1];
+							buf[0] = 0;
+						}
+						else {
+							code = 1000;
+							buf[0] = 0;
+						}
+						websock->on_close( pc, websock->psv_open, code, buf );
 						websock->on_close = NULL;
 					}
 					websock->fragment_collection_length = 0;

@@ -26,6 +26,11 @@ LOGICAL ssl_BeginServer( PCLIENT pc, POINTER cert, size_t certlen, POINTER keypa
 LOGICAL ssl_BeginClientSession( PCLIENT pc, POINTER client_keypair, size_t client_keypairlen, POINTER keypass, size_t keypasslen, POINTER rootCert, size_t rootCertLen ) {
 	return FALSE;
 }
+
+LOGICAL ssl_IsClientSecure( PCLIENT pc ) {
+	return FALSE;
+}
+
 SACK_NETWORK_NAMESPACE_END
 
 #else
@@ -121,8 +126,6 @@ static struct ssl_global
 	} flags;
 	LOGICAL trace;
 	struct tls_config *tls_config;
-
-	SSL_CTX        *ssl_ctx_server;
 	uint8_t cipherlen;
 }ssl_global;
 
@@ -700,10 +703,12 @@ LOGICAL ssl_BeginServer( PCLIENT pc, POINTER cert, size_t certlen, POINTER keypa
 		int r;
 		SSL_CTX_set_cipher_list( ses->ctx, "ALL:!ADH:!LOW:!EXP:!MD5:@STRENGTH" );
 
+		/*
 		r = SSL_CTX_set0_chain( ses->ctx, ses->cert->chain );
 		if( r <= 0 ) {
 			ERR_print_errors_cb( logerr, (void*)__LINE__ );
 		}
+		*/
 		r = SSL_CTX_use_certificate( ses->ctx, sk_X509_value( ses->cert->chain, 0 ) );
 		if( r <= 0 ) {
 			ERR_print_errors_cb( logerr, (void*)__LINE__ );
@@ -847,6 +852,9 @@ LOGICAL ssl_BeginClientSession( PCLIENT pc, POINTER client_keypair, size_t clien
 }
 
 
+LOGICAL ssl_IsClientSecure(PCLIENT pc) {
+	return pc->ssl_session != NULL;
+}
 
 //--------------------- Make Cert Request
 //#include <stdio.h>
