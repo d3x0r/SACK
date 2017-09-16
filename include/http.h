@@ -133,6 +133,7 @@ HTTP_EXPORT PTEXT HTTPAPI GetHttpResource( HTTPState pHttpState );
 */
 HTTP_EXPORT PLIST HTTPAPI GetHttpHeaderFields( HTTPState pHttpState );
 
+HTTP_EXPORT int HTTPAPI GetHttpVersion( HTTPState pHttpState );
 
 HTTP_EXPORT /* Enumerates the various http header fields by passing them
    each sequentially to the specified callback.

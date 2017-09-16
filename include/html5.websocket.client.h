@@ -17,7 +17,7 @@ length, and what is received will be exactly like the block that was sent.
 *****************************************************/
 
 #include <network.h>
-
+#include <http.h>
 #ifdef __cplusplus
 #else
 #endif
@@ -31,7 +31,7 @@ length, and what is received will be exactly like the block that was sent.
 // the result returned from the web_socket_opened event will
 // become the new value used for future uintptr_t parameters to other events.
 typedef uintptr_t (*web_socket_opened)( PCLIENT pc, uintptr_t psv );
-typedef void (*web_socket_closed)( PCLIENT pc, uintptr_t psv );
+typedef void (*web_socket_closed)( PCLIENT pc, uintptr_t psv, int code, const char *reason );
 typedef void (*web_socket_error)( PCLIENT pc, uintptr_t psv, int error );
 typedef void (*web_socket_event)( PCLIENT pc, uintptr_t psv, LOGICAL binary, CPOINTER buffer, size_t msglen );
 // protocolsAccepted value set can be released in opened callback, or it may be simply assigned as protocols passed...
@@ -69,7 +69,8 @@ WEBSOCKET_EXPORT PCLIENT WebSocketOpen( CTEXTSTR address
 WEBSOCKET_EXPORT void WebSocketConnect( PCLIENT );
 
 // end a websocket connection nicely.
-WEBSOCKET_EXPORT void WebSocketClose( PCLIENT );
+// code must be 1000, or 3000-4999, and reason must be less than 123 characters (125 bytes with code)
+WEBSOCKET_EXPORT void WebSocketClose( PCLIENT, int code, const char *reason );
 
 
 // there is a control bit for whether the content is text or binary or a continuation
@@ -114,6 +115,5 @@ WEBSOCKET_EXPORT void SetWebSocketDeflate( PCLIENT pc, int enable_flags );
 // this can be used to disable masking on client or enable on server
 // (masked output from server to client is not supported by browsers)
 WEBSOCKET_EXPORT void SetWebSocketMasking( PCLIENT pc, int enable );
-
 
 #endif
