@@ -540,6 +540,14 @@ void SetWebSocketCloseCallback( PCLIENT pc, web_socket_closed callback )
 	}
 }
 
+void SetWebSocketHttpCallback( PCLIENT pc, web_socket_http_request callback )
+{
+	if( pc ) {
+		struct web_socket_input_state *input_state = (struct web_socket_input_state*)GetNetworkLong( pc, 1 );
+		input_state->on_request = callback;
+	}
+}
+
 void SetWebSocketErrorCallback( PCLIENT pc, web_socket_error callback )
 {
 	if( pc ) {
@@ -562,3 +570,4 @@ void SetWebSocketMasking( PCLIENT pc, int enable ) {
 		input_state->flags.expect_masking = enable;
 	}
 }
+

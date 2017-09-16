@@ -62,6 +62,7 @@ struct web_socket_input_state
 	web_socket_opened on_open;
 	web_socket_error on_error;
 	web_socket_accept on_accept;  // server socket event
+	web_socket_http_request on_request;
 	uintptr_t psv_on;
 	uintptr_t psv_open; // result of the open, to pass to read
 
@@ -84,7 +85,6 @@ struct html5_web_socket {
 	PCLIENT pc;
 	POINTER buffer;
 	char *protocols;
-	web_socket_http_request on_request;  // callback to send unhandled requests to a handler
 
 	struct web_socket_input_state input_state;
 };

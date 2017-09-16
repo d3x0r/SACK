@@ -232,11 +232,10 @@ static void CPROC read_complete( PCLIENT pc, POINTER buffer, size_t length )
 						|| !TextLike( value, "upgrade" )
 						|| !TextLike( value2, "websocket" ) ) {
 						lprintf( "request is not an upgrade for websocket." );
-						VarTextDestroy( &pvt_output );
 						socket->flags.initial_handshake_done = 1;
 						socket->flags.http_request_only = 1;
-						if( socket->on_request )
-							socket->on_request( pc, socket->input_state.psv_on );
+						if( socket->input_state.on_request )
+							socket->input_state.on_request( pc, socket->input_state.psv_on );
 						else {
 							RemoveClient( pc );
 							return;
@@ -499,7 +498,6 @@ static void CPROC connected( PCLIENT pc_server, PCLIENT pc_new )
 	socket->Magic = 0x20130912;
 	socket->pc = pc_new;
 	socket->input_state = server_socket->input_state; // clone callback methods and config flags
-	socket->on_request = server_socket->on_request;
 	socket->http_state = CreateHttpState(); // start a new http state collector
 
 	SetNetworkLong( pc_new, 0, (uintptr_t)socket );
@@ -555,5 +553,16 @@ PTEXT GetWebSocketResource( PCLIENT pc ) {
 	}
 	return NULL;
 }
+
+HTTPState GetWebSocketHttpState( PCLIENT pc ) {
+	if( pc ) {
+		HTML5WebSocket socket = (HTML5WebSocket)GetNetworkLong( pc, 0 );
+		if( socket && socket->Magic == 0x20130912 ) {
+			return socket->http_state;
+		}
+	}
+	return NULL;
+}
+
 
 HTML5_WEBSOCKET_NAMESPACE_END

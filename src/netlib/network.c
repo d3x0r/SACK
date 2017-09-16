@@ -1544,13 +1544,13 @@ void RemoveThreadEvent( PCLIENT pc ) {
 	{
 #  ifdef __MAC__
 #    ifdef __64__
-		kevent64_s *ev;
-		EV_SET64( &ev, pc->Socket, EVFILT_READ, EV_DEL, 0, 0, (uint64_t)pc, NULL, NULL );
-		kevent( peer->kqueue, &ev, 1, 0, 0, 0 );
+		kevent64_s ev;
+		EV_SET64( &ev, pc->Socket, EVFILT_READ, EV_DELETE, 0, 0, (uint64_t)pc, NULL, NULL );
+		kevent64( thread->kqueue, &ev, 1, 0, 0, 0, 0 );
 #    else
-		kevent *ev;
-		EV_SET( &ev, pc->Socket, EVFILT_READ, EV_DEL, 0, 0, (uint64_t)pc, NULL, NULL );
-		kevent( peer->kqueue, &ev, 1, 0, 0, 0 );
+		kevent ev;
+		EV_SET( &ev, pc->Socket, EVFILT_READ, EV_DELETE, 0, 0, (uint64_t)pc, NULL, NULL );
+		kevent( thread->kqueue, &ev, 1, 0, 0, 0 );
 #    endif
 #  else
 		int r;
@@ -1654,13 +1654,13 @@ static void AddThreadEvent( PCLIENT pc )
 		kevent64_s ev;
 		if( pc->dwFlags & CF_LISTEN ) {
 			EV_SET64( &ev, pc->Socket, EVFILT_READ, EV_ADD, 0, 0, (uint64_t)pc, NULL, NULL );
-			kevent( peer->kqueue, &ev, 1, 0, 0, 0 );
+			kevent64( peer->kqueue, &ev, 1, 0, 0, 0, 0 );
 		}
 		else {
 			EV_SET64( &ev, pc->Socket, EVFILT_READ, EV_ADD, 0, 0, (uint64_t)pc, NULL, NULL );
-			kevent( peer->kqueue, &ev, 1, 0, 0, 0 );
+			kevent64( peer->kqueue, &ev, 1, 0, 0, 0, 0 );
 			EV_SET64( &ev, pc->Socket, EVFILT_WRITE, EV_ADD | EV_CLEAR, 0, 0, (uint64_t)pc, NULL, NULL );
-			kevent( peer->kqueue, &ev, 1, 0, 0, 0 );
+			kevent64( peer->kqueue, &ev, 1, 0, 0, 0, 0 );
 		}
 #    else
 		kevent ev;
@@ -1709,10 +1709,11 @@ int CPROC ProcessNetworkMessages( struct peer_thread_info *thread, uintptr_t unu
 #  ifdef __MAC__
 #    ifdef __64__
 		kevent64_s events[10];
+		cnt = kevent64( peer->kqueue, NULL, 0, &events, 10, 0, NULL );
 #    else
 		kevent events[10];
-#    endif
 		cnt = kevent( peer->kqueue, NULL, 0, &events, 10, NULL );
+#    endif
 #  else
 		struct epoll_event events[10];
 		cnt = epoll_wait( thread->epoll_fd, events, 10, -1 );
@@ -1952,13 +1953,13 @@ uintptr_t CPROC NetworkThreadProc( PTHREAD thread )
 #    ifdef __64__
 		kevent64_s ev;
 		this_thread.kevents = CreateDataList( sizeof( ev ) );
-		EV_SET64( &ev, GetThreadSleeper(), EVFILT_READ, EV_ADD, 0, 0, (uint64_t)1, NULL, NULL );
-		AddDataItem( &this_thread.kevents, &ev );
+		EV_SET64( &ev, GetThreadSleeper( thread ), EVFILT_READ, EV_ADD, 0, 0, (uint64_t)1, NULL, NULL );
+		kevent64( this_thread.kqueue, &ev, 1, 0, 0, 0, 0 );
 #    else
 		kevent ev;
 		this_thread.kevents = CreateDataList( sizeof( ev ) );
-		EV_SET( &ev, GetThreadSleeper(), EVFILT_READ, EV_ADD, 0, 0, (uintptr_t)1 );
-		AddDataItem( &this_thread.kevents, &ev );
+		EV_SET( &ev, GetThreadSleeper( thread ), EVFILT_READ, EV_ADD, 0, 0, (uintptr_t)1 );
+		kevent( this_thread.kqueue, &ev, 1, 0, 0, 0 );
 #    endif
 #  else
 		struct epoll_event ev;
@@ -3433,9 +3434,10 @@ void LoadNetworkAddresses( void ) {
 		SOCKADDR *dup;
 		if( !tmp->ifa_addr )
 			continue;
+#  ifndef __MAC__
 		if( tmp->ifa_addr && tmp->ifa_addr->sa_family == AF_PACKET )
 			continue;
-
+#  endif
 		ia = New( struct interfaceAddress );
 		dup = AllocAddr();
 
