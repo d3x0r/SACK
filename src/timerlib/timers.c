@@ -1593,7 +1593,7 @@ pthread_t GetThreadHandle( PTHREAD thread )
 {
 	if( thread )
 		return thread->hThread;
-	return INVALID_HANDLE_VALUE;
+	return NULL;
 }
 #endif
 
