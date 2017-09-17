@@ -37,7 +37,7 @@ void CPROC Closed( PCLIENT pc )
 
 static void CPROC Connected( PCLIENT pc, int err ) {
 	if( secure )
-		if( !ssl_BeginClientSession( pc, NULL, 0, NULL, 0 ) ) {
+		if( !ssl_BeginClientSession( pc, NULL, 0, NULL, 0, NULL, 0 ) ) {
 			SystemLog( WIDE( "Failed to create client ssl session" ) );
 			RemoveClient( pc );
 			return;
@@ -80,7 +80,7 @@ SaneWinMain( argc, argv )
 					// this should also sort of work...
 					// there's a buffer leak of sorts, that we'll get a NULL
 					// read callback twice this way...
-					if( !ssl_BeginClientSession( pc_user, NULL, 0, NULL, 0 ) ) {
+					if( !ssl_BeginClientSession( pc_user, NULL, 0, NULL, 0, NULL, 0 ) ) {
 						SystemLog( WIDE( "Failed to create client ssl session" ) );
 						return FALSE;
 					}
