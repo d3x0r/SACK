@@ -1,0 +1,93 @@
+cmake_minimum_required(VERSION 3.0)
+
+project (sack_imglib)
+
+if( NOT WIN32 )
+    ADD_DEFINITIONS( -D__LINUX__ )
+endif( NOT WIN32 )
+
+if( CMAKE_SIZEOF_VOID_P EQUAL 8 )
+    ADD_DEFINITIONS( -D__64__ )
+endif( CMAKE_SIZEOF_VOID_P EQUAL 8 )
+
+if( NOT WIN32 AND CMAKE_SIZEOF_VOID_P EQUAL 8 )
+    ADD_DEFINITIONS( -D__LINUX64__ )
+endif( NOT WIN32 AND CMAKE_SIZEOF_VOID_P EQUAL 8 )
+ADD_DEFINITIONS( -DNO_OPEN_MACRO )
+
+
+set( PPC_TOOL "c:/tools/ppc.exe" CACHE STRING "Define location of amalgamation tool"  )
+
+
+set( INCLUDES
+	-I${CMAKE_CURRENT_LIST_DIR}/../../include 
+	-I${CMAKE_CURRENT_LIST_DIR}/../contrib/freetype-2.8/include
+)
+
+# __NO_OPTIONS__ __NO_INTERFACE_SUPPORT__ __NO_ODBC__
+set( DEFINITIONS   __STATIC__  _CRT_SECURE_NO_WARNINGS  NEED_SHLAPI NEED_SHLOBJ 
+                 )
+
+if( WIN32 )
+	if( MSVC )
+		set( DEFINITIONS  ${DEFINITIONS} _CRT_SECURE_NO_WARNINGS )
+	endif( MSVC )
+	set( DEFINITIONS  ${DEFINITIONS} NEED_SHLAPI NEED_SHLOBJ )
+endif( WIN32 )
+
+foreach( DEF ${DEFINITIONS} )
+   ADD_DEFINITIONS( -D${DEF} )
+   #FILE( APPEND ${CMAKE_BINARY_DIR}/config.ppc  "#define ${DEF}\n" )
+ENDFOREACH()
+
+message( "here? ${CMAKE_CURRENT_LIST_DIR}" )
+SET( EXTRA_HEADERS
+	${CMAKE_CURRENT_LIST_DIR}/../include/image.h
+)
+
+SET( EXTRA_SOURCES 
+	${CMAKE_CURRENT_LIST_DIR}/alphastab.c
+	${CMAKE_CURRENT_LIST_DIR}/alphatab.c
+	${CMAKE_CURRENT_LIST_DIR}/blotdirect.c
+	${CMAKE_CURRENT_LIST_DIR}/blotscaled.c
+	${CMAKE_CURRENT_LIST_DIR}/bmpimage.c
+	${CMAKE_CURRENT_LIST_DIR}/fntcache.c
+	${CMAKE_CURRENT_LIST_DIR}/fntrender.c
+	${CMAKE_CURRENT_LIST_DIR}/font.c
+	${CMAKE_CURRENT_LIST_DIR}/gifimage.c
+	${CMAKE_CURRENT_LIST_DIR}/image_common.c
+	${CMAKE_CURRENT_LIST_DIR}/image.c
+	${CMAKE_CURRENT_LIST_DIR}/jpgimage.c
+	${CMAKE_CURRENT_LIST_DIR}/line.c
+	${CMAKE_CURRENT_LIST_DIR}/lucidaconsole2.c
+	# ${CMAKE_CURRENT_LIST_DIR}/mngsprite.c
+	${CMAKE_CURRENT_LIST_DIR}/pngimage.c
+	# ${CMAKE_CURRENT_LIST_DIR}/smooth_sprite.c
+	${CMAKE_CURRENT_LIST_DIR}/sprite_common.c
+	${CMAKE_CURRENT_LIST_DIR}/sprite.c
+	${CMAKE_CURRENT_LIST_DIR}/interface.c
+        
+)
+
+set( IMGLIB_SOURCES  "" )
+FOREACH( SRC ${EXTRA_SOURCES} )
+    SET( IMGLIB_SOURCES "${IMGLIB_SOURCES} ${SRC}" )
+ENDFOREACH()
+
+include( ${CMAKE_CURRENT_LIST_DIR}/../contrib/freetype-2.8/CMakeLists.amalgam.txt )
+
+set( AMALG_COMMAND ${PPC_TOOL} -c -K -once -ssio -sd ${INCLUDES} -p -o${CMAKE_CURRENT_SOURCE_DIR}/src/imglib.c ${FREETYPE_ABS_SOURCES} ${IMGLIB_SOURCES} )
+set( AMALG_COMMAND2 ${PPC_TOOL} -c -K -once -ssio -sd ${INCLUDES} -p -o${CMAKE_CURRENT_SOURCE_DIR}/src/image.h ${EXTRA_HEADERS} )
+
+message( "Adding amalgam? ${AMALG_COMMAND} " )
+  add_custom_command( OUTPUT ${CMAKE_CURRENT_SOURCE_DIR}/src/imglib.c
+  			COMMAND cmake -E echo "${AMALG_COMMAND}"
+   			 COMMAND ${AMALG_COMMAND}
+                        #COMMAND cmake -E echo ${AMALG_COMMAND2}
+   			COMMAND ${AMALG_COMMAND2}
+                   DEPENDS ${EXTRA_SOURCES} ${HEADER_SOURCES}
+				   WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+  )                                   
+  add_custom_target( image_amalgam DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/src/image.c )
+
+
