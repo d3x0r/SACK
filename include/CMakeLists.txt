@@ -97,8 +97,8 @@ imglib/imagestruct.h
 )
 
 SET( ZLIB_HEADERS
-../src/contrib/zlib-1.2.7/zlib.h
-../src/contrib/zlib-1.2.7/zconf.h
+../src/contrib/zlib-1.2.11/zlib.h
+../src/contrib/zlib-1.2.11/zconf.h
 )
 
 
@@ -195,7 +195,7 @@ endif( NEED_JPEG )
 if( NEED_FREETYPE )
 INSTALL(
   DIRECTORY
-  	../src/contrib/freetype-2.5.0.1/include/
+  	../src/contrib/freetype-2.8/include/
   DESTINATION
   	include/${CMAKE_PROJECT_NAME}
 )
