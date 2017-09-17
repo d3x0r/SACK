@@ -183,13 +183,32 @@ PCLIENT ServeUDPEx( CTEXTSTR pAddr, uint16_t wPort
 
 void UDPEnableBroadcast( PCLIENT pc, int bEnable )
 {
-	if( pc )
+	if( pc ) {
+#ifdef __LINUX__
+		if( bEnable ) {
+			uint16_t port;
+			SOCKADDR *broadcastAddr;
+			RemoveThreadEvent( pc );
+			pc->Socket = close( pc->Socket );
+			pc->Socket = socket( PF_INET, SOCK_DGRAM, IPPROTO_UDP );
+			broadcastAddr = DuplicateAddress( GetBroadcastAddressForInterface( pc->saSource ) );
+			GetAddressParts( pc->saSource, NULL, &port );
+			SetAddressPort( broadcastAddr, port );
+			if( bind( pc->Socket, broadcastAddr, SOCKADDR_LENGTH( broadcastAddr ) ) ) {
+				lprintf( "Failed to rebind to broadcast address when enabling... %d", errno );
+			}
+			AddThreadEvent( pc );
+			ReleaseAddress( broadcastAddr );
+		}
+#endif
 		if( setsockopt( pc->Socket, SOL_SOCKET
 		              , SO_BROADCAST, (char*)&bEnable, sizeof( bEnable ) ) )
 		{
 			uint32_t error = WSAGetLastError();
 			lprintf( WIDE("Failed to set sock opt - BROADCAST(%d)"), error );
 		}
+
+	}
 }
 
 //----------------------------------------------------------------------------

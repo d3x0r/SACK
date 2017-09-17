@@ -130,181 +130,6 @@ static struct ssl_global
 }ssl_global;
 
 
-
-
-static const char *default_certs[] = {
-	"Equifax_Secure_Certificate_Authority.der",
-"Equifax_Secure_eBusiness_CA-1.der",
-"Equifax_Secure_Global_eBusiness_CA-1.der",
-"GeoTrust_CA_for_Adobe.der",
-"GeoTrust_Global_CA.cer",
-"GeoTrust_Global_CA.der",
-"GeoTrust_Global_CA2.der",
-"GeoTrust_Mobile_Device_Root_-_Privileged.der",
-"GeoTrust_Mobile_Device_Root_-_Unprivileged.der",
-"Geotrust_PCA_G3_Root.der",
-"GeoTrust_Primary_CA.der",
-"GeoTrust_Primary_CA_G2_ECC.der",
-"GeoTrust_True_Credentials_CA_2.der",
-"GeoTrust_Universal_CA.der",
-"GeoTrust_Universal_CA2.der",
-"thawte_Personal_Freemail_CA.der",
-"thawte_Premium_Server_CA.der",
-"thawte_Primary_Root_CA-G2_ECC.der",
-"thawte_Primary_Root_CA-G3_SHA256.der",
-"thawte_Primary_Root_CA.der",
-"thawte_Server_CA.der" };
-
-
-#if 0
-static int32_t loadRsaKeys( sslKeys_t *keys, LOGICAL client )
-{
-	uint32_t priv_key_len = 0;
-	uint32_t cert_key_len = 0;
-	unsigned char *CAstream = NULL;
-	int32_t CAstreamLen = 0;
-	int32_t rc;
-	TEXTCHAR buf[256];
-	TEXTCHAR privkey_buf[256];
-	TEXTCHAR cert_buf[256];
-	unsigned char *priv_key = NULL;
-	unsigned char *cert_key = NULL;
-	FILE *file;
-	size_t size;
-	int fileGroup = GetFileGroup( "ssl certs", "certs" );
-	{
-
-	/*
-		In-memory based keys
-		Build the CA list first for potential client auth usage
-	*/
-		int n;
-		CAstreamLen = 0;
-		for( n = 0; n < ( sizeof( default_certs ) / sizeof( default_certs[0] ) ); n++ )
-		{
-			file = sack_fopen( fileGroup, default_certs[n], "rb" );
-			if( file )
-			{
-				size = sack_fsize( file );
-				CAstreamLen += size;
-				sack_fclose( file );
-			}
-		}
-		{
-			/*
-			 In-memory based keys
-			 Build the CA list first for potential client auth usage
-			 */
-			priv_key_len = 0;
-#ifndef __NO_OPTIONS__
-			SACK_GetProfileString( "SSL/Private Key", "filename", "myprivkey.pem", privkey_buf, 256 );
-#else
-			strcpy( prikey_buf, "myprivkey.pem" );
-#endif
-			file = sack_fopen( fileGroup, privkey_buf, "rb" );
-			if( file )
-			{
-				priv_key_len = sack_fsize( file );
-				priv_key = NewArray( uint8_t, priv_key_len );
-
-				sack_fread( priv_key, 1, priv_key_len, file );
-				sack_fclose( file );
-			}
-			else
-				priv_key = NULL;
-		}
-#ifndef __NO_OPTIONS__
-		SACK_GetProfileString( "SSL/Cert Authority Extra", "filename", "mycert.pem", cert_buf, 256 );
-#else
-		strcpy( cer_buf, "mycert.pem" );
-#endif
-		file = sack_fopen( fileGroup, cert_buf, "rb" );
-		if( file )
-		{
-			CAstreamLen += sack_fsize( file );
-			sack_fclose( file );
-		}
-
-		if( CAstreamLen )
-			CAstream = NewArray( uint8_t, CAstreamLen);
-		CAstreamLen = 0;
-		for( n = 0; n < ( sizeof( default_certs ) / sizeof( default_certs[0] ) ); n++ )
-		{
-			file = sack_fopen( fileGroup, default_certs[n], "rb" );
-			if( file )
-			{
-				size = sack_fsize( file );
-				CAstreamLen += sack_fread( CAstream + CAstreamLen, 1, size, file );
-				//rc = matrixSslLoadRsaKeysMem(keys, NULL, 0, NULL, 0, CAstream+ CAstreamLen, size );
-				//lprintf( "cert success : %d %s", rc, default_certs[n] );
-
-				//CAstream[CAstreamLen++] = '\n';
-				sack_fclose( file );
-			}
-		}
-
-		file = sack_fopen( fileGroup, cert_buf, "rb" );
-		if( file )
-		{
-			size = sack_fsize( file );
-			CAstreamLen += sack_fread( CAstream + CAstreamLen, 1, size, file );
-			sack_fclose( file );
-		}
-	}
-
-	//if( 0 )
-	{
-	/*
-		In-memory based keys
-		Build the CA list first for potential client auth usage
-	*/
-		cert_key_len = 0;
-#ifndef __NO_OPTIONS__
-		SACK_GetProfileString( "SSL/Certificate", "filename", "mycert.pem", cert_buf, 256 );
-#else
-		strcpy( cert_buf, "mycert.pem" );
-#endif
-		file = sack_fopen( fileGroup, cert_buf, "rb" );
-		if( file )
-		{
-			cert_key_len = sack_fsize( file );
-			cert_key = NewArray( uint8_t, cert_key_len );
-
-			sack_fread( cert_key, 1, cert_key_len, file );
-			sack_fclose( file );
-		}
-		else
-			cert_key = NULL;
-	}
-
-	if( cert_key_len || priv_key_len || CAstreamLen )
-	{
-		rc = matrixSslLoadRsaKeysMem(keys
-			, cert_key, cert_key_len
-			, priv_key, priv_key_len
-			, CAstream, CAstreamLen );
-
-		if (rc < 0) {
-			lprintf("No certificate material loaded.  Exiting");
-			//if (CAstream) {
-			//	Deallocate(uint8_t*, CAstream);
-			//}
-			matrixSslDeleteKeys(keys);
-			matrixSslClose();
-		}
-		if( cert_key_len )
-			Release( cert_key );
-		if( priv_key_len )
-			Release( priv_key );
-		if( CAstream )
-			Release( CAstream );
-		return rc;
-	}
-	return PS_SUCCESS;
-}
-#endif
-
-
 ATEXIT( CloseSSL )
 {
 	if( ssl_global.flags.bInited ) {
@@ -316,22 +141,17 @@ void CloseSession( PCLIENT pc )
 {
 	if( pc->ssl_session )
 	{
-		//matrixSslDeleteSessionId(pc->ssl_session->sid);
-
 		Release( pc->ssl_session );
 		pc->ssl_session = NULL;
 	}
 	if( !( pc->dwFlags & ( CF_CLOSED|CF_CLOSING ) ) )
 		RemoveClient( pc );
-
 }
 
 static int logerr( const char *str, size_t len, void *userdata ) {
 	lprintf( "%p: %s", userdata, str );
 	return 0;
 }
-
-
 
 static int handshake( PCLIENT pc ) {
 	struct ssl_session *ses = pc->ssl_session;
@@ -662,7 +482,6 @@ static int pem_password( char *buf, int size, int rwflag, void *u )
 	struct info_params *params = (struct info_params*)u;
 	int len;
 	memcpy( buf, params->password, len = (size<params->passlen ? size : params->passlen) );
-
 	return len;
 }
 
@@ -773,13 +592,6 @@ LOGICAL ssl_GetPrivateKey( PCLIENT pc, POINTER *keyoutbuf, size_t *keylen ) {
 	}
 	return FALSE;
 }
-
-//typedef long (*BIO_callback_fn)(BIO *b, int oper, const char *argp, int argi,
-//                                 long argl, long ret);
-//
-// void BIO_set_callback(BIO *b, BIO_callack_fn cb);
-
-
 
 LOGICAL ssl_BeginClientSession( PCLIENT pc, POINTER client_keypair, size_t client_keypairlen, POINTER keypass, size_t keypasslen, POINTER rootCert, size_t rootCertLen )
 {
@@ -1041,68 +853,8 @@ struct internalCert * MakeRequest( void )
 
 		}
 	}
-
-#if 0
-    // create request object 
-    // 
-    if (!(cert->req = X509_REQ_new())) 
-        fatal("Failed to create X509_REQ object"); 
-    X509_REQ_set_pubkey(cert->req, cert->pkey_ca); 
-
-    // create and fill in subject object 
-    // 
-    if (!(subj = X509_NAME_new())) 
-        fatal("Failed to create X509_NAME object"); 
-
-    for (i = 0; i < ENTRIES; i++) 
-    { 
-        int nid;                  // ASN numeric identifier 
-        X509_NAME_ENTRY *ent; 
-
-        if ((nid = OBJ_txt2nid(entries[i].key)) == NID_undef) 
-        { 
-            fprintf(stderr, "Error finding NID for %s\n", entries[i].key); 
-            fatal("Error on lookup"); 
-        } 
-        if (!(ent = X509_NAME_ENTRY_create_by_NID(NULL, nid, MBSTRING_ASC, 
-            (unsigned char*)entries[i].value, - 1))) 
-            fatal("Error creating Name entry from NID"); 
-
-        if (X509_NAME_add_entry(subj, ent, -1, 0) != 1) 
-            fatal("Error adding entry to Name"); 
-    } 
-    if (X509_REQ_set_subject_name(cert->req, subj) != 1) 
-        fatal("Error adding subject to request"); 
-
-    // request is filled in and contains our generated public key; 
-    // now sign it 
-    // 
-
-    if (!(X509_REQ_sign(cert->req, cert->pkey, EVP_sha1() )))
-        fatal("Error signing request"); 
-
-
-	/*
-    // write output files 
-    // 
-    if (!(fp = fopen(REQ_FILE, "w"))) 
-        fatal("Error writing to request file"); 
-    if (PEM_write_X509_REQ(fp, cert->req) != 1) 
-        fatal("Error while writing request"); 
-    fclose(fp); 
-
-    if (!(fp = fopen(KEY_FILE, "w"))) 
-        fatal("Error writing to private key file"); 
-    if (PEM_write_PrivateKey(fp, cert->pkey, NULL, NULL, 0, 0, NULL) != 1) 
-        fatal("Error while writing private key"); 
-    fclose(fp); 
-	*/
-#endif
-	 return cert;
+	return cert;
 } 
-
-
-
 
 SACK_NETWORK_NAMESPACE_END
 #endif

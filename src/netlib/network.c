@@ -80,8 +80,6 @@
 
 SACK_NETWORK_NAMESPACE
 
-static void RemoveThreadEvent( PCLIENT pc );
-
 PRELOAD( InitNetworkGlobalOptions )
 {
 #ifndef __NO_OPTIONS__
@@ -1265,7 +1263,7 @@ void RemoveThreadEvent( PCLIENT pc ) {
 		}
 }
 
-static void AddThreadEvent( PCLIENT pc )
+void AddThreadEvent( PCLIENT pc )
 {
 	struct peer_thread_info *peer = globalNetworkData.root_thread;
 	LOGICAL addPeer = FALSE;
@@ -1577,7 +1575,7 @@ void RemoveThreadEvent( PCLIENT pc ) {
 			thread->child_peer = tmp;
 		}
 }
-static void AddThreadEvent( PCLIENT pc )
+void AddThreadEvent( PCLIENT pc )
 {
 	struct peer_thread_info *peer = globalNetworkData.root_thread;
 	LOGICAL addPeer = FALSE;
@@ -2414,9 +2412,9 @@ SOCKADDR* DuplicateAddress( SOCKADDR *pAddr ) // return a copy of this address..
 	SOCKADDR *dup = AllocAddr();
 	POINTER tmp2 = (POINTER)( ( (uintptr_t)dup ) - 2*sizeof(uintptr_t) );
 	MemCpy( tmp2, tmp, SOCKADDR_LENGTH( pAddr ) + 2*sizeof(uintptr_t) );
-	if( (POINTER)( ( (uintptr_t)pAddr ) - sizeof(uintptr_t) ) )
-		( (char**)( ( (uintptr_t)dup ) - sizeof(uintptr_t) ) )[0]
-				= strdup( ((char**)( ( (uintptr_t)pAddr ) - sizeof(uintptr_t) ))[0] );
+	if( ((char**)( ( (uintptr_t)pAddr ) - sizeof(char*) ))[0] )
+		( (char**)( ( (uintptr_t)dup ) - sizeof( char* ) ) )[0]
+				= strdup( ((char**)( ( (uintptr_t)pAddr ) - sizeof( char* ) ))[0] );
 	return dup;
 }
 
@@ -2683,15 +2681,16 @@ NETWORK_PROC( void, DumpAddrEx)( CTEXTSTR name, SOCKADDR *sa DBG_PASS )
 	{
 		LogBinary( (uint8_t *)sa, SOCKADDR_LENGTH( sa ) );
 		if( sa->sa_family == AF_INET ) {
-			lprintf( WIDE("%s: (%s) %03d %03d.%03d.%03d.%03d "), name
-					, ( ((uintptr_t*)sa)[-1] & 0xFFFF0000 )?( ((char**)sa)[-1] ) : "no name"
-					  //*(((unsigned char *)sa)+0),
-					  //*(((unsigned char *)sa)+1),
-					  , ntohs(*(((unsigned short *)((unsigned char*)sa+2))))
-					  ,*(((unsigned char *)sa)+4),
-					  *(((unsigned char *)sa)+5),
-					  *(((unsigned char *)sa)+6),
-					  *(((unsigned char *)sa)+7) );
+			lprintf( WIDE("%s: (%s) %d.%d.%d.%d:%d "), name
+			       , ( ((uintptr_t*)sa)[-1] & 0xFFFF0000 )?( ((char**)sa)[-1] ) : "no name"
+			       //*(((unsigned char *)sa)+0),
+			       //*(((unsigned char *)sa)+1),
+			       ,*(((unsigned char *)sa)+4),
+			       *(((unsigned char *)sa)+5),
+			       *(((unsigned char *)sa)+6),
+			       *(((unsigned char *)sa)+7) 
+			       , ntohs( *(((unsigned short *)((unsigned char*)sa + 2))) )
+			);
 		} else if( sa->sa_family == AF_INET6 )
 		{
 			lprintf( WIDE( "Socket address binary: %s" ), name );
@@ -3424,13 +3423,19 @@ NETWORK_PROC( SOCKADDR *, MakeNetworkAddressFromBinary )( uintptr_t *data, size_
 
 void LoadNetworkAddresses( void ) {
 	struct ifaddrs *addrs, *tmp;
+	struct interfaceAddress *ia;
 
 	getifaddrs( &addrs );
 	tmp = addrs;
 
+	ia = New( struct interfaceAddress );
+	ia->sa = CreateRemote( "0.0.0.0", 0 );
+	ia->saMask = NULL;
+	ia->saBroadcast = CreateRemote( "255.255.255.255", 0 );
+	AddLink( &globalNetworkData.addresses, ia );
+
 	for( ; tmp; tmp = tmp->ifa_next )
 	{
-		struct interfaceAddress *ia;
 		SOCKADDR *dup;
 		if( !tmp->ifa_addr )
 			continue;
@@ -3442,8 +3447,9 @@ void LoadNetworkAddresses( void ) {
 		dup = AllocAddr();
 
 		if( tmp->ifa_addr->sa_family == AF_INET6 ) {
-			memcpy( dup, tmp->ifa_addr, IN6_SOCKADDR_LENGTH );
-			SET_SOCKADDR_LENGTH( dup, IN6_SOCKADDR_LENGTH );
+			continue;
+			//memcpy( dup, tmp->ifa_addr, IN6_SOCKADDR_LENGTH );
+			//SET_SOCKADDR_LENGTH( dup, IN6_SOCKADDR_LENGTH );
 		}
 		else {
 			memcpy( dup, tmp->ifa_addr, IN_SOCKADDR_LENGTH );
@@ -3454,8 +3460,8 @@ void LoadNetworkAddresses( void ) {
 		dup = AllocAddr();
 
 		if( tmp->ifa_addr->sa_family == AF_INET6 ) {
-			memcpy( dup, tmp->ifa_netmask, IN6_SOCKADDR_LENGTH );
-			SET_SOCKADDR_LENGTH( dup, IN6_SOCKADDR_LENGTH );
+			//memcpy( dup, tmp->ifa_netmask, IN6_SOCKADDR_LENGTH );
+			//SET_SOCKADDR_LENGTH( dup, IN6_SOCKADDR_LENGTH );
 		}
 		else {
 			memcpy( dup, tmp->ifa_netmask, IN_SOCKADDR_LENGTH );
@@ -3471,7 +3477,7 @@ void LoadNetworkAddresses( void ) {
 		ia->saBroadcast->sa_data[3] = (ia->sa->sa_data[3] & ia->saMask->sa_data[3]) | (~ia->saMask->sa_data[3]);
 		ia->saBroadcast->sa_data[4] = (ia->sa->sa_data[4] & ia->saMask->sa_data[4]) | (~ia->saMask->sa_data[4]);
 		ia->saBroadcast->sa_data[5] = (ia->sa->sa_data[5] & ia->saMask->sa_data[5]) | (~ia->saMask->sa_data[5]);
-
+		SET_SOCKADDR_LENGTH( ia->saBroadcast, SOCKADDR_LENGTH( ia->sa ) );
 		AddLink( &globalNetworkData.addresses, ia );
 	}
 

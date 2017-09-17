@@ -370,6 +370,9 @@ SOCKADDR *AllocAddrEx( DBG_VOIDPASS );
 #define AllocAddr() AllocAddrEx( DBG_VOIDSRC )
 PCLIENT AddActive( PCLIENT pClient );
 
+void RemoveThreadEvent( PCLIENT pc );
+void AddThreadEvent( PCLIENT pc );
+
 
 #define IsValid(S)   ((S)!=INVALID_SOCKET)  
 #define IsInvalid(S) ((S)==INVALID_SOCKET)  
