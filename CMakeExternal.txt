@@ -42,12 +42,12 @@ endif( NEED_JPEG )
 if( NEED_PNG )
 
  if( NEED_ZLIB )
-  SET( ZBASEDIR ${SOURCES_ROOT}src/contrib/zlib-1.2.7 )
+  SET( ZBASEDIR ${SOURCES_ROOT}src/contrib/zlib-1.2.11 )
   include( ${ZBASEDIR}/CMakeLists.part )
 if( FORCE_CXX )
 #set_source_files_properties(${ZLIB_SOURCE} PROPERTIES LANGUAGE CXX )
 endif( FORCE_CXX )
-source_group("Source Files\\zlib-1.2.7 Library" FILES ${ZLIB_SOURCE})
+source_group("Source Files\\zlib-1.2.11 Library" FILES ${ZLIB_SOURCE})
  endif( NEED_ZLIB )
 
 
@@ -64,49 +64,56 @@ endif( NEED_PNG )
 
 
 if( NEED_FREETYPE )
-SET( FBASEDIR ${SOURCES_ROOT}src/contrib/freetype-2.6/src )
+SET( FBASEDIR ${SOURCES_ROOT}src/contrib/freetype-2.8 )
 SET( FREETYPE_INCLUDE_DIRS ${FBASEDIR}/include )
 
 Set( ExternalExtraDefinitions ${ExternalExtraDefinitions} FREETYPE_SOURCE FT2_BUILD_LIBRARY FT_CONFIG_OPTION_USE_PNG )
 
-SET( FT_SRCS autofit/autofit.c 
-     base/ftbase.c 
-     bdf/bdf.c 
-     cache/ftcache.c 
-     cff/cff.c 
-     cid/type1cid.c 
-     lzw/ftlzw.c 
-     gzip/ftgzip.c 
-     otvalid/otvalid.c 
-     pcf/pcf.c 
-     pfr/pfr.c 
-     psnames/psmodule.c 
-     psaux/psaux.c 
-     pshinter/pshinter.c 
-     raster/raster.c 
-     sfnt/sfnt.c 
-     smooth/smooth.c 
-     truetype/truetype.c 
-     type1/type1.c 
-     type42/type42.c 
-     winfonts/winfnt.c 
-     base/ftbitmap.c 
-     base/ftgasp.c 
-     base/ftglyph.c 
-     base/ftgxval.c 
-     base/ftinit.c 
-     base/ftmm.c 
-     base/ftotval.c 
-     base/ftpfr.c 
-     base/ftstroke.c 
-     base/ftsynth.c 
-     base/ftsystem.c 
-     base/fttype1.c 
-     base/ftwinfnt.c 
-     #base/ftxf86.c 
+SET( FT_SRCS 
+  src/autofit/autofit.c
+  src/base/ftbase.c
+  src/base/ftbbox.c
+  src/base/ftbdf.c
+  src/base/ftbitmap.c
+  src/base/ftcid.c
+  src/base/ftfntfmt.c
+  src/base/ftfstype.c
+  src/base/ftgasp.c
+  src/base/ftglyph.c
+  src/base/ftgxval.c
+  src/base/ftinit.c
+  src/base/ftlcdfil.c
+  src/base/ftmm.c
+  src/base/ftotval.c
+  src/base/ftpatent.c
+  src/base/ftpfr.c
+  src/base/ftstroke.c
+  src/base/ftsynth.c
+  src/base/ftsystem.c
+  src/base/fttype1.c
+  src/base/ftwinfnt.c
+  src/bdf/bdf.c
+  src/bzip2/ftbzip2.c
+  src/cache/ftcache.c
+  src/cff/cff.c
+  src/cid/type1cid.c
+  src/gzip/ftgzip.c
+  src/lzw/ftlzw.c
+  src/pcf/pcf.c
+  src/pfr/pfr.c
+  src/psaux/psaux.c
+  src/pshinter/pshinter.c
+  src/psnames/psnames.c
+  src/raster/raster.c
+  src/sfnt/sfnt.c
+  src/smooth/smooth.c
+  src/truetype/truetype.c
+  src/type1/type1.c
+  src/type42/type42.c
+  src/winfonts/winfnt.c
      )
 
-include_directories( ${FBASEDIR}/../include )
+include_directories( ${FBASEDIR}/include )
 FOREACH( SRC ${FT_SRCS} )
   LIST( APPEND FREETYPE_SOURCE ${FBASEDIR}/${SRC} )
 ENDFOREACH()
@@ -115,7 +122,7 @@ set_source_files_properties(${FREETYPE_SOURCE} PROPERTIES LANGUAGE C )
 endif( FORCE_CXX )
 endif()
 
-source_group("Source Files\\Freetype-2.5.0.1 Library" FILES ${FREETYPE_SOURCE})
+source_group("Source Files\\Freetype-2.8 Library" FILES ${FREETYPE_SOURCE})
 
 
 if( BUILD_EXTRAS )
@@ -127,7 +134,7 @@ endif( BUILD_EXTRAS )
 
 if( NEED_FUSE )
 	set( FUSEBASEDIR src/contrib/fuse-2.9.4 )
-	EXECUTE_PROCESS(COMMAND cmake -E copy_if_different ${CMAKE_SOURCE_DIR}/${FUSEBASEDIR}/include/config.h.android ${CMAKE_BINARY_DIR}/${FUSEBASEDIR}/include/config.h )        
+	EXECUTE_PROCESS(COMMAND cmake -E copy_if_different ${CMAKE_SOURCE_DIR}/${FUSEBASEDIR}/include/config.h.android ${CMAKE_BINARY_DIR}/${FUSEBASEDIR}/include/config.h )
 	set( FUSE_MOUNT_SOURCES 
 			${FUSEBASEDIR}/lib/mount.c
 			${FUSEBASEDIR}/lib/mount_util.c )
