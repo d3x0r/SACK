@@ -14,7 +14,7 @@
 /*  understand and accept it fully.                                        */
 /*                                                                         */
 /***************************************************************************/
-
+#pragma multiinclude
 
 #ifndef FTBITMAP_H_
 #define FTBITMAP_H_

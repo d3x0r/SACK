@@ -15,7 +15,7 @@
 /*                                                                         */
 /***************************************************************************/
 
-
+#pragma multiinclude
   /* The following part can be included multiple times. */
   /* Define `SCRIPT' as needed.                         */
 

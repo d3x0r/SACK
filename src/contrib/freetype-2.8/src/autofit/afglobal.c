@@ -77,7 +77,7 @@
   af_writing_system_classes[] =
   {
 
-#include "afwrtsys.h"
+#include "afwrtsys_data.h"
 
     NULL  /* do not remove */
   };

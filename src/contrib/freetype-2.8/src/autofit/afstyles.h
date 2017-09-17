@@ -14,7 +14,7 @@
 /*  understand and accept it fully.                                        */
 /*                                                                         */
 /***************************************************************************/
-
+#pragma multiinclude
 
   /* The following part can be included multiple times. */
   /* Define `STYLE' as needed.                          */

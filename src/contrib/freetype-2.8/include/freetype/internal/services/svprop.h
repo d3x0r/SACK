@@ -14,7 +14,7 @@
 /*  understand and accept it fully.                                        */
 /*                                                                         */
 /***************************************************************************/
-
+#pragma multiinclude
 
 #ifndef SVPROP_H_
 #define SVPROP_H_

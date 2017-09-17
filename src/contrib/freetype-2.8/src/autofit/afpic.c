@@ -119,7 +119,7 @@
           &container->af_writing_system_classes_rec[ss++] );
 
     ss = 0;
-#include "afwrtsys.h"
+#include "afwrtsys_data.h"
 
 #undef  SCRIPT
 #define SCRIPT( s, S, d, h, H, sss )                 \

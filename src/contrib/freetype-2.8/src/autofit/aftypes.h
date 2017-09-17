@@ -264,7 +264,7 @@ extern void*  _af_debug_hints;
   typedef enum  AF_WritingSystem_
   {
 
-#include "afwrtsys.h"
+#include "afwrtsys_data.h"
 
     AF_WRITING_SYSTEM_MAX   /* do not remove */
 
