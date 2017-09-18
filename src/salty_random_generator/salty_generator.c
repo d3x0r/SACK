@@ -150,7 +150,7 @@ void SRG_GetEntropyBuffer( struct random_context *ctx, uint32_t *buffer, uint32_
 			(*buffer) = tmp << resultBits;
 			resultBits += get_bits;
 			while( resultBits > 8 ) {
-#ifdef __cplusplus
+#if defined( __cplusplus ) || defined( __GNUC__ )
 				buffer = (uint32_t*)(((uintptr_t)buffer) + 1);
 #else
 				((intptr_t)buffer)++;

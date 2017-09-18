@@ -366,7 +366,7 @@ uint32_t  LockedExchange( volatile uint32_t* p, uint32_t val )
 
 uint32_t LockedIncrement( uint32_t* p ) {
 #ifdef _WIN32
-	return InterlockedIncrement( p );
+	return InterlockedIncrement( (volatile LONG *)p );
 #endif
 #ifdef __LINUX__
 	return __atomic_add_fetch( p, 1, __ATOMIC_RELAXED );
@@ -374,7 +374,7 @@ uint32_t LockedIncrement( uint32_t* p ) {
 }
 uint32_t LockedDecrement( uint32_t* p ) {
 #ifdef _WIN32
-	return InterlockedDecrement( p );
+	return InterlockedDecrement( (volatile LONG *)p );
 #endif
 #ifdef __LINUX__
 	return __atomic_sub_fetch( p, 1, __ATOMIC_RELAXED );

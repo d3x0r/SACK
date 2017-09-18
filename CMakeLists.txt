@@ -1342,7 +1342,7 @@ endIF(NOT FORCE_CXX AND EXISTS ${BULLET_SOURCE}/CMakeLists.txt AND NOT BUILD_UNI
 if( NOT BUILD_MONOLITHIC AND NOT __NO_GUI__ )
 	#include vidlib first incase glew is used, then imglib
 	add_subdirectory( src/imglib/puregl2 )
-	add_subdirectory( src/imglib/vulkan )
+	#add_subdirectory( src/imglib/vulkan )
 
 if( NOT __QNX__ AND NOT __ANDROID__ )
 	#standard OpenGL; mostly windows-centric
@@ -1358,7 +1358,7 @@ if( NOT __NO_NETWORK__ )
   add_subdirectory( src/vidlib/proxy )
 endif( NOT __NO_NETWORK__ )
   add_subdirectory( src/vidlib/puregl2 )
-  add_subdirectory( src/vidlib/vulkan )
+  #add_subdirectory( src/vidlib/vulkan )
 
 if( NOT __QNX__ AND NOT __ANDROID__ )
   add_subdirectory( src/vidlib/puregl )
