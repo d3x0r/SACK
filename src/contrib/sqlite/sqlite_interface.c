@@ -435,8 +435,8 @@ int xOpen(sqlite3_vfs* vfs, const char *zName, sqlite3_file*file,
 	}
 #if defined( __GNUC__ )
 	//__ANDROID__
-#undefine sack_fsopen
-#undefine sack_fsopenEx
+#undef sack_fsopen
+#undef sack_fsopenEx
 #endif
 	return SQLITE_ERROR;
 }
