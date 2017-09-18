@@ -210,22 +210,22 @@ set(
 	bf/bf_skey.c
 	bio/b_dump.c
 	bio/b_print.c
-	bio/b_sock.c
+#	bio/b_sock.c
 	bio/bf_buff.c
 	bio/bf_nbio.c
 	bio/bf_null.c
 	bio/bio_cb.c
 	bio/bio_err.c
 	bio/bio_lib.c
-	bio/bss_acpt.c
+#	bio/bss_acpt.c
 	bio/bss_bio.c
-	bio/bss_conn.c
+#	bio/bss_conn.c
 	bio/bss_dgram.c
 	bio/bss_fd.c
 	bio/bss_file.c
 	bio/bss_mem.c
 	bio/bss_null.c
-	bio/bss_sock.c
+#	bio/bss_sock.c
 	bn/bn_add.c
 	bn/bn_asm.c
 	bn/bn_blind.c
@@ -655,6 +655,20 @@ endif()
 
 if(CMAKE_HOST_WIN32)
 	set(CRYPTO_SRC ${CRYPTO_SRC} bio/b_win.c)
+	set(CRYPTO_UNEXPORT ${CRYPTO_UNEXPORT} BIO_CONNECT_free
+		BIO_CONNECT_new
+		BIO_accept
+		BIO_get_accept_socket
+		BIO_get_host_ip
+		BIO_get_port
+		BIO_gethostbyname
+		BIO_new_accept
+		BIO_new_connect
+		BIO_s_accept
+		BIO_s_connect
+		BIO_set_tcp_ndelay
+		BIO_sock_error
+		BIO_socket_ioctl )
 	set(CRYPTO_UNEXPORT ${CRYPTO_UNEXPORT} BIO_s_log)
 	set(CRYPTO_SRC ${CRYPTO_SRC} ui/ui_openssl_win.c)
 endif()

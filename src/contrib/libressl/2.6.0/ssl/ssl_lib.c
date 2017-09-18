@@ -628,7 +628,8 @@ SSL_set_fd(SSL *s, int fd)
 	int	 ret = 0;
 	BIO	*bio = NULL;
 
-	bio = BIO_new(BIO_s_socket());
+	DebugBreak();
+	//bio = BIO_new(BIO_s_socket());
 
 	if (bio == NULL) {
 		SSLerror(s, ERR_R_BUF_LIB);
@@ -649,7 +650,8 @@ SSL_set_wfd(SSL *s, int fd)
 
 	if ((s->rbio == NULL) || (BIO_method_type(s->rbio) != BIO_TYPE_SOCKET)
 	    || ((int)BIO_get_fd(s->rbio, NULL) != fd)) {
-		bio = BIO_new(BIO_s_socket());
+		DebugBreak();
+	//	bio = BIO_new(BIO_s_socket());
 
 		if (bio == NULL) {
 			SSLerror(s, ERR_R_BUF_LIB);
@@ -672,7 +674,8 @@ SSL_set_rfd(SSL *s, int fd)
 
 	if ((s->wbio == NULL) || (BIO_method_type(s->wbio) != BIO_TYPE_SOCKET)
 	    || ((int)BIO_get_fd(s->wbio, NULL) != fd)) {
-		bio = BIO_new(BIO_s_socket());
+		DebugBreak();
+		//bio = BIO_new(BIO_s_socket());
 
 		if (bio == NULL) {
 			SSLerror(s, ERR_R_BUF_LIB);
