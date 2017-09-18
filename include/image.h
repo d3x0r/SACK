@@ -602,7 +602,7 @@ ALPHA_TRANSPARENT_MAX = 0x2FF
          // buffer decoded okay.
       }
       </code>                                                       */
-			IMAGE_PROC  Image IMAGE_API  DecodeMemoryToImage ( uint8_t* buf, uint32_t size );
+			IMAGE_PROC  Image IMAGE_API  DecodeMemoryToImage ( uint8_t* buf, size_t size );
 #ifdef __cplusplus
 		namespace loader{
 #endif
