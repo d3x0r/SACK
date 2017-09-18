@@ -631,7 +631,7 @@ static PDATAPATH OnInitDevice(WIDE("tls"), WIDE("Telnet type clear text TLS sock
                                           NULL,
                                           TerminalConnect );
 		ReleaseAddress( sa );
-		if( pdp->handle && ssl_BeginClientSession( pdp->handle, NULL, 0 ) )
+		if( pdp->handle && ssl_BeginClientSession( pdp->handle, NULL, 0, NULL, 0, NULL, 0 ) )
 		{
 			SetTCPNoDelay( pdp->handle, TRUE );
 			pdp->common.Type = 1;//myTypeID;

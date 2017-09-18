@@ -1,4 +1,9 @@
+cmake_minimum_required(VERSION 3.0)
 
+include( ${SACK_BASE}/makefiles/cmake/DefaultInstall.cmake )
+include_directories( ${SACK_BASE}/include )
+
+add_definitions( ${PLATFORM_DEFINES} )
 
 foreach(flag_var
         CMAKE_CXX_FLAGS CMAKE_CXX_FLAGS_DEBUG CMAKE_CXX_FLAGS_RELEASE
@@ -23,7 +28,7 @@ endif( WATCOM )
 
 set( project sack_vfs_command.portable )
 
-set( SOURCES_ROOT ../../../../.. )
+set( SOURCES_ROOT ${SACK_BASE} )
 
 if( WIN32 )
 set( MORE_SYSTEM_SOURCES   ${SOURCES_ROOT}/src/systemlib/oswin.c )

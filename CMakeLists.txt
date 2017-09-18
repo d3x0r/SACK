@@ -38,6 +38,8 @@ set( LIBRESSL_VERSION 2.6.0 )
 
 
 include( DefaultInstall )
+include( ExternalProject )
+
 
 if( NOT CMAKE_CONFIGURATION_TYPES )
 	set( CMAKE_CONFIGURATION_TYPES Debug Release )
@@ -290,6 +292,7 @@ if( MSVC )
     set( extra_link_flags "${extra_link_flags} /NODEFAULTLIB" )
     set( PLATFORM_LIBRARIES ${PLATFORM_LIBRARIES} msvcrt )
   endif( FORCE_MSVCRT )
+  SET( PLATFORM_DEFINES -D_CRT_SECURE_NO_WARNINGS )
   #add_definitions( -D_CRT_SECURE_NO_WARNINGS -wd4995 -wd4996 )
   add_definitions( -wd4996 )
   

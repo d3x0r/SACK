@@ -1,4 +1,5 @@
-project( lstrip )
+
+set( project lstrip )
 
 set(BASE_SOURCES
 ${FIRST_GCC_PROGRAM_SOURCE} 
@@ -6,9 +7,20 @@ ${FIRST_GCC_PROGRAM_SOURCE}
 ${LAST_GCC_PROGRAM_SOURCE}
 )
 
-sack_add_executable(${PROJECT_NAME} ${BASE_SOURCES} )
-SET_TARGET_PROPERTIES(${PROJECT_NAME} PROPERTIES FOLDER utils )
-target_link_libraries( ${PROJECT_NAME} ${SACK_LIBRARIES} )
-install_default_dest( ${PROJECT_NAME} )
+sack_add_executable(${project} ${BASE_SOURCES} )
+SET_TARGET_PROPERTIES(${project} PROPERTIES FOLDER utils )
+target_link_libraries( ${project} ${SACK_LIBRARIES} )
+install_default_dest( ${project} )
 
-add_subdirectory( portable )
+ExternalProject_Add( ${project}_portable 
+	SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/portable
+	INSTALL_DIR ${CMAKE_INSTALL_PREFIX}
+	CMAKE_ARGS -DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR> 
+		-DSACK_BASE=${SACK_BASE}
+		-DPLATFORM_LIBRARIES=${PLATFORM_LIBRARIES}
+		-DPLATFORM_DEFINES=${PLATFORM_DEFINES}
+		-DSHA1_SOURCES=${SHA1_SOURCES}
+		-DSHA2_SOURCES=${SHA2_SOURCES}
+)
+
+#add_subdirectory( portable )

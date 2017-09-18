@@ -50,7 +50,17 @@ if( WIN32 )
 add_subpath( ../src/utils/reboot )
 add_subpath( ../src/utils/cleaner )
 add_subpath( ../src/utils/shutmon )
-add_subpath( ../src/utils/shell )
+ExternalProject_Add( shell
+	SOURCE_DIR ../src/utils/shell
+	INSTALL_DIR ${CMAKE_INSTALL_PREFIX}
+	CMAKE_ARGS -DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR> 
+		-DSACK_BASE=${SACK_BASE}
+		-DPLATFORM_LIBRARIES=${PLATFORM_LIBRARIES}
+		-DPLATFORM_DEFINES=${PLATFORM_DEFINES}
+		-DSHA1_SOURCES=${SHA1_SOURCES}
+		-DSHA2_SOURCES=${SHA2_SOURCES}
+)
+#add_subpath( ../src/utils/shell )
 endif( WIN32 )
 add_subpath( ../src/utils/guid_generator )
 add_subpath( ../src/netlib/network_relay_server )
@@ -102,8 +112,30 @@ add_subpath( ../src/psilib/console/cmdshell )
 add_subpath( ../src/utils/http_server )
 add_subpath( ../src/utils/waitwin )
 add_subpath( ../src/utils/rundelay )
-add_subpath( ../src/utils/get_display )
-add_subpath( ../src/utils/pcopy )
+
+ExternalProject_Add( get_display
+	SOURCE_DIR ../src/utils/get_display
+	INSTALL_DIR ${CMAKE_INSTALL_PREFIX}
+	CMAKE_ARGS -DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR> 
+		-DSACK_BASE=${SACK_BASE}
+		-DPLATFORM_LIBRARIES=${PLATFORM_LIBRARIES}
+		-DPLATFORM_DEFINES=${PLATFORM_DEFINES}
+		-DSHA1_SOURCES=${SHA1_SOURCES}
+		-DSHA2_SOURCES=${SHA2_SOURCES}
+)
+#add_subpath( ../src/utils/get_display )
+
+ExternalProject_Add( pcopy
+	SOURCE_DIR ../src/utils/pcopy
+	INSTALL_DIR ${CMAKE_INSTALL_PREFIX}
+	CMAKE_ARGS -DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR> 
+		-DSACK_BASE=${SACK_BASE}
+		-DPLATFORM_LIBRARIES=${PLATFORM_LIBRARIES}
+		-DPLATFORM_DEFINES=${PLATFORM_DEFINES}
+		-DSHA1_SOURCES=${SHA1_SOURCES}
+		-DSHA2_SOURCES=${SHA2_SOURCES}
+)
+#add_subpath( ../src/utils/pcopy )
 add_subpath( ../src/utils/window_stacker )
 add_subpath( ../src/utils/set_registry )
 endif( WIN32 )

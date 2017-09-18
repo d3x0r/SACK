@@ -949,7 +949,7 @@ int sack_ftruncate( FILE *file_file )
 		else
 		{
 #ifdef _WIN32
-			_chsize( fileno( file_file ), ftell( file_file ) );
+			_chsize( _fileno( file_file ), ftell( file_file ) );
 #else
 			truncate( file->fullname, sack_ftell( (FILE*)file_file ) );
 #endif

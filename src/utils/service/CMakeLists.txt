@@ -1,7 +1,7 @@
 
 cmake_minimum_required(VERSION 2.8)
 
-project( service_test )
+SET( PROJECT service_test )
 
 if( NOT SACK_SDK_ROOT_PATH )
 	GET_FILENAME_COMPONENT(SACK_SDK_ROOT_PATH "[HKEY_LOCAL_MACHINE\\SOFTWARE\\Freedom Collective\\SACK;Install_Dir]" ABSOLUTE CACHE)
@@ -28,27 +28,37 @@ ${FIRST_GCC_PROGRAM_SOURCE}
 ${LAST_GCC_PROGRAM_SOURCE}
 )
 
-add_executable(${PROJECT_NAME} ${BASE_SOURCES} )
-SET_TARGET_PROPERTIES(${PROJECT_NAME} PROPERTIES
-COMPILE_FLAGS  "-DTARGET_LABEL=${PROJECT_NAME}" 
+add_executable(${PROJECT} ${BASE_SOURCES} )
+SET_TARGET_PROPERTIES(${PROJECT} PROPERTIES
+COMPILE_FLAGS  "-DTARGET_LABEL=${PROJECT}" 
 		LINK_FLAGS "${SERVICE_LINK_FLAGS}"
                   FOLDER utils
 )
-target_link_libraries( ${PROJECT_NAME} ${SACK_LIBRARIES} )
-install_default_dest( ${PROJECT_NAME} )
+target_link_libraries( ${PROJECT} ${SACK_LIBRARIES} )
+install_default_dest( ${PROJECT} )
 
 if( WIN32 AND CMAKE_COMPILER_IS_GNUCC )
 STRING ( REPLACE "/" "\\" THISDIR ${CMAKE_CURRENT_BINARY_DIR} )
 STRING ( REPLACE "/" "\\" SRCDIR ${CMAKE_CURRENT_SOURCE_DIR} )
 add_custom_command(TARGET
-                     ${PROJECT_NAME}
+                     ${PROJECT}
                    POST_BUILD
                    COMMAND
-                     "mt.exe" -manifest \"${SRCDIR}\\service.manifest\" -outputresource:\"${THISDIR}\\${PROJECT_NAME}.exe\"\;\#1
+                     "mt.exe" -manifest \"${SRCDIR}\\service.manifest\" -outputresource:\"${THISDIR}\\${PROJECT}.exe\"\;\#1
                    COMMENT
                      "Adding custom manifest containing MSVCRT80 dependency..." 
                   )
 endif( WIN32 AND CMAKE_COMPILER_IS_GNUCC )
 
 
-add_subdirectory( portable )
+ExternalProject_Add( ${PROJECT}_portable 
+	SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/portable
+	INSTALL_DIR ${CMAKE_INSTALL_PREFIX}
+	CMAKE_ARGS -DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR> 
+		-DSACK_BASE=${SACK_BASE}
+		-DPLATFORM_LIBRARIES=${PLATFORM_LIBRARIES}
+		-DPLATFORM_DEFINES=${PLATFORM_DEFINES}
+		-DSHA1_SOURCES=${SHA1_SOURCES}
+		-DSHA2_SOURCES=${SHA2_SOURCES}
+)
+#add_subdirectory( portable )

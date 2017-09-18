@@ -66,7 +66,8 @@ SACK_NAMESPACE
    
    RescheduleTimer
    
-   EnterCriticalSec see Also EnterCriticalSecNoWait
+   EnterCriticalSec see Also
+ EnterCriticalSecNoWait
    
    LeaveCriticalSec                                            */
 _TIMER_NAMESPACE

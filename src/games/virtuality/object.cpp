@@ -304,8 +304,6 @@ uintptr_t CPROC copymyseg( POINTER p, uintptr_t psv )
 	struct copyseg_args *args = (struct copyseg_args *)psv;
 	PMYLINESEG lineseg = (PMYLINESEG)p;
 	PMYLINESEG newseg = GetFromSet( MYLINESEG, args->new_object->objinfo->ppLinePool );
-	INDEX facet;
-	int n;
 
 	newseg[0] = lineseg[0];
 	newseg->l.dFrom = lineseg->l.dFrom * args->scale;
@@ -431,28 +429,28 @@ uint32_t SaveObject( CTEXTSTR filename, POBJECT po )
 POBJECT LoadObject( CTEXTSTR filename )
 {
 	uint32_t dwUsed;
-   FILE *file;
+	FILE *file;
 //   PLANE p;
-   VECTOR vn, vo;
-   PFACET pp;
+	VECTOR vn, vo;
+	PFACET pp;
 
-   uint32_t c;
-   uint32_t dwRead;
+	uint32_t c;
 	POBJECT po;
 	file = sack_fopen( 0, filename, "rb" );
 	if( file )
 	{
 		po = CreateObject();
-		fread( &po->T, sizeof( po->T ), 1, file );
-		fread( &dwUsed, sizeof( dwUsed ), 1, file );
+		sack_fread( &po->T, sizeof( po->T ), 1, file );
+		sack_fread( &dwUsed, sizeof( dwUsed ), 1, file );
 		for( c = 0; c < dwUsed; c++ )
 		{
-			fread( vn, sizeof( VECTOR ), 1, file );
-			fread( vo, sizeof( VECTOR ), 1,file );
+			sack_fread( vn, sizeof( VECTOR ), 1, file );
+			sack_fread( vo, sizeof( VECTOR ), 1,file );
 			pp = AddPlaneToSet( po->objinfo, vo, vn, 0 );
-			fread( &pp->color, sizeof( CDATA ), 1, file );
+			sack_fread( &pp->color, sizeof( CDATA ), 1, file );
 		}
 		IntersectPlanes( po->objinfo, NULL, TRUE );
+		sack_fclose( file );
 		return po;
 	}
    return NULL;

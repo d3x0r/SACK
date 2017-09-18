@@ -149,7 +149,7 @@ static LOGICAL OnKey3d( WIDE("Virtuality") )( uintptr_t psvView, uint32_t key )
 		 // New Plane; this does more than it should....
 		if( 0 &&  KeyDown(  NULL, KEY_N ) )
 		{
-			int nfs, nf;
+			int nf;
 			PFACET pf;
 				//nfs = GetFacetSet( &g.EditInfo.pEditObject->objinfo );
 			pf = GetEditFacet();
@@ -173,9 +173,9 @@ static LOGICAL OnKey3d( WIDE("Virtuality") )( uintptr_t psvView, uint32_t key )
 						if( plsp->bOrderFromTo  )
 							Invert( ln );
 						crossproduct( n, pf->d.n, ln );
-				   		AddPlaneToSet( g.EditInfo.pEditObject->objinfo, line->l.r.o
-				   					  , n, 1 );
-				   }
+						AddPlaneToSet( g.EditInfo.pEditObject->objinfo, line->l.r.o
+									  , n, 1 );
+					}
 				}
 				//g.EditInfo.nFacetSet = nfs;
 				g.EditInfo.nFacet = nf;
@@ -365,7 +365,7 @@ static void OnDraw3d( WIDE("Virtuality") )( uintptr_t psvUnusedOne )
 			//TranslateV( GetImageTransformation( g.EditInfo.pEditObject->hud_icon ), g.EditInfo.vmin );
 			Render3dImage( g.EditInfo.pEditObject->hud_icon, g.EditInfo.vmin, FALSE );
 			TEXTCHAR buf[256];
-			snprintf( buf, 256, WIDE("Editing: O: %08x FS:%d F:%d")
+			snprintf( buf, 256, WIDE("Editing: O: %p FS:%d F:%d")
 			        , g.EditInfo.pEditObject
 			        , g.EditInfo.nFacetSet
 			        , g.EditInfo.nFacet );
@@ -453,7 +453,7 @@ void RenderOpenFacet( POBJECT po, PFACET pf )
 		GetViewVolume( &planes );
 		for( n = 0; n < 6; n++ )
 		{
-         SetRay( &volume_facets[n]->d, &planes[n] );
+			SetRay( &volume_facets[n]->d, &planes[n] );
 		}
 	}
 	the_plane->color = SetAlphaValue( pf->color, GetAlphaValue( pf->color ) * 0.25 );

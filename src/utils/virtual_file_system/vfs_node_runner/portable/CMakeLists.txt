@@ -1,3 +1,8 @@
+cmake_minimum_required(VERSION 3.0)
+
+include( ${SACK_BASE}/makefiles/cmake/DefaultInstall.cmake )
+include_directories( ${SACK_BASE}/include )
+add_definitions( ${PLATFORM_DEFINES} )
 
 
 

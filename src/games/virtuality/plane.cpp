@@ -970,8 +970,8 @@ uintptr_t CPROC TestLinkLines2( POINTER p, uintptr_t psv )
 #endif
 #endif
 
-			(*data->pnLineLink) = nl2;
-			pLine2->nLineTo = nl1;
+			(*data->pnLineLink) = (int)nl2;
+			pLine2->nLineTo = (int)nl1;
 			if( nl2 > 500 || nl1 > 500 )
 				DebugBreak();
 			return 1;
@@ -1021,8 +1021,8 @@ uintptr_t CPROC TestLinkLines2( POINTER p, uintptr_t psv )
 					 , to2[0], to2[1], to2[2] );
 #endif
 #endif
-			(*data->pnLineLink) = nl2;
-			pLine2->nLineFrom = nl1;
+			(*data->pnLineLink) = (int)nl2;
+			pLine2->nLineFrom = (int)nl1;
 			if( nl2 > 500 || nl1 > 500 )
 				DebugBreak();
 			return 1;

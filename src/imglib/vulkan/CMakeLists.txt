@@ -1,9 +1,10 @@
 
 if( WIN32 )
 	#GET_FILENAME_COMPONENT(VULKAN_API "[HKEY_LOCAL_MACHINE\\SOFTWARE\\LunarG\\VulkanSDK;VK_SDK_PATHs]" ABSOLUTE CACHE)
+	set( SHADERC_ENABLE_SHARED_CRT ON )
 	set( VULKAN_API $ENV{EnvironmentVariableName} )
-message( "VULKAN FROM ENVIRONMENT:" ${VULKAN_API} )
-set( VULKAN_API c:/tools/vulkansdk/1.0.51.0 )
+	message( "IMGLIB VULKAN FROM ENVIRONMENT:" ${VULKAN_API} )
+	set( VULKAN_API c:/tools/vulkansdk/1.0.51.0 )
 	STRING( REPLACE ";" "" VULKAN_API ${VULKAN_API})
 	if( NOT VULKAN_API )
 		message( FATAL_ERROR "Environment 'VULKAN_API' has not been set" )

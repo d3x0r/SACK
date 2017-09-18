@@ -1,6 +1,8 @@
-
 cmake_minimum_required(VERSION 2.8)
 
+include( ${SACK_BASE}/makefiles/cmake/DefaultInstall.cmake )
+include_directories( ${SACK_BASE}/include )
+add_definitions( ${PLATFORM_DEFINES} )
 
 foreach(flag_var
         CMAKE_CXX_FLAGS CMAKE_CXX_FLAGS_DEBUG CMAKE_CXX_FLAGS_RELEASE
