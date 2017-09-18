@@ -320,10 +320,10 @@ add_subdirectory(ssl)
 add_subdirectory(tls)
 add_subdirectory(include)
 if(NOT MSVC)
-	add_subdirectory(man)
+#	add_subdirectory(man)
 endif()
 if(NOT MSVC OR ENABLE_VSTEST)
-	add_subdirectory(tests)
+#	add_subdirectory(tests)
 endif()
 
 configure_file(
