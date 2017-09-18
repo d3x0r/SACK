@@ -287,6 +287,11 @@ OPTION( BUILD_UNICODE "Build All as Unicode" ${BUILD_UNICODE} )
 # should make this a common target variable instead also...
 set( INTERFACE_OUTPUT_DIR ${BINARY_OUTPUT_DIR} )
 
+if( CMAKE_COMPILER_IS_GNUCC )
+    ADD_DEFINITIONS( -Wno-multichar)
+endif( CMAKE_COMPILER_IS_GNUCC )
+
+
 if( MSVC )
   if( FORCE_MSVCRT )
     set( extra_link_flags "${extra_link_flags} /NODEFAULTLIB" )
