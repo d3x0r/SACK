@@ -2,8 +2,12 @@ cmake_minimum_required(VERSION 3.0)
 
 include( ${SACK_BASE}/makefiles/cmake/DefaultInstall.cmake )
 include_directories( ${SACK_BASE}/include )
+STRING( REPLACE " " ";" PLATFORM_LIBRARIES ${PLATFORM_LIBRARIES} )
+STRING( REPLACE " " ";" PLATFORM_DEFINES ${PLATFORM_DEFINES} )
 
 add_definitions( ${PLATFORM_DEFINES} )
+
+message( "USING LIBS: ${PLATFORM_LIBRARIES}" )
 
 foreach(flag_var
         CMAKE_CXX_FLAGS CMAKE_CXX_FLAGS_DEBUG CMAKE_CXX_FLAGS_RELEASE
