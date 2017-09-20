@@ -42,7 +42,7 @@ namespace loader {
 #endif
 
 //--------------------------------------
-static void CPROC ImagePngWrite(png_structp png,
+static int CPROC ImagePngWrite(png_structp png,
 									png_bytep	data,
 									png_size_t  length)
 {
@@ -70,6 +70,7 @@ static void CPROC ImagePngWrite(png_structp png,
 	}
 	MemCpy( (*self->r_data)+(*self->r_size), data, length );
 	(*self->r_size) = (*self->r_size) + length;
+   return 1;
 }
 
 
