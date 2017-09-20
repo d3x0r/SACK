@@ -57,18 +57,19 @@ png_write_data(png_structrp png_ptr, png_const_voidp data, png_size_t length)
  * write_data function and use it at run time with png_set_write_fn(), rather
  * than changing the library.
  */
-void PNGCBAPI
+int PNGCBAPI
 png_default_write_data(png_structp png_ptr, png_bytep data, png_size_t length)
 {
    png_size_t check;
 
    if (png_ptr == NULL)
-      return;
+      return 0;
 
    check = fwrite(data, 1, length, png_voidcast(png_FILE_p, png_ptr->io_ptr));
 
    if (check != length)
-      png_error(png_ptr, "Write Error");
+		png_error(png_ptr, "Write Error");
+   return 1;
 }
 #endif
 

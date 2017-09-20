@@ -1963,7 +1963,7 @@ png_image_write_main(png_voidp argument)
 }
 
 
-static void (PNGCBAPI
+static int (PNGCBAPI
 image_memory_write)(png_structp png_ptr, png_bytep/*const*/ data,
     png_size_t size)
 {
@@ -1982,11 +1982,13 @@ image_memory_write)(png_structp png_ptr, png_bytep/*const*/ data,
 
          /* Always update the size: */
          display->output_bytes = ob+size;
-      }
+		}
+   return 1;
    }
 
    else
-      png_error(png_ptr, "png_image_write_to_memory: PNG too big");
+		png_error(png_ptr, "png_image_write_to_memory: PNG too big");
+   return 0;
 }
 
 static void (PNGCBAPI

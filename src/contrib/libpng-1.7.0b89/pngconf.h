@@ -345,7 +345,7 @@
 #      define PNG_USE_RESULT __attribute__((__warn_unused_result__))
 #    endif
 #    if !defined(PNG_NORETURN) && __has_attribute(__noreturn__)
-#      define PNG_NORETURN __attribute__((__noreturn__))
+#      define PNG_NORETURN 
 #    endif
 #    if !defined(PNG_ALLOCATED) && __has_attribute(__malloc__)
 #      define PNG_ALLOCATED __attribute__((__malloc__))
@@ -370,7 +370,7 @@
 #      define PNG_USE_RESULT __attribute__((__warn_unused_result__))
 #    endif
 #    ifndef PNG_NORETURN
-#      define PNG_NORETURN   __attribute__((__noreturn__))
+#      define PNG_NORETURN  
 #    endif
 #    if __GNUC__ >= 3
 #      ifndef PNG_ALLOCATED
@@ -400,7 +400,7 @@
 #      define PNG_USE_RESULT /* not supported */
 #    endif
 #    ifndef PNG_NORETURN
-#      define PNG_NORETURN   __declspec(noreturn)
+#      define PNG_NORETURN   
 #    endif
 #    ifndef PNG_ALLOCATED
 #      if (_MSC_VER >= 1400)

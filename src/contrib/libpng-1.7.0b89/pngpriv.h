@@ -1011,12 +1011,12 @@ PNG_INTERNAL_FUNCTION(void,png_zfree,(voidpf png_ptr, voidpf ptr),PNG_EMPTY);
  */
 #ifdef PNG_STDIO_SUPPORTED
 #  ifdef PNG_READ_SUPPORTED
-PNG_INTERNAL_FUNCTION(void PNGCBAPI,png_default_read_data,(png_structp png_ptr,
+PNG_INTERNAL_FUNCTION(int PNGCBAPI,png_default_read_data,(png_structp png_ptr,
     png_bytep data, png_size_t length),PNG_EMPTY);
 #  endif /* READ */
 
 #  ifdef PNG_WRITE_SUPPORTED
-PNG_INTERNAL_FUNCTION(void PNGCBAPI,png_default_write_data,(png_structp png_ptr,
+PNG_INTERNAL_FUNCTION(int PNGCBAPI,png_default_write_data,(png_structp png_ptr,
     png_bytep data, png_size_t length),PNG_EMPTY);
 
 #     ifdef PNG_WRITE_FLUSH_SUPPORTED

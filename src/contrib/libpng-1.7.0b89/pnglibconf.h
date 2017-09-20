@@ -188,7 +188,7 @@
 #define PNG_zTXt_SUPPORTED
 /* end of options */
 /* settings */
-#define PNG_ABORT { (abort()); }
+#define PNG_ABORT
 #define PNG_API_RULE 0
 #define PNG_DEFAULT_COMPRESSION_LEVEL PNG_COMPRESSION_MEDIUM
 #define PNG_DEFAULT_GAMMA_ACCURACY 665
