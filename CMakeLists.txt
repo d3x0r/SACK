@@ -710,7 +710,6 @@ set( SACK_SOURCES
 	${VIDLIB_HEADLESS_SOURCES}
     ${VECTLIB_SOURCES}
     ${VECTLIB_MORE_SOURCES}
-    ${SNPRINTF_SOURCES}
     ${ODBC_SOURCES}
     ${BAG_SQLITE_INTERFACE}
     ${BAG_SQLITE_SOURCES}
@@ -727,7 +726,6 @@ set( cplusplus_sources )
 
 set( SACK_PLUSPLUS_SOURCES 
     ${BASE_SOURCES} 
-    ${SNPRINTF_SOURCES}
     ${ODBC_SOURCES}
     ${GENX_SOURCES}
     ${BAG_SQLITE_INTERFACE}
@@ -1015,7 +1013,6 @@ endif( __WINDOWS_ARM_CE__ )
 
 set( SACK_PLUSPLUS_SOURCES 
     ${BASE_SOURCES} 
-    ${SNPRINTF_SOURCES}
     ${ODBC_SOURCES}
     ${GENX_SOURCES}
     ${BAG_SQLITE_INTERFACE}
@@ -1597,8 +1594,6 @@ endif( __LINUX__ OR ( MSVC10 AND __64__ ) )
 if( __INCLUDE_INTERSHELL__ )
 	add_subdirectory( src/InterShell )
 endif( __INCLUDE_INTERSHELL__ )
-
-install( FILES ${SOURCES_ROOT}src/contrib/snprintf_2.2/snprintf.h DESTINATION include/SACK/snprintf-2.2 )
 
 # get the libraries..
 SET( CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS_SKIP 1 )
