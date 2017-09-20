@@ -601,11 +601,11 @@ if( NOT __CLR__ )
    endif( __CLR__ )
 endif( NOT __CLR__ )
 
-  SET( SNPRINTF_SOURCES ${SOURCES_ROOT}src/contrib/snprintf_2.2/snprintf.c )
-  set_source_files_properties( ${SNPRINTF_SOURCES} 
-  				PROPERTIES
-                                COMPILE_DEFINITIONS "SNPRINTF_LONGLONG_SUPPORT;PREFER_PORTABLE_SNPRINTF"
-  			)
+#  SET( SNPRINTF_SOURCES ${SOURCES_ROOT}src/contrib/snprintf_2.2/snprintf.c )
+#  set_source_files_properties( ${SNPRINTF_SOURCES} 
+#  				PROPERTIES
+#                                COMPILE_DEFINITIONS "SNPRINTF_LONGLONG_SUPPORT;PREFER_PORTABLE_SNPRINTF"
+#  			)
   
 endif(WIN32)
 
