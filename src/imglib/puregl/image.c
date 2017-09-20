@@ -15,6 +15,9 @@
 #ifdef __ANDROID__
 #include <gles/gl.h>
 #else
+#ifndef __LINUX__
+#  include <GL/glew.h>
+#endif
 #include <GL/gl.h>         // Header File For The OpenGL32 Library
 #endif
 
