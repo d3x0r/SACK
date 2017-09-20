@@ -3,6 +3,8 @@ set_property(GLOBAL PROPERTY QUIET_INSTALL On)
 set(CMAKE_INSTALL_MESSAGE "LAZY")
 cmake_minimum_required(VERSION 2.8)
 
+include( ExternalProject )
+
 
 PROJECT( "Sack.Binaries" )
 
@@ -26,9 +28,11 @@ message( "installed to ${SACK_LIBRARY_DIR}" )
 add_definitions( -DINTERSHELL_CORE_BUILD )
 
 if( __ARM__ )
+SET( PLATFORM_DEFINES ${PLATFORM_DEFINES} -D__ARM__ )
 ADD_DEFINITIONS( -D__ARM__ )
 endif( __ARM__ )
 if( __NO_ODBC__ )
+SET( PLATFORM_DEFINES ${PLATFORM_DEFINES} -D__NO_ODBC__ )
 ADD_DEFINITIONS( -D__NO_ODBC__ )
 endif( __NO_ODBC__ )
 

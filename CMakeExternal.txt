@@ -128,7 +128,7 @@ source_group("Source Files\\Freetype-2.8 Library" FILES ${FREETYPE_SOURCE})
 if( BUILD_EXTRAS )
   IF( NOT __ANDROID__ )
      # Android math.h puked when building this.
-     add_subdirectory( src/contrib/shapelib-1.3.0 )
+     #add_subdirectory( src/contrib/shapelib-1.3.0 )
   ENDIF( NOT __ANDROID__ )
 endif( BUILD_EXTRAS )
 
