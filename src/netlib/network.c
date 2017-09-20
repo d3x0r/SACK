@@ -1707,10 +1707,10 @@ int CPROC ProcessNetworkMessages( struct peer_thread_info *thread, uintptr_t unu
 #  ifdef __MAC__
 #    ifdef __64__
 		kevent64_s events[10];
-		cnt = kevent64( peer->kqueue, NULL, 0, &events, 10, 0, NULL );
+		cnt = kevent64( thread->kqueue, NULL, 0, &events, 10, 0, NULL );
 #    else
 		kevent events[10];
-		cnt = kevent( peer->kqueue, NULL, 0, &events, 10, NULL );
+		cnt = kevent( thread->kqueue, NULL, 0, &events, 10, NULL );
 #    endif
 #  else
 		struct epoll_event events[10];
