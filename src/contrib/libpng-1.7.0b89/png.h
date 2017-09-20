@@ -593,8 +593,8 @@ typedef char* png_libpng_version_1_7_0beta89;
  * (below) hides the creation and destruction of it.
  */
 typedef struct png_struct_def png_struct;
-typedef const png_struct * png_const_structp;
-typedef png_struct * png_structp;
+typedef const png_struct * PNG_RESTRICT png_const_structp;
+typedef png_struct * PNG_RESTRICT png_structp;
 typedef png_struct * * png_structpp;
 
 /* png_info contains information read from or to be written to a PNG file.  One
@@ -607,8 +607,8 @@ typedef png_struct * * png_structpp;
  * applications.  Read libpng-manual.txt or libpng.3 for more info.
  */
 typedef struct png_info_def png_info;
-typedef png_info * png_infop;
-typedef const png_info * png_const_infop;
+typedef png_info * PNG_RESTRICT png_infop;
+typedef const png_info * PNG_RESTRICT png_const_infop;
 typedef png_info * * png_infopp;
 
 /* Types with names ending 'p' are pointer types.  The corresponding types with
@@ -3091,7 +3091,7 @@ PNG_EXPORT(216, png_uint_32, png_get_io_chunk_type,
  * these macros return 'true' for earlier rows or columns of the image that are
  * *not* in the pass.
  */
-#define PNG_LAST_PASS(width, height) ((height) > 1 ? 6 : ((width) > 1 ? 5 : 0))
+#define PNG_LAST_PASS(width, height) ((height) > 1 ? 6U : ((width) > 1 ? 5U : 0))
 #define PNG_LAST_PASS_ROW(y, pass, height)\
    ((y) + PNG_PASS_ROW_OFFSET(pass) >= (height))
 #define PNG_LAST_PASS_COL(x, pass, width)\

@@ -795,7 +795,7 @@ png_handle_bad_length(png_structrp png_ptr)
 
 /* Read and check the IDHR chunk */
 static void
-png_handle_IHDR(png_structrp png_ptr, png_inforp info_ptr)
+png_handle_IHDR(png_structrp png_ptr, png_inforp info_ptr) 
 {
    png_byte buf[13];
    png_uint_32 width, height;

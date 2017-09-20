@@ -1561,7 +1561,7 @@ pz_default_settings(png_uint_32 settings, const png_uint_32 owner,
             else
                windowBits = 9;
 
-            while (windowBits < 15 && (1U << windowBits) < test_size)
+            while (windowBits < 15 && (1U << (windowBits&0xF)) < test_size)
                ++windowBits;
 
             break;
