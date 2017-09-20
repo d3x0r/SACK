@@ -20,7 +20,6 @@
 #ifdef __ANDROID__
 #include <gles/gl.h>
 #else
-#include <GL/glew.h>
 #include <GL/gl.h>         // Header File For The OpenGL32 Library
 #endif
 
@@ -593,7 +592,7 @@ namespace image {
 			{
 #if !defined( __ANDROID__ )
 				InitShader();
-				if( glUseProgram && l.glActiveSurface->shader.multi_shader )
+				if( l.glActiveSurface->shader.multi_shader )
 				{
 					int err;
 					CDATA r = va_arg( colors, CDATA );

@@ -29,7 +29,7 @@
 //#include <GLES/gl.h>         // Header File For The OpenGL32 Library
 #include <GLES2/gl2.h>         // Header File For The OpenGL32 Library
 #else
-#include <GL/glew.h>
+//#include <GL/glew.h>
 #include <GL/gl.h>         // Header File For The OpenGL32 Library
 //#include <gl\glu.h>        // Header File For The GLu32 Library
 #endif

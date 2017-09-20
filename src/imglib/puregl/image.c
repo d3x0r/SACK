@@ -15,7 +15,6 @@
 #ifdef __ANDROID__
 #include <gles/gl.h>
 #else
-#include <GL/glew.h>
 #include <GL/gl.h>         // Header File For The OpenGL32 Library
 #endif
 
@@ -195,7 +194,7 @@ int ReloadOpenGlMultiShadedTexture( Image child_image, int option, CDATA r, CDAT
 {
 #if !defined( __ANDROID__ )
 				InitShader();
-				if( glUseProgram && l.glActiveSurface->shader.multi_shader )
+				if( l.glActiveSurface->shader.multi_shader )
 				{
 					int err;
 		 			glEnable(GL_FRAGMENT_PROGRAM_ARB);
@@ -953,16 +952,6 @@ void InitShader( void )
 	{
 		int result;
  		l.glActiveSurface->shader.flags.init_ok = 1;
-		if (GLEW_OK != glewInit() )
-		{
-			return;
-		}
-
-		if( !glUseProgram )
-		{
-			lprintf(WIDE( "glUseProgram failed to resolve." ) );
-			return;
-		}
 
  		glEnable(GL_FRAGMENT_PROGRAM_ARB);
 		result = glGetError();

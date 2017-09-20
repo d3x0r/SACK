@@ -5,7 +5,6 @@
 #include <GLES2/gl2.h>
 #else
 #define GLEW_NO_GLU
-#include <GL/glew.h>
 #include <GL/gl.h>
 //#include <GL/glu.h>
 #endif

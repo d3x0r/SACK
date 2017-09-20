@@ -19,7 +19,7 @@
 #  else
 #    define USE_OPENGL
 // why do we need this anyway?
-#    include <GL/glew.h>
+//#    include <GL/glew.h>
 #    include <GL/gl.h>         // Header File For The OpenGL32 Library
 #  endif
 #endif

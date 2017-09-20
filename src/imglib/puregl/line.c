@@ -23,7 +23,7 @@
 #ifdef __ANDROID__
 #include <gles/gl.h>
 #else
-#include <GL/glew.h>
+//#include <GL/glew.h>
 #include <GL/gl.h>         // Header File For The OpenGL32 Library
 #endif
 
