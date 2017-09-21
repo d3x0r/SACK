@@ -1,14 +1,27 @@
 
+
 set( project rundelay )
 
 
-add_program(${project} rundelay.c )
-SET_TARGET_PROPERTIES(${project} PROPERTIES FOLDER utils )
+add_program(rundelay rundelay.c )
+SET_TARGET_PROPERTIES(rundelay PROPERTIES FOLDER utils )
 
 
 set( project getPassword )
-add_program(${project} getPass.c )
-SET_TARGET_PROPERTIES(${project} PROPERTIES FOLDER utils )
+add_program(getPassword getPass.c )
+SET_TARGET_PROPERTIES(getPassword PROPERTIES FOLDER utils )
 
+string( REPLACE ";" " " PLATFORM_LIBRARIES_ARG "${SACK_PLATFORM_LIBRARIES}" )
+string( REPLACE ";" " " PLATFORM_DEFINES_ARG "${PLATFORM_DEFINES}" )
 
-add_subdirectory( portable )
+ExternalProject_Add( ${project}_portable 
+	SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/portable
+	INSTALL_DIR ${CMAKE_INSTALL_PREFIX}
+	CMAKE_ARGS -DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR> 
+		-DSACK_BASE=${SACK_BASE}
+		-DPLATFORM_LIBRARIES=${PLATFORM_LIBRARIES_ARG}
+		-DPLATFORM_DEFINES=${PLATFORM_DEFINES_ARG}
+		-DSHA1_SOURCES=${SHA1_SOURCES}
+		-DSHA2_SOURCES=${SHA2_SOURCES}
+)
+#add_subdirectory( portable )

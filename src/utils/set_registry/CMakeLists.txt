@@ -1,3 +1,10 @@
+cmake_minimum_required(VERSION 3.0)
+
+include( ${SACK_BASE}/DefaultInstall.cmake )
+include_directories( ${SACK_BASE}/include/SACK )
+STRING( REPLACE " " ";" PLATFORM_LIBRARIES ${PLATFORM_LIBRARIES} )
+STRING( REPLACE " " ";" PLATFORM_DEFINES ${PLATFORM_DEFINES} )
+add_definitions( ${PLATFORM_DEFINES} )
 
 enable_language(C)
 enable_language(CXX)
@@ -23,6 +30,45 @@ endif( WATCOM )
 
 PROJECT( set_registry )
 
-add_program( set_registry set_registry.c )
-target_link_libraries( set_registry ${SACK_LIBRARIES} )
+set( SOURCES_ROOT ${CMAKE_CURRENT_SOURCE_DIR}/../../.. )
+
+if( WIN32 )
+set( NET_SOURCES     ${SOURCES_ROOT}/src/netlib/net_winsock2.c  )
+set( MORE_SYSTEM_SOURCES   ${SOURCES_ROOT}/src/systemlib/oswin.c )
+endif( WIN32 )
+
+set(BASE_SOURCES
+${FIRST_GCC_PROGRAM_SOURCE} 
+    set_registry.c
+    ${SOURCES_ROOT}/src/netlib/network.c 
+    ${SOURCES_ROOT}/src/netlib/udpnetwork.c 
+    ${SOURCES_ROOT}/src/netlib/tcpnetwork.c 
+    ${NET_SOURCES}
+    ${SOURCES_ROOT}/src/memlib/sharemem.c
+    ${SOURCES_ROOT}/src/memlib/memory_operations.c
+    ${SOURCES_ROOT}/src/timerlib/timers.c
+    ${SOURCES_ROOT}/src/idlelib/idle.c
+    ${SOURCES_ROOT}/src/procreglib/names.c
+    ${SOURCES_ROOT}/src/configlib/configscript.c
+    ${SOURCES_ROOT}/src/sysloglib/syslog.c
+    ${ExtraSources}
+    ${SOURCES_ROOT}/src/systemlib/system.c
+    ${SOURCES_ROOT}/src/systemlib/args.c
+    ${MORE_SYSTEM_SOURCES}
+    ${SOURCES_ROOT}/src/systemlib/spawntask.c
+    ${SOURCES_ROOT}/src/typelib/typecode.c
+    ${SOURCES_ROOT}/src/typelib/text.c
+    ${SOURCES_ROOT}/src/typelib/sets.c
+    ${SOURCES_ROOT}/src/typelib/binarylist.c
+    ${SOURCES_ROOT}/src/filesyslib/filescan.c
+    ${SOURCES_ROOT}/src/filesyslib/pathops.c
+    ${SOURCES_ROOT}/src/filesyslib/winfiles.c
+${LAST_GCC_PROGRAM_SOURCE}
+    ${SOURCES_ROOT}/src/deadstart/deadstart_core.c 
+)
+
+add_program( set_registry ${BASE_SOURCES} )
+SET_PROPERTY(TARGET set_registry APPEND PROPERTY
+     COMPILE_DEFINITIONS "__STATIC__;SACK_BAG_EXPORTS;__NO_OPTIONS__;__NO_DEFAULT_INTERFACES__;__NO_NETWORK__;NO_DEADSTART_DLLMAIN" )
+target_link_libraries( set_registry ${PLATFORM_LIBRARIES} )
 install_default_dest( set_registry )

@@ -143,7 +143,18 @@ ExternalProject_Add( get_display_ext
 
 add_subpath( ../src/utils/pcopy )
 add_subpath( ../src/utils/window_stacker )
-add_subpath( ../src/utils/set_registry )
+ExternalProject_Add( set_registry_ext
+	SOURCE_DIR ${CMAKE_SOURCE_DIR}/../src/utils/set_registry
+	BINARY_DIR set_registry_ext
+	INSTALL_DIR ${CMAKE_INSTALL_PREFIX}
+	CMAKE_ARGS -DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR> 
+		-DSACK_BASE=${SACK_BASE}
+		-DPLATFORM_LIBRARIES=${PLATFORM_LIBRARIES_ARG}
+		-DPLATFORM_DEFINES=${PLATFORM_DEFINES_ARG}
+		-DSHA1_SOURCES=${SHA1_SOURCES}
+		-DSHA2_SOURCES=${SHA2_SOURCES}
+)
+#add_subpath( ../src/utils/set_registry )
 endif( WIN32 )
 
 

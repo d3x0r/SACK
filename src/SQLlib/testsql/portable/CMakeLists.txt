@@ -1,4 +1,13 @@
 
+cmake_minimum_required(VERSION 3.0)
+
+include( ${SACK_BASE}/DefaultInstall.cmake )
+include_directories( ${SACK_BASE}/include/SACK )
+STRING( REPLACE " " ";" SACK_PLATFORM_LIBRARIES ${PLATFORM_LIBRARIES} )
+STRING( REPLACE " " ";" PLATFORM_DEFINES ${PLATFORM_DEFINES} )
+add_definitions( ${PLATFORM_DEFINES} )
+
+
 foreach(flag_var
         CMAKE_CXX_FLAGS CMAKE_CXX_FLAGS_DEBUG CMAKE_CXX_FLAGS_RELEASE
         CMAKE_CXX_FLAGS_MINSIZEREL CMAKE_CXX_FLAGS_RELWITHDEBINFO
@@ -94,15 +103,7 @@ sack_add_executable(${project} ${BASE_SOURCES} )
 
 SET_TARGET_PROPERTIES(${project} PROPERTIES        FOLDER utils   )
 
-target_link_libraries( ${project}  ${SACK_PLATFORM_LIBRARIES} )
-if( WIN32 )
-#target_link_libraries( ${project} winmm wsock32 ws2_32 )
-target_link_libraries( ${project} winmm odbc32 )
-else( WIN32 )
-if( NOT __NO_ODBC__ )
-   target_link_libraries( ${project} odbc  )
-endif( NOT __NO_ODBC__ )
-endif( WIN32 )
+target_link_libraries( ${project}  ${PLATFORM_LIBRARIES} )
 install_default_dest_binary( ${project} )
 
 

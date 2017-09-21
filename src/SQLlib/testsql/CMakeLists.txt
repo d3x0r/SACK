@@ -1,20 +1,33 @@
 
-project( pssqlcmd )
+set( project pssqlcmd )
 
 set(BASE_SOURCES
     sqlcmd
 )
 
 
-sack_add_executable(${PROJECT_NAME} ${BASE_SOURCES} )
-SET_TARGET_PROPERTIES(${PROJECT_NAME} PROPERTIES
+sack_add_executable(${project} ${BASE_SOURCES} )
+SET_TARGET_PROPERTIES(${project} PROPERTIES
                   FOLDER utils
 )
-target_link_libraries( ${PROJECT_NAME} ${SACK_LIBRARIES} ${SACK_PSI_LIBRARY} )
-install_default_dest( ${PROJECT_NAME} )
+target_link_libraries( ${project} ${SACK_LIBRARIES} ${SACK_PSI_LIBRARY} )
+install_default_dest( ${project} )
 
 
-add_subdirectory( portable )
+string( REPLACE ";" " " PLATFORM_LIBRARIES_ARG "${SACK_PLATFORM_LIBRARIES}" )
+string( REPLACE ";" " " PLATFORM_DEFINES_ARG "${PLATFORM_DEFINES}" )
+
+ExternalProject_Add( ${project}_portable 
+	SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/portable
+	INSTALL_DIR ${CMAKE_INSTALL_PREFIX}
+	CMAKE_ARGS -DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR> 
+		-DSACK_BASE=${SACK_BASE}
+		-DPLATFORM_LIBRARIES=${PLATFORM_LIBRARIES_ARG}
+		-DPLATFORM_DEFINES=${PLATFORM_DEFINES_ARG}
+		-DSHA1_SOURCES=${SHA1_SOURCES}
+		-DSHA2_SOURCES=${SHA2_SOURCES}
+)
+#add_subdirectory( portable )
 
 
 

@@ -1,3 +1,12 @@
+cmake_minimum_required(VERSION 3.0)
+
+include( ${SACK_BASE}/DefaultInstall.cmake )
+include_directories( ${SACK_BASE}/include/SACK )
+STRING( REPLACE " " ";" PLATFORM_LIBRARIES ${PLATFORM_LIBRARIES} )
+STRING( REPLACE " " ";" PLATFORM_DEFINES ${PLATFORM_DEFINES} )
+add_definitions( ${PLATFORM_DEFINES} )
+
+
 foreach(flag_var
         CMAKE_CXX_FLAGS CMAKE_CXX_FLAGS_DEBUG CMAKE_CXX_FLAGS_RELEASE
         CMAKE_CXX_FLAGS_MINSIZEREL CMAKE_CXX_FLAGS_RELWITHDEBINFO
@@ -68,14 +77,14 @@ sack_add_executable( ${project} ${FIRST_GCC_PROGRAM_SOURCE}
 ${LAST_GCC_PROGRAM_SOURCE} 
     ${SOURCES_ROOT}/src/deadstart/deadstart_core.c
 )
-target_link_libraries( ${project} ${SACK_PLATFORM_LIBRARIES} )
+target_link_libraries( ${project} ${PLATFORM_LIBRARIES} )
 
 string( REPLACE "." "_" TARGET_LABEL ${project} )
 SET_PROPERTY(TARGET ${project} APPEND PROPERTY COMPILE_DEFINITIONS "SACK_BAG_EXPORTS;__NO_GUI__;__NO_OPTIONS__;__NO_DEFAULT_INTERFACES__;__STATIC__;NO_DEADSTART_DLLMAIN" )
 SET_TARGET_PROPERTIES(${project} PROPERTIES
                   FOLDER "Network Examples"
 )
-target_link_libraries( ${project} ${SOCKET_LIBRARIES} ${SACK_PLATFORM_LIBRARIES} )
+target_link_libraries( ${project} ${SOCKET_LIBRARIES} ${PLATFORM_LIBRARIES} )
 install_default_dest( ${project} )
 
 if( WIN32 )
@@ -122,7 +131,7 @@ sack_add_executable( ${project} ${FIRST_GCC_PROGRAM_SOURCE}
 ${LAST_GCC_PROGRAM_SOURCE} 
     ${SOURCES_ROOT}/src/deadstart/deadstart_core.c
 )
-target_link_libraries( ${project} ${SACK_PLATFORM_LIBRARIES} )
+target_link_libraries( ${project} ${PLATFORM_LIBRARIES} )
 
 SET_PROPERTY(TARGET ${project} APPEND PROPERTY COMPILE_DEFINITIONS "SACK_BAG_EXPORTS;BUILD_SERVICE;__STATIC__;__NO_GUI__;__NO_DEFAULT_INTERFACES__;__NO_OPTIONS__;NO_DEADSTART_DLLMAIN" )
 string( REPLACE "." "_" TARGET_LABEL ${project} )
