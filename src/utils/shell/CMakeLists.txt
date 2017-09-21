@@ -1,5 +1,11 @@
+cmake_minimum_required(VERSION 3.0)
 
-include_directories( ../../../include  )
+include( ${SACK_BASE}/DefaultInstall.cmake )
+include_directories( ${SACK_BASE}/include/SACK )
+STRING( REPLACE " " ";" PLATFORM_LIBRARIES ${PLATFORM_LIBRARIES} )
+STRING( REPLACE " " ";" PLATFORM_DEFINES ${PLATFORM_DEFINES} )
+add_definitions( ${PLATFORM_DEFINES} )
+
 ### END include sack ###
 
 foreach(flag_var

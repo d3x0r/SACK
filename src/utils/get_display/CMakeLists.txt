@@ -1,3 +1,10 @@
+cmake_minimum_required(VERSION 3.0)
+
+include( ${SACK_BASE}/DefaultInstall.cmake )
+include_directories( ${SACK_BASE}/include )
+STRING( REPLACE " " ";" PLATFORM_LIBRARIES ${PLATFORM_LIBRARIES} )
+STRING( REPLACE " " ";" PLATFORM_DEFINES ${PLATFORM_DEFINES} )
+add_definitions( ${PLATFORM_DEFINES} )
 
 if(MSVC)
 # We statically link to reduce dependencies

@@ -213,6 +213,7 @@ endif( WIN32 )
       FILE( APPEND ${FILEOUT} "\n" )
 if( MSVC )
       #// remove snprintf deprication and posix warning
+		FILE( APPEND ${FILEOUT} "SET( PLATFORM_DEFINES $" "{PLATFORM_DEFINES} -D_CRT_SECURE_NO_WARNINGS -wd4995 -wd4996)\n" )
 		FILE( APPEND ${FILEOUT} "add_definitions( -D_CRT_SECURE_NO_WARNINGS -wd4995 -wd4996)\n" )
 		FILE( APPEND ${FILEOUT} "    if( CMAKE_CL_64 )\n" )
 		FILE( APPEND ${FILEOUT} "      add_definitions( -D_AMD64_ -D__64__ -D_WIN64 )\n" )

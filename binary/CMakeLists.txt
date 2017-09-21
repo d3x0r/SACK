@@ -49,7 +49,7 @@ endmacro(add_subpath)
 # not really a test; just a utility
 add_subpath( ../src/psilib/paltst )
 
-string( REPLACE ";" " " PLATFORM_LIBRARIES_ARG "${PLATFORM_LIBRARIES}" )
+string( REPLACE ";" " " PLATFORM_LIBRARIES_ARG "${SACK_PLATFORM_LIBRARIES}" )
 string( REPLACE ";" " " PLATFORM_DEFINES_ARG "${PLATFORM_DEFINES}" )
 
 

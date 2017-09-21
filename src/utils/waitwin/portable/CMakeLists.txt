@@ -1,7 +1,9 @@
 cmake_minimum_required(VERSION 3.0)
 
-include( ${SACK_BASE}/makefiles/cmake/DefaultInstall.cmake )
-include_directories( ${SACK_BASE}/include )
+include( ${SACK_BASE}/DefaultInstall.cmake )
+include_directories( ${SACK_BASE}/include/SACK )
+STRING( REPLACE " " ";" PLATFORM_LIBRARIES ${PLATFORM_LIBRARIES} )
+STRING( REPLACE " " ";" PLATFORM_DEFINES ${PLATFORM_DEFINES} )
 add_definitions( ${PLATFORM_DEFINES} )
 
 foreach(flag_var
@@ -71,7 +73,7 @@ SET_TARGET_PROPERTIES(${project} PROPERTIES
 COMPILE_FLAGS  "-DTARGET_LABEL=${TARGET_LABEL}" 
                   FOLDER utils
 )
-target_link_libraries( ${project} ${SACK_PLATFORM_LIBRARIES} )
+target_link_libraries( ${project} ${PLATFORM_LIBRARIES} )
 install_default_dest( ${project} )
 
 set( project waitproc.portable )
@@ -113,7 +115,7 @@ ${LAST_GCC_PROGRAM_SOURCE}
 
 
 sack_add_executable(${project} ${BASE_SOURCES} )
-target_link_libraries( ${project}  ${SACK_PLATFORM_LIBRARIES} )
+target_link_libraries( ${project}  ${SPLATFORM_LIBRARIES} )
 string( REPLACE "." "_" TARGET_LABEL ${project} )
 SET_PROPERTY(TARGET ${project} APPEND PROPERTY 
        COMPILE_DEFINITIONS "__STATIC__;SACK_BAG_EXPORTS;__NO_OPTIONS__;__NO_DEFAULT_INTERFACES__;__NO_NETWORK__;__DISABLE_UDP_SYSLOG__;BUILD_PORTABLE_EXECUTABLE" )
@@ -121,7 +123,7 @@ SET_TARGET_PROPERTIES(${project} PROPERTIES
 COMPILE_FLAGS  "-DTARGET_LABEL=${TARGET_LABEL}" 
                   FOLDER utils
 )
-target_link_libraries( ${project} ${SACK_PLATFORM_LIBRARIES} )
+target_link_libraries( ${project} ${PLATFORM_LIBRARIES} )
 install_default_dest( ${project} )
 
 

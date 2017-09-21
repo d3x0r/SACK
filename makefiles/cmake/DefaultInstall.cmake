@@ -406,6 +406,7 @@ macro( add_portable_program_ex portable targetname option1 )
 			install_default_dest( ${targetname} )
 		endif( MAKING_SACK_CORE )
 		my_target_link_libraries( ${targetname} ${SACK_PLATFORM_LIBRARIES} )
+		my_target_link_libraries( ${targetname} ${PLATFORM_LIBRARIES} )
 	endif( __ANDROID__ )
 
 endmacro( add_portable_program_ex )

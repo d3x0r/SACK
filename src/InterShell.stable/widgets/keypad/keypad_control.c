@@ -38,6 +38,7 @@
 
 #include <controls.h>
 #include <configscript.h>
+#include <filesys.h>
 #include <sharemem.h>
 #include <sack_system.h>  // GetProgramName()
 #include <idle.h>

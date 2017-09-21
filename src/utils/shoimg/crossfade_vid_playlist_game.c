@@ -575,7 +575,7 @@ static LOGICAL CPROC PressSomeKey( uintptr_t psv, uint32_t key_code )
 	static int reset2 = 0;
 	static int reset3 = 0;
 	static int reset4 = 0;
-	TEXTCHAR key = GetKeyText( key_code );
+	CTEXTSTR key = GetKeyText( key_code );
 	tick = timeGetTime();
 	//lprintf( "got key %08x  (%d,%c)  %d ", key_code, key, key, tick - _tick );
 	if( !_tick || ( _tick < ( tick - 2000 ) ) )
@@ -592,11 +592,11 @@ static LOGICAL CPROC PressSomeKey( uintptr_t psv, uint32_t key_code )
 
 	{
 		//lprintf( "continue sequence... begin new collections" );
-		if( key >= '0' && key <= '9' )
+		if( key[0] >= '0' && key[0] <= '9' )
 		{
 			// reset to new value
-			g.number_collector = ( g.number_collector * 10 ) + (key - '0');
-			g.value_collector[g.value_collect_index++] = key;
+			g.number_collector = ( g.number_collector * 10 ) + (key[0] - '0');
+			g.value_collector[g.value_collect_index++] = key[0];
 			g.value_collector[g.value_collect_index] = 0;
 			//lprintf( "new value %d (%s)", g.number_collector, g.value_collector );
 			if( g.attract_mode )
@@ -615,7 +615,7 @@ static LOGICAL CPROC PressSomeKey( uintptr_t psv, uint32_t key_code )
 
 			}
 		}
-		else if( key == g.card_begin_char )
+		else if( key[0] == g.card_begin_char )
 		{
 			//lprintf( "Begin swipe..." );
 			if( !g.attract_mode )
@@ -626,7 +626,7 @@ static LOGICAL CPROC PressSomeKey( uintptr_t psv, uint32_t key_code )
 				g.value_collector[g.value_collect_index] = 0;
 			}
 		}
-		else if( key == g.card_end_char ) // '?'
+		else if( key[0] == g.card_end_char ) // '?'
 		{
 			//lprintf( "end card with (%s)", g.value_collector );
 			if( !g.attract_mode )
