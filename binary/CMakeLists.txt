@@ -49,18 +49,22 @@ endmacro(add_subpath)
 # not really a test; just a utility
 add_subpath( ../src/psilib/paltst )
 
+string( REPLACE ";" " " PLATFORM_LIBRARIES_ARG "${PLATFORM_LIBRARIES}" )
+string( REPLACE ";" " " PLATFORM_DEFINES_ARG "${PLATFORM_DEFINES}" )
+
 
 if( WIN32 )
 add_subpath( ../src/utils/reboot )
 add_subpath( ../src/utils/cleaner )
 add_subpath( ../src/utils/shutmon )
-ExternalProject_Add( shell
-	SOURCE_DIR ../src/utils/shell
+ExternalProject_Add( shell_util
+	SOURCE_DIR ${CMAKE_SOURCE_DIR}/../src/utils/shell
+	BINARY_DIR shell_extern
 	INSTALL_DIR ${CMAKE_INSTALL_PREFIX}
 	CMAKE_ARGS -DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR> 
 		-DSACK_BASE=${SACK_BASE}
-		-DPLATFORM_LIBRARIES=${PLATFORM_LIBRARIES}
-		-DPLATFORM_DEFINES=${PLATFORM_DEFINES}
+		-DPLATFORM_LIBRARIES=${PLATFORM_LIBRARIES_ARG}
+		-DPLATFORM_DEFINES=${PLATFORM_DEFINES_ARG}
 		-DSHA1_SOURCES=${SHA1_SOURCES}
 		-DSHA2_SOURCES=${SHA2_SOURCES}
 )
@@ -94,7 +98,14 @@ endif( NOT __ANDROID__ AND NOT __CLR__ )
 
 add_subpath( ../src/utils/frame_ID_converter )
 
-add_subpath( ../makefiles/prog/ppc )
+ExternalProject_Add( ppc
+	SOURCE_DIR ${CMAKE_SOURCE_DIR}/../makefiles/prog/ppc
+	BINARY_DIR ppc
+	INSTALL_DIR ${CMAKE_INSTALL_PREFIX}
+	CMAKE_ARGS -DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR> 
+		-DPLATFORM_LIBRARIES=${PLATFORM_LIBRARIES_ARG}
+)
+#add_subpath( ../makefiles/prog/ppc )
 add_subpath( ../src/utils/image_colorizer )
 
 if( WIN32 )
@@ -117,29 +128,20 @@ add_subpath( ../src/utils/http_server )
 add_subpath( ../src/utils/waitwin )
 add_subpath( ../src/utils/rundelay )
 
-ExternalProject_Add( get_display
-	SOURCE_DIR ../src/utils/get_display
+ExternalProject_Add( get_display_ext
+	SOURCE_DIR ${CMAKE_SOURCE_DIR}/../src/utils/get_display
+	BINARY_DIR get_display_ext
 	INSTALL_DIR ${CMAKE_INSTALL_PREFIX}
 	CMAKE_ARGS -DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR> 
 		-DSACK_BASE=${SACK_BASE}
-		-DPLATFORM_LIBRARIES=${PLATFORM_LIBRARIES}
-		-DPLATFORM_DEFINES=${PLATFORM_DEFINES}
+		-DPLATFORM_LIBRARIES=${PLATFORM_LIBRARIES_ARG}
+		-DPLATFORM_DEFINES=${PLATFORM_DEFINES_ARG}
 		-DSHA1_SOURCES=${SHA1_SOURCES}
 		-DSHA2_SOURCES=${SHA2_SOURCES}
 )
 #add_subpath( ../src/utils/get_display )
 
-ExternalProject_Add( pcopy
-	SOURCE_DIR ../src/utils/pcopy
-	INSTALL_DIR ${CMAKE_INSTALL_PREFIX}
-	CMAKE_ARGS -DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR> 
-		-DSACK_BASE=${SACK_BASE}
-		-DPLATFORM_LIBRARIES=${PLATFORM_LIBRARIES}
-		-DPLATFORM_DEFINES=${PLATFORM_DEFINES}
-		-DSHA1_SOURCES=${SHA1_SOURCES}
-		-DSHA2_SOURCES=${SHA2_SOURCES}
-)
-#add_subpath( ../src/utils/pcopy )
+add_subpath( ../src/utils/pcopy )
 add_subpath( ../src/utils/window_stacker )
 add_subpath( ../src/utils/set_registry )
 endif( WIN32 )

@@ -56,8 +56,9 @@ install_default_dest_binary( ${project} )
 string( REPLACE ";" " " PLATFORM_LIBRARIES_ARG "${SACK_PLATFORM_LIBRARIES}" )
 string( REPLACE ";" " " PLATFORM_DEFINES_ARG "${PLATFORM_DEFINES}" )
 
-ExternalProject_Add( ${PROJECT}_portable 
+ExternalProject_Add( ${project}_portable 
 	SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/portable
+	BINARY_DIR ${project}_portable
 	INSTALL_DIR ${CMAKE_INSTALL_PREFIX}
 	CMAKE_ARGS -DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR> 
 		-DSACK_BASE=${SACK_BASE}
