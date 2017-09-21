@@ -1,8 +1,10 @@
 
 #include <stdhdrs.h>
 
+#ifndef __LINUX__
+#  include <GL/glew.h>
+#endif
 #include "local.h"
-
 #include "shaders.h"
 
 IMAGE_NAMESPACE

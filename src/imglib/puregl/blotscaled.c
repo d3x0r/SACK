@@ -28,9 +28,11 @@
 #if defined( __ANDROID__ )
 #include <gles\gl.h>         // Header File For The OpenGL32 Library
 #else
-#include <GL/glew.h>
+#ifndef __LINUX__
+#  include <GL/glew.h>
+#endif
 #include <GL/gl.h>         // Header File For The OpenGL32 Library
-//#include <gl\glu.h>        // Header File For The GLu32 Library
+//#include <GL/glu.h>        // Header File For The GLu32 Library
 #endif
 
 #include <sharemem.h>
@@ -615,7 +617,7 @@ void CPROC cBlotScaledMultiTImgAI( SCALED_BLOT_WORK_PARAMS
 			{
 #if !defined( __ANDROID__ )
 				InitShader();
-				if( glUseProgram && l.glActiveSurface->shader.multi_shader )
+				if( l.glActiveSurface->shader.multi_shader )
 				{
 					int err;
 					CDATA r = va_arg( colors, CDATA );

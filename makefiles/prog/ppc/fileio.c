@@ -526,7 +526,7 @@ uintptr_t OpenOutputFile( char *newfile )
 	//PFILETRACK pft = g.pFileStack;
 	//if( pft )
 	{
-		g.output = fopen( FixName( newfile ), WIDE("wt") );
+		g.output = fopen( FixName( newfile ), WIDE("wb") );
 		if( g.output )
 		{
 			return 1;
