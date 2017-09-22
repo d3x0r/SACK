@@ -528,7 +528,6 @@ PCLIENT WebSocketCreate( CTEXTSTR hosturl
 {
 	struct url_data *url;
 	HTML5WebSocket socket = New( struct html5_web_socket );
-	NetworkStart();
 	MemSet( socket, 0, sizeof( struct html5_web_socket ) );
 	socket->Magic = 0x20130912;
 	socket->input_state.flags.deflate = 1;

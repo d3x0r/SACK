@@ -219,7 +219,7 @@ void AcceptClient(PCLIENT pListen)
 			WSASetEvent( globalNetworkData.hMonitorThreadControlEvent );
 #endif
 #ifdef __LINUX__
-			AddThreadEvent( pNewClient );
+			AddThreadEvent( pNewClient, 0 );
 #endif
 		}
 	}
@@ -338,7 +338,7 @@ PCLIENT CPPOpenTCPListenerAddrExx( SOCKADDR *pAddr
 	WSASetEvent( globalNetworkData.hMonitorThreadControlEvent );
 #endif
 #ifdef __LINUX__
-	AddThreadEvent( pListen );
+	AddThreadEvent( pListen, 0 );
 #endif
 	return pListen;
 }
@@ -568,7 +568,7 @@ static PCLIENT InternalTCPClientAddrFromAddrExxx( SOCKADDR *lpAddr, SOCKADDR *pF
 
 #endif
 #ifdef __LINUX__
-			AddThreadEvent( pResult );
+			AddThreadEvent( pResult, 0 );
 #endif
 			if( !pConnectComplete )
 			{
@@ -1320,7 +1320,7 @@ int TCPWriteEx(PCLIENT pc DBG_PASS)
 						WSASetEvent( globalNetworkData.hMonitorThreadControlEvent );
 #endif
 #ifdef __LINUX__
-						AddThreadEvent( pc );
+						AddThreadEvent( pc, 0 );
 #endif
 					}
 					return TRUE;

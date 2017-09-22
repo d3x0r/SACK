@@ -51,7 +51,9 @@ PCLIENT CPPServeUDPAddrEx( SOCKADDR *pAddr
 	pc->Socket = OpenSocket(((*(uint16_t*)pAddr) == AF_INET)?TRUE:FALSE,FALSE, FALSE, 0);
 	if( pc->Socket == INVALID_SOCKET )
 #endif
-		pc->Socket = socket(PF_INET,SOCK_DGRAM,(((*(uint16_t*)pAddr) == AF_INET)||((*(uint16_t*)pAddr) == AF_INET6))?IPPROTO_UDP:0);
+		pc->Socket = socket( PF_INET
+		                   , SOCK_DGRAM
+		                   , (((*(uint16_t*)pAddr) == AF_INET)||((*(uint16_t*)pAddr) == AF_INET6))?IPPROTO_UDP:0);
 	if( pc->Socket == INVALID_SOCKET )
 	{
 		_lprintf(DBG_RELAY)( WIDE("UDP Socket Fail") );
@@ -84,6 +86,8 @@ PCLIENT CPPServeUDPAddrEx( SOCKADDR *pAddr
 			NetworkUnlock( pc );
 			return NULL;
 		}
+		// get the port address back immediately.
+		getsockname(pc->Socket, pc->saSource, (socklen_t*)(((uintptr_t)pc->saSource)-2*sizeof(uintptr_t)));
 	}
 	else
 	{
@@ -121,27 +125,29 @@ PCLIENT CPPServeUDPAddrEx( SOCKADDR *pAddr
 	pc->psvClose = psvClose;
 	if( bCPP )
 		pc->dwFlags |= (CF_CPPREAD|CF_CPPCLOSE );
+#ifdef __LINUX__
+	AddThreadEvent( pc, 0 );
+#endif
 	if( pReadComplete )
 	{
 		if( pc->dwFlags & CF_CPPREAD )
 			pc->read.CPPReadCompleteEx( pc->psvRead, NULL, 0, pc->saSource );
 		else
 			pc->read.ReadCompleteEx( pc, NULL, 0, pc->saSource );
-	}
+	}else
+		lprintf( "NO READ CALLBACK IS SET?!" );
 
 #ifdef LOG_SOCKET_CREATION
 	DumpSocket( pc );
 #endif
 	AddActive( pc );
+
 	NetworkUnlock( pc );
 #ifdef USE_WSA_EVENTS
 	if( globalNetworkData.flags.bLogNotices )
 		lprintf( WIDE( "SET GLOBAL EVENT (new udp socket %p)" ), pc );
 	EnqueLink( &globalNetworkData.client_schedule, pc );
 	WSASetEvent( globalNetworkData.hMonitorThreadControlEvent );
-#endif
-#ifdef __LINUX__
-	AddThreadEvent( pc );
 #endif
 	return pc;
 }
@@ -188,26 +194,44 @@ void UDPEnableBroadcast( PCLIENT pc, int bEnable )
 		if( bEnable ) {
 			uint16_t port;
 			SOCKADDR *broadcastAddr;
-			RemoveThreadEvent( pc );
-			pc->Socket = close( pc->Socket );
-			pc->Socket = socket( PF_INET, SOCK_DGRAM, IPPROTO_UDP );
-			broadcastAddr = DuplicateAddress( GetBroadcastAddressForInterface( pc->saSource ) );
-			GetAddressParts( pc->saSource, NULL, &port );
-			SetAddressPort( broadcastAddr, port );
-			if( bind( pc->Socket, broadcastAddr, SOCKADDR_LENGTH( broadcastAddr ) ) ) {
-				lprintf( "Failed to rebind to broadcast address when enabling... %d", errno );
-			}
-			AddThreadEvent( pc );
-			ReleaseAddress( broadcastAddr );
-		}
+			//RemoveThreadEvent( pc );
+			//pc->Socket = close( pc->Socket );
+			pc->interfaceAddress = GetInterfaceForAddress( pc->saSource );
+			if( pc->interfaceAddress ) {
+				pc->SocketBroadcast = socket( PF_INET, SOCK_DGRAM, IPPROTO_UDP );
+				{
+					int t = TRUE;
+					ioctl( pc->SocketBroadcast, FIONBIO, &t );
+				}
+				broadcastAddr = DuplicateAddress( GetBroadcastAddressForInterface( pc->saSource ) );
+				GetAddressParts( pc->saSource, NULL, &port );
+				SetAddressPort( broadcastAddr, port );
+				if( bind( pc->SocketBroadcast, broadcastAddr, SOCKADDR_LENGTH( broadcastAddr ) ) ) {
+					lprintf( "Failed to rebind to broadcast address when enabling... %d", errno );
+				}
+				if( setsockopt( pc->SocketBroadcast, SOL_SOCKET
+				              , SO_BROADCAST, (char*)&bEnable, sizeof( bEnable ) ) )
+				{
+					uint32_t error = WSAGetLastError();
+					lprintf( WIDE("Failed to set sock opt - BROADCAST(%d)"), error );
+				}
+				AddThreadEvent( pc, 1 );
+#ifdef __LINUX__
+				// need to set EAGAIN state on socket.
+				FinishUDPRead( pc, 1 );  // do actual read.... (results in read callback)
 #endif
+				ReleaseAddress( broadcastAddr );
+			} else
+				lprintf( "Network interface for socket address not found." );
+		}
+#else
 		if( setsockopt( pc->Socket, SOL_SOCKET
 		              , SO_BROADCAST, (char*)&bEnable, sizeof( bEnable ) ) )
 		{
 			uint32_t error = WSAGetLastError();
 			lprintf( WIDE("Failed to set sock opt - BROADCAST(%d)"), error );
 		}
-
+#endif
 	}
 }
 
@@ -372,13 +396,20 @@ PCLIENT ConnectUDPEx( CTEXTSTR pFromAddr, uint16_t wFromPort,
 NETWORK_PROC( LOGICAL, SendUDPEx )( PCLIENT pc, CPOINTER pBuf, size_t nSize, SOCKADDR *sa )
 {
 	int nSent;
+	int sendSocket = pc->Socket;
 	if( !sa)
 		sa = pc->saClient;
 	if( !sa )
       return FALSE;
 	if( !pc )
 		return FALSE;
-	nSent = sendto( pc->Socket
+#ifdef __LINUX__
+	if( IsBroadcastAddressForInterface( pc->interfaceAddress, sa ) ) {
+		sendSocket = pc->SocketBroadcast;
+	}
+#endif
+	//LogBinary( (uint8_t*)pBuf, nSize );
+	nSent = sendto( sendSocket
 	              , (const char*)pBuf
 	              , (int)nSize
 	              , 0
@@ -427,13 +458,20 @@ NETWORK_PROC( int, doUDPRead )( PCLIENT pc, POINTER lpBuffer, int nBytes )
 		pc->dwFlags |= CF_READPENDING;
 		// we are now able to read, so schedule the socket.
 	}
-	//FinishUDPRead( pc );  // do actual read.... (results in read callback)
+#if 0
+#ifdef __LINUX__
+	// need to set EAGAIN state on socket.
+	FinishUDPRead( pc, 0 );  // do actual read.... (results in read callback)
+	if( pc->SocketBroadcast )
+		FinishUDPRead( pc, 1 );  // do actual read.... (results in read callback)
+#endif
+#endif
 	return TRUE;
 }
 
 //----------------------------------------------------------------------------
 
-int FinishUDPRead( PCLIENT pc )
+int FinishUDPRead( PCLIENT pc, int broadcastEvent )
 {  // all UDP Reads return the address of the other side's message...
 	int nReturn;
 #ifdef __LINUX__
@@ -445,13 +483,13 @@ int FinishUDPRead( PCLIENT pc )
 
 	if( !pc->RecvPending.buffer.p || !pc->RecvPending.dwAvail )
 	{
-		lprintf( WIDE("UDP Read without queued buffer for result. %p %") _size_fs, pc->RecvPending.buffer.p, pc->RecvPending.dwAvail );
+		//lprintf( WIDE("UDP Read without queued buffer for result. %p %") _size_fs, pc->RecvPending.buffer.p, pc->RecvPending.dwAvail );
 		return FALSE;
 	}
 	//do{
 	if( !pc->saLastClient )
 		pc->saLastClient = AllocAddr();
-	nReturn = recvfrom( pc->Socket,
+	nReturn = recvfrom( broadcastEvent?pc->SocketBroadcast:pc->Socket,
 	                    (char*)pc->RecvPending.buffer.p,
 	                    (int)pc->RecvPending.dwAvail,0,
 	                    pc->saLastClient,
@@ -459,7 +497,12 @@ int FinishUDPRead( PCLIENT pc )
 	uintptr_t name = (((uintptr_t*)pc->saLastClient) - 1)[0];
 	if( name ) free( (void*)name );
 	(((uintptr_t*)pc->saLastClient) - 1)[0] = 0;
-	SET_SOCKADDR_LENGTH( pc->saLastClient, Size );
+	// address size in recvfrom on linux results with '256' which
+	// then results with a sockaddr that can't sendto with.
+	if( pc->saLastClient->sa_family == AF_INET )
+		SET_SOCKADDR_LENGTH( pc->saLastClient, IN_SOCKADDR_LENGTH );
+	else if( pc->saLastClient->sa_family == AF_INET6 )
+		SET_SOCKADDR_LENGTH( pc->saLastClient, IN6_SOCKADDR_LENGTH );
 	//lprintf( WIDE("Recvfrom result:%d"), nReturn );
 
 	if (nReturn == SOCKET_ERROR)
@@ -470,12 +513,13 @@ int FinishUDPRead( PCLIENT pc )
 		switch( dwErr )
 		{
 		case WSAEWOULDBLOCK: // NO data returned....
+			//lprintf( "got EWOULDBLOCK(EAGAIN)..." );
 			pc->dwFlags |= CF_READPENDING;
 			return TRUE;
 #ifdef _WIN32
 		// this happens on WIN2K/XP - ICMP Port Unreachable (nothing listening there)
 		case WSAECONNRESET: // just ignore this error.
-				Log( WIDE("ICMP Port unreachable on previous send.") );
+  			Log( WIDE("ICMP Port unreachable on previous send.") );
 			return TRUE;
 #endif
 		default:

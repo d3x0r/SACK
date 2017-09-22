@@ -1007,6 +1007,8 @@ struct interfaceAddress {
 
 NETWORK_PROC( SOCKADDR*, GetBroadcastAddressForInterface )(SOCKADDR *addr);
 NETWORK_PROC( SOCKADDR*, GetInterfaceAddressForBroadcast )(SOCKADDR *addr);
+NETWORK_PROC( struct interfaceAddress*, GetInterfaceForAddress )( SOCKADDR *addr );
+NETWORK_PROC( LOGICAL, IsBroadcastAddressForInterface )( struct interfaceAddress *address, SOCKADDR *addr );
 NETWORK_PROC( void, LoadNetworkAddresses )(void);
 
 //----- PING.C ------

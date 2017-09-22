@@ -218,7 +218,7 @@ NETWORK_PROC( int, GetMacAddress)(PCLIENT pc, uint8_t* buf, size_t *buflen )//in
 //  just addresses, whether they be address to information of eight bits in length, or
 //  of (sizeof(unsigned)) in length.  Although this may, in the future, throw a warning.
 	//hr = SendARP (GetNetworkLong(pc,GNL_IP), 0, (PULONG)pc->hwClient, &ulLen);
-    //lprintf (WIDE("Return %08x, length %8d\n"), hr, ulLen);
+	//lprintf (WIDE("Return %08x, length %8d\n"), hr, ulLen);
 
 	return hr == S_OK;
 #  endif
@@ -262,7 +262,7 @@ NETWORK_PROC( PLIST, GetMacAddresses)( void )//int get_mac_addr (char *device, u
 
 	return 0;
 #endif
-   /* this code queries the arp table to figure out who the other side is */
+	/* this code queries the arp table to figure out who the other side is */
 	//int fd;
 	struct arpreq arpr;
 	MemSet( &arpr, 0, sizeof( arpr ) );
@@ -1263,7 +1263,8 @@ void RemoveThreadEvent( PCLIENT pc ) {
 		}
 }
 
-void AddThreadEvent( PCLIENT pc )
+// unused parameter broadcsat on windows; not needed.
+void AddThreadEvent( PCLIENT pc, int broadcsat )
 {
 	struct peer_thread_info *peer = globalNetworkData.root_thread;
 	LOGICAL addPeer = FALSE;
@@ -1392,7 +1393,7 @@ int CPROC ProcessNetworkMessages( struct peer_thread_info *thread, uintptr_t qui
 					if( globalNetworkData.flags.bLogNotices )
 						lprintf( WIDE( "Added to schedule : %p %08x" ), pc, pc->dwFlags );
 #endif
-					AddThreadEvent( pc );
+					AddThreadEvent( pc, 0 );
 				}
 				else
 					lprintf( "Client in schedule queue, but it is already schedule?! %p", pc );
@@ -1543,17 +1544,43 @@ void RemoveThreadEvent( PCLIENT pc ) {
 #  ifdef __MAC__
 #    ifdef __64__
 		kevent64_s ev;
-		EV_SET64( &ev, pc->Socket, EVFILT_READ, EV_DELETE, 0, 0, (uint64_t)pc, NULL, NULL );
-		kevent64( thread->kqueue, &ev, 1, 0, 0, 0, 0 );
+		if( pc->dwFlags & CF_LISTEN ) {
+			EV_SET64( &ev, pc->Socket, EVFILT_READ, EV_DELETE, 0, 0, (uint64_t)pc, NULL, NULL );
+			kevent64( thread->kqueue, &ev, 1, 0, 0, 0, 0 );
+		} else {
+			EV_SET64( &ev, pc->Socket, EVFILT_READ, EV_DELETE, 0, 0, (uintptr_t)pc );
+			kevent64( peer->kqueue, &ev, 1, 0, 0, 0, 0 );
+			EV_SET64( &ev, pc->Socket, EVFILT_WRITE, EV_DELETE, 0, 0, (uintptr_t)pc );
+			kevent64( peer->kqueue, &ev, 1, 0, 0, 0, 0 );
+		}
+		if( pc->SocketBroadcast ) {
+			EV_SET64( &ev, pc->SocketBroadcast, EVFILT_READ, EV_DELETE, 0, 0, (uint64_t)pc, NULL, NULL );
+			kevent64( thread->kqueue, &ev, 1, 0, 0, 0, 0 );
+		}
 #    else
 		kevent ev;
-		EV_SET( &ev, pc->Socket, EVFILT_READ, EV_DELETE, 0, 0, (uint64_t)pc, NULL, NULL );
-		kevent( thread->kqueue, &ev, 1, 0, 0, 0 );
+		if( pc->dwFlags & CF_LISTEN ) {
+			EV_SET( &ev, pc->Socket, EVFILT_READ, EV_DELETE, 0, 0, (uint64_t)pc, NULL, NULL );
+			kevent( thread->kqueue, &ev, 1, 0, 0, 0 );
+		} else {
+			EV_SET( &ev, pc->Socket, EVFILT_READ, EV_DELETE, 0, 0, (uintptr_t)pc );
+			kevent( peer->kqueue, &ev, 1, 0, 0, 0 );
+			EV_SET( &ev, pc->Socket, EVFILT_WRITE, EV_DELETE, 0, 0, (uintptr_t)pc );
+			kevent( peer->kqueue, &ev, 1, 0, 0, 0 );
+		}
+		if( pc->SocketBroadcast ) {
+			EV_SET( &ev, pc->SocketBroadcsat, EVFILT_READ, EV_DELETE, 0, 0, (uint64_t)pc, NULL, NULL );
+			kevent( thread->kqueue, &ev, 1, 0, 0, 0 );
+		}
 #    endif
 #  else
 		int r;
 		r = epoll_ctl( thread->epoll_fd, EPOLL_CTL_DEL, pc->Socket, NULL );
 		if( r < 0 ) lprintf( "Error removing:%d", errno );
+		if( pc->SocketBroadcast ) {
+			r = epoll_ctl( thread->epoll_fd, EPOLL_CTL_DEL, pc->SocketBroadcast, NULL );
+			if( r < 0 ) lprintf( "Error removing:%d", errno );
+		}
 		pc->flags.bAddedToEvents = 0;
 		pc->this_thread = NULL;
 #  endif
@@ -1575,74 +1602,84 @@ void RemoveThreadEvent( PCLIENT pc ) {
 			thread->child_peer = tmp;
 		}
 }
-void AddThreadEvent( PCLIENT pc )
+
+struct event_data {
+	PCLIENT pc;
+	int broadcast;
+};
+
+void AddThreadEvent( PCLIENT pc, int broadcast )
 {
 	struct peer_thread_info *peer = globalNetworkData.root_thread;
 	LOGICAL addPeer = FALSE;
 #ifdef LOG_NOTICES
 	if( globalNetworkData.flags.bLogNotices )
-		lprintf( "Add thread event %p %d %08x", pc, pc->Socket, pc->dwFlags );
+		lprintf( "Add thread event %p %d %08x  %s", pc, broadcast?pc->SocketBroadcast:pc->Socket, pc->dwFlags, broadcast?"broadcast":"direct" );
 #endif
-	for( ; peer; peer = peer->child_peer ) {
-		if( !peer->child_peer ) {
-#ifdef LOG_NOTICES
-			if( globalNetworkData.flags.bLogNotices )
-				lprintf( "On last peer..." );
-#endif
-			if( peer->nEvents > globalNetworkData.nPeers ) {
+	if( !broadcast ) {
+		for( ; peer; peer = peer->child_peer ) {
+			if( !peer->child_peer ) {
 #ifdef LOG_NOTICES
 				if( globalNetworkData.flags.bLogNotices )
-					lprintf( "global peers is %d, this has %d", globalNetworkData.nPeers, peer->nEvents );
+					lprintf( "On last peer..." );
 #endif
-				addPeer = TRUE;
-				break;
-			}
-			if( peer->nEvents >= 2560 ) {
+				if( peer->nEvents > globalNetworkData.nPeers ) {
 #ifdef LOG_NOTICES
-				if( globalNetworkData.flags.bLogNotices )
-					lprintf( "this has max events already.... %d %d", globalNetworkData.nPeers, peer->nEvents );
+					if( globalNetworkData.flags.bLogNotices )
+						lprintf( "global peers is %d, this has %d", globalNetworkData.nPeers, peer->nEvents );
 #endif
-				addPeer = TRUE;
-				break;
+					addPeer = TRUE;
+					break;
+				}
+				if( peer->nEvents >= 2560 ) {
+#ifdef LOG_NOTICES
+					if( globalNetworkData.flags.bLogNotices )
+						lprintf( "this has max events already.... %d %d", globalNetworkData.nPeers, peer->nEvents );
+#endif
+					addPeer = TRUE;
+					break;
+				}
+			}
+			if( peer->nEvents < 2560 ) {
+												// last thread.
+				if( !peer->child_peer )
+					break;
+				if( peer->nEvents < peer->child_peer->nEvents ) {
+#ifdef LOG_NOTICES
+					//if( globalNetworkData.flags.bLogNotices )
+					//	lprintf( "this event has fewer than the next thread's events %d  %d", peer->nEvents, peer->child_peer->nEvents );
+#endif
+					break;
+				}
 			}
 		}
-		if( peer->nEvents < 2560 ) {
-			// last thread.
-			if( !peer->child_peer )
-				break;
-			if( peer->nEvents < peer->child_peer->nEvents ) {
-#ifdef LOG_NOTICES
-				//if( globalNetworkData.flags.bLogNotices )
-				//	lprintf( "this event has fewer than the next thread's events %d  %d", peer->nEvents, peer->child_peer->nEvents );
-#endif
-				break;
-			}
-		}
-	}
-	if( addPeer ) {
-#ifdef LOG_NOTICES
-		if( globalNetworkData.flags.bLogNotices )
-			lprintf( "Creating a new thread...." );
-#endif
-		AddLink( &globalNetworkData.pThreads, ThreadTo( NetworkThreadProc, (uintptr_t)peer ) );
-		globalNetworkData.nPeers++;
-		while( !peer->child_peer )
-			Relinquish();
-		if( globalNetworkData.root_thread != peer ) {
-			// relink to be higher in list of peers so it's found earlier.
+		if( addPeer ) {
 #ifdef LOG_NOTICES
 			if( globalNetworkData.flags.bLogNotices )
-				lprintf( "Relinking thread to be after root peer (no events, so it must be first)" );
+				lprintf( "Creating a new thread...." );
 #endif
-			peer->child_peer->child_peer = globalNetworkData.root_thread->child_peer;
-			globalNetworkData.root_thread->child_peer->parent_peer = peer->child_peer;
-			globalNetworkData.root_thread->child_peer = peer->child_peer;
-			peer->child_peer->parent_peer = globalNetworkData.root_thread;
-			peer->child_peer = NULL;
-			peer = globalNetworkData.root_thread->child_peer;
+			AddLink( &globalNetworkData.pThreads, ThreadTo( NetworkThreadProc, (uintptr_t)peer ) );
+			globalNetworkData.nPeers++;
+			while( !peer->child_peer )
+				Relinquish();
+			if( globalNetworkData.root_thread != peer ) {
+				// relink to be higher in list of peers so it's found earlier.
+#ifdef LOG_NOTICES
+				if( globalNetworkData.flags.bLogNotices )
+					lprintf( "Relinking thread to be after root peer (no events, so it must be first)" );
+#endif
+				peer->child_peer->child_peer = globalNetworkData.root_thread->child_peer;
+				globalNetworkData.root_thread->child_peer->parent_peer = peer->child_peer;
+				globalNetworkData.root_thread->child_peer = peer->child_peer;
+				peer->child_peer->parent_peer = globalNetworkData.root_thread;
+				peer->child_peer = NULL;
+				peer = globalNetworkData.root_thread->child_peer;
+			}
+			else
+				peer = peer->child_peer;
 		}
-		else
-			peer = peer->child_peer;
+	} else {
+		peer = pc->this_thread; // add broadcast to the same event as the original.
 	}
 	// make sure to only add this handle when the first peer will also be added.
 	// this means the list can be 61 and at this time no more.
@@ -1651,44 +1688,48 @@ void AddThreadEvent( PCLIENT pc )
 #    ifdef __64__
 		kevent64_s ev;
 		if( pc->dwFlags & CF_LISTEN ) {
-			EV_SET64( &ev, pc->Socket, EVFILT_READ, EV_ADD, 0, 0, (uint64_t)pc, NULL, NULL );
+			EV_SET64( &ev, broadcast?pc->SocketBroadcast:pc->Socket, EVFILT_READ, EV_ADD, 0, 0, (uint64_t)pc, NULL, NULL );
 			kevent64( peer->kqueue, &ev, 1, 0, 0, 0, 0 );
 		}
 		else {
-			EV_SET64( &ev, pc->Socket, EVFILT_READ, EV_ADD, 0, 0, (uint64_t)pc, NULL, NULL );
+			EV_SET64( &ev, broadcast?pc->SocketBroadcast:pc->Socket, EVFILT_READ, EV_ADD, 0, 0, (uint64_t)pc, NULL, NULL );
 			kevent64( peer->kqueue, &ev, 1, 0, 0, 0, 0 );
-			EV_SET64( &ev, pc->Socket, EVFILT_WRITE, EV_ADD | EV_CLEAR, 0, 0, (uint64_t)pc, NULL, NULL );
+			EV_SET64( &ev, broadcast?pc->SocketBroadcast:pc->Socket, EVFILT_WRITE, EV_ADD | EV_CLEAR, 0, 0, (uint64_t)pc, NULL, NULL );
 			kevent64( peer->kqueue, &ev, 1, 0, 0, 0, 0 );
 		}
 #    else
 		kevent ev;
 		if( pc->dwFlags & CF_LISTEN ) {
-			EV_SET( &ev, pc->Socket, EVFILT_READ, EV_ADD, 0, 0, (uintptr_t)pc );
+			EV_SET( &ev, broadcast?pc->SocketBroadcast:pc->Socket, EVFILT_READ, EV_ADD, 0, 0, (uintptr_t)pc );
 			kevent( peer->kqueue, &ev, 1, 0, 0, 0 );
 		}
 		else {
-			EV_SET( &ev, pc->Socket, EVFILT_READ, EV_ADD|EV_ENABLE, 0, 0, (uintptr_t)pc );
+			EV_SET( &ev, broadcast?pc->SocketBroadcast:pc->Socket, EVFILT_READ, EV_ADD|EV_ENABLE, 0, 0, (uintptr_t)pc );
 			kevent( peer->kqueue, &ev, 1, 0, 0, 0 );
-			EV_SET( &ev, pc->Socket, EVFILT_WRITE, EV_ADD|EV_ENABLE|EV_CLEAR, 0, 0, (uintptr_t)pc );
+			EV_SET( &ev, broadcast?pc->SocketBroadcast:pc->Socket, EVFILT_WRITE, EV_ADD|EV_ENABLE|EV_CLEAR, 0, 0, (uintptr_t)pc );
 			kevent( peer->kqueue, &ev, 1, 0, 0, 0 );
 		}
 #    endif
 #  else
 		int r;
 		struct epoll_event ev;
-		ev.data.ptr = pc;
-		//lprintf( "Add EPOLLIN and EPOOLRDHUP for %p  %p %d", peer, pc, pc->Socket );
+		ev.data.ptr = New( struct event_data );
+		((struct event_data*)ev.data.ptr)->pc = pc;
+		((struct event_data*)ev.data.ptr)->broadcast = broadcast;
 		if( pc->dwFlags & CF_LISTEN )
 			ev.events = EPOLLIN;
-		else
+		else {
 			ev.events = EPOLLIN | EPOLLOUT | EPOLLRDHUP | EPOLLET;
-		r = epoll_ctl( peer->epoll_fd, EPOLL_CTL_ADD, pc->Socket, &ev );
+		}
+		r = epoll_ctl( peer->epoll_fd, EPOLL_CTL_ADD, broadcast?pc->SocketBroadcast:pc->Socket, &ev );
 		if( r < 0 ) lprintf( "Error adding:%d", errno );
 #  endif
 	}
-	LockedIncrement( &peer->nEvents );
-	pc->this_thread = peer;
-	pc->flags.bAddedToEvents = 1;
+	if( !pc->this_thread ) {
+		LockedIncrement( &peer->nEvents );
+		pc->this_thread = peer;
+		pc->flags.bAddedToEvents = 1;
+	}
 #ifdef LOG_NETWORK_EVENT_THREAD
 	//lprintf( "peer %p now has %d events", peer, peer->nEvents );
 #endif
@@ -1698,7 +1739,6 @@ void AddThreadEvent( PCLIENT pc )
 int CPROC ProcessNetworkMessages( struct peer_thread_info *thread, uintptr_t unused )
 {
 	int cnt;
-	PCLIENT pc;
 	struct timeval time;
 	if( globalNetworkData.bQuit )
 		return -1;
@@ -1727,26 +1767,27 @@ int CPROC ProcessNetworkMessages( struct peer_thread_info *thread, uintptr_t unu
 		if( cnt > 0 )
 		{
 			int n;
+			struct event_data *event_data;
 			THREAD_ID prior = 0;
 			PCLIENT next;
 			for( n = 0; n < cnt; n++ ) {
 #  ifdef __MAC__
 				pc = (PCLIENT)events[n].udata;
 #  else
-				pc = (PCLIENT)events[n].data.ptr;
+				event_data = (struct event_data*)events[n].data.ptr;
 #  endif
-				if( pc == (PCLIENT)1 ) {
+				if( event_data == (struct event_data*)1 ) {
 					//char buf;
 					//stat = read( GetThreadSleeper( thread->pThread ), &buf, 1 );
 					//call wakeable sleep to just clear the sleep; because this is an event on the sleep pipe.
 					WakeableSleep( SLEEP_FOREVER );
 					return 1;
 				}
-				while( !NetworkLock( pc ) )
+				while( !NetworkLock( event_data->pc ) )
 					Relinquish();
 
-				if( !IsValid( pc->Socket ) ) {
-					NetworkUnlock( pc );
+				if( !IsValid( event_data->pc->Socket ) ) {
+					NetworkUnlock( event_data->pc );
 					continue;
 				}
 
@@ -1756,36 +1797,38 @@ int CPROC ProcessNetworkMessages( struct peer_thread_info *thread, uintptr_t unu
 				if( events[n].events & EPOLLIN )
 #  endif
 				{
-					if( !(pc->dwFlags & CF_ACTIVE) )
+					//lprintf( "EPOLLIN/EVFILT_READ" );
+					if( !(event_data->pc->dwFlags & CF_ACTIVE) )
 					{
 						// change to inactive status by the time we got here...
 					}
 
-					else if( pc->dwFlags & CF_LISTEN )
+					else if( event_data->pc->dwFlags & CF_LISTEN )
 					{
 #ifdef LOG_NOTICES
 						if( globalNetworkData.flags.bLogNotices )
 							lprintf( WIDE( "accepting..." ) );
 #endif
-						AcceptClient( pc );
+						AcceptClient( event_data->pc );
 					}
-					else if( pc->dwFlags & CF_UDP )
+					else if( event_data->pc->dwFlags & CF_UDP )
 					{
 #ifdef LOG_NOTICES
 						if( globalNetworkData.flags.bLogNotices )
 							lprintf( WIDE( "UDP Read Event..." ) );
 #endif
-						FinishUDPRead( pc );
+						//lprintf( "UDP READ" );
+						FinishUDPRead( event_data->pc, event_data->broadcast );
 					}
-					else if( pc->bDraining )
+					else if( event_data->pc->bDraining )
 					{
 #ifdef LOG_NOTICES
 						if( globalNetworkData.flags.bLogNotices )
 							lprintf( WIDE( "TCP Drain Event..." ) );
 #endif
-						TCPDrainRead( pc );
+						TCPDrainRead( event_data->pc );
 					}
-					else if( pc->dwFlags & CF_READPENDING )
+					else if( event_data->pc->dwFlags & CF_READPENDING )
 					{
 #ifdef LOG_NOTICES
 						if( globalNetworkData.flags.bLogNotices )
@@ -1793,18 +1836,18 @@ int CPROC ProcessNetworkMessages( struct peer_thread_info *thread, uintptr_t unu
 #endif
 						// packet oriented things may probably be reading only
 						// partial messages at a time...
-						FinishPendingRead( pc DBG_SRC );
-						if( pc->dwFlags & CF_TOCLOSE )
+						FinishPendingRead( event_data->pc DBG_SRC );
+						if( event_data->pc->dwFlags & CF_TOCLOSE )
 						{
 #ifdef LOG_NOTICES
 							if( globalNetworkData.flags.bLogNotices )
 								lprintf( WIDE( "Pending read failed - reset connection." ) );
 #endif
-							InternalRemoveClientEx( pc, FALSE, FALSE );
-							TerminateClosedClient( pc );
+							InternalRemoveClientEx( event_data->pc, FALSE, FALSE );
+							TerminateClosedClient( event_data->pc );
 						}
-						else if( !pc->RecvPending.s.bStream )
-							pc->dwFlags |= CF_READREADY;
+						else if( !event_data->pc->RecvPending.s.bStream )
+							event_data->pc->dwFlags |= CF_READREADY;
 					}
 					else
 					{
@@ -1812,7 +1855,7 @@ int CPROC ProcessNetworkMessages( struct peer_thread_info *thread, uintptr_t unu
 						if( globalNetworkData.flags.bLogNotices )
 							lprintf( WIDE( "TCP Set read ready..." ) );
 #endif
-						pc->dwFlags |= CF_READREADY;
+						event_data->pc->dwFlags |= CF_READREADY;
 					}
 				}
 
@@ -1822,56 +1865,58 @@ int CPROC ProcessNetworkMessages( struct peer_thread_info *thread, uintptr_t unu
 				if( events[n].events & EPOLLOUT )
 #  endif
 				{
-					if( !(pc->dwFlags & CF_ACTIVE) )
+					//lprintf( "EPOLLOUT" );
+					if( !(event_data->pc->dwFlags & CF_ACTIVE) )
 					{
 						// change to inactive status by the time we got here...
 					}
-					else if( pc->dwFlags & CF_CONNECTING )
+					else if( event_data->pc->dwFlags & CF_CONNECTING )
 					{
 #ifdef LOG_NOTICES
 						if( globalNetworkData.flags.bLogNotices )
 							lprintf( WIDE( "Connected!" ) );
 #endif
-						pc->dwFlags |= CF_CONNECTED;
-						pc->dwFlags &= ~CF_CONNECTING;
+						event_data->pc->dwFlags |= CF_CONNECTED;
+						event_data->pc->dwFlags &= ~CF_CONNECTING;
 						{
 							int error;
 							socklen_t errlen = sizeof( error );
-							getsockopt( pc->Socket, SOL_SOCKET
+							getsockopt( event_data->pc->Socket, SOL_SOCKET
 								, SO_ERROR
 								, &error, &errlen );
 							lprintf( WIDE( "Error checking for connect is: %s" ), strerror( error ) );
-							if( pc->pWaiting )
+							if( event_data->pc->pWaiting )
 							{
 #ifdef LOG_NOTICES
 								if( globalNetworkData.flags.bLogNotices )
 									lprintf( WIDE( "Got connect event, waking waiter.." ) );
 #endif
-								WakeThread( pc->pWaiting );
+								WakeThread( event_data->pc->pWaiting );
 							}
-							if( pc->connect.ThisConnected )
-								pc->connect.ThisConnected( pc, error );
+							if( event_data->pc->connect.ThisConnected )
+								event_data->pc->connect.ThisConnected( event_data->pc, error );
 							// if connected okay - issue first read...
 							if( !error )
 							{
-								if( pc->read.ReadComplete )
+								if( event_data->pc->read.ReadComplete )
 								{
-									pc->read.ReadComplete( pc, NULL, 0 );
+									event_data->pc->read.ReadComplete( event_data->pc, NULL, 0 );
 								}
-								if( pc->lpFirstPending )
+								if( event_data->pc->lpFirstPending )
 								{
 									lprintf( WIDE( "Data was pending on a connecting socket, try sending it now" ) );
-									TCPWrite( pc );
+									TCPWrite( event_data->pc );
 								}
 							}
 							else
 							{
-								pc->dwFlags |= CF_CONNECTERROR;
+								event_data->pc->dwFlags |= CF_CONNECTERROR;
 							}
 						}
 					}
-					else if( pc->dwFlags & CF_UDP )
+					else if( event_data->pc->dwFlags & CF_UDP )
 					{
+						//lprintf( "UDP WRITE IS NEVER QUEUED." );
 						// udp write event complete....
 						// do we ever care? probably sometime...
 					}
@@ -1881,11 +1926,11 @@ int CPROC ProcessNetworkMessages( struct peer_thread_info *thread, uintptr_t unu
 						if( globalNetworkData.flags.bLogNotices )
 							lprintf( WIDE( "TCP Write Event..." ) );
 #endif
-						pc->dwFlags &= ~CF_WRITEISPENDED;
-						TCPWrite( pc );
+						event_data->pc->dwFlags &= ~CF_WRITEISPENDED;
+						TCPWrite( event_data->pc );
 					}
 				}
-				LeaveCriticalSec( &pc->csLock );
+				LeaveCriticalSec( &event_data->pc->csLock );
 			}
 			// had some event  - return 1 to continue working...
 		}
@@ -2914,6 +2959,55 @@ LOGICAL IsThisAddressMe( SOCKADDR *addr, uint16_t myport )
 		}
 	}
 	return FALSE;
+}
+
+//----------------------------------------------------------------------------
+
+LOGICAL IsBroadcastAddressForInterface( struct interfaceAddress *address, SOCKADDR *addr ) {
+	if( addr->sa_family == AF_INET ) {
+      //lprintf( "can test for broadcast... %08x %08x %08x", ( ((uint32_t*)(address->saMask->sa_data+2))[0] | ((uint32_t*)(addr->sa_data+2))[0] ), ((uint32_t*)address->saMask->sa_data)[0] , ((uint32_t*)addr->sa_data)[0] );
+		if( ( ((uint32_t*)(address->saMask->sa_data+2))[0] | ((uint32_t*)(addr->sa_data+2))[0] ) == 0xFFFFFFFFU )
+         return TRUE;
+	}
+   return FALSE;
+}
+
+//----------------------------------------------------------------------------
+
+struct interfaceAddress* GetInterfaceForAddress( SOCKADDR *addr )
+{
+	struct interfaceAddress *test_addr;
+	INDEX idx;
+	if( !globalNetworkData.addresses )
+		LoadNetworkAddresses();
+	LIST_FORALL( globalNetworkData.addresses, idx, struct interfaceAddress *, test_addr )
+	{
+		if( ((SOCKADDR_IN*)addr)->sin_family == ((SOCKADDR_IN*)test_addr->sa)->sin_family )
+		{
+			switch( ((SOCKADDR_IN*)addr)->sin_family )
+			{
+			case AF_INET:
+				{
+					if( MemCmp( &((SOCKADDR_IN*)addr)->sin_addr, test_addr->sa->sa_data + 2, sizeof(((SOCKADDR_IN*)addr)->sin_addr)  ) == 0 )
+					{
+						return test_addr;
+					}
+				}
+				break;
+			case AF_INET6:
+				{
+					if( MemCmp( &((SOCKADDR_IN*)addr)->sin_addr, test_addr->sa->sa_data + 2, 16 ) == 0 )
+					{
+						return test_addr;
+					}
+				}
+				break;
+			default:
+				lprintf( WIDE( "Unknown comparison" ) );
+			}
+		}
+	}
+	return NULL;
 }
 
 //----------------------------------------------------------------------------
