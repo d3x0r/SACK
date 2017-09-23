@@ -327,46 +327,19 @@ void Render3D( struct display_camera *camera )
 			if( l.flags.bLogWrites )
 				lprintf( WIDE("------ BEGIN A REAL DRAW -----------") );
 
-#ifdef _OPENGL_DRIVER
-//#if 0
-			glEnable( GL_DEPTH_TEST );
+			ImageSetShaderDepth( hVideo->pImage, TRUE );
 			// put out a black rectangle
 			// should clear stensil buffer here so we can do remaining drawing only on polygon that's visible.
 			ClearImageTo( hVideo->pImage, 0 );
-//#endif
-			glDisable(GL_DEPTH_TEST);							// Enables Depth Testing
+			ImageSetShaderDepth( hVideo->pImage, FALSE );
 
-#endif
-#ifdef _D3D_DRIVER
-#if 0
-			Render3d.current_device->SetRenderState( D3DRS_ZENABLE, 1 );
-			ClearImageTo( hVideo->pImage, 0 );
-#endif
-			Render3d.current_device->SetRenderState( D3DRS_ZENABLE, 0 );
-#endif
-#ifdef _D3D10_DRIVER
-#if 0
-			//Render3d.current_device->SetRenderState( D3DRS_ZENABLE, 1 );
-			//ClearImageTo( hVideo->pImage, 0 );
-#endif
-			//Render3d.current_device->SetRenderState( D3DRS_ZENABLE, 0 );
-#endif
 
 			if( hVideo->pRedrawCallback )
 			{
 				hVideo->pRedrawCallback( hVideo->dwRedrawData, (PRENDERER)hVideo );
 			}
 
-#ifdef _OPENGL_DRIVER
-			// allow draw3d code to assume depth testing 
-			glEnable( GL_DEPTH_TEST );
-#endif
-#ifdef _D3D_DRIVER
-			Render3d.current_device->SetRenderState( D3DRS_ZENABLE, 1 );
-#endif
-#ifdef _D3D10_DRIVER
-			//Render3d.current_device->SetRenderState( D3DRS_ZENABLE, 1 );
-#endif
+			ImageSetShaderDepth( hVideo->pImage, TRUE );
 			{
 				INDEX idx;
 				PSPRITE_METHOD psm;
