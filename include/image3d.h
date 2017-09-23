@@ -58,6 +58,7 @@ typedef struct image_3d_interface_tag
 	//IMAGE_PROC_PTR( void, AppendShaderOpTristrip )( struct image_shader_op *op, int triangles, ... );
 	IMAGE_PROC_PTR( struct shader_buffer *, ImageCreateShaderBuffer )( int dimensions, int start_size, int expand_by );
 	IMAGE_PROC_PTR( size_t, ImageAppendShaderData )( struct shader_buffer *buffer, float *element );
+	IMAGE_PROC_PTR( void, SetShaderDepth )(Image pImage, LOGICAL enable);
 
 } IMAGE_3D_INTERFACE, *PIMAGE_3D_INTERFACE;
 
@@ -87,6 +88,7 @@ typedef struct image_3d_interface_tag
 #  define ImageAppendShaderOpTristrip       IMAGE3D_PROC_ALIAS(AppendShaderOpTristrip)
 #  define ImageCreateShaderBuffer           IMAGE3D_PROC_ALIAS(ImageCreateShaderBuffer)
 #  define ImageAppendShaderData             IMAGE3D_PROC_ALIAS(ImageAppendShaderData)
+#  define ImageSetShaderDepth             IMAGE3D_PROC_ALIAS(SetShaderDepth)
 #endif
 IMAGE_NAMESPACE_END
 
