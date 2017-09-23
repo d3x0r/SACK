@@ -8,33 +8,11 @@
 #include <logging.h>
 #include <vectlib.h>
 
-//#include <gl\glaux.h>    // Header File For The Glaux Library
-
-//#define LOG_OPENGL_CONTEXT
-
-//#define ENABLE_ON_DC_LAYERED hDCFakeWindow
-//#define ENABLE_ON_DC_LAYERED hDCFakeWindow
 #define ENABLE_ON_DC_NORMAL hDCOutput
-
-//#define ENABLE_ON_DC hDCBitmap
-//#define ENABLE_ON_DC hDCOutput
-//hDCBitmap
-
 
 #include "local.h"
 
 RENDER_NAMESPACE
-
-static void BeginVisPersp( struct display_camera *camera )
-{
-	glMatrixMode(GL_PROJECTION);						// Select The Projection Matrix
-	glLoadIdentity();									// Reset The Projection Matrix
-	MygluPerspective(90.0f,camera->aspect,1.0f,camera->depth);
-	glGetFloatv( GL_PROJECTION_MATRIX, (GLfloat*)l.fProjection );
-	PrintMatrix( l.fProjection );
-	glMatrixMode(GL_MODELVIEW);							// Select The Modelview Matrix
-}
-
 
 int SetActiveGLDisplayView( struct display_camera *camera, int nFracture )
 {
@@ -121,12 +99,6 @@ int SetActiveGLDisplayView( struct display_camera *camera, int nFracture )
 	}
 	else
 	{
-		//__try {
-		//glFlush();
-		//}
-		//__except ( EXCEPTION_EXECUTE_HANDLER ) {
-		//	lprintf( "gl stack fucked.  Wonder where we can recover." );
-		//}
 		if( _hDisplay )
 		{
 #ifdef LOG_OPENGL_CONTEXT
@@ -209,7 +181,7 @@ int Init3D( struct display_camera *camera )										// All Setup For OpenGL Goe
  
 		glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
  
-		BeginVisPersp( camera );
+		MygluPerspective( 90.0f, camera->aspect, 1.0f, camera->depth );
 		lprintf( WIDE("First GL Init Done.") );
 		camera->flags.init = 1;
 		camera->hVidCore->flags.bReady = TRUE;
@@ -261,8 +233,7 @@ static int CreatePartialDrawingSurface (PVIDEO hVideo, int x, int y, int w, int 
 		hVideo->pFractures[nFracture].y = y;
 		hVideo->pFractures[nFracture].w = w;
 		hVideo->pFractures[nFracture].h = h;
-		{
-		}
+
 		if (!hVideo->pFractures[nFracture].hDCBitmap) // first time ONLY...
 			hVideo->pFractures[nFracture].hDCBitmap = CreateCompatibleDC ((HDC)hVideo->hDCOutput);
 		hVideo->pFractures[nFracture].hOldBitmap = SelectObject( (HDC)hVideo->pFractures[nFracture].hDCBitmap

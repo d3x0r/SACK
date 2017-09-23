@@ -74,6 +74,10 @@ void EndActive3D( struct display_camera *camera )
 }
 
 void SetupPositionMatrix( struct display_camera *camera ) {
+#ifdef ALLOW_SETTING_GL1_MATRIX
+	GetGLCameraMatrix( camera->origin_camera, camera->hVidCore->fModelView );
+	glLoadMatrixf( (RCOORD*)camera->hVidCore->fModelView );
+#endif
 
 }
 

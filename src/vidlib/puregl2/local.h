@@ -1,44 +1,8 @@
 #ifndef l
-#define l local_opengl_video_common
+#  define l local_opengl_video_common
 #endif
 #ifndef USE_IMAGE_INTERFACE
-#define USE_IMAGE_INTERFACE l.gl_image_interface
-#endif
-
-#if defined( _D3D11_DRIVER )
-
-#include <atlbase.h>
-#include <D3D11.h>
-#include <D2d1.h> // only took them (1996-2008... 12 years) to get direct draw right LOL
-#include <Dwmapi.h>
-#ifndef NTDDI_WIN8
-#  define WINDDI_WIN8 0x06020000
-#endif
-#if ( NTDDI_VERSION >= NTDDI_WIN8 )
-#  include <dcomp.h>
-#endif
-
-//#include <D3D11Misc.h>
-#include <DirectXMath.h>
-using namespace DirectX;
-
-// transparent window support ( not needed if solid output?)
-#include <Wincodec.h>
-#elif defined( _D3D10_DRIVER )
-#include <atlbase.h>
-#include <D3D10_1.h>
-#include <D2d1.h> // only took them (1996-2008... 12 years) to get direct draw right LOL
-#include <D3D10Misc.h>
-//#include <d3dx10.h>
-#include <D3dx10math.h>
-
-// transparent window support ( not needed if solid output?)
-#include <Wincodec.h>
-#elif defined( _D3D_DRIVER )
-#include <d3d9.h>
-#include <d3dx9.h>
-#include <D3dx9math.h>
-//#include <d3d11.h>
+#  define USE_IMAGE_INTERFACE l.gl_image_interface
 #endif
 
 
@@ -50,12 +14,10 @@ using namespace DirectX;
 #if defined( __ANDROID__ ) || defined( __QNX__ )
 #include <GLES2/gl2.h>
 #else
-#define ALLOW_SETTING_GL1_MATRIX
 #include <GL/gl.h>
 #include <GL/glext.h>
 #endif
 #else
-#define ALLOW_SETTING_GL1_MATRIX
 //#include "../glext.h"
 #endif
 
@@ -126,7 +88,7 @@ struct plugin_reference
 	LOGICAL (CPROC *Mouse3d)(uintptr_t,PRAY,int32_t,int32_t,uint32_t);
 	void (CPROC *ExtraClose3d)(uintptr_t);
 	void (CPROC *Resume3d)(void);
-   LOGICAL (CPROC *Key3d)(uintptr_t,uint32_t);
+	LOGICAL (CPROC *Key3d)(uintptr_t,uint32_t);
 };
 
 #if defined( _D3D11_DRIVER )
@@ -153,7 +115,7 @@ struct display_camera
 	uint32_t w, h;
 	int display;
 	RCOORD aspect;
-   RCOORD depth; // far field
+	RCOORD depth; // far field
 	RCOORD identity_depth;
 	PTRANSFORM origin_camera;
 	PRENDERER hVidCore; // common, invisible surface behind all windows (application container)
@@ -176,59 +138,7 @@ struct display_camera
 	EGLContext econtext;
 #    endif
 #if defined( USE_EGL )
-   NativeWindowType displayWindow;
-#endif
-#    ifdef _D3D11_DRIVER
-	IDXGIDevice             *pDXGIDevice;
-#if ( NTDDI_VERSION >= 0x06020000 /*NTDDI_WIN8*/ )
-	IDCompositionDevice     *m_pDCompDevice;
-	IDCompositionTarget		*m_pCompTarget;
-#endif
-	ID3D11Device            *device;
-	D3D_FEATURE_LEVEL        result_feature_level;
-	ID3D11DeviceContext     *device_context;
-	IDXGISwapChain          *swap_chain;
-	ID3D11RenderTargetView  *render_target_view;
-
-	ID3D11Texture2D         *depth_stencil_buffer;
-	ID3D11DepthStencilState *depth_stencil_state;
-	ID3D11DepthStencilView  *depth_stencil_view;
-	ID3D11RasterizerState   *raster_state;
-
-#if BUILD_D2D_TARGET_SURFACE
-	ID3D11Texture2D         *texture;
-	IDXGISurface            *surface;
-	ID2D1RenderTarget       *target;
-	IWICBitmap              *bitmap;
-	IWICImagingFactory      *factory;
-#endif
-	XMMATRIX m_projectionMatrix;
-	XMMATRIX m_worldMatrix;
-	XMMATRIX m_orthoMatrix;
-
-	//hr = g_pd3dDevice->QueryInterface(__uuidof(IDXGIDevice), (void **)&pDXGIDevice);
-      
-#    endif
-#    ifdef _D3D10_DRIVER
-	IDXGIDevice     *pDXGIDevice;
-
-	ID3D10Device1    *device;
-	ID3D10Texture2D *texture;
-	IDXGISurface    *surface;
-	ID2D1RenderTarget  *target;
-	IWICBitmap         *bitmap;
-	IWICImagingFactory *factory;
-
-	//hr = g_pd3dDevice->QueryInterface(__uuidof(IDXGIDevice), (void **)&pDXGIDevice);
-      
-#    endif
-#ifdef _D3D_DRIVER
-    LPDIRECT3D9 d3d;    // the pointer to our Direct3D interface
-	LPDIRECT3DDEVICE9 d3ddev;    // the pointer to the device class
-// function prototypes
-//void initD3D(HWND hWnd);    // sets up and initializes Direct3D
-//void render_frame(void);    // renders a single frame
-//void cleanD3D(void);    // closes Direct3D and releases memory
+	NativeWindowType displayWindow;
 #endif
 	RAY mouse_ray;
 	struct {
@@ -242,7 +152,7 @@ struct display_camera
 	} flags;
 	PLIST plugins; // each camera has plugins that might attach more render and mouse methods
 	int type;
-   int nCamera;
+	int nCamera;
 };
 
 #ifndef VIDLIB_MAIN
@@ -290,11 +200,6 @@ extern
 #if defined( _WIN32 )
 	ATOM aClass;      // keep reference of window class....
 	ATOM aClass2;      // keep reference of window class.... (opengl minimal)
-#endif
-#if defined( _D3D11_DRIVER )
-	IDXGIFactory  *dxgi_factory;
-	ID2D1Factory  *d2d1_factory;
-	PLIST adapters;  // list of struct dxgi_adapter
 #endif
 #if defined( __QNX__ )
 	int nDevices;
@@ -467,21 +372,6 @@ int SetActiveGLDisplayView( struct display_camera *camera, int nFracture );
 #endif
 #if defined( USE_EGL )
 void EnableEGLContext( struct display_camera *camera );
-#endif
-
-#if defined( _D3D_DRIVER ) || defined( _D3D10_DRIVER ) || defined( _D3D11_DRIVER )
-int EnableD3d( struct display_camera *camera );
-int EnableD3dView( struct display_camera *camera, int x, int y, int w, int h );
-void DisableD3d( struct display_camera *camera );
-
-int SetActiveD3DDisplay( struct display_camera *hVideo );
-int SetActiveD3DDisplayView( struct display_camera *hVideo, int nFracture );
-
-
-#  ifndef VIDLIB_INTERFACE_DEFINED
-extern
-	  RENDER3D_INTERFACE Render3d;
-#  endif
 #endif
 
 
