@@ -1352,7 +1352,7 @@ int OpenSQLConnectionEx( PODBC odbc DBG_PASS )
 							tmpvfs = NewArray( TEXTCHAR, ( vfs_end - odbc->info.pDSN ) + 1 );
 							tmpvfsvfs = NewArray( TEXTCHAR, ( vfs_vfs_end - vfs_end ) + 1 );
 							StrCpyEx( tmpvfs, odbc->info.pDSN + 1, vfs_end - odbc->info.pDSN );
-							StrCpyEx( tmpvfsvfs, odbc->info.pDSN + 1, vfs_vfs_end - odbc->info.pDSN );
+							StrCpyEx( tmpvfsvfs, odbc->info.pDSN + 1, vfs_vfs_end - vfs_end );
 							vfs_name = CStrDup( tmpvfsvfs );
 							StrCpyEx( tmpvfsvfs, vfs_end + 1, vfs_vfs_end - vfs_end );
 						}
