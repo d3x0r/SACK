@@ -382,7 +382,7 @@ LOGICAL IsAddressV6( SOCKADDR *addr )
 const char * GetAddrString( SOCKADDR *addr )
 {
 	static char buf[256];
-
+	lprintf( "addr family is: %d", addr->sa_family );
 	if( addr->sa_family == AF_INET )
 		snprintf( buf, 256, "%d.%d.%d.%d"
 			, *(((unsigned char *)addr) + 4),
@@ -409,7 +409,7 @@ const char * GetAddrString( SOCKADDR *addr )
 					//console.log( last0, n );
 					if( last0 == 4 && first0 == 0 )
 						if( peice == 0xFFFF ) {
-							snprintf( buf, 256, "::%d.%d.%d.%d",
+							snprintf( buf, 256, "::ffff:%d.%d.%d.%d",
 								(*((unsigned char*)addr + 20)),
 								(*((unsigned char*)addr + 21)),
 								(*((unsigned char*)addr + 22)),
@@ -1776,6 +1776,8 @@ int CPROC ProcessNetworkMessages( struct peer_thread_info *thread, uintptr_t unu
 #  else
 				event_data = (struct event_data*)events[n].data.ptr;
 #  endif
+				//lprintf( "Process %d %x", event_data->broadcast?event_data->pc->SocketBroadcast:event_data->pc->Socket
+				//		 , events[n].events );
 				if( event_data == (struct event_data*)1 ) {
 					//char buf;
 					//stat = read( GetThreadSleeper( thread->pThread ), &buf, 1 );
@@ -1783,8 +1785,13 @@ int CPROC ProcessNetworkMessages( struct peer_thread_info *thread, uintptr_t unu
 					WakeableSleep( SLEEP_FOREVER );
 					return 1;
 				}
-				while( !NetworkLock( event_data->pc ) )
+				while( !NetworkLock( event_data->pc ) ) {
+					if( event_data->pc->dwFlags & CF_AVAILABLE )
+                  break;
 					Relinquish();
+				}
+				if( event_data->pc->dwFlags & CF_AVAILABLE )
+					continue;
 
 				if( !IsValid( event_data->pc->Socket ) ) {
 					NetworkUnlock( event_data->pc );
@@ -1878,6 +1885,30 @@ int CPROC ProcessNetworkMessages( struct peer_thread_info *thread, uintptr_t unu
 #endif
 						event_data->pc->dwFlags |= CF_CONNECTED;
 						event_data->pc->dwFlags &= ~CF_CONNECTING;
+
+						{
+                     PCLIENT pc = event_data->pc;
+#ifdef __LINUX__
+							socklen_t
+#else
+								int
+#endif
+								nLen = MAGIC_SOCKADDR_LENGTH;
+							if( !pc->saSource )
+								pc->saSource = AllocAddr();
+							if( getsockname( pc->Socket, pc->saSource, &nLen ) )
+							{
+								lprintf( WIDE("getsockname errno = %d"), errno );
+							}
+							lprintf( "Connect: %d", nLen );
+                     if( pc->saSource->sa_family == AF_INET )
+								SET_SOCKADDR_LENGTH( pc->saSource, IN_SOCKADDR_LENGTH );
+                     else if( pc->saSource->sa_family == AF_INET6 )
+								SET_SOCKADDR_LENGTH( pc->saSource, IN6_SOCKADDR_LENGTH );
+							else
+								SET_SOCKADDR_LENGTH( pc->saSource, nLen );
+						}
+
 						{
 							int error;
 							socklen_t errlen = sizeof( error );
@@ -2451,10 +2482,10 @@ NETWORK_PROC( uintptr_t, GetNetworkLong )(PCLIENT lpClient,int nLong)
 //----------------------------------------------------------------------------
 
 
-SOCKADDR* DuplicateAddress( SOCKADDR *pAddr ) // return a copy of this address...
+SOCKADDR* DuplicateAddressEx( SOCKADDR *pAddr DBG_PASS ) // return a copy of this address...
 {
 	POINTER tmp = (POINTER)( ( (uintptr_t)pAddr ) - 2*sizeof(uintptr_t) );
-	SOCKADDR *dup = AllocAddr();
+	SOCKADDR *dup = AllocAddrEx( DBG_VOIDRELAY );
 	POINTER tmp2 = (POINTER)( ( (uintptr_t)dup ) - 2*sizeof(uintptr_t) );
 	MemCpy( tmp2, tmp, SOCKADDR_LENGTH( pAddr ) + 2*sizeof(uintptr_t) );
 	if( ((char**)( ( (uintptr_t)pAddr ) - sizeof(char*) ))[0] )
@@ -3183,7 +3214,7 @@ NETWORK_PROC( PCLIENT, NetworkLockEx)( PCLIENT lpClient DBG_PASS )
 			LeaveCriticalSecEx( &globalNetworkData.csNetwork  DBG_RELAY);
 #endif
 			//lprintf( "Idle... socket lock failed, had global though..." );
-			Idle();
+			Relinquish();
 			goto start_lock;
 		}
 		//EnterCriticalSec( &lpClient->csLock );

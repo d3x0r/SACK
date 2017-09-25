@@ -231,7 +231,7 @@ static void CPROC read_complete( PCLIENT pc, POINTER buffer, size_t length )
 					if( !value || !value2
 						|| !TextLike( value, "upgrade" )
 						|| !TextLike( value2, "websocket" ) ) {
-						lprintf( "request is not an upgrade for websocket." );
+						//lprintf( "request is not an upgrade for websocket." );
 						socket->flags.initial_handshake_done = 1;
 						socket->flags.http_request_only = 1;
 						if( socket->input_state.on_request )

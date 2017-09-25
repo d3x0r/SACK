@@ -121,6 +121,7 @@ void AcceptClient(PCLIENT pListen)
 										, pNewClient->saClient
 										,&nTemp
 										);
+   //lprintf( "Accept new client....%d", pNewClient->Socket );
 #if WIN32
 	SetHandleInformation( (HANDLE)pNewClient->Socket, HANDLE_FLAG_INHERIT, 0 );
 #endif
@@ -142,6 +143,13 @@ void AcceptClient(PCLIENT pListen)
 		{
 			lprintf( WIDE("getsockname errno = %d"), errno );
 		}
+		//lprintf( "sockaddrlen: %d", nLen );
+		if( pNewClient->saSource->sa_family == AF_INET )
+			SET_SOCKADDR_LENGTH( pNewClient->saSource, IN_SOCKADDR_LENGTH );
+		else if( pNewClient->saSource->sa_family == AF_INET6 )
+			SET_SOCKADDR_LENGTH( pNewClient->saSource, IN6_SOCKADDR_LENGTH );
+		else
+			SET_SOCKADDR_LENGTH( pNewClient->saSource, nLen );
 	}
 	pNewClient->read.ReadComplete = pListen->read.ReadComplete;
 	pNewClient->psvRead = pListen->psvRead;
