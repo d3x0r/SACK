@@ -1261,30 +1261,21 @@ uintptr_t GetFileSize( int fd )
 		}
 		else if( pWhere ) // name doesn't matter, same file cannot be called another name
 		{
-			filename = CStrDup( pWhere );
+			filename = (char*)pWhere;
  		}
 		else if( pWhat )
 		{
 			int len;
+         char tmpbuf[256];
 #ifdef __ANDROID__
 			//if( !IsPath( "./tmp" ) )
 			//	if( !MakePath( "./tmp" ) )
 			//		ll_lprintf( "Failed to create a temporary space" );
-#ifdef UNICODE
-			{
-				char *tmp_pWhat = CStrDup( pWhat );
-				len = snprintf( NULL, 0, "/dev/ashmem/tmp.shared.%s", tmp_pWhat );
-				Release( tmp_pWhat );
-			}
+			filename = tmpbuf;
+			snprintf( tmpbuf, 256, "./tmp.shared.%s", pWhat );
 #else
-			len = snprintf( NULL, 0, "/dev/ashmem/tmp.shared.%s", pWhat );
-#endif
-			filename = (char*)Allocate( len + 1 );
-			snprintf( filename, len+1, "./tmp.shared.%s", pWhat );
-#else
-			len = snprintf( NULL, 0, WIDE("/tmp/.shared.%s"), pWhat );
-			filename = (char*)Allocate( len + 1 );
-			snprintf( filename, len+1, WIDE("/tmp/.shared.%s"), pWhat );
+			filename = tmpbuf;
+			snprintf( tmpbuf, 256, WIDE("/tmp/.shared.%s"), pWhat );
 
 #endif
 			bTemp = TRUE;
@@ -1391,7 +1382,7 @@ uintptr_t GetFileSize( int fd )
 #else
 					bOpening = FALSE;
 #endif
-					if(filename)Release( filename );
+					//if(filename)Release( filename );
 					return NULL;
 				}
 			}
@@ -1425,7 +1416,7 @@ uintptr_t GetFileSize( int fd )
 #else
 					bOpening = FALSE;
 #endif
-					if(filename)Release( filename );
+					//if(filename)Release( filename );
 					return NULL;
 				}
 				//*dwSize = ( ( *dwSize + ( FILE_GRAN - 1 ) ) / FILE_GRAN ) * FILE_GRAN;
@@ -1454,7 +1445,7 @@ uintptr_t GetFileSize( int fd )
 #else
 		bOpening = FALSE;
 #endif
-		if(filename)Release( filename );
+		//if(filename)Release( filename );
 		return pMem;
 
 #elif defined( _WIN32 )
