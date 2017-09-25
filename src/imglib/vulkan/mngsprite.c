@@ -199,7 +199,7 @@ PMNG_SPRITE DecodeMNG( uint8_t *buf, uint32_t size )
 	myretcode = mng_read (sprite->handle);
 	if (myretcode != MNG_NOERROR)
 	{
-      lprintf( "Header did not decode." );
+		lprintf( "Header did not decode." );
 		return NULL;
 		/* process error */;
 	}
@@ -215,7 +215,7 @@ PMNG_SPRITE DecodeMNG( uint8_t *buf, uint32_t size )
 		else switch( myretcode )
 		{
 		case MNG_UNEXPECTEDEOF:
-         // cleanup all over
+			// cleanup all over
 			return NULL;
 		case MNG_NEEDMOREDATA:
 			break;
@@ -226,7 +226,7 @@ PMNG_SPRITE DecodeMNG( uint8_t *buf, uint32_t size )
 	}
 
 	myretcode = mng_set_canvasstyle( sprite->handle, MNG_CANVAS_RGB8_A8 );
-   myretcode = mng_set_bkgdstyle( sprite->handle, MNG_CANVAS_RGB8_A8 );
+	myretcode = mng_set_bkgdstyle( sprite->handle, MNG_CANVAS_RGB8_A8 );
 	myretcode = mng_display (sprite->handle);
 
  //   while (myretcode == MNG_NEEDTIMERWAIT) {

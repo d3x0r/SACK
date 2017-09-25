@@ -927,7 +927,7 @@ static void HandleEvent( PCLIENT pClient )
 					if( globalNetworkData.flags.bLogNotices )
 						lprintf( WIDE( "Got UDP FD_READ" ) );
 #endif
-					FinishUDPRead( pClient );
+					FinishUDPRead( pClient, 0 );
 				}
 			}
 			else

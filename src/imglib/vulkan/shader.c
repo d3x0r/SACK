@@ -94,27 +94,9 @@ void FlushShaders( struct vkSurfaceData *vkSurface )
 	struct image_shader_op *op;
 	INDEX idx;
 	INDEX idx2;
-	LOGICAL depth_enabled;
-	//glGetBooleanv( GL_DEPTH_TEST, &depth_enabled );
 	LIST_FORALL( vkSurface->shader_local.image_shader_operations, idx, struct image_shader_image_buffer *, image_shader_op )
 	{
 		// target image has a translation....
-		if( image_shader_op->depth )
-		{
-			if( !depth_enabled )
-			{
-				depth_enabled = 1;
-				//glEnable( GL_DEPTH_TEST );
-			}
-		}
-		else
-		{
-			if( depth_enabled )
-			{
-				depth_enabled = 0;
-				//glDisable( GL_DEPTH_TEST );
-			}
-		}
 		LIST_FORALL( image_shader_op->output, idx2, struct image_shader_op *, op )
 		{
 			//EnableShader( op->tracker );
@@ -394,11 +376,10 @@ int CompileShaderEx( PImageShaderTracker tracker
 	Deallocate( char*, code );
 
 	if( shaderc_result_get_num_errors( vresult ) ) {
-		const char *err;
-		shaderc_result_get_error_message( vresult );
-		shaderc_result_release( vresult );
+		const char *err = shaderc_result_get_error_message( vresult );
 		lprintf( "Errors found compiling vertex shader: %s", err );
-		return -1;
+		shaderc_result_release( vresult );
+		return 0;
 	}
 
 	len = 0;
@@ -421,7 +402,14 @@ int CompileShaderEx( PImageShaderTracker tracker
 		, NULL );
 	Deallocate( char*, code );
 
-	
+	if( shaderc_result_get_num_errors( fresult ) ) {
+		const char *err = shaderc_result_get_error_message( fresult );
+		lprintf( "Errors found compiling vertex shader: %s", err );
+		shaderc_result_release( fresult );
+		return 0;
+	}
+
+
 
 	instance->spv_vertex = (uint32_t*)shaderc_result_get_bytes( vresult );
 	instance->spv_fragment = (uint32_t*)shaderc_result_get_bytes( fresult );
@@ -429,7 +417,7 @@ int CompileShaderEx( PImageShaderTracker tracker
 	shaderc_result_release( vresult );
 	shaderc_result_release( fresult );
 
-	return 0;
+	return 1;
 	//Now, compile the shader source. 
 	//Note that glShaderSource takes an array of chars. This is so that one can load multiple vertex shader files at once.
 	//This is similar in function to linking multiple C++ files together. Note also that there can only be one "void main" definition
@@ -576,7 +564,6 @@ static struct image_shader_op * GetShaderOp(PImageShaderTracker tracker, uintptr
 			op->psvKey = psvKey;
 			op->from = found_use?found_use->to : 0;
 			op->to = found_use?found_use->to : 0;
-			//glGetBooleanv( GL_DEPTH_TEST, &op->depth_enabled );
 			AddLink( &l.vkActiveSurface->shader_local.tracked_shader_operations, op );
 		}
 		else
@@ -609,15 +596,13 @@ struct image_shader_op * BeginImageShaderOp(PImageShaderTracker tracker, Image t
 {
 	struct image_shader_op *isibo;
 	struct image_shader_image_buffer *image_shader_op;
-	LOGICAL depth;
 	if( !tracker )
 		return NULL;
-	///////glGetBooleanv(GL_DEPTH_TEST, &depth ); 
 
 	if( l.vkActiveSurface->shader_local.last_operation 
 		&& l.vkActiveSurface->shader_local.last_operation->tracker == tracker
 		&& l.vkActiveSurface->shader_local.last_operation->target == target
-		&& l.vkActiveSurface->shader_local.last_operation->depth == depth
+		&& l.vkActiveSurface->shader_local.last_operation->depth == target->depthTest
 		)
 		image_shader_op = l.vkActiveSurface->shader_local.last_operation;
 	else
@@ -627,7 +612,7 @@ struct image_shader_op * BeginImageShaderOp(PImageShaderTracker tracker, Image t
 			l.vkActiveSurface->shader_local.last_operation->last_op = NULL;
 		image_shader_op->target = target;
 		image_shader_op->tracker = tracker;
-		image_shader_op->depth = depth;
+		image_shader_op->depth = target->depthTest;
 		image_shader_op->output = NULL;
 		image_shader_op->last_op = NULL;
 		AddLink( &l.vkActiveSurface->shader_local.image_shader_operations, image_shader_op );
@@ -669,6 +654,11 @@ void AppendImageShaderOpTristrip( struct image_shader_op *op, int triangles, ...
 	if( op )
 		op->tracker->AppendTristrip( op, triangles, op->psvKey, args );	
 }
+
+void SetShaderDepth( Image pImage, LOGICAL enable ) {
+	pImage->depthTest = enable;
+}
+
 
 
 IMAGE_NAMESPACE_END

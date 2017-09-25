@@ -169,6 +169,7 @@ IMAGE_3D_INTERFACE Image3dInterface = {
         //AppendShaderOpTristrop
 		CreateShaderBuffer,
 		AppendShaderBufferData,
+		SetShaderDepth,
 };
 
 #undef GetImageInterface

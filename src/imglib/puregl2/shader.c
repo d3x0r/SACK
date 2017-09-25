@@ -108,19 +108,10 @@ void FlushShaders( struct glSurfaceData *glSurface )
 		}
 		LIST_FORALL( image_shader_op->output, idx2, struct image_shader_op *, op )
 		{
-			//EnableShader( op->tracker );
-			//lprintf( WIDE( "Shader %") _string_f WIDE( " %d -> %d  %d" ), op->tracker->name, op->from, op->to, op->to - op->from );
-
 			if( op->tracker->Output )
 				op->tracker->Output( op->tracker, op->tracker->psvInit, op->psvKey, op->from, op->to );
 			if( image_shader_op->tracker->Reset )
-					image_shader_op->tracker->Reset( op->tracker, op->tracker->psvInit, op->psvKey );
-			//glDrawArrays( GL_TRIANGLES, op->from, op->to );
-
-			//glDrawArrays( 
-
-			//Release( op );
-			//SetLink( &image_shader_op->output, idx2, 0 );
+				image_shader_op->tracker->Reset( op->tracker, op->tracker->psvInit, op->psvKey );
 		}
 
 		if( image_shader_op->output )

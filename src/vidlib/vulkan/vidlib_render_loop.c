@@ -199,108 +199,7 @@ void Render3D( struct display_camera *camera )
 #ifdef __3D__
 		SetupPositionMatrix( camera );
 #endif
-#ifdef _D3D_DRIVER
-		{
-			PC_POINT tmp = GetAxis( camera->origin_camera, 0 );
-			{
-				D3DXMATRIX out;
-				D3DXVECTOR3 eye(tmp[12], tmp[13], tmp[14]);
-				D3DXVECTOR3 at(tmp[8], tmp[9], tmp[10]);
-				D3DXVECTOR3 up(tmp[4], tmp[5], tmp[6] );
-				at += eye;
-				D3DXMatrixLookAtLH(&out, &eye, &at, &up);
-				Render3d.current_device->SetTransform( D3DTS_WORLD, &out );
-			}
 		}
-		 /* some kinda init; no? */
-		Render3d.current_device->SetRenderState( D3DRS_ALPHATESTENABLE, TRUE );
-		Render3d.current_device->SetRenderState(D3DRS_ALPHABLENDENABLE,true);
-		Render3d.current_device->SetRenderState(D3DRS_SRCBLEND,D3DBLEND_SRCALPHA);
-		Render3d.current_device->SetRenderState(D3DRS_DESTBLEND,D3DBLEND_INVSRCALPHA);
-		Render3d.current_device->SetRenderState(D3DRS_BLENDOP,D3DBLENDOP_ADD);
-
-		Render3d.current_device->SetRenderState(D3DRS_AMBIENT, 0xFFFFFFFF );
-		Render3d.current_device->SetRenderState( D3DRS_LIGHTING,FALSE);
-		Render3d.current_device->SetTextureStageState(0,D3DTSS_ALPHAARG1,D3DTA_DIFFUSE);
-		Render3d.current_device->SetTextureStageState(0,D3DTSS_COLORARG1,D3DTA_DIFFUSE);
-#endif
-
-#ifdef _D3D10_DRIVER
-		{
-			PC_POINT tmp = GetAxis( camera->origin_camera, 0 );
-			{
-				D3DXMATRIX out;
-				D3DXVECTOR3 eye(tmp[12], tmp[13], tmp[14]);
-				D3DXVECTOR3 at(tmp[8], tmp[9], tmp[10]);
-				D3DXVECTOR3 up(tmp[4], tmp[5], tmp[6] );
-				at += eye;
-				//D3DXMatrixLookAtLH(&out, &eye, &at, &up);
-				//Remder3d.current_device->SetTransform( D3DTS_WORLD, &out );
-			}
-		}
-
-		static ID3D10BlendState* g_pBlendState = NULL;
-		if( g_pBlendState )
-		{
- 
-			D3D10_BLEND_DESC BlendState;
-			ZeroMemory(&BlendState, sizeof(D3D10_BLEND_DESC));
- 
-			BlendState.BlendEnable[0] = TRUE;
-			BlendState.SrcBlend = D3D10_BLEND_SRC_ALPHA;
-			BlendState.DestBlend = D3D10_BLEND_INV_SRC_ALPHA;
-			BlendState.BlendOp = D3D10_BLEND_OP_ADD;
-			BlendState.SrcBlendAlpha = D3D10_BLEND_ZERO;
-			BlendState.DestBlendAlpha = D3D10_BLEND_ZERO;
-			BlendState.BlendOpAlpha = D3D10_BLEND_OP_ADD;
-			BlendState.RenderTargetWriteMask[0] = D3D10_COLOR_WRITE_ENABLE_ALL;
- 
-			Render3d.current_device->CreateBlendState(&BlendState, &g_pBlendState);
-		}
-
-
-		/* some kinda init; no? */
-		Render3d.current_device->OMSetBlendState( g_pBlendState, 0, 0xffffffff);
-#endif
-
-#ifdef _D3D11_DRIVER
-		{
-			PC_POINT tmp = GetAxis( camera->origin_camera, 0 );
-			{
-				//D3DXMATRIX out;
-				//D3DXVECTOR3 eye(tmp[12], tmp[13], tmp[14]);
-				//D3DXVECTOR3 at(tmp[8], tmp[9], tmp[10]);
-				//D3DXVECTOR3 up(tmp[4], tmp[5], tmp[6] );
-				//at += eye;
-				//D3DXMatrixLookAtLH(&out, &eye, &at, &up);
-				//Remder3d.current_device->SetTransform( D3DTS_WORLD, &out );
-			}
-		}
-
-		static ID3D11BlendState* g_pBlendState = NULL;
-		if( g_pBlendState )
-		{
-#if 0
-			D3D11_BLEND_DESC BlendState;
-			ZeroMemory(&BlendState, sizeof(D3D11_BLEND_DESC));
- 
-			BlendState.BlendEnable[0] = TRUE;
-			BlendState.SrcBlend = D3D11_BLEND_SRC_ALPHA;
-			BlendState.DestBlend = D3D11_BLEND_INV_SRC_ALPHA;
-			BlendState.BlendOp = D3D11_BLEND_OP_ADD;
-			BlendState.SrcBlendAlpha = D3D11_BLEND_ZERO;
-			BlendState.DestBlendAlpha = D3D11_BLEND_ZERO;
-			BlendState.BlendOpAlpha = D3D11_BLEND_OP_ADD;
-			BlendState.RenderTargetWriteMask[0] = D3D10_COLOR_WRITE_ENABLE_ALL;
- 
-			Render3d.current_device->CreateBlendState(&BlendState, &g_pBlendState);
-#endif
-		}
-
-
-		/* some kinda init; no? */
-		// Render3d.current_device->OMSetBlendState( g_pBlendState, 0, 0xffffffff);
-#endif
 
 		if( l.flags.bLogRenderTiming )
 			lprintf( WIDE("Begin drawing from bottom up") );
@@ -327,46 +226,19 @@ void Render3D( struct display_camera *camera )
 			if( l.flags.bLogWrites )
 				lprintf( WIDE("------ BEGIN A REAL DRAW -----------") );
 
-#ifdef _OPENGL_DRIVER
-//#if 0
-			glEnable( GL_DEPTH_TEST );
+			ImageSetShaderDepth( hVideo->pImage, TRUE );
 			// put out a black rectangle
 			// should clear stensil buffer here so we can do remaining drawing only on polygon that's visible.
 			ClearImageTo( hVideo->pImage, 0 );
-//#endif
-			glDisable(GL_DEPTH_TEST);							// Enables Depth Testing
+			ImageSetShaderDepth( hVideo->pImage, FALSE );
 
-#endif
-#ifdef _D3D_DRIVER
-#if 0
-			Render3d.current_device->SetRenderState( D3DRS_ZENABLE, 1 );
-			ClearImageTo( hVideo->pImage, 0 );
-#endif
-			Render3d.current_device->SetRenderState( D3DRS_ZENABLE, 0 );
-#endif
-#ifdef _D3D10_DRIVER
-#if 0
-			//Render3d.current_device->SetRenderState( D3DRS_ZENABLE, 1 );
-			//ClearImageTo( hVideo->pImage, 0 );
-#endif
-			//Render3d.current_device->SetRenderState( D3DRS_ZENABLE, 0 );
-#endif
 
 			if( hVideo->pRedrawCallback )
 			{
 				hVideo->pRedrawCallback( hVideo->dwRedrawData, (PRENDERER)hVideo );
 			}
 
-#ifdef _OPENGL_DRIVER
-			// allow draw3d code to assume depth testing 
-			glEnable( GL_DEPTH_TEST );
-#endif
-#ifdef _D3D_DRIVER
-			Render3d.current_device->SetRenderState( D3DRS_ZENABLE, 1 );
-#endif
-#ifdef _D3D10_DRIVER
-			//Render3d.current_device->SetRenderState( D3DRS_ZENABLE, 1 );
-#endif
+			ImageSetShaderDepth( hVideo->pImage, TRUE );
 			{
 				INDEX idx;
 				PSPRITE_METHOD psm;

@@ -5,6 +5,7 @@
 #define USE_IMAGE_INTERFACE l.gl_image_interface
 #endif
 
+#define USE_IMAGE_3D_INTERFACE l._3d_image_interface
 #if WIN32
 #define VK_USE_PLATFORM_WIN32_KHR
 #endif
@@ -14,7 +15,6 @@
 
 #include <stdhdrs.h>
 #include <vulkan/vulkan.h>
-
 
 
 
@@ -48,6 +48,7 @@
 #include <render.h>
 #include <render3d.h>
 #include <image.h>
+#include <image3d.h>
 #include <vectlib.h>
 
 #if defined( __64__ ) && defined( _WIN32 )
@@ -334,7 +335,7 @@ extern
 	uint32_t last_mouse_update; // last tick the mouse moved.
 	uint32_t mouse_timer_id;
 #ifdef WIN32
-	uint32_t redraw_timer_id;
+	UINT_PTR redraw_timer_id;
 #endif
 
 	RCOORD fProjection[4][4];
@@ -355,6 +356,7 @@ extern
 	struct display_camera *current_mouse_event_camera;  // setcursorpos can only happen during a mouse event, please.
 
 	PIMAGE_INTERFACE gl_image_interface;
+	PIMAGE_3D_INTERFACE _3d_image_interface;
 	CTEXTSTR current_key_text;
 	void (*wake_callback)(void );
 } l;

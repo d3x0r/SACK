@@ -7,51 +7,32 @@
 
 IMAGE_NAMESPACE
 
-//const char *gles_
-static const char *gles_simple_v_shader =
-	"precision mediump float;\n"
-	"precision mediump int;\n"
-	"uniform mat4 modelView;\n" 
-	"uniform mat4 worldView;\n" 
-	"uniform mat4 Projection;\n" 
-	"attribute vec4 vPosition;" 
-	"attribute vec4 in_Color;\n"
-	"varying vec4 ex_Color;\n"
-	"void main(void) {"
-	"  gl_Position = Projection * worldView * modelView * vPosition;" 
-	"  ex_Color = in_Color;"
-	"}"; 
-
-static const char *gles_simple_p_shader =
-	"precision mediump float;\n"
-	"precision mediump int;\n"
-	//"uniform  vec4 in_Color;\n"
-	"varying vec4 ex_Color;"
-	"void main(void) {"
-	"  gl_FragColor = ex_Color;"
-	"}" ;
 
 static const char *gles_simple_v_shader_1_30 =
 	//"precision mediump float;\n"
 	//"precision mediump int;\n"
-	"uniform mat4 modelView;\n" 
-	"uniform mat4 worldView;\n" 
-	"uniform mat4 Projection;\n" 
-	"attribute vec4 vPosition;" 
-	"attribute vec4 in_Color;\n"
-	"varying vec4 ex_Color;\n"
+	"#version 430 \n"
+	"uniform uBlock { mat4 modelView;\n"
+	"	mat4 worldView;\n" 
+	"	mat4 Projection;\n" 
+	"};\n"
+	"layout( location = 0 ) in vec4 vPosition;\n" 
+	"layout( location = 1 ) in vec4 in_Color;\n"
+	"layout( location = 0 ) out vec4 ex_Color;\n"
 	"void main(void) {"
 	"  gl_Position = Projection * worldView * modelView * vPosition;" 
 	"  ex_Color = in_Color;"
 	"}"; 
 
 static const char *gles_simple_p_shader_1_30 =
-	//"precision mediump float;\n"
-	//"precision mediump int;\n"
-	//"uniform  vec4 in_Color;\n"
-	"varying vec4 ex_Color;"
+//"precision mediump float;\n"
+//"precision mediump int;\n"
+//"uniform  vec4 in_Color;\n"
+"#version 430 \n"
+"layout(location=0) in vec4 ex_Color;"
+"layout(location=0) out vec4 fragColor;"
 	"void main(void) {"
-	"  gl_FragColor = ex_Color;"
+	"  fragColor = ex_Color;"
 	"}" ;
 
 struct simple_shader_op_data
@@ -91,6 +72,10 @@ void CPROC SimpleShader_Output( PImageShaderTracker tracker, uintptr_t psv, uint
 	//struct simple_shader_op_data *shaderOp = (struct simple_shader_op_data *)psvKey;
 ;
 	EnableShader( tracker );
+
+	//const VkDeviceSize offsets[1] = { 0 };
+	//vkCmdBindVertexBuffers( info.cmd, 0, 1, &info.vertex_buffer.buf, offsets );
+
 	//////glEnableVertexAttribArray(0);
 	//////glEnableVertexAttribArray(1);
 	//////glDisableVertexAttribArray(2);
@@ -166,20 +151,11 @@ void InitSuperSimpleShader( uintptr_t psv, PImageShaderTracker tracker )
 	const char *v_codeblocks[2];
 	const char *p_codeblocks[2];
 
-	if( TRUE ) //////l.glslVersion < 140 )
-	{
-		v_codeblocks[0] = gles_simple_v_shader_1_30;
-		v_codeblocks[1] = NULL;
-		p_codeblocks[0] = gles_simple_p_shader_1_30;
-		p_codeblocks[1] = NULL;
-	}
-	else
-	{
-		v_codeblocks[0] = gles_simple_v_shader;
-		v_codeblocks[1] = NULL;
-		p_codeblocks[0] = gles_simple_p_shader;
-		p_codeblocks[1] = NULL;
-	}
+	v_codeblocks[0] = gles_simple_v_shader_1_30;
+	v_codeblocks[1] = NULL;
+	p_codeblocks[0] = gles_simple_p_shader_1_30;
+	p_codeblocks[1] = NULL;
+
 	if( CompileShader( tracker, v_codeblocks, 1, p_codeblocks, 1 ) )
 	{
 		///////data->color_attrib = glGetAttribLocation(tracker->glProgramId, "in_Color" );

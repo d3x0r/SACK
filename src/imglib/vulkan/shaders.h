@@ -154,6 +154,7 @@ struct image_shader_op * CPROC BeginShaderOp(PImageShaderTracker tracker, ... );
 struct image_shader_op * BeginImageShaderOp(PImageShaderTracker tracker, Image target, ... );
 void AppendImageShaderOpTristrip( struct image_shader_op *op, int triangles, ... );
 
+void SetShaderDepth( Image pImage, LOGICAL enable );
 
 IMAGE_NAMESPACE_END
 #endif

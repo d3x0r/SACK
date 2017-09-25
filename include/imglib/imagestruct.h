@@ -174,6 +174,7 @@ struct ImageFile_tag
 	IDirect3DBaseTexture9 *pActiveSurface;
 #endif
 #ifdef _VULKAN_DRIVER
+	LOGICAL depthTest;
 	PLIST vkSurface;
 	int vkActiveSurface; // most things will still use this, since reload image is called first, reload will set active
 	VECTOR coords[4];  // updated with SetTransformRelation, otherwise defaults to image size.

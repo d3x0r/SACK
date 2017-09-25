@@ -124,7 +124,7 @@ typedef struct rect_tag {
 
 //---------------------------------------------------------------------------
 
-         void CPROC cBlotScaledT0( SCALED_BLOT_WORK_PARAMS
+         static void BlotScaledT0( SCALED_BLOT_WORK_PARAMS
                                  )
 {
 	ScaleLoopStart
@@ -137,7 +137,7 @@ typedef struct rect_tag {
 
 //---------------------------------------------------------------------------
 
-void CPROC cBlotScaledT1( SCALED_BLOT_WORK_PARAMS
+static void BlotScaledT1( SCALED_BLOT_WORK_PARAMS
                         )
 {
    ScaleLoopStart
@@ -147,7 +147,7 @@ void CPROC cBlotScaledT1( SCALED_BLOT_WORK_PARAMS
 
 //---------------------------------------------------------------------------
 
-void CPROC cBlotScaledTA( SCALED_BLOT_WORK_PARAMS
+static void BlotScaledTA( SCALED_BLOT_WORK_PARAMS
                       , uint32_t nTransparent )
 {
    ScaleLoopStart
@@ -161,7 +161,7 @@ void CPROC cBlotScaledTA( SCALED_BLOT_WORK_PARAMS
 
 //---------------------------------------------------------------------------
 
-void CPROC cBlotScaledTImgA(SCALED_BLOT_WORK_PARAMS
+static void BlotScaledTImgA(SCALED_BLOT_WORK_PARAMS
                       , uint32_t nTransparent )
 {
    ScaleLoopStart
@@ -178,7 +178,7 @@ void CPROC cBlotScaledTImgA(SCALED_BLOT_WORK_PARAMS
 
 //---------------------------------------------------------------------------
 
-void CPROC cBlotScaledTImgAI( SCALED_BLOT_WORK_PARAMS
+static void BlotScaledTImgAI( SCALED_BLOT_WORK_PARAMS
                       , uint32_t nTransparent )
 {
 
@@ -197,7 +197,7 @@ void CPROC cBlotScaledTImgAI( SCALED_BLOT_WORK_PARAMS
 
 //---------------------------------------------------------------------------
 
-void CPROC cBlotScaledShadedT0( SCALED_BLOT_WORK_PARAMS
+static void BlotScaledShadedT0( SCALED_BLOT_WORK_PARAMS
                        , CDATA shade )
 {
    ScaleLoopStart
@@ -209,7 +209,7 @@ void CPROC cBlotScaledShadedT0( SCALED_BLOT_WORK_PARAMS
 
 //---------------------------------------------------------------------------
 
-void CPROC cBlotScaledShadedT1( SCALED_BLOT_WORK_PARAMS
+static void BlotScaledShadedT1( SCALED_BLOT_WORK_PARAMS
                        , CDATA shade )
 {
    ScaleLoopStart
@@ -220,7 +220,7 @@ void CPROC cBlotScaledShadedT1( SCALED_BLOT_WORK_PARAMS
 
 //---------------------------------------------------------------------------
 
-void CPROC cBlotScaledShadedTA( SCALED_BLOT_WORK_PARAMS
+static void BlotScaledShadedTA( SCALED_BLOT_WORK_PARAMS
                        , uint32_t nTransparent 
                        , CDATA shade )
 {
@@ -235,7 +235,7 @@ void CPROC cBlotScaledShadedTA( SCALED_BLOT_WORK_PARAMS
 }                    
 
 //---------------------------------------------------------------------------
-void CPROC cBlotScaledShadedTImgA( SCALED_BLOT_WORK_PARAMS
+static void BlotScaledShadedTImgA( SCALED_BLOT_WORK_PARAMS
                        , uint32_t nTransparent 
                        , CDATA shade )
 {
@@ -253,7 +253,7 @@ void CPROC cBlotScaledShadedTImgA( SCALED_BLOT_WORK_PARAMS
 }                    
 
 //---------------------------------------------------------------------------
-void CPROC cBlotScaledShadedTImgAI( SCALED_BLOT_WORK_PARAMS
+static void BlotScaledShadedTImgAI( SCALED_BLOT_WORK_PARAMS
                        , uint32_t nTransparent 
                        , CDATA shade )
 {
@@ -275,7 +275,7 @@ void CPROC cBlotScaledShadedTImgAI( SCALED_BLOT_WORK_PARAMS
 
 //---------------------------------------------------------------------------
 
-void CPROC cBlotScaledMultiT0( SCALED_BLOT_WORK_PARAMS
+static void BlotScaledMultiT0( SCALED_BLOT_WORK_PARAMS
                        , CDATA r
                        , CDATA g
                        , CDATA b )
@@ -289,7 +289,7 @@ void CPROC cBlotScaledMultiT0( SCALED_BLOT_WORK_PARAMS
             
 //---------------------------------------------------------------------------
 
-void CPROC cBlotScaledMultiT1(  SCALED_BLOT_WORK_PARAMS
+static void BlotScaledMultiT1(  SCALED_BLOT_WORK_PARAMS
                        , CDATA r
                        , CDATA g
                        , CDATA b )
@@ -305,7 +305,7 @@ void CPROC cBlotScaledMultiT1(  SCALED_BLOT_WORK_PARAMS
 }
 //---------------------------------------------------------------------------
 
-void CPROC cBlotScaledMultiTA(  SCALED_BLOT_WORK_PARAMS
+static void BlotScaledMultiTA(  SCALED_BLOT_WORK_PARAMS
                        , uint32_t nTransparent 
                        , CDATA r
                        , CDATA g
@@ -325,7 +325,7 @@ void CPROC cBlotScaledMultiTA(  SCALED_BLOT_WORK_PARAMS
 
 //---------------------------------------------------------------------------
 
-void CPROC cBlotScaledMultiTImgA( SCALED_BLOT_WORK_PARAMS
+static void BlotScaledMultiTImgA( SCALED_BLOT_WORK_PARAMS
                        , uint32_t nTransparent 
                        , CDATA r
                        , CDATA g
@@ -348,7 +348,7 @@ void CPROC cBlotScaledMultiTImgA( SCALED_BLOT_WORK_PARAMS
 
 //---------------------------------------------------------------------------
 
-void CPROC cBlotScaledMultiTImgAI( SCALED_BLOT_WORK_PARAMS
+static void BlotScaledMultiTImgAI( SCALED_BLOT_WORK_PARAMS
                        , uint32_t nTransparent 
                        , CDATA r
                        , CDATA g
@@ -387,8 +387,8 @@ void CPROC cBlotScaledMultiTImgAI( SCALED_BLOT_WORK_PARAMS
 {
 	CDATA *po, *pi;
 	static uint32_t lock;
-	uint32_t  oo;
-	uint32_t srcwidth;
+	uintptr_t  oo;
+	uintptr_t srcwidth;
 	int errx, erry;
 	uint32_t dhd, dwd, dhs, dws;
 	va_list colors;
@@ -671,27 +671,27 @@ void CPROC cBlotScaledMultiTImgAI( SCALED_BLOT_WORK_PARAMS
 		{
 		case BLOT_COPY:
 			if( !nTransparent )
-				cBlotScaledT0( po, pi, errx, erry, wd, hd, dwd, dhd, dws, dhs, oo, srcwidth );
+				BlotScaledT0( po, pi, errx, erry, wd, hd, dwd, dhd, dws, dhs, oo, srcwidth );
 			else if( nTransparent == 1 )
-				cBlotScaledT1( po, pi, errx, erry, wd, hd, dwd, dhd, dws, dhs, oo, srcwidth );
+				BlotScaledT1( po, pi, errx, erry, wd, hd, dwd, dhd, dws, dhs, oo, srcwidth );
 			else if( nTransparent & ALPHA_TRANSPARENT )
-				cBlotScaledTImgA( po, pi, errx, erry, wd, hd, dwd, dhd, dws, dhs, oo, srcwidth, nTransparent&0xFF );
+				BlotScaledTImgA( po, pi, errx, erry, wd, hd, dwd, dhd, dws, dhs, oo, srcwidth, nTransparent&0xFF );
 			else if( nTransparent & ALPHA_TRANSPARENT_INVERT )
-				cBlotScaledTImgAI( po, pi, errx, erry, wd, hd, dwd, dhd, dws, dhs, oo, srcwidth, nTransparent&0xFF );
+				BlotScaledTImgAI( po, pi, errx, erry, wd, hd, dwd, dhd, dws, dhs, oo, srcwidth, nTransparent&0xFF );
 			else
-				cBlotScaledTA( po, pi, errx, erry, wd, hd, dwd, dhd, dws, dhs, oo, srcwidth, nTransparent );
+				BlotScaledTA( po, pi, errx, erry, wd, hd, dwd, dhd, dws, dhs, oo, srcwidth, nTransparent );
 			break;
 		case BLOT_SHADED:
 			if( !nTransparent )
-				cBlotScaledShadedT0( po, pi, errx, erry, wd, hd, dwd, dhd, dws, dhs, oo, srcwidth, va_arg( colors, CDATA ) );
+				BlotScaledShadedT0( po, pi, errx, erry, wd, hd, dwd, dhd, dws, dhs, oo, srcwidth, va_arg( colors, CDATA ) );
 			else if( nTransparent == 1 )
-				cBlotScaledShadedT1( po, pi, errx, erry, wd, hd, dwd, dhd, dws, dhs, oo, srcwidth, va_arg( colors, CDATA ) );
+				BlotScaledShadedT1( po, pi, errx, erry, wd, hd, dwd, dhd, dws, dhs, oo, srcwidth, va_arg( colors, CDATA ) );
 			else if( nTransparent & ALPHA_TRANSPARENT )
-				cBlotScaledShadedTImgA( po, pi, errx, erry, wd, hd, dwd, dhd, dws, dhs, oo, srcwidth, nTransparent&0xFF, va_arg( colors, CDATA ) );
+				BlotScaledShadedTImgA( po, pi, errx, erry, wd, hd, dwd, dhd, dws, dhs, oo, srcwidth, nTransparent&0xFF, va_arg( colors, CDATA ) );
 			else if( nTransparent & ALPHA_TRANSPARENT_INVERT )
-				cBlotScaledShadedTImgAI( po, pi, errx, erry, wd, hd, dwd, dhd, dws, dhs, oo, srcwidth, nTransparent&0xFF, va_arg( colors, CDATA ) );
+				BlotScaledShadedTImgAI( po, pi, errx, erry, wd, hd, dwd, dhd, dws, dhs, oo, srcwidth, nTransparent&0xFF, va_arg( colors, CDATA ) );
 			else
-				cBlotScaledShadedTA( po, pi, errx, erry, wd, hd, dwd, dhd, dws, dhs, oo, srcwidth, nTransparent, va_arg( colors, CDATA ) );
+				BlotScaledShadedTA( po, pi, errx, erry, wd, hd, dwd, dhd, dws, dhs, oo, srcwidth, nTransparent, va_arg( colors, CDATA ) );
 			break;
 		case BLOT_MULTISHADE:
 			{
@@ -700,21 +700,21 @@ void CPROC cBlotScaledMultiTImgAI( SCALED_BLOT_WORK_PARAMS
 				g = va_arg( colors, CDATA );
 				b = va_arg( colors, CDATA );
 				if( !nTransparent )
-					cBlotScaledMultiT0( po, pi, errx, erry, wd, hd, dwd, dhd, dws, dhs, oo, srcwidth
+					BlotScaledMultiT0( po, pi, errx, erry, wd, hd, dwd, dhd, dws, dhs, oo, srcwidth
 											, r, g, b );
 				else if( nTransparent == 1 )
-					cBlotScaledMultiT1( po, pi, errx, erry, wd, hd, dwd, dhd, dws, dhs, oo, srcwidth
+					BlotScaledMultiT1( po, pi, errx, erry, wd, hd, dwd, dhd, dws, dhs, oo, srcwidth
 											, r, g, b );
 				else if( nTransparent & ALPHA_TRANSPARENT )
-					cBlotScaledMultiTImgA( po, pi, errx, erry, wd, hd, dwd, dhd, dws, dhs, oo, srcwidth
+					BlotScaledMultiTImgA( po, pi, errx, erry, wd, hd, dwd, dhd, dws, dhs, oo, srcwidth
 												, nTransparent & 0xFF
 												, r, g, b );
 				else if( nTransparent & ALPHA_TRANSPARENT_INVERT )
-					cBlotScaledMultiTImgAI( po, pi, errx, erry, wd, hd, dwd, dhd, dws, dhs, oo, srcwidth
+					BlotScaledMultiTImgAI( po, pi, errx, erry, wd, hd, dwd, dhd, dws, dhs, oo, srcwidth
 												 , nTransparent & 0xFF
 												 , r, g, b );
 				else
-					cBlotScaledMultiTA( po, pi, errx, erry, wd, hd, dwd, dhd, dws, dhs, oo, srcwidth
+					BlotScaledMultiTA( po, pi, errx, erry, wd, hd, dwd, dhd, dws, dhs, oo, srcwidth
 											, nTransparent
 											, r, g, b );
 			}
