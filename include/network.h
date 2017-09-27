@@ -325,7 +325,8 @@ NETWORK_PROC( LOGICAL, IsAddressV6 )( SOCKADDR *addr );
  *  SOCKADDR has in(near) it the size of the address block, so this
  * can safely duplicate the the right amount of memory.
  */
-NETWORK_PROC( SOCKADDR *, DuplicateAddress )( SOCKADDR *pAddr ); // return a copy of this address...
+NETWORK_PROC( SOCKADDR *, DuplicateAddressEx )( SOCKADDR *pAddr DBG_PASS ); // return a copy of this address...
+#define DuplicateAddress(a) DuplicateAddressEx( a DBG_SRC )
 
 NETWORK_PROC( void, SackNetwork_SetSocketSecure )( PCLIENT lpClient );
 NETWORK_PROC( void, SackNetwork_AllowSecurityDowngrade )( PCLIENT lpClient );
@@ -800,7 +801,7 @@ NETWORK_PROC( LOGICAL, ssl_GetPrivateKey )(PCLIENT pc, POINTER *keydata, size_t 
 NETWORK_PROC( LOGICAL, ssl_IsClientSecure )(PCLIENT pc);
 
 /* use this to send on SSL Connection instead of SendTCP. */
-NETWORK_PROC( LOGICAL, ssl_Send )( PCLIENT pc, POINTER buffer, size_t length );
+NETWORK_PROC( LOGICAL, ssl_Send )( PCLIENT pc, CPOINTER buffer, size_t length );
 
 
 
@@ -1007,6 +1008,8 @@ struct interfaceAddress {
 
 NETWORK_PROC( SOCKADDR*, GetBroadcastAddressForInterface )(SOCKADDR *addr);
 NETWORK_PROC( SOCKADDR*, GetInterfaceAddressForBroadcast )(SOCKADDR *addr);
+NETWORK_PROC( struct interfaceAddress*, GetInterfaceForAddress )( SOCKADDR *addr );
+NETWORK_PROC( LOGICAL, IsBroadcastAddressForInterface )( struct interfaceAddress *address, SOCKADDR *addr );
 NETWORK_PROC( void, LoadNetworkAddresses )(void);
 
 //----- PING.C ------

@@ -1998,7 +1998,7 @@ PRIORITY_PRELOAD( VideoRegisterInterface, VIDLIB_PRELOAD_PRIORITY )
 		WIDE("vulkan.render.3d")
 		, GetDisplay3dInterface, DropDisplay3dInterface );
 	l.gl_image_interface = (PIMAGE_INTERFACE)GetInterface( WIDE("vulkan.image") );  // common in-memory interface...
-
+	l._3d_image_interface = (PIMAGE_3D_INTERFACE)GetInterface( WIDE( "vulkan.image.3d" ) );
 #ifndef __ANDROID__
 #ifndef UNDER_CE
 #ifndef NO_TOUCH

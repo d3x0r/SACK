@@ -55,6 +55,37 @@ void  MemSet ( POINTER p, uintptr_t n, size_t sz )
 		(*(uint8_t*)( ((uintptr_t)p) + sz - (sz&1) ) ) = (uint8_t)n;
 #    endif
 #  endif
+#elif defined( __GNUC__ )
+	{
+      uintptr_t tmp = (uintptr_t)p;
+#  ifdef __64__
+		{
+			int m; int len = sz/8;
+			for( m = 0; m < len; m++ ) {
+				((uint64_t*)tmp)[0] = n;
+				tmp += 8;
+			}
+		}
+		if( sz & 4 )
+			(*(uint32_t*)( ((uintptr_t)p) + sz - (sz&7) ) ) = (uint32_t)n;
+		if( sz & 2 )
+			(*(uint16_t*)( ((uintptr_t)p) + sz - (sz&3) ) ) = (uint16_t)n;
+		if( sz & 1 )
+			(*(uint8_t*)( ((uintptr_t)p) + sz - (sz&1) ) ) = (uint8_t)n;
+#  else
+		{
+			int m; int len = sz/4;
+			for( m = 0; m < len; m++ ) {
+				((uint64_t*)tmp)[0] = n;
+				tmp += 4;
+			}
+		}
+		if( sz & 2 )
+			(*(uint16_t*)( ((uintptr_t)p) + sz - (sz&3) ) ) = (uint16_t)n;
+		if( sz & 1 )
+			(*(uint8_t*)( ((uintptr_t)p) + sz - (sz&1) ) ) = (uint8_t)n;
+#  endif
+	}
 #else
    memset( p, n, sz );
 #endif

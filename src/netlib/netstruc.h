@@ -204,6 +204,8 @@ struct NetworkClient
 	//     connect(UDP) results in?
 
 	SOCKET      Socket;
+	SOCKET      SocketBroadcast; // okay keep both...
+	struct interfaceAddress* interfaceAddress;
 	enum NetworkConnectionFlags  dwFlags; // CF_
 	uintptr_t        *lpUserData;
 
@@ -345,7 +347,7 @@ PCLIENT GetFreeNetworkClientEx( DBG_VOIDPASS );
 #define GetFreeNetworkClient() GetFreeNetworkClientEx( DBG_VOIDSRC )
 
 _UDP_NAMESPACE
-int FinishUDPRead( PCLIENT pc );
+int FinishUDPRead( PCLIENT pc, int broadcastEvent );
 _UDP_NAMESPACE_END
 
 #ifdef WIN32
@@ -371,7 +373,7 @@ SOCKADDR *AllocAddrEx( DBG_VOIDPASS );
 PCLIENT AddActive( PCLIENT pClient );
 
 void RemoveThreadEvent( PCLIENT pc );
-void AddThreadEvent( PCLIENT pc );
+void AddThreadEvent( PCLIENT pc, int broadcast );
 
 
 #define IsValid(S)   ((S)!=INVALID_SOCKET)  

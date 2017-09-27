@@ -249,7 +249,7 @@ VideoWindowProc (HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 				INDEX idx;
 				struct dropped_file_acceptor_tag *callback;
 				//uint32_t namelen = DragQueryFile( hDrop, iFIle, NULL, 0 );
-				DragQueryFile( hDrop, iFile, buffer, (UINT)sizeof( buffer ) );
+				DragQueryFile( hDrop, (UINT)iFile, buffer, (UINT)sizeof( buffer ) );
 				//lprintf( WIDE( "Accepting file drop [%s]" ), buffer );
 				LIST_FORALL( hVideo->dropped_file_acceptors, idx, struct dropped_file_acceptor_tag*, callback )
 				{
@@ -1166,7 +1166,7 @@ WM_DROPFILES
 		Return TRUE;
 	case WM_USER_MOUSE_CHANGE:
 		{
-			hVideo = (PVIDEO) GetWindowLong (hWnd, WD_HVIDEO);
+			hVideo = (PVIDEO) _GetWindowLong(hWnd, WD_HVIDEO);
 			if( hVideo )
 			{
 #ifdef LOG_MOUSE_HIDE_IDLE

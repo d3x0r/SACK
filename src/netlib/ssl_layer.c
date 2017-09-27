@@ -187,20 +187,22 @@ static int handshake( PCLIENT pc ) {
 			}
 			if (SSL_ERROR_WANT_READ == r) 
 			{
-				size_t pending = BIO_ctrl_pending( ses->wbio);
-				if (pending > 0) {
-					int read;
-					if( pending > ses->obuflen ) {
-						if( ses->obuffer )
-							Deallocate( uint8_t *, ses->obuffer );
-						ses->obuffer = NewArray( uint8_t, ses->obuflen = pending*2 );
-					}
-					read = BIO_read(ses->wbio, ses->obuffer, (int)pending);
+				size_t pending;
+				while( ( pending = BIO_ctrl_pending( ses->wbio) ) > 0 ) {
+					if (pending > 0) {
+						int read;
+						if( pending > ses->obuflen ) {
+							if( ses->obuffer )
+								Deallocate( uint8_t *, ses->obuffer );
+							ses->obuffer = NewArray( uint8_t, ses->obuflen = pending*2 );
+						}
+						read = BIO_read(ses->wbio, ses->obuffer, (int)pending);
 #ifdef DEBUG_SSL_IO
-					lprintf( "send %d for handshake", read );
+						lprintf( "send %d %d for handshake", pending, read );
 #endif
-					if (read > 0)
-						SendTCP( pc, ses->obuffer, read );
+						if (read > 0)
+							SendTCP( pc, ses->obuffer, read );
+					}
 				}
 			}
 			else {
@@ -269,12 +271,11 @@ static void ssl_ReadComplete( PCLIENT pc, POINTER buffer, size_t length )
 			}
 			else if( hs_rc == 1 )
 			{
-				int result;
-				result = SSL_read( pc->ssl_session->ssl, pc->ssl_session->dbuffer, (int)pc->ssl_session->dbuflen );
+				len = SSL_read( pc->ssl_session->ssl, pc->ssl_session->dbuffer, (int)pc->ssl_session->dbuflen );
 #ifdef DEBUG_SSL_IO
-				lprintf( "normal read - just get the data from the other buffer : %d", result );
+				lprintf( "normal read - just get the data from the other buffer : %d", len );
 #endif
-				if( result == -1 ) {
+				if( len == -1 ) {
 					lprintf( "SSL_Read failed." );
 					ERR_print_errors_cb( logerr, (void*)__LINE__ );
 					RemoveClient( pc );
@@ -300,6 +301,10 @@ static void ssl_ReadComplete( PCLIENT pc, POINTER buffer, size_t length )
 			}
 			// do was have any decrypted data to give to the application?
 			if( len > 0 ) {
+#ifdef DEBUG_SSL_IO
+				lprintf( "READ BUFFER:" );
+				LogBinary( pc->ssl_session->dbuffer, len );
+#endif
 				if( pc->ssl_session->dwOriginalFlags & CF_CPPREAD )
 					pc->ssl_session->cpp_user_read( pc->psvRead, pc->ssl_session->dbuffer, len );
 				else
@@ -329,6 +334,9 @@ static void ssl_ReadComplete( PCLIENT pc, POINTER buffer, size_t length )
 				{
 					// the read generated write data, output that data
 					size_t pending = BIO_ctrl_pending( pc->ssl_session->wbio );
+#ifdef DEBUG_SSL_IO
+					lprintf( "Pending Control To Send: %d", pending );
+#endif
 					if( pending > 0 ) {
 						int read;
 						if( pending > pc->ssl_session->obuflen ) {
@@ -347,12 +355,16 @@ static void ssl_ReadComplete( PCLIENT pc, POINTER buffer, size_t length )
 	}
 }
 
-LOGICAL ssl_Send( PCLIENT pc, POINTER buffer, size_t length )
+LOGICAL ssl_Send( PCLIENT pc, CPOINTER buffer, size_t length )
 {
 	int len;
 	int32_t len_out;
 	struct ssl_session *ses = pc->ssl_session;
 	while( length ) {
+#ifdef DEBUG_SSL_IO
+		lprintf( "SSL SEND...." );
+		LogBinary( (uint8_t*)buffer, length );
+#endif
 		len = SSL_write( pc->ssl_session->ssl, buffer, (int)length );
 		if (len < 0) {
 			ERR_print_errors_cb(logerr, (void*)__LINE__);
@@ -440,7 +452,11 @@ static void ssl_ClientConnected( PCLIENT pcServer, PCLIENT pcNew ) {
 	MemSet( ses, 0, sizeof( struct ssl_session ) );
 
 	ses->ssl = SSL_new( pcServer->ssl_session->ctx );
-
+	{
+		static uint32_t tick;
+      tick++;
+		SSL_set_session_id_context( ses->ssl, (const unsigned char*)&tick, 4 );//sizeof( ses->ctx ) );
+	}
 	ssl_InitSession( ses );
 
 	SSL_set_accept_state( ses->ssl );
@@ -560,6 +576,15 @@ LOGICAL ssl_BeginServer( PCLIENT pc, POINTER cert, size_t certlen, POINTER keypa
 		if( r <= 0 ) {
 			ERR_print_errors_cb( logerr, (void*)__LINE__ );
 		}
+		r = SSL_CTX_set_session_id_context( ses->ctx, (const unsigned char*)"12345678", 8 );//sizeof( ses->ctx ) );
+		if( r <= 0 ) {
+			ERR_print_errors_cb( logerr, (void*)__LINE__ );
+		}
+		//r = SSL_CTX_get_session_cache_mode( ses->ctx );
+		//r = SSL_CTX_set_session_cache_mode( ses->ctx, SSL_SESS_CACHE_SERVER );
+		r = SSL_CTX_set_session_cache_mode( ses->ctx, SSL_SESS_CACHE_OFF );
+      if( r <= 0 )
+			ERR_print_errors_cb( logerr, (void*)__LINE__ );
 	}
 
 	ses->dwOriginalFlags = pc->dwFlags;

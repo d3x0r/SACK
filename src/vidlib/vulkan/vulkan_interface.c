@@ -74,6 +74,10 @@ void EndActive3D( struct display_camera *camera )
 }
 
 void SetupPositionMatrix( struct display_camera *camera ) {
+#ifdef ALLOW_SETTING_GL1_MATRIX
+	GetGLCameraMatrix( camera->origin_camera, camera->hVidCore->fModelView );
+	glLoadMatrixf( (RCOORD*)camera->hVidCore->fModelView );
+#endif
 
 }
 
@@ -203,7 +207,7 @@ void SetupDevice()
 				// Print the families
 				for( j = 0; j < queueFamilyCount; j++ ) {
 					lprintf( "Count of Queues: %d", familyProperties[j].queueCount );
-					lprintf( "Supported operationg on this queue:" );
+					lprintf( "Supported operations on this queue:" );
 					if( familyProperties[j].queueFlags & VK_QUEUE_GRAPHICS_BIT )
 						lprintf( "\t\t Graphics" );
 					if( familyProperties[j].queueFlags & VK_QUEUE_COMPUTE_BIT )
@@ -382,7 +386,7 @@ LOGICAL swapChainInit( struct SwapChain *swapChain )
 		if( queueCount == 0 )
 			return FALSE;
 		{
-			VkQueueFamilyProperties *queueProperties;
+			VkQueueFamilyProperties *queueProperties = NewArray( VkQueueFamilyProperties, queueCount );
 
 			// In previous tutorials we just picked which ever queue was readily
 			// available. The problem is not all queues support presenting. Here
@@ -479,6 +483,7 @@ LOGICAL swapChainInit( struct SwapChain *swapChain )
 				swapChain->colorFormat = surfaceFormats[0].format;
 			}
 			swapChain->colorSpace = surfaceFormats[0].colorSpace;
+			Deallocate( VkQueueFamilyProperties *, queueProperties );
 		}
 	}
 	return TRUE;
@@ -791,10 +796,10 @@ VkResult swapChainQueuePresent( struct SwapChain *swapChain,
 }
 
 void swapChainCleanup( struct SwapChain *swapChain ) {
-	struct SwapChainBuffer *buf;
+	//struct SwapChainBuffer *buf;
 	int n;
 	for( n = 0; n < swapChain->nImages; n++ ) {
-		vkDestroyImageView( swapChain->device, swapChain->images[n], NULL );
+		vkDestroyImage( swapChain->device, swapChain->images[n], NULL );
 	}
 	swapChain->fpDestroySwapchainKHR( swapChain->device,
 		swapChain->swapChain,

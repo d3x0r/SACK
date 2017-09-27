@@ -6,56 +6,17 @@
 
 IMAGE_NAMESPACE
 
-//const char *gles_
-static const char *gles_simple_v_multi_shader =
-   "precision mediump float;\n"
-	"precision mediump int;\n"
-	 "uniform mat4 modelView;\n" 
-	 "uniform mat4 worldView;\n" 
-	 "uniform mat4 Projection;\n" 
-	 "attribute vec2 in_texCoord;\n" 
-     "attribute vec4 vPosition;" 
-	 " varying vec2 out_texCoord;\n" 
-	// "in  vec4 in_Color;\n"
-	// "out vec4 ex_Color;\n"
-     "void main(void) {"
-     "  gl_Position = Projection * worldView * modelView * vPosition;"
-	 "out_texCoord = in_texCoord;\n" 
-	// "  ex_Color = in_Color;" 
-     "}"; 
-
-
-static const char *gles_simple_p_multi_shader =
-   "precision mediump float;\n"
-	"precision mediump int;\n"
-	     " varying vec2 out_texCoord;\n" 
-        "uniform sampler2D tex;\n" 
-        "uniform vec4 multishade_r;\n" 
-        "uniform vec4 multishade_g;\n" 
-        "uniform vec4 multishade_b;\n" 
-        "\n" 
-        "void main(void)\n"
-        "{\n" 
-        "    vec4 color = texture2D(tex, out_texCoord);\n"
-        "	gl_FragColor = vec4( (color.b * multishade_b.r) + (color.g * multishade_g.r) + (color.r * multishade_r.r),\n"
-        "		(color.b * multishade_b.g) + (color.g * multishade_g.g) + (color.r * multishade_r.g),\n"
-        "		(color.b * multishade_b.b) + (color.g * multishade_g.b) + (color.r * multishade_r.b),\n"
-        "		  color.r!=0.0?( color.a * multishade_r.a ):0.0\n"
-        "                + color.g!=0.0?( color.a * multishade_g.a ):0.0\n"
-        "                + color.b!=0.0?( color.a * multishade_b.a ):0.0\n"
-        "                )\n"
-        "		;\n" 
-				 "}\n" ;
 
 static const char *gles_simple_v_multi_shader_1_30 =
+	"#version 430\n"
    //"precision mediump float;\n"
 	//"precision mediump int;\n"
-	 "uniform mat4 modelView;\n" 
+	"uniform uvBlock { mat4 modelView;\n" 
 	 "uniform mat4 worldView;\n" 
-	 "uniform mat4 Projection;\n" 
-	 "attribute vec2 in_texCoord;\n" 
-     "attribute vec4 vPosition;" 
-	 " varying vec2 out_texCoord;\n" 
+	 "uniform mat4 Projection; };\n" 
+	"layout(location=0) in vec2 in_texCoord;\n" 
+     "layout(location=0) in vec4 vPosition;" 
+	 " layout(location=0) out vec2 out_texCoord;\n" 
 	// "in  vec4 in_Color;\n"
 	// "out vec4 ex_Color;\n"
      "void main(void) {"
@@ -68,16 +29,18 @@ static const char *gles_simple_v_multi_shader_1_30 =
 static const char *gles_simple_p_multi_shader_1_30 =
    //"precision mediump float;\n"
 	//"precision mediump int;\n"
-	     " varying vec2 out_texCoord;\n" 
-        "uniform sampler2D tex;\n" 
-        "uniform vec4 multishade_r;\n" 
+	"#version 430\n"
+	" layout(location=0) in vec2 out_texCoord;\n"
+	"uniform sampler2D tex;\n" 
+        "uniform ufBlock{ uniform vec4 multishade_r;\n" 
         "uniform vec4 multishade_g;\n" 
-        "uniform vec4 multishade_b;\n" 
-        "\n" 
+        "uniform vec4 multishade_b;};\n" 
+	"layout(location=0) out vec4 fragColor;"
+	"\n"
         "void main(void)\n"
         "{\n" 
-        "    vec4 color = texture2D(tex, out_texCoord);\n"
-        "	gl_FragColor = vec4( (color.b * multishade_b.r) + (color.g * multishade_g.r) + (color.r * multishade_r.r),\n"
+        "    vec4 color = texture(tex, out_texCoord);\n"
+        "	fragColor = vec4( (color.b * multishade_b.r) + (color.g * multishade_g.r) + (color.r * multishade_r.r),\n"
         "		(color.b * multishade_b.g) + (color.g * multishade_g.g) + (color.r * multishade_r.g),\n"
         "		(color.b * multishade_b.b) + (color.g * multishade_g.b) + (color.r * multishade_r.b),\n"
         "		  color.r!=0.0?( color.a * multishade_r.a ):0.0\n"
@@ -279,20 +242,11 @@ void InitSimpleMultiShadedTextureShader( uintptr_t psvInst, PImageShaderTracker 
 //		lprintf( WIDE("unhandled error before shader") );
 	//}
 
-	if( TRUE ) //////l.glslVersion < 140 )
-	{
-		v_codeblocks[0] = gles_simple_v_multi_shader_1_30;
-		v_codeblocks[1] = NULL;
-		p_codeblocks[0] = gles_simple_p_multi_shader_1_30;
-		p_codeblocks[1] = NULL;
-	}
-	else
-	{
-		v_codeblocks[0] = gles_simple_v_multi_shader;
-		v_codeblocks[1] = NULL;
-		p_codeblocks[0] = gles_simple_p_multi_shader;
-		p_codeblocks[1] = NULL;
-	}
+	v_codeblocks[0] = gles_simple_v_multi_shader_1_30;
+	v_codeblocks[1] = NULL;
+	p_codeblocks[0] = gles_simple_p_multi_shader_1_30;
+	p_codeblocks[1] = NULL;
+
 	if( CompileShaderEx( tracker, v_codeblocks, 1, p_codeblocks, 1, attribs, 2 ) )
 	{
 		if( !data )

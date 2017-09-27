@@ -101,12 +101,11 @@ void CPROC do_line( ImageFile *pImage, int32_t x1, int32_t y1
 			Apply( pImage->transform, v[1-vi][3], v[vi][3] );
 			vi = 1-vi;
 		}
-#if 0
 		if( glDepth )
-			glEnable( GL_DEPTH_TEST );
+			SetShaderDepth( pImage, TRUE );
 		else
-			glDisable( GL_DEPTH_TEST );
-#endif
+			SetShaderDepth( pImage, FALSE );
+
 		/**///glBegin( GL_TRIANGLE_STRIP );
 		_color[0] = RedVal(d) / 255.0f;
 		_color[1] = GreenVal(d) / 255.0f;
@@ -263,12 +262,10 @@ void CPROC do_lineAlpha( ImageFile *pImage, int32_t x1, int32_t y1
 			Apply( pImage->transform, v[1-vi][3], v[vi][3] );
 			vi = 1-vi;
 		}
-#if 0
 		if( glDepth )
-			glEnable( GL_DEPTH_TEST );
+			SetShaderDepth( pImage, TRUE );
 		else
-			glDisable( GL_DEPTH_TEST );
-#endif
+			SetShaderDepth( pImage, FALSE );
 		/**///glBegin( GL_TRIANGLE_STRIP );
 		;/**///glColor4ub( RedVal(d), GreenVal(d),BlueVal(d), AlphaVal( d ) );
 		_color[0] = RedVal(d) / 255.0f;

@@ -231,7 +231,7 @@ static void CPROC read_complete( PCLIENT pc, POINTER buffer, size_t length )
 					if( !value || !value2
 						|| !TextLike( value, "upgrade" )
 						|| !TextLike( value2, "websocket" ) ) {
-						lprintf( "request is not an upgrade for websocket." );
+						//lprintf( "request is not an upgrade for websocket." );
 						socket->flags.initial_handshake_done = 1;
 						socket->flags.http_request_only = 1;
 						if( socket->input_state.on_request )
@@ -528,7 +528,6 @@ PCLIENT WebSocketCreate( CTEXTSTR hosturl
 {
 	struct url_data *url;
 	HTML5WebSocket socket = New( struct html5_web_socket );
-	NetworkStart();
 	MemSet( socket, 0, sizeof( struct html5_web_socket ) );
 	socket->Magic = 0x20130912;
 	socket->input_state.flags.deflate = 1;

@@ -1,6 +1,6 @@
 set_property(GLOBAL PROPERTY USE_FOLDERS On)
 set( CMAKE_INSTALL_MESSAGE "LAZY" )
-cmake_minimum_required(VERSION 3.0)
+cmake_minimum_required(VERSION 3.1)
 
 project( SACK )
 #message( WIN32=${WIN32} )

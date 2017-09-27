@@ -269,7 +269,7 @@ char *FixName( char *file )
 {
 	static char realname[__MAX_PATH__];
 	if( file[0] != '/' && file[1] != ':' )
-		sprintf( realname, WIDE("%s/%s"), g.pWorkPath, file );
+		snprintf( realname, __MAX_PATH__, WIDE("%s/%s"), g.pWorkPath, file );
 	else
 		strcpy( realname, file );
 	{

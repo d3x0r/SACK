@@ -121,6 +121,7 @@ void AcceptClient(PCLIENT pListen)
 										, pNewClient->saClient
 										,&nTemp
 										);
+   //lprintf( "Accept new client....%d", pNewClient->Socket );
 #if WIN32
 	SetHandleInformation( (HANDLE)pNewClient->Socket, HANDLE_FLAG_INHERIT, 0 );
 #endif
@@ -142,6 +143,13 @@ void AcceptClient(PCLIENT pListen)
 		{
 			lprintf( WIDE("getsockname errno = %d"), errno );
 		}
+		//lprintf( "sockaddrlen: %d", nLen );
+		if( pNewClient->saSource->sa_family == AF_INET )
+			SET_SOCKADDR_LENGTH( pNewClient->saSource, IN_SOCKADDR_LENGTH );
+		else if( pNewClient->saSource->sa_family == AF_INET6 )
+			SET_SOCKADDR_LENGTH( pNewClient->saSource, IN6_SOCKADDR_LENGTH );
+		else
+			SET_SOCKADDR_LENGTH( pNewClient->saSource, nLen );
 	}
 	pNewClient->read.ReadComplete = pListen->read.ReadComplete;
 	pNewClient->psvRead = pListen->psvRead;
@@ -219,7 +227,7 @@ void AcceptClient(PCLIENT pListen)
 			WSASetEvent( globalNetworkData.hMonitorThreadControlEvent );
 #endif
 #ifdef __LINUX__
-			AddThreadEvent( pNewClient );
+			AddThreadEvent( pNewClient, 0 );
 #endif
 		}
 	}
@@ -338,7 +346,7 @@ PCLIENT CPPOpenTCPListenerAddrExx( SOCKADDR *pAddr
 	WSASetEvent( globalNetworkData.hMonitorThreadControlEvent );
 #endif
 #ifdef __LINUX__
-	AddThreadEvent( pListen );
+	AddThreadEvent( pListen, 0 );
 #endif
 	return pListen;
 }
@@ -568,7 +576,7 @@ static PCLIENT InternalTCPClientAddrFromAddrExxx( SOCKADDR *lpAddr, SOCKADDR *pF
 
 #endif
 #ifdef __LINUX__
-			AddThreadEvent( pResult );
+			AddThreadEvent( pResult, 0 );
 #endif
 			if( !pConnectComplete )
 			{
@@ -1320,7 +1328,7 @@ int TCPWriteEx(PCLIENT pc DBG_PASS)
 						WSASetEvent( globalNetworkData.hMonitorThreadControlEvent );
 #endif
 #ifdef __LINUX__
-						AddThreadEvent( pc );
+						AddThreadEvent( pc, 0 );
 #endif
 					}
 					return TRUE;
