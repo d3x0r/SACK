@@ -2128,6 +2128,7 @@ static LOGICAL CPROC sack_filesys_copy_write_buffer( void ) { return FALSE; }
 struct find_cursor_data {
 	char *root;
 	char *filemask;
+	char *mask;
 #ifdef WIN32
 	intptr_t findHandle;
 	struct _finddata_t fileinfo;
@@ -2141,8 +2142,8 @@ static	struct find_cursor * CPROC sack_filesys_find_create_cursor ( uintptr_t ps
 	struct find_cursor_data *cursor = New( struct find_cursor_data );
 	char maskbuf[512];
 	MemSet( cursor, 0, sizeof( *cursor ) );
-	snprintf( maskbuf, 512, "%s/*", root ? root : "." );
-
+	snprintf( maskbuf, 512, "%s/%s", root ? root : ".", filemask?filemask:"*" );
+	cursor->mask = StrDup( filemask );
 	cursor->root = StrDup( root?root:"." );
 	cursor->filemask = ExpandPath( maskbuf );// StrDup( filemask ? filemask : "*" );
 #ifdef WIN32
@@ -2164,10 +2165,12 @@ static	int CPROC sack_filesys_find_first( struct find_cursor *_cursor ){
 	return ( cursor->findHandle != -1 );
 #else
 	if( cursor->handle ) {
-		cursor->de = readdir( cursor->handle );
-		return ( cursor->de == NULL );
+		do {
+			cursor->de = readdir( cursor->handle );
+		} while( cursor->de && !CompareMask( cursor->mask, cursor->de->d_name, 0 ) );
+		return ( cursor->de != NULL );
 	}
-	return 1;
+	return 0;
 #endif
 }
 static	int CPROC sack_filesys_find_close( struct find_cursor *_cursor ){
@@ -2179,6 +2182,7 @@ static	int CPROC sack_filesys_find_close( struct find_cursor *_cursor ){
 		closedir( cursor->handle );
 #endif
 	Deallocate( char *, cursor->root );
+	Deallocate( char *, cursor->mask );
 	Deallocate( char *, cursor->filemask );
 	Deallocate( struct find_cursor_data *, cursor );
 	return 0;
@@ -2189,7 +2193,9 @@ static	int CPROC sack_filesys_find_next( struct find_cursor *_cursor ){
 #ifdef WIN32
    r = !findnext( cursor->findHandle, &cursor->fileinfo );
 #else
-	cursor->de = readdir( cursor->handle );
+	do {
+		cursor->de = readdir( cursor->handle );
+	} while( cursor->de && !CompareMask( cursor->mask, cursor->de->d_name, 0 ) );
    r = (cursor->de != NULL );
 #endif
    return r;
@@ -2214,7 +2220,16 @@ static	size_t CPROC sack_filesys_find_get_size( struct find_cursor *_cursor ) {
 	return 0;
 #else
 	if( cursor ) {
-		return sack_filesys_size( cursor->de->d_name );
+		struct stat s;
+		char filename[280];
+		snprintf( filename, 280, "%s/%s", cursor->root, cursor->de->d_name );
+		if( stat( filename, &s ) ) {
+			lprintf( "getsize stat error:%d", errno );
+			return -2;
+		}
+		if( s.st_mode & S_IFREG )
+			return s.st_size;
+		return -1;
 	}
 #endif
 	return 0;
