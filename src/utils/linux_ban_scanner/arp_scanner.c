@@ -74,9 +74,9 @@ static void CPROC dumpStats( uintptr_t psv ) {
 
 static void CPROC dumpRoutes( uintptr_t psv ) {
 	struct address_minmax *router_mm;
-	for( router_mm = (struct address_minmax*)GetLeastNode( lbs.routers );
+	for( router_mm = (struct address_minmax*)GetLeastNode( lbs.addressTree );
 		 router_mm;
-		  router_mm = (struct address_minmax*)GetGreaterNode( lbs.routers ) ) {
+		  router_mm = (struct address_minmax*)GetGreaterNode( lbs.addressTree ) ) {
 		printf( "Router: %16s     %16s     %16s\n", router_mm->router, router_mm->min, router_mm->max );
 	}
 }
