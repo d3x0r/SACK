@@ -23,3 +23,16 @@ SET_TARGET_PROPERTIES(${PROJECT} PROPERTIES FOLDER utils )
 target_link_libraries( ${PROJECT} ${SACK_LIBRARIES} )
 install_default_dest( ${PROJECT} )
 
+
+
+set( PROJECT arp_scanner )
+set(BASE_SOURCES
+    arp_scanner.c
+)
+
+sack_add_executable(${PROJECT} ${BASE_SOURCES} )
+SET_TARGET_PROPERTIES(${PROJECT} PROPERTIES FOLDER utils )
+target_link_libraries( ${PROJECT} ${SACK_LIBRARIES} )
+install_default_dest( ${PROJECT} )
+
+
