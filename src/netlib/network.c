@@ -382,7 +382,7 @@ LOGICAL IsAddressV6( SOCKADDR *addr )
 const char * GetAddrString( SOCKADDR *addr )
 {
 	static char buf[256];
-	lprintf( "addr family is: %d", addr->sa_family );
+	//lprintf( "addr family is: %d", addr->sa_family );
 	if( addr->sa_family == AF_INET )
 		snprintf( buf, 256, "%d.%d.%d.%d"
 			, *(((unsigned char *)addr) + 4),
