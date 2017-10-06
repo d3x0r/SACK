@@ -305,8 +305,10 @@ int xFileControl(sqlite3_file*file, int op, void *pArg)
 	case SQLITE_FCNTL_PRAGMA:
 		{
 			char **files = (char**)pArg;
-			//char *name = files[3];			
-			files[0] = sqlite3_mprintf( "%s", files[2] );
+			//char *name = files[3];
+			//lprintf( "pragma... (%s)", files[1] );
+			//files[0] = sqlite3_mprintf( "%s", files[2] );
+			return SQLITE_NOTFOUND;
 			//xOpen( my_file->
 		}
 		break;
