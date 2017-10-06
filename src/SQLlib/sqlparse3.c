@@ -266,6 +266,7 @@ void AddConstraint( PTABLE table, PTEXT *word )
 		{
 			// next word is the type, skip that word too....
 			(*word) = NEXTLINE( *word );
+         table->constraints.constraint[table->constraints.count-1].flags.foreign_key = 1;
 		}
 	}
 	GrabKeyColumns( word, table->constraints.constraint[table->constraints.count-1].colnames );
@@ -453,7 +454,7 @@ int GetTableColumns( PTABLE table, PTEXT *word DBG_PASS )
 					AddIndexKey( table, word, 1, 0, 1 );
 					Release( name );
 				}
-				else if( StrCaseCmp( name, WIDE( "CONSTRAINT" ) ) == 0 )
+				else if( StrCaseCmp( name, WIDE( "CONSTRAINT" ) ) == 0 || StrCaseCmp( name, WIDE( "FOREIGN" ) ) == 0 )
 				{
 					//lprintf( "Skipping constraint parsing" );
 					AddConstraint( table, word );

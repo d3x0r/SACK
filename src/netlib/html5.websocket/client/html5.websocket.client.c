@@ -311,6 +311,8 @@ void WebSocketClose( PCLIENT pc, int code, const char *reason )
 	WebSocketClient websock = (WebSocketClient)GetNetworkLong( pc, 0 );
 	char buf[130];
 	size_t buflen;
+	if( !websock )  // maybe already closed?
+		return;
 	if( code ) {
 		buf[0] = code / 256;
 		buf[1] = code % 256;
