@@ -148,9 +148,9 @@ SYSLOG_PROC  void SYSLOG_API  ProtectLoggedFilenames ( LOGICAL bEnable );
 SYSLOG_PROC  void SYSLOG_API  SystemLogFL ( CTEXTSTR FILELINE_PASS );
 SYSLOG_PROC  void SYSLOG_API  SystemLogEx ( CTEXTSTR DBG_PASS );
 SYSLOG_PROC  void SYSLOG_API  SystemLog ( CTEXTSTR );
-SYSLOG_PROC  void SYSLOG_API  LogBinaryFL ( uint8_t* buffer, size_t size FILELINE_PASS );
-SYSLOG_PROC  void SYSLOG_API  LogBinaryEx ( uint8_t* buffer, size_t size DBG_PASS );
-SYSLOG_PROC  void SYSLOG_API  LogBinary ( uint8_t* buffer, size_t size );
+SYSLOG_PROC  void SYSLOG_API  LogBinaryFL ( const uint8_t* buffer, size_t size FILELINE_PASS );
+SYSLOG_PROC  void SYSLOG_API  LogBinaryEx ( const uint8_t* buffer, size_t size DBG_PASS );
+SYSLOG_PROC  void SYSLOG_API  LogBinary ( const uint8_t* buffer, size_t size );
 // logging level defaults to 1000 which is log everything
 SYSLOG_PROC  void SYSLOG_API  SetSystemLoggingLevel ( uint32_t nLevel );
 #if defined( _DEBUG ) || defined( _DEBUG_INFO )
