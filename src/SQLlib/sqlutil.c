@@ -1626,9 +1626,13 @@ retry:
 					int colfirst = 1;
 					{
 						{
-							vtprintf( pvtCreate, WIDE("%sCONSTRAINT `%s` FOREIGN KEY (" )
-									  , first?WIDE(""):WIDE(",")
-									  , table->constraints.constraint[n].name );
+							if( odbc->flags.bSQLite_native )
+								vtprintf( pvtCreate, WIDE("%s FOREIGN KEY  (" )
+										  , first?WIDE(""):WIDE(",") );
+							else
+								vtprintf( pvtCreate, WIDE("%sCONSTRAINT `%s` FOREIGN KEY (" )
+										  , first?WIDE(""):WIDE(",")
+										  , table->constraints.constraint[n].name );
 							colfirst = 1;
 							for( col = 0; table->constraints.constraint[n].colnames[col]; col++ )
 							{

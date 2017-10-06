@@ -2659,7 +2659,7 @@ retry:
 			case SQLITE_OK:
 			case SQLITE_DONE:
 			case SQLITE_ROW:
-				if( !sqlite3_get_autocommit(odbc->db) )
+				//if( !sqlite3_get_autocommit(odbc->db) )
 				{
 					// this is a noisy message when we start using start trans and endtrans
 					//lprintf( "Database has fallen out of auto commit mode!" );
