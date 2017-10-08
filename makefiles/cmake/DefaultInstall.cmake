@@ -1,4 +1,3 @@
-#cmake_policy( SET CMP0026 OLD )
 cmake_policy( SET CMP0065 OLD )
 if( NOT( CMAKE_MAJOR_VERSION LESS 3 ) )
 set( CMAKE_PLATFORM_NO_SONAME_SUPPORT ON )
@@ -173,7 +172,8 @@ macro( add_library_force_source project optional_style )
       set_source_files_properties( ${optional_style} ${ARGN} PROPERTIES LANGUAGE CXX )
 #      set_source_files_properties( ${optional_style} ${ARGN} PROPERTIES COMPILE_FLAGS /CLR )
     endif( FORCE_CXX )
-  endif( ${optional_style} STREQUAL SHARED )
+
+  endif( ${optional_style} STREQUAL SHARED )
 
   add_library( ${project} ${optional_style} ${ARGN} )
   string( REPLACE "." "_" TARGET_LABEL ${project} )
