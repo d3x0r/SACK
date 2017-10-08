@@ -367,7 +367,7 @@ LOGICAL PngImageFile ( Image pImage, uint8_t ** buf, size_t *size)
 	//png_ptr->flags		  |= PNG_FLAG_ZLIB_CUSTOM_STRATEGY;
 	//png_ptr->zlib_strategy = Z_DEFAULT_STRATEGY;
 	png_set_compression_window_bits(png_ptr, 15);
-	png_set_compression_level(png_ptr, /*0-9*/ 3 ); // gzip level?
+	png_set_compression_level(png_ptr, /*0-9*/ 3 ); // gzip level?
 	png_set_filter(png_ptr, 0, PNG_FILTER_NONE);
 
 	png_set_bgr( png_ptr );
