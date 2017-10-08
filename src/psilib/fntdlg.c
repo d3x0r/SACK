@@ -251,7 +251,7 @@ static void CPROC SizeSelected( uintptr_t psv, PSI_CONTROL pc, PLISTITEM pli )
 	PFONT_DIALOG pfd = (PFONT_DIALOG)psv;
 	PSIZE_FILE psf;// = (PSIZE_FILE)GetItemData( pli );
 	pfd->nSizeFile = (int)GetItemData( pli );
-	psf = pfd->pSizeFile = pfd->pFontStyle->files + pfd->nSizeFile;
+	psf = pfd->pSizeFile = pfd->pFontStyle?(pfd->pFontStyle->files + pfd->nSizeFile):NULL;
 	if( psf )
 	{
 		TEXTCHAR size[15], *tmp;
@@ -318,7 +318,7 @@ static void CPROC StyleSelected( uintptr_t psv, PSI_CONTROL pc, PLISTITEM pli )
 	PFONT_DIALOG pfd = (PFONT_DIALOG)psv;
 	PSI_CONTROL pcSizes;
 	int npfs = (int)GetItemData( pli );
-	PFONT_STYLE pfs = pfd->pFontEntry->styles + npfs;
+	PFONT_STYLE pfs = pfd->pFontEntry?(pfd->pFontEntry->styles + npfs):NULL;
 	ResetList( pcSizes = GetNearControl( pc, LST_FONT_SIZES ) );
 	pfd->pFontStyle = pfs;
 	if( pfs )

@@ -22,6 +22,7 @@ typedef struct edit {
 		BIT_FIELD bInternalUpdate : 1;
 		BIT_FIELD bReadOnly : 1;
 		BIT_FIELD bSelectSet : 1;
+		BIT_FIELD bInternalChange : 1;
 	}flags;
 	TEXTCHAR *content; // our quick and dirty buffer...
 	size_t nCaptionSize, nCaptionUsed;
@@ -486,8 +487,10 @@ void TypeIntoEditControl( PSI_CONTROL pc, CTEXTSTR text )
 		}
 		pe->cursor_pos += GetDisplayableCharacterCount( GetText( pc->caption.text ) + start_pos
 			, pe->cursor_pos_byte - start_pos );
+		pe->flags.bInternalChange = 1;
 		if( pc->CaptionChanged )
 			pc->CaptionChanged( pc );
+		pe->flags.bInternalChange = 0;
 	}
 	SmudgeCommon( pc );
 }
@@ -846,8 +849,10 @@ static int OnKeyCommon( EDIT_FIELD_NAME )( PSI_CONTROL pc, uint32_t key )
 				CutEditText( pe, &pc->caption.text );
 				updated = 1;
 			}
+			pe->flags.bInternalChange = 1;
 			if( pc->CaptionChanged )
 				pc->CaptionChanged( pc );
+			pe->flags.bInternalChange = 0;
 			if( updated )
 				SmudgeCommon( pc );
 			used_key = 1;
@@ -871,8 +876,10 @@ static int OnKeyCommon( EDIT_FIELD_NAME )( PSI_CONTROL pc, uint32_t key )
 					updated = 1;
 				}
 			}
+			pe->flags.bInternalChange = 1;
 			if( pc->CaptionChanged )
 				pc->CaptionChanged( pc );
+			pe->flags.bInternalChange = 0;
 			if( updated )
 				SmudgeCommon( pc );
 			used_key = 1;
@@ -937,6 +944,8 @@ PSI_CONTROL SetEditControlPassword( PSI_CONTROL pc, LOGICAL bEnable )
 static void OnChangeCaption( EDIT_FIELD_NAME )( PSI_CONTROL pc )
 {
 	ValidatedControlData( PEDIT, EDIT_FIELD, pe, pc );
+	if( pe->flags.bInternalChange )
+		return;
 	if( !pc->caption.text )
 	{
 		pc->caption.text = SegCreate(1);
