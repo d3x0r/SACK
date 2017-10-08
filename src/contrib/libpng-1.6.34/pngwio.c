@@ -47,18 +47,34 @@ png_write_data(png_structrp png_ptr, png_const_bytep data, png_size_t length)
  * write_data function and use it at run time with png_set_write_fn(), rather
  * than changing the library.
  */
+#ifdef PNG_GRACEFUL_ERROR
+int PNGCBAPI
+#else
 void PNGCBAPI
+#endif
 png_default_write_data(png_structp png_ptr, png_bytep data, png_size_t length)
 {
    png_size_t check;
 
    if (png_ptr == NULL)
+#ifdef PNG_GRACEFUL_ERROR
+      return 0;
+#else
       return;
+#endif
 
    check = fwrite(data, 1, length, (png_FILE_p)(png_ptr->io_ptr));
 
+#ifdef PNG_GRACEFUL_ERROR
+   if (check != length) {
+      png_error(png_ptr, "Write Error");
+      return 0;
+   }
+   return 1;
+#else
    if (check != length)
       png_error(png_ptr, "Write Error");
+#endif
 }
 #endif
 
@@ -75,16 +91,28 @@ png_flush(png_structrp png_ptr)
 }
 
 #  ifdef PNG_STDIO_SUPPORTED
-void PNGCBAPI
+#ifdef PNG_GRACEFUL_ERROR
+int
+#else
+void 
+#endif 
+  PNGCBAPI
 png_default_flush(png_structp png_ptr)
 {
    png_FILE_p io_ptr;
 
    if (png_ptr == NULL)
+#ifdef PNG_GRACEFUL_ERROR
+      return 0;
+#else
       return;
+#endif
 
    io_ptr = png_voidcast(png_FILE_p, (png_ptr->io_ptr));
    fflush(io_ptr);
+#ifdef PNG_GRACEFUL_ERROR
+   return 1;
+#endif
 }
 #  endif
 #endif

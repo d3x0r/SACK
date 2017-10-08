@@ -1531,7 +1531,11 @@ png_image_begin_read_from_file(png_imagep image, const char *file_name)
 }
 #endif /* STDIO */
 
+#ifdef PNG_GRACEFUL_ERROR
+static int PNGCBAPI
+#else
 static void PNGCBAPI
+#endif
 png_image_memory_read(png_structp png_ptr, png_bytep out, png_size_t need)
 {
    if (png_ptr != NULL)
@@ -1550,7 +1554,11 @@ png_image_memory_read(png_structp png_ptr, png_bytep out, png_size_t need)
                memcpy(out, memory, need);
                cp->memory = memory + need;
                cp->size = size - need;
+#ifdef PNG_GRACEFUL_ERROR
+               return 1;
+#else
                return;
+#endif
             }
 
             png_error(png_ptr, "read beyond end of data");
@@ -1559,6 +1567,9 @@ png_image_memory_read(png_structp png_ptr, png_bytep out, png_size_t need)
 
       png_error(png_ptr, "invalid memory read");
    }
+#ifdef PNG_GRACEFUL_ERROR
+   return 0;
+#endif
 }
 
 int PNGAPI png_image_begin_read_from_memory(png_imagep image,

@@ -49,8 +49,9 @@ include(GNUInstallDirs)
 option(PNG_BUILD_ZLIB "Custom zlib Location, else find_package is used" OFF)
 
 IF(NOT PNG_BUILD_ZLIB)
-  find_package(ZLIB REQUIRED)
-  include_directories(${ZLIB_INCLUDE_DIR})
+  #find_package(ZLIB REQUIRED)
+  #include_directories(${ZLIB_INCLUDE_DIR})
+  include_directories(../zlib-1.2.11)
 ENDIF(NOT PNG_BUILD_ZLIB)
 
 if(NOT WIN32)
@@ -512,7 +513,7 @@ if(PNG_DEBUG)
 endif()
 
 # NOW BUILD OUR TARGET
-include_directories(${CMAKE_CURRENT_SOURCE_DIR} ${ZLIB_INCLUDE_DIR})
+include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
 unset(PNG_LIB_TARGETS)
 

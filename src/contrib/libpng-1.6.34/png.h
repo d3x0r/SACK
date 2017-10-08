@@ -468,9 +468,9 @@ typedef char* png_libpng_version_1_6_34;
  * (below) hides the creation and destruction of it.
  */
 typedef struct png_struct_def png_struct;
-typedef const png_struct * png_const_structp;
-typedef png_struct * png_structp;
-typedef png_struct * * png_structpp;
+typedef const png_struct * PNG_RESTRICT png_const_structp;
+typedef png_struct * PNG_RESTRICT png_structp;
+typedef png_struct * PNG_RESTRICT * png_structpp;
 
 /* png_info contains information read from or to be written to a PNG file.  One
  * or more of these must exist while reading or creating a PNG file.  The
@@ -482,9 +482,9 @@ typedef png_struct * * png_structpp;
  * applications.  Read libpng-manual.txt or libpng.3 for more info.
  */
 typedef struct png_info_def png_info;
-typedef png_info * png_infop;
-typedef const png_info * png_const_infop;
-typedef png_info * * png_infopp;
+typedef png_info * PNG_RESTRICT png_infop;
+typedef const png_info * PNG_RESTRICT png_const_infop;
+typedef png_info * PNG_RESTRICT * png_infopp;
 
 /* Types with names ending 'p' are pointer types.  The corresponding types with
  * names ending 'rp' are identical pointer types except that the pointer is
@@ -804,7 +804,11 @@ typedef png_row_info * * png_row_infopp;
  * expected to return the read data in the buffer.
  */
 typedef PNG_CALLBACK(void, *png_error_ptr, (png_structp, png_const_charp));
+#ifdef PNG_GRACEFUL_ERRORS
+typedef PNG_CALLBACK(int, *png_rw_ptr, (png_structp, png_bytep, png_size_t));
+#else
 typedef PNG_CALLBACK(void, *png_rw_ptr, (png_structp, png_bytep, png_size_t));
+#endif
 typedef PNG_CALLBACK(void, *png_flush_ptr, (png_structp));
 typedef PNG_CALLBACK(void, *png_read_status_ptr, (png_structp, png_uint_32,
     int));

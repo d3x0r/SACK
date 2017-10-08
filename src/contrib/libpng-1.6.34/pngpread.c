@@ -416,14 +416,22 @@ png_push_read_chunk(png_structrp png_ptr, png_inforp info_ptr)
 
    png_ptr->mode &= ~PNG_HAVE_CHUNK_HEADER;
 }
-
-void PNGCBAPI
+#ifdef PNG_GRACEFUL_ERROR
+int
+#else
+void
+#endif
+ PNGCBAPI
 png_push_fill_buffer(png_structp png_ptr, png_bytep buffer, png_size_t length)
 {
    png_bytep ptr;
 
    if (png_ptr == NULL)
+#ifdef PNG_GRACEFUL_ERROR
+      return 0;
+#else
       return;
+#endif
 
    ptr = buffer;
    if (png_ptr->save_buffer_size != 0)
@@ -458,6 +466,9 @@ png_push_fill_buffer(png_structp png_ptr, png_bytep buffer, png_size_t length)
       png_ptr->current_buffer_size -= save_size;
       png_ptr->current_buffer_ptr += save_size;
    }
+#ifdef PNG_GRACEFUL_ERROR
+   return 1;
+#endif
 }
 
 void /* PRIVATE */
