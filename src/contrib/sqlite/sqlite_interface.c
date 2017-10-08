@@ -186,6 +186,8 @@ int xTruncate(sqlite3_file*file, sqlite3_int64 size)
 int xSync(sqlite3_file*file, int flags)
 {
 	struct my_file_data *my_file = (struct my_file_data*)file;
+	if( !my_file->file )
+		return SQLITE_OK;
 #ifdef LOG_OPERATIONS
 	lprintf( "Sync on %s", my_file->filename );
 #endif
@@ -197,7 +199,13 @@ int xSync(sqlite3_file*file, int flags)
 int xFileSize(sqlite3_file*file, sqlite3_int64 *pSize)
 {
 	struct my_file_data *my_file = (struct my_file_data*)file;
-	(*pSize) = sack_fsize( my_file->file );
+	if( my_file->file )
+		(*pSize) = sack_fsize( my_file->file );
+	else {
+		(*pSize) = 0;
+		return SQLITE_OK;
+		//return SQLITE_IOERR_FSTAT;
+	}
 #ifdef LOG_OPERATIONS
 	lprintf( "Get File size result of %s %d", my_file->filename, (*pSize) );
 #endif
@@ -440,7 +448,7 @@ int xOpen(sqlite3_vfs* vfs, const char *zName, sqlite3_file*file,
 #undef sack_fsopen
 #undef sack_fsopenEx
 #endif
-	return SQLITE_ERROR;
+	return SQLITE_CANTOPEN;
 }
 
 int xDelete(sqlite3_vfs*vfs, const char *zName, int syncDir)
