@@ -554,7 +554,9 @@ static PCLIENT InternalTCPClientAddrFromAddrExxx( SOCKADDR *lpAddr, SOCKADDR *pF
 				pResult->dwFlags |= ( CF_CALLBACKTYPES );
 
 			AddActive( pResult );
-
+			if( !flags & OPEN_TCP_FLAG_DELAY_CONNECT ) {
+				NetworkConnectTCPEx( pResult DBG_RELAY );
+			}
 			//lprintf( WIDE("Leaving Client's critical section") );
 			NetworkUnlockEx( pResult DBG_SRC );
 

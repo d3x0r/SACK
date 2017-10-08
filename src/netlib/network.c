@@ -1213,7 +1213,7 @@ void RemoveThreadEvent( PCLIENT pc ) {
 			if( !thread->flags.bProcessing )
 			{
 				// have to make sure threads reset to the new list.
-				lprintf( "have to wait for thread to be in wait state..." );
+				//lprintf( "have to wait for thread to be in wait state..." );
 				WSASetEvent( thread->hThread );
 				LeaveCriticalSec( &globalNetworkData.csNetwork );
 				while( (thread->nWaitEvents > 1) || thread->flags.bProcessing )
