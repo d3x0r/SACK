@@ -12,7 +12,7 @@
 #include "grid_reader.h" 
 #include "dds_image.h"
 
-#define patch  1025
+#define patch  512
 //#define patch 65
 //1025  
 //#define patch 257
@@ -101,12 +101,18 @@ void CPROC DrawPlasma( uintptr_t psv, PRENDERER render )
 		for( w = 0; w < surface->width; w++ )
 		{
 			RCOORD here = data[ h * patch + w ];
-			plot( surface, w, h, ColorAverage( BASE_COLOR_BLACK,
-												 BASE_COLOR_RED, (here) * 1000, 1000 ) );
-#if 0
+			if( 0 ) {
+				if( here < 0.9 && here > 0.1 ) {
+					plot( surface, w, h, BASE_COLOR_BLACK );
+					continue;
+				}
+			}
+			//plot( surface, w, h, ColorAverage( BASE_COLOR_BLACK,
+			//									 BASE_COLOR_RED, (here) * 1000, 1000 ) );
+//#if 0
 			if( here <= 0.01 )
 				plot( surface, w, h, ColorAverage( BASE_COLOR_WHITE,
-												 BASE_COLOR_BLACK, here * 1000, 250 ) );
+												 BASE_COLOR_BLACK, here * 1000, 10 ) );
 			else if( here <= 0.25 )
 				plot( surface, w, h, ColorAverage( BASE_COLOR_BLACK,
 												 BASE_COLOR_LIGHTBLUE, (here) * 1000, 250 ) );
@@ -122,7 +128,7 @@ void CPROC DrawPlasma( uintptr_t psv, PRENDERER render )
 			else //if( here <= 4.0 / 4 )
 				plot( surface, w, h, ColorAverage( BASE_COLOR_WHITE,
 												 BASE_COLOR_BLACK, (here-0.99) * 10000, 100 ) );
-#endif
+//#endif
 			//lprintf( "%d,%d  %g", w, h, data[ h * surface->width + w ] );
 		}
 	}

@@ -51,6 +51,7 @@ struct plasma_state
 	} clip;
 	size_t map_width, map_height;
 	int root_x, root_y; // where 0, 0 is...
+	RCOORD *sqrt_map;
 	struct plasma_patch **world_map;
 	RCOORD *world_height_map;
 };
@@ -69,6 +70,8 @@ void PlasmaFill2( struct plasma_patch *plasma, RCOORD *map, struct grid *here )
 	size_t rows = plasma->plasma->rows;
 	MemCpy( &real_here, here, sizeof( struct grid ) );
 	here = &real_here;
+
+
 
 #define mid(a,b) (((a)+(b))/2)
 
@@ -90,7 +93,9 @@ void PlasmaFill2( struct plasma_patch *plasma, RCOORD *map, struct grid *here )
 		{
 			RCOORD del1 = ( ( SRG_GetEntropy( plasma->entropy, 13, FALSE ) / (RCOORD)( 1 << 13 ) ) - 0.5 );
 			//RCOORD del1 = ( ( SRG_GetEntropy( plasma->entropy, 7, FALSE ) / 128.0 ) - 0.5 );
-			RCOORD area = ( sqrt( ( ( here->x2 - here->x )*( here->x2 - here->x ) + ( here->y2 - here->y )*( here->y2 - here->y )) ) * ( plasma->area_scalar ) );
+			RCOORD area;
+			area = plasma->plasma->sqrt_map[(here->x2 - here->x) + (here->y2 - here->y)*plasma->plasma->stride];
+			//	( sqrt( ( ( here->x2 - here->x )*( here->x2 - here->x ) + ( here->y2 - here->y )*( here->y2 - here->y )) ) * ( plasma->area_scalar ) );
 			RCOORD avg = ( map[here->x + here->y*stride] + map[here->x2 + here->y*stride]
 							 + map[here->x + here->y2*stride] + map[here->x2 + here->y2*stride] ) / 4;
 			//avg += ( map[here->x + my*stride] + map[here->x2 + my*stride]
@@ -441,6 +446,15 @@ struct plasma_patch *PlasmaCreateEx( RCOORD seed[4], RCOORD roughness, int width
 	struct plasma_state *plasma = New( struct plasma_state );
 	struct plasma_patch *patch;
 
+	plasma->sqrt_map = NewArray( RCOORD, width*height );
+	{
+		int x, y;
+		for( x = 0; x < width; x++ )
+			for( y = 0; y < height; y++ ) {
+				plasma->sqrt_map[x + y*width] = sqrt( x*x + y*y );
+			}
+			
+	}
 	plasma->map_height = 32;
 	plasma->map_width = 32;
 
