@@ -1298,10 +1298,10 @@ void SystemLogEx ( const TEXTCHAR *message DBG_PASS )
 	SystemLogFL( message, NULL, 0 );
 }
 
- void  LogBinaryFL ( uint8_t* buffer, size_t size FILELINE_PASS )
+ void  LogBinaryFL ( const uint8_t* buffer, size_t size FILELINE_PASS )
 {
 	size_t nOut = size;
-	uint8_t* data = buffer;
+	const uint8_t* data = buffer;
 #ifndef _LOG_FULL_FILE_NAMES
 	if( pFile )
 	{
@@ -1339,7 +1339,7 @@ void SystemLogEx ( const TEXTCHAR *message DBG_PASS )
 	}
 }
 #undef LogBinaryEx
- void  LogBinaryEx ( uint8_t* buffer, size_t size DBG_PASS )
+ void  LogBinaryEx ( const uint8_t* buffer, size_t size DBG_PASS )
 {
 #ifdef _DEBUG
 	LogBinaryFL( buffer,size DBG_RELAY );
@@ -1348,7 +1348,7 @@ void SystemLogEx ( const TEXTCHAR *message DBG_PASS )
 #endif
 }
 #undef LogBinary
- void  LogBinary ( uint8_t* buffer, size_t size )
+ void  LogBinary ( const uint8_t* buffer, size_t size )
 {
 	LogBinaryFL( buffer,size, NULL, 0 );
 }
