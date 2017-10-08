@@ -760,7 +760,7 @@ int ProcessDefine( int type )
 	}
 	if( g.bDebugLog & DEBUG_SUBST )
 	{
-		fprintf( stddbg, WIDE("searching for %s(%zd) ... %s\n")
+		fprintf( stddbg, WIDE("searching for %s(%zd) ...\n")
 				 ,GetText( pCurrentDefine->pName)
 				 , pCurrentDefine->pParams
 				  ? pCurrentDefine->bVarParams
