@@ -84,8 +84,8 @@ struct procreg_local_tag {
 static struct procreg_local_tag *procreg_local_data;
 
 static CTEXTSTR SaveName( CTEXTSTR name );
-PTREEDEF GetClassTreeEx( PTREEDEF root
-										, PTREEDEF name_class
+PTREEDEF GetClassTreeEx( PCTREEDEF root
+										, PCTREEDEF name_class
 										, PTREEDEF alias, LOGICAL bCreate );
 #define GetClassTree( root, name_class ) GetClassTreeEx( root, name_class, NULL, TRUE )
 
@@ -556,7 +556,7 @@ int GetClassPath( TEXTSTR out, size_t len, PCLASSROOT root )
 
 //---------------------------------------------------------------------------
 
-static PTREEDEF AddClassTree( PTREEDEF class_root, TEXTCHAR *name, PTREEROOT root, int bAlias )
+static PTREEDEF AddClassTree( PCTREEDEF class_root, TEXTCHAR *name, PTREEROOT root, int bAlias )
 {
 	if( root && class_root )
 	{
@@ -569,7 +569,7 @@ static PTREEDEF AddClassTree( PTREEDEF class_root, TEXTCHAR *name, PTREEROOT roo
 		classname->tree.Tree = root;
 		classname->tree.self = classname;
 		classname->flags.bTree = TRUE;
-		classname->parent = class_root;
+		classname->parent = (PTREEDEF)class_root;
 
 		//lprintf( WIDE("Adding class tree thing %p  %s"), class_root->Tree, classname->name );
 		if( !AddBinaryNode( class_root->Tree, classname, (uintptr_t)classname->name ) )
@@ -614,14 +614,14 @@ static CTEXTSTR  my_pathchr ( CTEXTSTR path )
 // if name_class does not previously exist, then it is created.
 // There is no protection for someone to constantly create large trees just
 // by asking for them.
-PTREEDEF GetClassTreeEx( PTREEDEF root, PTREEDEF _name_class, PTREEDEF alias, LOGICAL bCreate )
+PTREEDEF GetClassTreeEx( PCTREEDEF root, PCTREEDEF _name_class, PTREEDEF alias, LOGICAL bCreate )
 {
-	PTREEDEF class_root;
+	PCTREEDEF class_root;
 
 	if( !root )
 	{
 		Init();
-		root = l.Names;
+		root = (PCTREEDEF)l.Names;
 	}// fix root...
 	class_root = root;
 
@@ -648,7 +648,7 @@ PTREEDEF GetClassTreeEx( PTREEDEF root, PTREEDEF _name_class, PTREEDEF alias, LO
 #endif
 			(_name_class->Magic == MAGIC_TREE_NUMBER) )
 		{
-			return _name_class;
+			return (PTREEDEF)_name_class;
 		}
 		else
 		{
@@ -702,7 +702,7 @@ PTREEDEF GetClassTreeEx( PTREEDEF root, PTREEDEF _name_class, PTREEDEF alias, LO
 															 , start
 															 , alias->Tree
 															 , TRUE );
-							class_root->self = alias->self;
+							((PTREEDEF)class_root)->self = alias->self;
 						}
 						else
 						{
@@ -771,7 +771,7 @@ PTREEDEF GetClassTreeEx( PTREEDEF root, PTREEDEF _name_class, PTREEDEF alias, LO
 			while( class_root && start[0] );
 		}
 	}
-	return class_root;
+	return (PTREEDEF)class_root;
 }
 
 //---------------------------------------------------------------------------
@@ -792,12 +792,12 @@ PROCREG_PROC( PCLASSROOT, GetClassRoot )( CTEXTSTR name_class )
 	return (PCLASSROOT)GetClassTreeEx( l.Names, (PTREEDEF)name_class, NULL, TRUE );
 }
 #ifdef __cplusplus
-PROCREG_PROC( PTREEDEF, GetClassRootEx )( PCLASSROOT root, PCLASSROOT name_class )
+PROCREG_PROC( PCLASSROOT, GetClassRootEx )( PCLASSROOT root, PCLASSROOT name_class )
 {
 	return GetClassTreeEx( root, (PTREEDEF)name_class, NULL, TRUE );
 }
 
-PROCREG_PROC( PTREEDEF, GetClassRoot )( PCLASSROOT name_class )
+PROCREG_PROC( PCLASSROOT, GetClassRoot )( PCLASSROOT name_class )
 {
 	return GetClassTreeEx( l.Names, (PTREEDEF)name_class, NULL, TRUE );
 }
@@ -856,7 +856,7 @@ PROCREG_PROC( LOGICAL, RegisterFunctionExx )( PCLASSROOT root
 		TEXTCHAR strippedargs[256];
 		CTEXTSTR func_name = real_name?real_name:public_name;
 		CTEXTSTR root_func_name = func_name;
-		PTREEDEF class_root = (PTREEDEF)GetClassTree( root, name_class );
+		PTREEDEF class_root = (PTREEDEF)GetClassTree( (PCTREEDEF)root, (PCTREEDEF)name_class );
 		int tmp;
 		MemSet( newname, 0, sizeof( NAME ) );
 		newname->flags.bProc = 1;
@@ -879,7 +879,7 @@ PROCREG_PROC( LOGICAL, RegisterFunctionExx )( PCLASSROOT root
 			StrCpyEx( new_root_func_name, root_func_name, len );
 			new_root_func_name[len-1] = 0;
 			//lprintf( "trimmed name would be %s  /   %s", new_root_func_name, func_name );
-			class_root = GetClassTree( class_root, (PCLASSROOT)new_root_func_name );
+			class_root = GetClassTree( (PCTREEDEF)class_root, (PCTREEDEF)new_root_func_name );
 			Release( new_root_func_name );
 		}
 		//newname->data.proc.args = SaveName( StripName( strippedargs, args ) );
@@ -1067,7 +1067,7 @@ PROCREG_PROC( PROCEDURE, ReadRegisteredProcedureEx )( PCLASSROOT root
                                                     , CTEXTSTR parms
                                                     )
 {
-	PTREEDEF class_root = GetClassTree( root, NULL );
+	PTREEDEF class_root = GetClassTree( (PCTREEDEF)root, NULL );
 	PNAME oldname = (PNAME)GetCurrentNodeEx( class_root->Tree, &class_root->cursor );
 	if( oldname )
 	{
@@ -1108,7 +1108,7 @@ void DumpRegisteredNamesWork( PTREEDEF tree, int level );
 PROCREG_PROC( PROCEDURE, GetRegisteredProcedureExxx )( PCLASSROOT root, PCLASSROOT name_class, CTEXTSTR returntype, CTEXTSTR name, CTEXTSTR args )
 #define GetRegisteredProcedureExx GetRegisteredProcedureExxx
 {
-	PTREEDEF class_root = GetClassTreeEx( root, name_class, NULL, FALSE );
+	PTREEDEF class_root = GetClassTreeEx( (PCTREEDEF)root, (PCTREEDEF)name_class, NULL, FALSE );
 	if( class_root )
 	{
 		PNAME oldname;
@@ -1303,7 +1303,7 @@ PROCREG_PROC( CTEXTSTR, GetFirstRegisteredNameEx )( PCLASSROOT root, CTEXTSTR cl
 	PTREEDEF class_root;
 	PNAME name;
 	*data =
-		class_root = (PTREEDEF)GetClassTree( (PTREEDEF)root, (PCLASSROOT)classname );
+		(PCLASSROOT)(class_root = (PTREEDEF)GetClassTree( (PCTREEDEF)root, (PCTREEDEF)classname ));
 	if( class_root )
 	{
 		name = (PNAME)GetLeastNodeEx( class_root->Tree, &class_root->cursor );
@@ -1359,7 +1359,7 @@ PROCREG_PROC( void, DumpRegisteredNames )( void )
 
 PROCREG_PROC( void, DumpRegisteredNamesFrom )( PCLASSROOT root )
 {
-	DumpRegisteredNamesWork( GetClassRoot((CTEXTSTR)root), 0 );
+	DumpRegisteredNamesWork( GetClassTreeEx( l.Names, (PCTREEDEF)root, NULL, TRUE ), 0 );
 }
 
 //---------------------------------------------------------------------------
@@ -1372,7 +1372,7 @@ PROCREG_PROC( void, InvokeProcedure )( void )
 
 PROCREG_PROC( int, RegisterValueExx )( PCLASSROOT root, CTEXTSTR name_class, CTEXTSTR name, int bIntVal, CTEXTSTR value )
 {
-	PTREEDEF class_root = GetClassTree( root, (PCLASSROOT)name_class );
+	PTREEDEF class_root = GetClassTree( (PCTREEDEF)root, (PCTREEDEF)name_class );
 	if( class_root )
 	{
 		TEXTCHAR buf[256];
@@ -1451,7 +1451,7 @@ int GetRegisteredStaticValue( PCLASSROOT root, CTEXTSTR name_class
 									 , CTEXTSTR *result
 									 , int bIntVal )
 {
-	PTREEDEF class_root = GetClassTree( root, (PCLASSROOT)name_class );
+	PTREEDEF class_root = GetClassTree( (PCTREEDEF)root, (PCTREEDEF)name_class );
 	TEXTCHAR buf[256];
 	PNAME oldname = (PNAME)FindInBinaryTree( class_root->Tree, (uintptr_t)DressName( buf, name ));
 	if( oldname )
@@ -1477,7 +1477,7 @@ PROCREG_PROC( CTEXTSTR, GetRegisteredValueExx )( PCLASSROOT root, CTEXTSTR name_
 	PTREEDEF class_root;
 	TEXTCHAR buf[256];
 	PNAME oldname;
-	class_root = GetClassTree( root, (PCLASSROOT)name_class );
+	class_root = GetClassTree( (PCTREEDEF)root, (PCTREEDEF)name_class );
 	oldname = (PNAME)FindInBinaryTree( class_root->Tree, (uintptr_t)DressName( buf, name ));
 	if( oldname )
 	{
@@ -1544,8 +1544,8 @@ PROCREG_PROC( int, GetRegisteredIntValue )( PCLASSROOT name_class, CTEXTSTR name
 
 PROCREG_PROC( PCLASSROOT, RegisterClassAliasEx )( PCLASSROOT root, CTEXTSTR original, CTEXTSTR alias )
 {
-	PTREEDEF class_root = GetClassTreeEx( root, (PCLASSROOT)original, NULL, TRUE );
-	return (PCLASSROOT)GetClassTreeEx( root, (PCLASSROOT)alias, class_root, TRUE );
+	PTREEDEF class_root = GetClassTreeEx( (PCTREEDEF)root, (PCTREEDEF)original, NULL, TRUE );
+	return (PCLASSROOT)GetClassTreeEx( (PCTREEDEF)root, (PCTREEDEF)alias, class_root, TRUE );
 }
 
 //---------------------------------------------------------------------------
@@ -1565,7 +1565,7 @@ PROCREG_PROC( uintptr_t, RegisterDataTypeEx )( PCLASSROOT root
 												 , void (CPROC *Open)(POINTER,uintptr_t)
 												 , void (CPROC *Close)(POINTER,uintptr_t) )
 {
-	PTREEDEF class_root = GetClassTreeEx( root, (PCLASSROOT)classname, NULL, TRUE );
+	PTREEDEF class_root = GetClassTreeEx( (PCTREEDEF)root, (PCTREEDEF)classname, NULL, TRUE );
 	if( class_root )
 	{
 		PNAME pName = GetFromSet( NAME, &l.NameSet ); //(PNAME)Allocate( sizeof( NAME ) );
@@ -1610,7 +1610,7 @@ PROCREG_PROC( uintptr_t, MakeRegisteredDataTypeEx)( PCLASSROOT root
 																 , uintptr_t datasize
 																 )
 {
-	PTREEDEF class_root = GetClassTree( root, (PCLASSROOT)classname );
+	PTREEDEF class_root = GetClassTree( (PCTREEDEF)root, (PCTREEDEF)classname );
 	if( class_root )
 	{
 		TEXTCHAR buf[256];
@@ -1667,7 +1667,7 @@ PROCREG_PROC( uintptr_t, CreateRegisteredDataTypeEx)( PCLASSROOT root
 																	, CTEXTSTR name
 																	, CTEXTSTR instancename )
 {
-	PTREEDEF class_root = GetClassTree( root, (PCLASSROOT)classname );
+	PTREEDEF class_root = GetClassTree( (PCTREEDEF)root, (PCTREEDEF)classname );
 	if( class_root )
 	{
 		TEXTCHAR buf[256];

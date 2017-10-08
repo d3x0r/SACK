@@ -100,6 +100,7 @@ typedef struct tree_def_tag
    POINTER cursor;
    struct proc_name_tag *self;
 } TREEDEF, *PTREEDEF;
+typedef struct tree_def_tag const * PCTREEDEF;
 #define MAXTREEDEFSPERSET 256
 DeclareSet( TREEDEF );
 

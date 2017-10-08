@@ -142,7 +142,7 @@ _PROCREG_NAMESPACE
 	// because of name mangling and stronger type casting
 	// it becomes difficult to pass a tree_def_tag * as a CTEXTSTR classname
 	// as valid as this is.
-	typedef struct tree_def_tag *PCLASSROOT;
+	typedef struct tree_def_tag const * PCLASSROOT;
 #else
 	typedef CTEXTSTR PCLASSROOT;
 #endif
@@ -152,7 +152,7 @@ _PROCREG_NAMESPACE
 	typedef void (__stdcall *STDPROCEDURE)(array<System::Object^>^);
 #endif
 #else
-   typedef struct tree_def_tag *PCLASSROOT;
+	typedef struct tree_def_tag const * PCLASSROOT;
 	typedef void (CPROC *PROCEDURE)(void);
 #ifdef __cplusplus_cli
 	typedef void (__stdcall *STDPROCEDURE)(array<System::Object^>^);
