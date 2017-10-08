@@ -210,7 +210,7 @@ void SaveTranslationData( void )
 
 //---------------------------------------------------------------------------
 
-void LoadTranslationDataFromFile( POINTER input, size_t length )
+void LoadTranslationDataFromMemory( POINTER input, size_t length )
 {
 	PDATALIST data = NULL;
 	char *_input = NewArray( char, length );
@@ -265,10 +265,20 @@ void LoadTranslationDataEx( const char *filename )
 	//lprintf( "load file:%p", file );
 	if( file )
 	{
-		LoadTranslationDataFromFile( file, size );
+		LoadTranslationDataFromMemory( file, size );
 		CloseSpace( file );
 	}
 }
+
+void LoadTranslationDataFromFile( FILE *file ) {
+	size_t size;
+	char *data;
+	size = sack_fsize( file );
+	data = NewArray( char, size );
+	size = sack_fread( data, size, 1, file );
+	LoadTranslationDataFromMemory( data, size );
+}
+
 //---------------------------------------------------------------------------
 
 void LoadTranslationData( void )

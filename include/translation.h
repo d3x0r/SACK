@@ -63,7 +63,8 @@ TRANSLATION_PROC void TRANSLATION_API SaveTranslationDataToFile( FILE *output );
 
 TRANSLATION_PROC void TRANSLATION_API LoadTranslationDataEx( const char *filename );
 TRANSLATION_PROC void TRANSLATION_API LoadTranslationData( void );
-TRANSLATION_PROC void TRANSLATION_API LoadTranslationDataFromFile( POINTER data, size_t length );
+TRANSLATION_PROC void TRANSLATION_API LoadTranslationDataFromMemory( POINTER data, size_t length );
+TRANSLATION_PROC void TRANSLATION_API LoadTranslationDataFromFile( FILE *file );
 
 /* 
    return: PLIST is a list of PTranslation
