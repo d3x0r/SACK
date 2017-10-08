@@ -1,0 +1,22 @@
+
+
+include_directories( ${SACK_BASE}/${PBASEDIR} )
+
+set( PNG_SOURCE
+	${PBASEDIR}/png.c  ${PBASEDIR}/pngset.c  ${PBASEDIR}/pngget.c  ${PBASEDIR}/pngrutil.c  ${PBASEDIR}/pngtrans.c  ${PBASEDIR}/pngwutil.c
+	 ${PBASEDIR}/pngmem.c  ${PBASEDIR}/pngpread.c  ${PBASEDIR}/pngread.c  ${PBASEDIR}/pngerror.c  ${PBASEDIR}/pngwrite.c
+	  ${PBASEDIR}/pngrtran.c  ${PBASEDIR}/pngwtran.c  ${PBASEDIR}/pngrio.c  ${PBASEDIR}/pngwio.c )
+
+if( __64__ AND __ARM__ )
+set( PNG_SOURCE ${PNG_SOURCE}
+	${PBASEDIR}/arm/arm_init.c
+	${PBASEDIR}/arm/filter_neon.S
+	${PBASEDIR}/arm/filter_neon_intrinsics.c )
+endif( __64__ AND __ARM__ )
+          
+Set( ExternalExtraDefinitions ${ExternalExtraDefinitions};__PNG_LIBRARY_SOURCE__ )
+
+set_Source_files_properties( ${PNG_SOURCE}  APPEND PROPERTIES COMPILE_DEFINITIONS "SACK_PNG" )
+if( WIN32 )
+	set_Source_files_properties( ${PNG_SOURCE}  APPEND PROPERTIES COMPILE_DEFINITIONS "PNG_BUILD_DLL" )
+endif( WIN32 )

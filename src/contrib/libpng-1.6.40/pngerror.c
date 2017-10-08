@@ -751,7 +751,9 @@ png_default_error,(png_const_structrp png_ptr, png_const_charp error_message),
 #else
    PNG_UNUSED(error_message) /* Make compiler happy */
 #endif
+#if !defined( PNG_GRACEFUL_ERROR )
    png_longjmp(png_ptr, 1);
+#endif
 }
 
 PNG_FUNCTION(void,PNGAPI

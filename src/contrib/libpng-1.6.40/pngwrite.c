@@ -2175,7 +2175,13 @@ png_image_write_main(png_voidp argument)
 }
 
 
-static void (PNGCBAPI
+static 
+#ifdef PNG_GRACEFUL_ERROR
+  int
+#else
+  void 
+#endif
+(PNGCBAPI
 image_memory_write)(png_structp png_ptr, png_bytep/*const*/ data, size_t size)
 {
    png_image_write_control *display = png_voidcast(png_image_write_control*,
@@ -2196,8 +2202,15 @@ image_memory_write)(png_structp png_ptr, png_bytep/*const*/ data, size_t size)
       }
    }
 
-   else
+   else {
       png_error(png_ptr, "png_image_write_to_memory: PNG too big");
+#ifdef PNG_GRACEFUL_ERROR
+      return 0;
+#endif
+   }
+#ifdef PNG_GRACEFUL_ERROR
+   return 1;
+#endif
 }
 
 static void (PNGCBAPI

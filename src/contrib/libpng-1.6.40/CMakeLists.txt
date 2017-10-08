@@ -78,8 +78,9 @@ option(PNG_HARDWARE_OPTIMIZATIONS "Enable hardware optimizations" ON)
 # Useful if zlib is being built alongside this as a sub-project.
 option(PNG_BUILD_ZLIB "Custom zlib location, else find_package is used" OFF)
 if(NOT PNG_BUILD_ZLIB)
-  find_package(ZLIB REQUIRED)
-  include_directories(${ZLIB_INCLUDE_DIRS})
+  #find_package(ZLIB REQUIRED)
+  #include_directories(${ZLIB_INCLUDE_DIRS})
+  include_directories(../zlib-1.2.11)
 endif()
 
 if(UNIX AND NOT APPLE AND NOT BEOS AND NOT HAIKU AND NOT EMSCRIPTEN)
@@ -612,7 +613,9 @@ if(PNG_DEBUG)
 endif()
 
 # Now build our targets.
-include_directories(${CMAKE_CURRENT_SOURCE_DIR} ${ZLIB_INCLUDE_DIRS})
+#include_directories(${CMAKE_CURRENT_SOURCE_DIR} ${ZLIB_INCLUDE_DIRS})
+include_directories(${CMAKE_CURRENT_SOURCE_DIR} ../zlib-1.2.11)
+
 
 # Initialize the list of libpng library targets.
 set(PNG_LIBRARY_TARGETS "")
