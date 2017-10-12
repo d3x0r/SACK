@@ -134,19 +134,23 @@ static enum block_cache_entries UpdateSegmentKey( struct volume *vol, enum block
 		uint64_t* usekey = (uint64_t*)vol->usekey[cache_idx];
 		uint64_t* volkey = (uint64_t*)vol->key;
 		uint64_t* segkey = (uint64_t*)vol->segkey;
-		for( n = 0; n < (BLOCK_SIZE / SHORTKEY_LENGTH) / 8; n++ ) {
-			(*usekey++) = (*volkey++) ^ (segkey[0]);
-			(*usekey++) = (*volkey++) ^ (segkey[1]);
+		for( n = 0; n < (BLOCK_SIZE / SHORTKEY_LENGTH); n++ ) {
+			usekey[0] = volkey[0] ^ (segkey[0]);
+			usekey[1] = volkey[1] ^ (segkey[1]);
+			usekey += 2;
+			volkey += 2;
 		}
 #else
 		uint32_t* usekey = (uint32_t*)vol->usekey[cache_idx];
 		uint32_t* volkey = (uint32_t*)vol->key;
 		uint32_t* segkey = (uint32_t*)vol->segkey;
-		for( n = 0; n < (BLOCK_SIZE / SHORTKEY_LENGTH) / 4; n++ ) {
-			(*usekey++) = (*volkey++) ^ (segkey[0]);
-			(*usekey++) = (*volkey++) ^ (segkey[1]);
-			(*usekey++) = (*volkey++) ^ (segkey[2]);
-			(*usekey++) = (*volkey++) ^ (segkey[3]);
+		for( n = 0; n < (BLOCK_SIZE / SHORTKEY_LENGTH); n++ ) {
+			usekey[0] = volkey[0] ^ (segkey[0]);
+			usekey[1] = volkey[1] ^ (segkey[1]);
+			usekey[2] = volkey[2] ^ (segkey[2]);
+			usekey[3] = volkey[3] ^ (segkey[3]);
+			usekey += 4;
+			volkey += 4;
 		}
 #endif
 	}
@@ -165,25 +169,27 @@ static LOGICAL ValidateBAT( struct volume *vol ) {
 			//vol->segment[BLOCK_CACHE_BAT] = n + 1;
 			//while( LockedExchange( &vol->key_lock[BLOCK_CACHE_BAT], 1 ) ) Relinquish();
 			UpdateSegmentKey( vol, BLOCK_CACHE_BAT, n + 1 );
-			for( m = 0; ((BAT[m] & ((BLOCKINDEX*)vol->usekey[BLOCK_CACHE_BAT])[m]) != EOBBLOCK ) && m < BLOCKS_PER_BAT; m++ )
+			for( m = 0; m < BLOCKS_PER_BAT; m++ )
 			{
 				BLOCKINDEX block = BAT[m] ^ ((BLOCKINDEX*)vol->usekey[BLOCK_CACHE_BAT])[m];
 				if( block == EOFBLOCK ) continue;
 				if( block == EOBBLOCK ) break;
 				if( block >= last_block ) return FALSE;
 			}
+			if( m < BLOCKS_PER_BAT ) break;
 			//vol->key_lock[BLOCK_CACHE_BAT] = 0;
 		}
 	} else {
 		for( n = first_slab; n < slab; n += BLOCKS_PER_SECTOR  ) {
 			size_t m;
 			BLOCKINDEX *BAT = (BLOCKINDEX*)(((uint8_t*)vol->disk) + n * BLOCK_SIZE);
-			for( m = 0; ((BAT[m] & ((BLOCKINDEX*)vol->usekey[BLOCK_CACHE_BAT])[m]) != EOBBLOCK ) && m < BLOCKS_PER_BAT; m++ ) {
+			for( m = 0; m < BLOCKS_PER_BAT; m++ ) {
 				BLOCKINDEX block = BAT[m];
 				if( block == EOFBLOCK ) continue;
 				if( block == EOBBLOCK ) break;
 				if( block >= last_block ) return FALSE;
 			}
+			if( m < BLOCKS_PER_BAT ) break;
 		}
 	}
 	return TRUE;
@@ -689,10 +695,38 @@ void sack_vfs_shrink_volume( struct volume * vol ) {
 	vol->dwSize = 0;
 }
 
+static void mask_block( struct volume *vol, int n ) {
+	UpdateSegmentKey( vol, BLOCK_CACHE_FILE, n + 1 );
+
+	{
+#ifdef __64__
+		uint64_t* usekey = (uint64_t*)vol->usekey[BLOCK_CACHE_FILE];
+		BLOCKINDEX b = BLOCK_SIZE + (n >> BLOCK_SHIFT) * (BLOCKS_PER_SECTOR*BLOCK_SIZE) + (n & (BLOCKS_PER_BAT - 1)) * BLOCK_SIZE;
+		uint64_t* block = (uint64_t*)(((uintptr_t)vol->disk) + b);
+		for( n = 0; n < (BLOCK_SIZE / 16); n++ ) {
+			block[0] = block[0] ^ usekey[0];
+			block[1] = block[1] ^ usekey[1];
+			block += 2; usekey += 2;
+		}
+#else
+		uint32_t* usekey = (uint32_t*)vol->usekey[BLOCK_CACHE_FILE];
+		BLOCKINDEX b = BLOCK_SIZE + (n >> BLOCK_SHIFT) * (BLOCKS_PER_SECTOR*BLOCK_SIZE) + (n & (BLOCKS_PER_BAT - 1)) * BLOCK_SIZE;
+		uint32_t* block = (uint32_t*)(((uintptr_t)vol->disk) + b);
+		for( n = 0; n < (BLOCK_SIZE / 16); n++ ) {
+			block[0] = block[0] ^ usekey[0];
+			block[1] = block[1] ^ usekey[1];
+			block[2] = block[2] ^ usekey[2];
+			block[3] = block[3] ^ usekey[3];
+			block += 4; usekey += 4;
+		}
+#endif
+	}
+}
+
 LOGICAL sack_vfs_decrypt_volume( struct volume *vol )
 {
 	while( LockedExchange( &vol->lock, 1 ) ) Relinquish();
-	if( !vol->key ) return FALSE; // volume is already decrypted, cannot remove key
+	if( !vol->key ) { vol->lock = 0; return FALSE; } // volume is already decrypted, cannot remove key
 	{
 		size_t n;
 		BLOCKINDEX slab = vol->dwSize / ( BLOCK_SIZE );
@@ -701,8 +735,12 @@ LOGICAL sack_vfs_decrypt_volume( struct volume *vol )
 			BLOCKINDEX *block = (BLOCKINDEX*)(((uint8_t*)vol->disk) + n * BLOCK_SIZE);
 			//vol->segment[BLOCK_CACHE_BAT] = n + 1;
 			UpdateSegmentKey( vol, BLOCK_CACHE_BAT, n + 1 );
-			for( m = 0; m < BLOCKS_PER_BAT; m++ )
+			for( m = 0; m < BLOCKS_PER_BAT; m++ ) {
 				block[m] ^= ((BLOCKINDEX*)vol->usekey[BLOCK_CACHE_BAT])[m];
+				if( block[m] == EOBBLOCK ) break;
+				else if( block[m] ) mask_block( vol, (n*BLOCKS_PER_BAT) + m );
+			}
+			if( m < BLOCKS_PER_BAT ) break;
 		}
 	}
 	AssignKey( vol, NULL, NULL );
@@ -712,18 +750,25 @@ LOGICAL sack_vfs_decrypt_volume( struct volume *vol )
 
 LOGICAL sack_vfs_encrypt_volume( struct volume *vol, CTEXTSTR key1, CTEXTSTR key2 ) {
 	while( LockedExchange( &vol->lock, 1 ) ) Relinquish();
-	if( vol->key ) return FALSE; // volume already has a key, cannot apply new key
+	if( vol->key ) { vol->lock = 0; return FALSE; } // volume already has a key, cannot apply new key
 	AssignKey( vol, key1, key2 );
 	{
 		size_t n;
 		BLOCKINDEX slab = vol->dwSize / ( BLOCK_SIZE );
 		for( n = 0; n < slab; n++  ) {
 			size_t m;
+			int done;
 			BLOCKINDEX *block = (BLOCKINDEX*)(((uint8_t*)vol->disk) + n * BLOCK_SIZE);
 			//vol->segment[BLOCK_CACHE_BAT] = n + 1;
+			done = 0;
 			UpdateSegmentKey( vol, BLOCK_CACHE_BAT, n + 1 );
-			for( m = 0; m < BLOCKS_PER_BAT; m++ )
+			for( m = 0; m < BLOCKS_PER_BAT; m++ ) {
+				if( block[m] == EOBBLOCK ) done = TRUE;
+				else if( block[m] ) mask_block( vol, (n*BLOCKS_PER_BAT) + m );
 				block[m] ^= ((BLOCKINDEX*)vol->usekey[BLOCK_CACHE_BAT])[m];
+				if( done ) break;
+			}
+			if( m < BLOCKS_PER_BAT ) break;
 		}
 	}
 	vol->lock = 0;
@@ -1305,11 +1350,6 @@ static LOGICAL CPROC sack_vfs_rename( uintptr_t psvInstance, const char *origina
 	return FALSE;
 }
 
-
-
-
-//#ifndef NO_SACK_INTERFACE
-
 static struct file_system_interface sack_vfs_fsi = { 
                                                      (void*(CPROC*)(uintptr_t,const char *, const char*))sack_vfs_open
                                                    , (int(CPROC*)(void*))sack_vfs_close
@@ -1357,7 +1397,5 @@ PRIORITY_PRELOAD( Sack_VFS_RegisterDefaultFilesystem, SQL_PRELOAD_PRIORITY + 1 )
 		                     , 900, (uintptr_t)vol, TRUE );
 	}
 }
-
-//#endif
 
 SACK_VFS_NAMESPACE_END
