@@ -8,6 +8,24 @@ if( NOT CMAKE_INSTALL_BINDIR )
   set( CMAKE_INSTALL_BINDIR bin )
 endif( NOT CMAKE_INSTALL_BINDIR )
 
+if( EXISTS ${CMAKE_CURRENT_LIST_DIR}/../../src/deadstart )
+  SET( DEADSTART_SRC_DIR ${CMAKE_CURRENT_LIST_DIR}/../../src/deadstart )
+endif()
+if( EXISTS ${CMAKE_CURRENT_LIST_DIR}/src/sack )
+  SET( DEADSTART_SRC_DIR ${CMAKE_CURRENT_LIST_DIR}/src/sack )
+endif()
+
+if( CMAKE_COMPILER_IS_GNUCC ) 
+  SET( FIRST_GCC_LIBRARY_SOURCE ${DEADSTART_SRC_DIR}/deadstart_list.c ) 
+  SET( FIRST_GCC_PROGRAM_SOURCE ${DEADSTART_SRC_DIR}/deadstart_list.c ) 
+  SET( LAST_GCC_LIBRARY_SOURCE ${DEADSTART_SRC_DIR}/deadstart_lib.c ${DEADSTART_SRC_DIR}/deadstart_end.c ) 
+  SET( LAST_GCC_PROGRAM_SOURCE ${DEADSTART_SRC_DIR}/deadstart_lib.c ${DEADSTART_SRC_DIR}/deadstart_prog.c ${DEADSTART_SRC_DIR}/deadstart_end.c ) 
+endif()
+
+if( MSVC OR WATCOM ) 
+  SET( LAST_GCC_PROGRAM_SOURCE ${DEADSTART_SRC_DIR}/deadstart_prog.c ) 
+endif()
+
 
 if( WIN32 )
   if( __CLR__ )
