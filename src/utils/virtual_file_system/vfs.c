@@ -685,7 +685,8 @@ void sack_vfs_shrink_volume( struct volume * vol ) {
 	if( !current_BAT ) return; // expand failed, tseek failed in response, so don't do anything
 	do {
 		BLOCKINDEX check_val;
-		BLOCKINDEX *blockKey = (BLOCKINDEX*)vol->usekey[BLOCK_CACHE_BAT]);
+		BLOCKINDEX *blockKey;
+		blockKey = (BLOCKINDEX*)vol->usekey[BLOCK_CACHE_BAT];
 		for( n = 0; n < BLOCKS_PER_BAT; n++ ) {
 			check_val = *(current_BAT++);
 			if( vol->key )	check_val ^= *(blockKey++);
@@ -709,7 +710,7 @@ void sack_vfs_shrink_volume( struct volume * vol ) {
 	vol->dwSize = 0;
 }
 
-static void mask_block( struct volume *vol, int n ) {
+static void mask_block( struct volume *vol, size_t n ) {
 	BLOCKINDEX b = ( 1 + (n >> BLOCK_SHIFT) * (BLOCKS_PER_SECTOR) + (n & (BLOCKS_PER_BAT - 1)));
 	UpdateSegmentKey( vol, BLOCK_CACHE_DATAKEY, b + 1 );
 	{
