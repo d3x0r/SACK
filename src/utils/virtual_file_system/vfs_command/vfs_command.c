@@ -139,7 +139,7 @@ static int PatchFile( CTEXTSTR vfsName, CTEXTSTR filemask, CTEXTSTR key1, CTEXTS
 	return 0;
 }
 
-
+/*
 static void ExtractFile( CTEXTSTR filename )
 {
 	FILE *in = sack_fopenEx( 0, filename, "rb", l.current_mount );
@@ -156,6 +156,44 @@ static void ExtractFile( CTEXTSTR filename )
 		Release( data );
 	}
 }
+*/
+
+static void CPROC _ExtractFile( uintptr_t psv, CTEXTSTR filename, int flags )
+{
+	if( flags & SFF_DIRECTORY ) {
+		// don't need to do anything with directories... already
+		// doing subcurse option.
+	}
+	else {
+		FILE *in = sack_fopenEx( 0, filename, "rb", l.current_mount );
+		if( l.verbose ) printf( " Opened file %s = %p\n", filename, in );
+		if( in )
+		{
+			size_t size = sack_fsize( in );
+			if( l.verbose ) printf( " file size (%zd)\n", size );
+			{
+				FILE *out = sack_fopenEx( 0, filename, "wb", sack_get_default_mount() );
+				POINTER data = NewArray( uint8_t, size );
+				if( l.verbose ) printf( " Opened file %s = %p (%zd)\n", filename, out, size );
+				sack_fread( data, size, 1, in );
+				if( l.verbose ) printf( " read %zd\n", size );
+				sack_fwrite( data, size, 1, out );
+				sack_fclose( in );
+				sack_ftruncate( out );
+				sack_fclose( out );
+				Release( data );
+			}
+		}
+	}
+}
+
+static void ExtractFile( CTEXTSTR filemask )
+{
+	void *info = NULL;
+	while( ScanFilesEx( NULL, filemask, &info, _ExtractFile, SFF_DIRECTORIES | SFF_SUBCURSE | SFF_SUBPATHONLY, 0
+				, FALSE, l.current_mount ) );
+}
+
 
 #define Seek(a,b) (((uintptr_t)a)+(b))
 
