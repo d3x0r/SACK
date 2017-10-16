@@ -3064,14 +3064,24 @@ int __GetSQLResult( PODBC odbc, PCOLLECT collection, int bMore )
 				break;
 			case SQLITE_CORRUPT:
 				lprintf( WIDE("Database is corrupt: %s"), sqlite3_errmsg(odbc->db ) );
+				result_cmd = WM_SQL_RESULT_ERROR;
 				break;
 			default:
 				lprintf( WIDE("Step status %d:%s %08x"), rc3, sqlite3_errmsg(odbc->db ), sqlite3_extended_errcode(odbc->db) );
+				result_cmd = WM_SQL_RESULT_ERROR;
 				break;
 			}
 		}
 #endif
-
+		if( ( result_cmd != WM_SQL_RESULT_DATA ) && ( result_cmd != WM_SQL_RESULT_MORE ) ) {
+			GenerateResponce( collection, result_cmd );
+			if( odbc->flags.bThreadProtect )
+			{
+				odbc->nProtect--;
+				LeaveCriticalSec( &odbc->cs );
+			}
+			return 0;
+		}
 		ReleaseCollectionResults( collection, FALSE );
 		if( collection->flags.bBuildResultArray )
 		{

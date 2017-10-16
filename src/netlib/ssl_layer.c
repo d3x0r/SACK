@@ -282,6 +282,10 @@ static void ssl_ReadComplete( PCLIENT pc, POINTER buffer, size_t length )
 					return;
 				}
 			}
+			else if( hs_rc == -1 ) {
+  				RemoveClient( pc );
+  				return;
+			}
 			else
 				len = 0;
 

@@ -277,7 +277,7 @@ PCLIENT WebSocketOpen( CTEXTSTR url_address
 												, WebSocketClientClosed
 												, NULL
 												, WebSocketClientConnected // if there is an on-open event, then register for async open
-												, 0
+												, (options&WS_DELAY_OPEN)?OPEN_TCP_FLAG_DELAY_CONNECT:0
 												DBG_SRC
 												);
 		if( websock->pc )
