@@ -86,7 +86,10 @@ static void MaskStrCpy( char *output, size_t outlen, struct volume *vol, FPI nam
 
 static enum block_cache_entries UpdateSegmentKey( struct volume *vol, enum block_cache_entries cache_idx, BLOCKINDEX segment )
 {
-	if( !vol->key ) return cache_idx;
+	if( !vol->key ) {
+		vol->segment[cache_idx] = segment;
+		return cache_idx;
+	}
 	if( cache_idx == BLOCK_CACHE_FILE ) {
 		int n, m;
 		int nLeast;
