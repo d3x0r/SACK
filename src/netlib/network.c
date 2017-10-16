@@ -1900,7 +1900,6 @@ int CPROC ProcessNetworkMessages( struct peer_thread_info *thread, uintptr_t unu
 							{
 								lprintf( WIDE("getsockname errno = %d"), errno );
 							}
-							lprintf( "Connect: %d", nLen );
                      if( pc->saSource->sa_family == AF_INET )
 								SET_SOCKADDR_LENGTH( pc->saSource, IN_SOCKADDR_LENGTH );
                      else if( pc->saSource->sa_family == AF_INET6 )
@@ -1915,7 +1914,7 @@ int CPROC ProcessNetworkMessages( struct peer_thread_info *thread, uintptr_t unu
 							getsockopt( event_data->pc->Socket, SOL_SOCKET
 								, SO_ERROR
 								, &error, &errlen );
-							lprintf( WIDE( "Error checking for connect is: %s" ), strerror( error ) );
+							//lprintf( WIDE( "Error checking for connect is: %s on %d" ), strerror( error ), event_data->pc->Socket );
 							if( event_data->pc->pWaiting )
 							{
 #ifdef LOG_NOTICES
