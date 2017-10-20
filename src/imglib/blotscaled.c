@@ -54,42 +54,56 @@ typedef struct rect_tag {
 	uint32_t x, y;							\
 	PCDATA _pi = pi;				  \
 	PCDATA __pi = pi;				  \
-	erry = (dhs>dhd)?i_erry/2:i_erry;					 \
+	erry = params->erry;					 \
 	y = 0;								\
-	while( y < hd )					\
+	while( y < params->hd )					\
 	{									 \
 		/* move first line.... */ \
-		errx = (dws>dwd)?i_errx/2:i_errx;				\
+		errx = params->errx;				\
 		x = 0;						  \
 		pi = _pi;					  \
-		while( x < wd )			  \
+		while( x < params->wd )			  \
 		{								 \
 			{
 
 #define ScaleLoopEnd  }				 \
 			po++;							 \
 			x++;							  \
-			errx += (signed)dws; /* add source width */\
+			errx += (signed)params->dws; /* add source width */\
 			while( errx >= 0 )					\
 			{										  \
-				errx -= (signed)dwd; /* fix backwards the width we're copying*/\
+				errx -= (signed)params->dwd; /* fix backwards the width we're copying*/\
 				pi++;								 \
 			}										  \
 		}											  \
-		po = (CDATA*)(((char*)po) + oo);	 \
+		po = (CDATA*)(((char*)po) + params->oo);	 \
 		y++;										  \
-		erry += (signed)dhs;								\
+		erry += (signed)params->dhs;								\
 		while( erry >= 0 )						\
 		{											  \
-			erry -= (signed)dhd;							 \
-			_pi = (CDATA*)(((char*)_pi) + srcpwidth); /* go to next line start*/\
+			erry -= (signed)params->dhd;							 \
+			_pi = (CDATA*)(((char*)_pi) + params->srcpwidth); /* go to next line start*/\
 			{ \
 				int psvDel = (int)( __pi - _pi ); \
-				psvDel /= (-srcpwidth/sizeof(CDATA)); \
-				if( psvDel > dhs ) return; \
+				psvDel /= (-params->srcpwidth/sizeof(CDATA)); \
+				if( psvDel > params->dhs ) return; \
 			} \
 		}											  \
 	}
+
+#define SCALED_DIRECT_WORK_PARAMS  
+
+struct bsParams {
+	PCDATA po; PCDATA  pi;
+	int errx; int erry;
+		uint32_t wd; uint32_t hd;
+		int32_t dwd; int32_t dhd;
+		int32_t dws; int32_t dhs;
+		int32_t oo; int32_t srcpwidth;
+		uint32_t nTransparent;
+		CDATA c;
+		CDATA r, g, b;
+};
 
 //---------------------------------------------------------------------------
 
@@ -99,7 +113,7 @@ typedef struct rect_tag {
 
 #define ACOPY  CDATA cin;  if( cin = *pi )		  \
 		{														 \
-			*po = DOALPHA2( *po, cin, nTransparent ); \
+			*po = DOALPHA2( *po, cin, params->nTransparent ); \
 		}
 
 #define IMGACOPY	  CDATA cin;						  \
@@ -107,7 +121,7 @@ typedef struct rect_tag {
 		if( cin = *pi )										\
 		{														  \
 			alpha = ( cin & 0xFF000000 ) >> 24;		 \
-			alpha += nTransparent;						  \
+			alpha += params->nTransparent;						  \
 			*po = DOALPHA2( *po, cin, alpha );			\
 		}
 
@@ -116,7 +130,7 @@ typedef struct rect_tag {
 		if( (cin = *pi) )										\
 		{														  \
 			alpha = ( cin & 0xFF000000 ) >> 24;		 \
-			alpha -= nTransparent;						  \
+			alpha -= params->nTransparent;						  \
 			if( alpha > 1 )									\
 				*po = DOALPHA2( *po, cin, alpha );		\
 		}
@@ -127,9 +141,10 @@ typedef struct rect_tag {
 //---------------------------------------------------------------------------
 //---------------------------------------------------------------------------
 
-static void BlotScaledT0( SCALED_BLOT_WORK_PARAMS
-											)
+static void BlotScaledT0( struct bsParams *params )
 {
+	CDATA *pi, *po;
+	pi = params->pi; po = params->po;
 	ScaleLoopStart
 		if( AlphaVal(*pi) == 0 )
 			(*po) = 0;
@@ -140,9 +155,10 @@ static void BlotScaledT0( SCALED_BLOT_WORK_PARAMS
 
 //---------------------------------------------------------------------------
 
-static void BlotScaledT1( SCALED_BLOT_WORK_PARAMS
-								)
+static void BlotScaledT1( struct bsParams *params )
 {
+	CDATA *pi, *po;
+	pi = params->pi; po = params->po;
 	ScaleLoopStart
 		if( *pi )  *(po) = *(pi);
 	ScaleLoopEnd
@@ -150,48 +166,51 @@ static void BlotScaledT1( SCALED_BLOT_WORK_PARAMS
 
 //---------------------------------------------------------------------------
 
-static void BlotScaledTA( SCALED_BLOT_WORK_PARAMS
-							 , uint32_t nTransparent )
+static void BlotScaledTA( struct bsParams *params )
 {
+	CDATA *pi, *po;
+	pi = params->pi; po = params->po;
 	ScaleLoopStart
 		CDATA cin;  
-		if( (cin = *pi) )		  
+		if( (cin = *pi) )
 		{
-			*po = DOALPHA2( *po, cin, nTransparent ); 
+			*po = DOALPHA2( *po, cin, params->nTransparent );
 		}
 	ScaleLoopEnd
 }						  
 
 //---------------------------------------------------------------------------
 
-static void BlotScaledTImgA(SCALED_BLOT_WORK_PARAMS
-							 , uint32_t nTransparent )
+static void BlotScaledTImgA( struct bsParams *params )
 {
+	CDATA *pi, *po;
+	pi = params->pi; po = params->po;
 	ScaleLoopStart
 		CDATA cin;											 
 		uint32_t alpha;											 
-		if( (cin = *pi) )									  
+		if( (cin = *pi) )
 		{														 
 			alpha = ( cin & 0xFF000000 ) >> 24;		
-			alpha += nTransparent;
-			*po = DOALPHA2( *po, cin, alpha );		  
+			alpha += params->nTransparent;
+			*po = DOALPHA2( *po, cin, alpha );
 		}
 	ScaleLoopEnd
 }						  
 
 //---------------------------------------------------------------------------
 
-static void BlotScaledTImgAI( SCALED_BLOT_WORK_PARAMS
-							 , uint32_t nTransparent )
+static void BlotScaledTImgAI( struct bsParams *params )
 {
+	CDATA *pi, *po;
+	pi = params->pi; po = params->po;
 
 	ScaleLoopStart
 		CDATA cin;									  
 		int32_t alpha;
-		if( (cin = *pi) )								
+		if( (cin = *pi) )
 		{												  
 			alpha = ( cin & 0xFF000000 ) >> 24; 
-			alpha -= nTransparent;				  
+			alpha -= params->nTransparent;
 			if( alpha > 1 )							
 				*po = DOALPHA2( *po, cin, alpha );
 		}
@@ -202,10 +221,10 @@ static void BlotScaledTImgAI( SCALED_BLOT_WORK_PARAMS
 //---------------------------------------------------------------------------
 //---------------------------------------------------------------------------
 //---------------------------------------------------------------------------
-
-static void BlotInvertScaledT0( SCALED_BLOT_WORK_PARAMS
-											)
+static void BlotInvertScaledT0( struct bsParams *params)
 {
+	CDATA *pi, *po;
+	pi = params->pi; po = params->po;
 	ScaleLoopStart
 		if( AlphaVal(*pi) == 0 )
 			(*po) = 0;
@@ -216,9 +235,10 @@ static void BlotInvertScaledT0( SCALED_BLOT_WORK_PARAMS
 
 //---------------------------------------------------------------------------
 
-static void BlotInvertScaledT1( SCALED_BLOT_WORK_PARAMS
-								)
+static void BlotInvertScaledT1( struct bsParams *params )
 {
+	CDATA *pi, *po;
+	pi = params->pi; po = params->po;
 	ScaleLoopStart
 		if( *pi )  *(po) = INVERTPIXEL(*(pi));
 	ScaleLoopEnd
@@ -226,48 +246,50 @@ static void BlotInvertScaledT1( SCALED_BLOT_WORK_PARAMS
 
 //---------------------------------------------------------------------------
 
-static void BlotInvertScaledTA( SCALED_BLOT_WORK_PARAMS
-							 , uint32_t nTransparent )
+static void BlotInvertScaledTA( struct bsParams *params )
 {
+	CDATA *pi, *po;
+	pi = params->pi; po = params->po;
 	ScaleLoopStart
 		CDATA cin;  
 		if( (cin = INVERTPIXEL(*pi)) )
 		{
-			*po = DOALPHA2( *po, cin, nTransparent ); 
+			*po = DOALPHA2( *po, cin, params->nTransparent );
 		}
 	ScaleLoopEnd
 }						  
 
 //---------------------------------------------------------------------------
 
-static void BlotInvertScaledTImgA(SCALED_BLOT_WORK_PARAMS
-							 , uint32_t nTransparent )
+static void BlotInvertScaledTImgA( struct bsParams *params )
 {
+	CDATA *pi, *po;
+	pi = params->pi; po = params->po;
 	ScaleLoopStart
 		CDATA cin;											 
 		uint32_t alpha;											 
 		if( (cin = INVERTPIXEL(*pi)) )
 		{														 
 			alpha = ( cin & 0xFF000000 ) >> 24;		
-			alpha += nTransparent;
-			*po = DOALPHA2( *po, cin, alpha );		  
+			alpha += params->nTransparent;
+			*po = DOALPHA2( *po, cin, alpha );
 		}
 	ScaleLoopEnd
 }						  
 
 //---------------------------------------------------------------------------
 
-static void BlotInvertScaledTImgAI( SCALED_BLOT_WORK_PARAMS
-							 , uint32_t nTransparent )
+static void BlotInvertScaledTImgAI( struct bsParams *params )
 {
-
+	CDATA *pi, *po;
+	pi = params->pi; po = params->po;
 	ScaleLoopStart
 		CDATA cin;									  
 		int32_t alpha;
 		if( (cin = INVERTPIXEL(*pi)) )
 		{												  
 			alpha = ( cin & 0xFF000000 ) >> 24; 
-			alpha -= nTransparent;				  
+			alpha -= params->nTransparent;
 			if( alpha > 1 )							
 				*po = DOALPHA2( *po, cin, alpha );
 		}
@@ -279,76 +301,78 @@ static void BlotInvertScaledTImgAI( SCALED_BLOT_WORK_PARAMS
 //---------------------------------------------------------------------------
 //---------------------------------------------------------------------------
 
-static void BlotScaledShadedT0( SCALED_BLOT_WORK_PARAMS
-							  , CDATA shade )
+static void BlotScaledShadedT0( struct bsParams *params )
 {
+	CDATA *pi, *po;
+	pi = params->pi; po = params->po;
 	ScaleLoopStart
 
-		*(po) = SHADEPIXEL( *pi, shade );
+		*(po) = SHADEPIXEL( *pi, params->c );
 
 	ScaleLoopEnd
 }						  
 
 //---------------------------------------------------------------------------
 
-static void BlotScaledShadedT1( SCALED_BLOT_WORK_PARAMS
-							  , CDATA shade )
+static void BlotScaledShadedT1( struct bsParams *params )
 {
+	CDATA *pi, *po;
+	pi = params->pi; po = params->po;
 	ScaleLoopStart
 		if( *pi )
-			*(po) = SHADEPIXEL( *pi, shade );
+			*(po) = SHADEPIXEL( *pi, params->c );
 	ScaleLoopEnd
 }						  
 
 //---------------------------------------------------------------------------
 
-static void BlotScaledShadedTA( SCALED_BLOT_WORK_PARAMS
-							  , uint32_t nTransparent 
-							  , CDATA shade )
+static void BlotScaledShadedTA( struct bsParams *params )
 {
+	CDATA *pi, *po;
+	pi = params->pi; po = params->po;
 	ScaleLoopStart
 		CDATA cin;
 		if( (cin = *pi) )
 		{
-			cin = SHADEPIXEL( cin, shade );
-			*po = DOALPHA2( *po, cin, nTransparent );
+			cin = SHADEPIXEL( cin, params->c );
+			*po = DOALPHA2( *po, cin, params->nTransparent );
 		}
 	ScaleLoopEnd
 }						  
 
 //---------------------------------------------------------------------------
-static void BlotScaledShadedTImgA( SCALED_BLOT_WORK_PARAMS
-							  , uint32_t nTransparent 
-							  , CDATA shade )
+static void BlotScaledShadedTImgA( struct bsParams *params )
 {
+	CDATA *pi, *po;
+	pi = params->pi; po = params->po;
 	ScaleLoopStart
 		CDATA cin;
 		uint32_t alpha;
 		if( (cin = *pi) )
 		{
 			alpha = ( cin & 0xFF000000 ) >> 24;
-			alpha += nTransparent;
-			cin = SHADEPIXEL( cin, shade );
+			alpha += params->nTransparent;
+			cin = SHADEPIXEL( cin, params->c );
 			*po = DOALPHA2( *po, cin, alpha );
 		}
 	ScaleLoopEnd
 }						  
 
 //---------------------------------------------------------------------------
-static void BlotScaledShadedTImgAI( SCALED_BLOT_WORK_PARAMS
-							  , uint32_t nTransparent 
-							  , CDATA shade )
+static void BlotScaledShadedTImgAI( struct bsParams *params )
 {
+	CDATA *pi, *po;
+	pi = params->pi; po = params->po;
 	ScaleLoopStart
 		CDATA cin;
 		uint32_t alpha;
 		if( (cin = *pi) )
 		{
 			alpha = ( cin & 0xFF000000 ) >> 24;
-			alpha -= nTransparent;
+			alpha -= params->nTransparent;
 			if( alpha > 1 )
 			{
-				cin = SHADEPIXEL( cin, shade );
+				cin = SHADEPIXEL( cin, params->c );
 				*po = DOALPHA2( *po, cin, alpha );
 			}
 		}
@@ -357,49 +381,45 @@ static void BlotScaledShadedTImgAI( SCALED_BLOT_WORK_PARAMS
 
 //---------------------------------------------------------------------------
 
-static void BlotScaledMultiT0( SCALED_BLOT_WORK_PARAMS
-							  , CDATA r
-							  , CDATA g
-							  , CDATA b )
+static void BlotScaledMultiT0( struct bsParams *params )
 {
+	CDATA *pi, *po;
+	pi = params->pi; po = params->po;
 	ScaleLoopStart
 		uint32_t rout, gout, bout;
-		*(po) = MULTISHADEPIXEL( *pi, r, g, b );
+		*(po) = MULTISHADEPIXEL( *pi, params->r, params->g, params->b );
 	ScaleLoopEnd
 
 }
 				
 //---------------------------------------------------------------------------
 
-void BlotScaledMultiT1(  SCALED_BLOT_WORK_PARAMS
-							  , CDATA r
-							  , CDATA g
-							  , CDATA b )
+void BlotScaledMultiT1( struct bsParams *params )
 {
+	CDATA *pi, *po;
+	pi = params->pi; po = params->po;
 	ScaleLoopStart
 		if( *pi )
 		{
 			uint32_t rout, gout, bout;
-			*(po) = MULTISHADEPIXEL( *pi, r, g, b );
+			*(po) = MULTISHADEPIXEL( *pi, params->r, params->g, params->b );
 		}
 	ScaleLoopEnd
 
 }
 //---------------------------------------------------------------------------
 
-static void BlotScaledMultiTA(  SCALED_BLOT_WORK_PARAMS
-							  , uint32_t nTransparent 
-							  , CDATA r
-							  , CDATA g
-							  , CDATA b )
+static void BlotScaledMultiTA( struct bsParams *params )
 {
+	CDATA *pi, *po;
+	pi = params->pi; po = params->po;
 	ScaleLoopStart
 		CDATA cin;
 		if( (cin = *pi) )
 		{
 			uint32_t rout, gout, bout;
-			cin = MULTISHADEPIXEL( cin, r, g, b );
-			*po = DOALPHA2( *po, cin, nTransparent );
+			cin = MULTISHADEPIXEL( cin, params->r, params->g, params->b );
+			*po = DOALPHA2( *po, cin, params->nTransparent );
 		}
 	ScaleLoopEnd
 
@@ -407,21 +427,19 @@ static void BlotScaledMultiTA(  SCALED_BLOT_WORK_PARAMS
 
 //---------------------------------------------------------------------------
 
-static void BlotScaledMultiTImgA( SCALED_BLOT_WORK_PARAMS
-							  , uint32_t nTransparent 
-							  , CDATA r
-							  , CDATA g
-							  , CDATA b )
+static void BlotScaledMultiTImgA( struct bsParams *params )
 {
+	CDATA *pi, *po;
+	pi = params->pi; po = params->po;
 	ScaleLoopStart
 		CDATA cin;
 		uint32_t alpha;
 		if( (cin = *pi) )
 		{
 			uint32_t rout, gout, bout;
-			cin = MULTISHADEPIXEL( cin, r, g, b );
+			cin = MULTISHADEPIXEL( cin, params->r, params->g, params->b );
 			alpha = ( cin & 0xFF000000 ) >> 24;
-			alpha += nTransparent;
+			alpha += params->nTransparent;
 			*po = DOALPHA2( *po, cin, alpha );
 		}
 	ScaleLoopEnd
@@ -430,21 +448,19 @@ static void BlotScaledMultiTImgA( SCALED_BLOT_WORK_PARAMS
 
 //---------------------------------------------------------------------------
 
-static void BlotScaledMultiTImgAI( SCALED_BLOT_WORK_PARAMS
-							  , uint32_t nTransparent 
-							  , CDATA r
-							  , CDATA g
-							  , CDATA b )
+static void BlotScaledMultiTImgAI( struct bsParams *params )
 {
+	CDATA *pi, *po;
+	pi = params->pi; po = params->po;
 	ScaleLoopStart
 		CDATA cin;
 		uint32_t alpha;
 		if( (cin = *pi) )
 		{
 			uint32_t rout, gout, bout;
-			cin = MULTISHADEPIXEL( cin, r, g, b );
+			cin = MULTISHADEPIXEL( cin, params->r, params->g, params->b );
 			alpha = ( cin & 0xFF000000 ) >> 24;
-			alpha -= nTransparent;
+			alpha -= params->nTransparent;
 			if( alpha > 1 )
 			{
 				*po = DOALPHA2( *po, cin, alpha );
@@ -467,12 +483,13 @@ static void BlotScaledMultiTImgAI( SCALED_BLOT_WORK_PARAMS
 												, uint32_t method, ... )
 	  // integer scalar... 0x10000 = 1
 {
-	CDATA *po, *pi;
+	struct bsParams params;
+	//CDATA *po, *pi;
 	static uint32_t lock;
-	int32_t  oo;
-	int32_t srcwidth;
-	int errx, erry;
-	uint32_t dhd, dwd, dhs, dws;
+	//int32_t  oo;
+	//int32_t srcwidth;
+	//int errx, erry;
+	//uint32_t dhd, dwd, dhs, dws;
 	va_list colors;
 	va_start( colors, method );
 	//lprintf( WIDE("Blot enter %p %p (%d,%d)"), pifDest, pifSrc, wd, hd );
@@ -494,26 +511,26 @@ static void BlotScaledMultiTImgAI( SCALED_BLOT_WORK_PARAMS
 	{
 		return;
 	}
-	dhd = hd;
-	dhs = hs;
-	dwd = wd;
-	dws = ws;
+	params.dhd = hd;
+	params.dhs = hs;
+	params.dwd = wd;
+	params.dws = ws;
 
 	// ok - how to figure out how to do this
 	// need to update the position and width to be within the 
 	// the bounds of pifDest....
 	//	lprintf(" begin scaled output..." );
-	errx = -(signed)dwd;
-	erry = -(signed)dhd;
+	params.errx = -(signed)params.dwd;
+	params.erry = -(signed)params.dhd;
 
 	if( xd < pifDest->x )
 	{
 		while( xd < pifDest->x )
 		{
-			errx += (signed)dws;
-			while( errx >= 0 )
+			params.errx += (signed)params.dws;
+			while( params.errx >= 0 )
 			{
-				errx -= (signed)dwd;
+				params.errx -= (signed)params.dwd;
 				ws--;
 				xs++;
 			}
@@ -527,10 +544,10 @@ static void BlotScaledMultiTImgAI( SCALED_BLOT_WORK_PARAMS
 	{
 		while( yd < pifDest->y )
 		{
-			erry += (signed)dhs;
-			while( erry >= 0 )
+			params.erry += (signed)params.dhs;
+			while( params.erry >= 0 )
 			{
-				erry -= (signed)dhd;
+				params.erry -= (signed)params.dhd;
 				hs--;
 				ys++;
 			}
@@ -538,6 +555,9 @@ static void BlotScaledMultiTImgAI( SCALED_BLOT_WORK_PARAMS
 			yd++;
 		}
 	}
+
+	params.errx = (params.dws>params.dwd) ? params.errx / 2 : params.errx;				\
+
 	//Log8( WIDE("Blot scaled params: %d %d %d %d / %d %d %d %d "), 
 	//		 xs, ys, ws, hs, xd, yd, wd, hd );
 	if( ( xd + (signed)wd ) > ( pifDest->x + pifDest->width) )
@@ -576,15 +596,15 @@ static void BlotScaledMultiTImgAI( SCALED_BLOT_WORK_PARAMS
 		// on the last line of the image to be copied
 		//pi = IMG_ADDRESS( pifSrc, xs, ys );
 		//po = IMG_ADDRESS( pifDest, xd, yd );
-		pi = IMG_ADDRESS( pifSrc, xs, ys );
-		srcwidth = 4*-(int)(pifSrc->pwidth); // adding remaining width...
+		params.pi = IMG_ADDRESS( pifSrc, xs, ys );
+		params.srcpwidth = 4*-(int)(pifSrc->pwidth); // adding remaining width...
 	}
 	else
 	{
 		// set pointer in to the starting x pixel
 		// on the first line of the image to be copied...
-		pi = IMG_ADDRESS( pifSrc, xs, ys );
-		srcwidth = 4*(pifSrc->pwidth); // adding remaining width...
+		params.pi = IMG_ADDRESS( pifSrc, xs, ys );
+		params.srcpwidth = 4*(pifSrc->pwidth); // adding remaining width...
 	}
 	if( pifDest->flags & IF_FLAG_INVERTED )
 	{
@@ -592,83 +612,79 @@ static void BlotScaledMultiTImgAI( SCALED_BLOT_WORK_PARAMS
 		// on the last line of the image to be copied
 		//pi = IMG_ADDRESS( pifSrc, xs, ys );
 		//po = IMG_ADDRESS( pifDest, xd, yd );
-		po = IMG_ADDRESS( pifDest, xd, yd );
-		oo = 4*(-((signed)wd) - (pifDest->pwidth) );	  // w is how much we can copy...
+		params.po = IMG_ADDRESS( pifDest, xd, yd );
+		params.oo = 4*(-((signed)wd) - (pifDest->pwidth) );	  // w is how much we can copy...
 	}
 	else
 	{
 		// set pointer in to the starting x pixel
 		// on the first line of the image to be copied...
-		po = IMG_ADDRESS( pifDest, xd, yd );
-		oo = 4*(pifDest->pwidth - (wd));;	  // w is how much we can copy...
+		params.po = IMG_ADDRESS( pifDest, xd, yd );
+		params.oo = 4*(pifDest->pwidth - (wd));;	  // w is how much we can copy...
 	}
 
 	//lprintf( WIDE("Do blot work... %p %p  %d  %d  %d,%d %d,%d")
 	//		 , pi, po, srcwidth, oo
 	//		 , ws, hs
 	//		 , wd, hd );
+	params.wd = wd;
+	params.hd = hd;
+	params.nTransparent = nTransparent & 0xFF;
 	switch( method )
 	{
 	case BLOT_COPY:
 		if( !nTransparent )
-			BlotScaledT0( po, pi, errx, erry, wd, hd, dwd, dhd, dws, dhs, oo, srcwidth );		 
+			BlotScaledT0( &params );		 
 		else if( nTransparent == 1 )
-			BlotScaledT1( po, pi, errx, erry, wd, hd, dwd, dhd, dws, dhs, oo, srcwidth );		 
+			BlotScaledT1( &params );
 		else if( nTransparent & ALPHA_TRANSPARENT )
-			BlotScaledTImgA( po, pi, errx, erry, wd, hd, dwd, dhd, dws, dhs, oo, srcwidth, nTransparent&0xFF );
+			BlotScaledTImgA( &params );
 		else if( nTransparent & ALPHA_TRANSPARENT_INVERT )
-			BlotScaledTImgAI( po, pi, errx, erry, wd, hd, dwd, dhd, dws, dhs, oo, srcwidth, nTransparent&0xFF );		  
+			BlotScaledTImgAI( &params );
 		else
-			BlotScaledTA( po, pi, errx, erry, wd, hd, dwd, dhd, dws, dhs, oo, srcwidth, nTransparent );		  
+			BlotScaledTA( &params );
 		break;
 	case BLOT_INVERTED:
 		if( !nTransparent )
-			BlotInvertScaledT0( po, pi, errx, erry, wd, hd, dwd, dhd, dws, dhs, oo, srcwidth );
+			BlotInvertScaledT0( &params );
 		else if( nTransparent == 1 )
-			BlotInvertScaledT1( po, pi, errx, erry, wd, hd, dwd, dhd, dws, dhs, oo, srcwidth );		 
+			BlotInvertScaledT1( &params );
 		else if( nTransparent & ALPHA_TRANSPARENT )
-			BlotInvertScaledTImgA( po, pi, errx, erry, wd, hd, dwd, dhd, dws, dhs, oo, srcwidth, nTransparent&0xFF );
+			BlotInvertScaledTImgA( &params );
 		else if( nTransparent & ALPHA_TRANSPARENT_INVERT )
-			BlotInvertScaledTImgAI( po, pi, errx, erry, wd, hd, dwd, dhd, dws, dhs, oo, srcwidth, nTransparent&0xFF );		  
+			BlotInvertScaledTImgAI( &params );
 		else
-			BlotInvertScaledTA( po, pi, errx, erry, wd, hd, dwd, dhd, dws, dhs, oo, srcwidth, nTransparent );		  
+			BlotInvertScaledTA( &params );
 		break;
 	case BLOT_SHADED:
+		params.c = va_arg( colors, CDATA );
 		if( !nTransparent )
-			BlotScaledShadedT0( po, pi, errx, erry, wd, hd, dwd, dhd, dws, dhs, oo, srcwidth, va_arg( colors, CDATA ) );
+			BlotScaledShadedT0( &params );
 		else if( nTransparent == 1 )
-			BlotScaledShadedT1( po, pi, errx, erry, wd, hd, dwd, dhd, dws, dhs, oo, srcwidth, va_arg( colors, CDATA ) );
+			BlotScaledShadedT1( &params );
 		else if( nTransparent & ALPHA_TRANSPARENT )
-			BlotScaledShadedTImgA( po, pi, errx, erry, wd, hd, dwd, dhd, dws, dhs, oo, srcwidth, nTransparent&0xFF, va_arg( colors, CDATA ) );
+			BlotScaledShadedTImgA( &params );
 		else if( nTransparent & ALPHA_TRANSPARENT_INVERT )
-			BlotScaledShadedTImgAI( po, pi, errx, erry, wd, hd, dwd, dhd, dws, dhs, oo, srcwidth, nTransparent&0xFF, va_arg( colors, CDATA ) );
+			BlotScaledShadedTImgAI( &params );
 		else
-			BlotScaledShadedTA( po, pi, errx, erry, wd, hd, dwd, dhd, dws, dhs, oo, srcwidth, nTransparent, va_arg( colors, CDATA ) );
+			BlotScaledShadedTA( &params );
 		break;
 	case BLOT_MULTISHADE:
 		{
-			CDATA r,g,b;
-			r = va_arg( colors, CDATA );
-			g = va_arg( colors, CDATA );
-			b = va_arg( colors, CDATA );
+			//CDATA r,g,b;
+			params.r = va_arg( colors, CDATA );
+			params.g = va_arg( colors, CDATA );
+			params.b = va_arg( colors, CDATA );
 			if( !nTransparent )
-				BlotScaledMultiT0( po, pi, errx, erry, wd, hd, dwd, dhd, dws, dhs, oo, srcwidth
-									  , r, g, b );
+				BlotScaledMultiT0( &params );
 			else if( nTransparent == 1 )
-				BlotScaledMultiT1( po, pi, errx, erry, wd, hd, dwd, dhd, dws, dhs, oo, srcwidth
-									  , r, g, b );
+				BlotScaledMultiT1( &params );
 			else if( nTransparent & ALPHA_TRANSPARENT )
-				BlotScaledMultiTImgA( po, pi, errx, erry, wd, hd, dwd, dhd, dws, dhs, oo, srcwidth
-										  , nTransparent & 0xFF
-										  , r, g, b );
+				BlotScaledMultiTImgA( &params );
 			else if( nTransparent & ALPHA_TRANSPARENT_INVERT )
-				BlotScaledMultiTImgAI( po, pi, errx, erry, wd, hd, dwd, dhd, dws, dhs, oo, srcwidth
-											, nTransparent & 0xFF
-											, r, g, b );
+				BlotScaledMultiTImgAI( &params );
 			else
-				BlotScaledMultiTA( po, pi, errx, erry, wd, hd, dwd, dhd, dws, dhs, oo, srcwidth
-									  , nTransparent
-									  , r, g, b );
+				BlotScaledMultiTA( &params );
 		}
 		break;
 	}
