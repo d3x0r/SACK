@@ -578,8 +578,10 @@ static void AssignKey( struct volume *vol, const char *key1, const char *key2 )
 		else
 			SRG_ResetEntropy( vol->entropy );
 		vol->key = (uint8_t*)OpenSpace( NULL, NULL, &size );
-		for( n = 0; n < BLOCK_CACHE_COUNT; n++ )
+		for( n = 0; n < BLOCK_CACHE_COUNT; n++ ) {
 			vol->usekey[n] = vol->key + (n + 1) * BLOCK_SIZE;
+			vol->segment[n] = 0;
+		}
 		vol->segkey = vol->key + BLOCK_SIZE * (BLOCK_CACHE_COUNT + 1);
 		vol->sigkey = vol->key + BLOCK_SIZE * (BLOCK_CACHE_COUNT + 1) + SHORTKEY_LENGTH;
 		vol->curseg = BLOCK_CACHE_DIRECTORY;
@@ -776,7 +778,7 @@ LOGICAL sack_vfs_encrypt_volume( struct volume *vol, CTEXTSTR key1, CTEXTSTR key
 		int done;
 		size_t n;
 		enum block_cache_entries cache = BLOCK_CACHE_BAT;
-		BLOCKINDEX slab = vol->dwSize / ( BLOCKS_PER_SECTOR * BLOCK_SIZE );
+		BLOCKINDEX slab = (vol->dwSize + (BLOCKS_PER_SECTOR*BLOCK_SIZE-1)) / ( BLOCKS_PER_SECTOR * BLOCK_SIZE );
 		done = 0;
 		for( n = 0; n < slab; n++  ) {
 			size_t m;
