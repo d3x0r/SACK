@@ -3605,12 +3605,21 @@ char * u8xor( const char *a, size_t alen, const char *b, size_t blen, int *ofs )
 	int o = ofs[0];
 	size_t outlen;
 	char *out = NewArray( char, (outlen=alen) + 1);
+	int l = 0;
+	int _mask = 0x3f;
 	for( n = 0; n < alen; n++ ) {
 		char v = a[n];
-		int mask = 0x3f;
-		if( (v & 0xE0) == 0xC0 )      {mask=0x1F;}
-		else if( (v & 0xF0) == 0xE0 ) {mask=0xF;}
-		else if( (v & 0xF8) == 0xF0 ) {mask=0x7;}
+		int mask;
+		mask = _mask;
+
+		if( (v & 0x80) == 0x00 ) { if( l ) lprintf( "short utf8 sequence found" ); mask = 0x3f; _mask = 0x3f; }
+		else if( (v & 0xC0) == 0x80 ) { if( !l ) lprintf( "invalid utf8 sequence" ); l--; _mask = 0x3f; }
+		else if( (v & 0xE0) == 0xC0 ) { if( l ) lprintf( "short utf8 sequence found" ); l = 1; mask = 0x1; _mask = 0x3f; }  // 6 + 1 == 7
+		else if( (v & 0xF0) == 0xE0 ) { if( l ) lprintf( "short utf8 sequence found" ); l = 2; mask = 0;  _mask = 0x1f; }  // 6 + 5 + 0 == 11 
+		else if( (v & 0xF8) == 0xF0 ) { if( l ) lprintf( "short utf8 sequence found" ); l = 3; mask = 0;  _mask = 0x0f; }  // 6(2) + 4 + 0 == 16
+		else if( (v & 0xFC) == 0xF8 ) { if( l ) lprintf( "short utf8 sequence found" ); l = 4; mask = 0;  _mask = 0x07; }  // 6(3) + 3 + 0 == 21
+		else if( (v & 0xFE) == 0xFC ) { if( l ) lprintf( "short utf8 sequence found" ); l = 5; mask = 0;  _mask = 0x03; }  // 6(4) + 2 + 0 == 26
+
 		char bchar = b[(n+o)%(keylen)];
 		out[n] = (v & ~mask ) | ( u8xor_table[v & mask ][bchar] & mask );
 		//lprintf( "xor %d %d = %d", v, bchar, out[n] );
