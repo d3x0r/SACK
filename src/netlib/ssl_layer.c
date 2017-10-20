@@ -19,11 +19,11 @@ LOGICAL ssl_Send( PCLIENT pc, POINTER buffer, size_t length ) {
 	return FALSE;
 }
 
-LOGICAL ssl_BeginServer( PCLIENT pc, POINTER cert, size_t certlen, POINTER keypair, size_t keylen, POINTER keypass, size_t keypasslen ) {
+LOGICAL ssl_BeginServer( PCLIENT pc, CPOINTER cert, size_t certlen, CPOINTER keypair, size_t keylen, CPOINTER keypass, size_t keypasslen ) {
 	return FALSE;
 }
 
-LOGICAL ssl_BeginClientSession( PCLIENT pc, POINTER client_keypair, size_t client_keypairlen, POINTER keypass, size_t keypasslen, POINTER rootCert, size_t rootCertLen ) {
+LOGICAL ssl_BeginClientSession( PCLIENT pc, CPOINTER client_keypair, size_t client_keypairlen, CPOINTER keypass, size_t keypasslen, CPOINTER rootCert, size_t rootCertLen ) {
 	return FALSE;
 }
 
@@ -505,7 +505,7 @@ static int pem_password( char *buf, int size, int rwflag, void *u )
 	return len;
 }
 
-LOGICAL ssl_BeginServer( PCLIENT pc, POINTER cert, size_t certlen, POINTER keypair, size_t keylen, POINTER keypass, size_t keypasslen ) {
+LOGICAL ssl_BeginServer( PCLIENT pc, CPOINTER cert, size_t certlen, CPOINTER keypair, size_t keylen, CPOINTER keypass, size_t keypasslen ) {
 	struct ssl_session * ses;
 	ses = New( struct ssl_session );
 	MemSet( ses, 0, sizeof( struct ssl_session ) );
@@ -622,7 +622,7 @@ LOGICAL ssl_GetPrivateKey( PCLIENT pc, POINTER *keyoutbuf, size_t *keylen ) {
 	return FALSE;
 }
 
-LOGICAL ssl_BeginClientSession( PCLIENT pc, POINTER client_keypair, size_t client_keypairlen, POINTER keypass, size_t keypasslen, POINTER rootCert, size_t rootCertLen )
+LOGICAL ssl_BeginClientSession( PCLIENT pc, CPOINTER client_keypair, size_t client_keypairlen, CPOINTER keypass, size_t keypasslen, CPOINTER rootCert, size_t rootCertLen )
 {
 	struct ssl_session * ses;
 	ssl_InitLibrary();
