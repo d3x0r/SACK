@@ -13,7 +13,7 @@
 #define DEFINES_SQLITE_INTERFACE
 #include "../../SQLlib/sqlstruc.h"
 #include "sqlite3.h"
-
+//#define LOG_OPERATIONS
 #ifdef USE_SQLITE_INTERFACE
 
 SQL_NAMESPACE
@@ -92,8 +92,9 @@ int xClose(sqlite3_file*file)
 	{
 		sack_fclose( my_file->file );
 #ifdef LOG_OPERATIONS
-		lprintf( "Close %s", my_file->filename );
+		lprintf( "Close %p %s", my_file->file, my_file->filename );
 #endif
+		my_file->file = NULL;
 	}
 	if( my_file->temp )
 	{
@@ -110,7 +111,7 @@ int xRead(sqlite3_file*file, void*buffer, int iAmt, sqlite3_int64 iOfst)
 	struct my_file_data *my_file = (struct my_file_data*)file;
 	size_t actual;
 #ifdef LOG_OPERATIONS
-	lprintf( "read %s %d  %d", my_file->filename, iAmt, iOfst );
+	lprintf( "read %p %s %d  %d", my_file->file, my_file->filename, iAmt, iOfst );
 #endif
 	sack_fseek( my_file->file, (size_t)iOfst, SEEK_SET );
 	if( ( actual = sack_fread( buffer, 1, iAmt, my_file->file ) ) == (size_t)iAmt )
@@ -133,7 +134,7 @@ int xWrite(sqlite3_file*file, const void*buffer, int iAmt, sqlite3_int64 iOfst)
 	struct my_file_data *my_file = (struct my_file_data*)file;
 	size_t actual;
 #ifdef LOG_OPERATIONS
-	lprintf( "Write %s %d at %d", my_file->filename, iAmt, iOfst );
+	lprintf( "Write %p %s %d at %d", my_file->file, my_file->filename, iAmt, iOfst );
 	//LogBinary( buffer, iAmt );
 #endif
 	{
@@ -406,7 +407,7 @@ int xOpen(sqlite3_vfs* vfs, const char *zName, sqlite3_file*file,
 	else
 		my_file->temp = FALSE;
 #ifdef LOG_OPERATIONS
-	lprintf( "Open file: %s (vfs:%s)", zName, vfs->zName );
+	lprintf( "Open file: %s (vfs:%s) (already)%p", zName, vfs->zName, my_file->file );
 #endif
 
 	my_file->filename = DupCStr( zName );
@@ -427,6 +428,9 @@ int xOpen(sqlite3_vfs* vfs, const char *zName, sqlite3_file*file,
 			my_file->file = sack_fsopenEx( 0, my_file->filename, WIDE( "wb" ), _SH_DENYNO, my_vfs->mount );
 		if( my_file->file )
 		{
+#ifdef LOG_OPERATIONS
+			lprintf( "Opened file: %s (vfs:%s) %p", zName, vfs->zName, my_file->file );
+#endif
 			InitializeCriticalSec( &my_file->cs );
 			return SQLITE_OK;
 		}
@@ -439,6 +443,9 @@ int xOpen(sqlite3_vfs* vfs, const char *zName, sqlite3_file*file,
 			my_file->file = sack_fsopen( 0, my_file->filename, WIDE("wb+"), _SH_DENYNO );
 		if( my_file->file )
 		{
+#ifdef LOG_OPERATIONS
+			lprintf( "Opened file: %s (vfs:%s) %p", zName, vfs->zName, my_file->file );
+#endif
 			InitializeCriticalSec( &my_file->cs );
 			return SQLITE_OK;
 		}
