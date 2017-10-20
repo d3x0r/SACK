@@ -256,7 +256,7 @@ static void ssl_ReadComplete( PCLIENT pc, POINTER buffer, size_t length )
 					if( SSL_get_peer_certificate( pc->ssl_session->ssl ) ) {
 						int r;
 						if( ( r = SSL_get_verify_result( pc->ssl_session->ssl ) ) != X509_V_OK ) {
-							lprintf( "Certificate verification failed." );
+							lprintf( "Certificate verification failed. %d", r );
 							RemoveClientEx( pc, 0, 1 );
 							return;
 							//ERR_print_errors_cb( logerr, (void*)__LINE__ );
