@@ -321,7 +321,7 @@ PRIORITY_PRELOAD( XSaneWinMain, DEFAULT_PRELOAD_PRIORITY + 20 )//( argc, argv )
 #define _appload( a, b )  sack_vfs_load_crypt_volume( "application.dat", NULL /*#a "-" b*/, NULL/*app_signature*/ )
 #define appload( a,b )  _appload( a,b )
 
-#define _sfxappload( a, b )  sack_vfs_use_crypt_volume( vfs_memory, sz-((uintptr_t)vfs_memory-(uintptr_t)memory), NULL, NULL )
+#define _sfxappload( a, b )  sack_vfs_use_crypt_volume( memory, sz, NULL, NULL )
 //#define _appload( a,b )  sack_vfs_load_crypt_volume( "application.dat", a, b )
 #define sfxappload( a,b )  _sfxappload( a,b )
 
@@ -340,7 +340,7 @@ PRIORITY_PRELOAD( XSaneWinMain, DEFAULT_PRELOAD_PRIORITY + 20 )//( argc, argv )
 			MessageBox( NULL, "Please Launch with full path", "Startup Error", MB_OK );
 			exit(0);
 		}
-		vfs_memory = GetExtraData( memory );
+		//vfs_memory = GetExtraData( memory );
 		//printf( "extra is %d(%08x)\n", vfs_memory, vfs_memory );
 		l.rom_fs = sfxappload( _WIDE(CMAKE_BUILD_TYPE), CPACK_PACKAGE_VERSION_PATCH );
 		if( !l.rom_fs )
