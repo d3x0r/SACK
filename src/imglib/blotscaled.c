@@ -54,12 +54,12 @@ typedef struct rect_tag {
 	uint32_t x, y;							\
 	PCDATA _pi = pi;				  \
 	PCDATA __pi = pi;				  \
-	erry = i_erry/2;					 \
+	erry = (dhs>dhd)?i_erry/2:i_erry;					 \
 	y = 0;								\
 	while( y < hd )					\
 	{									 \
 		/* move first line.... */ \
-		errx = i_errx/2;				\
+		errx = (dws>dwd)?i_errx/2:i_errx;				\
 		x = 0;						  \
 		pi = _pi;					  \
 		while( x < wd )			  \
