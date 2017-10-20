@@ -1785,14 +1785,18 @@ int  sack_fclose ( FILE *file_file )
 #endif
 		DeleteLink( &file->files, file_file );
 		if( !GetLinkCount( file->files ) ) {
-			DeleteListEx( &file->files DBG_SRC );
 			DeleteLink( &(*winfile_local).files, file );
+			LeaveCriticalSec( &(*winfile_local).cs_files );
 
+			DeleteListEx( &file->files DBG_SRC );
 			Deallocate( TEXTCHAR*, file->name );
 			Deallocate( TEXTCHAR*, file->fullname );
 			Deallocate( struct file*, file );
 		}
-		LeaveCriticalSec( &(*winfile_local).cs_files );
+		else
+			LeaveCriticalSec( &(*winfile_local).cs_files );
+
+
 		return status;
 	}
 	LeaveCriticalSec( &(*winfile_local).cs_files );
