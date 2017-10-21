@@ -29,7 +29,8 @@ IMAGE_NAMESPACE
 
 //---------------------------------------------------------------------------
 
-#define StartLoop params->oo /= 4;    \
+#define StartLoop CDATA *pi = params->pi; CDATA *po = params->po; \
+   params->oo /= 4;    \
    params->oi /= 4;                   \
    {                          \
       uint32_t row= 0;             \
@@ -42,12 +43,12 @@ IMAGE_NAMESPACE
 
 #define EndLoop   }           \
 /*lprintf( "in %08x out %08x", ((CDATA*)pi)[0], ((CDATA*)po)[1] );*/ \
-            params->po++;             \
-            params->pi++;             \
+            po++;             \
+            pi++;             \
             col++;            \
          }                    \
-         params->pi += params->oi;            \
-         params->po += params->oo;            \
+         pi += params->oi;            \
+         po += params->oo;            \
          row++;               \
       }                       \
    }
@@ -61,35 +62,35 @@ struct bdParams {
 	CDATA r, g, b;
 };
 
- static void CopyPixelsT0( struct bdParams *params )
+static void CopyPixelsT0( struct bdParams *params )
 {
    StartLoop
-            *params->po = *params->pi;
+            *po = *pi;
    EndLoop
 }
 
 //---------------------------------------------------------------------------
 
- static void CopyPixelsT1( struct bdParams *params )
+static void CopyPixelsT1( struct bdParams *params )
 {
    StartLoop
             CDATA cin;
-            if( (cin = *params->pi) )
+            if( (cin = *pi) )
             {
-               *params->po = cin;
+               *po = cin;
             }
    EndLoop
 }
 
 //---------------------------------------------------------------------------
 
- static void CopyPixelsTA( struct bdParams *params )
+static void CopyPixelsTA( struct bdParams *params )
 {
    StartLoop
             CDATA cin;
-            if( (cin = *params->pi) )
+            if( (cin = *pi) )
 				{
-					*params->po = DOALPHA2( *params->po
+					*po = DOALPHA2( *po
 									  , cin
 									  , params->nTransparent );
             }
@@ -98,34 +99,34 @@ struct bdParams {
 
 //---------------------------------------------------------------------------
 
- static void CopyPixelsTImgA( struct bdParams *params )
+static void CopyPixelsTImgA( struct bdParams *params )
 {
    StartLoop
             uint32_t alpha;
             CDATA cin;
-            if( (cin = *params->pi) )
+            if( (cin = *pi) )
             {
                alpha = ( cin & 0xFF000000 ) >> 24;
                alpha += params->nTransparent;
-               *params->po = DOALPHA2( *params->po, cin, alpha );
+               *po = DOALPHA2( *po, cin, alpha );
             }
    EndLoop
 }
 //---------------------------------------------------------------------------
 
- static void CopyPixelsTImgAI( struct bdParams *params )
+static void CopyPixelsTImgAI( struct bdParams *params )
 {
    StartLoop
             int32_t alpha;
 
             CDATA cin;
-            if( (cin = *params->pi) )
+            if( (cin = *pi) )
             {
                alpha = ( cin & 0xFF000000 ) >> 24;
                alpha -= params->nTransparent;
                if( alpha > 1 )
                {
-                  *params->po = DOALPHA2( *params->po, cin, alpha );
+                  *po = DOALPHA2( *po, cin, alpha );
                }
             }
    EndLoop
@@ -133,12 +134,12 @@ struct bdParams {
 
 //---------------------------------------------------------------------------
 
- static void CopyPixelsShadedT0( struct bdParams *params )
+static void CopyPixelsShadedT0( struct bdParams *params )
 {
    StartLoop
             uint32_t pixel;
-            pixel = *params->pi;
-            *params->po = SHADEPIXEL(pixel, params->c);
+            pixel = *pi;
+            *po = SHADEPIXEL(pixel, params->c);
    EndLoop
 }
 
@@ -147,48 +148,48 @@ struct bdParams {
 {
    StartLoop
             uint32_t pixel;
-            if( (pixel = *params->pi) )
+            if( (pixel = *pi) )
             {
-               *params->po = SHADEPIXEL(pixel, params->c);
+               *po = SHADEPIXEL(pixel, params->c);
             }
    EndLoop
 }
 //---------------------------------------------------------------------------
 
- static void CopyPixelsShadedTA( struct bdParams *params )
+static void CopyPixelsShadedTA( struct bdParams *params )
 {
    StartLoop
             uint32_t pixel, pixout;
-            if( (pixel = *params->pi) )
+            if( (pixel = *pi) )
             {
                pixout = SHADEPIXEL(pixel, params->c);
-               *params->po = DOALPHA2( *params->po, pixout, params->nTransparent );
+               *po = DOALPHA2( *po, pixout, params->nTransparent );
             }
    EndLoop
 }
 
 //---------------------------------------------------------------------------
- static void CopyPixelsShadedTImgA( struct bdParams *params )
+static void CopyPixelsShadedTImgA( struct bdParams *params )
 {
    StartLoop
             uint32_t pixel, pixout;
-            if( (pixel = *params->pi) )
+            if( (pixel = *pi) )
             {
                uint32_t alpha;
                pixout = SHADEPIXEL(pixel, params->c);
                alpha = ( pixel & 0xFF000000 ) >> 24;
                alpha += params->nTransparent;
-               *params->po = DOALPHA2( *params->po, pixout, alpha );
+               *po = DOALPHA2( *po, pixout, alpha );
             }
    EndLoop
 }
 
 //---------------------------------------------------------------------------
- static void CopyPixelsShadedTImgAI( struct bdParams *params )
+static void CopyPixelsShadedTImgAI( struct bdParams *params )
 {
    StartLoop
             uint32_t pixel, pixout;
-            if( (pixel = *params->pi) )
+            if( (pixel = *pi) )
             {
                uint32_t alpha;
                alpha = ( pixel & 0xFF000000 ) >> 24;
@@ -196,7 +197,7 @@ struct bdParams {
                if( alpha > 1 )
                {
                   pixout = SHADEPIXEL(pixel, params->c);
-                  *params->po = DOALPHA2( *params->po, pixout, alpha );
+                  *po = DOALPHA2( *po, pixout, alpha );
                }
             }
    EndLoop
@@ -205,52 +206,52 @@ struct bdParams {
 
 //---------------------------------------------------------------------------
 
- static void CopyPixelsMultiT0( struct bdParams *params )
+static void CopyPixelsMultiT0( struct bdParams *params )
 {
    StartLoop
             uint32_t pixel, pixout;
             {
                uint32_t rout, gout, bout;
-               pixel = *params->pi;
+               pixel = *pi;
 			   pixout = MULTISHADEPIXEL( pixel, params->r, params->g, params->b );
    }
-            *params->po = pixout;
+            *po = pixout;
    EndLoop
 }
 
 //---------------------------------------------------------------------------
- static void CopyPixelsMultiT1( struct bdParams *params )
+static void CopyPixelsMultiT1( struct bdParams *params )
 {
    StartLoop
             uint32_t pixel, pixout;
-            if( (pixel = *params->pi) )
+            if( (pixel = *pi) )
             {
                uint32_t rout, gout, bout;
 			   pixout = MULTISHADEPIXEL( pixel, params->r, params->g, params->b );
 
-               *params->po = pixout;
+               *po = pixout;
             }
    EndLoop
 }
 //---------------------------------------------------------------------------
- static void CopyPixelsMultiTA( struct bdParams *params )
+static void CopyPixelsMultiTA( struct bdParams *params )
 {
    StartLoop
             uint32_t pixel, pixout;
-            if( (pixel = *params->pi) )
+            if( (pixel = *pi) )
             {
                uint32_t rout, gout, bout;
 			   pixout = MULTISHADEPIXEL( pixel, params->r, params->g, params->b );
-			   *params->po = DOALPHA2( *params->po, pixout, params->nTransparent );
+			   *po = DOALPHA2( *po, pixout, params->nTransparent );
             }
    EndLoop
 }
 //---------------------------------------------------------------------------
- static void CopyPixelsMultiTImgA( struct bdParams *params )
+static void CopyPixelsMultiTImgA( struct bdParams *params )
 {
    StartLoop
             uint32_t pixel, pixout;
-            if( (pixel = *params->pi) )
+            if( (pixel = *pi) )
             {
                uint32_t rout, gout, bout;
                uint32_t alpha;
@@ -258,16 +259,16 @@ struct bdParams {
                alpha += params->nTransparent;
 			   pixout = MULTISHADEPIXEL( pixel, params->r, params->g, params->b );
 			   //lprintf( "pixel %08x pixout %08x r %08x g %08x b %08x", pixel, pixout, r,g,b);
-               *params->po = DOALPHA2( *params->po, pixout, alpha );
+               *po = DOALPHA2( *po, pixout, alpha );
             }
    EndLoop
 }
 //---------------------------------------------------------------------------
- static void CopyPixelsMultiTImgAI( struct bdParams *params )
+static void CopyPixelsMultiTImgAI( struct bdParams *params )
 {
    StartLoop
             uint32_t pixel, pixout;
-            if( (pixel = *params->pi) )
+            if( (pixel = *pi) )
             {
                uint32_t rout, gout, bout;
                uint32_t alpha;
@@ -276,7 +277,7 @@ struct bdParams {
                if( alpha > 1 )
                {
                   pixout = MULTISHADEPIXEL( pixel, params->r, params->g, params->b);
-                  *params->po = DOALPHA2( *params->po, pixout, alpha );
+                  *po = DOALPHA2( *po, pixout, alpha );
                }
             }
    EndLoop
@@ -298,7 +299,7 @@ struct bdParams {
                               , ... )
 {
 #define BROKEN_CODE
-	 struct bdParams bd;
+	struct bdParams bd;
 	//int  hd, wd;
 	static uint32_t lock;
 	va_list colors;
