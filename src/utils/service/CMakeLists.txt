@@ -1,6 +1,8 @@
 
 cmake_minimum_required(VERSION 2.8)
 
+if( NOT SACK_LIBRARY_ONLY )
+
 SET( PROJECT service_test )
 
 if( NOT SACK_SDK_ROOT_PATH )
@@ -66,3 +68,5 @@ ExternalProject_Add( ${PROJECT}_portable
 		-DSHA2_SOURCES=${SHA2_SOURCES}
 )
 #add_subdirectory( portable )
+
+endif( NOT SACK_LIBRARY_ONLY )
