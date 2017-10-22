@@ -20,13 +20,13 @@
 //#define LOG_STARTUP_SHUTDOWN
 // Define this symbol to use Log( ghLog, WIDE("") ) to log pending
 // write status...
-#define LOG_PENDING
+//#define LOG_PENDING
 // for windows - this will log all FD_XXXX notifications processed...
-#define LOG_NOTICES
+//#define LOG_NOTICES
 //#define LOG_CLIENT_LISTS
 //#define LOG_NETWORK_LOCKING
 /// for windows - this logs detailed info about the new threaded events
-#define LOG_NETWORK_EVENT_THREAD
+//#define LOG_NETWORK_EVENT_THREAD
 //TODO: modify the client struct to contain the MAC addr
 #ifndef __LINUX__
 #define USE_WSA_EVENTS
