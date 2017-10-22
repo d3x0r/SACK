@@ -20,15 +20,19 @@ if( NOT BINDIR )
   set( BINDIR bin )
 endif( NOT BINDIR )
 
-if( __ANDROID__ )
-  INSTALL_SACK( lib )
-else( __ANDROID__ )
+if( NOT BUILD_INTO_SACK_INSTALL )
+  if( __ANDROID__ )
+    INSTALL_SACK( lib )
+  else( __ANDROID__ )
+
 	if( __LINUX__ )
 		INSTALL_SACK( ${CMAKE_INSTALL_BINDIR} ${CMAKE_INSTALL_LIBDIR} ${CMAKE_INSTALL_DATADIR}/images )
 	else( __LINUX__ )
 		INSTALL_SACK( ${CMAKE_INSTALL_BINDIR} ${CMAKE_INSTALL_BINDIR} resources/images )
 	endif( __LINUX__ )
-endif( __ANDROID__ )
+  endif( __ANDROID__ )
+
+endif( NOT BUILD_INTO_SACK_INSTALL )
 
   include_directories( ${SACK_INCLUDE_DIR} )
   LINK_DIRECTORIES( ${SACK_LIBRARY_DIR} )
