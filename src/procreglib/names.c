@@ -1836,6 +1836,11 @@ static uintptr_t CPROC HandleAlias( uintptr_t psv, arg_list args )
 static uintptr_t CPROC HandleModule( uintptr_t psv, arg_list args )
 {
 	PARAM( args, TEXTCHAR*, module );
+	LOGICAL tempPath = FALSE;
+	if( module[0] == '~' || module[0] == '@' || module[0] == '^' || module[0] == '*' ) {
+		module = ExpandPath( module );
+		tempPath = TRUE;
+	}
 	if( l.flags.bFindEndif || l.flags.bFindElse )
 		return psv;
 	if( l.flags.bTraceInterfaceLoading )
@@ -1847,6 +1852,8 @@ static uintptr_t CPROC HandleModule( uintptr_t psv, arg_list args )
 	}
 
 	LoadFunction( module, NULL );
+	if( tempPath )
+		Deallocate( TEXTCHAR*, module );
 	return psv;
 }	
 
