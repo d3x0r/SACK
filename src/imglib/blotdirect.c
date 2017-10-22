@@ -479,6 +479,8 @@ static void CopyPixelsMultiTImgAI( struct bdParams *params )
 		//lprintf( "Resulting rect is %d,%d to %d,%d dim: %d,%d", rs.x, rs.y, rd.x, rd.y, rs.width, rs.height );
 		//lprintf( "Resulting rect is %d,%d to %d,%d dim: %d,%d", xs, ys, xd, yd, ws, hs );
 	}
+	bd.ws = ws;
+	bd.hs = hs;
 	//lprintf( WIDE("Doing image (%d,%d)-(%d,%d) (%d,%d)-(%d,%d)"), xs, ys, ws, hs, xd, yd, wd, hd );
 	if( (int32_t)ws <= 0 ||
 		 (int32_t)hs <= 0 )
