@@ -96,6 +96,8 @@ endif( BUILD_TESTS )
 # these became not so 'extra'
 #if( BUILD_EXTRAS )
 
+if( NOT SACK_LIBRARY_ONLY )
+
 add_subdirectory( vfs_command )
 add_subdirectory( vfs_extract )
 
@@ -105,5 +107,6 @@ add_subdirectory( vfs_extract )
    add_subdirectory( vfs_node_runner )
 #endif( WIN32 )
 
+endif( NOT SACK_LIBRARY_ONLY )
 #endif( BUILD_EXTRAS )
 endif( NOT __CLR__ )
