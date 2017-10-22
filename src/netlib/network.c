@@ -93,6 +93,7 @@ PRELOAD( InitNetworkGlobalOptions )
 	globalNetworkData.dwReadTimeout = SACK_GetProfileIntEx( WIDE( "SACK" ), WIDE( "Network/Read wait timeout" ), 5000, TRUE );
 	globalNetworkData.dwConnectTimeout = SACK_GetProfileIntEx( WIDE( "SACK" ), WIDE( "Network/Connect timeout" ), 10000, TRUE );
 #else
+	globalNetworkData.flags.bLogNotices = 1;
 	globalNetworkData.dwReadTimeout = 5000;
 	globalNetworkData.dwConnectTimeout = 10000;
 #endif
@@ -1208,7 +1209,7 @@ void RemoveThreadEvent( PCLIENT pc ) {
 	lprintf( "Remove client %p from %p thread events...  proc:%d  ev:%d  wait:%d", pc, thread, thread->flags.bProcessing, thread->nEvents, thread->nWaitEvents );
 #endif
 	thread->nEvents = 1;
-	if( !thread->flags.bProcessing )
+	if( thread->thread != MakeThread() && !thread->flags.bProcessing )
 		while( thread->nEvents != thread->nWaitEvents ) {
 			if( !thread->flags.bProcessing )
 			{

@@ -563,12 +563,14 @@ static PCLIENT InternalTCPClientAddrFromAddrExxx( SOCKADDR *lpAddr, SOCKADDR *pF
 			// socket should now get scheduled for events, after unlocking it?
 #ifdef USE_WSA_EVENTS
 			if( globalNetworkData.flags.bLogNotices )
-				lprintf( WIDE( "SET GLOBAL EVENT (wait for connect) new %p %p  %08x" ), pResult, pResult->event, pResult->dwFlags );
+				lprintf( WIDE( "SET GLOBAL EVENT (wait for connect) new %p %p  %08x %p" ), pResult, pResult->event, pResult->dwFlags, globalNetworkData.hMonitorThreadControlEvent );
 			EnqueLink( &globalNetworkData.client_schedule, pResult );
 			if( this_thread == globalNetworkData.root_thread ) {
 				ProcessNetworkMessages( this_thread, 1 );
-				if( !pResult->this_thread )
+				if( !pResult->this_thread ) {
+					WSASetEvent( globalNetworkData.hMonitorThreadControlEvent );
 					lprintf( "Failed to schedule myself in a single run of root thread that I am running on." );
+				}
 			} 
 			else {
 				WSASetEvent( globalNetworkData.hMonitorThreadControlEvent );
