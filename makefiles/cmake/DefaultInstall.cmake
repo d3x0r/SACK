@@ -62,7 +62,7 @@ macro( install_default_dest )
 	install( TARGETS ${ARGV}
 		RUNTIME DESTINATION ${BINARY_OUTPUT_DIR}/${TARGET_BINARY_PATH}
 		LIBRARY DESTINATION ${SHARED_LIBRARY_OUTPUT_DIR}/${TARGET_BINARY_PATH}
-		ARCHIVE DESTINATION lib )
+		ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR} )
    else( TARGET_BINARY_PATH )
 	install( FILES ${OTHER}
 		DESTINATION ${BINARY_OUTPUT_DIR}
@@ -70,7 +70,7 @@ macro( install_default_dest )
 	install( TARGETS ${ARGV}
 		RUNTIME DESTINATION ${BINARY_OUTPUT_DIR}
 		LIBRARY DESTINATION ${SHARED_LIBRARY_OUTPUT_DIR}
-		ARCHIVE DESTINATION lib )
+		ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR} )
    endif( TARGET_BINARY_PATH )
 endmacro( install_default_dest )
 
@@ -102,7 +102,7 @@ macro( install_mode_dest )
 	install( TARGETS ${ARGV}
 		RUNTIME DESTINATION ${BINARY_OUTPUT_DIR}
 		LIBRARY DESTINATION ${SHARED_LIBRARY_OUTPUT_DIR}
-		ARCHIVE DESTINATION lib )
+		ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR} )
     endif( __LINUX64__ )
 endmacro( install_mode_dest )
 
@@ -115,15 +115,15 @@ endmacro( install_sack_sdk_dest )
 
 
 macro( install_default_dest_binary )
-if( TARGET_BINARY_PATH )
+  if( TARGET_BINARY_PATH )
 	install( TARGETS ${ARGV}
 		RUNTIME DESTINATION ${BINARY_OUTPUT_DIR}/${TARGET_BINARY_PATH} 
 		LIBRARY DESTINATION ${SHARED_LIBRARY_OUTPUT_DIR}/${TARGET_BINARY_PATH} )
-else( TARGET_BINARY_PATH )
+  else( TARGET_BINARY_PATH )
 	install( TARGETS ${ARGV}
 		RUNTIME DESTINATION ${BINARY_OUTPUT_DIR} 
 		LIBRARY DESTINATION ${SHARED_LIBRARY_OUTPUT_DIR} )
-endif( TARGET_BINARY_PATH )
+  endif( TARGET_BINARY_PATH )
 endmacro( install_default_dest_binary )
 
 
@@ -154,16 +154,16 @@ else( __ANDROID__ )
 	)
     else( __CLR__ )
       install( TARGETS ${proj} RUNTIME DESTINATION ${BINARY_OUTPUT_DIR}/${project_target}
-			ARCHIVE DESTINATION lib		
+			ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
 	)
     endif( __CLR__ )
   else( WIN32 )
     install( TARGETS ${proj} 
 	RUNTIME DESTINATION ${BINARY_OUTPUT_DIR}/${project_target} 
 	LIBRARY DESTINATION ${BINARY_OUTPUT_DIR}/${project_target} 
-        ARCHIVE DESTINATION lib
+        ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
 	)
-endif()
+  endif()
 
 endif( __ANDROID__ )
 endmacro( install_literal_product )
