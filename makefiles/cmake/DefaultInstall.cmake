@@ -170,13 +170,13 @@ endmacro( install_literal_product )
 
 macro( install_default_project proj project_target )
 
-if( WIN32 )
-  install( TARGETS ${proj} RUNTIME DESTINATION ${project_target} )
-else( WIN32 )
-  install( TARGETS ${proj} LIBRARY DESTINATION ${BINARY_OUTPUT_DIR}/${project_target} 
-  		RUNTIME DESTINATION ${BINARY_OUTPUT_DIR}/${project_target} 
+  if( WIN32 )
+    install( TARGETS ${proj} RUNTIME DESTINATION ${project_target} )
+  else( WIN32 )
+    install( TARGETS ${proj} LIBRARY DESTINATION ${project_target} 
+  		RUNTIME DESTINATION ${project_target} 
 	)
-endif()
+  endif()
 endmacro( install_default_project )
 
 macro( add_library_force_source project optional_style )
