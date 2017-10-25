@@ -5733,6 +5733,7 @@ static void InitInterShell()
 	g.flags.bAbsoluteTopmost = SACK_GetProfileIntEx( GetProgramName(), WIDE("Intershell Layout/Display Force Topmost"), 0, TRUE );
 	g.flags.bTransparent = SACK_GetProfileIntEx( GetProgramName(), WIDE("Intershell Layout/Display is transparent"), 1, TRUE );
 	g.flags.bTerminateStayResident = SACK_GetProfileIntEx( GetProgramName(), WIDE("Intershell/TSR"), 0, TRUE );
+	g.flags.bNoAutoStart = !SACK_GetProfileIntEx( GetProgramName(), WIDE("Intershell/Auto Start"), 1, TRUE );
 #endif
 	//SystemLogTime( SYSLOG_TIME_CPU| SYSLOG_TIME_DELTA );
 
@@ -5752,11 +5753,12 @@ static void InitInterShell()
 
 PRIORITY_PRELOAD( StartTSR, DEFAULT_PRELOAD_PRIORITY+5 )
 {
-	Banner2NoWaitAlpha( WIDE("Loading...") );
-	//void SQLSetFeedbackHandler( void (CPROC*HandleSQLFeedback*)(TEXTCHAR *message) );
+	if( !g.flags.bNoAutoStart ) {
+		Banner2NoWaitAlpha( WIDE("Loading...") );
 #ifndef __NO_SQL__
-	SQLSetFeedbackHandler( MyHandleSQLFeedback );
+		SQLSetFeedbackHandler( MyHandleSQLFeedback );
 #endif
+	}
 	if( g.flags.bTerminateStayResident )
 		restart(); // actually start, but it's oneshot.
 }
