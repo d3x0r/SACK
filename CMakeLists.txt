@@ -296,8 +296,8 @@ OPTION( BUILD_UNICODE "Build All as Unicode" ${BUILD_UNICODE} )
 set( INTERFACE_OUTPUT_DIR ${BINARY_OUTPUT_DIR} )
 
 if( CMAKE_COMPILER_IS_GNUCC )
-    SET( CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Bsymbolic" )
-    SET( CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Bsymbolic" )
+    SET( CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,-Bsymbolic -Wl,--warn-unresolved-symbols" )
+    SET( CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Wl,-Bsymbolic -Wl,--warn-unresolved-symbols" )
     
     SET( ExtraFlags ${ExtraFlags} -Wno-multichar)
 endif( CMAKE_COMPILER_IS_GNUCC )

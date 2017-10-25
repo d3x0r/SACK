@@ -460,16 +460,19 @@ struct rt_init // structure placed in XI/YI segment
 // this ends up being nicely aligned for 64 bit platforms
 // specially with the packed attributes
 	 __type_rtn  routine;      // - routine (rtn)
-#ifdef _DEBUG
+#if defined( _DEBUG ) || defined( _DEBUG_INFO )
 	 CTEXTSTR file;
 #endif
 	 CTEXTSTR funcname;
 	 struct rt_init *junk;
+#if defined( _DEBUG ) || defined( _DEBUG_INFO )
 #if defined( __GNUC__ ) && defined( __64__)
     // this provides padding - inter-object segments are packed
     // to 32 bytes...
 	 struct rt_init *junk2[3];
 #endif
+#endif
+
 } __attribute__((packed));
 
 #define JUNKINIT(name) ,&pastejunk(name,_ctor_label)
@@ -478,7 +481,7 @@ struct rt_init // structure placed in XI/YI segment
 
 #define ATEXIT_PRIORITY PRIORITY_ATEXIT
 
-#ifdef _DEBUG
+#if defined( _DEBUG ) || defined( _DEBUG_INFO )
 #  define PASS_FILENAME ,WIDE__FILE__
 #else
 #  define PASS_FILENAME

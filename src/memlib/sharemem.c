@@ -2752,7 +2752,7 @@ void  DebugDumpHeapMemEx ( PMEM pHeap, LOGICAL bVerbose )
 #ifndef NO_LOGGING
 					if( bVerbose )
 					{
-#ifdef _DEBUG
+#if defined( _DEBUG ) || defined( _DEBUG_INFO )
 						CTEXTSTR pFile =  !IsBadReadPtr( BLOCK_FILE(pc), 1 )
 							?BLOCK_FILE(pc)
 							:WIDE("Unknown");
@@ -2771,7 +2771,7 @@ void  DebugDumpHeapMemEx ( PMEM pHeap, LOGICAL bVerbose )
 #ifndef NO_LOGGING
 					if( bVerbose )
 					{
-#ifdef _DEBUG
+#if defined( _DEBUG ) || defined( _DEBUG_INFO )
 						CTEXTSTR pFile =  !IsBadReadPtr( BLOCK_FILE(pc), 1 )
 							?BLOCK_FILE(pc)
 							:WIDE("Unknown");
