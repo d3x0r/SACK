@@ -296,7 +296,10 @@ OPTION( BUILD_UNICODE "Build All as Unicode" ${BUILD_UNICODE} )
 set( INTERFACE_OUTPUT_DIR ${BINARY_OUTPUT_DIR} )
 
 if( CMAKE_COMPILER_IS_GNUCC )
-    ADD_DEFINITIONS( -Wno-multichar)
+    SET( CMAKE_EXE_LINKER_FLAGS ${CMAKE_EXE_LINKER_FLAGS} "-Bsymbolic" )
+    SET( CMAKE_SHARED_LINKER_FLAGS ${CMAKE_SHARED_LINKER_FLAGS} "-Bsymbolic" )
+    
+    SET( ExtraFlags ${ExtraFlags} -Wno-multichar)
 endif( CMAKE_COMPILER_IS_GNUCC )
 
 
@@ -1127,7 +1130,7 @@ add_library( bag.externals SHARED
     ${BAG_EXTERNAL_MORE_SOURCES}
 )
 SET_TARGET_PROPERTIES(bag.externals PROPERTIES
-                  COMPILE_FLAGS  "-DTARGET_LABEL=bag_externals -DBAG_EXTERNALS -DPNG_INTERNAL -D__PNG_LIBRARY_SOURCE__"
+                  COMPILE_FLAGS  "-DTARGET_LABEL=bag_externals -DBAG_EXTERNALS -DPNG_INTERNAL -D__PNG_LIBRARY_SOURCE__ ${ExtraFlags}"
                   COMPILE_DEFINITIONS "${ExternalExtraDefinitions}"
                   LINK_FLAGS "${extra_link_flags}"
                   FOLDER "Externals"
