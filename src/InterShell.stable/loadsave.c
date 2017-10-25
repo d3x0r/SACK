@@ -93,8 +93,8 @@ void SetDefaultRowsCols( void )
 
 	if( !canvas->flags.bSetResolution )
 	{
-		PushArgument( args, uint64_t, 40 );
-		PushArgument( args, uint64_t, 40 );
+		PushArgument( args, CONFIG_ARG_INT64, uint64_t, 40 );
+		PushArgument( args,CONFIG_ARG_INT64, uint64_t, 40 );
 		SetMenuRowCols( 0, pass_args( args ) );
 		PopArguments( args );
 	}
@@ -853,8 +853,8 @@ void CPROC InterShell_SetPageLayout( PSI_CONTROL _canvas, uint32_t cols, uint32_
 	PCanvasData canvas = GetCanvas( (PSI_CONTROL)_canvas );
 	init_args( args );
 
-	PushArgument( args, uint64_t, cols );
-	PushArgument( args, uint64_t, rows );
+	PushArgument( args, CONFIG_ARG_INT64, uint64_t, cols );
+	PushArgument( args, CONFIG_ARG_INT64, uint64_t, rows );
 	PushLink( &l.current_canvas, _canvas );
 	SetMenuRowCols( 0, pass_args( args ) );
 	PopLink( &l.current_canvas );
