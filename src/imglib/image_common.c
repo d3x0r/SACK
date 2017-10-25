@@ -799,9 +799,16 @@ ImageFile*  LoadImageFileFromGroupEx ( INDEX group, CTEXTSTR filename DBG_PASS )
 	sack_fclose (fp);
 
 	//lprintf(WIDE("so far okay -%s %d (%d)"), filename, buf, size );
-
+	{ 
+		void setPngImageName( const char *filename );
+		setPngImageName( filename );
+	}
 	file = 
 		DecodeMemoryToImage( buf, size );
+	{
+		void setPngImageName( const char *filename );
+		setPngImageName( NULL );
+	}
 
 	ReleaseEx( buf DBG_RELAY );
 	return file;

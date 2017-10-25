@@ -36,7 +36,7 @@
 
 //extern IMAGE_INTERFACE RealImageInterface;
 extern int bGLColorMode;
-
+static const char *loadingPng;
 
 typedef struct ImagePngRawData_tag
 {
@@ -80,7 +80,7 @@ void PNGCBAPI NotSoFatalError( png_structp png_ptr, png_const_charp c )
 	if( strcmp( c, "iCCP: known incorrect sRGB profile" ) != 0 
 		&& strcmp( c, "iCCP: cHRM chunk does not match sRGB" ) != 0
 		&& strcmp( c, "Interlace handling should be turned on when using png_read_image" ) != 0 )
-		lprintf( WIDE("Error in PNG stuff: %s"), c );
+		lprintf( WIDE("Error in PNG stuff:%s %s"), loadingPng?loadingPng:"<DATA>", c );
 }
 
 // this is specific to a compiler so it needs to be non-decorated in any way.
@@ -104,6 +104,10 @@ static void PNGCAPI my_png_longjmp_ptr3(jmp_buf b, int i)
 	longjmp( b, i );
 }
 #endif
+
+void setPngImageName( const char *filename ) {
+	loadingPng = filename;
+}
 
 ImageFile *ImagePngFile (uint8_t * buf, size_t size)
 {
