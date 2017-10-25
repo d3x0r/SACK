@@ -1972,37 +1972,37 @@ void DoProcedure( uintptr_t *ppsvUser, PCONFIG_TEST Check )
 					case CONFIG_TEXT:
 						break;
 					case CONFIG_BINARY:
-						PushArgument( parampack, POINTER, pcePush->data[0].binary.data );
-						PushArgument( parampack, size_t, pcePush->data[0].binary.length );
+						PushArgument( parampack, CONFIG_ARG_DATA, POINTER, pcePush->data[0].binary.data );
+						PushArgument( parampack, CONFIG_ARG_DATA_SIZE, size_t, pcePush->data[0].binary.length );
 						break;
 					case CONFIG_BOOLEAN:
 						{
 							LOGICAL val = pcePush->data[0].truefalse.bTrue;
-							PushArgument( parampack, LOGICAL, val );
+							PushArgument( parampack, CONFIG_ARG_LOGICAL, LOGICAL, val );
 						}
 						break;
 					case CONFIG_INTEGER:
-						PushArgument( parampack, int64_t, pcePush->data[0].integer_number );
+						PushArgument( parampack, CONFIG_ARG_INT64, int64_t, pcePush->data[0].integer_number );
 						break;
 					case CONFIG_FLOAT:
-						PushArgument( parampack, float, (float)pcePush->data[0].float_number );
+						PushArgument( parampack, CONFIG_ARG_FLOAT, float, (float)pcePush->data[0].float_number );
 						break;
 					case CONFIG_FRACTION:
-						PushArgument( parampack, FRACTION, pcePush->data[0].fraction );
+						PushArgument( parampack, CONFIG_ARG_FRACTION, FRACTION, pcePush->data[0].fraction );
 						break;
 					case CONFIG_SINGLE_WORD:
-						PushArgument( parampack, CTEXTSTR, pcePush->data[0].pWord );
+						PushArgument( parampack, CONFIG_ARG_STRING, CTEXTSTR, pcePush->data[0].pWord );
 						break;
 					case CONFIG_COLOR:
-						PushArgument( parampack, CDATA, pcePush->data[0].Color );
+						PushArgument( parampack, CONFIG_ARG_COLOR, CDATA, pcePush->data[0].Color );
 						break;
 					case CONFIG_MULTI_WORD:
 					case CONFIG_FILEPATH:
-						PushArgument( parampack, CTEXTSTR, pcePush->data[0].multiword.pWords );
+						PushArgument( parampack, CONFIG_ARG_STRING, CTEXTSTR, pcePush->data[0].multiword.pWords );
 						break;
 					default:
 						break;
-						}
+					}
 					//lprintf( WIDE("Total args are now: %d"), argsize );
 					pcePush = pcePush->prior;
 				}
