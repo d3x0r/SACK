@@ -1,6 +1,10 @@
-set( BASE_PATH ${CMAKE_INSTALL_PREFIX} )
-
+if( SACK_SDK_ROOT_PATH STREQUAL CMAKE_INSTALL_PREFIX )
+	set( BASE_PATH ${CMAKE_INSTALL_PREFIX} )
+	set( FILEOUT ${BASE_PATH}/CMakePackage.Intershell )
+else()
+	set( BASE_PATH ${CMAKE_INSTALL_PREFIX} )
 	set( FILEOUT ${BASE_PATH}/CMakePackage )
+endif()
         
 #message( "Output to ${FILEOUT}" )        
 
