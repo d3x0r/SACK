@@ -120,9 +120,13 @@ CONFIGSCR_PROC( LOGICAL, BeginNamedConfiguration )( PCONFIG_HANDLER pch, CTEXTST
 CONFIGSCR_PROC( void, EndConfiguration )( PCONFIG_HANDLER pch );
 
 typedef uintptr_t (CPROC*USER_CONFIG_HANDLER)( uintptr_t, arg_list args );
+typedef uintptr_t( CPROC*USER_CONFIG_HANDLER_EX )(uintptr_t, uintptr_t, arg_list args);
 CONFIGSCR_PROC( void, AddConfigurationEx )( PCONFIG_HANDLER pch
 														, CTEXTSTR format
 														, USER_CONFIG_HANDLER Process DBG_PASS );
+CONFIGSCR_PROC( void, AddConfigurationExx )(PCONFIG_HANDLER pch
+	, CTEXTSTR format
+	, USER_CONFIG_HANDLER_EX Process, uintptr_t processHandler DBG_PASS);
 //CONFIGSCR_PROC( void, AddConfiguration )( PCONFIG_HANDLER pch
 //					, char *format
 //													 , USER_CONFIG_HANDLER Process );

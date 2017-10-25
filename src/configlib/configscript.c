@@ -95,6 +95,7 @@ enum config_types {
 
 	// end of configuration line (match assumed)
 	, CONFIG_PROCEDURE
+	, CONFIG_PROCEDURE_EX
 
 	, CONFIG_COLOR
 	, CONFIG_NOTHING // to save as an option after variables
@@ -144,6 +145,10 @@ struct config_element_tag
 		} multiword;
 		FRACTION fraction;
 		USER_CONFIG_HANDLER Process;
+		struct {
+			USER_CONFIG_HANDLER_EX Process;
+			uintptr_t arg;
+		} ProcessEx;
 		CDATA Color;
 		struct {
 			size_t length;
@@ -324,8 +329,11 @@ void LogElementEx( CTEXTSTR leader, PCONFIG_ELEMENT pce DBG_PASS)
 		_lprintf(DBG_RELAY)( WIDE("%s a multi word"), leader );
 		break;
 	case CONFIG_PROCEDURE:
-	_lprintf(DBG_RELAY)( WIDE("%s a procedure to call."), leader );
-	break;
+		_lprintf(DBG_RELAY)( WIDE("%s a procedure to call."), leader );
+		break;
+	case CONFIG_PROCEDURE_EX:
+		_lprintf( DBG_RELAY )(WIDE( "%s a procedure to call." ), leader);
+		break;
 	case CONFIG_URL:
 	_lprintf(DBG_RELAY)( WIDE("%s a url?"), leader );
 	break;
@@ -1953,7 +1961,7 @@ void DoProcedure( uintptr_t *ppsvUser, PCONFIG_TEST Check )
 	init_args( parampack );
 	LIST_FORALL( Check->pVarElementList, idx, PCONFIG_ELEMENT, pce )
 	{
-		if( pce->type == CONFIG_PROCEDURE )
+		if( pce->type == CONFIG_PROCEDURE || pce->type == CONFIG_PROCEDURE_EX )
 		{
 			if( pce->data[0].Process)
 			{
@@ -2006,14 +2014,10 @@ void DoProcedure( uintptr_t *ppsvUser, PCONFIG_TEST Check )
 					//lprintf( WIDE("Total args are now: %d"), argsize );
 					pcePush = pcePush->prior;
 				}
-				// should really be #ifdef __IDIOTS_WROTE_THIS_COMPILER__
-#ifdef __WATCOMC__
-				save_parampack = parampack;
-				(*ppsvUser) = pce->data[0].Process( *ppsvUser, pass_args(parampack) );
-				parampack = save_parampack;
-#else
-				(*ppsvUser) = pce->data[0].Process( *ppsvUser, pass_args(parampack) );
-#endif
+				if( pce->type == CONFIG_PROCEDURE_EX )
+					(*ppsvUser) = pce->data[0].ProcessEx.Process( *ppsvUser, pce->data[0].ProcessEx.arg, pass_args( parampack ) );
+				else
+					(*ppsvUser) = pce->data[0].Process( *ppsvUser, pass_args(parampack) );
 				PopArguments( parampack );
 #endif
 				break; // done, end of list, please leave and do not iterate further!
@@ -2458,7 +2462,7 @@ void EndConfiguration( PCONFIG_HANDLER pch )
 	}
 }
 
-void AddConfigurationEx( PCONFIG_HANDLER pch, CTEXTSTR format, USER_CONFIG_HANDLER Process DBG_PASS )
+PCONFIG_ELEMENT _AddConfigurationEx( PCONFIG_HANDLER pch, CTEXTSTR format, USER_CONFIG_HANDLER Process DBG_PASS )
 {
 	PTEXT pTemp = SegCreateFromText( format );
 	PTEXT pLine; 
@@ -2507,7 +2511,7 @@ void AddConfigurationEx( PCONFIG_HANDLER pch, CTEXTSTR format, USER_CONFIG_HANDL
 				LineRelease( pLine );
 				lprintf( WIDE( "Destroy config element %p" ), pceNew );
 				DestroyConfigElement( pch, pceNew );
-				return;
+				return NULL;
 			}
 			switch( pWordText[0] )
 			{
@@ -2812,7 +2816,22 @@ void AddConfigurationEx( PCONFIG_HANDLER pch, CTEXTSTR format, USER_CONFIG_HANDL
 	pceNew->type = CONFIG_PROCEDURE;
 	pceNew->data[0].Process = Process;
 	AddLink( &pct->pVarElementList, pceNew );
+	return pceNew;
 }
+
+void AddConfigurationExx( PCONFIG_HANDLER pch, CTEXTSTR format, USER_CONFIG_HANDLER_EX Process, uintptr_t arg DBG_PASS ) {
+	PCONFIG_ELEMENT element = _AddConfigurationEx( pch, format, (USER_CONFIG_HANDLER)Process DBG_RELAY );
+	if( !element ) 
+		return;
+	element->type = CONFIG_PROCEDURE_EX;
+	element->data[0].ProcessEx.Process = Process;
+	element->data[0].ProcessEx.arg = arg;
+}
+
+void AddConfigurationEx( PCONFIG_HANDLER pch, CTEXTSTR format, USER_CONFIG_HANDLER Process DBG_PASS ) {
+	_AddConfigurationEx( pch, format, Process DBG_RELAY );
+}
+
 
 //---------------------------------------------------------------------
 #undef AddConfiguration
@@ -2929,6 +2948,7 @@ void DestroyConfigElement( PCONFIG_HANDLER pch, PCONFIG_ELEMENT pce )
 		break;
 	case CONFIG_COLOR:
 	case CONFIG_PROCEDURE:
+	case CONFIG_PROCEDURE_EX:
 	case CONFIG_UNKNOWN:
 	case CONFIG_BOOLEAN:
 	case CONFIG_INTEGER:
