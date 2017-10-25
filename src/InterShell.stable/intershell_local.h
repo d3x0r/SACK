@@ -175,6 +175,7 @@ typedef struct global_tag
 		BIT_FIELD bPageUpdateDisabled : 1;
 		BIT_FIELD bTerminateStayResident : 1;
 		BIT_FIELD bNoAutoStart : 1;
+		BIT_FIELD bNoChangeDirectory : 1;
 		BIT_FIELD bNoEditSet : 1;
 		BIT_FIELD bNoEdit : 1;
 		BIT_FIELD bAllowMultiSet : 1;

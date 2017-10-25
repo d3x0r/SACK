@@ -5230,7 +5230,8 @@ PRIORITY_PRELOAD( ProgramLock, DEFAULT_PRELOAD_PRIORITY+2 )
 	g.single_frame_title = SaveText( application_title );
 	GetFileGroup( WIDE("Resources"), resource_path );
 	GetFileGroup( WIDE("PSI Frames"), WIDE("%resources%/frames") );
-	SetCurrentPath( resource_path );
+   if( !g.flags.bNoChangeDirectory )
+		SetCurrentPath( resource_path );
 #endif
 
 #ifndef __LINUX__
@@ -5734,6 +5735,7 @@ static void InitInterShell()
 	g.flags.bTransparent = SACK_GetProfileIntEx( GetProgramName(), WIDE("Intershell Layout/Display is transparent"), 1, TRUE );
 	g.flags.bTerminateStayResident = SACK_GetProfileIntEx( GetProgramName(), WIDE("Intershell/TSR"), 0, TRUE );
 	g.flags.bNoAutoStart = !SACK_GetProfileIntEx( GetProgramName(), WIDE("Intershell/Auto Start"), 1, TRUE );
+	g.flags.bNoChangeDirectory = !SACK_GetProfileIntEx( GetProgramName(), WIDE("Intershell/change directory to resources"), 1, TRUE );
 #endif
 	//SystemLogTime( SYSLOG_TIME_CPU| SYSLOG_TIME_DELTA );
 
