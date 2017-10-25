@@ -224,6 +224,9 @@ namespace sack {
 #define OnEditPageSecurityContext( name ) \
 	__DefineRegistryMethod(TASK_PREFIX,EditSecurityContext,WIDE( "common" ),WIDE( "global properties" ),WIDE( "Page Security:" )name,void,(PPAGE_DATA),__LINE__)
 
+#define OnApplicationQuit( name ) \
+	__DefineRegistryMethod(TASK_PREFIX,IntershellQuitApplication,WIDE( "common" ),WIDE( "quit application" ),name,void,(void),__LINE__)
+
 /* Intended use: Supply configuration slots for theme_id
  static void OnThemeAdded( name )( int theme_id )
  */

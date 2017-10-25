@@ -4884,8 +4884,25 @@ static uintptr_t OnCreateMenuButton( WIDE( "InterShell/Debug Break" ) )( PMENU_B
 	return (uintptr_t)button;
 }
 
+static void InvokeQuit( void )
+{
+	CTEXTSTR name;
+	PCLASSROOT data = NULL;
+	for( name = GetFirstRegisteredName( TASK_PREFIX WIDE( "/common/quit application" ), &data );
+		name;
+		name = GetNextRegisteredName( &data ) )
+	{
+		void (CPROC*f)(void);
+		f = GetRegisteredProcedure2( (CTEXTSTR)data, void, name, (void) );
+		if( f )
+			f();
+	}
+}
+
+
 static void ExitKeypress( void )
 {
+	InvokeQuit();
 #ifdef __cplusplus_cli
 	//Application::Exit();
 #endif
