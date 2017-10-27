@@ -616,11 +616,11 @@ static void CopyPixelsMultiTImgAI( struct bdParams *params )
 			}
 			else if( nTransparent & ALPHA_TRANSPARENT_INVERT ) {
 				bd.nTransparent = nTransparent & 0xFF;
-				CopyPixelsTImgAI( &bd, nTransparent & 0xFF );
+				CopyPixelsTImgAI( &bd );
 			}
 			else {
 				bd.nTransparent = nTransparent;// &0xFF;
-				CopyPixelsTA( &bd, nTransparent );
+				CopyPixelsTA( &bd );
 			}
 			break;
 		case BLOT_SHADED:

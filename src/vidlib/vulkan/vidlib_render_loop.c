@@ -199,7 +199,7 @@ void Render3D( struct display_camera *camera )
 #ifdef __3D__
 		SetupPositionMatrix( camera );
 #endif
-		}
+		//}
 
 		if( l.flags.bLogRenderTiming )
 			lprintf( WIDE("Begin drawing from bottom up") );
