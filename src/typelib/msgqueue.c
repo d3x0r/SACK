@@ -53,9 +53,9 @@ void _UpdatePos( INDEX *tmp, INDEX inc DBG_PASS )
 void _SetPos( INDEX *tmp, INDEX inc, INDEX initial DBG_PASS )
 {
 #ifndef DISABLE_MSGQUE_LOGGING_DETAILED
-   if( initial )
+	if( initial )
 		_xlprintf(5 DBG_RELAY )( WIDE("Setting position to %d"), inc );
-   else
+	else
 		_xlprintf(5 DBG_RELAY )( WIDE("Setting position from %d to %d"), (*tmp), inc );
 #endif
 	if( !initial )
@@ -88,12 +88,12 @@ typedef PREFIX_PACKED struct MsgInternalData {
 	// length & 0x20000000 message tag for request for specific message
 	//   then length(low) points at next waiting.
 	//   MsgID is the ID being waited for
-   //   datalength is sizeof( THREAD_ID ) and data is MyThreadID()
+	//   datalength is sizeof( THREAD_ID ) and data is MyThreadID()
 	uint32_t length;
 	uint32_t real_length; // size resulting in read...
 	uint32_t ttl;  // this is tick count + time to live, if tick count is greater than this, message is dropped.
 
-   // space which we added ourselves...
+	// space which we added ourselves...
 } PACKED MSGCORE;
 
 typedef PREFIX_PACKED struct MsgData
@@ -151,10 +151,10 @@ typedef struct MsgDataHandle
 // is no expansion possible...
 // this should be created such that it is at least 3 * largest message
  PMSGHANDLE  SackCreateMsgQueue ( CTEXTSTR name, size_t size
-													  , MsgQueueReadCallback Read
-														, uintptr_t psvRead )
+                                , MsgQueueReadCallback Read
+                                , uintptr_t psvRead )
 {
-   	PMSGHANDLE pmh;
+	PMSGHANDLE pmh;
 	PMSGQUEUE pmq;
 	uintptr_t dwSize = size + sizeof( MSGQUEUE );
 	uint32_t bCreated;
@@ -212,7 +212,7 @@ typedef struct MsgDataHandle
 	uint32_t bCreated;
 #ifdef __LINUX__
 	char tmpname[128];
-   sprintf( tmpname, WIDE("/tmp/%s"), name );
+	sprintf( tmpname, WIDE("/tmp/%s"), name );
 #endif
 	pmq = (PMSGQUEUE)OpenSpaceExx(
 #ifdef __LINUX__
@@ -228,6 +228,7 @@ typedef struct MsgDataHandle
 	if( !pmq )
 		return NULL;
 	pmh          = (PMSGHANDLE)Allocate( sizeof( MSGHANDLE ) );
+	pmh->default_ttl = 250;
 	pmh->Read    = Read;
 	pmh->psvRead = psvRead;
 	pmh->pmq     = pmq;
@@ -240,11 +241,11 @@ typedef struct MsgDataHandle
 	pmq->Cnt++;
 	if( bCreated )
 	{
-      lprintf( WIDE("SackOpenMsgQueue should never result with a created queue!") );
-      DebugBreak();
+		lprintf( WIDE("SackOpenMsgQueue should never result with a created queue!") );
+		DebugBreak();
 		//pmq->Size = size;
 	}
-   return pmh;
+	return pmh;
 }
 
 //--------------------------------------------------------------------------
@@ -298,13 +299,13 @@ void DumpWaiterQueue( PMSGQUEUE pmq )
 	while( tmp != pmq->waiter_top )
 	{
 		lprintf( WIDE("[%d] waiter sleeping is %016") _64fX WIDE(" for %") _32f WIDE("")
-              , tmp
+				  , tmp
 				 , pmq->waiters[tmp].me
 				 , pmq->waiters[tmp].msg
 				 );
 		tmp++;
 		if( tmp >= 1024 )
-         tmp = 0;
+			tmp = 0;
 	}
 }
 #endif
@@ -381,7 +382,7 @@ static void CollapseWaiting( PMSGQUEUE pmq, long msg )
 			}
 			// update next
 			if( next == pmq->waiter_bottom )
-	            break;
+					break;
 			next--;
 			if( next < 0 )
 				next = 1023;
@@ -454,18 +455,18 @@ static int ScanForWaiting( PMSGQUEUE pmq, long msg )
 		}
 		tmp++;
 		if( tmp >= 1024 )
-         tmp = 0;
+			tmp = 0;
 	}
 
 	// now walk tmp backwards...
 	// and move entried before the threads woken forward...
-   // end up with a new bottom always (if having awoken something)
-   if( nWoken )
+	// end up with a new bottom always (if having awoken something)
+	if( nWoken )
 	{
 #ifndef DISABLE_MSGQUE_LOGGING_DETAILED
 		lprintf( WIDE("Scanning to delete messages that have been awoken.") );
 #endif
-      CollapseWaiting( pmq, 0 );
+		CollapseWaiting( pmq, 0 );
 	}
 
 	if( nWoken > 1 )
@@ -474,7 +475,7 @@ static int ScanForWaiting( PMSGQUEUE pmq, long msg )
 		lprintf( WIDE("Woke %d threads as a result of message id %08lx"), nWoken, msg );
 #endif
 	}
-   return 0;
+	return 0;
 }
 
 //--------------------------------------------------------------------------
@@ -588,6 +589,7 @@ static int ScanForWaiting( PMSGQUEUE pmq, long msg )
 					}
 				}
 				pStoreMsg->msg.ttl = timeGetTime() + pmh->default_ttl;
+				lprintf( WIDE( "Send Message TTL Expired in queue... %d %d %d" ), pStoreMsg->msg.ttl, pmh->default_ttl );
 				pStoreMsg->msg.real_length = (uint32_t)size;
 				pStoreMsg->msg.length = realsize | (( opts & MSGQUE_WAIT_ID )?MARK_THREAD_WAITING:0 );
 			}
@@ -675,14 +677,14 @@ int DequeMsgEx ( PMSGHANDLE pmh, long *MsgID, POINTER result, size_t size, uint3
 	int p;
 	int slept = 0;
 	INDEX tmp
-      , _tmp
+		, _tmp
 	;
 	uint32_t now = timeGetTime();
 	INDEX _Bottom, _Top;
 
-   //uint64_t tick, tick2;
+	//uint64_t tick, tick2;
 	if( !pmq )
-      return 0;
+		return 0;
 	// if there's a read routine, this should not be called.
 	// instead the routine to handle
 	p = 0;
@@ -784,7 +786,7 @@ int DequeMsgEx ( PMSGHANDLE pmh, long *MsgID, POINTER result, size_t size, uint3
 				// or b> someone wants to wakeup a process from Idle()... and we need to return
 				slept = 1;
 				WakeableSleep( SLEEP_FOREVER );
-            // remove wait message...
+				// remove wait message...
 #ifndef DISABLE_MSGQUE_LOGGING_DETAILED
 				lprintf( WIDE("Re-enter critical section here...(%016Lx)")
 						 , GetMyThreadID() );
@@ -835,7 +837,7 @@ int DequeMsgEx ( PMSGHANDLE pmh, long *MsgID, POINTER result, size_t size, uint3
 #endif
 			if( pReadMsg->msg.ttl < now )
 			{
-				lprintf( WIDE("Message TTL Expired in queue...") );
+				lprintf( WIDE("Message TTL Expired in queue... %d %d %d"), pReadMsg->msg.ttl, now, now - pReadMsg->msg.ttl );
 				LogBinary( pReadMsg, pReadMsg->msg.length & ACTUAL_LEN_MASK );
 				pReadMsg->msg.length |= MARK_MESSAGE_ALREADY_READ;
 			}
@@ -973,9 +975,9 @@ int DequeMsgEx ( PMSGHANDLE pmh, long *MsgID, POINTER result, size_t size, uint3
 							, pReadMsg->msg.real_length + sizeof( pReadMsg->MsgID ) );
 					p = pReadMsg->msg.real_length;
 #ifndef DISABLE_MSGQUE_LOGGING
-					lprintf( WIDE("DequeMessage [%p] %")_MsgID_f WIDE(" len %") _size_f , result, *(MSGIDTYPE*)result, p+sizeof( MSGDATA ) );
+					lprintf( WIDE("DequeMessage [%p] %")_MsgID_f WIDE(" len %") _size_f , result, *(MSGIDTYPE*)result, p+sizeof( pReadMsg->MsgID ) );
 #  ifndef DISABLE_MSGQUE_LOGBINARY
-					LogBinary( (POINTER)result, p+sizeof(MSGDATA) );
+					LogBinary( (POINTER)result, p+sizeof( pReadMsg->MsgID ) );
 #  endif
 #endif
 					pReadMsg->msg.length |= MARK_MESSAGE_ALREADY_READ;
