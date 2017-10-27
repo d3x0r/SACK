@@ -1,0 +1,12 @@
+<control border="4400" caption="frames/CreateTask.frame" position="0,0" size="480,373" type="Frame">
+<control IDName="EditControl/application/TXT_CONTROL_TEXT" caption="" position="152,17" size="225,24" type="EditControl"></control>
+<control IDName="EditControl/application/TXT_TASK_PATH" caption="" position="156,57" size="218,26" type="EditControl"></control>
+<control IDName="EditControl/application/TXT_TASK_NAME" caption="" position="155,93" size="214,25" type="EditControl"></control>
+<control IDName="EditControl/application/TXT_TASK_ARGS" caption="" position="155,126" size="217,27" type="EditControl"></control>
+<control IDName="ListBox/application/LST_TASKS" caption="(null)" position="155,164" size="213,115" type="ListBox"></control>
+<control caption="Task" position="19,24" size="73,21" type="TextControl"></control>
+<control caption="Program" position="21,63" size="73,21" type="TextControl"></control>
+<control caption="Path" position="26,102" size="73,21" type="TextControl"></control>
+<control caption="Args" position="26,131" size="73,21" type="TextControl"></control>
+<control IDName="Button/core/BTN_OKAY" PrivateData="#d75b6263" caption="Ok" position="194,294" size="73,21" type="Button"></control>
+<control IDName="Button/core/BTN_CANCEL" PrivateData="#d75b6263" caption="Cancel" position="298,293" size="73,21" type="Button"></control></control>

@@ -210,7 +210,7 @@ CLIENTMSG_PROC( int, SendRoutedServerMessage )( PSERVICE_ROUTE RouteID, uint32_t
 CLIENTMSG_PROC( int, SendServerMessage )( PSERVICE_ROUTE RouteID, uint32_t MessageID, POINTER msg, size_t len )
 {
 	BUFFER_LENGTH_PAIR pair;
-   int status;
+	int status;
 	pair.buffer = msg;
 	pair.len = len;
 	status = PrivateSendTransactionResponseMultiMessage( RouteID, MessageID, 1, &pair );
@@ -385,11 +385,9 @@ CLIENTMSG_PROC( int, TransactServerMultiMessage )( PSERVICE_ROUTE RouteID, MSGID
 
 }
 
-CLIENTMSG_PROC( TSMMProto
-										 // buffer starts arg list, length is
-                               // not used, but is here for demonstration
-									,
- TransactServerMultiMessageExEx )( DBG_VOIDPASS )
+// buffer starts arg list, length is
+// not used, but is here for demonstration
+CLIENTMSG_PROC( TSMMProto, TransactServerMultiMessageExEx )( DBG_VOIDPASS )
 {
 #ifdef LOG_SENT_MESSAGES
 #  ifdef _DEBUG

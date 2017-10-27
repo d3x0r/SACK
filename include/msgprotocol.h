@@ -124,7 +124,12 @@ typedef PREFIX_PACKED struct buffer_len_tag {
 // skip a couple messages so we don't have to recompile everything
 // very soon...
 #define MSG_EventUser       MSG_UserServiceMessages
-#define MSG_UserServiceMessages 4
+#define MSG_UserServiceMessages 16
+
+// skip a couple messages so we don't have to recompile everything
+// very soon...
+#define MSG_EventInternal       MSG_InternalServiceMessages
+#define MSG_InternalServiceMessages 4
 
 enum server_event_messages {
 	// these messages are sent to client's event channel
@@ -132,8 +137,9 @@ enum server_event_messages {
 	// it's on top of client event user - cause the library
 	// may also receive client_disconnect/connect messages
    //
-	MSG_SERVICE_DATA = MSG_EventUser
+	MSG_SERVICE_DATA = MSG_EventInternal
       , MSG_SERVICE_NOMORE // end of list - zero or more MSG_SERVICE_DATA mesasges will preceed this.
+	, MSG_SERVICE_MAX_ID
 };
 
 enum server_failure_messages {

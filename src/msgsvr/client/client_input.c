@@ -16,6 +16,7 @@ PTRANSACTIONHANDLER GetTransactionHandler( PSERVICE_ROUTE route )
 	{
 		handler = New( TRANSACTIONHANDLER );
 		MemSet( handler, 0, sizeof( TRANSACTIONHANDLER ) );
+		InitializeCriticalSec( &handler->csMsgTransact );
 		handler->route = route;
 		LinkThing( g.pTransactions, handler );
 	}
@@ -276,7 +277,7 @@ int WaitReceiveServerMsg ( PSLEEPER sleeper
 	{
 		//lprintf( WIDE("cleanup...%p"), handler );
 		handler->flags.waiting_for_responce = 0;
-		LeaveCriticalSec( &handler->csMsgTransact );
+		//LeaveCriticalSec( &handler->csMsgTransact );
 	}
 	//lprintf( WIDE("done waiting...") );
 	return TRUE;

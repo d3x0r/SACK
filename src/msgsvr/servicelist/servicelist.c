@@ -7,14 +7,14 @@ int main( void )
 	PLIST list = NULL;
 	INDEX idx;
 	char *service;
-   LoadComplete();
+	LoadComplete();
 	GetServiceList( &list );
 	printf( WIDE("Available services\n")
-           WIDE("---------------------------\n") );
+	        WIDE("---------------------------\n") );
 	LIST_FORALL( list, idx, char *, service )
 	{
-      printf( WIDE("%s\n"), service );
+		printf( WIDE("%s\n"), service );
 	}
-   return 0;
+	return 0;
 }
 

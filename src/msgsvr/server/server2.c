@@ -22,7 +22,7 @@ typedef struct service_tag
 
 typedef struct client_tag
 {
-   // unique routing ID of this client... services, clients, etc all ahve one.
+	// unique routing ID of this client... services, clients, etc all ahve one.
 	SERVICE_ROUTE route_id; // process only? no thread?
 	struct {
 		uint32_t valid : 1;
@@ -342,7 +342,7 @@ PRIORITY_PRELOAD( RegisterMasterService, MESSAGE_SERVICE_PRELOAD_PRIORITY )
 	// this is invoked via LoadFunction( msg.core.service )
 	RegisterService( NULL, MasterServiceTable, NUM_FUNCTIONS );
 	g.nClient = 100;
-   g.nService = 200;
+	g.nService = 200;
 }
 
 PUBLIC( void, ExportASymboleSoExportLibraryGetsBuilt )( void )
