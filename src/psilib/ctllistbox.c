@@ -402,6 +402,8 @@ static int OnDrawCommon( LISTBOX_CONTROL_NAME )( PSI_CONTROL pc )
 	}
 	else
 		bFirstDraw = FALSE;
+	if( !pSurface )
+		return 0;
 	BlatColorAlpha( plb->ListSurface, 0, 0, plb->ListSurface->width, plb->ListSurface->height, basecolor(pc)[EDIT_BACKGROUND] );
 	//ClearImageTo( pSurface, basecolor(pc)[EDIT_BACKGROUND] );
 	font = GetFrameFont( pc );

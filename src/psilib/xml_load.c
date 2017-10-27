@@ -247,6 +247,7 @@ PSI_CONTROL LoadXMLFrameOverExx( PSI_CONTROL parent, CTEXTSTR file, LOGICAL crea
 	TEXTSTR delete_filename = NULL;
 	TEXTSTR filename = (TEXTSTR)file; // assume this is the name until later
 	PSI_CONTROL frame;
+	GetMyInterface();
 #  ifdef USE_INTERFACES
 	if( !g.MyImageInterface )
 		return NULL;

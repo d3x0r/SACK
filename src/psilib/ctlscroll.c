@@ -48,6 +48,8 @@ static int CPROC RenderScrollBar( PSI_CONTROL pc )
 	{
 		Image surface = psb->surface;
 		int top, bottom;
+		if( !surface )
+			return 0;
 		// render top button...
 
 		if( psb->scrollflags.bHorizontal )
