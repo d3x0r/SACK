@@ -198,7 +198,7 @@ void ResumeThreads( void )
 		lprintf( WIDE("Resume Service") );
 		tick = timeGetTime();
 		g.pending = 1;
-		pthread_kill( ( GetThreadID( g.pThread ) & 0xFFFFFFFF ), SIGUSR2 );
+		pthread_kill( ( GetThreadHandle( g.pThread ) ), SIGUSR2 );
 		while( ((tick+10)>timeGetTime()) && g.pending ) Relinquish();
 	}
 	if( g.pMessageThread )
@@ -206,7 +206,7 @@ void ResumeThreads( void )
 		lprintf( WIDE("Resume Responce") );
 		tick = timeGetTime();
 		g.pending = 1;
-		pthread_kill( ( GetThreadID( g.pMessageThread ) & 0xFFFFFFFF ), SIGUSR2 );
+		pthread_kill( ( GetThreadHandle( g.pMessageThread ) ), SIGUSR2 );
 		while( ((tick+10)>timeGetTime()) && g.pending ) Relinquish();
 	}
 
@@ -215,7 +215,7 @@ void ResumeThreads( void )
 		lprintf( WIDE("Resume event") );
 		tick = timeGetTime();
 		g.pending = 1;
-		pthread_kill( ( GetThreadID( g.pEventThread ) & 0xFFFFFFFF ), SIGUSR2 );
+		pthread_kill( ( GetThreadHandle( g.pEventThread ) ), SIGUSR2 );
 		while( ((tick+10)>timeGetTime()) && g.pending ) Relinquish();
 	}
 	if( g.pLocalEventThread )
@@ -223,7 +223,7 @@ void ResumeThreads( void )
 		lprintf( WIDE("Resume local event") );
 		tick = timeGetTime();
 		g.pending = 1;
-		pthread_kill( ( GetThreadID( g.pLocalEventThread ) & 0xFFFFFFFF ), SIGUSR2 );
+		pthread_kill( ( GetThreadHandle( g.pLocalEventThread ) ), SIGUSR2 );
 		while( ((tick+10)>timeGetTime()) && g.pending ) Relinquish();
 	}
 #else

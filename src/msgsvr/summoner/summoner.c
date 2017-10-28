@@ -113,8 +113,8 @@ static LOCAL l;
 //--------------------------------------------------------------------------
 
 static int CPROC SummonerEvents( PSERVICE_ROUTE SourceRouteID, uint32_t MsgID
-										 , uint32_t *params, uint32_t param_length
-										 , uint32_t *result, uint32_t *result_length )
+										 , uint32_t *params, size_t param_length
+										 , uint32_t *result, size_t *result_length )
 {
 	// receives messages, and forwards them to the network interface...
 	// this task itself is able to spawn things(?)
@@ -170,7 +170,7 @@ static int CPROC SummonerEvents( PSERVICE_ROUTE SourceRouteID, uint32_t MsgID
 					task->flags.bWaitForStart = 0;
 					task->flags.bWaitForReady = 1;
  					WakeThread( l.pLoadingThread );
-					(*result_length) = INVALID_INDEX; // return result MsgID
+					(*result_length) = -1; // return result MsgID
 					return TRUE;
 				}
 			}
@@ -178,7 +178,7 @@ static int CPROC SummonerEvents( PSERVICE_ROUTE SourceRouteID, uint32_t MsgID
 			{
 				lprintf( WIDE("Failed to find the task...\n") );
 			}
-			(*result_length) = INVALID_INDEX;
+			(*result_length) = -1;
 			return FALSE;
 		}
 		//break;
@@ -197,7 +197,7 @@ static int CPROC SummonerEvents( PSERVICE_ROUTE SourceRouteID, uint32_t MsgID
 					task->flags.bStarted = 1;
 					// at this point dependant tasks will be able to start...
 					WakeThread( l.pLoadingThread );
-					(*result_length) = INVALID_INDEX; // allow result
+					(*result_length) = -1; // allow result
 					break;
 				}
 			}
@@ -226,7 +226,7 @@ static int CPROC SummonerEvents( PSERVICE_ROUTE SourceRouteID, uint32_t MsgID
 
 //--------------------------------------------------------------------------
 
-static void CPROC ReadComplete( PCLIENT pc, POINTER buffer, int len )
+static void CPROC ReadComplete( PCLIENT pc, POINTER buffer, size_t len )
 {
 	if( !buffer )
 	{
@@ -352,6 +352,16 @@ uintptr_t CPROC SetTaskProgram( uintptr_t psv, arg_list args )
 	PARAM( args, char *, program );
 	PMYTASK_INFO task = (PMYTASK_INFO)psv;
 	task->program = StrDup( program );
+	return psv;
+}
+
+//--------------------------------------------------------------------------
+
+uintptr_t CPROC SetTaskPath( uintptr_t psv, arg_list args )
+{
+	PARAM( args, char *, path );
+	PMYTASK_INFO task = (PMYTASK_INFO)psv;
+	task->path = StrDup( path );
 	return psv;
 }
 
@@ -648,9 +658,16 @@ void WriteConfig( char *name )
 					 , info->remote_address?info->remote_address:""
 					 , info->remote_address?"@":""
 					 ,info->name );
-			//fprintf( out, WIDE("Remote Task %m@%m"), CreateRemoteTaskWithName );
- 			fprintf( out, WIDE("args %s\n"), GetArgsString( (PCTEXTSTR)info->args ) );
+		//fprintf( out, WIDE("Remote Task %m@%m"), CreateRemoteTaskWithName );
+         if( info->args )
+				fprintf( out, WIDE("args %s\n"), GetArgsString( (PCTEXTSTR)info->args ) );
+			else
+				fprintf( out, WIDE("#args <arguments to program>\n" ) );
 			fprintf( out, WIDE("program %s\n"), info->program );
+         if( info->path )
+				fprintf( out, WIDE("path %s\n"), info->path );
+			else
+				fprintf( out, WIDE("#path <working directory> # set where the task should start\n" ) );
 			fprintf( out, WIDE("suspend %s\n"), info->flags.bSuspend?"Yes":"No" );
 			fprintf( out, WIDE("exclusive %s\n"), info->flags.bExclusive?"Yes":"No" );
 			fprintf( out, WIDE("restart %s\n"), info->flags.bRestart?"Yes":"No" );
@@ -702,6 +719,7 @@ void ReadConfig( void )
 	AddConfigurationMethod( pch, WIDE("program %m"), SetTaskProgram );
 	AddConfigurationMethod( pch, WIDE("suspend %b"), SetTaskSuspend );
 	AddConfigurationMethod( pch, WIDE("args %m"), SetTaskArguments );
+	AddConfigurationMethod( pch, WIDE("path %m"), SetTaskPath );
 	AddConfigurationMethod( pch, WIDE("require %m"), AddTaskRequirement );
 	AddConfigurationMethod( pch, WIDE("suggest %m"), AddTaskSuggestion );
 	AddConfigurationMethod( pch, WIDE("require %m@%m"), AddRemoteTaskRequirement );
@@ -822,7 +840,6 @@ void KillDependants( PMYTASK_INFO task )
 void CPROC TaskEnded( uintptr_t psv, PTASK_INFO task_ended )
 {
 	PMYTASK_INFO task = (PMYTASK_INFO)psv;
-	lprintf( WIDE("Task %s has exited.\n"), task->name );
 	lprintf( WIDE("Task %s has exited."), task->name );
 	lprintf( WIDE("finding task info in task->spawns %p %p"), &task->spawns, task_ended );
 	if( task->flags.bWaiting )
@@ -842,7 +859,7 @@ void CPROC TaskEnded( uintptr_t psv, PTASK_INFO task_ended )
 			 , task->flags.bFailedSpawn
 			 );
 
-	lprintf( "thsi task is %p", task );
+	lprintf( "this task is %p", task );
 	task->flags.bWaiting = 0;
 	task->flags.bStarted = 0;
 	if( FindLink( &task->spawns, (POINTER)task_ended ) != INVALID_INDEX )
@@ -892,6 +909,14 @@ int CPROC WaitingForDependancies( PMYTASK_INFO task )
 
 //--------------------------------------------------------------------------
 
+static void CPROC TaskOut(uintptr_t psvTask, PTASK_INFO task, CTEXTSTR buffer, size_t size ) {
+	PMYTASK_INFO myTask = (PMYTASK_INFO)psvTask;
+	lprintf( "%s:%*.*s", myTask->name, size-1, size-1, buffer );
+}
+
+//--------------------------------------------------------------------------
+
+
 void LoadTasks( void )
 {
 	int started;
@@ -899,6 +924,7 @@ void LoadTasks( void )
 	l.pLoadingThread = MakeThread();
 	do
 	{
+      PMYTASK_INFO nextTask;
 		started = 0;
 		if( l.flags.bSpawnActive )
 		{
@@ -912,11 +938,12 @@ void LoadTasks( void )
 			return;
 		}
 		lprintf( WIDE("Searching for something to start...") );
-		for( task = l.schedule; task; task = NextThing( task ) )
+		for( task = l.schedule; task; task = nextTask )
 		{
 			PTASK_INFO task_info;
+         nextTask = NextThing( task );
 			// next task in for loop.
-			lprintf( "check %p(%s)", task, task?task->name:"" );
+			lprintf( "check %p(%s) %d", task, task?task->name:"", l.flags.bSpawnActive );
 			if( l.flags.bSpawnActive )
 				if( task->flags.bStarted )
 				{
@@ -957,10 +984,12 @@ void LoadTasks( void )
 //cpg27dec2006 c:\work\sack\src\msgsvr\summoner\summoner.c(966): Warning! W1179: Parameter 3, type qualifier mismatch
 //cpg27dec2006 c:\work\sack\src\msgsvr\summoner\summoner.c(966): Note! N2003: source conversion type is 'char **'
 //cpg27dec2006 c:\work\sack\src\msgsvr\summoner\summoner.c(966): Note! N2004: target conversion type is 'char const *const *'
-		task_info = LaunchProgramEx( task->program
-											, task->path
-											, (PCTEXTSTR)task->args
-											, TaskEnded, (uintptr_t)task );
+			task_info = LaunchPeerProgramExx( task->program
+			                                , task->path
+			                                , (PCTEXTSTR)task->args
+			                                , LPP_OPTION_DO_NOT_HIDE|LPP_OPTION_NEW_GROUP
+			                                , TaskOut
+			                                , TaskEnded, (uintptr_t)task DBG_SRC );
 
 			if( task_info )
 			{
@@ -1039,7 +1068,7 @@ ATEXIT( DoUnloadTasks )
 
 //--------------------------------------------------------------------------
 
-void CPROC AvatarReadComplete( PCLIENT pc, POINTER buffer, int len )
+void CPROC AvatarReadComplete( PCLIENT pc, POINTER buffer, size_t len )
 {
 	uint32_t toread;
 	if( !buffer )
