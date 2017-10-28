@@ -10,17 +10,17 @@ if( WIN32 )
 		message( FATAL_ERROR "Environment 'VULKAN_API' has not been set" )
 	endif( NOT VULKAN_API )
 	message( "Vulkan API found at ${VULKAN_API}" )
+        
+	INCLUDE_DIRECTORIES( ${VULKAN_API}/Include )
+	if( __64__ )
+	   LINK_DIRECTORIES( ${VULKAN_API}/Source/lib )
+	else()
+	   LINK_DIRECTORIES( ${VULKAN_API}/Source/lib32 )
+	endif()
+
 else(WIN32)
-	set( VULKAN_API c:/tools/vulkansdk/1.0.61.1 )
 endif( WIN32 )
 
-
-INCLUDE_DIRECTORIES( ${VULKAN_API}/Include )
-if( __64__ )
-   LINK_DIRECTORIES( ${VULKAN_API}/Source/lib )
-else()
-   LINK_DIRECTORIES( ${VULKAN_API}/Source/lib32 )
-endif()
 
 ADD_DEFINITIONS( -D__3D__ )
 if( ( __NO_ODBC__ AND NOT USE_SQLITE ) OR NOT USE_OPTIONS )

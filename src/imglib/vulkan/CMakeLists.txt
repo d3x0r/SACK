@@ -1,4 +1,11 @@
 
+SET( SHADERC_SKIP_TESTS ON )
+SET( SHADERC_SKIP_INSTALL ON )
+SET( SPIRV_SKIP_EXECUTABLES ON )
+SET( SKIP_GLSLANG_INSTALL ON )
+SET( ENABLE_GLSLANG_BINARIES OFF )
+
+
 if( WIN32 )
 	#GET_FILENAME_COMPONENT(VULKAN_API "[HKEY_LOCAL_MACHINE\\SOFTWARE\\LunarG\\VulkanSDK;VK_SDK_PATHs]" ABSOLUTE CACHE)
 	set( SHADERC_ENABLE_SHARED_CRT ON )
@@ -10,19 +17,19 @@ if( WIN32 )
 		message( FATAL_ERROR "Environment 'VULKAN_API' has not been set" )
 	endif( NOT VULKAN_API )
 	message( "Vulkan API found at ${VULKAN_API}" )
-else(WIN32)
-	set( VULKAN_API c:/tools/vulkansdk/1.0.61.1 )
-endif( WIN32 )
-SET( SHADERC_SKIP_TESTS ON )
-SET( SHADERC_SKIP_INSTALL ON )
-add_subdirectory( ${VULKAN_API}/shaderc shaderc )
+	INCLUDE_DIRECTORIES( ${VULKAN_API}/Include )
+	if( __64__ )
+	   LINK_DIRECTORIES( ${VULKAN_API}/Source/lib )
+	else()
+	   LINK_DIRECTORIES( ${VULKAN_API}/Source/lib32 )
+	endif()
 
-INCLUDE_DIRECTORIES( ${VULKAN_API}/Include )
-if( __64__ )
-   LINK_DIRECTORIES( ${VULKAN_API}/Source/lib )
-else()
-   LINK_DIRECTORIES( ${VULKAN_API}/Source/lib32 )
-endif()
+	add_subdirectory( ${VULKAN_API}/shaderc shaderc )
+else(WIN32)
+	set( VULKAN_API /usr/include )
+	add_subdirectory( ${CMAKE_SOURCE_DIR}/../shaderc shaderc )
+endif( WIN32 )
+
 
 project( bag.image.vulkan )
 
@@ -57,7 +64,11 @@ else()
     set( VULKAN_SHADERC shaderc )
 endif()
 
-my_target_link_libraries( ${PROJECT_NAME} vulkan-1.lib shaderc )
+if( WIN32 )
+	my_target_link_libraries( ${PROJECT_NAME} vulkan-1.lib shaderc )
+else()
+	my_target_link_libraries( ${PROJECT_NAME} vulkan shaderc )
+endif()
 
 #my_target_link_libraries( ${PROJECT_NAME} bag.psi )
 
