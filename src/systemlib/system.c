@@ -1523,6 +1523,7 @@ SYSTEM_PROC( generic_function, LoadFunctionExx )( CTEXTSTR libname, CTEXTSTR fun
 			}
 		}
 #else
+		SuspendDeadstart();
 #  ifndef __ANDROID__
 		// ANDROID This will always fail from the application manager.
 #    ifdef UNICODE
