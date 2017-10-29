@@ -23,6 +23,9 @@ module bag.video.vulkan.dll
 
 alias service render vulkan.render
 alias service image vulkan.image
+
+alias service render.3d vulkan.render.3d
+alias service image.3d vulkan.image.3d
 endif
 
 if sack/vidlib/use interface == headless.instanced
