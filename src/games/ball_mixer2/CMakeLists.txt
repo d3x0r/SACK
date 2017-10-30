@@ -81,7 +81,7 @@ SET_TARGET_PROPERTIES(${PROJECT_NAME} PROPERTIES
 )
 
 install( FILES ball_mixer2.interface.conf DESTINATION bin )
-install( FILES NewBallTextGrid.png logoblank.png DESTINATION bin/Images/balls )
+install( FILES bumptextgrid.png roughbump.png NewBallTextGrid.png logoblank.png DESTINATION bin/Images/balls )
 
 if( WIN32 )
 	# On Windows platforms, the dynamic libs should

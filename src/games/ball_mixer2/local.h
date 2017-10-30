@@ -153,7 +153,7 @@ struct local_terrain_data_tag {
 			GLint normalTextureUniform;// = glGetUniformLocationARB(shaderId,"normalTexture");
 			GLint tangentLoc;  
 			GLint backgroundLoc;
-			GLuint shader; // shader program ID
+			PImageShaderTracker shader; // shader program ID
 			GLint frag_shader;// saved parts for later destruction?
 			GLint vert_shader;// saved parts for later destruction? 
 			GLint invRadiusUniform;
@@ -179,7 +179,7 @@ struct local_terrain_data_tag {
 			PImageShaderTracker shader_tracker;
 			GLint eye_point;
 
-			GLuint shader; // shader program ID
+			PImageShaderTracker shader; // shader program ID
 			GLint frag_shader;// saved parts for later destruction?
 			GLint vert_shader;// saved parts for later destruction? 
 			struct {
@@ -204,7 +204,7 @@ struct local_terrain_data_tag {
 			GLint modelview;
 			GLint eye_point;
 
-			GLuint shader; // shader program ID
+			PImageShaderTracker shader; // shader program ID
 			GLint frag_shader;// saved parts for later destruction?
 			GLint vert_shader;// saved parts for later destruction? 
 			GLint global_ambient;
@@ -262,7 +262,8 @@ struct SACK_3D_Surface {
 
 	int densityx;
 	int densityy;
-	//SurfaceType type;
+	//SurfaceType type;
+
 	GLuint VAOobject;
 
 	GLuint VBOvertices;
@@ -274,12 +275,14 @@ struct SACK_3D_Surface {
 	// support multiple textures on the same fragment.
 	PDATALIST pdl_VBONormalTexture;
 	GLuint VBOTangent;
-	GLuint VBOelements;
+	GLuint VBOelements;
+
 	PCVECTOR *vertices;
 	float cooTexture[8];
 	float normals[12];
 	float tangents[12];
-	GLuint *elements;
+	GLuint *elements;
+
 	int verts;
 } ;
 

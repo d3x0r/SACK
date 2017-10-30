@@ -1049,8 +1049,8 @@ void RenderBandPatch( PHEXPATCH patch, btScalar *m, int mode )
 						colors[n*4+3] = color[3];
 						n++;
 					}
-					ImageEnableShader( l.shader.extra_simple_shader.shader_tracker, verts, colors );
-					//ImageEnableShader( l.shader.simple_shader.shader_tracker, verts, norms, color );
+					//ImageEnableShader( l.shader.extra_simple_shader.shader_tracker, verts, colors );
+					ImageEnableShader( l.shader.simple_shader.shader_tracker, verts, norms, color );
 					glDrawArrays( GL_TRIANGLE_STRIP, 0, n );
 					//CheckErr();
 				}
@@ -2178,9 +2178,8 @@ static void OnDraw3d( WIDE("Terrain View") )( uintptr_t psvInit )
 		for( idx = 0; idx < 16; idx++ )
 			l.worldview[idx] = tmp[0][idx];
 
-
-		SetLights();
-		SetMaterial();
+		//SetLights();
+		//SetMaterial();
 
 		{
 			PHEXPATCH patch;
@@ -2588,12 +2587,27 @@ CRITICALSECTION csUpdate;
 		BeginWatch( l.nNextBalls[0] );
 		//lprintf( WIDE("at home position") );
 	}
+}
 
+
+static void *(bulletAllocAligned)(size_t size, int alignment) {
+	return HeapAllocateAligned( NULL, size, alignment );
+}
+static void (bulletFreeAligned)( void *memblock ) {
+	Release( memblock );
+}
+static void *(bulletAlloc)(size_t size) {
+	return HeapAllocateAligned( NULL, size, 0 );
+}
+static void (bulletFree)( void *memblock ) {
+	Release( memblock );
 
 }
 
 void SetupBullet( struct BulletInfo *_bullet )
 {
+	btAlignedAllocSetCustom( bulletAlloc, bulletFree );
+	btAlignedAllocSetCustomAligned( bulletAllocAligned, bulletFreeAligned );
 	_bullet->broadphase = new btDbvtBroadphase();
 
 	_bullet->collisionConfiguration = new btDefaultCollisionConfiguration();
@@ -2942,7 +2956,7 @@ PRELOAD( InitDisplay )
 	l.hotball_image[10] = LoadImageFile( name );
 
 	SACK_GetProfileString( WIDE("Ball Animation"), WIDE("Images/Ball Logo"), WIDE("Images/balls/logoblank.png"), l.logo_name, 256 );
-	SACK_GetProfileString( WIDE("Ball Animation"), WIDE("Images/Ball Numbers"), WIDE("Images/balls/NewBallTextGrid.png"), l.numbers.image_name, 256 );
+	SACK_GetProfileString( WIDE("Ball Animation"), WIDE("Images/Ball Numbers"), WIDE("Images/balls/bumptextgrid.png"), l.numbers.image_name, 256 );
 	SACK_GetProfileString( WIDE("Ball Animation"), WIDE("Images/Ball Numbers Normal"), WIDE("Images/balls/roughbump.png"), l.numbers.bump_image_name, 256 );
 
 
