@@ -156,6 +156,7 @@ struct ImageFile_tag
 
 #ifdef _OPENGL_DRIVER
 	/* gl context? */
+	LOGICAL depthTest;
 	PLIST glSurface;
 	int glActiveSurface; // most things will still use this, since reload image is called first, reload will set active
 	VECTOR coords[4];  // updated with SetTransformRelation, otherwise defaults to image size.
