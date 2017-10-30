@@ -276,7 +276,12 @@ endif( NOT __ANDROID__ )
                 SET( libfile_list ${libfile_list} bag.image.puregl2 )
                 SET( libfile_list ${libfile_list} bag.video.puregl2 )
 
-# proxy is memory-only and platform agnostic                
+if( INCLUDE_VULKAN )
+                SET( libfile_list ${libfile_list} bag.image.vulkan )
+                SET( libfile_list ${libfile_list} bag.video.vulkan )
+endif( INCLUDE_VULKAN )
+
+		# proxy is memory-only and platform agnostic                
                 SET( libfile_list ${libfile_list} bag.video.proxy.server )
                 SET( libfile_list ${libfile_list} bag.video.proxy.instance.server )
 endif( NOT __NO_GUI__ )
