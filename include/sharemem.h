@@ -408,7 +408,7 @@ MEM_PROC  POINTER MEM_API  AllocateEx ( uintptr_t nSize DBG_PASS );
    /* <combine sack::memory::HeapAllocateAlignedEx@PMEM@uintptr_t@uint32_t>
 
    \ \                                                        */
-#define HeapAllocateAligned(heap, n, m) HeapAllocateEx( (heap), (n), m DBG_SRC )
+#define HeapAllocateAligned(heap, n, m) HeapAllocateAlignedEx( (heap), (n), m DBG_SRC )
    /* <combine sack::memory::AllocateEx@uintptr_t nSize>
    
    \ \                                               */
