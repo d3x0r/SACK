@@ -670,5 +670,42 @@ void AppendImageShaderOpTristrip( struct image_shader_op *op, int triangles, ...
 		op->tracker->AppendTristrip( op, triangles, op->psvKey, args );	
 }
 
+void SetShaderDepth( Image pImage, LOGICAL enable ) {
+	pImage->depthTest = enable;
+
+}
+
+int GetShaderUniformLocation( PImageShaderTracker shader, const char *uniformName ) {
+	int r = glGetUniformLocation( shader->glProgramId, uniformName );
+	CheckErr();
+	return r;
+}
+
+void SetUniform4f( int uniformId, float v1, float v2, float v3, float v4 ) {
+	glUniform4f( uniformId, v1, v2, v3, v4 );
+	CheckErr();
+}
+
+
+void SetUniform4fv( int uniformId, int n, RCOORD *v1 ) {
+	glUniform4fv( uniformId, n, v1 );
+	CheckErr();
+}
+
+void SetUniform3fv( int uniformId, int n, RCOORD *v1 ) {
+	glUniform3fv( uniformId, n, v1 );
+	CheckErr();
+}
+
+void SetUniform1f( int uniformId, RCOORD v1 ) {
+	glUniform1f( uniformId, v1 );
+	CheckErr();
+}
+
+void SetUniformMatrix4fv( int uniformId, int n, int sign, RCOORD *v1 ) {
+	glUniformMatrix4fv( uniformId, n, sign, v1 );
+	CheckErr();
+
+}
 
 IMAGE_NAMESPACE_END

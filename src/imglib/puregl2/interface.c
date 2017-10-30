@@ -153,8 +153,8 @@ IMAGE_INTERFACE RealImageInterface = {
 
 IMAGE_3D_INTERFACE Image3dInterface = {
 	GetShaderInit,
-      CompileShader,
-      CompileShaderEx,
+	  CompileShader,
+	  CompileShaderEx,
 		EnableShader,
 		SetShaderEnable,
 		SetShaderModelView,
@@ -166,9 +166,18 @@ IMAGE_3D_INTERFACE Image3dInterface = {
 		AppendShaderTristrip,
 		//BeginShaderOp,
 		//ClearShaderOp,
-        //AppendShaderOpTristrop
+		//AppendShaderOpTristrop
 		CreateShaderBuffer,
 		AppendShaderBufferData,
+
+		SetShaderDepth,
+
+		GetShaderUniformLocation,
+		SetUniform4f,
+		SetUniform4fv,
+		SetUniform3fv,
+		SetUniform1f,
+		SetUniformMatrix4fv,
 };
 
 #undef GetImageInterface

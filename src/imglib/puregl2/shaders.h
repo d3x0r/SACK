@@ -154,6 +154,14 @@ struct image_shader_op * CPROC BeginShaderOp(PImageShaderTracker tracker, ... );
 struct image_shader_op * BeginImageShaderOp(PImageShaderTracker tracker, Image target, ... );
 void AppendImageShaderOpTristrip( struct image_shader_op *op, int triangles, ... );
 
+void SetShaderDepth( Image pImage, LOGICAL enable );
+int GetShaderUniformLocation( PImageShaderTracker shader, const char *uniformName );
+void SetUniform4f( int uniformId, float v1, float v2, float v3, float v4 );
+void SetUniform4fv( int uniformId, int n, RCOORD *v1 );
+void SetUniform3fv( int uniformId, int n, RCOORD *v1 );
+void SetUniform1f( int uniformId, RCOORD v1 );
+void SetUniformMatrix4fv( int uniformId, int n, int sign, RCOORD *v1 );
+
 
 IMAGE_NAMESPACE_END
 #endif

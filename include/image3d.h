@@ -60,6 +60,13 @@ typedef struct image_3d_interface_tag
 	IMAGE_PROC_PTR( size_t, ImageAppendShaderData )( struct shader_buffer *buffer, float *element );
 	IMAGE_PROC_PTR( void, SetShaderDepth )(Image pImage, LOGICAL enable);
 
+	IMAGE_PROC_PTR( int, GetShaderUniformLocation )(PImageShaderTracker shader, const char *uniformName);
+	IMAGE_PROC_PTR( void, SetUniform4f )(int uniformId, float v1, float v2, float v3, float v4);
+	IMAGE_PROC_PTR( void, SetUniform4fv )(int uniformId, int n, RCOORD *v1);
+	IMAGE_PROC_PTR( void, SetUniform3fv )(int uniformId, int n, RCOORD *v1);
+	IMAGE_PROC_PTR( void, SetUniform1f )(int uniformId, RCOORD v1);
+	IMAGE_PROC_PTR( void, SetUniformMatrix4fv )(int uniformId, int n, int sign, RCOORD *v1);
+
 } IMAGE_3D_INTERFACE, *PIMAGE_3D_INTERFACE;
 
 
@@ -89,6 +96,12 @@ typedef struct image_3d_interface_tag
 #  define ImageCreateShaderBuffer           IMAGE3D_PROC_ALIAS(ImageCreateShaderBuffer)
 #  define ImageAppendShaderData             IMAGE3D_PROC_ALIAS(ImageAppendShaderData)
 #  define ImageSetShaderDepth             IMAGE3D_PROC_ALIAS(SetShaderDepth)
+#  define ImageGetShaderUniformLocation   IMAGE3D_PROC_ALIAS(GetShaderUniformLocation)
+#  define ImageSetUniform4f               IMAGE3D_PROC_ALIAS(SetUniform4f)
+#  define ImageSetUniform4fv               IMAGE3D_PROC_ALIAS(SetUniform4fv)
+#  define ImageSetUniform3fv               IMAGE3D_PROC_ALIAS(SetUniform3fv)
+#  define ImageSetUniform1f               IMAGE3D_PROC_ALIAS(SetUniform1f)
+#  define ImageSetUniformMatrix4fv               IMAGE3D_PROC_ALIAS(SetUniformMatrix4fv)
 #endif
 IMAGE_NAMESPACE_END
 

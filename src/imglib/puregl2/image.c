@@ -56,10 +56,10 @@ static void OnFirstDraw3d( WIDE( "@00 PUREGL Image Library" ) )( uintptr_t psv )
 	l.glActiveSurface = (struct glSurfaceData *)psv;
 
 #if !defined( USE_GLES2 )
-	//if (GLEW_OK != glewInit() )
-	//{
-	//	return;
-	//}
+	if (GLEW_OK != glewInit() )
+	{
+		return;
+	}
 #endif
 	tmp = 123;
 	glGetBooleanv( GL_SHADER_COMPILER, &tmp );
