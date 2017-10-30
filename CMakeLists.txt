@@ -3,9 +3,8 @@ set( CMAKE_INSTALL_MESSAGE "LAZY" )
 cmake_minimum_required(VERSION 3.1)
 
 project( SACK )
-#message( WIN32=${WIN32} )
-#message( UNIX=${UNIX} )
-#message( CMAKE_SYSTEM_NAME=${CMAKE_SYSTEM_NAME} )
+
+SET( ENABLE_VULKAN ON )
 
 
 SET( MAKING_SACK_CORE ON )
@@ -290,6 +289,8 @@ OPTION( USE_HARDWARE_INFO "Include Hardware information utilities" ${WIN32} )
 
 OPTION( BUILD_MONOLITHIC "Build one giant library" ${BUILD_MONOLITHIC} )
 OPTION( BUILD_UNICODE "Build All as Unicode" ${BUILD_UNICODE} )
+
+OPTION( INCLUDE_VULKAN "Include vulkan interfaces" ${ENABLE_VULKAN} )
 
 # default itnerface output path... (override if __CLR__)
 # should make this a common target variable instead also...
@@ -1360,7 +1361,9 @@ endIF(NOT FORCE_CXX AND EXISTS ${BULLET_SOURCE}/CMakeLists.txt AND NOT BUILD_UNI
 if( NOT BUILD_MONOLITHIC AND NOT __NO_GUI__ )
 	#include vidlib first incase glew is used, then imglib
 	add_subdirectory( src/imglib/puregl2 )
-	#add_subdirectory( src/imglib/vulkan )
+        if( INCLUDE_VULKAN )
+		add_subdirectory( src/imglib/vulkan )
+        endif( INCLUDE_VULKAN )
 
 if( NOT __QNX__ AND NOT __ANDROID__ )
 	#standard OpenGL; mostly windows-centric
@@ -1373,13 +1376,15 @@ endif( NOT __QNX__ AND NOT __ANDROID__ )
   #endif( NOT WIN8_SDK OR ( WIN8_SDK STREQUAL "/registry" ) )
 
 if( NOT __NO_NETWORK__ )
-  add_subdirectory( src/vidlib/proxy )
+	add_subdirectory( src/vidlib/proxy )
 endif( NOT __NO_NETWORK__ )
-  add_subdirectory( src/vidlib/puregl2 )
-  #add_subdirectory( src/vidlib/vulkan )
+	add_subdirectory( src/vidlib/puregl2 )
+        if( INCLUDE_VULKAN )
+		add_subdirectory( src/vidlib/vulkan )
+        endif( INCLUDE_VULKAN )
 
 if( NOT __QNX__ AND NOT __ANDROID__ )
-  add_subdirectory( src/vidlib/puregl )
+	add_subdirectory( src/vidlib/puregl )
 endif( NOT __QNX__ AND NOT __ANDROID__ )
 
   if( __ANDROID__ )
