@@ -170,6 +170,7 @@ IMAGE_3D_INTERFACE Image3dInterface = {
 		CreateShaderBuffer,
 		AppendShaderBufferData,
 		SetShaderDepth,
+		GetShaderUniformLocation,
 };
 
 #undef GetImageInterface

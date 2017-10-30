@@ -659,6 +659,26 @@ void SetShaderDepth( Image pImage, LOGICAL enable ) {
 	pImage->depthTest = enable;
 }
 
+int GetShaderUniformLocation( PImageShaderTracker shader, const char *uniformName ) {
+	//glGetUniformLocation( shader->vkVertexProgramId, "in_eye_point" );
+}
+
+void SetUniform4f( int uniformId, RCOORD v1, RCOORD v2, RCOORD v3, RCOORD v4 ) {
+	//glUniform4f( )
+}
+
+void SetUniform3fv( int uniformId, int n, RCOORD *v1 ) {
+	//glUniform4f( )
+}
+
+
+void SetUniform4fv( int uniformId, int n, RCOORD *v1 ) {
+	//glUniform4f( )
+}
+
+void SetUniform1f( int uniformId, RCOORD v1 ) {
+	//glUniform4f( )
+}
 
 
 IMAGE_NAMESPACE_END

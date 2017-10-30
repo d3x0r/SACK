@@ -155,6 +155,9 @@ struct image_shader_op * BeginImageShaderOp(PImageShaderTracker tracker, Image t
 void AppendImageShaderOpTristrip( struct image_shader_op *op, int triangles, ... );
 
 void SetShaderDepth( Image pImage, LOGICAL enable );
+int GetShaderUniformLocation( PImageShaderTracker shader, const char *uniformName );
+void SetUniform4f( int uniformId, float v1, float v2, float v3, float v4 );
+
 
 IMAGE_NAMESPACE_END
 #endif
