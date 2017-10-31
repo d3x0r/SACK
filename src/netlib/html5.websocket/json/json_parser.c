@@ -42,6 +42,7 @@ char *json_escape_string( const char *string ) {
 		}
 		output[m++] = string[n];
 	}
+	output[m] = string[n];
 	return output;
 }
 
