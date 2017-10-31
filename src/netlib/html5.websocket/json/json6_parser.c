@@ -950,6 +950,8 @@ int json6_parse_add_data( struct json_parse_state *state
 						// keep it set to determine what sort of value is ready.
 						if( !state->gatheringNumber ) {
 							state->exponent = FALSE;
+							state->exponent_sign = FALSE;
+							state->exponent_digit = FALSE;
 							fromDate = FALSE;
 							state->fromHex = FALSE;
 							state->val.float_result = (c == '.');
@@ -973,6 +975,8 @@ int json6_parse_add_data( struct json_parse_state *state
 							if( c >= '0' && c <= '9' )
 							{
 								(*output->pos++) = c;
+								if( state->exponent )
+									state->exponent_digit = TRUE;
 							}
 #if 0
 							// to be implemented
@@ -986,7 +990,7 @@ int json6_parse_add_data( struct json_parse_state *state
 
 							}
 #endif
-							else if( c == 'x' || c == 'b' && state->n == 1 ) {
+							else if( ( c == 'x' || c == 'b' ) && ( output->pos - output->buf ) == 1 ) {
 								// hex conversion.
 								if( !state->fromHex ) {
 									state->fromHex = TRUE;
@@ -1013,7 +1017,7 @@ int json6_parse_add_data( struct json_parse_state *state
 									break;
 								}
 							}
-							else if( c == '-' ) {
+							else if( c == '-' || c == '+' ) {
 								if( !state->exponent ) {
 									state->status = FALSE;
 									if( !state->pvtError ) state->pvtError = VarTextCreate();
@@ -1021,12 +1025,21 @@ int json6_parse_add_data( struct json_parse_state *state
 									break;
 								}
 								else {
-									(*output->pos++) = c;
+									if( !state->exponent_sign && !state->exponent_digit ) {
+										(*output->pos++) = c;
+										state->exponent_sign = 1;
+									}
+									else {
+										state->status = FALSE;
+										if( !state->pvtError ) state->pvtError = VarTextCreate();
+										vtprintf( state->pvtError, WIDE( "fault white parsing number; '%c' unexpected at %" ) _size_f WIDE( "  %" ) _size_f WIDE( ":%" ) _size_f, c, state->n, state->line, state->col );
+										break;
+									}
 								}
 							}
 							else if( c == '.' )
 							{
-								if( !state->val.float_result ) {
+								if( !state->val.float_result && !state->fromHex ) {
 									state->val.float_result = 1;
 									(*output->pos++) = c;
 								}
