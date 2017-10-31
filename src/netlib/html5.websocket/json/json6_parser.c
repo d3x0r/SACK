@@ -309,7 +309,7 @@ int json6_parse_add_data( struct json_parse_state *state
 			offset = (output->pos - output->buf);
 			offset2 = state->val.string ? (state->val.string - output->buf) : 0;
 			AddLink( &state->outValBuffers, output->buf );
-			output->buf = NewArray( char, output->size + msglen );
+			output->buf = NewArray( char, output->size + msglen + 1 );
 			if( state->val.string ) {
 				MemCpy( output->buf + offset2, state->val.string, offset - offset2 );
 				state->val.string = output->buf + offset2;
@@ -321,7 +321,7 @@ int json6_parse_add_data( struct json_parse_state *state
 		}
 		else {
 			output = (struct json_output_buffer*)GetFromSet( PARSE_BUFFER, &jpsd.parseBuffers );
-			output->pos = output->buf = NewArray( char, msglen );
+			output->pos = output->buf = NewArray( char, msglen + 1 );
 			output->size = msglen;
 			EnqueLink( &state->outQueue, output );
 		}
@@ -952,7 +952,7 @@ int json6_parse_add_data( struct json_parse_state *state
 							state->exponent = FALSE;
 							fromDate = FALSE;
 							state->fromHex = FALSE;
-							state->val.float_result = 0;
+							state->val.float_result = (c == '.');
 							state->val.string = output->pos;
 							(*output->pos++) = c;  // terminate the string.
 						}
@@ -970,9 +970,7 @@ int json6_parse_add_data( struct json_parse_state *state
 							if( c == '_' )
 								continue;
 
-							if( (c >= '0' && c <= '9')
-								|| (c == '+')
-								)
+							if( c >= '0' && c <= '9' )
 							{
 								(*output->pos++) = c;
 							}
@@ -988,7 +986,7 @@ int json6_parse_add_data( struct json_parse_state *state
 
 							}
 #endif
-							else if( c == 'x' || c == 'b' ) {
+							else if( c == 'x' || c == 'b' && state->n == 1 ) {
 								// hex conversion.
 								if( !state->fromHex ) {
 									state->fromHex = TRUE;
@@ -997,7 +995,7 @@ int json6_parse_add_data( struct json_parse_state *state
 								else {
 									state->status = FALSE;
 									if( !state->pvtError ) state->pvtError = VarTextCreate();
-									vtprintf( state->pvtError, WIDE( "fault wile parsing; '%c' unexpected at %" ) _size_f WIDE( "  %" ) _size_f WIDE( ":%" ) _size_f, c, state->n, state->line, state->col );
+									vtprintf( state->pvtError, WIDE( "fault white parsing number; '%c' unexpected at %" ) _size_f WIDE( "  %" ) _size_f WIDE( ":%" ) _size_f, c, state->n, state->line, state->col );
 									break;
 								}
 							}
@@ -1011,7 +1009,7 @@ int json6_parse_add_data( struct json_parse_state *state
 								else {
 									state->status = FALSE;
 									if( !state->pvtError ) state->pvtError = VarTextCreate();
-									vtprintf( state->pvtError, WIDE( "fault wile parsing; '%c' unexpected at %" ) _size_f WIDE( "  %" ) _size_f WIDE( ":%" ) _size_f, c, state->n, state->line, state->col );
+									vtprintf( state->pvtError, WIDE( "fault white parsing number; '%c' unexpected at %" ) _size_f WIDE( "  %" ) _size_f WIDE( ":%" ) _size_f, c, state->n, state->line, state->col );
 									break;
 								}
 							}
@@ -1019,7 +1017,7 @@ int json6_parse_add_data( struct json_parse_state *state
 								if( !state->exponent ) {
 									state->status = FALSE;
 									if( !state->pvtError ) state->pvtError = VarTextCreate();
-									vtprintf( state->pvtError, WIDE( "fault wile parsing; '%c' unexpected at %" ) _size_f WIDE( "  %" ) _size_f WIDE( ":%" ) _size_f, c, state->n, state->line, state->col );
+									vtprintf( state->pvtError, WIDE( "fault white parsing number; '%c' unexpected at %" ) _size_f WIDE( "  %" ) _size_f WIDE( ":%" ) _size_f, c, state->n, state->line, state->col );
 									break;
 								}
 								else {
@@ -1035,22 +1033,25 @@ int json6_parse_add_data( struct json_parse_state *state
 								else {
 									state->status = FALSE;
 									if( !state->pvtError ) state->pvtError = VarTextCreate();
-									vtprintf( state->pvtError, WIDE( "fault wile parsing; '%c' unexpected at %" ) _size_f WIDE( "  %" ) _size_f WIDE( ":%" ) _size_f, c, state->n, state->line, state->col );
+									vtprintf( state->pvtError, WIDE( "fault white parsing number; '%c' unexpected at %" ) _size_f WIDE( "  %" ) _size_f WIDE( ":%" ) _size_f, c, state->n, state->line, state->col );
 									break;
 								}
 							}
 							else
 							{
 								// in non streaming mode; these would be required to follow
-								/*
 								if( c == ' ' || c == '\t' || c == '\n' || c == '\r' || c == 0xFEFF
-									|| c == ',' || c == '\'' || c == '\"' || c == '`' ) {
-
+									|| c == ',' || c == ']' || c == '}'  || c == ':' ) {
+									//lprintf( "Non numeric character received; push the value we have" );
+									(*output->pos) = 0;
+									break;
 								}
-								*/
-								//lprintf( "Non numeric character received; push the value we have" );
-								(*output->pos) = 0;
-								break;
+								else {
+									state->status = FALSE;
+									if( !state->pvtError ) state->pvtError = VarTextCreate();
+									vtprintf( state->pvtError, WIDE( "fault white parsing number; '%c' unexpected at %" ) _size_f WIDE( "  %" ) _size_f WIDE( ":%" ) _size_f, c, state->n, state->line, state->col );
+									break;
+								}
 							}
 						}
 						if( input ) {
