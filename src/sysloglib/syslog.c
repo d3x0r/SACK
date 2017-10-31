@@ -1,7 +1,7 @@
 /*
  *  Crafted by James Buckeyne
  *
- *   (c) Freedom Collective 2000-2006++
+ *   (c) Freedom Collective 2000-2017++
  *
  *   created to provide standard logging features
  *   lprintf( format, ... ); simple, basic
@@ -13,6 +13,10 @@
  * see also - include/logging.h
  *
  */
+
+//#define SUPPORT_LOG_ALLOCATE
+//#define DEFAULT_OUTPUT_STDERR
+
 #define COMPUTE_CPU_FREQUENCY
 #define NO_UNICODE_C
 //#undef UNICODE
@@ -116,7 +120,7 @@ struct state_flags{
  uint64_t tick_bias;
  uint64_t lasttick;
  uint64_t lasttick2;
- 
+
  LOGICAL bStarted;
  LOGICAL bLogging;
  LOGICAL bSyslogdLogging;
@@ -191,13 +195,13 @@ PRIORITY_ATEXIT( CleanSyslog, ATEXIT_PRIORITY_SYSLOG )
 
 
 #if 0
-				/*
-				 * this code would ideally check to see if
-				 * the cpu rdtsc instruction worked....
-				 * someday we should consider using the rdtscp instruction
-				 * but that will require fetching CPU characteristics
-             * - SEE mmx.asm in src/imglib/
-             */
+        /*
+         * this code would ideally check to see if
+         * the cpu rdtsc instruction worked....
+         * someday we should consider using the rdtscp instruction
+         * but that will require fetching CPU characteristics
+         * - SEE mmx.asm in src/imglib/
+         */
 void TestCPUTick( void )
 {
 	uint64_t tick, _tick;
@@ -272,13 +276,13 @@ uint64_t GetCPUTick(void )
 		uint64_t tick = __rdtsc();
 #   else
 		static uint64_t tick;
-#if _ARM_ 
+#     if _ARM_
 		tick = tick+1;
-#else
+#     else
 		_asm rdtsc;
 		_asm mov dword ptr [tick], eax;
 		_asm mov dword ptr [tick + 4], edx;
-#endif
+#     endif
 #   endif
 		if( !(*syslog_local).lasttick )
 			(*syslog_local).lasttick = tick;
@@ -531,11 +535,12 @@ void InitSyslog( int ignore_options )
 			/* using SYSLOG_AUTO_FILE option does not require this to be open.
 			* it is opened on demand.
 			*/
+#      if !defined( DEFAULT_OUTPUT_STDERR )
 			logtype = SYSLOG_AUTO_FILE;
-			//(*syslog_local).file = stderr;
-
-			//logtype = SYSLOG_FILE;
-			//(*syslog_local).file = stderr;
+#      else
+			logtype = SYSLOG_FILE;
+			(*syslog_local).file = stderr;
+#      endif
 			(*syslog_local).flags.bLogOpenBackup = 1;
 			(*syslog_local).flags.bUseDeltaTime = 1;
 			(*syslog_local).flags.bLogCPUTime = 1;
@@ -595,9 +600,9 @@ CTEXTSTR GetTimeEx( int bUseDay )
 {
 	/* used by sqlite extension to support now() */
 #ifdef _WIN32
-#ifndef WIN32
-#define WIN32 _WIN32
-#endif
+#  ifndef WIN32
+#    define WIN32 _WIN32
+#  endif
 #endif
 
 #if defined( WIN32 ) && !defined( __ANDROID__ )
@@ -639,9 +644,9 @@ CTEXTSTR GetPackedTime( void )
 {
 	/* used by sqlite extension to support now() */
 #ifdef _WIN32
-#ifndef WIN32
-#define WIN32 _WIN32
-#endif
+#  ifndef WIN32
+#    define WIN32 _WIN32
+#  endif
 #endif
 
 #if defined( WIN32 ) && !defined( __ANDROID__ )
@@ -672,7 +677,7 @@ CTEXTSTR GetPackedTime( void )
 #ifndef BCC16 // no gettime of day - no milliseconds
 static TEXTCHAR *GetTimeHigh( void )
 {
-#if defined WIN32 && !defined( __ANDROID__ )
+#  if defined WIN32 && !defined( __ANDROID__ )
 	 static TEXTCHAR timebuffer[256];
 	static SYSTEMTIME _st;
 	SYSTEMTIME st, st_save;
@@ -716,7 +721,7 @@ static TEXTCHAR *GetTimeHigh( void )
 	else
 		tnprintf( timebuffer, sizeof(timebuffer), WIDE("%02d:%02d:%02d.%03d")
 		        , st.wHour, st.wMinute, st.wSecond, st.wMilliseconds );
-#else
+#  else
 	static char timebuffer[256];
 	static struct timeval _tv;
 	static struct tm _tm;
@@ -769,25 +774,25 @@ static TEXTCHAR *GetTimeHigh( void )
 	               , sizeof( timebuffer )
 	               , ((*syslog_local).flags.bUseDay)?"%m/%d/%Y %H:%M:%S":"%H:%M:%S"
 					  , &tm );
-#undef snprintf
+#  undef snprintf
 	snprintf( timebuffer + len, 5, ".%03ld", tv.tv_usec / 1000 );
 	/*
-    // this code is kept in case borland's compiler don't like it.
-    {
-    time_t timevalnow;
-    time(&timevalnow);
-    timething = localtime( &timevalnow );
-    strftime( timebuffer
-    , sizeof( timebuffer )
-    , WIDE("%m/%d/%Y %H:%M:%S.000")
-    , timething );
-    }
-	 */
-#endif
+	// this code is kept in case borland's compiler don't like it.
+	{
+		time_t timevalnow;
+		time(&timevalnow);
+		timething = localtime( &timevalnow );
+		strftime( timebuffer
+		        , sizeof( timebuffer )
+		        , WIDE("%m/%d/%Y %H:%M:%S.000")
+		        , timething );
+	}
+	*/
+#  endif
 	return timebuffer;
 }
 #else
-#define GetTimeHigh GetTime
+#  define GetTimeHigh GetTime
 #endif
 
 uint32_t ConvertTickToMicrosecond( uint64_t tick )
@@ -925,7 +930,7 @@ static void UDPSystemLog( const TEXTCHAR *message )
 		}
 #ifndef BCC16
 		if( setsockopt( hSock, SOL_SOCKET
-						  , SO_BROADCAST, (char*)&bEnable, sizeof( bEnable ) ) )
+		              , SO_BROADCAST, (char*)&bEnable, sizeof( bEnable ) ) )
 		{
 			Log( WIDE("Failed to set sock opt - BROADCAST") );
 		}
@@ -937,16 +942,19 @@ static void UDPSystemLog( const TEXTCHAR *message )
 		static TEXTCHAR realmsg[1024];
 		nSend = tnprintf( realmsg, sizeof( realmsg ), /*"[%s]"*/ WIDE("%s")
 				  //, pProgramName
-				  , message );
+		                , message );
 		message = realmsg;
 #ifdef __cplusplus_cli
 		char *tmp = CStrDup( realmsg );
-#define SENDBUF tmp
+#  define SENDBUF tmp
 #else
-#define SENDBUF message
+#  define SENDBUF message
 #endif
-		/*nSent = */sendto( hSock, (const char *)SENDBUF, nSend, 0
-						  ,(logtype == SYSLOG_UDPBROADCAST)?&saLogBroadcast:&saLog, sizeof( SOCKADDR ) );
+		sendto( hSock, (const char *)SENDBUF, nSend, 0
+		      , (logtype == SYSLOG_UDPBROADCAST)
+		        ? &saLogBroadcast
+		        : &saLog
+		      , sizeof( SOCKADDR ) );
 #ifdef __cplusplus_cli
 		Release( tmp );
 #endif
@@ -1055,14 +1063,20 @@ static void FileSystemLog( CTEXTSTR message )
 {
 	if( (*syslog_local).file )
 	{
-#ifdef UNICODE
+#ifdef SUPPORT_LOG_ALLOCATE
+		fputs( message, (*syslog_local).file );
+		fputs( "\n", (*syslog_local).file );
+		fflush( (*syslog_local).file );
+#else
+#  ifdef UNICODE
 		fputws( message, (*syslog_local).file );
 		fputws( WIDE("\n"), (*syslog_local).file );
-#else
+#  else
 		sack_fputs( message, (*syslog_local).file );
 		sack_fputs( "\n", (*syslog_local).file );
-#endif
+#  endif
 		sack_fflush( (*syslog_local).file );
+#endif
 	}
 }
 
@@ -1135,34 +1149,54 @@ void DoSystemLog( const TEXTCHAR *buffer )
 				int n_retry = 0;
 			retry_again:
 				logtype = SYSLOG_NONE; // disable logging - internal functions might inadvertantly log something...
-				if( !(*syslog_local).flags.bOptionsLoaded )
+				if(
+#ifdef SUPPORT_LOG_ALLOCATE
+					0 &&
+#endif
+					!(*syslog_local).flags.bOptionsLoaded )
 				{
+#ifdef SUPPORT_LOG_ALLOCATE
+					(*syslog_local).file = fopen( gFilename, WIDE( "wt" ) );
+#else
 					(*syslog_local).file = sack_fsopen( 0, gFilename, WIDE("wt")
-#ifdef _UNICODE 
-							WIDE(", ccs=UNICODE")
-#endif
+#  ifdef _UNICODE
+						WIDE(", ccs=UNICODE")
+#  endif
 						, _SH_DENYWR );
+#endif
 				}
 				else
 				{
-				if( (*syslog_local).flags.bLogOpenBackup )
-				{
-					BackupFile( gFilename, (int)StrLen( gFilename ), 1 );
-				}
-				else if( (*syslog_local).flags.bLogOpenAppend )
+					if(
+#ifdef SUPPORT_LOG_ALLOCATE
+						0 &&
+#endif
+						(*syslog_local).flags.bLogOpenBackup )
+					{
+						BackupFile( gFilename, (int)StrLen( gFilename ), 1 );
+					}
+					else if( (*syslog_local).flags.bLogOpenAppend )
+#ifdef SUPPORT_LOG_ALLOCATE
+					(*syslog_local).file = fopen( gFilename, WIDE( "at+" ) );
+#else
 					(*syslog_local).file = sack_fsopen( (*syslog_local).flags.group_ok?GetFileGroup( WIDE( "system.logs" ), GetProgramPath() ):(INDEX)0, gFilename, WIDE("at+")
-#ifdef _UNICODE 
-							WIDE(", ccs=UNICODE")
-#endif
+#  ifdef _UNICODE
+						WIDE(", ccs=UNICODE")
+#  endif
 						, _SH_DENYWR );
-				if( (*syslog_local).file )
-					fseek( (*syslog_local).file, 0, SEEK_END );
-				else
-					(*syslog_local).file = sack_fsopenEx( (*syslog_local).flags.group_ok?GetFileGroup( WIDE( "system.logs" ), GetProgramPath() ):(INDEX)0, gFilename, WIDE("wt")
-#ifdef _UNICODE 
-							WIDE(", ccs=UNICODE")
 #endif
+					if( (*syslog_local).file )
+						fseek( (*syslog_local).file, 0, SEEK_END );
+					else
+#ifdef SUPPORT_LOG_ALLOCATE
+					(*syslog_local).file = fopen( gFilename, WIDE( "wt" ) );
+#else
+					(*syslog_local).file = sack_fsopenEx( (*syslog_local).flags.group_ok?GetFileGroup( WIDE( "system.logs" ), GetProgramPath() ):(INDEX)0, gFilename, WIDE("wt")
+#  ifdef _UNICODE
+							WIDE(", ccs=UNICODE")
+#  endif
 							, _SH_DENYWR, NULL );
+#endif
 				}
 				//logtype = SYSLOG_AUTO_FILE;
 
@@ -1209,8 +1243,8 @@ void DoSystemLog( const TEXTCHAR *buffer )
 		OutputDebugString( "\n" );
 #    endif
 #  endif
-	} 
-	else 
+	}
+	else
 #endif
 	if( logtype == SYSLOG_CALLBACK )
 		(*syslog_local).UserCallback( buffer );
@@ -1373,7 +1407,7 @@ void  SetSystemLog ( enum syslog_types type, const void *data )
 	{
 		FILE *log;
 		log = sack_fsopen( GetFileGroup( WIDE( "system.logs" ), GetProgramPath() ), (CTEXTSTR)data, WIDE("wt")
-#ifdef _UNICODE 
+#ifdef _UNICODE
 				WIDE(", ccs=UNICODE")
 #endif
 				, _SH_DENYWR );
