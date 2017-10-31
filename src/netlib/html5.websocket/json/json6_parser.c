@@ -389,7 +389,7 @@ int json6_parse_add_data( struct json_parse_state *state
 					if( c == '*' ) { state->comment = 3; continue; }
 					if( c != '/' ) { 
 						if( !state->pvtError ) state->pvtError = VarTextCreate();
-						vtprintf( state->pvtError, WIDE( "Fault while parsing; unexpected %c at %" ) _size_f WIDE( "  %" ) _size_f WIDE( ":%" ) _size_f, c, state->n, state->line, state->col ); 
+						vtprintf( state->pvtError, WIDE( "Fault while parsing; unexpected %c at %" ) _size_f WIDE( "  %" ) _size_f WIDE( ":%" ) _size_f, c, state->n, state->line, state->col );
 						state->status = FALSE;
 					}
 					else state->comment = 2;
@@ -414,6 +414,12 @@ int json6_parse_add_data( struct json_parse_state *state
 				if( !state->comment ) state->comment = 1;
 				break;
 			case '{':
+				if( state->word == WORD_POS_FIELD || state->word == WORD_POS_AFTER_FIELD || (state->parse_context == CONTEXT_OBJECT_FIELD && state->word == WORD_POS_RESET) ) {
+					if( !state->pvtError ) state->pvtError = VarTextCreate();
+					vtprintf( state->pvtError, "Fault while parsing; getting field name unexpected '%c' at %" _size_f " %" _size_f ":%" _size_f, c, state->n, state->line, state->col );
+					state->status = FALSE;
+					break;
+				}
 				{
 					struct json_parse_context *old_context = GetFromSet( PARSE_CONTEXT, &jpsd.parseContexts );
 #ifdef _DEBUG_PARSING
@@ -679,7 +685,7 @@ int json6_parse_add_data( struct json_parse_state *state
 					case '\t':
 					case '\r':
 					case 0xFEFF: // ZWNBS is WS though
-						if( state->word == WORD_POS_RESET )
+						if( state->word == WORD_POS_RESET || state->word == WORD_POS_AFTER_FIELD )
 							break;
 						else if( state->word == WORD_POS_FIELD ) {
 							state->word = WORD_POS_AFTER_FIELD;
