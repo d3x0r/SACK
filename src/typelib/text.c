@@ -1841,6 +1841,7 @@ int64_t IntCreateFromSeg( PTEXT pText )
 
 double FloatCreateFromText( CTEXTSTR p, CTEXTSTR *vp )
 {
+	return strtod( p, (char **)vp );
 	int s, begin, bDec = FALSE;
 	double num;
 	double base = 1;
