@@ -25,6 +25,10 @@ SACK_MEMORY_NAMESPACE
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
+#if defined( __GNUC__ )
+#  pragma GCC push_options
+#  pragma GCC optimize ("O0")
+#endif
 
 void  MemSet ( POINTER p, uintptr_t n, size_t sz )
 {
@@ -90,6 +94,11 @@ void  MemSet ( POINTER p, uintptr_t n, size_t sz )
    memset( p, n, sz );
 #endif
 }
+
+#if defined( __GNUC__ )
+#  pragma GCC pop_options
+#endif
+
 
 int  MemChk ( POINTER p, uintptr_t val, size_t sz )
 {
