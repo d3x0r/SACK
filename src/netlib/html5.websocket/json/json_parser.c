@@ -18,32 +18,32 @@ SACK_NAMESPACE namespace network { namespace json {
 char *json_escape_string( const char *string ) {
 	size_t n;
 	size_t m = 0;
-	TEXTSTR output;
-	if( !string ) return NULL;
-	for( n = 0; string[n]; n++ ) {
-		if( string[n] == '"' )
+	const char *input;
+	TEXTSTR output, _output;
+	if( !(input = string) ) return NULL;
+	for( ; input[0]; input++ ) {
+		if( input[0] == '"' || input[0] == '\\' )
 			m++;
-		if( string[n] == '\n' )
+		else if( input[0] == '\n' )
 			m++;
-		if( string[n] == '\t' )
+		else if( input[0] == '\t' )
 			m++;
 	}
-	output = NewArray( char, n+m+1 );
-	m = 0;
-	for( n = 0; string[n]; n++ ) {
-		if( string[n] == '"' ) {
-			output[m++] = '\\';
+	_output = output = NewArray( char, (input-string)+m+1 );
+	for( input = string; input[0]; input++ ) {
+		if( input[0] == '"' || input[0] == '\\' ) {
+			(*output++) = '\\';
 		}
-		if( string[n] == '\n' ) {
-			output[m++] = '\\'; output[m++] = 'n'; continue;
+		else if( input[0] == '\n' ) {
+			(*output++) = '\\'; (*output++) = 'n'; continue;
 		}
-		if( string[n] == '\t' ) {
-			output[m++] = '\\'; output[m++] = 't'; continue;
+		else if( input[0] == '\t' ) {
+			(*output++) = '\\'; (*output++) = 't'; continue;
 		}
-		output[m++] = string[n];
+		(*output++) = input[0];
 	}
-	output[m] = string[n];
-	return output;
+	(*output++) = input[0]; // include nul character terminator.
+	return _output;
 }
 
 #define _2char(result,from) (((*from) += 2),( ( result & 0x1F ) << 6 ) | ( ( result & 0x3f00 )>>8))
