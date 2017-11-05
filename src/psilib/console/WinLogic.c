@@ -482,7 +482,7 @@ void PSI_RenderCommandLine( PCONSOLE_INFO pdp, PENDING_RECT *region )
 			skip_lines = lines - 3;
 			lines = 3;
 		}
-		pdlCommand = GetDataItem( GetDisplayInfo( pdp->pCommandDisplay ), lines );
+		pdlCommand = (PDISPLAYED_LINE)GetDataItem( GetDisplayInfo( pdp->pCommandDisplay ), lines );
 		if( pdp->flags.bDirect )
 		{
 			pdp->nDisplayLineStart = pdp->nCommandLineStart - ( pdlCommand->nLineTop);

@@ -434,7 +434,7 @@ void GetMyInterface( void )
 	if( !g.default_font )
 	{
 		TEXTCHAR buffer[256];
-      CTEXTSTR default_name;
+		CTEXTSTR default_name;
 
 		uint32_t w, h;
 		int bias_x, bias_y;
@@ -443,11 +443,11 @@ void GetMyInterface( void )
 		//g.default_font = RenderFontFileScaledEx( WIDE("%resources%/fonts/rod.ttf"), 20, 20, NULL, NULL, 0*2/*FONT_FLAG_8BIT*/, NULL, NULL );
 		//g.default_font = RenderFontFileScaledEx( WIDE("rod.ttf"), 18, 18, NULL, NULL, 2/*FONT_FLAG_8BIT*/, NULL, NULL );
 		if( sack_exists( "c:/windows/fonts/msyh.ttf" ) )
-			default_name = WIDE("mysh.ttf");
-      else if( sack_exists( "c:/windows/fonts/msyh.ttc" ) )
-			default_name = WIDE("mysh.ttc");
+			default_name = WIDE("msyh.ttf");
+		else if( sack_exists( "c:/windows/fonts/msyh.ttc" ) )
+			default_name = WIDE("msyh.ttc");
 		else
-         default_name = WIDE("arialbd.ttf");
+			default_name = WIDE("arialbd.ttf");
 		SACK_GetProfileString( WIDE("SACK/PSI/Font"), WIDE("Default File"), default_name, buffer, 256 );
 		w = SACK_GetProfileInt( WIDE( "SACK/PSI/Font" ), WIDE( "Default Width" ), 18 );
 		h = SACK_GetProfileInt( WIDE( "SACK/PSI/Font" ), WIDE( "Default Height" ), 18 );
@@ -2165,9 +2165,12 @@ static void DoUpdateCommonEx( PPENDING_RECT upd, PSI_CONTROL pc, int bDraw, int 
 #endif
 				goto retry_update;
 			}
-
-			// after all children have updated, draw decorations (edit hotspots, cover animations...)
-			InvokeMethod( pc, _DrawDecorations, ( pc ) );
+			{
+				PSI_CONTROL pcTemp = pc;
+				for( pcTemp = pc; pcTemp; pcTemp = pcTemp->parent )
+					// after all children have updated, draw decorations (edit hotspots, cover animations...)
+					InvokeMethod( pcTemp, _DrawDecorations, (pcTemp) );
+			}
 
 #if LOCK_TEST
 			{

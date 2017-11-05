@@ -9,7 +9,8 @@
 //-------- Frame and generic control functions --------------
 ,ALIAS_WRAPPER(CreateFrame)
 ,ALIAS_WRAPPER(CreateFrameFromRenderer)
-   
+
+   
    ,NULL //ALIAS_WRAPPER(DestroyFrameEx)
 				  ,ALIAS_WRAPPER( FrameBorderX )
 				  ,ALIAS_WRAPPER( FrameBorderXOfs )
@@ -93,7 +94,8 @@
 ,ALIAS_WRAPPER(RenderFont)
 //------- ListBox Control --------
    ,ALIAS_WRAPPER(MakeListBox)
-   
+
+   
    ,ALIAS_WRAPPER(ResetList)
    ,ALIAS_WRAPPER(InsertListItem)
    ,ALIAS_WRAPPER(InsertListItemEx)

@@ -41,9 +41,9 @@ PCOMMON MakePages( PCOMMON frame )
 	SetControlID( sheet[2], SHT_THREE );
 	MakeTextControl( sheet[2], 5, 5, width - 10, 15, TXT_STATIC, WIDE("Sheet Three"), 0 );
 
-	//AddSheet( sheets, sheet[0] );
-	//AddSheet( sheets, sheet[1] );
-	//AddSheet( sheets, sheet[2] );
+	AddSheet( sheets, sheet[0] );
+	AddSheet( sheets, sheet[1] );
+	AddSheet( sheets, sheet[2] );
 	return (PCOMMON)sheet[0];
 }
 

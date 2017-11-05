@@ -473,6 +473,7 @@ PSI_PROC( void, AddSheet )( PSI_CONTROL pControl, PSI_CONTROL contents )
 	}
 	sheet = (PSHEET)Allocate( sizeof( SHEET ) );
 	MemSet( sheet, 0, sizeof( SHEET ) );
+	SetCommonBorder( contents, BORDER_NOCAPTION | BORDER_NONE );
 	sheet->content = contents;
 	//sheet->next = NULL;
 	//sheet->me = NULL;

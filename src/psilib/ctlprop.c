@@ -39,11 +39,11 @@ static PMENU pFrameEditMenu, pControlEditMenu;
 //static PSI_CONTROL pEditProperties;
 
 typedef struct edit_property_data_tag {
-   PSI_CONTROL *ppFrame;
+	PSI_CONTROL *ppFrame;
 	PSI_CONTROL pEditCurrent;
-   PSI_CONTROL pPropertySheet;
-   int32_t x,y;
-   int bDone, bOkay;
+	PSI_CONTROL pPropertySheet;
+	int32_t x,y;
+	int bDone, bOkay;
 } EDIT_PROP_DATA, *PEDIT_PROP_DATA;
 
 //---------------------------------------------------------------------------
@@ -58,7 +58,7 @@ void CreateAControl( PSI_CONTROL frame, uint32_t type, PEDIT_PROP_DATA pepd )
 	{
 		int32_t x = pepd->x;
 		int32_t y = pepd->y;
-      lprintf( WIDE("new control at %")_32fs WIDE(",%")_32fs WIDE(" %")_32f WIDE(",%")_32f WIDE(""), x, y, frame->rect.x, frame->rect.y );
+		lprintf( WIDE("new control at %")_32fs WIDE(",%")_32fs WIDE(" %")_32f WIDE(",%")_32f WIDE(""), x, y, frame->rect.x, frame->rect.y );
 		MakeControl( frame, type, x, y, 0, 0, -1 );
 	}
 }
@@ -69,9 +69,9 @@ struct list_item_data
 {
 	CTEXTSTR appname; // app name
 	CTEXTSTR resname; // resource name
-   CTEXTSTR _typename; // control type name
+	CTEXTSTR _typename; // control type name
 	int value;
-   int range;
+	int range;
 };
 
 void CPROC SetControlIDProperty( uintptr_t psv, PSI_CONTROL list, PLISTITEM item )
@@ -100,7 +100,7 @@ void CPROC SetControlIDProperty( uintptr_t psv, PSI_CONTROL list, PLISTITEM item
 
 int FillControlIDList( CTEXTSTR root, PSI_CONTROL listbox, PSI_CONTROL pc, int level, CTEXTSTR priorname )
 {
-   int status = FALSE;
+	int status = FALSE;
 	CTEXTSTR name;
 	PCLASSROOT data = NULL;
 	TEXTCHAR rootname[256];
@@ -147,7 +147,7 @@ int FillControlIDList( CTEXTSTR root, PSI_CONTROL listbox, PSI_CONTROL pc, int l
 			}
 		}
 	}
-   return status;
+	return status;
 }
 
 void InitFrameControls( PSI_CONTROL pcFrame, PSI_CONTROL pc )
@@ -159,7 +159,7 @@ void InitFrameControls( PSI_CONTROL pcFrame, PSI_CONTROL pc )
 	SetControlText( GetControl( pcFrame, LABEL_WIDTH ), WIDE("Width") );
 	SetControlText( GetControl( pcFrame, LABEL_HEIGHT ), WIDE("Height") );
 	SetControlText( GetControl( pcFrame, LABEL_ID ), WIDE("ID") );
-	tnprintf( buffer, sizeof( buffer ), WIDE("%s"), GetText( pc->caption.text ) );
+	tnprintf( buffer, sizeof( buffer ), WIDE("%s"), pc->caption.text?GetText( pc->caption.text ):"" );
 	SetControlText( GetControl( pcFrame, EDT_CAPTION ), buffer );
 	tnprintf( buffer, sizeof( buffer ), WIDE("%")_32fs WIDE(""), pc->rect.x );
 	SetControlText( GetControl( pcFrame, EDT_X ), buffer );
@@ -191,28 +191,28 @@ void InitFrameControls( PSI_CONTROL pcFrame, PSI_CONTROL pc )
 				  name = GetNextRegisteredName( &data ) )
 			{
 				{
-               char rootname[256];
+					char rootname[256];
 					CTEXTSTR name2;
-               int first = 1;
+					int first = 1;
 					POINTER data2 = NULL;
 					tnprintf( rootname, sizeof(rootname),PSI_ROOT_REGISTRY WIDE("/resources/%s/%s"), name, pc->pTypeName );
-               //lprintf( WIDE("newroot = %s"), rootname );
+					//lprintf( WIDE("newroot = %s"), rootname );
 					for( name2 = GetFirstRegisteredName( rootname, &data2 );
 						 name2;
 						  name2 = GetNextRegisteredName( &data2 ) )
 					{
 						struct list_item_data *data = (struct list_item_data*)Allocate( sizeof( *data ) );
 						data->appname = name;
-                  data->_typename = pc->pTypeName;
+						data->_typename = pc->pTypeName;
 						data->resname = name2;
 						/* ETHICALITY DISCLAIMED: this is an okay conversion, cause we're asking for an INT type anyhow...*/
 						data->value = (int)(long)GetRegisteredValueExx( (CTEXTSTR)data2, name2, "value", TRUE );
 						/* ETHICALITY DISCLAIMED: this is an okay conversion, cause we're asking for an INT type anyhow...*/
-                  data->range = (int)(long)GetRegisteredValueExx( (CTEXTSTR)data2, name2, "range", TRUE );
+						data->range = (int)(long)GetRegisteredValueExx( (CTEXTSTR)data2, name2, "range", TRUE );
 						lprintf( WIDE("Found Name %s"), name2 );
-                  if( first )
+						if( first )
 							AddListItemEx( list, 0, name );
-                  first = 0;
+						first = 0;
 						SetItemData( AddListItemEx( list, 1, name2 ), (uintptr_t)data );
 					}
 				}
@@ -325,16 +325,16 @@ PSI_PROC( int, EditControlProperties )( PSI_CONTROL control )
 					MakeEditControl( pSheet, PROP_PAD + PROP_PAD + 58, 84, 56, 14, EDT_ID, buffer, 0 );
 					tnprintf( buffer, sizeof( buffer ), WIDE("%s"), control->pIDName );
 					MakeEditControl( pSheet, PROP_PAD + PROP_PAD + 58, 84, 56, 14, EDT_IDNAME, buffer, 0 );
-               MakeListBox( pSheet, PROP_PAD, 117, 400, 200, LISTBOX_IDS, 0 );
-               //SaveXMLFrame( pSheet, WIDE("Common Edit.Frame") );
+					MakeListBox( pSheet, PROP_PAD, 117, 400, 200, LISTBOX_IDS, 0 );
+					//SaveXMLFrame( pSheet, WIDE("Common Edit.Frame") );
 					InitFrameControls( pSheet, control );
 					//DumpFrameContents( pSheet );
 				}
  			}
-         //DebugBreak();
+			//DebugBreak();
 			if( !pSheet )
 			{
-            DebugBreak(); // there's more to cleanup here.
+				DebugBreak(); // there's more to cleanup here.
 				return 0; // failed, no properties avaialable for some reason.
 			}
 			AddSheet( pc,pSheet );
@@ -352,12 +352,12 @@ PSI_PROC( int, EditControlProperties )( PSI_CONTROL control )
 					AddSheet( pc
 							  , (PSI_CONTROL)(pEditProps->pPropertySheet = pCustomSheet) );
 				}
-            else
-               lprintf( WIDE("can't Get the page...") );
+				else
+					lprintf( WIDE("can't Get the page...") );
 			}
 			AddCommonButtons( pf, &pEditProps->bDone, &pEditProps->bOkay );
 			DisplayFrame( pf );
-         //EditFrame( pf, TRUE );
+			//EditFrame( pf, TRUE );
 			//DumpFrameContents( pf );
 			CommonWait( pf );
 			if( pEditProps->bOkay )
@@ -443,18 +443,18 @@ PSI_PROC( int, EditFrameProperties )( PSI_CONTROL frame, int32_t x, int32_t y )
 	PEDIT_PROP_DATA pEditProps = (PEDIT_PROP_DATA)Allocate( sizeof( EDIT_PROP_DATA ) );
 	PSI_CONTROL pf;
 	uint32_t select;
-   pEditProps->x = x;
-   pEditProps->y = y;
+	pEditProps->x = x - frame->surface_rect.x;
+	pEditProps->y = y - frame->surface_rect.y;
 	select = TrackPopup( pFrameEditMenu, frame );
 	if( select >= MNU_ADDCONTROL &&
 		select < ( MNU_ADDCONTROL + 1000 ) )
 	{
-      CreateAControl( frame, select - MNU_ADDCONTROL, pEditProps );
+		CreateAControl( frame, select - MNU_ADDCONTROL, pEditProps );
 	}
 	else switch( select )
 	{
 	case MNU_DONE:
-      EditFrame( frame, FALSE );
+		EditFrame( frame, FALSE );
 		break;
 	case MNU_DELETETHING:
 		{
@@ -462,11 +462,11 @@ PSI_PROC( int, EditFrameProperties )( PSI_CONTROL frame, int32_t x, int32_t y )
 			DestroyFrame( &frame );
 			WakeThread( thread );
 		}
-      break;
+		break;
 	case MNU_SAVEFRAME:
-      // should pick a file here...
-      SaveXMLFrame( frame, NULL );
-      break;
+		// should pick a file here...
+		SaveXMLFrame( frame, NULL );
+		break;
 	case MNU_EDITTHING:
 
 		if( pEditProps )
@@ -541,8 +541,8 @@ PSI_PROC( int, EditFrameProperties )( PSI_CONTROL frame, int32_t x, int32_t y )
 		}
 		break;
 	}
-   Release( pEditProps );
-   return 1;
+	Release( pEditProps );
+	return 1;
 }
 
 //---------------------------------------------------------------------------
@@ -556,18 +556,18 @@ void DetachChildFrames( PSI_CONTROL pc )
 		{
 			if( pc->BeginEdit )
 			{
-            // this allows the sheet control to detach the sheets before edit begins.
-            pc->BeginEdit( pc );
+				// this allows the sheet control to detach the sheets before edit begins.
+				pc->BeginEdit( pc );
 			}
 			DetachChildFrames( pc );
 			if( !pc->flags.private_control &&
 				 pc->nType == CONTROL_FRAME )
 			{
 				//DebugBreak();
-            pc->detached_at = pc->original_rect;
+				pc->detached_at = pc->original_rect;
 				DisplayFrame( pc );
 				EditFrame( pc, TRUE );
-            pc->flags.detached = 1;
+				pc->flags.detached = 1;
 			}
 		}
 	}
@@ -590,10 +590,10 @@ void RetachChildFrames( PSI_CONTROL pc )
 				uint32_t BorderType = pc->device->EditState.BorderType;
 				// adopt should close the device, if any, and quietly
 				// insert this control into it's parent
-            if( parent )
+				if( parent )
 					AdoptCommonEx( parent, NULL, pc, FALSE );
 				SetCommonBorder( pc, BorderType );
-            //DebugBreak(); // this is a crazy surface rect thing...
+				//DebugBreak(); // this is a crazy surface rect thing...
 				MoveSizeCommon( pc
 								  , pc->detached_at.x
 								  , pc->detached_at.y
@@ -708,14 +708,14 @@ PSI_PROC( void, EditFrame )( PSI_CONTROL pc, int bEnable )
 		}
 	}
 #if 0
-   // this is code that is not init...
-   if( bEnable )
+	// this is code that is not init...
+	if( bEnable )
 	{
 		// LOL this will be fun... watch the world fall to peiced
-      DetachChildFrames( pc );
+		DetachChildFrames( pc );
 	}
 	else
-      RetachChildFrames( pc );
+		RetachChildFrames( pc );
 #endif
 	if( bEnable && !pc->device )
 	{

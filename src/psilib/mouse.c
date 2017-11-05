@@ -151,8 +151,8 @@ static int MouseInHotSpot( PEDIT_STATE pEditState, int x, int y DBG_PASS )
 	if( !pEditState->flags.bActive || !pEditState->flags.bHotSpotsActive )
 		return 0;
 #ifdef HOTSPOT_DEBUG
- 	_xlprintf( 1 DBG_RELAY )( WIDE("Detecting mouse at %d,%d in spot..."), x, y );
-  lprintf( WIDE("			mouse at %d,%d in spot..."), x, y );
+	_xlprintf( 1 DBG_RELAY )( WIDE("Detecting mouse at %d,%d in spot..."), x, y );
+	lprintf( WIDE("			mouse at %d,%d in spot..."), x, y );
 #endif
 	if( pEditState->flags.fLocked )
 	{
@@ -185,7 +185,7 @@ static int MouseInHotSpot( PEDIT_STATE pEditState, int x, int y DBG_PASS )
 #ifdef HOTSPOT_DEBUG
 			lprintf( WIDE("excessive threshold, unlock.") );
 #endif
-			pEditState->flags.fLocked = FALSE;
+			//return 0;// pEditState->flags.fLocked = FALSE;
 		}
 		else
 		{
@@ -1735,6 +1735,7 @@ int HandleEditStateMouse( PEDIT_STATE pEditState
 				Log( WIDE("Mark changed spots...") );
 #endif
 				pEditState->flags.fLocked = spot;
+				DrawHotSpotsEx( pfc, pEditState DBG_SRC );
 			}
 			if( MAKE_FIRSTBUTTON( b, pf->_b ) )
 			{
