@@ -95,14 +95,23 @@ PSI_Console_Phrase PSIConsoleDirectOutput( PSI_CONTROL pc, PTEXT lines )
 	return phrase;
 }
 
+static void sendInputEvent( uintptr_t arg, PTEXT line ) {
+	PCONSOLE_INFO console = (PCONSOLE_INFO)arg;
+	LeaveCriticalSec( &console->Lock );
+	console->InputEvent( console->psvInputEvent, line );
+	EnterCriticalSec( &console->Lock );
+}
+
 void PSIConsoleInputEvent( PSI_CONTROL pc, void(CPROC*Event)(uintptr_t,PTEXT), uintptr_t psv )
 {
 	ValidatedControlData( PCONSOLE_INFO, ConsoleClass.TypeID, console, pc );
 	if( console )
 	{
 		// this should be set with an appropriate method.
-		console->CommandInfo->CollectedEvent = Event;
-		console->CommandInfo->psvCollectedEvent = psv;
+		console->InputEvent = Event;
+		console->psvInputEvent = psv;
+		console->CommandInfo->CollectedEvent = sendInputEvent;
+		console->CommandInfo->psvCollectedEvent = (uintptr_t)console;
 	}
 }
 

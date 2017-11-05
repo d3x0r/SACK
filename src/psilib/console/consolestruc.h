@@ -143,6 +143,9 @@ typedef struct myconsolestruc {
 
 	CRITICALSECTION Lock;
 
+	void(CPROC*InputEvent)(uintptr_t, PTEXT);
+	uintptr_t psvInputEvent;
+
 	struct {
 		BIT_FIELD bDirect:1; // alternative to direct is Line-Mode
 		BIT_FIELD bWrapCommand : 1; // normal mode is ot not wrap, but to scroll off...
