@@ -98,7 +98,9 @@ PSI_Console_Phrase PSIConsoleDirectOutput( PSI_CONTROL pc, PTEXT lines )
 static void sendInputEvent( uintptr_t arg, PTEXT line ) {
 	PCONSOLE_INFO console = (PCONSOLE_INFO)arg;
 	LeaveCriticalSec( &console->Lock );
+	LeaveCriticalSec( &console->Lock );
 	console->InputEvent( console->psvInputEvent, line );
+	EnterCriticalSec( &console->Lock );
 	EnterCriticalSec( &console->Lock );
 }
 

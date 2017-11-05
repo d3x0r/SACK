@@ -243,11 +243,6 @@ int CPROC KeyEventProc( PCOMMON pc, uint32_t key )
 	{
 		const TEXTCHAR *character = GetKeyText( key );
 		DECLTEXT( stroke, WIDE("                                       ") ); // single character ...
-//cpg27dec2006 console\psicon.c(232): Warning! W202: Symbol 'bOutput' has been defined, but not referenced
-//cpg27dec2006 		int bOutput = FALSE;
-		//Log1( "Key: %08x", key );
-//cpg27dec2006 console\psicon.c(234): Warning! W202: Symbol 'mod' has been defined, but not referenced
-//cpg27dec2006		int mod = KEYMOD_NORMAL;
 		if( !console ) // not a valid window handle/device path
 			return 0;
 		EnterCriticalSec( &console->Lock );
@@ -256,7 +251,7 @@ int CPROC KeyEventProc( PCOMMON pc, uint32_t key )
 		if( character )
 		{
 			int n;
-         for( n = 0; character[n]; n++ )
+			for( n = 0; character[n]; n++ )
 				stroke.data.data[n] = character[n];
 			stroke.data.size = n;
 		}

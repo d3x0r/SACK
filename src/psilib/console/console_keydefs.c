@@ -1394,7 +1394,7 @@ int PSI_DoStroke( PCONSOLE_INFO pdp, PTEXT stroke )
 #endif
 												 CommandInfo
 												, (PTEXT)&key ) ) )
-                  {
+						{
                      // I dunno - maybe we shouldn't enque the
                      // command... maybe we should count on whatever
                      // the destination is to echo it
