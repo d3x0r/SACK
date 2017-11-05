@@ -3,6 +3,7 @@
 #include "controlstruc.h"
 #include <psi.h>
 
+PSI_NAMESPACE
 
    struct progress_bar_data
    {
@@ -79,5 +80,5 @@ void ProgressBar_EnableText( PSI_CONTROL pc, LOGICAL enable )
 {
 }
 
-
+PSI_NAMESPACE_END
 
