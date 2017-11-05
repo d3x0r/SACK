@@ -527,12 +527,12 @@ int OpenFontFile( CTEXTSTR name, POINTER *font_memory, FT_Face *face, int face_i
 			}
 			for( s = 0; s < pfe->nStyles; s++ )
 			{
-				PCACHE_SHORT_SIZE_FILE file;
+				PSIZE_FILE file;
 				uint32_t f;
 				pfs = pfe->styles + s;
 				for( f = 0; f < pfs->nFiles; f++ )
 				{
-					file = ((PCACHE_SHORT_SIZE_FILE)pfs->files) + f;
+					file = (pfs->files) + f;
 #ifdef DEBUG_OPENFONTFILE
 					lprintf( "file is %s %s vs %s", pfs->name, file->file, base_name );
 #endif
