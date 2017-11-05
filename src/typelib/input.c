@@ -146,6 +146,7 @@ static PTEXT GatherLineEx( PTEXT *pOutput, INDEX *pIndex, int bInsert, int bSave
 	PTEXT pDelete = NULL;
 	TEXTCHAR character;
 	TEXTCHAR *output;
+	LOGICAL bSetReturn = FALSE;
 
 	if( !pOutput ) // must supply a holder for partial collection...
 		return NULL;
@@ -375,22 +376,9 @@ static PTEXT GatherLineEx( PTEXT *pOutput, INDEX *pIndex, int bInsert, int bSave
 				if( !bSaveCR )
 					break;
 				// falls through .. past this and saves the return...
-				if(0) {
+				if( 0 ) {
 			case '\n':
-
-				if( !pReturn )
-				{
-				pReturn = GetGatheredLine( pOutput );
-					// transfer *pOutput to pReturn....
-					output = GetText( pReturn );
-					len = GetTextSize( pReturn );
-					output[len] = character;
-					SetTextSize( pReturn, ++len );
-					// begin next collection in case more data is in the input...
-					output = GetText( *pOutput );
-					len = 0;
-					break;
-				}
+					bSetReturn = TRUE;
 				}
 				// store carriage return... 
 			default:
@@ -440,6 +428,9 @@ static PTEXT GatherLineEx( PTEXT *pOutput, INDEX *pIndex, int bInsert, int bSave
 	}
 	if( pDelete )
 		LineRelease( pDelete );
+
+	if( bSetReturn )
+		pReturn = (*pOutput);
 
 	SetStart( pReturn );
 
