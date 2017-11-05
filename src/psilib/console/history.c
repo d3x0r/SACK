@@ -1334,10 +1334,18 @@ int CountLinesSpanned( PHISTORY_BROWSER phbr, PTEXT countseg, SFTFont font, LOGI
 					{
 						int skip_char;
 						uint32_t nShow = ComputeToShow( colsize, &col_offset, countseg, nLen, nChar, nSegShown, phbr, font );
-						if( GetText( countseg )[nShow+nSegShown-1] == '\n' )
-							skip_char = 1;
+						if( nShow + nSegShown > 1 ) {
+							if( GetText( countseg )[nShow + nSegShown - 1] == '\n' )
+								skip_char = 1;
+							else
+								skip_char = 0;
+						}
+						else if( PRIORLINE( countseg ) ) {
+							skip_char = 0;
+						}
 						else
 							skip_char = 0;
+
 						if( ( nShow == 0 ) && ( nSegShown < nLen ) )
 							nShow++;
 						nSegShown += nShow;
