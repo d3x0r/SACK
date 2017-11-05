@@ -196,7 +196,7 @@ void PSIConsoleSetHistory( PSI_CONTROL pc, struct history_tracking_info *history
 			PSI_SetHistoryBrowserNoPageBreak( console->pHistoryDisplay );
 
 		}
-		GetStringSizeFont( WIDE(" "), &console->nFontWidth, &console->nFontHeight, GetCommonFont( pc ) );
+		//GetStringSizeFont( WIDE(" "), &console->nFontWidth, &console->nFontHeight, GetCommonFont( pc ) );
 		PSI_ConsoleCalculate( console );
 	}
 }
@@ -222,7 +222,7 @@ void PSIConsoleSetInputMode( PSI_CONTROL pc, int mode )
 		}
 		else
 			console->flags.bDirect = 1; // direct in with text... (0) mode only
-		if( console->nLines )
+		if( console->nHeight )
 		{
 			// may not have gotten visual fittting yet...
 			EnterCriticalSec( &console->Lock );

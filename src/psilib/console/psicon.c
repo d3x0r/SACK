@@ -216,8 +216,8 @@ static int OnDrawCommon( WIDE("PSI Console") )( PCOMMON pc )
 		console->rArea.bottom = console->psicon.image->height;
 		//lprintf( WIDE("Updating child propportions...") );
 		{
-			SFTFont font = GetCommonFont( console->psicon.frame );
-			GetStringSizeFont( WIDE( " " ), &console->nFontWidth, &console->nFontHeight, (SFTFont)font );
+			//SFTFont font = GetCommonFont( console->psicon.frame );
+			//GetStringSizeFont( WIDE( " " ), &console->nFontWidth, &console->nFontHeight, (SFTFont)font );
 		}
 		PSI_ConsoleCalculate( console );
 	}
@@ -469,7 +469,7 @@ int CPROC MouseHandler( PCOMMON pc, int32_t x, int32_t y, uint32_t b )
 					//console->psicon.hFont = (SFTFont)font;
 					SetCommonFont( console->psicon.frame, (SFTFont)font );
 					//GetDefaultFont();
-					GetStringSizeFont( WIDE(" "), &console->nFontWidth, &console->nFontHeight, (SFTFont)font );
+					//GetStringSizeFont( WIDE(" "), &console->nFontWidth, &console->nFontHeight, (SFTFont)font );
 					PSI_ConsoleCalculate( console );
 				}
 			}
@@ -791,7 +791,7 @@ static void CPROC RenderCursor( PCONSOLE_INFO console, RECT *r, int column )
 	{
 		int y, x;
 
-		x = ( column ) * console->nFontWidth + console->nXPad;
+		x = ( column ) /* * console->nFontWidth */ + console->nXPad;
 		if( console->flags.bDirect )
 			y = r->top;
 		else
@@ -809,23 +809,30 @@ static void CPROC RenderCursor( PCONSOLE_INFO console, RECT *r, int column )
 	}
 	else
 	{
+		uint32_t w, h;
 		int y, x;
-		x = ( column ) * console->nFontWidth + console->nXPad;
+		x = ( column ) /*  * console->nFontWidth */ + console->nXPad;
 		if( console->flags.bDirect )
 			y = r->top;
 		else
 			y = r->top + 4;
+		if( console->CommandInfo->CollectionIndex == GetTextSize( console->CommandInfo->CollectionBuffer) )
+			GetStringSizeFontEx( " ", 1, &w, &h, GetCommonFont( console->psicon.frame ) );
+		else
+			GetStringSizeFontEx( GetText( console->CommandInfo->CollectionBuffer ) + console->CommandInfo->CollectionIndex, 1
+			                   , &w, &h, GetCommonFont( console->psicon.frame ) );
+
 		do_lineAlpha( console->psicon.image, x, y+3, x, y, cPenCursor );
-		do_lineAlpha( console->psicon.image, x, y, x + console->nFontWidth, y, cPenCursor );
-		do_lineAlpha( console->psicon.image, x + console->nFontWidth, y, x+console->nFontWidth, y+3, cPenCursor );
+		do_lineAlpha( console->psicon.image, x, y, x + w, y, cPenCursor );
+		do_lineAlpha( console->psicon.image, x + w, y, x+w, y+3, cPenCursor );
 
 		if( console->flags.bDirect )
 			y = r->bottom - 2;
 		else
 			y = r->bottom - 5;
 		do_lineAlpha( console->psicon.image, x, y-3, x, y, cPenCursor );
-		do_lineAlpha( console->psicon.image, x, y, x + console->nFontWidth, y, cPenCursor );
-		do_lineAlpha( console->psicon.image, x + console->nFontWidth, y, x+console->nFontWidth, y-3, cPenCursor );
+		do_lineAlpha( console->psicon.image, x, y, x + w, y, cPenCursor );
+		do_lineAlpha( console->psicon.image, x + w, y, x+w, y-3, cPenCursor );
 	}
 }
 

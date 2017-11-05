@@ -1551,18 +1551,18 @@ int MoveHistoryCursor( PHISTORY_BROWSER browser, int amount )
 //----------------------------------------------------------------------------
 // return the x position of the visible cursor
 int GetCommandCursor( PHISTORY_BROWSER phbr
-					 , SFTFont font
-						  , PUSER_INPUT_BUFFER CommandInfo
-						  , int bEndOfStream
-						, int bWrapCommand
-						  , int *command_offset
-						  , int *command_begin
-						  , int *command_end
-						  , int *line_offset
-						  )
+                    , SFTFont font
+                    , PUSER_INPUT_BUFFER CommandInfo
+                    , int bEndOfStream
+                    , int bWrapCommand
+                    , int *command_offset
+                    , int *command_begin
+                    , int *command_end
+                    , int *line_offset
+                    )
 {
 	PTEXT pCmd;
-	uint32_t tmpx = 0, nLead, tmp_end;
+	uint32_t tmpx = 0, nLead, tmp_end = 0;
 	PDISPLAYED_LINE pdl;
 	uint32_t lines;
 
@@ -1603,10 +1603,9 @@ int GetCommandCursor( PHISTORY_BROWSER phbr
 
 	if( bWrapCommand )
 	{
-		if( !bEndOfStream )
-			lines = CountLinesSpanned( phbr, pCmd, font, TRUE );
-		else
-			lines = CountLinesSpanned( phbr, pCmd, font, TRUE );
+		lines = CountLinesSpanned( phbr, pCmd, font, TRUE );
+		if( bEndOfStream )
+			lines--;
 	}
 	else
 	{
@@ -1616,24 +1615,14 @@ int GetCommandCursor( PHISTORY_BROWSER phbr
 			lines = 1;
 	}
 
+	tmp_end = 0;
 	while( pCmd != CommandInfo->CollectionBuffer )
 	{
-		tmpx += GetTextSize( pCmd );
+		tmp_end += GetTextSize( pCmd );
 		pCmd = NEXTLINE( pCmd );
 	}
 	tmp_end = tmpx;
-	{
-		int n;
-		int used = 0;
-		for( n = 0; n < phbr->nLines; n++ )
-		{
-			PDISPLAYED_LINE pdl;
-			if( pdl = (PDISPLAYED_LINE)GetDataItem( &phbr->DisplayLineInfo, n ) )
-				if( pdl->nToShow )
-					used++;
-		}
-		return used;
-	}
+
 	while( pCmd )
 	{
 		uint32_t width, height;

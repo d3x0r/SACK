@@ -137,9 +137,9 @@ typedef struct myconsolestruc {
 
 	// physical width and height, (1:1 in console modes)
 	uint32_t nWidth;	// in pixels
-	uint32_t nColumns; // in character count width
+	//uint32_t nColumns; // in character count width
 	uint32_t nHeight;  // in pixels
-	uint32_t nLines;	// in character count rows
+	//uint32_t nLines;	// in character count rows
 
 	CRITICALSECTION Lock;
 
@@ -172,8 +172,8 @@ typedef struct myconsolestruc {
 	uint32_t pending_tabs;
 
 	RECT rArea; // pixel size of the display (if font height/width>1)
-	uint32_t nFontHeight;
-	uint32_t nFontWidth;
+	//uint32_t nFontHeight;
+	//uint32_t nFontWidth;
 	int32_t nXPad; // pixels/lines to padd left/right side...
 	int32_t nYPad; // pixels/lines to padd top/bottom side...
 	int32_t nCmdLinePad; // pixels to raise bar above cmdline
@@ -257,7 +257,6 @@ typedef struct myconsolestruc {
 		{
 			PRENDERER renderer;
 			PCOMMON frame;
-			//SFTFont hFont;
 			Image image;
 			CDATA  crCommand;
 			CDATA  crCommandBackground;

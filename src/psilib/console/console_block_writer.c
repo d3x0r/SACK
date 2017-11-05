@@ -46,8 +46,8 @@ void FormatTextToBlockEx( CTEXTSTR input, TEXTSTR *output, int* pixel_width, int
 	{
 		//console->common.pName = SegCreateFromText( "Auto Console" );
 		//Log( "Create frame!!" );
-		console->nFontWidth = 1;
-		console->nFontHeight = 1;
+		//console->nFontWidth = 1;
+		//console->nFontHeight = 1;
 
 		InitializeCriticalSec( &console->Lock );
 

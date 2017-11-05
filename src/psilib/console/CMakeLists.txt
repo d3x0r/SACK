@@ -9,4 +9,3 @@ SET_TARGET_PROPERTIES(${PROJECT_NAME} PROPERTIES
                   FOLDER tests
 )
 install_default_dest( ${PROJECT_NAME} )
-

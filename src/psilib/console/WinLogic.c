@@ -96,11 +96,11 @@ static void RenderTextLine(
 #endif
 			return;
 		}
-		(*r).top = nFirstLine - pdp->nFontHeight * nLine;
+		(*r).top = nFirstLine - pCurrentLine->nLineTop;
 		if( nFirst >= 0 )
-			(*r).bottom = (*r).top + pdp->nFontHeight + 2;
+			(*r).bottom = (*r).top + pCurrentLine->nLineHeight + 2;
 		else
-			(*r).bottom = (*r).top + pdp->nFontHeight;
+			(*r).bottom = (*r).top + pCurrentLine->nLineHeight;
 		if( (*r).bottom <= nMinLine )
 		{
 #ifdef DEBUG_HISTORY_RENDER
@@ -391,7 +391,7 @@ void PSI_RenderCommandLine( PCONSOLE_INFO pdp, PENDING_RECT *region )
 	if( pdp->SetCurrentColor )
 		pdp->SetCurrentColor( pdp, COLOR_COMMAND, NULL );//pdp->crCommand, pdp->crCommandBackground );
 
-	nCursorPos = GetCommandCursor( pdp->pCurrentDisplay, NULL
+	nCursorPos = GetCommandCursor( pdp->pCurrentDisplay, GetCommonFont( pdp->psicon.frame )
 											, pdp->CommandInfo
 											, pdp->flags.bDirect
 											, pdp->flags.bWrapCommand
@@ -404,8 +404,7 @@ void PSI_RenderCommandLine( PCONSOLE_INFO pdp, PENDING_RECT *region )
 
 	// also line starts are considered from the bottom up...
 	// nXPad,n__LineStart
-	r.top = y = pdp->nCommandLineStart
-		- ( pdp->nFontHeight > 1?pdp->nFontHeight+pdp->nYPad:0 );
+	r.top = y = pdp->nCommandLineStart; //****** THIS PROBABLY NEEDS AN OFFSET ********/
 	r.bottom = pdp->nHeight;
 	if( !pdp->flags.bDirect )
 		toppad = pdp->nCmdLinePad;
@@ -472,6 +471,7 @@ void PSI_RenderCommandLine( PCONSOLE_INFO pdp, PENDING_RECT *region )
 	if( pdp->flags.bWrapCommand )
 	{
 		int skip_lines;
+		PDISPLAYED_LINE pdlCommand;
 		skip_lines = 0;
 		lines = CountDisplayedLines( pdp->pCommandDisplay );
 		if( !lines )
@@ -482,15 +482,16 @@ void PSI_RenderCommandLine( PCONSOLE_INFO pdp, PENDING_RECT *region )
 			skip_lines = lines - 3;
 			lines = 3;
 		}
+		pdlCommand = GetDataItem( GetDisplayInfo( pdp->pCommandDisplay ), lines );
 		if( pdp->flags.bDirect )
 		{
-			pdp->nDisplayLineStart = pdp->nCommandLineStart - ( lines * pdp->nFontHeight );
+			pdp->nDisplayLineStart = pdp->nCommandLineStart - ( pdlCommand->nLineTop);
 		}
 		else
 		{
 			upd.top = 
 			pdp->nDisplayLineStart = pdp->nCommandLineStart
-				- ( pdp->nFontHeight * lines
+				- (pdlCommand->nLineTop
 					+ ( pdp->nYPad * 2 )
 					+ ( pdp->nCmdLinePad )
 					);
@@ -581,8 +582,8 @@ void PSI_RenderCommandLine( PCONSOLE_INFO pdp, PENDING_RECT *region )
 void WinLogicCalculateHistory( PCONSOLE_INFO pdp )
 {
 	// there's some other related set of values to set here....
-		//lprintf( WIDE("Calculate history! %d %d"), pdp->nColumns, pdp->nLines );
-
+	//lprintf( WIDE("Calculate history! %d %d"), pdp->nColumns, pdp->nLines );
+#if 0
 	SetCursorLines( pdp->pCursor, pdp->nLines );
 	SetCursorColumns( pdp->pCursor, pdp->nColumns );
 	if( pdp->pHistoryDisplay )
@@ -609,7 +610,7 @@ void WinLogicCalculateHistory( PCONSOLE_INFO pdp )
 					nWorkLines = ( pdp->nLines * ( 3 - pdp->nHistoryPercent ) ) / 4;
 					SetBrowserLines( pdp->pHistoryDisplay, (pdp->nLines - nWorkLines)+2 );
 					PSI_SetHistoryPageLines( pdp->pHistoryDisplay, (pdp->nLines - nWorkLines)-3 );
-					pdp->nHistoryLineStart = pdp->nDisplayLineStart - (nWorkLines)* pdp->nFontHeight;
+					pdp->nHistoryLineStart = pdp->nDisplayLineStart - ( pdp->nHeight * ( 3 - pdp->nHistoryPercent ) ) / 4;
 					SetBrowserLines( pdp->pCurrentDisplay, nWorkLines );
 				}
 			}
@@ -647,6 +648,7 @@ void WinLogicCalculateHistory( PCONSOLE_INFO pdp )
 		}
 		SetBrowserLines( pdp->pCurrentDisplay, pdp->nLines );
 	}
+#endif
 	if( pdp->pHistoryDisplay )
 		BuildDisplayInfoLines( pdp->pHistoryDisplay, NULL );
 	BuildDisplayInfoLines( pdp->pCurrentDisplay, NULL );
@@ -724,6 +726,7 @@ void PSI_ConsoleCalculate( PCONSOLE_INFO pdp )
 
 	pdp->nCommandLineStart = pdp->rArea.bottom;
 
+#if 0
 	if( pdp->nFontHeight )
 	{
 		//lprintf( WIDE("Okay font height existsts... that's good") );
@@ -754,12 +757,13 @@ void PSI_ConsoleCalculate( PCONSOLE_INFO pdp )
 		lprintf( WIDE("Font height does not exist :(") );
 		nLines = 0;
 	}
+#endif
 
-	if( pdp->nFontWidth )
+	//if( pdp->nFontWidth )
 	{
-		pdp->nColumns = pdp->nFontWidth?(( pdp->nWidth - (pdp->nXPad*2) ) / pdp->nFontWidth):0;
+		//pdp->nColumns = pdp->nFontWidth?(( pdp->nWidth - (pdp->nXPad*2) ) / pdp->nFontWidth):0;
 		// there's some other related set of values to set here....
-		pdp->nLines = nLines;
+		//pdp->nLines = nLines;
 		WinLogicCalculateHistory( pdp );
 	}
 	PSI_RenderConsole( pdp );
@@ -788,7 +792,7 @@ PSI_Console_Phrase PSI_WinLogicWriteEx( PCONSOLE_INFO pmdp
 			if( pLine->format.position.coords.x != -16384 )
 				cursorx = pLine->format.position.coords.x;
 			if( pLine->format.position.coords.y != -16384 )
-				cursory = pmdp->nLines - pLine->format.position.coords.y;
+				cursory = /*pmdp->nLines*/ - pLine->format.position.coords.y;
 			SetHistoryCursorPos( pmdp->pCursor, cursorx, cursory );
 			pLine->format.position.offset.spaces = 0;
 			pLine->format.position.offset.tabs = 0;
@@ -944,7 +948,7 @@ TEXTCHAR *PSI_GetDataFromBlock( PCONSOLE_INFO pdp )
 					 (int64_t)col < end_count;
 					 col++ )
 				{
-					if( GetCharFromLine( pdp, pdp->nColumns, pdl, col, result + ofs ) )
+					if( GetCharFromLine( pdp, 0/*pdp->nColumns*/, pdl, col, result + ofs ) )
 					{
 						first_char = FALSE;
 						ofs++;
@@ -968,6 +972,9 @@ int PSI_ConvertXYToLineCol( PCONSOLE_INFO pdp
 {
 	// x, y is top, left biased...
 	// line is bottom biased... (also have to account for history)
+	lprintf( "Convert XY to LineCol needs work.... it needs to iterate through the computed dipslayable lines..." );
+#if 0
+
 	*col = ( ( ( x + ( pdp->nFontWidth / 2 ) ) - pdp->nXPad )
 							/ pdp->nFontWidth );
 	if( y < pdp->nHistoryLineStart )
@@ -990,11 +997,13 @@ int PSI_ConvertXYToLineCol( PCONSOLE_INFO pdp
 	if( y < 0 )
 		return FALSE;
 	*line = y / pdp->nFontHeight;
+#endif
 	return TRUE;
 }
 
 //----------------------------------------------------------------------------
 
+#if 0
 int GetMaxDisplayedLine( PCONSOLE_INFO pdp, int nStart )
 {
 	if( nStart )
@@ -1005,6 +1014,7 @@ int GetMaxDisplayedLine( PCONSOLE_INFO pdp, int nStart )
 					- pdp->nDisplayLineStart ) 
 						/ pdp->nFontHeight;
 }
+#endif
 
 //----------------------------------------------------------------------------
 
@@ -1029,7 +1039,7 @@ void DoRenderHistory( PCONSOLE_INFO pdp, int bHistoryStart, PENDING_RECT *region
 	{
 		// if no display (all history?)
 		// this is the command line/display line separator.
-		nFirstLine = ( upd.bottom = pdp->nDisplayLineStart ) - ( ( pdp->nYPad ) + pdp->nFontHeight );
+		nFirstLine = ( upd.bottom = pdp->nDisplayLineStart ) - ( ( pdp->nYPad ) );
 		if( !pdp->flags.bDirect && pdp->nDisplayLineStart != pdp->nCommandLineStart )
 		{
 			//lprintf( WIDE("Rendering display line seperator %d (not %d)"), pdp->nDisplayLineStart, pdp->nCommandLineStart );
@@ -1059,7 +1069,7 @@ void DoRenderHistory( PCONSOLE_INFO pdp, int bHistoryStart, PENDING_RECT *region
 			LeaveCriticalSec( &pdp->Lock );
 			return;
 		}
-		nFirstLine = ( upd.bottom = pdp->nHistoryLineStart ) - (pdp->nYPad + pdp->nFontHeight);
+		nFirstLine = ( upd.bottom = pdp->nHistoryLineStart ) - (pdp->nYPad);
 		nMinLine = 0;
 		nFirst = -1;
 		// the seperator is actually rendererd OVER the top of the displayed line.
@@ -1164,12 +1174,12 @@ int PSI_UpdateHistory( PCONSOLE_INFO pdp )
 {
 	int bUpdate = 0;
 	lprintf( WIDE("nLines = %d  percent = %d  x = %d")
-			, pdp->nLines
+			, 0/*pdp->nLines*/
 			, pdp->nHistoryPercent
-			, ( pdp->nLines * ( 3 - pdp->nHistoryPercent ) / 4 ) );
+			, ( 0/*pdp->nLines*/ * ( 3 - pdp->nHistoryPercent ) / 4 ) );
 	EnterCriticalSec( &pdp->Lock );
 	if( GetBrowserDistance( pdp->pHistoryDisplay, NULL ) >
-		( pdp->nLines * ( 3 - pdp->nHistoryPercent ) / 4 ) )
+		( 0/*pdp->nLines*/ * ( 3 - pdp->nHistoryPercent ) / 4 ) )
 	{
 		if( !pdp->flags.bHistoryShow )
 		{

@@ -606,6 +606,7 @@ PSI_PROC( int, PickColorEx )( CDATA *result, CDATA original, PSI_CONTROL hAbove,
 PSI_PROC( int, PickColor )( CDATA *result, CDATA original, PSI_CONTROL hAbove )
 {
 	int32_t x, y;
+	GetMyInterface();
 	GetMousePosition( &x, &y );
 	return PickColorEx( result, original, hAbove, x, y );
 }
