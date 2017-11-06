@@ -94,7 +94,7 @@ EVP_PKEY *genKey() {
 
 struct ssl_session {
 	SSL_CTX        *ctx;
-
+	LOGICAL ignoreVerification;
 	BIO *rbio;
 	BIO *wbio;
 	//EVP_PKEY *privkey;
@@ -253,7 +253,7 @@ static void ssl_ReadComplete( PCLIENT pc, POINTER buffer, size_t length )
 			if( hs_rc == 2 ) {
 				// newly completed handshake.
 				if( !(pc->dwFlags & CF_READPENDING) ) {
-					if( SSL_get_peer_certificate( pc->ssl_session->ssl ) ) {
+					if( !pc->ssl_session->ignoreVerification && SSL_get_peer_certificate( pc->ssl_session->ssl ) ) {
 						int r;
 						if( ( r = SSL_get_verify_result( pc->ssl_session->ssl ) ) != X509_V_OK ) {
 							lprintf( "Certificate verification failed. %d", r );
@@ -680,6 +680,11 @@ LOGICAL ssl_BeginClientSession( PCLIENT pc, CPOINTER client_keypair, size_t clie
 
 LOGICAL ssl_IsClientSecure(PCLIENT pc) {
 	return pc->ssl_session != NULL;
+}
+
+void ssl_SetIgnoreVerification( PCLIENT pc ) {
+	if( pc->ssl_session )
+		pc->ssl_session->ignoreVerification = TRUE;
 }
 
 //--------------------- Make Cert Request

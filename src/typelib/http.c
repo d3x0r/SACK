@@ -44,6 +44,7 @@ struct HttpState {
 	enum ReadChunkState read_chunk_state;
 	uint32_t last_read_tick;
 	PTHREAD waiter;
+	PCLIENT *pc;
 	struct httpStateFlags {
 		BIT_FIELD keep_alive : 1;
 		BIT_FIELD close : 1;
@@ -70,10 +71,6 @@ static struct local_http_data
 }local_http_data;
 #define l local_http_data
 
-struct instance_data {
-	PTHREAD waiter;
-	PCLIENT *pc;
-};
 
 PRELOAD( loadOption ) {
 #ifndef __NO_OPTIONS__
@@ -775,10 +772,9 @@ void SendHttpMessage ( struct HttpState *pHttpState, PCLIENT pc, PTEXT body )
 
 static void CPROC HttpReader( PCLIENT pc, POINTER buffer, size_t size )
 {
-	struct HttpState *state = (struct HttpState *)GetNetworkLong( pc, 2 );
+	struct HttpState *state = (struct HttpState *)GetNetworkLong( pc, 0 );
 	if( !buffer )
 	{
-		struct HttpState *state = (struct HttpState *)GetNetworkLong( pc, 2 );
 		if( state && state->ssl )
 		{
 			Deallocate( POINTER, (POINTER)GetNetworkLong( pc, 1 ) );
@@ -799,7 +795,6 @@ static void CPROC HttpReader( PCLIENT pc, POINTER buffer, size_t size )
 				LineRelease( send );
 			}
 		}
-		else
 		{
 			buffer = Allocate( 4096 );
 			SetNetworkLong( pc, 1, (uintptr_t)buffer );
@@ -807,7 +802,6 @@ static void CPROC HttpReader( PCLIENT pc, POINTER buffer, size_t size )
 	}
 	else
 	{
-		struct HttpState *state = (struct HttpState *)GetNetworkLong( pc, 2 );
 		if( l.flags.bLogReceived )
 		{
 			lprintf( WIDE("Received web request... %zu"), size );
@@ -834,7 +828,7 @@ static void CPROC HttpReaderClose( PCLIENT pc )
 	if( buf )
 		Release( buf );
 	{
-		struct instance_data *data = (struct instance_data*)GetNetworkLong( pc, 0 );
+		struct HttpState *data = (struct HttpState *)GetNetworkLong( pc, 0 );
 		PCLIENT *ppc = data->pc;// (PCLIENT*)GetNetworkLong( pc, 0 );
 		if( ppc )
 			ppc[0] = NULL;
@@ -854,11 +848,9 @@ HTTPState PostHttpQuery( PTEXT address, PTEXT url, PTEXT content )
 	if( pc )
 	{
 		PTEXT send = VarTextGet( pvtOut );
-		struct instance_data inst;
-		inst.pc = &pc;
-		inst.waiter = MakeThread();
-		SetNetworkLong( pc, 0, (uintptr_t)&inst );
-		SetNetworkLong( pc, 2, (uintptr_t)state );
+		state->pc = &pc;
+		state->waiter = MakeThread();
+		SetNetworkLong( pc, 0, (uintptr_t)state );
 		SetNetworkCloseCallback( pc, HttpReaderClose );
 		if( l.flags.bLogReceived )
 		{
@@ -901,16 +893,14 @@ HTTPState GetHttpQuery( PTEXT address, PTEXT url )
 			PVARTEXT pvtOut = VarTextCreate();
 			SetTCPNoDelay( pc, TRUE );
 			vtprintf( pvtOut, WIDE( "GET %s HTTP/1.1\r\n" ), GetText( url ) );
-			vtprintf( pvtOut, WIDE( "host: %s\r\n" ), GetText( address ) );
-			vtprintf( pvtOut, WIDE( "\r\n\r\n" ) );
+			vtprintf( pvtOut, WIDE( "Host: %s\r\n" ), GetText( address ) );
+			vtprintf( pvtOut, WIDE( "\r\n" ) );
 			if( pc )
 			{
 				PTEXT send = VarTextGet( pvtOut );
-				struct instance_data inst;
-				inst.pc = &pc;
-				inst.waiter = MakeThread();
-				SetNetworkLong( pc, 0, (uintptr_t)&inst );// pc );
-				SetNetworkLong( pc, 2, (uintptr_t)state );
+				state->waiter = MakeThread();
+				state->pc = &pc;
+				SetNetworkLong( pc, 0, (uintptr_t)state );
 				SetNetworkCloseCallback( pc, HttpReaderClose );
 				if( l.flags.bLogReceived )
 				{
@@ -931,37 +921,43 @@ HTTPState GetHttpQuery( PTEXT address, PTEXT url )
 	return NULL;
 }
 
-HTTPState GetHttpsQuery( PTEXT address, PTEXT url )
+HTTPState GetHttpsQuery( PTEXT address, PTEXT url, const char *certChain )
 {
 	if( !address )
 		return NULL;
 	{
 		struct HttpState *state = CreateHttpState();
 		static PCLIENT pc;
-		pc = OpenTCPClient( GetText( address ), 443, NULL );
+		SOCKADDR *addr = CreateSockAddress( GetText( address ), 443 );
+		pc = OpenTCPClientAddrExxx( addr, HttpReader, HttpReaderClose, NULL, NULL, OPEN_TCP_FLAG_DELAY_CONNECT DBG_SRC );
+		ReleaseAddress( addr );
 		if( pc )
 		{
-			struct instance_data inst;
-			inst.pc = &pc;
-			inst.waiter = MakeThread();
 			state->last_read_tick = GetTickCount();
-			SetNetworkLong( pc, 0, (uintptr_t)&inst );
-			SetNetworkLong( pc, 2, (uintptr_t)state );
-			SetNetworkCloseCallback( pc, HttpReaderClose );
-			SetNetworkReadComplete( pc, HttpReader );
+			state->waiter = MakeThread();
+			state->pc = &pc;
+			SetNetworkLong( pc, 0, (uintptr_t)state );
+
+			//SetNetworkConn
 			state->ssl = TRUE;
 			state->pvtOut = VarTextCreate();
 			vtprintf( state->pvtOut, WIDE( "GET %s HTTP/1.1\r\n" ), GetText( url ) );
-			vtprintf( state->pvtOut, WIDE( "host: %s\r\n" ), GetText( address ) );
-			vtprintf( state->pvtOut, WIDE( "\r\n\r\n" ) );
+			vtprintf( state->pvtOut, WIDE( "Host: %s\r\n" ), GetText( address ) );
+			vtprintf( state->pvtOut, "User-Agent: SACK(%s)\r\n", "System" );
+			vtprintf( state->pvtOut, WIDE( "\r\n" ) );
 #ifndef NO_SSL
-			if( ssl_BeginClientSession( pc, NULL, 0, NULL, 0, NULL, 0 ) )
+			if( ssl_BeginClientSession( pc, NULL, 0, NULL, 0, certChain, certChain ? strlen( certChain ) : 0 ) )
 			{
+				if( !certChain )
+					ssl_SetIgnoreVerification( pc );
+				NetworkConnectTCP( pc );
 				state->waiter = MakeThread();
 				while( pc && ( state->last_read_tick > ( GetTickCount() - 20000 ) ) )
 				{
 					WakeableSleep( 1000 );
 				}
+				if( pc )
+					RemoveClient( pc );
 			}
 			else
 				RemoveClient( pc );
@@ -982,7 +978,7 @@ HTTPState GetHttpsQuery( PTEXT address, PTEXT url )
 PTEXT GetHttp( PTEXT address, PTEXT url, LOGICAL secure )
 {
 	if( secure )
-		return GetHttps( address, url );
+		return GetHttps( address, url, NULL );
 	else
 
 	{
@@ -997,9 +993,9 @@ PTEXT GetHttp( PTEXT address, PTEXT url, LOGICAL secure )
 	}}
 	return NULL;
 }
-PTEXT GetHttps( PTEXT address, PTEXT url )
+PTEXT GetHttps( PTEXT address, PTEXT url, const char *ca )
 {
-	HTTPState state = GetHttpsQuery( address, url );
+	HTTPState state = GetHttpsQuery( address, url, ca );
 	if( state )
 	{
 		PTEXT result = GetHttpContent( state );
@@ -1194,6 +1190,10 @@ PLIST GetHttpHeaderFields( HTTPState pHttpState )
 
 int GetHttpVersion( HTTPState pHttpState ) {
 	return pHttpState->response_version;
+}
+
+int GetHttpResponseCode( HTTPState pHttpState ) {
+	return pHttpState->numeric_code;
 }
 
 HTTP_NAMESPACE_END
