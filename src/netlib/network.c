@@ -3258,7 +3258,7 @@ NETWORK_PROC( void, NetworkUnlockEx)( PCLIENT lpClient DBG_PASS )
 
 //----------------------------------------------------------------------------
 
-void InternalRemoveClientExx(PCLIENT lpClient, LOGICAL bBlockNofity, LOGICAL bLinger DBG_PASS )
+void InternalRemoveClientExx(PCLIENT lpClient, LOGICAL bBlockNotify, LOGICAL bLinger DBG_PASS )
 {
 #ifdef LOG_SOCKET_CREATION
 	_lprintf( DBG_RELAY )( WIDE("InternalRemoveClient Removing this client %p (%d)"), lpClient, lpClient->Socket );
@@ -3356,7 +3356,7 @@ void InternalRemoveClientExx(PCLIENT lpClient, LOGICAL bBlockNofity, LOGICAL bLi
 		// allow application a chance to clean it's references
 		// to this structure before closing and cleaning it.
 
-		if( !bBlockNofity )
+		if( !bBlockNotify )
 		{
 			lpClient->dwFlags |= CF_CONNECT_CLOSED;
 			if( lpClient->pWaiting )
