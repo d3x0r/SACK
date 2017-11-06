@@ -1006,7 +1006,7 @@ int json6_parse_add_data( struct json_parse_state *state
 								// hex conversion.
 								if( !state->fromHex ) {
 									state->fromHex = TRUE;
-									(*output->pos++) = c;
+									(*output->pos++) = c | 0x20; // force lower case.
 								}
 								else {
 									state->status = FALSE;
