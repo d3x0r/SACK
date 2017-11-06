@@ -16,7 +16,6 @@ SACK_NAMESPACE namespace network { namespace json {
 
 
 char *json_escape_string( const char *string ) {
-	size_t n;
 	size_t m = 0;
 	const char *input;
 	TEXTSTR output, _output;

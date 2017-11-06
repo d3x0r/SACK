@@ -554,7 +554,7 @@ static PCLIENT InternalTCPClientAddrFromAddrExxx( SOCKADDR *lpAddr, SOCKADDR *pF
 				pResult->dwFlags |= ( CF_CALLBACKTYPES );
 
 			AddActive( pResult );
-			if( !flags & OPEN_TCP_FLAG_DELAY_CONNECT ) {
+			if( !(flags & OPEN_TCP_FLAG_DELAY_CONNECT) ) {
 				NetworkConnectTCPEx( pResult DBG_RELAY );
 			}
 			//lprintf( WIDE("Leaving Client's critical section") );
@@ -582,7 +582,7 @@ static PCLIENT InternalTCPClientAddrFromAddrExxx( SOCKADDR *lpAddr, SOCKADDR *pF
 #ifdef __LINUX__
 			AddThreadEvent( pResult, 0 );
 #endif
-			if( !pConnectComplete )
+			if( !pConnectComplete && !(flags & OPEN_TCP_FLAG_DELAY_CONNECT) )
 			{
 				int Start, bProcessing = 0;
 

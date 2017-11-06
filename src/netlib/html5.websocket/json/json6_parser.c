@@ -31,18 +31,17 @@ SACK_NAMESPACE namespace network { namespace json {
 
 
 char *json6_escape_string( const char *string ) {
-	size_t n;
 	size_t m = 0;
 	const char *input;
 	TEXTSTR output;
 	TEXTSTR _output;
 	if( !( input = string ) ) return NULL;
-	for( n = 0; input[0]; input++ ) {
+	for( ; input[0]; input++ ) {
 		if( (input[0] == '"' ) || (input[0] == '\\' ) || (input[0] == '`') || (input[0] == '\'') /*|| (input[0] == '\n') || (input[0] == '\t')*/ )
 			m++;
 	}
 	_output = output = NewArray( TEXTCHAR, (input-string)+m+1 );
-	for( input - string; input[0]; input++ ) {
+	for( input = string; input[0]; input++ ) {
 		if( (input[0] == '"' ) || (input[0] == '\\' ) || (input[0] == '`' )|| (input[0] == '\'' )) {
 			(*output++) = '\\';
 		}
