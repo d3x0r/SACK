@@ -950,7 +950,10 @@ HTTPState GetHttpsQuery( PTEXT address, PTEXT url, const char *certChain )
 			{
 				if( !certChain )
 					ssl_SetIgnoreVerification( pc );
-				NetworkConnectTCP( pc );
+				if( NetworkConnectTCP( pc ) < 0 ) {
+					DestroyHttpState( state );
+					return NULL;
+				}
 				state->waiter = MakeThread();
 				while( pc && ( state->last_read_tick > ( GetTickCount() - 20000 ) ) )
 				{
