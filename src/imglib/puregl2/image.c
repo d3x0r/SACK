@@ -15,9 +15,9 @@
 //#include <GLES/gl.h>
 #include <GLES2/gl2.h>
 #else
-#ifndef __LINUX__
+//#ifndef __LINUX__
 #  include <GL/glew.h>
-#endif
+//#endif
 #include <GL/gl.h>         // Header File For The OpenGL32 Library
 #endif
 
