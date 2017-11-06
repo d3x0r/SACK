@@ -1002,7 +1002,7 @@ int json6_parse_add_data( struct json_parse_state *state
 
 							}
 #endif
-							else if( ( c == 'x' || c == 'b' ) && ( output->pos - output->buf ) == 1 ) {
+							else if( ( c == 'x' || c == 'b' || c =='o' || c == 'X' || c == 'B' || c == 'O') && ( output->pos - output->buf ) == 1 ) {
 								// hex conversion.
 								if( !state->fromHex ) {
 									state->fromHex = TRUE;
