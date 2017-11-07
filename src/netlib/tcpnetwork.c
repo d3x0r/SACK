@@ -787,7 +787,7 @@ PCLIENT CPPOpenTCPClientExEx(CTEXTSTR lpName,uint16_t wPort,
 		                                  , psvConnect
 		                                  , flags
 		                                    DBG_RELAY
-													 );
+		                                  );
 		ReleaseAddress( lpsaDest );
 	}   
 	return pClient;
@@ -799,7 +799,9 @@ PCLIENT OpenTCPClientExxx(CTEXTSTR lpName,uint16_t wPort,
              cReadComplete  pReadComplete,
              cCloseCallback CloseCallback,
              cWriteComplete WriteComplete,
-             cConnectCallback pConnectComplete DBG_PASS )
+             cConnectCallback pConnectComplete,
+             int flags
+             DBG_PASS )
 {
 	PCLIENT pClient;
 	SOCKADDR *lpsaDest;
@@ -811,7 +813,8 @@ PCLIENT OpenTCPClientExxx(CTEXTSTR lpName,uint16_t wPort,
 		                               , pReadComplete
 		                               , CloseCallback
 		                               , WriteComplete
-		                               , pConnectComplete, 0 DBG_RELAY );
+		                               , pConnectComplete
+		                               , flags DBG_RELAY );
 		ReleaseAddress( lpsaDest );
 	}
 	return pClient;
@@ -825,7 +828,7 @@ PCLIENT OpenTCPClientExEx(CTEXTSTR lpName,uint16_t wPort,
                           cWriteComplete WriteComplete
                           DBG_PASS )
 {
-	return OpenTCPClientExxx( lpName, wPort, pReadComplete, CloseCallback, WriteComplete, NULL DBG_RELAY );
+	return OpenTCPClientExxx( lpName, wPort, pReadComplete, CloseCallback, WriteComplete, NULL, 0 DBG_RELAY );
 }
 
 
