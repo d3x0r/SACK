@@ -160,6 +160,7 @@ int ProcessHttp( PCLIENT pc, struct HttpState *pHttpState )
 		pHttpState->partial = pMergedLine;
 		pCurrent = pHttpState->partial;
 		//pStart = pCurrent; // at lest is this block....
+		//LogBinary( (const uint8_t*)GetText( pInput ), GetTextSize( pInput ) );
 		len = 0;
 
 		// we always start without having a line yet, because all input is already merged
@@ -775,6 +776,7 @@ static void CPROC HttpReader( PCLIENT pc, POINTER buffer, size_t size )
 	struct HttpState *state = (struct HttpState *)GetNetworkLong( pc, 0 );
 	if( !buffer )
 	{
+		//lprintf( "Initial read on HTTP requestor" );
 		if( state && state->ssl )
 		{
 			Deallocate( POINTER, (POINTER)GetNetworkLong( pc, 1 ) );
@@ -882,12 +884,21 @@ PTEXT PostHttp( PTEXT address, PTEXT url, PTEXT content )
 	return NULL;
 }
 
+static void httpConnected( PCLIENT pc, int error ) {
+	if( error ) {
+		struct HttpState *state = (struct HttpState *)GetNetworkLong( pc, 0 );
+		RemoveClient( pc );
+	}
+}
+
 HTTPState GetHttpQuery( PTEXT address, PTEXT url )
 {
 	if( !address )
 		return NULL;
 	{
-		PCLIENT pc = OpenTCPClient( GetText( address ), 80, HttpReader );
+		PCLIENT pc;
+		SOCKADDR *addr = CreateSockAddress( GetText( address ), 443 );
+		pc = OpenTCPClientAddrExxx( addr, HttpReader, HttpReaderClose, NULL, httpConnected, 0 DBG_SRC );
 		if( pc ) {
 			struct HttpState *state = CreateHttpState();
 			PVARTEXT pvtOut = VarTextCreate();
@@ -929,7 +940,8 @@ HTTPState GetHttpsQuery( PTEXT address, PTEXT url, const char *certChain )
 		struct HttpState *state = CreateHttpState();
 		static PCLIENT pc;
 		SOCKADDR *addr = CreateSockAddress( GetText( address ), 443 );
-		pc = OpenTCPClientAddrExxx( addr, HttpReader, HttpReaderClose, NULL, NULL, OPEN_TCP_FLAG_DELAY_CONNECT DBG_SRC );
+		DumpAddr( "Http Address:", addr );
+		pc = OpenTCPClientAddrExxx( addr, HttpReader, HttpReaderClose, NULL, httpConnected, OPEN_TCP_FLAG_DELAY_CONNECT DBG_SRC );
 		ReleaseAddress( addr );
 		if( pc )
 		{
