@@ -906,6 +906,9 @@ struct internalCert * MakeRequest( void )
 
 			X509_sign( x509, cert->pkey, EVP_sha512() );
 
+			cert->chain = sk_X509_new_null();
+			sk_X509_push( cert->chain, x509 );
+
 			{
 				PEM_write_bio_X509( keybuf, x509 );
 				ca_len = BIO_pending( keybuf );
