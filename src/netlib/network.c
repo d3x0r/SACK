@@ -126,7 +126,6 @@ int TCPWriteEx(PCLIENT pc DBG_PASS);
 size_t FinishPendingRead(PCLIENT lpClient DBG_PASS );
 LOGICAL TCPDrainRead( PCLIENT pClient );
 
-void DumpSocket( PCLIENT pc );
 _TCP_NAMESPACE_END
 
 //----------------------------------------------------------------------------
