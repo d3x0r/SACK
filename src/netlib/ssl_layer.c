@@ -276,8 +276,8 @@ static void ssl_ReadComplete( PCLIENT pc, POINTER buffer, size_t length )
 			{
 				len = SSL_read( pc->ssl_session->ssl, NULL, 0 );
 				//lprintf( "return of 0 read: %d", len );
-				if( len < 0 )
-					lprintf( "error of 0 read is %d", SSL_get_error( pc->ssl_session->ssl, len ) );
+				//if( len < 0 )
+				//	lprintf( "error of 0 read is %d", SSL_get_error( pc->ssl_session->ssl, len ) );
 				len = SSL_pending( pc->ssl_session->ssl );
 				//lprintf( "do read.. pending %d", len );
 				if( len ) {
