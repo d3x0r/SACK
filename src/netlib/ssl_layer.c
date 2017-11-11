@@ -282,7 +282,7 @@ static void ssl_ReadComplete( PCLIENT pc, POINTER buffer, size_t length )
 				//lprintf( "do read.. pending %d", len );
 				if( len ) {
 					if( len > pc->ssl_session->dbuflen ) {
-						lprintf( "Needed to expand buffer..." );
+						//lprintf( "Needed to expand buffer..." );
 						Release( pc->ssl_session->dbuffer );
 						pc->ssl_session->dbuflen = ( len + 4095 ) & 0xFFFF000;
 						pc->ssl_session->dbuffer = NewArray( uint8_t, pc->ssl_session->dbuflen );
