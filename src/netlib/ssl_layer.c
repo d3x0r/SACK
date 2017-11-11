@@ -9,7 +9,7 @@
 
 #include "netstruc.h"
 
-//#define DEBUG_SSL_IO
+#define DEBUG_SSL_IO
 
 #if NO_SSL
 
@@ -396,6 +396,9 @@ LOGICAL ssl_Send( PCLIENT pc, CPOINTER buffer, size_t length )
 #endif
 		if( pending_out > 4327 )
 			pending_out = 4327;
+#ifdef DEBUG_SSL_IO
+		lprintf( "Sending %d of %d at %d", pending_out, length, offset );
+#endif
 		len = SSL_write( pc->ssl_session->ssl, (((uint8_t*)buffer) + offset), (int)pending_out );
 		if (len < 0) {
 			ERR_print_errors_cb(logerr, (void*)__LINE__);
@@ -419,7 +422,6 @@ LOGICAL ssl_Send( PCLIENT pc, CPOINTER buffer, size_t length )
 		len_out = BIO_read( pc->ssl_session->wbio, ses->obuffer, (int)ses->obuflen );
 		SendTCP( pc, ses->obuffer, len_out );
 	}
-
 	return TRUE;
 
 }
