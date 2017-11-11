@@ -1228,6 +1228,12 @@ int TCPWriteEx(PCLIENT pc DBG_PASS)
 							 pc->lpFirstPending->dwUsed,
 							 (int)pc->lpFirstPending->dwAvail,
 							 0);
+			if( nSent < pc->lpFirstPending->dwAvail ) {
+				pc->lpFirstPending->dwUsed += nSent;
+				pc->lpFirstPending->dwAvail -= nSent;
+				pc->dwFlags |= CF_WRITEPENDING;
+				lprintf( "THIS IS ANOTHER PENDING CONDITION THAT WASN'T ACCOUNTED" );
+			}
 			if (nSent == SOCKET_ERROR)
 			{
 				if( WSAGetLastError() == WSAEWOULDBLOCK )  // this is alright.

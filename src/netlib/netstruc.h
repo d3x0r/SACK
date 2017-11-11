@@ -74,45 +74,47 @@ typedef struct PendingBuffer
 }PendingBuffer;
 
 enum NetworkConnectionFlags {
-	CF_UDP = 0x0001
+	CF_UDP               = 0x00000001
 	// no flag... is NOT UDP....
-	, CF_TCP = 0x0000
-	, CF_LISTEN = 0x0002
-	, CF_CONNECT = 0x0000
+	, CF_TCP             = 0x00000000
+	, CF_LISTEN          = 0x00000002
 	// some write is left hanging to output
-	, CF_WRITEPENDING = 0x0004
+	, CF_WRITEPENDING    = 0x00000004
 	// set if buffers have been set by a read
-	, CF_READPENDING = 0x0008
+	, CF_READPENDING     = 0x00000008
 	// set if next read to pend should recv also
-	, CF_READREADY = 0x0010
+	, CF_READREADY       = 0x00000010
 	// set if reading application is waiting in-line for result.
-	, CF_READWAITING = 0x8000
+	, CF_READWAITING     = 0x00008000
 	// set when FD_CONNECT is issued...
-	, CF_CONNECTED = 0x0020
-	, CF_CONNECTERROR = 0x0040
-	, CF_CONNECTING = 0x0080
-	, CF_CONNECT_WAITING = 0x8000
-	, CF_CONNECT_CLOSED = 0x100000
-	, CF_TOCLOSE = 0x0100
-	, CF_WRITEISPENDED = 0x0200
-	, CF_CLOSING = 0x0400
-	, CF_DRAINING = 0x0800
+	, CF_CONNECTED       = 0x00000020
+	, CF_CONNECTERROR    = 0x00000040
+	, CF_CONNECTING      = 0x00000080
+	, CF_CONNECT_WAITING = 0x00008000
+	, CF_CONNECT_CLOSED  = 0x00100000
+	, CF_TOCLOSE         = 0x00000100
+	, CF_WRITEISPENDED   = 0x00000200
+	, CF_CLOSING         = 0x00000400
+	, CF_DRAINING        = 0x00000800
 	// closed, handled everything except releasing the socket.
-	, CF_CLOSED = 0x1000
-	, CF_ACTIVE = 0x2000
-	, CF_AVAILABLE = 0x4000
-	, CF_CPPCONNECT = 0x010000
+	, CF_CLOSED          = 0x00001000
+	, CF_ACTIVE          = 0x00002000
+	, CF_AVAILABLE       = 0x00004000
+	, CF_CPPCONNECT      = 0x00010000
 	// server/client is implied in usage....
 	// much like Read, ReadEX are implied in TCP/UDP usage...
 	//#define CF_CPPSERVERCONNECT 0x010000
 	//#define CF_CPPCLIENTCONNECT 0x020000
-	, CF_CPPREAD = 0x020000
-	, CF_CPPCLOSE = 0x040000
-	, CF_CPPWRITE = 0x080000
-	, CF_CALLBACKTYPES = 0x010000 | 0x020000 | 0x040000 | 0x080000//(CF_CPPCONNECT | CF_CPPREAD | CF_CPPCLOSE | CF_CPPWRITE)
-	, CF_STATEFLAGS = 0x1000 | 0x2000 | 0x4000  //( CF_ACTIVE | CF_AVAILABLE | CF_CLOSED)
+	, CF_CPPREAD         = 0x00020000
+	, CF_CPPCLOSE        = 0x00040000
+	, CF_CPPWRITE        = 0x00080000
+	, CF_CALLBACKTYPES   = 0x00010000
+                        | 0x00020000
+                        | 0x00040000
+                        | 0x00080000//(CF_CPPCONNECT | CF_CPPREAD | CF_CPPCLOSE | CF_CPPWRITE)
+	, CF_STATEFLAGS      = 0x1000 | 0x2000 | 0x4000  //( CF_ACTIVE | CF_AVAILABLE | CF_CLOSED)
 	//, CF_WANTS_GLOBAL_LOCK = 0x10000000
-	, CF_PROCESSING = 0x20000000
+	, CF_PROCESSING      = 0x20000000
 };
 
 #ifdef __cplusplus
