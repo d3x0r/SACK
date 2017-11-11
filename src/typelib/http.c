@@ -52,6 +52,7 @@ struct HttpState {
 		BIT_FIELD h2c_upgrade : 1;
 		BIT_FIELD ws_upgrade : 1;
 		BIT_FIELD ssl : 1; // prevent issuing network reads... ssl pushes data from internal buffers
+		BIT_FIELD success : 1;
 	}flags;
 };
 
@@ -91,15 +92,20 @@ void GatherHttpData( struct HttpState *pHttpState )
 		PTEXT pMergedLine;
 		PTEXT pInput = VarTextGet( pHttpState->pvt_collector );
 		PTEXT pNewLine = SegAppend( pHttpState->partial, pInput );
+		//lprintf( "Gathering http data with content length..." );
 		pMergedLine = SegConcat( NULL, pNewLine, 0, GetTextSize( pHttpState->partial ) + GetTextSize( pInput ) );
 		LineRelease( pNewLine );
 		pHttpState->partial = pMergedLine;
 		if( GetTextSize( pHttpState->partial ) >= pHttpState->content_length )
 		{
+			//lprintf( "Partial is complete with %d", GetTextSize( pHttpState->partial ) );
 			pHttpState->content = SegSplit( &pHttpState->partial, pHttpState->content_length );
 			pHttpState->partial = NEXTLINE( pHttpState->partial );		
 			SegGrab( pHttpState->partial );
+			pHttpState->flags.success = 1;
 		}
+		//else
+		//	lprintf( "Partial is only %d", GetTextSize( pHttpState->partial ) );
 	}
 	else
 	{
@@ -109,7 +115,7 @@ void GatherHttpData( struct HttpState *pHttpState )
 		pMergedLine = SegConcat( NULL, pNewLine, 0, GetTextSize( pHttpState->partial ) + GetTextSize( pInput ) );
 		LineRelease( pNewLine );
 		pHttpState->partial = pMergedLine;
-
+		//lprintf( "Setting content to partial... " );
 		pHttpState->content = pHttpState->partial;
 	}
 }
@@ -144,7 +150,7 @@ int ProcessHttp( PCLIENT pc, struct HttpState *pHttpState )
 	if( pHttpState->final )
 	{
 		GatherHttpData( pHttpState );
-		if( !pHttpState->returned_status ) {
+		if( pHttpState->flags.success && !pHttpState->returned_status ) {
 			pHttpState->returned_status = 1;
 			return pHttpState->numeric_code;
 		}
@@ -403,6 +409,7 @@ int ProcessHttp( PCLIENT pc, struct HttpState *pHttpState )
 				{
 					// down convert from int64_t
 					pHttpState->content_length = (int)IntCreateFromSeg( field->value );
+					//lprintf( "content lenght: %d", pHttpState->content_length );
 				}
 				else if( TextLike( field->name, WIDE( "upgrade" ) ) )
 				{
@@ -547,8 +554,10 @@ LOGICAL AddHttpData( struct HttpState *pHttpState, POINTER buffer, size_t size )
 					else
 					{
 						pHttpState->content_length = GetTextSize( VarTextPeek( pHttpState->pvt_collector ) );
-						if( pHttpState->waiter )
+						if( pHttpState->waiter ) {
+							//lprintf( "Waking waiting to return with result." );
 							WakeThread( pHttpState->waiter );
+						}
 						return TRUE;
 					}
 				}
@@ -699,8 +708,10 @@ PTEXT GetHttpMethod( struct HttpState *pHttpState )
 	return pHttpState->method;
 }
 
-void DestroyHttpState( struct HttpState *pHttpState )
+
+void DestroyHttpStateEx( struct HttpState *pHttpState DBG_PASS )
 {
+   //_lprintf(DBG_RELAY)( "Destroy http state... (should clear content too?" );
 	EndHttp( pHttpState ); // empties variables
 	DeleteList( &pHttpState->fields );
 	VarTextDestroy( &pHttpState->pvt_collector );
@@ -708,6 +719,14 @@ void DestroyHttpState( struct HttpState *pHttpState )
 		Release( pHttpState->buffer );
 	Release( pHttpState );
 }
+
+void DestroyHttpState( struct HttpState *pHttpState ) {
+   DestroyHttpStateEx( pHttpState DBG_SRC );
+}
+
+#define DestroyHttpState(state) DestroyHttpStateEx(state DBG_SRC )
+
+
 
 void SendHttpResponse ( struct HttpState *pHttpState, PCLIENT pc, int numeric, CTEXTSTR text, CTEXTSTR content_type, PTEXT body )
 {
@@ -829,8 +848,12 @@ static void CPROC HttpReaderClose( PCLIENT pc )
 	PCLIENT *ppc = data->pc;// (PCLIENT*)GetNetworkLong( pc, 0 );
 	if( ppc )
 		ppc[0] = NULL;
-	if( data->waiter ) WakeThread( data->waiter );
-	DestroyHttpState( data );
+	if( data->waiter ) {
+		//lprintf( "(on close) Waking waiting to return with result." );
+		WakeThread( data->waiter );
+	}
+	if( !data->flags.success )
+		DestroyHttpState( data );
 }
 
 static void CPROC HttpConnected( PCLIENT pc, int error ) {
@@ -940,6 +963,7 @@ HTTPState GetHttpQuery( PTEXT address, PTEXT url )
 		AddLink( &l.pendingConnects, connect );
 		pc = OpenTCPClientAddrExxx( addr, HttpReader, HttpReaderClose, NULL, httpConnected, 0 DBG_SRC );
 		connect->pc = pc;
+		ReleaseAddress( addr );
 		if( pc ) {
 			PVARTEXT pvtOut = VarTextCreate();
 			SetTCPNoDelay( pc, TRUE );
@@ -980,8 +1004,12 @@ HTTPState GetHttpsQuery( PTEXT address, PTEXT url, const char *certChain )
 		struct HttpState *state = CreateHttpState();
 		static PCLIENT pc;
 		SOCKADDR *addr = CreateSockAddress( GetText( address ), 443 );
-		DumpAddr( "Http Address:", addr );
+		struct pendingConnect *connect = New( struct pendingConnect );
+		connect->state = state;
+		AddLink( &l.pendingConnects, connect );
+		//DumpAddr( "Http Address:", addr );
 		pc = OpenTCPClientAddrExxx( addr, HttpReader, HttpReaderClose, NULL, httpConnected, OPEN_TCP_FLAG_DELAY_CONNECT DBG_SRC );
+		connect->pc = pc;
 		ReleaseAddress( addr );
 		if( pc )
 		{
@@ -1011,6 +1039,7 @@ HTTPState GetHttpsQuery( PTEXT address, PTEXT url, const char *certChain )
 				{
 					WakeableSleep( 1000 );
 				}
+				//lprintf( "Request has completed.... %p %p", pc, state->content );
 				if( pc )
 					RemoveClient( pc );
 			}
