@@ -911,7 +911,13 @@ int CPROC WaitingForDependancies( PMYTASK_INFO task )
 
 static void CPROC TaskOut(uintptr_t psvTask, PTASK_INFO task, CTEXTSTR buffer, size_t size ) {
 	PMYTASK_INFO myTask = (PMYTASK_INFO)psvTask;
-	lprintf( "%s:%*.*s", myTask->name, size-1, size-1, buffer );
+	if( buffer[size-1] == '\n' ) {
+		if( size > 1 ) {
+			lprintf( "%s:%*.*s", myTask->name, size-1, size-1, buffer );
+		}
+	} else
+		lprintf( "%s:%*.*s", myTask->name, size, size, buffer );
+
 }
 
 //--------------------------------------------------------------------------
