@@ -641,6 +641,10 @@ void TerminateClosedClientEx( PCLIENT pc DBG_PASS )
 #endif
 	if( !pc )
 		return;
+	if( pc->dwFlags & CF_TOCLOSE ) {
+		lprintf( "WAIT FOR CLOSE LATER..." );
+		return;
+	}
 	if( pc->dwFlags & CF_CLOSED )
 	{
 		PendingBuffer * lpNext;
@@ -1719,8 +1723,12 @@ void AddThreadEvent( PCLIENT pc, int broadcast )
 		if( pc->dwFlags & CF_LISTEN )
 			ev.events = EPOLLIN;
 		else {
+
 			ev.events = EPOLLIN | EPOLLOUT | EPOLLRDHUP | EPOLLET;
 		}
+#ifdef LOG_NETWORK_EVENT_THREAD
+		lprintf( "peer add socket to %d now has 0x%x events", peer->epoll_fd, ev.events );
+#endif
 		r = epoll_ctl( peer->epoll_fd, EPOLL_CTL_ADD, broadcast?pc->SocketBroadcast:pc->Socket, &ev );
 		if( r < 0 ) lprintf( "Error adding:%d", errno );
 #  endif
@@ -1731,7 +1739,7 @@ void AddThreadEvent( PCLIENT pc, int broadcast )
 		pc->flags.bAddedToEvents = 1;
 	}
 #ifdef LOG_NETWORK_EVENT_THREAD
-	//lprintf( "peer %p now has %d events", peer, peer->nEvents );
+	lprintf( "peer %p now has %d events", peer, peer->nEvents );
 #endif
 	// scheduler thread already awake do not wake him.
 }
@@ -1754,6 +1762,9 @@ int CPROC ProcessNetworkMessages( struct peer_thread_info *thread, uintptr_t unu
 #    endif
 #  else
 		struct epoll_event events[10];
+#    ifdef LOG_NETWORK_EVENT_THREAD
+		lprintf( "Wait on %d", thread->epoll_fd );
+#    endif
 		cnt = epoll_wait( thread->epoll_fd, events, 10, -1 );
 #  endif
 		if( cnt < 0 )
@@ -1776,8 +1787,10 @@ int CPROC ProcessNetworkMessages( struct peer_thread_info *thread, uintptr_t unu
 #  else
 				event_data = (struct event_data*)events[n].data.ptr;
 #  endif
-				//lprintf( "Process %d %x", event_data->broadcast?event_data->pc->SocketBroadcast:event_data->pc->Socket
-				//		 , events[n].events );
+#  ifdef LOG_NOTICES
+				lprintf( "Process %d %x", event_data->broadcast?event_data->pc->SocketBroadcast:event_data->pc->Socket
+						 , events[n].events );
+#  endif
 				if( event_data == (struct event_data*)1 ) {
 					//char buf;
 					//stat = read( GetThreadSleeper( thread->pThread ), &buf, 1 );
@@ -1846,10 +1859,10 @@ int CPROC ProcessNetworkMessages( struct peer_thread_info *thread, uintptr_t unu
 						FinishPendingRead( event_data->pc DBG_SRC );
 						if( event_data->pc->dwFlags & CF_TOCLOSE )
 						{
-#ifdef LOG_NOTICES
-							if( globalNetworkData.flags.bLogNotices )
+//#ifdef LOG_NOTICES
+//							if( globalNetworkData.flags.bLogNotices )
 								lprintf( WIDE( "Pending read failed - reset connection." ) );
-#endif
+//#endif
 							InternalRemoveClientEx( event_data->pc, FALSE, FALSE );
 							TerminateClosedClient( event_data->pc );
 						}
@@ -1913,7 +1926,7 @@ int CPROC ProcessNetworkMessages( struct peer_thread_info *thread, uintptr_t unu
 							socklen_t errlen = sizeof( error );
 							getsockopt( event_data->pc->Socket, SOL_SOCKET
 								, SO_ERROR
-								, &error, &errlen );
+										 , &error, &errlen );
 							//lprintf( WIDE( "Error checking for connect is: %s on %d" ), strerror( error ), event_data->pc->Socket );
 							if( event_data->pc->pWaiting )
 							{
@@ -1925,11 +1938,21 @@ int CPROC ProcessNetworkMessages( struct peer_thread_info *thread, uintptr_t unu
 							}
 							if( event_data->pc->connect.ThisConnected )
 								event_data->pc->connect.ThisConnected( event_data->pc, error );
+#ifdef LOG_NOTICES
+							if( globalNetworkData.flags.bLogNotices )
+								lprintf( "Connect error was: %d", error );
+#endif
 							// if connected okay - issue first read...
 							if( !error )
 							{
+#ifdef LOG_NOTICES
+								lprintf( "Read Complete" );
+#endif
 								if( event_data->pc->read.ReadComplete )
 								{
+#ifdef LOG_NOTICES
+									lprintf( "Initial Read Complete" );
+#endif
 									event_data->pc->read.ReadComplete( event_data->pc, NULL, 0 );
 								}
 								if( event_data->pc->lpFirstPending )
@@ -2754,9 +2777,10 @@ namespace udp {
 #endif
 NETWORK_PROC( void, DumpAddrEx)( CTEXTSTR name, SOCKADDR *sa DBG_PASS )
 	{
+		if( !sa ) { _lprintf(DBG_RELAY)( "%s: NULL", name ); return; }
 		LogBinary( (uint8_t *)sa, SOCKADDR_LENGTH( sa ) );
 		if( sa->sa_family == AF_INET ) {
-			lprintf( WIDE("%s: (%s) %d.%d.%d.%d:%d "), name
+			_lprintf(DBG_RELAY)( WIDE("%s: (%s) %d.%d.%d.%d:%d "), name
 			       , ( ((uintptr_t*)sa)[-1] & 0xFFFF0000 )?( ((char**)sa)[-1] ) : "no name"
 			       //*(((unsigned char *)sa)+0),
 			       //*(((unsigned char *)sa)+1),
@@ -2769,7 +2793,7 @@ NETWORK_PROC( void, DumpAddrEx)( CTEXTSTR name, SOCKADDR *sa DBG_PASS )
 		} else if( sa->sa_family == AF_INET6 )
 		{
 			lprintf( WIDE( "Socket address binary: %s" ), name );
-			lprintf( WIDE("%s: (%s) %03d %04x:%04x:%04x:%04x:%04x:%04x:%04x:%04x ")
+			_lprintf(DBG_RELAY)( WIDE("%s: (%s) %03d %04x:%04x:%04x:%04x:%04x:%04x:%04x:%04x ")
 					 , name
 					, ( ((uintptr_t*)sa)[-1] & 0xFFFF0000 )?( ((char**)sa)[-1] ) : "no name"
 					 , ntohs(*(((unsigned short *)((unsigned char*)sa+2))))
@@ -3305,11 +3329,11 @@ void InternalRemoveClientExx(PCLIENT lpClient, LOGICAL bBlockNotify, LOGICAL bLi
 			}
 		}
 		else {
-#if 0
+//#if 0
 			struct linger lingerSet;
 			// linger ON causes delay on close... otherwise close returns immediately
 			lingerSet.l_onoff = 0; // on , with no time = off.
-			lingerSet.l_linger = 0;
+			lingerSet.l_linger = 2;
 			// set server to allow reuse of socket port
 			if( setsockopt( lpClient->Socket, SOL_SOCKET, SO_LINGER,
 				(char*)&lingerSet, sizeof( lingerSet ) ) <0 )
@@ -3317,40 +3341,44 @@ void InternalRemoveClientExx(PCLIENT lpClient, LOGICAL bBlockNotify, LOGICAL bLi
 				lprintf( WIDE( "error setting no linger in close." ) );
 				//cerr << "NFMSim:setHost:ERROR: could not set socket to linger." << endl;
 			}
-#endif
+//#endif
 		}
 
-	if( !(lpClient->dwFlags & CF_ACTIVE) )
-	{
-		if( lpClient->dwFlags & CF_AVAILABLE )
+		if( !(lpClient->dwFlags & CF_ACTIVE) )
 		{
-			lprintf( WIDE("Client was inactive?!?!?! removing from list and putting in available") );
-			AddAvailable( GrabClient( lpClient ) );
-		}
-		// this is probably true, we've definatly already moved it from
-		// active list to clsoed list.
-		else if( !(lpClient->dwFlags & CF_CLOSED) )
-		{
+			if( lpClient->dwFlags & CF_AVAILABLE )
+			{
+				lprintf( WIDE("Client was inactive?!?!?! removing from list and putting in available") );
+				AddAvailable( GrabClient( lpClient ) );
+			}
+			// this is probably true, we've definatly already moved it from
+			// active list to clsoed list.
+			else if( !(lpClient->dwFlags & CF_CLOSED) )
+			{
 #ifdef LOG_DEBUG_CLOSING
-			lprintf( WIDE("Client was NOT already closed?!?!") );
+				lprintf( WIDE("Client was NOT already closed?!?!") );
 #endif
-			AddClosed( GrabClient( lpClient ) );
-		}
+				AddClosed( GrabClient( lpClient ) );
+			}
 #ifdef LOG_DEBUG_CLOSING
-		else
-			lprintf( WIDE("Client's state is CLOSED") );
+			else
+				lprintf( WIDE("Client's state is CLOSED") );
 #endif
-		return;
-	}
-
-	while( !NetworkLockEx( lpClient DBG_SRC ) )
-	{
-		if( !(lpClient->dwFlags & CF_ACTIVE ) )
-		{
 			return;
 		}
-		Relinquish();
-	}
+		if( lpClient->dwFlags & CF_WRITEPENDING ) {
+			lprintf( "CLOSE WHILE WAITING FOR WRITE TO FINISH..." );
+			lpClient->dwFlags |= CF_TOCLOSE;
+			return;
+		}
+		while( !NetworkLockEx( lpClient DBG_SRC ) )
+		{
+			if( !(lpClient->dwFlags & CF_ACTIVE ) )
+			{
+				return;
+			}
+			Relinquish();
+		}
 
 		// allow application a chance to clean it's references
 		// to this structure before closing and cleaning it.
@@ -3632,8 +3660,8 @@ void LoadNetworkAddresses( void ) {
 				AddLink( &globalNetworkData.addresses, tmp = AllocAddr() );
 				((uintptr_t*)tmp)[-1] = test->ai_addrlen;
 				MemCpy( tmp, test->ai_addr, test->ai_addrlen );
-				lprintf( "initialize addres..." );
-				DumpAddr( "blah", tmp );
+				//lprintf( "initialize addres..." );
+				//DumpAddr( "blah", tmp );
 			}
 		}
 	}
