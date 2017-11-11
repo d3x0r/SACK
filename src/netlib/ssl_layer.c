@@ -9,7 +9,7 @@
 
 #include "netstruc.h"
 
-#define DEBUG_SSL_IO
+//#define DEBUG_SSL_IO
 
 #if NO_SSL
 
