@@ -2712,6 +2712,7 @@ PROCEDURE RealCreateCommonExx( PSI_CONTROL *pResult
 	pc->Rescale        = GetRegisteredProcedureExx(root,(CTEXTSTR)NULL,void,WIDE("rescale"),(PSI_CONTROL));
 	pc->BorderDrawProc = GetRegisteredProcedureExx(root,(CTEXTSTR)NULL,void,WIDE("border_draw"),(PSI_CONTROL,Image));
 	pc->Rollover = GetRegisteredProcedureExx(root,(CTEXTSTR)NULL,void,WIDE("rollover"),(PSI_CONTROL,LOGICAL));
+	pc->FontChange = GetRegisteredProcedureExx(root,(CTEXTSTR)NULL, void, WIDE("font_change"), (PSI_CONTROL) );
 	if( !pContainer || ( ExtraBorderType & BORDER_FRAME ) )
 	{
 		// define default border.
@@ -2742,7 +2743,7 @@ PROCEDURE RealCreateCommonExx( PSI_CONTROL *pResult
 	// creates
 	pc->flags.bInitial = 1;
 	pc->flags.bDirty = 1;
-
+	pc->flags.bCreating = 1;
 	// have to set border type to non 0 here; in case border includes FIXED and the scaling in SetFont should be skipped.
 	if( !pContainer /*pc->nType == CONTROL_FRAME*/ && g.default_font )
 	{
@@ -3516,6 +3517,17 @@ void SetCommonScale( PSI_CONTROL pc, PFRACTION sx, PFRACTION sy )
 
 //---------------------------------------------------------------------------
 
+static void DispatchFontChange( PSI_CONTROL pc ) {
+	while( pc ) {
+		if( pc->FontChange )
+			pc->FontChange( pc );
+		DispatchFontChange( pc->child );
+		pc = pc->next;
+	}
+}
+
+//---------------------------------------------------------------------------
+
 void SetCommonFont( PSI_CONTROL pc, SFTFont font )
 {
 	if( pc )
@@ -3544,7 +3556,7 @@ void SetCommonFont( PSI_CONTROL pc, SFTFont font )
 			GetStringSizeFont( WIDE("XXXXX"), &w, &h, font );
 			if(h == 0 )
 			{
-            h = 10;
+				h = 10;
 				//DebugBreak();
 			}
 
@@ -3580,6 +3592,12 @@ void SetCommonFont( PSI_CONTROL pc, SFTFont font )
 		}
 		//else
 		//	lprintf( "not setting scaling..." );
+		if( !pc->flags.bCreating )
+		{
+			if( pc->FontChange )
+				pc->FontChange( pc );
+			DispatchFontChange( pc->child );
+		}
 
 		if( !g.flags.always_draw )
 		{
@@ -3990,41 +4008,27 @@ PSI_CONTROL CreateCommonExxx( PSI_CONTROL pContainer
 				AddCaptionButton( pResult, NULL, NULL, NULL, 0, NULL );
 		}
 	}
+	pResult->flags.bCreating = 0;
 	if( pResult ) // no point in doing anything extra if the initial init fails.
+	{
+		TEXTCHAR mydef[256];
+		if( pTypeName )
+			tnprintf( mydef, sizeof( mydef ), PSI_ROOT_REGISTRY WIDE("/control/%s/rtti/extra init"), pTypeName );
+		else
+			tnprintf( mydef, sizeof( mydef ), PSI_ROOT_REGISTRY WIDE("/control/%") _32f WIDE("/rtti/extra init"), nType );
+		if( !(ExtraBorderType & BORDER_NO_EXTRA_INIT ) )
 		{
-			TEXTCHAR mydef[256];
-			if( pTypeName )
-				tnprintf( mydef, sizeof( mydef ), PSI_ROOT_REGISTRY WIDE("/control/%s/rtti/extra init"), pTypeName );
-			else
-				tnprintf( mydef, sizeof( mydef ), PSI_ROOT_REGISTRY WIDE("/control/%") _32f WIDE("/rtti/extra init"), nType );
-			if( !(ExtraBorderType & BORDER_NO_EXTRA_INIT ) )
+			int (CPROC *CustomInit)(PSI_CONTROL);
+			CTEXTSTR name;
+			PCLASSROOT data = NULL;
+			pResult->flags.private_control = 0;
 			{
 				int (CPROC *CustomInit)(PSI_CONTROL);
-				CTEXTSTR name;
-				PCLASSROOT data = NULL;
-				pResult->flags.private_control = 0;
-				{
-					int (CPROC *CustomInit)(PSI_CONTROL);
-					// dispatch for a common proc that is registered to handle extra init for
-					// any control...
-					for( name = GetFirstRegisteredName( WIDE("psi/control/rtti/extra init"), &data );
-						 name;
-						  name = GetNextRegisteredName( &data ) )
-					{
-						CustomInit = GetRegisteredProcedureExx((PCLASSROOT)data,(CTEXTSTR)NULL,int,name,(PSI_CONTROL));
-						if( CustomInit )
-						{
-							if( !CustomInit( pResult ) )
-							{
-								lprintf( WIDE("extra init has returned failure... so what?") );
-							}
-						}
-					}
-				}
-				// then here lookup the specific control type's extra init proc...
-				for( name = GetFirstRegisteredName( mydef, &data );
-					 name;
-					  name = GetNextRegisteredName( &data ) )
+				// dispatch for a common proc that is registered to handle extra init for
+				// any control...
+				for( name = GetFirstRegisteredName( WIDE("psi/control/rtti/extra init"), &data );
+						name;
+						name = GetNextRegisteredName( &data ) )
 				{
 					CustomInit = GetRegisteredProcedureExx((PCLASSROOT)data,(CTEXTSTR)NULL,int,name,(PSI_CONTROL));
 					if( CustomInit )
@@ -4036,11 +4040,26 @@ PSI_CONTROL CreateCommonExxx( PSI_CONTROL pContainer
 					}
 				}
 			}
-			else
+			// then here lookup the specific control type's extra init proc...
+			for( name = GetFirstRegisteredName( mydef, &data );
+					name;
+					name = GetNextRegisteredName( &data ) )
 			{
-				pResult->flags.private_control = 1;
+				CustomInit = GetRegisteredProcedureExx((PCLASSROOT)data,(CTEXTSTR)NULL,int,name,(PSI_CONTROL));
+				if( CustomInit )
+				{
+					if( !CustomInit( pResult ) )
+					{
+						lprintf( WIDE("extra init has returned failure... so what?") );
+					}
+				}
 			}
 		}
+		else
+		{
+			pResult->flags.private_control = 1;
+		}
+	}
 	if( pContainer && pContainer->AddedControl )
 		pContainer->AddedControl( pContainer, pResult );
 	if( pContainer )

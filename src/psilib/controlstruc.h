@@ -440,6 +440,8 @@ typedef struct common_control_frame
 		BIT_FIELD bCloseButtonAdded : 1;
 		// set while initially opening a display; is a carry-over for bInitial
 		BIT_FIELD bOpeningFrameDisplay : 1;
+		// set for the short time the control is creating, but hasn't yet called the control init function
+		BIT_FIELD bCreating : 1;
 	} flags;
 
 
@@ -504,6 +506,7 @@ typedef struct common_control_frame
 	uint32_t BorderType;
 	void (CPROC*BorderDrawProc)( PSI_CONTROL, Image );
 	void (CPROC*Rollover)( PSI_CONTROL, LOGICAL );
+	void (CPROC*FontChange)(PSI_CONTROL);
 	void (CPROC*BorderMeasureProc)( PSI_CONTROL, int *x_offset, int *y_offset, int *right_inset, int *bottom_inset );
 	// also declare a method above of the same name...
 	int draw_result;
