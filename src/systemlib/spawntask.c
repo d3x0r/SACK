@@ -59,7 +59,7 @@ int CanRead( int handle )
 	tv.tv_sec = 0;
 	tv.tv_usec = 0;
 	rval = select( handle+1, &n, NULL, NULL, &tv );
-	//lprintf( "select : %d %d\n", rval, handle );
+	lprintf( "select : %d %d\n", rval, handle );
 	if( rval > 0 )
 		return TRUE;
 	return  FALSE;
@@ -87,14 +87,7 @@ static uintptr_t CPROC HandleTaskOutput(PTHREAD thread )
 				uint32_t dwRead;
 				if( done )
 					lastloop = TRUE;
-#ifdef _WIN32
-				//while(  )
 				{
-
-#else
-					while( CanRead( phi->handle ) )
-#endif
-					{
 						if( task->flags.log_input )
 							lprintf( WIDE( "Go to read task's stdout." ) );
 #ifdef _WIN32
@@ -109,15 +102,15 @@ static uintptr_t CPROC HandleTaskOutput(PTHREAD thread )
 											 , GetTextSize( pInput ) - 1 );
 							if( !dwRead )
 							{
-#ifdef _DEBUG
+#  ifdef _DEBUG
 												//lprintf( WIDE( "Ending system thread because of broke pipe! %d" ), errno );
-#endif
-#ifdef WIN32
+#  endif
+#  ifdef WIN32
 								continue;
-#else
+#  else
 												//lprintf( WIDE( "0 read = pipe failure." ) );
 								break;
-#endif
+#  endif
 							}
 #endif
 							if( task->flags.log_input )
@@ -165,34 +158,17 @@ static uintptr_t CPROC HandleTaskOutput(PTHREAD thread )
 							}
 						}
 #endif
-					}
-#ifdef _WIN32
 				}
-#endif
 				//allow a minor time for output to be gathered before sending
 				// partial gathers...
 				if( task->flags.process_ended )
 				{
-#ifdef _WIN32
 					// Ending system thread because of process exit!
-					done = TRUE;
-#else
-					//if( !dwRead )
-					//	break;
-					if( task->pid == waitpid( task->pid, NULL, WNOHANG ) )
-					{
-						Log( WIDE( "Setting done event on system reader." ) );
-						done = TRUE; // do one pass to make sure we completed read
-					}
-					else
-					{
-						//lprintf( WIDE( "process active..." ) );
-						Relinquish();
-					}
-#endif
+  					done = TRUE; // do one pass to make sure we completed read
 				}
 			}
 			while( !lastloop );
+			//lprintf( "Exited read loop" );
 #ifdef _DEBUG
 			if( lastloop )
 			{
