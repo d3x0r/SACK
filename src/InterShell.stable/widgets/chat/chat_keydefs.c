@@ -28,9 +28,9 @@ int CPROC KeyGetGatheredLine( PCHAT_LIST list, PUSER_INPUT_BUFFER pci )
 	list->input.command_mark_start = list->input.command_mark_end = 0;
 	if( line && GetTextSize( line ) )
 	{
-		list->input.phb_Input->pBlock->pLines[0].nLineLength = (int)LineLengthExEx( list->input.CommandInfo->CollectionBuffer, FALSE, 8, NULL );
+		list->input.phb_Input->pBlock->pLines[0].flags.nLineLength = (int)LineLengthExEx( list->input.CommandInfo->CollectionBuffer, FALSE, 8, NULL );
 		list->input.phb_Input->pBlock->pLines[0].pLine = list->input.CommandInfo->CollectionBuffer;
-		BuildDisplayInfoLines( list->input.phb_Input, list->input_font );
+		BuildDisplayInfoLines( list->input.phb_Input, 0, list->input_font );
 		if( line )
 			list->InputData( list->psvInputData, line );
 	}
@@ -301,10 +301,10 @@ void ReformatInput( PCHAT_LIST list )
 		SetStart( list->input.phb_Input->pBlock->pLines[0].pLine );
 		{
 			DECLTEXT( blank_eol, "" );
-			list->input.phb_Input->pBlock->pLines[0].nLineLength = LineLengthExEx( list->input.phb_Input->pBlock->pLines[0].pLine, FALSE, 8, (PTEXT)&blank_eol );
+			list->input.phb_Input->pBlock->pLines[0].flags.nLineLength = LineLengthExEx( list->input.phb_Input->pBlock->pLines[0].pLine, FALSE, 8, (PTEXT)&blank_eol );
 		}
 		//if( !pdp->flags.bDirect && pdp->flags.bWrapCommand )
-		BuildDisplayInfoLines( list->input.phb_Input, list->input_font );
+		BuildDisplayInfoLines( list->input.phb_Input, 0, list->input_font );
 }
 
 //----------------------------------------------------------------------------

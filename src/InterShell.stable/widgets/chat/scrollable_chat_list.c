@@ -2483,7 +2483,7 @@ static int OnCreateCommon( CONTROL_NAME )( PSI_CONTROL pc )
 	//list->phlc_Input = PSI_CreateHistoryCursor( list->pHistory );
 	list->input.phb_Input = PSI_CreateHistoryBrowser( list->input.pHistory, PSIMeasureString, (uintptr_t)pc );
 	list->input.CommandInfo = CreateUserInputBuffer();
-	SetBrowserLines( list->input.phb_Input, 3 );
+	//SetBrowserLines( list->input.phb_Input, 3 );
 	list->colors.crText = BASE_COLOR_BLACK;
 	list->colors.crMark = BASE_COLOR_WHITE;
 	list->colors.crMarkBackground = BASE_COLOR_BLUE;
@@ -2521,7 +2521,7 @@ static void OnSizeCommon( CONTROL_NAME )( PSI_CONTROL pc, LOGICAL begin_sizing )
 					= window->width - ( 2 * l.side_pad + l.sent.BorderSegment[SEGMENT_LEFT]->width + l.sent.BorderSegment[SEGMENT_RIGHT]->width 
 							+ ( list->send_button_width?list->send_button_width:55 + l.side_pad ) );
 			}
-			BuildDisplayInfoLines( list->input.phb_Input, list->input_font );
+			BuildDisplayInfoLines( list->input.phb_Input, NULL, list->input_font );
 			ReformatMessages( list );
 		}
 	}
