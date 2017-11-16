@@ -620,6 +620,12 @@ typedef struct ControlRegistration_tag *PCONTROL_REGISTRATION;
 #define OnControlRollover(name)  \
 	__DefineRegistryMethod(PSI_ROOT_REGISTRY,_OnControlRollover,WIDE("control"),name WIDE("/rtti"),WIDE("rollover"),void,(PSI_CONTROL,LOGICAL), __LINE__)
 
+// static void OnControlFontChange(WIDE(""))(PSI_CONTROL pc)
+// font on control or parent of control has changed.
+#define OnControlFontChanged(name)  \
+	__DefineRegistryMethod(PSI_ROOT_REGISTRY,_OnControlFontChange,WIDE("control"),name WIDE("/rtti"),WIDE("font_change"),void,(PSI_CONTROL), __LINE__)
+
+
 // just a passing thought.
 //#define OnEditFrameBegin( name )
 //	DefineRegistryMethod(PSI_ROOT_REGISTRY,EditFrameBegin,"common",name,"frame_edit_begin",void,(PSI_CONTROL))
