@@ -552,6 +552,7 @@ set( SACK_PLUSPLUS_HEADERS ${SACK_PLUSPLUS_HEADERS} ${NETWORK_HEADERS} ${MSGSVR_
         ${SOURCES_ROOT}src/psilib/console/history.h
         ${SOURCES_ROOT}src/psilib/console/keydefs.h
         ${SOURCES_ROOT}src/psilib/console/histstruct.h
+        ${SOURCES_ROOT}src/psilib/console/regaccess.h
         ${SOURCES_ROOT}src/psilib/console/WinLogic.h
         ${SOURCES_ROOT}src/contrib/genx/genx.h
         ${SOURCES_ROOT}src/imglib/local.h
