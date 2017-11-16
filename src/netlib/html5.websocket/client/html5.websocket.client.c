@@ -186,18 +186,24 @@ static void CPROC WebSocketClientReceive( PCLIENT pc, POINTER buffer, size_t len
 static void CPROC WebSocketClientClosed( PCLIENT pc )
 {
 	WebSocketClient websock = (WebSocketClient)GetNetworkLong( pc, 0 );
+   //lprintf( "WebSocketClientClosed event." );
 	if( websock )
 	{
+		//lprintf( "Send to application." );
 		if( websock->input_state.on_close ) {
-			websock->input_state.on_close( pc, websock->input_state.psv_on, 1006, NULL );
+			websock->input_state.on_close( pc, websock->input_state.psv_on, websock->input_state.close_code, websock->input_state.close_reason );
 			websock->input_state.on_close = NULL;
 		}
+		if( websock->input_state.close_reason )
+			Deallocate( char*, websock->input_state.close_reason );
 		Deallocate( uint8_t*, websock->input_state.fragment_collection );
 		Release( websock->buffer );
 		DestroyHttpState( websock->pHttpState );
 		SACK_ReleaseURL( websock->url );
 		Release( websock );
 	}
+	else
+		lprintf( "websocket handle is gone from socket??!" );
 }
 
 static void CPROC WebSocketClientConnected( PCLIENT pc, int error )
@@ -259,6 +265,7 @@ PCLIENT WebSocketOpen( CTEXTSTR url_address
 	websock->input_state.psv_on = psv;
 	websock->protocols = protocols;
 	websock->input_state.flags.expect_masking = 1; // client to server is MUST mask because of proxy handling in that direction
+	websock->input_state.close_code = 1006;
 
 	websock->url = SACK_URLParse( url_address );
 	if( !websock->url->host ) {

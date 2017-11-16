@@ -428,6 +428,8 @@ void ProcessWebSockProtocol( WebSocketInputState websock, PCLIENT pc, const uint
 							code = 1000;
 							buf[0] = 0;
 						}
+						websock->close_code = code;
+						websock->close_reason = StrDup( buf );
 						websock->on_close( pc, websock->psv_open, code, buf );
 						websock->on_close = NULL;
 					}

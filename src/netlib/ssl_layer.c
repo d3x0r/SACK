@@ -388,6 +388,8 @@ LOGICAL ssl_Send( PCLIENT pc, CPOINTER buffer, size_t length )
 	size_t offset = 0;
 	size_t pending_out = length;
 	struct ssl_session *ses = pc->ssl_session;
+	if( !ses )
+		return FALSE;
 	while( length ) {
 	//lprintf( "ssl_Send  %d", length );
 #ifdef DEBUG_SSL_IO
@@ -459,7 +461,7 @@ static void ssl_CloseCallback( PCLIENT pc ) {
 		return;
 	}
 	pc->ssl_session = NULL;
-
+   //lprintf( "Socket got close event... notify application..." );
 	if( ses->dwOriginalFlags & CF_CPPCLOSE )
 		ses->cpp_user_close( pc->psvClose );
 	else

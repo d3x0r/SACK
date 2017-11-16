@@ -483,6 +483,12 @@ static void CPROC read_complete( PCLIENT pc, POINTER buffer, size_t length )
 
 static void CPROC closed( PCLIENT pc_client ) {
 	HTML5WebSocket socket = (HTML5WebSocket)GetNetworkLong( pc_client, 0 );
+	//lprintf( "ServerWebSocket Connection closed event..." );
+	if( socket->input_state.on_close ) {
+      socket->input_state.on_close( pc_client, socket->input_state.psv_open, socket->input_state.close_code, socket->input_state.close_reason );
+	}
+	if( socket->input_state.close_reason )
+      Deallocate( char*, socket->input_state.close_reason );
 	if( socket->input_state.flags.deflate ) {
 		deflateEnd( &socket->input_state.deflater );
 		inflateEnd( &socket->input_state.inflater );
@@ -504,6 +510,7 @@ static void CPROC connected( PCLIENT pc_server, PCLIENT pc_new )
 	socket->Magic = 0x20130912;
 	socket->pc = pc_new;
 	socket->input_state = server_socket->input_state; // clone callback methods and config flags
+	socket->input_state.close_code = 1006;
 	if( ssl_IsClientSecure( pc_new ) )
 		socket->input_state.flags.use_ssl = 1;
 	socket->http_state = CreateHttpState(); // start a new http state collector
@@ -516,7 +523,7 @@ static void CPROC connected( PCLIENT pc_server, PCLIENT pc_new )
 
 static LOGICAL CPROC HandleWebsockRequest( uintptr_t psv, HTTPState pHttpState )
 {
-   return 0;
+	return 0;
 }
 
 PCLIENT WebSocketCreate( CTEXTSTR hosturl
@@ -536,6 +543,7 @@ PCLIENT WebSocketCreate( CTEXTSTR hosturl
 	socket->input_state.on_close = on_closed;
 	socket->input_state.on_error = on_error;
 	socket->input_state.psv_on = psv;
+	socket->input_state.close_code = 1006;
 	url = SACK_URLParse( hosturl );
 	socket->pc = OpenTCPListenerAddrEx( CreateSockAddress( url->host, url->port?url->port:url->default_port ), connected );
 	SACK_ReleaseURL( url );
