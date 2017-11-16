@@ -137,11 +137,12 @@ typedef struct myconsolestruc {
 
 	// physical width and height, (1:1 in console modes)
 	uint32_t nWidth;	// in pixels
-	//uint32_t nColumns; // in character count width
+	uint32_t nColumns; // in character count width
 	uint32_t nHeight;  // in pixels
-	//uint32_t nLines;	// in character count rows
+	uint32_t nLines;	// in character count rows
 
 	CRITICALSECTION Lock;
+	int lockCount;
 
 	void(CPROC*InputEvent)(uintptr_t, PTEXT);
 	uintptr_t psvInputEvent;
@@ -176,7 +177,7 @@ typedef struct myconsolestruc {
 	//uint32_t nFontWidth;
 	int32_t nXPad; // pixels/lines to padd left/right side...
 	int32_t nYPad; // pixels/lines to padd top/bottom side...
-	int32_t nCmdLinePad; // pixels to raise bar above cmdline
+	int32_t nCmdLinePad; // pixels to raise bar above cmdline (wider for separated command line)
 
 	//PHISTORY_BIOS pHistory;
 	int nHistoryPercent;
@@ -184,10 +185,12 @@ typedef struct myconsolestruc {
 	// are the regions... therefore if start = 0
 	// the first line to show is above the display and
 	// therefore that region has no information to show.
-	int nHistoryLineStart;
-	int nDisplayLineStart; // top visual line of those in 'display' (start of separator)
+	int nCommandLineStart; // bottom-most line of the display
+	int nHistoryLineStart;  // upper text area
+	int nDisplayLineStartDynamic; // top visual line of those in 'display' (start of separator)
 	int nNextCharacterBegin; // this is computed from the last position of the last renderd line ( continue for command line)
-	int nCommandLineStart; // marks the top of the separator line... bottom of text
+	int nSeparatorHeight; // how wide the separation line is. (previously had some arbitrary constants)
+	uint32_t nFontHeight;
 
 	// these are within the history cursor...
 	// and this is the reason I need another cursor for
@@ -239,10 +242,8 @@ typedef struct myconsolestruc {
 	void (CPROC *FillConsoleRect)( struct myconsolestruc *pmdp, RECT *r, enum fill_color_type );
 	void (CPROC *DrawString)( struct myconsolestruc *pmdp, int x, int y, RECT *r, CTEXTSTR s, int nShown, int nShow );
 	void (CPROC *SetCurrentColor )( struct myconsolestruc *pmdp, enum current_color_type, PTEXT segment );
-	void (CPROC *RenderSeparator )( struct myconsolestruc *pmdp, int pos );
+	int (CPROC *RenderSeparator )( struct myconsolestruc *pmdp, int pos ); // allow width to be returned.
 	void (CPROC *KeystrokePaste )( struct myconsolestruc *pmdp );
-	//MeasureString measureString;
-	//uintptr_t psv_measureString;
 
 	void (CPROC *RenderCursor )( struct myconsolestruc *pmdp, RECT *r, int column );
 	void (CPROC *Update )( struct myconsolestruc *pmdp, RECT *upd );

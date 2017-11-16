@@ -10,12 +10,7 @@
 
 PSI_CONSOLE_NAMESPACE
 
-#ifdef __cplusplus
-   //sack::psi::console::n
 #define STRUC_PREFIX(n) n
-#else
-#define STRUC_PREFIX(n) n
-#endif
 
 typedef void (CPROC *MeasureString )( uintptr_t /*PCONSOLE_INFO*/ console, CTEXTSTR s, int nShow, uint32_t *w, uint32_t *h, SFTFont font );
 	
@@ -84,16 +79,17 @@ int GetCommandCursor( PHISTORY_BROWSER phbr
 // Set line position
 void SetCursorLine( PHISTORY_LINE_CURSOR cursor, int nLine );
 // set total number of lines...
-void SetCursorLines( PHISTORY_LINE_CURSOR cursor, int nLines );
-CORECON_PROC( void, SetBrowserLines )( PHISTORY_BROWSER cursor, int nLines );
+void SetCursorHeight( PHISTORY_LINE_CURSOR cursor, int nHeight );
+CORECON_PROC( void, SetBrowserHeight )( PHISTORY_BROWSER cursor, int nLines );
 
 // get column position
 int GetCursorColumn( PHISTORY_LINE_CURSOR cursor );
 // set column position
 void SetCursorColumn( PHISTORY_LINE_CURSOR cursor, int nColumn );
 // set total columns available...
-void SetCursorColumns( PHISTORY_LINE_CURSOR cursor, int nColumns );
-void SetBrowserColumns( PHISTORY_BROWSER cursor, int nColumns, int size );
+void SetCursorWidth( PHISTORY_LINE_CURSOR cursor, int size );
+void SetBrowserWidth( PHISTORY_BROWSER cursor, int size );
+void SetBrowserFirstLine( PHISTORY_BROWSER cursor, int nLIne );
 
 void SetCursorNoPrompt( PHISTORY_BROWSER phbr, LOGICAL bNoPrompt );
 
@@ -107,7 +103,7 @@ uint32_t ComputeNextOffset( PTEXT segment, uint32_t nShown );
 uint32_t ComputeToShow( uint32_t colsize, uint32_t *col_offset, PTEXT segment, uint32_t nLen, uint32_t nOfs, uint32_t nShown, PHISTORY_BROWSER phbr, SFTFont font );
 int CountLinesSpanned( PHISTORY_BROWSER phb, PTEXT countseg, SFTFont font, LOGICAL count_trailing_linefeeds );
 
-CORECON_PROC( void, BuildDisplayInfoLines )( PHISTORY_BROWSER phlc, SFTFont font );
+CORECON_PROC( void, BuildDisplayInfoLines )( PHISTORY_BROWSER phlc, PHISTORY_BROWSER leadin, SFTFont font );
 
 
 #ifdef __DEKWARE_PLUGIN__

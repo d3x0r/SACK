@@ -70,7 +70,9 @@ void FormatTextToBlockEx( CTEXTSTR input, TEXTSTR *output, int* pixel_width, int
 		console->nYPad = 0;
 		console->nCmdLinePad = 0;
 
-		PSI_ConsoleCalculate( console );
+		console->nFontHeight = GetFontHeight( font );
+
+		PSI_ConsoleCalculate( console, font );
 	}
 
 	//console->nLines = char_height;
@@ -151,7 +153,7 @@ void FormatTextToBlockEx( CTEXTSTR input, TEXTSTR *output, int* pixel_width, int
 	if( font )
 		console->pCurrentDisplay->nLineHeight = GetFontHeight( font );
 
-	BuildDisplayInfoLines( console->pCurrentDisplay, font );
+	BuildDisplayInfoLines( console->pCurrentDisplay, NULL, font );
 
 	console->CurrentLineInfo =
 		console->CurrentMarkInfo = &console->pCurrentDisplay->DisplayLineInfo;

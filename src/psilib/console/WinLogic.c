@@ -21,7 +21,8 @@ static void AddUpdateRegion( PPENDING_RECT update_rect, int32_t x, int32_t y, ui
 		if( !update_rect->flags.bHasContent )
 			MemSet( &update_rect->cs, 0, sizeof( update_rect->cs ) );
 		EnterCriticalSec( &update_rect->cs );
-	}
+		pdp->lockCount++;
+}
 #endif
 	if( wd && ht )
 	{
@@ -33,7 +34,7 @@ static void AddUpdateRegion( PPENDING_RECT update_rect, int32_t x, int32_t y, ui
 				update_rect->x = x;
 			}
 			if( x + wd > update_rect->x + update_rect->width )
-				update_rect->width = ( wd + x ) - update_rect->x;
+				update_rect->width = (wd + x) - update_rect->x;
 
 			if( y < update_rect->y )
 			{
@@ -41,7 +42,7 @@ static void AddUpdateRegion( PPENDING_RECT update_rect, int32_t x, int32_t y, ui
 				update_rect->y = y;
 			}
 			if( y + ht > update_rect->y + update_rect->height )
-				update_rect->height = ( y + ht ) - update_rect->y;
+				update_rect->height = (y + ht) - update_rect->y;
 			//lprintf( WIDE("result (%d,%d)-(%d,%d)")
 			//		, update_rect->x, update_rect->y
 			//		, update_rect->width, update_rect->height
@@ -61,8 +62,10 @@ static void AddUpdateRegion( PPENDING_RECT update_rect, int32_t x, int32_t y, ui
 		update_rect->flags.bHasContent = 1;
 	}
 #ifdef __LINUX__
-	if( !update_rect->flags.bTmpRect )
+	if( !update_rect->flags.bTmpRect ) {
+		pdp->lockCount--;
 		LeaveCriticalSec( &update_rect->cs );
+	}
 #endif
 }
 
@@ -96,7 +99,7 @@ static void RenderTextLine(
 #endif
 			return;
 		}
-		(*r).top = nFirstLine - pCurrentLine->nLineTop;
+		(*r).top = pCurrentLine->nLineTop;
 		if( nFirst >= 0 )
 			(*r).bottom = (*r).top + pCurrentLine->nLineHeight + 2;
 		else
@@ -485,15 +488,15 @@ void PSI_RenderCommandLine( PCONSOLE_INFO pdp, PENDING_RECT *region )
 		pdlCommand = (PDISPLAYED_LINE)GetDataItem( GetDisplayInfo( pdp->pCommandDisplay ), lines );
 		if( pdp->flags.bDirect )
 		{
-			pdp->nDisplayLineStart = pdp->nCommandLineStart - ( pdlCommand->nLineTop);
+			pdp->nDisplayLineStartDynamic = pdp->nCommandLineStart;
 		}
 		else
 		{
 			upd.top = 
-			pdp->nDisplayLineStart = pdp->nCommandLineStart
+			pdp->nDisplayLineStartDynamic = pdp->nCommandLineStart
 				- (pdlCommand->nLineTop
-					+ ( pdp->nYPad * 2 )
-					+ ( pdp->nCmdLinePad )
+					+ ( pdp->nYPad ) // one at bottom, one above separator
+					+ ( pdp->nCmdLinePad )  // extraa width around command line
 					);
 		}
 
@@ -516,7 +519,7 @@ void PSI_RenderCommandLine( PCONSOLE_INFO pdp, PENDING_RECT *region )
 				}
 				if( pCurrentLine->start )
 					RenderTextLine( pdp, pCurrentLine, &upd
-						, nLine, TRUE, y, pdp->nDisplayLineStart
+						, nLine, TRUE, y, pdp->nCommandLineStart - pCurrentLine->nLineTop
 						, FALSE
 						, FALSE );  // cursor; to know where to draw the mark...
 			}
@@ -525,8 +528,6 @@ void PSI_RenderCommandLine( PCONSOLE_INFO pdp, PENDING_RECT *region )
 			// rect has top/bottom info, and current cursor position column
 			// is passed - each client will be able to
 			pdp->RenderCursor( pdp, &r, ( nRecord + nCursorPos ) ); // top/bottom are the line...
-
-
 	}
 	else
 	{
@@ -579,22 +580,30 @@ void PSI_RenderCommandLine( PCONSOLE_INFO pdp, PENDING_RECT *region )
 //----------------------------------------------------------------------------
 // 5 on left, 5 on right total 10 pixels we can't use...
 
-void WinLogicCalculateHistory( PCONSOLE_INFO pdp )
+void WinLogicCalculateHistory( PCONSOLE_INFO pdp, SFTFont font )
 {
 	// there's some other related set of values to set here....
 	//lprintf( WIDE("Calculate history! %d %d"), pdp->nColumns, pdp->nLines );
-#if 0
-	SetCursorLines( pdp->pCursor, pdp->nLines );
-	SetCursorColumns( pdp->pCursor, pdp->nColumns );
+	if( !pdp->nFontHeight )
+		return;
+
+	SetCursorHeight( pdp->pCursor, pdp->nHeight - pdp->nYPad*2 );
+	SetCursorWidth( pdp->pCursor, pdp->nWidth - pdp->nXPad * 2 );
 	if( pdp->pHistoryDisplay )
-		SetBrowserColumns( pdp->pHistoryDisplay, pdp->nColumns, pdp->nWidth - pdp->nXPad*2 );
-	SetBrowserColumns( pdp->pCurrentDisplay, pdp->nColumns, pdp->nWidth - pdp->nXPad*2 );
-	SetBrowserLines( pdp->pCurrentDisplay, pdp->nLines );
-	pdp->pCurrentDisplay->nLineHeight = pdp->nHeight;
+		SetBrowserWidth( pdp->pHistoryDisplay, pdp->nWidth - pdp->nXPad*2 );
+	SetBrowserWidth( pdp->pCurrentDisplay, pdp->nWidth - pdp->nXPad*2 );
+	SetBrowserHeight( pdp->pCurrentDisplay, pdp->nHeight );
+
+	pdp->pCurrentDisplay->nLineHeight = pdp->nFontHeight;
+	if( pdp->pHistoryDisplay )
+		pdp->pHistoryDisplay->nLineHeight = pdp->nFontHeight;
+	if( pdp->pCommandDisplay )
+		pdp->pCommandDisplay->nLineHeight = pdp->nFontHeight;
+
 	//lprintf( WIDE("Don't forget we wanted to inset command for a button...") );
 	if( pdp->pCommandDisplay )
-		SetBrowserColumns( pdp->pCommandDisplay, pdp->nColumns, pdp->nWidth - pdp->nXPad*2 );
-
+		SetBrowserWidth( pdp->pCommandDisplay, pdp->nWidth - pdp->nXPad*2 );
+	
 	if( pdp->flags.bHistoryShow )
 	{
 		//lprintf( WIDE("Doing history... check percent and set display/history approp.") );
@@ -607,21 +616,23 @@ void WinLogicCalculateHistory( PCONSOLE_INFO pdp )
 				if( pdp->pHistoryDisplay )
 				{
 					int nWorkLines;
-					nWorkLines = ( pdp->nLines * ( 3 - pdp->nHistoryPercent ) ) / 4;
-					SetBrowserLines( pdp->pHistoryDisplay, (pdp->nLines - nWorkLines)+2 );
+					int displayHeight;
+					nWorkLines = ( pdp->nHeight / pdp->nFontHeight ) * ( 3 - pdp->nHistoryPercent ) / 4;
+					displayHeight = pdp->nYPad * 2 + nWorkLines * pdp->nFontHeight;
+					SetBrowserHeight( pdp->pCurrentDisplay, displayHeight );
+					SetBrowserHeight( pdp->pHistoryDisplay, pdp->nHeight - displayHeight );
 					PSI_SetHistoryPageLines( pdp->pHistoryDisplay, (pdp->nLines - nWorkLines)-3 );
-					pdp->nHistoryLineStart = pdp->nDisplayLineStart - ( pdp->nHeight * ( 3 - pdp->nHistoryPercent ) ) / 4;
-					SetBrowserLines( pdp->pCurrentDisplay, nWorkLines );
+					pdp->nHistoryLineStart = pdp->nDisplayLineStartDynamic - ( pdp->nHeight * ( 3 - pdp->nHistoryPercent ) ) / 4;
 				}
 			}
 			break;
 		case 3: //100
 			if( pdp->pHistoryDisplay )
 			{
-				pdp->nHistoryLineStart = pdp->nDisplayLineStart;
-				SetBrowserLines( pdp->pHistoryDisplay, pdp->nLines );
+				pdp->nHistoryLineStart = pdp->nDisplayLineStartDynamic;
+				SetBrowserHeight( pdp->pHistoryDisplay, pdp->nHeight );
 				// need this to know how far close to end we can get...
-				SetBrowserLines( pdp->pCurrentDisplay, 0 );
+				SetBrowserHeight( pdp->pCurrentDisplay, 0 );
 				PSI_SetHistoryPageLines( pdp->pHistoryDisplay, pdp->nLines );
 				//pdp->nHistoryLines = nLines;
 				//pdp->nDisplayLines = 0;
@@ -641,49 +652,75 @@ void WinLogicCalculateHistory( PCONSOLE_INFO pdp )
 				nWorkLines = ( pdp->nLines * ( 1 + pdp->nHistoryPercent ) ) / 4;
 				PSI_SetHistoryPageLines( pdp->pHistoryDisplay, nWorkLines - 3 );
 			}
-			PSI_SetHistoryPageLines( pdp->pHistoryDisplay, pdp->nLines - 4 );
-			SetBrowserLines( pdp->pHistoryDisplay, 1 );
+			PSI_SetHistoryPageLines( pdp->pHistoryDisplay, pdp->nHeight/pdp->nFontHeight - 4 );
+			SetBrowserHeight( pdp->pHistoryDisplay, 0 );
 			ResetHistoryBrowser( pdp->pHistoryDisplay );
 			// 1 for the partial line at the top of the display.
 		}
-		SetBrowserLines( pdp->pCurrentDisplay, pdp->nLines );
+		SetBrowserHeight( pdp->pCurrentDisplay, pdp->nHeight );
 	}
-#endif
-	if( pdp->pHistoryDisplay )
-		BuildDisplayInfoLines( pdp->pHistoryDisplay, NULL );
-	BuildDisplayInfoLines( pdp->pCurrentDisplay, NULL );
+//#endif
+	if( pdp->pHistoryDisplay ) {
+		SetBrowserFirstLine( pdp->pHistoryDisplay, pdp->nHistoryLineStart );
+		pdp->pHistoryDisplay->flags.bUpdated = 1;
+		BuildDisplayInfoLines( pdp->pHistoryDisplay, NULL, font );
+	}
+	SetBrowserFirstLine( pdp->pCurrentDisplay, pdp->nDisplayLineStartDynamic );
+	pdp->pCurrentDisplay->flags.bUpdated = 1;
+	BuildDisplayInfoLines( pdp->pCurrentDisplay, NULL, font );
+	if( pdp->pCommandDisplay ) {
+		SetBrowserFirstLine( pdp->pCommandDisplay, pdp->nCommandLineStart );
+		pdp->pCommandDisplay->flags.bUpdated = 1;
+		BuildDisplayInfoLines( pdp->pCommandDisplay, pdp->flags.bDirect ? pdp->pCurrentDisplay : NULL, font );
+	}
 }
 
 //----------------------------------------------------------------------------
-void DoRenderHistory( PCONSOLE_INFO pdp, int bHistoryStart, PENDING_RECT *region );
+void DoRenderHistory( PCONSOLE_INFO pdp, int bHistoryStart, int nStartLineOffset, PENDING_RECT *region );
 
-void PSI_RenderConsole( PCONSOLE_INFO pdp )
+void PSI_RenderConsole( PCONSOLE_INFO pdp, SFTFont font )
 {
 	PENDING_RECT upd;
 	upd.flags.bHasContent = 0;
 	upd.flags.bTmpRect = 1;
 	MemSet( &upd.cs, 0, sizeof( upd.cs ) );
 	EnterCriticalSec( &pdp->Lock );
+	pdp->lockCount++;
 	//lprintf( WIDE("Render Console... %d %d"), pdp->nDisplayLineStart, pdp->nHistoryLineStart );
+
+	if( pdp->RenderSeparator )
+	{
+		if( pdp->nDisplayLineStartDynamic != pdp->nCommandLineStart )
+			pdp->nSeparatorHeight = pdp->RenderSeparator( pdp, pdp->nDisplayLineStartDynamic );
+		//lprintf( WIDE("Render AGAIN the hsitory line separator") );
+		if( pdp->nHistoryLineStart && pdp->nHistoryLineStart != pdp->nDisplayLineStartDynamic )
+			pdp->nSeparatorHeight = pdp->RenderSeparator( pdp, pdp->nHistoryLineStart );
+	}
 
 	if( !(pdp->flags.bDirect && pdp->flags.bCharMode) )
 		PSI_RenderCommandLine( pdp, &upd );
 
-	BuildDisplayInfoLines( pdp->pCurrentDisplay, NULL );
+	SetBrowserFirstLine( pdp->pCurrentDisplay, pdp->nDisplayLineStartDynamic );
+	BuildDisplayInfoLines( pdp->pCurrentDisplay, NULL, font );
+
+	if( pdp->pCommandDisplay ) {
+		if( (pdp->flags.bDirect && !pdp->flags.bCharMode) ) {
+			BuildDisplayInfoLines( pdp->pCommandDisplay, pdp->pCurrentDisplay, font );
+		}
+		PSI_RenderCommandLine( pdp, &upd );
+	}
+
+	// if direct rendering, command line doesn't change, so it doesn't need to be redrawn here.
+
+	// if history is showing, first line is below the top (> 0 )
 	if( pdp->nHistoryLineStart )
 	{
-		//lprintf( WIDE("no history rende? %d"), pdp->flags.bNoHistoryRender );
-		//if( !pdp->flags.bNoHistoryRender )
-		{
-			//BuildDisplayInfoLines( pdp->pHistoryDisplay );
-			DoRenderHistory( pdp, TRUE, &upd );
-		}
+		DoRenderHistory( pdp, TRUE, 0, &upd );
 	}
-	if( pdp->nDisplayLineStart != pdp->nHistoryLineStart )
+	// if there's a section of display left to render between history and command
+	if( pdp->nDisplayLineStartDynamic != pdp->nHistoryLineStart )
 	{
-		// should do somehting like - if it hasn't moved don't draw it...
-		//BuildDisplayInfoLines( pdp->pCurrentDisplay );
-		DoRenderHistory( pdp, FALSE, &upd );
+		DoRenderHistory( pdp, FALSE, 0, &upd );
 	}
 
 	if( pdp->Update && upd.flags.bHasContent )
@@ -695,15 +732,17 @@ void PSI_RenderConsole( PCONSOLE_INFO pdp )
 		r.bottom = upd.y + upd.height;
 		pdp->Update( pdp, &r );
 	}
+	pdp->lockCount--;
 	LeaveCriticalSec( &pdp->Lock );
 }
 
 //----------------------------------------------------------------------------
 
-void PSI_ConsoleCalculate( PCONSOLE_INFO pdp )
+// called for initialization, but any time some size on the display changes (history height
+// or window size.
+void PSI_ConsoleCalculate( PCONSOLE_INFO pdp, SFTFont font )
 {
 	//RECT rArea;
-	int nLines;
 	//lprintf( WIDE("*** DISPLAY is %d,%d by %d,%d"), pdp->rArea.top, pdp->rArea.left, pdp->rArea.right, pdp->rArea.bottom );
 	if( ( ( pdp->rArea.right -  pdp->rArea.left )== 0 )
 		&& ( ( pdp->rArea.bottom -  pdp->rArea.top )== 0 ) )
@@ -711,6 +750,7 @@ void PSI_ConsoleCalculate( PCONSOLE_INFO pdp )
 	if ( (pdp->rArea.right - pdp->rArea.left) <= 0 || 
 			(pdp->rArea.bottom - pdp->rArea.top ) <= 0 )
 	{
+		// not enough size to display anything.... disable display
 		 pdp->flags.bNoDisplay = 1;
 	}
 	else
@@ -726,47 +766,27 @@ void PSI_ConsoleCalculate( PCONSOLE_INFO pdp )
 
 	pdp->nCommandLineStart = pdp->rArea.bottom;
 
-#if 0
-	if( pdp->nFontHeight )
+	//lprintf( WIDE("Okay font height existsts... that's good") );
+	if( pdp->flags.bDirect )
 	{
-		//lprintf( WIDE("Okay font height existsts... that's good") );
-		if( pdp->flags.bDirect )
-		{
-			pdp->nDisplayLineStart = pdp->nCommandLineStart;
-			SetCursorNoPrompt( pdp->pCurrentDisplay, FALSE );
-			if( pdp->pHistoryDisplay )
-				SetCursorNoPrompt( pdp->pHistoryDisplay, FALSE );
-		}
-		else
-		{
-			SetCursorNoPrompt( pdp->pCurrentDisplay, TRUE );
-			if( pdp->pHistoryDisplay )
-				SetCursorNoPrompt( pdp->pHistoryDisplay, FALSE );
-			//lprintf( WIDE("Starting display above command start") );
-			pdp->nDisplayLineStart = pdp->nCommandLineStart
-				- ( pdp->nFontHeight
-					+ ( pdp->nYPad * 2 )
-					+ ( pdp->nCmdLinePad )
-					);
-		}
-		nLines = ( pdp->nDisplayLineStart + ( pdp->nFontHeight - 1 ) + pdp->nYPad )
-				 / pdp->nFontHeight;
+		SetCursorNoPrompt( pdp->pCurrentDisplay, FALSE );
+		if( pdp->pHistoryDisplay )
+			SetCursorNoPrompt( pdp->pHistoryDisplay, FALSE );
+		pdp->nCommandLineStart -= pdp->nYPad;
+		pdp->nDisplayLineStartDynamic = pdp->nCommandLineStart;
 	}
 	else
 	{
-		lprintf( WIDE("Font height does not exist :(") );
-		nLines = 0;
+		SetCursorNoPrompt( pdp->pCurrentDisplay, TRUE );
+		if( pdp->pHistoryDisplay )
+			SetCursorNoPrompt( pdp->pHistoryDisplay, FALSE );
+		pdp->nCommandLineStart -= pdp->nYPad + pdp->nCmdLinePad / 2;
+		pdp->nDisplayLineStartDynamic = pdp->nCommandLineStart - pdp->nYPad - ( pdp->nCmdLinePad / 2 ) - pdp->nSeparatorHeight;
 	}
-#endif
 
-	//if( pdp->nFontWidth )
-	{
-		//pdp->nColumns = pdp->nFontWidth?(( pdp->nWidth - (pdp->nXPad*2) ) / pdp->nFontWidth):0;
-		// there's some other related set of values to set here....
-		//pdp->nLines = nLines;
-		WinLogicCalculateHistory( pdp );
-	}
-	PSI_RenderConsole( pdp );
+	WinLogicCalculateHistory( pdp, font );
+
+	PSI_RenderConsole( pdp, font );
 }
 
 //----------------------------------------------------------------------------
@@ -779,6 +799,7 @@ PSI_Console_Phrase PSI_WinLogicWriteEx( PCONSOLE_INFO pmdp
 {
 	PSI_Console_Phrase result = NULL;
 	EnterCriticalSec( &pmdp->Lock );
+	pmdp->lockCount++;
 	{
 		//int flags = pLine->flags & (TF_NORETURN|TF_PROMPT);
 		//lprintf( WIDE("Updated... %d"), updated );
@@ -838,6 +859,7 @@ PSI_Console_Phrase PSI_WinLogicWriteEx( PCONSOLE_INFO pmdp
 		// is this layer inbetween history and display that handles much of the format ops...
 		result = PSI_EnqueDisplayHistory( pmdp->pCursor, pLine );
 	}
+	pmdp->lockCount--;
 	LeaveCriticalSec( &pmdp->Lock );
 	return result;
 }
@@ -1018,7 +1040,7 @@ int GetMaxDisplayedLine( PCONSOLE_INFO pdp, int nStart )
 
 //----------------------------------------------------------------------------
 
-void DoRenderHistory( PCONSOLE_INFO pdp, int bHistoryStart, PENDING_RECT *region )
+void DoRenderHistory( PCONSOLE_INFO pdp, int bHistoryStart, int nStartLineOffset, PENDING_RECT *region )
 {
 	int nMinLine, nFirst = 0;
 	INDEX nLine = 0;
@@ -1032,6 +1054,7 @@ void DoRenderHistory( PCONSOLE_INFO pdp, int bHistoryStart, PENDING_RECT *region
 		return;
 	}
 	EnterCriticalSec( &pdp->Lock );
+	pdp->lockCount++;
 #ifdef DEBUG_HISTORY_RENDER
 	lprintf( WIDE("Begin Render history.") );
 #endif
@@ -1039,12 +1062,13 @@ void DoRenderHistory( PCONSOLE_INFO pdp, int bHistoryStart, PENDING_RECT *region
 	{
 		// if no display (all history?)
 		// this is the command line/display line separator.
-		nFirstLine = ( upd.bottom = pdp->nDisplayLineStart ) - ( ( pdp->nYPad ) );
-		if( !pdp->flags.bDirect && pdp->nDisplayLineStart != pdp->nCommandLineStart )
+		nFirstLine = ( upd.bottom = pdp->nDisplayLineStartDynamic );
+		if( !pdp->flags.bDirect && pdp->nDisplayLineStartDynamic != pdp->nCommandLineStart )
 		{
 			//lprintf( WIDE("Rendering display line seperator %d (not %d)"), pdp->nDisplayLineStart, pdp->nCommandLineStart );
 			if( pdp->RenderSeparator )
-				pdp->RenderSeparator( pdp, pdp->nDisplayLineStart );
+				pdp->RenderSeparator( pdp, pdp->nDisplayLineStartDynamic );
+			nFirstLine -= pdp->nSeparatorHeight;
 			// add update region...
 			// but how big is the thing that just drew?!
 		}
@@ -1066,6 +1090,7 @@ void DoRenderHistory( PCONSOLE_INFO pdp, int bHistoryStart, PENDING_RECT *region
 		// if no history (all display?)
 		if( pdp->nHistoryLineStart == 0 )
 		{
+			pdp->lockCount--;
 			LeaveCriticalSec( &pdp->Lock );
 			return;
 		}
@@ -1078,7 +1103,7 @@ void DoRenderHistory( PCONSOLE_INFO pdp, int bHistoryStart, PENDING_RECT *region
 	}
 	//lprintf( WIDE("Render history separator %d"), pdp->nHistoryLineStart );
 	if( pdp->RenderSeparator )
-		pdp->RenderSeparator( pdp, pdp->nHistoryLineStart );
+		pdp->RenderSeparator( pdp, pdp->nHistoryLineStart - nStartLineOffset );
 	r.bottom = nFirstLine;
 	r.top = 0;
 	// left and right are relative... to the line segment only...
@@ -1099,7 +1124,7 @@ void DoRenderHistory( PCONSOLE_INFO pdp, int bHistoryStart, PENDING_RECT *region
 		}
 
 		RenderTextLine( pdp, pCurrentLine, &r
-			, nLine, nFirst, nFirstLine, nMinLine
+			, nLine, nFirst, nFirstLine - nStartLineOffset, nMinLine
 			, ppCurrentLineInfo == &pdp->pCurrentDisplay->DisplayLineInfo 
 			, TRUE ); 
 
@@ -1108,7 +1133,7 @@ void DoRenderHistory( PCONSOLE_INFO pdp, int bHistoryStart, PENDING_RECT *region
 		nLine++;
 	}
 	//lprintf( WIDE("r.bottom nMin %d %d"), r.bottom, nMinLine );
-	if( r.bottom > nMinLine )
+	if( ( r.bottom - nStartLineOffset ) > nMinLine )
 	{
 		r.bottom = r.top;
 		r.top = nMinLine;
@@ -1121,22 +1146,16 @@ void DoRenderHistory( PCONSOLE_INFO pdp, int bHistoryStart, PENDING_RECT *region
 	}
 	//RenderConsole( pdp );
 	//lprintf( WIDE("Render AGAIN the display line separator") );
-	if( pdp->RenderSeparator )
-	{
-		if( pdp->nDisplayLineStart != pdp->nCommandLineStart )
-			pdp->RenderSeparator( pdp, pdp->nDisplayLineStart );
-		//lprintf( WIDE("Render AGAIN the hsitory line separator") );
-		pdp->RenderSeparator( pdp, pdp->nHistoryLineStart );
-	}
 	upd.top = r.top;
 	upd.left = 0;
 	upd.right = pdp->nWidth;
 	AddUpdateRegion( region
 						, upd.left, upd.top
-						, upd.right-upd.left, upd.bottom - upd.top );
+						, upd.right-upd.left, (upd.bottom - nStartLineOffset) - upd.top );
 	// screen updates affect the posititon of the last line/command line
 	if( pdp->flags.bDirect && !bHistoryStart )
 		PSI_RenderCommandLine( pdp, region );
+	pdp->lockCount--;
 	LeaveCriticalSec( &pdp->Lock );
 }
 
@@ -1144,6 +1163,7 @@ void DoRenderHistory( PCONSOLE_INFO pdp, int bHistoryStart, PENDING_RECT *region
 void PSI_WinLogicDoStroke( PCONSOLE_INFO pdp, PTEXT stroke )
 {
 	EnterCriticalSec( &pdp->Lock );
+	pdp->lockCount++;
 	if( PSI_DoStroke( pdp, stroke ) )
 	{
 		if( !pdp->pCommandDisplay->pBlock )
@@ -1153,12 +1173,15 @@ void PSI_WinLogicDoStroke( PCONSOLE_INFO pdp, PTEXT stroke )
 			pdp->pCommandDisplay->pBlock->pLines[0].flags.deleted = 0;
 			pdp->pCommandDisplay->nLine = 1;
 		}
-		pdp->pCommandDisplay->pBlock->pLines[0].nLineLength = LineLengthExEx( pdp->CommandInfo->CollectionBuffer, FALSE, 8, NULL );
+		pdp->pCommandDisplay->pBlock->pLines[0].flags.nLineLength = LineLengthExEx( pdp->CommandInfo->CollectionBuffer, FALSE, 8, NULL );
 		pdp->pCommandDisplay->pBlock->pLines[0].pLine = pdp->CommandInfo->CollectionBuffer;
 		if( !pdp->flags.bDirect && pdp->flags.bWrapCommand )
-			BuildDisplayInfoLines( pdp->pCommandDisplay, NULL );
+			BuildDisplayInfoLines( pdp->pCommandDisplay, NULL, GetCommonFont( pdp->psicon.frame ) );
+		else
+			BuildDisplayInfoLines( pdp->pCommandDisplay, pdp->pHistoryDisplay, GetCommonFont( pdp->psicon.frame ) );
 	}
 
+	pdp->lockCount--;
 	LeaveCriticalSec( &pdp->Lock );
 }
 
@@ -1170,7 +1193,7 @@ void PSI_WinLogicDoStroke( PCONSOLE_INFO pdp, PTEXT stroke )
 
 //----------------------------------------------------------------------------
 
-int PSI_UpdateHistory( PCONSOLE_INFO pdp )
+int PSI_UpdateHistory( PCONSOLE_INFO pdp, SFTFont font )
 {
 	int bUpdate = 0;
 	lprintf( WIDE("nLines = %d  percent = %d  x = %d")
@@ -1178,6 +1201,7 @@ int PSI_UpdateHistory( PCONSOLE_INFO pdp )
 			, pdp->nHistoryPercent
 			, ( 0/*pdp->nLines*/ * ( 3 - pdp->nHistoryPercent ) / 4 ) );
 	EnterCriticalSec( &pdp->Lock );
+	pdp->lockCount++;
 	if( GetBrowserDistance( pdp->pHistoryDisplay, NULL ) >
 		( 0/*pdp->nLines*/ * ( 3 - pdp->nHistoryPercent ) / 4 ) )
 	{
@@ -1188,7 +1212,7 @@ int PSI_UpdateHistory( PCONSOLE_INFO pdp )
 			ConsoleKeyDefs[KEY_END].op[0].bFunction = HISTORYKEY;
 			ConsoleKeyDefs[KEY_END].op[0].data.HistoryKey = KeyEndHst;
 			pdp->flags.bHistoryShow = 1;
-			WinLogicCalculateHistory( pdp ); // this builds history and real display info lines.
+			WinLogicCalculateHistory( pdp, font ); // this builds history and real display info lines.
 			bUpdate = 1;
 		}
 		else
@@ -1197,9 +1221,9 @@ int PSI_UpdateHistory( PCONSOLE_INFO pdp )
 			upd.flags.bHasContent = 0;
 			upd.flags.bTmpRect = 0;
 			MemSet( &upd.cs, 0, sizeof( upd.cs ) );
-			BuildDisplayInfoLines( pdp->pHistoryDisplay, NULL );
+			BuildDisplayInfoLines( pdp->pHistoryDisplay, NULL, font );
 			//lprintf( WIDE("ALready showing history?!") );
-			DoRenderHistory(pdp, TRUE, &upd);
+			DoRenderHistory(pdp, TRUE, 0, &upd);
 
 			// history only changed - safe to update
 			// its content on result here...
@@ -1227,10 +1251,11 @@ int PSI_UpdateHistory( PCONSOLE_INFO pdp )
 				ConsoleKeyDefs[KEY_END].op[0].data.CommandKey = KeyEndCmd;
 			}
 			pdp->flags.bHistoryShow = 0;
-			WinLogicCalculateHistory( pdp );
+			WinLogicCalculateHistory( pdp, font );
 			bUpdate = 1;
 		}
 	}
+	pdp->lockCount--;
 	LeaveCriticalSec( &pdp->Lock );
 	return bUpdate;
 }

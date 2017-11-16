@@ -7,11 +7,18 @@ PSI_CONSOLE_NAMESPACE
 
 struct history_line_tag {
 	struct history_line_flags_tag {
+		BIT_FIELD nLineLength : 16;
 		BIT_FIELD deleted : 1;
+		//BIT_FIELD updated : 1;
 	} flags;
-	int nLineLength;
 	PTEXT pLine;
 };
+
+#if 0
+typedef struct STRUC_PREFIX( history_line_tag ) TEXTLINE, *PTEXTLINE;
+#define MAXTEXTLINESPERSET 256
+DeclareSet( TEXTLINE );
+#endif
 
 struct history_block_link_tag {
 	struct history_block_tag *next;
@@ -34,7 +41,7 @@ struct history_block_tag {
 
 	INDEX nLinesUsed;
 	// INDEX nLinesAvail; // = MAX_HISTORY_LINES
-#define MAX_HISTORY_LINES 100
+#define MAX_HISTORY_LINES 250
 	struct history_line_tag pLines[MAX_HISTORY_LINES];
 };
 
@@ -45,6 +52,7 @@ struct history_region_tag {
 		// if segment is a newline, use that, clear this anyhow.
 		uint32_t bForceNewline: 1; // set after entering a command 
 		uint32_t bInsert : 1; // when adding text at a cursor, otherwise overwrite
+		uint32_t bUpdated : 1;
 	} flags;
 	int nMaxHistoryBlocks;
 	int nHistoryBlocks;
@@ -52,8 +60,6 @@ struct history_region_tag {
 	int nLines;
 	int32_t tabsize;
 
-	// cursory is from top down from top of form.
-	//int32_t nCursorX, nCursorY;
 	union {
 		struct history_block_link_tag root;
 		struct {
@@ -66,6 +72,7 @@ struct history_region_tag {
 	} pHistory;
 	// list of cursors on this block
 	PLIST pCursors;
+	PLIST pBrowsers;
 	FILE *file_backing;
 };
 
@@ -97,15 +104,22 @@ struct history_browser_cursor_tag {
 		uint32_t bNoPrompt : 1;
 		uint32_t bNoPageBreak : 1; // don't stop at page_breaks...
 		uint32_t bOwnPageBreak : 1; // dont' stop, but also return the page break segments... I want to render them.
+		uint32_t bSetLineCounts : 1;
+		uint32_t bUpdated : 1; // history region content has been updated.
 	} flags;
 
 	// visible region...
-	INDEX nLines;
-	INDEX nPageLines;
+	//INDEX nLines;
+	INDEX nHeight;
+	INDEX nPageLines; // number of lines to scroll up/down for 1 page.
 	INDEX nFirstLines; // set as page lines... and cleared after first move.
 	INDEX nColumns; // rough character count/ depricated....
-	INDEX nLineHeight;  // pixel lines
+
+	INDEX nLineHeight;  // height of lines...
 	INDEX nWidth; // this is pixel size (using measure string)
+
+	INDEX nLineStart;  // first position of line to start at...
+	uint32_t nFirstLine;
 
 	PDATALIST DisplayLineInfo;
 	// current line of historyc block;
@@ -130,8 +144,8 @@ struct history_line_cursor_tag {
 #pragma pack (push, 1)
 #endif
 	PREFIX_PACKED struct {
-		uint16_t nColumns;
-		uint16_t nLines;
+		uint16_t nWidth;
+		uint16_t nHeight;
 	} PACKED;
 #ifdef _MSC_VER
 #pragma pack (pop)

@@ -1,40 +1,33 @@
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-int GetRegistryItem( HKEY hRoot, char *pPrefix,
-                     char *pProduct, char *pKey,
+int GetRegistryItem( HKEY hRoot, CTEXTSTR pPrefix,
+                     CTEXTSTR pProduct, CTEXTSTR pKey,
                      DWORD dwType,
-                     char *nResult, int nSize );
+                     CTEXTSTR nResult, int nSize );
 
-int SetRegistryItem( HKEY hRoot, char *pPrefix,
-                     char *pProduct, char *pKey,
+int SetRegistryItem( HKEY hRoot, CTEXTSTR pPrefix,
+                     CTEXTSTR pProduct, CTEXTSTR pKey,
                      DWORD dwType,
-                     char *pValue, int nSize );
+                     CTEXTSTR pValue, int nSize );
 
 
-int GetRegistryInt( char *pProduct, char *pKey, int *Value );
-int GetLocalRegistryInt( char *pProduct, char *pKey, int *Value );
+int GetRegistryInt( CTEXTSTR pProduct, CTEXTSTR pKey, int *Value );
+int GetLocalRegistryInt( CTEXTSTR pProduct, CTEXTSTR pKey, int *Value );
 
-int GetRegistryString( char *pProduct, char *pKey, char *Value, int nMaxLen );
-int GetLocalRegistryString( char *pProduct, char *pKey, char *Value, int nMaxLen );
+int GetRegistryString( CTEXTSTR pProduct, CTEXTSTR pKey, CTEXTSTR Value, int nMaxLen );
+int GetLocalRegistryString( CTEXTSTR pProduct, CTEXTSTR pKey, CTEXTSTR Value, int nMaxLen );
 
-int GetRegistryBinary( char *pProduct, char *pKey, void *Value, int nMaxLen );
-int GetLocalRegistryBinary( char *pProduct, char *pKey, void *Value, int nMaxLen );
+int GetRegistryBinary( CTEXTSTR pProduct, CTEXTSTR pKey, void *Value, int nMaxLen );
+int GetLocalRegistryBinary( CTEXTSTR pProduct, CTEXTSTR pKey, void *Value, int nMaxLen );
 
-int SetRegistryInt( char *pProduct, char *pKey, int Value );
-int SetLocalRegistryInt( char *pProduct, char *pKey, int Value );
+int SetRegistryInt( CTEXTSTR pProduct, CTEXTSTR pKey, int Value );
+int SetLocalRegistryInt( CTEXTSTR pProduct, CTEXTSTR pKey, int Value );
 
-int SetRegistryString( char *pProduct, char *pKey, char *pValue );
-int SetLocalRegistryString( char *pProduct, char *pKey, char *pValue );
+int SetRegistryString( CTEXTSTR pProduct, CTEXTSTR pKey, CTEXTSTR pValue );
+int SetLocalRegistryString( CTEXTSTR pProduct, CTEXTSTR pKey, CTEXTSTR pValue );
 
-int SetRegistryBinary( char *pProduct, char *pKey, void *pValue, int nLen );
-int SetLocalRegistryBinary( char *pProduct, char *pKey, void *pValue, int nLen );
+int SetRegistryBinary( CTEXTSTR pProduct, CTEXTSTR pKey, void *pValue, int nLen );
+int SetLocalRegistryBinary( CTEXTSTR pProduct, CTEXTSTR pKey, void *pValue, int nLen );
 
-#ifdef __cplusplus
-}
-#endif 
 
 // $Log: regaccess.h,v $
 // Revision 1.5  2004/03/08 09:25:43  d3x0r

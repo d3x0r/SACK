@@ -1437,6 +1437,7 @@ void PSI_KeyPressHandler( PCONSOLE_INFO pdp
 						  , uint8_t key_index
 						  , uint8_t mod
 						  , PTEXT characters
+						  , SFTFont font
 						  )
 {
 //cpg26dec2006 console\keydefs.c(1409): Warning! W202: Symbol 'result' has been defined, but not referenced
@@ -1539,18 +1540,15 @@ void PSI_KeyPressHandler( PCONSOLE_INFO pdp
 			break;
 		case UPDATE_HISTORY:
 			{
-				extern int CPROC PSI_UpdateHistory( PCONSOLE_INFO pdp );
-				if( PSI_UpdateHistory( pdp ) )
+				if( PSI_UpdateHistory( pdp, font ) )
 				{
-					extern void CPROC PSI_RenderConsole( PCONSOLE_INFO pdp );
-					PSI_RenderConsole( pdp );
+					PSI_RenderConsole( pdp, font );
 				}
 			}
 			break;
 		case UPDATE_DISPLAY:
 			{
-				extern void CPROC PSI_ConsoleCalculate( PCONSOLE_INFO pdp );
-				PSI_ConsoleCalculate( pdp );
+				PSI_ConsoleCalculate( pdp, font );
 			}
 			break;
 		}

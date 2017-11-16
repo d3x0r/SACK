@@ -119,7 +119,7 @@ CONTROL_REGISTRATION ConsoleClass = { WIDE("PSI Console"), { { 640, 480 }, sizeo
 };
 //----------------------------------------------------------------------------
 
-void CPROC RenderSeparator( PCONSOLE_INFO console, int nStart )
+int CPROC RenderSeparator( PCONSOLE_INFO console, int nStart )
 {
 	//lprintf( WIDE("Render separator %d-%d %d"), 0, console->nWidth, nStart );
 	if( nStart > 0 && (int64_t)nStart < console->nHeight )
@@ -131,6 +131,7 @@ void CPROC RenderSeparator( PCONSOLE_INFO console, int nStart )
 		do_hline( console->psicon.image, nStart+3, 0, console->nWidth, cPenDkShadow );
 		//SmudgeCommon( console->psicon.image );
 	}
+	return 4;
 }
 
 //----------------------------------------------------------------------------
@@ -215,14 +216,11 @@ static int OnDrawCommon( WIDE("PSI Console") )( PCOMMON pc )
 		console->rArea.top = 0;
 		console->rArea.bottom = console->psicon.image->height;
 		//lprintf( WIDE("Updating child propportions...") );
-		{
-			//SFTFont font = GetCommonFont( console->psicon.frame );
-			//GetStringSizeFont( WIDE( " " ), &console->nFontWidth, &console->nFontHeight, (SFTFont)font );
-		}
-		PSI_ConsoleCalculate( console );
+		
+		PSI_ConsoleCalculate( console, GetCommonFont( pc ) ); // this includes doing a render.
 	}
 	else
-		PSI_RenderConsole( console );
+		PSI_RenderConsole( console, GetCommonFont( pc ) );
 	//lprintf( WIDE( "Done rendering child." ) );
 	return TRUE;
 }
@@ -246,6 +244,7 @@ int CPROC KeyEventProc( PCOMMON pc, uint32_t key )
 		if( !console ) // not a valid window handle/device path
 			return 0;
 		EnterCriticalSec( &console->Lock );
+		console->lockCount++;
 
 		// here is where we evaluate the curent keystroke....
 		if( character )
@@ -260,9 +259,10 @@ int CPROC KeyEventProc( PCOMMON pc, uint32_t key )
 
 		if( key & KEY_PRESSED )
 		{
-			PSI_KeyPressHandler( console, (uint8_t)(KEY_CODE(key)&0xFF), (uint8_t)KEY_MOD(key), (PTEXT)&stroke );
+			PSI_KeyPressHandler( console, (uint8_t)(KEY_CODE(key)&0xFF), (uint8_t)KEY_MOD(key), (PTEXT)&stroke, GetCommonFont( pc ) );
 			//SmudgeCommon( console->psicon.frame );
 		}
+		console->lockCount--;
 		LeaveCriticalSec( &console->Lock );
 	}
 	return 1;
@@ -440,7 +440,9 @@ int CPROC MouseHandler( PCOMMON pc, int32_t x, int32_t y, uint32_t b )
 														}
 										  */
 				EnterCriticalSec( &console->Lock );
-				PSI_ConsoleCalculate( console );
+				console->lockCount++;
+				PSI_ConsoleCalculate( console, GetCommonFont( pc ) );
+				console->lockCount--;
 				LeaveCriticalSec( &console->Lock );
 			}
 			break;
@@ -453,7 +455,9 @@ int CPROC MouseHandler( PCOMMON pc, int32_t x, int32_t y, uint32_t b )
 				if( console->flags.bHistoryShow ) // currently showing history
 				{
 					EnterCriticalSec( &console->Lock );
-					PSI_ConsoleCalculate( console ); // changed history display...
+					console->lockCount++;
+					PSI_ConsoleCalculate( console, GetCommonFont( pc ) ); // changed history display...
+					console->lockCount--;
 					LeaveCriticalSec( &console->Lock );
 				}
 			}
@@ -470,7 +474,7 @@ int CPROC MouseHandler( PCOMMON pc, int32_t x, int32_t y, uint32_t b )
 					SetCommonFont( console->psicon.frame, (SFTFont)font );
 					//GetDefaultFont();
 					//GetStringSizeFont( WIDE(" "), &console->nFontWidth, &console->nFontHeight, (SFTFont)font );
-					PSI_ConsoleCalculate( console );
+					PSI_ConsoleCalculate( console, GetCommonFont( pc ) );
 				}
 			}
 				break;
@@ -714,6 +718,8 @@ static void CPROC DrawString( PCONSOLE_INFO console, int x, int y, RECT *r, CTEX
 	//uint32_t width;
 	//lprintf( WIDE( "Adding string out : %p %s start:%d len:%d at %d,%d #%08lX #%08lX" ), console, s, nShown, nShow,x,y,r->left,r->top
 	//		 , console->psicon.crText, console->psicon.crBack );
+
+	if(0)  // strings are measured way before drawstring happens now...
 	{
 		uint32_t w, h;
 		GetStringSizeFontEx( s + nShown, nShow, &w, &h, GetCommonFont( console->psicon.frame ) );
@@ -855,7 +861,16 @@ static void CPROC Update( PCONSOLE_INFO pmdp, RECT *upd )
 
 //----------------------------------------------------------------------------
 
-
+static void OnControlFontChanged( "PSI Console" )(PSI_CONTROL pc) {
+	ValidatedControlData( PCONSOLE_INFO, ConsoleClass.TypeID, console, pc );
+	SFTFont font = GetCommonFont( pc );
+	console->nFontHeight = GetFontHeight( GetCommonFont( pc ) );
+	// it is possible that the new font has never rendered any characters
+	if( !console->nFontHeight ) {
+		console->nFontHeight = GetStringSizeFont( " ", NULL, NULL, GetCommonFont( pc ) );
+	}
+	PSI_ConsoleCalculate( console, font );
+}
 
 int CPROC InitPSIConsole( PSI_CONTROL pc )
 {
@@ -890,30 +905,31 @@ int CPROC InitPSIConsole( PSI_CONTROL pc )
 		console->psicon.crMark = AColor( 192, 192, 192, text_alpha );
 		console->psicon.crMarkBackground = AColor( 67, 116, 150, back_alpha );
 
-		console->pHistory = PSI_CreateHistoryRegion();
-		console->pCursor = PSI_CreateHistoryCursor( console->pHistory );
+		console->pHistory = PSI_CreateHistoryRegion();   // this is the history backing buffer; the set of lines that make up the raw history.
+		console->pCursor = PSI_CreateHistoryCursor( console->pHistory ); // cursor is where output into the history region happens.
+
 		console->pCurrentDisplay = PSI_CreateHistoryBrowser( console->pHistory, PSIMeasureString, (uintptr_t)console );
 		console->pHistoryDisplay = PSI_CreateHistoryBrowser( console->pHistory, PSIMeasureString, (uintptr_t)console );
 		console->pCommandDisplay = PSI_CreateHistoryBrowser( console->pHistory, PSIMeasureString, (uintptr_t)console );
+
 		PSI_SetHistoryBrowserNoPageBreak( console->pHistoryDisplay );
 
 		console->nXPad = 5;
 		console->nYPad = 5;
 		console->nCmdLinePad = 2;
 
+		if( !(console->nFontHeight = GetFontHeight( GetCommonFont( pc ) ) ) ) {
+			console->nFontHeight = GetStringSizeFont( " ", NULL, NULL, GetCommonFont( pc ) );
+		}
+		console->nSeparatorHeight = RenderSeparator( console, 0 );
 		console->FillConsoleRect = FillConsoleRect;
 		console->RenderSeparator = RenderSeparator;
 		console->DrawString = DrawString;
-		//console->measureString = PSIMeasureString;
 		console->KeystrokePaste = PSI_Console_KeystrokePaste;
 		console->SetCurrentColor = SetCurrentColor;
 		console->RenderCursor = RenderCursor;
 		console->Update = Update;
 
-		//EnterCriticalSec( &console->Lock );
-		//ChildCalculate( console );
-		//LeaveCriticalSec( &console->Lock );
-		//DisplayFrame( console->psicon.frame );
 		return 1;
 	}
 	return 0;

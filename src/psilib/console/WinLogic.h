@@ -13,8 +13,8 @@ PSI_CONSOLE_NAMESPACE
 
 // pass the rect describing the area...
 // font size, etc will have been set in the datapath already...
-CORECON_PROC( void, PSI_ConsoleCalculate )( PCONSOLE_INFO pdp );
-CORECON_PROC( void, PSI_RenderConsole )( PCONSOLE_INFO pdp );
+CORECON_PROC( void, PSI_ConsoleCalculate )( PCONSOLE_INFO pdp, SFTFont font );
+CORECON_PROC( void, PSI_RenderConsole )( PCONSOLE_INFO pdp, SFTFont font);
 
 
 // this is a short calculation, assuming that
@@ -26,7 +26,7 @@ CORECON_PROC( PSI_Console_Phrase, PSI_WinLogicWriteEx )( PCONSOLE_INFO pdp
 												, PTEXT pLine
 												, int update
 												);
-CORECON_PROC( void, PSI_WinLogicCalculateHistory )( PCONSOLE_INFO pdp );
+CORECON_PROC( void, PSI_WinLogicCalculateHistory )( PCONSOLE_INFO pdp, SFTFont font);
 
 CORECON_PROC( void, PSI_WinLogicDoStroke )( PCONSOLE_INFO pdp, PTEXT pStroke );
 
@@ -43,7 +43,7 @@ CORECON_PROC(int, PSI_ConvertXYToLineCol )( PCONSOLE_INFO pdp
                               , int x, int y
                               , int *line, int *col );
 //CORECON_PROC(void, DoRenderHistory )( PCONSOLE_INFO pdp, int bHistoryStart );
-CORECON_PROC(int, PSI_UpdateHistory )( PCONSOLE_INFO pdp );
+CORECON_PROC(int, PSI_UpdateHistory )( PCONSOLE_INFO pdp, SFTFont font );
 int GetCharFromLine( PCONSOLE_INFO console, uint32_t cols
 						, PDISPLAYED_LINE pLine
 						, int nChar, TEXTCHAR *result );

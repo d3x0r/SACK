@@ -98,10 +98,11 @@ CORECON_PROC( int, KeyUnBind )( PDATAPATH pdp, PSENTIENT ps, PTEXT parameters );
 #endif
 CORECON_PROC(int, PSI_DoStroke )( PCONSOLE_INFO pdp, PTEXT stroke );
 void PSI_KeyPressHandler( PCONSOLE_INFO pdp
-												 , uint8_t key_index
-												 , uint8_t mod
-												 , PTEXT characters
-												 );
+						 , uint8_t key_index
+						 , uint8_t mod
+						 , PTEXT characters
+						, SFTFont font
+						 );
 
 #endif
 // $Log: keydefs.h,v $

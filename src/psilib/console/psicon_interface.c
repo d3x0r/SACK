@@ -97,11 +97,12 @@ PSI_Console_Phrase PSIConsoleDirectOutput( PSI_CONTROL pc, PTEXT lines )
 
 static void sendInputEvent( uintptr_t arg, PTEXT line ) {
 	PCONSOLE_INFO console = (PCONSOLE_INFO)arg;
-	LeaveCriticalSec( &console->Lock );
-	LeaveCriticalSec( &console->Lock );
+	int n;
+	for( n = 0; n < console->lockCount; n++ )
+		LeaveCriticalSec( &console->Lock );
 	console->InputEvent( console->psvInputEvent, line );
-	EnterCriticalSec( &console->Lock );
-	EnterCriticalSec( &console->Lock );
+	for( n = 0; n < console->lockCount; n++ )
+		EnterCriticalSec( &console->Lock );
 }
 
 void PSIConsoleInputEvent( PSI_CONTROL pc, void(CPROC*Event)(uintptr_t,PTEXT), uintptr_t psv )
@@ -197,7 +198,7 @@ void PSIConsoleSetHistory( PSI_CONTROL pc, struct history_tracking_info *history
 
 		}
 		//GetStringSizeFont( WIDE(" "), &console->nFontWidth, &console->nFontHeight, GetCommonFont( pc ) );
-		PSI_ConsoleCalculate( console );
+		PSI_ConsoleCalculate( console, GetCommonFont( pc ) );
 	}
 }
 
@@ -214,11 +215,13 @@ void PSIConsoleSetInputMode( PSI_CONTROL pc, int mode )
 			console->flags.bDirect = 0; // direct is inline, instead of line-mode
 			if( mode == 2 )
 			{
-				SetBrowserLines( console->pCommandDisplay, 3 );
+				SetBrowserHeight( console->pCommandDisplay, 3 * console->nFontHeight + 2 * console->nYPad );
 				console->flags.bWrapCommand = 1;
 			}
-			else
+			else {
+				//SetBrowserHeight( console->pCommandDisplay, 1 * nLineHeight + 2 * console->nYPad );
 				console->flags.bWrapCommand = 0;
+			}
 		}
 		else
 			console->flags.bDirect = 1; // direct in with text... (0) mode only
@@ -226,7 +229,9 @@ void PSIConsoleSetInputMode( PSI_CONTROL pc, int mode )
 		{
 			// may not have gotten visual fittting yet...
 			EnterCriticalSec( &console->Lock );
-			PSI_ConsoleCalculate( console );
+			console->lockCount++;
+			PSI_ConsoleCalculate( console, GetCommonFont( pc ) );
+			console->lockCount--;
 			LeaveCriticalSec( &console->Lock );
 			SmudgeCommon( console->psicon.frame );
 		}
