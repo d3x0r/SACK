@@ -2483,6 +2483,7 @@ void CloseDatabaseEx( PODBC odbc, LOGICAL ReleaseConnection )
 {
 	uint32_t tick = GetTickCount();
 	ReleaseODBC( odbc );
+	odbc->flags.bClosed = 1;
 	odbc->flags.bAutoCheckpoint = 0;
 	odbc->last_command_tick = 0;
 	while( ( (GetTickCount()-tick) < 100 ) && odbc->auto_checkpoint_thread ) {
@@ -2772,6 +2773,8 @@ retry:
 SQLPROXY_PROC( int, SQLCommandEx )( PODBC odbc, CTEXTSTR command DBG_PASS )
 {
 	PODBC use_odbc;
+	if( odbc->flags.bClosed )
+		return 0;
 	if( !IsSQLOpenEx( odbc DBG_RELAY ) )
 		return 0;
 	if( !( use_odbc = odbc ) )
@@ -2790,7 +2793,9 @@ SQLPROXY_PROC( int, SQLCommandEx )( PODBC odbc, CTEXTSTR command DBG_PASS )
 			Collect( pCollector = CreateCollector( 0, use_odbc, TRUE ), (uint32_t*)command, (uint32_t)strlen( command ) );
 			//SimpleMessageBox( NULL, "Please shut down the database...", "Waiting.." );
 		} while( __DoSQLCommandEx( use_odbc, pCollector DBG_RELAY ) );
-		return use_odbc->collection->responce == WM_SQL_RESULT_SUCCESS?TRUE:0;
+		if( use_odbc->collection )
+			return use_odbc->collection->responce == WM_SQL_RESULT_SUCCESS?TRUE:0;
+		return WM_SQL_RESULT_ERROR;
 	}
 	else
 		_xlprintf(1 DBG_RELAY )( WIDE("ODBC connection has not been opened") );

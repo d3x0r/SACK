@@ -129,6 +129,7 @@ struct odbc_handle_tag{
 		BIT_FIELD bAutoClose : 1; // don't leave the connection open 100%; open when required and close when idle
 		BIT_FIELD bAutoCheckpoint : 1; // sqlite; alternative to closing; generate wal_checkpoints automatically on idle.
 		BIT_FIELD bVFS : 1;
+		BIT_FIELD bClosed : 1;
 	} flags;
 	uint32_t last_command_tick; // this one tracks auto commit state; it is cleared when a commit happens
 	uint32_t last_command_tick_; // this one tracks truly the last operation on a connection

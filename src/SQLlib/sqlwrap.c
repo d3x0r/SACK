@@ -1,6 +1,6 @@
 #include <sack_types.h>
 #include <pssql.h>
-
+#include "sqlstruc.h"
 SQL_NAMESPACE
 
 #undef DoSQLCommandf
@@ -78,24 +78,27 @@ int DoSQLRecordQueryf( int *nResults, CTEXTSTR **result, CTEXTSTR **fields, CTEX
 
 int SQLCommandf( PODBC odbc, CTEXTSTR fmt, ... )
 {
-	int result;
-	PTEXT cmd;
-	PVARTEXT pvt = VarTextCreateExx( 4096, 16384 * 16 );
-	va_list args;
-	va_start( args, fmt );
-	vvtprintf( pvt, fmt, args );
-	cmd = VarTextGet( pvt );
-	if( cmd )
-	{
-		VarTextDestroy( &pvt );
-		result = SQLCommandEx( odbc, GetText( cmd ) DBG_ARGS(SQLCommandf) );
-		LineRelease( cmd );
+	if( !odbc->flags.bClosed ) {
+		int result;
+		PTEXT cmd;
+		PVARTEXT pvt = VarTextCreateExx( 4096, 16384 * 16 );
+		va_list args;
+		va_start( args, fmt );
+		vvtprintf( pvt, fmt, args );
+		cmd = VarTextGet( pvt );
+		if( cmd )
+		{
+			VarTextDestroy( &pvt );
+			result = SQLCommandEx( odbc, GetText( cmd ) DBG_ARGS( SQLCommandf ) );
+			LineRelease( cmd );
+		}
+		else {
+			result = 0;
+			lprintf( WIDE( "ERROR: Sql format failed: %s" ), fmt );
+		}
+		return result;
 	}
-	else {
-      result = 0;
-		lprintf( WIDE("ERROR: Sql format failed: %s"), fmt );
-	}
-	return result;
+	return FALSE;
 }
 
 int SQLQueryf( PODBC odbc, CTEXTSTR *result, CTEXTSTR fmt, ... )
