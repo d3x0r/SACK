@@ -714,6 +714,7 @@ void DestroyHttpStateEx( struct HttpState *pHttpState DBG_PASS )
    //_lprintf(DBG_RELAY)( "Destroy http state... (should clear content too?" );
 	EndHttp( pHttpState ); // empties variables
 	DeleteList( &pHttpState->fields );
+	VarTextDestroy( &pHttpState->pvtOut );
 	VarTextDestroy( &pHttpState->pvt_collector );
 	if( pHttpState->buffer )
 		Release( pHttpState->buffer );
@@ -852,8 +853,8 @@ static void CPROC HttpReaderClose( PCLIENT pc )
 		//lprintf( "(on close) Waking waiting to return with result." );
 		WakeThread( data->waiter );
 	}
-	if( !data->flags.success )
-		DestroyHttpState( data );
+	//if( !data->flags.success )
+	//	DestroyHttpState( data );
 }
 
 static void CPROC HttpConnected( PCLIENT pc, int error ) {
