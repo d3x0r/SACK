@@ -48,25 +48,6 @@ static int DumpErrorEx( DBG_VOIDPASS )
 #endif
 
 //--------------------------------------------------------------------------
-#ifdef __LINUX__
-int CanRead( int handle )
-{
-	fd_set n;
-	int rval;
-	struct timeval tv;
-	FD_ZERO( &n );
-	FD_SET( handle, &n );
-	tv.tv_sec = 0;
-	tv.tv_usec = 0;
-	rval = select( handle+1, &n, NULL, NULL, &tv );
-	lprintf( "select : %d %d\n", rval, handle );
-	if( rval > 0 )
-		return TRUE;
-	return  FALSE;
-}
-#endif
-
-//--------------------------------------------------------------------------
 extern uintptr_t CPROC WaitForTaskEnd( PTHREAD pThread );
 
 
@@ -348,6 +329,8 @@ SYSTEM_PROC( PTASK_INFO, LaunchPeerProgramExx )( CTEXTSTR program, CTEXTSTR path
 															  )
 {
 	PTASK_INFO task;
+	TEXTSTR expanded_path = ExpandPath( program );
+	TEXTSTR expanded_working_path = path?ExpandPath( path ):ExpandPath( WIDE(".") );
 	if( program && program[0] )
 	{
 #ifdef WIN32
@@ -359,9 +342,6 @@ SYSTEM_PROC( PTASK_INFO, LaunchPeerProgramExx )( CTEXTSTR program, CTEXTSTR path
 		PTEXT cmdline;
 		PTEXT final_cmdline;
 		LOGICAL needs_quotes;
-		TEXTSTR expanded_path = ExpandPath( program );
-		char *new_path;
-		TEXTSTR expanded_working_path = path?ExpandPath( path ):ExpandPath( WIDE(".") );
 		int first = TRUE;
 		//TEXTCHAR saved_path[256];
 		task = (PTASK_INFO)AllocateEx( sizeof( TASK_INFO ) DBG_RELAY );
@@ -612,7 +592,6 @@ SYSTEM_PROC( PTASK_INFO, LaunchPeerProgramExx )( CTEXTSTR program, CTEXTSTR path
 		{
 			pid_t newpid;
 			TEXTCHAR saved_path[256];
-			xlprintf(LOG_ALWAYS)( WIDE("Expand Path was not implemented in linux code!") );
 			task = (PTASK_INFO)Allocate( sizeof( TASK_INFO ) );
 			MemSet( task, 0, sizeof( TASK_INFO ) );
 			task->psvEnd = psv;
@@ -620,10 +599,18 @@ SYSTEM_PROC( PTASK_INFO, LaunchPeerProgramExx )( CTEXTSTR program, CTEXTSTR path
 			task->OutputEvent = OutputHandler;
 			if( OutputHandler )
 			{
-				if( pipe(task->hStdIn.pair) < 0 ) return NULL;
+				if( pipe(task->hStdIn.pair) < 0 ) {
+					Release( expanded_working_path );
+					Release( expanded_path );
+					return NULL;
+				}
 				task->hStdIn.handle = task->hStdIn.pair[1];
 
-				if( pipe(task->hStdOut.pair) < 0 ) return NULL;
+				if( pipe(task->hStdOut.pair) < 0 ) {
+					Release( expanded_working_path );
+					Release( expanded_path );
+					return NULL;
+				}
 				task->hStdOut.handle = task->hStdOut.pair[0];
 			}
 
@@ -692,7 +679,6 @@ SYSTEM_PROC( PTASK_INFO, LaunchPeerProgramExx )( CTEXTSTR program, CTEXTSTR path
 			if( OutputHandler )
 				ThreadTo( HandleTaskOutput, (uintptr_t)task );
 			task->pid = newpid;
-			lprintf( WIDE("Forked, and set the pid..") );
 			// how can I know if the command failed?
 			// well I can't - but the user's callback will be invoked
 			// when the above exits.
@@ -701,10 +687,14 @@ SYSTEM_PROC( PTASK_INFO, LaunchPeerProgramExx )( CTEXTSTR program, CTEXTSTR path
 				// if path is NULL we didn't change the path...
 				SetCurrentPath( saved_path );
 			}
+			Release( expanded_working_path );
+			Release( expanded_path );
 			return task;
 		}
 #endif
 	}
+	Release( expanded_working_path );
+	Release( expanded_path );
 	return FALSE;
 }
 
