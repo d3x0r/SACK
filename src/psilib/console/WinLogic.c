@@ -21,8 +21,7 @@ static void AddUpdateRegion( PPENDING_RECT update_rect, int32_t x, int32_t y, ui
 		if( !update_rect->flags.bHasContent )
 			MemSet( &update_rect->cs, 0, sizeof( update_rect->cs ) );
 		EnterCriticalSec( &update_rect->cs );
-		pdp->lockCount++;
-}
+	}
 #endif
 	if( wd && ht )
 	{
@@ -63,7 +62,6 @@ static void AddUpdateRegion( PPENDING_RECT update_rect, int32_t x, int32_t y, ui
 	}
 #ifdef __LINUX__
 	if( !update_rect->flags.bTmpRect ) {
-		pdp->lockCount--;
 		LeaveCriticalSec( &update_rect->cs );
 	}
 #endif
