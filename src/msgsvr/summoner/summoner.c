@@ -28,6 +28,12 @@
 //   IS_READY // someone else I might be waiting on, but required parallel starting.
 //enum {
 
+enum summonerProtocol {
+	SUMPROT_REQUIRE, // remote is requesting to be notified when task starts.
+	SUMPROT_REQUIRMENU_STARTED, // remote is requesting to be notified when task starts.
+	SUMPROT_REQUIRMENU_ENDED, // remote is requesting to be notified when task starts.
+};
+
 typedef struct required_task_info
 {
 	struct {
@@ -238,7 +244,7 @@ static void CPROC ReadComplete( PCLIENT pc, POINTER buffer, size_t len )
 
 //--------------------------------------------------------------------------
 
-int CPROC SpawnerConnect( uintptr_t psv, SOCKADDR *responder )
+static int CPROC SpawnerConnect( uintptr_t psv, SOCKADDR *responder )
 {
 	if( l.pcSpawner )
 		RemoveClient( l.pcSpawner );
@@ -249,7 +255,7 @@ int CPROC SpawnerConnect( uintptr_t psv, SOCKADDR *responder )
 //--------------------------------------------------------------------------
 
 //--------------------------------------------------------------------------
-uintptr_t CPROC SetTaskReadyTimeout( uintptr_t psv, arg_list args )
+static uintptr_t CPROC SetTaskReadyTimeout( uintptr_t psv, arg_list args )
 {
 	PARAM( args, uint64_t, timeout );
 	PMYTASK_INFO task = (PMYTASK_INFO)psv;
@@ -257,7 +263,7 @@ uintptr_t CPROC SetTaskReadyTimeout( uintptr_t psv, arg_list args )
 	return psv;
 }
 
-uintptr_t CPROC SetTaskMinLaunchTime( uintptr_t psv, arg_list args )
+static uintptr_t CPROC SetTaskMinLaunchTime( uintptr_t psv, arg_list args )
 {
 	PARAM( args, uint64_t, timeout );
 	PMYTASK_INFO task = (PMYTASK_INFO)psv;
@@ -267,7 +273,7 @@ uintptr_t CPROC SetTaskMinLaunchTime( uintptr_t psv, arg_list args )
 
 //--------------------------------------------------------------------------
 
-uintptr_t CPROC AddTaskSuggestion( uintptr_t psv, arg_list args )
+static uintptr_t CPROC AddTaskSuggestion( uintptr_t psv, arg_list args )
 {
 	PARAM( args, char *, require );
 	PMYTASK_INFO task = (PMYTASK_INFO)psv;
@@ -282,7 +288,7 @@ uintptr_t CPROC AddTaskSuggestion( uintptr_t psv, arg_list args )
 
 //--------------------------------------------------------------------------
 
-uintptr_t CPROC AddTaskRequirement( uintptr_t psv, arg_list args )
+static uintptr_t CPROC AddTaskRequirement( uintptr_t psv, arg_list args )
 {
 	PARAM( args, char *, require );
 	PMYTASK_INFO task = (PMYTASK_INFO)psv;
@@ -298,7 +304,7 @@ uintptr_t CPROC AddTaskRequirement( uintptr_t psv, arg_list args )
 
 //--------------------------------------------------------------------------
 
-uintptr_t CPROC LoadExternalService( uintptr_t psv, arg_list args )
+static uintptr_t CPROC LoadExternalService( uintptr_t psv, arg_list args )
 {
 	PARAM( args, char *, name );
 // these are loaded at runtime, and
@@ -310,7 +316,7 @@ uintptr_t CPROC LoadExternalService( uintptr_t psv, arg_list args )
 
 //--------------------------------------------------------------------------
 
-uintptr_t CPROC AddRemoteTaskRequirement( uintptr_t psv, arg_list args )
+static uintptr_t CPROC AddRemoteTaskRequirement( uintptr_t psv, arg_list args )
 {
 	PARAM( args, char *, require );
 	PARAM( args, char *, address );
@@ -325,7 +331,7 @@ uintptr_t CPROC AddRemoteTaskRequirement( uintptr_t psv, arg_list args )
 
 //--------------------------------------------------------------------------
 
-uintptr_t CPROC SetTaskRestart( uintptr_t psv, arg_list args )
+static uintptr_t CPROC SetTaskRestart( uintptr_t psv, arg_list args )
 {
 	PARAM( args, LOGICAL, bRestart );
 	PMYTASK_INFO task = (PMYTASK_INFO)psv;
@@ -335,7 +341,7 @@ uintptr_t CPROC SetTaskRestart( uintptr_t psv, arg_list args )
 
 //--------------------------------------------------------------------------
 
-uintptr_t CPROC SetTaskExclusive( uintptr_t psv, arg_list args )
+static uintptr_t CPROC SetTaskExclusive( uintptr_t psv, arg_list args )
 {
 	PARAM( args, LOGICAL, bExclusive );
 	PARAM( args, CTEXTSTR, group );
@@ -347,7 +353,7 @@ uintptr_t CPROC SetTaskExclusive( uintptr_t psv, arg_list args )
 
 //--------------------------------------------------------------------------
 
-uintptr_t CPROC SetTaskProgram( uintptr_t psv, arg_list args )
+static uintptr_t CPROC SetTaskProgram( uintptr_t psv, arg_list args )
 {
 	PARAM( args, char *, program );
 	PMYTASK_INFO task = (PMYTASK_INFO)psv;
@@ -357,7 +363,7 @@ uintptr_t CPROC SetTaskProgram( uintptr_t psv, arg_list args )
 
 //--------------------------------------------------------------------------
 
-uintptr_t CPROC SetTaskPath( uintptr_t psv, arg_list args )
+static uintptr_t CPROC SetTaskPath( uintptr_t psv, arg_list args )
 {
 	PARAM( args, char *, path );
 	PMYTASK_INFO task = (PMYTASK_INFO)psv;
@@ -367,7 +373,7 @@ uintptr_t CPROC SetTaskPath( uintptr_t psv, arg_list args )
 
 //--------------------------------------------------------------------------
 
-void BuildArgs( char ***pppArgs, char *newargs )
+static void BuildArgs( char ***pppArgs, char *newargs )
 {
 	char  *p;
 	char **pp;
@@ -450,7 +456,7 @@ void BuildArgs( char ***pppArgs, char *newargs )
 	}
 }
 
-uintptr_t CPROC SetTaskArguments( uintptr_t psv, arg_list args )
+static uintptr_t CPROC SetTaskArguments( uintptr_t psv, arg_list args )
 {
 	PARAM( args, char *, taskargs );
 	PMYTASK_INFO task = (PMYTASK_INFO)psv;
@@ -469,7 +475,7 @@ uintptr_t CPROC SetTaskArguments( uintptr_t psv, arg_list args )
 
 //--------------------------------------------------------------------------
 
-uintptr_t CPROC CreateTaskWithName( uintptr_t psv, arg_list args )
+static uintptr_t CPROC CreateTaskWithName( uintptr_t psv, arg_list args )
 {
 	PARAM( args, char *, name );
 	PMYTASK_INFO task = (PMYTASK_INFO)psv;
@@ -487,13 +493,13 @@ uintptr_t CPROC CreateTaskWithName( uintptr_t psv, arg_list args )
 	return (uintptr_t)task;
 }
 
-uintptr_t CPROC SetSuspendStartup( uintptr_t psv, arg_list args )
+static uintptr_t CPROC SetSuspendStartup( uintptr_t psv, arg_list args )
 {
 	l.flags.bSuspend = TRUE;
 	return psv;
 }
 
-uintptr_t CPROC SetTaskSuspend( uintptr_t psv, arg_list args )
+static uintptr_t CPROC SetTaskSuspend( uintptr_t psv, arg_list args )
 {
 	PARAM( args, LOGICAL, bSuspend );
 	PMYTASK_INFO task = (PMYTASK_INFO)psv;
@@ -506,7 +512,7 @@ uintptr_t CPROC SetTaskSuspend( uintptr_t psv, arg_list args )
 
 //--------------------------------------------------------------------------
 
-uintptr_t CPROC CreateRemoteTaskWithName( uintptr_t psv, arg_list args )
+static uintptr_t CPROC CreateRemoteTaskWithName( uintptr_t psv, arg_list args )
 {
 	PARAM( args, char *, name );
 	PARAM( args, char *, address );
@@ -521,7 +527,7 @@ uintptr_t CPROC CreateRemoteTaskWithName( uintptr_t psv, arg_list args )
 
 //--------------------------------------------------------------------------
 
-PMYTASK_INFO FindTask( char *address, char *taskname )
+static PMYTASK_INFO FindTask( char *address, char *taskname )
 {
 	if( address )
 	{
@@ -547,7 +553,7 @@ PMYTASK_INFO FindTask( char *address, char *taskname )
 
 //--------------------------------------------------------------------------
 
-void ScheduleTask( PMYTASK_INFO task )
+static void ScheduleTask( PMYTASK_INFO task )
 {
 	uint32_t tick;
 	lprintf( "schedule task." );
@@ -607,7 +613,7 @@ void ScheduleTask( PMYTASK_INFO task )
 			if( !req_task->task->flags.bScheduled )
 				ScheduleTask( req_task->task );
 		}
-	//lprintf( WIDE("Scheduling %s"), task->name );
+		//lprintf( WIDE("Scheduling %s"), task->name );
 		RelinkThing( l.schedule, task );
 		task->flags.bScheduled = 1;
 	}
@@ -616,7 +622,7 @@ void ScheduleTask( PMYTASK_INFO task )
 
 //--------------------------------------------------------------------------
 
-void ScheduleTasks( void )
+static void ScheduleTasks( void )
 {
 	PMYTASK_INFO task;
 	INDEX idx;
@@ -632,7 +638,7 @@ void ScheduleTasks( void )
 
 //--------------------------------------------------------------------------
 
-uintptr_t CPROC EndTaskDefs( uintptr_t psv )
+static uintptr_t CPROC EndTaskDefs( uintptr_t psv )
 {
 	PMYTASK_INFO task = (PMYTASK_INFO)psv;
 	AddLink( &l.tasks, task );
@@ -641,7 +647,7 @@ uintptr_t CPROC EndTaskDefs( uintptr_t psv )
 
 //--------------------------------------------------------------------------
 
-void WriteConfig( char *name )
+static void WriteConfig( char *name )
 {
 	FILE *out = fopen( name, "wt" );
 	if( out )
@@ -658,13 +664,12 @@ void WriteConfig( char *name )
 					 , info->remote_address?info->remote_address:""
 					 , info->remote_address?"@":""
 					 ,info->name );
-		//fprintf( out, WIDE("Remote Task %m@%m"), CreateRemoteTaskWithName );
-         if( info->args )
+			if( info->args )
 				fprintf( out, WIDE("args %s\n"), GetArgsString( (PCTEXTSTR)info->args ) );
 			else
 				fprintf( out, WIDE("#args <arguments to program>\n" ) );
 			fprintf( out, WIDE("program %s\n"), info->program );
-         if( info->path )
+			if( info->path )
 				fprintf( out, WIDE("path %s\n"), info->path );
 			else
 				fprintf( out, WIDE("#path <working directory> # set where the task should start\n" ) );
@@ -706,7 +711,7 @@ void WriteConfig( char *name )
 }
 //--------------------------------------------------------------------------
 
-void ReadConfig( void )
+static void ReadConfig( void )
 {
 	//uintptr_t psvTask;
 	PCONFIG_HANDLER pch;
@@ -797,7 +802,7 @@ void ReadConfig( void )
 
 //--------------------------------------------------------------------------
 
-void CPROC TaskStartOneShot( uintptr_t psv )
+static void CPROC TaskStartOneShot( uintptr_t psv )
 {
 	PMYTASK_INFO task = (PMYTASK_INFO)psv;
 	// if the task has not
@@ -812,7 +817,7 @@ void CPROC TaskStartOneShot( uintptr_t psv )
 
 //--------------------------------------------------------------------------
 
-void KillDependants( PMYTASK_INFO task )
+static void KillDependants( PMYTASK_INFO task )
 {
 	// this small bit of code needs to be recursive...
 	// so that we kill all dependants of dependants of this task...
@@ -837,7 +842,7 @@ void KillDependants( PMYTASK_INFO task )
 
 //--------------------------------------------------------------------------
 
-void CPROC TaskEnded( uintptr_t psv, PTASK_INFO task_ended )
+static void CPROC TaskEnded( uintptr_t psv, PTASK_INFO task_ended )
 {
 	PMYTASK_INFO task = (PMYTASK_INFO)psv;
 	lprintf( WIDE("Task %s has exited."), task->name );
@@ -887,7 +892,7 @@ void CPROC TaskEnded( uintptr_t psv, PTASK_INFO task_ended )
 
 //--------------------------------------------------------------------------
 
-int CPROC WaitingForDependancies( PMYTASK_INFO task )
+static int CPROC WaitingForDependancies( PMYTASK_INFO task )
 {
 	INDEX idx;
 	PREQUIRED_TASK required;
@@ -923,14 +928,14 @@ static void CPROC TaskOut(uintptr_t psvTask, PTASK_INFO task, CTEXTSTR buffer, s
 //--------------------------------------------------------------------------
 
 
-void LoadTasks( void )
+static void LoadTasks( void )
 {
 	int started;
 	PMYTASK_INFO task;
 	l.pLoadingThread = MakeThread();
 	do
 	{
-      PMYTASK_INFO nextTask;
+		PMYTASK_INFO nextTask;
 		started = 0;
 		if( l.flags.bSpawnActive )
 		{
@@ -947,7 +952,7 @@ void LoadTasks( void )
 		for( task = l.schedule; task; task = nextTask )
 		{
 			PTASK_INFO task_info;
-         nextTask = NextThing( task );
+			nextTask = NextThing( task );
 			// next task in for loop.
 			lprintf( "check %p(%s) %d", task, task?task->name:"", l.flags.bSpawnActive );
 			if( l.flags.bSpawnActive )
@@ -987,9 +992,6 @@ void LoadTasks( void )
 			l.flags.bSpawnActive = 1;
 			started++;
 			task->last_launch_time = GetTickCount();
-//cpg27dec2006 c:\work\sack\src\msgsvr\summoner\summoner.c(966): Warning! W1179: Parameter 3, type qualifier mismatch
-//cpg27dec2006 c:\work\sack\src\msgsvr\summoner\summoner.c(966): Note! N2003: source conversion type is 'char **'
-//cpg27dec2006 c:\work\sack\src\msgsvr\summoner\summoner.c(966): Note! N2004: target conversion type is 'char const *const *'
 			task_info = LaunchPeerProgramExx( task->program
 			                                , task->path
 			                                , (PCTEXTSTR)task->args
@@ -1038,7 +1040,7 @@ void LoadTasks( void )
 
 //--------------------------------------------------------------------------
 
-void UnloadTask( PMYTASK_INFO task )
+static void UnloadTask( PMYTASK_INFO task )
 {
 	INDEX idx2;
 	PTASK_INFO info;
@@ -1053,7 +1055,7 @@ void UnloadTask( PMYTASK_INFO task )
 	}
 }
 
-void UnloadTasks( void )
+static void UnloadTasks( void )
 {
 	INDEX idx;
 	PMYTASK_INFO task;
@@ -1074,7 +1076,7 @@ ATEXIT( DoUnloadTasks )
 
 //--------------------------------------------------------------------------
 
-void CPROC AvatarReadComplete( PCLIENT pc, POINTER buffer, size_t len )
+static void CPROC AvatarReadComplete( PCLIENT pc, POINTER buffer, size_t len )
 {
 	uint32_t toread;
 	if( !buffer )
@@ -1228,12 +1230,11 @@ void CPROC AvatarReadComplete( PCLIENT pc, POINTER buffer, size_t len )
 
 //--------------------------------------------------------------------------
 
-void CPROC AvatarConnect( PCLIENT pcServer, PCLIENT pcNew )
+static void CPROC AvatarConnect( PCLIENT pcServer, PCLIENT pcNew )
 {
 	lprintf( "connecting, and responding with status..." );
-
 	SetReadCallback( pcNew, AvatarReadComplete );
-	AvatarReadComplete( pcNew, NULL, 0 );
+	//AvatarReadComplete( pcNew, NULL, 0 );
 	{
 		struct {
 			uint32_t op;
@@ -1248,13 +1249,48 @@ void CPROC AvatarConnect( PCLIENT pcServer, PCLIENT pcNew )
 }
 
 //--------------------------------------------------------------------------
+static void CPROC SummonerReadComplete( PCLIENT pc, POINTER buffer, size_t len )
+{
+	uint32_t toread;
+	if( !buffer )
+	{
+		PNETSTATE pns;
+		buffer = Allocate( 4096 );
+		SetNetworkLong( pc, NL_BUFFER, (uintptr_t)buffer );
+
+		SetNetworkLong( pc, NL_STATE, (uintptr_t)(pns=(PNETSTATE)Allocate( sizeof( NETSTATE ) )) );
+		pns->state = NET_STATE_RESET;
+		toread = 4;
+	}
+	else
+	{
+		struct summonerMessage {
+			int op;
+			union {
+				char requirement[];
+			} data;	
+		} *msg = (struct summonerMessage*)buffer;
+		
+	}
+}
+
+//--------------------------------------------------------------------------
+
+
+void CPROC SummonerConnect( PCLIENT pcServer, PCLIENT pcNew )
+{
+	lprintf( "connection from peer summoner..." );
+	SetReadCallback( pcNew, SummonerReadComplete );
+}
+
+//--------------------------------------------------------------------------
 
 
 SaneWinMain( argc, argv )
 {
 	// process a configuration file for tasks to load
 	// also register a service for which I can be notified of task
-// health, before performing a kill and resurrect....
+	// health, before performing a kill and resurrect....
 	if( argc > 1 )
 	{
 		l.configfile = argv[1];
@@ -1285,11 +1321,16 @@ SaneWinMain( argc, argv )
 	l.peer_port = 3014;
 	l.avatar_port = 3015;
 	//ServiceRespond( l.peer_port );
-					  //DiscoverService( 0, l.port, NULL, 0 );
+	//DiscoverService( 0, l.port, NULL, 0 );
 	NetworkWait( NULL, 16, 2);
 	if( !OpenTCPListenerEx( l.avatar_port, AvatarConnect ) )
 	{
 		lprintf( WIDE("Failed to open avatar tcp port (%d)"), l.avatar_port );
+		return 0;
+	}
+	if( !OpenTCPListenerEx( l.peer_port, SummonerConnect ) )
+	{
+		lprintf( WIDE("Failed to open summoner tcp port (%d)"), l.peer_port );
 		return 0;
 	}
 	ReadConfig();
