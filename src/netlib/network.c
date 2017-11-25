@@ -2163,12 +2163,15 @@ int NetworkQuit(void)
 	{
 		PTHREAD thread;
 		INDEX idx;
-		LIST_FORALL( globalNetworkData.pThreads, idx, PTHREAD, thread ) {
+		struct peer_thread_info *peer_thread;
 #ifdef USE_WSA_EVENTS
+		for( peer_thread = globalNetworkData.root_thread; peer_thread; peer_thread = peer_thread->child_peer ) {
 			struct peer_thread_info *peer_thread = (struct peer_thread_info*)GetThreadParam( thread );
 			if( peer_thread )
 				WSASetEvent( peer_thread->hThread );
+		}
 #endif
+		LIST_FORALL( globalNetworkData.pThreads, idx, PTHREAD, thread ) {
 			WakeThread( thread );
 		}
 	}
