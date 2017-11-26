@@ -340,6 +340,7 @@ SYSTEM_PROC( PTASK_INFO, LaunchPeerProgramExx )( CTEXTSTR program, CTEXTSTR path
 			;
 		PVARTEXT pvt = VarTextCreateEx( DBG_VOIDRELAY );
 		PTEXT cmdline;
+		TEXTSTR new_path;
 		PTEXT final_cmdline;
 		LOGICAL needs_quotes;
 		int first = TRUE;
