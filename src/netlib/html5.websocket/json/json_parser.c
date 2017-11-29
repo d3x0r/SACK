@@ -15,12 +15,13 @@ SACK_NAMESPACE namespace network { namespace json {
 #endif
 
 
-char *json_escape_string( const char *string ) {
+char *json_escape_string_length( const char *string, size_t length, size_t *outlen ) {
 	size_t m = 0;
+	size_t ch;
 	const char *input;
 	TEXTSTR output, _output;
 	if( !(input = string) ) return NULL;
-	for( ; input[0]; input++ ) {
+	for( ch = 0; ch < length; ch++, input++ ) {
 		if( input[0] == '"' || input[0] == '\\' )
 			m++;
 		else if( input[0] == '\n' )
@@ -28,8 +29,8 @@ char *json_escape_string( const char *string ) {
 		else if( input[0] == '\t' )
 			m++;
 	}
-	_output = output = NewArray( char, (input-string)+m+1 );
-	for( input = string; input[0]; input++ ) {
+	_output = output = NewArray( char, length+m+1 );
+	for( (ch = 0), (input = string); ch < length; ch++, input++ ) {
 		if( input[0] == '"' || input[0] == '\\' ) {
 			(*output++) = '\\';
 		}
@@ -41,8 +42,13 @@ char *json_escape_string( const char *string ) {
 		}
 		(*output++) = input[0];
 	}
-	(*output++) = input[0]; // include nul character terminator.
+	(*output) = 0; // include nul character terminator.
+	if( outlen ) (*outlen) = output - _output;
 	return _output;
+}
+
+char *json_escape_string( const char *string ) {
+	return json_escape_string_length( string, strlen( string ), NULL );
 }
 
 #define _2char(result,from) (((*from) += 2),( ( result & 0x1F ) << 6 ) | ( ( result & 0x3f00 )>>8))

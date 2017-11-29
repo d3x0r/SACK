@@ -30,38 +30,32 @@ SACK_NAMESPACE namespace network { namespace json {
 #endif
 
 
-char *json6_escape_string( const char *string ) {
+char *json6_escape_string_length( const char *string, size_t len, size_t *outlen ) {
 	size_t m = 0;
+	size_t ch;
 	const char *input;
 	TEXTSTR output;
 	TEXTSTR _output;
 	if( !( input = string ) ) return NULL;
-	for( ; input[0]; input++ ) {
+	for( ch = 0; ch < len; ch++, input++ ) {
 		if( (input[0] == '"' ) || (input[0] == '\\' ) || (input[0] == '`') || (input[0] == '\'') /*|| (input[0] == '\n') || (input[0] == '\t')*/ )
 			m++;
 	}
-	_output = output = NewArray( TEXTCHAR, (input-string)+m+1 );
-	for( input = string; input[0]; input++ ) {
+	_output = output = NewArray( TEXTCHAR, len+m+1 );
+	for( (ch = 0), (input = string); ch < len; ch++, input++ ) {
 		if( (input[0] == '"' ) || (input[0] == '\\' ) || (input[0] == '`' )|| (input[0] == '\'' )) {
 			(*output++) = '\\';
 		}
-		/*
-		 * newline is not required to be subsituted.... so can keep it more 'native'
-		else if( input[0] == '\n' ) {
-			(*output++) = '\\'; (*output++) = 'n';
-			continue;
-		}
-		else if( input[0] == '\t' ) {
-			(*output++) = '\\'; (*output++) = 't';
-			continue;
-		}
-		*/
 		(*output++) = input[0];
 	}
-	(*output++) = input[0];
+	(*output) = 0;
+	if( outlen ) (*outlen) = output - _output;
 	return _output;
 }
 
+char *json6_escape_string( const char *string ) {
+	return json6_escape_string_length( string, strlen( string ), NULL );
+}
 
 #define _2char(result,from) (((*from) += 2),( ( result & 0x1F ) << 6 ) | ( ( result & 0x3f00 )>>8))
 #define _zero(result,from)  ((*from)++,0) 
