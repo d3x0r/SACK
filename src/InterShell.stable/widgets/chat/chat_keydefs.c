@@ -296,6 +296,7 @@ void ReformatInput( PCHAT_LIST list )
 			list->input.phb_Input->pBlock->nLinesUsed = 1;
 			list->input.phb_Input->pBlock->pLines[0].flags.deleted = 0;
 			list->input.phb_Input->nLine = 1;
+			list->input.phb_Input->nFirstLine = 1;
 		}
 		list->input.phb_Input->pBlock->pLines[0].pLine = list->input.CommandInfo->CollectionBuffer;
 		SetStart( list->input.phb_Input->pBlock->pLines[0].pLine );
@@ -303,6 +304,7 @@ void ReformatInput( PCHAT_LIST list )
 			DECLTEXT( blank_eol, "" );
 			list->input.phb_Input->pBlock->pLines[0].flags.nLineLength = LineLengthExEx( list->input.phb_Input->pBlock->pLines[0].pLine, FALSE, 8, (PTEXT)&blank_eol );
 		}
+		list->input.phb_Input->flags.bUpdated = 1;
 		//if( !pdp->flags.bDirect && pdp->flags.bWrapCommand )
 		BuildDisplayInfoLines( list->input.phb_Input, 0, list->input_font );
 }
