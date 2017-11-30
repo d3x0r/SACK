@@ -558,9 +558,10 @@ int json_parse_add_data( struct json_parse_state *state
 					//lprintf( "string gather status:%d", string_status );
 					if( string_status < 0 )
 						state->status = FALSE;
-					else if( string_status > 0 )
+					else if( string_status > 0 ) {
 						state->gatheringString = FALSE;
-					else if( state->complete_at_end ) {
+						state->val.stringLen = output->pos - state->val.string;
+					} else if( state->complete_at_end ) {
 						if( !state->pvtError ) state->pvtError = VarTextCreate();
 						vtprintf( state->pvtError, "End of string fail." );
 						state->status = FALSE;
@@ -775,6 +776,7 @@ int json_parse_add_data( struct json_parse_state *state
 								*/
 								//lprintf( "Non numeric character received; push the value we have" );
 								(*output->pos) = 0;
+								state->val.stringLen = output->pos - state->val.string;
 								break;
 							}
 						}
@@ -793,6 +795,7 @@ int json_parse_add_data( struct json_parse_state *state
 						{
 							state->gatheringNumber = FALSE;
 							(*output->pos++) = 0;
+							state->val.stringLen = output->pos - state->val.string;
 
 							if( state->val.float_result )
 							{

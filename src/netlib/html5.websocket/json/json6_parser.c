@@ -373,6 +373,7 @@ int json6_parse_add_data( struct json_parse_state *state
 			{
 				state->gatheringString = FALSE;
 				state->n = input->pos - input->buf;
+				state->val.stringLen = (output->pos - state->val.string)-1;
 				if( state->status ) state->val.value_type = VALUE_STRING;
 			}
 			else {
@@ -674,8 +675,10 @@ int json6_parse_add_data( struct json_parse_state *state
 						//lprintf( "string gather status:%d", string_status );
 						if( string_status < 0 )
 							state->status = FALSE;
-						else if( string_status > 0 )
+						else if( string_status > 0 ) {
 							state->gatheringString = FALSE;
+							state->val.stringLen = (output->pos - state->val.string) - 1;
+						}
 						state->n = input->pos - input->buf;
 						if( state->status ) {
 							state->val.value_type = VALUE_STRING;
@@ -735,9 +738,10 @@ int json6_parse_add_data( struct json_parse_state *state
 					//lprintf( "string gather status:%d", string_status );
 					if( string_status < 0 )
 						state->status = FALSE;
-					else if( string_status > 0 )
+					else if( string_status > 0 ) {
 						state->gatheringString = FALSE;
-					else if( state->complete_at_end ) {
+						state->val.stringLen = (output->pos - state->val.string) - 1;
+					} else if( state->complete_at_end ) {
 						if( !state->pvtError ) state->pvtError = VarTextCreate();
 						vtprintf( state->pvtError, "End of string fail." );
 						state->status = FALSE;
@@ -1087,6 +1091,7 @@ int json6_parse_add_data( struct json_parse_state *state
 						else
 						{
 							(*output->pos++) = 0;
+							state->val.stringLen = (output->pos - state->val.string) - 1;
 							state->gatheringNumber = FALSE;
 							//lprintf( "result with number:%s", state->val.string );
 
