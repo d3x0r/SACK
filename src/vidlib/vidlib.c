@@ -25,6 +25,8 @@
 #define USE_KEYHOOK
 #endif
 
+#define DEBUG_INVALIDATE 0
+
 #ifdef _MSC_VER
 #ifndef WINVER
 #define WINVER 0x0501
@@ -804,6 +806,9 @@ RENDER_PROC (void, UpdateDisplayPortionEx)( PVIDEO hVideo
 					{
 						if( l.flags.bLogWrites )
 							lprintf( WIDE( "setting post invalidate..." ) );
+#if DEBUG_INVALIDATE
+						lprintf( "set Posted Invalidate  (previous:%d)", l.flags.bPostedInvalidate );
+#endif
 						l.flags.bPostedInvalidate = 1;
 						l.invalidated_window = hVideo;
 						InvalidateRect( hVideo->hWndOutput, &r, FALSE );
@@ -2018,6 +2023,9 @@ void Redraw( PVIDEO hVideo )
 		{
 			if( l.flags.bLogWrites )
 				lprintf( WIDE( "Posting invalidate rect..." ) );
+#if DEBUG_INVALIDATE
+			lprintf( "set Posted Invalidate  (previous:%d)", l.flags.bPostedInvalidate );
+#endif
 			l.flags.bPostedInvalidate = 1;
 			l.invalidated_window = hVideo;
 			InvalidateRect( hVideo->hWndOutput, NULL, FALSE );
@@ -3043,6 +3051,10 @@ WM_DROPFILES
 		hVideo = (PVIDEO) GetWindowLongPtr (hWnd, WD_HVIDEO);
 		if( hVideo->flags.bDestroy )
 		{
+#if DEBUG_INVALIDATE
+			lprintf( "clear Posted Invalidate  (previous:%d)", l.flags.bPostedInvalidate );
+#endif
+			l.flags.bPostedInvalidate = 0;
 			ValidateRect( hWnd, NULL );
 			Return 0;
 		}
@@ -3050,6 +3062,10 @@ WM_DROPFILES
 			lprintf( WIDE("Paint Message! %p"), hVideo );
 		if( hVideo->flags.event_dispatched )
 		{
+#if DEBUG_INVALIDATE
+			lprintf( "clear Posted Invalidate  (previous:%d)", l.flags.bPostedInvalidate );
+#endif
+			l.flags.bPostedInvalidate = 0;
 			ValidateRect( hWnd, NULL );
 //#ifdef NOISY_LOGGING
 			lprintf( WIDE( "Validated rect... will you stop calling paint!?" ) );
@@ -3075,6 +3091,9 @@ WM_DROPFILES
 			if( l.flags.bPostedInvalidate )
 				if( l.invalidated_window == hVideo )
 				{
+#if DEBUG_INVALIDATE
+					lprintf( "clear Posted Invalidate  (previous:%d)", l.flags.bPostedInvalidate );
+#endif
 					l.flags.bPostedInvalidate = 0;
 					if( hVideo->portion_update.pending ) {
 						hVideo->portion_update.pending = FALSE;
@@ -3085,6 +3104,9 @@ WM_DROPFILES
 						UpdateDisplayPortion (hVideo, 0, 0, 0, 0);
 					if( l.flags.bPostedInvalidate )
 						lprintf( WIDE("triggered to draw too soon!") );
+#if DEBUG_INVALIDATE
+					lprintf( "clear Posted Invalidate  (previous:%d)", l.flags.bPostedInvalidate );
+#endif
 					l.flags.bPostedInvalidate = 0;
 				}
 				else if( l.invalidated_window )
@@ -3897,6 +3919,9 @@ static void HandleMessage (MSG Msg)
 		{
 			hVideo->flags.bShown = 1;
 			// pretend it's an invalidate to update happens.
+#if DEBUG_INVALIDATE
+			lprintf( "set Posted Invalidate  (previous:%d)", l.flags.bPostedInvalidate );
+#endif
 			l.flags.bPostedInvalidate = 1;
 			l.invalidated_window =  hVideo;
 			ShowWindow( hVideo->hWndOutput, SW_SHOW );
@@ -5343,6 +5368,9 @@ void RestoreDisplayEx(PVIDEO hVideo DBG_PASS )
 #if defined( OTHER_EVENTS_HERE )
 						if( l.flags.bLogMessages )
 							lprintf( WIDE( "Generating initial show (restore display, never shown)" ) );
+#endif
+#if DEBUG_INVALIDATE
+						lprintf( "set Posted Invalidate  (previous:%d)", l.flags.bPostedInvalidate );
 #endif
 						l.flags.bPostedInvalidate = 1;
 						l.invalidated_window =  hVideo;
