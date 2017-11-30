@@ -2,6 +2,8 @@
 
 
 #include <stdhdrs.h>
+#include <wincrypt.h>
+#include <cryptuiapi.h>
 #include <deadstart.h>
 #include <procreg.h>
 #include <sqlgetoption.h>
@@ -58,6 +60,7 @@ struct internalCert {
 	STACK_OF( X509 ) *chain;
 };
 
+void loadSystemCerts(X509_STORE *store );
 
 //static void gencp
 struct internalCert * MakeRequest( void );
@@ -697,6 +700,9 @@ LOGICAL ssl_BeginClientSession( PCLIENT pc, CPOINTER client_keypair, size_t clie
 		BIO_free( keybuf );
 		X509_STORE *store = SSL_CTX_get_cert_store( ses->ctx );
 		X509_STORE_add_cert( store, cert );
+	} else {
+		X509_STORE *store = SSL_CTX_get_cert_store( ses->ctx );
+		loadSystemCerts( store );
 	}
 	ssl_InitSession( ses );
 	//SSL_set_default_read_buffer_len( ses->ssl, 16384 );
@@ -929,6 +935,49 @@ struct internalCert * MakeRequest( void )
 	}
 	return cert;
 } 
+
+#ifdef _WIN32
+
+#define MY_ENCODING_TYPE  (PKCS_7_ASN_ENCODING | X509_ASN_ENCODING)
+
+void loadSystemCerts( X509_STORE *store )
+{
+	HCERTSTORE hStore;
+	PCCERT_CONTEXT pContext = NULL;
+	X509 *x509;
+
+	hStore = CertOpenSystemStore(NULL, "ROOT");
+
+	if( !hStore ) {
+		lprintf( "FATAL, CANNOT OPEN ROOT STORE" );
+		return;
+	}
+
+	while (pContext = CertEnumCertificatesInStore(hStore, pContext))
+	{
+		//uncomment the line below if you want to see the certificates as pop ups
+		//CryptUIDlgViewContext(CERT_STORE_CERTIFICATE_CONTEXT, pContext,   NULL, NULL, 0, NULL);
+		const unsigned char *encoded_cert = (const unsigned char *)pContext->pbCertEncoded;
+
+		x509 = NULL;
+		x509 = d2i_X509(NULL, &encoded_cert, pContext->cbCertEncoded);
+		if (x509)
+		{
+			int i = X509_STORE_add_cert(store, x509);
+
+			//if (i == 1)
+			//	std::cout << "certificate added" << std::endl;
+			//printf( "adde cert to store?", i );
+			X509_free(x509);
+		}
+	}
+
+	 CertFreeCertificateContext(pContext);
+	 CertCloseStore(hStore, 0);
+}
+
+#endif
+
 
 SACK_NETWORK_NAMESPACE_END
 #endif
