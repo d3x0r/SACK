@@ -3348,8 +3348,8 @@ TEXTRUNE GetPriorUtfCharIndexed( const char *pc, size_t *n )
 		CTEXTSTR orig = pc + n[0];
 		CTEXTSTR tmp = orig;
 		TEXTRUNE result = GetPriorUtfChar( pc, &tmp );
-		if( orig <= tmp ) {
-			n[0] += tmp - orig;
+		if( tmp <= orig ) {
+			n[0] -= orig - tmp;
 			return result;
 		}
 	}
