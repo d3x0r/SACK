@@ -423,6 +423,13 @@ TEXTSTR  DupCStrEx ( const char * original DBG_PASS )
 		return CharWConvertEx( original DBG_RELAY );
 	return NULL;
 }
+
+TEXTSTR  DupCStrLenEx( const char * original, size_t chars DBG_PASS )
+{
+	if( original )
+		return CharWConvertExx( original, chars DBG_RELAY );
+	return NULL;
+}
 #else
 
 
@@ -439,18 +446,30 @@ char *  CStrDupEx ( CTEXTSTR original DBG_PASS )
 	return result;
 }
 
-TEXTSTR  DupCStrEx ( const char * original DBG_PASS )
+TEXTSTR  DupCStrLenEx( const char * original, size_t chars DBG_PASS )
 {
-	INDEX len = 0;
-	TEXTSTR result;
+	size_t len = 0;
+	TEXTSTR result, _result;
 	if( !original )
 		return NULL;
-	while( original[len] ) len++;
-	result = (TEXTSTR)AllocateEx( (len+1) * sizeof( result[0] )  DBG_RELAY );
+	_result = result = NewArray( TEXTCHAR, chars + 1 );// (TEXTSTR)AllocateEx( (len + 1) * sizeof( result[0] )  DBG_RELAY );
 	len = 0;
-	while( ( result[len] = original[len] ) != 0 ) len++;
-	return result;
+	while( len < chars ) ((*result++) = (*original++)), len++;
+	result[0] = 0;
+	return _result;
 }
+
+TEXTSTR  DupCStrEx( const char * original DBG_PASS )
+{
+	size_t len = 0;
+	const char *_original;
+	if( !original )
+		return NULL;
+	_original = original;
+	while( (*original++) ) len++;
+	return DupCStrLenEx( _original, len DBG_RELAY );
+}
+
 #endif
 
 wchar_t *   DupTextToWideEx( CTEXTSTR original DBG_PASS )
