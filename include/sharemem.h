@@ -1041,6 +1041,14 @@ MEM_PROC TEXTSTR     MEM_API  DupCharToTextEx( const char *original DBG_PASS );
    Returns
    a pointer to a wide character string.                     */
 MEM_PROC  TEXTSTR MEM_API  DupCStrEx ( const char * original DBG_PASS );
+/* Converts from 8 bit char to 16 bit wchar (or no-op if not
+UNICODE compiled)
+Parameters
+original :  original string of C char.
+
+Returns
+a pointer to a wide character string.                     */
+MEM_PROC  TEXTSTR MEM_API  DupCStrLenEx( const char * original, size_t chars DBG_PASS );
 /* <combine sack::memory::StrDupEx@CTEXTSTR original>
    
    \ \                                                */
@@ -1054,6 +1062,10 @@ MEM_PROC  TEXTSTR MEM_API  DupCStrEx ( const char * original DBG_PASS );
    \ \                                               */
 #define DupCStr(o) DupCStrEx( (o) DBG_SRC )
 
+/* <combine sack::memory::DupCStrLenEx@char * original@size_t chars>
+   
+   \ \                                               */
+#define DupCStrLen(o,l) DupCStrLenEx( (o),(l) DBG_SRC )
 
 //------------------------------------------------------------------------
 
