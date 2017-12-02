@@ -1228,7 +1228,7 @@ int TCPWriteEx(PCLIENT pc DBG_PASS)
 							 pc->lpFirstPending->dwUsed,
 							 (int)pc->lpFirstPending->dwAvail,
 							 0);
-			if( nSent < pc->lpFirstPending->dwAvail ) {
+			if( nSent < (int)pc->lpFirstPending->dwAvail ) {
 				pc->lpFirstPending->dwUsed += nSent;
 				pc->lpFirstPending->dwAvail -= nSent;
 				pc->dwFlags |= CF_WRITEPENDING;

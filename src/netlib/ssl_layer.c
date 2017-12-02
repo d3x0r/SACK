@@ -2,8 +2,10 @@
 
 
 #include <stdhdrs.h>
-#include <wincrypt.h>
-#include <cryptuiapi.h>
+#ifdef _WIN32
+#  include <wincrypt.h>
+#  include <cryptuiapi.h>
+#endif
 #include <deadstart.h>
 #include <procreg.h>
 #include <sqlgetoption.h>
@@ -239,7 +241,7 @@ static void ssl_ReadComplete( PCLIENT pc, POINTER buffer, size_t length )
 #ifdef DEBUG_SSL_IO
 			lprintf( "Wrote %zd", len );
 #endif
-			if( len < length ) {
+			if( len < (int)length ) {
 				lprintf( "Protocol failure?" );
 				Release( pc->ssl_session );
 				RemoveClient( pc );
@@ -284,7 +286,7 @@ static void ssl_ReadComplete( PCLIENT pc, POINTER buffer, size_t length )
 				len = SSL_pending( pc->ssl_session->ssl );
 				//lprintf( "do read.. pending %d", len );
 				if( len ) {
-					if( len > pc->ssl_session->dbuflen ) {
+					if( len > (int)pc->ssl_session->dbuflen ) {
 						//lprintf( "Needed to expand buffer..." );
 						Release( pc->ssl_session->dbuffer );
 						pc->ssl_session->dbuflen = ( len + 4095 ) & 0xFFFF000;
@@ -946,7 +948,7 @@ void loadSystemCerts( X509_STORE *store )
 	PCCERT_CONTEXT pContext = NULL;
 	X509 *x509;
 
-	hStore = CertOpenSystemStore(NULL, "ROOT");
+	hStore = CertOpenSystemStore((HCRYPTPROV_LEGACY)NULL, "ROOT");
 
 	if( !hStore ) {
 		lprintf( "FATAL, CANNOT OPEN ROOT STORE" );
