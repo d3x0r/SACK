@@ -481,53 +481,66 @@ void WebSocketPing( PCLIENT pc, uint32_t timeout )
 
 
 // there is a control bit for whether the content is text or binary or a continuation
-void WebSocketSendText( PCLIENT pc, CPOINTER buffer, size_t length ) // UTF8 RFC3629
+void WebSocketSendText( PCLIENT pc, const char *buffer, size_t length ) // UTF8 RFC3629
 {
 	struct web_socket_input_state *input = (struct web_socket_input_state *)GetNetworkLong( pc, 1 );
-	if( input )
-	{
-#ifdef _UNICODE
-		char *outbuf = WcharConvertExx( (CTEXTSTR)buffer, length DBG_SRC );
-		int real_len = CStrLen( outbuf );
-		//lprintf( WIDE( "send %s"), buffer );
-		SendWebSocketMessage( pc, input->flags.sent_type?0:1, 1, input->flags.expect_masking, (uint8_t*)outbuf, length, input->flags.use_ssl );
-		Deallocate( char *, outbuf );
-#else
-		SendWebSocketMessage( pc, input->flags.sent_type?0:1, 1, input->flags.expect_masking, (uint8_t*)buffer, length, input->flags.use_ssl );
-#endif
-
-		input->flags.sent_type = 0;
-	}
+	if( length > 8100 ) {
+		size_t sentLen;
+		size_t maxLen = length - 8100;
+		for( sentLen = 0; sentLen < maxLen; sentLen += 8100 )
+			WebSocketBeginSendText( pc, buffer + sentLen, 8100 );
+		length = length - ( sentLen - 8100 );
+		buffer = buffer + ( sentLen - 8100 );
+	}                                          
+	SendWebSocketMessage( pc, input->flags.sent_type?0:1, 1, input->flags.expect_masking, (uint8_t*)buffer, length, input->flags.use_ssl );
+	input->flags.sent_type = 0;
 }
 
 // there is a control bit for whether the content is text or binary or a continuation
-void WebSocketBeginSendText( PCLIENT pc, CPOINTER buffer, size_t length ) // UTF8 RFC3629
+void WebSocketBeginSendText( PCLIENT pc, const char *buffer, size_t length ) // UTF8 RFC3629
 {
 	struct web_socket_input_state *output = (struct web_socket_input_state *)GetNetworkLong(pc, 1);
-#ifdef _UNICODE
-	int real_len = CStrLen( outbuf );
-	//lprintf( WIDE( "send %s"), buffer );
-	SendWebSocketMessage( pc, output->flags.sent_type?0:1, 1, output->flags.expect_masking, (uint8_t*)outbuf, length, output->flags.use_ssl );
-	Deallocate( char *, outbuf );
-#else
+	if( length > 8100 ) {
+		size_t sentLen;
+		size_t maxLen = length - 8100;
+		for( sentLen = 0; sentLen < maxLen; sentLen += 8100 )
+			WebSocketBeginSendText( pc, buffer + sentLen, 8100 );
+		length = length - ( sentLen - 8100 );
+		buffer = buffer + ( sentLen - 8100 );
+	}                                          
 	SendWebSocketMessage( pc, output->flags.sent_type?0:1, 0, output->flags.expect_masking, (const uint8_t*)buffer, length, output->flags.use_ssl );
-#endif
 	output->flags.sent_type = 1;
 
 }
 
 // literal binary sending; this may happen to be base64 encoded too
-void WebSocketSendBinary( PCLIENT pc, CPOINTER buffer, size_t length )
+void WebSocketSendBinary( PCLIENT pc, const uint8_t *buffer, size_t length )
 {
 	struct web_socket_input_state *output = (struct web_socket_input_state *)GetNetworkLong(pc, 1);
+	if( length > 8100 ) {
+		size_t sentLen;
+		size_t maxLen = length - 8100;
+		for( sentLen = 0; sentLen < maxLen; sentLen += 8100 )
+			WebSocketBeginSendBinary( pc, buffer + sentLen, 8100 );
+		length = length - ( sentLen - 8100 );
+		buffer = buffer + ( sentLen - 8100 );
+	}                                          
 	SendWebSocketMessage( pc, output->flags.sent_type?0:2, 1, output->flags.expect_masking, (const uint8_t*)buffer, length, output->flags.use_ssl );
 	output->flags.sent_type = 0;
 }
 
 // literal binary sending; this may happen to be base64 encoded too
-void WebSocketBeginSendBinary( PCLIENT pc, CPOINTER buffer, size_t length )
+void WebSocketBeginSendBinary( PCLIENT pc, const uint8_t *buffer, size_t length )
 {
 	struct web_socket_input_state *output = (struct web_socket_input_state *)GetNetworkLong(pc, 1);
+	if( length > 8100 ) {
+		size_t sentLen;
+		size_t maxLen = length - 8100;
+		for( sentLen = 0; sentLen < maxLen; sentLen += 8100 )
+			WebSocketBeginSendBinary( pc, buffer + sentLen, 8100 );
+		length = length - ( sentLen - 8100 );
+		buffer = buffer + ( sentLen - 8100 );
+	}                                          
 	SendWebSocketMessage( pc, output->flags.sent_type?0:2, 0, output->flags.expect_masking, (const uint8_t*)buffer, length, output->flags.use_ssl );
 	output->flags.sent_type = 1;
 }
@@ -535,7 +548,7 @@ void WebSocketBeginSendBinary( PCLIENT pc, CPOINTER buffer, size_t length )
 void SetWebSocketAcceptCallback( PCLIENT pc, web_socket_accept callback )
 {
 	if( pc ) {
-		struct web_socket_input_state *input_state = (struct web_socket_input_state*)GetNetworkLong( pc, 1 );
+ 		struct web_socket_input_state *input_state = (struct web_socket_input_state*)GetNetworkLong( pc, 1 );
 		input_state->on_accept = callback;
 	}
 }

@@ -10,7 +10,7 @@ uintptr_t my_web_socket_opened( PCLIENT pc, uintptr_t psv )
    return psv;
 }
 
-void my_web_socket_closed( PCLIENT pc, uintptr_t psv )
+void my_web_socket_closed( PCLIENT pc, uintptr_t psv, int code, const char *reason )
 {
 }
 
