@@ -74,23 +74,22 @@ WEBSOCKET_EXPORT void WebSocketClose( PCLIENT, int code, const char *reason );
 
 
 // there is a control bit for whether the content is text or binary or a continuation
-WEBSOCKET_EXPORT void WebSocketBeginSendText( PCLIENT, CPOINTER, size_t ); // UTF8 RFC3629
+WEBSOCKET_EXPORT void WebSocketBeginSendText( PCLIENT, const char *, size_t ); // UTF8 RFC3629
 
 // literal binary sending; this may happen to be base64 encoded too
-WEBSOCKET_EXPORT void WebSocketBeginSendBinary( PCLIENT, CPOINTER, size_t );
+WEBSOCKET_EXPORT void WebSocketBeginSendBinary( PCLIENT, const uint8_t *, size_t );
 
 // there is a control bit for whether the content is text or binary or a continuation
-WEBSOCKET_EXPORT void WebSocketSendText( PCLIENT, CPOINTER, size_t ); // UTF8 RFC3629
+WEBSOCKET_EXPORT void WebSocketSendText( PCLIENT, const char *, size_t ); // UTF8 RFC3629
 
 // literal binary sending; this may happen to be base64 encoded too
-WEBSOCKET_EXPORT void WebSocketSendBinary( PCLIENT, CPOINTER, size_t );
+WEBSOCKET_EXPORT void WebSocketSendBinary( PCLIENT, const uint8_t *, size_t );
 
 WEBSOCKET_EXPORT void WebSocketEnableAutoPing( PCLIENT websock, uint32_t delay );
 
 WEBSOCKET_EXPORT void WebSocketPing( PCLIENT websock, uint32_t timeout );
 
 
-WEBSOCKET_EXPORT void WebSocketBeginSendBinary( PCLIENT pc, CPOINTER buffer, size_t length );
 WEBSOCKET_EXPORT void SetWebSocketAcceptCallback( PCLIENT pc, web_socket_accept callback );
 WEBSOCKET_EXPORT void SetWebSocketReadCallback( PCLIENT pc, web_socket_event callback );
 WEBSOCKET_EXPORT void SetWebSocketCloseCallback( PCLIENT pc, web_socket_closed callback );
