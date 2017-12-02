@@ -1994,7 +1994,7 @@ POINTER HeapAllocateAlignedEx( PMEM pHeap, uintptr_t dwSize, uint32_t alignment 
 			uintptr_t retval = ((((uintptr_t)pc->byData) + (alignment - 1)) & masks[alignment]);
 			pc->dwPad = (uint16_t)( dwAlignPad - sizeof(uintptr_t) );
 			// to_chunk_start is the last thing in chunk, so it's pre-allocated space
-			((uintptr32_t*)(retval - sizeof(uint32_t)))[0] = /*pc->to_chunk_start = */(uint32_t)(((((uintptr_t)pc->byData) + (alignment - 1)) & masks[alignment]) - (uintptr_t)pc->byData);
+			((uint32_t*)(retval - sizeof(uint32_t)))[0] = /*pc->to_chunk_start = */(uint32_t)(((((uintptr_t)pc->byData) + (alignment - 1)) & masks[alignment]) - (uintptr_t)pc->byData);
 			return (POINTER)retval;
 		}
 		else {
