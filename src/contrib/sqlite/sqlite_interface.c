@@ -627,7 +627,7 @@ void errorLogCallback(void *pArg, int iErrCode, const char *zMsg){
 
 static POINTER SimpleAllocate( int size )
 {
-	return Allocate( size );
+	return HeapAllocateAligned( 0, size, 8 );
 }
 static POINTER SimpleReallocate( POINTER p, int size )
 {
