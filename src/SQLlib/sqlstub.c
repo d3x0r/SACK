@@ -3157,6 +3157,9 @@ int __GetSQLResult( PODBC odbc, PCOLLECT collection, int bMore )
 				len = (sizeof( size_t ) * (collection->columns + 1));
 				collection->result_len = NewArray( size_t, collection->columns + 1 );
 				MemSet( collection->result_len, 0, len );
+				len = (sizeof( int ) * (collection->columns + 1));
+				collection->column_types = NewArray( int, collection->columns + 1 );
+				MemSet( collection->column_types, 0, len );
 				// okay and now - pull column info from magic place...
 				{
 #ifdef USE_ODBC
@@ -3175,6 +3178,7 @@ int __GetSQLResult( PODBC odbc, PCOLLECT collection, int bMore )
 							collection->fields[idx-1] =
 								DupCStr( sqlite3_column_name(collection->stmt
 																	 , idx - 1 ) );
+							collection->column_types[idx-1] = sqlite3_column_type( collection->stmt, idx - 1 );
 						}
 #endif
 #if ( defined( USE_SQLITE ) || defined( USE_SQLITE_INTERFACE ) ) && defined( USE_ODBC )
@@ -3282,7 +3286,7 @@ int __GetSQLResult( PODBC odbc, PCOLLECT collection, int bMore )
 						collection->result_len[idx - 1] = colsize;
 						if( collection->results[idx-1] )
 							Release( (char*)collection->results[idx-1] );
-						switch( sqlite3_column_type( collection->stmt, idx - 1 ) )
+						switch( collection->column_types[idx-1] )
 						{
 						case SQLITE_BLOB:
 							//lprintf( "Got a blob..." );

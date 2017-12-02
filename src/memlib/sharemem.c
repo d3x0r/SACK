@@ -100,8 +100,8 @@ static uintptr_t masks[33] = { ~0U, ~0U, ~1U, 0, ~3U, 0, 0, 0, ~7U, 0, 0, 0, 0, 
 #define SYSTEM_CAPACITY  g.dwSystemCapacity
 
 
-#define MALLOC_CHUNK_SIZE(pData) ( ( (pData)?( (uint32_t*)(pData))[-1]:0 ) + offsetof( MALLOC_CHUNK, byData ) )
-//#define CHUNK_SIZE(pData) ( ( (pData)?( (uint32_t*)(pData))[-1]:0 ) +offsetof( CHUNK, byData ) ) )
+#define MALLOC_CHUNK_SIZE(pData) ( ( (pData)?( (uint16_t*)(pData))[-1]:0 ) + offsetof( MALLOC_CHUNK, byData ) )
+//#define CHUNK_SIZE(pData) ( ( (pData)?( (uint16_t*)(pData))[-1]:0 ) +offsetof( CHUNK, byData ) ) )
 #define CHUNK_SIZE ( offsetof( CHUNK, byData ) )
 #define MEM_SIZE  ( offsetof( MEM, pRoot ) )
 
@@ -1959,7 +1959,7 @@ static void DropMemEx( PMEM pMem DBG_PASS )
 
 //------------------------------------------------------------------------------------------------------
 
-POINTER HeapAllocateAlignedEx( PMEM pHeap, uintptr_t dwSize, uint32_t alignment DBG_PASS )
+POINTER HeapAllocateAlignedEx( PMEM pHeap, uintptr_t dwSize, uint16_t alignment DBG_PASS )
 {
    // if a heap is passed, it's a private heap, and allocation is as normal...
 	uint32_t dwAlignPad = 0;
@@ -1992,12 +1992,14 @@ POINTER HeapAllocateAlignedEx( PMEM pHeap, uintptr_t dwSize, uint32_t alignment 
 #endif
 		if( alignment && ( (uintptr_t)pc->byData & ~masks[alignment] ) ) {
 			uintptr_t retval = ((((uintptr_t)pc->byData) + (alignment - 1)) & masks[alignment]);
-			pc->dwPad = (uint16_t)( dwAlignPad - sizeof(uintptr_t) );
+			//pc->dwPad = (uint16_t)( dwAlignPad - sizeof(uintptr_t) );
 			// to_chunk_start is the last thing in chunk, so it's pre-allocated space
-			((uint32_t*)(retval - sizeof(uint32_t)))[0] = /*pc->to_chunk_start = */(uint32_t)(((((uintptr_t)pc->byData) + (alignment - 1)) & masks[alignment]) - (uintptr_t)pc->byData);
+			((uint16_t*)(retval - sizeof(uint32_t)))[0] = /*pc->alignemnt = */alignment;
+			((uint16_t*)(retval - sizeof(uint32_t)))[1] = /*pc->to_chunk_start = */(uint16_t)(((((uintptr_t)pc->byData) + (alignment - 1)) & masks[alignment]) - (uintptr_t)pc->byData);
 			return (POINTER)retval;
 		}
 		else {
+			pc->alignment = 0;
 			pc->to_chunk_start = 0;
 			return pc->byData;
 		}
@@ -2182,10 +2184,12 @@ POINTER HeapAllocateAlignedEx( PMEM pHeap, uintptr_t dwSize, uint32_t alignment 
 		//#endif
 		if( alignment && ((uintptr_t)pc->byData & ~masks[alignment]) ) {
 			uintptr_t retval = ((((uintptr_t)pc->byData) + (alignment - 1)) & masks[alignment]);
-			((uint32_t*)(retval - 4))[0] = pc->to_chunk_start = (uint32_t)(((((uintptr_t)pc->byData) + (alignment - 1)) & masks[alignment]) - (uintptr_t)pc->byData);
+			((uint16_t*)(retval - sizeof( uint32_t )))[0] = /*pc->alignemnt =*/ alignment;
+			((uint16_t*)(retval - sizeof( uint32_t )))[1] = /*pc->to_chunk_start =*/ (uint16_t)(((((uintptr_t)pc->byData) + (alignment - 1)) & masks[alignment]) - (uintptr_t)pc->byData);
 			return (POINTER)retval;
 		}
 		else {
+			pc->alignment = 0;
 			pc->to_chunk_start = 0;
 			return pc->byData;
 		}
@@ -2201,19 +2205,19 @@ POINTER HeapAllocateEx( PMEM pHeap, uintptr_t dwSize DBG_PASS ) {
 
 //------------------------------------------------------------------------------------------------------
 #undef AllocateEx
- POINTER  AllocateEx ( uintptr_t dwSize DBG_PASS )
+POINTER  AllocateEx ( uintptr_t dwSize DBG_PASS )
 {
 	return HeapAllocateAlignedEx( g.pMemInstance, dwSize, 0 DBG_RELAY );
 }
 
 //------------------------------------------------------------------------------------------------------
 
- POINTER  HeapReallocateEx ( PMEM pHeap, POINTER source, uintptr_t size DBG_PASS )
+POINTER  HeapReallocateAlignedEx ( PMEM pHeap, POINTER source, uintptr_t size, uint16_t alignment DBG_PASS )
 {
 	POINTER dest;
 	uintptr_t minSize;
 
-	dest = HeapAllocateAlignedEx( pHeap, size, 0 DBG_RELAY );
+	dest = HeapAllocateAlignedEx( pHeap, size, alignment DBG_RELAY );
 	if( source )
 	{
 		minSize = SizeOfMemBlock( source );
@@ -2233,12 +2237,19 @@ POINTER HeapAllocateEx( PMEM pHeap, uintptr_t dwSize DBG_PASS ) {
 
 //------------------------------------------------------------------------------------------------------
 
- POINTER  HeapPreallocateEx ( PMEM pHeap, POINTER source, uintptr_t size DBG_PASS )
+POINTER  HeapReallocateEx ( PMEM pHeap, POINTER source, uintptr_t size DBG_PASS )
+{
+	return HeapReallocateAlignedEx( pHeap, source, size, 0 DBG_RELAY );
+}
+
+//------------------------------------------------------------------------------------------------------
+
+POINTER  HeapPreallocateAlignedEx ( PMEM pHeap, POINTER source, uintptr_t size, uint16_t alignment DBG_PASS )
 {
 	POINTER dest;
 	uintptr_t minSize;
 
-	dest = HeapAllocateAlignedEx( pHeap, size, 0 DBG_RELAY );
+	dest = HeapAllocateAlignedEx( pHeap, size, alignment DBG_RELAY );
 	if( source )
 	{
 		minSize = SizeOfMemBlock( source );
@@ -2254,25 +2265,29 @@ POINTER HeapAllocateEx( PMEM pHeap, uintptr_t dwSize DBG_PASS ) {
 	return dest;
 }
 
-//------------------------------------------------------------------------------------------------------
-
- POINTER  HeapMoveEx ( PMEM pNewHeap, POINTER source DBG_PASS )
-{
-	return HeapReallocateEx( pNewHeap, source, SizeOfMemBlock( source ) DBG_RELAY );
+POINTER  HeapPreallocateEx ( PMEM pHeap, POINTER source, uintptr_t size DBG_PASS ){
+	return HeapPreallocateAlignedEx( pHeap, source, size, AlignOfMemBlock(source) DBG_RELAY );
 }
 
 //------------------------------------------------------------------------------------------------------
 
- POINTER  ReallocateEx ( POINTER source, uintptr_t size DBG_PASS )
+ POINTER  HeapMoveEx( PMEM pNewHeap, POINTER source DBG_PASS )
 {
-	return HeapReallocateEx( g.pMemInstance, source, size DBG_RELAY );
+	return HeapReallocateAlignedEx( pNewHeap, source, SizeOfMemBlock( source ), AlignOfMemBlock( source ) DBG_RELAY );
 }
 
 //------------------------------------------------------------------------------------------------------
 
- POINTER  PreallocateEx ( POINTER source, uintptr_t size DBG_PASS )
+ POINTER  ReallocateEx( POINTER source, uintptr_t size DBG_PASS )
 {
-	return HeapPreallocateEx( g.pMemInstance, source, size DBG_RELAY );
+	return HeapReallocateAlignedEx( g.pMemInstance, source, size, AlignOfMemBlock( source ) DBG_RELAY );
+}
+
+//------------------------------------------------------------------------------------------------------
+
+ POINTER  PreallocateEx( POINTER source, uintptr_t size DBG_PASS )
+{
+	return HeapPreallocateAlignedEx( g.pMemInstance, source, size, AlignOfMemBlock( source ) DBG_RELAY );
 }
 
 //------------------------------------------------------------------------------------------------------
@@ -2323,24 +2338,36 @@ static void Bubble( PMEM pMem )
 	{
 		if( USE_CUSTOM_ALLOCER )
 		{
-			PCHUNK pc = (PCHUNK)(((uintptr_t)pData) - (((uint32_t*)pData)[-1] + offsetof( CHUNK, byData )));
+			PCHUNK pc = (PCHUNK)(((uintptr_t)pData) - (((uint16_t*)pData)[-1] + offsetof( CHUNK, byData )));
 			return pc->dwSize - pc->dwPad;
 		}
 		else
 		{
-			PMALLOC_CHUNK pc = (PMALLOC_CHUNK)(((uintptr_t)pData) - (((uint32_t*)pData)[-1] + offsetof( MALLOC_CHUNK, byData )));
-			return pc->dwSize - ( pc->to_chunk_start + pc->dwPad );
+			PMALLOC_CHUNK pc = (PMALLOC_CHUNK)(((uintptr_t)pData) - (((uint16_t*)pData)[-1] + offsetof( MALLOC_CHUNK, byData )));
+			return pc->dwSize - pc->dwPad;
 		}
 	}
 	return 0;
 }
+
+//------------------------------------------------------------------------------------------------------
+
+uint16_t  AlignOfMemBlock( CPOINTER pData )
+{
+	if( pData )
+	{
+		return (((uint16_t*)pData)[-2]);
+	}
+	return 0;
+ }
+
 //------------------------------------------------------------------------------------------------------
 
  POINTER  MemDupEx ( CPOINTER thing DBG_PASS )
 {
 	uintptr_t size = SizeOfMemBlock( thing );
 	POINTER result;
-	result = AllocateEx( size DBG_RELAY );
+	result = HeapAllocateAlignedEx( g.pMemInstance, size, AlignOfMemBlock( thing ) DBG_RELAY );
 	MemCpy( result, thing, size );
 	return result;
 }
@@ -2372,7 +2399,7 @@ POINTER ReleaseEx ( POINTER pData DBG_PASS )
 		if( !USE_CUSTOM_ALLOCER )
 		{
 			//PMEM pMem = (PMEM)(pData - offsetof( MEM, pRoot ));
-			PMALLOC_CHUNK pc = (PMALLOC_CHUNK)(((uintptr_t)pData) - ( ((uint32_t*)pData)[-1] +
+			PMALLOC_CHUNK pc = (PMALLOC_CHUNK)(((uintptr_t)pData) - ( ((uint16_t*)pData)[-1] +
 													offsetof( MALLOC_CHUNK, byData ) ) );
 			pc->dwOwners--;
 			if( !pc->dwOwners )
@@ -2411,7 +2438,7 @@ POINTER ReleaseEx ( POINTER pData DBG_PASS )
 		}
 		else
 		{
-			PCHUNK pc = (PCHUNK)(((uintptr_t)pData) - ( ( (uint32_t*)pData)[-1] +
+			PCHUNK pc = (PCHUNK)(((uintptr_t)pData) - ( ( (uint16_t*)pData)[-1] +
 													offsetof( CHUNK, byData ) ) );
 			PMEM pMem, pCurMem;
 			PSPACE pMemSpace;
@@ -2943,7 +2970,7 @@ void  DebugDumpHeapMemEx ( PMEM pHeap, LOGICAL bVerbose )
 	PMEM pMem;
 	if( !ppMemory || !*ppMemory)
 		return FALSE;
-	pc = (PCHUNK)(((uintptr_t)(*ppMemory)) - (((uint32_t*)pData)[-1] + offsetof( CHUNK, byData )));
+	pc = (PCHUNK)(((uintptr_t)(*ppMemory)) - (((uint16_t*)pData)[-1] + offsetof( CHUNK, byData )));
 	pMem = GrabMem( pc->pRoot );
 
 		// check if prior block is free... if so - then...

@@ -77,7 +77,8 @@ PREFIX_PACKED struct malloc_chunk_tag
 #ifdef ENABLE_NATIVE_MALLOC_PROTECTOR
 	uint32_t LeadProtect[2];
 #endif
-	uint32_t to_chunk_start; // this is additional to subtract to get back to start (aligned allocate)
+	uint16_t alignment; // this is additional to subtract to get back to start (aligned allocate)
+	uint16_t to_chunk_start; // this is additional to subtract to get back to start (aligned allocate)
 	uint8_t byData[1]; // uint8_t is the smallest valid datatype could be _0
 } PACKED;
 
@@ -92,7 +93,8 @@ PREFIX_PACKED struct heap_chunk_tag
 	struct heap_chunk_tag *pPrior;         // save some math backwards...
 	struct memory_block_tag * pRoot;  // pointer to master allocation struct (pMEM)
 	DeclareLink( struct heap_chunk_tag );
-	uint32_t to_chunk_start; // this is additional to subtract to get back to start (aligned allocate)
+	uint16_t alignment; // this is additional to subtract to get back to start (aligned allocate)
+	uint16_t to_chunk_start; // this is additional to subtract to get back to start (aligned allocate)
 	uint8_t byData[1]; // uint8_t is the smallest valid datatype could be _0
 } PACKED;
 

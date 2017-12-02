@@ -314,7 +314,7 @@ MEM_PROC  void MEM_API  DebugDumpHeapMemFile ( PMEM pHeap, CTEXTSTR pFilename );
 MEM_PROC  void MEM_API  DebugDumpMemFile ( CTEXTSTR pFilename );
 
 #ifdef __GNUC__
-MEM_PROC  POINTER MEM_API  HeapAllocateAlignedEx ( PMEM pHeap, uintptr_t dwSize, uint32_t alignment DBG_PASS ) __attribute__( (malloc) );
+MEM_PROC  POINTER MEM_API  HeapAllocateAlignedEx ( PMEM pHeap, uintptr_t dwSize, uint16_t alignment DBG_PASS ) __attribute__( (malloc) );
 MEM_PROC  POINTER MEM_API  HeapAllocateEx ( PMEM pHeap, uintptr_t nSize DBG_PASS ) __attribute__((malloc));
 MEM_PROC  POINTER MEM_API  AllocateEx ( uintptr_t nSize DBG_PASS ) __attribute__((malloc));
 #else
@@ -331,7 +331,7 @@ pHeap :  pointer to a heap which was initialized with
 InitHeap()
 Size :   Size of block to allocate                    
 Alignment : count of bytes to return block on (1,2,4,8,16,32)  */
-MEM_PROC  POINTER MEM_API  HeapAllocateAlignedEx( PMEM pHeap, uintptr_t nSize, uint32_t alignment DBG_PASS );
+MEM_PROC  POINTER MEM_API  HeapAllocateAlignedEx( PMEM pHeap, uintptr_t nSize, uint16_t alignment DBG_PASS );
 /* Allocates a block of memory of specific size. Debugging
    information if passed is recorded on the block.
    Parameters
@@ -497,10 +497,12 @@ MEM_PROC  POINTER MEM_API  HoldEx ( POINTER pData DBG_PASS  );
    
    If NULL is passed as the source block, then a new block
    filled with 0 is created.                                        */
+MEM_PROC  POINTER MEM_API  HeapReallocateAlignedEx ( PMEM pHeap, POINTER source, uintptr_t size, uint16_t alignment DBG_PASS );
 MEM_PROC  POINTER MEM_API  HeapReallocateEx ( PMEM pHeap, POINTER source, uintptr_t size DBG_PASS );
 /* <combine sack::memory::HeapReallocateEx@PMEM@POINTER@uintptr_t size>
    
    \ \                                                                 */
+#define HeapReallocateAligned(heap,p,sz,al) HeapReallocateEx( (heap),(p),(sz),(al) DBG_SRC )
 #define HeapReallocate(heap,p,sz) HeapReallocateEx( (heap),(p),(sz) DBG_SRC )
 /* <combine sack::memory::HeapReallocateEx@PMEM@POINTER@uintptr_t size>
    
@@ -542,10 +544,12 @@ MEM_PROC  POINTER MEM_API  HeapPreallocateEx ( PMEM pHeap, POINTER source, uintp
 /* <combine sack::memory::HeapPreallocateEx@PMEM@POINTER@uintptr_t size>
    
    \ \                                                                  */
+MEM_PROC  POINTER MEM_API  PreallocateAlignedEx ( POINTER source, uintptr_t size, uint16_t alignment DBG_PASS );
 MEM_PROC  POINTER MEM_API  PreallocateEx ( POINTER source, uintptr_t size DBG_PASS );
 /* <combine sack::memory::PreallocateEx@POINTER@uintptr_t size>
    
    \ \                                                         */
+#define PreallocateAligned(p,sz,al) PreallocateAlignedEx( (p),(sz),(al) DBG_SRC )
 #define Preallocate(p,sz) PreallocateEx( (p),(sz) DBG_SRC )
 
 /* Moves a block of memory from one heap to another.
@@ -570,7 +574,15 @@ MEM_PROC  POINTER MEM_API  HeapMoveEx ( PMEM pNewHeap, POINTER source DBG_PASS )
    
    Returns
    The size of the block that was specified by the Allocate(). */
-MEM_PROC  uintptr_t MEM_API  SizeOfMemBlock ( CPOINTER pData );
+MEM_PROC uintptr_t MEM_API  SizeOfMemBlock ( CPOINTER pData );
+
+/* \returns the allocation alignment of a memory block which was Allocate()'d.
+Parameters
+pData :  pointer to a allocated memory block.
+
+Returns
+The alignment of the block that was specified from Allocate(). */
+MEM_PROC uint16_t  AlignOfMemBlock( CPOINTER pData );
 
 /* not so much of a fragment as a consolidation. Finds a free
    spot earlier in the heap and attempts to move the block
