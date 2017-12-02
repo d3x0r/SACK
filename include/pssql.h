@@ -968,14 +968,14 @@ PSSQL_PROC( TEXTSTR ,RevertEscapeString )( CTEXTSTR name );
    a pointer to the string without escapes. (Even though it says
    binary, it's still to and from text?) This result should be
    freed with Release when user is done with it.                 */
-PSSQL_PROC( TEXTSTR ,RevertEscapeBinary )( CTEXTSTR blob, uintptr_t *bloblen );
+PSSQL_PROC( TEXTSTR ,RevertEscapeBinary )( CTEXTSTR blob, size_t *bloblen );
 /* Parse a Blob string stored as hex... that is text character
    0-9 and A-F.
    Parameters
    blob :    pointer to the string containing the blob string
    buffer :  target buffer for data
    buflen :  length of target buffer                           */
-PSSQL_PROC( TEXTSTR , DeblobifyString )( CTEXTSTR blob, TEXTSTR buffer, int buflen );
+PSSQL_PROC( TEXTSTR , DeblobifyString )( CTEXTSTR blob, TEXTSTR buffer, size_t buflen );
 
 /* parse the string passed as a date/time as returned from a
    MySQL database.
@@ -1001,9 +1001,9 @@ PSSQL_PROC( TEXTSTR , DeblobifyString )( CTEXTSTR blob, TEXTSTR buffer, int bufl
    A true/false status whether the string passed was a valid
    time string (?).                                               */
 PSSQL_PROC( int, ConvertDBTimeString )( CTEXTSTR timestring
-                                        , CTEXTSTR *endtimestring
-													 , int *pyr, int *pmo, int *pdy
-													 , int *phr, int *pmn, int *psc );
+                                      , CTEXTSTR *endtimestring
+                                      , int *pyr, int *pmo, int *pdy
+                                      , int *phr, int *pmn, int *psc );
 
 
 #ifndef SQLPROXY_INCLUDE
@@ -1020,11 +1020,15 @@ PSSQL_PROC( int, ConvertDBTimeString )( CTEXTSTR timestring
    FALSE if the statement fails. See FetchSQLError.             */
 PSSQL_PROC( int, SQLCommandEx )( PODBC odbc, CTEXTSTR command DBG_PASS);
 #endif
+
+PSSQL_PROC( int, SQLCommandExx )(PODBC odbc, CTEXTSTR command, size_t commandLen DBG_PASS);
+
 /* <combine sack::sql::SQLCommandEx@PODBC@CTEXTSTR command>
    
    \ \                                                      */
 #define SQLCommand(o,c) SQLCommandEx(o,c DBG_SRC )
-/* Begin collecting insert statements for batch output.
+#define SQLCommandLen(o,c,len) SQLCommandExx(o,c,len DBG_SRC )
+   /* Begin collecting insert statements for batch output.
    Parameters
    odbc :  database connection to start collecting inserts for */
 PSSQL_PROC( int, SQLInsertBegin )( PODBC odbc );
@@ -1094,15 +1098,50 @@ PSSQL_PROC( int, SQLQueryEx )( PODBC odbc, CTEXTSTR query, CTEXTSTR *result DBG_
    
    \ \                                                                               */
 PSSQL_PROC( int, SQLRecordQueryEx )( PODBC odbc
-												 , CTEXTSTR query
-												 , int *pnResult
-												 , CTEXTSTR **result
-												 , CTEXTSTR **fields DBG_PASS);
+                                   , CTEXTSTR query
+                                   , int *pnResult
+                                   , CTEXTSTR **result
+                                   , CTEXTSTR **fields DBG_PASS);
+
+/* Do a SQL query on the default odbc connection. The first
+   record results immediately if there are any records. Returns
+   the results as an array of strings. If you know the select
+   you are using .... "select a,b,c from xyz" then you know that
+   this will have 3 columns resulting.
+   Parameters
+   odbc :     connection to do the query on.
+   query :    query to execute.
+   queryLength : actual length of the query (allows embedded NUL characters)
+   columns :  pointer to an int to receive the number of columns
+              in the result. (the user will know this based on
+              the query issued usually, so it can be NULL to
+              ignore parameter)
+   result\ :  pointer to a pointer to strings... see example
+   resultLengths : pointer to a size_t* that will contain an array of 
+              lengths of the result values.
+   fields :   address of a pointer to strings which will get the
+              field names
+   
+   Example
+   See SQLRecordQueryf, but omit the database parameter.         */
+PSSQL_PROC( int, SQLRecordQueryExx )( PODBC odbc
+                                   , CTEXTSTR query
+                                   , size_t queryLength
+                                   , int *pnResult
+                                   , CTEXTSTR **result
+                                   , size_t **resultLengths
+                                   , CTEXTSTR **fields 
+                                   DBG_PASS);
+
 /* <combine sack::sql::SQLRecordQueryEx@PODBC@CTEXTSTR@int *@CTEXTSTR **@CTEXTSTR **fields>
    
    \ \                                                                                      */
 #define SQLRecordQuery(o,q,prn,r,f) SQLRecordQueryEx( o,q,prn,r,f DBG_SRC )
-/* Gets the next result from a query.
+/* <combine sack::sql::SQLRecordQueryExx@PODBC@CTEXTSTR@size_t@int *@CTEXTSTR **@size_t *@CTEXTSTR **fields>
+
+   \ \                                                                                      */
+#define SQLRecordQueryLen(o,q,ql,prn,r,rl,f) SQLRecordQueryExx( o,q,ql,prn,r,rl,f DBG_SRC )
+   /* Gets the next result from a query.
    Parameters
    odbc :     database connection that the query was executed on
    result\ :  address of the result variable.

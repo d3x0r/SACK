@@ -650,6 +650,7 @@ static PCOLLECT CreateCollectorEx( PSERVICE_ROUTE SourceID, PODBC odbc, LOGICAL 
 	MemSet( pCollect, 0, sizeof( COLLECT ) );
 	// there are a couple uninitialized values in thiws...
 	pCollect->fields = NULL;
+	pCollect->result_len = NULL;
 	pCollect->lastop = LAST_NONE;
 	pCollect->odbc = odbc;
 	pCollect->pvt_out = VarTextCreateEx( DBG_VOIDRELAY );
@@ -2114,6 +2115,8 @@ void ReleaseCollectionResults( PCOLLECT pCollect, int bEntire )
 			}
 			Release( (POINTER)pCollect->fields );
 			pCollect->fields = NULL;
+			Release( pCollect->result_len );
+			pCollect->result_len = NULL;
 		}
 		if( pCollect->results )
 		{
@@ -2456,12 +2459,12 @@ PCOLLECT FindCollection( PODBC odbc, PSERVICE_ROUTE SourceID )
 //-----------------------------------------------------------------------
 // also ifndef sql thing...
 
-PCOLLECT Collect( PCOLLECT collection, uint32_t *params, size_t paramlen )
+static PCOLLECT Collect( PCOLLECT collection, uint32_t *params, size_t paramlen )
 {
 	CTEXTSTR buffer = (CTEXTSTR)params;
 	// make sure we have enough room.
 	VarTextExpand( collection->pvt_out, paramlen );
-	vtprintf( collection->pvt_out, WIDE("%.*s"), paramlen, buffer );
+	VarTextAddData( collection->pvt_out, buffer, paramlen );
 	//lprintf( WIDE("Collected: %s"), buf );
 	return collection;
 }
@@ -2804,6 +2807,40 @@ SQLPROXY_PROC( int, SQLCommandEx )( PODBC odbc, CTEXTSTR command DBG_PASS )
 
 //-----------------------------------------------------------------------
 
+SQLPROXY_PROC( int, SQLCommandExx )(PODBC odbc, CTEXTSTR command, size_t commandLen DBG_PASS)
+{
+	PODBC use_odbc;
+	if( odbc->flags.bClosed )
+		return 0;
+	if( !IsSQLOpenEx( odbc DBG_RELAY ) )
+		return 0;
+	if( !(use_odbc = odbc) )
+	{
+		use_odbc = g.odbc;
+	}
+	if( use_odbc )
+	{
+		PCOLLECT pCollector;
+		BeginTransactEx( use_odbc, 0 );
+		do
+		{
+#ifdef LOG_COLLECTOR_STATES
+			lprintf( "creating collector...cmd: %s", command );
+#endif
+			Collect( pCollector = CreateCollector( 0, use_odbc, TRUE ), (uint32_t*)command, commandLen?commandLen:strlen( command ) );
+			//SimpleMessageBox( NULL, "Please shut down the database...", "Waiting.." );
+		} while( __DoSQLCommandEx( use_odbc, pCollector DBG_RELAY ) );
+		if( use_odbc->collection )
+			return use_odbc->collection->responce == WM_SQL_RESULT_SUCCESS ? TRUE : 0;
+		return WM_SQL_RESULT_ERROR;
+	}
+	else
+		_xlprintf( 1 DBG_RELAY )(WIDE( "ODBC connection has not been opened" ));
+	return FALSE;
+}
+
+//-----------------------------------------------------------------------
+
 int DoSQLCommandEx( CTEXTSTR command DBG_PASS )
 {
 	return SQLCommandEx( NULL, command DBG_RELAY );
@@ -3117,6 +3154,9 @@ int __GetSQLResult( PODBC odbc, PCOLLECT collection, int bMore )
 				len = ( sizeof( CTEXTSTR ) * (collection->columns + 1) );
 				collection->fields = NewArray( TEXTSTR, collection->columns + 1 );
 				MemSet( collection->fields, 0, len );
+				len = (sizeof( size_t ) * (collection->columns + 1));
+				collection->result_len = NewArray( size_t, collection->columns + 1 );
+				MemSet( collection->result_len, 0, len );
 				// okay and now - pull column info from magic place...
 				{
 #ifdef USE_ODBC
@@ -3228,15 +3268,18 @@ int __GetSQLResult( PODBC odbc, PCOLLECT collection, int bMore )
 			//lprintf( WIDE("Yes, so lets' get the data to result with..") );
 			do
 			{
-				SQLULEN colsize;
+				//SQLULEN colsize;
 #if defined( USE_SQLITE ) || defined( USE_SQLITE_INTERFACE )
 				if( odbc->flags.bSQLite_native )
 				{
 					char *text = (char*)sqlite3_column_text( collection->stmt, idx - 1 );
-					TEXTSTR real_text = DupCStr( text );
+					TEXTSTR real_text;
+					int colsize;
 					colsize = sqlite3_column_bytes( collection->stmt, idx - 1 );
+					real_text = DupCStrLen( text, colsize );
 					if( collection->flags.bBuildResultArray )
 					{
+						collection->result_len[idx - 1] = colsize;
 						if( collection->results[idx-1] )
 							Release( (char*)collection->results[idx-1] );
 						switch( sqlite3_column_type( collection->stmt, idx - 1 ) )
@@ -3244,8 +3287,8 @@ int __GetSQLResult( PODBC odbc, PCOLLECT collection, int bMore )
 						case SQLITE_BLOB:
 							//lprintf( "Got a blob..." );
 							if( pvtData )vtprintf( pvtData, WIDE( "%s<binary>" ), idx>1?WIDE( "," ):WIDE( "" ) );
-							collection->results[idx-1] = NewArray( TEXTCHAR, colsize );
-							MemCpy( collection->results[idx-1], text, colsize );
+							collection->results[idx-1] = NewArray( TEXTCHAR, collection->result_len[idx - 1] );
+							MemCpy( collection->results[idx-1], text, collection->result_len[idx - 1] );
 							break;
 						default:
 							if( pvtData )vtprintf( pvtData, WIDE( "%s%s" ), idx>1?WIDE( "," ):WIDE( "" ), real_text );
@@ -3269,6 +3312,7 @@ int __GetSQLResult( PODBC odbc, PCOLLECT collection, int bMore )
 #ifdef USE_ODBC
 				{
 					short coltype;
+					SQLULEN colsize;
 					rc = SQLDescribeCol( collection->hstmt
 											 , (SQLUSMALLINT)idx
 											 , NULL, 0 // colname, bufsize
@@ -3278,159 +3322,159 @@ int __GetSQLResult( PODBC odbc, PCOLLECT collection, int bMore )
 											 , NULL // decimal digits short int
 											 , NULL // nullable ptr ?
 											 );
-
+					collection->result_len[idx - 1] = colsize;
 					colsize = (colsize * 2) + 1 + 1024 ;
-				if( colsize >= sizeof( byResultStatic ) )
-				{
-					if( colsize > byTmpResultLen )
+					if( colsize >= sizeof( byResultStatic ) )
 					{
-						if( tmpResult )
-							Release( tmpResult );
-						tmpResult = NewArray( TEXTCHAR, colsize );
-						byTmpResultLen = colsize;
-					}
+						if( colsize > byTmpResultLen )
+						{
+							if( tmpResult )
+								Release( tmpResult );
+							tmpResult = NewArray( TEXTCHAR, colsize );
+							byTmpResultLen = colsize;
+						}
 
-					byResult = tmpResult;
-				}
-				else
-				{
-					byResult = byResultStatic;
-				}
-				if( collection->coltypes && ( ( collection->coltypes[idx-1] == SQL_VARBINARY ) || ( collection->coltypes[idx-1] == SQL_LONGVARBINARY ) ) )
-				{
-					rc = SQLGetData( collection->hstmt
-										, (short)(idx)
-										, SQL_C_BINARY
-										, byResult
-										, colsize
-										, &ResultLen );
-					if( SUS_GT( ResultLen,SQLINTEGER,collection->colsizes[idx-1],SQLUINTEGER) )
-					{
-						lprintf( WIDE( "SQL Result returned more data than the column described! (returned %d expected %d)" ), (int)ResultLen, (int)(collection->colsizes[idx-1]) );
+						byResult = tmpResult;
 					}
-				}
-				else
-				{
-					rc = SQLGetData( collection->hstmt
-										, (short)(idx)
+					else
+					{
+						byResult = byResultStatic;
+					}
+					if( collection->coltypes && ( ( collection->coltypes[idx-1] == SQL_VARBINARY ) || ( collection->coltypes[idx-1] == SQL_LONGVARBINARY ) ) )
+					{
+						rc = SQLGetData( collection->hstmt
+											, (short)(idx)
+											, SQL_C_BINARY
+											, byResult
+											, colsize
+											, &ResultLen );
+						if( SUS_GT( ResultLen,SQLINTEGER,collection->colsizes[idx-1],SQLUINTEGER) )
+						{
+							lprintf( WIDE( "SQL Result returned more data than the column described! (returned %d expected %d)" ), (int)ResultLen, (int)(collection->colsizes[idx-1]) );
+						}
+					}
+					else
+					{
+						rc = SQLGetData( collection->hstmt
+											, (short)(idx)
 #ifdef _UNICODE
-										, SQL_C_WCHAR
+											, SQL_C_WCHAR
 #else
-										, SQL_C_CHAR
+											, SQL_C_CHAR
 #endif
-										, byResult
-										, colsize
-										, &ResultLen );
+											, byResult
+											, colsize
+											, &ResultLen );
 
-					// hvaing this cast as a UINTEGER for colsize comparison
-					// breaks -1 being less than colsize... so test negative special and
-					// do the same thing as < colsize
-					if( ( ResultLen & 0x8000000 )
-								|| ( (SQLUINTEGER)ResultLen < colsize ) )
-					{
-						if( (int)ResultLen < 0 )
-							byResult[0] = 0;
-						else
-							byResult[ResultLen] = 0;
-					}
-					else
-					{
-						lprintf( WIDE( "SQL overflow (no room for nul character) %d of %d" ), (int)ResultLen, (int)colsize );
-					}
-				}
-				//lprintf( WIDE( "Column %s colsize %d coltype %d coltype %d idx %d" ), collection->fields[idx-1], colsize, coltype, collection->coltypes[idx-1], idx );
-				if( collection->coltypes && coltype != collection->coltypes[idx-1] )
-				{
-					lprintf( WIDE( "Col type mismatch?" ) );
-					DebugBreak();
-				}
-				if( rc == SQL_SUCCESS ||
-					rc == SQL_SUCCESS_WITH_INFO )
-				{
-					if( ResultLen == SQL_NO_TOTAL ||  // -4
-						ResultLen == SQL_NULL_DATA )  // -1
-					{
-						//lprintf( WIDE("result data failed...") );
-					}
-
-					if( ResultLen > 0 )
-					{
-						if( collection->flags.bBuildResultArray )
+						// hvaing this cast as a UINTEGER for colsize comparison
+						// breaks -1 being less than colsize... so test negative special and
+						// do the same thing as < colsize
+						if( ( ResultLen & 0x8000000 )
+									|| ( (SQLUINTEGER)ResultLen < colsize ) )
 						{
-							if( collection->coltypes[idx-1] == SQL_LONGVARBINARY )
+							if( (int)ResultLen < 0 )
+								byResult[0] = 0;
+							else
+								byResult[ResultLen] = 0;
+						}
+						else
+						{
+							lprintf( WIDE( "SQL overflow (no room for nul character) %d of %d" ), (int)ResultLen, (int)colsize );
+						}
+					}
+					//lprintf( WIDE( "Column %s colsize %d coltype %d coltype %d idx %d" ), collection->fields[idx-1], colsize, coltype, collection->coltypes[idx-1], idx );
+					if( collection->coltypes && coltype != collection->coltypes[idx-1] )
+					{
+						lprintf( WIDE( "Col type mismatch?" ) );
+						DebugBreak();
+					}
+					if( rc == SQL_SUCCESS ||
+						rc == SQL_SUCCESS_WITH_INFO )
+					{
+						if( ResultLen == SQL_NO_TOTAL ||  // -4
+							ResultLen == SQL_NULL_DATA )  // -1
+						{
+							//lprintf( WIDE("result data failed...") );
+						}
+
+						if( ResultLen > 0 )
+						{
+							if( collection->flags.bBuildResultArray )
 							{
-								// I won't modify this anyhow, and it results
-								// to users as a CTEXSTR, preventing them from changing it also...
-								//lprintf( "Got a blob..." );
-								//lprintf( WIDE( "size is %d" ), collection->colsizes[idx-1] );
-								if( pvtData )
+								if( collection->coltypes[idx-1] == SQL_LONGVARBINARY )
 								{
-									SQLUINTEGER n;
-									vtprintf( pvtData, WIDE( "%s<" ), idx>1?WIDE( "," ):WIDE( "" ) );
-									for( n = 0; n < collection->colsizes[idx-1]; n++ )
-										vtprintf( pvtData, WIDE( "%02x " ), byResult[n] );
-									vtprintf( pvtData, WIDE( ">" ) );
+									// I won't modify this anyhow, and it results
+									// to users as a CTEXSTR, preventing them from changing it also...
+									//lprintf( "Got a blob..." );
+									//lprintf( WIDE( "size is %d" ), collection->colsizes[idx-1] );
+									if( pvtData )
+									{
+										SQLUINTEGER n;
+										vtprintf( pvtData, WIDE( "%s<" ), idx>1?WIDE( "," ):WIDE( "" ) );
+										for( n = 0; n < collection->colsizes[idx-1]; n++ )
+											vtprintf( pvtData, WIDE( "%02x " ), byResult[n] );
+										vtprintf( pvtData, WIDE( ">" ) );
+									}
+									collection->results[idx-1] = NewArray( TEXTCHAR, collection->colsizes[idx-1] );
+									//lprintf( WIDE( "dest is %p and src is %p" ), collection->results[idx-1], byResult );
+									MemCpy( collection->results[idx-1], byResult, collection->colsizes[idx-1] );
+									//lprintf( WIDE( "Column %s colsize %d coltype %d coltype %d idx %d" ), collection->fields[idx-1], colsize, coltype, coltypes[idx-1], idx );
+									//collection->results[idx-1] = (TEXTSTR)Deblobify( byResult, colsizes[idx-1] );
 								}
-								collection->results[idx-1] = NewArray( TEXTCHAR, collection->colsizes[idx-1] );
-								//lprintf( WIDE( "dest is %p and src is %p" ), collection->results[idx-1], byResult );
-								MemCpy( collection->results[idx-1], byResult, collection->colsizes[idx-1] );
-								//lprintf( WIDE( "Column %s colsize %d coltype %d coltype %d idx %d" ), collection->fields[idx-1], colsize, coltype, coltypes[idx-1], idx );
-								//collection->results[idx-1] = (TEXTSTR)Deblobify( byResult, colsizes[idx-1] );
+								else
+								{
+									if( collection->results[idx-1] )
+										Release( (char*)collection->results[idx-1] );
+									if( pvtData )vtprintf( pvtData, WIDE( "%s%s" ), idx>1?WIDE( "," ):WIDE( "" ), byResult );
+									collection->results[idx-1] = StrDup( byResult );
+								}
 							}
 							else
 							{
-								if( collection->results[idx-1] )
-									Release( (char*)collection->results[idx-1] );
+								//lprintf( WIDE("Got a result: \'%s\'"), byResult );
+
+								/*
+								* if this is auto processed for the application, there is no
+								* result indicator indicating how long it is, therefore the application
+								* must in turn call Deblobify or some other custom routine to handle
+								* this SQL database's binary format...
+								*/
+								/*
+								if( coltypes[idx-1] == SQL_LONGVARBINARY )
+								{
+								POINTER tmp;
+								vtprintf( collection->pvt_result, WIDE("%s%s"), first?WIDE( "" ):WIDE( "," ), tmp = Deblobify( byResult, collection->colsizes[idx-1] ) );
+								Release( tmp );
+								}
+								else
+								*/
+								vtprintf( collection->pvt_result, WIDE("%s%s"), first?WIDE( "" ):WIDE( "," ), byResult );
 								if( pvtData )vtprintf( pvtData, WIDE( "%s%s" ), idx>1?WIDE( "," ):WIDE( "" ), byResult );
-								collection->results[idx-1] = StrDup( byResult );
+								first = 0;
 							}
 						}
 						else
 						{
-							//lprintf( WIDE("Got a result: \'%s\'"), byResult );
-
-							/*
-							* if this is auto processed for the application, there is no
-							* result indicator indicating how long it is, therefore the application
-							* must in turn call Deblobify or some other custom routine to handle
-							* this SQL database's binary format...
-							*/
-							/*
-							if( coltypes[idx-1] == SQL_LONGVARBINARY )
+							if( !collection->flags.bBuildResultArray )
 							{
-							POINTER tmp;
-							vtprintf( collection->pvt_result, WIDE("%s%s"), first?WIDE( "" ):WIDE( "," ), tmp = Deblobify( byResult, collection->colsizes[idx-1] ) );
-							Release( tmp );
+								//lprintf( WIDE("Didn't get a result... null field?") );
+								vtprintf( collection->pvt_result, WIDE("%s"), first?WIDE( "" ):WIDE( "," ) );
+								if( pvtData )vtprintf( pvtData, WIDE( "%s%s" ), idx>1?WIDE( "," ):WIDE( "" ), byResult );
+								first=0;
 							}
 							else
-							*/
-							vtprintf( collection->pvt_result, WIDE("%s%s"), first?WIDE( "" ):WIDE( "," ), byResult );
-							if( pvtData )vtprintf( pvtData, WIDE( "%s%s" ), idx>1?WIDE( "," ):WIDE( "" ), byResult );
-							first = 0;
+							{
+								if( pvtData )vtprintf( pvtData, WIDE( "%s<NULL>" ), idx>1?WIDE( "," ):WIDE( "" ) );
+							}
+							// otherwise the entry will be NULL
 						}
 					}
 					else
 					{
-						if( !collection->flags.bBuildResultArray )
-						{
-							//lprintf( WIDE("Didn't get a result... null field?") );
-							vtprintf( collection->pvt_result, WIDE("%s"), first?WIDE( "" ):WIDE( "," ) );
-							if( pvtData )vtprintf( pvtData, WIDE( "%s%s" ), idx>1?WIDE( "," ):WIDE( "" ), byResult );
-							first=0;
-						}
-						else
-						{
-							if( pvtData )vtprintf( pvtData, WIDE( "%s<NULL>" ), idx>1?WIDE( "," ):WIDE( "" ) );
-						}
-						// otherwise the entry will be NULL
+						retry = DumpInfo( odbc, collection->pvt_errorinfo, SQL_HANDLE_STMT, &collection->hstmt, odbc->flags.bNoLogging );
+						lprintf( WIDE("GetData failed...") );
+						result_cmd = WM_SQL_RESULT_ERROR;
 					}
-				}
-				else
-				{
-					retry = DumpInfo( odbc, collection->pvt_errorinfo, SQL_HANDLE_STMT, &collection->hstmt, odbc->flags.bNoLogging );
-					lprintf( WIDE("GetData failed...") );
-					result_cmd = WM_SQL_RESULT_ERROR;
-				}
 				}
 #endif
 
@@ -3615,6 +3659,7 @@ int GetSQLRecord( CTEXTSTR **result )
 	return FALSE;
 }
 //-----------------------------------------------------------------------
+
 int GetSQLResult( CTEXTSTR *result )
 {
 	if( result )
@@ -3630,9 +3675,9 @@ int GetSQLResult( CTEXTSTR *result )
 
 //-----------------------------------------------------------------------
 
-int __DoSQLQueryEx( PODBC odbc, PCOLLECT collection, CTEXTSTR query DBG_PASS )
+static int __DoSQLQueryExx( PODBC odbc, PCOLLECT collection, CTEXTSTR query, size_t queryLength DBG_PASS )
 {
-	size_t querylen;
+	size_t queryLen;
 	PTEXT tmp = NULL;
 	int retry = 0;
 #ifdef USE_ODBC
@@ -3714,13 +3759,14 @@ int __DoSQLQueryEx( PODBC odbc, PCOLLECT collection, CTEXTSTR query DBG_PASS )
 	if( query )
 	{
 		VarTextEmpty( collection->pvt_out );
-		vtprintf( collection->pvt_out, WIDE( "%s" ), query );
+		VarTextAddData( collection->pvt_out, query, queryLength );
+		//vtprintf( collection->pvt_out, WIDE( "%s" ), query );
 	}
 
 	{
 		tmp = VarTextPeek( collection->pvt_out );
 		query = GetText( tmp );
-		querylen = GetTextSize( tmp );
+		queryLen = GetTextSize( tmp );
 	}
 	if( EnsureLogOpen(odbc ) )
 	{
@@ -3751,7 +3797,7 @@ int __DoSQLQueryEx( PODBC odbc, PCOLLECT collection, CTEXTSTR query DBG_PASS )
 #ifdef UNICODE
 		rc3 = sqlite3_prepare16_v2( odbc->db, (void*)query, (int)(querylen) * sizeof( TEXTCHAR ), &collection->stmt, (const void**)&tail );
 #else
-		rc3 = sqlite3_prepare_v2( odbc->db, query, (int)(querylen), &collection->stmt, &tail );
+		rc3 = sqlite3_prepare_v2( odbc->db, query, (int)(queryLen), &collection->stmt, &tail );
 #endif
 		if( rc3 )
 		{
@@ -3902,6 +3948,12 @@ int __DoSQLQueryEx( PODBC odbc, PCOLLECT collection, CTEXTSTR query DBG_PASS )
 
 //------------------------------------------------------------------
 
+static int __DoSQLQueryEx( PODBC odbc, PCOLLECT collection, CTEXTSTR query DBG_PASS ) {
+	return __DoSQLQueryExx( odbc, collection, query, strlen( query ) DBG_RELAY );
+}
+
+//------------------------------------------------------------------
+
 void PopODBCExx( PODBC odbc, LOGICAL bAllowNonPush DBG_PASS )
 {
 	//lprintf( WIDE( "pop sql %p" ), odbc );
@@ -3968,13 +4020,16 @@ void SQLEndQuery( PODBC odbc )
 
 //-----------------------------------------------------------------------
 
-int SQLRecordQueryEx( PODBC odbc
-						  , CTEXTSTR query
-						  , int *nResults
-						  , CTEXTSTR **result, CTEXTSTR **fields DBG_PASS )
+int SQLRecordQueryExx( PODBC odbc
+                     , CTEXTSTR query
+                     , size_t queryLen
+                     , int *nResults
+                     , CTEXTSTR **result
+                     , size_t **resultLengths
+                     , CTEXTSTR **fields DBG_PASS )
 {
 	PODBC use_odbc;
-   int once = 0;
+	int once = 0;
 	// clean up what we think of as our result set data (reset to nothing)
 	if( result )
 		(*result) = NULL;
@@ -3992,7 +4047,7 @@ int SQLRecordQueryEx( PODBC odbc
 		}
 		// if not a [sS]elect then begin a transaction.... some code uses query record for everything.
 		if( !once && query[0] != 's' && query[0] != 'S' ) {
-         once = 1;
+			once = 1;
 			BeginTransactEx( use_odbc, 0 );
 		}
 		// collection is very important to have - even if we will have to be opened,
@@ -4021,7 +4076,7 @@ int SQLRecordQueryEx( PODBC odbc
 		// this will do an open, and delay queue processing and all sorts
 		// of good fun stuff...
 	}
-	while( __DoSQLQueryEx( use_odbc, use_odbc->collection, query DBG_RELAY) );
+	while( __DoSQLQueryExx( use_odbc, use_odbc->collection, query, queryLen DBG_RELAY) );
 
 	if( use_odbc->collection->responce == WM_SQL_RESULT_DATA )
 	{
@@ -4030,6 +4085,8 @@ int SQLRecordQueryEx( PODBC odbc
 			(*nResults) = use_odbc->collection->columns;
 		if( result )
 			(*result) = (CTEXTSTR*)use_odbc->collection->results;
+		if( resultLengths )
+			(*resultLengths) = use_odbc->collection->result_len;
 		// claim that we grabbed that...
 		if( fields )
 			(*fields) = (CTEXTSTR*)use_odbc->collection->fields;
@@ -4040,12 +4097,26 @@ int SQLRecordQueryEx( PODBC odbc
 	{
 		if( nResults )
 			(*nResults) = use_odbc->collection->columns;
+		if( resultLengths )
+			(*resultLengths) = NULL;
 		if( fields )
 			(*fields) = (CTEXTSTR*)use_odbc->collection->fields;
 		return TRUE;
 	}
 	return FALSE;
 }
+
+//--------------------------------------------------------------------
+
+int SQLRecordQueryEx( PODBC odbc
+	, CTEXTSTR query
+	, int *nResults
+	, CTEXTSTR **result, CTEXTSTR **fields DBG_PASS )
+{
+	return SQLRecordQueryExx( odbc, query, strlen( query ), nResults, result, NULL, fields DBG_RELAY );
+}
+
+//--------------------------------------------------------------------
 
 int SQLQueryEx( PODBC odbc, CTEXTSTR query, CTEXTSTR *result DBG_PASS )
 {

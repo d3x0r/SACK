@@ -64,8 +64,7 @@ typedef struct data_collection_tag
 	struct odbc_handle_tag *odbc;
 	uint32_t      responce;
 	uint32_t      lastop;
-	uint32_t *result;
-	uint32_t *result_len;
+	size_t *result_len;
 	TEXTSTR *results;
 	//uint32_t nResults; // this is columns
 	TEXTSTR *fields;

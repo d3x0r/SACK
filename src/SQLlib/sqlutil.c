@@ -440,7 +440,7 @@ uint8_t hexbyte( TEXTCHAR *string )
 	return value;
 }
 
-TEXTSTR DeblobifyString( CTEXTSTR blob, TEXTSTR outbuf, int outbuflen  )
+TEXTSTR DeblobifyString( CTEXTSTR blob, TEXTSTR outbuf, size_t outbuflen  )
 {
 
 	TEXTCHAR *result;
@@ -453,7 +453,7 @@ TEXTSTR DeblobifyString( CTEXTSTR blob, TEXTSTR outbuf, int outbuflen  )
 			outbuf = NewArray( TEXTCHAR, ( ( strlen( blob ) / 2 ) + 1 ) );
 		result = outbuf;
 		for( x=(TEXTSTR)blob, y = result;
-			  x[0] && ((y-outbuf) < outbuflen);
+			  x[0] && ((size_t)(y-outbuf) < outbuflen);
 			  y++, x+=2 )
 		{
 			y[0] = hexbyte( x );
@@ -470,7 +470,7 @@ TEXTSTR DeblobifyString( CTEXTSTR blob, TEXTSTR outbuf, int outbuflen  )
 
 //---------------------------------------------------------------------------
 
-TEXTSTR RevertEscapeBinary( CTEXTSTR blob, uintptr_t *bloblen )
+TEXTSTR RevertEscapeBinary( CTEXTSTR blob, size_t *bloblen )
 {
 	TEXTCHAR *tmpnamebuf, *result;
 	int n;
