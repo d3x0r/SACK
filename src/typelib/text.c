@@ -2778,113 +2778,110 @@ int ConvertToUTF16( wchar_t *output, TEXTRUNE rune )
 
 int ConvertToUTF8( char *output, TEXTRUNE rune )
 {
+	int ch = 1;
 	if( !( rune & 0xFFFFFF80 ) )
 	{
 		// 7 bits
 		(*output++) = (char)rune;
-		return 1;
+		goto plus0;
 	}
 	else if( !( rune & 0xFFFFF800 ) )
 	{
 		// 11 bits
 		(*output++) = 0xC0 | ( ( ( rune & 0x07C0 ) >> 6 ) & 0xFF );
-		(*output++) = 0x80 |     ( rune & 0x003F );
-		return 2;
+		goto plus1;
 	}
 	else if( !( rune & 0xFFFF0000 ) )
 	{
 		// 16 bits
 		(*output++) = 0xE0 | ( ( ( rune & 0xF000 ) >> 12 ) & 0xFF );
-		(*output++) = 0x80 | ( ( ( rune & 0x0FC0 ) >> 6 ) & 0xFF );
-		(*output++) = 0x80 | ( ( ( rune & 0x003F ) ) );
-		return 3;
+		goto plus2;
 	}
 	else if( !( rune & 0xFFE00000 ) )
 	{
 		// 21 bits
 		(*output++) = 0xF0 | ( ( ( rune & 0x1C0000 ) >> 15 ) & 0xFF );
-		(*output++) = 0x80 | ( ( ( rune & 0x03F000 ) >> 12 ) & 0xFF );
-		(*output++) = 0x80 | ( ( ( rune & 0x000FC0 ) >> 6 ) & 0xFF );
-		(*output++) = 0x80 | ( ( ( rune & 0x00003F ) ) );
-		return 4;
+		goto plus3;
 	}
 	else if( !( rune & 0xFC000000 ) )
 	{
 		// 26 bits
 		(*output++) = 0xF8 | ( ( ( rune & 0x3000000 ) >> 24 ) & 0xFF );
-		(*output++) = 0x80 | ( ( ( rune & 0x0FC0000 ) >> 18 ) & 0xFF );
-		(*output++) = 0x80 | ( ( ( rune & 0x003F000 ) >> 12 ) & 0xFF );
-		(*output++) = 0x80 | ( ( ( rune & 0x0000FC0 ) >> 6 ) & 0xFF );
-		(*output++) = 0x80 | ( ( ( rune & 0x000003F ) ) );
-		return 5;
+		goto plus4;
 	}
 	else if( !( rune & 0x80000000 ) )
 	{
-		// 32 bits
+		// 31 bits
 		(*output++) = 0xFC | ( ( ( rune & 0x40000000 ) >> 30 ) & 0xFF );
-		(*output++) = 0x80 | ( ( ( rune & 0x3F000000 ) >> 24 ) & 0xFF );
-		(*output++) = 0x80 | ( ( ( rune & 0x00FC0000 ) >> 18 ) & 0xFF );
-		(*output++) = 0x80 | ( ( ( rune & 0x0003F000 ) >> 12 ) & 0xFF );
-		(*output++) = 0x80 | ( ( ( rune & 0x00000FC0 ) >> 6 ) & 0xFF );
-		(*output++) = 0x80 | ( ( ( rune & 0x0000003F ) ) );
-		return 6;
+		//goto plus5;
 	}
 	// invalid rune (out of range)
-	return 0;
+//plus5:
+	ch++; (*output++) = 0x80 | (((rune & 0x3F000000) >> 24) & 0xFF);
+plus4:
+	ch++; (*output++) = 0x80 | (((rune & 0x0FC0000) >> 18) & 0xFF);
+plus3:
+	ch++; (*output++) = 0x80 | (((rune & 0x03F000) >> 12) & 0xFF);
+plus2:
+	ch++; (*output++) = 0x80 | (((rune & 0x0FC0) >> 6) & 0xFF);
+plus1:
+	ch++; (*output++) = 0x80 | (rune & 0x3F);
+plus0:
+	return ch;
 }
 
 
 int ConvertToUTF8Ex( char *output, TEXTRUNE rune, LOGICAL overlong )
 {
+	int ch = 1;
 	if( !overlong ) return ConvertToUTF8( output, rune );
 
-	if( !( rune & 0xFFFFF80 ) )
+	if( !(rune & 0xFFFFFF80) )
 	{
 		// 11 bits
-		(*output++) = 0xC0 | ( ( ( rune & 0x7C ) >> 6 ) & 0xFF );
-		(*output++) = 0x80 | ( rune & 0x3F );
-		return 2;
+		(*output++) = 0xC0 | (((rune & 0x07C0) >> 6) & 0xFF);
+		goto plus1;
 	}
-	else if( !( rune & 0xFFFFF800 ) )
+	else if( !(rune & 0xFFFFF800) )
 	{
 		// 16 bits
-		(*output++) = 0xE0 | ( ( ( rune & 0xF000 ) >> 12 ) & 0xFF );
-		(*output++) = 0x80 | ( ( ( rune & 0x0FC0 ) >> 6 ) & 0xFF );
-		(*output++) = 0x80 | ( ( ( rune & 0x003F ) ) );
-		return 3;
+		(*output++) = 0xE0 | (((rune & 0xF000) >> 12) & 0xFF);
+		goto plus2;
 	}
-	else if( !( rune & 0xFFFF0000 ) )
+	else if( !(rune & 0xFFFF0000) )
 	{
 		// 21 bits
-		(*output++) = 0xF0 | ( ( ( rune & 0x1C0000 ) >> 15 ) & 0xFF );
-		(*output++) = 0x80 | ( ( ( rune & 0x03F000 ) >> 12 ) & 0xFF );
-		(*output++) = 0x80 | ( ( ( rune & 0x000FC0 ) >> 6 ) & 0xFF );
-		(*output++) = 0x80 | ( ( ( rune & 0x00003F ) ) );
-		return 4;
+		(*output++) = 0xF0 | (((rune & 0x1C0000) >> 15) & 0xFF);
+		goto plus3;
 	}
-	else if( !( rune & 0xFFE00000 ) )
+	else if( !(rune & 0xFFE00000) )
 	{
 		// 26 bits
-		(*output++) = 0xF8 | ( ( ( rune & 0x3000000 ) >> 24 ) & 0xFF );
-		(*output++) = 0x80 | ( ( ( rune & 0x0FC0000 ) >> 18 ) & 0xFF );
-		(*output++) = 0x80 | ( ( ( rune & 0x003F000 ) >> 12 ) & 0xFF );
-		(*output++) = 0x80 | ( ( ( rune & 0x0000FC0 ) >> 6 ) & 0xFF );
-		(*output++) = 0x80 | ( ( ( rune & 0x000003F ) ) );
-		return 5;
+		(*output++) = 0xF8 | (((rune & 0x3000000) >> 24) & 0xFF);
+		goto plus4;
 	}
-	else if( !( rune & 0xFC000000 ) )
+	else if( !(rune & 0xFC000000) )
 	{
-		// 32 bits
-		(*output++) = 0xFC | ( ( ( rune & 0x40000000 ) >> 30 ) & 0xFF );
-		(*output++) = 0x80 | ( ( ( rune & 0x3F000000 ) >> 24 ) & 0xFF );
-		(*output++) = 0x80 | ( ( ( rune & 0x00FC0000 ) >> 18 ) & 0xFF );
-		(*output++) = 0x80 | ( ( ( rune & 0x0003F000 ) >> 12 ) & 0xFF );
-		(*output++) = 0x80 | ( ( ( rune & 0x00000FC0 ) >> 6 ) & 0xFF );
-		(*output++) = 0x80 | ( ( ( rune & 0x0000003F ) ) );
-		return 6;
+		// 31 bits
+		(*output++) = 0xFC | (((rune & 0x40000000) >> 30) & 0xFF);
+		goto plus5;
 	}
-	// invalid rune (out of range)
-	return 0;
+	else if( !(rune & 0x80000000) ) {
+		(*output++) = 0xFEU;
+	}
+	ch++; (*output++) = 0x80 | (((rune & 0xC0000000) >> 30) & 0xFF);
+plus5:
+	ch++; (*output++) = 0x80 | (((rune & 0x3F000000) >> 24) & 0xFF);
+plus4:
+	ch++; (*output++) = 0x80 | (((rune & 0x0FC0000) >> 18) & 0xFF);
+plus3:
+	ch++; (*output++) = 0x80 | (((rune & 0x03F000) >> 12) & 0xFF);
+plus2:
+	ch++; (*output++) = 0x80 | (((rune & 0x0FC0) >> 6) & 0xFF);
+plus1:
+	ch++; (*output++) = 0x80 | (rune & 0x3F);
+//plus0:
+	return ch;
 }
 
 
@@ -3050,11 +3047,31 @@ wchar_t * CharWConvertExx ( const char *wch, size_t len DBG_PASS )
 	// WideCharToMultiByte()
 	// wcstombs_s()
 	// ... etc
-	size_t  sizeInBytes;
+	size_t  sizeInChars = 0;
+	const char *_wch = wch;
 	wchar_t	*ch;
 	wchar_t   *_ch;
-	sizeInBytes = ((len + 1) * sizeof( wchar_t ) );
-	_ch = ch = NewArray( wchar_t, sizeInBytes);
+	{
+		size_t n;
+		for( n = 0; n < len; n++ )
+		{
+			//lprintf( "first char is %d (%08x)", wch[0] );
+			if( (wch[0] & 0xE0) == 0xC0 )
+				wch += 2;
+			else if( (wch[0] & 0xF0) == 0xE0 )
+				wch += 3;
+			else if( (wch[0] & 0xF0) == 0xF0 )
+			{
+				sizeInChars++;
+				wch += 4;
+			}
+			else
+				wch++;
+			sizeInChars++;
+		}
+	}
+	wch = _wch;
+	_ch = ch = NewArray( wchar_t, sizeInChars + 1 );
 	{
 		size_t n;
 		for( n = 0; n < len; n++ )
@@ -3092,16 +3109,15 @@ wchar_t * CharWConvertExx ( const char *wch, size_t len DBG_PASS )
 			ch++;
 		}
 		ch[0] = 0;
-		ch = _ch;
 	}
-	return ch;
+	return _ch;
 }
 
-wchar_t * CharWConvertEx ( const char *wch DBG_PASS )
+wchar_t * CharWConvertEx ( const char *ch DBG_PASS )
 {
 	int len;
-	for( len = 0; wch[len]; len++ );
-	return CharWConvertExx( wch, len DBG_RELAY );
+	for( len = 0; ch[len]; len++ );
+	return CharWConvertExx( ch, len DBG_RELAY );
 }
 
 LOGICAL ParseStringVector( CTEXTSTR data, CTEXTSTR **pData, int *nData )
