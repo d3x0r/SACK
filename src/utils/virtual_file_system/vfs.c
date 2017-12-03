@@ -1128,8 +1128,10 @@ size_t CPROC sack_vfs_read( struct sack_vfs_file *file, char * data, size_t leng
 	size_t ofs = file->fpi & BLOCK_MASK;
 	while( LockedExchange( &file->vol->lock, 1 ) ) Relinquish();
 	if( ( file->entry->filesize  ^ file->dirent_key.filesize ) < ( file->fpi + length ) )
-		length = ( file->entry->filesize  ^ file->dirent_key.filesize ) - file->fpi;
-	if( !length ) {  file->vol->lock = 0; return 0; }
+		if( ( file->entry->filesize  ^ file->dirent_key.filesize ) > file->fpi )
+			length = ( file->entry->filesize  ^ file->dirent_key.filesize ) - file->fpi;
+		else length = 0;
+	if( !length ) { file->vol->lock = 0; return 0; }
 
 	if( ofs ) {
 		enum block_cache_entries cache = BLOCK_CACHE_FILE;
