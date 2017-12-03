@@ -121,16 +121,16 @@ static uintptr_t CPROC AutoCloseThread( PTHREAD thread );
 static uintptr_t CPROC AutoCheckpointThread( PTHREAD thread );
 void CloseDatabaseEx( PODBC odbc, LOGICAL ReleaseConnection );
 
-int __DoSQLQueryEx(  PODBC odbc, PCOLLECT collection, CTEXTSTR query DBG_PASS );
+static int __DoSQLQueryEx(  PODBC odbc, PCOLLECT collection, CTEXTSTR query DBG_PASS );
 #define __DoSQLQuery( o,c,q ) __DoSQLQueryEx(o,c,q DBG_SRC )
-int __DoSQLCommandEx( PODBC odbc, PCOLLECT collection/*, uint32_t MyID*/ DBG_PASS );
+static int __DoSQLCommandEx( PODBC odbc, PCOLLECT collection/*, uint32_t MyID*/ DBG_PASS );
 #define __DoSQLCommand(o,c) __DoSQLCommandEx(o,c DBG_SRC )
-int __GetSQLResult( PODBC odbc, PCOLLECT collection, int bMore/*, uint32_t MyID*/ );
+static int __GetSQLResult( PODBC odbc, PCOLLECT collection, int bMore/*, uint32_t MyID*/ );
 #if defined( USE_SQLITE ) || defined( USE_SQLITE_INTERFACE )
-int DumpInfo2( PVARTEXT pvt, SQLSMALLINT type, struct odbc_handle_tag *odbc, LOGICAL bNoLog );
+static int DumpInfo2( PVARTEXT pvt, SQLSMALLINT type, struct odbc_handle_tag *odbc, LOGICAL bNoLog );
 #endif
 #ifdef USE_ODBC
-int DumpInfoEx( PODBC odbc, PVARTEXT pvt, SQLSMALLINT type, SQLHANDLE *handle, LOGICAL bNoLog DBG_PASS );
+static int DumpInfoEx( PODBC odbc, PVARTEXT pvt, SQLSMALLINT type, SQLHANDLE *handle, LOGICAL bNoLog DBG_PASS );
 #define DumpInfo(o,a,b,c,d) DumpInfoEx(o,a,b,c,d DBG_SRC )
 //int DumpInfo( PVARTEXT pvt, SQLSMALLINT type, SQLHANDLE *handle );
 #endif
@@ -3670,7 +3670,7 @@ int GetSQLResult( CTEXTSTR *result )
 
 //-----------------------------------------------------------------------
 
-static int __DoSQLQueryExx( PODBC odbc, PCOLLECT collection, CTEXTSTR query, size_t queryLength DBG_PASS )
+int __DoSQLQueryExx( PODBC odbc, PCOLLECT collection, CTEXTSTR query, size_t queryLength DBG_PASS )
 {
 	size_t queryLen;
 	PTEXT tmp = NULL;
@@ -3940,7 +3940,7 @@ static int __DoSQLQueryExx( PODBC odbc, PCOLLECT collection, CTEXTSTR query, siz
 
 //------------------------------------------------------------------
 
-static int __DoSQLQueryEx( PODBC odbc, PCOLLECT collection, CTEXTSTR query DBG_PASS ) {
+int __DoSQLQueryEx( PODBC odbc, PCOLLECT collection, CTEXTSTR query DBG_PASS ) {
 	return __DoSQLQueryExx( odbc, collection, query, strlen( query ) DBG_RELAY );
 }
 
