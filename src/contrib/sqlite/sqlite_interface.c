@@ -620,6 +620,8 @@ void errorLogCallback(void *pArg, int iErrCode, const char *zMsg){
 	else if( iErrCode == SQLITE_NOTICE_RECOVER_ROLLBACK ) {
 		lprintf( "Sqlite3 Notice: journal rollback:%s", zMsg );
 	}
+	else if( iErrCode == SQLITE_ERROR )
+		; // these will generally be logged by other error handling.
 	else
 		lprintf( "Sqlite3 Err: (%d) %s", iErrCode, zMsg);
 }
