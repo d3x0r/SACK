@@ -2616,7 +2616,6 @@ int __DoSQLCommandEx( PODBC odbc, PCOLLECT collection DBG_PASS )
 		int result_code = WM_SQL_RESULT_SUCCESS;
 		int rc3;
 		const TEXTCHAR *tail;
-		char *tmp_cmd;
 retry:
 		odbc->last_command_tick_ = timeGetTime();
 		if( odbc->last_command_tick )
@@ -3532,8 +3531,8 @@ int __GetSQLResult( PODBC odbc, PCOLLECT collection, int bMore )
 	else
 	{
 #if defined( USE_SQLITE ) || defined( USE_SQLITE_INTERFACE )
-		if( odbc->flags.bSQLite_native )
-			;//retry = DumpInfo2( collection->pvt_errorinfo, SQL_HANDLE_STMT, odbc, odbc->flags.bNoLogging );
+		if( odbc->flags.bSQLite_native ){
+		}
 #endif
 #if ( defined( USE_SQLITE ) || defined( USE_SQLITE_INTERFACE ) ) && defined( USE_ODBC )
 		else
@@ -3877,9 +3876,6 @@ int __DoSQLQueryExx( PODBC odbc, PCOLLECT collection, CTEXTSTR query, size_t que
 #if defined( USE_SQLITE ) || defined( USE_SQLITE_INTERFACE )
 		if( odbc->flags.bSQLite_native )
 		{
-			//retry = DumpInfo2( collection->pvt_errorinfo, SQL_HANDLE_STMT, odbc, odbc->flags.bNoLogging );
-			//tmp = VarTextPeek( collection->pvt_errorinfo );
-			//_lprintf(DBG_RELAY)( WIDE("SQLITE Command excecution failed(1)....%s"), tmp?GetText( tmp ):WIDE("NO ERROR RESULT") );
 		}
 #endif
 #if defined( USE_ODBC ) && defined( USE_SQLITE )
