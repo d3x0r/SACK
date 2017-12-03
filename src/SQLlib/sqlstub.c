@@ -3533,7 +3533,7 @@ int __GetSQLResult( PODBC odbc, PCOLLECT collection, int bMore )
 	{
 #if defined( USE_SQLITE ) || defined( USE_SQLITE_INTERFACE )
 		if( odbc->flags.bSQLite_native )
-			retry = DumpInfo2( collection->pvt_errorinfo, SQL_HANDLE_STMT, odbc, odbc->flags.bNoLogging );
+			;//retry = DumpInfo2( collection->pvt_errorinfo, SQL_HANDLE_STMT, odbc, odbc->flags.bNoLogging );
 #endif
 #if ( defined( USE_SQLITE ) || defined( USE_SQLITE_INTERFACE ) ) && defined( USE_ODBC )
 		else
@@ -3797,7 +3797,6 @@ static int __DoSQLQueryExx( PODBC odbc, PCOLLECT collection, CTEXTSTR query, siz
 		if( rc3 )
 		{
 			const char *tmp;
-			TEXTSTR str_error;
 			if( rc3 == SQLITE_BUSY )
 			{
 				lprintf( WIDE("wait for lock...") );
@@ -3807,11 +3806,10 @@ static int __DoSQLQueryExx( PODBC odbc, PCOLLECT collection, CTEXTSTR query, siz
 			}
 			//DebugBreak();
 			tmp = sqlite3_errmsg(odbc->db);
-			str_error = DupCharToText( tmp );
-			if( StrCaseCmpEx( str_error, WIDE( "no such table" ), 13 ) == 0 )
+         // this will have to have a Char based version
+			if( strnicmp( tmp, "no such table", 13 ) == 0 )
 				vtprintf( collection->pvt_errorinfo, WIDE( "(S0002)" ) );
-			vtprintf( collection->pvt_errorinfo, WIDE( "Result of prepare failed? %s at-or near char %")_size_f WIDE("[%s] in [%") _string_f WIDE("]" ), str_error, tail - query, tail, query );
-			Deallocate( TEXTSTR, str_error );
+			vtprintf( collection->pvt_errorinfo, WIDE( "Result of prepare failed? %s at-or near char %")_size_f WIDE("[%") _cstring_f WIDE("] in [%") _string_f WIDE("]" ), tmp, tail - query, tail, query );
 			if( EnsureLogOpen(odbc ) )
 			{
 				sack_fprintf( g.pSQLLog, WIDE( "#SQLITE ERROR:%s\n" ), GetText( VarTextPeek( collection->pvt_errorinfo ) ) );
@@ -3879,7 +3877,7 @@ static int __DoSQLQueryExx( PODBC odbc, PCOLLECT collection, CTEXTSTR query, siz
 #if defined( USE_SQLITE ) || defined( USE_SQLITE_INTERFACE )
 		if( odbc->flags.bSQLite_native )
 		{
-			retry = DumpInfo2( collection->pvt_errorinfo, SQL_HANDLE_STMT, odbc, odbc->flags.bNoLogging );
+			//retry = DumpInfo2( collection->pvt_errorinfo, SQL_HANDLE_STMT, odbc, odbc->flags.bNoLogging );
 			//tmp = VarTextPeek( collection->pvt_errorinfo );
 			//_lprintf(DBG_RELAY)( WIDE("SQLITE Command excecution failed(1)....%s"), tmp?GetText( tmp ):WIDE("NO ERROR RESULT") );
 		}
