@@ -2276,8 +2276,8 @@ int DumpInfo2( PVARTEXT pvt, SQLSMALLINT type, PODBC odbc, LOGICAL bNoLog )
 	//lprintf( WIDE( "Result of prepare failed? %s at [%s]" ), tmp, tail );
 	if( !bNoLog && EnsureLogOpen( odbc ) )
 	{
-		fprintf( g.pSQLLog, WIDE("#SQLITE ERROR:%s\n"), tmp );
-		fflush( g.pSQLLog );
+		sack_fprintf( g.pSQLLog, WIDE("#SQLITE ERROR:%s\n"), tmp );
+		sack_fflush( g.pSQLLog );
 	}
 	//vtprintf( pvt, "%s", sqlite3_errmsg(odbc->db) );
 	return 0;
@@ -2325,7 +2325,7 @@ int DumpInfoEx( PODBC odbc, PVARTEXT pvt, SQLSMALLINT type, SQLHANDLE *handle, L
 		{
 			vtprintf( pvt, WIDE("Invalid handle") );
 			if( !bNoLog && EnsureLogOpen( odbc ) )
-				fprintf( g.pSQLLog, WIDE("#%s\n"), WIDE("Invalid Handle") );
+				sack_fprintf( g.pSQLLog, WIDE("#%s\n"), WIDE("Invalid Handle") );
 			break;
 		}
 		else if( rc != SQL_NO_DATA )
@@ -2358,7 +2358,7 @@ int DumpInfoEx( PODBC odbc, PVARTEXT pvt, SQLSMALLINT type, SQLHANDLE *handle, L
 				vtprintf( pvt, WIDE("(%5s)[%") _32f WIDE("]:%s"), statecode, native, message );
 				if( !bNoLog && EnsureLogOpen( odbc ) )
 				{
-					fprintf( g.pSQLLog, WIDE("#(%5s)[%") _32f WIDE("]:%s\n"), statecode, native, message );
+					sack_fprintf( g.pSQLLog, WIDE("#(%5s)[%") _32f WIDE("]:%s\n"), statecode, native, message );
 				}
 				if( !bOpening )
 				{
@@ -2407,7 +2407,7 @@ int DumpInfoEx( PODBC odbc, PVARTEXT pvt, SQLSMALLINT type, SQLHANDLE *handle, L
 				else
 					vtprintf( pvt, WIDE("(%5s)[%") _32f WIDE("]:%s"), statecode, native, message );
 				if( !bNoLog && EnsureLogOpen( odbc ) )
-					fprintf( g.pSQLLog, WIDE("#%s\n"), GetText( VarTextPeek( pvt ) ) );
+					sack_fprintf( g.pSQLLog, WIDE("#%s\n"), GetText( VarTextPeek( pvt ) ) );
 			}
 		}
 		else
@@ -2418,7 +2418,7 @@ int DumpInfoEx( PODBC odbc, PVARTEXT pvt, SQLSMALLINT type, SQLHANDLE *handle, L
 		}
 	} while( ( rc != SQL_NO_DATA ) && (*handle) );
 	if( !bNoLog && EnsureLogOpen( odbc ) )
-		fflush( g.pSQLLog );
+		sack_fflush( g.pSQLLog );
 
 #ifdef LOG_EVERYTHING
 	lprintf( WIDE("Drop handle %p"), (*handle) );
@@ -2570,8 +2570,8 @@ int __DoSQLCommandEx( PODBC odbc, PCOLLECT collection DBG_PASS )
 	cmd = VarTextPeek( collection->pvt_out );
 	if( EnsureLogOpen(odbc ) )
 	{
-		fprintf( g.pSQLLog, WIDE("%s[%p]:%s\n"), odbc->info.pDSN?odbc->info.pDSN:WIDE( "NoDSN?" ), odbc, GetText( cmd ) );
-		fflush( g.pSQLLog );
+		sack_fprintf( g.pSQLLog, WIDE("%s[%p]:%s\n"), odbc->info.pDSN?odbc->info.pDSN:WIDE( "NoDSN?" ), odbc, GetText( cmd ) );
+		sack_fflush( g.pSQLLog );
 	}
 	VarTextEmpty( collection->pvt_result );
 	VarTextEmpty( collection->pvt_errorinfo );
@@ -2621,28 +2621,20 @@ retry:
 		odbc->last_command_tick_ = timeGetTime();
 		if( odbc->last_command_tick )
 			odbc->last_command_tick = odbc->last_command_tick_;
-		tmp_cmd = DupTextToChar( GetText( cmd ) );
 		// can get back what was not used when parsing...
 #ifdef UNICODE
 		rc3 = sqlite3_prepare16_v2( odbc->db, (void*)GetText( cmd ), (int)(GetTextSize( cmd )) * sizeof( TEXTCHAR ), &collection->stmt, (const void**)&tail );
 #else
-		rc3 = sqlite3_prepare_v2( odbc->db, tmp_cmd, (int)(GetTextSize( cmd )), &collection->stmt, &tail );
+		rc3 = sqlite3_prepare_v2( odbc->db, GetText( cmd ), (int)(GetTextSize( cmd )), &collection->stmt, &tail );
 #endif
 		if( rc3 )
 		{
-			TEXTSTR str_error = DupCharToText( sqlite3_errmsg(odbc->db) );
-#ifdef UNICODE
-			_lprintf(DBG_RELAY)( WIDE( "Result of prepare failed? %s at char %")_size_f WIDE("[%s] in [%s]" ), str_error, tail - GetText(cmd), tail, GetText(cmd) );
-#else
-			_lprintf(DBG_RELAY)( WIDE( "Result of prepare failed? %s at char %")_size_f WIDE("[%s] in [%s]" ), str_error, tail - tmp_cmd, tail, GetText(cmd) );
-#endif
-			vtprintf( collection->pvt_errorinfo, str_error );
-			Release( str_error );
-			Release( tmp_cmd );
+			vtprintf( collection->pvt_errorinfo, "Result of prepare failed? %s at char %" _size_f "[%" _string_f "] in [%" _string_f "]"
+			       , sqlite3_errmsg(odbc->db), tail - GetText(cmd), tail, GetText(cmd) );
 			if( EnsureLogOpen(odbc ) )
 			{
-				fprintf( g.pSQLLog, WIDE("#SQLITE ERROR:%s\n"), sqlite3_errmsg(odbc->db) );
-				fflush( g.pSQLLog );
+				sack_fprintf( g.pSQLLog, WIDE("#SQLITE ERROR:%") _string_f WIDE("\n"), GetText( VarTextPeek( collection->pvt_errorinfo ) ) );
+				sack_fflush( g.pSQLLog );
 			}
  			GenerateResponce( collection, WM_SQL_RESULT_ERROR );
 			if( odbc->flags.bThreadProtect )
@@ -2657,7 +2649,6 @@ retry:
 		{
 			if( odbc->flags.bAutoCheckpoint && (!sqlite3_stmt_readonly( collection->stmt )) )
 				startAutoCheckpoint( odbc );
-			Release( tmp_cmd );
 			rc3 = sqlite3_step( collection->stmt );
 			switch( rc3 )
 			{
@@ -2740,8 +2731,8 @@ retry:
 				//lprintf( WIDE("ODBC Command excecution failed(1)....%s"), cmd?GetText( cmd ):WIDE("NO ERROR RESULT") );
 				if( EnsureLogOpen( odbc ) )
 				{
-					fprintf( g.pSQLLog, WIDE("#%s\n"), GetText( cmd ) );
-					fflush( g.pSQLLog );
+					sack_fprintf( g.pSQLLog, WIDE("#%s\n"), GetText( cmd ) );
+					sack_fflush( g.pSQLLog );
 				}
 				//lprintf( WIDE("result err...") );
 				GenerateResponce( collection, WM_SQL_RESULT_ERROR );
@@ -3774,8 +3765,8 @@ static int __DoSQLQueryExx( PODBC odbc, PCOLLECT collection, CTEXTSTR query, siz
 	}
 	if( EnsureLogOpen(odbc ) )
 	{
-		fprintf( g.pSQLLog, WIDE("%s[%p]:%s\n"), odbc->info.pDSN?odbc->info.pDSN:WIDE( "NoDSN?" ), odbc, query );
-		fflush( g.pSQLLog );
+		sack_fprintf( g.pSQLLog, WIDE("%s[%p]:%s\n"), odbc->info.pDSN?odbc->info.pDSN:WIDE( "NoDSN?" ), odbc, query );
+		sack_fflush( g.pSQLLog );
 	}
 	if( !g.flags.bNoLog )
 	{
@@ -3819,13 +3810,12 @@ static int __DoSQLQueryExx( PODBC odbc, PCOLLECT collection, CTEXTSTR query, siz
 			str_error = DupCharToText( tmp );
 			if( StrCaseCmpEx( str_error, WIDE( "no such table" ), 13 ) == 0 )
 				vtprintf( collection->pvt_errorinfo, WIDE( "(S0002)" ) );
-			vtprintf( collection->pvt_errorinfo, WIDE( "%s" ), str_error );
-			_lprintf(DBG_RELAY)( WIDE( "Result of prepare failed? %s at-or near char %")_size_f WIDE("[%s] in [%s]" ), str_error, tail - query, tail, query );
+			vtprintf( collection->pvt_errorinfo, WIDE( "Result of prepare failed? %s at-or near char %")_size_f WIDE("[%s] in [%") _string_f WIDE("]" ), str_error, tail - query, tail, query );
 			Deallocate( TEXTSTR, str_error );
 			if( EnsureLogOpen(odbc ) )
 			{
-				fprintf( g.pSQLLog, WIDE( "#SQLITE ERROR:%s\n" ), tmp );
-				fflush( g.pSQLLog );
+				sack_fprintf( g.pSQLLog, WIDE( "#SQLITE ERROR:%s\n" ), GetText( VarTextPeek( collection->pvt_errorinfo ) ) );
+				sack_fflush( g.pSQLLog );
 			}
 			in_error = 1;
 		} else {
