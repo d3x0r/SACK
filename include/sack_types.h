@@ -1155,9 +1155,9 @@ SACK_NAMESPACE
 #endif
 
 #if defined( UNICODE )
-#  define _cstring_f WIDE("S")
-#  define _string_f WIDE("s")
-#  define _ustring_f WIDE("s")
+#  define _cstring_f WIDE("s")
+#  define _string_f WIDE("S")
+#  define _ustring_f WIDE("S")
 #else
 #  define _cstring_f WIDE("s")
 #  define _string_f WIDE("s")
