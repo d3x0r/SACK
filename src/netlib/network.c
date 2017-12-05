@@ -696,6 +696,7 @@ void TerminateClosedClientEx( PCLIENT pc DBG_PASS )
 
 //----------------------------------------------------------------------------
 
+#if 0
 static void CPROC PendingTimer( uintptr_t unused )
 {
 	PCLIENT pc, next;
@@ -780,6 +781,8 @@ restart:
 	lprintf( WIDE("pending timer left global") );
 #endif
 }
+#endif
+
 
 #ifdef _WIN32
 
@@ -2014,7 +2017,6 @@ uintptr_t CPROC NetworkThreadProc( PTHREAD thread )
 	// and when unloading should remove these timers.
 	if( !peer_thread )
 	{
-		//globalNetworkData.uPendingTimer = AddTimer( 5000, PendingTimer, 0 );
 #ifdef _WIN32
 		globalNetworkData.uNetworkPauseTimer = AddTimerEx( 1, 1000, NetworkPauseTimer, 0 );
 		if( !globalNetworkData.client_schedule )
@@ -2024,7 +2026,6 @@ uintptr_t CPROC NetworkThreadProc( PTHREAD thread )
 		globalNetworkData.flags.bNetworkReady = TRUE;
 		globalNetworkData.flags.bThreadInitOkay = TRUE;
 #endif
-		//globalNetworkData.hMonitorThreadControlEvent = CreateEvent( NULL, 0, FALSE, NULL );
 	}
 
 	this_thread.monitor_list = NULL;
@@ -2146,11 +2147,13 @@ int NetworkQuit(void)
 	if( !global_network_data )
 		return 0;
 
+#if 0
 	if( globalNetworkData.uPendingTimer )
 	{
 		RemoveTimer( globalNetworkData.uPendingTimer );
 		globalNetworkData.uPendingTimer = 0;
 	}
+#endif
 	while( globalNetworkData.ActiveClients )
 	{
 #ifdef LOG_NOTICES
@@ -2406,8 +2409,9 @@ get_client:
 #ifdef LOG_NETWORK_LOCKING
 		lprintf( WIDE("GetFreeNetworkClient left global") );
 #endif
-
+#if 0
 		RescheduleTimerEx( globalNetworkData.uPendingTimer, 1 );
+#endif
 		Relinquish();
 		if( globalNetworkData.AvailableClients )
 		{
@@ -3454,8 +3458,13 @@ void InternalRemoveClientExx(PCLIENT lpClient, LOGICAL bBlockNotify, LOGICAL bLi
 
 void RemoveClientExx(PCLIENT lpClient, LOGICAL bBlockNotify, LOGICAL bLinger DBG_PASS )
 {
-	InternalRemoveClientExx( lpClient, bBlockNotify, bLinger DBG_RELAY );
-	TerminateClosedClient( lpClient );
+#ifdef _WIN32
+#  define SHUT_WR SD_SEND
+#endif
+	shutdown( lpClient->Socket, SHUT_WR );
+
+	//InternalRemoveClientExx( lpClient, bBlockNotify, bLinger DBG_RELAY );
+	//TerminateClosedClient( lpClient );
 }
 
 CTEXTSTR GetSystemName( void )
