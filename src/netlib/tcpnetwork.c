@@ -1223,18 +1223,20 @@ int TCPWriteEx(PCLIENT pc DBG_PASS)
 							 pc->lpFirstPending->dwUsed,
 							 (int)pc->lpFirstPending->dwAvail );
 			}
+         //lprintf( "Try to send... %d  %d", pc->lpFirstPending->dwUsed, pc->lpFirstPending->dwAvail );
 			nSent = send(pc->Socket,
 							 (char*)pc->lpFirstPending->buffer.c +
 							 pc->lpFirstPending->dwUsed,
 							 (int)pc->lpFirstPending->dwAvail,
 							 0);
+         //lprintf( "sent... %d", nSent );
 			if( nSent < (int)pc->lpFirstPending->dwAvail ) {
-				pc->lpFirstPending->dwUsed += nSent;
-				pc->lpFirstPending->dwAvail -= nSent;
+				//pc->lpFirstPending->dwUsed += nSent;
+				//pc->lpFirstPending->dwAvail -= nSent;
 				pc->dwFlags |= CF_WRITEPENDING;
-				lprintf( "THIS IS ANOTHER PENDING CONDITION THAT WASN'T ACCOUNTED" );
+				//lprintf( "THIS IS ANOTHER PENDING CONDITION THAT WASN'T ACCOUNTED %d of %d", nSent, pc->lpFirstPending->dwAvail  );
 			}
-			if (nSent == SOCKET_ERROR)
+			else if (nSent == SOCKET_ERROR)
 			{
 				if( WSAGetLastError() == WSAEWOULDBLOCK )  // this is alright.
 				{
@@ -1393,7 +1395,7 @@ LOGICAL doTCPWriteExx( PCLIENT lpClient
 	if( lpClient->lpFirstPending ) // will already be in a wait on network state...
 	{
 #ifdef VERBOSE_DEBUG
-		Log2(  "%s(%d)Data pending, pending buffer... ", pFile, nLine );
+		_lprintf( DBG_RELAY )(  "Data already pending, pending buffer...%p %d", pInBuffer, nInLen );
 #endif
 		if( !failpending )
 		{
@@ -1401,7 +1403,7 @@ LOGICAL doTCPWriteExx( PCLIENT lpClient
 			lprintf( WIDE("Queuing pending data anyhow...") );
 #endif
 			PendWrite( lpClient, pInBuffer, nInLen, bLongBuffer );
-			TCPWriteEx( lpClient DBG_SRC ); // make sure we don't lose a write event during the queuing...
+			//TCPWriteEx( lpClient DBG_SRC ); // make sure we don't lose a write event during the queuing...
 			NetworkUnlockEx( lpClient DBG_SRC );
 			return TRUE;
 		}
