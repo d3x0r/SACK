@@ -279,6 +279,7 @@ static void ssl_ReadComplete( PCLIENT pc, POINTER buffer, size_t length )
 			}
 			else if( hs_rc == 1 )
 			{
+			read_more:
 				len = SSL_read( pc->ssl_session->ssl, NULL, 0 );
 				//lprintf( "return of 0 read: %d", len );
 				//if( len < 0 )
@@ -339,9 +340,13 @@ static void ssl_ReadComplete( PCLIENT pc, POINTER buffer, size_t length )
 					pc->ssl_session->cpp_user_read( pc->psvRead, pc->ssl_session->dbuffer, len );
 				else
 					pc->ssl_session->user_read( pc, pc->ssl_session->dbuffer, len );
+				if( pc->ssl_session ) // might have closed during read.
+					goto read_more;
 			}
 			else if( len == 0 ) {
-
+#ifdef DEBUG_SSL_IO
+				lprintf( "incomplete read" );
+#endif
 			}
 			//else {
 			//	lprintf( "SSL_Read failed." );
@@ -351,7 +356,7 @@ static void ssl_ReadComplete( PCLIENT pc, POINTER buffer, size_t length )
 
 		}
 		else {
-			pc->ssl_session->ibuffer = NewArray( uint8_t, pc->ssl_session->ibuflen = 1024 );
+			pc->ssl_session->ibuffer = NewArray( uint8_t, pc->ssl_session->ibuflen = (4327 + 39) );
 			pc->ssl_session->dbuffer = NewArray( uint8_t, pc->ssl_session->dbuflen = 4096 );
 			{
 				int r;
@@ -396,7 +401,6 @@ LOGICAL ssl_Send( PCLIENT pc, CPOINTER buffer, size_t length )
 	if( !ses )
 		return FALSE;
 	while( length ) {
-	//lprintf( "ssl_Send  %d", length );
 #ifdef DEBUG_SSL_IO
 		lprintf( "SSL SEND...." );
 		LogBinary( (uint8_t*)buffer, length );
@@ -427,6 +431,9 @@ LOGICAL ssl_Send( PCLIENT pc, CPOINTER buffer, size_t length )
 			ses->obuflen = len * 2;
 		}
 		len_out = BIO_read( pc->ssl_session->wbio, ses->obuffer, (int)ses->obuflen );
+#ifdef DEBUG_SSL_IO
+		lprintf( "ssl_Send  %d", len_out );
+#endif
 		SendTCP( pc, ses->obuffer, len_out );
 	}
 	return TRUE;

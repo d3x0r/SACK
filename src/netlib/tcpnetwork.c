@@ -834,7 +834,7 @@ PCLIENT OpenTCPClientExEx(CTEXTSTR lpName,uint16_t wPort,
 
 //----------------------------------------------------------------------------
 
-size_t FinishPendingRead(PCLIENT lpClient DBG_PASS )  // only time this should be called is when there IS, cause
+int FinishPendingRead(PCLIENT lpClient DBG_PASS )  // only time this should be called is when there IS, cause
                                  // we definaly have already gotten SOME data to leave in
                                  // a pending state...
 {

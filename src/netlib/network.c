@@ -123,7 +123,7 @@ void AcceptClient(PCLIENT pc);
 int TCPWriteEx(PCLIENT pc DBG_PASS);
 #define TCPWrite(pc) TCPWriteEx(pc DBG_SRC)
 
-size_t FinishPendingRead(PCLIENT lpClient DBG_PASS );
+int FinishPendingRead(PCLIENT lpClient DBG_PASS );
 LOGICAL TCPDrainRead( PCLIENT pClient );
 
 _TCP_NAMESPACE_END
@@ -649,13 +649,16 @@ void TerminateClosedClientEx( PCLIENT pc DBG_PASS )
 	{
 		PendingBuffer * lpNext;
 		EnterCriticalSec( &globalNetworkData.csNetwork );
+#ifdef VERBOSE_DEBUG
+		lprintf( "REMOVED EVENT...." );
+#endif
 		RemoveThreadEvent( pc );
 
 		//lprintf( WIDE( "Terminating closed client..." ) );
 		if( IsValid( pc->Socket ) )
 		{
 #ifdef VERBOSE_DEBUG
-			lprintf( WIDE( "close socket." ) );
+			lprintf( "close soekcet." );
 #endif
 			closesocket( pc->Socket );
 			while( pc->lpFirstPending )
@@ -1784,6 +1787,9 @@ int CPROC ProcessNetworkMessages( struct peer_thread_info *thread, uintptr_t unu
 			struct event_data *event_data;
 			THREAD_ID prior = 0;
 			PCLIENT next;
+#  ifdef LOG_NETWORK_EVENT_THREAD
+			lprintf( "process %d events", cnt );
+#  endif
 			for( n = 0; n < cnt; n++ ) {
 #  ifdef __MAC__
 				pc = (PCLIENT)events[n].udata;
@@ -1802,9 +1808,21 @@ int CPROC ProcessNetworkMessages( struct peer_thread_info *thread, uintptr_t unu
 					return 1;
 				}
 				while( !NetworkLock( event_data->pc ) ) {
+					if( !(event_data->pc->dwFlags & CF_ACTIVE ) ) {
+#  ifdef LOG_NETWORK_EVENT_THREAD
+						lprintf( "failed lock dwFlags : %8x", event_data->pc->dwFlags );
+#  endif
+						break;
+					}
 					if( event_data->pc->dwFlags & CF_AVAILABLE )
                   break;
 					Relinquish();
+				}
+				if( !(event_data->pc->dwFlags & CF_ACTIVE ) ) {
+#  ifdef LOG_NETWORK_EVENT_THREAD
+					lprintf( "not active but locked? dwFlags : %8x", event_data->pc->dwFlags );
+#  endif
+					continue;
 				}
 				if( event_data->pc->dwFlags & CF_AVAILABLE )
 					continue;
@@ -1820,7 +1838,9 @@ int CPROC ProcessNetworkMessages( struct peer_thread_info *thread, uintptr_t unu
 				if( events[n].events & EPOLLIN )
 #  endif
 				{
-					//lprintf( "EPOLLIN/EVFILT_READ" );
+#  ifdef LOG_NETWORK_EVENT_THREAD
+					lprintf( "EPOLLIN/EVFILT_READ" );
+#  endif
 					if( !(event_data->pc->dwFlags & CF_ACTIVE) )
 					{
 						// change to inactive status by the time we got here...
@@ -1853,14 +1873,16 @@ int CPROC ProcessNetworkMessages( struct peer_thread_info *thread, uintptr_t unu
 					}
 					else if( event_data->pc->dwFlags & CF_READPENDING )
 					{
+						size_t read;
 #ifdef LOG_NOTICES
 						if( globalNetworkData.flags.bLogNotices )
 							lprintf( WIDE( "TCP Read Event..." ) );
 #endif
 						// packet oriented things may probably be reading only
 						// partial messages at a time...
-						FinishPendingRead( event_data->pc DBG_SRC );
-						if( event_data->pc->dwFlags & CF_TOCLOSE )
+						read = FinishPendingRead( event_data->pc DBG_SRC );
+                  //lprintf( "Read %d", read );
+						if( ( read == -1 ) && ( event_data->pc->dwFlags & CF_TOCLOSE ) )
 						{
 //#ifdef LOG_NOTICES
 //							if( globalNetworkData.flags.bLogNotices )
@@ -1888,9 +1910,13 @@ int CPROC ProcessNetworkMessages( struct peer_thread_info *thread, uintptr_t unu
 				if( events[n].events & EPOLLOUT )
 #  endif
 				{
-					//lprintf( "EPOLLOUT" );
+#  ifdef LOG_NETWORK_EVENT_THREAD
+					lprintf( "EPOLLOUT %s", ( event_data->pc->dwFlags & CF_CONNECTING )?"connecting"
+							  :( !(event_data->pc->dwFlags & CF_ACTIVE) )?"closed":"writing" );
+#  endif
 					if( !(event_data->pc->dwFlags & CF_ACTIVE) )
 					{
+						//lprintf( "FLAGS IS NOT ACTIVE BUT: %x", event_data->pc->dwFlags );
 						// change to inactive status by the time we got here...
 					}
 					else if( event_data->pc->dwFlags & CF_CONNECTING )
@@ -3328,7 +3354,8 @@ void InternalRemoveClientExx(PCLIENT lpClient, LOGICAL bBlockNotify, LOGICAL bLi
 				struct linger lingerSet;
 				lingerSet.l_onoff = 1; // on , with no time = off.
 				lingerSet.l_linger = 0; // 0 timeout sends reset.
-				// set server to allow reuse of socket port
+										 // set server to allow reuse of socket port
+            //lprintf( "Set no linger" );
 				if (setsockopt(lpClient->Socket, SOL_SOCKET, SO_LINGER,
 									(char*)&lingerSet, sizeof(lingerSet)) <0 )
 				{
@@ -3341,9 +3368,10 @@ void InternalRemoveClientExx(PCLIENT lpClient, LOGICAL bBlockNotify, LOGICAL bLi
 //#if 0
 			struct linger lingerSet;
 			// linger ON causes delay on close... otherwise close returns immediately
-			lingerSet.l_onoff = 0; // on , with no time = off.
+			lingerSet.l_onoff = 1; // on , with no time = off.
 			lingerSet.l_linger = 2;
 			// set server to allow reuse of socket port
+            lprintf( "Set 2 second linger" );
 			if( setsockopt( lpClient->Socket, SOL_SOCKET, SO_LINGER,
 				(char*)&lingerSet, sizeof( lingerSet ) ) <0 )
 			{
@@ -3461,10 +3489,20 @@ void RemoveClientExx(PCLIENT lpClient, LOGICAL bBlockNotify, LOGICAL bLinger DBG
 #ifdef _WIN32
 #  define SHUT_WR SD_SEND
 #endif
-	shutdown( lpClient->Socket, SHUT_WR );
-
-	//InternalRemoveClientExx( lpClient, bBlockNotify, bLinger DBG_RELAY );
-	//TerminateClosedClient( lpClient );
+	if( !lpClient ) return;
+#if 0
+	if( !( lpClient->dwFlags & CF_UDP ) ) {
+		lprintf( "TRIGGER SHUTDOWN WRITES" );
+		shutdown( lpClient->Socket, SHUT_WR );
+	} else
+#endif
+	{
+	  	// UDP still needs to be done this way...
+		//
+		//lprintf( "UDP DO NORMAL CLOSE" );
+		InternalRemoveClientExx( lpClient, bBlockNotify, bLinger DBG_RELAY );
+		TerminateClosedClient( lpClient );
+	}
 }
 
 CTEXTSTR GetSystemName( void )
