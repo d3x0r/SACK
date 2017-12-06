@@ -945,6 +945,14 @@ struct internalCert * MakeRequest( void )
 	return cert;
 } 
 
+#ifdef __LINUX__
+void loadSystemCerts( X509_STORE *store )
+{
+   return;
+}
+#endif
+
+
 #ifdef _WIN32
 
 #define MY_ENCODING_TYPE  (PKCS_7_ASN_ENCODING | X509_ASN_ENCODING)
