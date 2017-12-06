@@ -180,7 +180,9 @@ static void CPROC WebSocketClientReceive( PCLIENT pc, POINTER buffer, size_t len
 		// process buffer?
 
 	}
-	ReadTCP( pc, buffer, 4096 );
+	if( !websock->input_state.flags.use_ssl ) {
+		ReadTCP( pc, buffer, 4096 );
+	}
 }
 
 static void CPROC WebSocketClientClosed( PCLIENT pc )

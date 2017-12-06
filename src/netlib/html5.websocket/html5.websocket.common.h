@@ -45,6 +45,7 @@ struct web_socket_input_state
 	size_t fragment_collection_avail;
 	size_t fragment_collection_length;
 	size_t fragment_collection_index;  // used for selecting mask byte
+	size_t fragment_collection_buffer_size;
 	uint8_t* fragment_collection;
 
 	LOGICAL final;
@@ -97,7 +98,7 @@ struct web_socket_client
 	{
 		BIT_FIELD connected : 1; // if not connected, then parse data as http, otherwise process as websock protocol.
 		BIT_FIELD want_close : 1; // schedule to close
-		BIT_FIELD use_ssl : 1;
+		//BIT_FIELD use_ssl : 1;
 	} flags;
 	PCLIENT pc;
 

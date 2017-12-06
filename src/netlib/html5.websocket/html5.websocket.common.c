@@ -172,9 +172,11 @@ void SendWebSocketMessage( PCLIENT pc, int opcode, int final, int do_mask, const
 
 static void ResetInputState( WebSocketInputState websock )
 {
+	//lprintf( "Reset input state?" );
 	websock->input_msg_state = 0;
 	websock->final = 0;
 	websock->mask = 0;
+	websock->fragment_collection_avail = 0; 
 	websock->fragment_collection_index = 0; // mask index counter
 	websock->input_type = 0; // assume text input; binary will set flag opposite
 
@@ -215,6 +217,7 @@ static int CPROC inflateBackOutput( void* state, unsigned char *output, unsigned
 void ProcessWebSockProtocol( WebSocketInputState websock, PCLIENT pc, const uint8_t* msg, size_t length )
 {
 	size_t n;
+	//lprintf( "Process packet: %d", length );
 	for( n = 0; n < length; n++ )
 	{
 		switch( websock->input_msg_state )
@@ -311,22 +314,26 @@ void ProcessWebSockProtocol( WebSocketInputState websock, PCLIENT pc, const uint
 		case 16: // extended data or application data byte 1.
 			// might have already collected fragments (non final packets, so increase the full buffer )
 			// first byte of data, check we have enough room for the remaining bytes; the frame_length is valid now.
+			//lprintf( "Received... and need %d  %d  %d", websock->fragment_collection_avail, websock->fragment_collection_length, websock->frame_length, websock->fragment_collection_length + websock->frame_length );
 			if( websock->fragment_collection_avail < ( websock->fragment_collection_length + websock->frame_length ) )
 			{
 				uint8_t* new_fragbuf;
 				websock->fragment_collection_avail += websock->frame_length;
-				new_fragbuf = (uint8_t*)Allocate( websock->fragment_collection_avail );
-				if( websock->fragment_collection_length )
-					MemCpy( new_fragbuf, websock->fragment_collection, websock->fragment_collection_length );
-				Deallocate( uint8_t*, websock->fragment_collection );
-				websock->fragment_collection = new_fragbuf;
+				if( websock->fragment_collection_avail > websock->fragment_collection_buffer_size ) {
+					new_fragbuf = (uint8_t*)Allocate( websock->fragment_collection_avail * 2 );
+					if( websock->fragment_collection_length )
+						MemCpy( new_fragbuf, websock->fragment_collection, websock->fragment_collection_length );
+					Deallocate( uint8_t*, websock->fragment_collection );
+					websock->fragment_collection = new_fragbuf;
+					websock->fragment_collection_buffer_size = websock->fragment_collection_avail * 2;
+				}
 				websock->fragment_collection_index = 0; // start with mask byte 0 on this new packet
 			}
 			websock->input_msg_state++;
 			// fall through, no break statement; add the byte to the buffer
 		case 17:
 			// if there was no data, then there's nothing to demask
-			if( websock->fragment_collection && (websock->fragment_collection_length < websock->frame_length) )
+			if( websock->fragment_collection && (websock->fragment_collection_length < websock->fragment_collection_avail) )
 			{
 				websock->fragment_collection[websock->fragment_collection_length++]
 					= msg[n] ^ websock->mask_key[(websock->fragment_collection_index++) % 4];
@@ -334,10 +341,9 @@ void ProcessWebSockProtocol( WebSocketInputState websock, PCLIENT pc, const uint
 
 			// if final packet, and we have all the bytes for this packet
 			// dispatch the opcode.
-			if( websock->final && ( websock->fragment_collection_length == websock->frame_length ) )
+			if( websock->final && ( websock->fragment_collection_length == websock->fragment_collection_avail) )
 			{
-				//lprintf( WIDE("Final: %d  opcode %d  mask %d length %Ld ")
-				//		 , websock->final, websock->opcode, websock->mask, websock->frame_length );
+				//lprintf( "Final: %d  opcode %d  length %d ", websock->final, websock->opcode, websock->fragment_collection_length );
 				websock->last_reception = timeGetTime();
 
 				switch( websock->opcode )
@@ -459,9 +465,14 @@ void ProcessWebSockProtocol( WebSocketInputState websock, PCLIENT pc, const uint
 				}
 				// after processing any opcode (this is IN final, and length match) we're done, start next message
 				ResetInputState( websock );
+			} else if( websock->fragment_collection_length == websock->fragment_collection_avail ) {
+				//lprintf( "Completed packet; still not final fragment though.... %d", websock->fragment_collection_avail );
+				websock->input_msg_state = 0;
 			}
 			break;
 		}
+
+
 	}
 }
 
