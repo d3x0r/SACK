@@ -1267,7 +1267,7 @@ static void CPROC SummonerReadComplete( PCLIENT pc, POINTER buffer, size_t len )
 		struct summonerMessage {
 			int op;
 			union {
-				char requirement[];
+				char requirement[1];
 			} data;	
 		} *msg = (struct summonerMessage*)buffer;
 		
