@@ -398,16 +398,16 @@ size_t StrLen( CTEXTSTR s )
 	size_t l;
 	if( !s )
 		return 0;
-	for( l = 0; s[l];l++);
+	for( l = 0; s[0];l++, s++);
 	return l;	
 }
 
-size_t CStrLen( char const*const s )
+size_t CStrLen( char const* s )
 {
 	size_t l;
 	if( !s )
 		return 0;
-	for( l = 0; s[l];l++);
+	for( l = 0; s[0];l++,s++);
 	return l;	
 }
 
