@@ -3,7 +3,9 @@ cmake_minimum_required(VERSION 3.0)
 include( ${SACK_BASE}/makefiles/cmake/DefaultInstall.cmake )
 include_directories( ${SACK_BASE}/include )
 STRING( REPLACE " " ";" PLATFORM_LIBRARIES ${PLATFORM_LIBRARIES} )
+if( PLATFORM_DEFINES )
 STRING( REPLACE " " ";" PLATFORM_DEFINES ${PLATFORM_DEFINES} )
+endif()
 add_definitions( ${PLATFORM_DEFINES} )
 
 
@@ -26,6 +28,12 @@ string( REGEX REPLACE "library clbrdll.lib" "" CMAKE_C_STANDARD_LIBRARIES "${CMA
 string( REGEX REPLACE "library plbrdll.lib" "" CMAKE_C_STANDARD_LIBRARIES "${CMAKE_C_STANDARD_LIBRARIES}" )
 endif( WATCOM )
 
+set(  CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -D_DEBUG -D_DEBUG_INFO" )
+# visual studio headers change with _DEBUG defined... so it can't be release with _DEBUG defined
+set(  CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO} -D_DEBUG_INFO" )
+set(  CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -D_DEBUG -D_DEBUG_INFO" )
+# visual studio headers change with _DEBUG defined... so it can't be release with _DEBUG defined
+set(  CMAKE_C_FLAGS_RELWITHDEBINFO "${CMAKE_C_FLAGS_RELWITHDEBINFO} -D_DEBUG_INFO" )
 
 
 set( project sack_vfs_runner_sfx )
