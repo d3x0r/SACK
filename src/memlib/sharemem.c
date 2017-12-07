@@ -105,7 +105,7 @@ static uintptr_t masks[33] = { makeULong(0), makeULong(0), makeULong(1), 0, make
 #define SYSTEM_CAPACITY  g.dwSystemCapacity
 
 
-#define MALLOC_CHUNK_SIZE(pData) ( ( (pData)?( (uint16_t*)(pData))[-1]:0 ) + offsetof( MALLOC_CHUNK, byData ) )
+#define MALLOC_CHUNK_SIZE(pData) ( (pData)?( ( ( (uint16_t*)(pData))[-1] ) + offsetof( MALLOC_CHUNK, byData ) ):0 )
 //#define CHUNK_SIZE(pData) ( ( (pData)?( (uint16_t*)(pData))[-1]:0 ) +offsetof( CHUNK, byData ) ) )
 #define CHUNK_SIZE ( offsetof( CHUNK, byData ) )
 #define MEM_SIZE  ( offsetof( MEM, pRoot ) )
@@ -1976,13 +1976,13 @@ POINTER HeapAllocateAlignedEx( PMEM pHeap, uintptr_t dwSize, uint16_t alignment 
 	{
 		PMALLOC_CHUNK pc;
 #ifdef ENABLE_NATIVE_MALLOC_PROTECTOR
-		pc = (PMALLOC_CHUNK)malloc( sizeof( MALLOC_CHUNK ) + alignment + dwSize + sizeof( pc->LeadProtect ) );
+		pc = (PMALLOC_CHUNK)malloc( sizeof( MALLOC_CHUNK ) - 1 + alignment + dwSize + sizeof( pc->LeadProtect ) );
 		if( !pc )
 			DebugBreak();
 		MemSet( pc->LeadProtect, LEAD_PROTECT_TAG, sizeof( pc->LeadProtect ) );
 		MemSet( pc->byData + dwSize, LEAD_PROTECT_BLOCK_TAIL, sizeof( pc->LeadProtect ) );
 #else
-		pc = (PMALLOC_CHUNK)malloc( sizeof( MALLOC_CHUNK ) + dwSize );
+		pc = (PMALLOC_CHUNK)malloc( sizeof( MALLOC_CHUNK ) - 1 + dwSize );
 #endif
 		pc->dwOwners = 1;
 		pc->dwSize = dwSize;
@@ -2348,7 +2348,7 @@ static void Bubble( PMEM pMem )
 		}
 		else
 		{
-			PMALLOC_CHUNK pc = (PMALLOC_CHUNK)(((uintptr_t)pData) - (((uint16_t*)pData)[-1] + offsetof( MALLOC_CHUNK, byData )));
+			PMALLOC_CHUNK pc = (PMALLOC_CHUNK)(((uintptr_t)pData) - MALLOC_CHUNK_SIZE(pData));
 			return pc->dwSize - pc->dwPad;
 		}
 	}
@@ -2404,8 +2404,7 @@ POINTER ReleaseEx ( POINTER pData DBG_PASS )
 		if( !USE_CUSTOM_ALLOCER )
 		{
 			//PMEM pMem = (PMEM)(pData - offsetof( MEM, pRoot ));
-			PMALLOC_CHUNK pc = (PMALLOC_CHUNK)(((uintptr_t)pData) - ( ((uint16_t*)pData)[-1] +
-													offsetof( MALLOC_CHUNK, byData ) ) );
+			PMALLOC_CHUNK pc = (PMALLOC_CHUNK)(((uintptr_t)pData) - MALLOC_CHUNK_SIZE(pData) );
 			pc->dwOwners--;
 			if( !pc->dwOwners )
 			{
@@ -2700,7 +2699,7 @@ POINTER ReleaseEx ( POINTER pData DBG_PASS )
 	{
 		if( !USE_CUSTOM_ALLOCER )
 		{
-			PMALLOC_CHUNK pc = (PMALLOC_CHUNK)((char*)pData - MALLOC_CHUNK_SIZE(pData));
+			PMALLOC_CHUNK pc = (PMALLOC_CHUNK)((uintptr_t)pData - MALLOC_CHUNK_SIZE(pData));
 			//ll__lprintf( DBG_RELAY )( "holding block %p", pc );
 #ifndef NO_LOGGING
 			if( g.bLogAllocate && g.bLogAllocateWithHold )
