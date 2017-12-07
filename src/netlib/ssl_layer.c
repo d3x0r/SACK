@@ -4,6 +4,7 @@
 #include <stdhdrs.h>
 #ifdef _WIN32
 #  include <wincrypt.h>
+#  include <prsht.h>
 #  include <cryptuiapi.h>
 #endif
 #include <deadstart.h>

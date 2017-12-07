@@ -2053,6 +2053,7 @@ uintptr_t CPROC NetworkThreadProc( PTHREAD thread )
 		globalNetworkData.flags.bThreadInitOkay = TRUE;
 #endif
 	}
+	memset( &this_thread, 0, sizeof( this_thread ) );
 
 	this_thread.monitor_list = NULL;
 #ifdef _WIN32
