@@ -866,7 +866,7 @@ int FinishPendingRead(PCLIENT lpClient DBG_PASS )  // only time this should be c
 #ifdef VERBOSE_DEBUG
 			lprintf( WIDE( "Finsih pending - return, not connected." ) );
 #endif
-			return lpClient->RecvPending.dwUsed; // amount of data available...
+			return (int)lpClient->RecvPending.dwUsed; // amount of data available...
 		}
 		//lprintf( WIDE(WIDE( "FinishPendingRead of %d" )), lpClient->RecvPending.dwAvail );
 		if( !( lpClient->dwFlags & CF_READPENDING ) )
@@ -895,7 +895,7 @@ int FinishPendingRead(PCLIENT lpClient DBG_PASS )  // only time this should be c
 				case WSAEWOULDBLOCK: // no data avail yet...
 					//lprintf( WIDE("Pending Receive would block...") );
 					lpClient->dwFlags &= ~CF_READREADY;
-					return lpClient->RecvPending.dwAvail;
+					return (int)lpClient->RecvPending.dwUsed;
 #ifdef __LINUX__
 				case ECONNRESET:
 #else
@@ -1223,13 +1223,13 @@ int TCPWriteEx(PCLIENT pc DBG_PASS)
 							 pc->lpFirstPending->dwUsed,
 							 (int)pc->lpFirstPending->dwAvail );
 			}
-         //lprintf( "Try to send... %d  %d", pc->lpFirstPending->dwUsed, pc->lpFirstPending->dwAvail );
+			//lprintf( "Try to send... %d  %d", pc->lpFirstPending->dwUsed, pc->lpFirstPending->dwAvail );
 			nSent = send(pc->Socket,
 							 (char*)pc->lpFirstPending->buffer.c +
 							 pc->lpFirstPending->dwUsed,
 							 (int)pc->lpFirstPending->dwAvail,
 							 0);
-         //lprintf( "sent... %d", nSent );
+			//lprintf( "sent... %d", nSent );
 			if( nSent < (int)pc->lpFirstPending->dwAvail ) {
 				//pc->lpFirstPending->dwUsed += nSent;
 				//pc->lpFirstPending->dwAvail -= nSent;
