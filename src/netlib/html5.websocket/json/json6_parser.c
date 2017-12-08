@@ -483,14 +483,15 @@ int json6_parse_add_data( struct json_parse_state *state
 						//state->val.stringLen = output->pos - state->val.string;
 						//lprintf( "Set string length:%d", state->val.stringLen );
 					}
-					(*output->pos++) = 0;
+					if( !( state->val.value_type == VALUE_STRING ) )
+						(*output->pos++) = 0;
 					state->word = WORD_POS_RESET;
 					if( state->val.name ) {
 						if( !state->pvtError ) state->pvtError = VarTextCreate();
 						vtprintf( state->pvtError, "two names single value?" );
 					}
 					state->val.name = state->val.string;
-					state->val.nameLen = state->val.stringLen;
+					state->val.nameLen = ( output->pos - state->val.string ) - 1;
 					state->val.string = NULL;
 					state->val.stringLen = 0;
 					state->parse_context = CONTEXT_OBJECT_FIELD_VALUE;

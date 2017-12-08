@@ -360,7 +360,7 @@ int json_parse_add_data( struct json_parse_state *state
 			offset = (output->pos - output->buf);
 			offset2 = state->val.string - output->buf;
 			AddLink( &state->outValBuffers, output->buf );
-			output->buf = NewArray( char, output->size + msglen );
+			output->buf = NewArray( char, output->size + msglen + 1 );
 			MemCpy( output->buf + offset2, state->val.string, offset-offset2 );
 			output->size += msglen;
 			//lprintf( "previous val:%s", state->val.string, state->val.string );
@@ -370,7 +370,7 @@ int json_parse_add_data( struct json_parse_state *state
 		}
 		else {
 			output = (struct json_output_buffer*)GetFromSet( PARSE_BUFFER, &jpsd.parseBuffers );
-			output->pos = output->buf = NewArray( char, msglen );
+			output->pos = output->buf = NewArray( char, msglen + 1 );
 			output->size = msglen;
 			EnqueLink( &state->outQueue, output );
 		}
@@ -390,7 +390,7 @@ int json_parse_add_data( struct json_parse_state *state
 			{
 				state->gatheringString = FALSE;
 				state->n = input->pos - input->buf;
-				//state->val.stringLen = output->pos - state->val.string;
+				state->val.stringLen = ( output->pos - state->val.string ) - 1;
 				if( state->status ) state->val.value_type = VALUE_STRING;
 			}
 			else {
@@ -562,7 +562,7 @@ int json_parse_add_data( struct json_parse_state *state
 						state->status = FALSE;
 					else if( string_status > 0 ) {
 						state->gatheringString = FALSE;
-						state->val.stringLen = output->pos - state->val.string;
+						state->val.stringLen = ( output->pos - state->val.string ) - 1;
 					} else if( state->complete_at_end ) {
 						if( !state->pvtError ) state->pvtError = VarTextCreate();
 						vtprintf( state->pvtError, "End of string fail." );
@@ -571,7 +571,6 @@ int json_parse_add_data( struct json_parse_state *state
 					state->n = input->pos - input->buf;
 
 					if( state->status ) {
-						//state->val.stringLen = output->pos - state->val.string;
 						state->val.value_type = VALUE_STRING;
 						state->word = WORD_POS_END;
 						if( state->complete_at_end ) {
@@ -777,8 +776,8 @@ int json_parse_add_data( struct json_parse_state *state
 								}
 								*/
 								//lprintf( "Non numeric character received; push the value we have" );
-								(*output->pos) = 0;
-								state->val.stringLen = output->pos - state->val.string;
+								(*output->pos++) = 0;
+								state->val.stringLen = ( output->pos - state->val.string ) - 1;
 								break;
 							}
 						}
@@ -797,7 +796,7 @@ int json_parse_add_data( struct json_parse_state *state
 						{
 							state->gatheringNumber = FALSE;
 							(*output->pos++) = 0;
-							state->val.stringLen = output->pos - state->val.string;
+							state->val.stringLen = ( output->pos - state->val.string ) - 1;
 
 							if( state->val.float_result )
 							{
