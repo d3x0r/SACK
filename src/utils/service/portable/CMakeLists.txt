@@ -3,7 +3,9 @@ cmake_minimum_required(VERSION 2.8)
 include( ${SACK_BASE}/makefiles/cmake/DefaultInstall.cmake )
 include_directories( ${SACK_BASE}/include )
 STRING( REPLACE " " ";" PLATFORM_LIBRARIES ${PLATFORM_LIBRARIES} )
+if( PLATFORM_DEFINES )
 STRING( REPLACE " " ";" PLATFORM_DEFINES ${PLATFORM_DEFINES} )
+endif()
 add_definitions( ${PLATFORM_DEFINES} )
 
 foreach(flag_var
@@ -20,6 +22,12 @@ foreach(flag_var
    endif(${flag_var} MATCHES "-br")
 endforeach(flag_var)
 
+set(  CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -D_DEBUG -D_DEBUG_INFO" )
+# visual studio headers change with _DEBUG defined... so it can't be release with _DEBUG defined
+set(  CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO} -D_DEBUG_INFO" )
+set(  CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -D_DEBUG -D_DEBUG_INFO" )
+# visual studio headers change with _DEBUG defined... so it can't be release with _DEBUG defined
+set(  CMAKE_C_FLAGS_RELWITHDEBINFO "${CMAKE_C_FLAGS_RELWITHDEBINFO} -D_DEBUG_INFO" )
 
 project( service_test.portable )
 
