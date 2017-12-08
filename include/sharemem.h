@@ -877,7 +877,7 @@ MEM_PROC  size_t MEM_API  StrLen ( CTEXTSTR s );
    
    Returns
    the length of s. If s is NULL, return 0. */
-MEM_PROC  size_t MEM_API  CStrLen ( char const*const s );
+MEM_PROC  size_t MEM_API  CStrLen ( char const*s );
 
 
 /* Finds the last instance of a character in a string.

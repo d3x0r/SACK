@@ -24,7 +24,11 @@ typedef struct render_3d_interface_tag
 	ID3D11RenderTargetView *current_target;
 	IDXGISwapChain *current_chain;
 #endif
+
+   RENDER_PROC_PTR( struct cmdBuf *, getCommandBuffer )( void );
+
 } RENDER3D_INTERFACE, *PRENDER3D_INTERFACE;
+
 
 #if defined( _D3D_DRIVER ) || defined( _D3D10_DRIVER ) || defined( _D3D11_DRIVER )
 #define g_d3d_device  (USE_RENDER3D_INTERFACE)->current_device
