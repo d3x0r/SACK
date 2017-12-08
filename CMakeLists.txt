@@ -385,7 +385,7 @@ if( NOT NEED_PNG )
 endif( NOT NEED_PNG )
 
 if( WIN32 )
-	set( WIN_CRYPT_LIBS crypt32 cryptui )
+	set( WIN_CRYPT_LIBS crypt32 )
 endif( WIN32 )
 
 if( WIN32 AND MINGW )
