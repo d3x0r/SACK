@@ -409,14 +409,11 @@ int json_parse_add_data( struct json_parse_state *state
 			case '{':
 			{
 				struct json_parse_context *old_context = GetFromSet( PARSE_CONTEXT, &jpsd.parseContexts );
-				state->val.value_type = VALUE_OBJECT;
-				state->val.contains = CreateDataList( sizeof( state->val ) );
-
-				AddDataItem( &state->elements, &state->val );
-
 				old_context->context = state->parse_context;
 				old_context->elements = state->elements;
-				state->elements = state->val.contains;
+				old_context->name = state->val.name;
+				old_context->nameLen = state->val.nameLen;
+				state->elements = CreateDataList( sizeof( state->val ) );
 				PushLink( &state->context_stack, old_context );
 				RESET_STATE_VAL();
 				state->parse_context = CONTEXT_IN_OBJECT;
@@ -426,14 +423,11 @@ int json_parse_add_data( struct json_parse_state *state
 			case '[':
 			{
 				struct json_parse_context *old_context = GetFromSet( PARSE_CONTEXT, &jpsd.parseContexts );
-
-				state->val.value_type = VALUE_ARRAY;
-				state->val.contains = CreateDataList( sizeof( state->val ) );
-				AddDataItem( &state->elements, &state->val );
-
 				old_context->context = state->parse_context;
 				old_context->elements = state->elements;
-				state->elements = state->val.contains;
+				old_context->name = state->val.name;
+				old_context->nameLen = state->val.nameLen;
+				state->elements = CreateDataList( sizeof( state->val ) );
 				PushLink( &state->context_stack, old_context );
 
 				RESET_STATE_VAL();
@@ -448,9 +442,8 @@ int json_parse_add_data( struct json_parse_state *state
 						lprintf( "two names single value?" );
 					}
 					state->val.name = state->val.string;
-					//state->val.nameLen = state->val.stringLen;
+					state->val.nameLen = state->val.stringLen;
 					state->val.string = NULL;
-
 					state->val.value_type = VALUE_UNSET;
 				}
 				else
@@ -471,21 +464,25 @@ int json_parse_add_data( struct json_parse_state *state
 					// allow starting a new word
 					state->word = WORD_POS_RESET;
 				}
-				if( state->parse_context == CONTEXT_IN_OBJECT )
+				if( state->parse_context == CONTEXT_IN_OBJECT || state->parse_context == CONTEXT_OBJECT_FIELD_VALUE )
 				{
 					// first, add the last value
 					if( state->val.value_type != VALUE_UNSET ) {
 						AddDataItem( &state->elements, &state->val );
 					}
-					RESET_STATE_VAL();
-
+					//RESET_STATE_VAL();
+					state->val.value_type = VALUE_OBJECT;
+					state->val.contains = state->elements;
+					state->val.string = NULL;
 					{
 						struct json_parse_context *old_context = (struct json_parse_context *)PopLink( &state->context_stack );
-						struct json_value_container *oldVal = (struct json_value_container *)GetDataItem( &old_context->elements, old_context->elements->Cnt - 1 );
-						oldVal->contains = state->elements;  // save updated elements list in the old value in the last pushed list.
+						//struct json_value_container *oldVal = (struct json_value_container *)GetDataItem( &old_context->elements, old_context->elements->Cnt - 1 );
+						//oldVal->contains = state->elements;  // save updated elements list in the old value in the last pushed list.
 
 						state->parse_context = old_context->context;
 						state->elements = old_context->elements;
+						state->val.name = old_context->name;
+						state->val.nameLen = old_context->nameLen;
 						DeleteFromSet( PARSE_CONTEXT, jpsd.parseContexts, old_context );
 
 					}
@@ -508,14 +505,19 @@ int json_parse_add_data( struct json_parse_state *state
 					if( state->val.value_type != VALUE_UNSET ) {
 						AddDataItem( &state->elements, &state->val );
 					}
-					RESET_STATE_VAL();
+					//RESET_STATE_VAL();
+					state->val.value_type = VALUE_ARRAY;
+					state->val.contains = state->elements;
+					state->val.string = NULL;
 					{
 						struct json_parse_context *old_context = (struct json_parse_context *)PopLink( &state->context_stack );
-						struct json_value_container *oldVal = (struct json_value_container *)GetDataItem( &old_context->elements, old_context->elements->Cnt - 1 );
-						oldVal->contains = state->elements;  // save updated elements list in the old value in the last pushed list.
+						//struct json_value_container *oldVal = (struct json_value_container *)GetDataItem( &old_context->elements, old_context->elements->Cnt - 1 );
+						//oldVal->contains = state->elements;  // save updated elements list in the old value in the last pushed list.
 
 						state->parse_context = old_context->context;
 						state->elements = old_context->elements;
+						state->val.name = old_context->name;
+						state->val.nameLen = old_context->nameLen;
 						DeleteFromSet( PARSE_CONTEXT, jpsd.parseContexts, old_context );
 					}
 				}

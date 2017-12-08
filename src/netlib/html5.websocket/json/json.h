@@ -92,7 +92,8 @@ enum parse_context_modes {
 struct json_parse_context {
 	enum parse_context_modes context;
 	PDATALIST elements;
-	
+	char *name;	
+	size_t nameLen;	
 	struct json_context_object *object;
 };
 
