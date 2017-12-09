@@ -24,6 +24,7 @@ CHAT_CONTROL_PROC( void, Chat_SetDropInputHandler )( PSI_CONTROL pc, LOGICAL (CP
 CHAT_CONTROL_PROC( void, Chat_SetSeenCallback )( PSI_CONTROL pc, void (CPROC *Handler)( uintptr_t psv ), void (CPROC *DeleteHandler)( uintptr_t psv ) ); // psv comes from enque message/image
 CHAT_CONTROL_PROC( void, Chat_SetSeenImageCallback )( PSI_CONTROL pc, void (CPROC *Handler)( uintptr_t psv, Image ), void (CPROC *DeleteHandler)( uintptr_t psv, Image ) );
 CHAT_CONTROL_PROC( void, Chat_SetExpire )( PSI_CONTROL pc, int delta_seconds );
+CHAT_CONTROL_PROC( void, Chat_ChangeMessageContent )( struct chat_widget_message *msg, CTEXTSTR text );
 
 CHAT_CONTROL_PROC( struct chat_widget_message*, Chat_EnqueMessage )( PSI_CONTROL pc, LOGICAL sent
 							 , PCHAT_TIME sent_time

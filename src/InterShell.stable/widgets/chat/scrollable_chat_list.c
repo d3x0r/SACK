@@ -775,6 +775,13 @@ void Chat_ClearMessages( PSI_CONTROL pc )
 	}
 }
 
+void Chat_ChangeMessageContent( struct chat_widget_message *msg, CTEXTSTR text ) {
+	msg->text = StrDup( text );
+	if( msg->formatted_text ) {
+		Release( msg->formatted_text );
+		msg->formatted_text = NULL;
+	}
+}
 
 PCHAT_MESSAGE  Chat_EnqueMessage( PSI_CONTROL pc, LOGICAL sent
 							 , PCHAT_TIME sent_time
@@ -1210,7 +1217,8 @@ uint32_t UpdateContextExtents( Image window, PCHAT_LIST list, PCHAT_CONTEXT cont
 	else
 		context->sender_width = 0;
 
-	//lprintf( WIDE("BEgin draw messages...") );
+	//lprintf( WIDE("Begin formatting messages...") );
+	frame_height = 0;
 	for( message_idx = -1; msg = (PCHAT_MESSAGE)PeekQueueEx( context->messages, message_idx ); message_idx-- )
 	{
 		if( msg->deleted )
@@ -1247,7 +1255,6 @@ uint32_t UpdateContextExtents( Image window, PCHAT_LIST list, PCHAT_CONTEXT cont
 				}
 		}
 		frame_height += ((message_idx<-1)?l.context_message_pad:0);
-		//lprintf( "after format %d is %s", frame_height, msg->text );
 		msg->_message_y = frame_height;
 
 		if( context->sent )
