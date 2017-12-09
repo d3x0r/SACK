@@ -272,7 +272,7 @@
 #  endif
 
 #  ifndef PNG_IMPEXP
-#    define PNG_IMPEXP
+#    define PNG_IMPEXP PNG_DLL_EXPORT
 #  endif
 #endif
 
