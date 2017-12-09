@@ -64,10 +64,11 @@ struct web_socket_input_state
 	web_socket_error on_error;
 	web_socket_accept on_accept;  // server socket event
 	web_socket_http_request on_request;
+	web_socket_completion on_fragment_done;
 	uintptr_t psv_on;
 	uintptr_t psv_open; // result of the open, to pass to read
 	int close_code;
-   char *close_reason;
+	char *close_reason;
 };
 
 EXTERN void SendWebSocketMessage( PCLIENT pc, int opcode, int final, int do_mask, const uint8_t* payload, size_t length, int use_ssl );

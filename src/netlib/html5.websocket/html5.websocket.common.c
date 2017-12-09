@@ -468,11 +468,11 @@ void ProcessWebSockProtocol( WebSocketInputState websock, PCLIENT pc, const uint
 			} else if( websock->fragment_collection_length == websock->fragment_collection_avail ) {
 				//lprintf( "Completed packet; still not final fragment though.... %d", websock->fragment_collection_avail );
 				websock->input_msg_state = 0;
+				if( websock->on_fragment_done )
+					websock->on_fragment_done( pc, websock->psv_open, websock->input_type, websock->fragment_collection_length );
 			}
 			break;
 		}
-
-
 	}
 }
 
@@ -611,3 +611,9 @@ void SetWebSocketMasking( PCLIENT pc, int enable ) {
 	}
 }
 
+void SetWebSocketDataCompletion( PCLIENT pc, web_socket_completion callback ) {
+	if( pc ) {
+		struct web_socket_input_state *input_state = (struct web_socket_input_state*)GetNetworkLong( pc, 1 );
+		input_state->on_fragment_done = callback;
+	}
+}
