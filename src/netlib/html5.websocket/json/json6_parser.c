@@ -304,17 +304,17 @@ int json6_parse_add_data( struct json_parse_state *state
 		input = GetFromSet( PARSE_BUFFER, &jpsd.parseBuffers );
 		input->pos = input->buf = msg;
 		input->size = msglen;
-		EnqueLink( &state->inBuffers, input );
+		EnqueLink( state->inBuffers, input );
 
 		if( state->gatheringString || state->gatheringNumber || state->parse_context == CONTEXT_OBJECT_FIELD ) {
 			// have to extend the previous output buffer to include this one instead of allocating a split string.
 			size_t offset;
 			size_t offset2;
-			output = (struct json_output_buffer*)DequeLink( &state->outQueue );
+			output = (struct json_output_buffer*)DequeLink( state->outQueue );
 			//lprintf( "output from before is %p", output );
 			offset = (output->pos - output->buf);
 			offset2 = state->val.string ? (state->val.string - output->buf) : 0;
-			AddLink( &state->outValBuffers, output->buf );
+			AddLink( state->outValBuffers, output->buf );
 			output->buf = NewArray( char, output->size + msglen + 1 );
 			if( state->val.string ) {
 				MemCpy( output->buf + offset2, state->val.string, offset - offset2 );
@@ -323,22 +323,22 @@ int json6_parse_add_data( struct json_parse_state *state
 			output->size += msglen;
 			//lprintf( "previous val:%s", state->val.string, state->val.string );
 			output->pos = output->buf + offset;
-			PrequeLink( &state->outQueue, output );
+			PrequeLink( state->outQueue, output );
 		}
 		else {
 			output = (struct json_output_buffer*)GetFromSet( PARSE_BUFFER, &jpsd.parseBuffers );
 			output->pos = output->buf = NewArray( char, msglen + 1 );
 			output->size = msglen;
-			EnqueLink( &state->outQueue, output );
+			EnqueLink( state->outQueue, output );
 		}
 	}
 	else {
 		// zero length input buffer... terminate a number.
 		if( state->gatheringNumber ) {
 			//console.log( "Force completed.")
-			output = (struct json_output_buffer*)DequeLink( &state->outQueue );
+			output = (struct json_output_buffer*)DequeLink( state->outQueue );
 			output->pos[0] = 0;
-			PushLink( &state->outBuffers, output );
+			PushLink( state->outBuffers, output );
 			state->gatheringNumber = FALSE;
 			//lprintf( "result with number:%s", state->val.string );
 			if( state->val.float_result )
@@ -360,8 +360,8 @@ int json6_parse_add_data( struct json_parse_state *state
 		}
 	}
 
-	while( state->status && ( input = (PPARSE_BUFFER)DequeLink( &state->inBuffers ) ) ) {
-		output = (struct json_output_buffer*)DequeLink( &state->outQueue );
+	while( state->status && ( input = (PPARSE_BUFFER)DequeLink( state->inBuffers ) ) ) {
+		output = (struct json_output_buffer*)DequeLink( state->outQueue );
 		//lprintf( "output is %p", output );
 		state->n = input->pos - input->buf;
 
@@ -436,8 +436,10 @@ int json6_parse_add_data( struct json_parse_state *state
 					old_context->elements = state->elements;
 					old_context->name = state->val.name;
 					old_context->nameLen = state->val.nameLen;
-					state->elements = CreateDataList( sizeof( state->val ) );
-					PushLink( &state->context_stack, old_context );
+					state->elements = GetFromSet( PDATALIST, &jpsd.dataLists );// CreateDataList( sizeof( state->val ) );
+					if( !state->elements[0] ) state->elements[0] = CreateDataList( sizeof( state->val ) );
+					else state->elements[0]->Cnt = 0;
+					PushLink( state->context_stack, old_context );
 					RESET_STATE_VAL();
 					state->parse_context = CONTEXT_OBJECT_FIELD;
 				}
@@ -459,8 +461,10 @@ int json6_parse_add_data( struct json_parse_state *state
 					old_context->elements = state->elements;
 					old_context->name = state->val.name;
 					old_context->nameLen = state->val.nameLen;
-					state->elements = CreateDataList( sizeof( state->val ) );
-					PushLink( &state->context_stack, old_context );
+					state->elements = GetFromSet( PDATALIST, &jpsd.dataLists );// CreateDataList( sizeof( state->val ) );
+					if( !state->elements[0] ) state->elements[0] = CreateDataList( sizeof( state->val ) );
+					else state->elements[0]->Cnt = 0;
+					PushLink( state->context_stack, old_context );
 
 					RESET_STATE_VAL();
 					state->parse_context = CONTEXT_IN_ARRAY;
@@ -519,14 +523,15 @@ int json6_parse_add_data( struct json_parse_state *state
 #endif
 					//if( (state->parse_context == CONTEXT_OBJECT_FIELD_VALUE) )
 					if( state->val.value_type != VALUE_UNSET ) {
-						AddDataItem( &state->elements, &state->val );
+						AddDataItem( state->elements, &state->val );
 					}
 					//RESET_STATE_VAL();
 					state->val.value_type = VALUE_OBJECT;
 					state->val.string = NULL;
-					state->val.contains = state->elements;
+					state->val.contains = state->elements[0];
+					state->val._contains = state->elements;
 					{
-						struct json_parse_context *old_context = (struct json_parse_context *)PopLink( &state->context_stack );
+						struct json_parse_context *old_context = (struct json_parse_context *)PopLink( state->context_stack );
 						//struct json_value_container *oldVal = (struct json_value_container *)GetDataItem( &old_context->elements, old_context->elements->Cnt - 1 );
 						//oldVal->contains = state->elements;  // save updated elements list in the old value in the last pushed list.
 						state->parse_context = old_context->context; // this will restore as IN_ARRAY or OBJECT_FIELD
@@ -557,14 +562,15 @@ int json6_parse_add_data( struct json_parse_state *state
 					lprintf( "close array, push last element: %d", state->val.value_type );
 #endif
 					if( state->val.value_type != VALUE_UNSET ) {
-						AddDataItem( &state->elements, &state->val );
+						AddDataItem( state->elements, &state->val );
 					}
 					state->val.value_type = VALUE_ARRAY;
 					state->val.string = NULL;
-					state->val.contains = state->elements;
+					state->val.contains = state->elements[0];
+					state->val._contains = state->elements;
 
 					{
-						struct json_parse_context *old_context = (struct json_parse_context *)PopLink( &state->context_stack );
+						struct json_parse_context *old_context = (struct json_parse_context *)PopLink( state->context_stack );
 						//struct json_value_container *oldVal = (struct json_value_container *)GetDataItem( &old_context->elements, old_context->elements->Cnt - 1 );
 						//oldVal->contains = state->elements;  // save updated elements list in the old value in the last pushed list.
 
@@ -599,7 +605,7 @@ int json6_parse_add_data( struct json_parse_state *state
 #ifdef _DEBUG_PARSING
 						lprintf( "back in array; push item %d", state->val.value_type );
 #endif
-						AddDataItem( &state->elements, &state->val );
+						AddDataItem( state->elements, &state->val );
 						RESET_STATE_VAL();
 					}
 				}
@@ -611,7 +617,7 @@ int json6_parse_add_data( struct json_parse_state *state
 #endif
 					state->parse_context = CONTEXT_OBJECT_FIELD;
 					if( state->val.value_type != VALUE_UNSET )
-						AddDataItem( &state->elements, &state->val );
+						AddDataItem( state->elements, &state->val );
 					RESET_STATE_VAL();
 				}
 				else
@@ -1128,14 +1134,14 @@ int json6_parse_add_data( struct json_parse_state *state
 				DeleteFromSet( PARSE_BUFFER, jpsd.parseBuffers, input );
 				if( state->gatheringString || state->gatheringNumber || state->parse_context == CONTEXT_OBJECT_FIELD ) {
 					//lprintf( "output is still incomplete? " );
-					PrequeLink( &state->outQueue, output );
+					PrequeLink( state->outQueue, output );
 					retval = 0;
 				}
 				else {
-					PushLink( &state->outBuffers, output );
+					PushLink( state->outBuffers, output );
 					if( state->parse_context == CONTEXT_UNKNOWN
 					  && ( state->val.value_type != VALUE_UNSET
-					     || state->elements->Cnt ) ) {
+					     || state->elements[0]->Cnt ) ) {
 						state->completed = TRUE;
 						retval = 1;
 					}
@@ -1145,8 +1151,8 @@ int json6_parse_add_data( struct json_parse_state *state
 			else {
 				// put these back into the stack.
 				//lprintf( "put buffers back into queues..." );
-				PrequeLink( &state->inBuffers, input );
-				PrequeLink( &state->outQueue, output );
+				PrequeLink( state->inBuffers, input );
+				PrequeLink( state->outQueue, output );
 				retval = 2;  // if returning buffers, then obviously there's more in this one.
 			}
 		}
@@ -1161,7 +1167,7 @@ int json6_parse_add_data( struct json_parse_state *state
 
 	if( state->completed ) {
 		if( state->val.value_type != VALUE_UNSET ) {
-			AddDataItem( &state->elements, &state->val );
+			AddDataItem( state->elements, &state->val );
 			RESET_STATE_VAL();
 		}
 		state->completed = FALSE;
@@ -1170,34 +1176,40 @@ int json6_parse_add_data( struct json_parse_state *state
 }
 
 PDATALIST json_parse_get_data( struct json_parse_state *state ) {
-	PDATALIST result = state->elements;
-	state->elements = CreateDataList( sizeof( state->val ) );
-	return result;
+	PDATALIST *result = state->elements;
+	state->elements = GetFromSet( PDATALIST, &jpsd.dataLists );// CreateDataList( sizeof( state->val ) );
+	if( !state->elements[0] ) state->elements[0] = CreateDataList( sizeof( state->val ) );
+	else state->elements[0]->Cnt = 0;
+	return result[0];
 }
 
 void json_parse_clear_state( struct json_parse_state *state ) {
 	if( state ) {
 		PPARSE_BUFFER buffer;
-		while( buffer = (PPARSE_BUFFER)PopLink( &state->outBuffers ) ) {
+		while( buffer = (PPARSE_BUFFER)PopLink( state->outBuffers ) ) {
 			Deallocate( const char *, buffer->buf );
 			DeleteFromSet( PARSE_BUFFER, jpsd.parseBuffers, buffer );
 		}
-		while( buffer = (PPARSE_BUFFER)DequeLink( &state->inBuffers ) )
+		while( buffer = (PPARSE_BUFFER)DequeLink( state->inBuffers ) )
 			DeleteFromSet( PARSE_BUFFER, jpsd.parseBuffers, buffer );
-		while( buffer = (PPARSE_BUFFER)DequeLink( &state->outQueue ) ) {
+		while( buffer = (PPARSE_BUFFER)DequeLink( state->outQueue ) ) {
 			Deallocate( const char*, buffer->buf );
 			DeleteFromSet( PARSE_BUFFER, jpsd.parseBuffers, buffer );
 		}
-		DeleteLinkQueue( &state->inBuffers );
-		DeleteLinkQueue( &state->outQueue );
-		DeleteLinkStack( &state->outBuffers );
+		DeleteFromSet( PLINKQUEUE, jpsd.linkQueues, state->inBuffers );
+		//DeleteLinkQueue( &state->inBuffers );
+		DeleteFromSet( PLINKQUEUE, jpsd.linkQueues, state->outQueue );
+		//DeleteLinkQueue( &state->outQueue );
+		DeleteFromSet( PLINKSTACK, jpsd.linkStacks, state->outBuffers );
+		//DeleteLinkStack( &state->outBuffers );
 		{
 			char *buf;
 			INDEX idx;
-			LIST_FORALL( state->outValBuffers, idx, char*, buf ) {
+			LIST_FORALL( state->outValBuffers[0], idx, char*, buf ) {
 				Deallocate( char*, buf );
 			}
-			DeleteList( &state->outValBuffers );
+			DeleteFromSet( PLIST, jpsd.listSet, state->outValBuffers );
+			//DeleteList( &state->outValBuffers );
 		}
 		state->status = TRUE;
 		state->parse_context = CONTEXT_UNKNOWN;
@@ -1208,9 +1220,12 @@ void json_parse_clear_state( struct json_parse_state *state ) {
 		state->gatheringString = FALSE;
 		state->gatheringNumber = FALSE;
 		{
-			PDATALIST result = state->elements;
-			state->elements = CreateDataList( sizeof( state->val ) );
-			json6_dispose_message( &result );
+			PDATALIST *result = state->elements;
+			state->elements = GetFromSet( PDATALIST, &jpsd.dataLists );// CreateDataList( sizeof( state->val ) );
+			if( !state->elements[0] ) state->elements[0] = CreateDataList( sizeof( state->val ) );
+			else state->elements[0]->Cnt = 0;
+			//state->elements = CreateDataList( sizeof( state->val ) );
+			json6_dispose_message( result );
 		}
 	}
 }
@@ -1231,38 +1246,44 @@ void json_parse_dispose_state( struct json_parse_state **ppState ) {
 	struct json_parse_state *state = (*ppState);
 	struct json_parse_context *old_context;
 	PPARSE_BUFFER buffer;
-	json6_dispose_message( &state->elements );
-	DeleteDataList( &state->elements );
-	while( buffer = (PPARSE_BUFFER)PopLink( &state->outBuffers ) ) {
+	_json_dispose_message( state->elements );
+	//DeleteDataList( &state->elements );
+	while( buffer = (PPARSE_BUFFER)PopLink( state->outBuffers ) ) {
 		Deallocate( const char *, buffer->buf );
 		DeleteFromSet( PARSE_BUFFER, jpsd.parseBuffers, buffer );
 	}
 	{
 		char *buf;
 		INDEX idx;
-		LIST_FORALL( state->outValBuffers, idx, char*, buf ) {
+		LIST_FORALL( state->outValBuffers[0], idx, char*, buf ) {
 			Deallocate( char*, buf );
 		}
-		DeleteList( &state->outValBuffers );
+		DeleteFromSet( PLIST, &jpsd.listSet, state->outValBuffers );
+		//DeleteList( &state->outValBuffers );
 	}
-	while( buffer = (PPARSE_BUFFER)DequeLink( &state->inBuffers ) )
+	while( buffer = (PPARSE_BUFFER)DequeLink( state->inBuffers ) )
 		DeleteFromSet( PARSE_BUFFER, jpsd.parseBuffers, buffer );
-	while( buffer = (PPARSE_BUFFER)DequeLink( &state->outQueue ) ) {
+	while( buffer = (PPARSE_BUFFER)DequeLink( state->outQueue ) ) {
 		Deallocate( const char*, buffer->buf );
 		DeleteFromSet( PARSE_BUFFER, jpsd.parseBuffers, buffer );
 	}
-	DeleteLinkQueue( &state->inBuffers );
-	DeleteLinkQueue( &state->outQueue );
-	DeleteLinkStack( &state->outBuffers );
+	DeleteFromSet( PLINKQUEUE, jpsd.linkQueues, state->inBuffers );
+	//DeleteLinkQueue( &state->inBuffers );
+	DeleteFromSet( PLINKQUEUE, jpsd.linkQueues, state->outQueue );
+	//DeleteLinkQueue( &state->outQueue );
+	DeleteFromSet( PLINKSTACK, jpsd.linkStacks, state->outBuffers );
+	//DeleteLinkStack( &state->outBuffers );
 	DeleteFromSet( PARSE_CONTEXT, jpsd.parseContexts, state->context );
 
-	while( (old_context = (struct json_parse_context *)PopLink( &state->context_stack )) ) {
+	while( (old_context = (struct json_parse_context *)PopLink( state->context_stack )) ) {
 		//lprintf( "warning unclosed contexts...." );
 		DeleteFromSet( PARSE_CONTEXT, jpsd.parseContexts, old_context );
 	}
 	if( state->context_stack )
-		DeleteLinkStack( &state->context_stack );
-	Deallocate( struct json_parse_state *, state );
+		DeleteFromSet( PLINKSTACK, jpsd.linkStacks, state->context_stack );
+		//DeleteLinkStack( &state->context_stack );
+	DeleteFromSet( PARSE_STATE, jpsd.parseStates, state );
+	//Deallocate( struct json_parse_state *, state );
 	(*ppState) = NULL;
 }
 
@@ -1295,6 +1316,9 @@ void json6_dispose_decoded_message( struct json6_context_object *format
 
 void json6_dispose_message( PDATALIST *msg_data )
 {
+	json_dispose_message( msg_data );
+	return;
+#if 0
 	struct json_value_container *val;
 	INDEX idx;
 	DATA_FORALL( (*msg_data), idx, struct json_value_container*, val )
@@ -1302,11 +1326,11 @@ void json6_dispose_message( PDATALIST *msg_data )
 		//if( val->name ) Release( val->name );
 		//if( val->string ) Release( val->string );
 		if( val->value_type == VALUE_OBJECT )
-			json_dispose_message( &val->contains );
+			json_dispose_message( val->_contains );
 	}
 	// quick method
 	DeleteDataList( msg_data );
-
+#endif
 }
 
 // puts the current collected value into the element; assumes conversion was correct
@@ -1548,7 +1572,7 @@ LOGICAL json6_decode_message( struct json_context *format
 					// begin an object.
 					// content is
 					elements = format->members;
-					PushLink( &element_lists, elements );
+					PushLink( element_lists, elements );
 					first_token = 0;
 					//n++;
 				}
@@ -1572,7 +1596,7 @@ LOGICAL json6_decode_message( struct json_context *format
 									old_context->context = parse_context;
 									old_context->elements = elements;
 									old_context->object = format;
-									PushLink( &context_stack, old_context );
+									PushLink( context_stack, old_context );
 									format = element->object;
 									elements = element->object->members;
 									//n++;
