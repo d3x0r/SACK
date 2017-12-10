@@ -226,6 +226,7 @@ struct json_value_container {
 	double result_d;
 	int64_t result_n;
 	PDATALIST contains;  // list of struct json_value_container that this contains.
+	PDATALIST *_contains;  // list of struct json_value_container that this contains.
 };
 
 
