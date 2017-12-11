@@ -508,18 +508,11 @@ POINTER  PeekLink ( PLINKSTACK *pls )
 
 //--------------------------------------------------------------------------
 
- POINTER  PopLink ( PLINKSTACK *pls )
+POINTER  PopLink ( PLINKSTACK *pls )
 {
-	POINTER p = NULL;
 	if( pls && *pls && (*pls)->Top )
-	{
-		(*pls)->Top--;
-		p = (*pls)->pNode[(*pls)->Top];
-#ifdef _DEBUG
-		(*pls)->pNode[(*pls)->Top] = (POINTER)0x1BEDCAFE; // trash the old one.
-#endif
-	}
-	return p;
+		return (*pls)->pNode[--(*pls)->Top];
+	return NULL;
 }
 
 //--------------------------------------------------------------------------
@@ -720,14 +713,14 @@ static struct link_queue_local_data
 
 PLINKQUEUE CreateLinkQueueEx( DBG_VOIDPASS )
 {
-	PLINKQUEUE plq;
-	plq = (PLINKQUEUE)AllocateEx( sizeof( LINKQUEUE ) DBG_RELAY );
+	PLINKQUEUE plq = 0;
+	plq = (PLINKQUEUE)AllocateEx( MY_OFFSETOF( &plq, pNode[8] ) DBG_RELAY );
 #if USE_CUSTOM_ALLOCER
 	plq->Lock     = 0;
 #endif
 	plq->Top      = 0;
 	plq->Bottom   = 0;
-	plq->Cnt      = 2;
+	plq->Cnt      = 8;
 	plq->pNode[0] = NULL;
 	plq->pNode[1] = NULL; // shrug
 	return plq;
@@ -911,6 +904,33 @@ retry_lock:
 }
 
 //--------------------------------------------------------------------------
+void EnqueLinkNLEx( PLINKQUEUE *pplq, POINTER link DBG_PASS )
+ {
+	INDEX tmp, t, c;
+	PLINKQUEUE plq;
+	if( !pplq )
+		return;
+	if( !( *pplq ) )
+		*pplq = CreateLinkQueueEx( DBG_VOIDRELAY );
+
+	plq = *pplq;
+	if( link )
+	{
+		tmp = (t=plq->Top) + 1;
+		if( tmp >= ( c = plq->Cnt ) )
+			tmp -= c;
+		if( tmp == ( plq->Bottom ) ) // collided with self...
+		{
+			plq = ExpandLinkQueueEx( pplq, 16 DBG_RELAY );
+			tmp = (t=plq->Top) + 1; // should be room at the end of phsyical array....
+		}
+		plq->pNode[t] = link;
+		plq->Top = tmp;
+	}
+	*pplq = plq;
+ }
+
+ //--------------------------------------------------------------------------
 
  PLINKQUEUE  PrequeLinkEx ( PLINKQUEUE *pplq, POINTER link DBG_PASS )
 {
@@ -975,7 +995,7 @@ retry_lock:
  LOGICAL  IsQueueEmpty ( PLINKQUEUE *pplq  )
 {
 	if( !pplq || !(*pplq) ||
-		 (*pplq)->Bottom == (*pplq)->Top )
+		(*pplq)->Bottom == (*pplq)->Top )
 		return TRUE;
 	return FALSE;
 }
@@ -1112,9 +1132,30 @@ retry_lock:
 	link_queue_local_lock[0] = 0;
 	return p;
 }
+
+POINTER  DequeLinkNL( PLINKQUEUE *pplq )
+{
+	INDEX b, t, c, tmp;
+	POINTER p;
+	if( !pplq || !*pplq )
+		return NULL;
+
+	p = NULL;
+	if( (b=( *pplq )->Bottom) != (t=( *pplq )->Top) )
+	{
+		tmp = b + 1;
+		if( tmp >= ( c = ( *pplq )->Cnt ) )
+			tmp -= c;
+		p = ( *pplq )->pNode[b];
+		( *pplq )->Bottom = tmp;
+	}
+	return p;
+}
+
 #ifdef __cplusplus
 }//		namespace queue {
 #endif
+
 
 //--------------------------------------------------------------------------
 //--------------------------------------------------------------------------
@@ -1134,11 +1175,11 @@ PDATAQUEUE CreateDataQueueEx( INDEX size DBG_PASS )
 {
 	PDATAQUEUE pdq;
 	pdq = (PDATAQUEUE)AllocateEx( ( ( sizeof( DATAQUEUE ) + (2*size) ) - 1 ) DBG_RELAY );
-	pdq->Top		= 0;
-	pdq->Bottom	= 0;
+	pdq->Top      = 0;
+	pdq->Bottom	  = 0;
 	pdq->ExpandBy = 16;
-	pdq->Size	  = size;
-	pdq->Cnt		= 2;
+	pdq->Size     = size;
+	pdq->Cnt      = 2;
 	return pdq;
 }
 

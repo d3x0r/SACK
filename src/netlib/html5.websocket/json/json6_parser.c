@@ -304,13 +304,13 @@ int json6_parse_add_data( struct json_parse_state *state
 		input = GetFromSet( PARSE_BUFFER, &jpsd.parseBuffers );
 		input->pos = input->buf = msg;
 		input->size = msglen;
-		EnqueLink( state->inBuffers, input );
+		EnqueLinkNL( state->inBuffers, input );
 
 		if( state->gatheringString || state->gatheringNumber || state->parse_context == CONTEXT_OBJECT_FIELD ) {
 			// have to extend the previous output buffer to include this one instead of allocating a split string.
 			size_t offset;
 			size_t offset2;
-			output = (struct json_output_buffer*)DequeLink( state->outQueue );
+			output = (struct json_output_buffer*)DequeLinkNL( state->outQueue );
 			//lprintf( "output from before is %p", output );
 			offset = (output->pos - output->buf);
 			offset2 = state->val.string ? (state->val.string - output->buf) : 0;
@@ -329,14 +329,14 @@ int json6_parse_add_data( struct json_parse_state *state
 			output = (struct json_output_buffer*)GetFromSet( PARSE_BUFFER, &jpsd.parseBuffers );
 			output->pos = output->buf = NewArray( char, msglen + 1 );
 			output->size = msglen;
-			EnqueLink( state->outQueue, output );
+			EnqueLinkNL( state->outQueue, output );
 		}
 	}
 	else {
 		// zero length input buffer... terminate a number.
 		if( state->gatheringNumber ) {
 			//console.log( "Force completed.")
-			output = (struct json_output_buffer*)DequeLink( state->outQueue );
+			output = (struct json_output_buffer*)DequeLinkNL( state->outQueue );
 			output->pos[0] = 0;
 			PushLink( state->outBuffers, output );
 			state->gatheringNumber = FALSE;
@@ -360,8 +360,8 @@ int json6_parse_add_data( struct json_parse_state *state
 		}
 	}
 
-	while( state->status && ( input = (PPARSE_BUFFER)DequeLink( state->inBuffers ) ) ) {
-		output = (struct json_output_buffer*)DequeLink( state->outQueue );
+	while( state->status && ( input = (PPARSE_BUFFER)DequeLinkNL( state->inBuffers ) ) ) {
+		output = (struct json_output_buffer*)DequeLinkNL( state->outQueue );
 		//lprintf( "output is %p", output );
 		state->n = input->pos - input->buf;
 
@@ -1190,9 +1190,9 @@ void json_parse_clear_state( struct json_parse_state *state ) {
 			Deallocate( const char *, buffer->buf );
 			DeleteFromSet( PARSE_BUFFER, jpsd.parseBuffers, buffer );
 		}
-		while( buffer = (PPARSE_BUFFER)DequeLink( state->inBuffers ) )
+		while( buffer = (PPARSE_BUFFER)DequeLinkNL( state->inBuffers ) )
 			DeleteFromSet( PARSE_BUFFER, jpsd.parseBuffers, buffer );
-		while( buffer = (PPARSE_BUFFER)DequeLink( state->outQueue ) ) {
+		while( buffer = (PPARSE_BUFFER)DequeLinkNL( state->outQueue ) ) {
 			Deallocate( const char*, buffer->buf );
 			DeleteFromSet( PARSE_BUFFER, jpsd.parseBuffers, buffer );
 		}
@@ -1258,12 +1258,12 @@ void json_parse_dispose_state( struct json_parse_state **ppState ) {
 		LIST_FORALL( state->outValBuffers[0], idx, char*, buf ) {
 			Deallocate( char*, buf );
 		}
-		DeleteFromSet( PLIST, &jpsd.listSet, state->outValBuffers );
+		DeleteFromSet( PLIST, jpsd.listSet, state->outValBuffers );
 		//DeleteList( &state->outValBuffers );
 	}
-	while( buffer = (PPARSE_BUFFER)DequeLink( state->inBuffers ) )
+	while( buffer = (PPARSE_BUFFER)DequeLinkNL( state->inBuffers ) )
 		DeleteFromSet( PARSE_BUFFER, jpsd.parseBuffers, buffer );
-	while( buffer = (PPARSE_BUFFER)DequeLink( state->outQueue ) ) {
+	while( buffer = (PPARSE_BUFFER)DequeLinkNL( state->outQueue ) ) {
 		Deallocate( const char*, buffer->buf );
 		DeleteFromSet( PARSE_BUFFER, jpsd.parseBuffers, buffer );
 	}

@@ -471,7 +471,7 @@ static void CPROC KillName( CPOINTER user, uintptr_t key )
 	else if( name->flags.bData )
 	{
 	}
-	//DeleteFromSet( NAME, &l.TreeNodes, user );
+	//DeleteFromSet( NAME, l.TreeNodes, user );
 }
 
 //---------------------------------------------------------------------------
@@ -575,7 +575,7 @@ static PTREEDEF AddClassTree( PCTREEDEF class_root, TEXTCHAR *name, PTREEROOT ro
 		if( !AddBinaryNode( class_root->Tree, classname, (uintptr_t)classname->name ) )
 		{
 			//Log( WIDE("For some reason could not add new class tree to tree!") );
-			DeleteFromSet( NAME, &l.NameSet, classname );
+			DeleteFromSet( NAME, l.NameSet, classname );
 			return NULL;
 		}
 		return &classname->tree;
@@ -938,7 +938,7 @@ PROCREG_PROC( LOGICAL, RegisterFunctionExx )( PCLASSROOT root
 					Log( WIDE("All is not well - found same function name in tree with different address. (ignoring second) ") );
 #endif
 				}
-				DeleteFromSet( NAME, &l.NameSet, newname );
+				DeleteFromSet( NAME, l.NameSet, newname );
 				return TRUE;
 			}
 			else
@@ -946,7 +946,7 @@ PROCREG_PROC( LOGICAL, RegisterFunctionExx )( PCLASSROOT root
 				if( !AddBinaryNode( class_root->Tree, (PCLASSROOT)newname, (uintptr_t)newname->name ) )
 				{
 					Log( WIDE("For some reason could not add new name to tree!") );
-					DeleteFromSet( NAME, &l.NameSet, newname );
+					DeleteFromSet( NAME, l.NameSet, newname );
 					return FALSE;
 				}
 			}
@@ -974,7 +974,7 @@ PROCREG_PROC( LOGICAL, RegisterFunctionExx )( PCLASSROOT root
 		else
 		{
 			lprintf( WIDE("I'm relasing this name!?") );
-			DeleteFromSet( NAME, &l.NameSet, newname );
+			DeleteFromSet( NAME, l.NameSet, newname );
 		}
 		return 1;
 	}
@@ -1582,7 +1582,7 @@ PROCREG_PROC( uintptr_t, RegisterDataTypeEx )( PCLASSROOT root
 		pName->parent = class_root;
 		if( !AddNode( class_root, pName, (uintptr_t)pName->name ) )
 		{
-			DeleteFromSet( NAME, &l.NameSet, pName );
+			DeleteFromSet( NAME, l.NameSet, pName );
 			return 0; // NULL
 		}
 		return (uintptr_t)pName;
@@ -2616,14 +2616,14 @@ public ref class ProcReg
 					if( !AddBinaryNode( class_root->Tree, newname, (uintptr_t)newname->name ) )
 					{
 						Log( WIDE("For some reason could not add new name to tree!") );
-						DeleteFromSet( NAME, &l.NameSet, newname );
+						DeleteFromSet( NAME, l.NameSet, newname );
 					}
 				}
 			}
 			else
 			{
 				lprintf( WIDE("I'm relasing this name!?") );
-				DeleteFromSet( NAME, &l.NameSet, newname );
+				DeleteFromSet( NAME, l.NameSet, newname );
 			}
 			return 1;
 		}

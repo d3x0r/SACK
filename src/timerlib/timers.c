@@ -1479,7 +1479,7 @@ PTHREAD  ThreadToEx( uintptr_t (CPROC*proc)(PTHREAD), uintptr_t param DBG_PASS )
 		// unlink from globalTimerData.threads list.
 		while( LockedExchangePtrSzVal( &globalTimerData.lock_thread_create, 1 ) )
 			Relinquish();
-		DeleteFromSet( THREAD, &globalTimerData.threadset, pThread ) /*Release( pThread )*/;
+		DeleteFromSet( THREAD, globalTimerData.threadset, pThread ) /*Release( pThread )*/;
 		globalTimerData.lock_thread_create = 0;
 		pThread = NULL;
 	}
@@ -1552,7 +1552,7 @@ PTHREAD  ThreadToSimpleEx( uintptr_t (CPROC*proc)(POINTER), POINTER param DBG_PA
 		// unlink from globalTimerData.threads list.
 		while( LockedExchangePtrSzVal( &globalTimerData.lock_thread_create, 1 ) )
 			Relinquish();
-		DeleteFromSet( THREAD, &globalTimerData.threadset, pThread ) /*Release( pThread )*/;
+		DeleteFromSet( THREAD, globalTimerData.threadset, pThread ) /*Release( pThread )*/;
 		globalTimerData.lock_thread_create = 0;
 		pThread = NULL;
 	}
@@ -1720,7 +1720,7 @@ static void  DoRemoveTimer( uint32_t timerID DBG_PASS )
 				tmp->delta += timer->delta;
 				tmp->me = timer->me;
 			}
-			DeleteFromSet( TIMER, &globalTimerData.timer_pool, timer );
+			DeleteFromSet( TIMER, globalTimerData.timer_pool, timer );
 		}
 		else
 			_lprintf(DBG_RELAY)( WIDE("Failed to find timer to grab") );
@@ -2026,7 +2026,7 @@ static int CPROC ProcessTimers( uintptr_t psvForce )
 				lprintf( WIDE("Removing one shot timer. %d"), timer->ID );
 #endif
 				// was a one shot timer.
-				DeleteFromSet( TIMER, &globalTimerData.timer_pool, timer );
+				DeleteFromSet( TIMER, globalTimerData.timer_pool, timer );
 				timer = NULL;
 			}
 		}

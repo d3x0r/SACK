@@ -374,13 +374,13 @@ int json_parse_add_data( struct json_parse_state *state
 		input = GetFromSet( PARSE_BUFFER, &jpsd.parseBuffers );
 		input->pos = input->buf = msg;
 		input->size = msglen;
-		EnqueLink( state->inBuffers, input );
+		EnqueLinkNL( state->inBuffers, input );
 
 		if( state->gatheringString || state->gatheringNumber || state->parse_context == CONTEXT_OBJECT_FIELD ) {
 			// have to extend the previous output buffer to include this one instead of allocating a split string.
 			size_t offset;
 			size_t offset2;
-			output = (struct json_output_buffer*)DequeLink( state->outQueue );
+			output = (struct json_output_buffer*)DequeLinkNL( state->outQueue );
 			//lprintf( "output from before is %p", output );
 			offset = (output->pos - output->buf);
 			offset2 = state->val.string - output->buf;
@@ -397,13 +397,13 @@ int json_parse_add_data( struct json_parse_state *state
 			output = (struct json_output_buffer*)GetFromSet( PARSE_BUFFER, &jpsd.parseBuffers );
 			output->pos = output->buf = NewArray( char, msglen + 1 );
 			output->size = msglen;
-			EnqueLink( state->outQueue, output );
+			EnqueLinkNL( state->outQueue, output );
 		}
 	}
 
 
-	while( state->status && (input = (PPARSE_BUFFER)DequeLink( state->inBuffers )) ) {
-		output = (struct json_output_buffer*)DequeLink( state->outQueue );
+	while( state->status && (input = (PPARSE_BUFFER)DequeLinkNL( state->inBuffers )) ) {
+		output = (struct json_output_buffer*)DequeLinkNL( state->outQueue );
 		//lprintf( "output is %p", output );
 		state->n = input->pos - input->buf;
 

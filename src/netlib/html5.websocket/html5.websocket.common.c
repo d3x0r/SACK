@@ -459,7 +459,7 @@ void ProcessWebSockProtocol( WebSocketInputState websock, PCLIENT pc, const uint
 				//lprintf( "Completed packet; still not final fragment though.... %d", websock->fragment_collection_avail );
 				websock->input_msg_state = 0;
 				if( websock->on_fragment_done )
-					websock->on_fragment_done( pc, websock->psv_open, websock->input_type, websock->fragment_collection_length );
+					websock->on_fragment_done( pc, websock->psv_open, websock->input_type, (int)websock->fragment_collection_length );
 			}
 			break;
 		}

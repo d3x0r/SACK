@@ -201,13 +201,13 @@ DeclareSet( PDATALIST );
 
 struct json_parser_shared_data {
 	PPARSE_CONTEXTSET parseContexts;
-	PPARSE_CONTEXTSET parseBuffers;
+	PPARSE_BUFFERSET parseBuffers;
 	struct json_parse_state *last_parse_state;
 	PPARSE_STATESET parseStates;
 	PPLISTSET listSet;
 	PPLINKSTACKSET linkStacks;
 	PPLINKQUEUESET linkQueues;
-	PPDATALIST dataLists;
+	PPDATALISTSET dataLists;
 };
 #ifndef JSON_PARSER_MAIN_SOURCE
 extern

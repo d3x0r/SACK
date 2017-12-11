@@ -62,7 +62,7 @@ typedef struct treeroot_tag {
 	PTREENODE prior, current, lastfound;
 } TREEROOT;
 
-static TREENODE TreeNodeSet;
+static PTREENODESET TreeNodeSet;
 
 CPOINTER GetLesserNodeExx( PTREEROOT root, PTREENODE *from );
 CPOINTER GetGreaterNodeExx( PTREEROOT root, PTREENODE *from );
@@ -275,7 +275,7 @@ int HangBinaryNode( PTREEROOT root, PTREENODE node )
 			}
 			if( check )
 				check->children -= (node->children + 1);
-			DeleteFromSet( TREENODE, &TreeNodeSet, node );
+			DeleteFromSet( TREENODE, TreeNodeSet, node );
 			//Release( node );
 
 		 
@@ -396,7 +396,7 @@ static void NativeRemoveBinaryNode( PTREEROOT root, PTREENODE node )
 			root->Destroy( node->userdata, node->key );
 
 		MemSet( node, 0, sizeof( node ) );
-		DeleteFromSet( TREENODE, &TreeNodeSet, node );
+		DeleteFromSet( TREENODE, TreeNodeSet, node );
 		//Release( node );
 		return;
 	}
@@ -452,7 +452,7 @@ void DestroyBinaryTree( PTREEROOT root )
 {
 	while( root->tree )
 		NativeRemoveBinaryNode( root, root->tree );
-	DeleteFromSet( TREEROOT, &treepool, root );
+	DeleteFromSet( TREEROOT, treepool, root );
 }
 
 //---------------------------------------------------------------------------

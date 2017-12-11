@@ -397,9 +397,13 @@ MEM_PROC  POINTER MEM_API  AllocateEx ( uintptr_t nSize DBG_PASS );
    Parameters
    type :   type of the variable
    thing :  the thing to actually release.                    */
-#define Deallocate(type,thing) for(type _zzqz_tmp=thing;ReleaseEx((POINTER)(_zzqz_tmp)DBG_SRC),0;)
+#  ifdef _DEBUG
+#    define Deallocate(type,thing) for(type _zzqz_tmp=thing;ReleaseEx((POINTER)(_zzqz_tmp)DBG_SRC),0;)
+#  else
+#    define Deallocate(type,thing) ReleaseEx((POINTER)(thing)DBG_SRC)
+#  endif
 #else
-#define Deallocate(type,thing) (ReleaseEx((POINTER)(thing)DBG_SRC))
+#  define Deallocate(type,thing) (ReleaseEx((POINTER)(thing)DBG_SRC))
 #endif
 /* <combine sack::memory::HeapAllocateEx@PMEM@uintptr_t nSize>
    
