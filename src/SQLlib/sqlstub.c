@@ -337,12 +337,12 @@ int PSSQL_AddSqliteFunction( PODBC odbc
 POINTER PSSQL_GetSqliteFunctionData( struct sqlite3_context*context ) {
 	return sqlite3_user_data( context );
 }
-int PSSQL_ResultSqliteText( struct sqlite3_context*context, const char *data, int dataLen, int something ) {
-	return sqlite3_result_text( context, data, dataLen, something );
+void PSSQL_ResultSqliteText( struct sqlite3_context*context, const char *data, int dataLen, int something ) {
+	sqlite3_result_text( context, data, dataLen, NULL );
 }
-void PSSQL_GetSqliteValueText( struct sqlite_value *val, char **text, int *textLen ) {
-	(*text) = sqlite3_value_text( val );
-	(*textlen) = sqlite3_value_bytes( val );
+void PSSQL_GetSqliteValueText( struct sqlite3_value *val, const char **text, int *textLen ) {
+	(*text) = (const char *)sqlite3_value_text( val ); // sqlite function is 'unsigned' result
+	(*textLen) = sqlite3_value_bytes( val );
 }
 
   //void (*xStep)(sqlite3_context*,int,sqlite3_value**),

@@ -452,7 +452,7 @@ PUBLIC( int, EditOptions )
 int EditOptions
 #endif
 ( PODBC odbc, PSI_CONTROL parent ) {
-	EditOptionsEx( odbc, parent, FALSE );
+	return EditOptionsEx( odbc, parent, FALSE );
 }
 
 
