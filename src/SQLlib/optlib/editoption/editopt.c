@@ -411,11 +411,11 @@ static void OnDisplayConnect( WIDE( "EditOption Display" ) )( struct display_app
 }
 
 #ifdef EDITOPTION_PLUGIN
-PUBLIC( int, EditOptions )
+PUBLIC( int, EditOptionsEx )
 #else
-int EditOptions
+int EditOptionsEx
 #endif
-                  ( PODBC odbc, PSI_CONTROL parent )
+                  ( PODBC odbc, PSI_CONTROL parent, LOGICAL wait )
 {
 	PCOMMON frame;// = LoadFrame( WIDE("edit.frame"), NULL, NULL, 0 );
 	int done = FALSE;
@@ -431,10 +431,10 @@ int EditOptions
 		InitOptionList( odbc, GetControl( frame, LST_OPTIONMAP ), LST_OPTIONMAP );
 
 		DisplayFrameOver( frame, parent );
-#ifndef EDITOPTION_PLUGIN
-		CommonWait( frame );
-		DestroyFrame( &frame );
-#endif
+		if( wait ) {
+			CommonWait( frame );
+			DestroyFrame( &frame );
+		}
 	}
 	else
 	{
@@ -446,6 +446,16 @@ int EditOptions
 	return 1;
 }
 
+#ifdef EDITOPTION_PLUGIN
+PUBLIC( int, EditOptions )
+#else
+int EditOptions
+#endif
+( PODBC odbc, PSI_CONTROL parent ) {
+	EditOptionsEx( odbc, parent, FALSE );
+}
+
+
 #ifndef EDITOPTION_PLUGIN
 SaneWinMain( argc, argv )
 {
@@ -456,7 +466,7 @@ SaneWinMain( argc, argv )
 	}
 	else
 		o = GetOptionODBC( NULL );
-	EditOptions( o, NULL );
+	EditOptionsEx( o, NULL, TRUE );
 	return 0;
 }
 EndSaneWinMain()
