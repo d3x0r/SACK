@@ -1647,6 +1647,14 @@ PSSQL_PROC( int, PSSQL_AddSqliteFunction )( PODBC odbc
 	, void( *callUserFunction )( struct sqlite3_context*onwhat, int argc, struct sqlite3_value**argv )
 	, int args
 	, void *userData );
+PSSQL_PROC( int, PSSQL_AddSqliteAggregate )( PODBC odbc
+	, const char *name
+	, void( *callStep )( struct sqlite3_context*onwhat, int argc, struct sqlite3_value**argv )
+	, void( *callFinal )( struct sqlite3_context*onwhat )
+	, int args
+	, void *userData );
+
+
 PSSQL_PROC( POINTER, PSSQL_GetSqliteFunctionData )( struct sqlite3_context*context );
 
 PSSQL_PROC( void, PSSQL_ResultSqliteText )( struct sqlite3_context*context, const char *data, int dataLen, void (*done)(void*) );
