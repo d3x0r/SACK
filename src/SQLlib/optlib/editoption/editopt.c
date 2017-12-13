@@ -318,12 +318,12 @@ static PSI_CONTROL CreateOptionFrame( PODBC odbc, LOGICAL tree, int *done )
 		SetButtonPushMethod( pc, DeleteBranch, (uintptr_t)odbc );
 		pc = MakeButton( frame, RIGHT_START, 245, 150, 25, BTN_DELETE, WIDE("Reset"), 0, 0, 0  );
 		SetButtonPushMethod( pc, ResetButton, (uintptr_t)odbc );
-#ifdef EDITOPTION_PLUGIN
-		pc = MakeButton( frame, NEW_SIZE - 70, 320 - 40, 60, 25, IDCANCEL, WIDE("Done"), 0, 0, 0  );
-		SetButtonPushMethod( pc, DoneButton, (uintptr_t)odbc );
-#else
-		AddCommonButtonsEx( frame, done, WIDE("Done"), NULL, NULL );
-#endif
+		if( !done ) {
+			pc = MakeButton( frame, NEW_SIZE - 70, 320 - 40, 60, 25, IDCANCEL, WIDE( "Done" ), 0, 0, 0 );
+			SetButtonPushMethod( pc, DoneButton, (uintptr_t)odbc );
+		} else {
+			AddCommonButtonsEx( frame, done, WIDE( "Done" ), NULL, NULL );
+		}
 	}
 	return frame;
 }
@@ -427,7 +427,7 @@ int EditOptionsEx
 	{
 		default_local = option_thread = New( struct instance_local );
 		MemSet( option_thread, 0, sizeof( option_thread[0] ) );
-		frame = CreateOptionFrame( odbc, TRUE, &done );
+		frame = CreateOptionFrame( odbc, TRUE, wait?&done:NULL );
 		InitOptionList( odbc, GetControl( frame, LST_OPTIONMAP ), LST_OPTIONMAP );
 
 		DisplayFrameOver( frame, parent );
