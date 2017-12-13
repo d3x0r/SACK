@@ -1635,6 +1635,23 @@ PSSQL_PROC( CTEXTSTR, GetSQLOffsetDate )( PODBC odbc, CTEXTSTR BeginOfDayType, i
    */
 PSSQL_PROC( LOGICAL, BackupDatabase )( PODBC source, PODBC dest );
 
+/* return the underlaying native connection handle of the database connection
+ */
+// deprecated during dev, instead added function hook exports
+//PSSQL_PROC( POINTER, GetODBCHandle )( PODBC odbc );
+
+#if defined( USE_SQLITE ) || defined( USE_SQLITE_INTERFACE )
+
+PSSQL_PROC( int, PSSQL_AddSqliteFunction )( PODBC odbc
+	, const char *name
+	, void( *callUserFunction )( struct sqlite3_context*onwhat, int argc, struct sqlite3_value**argv )
+	, int args
+	, void *userData );
+PSSQL_PROC( POINTER, PSSQL_GetSqliteFunctionData )( struct sqlite3_context*context );
+PSSQL_PROC( POINTER, PSSQL_ResultSqliteText )( struct sqlite3_context*context, const char *data, int dataLen, int something );
+PSSQL_PROC( void, PSSQL_GetSqliteValueText )( struct sqlite_value *val, char **text, int *textLen );
+
+#endif
 
 SQL_NAMESPACE_END
 #ifdef __cplusplus

@@ -301,6 +301,7 @@ static void computePassword(sqlite3_context*onwhat,int argc,sqlite3_value**argv)
 static void decomputePassword(sqlite3_context*onwhat,int n,sqlite3_value**argv)
 {
    const unsigned char *val = sqlite3_value_text( argv[0] );
+   sqlite3_value_bytes
 	static TEXTCHAR *result;
 	if( result ) Release( result );
 	result = SRG_DecryptString( (CTEXTSTR)val );
@@ -318,6 +319,32 @@ static void decomputePassword(sqlite3_context*onwhat,int n,sqlite3_value**argv)
 
 #endif
 
+int PSSQL_AddSqliteFunction( PODBC odbc
+	, const char *name
+	, void( *callUserFunction )( struct sqlite3_context*onwhat, int argc, struct sqlite3_value**argv )
+	, int args
+	, void *userData ) {
+	return sqlite3_create_function(
+		odbc->db //sqlite3 *,
+		, name  //const char *zFunctionName,
+		, args //int nArg,
+		, SQLITE_UTF8 //int eTextRep,
+		, userData //void*,
+		, callUserFunction //void (*xFunc)(sqlite3_context*,int,sqlite3_value**),
+		, NULL //void (*xStep)(sqlite3_context*,int,sqlite3_value**),
+		, NULL //void (*xFinal)(sqlite3_context*)
+	);
+}
+POINTER PSSQL_GetSqliteFunctionData( struct sqlite3_context*context ) {
+	return sqlite3_user_data( context );
+}
+int PSSQL_ResultSqliteText( struct sqlite3_context*context, const char *data, int dataLen, int something ) {
+	return sqlite3_result_text( context, data, dataLen, something );
+}
+void PSSQL_GetSqliteValueText( struct sqlite_value *val, char **text, int *textLen ) {
+	(*text) = sqlite3_value_text( val );
+	(*textlen) = sqlite3_value_bytes( val );
+}
 
   //void (*xStep)(sqlite3_context*,int,sqlite3_value**),
   //void (*xFinal)(sqlite3_context*)
@@ -4897,6 +4924,15 @@ void SQLDropODBC( PODBC odbc )
 {
 	EnqueLink( &odbc->queue->connections, odbc );
 }
+
+POINTER GetODBCHandle( PODBC odbc ) {
+	if( odbc->flags.bSQLite_native )
+		return (POINTER)odbc->db;
+	else
+		return (POINTER)odbc->hdbc;
+	return NULL;
+}
+
 
 void SQLDropAndCloseODBC( CTEXTSTR dsn )
 {
