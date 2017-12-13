@@ -300,8 +300,7 @@ static void computePassword(sqlite3_context*onwhat,int argc,sqlite3_value**argv)
 
 static void decomputePassword(sqlite3_context*onwhat,int n,sqlite3_value**argv)
 {
-   const unsigned char *val = sqlite3_value_text( argv[0] );
-   sqlite3_value_bytes
+	const unsigned char *val = sqlite3_value_text( argv[0] );
 	static TEXTCHAR *result;
 	if( result ) Release( result );
 	result = SRG_DecryptString( (CTEXTSTR)val );

@@ -1649,7 +1649,7 @@ PSSQL_PROC( int, PSSQL_AddSqliteFunction )( PODBC odbc
 	, void *userData );
 PSSQL_PROC( POINTER, PSSQL_GetSqliteFunctionData )( struct sqlite3_context*context );
 PSSQL_PROC( POINTER, PSSQL_ResultSqliteText )( struct sqlite3_context*context, const char *data, int dataLen, int something );
-PSSQL_PROC( void, PSSQL_GetSqliteValueText )( struct sqlite_value *val, char **text, int *textLen );
+PSSQL_PROC( int, PSSQL_GetSqliteValueText )( struct sqlite_value *val, char **text, int *textLen );
 
 #endif
 
