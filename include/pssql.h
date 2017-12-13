@@ -1648,8 +1648,31 @@ PSSQL_PROC( int, PSSQL_AddSqliteFunction )( PODBC odbc
 	, int args
 	, void *userData );
 PSSQL_PROC( POINTER, PSSQL_GetSqliteFunctionData )( struct sqlite3_context*context );
-PSSQL_PROC( void, PSSQL_ResultSqliteText )( struct sqlite3_context*context, const char *data, int dataLen, int something );
+
+PSSQL_PROC( void, PSSQL_ResultSqliteText )( struct sqlite3_context*context, const char *data, int dataLen, void (*done)(void*) );
+PSSQL_PROC( void, PSSQL_ResultSqliteBlob )( struct sqlite3_context*context, const char *data, int dataLen, void (*done)(void*) );
+PSSQL_PROC( void, PSSQL_ResultSqliteDouble )( struct sqlite3_context*context, double val );
+PSSQL_PROC( void, PSSQL_ResultSqliteInt )( struct sqlite3_context*context, int val );
+PSSQL_PROC( void, PSSQL_ResultSqliteInt64 )( struct sqlite3_context*context, int64_t val );
+PSSQL_PROC( void, PSSQL_ResultSqliteNull )( struct sqlite3_context*context );
+
+enum sqlite_data_types {
+	PSSQL_TYPE_INTEGER= 1, /*SQLITE_INTEGER*/
+	PSSQL_TYPE_FLOAT= 2,  /*SQLITE_FLOAT */
+	PSSQL_TYPE_TEXT = 3, /* SQLITE_TEXT/SQLITE3_TEXT */
+	PSSQL_TYPE_BLOB  = 4,  /* SQLITE_BLOB */
+	PSSQL_TYPE_NULL = 5,   /* SQLITE_NULL */
+};
+
+PSSQL_PROC( enum sqlite_data_types, PSSQL_GetSqliteValueType )( struct sqlite3_value *val );
 PSSQL_PROC( void, PSSQL_GetSqliteValueText )( struct sqlite3_value *val, const char **text, int *textLen );
+PSSQL_PROC( void, PSSQL_GetSqliteValueBlob )( struct sqlite3_value *val, const char **text, int *textLen );
+PSSQL_PROC( void, PSSQL_GetSqliteValueDouble )( struct sqlite3_value *val, double *result );
+PSSQL_PROC( void, PSSQL_GetSqliteValueInt )( struct sqlite3_value *val, int *result );
+PSSQL_PROC( void, PSSQL_GetSqliteValueInt64 )( struct sqlite3_value *val, int64_t *result );
+
+
+PSSQL_PROC( void, PSSQL_GetSqliteValue )( struct sqlite3_value *val, const char **text, int *textLen );
 
 #endif
 

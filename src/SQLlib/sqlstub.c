@@ -334,19 +334,49 @@ int PSSQL_AddSqliteFunction( PODBC odbc
 		, NULL //void (*xFinal)(sqlite3_context*)
 	);
 }
+
 POINTER PSSQL_GetSqliteFunctionData( struct sqlite3_context*context ) {
 	return sqlite3_user_data( context );
 }
-void PSSQL_ResultSqliteText( struct sqlite3_context*context, const char *data, int dataLen, int something ) {
-	sqlite3_result_text( context, data, dataLen, NULL );
+void PSSQL_ResultSqliteText( struct sqlite3_context*context, const char *data, int dataLen, void (*done)(void*) ) {
+	sqlite3_result_text( context, data, dataLen, done );
+}
+void PSSQL_ResultSqliteBlob( struct sqlite3_context*context, const char *data, int dataLen, void (*done)(void*) ) {
+	sqlite3_result_blob( context, data, dataLen, done );
+}
+void PSSQL_ResultSqliteDouble( struct sqlite3_context*context, double val ) {
+	sqlite3_result_double( context, val );
+}
+void PSSQL_ResultSqliteInt( struct sqlite3_context*context, int val ) {
+	sqlite3_result_int( context, val );
+}
+void PSSQL_ResultSqliteInt64( struct sqlite3_context*context, int64_t val ) {
+	sqlite3_result_int64( context, val );
+}
+void PSSQL_ResultSqliteNull( struct sqlite3_context*context ) {
+	sqlite3_result_null( context );
 }
 void PSSQL_GetSqliteValueText( struct sqlite3_value *val, const char **text, int *textLen ) {
 	(*text) = (const char *)sqlite3_value_text( val ); // sqlite function is 'unsigned' result
 	(*textLen) = sqlite3_value_bytes( val );
 }
 
-  //void (*xStep)(sqlite3_context*,int,sqlite3_value**),
-  //void (*xFinal)(sqlite3_context*)
+enum sqlite_data_types PSSQL_GetSqliteValueType( struct sqlite3_value *val ){
+	return (enum sqlite_data_types)sqlite3_value_type( val );
+}
+void PSSQL_GetSqliteValueBlob( struct sqlite3_value *val, const char **text, int *textLen ){
+	(*text) = (const char *)sqlite3_value_text( val ); // sqlite function is 'unsigned' result
+	(*textLen) = sqlite3_value_bytes( val );
+}
+void PSSQL_GetSqliteValueDouble( struct sqlite3_value *val, double *result ){
+	(*result) = sqlite3_value_double( val ); // sqlite function is 'unsigned' result
+}
+void PSSQL_GetSqliteValueInt( struct sqlite3_value *val, int *result ){
+	(*result) = sqlite3_value_double( val ); // sqlite function is 'unsigned' result
+}
+void PSSQL_GetSqliteValueInt64( struct sqlite3_value *val, int64_t *result ){
+	(*result) = sqlite3_value_double( val ); // sqlite function is 'unsigned' result
+}
 
 void ExtendConnection( PODBC odbc )
 {
@@ -4926,9 +4956,17 @@ void SQLDropODBC( PODBC odbc )
 
 POINTER GetODBCHandle( PODBC odbc ) {
 	if( odbc->flags.bSQLite_native )
+#ifdef USE_SQLITE || USE_SQLITE_INTERFACE
 		return (POINTER)odbc->db;
+#else
+		;
+#endif
 	else
+#ifdef USE_ODBC
 		return (POINTER)odbc->hdbc;
+#else
+		;
+#endif
 	return NULL;
 }
 
