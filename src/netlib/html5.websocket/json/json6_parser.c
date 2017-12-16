@@ -85,199 +85,207 @@ char *json6_escape_string( const char *string ) {
 
 #define GetUtfChar(x) __GetUtfChar(c,x)
 
-static int gatherString6( CTEXTSTR msg, CTEXTSTR *msg_input, size_t msglen, TEXTSTR *pmOut, size_t *line, size_t *col, TEXTRUNE start_c
+static int gatherString6(struct json_parse_state *state, CTEXTSTR msg, CTEXTSTR *msg_input, size_t msglen, TEXTSTR *pmOut, TEXTRUNE start_c
 		//, int literalString 
 		) {
 	char *mOut = (*pmOut);
 	// collect a string
 	int status = 0;
 	size_t n;
-	int escape;
-	LOGICAL cr_escaped;
+	//int escape;
+	//LOGICAL cr_escaped;
 	TEXTRUNE c;
-	escape = 0;
-	cr_escaped = FALSE;
+	//escape = 0;
+	//cr_escaped = FALSE;
 	while( ( n = (*msg_input) - msg ), (( n < msglen ) && (c = GetUtfChar( msg_input ) )) && ( status >= 0 ) )
 	{
-		(*col)++;
-		if( c == '\\' )
-		{
-			if( escape ) {
-				(*mOut++) = '\\';
-				escape = 0;
-			}
-			else escape = 1;
-		}
-		else if( ( c == '"' ) || ( c == '\'' ) || ( c == '`' ) )
-		{
-			if( escape ) { (*mOut++) = c; escape = FALSE; }
-			else if( c == start_c ) {
+		(state->col)++;
+
+		if( c == start_c ) {
+			if( state->escape ) { ( *mOut++ ) = c; state->escape = FALSE; } else if( c == start_c ) {
 				status = 1;
 				break;
-			} else (*mOut++) = c; // other else is not valid close quote; just store as content.
+			} else ( *mOut++ ) = c; // other else is not valid close quote; just store as content.
+		} else if( state->escape ) {
+			if( state->stringOct ) {
+				if( state->hex_char_len < 3 && c >= 48/*'0'*/ && c <= 57/*'9'*/ ) {
+					state->hex_char *= 8;
+					state->hex_char += c/*.codePointAt(0)*/ - 0x30;
+					state->hex_char_len++;
+					if( state->hex_char_len == 3 ) {
+						mOut += ConvertToUTF8(mOut, state->hex_char);
+						state->stringOct = FALSE;
+						state->escape = FALSE;
+						continue;
+					}
+					continue;
+				} else {
+					if( state->hex_char > 255 ) {
+						lprintf(WIDE("(escaped character, parsing octal escape val=%d) fault while parsing; )") WIDE(" (near %*.*s[%c]%s)")
+							, state->hex_char
+							, (int)( ( n>3 ) ? 3 : n ), (int)( ( n>3 ) ? 3 : n )
+							, ( *msg_input ) - ( ( n>3 ) ? 3 : n )
+							, c
+							, ( *msg_input ) + 1
+						);// fault
+						status = -1;
+						break;
+					}
+					mOut += ConvertToUTF8(mOut, state->hex_char);
+					state->stringOct = FALSE;
+					state->escape = FALSE;
+					continue;
+				}
+
+			} else if( state->unicodeWide ) {
+				if( c == '}' ) {
+					mOut += ConvertToUTF8(mOut, state->hex_char);
+					state->unicodeWide = FALSE;
+					state->stringUnicode = FALSE;
+					state->escape = FALSE;
+					continue;
+				}
+				state->hex_char *= 16;
+				if( c >= '0' && c <= '9' )      state->hex_char += c - '0';
+				else if( c >= 'A' && c <= 'F' ) state->hex_char += ( c - 'A' ) + 10;
+				else if( c >= 'a' && c <= 'f' ) state->hex_char += ( c - 'F' ) + 10;
+				else {
+					lprintf(WIDE("(escaped character, parsing hex of \\u) fault while parsing; '%c' unexpected at %")_size_f WIDE(" (near %*.*s[%c]%s)"), c, n
+						, (int)( ( n > 3 ) ? 3 : n ), (int)( ( n > 3 ) ? 3 : n )
+						, ( *msg_input ) - ( ( n > 3 ) ? 3 : n )
+						, c
+						, ( *msg_input ) + 1
+					);// fault
+					status = -1;
+					state->unicodeWide = FALSE;
+					state->escape = FALSE;
+				}
+				continue;
+			} else if( state->stringHex || state->stringUnicode ) {
+				if( state->hex_char_len == 0 && c == '{' ) {
+					state->unicodeWide = TRUE;
+					continue;
+				}
+				if( state->hex_char_len < 2 || ( state->stringUnicode && state->hex_char_len < 4 ) ) {
+					state->hex_char *= 16;
+					if( c >= '0' && c <= '9' )      state->hex_char += c - '0';
+					else if( c >= 'A' && c <= 'F' ) state->hex_char += ( c - 'A' ) + 10;
+					else if( c >= 'a' && c <= 'f' ) state->hex_char += ( c - 'F' ) + 10;
+					else {
+						lprintf(WIDE("(escaped character, parsing hex of \\x) fault while parsing; '%c' unexpected at %")_size_f WIDE(" (near %*.*s[%c]%s)"), c, n
+							, (int)( ( n>3 ) ? 3 : n ), (int)( ( n>3 ) ? 3 : n )
+							, ( *msg_input ) - ( ( n>3 ) ? 3 : n )
+							, c
+							, ( *msg_input ) + 1
+						);// fault
+						status = -1;
+						state->stringHex = FALSE;
+						state->escape = FALSE;
+						continue;
+					}
+				}
+				state->hex_char_len++;
+				if( state->stringUnicode ) {
+					if( state->hex_char_len == 4 ) {
+						mOut += ConvertToUTF8(mOut, state->hex_char);
+						state->stringUnicode = FALSE;
+						state->escape = FALSE;
+					}
+				} else if( state->hex_char_len == 2 ) {
+					mOut += ConvertToUTF8(mOut, state->hex_char);
+					state->stringHex = FALSE;
+					state->escape = FALSE;
+				}
+				continue;
+			}
+			switch( c ) {
+			case '\r':
+				state->cr_escaped = TRUE;
+				continue;
+			case '\n':
+				state->line++;
+				state->col = 1;
+				if( state->cr_escaped ) state->cr_escaped = FALSE;
+				// fall through to clear escape status <CR><LF> support.
+			case 2028: // LS (Line separator)
+			case 2029: // PS (paragraph separate)
+				state->escape = FALSE;
+				continue;
+			case '/':
+				( *mOut++ ) = c;
+				state->escape = FALSE;
+				break;
+			case 't':
+				( *mOut++ ) = '\t';
+				state->escape = FALSE;
+				break;
+			case 'b':
+				( *mOut++ ) = '\b';
+				state->escape = FALSE;
+				break;
+			case 'n':
+				( *mOut++ ) = '\n';
+				state->escape = FALSE;
+				break;
+			case 'r':
+				( *mOut++ ) = '\r';
+				state->escape = FALSE;
+				break;
+			case 'f':
+				( *mOut++ ) = '\f';
+				state->escape = FALSE;
+				break;
+			case '0': case '1': case '2': case '3':
+				state->stringOct = TRUE;
+				state->hex_char = c - 48;
+				state->hex_char_len = 1;
+				continue;
+			case 'x':
+				state->stringHex = TRUE;
+				state->hex_char_len = 0;
+				state->hex_char = 0;
+				continue;
+			case 'u':
+				state->stringUnicode = TRUE;
+				state->hex_char_len = 0;
+				state->hex_char = 0;
+				continue;
+			default:
+				if( state->cr_escaped ) {
+					state->cr_escaped = FALSE;
+					state->escape = FALSE;
+					mOut += ConvertToUTF8(mOut, c);
+				} else {
+					lprintf(WIDE("(escaped character) fault while parsing; '%c' unexpected %")_size_f WIDE(" (near %*.*s[%c]%s)"), c, n
+						, (int)( ( n>3 ) ? 3 : n ), (int)( ( n>3 ) ? 3 : n )
+						, ( *msg_input ) - ( ( n>3 ) ? 3 : n )
+						, c
+						, ( *msg_input ) + 1
+					);// fault
+					status = -1;
+				}
+				break;
+			}
+			state->escape = 0;
+		} else if( c == '\\' ) {
+			if( state->escape ) {
+				(*mOut++) = '\\';
+				state->escape = 0;
+			}
+			else state->escape = 1;
 		}
 		else
 		{
-			if( cr_escaped ) {
-				cr_escaped = FALSE;								
+			if( state->cr_escaped ) {
+				state->cr_escaped = FALSE;
 				if( c == '\n' ) {
-					line[0]++;
-					col[0] = 1;
-					escape = FALSE;
+					state->line++;
+					state->col = 1;
+					state->escape = FALSE;
 					continue;
 				}
 			}
-			if( escape )
-			{
-				switch( c )
-				{
-				case '\r':
-					cr_escaped = TRUE;
-					continue;
-				case '\n':
-					line[0]++;
-					col[0] = 1;
-					if( cr_escaped ) cr_escaped = FALSE;
-					// fall through to clear escape status <CR><LF> support.
-				case 2028: // LS (Line separator)
-				case 2029: // PS (paragraph separate)
-					escape = FALSE;
-					continue;
-				case '/':
-					(*mOut++) = c;
-					escape = FALSE;
-					break;
-				case 't':
-					(*mOut++) = '\t';
-					escape = FALSE;
-					break;
-				case 'b':
-					(*mOut++) = '\b';
-					escape = FALSE;
-					break;
-				case 'n':
-					(*mOut++) = '\n';
-					escape = FALSE;
-					break;
-				case 'r':
-					(*mOut++) = '\r';
-					escape = FALSE;
-					break;
-				case 'f':
-					(*mOut++) = '\f';
-					escape = FALSE;
-					break;
-				case '0': case '1': case '2': case '3': 
-					{
-						TEXTRUNE oct_char = c - '0';
-						int ofs;
-						for( ofs = 0; ofs < 2; ofs++ )
-						{
-							c = GetUtfChar( msg_input );
-							oct_char *= 8;
-							if( c >= '0' && c <= '9' )  oct_char += c - '0';
-							else { msg_input--; break; }
-						}
-						if( oct_char > 255 ) {
-							lprintf( WIDE("(escaped character, parsing octal escape val=%d) fault while parsing; )") WIDE(" (near %*.*s[%c]%s)")
-							         , oct_char
-									 , (int)( (n>3)?3:n ), (int)( (n>3)?3:n )
-									 , (*msg_input) - ( (n>3)?3:n )
-									 , c
-									 , (*msg_input) + 1
-									 );// fault
-							status = -1;
-							break;
-						} else { 
-							if( oct_char < 128 ) (*mOut++) = oct_char;
-							else mOut += ConvertToUTF8( mOut, oct_char );
-						}
-					}
-					escape = FALSE;
-					break;
-				case 'x':
-					{
-						TEXTRUNE hex_char;
-						int ofs;
-						hex_char = 0;
-						for( ofs = 0; ofs < 2; ofs++ )
-						{
-							c = GetUtfChar( msg_input );
-							hex_char *= 16;
-							if( c >= '0' && c <= '9' )      hex_char += c - '0';
-							else if( c >= 'A' && c <= 'F' ) hex_char += ( c - 'A' ) + 10;
-							else if( c >= 'a' && c <= 'f' ) hex_char += ( c - 'F' ) + 10;
-							else {
-								lprintf( WIDE("(escaped character, parsing hex of \\x) fault while parsing; '%c' unexpected at %")_size_f WIDE(" (near %*.*s[%c]%s)"), c, n
-										 , (int)( (n>3)?3:n ), (int)( (n>3)?3:n )
-										 , (*msg_input) - ( (n>3)?3:n )
-										 , c
-										 , (*msg_input) + 1
-										 );// fault
-								status = -1;
-							}
-						}
-						if( hex_char < 128 ) (*mOut++) = hex_char;
-						else mOut += ConvertToUTF8( mOut, hex_char );
-					}
-					escape = FALSE;
-					break;
-				case 'u':
-					{
-						TEXTRUNE hex_char;
-						int ofs;
-						int codePointLen;
-						TEXTRUNE endCode;
-						hex_char = 0;
-						codePointLen = 4;
-						endCode = 0;
-						for( ofs = 0; ofs < codePointLen && ( c != endCode ); ofs++ )
-						{
-							c = GetUtfChar( msg_input );
-							if( !ofs && c == '{' ) {
-								codePointLen = 5; // collect up to 5 chars.
-								endCode = '}';
-								continue;
-							} 
-							if( c == '}' ) continue;
-							hex_char *= 16;
-							if( c >= '0' && c <= '9' )      hex_char += c - '0';
-							else if( c >= 'A' && c <= 'F' ) hex_char += ( c - 'A' ) + 10;
-							else if( c >= 'a' && c <= 'f' ) hex_char += ( c - 'F' ) + 10;
-							else
-								lprintf( WIDE("(escaped character, parsing hex of \\u) fault while parsing; '%c' unexpected at %")_size_f WIDE(" (near %*.*s[%c]%s)"), c, n
-										 , (int)( (n>3)?3:n ), (int)( (n>3)?3:n )
-										 , (*msg_input) - ( (n>3)?3:n )
-										 , c
-										 , (*msg_input) + 1
-										 );// fault
-						}
-						mOut += ConvertToUTF8( mOut, hex_char );
-					}
-					escape = FALSE;
-					break;
-				default:
-					if( cr_escaped ) {
-						cr_escaped = FALSE;
-						escape = FALSE;
-						mOut += ConvertToUTF8( mOut, c );
-					}										
-					else {
-						lprintf( WIDE("(escaped character) fault while parsing; '%c' unexpected %")_size_f WIDE(" (near %*.*s[%c]%s)"), c, n
-							 , (int)( (n>3)?3:n ), (int)( (n>3)?3:n )
-							 , (*msg_input) - ( (n>3)?3:n )
-							 , c
-							 , (*msg_input) + 1
-							 );// fault
-						status = -1;
-					}
-					break;
-				}
-				escape = 0;
-			}
-			else {
-				mOut += ConvertToUTF8( mOut, c );
-			}
+			mOut += ConvertToUTF8( mOut, c );
 		}
 	}
 	if( status )
@@ -366,7 +374,7 @@ int json6_parse_add_data( struct json_parse_state *state
 		state->n = input->pos - input->buf;
 
 		if( state->gatheringString ) {
-			string_status = gatherString6( input->buf, &input->pos, input->size, &output->pos, &state->line, &state->col, state->gatheringStringFirstChar );
+			string_status = gatherString6( state, input->buf, &input->pos, input->size, &output->pos, state->gatheringStringFirstChar );
 			if( string_status < 0 )
 				state->status = FALSE;
 			else if( string_status > 0 )
@@ -663,7 +671,7 @@ int json6_parse_add_data( struct json_parse_state *state
 						state->val.string = output->pos;
 						state->gatheringString = TRUE;
 						state->gatheringStringFirstChar = c;
-						string_status = gatherString6( input->buf, &input->pos, input->size, &output->pos, &state->line, &state->col, c );
+						string_status = gatherString6( state, input->buf, &input->pos, input->size, &output->pos, c );
 						//lprintf( "string gather status:%d", string_status );
 						if( string_status < 0 )
 							state->status = FALSE;
@@ -726,7 +734,7 @@ int json6_parse_add_data( struct json_parse_state *state
 					state->val.string = output->pos;
 					state->gatheringString = TRUE;
 					state->gatheringStringFirstChar = c;
-					string_status = gatherString6( input->buf, &input->pos, input->size, &output->pos, &state->line, &state->col, c );
+					string_status = gatherString6( state, input->buf, &input->pos, input->size, &output->pos, c );
 					//lprintf( "string gather status:%d", string_status );
 					if( string_status < 0 )
 						state->status = FALSE;

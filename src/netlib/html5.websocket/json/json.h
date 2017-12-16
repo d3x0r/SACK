@@ -177,6 +177,15 @@ struct json_parse_state {
 	LOGICAL exponent;
 	LOGICAL exponent_sign;
 	LOGICAL exponent_digit;
+
+	LOGICAL escape;
+	LOGICAL cr_escaped;
+	LOGICAL unicodeWide;
+	LOGICAL stringUnicode;
+	LOGICAL stringHex;
+	TEXTRUNE hex_char;
+	int hex_char_len;
+	LOGICAL stringOct;
 	//char *token_begin;
 };
 typedef struct json_parse_state PARSE_STATE, *PPARSE_STATE;
