@@ -1642,6 +1642,16 @@ PSSQL_PROC( LOGICAL, BackupDatabase )( PODBC source, PODBC dest );
 
 #if defined( USE_SQLITE ) || defined( USE_SQLITE_INTERFACE )
 
+#ifdef __cplusplus
+SQL_NAMESPACE_END
+#endif
+struct sqlite3_value;
+struct sqlite3_context;
+#ifdef __cplusplus
+SQL_NAMESPACE
+#endif
+
+
 PSSQL_PROC( int, PSSQL_AddSqliteFunction )( PODBC odbc
 	, const char *name
 	, void( *callUserFunction )( struct sqlite3_context*onwhat, int argc, struct sqlite3_value**argv )
