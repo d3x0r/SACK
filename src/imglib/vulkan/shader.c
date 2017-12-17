@@ -245,6 +245,7 @@ void AppendShaderTristrip( struct image_shader_op * op, int triangles, ... )
 
 static void SetupCommon( PImageShaderTracker tracker )
 {
+/*
 	tracker->projection
 		= glGetUniformLocation(tracker->vkProgramId, "Projection");
 	CheckErr();
@@ -254,7 +255,6 @@ static void SetupCommon( PImageShaderTracker tracker )
 	tracker->modelview
 		= glGetUniformLocation(tracker->vkProgramId, "modelView");
 	CheckErr();
-
 	if( tracker->vkFragProgramId )
 	{
 		glDeleteShader( tracker->vkFragProgramId );
@@ -265,6 +265,7 @@ static void SetupCommon( PImageShaderTracker tracker )
 		glDeleteShader( tracker->vkVertexProgramId );
 		tracker->vkVertexProgramId = 0;
 	}
+*/
 }
 
 void DumpAttribs( PImageShaderTracker tracker, int program )
