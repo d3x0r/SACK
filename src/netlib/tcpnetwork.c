@@ -878,15 +878,16 @@ int FinishPendingRead(PCLIENT lpClient DBG_PASS )  // only time this should be c
 		}
 		while( lpClient->RecvPending.dwAvail )  // if any room is availiable.
 		{
-#ifdef VERBOSE_DEBUG
-			nCount++;
-			_lprintf( DBG_RELAY )( WIDE("FinishPendingRead %d %") _32f WIDE(""), nCount
-										, lpClient->RecvPending.dwAvail );
-#endif
+//#ifdef VERBOSE_DEBUG
+			//nCount++;
+			_lprintf( DBG_RELAY )( WIDE("FinishPendingRead %d %d" )
+				, lpClient->RecvPending.dwUsed, lpClient->RecvPending.dwAvail );
+//#endif
 			nRecv = recv(lpClient->Socket,
 							 (char*)lpClient->RecvPending.buffer.p +
 							 lpClient->RecvPending.dwUsed,
 							 (int)lpClient->RecvPending.dwAvail,0);
+			lprintf( "Received %d", recv );
 			if (nRecv == SOCKET_ERROR)
 			{
 				dwError = WSAGetLastError();
@@ -1223,13 +1224,13 @@ int TCPWriteEx(PCLIENT pc DBG_PASS)
 							 pc->lpFirstPending->dwUsed,
 							 (int)pc->lpFirstPending->dwAvail );
 			}
-			//lprintf( "Try to send... %d  %d", pc->lpFirstPending->dwUsed, pc->lpFirstPending->dwAvail );
+			lprintf( "Try to send... %d  %d", pc->lpFirstPending->dwUsed, pc->lpFirstPending->dwAvail );
 			nSent = send(pc->Socket,
 							 (char*)pc->lpFirstPending->buffer.c +
 							 pc->lpFirstPending->dwUsed,
 							 (int)pc->lpFirstPending->dwAvail,
 							 0);
-			//lprintf( "sent... %d", nSent );
+			lprintf( "sent... %d", nSent );
 			if( nSent < (int)pc->lpFirstPending->dwAvail ) {
 				//pc->lpFirstPending->dwUsed += nSent;
 				//pc->lpFirstPending->dwAvail -= nSent;
