@@ -90,7 +90,7 @@ void *SYNAPSE::operator new(size_t sz)
 
 void SYNAPSE::operator delete( void *ptr )
 {
-	DeleteFromSet( SYNAPSE, (((PSYNAPSE)(ptr))->pool), (PSYNAPSE)ptr );
+	DeleteFromSet( SYNAPSE, *(((PSYNAPSE)(ptr))->pool), (PSYNAPSE)ptr );
 }
 
 #ifdef _MSC_VER
