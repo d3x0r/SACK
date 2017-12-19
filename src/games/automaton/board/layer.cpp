@@ -337,7 +337,7 @@ void LAYER::operator delete( void *ptr, struct LAYERset_tag **frompool )
 	PLAYERSET *ppls = layer->pool;
 	layer->isolate();
 	if( ppls )
-		DeleteFromSet( LAYER, frompool,( layer ) );
+		DeleteFromSet( LAYER, *frompool,( layer ) );
 }
 #endif
 //--------------------------------------------------------------------------
