@@ -1,4 +1,4 @@
-// from https://github.com/mjosaarinen/tiny_sha3/blob/master/sha3.h  2017/12/19
+// from https://github.com/mjosaarinen/tiny_sha3/blob/master/sha3.h  2017/19/12
 // sha3.h
 // 19-Nov-11  Markku-Juhani O. Saarinen <mjos@iki.fi>
 
