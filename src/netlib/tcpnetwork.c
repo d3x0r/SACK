@@ -887,7 +887,7 @@ int FinishPendingRead(PCLIENT lpClient DBG_PASS )  // only time this should be c
 							 (char*)lpClient->RecvPending.buffer.p +
 							 lpClient->RecvPending.dwUsed,
 							 (int)lpClient->RecvPending.dwAvail,0);
-			lprintf( "Received %d", recv );
+			lprintf( "Received %d", nRecv );
 			if (nRecv == SOCKET_ERROR)
 			{
 				dwError = WSAGetLastError();
