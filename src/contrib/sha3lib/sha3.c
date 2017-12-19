@@ -1,3 +1,4 @@
+// http://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.202.pdf
 // from https://github.com/mjosaarinen/tiny_sha3/blob/master/sha3.c  2017/12/19
 // sha3.c
 // 19-Nov-11  Markku-Juhani O. Saarinen <mjos@iki.fi>
