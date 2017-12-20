@@ -19,6 +19,8 @@
 #include "../../intershell_registry.h"
 #include "../../intershell_export.h"
 
+struct chat_widget_message;
+
 // include public defs before internals...
 #include "chat_control.h"
 #include "chat_control_internal.h" 
