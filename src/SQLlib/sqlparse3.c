@@ -168,7 +168,6 @@ static int GrabExtra( PTEXT *word, TEXTSTR *result )
 			TEXTCHAR *tmp;
 			while( (*word) && ( ( tmp = GetText( *word ) )[0] != ',' || ( parens > 0 ) ) && ( ( parens > 0 ) || (tmp[0] != ')') ) )
 			{
-				lprintf( "word:%s", GetText( *word) );
 				if( tmp[0] == '(' )
 					parens++;
 				if( tmp[0] == ')' ) {
