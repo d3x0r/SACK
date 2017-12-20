@@ -887,10 +887,10 @@ int FinishPendingRead(PCLIENT lpClient DBG_PASS )  // only time this should be c
 							 (char*)lpClient->RecvPending.buffer.p +
 							 lpClient->RecvPending.dwUsed,
 							 (int)lpClient->RecvPending.dwAvail,0);
-			lprintf( "Received %d", nRecv );
 			if (nRecv == SOCKET_ERROR)
 			{
 				dwError = WSAGetLastError();
+				lprintf( "Received error (-1) %d", nRecv );
 				switch( dwError)
 				{
 				case WSAEWOULDBLOCK: // no data avail yet...
@@ -924,6 +924,7 @@ int FinishPendingRead(PCLIENT lpClient DBG_PASS )  // only time this should be c
 			}
 			else if (!nRecv) // channel closed if received 0 bytes...
 			{   // otherwise WSAEWOULDBLOCK would be generated.
+				lprintf( "Received (0) %d", nRecv );
 				//_lprintf( DBG_RELAY )( WIDE("Closing closed socket... Hope there's also an event... "));
 				lpClient->dwFlags |= CF_TOCLOSE;
 				break; // while dwAvail... try read...
@@ -931,6 +932,7 @@ int FinishPendingRead(PCLIENT lpClient DBG_PASS )  // only time this should be c
 			}
 			else
 			{
+				lprintf( "Received %d", nRecv );
 				if( globalNetworkData.flags.bShortLogReceivedData )
 				{
 					LogBinary( (uint8_t*)lpClient->RecvPending.buffer.p
