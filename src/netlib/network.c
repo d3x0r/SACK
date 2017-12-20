@@ -1815,7 +1815,7 @@ int CPROC ProcessNetworkMessages( struct peer_thread_info *thread, uintptr_t unu
 						break;
 					}
 					if( event_data->pc->dwFlags & CF_AVAILABLE )
-                  break;
+						break;
 					Relinquish();
 				}
 				if( !(event_data->pc->dwFlags & CF_ACTIVE ) ) {
