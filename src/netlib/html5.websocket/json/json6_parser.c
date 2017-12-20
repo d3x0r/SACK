@@ -209,31 +209,28 @@ static int gatherString6(struct json_parse_state *state, CTEXTSTR msg, CTEXTSTR 
 				// fall through to clear escape status <CR><LF> support.
 			case 2028: // LS (Line separator)
 			case 2029: // PS (paragraph separate)
-				state->escape = FALSE;
 				continue;
 			case '/':
+			case '\\':
+			case '\'':
+			case '"':
+			case '`':
 				( *mOut++ ) = c;
-				state->escape = FALSE;
 				break;
 			case 't':
 				( *mOut++ ) = '\t';
-				state->escape = FALSE;
 				break;
 			case 'b':
 				( *mOut++ ) = '\b';
-				state->escape = FALSE;
 				break;
 			case 'n':
 				( *mOut++ ) = '\n';
-				state->escape = FALSE;
 				break;
 			case 'r':
 				( *mOut++ ) = '\r';
-				state->escape = FALSE;
 				break;
 			case 'f':
 				( *mOut++ ) = '\f';
-				state->escape = FALSE;
 				break;
 			case '0': case '1': case '2': case '3':
 				state->stringOct = TRUE;
