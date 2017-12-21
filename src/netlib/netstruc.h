@@ -177,6 +177,7 @@ struct peer_thread_info
 #ifdef __LINUX__
 #  ifdef __MAC__
 	int kqueue;
+   PDATLIST kevents;
 #  else
 	int epoll_fd;
 #  endif
