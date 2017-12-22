@@ -1226,7 +1226,7 @@ int TCPWriteEx(PCLIENT pc DBG_PASS)
 							 pc->lpFirstPending->dwUsed,
 							 (int)pc->lpFirstPending->dwAvail );
 			}
-			lprintf( "Try to send... %d  %d", pc->lpFirstPending->dwUsed, pc->lpFirstPending->dwAvail );
+			_lprintf(DBG_RELAY)( "Try to send... %d  %d", pc->lpFirstPending->dwUsed, pc->lpFirstPending->dwAvail );
 			nSent = send(pc->Socket,
 							 (char*)pc->lpFirstPending->buffer.c +
 							 pc->lpFirstPending->dwUsed,
