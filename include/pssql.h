@@ -1293,6 +1293,9 @@ PSSQL_PROC( int, FetchSQLTypes )( PODBC );
    See SQLRecordQueryf, but omit the database parameter.         */
 PSSQL_VARARG_PROC( int, DoSQLRecordQueryf ,( int *columns, CTEXTSTR **result, CTEXTSTR **fields, CTEXTSTR fmt, ... ) );
 #define DoSQLRecordQueryf   (__DoSQLRecordQueryf( DBG_VOIDSRC ))
+
+
+
 /* <combine sack::sql::SQLQueryf@PODBC@CTEXTSTR *@CTEXTSTR@...>
    
    \ \                                                          */
@@ -1380,6 +1383,10 @@ PSSQL_VARARG_PROC( int, DoSQLCommandf, ( CTEXTSTR fmt, ... ) );
 //PSSQL_PROC( int, SQLRecordQueryf )( PODBC odbc, int *columns, CTEXTSTR **result, CTEXTSTR **fields, CTEXTSTR fmt, ... );
 PSSQL_VARARG_PROC( int, SQLRecordQueryf, ( PODBC odbc, int *columns, CTEXTSTR **result, CTEXTSTR **fields, CTEXTSTR fmt, ... ) );
 #define SQLRecordQueryf   (__SQLRecordQueryf( DBG_VOIDSRC ))
+
+PSSQL_VARARG_PROC( int, SQLRecordQueryf_v2, ( PODBC odbc, int *nResults, CTEXTSTR **result, size_t **resultLengths, CTEXTSTR **fields, CTEXTSTR fmt, ... ) );
+#define SQLRecordQueryf_v2   (__SQLRecordQueryf_v2( DBG_VOIDSRC ))
+
 /* This was the original implementation, it returned the results
    as a comma separated list, with quotes around results that
    had commas in them, and quotes around empty strings to

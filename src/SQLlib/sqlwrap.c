@@ -9,6 +9,7 @@ SQL_NAMESPACE
 #undef SQLCommandf
 #undef SQLQueryf
 #undef SQLRecordQueryf
+#undef SQLRecordQueryf_v2
 
 #if defined( _DEBUG ) || defined( _DEBUG_INFO )
 #define WRAP(a,b,c)  CTEXTSTR _FILE_##b = _WIDE(__FILE__); int _LINE_##b; __f_##b __##b(DBG_VOIDPASS)  { _FILE_##b = pFile; _LINE_##b = nLine; return b; }
@@ -29,6 +30,7 @@ WRAP( int, SQLCommandf, ( PODBC odbc, CTEXTSTR fmt, ... ) )
 WRAP( int, SQLQueryf, ( PODBC odbc, CTEXTSTR *result, CTEXTSTR fmt, ... ) )
 
 WRAP( int, SQLRecordQueryf, ( PODBC odbc, int *nResults, CTEXTSTR **result, CTEXTSTR **fields, CTEXTSTR fmt, ... ) )
+WRAP( int, SQLRecordQueryf_v2, ( PODBC odbc, int *nResults, CTEXTSTR **result, CTEXTSTR **fields, size_t **fieldLengths, CTEXTSTR fmt, ... ) )
 
 
 int DoSQLCommandf( CTEXTSTR fmt, ... )
@@ -131,6 +133,20 @@ int SQLRecordQueryf( PODBC odbc, int *nResults, CTEXTSTR **result, CTEXTSTR **fi
 	return result_code;
 }
 
+int SQLRecordQueryf_v2( PODBC odbc, int *nResults, CTEXTSTR **result, size_t **resultLengths, CTEXTSTR **fields, CTEXTSTR fmt, ... )
+{
+	int result_code;
+	PTEXT cmd;
+	PVARTEXT pvt = VarTextCreate();
+	va_list args;
+	va_start( args, fmt );
+	vvtprintf( pvt, fmt, args );
+	cmd = VarTextGet( pvt );
+	VarTextDestroy( &pvt );
+	result_code = SQLRecordQueryExx( odbc, GetText( cmd ), GetTextSize( cmd ), nResults, result, resultLengths,fields  DBG_ARGS(SQLRecordQueryf_v2) );
+	LineRelease( cmd );
+	return result_code;
+}
 
 
 SQL_NAMESPACE_END

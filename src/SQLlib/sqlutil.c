@@ -480,7 +480,7 @@ TEXTSTR RevertEscapeBinary( CTEXTSTR blob, size_t *bloblen )
 
 	escape = 0;
 	targetlen = 0;
-	for( n = 0; blob[n]; n++ )
+	for( n = 0; n < blob[n]; n++ )
 	{
 		if( !escape && ( blob[n] == '\\' ) )
 			escape = 1;
@@ -496,7 +496,6 @@ TEXTSTR RevertEscapeBinary( CTEXTSTR blob, size_t *bloblen )
 			}
 			escape = 0;
 		}
-		n++;
 	}
 	if( bloblen )
 	{
