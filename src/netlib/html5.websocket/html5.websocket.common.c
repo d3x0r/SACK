@@ -217,6 +217,7 @@ void ProcessWebSockProtocol( WebSocketInputState websock, PCLIENT pc, const uint
 				websock->final = 1;
 			websock->opcode = ( msg[n] & 0xF );
 			websock->_RSV1 = (msg[n] & 0x40);
+			lprintf( "Packet opcode: %d", websock->opcode );
 			if( websock->opcode == 1 ) websock->input_type = 0;
 			else if( websock->opcode == 2 ) websock->input_type = 1;
 			websock->input_msg_state++;
@@ -341,6 +342,7 @@ void ProcessWebSockProtocol( WebSocketInputState websock, PCLIENT pc, const uint
 				case 0x02: //binary
 				case 0x01: //text
 					websock->RSV1 = websock->_RSV1;
+					lprintf( "text or binary...," );
 				case 0x00: // continuation
 					/// single packet, final...
 					//LogBinary( websock->fragment_collection, websock->fragment_collection_length );
