@@ -1197,22 +1197,22 @@ void  UnmakeThread( void )
 #endif
 	if( pThread )
 	{
-#ifdef _WIN32
-		//lprintf( WIDE("Unmaking thread event! on thread %016"_64fx"x"), pThread->thread_ident );
-		CloseHandle( pThread->thread_event->hEvent );
-		{
-			struct my_thread_info* _MyThreadInfo = GetThreadTLS();
-			Deallocate( struct my_thread_info*, _MyThreadInfo );
-			TlsSetValue( global_timer_structure->my_thread_info_tls, NULL );
-		}
-#else
-		closesem( (POINTER)pThread, 0 );
-#endif
 		// unlink from globalTimerData.threads list.
 		//if( ( (*pThread->me)=pThread->next ) )
 		//	pThread->next->me = pThread->me;
 		{
 			int tmp = SetAllocateLogging( FALSE );
+#ifdef _WIN32
+			//lprintf( WIDE("Unmaking thread event! on thread %016"_64fx"x"), pThread->thread_ident );
+			CloseHandle( pThread->thread_event->hEvent );
+			{
+				struct my_thread_info* _MyThreadInfo = GetThreadTLS();
+				Deallocate( struct my_thread_info*, _MyThreadInfo );
+				TlsSetValue( global_timer_structure->my_thread_info_tls, NULL );
+			}
+#else
+			closesem( (POINTER)pThread, 0 );
+#endif
 			Deallocate( TEXTSTR, pThread->thread_event_name );
 #ifdef _WIN32
 			Deallocate( TEXTSTR, pThread->thread_event->name );

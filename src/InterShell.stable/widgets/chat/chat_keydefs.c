@@ -30,11 +30,12 @@ int CPROC KeyGetGatheredLine( PCHAT_LIST list, PUSER_INPUT_BUFFER pci )
 	{
 		list->input.phb_Input->pBlock->pLines[0].flags.nLineLength = (int)LineLengthExEx( list->input.CommandInfo->CollectionBuffer, FALSE, 8, NULL );
 		list->input.phb_Input->pBlock->pLines[0].pLine = list->input.CommandInfo->CollectionBuffer;
+		list->input.phb_Input->flags.bUpdated = 1;
 		BuildDisplayInfoLines( list->input.phb_Input, 0, list->input_font );
 		if( line )
 			list->InputData( list->psvInputData, line );
 	}
-	else
+	else if( line )
 		LineRelease( line );
 
 	return UPDATE_COMMAND; 

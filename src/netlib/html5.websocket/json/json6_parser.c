@@ -102,7 +102,8 @@ static int gatherString6(struct json_parse_state *state, CTEXTSTR msg, CTEXTSTR 
 		(state->col)++;
 
 		if( c == start_c ) {
-			if( state->escape ) { ( *mOut++ ) = c; state->escape = FALSE; } else if( c == start_c ) {
+			if( state->escape ) { ( *mOut++ ) = c; state->escape = FALSE; }
+			else if( c == start_c ) {
 				status = 1;
 				break;
 			} else ( *mOut++ ) = c; // other else is not valid close quote; just store as content.
