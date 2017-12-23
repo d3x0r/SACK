@@ -1242,7 +1242,7 @@ int TCPWriteEx(PCLIENT pc DBG_PASS)
 							 (int)pc->lpFirstPending->dwAvail,
 							 0);
 			if (nSent == SOCKET_ERROR) {
-            DWORD dwError;
+				uint32_t dwError;
 				dwError = WSAGetLastError();
 				if( dwError == WSAEWOULDBLOCK )  // this is alright.
 				{
@@ -1482,8 +1482,8 @@ LOGICAL TCPDrainRead( PCLIENT pClient )
 						 , (int)nDrainRead, 0 );
 		if( nDrainRead == 0 )//SOCKET_ERROR )
 		{
-			DWORD dwError;
-         dwError = WSAGetLastError();
+			uint32_t dwError;
+			dwError = WSAGetLastError();
 			if( dwError == WSAEWOULDBLOCK )
 			{
 				if( !pClient->bDrainExact )
