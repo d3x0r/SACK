@@ -97,7 +97,7 @@ static int gatherString6(struct json_parse_state *state, CTEXTSTR msg, CTEXTSTR 
 	TEXTRUNE c;
 	//escape = 0;
 	//cr_escaped = FALSE;
-	while( ( n = (*msg_input) - msg ), (( n < msglen ) && (c = GetUtfChar( msg_input ) )) && ( status >= 0 ) )
+	while( ( ( n = (*msg_input) - msg ), (c = GetUtfChar( msg_input ) ), ( n < msglen ) ) && ( status >= 0 ) )
 	{
 		(state->col)++;
 
