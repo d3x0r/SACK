@@ -217,7 +217,6 @@ void ProcessWebSockProtocol( WebSocketInputState websock, PCLIENT pc, const uint
 				websock->final = 1;
 			websock->opcode = ( msg[n] & 0xF );
 			websock->_RSV1 = (msg[n] & 0x40);
-			lprintf( "Packet opcode: %d", websock->opcode );
 			if( websock->opcode == 1 ) websock->input_type = 0;
 			else if( websock->opcode == 2 ) websock->input_type = 1;
 			websock->input_msg_state++;
@@ -342,7 +341,6 @@ void ProcessWebSockProtocol( WebSocketInputState websock, PCLIENT pc, const uint
 				case 0x02: //binary
 				case 0x01: //text
 					websock->RSV1 = websock->_RSV1;
-					lprintf( "text or binary...," );
 				case 0x00: // continuation
 					/// single packet, final...
 					//LogBinary( websock->fragment_collection, websock->fragment_collection_length );
@@ -378,7 +376,7 @@ void ProcessWebSockProtocol( WebSocketInputState websock, PCLIENT pc, const uint
 							inflateReset( &websock->inflater );
 						}
 						else {
-							lprintf( "Completed packet; %d %d", websock->input_type, websock->fragment_collection_length );
+							//lprintf( "Completed packet; %d %d", websock->input_type, websock->fragment_collection_length );
 							websock->on_event( pc, websock->psv_open, websock->input_type, websock->fragment_collection, websock->fragment_collection_length );
 						}
 					}
@@ -460,7 +458,7 @@ void ProcessWebSockProtocol( WebSocketInputState websock, PCLIENT pc, const uint
 				// after processing any opcode (this is IN final, and length match) we're done, start next message
 				ResetInputState( websock );
 			} else if( websock->fragment_collection_length == websock->fragment_collection_avail ) {
-				lprintf( "Completed packet; still not final fragment though.... %d", websock->fragment_collection_avail );
+				//lprintf( "Completed packet; still not final fragment though.... %d", websock->fragment_collection_avail );
 				websock->input_msg_state = 0;
 				if( websock->on_fragment_done )
 					websock->on_fragment_done( pc, websock->psv_open, websock->input_type, (int)websock->fragment_collection_length );

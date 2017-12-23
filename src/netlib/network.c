@@ -2362,7 +2362,7 @@ NETWORK_PROC( LOGICAL, NetworkWait )(HWND hWndNotify,uint32_t wClients,int wUser
 	// please be mindful of the following data declared immediate...
 	if( GetLinkCount( globalNetworkData.pThreads ) )
 	{
-		xlprintf(200)( WIDE("Threads already active...") );
+		//xlprintf(200)( WIDE("Threads already active...") );
 		// might do something... might not...
 		return TRUE; // network thread active, do not realloc
 	}

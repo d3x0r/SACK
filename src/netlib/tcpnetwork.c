@@ -40,6 +40,7 @@ return 0;
 
 */
 //#define LOG_SOCKET_CREATION
+//#define DEBUG_SOCK_IO
 #define LIBRARY_DEF
 #include <stdhdrs.h>
 #include <timers.h>
@@ -878,11 +879,11 @@ int FinishPendingRead(PCLIENT lpClient DBG_PASS )  // only time this should be c
 		}
 		while( lpClient->RecvPending.dwAvail )  // if any room is availiable.
 		{
-//#ifdef VERBOSE_DEBUG
+#ifdef DEBUG_SOCK_IO
 			//nCount++;
 			_lprintf( DBG_RELAY )( WIDE("FinishPendingRead %d %d" )
 				, lpClient->RecvPending.dwUsed, lpClient->RecvPending.dwAvail );
-//#endif
+#endif
 			nRecv = recv(lpClient->Socket,
 							 (char*)lpClient->RecvPending.buffer.p +
 							 lpClient->RecvPending.dwUsed,
@@ -890,7 +891,9 @@ int FinishPendingRead(PCLIENT lpClient DBG_PASS )  // only time this should be c
 			if (nRecv == SOCKET_ERROR)
 			{
 				dwError = WSAGetLastError();
+#ifdef DEBUG_SOCK_IO
 				lprintf( "Received error (-1) %d", nRecv );
+#endif
 				switch( dwError)
 				{
 				case WSAEWOULDBLOCK: // no data avail yet...
@@ -924,7 +927,9 @@ int FinishPendingRead(PCLIENT lpClient DBG_PASS )  // only time this should be c
 			}
 			else if (!nRecv) // channel closed if received 0 bytes...
 			{   // otherwise WSAEWOULDBLOCK would be generated.
+#ifdef DEBUG_SOCK_IO
 				lprintf( "Received (0) %d", nRecv );
+#endif
 				//_lprintf( DBG_RELAY )( WIDE("Closing closed socket... Hope there's also an event... "));
 				lpClient->dwFlags |= CF_TOCLOSE;
 				break; // while dwAvail... try read...
@@ -932,7 +937,9 @@ int FinishPendingRead(PCLIENT lpClient DBG_PASS )  // only time this should be c
 			}
 			else
 			{
+#ifdef DEBUG_SOCK_IO
 				lprintf( "Received %d", nRecv );
+#endif
 				if( globalNetworkData.flags.bShortLogReceivedData )
 				{
 					LogBinary( (uint8_t*)lpClient->RecvPending.buffer.p
@@ -1226,22 +1233,18 @@ int TCPWriteEx(PCLIENT pc DBG_PASS)
 							 pc->lpFirstPending->dwUsed,
 							 (int)pc->lpFirstPending->dwAvail );
 			}
+#ifdef DEBUG_SOCK_IO
 			_lprintf(DBG_RELAY)( "Try to send... %d  %d", pc->lpFirstPending->dwUsed, pc->lpFirstPending->dwAvail );
+#endif
 			nSent = send(pc->Socket,
 							 (char*)pc->lpFirstPending->buffer.c +
 							 pc->lpFirstPending->dwUsed,
 							 (int)pc->lpFirstPending->dwAvail,
 							 0);
-			lprintf( "sent... %d", nSent );
-			if( nSent < (int)pc->lpFirstPending->dwAvail ) {
-				//pc->lpFirstPending->dwUsed += nSent;
-				//pc->lpFirstPending->dwAvail -= nSent;
-				pc->dwFlags |= CF_WRITEPENDING;
-				//lprintf( "THIS IS ANOTHER PENDING CONDITION THAT WASN'T ACCOUNTED %d of %d", nSent, pc->lpFirstPending->dwAvail  );
-			}
-			else if (nSent == SOCKET_ERROR)
-			{
-				if( WSAGetLastError() == WSAEWOULDBLOCK )  // this is alright.
+			if (nSent == SOCKET_ERROR) {
+            DWORD dwError;
+				dwError = WSAGetLastError();
+				if( dwError == WSAEWOULDBLOCK )  // this is alright.
 				{
 #ifdef VERBOSE_DEBUG
 					lprintf( WIDE("Pending write...") );
@@ -1261,14 +1264,14 @@ int TCPWriteEx(PCLIENT pc DBG_PASS)
 				}
 				{
 					_lprintf(DBG_RELAY)(WIDE(" Network Send Error: %5d(buffer:%p ofs: %") _size_f WIDE("  Len: %") _size_f WIDE(")"),
-											  WSAGetLastError(),
+											  dwError,
 											  pc->lpFirstPending->buffer.c,
 											  pc->lpFirstPending->dwUsed,
 											  pc->lpFirstPending->dwAvail );
-					if( WSAGetLastError() == 10057 // ENOTCONN
-						||WSAGetLastError() == 10014 // EFAULT
+					if( dwError == 10057 // ENOTCONN
+						||dwError == 10014 // EFAULT
 #ifdef __LINUX__
-						|| WSAGetLastError() == EPIPE
+						|| dwError == EPIPE
 #endif
 					  )
 					{
@@ -1276,18 +1279,25 @@ int TCPWriteEx(PCLIENT pc DBG_PASS)
 					}
 					return FALSE; // get out of here!
 				}
-			}
-			else if (!nSent)  // other side closed.
-			{
+			} else if (!nSent) { // other side closed.
 				lprintf( WIDE("sent zero bytes - assume it was closed - and HOPE there's an event...") );
 				InternalRemoveClient( pc );
 				// if this happened - don't return TRUE result which would
 				// result in queuing a pending buffer...
 				return FALSE;  // no sence processing the rest of this.
+			} else if( nSent < (int)pc->lpFirstPending->dwAvail ) {
+				//pc->lpFirstPending->dwUsed += nSent;
+				//pc->lpFirstPending->dwAvail -= nSent;
+				pc->dwFlags |= CF_WRITEPENDING;
+				//lprintf( "THIS IS ANOTHER PENDING CONDITION THAT WASN'T ACCOUNTED %d of %d", nSent, pc->lpFirstPending->dwAvail  );
 			}
 		}
 		else
 			nSent = 0;
+
+#ifdef DEBUG_SOCK_IO
+		lprintf( "sent... %d", nSent );
+#endif
 
 		{  // sent some data - update pending buffer status.
 			if( pc->lpFirstPending )
@@ -1472,14 +1482,16 @@ LOGICAL TCPDrainRead( PCLIENT pClient )
 						 , (int)nDrainRead, 0 );
 		if( nDrainRead == 0 )//SOCKET_ERROR )
 		{
-			if( WSAGetLastError() == WSAEWOULDBLOCK )
+			DWORD dwError;
+         dwError = WSAGetLastError();
+			if( dwError == WSAEWOULDBLOCK )
 			{
 				if( !pClient->bDrainExact )
 					pClient->nDrainLength = 0;
 				break;
 			}
 			lprintf(WIDE(" Network Error during drain: %d (from: %p  to: %p  has: %") _size_f WIDE("  toget: %") _size_f WIDE(")")
-			       , WSAGetLastError()
+			       , dwError
 			       , pClient->Socket
 			       , pClient->RecvPending.buffer.p
 			       , pClient->RecvPending.dwUsed

@@ -207,7 +207,9 @@ static int handshake( PCLIENT pc ) {
 						lprintf( "send %d %d for handshake", pending, read );
 #endif
 						if( read > 0 ) {
+#ifdef DEBUG_SSL_IO
 							lprintf( "handshake send %d", read );
+#endif
 							SendTCP( pc, ses->obuffer, read );
 						}
 					}
@@ -328,10 +330,8 @@ static void ssl_ReadComplete( PCLIENT pc, POINTER buffer, size_t length )
 				if( pending > 0 ) {
 					int read = BIO_read( pc->ssl_session->wbio, pc->ssl_session->obuffer, (int)pc->ssl_session->obuflen );
 #ifdef DEBUG_SSL_IO
-					lprintf( "Send pending %p %d", pc->ssl_session->obuffer, read );
+					lprintf( "Send pending control %p %d", pc->ssl_session->obuffer, read );
 #endif
-					lprintf( "Sending Control 1 %d", read );
-
 					SendTCP( pc, pc->ssl_session->obuffer, read );
 				}
 			}
@@ -385,7 +385,6 @@ static void ssl_ReadComplete( PCLIENT pc, POINTER buffer, size_t length )
 							pc->ssl_session->obuffer = NewArray( uint8_t, pc->ssl_session->obuflen = pending * 2 );
 						}
 						read = BIO_read( pc->ssl_session->wbio, pc->ssl_session->obuffer, (int)pc->ssl_session->obuflen );
-						lprintf( "SSL Send control %d", read );
 						SendTCP( pc, pc->ssl_session->obuffer, read );
 					}
 				}
@@ -440,7 +439,6 @@ LOGICAL ssl_Send( PCLIENT pc, CPOINTER buffer, size_t length )
 #ifdef DEBUG_SSL_IO
 		lprintf( "ssl_Send  %d", len_out );
 #endif
-		lprintf( "ssl_send %d", len_out );
 		SendTCP( pc, ses->obuffer, len_out );
 	}
 	return TRUE;
