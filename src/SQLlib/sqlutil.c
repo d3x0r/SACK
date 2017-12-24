@@ -358,7 +358,7 @@ TEXTSTR EscapeSQLBinaryExx( PODBC odbc, CTEXTSTR blob, uintptr_t bloblen, uintpt
 		( *tmpnamebuf ) = 0; // best terminate this thing.
 	}
 	if( resultLen )
-		( *resultLen ) = targetlen + bloblen;
+		( *resultLen ) = tmpnamebuf - result;
 	return result;
 }
 TEXTSTR EscapeSQLBinaryEx ( PODBC odbc, CTEXTSTR blob, uintptr_t bloblen DBG_PASS )
