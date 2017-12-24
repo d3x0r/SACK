@@ -1665,6 +1665,7 @@ int GetInputCursorIndex( PCHAT_LIST list, int x, int y )
 	for( nCursorLine = nLine; nCursorLine >= 0; nCursorLine-- )
 	{
 		pCurrentLine = (PDISPLAYED_LINE)GetDataItem( ppCurrentLineInfo, nCursorLine );
+		if( !pCurrentLine ) continue;
 		//if( pCurrentLine && cursor_pos > pCurrentLine->nToShow )
 		if( nCursorLine == y )
 		{
