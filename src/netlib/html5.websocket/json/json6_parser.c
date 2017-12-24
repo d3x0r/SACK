@@ -68,7 +68,7 @@ char *json6_escape_string( const char *string ) {
 
 #define __GetUtfChar( result, from )           ((result = ((TEXTRUNE*)*from)[0]),     \
 		( ( !(result & 0xFF) )    \
-          ?0          \
+          ?_zero(result,from)   \
                                                \
 	  :( ( result & 0x80 )                       \
 		?( ( result & 0xE0 ) == 0xC0 )   \
