@@ -240,7 +240,7 @@ CTEXTSTR  GetLastInsertKeyEx( CTEXTSTR table, CTEXTSTR col DBG_PASS )
 #undef EscapeBinary
 #undef EscapeString
 
-TEXTSTR EscapeSQLBinaryExx( PODBC odbc, CTEXTSTR blob, uintptr_t bloblen, LOGICAL bQuote DBG_PASS )
+TEXTSTR EscapeSQLBinaryExx( PODBC odbc, CTEXTSTR blob, uintptr_t bloblen, uintptr_t *resultLen, LOGICAL bQuote DBG_PASS )
 {
 	int type_mysql = 1;
 #if MYSQL_ODBC_CONNECTION_IS_BROKEN
@@ -344,54 +344,52 @@ TEXTSTR EscapeSQLBinaryExx( PODBC odbc, CTEXTSTR blob, uintptr_t bloblen, LOGICA
 		}
 
 		n = 0;
-
 		result = tmpnamebuf = (TEXTSTR)AllocateEx( ( sizeof( TEXTCHAR ) * ( targetlen + bloblen + 3 ) ) DBG_RELAY );
-
 		if( bQuote )
-			(*tmpnamebuf++) = '\'';
-		while( n < bloblen )
-		{
+			( *tmpnamebuf++ ) = '\'';
+		while( n < bloblen ) {
 			if( blob[n] == '\'' )
-				(*tmpnamebuf++) = '\'';
-			(*tmpnamebuf++) = blob[n];
+				( *tmpnamebuf++ ) = '\'';
+			( *tmpnamebuf++ ) = blob[n];
 			n++;
 		}
 		if( bQuote )
-			(*tmpnamebuf++) = '\'';
-		(*tmpnamebuf) = 0; // best terminate this thing.
+			( *tmpnamebuf++ ) = '\'';
+		( *tmpnamebuf ) = 0; // best terminate this thing.
 	}
+	if( resultLen )
+		( *resultLen ) = targetlen + bloblen;
 	return result;
 }
 TEXTSTR EscapeSQLBinaryEx ( PODBC odbc, CTEXTSTR blob, uintptr_t bloblen DBG_PASS )
 {
-	return EscapeSQLBinaryExx( odbc, blob, bloblen, FALSE DBG_RELAY );
+	return EscapeSQLBinaryExx( odbc, blob, bloblen, NULL, FALSE DBG_RELAY );
 }
 TEXTSTR EscapeBinaryEx ( CTEXTSTR blob, uintptr_t bloblen DBG_PASS )
 {
-	return EscapeSQLBinaryExx( NULL, blob, bloblen, FALSE DBG_RELAY );
+	return EscapeSQLBinaryExx( NULL, blob, bloblen, NULL, FALSE DBG_RELAY );
 }
 
 TEXTCHAR * EscapeBinary ( CTEXTSTR blob, uintptr_t bloblen )
 {
-	return EscapeSQLBinaryExx( NULL, blob, bloblen, FALSE DBG_SRC );
+	return EscapeSQLBinaryExx( NULL, blob, bloblen, NULL, FALSE DBG_SRC );
 }
 
 //---------------------------------------------------------------------------
 
 TEXTCHAR * EscapeSQLStringEx ( PODBC odbc, CTEXTSTR name DBG_PASS )
 {
-	return EscapeSQLBinaryExx( odbc, name, strlen( name ), FALSE DBG_RELAY );
+	return EscapeSQLBinaryExx( odbc, name, strlen( name )+1, NULL, FALSE DBG_RELAY );
 }
 
 TEXTCHAR * EscapeStringEx ( CTEXTSTR name DBG_PASS )
 {
-	return EscapeSQLBinaryExx( NULL, name, (uint32_t)strlen( name ), FALSE DBG_RELAY );
+	return EscapeSQLBinaryExx( NULL, name, (uint32_t)strlen( name ) + 1, NULL, FALSE DBG_RELAY );
 }
 
 TEXTCHAR * EscapeString ( CTEXTSTR name )
 {
-
-	return EscapeSQLBinaryExx( NULL, name, strlen( name ), FALSE DBG_SRC );
+	return EscapeSQLBinaryExx( NULL, name, strlen( name ) + 1, NULL, FALSE DBG_SRC );
 }
 
 uint8_t hexbyte( TEXTCHAR *string )

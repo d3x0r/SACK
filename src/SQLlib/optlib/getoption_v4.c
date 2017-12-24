@@ -480,8 +480,9 @@ LOGICAL New4CreateValue( POPTION_TREE tree, POPTION_TREE_NODE value, CTEXTSTR pV
 			segment++;
 		}
 		newval = EscapeSQLBinaryOpt( tree->odbc_writer, pValue + offset, len, TRUE );
-		tnprintf( insert, sizeof( insert ), WIDE( "replace into " )OPTION4_VALUES WIDE( " (`option_id`,`string`,`segment` ) values ('%s',%s,%d)" )
+		tnprintf( insert, sizeof( insert ), WIDE( "replace into " )OPTION4_VALUES WIDE( " (`option_id`,`string`,`segment` ) values ('%s',%*.*s,%d)" )
 				  , value->guid
+				  , len, len
 				  , newval
 				  , segment
 				  );
