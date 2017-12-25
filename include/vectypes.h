@@ -27,7 +27,6 @@ typedef double RCOORD;
    \ \                                  */
 	typedef double *PRCOORD;
 #else
-#if defined( __cplusplus ) || defined( MAKE_RCOORD_SINGLE )
 	/* basic type that Vectlib is based on.
 	 This specifies a 'real' (aka float) coordinate.
 	 Combinations of coordinates create vectors and points.  */
@@ -36,7 +35,6 @@ typedef float RCOORD;
    
    \ \                                  */
 typedef float *PRCOORD;
-#endif
 #endif
 
 // these SHOULD be dimension relative, but we lack much code for that...
