@@ -90,6 +90,11 @@ set( NETWORK_SOURCES
   ${MORE_NETWORK_SOURCES}
 )
 
+if( __ANDROID__ )
+   set( NETWORK_SOURCES ${SOURCES_ROOT}src/netlib/android_ifaddrs.c ${SOURCES_ROOT}src/netlib/android_ifaddrs.h )
+endif( __ANDROID__ )
+
+
 if( NOT NO_SSL )
 set( NETWORK_SOURCES ${NETWORK_SOURCES} 
   ${SOURCES_ROOT}src/netlib/ssl_layer.c

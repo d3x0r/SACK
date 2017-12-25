@@ -78,7 +78,9 @@ set( NETLIB_SOURCES
     ../deadstart/deadstart_core.c 
     ${LAST_GCC_SOURCES} )
 
-
+if( __ANDROID__ )
+   set( NETLIB_SOURCES ${NETLIB_SOURCES} android_ifaddrs.c  android_ifaddrs.h )
+#endif
 
 set( NETLIB_PP_SOURCES )
 set( SACK_BASE .. )

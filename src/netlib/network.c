@@ -56,7 +56,13 @@
 #include <net/if.h>
 #include <net/if_arp.h>
 #include <arpa/inet.h>
+#ifndef __ANDROID__
 #include <ifaddrs.h>
+#else
+#include "android_ifaddrs.h"
+#define EPOLLRDHUP EPOLLHUP
+#define EPOLL_CLOEXEC 0
+#endif
 #ifdef __MAC__
 #include <sys/event.h>
 #include <sys/time.h>
@@ -2070,7 +2076,11 @@ uintptr_t CPROC NetworkThreadProc( PTHREAD thread )
 #ifdef __MAC__
 	this_thread.kqueue = kqueue();
 #else
+#ifdef __ANDROID__
+	this_thread.epoll_fd = epoll_create( 128 ); // close on exec (no inherit)
+#else
 	this_thread.epoll_fd = epoll_create1( EPOLL_CLOEXEC ); // close on exec (no inherit)
+#endif
 #endif
 	{
 #  ifdef __MAC__
