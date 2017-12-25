@@ -2864,6 +2864,11 @@ void Chat_SetSendButtonText( PSI_CONTROL pc, CTEXTSTR text )
 	SetControlText( list->send_button, text );
 }
 
+void Chat_SetSendButtonFont( PSI_CONTROL pc, SFTFont font ) {
+	PCHAT_LIST *ppList = ControlData( PCHAT_LIST*, pc );
+	PCHAT_LIST list = ( *ppList );
+	SetCommonFont( list->send_button, font );
+}
 
 void Chat_SetSendButtonImages( PSI_CONTROL pc, Image normal, Image pressed, Image rollover, Image focused )
 {

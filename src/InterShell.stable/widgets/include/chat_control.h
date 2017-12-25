@@ -58,6 +58,7 @@ CHAT_CONTROL_PROC( void, Chat_TypePastedInput )( PSI_CONTROL pc, PTEXT segment )
 CHAT_CONTROL_PROC( void, Chat_SetSendButtonImages )( PSI_CONTROL pc, Image normal, Image pressed, Image rollover, Image focused );
 CHAT_CONTROL_PROC( void, Chat_SetSendButtonSlicedImages )( PSI_CONTROL pc, SlicedImage normal, SlicedImage pressed, SlicedImage rollover, SlicedImage focused );
 CHAT_CONTROL_PROC( void, Chat_SetSendButtonText )( PSI_CONTROL pc, CTEXTSTR text );
+CHAT_CONTROL_PROC( void, Chat_SetSendButtonFont )( PSI_CONTROL pc, SFTFont font );
 CHAT_CONTROL_PROC( void, Chat_SetSendButtonTextOffset )( PSI_CONTROL pc, int32_t x, int32_t y );
 CHAT_CONTROL_PROC( void, Chat_SetSendButtonSize )( PSI_CONTROL pc, uint32_t width, uint32_t height );
 CHAT_CONTROL_PROC( void, Chat_SetSendButtonOffset )( PSI_CONTROL pc, int32_t x, int32_t y );
