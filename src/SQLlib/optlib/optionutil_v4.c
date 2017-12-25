@@ -35,7 +35,7 @@ static LOGICAL CPROC New4CheckOption( uintptr_t psvForeach, uintptr_t psvNode )
 	POPTION_TREE_NODE option_node = (POPTION_TREE_NODE)psvNode;
 	struct new4_enum_params *params = (struct new4_enum_params *)psvForeach;
 	return params->Process( params->psvEnum, option_node->name, option_node
-								 , ((option_node->value_guid)?1:0) );
+								 , ((option_node->flags.bHasValue)?1:0) );
 }
 
 void New4EnumOptions( PODBC odbc
@@ -73,10 +73,10 @@ void New4EnumOptions( PODBC odbc
 		FamilyTreeForEachChild( node->option_tree, parent->node, New4CheckOption, (uintptr_t)&params );
 	}
 
-	if( !parent->flags.bExpanded || ( ( timeGetTime() - 5000 ) > parent->expansion_tick ) )
+	//if( !parent->flags.bExpanded || ( ( timeGetTime() - 5000 ) > parent->expansion_tick ) )
 	{
 		parent->flags.bExpanded = 1;
-		parent->expansion_tick = timeGetTime();
+		//parent->expansion_tick = timeGetTime();
 		// any existing query needs to be saved...
 		PushSQLQueryEx( odbc ); // any subqueries will of course clean themselves up.
 		tnprintf( query
@@ -102,8 +102,7 @@ void New4EnumOptions( PODBC odbc
 				tmp_node = New( OPTION_TREE_NODE );
 				MemSet( tmp_node, 0, sizeof( struct sack_option_tree_family_node ) );
 				tmp_node->guid = SaveText( results[0] );
-				tmp_node->name_guid = SaveText( results[2] );
-				tmp_node->value_guid = NULL;
+				tmp_node->flags.bHasValue = 0;
 
 				tmp_node->name = SaveText( results[1] );
 				tmp_node->node = FamilyTreeAddChild( &node->option_tree, parent->node, tmp_node, (uintptr_t)tmp_node->name );
@@ -112,7 +111,7 @@ void New4EnumOptions( PODBC odbc
 				//lprintf( WIDE( "Enum %s %ld" ), optname, node );
 				//ReadFromNameTable( name, WIDE(""OPTION_NAME""), WIDE("name_id"), &result);
 				if( !Process( psvUser, tmp_node->name, tmp_node
-								, ((tmp_node->value_guid)?1:0)
+								, ((tmp_node->flags.bHasValue )?1:0)
 								) )
 				{
 					break;
@@ -157,8 +156,7 @@ void New4DuplicateOption( PODBC odbc, POPTION_TREE_NODE iRoot, CTEXTSTR pNewName
 		POPTION_TREE_NODE tmp_node = New( OPTION_TREE_NODE );
 		struct complex_args args;
 		tmp_node->guid = StrDup( result );
-		tmp_node->name_guid = NULL;
-		tmp_node->value_guid = NULL;
+		tmp_node->flags.bHasValue = iRoot->flags.bHasValue;
 		tmp_node->value = NULL;
 		SQLEndQuery( odbc );
 		iNewName = GetOptionIndexEx( tmp_node, NULL, pNewName, NULL, TRUE, FALSE DBG_SRC );

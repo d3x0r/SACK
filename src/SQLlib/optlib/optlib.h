@@ -13,15 +13,14 @@ typedef struct sack_option_tree_family_node OPTION_TREE_NODE;
 struct sack_option_tree_family_node {
 	CTEXTSTR name;
 	CTEXTSTR guid;
-	CTEXTSTR name_guid;
-	CTEXTSTR value_guid;
 	CTEXTSTR value;
 	PFAMILYNODE node;
 	struct {
 		BIT_FIELD bExpanded : 1;
+		BIT_FIELD bHasValue : 1;
 	} flags;
 	PODBC uncommited_write; // connection this was written on for the commit event.
-	uint32_t expansion_tick;
+	//uint32_t expansion_tick;
 };
 #define MAXOPTION_TREE_NODESPERSET 256
 DeclareSet( OPTION_TREE_NODE );
