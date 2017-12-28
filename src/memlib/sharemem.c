@@ -869,11 +869,6 @@ LOGICAL OpenRootMemory()
 #ifdef DEBUG_GLOBAL_REGISTRATION
 	ll_lprintf( WIDE( "Opening space..." ) );
 #endif
-#ifdef UNICODE
-#define _S WIDE("ls")
-#else
-#define _S WIDE("s")
-#endif
 
 #ifdef WIN32
 	tnprintf( spacename, sizeof( spacename ), WIDE( "memory:%" ) _32fx, GetCurrentProcessId() );

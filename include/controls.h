@@ -554,9 +554,14 @@ enum ControlColorTypes {
 #  define IDCANCEL BTN_CANCEL
 #endif
 
+#ifndef IDIGNORE
+#  define IDIGNORE BTN_IGNORE
+#endif
+
 #ifndef BTN_OKAY
 #  define BTN_OKAY   1
 #  define BTN_CANCEL 2
+#  define BTN_IGNORE 3
 #endif
 
 #ifdef __cplusplus

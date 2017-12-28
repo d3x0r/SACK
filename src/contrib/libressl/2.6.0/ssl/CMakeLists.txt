@@ -1,8 +1,11 @@
 include_directories(
 	.
 	../include
-	../include/compat
 )
+
+if( NOT __ANDROID__ )
+    include_directories( ../include/compat )
+endif( NOT __ANDROID__ )
 
 set(
 	SSL_SRC

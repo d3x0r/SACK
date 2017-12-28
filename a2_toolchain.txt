@@ -15,7 +15,7 @@ set( ANDROID_NDK_TARGET_PLATFORM 14 )
 set( ANDROID_NDK_VERSION android-ndk-r9 CACHE STRING "NDK Version (appended to another path)" )
 set( ANDROID_SDK_ROOT $ENV{ANDROID_HOME} CACHE PATH "Android root path" )
 
-set( ANDROID_NDK_PREBUILT_VERSION 4.6 )
+set( ANDROID_NDK_PREBUILT_VERSION 4.8 )
 set( ANDROID_NDK_PREBUILT_ARCH_LONG arm-linux-androideabi )
 set( ANDROID_NDK_PREBUILT_ARCH thumb )
 
@@ -37,7 +37,7 @@ set( SYSROOT ${ANDROID_DIR}/platforms/android-${ANDROID_NDK_TARGET_PLATFORM}/arc
 set(ENV{SYSROOT} ${SYSROOT} )
 
 SET(ANDROID_NDK_DIR ${ANDROID_DIR}/toolchains )
-SET(ANDROID_WINVER  windows-x86_64 )
+SET(ANDROID_WINVER  windows )
 SET(STAGING_DIR ${ANDROID_NDK_DIR}/arm-linux-androideabi-${ANDROID_NDK_PREBUILT_VERSION}/prebuilt/${ANDROID_WINVER})
 
 SET(TARGET_CC ${STAGING_DIR}/bin/arm-linux-androideabi-gcc.exe --sysroot=${SYSROOT})

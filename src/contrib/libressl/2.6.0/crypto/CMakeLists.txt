@@ -1,13 +1,17 @@
 include_directories(
 	.
 	../include
-	../include/compat
 	asn1
 	bn
 	dsa
 	evp
 	modes
 )
+
+if( NOT __ANDROID__ )
+   include_directories( ../include/compat )
+endif( NOT __ANDROID__ )
+
 
 if(HOST_ASM_ELF_X86_64)
 	set(
@@ -654,7 +658,10 @@ if(CMAKE_HOST_UNIX)
 endif()
 
 if(CMAKE_HOST_WIN32)
+  if( NOT __ANDROID__ )
 	set(CRYPTO_SRC ${CRYPTO_SRC} bio/b_win.c)
+	set(CRYPTO_SRC ${CRYPTO_SRC} ui/ui_openssl_win.c)
+  endif( NOT __ANDROID__ )
 	set(CRYPTO_UNEXPORT ${CRYPTO_UNEXPORT} BIO_CONNECT_free
 		BIO_CONNECT_new
 		BIO_accept
@@ -670,11 +677,12 @@ if(CMAKE_HOST_WIN32)
 		BIO_sock_error
 		BIO_socket_ioctl )
 	set(CRYPTO_UNEXPORT ${CRYPTO_UNEXPORT} BIO_s_log)
-	set(CRYPTO_SRC ${CRYPTO_SRC} ui/ui_openssl_win.c)
 endif()
 
 if(CMAKE_HOST_WIN32)
+    if( NOT __ANDROID__ )
 	set(CRYPTO_SRC ${CRYPTO_SRC} compat/posix_win.c)
+    endif( NOT __ANDROID__ )
 	set(EXTRA_EXPORT ${EXTRA_EXPORT} gettimeofday)
 	set(EXTRA_EXPORT ${EXTRA_EXPORT} posix_perror)
 	set(EXTRA_EXPORT ${EXTRA_EXPORT} posix_fopen)
@@ -756,7 +764,9 @@ endif()
 
 if(NOT HAVE_EXPLICIT_BZERO)
 	if(CMAKE_HOST_WIN32)
+if( NOT __ANDROID__ )
 		set(CRYPTO_SRC ${CRYPTO_SRC} compat/explicit_bzero_win.c)
+endif( NOT __ANDROID__ )
 	else()
 		set(CRYPTO_SRC ${CRYPTO_SRC} compat/explicit_bzero.c)
 		set_source_files_properties(compat/explicit_bzero.c PROPERTIES COMPILE_FLAGS -O0)

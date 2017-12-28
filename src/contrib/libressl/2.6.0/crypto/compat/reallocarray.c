@@ -16,6 +16,9 @@
  */
 
 #include <sys/types.h>
+#ifdef __ANDROID__
+#include <limits.h>
+#endif
 #include <errno.h>
 #include <stdint.h>
 #include <stdlib.h>

@@ -1826,6 +1826,7 @@ void BuildDisplayInfoLines( PHISTORY_BROWSER phbr, PHISTORY_BROWSER leadin, SFTF
 							{
 								trim_char = 0;
 								pText = NEXTLINE( pText );
+								if( !pText ) break;
 								nLen = GetTextSize( pText );
 								goto do_end_of_line;
 							}

@@ -9,6 +9,7 @@
 #define CHAT_CONTROL_SOURCE
 #include <stdhdrs.h>
 #include <controls.h>
+#include <filesys.h>
 #include <psi.h>
 #include <sqlgetoption.h>
 #include <translation.h>
@@ -189,18 +190,18 @@ static CTEXTSTR FormatMessageTime( CTEXTSTR time_type, PCHAT_TIME now, PCHAT_TIM
 
 	if( delta >= ( 60*60*24 ) )
 	{
-		int part = delta / ( 60 * 60 * 24 );
+		int part = (int)(delta / ( 60 * 60 * 24 ));
 		snprintf( timebuf, 64, "%s%d %s ago", neg?"-":"", part, part==1?"day":"days" );
 	}
 	else if( delta >= ( 60 * 60 ) )
 	{
-		int part = ( delta / ( 60 * 60 ) );
+		int part = (int)( delta / ( 60 * 60 ) );
 		snprintf( timebuf, 64, "%s%d %s ago"
 			, neg?"-":""
 			, part, part==1?" hour":" hours" );
 	}
 	else if( delta >= 60 ) {
-		int part = delta / 60;
+		int part = (int)(delta / 60);
 		snprintf( timebuf, 64, "%s%d%s ago", neg?"-":"", part, part==1?" minute":" minutes" );
 	}	
 	else if( delta )
@@ -642,7 +643,6 @@ static void OnFinishInit( WIDE( "Chat Control" ) )( PSI_CONTROL canvas )
 
 static void OnSaveCommon( WIDE( "Chat Control" ) )( FILE *file )
 {
-
 	sack_fprintf( file, WIDE("%sChat Control Sent Arrow Area=%d,%d %u,%u\n")
 			 , InterShell_GetSaveIndent()
 			 , l.sent.arrow_x
@@ -844,6 +844,7 @@ PCHAT_MESSAGE  Chat_EnqueMessage( PSI_CONTROL pc, LOGICAL sent
 		EnqueLink( &pcc->messages, pcm );
 		return pcm;
 	}
+	return NULL;
 }
 
 PCHAT_MESSAGE Chat_EnqueImage( PSI_CONTROL pc, LOGICAL sent
@@ -879,7 +880,7 @@ PCHAT_MESSAGE Chat_EnqueImage( PSI_CONTROL pc, LOGICAL sent
 		if( pcm = (PCHAT_MESSAGE)PeekQueueEx( pcc->messages, -1 ) )
 		{
 			if( pcm->image == image )
-				return;
+				return NULL;
 		}
 		
 		pcm = New( CHAT_MESSAGE );
@@ -912,6 +913,7 @@ PCHAT_MESSAGE Chat_EnqueImage( PSI_CONTROL pc, LOGICAL sent
 		EnqueLink( &pcc->messages, pcm );
 		return pcm;
 	}
+	return NULL;
 }
 
 void MeasureFrameWidth( Image window, int32_t *left, int32_t *right, LOGICAL received, LOGICAL complete, int inset )
@@ -1912,7 +1914,6 @@ static void DrawTextEntry( PSI_CONTROL pc, PCHAT_LIST list, LOGICAL update )
 					continue;
 				cursor_pos += GetTextSize( cursor_segs );
 			}
-
 			for( nCursorLine = nLine; nCursorLine >= 0; nCursorLine-- )
 			{
 				pCurrentLine = (PDISPLAYED_LINE)GetDataItem( ppCurrentLineInfo, nCursorLine );
@@ -1940,7 +1941,7 @@ static void DrawTextEntry( PSI_CONTROL pc, PCHAT_LIST list, LOGICAL update )
 			{
 				pCurrentLine = (PDISPLAYED_LINE)GetDataItem( ppCurrentLineInfo, nLine );
 				if( IsControlFocused( list->pc ) &&
-					( ( !nLine && !pCurrentLine ) || ( nLine == nCursorLine ) ) )
+					( nLine == nCursorLine ) )
 				{
 					uint32_t w;
 					uint32_t total_w = 0;

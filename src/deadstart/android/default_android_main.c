@@ -27,6 +27,7 @@
 #include <dlfcn.h>
 #include <stdio.h>
 #include <EGL/egl.h>
+#include <fcntl.h>
 #include <linux/ashmem.h>
 #include <sys/mman.h>
 #include <android/asset_manager_jni.h>
@@ -1198,18 +1199,18 @@ extern "C"
 	JNIEXPORT jint JNICALL
 		Java_org_d3x0r_sack_core_NativeStaticLib_loadSharedLibrary(JNIEnv * env, jobject obj, jstring library )
 	{
-      int fd = -1;
+		int fd = -1;
 		//LOGI( "SETTING PACKAGE: %s", package );
 		// there is a release function for this... so this will be always valid.
 		// restart should change this?
 		const char *file = (*env)->GetStringUTFChars( env, library, NULL );
 		char filename[256];
-      FILE *filefile;
+		FILE *filefile;
 		void *filedata;
 		size_t filesize;
 		int ret;
 		if( !mypath )
-         findself();
+			findself();
 		LOGI( "Got a library to load... : %p %p", mypath, file );
 		snprintf( filename, 256, "%s/%s", mypath, file );
 		filefile = fopen( filename, "rb" );
@@ -1221,7 +1222,7 @@ extern "C"
 					fd = open("/dev/ashmem", O_RDWR);
 					if( fd < 0 )
 					{
-                  lprintf( "Failed to open core device..." );
+						lprintf( "Failed to open core device..." );
 						return -1;
 					}
 
@@ -1238,7 +1239,7 @@ extern "C"
 									  MAP_SHARED, fd, 0);
 				fread( map, 1, filesize, filefile );
 			}
-         fclose( filefile );
+			fclose( filefile );
 		}
 		(*env)->ReleaseStringUTFChars(env, library, file);
 		//LOGI( "resulted with : %s", engine.data_path );
