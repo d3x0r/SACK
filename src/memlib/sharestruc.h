@@ -25,7 +25,15 @@ namespace sack {
 	namespace timers {
 #endif
 // bit set on dwLocks when someone hit it and it was locked
+#ifdef LOG_DEBUG_CRITICAL_SECTIONS
 #define SECTION_LOGGED_WAIT 0x80000000
+#define AND_NOT_SECTION_LOGGED_WAIT(n) ((n)&(~SECTION_LOGGED_WAIT))
+#define AND_SECTION_LOGGED_WAIT(n) ((n)&(SECTION_LOGGED_WAIT))
+#else
+#define SECTION_LOGGED_WAIT 0
+#define AND_NOT_SECTION_LOGGED_WAIT(n) (n)
+#define AND_SECTION_LOGGED_WAIT(n) (0)
+#endif
 // If you change this structure please change the public
 // reference of this structure, and please, do hand-count
 // the bytes to set there... so not include this file
