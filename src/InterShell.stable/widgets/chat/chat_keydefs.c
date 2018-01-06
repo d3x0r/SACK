@@ -266,7 +266,7 @@ int Widget_DoStroke( PCHAT_LIST list, PTEXT stroke )
 	{
 		PTEXT seg;
 		size_t outchar;
-		int had_cr;
+		int had_cr = 0;
 		seg = stroke;
 		while( seg )
 		{
