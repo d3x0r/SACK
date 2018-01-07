@@ -18,7 +18,7 @@ if( ${CMAKE_GENERATOR} MATCHES "Watcom WMake" )
  set( CMAKE_C_FLAGS_INIT ${CMAKE_C_FLAGS_INIT} -aa )
 
  set( ExtraFlags "${ExtraFlags} /fp5 /fpi87" )
- # this flag is for build dll?  emit DllRuntime startup link 
+ # this flag is for build dll?  emit DllRuntime startup link
  set( LibraryExtraFlags "-bd" )
  set( ConsoleProgramExtraFlags "-bc" )
  set( WindowsProgramExtraFlags "-bg" )
@@ -59,6 +59,11 @@ else( CMAKE_SIZEOF_VOID_P EQUAL 8 )
 endif( CMAKE_SIZEOF_VOID_P EQUAL 8 )
 SET( __64__ ${__64__} CACHE BOOL "Enable 64 considerations" )
 
+SET( __MAC__ ${APPLE} CACHE BOOL "is Apple Mac" )
+
+if( APPLE )
+ADD_DEFINITIONS( -D__MAC__ -D__LINUX__ )
+endif( APPLE )
 
 if( TOOLCHAIN STREQUAL "QNX" )
 	DEFINE_DEFAULT( __QNX__ ON )
@@ -114,7 +119,7 @@ if( __ANDROID__ )
         if( OFF )
         	# FUSE on android is generally root required access.
 		FIND_PATH( FUSE_REQUIRED_INCLUDES PATHS ${SYSROOT}/usr/include NAMES sys/statvfs.h linux/fuse.h )
-        
+
         	if( FUSE_REQUIRED_INCLUDES )
 	        	set( NEED_FUSE ON )
 	        endif( FUSE_REQUIRED_INCLUDES )
@@ -142,12 +147,16 @@ else( __ANDROID__ )
         set( OPENGL_LIBRARY opengl32 )
   else()
      if( UNIX )
-     	set( CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/makefiles/cmake" )
-        set( __LINUX__ ON )
-	set( CMAKE_EXE_LINKER_FLAGS "-Wl,--as-needed" )
-	set( CMAKE_SHARED_LINKER_FLAGS "-Wl,--as-needed" )
-	set( CMAKE_MODULE_LINKER_FLAGS "-Wl,--as-needed" )
-	set( PLATFORM_LIBRARIES rt m pthread dl )
+     	 set( CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/makefiles/cmake" )
+       set( __LINUX__ ON )
+       if( NOT APPLE )
+	       set( CMAKE_EXE_LINKER_FLAGS "-Wl,--as-needed" )
+	       set( CMAKE_SHARED_LINKER_FLAGS "-Wl,--as-needed" )
+	       set( CMAKE_MODULE_LINKER_FLAGS "-Wl,--as-needed" )
+	       set( PLATFORM_LIBRARIES rt m pthread dl )
+      else( NOT APPLE )
+
+      endif( NOT APPLE )
 	if( NOT __NO_ODBC__ )
 		set( PLATFORM_LIBRARIES ${PLATFORM_LIBRARIES} odbc )
 	endif( NOT __NO_ODBC__ )
@@ -159,7 +168,7 @@ else( __ANDROID__ )
            endif( __64__ )
        endif( GCC )
        if( NOT __NO_GUI__ )
-            #########  
+            #########
             if( NOT NEED_ZLIB )
             find_package( ZLIB )
             if( NOT ${ZLIB_FOUND} )
@@ -224,7 +233,7 @@ else( __ANDROID__ )
         if( NOT ${FUSE_FOUND} )
 #        	set( NEED_FUSE ON )
         endif( NOT ${FUSE_FOUND} )
-        
+
 	find_package( Sqlite )
         if( NOT ${SQLITE3_FOUND} )
         	set( NEED_SQLITE ON )
@@ -299,7 +308,7 @@ set( INTERFACE_OUTPUT_DIR ${BINARY_OUTPUT_DIR} )
 if( CMAKE_COMPILER_IS_GNUCC )
     SET( CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,-Bsymbolic -Wl,--warn-unresolved-symbols" )
     SET( CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Wl,-Bsymbolic -Wl,--warn-unresolved-symbols" )
-    
+
     SET( ExtraFlags ${ExtraFlags} -Wno-multichar)
 endif( CMAKE_COMPILER_IS_GNUCC )
 
@@ -312,10 +321,10 @@ if( MSVC )
   SET( PLATFORM_DEFINES -D_CRT_SECURE_NO_WARNINGS )
   #add_definitions( -D_CRT_SECURE_NO_WARNINGS -wd4995 -wd4996 )
   add_definitions( -wd4996 )
-  
+
   SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MP8")
   SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /MP8")
-  
+
   if( __CLR__ )
     add_definitions( -D__CLR__ )
     set( INTERFACE_OUTPUT_DIR . )
@@ -369,7 +378,7 @@ endif( NOT __NO_ODBC__ OR USE_SQLITE )
 if( NOT USE_OPTIONS OR ( __NO_ODBC__ AND NOT USE_SQLITE ) )
     set( ExtraDefinitions ${ExtraDefinitions};__NO_OPTIONS__ )
 endif( NOT USE_OPTIONS OR ( __NO_ODBC__ AND NOT USE_SQLITE ) )
- 
+
 
 
 if( USE_SACK_CUSTOM_MEMORY_ALLOCATION )
@@ -398,7 +407,7 @@ if( WATCOM OR MSVC )
 else()
         set( USE_INTERNAL_STANDARDLIBS 0 )
 endif()
-        
+
 
 if( __QNX__ )
 ADD_DEFINITIONS( -D__QNX__ )
@@ -421,7 +430,7 @@ if( __ARM__ )
 endif( __ARM__ )
 
 if( EXTREME_CODE_DEBUG )
-	if(CMAKE_COMPILER_IS_GNUCC ) 
+	if(CMAKE_COMPILER_IS_GNUCC )
 		add_definitions(-Wall -Wextra -Wconversion -Wsign-conversion -Wsign-compare -Wtype-limits)
 	endif(CMAKE_COMPILER_IS_GNUCC )
 endif( EXTREME_CODE_DEBUG )
@@ -549,7 +558,7 @@ endif()
                            COMMAND ${CMAKE_COMMAND} -E copy_if_different ${PROJECT_SOURCE_DIR}/${VECTLIB_SOURCES} ${CMAKE_BINARY_DIR}/src/vectlib/vectlib_double.c
                            COMMAND ${CMAKE_COMMAND} -E touch ${CMAKE_BINARY_DIR}/src/vectlib/vectlib_double.c
                            )
-       add_custom_command( OUTPUT ${CMAKE_BINARY_DIR}/src/vectlib/vectlib_double.cpp 
+       add_custom_command( OUTPUT ${CMAKE_BINARY_DIR}/src/vectlib/vectlib_double.cpp
                            DEPENDS ${PROJECT_SOURCE_DIR}/${VECTLIB_SOURCES} ${CMAKE_BINARY_DIR}/src/vectlib/vecstruc.h
                            COMMAND ${CMAKE_COMMAND} -E copy_if_different ${PROJECT_SOURCE_DIR}/${VECTLIB_SOURCES} ${CMAKE_BINARY_DIR}/src/vectlib/vectlib_double.cpp
                            COMMAND ${CMAKE_COMMAND} -E touch ${CMAKE_BINARY_DIR}/src/vectlib/vectlib_double.cpp
@@ -564,11 +573,11 @@ endif()
 
 #EXECUTE_PROCESS(COMMAND cmake -E copy_if_different ${PROJECT_SOURCE_DIR}/${VECTLIB_SOURCES} ${CMAKE_BINARY_DIR}/src/vectlib/vectlib_float.cpp )
 SET_PROPERTY(SOURCE ${CMAKE_BINARY_DIR}/src/vectlib/vectlib_float.cpp
-                 APPEND 
-		PROPERTY COMPILE_DEFINITIONS "MAKE_RCOORD_SINGLE" ) 
+                 APPEND
+		PROPERTY COMPILE_DEFINITIONS "MAKE_RCOORD_SINGLE" )
 SET_PROPERTY(SOURCE ${IMAGE_SOURCES}
-                 APPEND 
-		PROPERTY COMPILE_DEFINITIONS "MAKE_RCOORD_SINGLE" ) 
+                 APPEND
+		PROPERTY COMPILE_DEFINITIONS "MAKE_RCOORD_SINGLE" )
 
 SET( VECTLIB_PLUSPLUS_SOURCES ${CMAKE_BINARY_DIR}/src/vectlib/vectlib_double.cpp
 	${CMAKE_BINARY_DIR}/src/vectlib/vectlib_float.cpp )
@@ -601,7 +610,7 @@ if( NOT Android )
 		SET(CMAKE_RC_COMPILER "windres")
 		SET(CMAKE_RC_COMPILE_OBJECT "windres <FLAGS> <DEFINES> -O coff -o <OBJECT> <SOURCE>")
 	endif( HOST_UNIX )
-                
+
 	ENABLE_LANGUAGE(RC)
 endif( NOT Android )
 elseif( WATCOM )
@@ -615,7 +624,7 @@ add_custom_command( OUTPUT ${PROJECT_BINARY_DIR}/all_resources.res
  )
  ADD_CUSTOM_TARGET( generate_foo DEPENDS ${PROJECT_BINARY_DIR}/all_resources.res)
 endif( MINGW )
-endif( WIN32 ) 
+endif( WIN32 )
 
 if( NOT __NO_CPLUSPLUS )
 
@@ -637,8 +646,8 @@ FOREACH(SOURCE ${SACK_PLUSPLUS_HEADERS})
        set( plusplus_header_dup ${plusplus_header_dup} ${CMAKE_BINARY_DIR}/${BASENAME} )
        add_custom_command( OUTPUT ${CMAKE_BINARY_DIR}/${BASENAME}
                            DEPENDS ${SOURCE}
-                           COMMAND ${CMAKE_COMMAND} -E copy_if_different ${SOURCE} ${CMAKE_BINARY_DIR}/${BASENAME} 
-                           #COMMAND ${CMAKE_COMMAND} -E touch ${CMAKE_BINARY_DIR}/${BASENAME} 
+                           COMMAND ${CMAKE_COMMAND} -E copy_if_different ${SOURCE} ${CMAKE_BINARY_DIR}/${BASENAME}
+                           #COMMAND ${CMAKE_COMMAND} -E touch ${CMAKE_BINARY_DIR}/${BASENAME}
                            )
        #EXECUTE_PROCESS(COMMAND ${CMAKE_COMMAND} -E copy_if_different ${SOURCE} ${CMAKE_BINARY_DIR}/${BASENAME} )
 
@@ -670,10 +679,10 @@ FOREACH(SOURCE ${ARGN} )
       set( FILEOK 0 )
       set( BASENAME "" )
    endif()
-   
+
    if( FILEOK )
        get_source_file_property(SOURCE_FOLDER ${SOURCE} FOLDER)
-       
+
        if( ${SOURCE} MATCHES "^${PROJECT_SOURCE_DIR}.*" )
           if( NOT ${SOURCE_FOLDER} MATCHES "NOTFOUND" )
             #message( "err folder : ${SOURCE_FOLDER} " )
@@ -682,11 +691,11 @@ FOREACH(SOURCE ${ARGN} )
           endif()
           add_custom_command( OUTPUT ${CMAKE_BINARY_DIR}/${BASENAME}${FILEEXT}
                               DEPENDS ${SOURCE}
-                              COMMAND ${CMAKE_COMMAND} -E copy_if_different ${SOURCE} ${CMAKE_BINARY_DIR}/${BASENAME}${FILEEXT} 
-                              #COMMAND ${CMAKE_COMMAND} -E touch ${CMAKE_BINARY_DIR}/${BASENAME}${FILEEXT} 
+                              COMMAND ${CMAKE_COMMAND} -E copy_if_different ${SOURCE} ${CMAKE_BINARY_DIR}/${BASENAME}${FILEEXT}
+                              #COMMAND ${CMAKE_COMMAND} -E touch ${CMAKE_BINARY_DIR}/${BASENAME}${FILEEXT}
                               )
           #EXECUTE_PROCESS(COMMAND cmake -E copy_if_different ${SOURCE} ${CMAKE_BINARY_DIR}/${BASENAME}${FILEEXT} )
-       
+
        else( ${SOURCE} MATCHES "^${PROJECT_SOURCE_DIR}.*" )
          if( NOT ${SOURCE_FOLDER} MATCHES "NOTFOUND" )
            #message( "err folder : ${SOURCE_FOLDER} " )
@@ -695,8 +704,8 @@ FOREACH(SOURCE ${ARGN} )
          endif()
          add_custom_command( OUTPUT ${CMAKE_BINARY_DIR}/${BASENAME}${FILEEXT}
                              DEPENDS ${PROJECT_SOURCE_DIR}/${SOURCE}
-                             COMMAND ${CMAKE_COMMAND} -E copy_if_different ${PROJECT_SOURCE_DIR}/${SOURCE} ${CMAKE_BINARY_DIR}/${BASENAME}${FILEEXT} 
-                             #COMMAND ${CMAKE_COMMAND} -E touch ${CMAKE_BINARY_DIR}/${BASENAME}${FILEEXT} 
+                             COMMAND ${CMAKE_COMMAND} -E copy_if_different ${PROJECT_SOURCE_DIR}/${SOURCE} ${CMAKE_BINARY_DIR}/${BASENAME}${FILEEXT}
+                             #COMMAND ${CMAKE_COMMAND} -E touch ${CMAKE_BINARY_DIR}/${BASENAME}${FILEEXT}
                              )
          #EXECUTE_PROCESS(COMMAND cmake -E copy_if_different ${PROJECT_SOURCE_DIR}/${SOURCE} ${CMAKE_BINARY_DIR}/${BASENAME}${FILEEXT} )
          #message( "LIB2_SOURCE2 : ${BASENAME}  ${SOURCE}" )
@@ -710,7 +719,7 @@ ENDFOREACH(SOURCE)
 endmacro( COPY_CPLUSPLUS )
 
 if( __ANDROID__ )
-#set( extra_link_flags  "${extra_link_flags} -Wl,-rpath,${CMAKE_BINARY_DIR}" ) 
+#set( extra_link_flags  "${extra_link_flags} -Wl,-rpath,${CMAKE_BINARY_DIR}" )
 endif( __ANDROID__ )
 
 
@@ -722,9 +731,9 @@ if( BUILD_MONOLITHIC )
 
   add_definitions( -DSACK_MONOLITHIC_BUILD )
   if( NOT __NO_GUI__ )
-    set( BASE_SOURCES ${BASE_SOURCES} 
-         ${IMAGE_SOURCES} 
-         ${VIDLIB_SOURCES} 
+    set( BASE_SOURCES ${BASE_SOURCES}
+         ${IMAGE_SOURCES}
+         ${VIDLIB_SOURCES}
          ${PSI_SOURCES}
     )
   endif( NOT __NO_GUI__ )
@@ -742,9 +751,9 @@ set( C_SOURCES ${C_SOURCES} ${UUID_SOURCES} )
 endif( NEED_UUID )
 
 Set( ExternalExtraDefinitions ${ExternalExtraDefinitions} PNG_INTERNAL )
-set( SACK_SOURCES 
-  ${FIRST_GCC_LIBRARY_SOURCE} 
-    ${BASE_SOURCES} 
+set( SACK_SOURCES
+  ${FIRST_GCC_LIBRARY_SOURCE}
+    ${BASE_SOURCES}
 	${VIDLIB_HEADLESS_SOURCES}
     ${VECTLIB_SOURCES}
     ${VECTLIB_MORE_SOURCES}
@@ -753,7 +762,7 @@ set( SACK_SOURCES
     ${BAG_SQLITE_SOURCES}
     ${C_SOURCES}
     ${GENX_SOURCES}
-  ${LAST_GCC_LIBRARY_SOURCE} 
+  ${LAST_GCC_LIBRARY_SOURCE}
 )
 
 
@@ -762,8 +771,8 @@ if( NOT FORCE_CXX )
 
 set( cplusplus_sources )
 
-set( SACK_PLUSPLUS_SOURCES 
-    ${BASE_SOURCES} 
+set( SACK_PLUSPLUS_SOURCES
+    ${BASE_SOURCES}
     ${ODBC_SOURCES}
     ${GENX_SOURCES}
     ${BAG_SQLITE_INTERFACE}
@@ -773,13 +782,13 @@ set( SACK_PLUSPLUS_SOURCES
 
 COPY_CPLUSPLUS( cplusplus_sources ${SACK_PLUSPLUS_SOURCES} include/sha1.h include/md5.h )
 
-set( cplusplus_sources 
-  #${FIRST_GCC_LIBRARY_SOURCE} 
+set( cplusplus_sources
+  #${FIRST_GCC_LIBRARY_SOURCE}
     ${plusplus_header_dup}
-    ${cplusplus_sources} 
+    ${cplusplus_sources}
     ${VECTLIB_PLUSPLUS_SOURCES}
     ${BAG_SQLITE_SOURCES}
-  #${LAST_GCC_LIBRARY_SOURCE} 
+  #${LAST_GCC_LIBRARY_SOURCE}
 )
 
 endif( NOT FORCE_CXX )
@@ -797,7 +806,7 @@ if( NOT __CLR__ )
 	#target_link_libraries( sack_bag MatrixSSL )
 	target_link_libraries( sack_bag ${SSL_LIBS} )
 endif( NOT __CLR__ )
-        
+
 
 if( SACK_BUILD_STATIC_LIBS )
 add_library( sack_bag_static ${SACK_SOURCES} )
@@ -961,7 +970,7 @@ INSTALL(
 
 
 
-if( NOT NEED_PNG ) 
+if( NOT NEED_PNG )
   my_target_link_libraries( sack_bag png )
   if( SACK_BUILD_STATIC_LIBS )
     my_target_link_libraries( sack_bag_static png )
@@ -974,8 +983,8 @@ if( NOT NEED_PNG )
     endif( SACK_BUILD_STATIC_LIBS )
   endif( NOT FORCE_CXX )
   endif( NOT __NO_CPLUSPLUS )
-endif() 
-if( NOT NEED_JPEG ) 
+endif()
+if( NOT NEED_JPEG )
   my_target_link_libraries( sack_bag jpeg   )
   if( SACK_BUILD_STATIC_LIBS )
     my_target_link_libraries( sack_bag_static jpeg   )
@@ -988,7 +997,7 @@ if( NOT NEED_JPEG )
     endif( SACK_BUILD_STATIC_LIBS )
   endif( NOT FORCE_CXX )
   endif( NOT __NO_CPLUSPLUS )
-endif() 
+endif()
 
 if( NOT NEED_FREETYPE )
   my_target_link_libraries( sack_bag ${Freetype_LIBRARIES}  )
@@ -1012,16 +1021,16 @@ else( BUILD_MONOLITHIC )
 #------------
 if( NOT NO_C )
 
-add_library( bag SHARED 
-  ${FIRST_GCC_LIBRARY_SOURCE} 
-    ${BASE_SOURCES} 
+add_library( bag SHARED
+  ${FIRST_GCC_LIBRARY_SOURCE}
+    ${BASE_SOURCES}
     ${VECTLIB_SOURCES}
     ${VECTLIB_MORE_SOURCES}
     ${ODBC_SOURCES}
     ${GENX_SOURCES}
     ${BAG_SQLITE_INTERFACE}
     ${BAG_SQLITE_SOURCES}
-  ${LAST_GCC_LIBRARY_SOURCE}  
+  ${LAST_GCC_LIBRARY_SOURCE}
 )
 target_link_libraries( bag gsm-1.0-pl13 )
 if( NOT __CLR__ )
@@ -1033,7 +1042,7 @@ if( __CLR__ )
 #set( ExtraFlags ${ExtraFlags} /CLR )
 endif( __CLR__ )
 
-SET_TARGET_PROPERTIES(bag PROPERTIES 
+SET_TARGET_PROPERTIES(bag PROPERTIES
                   DEFINE_SYMBOL SACK_BAG_EXPORTS
                   COMPILE_FLAGS  "${ExtraFlags}"
                   COMPILE_DEFINITIONS "${ExtraDefinitions};TARGET_LABEL=bag;TARGETNAME=\"${CMAKE_SHARED_LIBRARY_PREFIX}bag${CMAKE_SHARED_LIBRARY_SUFFIX}\";${ExtraRenderFlags}"
@@ -1049,8 +1058,8 @@ if( __WINDOWS_ARM_CE__ )
 SET( LINK_LIBRARIES "" )
 endif( __WINDOWS_ARM_CE__ )
 
-set( SACK_PLUSPLUS_SOURCES 
-    ${BASE_SOURCES} 
+set( SACK_PLUSPLUS_SOURCES
+    ${BASE_SOURCES}
     ${ODBC_SOURCES}
     ${GENX_SOURCES}
     ${BAG_SQLITE_INTERFACE}
@@ -1067,9 +1076,9 @@ if( NEED_UUID )
    COPY_CPLUSPLUS( cplusplus_sources ${SACK_PLUSPLUS_SOURCES} src/contrib/uuid-1.6.2/uuid.h )
 endif( NEED_UUID )
 
-set( cplusplus_sources 
+set( cplusplus_sources
     ${plusplus_header_dup}
-    ${cplusplus_sources} 
+    ${cplusplus_sources}
     ${VECTLIB_PLUSPLUS_SOURCES}
     ${BAG_SQLITE_SOURCES}
 )
@@ -1132,7 +1141,7 @@ if( NOT __NO_CPLUSPLUS )
     set( SACK_CORE_LIBRARY bag bag.externals )
     set( SACK_CORE_LIBRARY_PLUSPLUS ${BAG_PLUSPLUS} )
   endif( FORCE_CXX )
-else( NOT __NO_CPLUSPLUS )	
+else( NOT __NO_CPLUSPLUS )
     set( SACK_LIBRARIES bag bag.externals bag.psi )
     set( SACK_CORE_LIBRARY bag bag.externals )
 endif( NOT __NO_CPLUSPLUS )
@@ -1146,7 +1155,7 @@ if( NEED_UUID )
   set( BAG_EXTERNAL_MORE_SOURCES ${UUID_SOURCES} )
 endif( NEED_UUID )
 
-add_library( bag.externals SHARED 
+add_library( bag.externals SHARED
     ${JPEG_SOURCE}
     ${ZLIB_SOURCE}
     ${PNG_SOURCE}
@@ -1179,12 +1188,12 @@ endif()
 
 if( NOT NO_C )
 
-add_library( bag.psi SHARED 
-  ${FIRST_GCC_LIBRARY_SOURCE} 
-  ${PSI_SOURCES} 
-  ${LAST_GCC_LIBRARY_SOURCE} 
+add_library( bag.psi SHARED
+  ${FIRST_GCC_LIBRARY_SOURCE}
+  ${PSI_SOURCES}
+  ${LAST_GCC_LIBRARY_SOURCE}
       )
-      
+
 if( __ANDROID__ )
 	set( extra_link_flags "${extra_link_flags} -Wl,-rpath,${CMAKE_BINARY_DIR}" )
 endif( __ANDROID__ )
@@ -1192,23 +1201,23 @@ SET_TARGET_PROPERTIES(bag.psi PROPERTIES
                   DEFINE_SYMBOL PSI_SOURCE
                   COMPILE_FLAGS  "${ExtraFlags}"
                   COMPILE_DEFINITIONS  "TARGET_LABEL=bag_psi;SOURCE_PSI2;SYSTRAY_LIBRARAY;${PSIExtraDefinitions};${ExtraDefinitions};TARGETNAME=\"${CMAKE_SHARED_LIBRARY_PREFIX}bag${CMAKE_SHARED_LIBRARY_SUFFIX}\""
-                  FOLDER "Control Library" 
+                  FOLDER "Control Library"
                   LINK_FLAGS "${extra_link_flags}"
 )
 endif( NOT NO_C )
 
 if( NOT __NO_CPLUSPLUS )
   if( NOT FORCE_CXX )
-    add_library( ${BAG_PSI_PLUSPLUS} SHARED 
-       ${FIRST_GCC_LIBRARY_SOURCE} 
+    add_library( ${BAG_PSI_PLUSPLUS} SHARED
+       ${FIRST_GCC_LIBRARY_SOURCE}
        ${psi_cplusplus_sources}
-       ${LAST_GCC_LIBRARY_SOURCE} 
+       ${LAST_GCC_LIBRARY_SOURCE}
       )
     SET_TARGET_PROPERTIES(${BAG_PSI_PLUSPLUS} PROPERTIES
                   DEFINE_SYMBOL PSI_SOURCE
                   COMPILE_FLAGS  "${ExtraFlags}"
                   COMPILE_DEFINITIONS  "TARGET_LABEL=bag_psi_pp;SOURCE_PSI2;SYSTRAY_LIBRARAY;${PSIExtraDefinitions};${ExtraDefinitions};TARGETNAME=\"${CMAKE_SHARED_LIBRARY_PREFIX}${BAG_PLUSPLUS}${CMAKE_SHARED_LIBRARY_SUFFIX}\""
-                  FOLDER "Control Library" 
+                  FOLDER "Control Library"
                   LINK_FLAGS "${extra_link_flags}"
     )
     if( NOT NO_C )
@@ -1270,7 +1279,7 @@ if( NOT __NO_GUI__ )
   if( NOT __ANDROID__ )
      add_subdirectory( src/vidlib )
   endif( NOT __ANDROID__ )
-  
+
 else( NOT __NO_GUI__ )
      add_subdirectory( src/vidlib/proxy )
 endif( NOT __NO_GUI__ )
@@ -1291,14 +1300,14 @@ endif( WATCOM )
   if( USE_SQLITE_EXTERNAL )
    set( sqlite_external bag.sqlite3.external )
    set( ExtraDefinitions "${ExtraDefinitions};USE_SQLITE_INTERFACE" )
-   add_library( ${sqlite_external} SHARED 
-      ${FIRST_GCC_LIBRARY_SOURCE} 
+   add_library( ${sqlite_external} SHARED
+      ${FIRST_GCC_LIBRARY_SOURCE}
       ${SQLITE_SOURCES}
       ${LAST_GCC_LIBRARY_SOURCE} )
    # required link back to bag for register interface
    my_target_link_libraries( ${sqlite_external} ${SACK_LIBRARIES} ${PLATFORM_LIBRARIES} )
    install_mode_dest( ${sqlite_external} )
-   SET_TARGET_PROPERTIES( ${sqlite_external} PROPERTIES 
+   SET_TARGET_PROPERTIES( ${sqlite_external} PROPERTIES
                   COMPILE_FLAGS  "-DTARGET_LABEL=bag_sqlite3 -DSQLITE_SOURCE"
                   LINK_FLAGS "${extra_link_flags}"
                   SUFFIX ""
@@ -1306,7 +1315,7 @@ endif( WATCOM )
                   FOLDER sqlite
    )
   else(USE_SQLITE_EXTERNAL)
-  
+
   endif(USE_SQLITE_EXTERNAL)
 
     #if( __ANDROID__ )
@@ -1369,7 +1378,7 @@ IF(NOT FORCE_CXX AND EXISTS ${BULLET_SOURCE}/CMakeLists.txt AND NOT BUILD_UNICOD
       if( EXISTS ${BULLET_SOURCE} )
 	      add_subdirectory( ${BULLET_SOURCE} bullet )
       endif( EXISTS ${BULLET_SOURCE} )
-              
+
       # this should be applied to bullet too; but I like the static lib right now.
       #SET( BUILD_SHARED_LIBS ON )
       SET( INSTALL_EXTRA_LIBS ON )
@@ -1430,7 +1439,7 @@ endif( NOT __QNX__ AND NOT __ANDROID__ )
     endif( WIN32 AND NOT CMAKE_C_COMPILER_ID STREQUAL "GNU" AND NOT WATCOM AND NOT __NO_GUI__ )
   endif( DIRECTX_SDK )
 
-set(DIRECTX_SDK "" CACHE STRING "directx sdk path to build d3d parts") 
+set(DIRECTX_SDK "" CACHE STRING "directx sdk path to build d3d parts")
 
 
 if( CMAKE_COMPILER_IS_GNUCC )
@@ -1526,7 +1535,7 @@ endif( WIN32 )
 if( BUILD_TESTS )
    add_subdirectory( src/streamlib/ffmpeg/audio_test )
    add_subdirectory( src/filesyslib/test_file_scan )
-   
+
    add_subdirectory( src/bench/http )
    add_subdirectory( src/utils/http_server )
    #add_subdirectory( src/bench/mem )
@@ -1548,10 +1557,10 @@ if( BUILD_TESTS )
    # ment to be tests based on binary target output
    #add_subdirectory( src/games/simple_vector_tester )
    #add_subdirectory( src/games/simple_array_tester )
-   if( NOT BUILD_MONOLITHIC AND DIRECTX_SDK )   
+   if( NOT BUILD_MONOLITHIC AND DIRECTX_SDK )
       # monolithic has interfaces forced off; so we can't get the shader compiler interface
       add_subdirectory( src/games/simple_vector_tester/d3d )
-   endif( NOT BUILD_MONOLITHIC AND DIRECTX_SDK )   
+   endif( NOT BUILD_MONOLITHIC AND DIRECTX_SDK )
 
 if( NOT __NO_NETWORK__ )
    add_subdirectory( src/netlib/html5.websocket/server )
@@ -1599,11 +1608,11 @@ if( WIN32 )
    endif( NOT __CLR__ )
 endif( WIN32 )
    add_subdirectory( src/salty_random_generator )
-if( NOT UNIX )
+#if( NOT UNIX )
   #   This doesn't build under watcom either...
   #   it needs to be modified to understand functional syntax so it can do formatting...
-  #add_subdirectory( makefiles/prog/ppc )
-endif( NOT UNIX )
+  add_subdirectory( makefiles/prog/ppc )
+#endif( NOT UNIX )
 add_subdirectory( src/utils/seed_random )
 add_subdirectory( src/deadstart )
 #add_subdirectory( ../allegro allegro )
@@ -1621,14 +1630,14 @@ add_subdirectory( src/deadstart )
   if( NOT __ANDROID__ AND BUILD_EXTRAS )
      add_subdirectory( src/utils/unicode_ascii )
      add_subdirectory( src/SQLlib/optlib/setoptions )
-  
+
      add_subdirectory( src/SQLlib/optlib/importini )
      add_subdirectory( src/SQLlib/optlib/exportini )
      if( WIN32 )
          add_subdirectory( src/printer_lib/printer_test )
-     endif( WIN32 ) 
+     endif( WIN32 )
   endif( NOT __ANDROID__ AND BUILD_EXTRAS )
-  
+
  endif( USE_OPTIONS AND NOT ( __NO_ODBC__ AND NOT USE_SQLITE ) )
 
 if( __LINUX__ OR ( MSVC10 AND __64__ ) )
@@ -1713,4 +1722,3 @@ ELSE(WIN32 AND NOT UNIX)
 ENDIF(WIN32 AND NOT UNIX)
 #SET(CPACK_PACKAGE_EXECUTABLES "" "My Executable")
 INCLUDE(CPack)
-
