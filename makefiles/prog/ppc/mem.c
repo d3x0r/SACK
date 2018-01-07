@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <malloc.h>
+#ifndef __MAC__
+#  include <malloc.h>
+#endif
 #include <string.h>
 #include <stddef.h>
 #include "./types.h"
@@ -206,7 +208,7 @@ void DumpMemory( void )
 				,mem->file, mem->line
 #endif
 				 );
-		mem = mem->next;	
+		mem = mem->next;
 	}
 }
 
@@ -249,4 +251,3 @@ int strnicmp( char *one, char *two, int len )
 	return strncasecmp( one, two, len );
 }
 #endif
-

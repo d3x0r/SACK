@@ -26,7 +26,7 @@
 // this module shall have provision to read a cpp.cnf
 // which will indicate system include paths, and additional symbols
 // which may be defined on a per-compiler basis....
-	
+
 #ifndef __GCC__
 // this was good during development of infinite loops but bad in production...
 // maybe ifdef _DEBUG the kbhit();
@@ -58,7 +58,7 @@
 int KillQuotes( char *string )
 {
 	// this processing stage cannot be done at the pre-processor level
-	// for things like "\x02" "4" which is actually 
+	// for things like "\x02" "4" which is actually
 	// character to followed by ascii 4.
 	//return strlen( string );
 	// okay but yes it can be done for #pramga message
@@ -460,7 +460,7 @@ void ClearIfBegin( void )
 	if( g.bDebugLog )
 		fprintf( stddbg, WIDE("%s(%d): Clearing IF %d finding %s%s\n")
 					, GetCurrentFileName()
-					, GetCurrentLine() 
+					, GetCurrentLine()
 					, g.nIfLevels
 					, nState & FIND_ELSE?"ELSE":""
 					, nState & FIND_ENDIF?"ENDING":""
@@ -616,8 +616,8 @@ int PreProcessLine( void )
 								 , GetCurrentFileName(), GetCurrentLine()
 								 , g.nIfLevels );
 				// if we ever hit an else that is actively processing
-				// then find the else... otherwise 
-				// it would be skipped 
+				// then find the else... otherwise
+				// it would be skipped
 				//fprintf( stderr, WIDE("Finding the endif of the current if...\n") );
 				nIfLevelElse = g.nIfLevels;
 				nState |= FIND_ENDIF;
@@ -1309,7 +1309,7 @@ char *nextchr( char *string, char *chars )
 		string++;
 	}
 	return NULL;
-}				  
+}
 
 int processArguments( int argc, char **argv ) {
 	{
@@ -1738,7 +1738,7 @@ int processArguments( int argc, char **argv ) {
 	return 2;
 }
 
-int main( char argc, char **argv, char **env )
+int main( int argc, char **argv, char **env )
 {
 #ifdef __LINUX__
 	{
