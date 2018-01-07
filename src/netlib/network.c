@@ -337,7 +337,7 @@ void DumpLists( void )
 	{
 		//lprintf( WIDE("Available %p"), pc );
 		if( (*pc->me) != pc )
-			DebugBreak();	
+			DebugBreak();
 		c++;
 	}
 	if( c > 50 )
@@ -1148,7 +1148,7 @@ void SetNetworkWriteComplete( PCLIENT pClient
 void SetCPPNetworkWriteComplete( PCLIENT pClient
                                , cppWriteComplete WriteComplete
                                , uintptr_t psv)
-{                                        
+{
 	if( pClient && IsValid( pClient->Socket ) )
 	{
 		pClient->write.CPPWriteComplete = WriteComplete;
@@ -1559,7 +1559,7 @@ void RemoveThreadEvent( PCLIENT pc ) {
 	{
 #  ifdef __MAC__
 #    ifdef __64__
-		kevent64_s ev;
+		struct kevent64_s ev;
 		if( pc->dwFlags & CF_LISTEN ) {
 			EV_SET64( &ev, pc->Socket, EVFILT_READ, EV_DELETE, 0, 0, (uint64_t)pc, NULL, NULL );
 			kevent64( thread->kqueue, &ev, 1, 0, 0, 0, 0 );
@@ -1574,7 +1574,7 @@ void RemoveThreadEvent( PCLIENT pc ) {
 			kevent64( thread->kqueue, &ev, 1, 0, 0, 0, 0 );
 		}
 #    else
-		kevent ev;
+		struct kevent ev;
 		if( pc->dwFlags & CF_LISTEN ) {
 			EV_SET( &ev, pc->Socket, EVFILT_READ, EV_DELETE, 0, 0, (uint64_t)pc );
 			kevent( thread->kqueue, &ev, 1, 0, 0, 0 );
@@ -1702,7 +1702,7 @@ void AddThreadEvent( PCLIENT pc, int broadcast )
 	{
 #  ifdef __MAC__
 #    ifdef __64__
-		kevent64_s ev;
+		struct kevent64_s ev;
 		if( pc->dwFlags & CF_LISTEN ) {
 			EV_SET64( &ev, broadcast?pc->SocketBroadcast:pc->Socket, EVFILT_READ, EV_ADD, 0, 0, (uint64_t)pc, NULL, NULL );
 			kevent64( peer->kqueue, &ev, 1, 0, 0, 0, 0 );
@@ -1714,7 +1714,7 @@ void AddThreadEvent( PCLIENT pc, int broadcast )
 			kevent64( peer->kqueue, &ev, 1, 0, 0, 0, 0 );
 		}
 #    else
-		kevent ev;
+		struct kevent ev;
 		if( pc->dwFlags & CF_LISTEN ) {
 			EV_SET( &ev, broadcast?pc->SocketBroadcast:pc->Socket, EVFILT_READ, EV_ADD, 0, 0, (uintptr_t)pc );
 			kevent( peer->kqueue, &ev, 1, 0, 0, 0 );
@@ -1766,7 +1766,7 @@ int CPROC ProcessNetworkMessages( struct peer_thread_info *thread, uintptr_t unu
 	{
 #  ifdef __MAC__
 #    ifdef __64__
-		kevent64_s events[10];
+		struct kevent64_s events[10];
 		cnt = kevent64( thread->kqueue, NULL, 0, events, 10, 0, NULL );
 #    else
 		kevent events[10];
@@ -2085,12 +2085,12 @@ uintptr_t CPROC NetworkThreadProc( PTHREAD thread )
 	{
 #  ifdef __MAC__
 #    ifdef __64__
-		kevent64_s ev;
+		struct kevent64_s ev;
 		this_thread.kevents = CreateDataList( sizeof( ev ) );
 		EV_SET64( &ev, GetThreadSleeper( thread ), EVFILT_READ, EV_ADD, 0, 0, (uint64_t)1, NULL, NULL );
 		kevent64( this_thread.kqueue, &ev, 1, 0, 0, 0, 0 );
 #    else
-		kevent ev;
+		struct kevent ev;
 		this_thread.kevents = CreateDataList( sizeof( ev ) );
 		EV_SET( &ev, GetThreadSleeper( thread ), EVFILT_READ, EV_ADD, 0, 0, (uintptr_t)1 );
 		kevent( this_thread.kqueue, &ev, 1, 0, 0, 0 );
@@ -2494,10 +2494,10 @@ int GetAddressParts( SOCKADDR *sa, uint32_t *pdwIP, uint16_t *pdwPort )
 		else
 			result = FALSE;
 		if( (sa->sa_family == AF_INET) || (sa->sa_family = AF_INET6) ) {
-			if( pdwPort ) 
+			if( pdwPort )
 				(*pdwPort) = ntohs((uint16_t)( (SOCKADDR_IN*)sa)->sin_port);
 		}
-		else 
+		else
 			result = FALSE;
 	}
 	return result;
@@ -2692,12 +2692,12 @@ SOCKADDR *CreateRemote( CTEXTSTR lpName,uint16_t nHisPort)
 		}
 #endif
 	}
-	else if( lpName 
+	else if( lpName
 		   && ( ( lpName[0] >= '0' && lpName[0] <= '9' )
 		      || ( lpName[0] >= 'a' && lpName[0] <= 'f' )
 		      || ( lpName[0] >= 'A' && lpName[0] <= 'F' )
 		      || lpName[0] == ':'
-		      || ( lpName[0] == '[' && lpName[StrLen( lpName ) - 1] == ']' ) ) 
+		      || ( lpName[0] == '[' && lpName[StrLen( lpName ) - 1] == ']' ) )
 		   && StrChr( lpName, ':' )!=StrRChr( lpName, ':' ) )
 	{
 #ifdef UNICODE
@@ -2833,7 +2833,7 @@ NETWORK_PROC( void, DumpAddrEx)( CTEXTSTR name, SOCKADDR *sa DBG_PASS )
 			       ,*(((unsigned char *)sa)+4),
 			       *(((unsigned char *)sa)+5),
 			       *(((unsigned char *)sa)+6),
-			       *(((unsigned char *)sa)+7) 
+			       *(((unsigned char *)sa)+7)
 			       , ntohs( *(((unsigned short *)((unsigned char*)sa + 2))) )
 			);
 		} else if( sa->sa_family == AF_INET6 )
@@ -3837,4 +3837,3 @@ https://msdn.microsoft.com/en-us/library/windows/desktop/aa365915%28v=vs.85%29.a
 #endif
 
 SACK_NETWORK_NAMESPACE_END
-
