@@ -1,5 +1,13 @@
 cmake_minimum_required(VERSION 3.0)
 
+if( PLATFORM_CMAKE_DEFINES )
+   STRING( REPLACE "," ";" PLATFORM_CMAKE_DEFINES ${PLATFORM_CMAKE_DEFINES} )
+   foreach( DEF IN LISTS PLATFORM_CMAKE_DEFINES)
+       STRING( REPLACE " " ";" SETDEF ${DEF} )
+       set( ${SETDEF} )
+   endforeach()
+endif( PLATFORM_CMAKE_DEFINES )
+
 include( ${SACK_BASE}/DefaultInstall.cmake )
 include_directories( ${SACK_BASE}/include )
 STRING( REPLACE " " ";" PLATFORM_LIBRARIES ${PLATFORM_LIBRARIES} )
