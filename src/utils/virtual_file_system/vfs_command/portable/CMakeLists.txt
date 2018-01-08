@@ -1,15 +1,22 @@
 cmake_minimum_required(VERSION 3.0)
 
+if( PLATFORM_CMAKE_DEFINES )
+   STRING( REPLACE "," ";" PLATFORM_CMAKE_DEFINES ${PLATFORM_CMAKE_DEFINES} )
+   foreach( DEF IN LISTS PLATFORM_CMAKE_DEFINES)
+       STRING( REPLACE " " ";" SETDEF ${DEF} )
+       set( ${SETDEF} )
+   endforeach()
+endif( PLATFORM_CMAKE_DEFINES )
+
 include( ${SACK_BASE}/makefiles/cmake/DefaultInstall.cmake )
 include_directories( ${SACK_BASE}/include )
 STRING( REPLACE " " ";" PLATFORM_LIBRARIES ${PLATFORM_LIBRARIES} )
 if( PLATFORM_DEFINES )
-STRING( REPLACE " " ";" PLATFORM_DEFINES ${PLATFORM_DEFINES} )
+   STRING( REPLACE " " ";" PLATFORM_DEFINES ${PLATFORM_DEFINES} )
 endif()
 
-add_definitions( ${PLATFORM_DEFINES} )
 
-message( "USING LIBS: ${PLATFORM_LIBRARIES}" )
+add_definitions( ${PLATFORM_DEFINES} )
 
 foreach(flag_var
         CMAKE_CXX_FLAGS CMAKE_CXX_FLAGS_DEBUG CMAKE_CXX_FLAGS_RELEASE
@@ -91,7 +98,7 @@ set(BASE_SOURCES
     #${RANDOM_SOURCES}
 	${SOURCES_ROOT}/src/salty_random_generator/salty_generator.c
     #${SNPRINTF_SOURCES}
-    ${SOURCES_ROOT}/src/deadstart/deadstart_core.c 
+    ${SOURCES_ROOT}/src/deadstart/deadstart_core.c
 )
 
 sack_add_executable(${project} ${BASE_SOURCES} )
@@ -102,6 +109,3 @@ SET_TARGET_PROPERTIES(${project} PROPERTIES
 )
 target_link_libraries( ${project} ${PLATFORM_LIBRARIES} )
 install_default_dest( ${project} )
-
-
-

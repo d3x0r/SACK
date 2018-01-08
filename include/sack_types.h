@@ -1127,6 +1127,11 @@ SACK_NAMESPACE
 #  define _64fX   _WIDE(PRIX64)
 #  define _64fs   _WIDE(PRId64)
 
+#  define _64f    _WIDE(PRIu64)
+#  define _64fx   _WIDE(PRIx64)
+#  define _64fX   _WIDE(PRIX64)
+#  define _64fs   _WIDE(PRId64)
+
 // non-unicode strings
 #  define c_32f    PRIu32
 #  define c_32fx   PRIx32
@@ -1188,10 +1193,10 @@ SACK_NAMESPACE
 #      define c_size_fs   "zd"
 #    endif
 
-#    define _PTRSZVALfs _WIDE( PRIu64 )
-#    define _PTRSZVALfx _WIDE( PRIx64 )
-#    define cPTRSZVALfs PRIu64
-#    define cPTRSZVALfx PRIx64
+#    define _PTRSZVALfs _WIDE( PRIuPTR )
+#    define _PTRSZVALfx _WIDE( PRIxPTR )
+#    define cPTRSZVALfs PRIuPTR
+#    define cPTRSZVALfx PRIxPTR
 
 #  else
 #    if !defined( __GNUC__ ) || defined( _WIN32 )
@@ -1214,10 +1219,10 @@ SACK_NAMESPACE
 #      define c_size_fs   "zd"
 #    endif
 
-#    define _PTRSZVALfs _64fs
-#    define _PTRSZVALfx _64fx
-#    define cPTRSZVALfs c_64fs
-#    define cPTRSZVALfx c_64fx
+#    define _PTRSZVALfs _WIDE( PRIuPTR )
+#    define _PTRSZVALfx _WIDE( PRIxPTR )
+#    define cPTRSZVALfs PRIuPTR
+#    define cPTRSZVALfx PRIxPTR
 #  endif
 
 #else
@@ -1245,10 +1250,10 @@ SACK_NAMESPACE
 #      define c_size_fs   "zd"
 #    endif
 
-#    define _PTRSZVALfs _WIDE( PRIu32 )
-#    define _PTRSZVALfx _WIDE( PRIx32 )
-#    define cPTRSZVALfs PRIu32
-#    define cPTRSZVALfx PRIx32
+#    define _PTRSZVALfs _WIDE( PRIuPTR )
+#    define _PTRSZVALfx _WIDE( PRIxPTR )
+#    define cPTRSZVALfs PRIuPTR
+#    define cPTRSZVALfx PRIxPTR
 #  else
 
       // this HAS been fixed in UCRT - 2015!  but it'll take 5 years before everyone has that...
@@ -1272,10 +1277,10 @@ SACK_NAMESPACE
 #      define c_size_fs   "zd"
 #    endif
 
-#    define _PTRSZVALfs _32fs
-#    define _PTRSZVALfx _32fx
-#    define cPTRSZVALfs c_32fs
-#    define cPTRSZVALfx c_32fs
+#    define _PTRSZVALfs _WIDE( PRIuPTR )
+#    define _PTRSZVALfx _WIDE( PRIxPTR )
+#    define cPTRSZVALfs PRIuPTR
+#    define cPTRSZVALfx PRIxPTR
 #  endif
 #endif
 

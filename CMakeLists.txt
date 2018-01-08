@@ -6,6 +6,16 @@ project( SACK )
 
 SET( ENABLE_VULKAN ON )
 
+IF( APPLE )
+   SET( __NO_GUI__ ON )
+   SET( PLATFORM_DEFINES -D__MAC__ )
+   set( PLATFORM_CMAKE_DEFINES ${PLATFORM_CMAKE_DEFINES} "__MAC__ ON" )
+ENDIF( APPLE )
+
+if( __COMPILER_GNU AND NOT CMAKE_COMPILER_IS_GNUCC )
+  set( CMAKE_COMPILER_IS_GNUCC 1 )
+  set( PLATFORM_CMAKE_DEFINES ${PLATFORM_CMAKE_DEFINES} "CMAKE_COMPILER_IS_GNUCC 1" )
+endif( __COMPILER_GNU AND NOT CMAKE_COMPILER_IS_GNUCC )
 
 SET( MAKING_SACK_CORE ON )
 SET( SACK_SDK_ROOT_PATH ${CMAKE_CURRENT_SOURCE_DIR} )
@@ -305,13 +315,16 @@ OPTION( INCLUDE_VULKAN "Include vulkan interfaces" ${ENABLE_VULKAN} )
 # should make this a common target variable instead also...
 set( INTERFACE_OUTPUT_DIR ${BINARY_OUTPUT_DIR} )
 
-if( CMAKE_COMPILER_IS_GNUCC )
-    SET( CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,-Bsymbolic -Wl,--warn-unresolved-symbols" )
-    SET( CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Wl,-Bsymbolic -Wl,--warn-unresolved-symbols" )
+if( APPLE )
+   SET( ExtraFlags "${ExtraFlags} -Wno-parentheses -Wno-address-of-packed-member")
+else( APPLE )
+    if( CMAKE_COMPILER_IS_GNUCC )
+        SET( CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,-Bsymbolic -Wl,--warn-unresolved-symbols" )
+        SET( CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Wl,-Bsymbolic -Wl,--warn-unresolved-symbols" )
 
-    SET( ExtraFlags ${ExtraFlags} -Wno-multichar)
-endif( CMAKE_COMPILER_IS_GNUCC )
-
+        SET( ExtraFlags ${ExtraFlags} -Wno-multichar)
+    endif( CMAKE_COMPILER_IS_GNUCC )
+endif( APPLE )
 
 if( MSVC )
   if( FORCE_MSVCRT )
@@ -356,11 +369,10 @@ if( NOT __NO_ODBC__ OR USE_SQLITE )
    if( WIN32 )
       SET( ODBC_LIBRARY odbc32 )
    else()
-      if( NOT NEED_UUID )
-        SET( ODBC_LIBRARY odbc uuid )
-      else( NOT NEED_UUID )
-        SET( ODBC_LIBRARY odbc )
-      endif( NOT NEED_UUID )
+     SET( ODBC_LIBRARY odbc )
+      if( NOT NEED_UUID AND NOT APPLE )
+        SET( ODBC_LIBRARY uuid )
+      endif( NOT NEED_UUID AND NOT APPLE )
       set( PLATFORM_LIBRARIES ${PLATFORM_LIBRARIES} ${ODBC_LIBRARY} )
    endif()
  else( NOT __NO_ODBC__ )
@@ -1265,6 +1277,7 @@ else( NOT NO_C )
 endif( NOT NO_C )
 
   if( NOT NEED_FREETYPE )
+  message( "FREETYPE INCLUDE:${Freetype_INCLUDE_DIRS}")
     include_directories( ${Freetype_INCLUDE_DIRS} )
   endif()
 
@@ -1276,9 +1289,9 @@ add_subdirectory( src/imglib )
 ###########
 
 if( NOT __NO_GUI__ )
-  if( NOT __ANDROID__ )
+  if( NOT __ANDROID__ AND NOT APPLE )
      add_subdirectory( src/vidlib )
-  endif( NOT __ANDROID__ )
+  endif( NOT __ANDROID__ AND NOT APPLE )
 
 else( NOT __NO_GUI__ )
      add_subdirectory( src/vidlib/proxy )
@@ -1396,9 +1409,9 @@ endIF(NOT FORCE_CXX AND EXISTS ${BULLET_SOURCE}/CMakeLists.txt AND NOT BUILD_UNI
 if( NOT BUILD_MONOLITHIC AND NOT __NO_GUI__ )
 	#include vidlib first incase glew is used, then imglib
 	add_subdirectory( src/imglib/puregl2 )
-        if( INCLUDE_VULKAN )
-		add_subdirectory( src/imglib/vulkan )
-        endif( INCLUDE_VULKAN )
+    if( INCLUDE_VULKAN )
+		  add_subdirectory( src/imglib/vulkan )
+     endif( INCLUDE_VULKAN )
 
 if( NOT __QNX__ AND NOT __ANDROID__ )
 	#standard OpenGL; mostly windows-centric

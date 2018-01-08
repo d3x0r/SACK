@@ -11,6 +11,6 @@
 #define DeclareList(n) paste2(n,TARGET_LABEL)
 #ifdef __cplusplus
 #else
-struct rt_init DeclareList(end_deadstart_) __attribute__((section("deadstart_list"),used)) = { DEADSTART_RT_LIST_START };
+struct rt_init DeclareList(end_deadstart_) __attribute__((section(DEADSTART_SECTION),used)) = { DEADSTART_RT_LIST_START };
 #endif
 #endif

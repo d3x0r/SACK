@@ -10,7 +10,7 @@ set( FFMPEG_SOURCES ${FFMPEG_SOURCES_ROOT}ffmpeg_interface.c )
 set( FFMPEG_CPP_SOURCES ${CMAKE_BINARY_DIR}/src/streamlib/ffmpeg/ffmpeg_interface.cpp )
 INCLUDE_DIRECTORIES( ${FFMPEG_SOURCES_ROOT}prebuilt/ffmpeg/2.1.3/include  )
 INCLUDE_DIRECTORIES( ${FFMPEG_SOURCES_ROOT}openal-soft-1.15.1/include  )
-#INCLUDE_DIRECTORIES( ${FFMPEG_SOURCES_ROOT}../../contrib/gsm-1.0-pl13/inc )
+INCLUDE_DIRECTORIES( ${FFMPEG_SOURCES_ROOT}../../contrib/gsm-1.0-pl13/inc )
 if( CMAKE_C_COMPILER_ID STREQUAL "GNU" )
   set_source_files_properties( ${FFMPEG_CPP_SOURCES} PROPERTIES COMPILE_FLAGS "-I${FFMPEG_SOURCES_ROOT}../../contrib/gsm-1.0-pl13/inc" )
   set_source_files_properties( ${FFMPEG_SOURCES} PROPERTIES COMPILE_FLAGS "-I${FFMPEG_SOURCES_ROOT}../../contrib/gsm-1.0-pl13/inc" )
@@ -62,13 +62,10 @@ if( __ANDROID__ )
 endif( __ANDROID__ )
 
 if( MAKING_SACK_CORE )
-INSTALL( 
+INSTALL(
   FILES
     ${SOURCES_ROOT}include/ffmpeg_interface.h
   DESTINATION
     include/${CMAKE_PROJECT_NAME}
 )
 endif( MAKING_SACK_CORE )
-
-
-

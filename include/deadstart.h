@@ -488,7 +488,7 @@ struct rt_init // structure placed in XI/YI segment
 #endif
 
 #ifdef __MAC__
-#  define DEADSTART_SECTION "CODE,deadstart_list"
+#  define DEADSTART_SECTION "TEXT,deadstart_list"
 #else
 #  define DEADSTART_SECTION "deadstart_list"
 #endif

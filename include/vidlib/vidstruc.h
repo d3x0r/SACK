@@ -1,7 +1,7 @@
 #ifndef VIDEO_STRUCTURE_DEFINED
 #define VIDEO_STRUCTURE_DEFINED
 
-#if defined( __LINUX__ ) 
+#if defined( __LINUX__ )
 #  include <stdio.h>
 #  if defined( USE_GLES2 )
 #    ifndef USE_EGL
@@ -16,12 +16,17 @@
 //#include <GLES/gl.h>
 #      include <GLES2/gl2.h>
 #    else
-#      include <GL/glx.h>
-#      include <GL/gl.h>
-#      include <GL/glu.h>
-#      include <X11/Xlib.h>
-#      include <X11/extensions/xf86vmode.h>
-#      include <X11/keysym.h>
+#      if defined( __MAC__ )
+//#        include <glx.h>
+#        include <gl.h>
+#        include <glu.h>
+#      else
+#        include <GL/glx.h>
+#        include <GL/gl.h>
+#        include <GL/glu.h>
+#        include <X11/Xlib.h>
+#        include <X11/extensions/xf86vmode.h>
+#        include <X11/keysym.h>
 #    endif
 
 #endif
@@ -250,7 +255,7 @@ typedef struct HVIDEO_tag
 	TouchCallback pTouchCallback;
 	uintptr_t dwTouchData;
 #endif
-	RedrawCallback pRedrawCallback; 
+	RedrawCallback pRedrawCallback;
 	uintptr_t dwRedrawData;
 
 	CloseCallback pWindowClose;
@@ -291,7 +296,7 @@ typedef struct HVIDEO_tag
 		BIT_FIELD bOrdering : 1; // if ordering, don't attemopt to re-order...
 		BIT_FIELD bOpenedBehind : 1; // ordered at startup to be behind a barrier window
 		BIT_FIELD bIdleMouse : 1; // this window wants mouse to disappear at idle.
-		BIT_FIELD bIgnoreChanging : 1; // one shot ignore change set by paint.... 
+		BIT_FIELD bIgnoreChanging : 1; // one shot ignore change set by paint....
 		BIT_FIELD bDeferedPos : 1; // while in defered posisitiongin, windows marked with this.
 		BIT_FIELD bNoAutoFocus : 1; // foreground/setfocus are not called on initial show.
 		BIT_FIELD bForceTopmost : 1; // when removed from very top, put self back at very top.
@@ -311,7 +316,7 @@ typedef struct HVIDEO_tag
 
 	LoseFocusCallback pLoseFocus;
 	uintptr_t dwLoseFocus;
-	
+
 
 	void *hOldBitmap;
 	void *hOldBitmapFullScreen;
@@ -354,4 +359,3 @@ typedef struct HVIDEO_tag
 RENDER_NAMESPACE_END
 
 #endif
-

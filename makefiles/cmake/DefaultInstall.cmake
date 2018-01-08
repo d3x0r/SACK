@@ -14,16 +14,19 @@ endif()
 if( EXISTS ${CMAKE_CURRENT_LIST_DIR}/src/sack )
   SET( DEADSTART_SRC_DIR ${CMAKE_CURRENT_LIST_DIR}/src/sack )
 endif()
-
-if( CMAKE_COMPILER_IS_GNUCC ) 
-  SET( FIRST_GCC_LIBRARY_SOURCE ${DEADSTART_SRC_DIR}/deadstart_list.c ) 
-  SET( FIRST_GCC_PROGRAM_SOURCE ${DEADSTART_SRC_DIR}/deadstart_list.c ) 
-  SET( LAST_GCC_LIBRARY_SOURCE ${DEADSTART_SRC_DIR}/deadstart_lib.c ${DEADSTART_SRC_DIR}/deadstart_end.c ) 
-  SET( LAST_GCC_PROGRAM_SOURCE ${DEADSTART_SRC_DIR}/deadstart_lib.c ${DEADSTART_SRC_DIR}/deadstart_prog.c ${DEADSTART_SRC_DIR}/deadstart_end.c ) 
+#get_cmake_property( _variableNames VARIABLES )
+#foreach( var ${_variableNames})
+#  message( "${var}=${${var}}")
+#endforeach()
+if( CMAKE_COMPILER_IS_GNUCC )
+  SET( FIRST_GCC_LIBRARY_SOURCE ${DEADSTART_SRC_DIR}/deadstart_list.c )
+  SET( FIRST_GCC_PROGRAM_SOURCE ${DEADSTART_SRC_DIR}/deadstart_list.c )
+  SET( LAST_GCC_LIBRARY_SOURCE ${DEADSTART_SRC_DIR}/deadstart_lib.c ${DEADSTART_SRC_DIR}/deadstart_end.c )
+  SET( LAST_GCC_PROGRAM_SOURCE ${DEADSTART_SRC_DIR}/deadstart_lib.c ${DEADSTART_SRC_DIR}/deadstart_prog.c ${DEADSTART_SRC_DIR}/deadstart_end.c )
 endif()
 
-if( MSVC OR WATCOM ) 
-  SET( LAST_GCC_PROGRAM_SOURCE ${DEADSTART_SRC_DIR}/deadstart_prog.c ) 
+if( MSVC OR WATCOM )
+  SET( LAST_GCC_PROGRAM_SOURCE ${DEADSTART_SRC_DIR}/deadstart_prog.c )
 endif()
 
 
@@ -108,7 +111,7 @@ endmacro( install_mode_dest )
 
 macro( install_sack_sdk_dest )
 	install( TARGETS ${ARGV}
-		RUNTIME DESTINATION ${SACK_BASE}/${BINARY_OUTPUT_DIR} 
+		RUNTIME DESTINATION ${SACK_BASE}/${BINARY_OUTPUT_DIR}
 		LIBRARY DESTINATION ${SACK_BASE}/${SHARED_LIBRARY_OUTPUT_DIR}
 		ARCHIVE DESTINATION ${SACK_BASE}/${CMAKE_INSTALL_LIBDIR} )
 endmacro( install_sack_sdk_dest )
@@ -117,11 +120,11 @@ endmacro( install_sack_sdk_dest )
 macro( install_default_dest_binary )
   if( TARGET_BINARY_PATH )
 	install( TARGETS ${ARGV}
-		RUNTIME DESTINATION ${BINARY_OUTPUT_DIR}/${TARGET_BINARY_PATH} 
+		RUNTIME DESTINATION ${BINARY_OUTPUT_DIR}/${TARGET_BINARY_PATH}
 		LIBRARY DESTINATION ${SHARED_LIBRARY_OUTPUT_DIR}/${TARGET_BINARY_PATH} )
   else( TARGET_BINARY_PATH )
 	install( TARGETS ${ARGV}
-		RUNTIME DESTINATION ${BINARY_OUTPUT_DIR} 
+		RUNTIME DESTINATION ${BINARY_OUTPUT_DIR}
 		LIBRARY DESTINATION ${SHARED_LIBRARY_OUTPUT_DIR} )
   endif( TARGET_BINARY_PATH )
 endmacro( install_default_dest_binary )
@@ -129,8 +132,8 @@ endmacro( install_default_dest_binary )
 
 macro( install_literal_product proj project_target )
 if( __ANDROID__ )
-  install( TARGETS ${proj} RUNTIME DESTINATION lib/${project_target} 
-		LIBRARY DESTINATION lib/${project_target} 
+  install( TARGETS ${proj} RUNTIME DESTINATION lib/${project_target}
+		LIBRARY DESTINATION lib/${project_target}
 	)
 else( __ANDROID__ )
   if( WIN32 )
@@ -150,7 +153,7 @@ else( __ANDROID__ )
 		 )
     endif( watcom21 )
     if( __CLR__ )
-      install( TARGETS ${proj} RUNTIME DESTINATION ./${project_target} 
+      install( TARGETS ${proj} RUNTIME DESTINATION ./${project_target}
 	)
     else( __CLR__ )
       install( TARGETS ${proj} RUNTIME DESTINATION ${BINARY_OUTPUT_DIR}/${project_target}
@@ -158,9 +161,9 @@ else( __ANDROID__ )
 	)
     endif( __CLR__ )
   else( WIN32 )
-    install( TARGETS ${proj} 
-	RUNTIME DESTINATION ${BINARY_OUTPUT_DIR}/${project_target} 
-	LIBRARY DESTINATION ${BINARY_OUTPUT_DIR}/${project_target} 
+    install( TARGETS ${proj}
+	RUNTIME DESTINATION ${BINARY_OUTPUT_DIR}/${project_target}
+	LIBRARY DESTINATION ${BINARY_OUTPUT_DIR}/${project_target}
         ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
 	)
   endif()
@@ -173,8 +176,8 @@ macro( install_default_project proj project_target )
   if( WIN32 )
     install( TARGETS ${proj} RUNTIME DESTINATION ${project_target} )
   else( WIN32 )
-    install( TARGETS ${proj} LIBRARY DESTINATION ${project_target} 
-  		RUNTIME DESTINATION ${project_target} 
+    install( TARGETS ${proj} LIBRARY DESTINATION ${project_target}
+  		RUNTIME DESTINATION ${project_target}
 	)
   endif()
 endmacro( install_default_project )
@@ -224,12 +227,12 @@ macro( sack_add_literal_library project optional_style )
     add_library( ${project} ${FIRST_GCC_LIBRARY_SOURCE} ${optional_style} ${ARGN} ${LAST_GCC_LIBRARY_SOURCE} )
   endif( ${optional_style} STREQUAL SHARED )
   string( REPLACE "." "_" TARGET_LABEL ${project} )
-  
-  if( __ANDROID__ )        
+
+  if( __ANDROID__ )
 	set( TARGETNAME "${target}" )
-  else( __ANDROID__ )        
+  else( __ANDROID__ )
 	set( TARGETNAME "${CMAKE_SHARED_LIBRARY_PREFIX}${target}${CMAKE_SHARED_LIBRARY_SUFFIX}" )
-  endif( __ANDROID__ )        
+  endif( __ANDROID__ )
   SET_PROPERTY(TARGET ${project} APPEND PROPERTY COMPILE_DEFINITIONS TARGET_LABEL=${TARGET_LABEL};TARETNAME=\"${TARGETNAME}\" )
   if( MOREDEFS )
      SET_PROPERTY( TARGET ${project} APPEND PROPERTY COMPILE_DEFINITIONS ${MOREDEFS} )
@@ -262,7 +265,7 @@ macro( sack_add_executable project optional_style )
   if( __ANDROID__ )
       	add_program( ${project} ${optional_style} ${ARGN} )
   else( __ANDROID__ )
-      
+
   	if( ${optional_style} STREQUAL WIN32 )
 	  add_executable( ${project} ${optional_style} ${FIRST_GCC_PROGRAM_SOURCE} ${ARGN} ${LAST_GCC_PROGRAM_SOURCE} )
   	elseif( ${optional_style} STREQUAL DEPLOY )
@@ -362,8 +365,8 @@ macro( add_portable_program_ex portable targetname option1 )
 			set_target_properties( ${targetname} PROPERTIES COMPILE_DEFINITIONS "${ExtraDefinitions};ANDROID_CONSOLE_UTIL;TARGETNAME=\"${targetname}\";TARGET_LABEL=${TARGET_LABEL}_exe" )
 			install_default_dest( ${targetname} )
 		endif( ${option1} STREQUAL WIN32 )
-                
-                
+
+
 	else( __ANDROID__ )
 		if( ${portable} )
 			set( ExtraDefinitions "${ExtraDefinitions};BUILD_PORTABLE_EXECUTABLE" )
