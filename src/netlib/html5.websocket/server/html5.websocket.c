@@ -485,10 +485,10 @@ static void CPROC closed( PCLIENT pc_client ) {
 	HTML5WebSocket socket = (HTML5WebSocket)GetNetworkLong( pc_client, 0 );
 	//lprintf( "ServerWebSocket Connection closed event..." );
 	if( socket->input_state.on_close ) {
-      socket->input_state.on_close( pc_client, socket->input_state.psv_open, socket->input_state.close_code, socket->input_state.close_reason );
+		socket->input_state.on_close( pc_client, socket->input_state.psv_open, socket->input_state.close_code, socket->input_state.close_reason );
 	}
 	if( socket->input_state.close_reason )
-      Deallocate( char*, socket->input_state.close_reason );
+		Deallocate( char*, socket->input_state.close_reason );
 	if( socket->input_state.flags.deflate ) {
 		deflateEnd( &socket->input_state.deflater );
 		inflateEnd( &socket->input_state.inflater );

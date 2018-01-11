@@ -520,8 +520,8 @@ static PCLIENT InternalTCPClientAddrFromAddrExxx( SOCKADDR *lpAddr, SOCKADDR *pF
 #    endif
 			WSAEventSelect( pResult->Socket, pResult->event, FD_READ|FD_WRITE|FD_CONNECT|FD_CLOSE );
 #  else
-			if( WSAAsyncSelect( pResult->Socket,globalNetworkData.ghWndNetwork,SOCKMSG_TCP,
-									 FD_READ|FD_WRITE|FD_CLOSE|FD_CONNECT) )
+			if( WSAAsyncSelect( pResult->Socket,globalNetworkData.ghWndNetwork,SOCKMSG_TCP
+			                  , FD_READ|FD_WRITE|FD_CLOSE|FD_CONNECT) )
 			{
 				lprintf( WIDE(" Select NewClient Fail! %d"), WSAGetLastError() );
 				InternalRemoveClientEx( pResult, TRUE, FALSE );
@@ -546,7 +546,7 @@ static PCLIENT InternalTCPClientAddrFromAddrExxx( SOCKADDR *lpAddr, SOCKADDR *pF
 				pResult->saSource = DuplicateAddress( pFromAddr );
 				//DumpAddr( "source", pResult->saSource );
 				if( ( err = bind( pResult->Socket, pResult->saSource
-								, SOCKADDR_LENGTH( pResult->saSource ) ) ) )
+				                , SOCKADDR_LENGTH( pResult->saSource ) ) ) )
 				{
 					uint32_t dwError;
 					dwError = WSAGetLastError();
@@ -878,7 +878,7 @@ int FinishPendingRead(PCLIENT lpClient DBG_PASS )  // only time this should be c
 
 		if( !(lpClient->dwFlags & CF_CONNECTED)  )
 		{
-#ifdef VERBOSE_DEBUG
+#ifdef DEBUG_SOCK_IO
 			lprintf( WIDE( "Finsih pending - return, not connected." ) );
 #endif
 			return (int)lpClient->RecvPending.dwUsed; // amount of data available...
@@ -944,6 +944,7 @@ int FinishPendingRead(PCLIENT lpClient DBG_PASS )  // only time this should be c
 #ifdef DEBUG_SOCK_IO
 				lprintf( "Received (0) %d", nRecv );
 #endif
+				WakeableSleep( 100 );
 				//_lprintf( DBG_RELAY )( WIDE("Closing closed socket... Hope there's also an event... "));
 				lpClient->dwFlags |= CF_TOCLOSE;
 				break; // while dwAvail... try read...
@@ -970,7 +971,7 @@ int FinishPendingRead(PCLIENT lpClient DBG_PASS )  // only time this should be c
 				lpClient->RecvPending.dwAvail -= nRecv;
 				lpClient->RecvPending.dwUsed  += nRecv;
 				if( lpClient->RecvPending.s.bStream &&
-					lpClient->RecvPending.dwAvail )
+				    lpClient->RecvPending.dwAvail )
 					break;
 				//else
 				//	lprintf( WIDE("Was not a stream read - try reading more...") );
