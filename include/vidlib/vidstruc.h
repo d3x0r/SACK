@@ -28,7 +28,7 @@
 #        include <X11/extensions/xf86vmode.h>
 #        include <X11/keysym.h>
 #    endif
-
+#  endif
 #endif
 
 #if defined( _D3D10_DRIVER )
@@ -195,7 +195,7 @@ typedef struct HVIDEO_tag
 		uint32_t cx, cy;
 	} WindowPos;
 #endif
-#  ifdef _OPENGL_ENABLED
+#ifdef _OPENGL_ENABLED
 	int nFractures, nFracturesAvail;
 	int _prior_fracture;
 	struct fracture_tag{
