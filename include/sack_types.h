@@ -1082,7 +1082,7 @@ SACK_NAMESPACE_END
 
 //------------------------------------------------------
 // formatting macro defintions for [vsf]printf output of the above types
-#ifndef _MSC_VER
+#if ( _MSC_VER >= 1900 )
 #define __STDC_FORMAT_MACROS
 #include <inttypes.h>
 #endif
@@ -1287,7 +1287,7 @@ SACK_NAMESPACE
 #define PTRSZVALf WIDE("p" )
 #define _PTRSZVALf WIDE("p" )
 
-#if defined( _MSC_VER )
+#if ( _MSC_VER < 1900 )
 /* 64 bit unsigned decimal output printf format specifier. This would
    otherwise be defined in \<inttypes.h\> as PRIu64              */
 #define _64f    WIDE("llu")
