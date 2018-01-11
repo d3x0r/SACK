@@ -5,6 +5,6 @@
 
 #endif
 
-#ifdef __LINUX__
+#if defined( __LINUX__ ) && !defined( __MAC__ )
 #include <elf.h>
 #endif

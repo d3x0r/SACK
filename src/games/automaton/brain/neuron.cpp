@@ -48,13 +48,13 @@ void *NEURON::operator new( size_t sz )
 #ifdef _MSC_VER
 void NEURON::operator delete( void *ptr, struct NEURONset_tag **set )
 {
-   DeleteFromSet( NEURON, set, ptr );
+   DeleteFromSet( NEURON, *set, ptr );
 };
 #endif
 
 void NEURON::operator delete( void *ptr )
 {
-   DeleteFromSet( NEURON, ((PNEURON)ptr)->pool, ptr );
+   DeleteFromSet( NEURON, *((PNEURON)ptr)->pool, ptr );
 }
 
 void NEURON::Init( CTEXTSTR name )

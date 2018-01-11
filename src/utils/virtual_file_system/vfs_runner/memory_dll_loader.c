@@ -7,7 +7,10 @@
 #endif
 
 #ifdef __LINUX__
+#  ifdef __MAC__
+#  else
 #include <elf.h>
+#  endif
 #endif
 
 #include "self_compare.h"
@@ -80,7 +83,7 @@ POINTER GetExtraData( POINTER block )
 }
 */
 
-/* This returns the entry point to the library 
+/* This returns the entry point to the library
 maybe it returns the library base... */
 POINTER ScanLoadLibraryFromMemory( CTEXTSTR name, POINTER block, size_t block_len, int library, LOGICAL (CPROC*Callback)(CTEXTSTR library) )
 {
@@ -269,7 +272,7 @@ void DumpSystemMemory( POINTER p_match )
 
 POINTER LoadLibraryFromMemory( CTEXTSTR name, POINTER block, size_t block_len, int library, void (*Callback)(CTEXTSTR library) )
 {
-/* This returns the entry point to the library 
+/* This returns the entry point to the library
 maybe it returns the library base... */
 	static int generation;
 	uintptr_t source_memory_length = block_len;
@@ -448,7 +451,7 @@ maybe it returns the library base... */
 						WORD *pb;
 						ibr = (IMAGE_BASE_RELOCATION *)Seek( source_memory, source_section[0].PointerToRawData + section_offset );
 						real_ibr = (IMAGE_BASE_RELOCATION *)Seek( real_memory, source_section[0].VirtualAddress + section_offset );
-						
+
 						if( !ibr->SizeOfBlock )
 							break;
 						num_reloc = (ibr->SizeOfBlock - sizeof(IMAGE_BASE_RELOCATION)) / sizeof(WORD);
@@ -549,7 +552,7 @@ maybe it returns the library base... */
 								// byte 120 differed...
 								if( ((char*)data)[n] != ((char*)(*tls_list))[n] )
 								{
-									lprintf( "differed..." ); 
+									lprintf( "differed..." );
 								}
 							}
 						}
@@ -570,8 +573,8 @@ maybe it returns the library base... */
 						(*((DWORD*)tls->AddressOfIndex)) = dwInit;
 						//printf( "%p is %d\n", tls->AddressOfIndex, dwInit );
 						//data = LocalAlloc( 0, size );
-						//	035FA434  mov         ecx,dword ptr fs:[2Ch]  
-						//	035FA43B  mov         edx,dword ptr [ecx+eax*4]  
+						//	035FA434  mov         ecx,dword ptr fs:[2Ch]
+						//	035FA43B  mov         edx,dword ptr [ecx+eax*4]
 
 						//TlsSetValue( dwInit, data );
 						//printf( "%d is %p\n", dwInit, data );
@@ -592,7 +595,7 @@ maybe it returns the library base... */
 				{
 					lprintf( "Couldn't commit written pages : %d", GetLastError() );
 				}
-					  
+
 
 				if( !VirtualProtect( (POINTER)Seek( real_memory, source_text_section->VirtualAddress )
 					, source_text_section->SizeOfRawData
@@ -654,7 +657,7 @@ PUBLIC( void, StupidUselessWatcomExport )( void )
 
 #endif
 
-#ifdef __LINUX__
+#if defined( __LINUX__ ) && !defined( __MAC__ )
 
 #define PAGE_MASK 0xFFF
 
@@ -744,7 +747,7 @@ POINTER LoadLibraryFromMemory( CTEXTSTR name, POINTER block, size_t block_len, i
 #if 0
 		realMemory = mmap( NULL
 							  , ( maxVirt - minVirt ) + ( minVirt & PAGE_MASK )
-							  , 
+							  ,
 							  , MAP_PRIVATE | MAP_ANONYMOUS
 							  , -1, 0 );
 
@@ -775,4 +778,13 @@ POINTER LoadLibraryFromMemory( CTEXTSTR name, POINTER block, size_t block_len, i
 	}
 
 }
+#endif
+
+#if defined( __MAC__ )
+
+POINTER LoadLibraryFromMemory( CTEXTSTR name, POINTER block, size_t block_len, int library, void (*Callback)(CTEXTSTR library) )
+{
+	return NULL;
+}
+
 #endif

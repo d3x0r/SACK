@@ -9,7 +9,7 @@ typedef struct render_3d_interface_tag
 	RENDER_PROC_PTR( PTRANSFORM, GetRenderTransform)         ( PRENDERER );
 	// returns TRUE if at least one of the points is inside the camera clip
 	RENDER_PROC_PTR( LOGICAL, ClipPoints)         ( P_POINT points, int nPoints );
-	RENDER_PROC_PTR( void, GetViewVolume )( PRAY *planes );
+	RENDER_PROC_PTR( void, GetViewVolume )( PRAY *planes ); // 6 planes
 #ifdef _D3D_DRIVER
 	IDirect3DDevice9 *current_device;
 #endif
@@ -24,7 +24,14 @@ typedef struct render_3d_interface_tag
 	ID3D11RenderTargetView *current_target;
 	IDXGISwapChain *current_chain;
 #endif
+
+#ifdef _VULKAN_DRIVER
+	RENDER_PROC_PTR( struct cmdBuf *, getCommandBuffer )( void );
+
+#endif
+
 } RENDER3D_INTERFACE, *PRENDER3D_INTERFACE;
+
 
 #if defined( _D3D_DRIVER ) || defined( _D3D10_DRIVER ) || defined( _D3D11_DRIVER )
 #define g_d3d_device  (USE_RENDER3D_INTERFACE)->current_device

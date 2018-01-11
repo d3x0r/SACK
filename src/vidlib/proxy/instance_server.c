@@ -17,7 +17,7 @@ IMAGE_NAMESPACE
 #ifdef __cplusplus
 namespace loader {
 #endif
-IMAGE_PROC LOGICAL PngImageFile ( Image pImage, uint8_t ** buf, size_t *size);
+extern LOGICAL PngImageFile ( Image pImage, uint8_t ** buf, size_t *size);
 #ifdef __cplusplus
 };
 using namespace sack::image::loader;
@@ -713,12 +713,12 @@ static void SendCompressedBuffer( PCLIENT pc, PVPImage image )
 			uint8_t *msg;
 			struct common_message *outmsg;
 			TEXTCHAR *text_encoded_data;
-			char * encoded_data;
 			Bytef *output = NewArray( Bytef, image->websock_sendlen + 1 );
 			size_t sendlen;
 			size_t outlen;
 			uLongf destlen = image->websock_sendlen + 1;
 #ifdef _UNICODE
+			char * encoded_data;
 			encoded_data = CStrDup( (CTEXTSTR)image->websock_buffer );
 			// do not include the NULL...
 			compress2( output, &destlen, (const Bytef*)encoded_data, (uLong)CStrLen( encoded_data ), Z_BEST_COMPRESSION );
@@ -1054,7 +1054,7 @@ static uintptr_t WebSockOpen( PCLIENT pc, uintptr_t psv )
 	return (uintptr_t)client;
 }
 
-static void WebSockClose( PCLIENT pc, uintptr_t psv )
+static void WebSockClose( PCLIENT pc, uintptr_t psv, int code, const char *reason )
 {
 }
 

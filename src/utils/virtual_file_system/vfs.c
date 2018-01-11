@@ -1127,11 +1127,13 @@ size_t CPROC sack_vfs_read( struct sack_vfs_file *file, char * data, size_t leng
 	size_t written = 0;
 	size_t ofs = file->fpi & BLOCK_MASK;
 	while( LockedExchange( &file->vol->lock, 1 ) ) Relinquish();
-	if( ( file->entry->filesize  ^ file->dirent_key.filesize ) < ( file->fpi + length ) )
-		if( ( file->entry->filesize  ^ file->dirent_key.filesize ) > file->fpi )
+	if( ( file->entry->filesize  ^ file->dirent_key.filesize ) < ( file->fpi + length ) ) {
+		if( ( file->entry->filesize  ^ file->dirent_key.filesize ) < file->fpi )
+			length = 0;
+		else
 			length = ( file->entry->filesize  ^ file->dirent_key.filesize ) - file->fpi;
-		else length = 0;
-	if( !length ) { file->vol->lock = 0; return 0; }
+	}
+	if( !length ) {  file->vol->lock = 0; return 0; }
 
 	if( ofs ) {
 		enum block_cache_entries cache = BLOCK_CACHE_FILE;
@@ -1243,9 +1245,10 @@ int CPROC sack_vfs_close( struct sack_vfs_file *file ) {
 	while( LockedExchange( &file->vol->lock, 1 ) ) Relinquish();
 #ifdef DEBUG_TRACE_LOG
 	{
+		enum block_cache_entries cache = BLOCK_CACHE_NAMES;
 		static char fname[256];
 		FPI name_ofs = file->entry->name_offset ^ file->dirent_key.name_offset;
-		TSEEK( const char *, file->vol, name_ofs, BLOCK_CACHE_NAMES ); // have to do the seek to the name block otherwise it might not be loaded.
+		TSEEK( const char *, file->vol, name_ofs, cache ); // have to do the seek to the name block otherwise it might not be loaded.
 		MaskStrCpy( fname, sizeof( fname ), file->vol, name_ofs );
 		LoG( "close file:%s(%p)", fname, file );
 	}

@@ -346,7 +346,9 @@ typedef struct input_point
 #define TOUCHINPUTMASKF_TIMEFROMSYSTEM  0x0001  // the dwTime field contains a system generated value
 #define TOUCHINPUTMASKF_EXTRAINFO       0x0002  // the dwExtraInfo field is valid
 #define TOUCHINPUTMASKF_CONTACTAREA     0x0004  // the cxContact and cyContact fields are valid
+#ifndef __ANDROID__
 typedef HANDLE HTOUCHINPUT;
+#endif
 #define WM_TOUCH 0x0240
 #define TWF_FINETOUCH 0x00000001
 #define TWF_WANTPALM 0x00000002

@@ -96,6 +96,8 @@ endif( BUILD_TESTS )
 # these became not so 'extra'
 #if( BUILD_EXTRAS )
 
+if( NOT __ANDROID__ )
+
 if( NOT SACK_LIBRARY_ONLY )
 
 add_subdirectory( vfs_command )
@@ -108,5 +110,8 @@ add_subdirectory( vfs_extract )
 #endif( WIN32 )
 
 endif( NOT SACK_LIBRARY_ONLY )
+
+endif( NOT __ANDROID__ )
+
 #endif( BUILD_EXTRAS )
 endif( NOT __CLR__ )

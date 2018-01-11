@@ -177,6 +177,7 @@ struct peer_thread_info
 #ifdef __LINUX__
 #  ifdef __MAC__
 	int kqueue;
+   PDATALIST kevents;
 #  else
 	int epoll_fd;
 #  endif
@@ -378,8 +379,8 @@ void RemoveThreadEvent( PCLIENT pc );
 void AddThreadEvent( PCLIENT pc, int broadcast );
 
 
-#define IsValid(S)   ((S)!=INVALID_SOCKET)  
-#define IsInvalid(S) ((S)==INVALID_SOCKET)  
+#define IsValid(S)   ((S)!=INVALID_SOCKET)
+#define IsInvalid(S) ((S)==INVALID_SOCKET)
 
 #define CLIENT_DEFINED
 
@@ -387,4 +388,3 @@ void AddThreadEvent( PCLIENT pc, int broadcast );
 SACK_NETWORK_NAMESPACE_END
 
 #endif
-

@@ -17,7 +17,9 @@
  */
 
 #include <stdio.h>
-
+#ifdef __ANDROID__
+#include <limits.h>
+#endif
 #include <openssl/x509.h>
 
 #include <tls.h>

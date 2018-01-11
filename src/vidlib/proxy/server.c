@@ -764,7 +764,7 @@ static void SendTCPMessage( PCLIENT pc, LOGICAL websock, enum proxy_message_id m
 			int n;
 			int chars = 0;
 			struct common_message *outmsg;
-			PVPImage SourceImage;
+			//PVPImage SourceImage;
 			if( !font )
 				font = l.real_interface->_GetDefaultFont();
 			msg = NewArray( uint8_t, sendlen = ( 4 + 1 + sizeof( struct font_data_data ) ) );
@@ -780,7 +780,7 @@ static void SendTCPMessage( PCLIENT pc, LOGICAL websock, enum proxy_message_id m
 			outmsg->data.font_data.height = font->height;
 			outmsg->data.font_data.characters = NULL;
 			outmsg->data.font_data.colors = NULL;
-			for( n = 0; n < font->characters; n++ )
+			for( n = 0; n < (int)font->characters; n++ )
 			{
 				if( font->character[n] && font->character[n]->cell )
 				{
@@ -906,12 +906,12 @@ static void SendCompressedBuffer( PCLIENT pc, PVPImage image )
 			uint8_t *msg;
 			struct common_message *outmsg;
 			TEXTCHAR * text_encoded_data;
-			char * encoded_data;
 			Bytef *output = NewArray( Bytef, image->websock_sendlen + 1 );
 			size_t sendlen;
 			size_t outlen;
 			uLongf destlen = image->websock_sendlen + 1;
 #ifdef _UNICODE
+			char * encoded_data;
 			encoded_data = CStrDup( (CTEXTSTR)image->websock_buffer );
 			// do not include the NULL...
 			//lprintf( WIDE("Encode buffer (%d):%s"),  CStrLen( encoded_data ), image->websock_buffer );
@@ -1193,7 +1193,7 @@ static uintptr_t WebSockOpen( PCLIENT pc, uintptr_t psv )
 	return (uintptr_t)client;
 }
 
-static void WebSockClose( PCLIENT pc, uintptr_t psv )
+static void WebSockClose( PCLIENT pc, uintptr_t psv, int code, const char *reason )
 {
 	struct server_proxy_client *client= (struct server_proxy_client *)psv;
 	DeleteLink( &l.clients, client );

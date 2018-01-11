@@ -187,10 +187,10 @@ endif( WIN32 )
 
 # this has to be set before the cmakelists.txt ends... but not before other cmakelists are loaded
 
-if( NOT __ARM__ OR __ANDROID__ )
+if( NOT __ARM__ AND NOT __ANDROID__ )
 # arm target has no console.
 add_subdirectory( shell )
-endif( NOT __ARM__ OR __ANDROID__ )
+endif( NOT __ARM__ AND NOT __ANDROID__ )
 
 MACRO( InstallConfig target )
  if( __ANDROID__ )

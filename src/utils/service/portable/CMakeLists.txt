@@ -1,9 +1,19 @@
 cmake_minimum_required(VERSION 2.8)
 
+if( PLATFORM_CMAKE_DEFINES )
+   STRING( REPLACE "," ";" PLATFORM_CMAKE_DEFINES ${PLATFORM_CMAKE_DEFINES} )
+   foreach( DEF IN LISTS PLATFORM_CMAKE_DEFINES)
+       STRING( REPLACE " " ";" SETDEF ${DEF} )
+       set( ${SETDEF} )
+   endforeach()
+endif( PLATFORM_CMAKE_DEFINES )
+
 include( ${SACK_BASE}/makefiles/cmake/DefaultInstall.cmake )
 include_directories( ${SACK_BASE}/include )
 STRING( REPLACE " " ";" PLATFORM_LIBRARIES ${PLATFORM_LIBRARIES} )
+if( PLATFORM_DEFINES )
 STRING( REPLACE " " ";" PLATFORM_DEFINES ${PLATFORM_DEFINES} )
+endif()
 add_definitions( ${PLATFORM_DEFINES} )
 
 foreach(flag_var
@@ -19,6 +29,31 @@ foreach(flag_var
       string(REGEX REPLACE "-br" "" ${flag_var} "${${flag_var}}")
    endif(${flag_var} MATCHES "-br")
 endforeach(flag_var)
+
+if( NOT CMAKE_CXX_FLAGS_DEBUG MATCHES "-D_DEBUG" )
+	set(  CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -D_DEBUG" )
+endif( NOT CMAKE_CXX_FLAGS_DEBUG MATCHES "-D_DEBUG" )
+
+if( NOT CMAKE_CXX_FLAGS_DEBUG MATCHES "-D_DEBUG_INFO" )
+	set(  CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -D_DEBUG_INFO" )
+endif( NOT CMAKE_CXX_FLAGS_DEBUG MATCHES "-D_DEBUG_INFO" )
+
+# visual studio headers change with _DEBUG defined... so it can't be release with _DEBUG defined
+if( NOT CMAKE_CXX_FLAGS_RELWITHDEBINFO MATCHES "-D_DEBUG_INFO" )
+	set(  CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_DEBUG} -D_DEBUG_INFO" )
+endif( NOT CMAKE_CXX_FLAGS_RELWITHDEBINFO MATCHES "-D_DEBUG_INFO" )
+
+if( NOT CMAKE_C_FLAGS_DEBUG MATCHES "-D_DEBUG" )
+	set(  CMAKE_C_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -D_DEBUG" )
+endif( NOT CMAKE_C_FLAGS_DEBUG MATCHES "-D_DEBUG" )
+if( NOT CMAKE_C_FLAGS_DEBUG MATCHES "-D_DEBUG_INFO" )
+	set(  CMAKE_C_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -D_DEBUG_INFO" )
+endif( NOT CMAKE_C_FLAGS_DEBUG MATCHES "-D_DEBUG_INFO" )
+
+# visual studio headers change with _DEBUG defined... so it can't be release with _DEBUG defined
+if( NOT CMAKE_C_FLAGS_RELWITHDEBINFO MATCHES "-D_DEBUG_INFO" )
+	set(  CMAKE_C_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_DEBUG} -D_DEBUG_INFO" )
+endif( NOT CMAKE_C_FLAGS_RELWITHDEBINFO MATCHES "-D_DEBUG_INFO" )
 
 
 project( service_test.portable )

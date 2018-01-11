@@ -656,42 +656,42 @@ LOGICAL swapChainCreate( struct SwapChain *swapChain,
 		VkSurfaceTransformFlagsKHR preTransform = surfaceCapabilities.currentTransform;
 		if( surfaceCapabilities.supportedTransforms & VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR )
 			preTransform = VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR;
-	{
-	VkSwapchainCreateInfoKHR swapChainCreateInfo;
-	// Mandatory fields
-	swapChainCreateInfo.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
-	swapChainCreateInfo.pNext = NULL;
-	swapChainCreateInfo.surface = swapChain->surface;
-	swapChainCreateInfo.minImageCount = desiredImages;
-	swapChainCreateInfo.imageFormat = swapChain->colorFormat;
-	swapChainCreateInfo.imageColorSpace = swapChain->colorSpace;
-	swapChainCreateInfo.imageExtent.width = swapChainExtent.width;
-	swapChainCreateInfo.imageExtent.height = swapChainExtent.height;
+		{
+			VkSwapchainCreateInfoKHR swapChainCreateInfo;
+			// Mandatory fields
+			swapChainCreateInfo.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
+			swapChainCreateInfo.pNext = NULL;
+			swapChainCreateInfo.surface = swapChain->surface;
+			swapChainCreateInfo.minImageCount = desiredImages;
+			swapChainCreateInfo.imageFormat = swapChain->colorFormat;
+			swapChainCreateInfo.imageColorSpace = swapChain->colorSpace;
+			swapChainCreateInfo.imageExtent.width = swapChainExtent.width;
+			swapChainCreateInfo.imageExtent.height = swapChainExtent.height;
 
-	// This is literally the same as GL_COLOR_ATTACHMENT0
-	swapChainCreateInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
-	swapChainCreateInfo.preTransform = (VkSurfaceTransformFlagBitsKHR)preTransform;
-	swapChainCreateInfo.imageArrayLayers = 1; // Only one attachment
-	swapChainCreateInfo.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE; // No sharing
-	swapChainCreateInfo.queueFamilyIndexCount = 0; // Covered in later tutorials
-	swapChainCreateInfo.pQueueFamilyIndices = NULL; // Covered in later tutorials
-	swapChainCreateInfo.presentMode = presentMode;
-	swapChainCreateInfo.clipped = TRUE; // If we want clipping outside the extents
+			// This is literally the same as GL_COLOR_ATTACHMENT0
+			swapChainCreateInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+			swapChainCreateInfo.preTransform = (VkSurfaceTransformFlagBitsKHR)preTransform;
+			swapChainCreateInfo.imageArrayLayers = 1; // Only one attachment
+			swapChainCreateInfo.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE; // No sharing
+			swapChainCreateInfo.queueFamilyIndexCount = 0; // Covered in later tutorials
+			swapChainCreateInfo.pQueueFamilyIndices = NULL; // Covered in later tutorials
+			swapChainCreateInfo.presentMode = presentMode;
+			swapChainCreateInfo.clipped = TRUE; // If we want clipping outside the extents
 
 										// Alpha on the window surface should be opaque:
 										// If it was not we could create transparent regions of our window which
 										// would require support from the Window compositor. You can totally do
 										// that if you wanted though ;)
-	swapChainCreateInfo.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
+			swapChainCreateInfo.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
 
 
-	if( swapChain->fpCreateSwapchainKHR( swapChain->device,
-		&swapChainCreateInfo,
-		NULL,
-		&swapChain->swapChain ) != VK_SUCCESS )
-		return FALSE;
-	}
-	}
+			if( swapChain->fpCreateSwapchainKHR( swapChain->device,
+				&swapChainCreateInfo,
+				NULL,
+				&swapChain->swapChain ) != VK_SUCCESS )
+				return FALSE;
+			}
+		}
 	}
 	}
 
@@ -727,42 +727,42 @@ LOGICAL swapChainCreate( struct SwapChain *swapChain,
 	// can potentially create.
 	swapChain->buffers = Reallocate( swapChain->buffers, sizeof( struct SwapChainBuffer ) * imageCount );
 	{
-	uint32_t i;
-	for( i = 0; i < imageCount; i++ ) {
-		VkImageViewCreateInfo colorAttachmentView;// = {};
-		colorAttachmentView.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-		colorAttachmentView.pNext = NULL;
-		colorAttachmentView.format = swapChain->colorFormat;
-		colorAttachmentView.components.r = VK_COMPONENT_SWIZZLE_R;
-		colorAttachmentView.components.g = VK_COMPONENT_SWIZZLE_G;
-		colorAttachmentView.components.b = VK_COMPONENT_SWIZZLE_B;
-		colorAttachmentView.components.a = VK_COMPONENT_SWIZZLE_A;
+		uint32_t i;
+		for( i = 0; i < imageCount; i++ ) {
+			VkImageViewCreateInfo colorAttachmentView;// = {};
+			colorAttachmentView.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+			colorAttachmentView.pNext = NULL;
+			colorAttachmentView.format = swapChain->colorFormat;
+			colorAttachmentView.components.r = VK_COMPONENT_SWIZZLE_R;
+			colorAttachmentView.components.g = VK_COMPONENT_SWIZZLE_G;
+			colorAttachmentView.components.b = VK_COMPONENT_SWIZZLE_B;
+			colorAttachmentView.components.a = VK_COMPONENT_SWIZZLE_A;
 
-		colorAttachmentView.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-		colorAttachmentView.subresourceRange.baseMipLevel = 0;
-		colorAttachmentView.subresourceRange.levelCount = 1;
-		colorAttachmentView.subresourceRange.baseArrayLayer = 0;
-		colorAttachmentView.subresourceRange.layerCount = 1;
-		colorAttachmentView.viewType = VK_IMAGE_VIEW_TYPE_2D;
-		colorAttachmentView.flags = 0; // mandatory
+			colorAttachmentView.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+			colorAttachmentView.subresourceRange.baseMipLevel = 0;
+			colorAttachmentView.subresourceRange.levelCount = 1;
+			colorAttachmentView.subresourceRange.baseArrayLayer = 0;
+			colorAttachmentView.subresourceRange.layerCount = 1;
+			colorAttachmentView.viewType = VK_IMAGE_VIEW_TYPE_2D;
+			colorAttachmentView.flags = 0; // mandatory
 
-									   // Wire them up
-		swapChain->buffers[i].image = swapChain->images[i];
-		// Transform images from the initial (undefined) layer to
-		// present layout
-		setImageLayout( commandBuffer,
-			swapChain->buffers[i].image,
-			VK_IMAGE_ASPECT_COLOR_BIT,
-			VK_IMAGE_LAYOUT_UNDEFINED,
-			VK_IMAGE_LAYOUT_PRESENT_SRC_KHR );
-		colorAttachmentView.image = swapChain->buffers[i].image;
-		// Create the view
-		if( vkCreateImageView( swapChain->device,
-			&colorAttachmentView,
-			NULL,
-			&swapChain->buffers[i].view ) != VK_SUCCESS )
-			goto failed;
-	}
+										   // Wire them up
+			swapChain->buffers[i].image = swapChain->images[i];
+			// Transform images from the initial (undefined) layer to
+			// present layout
+			setImageLayout( commandBuffer,
+				swapChain->buffers[i].image,
+				VK_IMAGE_ASPECT_COLOR_BIT,
+				VK_IMAGE_LAYOUT_UNDEFINED,
+				VK_IMAGE_LAYOUT_PRESENT_SRC_KHR );
+			colorAttachmentView.image = swapChain->buffers[i].image;
+			// Create the view
+			if( vkCreateImageView( swapChain->device,
+				&colorAttachmentView,
+				NULL,
+				&swapChain->buffers[i].view ) != VK_SUCCESS )
+				goto failed;
+		}
 	}
 	}
 	return TRUE;
@@ -814,9 +814,11 @@ void swapChainCleanup( struct SwapChain *swapChain ) {
 void EnableVulkan( HINSTANCE hInstance, struct display_camera *camera )
 #elif defined(__ANDROID__)
 void EnableVulkan( ANativeWindow *window, struct display_camera *camera )
-#else
+#elif defined( __LINUX__ ) && defined( USE_X11 )
 void EnableVulkan( xcb_connection_t *connection,
 	xcb_window_t *window, struct display_camera *camera )
+#else
+    #error additional initialization interface code is required for this platform.
 #endif
 {
 	VkPhysicalDevice useDevice;
@@ -828,7 +830,11 @@ void EnableVulkan( xcb_connection_t *connection,
 	swapChainConnect( &chain );
 	#if WIN32
 		swapChainPlatformConnect( &chain, hInstance, camera->hWndInstance );
-	#else
+	#elif defined( __LINUX__ )
 		swapChainPlatformConnect( &chain, vl.surfaceCreateInfo.connection, vl.surfaceCreateInfo.window );
+        #elif defined( __MAC__ )
+		#error unfinished code for mac.
+		//swapChainPlatformConnect( &chain, vl.surfaceCreateInfo.connection, vl.surfaceCreateInfo.window );                 
 	#endif
+
 }

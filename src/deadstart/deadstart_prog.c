@@ -10,7 +10,7 @@ SACK_DEADSTART_NAMESPACE
 #define paste2(a,b) paste(a,b)
 
 #undef PRELOAD
-#ifdef __WATCOMC__ 
+#ifdef __WATCOMC__
 // this is really nice - to have a prioritized initializer list...
 #ifdef __cplusplus
 #define PRELOAD(name) MAGIC_PRIORITY_PRELOAD(name,DEADSTART_PRELOAD_PRIORITY)
@@ -20,7 +20,7 @@ SACK_DEADSTART_NAMESPACE
 	static void name(void)
 #endif
 #elif defined( _MSC_VER )
-#  ifdef __cplusplus_cli 
+#  ifdef __cplusplus_cli
 #    define PRELOAD(name) static void _##name(void); \
     public ref class name {   \
 	public:name() { _##name(); \
@@ -34,7 +34,7 @@ SACK_DEADSTART_NAMESPACE
 	  public:schedule_name() {  \
 	InvokeDeadstart();  \
 	  }  \
-	} do_schedul_name;     
+	} do_schedul_name;
 #  else
 #    if (_MSC_VER==1300)
 #      define PRELOAD(name) static void CPROC name(void); \

@@ -213,9 +213,7 @@ void SaveTranslationData( void )
 void LoadTranslationDataFromMemory( POINTER input, size_t length )
 {
 	PDATALIST data = NULL;
-	char *_input = NewArray( char, length );
-	memcpy( _input, input, length );
-	if( json_parse_message( (char*)_input, length, &data ) ) {
+	if( json_parse_message( (char*)input, length, &data ) ) {
 		struct json_value_container *val;
 		INDEX idx;
 		struct json_value_container *val3;
@@ -251,7 +249,6 @@ void LoadTranslationDataFromMemory( POINTER input, size_t length )
 		}
 		json_dispose_message( &data );
 	}
-	Deallocate( char *, _input );
 	translate_local.updated = FALSE;
 }
 

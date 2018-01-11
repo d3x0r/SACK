@@ -30,11 +30,12 @@ int CPROC KeyGetGatheredLine( PCHAT_LIST list, PUSER_INPUT_BUFFER pci )
 	{
 		list->input.phb_Input->pBlock->pLines[0].flags.nLineLength = (int)LineLengthExEx( list->input.CommandInfo->CollectionBuffer, FALSE, 8, NULL );
 		list->input.phb_Input->pBlock->pLines[0].pLine = list->input.CommandInfo->CollectionBuffer;
+		list->input.phb_Input->flags.bUpdated = 1;
 		BuildDisplayInfoLines( list->input.phb_Input, 0, list->input_font );
 		if( line )
 			list->InputData( list->psvInputData, line );
 	}
-	else
+	else if( line )
 		LineRelease( line );
 
 	return UPDATE_COMMAND; 
@@ -265,17 +266,22 @@ int Widget_DoStroke( PCHAT_LIST list, PTEXT stroke )
 	{
 		PTEXT seg;
 		size_t outchar;
+		int had_cr = 0;
 		seg = stroke;
 		while( seg )
 		{
 			outchar = 0;
 			for( i = 0; i < seg->data.size; i++ )
 			{
-				if( seg->data.data[i] == '\n' )
-					;
-				else if( seg->data.data[i] == '\r' )
+				if( seg->data.data[i] == '\n' ) {
+					if( !had_cr )
+						seg->data.data[outchar++] = '\n'; // carriage return = linefeed
+					else
+						had_cr = FALSE;
+				} else if( seg->data.data[i] == '\r' ) {
+					had_cr = TRUE;
 					seg->data.data[outchar++] = '\n'; // carriage return = linefeed
-				else
+				}  else
 					seg->data.data[outchar++] = seg->data.data[i]; // save any other character
 			}
 			if( outchar != i )
@@ -285,7 +291,7 @@ int Widget_DoStroke( PCHAT_LIST list, PTEXT stroke )
 		GatherUserInput( list->input.CommandInfo
 						, (PTEXT)stroke );
 	}
-   return TRUE;
+	return TRUE;
 }
 
 void ReformatInput( PCHAT_LIST list )

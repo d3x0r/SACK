@@ -91,20 +91,23 @@ enum parse_context_modes {
 
 struct json_parse_context {
 	enum parse_context_modes context;
-	PDATALIST elements;
-	
+	PDATALIST *elements;
+	char *name;	
+	size_t nameLen;	
 	struct json_context_object *object;
 };
 
 #define RESET_VAL()  {  \
 	val.value_type = VALUE_UNSET; \
 	val.contains = NULL;              \
+	val._contains = NULL;             \
 	val.name = NULL;                  \
 	val.string = NULL;                \
 	negative = FALSE; }
 #define RESET_STATE_VAL()  {  \
 	state->val.value_type = VALUE_UNSET; \
 	state->val.contains = NULL;              \
+	state->val._contains = NULL;             \
 	state->val.name = NULL;                  \
 	state->val.string = NULL;                \
 	state->negative = FALSE; }
@@ -133,10 +136,10 @@ DeclareSet( PARSE_BUFFER );
 // this is the stack state that can be saved between parsing for streaming.
 struct json_parse_state {
 	//TEXTRUNE c;
-	PDATALIST elements;
-	PLINKSTACK outBuffers; // 
-	PLINKQUEUE outQueue; // matches input queue
-	PLIST outValBuffers;
+	PDATALIST *elements;
+	PLINKSTACK *outBuffers; // 
+	PLINKQUEUE *outQueue; // matches input queue
+	PLIST *outValBuffers;
 	//TEXTSTR mOut;// = NewArray( char, msglen );
 
 	size_t line;
@@ -148,7 +151,7 @@ struct json_parse_state {
 	LOGICAL negative;
 	LOGICAL literalString;
 
-	PLINKSTACK context_stack;
+	PLINKSTACK *context_stack;
 
 	LOGICAL first_token;
 	PPARSE_CONTEXT context;
@@ -156,7 +159,7 @@ struct json_parse_state {
 	struct json_value_container val;
 	int comment;
 
-	PLINKQUEUE inBuffers;
+	PLINKQUEUE *inBuffers;
 	//char const * input;     // current input buffer start
 	//char const * msg_input; // current input buffer position (incremented while reading)
 
@@ -174,18 +177,53 @@ struct json_parse_state {
 	LOGICAL exponent;
 	LOGICAL exponent_sign;
 	LOGICAL exponent_digit;
+
+	LOGICAL escape;
+	LOGICAL cr_escaped;
+	LOGICAL unicodeWide;
+	LOGICAL stringUnicode;
+	LOGICAL stringHex;
+	TEXTRUNE hex_char;
+	int hex_char_len;
+	LOGICAL stringOct;
 	//char *token_begin;
 };
+typedef struct json_parse_state PARSE_STATE, *PPARSE_STATE;
+#define MAXPARSE_STATESPERSET 32
+DeclareSet( PARSE_STATE );
+
+typedef PLIST *PPLIST;
+#define MAXPLISTSPERSET 256
+DeclareSet( PLIST );
+
+typedef PLINKSTACK *PPLINKSTACK;
+#define MAXPLINKSTACKSPERSET 256
+DeclareSet( PLINKSTACK );
+
+typedef PLINKQUEUE *PPLINKQUEUE;
+#define MAXPLINKQUEUESPERSET 256
+DeclareSet( PLINKQUEUE );
+
+typedef PDATALIST *PPDATALIST;
+#define MAXPDATALISTSPERSET 256
+DeclareSet( PDATALIST );
 
 struct json_parser_shared_data {
 	PPARSE_CONTEXTSET parseContexts;
-	PPARSE_CONTEXTSET parseBuffers;
+	PPARSE_BUFFERSET parseBuffers;
 	struct json_parse_state *last_parse_state;
+	PPARSE_STATESET parseStates;
+	PPLISTSET listSet;
+	PPLINKSTACKSET linkStacks;
+	PPLINKQUEUESET linkQueues;
+	PPDATALISTSET dataLists;
 };
 #ifndef JSON_PARSER_MAIN_SOURCE
 extern
 #endif
 struct json_parser_shared_data jpsd;
+
+void _json_dispose_message( PDATALIST *msg_data );
 
 
 #ifdef __cplusplus

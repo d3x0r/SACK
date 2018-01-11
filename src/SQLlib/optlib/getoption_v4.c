@@ -263,8 +263,7 @@ POPTION_TREE_NODE New4GetOptionIndexExxx( PODBC odbc, POPTION_TREE tree, POPTION
 						POPTION_TREE_NODE new_node = GetFromSet( OPTION_TREE_NODE, &tree->nodes );
 						//MemSet( new_node, 0, sizeof( struct sack_option_tree_family_node ) );
 						new_node->guid = ID;
-						new_node->value_guid = NULL; // no value (yet?)
-						new_node->name_guid = IDName;
+						new_node->flags.bHasValue = 0; // no value (yet?)
 						new_node->name = SaveText( namebuf );
 						new_node->value = NULL;
 						new_node->node = FamilyTreeAddChild( &tree->option_tree, parent?parent->node:NULL, new_node, (uintptr_t)new_node->name );
@@ -290,8 +289,7 @@ POPTION_TREE_NODE New4GetOptionIndexExxx( PODBC odbc, POPTION_TREE tree, POPTION
 				lprintf( WIDE("found the node which has the name specified...") );
 #endif
 				new_node->guid = SaveText( result[0] );
-				new_node->value_guid = NULL;
-				new_node->name_guid = IDName;
+				new_node->flags.bHasValue = 0;
 				new_node->name = SaveText( namebuf );
 				new_node->value = NULL;
 				new_node->node = FamilyTreeAddChild( &tree->option_tree, parent?parent->node:NULL, new_node, (uintptr_t)new_node->name );
@@ -327,8 +325,10 @@ static int nBuffer;
 size_t New4GetOptionStringValue( PODBC odbc, POPTION_TREE_NODE optval, TEXTCHAR **buffer, size_t *len DBG_PASS )
 {
 	TEXTCHAR query[256];
-	CTEXTSTR result = NULL;
+	CTEXTSTR *result = NULL;
 	size_t result_len = 0;
+	size_t query_len;
+	size_t *result_lengths;
 	struct resultBuffer *buf;
 	PVARTEXT pvtResult = NULL;
 	buf = &plqBuffers[nBuffer++];
@@ -369,36 +369,39 @@ size_t New4GetOptionStringValue( PODBC odbc, POPTION_TREE_NODE optval, TEXTCHAR 
 #endif
 
 	PushSQLQueryEx( odbc );
-	tnprintf( query, sizeof( query ), WIDE( "select string from " )OPTION4_VALUES WIDE( " where option_id='%s' order by segment" ), optval->guid );
+	query_len = tnprintf( query, sizeof( query ), WIDE( "select string from " )OPTION4_VALUES WIDE( " where option_id='%s' order by segment" ), optval->guid );
 	// have to push here, the result of the prior is kept outstanding
 	// if this was not pushed, the prior result would evaporate.
 	(*buffer) = NULL;
 	//lprintf( WIDE("do query for value string...") );
 	result_len = (size_t)-1;
+	if( optval->value )
+		Release( (POINTER)optval->value );
 	optval->value = NULL;
-	optval->value_guid = optval->guid;
+	optval->flags.bHasValue = 1;
 
-	for( SQLQuery( odbc, query, &result ); result; FetchSQLResult( odbc, &result ) )
+	for( SQLRecordQueryLen( odbc, query, query_len, NULL, &result, &result_lengths, NULL ); result; FetchSQLRecord( odbc, &result ) )
 	{
 		if( !pvtResult )
 			pvtResult = VarTextCreate();
-		vtprintf( pvtResult, WIDE("%s"), result );
-
-		//lprintf( WIDE(" query succeeded....") );
+		VarTextAddData( pvtResult, result[0], result_lengths[0] );
 	}
 	if( pvtResult )
 	{
-		PTEXT pResult = VarTextGet( pvtResult );
-		result_len = GetTextSize( pResult ) + 1;
+		PTEXT pResult = VarTextPeek( pvtResult );
+		if( pResult ) {
+			result_len = GetTextSize( pResult ) + 1;
 
-		if( result_len > buf->buflen )  expandResultBuffer( buf, result_len * 2 );
-		(*buffer) = buf->buffer;
-		(*len) = result_len-1;
+			if( result_len > buf->buflen )  expandResultBuffer( buf, result_len );
+			( *buffer ) = buf->buffer;
+			( *len ) = result_len - 1;
 
-		StrCpyEx( (*buffer), GetText( pResult ), result_len );
-		(*buffer)[result_len-1] = 0;
+			memcpy( ( *buffer ), GetText( pResult ), result_len );
+			( *buffer )[result_len - 1] = 0;
+
+			optval->value = DupCStrLen( *buffer, result_len - 1 );
+		}
 		//optval->value = StrDup( GetText( pResult ) );
-		LineRelease( pResult );
 		VarTextDestroy( &pvtResult );
 	}
 	PopODBCEx( odbc );
@@ -444,30 +447,37 @@ LOGICAL New4CreateValue( POPTION_TREE tree, POPTION_TREE_NODE value, CTEXTSTR pV
 	CTEXTSTR result=NULL;
 	TEXTSTR newval = EscapeSQLBinaryOpt( tree->odbc_writer, pValue, StrLen( pValue ), TRUE );
 	LOGICAL retval = TRUE;
-
+	size_t tmpOfs;
+	if( value->value )
+		Release( (POINTER)value->value );
+	value->value = NULL;
 	if( pValue == NULL )
 	{
 		tnprintf( insert, sizeof( insert ), WIDE( "delete from " )OPTION4_VALUES WIDE( " where `option_id`='%s'" )
 				  , value->guid
 				  );
-		value->value = NULL;
 	}
 	else
 	{
 		size_t len = StrLen( pValue );
 		size_t offset = 0;
 		int segment = 0;
+		size_t valLen;
 		while( len > 95)
 		{
-			newval = EscapeSQLBinaryOpt( tree->odbc_writer, pValue + offset, 95, TRUE );
-			tnprintf( insert, sizeof( insert ), WIDE( "replace into " )OPTION4_VALUES WIDE( " (`option_id`,`string`,`segment` ) values ('%s',%s,%d)" )
-					  , value->guid
-					  , newval
-					  , segment
-					  );
-			if( SQLCommand( tree->odbc_writer, insert ) )
+			newval = EscapeSQLBinaryExx( tree->odbc_writer, pValue + offset, 95, &valLen, TRUE DBG_SRC );
+			tmpOfs = tnprintf( insert, sizeof( insert ), WIDE( "replace into " )OPTION4_VALUES WIDE( " (`option_id`,`string`,`segment` ) values ('%s'," )
+				, value->guid
+			);
+			memcpy( insert + tmpOfs, newval, valLen );
+			tmpOfs += valLen;
+			tmpOfs += tnprintf( insert + tmpOfs, sizeof( insert ), WIDE( ", %d)" )
+				, segment
+			);
+
+			if( SQLCommandExx( tree->odbc_writer, insert, tmpOfs DBG_SRC ) )
 			{
-				value->value_guid = value->guid;
+				value->flags.bHasValue = 1;
 			}
 			else
 			{
@@ -479,13 +489,16 @@ LOGICAL New4CreateValue( POPTION_TREE tree, POPTION_TREE_NODE value, CTEXTSTR pV
 			len -= 95;
 			segment++;
 		}
-		newval = EscapeSQLBinaryOpt( tree->odbc_writer, pValue + offset, len, TRUE );
-		tnprintf( insert, sizeof( insert ), WIDE( "replace into " )OPTION4_VALUES WIDE( " (`option_id`,`string`,`segment` ) values ('%s',%s,%d)" )
+		newval = EscapeSQLBinaryExx( tree->odbc_writer, pValue + offset, len, &valLen, TRUE DBG_SRC );
+		tmpOfs = tnprintf( insert, sizeof( insert ), WIDE( "replace into " )OPTION4_VALUES WIDE( " (`option_id`,`string`,`segment` ) values ('%s',")
 				  , value->guid
-				  , newval
-				  , segment
 				  );
-		if( SQLCommand( tree->odbc_writer, insert ) )
+		memcpy( insert + tmpOfs, newval, valLen );
+		tmpOfs += valLen;
+		tmpOfs += tnprintf( insert + tmpOfs, sizeof( insert ), WIDE( ", %d)" )
+			, segment
+		);
+		if( SQLCommandExx( tree->odbc_writer, insert, tmpOfs DBG_SRC ) )
 		{
 		}
 		tnprintf( insert, sizeof( insert ), WIDE( "delete from " )OPTION4_VALUES WIDE( " where `option_id`='%s' and segment > %d" )
@@ -499,7 +512,7 @@ LOGICAL New4CreateValue( POPTION_TREE tree, POPTION_TREE_NODE value, CTEXTSTR pV
 	AddLink( &tree->uncommited, value );
 	if( SQLCommand( tree->odbc_writer, insert ) )
 	{
-		value->value_guid = value->guid;
+		value->flags.bHasValue = 1;
 	}
 	else
 	{

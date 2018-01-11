@@ -7,28 +7,25 @@ if( MSVC )
 set( SUPPORTS_PARALLEL_BUILD_TYPE 1 )
 endif( MSVC )
 
-if( __LINUX__ AND __64__ )
-SET(  SHARED_LIBPATH "lib64" )
-SET(  LINK_LIBPATH "lib64" )
-SET(  SHARED_BINPATH "bin" )
-elseif( __LINUX__ )
-SET(  SHARED_LIBPATH "lib" )
-SET(  LINK_LIBPATH "lib" )
-SET(  SHARED_BINPATH "bin" )
+include( GNUInstallDirs )
+if( __LINUX__ )
+SET(  SHARED_LIBPATH ${CMAKE_INSTALL_LIBDIR} )
+SET(  LINK_LIBPATH ${CMAKE_INSTALL_LIBDIR} )
+SET(  SHARED_BINPATH ${CMAKE_INSTALL_BINDIR} )
 else()
-SET(  SHARED_LIBPATH "bin" )
-SET(  LINK_LIBPATH "lib" )
-SET(  SHARED_BINPATH "bin" )
+SET(  SHARED_LIBPATH ${CMAKE_INSTALL_BINDIR} )
+SET(  LINK_LIBPATH ${CMAKE_INSTALL_LIBDIR} )
+SET(  SHARED_BINPATH ${CMAKE_INSTALL_BINDIR} )
 endif()
 
 set( __ARM__ @__ARM__@ )
 if( __ARM__ )
-ADD_DEFINITIONS( -D__ARM__=1 )
+    ADD_DEFINITIONS( -D__ARM__=1 )
 endif( __ARM__ )
 
 set( __NO_ODBC__ @__NO_ODBC__@ )
 if( __NO_ODBC__ )
-ADD_DEFINITIONS( -D__NO_ODBC__=1 )
+    ADD_DEFINITIONS( -D__NO_ODBC__=1 )
 endif( __NO_ODBC__ )
 
 
@@ -44,6 +41,17 @@ endif()
 #       (after MiniCL) BulletWorldImporter
 		FILE( APPEND ${FILEOUT} "set( BULLET_LIBRARIES Bullet3Common BulletSoftBody BulletDynamics BulletCollision LinearMath ) \n" )
 endif()
+
+foreach( DEF @PLATFORM_DEFINES@ )
+	FILE( APPEND ${FILEOUT} "SET( PLATFORM_DEFINES $" "{PLATFORM_DEFINES} ${DEF} )\n" )
+	FILE( APPEND ${FILEOUT} "add_definitions( ${DEF} )\n" )
+endforeach( DEF )
+
+set( PCD "@PLATFORM_CMAKE_DEFINES@" )
+foreach( DEF IN LISTS PCD )
+   FILE( APPEND ${FILEOUT} "SET( ${DEF} )\n" )
+endforeach( DEF )
+
 if( MAKE_RCOORD_SINGLE )
 		FILE( APPEND ${FILEOUT} "SET( PLATFORM_DEFINES $" "{PLATFORM_DEFINES} -DMAKE_RCOORD_SINGLE )\n" )
 		FILE( APPEND ${FILEOUT} "add_definitions( -DMAKE_RCOORD_SINGLE )\n" )
@@ -58,8 +66,8 @@ if( MSVC )
 		FILE( APPEND ${FILEOUT} "add_definitions( -wd4996 )\n" )
                 FILE( APPEND ${FILEOUT} "SET(CMAKE_CXX_FLAGS \"$" "{CMAKE_CXX_FLAGS} /MP8\")\n")
 		FILE( APPEND ${FILEOUT} "SET(CMAKE_C_FLAGS \"$" "{CMAKE_C_FLAGS} /MP8\")\n")
-
 endif( MSVC )
+
 		FILE( APPEND ${FILEOUT} "\n" )
 		FILE( APPEND ${FILEOUT} "enable_language(C)\n" )
 		FILE( APPEND ${FILEOUT} "enable_language(CXX)\n" )
@@ -77,26 +85,26 @@ if( __NO_NETWORK__ )
 		FILE( APPEND ${FILEOUT} "SET( PLATFORM_DEFINES $" "{PLATFORM_DEFINES} -D__NO_NETWORK__ )\n" )
 		FILE( APPEND ${FILEOUT} "ADD_DEFINITIONS( -D__NO_NETWORK__ )\n" )
 endif( __NO_NETWORK__ )
-                
-                
+
+
 if( FORCE_CXX )
 		FILE( APPEND ${FILEOUT} "SET( FORCE_CXX ${FORCE_CXX})\n" )
 endif( FORCE_CXX )
 
 		FILE( APPEND ${FILEOUT} "SET( __ANDROID__ ${__ANDROID__})\n" )
-if( __ANDROID__ )                
+if( __ANDROID__ )
 		FILE( APPEND ${FILEOUT} "SET( PLATFORM_DEFINES $" "{PLATFORM_DEFINES} -D__ANDROID__ )\n" )
 		FILE( APPEND ${FILEOUT} "ADD_DEFINITIONS( -D__ANDROID__ )\n" )
-endif( __ANDROID__ )                                
+endif( __ANDROID__ )
 		FILE( APPEND ${FILEOUT} "SET( __ANDROID_OLD_PLATFORM_SUPPORT__ ${__ANDROID_OLD_PLATFORM_SUPPORT__})\n" )
-if( __ANDROID_OLD_PLATFORM_SUPPORT__ )                
+if( __ANDROID_OLD_PLATFORM_SUPPORT__ )
 		FILE( APPEND ${FILEOUT} "ADD_DEFINITIONS( -D__ANDROID_OLD_PLATFORM_SUPPORT__ )\n" )
-endif( __ANDROID_OLD_PLATFORM_SUPPORT__ )                                
+endif( __ANDROID_OLD_PLATFORM_SUPPORT__ )
 
 		FILE( APPEND ${FILEOUT} "SET( BUILD_UNICODE ${BUILD_UNICODE} )\n" )
 if( BUILD_UNICODE )
 		FILE( APPEND ${FILEOUT} "ADD_DEFINITIONS( -D_UNICODE -DUNICODE )\n" )
-endif( BUILD_UNICODE )                
+endif( BUILD_UNICODE )
 
 if( WATCOM )
 		FILE( APPEND ${FILEOUT} "ADD_DEFINITIONS( \"-D__CMAKE_VERSION__=(${CMAKE_MAJOR_VERSION}*1000000+${CMAKE_MINOR_VERSION}*10000+${CMAKE_PATCH_VERSION}*100+${CMAKE_TWEAK_VERSION})\" )\n" )
@@ -113,14 +121,14 @@ endif( NEED_UUID )
 		FILE( APPEND ${FILEOUT} "SET( NEED_JPEG ${NEED_JPEG})\n" )
 		FILE( APPEND ${FILEOUT} "SET( NEED_FREETYPE ${NEED_FREETYPE})\n" )
                 FILE( APPEND ${FILEOUT} "SET( BUILD_ANDROID_CONSOLE_UTILS ${BUILD_ANDROID_CONSOLE_UTILS})\n" )
-if( __CLR__ )                
+if( __CLR__ )
                 FILE( APPEND ${FILEOUT} "  string( REPLACE \"/EHsc\" \"\" CMAKE_CXX_FLAGS_INIT ${CMAKE_CXX_FLAGS_INIT} )\n" )
                 FILE( APPEND ${FILEOUT} "  string( REPLACE \"/EHsc\" \"\" CMAKE_C_FLAGS_INIT ${CMAKE_C_FLAGS_INIT} )\n" )
                 FILE( APPEND ${FILEOUT} "  string( REPLACE \"/EHs\" \"\" CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS_INIT} )\n" )
                 FILE( APPEND ${FILEOUT} "  string( REPLACE \"/EHs\" \"\" CMAKE_C_FLAGS_INIT ${CMAKE_C_FLAGS_INIT} )\n" )
                 FILE( APPEND ${FILEOUT} "  string( REPLACE \"/EHsON\" \"\" CMAKE_CXX_FLAGS_DEBUG ${CMAKE_CXX_FLAGS_DEBUG} )\n" )
-endif( __CLR__ )                
-                
+endif( __CLR__ )
+
 		FILE( APPEND ${FILEOUT} "SET( __LINUX__ ${__LINUX__})\n" )
 		FILE( APPEND ${FILEOUT} "\n" )
 		FILE( APPEND ${FILEOUT} "set( SACK_BASE ${CMAKE_INSTALL_PREFIX} )\n" )
@@ -246,7 +254,7 @@ endif( BUILD_MONOLITHIC )
 
 
 ##############################################
-############# BUILD INSTALL LISTS 
+############# BUILD INSTALL LISTS
 ##############################################
 
 if( BUILD_MONOLITHIC )
@@ -255,7 +263,7 @@ if( BUILD_MONOLITHIC )
    if( NOT __NO_CPLUSPLUS )
                 set( libfile_list ${libfile_list} @SACK_BAG_PLUSPLUS@  )
    endif( NOT __NO_CPLUSPLUS )
-                
+
 else( BUILD_MONOLITHIC )
 
 # bag.image is memory only; non platform specific utility
@@ -268,7 +276,7 @@ else( BUILD_MONOLITHIC )
    endif( NOT __NO_CPLUSPLUS )
 
 if( NOT __NO_GUI__ )
-# Win32 or __UNIX support PureGL and puregl2... 
+# Win32 or __UNIX support PureGL and puregl2...
 if( NOT __ANDROID__ )
                 SET( libfile_list ${libfile_list} bag.image.puregl )
                 SET( libfile_list ${libfile_list} bag.video.puregl )
@@ -281,7 +289,7 @@ if( INCLUDE_VULKAN )
                 SET( libfile_list ${libfile_list} bag.video.vulkan )
 endif( INCLUDE_VULKAN )
 
-		# proxy is memory-only and platform agnostic                
+		# proxy is memory-only and platform agnostic
                 SET( libfile_list ${libfile_list} bag.video.proxy.server )
                 SET( libfile_list ${libfile_list} bag.video.proxy.instance.server )
 endif( NOT __NO_GUI__ )
@@ -306,24 +314,24 @@ endif( NOT __NO_OPTIONS__ )
 
 
 if( WIN32 )
-		SET( literal_libfile_list ${literal_libfile_list} 
-                        application_delay.module 
-                        loginfo.module 
-                        seed_random.module 
-                        sack_vfs.module 
-                        sack_vfs.pp.module 
+		SET( literal_libfile_list ${literal_libfile_list}
+                        application_delay.module
+                        loginfo.module
+                        seed_random.module
+                        sack_vfs.module
+                        sack_vfs.pp.module
                     )
                     if( INSTALL_EXTRAS )
-		SET( profile_list ${progfile_list} 
+		SET( profile_list ${progfile_list}
                         sack_vfs_command
                         )
                     if( NOT MINGW )
-		SET( progfile_list ${progfile_list} 
+		SET( progfile_list ${progfile_list}
                         sack_vfs_runner
                         sack_vfs_runner_min
                         sack_vfs_runner_sfx
                         )
-		       endif( NOT MINGW )                    
+		       endif( NOT MINGW )
                     endif( INSTALL_EXTRAS )
 		if( NOT BUILD_MONOLITHIC )
                 set( libfile_list ${libfile_list}  glew )
@@ -371,8 +379,8 @@ if( DIRECTX_SDK AND NOT WATCOM AND NOT CMAKE_C_COMPILER_ID STREQUAL "GNU" )
 	endif( NOT BUILD_MONOLITHIC AND NOT __NO_GUI__ )
 endif( DIRECTX_SDK AND NOT WATCOM AND NOT CMAKE_C_COMPILER_ID STREQUAL "GNU" )
 ##############################################
-############# END BUILD INSTALL LISTS 
-############# BUILD INSTALL SOURCE LISTS 
+############# END BUILD INSTALL LISTS
+############# BUILD INSTALL SOURCE LISTS
 ##############################################
 
 		foreach( lib ${ffmpeg_libraries} ${openal_libraries} )
@@ -397,7 +405,7 @@ endif( DIRECTX_SDK AND NOT WATCOM AND NOT CMAKE_C_COMPILER_ID STREQUAL "GNU" )
                 	       " )\n" )
 
 ##############################################
-############# END BUILD INSTALL SOURCE LISTS 
+############# END BUILD INSTALL SOURCE LISTS
 ############# BUILD INSTALL MACRO
 ##############################################
 
@@ -408,30 +416,30 @@ endif( DIRECTX_SDK AND NOT WATCOM AND NOT CMAKE_C_COMPILER_ID STREQUAL "GNU" )
 		FILE( APPEND ${FILEOUT} "set( BINARY_OUTPUT_DIR $" "{dest} )\n" )
 		FILE( APPEND ${FILEOUT} "if(  \"$" "{ARGV1}\" STREQUAL \"\"  )\n" )
 		FILE( APPEND ${FILEOUT} "  set( LIBRARY_OUTPUT_DIR $" "{dest} )\n" )
-		FILE( APPEND ${FILEOUT} "else( \"$" "{ARGV1}\" STREQUAL \"\" )\n" )                
+		FILE( APPEND ${FILEOUT} "else( \"$" "{ARGV1}\" STREQUAL \"\" )\n" )
 		FILE( APPEND ${FILEOUT} "  set( LIBRARY_OUTPUT_DIR $" "{ARGV1} )\n" )
 		FILE( APPEND ${FILEOUT} "endif( \"$" "{ARGV1}\" STREQUAL \"\" )\n" )
 		FILE( APPEND ${FILEOUT} "if(  \"$" "{ARGV2}\" STREQUAL \"\"  )\n" )
 		FILE( APPEND ${FILEOUT} "  set( IMAGE_OUTPUT_DIR $" "{dest}/images )\n" )
-		FILE( APPEND ${FILEOUT} "else( \"$" "{ARGV2}\" STREQUAL \"\" )\n" )                
+		FILE( APPEND ${FILEOUT} "else( \"$" "{ARGV2}\" STREQUAL \"\" )\n" )
 		FILE( APPEND ${FILEOUT} "  set( IMAGE_OUTPUT_DIR $" "{ARGV2} )\n" )
 		FILE( APPEND ${FILEOUT} "endif( \"$" "{ARGV2}\" STREQUAL \"\" )\n" )
 
 
 		FILE( APPEND ${FILEOUT} "install( PROGRAMS $" "{ffmpeg_libraries} $" "{openal_libraries} DESTINATION $" "{LIBRARY_OUTPUT_DIR} )\n" )
-                
-                foreach( lib ${CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS} )              
+
+                foreach( lib ${CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS} )
 			FILE( APPEND ${FILEOUT} "install( PROGRAMS \"${lib}\" DESTINATION $" "{LIBRARY_OUTPUT_DIR} )\n" )
-                endforeach( lib  )              
+                endforeach( lib  )
 
 		FILE( APPEND ${FILEOUT} "install( PROGRAMS $" "{sack_libfile_list} DESTINATION $" "{LIBRARY_OUTPUT_DIR} )\n" )
-if( NOT __ANDROID__ )                
+if( NOT __ANDROID__ )
 		FILE( APPEND ${FILEOUT} "install( PROGRAMS $" "{sack_literal_libfile_list} DESTINATION $" "{LIBRARY_OUTPUT_DIR} )\n" )
 		FILE( APPEND ${FILEOUT} "install( PROGRAMS $" "{sack_progfile_list} DESTINATION $" "{LIBRARY_OUTPUT_DIR} )\n" )
-else( NOT __ANDROID__ )                
-                foreach( lib ${literal_libfile_list} )              
+else( NOT __ANDROID__ )
+                foreach( lib ${literal_libfile_list} )
 			FILE( APPEND ${FILEOUT} "install( PROGRAMS $" "{SACK_BASE}/${SHARED_LIBPATH}/${lib} DESTINATION $" "{LIBRARY_OUTPUT_DIR} )\n" )
-                endforeach( lib  )              
+                endforeach( lib  )
                 foreach( lib ${progfile_list}  )
 			FILE( APPEND ${FILEOUT} "install( PROGRAMS $" "{SACK_BASE}/${SHARED_LIBPATH}/@CMAKE_SHARED_LIBRARY_PREFIX@${lib}@CMAKE_SHARED_LIBRARY_SUFFIX@ DESTINATION $" "{LIBRARY_OUTPUT_DIR} )\n" )
 			FILE( APPEND ${FILEOUT} "install( PROGRAMS $" "{SACK_BASE}/${SHARED_LIBPATH}/@CMAKE_SHARED_LIBRARY_PREFIX@${lib}.code@CMAKE_SHARED_LIBRARY_SUFFIX@ DESTINATION $" "{LIBRARY_OUTPUT_DIR} )\n" )
@@ -443,13 +451,13 @@ if( NOT __NO_GUI__ )
 			FILE( APPEND ${FILEOUT} "install( DIRECTORY $" "{SACK_BASE}/${INSTALL_FRAME_BORDER}/ DESTINATION $" "{IMAGE_OUTPUT_DIR} )\n" )
 	endif( INSTALL_FRAME_BORDER )
 endif( NOT __NO_GUI__ )
-		
+
 if( __QNX__ )
 		FILE( APPEND ${FILEOUT} "install( PROGRAMS $" "{SACK_BASE}/${SHARED_LIBPATH}/@CMAKE_SHARED_LIBRARY_PREFIX@freeglut-gles2@CMAKE_SHARED_LIBRARY_SUFFIX@ DESTINATION $" "{dest} )\n" )
 endif( __QNX__ )
 
 		FILE( APPEND ${FILEOUT} "install( DIRECTORY $" "{SACK_BASE}/${BINARY_OUTPUT_DIR}/ DESTINATION $" "{dest} FILES_MATCHING PATTERN *.interface.conf PATTERN interface.conf )\n" )
-	if( NOT BUILD_MONOLITHIC )		
+	if( NOT BUILD_MONOLITHIC )
 #		FILE( APPEND ${FILEOUT} "install( DIRECTORY $" "{SACK_BASE}/${BINARY_OUTPUT_DIR}/webclient  DESTINATION $" "{dest}  )\n" )
 	endif( NOT BUILD_MONOLITHIC )
 
@@ -462,7 +470,7 @@ endif( __QNX__ )
 
 		FILE( APPEND ${FILEOUT} "set(CMAKE_BUILD_TYPE \"@CMAKE_BUILD_TYPE@\" CACHE STRING \"Set build type\")\n" )
 		FILE( APPEND ${FILEOUT} "set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS $" "{CMAKE_CONFIGURATION_TYPES} Debug Release RelWithDebInfo MinSizeRel )\n" )
-                
+
 		#//FILE( APPEND ${FILEOUT} "ENDIF(CMAKE_BUILD_TPYE_INITIALIZED_TO_DEFAULT)\n" )
 
 		FILE( APPEND ${FILEOUT} "\n" )
@@ -472,3 +480,29 @@ endif( __QNX__ )
 		FILE( APPEND ${FILEOUT} "endif( UNIX )\n" )
 		FILE( APPEND ${FILEOUT} "\n" )
 
+
+
+		FILE( APPEND ${FILEOUT} "if( NOT CMAKE_CXX_FLAGS_DEBUG MATCHES \"-D_DEBUG\" )\n" )
+		FILE( APPEND ${FILEOUT} "	set(  CMAKE_CXX_FLAGS_DEBUG \"$" "{CMAKE_CXX_FLAGS_DEBUG} -D_DEBUG\" )\n" )
+		FILE( APPEND ${FILEOUT} "endif( NOT CMAKE_CXX_FLAGS_DEBUG MATCHES \"-D_DEBUG\" )\n" )
+		FILE( APPEND ${FILEOUT} "\n" )
+		FILE( APPEND ${FILEOUT} "if( NOT CMAKE_CXX_FLAGS_DEBUG MATCHES \"-D_DEBUG_INFO\" )\n" )
+		FILE( APPEND ${FILEOUT} "	set(  CMAKE_CXX_FLAGS_DEBUG \"$" "{CMAKE_CXX_FLAGS_DEBUG} -D_DEBUG_INFO\" )\n" )
+		FILE( APPEND ${FILEOUT} "endif( NOT CMAKE_CXX_FLAGS_DEBUG MATCHES \"-D_DEBUG_INFO\" )\n" )
+		FILE( APPEND ${FILEOUT} "\n" )
+		FILE( APPEND ${FILEOUT} "# visual studio headers change with _DEBUG defined... so it can't be release with _DEBUG defined\n" )
+		FILE( APPEND ${FILEOUT} "if( NOT CMAKE_CXX_FLAGS_RELWITHDEBINFO MATCHES \"-D_DEBUG_INFO\" )\n" )
+		FILE( APPEND ${FILEOUT} "	set(  CMAKE_CXX_FLAGS_RELWITHDEBINFO \"$" "{CMAKE_CXX_FLAGS_DEBUG} -D_DEBUG_INFO\" )\n" )
+		FILE( APPEND ${FILEOUT} "endif( NOT CMAKE_CXX_FLAGS_RELWITHDEBINFO MATCHES \"-D_DEBUG_INFO\" )\n" )
+		FILE( APPEND ${FILEOUT} "\n" )
+		FILE( APPEND ${FILEOUT} "if( NOT CMAKE_C_FLAGS_DEBUG MATCHES \"-D_DEBUG\" )\n" )
+		FILE( APPEND ${FILEOUT} "	set(  CMAKE_C_FLAGS_DEBUG \"$" "{CMAKE_CXX_FLAGS_DEBUG} -D_DEBUG\" )\n" )
+		FILE( APPEND ${FILEOUT} "endif( NOT CMAKE_C_FLAGS_DEBUG MATCHES \"-D_DEBUG\" )\n" )
+		FILE( APPEND ${FILEOUT} "if( NOT CMAKE_C_FLAGS_DEBUG MATCHES \"-D_DEBUG_INFO\" )\n" )
+		FILE( APPEND ${FILEOUT} "	set(  CMAKE_C_FLAGS_DEBUG \"$" "{CMAKE_CXX_FLAGS_DEBUG} -D_DEBUG_INFO\" )\n" )
+		FILE( APPEND ${FILEOUT} "endif( NOT CMAKE_C_FLAGS_DEBUG MATCHES \"-D_DEBUG_INFO\" )\n" )
+		FILE( APPEND ${FILEOUT} "\n" )
+		FILE( APPEND ${FILEOUT} "# visual studio headers change with _DEBUG defined... so it can't be release with _DEBUG defined\n" )
+		FILE( APPEND ${FILEOUT} "if( NOT CMAKE_C_FLAGS_RELWITHDEBINFO MATCHES \"-D_DEBUG_INFO\" )\n" )
+		FILE( APPEND ${FILEOUT} "	set(  CMAKE_C_FLAGS_RELWITHDEBINFO \"$" "{CMAKE_CXX_FLAGS_DEBUG} -D_DEBUG_INFO\" )\n" )
+		FILE( APPEND ${FILEOUT} "endif( NOT CMAKE_C_FLAGS_RELWITHDEBINFO MATCHES \"-D_DEBUG_INFO\" )\n" )

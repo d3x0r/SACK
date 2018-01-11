@@ -25,16 +25,6 @@ static void _SendWebSocketMessage( PCLIENT pc, int opcode, int final, int do_mas
 	{
 		if( length > 32767 )
 		{
-			if( 1 ) // auto fragment large packets
-			{
-				size_t block;
-				for( block = 0; block < ( length / 8100 ); block++ )
-				{
-					SendWebSocketMessage( pc, block == 0 ?opcode:0, 0, do_mask, payload + block * 8100, 8100, use_ssl);
-				}
-				SendWebSocketMessage( pc, 0, final, do_mask, payload + block * 8100, length - block * 8100, use_ssl );
-				return;
-			}
 			length_out += 8; // need 8 more bytes for a really long length
 		}
 		else
@@ -172,9 +162,11 @@ void SendWebSocketMessage( PCLIENT pc, int opcode, int final, int do_mask, const
 
 static void ResetInputState( WebSocketInputState websock )
 {
+	//lprintf( "Reset input state?" );
 	websock->input_msg_state = 0;
 	websock->final = 0;
 	websock->mask = 0;
+	websock->fragment_collection_avail = 0; 
 	websock->fragment_collection_index = 0; // mask index counter
 	websock->input_type = 0; // assume text input; binary will set flag opposite
 
@@ -215,6 +207,7 @@ static int CPROC inflateBackOutput( void* state, unsigned char *output, unsigned
 void ProcessWebSockProtocol( WebSocketInputState websock, PCLIENT pc, const uint8_t* msg, size_t length )
 {
 	size_t n;
+	//lprintf( "Process packet: %d", length );
 	for( n = 0; n < length; n++ )
 	{
 		switch( websock->input_msg_state )
@@ -311,22 +304,26 @@ void ProcessWebSockProtocol( WebSocketInputState websock, PCLIENT pc, const uint
 		case 16: // extended data or application data byte 1.
 			// might have already collected fragments (non final packets, so increase the full buffer )
 			// first byte of data, check we have enough room for the remaining bytes; the frame_length is valid now.
+			//lprintf( "Received... and need %d  %d  %d", websock->fragment_collection_avail, websock->fragment_collection_length, websock->frame_length, websock->fragment_collection_length + websock->frame_length );
 			if( websock->fragment_collection_avail < ( websock->fragment_collection_length + websock->frame_length ) )
 			{
 				uint8_t* new_fragbuf;
 				websock->fragment_collection_avail += websock->frame_length;
-				new_fragbuf = (uint8_t*)Allocate( websock->fragment_collection_avail );
-				if( websock->fragment_collection_length )
-					MemCpy( new_fragbuf, websock->fragment_collection, websock->fragment_collection_length );
-				Deallocate( uint8_t*, websock->fragment_collection );
-				websock->fragment_collection = new_fragbuf;
+				if( websock->fragment_collection_avail > websock->fragment_collection_buffer_size ) {
+					new_fragbuf = (uint8_t*)Allocate( websock->fragment_collection_avail * 2 );
+					if( websock->fragment_collection_length )
+						MemCpy( new_fragbuf, websock->fragment_collection, websock->fragment_collection_length );
+					Deallocate( uint8_t*, websock->fragment_collection );
+					websock->fragment_collection = new_fragbuf;
+					websock->fragment_collection_buffer_size = websock->fragment_collection_avail * 2;
+				}
 				websock->fragment_collection_index = 0; // start with mask byte 0 on this new packet
 			}
 			websock->input_msg_state++;
 			// fall through, no break statement; add the byte to the buffer
 		case 17:
 			// if there was no data, then there's nothing to demask
-			if( websock->fragment_collection && (websock->fragment_collection_length < websock->frame_length) )
+			if( websock->fragment_collection && (websock->fragment_collection_length < websock->fragment_collection_avail) )
 			{
 				websock->fragment_collection[websock->fragment_collection_length++]
 					= msg[n] ^ websock->mask_key[(websock->fragment_collection_index++) % 4];
@@ -334,10 +331,9 @@ void ProcessWebSockProtocol( WebSocketInputState websock, PCLIENT pc, const uint
 
 			// if final packet, and we have all the bytes for this packet
 			// dispatch the opcode.
-			if( websock->final && ( websock->fragment_collection_length == websock->frame_length ) )
+			if( websock->final && ( websock->fragment_collection_length == websock->fragment_collection_avail) )
 			{
-				//lprintf( WIDE("Final: %d  opcode %d  mask %d length %Ld ")
-				//		 , websock->final, websock->opcode, websock->mask, websock->frame_length );
+				//lprintf( "Final: %d  opcode %d  length %d ", websock->final, websock->opcode, websock->fragment_collection_length );
 				websock->last_reception = timeGetTime();
 
 				switch( websock->opcode )
@@ -379,8 +375,10 @@ void ProcessWebSockProtocol( WebSocketInputState websock, PCLIENT pc, const uint
 								, websock->inflateBuf, websock->inflateBufUsed );
 							inflateReset( &websock->inflater );
 						}
-						else
+						else {
+							//lprintf( "Completed packet; %d %d", websock->input_type, websock->fragment_collection_length );
 							websock->on_event( pc, websock->psv_open, websock->input_type, websock->fragment_collection, websock->fragment_collection_length );
+						}
 					}
 					websock->fragment_collection_length = 0;
 					break;
@@ -459,6 +457,11 @@ void ProcessWebSockProtocol( WebSocketInputState websock, PCLIENT pc, const uint
 				}
 				// after processing any opcode (this is IN final, and length match) we're done, start next message
 				ResetInputState( websock );
+			} else if( websock->fragment_collection_length == websock->fragment_collection_avail ) {
+				//lprintf( "Completed packet; still not final fragment though.... %d", websock->fragment_collection_avail );
+				websock->input_msg_state = 0;
+				if( websock->on_fragment_done )
+					websock->on_fragment_done( pc, websock->psv_open, websock->input_type, (int)websock->fragment_collection_length );
 			}
 			break;
 		}
@@ -489,8 +492,8 @@ void WebSocketSendText( PCLIENT pc, const char *buffer, size_t length ) // UTF8 
 		size_t maxLen = length - 8100;
 		for( sentLen = 0; sentLen < maxLen; sentLen += 8100 )
 			WebSocketBeginSendText( pc, buffer + sentLen, 8100 );
-		length = length - ( sentLen - 8100 );
-		buffer = buffer + ( sentLen - 8100 );
+		length = length - ( sentLen );
+		buffer = buffer + ( sentLen );
 	}                                          
 	SendWebSocketMessage( pc, input->flags.sent_type?0:1, 1, input->flags.expect_masking, (uint8_t*)buffer, length, input->flags.use_ssl );
 	input->flags.sent_type = 0;
@@ -505,8 +508,8 @@ void WebSocketBeginSendText( PCLIENT pc, const char *buffer, size_t length ) // 
 		size_t maxLen = length - 8100;
 		for( sentLen = 0; sentLen < maxLen; sentLen += 8100 )
 			WebSocketBeginSendText( pc, buffer + sentLen, 8100 );
-		length = length - ( sentLen - 8100 );
-		buffer = buffer + ( sentLen - 8100 );
+		length = length - ( sentLen );
+		buffer = buffer + ( sentLen );
 	}                                          
 	SendWebSocketMessage( pc, output->flags.sent_type?0:1, 0, output->flags.expect_masking, (const uint8_t*)buffer, length, output->flags.use_ssl );
 	output->flags.sent_type = 1;
@@ -522,8 +525,8 @@ void WebSocketSendBinary( PCLIENT pc, const uint8_t *buffer, size_t length )
 		size_t maxLen = length - 8100;
 		for( sentLen = 0; sentLen < maxLen; sentLen += 8100 )
 			WebSocketBeginSendBinary( pc, buffer + sentLen, 8100 );
-		length = length - ( sentLen - 8100 );
-		buffer = buffer + ( sentLen - 8100 );
+		length = length - ( sentLen );
+		buffer = buffer + ( sentLen );
 	}                                          
 	SendWebSocketMessage( pc, output->flags.sent_type?0:2, 1, output->flags.expect_masking, (const uint8_t*)buffer, length, output->flags.use_ssl );
 	output->flags.sent_type = 0;
@@ -538,8 +541,8 @@ void WebSocketBeginSendBinary( PCLIENT pc, const uint8_t *buffer, size_t length 
 		size_t maxLen = length - 8100;
 		for( sentLen = 0; sentLen < maxLen; sentLen += 8100 )
 			WebSocketBeginSendBinary( pc, buffer + sentLen, 8100 );
-		length = length - ( sentLen - 8100 );
-		buffer = buffer + ( sentLen - 8100 );
+		length = length - ( sentLen );
+		buffer = buffer + ( sentLen );
 	}                                          
 	SendWebSocketMessage( pc, output->flags.sent_type?0:2, 0, output->flags.expect_masking, (const uint8_t*)buffer, length, output->flags.use_ssl );
 	output->flags.sent_type = 1;
@@ -600,3 +603,9 @@ void SetWebSocketMasking( PCLIENT pc, int enable ) {
 	}
 }
 
+void SetWebSocketDataCompletion( PCLIENT pc, web_socket_completion callback ) {
+	if( pc ) {
+		struct web_socket_input_state *input_state = (struct web_socket_input_state*)GetNetworkLong( pc, 1 );
+		input_state->on_fragment_done = callback;
+	}
+}

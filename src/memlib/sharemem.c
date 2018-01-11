@@ -105,7 +105,7 @@ static uintptr_t masks[33] = { makeULong(0), makeULong(0), makeULong(1), 0, make
 #define SYSTEM_CAPACITY  g.dwSystemCapacity
 
 
-#define MALLOC_CHUNK_SIZE(pData) ( ( (pData)?( (uint16_t*)(pData))[-1]:0 ) + offsetof( MALLOC_CHUNK, byData ) )
+#define MALLOC_CHUNK_SIZE(pData) ( (pData)?( ( ( (uint16_t*)(pData))[-1] ) + offsetof( MALLOC_CHUNK, byData ) ):0 )
 //#define CHUNK_SIZE(pData) ( ( (pData)?( (uint16_t*)(pData))[-1]:0 ) +offsetof( CHUNK, byData ) ) )
 #define CHUNK_SIZE ( offsetof( CHUNK, byData ) )
 #define MEM_SIZE  ( offsetof( MEM, pRoot ) )
@@ -316,6 +316,7 @@ PRIORITY_PRELOAD( InitGlobal, DEFAULT_PRELOAD_PRIORITY )
 }
 
 #if __GNUC__
+#pragma message( "GNUC COMPILER")
 #  ifndef __ATOMIC_RELAXED
 #    define __ATOMIC_RELAXED 0
 #  endif
@@ -323,12 +324,13 @@ PRIORITY_PRELOAD( InitGlobal, DEFAULT_PRELOAD_PRIORITY )
 #  ifndef __GNUC_VERSION
 #    define __GNUC_VERSION ( __GNUC__ * 10000 ) + ( __GNUC_MINOR__ * 100 )
 #  endif
-#  if  ( __GNUC_VERSION >= 40800 )
+#  if  ( __GNUC_VERSION >= 40800 ) || defined(__MAC__)
 #    define XCHG(p,val)  __atomic_exchange_n(p,val,__ATOMIC_RELAXED)
 ///  for some reason __GNUC_VERSION doesn't exist from android ?
 #  elif defined __ARM__ || defined __ANDROID__
 //#    define XCHG(p,val)  __atomic_exchange_n(p,val,__ATOMIC_RELAXED)
 #  else
+#pragma message( "NOT GNUC COMPILER")
 inline uint32_t DoXchg( volatile uint32_t* p, uint32_t val ) { __asm__( WIDE( "lock xchg (%2),%0" ) :WIDE( "=a" )(val) : WIDE( "0" )(val), WIDE( "c" )(p) ); return val; }
 inline uint64_t DoXchg64( volatile int64_t* p, uint64_t val ) { __asm__( WIDE( "lock xchg (%2),%0" ) :WIDE( "=a" )(val) : WIDE( "0" )(val), WIDE( "c" )(p) ); return val; }
 #    define XCHG( p,val) ( ( sizeof( val ) > sizeof( uint32_t ) )?DoXchg64( (volatile int64_t*)p, (uint64_t)val ):DoXchg( (volatile uint32_t*)p, (uint32_t)val ) )
@@ -410,7 +412,7 @@ uint64_t  LockedExchange64( volatile uint64_t* p, uint64_t val )
 #else
 	{
 		// swp is the instruction....
-	  // going to have to set IRQ, PIRQ on arm...
+		// going to have to set IRQ, PIRQ on arm...
 		uint64_t prior = *p;
 		*p = val;
 		return prior;
@@ -419,7 +421,7 @@ uint64_t  LockedExchange64( volatile uint64_t* p, uint64_t val )
 #  else
 	{
 		// swp is the instruction....
-	  // going to have to set IRQ, PIRQ on arm...
+		// going to have to set IRQ, PIRQ on arm...
 		uint64_t prior = *p;
 		*p = val;
 		return prior;
@@ -459,9 +461,9 @@ static void DumpSection( PCRITICALSECTION pcs )
 #endif
 
 #ifndef USE_NATIVE_CRITICAL_SECTION
-#  ifdef _MSC_VER
-#    pragma optimize( "st", off )
-#  endif
+//#  ifdef _MSC_VER
+//#    pragma optimize( "st", off )
+//#  endif
 		int32_t  EnterCriticalSecNoWaitEx( PCRITICALSECTION pcs, THREAD_ID *prior DBG_PASS )
 		{
 			THREAD_ID dwCurProc;
@@ -488,7 +490,7 @@ static void DumpSection( PCRITICALSECTION pcs )
 			dwCurProc = GetMyThreadID();
 #endif
 
-			if( !(pcs->dwLocks & ~(SECTION_LOGGED_WAIT)) )
+			if( !AND_NOT_SECTION_LOGGED_WAIT(pcs->dwLocks) )
 			{
 				// section is unowned...
 				if( pcs->dwThreadWaiting )
@@ -502,8 +504,6 @@ static void DumpSection( PCRITICALSECTION pcs )
 								ll__lprintf( DBG_RELAY )(WIDE( "waiter is not myself... this is more recent than him... claim now. %" ) _64fx WIDE( " %" ) _64fx WIDE( " %" ) _64fx, pcs->dwThreadWaiting, prior ? (*prior) : -1LL, pcs->dwThreadID);
 #endif
 								// this would stack me on top anyway so just allow the waitier to keep waiting....
-								pcs->dwLocks = 1;
-								pcs->dwThreadID = dwCurProc;
 #ifdef DEBUG_CRITICAL_SECTIONS
 #  ifdef _DEBUG
 								pcs->pFile[pcs->nPrior] = pFile;
@@ -517,24 +517,20 @@ static void DumpSection( PCRITICALSECTION pcs )
 								pcs->dwThreadPrior[pcs->nPrior] = dwCurProc;
 								pcs->nPrior = (pcs->nPrior + 1) % MAX_SECTION_LOG_QUEUE;
 #endif
-								pcs->dwUpdating = 0;
-								return 1;
 							}
 							else {
 #ifdef LOG_DEBUG_CRITICAL_SECTIONS
 								ll__lprintf( DBG_RELAY )(WIDE( "waiter is not myself... AND am in stack of waiter. %" ) _64fx WIDE( " %" ) _64fx WIDE( " %" ) _64fx, pcs->dwThreadWaiting, prior ? (*prior) : -1LL, pcs->dwThreadID);
 #endif
 								// prior is set, so someone has set their prior to me....
+								pcs->dwUpdating = 0;
+								return 0;
 							}
-							pcs->dwUpdating = 0;
-							return 0;
 						}
 						else {
 #ifdef LOG_DEBUG_CRITICAL_SECTIONS
 							ll__lprintf( DBG_RELAY )(WIDE( "Waiter which is quick-wait does not sleep; claiming section... %" ) _64fx WIDE( " %" ) _64fx WIDE( " %" ) _64fx, pcs->dwThreadWaiting, prior ? (*prior) : -1LL, pcs->dwThreadID);
 #endif
-							pcs->dwLocks = 1;
-							pcs->dwThreadID = dwCurProc;
 #ifdef DEBUG_CRITICAL_SECTIONS
 #  ifdef _DEBUG
 							pcs->pFile[pcs->nPrior] = pFile;
@@ -548,9 +544,6 @@ static void DumpSection( PCRITICALSECTION pcs )
 							pcs->dwThreadPrior[pcs->nPrior] = dwCurProc;
 							pcs->nPrior = (pcs->nPrior + 1) % MAX_SECTION_LOG_QUEUE;
 #endif
-							pcs->dwUpdating = 0;
-							return 1;
-
 						}
 					}
 					else { //  waiting is me
@@ -567,8 +560,6 @@ static void DumpSection( PCRITICALSECTION pcs )
 						}
 						else
 							pcs->dwThreadWaiting = 0;
-						pcs->dwThreadID = dwCurProc; // claim the section and return success
-						pcs->dwLocks = 1;
 #ifdef DEBUG_CRITICAL_SECTIONS
 #  ifdef _DEBUG
 						pcs->pFile[pcs->nPrior] = pFile;
@@ -582,8 +573,6 @@ static void DumpSection( PCRITICALSECTION pcs )
 						pcs->dwThreadPrior[pcs->nPrior] = dwCurProc;
 						pcs->nPrior = (pcs->nPrior + 1) % MAX_SECTION_LOG_QUEUE;
 #endif
-						pcs->dwUpdating = 0;
-						return 1;
 					}
 				}
 				else {
@@ -594,8 +583,6 @@ static void DumpSection( PCRITICALSECTION pcs )
 #ifdef LOG_DEBUG_CRITICAL_SECTIONS
 					ll_lprintf( WIDE( "Claimed critical section." ) );
 #endif
-					pcs->dwThreadID = dwCurProc; // claim the section and return success
-					pcs->dwLocks = 1;
 #ifdef DEBUG_CRITICAL_SECTIONS
 #  ifdef _DEBUG
 					pcs->pFile[pcs->nPrior] = pFile;
@@ -609,9 +596,11 @@ static void DumpSection( PCRITICALSECTION pcs )
 					pcs->dwThreadPrior[pcs->nPrior] = dwCurProc;
 					pcs->nPrior = (pcs->nPrior + 1) % MAX_SECTION_LOG_QUEUE;
 #endif
-					pcs->dwUpdating = 0;
-					return 1;
 				}
+				pcs->dwThreadID = dwCurProc; // claim the section and return success
+				pcs->dwLocks = 1;
+				pcs->dwUpdating = 0;
+				return 1;
 			}
 			else if( dwCurProc == pcs->dwThreadID )
 			{
@@ -646,10 +635,10 @@ static void DumpSection( PCRITICALSECTION pcs )
 				pcs->dwUpdating = 0;
 				return 1;
 			}
-			//if( !(pcs->dwLocks & SECTION_LOGGED_WAIT) )
+			//if( !(AND_SECTION_LOGGED_WAIT(pcs->dwLocks)) )
 			{
-				pcs->dwLocks |= SECTION_LOGGED_WAIT;
 #ifdef LOG_DEBUG_CRITICAL_SECTIONS
+				pcs->dwLocks |= SECTION_LOGGED_WAIT;
 				if( g.bLogCritical )
 					ll_lprintf( WIDE( "Waiting on critical section owned by %s(%d) %08lx %." ) _64fx, (pcs->pFile) ? (pcs->pFile) : WIDE( "Unknown" ), pcs->nLine, pcs->dwLocks, pcs->dwThreadID );
 #endif
@@ -662,9 +651,9 @@ static void DumpSection( PCRITICALSECTION pcs )
 					if( pcs->dwThreadWaiting != dwCurProc )
 					{
 						if( !pcs->dwThreadWaiting ) {
+							ll_lprintf( WIDE( "@@@ Someone stole the critical section that we were wiating on before we reentered. fail. %" )_64fx WIDE( " %" ) _64fx WIDE( " %" ) _64fx, pcs->dwThreadWaiting, dwCurProc, *prior );
 							DebugBreak();
 							// go back to sleep again.
-							ll_lprintf( WIDE( "@@@ Someone stole the critical section that we were wiating on before we reentered. fail. %" )_64fx WIDE( " %" ) _64fx WIDE( " %" ) _64fx, pcs->dwThreadWaiting, dwCurProc, *prior );
 							pcs->dwThreadWaiting = dwCurProc;
 						}
 						else {
@@ -720,9 +709,9 @@ static void DumpSection( PCRITICALSECTION pcs )
 		//-------------------------------------------------------------------------
 
 #ifndef USE_NATIVE_CRITICAL_SECTION
-#  ifdef _MSC_VER
-#    pragma optimize( "st", off )
-#  endif
+//#  ifdef _MSC_VER
+//#    pragma optimize( "st", off )
+//#  endif
 		static LOGICAL LeaveCriticalSecNoWakeEx( PCRITICALSECTION pcs DBG_PASS )
 #define LeaveCriticalSecNoWake(pcs) LeaveCriticalSecNoWakeEx( pcs DBG_SRC )
 		{
@@ -740,7 +729,7 @@ static void DumpSection( PCRITICALSECTION pcs )
 				ll__lprintf( DBG_RELAY )(WIDE( "Locked %p for leaving..." ), pcs);
 #    endif
 #  endif
-			if( !(pcs->dwLocks & ~SECTION_LOGGED_WAIT) )
+			if( !AND_NOT_SECTION_LOGGED_WAIT(pcs->dwLocks) )
 			{
 				if( g.bLogCritical > 0 && g.bLogCritical < 2 )
 					ll_lprintf( DBG_FILELINEFMT WIDE( "Leaving a blank critical section" ) DBG_RELAY );
@@ -756,9 +745,9 @@ static void DumpSection( PCRITICALSECTION pcs )
 			if( pcs->dwThreadID == dwCurProc )
 			{
 				pcs->dwLocks--;
-				if( pcs->dwLocks & SECTION_LOGGED_WAIT )
+				if( AND_SECTION_LOGGED_WAIT(pcs->dwLocks) )
 				{
-					if( !(pcs->dwLocks & ~(SECTION_LOGGED_WAIT)) )
+					if( !AND_NOT_SECTION_LOGGED_WAIT(pcs->dwLocks) )
 					{
 #ifdef DEBUG_CRITICAL_SECTIONS
 #  ifdef _DEBUG
@@ -773,7 +762,9 @@ static void DumpSection( PCRITICALSECTION pcs )
 						pcs->dwThreadPrior[pcs->nPrior] = dwCurProc;
 						pcs->nPrior = (pcs->nPrior + 1) % MAX_SECTION_LOG_QUEUE;
 #endif
+#ifdef LOG_DEBUG_CRITICAL_SECTIONS
 						pcs->dwLocks = 0;
+#endif
 						pcs->dwThreadID = 0;
 						pcs->dwUpdating = 0;
 						Relinquish(); // allow whoever was waiting to go now...
@@ -868,11 +859,6 @@ LOGICAL OpenRootMemory()
 	}
 #ifdef DEBUG_GLOBAL_REGISTRATION
 	ll_lprintf( WIDE( "Opening space..." ) );
-#endif
-#ifdef UNICODE
-#define _S WIDE("ls")
-#else
-#define _S WIDE("s")
 #endif
 
 #ifdef WIN32
@@ -1976,13 +1962,13 @@ POINTER HeapAllocateAlignedEx( PMEM pHeap, uintptr_t dwSize, uint16_t alignment 
 	{
 		PMALLOC_CHUNK pc;
 #ifdef ENABLE_NATIVE_MALLOC_PROTECTOR
-		pc = (PMALLOC_CHUNK)malloc( sizeof( MALLOC_CHUNK ) + alignment + dwSize + sizeof( pc->LeadProtect ) );
+		pc = (PMALLOC_CHUNK)malloc( sizeof( MALLOC_CHUNK ) - 1 + alignment + dwSize + sizeof( pc->LeadProtect ) );
 		if( !pc )
 			DebugBreak();
 		MemSet( pc->LeadProtect, LEAD_PROTECT_TAG, sizeof( pc->LeadProtect ) );
 		MemSet( pc->byData + dwSize, LEAD_PROTECT_BLOCK_TAIL, sizeof( pc->LeadProtect ) );
 #else
-		pc = (PMALLOC_CHUNK)malloc( sizeof( MALLOC_CHUNK ) + dwSize );
+		pc = (PMALLOC_CHUNK)malloc( sizeof( MALLOC_CHUNK ) - 1 + dwSize );
 #endif
 		pc->dwOwners = 1;
 		pc->dwSize = dwSize;
@@ -2348,7 +2334,7 @@ static void Bubble( PMEM pMem )
 		}
 		else
 		{
-			PMALLOC_CHUNK pc = (PMALLOC_CHUNK)(((uintptr_t)pData) - (((uint16_t*)pData)[-1] + offsetof( MALLOC_CHUNK, byData )));
+			PMALLOC_CHUNK pc = (PMALLOC_CHUNK)(((uintptr_t)pData) - MALLOC_CHUNK_SIZE(pData));
 			return pc->dwSize - pc->dwPad;
 		}
 	}
@@ -2404,8 +2390,7 @@ POINTER ReleaseEx ( POINTER pData DBG_PASS )
 		if( !USE_CUSTOM_ALLOCER )
 		{
 			//PMEM pMem = (PMEM)(pData - offsetof( MEM, pRoot ));
-			PMALLOC_CHUNK pc = (PMALLOC_CHUNK)(((uintptr_t)pData) - ( ((uint16_t*)pData)[-1] +
-													offsetof( MALLOC_CHUNK, byData ) ) );
+			PMALLOC_CHUNK pc = (PMALLOC_CHUNK)(((uintptr_t)pData) - MALLOC_CHUNK_SIZE(pData) );
 			pc->dwOwners--;
 			if( !pc->dwOwners )
 			{
@@ -2700,7 +2685,7 @@ POINTER ReleaseEx ( POINTER pData DBG_PASS )
 	{
 		if( !USE_CUSTOM_ALLOCER )
 		{
-			PMALLOC_CHUNK pc = (PMALLOC_CHUNK)((char*)pData - MALLOC_CHUNK_SIZE(pData));
+			PMALLOC_CHUNK pc = (PMALLOC_CHUNK)((uintptr_t)pData - MALLOC_CHUNK_SIZE(pData));
 			//ll__lprintf( DBG_RELAY )( "holding block %p", pc );
 #ifndef NO_LOGGING
 			if( g.bLogAllocate && g.bLogAllocateWithHold )

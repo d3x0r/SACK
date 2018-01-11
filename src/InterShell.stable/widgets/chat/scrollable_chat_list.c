@@ -9,6 +9,7 @@
 #define CHAT_CONTROL_SOURCE
 #include <stdhdrs.h>
 #include <controls.h>
+#include <filesys.h>
 #include <psi.h>
 #include <sqlgetoption.h>
 #include <translation.h>
@@ -18,6 +19,8 @@
 
 #include "../../intershell_registry.h"
 #include "../../intershell_export.h"
+
+struct chat_widget_message;
 
 // include public defs before internals...
 #include "chat_control.h"
@@ -187,18 +190,18 @@ static CTEXTSTR FormatMessageTime( CTEXTSTR time_type, PCHAT_TIME now, PCHAT_TIM
 
 	if( delta >= ( 60*60*24 ) )
 	{
-		int part = delta / ( 60 * 60 * 24 );
+		int part = (int)(delta / ( 60 * 60 * 24 ));
 		snprintf( timebuf, 64, "%s%d %s ago", neg?"-":"", part, part==1?"day":"days" );
 	}
 	else if( delta >= ( 60 * 60 ) )
 	{
-		int part = ( delta / ( 60 * 60 ) );
+		int part = (int)( delta / ( 60 * 60 ) );
 		snprintf( timebuf, 64, "%s%d %s ago"
 			, neg?"-":""
 			, part, part==1?" hour":" hours" );
 	}
 	else if( delta >= 60 ) {
-		int part = delta / 60;
+		int part = (int)(delta / 60);
 		snprintf( timebuf, 64, "%s%d%s ago", neg?"-":"", part, part==1?" minute":" minutes" );
 	}	
 	else if( delta )
@@ -640,7 +643,6 @@ static void OnFinishInit( WIDE( "Chat Control" ) )( PSI_CONTROL canvas )
 
 static void OnSaveCommon( WIDE( "Chat Control" ) )( FILE *file )
 {
-
 	sack_fprintf( file, WIDE("%sChat Control Sent Arrow Area=%d,%d %u,%u\n")
 			 , InterShell_GetSaveIndent()
 			 , l.sent.arrow_x
@@ -775,6 +777,13 @@ void Chat_ClearMessages( PSI_CONTROL pc )
 	}
 }
 
+void Chat_ChangeMessageContent( struct chat_widget_message *msg, CTEXTSTR text ) {
+	msg->text = StrDup( text );
+	if( msg->formatted_text ) {
+		Release( msg->formatted_text );
+		msg->formatted_text = NULL;
+	}
+}
 
 PCHAT_MESSAGE  Chat_EnqueMessage( PSI_CONTROL pc, LOGICAL sent
 							 , PCHAT_TIME sent_time
@@ -835,6 +844,7 @@ PCHAT_MESSAGE  Chat_EnqueMessage( PSI_CONTROL pc, LOGICAL sent
 		EnqueLink( &pcc->messages, pcm );
 		return pcm;
 	}
+	return NULL;
 }
 
 PCHAT_MESSAGE Chat_EnqueImage( PSI_CONTROL pc, LOGICAL sent
@@ -870,7 +880,7 @@ PCHAT_MESSAGE Chat_EnqueImage( PSI_CONTROL pc, LOGICAL sent
 		if( pcm = (PCHAT_MESSAGE)PeekQueueEx( pcc->messages, -1 ) )
 		{
 			if( pcm->image == image )
-				return;
+				return NULL;
 		}
 		
 		pcm = New( CHAT_MESSAGE );
@@ -903,6 +913,7 @@ PCHAT_MESSAGE Chat_EnqueImage( PSI_CONTROL pc, LOGICAL sent
 		EnqueLink( &pcc->messages, pcm );
 		return pcm;
 	}
+	return NULL;
 }
 
 void MeasureFrameWidth( Image window, int32_t *left, int32_t *right, LOGICAL received, LOGICAL complete, int inset )
@@ -1210,7 +1221,8 @@ uint32_t UpdateContextExtents( Image window, PCHAT_LIST list, PCHAT_CONTEXT cont
 	else
 		context->sender_width = 0;
 
-	//lprintf( WIDE("BEgin draw messages...") );
+	//lprintf( WIDE("Begin formatting messages...") );
+	frame_height = 0;
 	for( message_idx = -1; msg = (PCHAT_MESSAGE)PeekQueueEx( context->messages, message_idx ); message_idx-- )
 	{
 		if( msg->deleted )
@@ -1247,7 +1259,6 @@ uint32_t UpdateContextExtents( Image window, PCHAT_LIST list, PCHAT_CONTEXT cont
 				}
 		}
 		frame_height += ((message_idx<-1)?l.context_message_pad:0);
-		//lprintf( "after format %d is %s", frame_height, msg->text );
 		msg->_message_y = frame_height;
 
 		if( context->sent )
@@ -1656,6 +1667,7 @@ int GetInputCursorIndex( PCHAT_LIST list, int x, int y )
 	for( nCursorLine = nLine; nCursorLine >= 0; nCursorLine-- )
 	{
 		pCurrentLine = (PDISPLAYED_LINE)GetDataItem( ppCurrentLineInfo, nCursorLine );
+		if( !pCurrentLine ) continue;
 		//if( pCurrentLine && cursor_pos > pCurrentLine->nToShow )
 		if( nCursorLine == y )
 		{
@@ -1902,7 +1914,6 @@ static void DrawTextEntry( PSI_CONTROL pc, PCHAT_LIST list, LOGICAL update )
 					continue;
 				cursor_pos += GetTextSize( cursor_segs );
 			}
-
 			for( nCursorLine = nLine; nCursorLine >= 0; nCursorLine-- )
 			{
 				pCurrentLine = (PDISPLAYED_LINE)GetDataItem( ppCurrentLineInfo, nCursorLine );
@@ -1930,7 +1941,7 @@ static void DrawTextEntry( PSI_CONTROL pc, PCHAT_LIST list, LOGICAL update )
 			{
 				pCurrentLine = (PDISPLAYED_LINE)GetDataItem( ppCurrentLineInfo, nLine );
 				if( IsControlFocused( list->pc ) &&
-					( ( !nLine && !pCurrentLine ) || ( nLine == nCursorLine ) ) )
+					( nLine == nCursorLine ) )
 				{
 					uint32_t w;
 					uint32_t total_w = 0;
@@ -2854,6 +2865,11 @@ void Chat_SetSendButtonText( PSI_CONTROL pc, CTEXTSTR text )
 	SetControlText( list->send_button, text );
 }
 
+void Chat_SetSendButtonFont( PSI_CONTROL pc, SFTFont font ) {
+	PCHAT_LIST *ppList = ControlData( PCHAT_LIST*, pc );
+	PCHAT_LIST list = ( *ppList );
+	SetCommonFont( list->send_button, font );
+}
 
 void Chat_SetSendButtonImages( PSI_CONTROL pc, Image normal, Image pressed, Image rollover, Image focused )
 {

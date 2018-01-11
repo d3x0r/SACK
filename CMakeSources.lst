@@ -1,13 +1,13 @@
 
-  if( CMAKE_COMPILER_IS_GNUCC ) 
-    SET( FIRST_GCC_LIBRARY_SOURCE ${SOURCES_ROOT}src/deadstart/deadstart_list.c ) 
-    SET( FIRST_GCC_PROGRAM_SOURCE ${SOURCES_ROOT}src/deadstart/deadstart_list.c ) 
-    SET( LAST_GCC_LIBRARY_SOURCE ${SOURCES_ROOT}src/deadstart/deadstart_lib.c ${SOURCES_ROOT}src/deadstart/deadstart_end.c ) 
-    SET( LAST_GCC_PROGRAM_SOURCE ${SOURCES_ROOT}src/deadstart/deadstart_lib.c ${SOURCES_ROOT}src/deadstart/deadstart_prog.c ${SOURCES_ROOT}src/deadstart/deadstart_end.c ) 
+  if( CMAKE_COMPILER_IS_GNUCC )
+    SET( FIRST_GCC_LIBRARY_SOURCE ${SOURCES_ROOT}src/deadstart/deadstart_list.c )
+    SET( FIRST_GCC_PROGRAM_SOURCE ${SOURCES_ROOT}src/deadstart/deadstart_list.c )
+    SET( LAST_GCC_LIBRARY_SOURCE ${SOURCES_ROOT}src/deadstart/deadstart_lib.c ${SOURCES_ROOT}src/deadstart/deadstart_end.c )
+    SET( LAST_GCC_PROGRAM_SOURCE ${SOURCES_ROOT}src/deadstart/deadstart_lib.c ${SOURCES_ROOT}src/deadstart/deadstart_prog.c ${SOURCES_ROOT}src/deadstart/deadstart_end.c )
   endif()
 
-  if( MSVC OR WATCOM ) 
-    SET( LAST_GCC_PROGRAM_SOURCE ${SOURCES_ROOT}src/deadstart/deadstart_prog.c ) 
+  if( MSVC OR WATCOM )
+    SET( LAST_GCC_PROGRAM_SOURCE ${SOURCES_ROOT}src/deadstart/deadstart_prog.c )
   endif()
 
 set( SHA1_SOURCES
@@ -22,13 +22,13 @@ set( RANDOM_SOURCES
   ${SOURCES_ROOT}src/salty_random_generator/crypt_util.c
   ${SOURCES_ROOT}src/salty_random_generator/mersenne/mt19937ar.c
   )
-SET_SOURCE_FILES_PROPERTIES( ${RANDOM_SOURCES} PROPERTIES 
+SET_SOURCE_FILES_PROPERTIES( ${RANDOM_SOURCES} PROPERTIES
 		FOLDER "Source Files\\RNG Library" )
 set( RANDOM_SOURCES_FLAGS SALTY_RANDOM_GENERATOR_SOURCE )
    set( ExtraDefinitions ${ExtraDefinitions};${RANDOM_SOURCES_FLAGS} )
 
 
-set(UNSORTED_SOURCES  
+set(UNSORTED_SOURCES
   ${RANDOM_SOURCES}
   ${SHA1_SOURCES}
   ${SHA2_SOURCES}
@@ -45,7 +45,7 @@ set(UNSORTED_SOURCES
 )
 
 if( WIN32 )
- set( UNSORTED_SOURCES ${UNSORTED_SOURCES} 
+ set( UNSORTED_SOURCES ${UNSORTED_SOURCES}
 	  ${SOURCES_ROOT}src/printer_lib/printer.c )
 endif( WIN32 )
 
@@ -72,7 +72,7 @@ endif( WIN32 )
 
 if( NOT __NO_NETWORK__ )
 if( NOT __ARM__ )
-set(MORE_NETWORK_SOURCES ${MORE_NETWORK_SOURCES} 
+set(MORE_NETWORK_SOURCES ${MORE_NETWORK_SOURCES}
   ${SOURCES_ROOT}src/netlib/ping.c
   ${SOURCES_ROOT}src/netlib/whois.c
 )
@@ -90,18 +90,23 @@ set( NETWORK_SOURCES
   ${MORE_NETWORK_SOURCES}
 )
 
+if( __ANDROID__ )
+   set( NETWORK_SOURCES ${SOURCES_ROOT}src/netlib/android_ifaddrs.c ${SOURCES_ROOT}src/netlib/android_ifaddrs.h )
+endif( __ANDROID__ )
+
+
 if( NOT NO_SSL )
-set( NETWORK_SOURCES ${NETWORK_SOURCES} 
+set( NETWORK_SOURCES ${NETWORK_SOURCES}
   ${SOURCES_ROOT}src/netlib/ssl_layer.c
 )
 endif( NOT NO_SSL )
 
-SET_SOURCE_FILES_PROPERTIES( ${NETWORK_SOURCES} PROPERTIES 
+SET_SOURCE_FILES_PROPERTIES( ${NETWORK_SOURCES} PROPERTIES
 		FOLDER "Source Files\\Network Library" )
 endif( NOT __NO_NETWORK__ )
 
 
-set( SYSTEM_LIBRARY_SOURCES 
+set( SYSTEM_LIBRARY_SOURCES
   ${SOURCES_ROOT}src/systemlib/args.c
   ${SOURCES_ROOT}src/systemlib/system.c
   ${SOURCES_ROOT}src/systemlib/spawntask.c
@@ -111,10 +116,10 @@ set( SYSTEM_LIBRARY_SOURCES ${SYSTEM_LIBRARY_SOURCES}
   ${SOURCES_ROOT}src/systemlib/oswin.c
 )
 endif( WIN32 )
-SET_SOURCE_FILES_PROPERTIES( ${SYSTEM_LIBRARY_SOURCES} PROPERTIES 
+SET_SOURCE_FILES_PROPERTIES( ${SYSTEM_LIBRARY_SOURCES} PROPERTIES
 		FOLDER "Source Files\\System Interface" )
 
-set ( EXPAT_SOURCES 
+set ( EXPAT_SOURCES
   ${SOURCES_ROOT}src/contrib/sexpat/xmlparse.c
   ${SOURCES_ROOT}src/contrib/sexpat/xmlrole.c
   ${SOURCES_ROOT}src/contrib/sexpat/xmltok.c
@@ -130,16 +135,16 @@ set( GENX_SOURCES
   ${SOURCES_ROOT}src/contrib/genx/charProps.c
   ${SOURCES_ROOT}src/contrib/genx/genx.c
 )
-SET_SOURCE_FILES_PROPERTIES( ${GENX_SOURCES} PROPERTIES 
+SET_SOURCE_FILES_PROPERTIES( ${GENX_SOURCES} PROPERTIES
 		FOLDER "Source Files\\XML\\Genx Library" )
 set( GENX_SOURCES_FLAGS GENX_SOURCE )
 
 if( ALLOW_IMAGE_INTERFACES )
-	set( VIDLIB_HEADLESS_SOURCES 
+	set( VIDLIB_HEADLESS_SOURCES
 			${SOURCES_ROOT}src/vidlib/proxy/server.c
 			# image compress to png is available in imglib/pngimage.c
 			#${SOURCES_ROOT}src/vidlib/proxy/imagepng.c
-		)	  
+		)
 	if( UNIX )
 		set( VIDLIB_HEADLESS_SOURCES ${VIDLIB_HEADLESS_SOURCES}
 			${SOURCES_ROOT}src/vidlib/proxy/server.c
@@ -147,7 +152,7 @@ if( ALLOW_IMAGE_INTERFACES )
 	endif( UNIX )
 endif( ALLOW_IMAGE_INTERFACES )
 
-	  
+
 if( WIN32 )
 	#vidlib is a windows-specific driver
         # vidlib.puregl and puregl2 are non windows specific; but are not
@@ -158,11 +163,11 @@ if( WIN32 )
 	  ${SOURCES_ROOT}src/vidlib/vidlib.c
 	)
 	set( ExtraRenderFlags "RENDER_LIBRARY_SOURCE;_OPENGL_ENABLED" )
-        
+
 	if( NOT __ARM__ )
 		set( VIDLIB_SOURCES ${VIDLIB_SOURCES} ${SOURCES_ROOT}src/vidlib/opengl.c )
 	endif( NOT __ARM__ )
-        
+
 endif( WIN32 )
 
 if( UNIX )
@@ -176,16 +181,16 @@ if( UNIX )
 #	  ${SOURCES_ROOT}src/vidlib/xvidlib.c
 	)
 	set( ExtraRenderFlags "RENDER_LIBRARY_SOURCE;_OPENGL_ENABLED" )
-        
+
 	if( NOT __ARM__ )
 #		set( VIDLIB_SOURCES ${VIDLIB_SOURCES} ${SOURCES_ROOT}src/vidlib/opengl.c )
 	endif( NOT __ARM__ )
-        
+
 endif( UNIX )
 	if( FORCE_CXX )
 		set_source_files_properties(${VIDLIB_SOURCES} PROPERTIES LANGUAGE CXX )
 	endif( FORCE_CXX )
-	SET_SOURCE_FILES_PROPERTIES( ${VIDLIB_SOURCES} PROPERTIES 
+	SET_SOURCE_FILES_PROPERTIES( ${VIDLIB_SOURCES} PROPERTIES
 					FOLDER "Source Files\\Image Output Library" )
 
 if( NOT __NO_ODBC__ OR USE_SQLITE )
@@ -202,7 +207,7 @@ if( NOT __NO_ODBC__ OR USE_SQLITE )
     set( ODBC_SOURCES ${ODBC_SOURCES} ${SOURCES_ROOT}src/SQLlib/sql_ref_class.cpp )
   endif( __CLR__ )
 
-  SET_SOURCE_FILES_PROPERTIES( ${ODBC_SOURCES} PROPERTIES 
+  SET_SOURCE_FILES_PROPERTIES( ${ODBC_SOURCES} PROPERTIES
 		FOLDER "Source Files\\ODBC" )
 
 endif( NOT __NO_ODBC__ OR USE_SQLITE )
@@ -212,12 +217,12 @@ if( NOT __NO_ODBC__ OR USE_SQLITE )
 
 if( USE_SQLITE )
   SET( BAG_SQLITE_INTERFACE  ${SOURCES_ROOT}src/contrib/sqlite/sqlite_interface.c )
-  
+
 if( NOT SQLITE3_FOUND )
   SET( SQLITE_VERSION 3.22.0-pre-nul )
   SET( SQLITE_SOURCES ${SOURCES_ROOT}src/contrib/sqlite/${SQLITE_VERSION}/sqlite3.c )
   include_directories( ${SOURCES_ROOT}src/contrib/sqlite/${SQLITE_VERSION} )
-  
+
   if( NOT USE_SQLITE_EXTERNAL AND BUILD_MONOLITHIC )
    # setup to include sqlite in the core libraries...
    if( __CLR__ )
@@ -237,9 +242,9 @@ if( NOT SQLITE3_FOUND )
   endif()
 else( NOT SQLITE3_FOUND )
   include_directories( ${SQLITE3_INCLUDE_DIR} )
-  
+
   set( ExtraDefinitions "${ExtraDefinitions};USE_SQLITE;SYSTEM_SQLITE" )
-  
+
 endif( NOT SQLITE3_FOUND )
 
 
@@ -252,7 +257,7 @@ SET( OPTION_SOURCE
    ${SOURCES_ROOT}src/SQLlib/optlib/optionutil.c
    ${SOURCES_ROOT}src/SQLlib/optlib/optionutil_v4.c
    )
-SET_SOURCE_FILES_PROPERTIES( ${OPTION_SOURCE} PROPERTIES 
+SET_SOURCE_FILES_PROPERTIES( ${OPTION_SOURCE} PROPERTIES
 		FOLDER "Source Files\\Option Library" )
 endif( NOT __NO_OPTIONS__ )
 
@@ -280,7 +285,7 @@ set( IMAGE_SOURCES
   ${SOURCES_ROOT}src/imglib/sprite.c
 )
 
-SET_SOURCE_FILES_PROPERTIES( ${IMAGE_SOURCES} PROPERTIES 
+SET_SOURCE_FILES_PROPERTIES( ${IMAGE_SOURCES} PROPERTIES
 		FOLDER "Source Files\\Image Library" )
 
 set( PSI_MORE_CONTROLS
@@ -334,17 +339,17 @@ set( PSI_SOURCES
 )
 
 if( NOT BUILD_MONOLITHIC )
-set( PSI_SOURCES ${PSI_SOURCES} 
+set( PSI_SOURCES ${PSI_SOURCES}
   ${SOURCES_ROOT}src/psilib/fntcache.c
 )
 endif( NOT BUILD_MONOLITHIC )
 
 SET_PROPERTY(SOURCE ${PSI_SOURCES}
-                 APPEND 
-		PROPERTY COMPILE_DEFINITIONS "INTERNAL_DUMP_FONT_FILE" ) 
-SET_SOURCE_FILES_PROPERTIES( ${PSI_SOURCES} PROPERTIES 
+                 APPEND
+		PROPERTY COMPILE_DEFINITIONS "INTERNAL_DUMP_FONT_FILE" )
+SET_SOURCE_FILES_PROPERTIES( ${PSI_SOURCES} PROPERTIES
 		FOLDER "Source Files\\PSI Library" )
-SET_SOURCE_FILES_PROPERTIES( ${PSI_MORE_CONTROLS} PROPERTIES 
+SET_SOURCE_FILES_PROPERTIES( ${PSI_MORE_CONTROLS} PROPERTIES
 		FOLDER "Source Files\\PSI Library\\Console" )
 
 
@@ -360,7 +365,7 @@ endif( WIN32 )
 
 if( NOT __NO_NETWORK__ )
 
-set( SACK_PLUSPLUS_HEADERS ${SACK_PLUSPLUS_HEADERS} 
+set( SACK_PLUSPLUS_HEADERS ${SACK_PLUSPLUS_HEADERS}
      ${SOURCES_ROOT}src/netlib/html5.websocket/client/local.h
      ${SOURCES_ROOT}src/netlib/html5.websocket/json/json.h
      ${SOURCES_ROOT}src/netlib/html5.websocket/html5.websocket.common.h
@@ -371,27 +376,27 @@ set( SACK_PLUSPLUS_HEADERS ${SACK_PLUSPLUS_HEADERS}
 endif( NOT __NO_NETWORK__ )
 
 if( NOT __NO_NETWORK__ )
-SET( JSON_SOURCES 
+SET( JSON_SOURCES
 		${SOURCES_ROOT}src/netlib/html5.websocket/json/json_emitter.c
 		${SOURCES_ROOT}src/netlib/html5.websocket/json/json_parser.c
 		${SOURCES_ROOT}src/netlib/html5.websocket/json/json6_parser.c
 	)
 
-SET( HTML5_SOURCES 
+SET( HTML5_SOURCES
 		${SOURCES_ROOT}src/psilib/html5.canvas/html5.canvas.c
         	${SOURCES_ROOT}src/netlib/html5.websocket/html5.websocket.common.c
         	${SOURCES_ROOT}src/netlib/html5.websocket/server/html5.websocket.c
 		${SOURCES_ROOT}src/netlib/html5.websocket/client/html5.websocket.client.c
 		${JSON_SOURCES}
 	)
-SET_SOURCE_FILES_PROPERTIES( ${HTML5_SOURCES} PROPERTIES 
+SET_SOURCE_FILES_PROPERTIES( ${HTML5_SOURCES} PROPERTIES
 		FOLDER "Source Files\\HTML5 Support" )
 endif( NOT __NO_NETWORK__ )
-        
+
 
 
 if( NOT __NO_MSGSVR__ )
-set( SACK_MSG_SERVICES 
+set( SACK_MSG_SERVICES
 #  ${SOURCES_ROOT}src/msgsvr/client/client.c
   ${SOURCES_ROOT}src/msgsvr/client/client_common.c
   ${SOURCES_ROOT}src/msgsvr/client/client_events.c
@@ -400,16 +405,16 @@ set( SACK_MSG_SERVICES
   ${SOURCES_ROOT}src/msgsvr/client/client_local.c
   ${SOURCES_ROOT}src/msgsvr/client/client_input.c
   ${SOURCES_ROOT}src/msgsvr/client/client_output.c
-  
+
   ${SOURCES_ROOT}src/msgsvr/summoner/construct.c
   )
-SET_SOURCE_FILES_PROPERTIES( ${SACK_MSG_SERVICES} PROPERTIES 
+SET_SOURCE_FILES_PROPERTIES( ${SACK_MSG_SERVICES} PROPERTIES
 		FOLDER "Source Files\\Message Service" )
 endif( NOT __NO_MSGSVR__ )
 
 
 
-set( FILESYSTEM_SOURCES 
+set( FILESYSTEM_SOURCES
   ${SOURCES_ROOT}src/filesyslib/pathops.c
   ${SOURCES_ROOT}src/filesyslib/filescan.c
   ${SOURCES_ROOT}src/filesyslib/winfiles.c
@@ -421,19 +426,25 @@ set( FILEMONITOR_SOURCES
 
 
 if( __LINUX__ )
-set(FILEMONITOR_SOURCES ${FILEMONITOR_SOURCES}
-  ${SOURCES_ROOT}src/filesyslib/filemon/linuxfiles.c
-)
+   if( __MAC__ )
+      set(FILEMONITOR_SOURCES ${FILEMONITOR_SOURCES}
+          ${SOURCES_ROOT}src/filesyslib/filemon/applefiles.c
+      )
+    else( __MAC__ )
+      set(FILEMONITOR_SOURCES ${FILEMONITOR_SOURCES}
+          ${SOURCES_ROOT}src/filesyslib/filemon/linuxfiles.c
+      )
+    endif( __MAC__ )
 else( __LINUX__ )
 set(FILEMONITOR_SOURCES ${FILEMONITOR_SOURCES}
   ${SOURCES_ROOT}src/filesyslib/filemon/windowsfiles.c
 )
 endif( __LINUX__ )
 
-SET_SOURCE_FILES_PROPERTIES( ${FILESYSTEM_SOURCES} PROPERTIES 
+SET_SOURCE_FILES_PROPERTIES( ${FILESYSTEM_SOURCES} PROPERTIES
 		FOLDER "Source Files\\File System Utils" )
 
-SET_SOURCE_FILES_PROPERTIES( ${FILEMONITOR_SOURCES} PROPERTIES 
+SET_SOURCE_FILES_PROPERTIES( ${FILEMONITOR_SOURCES} PROPERTIES
 		FOLDER "Source Files\\File System Monitor" )
 
 
@@ -453,11 +464,11 @@ set( ADVANCED_TYPE_LIBRARY_SOURCES
     ${SOURCES_ROOT}src/typelib/http.c
     )
 endif( NOT __NO_NETWORK__ )
-set( ADVANCED_TYPE_LIBRARY_SOURCES ${ADVANCED_TYPE_LIBRARY_SOURCES} 
+set( ADVANCED_TYPE_LIBRARY_SOURCES ${ADVANCED_TYPE_LIBRARY_SOURCES}
     ${SOURCES_ROOT}src/typelib/url.c
     )
 
-SET_SOURCE_FILES_PROPERTIES( ${TYPE_LIBRARY_SOURCES} PROPERTIES 
+SET_SOURCE_FILES_PROPERTIES( ${TYPE_LIBRARY_SOURCES} PROPERTIES
 		FOLDER "Source Files\\Types" )
 if( WIN32 OR __QNX__ )
 set( TYPE_LIBRARY_SOURCES ${TYPE_LIBRARY_SOURCES}
@@ -485,16 +496,16 @@ set( UUID_SOURCES
   ${SOURCES_ROOT}src/contrib/uuid-1.6.2/uuid_ui64.c
 )
 
-SET( VECTLIB_SOURCES src/vectlib/vectlib.c  
+SET( VECTLIB_SOURCES src/vectlib/vectlib.c
     )
-SET( VECTLIB_MORE_SOURCES src/vectlib/vectlib.c  
+SET( VECTLIB_MORE_SOURCES src/vectlib/vectlib.c
     ${CMAKE_BINARY_DIR}/src/vectlib/vectlib_double.c
      ${SOURCES_ROOT}src/vectlib/vecstruc.h
 
     )
-SET_PROPERTY(SOURCE src/vectlib/vectlib.c  
-                 APPEND 
-		PROPERTY COMPILE_DEFINITIONS "MAKE_RCOORD_SINGLE" ) 
+SET_PROPERTY(SOURCE src/vectlib/vectlib.c
+                 APPEND
+		PROPERTY COMPILE_DEFINITIONS "MAKE_RCOORD_SINGLE" )
 
 
 set( MD5_SOURCES
@@ -595,7 +606,7 @@ endif( NOT __NO_NETWORK__ )
 if( NOT __CLR__ )
   LIST(APPEND BASE_SOURCES     ${SOURCES_ROOT}all_resources.rc )
   if( __CLR__ )
-     set_source_files_properties( ${SOURCES_ROOT}all_resources.rc 
+     set_source_files_properties( ${SOURCES_ROOT}all_resources.rc
   				PROPERTIES
                                 COMPILE_DEFINITIONS "__CLR__"
   			)
@@ -603,11 +614,11 @@ if( NOT __CLR__ )
 endif( NOT __CLR__ )
 
 #  SET( SNPRINTF_SOURCES ${SOURCES_ROOT}src/contrib/snprintf_2.2/snprintf.c )
-#  set_source_files_properties( ${SNPRINTF_SOURCES} 
+#  set_source_files_properties( ${SNPRINTF_SOURCES}
 #  				PROPERTIES
 #                                COMPILE_DEFINITIONS "SNPRINTF_LONGLONG_SUPPORT;PREFER_PORTABLE_SNPRINTF"
 #  			)
-  
+
 endif(WIN32)
 
 if( USE_ASSEMBLY )
@@ -653,6 +664,3 @@ set_source_files_properties(${OPTION_SOURCE} PROPERTIES LANGUAGE CXX )
 set_source_files_properties(${ODBC_SOURCES} PROPERTIES LANGUAGE CXX )
 set_source_files_properties(${BASE_SOURCES} PROPERTIES LANGUAGE CXX )
 endif( FORCE_CXX )
-
-
-

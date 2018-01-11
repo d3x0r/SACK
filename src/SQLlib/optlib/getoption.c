@@ -121,8 +121,7 @@ POPTION_TREE GetOptionTreeExxx( PODBC odbc, PFAMILYTREE existing_tree DBG_PASS )
 		//MemSet( tree->root, 0, sizeof( struct sack_option_tree_family_node ) );
 
 		tree->root->guid = GuidZero();
-		tree->root->name_guid = NULL;
-		tree->root->value_guid = NULL;
+		tree->root->flags.bHasValue = 0;
 
 		tree->root->value = NULL;
 
@@ -249,6 +248,7 @@ static void CPROC OptionsCommited( uintptr_t psv, PODBC odbc )
 		if( optval->uncommited_write == odbc )
 		{
 			Deallocate( CTEXTSTR, optval->value );
+			optval->value = NULL;
 			optval->uncommited_write = NULL;
 		}
 	}

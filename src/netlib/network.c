@@ -56,7 +56,13 @@
 #include <net/if.h>
 #include <net/if_arp.h>
 #include <arpa/inet.h>
+#ifndef __ANDROID__
 #include <ifaddrs.h>
+#else
+#include "android_ifaddrs.h"
+#define EPOLLRDHUP EPOLLHUP
+#define EPOLL_CLOEXEC 0
+#endif
 #ifdef __MAC__
 #include <sys/event.h>
 #include <sys/time.h>
@@ -123,7 +129,7 @@ void AcceptClient(PCLIENT pc);
 int TCPWriteEx(PCLIENT pc DBG_PASS);
 #define TCPWrite(pc) TCPWriteEx(pc DBG_SRC)
 
-size_t FinishPendingRead(PCLIENT lpClient DBG_PASS );
+int FinishPendingRead(PCLIENT lpClient DBG_PASS );
 LOGICAL TCPDrainRead( PCLIENT pClient );
 
 _TCP_NAMESPACE_END
@@ -331,7 +337,7 @@ void DumpLists( void )
 	{
 		//lprintf( WIDE("Available %p"), pc );
 		if( (*pc->me) != pc )
-			DebugBreak();	
+			DebugBreak();
 		c++;
 	}
 	if( c > 50 )
@@ -642,20 +648,25 @@ void TerminateClosedClientEx( PCLIENT pc DBG_PASS )
 	if( !pc )
 		return;
 	if( pc->dwFlags & CF_TOCLOSE ) {
-		lprintf( "WAIT FOR CLOSE LATER..." );
-		return;
+#ifdef VERBOSE_DEBUG
+		lprintf( "WAIT FOR CLOSE LATER... %x", pc->dwFlags );
+#endif
+		//return;
 	}
 	if( pc->dwFlags & CF_CLOSED )
 	{
 		PendingBuffer * lpNext;
 		EnterCriticalSec( &globalNetworkData.csNetwork );
+#ifdef VERBOSE_DEBUG
+		lprintf( "REMOVED EVENT...." );
+#endif
 		RemoveThreadEvent( pc );
 
 		//lprintf( WIDE( "Terminating closed client..." ) );
 		if( IsValid( pc->Socket ) )
 		{
 #ifdef VERBOSE_DEBUG
-			lprintf( WIDE( "close socket." ) );
+			lprintf( "close soekcet." );
 #endif
 			closesocket( pc->Socket );
 			while( pc->lpFirstPending )
@@ -696,6 +707,7 @@ void TerminateClosedClientEx( PCLIENT pc DBG_PASS )
 
 //----------------------------------------------------------------------------
 
+#if 0
 static void CPROC PendingTimer( uintptr_t unused )
 {
 	PCLIENT pc, next;
@@ -780,6 +792,8 @@ restart:
 	lprintf( WIDE("pending timer left global") );
 #endif
 }
+#endif
+
 
 #ifdef _WIN32
 
@@ -1136,7 +1150,7 @@ void SetNetworkWriteComplete( PCLIENT pClient
 void SetCPPNetworkWriteComplete( PCLIENT pClient
                                , cppWriteComplete WriteComplete
                                , uintptr_t psv)
-{                                        
+{
 	if( pClient && IsValid( pClient->Socket ) )
 	{
 		pClient->write.CPPWriteComplete = WriteComplete;
@@ -1547,33 +1561,33 @@ void RemoveThreadEvent( PCLIENT pc ) {
 	{
 #  ifdef __MAC__
 #    ifdef __64__
-		kevent64_s ev;
+		struct kevent64_s ev;
 		if( pc->dwFlags & CF_LISTEN ) {
 			EV_SET64( &ev, pc->Socket, EVFILT_READ, EV_DELETE, 0, 0, (uint64_t)pc, NULL, NULL );
 			kevent64( thread->kqueue, &ev, 1, 0, 0, 0, 0 );
 		} else {
-			EV_SET64( &ev, pc->Socket, EVFILT_READ, EV_DELETE, 0, 0, (uintptr_t)pc );
-			kevent64( peer->kqueue, &ev, 1, 0, 0, 0, 0 );
-			EV_SET64( &ev, pc->Socket, EVFILT_WRITE, EV_DELETE, 0, 0, (uintptr_t)pc );
-			kevent64( peer->kqueue, &ev, 1, 0, 0, 0, 0 );
+			EV_SET64( &ev, pc->Socket, EVFILT_READ, EV_DELETE, 0, 0, (uintptr_t)pc, NULL, NULL );
+			kevent64( thread->kqueue, &ev, 1, 0, 0, 0, 0 );
+			EV_SET64( &ev, pc->Socket, EVFILT_WRITE, EV_DELETE, 0, 0, (uintptr_t)pc, NULL, NULL );
+			kevent64( thread->kqueue, &ev, 1, 0, 0, 0, 0 );
 		}
 		if( pc->SocketBroadcast ) {
 			EV_SET64( &ev, pc->SocketBroadcast, EVFILT_READ, EV_DELETE, 0, 0, (uint64_t)pc, NULL, NULL );
 			kevent64( thread->kqueue, &ev, 1, 0, 0, 0, 0 );
 		}
 #    else
-		kevent ev;
+		struct kevent ev;
 		if( pc->dwFlags & CF_LISTEN ) {
-			EV_SET( &ev, pc->Socket, EVFILT_READ, EV_DELETE, 0, 0, (uint64_t)pc, NULL, NULL );
+			EV_SET( &ev, pc->Socket, EVFILT_READ, EV_DELETE, 0, 0, (uint64_t)pc );
 			kevent( thread->kqueue, &ev, 1, 0, 0, 0 );
 		} else {
 			EV_SET( &ev, pc->Socket, EVFILT_READ, EV_DELETE, 0, 0, (uintptr_t)pc );
-			kevent( peer->kqueue, &ev, 1, 0, 0, 0 );
+			kevent( thread->kqueue, &ev, 1, 0, 0, 0 );
 			EV_SET( &ev, pc->Socket, EVFILT_WRITE, EV_DELETE, 0, 0, (uintptr_t)pc );
-			kevent( peer->kqueue, &ev, 1, 0, 0, 0 );
+			kevent( thread->kqueue, &ev, 1, 0, 0, 0 );
 		}
 		if( pc->SocketBroadcast ) {
-			EV_SET( &ev, pc->SocketBroadcsat, EVFILT_READ, EV_DELETE, 0, 0, (uint64_t)pc, NULL, NULL );
+			EV_SET( &ev, pc->SocketBroadcsat, EVFILT_READ, EV_DELETE, 0, 0, (uint64_t)pc );
 			kevent( thread->kqueue, &ev, 1, 0, 0, 0 );
 		}
 #    endif
@@ -1689,28 +1703,31 @@ void AddThreadEvent( PCLIENT pc, int broadcast )
 	// this means the list can be 61 and at this time no more.
 	{
 #  ifdef __MAC__
+		struct event_data *data = New( struct event_data );
+		data->pc = pc;
+		data->broadcast = broadcast;
 #    ifdef __64__
-		kevent64_s ev;
+		struct kevent64_s ev;
 		if( pc->dwFlags & CF_LISTEN ) {
-			EV_SET64( &ev, broadcast?pc->SocketBroadcast:pc->Socket, EVFILT_READ, EV_ADD, 0, 0, (uint64_t)pc, NULL, NULL );
+			EV_SET64( &ev, broadcast?pc->SocketBroadcast:pc->Socket, EVFILT_READ, EV_ADD, 0, 0, (uintptr_t)data, NULL, NULL );
 			kevent64( peer->kqueue, &ev, 1, 0, 0, 0, 0 );
 		}
 		else {
-			EV_SET64( &ev, broadcast?pc->SocketBroadcast:pc->Socket, EVFILT_READ, EV_ADD, 0, 0, (uint64_t)pc, NULL, NULL );
+			EV_SET64( &ev, broadcast?pc->SocketBroadcast:pc->Socket, EVFILT_READ, EV_ADD, 0, 0, (uintptr_t)data, NULL, NULL );
 			kevent64( peer->kqueue, &ev, 1, 0, 0, 0, 0 );
-			EV_SET64( &ev, broadcast?pc->SocketBroadcast:pc->Socket, EVFILT_WRITE, EV_ADD | EV_CLEAR, 0, 0, (uint64_t)pc, NULL, NULL );
+			EV_SET64( &ev, broadcast?pc->SocketBroadcast:pc->Socket, EVFILT_WRITE, EV_ADD | EV_CLEAR, 0, 0, (uintptr_t)data, NULL, NULL );
 			kevent64( peer->kqueue, &ev, 1, 0, 0, 0, 0 );
 		}
 #    else
-		kevent ev;
+		struct kevent ev;
 		if( pc->dwFlags & CF_LISTEN ) {
-			EV_SET( &ev, broadcast?pc->SocketBroadcast:pc->Socket, EVFILT_READ, EV_ADD, 0, 0, (uintptr_t)pc );
+			EV_SET( &ev, broadcast?pc->SocketBroadcast:pc->Socket, EVFILT_READ, EV_ADD, 0, 0, (uintptr_t)data );
 			kevent( peer->kqueue, &ev, 1, 0, 0, 0 );
 		}
 		else {
-			EV_SET( &ev, broadcast?pc->SocketBroadcast:pc->Socket, EVFILT_READ, EV_ADD|EV_ENABLE, 0, 0, (uintptr_t)pc );
+			EV_SET( &ev, broadcast?pc->SocketBroadcast:pc->Socket, EVFILT_READ, EV_ADD|EV_ENABLE, 0, 0, (uintptr_t)data );
 			kevent( peer->kqueue, &ev, 1, 0, 0, 0 );
-			EV_SET( &ev, broadcast?pc->SocketBroadcast:pc->Socket, EVFILT_WRITE, EV_ADD|EV_ENABLE|EV_CLEAR, 0, 0, (uintptr_t)pc );
+			EV_SET( &ev, broadcast?pc->SocketBroadcast:pc->Socket, EVFILT_WRITE, EV_ADD|EV_ENABLE|EV_CLEAR, 0, 0, (uintptr_t)data );
 			kevent( peer->kqueue, &ev, 1, 0, 0, 0 );
 		}
 #    endif
@@ -1754,11 +1771,11 @@ int CPROC ProcessNetworkMessages( struct peer_thread_info *thread, uintptr_t unu
 	{
 #  ifdef __MAC__
 #    ifdef __64__
-		kevent64_s events[10];
-		cnt = kevent64( thread->kqueue, NULL, 0, &events, 10, 0, NULL );
+		struct kevent64_s events[10];
+		cnt = kevent64( thread->kqueue, NULL, 0, events, 10, 0, NULL );
 #    else
 		kevent events[10];
-		cnt = kevent( thread->kqueue, NULL, 0, &events, 10, NULL );
+		cnt = kevent( thread->kqueue, NULL, 0, events, 10, NULL );
 #    endif
 #  else
 		struct epoll_event events[10];
@@ -1781,15 +1798,24 @@ int CPROC ProcessNetworkMessages( struct peer_thread_info *thread, uintptr_t unu
 			struct event_data *event_data;
 			THREAD_ID prior = 0;
 			PCLIENT next;
+#  ifdef LOG_NETWORK_EVENT_THREAD
+			lprintf( "process %d events", cnt );
+#  endif
 			for( n = 0; n < cnt; n++ ) {
 #  ifdef __MAC__
-				pc = (PCLIENT)events[n].udata;
+				event_data = (struct event_data*)events[n].udata;
+#  ifdef LOG_NOTICES
+				lprintf( "Process %d %x %x"
+				       , ((uintptr_t)event_data == 1) ?0:event_data->broadcast?event_data->pc->SocketBroadcast:event_data->pc->Socket
+				       , ((uintptr_t)event_data == 1) ?0:event_data->pc->dwFlags
+				       , events[n].filter );
+#  endif
 #  else
 				event_data = (struct event_data*)events[n].data.ptr;
-#  endif
 #  ifdef LOG_NOTICES
 				lprintf( "Process %d %x", event_data->broadcast?event_data->pc->SocketBroadcast:event_data->pc->Socket
-						 , events[n].events );
+				       , events[n].events );
+#  endif
 #  endif
 				if( event_data == (struct event_data*)1 ) {
 					//char buf;
@@ -1799,9 +1825,21 @@ int CPROC ProcessNetworkMessages( struct peer_thread_info *thread, uintptr_t unu
 					return 1;
 				}
 				while( !NetworkLock( event_data->pc ) ) {
+					if( !(event_data->pc->dwFlags & CF_ACTIVE ) ) {
+#  ifdef LOG_NETWORK_EVENT_THREAD
+						lprintf( "failed lock dwFlags : %8x", event_data->pc->dwFlags );
+#  endif
+						break;
+					}
 					if( event_data->pc->dwFlags & CF_AVAILABLE )
-                  break;
+						break;
 					Relinquish();
+				}
+				if( !(event_data->pc->dwFlags & (CF_ACTIVE|CF_CLOSED) ) ) {
+#  ifdef LOG_NETWORK_EVENT_THREAD
+					lprintf( "not active but locked? dwFlags : %8x", event_data->pc->dwFlags );
+#  endif
+					continue;
 				}
 				if( event_data->pc->dwFlags & CF_AVAILABLE )
 					continue;
@@ -1817,13 +1855,43 @@ int CPROC ProcessNetworkMessages( struct peer_thread_info *thread, uintptr_t unu
 				if( events[n].events & EPOLLIN )
 #  endif
 				{
-					//lprintf( "EPOLLIN/EVFILT_READ" );
-					if( !(event_data->pc->dwFlags & CF_ACTIVE) )
-					{
+#  ifdef LOG_NETWORK_EVENT_THREAD
+					lprintf( "EPOLLIN/EVFILT_READ %x", event_data->pc->dwFlags );
+#  endif
+					if( event_data->pc->dwFlags & CF_CLOSED ) {
+						PCLIENT pClient = event_data->pc;
+						lprintf( "socket is already closed... what do we need to do?");
+						WakeableSleep( 100 );
+						if( !pClient->bDraining )
+						{
+							size_t bytes_read;
+							// act of reading can result in a close...
+							// there are things like IE which close and send
+							// adn we might get the close notice at application level indicating there might still be data...
+							while( ( bytes_read = FinishPendingRead( pClient DBG_SRC) ) > 0
+								&& bytes_read != (size_t)-1 ); // try and read...
+							//if( pClient->dwFlags & CF_TOCLOSE )
+							{
+								//lprintf( "Pending read failed - reset connection. (well this is FD_CLOSE so yeah...???)" );
+								//InternalRemoveClientEx( pc, TRUE, FALSE );
+							}
+						}
+#  ifdef LOG_NOTICES
+						if( globalNetworkData.flags.bLogNotices )
+							lprintf(WIDE( "FD_CLOSE... %p  %08x" ), pClient, pClient->dwFlags );
+#  endif
+						//if( pClient->dwFlags & CF_ACTIVE )
+						{
+							// might already be cleared and gone..
+							InternalRemoveClientEx( pClient, FALSE, TRUE );
+							TerminateClosedClient( pClient );
+						}
+						// section will be blank after termination...(correction, we keep the section state now)
+						pClient->dwFlags &= ~CF_CLOSING; // it's no longer closing.  (was set during the course of closure)
+					} else if( !(event_data->pc->dwFlags & (CF_ACTIVE) ) ) {
+						lprintf( "Event on socket no longer active..." );
 						// change to inactive status by the time we got here...
-					}
-
-					else if( event_data->pc->dwFlags & CF_LISTEN )
+					} else if( event_data->pc->dwFlags & CF_LISTEN )
 					{
 #ifdef LOG_NOTICES
 						if( globalNetworkData.flags.bLogNotices )
@@ -1850,19 +1918,21 @@ int CPROC ProcessNetworkMessages( struct peer_thread_info *thread, uintptr_t unu
 					}
 					else if( event_data->pc->dwFlags & CF_READPENDING )
 					{
+						size_t read;
 #ifdef LOG_NOTICES
 						if( globalNetworkData.flags.bLogNotices )
 							lprintf( WIDE( "TCP Read Event..." ) );
 #endif
 						// packet oriented things may probably be reading only
 						// partial messages at a time...
-						FinishPendingRead( event_data->pc DBG_SRC );
-						if( event_data->pc->dwFlags & CF_TOCLOSE )
+						read = FinishPendingRead( event_data->pc DBG_SRC );
+						//lprintf( "Read %d", read );
+						if( ( read == -1 ) && ( event_data->pc->dwFlags & CF_TOCLOSE ) )
 						{
-//#ifdef LOG_NOTICES
-//							if( globalNetworkData.flags.bLogNotices )
+#ifdef LOG_NOTICES
+							if( globalNetworkData.flags.bLogNotices )
 								lprintf( WIDE( "Pending read failed - reset connection." ) );
-//#endif
+#endif
 							InternalRemoveClientEx( event_data->pc, FALSE, FALSE );
 							TerminateClosedClient( event_data->pc );
 						}
@@ -1885,9 +1955,13 @@ int CPROC ProcessNetworkMessages( struct peer_thread_info *thread, uintptr_t unu
 				if( events[n].events & EPOLLOUT )
 #  endif
 				{
-					//lprintf( "EPOLLOUT" );
+#  ifdef LOG_NETWORK_EVENT_THREAD
+					lprintf( "EPOLLOUT %s", ( event_data->pc->dwFlags & CF_CONNECTING )?"connecting"
+							  :( !(event_data->pc->dwFlags & CF_ACTIVE) )?"closed":"writing" );
+#  endif
 					if( !(event_data->pc->dwFlags & CF_ACTIVE) )
 					{
+						//lprintf( "FLAGS IS NOT ACTIVE BUT: %x", event_data->pc->dwFlags );
 						// change to inactive status by the time we got here...
 					}
 					else if( event_data->pc->dwFlags & CF_CONNECTING )
@@ -2014,7 +2088,6 @@ uintptr_t CPROC NetworkThreadProc( PTHREAD thread )
 	// and when unloading should remove these timers.
 	if( !peer_thread )
 	{
-		//globalNetworkData.uPendingTimer = AddTimer( 5000, PendingTimer, 0 );
 #ifdef _WIN32
 		globalNetworkData.uNetworkPauseTimer = AddTimerEx( 1, 1000, NetworkPauseTimer, 0 );
 		if( !globalNetworkData.client_schedule )
@@ -2024,8 +2097,8 @@ uintptr_t CPROC NetworkThreadProc( PTHREAD thread )
 		globalNetworkData.flags.bNetworkReady = TRUE;
 		globalNetworkData.flags.bThreadInitOkay = TRUE;
 #endif
-		//globalNetworkData.hMonitorThreadControlEvent = CreateEvent( NULL, 0, FALSE, NULL );
 	}
+	memset( &this_thread, 0, sizeof( this_thread ) );
 
 	this_thread.monitor_list = NULL;
 #ifdef _WIN32
@@ -2042,17 +2115,21 @@ uintptr_t CPROC NetworkThreadProc( PTHREAD thread )
 #ifdef __MAC__
 	this_thread.kqueue = kqueue();
 #else
+#ifdef __ANDROID__
+	this_thread.epoll_fd = epoll_create( 128 ); // close on exec (no inherit)
+#else
 	this_thread.epoll_fd = epoll_create1( EPOLL_CLOEXEC ); // close on exec (no inherit)
+#endif
 #endif
 	{
 #  ifdef __MAC__
 #    ifdef __64__
-		kevent64_s ev;
+		struct kevent64_s ev;
 		this_thread.kevents = CreateDataList( sizeof( ev ) );
 		EV_SET64( &ev, GetThreadSleeper( thread ), EVFILT_READ, EV_ADD, 0, 0, (uint64_t)1, NULL, NULL );
 		kevent64( this_thread.kqueue, &ev, 1, 0, 0, 0, 0 );
 #    else
-		kevent ev;
+		struct kevent ev;
 		this_thread.kevents = CreateDataList( sizeof( ev ) );
 		EV_SET( &ev, GetThreadSleeper( thread ), EVFILT_READ, EV_ADD, 0, 0, (uintptr_t)1 );
 		kevent( this_thread.kqueue, &ev, 1, 0, 0, 0 );
@@ -2146,11 +2223,13 @@ int NetworkQuit(void)
 	if( !global_network_data )
 		return 0;
 
+#if 0
 	if( globalNetworkData.uPendingTimer )
 	{
 		RemoveTimer( globalNetworkData.uPendingTimer );
 		globalNetworkData.uPendingTimer = 0;
 	}
+#endif
 	while( globalNetworkData.ActiveClients )
 	{
 #ifdef LOG_NOTICES
@@ -2332,7 +2411,7 @@ NETWORK_PROC( LOGICAL, NetworkWait )(HWND hWndNotify,uint32_t wClients,int wUser
 	// please be mindful of the following data declared immediate...
 	if( GetLinkCount( globalNetworkData.pThreads ) )
 	{
-		xlprintf(200)( WIDE("Threads already active...") );
+		//xlprintf(200)( WIDE("Threads already active...") );
 		// might do something... might not...
 		return TRUE; // network thread active, do not realloc
 	}
@@ -2406,8 +2485,9 @@ get_client:
 #ifdef LOG_NETWORK_LOCKING
 		lprintf( WIDE("GetFreeNetworkClient left global") );
 #endif
-
+#if 0
 		RescheduleTimerEx( globalNetworkData.uPendingTimer, 1 );
+#endif
 		Relinquish();
 		if( globalNetworkData.AvailableClients )
 		{
@@ -2453,10 +2533,10 @@ int GetAddressParts( SOCKADDR *sa, uint32_t *pdwIP, uint16_t *pdwPort )
 		else
 			result = FALSE;
 		if( (sa->sa_family == AF_INET) || (sa->sa_family = AF_INET6) ) {
-			if( pdwPort ) 
+			if( pdwPort )
 				(*pdwPort) = ntohs((uint16_t)( (SOCKADDR_IN*)sa)->sin_port);
 		}
-		else 
+		else
 			result = FALSE;
 	}
 	return result;
@@ -2651,12 +2731,12 @@ SOCKADDR *CreateRemote( CTEXTSTR lpName,uint16_t nHisPort)
 		}
 #endif
 	}
-	else if( lpName 
+	else if( lpName
 		   && ( ( lpName[0] >= '0' && lpName[0] <= '9' )
 		      || ( lpName[0] >= 'a' && lpName[0] <= 'f' )
 		      || ( lpName[0] >= 'A' && lpName[0] <= 'F' )
 		      || lpName[0] == ':'
-		      || ( lpName[0] == '[' && lpName[StrLen( lpName ) - 1] == ']' ) ) 
+		      || ( lpName[0] == '[' && lpName[StrLen( lpName ) - 1] == ']' ) )
 		   && StrChr( lpName, ':' )!=StrRChr( lpName, ':' ) )
 	{
 #ifdef UNICODE
@@ -2792,7 +2872,7 @@ NETWORK_PROC( void, DumpAddrEx)( CTEXTSTR name, SOCKADDR *sa DBG_PASS )
 			       ,*(((unsigned char *)sa)+4),
 			       *(((unsigned char *)sa)+5),
 			       *(((unsigned char *)sa)+6),
-			       *(((unsigned char *)sa)+7) 
+			       *(((unsigned char *)sa)+7)
 			       , ntohs( *(((unsigned short *)((unsigned char*)sa + 2))) )
 			);
 		} else if( sa->sa_family == AF_INET6 )
@@ -3251,7 +3331,7 @@ NETWORK_PROC( PCLIENT, NetworkLockEx)( PCLIENT lpClient DBG_PASS )
 #else
 		LeaveCriticalSecEx( &globalNetworkData.csNetwork  DBG_RELAY);
 #endif
-		if( !(lpClient->dwFlags & CF_ACTIVE ) )
+		if( !(lpClient->dwFlags & (CF_ACTIVE|CF_CLOSED) ) )
 		{
 			// change to inactive status by the time we got here...
 #ifdef USE_NATIVE_CRITICAL_SECTION
@@ -3324,7 +3404,8 @@ void InternalRemoveClientExx(PCLIENT lpClient, LOGICAL bBlockNotify, LOGICAL bLi
 				struct linger lingerSet;
 				lingerSet.l_onoff = 1; // on , with no time = off.
 				lingerSet.l_linger = 0; // 0 timeout sends reset.
-				// set server to allow reuse of socket port
+										 // set server to allow reuse of socket port
+            //lprintf( "Set no linger" );
 				if (setsockopt(lpClient->Socket, SOL_SOCKET, SO_LINGER,
 									(char*)&lingerSet, sizeof(lingerSet)) <0 )
 				{
@@ -3337,9 +3418,10 @@ void InternalRemoveClientExx(PCLIENT lpClient, LOGICAL bBlockNotify, LOGICAL bLi
 //#if 0
 			struct linger lingerSet;
 			// linger ON causes delay on close... otherwise close returns immediately
-			lingerSet.l_onoff = 0; // on , with no time = off.
+			lingerSet.l_onoff = 1; // on , with no time = off.
 			lingerSet.l_linger = 2;
 			// set server to allow reuse of socket port
+            lprintf( "Set 2 second linger" );
 			if( setsockopt( lpClient->Socket, SOL_SOCKET, SO_LINGER,
 				(char*)&lingerSet, sizeof( lingerSet ) ) <0 )
 			{
@@ -3372,7 +3454,9 @@ void InternalRemoveClientExx(PCLIENT lpClient, LOGICAL bBlockNotify, LOGICAL bLi
 			return;
 		}
 		if( lpClient->dwFlags & CF_WRITEPENDING ) {
+#ifdef LOG_DEBUG_CLOSING
 			lprintf( "CLOSE WHILE WAITING FOR WRITE TO FINISH..." );
+#endif
 			lpClient->dwFlags |= CF_TOCLOSE;
 			return;
 		}
@@ -3454,8 +3538,22 @@ void InternalRemoveClientExx(PCLIENT lpClient, LOGICAL bBlockNotify, LOGICAL bLi
 
 void RemoveClientExx(PCLIENT lpClient, LOGICAL bBlockNotify, LOGICAL bLinger DBG_PASS )
 {
-	InternalRemoveClientExx( lpClient, bBlockNotify, bLinger DBG_RELAY );
-	TerminateClosedClient( lpClient );
+#ifdef _WIN32
+#  define SHUT_WR SD_SEND
+#endif
+	if( !lpClient ) return;
+#if 0
+	if( !( lpClient->dwFlags & CF_UDP ) ) {
+		lprintf( "TRIGGER SHUTDOWN WRITES" );
+		shutdown( lpClient->Socket, SHUT_WR );
+	} else
+#endif
+	{
+		// UDP still needs to be done this way...
+		//
+		InternalRemoveClientExx( lpClient, bBlockNotify, bLinger DBG_RELAY );
+		TerminateClosedClient( lpClient );
+	}
 }
 
 CTEXTSTR GetSystemName( void )
@@ -3621,8 +3719,13 @@ void LoadNetworkAddresses( void ) {
 			//SET_SOCKADDR_LENGTH( dup, IN6_SOCKADDR_LENGTH );
 		}
 		else {
-			memcpy( dup, tmp->ifa_netmask, IN_SOCKADDR_LENGTH );
-			SET_SOCKADDR_LENGTH( dup, IN_SOCKADDR_LENGTH );
+			if( tmp->ifa_netmask ) {
+				memcpy( dup, tmp->ifa_netmask, IN_SOCKADDR_LENGTH );
+				SET_SOCKADDR_LENGTH( dup, IN_SOCKADDR_LENGTH );
+			} else {
+				memset( dup, 0, IN_SOCKADDR_LENGTH );
+				SET_SOCKADDR_LENGTH( dup, IN_SOCKADDR_LENGTH );
+			}
 		}
 		ia->saMask = dup;
 
@@ -3779,4 +3882,3 @@ https://msdn.microsoft.com/en-us/library/windows/desktop/aa365915%28v=vs.85%29.a
 #endif
 
 SACK_NETWORK_NAMESPACE_END
-

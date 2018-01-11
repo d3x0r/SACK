@@ -40,6 +40,7 @@ return 0;
 
 */
 //#define LOG_SOCKET_CREATION
+//#define DEBUG_SOCK_IO
 #define LIBRARY_DEF
 #include <stdhdrs.h>
 #include <timers.h>
@@ -99,7 +100,7 @@ void AcceptClient(PCLIENT pListen)
 	PCLIENT pNewClient = NULL;// just to be safe.
 
 	pNewClient = GetFreeNetworkClient();
-	// new client will be locked... 
+	// new client will be locked...
 	if( !pNewClient )
 	{
 		SOCKADDR *junk = AllocAddr();
@@ -185,7 +186,7 @@ void AcceptClient(PCLIENT pListen)
 			fcntl( pNewClient->Socket, F_SETFL, O_NONBLOCK );
 #endif
 		AddActive( pNewClient );
-		{ 
+		{
 			//lprintf( WIDE("Accepted and notifying...") );
 			if( pListen->connect.ClientConnected )
 			{
@@ -265,9 +266,15 @@ PCLIENT CPPOpenTCPListenerAddrExx( SOCKADDR *pAddr
 	pListen->Socket = OpenSocket( ((*(uint16_t*)pAddr) == AF_INET)?TRUE:FALSE, TRUE, FALSE, 0 );
 	if( pListen->Socket == INVALID_SOCKET )
 #endif
+#ifdef __MAC__
+		pListen->Socket = socket( ((uint8_t*)pAddr)[1]
+										, SOCK_STREAM
+										, ((((uint8_t*)pAddr)[1] == AF_INET)||((((uint8_t*)pAddr)[1]) == AF_INET6))?IPPROTO_TCP:0 );
+#else
 		pListen->Socket = socket( *(uint16_t*)pAddr
 										, SOCK_STREAM
 										, (((*(uint16_t*)pAddr) == AF_INET)||((*(uint16_t*)pAddr) == AF_INET6))?IPPROTO_TCP:0 );
+#endif
 #if WIN32
 	SetHandleInformation( (HANDLE)pListen->Socket, HANDLE_FLAG_INHERIT, 0 );
 #endif
@@ -280,6 +287,7 @@ PCLIENT CPPOpenTCPListenerAddrExx( SOCKADDR *pAddr
 	if( pListen->Socket == INVALID_SOCKET )
 	{
 		lprintf( WIDE(" Open Listen Socket Fail... %d"), errno);
+		DumpAddr( "passed address to select:", pAddr );
 		InternalRemoveClientEx( pListen, TRUE, FALSE );
 		NetworkUnlockEx( pListen DBG_SRC );
 		pListen = NULL;
@@ -316,10 +324,11 @@ PCLIENT CPPOpenTCPListenerAddrExx( SOCKADDR *pAddr
 		unlink( (char*)(((uint16_t*)pAddr)+1));
 #endif
 
-	if (!pAddr || 
+	if (!pAddr ||
 		 bind(pListen->Socket ,pAddr, SOCKADDR_LENGTH( pAddr ) ) )
 	{
 		_lprintf(DBG_RELAY)( WIDE("Cannot bind to address..:%d"), WSAGetLastError() );
+		DumpAddr( "Bind address:", pAddr );
 		InternalRemoveClientEx( pListen, TRUE, FALSE );
 		NetworkUnlockEx( pListen DBG_SRC );
 		return NULL;
@@ -446,7 +455,7 @@ int NetworkConnectTCPEx( PCLIENT pc DBG_PASS ) {
 
 //----------------------------------------------------------------------------
 
-static PCLIENT InternalTCPClientAddrFromAddrExxx( SOCKADDR *lpAddr, SOCKADDR *pFromAddr, 
+static PCLIENT InternalTCPClientAddrFromAddrExxx( SOCKADDR *lpAddr, SOCKADDR *pFromAddr,
                                                   int bCPP,
                                                   cppReadComplete  pReadComplete,
                                                   uintptr_t psvRead,
@@ -474,9 +483,15 @@ static PCLIENT InternalTCPClientAddrFromAddrExxx( SOCKADDR *lpAddr, SOCKADDR *pF
 		pResult->Socket = OpenSocket( ((*(uint16_t*)lpAddr) == AF_INET)?TRUE:FALSE, TRUE, FALSE, 0 );
 		if( pResult->Socket == INVALID_SOCKET )
 #endif
+#ifdef __MAC__
+			pResult->Socket=socket( ((uint8_t*)lpAddr)[1]
+			                      , SOCK_STREAM
+			                      , (((((uint8_t*)lpAddr)[1]) == AF_INET)||((((uint8_t*)lpAddr)[1]) == AF_INET6))?IPPROTO_TCP:0 );
+#else
 			pResult->Socket=socket( *(uint16_t*)lpAddr
-										 , SOCK_STREAM
-										 , (((*(uint16_t*)lpAddr) == AF_INET)||((*(uint16_t*)lpAddr) == AF_INET6))?IPPROTO_TCP:0 );
+			                      , SOCK_STREAM
+			                      , (((*(uint16_t*)lpAddr) == AF_INET)||((*(uint16_t*)lpAddr) == AF_INET6))?IPPROTO_TCP:0 );
+#endif
 #ifdef LOG_SOCKET_CREATION
 		lprintf( WIDE( "Created new socket %d" ), pResult->Socket );
 #endif
@@ -505,8 +520,8 @@ static PCLIENT InternalTCPClientAddrFromAddrExxx( SOCKADDR *lpAddr, SOCKADDR *pF
 #    endif
 			WSAEventSelect( pResult->Socket, pResult->event, FD_READ|FD_WRITE|FD_CONNECT|FD_CLOSE );
 #  else
-			if( WSAAsyncSelect( pResult->Socket,globalNetworkData.ghWndNetwork,SOCKMSG_TCP,
-									 FD_READ|FD_WRITE|FD_CLOSE|FD_CONNECT) )
+			if( WSAAsyncSelect( pResult->Socket,globalNetworkData.ghWndNetwork,SOCKMSG_TCP
+			                  , FD_READ|FD_WRITE|FD_CLOSE|FD_CONNECT) )
 			{
 				lprintf( WIDE(" Select NewClient Fail! %d"), WSAGetLastError() );
 				InternalRemoveClientEx( pResult, TRUE, FALSE );
@@ -520,7 +535,7 @@ static PCLIENT InternalTCPClientAddrFromAddrExxx( SOCKADDR *lpAddr, SOCKADDR *pF
 #endif
 			if( pFromAddr )
 			{
-				
+
 				LOGICAL opt = 1;
 				err = setsockopt( pResult->Socket, SOL_SOCKET, SO_REUSEADDR, (const char *)&opt, sizeof( opt ) );
 				if( err )
@@ -531,7 +546,7 @@ static PCLIENT InternalTCPClientAddrFromAddrExxx( SOCKADDR *lpAddr, SOCKADDR *pF
 				pResult->saSource = DuplicateAddress( pFromAddr );
 				//DumpAddr( "source", pResult->saSource );
 				if( ( err = bind( pResult->Socket, pResult->saSource
-								, SOCKADDR_LENGTH( pResult->saSource ) ) ) )
+				                , SOCKADDR_LENGTH( pResult->saSource ) ) ) )
 				{
 					uint32_t dwError;
 					dwError = WSAGetLastError();
@@ -571,7 +586,7 @@ static PCLIENT InternalTCPClientAddrFromAddrExxx( SOCKADDR *lpAddr, SOCKADDR *pF
 					WSASetEvent( globalNetworkData.hMonitorThreadControlEvent );
 					lprintf( "Failed to schedule myself in a single run of root thread that I am running on." );
 				}
-			} 
+			}
 			else {
 				WSASetEvent( globalNetworkData.hMonitorThreadControlEvent );
 				while( !pResult->this_thread )
@@ -724,7 +739,7 @@ PCLIENT OpenTCPClientAddrFromAddrEx(SOCKADDR *lpAddr, SOCKADDR *pFromAddr
                                                DBG_PASS
 															 )
 {
-	
+
 	return InternalTCPClientAddrFromAddrExxx( lpAddr, pFromAddr, FALSE
 											 , (cppReadComplete)pReadComplete, 0
 											 , (cppCloseCallback)CloseCallback, 0
@@ -773,7 +788,7 @@ PCLIENT CPPOpenTCPClientExEx(CTEXTSTR lpName,uint16_t wPort,
 	PCLIENT pClient;
 	SOCKADDR *lpsaDest;
 	pClient = NULL;
-	if( lpName && 
+	if( lpName &&
 	   (lpsaDest = CreateSockAddress(lpName,wPort) ) )
 	{
 		pClient = CPPOpenTCPClientAddrExxx( lpsaDest
@@ -789,7 +804,7 @@ PCLIENT CPPOpenTCPClientExEx(CTEXTSTR lpName,uint16_t wPort,
 		                                    DBG_RELAY
 		                                  );
 		ReleaseAddress( lpsaDest );
-	}   
+	}
 	return pClient;
 }
 
@@ -834,7 +849,7 @@ PCLIENT OpenTCPClientExEx(CTEXTSTR lpName,uint16_t wPort,
 
 //----------------------------------------------------------------------------
 
-size_t FinishPendingRead(PCLIENT lpClient DBG_PASS )  // only time this should be called is when there IS, cause
+int FinishPendingRead(PCLIENT lpClient DBG_PASS )  // only time this should be called is when there IS, cause
                                  // we definaly have already gotten SOME data to leave in
                                  // a pending state...
 {
@@ -863,10 +878,10 @@ size_t FinishPendingRead(PCLIENT lpClient DBG_PASS )  // only time this should b
 
 		if( !(lpClient->dwFlags & CF_CONNECTED)  )
 		{
-#ifdef VERBOSE_DEBUG
+#ifdef DEBUG_SOCK_IO
 			lprintf( WIDE( "Finsih pending - return, not connected." ) );
 #endif
-			return lpClient->RecvPending.dwUsed; // amount of data available...
+			return (int)lpClient->RecvPending.dwUsed; // amount of data available...
 		}
 		//lprintf( WIDE(WIDE( "FinishPendingRead of %d" )), lpClient->RecvPending.dwAvail );
 		if( !( lpClient->dwFlags & CF_READPENDING ) )
@@ -878,10 +893,10 @@ size_t FinishPendingRead(PCLIENT lpClient DBG_PASS )  // only time this should b
 		}
 		while( lpClient->RecvPending.dwAvail )  // if any room is availiable.
 		{
-#ifdef VERBOSE_DEBUG
-			nCount++;
-			_lprintf( DBG_RELAY )( WIDE("FinishPendingRead %d %") _32f WIDE(""), nCount
-										, lpClient->RecvPending.dwAvail );
+#ifdef DEBUG_SOCK_IO
+			//nCount++;
+			_lprintf( DBG_RELAY )( WIDE("FinishPendingRead %d %d" )
+				, lpClient->RecvPending.dwUsed, lpClient->RecvPending.dwAvail );
 #endif
 			nRecv = recv(lpClient->Socket,
 							 (char*)lpClient->RecvPending.buffer.p +
@@ -890,12 +905,15 @@ size_t FinishPendingRead(PCLIENT lpClient DBG_PASS )  // only time this should b
 			if (nRecv == SOCKET_ERROR)
 			{
 				dwError = WSAGetLastError();
+#ifdef DEBUG_SOCK_IO
+				lprintf( "Received error (-1) %d", nRecv );
+#endif
 				switch( dwError)
 				{
 				case WSAEWOULDBLOCK: // no data avail yet...
 					//lprintf( WIDE("Pending Receive would block...") );
 					lpClient->dwFlags &= ~CF_READREADY;
-					return lpClient->RecvPending.dwAvail;
+					return (int)lpClient->RecvPending.dwUsed;
 #ifdef __LINUX__
 				case ECONNRESET:
 #else
@@ -923,6 +941,10 @@ size_t FinishPendingRead(PCLIENT lpClient DBG_PASS )  // only time this should b
 			}
 			else if (!nRecv) // channel closed if received 0 bytes...
 			{   // otherwise WSAEWOULDBLOCK would be generated.
+#ifdef DEBUG_SOCK_IO
+				lprintf( "Received (0) %d", nRecv );
+#endif
+				WakeableSleep( 100 );
 				//_lprintf( DBG_RELAY )( WIDE("Closing closed socket... Hope there's also an event... "));
 				lpClient->dwFlags |= CF_TOCLOSE;
 				break; // while dwAvail... try read...
@@ -930,6 +952,9 @@ size_t FinishPendingRead(PCLIENT lpClient DBG_PASS )  // only time this should b
 			}
 			else
 			{
+#ifdef DEBUG_SOCK_IO
+				lprintf( "Received %d", nRecv );
+#endif
 				if( globalNetworkData.flags.bShortLogReceivedData )
 				{
 					LogBinary( (uint8_t*)lpClient->RecvPending.buffer.p
@@ -946,7 +971,7 @@ size_t FinishPendingRead(PCLIENT lpClient DBG_PASS )  // only time this should b
 				lpClient->RecvPending.dwAvail -= nRecv;
 				lpClient->RecvPending.dwUsed  += nRecv;
 				if( lpClient->RecvPending.s.bStream &&
-					lpClient->RecvPending.dwAvail )
+				    lpClient->RecvPending.dwAvail )
 					break;
 				//else
 				//	lprintf( WIDE("Was not a stream read - try reading more...") );
@@ -1027,7 +1052,7 @@ size_t FinishPendingRead(PCLIENT lpClient DBG_PASS )  // only time this should b
 size_t doReadExx2(PCLIENT lpClient,POINTER lpBuffer,size_t nBytes, LOGICAL bIsStream, LOGICAL bWait, int user_timeout DBG_PASS )
 {
 #ifdef LOG_PENDING
-	lprintf( WIDE( "Reading ... %p(%d) int %p %d (%s,%s)" ), lpClient, lpClient->Socket, lpBuffer, (uint32_t)nBytes, bIsStream?WIDE( "stream" ):WIDE( "block" ), bWait?WIDE( "Wait" ):WIDE( "NoWait" ) );
+	_lprintf(DBG_RELAY)( WIDE( "Reading ... %p(%d) int %p %d (%s,%s)" ), lpClient, lpClient->Socket, lpBuffer, (uint32_t)nBytes, bIsStream?WIDE( "stream" ):WIDE( "block" ), bWait?WIDE( "Wait" ):WIDE( "NoWait" ) );
 #endif
 	if( !lpClient || !lpBuffer )
 		return 0; // nothing read.... ???
@@ -1223,20 +1248,18 @@ int TCPWriteEx(PCLIENT pc DBG_PASS)
 							 pc->lpFirstPending->dwUsed,
 							 (int)pc->lpFirstPending->dwAvail );
 			}
+#ifdef DEBUG_SOCK_IO
+			_lprintf(DBG_RELAY)( "Try to send... %d  %d", pc->lpFirstPending->dwUsed, pc->lpFirstPending->dwAvail );
+#endif
 			nSent = send(pc->Socket,
 							 (char*)pc->lpFirstPending->buffer.c +
 							 pc->lpFirstPending->dwUsed,
 							 (int)pc->lpFirstPending->dwAvail,
 							 0);
-			if( nSent < (int)pc->lpFirstPending->dwAvail ) {
-				pc->lpFirstPending->dwUsed += nSent;
-				pc->lpFirstPending->dwAvail -= nSent;
-				pc->dwFlags |= CF_WRITEPENDING;
-				lprintf( "THIS IS ANOTHER PENDING CONDITION THAT WASN'T ACCOUNTED" );
-			}
-			if (nSent == SOCKET_ERROR)
-			{
-				if( WSAGetLastError() == WSAEWOULDBLOCK )  // this is alright.
+			if (nSent == SOCKET_ERROR) {
+				uint32_t dwError;
+				dwError = WSAGetLastError();
+				if( dwError == WSAEWOULDBLOCK )  // this is alright.
 				{
 #ifdef VERBOSE_DEBUG
 					lprintf( WIDE("Pending write...") );
@@ -1256,14 +1279,14 @@ int TCPWriteEx(PCLIENT pc DBG_PASS)
 				}
 				{
 					_lprintf(DBG_RELAY)(WIDE(" Network Send Error: %5d(buffer:%p ofs: %") _size_f WIDE("  Len: %") _size_f WIDE(")"),
-											  WSAGetLastError(),
+											  dwError,
 											  pc->lpFirstPending->buffer.c,
 											  pc->lpFirstPending->dwUsed,
 											  pc->lpFirstPending->dwAvail );
-					if( WSAGetLastError() == 10057 // ENOTCONN
-						||WSAGetLastError() == 10014 // EFAULT
+					if( dwError == 10057 // ENOTCONN
+						||dwError == 10014 // EFAULT
 #ifdef __LINUX__
-						|| WSAGetLastError() == EPIPE
+						|| dwError == EPIPE
 #endif
 					  )
 					{
@@ -1271,18 +1294,25 @@ int TCPWriteEx(PCLIENT pc DBG_PASS)
 					}
 					return FALSE; // get out of here!
 				}
-			}
-			else if (!nSent)  // other side closed.
-			{
+			} else if (!nSent) { // other side closed.
 				lprintf( WIDE("sent zero bytes - assume it was closed - and HOPE there's an event...") );
 				InternalRemoveClient( pc );
 				// if this happened - don't return TRUE result which would
 				// result in queuing a pending buffer...
 				return FALSE;  // no sence processing the rest of this.
+			} else if( nSent < (int)pc->lpFirstPending->dwAvail ) {
+				//pc->lpFirstPending->dwUsed += nSent;
+				//pc->lpFirstPending->dwAvail -= nSent;
+				pc->dwFlags |= CF_WRITEPENDING;
+				//lprintf( "THIS IS ANOTHER PENDING CONDITION THAT WASN'T ACCOUNTED %d of %d", nSent, pc->lpFirstPending->dwAvail  );
 			}
 		}
 		else
 			nSent = 0;
+
+#ifdef DEBUG_SOCK_IO
+		lprintf( "sent... %d", nSent );
+#endif
 
 		{  // sent some data - update pending buffer status.
 			if( pc->lpFirstPending )
@@ -1393,7 +1423,7 @@ LOGICAL doTCPWriteExx( PCLIENT lpClient
 	if( lpClient->lpFirstPending ) // will already be in a wait on network state...
 	{
 #ifdef VERBOSE_DEBUG
-		Log2(  "%s(%d)Data pending, pending buffer... ", pFile, nLine );
+		_lprintf( DBG_RELAY )(  "Data already pending, pending buffer...%p %d", pInBuffer, nInLen );
 #endif
 		if( !failpending )
 		{
@@ -1401,7 +1431,7 @@ LOGICAL doTCPWriteExx( PCLIENT lpClient
 			lprintf( WIDE("Queuing pending data anyhow...") );
 #endif
 			PendWrite( lpClient, pInBuffer, nInLen, bLongBuffer );
-			TCPWriteEx( lpClient DBG_SRC ); // make sure we don't lose a write event during the queuing...
+			//TCPWriteEx( lpClient DBG_SRC ); // make sure we don't lose a write event during the queuing...
 			NetworkUnlockEx( lpClient DBG_SRC );
 			return TRUE;
 		}
@@ -1426,7 +1456,7 @@ LOGICAL doTCPWriteExx( PCLIENT lpClient
 		lpClient->FirstWritePending.s.bDynBuffer = FALSE;
 		lpClient->FirstWritePending.lpNext       = NULL;
 
-		lpClient->lpLastPending = 
+		lpClient->lpLastPending =
 		lpClient->lpFirstPending = &lpClient->FirstWritePending;
 		if( TCPWriteEx( lpClient DBG_SRC ) )
 		{
@@ -1467,14 +1497,16 @@ LOGICAL TCPDrainRead( PCLIENT pClient )
 						 , (int)nDrainRead, 0 );
 		if( nDrainRead == 0 )//SOCKET_ERROR )
 		{
-			if( WSAGetLastError() == WSAEWOULDBLOCK )
+			uint32_t dwError;
+			dwError = WSAGetLastError();
+			if( dwError == WSAEWOULDBLOCK )
 			{
 				if( !pClient->bDrainExact )
 					pClient->nDrainLength = 0;
 				break;
 			}
 			lprintf(WIDE(" Network Error during drain: %d (from: %p  to: %p  has: %") _size_f WIDE("  toget: %") _size_f WIDE(")")
-			       , WSAGetLastError()
+			       , dwError
 			       , pClient->Socket
 			       , pClient->RecvPending.buffer.p
 			       , pClient->RecvPending.dwUsed
@@ -1568,4 +1600,3 @@ void SetClientKeepAlive( PCLIENT pClient, int bEnable )
 	}
 }
 SACK_NETWORK_TCP_NAMESPACE_END
-

@@ -72,7 +72,7 @@
    // print out a compiler message can't perform zero-D transformations...
 #endif
 
-#if defined( _D3D_DRIVER ) || defined( _D3D10_DRIVER ) || ( !defined( __cplusplus ) && defined( __ANDROID__ ) )
+#if defined( _D3D_DRIVER ) || defined( _D3D10_DRIVER )
 #  ifndef MAKE_RCOORD_SINGLE
 #    define MAKE_RCOORD_SINGLE
 #  endif

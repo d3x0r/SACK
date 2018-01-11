@@ -58,6 +58,35 @@ SACK_SYSTEM_NAMESPACE
 
 #include "taskinfo.h"
 
+
+#ifdef __MAC__
+//sourced from https://github.com/comex/myvmmap/blob/master/myvmmap.c Jan/7/2018
+#  include <mach/mach.h>
+#  if __IPHONE_OS_VERSION_MIN_REQUIRED
+kern_return_t mach_vm_read_overwrite(vm_map_t target_task, mach_vm_address_t address, mach_vm_size_t size, mach_vm_address_t data, mach_vm_size_t *outsize);
+kern_return_t mach_vm_region(vm_map_t target_task, mach_vm_address_t *address, mach_vm_size_t *size, vm_region_flavor_t flavor, vm_region_info_t info, mach_msg_type_number_t *infoCnt, mach_port_t *object_name);
+int proc_pidpath(int pid, void * buffer, uint32_t  buffersize);
+int proc_regionfilename(int pid, uint64_t address, void * buffer, uint32_t buffersize);
+#  else
+#    include <mach/mach_vm.h>
+#    include <libproc.h>
+#  endif
+//#include <stdio.h>
+#  include <assert.h>
+#  include <mach-o/loader.h>
+#  include <mach-o/nlist.h>
+//#include <string.h>
+//#include <stdbool.h>
+//#include <stdlib.h>
+//#include <setjmp.h>
+//#include <sys/queue.h>
+//#include <sys/param.h>
+#  if !__IPHONE_OS_VERSION_MIN_REQUIRED
+#    include <Security/Security.h>
+#  endif
+#endif
+
+
 //-------------------------------------------------------------------------
 //  Function/library manipulation routines...
 //-------------------------------------------------------------------------
@@ -242,6 +271,122 @@ void OSALOT_PrependEnvironmentVariable(CTEXTSTR name, CTEXTSTR value)
 }
 #endif
 
+#ifdef __MAC__
+static bool is_64bit;
+static mach_port_t task;
+static int pid;
+static task_dyld_info_data_t dyld_info;
+static jmp_buf recovery_buf;
+
+static int read_from_task(void *p, mach_vm_address_t addr, mach_vm_size_t size) {
+    mach_vm_size_t outsize;
+    kern_return_t kr = mach_vm_read_overwrite(task, addr, size, (mach_vm_address_t) p, &outsize);
+    if(kr || outsize != size) {
+#if 0
+        fprintf(stderr, "read_from_task(0x%llx, 0x%llx): ", (long long) addr, (long long) size);
+        if(kr)
+            fprintf(stderr, "kr=%d\n", (int) kr);
+        else
+            fprintf(stderr, "short read\n");
+#endif
+				return 0;
+        //_longjmp(recovery_buf, 1);
+    }
+		return 1;
+}
+
+static uint64_t read_64(char **pp) {
+    return *(*(uint64_t **)pp)++;
+}
+static uint32_t read_32(char **pp) {
+    return *(*(uint32_t **)pp)++;
+}
+static mach_vm_address_t read_ptr(char **pp) {
+    return is_64bit ? read_64(pp) : read_32(pp);
+}
+
+static void lookup_dyld_images() {
+    char all_images[12], *p = all_images;
+    if( !read_from_task(p, dyld_info.all_image_info_addr + 4, 12) )
+			return;
+    uint32_t info_array_count = read_32(&p);
+    mach_vm_address_t info_array = read_ptr(&p);
+    if(info_array_count > 10000) {
+        fprintf(stderr, "** dyld image info had malformed data.\n");
+        return;
+    }
+
+    size_t size = (is_64bit ? 24 : 12) * info_array_count;
+    char *image_info = NewArray( char, size);
+    p = image_info;
+    if( !read_from_task(p, info_array, size) )
+			return;
+
+    for(uint32_t i = 0; i < info_array_count; i++) {
+        mach_vm_address_t
+            load_address = read_ptr(&p),
+            file_path_addr = read_ptr(&p);
+        read_ptr(&p); // file_mod_date
+        //if(_setjmp(recovery_buf))
+        //    continue;
+        char path[MAXPATHLEN + 1];
+        if( !read_from_task(path, file_path_addr, sizeof(path)) )
+				   continue;
+        if(strnlen(path, sizeof(path)) == sizeof(path))
+            fprintf(stderr, "** dyld image info had malformed data.\n");
+        else {
+					  AddMappedLibrary( path, dlopen( path, 0 ) );
+            //printf( "PATH:%s %p", path, load_address );
+            //printf( "  load is %p\n", dlopen( path, 0 ) );
+            //if( dlsym( load_address, "dlsym" )) printf( "** FOUND DLSYM**\n");
+          }
+    }
+
+    return;
+}
+
+void loadMacLibraries(struct local_systemlib_data *init_l) {
+    bool got_showaddr = false;
+    mach_vm_address_t showaddr;
+    pid = getpid();
+    task = mach_task_self();
+
+    char path[MAXPATHLEN];
+    size_t path_size;
+
+    if((path_size = proc_pidpath(pid, path, sizeof(path))))
+        path[path_size] = 0;
+    else
+        strcpy(path, "???");
+    //printf("%d: %s\n", pid, path);
+    {
+				TEXTCHAR *ext, *ext1;
+				ext = (TEXTSTR)StrRChr( (CTEXTSTR)path, '.' );
+				if( ext )
+						ext[0] = 0;
+				ext1 = (TEXTSTR)pathrchr( path );
+				if( ext1 )
+				{
+						ext1[0] = 0;
+						(*init_l).filename = StrDupEx( ext1 + 1 DBG_SRC );
+						(*init_l).load_path = StrDupEx( path DBG_SRC );
+				}
+				else
+				{
+						(*init_l).filename = StrDupEx( path DBG_SRC );
+						(*init_l).load_path = StrDupEx( WIDE("") DBG_SRC );
+				}
+		}
+
+    assert(!task_info(task, TASK_DYLD_INFO, (task_info_t) &dyld_info, (mach_msg_type_number_t[]) {TASK_DYLD_INFO_COUNT}));
+    is_64bit = dyld_info.all_image_info_addr >= (1ull << 32);
+
+    lookup_dyld_images();
+}
+
+#endif
+
+
 static void CPROC SetupSystemServices( POINTER mem, uintptr_t size )
 {
 	struct local_systemlib_data *init_l = (struct local_systemlib_data *)mem;
@@ -404,7 +549,9 @@ static void CPROC SetupSystemServices( POINTER mem, uintptr_t size )
 	{
 		/* #include unistd.h, stdio.h, string.h */
 		{
-			char buf[256], *pb;
+			char buf[256];
+#       ifndef __MAC__
+			char *pb;
 			int n;
 			n = readlink("/proc/self/exe",buf,256);
 			if( n >= 0 )
@@ -426,8 +573,12 @@ static void CPROC SetupSystemServices( POINTER mem, uintptr_t size )
 			//lprintf( WIDE("My execution: %s"), buf);
 			(*init_l).filename = StrDupEx( pb + 1 DBG_SRC );
 			(*init_l).load_path = StrDupEx( buf DBG_SRC );
+#       endif
 			local_systemlib = init_l;
 			AddMappedLibrary( "dummy", NULL );
+#       ifdef __MAC__
+			loadMacLibraries( init_l );
+#       endif
 			local_systemlib = NULL;
 			{
 				PLIBRARY library = (*init_l).libraries;
@@ -437,6 +588,7 @@ static void CPROC SetupSystemServices( POINTER mem, uintptr_t size )
 						break;
 					library = library->next;
 				}
+				//if( library )
 				{
 					char *dupname;
 					char *path;
@@ -447,7 +599,7 @@ static void CPROC SetupSystemServices( POINTER mem, uintptr_t size )
 					(*init_l).library_path = dupname;
 				}
 			}
-			setenv( WIDE("MY_LOAD_PATH"), buf, TRUE );
+			setenv( WIDE("MY_LOAD_PATH"), (*init_l).load_path, TRUE );
 			//strcpy( pMyPath, buf );
 
 			GetCurrentPath( buf, sizeof( buf ) );
@@ -746,7 +898,7 @@ uintptr_t CPROC WaitForTaskEnd( PTHREAD pThread )
 	// this should be considered the owner of this.
 	if( !task->EndNotice )
 	{
-		// application is dumb, hold the task for him; otherwise 
+		// application is dumb, hold the task for him; otherwise
 		// the application is aware that after EndNotification the task is no longer valid.
 		Hold( task );
 	}
@@ -1219,13 +1371,16 @@ static void LoadExistingLibraries( void )
 			AddMappedLibrary( dll_name, modules[n] );
 #ifdef UNICODE
 			Deallocate( TEXTSTR, _dll_name );
-#undef dll_name 
+#undef dll_name
 
 		}
 #endif
 	}
 #endif
-#ifdef __LINUX__
+#ifdef __MAC__
+	lookup_dyld_images();
+#else
+#  ifdef __LINUX__
 	{
 		FILE *maps;
 		char buf[256];
@@ -1236,9 +1391,7 @@ static void LoadExistingLibraries( void )
 			char *split = strchr( buf, '-' );
 			if( libpath && split )
 			{
-#ifndef __MAC__
 				char *dll_name = strrchr( libpath, '/' );
-#endif
 				size_t start, end;
 				char perms[8];
 				size_t offset;
@@ -1250,7 +1403,6 @@ static void LoadExistingLibraries( void )
 				scanned = sscanf( buf, "%zx-%zx %s %zx", &start, &end, perms, &offset );
 				if( scanned == 4 && offset == 0 )
 				{
-#ifndef __MAC__
 					if( ( perms[2] == 'x' )
 						&& ( ( end - start ) > 4 ) )
 						if( ( ((unsigned char*)start)[0] == ELFMAG0 )
@@ -1261,12 +1413,12 @@ static void LoadExistingLibraries( void )
 							//lprintf( "Add library %s %p", dll_name + 1, start );
 							AddMappedLibrary( libpath, (POINTER)start );
 						}
-#endif
 				}
 			}
 		}
 		sack_fclose( maps );
 	}
+#  endif
 #endif
 }
 
@@ -1299,7 +1451,7 @@ SYSTEM_PROC( void, AddMappedLibrary)( CTEXTSTR libname, POINTER image_memory )
 		LoadExistingLibraries();
 		library = l.libraries;
 		loading = 0;
-		if( !image_memory ) 
+		if( !image_memory )
 			return;
 	}
 
@@ -1482,9 +1634,9 @@ SYSTEM_PROC( generic_function, LoadFunctionExx )( CTEXTSTR libname, CTEXTSTR fun
 						|| StrCaseCmp( check->name, library->name ) == 0 ) )
 				{
 					UnlinkThing( library );
-					Deallocate( PLIBRARY, library );					
+					Deallocate( PLIBRARY, library );
 					library = check;
-					// loaded.... 
+					// loaded....
 					goto get_function_name;
 				}
 			}
@@ -1674,13 +1826,13 @@ get_function_name:
 #  ifdef UNICODE
 										Deallocate( TEXTCHAR *, _tmp_fname );
 										Deallocate( TEXTCHAR *, _tmp_func );
-#    undef tmpname 
-#    undef fname    
+#    undef tmpname
+#    undef fname
 #  endif
 										Deallocate( char *, tmpname );
 										return f;
 									}
-									//lprintf( "%s  %s is %d  %d = %p %p", library->name, name, n, ords[n], f[n], f[ords[n]] );									
+									//lprintf( "%s  %s is %d  %d = %p %p", library->name, name, n, ords[n], f[n], f[ords[n]] );
 									return (generic_function)Seek( library->library, (uintptr_t)f[ords[n]] );
 								}
 							}
@@ -1695,7 +1847,7 @@ get_function_name:
 				if( ( (uintptr_t)funcname & 0xFFFF ) == (uintptr_t)funcname )
 				{
 					function = NewPlus( FUNCTION, len=0 );
-					function->name = funcname;				
+					function->name = funcname;
 				}
 				else
 				{
@@ -2046,5 +2198,3 @@ void SetProgramName( CTEXTSTR filename )
 #undef Seek
 
 SACK_SYSTEM_NAMESPACE_END
-
-

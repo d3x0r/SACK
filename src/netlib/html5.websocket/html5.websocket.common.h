@@ -45,6 +45,7 @@ struct web_socket_input_state
 	size_t fragment_collection_avail;
 	size_t fragment_collection_length;
 	size_t fragment_collection_index;  // used for selecting mask byte
+	size_t fragment_collection_buffer_size;
 	uint8_t* fragment_collection;
 
 	LOGICAL final;
@@ -63,10 +64,11 @@ struct web_socket_input_state
 	web_socket_error on_error;
 	web_socket_accept on_accept;  // server socket event
 	web_socket_http_request on_request;
+	web_socket_completion on_fragment_done;
 	uintptr_t psv_on;
 	uintptr_t psv_open; // result of the open, to pass to read
 	int close_code;
-   char *close_reason;
+	char *close_reason;
 };
 
 EXTERN void SendWebSocketMessage( PCLIENT pc, int opcode, int final, int do_mask, const uint8_t* payload, size_t length, int use_ssl );
@@ -97,7 +99,7 @@ struct web_socket_client
 	{
 		BIT_FIELD connected : 1; // if not connected, then parse data as http, otherwise process as websock protocol.
 		BIT_FIELD want_close : 1; // schedule to close
-		BIT_FIELD use_ssl : 1;
+		//BIT_FIELD use_ssl : 1;
 	} flags;
 	PCLIENT pc;
 

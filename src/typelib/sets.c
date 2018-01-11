@@ -71,6 +71,7 @@ PGENERICSET GetFromSetPoolEx( GENERICSET **pSetSet, int setsetsizea, int setunit
 	PGENERICSET set;
 	uint32_t maxbias = 0;
 	void *unit = NULL;
+	uintptr_t ofs = ( ( ( maxcnt + 31 ) / 32 ) * 4 );
 
 	if( !pSet )
 		return NULL; // can never return something from nothing.
@@ -142,6 +143,7 @@ ExtendSet:
 
 		while( !unit && set )
 		{
+			uintptr_t base = ( (uintptr_t)set->bUsed ) + ofs;
 			// quick skip for 32 bit blocks of used members...
 			n = 0;
 			for( n = 0; n < maxcnt && ((maxcnt-n) >= 32) && AllUsed( set,n ); n+=32 );
@@ -157,12 +159,9 @@ ExtendSet:
 			{
 				if( !IsUsed( set, n ) )
 				{
-					unit = (void*)( ((uintptr_t)(set->bUsed))
-										+ ( ( (maxcnt +31) / 32 ) * 4 ) // skip over the bUsed bitbuffer
-										+ n * unitsize ); // go to the appropriate offset
+					unit = (void*)( base + n * unitsize ); // go to the appropriate offset
 					SetUsed( set, n );
-					//set->nUsed++;
-					break;
+					return (PGENERICSET)unit;
 				}
 			}
 			if( n == maxcnt )
@@ -175,7 +174,9 @@ ExtendSet:
 				set = set->next;
 			}
 		}
+#ifdef Z_DEBUG
 		if( bLog ) _lprintf( DBG_RELAY )( WIDE( "Unit result: %p from %p %d %d %d %d" ), unit, set, unitsize, maxcnt, n, ( ( (maxcnt +31) / 32 ) * 4 )  );
+#endif
 	}
 	return (PGENERICSET)unit;
 }
@@ -335,21 +336,17 @@ int MemberValidInSet( GENERICSET *pSet, void *unit, int unitsize, int max )
 void DeleteFromSetExx( GENERICSET *pSet, void *unit, int unitsize, int max DBG_PASS )
 {
 	uintptr_t nUnit = (uintptr_t)unit;
-	int ofs = ( ( max + 31 ) / 32) * 4;
-	if( bLog ) _lprintf(DBG_RELAY)( WIDE("Deleting from  %p of %p "), pSet, unit );
+	uintptr_t ofs = ( ( max + 31 ) / 32) * 4;
+	uintptr_t base;
+	//if( bLog ) _lprintf(DBG_RELAY)( WIDE("Deleting from  %p of %p "), pSet, unit );
 	while( pSet )
 	{
-		if( bLog ) lprintf( WIDE( "range to check is %")_PTRSZVALfx WIDE("(%d) to %")_PTRSZVALfx WIDE("(%d)" )
-				 ,	  ((uintptr_t)(pSet->bUsed) + ofs )
-			     ,(nUnit >= ((uintptr_t)(pSet->bUsed) + ofs ))
-				  , ((uintptr_t)(pSet->bUsed) + ofs + unitsize*max )
-		        , (nUnit <= ((uintptr_t)(pSet->bUsed) + ofs + unitsize*max ))
-				 );
-		if( (nUnit >= ((uintptr_t)(pSet->bUsed) + ofs )) &&
-		    (nUnit <= ((uintptr_t)(pSet->bUsed) + ofs + unitsize*max )) )
+		base = ( (uintptr_t)( pSet->bUsed ) + ofs );
+		if( (nUnit >= base) &&
+		    (nUnit < ( base + unitsize*max )) )
 		{
-			uintptr_t n = nUnit - ( ((uintptr_t)(pSet->bUsed)) + ofs );
-			//Log1( WIDE("Found item in set at %d"), n / unitsize );
+			uintptr_t n = nUnit - base;
+#ifdef Z_DEBUG
 			if( n % unitsize )
 			{
 				lprintf( WIDE("Error in set member alignment! %p %p %p  %d %")_PTRSZVALfs WIDE(" %")_PTRSZVALfs WIDE(" of %d")
@@ -361,15 +358,17 @@ void DeleteFromSetExx( GENERICSET *pSet, void *unit, int unitsize, int max DBG_P
 				DebugBreak();
 				return;
 			}
+#endif
 			n /= unitsize;
 			ClearUsed( pSet, n );
-			//pSet->nUsed--; // one not used - quick reference counter
 			break;
 		}
 		pSet = pSet->next;
 	}
+#ifdef Z_DEBUG
 	if( !pSet )
 		Log( WIDE("Failed to find node in set!") );
+#endif
 }
 
 

@@ -75,19 +75,19 @@ void  MemSet ( POINTER p, uintptr_t n, size_t sz )
 		if( sz & 2 )
 			(*(uint16_t*)( ((uintptr_t)p) + sz - (sz&3) ) ) = (uint16_t)n;
 		if( sz & 1 )
-			(*(uint8_t*)( ((uintptr_t)p) + sz - (sz&1) ) ) = (uint8_t)n;
+			(*(uint8_t*)( ((uintptr_t)p) + sz - 1 ) ) = (uint8_t)n;
 #  else
 		{
 			int m; int len = sz/4;
 			for( m = 0; m < len; m++ ) {
-				((uint64_t*)tmp)[0] = n;
+				((uint32_t*)tmp)[0] = n;
 				tmp += 4;
 			}
 		}
 		if( sz & 2 )
 			(*(uint16_t*)( ((uintptr_t)p) + sz - (sz&3) ) ) = (uint16_t)n;
 		if( sz & 1 )
-			(*(uint8_t*)( ((uintptr_t)p) + sz - (sz&1) ) ) = (uint8_t)n;
+			(*(uint8_t*)( ((uintptr_t)p) + sz - 1 ) ) = (uint8_t)n;
 #  endif
 	}
 #else
@@ -105,8 +105,8 @@ int  MemChk ( POINTER p, uintptr_t val, size_t sz )
 #if defined( _MSC_VER ) && !defined( __NO_WIN32API__ ) && !defined( UNDER_CE )
 	size_t n;
 	uintptr_t *data = (uintptr_t*)p;
-	for( n = 0; n < sz/sizeof(uintptr_t); n++ )
-		if( data[n] != val )
+	for( n = 0; n < sz/sizeof(uintptr_t); n++, data++ )
+		if( data[0] != val )
 			return 0;
    return 1;
 #else
@@ -398,16 +398,16 @@ size_t StrLen( CTEXTSTR s )
 	size_t l;
 	if( !s )
 		return 0;
-	for( l = 0; s[l];l++);
+	for( l = 0; s[0];l++, s++);
 	return l;	
 }
 
-size_t CStrLen( char const*const s )
+size_t CStrLen( char const* s )
 {
 	size_t l;
 	if( !s )
 		return 0;
-	for( l = 0; s[l];l++);
+	for( l = 0; s[0];l++,s++);
 	return l;	
 }
 

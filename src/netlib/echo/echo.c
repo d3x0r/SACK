@@ -27,6 +27,7 @@ void CPROC ServerRecieve( PCLIENT pc, POINTER buf, size_t size )
 
 void CPROC ClientConnected( PCLIENT pListen, PCLIENT pNew )
 {
+	printf( "New Connection\n" );
 	SetNetworkReadComplete( pNew, ServerRecieve );
 }
 
@@ -51,6 +52,7 @@ int main( int argc, char **argv )
 	{
 		printf( WIDE("usage: %s <listen port> (defaulting to telnet)\n"), DupCharToText( argv[0] ) );
 		port = CreateSockAddress( WIDE("localhost:23"), 23 );
+		pcListen = OpenTCPListenerAddrEx( port, ClientConnected );
 	}
 	else {
 		if( argv[1][0] == '-' ) {

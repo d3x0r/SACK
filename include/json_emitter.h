@@ -218,15 +218,15 @@ enum json_value_types {
 
 struct json_value_container {
 	char * name;  // name of this value (if it's contained in an object)
-	//size_t nameLen;
+	size_t nameLen;
 	enum json_value_types value_type; // value from above indiciating the type of this value
 	char *string;   // the string value of this value (strings and number types only)
 	size_t stringLen;
-	//size_t stringLen;
 	int float_result;  // boolean whether to use result_n or result_d
 	double result_d;
 	int64_t result_n;
 	PDATALIST contains;  // list of struct json_value_container that this contains.
+	PDATALIST *_contains;  // list of struct json_value_container that this contains.
 };
 
 

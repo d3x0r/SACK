@@ -84,7 +84,7 @@ static void CPROC _PatchFile( uintptr_t psv,  CTEXTSTR filename, int flags )
 			sack_fread( data, size, 1, in );
 			if( l.verbose ) printf( " file sizes (%zd) (%zd)\n", size, size2 );
 			if( size == size2 )
-			{			
+			{
 				POINTER data2 = NewArray( uint8_t, size2 );
 				sack_fread( data2, size2, 1, in2 );
 				if( l.verbose ) printf( "read %zd\n", size );
@@ -96,7 +96,7 @@ static void CPROC _PatchFile( uintptr_t psv,  CTEXTSTR filename, int flags )
 				Deallocate( POINTER, data2 );
 			}
 			if( ( size != size2 )
-			   || (StrCaseCmp( filename, ".app.config" ) == 0) 
+			   || (StrCaseCmp( filename, ".app.config" ) == 0)
 			   || (StrCaseCmp( filename, "./.app.config" ) == 0) )
 			{
 				FILE *out = sack_fopenEx( 0, filename, "wb", l.current_mount );
@@ -325,13 +325,13 @@ static void AppendFilesAs( CTEXTSTR filename1, CTEXTSTR filename2, CTEXTSTR outp
 	{
 #ifdef WIN32
 		POINTER extra = GetExtraData( buffer );
-#else		
+#else
 		POINTER extra = (POINTER)file1_size;
 		lprintf( "linux append is probably wrong here..." );
 #endif
 		//printf( "output is... %zd %p %zd\n", file1_size, extra, (uintptr_t)extra - (uintptr_t)buffer );
 		// there's probably a better expression...
-		if( ((uintptr_t)extra - (uintptr_t)buffer) <= ( (file1_size + (2*BLOCK_SIZE-1) )& ~(BLOCK_SIZE-1) ) ) 
+		if( ((uintptr_t)extra - (uintptr_t)buffer) <= ( (file1_size + (2*BLOCK_SIZE-1) )& ~(BLOCK_SIZE-1) ) )
 		{
 			sack_fseek( file_out, ((uintptr_t)extra - (uintptr_t)buffer), SEEK_SET );
 		}
@@ -428,7 +428,7 @@ SaneWinMain( argc, argv )
 	if( argc < 2 ) { usage(); return 0; }
 
 	l.fsi = sack_get_filesystem_interface( SACK_VFS_FILESYSTEM_NAME );
-	if( !l.fsi ) 
+	if( !l.fsi )
 	{
 		printf( "Failed to load file system interface.\n" );
 		return 0;
@@ -486,7 +486,7 @@ SaneWinMain( argc, argv )
 		else if( StrCaseCmp( argv[arg], "patch" ) == 0 )
 		{
 			if( (arg+2) <= argc )
-				if( PatchFile( argv[arg+1], argv[arg+2], NULL, NULL ) ) 
+				if( PatchFile( argv[arg+1], argv[arg+2], NULL, NULL ) )
 					return 2;
 			arg+=2;
 		}

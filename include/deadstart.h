@@ -21,43 +21,43 @@ SACK_NAMESPACE
    of initialization that allows for creation of threads, and
    transparent (easy to use) method of scheduling routines for
    initialization.
-   
-   
+
+
    Example
    This schedules a routine to run at startup. Fill in the
    routine with the code you want, and it will run at
    DEFAULT_PRELOAD_PRIORITY which is the number 69.
-   
+
    <code lang="c++">
-   
+
    PRELOAD( MyCustomInit )
    {
        // do something here (do anything here,
        // without limitations that are imposed by DllMain/LibMain.
    }
-   
+
    </code>
-   
+
    If you wanted a routine which was guaranteed to run before
    MyCustomInit you might use PRIORITY_PRELOAD whcih allows you
    to specify a priority.
    <code lang="c++">
-   
+
    PRIORITY_PRELOAD( MyOtherInit, DEFAULT_PRELOAD_PRIORITY-10 )
    {
       // this will run before other things.
    }
-   
+
    </code>
-   
+
    Priorities are listed in deadstart.h and exit_priorities.h. The
    priorities are treated backwards, so low number startup
    priorities go first, and higher number shutdown priorities go
    first.
-   
-   
-   
-   
+
+
+
+
    Remarks
    In some compilers and compile modes this is also fairly easy
    to do. A lot of compilers do not offer priority, and are
@@ -65,9 +65,9 @@ SACK_NAMESPACE
    provide startup priority for C++ mode. This system works as
    \long as there is a way to run a single function at some
    point before main() and after C runtime initializes.
-   
-   
-   
+
+
+
    In Windows, you might think you have this ability with
    DllMain, but there are severe limitations that you would have
    to get around; primary is the inability to create a thread,
@@ -75,14 +75,14 @@ SACK_NAMESPACE
    you leave DllMains and all DllMains finish. There is also no
    way to consistantly provide initialization order, like memory
    needs to be initialized before anything else.
-   
-   
+
+
                                                                    */
 
 		namespace deadstart {
 
 #else
-#define USE_SACK_DEADSTART_NAMESPACE 
+#define USE_SACK_DEADSTART_NAMESPACE
 #define SACK_DEADSTART_NAMESPACE
 #define SACK_DEADSTART_NAMESPACE_END
 #endif
@@ -112,9 +112,9 @@ SACK_NAMESPACE
 
    /* this is just a global space initializer (shared, named
       region, allows static link plugins to share information)
-      
-      
-      
+
+
+
       Allocates its shared memory global region, so if this library
       is built statically and referenced in multiple plugins
       ConfigScript can share the same symbol tables. This also
@@ -133,13 +133,13 @@ SACK_NAMESPACE
 
 /* Level which names initializes. Names is the process
    registration code. It has a common shared global registered.
-   
+
    <link sack::app::registry, procreg; aka names.c>             */
 #define NAMESPACE_PRELOAD_PRIORITY 39
 /* image_preload MUST be after Namespce preload (anything that
    uses RegisterAndCreateGlobal) should init this before vidlib
    (which needs image?)                                         */
-#define IMAGE_PRELOAD_PRIORITY  45 
+#define IMAGE_PRELOAD_PRIORITY  45
 /* Level at which the video render library performs its
    initialization; RegisterClass() level code.          */
 #define VIDLIB_PRELOAD_PRIORITY 46
@@ -169,8 +169,8 @@ SACK_NAMESPACE
    scheduling mechanisms, routines which create threads under
    windows are guaranteed to run before main, and are guaranteed
    able to create threads. (They are outside of the loader lock)
-   
-   
+
+
    Parameters
    function :  pointer to a function to call at startup.
    name :      text name of the function
@@ -266,12 +266,12 @@ DEADSTART_PROC  void DEADSTART_CALLTYPE  DispelDeadstart ( void );
    is 69).
    Example
    <code>
-   
+
    PRIORITY_PRELOAD( MyOtherInit, 153 )
    {
       // run some code probably after most all other initializtion is done.
    }
-   
+
    </code>
    See Also
    <link sack::app::deadstart, deadstart Namespace>                         */
@@ -294,8 +294,8 @@ DEADSTART_PROC  void DEADSTART_CALLTYPE  DispelDeadstart ( void );
 /* A macro to define some code to run during program shutdown. An
    additional priority may be specified if the order matters. Higher
    numbers are called first.
-   
-   
+
+
                                                                      */
 #define ATEXIT_PRIORITY(name,priority) static void CPROC name(void); \
    static class pastejunk(schedule_,name) {   \
@@ -308,13 +308,13 @@ DEADSTART_PROC  void DEADSTART_CALLTYPE  DispelDeadstart ( void );
    specification of a priority. Higher priorities are run first.
    Example
    <code>
-   
+
    PRIORITY_ATEXIT( MyOtherShutdown, 153 )
    {
       // run some code probably before most library code dissolves.
       // last to load, first to unload.
    }
-   
+
    </code>
    See Also
    <link sack::app::deadstart, deadstart Namespace>                 */
@@ -330,18 +330,18 @@ DEADSTART_PROC  void DEADSTART_CALLTYPE  DispelDeadstart ( void );
 
 /* This is the most basic way to define some code to run
    initialization before main.
-   
-   
-   
-   
+
+
+
+
    Example
    <code lang="c++">
-   
+
    PRELOAD( MyInitCode )
    {
       // some code here
    }
-   
+
    </code>
    See Also
    <link sack::app::deadstart, deadstart Namespace>      */
@@ -349,9 +349,9 @@ DEADSTART_PROC  void DEADSTART_CALLTYPE  DispelDeadstart ( void );
 /* Basic way to register a routine to run when the program exits
    gracefully.
    Example
-   \ \ 
+   \ \
    <code>
-   
+
    ATEXIT( MyExitRoutine )
    {
        // this will be run sometime during program shutdown
@@ -487,9 +487,15 @@ struct rt_init // structure placed in XI/YI segment
 #  define PASS_FILENAME
 #endif
 
+#ifdef __MAC__
+#  define DEADSTART_SECTION "TEXT,deadstart_list"
+#else
+#  define DEADSTART_SECTION "deadstart_list"
+#endif
+
 #define PRIORITY_PRELOAD(name,pr) static void name(void); \
 	RTINIT_STATIC struct rt_init pastejunk(name,_ctor_label) \
-	  __attribute__((section("deadstart_list"))) __attribute__((used)) \
+	  __attribute__((section(DEADSTART_SECTION))) __attribute__((used)) \
 	={0,0,pr INIT_PADDING    \
 	 ,__LINE__,name         \
 	 PASS_FILENAME        \
@@ -567,7 +573,7 @@ struct rt_init // structure placed in XI/YI segment
 #define JUNKINIT(name) ,&pastejunk(name,_ctor_label)
 
 #ifdef __cplusplus
-#define RTINIT_STATIC 
+#define RTINIT_STATIC
 #else
 #define RTINIT_STATIC static
 #endif
@@ -632,7 +638,7 @@ void name( void)
 #else
 #define LOG_ERROR(n) SystemLog( n )
 
-// since we get linked first, then the runtime is added, we have to link against the last indicator of section, 
+// since we get linked first, then the runtime is added, we have to link against the last indicator of section,
 // so we get put between start to end.
 #define _STARTSEG_ ".CRT$XIM"
 #define _STARTSEG2_ ".CRT$XCY"
@@ -711,7 +717,7 @@ typedef void(*atexit_priority_proc)(void (*)(void),int,CTEXTSTR DBG_PASS);
    runs at some point before the program starts. This code is
    declared as static, so the same preload initialization name
    can be used in multiple files.
-   
+
    <link sack::app::deadstart, See Also.>                      */
 #define PRELOAD(name)
 #endif

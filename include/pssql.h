@@ -884,7 +884,7 @@ PSSQL_PROC( TEXTSTR ,EscapeStringEx )( CTEXTSTR name DBG_PASS );
 /* <combine sack::sql::EscapeStringEx@CTEXTSTR name>
    
    \ \                                               */
-#define EscapeStringOpt(s,q) EscapeSQLBinaryExx( NULL,s,StrLen(s),q DBG_SRC )
+#define EscapeStringOpt(s,q) EscapeSQLBinaryExx( NULL,s,StrLen(s),NULL, q DBG_SRC )
 /* \ \ 
    Parameters
    odbc :  connection to escape the string appropriately for. Different
@@ -928,24 +928,25 @@ PSSQL_PROC( TEXTSTR ,EscapeBinaryEx )( CTEXTSTR blob, uintptr_t bloblen DBG_PASS
 /* <combine sack::sql::EscapeBinaryEx@CTEXTSTR@uintptr_t bloblen>
    
    \ \                                                           */
-#define EscapeBinaryOpt(b,bl,q) EscapeSQLBinaryExx(NULL,b,bl,q DBG_SRC )
+#define EscapeBinaryOpt(b,bl,q) EscapeSQLBinaryExx(NULL,b,bl,NULL,q DBG_SRC )
 
 /* <combine sack::sql::EscapeBinaryEx@CTEXTSTR@uintptr_t bloblen>
    
    \ \                                                           */
-PSSQL_PROC( TEXTSTR,EscapeSQLBinaryExx )( PODBC odbc, CTEXTSTR blob, uintptr_t bloblen, LOGICAL bQuote DBG_PASS );
+PSSQL_PROC( TEXTSTR,EscapeSQLBinaryExx )( PODBC odbc, CTEXTSTR blob, size_t bloblen, size_t *resultLen, LOGICAL bQuote DBG_PASS );
 /* <combine sack::sql::EscapeBinaryEx@CTEXTSTR@uintptr_t bloblen>
    
    \ \                                                           */
-PSSQL_PROC( TEXTSTR,EscapeSQLBinaryEx )( PODBC odbc, CTEXTSTR blob, uintptr_t bloblen DBG_PASS );
+//PSSQL_PROC( TEXTSTR,EscapeSQLBinaryEx )( PODBC odbc, CTEXTSTR blob, uintptr_t bloblen DBG_PASS );
 /* <combine sack::sql::EscapeSQLBinaryEx@PODBC@CTEXTSTR@uintptr_t bloblen>
    
    \ \                                                                    */
-#define EscapeSQLBinary(odbc,blob,len) EscapeSQLBinaryEx( odbc,blob,len DBG_SRC )
+#define EscapeSQLBinary(odbc,blob,len) EscapeSQLBinaryExx( odbc,blob,len, NULL, FALSE DBG_SRC )
 /* <combine sack::sql::EscapeSQLBinaryEx@PODBC@CTEXTSTR@uintptr_t bloblen>
    
    \ \                                                                    */
-#define EscapeSQLBinaryOpt(odbc,blob,len,q) EscapeSQLBinaryExx( odbc,blob,len,q DBG_SRC )
+#define EscapeSQLBinaryOpt(odbc,blob,len,q) EscapeSQLBinaryExx( odbc,blob,len,NULL,q DBG_SRC )
+#define EscapeSQLBinaryLen(odbc,blob,len,resLen,q) EscapeSQLBinaryExx( odbc,blob,len,resLen, q DBG_SRC )
 
 /* Remove escape sequences which are inserted into a text
    string. (for things like quotes and binary characters?)
@@ -1293,6 +1294,9 @@ PSSQL_PROC( int, FetchSQLTypes )( PODBC );
    See SQLRecordQueryf, but omit the database parameter.         */
 PSSQL_VARARG_PROC( int, DoSQLRecordQueryf ,( int *columns, CTEXTSTR **result, CTEXTSTR **fields, CTEXTSTR fmt, ... ) );
 #define DoSQLRecordQueryf   (__DoSQLRecordQueryf( DBG_VOIDSRC ))
+
+
+
 /* <combine sack::sql::SQLQueryf@PODBC@CTEXTSTR *@CTEXTSTR@...>
    
    \ \                                                          */
@@ -1380,6 +1384,10 @@ PSSQL_VARARG_PROC( int, DoSQLCommandf, ( CTEXTSTR fmt, ... ) );
 //PSSQL_PROC( int, SQLRecordQueryf )( PODBC odbc, int *columns, CTEXTSTR **result, CTEXTSTR **fields, CTEXTSTR fmt, ... );
 PSSQL_VARARG_PROC( int, SQLRecordQueryf, ( PODBC odbc, int *columns, CTEXTSTR **result, CTEXTSTR **fields, CTEXTSTR fmt, ... ) );
 #define SQLRecordQueryf   (__SQLRecordQueryf( DBG_VOIDSRC ))
+
+PSSQL_VARARG_PROC( int, SQLRecordQueryf_v2, ( PODBC odbc, int *nResults, CTEXTSTR **result, size_t **resultLengths, CTEXTSTR **fields, CTEXTSTR fmt, ... ) );
+#define SQLRecordQueryf_v2   (__SQLRecordQueryf_v2( DBG_VOIDSRC ))
+
 /* This was the original implementation, it returned the results
    as a comma separated list, with quotes around results that
    had commas in them, and quotes around empty strings to
@@ -1635,6 +1643,64 @@ PSSQL_PROC( CTEXTSTR, GetSQLOffsetDate )( PODBC odbc, CTEXTSTR BeginOfDayType, i
    */
 PSSQL_PROC( LOGICAL, BackupDatabase )( PODBC source, PODBC dest );
 
+/* return the underlaying native connection handle of the database connection
+ */
+// deprecated during dev, instead added function hook exports
+//PSSQL_PROC( POINTER, GetODBCHandle )( PODBC odbc );
+
+#if defined( USE_SQLITE ) || defined( USE_SQLITE_INTERFACE )
+
+#ifdef __cplusplus
+SQL_NAMESPACE_END
+#endif
+struct sqlite3_value;
+struct sqlite3_context;
+#ifdef __cplusplus
+SQL_NAMESPACE
+#endif
+
+
+PSSQL_PROC( int, PSSQL_AddSqliteFunction )( PODBC odbc
+	, const char *name
+	, void( *callUserFunction )( struct sqlite3_context*onwhat, int argc, struct sqlite3_value**argv )
+	, int args
+	, void *userData );
+PSSQL_PROC( int, PSSQL_AddSqliteAggregate )( PODBC odbc
+	, const char *name
+	, void( *callStep )( struct sqlite3_context*onwhat, int argc, struct sqlite3_value**argv )
+	, void( *callFinal )( struct sqlite3_context*onwhat )
+	, int args
+	, void *userData );
+
+
+PSSQL_PROC( POINTER, PSSQL_GetSqliteFunctionData )( struct sqlite3_context*context );
+
+PSSQL_PROC( void, PSSQL_ResultSqliteText )( struct sqlite3_context*context, const char *data, int dataLen, void (*done)(void*) );
+PSSQL_PROC( void, PSSQL_ResultSqliteBlob )( struct sqlite3_context*context, const char *data, int dataLen, void (*done)(void*) );
+PSSQL_PROC( void, PSSQL_ResultSqliteDouble )( struct sqlite3_context*context, double val );
+PSSQL_PROC( void, PSSQL_ResultSqliteInt )( struct sqlite3_context*context, int val );
+PSSQL_PROC( void, PSSQL_ResultSqliteInt64 )( struct sqlite3_context*context, int64_t val );
+PSSQL_PROC( void, PSSQL_ResultSqliteNull )( struct sqlite3_context*context );
+
+enum sqlite_data_types {
+	PSSQL_TYPE_INTEGER= 1, /*SQLITE_INTEGER*/
+	PSSQL_TYPE_FLOAT= 2,  /*SQLITE_FLOAT */
+	PSSQL_TYPE_TEXT = 3, /* SQLITE_TEXT/SQLITE3_TEXT */
+	PSSQL_TYPE_BLOB  = 4,  /* SQLITE_BLOB */
+	PSSQL_TYPE_NULL = 5,   /* SQLITE_NULL */
+};
+
+PSSQL_PROC( enum sqlite_data_types, PSSQL_GetSqliteValueType )( struct sqlite3_value *val );
+PSSQL_PROC( void, PSSQL_GetSqliteValueText )( struct sqlite3_value *val, const char **text, int *textLen );
+PSSQL_PROC( void, PSSQL_GetSqliteValueBlob )( struct sqlite3_value *val, const char **text, int *textLen );
+PSSQL_PROC( void, PSSQL_GetSqliteValueDouble )( struct sqlite3_value *val, double *result );
+PSSQL_PROC( void, PSSQL_GetSqliteValueInt )( struct sqlite3_value *val, int *result );
+PSSQL_PROC( void, PSSQL_GetSqliteValueInt64 )( struct sqlite3_value *val, int64_t *result );
+
+
+PSSQL_PROC( void, PSSQL_GetSqliteValue )( struct sqlite3_value *val, const char **text, int *textLen );
+
+#endif
 
 SQL_NAMESPACE_END
 #ifdef __cplusplus
