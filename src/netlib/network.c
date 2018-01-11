@@ -1701,28 +1701,31 @@ void AddThreadEvent( PCLIENT pc, int broadcast )
 	// this means the list can be 61 and at this time no more.
 	{
 #  ifdef __MAC__
+		struct event_data *data = New( struct event_data );
+		data->pc = pc;
+		data->broadcast = broadcast;
 #    ifdef __64__
 		struct kevent64_s ev;
 		if( pc->dwFlags & CF_LISTEN ) {
-			EV_SET64( &ev, broadcast?pc->SocketBroadcast:pc->Socket, EVFILT_READ, EV_ADD, 0, 0, (uint64_t)pc, NULL, NULL );
+			EV_SET64( &ev, broadcast?pc->SocketBroadcast:pc->Socket, EVFILT_READ, EV_ADD, 0, 0, (uintptr_t)data, NULL, NULL );
 			kevent64( peer->kqueue, &ev, 1, 0, 0, 0, 0 );
 		}
 		else {
-			EV_SET64( &ev, broadcast?pc->SocketBroadcast:pc->Socket, EVFILT_READ, EV_ADD, 0, 0, (uint64_t)pc, NULL, NULL );
+			EV_SET64( &ev, broadcast?pc->SocketBroadcast:pc->Socket, EVFILT_READ, EV_ADD, 0, 0, (uintptr_t)data, NULL, NULL );
 			kevent64( peer->kqueue, &ev, 1, 0, 0, 0, 0 );
-			EV_SET64( &ev, broadcast?pc->SocketBroadcast:pc->Socket, EVFILT_WRITE, EV_ADD | EV_CLEAR, 0, 0, (uint64_t)pc, NULL, NULL );
+			EV_SET64( &ev, broadcast?pc->SocketBroadcast:pc->Socket, EVFILT_WRITE, EV_ADD | EV_CLEAR, 0, 0, (uintptr_t)data, NULL, NULL );
 			kevent64( peer->kqueue, &ev, 1, 0, 0, 0, 0 );
 		}
 #    else
 		struct kevent ev;
 		if( pc->dwFlags & CF_LISTEN ) {
-			EV_SET( &ev, broadcast?pc->SocketBroadcast:pc->Socket, EVFILT_READ, EV_ADD, 0, 0, (uintptr_t)pc );
+			EV_SET( &ev, broadcast?pc->SocketBroadcast:pc->Socket, EVFILT_READ, EV_ADD, 0, 0, (uintptr_t)data );
 			kevent( peer->kqueue, &ev, 1, 0, 0, 0 );
 		}
 		else {
-			EV_SET( &ev, broadcast?pc->SocketBroadcast:pc->Socket, EVFILT_READ, EV_ADD|EV_ENABLE, 0, 0, (uintptr_t)pc );
+			EV_SET( &ev, broadcast?pc->SocketBroadcast:pc->Socket, EVFILT_READ, EV_ADD|EV_ENABLE, 0, 0, (uintptr_t)data );
 			kevent( peer->kqueue, &ev, 1, 0, 0, 0 );
-			EV_SET( &ev, broadcast?pc->SocketBroadcast:pc->Socket, EVFILT_WRITE, EV_ADD|EV_ENABLE|EV_CLEAR, 0, 0, (uintptr_t)pc );
+			EV_SET( &ev, broadcast?pc->SocketBroadcast:pc->Socket, EVFILT_WRITE, EV_ADD|EV_ENABLE|EV_CLEAR, 0, 0, (uintptr_t)data );
 			kevent( peer->kqueue, &ev, 1, 0, 0, 0 );
 		}
 #    endif
@@ -3679,8 +3682,13 @@ void LoadNetworkAddresses( void ) {
 			//SET_SOCKADDR_LENGTH( dup, IN6_SOCKADDR_LENGTH );
 		}
 		else {
-			memcpy( dup, tmp->ifa_netmask, IN_SOCKADDR_LENGTH );
-			SET_SOCKADDR_LENGTH( dup, IN_SOCKADDR_LENGTH );
+			if( tmp->ifa_netmask ) {
+				memcpy( dup, tmp->ifa_netmask, IN_SOCKADDR_LENGTH );
+				SET_SOCKADDR_LENGTH( dup, IN_SOCKADDR_LENGTH );
+			} else {
+				memset( dup, 0, IN_SOCKADDR_LENGTH );
+				SET_SOCKADDR_LENGTH( dup, IN_SOCKADDR_LENGTH );
+			}
 		}
 		ia->saMask = dup;
 

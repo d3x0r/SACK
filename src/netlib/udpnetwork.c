@@ -51,9 +51,15 @@ PCLIENT CPPServeUDPAddrEx( SOCKADDR *pAddr
 	pc->Socket = OpenSocket(((*(uint16_t*)pAddr) == AF_INET)?TRUE:FALSE,FALSE, FALSE, 0);
 	if( pc->Socket == INVALID_SOCKET )
 #endif
+#ifdef __MAC__
 		pc->Socket = socket( PF_INET
 		                   , SOCK_DGRAM
-		                   , (((*(uint16_t*)pAddr) == AF_INET)||((*(uint16_t*)pAddr) == AF_INET6))?IPPROTO_UDP:0);
+		                   , (((((uint8_t*)pAddr)[1]) == AF_INET)||((((uint8_t*)pAddr)[1]) == AF_INET6))?IPPROTO_UDP:0);
+#else
+    pc->Socket = socket( PF_INET
+                       , SOCK_DGRAM
+                       , (((*(uint16_t*)pAddr) == AF_INET)||((*(uint16_t*)pAddr) == AF_INET6))?IPPROTO_UDP:0);
+#endif
 	if( pc->Socket == INVALID_SOCKET )
 	{
 		_lprintf(DBG_RELAY)( WIDE("UDP Socket Fail") );
@@ -325,7 +331,7 @@ PCLIENT ConnectUDPAddrEx( SOCKADDR *sa
 	PCLIENT result = CPPConnectUDPAddrEx( sa, saTo, pReadComplete, 0, Close, 0 DBG_RELAY );
 	if( result )
 		result->dwFlags &= ~( CF_CPPREAD|CF_CPPCLOSE );
-	return result;	
+	return result;
 }
 
 //----------------------------------------------------------------------------
@@ -590,4 +596,3 @@ int SetSocketReusePort( PCLIENT lpClient, int32_t enable )
 
 _UDP_NAMESPACE_END
 SACK_NETWORK_NAMESPACE_END
-

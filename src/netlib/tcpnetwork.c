@@ -100,7 +100,7 @@ void AcceptClient(PCLIENT pListen)
 	PCLIENT pNewClient = NULL;// just to be safe.
 
 	pNewClient = GetFreeNetworkClient();
-	// new client will be locked... 
+	// new client will be locked...
 	if( !pNewClient )
 	{
 		SOCKADDR *junk = AllocAddr();
@@ -186,7 +186,7 @@ void AcceptClient(PCLIENT pListen)
 			fcntl( pNewClient->Socket, F_SETFL, O_NONBLOCK );
 #endif
 		AddActive( pNewClient );
-		{ 
+		{
 			//lprintf( WIDE("Accepted and notifying...") );
 			if( pListen->connect.ClientConnected )
 			{
@@ -266,9 +266,15 @@ PCLIENT CPPOpenTCPListenerAddrExx( SOCKADDR *pAddr
 	pListen->Socket = OpenSocket( ((*(uint16_t*)pAddr) == AF_INET)?TRUE:FALSE, TRUE, FALSE, 0 );
 	if( pListen->Socket == INVALID_SOCKET )
 #endif
+#ifdef __MAC__
+		pListen->Socket = socket( ((uint8_t*)pAddr)[1]
+										, SOCK_STREAM
+										, ((((uint8_t*)pAddr)[1] == AF_INET)||((((uint8_t*)pAddr)[1]) == AF_INET6))?IPPROTO_TCP:0 );
+#else
 		pListen->Socket = socket( *(uint16_t*)pAddr
 										, SOCK_STREAM
 										, (((*(uint16_t*)pAddr) == AF_INET)||((*(uint16_t*)pAddr) == AF_INET6))?IPPROTO_TCP:0 );
+#endif
 #if WIN32
 	SetHandleInformation( (HANDLE)pListen->Socket, HANDLE_FLAG_INHERIT, 0 );
 #endif
@@ -281,6 +287,7 @@ PCLIENT CPPOpenTCPListenerAddrExx( SOCKADDR *pAddr
 	if( pListen->Socket == INVALID_SOCKET )
 	{
 		lprintf( WIDE(" Open Listen Socket Fail... %d"), errno);
+		DumpAddr( "passed address to select:", pAddr );
 		InternalRemoveClientEx( pListen, TRUE, FALSE );
 		NetworkUnlockEx( pListen DBG_SRC );
 		pListen = NULL;
@@ -317,10 +324,11 @@ PCLIENT CPPOpenTCPListenerAddrExx( SOCKADDR *pAddr
 		unlink( (char*)(((uint16_t*)pAddr)+1));
 #endif
 
-	if (!pAddr || 
+	if (!pAddr ||
 		 bind(pListen->Socket ,pAddr, SOCKADDR_LENGTH( pAddr ) ) )
 	{
 		_lprintf(DBG_RELAY)( WIDE("Cannot bind to address..:%d"), WSAGetLastError() );
+		DumpAddr( "Bind address:", pAddr );
 		InternalRemoveClientEx( pListen, TRUE, FALSE );
 		NetworkUnlockEx( pListen DBG_SRC );
 		return NULL;
@@ -447,7 +455,7 @@ int NetworkConnectTCPEx( PCLIENT pc DBG_PASS ) {
 
 //----------------------------------------------------------------------------
 
-static PCLIENT InternalTCPClientAddrFromAddrExxx( SOCKADDR *lpAddr, SOCKADDR *pFromAddr, 
+static PCLIENT InternalTCPClientAddrFromAddrExxx( SOCKADDR *lpAddr, SOCKADDR *pFromAddr,
                                                   int bCPP,
                                                   cppReadComplete  pReadComplete,
                                                   uintptr_t psvRead,
@@ -475,9 +483,15 @@ static PCLIENT InternalTCPClientAddrFromAddrExxx( SOCKADDR *lpAddr, SOCKADDR *pF
 		pResult->Socket = OpenSocket( ((*(uint16_t*)lpAddr) == AF_INET)?TRUE:FALSE, TRUE, FALSE, 0 );
 		if( pResult->Socket == INVALID_SOCKET )
 #endif
+#ifdef __MAC__
+			pResult->Socket=socket( ((uint8_t*)lpAddr)[1]
+			                      , SOCK_STREAM
+			                      , (((((uint8_t*)lpAddr)[1]) == AF_INET)||((((uint8_t*)lpAddr)[1]) == AF_INET6))?IPPROTO_TCP:0 );
+#else
 			pResult->Socket=socket( *(uint16_t*)lpAddr
-										 , SOCK_STREAM
-										 , (((*(uint16_t*)lpAddr) == AF_INET)||((*(uint16_t*)lpAddr) == AF_INET6))?IPPROTO_TCP:0 );
+			                      , SOCK_STREAM
+			                      , (((*(uint16_t*)lpAddr) == AF_INET)||((*(uint16_t*)lpAddr) == AF_INET6))?IPPROTO_TCP:0 );
+#endif
 #ifdef LOG_SOCKET_CREATION
 		lprintf( WIDE( "Created new socket %d" ), pResult->Socket );
 #endif
@@ -521,7 +535,7 @@ static PCLIENT InternalTCPClientAddrFromAddrExxx( SOCKADDR *lpAddr, SOCKADDR *pF
 #endif
 			if( pFromAddr )
 			{
-				
+
 				LOGICAL opt = 1;
 				err = setsockopt( pResult->Socket, SOL_SOCKET, SO_REUSEADDR, (const char *)&opt, sizeof( opt ) );
 				if( err )
@@ -572,7 +586,7 @@ static PCLIENT InternalTCPClientAddrFromAddrExxx( SOCKADDR *lpAddr, SOCKADDR *pF
 					WSASetEvent( globalNetworkData.hMonitorThreadControlEvent );
 					lprintf( "Failed to schedule myself in a single run of root thread that I am running on." );
 				}
-			} 
+			}
 			else {
 				WSASetEvent( globalNetworkData.hMonitorThreadControlEvent );
 				while( !pResult->this_thread )
@@ -725,7 +739,7 @@ PCLIENT OpenTCPClientAddrFromAddrEx(SOCKADDR *lpAddr, SOCKADDR *pFromAddr
                                                DBG_PASS
 															 )
 {
-	
+
 	return InternalTCPClientAddrFromAddrExxx( lpAddr, pFromAddr, FALSE
 											 , (cppReadComplete)pReadComplete, 0
 											 , (cppCloseCallback)CloseCallback, 0
@@ -774,7 +788,7 @@ PCLIENT CPPOpenTCPClientExEx(CTEXTSTR lpName,uint16_t wPort,
 	PCLIENT pClient;
 	SOCKADDR *lpsaDest;
 	pClient = NULL;
-	if( lpName && 
+	if( lpName &&
 	   (lpsaDest = CreateSockAddress(lpName,wPort) ) )
 	{
 		pClient = CPPOpenTCPClientAddrExxx( lpsaDest
@@ -790,7 +804,7 @@ PCLIENT CPPOpenTCPClientExEx(CTEXTSTR lpName,uint16_t wPort,
 		                                    DBG_RELAY
 		                                  );
 		ReleaseAddress( lpsaDest );
-	}   
+	}
 	return pClient;
 }
 
@@ -1441,7 +1455,7 @@ LOGICAL doTCPWriteExx( PCLIENT lpClient
 		lpClient->FirstWritePending.s.bDynBuffer = FALSE;
 		lpClient->FirstWritePending.lpNext       = NULL;
 
-		lpClient->lpLastPending = 
+		lpClient->lpLastPending =
 		lpClient->lpFirstPending = &lpClient->FirstWritePending;
 		if( TCPWriteEx( lpClient DBG_SRC ) )
 		{
@@ -1585,4 +1599,3 @@ void SetClientKeepAlive( PCLIENT pClient, int bEnable )
 	}
 }
 SACK_NETWORK_TCP_NAMESPACE_END
-

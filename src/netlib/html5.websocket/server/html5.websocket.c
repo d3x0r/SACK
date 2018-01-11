@@ -547,6 +547,10 @@ PCLIENT WebSocketCreate( CTEXTSTR hosturl
 	url = SACK_URLParse( hosturl );
 	socket->pc = OpenTCPListenerAddrEx( CreateSockAddress( url->host, url->port?url->port:url->default_port ), connected );
 	SACK_ReleaseURL( url );
+  if( !socket->pc ) {
+    Deallocate( HTML5WebSocket, socket );
+    return NULL;
+  }
 	socket->http_state = CreateHttpState();
 	SetNetworkLong( socket->pc, 0, (uintptr_t)socket );
 	SetNetworkLong( socket->pc, 1, (uintptr_t)&socket->input_state );
