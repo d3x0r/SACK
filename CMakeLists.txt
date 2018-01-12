@@ -1624,7 +1624,18 @@ endif( WIN32 )
 #if( NOT UNIX )
   #   This doesn't build under watcom either...
   #   it needs to be modified to understand functional syntax so it can do formatting...
-  add_subdirectory( makefiles/prog/ppc )
+
+  ExternalProject_Add( ppc_portable
+	SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/makefiles/prog/ppc
+	BINARY_DIR ppc_portable
+	INSTALL_DIR ${CMAKE_INSTALL_PREFIX}
+        BUILD_ALWAYS 1
+	CMAKE_ARGS -DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR>
+		-DCMAKE_BUILD_TYPE:PATH=${CMAKE_BUILD_TYPE}
+        
+  )
+
+  #add_subdirectory( makefiles/prog/ppc )
 #endif( NOT UNIX )
 add_subdirectory( src/utils/seed_random )
 add_subdirectory( src/deadstart )
