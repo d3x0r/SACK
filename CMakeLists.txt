@@ -1625,6 +1625,9 @@ endif( WIN32 )
   #   This doesn't build under watcom either...
   #   it needs to be modified to understand functional syntax so it can do formatting...
 
+  string( REPLACE ";" " " PLATFORM_LIBRARIES_ARG "${PLATFORM_LIBRARIES}" )
+  string( REPLACE ";" " " PLATFORM_DEFINES_ARG "${PLATFORM_DEFINES}" )
+  string( REPLACE ";" "," PLATFORM_CMAKE_DEFINES_ARG "${PLATFORM_CMAKE_DEFINES}" )
   ExternalProject_Add( ppc_portable
 	SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/makefiles/prog/ppc
 	BINARY_DIR ppc_portable
@@ -1632,7 +1635,10 @@ endif( WIN32 )
         BUILD_ALWAYS 1
 	CMAKE_ARGS -DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR>
 		-DCMAKE_BUILD_TYPE:PATH=${CMAKE_BUILD_TYPE}
-        
+  		-DPLATFORM_LIBRARIES=${PLATFORM_LIBRARIES_ARG}
+		-DPLATFORM_DEFINES=${PLATFORM_DEFINES_ARG}
+		-DPLATFORM_CMAKE_DEFINES=${PLATFORM_CMAKE_DEFINES_ARG}
+      
   )
 
   #add_subdirectory( makefiles/prog/ppc )
