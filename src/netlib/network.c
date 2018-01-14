@@ -1987,9 +1987,9 @@ int CPROC ProcessNetworkMessages( struct peer_thread_info *thread, uintptr_t unu
 							{
 								lprintf( WIDE("getsockname errno = %d"), errno );
 							}
-                     if( pc->saSource->sa_family == AF_INET )
+							if( pc->saSource->sa_family == AF_INET )
 								SET_SOCKADDR_LENGTH( pc->saSource, IN_SOCKADDR_LENGTH );
-                     else if( pc->saSource->sa_family == AF_INET6 )
+							else if( pc->saSource->sa_family == AF_INET6 )
 								SET_SOCKADDR_LENGTH( pc->saSource, IN6_SOCKADDR_LENGTH );
 							else
 								SET_SOCKADDR_LENGTH( pc->saSource, nLen );
