@@ -49,7 +49,7 @@ int GrabName( PTEXT *word, TEXTSTR *result, int *bQuoted DBG_PASS )
 {
 	TEXTSTR name = NULL;
 	//PTEXT start = (*word);
-   //printf( WIDE( "word is %s" ), GetText( *word ) );
+	//printf( WIDE( "word is %s" ), GetText( *word ) );
 	if( TextLike( (*word), WIDE( "`" ) ) )
 	{
 		PTEXT phrase = NULL;
@@ -124,32 +124,39 @@ static int GrabType( PTEXT *word, TEXTSTR *result DBG_PASS )
 	{
 		//int quote = 0;
 		//int escape = 0;
-		PTEXT type = SegDuplicate(*word);
-		type->format.position.offset.spaces = 0;
-		type->format.position.offset.tabs = 0;
-		(*word) = NEXTLINE( *word );
-
-		if( StrCaseCmp( GetText( type ), WIDE( "unsigned" ) ) == 0 )
+		int parens = 0;
+		TEXTCHAR *tmp;
+		if( (*word) && ( ( tmp = GetText( *word ) )[0] != ',' || ( parens > 0 ) ) && ( ( parens > 0 ) || (tmp[0] != ')') ) )
 		{
-			SegAppend( type, SegDuplicate(*word) );
+			PTEXT type = SegDuplicate(*word);
+			type->format.position.offset.spaces = 0;
+			type->format.position.offset.tabs = 0;
 			(*word) = NEXTLINE( *word );
-		}
-		if( (*word) && GetText( *word )[0] == '(' )
-		{
-			while( (*word) && GetText( *word )[0] != ')' )
+
+			if( StrCaseCmp( GetText( type ), WIDE( "unsigned" ) ) == 0 )
 			{
+				SegAppend( type, SegDuplicate(*word) );
+				(*word) = NEXTLINE( *word );
+			}
+			if( (*word) && GetText( *word )[0] == '(' )
+			{
+				while( (*word) && GetText( *word )[0] != ')' )
+				{
+					type = SegAppend( type, SegDuplicate( *word ) );
+					(*word) = NEXTLINE( *word );
+				}
 				type = SegAppend( type, SegDuplicate( *word ) );
 				(*word) = NEXTLINE( *word );
 			}
-			type = SegAppend( type, SegDuplicate( *word ) );
-			(*word) = NEXTLINE( *word );
-		}
-		{
-			PTEXT tmp = BuildLine( type );
-			LineRelease( type );
-			if( result )
-				(*result) = StrDupEx( GetText( tmp ) DBG_RELAY );
-			LineRelease( tmp );
+			{
+				PTEXT tmp = BuildLine( type );
+				LineRelease( type );
+				if( result )
+					(*result) = StrDupEx( GetText( tmp ) DBG_RELAY );
+				LineRelease( tmp );
+			}
+		}else {
+			(*result) = NULL;
 		}
 		return TRUE;
 	}

@@ -883,7 +883,7 @@ void DumpSQLTable( PTABLE table )
 		lprintf( WIDE( "Column %d '%s' [%s] [%s]" )
 		        , n
 				 ,( table->fields.field[n].name )
-				 ,( table->fields.field[n].type )
+				, table->fields.field[n].type?table->fields.field[n].type:NULL
 				 ,( table->fields.field[n].extra )
 				 );
 		for( m = 0; table->fields.field[n].previous_names[m] && m < MAX_PREVIOUS_FIELD_NAMES; m++ )
@@ -1042,7 +1042,7 @@ retry:
 									  , WIDE("alter table [%s] add column [%s] %s%s%s")
 									  , table->name
 									  , table->fields.field[m].name
-									  , table->fields.field[m].type
+									  , table->fields.field[m].type?table->fields.field[m].type:""
 									  , table->fields.field[m].extra?WIDE(" "):WIDE("")
 									  , table->fields.field[m].extra?table->fields.field[m].extra:WIDE("")
 									  );
@@ -1090,7 +1090,7 @@ retry:
 				vtprintf( pvtCreate, WIDE("alter table [%s] add column [%s] %s%s%s")
 						  , table->name
 						  , table->fields.field[n].name
-						  , table->fields.field[n].type
+						  , table->fields.field[n].type?table->fields.field[n].type:""
 						  , table->fields.field[n].extra?WIDE(" "):WIDE("")
 						  , table->fields.field[n].extra?table->fields.field[n].extra:WIDE("")
 						  );
@@ -1154,7 +1154,7 @@ retry:
 					vtprintf( pvtCreate, WIDE("%s[%s] %s%s%s")
 							  , first?WIDE( "" ):WIDE( "," )
 							  , table->fields.field[n].name
-							  , type
+							  , type?type:""
 							  , WIDE( "" )//table->fields.field[n].extra?WIDE( " " ):WIDE( "" )
 							  , WIDE( "" )//table->fields.field[n].extra?table->fields.field[n].extra:WIDE( "" )
 							  );
@@ -1164,7 +1164,7 @@ retry:
 					vtprintf( pvtCreate, WIDE("%s[%s] %s%s%s")
 							  , first?WIDE( "" ):WIDE( "," )
 							  , table->fields.field[n].name
-							  , type
+							  , type?type:""
 							  , WIDE( "" )//(strstr( table->fields.field[n].extra, WIDE( "auto_increment" ) ))?WIDE( "COUNTER" ):WIDE( "" )
 							  , WIDE( "" )//table->fields.field[n].extra?table->fields.field[n].extra:WIDE( "" )
 							  );
@@ -1293,7 +1293,7 @@ retry:
 										 , WIDE("alter table `%s` add column `%s` %s%s%s;\n")
 										 , table->name
 										 , table->fields.field[m].name
-										 , table->fields.field[m].type
+										 , table->fields.field[m].type?table->fields.field[m].type:""
 										 , table->fields.field[m].extra?WIDE(" "):WIDE("")
 										 , table->fields.field[m].extra?table->fields.field[m].extra:WIDE("")
 										 );
@@ -1308,7 +1308,7 @@ retry:
 											  , WIDE("alter table `%s` add column `%s` %s%s%s")
 											  , table->name
 											  , table->fields.field[m].name
-											  , table->fields.field[m].type
+											 , table->fields.field[m].type?table->fields.field[m].type:""
 											  , table->fields.field[m].extra?WIDE(" "):WIDE("")
 											  , table->fields.field[m].extra?table->fields.field[m].extra:WIDE("")
 											  );
@@ -1381,7 +1381,7 @@ retry:
 					vtprintf( pvtCreate, WIDE("alter table `%s` add column `%s` %s%s%s")
 							  , table->name
 							  , table->fields.field[n].name
-							  , table->fields.field[n].type
+							  , table->fields.field[n].type?table->fields.field[n].type:""
 							  , table->fields.field[n].extra?WIDE(" "):WIDE("")
 							  , table->fields.field[n].extra?table->fields.field[n].extra:WIDE("")
 							  );
