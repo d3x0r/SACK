@@ -22,30 +22,30 @@ static void InitVFS( CTEXTSTR name, struct file_system_mounted_interface *fsi );
 
 struct sqlite_interface my_sqlite_interface = {
 	sqlite3_result_text
-														 , sqlite3_user_data
-														 , sqlite3_last_insert_rowid
-														 , sqlite3_create_function
-														 , sqlite3_get_autocommit
-														 , sqlite3_open
-														 , sqlite3_open_v2
-														 , sqlite3_errmsg
-														 , sqlite3_finalize
-														 , sqlite3_close
+	 , sqlite3_user_data
+	 , sqlite3_last_insert_rowid
+	 , sqlite3_create_function
+	 , sqlite3_get_autocommit
+	 , sqlite3_open
+	 , sqlite3_open_v2
+	 , sqlite3_errmsg
+	 , sqlite3_finalize
+	 , sqlite3_close
 #if ( SQLITE_VERSION_NUMBER > 3007013 )
-														 , sqlite3_close_v2
+         , sqlite3_close_v2
 #endif
-                                           , sqlite3_prepare_v2
+         , sqlite3_prepare_v2
 #ifdef _UNICODE
-                                           , sqlite3_prepare16_v2
+         , sqlite3_prepare16_v2
 #else
-                                           , NULL
+         , NULL
 #endif
                                            , sqlite3_step
                                            , sqlite3_column_name
                                            , sqlite3_column_text
                                            , sqlite3_column_bytes
                                            , sqlite3_column_type
-														 , sqlite3_column_count
+                                           , sqlite3_column_count
                                            , sqlite3_config
 															 , sqlite3_db_config
 															 , InitVFS
@@ -54,7 +54,9 @@ struct sqlite_interface my_sqlite_interface = {
 															 , sqlite3_backup_remaining
 															 , sqlite3_backup_finish
 															 , sqlite3_extended_errcode
-                                              , sqlite3_stmt_readonly
+                                           , sqlite3_stmt_readonly
+                                           , sqlite3_column_table_name
+                                           , sqlite3_column_table_alias_name
 };
 
 

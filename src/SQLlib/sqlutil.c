@@ -883,7 +883,7 @@ void DumpSQLTable( PTABLE table )
 		lprintf( WIDE( "Column %d '%s' [%s] [%s]" )
 		        , n
 				 ,( table->fields.field[n].name )
-				, table->fields.field[n].type?table->fields.field[n].type:NULL
+				, table->fields.field[n].type?table->fields.field[n].type:""
 				 ,( table->fields.field[n].extra )
 				 );
 		for( m = 0; table->fields.field[n].previous_names[m] && m < MAX_PREVIOUS_FIELD_NAMES; m++ )
@@ -1476,7 +1476,7 @@ retry:
 								vtprintf( pvtCreate, WIDE("%s`%s` %s %s")
 										  , first?WIDE(""):WIDE(",")
 										  , table->fields.field[n].name
-										  , table->fields.field[n].type
+										  , table->fields.field[n].type? table->fields.field[n].type:""
 										  , extra
 										  );
 								Release( extra );
@@ -1485,7 +1485,7 @@ retry:
 								vtprintf( pvtCreate, WIDE("%s`%s` %s%s%s")
 										  , first?WIDE(""):WIDE(",")
 										  , table->fields.field[n].name
-										  , table->fields.field[n].type
+										  , table->fields.field[n].type ? table->fields.field[n].type : ""
 										  , table->fields.field[n].extra?WIDE(" "):WIDE("")
 										  , table->fields.field[n].extra?table->fields.field[n].extra:WIDE("")
 										  );
@@ -1496,7 +1496,7 @@ retry:
 						vtprintf( pvtCreate, WIDE("%s`%s` %s%s%s")
 								  , first?WIDE(""):WIDE(",")
 								  , table->fields.field[n].name
-								  , table->fields.field[n].type
+								  , table->fields.field[n].type ? table->fields.field[n].type : ""
 								  , table->fields.field[n].extra?WIDE(" "):WIDE("")
 								  , table->fields.field[n].extra?table->fields.field[n].extra:WIDE("")
 								  );

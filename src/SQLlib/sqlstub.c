@@ -396,6 +396,30 @@ void PSSQL_GetSqliteValueInt( struct sqlite3_value *val, int *result ){
 void PSSQL_GetSqliteValueInt64( struct sqlite3_value *val, int64_t *result ){
 	(*result) = sqlite3_value_int64( val ); // sqlite function is 'unsigned' result
 }
+const char * PSSQL_GetColumnTableName( PODBC odbc, int col) {
+	PCOLLECT pCollect;
+	pCollect = odbc ? odbc->collection : NULL;
+	if( pCollect ) {
+		const char *tmp;
+		//tmp = sqlite3_column_table_name( pCollect->stmt, col ); // sqlite function is 'unsigned' result
+		//tmp = sqlite3_column_origin_name( pCollect->stmt, col ); // sqlite function is 'unsigned' result
+		tmp = sqlite3_column_table_name( pCollect->stmt, col ); // sqlite function is 'unsigned' result
+		return tmp;
+	}
+	return NULL;
+}
+const char * PSSQL_GetColumnTableAliasName( PODBC odbc, int col ) {
+	PCOLLECT pCollect;
+	pCollect = odbc ? odbc->collection : NULL;
+	if( pCollect ) {
+		const char *tmp;
+		//tmp = sqlite3_column_table_name( pCollect->stmt, col ); // sqlite function is 'unsigned' result
+		//tmp = sqlite3_column_origin_name( pCollect->stmt, col ); // sqlite function is 'unsigned' result
+		tmp = sqlite3_column_table_alias_name( pCollect->stmt, col ); // sqlite function is 'unsigned' result
+		return tmp;
+	}
+	return NULL;
+}
 
 void ExtendConnection( PODBC odbc )
 {
