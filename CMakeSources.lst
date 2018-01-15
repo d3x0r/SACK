@@ -222,6 +222,7 @@ if( NOT SQLITE3_FOUND )
   SET( SQLITE_VERSION 3.22.0-pre-nul )
   SET( SQLITE_SOURCES ${SOURCES_ROOT}src/contrib/sqlite/${SQLITE_VERSION}/sqlite3.c )
   include_directories( ${SOURCES_ROOT}src/contrib/sqlite/${SQLITE_VERSION} )
+  set_source_files_properties( ${SQLITE_SOURCES} PROPERTIES COMPILE_DEFINITIONS "SQLITE_OMIT_UTF16;SQLITE_ENABLE_COLUMN_METADATA" )
 
   if( NOT USE_SQLITE_EXTERNAL AND BUILD_MONOLITHIC )
    # setup to include sqlite in the core libraries...
