@@ -292,6 +292,10 @@ struct sqlite3_api_routines {
   int (*bind_pointer)(sqlite3_stmt*,int,void*,const char*,void(*)(void*));
   void (*result_pointer)(sqlite3_context*,void*,const char*,void(*)(void*));
   void *(*value_pointer)(sqlite3_value*,const char*);
+  int (*vtab_nochange)(sqlite3_context*);
+  int (*value_nochange)(sqlite3_value*);
+  const char *(*sql_utf8)(sqlite3_stmt*, int *);
+  char *(*expanded_sql_utf8)(sqlite3_stmt*, int *);
 };
 
 /*
@@ -481,6 +485,7 @@ typedef int (*sqlite3_loadext_entry)(
 #define sqlite3_limit                  sqlite3_api->limit
 #define sqlite3_next_stmt              sqlite3_api->next_stmt
 #define sqlite3_sql                    sqlite3_api->sql
+#define sqlite3_sql_utf8               sqlite3_api->sql_utf8
 #define sqlite3_status                 sqlite3_api->status
 #define sqlite3_backup_finish          sqlite3_api->backup_finish
 #define sqlite3_backup_init            sqlite3_api->backup_init
@@ -550,6 +555,7 @@ typedef int (*sqlite3_loadext_entry)(
 /* Version 3.14.0 and later */
 #define sqlite3_trace_v2               sqlite3_api->trace_v2
 #define sqlite3_expanded_sql           sqlite3_api->expanded_sql
+#define sqlite3_expanded_sql_utf8      sqlite3_api->expanded_sql_utf8
 /* Version 3.18.0 and later */
 #define sqlite3_set_last_insert_rowid  sqlite3_api->set_last_insert_rowid
 /* Version 3.20.0 and later */
@@ -558,6 +564,9 @@ typedef int (*sqlite3_loadext_entry)(
 #define sqlite3_bind_pointer           sqlite3_api->bind_pointer
 #define sqlite3_result_pointer         sqlite3_api->result_pointer
 #define sqlite3_value_pointer          sqlite3_api->value_pointer
+/* Version 3.22.0 and later */
+#define sqlite3_vtab_nochange          sqlite3_api->vtab_nochange
+#define sqlite3_value_nochange         sqltie3_api->value_nochange
 #endif /* !defined(SQLITE_CORE) && !defined(SQLITE_OMIT_LOAD_EXTENSION) */
 
 #if !defined(SQLITE_CORE) && !defined(SQLITE_OMIT_LOAD_EXTENSION)
