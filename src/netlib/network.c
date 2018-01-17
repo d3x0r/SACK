@@ -3415,20 +3415,16 @@ void InternalRemoveClientExx(PCLIENT lpClient, LOGICAL bBlockNotify, LOGICAL bLi
 			}
 		}
 		else {
-//#if 0
 			struct linger lingerSet;
 			// linger ON causes delay on close... otherwise close returns immediately
 			lingerSet.l_onoff = 1; // on , with no time = off.
 			lingerSet.l_linger = 2;
 			// set server to allow reuse of socket port
-            lprintf( "Set 2 second linger" );
 			if( setsockopt( lpClient->Socket, SOL_SOCKET, SO_LINGER,
 				(char*)&lingerSet, sizeof( lingerSet ) ) <0 )
 			{
-				lprintf( WIDE( "error setting no linger in close." ) );
-				//cerr << "NFMSim:setHost:ERROR: could not set socket to linger." << endl;
+				lprintf( WIDE( "error setting 2 second linger in close." ) );
 			}
-//#endif
 		}
 
 		if( !(lpClient->dwFlags & CF_ACTIVE) )
