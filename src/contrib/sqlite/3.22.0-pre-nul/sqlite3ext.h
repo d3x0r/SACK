@@ -292,8 +292,12 @@ struct sqlite3_api_routines {
   int (*bind_pointer)(sqlite3_stmt*,int,void*,const char*,void(*)(void*));
   void (*result_pointer)(sqlite3_context*,void*,const char*,void(*)(void*));
   void *(*value_pointer)(sqlite3_value*,const char*);
+  /* Version 3.22.0 and later */
   int (*vtab_nochange)(sqlite3_context*);
   int (*value_nochange)(sqlite3_value*);
+  const char *(*vtab_collation)(sqlite3_index_info*,int);
+  const char * (*column_table_alias_name)(sqlite3_stmt*,int);
+  const void * (*column_table_alias_name16)(sqlite3_stmt*,int);
   const char *(*sql_utf8)(sqlite3_stmt*, int *);
   char *(*expanded_sql_utf8)(sqlite3_stmt*, int *);
 };
@@ -567,6 +571,11 @@ typedef int (*sqlite3_loadext_entry)(
 /* Version 3.22.0 and later */
 #define sqlite3_vtab_nochange          sqlite3_api->vtab_nochange
 #define sqlite3_value_nochange         sqltie3_api->value_nochange
+#define sqlite3_vtab_collation         sqltie3_api->vtab_collation
+#define sqlite3_column_table_alias_name      sqlite3_api->column_table_alias_name
+#define sqlite3_column_table_alias_name16    sqlite3_api->column_table_alias_name16
+#define sqlite3_sql_utf8               sqlite3_api->sql_utf8
+#define sqlite3_expanded_sql_utf8      sqlite3_api->expanded_sql_utf8
 #endif /* !defined(SQLITE_CORE) && !defined(SQLITE_OMIT_LOAD_EXTENSION) */
 
 #if !defined(SQLITE_CORE) && !defined(SQLITE_OMIT_LOAD_EXTENSION)
