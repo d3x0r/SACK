@@ -155,7 +155,7 @@ void CloseSession( PCLIENT pc )
 }
 
 static int logerr( const char *str, size_t len, void *userdata ) {
-	lprintf( "%p: %s", userdata, str );
+	lprintf( "%d: %s", *((int*)&userdata), str );
 	return 0;
 }
 
@@ -575,12 +575,16 @@ LOGICAL ssl_BeginServer( PCLIENT pc, CPOINTER cert, size_t certlen, CPOINTER key
 		//PKCS12_parse( )
 		BIO_write( keybuf, cert, (int)certlen );
 		do {
+			if( !BIO_pending( keybuf ) )
+				break;
 			x509 = X509_new();
 			result = PEM_read_bio_X509( keybuf, &x509, NULL, NULL );
 			if( result )
 				sk_X509_push( certStruc->chain, x509 );
-			else
+			else {
+				ERR_print_errors_cb( logerr, (void*)__LINE__ );
 				X509_free( x509 );
+			}
 		} while( result );
 		BIO_free( keybuf );
 		ses->cert = certStruc;
@@ -592,11 +596,15 @@ LOGICAL ssl_BeginServer( PCLIENT pc, CPOINTER cert, size_t certlen, CPOINTER key
 	} else {
 		BIO *keybuf = BIO_new( BIO_s_mem() );
 		struct info_params params;
+		EVP_PKEY *result;
 		ses->cert->pkey = EVP_PKEY_new();
 		BIO_write( keybuf, keypair, (int)keylen );
 		params.password = (char*)keypass;
 		params.passlen = (int)keypasslen;
-		PEM_read_bio_PrivateKey( keybuf, &ses->cert->pkey, pem_password, &params );
+		result = PEM_read_bio_PrivateKey( keybuf, &ses->cert->pkey, pem_password, &params );
+		if( !result ) {
+			ERR_print_errors_cb( logerr, (void*)__LINE__ );
+		}
 		BIO_free( keybuf );
 	}
 
@@ -695,7 +703,7 @@ LOGICAL ssl_BeginClientSession( PCLIENT pc, CPOINTER client_keypair, size_t clie
 			params.passlen = (int)keypasslen;
 			ses->cert->pkey = EVP_PKEY_new();
 			if( !PEM_read_bio_PrivateKey( keybuf, &ses->cert->pkey, pem_password, &params ) ) {
-				lprintf( "failed decode key..." );
+				ERR_print_errors_cb( logerr, (void*)__LINE__ );
 				BIO_free( keybuf );
 				return FALSE;
 			}
