@@ -2173,7 +2173,6 @@ uintptr_t CPROC NetworkThreadProc( PTHREAD thread )
 #  ifdef LOG_NETWORK_LOCKING
 	lprintf( WIDE( "NetworkThread(exit) in global" ) );
 #  endif
-
 	if( !this_thread.parent_peer )
 	{
 		if( globalNetworkData.root_thread = this_thread.child_peer )
@@ -2246,7 +2245,9 @@ int NetworkQuit(void)
 		PLIST wakeEvents = NULL;
 		struct peer_thread_info *peer_thread;
 		WSAEVENT hThread;
-		for( peer_thread = globalNetworkData.root_thread; peer_thread; peer_thread = peer_thread->child_peer ) {
+		peer_thread = globalNetworkData.root_thread;
+		globalNetworkData.root_thread = NULL;
+		for( ; peer_thread; peer_thread = peer_thread->child_peer ) {
 			AddLink( &wakeEvents, peer_thread->hThread );
 		}
 		LIST_FORALL( wakeEvents, idx, WSAEVENT, hThread )
