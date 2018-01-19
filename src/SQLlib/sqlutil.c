@@ -1208,6 +1208,7 @@ LOGICAL CPROC CheckMySQLODBCTable( PODBC odbc, PTABLE table, uint32_t options )
 	int success;
 	int buflen;
 	PVARTEXT pvtCreate = NULL;
+	int status = 1;
 	TEXTCHAR *cmd;
 	if( options & CTO_LOG_CHANGES )
 	{
@@ -1689,12 +1690,12 @@ retry:
 				}
 				PopODBCEx(odbc);
 
-				txt_cmd = VarTextGet( pvtCreate );
+				txt_cmd = VarTextPeek( pvtCreate );
 				if( f_odbc )
 					fprintf( f_odbc, WIDE( "%s;\n" ), GetText( txt_cmd ) );
 				else
-					SQLCommand( odbc, GetText( txt_cmd ) );
-				LineRelease( txt_cmd );
+					if( !SQLCommand( odbc, GetText( txt_cmd ) ) )
+						status = 0;
 			}
 			else
 			{
@@ -1707,7 +1708,7 @@ retry:
 		VarTextDestroy( &pvtCreate );
 	if( f_odbc )
 		fclose( f_odbc );
-	return 1;
+	return status;
 }
 
 
