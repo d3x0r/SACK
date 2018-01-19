@@ -407,7 +407,7 @@ void AddIndexKey( PTABLE table, PTEXT *word, int has_name, int primary, int uniq
 		GrabName( word, (TEXTSTR*)&table->keys.key[table->keys.count-1].name, NULL  DBG_SRC);
 	else
 		table->keys.key[table->keys.count-1].name = NULL;
-	lprintf( "add index key name: %s",table->keys.key[table->keys.count-1].name );
+	//lprintf( "add index key name: %s",table->keys.key[table->keys.count-1].name );
 	//table->keys.key[table->keys.count-1].colnames = New( CTEXTSTR );
 	table->keys.key[table->keys.count-1].colnames[0] = NULL;
 	if( StrCaseCmp( GetText(*word), WIDE( "USING" ) ) == 0 )
@@ -424,42 +424,39 @@ void AddIndexKey( PTABLE table, PTEXT *word, int has_name, int primary, int uniq
 		// next word is the type, skip that word too....
 		(*word) = NEXTLINE( *word );
 	}
-		if( StrCaseCmp( GetText(*word), WIDE( "ON" ) ) == 0 )
+	if( StrCaseCmp( GetText(*word), WIDE( "ON" ) ) == 0 )
+	{
+		(*word) = NEXTLINE( *word );
+		if( StrCaseCmp( GetText(*word), WIDE( "CONFLICT" ) ) == 0 )
 		{
-         lprintf( "ON " );
 			(*word) = NEXTLINE( *word );
-			if( StrCaseCmp( GetText(*word), WIDE( "CONFLICT" ) ) == 0 )
+			if( StrCaseCmp( GetText(*word), WIDE( "REPLACE" ) ) == 0 )
 			{
-         lprintf( "CONFLICT " );
+            table->keys.key[table->keys.count-1].flags.uniqueResolution = UNIQRES_REPLACE;
 				(*word) = NEXTLINE( *word );
-         lprintf( "(SOMETHING?) " );
-				if( StrCaseCmp( GetText(*word), WIDE( "REPLACE" ) ) == 0 )
-				{
-               table->keys.key[table->keys.count-1].flags.uniqueResolution = UNIQRES_REPLACE;
-					(*word) = NEXTLINE( *word );
-				}
-				if( StrCaseCmp( GetText(*word), WIDE( "IGNORE" ) ) == 0 )
-				{
-               table->keys.key[table->keys.count-1].flags.uniqueResolution = UNIQRES_IGNORE;
-					(*word) = NEXTLINE( *word );
-				}
-				if( StrCaseCmp( GetText(*word), WIDE( "FAIL" ) ) == 0 )
-				{
-               table->keys.key[table->keys.count-1].flags.uniqueResolution = UNIQRES_FAIL;
-					(*word) = NEXTLINE( *word );
-				}
-				if( StrCaseCmp( GetText(*word), WIDE( "ABORT" ) ) == 0 )
-				{
-               table->keys.key[table->keys.count-1].flags.uniqueResolution = UNIQRES_ABORT;
-					(*word) = NEXTLINE( *word );
-				}
-				if( StrCaseCmp( GetText(*word), WIDE( "ROLLBACK" ) ) == 0 )
-				{
-               table->keys.key[table->keys.count-1].flags.uniqueResolution = UNIQRES_ROLLBACK;
-					(*word) = NEXTLINE( *word );
-				}
+			}
+			if( StrCaseCmp( GetText(*word), WIDE( "IGNORE" ) ) == 0 )
+			{
+            table->keys.key[table->keys.count-1].flags.uniqueResolution = UNIQRES_IGNORE;
+				(*word) = NEXTLINE( *word );
+			}
+			if( StrCaseCmp( GetText(*word), WIDE( "FAIL" ) ) == 0 )
+			{
+            table->keys.key[table->keys.count-1].flags.uniqueResolution = UNIQRES_FAIL;
+				(*word) = NEXTLINE( *word );
+			}
+			if( StrCaseCmp( GetText(*word), WIDE( "ABORT" ) ) == 0 )
+			{
+            table->keys.key[table->keys.count-1].flags.uniqueResolution = UNIQRES_ABORT;
+				(*word) = NEXTLINE( *word );
+			}
+			if( StrCaseCmp( GetText(*word), WIDE( "ROLLBACK" ) ) == 0 )
+			{
+            table->keys.key[table->keys.count-1].flags.uniqueResolution = UNIQRES_ROLLBACK;
+				(*word) = NEXTLINE( *word );
 			}
 		}
+	}
 }
 
 //----------------------------------------------------------------------
