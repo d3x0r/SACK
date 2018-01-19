@@ -243,6 +243,7 @@ void AddConstraint( PTABLE table, PTEXT *word )
 		table->keys.key[table->keys.count-1].flags.bUnique = 1;
 		table->keys.key[table->keys.count-1].name = tmpname;
 		table->keys.key[table->keys.count-1].colnames[0] = NULL;
+		table->keys.key[table->keys.count-1].flags.uniqueResolution = UNIQRES_UNSET;
 		GrabKeyColumns( word, table->keys.key[table->keys.count-1].colnames );
 		if( StrCaseCmp( GetText(*word), WIDE( "ON" ) ) == 0 )
 		{
@@ -252,6 +253,27 @@ void AddConstraint( PTABLE table, PTEXT *word )
 				(*word) = NEXTLINE( *word );
 				if( StrCaseCmp( GetText(*word), WIDE( "REPLACE" ) ) == 0 )
 				{
+               table->keys.key[table->keys.count-1].flags.uniqueResolution = UNIQRES_REPLACE;
+					(*word) = NEXTLINE( *word );
+				}
+				if( StrCaseCmp( GetText(*word), WIDE( "IGNORE" ) ) == 0 )
+				{
+               table->keys.key[table->keys.count-1].flags.uniqueResolution = UNIQRES_IGNORE;
+					(*word) = NEXTLINE( *word );
+				}
+				if( StrCaseCmp( GetText(*word), WIDE( "FAIL" ) ) == 0 )
+				{
+               table->keys.key[table->keys.count-1].flags.uniqueResolution = UNIQRES_FAIL;
+					(*word) = NEXTLINE( *word );
+				}
+				if( StrCaseCmp( GetText(*word), WIDE( "ABORT" ) ) == 0 )
+				{
+               table->keys.key[table->keys.count-1].flags.uniqueResolution = UNIQRES_ABORT;
+					(*word) = NEXTLINE( *word );
+				}
+				if( StrCaseCmp( GetText(*word), WIDE( "ROLLBACK" ) ) == 0 )
+				{
+               table->keys.key[table->keys.count-1].flags.uniqueResolution = UNIQRES_ROLLBACK;
 					(*word) = NEXTLINE( *word );
 				}
 			}

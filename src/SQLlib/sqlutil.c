@@ -1580,7 +1580,7 @@ retry:
 						{
 							if( table->keys.key[n].flags.bUnique )
 							{
-								if( table->keys.key[n].flags.bUnique && table->keys.key[n].colnames[1] )
+								if( table->keys.key[n].colnames[1] )
 								{
 									int c;
 									vtprintf( pvtCreate, WIDE("%sCONSTRAINT `%s` UNIQUE (")
@@ -1589,7 +1589,16 @@ retry:
 											  );
 									for( c = 0; table->keys.key[n].colnames[c]; c++ )
 										vtprintf( pvtCreate, WIDE( "%s`%s`"), (c==0)?WIDE(""):WIDE(","), table->keys.key[n].colnames[c] );
-									vtprintf( pvtCreate, WIDE(") ON CONFLICT REPLACE")  );
+									vtprintf( pvtCreate, WIDE(")") );
+                           if( table->keys.key[n].flags.uniqueResolution != UNIQRES_UNSET )
+										vtprintf( pvtCreate, WIDE("ON CONFLICT %s")
+													, table->keys.key[n].flags.uniqueResolution == UNIQRES_REPLACE ? "REPLACE"
+													: table->keys.key[n].flags.uniqueResolution == UNIQRES_ABORT ? "ABORT"
+													: table->keys.key[n].flags.uniqueResolution == UNIQRES_FAIL ? "FAIL"
+													: table->keys.key[n].flags.uniqueResolution == UNIQRES_IGNORE ? "IGNORE"
+													: table->keys.key[n].flags.uniqueResolution == UNIQRES_ROLLBACK ? "ROLLBACK"
+													: "ABORT"
+												  );
 									first = 0;
 								}
 							}
