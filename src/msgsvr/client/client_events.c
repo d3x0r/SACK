@@ -188,10 +188,10 @@ int HandleEvents( MSGQ_TYPE msgq, PQMSG MessageEvent, int initial_flags )
 		{
 #ifdef _WIN32
 			int my_errno = GetLastError();
-#ifdef errno
-#undef errno
-#endif
-#define errno my_errno
+#  ifdef errno
+#    undef errno
+#  endif
+#  define errno my_errno
 #endif
 			//Log( WIDE("Failed a message...") );
 			if( errno == ENOMSG )

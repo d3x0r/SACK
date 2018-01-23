@@ -340,7 +340,9 @@ typedef struct global_message_service_tag
 	PLINKQUEUE Messages;
 	int pending;
 } GLOBAL;
-
+#ifdef g
+#   undef g
+#endif
 #define g (*global_msgclient)
 #ifndef DEFINE_MESSAGE_SERVER_GLOBAL
 extern

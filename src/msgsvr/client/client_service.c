@@ -128,6 +128,13 @@ uintptr_t CPROC HandleServiceMessages( PTHREAD thread )
 		length -= ( sizeof( QMSG ) - sizeof( MSGIDTYPE ) );
 		if( length < 0 )
 		{
+#ifdef _WIN32
+				int my_errno = GetLastError();
+#  ifdef errno
+#    undef errno
+#  endif
+#  define errno my_errno
+#endif
 			if( errno == EINTR ) // got a signal - ignore and try again.
 				continue;
 			if( errno == EIDRM )
@@ -523,8 +530,8 @@ CLIENTMSG_PROC( LOGICAL, RegisterServiceExx )( CTEXTSTR name
 	{
 		if( status == -1 )
 			lprintf( WIDE("Initization of %s message service failed (service already exists? communication)."), name );
-		if( status == 0 )
-			; //lprintf( WIDE("Initization of %s message service failed (service already exists? communication)."), name );
+		//if( status == 0 )
+		//	; //lprintf( WIDE("Initization of %s message service failed to initialize?)."), name );
 		return FALSE;
 	}
 	else

@@ -57,7 +57,14 @@ static int GetAMessageEx( MSGQ_TYPE msgq, MSGIDTYPE MsgFilter, CTEXTSTR q, int f
 			}
 			if( MessageLen == -1 )
 			{
-				if( GetLastError() == ENOMSG )
+#ifdef _WIN32
+				int my_errno = GetLastError();
+#  ifdef errno
+#    undef errno
+#  endif
+#  define errno my_errno
+#endif
+				if( errno == ENOMSG )
 				{
 					lprintf( WIDE("No message... nowait was set?") );
 					return 0;

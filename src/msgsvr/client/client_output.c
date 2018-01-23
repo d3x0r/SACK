@@ -31,6 +31,7 @@ int SendInMultiMessageEx( PSERVICE_ROUTE routeID, uint32_t MsgID, uint32_t parts
 		{
 		// wow - this is a BIG message - lets see - what can we do?
 #ifdef WIN32
+#undef SetLastError
 			SetLastError( E2BIG );
 #else
 			errno = E2BIG;
