@@ -97,7 +97,7 @@ static int gatherString6(struct json_parse_state *state, CTEXTSTR msg, CTEXTSTR 
 	TEXTRUNE c;
 	//escape = 0;
 	//cr_escaped = FALSE;
-	while( ( ( n = (*msg_input) - msg ), (c = GetUtfChar( msg_input ) ), ( n < msglen ) ) && ( status >= 0 ) )
+	while( ( ( n = (*msg_input) - msg ), ( n < msglen ) ) && ( ( c = GetUtfChar( msg_input ) ), ( status >= 0 ) ) )
 	{
 		(state->col)++;
 
@@ -370,6 +370,7 @@ int json6_parse_add_data( struct json_parse_state *state
 		output = (struct json_output_buffer*)DequeLinkNL( state->outQueue );
 		//lprintf( "output is %p", output );
 		state->n = input->pos - input->buf;
+		if( state->n > input->size ) DebugBreak();
 
 		if( state->gatheringString ) {
 			string_status = gatherString6( state, input->buf, &input->pos, input->size, &output->pos, state->gatheringStringFirstChar );
@@ -379,11 +380,13 @@ int json6_parse_add_data( struct json_parse_state *state
 			{
 				state->gatheringString = FALSE;
 				state->n = input->pos - input->buf;
+				if( state->n > input->size ) DebugBreak();
 				state->val.stringLen = (output->pos - state->val.string)-1;
 				if( state->status ) state->val.value_type = VALUE_STRING;
 			}
 			else {
 				state->n = input->pos - input->buf;
+				if( state->n > input->size ) DebugBreak();
 			}
 		}
 		if( state->gatheringNumber ) {
@@ -396,6 +399,7 @@ int json6_parse_add_data( struct json_parse_state *state
 		{
 			state->col++;
 			state->n = input->pos - input->buf;
+			if( state->n > input->size ) DebugBreak();
 
 			if( state->comment ) {
 				if( state->comment == 1 ) {
@@ -678,6 +682,7 @@ int json6_parse_add_data( struct json_parse_state *state
 							state->val.stringLen = (output->pos - state->val.string) - 1;
 						}
 						state->n = input->pos - input->buf;
+						if( state->n > input->size ) DebugBreak();
 						if( state->status ) {
 							state->val.value_type = VALUE_STRING;
 							//state->val.stringLen = (output->pos - state->val.string - 1);
@@ -745,6 +750,7 @@ int json6_parse_add_data( struct json_parse_state *state
 						state->status = FALSE;
 					}
 					state->n = input->pos - input->buf;
+					if( state->n > input->size ) DebugBreak();
 
 					if( state->status ) {
 						state->val.value_type = VALUE_STRING;
@@ -976,6 +982,7 @@ int json6_parse_add_data( struct json_parse_state *state
 							//lprintf( "Number input:%c", c );
 							state->col++;
 							state->n = (input->pos - input->buf);
+							if( state->n > input->size ) DebugBreak();
 							// leading zeros should be forbidden.
 							if( c == '_' )
 								continue;
@@ -1080,6 +1087,7 @@ int json6_parse_add_data( struct json_parse_state *state
 						if( input ) {
 							input->pos = _msg_input;
 							state->n = (input->pos - input->buf);
+							if( state->n > input->size ) DebugBreak();
 						}
 						//LogBinary( (uint8_t*)output->buf, output->size );
 						if( input && (!state->complete_at_end) && state->n == input->size )
@@ -1138,7 +1146,7 @@ int json6_parse_add_data( struct json_parse_state *state
 		}
 		//lprintf( "at end... %d %d comp:%d", state->n, input->size, state->completed );
 		if( input ) {
-			if( state->n == input->size ) {
+			if( state->n >= input->size ) {
 				DeleteFromSet( PARSE_BUFFER, jpsd.parseBuffers, input );
 				if( state->gatheringString || state->gatheringNumber || state->parse_context == CONTEXT_OBJECT_FIELD ) {
 					//lprintf( "output is still incomplete? " );
