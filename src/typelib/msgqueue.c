@@ -623,7 +623,7 @@ static int ScanForWaiting( PMSGQUEUE pmq, long msg )
 #ifndef DISABLE_MSGQUE_LOGGING
 			lprintf( WIDE("[%s] Stored message data..... at %") _size_f WIDE(" %") _size_f WIDE(""), pmq->name, pmq->Top ,size );
 #  ifndef DISABLE_MSGQUE_LOGBINARY
-			LogBinary( (POINTER)pStoreMsg, size + sizeof( pStoreMsg->MsgID ) + offsetof( MSGDATA, MsgID ) );
+			LogBinary( (uint8_t*)pStoreMsg, size + sizeof( pStoreMsg->MsgID ) + offsetof( MSGDATA, MsgID ) );
 #  endif
 #endif
 			msg = NULL;
@@ -838,7 +838,7 @@ int DequeMsgEx ( PMSGHANDLE pmh, long *MsgID, POINTER result, size_t size, uint3
 			if( pReadMsg->msg.ttl < now )
 			{
 				lprintf( WIDE("Message TTL Expired in queue... %d %d %d"), pReadMsg->msg.ttl, now, now - pReadMsg->msg.ttl );
-				LogBinary( pReadMsg, pReadMsg->msg.length & ACTUAL_LEN_MASK );
+				LogBinary( (uint8_t*)pReadMsg, pReadMsg->msg.length & ACTUAL_LEN_MASK );
 				pReadMsg->msg.length |= MARK_MESSAGE_ALREADY_READ;
 			}
 			if( pReadMsg->msg.length & MARK_MESSAGE_ALREADY_READ )
@@ -874,7 +874,7 @@ int DequeMsgEx ( PMSGHANDLE pmh, long *MsgID, POINTER result, size_t size, uint3
 #ifndef DISABLE_MSGQUE_LOGGING
 						lprintf( WIDE("Looking for a message %") _size_f WIDE("...at %") _size_f WIDE(" haven't found one yet. (%") _size_f WIDE(")"), *MsgID, tmp, (pReadMsg->msg.length + sizeof( MSGCORE )) & ACTUAL_LEN_MASK );
 #  ifndef DISABLE_MSGQUE_LOGBINARY
-						LogBinary( (POINTER)pReadMsg, (pReadMsg->msg.length + sizeof( MSGCORE )) & ACTUAL_LEN_MASK );
+						LogBinary( (uint8_t*)pReadMsg, (pReadMsg->msg.length + sizeof( MSGCORE )) & ACTUAL_LEN_MASK );
 #  endif 
 #endif
 						UpdatePos( tmp, pReadMsg->msg.length & ACTUAL_LEN_MASK );
@@ -977,7 +977,7 @@ int DequeMsgEx ( PMSGHANDLE pmh, long *MsgID, POINTER result, size_t size, uint3
 #ifndef DISABLE_MSGQUE_LOGGING
 					lprintf( WIDE("DequeMessage [%p] %")_MsgID_f WIDE(" len %") _size_f , result, *(MSGIDTYPE*)result, p+sizeof( pReadMsg->MsgID ) );
 #  ifndef DISABLE_MSGQUE_LOGBINARY
-					LogBinary( (POINTER)result, p+sizeof( pReadMsg->MsgID ) );
+					LogBinary( (uint8_t*)result, p+sizeof( pReadMsg->MsgID ) );
 #  endif
 #endif
 					pReadMsg->msg.length |= MARK_MESSAGE_ALREADY_READ;
@@ -997,7 +997,7 @@ int DequeMsgEx ( PMSGHANDLE pmh, long *MsgID, POINTER result, size_t size, uint3
 #ifndef DISABLE_MSGQUE_LOGGING
 				lprintf( WIDE("Looking for a message %")_MsgID_f WIDE("...at %") _size_f WIDE(" haven't found one yet."), *MsgID, tmp );
 #  ifndef DISABLE_MSGQUE_LOGBINARY
-				LogBinary( (POINTER)pReadMsg, (pReadMsg->msg.length + sizeof( MSGCORE )) & ACTUAL_LEN_MASK );
+				LogBinary( (uint8_t*)pReadMsg, (pReadMsg->msg.length + sizeof( MSGCORE )) & ACTUAL_LEN_MASK );
 #  endif
 #endif
 				pLastReadMsg = pReadMsg;
