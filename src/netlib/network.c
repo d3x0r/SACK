@@ -2235,7 +2235,7 @@ int NetworkQuit(void)
 		if( globalNetworkData.flags.bLogNotices )
 			lprintf( WIDE("NetworkQuit - Remove active client %p"), globalNetworkData.ActiveClients );
 #endif
-		InternalRemoveClientEx( globalNetworkData.ActiveClients, TRUE, FALSE );
+		//InternalRemoveClientEx( globalNetworkData.ActiveClients, TRUE, FALSE );
 	}
 	globalNetworkData.bQuit = TRUE;
 	{
