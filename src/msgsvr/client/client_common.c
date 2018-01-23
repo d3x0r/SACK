@@ -655,7 +655,7 @@ CLIENTMSG_PROC( int, ProbeClientAlive )( PSERVICE_ENDPOINT RouteID )
 		lprintf( WIDE("Yes, I, myself, am alive...") );
 		return TRUE;
 	}
-	lprintf( WIDE("Hmm is client %p") WIDE(" alive?"), RouteID );
+	//lprintf( WIDE("Hmm is client %p") WIDE(" alive?"), RouteID );
 	{
 		PEVENTHANDLER handler;
 		for( handler = g.pHandlers; handler; handler = handler->next )
@@ -670,7 +670,7 @@ CLIENTMSG_PROC( int, ProbeClientAlive )( PSERVICE_ENDPOINT RouteID )
 			//InitializeCriticalSec( &handler->csMsgTransact );
 			handler->RouteID.dest = RouteID[0];
 			LinkThing( g.pHandlers, handler );
-			lprintf( WIDE("Created a HANDLER to coordinate probe alive request..") );
+			//lprintf( WIDE("Created a HANDLER to coordinate probe alive request..") );
 		}
 	}
 	ping_route.dest.process_id = RouteID->process_id;
@@ -689,10 +689,10 @@ CLIENTMSG_PROC( int, ProbeClientAlive )( PSERVICE_ENDPOINT RouteID )
 													  , NULL, NULL ) &&
 		Responce == ( IM_ALIVE ) )
 	{
-		lprintf( WIDE("Ping Success.") );
+		//lprintf( WIDE("Ping Success.") );
 		return TRUE;
 	}
-	lprintf( WIDE("Ping Failure.") );
+	//lprintf( WIDE("Ping Failure.") );
 	return FALSE;
 }
 

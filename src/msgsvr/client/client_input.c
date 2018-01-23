@@ -194,7 +194,7 @@ int WaitReceiveServerMsg ( PSLEEPER sleeper
 				// check for responces...
 				// will return immediate if is not this thread which
 				// is supposed to be there...
-				lprintf( WIDE("getting or waiting for... a message...") );
+				_lprintf(DBG_RELAY)( WIDE("getting or waiting for... a message...") );
 				if( IsThread )
 				{
 					lprintf( WIDE("Get message (might be my thread") );
@@ -214,11 +214,11 @@ int WaitReceiveServerMsg ( PSLEEPER sleeper
 					}
 					handler->flags.bCheckedResponce = 0;
 
-					lprintf( WIDE("Going to sleep for %")_32fs
-							 , handler->wait_for_responce - timeGetTime()
-							 );
+					//lprintf( WIDE("Going to sleep for %")_32fs
+					//		 , handler->wait_for_responce - timeGetTime()
+					//		 );
 					WakeableSleep( handler->wait_for_responce - timeGetTime() );
-					lprintf( WIDE("AWAKE! %d"), handler->flags.responce_received );
+					//lprintf( WIDE("AWAKE! %d"), handler->flags.responce_received );
 
 					DeleteLink( &g.pSleepers, sleeper );
 				}
@@ -232,7 +232,7 @@ int WaitReceiveServerMsg ( PSLEEPER sleeper
 			if( !handler->flags.bCheckedResponce )
 				received = 1;
 
-			lprintf( WIDE("When we finished this loop still was waiting %")_32fs, handler->wait_for_responce - timeGetTime() );
+			//lprintf( WIDE("When we finished this loop still was waiting %")_32fs, handler->wait_for_responce - timeGetTime() );
 			//else
 			{
 				//lprintf( WIDE("Excellent... the responce is back before I could sleep!") );

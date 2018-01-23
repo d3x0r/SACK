@@ -252,7 +252,7 @@ CLIENTMSG_PROC( int, TransactRoutedServerMultiMessageEx )( PSERVICE_ROUTE RouteI
 		switch( MsgOut )
 		{
 		case RU_ALIVE:
-			lprintf( WIDE("Lying about message to expect") );
+			//lprintf( WIDE("Lying about message to expect") );
 			handler->LastMsgID = IM_ALIVE;
 			break;
 		default:
