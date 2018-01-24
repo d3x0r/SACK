@@ -202,7 +202,7 @@ static int gatherString( CTEXTSTR msg, CTEXTSTR *msg_input, size_t msglen, TEXTS
 						hex_char *= 16;
 						if( c >= '0' && c <= '9' )      hex_char += c - '0';
 						else if( c >= 'A' && c <= 'F' ) hex_char += (c - 'A') + 10;
-						else if( c >= 'a' && c <= 'f' ) hex_char += (c - 'F') + 10;
+						else if( c >= 'a' && c <= 'f' ) hex_char += (c - 'a') + 10;
 						else {
 							if( !state->pvtError ) state->pvtError = VarTextCreate();
 							vtprintf( state->pvtError, WIDE( "(escaped character, parsing hex of \\x) fault while parsing; '%c' unexpected at %" )_size_f WIDE( " (near %*.*s[%c]%s)" ), c, n
@@ -240,7 +240,7 @@ static int gatherString( CTEXTSTR msg, CTEXTSTR *msg_input, size_t msglen, TEXTS
 						hex_char *= 16;
 						if( c >= '0' && c <= '9' )      hex_char += c - '0';
 						else if( c >= 'A' && c <= 'F' ) hex_char += (c - 'A') + 10;
-						else if( c >= 'a' && c <= 'f' ) hex_char += (c - 'F') + 10;
+						else if( c >= 'a' && c <= 'f' ) hex_char += (c - 'a') + 10;
 						else {
 							if( !state->pvtError ) state->pvtError = VarTextCreate();
 							vtprintf( state->pvtError, WIDE( "(escaped character, parsing hex of \\u) fault while parsing; '%c' unexpected at %" )_size_f WIDE( " (near %*.*s[%c]%s)" ), c, n
