@@ -90,7 +90,7 @@ static PCLIENT AddClient( PSERVICE_ROUTE client_id )
 			g.clients->me = &client->next;
 		client->me = &g.clients;
 		g.clients = client;
-		Log( WIDE("Added client...") );
+		//Log( WIDE("Added client...") );
 		return client;
 	}
 }
@@ -133,7 +133,7 @@ static int CPROC MY_CLIENT_CONNECT( PSERVICE_ROUTE route, uint32_t *params, size
 	{
 		// this is the ID that the client should use
 		// to receive on.
-		lprintf( WIDE("Client ID will be %d"), client->route_id.dest.service_id );
+		//lprintf( WIDE("Client ID will be %d"), client->route_id.dest.service_id );
 		((MSGIDTYPE*)result)[0] = client->route_id.dest.service_id;
 		(*result_length) = sizeof( MSGIDTYPE );
 		return TRUE;
@@ -160,7 +160,7 @@ static int CPROC MY_CLIENT_LOAD_SERVICE( PSERVICE_ROUTE route, uint32_t *params,
 			{
 				// need to send this message to the real person... and have them
 				// result with this message....
-				lprintf( WIDE("Actually this is a remote process... and we're going to forward to it's handler...") );
+				//lprintf( WIDE("Actually this is a remote process... and we're going to forward to it's handler...") );
 				if( ProbeClientAlive( &service->client_id ) )
 				{
 					PQMSG msg = (PQMSG)( ((uint8_t*)params) - (sizeof( SERVICE_ENDPOINT )*2 + sizeof( uint32_t ) ));
@@ -233,7 +233,6 @@ static int CPROC MY_CLIENT_REGISTER_SERVICE( PSERVICE_ROUTE route, uint32_t *par
 			// for now - respond failure .
 			if( ProbeClientAlive( &service->client_id ) )
 			{
-
 				return FALSE;
 			}
 			// otherwise the prior service is dead, and that's OK.
