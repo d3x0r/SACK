@@ -246,6 +246,7 @@ TEXTSTR EscapeSQLBinaryExx( PODBC odbc, CTEXTSTR blob, uintptr_t bloblen, uintpt
 #if MYSQL_ODBC_CONNECTION_IS_BROKEN
 	int first_failure = 1;
 #endif
+	CTEXTSTR pBlob = blob;
 	TEXTCHAR *tmpnamebuf, *result;
 	unsigned int n;
 	int targetlen;
@@ -265,7 +266,7 @@ TEXTSTR EscapeSQLBinaryExx( PODBC odbc, CTEXTSTR blob, uintptr_t bloblen, uintpt
 		while( n < bloblen )
 		{
 #if MYSQL_ODBC_CONNECTION_IS_BROKEN
-			if( blob[n] == '\x9f' || blob[n] == '\x9c' )
+			if( (*pBlob) == '\x9f' || (*pBlob) == '\x9c' )
 			{
 				if( first_failure )
 				{
@@ -275,10 +276,10 @@ TEXTSTR EscapeSQLBinaryExx( PODBC odbc, CTEXTSTR blob, uintptr_t bloblen, uintpt
 				targetlen += 14;  // ",char(159),"
 			}
 #endif
-			if( blob[n] == '\'' ||
-				blob[n] == '\\' ||
-				blob[n] == '\0' ||
-				blob[n] == '\"' )
+			if( (*pBlob) == '\'' ||
+				(*pBlob) == '\\' ||
+				(*pBlob) == '\0' ||
+				(*pBlob) == '\"' )
 				targetlen++;
 			n++;
 		}
@@ -299,18 +300,18 @@ TEXTSTR EscapeSQLBinaryExx( PODBC odbc, CTEXTSTR blob, uintptr_t bloblen, uintpt
 		while( n < bloblen )
 		{
 #if MYSQL_ODBC_CONNECTION_IS_BROKEN
-			if( blob[n] == '\x9f' || blob[n] == '\x9c' )
-				tmpnamebuf += tnprintf( tmpnamebuf, 15, "\',char(%d),\'", ((unsigned char*)blob)[n] );
+			if( (*pBlob) == '\x9f' || (*pBlob) == '\x9c' )
+				tmpnamebuf += tnprintf( tmpnamebuf, 15, "\',char(%d),\'", (unsigned char)(*pBlob) );
 				else
 #endif
 			{
-				if( blob[n] == '\'' ||
-					blob[n] == '\\' ||
-					blob[n] == '\0' ||
-					blob[n] == '\"' )
+				if( (*pBlob) == '\'' ||
+					(*pBlob) == '\\' ||
+					(*pBlob) == '\0' ||
+					(*pBlob) == '\"' )
 					(*tmpnamebuf++) = '\\';
-				if( blob[n] )
-					(*tmpnamebuf++) = blob[n];
+				if( (*pBlob) )
+					(*tmpnamebuf++) = (*pBlob);
 				else
 					(*tmpnamebuf++) = '0';
 			}
@@ -338,20 +339,44 @@ TEXTSTR EscapeSQLBinaryExx( PODBC odbc, CTEXTSTR blob, uintptr_t bloblen, uintpt
 		targetlen = 0;
 		while( n < bloblen )
 		{
-			if( blob[n] == '\'' )
+			if( (*pBlob) == '\'' )
 				targetlen++;
+			if( (*pBlob) == '\0' )
+				targetlen += 13;
+			pBlob++;
 			n++;
 		}
 
 		n = 0;
+		pBlob = blob; // reset blob input
 		result = tmpnamebuf = (TEXTSTR)AllocateEx( ( sizeof( TEXTCHAR ) * ( targetlen + bloblen + 3 ) ) DBG_RELAY );
 		if( bQuote )
 			( *tmpnamebuf++ ) = '\'';
 		while( n < bloblen ) {
-			if( blob[n] == '\'' )
+			if( bQuote && (*pBlob) == 0 ) {
 				( *tmpnamebuf++ ) = '\'';
-			( *tmpnamebuf++ ) = blob[n];
+				( *tmpnamebuf++ ) = '|';
+				( *tmpnamebuf++ ) = '|';
+
+				( *tmpnamebuf++ ) = 'C';
+				( *tmpnamebuf++ ) = 'H';
+				( *tmpnamebuf++ ) = 'A';
+				( *tmpnamebuf++ ) = 'R';
+				( *tmpnamebuf++ ) = '(';
+				( *tmpnamebuf++ ) = '0';
+				( *tmpnamebuf++ ) = ')';
+
+				( *tmpnamebuf++ ) = '|';
+				( *tmpnamebuf++ ) = '|';
+				( *tmpnamebuf++ ) = '\'';
+			}
+			else {
+				if( (*pBlob) == '\'' )
+					( *tmpnamebuf++ ) = '\'';
+				( *tmpnamebuf++ ) = (*pBlob);
+			}
 			n++;
+			pBlob++;
 		}
 		if( bQuote )
 			( *tmpnamebuf++ ) = '\'';
@@ -379,17 +404,18 @@ TEXTCHAR * EscapeBinary ( CTEXTSTR blob, uintptr_t bloblen )
 
 TEXTCHAR * EscapeSQLStringEx ( PODBC odbc, CTEXTSTR name DBG_PASS )
 {
-	return EscapeSQLBinaryExx( odbc, name, strlen( name )+1, NULL, FALSE DBG_RELAY );
+	if( !name ) return NULL;
+	return EscapeSQLBinaryExx( odbc, name, strlen( name ), NULL, FALSE DBG_RELAY );
 }
 
 TEXTCHAR * EscapeStringEx ( CTEXTSTR name DBG_PASS )
 {
-	return EscapeSQLBinaryExx( NULL, name, (uint32_t)strlen( name ) + 1, NULL, FALSE DBG_RELAY );
+	return EscapeSQLBinaryExx( NULL, name, (uint32_t)strlen( name ), NULL, FALSE DBG_RELAY );
 }
 
 TEXTCHAR * EscapeString ( CTEXTSTR name )
 {
-	return EscapeSQLBinaryExx( NULL, name, strlen( name ) + 1, NULL, FALSE DBG_SRC );
+	return EscapeSQLBinaryExx( NULL, name, strlen( name ), NULL, FALSE DBG_SRC );
 }
 
 uint8_t hexbyte( TEXTCHAR *string )
@@ -471,6 +497,7 @@ TEXTSTR DeblobifyString( CTEXTSTR blob, TEXTSTR outbuf, size_t outbuflen  )
 TEXTSTR RevertEscapeBinary( CTEXTSTR blob, size_t *bloblen )
 {
 	TEXTCHAR *tmpnamebuf, *result;
+	CTEXTSTR pBlob = blob;
 	int n;
 	int escape;
 	int targetlen;
@@ -478,16 +505,16 @@ TEXTSTR RevertEscapeBinary( CTEXTSTR blob, size_t *bloblen )
 
 	escape = 0;
 	targetlen = 0;
-	for( n = 0; n < blob[n]; n++ )
+	for( n = 0; (*pBlob); pBlob++, n++ )
 	{
-		if( !escape && ( blob[n] == '\\' ) )
+		if( !escape && ( (*pBlob) == '\\' ) )
 			escape = 1;
 		else if( escape )
 		{
-			if( blob[n] == '\\' ||
-				blob[n] == '0' ||
-				blob[n] =='\'' ||
-				blob[n] == '\"' )
+			if( (*pBlob) == '\\' ||
+				(*pBlob) == '0' ||
+				(*pBlob) =='\'' ||
+				(*pBlob) == '\"' )
 			{
 				// targetlen is a subtraction for missing charactercount
 				targetlen++;
@@ -502,30 +529,30 @@ TEXTSTR RevertEscapeBinary( CTEXTSTR blob, size_t *bloblen )
 
 	escape = 0;
 	result = tmpnamebuf = NewArray( TEXTCHAR, (*bloblen) );
-	for( n = 0; blob[n]; n++ )
+	for( n = 0; (*pBlob); n++ )
 	{
-		if( !escape && ( blob[n] == '\\' ) )
+		if( !escape && ( (*pBlob) == '\\' ) )
 			escape = 1;
 		else if( escape )
 		{
-			if( blob[n] == '\\' ||
-				blob[n] =='\'' ||
-				blob[n] == '\"' )
+			if( (*pBlob) == '\\' ||
+				(*pBlob) =='\'' ||
+				(*pBlob) == '\"' )
 			{
 			// targetlen is a subtraction for missing charactercount
-				(*tmpnamebuf++) = blob[n];
+				(*tmpnamebuf++) = (*pBlob);
 			}
-			else if( blob[n] == '0' )
+			else if( (*pBlob) == '0' )
 				(*tmpnamebuf++) = 0;
 			else
 			{
 				(*tmpnamebuf++) = '\\';
-				(*tmpnamebuf++) = blob[n];
+				(*tmpnamebuf++) = (*pBlob);
 			}
 			escape = 0;
 		}
 		else
-			(*tmpnamebuf++) = blob[n];
+			(*tmpnamebuf++) = (*pBlob);
 	}
 
 	(*tmpnamebuf) = 0; // best terminate this thing.
