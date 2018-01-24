@@ -2229,7 +2229,7 @@ int NetworkQuit(void)
 		globalNetworkData.uPendingTimer = 0;
 	}
 #endif
-	while( globalNetworkData.ActiveClients )
+	//while( globalNetworkData.ActiveClients )
 	{
 #ifdef LOG_NOTICES
 		if( globalNetworkData.flags.bLogNotices )
