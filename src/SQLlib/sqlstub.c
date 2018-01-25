@@ -415,7 +415,7 @@ const char * PSSQL_GetColumnTableAliasName( PODBC odbc, int col ) {
 		const char *tmp;
 		//tmp = sqlite3_column_table_name( pCollect->stmt, col ); // sqlite function is 'unsigned' result
 		//tmp = sqlite3_column_origin_name( pCollect->stmt, col ); // sqlite function is 'unsigned' result
-		tmp = sqlite3_column_table_alias_name( pCollect->stmt, col ); // sqlite function is 'unsigned' result
+		tmp = sqlite3_column_table_alias( pCollect->stmt, col ); // sqlite function is 'unsigned' result
 		return tmp;
 	}
 	return NULL;

@@ -292,7 +292,7 @@ struct sqlite_interface
 	int ( FIXREF2*sqlite3_extended_errcode)(sqlite3 *db);
 	int ( FIXREF2*sqlite3_stmt_readonly)(sqlite3_stmt *pStmt);
 	const char *( FIXREF2*sqlite3_column_table_name )( sqlite3_stmt *odbc, int col );
-	const char *( FIXREF2*sqlite3_column_table_alias_name )( sqlite3_stmt *odbc, int col );
+	const char *( FIXREF2*sqlite3_column_table_alias )( sqlite3_stmt *odbc, int col );
 };
 
 #  ifndef DEFINES_SQLITE_INTERFACE
@@ -335,7 +335,7 @@ PRIORITY_PRELOAD( LoadSQLiteInterface, SQL_PRELOAD_PRIORITY-1 )
 #    define sqlite3_extended_errcode     (FIXDEREF2 (sqlite_iface->sqlite3_extended_errcode))
 #    define sqlite3_stmt_readonly        (FIXDEREF2 (sqlite_iface->sqlite3_stmt_readonly))
 #    define sqlite3_column_table_name    (FIXDEREF2 (sqlite_iface->sqlite3_column_table_name))
-#    define sqlite3_column_table_alias_name (FIXDEREF2 (sqlite_iface->sqlite3_column_table_alias_name))
+#    define sqlite3_column_table_alias (FIXDEREF2 (sqlite_iface->sqlite3_column_table_alias))
 #  endif
 #endif
 
