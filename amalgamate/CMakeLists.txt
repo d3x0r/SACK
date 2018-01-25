@@ -28,7 +28,7 @@ if( EXISTS ${SACK_BASE} )
 set( INCLUDES
 	-I${SACK_BASE}/include 
 	-I${SACK_BASE}/src/contrib/sha1lib 
-	-I${SACK_BASE}/src/contrib/sqlite/3.22.0-pre-nul  )
+	-I${SACK_BASE}/src/contrib/sqlite/3.23.0-MySqlite  )
 
 # __NO_OPTIONS__ __NO_INTERFACE_SUPPORT__ __NO_ODBC__
 set( DEFINITIONS   __STATIC__ 

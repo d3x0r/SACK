@@ -56,7 +56,7 @@ struct sqlite_interface my_sqlite_interface = {
 															 , sqlite3_extended_errcode
                                            , sqlite3_stmt_readonly
                                            , sqlite3_column_table_name
-                                           , sqlite3_column_table_alias_name
+                                           , sqlite3_column_table_alias
 };
 
 
