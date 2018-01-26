@@ -2,7 +2,7 @@
 #define USE_SACK_MSGQ
 #endif
 
-//#define ENABLE_GENERAL_USEFUL_DEBUGGING
+#define ENABLE_GENERAL_USEFUL_DEBUGGING
 
 #ifdef ENABLE_GENERAL_USEFUL_DEBUGGING
 //#define DEBUG_THREAD
@@ -12,13 +12,14 @@
 #define LOG_SENT_MESSAGES
 // event messages need to be enabled to log event message data...
 #define DEBUG_DATA_XFER
+#define DEBUG_SERVICE_INPUT
 //#define NO_LOGGING
 /// show event messages...
 #define DEBUG_EVENTS
 #define DEBUG_OUTEVENTS
 /// attempt to show the friendly name for messages handled
 #define LOG_HANDLED_MESSAGES
-//#define DEBUG_MESSAGE_BASE_ID
+#define DEBUG_MESSAGE_BASE_ID
 #define _DEBUG_RECEIVE_DISPATCH_
 //#define DEBUG_THREADS
 //#define DEBUG_MSGQ_OPEN
@@ -245,6 +246,7 @@ DeclareSet( BUFFER_LENGTH_PAIR );
 #define EABORT MSGQUE_ERROR_EABORT
 #endif
 
+#define DEBUG_DATA_XFER
 #ifdef DEBUG_DATA_XFER
 #  define msgsnd( q,msg,len,opt) ( _lprintf(DBG_RELAY)( WIDE("Send Message...%d %d"), len, len+4 ), LogBinary( (uint8_t*)msg, (len)+4  ), EnqueMsg( q,(msg),(len),(opt)) )
 #else
@@ -267,7 +269,7 @@ DeclareSet( BUFFER_LENGTH_PAIR );
 #else
 #ifdef DEBUG_DATA_XFER
 	//#define msgsnd( q,msg,len,opt) ( _xlprintf(1 DBG_RELAY)( WIDE("Send Message...") ), LogBinary( (POINTER)msg, (len)+4  ), msgsnd( q,(msg),(len),(opt)) )
-	#define msgsnd( q,msg,len,opt) ( lprintf( WIDE("Send Message...") ), LogBinary( (POINTER)msg, (len)+4  ), msgsnd( q,(msg),(len),(opt)) )
+	#define msgsnd( q,msg,len,opt) ( lprintf( WIDE("Send Message...") ), LogBinary( (uint8_t*)msg, (len)+4  ), msgsnd( q,(msg),(len),(opt)) )
 #endif
 	#define msgget( name,n,opts) msgget( n,opts )
 	#define MSGFAIL -1

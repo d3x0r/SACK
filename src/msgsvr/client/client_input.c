@@ -45,7 +45,7 @@ static int GetAMessageEx( MSGQ_TYPE msgq, MSGIDTYPE MsgFilter, CTEXTSTR q, int f
 			//lprintf( "vvv" );
 			MessageLen = msgrcv( msgq, MSGTYPE MessageIn, 8192, MsgFilter, flags );
 #ifdef DEBUG_DATA_XFER
-			LogBinary( MessageIn, MessageLen + sizeof( MSGIDTYPE ) );
+			LogBinary( (uint8_t*)MessageIn, MessageLen + sizeof( MSGIDTYPE ) );
 #endif
 			//lprintf( "^^^" );
 			//lprintf( WIDE("Got a receive...") );
@@ -194,7 +194,9 @@ int WaitReceiveServerMsg ( PSLEEPER sleeper
 				// check for responces...
 				// will return immediate if is not this thread which
 				// is supposed to be there...
+#ifdef DEBUG_DATA_XFER
 				_lprintf(DBG_RELAY)( WIDE("getting or waiting for... a message...") );
+#endif
 				if( IsThread )
 				{
 					lprintf( WIDE("Get message (might be my thread") );

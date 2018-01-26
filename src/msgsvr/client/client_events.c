@@ -61,7 +61,7 @@ CLIENTMSG_PROC(int, SendMultiServiceEventPairsEx)( PSERVICE_ROUTE RouteID, uint3
 #if defined( DEBUG_EVENTS ) 
 	_lprintf(DBG_RELAY)( WIDE("Send Event...") );
 #if !defined( DEBUG_DATA_XFER )
-	LogBinary( &msg, sendlen + sizeof( MSGHDR ) + sizeof( MSGIDTYPE ) );
+	LogBinary( (uint8_t*)&msg, sendlen + sizeof( MSGHDR ) + sizeof( MSGIDTYPE ) );
 #endif
 #endif
 	if( !msg.msg.dest.process_id )
@@ -178,7 +178,7 @@ int HandleEvents( MSGQ_TYPE msgq, PQMSG MessageEvent, int initial_flags )
 		//lprintf( "^^^" );
 #ifdef DEBUG_DATA_XFER
       if( MessageLen >= 0 )
-			LogBinary( MessageEvent, MessageLen + sizeof( MSGIDTYPE ) );
+			LogBinary( (uint8_t*)MessageEvent, MessageLen + sizeof( MSGIDTYPE ) );
 #endif
 		if( (MessageLen+ sizeof( MSGIDTYPE )) == 0 )
 		{

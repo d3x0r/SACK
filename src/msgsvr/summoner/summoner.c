@@ -20,6 +20,8 @@
 #define PREFIX
 #endif
 
+//#define DEBUG_WAIT_LIST
+
 // messages for this service
 // may include
 //   IM_ALIVE
@@ -130,8 +132,12 @@ static int CPROC SummonerEvents( PSERVICE_ROUTE SourceRouteID, uint32_t MsgID
 		//(*result_length) = 0;
 		return TRUE;
 	case MSG_ServiceLoad:
-		result[0] = 16; // 0 actually?
-		result[1] = 16;
+		{
+			MsgSrv_ReplyServiceLoad msg = ((MsgSrv_ReplyServiceLoad*)result)[0];
+         msg.ServiceID = 0;
+			msg.thread = GetMyThreadID();
+			(*result_length) = sizeof( msg );
+		}
 		return TRUE;
 	case MSG_WHOAMI:
 		{
@@ -143,7 +149,7 @@ static int CPROC SummonerEvents( PSERVICE_ROUTE SourceRouteID, uint32_t MsgID
 				l.current_task->flags.bWaitAgain = 1;
 				l.current_task->flags.bWaiting = 0;
 				l.current_task->flags.bWaitForStart = 1;
-				lprintf( WIDE("Okay, task %s inquired for its ID"), l.current_task->name );
+				//lprintf( WIDE("Okay, task %s inquired for its ID"), l.current_task->name );
 				{
 					PMYTASK_INFO task = l.current_task;
 					RelinkThing( l.aware, task );
@@ -176,7 +182,7 @@ static int CPROC SummonerEvents( PSERVICE_ROUTE SourceRouteID, uint32_t MsgID
 					task->flags.bWaitForStart = 0;
 					task->flags.bWaitForReady = 1;
  					WakeThread( l.pLoadingThread );
-					(*result_length) = -1; // return result MsgID
+					(*result_length) = 0; // return result MsgID
 					return TRUE;
 				}
 			}
@@ -184,7 +190,7 @@ static int CPROC SummonerEvents( PSERVICE_ROUTE SourceRouteID, uint32_t MsgID
 			{
 				lprintf( WIDE("Failed to find the task...\n") );
 			}
-			(*result_length) = -1;
+			(*result_length) = 0;
 			return FALSE;
 		}
 		//break;
@@ -203,7 +209,7 @@ static int CPROC SummonerEvents( PSERVICE_ROUTE SourceRouteID, uint32_t MsgID
 					task->flags.bStarted = 1;
 					// at this point dependant tasks will be able to start...
 					WakeThread( l.pLoadingThread );
-					(*result_length) = -1; // allow result
+					(*result_length) = 0; // allow result
 					break;
 				}
 			}
@@ -295,7 +301,9 @@ static uintptr_t CPROC AddTaskRequirement( uintptr_t psv, arg_list args )
 	PREQUIRED_TASK required_task_info = (PREQUIRED_TASK)Allocate( sizeof( REQUIRED_TASK ) );
 	required_task_info->flags.bOptional = 0;
 	required_task_info->name = StrDup( require );
+#ifdef DEBUG_WAIT_LIST
 	lprintf( WIDE("Adding required %s to %s"), require, task->name );
+#endif
 	required_task_info->address = NULL;
 	required_task_info->task = NULL;
 	AddLink( &task->requires, required_task_info );
@@ -543,7 +551,9 @@ static PMYTASK_INFO FindTask( char *address, char *taskname )
 		{
 			if( stricmp( task->name, taskname ) == 0 )
 			{
+#ifdef DEBUG_WAIT_LIST
 				lprintf( WIDE("Task at idx %") _32fX WIDE(""), idx );
+#endif
 				return task;
 			}
 		}
@@ -556,7 +566,9 @@ static PMYTASK_INFO FindTask( char *address, char *taskname )
 static void ScheduleTask( PMYTASK_INFO task )
 {
 	uint32_t tick;
+#ifdef DEBUG_WAIT_LIST
 	lprintf( "schedule task." );
+#endif
 	if( !task )
 		return;
 	if( task->flags.bRestart )
@@ -790,7 +802,9 @@ static void ReadConfig( void )
 				}
 				else
 				{
+#ifdef DEBUG_WAIT_LIST
 					lprintf( WIDE("Found task %p(%")_32f WIDE(")..."), required->task, FindLink( &l.tasks, required->task ) );
+#endif
 					AddLink( &required->task->required_by, task );
 				}
 			}
@@ -905,7 +919,9 @@ static int CPROC WaitingForDependancies( PMYTASK_INFO task )
 			return 0;
 		if( !required->task->flags.bStarted )
 		{
+#ifdef DEBUG_WAIT_LIST
 			lprintf( WIDE("required task %s not started..."), required->task->name );
+#endif
 			return 1;
 		}
 	}
@@ -948,13 +964,17 @@ static void LoadTasks( void )
 			lprintf( "suspended." );
 			return;
 		}
+#ifdef DEBUG_WAIT_LIST
 		lprintf( WIDE("Searching for something to start...") );
+#endif
 		for( task = l.schedule; task; task = nextTask )
 		{
 			PTASK_INFO task_info;
 			nextTask = NextThing( task );
 			// next task in for loop.
+#ifdef DEBUG_WAIT_LIST
 			lprintf( "check %p(%s) %d", task, task?task->name:"", l.flags.bSpawnActive );
+#endif
 			if( l.flags.bSpawnActive )
 				if( task->flags.bStarted )
 				{
@@ -965,17 +985,23 @@ static void LoadTasks( void )
 				}
 			if( task->flags.bWaiting )
 			{
+#ifdef DEBUG_WAIT_LIST
 				lprintf( WIDE("Task waiting - try another peer dependancy") );
+#endif
 				continue;
 			}
 			if( WaitingForDependancies( task ) )
 			{
+#ifdef DEBUG_WAIT_LIST
 				lprintf( WIDE("Task %s is waiting for depends."), task->name );
+#endif
 				continue;
 			}
+#ifdef DEBUG_WAIT_LIST
 			lprintf( WIDE("Launching program... %s %s%s%s\n"), task->name
 					 , task->program
-					, task->path?" in ":"", task->path?task->path:"" );
+					 , task->path?" in ":"", task->path?task->path:"" );
+#endif
 			if( task->args )
 			{
 				char **p = task->args;
@@ -1002,7 +1028,9 @@ static void LoadTasks( void )
 			if( task_info )
 			{
 				uint32_t tick = GetTickCount();
+#ifdef DEBUG_WAIT_LIST
 				lprintf( WIDE("adding task info to task->spawns %p %p"), &task->spawns, task_info );
+#endif
 				AddLink( &task->spawns, (POINTER)task_info );
 				if( !task->ready_timeout )
 					task->ready_timeout = 5000;

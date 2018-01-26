@@ -52,7 +52,7 @@ int SendInMultiMessageEx( PSERVICE_ROUTE routeID, uint32_t MsgID, uint32_t parts
 	// send to application inbound queue..
 #ifdef DEBUG_OUTEVENTS
 		lprintf( WIDE("Sending result to application...") );
-		LogBinary( (POINTER)MessageOut, ofs );
+		LogBinary( (uint8_t*)MessageOut, ofs );
 
 #endif
 		stat = msgsnd( g.msgq_in, MSGTYPE MessageOut, ofs + sizeof(QMSG) - sizeof( MSGIDTYPE ), 0 );
@@ -247,7 +247,7 @@ CLIENTMSG_PROC( int, TransactRoutedServerMultiMessageEx )( PSERVICE_ROUTE RouteI
 			lprintf( WIDE("We have no business being here... no loadservice has been made to this service!") );
 			return 0;
 		}
-		lprintf( WIDE("Enter %p"), handler );
+		//lprintf( WIDE("Enter %p"), handler );
 		EnterCriticalSec( &handler->csMsgTransact );
 		switch( MsgOut )
 		{
@@ -256,7 +256,7 @@ CLIENTMSG_PROC( int, TransactRoutedServerMultiMessageEx )( PSERVICE_ROUTE RouteI
 			handler->LastMsgID = IM_ALIVE;
 			break;
 		default:
-			lprintf( WIDE("set last msgID %") _MsgID_f, MsgOut );
+			//lprintf( WIDE("set last msgID %") _MsgID_f, MsgOut );
 			handler->LastMsgID = MsgOut;
 			break;
 		}
@@ -289,7 +289,7 @@ CLIENTMSG_PROC( int, TransactRoutedServerMultiMessageEx )( PSERVICE_ROUTE RouteI
  		return FALSE;
 	}
 	Release( pairs );
-	lprintf( WIDE("Entering wait after serving a message...") );
+	//lprintf( WIDE("Entering wait after serving a message...") );
 	if( MsgIn || (BufferIn && LengthIn) )
 	{
 		status = WaitReceiveServerMsg( &sleeper, MsgOut DBG_SRC );

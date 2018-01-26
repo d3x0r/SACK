@@ -53,7 +53,7 @@ PRELOAD( Started )
 	{
 		l.init_ran = 1;
 		l.MsgBase = LoadServiceEx( SUMMONER_NAME, HandleSummonerEvents );
-		//lprintf( WIDE("Message base for service is %d"), l.MsgBase );
+		lprintf( WIDE("Message base for service is %d"), l.MsgBase );
 		if( l.MsgBase )
 		{
 			MSGIDTYPE result;
@@ -78,11 +78,12 @@ PRELOAD( Started )
 			else if( !result_length )
 			{
 				lprintf( WIDE("Summoner is not responsible for us, and requires no notifications." ) );
-				UnloadService( SUMMONER_NAME );
+				//UnloadService( SUMMONER_NAME );
 				l.MsgBase = NULL;
 				return;
 			}
-			//else l.my_name is my task name from sommoner.config
+							 //else l.my_name is my task name from sommoner.config
+         lprintf( "SAY I AM STARTING with %s", l.my_name );
 			if( !TransactServerMessage( l.MsgBase, MSG_IM_STARTING, l.my_name, (uint32_t)strlen( l.my_name ) + 1
 											  , NULL, NULL, 0 ) )
 			{
@@ -107,12 +108,13 @@ PRELOAD( Started )
    // if we registered with the summoner...
 	if( l.MsgBase )
 	{
-		//lprintf( WIDE("Sending IM_READY to summoner...\n") );
+		lprintf( WIDE("Sending IM_READY to summoner...\n") );
 		result = ((MSG_IM_READY) | SERVER_SUCCESS);
 		if( TransactServerMessage( l.MsgBase, MSG_IM_READY, l.my_name, (uint32_t)strlen( l.my_name ) + 1
 										 , NULL /*&result*/, NULL, 0 )
 		  )
 		{
+			lprintf( "should be wait on true false: %d", result );
 			if( result == ((MSG_IM_READY) | SERVER_SUCCESS) )
 			{
 			}
