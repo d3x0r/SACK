@@ -425,7 +425,7 @@ static void usage( void )
 SaneWinMain( argc, argv )
 {
 	int arg;
-	uintptr_t version;
+	uintptr_t version = 0;
 	if( argc < 2 ) { usage(); return 0; }
 
 	l.fsi = sack_get_filesystem_interface( SACK_VFS_FILESYSTEM_NAME );
