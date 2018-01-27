@@ -179,7 +179,7 @@ PRIORITY_PRELOAD( XSaneWinMain, DEFAULT_PRELOAD_PRIORITY + 20 )//( argc, argv )
 		l.fsi = sack_get_filesystem_interface( "sack_shmem.runner" );
 		sack_set_default_filesystem_interface( l.fsi );
 		//lprintf( "use crypt.." );
-		vol = sack_vfs_use_crypt_volume( memory, sz, REPLACE_ME_2, REPLACE_ME_3 );
+		vol = sack_vfs_use_crypt_volume( memory, sz, 0, REPLACE_ME_2, REPLACE_ME_3 );
 		if( !vol ) {
 			lprintf( "Failed to load attached vault." );
 			return;
@@ -201,7 +201,7 @@ PRIORITY_PRELOAD( XSaneWinMain, DEFAULT_PRELOAD_PRIORITY + 20 )//( argc, argv )
 			l.target_path = ExpandPath( "." );
 		}
 		sack_set_default_filesystem_interface( l.fsi );
-		vol = sack_vfs_load_crypt_volume( argc> 1? argv[1]:"package.vfs", REPLACE_ME_2, REPLACE_ME_3 );
+		vol = sack_vfs_load_crypt_volume( argc> 1? argv[1]:"package.vfs", 0, REPLACE_ME_2, REPLACE_ME_3 );
 		l.rom = sack_mount_filesystem( "self", l.fsi, 100, (uintptr_t)vol, TRUE );
 	}
 #endif

@@ -37,7 +37,7 @@ void test2( void )
 
 PRIORITY_PRELOAD( Sack_VFS_Register, SQL_PRELOAD_PRIORITY )
 {
-	volume = sack_vfs_load_crypt_volume( ExpandPath( "*/sack.vault" ), "alkj109ad908a0a8asdf908na90na80a98d098ahkljwerklja", "0000000-0000-0000-000000-000000" );
+	volume = sack_vfs_load_crypt_volume( ExpandPath( "*/sack.vault" ), 0, "alkj109ad908a0a8asdf908na90na80a98d098ahkljwerklja", "0000000-0000-0000-000000-000000" );
 	//sack_vfs_load_volume( ExpandPath( "*/sack.vault" ) );
 
 }

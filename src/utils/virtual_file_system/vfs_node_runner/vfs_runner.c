@@ -5,8 +5,9 @@
 
 
 #define REPLACE_ME_1  "test.cvfs"
-#define REPLACE_ME_2  NULL/*"key1"*/
-#define REPLACE_ME_3  NULL/*"key2"*/
+#define REPLACE_ME_2a  0/*"key1"*/
+#define REPLACE_ME_2b  NULL/*"key1"*/
+#define REPLACE_ME_3   NULL/*"key2"*/
 
 static struct vfs_runner_local
 {
@@ -77,9 +78,9 @@ PRIORITY_PRELOAD( XSaneWinMain, DEFAULT_PRELOAD_PRIORITY + 20 )//( argc, argv )
 		vfs_memory = memory;
 		l.fsi = sack_get_filesystem_interface( "sack_shmem.runner" );
 		sack_set_default_filesystem_interface( l.fsi );
-		vol = sack_vfs_use_crypt_volume( vfs_memory, sz-((uintptr_t)vfs_memory-(uintptr_t)memory), REPLACE_ME_2, REPLACE_ME_3 );
+		vol = sack_vfs_use_crypt_volume( vfs_memory, sz-((uintptr_t)vfs_memory-(uintptr_t)memory), REPLACE_ME_2a, REPLACE_ME_2b, REPLACE_ME_3 );
 		l.rom = sack_mount_filesystem( "self", l.fsi, 100, (uintptr_t)vol, FALSE );
-		vol2 = sack_vfs_load_crypt_volume( "external.vfs", REPLACE_ME_2, REPLACE_ME_3 );
+		vol2 = sack_vfs_load_crypt_volume( "external.vfs", REPLACE_ME_2a, REPLACE_ME_2b, REPLACE_ME_3 );
 		l.ram = sack_mount_filesystem( "extra", l.fsi, 110, (uintptr_t)vol, TRUE );
 
 		if( vol )

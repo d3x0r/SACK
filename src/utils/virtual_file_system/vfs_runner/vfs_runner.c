@@ -325,9 +325,9 @@ PRIORITY_PRELOAD( XSaneWinMain, DEFAULT_PRELOAD_PRIORITY + 20 )//( argc, argv )
 		SetExternalLoadLibrary( LoadLibraryDependant );
 		SetExternalFindProgram( FindProgram );
 		SetProgramName( "program" );
-		vol = sack_vfs_use_crypt_volume( vfs_memory, sz-((uintptr_t)vfs_memory-(uintptr_t)memory), REPLACE_ME_2, REPLACE_ME_3 );
+		vol = sack_vfs_use_crypt_volume( vfs_memory, sz-((uintptr_t)vfs_memory-(uintptr_t)memory), 0, REPLACE_ME_2, REPLACE_ME_3 );
 		l.rom = sack_mount_filesystem( "self", l.fsi, 100, (uintptr_t)vol, FALSE );
-		vol2 = sack_vfs_load_crypt_volume( "external.vfs", REPLACE_ME_2, REPLACE_ME_3 );
+		vol2 = sack_vfs_load_crypt_volume( "external.vfs", 0, REPLACE_ME_2, REPLACE_ME_3 );
 		l.ram = sack_mount_filesystem( "extra", l.fsi, 110, (uintptr_t)vol, TRUE );
 		if( vol )
 		{
@@ -358,9 +358,9 @@ PRIORITY_PRELOAD( XSaneWinMain, DEFAULT_PRELOAD_PRIORITY + 20 )//( argc, argv )
 		sack_set_default_filesystem_interface( l.fsi );
 		SetExternalLoadLibrary( LoadLibraryDependant );
 		SetProgramName( "program" );
-		vol = sack_vfs_load_crypt_volume( "test.scvfs", REPLACE_ME_2, REPLACE_ME_3 );
+		vol = sack_vfs_load_crypt_volume( "test.scvfs", 0, REPLACE_ME_2, REPLACE_ME_3 );
 		l.rom = sack_mount_filesystem( "self", l.fsi, 100, (uintptr_t)vol, TRUE );
-		vol2 = sack_vfs_load_crypt_volume( "external.vfs", REPLACE_ME_2, REPLACE_ME_3 );
+		vol2 = sack_vfs_load_crypt_volume( "external.vfs", 0, REPLACE_ME_2, REPLACE_ME_3 );
 		l.ram = sack_mount_filesystem( "extra", l.fsi, 110, (uintptr_t)vol, TRUE );
 		if( vol )
 		{

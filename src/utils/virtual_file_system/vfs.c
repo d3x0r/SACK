@@ -558,8 +558,26 @@ static void AddSalt( uintptr_t psv, POINTER *salt, size_t *salt_size ) {
 		vol->devkey = NULL;
 	}
 	else if( vol->segment[vol->curseg] ) {
-		(*salt_size) = sizeof( vol->segment[vol->curseg] );
-		(*salt) = &vol->segment[vol->curseg];
+		BLOCKINDEX sector = vol->segment[vol->curseg];
+		int tmp;
+		switch( vol->clusterKeyVersion ) {
+		case 0:
+			( *salt_size ) = sizeof( vol->segment[vol->curseg] );
+			( *salt ) = &vol->segment[vol->curseg];
+			break;
+		case 1:
+			memcpy( vol->tmpSalt, vol->key, 16 );
+			vol->tmpSalt[sector & 0xF] ^= ( (uint8_t*)( &vol->segment[vol->curseg] ) )[0];
+			vol->tmpSalt[( sector >> 4 ) & 0xF] ^= ( (uint8_t*)( &vol->segment[vol->curseg] ) )[1];
+			vol->tmpSalt[( sector >> 8 ) & 0xF] ^= ( (uint8_t*)( &vol->segment[vol->curseg] ) )[2];
+			vol->tmpSalt[( sector >> 12 ) & 0xF] ^= ( (uint8_t*)( &vol->segment[vol->curseg] ) )[3];
+
+			( (BLOCKINDEX*)vol->tmpSalt )[0] ^= sector;
+			( (BLOCKINDEX*)vol->tmpSalt )[1] ^= sector;
+			( *salt_size ) = 12;// sizeof( vol->segment[vol->curseg] );
+			( *salt ) = vol->tmpSalt;
+			break;
+		}
 	}
 	else
 		(*salt_size) = 0;
@@ -608,9 +626,11 @@ struct volume *sack_vfs_load_volume( const char * filepath )
 	return vol;
 }
 
-struct volume *sack_vfs_load_crypt_volume( const char * filepath, const char * userkey, const char * devkey ) {
+struct volume *sack_vfs_load_crypt_volume( const char * filepath, uintptr_t version, const char * userkey, const char * devkey ) {
 	struct volume *vol = New( struct volume );
 	MemSet( vol, 0, sizeof( struct volume ) );
+	if( !version ) version = 2;
+	vol->clusterKeyVersion = version - 1;
 	vol->volname = SaveText( filepath );
 	vol->userkey = userkey;
 	vol->devkey = devkey;
@@ -619,11 +639,13 @@ struct volume *sack_vfs_load_crypt_volume( const char * filepath, const char * u
 	return vol;
 }
 
-struct volume *sack_vfs_use_crypt_volume( POINTER memory, size_t sz, const char * userkey, const char * devkey ) {
+struct volume *sack_vfs_use_crypt_volume( POINTER memory, size_t sz, uintptr_t version, const char * userkey, const char * devkey ) {
 	struct volume *vol = New( struct volume );
 	MemSet( vol, 0, sizeof( struct volume ) );
 	vol->read_only = 1;
 	AssignKey( vol, userkey, devkey );
+	if( !version ) version = 2;
+	vol->clusterKeyVersion = version - 1;
 	vol->external_memory = TRUE;
 	vol->diskReal = (struct disk*)memory;
 	vol->dwSize = sz;
@@ -770,9 +792,11 @@ LOGICAL sack_vfs_decrypt_volume( struct volume *vol )
 	return TRUE;
 }
 
-LOGICAL sack_vfs_encrypt_volume( struct volume *vol, CTEXTSTR key1, CTEXTSTR key2 ) {
+LOGICAL sack_vfs_encrypt_volume( struct volume *vol, uintptr_t version, CTEXTSTR key1, CTEXTSTR key2 ) {
 	while( LockedExchange( &vol->lock, 1 ) ) Relinquish();
 	if( vol->key ) { vol->lock = 0; return FALSE; } // volume already has a key, cannot apply new key
+	if( !version ) version = 2;
+	vol->clusterKeyVersion = version-1;
 	AssignKey( vol, key1, key2 );
 	{
 		int done;

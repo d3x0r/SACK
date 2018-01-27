@@ -117,13 +117,13 @@ static void StoreFile( CTEXTSTR filemask )
 	while( ScanFilesEx( NULL, filemask, &info, _StoreFile, SFF_DIRECTORIES|SFF_SUBCURSE|SFF_SUBPATHONLY, 0, FALSE, sack_get_default_mount() ) );
 }
 
-static int PatchFile( CTEXTSTR vfsName, CTEXTSTR filemask, CTEXTSTR key1, CTEXTSTR key2 )
+static int PatchFile( CTEXTSTR vfsName, CTEXTSTR filemask, uintptr_t version, CTEXTSTR key1, CTEXTSTR key2 )
 {
 	void *info = NULL;
 	if( l.current_vol_source )
 		sack_vfs_unload_volume( l.current_vol_source );
 	if( key1 && key2 ) {
-		l.current_vol_source = sack_vfs_load_crypt_volume( vfsName, key1, key2 );
+		l.current_vol_source = sack_vfs_load_crypt_volume( vfsName, version, key1, key2 );
 
 	}else {
 		l.current_vol_source = sack_vfs_load_volume( vfsName );
@@ -425,6 +425,7 @@ static void usage( void )
 SaneWinMain( argc, argv )
 {
 	int arg;
+	uintptr_t version;
 	if( argc < 2 ) { usage(); return 0; }
 
 	l.fsi = sack_get_filesystem_interface( SACK_VFS_FILESYSTEM_NAME );
@@ -450,7 +451,7 @@ SaneWinMain( argc, argv )
 		{
 			if( l.current_vol )
 				sack_vfs_unload_volume( l.current_vol );
-			l.current_vol = sack_vfs_load_crypt_volume( argv[arg+1], argv[arg+2], argv[arg+3] );
+			l.current_vol = sack_vfs_load_crypt_volume( argv[arg+1], version, argv[arg+2], argv[arg+3] );
 			if( !l.current_vol )
 			{
 				printf( "Failed to load vfs: %s", argv[arg+1] );
@@ -486,14 +487,14 @@ SaneWinMain( argc, argv )
 		else if( StrCaseCmp( argv[arg], "patch" ) == 0 )
 		{
 			if( (arg+2) <= argc )
-				if( PatchFile( argv[arg+1], argv[arg+2], NULL, NULL ) )
+				if( PatchFile( argv[arg+1], argv[arg+2], 0, NULL, NULL ) )
 					return 2;
 			arg+=2;
 		}
 		else if( StrCaseCmp( argv[arg], "cpatch" ) == 0 )
 		{
 			if( (arg+4) <= argc )
-				if( PatchFile( argv[arg+1], argv[arg+4], argv[arg+2], argv[arg+3] ) )
+				if( PatchFile( argv[arg+1], argv[arg+4], version, argv[arg+2], argv[arg+3] ) )
 					return 2;
 			arg+=4;
 		}
@@ -529,7 +530,7 @@ SaneWinMain( argc, argv )
 		}
 		else if( StrCaseCmp( argv[arg], "encrypt" ) == 0 )
 		{
-			if( !sack_vfs_encrypt_volume( l.current_vol, argv[arg+1], argv[arg+2] ) )
+			if( !sack_vfs_encrypt_volume( l.current_vol, version, argv[arg+1], argv[arg+2] ) )
 				printf( "Failed to encrypt volume.\n" );
 			arg += 2;
 		}
@@ -538,10 +539,13 @@ SaneWinMain( argc, argv )
 			const char *signature = sack_vfs_get_signature( l.current_vol );
 			printf( "%s\n", signature );
 		}
-		else if( StrCaseCmp( argv[arg], "sign-encrypt" ) == 0 )
+		else if( StrCaseCmp( argv[arg], "version" ) == 0 ) {
+			version = atoi( argv[arg + 1] );
+			arg++;
+		} else if( StrCaseCmp( argv[arg], "sign-encrypt" ) == 0 )
 		{
 			const char *signature = sack_vfs_get_signature( l.current_vol );
-			if( !sack_vfs_encrypt_volume( l.current_vol, argv[arg+1], signature ) )
+			if( !sack_vfs_encrypt_volume( l.current_vol, version, argv[arg+1], signature ) )
 				printf( "Failed to encrypt volume.\n" );
 			arg += 1;
 		}

@@ -59,6 +59,8 @@ PREFIX_PACKED struct volume {
 	LOGICAL external_memory;
 	LOGICAL closed;
 	uint32_t lock;
+	uint8_t tmpSalt[16];
+	uintptr_t clusterKeyVersion;
 } PACKED;
 
 PREFIX_PACKED struct directory_entry
