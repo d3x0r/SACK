@@ -321,17 +321,38 @@ static void decomputePassword(sqlite3_context*onwhat,int n,sqlite3_value**argv)
 int PSSQL_AddSqliteFunction( PODBC odbc
 	, const char *name
 	, void( *callUserFunction )( struct sqlite3_context*onwhat, int argc, struct sqlite3_value**argv )
+	, void( *callDestroy )( void* )
 	, int args
 	, void *userData ) {
-	return sqlite3_create_function(
-		odbc->db //sqlite3 *,
-		, name  //const char *zFunctionName,
-		, args //int nArg,
-		, SQLITE_UTF8 //int eTextRep,
-		, userData //void*,
-		, callUserFunction //void (*xFunc)(sqlite3_context*,int,sqlite3_value**),
-		, NULL //void (*xStep)(sqlite3_context*,int,sqlite3_value**),
-		, NULL //void (*xFinal)(sqlite3_context*)
+	return sqlite3_create_function_v2(
+	    odbc->db //sqlite3 *,
+	    , name  //const char *zFunctionName,
+	    , args //int nArg,
+	    , SQLITE_UTF8 //int eTextRep,
+	    , userData //void*,
+	    , callUserFunction //void (*xFunc)(sqlite3_context*,int,sqlite3_value**),
+	    , NULL //void (*xStep)(sqlite3_context*,int,sqlite3_value**),
+	    , NULL //void (*xFinal)(sqlite3_context*)
+	    , callDestroy
+	);
+}
+
+int PSSQL_AddSqliteProcedure( PODBC odbc
+	, const char *name
+	, void( *callUserFunction )( struct sqlite3_context*onwhat, int argc, struct sqlite3_value**argv )
+	, void( *callDestroy )( void* )
+	, int args
+	, void *userData ) {
+	return sqlite3_create_function_v2(
+	    odbc->db //sqlite3 *,
+	    , name  //const char *zFunctionName,
+	    , args //int nArg,
+	    , SQLITE_UTF8|SQLITE_DETERMINISTIC //int eTextRep,
+	    , userData //void*,
+	    , callUserFunction //void (*xFunc)(sqlite3_context*,int,sqlite3_value**),
+	    , NULL //void (*xStep)(sqlite3_context*,int,sqlite3_value**),
+	    , NULL //void (*xFinal)(sqlite3_context*)
+	    , callDestroy
 	);
 }
 
@@ -339,17 +360,19 @@ int PSSQL_AddSqliteAggregate( PODBC odbc
 	, const char *name
 	, void( *callStep )( struct sqlite3_context*onwhat, int argc, struct sqlite3_value**argv )
 	, void( *callFinal )( struct sqlite3_context*onwhat )
+	, void( *callDestroy )( void* )
 	, int args
 	, void *userData ) {
-	return sqlite3_create_function(
-		odbc->db //sqlite3 *,
-		, name  //const char *zFunctionName,
-		, args //int nArg,
-		, SQLITE_UTF8 //int eTextRep,
-		, userData //void*,
-		, NULL //callUserFunction //void (*xFunc)(sqlite3_context*,int,sqlite3_value**),
-		, callStep //void (*xStep)(sqlite3_context*,int,sqlite3_value**),
-		, callFinal //void (*xFinal)(sqlite3_context*)
+	return sqlite3_create_function_v2(
+	    odbc->db //sqlite3 *,
+	    , name  //const char *zFunctionName,
+	    , args //int nArg,
+	    , SQLITE_UTF8 //int eTextRep,
+	    , userData //void*,
+	    , NULL //callUserFunction //void (*xFunc)(sqlite3_context*,int,sqlite3_value**),
+	    , callStep //void (*xStep)(sqlite3_context*,int,sqlite3_value**),
+	    , callFinal //void (*xFinal)(sqlite3_context*)
+	    , callDestroy
 	);
 }
 
@@ -569,7 +592,6 @@ void ExtendConnection( PODBC odbc )
 		//SQLQueryf( odbc, &result, WIDE( "PRAGMA journal_mode" ) );
 		//lprintf( WIDE( "Journal is now %s" ), result );
 	}
-
 }
 
 #endif
