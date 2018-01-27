@@ -195,7 +195,9 @@ void ResumeThreads( void )
 	uint32_t tick;
 	if( g.pThread )
 	{
+#ifdef DEBUG_SERVICE_INPUT
 		lprintf( WIDE("Resume Service") );
+#endif
 		tick = timeGetTime();
 		g.pending = 1;
 		pthread_kill( ( GetThreadHandle( g.pThread ) ), SIGUSR2 );
@@ -203,7 +205,9 @@ void ResumeThreads( void )
 	}
 	if( g.pMessageThread )
 	{
+#ifdef DEBUG_SERVICE_INPUT
 		lprintf( WIDE("Resume Responce") );
+#endif
 		tick = timeGetTime();
 		g.pending = 1;
 		pthread_kill( ( GetThreadHandle( g.pMessageThread ) ), SIGUSR2 );
@@ -212,7 +216,9 @@ void ResumeThreads( void )
 
 	if( g.pEventThread )
 	{
+#ifdef DEBUG_SERVICE_INPUT
 		lprintf( WIDE("Resume event") );
+#endif
 		tick = timeGetTime();
 		g.pending = 1;
 		pthread_kill( ( GetThreadHandle( g.pEventThread ) ), SIGUSR2 );
@@ -220,7 +226,9 @@ void ResumeThreads( void )
 	}
 	if( g.pLocalEventThread )
 	{
+#ifdef DEBUG_SERVICE_INPUT
 		lprintf( WIDE("Resume local event") );
+#endif
 		tick = timeGetTime();
 		g.pending = 1;
 		pthread_kill( ( GetThreadHandle( g.pLocalEventThread ) ), SIGUSR2 );
@@ -281,7 +289,7 @@ void RegisterWithMasterService( void )
 			}
 		}
 		*/
-		lprintf( WIDE("Connecting first time to service server...%")_MsgID_f WIDE(",%") _MsgID_f, g.master_service_route.dest.process_id, g.master_service_route.dest.service_id );
+		//lprintf( WIDE("Connecting first time to service server...%")_MsgID_f WIDE(",%") _MsgID_f, g.master_service_route.dest.process_id, g.master_service_route.dest.service_id );
 		if( !TransactServerMultiMessageExEx(DBG_VOIDSRC)( &g.master_service_route, CLIENT_CONNECT, 0
 													, &Result, &ServiceID, &msglen
 													, 100
@@ -303,9 +311,10 @@ void RegisterWithMasterService( void )
 			// modify my_message_id - this is now the
 			// ID of messages which will be sent
 			// and where repsonces will be returned
-			// this therefore means that
+		// this therefore means that
+#ifdef DEBUG_SERVICE_INPUT
 			lprintf( WIDE("Initial service contact success") );
-
+#endif
 			g.flags.found_server = 1;
 			g.flags.connected = 1;
 			//g.my_message_id = msg[0];

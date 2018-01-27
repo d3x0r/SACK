@@ -7,8 +7,9 @@ MSGCLIENT_NAMESPACE
 
 LOGICAL HandleCoreMessage( PQMSG msg, size_t msglen DBG_PASS )
 {
-	//Log2( WIDE("Read message to %d (%08x)"), g.pid_me, msg->hdr.msgid );
-
+#ifdef DEBUG_SERVICE_INPUT
+	lprintf( WIDE("Read message to %d (%08x)"), msglen, msg->hdr.msgid );
+#endif
 	if( msg->hdr.msgid == IM_TARDY )
 	{
 		PTRANSACTIONHANDLER handler;
@@ -205,7 +206,7 @@ uintptr_t CPROC HandleServiceMessages( PTHREAD thread )
 					uint32_t msgid = recv->hdr.msgid;
 #ifdef DEBUG_MESSAGE_BASE_ID
 					lprintf( WIDE("service base %ld(+%ld) and this is from %s")
-							 , 0
+							 , msgid
                        , service->entries
 							 , ( g.my_message_id == recv->hdr.source.process_id )?"myself":"someone else" );
 #endif
@@ -227,6 +228,7 @@ uintptr_t CPROC HandleServiceMessages( PTHREAD thread )
 																		, msgid
 																		, QMSGDATA(recv), length
 																		, QMSGDATA(result), &result_length ) ;
+                     lprintf( "Output result is %d", result_length );
 						}
 						if( !handled && service->handler )
 						{
@@ -241,6 +243,9 @@ uintptr_t CPROC HandleServiceMessages( PTHREAD thread )
 																	, msgid
 																	, QMSGDATA(recv), length
 																			, QMSGDATA(result), &result_length ) ;
+#if defined( LOG_HANDLED_MESSAGES )
+							lprintf( "result length to send:%d", result_length );
+#endif
 						}
 						if( !handled )
 						{
@@ -266,6 +271,7 @@ uintptr_t CPROC HandleServiceMessages( PTHREAD thread )
 																								, length
 																								, QMSGDATA(result)
 																								, &result_length );
+								lprintf( "result length to send:%d", result_length );
 								switch( msgid )
 								{
 								case MSG_ServiceLoad:
@@ -286,9 +292,9 @@ uintptr_t CPROC HandleServiceMessages( PTHREAD thread )
 								switch( msgid )
 								{
 								case MSG_ServiceUnload:
-#if defined( LOG_HANDLED_MESSAGES )
+//#if defined( LOG_HANDLED_MESSAGES )
 									lprintf( "Using default handler for service unload" );
-#endif
+//#endif
 									result_okay = 1;
 									break;
 								case MSG_ServiceLoad:
@@ -337,6 +343,7 @@ uintptr_t CPROC HandleServiceMessages( PTHREAD thread )
 						{
 #ifdef DEBUG_DATA_XFER
 							DBG_VARSRC;
+							lprintf( "length:%d %d", result_length, sizeof( QMSG ) );
 #endif
 							msgsnd( g.msgq_in, MSGTYPE result, result_length + (sizeof(QMSG) - sizeof( MSGIDTYPE )), 0 );
 						}
@@ -407,13 +414,11 @@ int ReceiveServerMessageEx( PTRANSACTIONHANDLER handler, PQMSG MessageIn, size_t
     */
 	if( (MessageIn->hdr.msgid&0xFFFFFFF) == (MSG_ServiceLoad) )
 	{
-		lprintf( WIDE("Loading service responce... setup the service ID for future com") );
-
+		//lprintf( WIDE("Loading service responce... setup the service ID for future com") );
 		handler->route->dest.process_id = MessageIn->hdr.source.process_id;
 		handler->route->dest.service_id = MessageIn->hdr.source.service_id;
 		handler->route->source.process_id = MessageIn->dest.process_id;
 		handler->route->source.service_id = MessageIn->dest.service_id;
-
 		if( handler->MessageID )
 			(*handler->MessageID) = MessageIn->hdr.msgid;
 	}

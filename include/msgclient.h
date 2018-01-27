@@ -58,7 +58,7 @@ CLIENTMSG_PROC( LOGICAL, RegisterServiceExx )( CTEXTSTR name
 																	 , server_message_handler_ex handler_ex
 																	 , uintptr_t psv
 																	 );
-#define RegisterServiceEx( n,f,psv ) RegisterServiceExx( n,NULL,16,NULL,f,psv)
+#define RegisterServiceEx( n,f,psv ) RegisterServiceExx( n,NULL,65535,NULL,f,psv)
 #define RegisterService(n,f,e)        RegisterServiceExx(n,f,e,NULL,NULL,0)
 #define RegisterServiceHandler(n,f)   RegisterServiceExx(n,NULL,65535,f,NULL,0)
 #define RegisterServiceHandlerEx(n,f,psv)   RegisterServiceExx(n,NULL,65535,NULL,f,psv)
