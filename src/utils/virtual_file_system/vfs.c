@@ -559,7 +559,6 @@ static void AddSalt( uintptr_t psv, POINTER *salt, size_t *salt_size ) {
 	}
 	else if( vol->segment[vol->curseg] ) {
 		BLOCKINDEX sector = vol->segment[vol->curseg];
-		int tmp;
 		switch( vol->clusterKeyVersion ) {
 		case 0:
 			( *salt_size ) = sizeof( vol->segment[vol->curseg] );
