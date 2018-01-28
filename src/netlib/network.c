@@ -1718,6 +1718,7 @@ int CPROC ProcessNetworkMessages( struct peer_thread_info *thread, uintptr_t unu
 		}
 		if( cnt > 0 )
 		{
+         int closed = 0;
 			int n;
 			struct event_data *event_data;
 			THREAD_ID prior = 0;
@@ -1811,6 +1812,7 @@ int CPROC ProcessNetworkMessages( struct peer_thread_info *thread, uintptr_t unu
 							// might already be cleared and gone..
 							InternalRemoveClientEx( pClient, FALSE, TRUE );
 							TerminateClosedClient( pClient );
+							closed = 1;
 						}
 						// section will be blank after termination...(correction, we keep the section state now)
 						pClient->dwFlags &= ~CF_CLOSING; // it's no longer closing.  (was set during the course of closure)
@@ -1861,6 +1863,7 @@ int CPROC ProcessNetworkMessages( struct peer_thread_info *thread, uintptr_t unu
 #endif
 							InternalRemoveClientEx( event_data->pc, FALSE, FALSE );
 							TerminateClosedClient( event_data->pc );
+							closed = 1;
 						}
 						else if( !event_data->pc->RecvPending.s.bStream )
 							event_data->pc->dwFlags |= CF_READREADY;
@@ -1876,6 +1879,7 @@ int CPROC ProcessNetworkMessages( struct peer_thread_info *thread, uintptr_t unu
 					LeaveCriticalSec( &event_data->pc->csLockRead );
 				}
 
+            if( !closed && ( event_data->pc->dwFlags & CF_ACTIVE ) )
 #  ifdef __MAC__
 				if( events[n].filter == EVFILT_WRITE )
 #  else
