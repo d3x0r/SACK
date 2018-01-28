@@ -245,7 +245,8 @@ struct NetworkClient
 #if defined( USE_WSA_EVENTS )
 	WSAEVENT event;
 #endif
-	CRITICALSECTION csLock;      // per client lock.
+	CRITICALSECTION csLockRead;    // per client lock.
+	CRITICALSECTION csLockWrite;   // per client lock.
 	PTHREAD pWaiting; // Thread which is waiting for a result...
 	PendingBuffer RecvPending, FirstWritePending; // current incoming buffer
 	PendingBuffer *lpFirstPending,*lpLastPending; // outgoing buffers

@@ -86,7 +86,7 @@ static uintptr_t CPROC DelaySend( PTHREAD thread )
 	struct RelayConnection *conn = (struct RelayConnection *)GetThreadParam( thread );
 	struct pending_buf *pending;
 	Relinquish(); // this thread will never be able to run immediately.
-	while( !NetworkLock( conn->pc ) )
+	while( !NetworkLock( conn->pc, 1 ) )
 	{
 		lprintf( "Waiting to lock socket..." );
 		Relinquish();
@@ -99,7 +99,7 @@ static uintptr_t CPROC DelaySend( PTHREAD thread )
 		Release( pending );
 	}
 	conn->delay_send = NULL;
-	NetworkUnlock( conn->pc );
+	NetworkUnlock( conn->pc, 1 );
 	lprintf( "Done with delayed sending..." );
 	return 0;
 }
@@ -179,7 +179,7 @@ static void RelayServerRead( PCLIENT pc, POINTER buffer, size_t buflen )
 					PRELAY_CONNECTION root = conn->member_of;
 					INDEX idx;
 					MemCpy( sendbuf, buffer, buflen );
-					if( root->delay_send || !NetworkLock( root->pc ) )
+					if( root->delay_send || !NetworkLock( root->pc, 1 ) )
 					{
 						struct pending_buf *pend = New( struct pending_buf );
 						pend->data = sendbuf;
@@ -191,14 +191,14 @@ static void RelayServerRead( PCLIENT pc, POINTER buffer, size_t buflen )
 					else
 					{
 						SendRelayTCP( root, sendbuf, buflen );
-						NetworkUnlock( root->pc );
+						NetworkUnlock( root->pc, 1 );
 					}
 					LIST_FORALL( root->members, idx, PRELAY_CONNECTION, sendto )
 					{
 						if( sendto != conn )
 						{
 							MemCpy( sendbuf, buffer, buflen );
-							if( sendto->delay_send || !NetworkLock( sendto->pc ) )
+							if( sendto->delay_send || !NetworkLock( sendto->pc, 1 ) )
 							{
 								struct pending_buf *pend = New( struct pending_buf );
 								pend->data = sendbuf;
@@ -210,7 +210,7 @@ static void RelayServerRead( PCLIENT pc, POINTER buffer, size_t buflen )
 							else
 							{
 								SendRelayTCP( sendto, sendbuf, buflen );
-								NetworkUnlock( sendto->pc );
+								NetworkUnlock( sendto->pc, 1 );
 							}
 						}
 					}
@@ -222,7 +222,7 @@ static void RelayServerRead( PCLIENT pc, POINTER buffer, size_t buflen )
 					LIST_FORALL( conn->members, idx, PRELAY_CONNECTION, sendto )
 					{
 						MemCpy( sendbuf, buffer, buflen );
-						if( sendto->delay_send || !NetworkLock( sendto->pc ) )
+						if( sendto->delay_send || !NetworkLock( sendto->pc, 1 ) )
 						{
 							struct pending_buf *pend = New( struct pending_buf );
 							pend->data = sendbuf;
@@ -234,7 +234,7 @@ static void RelayServerRead( PCLIENT pc, POINTER buffer, size_t buflen )
 						else
 						{
 							SendRelayTCP( sendto, sendbuf, buflen );
-							NetworkUnlock( sendto->pc );
+							NetworkUnlock( sendto->pc, 1 );
 						}
 					}
 				}

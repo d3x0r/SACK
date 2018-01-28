@@ -64,7 +64,8 @@ PCLIENT CPPServeUDPAddrEx( SOCKADDR *pAddr
 	{
 		_lprintf(DBG_RELAY)( WIDE("UDP Socket Fail") );
 		InternalRemoveClientEx( pc, TRUE, FALSE );
-		NetworkUnlock( pc );
+		NetworkUnlock( pc, 0 );
+		NetworkUnlock( pc, 1 );
 		return NULL;
 	}
 #if WIN32
@@ -89,7 +90,8 @@ PCLIENT CPPServeUDPAddrEx( SOCKADDR *pAddr
 			_lprintf(DBG_RELAY)( WIDE("Bind Fail: %d"), err );
 			DumpAddr( WIDE( "BIND FAIL:" ), pc->saSource );
 			InternalRemoveClientEx( pc, TRUE, FALSE );
-			NetworkUnlock( pc );
+			NetworkUnlock( pc, 0 );
+			NetworkUnlock( pc, 1 );
 			return NULL;
 		}
 		// get the port address back immediately.
@@ -99,7 +101,8 @@ PCLIENT CPPServeUDPAddrEx( SOCKADDR *pAddr
 	{
 		Log( WIDE("Bind Will Fail") );
 		InternalRemoveClientEx( pc, TRUE, FALSE );
-		NetworkUnlock( pc );
+		NetworkUnlock( pc, 0 );
+		NetworkUnlock( pc, 1 );
 		return NULL;
 	}
 
@@ -115,7 +118,8 @@ PCLIENT CPPServeUDPAddrEx( SOCKADDR *pAddr
 	{
 		Log( WIDE("Select Fail"));
 		InternalRemoveClientEx( pc, TRUE, FALSE );
-		NetworkUnlock( pc );
+		NetworkUnlock( pc, 0 );
+		NetworkUnlock( pc, 1 );
 		return NULL;
 	}
 #  endif
@@ -148,7 +152,8 @@ PCLIENT CPPServeUDPAddrEx( SOCKADDR *pAddr
 #endif
 	AddActive( pc );
 
-	NetworkUnlock( pc );
+	NetworkUnlock( pc, 0 );
+	NetworkUnlock( pc, 1 );
 #ifdef USE_WSA_EVENTS
 	if( globalNetworkData.flags.bLogNotices )
 		lprintf( WIDE( "SET GLOBAL EVENT (new udp socket %p)" ), pc );

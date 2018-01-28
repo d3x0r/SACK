@@ -347,11 +347,11 @@ void WebSocketClose( PCLIENT pc, int code, const char *reason )
 		if( websock->Magic == 0x20130911 ) {
 			//lprintf( "send client side close?" );
 			if( websock->flags.connected ) {
-				while( !NetworkLockEx( pc DBG_SRC ) )
+				while( !NetworkLockEx( pc, 1 DBG_SRC ) )
 					Relinquish();
 				SendWebSocketMessage( pc, 8, 1, websock->input_state.flags.expect_masking, (const uint8_t*)buf, buflen, websock->input_state.flags.use_ssl );
 				websock->input_state.flags.closed = 1;
-				NetworkUnlock( pc );
+				NetworkUnlock( pc, 1 );
 			}
 			else {
 				//lprintf( "Negotiation incomplete, don't send close; just close." );
