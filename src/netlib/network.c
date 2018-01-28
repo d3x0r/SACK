@@ -962,7 +962,7 @@ static void HandleEvent( PCLIENT pClient )
 				if( networkEvents.lNetworkEvents & FD_READ )
 				{
 					PCLIENT pcLock;
-					while( !( pcLock = NetworkLockEx( pClient, 0 DBG_SRC ) ) ) {
+					while( !( pcLock = NetworkLockEx( pClient, 1 DBG_SRC ) ) ) {
 						// done with events; inactive sockets can't have events
 						if( !( pClient->dwFlags & CF_ACTIVE ) ) {
 							pcLock = NULL;
