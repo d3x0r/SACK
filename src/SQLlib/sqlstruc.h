@@ -20,7 +20,7 @@ enum {
       , SQL_HANDLE_STMT
 };
 #else
-#  define USE_ODBC
+#  define USE_ODBC 1
 #  include <sql.h>
 #  include <sqlext.h>
 #endif

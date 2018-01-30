@@ -1,13 +1,6 @@
 set( PROJECT sack_vfs_extracter )
 
 
-if( WIN32 AND CMAKE_COMPILER_IS_GNUCC )
-    SET( EXTRACTER_MORE_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/extracter.manifest )
-    STRING( REPLACE "/" "\\" MT_EXTRACTER_MORE_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/extracter.manifest )
-
-    #SET( EXTRACTER_LINK_FLAGS "/MANIFEST:NO" )
-endif( WIN32 AND CMAKE_COMPILER_IS_GNUCC )
-
 if( MINGW OR MSVC )
     set( MORE_RESOURCES sfx.rc )
 endif( MINGW OR MSVC )
@@ -42,17 +35,22 @@ if( MSVC )
     SET( EXTRACTER_LINK_FLAGS "/level='requireAdministrator' /uiAccess='false'" )
 endif( MSVC )
 
-if( WIN32 AND CMAKE_COMPILER_IS_GNUCC )
+if( WIN32 AND CMAKE_COMPILER_IS_GNUCC AND NOT __ANDROID__ )
+    SET( EXTRACTER_MORE_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/extracter.manifest )
+    STRING( REPLACE "/" "\\" MT_EXTRACTER_MORE_SOURCESA ${CMAKE_CURRENT_SOURCE_DIR}/extracter.manifest )
+    #SET( EXTRACTER_LINK_FLAGS "/MANIFEST:NO" )
 STRING ( REPLACE "/" "\\" THISDIR ${CMAKE_CURRENT_BINARY_DIR} )
 add_custom_command(TARGET
                      ${PROJECT}
                    POST_BUILD
                    COMMAND
+                     ${CMAKE_COMMAND} -E echo  SOME MESSAGE HERE ${MT_EXTRACTER_MORE_SOURCES} ${THISDIR}
+                   COMMAND
                      "mt.exe" -manifest \"${MT_EXTRACTER_MORE_SOURCES}\" -outputresource:\"${THISDIR}\\${PROJECT}.exe\"\;\#1
                    COMMENT
                      "Adding custom manifest containing MSVCRT80 dependency..." 
                   )
-endif( WIN32 AND CMAKE_COMPILER_IS_GNUCC )
+endif( WIN32 AND CMAKE_COMPILER_IS_GNUCC AND NOT __ANDROID__ )
 
 
 SET_TARGET_PROPERTIES(${PROJECT} PROPERTIES
