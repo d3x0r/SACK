@@ -595,7 +595,7 @@ static PCLIENT InternalTCPClientAddrFromAddrExxx( SOCKADDR *lpAddr, SOCKADDR *pF
 				ProcessNetworkMessages( this_thread, 1 );
 				if( !pResult->this_thread ) {
 					WSASetEvent( globalNetworkData.hMonitorThreadControlEvent );
-					lprintf( "Failed to schedule myself in a single run of root thread that I am running on." );
+					//lprintf( "Failed to schedule myself in a single run of root thread that I am running on." );
 				}
 			}
 			else {

@@ -251,7 +251,6 @@ endif( NOT SQLITE3_FOUND )
 
 endif( USE_SQLITE )
 
-if( NOT __NO_OPTIONS__ )
 SET( OPTION_SOURCE
    ${SOURCES_ROOT}src/SQLlib/optlib/getoption.c
    ${SOURCES_ROOT}src/SQLlib/optlib/getoption_v4.c
@@ -260,7 +259,6 @@ SET( OPTION_SOURCE
    )
 SET_SOURCE_FILES_PROPERTIES( ${OPTION_SOURCE} PROPERTIES
 		FOLDER "Source Files\\Option Library" )
-endif( NOT __NO_OPTIONS__ )
 
 
 endif( NOT __NO_ODBC__ OR USE_SQLITE )
@@ -585,8 +583,14 @@ set(BASE_SOURCES  ${BASE_SOURCES}
   ${MORE_SYSTEM_SOURCES}
   ${SERVICE_STUB_SOURCES}
   ${COMM_SOURCES}
-  ${OPTION_SOURCE}
 )
+
+if( NOT __NO_OPTIONS__ )
+message( "ADDING ODBC SOURCES TO BASE SOURCES" )
+  set(BASE_SOURCES  ${BASE_SOURCES}
+    ${OPTION_SOURCE}
+  )
+endif( NOT __NO_OPTIONS__ )
 
 
 if( NOT __ARM__ )

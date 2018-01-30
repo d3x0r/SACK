@@ -946,6 +946,7 @@ void _json_dispose_message( PDATALIST *msg_data )
 {
 	struct json_value_container *val;
 	INDEX idx;
+	if( !msg_data ) return;
 	DATA_FORALL( (*msg_data), idx, struct json_value_container*, val )
 	{
 		//if( val->name ) Release( val->name );
@@ -955,6 +956,7 @@ void _json_dispose_message( PDATALIST *msg_data )
 	}
 	// quick method
 	DeleteFromSet( PDATALIST, jpsd.dataLists, msg_data );
+	( *msg_data ) = NULL;
 	//DeleteDataList( msg_data );
 
 }

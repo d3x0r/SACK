@@ -94,12 +94,12 @@ PRELOAD( InitNetworkGlobalOptions )
 	globalNetworkData.flags.bLogReceivedData = SACK_GetProfileIntEx( WIDE( "SACK" ), WIDE( "Network/Log Network Received Data" ), 0, TRUE );
 	globalNetworkData.flags.bLogSentData = SACK_GetProfileIntEx( WIDE( "SACK" ), WIDE( "Network/Log Network Sent Data" ), globalNetworkData.flags.bLogReceivedData, TRUE );
 #  ifdef LOG_NOTICES
-	globalNetworkData.flags.bLogNotices = 1 || SACK_GetProfileIntEx( WIDE( "SACK" ), WIDE( "Network/Log Network Notifications" ), 0, TRUE );
+	globalNetworkData.flags.bLogNotices = SACK_GetProfileIntEx( WIDE( "SACK" ), WIDE( "Network/Log Network Notifications" ), 0, TRUE );
 #  endif
 	globalNetworkData.dwReadTimeout = SACK_GetProfileIntEx( WIDE( "SACK" ), WIDE( "Network/Read wait timeout" ), 5000, TRUE );
 	globalNetworkData.dwConnectTimeout = SACK_GetProfileIntEx( WIDE( "SACK" ), WIDE( "Network/Connect timeout" ), 10000, TRUE );
 #else
-	globalNetworkData.flags.bLogNotices = 1;
+	globalNetworkData.flags.bLogNotices = 0;
 	globalNetworkData.dwReadTimeout = 5000;
 	globalNetworkData.dwConnectTimeout = 10000;
 #endif
@@ -1718,7 +1718,7 @@ int CPROC ProcessNetworkMessages( struct peer_thread_info *thread, uintptr_t unu
 		}
 		if( cnt > 0 )
 		{
-         int closed = 0;
+			int closed = 0;
 			int n;
 			struct event_data *event_data;
 			THREAD_ID prior = 0;
@@ -1879,142 +1879,127 @@ int CPROC ProcessNetworkMessages( struct peer_thread_info *thread, uintptr_t unu
 					LeaveCriticalSec( &event_data->pc->csLockRead );
 				}
 
-            if( !closed && ( event_data->pc->dwFlags & CF_ACTIVE ) )
+				if( !closed && ( event_data->pc->dwFlags & CF_ACTIVE ) ) {
 #  ifdef __MAC__
-				if( events[n].filter == EVFILT_WRITE )
+					if( events[n].filter == EVFILT_WRITE )
 #  else
-				if( events[n].events & EPOLLOUT )
+					if( events[n].events & EPOLLOUT )
 #  endif
-				{
+					{
 #  ifdef LOG_NETWORK_EVENT_THREAD
-					lprintf( "EPOLLOUT %s", ( event_data->pc->dwFlags & CF_CONNECTING )?"connecting"
-							  :( !(event_data->pc->dwFlags & CF_ACTIVE) )?"closed":"writing" );
+						lprintf( "EPOLLOUT %s", ( event_data->pc->dwFlags & CF_CONNECTING ) ? "connecting"
+							: ( !( event_data->pc->dwFlags & CF_ACTIVE ) ) ? "closed" : "writing" );
 #  endif
 
-					while( !NetworkLock( event_data->pc, 0 ) ) {
-						if( !( event_data->pc->dwFlags & CF_ACTIVE ) ) {
+						while( !NetworkLock( event_data->pc, 0 ) ) {
+							if( !( event_data->pc->dwFlags & CF_ACTIVE ) ) {
 #  ifdef LOG_NETWORK_EVENT_THREAD
-							lprintf( "failed lock dwFlags : %8x", event_data->pc->dwFlags );
+								lprintf( "failed lock dwFlags : %8x", event_data->pc->dwFlags );
 #  endif
-							break;
+								break;
+							}
+							if( event_data->pc->dwFlags & CF_AVAILABLE )
+								break;
+							Relinquish();
+						}
+						if( !( event_data->pc->dwFlags & ( CF_ACTIVE | CF_CLOSED ) ) ) {
+#  ifdef LOG_NETWORK_EVENT_THREAD
+							lprintf( "not active but locked? dwFlags : %8x", event_data->pc->dwFlags );
+#  endif
+							continue;
 						}
 						if( event_data->pc->dwFlags & CF_AVAILABLE )
-							break;
-						Relinquish();
-					}
-					if( !( event_data->pc->dwFlags & ( CF_ACTIVE | CF_CLOSED ) ) ) {
-#  ifdef LOG_NETWORK_EVENT_THREAD
-						lprintf( "not active but locked? dwFlags : %8x", event_data->pc->dwFlags );
-#  endif
-						continue;
-					}
-					if( event_data->pc->dwFlags & CF_AVAILABLE )
-						continue;
+							continue;
 
-					if( !IsValid( event_data->pc->Socket ) ) {
-						NetworkUnlock( event_data->pc, 0 );
-						continue;
-					}
-
-
-					if( !(event_data->pc->dwFlags & CF_ACTIVE) )
-					{
-						//lprintf( "FLAGS IS NOT ACTIVE BUT: %x", event_data->pc->dwFlags );
-						// change to inactive status by the time we got here...
-					}
-					else if( event_data->pc->dwFlags & CF_CONNECTING )
-					{
+						if( !IsValid( event_data->pc->Socket ) ) {
+							NetworkUnlock( event_data->pc, 0 );
+							continue;
+						}
+						if( !( event_data->pc->dwFlags & CF_ACTIVE ) ) {
+							//lprintf( "FLAGS IS NOT ACTIVE BUT: %x", event_data->pc->dwFlags );
+							// change to inactive status by the time we got here...
+						} else if( event_data->pc->dwFlags & CF_CONNECTING ) {
 #ifdef LOG_NOTICES
-						if( globalNetworkData.flags.bLogNotices )
-							lprintf( WIDE( "Connected!" ) );
+							if( globalNetworkData.flags.bLogNotices )
+								lprintf( WIDE( "Connected!" ) );
 #endif
-						event_data->pc->dwFlags |= CF_CONNECTED;
-						event_data->pc->dwFlags &= ~CF_CONNECTING;
+							event_data->pc->dwFlags |= CF_CONNECTED;
+							event_data->pc->dwFlags &= ~CF_CONNECTING;
 
-						{
-							PCLIENT pc = event_data->pc;
+							{
+								PCLIENT pc = event_data->pc;
 #ifdef __LINUX__
-							socklen_t
+								socklen_t
 #else
 								int
 #endif
-								nLen = MAGIC_SOCKADDR_LENGTH;
-							if( !pc->saSource )
-								pc->saSource = AllocAddr();
-							if( getsockname( pc->Socket, pc->saSource, &nLen ) )
-							{
-								lprintf( WIDE("getsockname errno = %d"), errno );
+									nLen = MAGIC_SOCKADDR_LENGTH;
+								if( !pc->saSource )
+									pc->saSource = AllocAddr();
+								if( getsockname( pc->Socket, pc->saSource, &nLen ) ) {
+									lprintf( WIDE( "getsockname errno = %d" ), errno );
+								}
+								if( pc->saSource->sa_family == AF_INET )
+									SET_SOCKADDR_LENGTH( pc->saSource, IN_SOCKADDR_LENGTH );
+								else if( pc->saSource->sa_family == AF_INET6 )
+									SET_SOCKADDR_LENGTH( pc->saSource, IN6_SOCKADDR_LENGTH );
+								else
+									SET_SOCKADDR_LENGTH( pc->saSource, nLen );
 							}
-							if( pc->saSource->sa_family == AF_INET )
-								SET_SOCKADDR_LENGTH( pc->saSource, IN_SOCKADDR_LENGTH );
-							else if( pc->saSource->sa_family == AF_INET6 )
-								SET_SOCKADDR_LENGTH( pc->saSource, IN6_SOCKADDR_LENGTH );
-							else
-								SET_SOCKADDR_LENGTH( pc->saSource, nLen );
-						}
 
-						{
-							int error;
-							socklen_t errlen = sizeof( error );
-							getsockopt( event_data->pc->Socket, SOL_SOCKET
-								, SO_ERROR
-										 , &error, &errlen );
-							//lprintf( WIDE( "Error checking for connect is: %s on %d" ), strerror( error ), event_data->pc->Socket );
-							if( event_data->pc->pWaiting )
 							{
+								int error;
+								socklen_t errlen = sizeof( error );
+								getsockopt( event_data->pc->Socket, SOL_SOCKET
+									, SO_ERROR
+									, &error, &errlen );
+								//lprintf( WIDE( "Error checking for connect is: %s on %d" ), strerror( error ), event_data->pc->Socket );
+								if( event_data->pc->pWaiting ) {
+#ifdef LOG_NOTICES
+									if( globalNetworkData.flags.bLogNotices )
+										lprintf( WIDE( "Got connect event, waking waiter.." ) );
+#endif
+									WakeThread( event_data->pc->pWaiting );
+								}
+								if( event_data->pc->connect.ThisConnected )
+									event_data->pc->connect.ThisConnected( event_data->pc, error );
 #ifdef LOG_NOTICES
 								if( globalNetworkData.flags.bLogNotices )
-									lprintf( WIDE( "Got connect event, waking waiter.." ) );
+									lprintf( "Connect error was: %d", error );
 #endif
-								WakeThread( event_data->pc->pWaiting );
+								// if connected okay - issue first read...
+								if( !error ) {
+#ifdef LOG_NOTICES
+									lprintf( "Read Complete" );
+#endif
+									if( event_data->pc->read.ReadComplete ) {
+#ifdef LOG_NOTICES
+										lprintf( "Initial Read Complete" );
+#endif
+										event_data->pc->read.ReadComplete( event_data->pc, NULL, 0 );
+									}
+									if( event_data->pc->lpFirstPending ) {
+										lprintf( WIDE( "Data was pending on a connecting socket, try sending it now" ) );
+										TCPWrite( event_data->pc );
+									}
+								} else {
+									event_data->pc->dwFlags |= CF_CONNECTERROR;
+								}
 							}
-							if( event_data->pc->connect.ThisConnected )
-								event_data->pc->connect.ThisConnected( event_data->pc, error );
+						} else if( event_data->pc->dwFlags & CF_UDP ) {
+							//lprintf( "UDP WRITE IS NEVER QUEUED." );
+							// udp write event complete....
+							// do we ever care? probably sometime...
+						} else {
 #ifdef LOG_NOTICES
 							if( globalNetworkData.flags.bLogNotices )
-								lprintf( "Connect error was: %d", error );
+								lprintf( WIDE( "TCP Write Event..." ) );
 #endif
-							// if connected okay - issue first read...
-							if( !error )
-							{
-#ifdef LOG_NOTICES
-								lprintf( "Read Complete" );
-#endif
-								if( event_data->pc->read.ReadComplete )
-								{
-#ifdef LOG_NOTICES
-									lprintf( "Initial Read Complete" );
-#endif
-									event_data->pc->read.ReadComplete( event_data->pc, NULL, 0 );
-								}
-								if( event_data->pc->lpFirstPending )
-								{
-									lprintf( WIDE( "Data was pending on a connecting socket, try sending it now" ) );
-									TCPWrite( event_data->pc );
-								}
-							}
-							else
-							{
-								event_data->pc->dwFlags |= CF_CONNECTERROR;
-							}
+							event_data->pc->dwFlags &= ~CF_WRITEISPENDED;
+							TCPWrite( event_data->pc );
 						}
+						LeaveCriticalSec( &event_data->pc->csLockWrite );
 					}
-					else if( event_data->pc->dwFlags & CF_UDP )
-					{
-						//lprintf( "UDP WRITE IS NEVER QUEUED." );
-						// udp write event complete....
-						// do we ever care? probably sometime...
-					}
-					else
-					{
-#ifdef LOG_NOTICES
-						if( globalNetworkData.flags.bLogNotices )
-							lprintf( WIDE( "TCP Write Event..." ) );
-#endif
-						event_data->pc->dwFlags &= ~CF_WRITEISPENDED;
-						TCPWrite( event_data->pc );
-					}
-					LeaveCriticalSec( &event_data->pc->csLockWrite );
 				}
 			}
 			// had some event  - return 1 to continue working...

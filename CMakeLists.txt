@@ -6,12 +6,6 @@ project( SACK )
 
 SET( ENABLE_VULKAN ON )
 
-IF( APPLE )
-   SET( __NO_GUI__ ON )
-   SET( PLATFORM_DEFINES -D__MAC__ )
-   set( PLATFORM_CMAKE_DEFINES ${PLATFORM_CMAKE_DEFINES} "__MAC__ ON" )
-ENDIF( APPLE )
-
 if( NOT CMAKE_COMPILER_IS_GNUCC
   AND (CMAKE_CXX_COMPILER_ID MATCHES "Clang"
     OR CMAKE_CXX_COMPILER_ID MATCHES "GNU" ) )
@@ -20,27 +14,25 @@ endif()
 
 if( __COMPILER_GNU AND NOT CMAKE_COMPILER_IS_GNUCC )
   set( CMAKE_COMPILER_IS_GNUCC 1 )
-  set( PLATFORM_CMAKE_DEFINES ${PLATFORM_CMAKE_DEFINES} "CMAKE_COMPILER_IS_GNUCC 1" )
 endif( __COMPILER_GNU AND NOT CMAKE_COMPILER_IS_GNUCC )
 
 SET( MAKING_SACK_CORE ON )
 SET( SACK_SDK_ROOT_PATH ${CMAKE_CURRENT_SOURCE_DIR} )
 
-
 if( ${CMAKE_GENERATOR} MATCHES "Watcom WMake" )
 
- SET( CMAKE_RC_COMPILER "rc" )
- # add -aa - which allows non-static struct initializers in functions (init from function params);C only.
- set( CMAKE_C_FLAGS_INIT ${CMAKE_C_FLAGS_INIT} -aa )
+  SET( CMAKE_RC_COMPILER "rc" )
+  # add -aa - which allows non-static struct initializers in functions (init from function params);C only.
+  set( CMAKE_C_FLAGS_INIT ${CMAKE_C_FLAGS_INIT} -aa )
 
- set( ExtraFlags "${ExtraFlags} /fp5 /fpi87" )
- # this flag is for build dll?  emit DllRuntime startup link
- set( LibraryExtraFlags "-bd" )
- set( ConsoleProgramExtraFlags "-bc" )
- set( WindowsProgramExtraFlags "-bg" )
- #STRING( REPLACE "library clbrdll.lib" "" CMAKE_C_STANDARD_LIBRARIES_INIT ${CMAKE_C_STANDARD_LIBRARIES_INIT} )
- #STRING( REPLACE "library plbrdll.lib" "" CMAKE_C_STANDARD_LIBRARIES_INIT ${CMAKE_C_STANDARD_LIBRARIES_INIT} )
- add_definitions( "-D__CMAKE_VERSION__=(${CMAKE_MAJOR_VERSION}*1000000+${CMAKE_MINOR_VERSION}*10000+${CMAKE_PATCH_VERSION}*100+${CMAKE_TWEAK_VERSION})" )
+  set( ExtraFlags "${ExtraFlags} /fp5 /fpi87" )
+  # this flag is for build dll?  emit DllRuntime startup link
+  set( LibraryExtraFlags "-bd" )
+  set( ConsoleProgramExtraFlags "-bc" )
+  set( WindowsProgramExtraFlags "-bg" )
+  #STRING( REPLACE "library clbrdll.lib" "" CMAKE_C_STANDARD_LIBRARIES_INIT ${CMAKE_C_STANDARD_LIBRARIES_INIT} )
+  #STRING( REPLACE "library plbrdll.lib" "" CMAKE_C_STANDARD_LIBRARIES_INIT ${CMAKE_C_STANDARD_LIBRARIES_INIT} )
+  add_definitions( "-D__CMAKE_VERSION__=(${CMAKE_MAJOR_VERSION}*1000000+${CMAKE_MINOR_VERSION}*10000+${CMAKE_PATCH_VERSION}*100+${CMAKE_TWEAK_VERSION})" )
 endif( ${CMAKE_GENERATOR} MATCHES "Watcom WMake" )
 
 
@@ -142,8 +134,6 @@ if( __ANDROID__ )
 	        set( NEED_FUSE ON )
         endif( OFF )
         set( OPENGL_LIBRARY EGL GLESv2 )
-        #set( OPENGL_LIBRARY GL )
-	set( PLATFORM_LIBRARIES ${PLATFORM_LIBRARIES} android log m )
 else( __ANDROID__ )
   if( WIN32 OR ${CMAKE_SYSTEM_NAME} STREQUAL "Windows" )
       set( WIN32 ON )
@@ -157,9 +147,6 @@ else( __ANDROID__ )
       endif( NOT __CLR__ )
         set( SOCKET_LIBRARIES ${SOCKET_LIBRARIES} ws2_32 iphlpapi )
         set( WIN_SYS_LIBS ${WIN_SYS_LIBS} winmm rpcrt4 )
-        if( WATCOM )
-	        set( PLATFORM_LIBRARIES ${PLATFORM_LIBRARIES} shfolder psapi )
-        endif( WATCOM)
         set( OPENGL_LIBRARY opengl32 )
   else()
      if( UNIX )
@@ -169,15 +156,9 @@ else( __ANDROID__ )
 	       set( CMAKE_EXE_LINKER_FLAGS "-Wl,--as-needed" )
 	       set( CMAKE_SHARED_LINKER_FLAGS "-Wl,--as-needed" )
 	       set( CMAKE_MODULE_LINKER_FLAGS "-Wl,--as-needed" )
-	       set( PLATFORM_LIBRARIES rt m pthread dl )
       else( NOT APPLE )
 
       endif( NOT APPLE )
-	if( NOT __NO_ODBC__ )
-		set( PLATFORM_LIBRARIES ${PLATFORM_LIBRARIES} odbc )
-	endif( NOT __NO_ODBC__ )
-	set( PLATFORM_LIBRARIES ${PLATFORM_LIBRARIES} )
-        set( USE_INTERNAL_STANDARDLIBS 0 )
        if( GCC )
            if( __64__ )
                ADD_DEFINITIONS( -m64 )
@@ -190,7 +171,7 @@ else( __ANDROID__ )
             if( NOT ${ZLIB_FOUND} )
             	DEFINE_DEFAULT( NEED_ZLIB 1 )
             else( NOT ${ZLIB_FOUND} )
-            	set( PLATFORM_LIBRARIES ${PLATFORM_LIBRARIES} ${ZLIB_LIBRARIES} )
+            	#set( PLATFORM_LIBRARIES ${PLATFORM_LIBRARIES} ${ZLIB_LIBRARIES} )
             endif( NOT ${ZLIB_FOUND} )
             endif( NOT NEED_ZLIB )
             #########
@@ -199,7 +180,7 @@ else( __ANDROID__ )
             if( NOT ${PNG_FOUND} )
             	DEFINE_DEFAULT( NEED_PNG 1 )
             else( NOT ${PNG_FOUND} )
-            	set( PLATFORM_LIBRARIES ${PLATFORM_LIBRARIES} ${PNG_LIBRARIES} )
+            	#set( PLATFORM_LIBRARIES ${PLATFORM_LIBRARIES} ${PNG_LIBRARIES} )
             endif( NOT ${PNG_FOUND} )
             endif( NOT NEED_PNG )
             #########
@@ -208,7 +189,7 @@ else( __ANDROID__ )
             if( NOT ${JPEG_FOUND} )
             	DEFINE_DEFAULT( NEED_JPEG ON )
             else( NOT ${JPEG_FOUND} )
-            	set( PLATFORM_LIBRARIES ${PLATFORM_LIBRARIES} ${JPEG_LIBRARIES} )
+            	#set( PLATFORM_LIBRARIES ${PLATFORM_LIBRARIES} ${JPEG_LIBRARIES} )
             endif( NOT ${JPEG_FOUND} )
             endif( NOT NEED_JPEG )
             #########
@@ -219,27 +200,27 @@ else( __ANDROID__ )
             if( NOT ${FREETYPE_FOUND} )
                 DEFINE_DEFAULT( NEED_FREETYPE ON )
             else( NOT ${FREETYPE_FOUND} )
-                set( PLATFORM_LIBRARIES ${PLATFORM_LIBRARIES} ${FREETYPE_LIBRARIES} )
+                #set( PLATFORM_LIBRARIES ${PLATFORM_LIBRARIES} ${FREETYPE_LIBRARIES} )
                 include_directories( ${FREETYPE_INCLUDE_DIRS} )
             endif( NOT ${FREETYPE_FOUND} )
             endif( NOT NEED_FREETYPE )
             #########
             find_package( OpenGL )
-            set( PLATFORM_LIBRARIES ${PLATFORM_LIBRARIES} ${OPENGL_LIBRARIES} )
+            #set( PLATFORM_LIBRARIES ${PLATFORM_LIBRARIES} ${OPENGL_LIBRARIES} )
             #########
             if( NOT __NO_GUI__ AND NOT PNACL_BUILD )
                find_package( GLEW )
                if( NOT ${GLEW_FOUND} )
                 message( "USE LOCAL GLEW" )
                	set( NEED_GLEW ON )
-               	#set( PLATFORM_LIBRARIES ${PLATFORM_LIBRARIES} glew )
+               	##set( PLATFORM_LIBRARIES ${PLATFORM_LIBRARIES} glew )
                else( NOT ${GLEW_FOUND} )
-               	set( PLATFORM_LIBRARIES ${PLATFORM_LIBRARIES} ${GLEW_LIBRARIES} )
+               	#set( PLATFORM_LIBRARIES ${PLATFORM_LIBRARIES} ${GLEW_LIBRARIES} )
                endif( NOT ${GLEW_FOUND} )
             endif( NOT __NO_GUI__ AND NOT PNACL_BUILD )
             #########
             find_package( X11 )
-            set( PLATFORM_LIBRARIES ${PLATFORM_LIBRARIES} ${X11_LIBRARIES} )
+            #set( PLATFORM_LIBRARIES ${PLATFORM_LIBRARIES} ${X11_LIBRARIES} )
 
             #message( "Platform_libs:"${PLATFORM_LIBRARIES} )
         endif( NOT __NO_GUI__ )
@@ -333,11 +314,6 @@ else( APPLE )
 endif( APPLE )
 
 if( MSVC )
-  if( FORCE_MSVCRT )
-    set( extra_link_flags "${extra_link_flags} /NODEFAULTLIB" )
-    set( PLATFORM_LIBRARIES ${PLATFORM_LIBRARIES} msvcrt )
-  endif( FORCE_MSVCRT )
-  SET( PLATFORM_DEFINES -D_CRT_SECURE_NO_WARNINGS )
   #add_definitions( -D_CRT_SECURE_NO_WARNINGS -wd4995 -wd4996 )
   add_definitions( -wd4996 )
 
@@ -368,34 +344,6 @@ if( __NO_MSGSVR__ )
 endif( __NO_MSGSVR__ )
 
 
-if( NOT __NO_ODBC__ OR USE_SQLITE )
-
- if( NOT __NO_ODBC__ )
-   set( ExtraDefinitions ${ExtraDefinitions};USE_ODBC )
-   if( WIN32 )
-      SET( ODBC_LIBRARY odbc32 )
-   else()
-     SET( ODBC_LIBRARY odbc )
-      if( NOT NEED_UUID AND NOT APPLE )
-        SET( ODBC_LIBRARY uuid )
-      endif( NOT NEED_UUID AND NOT APPLE )
-      set( PLATFORM_LIBRARIES ${PLATFORM_LIBRARIES} ${ODBC_LIBRARY} )
-   endif()
- else( NOT __NO_ODBC__ )
-   set( ExtraDefinitions ${ExtraDefinitions};__NO_ODBC__ )
-      if( NOT NEED_UUID )
-        set( PLATFORM_LIBRARIES ${PLATFORM_LIBRARIES} uuid )
-      endif()
- endif( NOT __NO_ODBC__ )
-
-else( NOT __NO_ODBC__ OR USE_SQLITE )
-	set( ExtraDefinitions ${ExtraDefinitions};__NO_SQL__;__NO_ODBC__;__NO_OPTIONS__ )
-endif( NOT __NO_ODBC__ OR USE_SQLITE )
-
-
-if( NOT USE_OPTIONS OR ( __NO_ODBC__ AND NOT USE_SQLITE ) )
-    set( ExtraDefinitions ${ExtraDefinitions};__NO_OPTIONS__ )
-endif( NOT USE_OPTIONS OR ( __NO_ODBC__ AND NOT USE_SQLITE ) )
 
 
 
@@ -415,17 +363,6 @@ if( WIN32 )
 	set( WIN_CRYPT_LIBS crypt32 )
 endif( WIN32 )
 
-if( WIN32 AND MINGW )
-    set( PLATFORM_LIBRARIES ${PLATFORM_LIBRARIES} winmm ${SOCKET_LIBRARIES}  ${WIN_SYS_LIBS} ${OPENGL_LIBRARY} ${ODBC_LIBRARY} )
-endif( WIN32 AND MINGW )
-
-if( WATCOM OR MSVC )
-    set( PLATFORM_LIBRARIES ${PLATFORM_LIBRARIES} winmm ${SOCKET_LIBRARIES}  ${WIN_SYS_LIBS} ${OPENGL_LIBRARY} ${ODBC_LIBRARY} )
-        set( USE_INTERNAL_STANDARDLIBS 1 )
-else()
-        set( USE_INTERNAL_STANDARDLIBS 0 )
-endif()
-
 
 if( __QNX__ )
 ADD_DEFINITIONS( -D__QNX__ )
@@ -435,16 +372,13 @@ if( BUILD_UNICODE )
 	add_definitions( -D_UNICODE -DUNICODE )
 endif( BUILD_UNICODE )
 
-if( __ANDROID__ )
-	add_definitions( -D__ANDROID__ )
-endif( __ANDROID__ )
-
 if( ALLOW_IMAGE_INTERFACES )
 	add_definitions( -DALLOW_IMAGE_INTERFACES )
 endif( ALLOW_IMAGE_INTERFACES )
 
 if( __ARM__ )
-	add_definitions( -D__ARM__)
+	#set( PLATFORM_DEFINES ${PLATFORM_DEFINES} -D__ARM__ )
+	#add_definitions( -D__ARM__)
 endif( __ARM__ )
 
 if( EXTREME_CODE_DEBUG )
@@ -455,10 +389,10 @@ endif( EXTREME_CODE_DEBUG )
 
 if( __ARM__ OR __BUILD_ARM_CE__ )
   if( __LINUX__ )
-    set( PLATFORM_DEFINES ${PLATFORM_DEFINES} -D__LINUX__ -DARM -D_ARM_ )
+    #set( PLATFORM_DEFINES ${PLATFORM_DEFINES} -D__LINUX__ -DARM -D_ARM_ )
     add_definitions( -D__LINUX__ -DARM -D_ARM_ )
   else(__LINUX__)
-    set( PLATFORM_DEFINES ${PLATFORM_DEFINES} -D_WIN32_WCE=0x501 -DUNDER_CE -DWINCE -D_WINDOWS -DARM -D_ARM_ -DWIN32_PLATFORM_WFSP -D_UNICODE -DUNICODE -DPOCKETPC2003_UI_MODEL -DWIN32 )
+    #set( PLATFORM_DEFINES ${PLATFORM_DEFINES} -D_WIN32_WCE=0x501 -DUNDER_CE -DWINCE -D_WINDOWS -DARM -D_ARM_ -DWIN32_PLATFORM_WFSP -D_UNICODE -DUNICODE -DPOCKETPC2003_UI_MODEL -DWIN32 )
     add_definitions( -D_WIN32_WCE=0x501 -DUNDER_CE -DWINCE -D_WINDOWS -DARM -D_ARM_ -DWIN32_PLATFORM_WFSP -D_UNICODE -DUNICODE -DPOCKETPC2003_UI_MODEL -DWIN32 )
   endif( __LINUX__ )
 else( )
@@ -466,13 +400,17 @@ else( )
     if( CMAKE_CL_64 )
       set( __64__ ON )
       add_definitions( -D_AMD64_ -D__64__ -D_WIN64 )
-     set( PLATFORM_DEFINES ${PLATFORM_DEFINES} -D_AMD64_ -D__64__ -D_WIN64 )
     else( CMAKE_CL_64 )
       add_definitions( -D_X86_ )
-     set( PLATFORM_DEFINES ${PLATFORM_DEFINES} -D_X86_ )
     endif( CMAKE_CL_64 )
   endif( MSVC )
 endif()
+
+if( __LINUX__ )
+   add_definitions( -D__LINUX__ )
+   set( PLATFORM_DEFINES ${PLATFORM_DEFINES} -D__LINUX__ )
+endif( __LINUX__ )
+
 
 if( __64__ )
   set( TARGET_ARCH x64 )
@@ -481,14 +419,6 @@ else( __64__ )
 endif( __64__ )
 
 
-set( ExtraDefinitions ${ExtraDefinitions};SACK_CORE_BUILD )
-
-
-
-if( __LINUX__ )
-   add_definitions( -D__LINUX__ )
-   set( PLATFORM_DEFINES ${PLATFORM_DEFINES} -D__LINUX__ )
-endif( __LINUX__ )
 
 if( __64__ )
    add_definitions( -D__64__ )
@@ -529,6 +459,219 @@ endif( NOT CMAKE_C_FLAGS_RELWITHDEBINFO MATCHES "-D_DEBUG_INFO" )
 
 #message( "CMAKE_FLAGS : ${CMAKE_CXX_FLAGS_DEBUG}" )
 #message( "CMAKE_FLAGS : ${CMAKE_C_FLAGS_DEBUG}" )
+
+
+macro( setupDefines PLATFORM_DEFINES PLATFORM_CMAKE_DEFINES PLATFORM_LIBRARIES APPLE M__ANDROID__ __LINUX__ WIN32 MSVC __ARM__ __NO_ODBC__ ) 
+
+set( ${PLATFORM_DEFINES} ${WIN_SYS_LIBS} )
+
+message( "MACRO ARGUMENTS: ${M__ANDROID__} ${__LINUX__} ${__NO_ODBC__}" )
+if( ${MSVC} )
+  SET( ${PLATFORM_DEFINES} -D_CRT_SECURE_NO_WARNINGS )
+  if( FORCE_MSVCRT )
+    set( extra_link_flags "${extra_link_flags} /NODEFAULTLIB" )
+    set( ${PLATFORM_LIBRARIES} ${${PLATFORM_LIBRARIES}} msvcrt )
+  endif( FORCE_MSVCRT )
+endif( ${MSVC} )
+
+IF( ${APPLE} )
+   SET( __NO_GUI__ ON )
+   SET( ${PLATFORM_DEFINES} -D__MAC__ )
+   set( ${PLATFORM_CMAKE_DEFINES} ${${PLATFORM_CMAKE_DEFINES}} "__MAC__ ON" )
+ENDIF( ${APPLE} )
+
+if( __COMPILER_GNU AND NOT CMAKE_COMPILER_IS_GNUCC )
+  set( ${PLATFORM_CMAKE_DEFINES} ${${PLATFORM_CMAKE_DEFINES}} "CMAKE_COMPILER_IS_GNUCC 1" )
+endif( __COMPILER_GNU AND NOT CMAKE_COMPILER_IS_GNUCC )
+
+if( ${M__ANDROID__} )
+	#message( "ADDING PLATFORM LIBRARIES FOR ANDROID" )
+	set( ${PLATFORM_LIBRARIES} ${${PLATFORM_LIBRARIES}} android log m )
+endif( ${M__ANDROID__} )
+
+if( ${WIN32} ) 
+        if( WATCOM )
+	        set( ${PLATFORM_LIBRARIES} ${${PLATFORM_LIBRARIES}} shfolder psapi )
+        endif( WATCOM)
+endif( ${WIN32} )
+
+if( ${__LINUX__} )
+	if( NOT ${APPLE} )
+	       set( ${PLATFORM_LIBRARIES} ${${PLATFORM_LIBRARIES}} rt m pthread dl )
+        endif( NOT ${APPLE} )
+	if( NOT ${__NO_ODBC__} )
+		set( ${PLATFORM_LIBRARIES} ${${PLATFORM_LIBRARIES}} odbc )
+	endif( NOT ${__NO_ODBC__} )
+endif( ${__LINUX__} )
+
+
+message( "PROGRESS: ${${PLATFORM_LIBRARIES}}" )
+
+if( ${WIN32} AND MINGW )
+    set( ${PLATFORM_LIBRARIES} ${${PLATFORM_LIBRARIES}} winmm ${SOCKET_LIBRARIES}  ${WIN_SYS_LIBS} ${OPENGL_LIBRARY} ${ODBC_LIBRARY} )
+endif( ${WIN32} AND MINGW )
+
+
+            if( ${ZLIB_FOUND} )
+            	set( ${PLATFORM_LIBRARIES} ${${PLATFORM_LIBRARIES}} ${ZLIB_LIBRARIES} )
+            endif( ${ZLIB_FOUND} )
+            if( ${PNG_FOUND} )
+            	set( ${PLATFORM_LIBRARIES} ${${PLATFORM_LIBRARIES}} ${PNG_LIBRARIES} )
+            endif( ${PNG_FOUND} )
+            if( ${JPEG_FOUND} )
+            	set( ${PLATFORM_LIBRARIES} ${${PLATFORM_LIBRARIES}} ${JPEG_LIBRARIES} )
+            endif( ${JPEG_FOUND} )
+            if( ${FREETYPE_FOUND} )
+                set( ${PLATFORM_LIBRARIES} ${${PLATFORM_LIBRARIES}} ${FREETYPE_LIBRARIES} )
+                include_directories( ${FREETYPE_INCLUDE_DIRS} )
+            endif( ${FREETYPE_FOUND} )
+
+            if( NOT __NO_GUI__ AND NOT PNACL_BUILD )
+               find_package( GLEW )
+               if( NOT ${GLEW_FOUND} )
+                message( "USE LOCAL GLEW" )
+               	set( NEED_GLEW ON )
+               	#set( ${PLATFORM_LIBRARIES} ${${PLATFORM_LIBRARIES}} glew )
+               else( NOT ${GLEW_FOUND} )
+               	set( ${PLATFORM_LIBRARIES} ${${PLATFORM_LIBRARIES}} ${GLEW_LIBRARIES} )
+               endif( NOT ${GLEW_FOUND} )
+            endif( NOT __NO_GUI__ AND NOT PNACL_BUILD )
+
+     if( UNIX )
+       if( NOT __NO_GUI__ )
+            set( ${PLATFORM_LIBRARIES} ${${PLATFORM_LIBRARIES}} ${OPENGL_LIBRARIES} )
+            find_package( X11 )
+            set( ${PLATFORM_LIBRARIES} ${${PLATFORM_LIBRARIES}} ${X11_LIBRARIES} )
+       endif( NOT __NO_GUI__ )
+     endif( UNIX )
+
+if( NOT ${__NO_ODBC__} OR USE_SQLITE )
+ message( "USE SQLITE? ${USE_SQLITE}" )
+ if( NOT ${__NO_ODBC__} )
+   set( ExtraDefinitions ${ExtraDefinitions};USE_ODBC )
+   if( ${WIN32} )
+      SET( ODBC_LIBRARY odbc32 )
+   else()
+     SET( ODBC_LIBRARY odbc )
+      if( NOT NEED_UUID AND NOT ${APPLE} )
+        SET( ODBC_LIBRARY uuid )
+      endif( NOT NEED_UUID AND NOT ${APPLE} )
+   endif()
+   set( ${PLATFORM_LIBRARIES} ${${PLATFORM_LIBRARIES}} ${ODBC_LIBRARY} )
+ else( NOT ${__NO_ODBC__} )
+   set( ${PLATFORM_DEFINES} ${${PLATFORM_DEFINES}} -D__NO_ODBC__ )
+      if( NOT NEED_UUID )
+        set( ${PLATFORM_LIBRARIES} ${${PLATFORM_LIBRARIES}} uuid )
+      endif()
+ endif( NOT ${__NO_ODBC__} )
+
+else( NOT ${__NO_ODBC__} OR USE_SQLITE )
+   message( "THIS SHOULD DISABLE SOURCES (IN THIS PROJECT)" )
+	set( __NO_OPTIONS__ ON )
+	set( ${PLATFORM_CMAKE_DEFINES} ${${PLATFORM_CMAKE_DEFINES}} __NO_SQL__ __NO_ODBC__ __NO_OPTIONS__ )
+endif( NOT ${__NO_ODBC__} OR USE_SQLITE )
+
+
+if( ${M__ANDROID__} )
+	set( ${PLATFORM_DEFINES} ${${PLATFORM_DEFINES}} -D__ANDROID__ )
+	add_definitions( -D__ANDROID__ )
+endif( ${M__ANDROID__} )
+
+
+if( ${__ARM__} )
+	set( ${PLATFORM_DEFINES} ${${PLATFORM_DEFINES}} -D__ARM__ )
+	#add_definitions( -D__ARM__)
+endif( ${__ARM__} )
+
+if( ${__ARM__} OR __BUILD_ARM_CE__ )
+  if( ${__LINUX__} )
+    set( ${PLATFORM_DEFINES} ${${PLATFORM_DEFINES}} -D__LINUX__ -DARM -D_ARM_ )
+    add_definitions( -D__LINUX__ -DARM -D_ARM_ )
+  else(${__LINUX__})
+    set( ${PLATFORM_DEFINES} ${${PLATFORM_DEFINES}} -D_WIN32_WCE=0x501 -DUNDER_CE -DWINCE -D_WINDOWS -DARM -D_ARM_ -DWIN32_PLATFORM_WFSP -D_UNICODE -DUNICODE -DPOCKETPC2003_UI_MODEL -DWIN32 )
+    add_definitions( -D_WIN32_WCE=0x501 -DUNDER_CE -DWINCE -D_WINDOWS -DARM -D_ARM_ -DWIN32_PLATFORM_WFSP -D_UNICODE -DUNICODE -DPOCKETPC2003_UI_MODEL -DWIN32 )
+  endif( ${__LINUX__} )
+endif( ${__ARM__} OR __BUILD_ARM_CE__ )
+
+  if( ${MSVC} )
+    if( CMAKE_CL_64 )
+      set( __64__ ON )
+     set( ${PLATFORM_DEFINES} ${${PLATFORM_DEFINES}} -D_AMD64_ -D__64__ -D_WIN64 )
+    else( CMAKE_CL_64 )
+     set( ${PLATFORM_DEFINES} ${${PLATFORM_DEFINES}} -D_X86_ )
+    endif( CMAKE_CL_64 )
+  endif( ${MSVC} )
+
+if( ${__LINUX__} )
+   set( ${PLATFORM_DEFINES} ${${PLATFORM_DEFINES}} -D__LINUX__ )
+endif( ${__LINUX__} )
+
+endmacro()
+
+
+#message( "Host defs:" ${HOST_PLATFORM_DEFINES} ) #should be blank...
+
+if( NOT __LINUX__ )
+set( __LINUX__ OFF )
+endif( NOT __LINUX__ )
+if( NOT __ANDROID__ )
+set( __ANDROID__ OFF )
+endif( NOT __ANDROID__ )
+if( NOT APPLE )
+set( APPLE OFF )
+endif( NOT APPLE )
+if( NOT WIN32 )
+set( WIN32 OFF )
+endif( NOT WIN32 )
+if( NOT MSVC )
+set( MSVC OFF )
+endif( NOT MSVC )
+if( NOT __ARM__ )
+set( __ARM__ OFF )
+endif( NOT __ARM__ )
+if( NOT __NO_ODBC__ )
+set( __NO_ODBC__ OFF )
+endif( NOT __NO_ODBC__ )
+setupDefines( "PLATFORM_DEFINES" "PLATFORM_CMAKE_DEFINES" "PLATFORM_LIBRARIES" ${APPLE} ${__ANDROID__} ${__LINUX__} ${WIN32} ${MSVC} ${__ARM__} ${__NO_ODBC__} )
+
+message( "Host defs:" ${HOST_PLATFORM_DEFINES} )
+
+if( CMAKE_HOST_APPLE )
+	setupDefines( HOST_PLATFORM_DEFINES "HOST_PLATFORM_CMAKE_DEFINES" "HOST_PLATFORM_LIBRARIES" 1 0 1 0 0 ${__ARM__} ${__NO_ODBC__} )
+endif( CMAKE_HOST_APPLE )
+if( CMAKE_HOST_WIN32 )
+	message( "BEFORE GETTING Host defs:" ${HOST_PLATFORM_DEFINES} )
+	setupDefines( "HOST_PLATFORM_DEFINES" "HOST_PLATFORM_CMAKE_DEFINES" "HOST_PLATFORM_LIBRARIES" OFF OFF OFF ON ${MSVC} OFF OFF )
+else( CMAKE_HOST_WIN32 )
+	setupDefines( "HOST_PLATFORM_DEFINES" "HOST_PLATFORM_CMAKE_DEFINES" "HOST_PLATFORM_LIBRARIES" ${APPLE} ${__ANDROID__} 1 0 ${MSVC} ${__ARM__} ${__NO_ODBC__} )
+endif( CMAKE_HOST_WIN32 )
+
+message( "defs:" ${PLATFORM_DEFINES} )
+message( "Host defs:" ${HOST_PLATFORM_DEFINES} )
+
+message( "LIB:" ${PLATFORM_LIBRARIES} )
+message( "Host LIBs:" ${HOST_PLATFORM_LIBRARIES} )
+
+
+
+if( CMAKE_TOOLCHAIN_FILE )
+else( CMAKE_TOOLCHAIN_FILE )
+	set( HOST_PLATFORM_DEFINES ${PLATFORM_DEFINES} )
+	set( HOST_PLATFORM_LIBRARIES ${PLATFORM_LIBRARIES} )
+        set( HOST_PLATFORM_CMAKE_DEFINES ${PLATFORM_CMAKE_DEFINES} )
+endif( CMAKE_TOOLCHAIN_FILE )
+set( ExtraDefinitions ${ExtraDefinitions};SACK_CORE_BUILD )
+
+ADD_DEFINITIONS( ${PLATFORM_DEFINES} )
+
+
+message( "defs:" ${PLATFORM_DEFINES} )
+message( "Host defs:" ${HOST_PLATFORM_DEFINES} )
+
+message( "LIB:" ${PLATFORM_LIBRARIES} )
+message( "Host LIBs:" ${HOST_PLATFORM_LIBRARIES} )
+
+
 
 # here, blank/empty is as good as saying 'here'
 SET( SOURCES_ROOT ${CMAKE_CURRENT_SOURCE_DIR}/ )
@@ -734,12 +877,10 @@ FOREACH(SOURCE ${ARGN} )
 ENDFOREACH(SOURCE)
 endmacro( COPY_CPLUSPLUS )
 
-if( __ANDROID__ )
-#set( extra_link_flags  "${extra_link_flags} -Wl,-rpath,${CMAKE_BINARY_DIR}" )
-endif( __ANDROID__ )
-
 
 if( BUILD_MONOLITHIC )
+
+
 
   if( NOT FORCE_INTERFACE )
     add_definitions( -DFORCE_NO_INTERFACE )
@@ -1629,9 +1770,9 @@ endif( WIN32 )
   #   This doesn't build under watcom either...
   #   it needs to be modified to understand functional syntax so it can do formatting...
 
-  string( REPLACE ";" " " PLATFORM_LIBRARIES_ARG "${PLATFORM_LIBRARIES}" )
-  string( REPLACE ";" " " PLATFORM_DEFINES_ARG "${PLATFORM_DEFINES}" )
-  string( REPLACE ";" "," PLATFORM_CMAKE_DEFINES_ARG "${PLATFORM_CMAKE_DEFINES}" )
+  string( REPLACE ";" " " PLATFORM_LIBRARIES_ARG "${HOST_PLATFORM_LIBRARIES}" )
+  string( REPLACE ";" " " PLATFORM_DEFINES_ARG "${HOST_PLATFORM_DEFINES}" )
+  string( REPLACE ";" "," PLATFORM_CMAKE_DEFINES_ARG "${HOST_PLATFORM_CMAKE_DEFINES}" )
   ExternalProject_Add( ppc_portable
 	SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/makefiles/prog/ppc
 	BINARY_DIR ppc_portable
@@ -1644,12 +1785,9 @@ endif( WIN32 )
 		-DPLATFORM_CMAKE_DEFINES=${PLATFORM_CMAKE_DEFINES_ARG}
       
   )
-
-  #add_subdirectory( makefiles/prog/ppc )
 #endif( NOT UNIX )
 add_subdirectory( src/utils/seed_random )
 add_subdirectory( src/deadstart )
-#add_subdirectory( ../allegro allegro )
 
  if( NOT __NO_GUI__ AND NOT __ANDROID__ )
   add_subdirectory( src/imglib/dump_font_cache )

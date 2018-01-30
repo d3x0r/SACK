@@ -8,7 +8,7 @@
 #     include <sqlite3.h>
 # endif
 
-#if !USE_ODBC
+#if defined( __NO_ODBC__ )
 // if not using odbc, need these 
 // otherwise they will be defined in sql.h
 typedef int RETCODE; // sqllite uses a generic int type for result codes
@@ -20,6 +20,7 @@ enum {
       , SQL_HANDLE_STMT
 };
 #else
+#  define USE_ODBC
 #  include <sql.h>
 #  include <sqlext.h>
 #endif
@@ -72,7 +73,7 @@ typedef struct data_collection_tag
 #if defined( USE_SQLITE ) || defined( USE_SQLITE_INTERFACE )
 	sqlite3_stmt *stmt;
 #endif
-#if USE_ODBC
+#if !defined( __NO_ODBC__ )
 	SQLHSTMT    hstmt;
 #endif
 	SQLSMALLINT columns;
@@ -103,7 +104,7 @@ struct odbc_handle_tag{
 #if defined( USE_SQLITE ) || defined( USE_SQLITE_INTERFACE )
 	sqlite3 *db;
 #endif
-#if USE_ODBC
+#if !defined( __NO_ODBC__ )
 	SQLHENV    env;  // odbc database access handle...
 	SQLHDBC    hdbc; // handle to database connection
 #endif
