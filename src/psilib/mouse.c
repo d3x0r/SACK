@@ -2053,7 +2053,7 @@ int IsMouseInCurrent( PSI_CONTROL pfc, int32_t x, int32_t y, uint32_t is_surface
 //	Act of finding a control shall
 //---------------------------------------------------------------------------
 
-int CPROC AltFrameMouse( uintptr_t psvCommon, int32_t x, int32_t y, uint32_t b )
+uintptr_t CPROC AltFrameMouse( uintptr_t psvCommon, int32_t x, int32_t y, uint32_t b )
 {
 	PPHYSICAL_DEVICE pf = (PPHYSICAL_DEVICE)psvCommon;
 	//PFRAME pf = (PFRAME)psvCommon;
