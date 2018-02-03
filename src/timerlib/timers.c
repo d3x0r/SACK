@@ -2421,33 +2421,39 @@ LOGICAL  LeaveCriticalSecEx( PCRITICALSECTION pcs DBG_PASS )
 {
 	THREAD_ID dwCurProc;
 #ifdef _DEBUG
-	uint32_t curtick = timeGetTime();//GetTickCount();
+	uint32_t curtick;
 #endif
-#ifdef ENABLE_CRITICALSEC_LOGGING
-	if( global_timer_structure && globalTimerData.flags.bLogCriticalSections )
-		_xlprintf( LOG_NOISE DBG_RELAY )( WIDE("Begin leave critical section %p %") _64fx, pcs, pcs->dwThreadWaiting );
-#endif
-	while( LockedExchange( &pcs->dwUpdating, 1 )
+	while( 1 ) {
 #ifdef _DEBUG
-			&& ( (curtick+2000) > timeGetTime() )//GetTickCount() )
+		curtick = timeGetTime();
 #endif
-	)
-	{
 #ifdef ENABLE_CRITICALSEC_LOGGING
 		if( global_timer_structure && globalTimerData.flags.bLogCriticalSections )
-			_lprintf( DBG_RELAY )( WIDE("On leave - section is updating, wait...") );
+			_xlprintf( LOG_NOISE DBG_RELAY )( WIDE( "Begin leave critical section %p %" ) _64fx, pcs, pcs->dwThreadWaiting );
 #endif
-		Relinquish();
-	}
-	dwCurProc = GetMyThreadID();
+		while( LockedExchange( &pcs->dwUpdating, 1 )
 #ifdef _DEBUG
-	if( (curtick+2000) <= timeGetTime() )//GetTickCount() )
-	{
-		lprintf( WIDE( "Timeout during critical section wait for lock.  No lock should take more than 1 task cycle" ) );
-		DebugBreak();
-		return FALSE;
-	}
+			//GetTickCount() )
+			&& ( ( curtick + 2000 ) > timeGetTime() )
 #endif
+			) {
+#ifdef ENABLE_CRITICALSEC_LOGGING
+			if( global_timer_structure && globalTimerData.flags.bLogCriticalSections )
+				_lprintf( DBG_RELAY )( WIDE( "On leave - section is updating, wait..." ) );
+#endif
+			Relinquish();
+}
+		dwCurProc = GetMyThreadID();
+#ifdef _DEBUG
+		//GetTickCount() )
+		if( ( curtick + 2000 ) <= timeGetTime() ) {
+			lprintf( WIDE( "Timeout during critical section wait for lock.  No lock should take more than 1 task cycle" ) );
+			DebugBreak();
+			continue;
+		}
+		break;
+#endif
+	}
 	if( !( pcs->dwLocks & ~SECTION_LOGGED_WAIT ) )
 	{
 #ifdef ENABLE_CRITICALSEC_LOGGING
