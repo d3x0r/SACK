@@ -64,7 +64,7 @@
 static void NormalizeFraction( PFRACTION f )
 {
 	int n;
-	int target = min( f->numerator, f->denominator ) / 2;
+	int target = ( (f->numerator < f->denominator) ?f->numerator:f->denominator) / 2;
 	for( n = 2; n <target; n++ )
 	{
 		if( ( ( f->numerator % n) == 0 ) &&
@@ -73,7 +73,7 @@ static void NormalizeFraction( PFRACTION f )
 			f->numerator /= n;
 			f->denominator /= n;
 			n = 1; // one cause we add one before looping again;
-			target = min( f->numerator, f->denominator ) / 2;
+			target = ( ( f->numerator < f->denominator )?f->numerator:f->denominator) / 2;
 			continue;
 		}
 	}
