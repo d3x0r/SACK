@@ -17,9 +17,9 @@ int ValidateCreateTable( PTEXT *word )
 
 	(*word) = NEXTLINE( (*word) );
 
-   if( TextLike( (*word), WIDE( "temporary" ) ) )
+	if( TextLike( (*word), WIDE( "temporary" ) ) )
 		(*word) = NEXTLINE( (*word) );
-   else if( TextLike( (*word), WIDE( "temp" ) ) )
+	else if( TextLike( (*word), WIDE( "temp" ) ) )
 		(*word) = NEXTLINE( (*word) );
 
 	if( !TextLike( (*word), WIDE( "table" ) ) )
@@ -40,7 +40,7 @@ int ValidateCreateTable( PTEXT *word )
 		else
 			return FALSE;
 	}
-   return TRUE;
+	return TRUE;
 }
 
 //----------------------------------------------------------------------
@@ -201,7 +201,7 @@ static int GrabExtra( PTEXT *word, TEXTSTR *result )
 			if( result )
 				(*result) = NULL;
 	}
-   return TRUE;
+	return TRUE;
 }
 
 void GrabKeyColumns( PTEXT *word, CTEXTSTR *columns )
@@ -240,8 +240,8 @@ void AddConstraint( PTABLE table, PTEXT *word )
 		}
 		table->keys.count++;
 		table->keys.key = Renew( DB_KEY_DEF
-							   , table->keys.key
-							   , table->keys.count + 1 );
+		                  , table->keys.key
+		                  , table->keys.count + 1 );
 		table->keys.key[table->keys.count-1].null = NULL;
 		table->keys.key[table->keys.count-1].flags.bPrimary = 0;
 		table->keys.key[table->keys.count-1].flags.bUnique = 1;
@@ -257,27 +257,27 @@ void AddConstraint( PTABLE table, PTEXT *word )
 				(*word) = NEXTLINE( *word );
 				if( StrCaseCmp( GetText(*word), WIDE( "REPLACE" ) ) == 0 )
 				{
-               table->keys.key[table->keys.count-1].flags.uniqueResolution = UNIQRES_REPLACE;
+					table->keys.key[table->keys.count-1].flags.uniqueResolution = UNIQRES_REPLACE;
 					(*word) = NEXTLINE( *word );
 				}
 				if( StrCaseCmp( GetText(*word), WIDE( "IGNORE" ) ) == 0 )
 				{
-               table->keys.key[table->keys.count-1].flags.uniqueResolution = UNIQRES_IGNORE;
+					table->keys.key[table->keys.count-1].flags.uniqueResolution = UNIQRES_IGNORE;
 					(*word) = NEXTLINE( *word );
 				}
 				if( StrCaseCmp( GetText(*word), WIDE( "FAIL" ) ) == 0 )
 				{
-               table->keys.key[table->keys.count-1].flags.uniqueResolution = UNIQRES_FAIL;
+					table->keys.key[table->keys.count-1].flags.uniqueResolution = UNIQRES_FAIL;
 					(*word) = NEXTLINE( *word );
 				}
 				if( StrCaseCmp( GetText(*word), WIDE( "ABORT" ) ) == 0 )
 				{
-               table->keys.key[table->keys.count-1].flags.uniqueResolution = UNIQRES_ABORT;
+					table->keys.key[table->keys.count-1].flags.uniqueResolution = UNIQRES_ABORT;
 					(*word) = NEXTLINE( *word );
 				}
 				if( StrCaseCmp( GetText(*word), WIDE( "ROLLBACK" ) ) == 0 )
 				{
-               table->keys.key[table->keys.count-1].flags.uniqueResolution = UNIQRES_ROLLBACK;
+					table->keys.key[table->keys.count-1].flags.uniqueResolution = UNIQRES_ROLLBACK;
 					(*word) = NEXTLINE( *word );
 				}
 			}
@@ -289,8 +289,8 @@ void AddConstraint( PTABLE table, PTEXT *word )
 
 	table->constraints.count++;
 	table->constraints.constraint = Renew( DB_CONSTRAINT_DEF
-	                       , table->constraints.constraint
-	                       , table->constraints.count + 1 );
+                          , table->constraints.constraint
+                          , table->constraints.count + 1 );
 	table->constraints.constraint[table->constraints.count-1].name = tmpname;
 	if( StrCaseCmp( GetText(*word), WIDE( "UNIQUE" ) ) == 0 )
 	{
@@ -303,8 +303,9 @@ void AddConstraint( PTABLE table, PTEXT *word )
 		{
 			// next word is the type, skip that word too....
 			(*word) = NEXTLINE( *word );
-         table->constraints.constraint[table->constraints.count-1].flags.foreign_key = 1;
+			table->constraints.constraint[table->constraints.count-1].flags.foreign_key = 1;
 		}
+			table->constraints.constraint[table->constraints.count-1].flags.foreign_key = 1;
 	}
 	GrabKeyColumns( word, table->constraints.constraint[table->constraints.count-1].colnames );
 	if( StrCaseCmp( GetText(*word), WIDE( "REFERENCES" ) ) == 0 )
@@ -398,8 +399,8 @@ void AddIndexKey( PTABLE table, PTEXT *word, int has_name, int primary, int uniq
 {
 	table->keys.count++;
 	table->keys.key = Renew( DB_KEY_DEF
-	                       , table->keys.key
-	                       , table->keys.count + 1 );
+                          , table->keys.key
+                          , table->keys.count + 1 );
 	table->keys.key[table->keys.count-1].null = NULL;
 	table->keys.key[table->keys.count-1].flags.bPrimary = primary;
 	table->keys.key[table->keys.count-1].flags.bUnique = unique;
@@ -417,7 +418,7 @@ void AddIndexKey( PTABLE table, PTEXT *word, int has_name, int primary, int uniq
 		(*word) = NEXTLINE( *word );
 	}
 	GrabKeyColumns( word, table->keys.key[table->keys.count-1].colnames );
-   // using can be after the columns also...
+	// using can be after the columns also...
 	if( StrCaseCmp( GetText(*word), WIDE( "USING" ) ) == 0 )
 	{
 		(*word) = NEXTLINE( *word );
@@ -432,27 +433,27 @@ void AddIndexKey( PTABLE table, PTEXT *word, int has_name, int primary, int uniq
 			(*word) = NEXTLINE( *word );
 			if( StrCaseCmp( GetText(*word), WIDE( "REPLACE" ) ) == 0 )
 			{
-            table->keys.key[table->keys.count-1].flags.uniqueResolution = UNIQRES_REPLACE;
+				table->keys.key[table->keys.count-1].flags.uniqueResolution = UNIQRES_REPLACE;
 				(*word) = NEXTLINE( *word );
 			}
 			if( StrCaseCmp( GetText(*word), WIDE( "IGNORE" ) ) == 0 )
 			{
-            table->keys.key[table->keys.count-1].flags.uniqueResolution = UNIQRES_IGNORE;
+				table->keys.key[table->keys.count-1].flags.uniqueResolution = UNIQRES_IGNORE;
 				(*word) = NEXTLINE( *word );
 			}
 			if( StrCaseCmp( GetText(*word), WIDE( "FAIL" ) ) == 0 )
 			{
-            table->keys.key[table->keys.count-1].flags.uniqueResolution = UNIQRES_FAIL;
+				table->keys.key[table->keys.count-1].flags.uniqueResolution = UNIQRES_FAIL;
 				(*word) = NEXTLINE( *word );
 			}
 			if( StrCaseCmp( GetText(*word), WIDE( "ABORT" ) ) == 0 )
 			{
-            table->keys.key[table->keys.count-1].flags.uniqueResolution = UNIQRES_ABORT;
+				table->keys.key[table->keys.count-1].flags.uniqueResolution = UNIQRES_ABORT;
 				(*word) = NEXTLINE( *word );
 			}
 			if( StrCaseCmp( GetText(*word), WIDE( "ROLLBACK" ) ) == 0 )
 			{
-            table->keys.key[table->keys.count-1].flags.uniqueResolution = UNIQRES_ROLLBACK;
+				table->keys.key[table->keys.count-1].flags.uniqueResolution = UNIQRES_ROLLBACK;
 				(*word) = NEXTLINE( *word );
 			}
 		}
@@ -532,7 +533,7 @@ int GetTableColumns( PTABLE table, PTEXT *word DBG_PASS )
 					Release( name );
 				}
 				else if( ( StrCaseCmp( name, WIDE( "INDEX" ) ) == 0 )
-					   || ( StrCaseCmp( name, WIDE( "KEY" ) ) == 0 ) )
+				      || ( StrCaseCmp( name, WIDE( "KEY" ) ) == 0 ) )
 				{
 					AddIndexKey( table, word, 1, 0, 0 );
 					Release( name );
@@ -571,7 +572,7 @@ int GetTableColumns( PTABLE table, PTEXT *word DBG_PASS )
 
 int GetTableExtra( PTABLE table, PTEXT *word )
 {
-   return TRUE;
+	return TRUE;
 }
 
 void LogTable( PTABLE table )
@@ -645,9 +646,9 @@ void LogTable( PTABLE table )
 			sack_fprintf( out, WIDE( "\n" ) );
 			sack_fprintf( out, WIDE("TABLE %s = { \"%s\" \n"), table->name, table->name );
 			sack_fprintf( out, WIDE( "	 , FIELDS( %s_fields )\n" ), table->name );
-         if( table->keys.count )
+			if( table->keys.count )
 				sack_fprintf( out, WIDE( "	 , TABLE_KEYS( %s_keys )\n" ), table->name );
-         else
+			else
 				sack_fprintf( out, WIDE( "	 , { 0, NULL }\n" ) );
 			sack_fprintf( out, WIDE( "	, { 0 }\n" ) );
 			sack_fprintf( out, WIDE( "	, NULL\n" ) );
