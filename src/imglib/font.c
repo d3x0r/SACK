@@ -1,4 +1,4 @@
-/*
+f/*
  *  Crafted by Jim Buckeyne
  *   (c)1999-2006++ Freedom Collective
  * 
@@ -1599,7 +1599,8 @@ uint32_t PutMenuStringFontEx( ImageFile *pImage, int32_t x, int32_t y, CDATA col
 		// a character must be rendered before height can be computed.
 	if( !UseFont->character[0] )
 	{
-		InternalRenderFontCharacter(  NULL, UseFont, pString?pString[0]:0 );
+		size_t n = 0; // get first character.
+		InternalRenderFontCharacter(  NULL, UseFont, pString? GetUtfCharIndexed( pString, &n, nLen ):0 );
 	}
 	if( !width )
 		width = &_width;
@@ -1764,41 +1765,41 @@ PRELOAD( InitColorDefaults )
 	color_defs[2].color = BASE_COLOR_GREEN;
 	color_defs[2].name = WIDE("green");
 	color_defs[3].color = BASE_COLOR_RED;
-	color_defs[3].name = WIDE("red");		
+	color_defs[3].name = WIDE("red");
 	n = 4;
-	color_defs[n].name = WIDE("dark blue");		
-	color_defs[n++].color = BASE_COLOR_DARKBLUE; 
-	color_defs[n].name = WIDE("cyan");		
-	color_defs[n++].color = BASE_COLOR_CYAN; 
-	color_defs[n].name = WIDE("brown");		
+	color_defs[n].name = WIDE("dark blue");
+	color_defs[n++].color = BASE_COLOR_DARKBLUE;
+	color_defs[n].name = WIDE("cyan");
+	color_defs[n++].color = BASE_COLOR_CYAN;
+	color_defs[n].name = WIDE("brown");
 	color_defs[n++].color = BASE_COLOR_BROWN;
-	color_defs[n].name = WIDE("brown");		
+	color_defs[n].name = WIDE("brown");
 	color_defs[n++].color = BASE_COLOR_LIGHTBROWN;
-	color_defs[n].name = WIDE("light brown");		
+	color_defs[n].name = WIDE("light brown");
 	color_defs[n++].color =BASE_COLOR_MAGENTA;
-	color_defs[n].name = WIDE("magenta");		
+	color_defs[n].name = WIDE("magenta");
 	color_defs[n++].color =BASE_COLOR_LIGHTGREY;
-	color_defs[n].name = WIDE("light grey");		
+	color_defs[n].name = WIDE("light grey");
 	color_defs[n++].color =BASE_COLOR_DARKGREY;
-	color_defs[n].name = WIDE("dark grey");		
+	color_defs[n].name = WIDE("dark grey");
 	color_defs[n++].color =BASE_COLOR_LIGHTBLUE;
-	color_defs[n].name = WIDE("light blue");		
+	color_defs[n].name = WIDE("light blue");
 	color_defs[n++].color =BASE_COLOR_LIGHTGREEN;
-	color_defs[n].name = WIDE("light green");		
+	color_defs[n].name = WIDE("light green");
 	color_defs[n++].color =BASE_COLOR_LIGHTCYAN;
-	color_defs[n].name = WIDE("light cyan");		
+	color_defs[n].name = WIDE("light cyan");
 	color_defs[n++].color =BASE_COLOR_LIGHTRED;
-	color_defs[n].name = WIDE("light red");		
+	color_defs[n].name = WIDE("light red");
 	color_defs[n++].color =BASE_COLOR_LIGHTMAGENTA;
-	color_defs[n].name = WIDE("light magenta");		
+	color_defs[n].name = WIDE("light magenta");
 	color_defs[n++].color =BASE_COLOR_YELLOW;
-	color_defs[n].name = WIDE("yellow");		
+	color_defs[n].name = WIDE("yellow");
 	color_defs[n++].color =BASE_COLOR_WHITE;
-	color_defs[n].name = WIDE("white");		
+	color_defs[n].name = WIDE("white");
 	color_defs[n++].color =BASE_COLOR_ORANGE;
-	color_defs[n].name = WIDE("orange");		
+	color_defs[n].name = WIDE("orange");
 	color_defs[n++].color =BASE_COLOR_NICE_ORANGE;
-	color_defs[n].name = WIDE("purple");		
+	color_defs[n].name = WIDE("purple");
 	color_defs[n++].color =BASE_COLOR_PURPLE;
 }
 
