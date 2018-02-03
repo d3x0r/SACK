@@ -198,7 +198,9 @@ extern __sighandler_t bsd_signal(int, __sighandler_t);
 #endif  // end if( !__LINUX__ )
 
 #ifndef NEED_MIN_MAX
-#  define NO_MIN_MAX_MACROS
+#  ifndef NO_MIN_MAX_MACROS
+#    define NO_MIN_MAX_MACROS
+#  endif
 #endif
 
 #ifndef NO_MIN_MAX_MACROS
