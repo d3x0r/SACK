@@ -104,7 +104,7 @@ CORECON_PROC( void, PSI_KeyPressHandler )( PCONSOLE_INFO pdp
 												 , uint8_t mod
 												 , PTEXT characters
 												 );
-int CPROC KeyGetGatheredLine( PCHAT_LIST list, PUSER_INPUT_BUFFER pci );
+int CPROC KeyGetGatheredLine( PCHAT_LIST list, LOGICAL sendAlt, PUSER_INPUT_BUFFER pci );
 
 #endif
 // $Log: keydefs.h,v $

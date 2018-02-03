@@ -42,6 +42,8 @@ typedef struct chat_list_tag
 	} input;
 	void (CPROC*InputData)( uintptr_t psv, PTEXT input );
 	uintptr_t psvInputData;
+	void ( CPROC*AltInputData )( uintptr_t psv, PTEXT input );
+	uintptr_t psvAltInputData;
 	void (CPROC*InputPaste)( uintptr_t psv );
 	uintptr_t psvInputPaste;
 	LOGICAL (CPROC*InputDrop)( uintptr_t psv, CTEXTSTR input, int32_t x, int32_t y );
@@ -59,6 +61,11 @@ typedef struct chat_list_tag
 	uint32_t send_button_height; // if 0, sizes to the height of the input area
 	int32_t send_button_x_offset;
 	int32_t send_button_y_offset;
+	PSI_CONTROL alt_send_button;
+	uint32_t alt_send_button_width;  // if 0, is 55
+	uint32_t alt_send_button_height; // if 0, sizes to the height of the input area
+	int32_t alt_send_button_x_offset;
+	int32_t alt_send_button_y_offset;
 	SFTFont input_font;
 	SFTFont date_font;
 	int nFontHeight;

@@ -20,7 +20,7 @@ enum{
 
 //----------------------------------------------------------------------------
 
-int CPROC KeyGetGatheredLine( PCHAT_LIST list, PUSER_INPUT_BUFFER pci )
+int CPROC KeyGetGatheredLine( PCHAT_LIST list, LOGICAL sendAlt, PUSER_INPUT_BUFFER pci )
 {
 	PTEXT tmp_input = GetUserInputLine( pci );
 	PTEXT line = BuildLine( tmp_input );
@@ -32,11 +32,18 @@ int CPROC KeyGetGatheredLine( PCHAT_LIST list, PUSER_INPUT_BUFFER pci )
 		list->input.phb_Input->pBlock->pLines[0].pLine = list->input.CommandInfo->CollectionBuffer;
 		list->input.phb_Input->flags.bUpdated = 1;
 		BuildDisplayInfoLines( list->input.phb_Input, 0, list->input_font );
-		if( line )
-			list->InputData( list->psvInputData, line );
+		if( line ) {
+			if( sendAlt ) list->AltInputData( list->psvAltInputData, line );
+			else list->InputData( list->psvInputData, line );
+		}
 	}
 	else if( line )
 		LineRelease( line );
+
+	if( !line ) {
+		if( sendAlt ) list->AltInputData( list->psvAltInputData, NULL );
+		else list->InputData( list->psvInputData, NULL );
+	}
 
 	return UPDATE_COMMAND; 
 }

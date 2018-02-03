@@ -61,6 +61,7 @@ typedef struct chat_widget_message
 	TEXTCHAR formatted_time[256];
 	int time_height;
 	LOGICAL deleted;
+	int TTL; // time to live
 } CHAT_MESSAGE;
 typedef struct chat_widget_message *PCHAT_MESSAGE;
 
@@ -163,7 +164,7 @@ static int64_t AbsoluteSeconds( PCHAT_TIME message_time )
 }
 
 // can track up to 4 timestamp deltas ....
-static CTEXTSTR FormatMessageTime( CTEXTSTR time_type, PCHAT_TIME now, PCHAT_TIME message_time )
+static CTEXTSTR FormatMessageTime( CTEXTSTR time_type, PCHAT_TIME now, PCHAT_TIME message_time, int expect )
 {
 	static TEXTCHAR _timebuf[4][64];
 	static int current_timebuf;
@@ -174,6 +175,10 @@ static CTEXTSTR FormatMessageTime( CTEXTSTR time_type, PCHAT_TIME now, PCHAT_TIM
 	LOGICAL neg = (delta < 0 )? 1 : 0;
 	if( neg )
 		delta = -delta;
+	if( expect ) {
+		neg = TRUE;
+		delta = expect - delta;
+	}
 #if DEBUG_TIME_FORMATTING
 	lprintf( "now is %" _64fs " msg is %" _64fs " delta %" _64fs 
 				, absolute_day, absolute_msg_day, delta );
@@ -202,10 +207,10 @@ static CTEXTSTR FormatMessageTime( CTEXTSTR time_type, PCHAT_TIME now, PCHAT_TIM
 	}
 	else if( delta >= 60 ) {
 		int part = (int)(delta / 60);
-		snprintf( timebuf, 64, "%s%d%s ago", neg?"-":"", part, part==1?" minute":" minutes" );
+		snprintf( timebuf, 64, "%s%d%s %s", neg?"":"", part, part==1?" minute":" minutes", neg?"to go":"ago" );
 	}	
 	else if( delta )
-		snprintf( timebuf, 64, "%s%d%s ago", neg?"-":"", (int)delta, delta==1?" second":" seconds" );
+		snprintf( timebuf, 64, "%s%d%s %s", neg?"":"", (int)delta, delta==1?" second":" seconds", neg?"to go":"ago" );
 	else
 		snprintf( timebuf, 64, "now" );
 #if DEBUG_TIME_FORMATTING
@@ -710,6 +715,32 @@ static void OnSaveCommon( WIDE( "Chat Control" ) )( FILE *file )
 }
 
 
+static void CPROC SendTypedMessageAlt( uintptr_t psvUnused, PSI_CONTROL pc ) {
+	PCHAT_LIST list = (PCHAT_LIST)psvUnused;
+	KeyGetGatheredLine( list, 1, list->input.CommandInfo );
+	SetCommonFocus( GetCommonParent( pc ) );
+	//SmudgeCommon( GetCommonParent( pc ) );
+}
+
+
+void Chat_AddAltMessageInputHandler( PSI_CONTROL pc, const char *caption
+	, void ( CPROC *Handler )( uintptr_t psv, PTEXT text ), uintptr_t psv ) {
+
+	PCHAT_LIST *ppList = ControlData( PCHAT_LIST*, pc );
+	PCHAT_LIST chat_control = ( *ppList );
+	chat_control->AltInputData = Handler;
+	chat_control->psvAltInputData = psv;
+	if( !chat_control->alt_send_button ) {
+		chat_control->alt_send_button = MakeNamedCaptionedControl( pc, IMAGE_BUTTON_NAME, chat_control->message_window->width - 70, chat_control->message_window->height - 25, 25, 25, -1, TranslateText( "??" ) );
+		SetButtonPushMethod( chat_control->alt_send_button, SendTypedMessageAlt, (uintptr_t)chat_control );
+		SetControlText( chat_control->alt_send_button, caption );
+		SetCommonBorder( chat_control->alt_send_button, BORDER_NONE | BORDER_FIXED | BORDER_NOCAPTION );
+		SetButtonImages( chat_control->alt_send_button, l.button_normal, l.button_pressed );
+	}
+
+}
+
+
 void Chat_SetMessageInputHandler( PSI_CONTROL pc, void (CPROC *Handler)( uintptr_t psv, PTEXT text ), uintptr_t psv )
 {
 	PCHAT_LIST *ppList = (ControlData( PCHAT_LIST*, pc ));
@@ -796,6 +827,7 @@ PCHAT_MESSAGE  Chat_EnqueMessage( PSI_CONTROL pc, LOGICAL sent
 {
 	PCHAT_LIST *ppList = (ControlData( PCHAT_LIST*, pc ));
 	PCHAT_LIST chat_control = (*ppList);
+	lprintf( "Add Text:%s", text );
 	if( chat_control )
 	{
 		PCHAT_CONTEXT pcc;
@@ -814,8 +846,10 @@ PCHAT_MESSAGE  Chat_EnqueMessage( PSI_CONTROL pc, LOGICAL sent
 			pcc->messages = NULL;
 			pcc->deleted = 0;
 			EnqueLink( &chat_control->contexts, pcc );
+			lprintf( "Added new context for new text..." );
 		}
 		pcm = New( CHAT_MESSAGE );
+		pcm->TTL = 0;
 		if( received_time )
 			pcm->received_time = received_time[0];
 		else
@@ -884,6 +918,7 @@ PCHAT_MESSAGE Chat_EnqueImage( PSI_CONTROL pc, LOGICAL sent
 		}
 		
 		pcm = New( CHAT_MESSAGE );
+		pcm->TTL = 0;
 		if( received_time )
 			pcm->received_time = received_time[0];
 		else
@@ -1174,15 +1209,15 @@ uint32_t DrawMessageFrame( Image window, int y, int height, int inset, LOGICAL r
 	return height;
 }
 
-uint32_t UpdateContextExtents( Image window, PCHAT_LIST list, PCHAT_CONTEXT context )
+int32_t UpdateContextExtents( Image window, PCHAT_LIST list, PCHAT_CONTEXT context, uint64_t now_secs )
 {
 	int message_idx;
 	PCHAT_MESSAGE msg;
-
 	uint32_t width;
 	int32_t x_offset_left, x_offset_right;	
 	int32_t frame_height;
 	int32_t _x_offset_left, _x_offset_right;	
+restart:
 	MeasureFrameWidth( window, &x_offset_left, &x_offset_right, !context->sent, TRUE, 0 );
 	_x_offset_left = x_offset_left;
 	_x_offset_right = x_offset_right;
@@ -1225,6 +1260,19 @@ uint32_t UpdateContextExtents( Image window, PCHAT_LIST list, PCHAT_CONTEXT cont
 	frame_height = 0;
 	for( message_idx = -1; msg = (PCHAT_MESSAGE)PeekQueueEx( context->messages, message_idx ); message_idx-- )
 	{
+		if( !msg->deleted )
+		{
+			uint64_t msg_secs;
+			if( msg->seen_time.yr && ( msg->TTL > 0 ) ) {
+				msg_secs = AbsoluteSeconds( &msg->seen_time );
+				if( ( now_secs - msg_secs ) > msg->TTL ) {
+					lprintf( "Set Message deleted while updating context. %d %d %d %d %s", (int)now_secs, (int)msg_secs, (int)(now_secs-msg_secs),msg->TTL, msg->text );
+					Chat_ClearOldMessages( list->pc, 0 );
+					return -1;
+				}
+			}
+		}
+
 		if( msg->deleted )
 			continue;
 		if( !msg->formatted_text && msg->text )
@@ -1272,8 +1320,13 @@ uint32_t UpdateContextExtents( Image window, PCHAT_LIST list, PCHAT_CONTEXT cont
 			}
 			else
 			{
-				timebuf = FormatMessageTime( "sent time", &l.now, &msg->sent_time ) ;
-				snprintf( msg->formatted_time, 256, "Sent: %s", timebuf );
+				if( msg->TTL ) {
+					timebuf = FormatMessageTime( "delete time", &l.now, &msg->sent_time, msg->TTL );
+					snprintf( msg->formatted_time, 256, "Delete: %s", timebuf );
+				} else {
+					timebuf = FormatMessageTime( "sent time", &l.now, &msg->sent_time, 0 );
+					snprintf( msg->formatted_time, 256, "Sent: %s", timebuf );
+				}
 			}
 			GetStringSizeFont(  msg->formatted_time, &w, &h, list->date_font );
 			msg->time_height = h + l.time_pad;
@@ -1288,16 +1341,20 @@ uint32_t UpdateContextExtents( Image window, PCHAT_LIST list, PCHAT_CONTEXT cont
 		{
 			CTEXTSTR timebuf;
 			//CTEXTSTR timebuf2;
-			uint32_t w2, h2;
 			//CTEXTSTR timebuf3;
-
-			timebuf = FormatMessageTime( "sent time", &l.now, &msg->sent_time ) ;
+			uint32_t w2, h2;
+			if( msg->TTL ) {
+				timebuf = FormatMessageTime( "sent time", &l.now, &msg->seen_time, msg->TTL );
+				snprintf( msg->formatted_time, 256, "Delete: %s", timebuf );
+			} else {
+				timebuf = FormatMessageTime( "sent time", &l.now, &msg->sent_time, 0 );
+				snprintf( msg->formatted_time, 256, "Sent: %s", timebuf );
+			}
 			//GetStringSizeFont( timebuf, &w, &h, list->date_font );
 			//timebuf2 = FormatMessageTime( &l.now, &msg->received_time ) ;
 			//GetStringSizeFont( timebuf2, &w2, &h2, list->date_font );
 			//timebuf3 = FormatMessageTime( &l.now, &msg->seen_time ) ;
 			//snprintf( msg->formatted_time, 256, "Sent: %s\nRcvd: %s\nSeen: %s", timebuf, timebuf2, timebuf3 );
-			snprintf( msg->formatted_time, 256, "Sent: %s", timebuf);
 			GetStringSizeFont( msg->formatted_time, &w2, &h2, list->date_font );
 			if( w2 < (uint32_t)context->sender_width )
 				w2 = (uint32_t)context->sender_width;
@@ -1323,6 +1380,7 @@ void DrawAMessage( Image window, PCHAT_LIST list
 	MeasureFrameWidth( window, &x_offset_left, &x_offset_right, !context->sent, TRUE, 0 );
 	_x_offset_left = x_offset_left;
 	_x_offset_right = x_offset_right;
+	lprintf( "Draw a Message ....%p %s", msg->image, msg->text );
 	if( !msg->seen )
 	{
 		Chat_GetCurrentTime( &msg->seen_time );
@@ -1437,19 +1495,28 @@ static void DrawMessages( PCHAT_LIST list, Image window )
 	PCHAT_CONTEXT context;
 	int message_idx;
 	PCHAT_MESSAGE msg;
-
+	CHAT_TIME now;
+	uint64_t now_secs;
+	Chat_GetCurrentTime( &now );
+	now_secs = AbsoluteSeconds( &now );
+restart:
 	for( context_idx = -1; context = (PCHAT_CONTEXT)PeekQueueEx( list->contexts, context_idx ); context_idx-- )
 	{
 		uint32_t debug_start_top;
 		uint32_t frame_size;
 		int frame_pad;
-		uint32_t max_width;
+		int32_t max_width;
 
 		int32_t x_offset_left, x_offset_right;	
 		int32_t _x_offset_left, _x_offset_right;	
-		if( context->deleted )
+		if( context->deleted ) {
+			lprintf( "Context is already deleted... skipping draw." );
 			continue;
-		max_width = UpdateContextExtents( window, list, context );
+		}
+
+		max_width = UpdateContextExtents( window, list, context, now_secs );
+		if( max_width < 0 )
+			goto restart;
 		MeasureFrameWidth( window, &x_offset_left, &x_offset_right, !context->sent, TRUE, 0 );
 		_x_offset_left = x_offset_left;
 		_x_offset_right = x_offset_right;
@@ -1515,11 +1582,13 @@ static void DrawMessages( PCHAT_LIST list, Image window )
 							, StrLen( context->formatted_sender ), list->sender_font, 0, max_width );
 		}
 
-		//lprintf( WIDE("BEgin draw messages...") );
+		lprintf( WIDE("BEgin draw messages (in a context)...%d"), context->sent );
 		for( message_idx = -1; msg = (PCHAT_MESSAGE)PeekQueueEx( context->messages, message_idx ); message_idx-- )
 		{
-			if( msg->deleted )
+			if( msg->deleted ) {
+				lprintf( "Skipping message because deleted: %s", msg->text );
 				continue;
+			}
 			//lprintf( "top is now %d (%d from start)", list->display.message_top, debug_start_top - list->display.message_top );
 			//lprintf( "check message %d", message_idx );
 			if( msg->formatted_text && 
@@ -1844,6 +1913,18 @@ static void DrawTextEntry( PSI_CONTROL pc, PCHAT_LIST list, LOGICAL update )
 					+ list->send_button_y_offset
 				, list->send_button_width?list->send_button_width:55
 				, list->send_button_height?list->send_button_height:(list->send_button_size ) );
+			if( list->alt_send_button )
+				MoveSizeControl( list->alt_send_button, list->message_window->width 
+					- ( (list->alt_send_button_width?list->alt_send_button_width:55) 
+						+ ( list->send_button_width ? list->send_button_width : 55 ) 
+						+ l.side_pad )
+					+ list->alt_send_button_x_offset
+					, window->height - ( ( list->alt_send_button_height
+						? list->alt_send_button_height
+						: list->send_button_size ) + l.side_pad ) /*list->message_window->height + l.side_pad*/
+					+ list->send_button_y_offset
+					, list->alt_send_button_width ? list->alt_send_button_width : 55
+					, list->alt_send_button_height ? list->alt_send_button_height : ( list->send_button_size ) );
 		}
 		else if( list->nFontHeight != newfontheight 
 		       || ( list->command_height != newfontheight * list->input.command_lines )
@@ -1858,14 +1939,29 @@ static void DrawTextEntry( PSI_CONTROL pc, PCHAT_LIST list, LOGICAL update )
 				+ l.sent.BorderSegment[SEGMENT_BOTTOM]->height );
 
 			MoveSizeControl( list->send_button
-						, list->message_window->width - ( ( list->send_button_width?list->send_button_width:55 ) + l.side_pad )
-									+ list->send_button_x_offset
+				, list->message_window->width 
+					- ( ( list->send_button_width?list->send_button_width:55 ) 
+						+ l.side_pad )
+					+ list->send_button_x_offset
 				, window->height - ( ( list->send_button_height
 									?list->send_button_height
 									:list->send_button_size ) + l.side_pad ) /*list->message_window->height + l.side_pad*/
 					+ list->send_button_y_offset
 				, list->send_button_width?list->send_button_width:55
 				, list->send_button_height?list->send_button_height:(list->send_button_size - l.side_pad ) );
+			if( list->alt_send_button )
+				MoveSizeControl( list->alt_send_button
+					, list->message_window->width 
+					- ( ( list->alt_send_button_width ? list->alt_send_button_width : 55 ) 
+						+ ( list->send_button_width ? list->send_button_width : 55 ) 
+						+ l.side_pad )
+					+ list->send_button_x_offset
+					, window->height - ( ( list->send_button_height
+						? list->send_button_height
+						: list->send_button_size ) + l.side_pad ) /*list->message_window->height + l.side_pad*/
+					+ list->send_button_y_offset
+					, list->alt_send_button_width ? list->alt_send_button_width : 55
+					, list->alt_send_button_height ? list->alt_send_button_height : ( list->send_button_size - l.side_pad ) );
 #if 0
 			MoveSizeControl( list->send_button, list->message_window->width - 60
 				, window->height - ( list->send_button_size ) /*list->message_window->height + l.side_pad*/
@@ -1876,7 +1972,7 @@ static void DrawTextEntry( PSI_CONTROL pc, PCHAT_LIST list, LOGICAL update )
 
 		region_x = 0;
 		region_y = window->height - ( list->command_height + l.side_pad + l.sent.BorderSegment[SEGMENT_BOTTOM]->height  + l.sent.BorderSegment[SEGMENT_TOP]->height);
-		region_w = window->width - ( list->send_button_width?list->send_button_width:55 + l.side_pad );
+		region_w = window->width - ( list->alt_send_button_width + (list->send_button_width?list->send_button_width:55) + l.side_pad );
 		region_h = list->command_height + l.sent.BorderSegment[SEGMENT_TOP]->height + l.sent.BorderSegment[SEGMENT_BOTTOM]->height;
 
 		if( update && list->colors.background_color )
@@ -1889,7 +1985,7 @@ static void DrawTextEntry( PSI_CONTROL pc, PCHAT_LIST list, LOGICAL update )
 		DrawSendTextFrame( window
 			, window->height - ( list->command_height + l.side_pad ) 
 			, list->command_height
-			, ( list->send_button_width?list->send_button_width:55 ) + l.side_pad );
+			, list->alt_send_button_width + ( list->send_button_width?list->send_button_width:55 ) + l.side_pad );
 
 		{
 			int nLine, nCursorLine, nDisplayLine;
@@ -2057,6 +2153,19 @@ static int OnDrawCommon( CONTROL_NAME )( PSI_CONTROL pc )
 				+ list->send_button_y_offset
 			, list->send_button_width?list->send_button_width:55
 			, list->send_button_height?list->send_button_height:(list->send_button_size - l.side_pad  ) );
+		if( list->alt_send_button )
+		MoveSizeControl( list->alt_send_button
+			, list->message_window->width 
+			- ( ( list->alt_send_button_width ? list->alt_send_button_width : 55 )
+				+ ( list->send_button_width ? list->send_button_width : 55 )
+				+ l.side_pad )
+			+ list->send_button_x_offset
+			, window->height - ( ( list->alt_send_button_height
+				? list->alt_send_button_height
+				: list->send_button_size ) ) /*list->message_window->height + l.side_pad*/
+			+ list->send_button_y_offset
+			, list->alt_send_button_width ? list->alt_send_button_width : 55
+			, list->alt_send_button_height ? list->alt_send_button_height : ( list->send_button_size - l.side_pad ) );
 		/*
 		MoveSizeControl( list->send_button, list->message_window->width - 60
 			, list->message_window->height + l.side_pad
@@ -2404,7 +2513,7 @@ static int OnCommonFocus(CONTROL_NAME)(PSI_CONTROL control, LOGICAL bFocused )
 static void CPROC SendTypedMessage( uintptr_t psvUnused, PSI_CONTROL pc )
 {
 	PCHAT_LIST list = (PCHAT_LIST)psvUnused;
-	KeyGetGatheredLine( list, list->input.CommandInfo );
+	KeyGetGatheredLine( list, 0, list->input.CommandInfo );
 	SetCommonFocus( GetCommonParent( pc ) );
 	//SmudgeCommon( GetCommonParent( pc ) );
 }
@@ -2529,8 +2638,9 @@ static void OnSizeCommon( CONTROL_NAME )( PSI_CONTROL pc, LOGICAL begin_sizing )
 				list->input.phb_Input->nLineHeight = GetFontHeight( list->input_font );
 				list->input.phb_Input->nColumns 
 					= list->input.phb_Input->nWidth 
-					= window->width - ( 2 * l.side_pad + l.sent.BorderSegment[SEGMENT_LEFT]->width + l.sent.BorderSegment[SEGMENT_RIGHT]->width 
-							+ ( list->send_button_width?list->send_button_width:55 + l.side_pad ) );
+					= window->width 
+						- ( 2 * l.side_pad + l.sent.BorderSegment[SEGMENT_LEFT]->width + l.sent.BorderSegment[SEGMENT_RIGHT]->width 
+						+ ( list->alt_send_button_width + (list->send_button_width?list->send_button_width:55) + l.side_pad ) );
 			}
 			BuildDisplayInfoLines( list->input.phb_Input, NULL, list->input_font );
 			ReformatMessages( list );
@@ -2628,7 +2738,7 @@ static int OnKeyCommon( CONTROL_NAME )( PSI_CONTROL pc, uint32_t key )
 		case KEY_ENTER:
 			if( key & ( KEY_SHIFT_DOWN | KEY_CONTROL_DOWN ) )
 			{
-				KeyGetGatheredLine( list, list->input.CommandInfo );
+				KeyGetGatheredLine( list, (key&KEY_CONTROL_DOWN), list->input.CommandInfo );
 				SmudgeCommon( pc );
 				break;
 			}
@@ -2653,6 +2763,7 @@ static int OnKeyCommon( CONTROL_NAME )( PSI_CONTROL pc, uint32_t key )
 					list->input.phb_Input->nLineHeight = GetFontHeight( list->input_font );
 					list->input.phb_Input->nColumns = window->width - ( 2 * l.side_pad + l.sent.BorderSegment[SEGMENT_LEFT]->width + l.sent.BorderSegment[SEGMENT_RIGHT]->width );
 					list->input.phb_Input->nWidth = window->width - ( 2 * l.side_pad + l.sent.BorderSegment[SEGMENT_LEFT]->width + l.sent.BorderSegment[SEGMENT_RIGHT]->width 
+							+ list->alt_send_button_width
 								+ ( list->send_button_width?list->send_button_width:55 + l.side_pad ) );
 				}
 
@@ -2753,10 +2864,13 @@ void Chat_GetCurrentTime( PCHAT_TIME timebuf )
 }
 
 // time in seconds
-void Chat_ClearOldMessages( PSI_CONTROL pc, int delete_time )
+int Chat_ClearOldMessages( PSI_CONTROL pc, int delete_time )
 {
 	PCHAT_LIST *ppList = ControlData( PCHAT_LIST*, pc );
 	PCHAT_LIST list = (*ppList);
+	int context_deleted = 0;
+	if( !delete_time )
+		delete_time = ( 24 * 60 * 60 ) * 30;
 	//PCONSOLE_INFO list = (PCONSOLE_INFO)GetCommonUserData( pc );
 	// this must here gather keystrokes and pass them forward into the
 	// opened sentience...
@@ -2767,12 +2881,13 @@ void Chat_ClearOldMessages( PSI_CONTROL pc, int delete_time )
 		PCHAT_MESSAGE msg;
 		CHAT_TIME now;
 		int64_t old_limit;
+		int64_t now_secs;
 		int c;
 		//list->control_offset = 0;
 		list->display.message_top = list->message_window->height + list->control_offset;
 
 		Chat_GetCurrentTime( &now );
-		old_limit = AbsoluteSeconds( &now ) - delete_time;
+		old_limit = ( now_secs = AbsoluteSeconds( &now ) ) - delete_time;
 		//lprintf( "now stamp is %d/%d/%d %d:%d:%d  %d %d"
 		//	, now.mo, now.dy, now.yr, now.hr, now.mn, now.sc, now.zhr, now.zmn );
 		//lprintf( "limit = %d", old_limit );
@@ -2806,19 +2921,29 @@ void Chat_ClearOldMessages( PSI_CONTROL pc, int delete_time )
 					//	, msg->seen_time.zhr, msg->seen_time.zmn );
 				}
 				//lprintf( "(check old message) %lld - %lld = %lld", msg_time, old_limit, old_limit - msg_time );
-				if( msg->deleted || ( msg_time < old_limit ) )
+				if( msg->deleted || (msg->TTL?(now_secs-msg_time>msg->TTL):0 ) || ( msg_time < old_limit ) )
 				{
 					if( n == 0 )
 					{
+						//lprintf( "DELETE MESSAGE FOR REAL!" );
 						if( msg->formatted_text )
 							Release( msg->formatted_text );
+						if( msg->image ) {
+							if( list->ImageDeleted )
+								list->ImageDeleted( msg->psvSeen, msg->image );
+						} else {
+							if( list->MessageDeleted )
+								list->MessageDeleted( msg->psvSeen );
+						}
 						Release( msg->text );
 						Release( msg );
 						DequeLink( &context->messages );
 						n--;
 					}
-					else
+					else {
+						lprintf( "Message can only be ignored..." );
 						msg->deleted = TRUE;
+					}
 					deleted++;
 				}
 				//else
@@ -2833,10 +2958,13 @@ void Chat_ClearOldMessages( PSI_CONTROL pc, int delete_time )
 					Release( context->sender );
 					Release( context );
 					DequeLink( &list->contexts );
+					context_deleted++;
 					c--;
 				}
-				else
+				else {
+					lprintf( "Message context has been deleted......" );
 					context->deleted = TRUE;
+				}
 			}
 			//else
 			//	break;
@@ -2844,10 +2972,18 @@ void Chat_ClearOldMessages( PSI_CONTROL pc, int delete_time )
 		if( deleted )
 			SmudgeCommon( pc );
 	}
+	return context_deleted;
+}
+
+void Chat_SetMessageExpire( struct chat_widget_message *msg, int delta_seconds ) {
+	//lprintf( "Set TTL to %d", delta_seconds );
+	msg->TTL = delta_seconds;
 }
 
 void Chat_SetExpire( PSI_CONTROL pc, int delta_seconds )
 {
+	// set default so this can auto do this.
+	//Chat_ClearOldMessages( pc, delta_seconds );
 }
 
 void Chat_TypePastedInput( PSI_CONTROL pc, PTEXT segment )
@@ -2869,6 +3005,13 @@ void Chat_SetSendButtonFont( PSI_CONTROL pc, SFTFont font ) {
 	PCHAT_LIST *ppList = ControlData( PCHAT_LIST*, pc );
 	PCHAT_LIST list = ( *ppList );
 	SetCommonFont( list->send_button, font );
+}
+
+void Chat_SetAltSendButtonFont( PSI_CONTROL pc, SFTFont font ) {
+	PCHAT_LIST *ppList = ControlData( PCHAT_LIST*, pc );
+	PCHAT_LIST list = ( *ppList );
+	if( list->alt_send_button )
+		SetCommonFont( list->alt_send_button, font );
 }
 
 void Chat_SetSendButtonImages( PSI_CONTROL pc, Image normal, Image pressed, Image rollover, Image focused )
@@ -2896,6 +3039,20 @@ void Chat_SetSendButtonTextOffset( PSI_CONTROL pc, int32_t x, int32_t y )
 	SetButtonTextOffset( list->send_button, x, y );
 }
 
+
+void Chat_SetAltSendButtonSize( PSI_CONTROL pc, uint32_t width, uint32_t height ) {
+	PCHAT_LIST *ppList = ControlData( PCHAT_LIST*, pc );
+	PCHAT_LIST list = ( *ppList );
+	list->alt_send_button_width = width;
+	list->alt_send_button_height = height;
+}
+
+void Chat_SetAltSendButtonOffset( PSI_CONTROL pc, int32_t x, int32_t y ) {
+	PCHAT_LIST *ppList = ControlData( PCHAT_LIST*, pc );
+	PCHAT_LIST list = ( *ppList );
+	list->alt_send_button_x_offset = x;
+	list->alt_send_button_y_offset = y;
+}
 
 void Chat_SetSendButtonSize( PSI_CONTROL pc, uint32_t width, uint32_t height )
 {
