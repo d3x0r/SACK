@@ -5,7 +5,7 @@
 #include "resource.h"
 
 #include <controls.h>
-
+#include <filesys.h>
 #include "../intershell_export.h"
 #include "../intershell_registry.h"
 
