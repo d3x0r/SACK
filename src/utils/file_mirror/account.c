@@ -927,7 +927,7 @@ int NextFileChange( uintptr_t psv
 				lprintf( "Announced %4.4s %s (%d,%lld,%lld,%lld) %d", msg
 						 , filepath, msg[1], (*(uint64_t*)(msg+2)), (*(uint64_t*)(msg+4)), (*(uint64_t*)(msg+6)), len );
 
-			while( !NetworkLock( pDir->pcc->pc ) );
+			while( !NetworkLock( pDir->pcc->pc, 1 ) );
 			//LogBinary( msg, len );
 			SendTCP( pDir->pcc->pc, msg, len );
 			if( !pDir->flags.bIncoming && !bDirectory )
@@ -938,7 +938,7 @@ int NextFileChange( uintptr_t psv
 				SendCRCs( pDir->pcc->pc, tmpname, (size_t)size );
 			}
 
-			NetworkUnlock( pDir->pcc->pc );
+			NetworkUnlock( pDir->pcc->pc, 1 );
 			return 0; // stop looping, we need to wait for other side to ack this.
 		}
 		else

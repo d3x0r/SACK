@@ -1351,7 +1351,7 @@ uintptr_t CPROC ServerTimerProc( PTHREAD unused )
 			if( !Connection[i].pc )
 				continue;
 			did_one = 1;
-			pcping = NetworkLock( Connection[i].pc );
+			pcping = NetworkLock( Connection[i].pc, 1 );
 			// PCLIENT pcping = Connection[i].pc;
 			if( pcping )
 			{
@@ -1409,7 +1409,7 @@ uintptr_t CPROC ServerTimerProc( PTHREAD unused )
 						RemoveClient( pcping );
 					}
                 }
-				NetworkUnlock( pcping );
+				NetworkUnlock( pcping, 1 );
 			}
 			else
 			{
