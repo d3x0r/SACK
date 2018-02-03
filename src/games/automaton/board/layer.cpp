@@ -13,9 +13,9 @@
 
 
 #define Opposite(n)  (((n)+4)&7)
-#define Left(n)    (((n)-1)&7)
-#define Right(n)   (((n)+1)&7)
-#define LeftOrRight(n,i)     (((n)&1)?((i)?Left(n):Right(n)):((i)?Right(n):Left(n)))
+#define layerDirLeft(n)    (((n)-1)&7)
+#define layerDirRight(n)   (((n)+1)&7)
+#define LeftOrRight(n,i)     (((n)&1)?((i)?layerDirLeft(n):layerDirRight(n)):((i)?layerDirRight(n):layerDirLeft(n)))
 #define NearDir(nNewDir, nDir) ( ( nNewDir == (nDir) ) ? 0 :   \
 	( nNewDir == ( ( (nDir) + 1 ) & 7 ) )? -1 :    \
 	( nNewDir == ( ( (nDir) - 1 ) & 7 ) )? 1 : 10 )
