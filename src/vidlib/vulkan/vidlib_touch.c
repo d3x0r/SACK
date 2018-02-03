@@ -293,7 +293,7 @@ int Handle3DTouches( struct display_camera *camera, PINPUT_POINT touches, int nT
 					= (int)(touch_info.one.x = touches[0].x);
 				l.mouse_y
 					= (int)(touch_info.one.y = touches[0].y);
-				if( used = OpenGLMouse( (uintptr_t)camera, l.mouse_x, l.mouse_y, MK_LBUTTON ) )
+				if( used = (PRENDERER)OpenGLMouse( (uintptr_t)camera, l.mouse_x, l.mouse_y, MK_LBUTTON ) )
 				{
 					l.hCameraCaptured = used;
 					touch_info.owning_surface = used;
