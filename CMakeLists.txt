@@ -464,7 +464,7 @@ message( "MACRO ARGUMENTS: ${__ANDROID__} ${__LINUX__} ${__NO_ODBC__}" )
         set( ${PLATFORM_LIBRARIES} ${${PLATFORM_LIBRARIES}} advapi32 )
       endif( NOT __CLR__ )
       set( SOCKET_LIBRARIES ${SOCKET_LIBRARIES} ws2_32 iphlpapi )
-      set( ${PLATFORM_LIBRARIES} ${${PLATFORM_LIBRARIES}} winmm rpcrt4 )
+      set( ${PLATFORM_LIBRARIES} ${${PLATFORM_LIBRARIES}} ${SOCKET_LIBRARIES} winmm rpcrt4 )
       set( OPENGL_LIBRARY opengl32 )
   endif( ${WIN32} )
 
