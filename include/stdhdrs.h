@@ -67,7 +67,7 @@
 // #define NOMB                      // MB_* and MessageBox()                                      
 #  define NOMEMMGR                  // GMEM_*, LMEM_*, GHND, LHND, associated routines
 #  define NOMETAFILE                // typedef METAFILEPICT
-// #define NOMINMAX                  // Macros min(a,b) and max(a,b)                               
+#  define NOMINMAX                  // Macros min(a,b) and max(a,b)                               
 // #define NOMSG                     // typedef MSG and associated routines                        
 // #define NOOPENFILE                // OpenFile(), OemToAnsi, AnsiToOem, and OF_*                 
 // #define NOSCROLL                  // SB_* and scrolling routines                                
@@ -202,7 +202,6 @@ extern __sighandler_t bsd_signal(int, __sighandler_t);
 #endif
 
 #ifndef NO_MIN_MAX_MACROS
-
 #  ifdef __cplusplus
 #    ifdef __GNUC__
 #      ifndef min
@@ -221,11 +220,11 @@ extern __sighandler_t bsd_signal(int, __sighandler_t);
 #  endif
 #endif
 
-#  include <sack_types.h>
+#include <sack_types.h>
 
 // incldue this first so we avoid a conflict.
 // hopefully this comes from sack system?
-#  include <sack_system.h>
+#include <sack_system.h>
 
 
 #if defined( _MSC_VER )|| defined(__LCC__) || defined( __WATCOMC__ ) || defined( __GNUC__ )
