@@ -2451,8 +2451,8 @@ LOGICAL  LeaveCriticalSecEx( PCRITICALSECTION pcs DBG_PASS )
 			DebugBreak();
 			continue;
 		}
-		break;
 #endif
+		break;
 	}
 	if( !( pcs->dwLocks & ~SECTION_LOGGED_WAIT ) )
 	{
