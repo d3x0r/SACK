@@ -1,4 +1,4 @@
-f/*
+/*
  *  Crafted by Jim Buckeyne
  *   (c)1999-2006++ Freedom Collective
  * 
