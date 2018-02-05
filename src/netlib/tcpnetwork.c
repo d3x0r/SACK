@@ -1438,9 +1438,9 @@ LOGICAL doTCPWriteExx( PCLIENT lpClient
 #endif
 		if( !failpending )
 		{
-//#ifdef VERBOSE_DEBUG
+#ifdef VERBOSE_DEBUG
 			lprintf( WIDE("Queuing pending data anyhow...") );
-//#endif
+#endif
 			PendWrite( lpClient, pInBuffer, nInLen, bLongBuffer );
 			//TCPWriteEx( lpClient DBG_SRC ); // make sure we don't lose a write event during the queuing...
 			NetworkUnlockEx( lpClient, 0 DBG_SRC );
