@@ -620,7 +620,7 @@ void NetworkGloalLock( DBG_VOIDPASS ) {
 #endif
 		{
 #ifdef LOG_NETWORK_LOCKING
-			_lprintf( DBG_RELAY )(WIDE( "Failed enter global?" ));
+			_lprintf( DBG_RELAY )(WIDE( "Failed enter global? %lld" ), globalNetworkData.csNetwork.dwThreadId );
 #endif
 			Relinquish();
 		}
@@ -3258,13 +3258,14 @@ NETWORK_PROC( PCLIENT, NetworkLockEx)( PCLIENT lpClient, int readWrite DBG_PASS 
 		{
 			//lpClient->dwFlags &= ~CF_WANTS_GLOBAL_LOCK;
 #ifdef LOG_NETWORK_LOCKING
-			_lprintf(DBG_RELAY)( WIDE( "Failed enter global?" ) );
+			_lprintf(DBG_RELAY)( WIDE( "Failed enter global? %llx" ), globalNetworkData.csNetwork.dwThreadID  );
 #endif
+			Relinquish();
 			return NULL;
 			//DebugBreak();
 		}
 #ifdef LOG_NETWORK_LOCKING
-		_lprintf( DBG_RELAY )( WIDE( "Got global lock" ) );
+		_lprintf( DBG_RELAY )( WIDE( "Got global lock %p %d" ), lpClient, readWrite );
 #endif
 
 		//lpClient->dwFlags &= ~CF_WANTS_GLOBAL_LOCK;
@@ -3306,6 +3307,9 @@ NETWORK_PROC( PCLIENT, NetworkLockEx)( PCLIENT lpClient, int readWrite DBG_PASS 
 			return NULL;
 		}
 	}
+#ifdef LOG_NETWORK_LOCKING
+		_lprintf( DBG_RELAY )( WIDE( "Got private lock %p %d" ), lpClient, readWrite );
+#endif
 	return lpClient;
 }
 
@@ -3317,6 +3321,9 @@ NETWORK_PROC( void, NetworkUnlockEx)( PCLIENT lpClient, int readWrite DBG_PASS )
 	// simple unlock.
 	if( lpClient )
 	{
+#ifdef LOG_NETWORK_LOCKING
+		_lprintf( DBG_RELAY )( WIDE( "Leave private lock %p %d" ), lpClient, readWrite );
+#endif
 #ifdef USE_NATIVE_CRITICAL_SECTION
 		LeaveCriticalSec( readWrite ? &lpClient->csLockRead : &lpClient->csLockWrite );
 #else
