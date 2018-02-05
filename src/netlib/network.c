@@ -2415,12 +2415,22 @@ get_client:
 		do {
 #ifdef USE_NATIVE_CRITICAL_SECTION
 			d = EnterCriticalSecNoWait( &pClient->csLockRead, NULL );
-			d = EnterCriticalSecNoWait( &pClient->csLockWrite, NULL );
 #else
 			d = EnterCriticalSecNoWaitEx( &pClient->csLockRead, NULL DBG_RELAY );
+#endif
+			if( d < 1 ) {
+				LeaveCriticalSec( &globalNetworkData.csNetwork );
+				goto get_client;
+			}
+		} while( d < 1 );
+		do {
+#ifdef USE_NATIVE_CRITICAL_SECTION
+			d = EnterCriticalSecNoWait( &pClient->csLockWrite, NULL );
+#else
 			d = EnterCriticalSecNoWaitEx( &pClient->csLockWrite, NULL DBG_RELAY );
 #endif
 			if( d < 1 ) {
+				LeaveCriticalSec( &pClient->csLockRead );
 				LeaveCriticalSec( &globalNetworkData.csNetwork );
 				goto get_client;
 			}
