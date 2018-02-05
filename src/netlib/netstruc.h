@@ -8,7 +8,7 @@
 //#include "../contrib/MatrixSSL/3.7.1/matrixssl/matrixsslApi.h"
 
 // debugging flag for socket creation/closing
-//#define LOG_SOCKET_CREATION
+#define LOG_SOCKET_CREATION
 
 // there were some messages regarding the close sequence of sockets
 // they were left open... so developers might track why sockets were closing...
