@@ -429,9 +429,10 @@ static PTEXT GatherLineEx( PTEXT *pOutput, INDEX *pIndex, int bInsert, int bSave
 	if( pDelete )
 		LineRelease( pDelete );
 
-	if( bSetReturn )
+	if( bSetReturn ) {
 		pReturn = (*pOutput);
-
+		(*pOutput) = NULL;
+	}
 	SetStart( pReturn );
 
 	if( NEXTLINE( *pOutput ) && GetTextSize( NEXTLINE( *pOutput ) ) == 0 )
@@ -799,7 +800,7 @@ LOGICAL  SetUserInputPosition ( PUSER_INPUT_BUFFER pci, int nPos, int whence )
 			int tmp;
 			int total = 0;
 			int start;
-			int cursor = (int)pci->CollectionIndex;
+			size_t cursor = (int)pci->CollectionIndex;
 			PTEXT curseg = pci->CollectionBuffer;
 			TEXTRUNE ch;
 			start = cursor;
@@ -813,7 +814,7 @@ LOGICAL  SetUserInputPosition ( PUSER_INPUT_BUFFER pci, int nPos, int whence )
 				}
 				if( !curseg )
 					break;
-				ch = GetPriorUtfCharIndexed( curseg->data.data, (size_t*)&cursor );
+				ch = GetPriorUtfCharIndexed( curseg->data.data, &cursor );
 				if( !cursor )
 				{
 					total += cursor - start;
