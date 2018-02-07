@@ -744,9 +744,9 @@ void ShowMenu( PMENU pm, int x, int y, LOGICAL bWait, PSI_CONTROL parent )
 		else
 			dx = x;
 
-		if( ( y + pm->height  + FrameBorderY(NULL, BORDER_NORMAL, NULL) ) >= cy )
+		if( ( y + pm->height  + FrameBorderY( pm->image, BORDER_NORMAL, NULL) ) >= cy )
 		{
-			dy = cy - ( pm->height + FrameBorderY(NULL, BORDER_NORMAL, NULL) );
+			dy = cy - ( pm->height + FrameBorderY( pm->image, BORDER_NORMAL, NULL) );
 		}
 		else
 			dy = y;
@@ -1126,6 +1126,9 @@ PSI_PROC( int, TrackPopup )( PMENU hMenuSub, PSI_CONTROL parent )
 									,0
 									, hWndLastFocus
 									, NULL);
+		if( !nCmd ) {
+			lprintf( "Canceled or was an error: %d", GetLastError() );
+		}
 		// hWndController	//("This line must be handled with a good window handle...\n") )
 		if( nCmd == 0 ) // In my world.... 0 means in process, -1 is selected nothing, so we have to translate no selection
 			nCmd = -1;
