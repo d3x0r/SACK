@@ -3312,16 +3312,19 @@ TEXTRUNE GetUtfChar( const char * *from )
 
 TEXTRUNE GetUtfCharIndexed( const char * pc, size_t *n, size_t length )
 {
-	CTEXTSTR orig = pc + n[0];
-	CTEXTSTR tmp = orig;
-	TEXTRUNE result = GetUtfChar( &tmp );
-	if( (size_t)(tmp-orig) <= length ) {
-		n[0] += tmp - orig;
-		return result;
+	if( length )
+	{
+		CTEXTSTR orig = pc + n[0];
+		CTEXTSTR tmp = orig;
+		TEXTRUNE result = GetUtfChar( &tmp );
+		if( (size_t)( tmp - orig ) <= length ) {
+			n[0] += tmp - orig;
+			return result;
+		}
+		// if illformed character was at the end... return 0
+	   // cap result to length.
+		( *n ) = length;
 	}
-	// if illformed character was at the end... return 0
-   // cap result to length.
-   (*n) = length;
 	return 0;
 }
 
