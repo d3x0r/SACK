@@ -2146,7 +2146,8 @@ static	struct find_cursor * CPROC sack_filesys_find_create_cursor ( uintptr_t ps
 	struct find_cursor_data *cursor = New( struct find_cursor_data );
 	char maskbuf[512];
 	MemSet( cursor, 0, sizeof( *cursor ) );
-	snprintf( maskbuf, 512, "%s/%s", root ? root : ".", filemask?filemask:"*" );
+	//snprintf( maskbuf, 512, "%s/%s", root ? root : ".", filemask?filemask:"*" );
+	snprintf( maskbuf, 512, "%s/%s", root ? root : ".", "*" );
 	cursor->mask = StrDup( filemask );
 	cursor->root = StrDup( root?root:"." );
 	cursor->filemask = ExpandPath( maskbuf );// StrDup( filemask ? filemask : "*" );
