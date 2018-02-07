@@ -62,7 +62,7 @@ static int CPROC MessageHandler( PSERVICE_ROUTE source, uint32_t MsgID
 	case MSG_MateEnded:
 		return TRUE;
 	case MSG_MateStarted:
-		printf( WIDE("Client %ld is connecting to %s\n"), source, params );
+		printf( WIDE("Client %p is connecting to %s\n"), source, params );
 		result[0] = 256;
 		return TRUE;
 	case MSG_EventUser:
@@ -74,7 +74,7 @@ static int CPROC MessageHandler( PSERVICE_ROUTE source, uint32_t MsgID
 		MemCpy( result, params, param_length );
 		return TRUE;
 	default:
-		printf( WIDE("Received message %ld from %ld\n"), MsgID, source );
+		printf( WIDE("Received message %d from %p\n"), MsgID, source );
 		break;
 	}
 	return FALSE;
