@@ -808,6 +808,12 @@ void Chat_ClearMessages( PSI_CONTROL pc )
 	}
 }
 
+void Chat_SetMessageSeen( struct chat_widget_message *msg, CTEXTSTR text ) {
+	msg->seen = 1;
+	Chat_GetCurrentTime( &msg->seen_time );
+
+}
+
 void Chat_ChangeMessageContent( struct chat_widget_message *msg, CTEXTSTR text ) {
 	msg->text = StrDup( text );
 	if( msg->formatted_text ) {
@@ -827,7 +833,7 @@ PCHAT_MESSAGE  Chat_EnqueMessage( PSI_CONTROL pc, LOGICAL sent
 {
 	PCHAT_LIST *ppList = (ControlData( PCHAT_LIST*, pc ));
 	PCHAT_LIST chat_control = (*ppList);
-	lprintf( "Add Text:%s", text );
+	//lprintf( "Add Text:%s", text );
 	if( chat_control )
 	{
 		PCHAT_CONTEXT pcc;
@@ -846,8 +852,9 @@ PCHAT_MESSAGE  Chat_EnqueMessage( PSI_CONTROL pc, LOGICAL sent
 			pcc->messages = NULL;
 			pcc->deleted = 0;
 			EnqueLink( &chat_control->contexts, pcc );
-			lprintf( "Added new context for new text..." );
+			//lprintf( "Added new context for new text..." );
 		}
+		pcc->deleted = FALSE;
 		pcm = New( CHAT_MESSAGE );
 		pcm->TTL = 0;
 		if( received_time )
@@ -911,6 +918,7 @@ PCHAT_MESSAGE Chat_EnqueImage( PSI_CONTROL pc, LOGICAL sent
 			pcc->deleted = 0;
 			EnqueLink( &chat_control->contexts, pcc );
 		}
+		pcc->deleted = FALSE;
 		if( pcm = (PCHAT_MESSAGE)PeekQueueEx( pcc->messages, -1 ) )
 		{
 			if( pcm->image == image )
@@ -1266,7 +1274,8 @@ restart:
 			if( msg->seen_time.yr && ( msg->TTL > 0 ) ) {
 				msg_secs = AbsoluteSeconds( &msg->seen_time );
 				if( ( now_secs - msg_secs ) > msg->TTL ) {
-					lprintf( "Set Message deleted while updating context. %d %d %d %d %s", (int)now_secs, (int)msg_secs, (int)(now_secs-msg_secs),msg->TTL, msg->text );
+					//lprintf( "Set Message deleted while updating context. %d %d %d %d %s", (int)now_secs, (int)msg_secs, (int)(now_secs-msg_secs),msg->TTL, msg->text );
+					msg->deleted = 1;
 					Chat_ClearOldMessages( list->pc, 0 );
 					return -1;
 				}
@@ -1380,7 +1389,7 @@ void DrawAMessage( Image window, PCHAT_LIST list
 	MeasureFrameWidth( window, &x_offset_left, &x_offset_right, !context->sent, TRUE, 0 );
 	_x_offset_left = x_offset_left;
 	_x_offset_right = x_offset_right;
-	lprintf( "Draw a Message ....%p %s", msg->image, msg->text );
+	//lprintf( "Draw a Message ....%p %s", msg->image, msg->text );
 	if( !msg->seen )
 	{
 		Chat_GetCurrentTime( &msg->seen_time );
@@ -1582,11 +1591,11 @@ restart:
 							, StrLen( context->formatted_sender ), list->sender_font, 0, max_width );
 		}
 
-		lprintf( WIDE("BEgin draw messages (in a context)...%d"), context->sent );
+		//lprintf( WIDE("BEgin draw messages (in a context)...%d"), context->sent );
 		for( message_idx = -1; msg = (PCHAT_MESSAGE)PeekQueueEx( context->messages, message_idx ); message_idx-- )
 		{
 			if( msg->deleted ) {
-				lprintf( "Skipping message because deleted: %s", msg->text );
+				//lprintf( "Skipping message because deleted: %s", msg->text );
 				continue;
 			}
 			//lprintf( "top is now %d (%d from start)", list->display.message_top, debug_start_top - list->display.message_top );
@@ -2894,32 +2903,24 @@ int Chat_ClearOldMessages( PSI_CONTROL pc, int delete_time )
 		for( c = 0; context = (PCHAT_CONTEXT)PeekQueueEx( list->contexts, c ); c++ )
 		{
 			int n;
+			if( context->deleted )
+				continue;
 			//y = list->message_window->height - y;
 			//lprintf( WIDE("BEgin draw messages...") );
 			for( n = 0; msg = (PCHAT_MESSAGE)PeekQueueEx( context->messages, n ); n++ )
 			{
 				int64_t msg_time ;
-				if( context->sent )
-				{ 
-					// if hasn't been sent yet...
-					if( msg->sent_time.yr == 0 )
-						continue;
-					msg_time = AbsoluteSeconds( &msg->sent_time );
-					//lprintf( "seen stamp is %d/%d/%d %d:%d:%d  %d %d"
-					//	, msg->sent_time.mo, msg->sent_time.dy, msg->sent_time.yr
-					//	, msg->sent_time.hr, msg->sent_time.mn, msg->sent_time.sc
-					//	, msg->sent_time.zhr, msg->sent_time.zmn );
-				}
-				else
-				{
-					if( !msg->seen )
-						break;
-					msg_time =   AbsoluteSeconds( &msg->seen_time );
-					//lprintf( "seen stamp is %d/%d/%d %d:%d:%d  %d %d"
-					//	, msg->seen_time.mo, msg->seen_time.dy, msg->seen_time.yr
-					//	, msg->seen_time.hr, msg->seen_time.mn, msg->seen_time.sc
-					//	, msg->seen_time.zhr, msg->seen_time.zmn );
-				}
+				// if hasn't been sent yet...
+				if( !msg->seen )
+					continue;
+				if( msg->seen_time.yr == 0 )
+					continue;
+				msg_time = AbsoluteSeconds( &msg->seen_time );
+				//lprintf( "seen stamp is %d/%d/%d %d:%d:%d  %d %d"
+				//	, msg->sent_time.mo, msg->sent_time.dy, msg->sent_time.yr
+				//	, msg->sent_time.hr, msg->sent_time.mn, msg->sent_time.sc
+				//	, msg->sent_time.zhr, msg->sent_time.zmn );
+
 				//lprintf( "(check old message) %lld - %lld = %lld", msg_time, old_limit, old_limit - msg_time );
 				if( msg->deleted || (msg->TTL?(now_secs-msg_time>msg->TTL):0 ) || ( msg_time < old_limit ) )
 				{
