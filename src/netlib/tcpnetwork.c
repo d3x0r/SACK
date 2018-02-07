@@ -1086,6 +1086,7 @@ size_t doReadExx2(PCLIENT lpClient,POINTER lpBuffer,size_t nBytes, LOGICAL bIsSt
 		return -1; // this I guess is an error since we're queueing another
 		// read on top of existing incoming 'guaranteed data'
 	}
+#ifdef REQUIRE_READ_LOCK
 	while( !NetworkLockEx( lpClient, 1 DBG_RELAY ) )
 	{
 		if( !(lpClient->dwFlags & CF_ACTIVE ) )
@@ -1094,11 +1095,14 @@ size_t doReadExx2(PCLIENT lpClient,POINTER lpBuffer,size_t nBytes, LOGICAL bIsSt
 		}
 		Relinquish();
 	}
+#endif
 	if( !(lpClient->dwFlags & CF_ACTIVE ) )
 	{
 		// like say the callback we're being invoked from closed it;
 		lprintf( WIDE( "inactive client, will not pend read." ) );
+#ifdef REQUIRE_READ_LOCK
 		NetworkUnlockEx( lpClient, 1 DBG_SRC );
+#endif
 		return -1;
 	}
 	//lprintf( "read %d", nBytes );
@@ -1158,7 +1162,9 @@ size_t doReadExx2(PCLIENT lpClient,POINTER lpBuffer,size_t nBytes, LOGICAL bIsSt
 		{
 			uint32_t tick = timeGetTime();
 			lpClient->pWaiting = MakeThread();
+#ifdef REQUIRE_READ_LOCK
 			NetworkUnlockEx( lpClient, 1 DBG_SRC );
+#endif
 			while( lpClient->dwFlags & CF_READPENDING )
 			{
 				// wait 5 seconds, then bail.
@@ -1185,18 +1191,24 @@ size_t doReadExx2(PCLIENT lpClient,POINTER lpBuffer,size_t nBytes, LOGICAL bIsSt
 		}
 		if( !(lpClient->dwFlags & CF_ACTIVE ) )
 		{
+#ifdef REQUIRE_READ_LOCK
 			NetworkUnlockEx( lpClient, 1 DBG_SRC );
+#endif
 			return -1;
 		}
  		lpClient->dwFlags &= ~CF_READWAITING;
+#ifdef REQUIRE_READ_LOCK
 		NetworkUnlockEx( lpClient, 1 DBG_SRC);
+#endif
 		if( timeout )
 			return 0;
 		else
 			return lpClient->RecvPending.dwUsed;
 	}
+#ifdef REQUIRE_READ_LOCK
 	else
 		NetworkUnlockEx( lpClient, 1 DBG_SRC );
+#endif
 
 	return 0; // unknown result really... success prolly
 }
@@ -1438,9 +1450,9 @@ LOGICAL doTCPWriteExx( PCLIENT lpClient
 #endif
 		if( !failpending )
 		{
-//#ifdef VERBOSE_DEBUG
+#ifdef VERBOSE_DEBUG
 			lprintf( WIDE("Queuing pending data anyhow...") );
-//#endif
+#endif
 			PendWrite( lpClient, pInBuffer, nInLen, bLongBuffer );
 			//TCPWriteEx( lpClient DBG_SRC ); // make sure we don't lose a write event during the queuing...
 			NetworkUnlockEx( lpClient, 0 DBG_SRC );
