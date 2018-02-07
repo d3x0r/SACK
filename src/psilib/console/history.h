@@ -74,6 +74,7 @@ int GetCommandCursor( PHISTORY_BROWSER phbr
 						  , int *command_offset
 						  , int *command_begin
 						  , int *command_end
+						  , int *command_pixel_end
 						  , int *line_offset
 						  );
 // Set line position

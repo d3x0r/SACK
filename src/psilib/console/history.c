@@ -1226,14 +1226,14 @@ int SkipSomeLines( PHISTORY_BROWSER phbr, SFTFont font, PTEXT countseg, int line
 			{
 				uint32_t text_size;
 				uint32_t text_lines;
-				phbr->measureString( phbr->psvMeasure, GetText( countseg ), nLen, &text_size, &text_lines, NULL );
+				phbr->measureString( phbr->psvMeasure, GetText( countseg ), nLen, &text_size, &text_lines, font );
 
 				if( ( col_offset + text_size ) > colsize )
 				{
 					// this is the wrapping condition...
 					while( nShown < nLen )
 					{
-						nShown += ComputeToShow( colsize, &col_offset, countseg, nLen, nChar, nShown, phbr, NULL );
+						nShown += ComputeToShow( colsize, &col_offset, countseg, nLen, nChar, nShown, phbr, font );
 						if( nShown < nLen )
 						{
 							nLines++;
@@ -1529,11 +1529,13 @@ int GetCommandCursor( PHISTORY_BROWSER phbr
                     , int *command_offset
                     , int *command_begin
                     , int *command_end
+                    , int *command_pixel_end
                     , int *line_offset
                     )
 {
 	PTEXT pCmd;
 	uint32_t tmpx = 0, nLead, tmp_end = 0;
+	uint32_t pixelWidth = 0;
 	PDISPLAYED_LINE pdl;
 	uint32_t lines;
 
@@ -1549,6 +1551,7 @@ int GetCommandCursor( PHISTORY_BROWSER phbr
 		{
 			uint32_t max;
 			tmpx = pdl->nToShow;
+			pixelWidth = pdl->nPixelEnd;
 			if( phbr->nWidth < 150 )
 				max = (phbr->nWidth * 2) / 3;
 			else
@@ -1593,19 +1596,21 @@ int GetCommandCursor( PHISTORY_BROWSER phbr
 	tmp_end = 0;
 	while( pCmd != CommandInfo->CollectionBuffer )
 	{
+		uint32_t width, height;
+		phbr->measureString( phbr->psvMeasure, GetText( pCmd ), GetTextSize( pCmd ), &width, &height, font );
+		pixelWidth += width;
 		tmp_end += GetTextSize( pCmd );
 		pCmd = NEXTLINE( pCmd );
 	}
-	tmp_end = tmpx;
+	//tmp_end = tmpx;
 
 	while( pCmd )
 	{
 		uint32_t width, height;
-		phbr->measureString( phbr->psvMeasure, GetText( pCmd ), GetTextSize( pCmd ), &width, &height, NULL );
-		if( ( width + tmp_end ) > phbr->nWidth )
-		{
-			// not all of the string fits on the line....
-			int a = 3;
+		if( tmp_end < CommandInfo->CollectionIndex ) {
+			phbr->measureString( phbr->psvMeasure, GetText( pCmd )
+				, CommandInfo->CollectionIndex - tmp_end /* GetTextSize( pCmd )*/, &width, &height, font );
+			pixelWidth += width;
 		}
 		tmp_end += GetTextSize( pCmd );
 		pCmd = NEXTLINE( pCmd );
@@ -1625,7 +1630,8 @@ int GetCommandCursor( PHISTORY_BROWSER phbr
 			(*command_begin) = ( tmpx - ( phbr->nColumns - 10 ) ) - nLead;
 		tmpx = phbr->nColumns - 10;
 	}
-
+	if( command_pixel_end )
+		( *command_pixel_end ) = pixelWidth;
 	return tmpx;
 }
 
@@ -1854,12 +1860,14 @@ void BuildDisplayInfoLines( PHISTORY_BROWSER phbr, PHISTORY_BROWSER leadin, SFTF
 									//lprintf( "Wrapped line... reset nChar cause it's a new line of characters." );
 									nWrapped++;
 								do_end_of_line:
-
-									//lprintf( "Setting prior toshow to nChar...%d", nChar );
-									pLastSetLine->nToShow = nChar - trim_char;
-									pLastSetLine->nPixelEnd = col_offset;
-									pLastSetLine->nLineEnd = pLastSetLine->nLineStart + ( nChar ) - 1;
-									dl.nLineEnd = pLastSetLine->nLineEnd;
+									if( pLastSetLine ) {
+										//lprintf( "Setting prior toshow to nChar...%d", nChar );
+										pLastSetLine->nToShow = nChar - trim_char;
+										pLastSetLine->nPixelEnd = col_offset;
+										dl.nLineEnd = pLastSetLine->nLineEnd = pLastSetLine->nLineStart + (nChar)-1;
+									}
+									else
+										dl.nLineEnd = (nChar)-1;
 									dl.nLineStart = dl.nLineEnd + 1;
 
 									// begin a new line output

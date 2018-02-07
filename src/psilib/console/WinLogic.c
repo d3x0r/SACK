@@ -367,9 +367,10 @@ void PSI_RenderCommandLine( PCONSOLE_INFO pdp, PENDING_RECT *region )
 	PENDING_RECT myrect;
 	// need to render the current macro being recorded.....
 	RECT upd;
-
+	SFTFont font = GetCommonFont( pdp->psicon.frame );
 	RECT r;
-	int nMaxLen, nRecord, nShow, nCurrentCol, x, y, nCursorPos;
+	int nMaxLen, nShow, nCurrentCol, x, y, nCursorPos;
+	int nCursorIdx;
 	int lines;
 	int line_offset;
 	INDEX nShown;
@@ -392,13 +393,14 @@ void PSI_RenderCommandLine( PCONSOLE_INFO pdp, PENDING_RECT *region )
 	if( pdp->SetCurrentColor )
 		pdp->SetCurrentColor( pdp, COLOR_COMMAND, NULL );//pdp->crCommand, pdp->crCommandBackground );
 
-	nCursorPos = GetCommandCursor( pdp->pCurrentDisplay, GetCommonFont( pdp->psicon.frame )
+	nCursorIdx = GetCommandCursor( pdp->pCurrentDisplay, font
 											, pdp->CommandInfo
 											, pdp->flags.bDirect
 											, pdp->flags.bWrapCommand
 											, &nCurrentCol
 											, &start
 											, &end
+											, &nCursorPos
 											, &line_offset);
 	// nYpad at bottom of screen, font height up begins the top of the
 	// output text line...
@@ -458,8 +460,6 @@ void PSI_RenderCommandLine( PCONSOLE_INFO pdp, PENDING_RECT *region )
 			pdp->FillConsoleRect( pdp, &r, FILL_COMMAND_BACK );
 		r.top += toppad;
 	}
-
-	nRecord = 0;
 
 	// the normal prompt string will have the current
 	// macroname being recorded... do not show this in
@@ -525,27 +525,37 @@ void PSI_RenderCommandLine( PCONSOLE_INFO pdp, PENDING_RECT *region )
 		if( pdp->RenderCursor )
 			// rect has top/bottom info, and current cursor position column
 			// is passed - each client will be able to
-			pdp->RenderCursor( pdp, &r, ( nRecord + nCursorPos ) ); // top/bottom are the line...
+			pdp->RenderCursor( pdp, &r, ( nCursorPos ) ); // top/bottom are the line...
 	}
 	else
 	{
-
+		if( pdp->flags.bDirect ) {
+			y -= pdp->pCommandDisplay->nLineHeight;
+			r.top = y;
+		}
 		while( pStart && nShown > GetTextSize( pStart ) )
 		{
 			nShown -= GetTextSize( pStart );
 			pStart = NEXTLINE( pStart );
 		}
 
-		while( pStart && nCurrentCol < end )
+		while( pStart && nCurrentCol < nCursorIdx )
 		{
 			nShow = GetTextSize( pStart ) - nShown;
 
 			if( nCurrentCol + nShow > end )
 				nShow = end - nCurrentCol;
 
-			if( pdp->DrawString )
+			if( pdp->DrawString ) {
+				uint32_t width, height;
 				pdp->DrawString( pdp, x, y, &r, GetText( pStart ), nShown, nShow );
-			x = r.left = r.right;
+				pdp->pCommandDisplay->measureString( pdp->pCommandDisplay->psvMeasure
+					, GetText( pStart ) + nShown, nShow
+					, &width, &height, font );
+				x += width;
+			}
+			r.left = x;
+			//x = r.left = r.right;
 			nShown = 0;
 			nCurrentCol += nShow;
 			pStart = NEXTLINE( pStart );
@@ -565,7 +575,7 @@ void PSI_RenderCommandLine( PCONSOLE_INFO pdp, PENDING_RECT *region )
 		if( pdp->RenderCursor )
 			// rect has top/bottom info, and current cursor position column
 			// is passed - each client will be able to
-			pdp->RenderCursor( pdp, &r, ( nRecord + nCursorPos ) ); // top/bottom are the line...
+			pdp->RenderCursor( pdp, &r, ( nCursorPos ) ); // top/bottom are the line...
 
 		// command line only update ? maybe add this to regions which should be updated?
 		// refresh here?
@@ -778,7 +788,7 @@ void PSI_ConsoleCalculate( PCONSOLE_INFO pdp, SFTFont font )
 		SetCursorNoPrompt( pdp->pCurrentDisplay, TRUE );
 		if( pdp->pHistoryDisplay )
 			SetCursorNoPrompt( pdp->pHistoryDisplay, FALSE );
-		pdp->nCommandLineStart -= pdp->nYPad + pdp->nCmdLinePad / 2;
+		pdp->nCommandLineStart -= pdp->nFontHeight + pdp->nYPad + pdp->nCmdLinePad / 2;
 		pdp->nDisplayLineStartDynamic = pdp->nCommandLineStart - pdp->nYPad - ( pdp->nCmdLinePad / 2 ) - pdp->nSeparatorHeight;
 	}
 
