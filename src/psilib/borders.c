@@ -341,7 +341,7 @@ PSI_PROC( int, FrameBorderYOfs )( PSI_CONTROL pc, uint32_t BorderType, CTEXTSTR 
 {
 	int result = 0;
 	if( !(BorderType & BORDER_NOCAPTION ) && 
-		( pc->DrawBorder || caption ) )
+		( (pc && pc->DrawBorder) || caption ) )
 		result += CaptionHeight( pc, caption );
 
 	//if( !pf )
@@ -418,7 +418,7 @@ PSI_PROC( int, FrameBorderY )( PSI_CONTROL pc, uint32_t BorderType, CTEXTSTR cap
 {
 	int result = 0;
 	if( !(BorderType & BORDER_NOCAPTION ) && 
-		( pc->DrawBorder || caption ) )
+		( ( pc && pc->DrawBorder ) || caption ) )
 		result += CaptionHeight( pc, caption );
 	//if( !pf )
 	//  return CaptionHeight( pf, NULL ) + 8;
