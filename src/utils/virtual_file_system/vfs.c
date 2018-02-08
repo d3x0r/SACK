@@ -18,7 +18,7 @@
 SACK_VFS_NAMESPACE
 //#define PARANOID_INIT
 
-#define DEBUG_TRACE_LOG
+//#define DEBUG_TRACE_LOG
 
 #ifdef DEBUG_TRACE_LOG
 #define LoG( a,... ) lprintf( a,##__VA_ARGS__ )
