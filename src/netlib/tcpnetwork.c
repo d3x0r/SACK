@@ -122,7 +122,7 @@ void AcceptClient(PCLIENT pListen)
 										, pNewClient->saClient
 										,&nTemp
 										);
-   //lprintf( "Accept new client....%d", pNewClient->Socket );
+	//lprintf( "Accept new client....%d", pNewClient->Socket );
 #if WIN32
 	SetHandleInformation( (HANDLE)pNewClient->Socket, HANDLE_FLAG_INHERIT, 0 );
 #endif
@@ -913,6 +913,8 @@ int FinishPendingRead(PCLIENT lpClient DBG_PASS )  // only time this should be c
 							 (char*)lpClient->RecvPending.buffer.p +
 							 lpClient->RecvPending.dwUsed,
 							 (int)lpClient->RecvPending.dwAvail,0);
+ 			dwError = WSAGetLastError();
+			//lprintf( "Network receive %d %d %d", nRecv, lpClient->RecvPending.dwUsed, lpClient->RecvPending.dwAvail );
 			if (nRecv == SOCKET_ERROR)
 			{
 				dwError = WSAGetLastError();
@@ -952,9 +954,9 @@ int FinishPendingRead(PCLIENT lpClient DBG_PASS )  // only time this should be c
 			}
 			else if (!nRecv) // channel closed if received 0 bytes...
 			{   // otherwise WSAEWOULDBLOCK would be generated.
-#ifdef DEBUG_SOCK_IO
+//#ifdef DEBUG_SOCK_IO
 				lprintf( "Received (0) %d", nRecv );
-#endif
+//#endif
 				WakeableSleep( 100 );
 				//_lprintf( DBG_RELAY )( WIDE("Closing closed socket... Hope there's also an event... "));
 				lpClient->dwFlags |= CF_TOCLOSE;
@@ -980,6 +982,7 @@ int FinishPendingRead(PCLIENT lpClient DBG_PASS )  // only time this should be c
 					lpClient->dwFlags &= ~CF_READREADY;
 				lpClient->RecvPending.dwLastRead = nRecv;
 				lpClient->RecvPending.dwAvail -= nRecv;
+				//lprintf( "Receive pending is now %d after %d", lpClient->RecvPending.dwAvail, nRecv );
 				lpClient->RecvPending.dwUsed  += nRecv;
 				if( lpClient->RecvPending.s.bStream &&
 				    lpClient->RecvPending.dwAvail )
@@ -1110,6 +1113,7 @@ size_t doReadExx2(PCLIENT lpClient,POINTER lpBuffer,size_t nBytes, LOGICAL bIsSt
 	{
 		// we can assume there is nothing now pending...
 		lpClient->RecvPending.buffer.p = lpBuffer;
+		//_lprintf(DBG_RELAY)( "Setup read avail: %d", nBytes );
 		lpClient->RecvPending.dwAvail = nBytes;
 		lpClient->RecvPending.dwUsed = 0;
 		lpClient->RecvPending.s.bStream = bIsStream;
@@ -1226,8 +1230,8 @@ static void PendWrite( PCLIENT pClient
 	}
 #endif
 	lpPend = New( PendingBuffer );
-
-	lpPend->dwAvail  = nLen;
+	//lprintf( "Write pend %d", nLen );
+	lpPend->dwAvail = nLen;
 	lpPend->dwUsed	= 0;
 	lpPend->lpNext	= NULL;
 	if( !bLongBuffer )
@@ -1265,6 +1269,7 @@ int TCPWriteEx(PCLIENT pc DBG_PASS)
 
 		if( pc->lpFirstPending->dwAvail )
 		{
+  			uint32_t dwError;
 			if( globalNetworkData.flags.bLogSentData )
 			{
 				LogBinary( (uint8_t*)pc->lpFirstPending->buffer.c +
@@ -1279,9 +1284,9 @@ int TCPWriteEx(PCLIENT pc DBG_PASS)
 							 pc->lpFirstPending->dwUsed,
 							 (int)pc->lpFirstPending->dwAvail,
 							 0);
+  			dwError = WSAGetLastError();
+			//lprintf( "sent result: %d %d %d", nSent, pc->lpFirstPending->dwUsed, pc->lpFirstPending->dwAvail );
 			if (nSent == SOCKET_ERROR) {
-				uint32_t dwError;
-				dwError = WSAGetLastError();
 				if( dwError == WSAEWOULDBLOCK )  // this is alright.
 				{
 #ifdef VERBOSE_DEBUG
@@ -1334,13 +1339,14 @@ int TCPWriteEx(PCLIENT pc DBG_PASS)
 			nSent = 0;
 
 #ifdef DEBUG_SOCK_IO
-		lprintf( "sent... %d", nSent );
+		lprintf( "sent... %d %d %d", nSent, pc->lpFirstPending->dwUsed, pc->lpFirstPending->dwAvail );
 #endif
 
 		{  // sent some data - update pending buffer status.
 			if( pc->lpFirstPending )
 			{
 				pc->lpFirstPending->dwAvail -= nSent;
+				//lprintf( "Subtracted %d got %d", nSent, pc->lpFirstPending->dwAvail );
 				pc->lpFirstPending->dwUsed  += nSent;
 				if (!pc->lpFirstPending->dwAvail)  // no more to send...
 				{
@@ -1472,6 +1478,7 @@ LOGICAL doTCPWriteExx( PCLIENT lpClient
 		// have to steal the buffer - :(
 
 		lpClient->FirstWritePending.buffer.c   = pInBuffer;
+		//lprintf( "First pending Write set to %d", nInLen );
 		lpClient->FirstWritePending.dwAvail    = nInLen;
 		lpClient->FirstWritePending.dwUsed     = 0;
 
