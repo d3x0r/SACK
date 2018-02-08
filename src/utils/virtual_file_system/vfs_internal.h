@@ -92,6 +92,7 @@ struct sack_vfs_file
 	struct directory_entry dirent_key;
 	struct volume *vol; // which volume this is in
 	FPI fpi;
+	BLOCKINDEX first_block;
 	BLOCKINDEX block; // this should be in-sync with current FPI always; plz
 	LOGICAL delete_on_close;  // someone already deleted this...
 };

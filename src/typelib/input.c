@@ -124,7 +124,7 @@ PTEXT GetUserInputLine( PUSER_INPUT_BUFFER pci )
 }
 
 static PTEXT GatherLineEx( PTEXT *pOutput, INDEX *pIndex, int bInsert, int bSaveCR, int bData, PTEXT pInput )
-#define GatherLine( out,idx,ins,cr,in) GatherLineEx( (out),(idx),(ins),(cr),(FALSE),(in))
+//#define GatherLine( out,idx,ins,cr,in) GatherLineEx( (out),(idx),(ins),(cr),(FALSE),(in))
 // if data - assume data is coming from a preformatted source
 // otherwise use escape as command entry and clear buffer...
 {
@@ -431,7 +431,8 @@ static PTEXT GatherLineEx( PTEXT *pOutput, INDEX *pIndex, int bInsert, int bSave
 
 	if( bSetReturn ) {
 		pReturn = (*pOutput);
-		(*pOutput) = NULL;
+		if( !bSaveCR )
+			(*pOutput) = NULL;
 	}
 	SetStart( pReturn );
 
@@ -524,9 +525,9 @@ void RecallUserInput( PUSER_INPUT_BUFFER pci, int bUp )
 	pci->CollectionBuffer = NULL;
 	pci->CollectionIndex = 0; // adding temp to output buffer fixes this...
 	temp = (PTEXT)pci->InputHistory->pNode[pci->nHistory];
-	temp = GatherLine( &pci->CollectionBuffer
+	temp = GatherLineEx( &pci->CollectionBuffer
 						  , (INDEX*)&pci->CollectionIndex
-						  , pci->CollectionInsert
+						  , pci->CollectionInsert, pci->storeCR
 						  , FALSE, temp );
 	if( temp && !GetTextSize( pci->CollectionBuffer ) )
 	{
@@ -575,9 +576,10 @@ void EnqueUserInputHistory( PUSER_INPUT_BUFFER pci, PTEXT pHistory )
 void DeleteUserInput( PUSER_INPUT_BUFFER pci )
 {
 #if 0
-	PTEXT pLine = GatherLine( &pci->CollectionBuffer
+	PTEXT pLine = GatherLineEx( &pci->CollectionBuffer
 							, &pci->CollectionIndex
 							, pci->CollectionInsert
+							, pci->storeCR
 							, TRUE
 							, stroke );
 #endif
@@ -642,9 +644,10 @@ void DeleteUserInput( PUSER_INPUT_BUFFER pci )
 
 PTEXT GatherUserInput( PUSER_INPUT_BUFFER pci, PTEXT stroke )
 {
-	PTEXT pLine = GatherLine( &pci->CollectionBuffer
+	PTEXT pLine = GatherLineEx( &pci->CollectionBuffer
 							, &pci->CollectionIndex
 							, pci->CollectionInsert
+							, pci->storeCR
 							, TRUE
 							, stroke );
 	if( pLine )
@@ -686,6 +689,7 @@ PTEXT GatherUserInput( PUSER_INPUT_BUFFER pci, PTEXT stroke )
 	pci->bRecallBegin = FALSE;
 
 	pci->CollectionIndex = 0;
+	pci->storeCR = 0;
 	pci->CollectionInsert = TRUE;
 	return pci;	
 }
@@ -869,6 +873,19 @@ LOGICAL  SetUserInputPosition ( PUSER_INPUT_BUFFER pci, int nPos, int whence )
 		pci->CollectionInsert = 0;
 
 }
+
+//----------------------------------------------------------------------------
+
+void  SetUserInputSaveCR( PUSER_INPUT_BUFFER pci, int bSave ) {
+	 if( bSave < 0 )
+		 pci->storeCR = !pci->storeCR;
+	 else if( bSave )
+		 pci->storeCR = 1;
+	 else
+		 pci->storeCR = 0;
+
+}
+
 
 
 /*

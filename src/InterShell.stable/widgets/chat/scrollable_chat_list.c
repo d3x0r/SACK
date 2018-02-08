@@ -2612,6 +2612,7 @@ static int OnCreateCommon( CONTROL_NAME )( PSI_CONTROL pc )
 	//list->phlc_Input = PSI_CreateHistoryCursor( list->pHistory );
 	list->input.phb_Input = PSI_CreateHistoryBrowser( list->input.pHistory, PSIMeasureString, (uintptr_t)pc );
 	list->input.CommandInfo = CreateUserInputBuffer();
+	SetUserInputSaveCR( list->input.CommandInfo, TRUE );
 	//SetBrowserLines( list->input.phb_Input, 3 );
 	list->colors.crText = BASE_COLOR_BLACK;
 	list->colors.crMark = BASE_COLOR_WHITE;

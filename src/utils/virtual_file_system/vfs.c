@@ -18,7 +18,7 @@
 SACK_VFS_NAMESPACE
 //#define PARANOID_INIT
 
-//#define DEBUG_TRACE_LOG
+#define DEBUG_TRACE_LOG
 
 #ifdef DEBUG_TRACE_LOG
 #define LoG( a,... ) lprintf( a,##__VA_ARGS__ )
@@ -1022,7 +1022,7 @@ struct sack_vfs_file * CPROC sack_vfs_openfile( struct volume *vol, const char *
 	file->vol = vol;
 	file->fpi = 0;
 	file->delete_on_close = 0;
-	file->block = file->entry->first_block ^ file->dirent_key.first_block;
+	file->first_block = file->block = file->entry->first_block ^ file->dirent_key.first_block;
 	AddLink( &vol->files, file );
 	vol->lock = 0;
 	return file;
@@ -1070,7 +1070,7 @@ size_t CPROC sack_vfs_seek( struct sack_vfs_file *file, size_t pos, int whence )
 	}
 	{
 		size_t n = 0;
-		BLOCKINDEX b = file->entry->first_block ^ file->dirent_key.first_block;
+		BLOCKINDEX b = file->first_block;
 		while( n * BLOCK_SIZE < ( pos & ~BLOCK_MASK ) ) {
 			b = vfs_GetNextBlock( file->vol, b, FALSE, TRUE );
 			n++;
@@ -1197,7 +1197,7 @@ size_t CPROC sack_vfs_read( struct sack_vfs_file *file, char * data, size_t leng
 	return written;
 }
 
-static void sack_vfs_unlink_file_entry( struct volume *vol, struct directory_entry *entry, struct directory_entry *entkey ) {
+static void sack_vfs_unlink_file_entry( struct volume *vol, struct directory_entry *entry, struct directory_entry *entkey, BLOCKINDEX first_block ) {
 	BLOCKINDEX block, _block;
 	struct sack_vfs_file *file_found = NULL;
 	struct sack_vfs_file *file;
@@ -1205,12 +1205,17 @@ static void sack_vfs_unlink_file_entry( struct volume *vol, struct directory_ent
 	LIST_FORALL( vol->files, idx, struct sack_vfs_file *, file  ) {
 		if( file->entry == entry ) {
 			file_found = file;
+			//file->first_block = file->entry->first_block ^ file->dirent_key.first_block;
 			file->delete_on_close = TRUE;
 		}
 	}
+	if( file_found ) {
+		LoG( "Marking physical directory deleted." );
+		file_found->entry->first_block = file_found->dirent_key.first_block;
+	}
 	if( !file_found ) {
-		_block = block = entry->first_block ^ entkey->first_block;
-		LoG( "entry starts at %d", entry->first_block ^ entkey->first_block );
+		_block = block = first_block;// entry->first_block ^ entkey->first_block;
+		LoG( "(marking physical deleted (again?)) entry starts at %d", block );
 		entry->first_block = entkey->first_block; // zero the block... keep the name.
 		// wipe out file chain BAT
 		do {
@@ -1277,7 +1282,7 @@ int CPROC sack_vfs_close( struct sack_vfs_file *file ) {
 	}
 #endif
 	DeleteLink( &file->vol->files, file );
-	if( file->delete_on_close ) sack_vfs_unlink_file_entry( file->vol, file->entry, &file->dirent_key );
+	if( file->delete_on_close ) sack_vfs_unlink_file_entry( file->vol, file->entry, &file->dirent_key, file->first_block );
 	file->vol->lock = 0;
 	if( file->vol->closed ) sack_vfs_unload_volume( file->vol );
 	Deallocate( struct sack_vfs_file *, file );
@@ -1292,7 +1297,7 @@ int CPROC sack_vfs_unlink_file( struct volume *vol, const char * filename ) {
 	while( LockedExchange( &vol->lock, 1 ) ) Relinquish();
 	LoG( "unlink file:%s", filename );
 	if( ( entry  = ScanDirectory( vol, filename, &entkey ) ) ) {
-		sack_vfs_unlink_file_entry( vol, entry, &entkey );
+		sack_vfs_unlink_file_entry( vol, entry, &entkey, entry->first_block ^ entkey.first_block );
 		result = 1;
 	}
 	vol->lock = 0;
