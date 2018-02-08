@@ -1675,7 +1675,7 @@ void AddThreadEvent( PCLIENT pc, int broadcast )
 		lprintf( "peer add socket to %d now has 0x%x events", peer->epoll_fd, ev.events );
 #endif
 		r = epoll_ctl( peer->epoll_fd, EPOLL_CTL_ADD, broadcast?pc->SocketBroadcast:pc->Socket, &ev );
-		if( r < 0 ) lprintf( "Error adding:%d", errno );
+		if( r < 0 ) lprintf( "Error adding:%d %d", errno, broadcast?pc->SocketBroadcast:pc->Socket );
 #  endif
 	}
 	if( !pc->this_thread ) {
