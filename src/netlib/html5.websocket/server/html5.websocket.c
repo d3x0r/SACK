@@ -199,9 +199,9 @@ static void HandleData( HTML5WebSocket socket, PCLIENT pc, POINTER buffer, size_
 
 static void CPROC read_complete( PCLIENT pc, POINTER buffer, size_t length )
 {
+	HTML5WebSocket socket = (HTML5WebSocket)GetNetworkLong( pc, 0 );
 	if( buffer )
 	{
-		HTML5WebSocket socket = (HTML5WebSocket)GetNetworkLong( pc, 0 );
 		int result;
 #ifdef _UNICODE
 		TEXTSTR tmp = CharWConvertExx( (const char*)buffer, length DBG_SRC );
@@ -475,10 +475,11 @@ static void CPROC read_complete( PCLIENT pc, POINTER buffer, size_t length )
 	}
 	else
 	{
-		HTML5WebSocket socket = (HTML5WebSocket)GetNetworkLong( pc, 0 );
+		//HTML5WebSocket socket = (HTML5WebSocket)GetNetworkLong( pc, 0 );
 		buffer = socket->buffer = Allocate( 4096 );
 	}
-	ReadTCP( pc, buffer, 4096 );
+	if( !socket->input_state.flags.use_ssl )
+		ReadTCP( pc, buffer, 4096 );
 }
 
 static void CPROC closed( PCLIENT pc_client ) {
