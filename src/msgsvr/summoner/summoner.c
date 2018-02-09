@@ -134,7 +134,7 @@ static int CPROC SummonerEvents( PSERVICE_ROUTE SourceRouteID, uint32_t MsgID
 	case MSG_ServiceLoad:
 		{
 			MsgSrv_ReplyServiceLoad msg = ((MsgSrv_ReplyServiceLoad*)result)[0];
-         msg.ServiceID = 0;
+			msg.ServiceID = 0;
 			msg.thread = GetMyThreadID();
 			(*result_length) = sizeof( msg );
 		}
@@ -943,6 +943,30 @@ static void CPROC TaskOut(uintptr_t psvTask, PTASK_INFO task, CTEXTSTR buffer, s
 
 //--------------------------------------------------------------------------
 
+static uintptr_t taskStartWait( PTHREAD thread ) {
+	PMYTASK_INFO task = (PMYTASK_INFO)GetThreadParam( thread );
+	uint32_t tick = GetTickCount();
+
+	while( task->flags.bWaiting
+		  && ( ( tick + task->ready_timeout ) > GetTickCount() ) )
+	{
+		// should sleep-wait here... but really
+		// it shouldn't take THAT long...
+		//lprintf( "waiting..." );
+		Relinquish();
+	}
+	if( task->flags.bWaiting )
+	{
+		lprintf( WIDE("Task %s appears to not be summoner aware.\n"), task->name );
+		lprintf( WIDE("Forcing start...\n") );
+		task->flags.bWaiting = 0;
+		task->flags.bStarted = 1;
+		RelinkThing( l.ready, task );
+		WakeThread( l.pLoadingThread );
+	}
+	return 0;
+}
+
 
 static void LoadTasks( void )
 {
@@ -1027,29 +1051,7 @@ static void LoadTasks( void )
 
 			if( task_info )
 			{
-				uint32_t tick = GetTickCount();
-#ifdef DEBUG_WAIT_LIST
-				lprintf( WIDE("adding task info to task->spawns %p %p"), &task->spawns, task_info );
-#endif
-				AddLink( &task->spawns, (POINTER)task_info );
-				if( !task->ready_timeout )
-					task->ready_timeout = 5000;
-				while( task->flags.bWaiting
-					  && ( ( tick + task->ready_timeout ) > GetTickCount() ) )
-				{
-					// should sleep-wait here... but really
-					// it shouldn't take THAT long...
-					//lprintf( "waiting..." );
-					Relinquish();
-				}
-				if( task->flags.bWaiting )
-				{
-					lprintf( WIDE("Task %s appears to not be summoner aware.\n"), task->name );
-					lprintf( WIDE("Forcing start...\n") );
-					task->flags.bWaiting = 0;
-					task->flags.bStarted = 1;
-					RelinkThing( l.ready, task );
-				}
+				ThreadTo( taskStartWait, (uintptr_t)task_info );
 			}
 			else
 			{
