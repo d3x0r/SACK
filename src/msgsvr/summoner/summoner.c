@@ -946,19 +946,21 @@ static void CPROC TaskOut(uintptr_t psvTask, PTASK_INFO task, CTEXTSTR buffer, s
 static uintptr_t taskStartWait( PTHREAD thread ) {
 	PMYTASK_INFO task = (PMYTASK_INFO)GetThreadParam( thread );
 	uint32_t tick = GetTickCount();
-
+	//lprintf( "Waiting for task start in thread...%d", task->ready_timeout );
 	while( task->flags.bWaiting
 		  && ( ( tick + task->ready_timeout ) > GetTickCount() ) )
 	{
 		// should sleep-wait here... but really
 		// it shouldn't take THAT long...
 		//lprintf( "waiting..." );
-		Relinquish();
+		IdleFor( 250 );
+		//Relinquish();
 	}
+	//lprintf( "Done waiting... result?" );
 	if( task->flags.bWaiting )
 	{
 		lprintf( WIDE("Task %s appears to not be summoner aware.\n"), task->name );
-		lprintf( WIDE("Forcing start...\n") );
+		//lprintf( WIDE("Forcing start...\n") );
 		task->flags.bWaiting = 0;
 		task->flags.bStarted = 1;
 		RelinkThing( l.ready, task );
@@ -1048,10 +1050,10 @@ static void LoadTasks( void )
 			                                , LPP_OPTION_DO_NOT_HIDE|LPP_OPTION_NEW_GROUP
 			                                , TaskOut
 			                                , TaskEnded, (uintptr_t)task DBG_SRC );
-
 			if( task_info )
 			{
-				ThreadTo( taskStartWait, (uintptr_t)task_info );
+				AddLink( &task->spawns, task_info );
+				ThreadTo( taskStartWait, (uintptr_t)task );
 			}
 			else
 			{
