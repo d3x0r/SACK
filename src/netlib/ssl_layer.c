@@ -334,17 +334,22 @@ static void ssl_ReadComplete( PCLIENT pc, POINTER buffer, size_t length )
 				size_t pending = BIO_ctrl_pending( pc->ssl_session->wbio );
 				if( !pc->ssl_session ) {
 					lprintf( "SSL SESSION SELF DESTRUCTED!" );
-               
 				}
 				if( pending > 0 ) {
 					int read; 
 #ifdef DEBUG_SSL_IO
 					lprintf( "pending to send is %zd into %zd %p " , pending, pc->ssl_session->obuflen, pc->ssl_session->obuffer );
 #endif
+					if( pending > pc->ssl_session->obuflen ) {
+						if( pc->ssl_session->obuffer )
+							Deallocate( uint8_t *, pc->ssl_session->obuffer );
+						pc->ssl_session->obuffer = NewArray( uint8_t, pc->ssl_session->obuflen = pending * 2 );
+						//lprintf( "making obuffer bigger %d %d", pending, pending * 2 );
+					}
 					read  = BIO_read( pc->ssl_session->wbio, pc->ssl_session->obuffer, pending/*(int)pc->ssl_session->obuflen*/ );
 					if( read < 0 ) {
 						ERR_print_errors_cb( logerr, (void*)__LINE__ );
-                  lprintf( "failed to read pending control data...SSL will fail without it." );
+						lprintf( "failed to read pending control data...SSL will fail without it." );
 					} else {
 #ifdef DEBUG_SSL_IO
 						lprintf( "Send pending control %p %d", pc->ssl_session->obuffer, read );
@@ -401,7 +406,7 @@ static void ssl_ReadComplete( PCLIENT pc, POINTER buffer, size_t length )
 							if( pc->ssl_session->obuffer )
 								Deallocate( uint8_t *, pc->ssl_session->obuffer );
 							pc->ssl_session->obuffer = NewArray( uint8_t, pc->ssl_session->obuflen = pending * 2 );
-							lprintf( "making obuffer bigger %d %d", pending, pending * 2 );
+							//lprintf( "making obuffer bigger %d %d", pending, pending * 2 );
 						}
 						read = BIO_read( pc->ssl_session->wbio, pc->ssl_session->obuffer, (int)pc->ssl_session->obuflen );
 						SendTCP( pc, pc->ssl_session->obuffer, read );
@@ -455,7 +460,7 @@ LOGICAL ssl_Send( PCLIENT pc, CPOINTER buffer, size_t length )
 		if( SUS_GT( len, int, ses->obuflen, size_t ) )
 		{
 			Release( ses->obuffer );
-         lprintf( "making obuffer bigger %d %d", len, len * 2 );
+			lprintf( "making obuffer bigger %d %d", len, len * 2 );
 			ses->obuffer = NewArray( uint8_t, len * 2 );
 			ses->obuflen = len * 2;
 		}
