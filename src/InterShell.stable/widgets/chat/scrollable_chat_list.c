@@ -808,7 +808,7 @@ void Chat_ClearMessages( PSI_CONTROL pc )
 	}
 }
 
-void Chat_SetMessageSeen( struct chat_widget_message *msg, CTEXTSTR text ) {
+void Chat_SetMessageSeen( struct chat_widget_message *msg ) {
 	msg->seen = 1;
 	Chat_GetCurrentTime( &msg->seen_time );
 
