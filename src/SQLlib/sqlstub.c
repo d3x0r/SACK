@@ -52,7 +52,7 @@ using namespace sack::config;
 
 // undef if USE=0
 #ifdef USE_ODBC
-#pragma message USE_ODBC IS DEFINED
+#pragma message("USE_ODBC IS DEFINED")
 #  if !USE_ODBC
 #    undef USE_ODBC
 #  endif

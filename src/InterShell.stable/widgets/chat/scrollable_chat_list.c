@@ -1519,7 +1519,7 @@ restart:
 		int32_t x_offset_left, x_offset_right;	
 		int32_t _x_offset_left, _x_offset_right;	
 		if( context->deleted ) {
-			lprintf( "Context is already deleted... skipping draw." );
+			//lprintf( "Context is already deleted... skipping draw." );
 			continue;
 		}
 
