@@ -172,6 +172,7 @@ struct peer_thread_info
 #ifdef _WIN32
 	WSAEVENT hThread;
 	int nEvents;
+	LOGICAL counting;
 	int nWaitEvents; // updated with count thread is waiting on
 #endif
 #ifdef __LINUX__

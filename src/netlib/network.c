@@ -1166,6 +1166,7 @@ void RemoveThreadEvent( PCLIENT pc ) {
 #ifdef LOG_NETWORK_EVENT_THREAD
 	lprintf( "Remove client %p from %p thread events...  proc:%d  ev:%d  wait:%d", pc, thread, thread->flags.bProcessing, thread->nEvents, thread->nWaitEvents );
 #endif
+	thread->counting = TRUE;
 	thread->nEvents = 1;
 	if( thread->thread != MakeThread() && !thread->flags.bProcessing )
 		while( thread->nEvents != thread->nWaitEvents ) {
@@ -1220,6 +1221,7 @@ void RemoveThreadEvent( PCLIENT pc ) {
 			tmp->parent_peer = thread;
 			thread->child_peer = tmp;
 		}
+	thread->counting = FALSE;
 }
 
 // unused parameter broadcsat on windows; not needed.
@@ -1300,7 +1302,7 @@ void AddThreadEvent( PCLIENT pc, int broadcsat )
 	pc->flags.bAddedToEvents = 1;
 	peer->nEvents++;
 #ifdef LOG_NETWORK_EVENT_THREAD
-	//lprintf( "peer %p now has %d events", peer, peer->nEvents );
+	lprintf( "peer %p now has %d events", peer, peer->nEvents );
 #endif
 	if( !peer->flags.bProcessing && peer->parent_peer ) // scheduler thread already awake do not wake him.
 		WSASetEvent( peer->hThread );
@@ -1379,6 +1381,7 @@ int CPROC ProcessNetworkMessages( struct peer_thread_info *thread, uintptr_t qui
 #endif
 		thread->nWaitEvents = thread->nEvents;
 		thread->flags.bProcessing = 0;
+		while( thread->counting ) Relinquish();
 		result = WSAWaitForMultipleEvents( thread->nEvents
 													, (const HANDLE *)thread->event_list->data
 													, FALSE
@@ -3417,10 +3420,10 @@ void InternalRemoveClientExx(PCLIENT lpClient, LOGICAL bBlockNotify, LOGICAL bLi
 #endif
 			return;
 		}
-		if( lpClient->dwFlags & CF_WRITEPENDING ) {
-#ifdef LOG_DEBUG_CLOSING
+		if( lpClient->lpFirstPending || ( lpClient->dwFlags & CF_WRITEPENDING ) ) {
+//#ifdef LOG_DEBUG_CLOSING
 			lprintf( "CLOSE WHILE WAITING FOR WRITE TO FINISH..." );
-#endif
+//#endif
 			lpClient->dwFlags |= CF_TOCLOSE;
 			return;
 		}
