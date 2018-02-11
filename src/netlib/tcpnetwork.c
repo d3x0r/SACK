@@ -39,7 +39,6 @@ return 0;
 }
 
 */
-//#define LOG_SOCKET_CREATION
 //#define DEBUG_SOCK_IO
 #define LIBRARY_DEF
 #include <stdhdrs.h>
