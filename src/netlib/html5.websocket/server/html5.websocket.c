@@ -196,14 +196,14 @@ static void HandleData( HTML5WebSocket socket, PCLIENT pc, POINTER buffer, size_
 	}
 }
 
-static void CPROC closed( PCLIENT pc_client ) {
-	HTML5WebSocket socket = (HTML5WebSocket)GetNetworkLong( pc_client, 0 );
+static void CPROC destroyHttpState( HTML5WebSocket socket, PCLIENT pc_client ) {
+	//HTML5WebSocket socket = (HTML5WebSocket)GetNetworkLong( pc_client, 0 );
 	if( socket->flags.in_open_event ) {
 		socket->flags.closed = 1;
 		return;
 	}
 	//lprintf( "ServerWebSocket Connection closed event..." );
-	if( socket->input_state.on_close ) {
+	if( pc_client && socket->input_state.on_close ) {
 		socket->input_state.on_close( pc_client, socket->input_state.psv_open, socket->input_state.close_code, socket->input_state.close_reason );
 	}
 	if( socket->input_state.close_reason )
@@ -221,6 +221,10 @@ static void CPROC closed( PCLIENT pc_client ) {
 	SetNetworkLong( pc_client, 0, 0 );
 }
 
+static void CPROC closed( PCLIENT pc_client ) {
+	HTML5WebSocket socket = (HTML5WebSocket)GetNetworkLong( pc_client, 0 );
+	destroyHttpState( socket, pc_client );
+}
 
 static void CPROC read_complete( PCLIENT pc, POINTER buffer, size_t length )
 {
@@ -259,10 +263,17 @@ static void CPROC read_complete( PCLIENT pc, POINTER buffer, size_t length )
 						//lprintf( "request is not an upgrade for websocket." );
 						socket->flags.initial_handshake_done = 1;
 						socket->flags.http_request_only = 1;
+						socket->flags.in_open_event = 1;
 						if( socket->input_state.on_request )
 							socket->input_state.on_request( pc, socket->input_state.psv_on );
 						else {
+							socket->flags.in_open_event = 0;
 							RemoveClient( pc );
+							return;
+						}
+						socket->flags.in_open_event = 0;
+						if( socket->flags.closed ) {
+							destroyHttpState( socket, NULL );
 							return;
 						}
 						break;
@@ -476,7 +487,7 @@ static void CPROC read_complete( PCLIENT pc, POINTER buffer, size_t length )
 							socket->input_state.psv_open = socket->input_state.on_open( pc, socket->input_state.psv_on );
 						socket->flags.in_open_event = 0;
 						if( socket->flags.closed ) {
-							closed( pc );
+							destroyHttpState( socket, NULL );
 							return;
 						}
 					}
