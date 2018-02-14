@@ -196,6 +196,31 @@ static void HandleData( HTML5WebSocket socket, PCLIENT pc, POINTER buffer, size_
 	}
 }
 
+static void CPROC closed( PCLIENT pc_client ) {
+	HTML5WebSocket socket = (HTML5WebSocket)GetNetworkLong( pc_client, 0 );
+	if( socket->flags.in_open_event ) {
+		socket->flags.closed = 1;
+		return;
+	}
+	//lprintf( "ServerWebSocket Connection closed event..." );
+	if( socket->input_state.on_close ) {
+		socket->input_state.on_close( pc_client, socket->input_state.psv_open, socket->input_state.close_code, socket->input_state.close_reason );
+	}
+	if( socket->input_state.close_reason )
+		Deallocate( char*, socket->input_state.close_reason );
+	if( socket->input_state.flags.deflate ) {
+		deflateEnd( &socket->input_state.deflater );
+		inflateEnd( &socket->input_state.inflater );
+		Deallocate( POINTER, socket->input_state.inflateBuf );
+		Deallocate( POINTER, socket->input_state.deflateBuf );
+	}
+	Deallocate( uint8_t*, socket->input_state.fragment_collection );
+	DestroyHttpState( socket->http_state );
+	Deallocate( POINTER, socket->buffer );
+	Deallocate( HTML5WebSocket, socket );
+	SetNetworkLong( pc_client, 0, 0 );
+}
+
 
 static void CPROC read_complete( PCLIENT pc, POINTER buffer, size_t length )
 {
@@ -445,8 +470,15 @@ static void CPROC read_complete( PCLIENT pc, POINTER buffer, size_t length )
 #endif
 						//lprintf( "Sent http reply." );
 						VarTextDestroy( &pvt_output );
+						socket->flags.in_open_event = 1;
+
 						if( socket->input_state.on_open )
 							socket->input_state.psv_open = socket->input_state.on_open( pc, socket->input_state.psv_on );
+						socket->flags.in_open_event = 0;
+						if( socket->flags.closed ) {
+							closed( pc );
+							return;
+						}
 					}
 					else {
 						WebSocketClose( pc, 0, NULL );
@@ -480,27 +512,6 @@ static void CPROC read_complete( PCLIENT pc, POINTER buffer, size_t length )
 	}
 	if( !socket->input_state.flags.use_ssl )
 		ReadTCP( pc, buffer, 4096 );
-}
-
-static void CPROC closed( PCLIENT pc_client ) {
-	HTML5WebSocket socket = (HTML5WebSocket)GetNetworkLong( pc_client, 0 );
-	//lprintf( "ServerWebSocket Connection closed event..." );
-	if( socket->input_state.on_close ) {
-		socket->input_state.on_close( pc_client, socket->input_state.psv_open, socket->input_state.close_code, socket->input_state.close_reason );
-	}
-	if( socket->input_state.close_reason )
-		Deallocate( char*, socket->input_state.close_reason );
-	if( socket->input_state.flags.deflate ) {
-		deflateEnd( &socket->input_state.deflater );
-		inflateEnd( &socket->input_state.inflater );
-		Deallocate( POINTER, socket->input_state.inflateBuf );
-		Deallocate( POINTER, socket->input_state.deflateBuf );
-	}
-	Deallocate( uint8_t*, socket->input_state.fragment_collection );
-	DestroyHttpState( socket->http_state );
-	Deallocate( POINTER, socket->buffer );
-	Deallocate( HTML5WebSocket, socket );
-	SetNetworkLong( pc_client, 0, 0 );
 }
 
 static void CPROC connected( PCLIENT pc_server, PCLIENT pc_new )

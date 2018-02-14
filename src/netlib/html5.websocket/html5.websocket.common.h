@@ -83,6 +83,8 @@ struct html5_web_socket {
 		BIT_FIELD rfc6455 : 1;
 		BIT_FIELD accepted : 1;
 		BIT_FIELD http_request_only : 1;
+		BIT_FIELD in_open_event : 1; // set when sent to client, which can write and close before return; no further read must be done.
+		BIT_FIELD closed : 1; // was already closed (during in_read_event)
 	} flags;
 	HTTPState http_state;
 	PCLIENT pc;
