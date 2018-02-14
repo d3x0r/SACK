@@ -952,9 +952,9 @@ int FinishPendingRead(PCLIENT lpClient DBG_PASS )  // only time this should be c
 			}
 			else if (!nRecv) // channel closed if received 0 bytes...
 			{   // otherwise WSAEWOULDBLOCK would be generated.
-//#ifdef DEBUG_SOCK_IO
+#ifdef DEBUG_SOCK_IO
 				lprintf( "Received (0) %d", nRecv );
-//#endif
+#endif
 				WakeableSleep( 100 );
 				//_lprintf( DBG_RELAY )( WIDE("Closing closed socket... Hope there's also an event... "));
 				lpClient->dwFlags |= CF_TOCLOSE;
