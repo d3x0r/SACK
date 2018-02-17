@@ -390,7 +390,7 @@ PUBLIC( const char *, dlerror )( void )
 static void CPROC name(void); 
 #ifdef _MSC_VER
 	static int CPROC schedule_name(void);   
-	static __declspec(allocate(_STARTSEG_)) int (CPROC*x_name)(void) = schedule_name; 
+	__declspec(allocate(_STARTSEG_)) int (CPROC*x_name)(void) = schedule_name; 
 	int CPROC schedule_name(void) {
 		RegisterPriorityStartupProc( name,TOSTR(name),100,x_name,"dl.c",__LINE__ );
 		return 0;
