@@ -552,6 +552,7 @@ PRIORITY_PRELOAD( InitPSILibrary, PSI_PRELOAD_PRIORITY )
 
 PFrameBorder PSI_CreateBorder( Image image, int width, int height, int anchors, LOGICAL defines_colors )
 {
+	GetMyInterface();
 
  	//if( !g.BorderImage )
 	if( image )

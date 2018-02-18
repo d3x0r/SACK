@@ -546,7 +546,7 @@ typedef struct common_control_frame
 	IMAGE_RECTANGLE update_rect;  
 	/* A copy of the name that the frame was loaded from or saved
 		to. For subsequent save when the control is edited.        */
-	CTEXTSTR save_name;
+	TEXTSTR save_name;
 	CDATA *basecolors;
 	/* when registered this gets set as where the control's events and rtti are registered.
 		 This will seperate /psi/control and /psi++/control without other flags to switch on */
