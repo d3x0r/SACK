@@ -238,7 +238,7 @@ void CPROC UpdateCharRect( uintptr_t psv, PSI_CONTROL pc, int val )
 		if( pfd->flags.showing_scalable )
 			pfd->nHeight = pfd->nSliderHeight;
 	}
-	lprintf( WIDE("Updated slider value - update control...") );
+	//lprintf( WIDE("Updated slider value - update control...") );
 	if( pfd->flags.showing_scalable )
 		UpdateSampleFont( pfd );
 	SmudgeCommon( GetNearControl( pc, CST_CHAR_SIZE ) );
@@ -328,7 +328,7 @@ static void CPROC StyleSelected( uintptr_t psv, PSI_CONTROL pc, PLISTITEM pli )
 		PSIZE_FILE psf;
 		int bAdded = 0;
 
-		lprintf( WIDE("Style selected, filling in sizes...") );
+		//lprintf( WIDE("Style selected, filling in sizes...") );
 		for( idx = 0; psf = pfs->files + idx, idx < pfs->nFiles; idx++ )
 		{
 			TEXTCHAR entry[12];
@@ -660,7 +660,7 @@ SFTFont PickScaledFontWithUpdate( int32_t x, int32_t y
 {
 	PSI_CONTROL pc;
 	FONT_DIALOG fdData;
-	Log( WIDE("Picking a font...") );
+	//Log( WIDE("Picking a font...") );
 	LoadAllFonts();
 #ifdef USE_INTERFACES
 	GetMyInterface();

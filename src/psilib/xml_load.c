@@ -274,7 +274,7 @@ PSI_CONTROL LoadXMLFrameOverExx( PSI_CONTROL parent, CTEXTSTR file, LOGICAL crea
 			buffer = Allocate( size );
 			sack_fread( buffer, size, 1, file_read );
 			sack_fclose( file_read );
-			lprintf( WIDE( "loaded font blob %s %d %p" ), file, size, buffer );
+			//lprintf( WIDE( "loaded frame blob %s %d %p" ), file, size, buffer );
 		}
 		else
 			buffer = NULL;
