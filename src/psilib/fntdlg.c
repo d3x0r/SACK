@@ -898,7 +898,7 @@ SFTFont PickScaledFontWithUpdate( int32_t x, int32_t y
 #endif
 			if( fdData.okay )
 			{
-				if( pFontData )
+				//if( pFontData )
 				{
 					if( fdData.pFontEntry )
 					{
@@ -953,7 +953,8 @@ SFTFont PickScaledFontWithUpdate( int32_t x, int32_t y
 						// unsafe to do, but we result in a memory leak otherwise...
 						//	Release( *pFontData );
 						//}
-						*pFontData = (POINTER)pResult;
+						if( pFontData )
+							*pFontData = (POINTER)pResult;
 						if( pFontDataSize )
 							*pFontDataSize = resultsize;
 						SetFontRendererData( fdData.pFont, pResult, resultsize );
