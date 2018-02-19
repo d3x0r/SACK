@@ -397,7 +397,7 @@ static void CPROC FamilySelected( uintptr_t psv, PSI_CONTROL pc, PLISTITEM pli )
 	DisableUpdateListBox( GetNearControl( pc, LST_FONT_SIZES ), TRUE );
 	DisableUpdateListBox( pcStyle, TRUE );
 	pfd->pFontEntry = pfe;
-	pfd->nFontEntry = pfe;
+	pfd->nFontEntry = npfe;
 	if( pfe )
 	{
 		for( idx = 0; idx < pfe->nStyles; idx++ )
