@@ -321,6 +321,7 @@ static void CPROC StyleSelected( uintptr_t psv, PSI_CONTROL pc, PLISTITEM pli )
 	PFONT_STYLE pfs = pfd->pFontEntry?(pfd->pFontEntry->styles + npfs):NULL;
 	ResetList( pcSizes = GetNearControl( pc, LST_FONT_SIZES ) );
 	pfd->pFontStyle = pfs;
+	pfd->nFontStyle = npfs;
 	if( pfs )
 	{
 		INDEX idx;
@@ -384,7 +385,8 @@ static void CPROC StyleSelected( uintptr_t psv, PSI_CONTROL pc, PLISTITEM pli )
 
 static void CPROC FamilySelected( uintptr_t psv, PSI_CONTROL pc, PLISTITEM pli )
 {
-	PFONT_ENTRY pfe = (PFONT_ENTRY)GetItemData( pli );
+	int npfe = GetItemData( pli );
+	PFONT_ENTRY pfe = fg.pFontCache + npfe;
 	PFONT_DIALOG pfd = (PFONT_DIALOG)psv;
 	INDEX idx;
 	int selected = 0;
@@ -395,6 +397,7 @@ static void CPROC FamilySelected( uintptr_t psv, PSI_CONTROL pc, PLISTITEM pli )
 	DisableUpdateListBox( GetNearControl( pc, LST_FONT_SIZES ), TRUE );
 	DisableUpdateListBox( pcStyle, TRUE );
 	pfd->pFontEntry = pfe;
+	pfd->nFontEntry = pfe;
 	if( pfe )
 	{
 		for( idx = 0; idx < pfe->nStyles; idx++ )
@@ -468,7 +471,7 @@ static void CPROC FillFamilyList( PFONT_DIALOG pfd )
 				hli = AddListItem( pc, pfe->name );
 			}
 			if( hli )
-				SetItemData( hli, (uintptr_t)pfe );
+				SetItemData( hli, (uintptr_t)idx );
 		}
 		if( pfd->filename )
 			pliSelect = AddListItem( pc, WIDE("DEFAULT") );

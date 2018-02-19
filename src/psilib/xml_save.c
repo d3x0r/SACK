@@ -160,6 +160,11 @@ int SaveXMLFrame( PSI_CONTROL frame, CTEXTSTR file )
 	PXML_CONTEXT current_context;
 	if( !file )
 		file = frame->save_name;
+	else {
+		if( frame->save_name )
+			Deallocate( char*, frame->save_name );
+		frame->save_name = StrDup( file );
+	}
 	if( !file )
 	{
 		lprintf( WIDE("Failure to save XML Frame... no filename passed, no filename available.") );
