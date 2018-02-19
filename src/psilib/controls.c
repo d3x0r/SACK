@@ -647,7 +647,12 @@ PFrameBorder PSI_CreateBorder( Image image, int width, int height, int anchors, 
 					TestAndSetBaseColor( SCROLLBAR_BACK      , getpixel( border->BorderSegment[SEGMENT_CENTER], 7, 0 ) );
 				}
 				else
-					TestAndSetBaseColor( NORMAL              , getpixel( border->BorderSegment[SEGMENT_CENTER], 0, 0 ) );
+					TestAndSetBaseColor( NORMAL              , 0 );
+
+				border->BorderSegment[SEGMENT_CENTER] = MakeSubImage( border->BorderImage
+					, border->BorderWidth, border->BorderHeight
+					, MiddleSegmentWidth, MiddleSegmentHeight );
+
 
 			}
 		}
@@ -1308,7 +1313,7 @@ static int OnDrawCommon( WIDE("Frame") )( PSI_CONTROL pc )
 	if( g.flags.bLogDebugUpdate )
 		lprintf( WIDE( "-=-=-=-=- Output Frame background..." ) );
 #endif
-	if( !pc->DefaultBorder )
+	if( !pc->border )
 		BlatColorAlpha( pc->Surface, 0, 0, pc->surface_rect.width, pc->surface_rect.height, basecolor(pc)[NORMAL] );
 	DrawFrameCaption( pc );
 	return 1;
@@ -2629,21 +2634,12 @@ PROCEDURE RealCreateCommonExx( PSI_CONTROL *pResult
 	//lprintf( WIDE("BorderType is %08x"), BorderType );
 	if( !(BorderType & BORDER_FIXED) )
 	{
-		PSI_CONTROL _pc;
-		for( _pc = pContainer;_pc;_pc=_pc->parent )
-			if( _pc->flags.bScaled
-				&& !(_pc->BorderType & BORDER_FIXED ) )
-			{
-				x = ScaleValue( &_pc->scalex, x );
-				w = ScaleValue( &_pc->scalex, w );
-				y = ScaleValue( &_pc->scaley, y );
-				h = ScaleValue( &_pc->scaley, h );
-				pc->flags.bScaled = 1; // its own scaler will be 1:1 since it's alredy scaled...
-				if( _pc->device 
-					|| ( _pc->nType == CONTROL_FRAME && !(_pc->BorderType & BORDER_WITHIN ) ) )
-					break;
-				//break;
-			}
+		PFRACTION sx, sy;
+		GetCommonScale( pContainer, &sx, &sy );
+		x = ScaleValue( sx, x );
+		w = ScaleValue( sx, w );
+		y = ScaleValue( sy, y );
+		h = ScaleValue( sy, h );
 	}
 	if( pIDName )
 	{
@@ -3236,8 +3232,12 @@ PSI_PROC( void, SizeCommon )( PSI_CONTROL pc, uint32_t width, uint32_t height )
 		PEDIT_STATE pEditState;
 		int32_t delw, delh;
 
-		pc->original_rect.width = width;
-		pc->original_rect.height = height;
+		{
+			PFRACTION ix, iy;
+			GetCommonScale( pc, &ix, &iy );
+			pc->original_rect.width = InverseScaleValue( ix, width );
+			pc->original_rect.height = InverseScaleValue( iy, height );
+		}
 		if( !pc->parent && pc->device && pc->device->pActImg )
 		{
 			// we now have this accuragely handled.
@@ -3353,8 +3353,12 @@ PSI_PROC( void, MoveCommon )( PSI_CONTROL pc, int32_t x, int32_t y )
 	{
 		PPHYSICAL_DEVICE pf = pc->device;
 		InvokePosChange( pc, TRUE );
-		pc->original_rect.x = x;
-		pc->original_rect.y = y;
+		{
+			PFRACTION ix, iy;
+			GetCommonScale( pc, &ix, &iy );
+			pc->original_rect.x = InverseScaleValue( ix, x );
+			pc->original_rect.y = InverseScaleValue( iy, y );
+		}
 		pc->rect.x = x;
 		pc->rect.y = y;
 		if( pf )
@@ -3490,6 +3494,20 @@ void ApplyRescale( PSI_CONTROL pc )
 }
 
 //---------------------------------------------------------------------------
+void GetCommonScale( PSI_CONTROL pc, PFRACTION *sx, PFRACTION *sy ) {
+	while( pc && !pc->flags.bScaled )
+		pc = pc->parent;
+	if( pc ) {
+		( *sx ) = &pc->scalex;
+		( *sy ) = &pc->scaley;
+	} else {
+		static FRACTION one = { 1,1 };
+		( *sx ) = &one;
+		( *sy ) = &one;
+	}
+}
+
+//---------------------------------------------------------------------------
 void SetCommonScale( PSI_CONTROL pc, PFRACTION sx, PFRACTION sy )
 {
 	//if( 0 )
@@ -3573,10 +3591,8 @@ void SetCommonFont( PSI_CONTROL pc, SFTFont font )
 			{
 				SetFraction( pc->scalex,w,_w);
 				SetFraction( pc->scaley,h,_h);
-				pc->flags.bScaled = 0;
+				//pc->flags.bScaled = 0;
 			}
-			if( pc && pc->Rescale )
-				pc->Rescale( pc );
 #ifdef DEBUG_SCALING
 			//if( 0 )
 			{
@@ -3589,8 +3605,7 @@ void SetCommonFont( PSI_CONTROL pc, SFTFont font )
 #endif
 			if( !pc->flags.bInitial && !pc->flags.bNoUpdate )
 				SetCommonBorder( pc, pc->BorderType );
-			if( !pc->child )
-				ApplyRescale( pc );
+			ApplyRescale( pc );
 		}
 		//else
 		//	lprintf( "not setting scaling..." );
@@ -3648,6 +3663,7 @@ PSI_PROC( void, MoveSizeCommon )( PSI_CONTROL pc, int32_t x, int32_t y, uint32_t
 		//lprintf( WIDE("move %p %d,%d %d,%d"), pc, x, y, width, height );
 		if( !pc )
 			return;
+		/*
 		{
 			PSI_CONTROL pf = GetParentControl( pc );
 			if( pf && !(pc->BorderType & BORDER_FIXED))
@@ -3658,6 +3674,7 @@ PSI_PROC( void, MoveSizeCommon )( PSI_CONTROL pc, int32_t x, int32_t y, uint32_t
 				height = ScaleValue( &pf->scaley, height );
 			}
 		}
+		*/
 		if( pf )
 		{
 			InvokePosChange( pc, TRUE );
@@ -4816,14 +4833,16 @@ PSI_PROC( void, AdoptCommonEx )( PSI_CONTROL pFoster, PSI_CONTROL pElder, PSI_CO
 		// its original-rect might have been messed up - so fall back to detached which was saved
 		if( pOrphan->flags.detached )
 			pOrphan->Window = MakeSubImage( pFoster->Surface
-													, pOrphan->detached_at.x, pOrphan->detached_at.y
-													, pOrphan->detached_at.width, pOrphan->detached_at.height
-													);
+				, pOrphan->detached_at.x, pOrphan->detached_at.y
+				, pOrphan->detached_at.width, pOrphan->detached_at.height
+				);
 		else
 			pOrphan->Window = MakeSubImage( pFoster->Surface
-													, pOrphan->original_rect.x, pOrphan->original_rect.y
-													, pOrphan->original_rect.width, pOrphan->original_rect.height
-													);
+				, ScaleValue( &pOrphan->scalex, pOrphan->original_rect.x )
+				, ScaleValue( &pOrphan->scaley, pOrphan->original_rect.y )
+				, ScaleValue( &pOrphan->scalex, pOrphan->original_rect.width )
+				, ScaleValue( &pOrphan->scaley, pOrphan->original_rect.height )
+			);
 	}
 	if( pOrphan->Surface )
 		AdoptSubImage( pOrphan->Window, pOrphan->Surface );

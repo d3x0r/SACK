@@ -131,13 +131,6 @@ void XMLCALL start_tags( void *UserData
 														, IDName
 														, ID
 														, caption );
-		if( border )
-		{
-			if( pc->parent )
-				SetCommonBorder( pc, border|BORDER_NOCAPTION );
-			else
-				SetCommonBorder( pc, border );
-		}
 
 		Release( IDName );
 	}
@@ -150,6 +143,12 @@ void XMLCALL start_tags( void *UserData
 														, width, height
 														, ID
 												, caption );
+	}
+	if( border ) {
+		if( pc->parent )
+			SetCommonBorder( pc, border | BORDER_NOCAPTION );
+		else
+			SetCommonBorder( pc, border );
 	}
 	//lprintf( WIDE( "control done..." ) );
 	if( pc )

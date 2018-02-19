@@ -58,6 +58,8 @@ static int CPROC OnDrawCommon( STATIC_TEXT_NAME )( PSI_CONTROL pc )
 		Image surface = GetControlSurface( pc );
 		SFTFont font;
 		uint32_t height, width;
+		
+		ptc->foreground = basecolor( pc )[TEXTCOLOR];
 		if( ptc->background )
 			ClearImageTo( surface, ptc->background );
 		font = GetFrameFont( pc );

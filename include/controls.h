@@ -967,6 +967,7 @@ PSI_PROC( void, SetCommonFont )( PSI_CONTROL pc, SFTFont font );
 // setting scale of this control immediately scales all contained
 // controls, but the control itself remains at it's current size.
 PSI_PROC( void, SetCommonScale )( PSI_CONTROL pc, PFRACTION scale_x, PFRACTION scale_y );
+PSI_PROC( void, GetCommonScale )( PSI_CONTROL pc, PFRACTION *sx, PFRACTION *sy );
 // use scale_x and scale_y to scale a, b, results are done in a, b
 void ScaleCoords( PSI_CONTROL pc, int32_t* a, int32_t* b );
 
