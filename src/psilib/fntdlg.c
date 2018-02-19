@@ -478,7 +478,7 @@ static void CPROC FillFamilyList( PFONT_DIALOG pfd )
 	}
 	if( !pliSelect )
 	{
-		lprintf( "attempt select %d", pfd->pFontEntry?((uint32_t)(pfd->pFontEntry - fg.pFontCache)):0 );
+		//lprintf( "attempt select %d", pfd->pFontEntry?((uint32_t)(pfd->pFontEntry - fg.pFontCache)):0 );
 		pliSelect = GetNthItem( pc
 									 , pfd->pFontEntry?((uint32_t)(pfd->pFontEntry - fg.pFontCache)):0 );
 	}

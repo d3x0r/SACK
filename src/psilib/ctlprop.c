@@ -737,7 +737,7 @@ PSI_PROC( void, EditFrame )( PSI_CONTROL pc, int bEnable )
 		PPHYSICAL_DEVICE pf = pc->device;
 		if( pf )
 		{
-			lprintf( WIDE("Border type for control is %08") _32fx, pc->BorderType );
+			//lprintf( WIDE("Border type for control is %08") _32fx, pc->BorderType );
 			pf->EditState.BorderType = pc->BorderType;
 			pf->EditState.flags.bActive = bEnable;
 			if( bEnable )
