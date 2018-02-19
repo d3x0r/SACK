@@ -1308,7 +1308,8 @@ static int OnDrawCommon( WIDE("Frame") )( PSI_CONTROL pc )
 	if( g.flags.bLogDebugUpdate )
 		lprintf( WIDE( "-=-=-=-=- Output Frame background..." ) );
 #endif
-	BlatColorAlpha( pc->Surface, 0, 0, pc->surface_rect.width, pc->surface_rect.height, basecolor(pc)[NORMAL] );
+	if( !pc->DefaultBorder )
+		BlatColorAlpha( pc->Surface, 0, 0, pc->surface_rect.width, pc->surface_rect.height, basecolor(pc)[NORMAL] );
 	DrawFrameCaption( pc );
 	return 1;
 }
