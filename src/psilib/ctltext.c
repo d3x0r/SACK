@@ -140,7 +140,7 @@ CAPTIONED_CONTROL_PROC_DEF( STATIC_TEXT, TEXTCONTROL, TextControl, (int attr) )
 	{
 		SetNoFocus( pc );
 		ptc->foreground = basecolor(pc)[TEXTCOLOR];
-		ptc->background = basecolor(pc)[NORMAL];
+		ptc->background = 0;//basecolor(pc)[NORMAL];
 		SetCommonTransparent( pc, TRUE );
 		return TRUE;
 	}
