@@ -130,7 +130,7 @@ static PTEXT GetTime( PCLOCK_CONTROL clock, int bNewline ) /*FOLD00*/
 
 //------------------------------------------------------------------------
 
-static int CPROC DrawClock( PCOMMON pc )
+static int CPROC DrawClock( PSI_CONTROL pc )
 {
 	Image surface = GetControlSurface( pc );
 	ValidatedControlData( PCLOCK_CONTROL, clock_control.TypeID, pClk, pc );
@@ -190,7 +190,7 @@ static int CPROC DrawClock( PCOMMON pc )
 
 static void CPROC Update( uintptr_t psvPC )
 {
-	ValidatedControlData( PCLOCK_CONTROL, clock_control.TypeID, pClk, (PCOMMON)psvPC );
+	ValidatedControlData( PCLOCK_CONTROL, clock_control.TypeID, pClk, (PSI_CONTROL)psvPC );
 	if( pClk )
 	{
 		if( !pClk->flags.bStopped )
@@ -216,7 +216,7 @@ static void CPROC Update( uintptr_t psvPC )
 			}
 
 			if( !no_update )
-				SmudgeCommon( (PCOMMON)psvPC );
+				SmudgeCommon( (PSI_CONTROL)psvPC );
 
 			if( pClk->analog_clock )
 			{
@@ -234,9 +234,9 @@ static void CPROC Update( uintptr_t psvPC )
 	}
 }
 
-int CPROC InitClock( PCOMMON pc )
+int CPROC InitClock( PSI_CONTROL pc )
 {
-	ValidatedControlData( PCLOCK_CONTROL, clock_control.TypeID, pClk, (PCOMMON)pc );
+	ValidatedControlData( PCLOCK_CONTROL, clock_control.TypeID, pClk, (PSI_CONTROL)pc );
 	// 7 lines, width non-specified...
 #ifndef __NO_OPTIONS__
 	pClk->flags.bHighTime = SACK_GetProfileIntEx( WIDE( "SACK" ), WIDE( "PSI/Clock Control/Default to high resolution time?" ), 0, TRUE );
@@ -254,7 +254,7 @@ int CPROC InitClock( PCOMMON pc )
 	return TRUE;
 }
 
-void CPROC DestroyClock( PCOMMON pc )
+void CPROC DestroyClock( PSI_CONTROL pc )
 {
 	RemoveTimer( (uint32_t)GetCommonUserData( pc ) );
 	DeleteLink( &g.clocks, pc );
@@ -271,7 +271,7 @@ CONTROL_REGISTRATION clock_control = { WIDE("Basic Clock Widget")
                              , DestroyClock
 };
 
-void SetClockColor( PCOMMON pc, CDATA color )
+void SetClockColor( PSI_CONTROL pc, CDATA color )
 {
 	ValidatedControlData( PCLOCK_CONTROL, clock_control.TypeID, pClk, pc );
 	if( pClk )
@@ -280,7 +280,7 @@ void SetClockColor( PCOMMON pc, CDATA color )
 	}
 }
 
-void SetClockBackColor( PCOMMON pc, CDATA color )
+void SetClockBackColor( PSI_CONTROL pc, CDATA color )
 {
 	ValidatedControlData( PCLOCK_CONTROL, clock_control.TypeID, pClk, pc );
 	if( pClk )
@@ -289,7 +289,7 @@ void SetClockBackColor( PCOMMON pc, CDATA color )
 	}
 }
 
-void SetClockBackImage( PCOMMON pc, Image image )
+void SetClockBackImage( PSI_CONTROL pc, Image image )
 {
 	ValidatedControlData( PCLOCK_CONTROL, clock_control.TypeID, pClk, pc );
 	if( pClk )
@@ -299,7 +299,7 @@ void SetClockBackImage( PCOMMON pc, Image image )
 
 }
 
-void SetClockHighTimeResolution( PCOMMON pc, LOGICAL bEnable )
+void SetClockHighTimeResolution( PSI_CONTROL pc, LOGICAL bEnable )
 {
 	ValidatedControlData( PCLOCK_CONTROL, clock_control.TypeID, pClk, pc );
 	if( pClk )
@@ -309,7 +309,7 @@ void SetClockHighTimeResolution( PCOMMON pc, LOGICAL bEnable )
 
 }
 
-CDATA GetClockColor( PCOMMON pc )
+CDATA GetClockColor( PSI_CONTROL pc )
 {
 	ValidatedControlData( PCLOCK_CONTROL, clock_control.TypeID, pClk, pc );
 	if( pClk )
@@ -319,7 +319,7 @@ CDATA GetClockColor( PCOMMON pc )
 	return 0;
 }
 
-void StopClock( PCOMMON pc )
+void StopClock( PSI_CONTROL pc )
 {
 	ValidatedControlData( PCLOCK_CONTROL, clock_control.TypeID, pClk, pc );
 	if( pClk )
@@ -328,7 +328,7 @@ void StopClock( PCOMMON pc )
 	}
 }
 
-void StartClock( PCOMMON pc )
+void StartClock( PSI_CONTROL pc )
 {
 	ValidatedControlData( PCLOCK_CONTROL, clock_control.TypeID, pClk, pc );
 	if( pClk )
@@ -337,7 +337,7 @@ void StartClock( PCOMMON pc )
 	}
 }
 
-void MarkClock( PCOMMON pc )
+void MarkClock( PSI_CONTROL pc )
 {
 	ValidatedControlData( PCLOCK_CONTROL, clock_control.TypeID, pClk, pc );
 	if( pClk )
@@ -346,7 +346,7 @@ void MarkClock( PCOMMON pc )
 	}
 }
 
-void ElapseClock( PCOMMON pc )
+void ElapseClock( PSI_CONTROL pc )
 {
 	ValidatedControlData( PCLOCK_CONTROL, clock_control.TypeID, pClk, pc );
 	if( pClk )

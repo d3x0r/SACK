@@ -209,6 +209,9 @@ struct edit_state_tag {
 	} flags;
 	uint32_t BorderType;
 
+	void ( CPROC*frameDetached )( struct common_control_frame * pc );
+	void ( CPROC*frameEditDone )( struct common_control_frame * pc );
+
 //DOM-IGNORE-END
 };
 typedef struct edit_state_tag EDIT_STATE;
@@ -245,7 +248,7 @@ typedef struct frame_border {
 	} Border;
 	Image BorderImage;
 	Image BorderSegment[9]; // really 8, but symetry is kept
-
+	LOGICAL drawFill;
 } FrameBorder;
 
 
@@ -266,6 +269,7 @@ struct physical_device_interface
 		BIT_FIELD bCaptured : 1; // frame owns mouse, control behaving as frame wants all mouse events.
 		BIT_FIELD bApplicationOwned : 1; // current owns was set by application, do not auto disown.
 		BIT_FIELD sent_redraw : 1; // stops sending multiple redraw events....
+		BIT_FIELD bClosed : 1;
 	}flags;
 	EDIT_STATE EditState;
 	//PRENDERER pActImg;
@@ -296,6 +300,7 @@ struct physical_device_interface
 	//int (CPROC*InitControl)(uintptr_t, struct common_control_frame *, uint32_t);// match ControlInitProc(controls.h)
 	uintptr_t psvInit;
 	PLIST pending_dirty_controls; // optimized search list for (allow_threaded_draw == FALSE)
+
 //DOM-IGNORE-END
 };
 typedef struct physical_device_interface PHYSICAL_DEVICE;

@@ -127,7 +127,7 @@ static uintptr_t OnConfigureControl( WIDE("Slider") )( uintptr_t psv, PSI_CONTRO
 {
 	PSLIDER_INFO info = (PSLIDER_INFO)psv;
 	{
-		PCOMMON frame = NULL; 
+		PSI_CONTROL frame = NULL; 
 		int okay = 0;
 		int done = 0;
 		if( !frame )

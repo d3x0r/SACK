@@ -2190,7 +2190,7 @@ void SetAllowDisallowControls( void )
 
 /* this is function has a duplicately named function in pages.c */
 
-static void CPROC ChooseImage( uintptr_t psv, PCONTROL pc )
+static void CPROC ChooseImage( uintptr_t psv, PSI_CONTROL pc )
 {
 	TEXTCHAR result[256];
 	if( PSI_PickFile( pc, WIDE("."), NULL, result, sizeof( result ), FALSE ) )
@@ -2199,7 +2199,7 @@ static void CPROC ChooseImage( uintptr_t psv, PCONTROL pc )
 	}
 }
 #ifndef __NO_ANIMATION__
-static void CPROC ChooseAnimation( uintptr_t psv, PCONTROL pc )
+static void CPROC ChooseAnimation( uintptr_t psv, PSI_CONTROL pc )
 {
 	TEXTCHAR result[256];
 	if( PSI_PickFile( pc, WIDE("."), NULL, result, sizeof( result ), FALSE ) )
@@ -2738,7 +2738,7 @@ PMENU_BUTTON GetCloneButton( PCanvasData canvas, int px, int py, int bInvisible 
 //---------------------------------------------------------------------------
 int CPROC MouseEditGlare( uintptr_t psv, int32_t x, int32_t y, uint32_t b );
 
-static int OnMouseCommon( WIDE( "Menu Canvas" ) )( PCOMMON pc, int32_t x, int32_t y, uint32_t b )
+static int OnMouseCommon( WIDE( "Menu Canvas" ) )( PSI_CONTROL pc, int32_t x, int32_t y, uint32_t b )
 {
 	ValidatedControlData( PCanvasData, menu_surface.TypeID, canvas, pc );
 	static uint32_t _b;
@@ -4397,7 +4397,7 @@ void CPROC AcceptFiles( PSI_CONTROL pc, CTEXTSTR file, int32_t x, int32_t y )
 	bInvoked = FALSE;
 }
 
-static int OnCreateCommon( WIDE( "Menu Canvas" ) )( PCOMMON pc )
+static int OnCreateCommon( WIDE( "Menu Canvas" ) )( PSI_CONTROL pc )
 {
 	ValidatedControlData( PCanvasData, menu_surface.TypeID, canvas, pc );
 	SetCommonTransparent( pc, FALSE );

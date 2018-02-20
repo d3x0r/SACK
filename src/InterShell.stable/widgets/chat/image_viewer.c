@@ -219,7 +219,7 @@ static int OnKeyCommon( CONTROL_NAME )( PSI_CONTROL pc, uint32_t key )
 	return 0;
 }
 
-static void CPROC DoneButton( uintptr_t psv, PCOMMON pc )
+static void CPROC DoneButton( uintptr_t psv, PSI_CONTROL pc )
 {
 	PSI_CONTROL pc_frame = (PSI_CONTROL)GetParentControl( pc );
 	ImageViewer *pViewer = ControlData( ImageViewer *, pc_frame );

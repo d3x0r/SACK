@@ -763,7 +763,7 @@ static void CPROC PickHotkeyFont( uintptr_t psv, PSI_CONTROL pc )
 	PHOTKEY hotkey = (PHOTKEY)psv;
 	SFTFont *font = SelectACanvasFont( GetFrame( pc ), GetFrame( pc ), &hotkey->preset_name );
 
-	//PickScaledFont( 0, 0, &g.width_scale, &g.height_scale, &page_label->fontdatalen, &page_label->fontdata, (PCOMMON)GetFrame(pc) );
+	//PickScaledFont( 0, 0, &g.width_scale, &g.height_scale, &page_label->fontdatalen, &page_label->fontdata, (PSI_CONTROL)GetFrame(pc) );
 	if( font )
 	{
 		hotkey->new_font = font;

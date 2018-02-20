@@ -420,15 +420,11 @@ static int CPROC InitSheetControl( PSI_CONTROL pc )
 	ValidatedControlData( PSHEETCONTROL, SHEET_CONTROL, psc, pc );
 	if( psc )
 	{
-		FRACTION f;
-		//uint32_t w, h;
 		psc->mount_point = MakePrivateControl( pc, CONTROL_FRAME
 														 , 0, 0 // starts with no height, as tabs are added, and measured, this is resized.
 														 , pc->rect.width
 														 , pc->rect.height - psc->height
 														 , 0 );
-		SetFraction( f, 1, 1 );
-		SetCommonScale( psc->mount_point, &f, &f );
 		psc->tab_pad = 8; // default font pad
 		SetCommonBorder( psc->mount_point, BORDER_WITHIN|BORDER_THINNER|BORDER_INVERT );
 		//pc->AddedControl = AddingSheet;

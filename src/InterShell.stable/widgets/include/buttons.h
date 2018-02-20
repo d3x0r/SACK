@@ -110,7 +110,7 @@ KEYPAD_PROC( void, LoadButtonTheme )( void );
 
 typedef void (CPROC *PressHandler)( uintptr_t psv, PKEY_BUTTON key );
 typedef void (CPROC *SimplePressHandler)( uintptr_t psv );
-KEYPAD_PROC( PKEY_BUTTON, MakeKeyExx )( PCOMMON frame
+KEYPAD_PROC( PKEY_BUTTON, MakeKeyExx )( PSI_CONTROL frame
 											  , int32_t x, int32_t y
 											  , uint32_t width, uint32_t height
 											  , uint32_t ID
@@ -127,7 +127,7 @@ KEYPAD_PROC( PKEY_BUTTON, MakeKeyExx )( PCOMMON frame
 											  , uintptr_t psvPress
 											  , CTEXTSTR value
 											  );
-KEYPAD_PROC( PKEY_BUTTON, MakeKeyEx )( PCOMMON frame
+KEYPAD_PROC( PKEY_BUTTON, MakeKeyEx )( PSI_CONTROL frame
 											  , int32_t x, int32_t y
 											  , uint32_t width, uint32_t height
 											  , uint32_t ID
@@ -143,7 +143,7 @@ KEYPAD_PROC( PKEY_BUTTON, MakeKeyEx )( PCOMMON frame
 											  , uintptr_t psvPress
 											  , CTEXTSTR value
 											  );
-KEYPAD_PROC( PKEY_BUTTON, MakeKey )( PCOMMON frame
+KEYPAD_PROC( PKEY_BUTTON, MakeKey )( PSI_CONTROL frame
 											  , int32_t x, int32_t y
 											  , uint32_t width, uint32_t height
 											  , uint32_t ID
@@ -184,7 +184,7 @@ KEYPAD_PROC( void, SetKeyPressed )( PKEY_BUTTON key );
 KEYPAD_PROC( void, SetKeyReleased )( PKEY_BUTTON key );
 
 
-KEYPAD_PROC( PCOMMON, GetKeyCommon )( PKEY_BUTTON pKey );
+KEYPAD_PROC( PSI_CONTROL, GetKeyCommon )( PKEY_BUTTON pKey );
 
 KEYPAD_PROC( void, SetKeyLenses )( PKEY_BUTTON key, Image lense, Image down, Image up, Image mask );
 KEYPAD_PROC( LOGICAL, GetKeyLenses )( CTEXTSTR style, int theme_id, int *use_color, CDATA *color, CDATA *text_color, Image *lense, Image *down, Image *up, Image *mask );

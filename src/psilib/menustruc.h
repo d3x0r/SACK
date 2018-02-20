@@ -38,7 +38,7 @@ typedef struct menu_tag {
         int32_t    x, y; // display x and y
     } display;
     SFTFont  font;
-    PCOMMON image;
+    PSI_CONTROL image;
     int _x, _y, _b;
     struct menu_tag *child, *parent; // currently shown child if any...
     Image surface;

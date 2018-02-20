@@ -41,7 +41,7 @@ KEYPAD_PROC( void, SetNewKeypadFlags )( int newflags );
 // if you call SetNewKeypadFlags with the desired flags, and
 // then invoke a normal MakeNamedControl( WIDE("Keypad Control") ) you will
 // get the desired results - though not thread safe...
-KEYPAD_PROC(PSI_CONTROL, MakeKeypad )( PCOMMON parent
+KEYPAD_PROC(PSI_CONTROL, MakeKeypad )( PSI_CONTROL parent
 												 , int32_t x, int32_t y, uint32_t w, uint32_t h, uint32_t ID, uint32_t flags
 												 , CTEXTSTR accumulator_name );
 KEYPAD_PROC(void, SetKeypadAccumulator )( PSI_CONTROL keypad, char *accumulator_name );
@@ -57,13 +57,13 @@ KEYPAD_PROC( void, CancelKeypadWait )( PSI_CONTROL keypad );
 #define HideKeypad HideCommon
 #define ShowKeypad RevealCommon
 
-//KEYPAD_PROC(PCOMMON, GetKeypadCommon )( PSI_CONTROL keypad );
+//KEYPAD_PROC(PSI_CONTROL, GetKeypadCommon )( PSI_CONTROL keypad );
 #define GetKeypadCommon(keypad) (keypad)
-//KEYPAD_PROC(PSI_CONTROL, GetKeypad )( PCOMMON pc );
+//KEYPAD_PROC(PSI_CONTROL, GetKeypad )( PSI_CONTROL pc );
 #define GetKeypad(pc) (pc)
 
-KEYPAD_PROC( void, SetKeypadEnterEvent )( PCOMMON pc, void (CPROC *event)(uintptr_t,PSI_CONTROL), uintptr_t psv );
-KEYPAD_PROC( void, SetKeypadCancelEvent )( PCOMMON pc, void (CPROC *event)(uintptr_t,PSI_CONTROL), uintptr_t psv );
+KEYPAD_PROC( void, SetKeypadEnterEvent )( PSI_CONTROL pc, void (CPROC *event)(uintptr_t,PSI_CONTROL), uintptr_t psv );
+KEYPAD_PROC( void, SetKeypadCancelEvent )( PSI_CONTROL pc, void (CPROC *event)(uintptr_t,PSI_CONTROL), uintptr_t psv );
 
 KEYPAD_PROC( PSI_CONTROL, MakeKeypadHotkey )( PSI_CONTROL frame
 														  , int32_t x

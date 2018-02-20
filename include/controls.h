@@ -419,8 +419,8 @@ enum {
 #define MKPFRAME(hVid) (((uintptr_t)(hVid))|1)
 //typedef POINTER PSI_CONTROL;
 // any remaining code should reference PSI_CONTROL
-#define PCOMMON PSI_CONTROL
-#define PCONTROL PSI_CONTROL
+//#define PCOMMON PSI_CONTROL
+//#define PCONTROL PSI_CONTROL
 #endif
 
 typedef struct frame_border *PFrameBorder;
@@ -864,6 +864,10 @@ _PROP_NAMESPACE
    and edit enabled like this.                                                     */
 PSI_PROC( void, EditFrame )( PSI_CONTROL pf, int bEnable );
 _PROP_NAMESPACE_END
+
+PSI_PROC( void, SetFrameEditDoneHandler )( PSI_CONTROL pc, void ( CPROC*editDone )( struct common_control_frame * pc ) );
+PSI_PROC( void, SetFrameDetachHandler )( PSI_CONTROL pc, void ( CPROC*frameDetached )( struct common_control_frame * pc ) );
+
 PSI_PROC( void, GetFramePosition )( PSI_CONTROL pf, int32_t *x, int32_t *y );
 PSI_PROC( void, GetFrameSize )( PSI_CONTROL pf, uint32_t *w, uint32_t *h );
 
@@ -917,7 +921,8 @@ PSI_PROC( PSI_CONTROL, GetControl )( PSI_CONTROL pContainer, int ID );
 //#define GetControl(pc,id) GetControl( &((pc)->common),id)
 #define GetControl(pc,id) GetControl( (PSI_CONTROL)(pc),id)
 #endif
-//PSI_PROC( PSI_CONTROL, GetControl)( PSI_CONTROL pf, int ID );
+PSI_PROC( PSI_CONTROL, GetControlByName )( PSI_CONTROL pContainer, const char *ID );
+	//PSI_PROC( PSI_CONTROL, GetControl)( PSI_CONTROL pf, int ID );
 PSI_PROC( uintptr_t, GetCommonUserData )( PSI_CONTROL pf );
 #define GetFrameUserData(pf) GetCommonUserData( (PSI_CONTROL)pf )
 PSI_PROC( void, SetCommonUserData )( PSI_CONTROL pf, uintptr_t psv );

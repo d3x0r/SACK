@@ -2178,7 +2178,8 @@ uintptr_t CPROC AltFrameMouse( uintptr_t psvCommon, int32_t x, int32_t y, uint32
 		// mouseincurrent invokes mouse...
 		if( pf->pCurrent 
 			&& !( result = InvokeMouseMethod( pc, x, y, b ) )
-			&& !pc->flags.bDestroy )
+			&& !pc->flags.bDestroy
+			&& pc->device )
 		{
 #ifdef DETAILED_MOUSE_DEBUG
 			if( g.flags.bLogDetailedMouse )
@@ -2339,7 +2340,7 @@ uintptr_t CPROC AltFrameMouse( uintptr_t psvCommon, int32_t x, int32_t y, uint32
 			}
 		}
 	}
-	if( pf )
+	if( pf && pc->device )
  		pf->_b = b;
 	//lprintf("releasing %p", pc );
 	DeleteUse( pc );

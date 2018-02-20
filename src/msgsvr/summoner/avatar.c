@@ -23,7 +23,7 @@ typedef struct network_data_tag
 	uint32_t state;
 	uint32_t task_id;
 	uint32_t system_id;
-	PCOMMON list; // quick handle to the listbox...
+	PSI_CONTROL list; // quick handle to the listbox...
 	PLISTITEM pliSystem;// system's list item..
 	PLIST tasks;
 } NETWORK_DATA, *PNETWORK_DATA;
@@ -78,7 +78,7 @@ typedef struct local_tag
 	PLIST tasks;
 	PLISTITEM pli_current;
 	int bOkay, bDone;
-	PCOMMON pFrame;
+	PSI_CONTROL pFrame;
 } LOCAL;
 
 static LOCAL l;
@@ -182,7 +182,7 @@ char **MakeTaskArguments( char * *pArgs, char * progname, char * args )
 
 //---------------------------------------------------------------------------
 
-static void taskSelected( uintptr_t psv, PCOMMON pcList, PLISTITEM pli ) {
+static void taskSelected( uintptr_t psv, PSI_CONTROL pcList, PLISTITEM pli ) {
 	PSI_CONTROL list = GetNearControl( pcList, LIST_REQUIRED );
 	INDEX idx;
 	PTASKINFO reqTask;
@@ -199,7 +199,7 @@ static void taskSelected( uintptr_t psv, PCOMMON pcList, PLISTITEM pli ) {
 
 void EditTask( PSI_CONTROL parent_frame, PTASKINFO pTask )
 {
-	PCOMMON frame = LoadXMLFrame( WIDE("frames/CreateTask.frame") );
+	PSI_CONTROL frame = LoadXMLFrame( WIDE("frames/CreateTask.frame") );
 //cpg27dec2006 c:\work\sack\src\msgsvr\summoner\avatar.c(188): Warning! W202: Symbol 'created' has been defined, but not referenced
 //cpg27dec2006    int created = 0;
 	int okay = 0;
@@ -439,7 +439,7 @@ void CPROC SummonerClose( PCLIENT pc )
 
 //---------------------------------------------------------------------
 
-void CPROC StopThing( uintptr_t psv, PCOMMON pc )
+void CPROC StopThing( uintptr_t psv, PSI_CONTROL pc )
 {
 	PITEMDATA pid = (PITEMDATA)GetItemData( l.pli_current );
 	if( pid )
@@ -466,7 +466,7 @@ void CPROC StopThing( uintptr_t psv, PCOMMON pc )
 
 //---------------------------------------------------------------------
 
-void CPROC SuspendThing( uintptr_t psv, PCOMMON pc )
+void CPROC SuspendThing( uintptr_t psv, PSI_CONTROL pc )
 {
 	PITEMDATA pid = (PITEMDATA)GetItemData( l.pli_current );
 	if( pid )
@@ -493,7 +493,7 @@ void CPROC SuspendThing( uintptr_t psv, PCOMMON pc )
 
 //---------------------------------------------------------------------
 
-void CPROC StartThing( uintptr_t psv, PCOMMON pc )
+void CPROC StartThing( uintptr_t psv, PSI_CONTROL pc )
 {
 	PITEMDATA pid = (PITEMDATA)GetItemData( l.pli_current );
 	if( pid )
@@ -540,7 +540,7 @@ int OpenSummoner( char *addr )
 
 //---------------------------------------------------------------------
 
-void CPROC TaskSelectionChanged( uintptr_t psv, PCOMMON pcList, PLISTITEM pli )
+void CPROC TaskSelectionChanged( uintptr_t psv, PSI_CONTROL pcList, PLISTITEM pli )
 {
 // update task information
 	l.pli_current = pli;
@@ -576,7 +576,7 @@ int OpenDialog( void )
 	if( l.pFrame )
 	{
 //cpg27dec2006 c:\work\sack\src\msgsvr\summoner\avatar.c(543): Warning! W202: Symbol 'pc' has been defined, but not referenced
-//cpg27dec2006 		PCOMMON pc;
+//cpg27dec2006 		PSI_CONTROL pc;
 		//pc = MakeControl( l.pFrame, LISTBOX_CONTROL, 5, 5, 400, 310, LST_TASKS );
 		SetListboxIsTree( GetControl( l.pFrame, LST_TASKS), TRUE );
 		{

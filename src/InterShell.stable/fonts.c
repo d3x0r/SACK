@@ -232,7 +232,7 @@ static void CPROC EditPageFont(uintptr_t psv, PSI_CONTROL pc )
 										  , &canvas->width_scale, &canvas->height_scale
 										  , &tmplen //font_select->fontdata
 										  , &tmp //font_select->fontdatalen
-										  , (PCOMMON)GetFrame(pc) );
+										  , (PSI_CONTROL)GetFrame(pc) );
 		if( font )
 		{
 			font_select->selected_font->font = font;
@@ -290,7 +290,7 @@ static void CPROC CreatePageFont( uintptr_t psv, PSI_CONTROL pc )
 										  , &canvas->width_scale, &canvas->height_scale
 										  , &tmplen //font_select->fontdata
 										  , &tmp //font_select->fontdatalen
-										  , (PCOMMON)GetFrame(pc) );
+										  , (PSI_CONTROL)GetFrame(pc) );
 		if( font )
 		{
 			PLISTITEM pli;

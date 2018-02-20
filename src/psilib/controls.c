@@ -1213,29 +1213,29 @@ void SmudgeSomeControlsWork( PSI_CONTROL pc, P_IMAGE_RECTANGLE pRect )
 		}
 		else
 		{
-		  // wind_rect is the merge of the update needed
-		  // and the window's bounds, but none of the surface
-		  // setting the image bound to this will short many things like blotting the
-		   //fancy image borders.
-		    // yes redundant with above, but need to fix the image pos
-				// AFTER the update... and well....
-				//Log( WIDE("Hit the rectange, but didn't hit the content... so update border only.") );
-			  if( pc->DrawBorder )
-			  {
+			// wind_rect is the merge of the update needed
+			// and the window's bounds, but none of the surface
+			// setting the image bound to this will short many things like blotting the
+			//fancy image borders.
+			// yes redundant with above, but need to fix the image pos
+			// AFTER the update... and well....
+			//Log( WIDE("Hit the rectange, but didn't hit the content... so update border only.") );
+			if( pc->DrawBorder )
+			{
 #ifdef DEBUG_BORDER_DRAWING
-				  lprintf( "Drawing border ..." );
+				lprintf( "Drawing border ..." );
 #endif
-				  pc->DrawBorder( pc );
-			  }
-				if( pc->device )
-				{
-					//void DrawFrameCaption( PSI_CONTROL );
+				pc->DrawBorder( pc );
+			}
+			if( pc->device )
+			{
+				//void DrawFrameCaption( PSI_CONTROL );
 #ifdef DEBUG_UPDAATE_DRAW
-					if( g.flags.bLogDebugUpdate )
-						lprintf( WIDE("Drew border, drawing caption uhmm update some work controls") );
+				if( g.flags.bLogDebugUpdate )
+					lprintf( WIDE("Drew border, drawing caption uhmm update some work controls") );
 #endif
-					DrawFrameCaption( pc );
-				}
+				DrawFrameCaption( pc );
+			}
 		}
 	}
 }
@@ -3726,16 +3726,30 @@ PSI_PROC( PSI_CONTROL, GetControl )( PSI_CONTROL pContainer, int ID )
 	while( pc )
 	{
 		if( !pc->flags.bHidden && pc->nID == ID )
-			break;
+			return pc;
 		pc = pc->next;
 	}
-	if( !pc )
+	return pc;
+}
+
+//---------------------------------------------------------------------------
+#undef GetControl
+PSI_PROC( PSI_CONTROL, GetControlByName )( PSI_CONTROL pContainer, const char *ID ) {
+	PSI_CONTROL pc;
+	if( !pContainer )
+		return NULL;
+	pc = pContainer->child;
+	while( pc ) {
+		if( pc->pIDName && ( strcmp( pc->pIDName, ID ) == 0 ) )
+			return pc;
+		pc = pc->next;
+	}
 	{
 		pc = pContainer->child;
-		while( pc )
-		{
-			if( !pc->flags.bHidden && pc->nID == ID )
-				break;
+		while( pc ) {
+			PSI_CONTROL result = GetControlByName( pc, ID );
+			if( result )
+				return result;
 			pc = pc->next;
 		}
 	}
@@ -4473,16 +4487,18 @@ PSI_PROC( void, SetControlIDName )( PSI_CONTROL pc, TEXTCHAR *IDName )
 BUTTON_CLICK( ButtonOkay, ( uintptr_t psv, PSI_CONTROL pc ) )
 {
 	PCOMMON_BUTTON_DATA pcbd = pc->parent?&pc->parent->pCommonButtonData:NULL;
-	{
-		int *val = (int*)psv;
-		if( val )
-			*val = TRUE;
-		else
-			if( pcbd->done_value )
-				(*pcbd->done_value) = TRUE;
+	if( pcbd ) {
+		{
+			int *val = (int*)psv;
+			if( val )
+				*val = TRUE;
+			else
+				if( pcbd->done_value )
+					( *pcbd->done_value ) = TRUE;
+		}
+		if( pcbd->thread )
+			WakeThread( pcbd->thread );
 	}
-	if( pcbd->thread )
-		WakeThread( pcbd->thread );
 }
 
 //---------------------------------------------------------------------------
@@ -4503,6 +4519,7 @@ void SetCommonButtons( PSI_CONTROL pf
 		PCOMMON_BUTTON_DATA pcbd;
 		SetButtonPushMethod( GetControl( pf, BTN_CANCEL ), ButtonOkay, (uintptr_t)pdone );
 		SetButtonPushMethod( GetControl( pf, BTN_OKAY ), ButtonOkay, (uintptr_t)pokay );
+		SetButtonPushMethod( GetControl( pf, BTN_ABORT ), ButtonOkay, (uintptr_t)NULL );
 		pcbd = &pf->pCommonButtonData;
 		pcbd->okay_value = pokay;
 		pcbd->done_value = pdone;
@@ -4699,6 +4716,7 @@ PSI_PROC( void, CommonLoop )( int *done, int *okay )
 			//lprintf( WIDE("Sleeping forever, cause I'm not doing anything else...") );
 			WakeableSleep( SLEEP_FOREVER );
 		}
+	pcbd->thread = NULL;
 }
 
 //---------------------------------------------------------------------------
@@ -4717,6 +4735,7 @@ PSI_PROC( void, CommonWaitEndEdit)( PSI_CONTROL *pf ) // a frame in edit mode, o
 			//lprintf( WIDE("Sleeping forever, cause I'm not doing anything else..>") );
 			WakeableSleep( SLEEP_FOREVER );
 		}
+	pcbd->thread = NULL;
 	DeleteWaitEx( pf DBG_SRC );
 }
 
@@ -4746,6 +4765,7 @@ PSI_PROC( void, CommonWait)( PSI_CONTROL pc ) // perhaps give a callback for wit
 				WakeableSleep( 25 );
 			}
 		}
+		pcbd->thread = NULL;
 		DeleteWait( pc );
 	}
 }
@@ -5169,6 +5189,17 @@ void SetCaptionChangedMethod( PSI_CONTROL frame, void (CPROC*_CaptionChanged)   
 	frame->CaptionChanged = _CaptionChanged;
 }
 
+void SetFrameDetachHandler( PSI_CONTROL pc, void ( CPROC*frameDetached )( struct common_control_frame * pc ) ) {
+	if( pc && pc->device ) {
+		pc->device->EditState.frameDetached = frameDetached;
+	}
+}
+
+void SetFrameEditDoneHandler( PSI_CONTROL pc, void ( CPROC*editDone )( struct common_control_frame * pc ) ) {
+	if( pc && pc->device ) {
+		pc->device->EditState.frameEditDone = editDone;
+	}
+}
 
 PSI_NAMESPACE_END
 

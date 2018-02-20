@@ -106,9 +106,9 @@ PMENU hHistoryMenu;
 //----------------------------------------------------------------------------
 
 static int CPROC InitPSIConsole( PSI_CONTROL pc );
-//static int CPROC RenderChildWindow( PCOMMON pc );
-static int CPROC MouseHandler( PCOMMON pc, int32_t x, int32_t y, uint32_t b );
-static int CPROC KeyEventProc( PCOMMON pc, uint32_t key );
+//static int CPROC RenderChildWindow( PSI_CONTROL pc );
+static int CPROC MouseHandler( PSI_CONTROL pc, int32_t x, int32_t y, uint32_t b );
+static int CPROC KeyEventProc( PSI_CONTROL pc, uint32_t key );
 
 CONTROL_REGISTRATION ConsoleClass = { WIDE("PSI Console"), { { 640, 480 }, sizeof( CONSOLE_INFO ), BORDER_NORMAL|BORDER_RESIZABLE|BORDER_FIXED }
 												, InitPSIConsole
@@ -193,7 +193,7 @@ void CPROC PSI_Console_KeystrokePaste( PCONSOLE_INFO console )
 
 //----------------------------------------------------------------------------
 
-static int OnDrawCommon( WIDE("PSI Console") )( PCOMMON pc )
+static int OnDrawCommon( WIDE("PSI Console") )( PSI_CONTROL pc )
 {
 	ValidatedControlData( PCONSOLE_INFO, ConsoleClass.TypeID, console, pc );
 	//PCONSOLE_INFO console = (PCONSOLE_INFO)GetCommonUserData(pc);
@@ -231,7 +231,7 @@ static int OnDrawCommon( WIDE("PSI Console") )( PCOMMON pc )
 
 //----------------------------------------------------------------------------
 
-int CPROC KeyEventProc( PCOMMON pc, uint32_t key )
+int CPROC KeyEventProc( PSI_CONTROL pc, uint32_t key )
 {
 	ValidatedControlData( PCONSOLE_INFO, ConsoleClass.TypeID, console, pc );
 	//PCONSOLE_INFO console = (PCONSOLE_INFO)GetCommonUserData( pc );
@@ -270,7 +270,7 @@ int CPROC KeyEventProc( PCOMMON pc, uint32_t key )
 
 //----------------------------------------------------------------------------
 
-int CPROC MouseHandler( PCOMMON pc, int32_t x, int32_t y, uint32_t b )
+int CPROC MouseHandler( PSI_CONTROL pc, int32_t x, int32_t y, uint32_t b )
 {
 	static int32_t _x, _y;
 	static uint32_t _b;
@@ -698,7 +698,7 @@ PRELOAD(RegisterConsole)
 	RenderInterface = GetDisplayInterface();
 	DoRegisterControl( &ConsoleClass );
 	//SimpleRegisterMethod( WIDE( "psi/control/" ) WIDE( "Dekware PSI Console" ) WIDE( "/rtti/extra init" )
-	//						  , InitDekwareConsole, WIDE( "int" ), WIDE( "extra init" ), WIDE( "(PCOMMON)" ) );
+	//						  , InitDekwareConsole, WIDE( "int" ), WIDE( "extra init" ), WIDE( "(PSI_CONTROL)" ) );
 
 }
 

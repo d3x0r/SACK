@@ -27,7 +27,7 @@ typedef struct list_fill_tag
 	struct {
 		uint32_t bSecondLevel : 1;
 	} flags;
-	PCONTROL pcList;
+	PSI_CONTROL pcList;
 	int nLevel;
 	PLISTITEM pLastItem;
 	PODBC odbc;
@@ -72,7 +72,7 @@ struct instance_local *default_local;
 
 int CPROC FillList( uintptr_t psv, CTEXTSTR name, POPTION_TREE_NODE ID, int flags );
 
-void CPROC ListItem( uintptr_t psv, PCOMMON pc, PLISTITEM pli )
+void CPROC ListItem( uintptr_t psv, PSI_CONTROL pc, PLISTITEM pli )
 {
 	PNODE_DATA pnd = (PNODE_DATA)GetItemData( pli );
 	if( !pnd->flags.bOpened )
@@ -90,7 +90,7 @@ void CPROC ListItem( uintptr_t psv, PCOMMON pc, PLISTITEM pli )
 	}
 }
 
-void CPROC HandleItemOpened( uintptr_t psv, PCONTROL pc, PLISTITEM pli, LOGICAL bOpened )
+void CPROC HandleItemOpened( uintptr_t psv, PSI_CONTROL pc, PLISTITEM pli, LOGICAL bOpened )
 {
 	if( bOpened )
 	{
@@ -138,7 +138,7 @@ int CPROC FillList( uintptr_t psv, CTEXTSTR name, POPTION_TREE_NODE ID, int flag
 
 
 
-PUBLIC( int, InitOptionList )( PODBC odbc, PCONTROL pc, uint32_t ID )
+PUBLIC( int, InitOptionList )( PODBC odbc, PSI_CONTROL pc, uint32_t ID )
 {
 	LISTFILL lf;
 	lf.flags.bSecondLevel = 0;
@@ -154,7 +154,7 @@ PUBLIC( int, InitOptionList )( PODBC odbc, PCONTROL pc, uint32_t ID )
 }
 
 
-static void CPROC OptionSelectionChanged( uintptr_t psvUser, PCONTROL pc, PLISTITEM hli )
+static void CPROC OptionSelectionChanged( uintptr_t psvUser, PSI_CONTROL pc, PLISTITEM hli )
 {
 	//static TEXTCHAR buffer[4096];
 	PNODE_DATA pnd = (PNODE_DATA)GetItemData( hli );
@@ -192,7 +192,7 @@ static void CPROC OptionSelectionChanged( uintptr_t psvUser, PCONTROL pc, PLISTI
 	}
 }
 
-static void CPROC UpdateValue( uintptr_t psv, PCOMMON pc )
+static void CPROC UpdateValue( uintptr_t psv, PSI_CONTROL pc )
 {
 	if( !option_thread )
 		option_thread = default_local;
@@ -208,7 +208,7 @@ static void CPROC UpdateValue( uintptr_t psv, PCOMMON pc )
 	}
 }
 
-static void CPROC ResetButton( uintptr_t psv, PCOMMON pc )
+static void CPROC ResetButton( uintptr_t psv, PSI_CONTROL pc )
 {
 	if( !option_thread )
 		option_thread = default_local;
@@ -218,12 +218,12 @@ static void CPROC ResetButton( uintptr_t psv, PCOMMON pc )
 	InitOptionList( (PODBC)psv, GetNearControl( pc, LST_OPTIONMAP ), LST_OPTIONMAP );
 }
 
-static void CPROC DoneButton( uintptr_t psv, PCOMMON pc )
+static void CPROC DoneButton( uintptr_t psv, PSI_CONTROL pc )
 {
 	PSI_CONTROL pc_frame = (PSI_CONTROL)GetParentControl( pc );
 	DestroyFrame( &pc_frame );
 }
-static void CPROC DeleteBranch( uintptr_t psv, PCOMMON pc )
+static void CPROC DeleteBranch( uintptr_t psv, PSI_CONTROL pc )
 {
 	if( !option_thread )
 		option_thread = default_local;
@@ -246,7 +246,7 @@ static void CPROC CopyBranchQueryResult( uintptr_t psv, LOGICAL success )
 	InitOptionList( (PODBC)psv, GetNearControl( params->pc, LST_OPTIONMAP ), LST_OPTIONMAP );
 }
 
-static void CPROC CopyBranch( uintptr_t psv, PCOMMON pc )
+static void CPROC CopyBranch( uintptr_t psv, PSI_CONTROL pc )
 {
 	struct query_params  *params = New( struct query_params );
 	params->pc = pc;
@@ -273,7 +273,7 @@ static void CPROC CreateEntryQueryResult( uintptr_t psv, LOGICAL success )
 	Release( params );
 }
 
-static void CPROC CreateEntry( uintptr_t psv, PCOMMON pc )
+static void CPROC CreateEntry( uintptr_t psv, PSI_CONTROL pc )
 {
 	struct query_params  *params = New( struct query_params );
 	params->pc = pc;
@@ -284,14 +284,14 @@ static void CPROC CreateEntry( uintptr_t psv, PCOMMON pc )
 	SimpleUserQueryEx( params->result, 256, WIDE("Enter New Branch Name"), GetFrame( pc ), CreateEntryQueryResult, (uintptr_t)params );
 }
 
-static void CPROC FindEntry( uintptr_t psv, PCOMMON pc );
+static void CPROC FindEntry( uintptr_t psv, PSI_CONTROL pc );
 
 static PSI_CONTROL CreateOptionFrame( PODBC odbc, LOGICAL tree, int *done )
 {
 	PSI_CONTROL frame;
 	{
-		PCOMMON pc;
-		PCONTROL list;
+		PSI_CONTROL pc;
+		PSI_CONTROL list;
 #define SIZE_BASE 430
 #define NEW_SIZE 720
 #define LIST_SIZE           240 - SIZE_BASE + NEW_SIZE
@@ -386,7 +386,7 @@ static void CPROC FindEntryResult( uintptr_t psv, LOGICAL success )
 	Release( params );
 }
 
-static void CPROC FindEntry( uintptr_t psv, PCOMMON pc )
+static void CPROC FindEntry( uintptr_t psv, PSI_CONTROL pc )
 {
 	struct find_entry_external *params = New( struct find_entry_external );
 	params->frame = GetFrame( pc );
@@ -417,7 +417,7 @@ int EditOptionsEx
 #endif
                   ( PODBC odbc, PSI_CONTROL parent, LOGICAL wait )
 {
-	PCOMMON frame;// = LoadFrame( WIDE("edit.frame"), NULL, NULL, 0 );
+	PSI_CONTROL frame;// = LoadFrame( WIDE("edit.frame"), NULL, NULL, 0 );
 	int done = FALSE;
 	if( !odbc )
 		odbc = GetOptionODBC( NULL );

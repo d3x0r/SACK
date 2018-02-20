@@ -35,9 +35,9 @@ typedef struct banner_tag
 	// if text controls were a little more betterer this would be good...
 	// they have textcolor, background color, borders, and uhmm they're missing
 	// font, and centering rules... left/right/center,top/bottom/center,
-	//PCONTROL message;
-	PCONTROL okay, cancel;
-	PCONTROL yes, no;
+	//PSI_CONTROL message;
+	PSI_CONTROL okay, cancel;
+	PSI_CONTROL yes, no;
 	struct banner_tag **me;
 	uint32_t result;
 	uint32_t timeout;
@@ -138,7 +138,7 @@ static void InitBannerFrame( void )
 
 //--------------------------------------------------------------------------
 
-static void CPROC SomeChoiceClicked( uintptr_t psv, PCONTROL pc )
+static void CPROC SomeChoiceClicked( uintptr_t psv, PSI_CONTROL pc )
 {
 	PBANNER banner = (PBANNER)psv;
    int choice = GetControlID( pc );
@@ -170,7 +170,7 @@ static void CPROC SomeChoiceClicked( uintptr_t psv, PCONTROL pc )
 
 //--------------------------------------------------------------------------
 
-static void CPROC OkayChoiceClicked( uintptr_t psv, PCONTROL pc )
+static void CPROC OkayChoiceClicked( uintptr_t psv, PSI_CONTROL pc )
 {
 	PBANNER banner = (PBANNER)psv;
 #ifdef DEBUG_BANNER_DRAW_UPDATE
@@ -188,7 +188,7 @@ static void CPROC OkayChoiceClicked( uintptr_t psv, PCONTROL pc )
 
 //--------------------------------------------------------------------------
 
-static void CPROC CancelChoiceClicked( uintptr_t psv, PCONTROL pc )
+static void CPROC CancelChoiceClicked( uintptr_t psv, PSI_CONTROL pc )
 {
 	PBANNER banner = (PBANNER)psv;
 #ifdef DEBUG_BANNER_DRAW_UPDATE
@@ -259,7 +259,7 @@ static int OnKeyCommon( BANNER_NAME )( PSI_CONTROL pc, uint32_t key )
 
 static int OnMouseCommon( BANNER_NAME )
 //static int CPROC ClickHandler
-( PCONTROL pc, int32_t x, int32_t y, uint32_t b )
+( PSI_CONTROL pc, int32_t x, int32_t y, uint32_t b )
 {
 	//ValidatedControlData();
 	PBANNER *ppBanner = (PBANNER*)GetCommonUserData( pc );
@@ -429,7 +429,7 @@ static void DrawBannerCaption( PSI_CONTROL pc, PBANNER banner, Image surface, TE
 
 //--------------------------------------------------------------------------
 
-static int OnDrawCommon( BANNER_NAME )( PCONTROL pc )
+static int OnDrawCommon( BANNER_NAME )( PSI_CONTROL pc )
 {
 	static TEXTCHAR caption[4096];
 	PBANNER *ppBanner = (PBANNER*)GetCommonUserData( pc );

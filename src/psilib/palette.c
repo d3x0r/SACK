@@ -49,8 +49,8 @@ typedef struct PickColor_tag
 	int Alpha;	 // level of alpha...
 	CDATA CurrentColor;
 	CDATA Presets[36];
-	PCONTROL LastPreset;
-	PCONTROL pcZoom;
+	PSI_CONTROL LastPreset;
+	PSI_CONTROL pcZoom;
 	PSI_CONTROL psw, pShadeRed, pShadeBlue, pShadeGreen; // shade well data...
 	int bSetPreset;
 	int ColorDialogDone, ColorDialogOkay;
@@ -153,7 +153,7 @@ static CDATA ScaleColor( CDATA original, CDATA new_color, int max, int cur )
 }
 //----------------------------------------------------------------------------
 
-static int OnDrawCommon(WIDE("Shade Well")) ( PCONTROL pcShade )
+static int OnDrawCommon(WIDE("Shade Well")) ( PSI_CONTROL pcShade )
 {
 	ValidatedControlData( PSHADE_WELL, shade_well.TypeID, psw, pcShade );
 	uint32_t black;
@@ -239,7 +239,7 @@ int CPROC DrawPalette( PSI_CONTROL pc )
 
 //----------------------------------------------------------------------------
 
-SLIDER_UPDATE( SetGreenLevel, (uintptr_t psv, PCONTROL pc, int val) )
+SLIDER_UPDATE( SetGreenLevel, (uintptr_t psv, PSI_CONTROL pc, int val) )
 {
 	//PPALETTE_CONTROL
 	CDATA c;
@@ -317,7 +317,7 @@ static void SavePresets( PPICK_COLOR_DATA ppcd )
 
 //----------------------------------------------------------------------------
 
-BUTTON_CLICK( PresetButton, ( uintptr_t psv, PCONTROL pc ))
+BUTTON_CLICK( PresetButton, ( uintptr_t psv, PSI_CONTROL pc ))
 {
 	// button was pressed...
 	PPICK_COLOR_DATA ppcd = (PPICK_COLOR_DATA)psv;
@@ -350,7 +350,7 @@ BUTTON_CLICK( PresetButton, ( uintptr_t psv, PCONTROL pc ))
 
 //----------------------------------------------------------------------------
 
-BUTTON_DRAW( PresetDraw, ( uintptr_t psv, PCONTROL pc ) )
+BUTTON_DRAW( PresetDraw, ( uintptr_t psv, PSI_CONTROL pc ) )
 {
 	PPICK_COLOR_DATA ppcd = PPCD(pc);
 	if( ppcd )
@@ -365,7 +365,7 @@ BUTTON_DRAW( PresetDraw, ( uintptr_t psv, PCONTROL pc ) )
 
 //----------------------------------------------------------------------------
 
-BUTTON_CLICK( DefinePreset, ( uintptr_t unused, PCONTROL pc ) )
+BUTTON_CLICK( DefinePreset, ( uintptr_t unused, PSI_CONTROL pc ) )
 {
 	PPICK_COLOR_DATA ppcd = (PPICK_COLOR_DATA)unused;
 	// put up a message box... 
@@ -374,7 +374,7 @@ BUTTON_CLICK( DefinePreset, ( uintptr_t unused, PCONTROL pc ) )
 
 //----------------------------------------------------------------------------
 
-BUTTON_CHECK( AlphaPressed, ( uintptr_t unused, PCONTROL pc ) )
+BUTTON_CHECK( AlphaPressed, ( uintptr_t unused, PSI_CONTROL pc ) )
 {
 	PPICK_COLOR_DATA ppcd = (PPICK_COLOR_DATA)unused;
 	if( GetCheckState( pc ) )
@@ -549,7 +549,7 @@ PSI_PROC( int, PickColorEx )( CDATA *result, CDATA original, PSI_CONTROL hAbove,
 		MakeTextControl( pf, 5, ysize + 14, 150, 12, TXT_STATIC, WIDE("User-Defined Colors"), 0 );
 		{
 			int i;
-			PCONTROL pc;
+			PSI_CONTROL pc;
 			for( i = 0; i < 12; i++ )
 			{
 				pc = MakeCustomDrawnButton( pf, 5 + 18 * i, ysize + 15 + 13     , 16, 16, BTN_PRESET_BASE+i, 0, PresetDraw, PresetButton, (uintptr_t)&pcd );
@@ -613,7 +613,7 @@ PSI_PROC( int, PickColor )( CDATA *result, CDATA original, PSI_CONTROL hAbove )
 
 //----------------------------------------------------------------------------
 
-static int CPROC ColorWellDraw( PCONTROL pc )
+static int CPROC ColorWellDraw( PSI_CONTROL pc )
 {
 	ValidatedControlData( PCOLOR_WELL, color_well.TypeID, pcw, pc );
 	if( pcw )

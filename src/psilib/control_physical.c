@@ -63,31 +63,35 @@ static void CPROC FrameClose( uintptr_t psv )
 
 //---------------------------------------------------------------------------
 
-void GetCurrentDisplaySurface( PPHYSICAL_DEVICE device )
-{
+void GetCurrentDisplaySurface( PPHYSICAL_DEVICE device ) {
 	PSI_CONTROL pc = device->common;
 	Image surface = pc->Surface;
 	Image newsurface
-		= device->pActImg?GetDisplayImage( device->pActImg ):MakeImageFile( pc->rect.width, pc->rect.height );
-	if( pc->Window != newsurface )
-	{
+		= device->pActImg ? GetDisplayImage( device->pActImg ) : MakeImageFile( pc->rect.width, pc->rect.height );
+	if( pc->Window != newsurface ) {
 		pc->flags.bDirty = 1;
 		TransferSubImages( newsurface, pc->Window );
 		if( pc->Window )
 			UnmakeImageFile( pc->Window );
 		pc->Window = newsurface;
 	}
-	if( pc->Window->width != pc->rect.width )
-	{
+	if( pc->Window->width != pc->rect.width ) {
 		pc->rect.width = pc->Window->width;
 		pc->flags.bResizedDirty = 1;
 		pc->flags.bDirty = 1;
 	}
-	if( pc->Window->height != pc->rect.height )
-	{
+	if( pc->Window->height != pc->rect.height ) {
 		pc->rect.height = pc->Window->height;
 		pc->flags.bDirty = 1;
 		pc->flags.bResizedDirty = 1;
+	}
+	if( pc->flags.bResizedDirty ) {
+		PFRACTION ix, iy;
+		GetCommonScale( pc, &ix, &iy );
+		pc->original_rect.x = InverseScaleValue( ix, pc->rect.x );
+		pc->original_rect.y = InverseScaleValue( iy, pc->rect.y );
+		pc->original_rect.width = InverseScaleValue( ix, pc->rect.width - FrameBorderX( pc, pc->BorderType ) );
+		pc->original_rect.height = InverseScaleValue( iy, pc->rect.height - FrameBorderY( pc, pc->BorderType, GetText( pc->caption.text ) ) );
 	}
 }
 
@@ -193,6 +197,7 @@ static void CPROC FrameRedraw( uintptr_t psvFrame, PRENDERER psvSelf )
 #ifdef DEBUG_BORDER_DRAWING
 				lprintf( "Drawing border here too.." );
 #endif
+				pc->border->drawFill = 1;
 				DrawFrameCaption( pc );
 				pc->DrawBorder( pc );
 			}
@@ -371,6 +376,8 @@ static void CPROC FrameFocusProc( uintptr_t psvFrame, PRENDERER loss )
 	{
 		if( !g.flags.always_draw && pc->DrawBorder )
 		{
+			// background fill?
+			// pc->border->drawFill = 1; // otherwise MUST smudge instead of just draw.
 			pc->DrawBorder( pc );
 		}
 		if( !g.flags.always_draw )

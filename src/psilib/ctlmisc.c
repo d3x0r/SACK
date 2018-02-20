@@ -7,9 +7,9 @@
 
 PSI_NAMESPACE 
 
-PSI_PROC( void, SimpleMessageBox )( PCOMMON parent, CTEXTSTR title, CTEXTSTR content )
+PSI_PROC( void, SimpleMessageBox )( PSI_CONTROL parent, CTEXTSTR title, CTEXTSTR content )
 {
-	PCOMMON msg;
+	PSI_CONTROL msg;
 	CTEXTSTR start, end;
 	TEXTCHAR msgtext[256];
 	int okay = 0;
@@ -58,7 +58,7 @@ PSI_PROC( void, SimpleMessageBox )( PCOMMON parent, CTEXTSTR title, CTEXTSTR con
 	DestroyFrame( &msg );
 }
 
-int SimpleUserQuery( TEXTSTR result, int reslen, CTEXTSTR question, PCOMMON pAbove )
+int SimpleUserQuery( TEXTSTR result, int reslen, CTEXTSTR question, PSI_CONTROL pAbove )
 {
 	return SimpleUserQueryEx( result, reslen, question, pAbove, NULL, 0 );
 }

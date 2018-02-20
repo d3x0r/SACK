@@ -253,7 +253,7 @@ typedef struct myconsolestruc {
 		struct
 		{
 			PRENDERER renderer;
-			PCOMMON frame;
+			PSI_CONTROL frame;
 			//SFTFont hFont;
 			Image image;
 			CDATA  crCommand;

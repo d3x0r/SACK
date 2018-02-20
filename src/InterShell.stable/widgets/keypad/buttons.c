@@ -160,7 +160,7 @@ static LOCAL l;
 // have to figure out a way to define subclasses...
 EasyRegisterControlWithBorder( BUTTON_NAME, sizeof( KEY_BUTTON ), BORDER_NONE );
 
-void CPROC PressKeyButton( PKEY_BUTTON key, PCONTROL pc )
+void CPROC PressKeyButton( PKEY_BUTTON key, PSI_CONTROL pc )
 {
 	// not really sure I need to do anything here...
 	if( !key->flags.bNoPress && key->PressHandler )
@@ -371,7 +371,7 @@ void CPROC DrawGlareLayer( uintptr_t psv_control, PRENDERER renderer )
 }
 //------------------------------------------------------------------------------------
 
-static int OnCreateCommon(BUTTON_NAME)( PCOMMON pc )
+static int OnCreateCommon(BUTTON_NAME)( PSI_CONTROL pc )
 {
 	MyValidatedControlData( PKEY_BUTTON, button, pc );
 	if( button )
@@ -1016,7 +1016,7 @@ static int OnCommonFocus( BUTTON_NAME )( PSI_CONTROL pc, LOGICAL focused )
    return 1;
 }
 
-static int OnDrawCommon( BUTTON_NAME )( PCONTROL pc )
+static int OnDrawCommon( BUTTON_NAME )( PSI_CONTROL pc )
 {
 	CTEXTSTR text;
 	//CDATA foreground = 0;
@@ -1106,7 +1106,7 @@ void SetKeyColor( PKEY_BUTTON key, CDATA color )
 	{
 		key->background.color = color;
 		key->flags.background_image = 0;
-		SmudgeCommon( (PCOMMON)key->button );
+		SmudgeCommon( (PSI_CONTROL)key->button );
 	}
 }
 
@@ -1165,7 +1165,7 @@ int SetKeyImageByName( PKEY_BUTTON key, CTEXTSTR name )
 			{
 				key->flags.background_by_name = 1;
 				key->flags.background_image = 1;
-				//SmudgeCommon( (PCOMMON)key->button );
+				//SmudgeCommon( (PSI_CONTROL)key->button );
 				return TRUE;
 			}
 		}
@@ -1193,7 +1193,7 @@ void SetKeyGreyed( PKEY_BUTTON key, int greyed )
 	if( key )
 	{
 		key->flags.bGreyed = greyed;
-		SmudgeCommon( (PCOMMON)key->button );
+		SmudgeCommon( (PSI_CONTROL)key->button );
 	}
 }
 
@@ -1204,7 +1204,7 @@ void SetKeyTextColor( PKEY_BUTTON key, CDATA color )
 	if( key )
 	{
 		key->text_color = color;
-		SmudgeCommon( (PCOMMON)key->button );
+		SmudgeCommon( (PSI_CONTROL)key->button );
 	}
 }
 
@@ -1243,7 +1243,7 @@ void SetKeyText( PKEY_BUTTON key, CTEXTSTR newtext )
 		}
       if( updated )
 			if( !key->flags.bCreating )
-				SmudgeCommon( (PCOMMON)key->button );
+				SmudgeCommon( (PSI_CONTROL)key->button );
 	}
 }
 
@@ -1343,7 +1343,7 @@ void SetKeyPressNamedEvent( PKEY_BUTTON key, CTEXTSTR PressHandlerName, uintptr_
 //													  , NULL
 //                                         ,
 
-PKEY_BUTTON MakeKeyExx( PCOMMON frame
+PKEY_BUTTON MakeKeyExx( PSI_CONTROL frame
 							 , int32_t x, int32_t y
 							 , uint32_t width, uint32_t height
 							 , uint32_t ID
@@ -1363,7 +1363,7 @@ PKEY_BUTTON MakeKeyExx( PCOMMON frame
 {
 
 	int loaded_default = 0;
-	PCONTROL pc;
+	PSI_CONTROL pc;
 	if( !l.pii )
 		l.pii = GetImageInterface();
 	if( !l.pri )
@@ -1447,7 +1447,7 @@ PKEY_BUTTON MakeKeyExx( PCOMMON frame
 	}
 }
 
-PKEY_BUTTON MakeKeyEx( PCOMMON frame
+PKEY_BUTTON MakeKeyEx( PSI_CONTROL frame
 							, int32_t x, int32_t y
 							, uint32_t width, uint32_t height
 							, uint32_t ID
@@ -1464,7 +1464,7 @@ PKEY_BUTTON MakeKeyEx( PCOMMON frame
 							, CTEXTSTR value
 							)
 {
-	return MakeKeyExx( /*PCOMMON */frame
+	return MakeKeyExx( /*PSI_CONTROL */frame
 						  , /*int32_t*/ x
 						  , /*int32_t*/ y
 						  , /*uint32_t*/ width
@@ -1486,7 +1486,7 @@ PKEY_BUTTON MakeKeyEx( PCOMMON frame
 }
 
 
-PKEY_BUTTON MakeKey( PCOMMON frame
+PKEY_BUTTON MakeKey( PSI_CONTROL frame
 							, int32_t x, int32_t y
 							, uint32_t width, uint32_t height
 							, uint32_t ID
@@ -1531,7 +1531,7 @@ void ShowKey( PKEY_BUTTON pKey )
 	RevealCommon( pKey->button );
 }
 
-PCOMMON GetKeyCommon ( PKEY_BUTTON pKey )
+PSI_CONTROL GetKeyCommon ( PKEY_BUTTON pKey )
 {
 	if( pKey )
 		return pKey->button;

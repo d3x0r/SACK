@@ -600,7 +600,7 @@ static void CPROC RemoveSystemDisallow( uintptr_t psv, PSI_CONTROL pc_button )
 void EditTaskProperties( uintptr_t psv, PSI_CONTROL parent_frame, LOGICAL bVisual )
 {
 	PLOAD_TASK pTask = (PLOAD_TASK)psv;
-	PCOMMON frame = LoadXMLFrameOver( parent_frame, bVisual?WIDE("menu.task.isframe"):WIDE("task.isframe") );
+	PSI_CONTROL frame = LoadXMLFrameOver( parent_frame, bVisual?WIDE("menu.task.isframe"):WIDE("task.isframe") );
 	int created = 0;
 	int okay = 0;
 	int done = 0;
@@ -2408,7 +2408,7 @@ static uintptr_t OnCreateMenuButton( WIDE("Task Util/Set Resolution") )( PMENU_B
 
 static uintptr_t OnEditControl( WIDE("Task Util/Set Resolution") )( uintptr_t psv, PSI_CONTROL parent_frame )
 {
-	PCOMMON frame = LoadXMLFrame( WIDE( "task.resolution.isframe" ) );
+	PSI_CONTROL frame = LoadXMLFrame( WIDE( "task.resolution.isframe" ) );
 	int okay = 0;
 	int done = 0;
 	struct resolution_button *resbut = (struct resolution_button *)psv;

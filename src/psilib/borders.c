@@ -220,12 +220,15 @@ void CPROC DrawFancyFrame( PSI_CONTROL pc )
 									, ALPHA_TRANSPARENT, BLOT_COPY );		
 		break;
 	}
-	BlotScaledImageSizedEx( window, border->BorderSegment[SEGMENT_CENTER]
-		, pc->surface_rect.x, pc->surface_rect.y
-		, pc->surface_rect.width, pc->surface_rect.height
-		, 0, 0
-		, border->BorderSegment[SEGMENT_CENTER]->width, border->BorderSegment[SEGMENT_CENTER]->height
-		, ALPHA_TRANSPARENT, BLOT_COPY );
+	if( border->drawFill ) {
+		BlotScaledImageSizedEx( window, border->BorderSegment[SEGMENT_CENTER]
+			, pc->surface_rect.x, pc->surface_rect.y
+			, pc->surface_rect.width, pc->surface_rect.height
+			, 0, 0
+			, border->BorderSegment[SEGMENT_CENTER]->width, border->BorderSegment[SEGMENT_CENTER]->height
+			, ALPHA_TRANSPARENT, BLOT_COPY );
+		border->drawFill = 0;
+	}
 	BlotImageAlpha( window, border->BorderSegment[SEGMENT_TOP_LEFT]
 					  , 0, 0
 					  , ALPHA_TRANSPARENT );

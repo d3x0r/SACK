@@ -171,7 +171,7 @@ static int CPROC ButtonDraw( PSI_CONTROL pc )
 	if( !pb->DrawMethod )
 	{
 		LOGICAL skip_line = FALSE;
-		BlatColorAlpha( pc->Surface, 0, 0, pc->surface_rect.width, pc->surface_rect.height, pb->color );
+		BlatColorAlpha( pc->Surface, 0, 0, pc->surface_rect.width, pc->surface_rect.height, pb->color?pb->color: basecolor( pc )[NORMAL] );
 		//ClearImageTo( pc->Surface, pb->color );
 
 		//lprintf( WIDE("drawing an image %p"), pb->pImage );
@@ -773,7 +773,7 @@ CONTROL_PROC_DEF_EX( NORMAL_BUTTON, BUTTON, Button, (void) )
 		// this bit of code needs to go away...
 		SetCommonTransparent( pc, TRUE );
 		pb->buttonflags.pressed = FALSE;
-		pb->color = basecolor(pc)[NORMAL];
+		pb->color = 0;
 		pb->_b = 0;
 		return TRUE;
 	}
@@ -814,7 +814,7 @@ int CPROC ConfigureCustomDrawnButton( PSI_CONTROL pc )
 	{
 		SetCommonTransparent( pc, TRUE );
 		pc->CaptionChanged = ButtonCaptionChange;
-		pb->color = basecolor(pc)[NORMAL];
+		pb->color = 0;
 		pb->buttonflags.pressed = FALSE;
 		pb->_b = 0;
 		return 1;
@@ -839,7 +839,7 @@ int CPROC ConfigureImageButton( PSI_CONTROL pc )
 		//pb->ClickMethod = PushMethod;
 		//pb->ClickData = Data;
 		//pb->pImage = pImage;
-		pb->color = basecolor(pc)[NORMAL];
+		pb->color = 0;
 		pb->buttonflags.pressed = FALSE;
 		pc->CaptionChanged = ButtonCaptionChange;
 		return TRUE;

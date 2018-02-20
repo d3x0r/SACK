@@ -762,7 +762,7 @@ void EditCurrentPageProperties(PSI_CONTROL parent, PCanvasData canvas)
 	// the config, and return the button created.
 	//PMENU_BUTTON button;
 	//uintptr_t psv;
-	PCOMMON frame = LoadXMLFrameOver(  parent, WIDE("InterShellPageProperty.isFrame") );
+	PSI_CONTROL frame = LoadXMLFrameOver(  parent, WIDE("InterShellPageProperty.isFrame") );
 	//PPAPER_INFO issue = button->paper;
 	//int created = 0;
 	int okay = 0;

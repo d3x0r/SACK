@@ -162,7 +162,7 @@ static uintptr_t OnConfigureControl( CONTROL_NAME )( uintptr_t psv, PSI_CONTROL 
 {
 	PSLIDER_INFO info = (PSLIDER_INFO)psv;
 	{
-		PCOMMON frame = NULL; 
+		PSI_CONTROL frame = NULL; 
 		int okay = 0;
 		int done = 0;
 		if( !frame )

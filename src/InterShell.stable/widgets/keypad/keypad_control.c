@@ -133,7 +133,7 @@ typedef struct magic_sequence
 
 typedef struct display_struct
 {
-	PCONTROL control;
+	PSI_CONTROL control;
 	SFTFont font;
 	uint32_t width, height;
 	struct keypad_struct *keypad;
@@ -148,7 +148,7 @@ typedef struct key_holder
 
 typedef struct keypad_struct
 {
-	PCOMMON frame;
+	PSI_CONTROL frame;
 	PACCUMULATOR accum;
 	PUSER_INPUT_BUFFER pciEntry; // alpha keypads need this sort of buffer...
 	//PTEXT entry; 
@@ -181,7 +181,7 @@ typedef struct keypad_struct
 	void (CPROC *keypad_cancel_event)(uintptr_t psv, PSI_CONTROL keypad );
 	uintptr_t psvCancelEvent;
 
-	PCOMMON display;
+	PSI_CONTROL display;
 	DeclareLink( struct keypad_struct );
 
 	CDATA numkey_color;      // Color( 220, 220, 12 )
@@ -281,9 +281,9 @@ static CTEXTSTR keyboard_shifted_val[] = {  WIDE("\x1b"), WIDE("!"), WIDE("@"), 
 
 //CONTROL_REGISTRATION keypad_display, keypad_control;
 int CPROC InitKeypad( PSI_CONTROL pc );
-//static int CPROC KeypadDraw( PCOMMON frame );
-int CPROC InitKeypadDisplay( PCOMMON pc );
-static int CPROC DrawKeypadDisplay( PCONTROL pc );
+//static int CPROC KeypadDraw( PSI_CONTROL frame );
+int CPROC InitKeypadDisplay( PSI_CONTROL pc );
+static int CPROC DrawKeypadDisplay( PSI_CONTROL pc );
 
 
 CONTROL_REGISTRATION keypad_control = { WIDE( "Keypad Control 2" )
@@ -368,7 +368,7 @@ static void InvokeMagicSequences( PSI_CONTROL pc, CTEXTSTR new_data )
 
 
 
-static void InvokeEnterEvent( PCOMMON pc )
+static void InvokeEnterEvent( PSI_CONTROL pc )
 {
 	ValidatedControlData( PKEYPAD, keypad_control.TypeID, keypad, pc );
 	if( keypad )
@@ -380,7 +380,7 @@ static void InvokeEnterEvent( PCOMMON pc )
 	}
 }
 
-static void InvokeCancelEvent( PCOMMON pc )
+static void InvokeCancelEvent( PSI_CONTROL pc )
 {
 	ValidatedControlData( PKEYPAD, keypad_control.TypeID, keypad, pc );
 	if( keypad )
@@ -392,7 +392,7 @@ static void InvokeCancelEvent( PCOMMON pc )
 	}
 }
 
-void SetKeypadEnterEvent( PCOMMON pc, void (CPROC *event)(uintptr_t,PSI_CONTROL), uintptr_t psv )
+void SetKeypadEnterEvent( PSI_CONTROL pc, void (CPROC *event)(uintptr_t,PSI_CONTROL), uintptr_t psv )
 {
 	ValidatedControlData( PKEYPAD, keypad_control.TypeID, keypad, pc );
 	if( keypad )
@@ -402,7 +402,7 @@ void SetKeypadEnterEvent( PCOMMON pc, void (CPROC *event)(uintptr_t,PSI_CONTROL)
 	}
 }
 
-void SetKeypadCancelEvent( PCOMMON pc, void (CPROC *event)(uintptr_t,PSI_CONTROL), uintptr_t psv )
+void SetKeypadCancelEvent( PSI_CONTROL pc, void (CPROC *event)(uintptr_t,PSI_CONTROL), uintptr_t psv )
 {
 	ValidatedControlData( PKEYPAD, keypad_control.TypeID, keypad, pc );
 	if( keypad )
@@ -412,7 +412,7 @@ void SetKeypadCancelEvent( PCOMMON pc, void (CPROC *event)(uintptr_t,PSI_CONTROL
 	}
 }
 
-int CPROC InitKeypadDisplay( PCOMMON pc )
+int CPROC InitKeypadDisplay( PSI_CONTROL pc )
 {
 	ValidatedControlData( PDISPLAY, keypad_display.TypeID, display, pc );
 	if( display )
@@ -470,7 +470,7 @@ static void FormatKeypadDisplay( CTEXTSTR format, int out_start, TEXTCHAR *outpu
 }
 
 
-static int CPROC DrawKeypadDisplay( PCONTROL pc )
+static int CPROC DrawKeypadDisplay( PSI_CONTROL pc )
 {
 	TEXTCHAR tmp_text[128];
 	TEXTCHAR text[128];
@@ -540,7 +540,7 @@ static void KeypadAccumUpdated( uintptr_t psvKeypad, PACCUMULATOR accum )
 {
 	PKEYPAD keypad = (PKEYPAD)psvKeypad;
 	if( keypad->display )
-		SmudgeCommon( (PCOMMON)keypad->display );
+		SmudgeCommon( (PSI_CONTROL)keypad->display );
 
 	//  if( keypad->flags.bDisplay )
 	//	DrawDisplay( psvKeypad, keypad->display.control );
@@ -640,7 +640,7 @@ static int resize_keys( PKEYPAD keypad )
 }
 
 
-static int OnDrawCommon( WIDE( "Keypad Control 2" ) )( PSI_CONTROL frame )//CPROC KeypadDraw( PCOMMON frame )
+static int OnDrawCommon( WIDE( "Keypad Control 2" ) )( PSI_CONTROL frame )//CPROC KeypadDraw( PSI_CONTROL frame )
 {
 	ValidatedControlData( PKEYPAD, keypad_control.TypeID, keypad, frame );
 	//lprintf( WIDE("attempt Drawing blue keypad backgorund... on %p"), frame );
@@ -2021,7 +2021,7 @@ void SetNewKeypadFlags( int flags )
 	new_flags = flags;
 }
 
-PSI_CONTROL MakeKeypad( PCOMMON parent
+PSI_CONTROL MakeKeypad( PSI_CONTROL parent
 							 , int32_t x, int32_t y, uint32_t w, uint32_t h
 							  // show current value display...
 							 , uint32_t ID

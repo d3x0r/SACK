@@ -116,7 +116,7 @@ static int HasPropSpacing( PFONT_ENTRY pfe )
 
 //-------------------------------------------------------------------------
 
-static int CPROC UpdateSample( PCOMMON pc )
+static int CPROC UpdateSample( PSI_CONTROL pc )
 {
 	Image surface = GetControlSurface( pc );
 	PFONT_DIALOG pfd = (PFONT_DIALOG)GetFrameUserData( GetFrame( pc ) );
@@ -174,7 +174,7 @@ int UpdateSampleFont( PFONT_DIALOG pfd )
 
 //-------------------------------------------------------------------------
 
-static int CPROC DrawCharacterSize( PCOMMON pc )
+static int CPROC DrawCharacterSize( PSI_CONTROL pc )
 {
 	int x, y;
 	int32_t width, height;
@@ -292,7 +292,7 @@ static void CPROC SizeSelected( uintptr_t psv, PSI_CONTROL pc, PLISTITEM pli )
 		DeleteListItem( pc, pli );
 		if( !GetNthItem( pc, 0 ) )
 		{
-			PCOMMON pcStyle;
+			PSI_CONTROL pcStyle;
 			lprintf( WIDE("------------------------------------------------") );
 			lprintf( WIDE("setting size_file as unuable.... rendering got us no data.") );
 			psf->flags.unusable = 1;
@@ -365,7 +365,7 @@ static void CPROC StyleSelected( uintptr_t psv, PSI_CONTROL pc, PLISTITEM pli )
 		}
 		if( !bAdded )
 		{
-			PCOMMON pcFamily;
+			PSI_CONTROL pcFamily;
 			lprintf( WIDE("Hmm had no sizes, have to remove my own item also.") );
 			pfs->flags.unusable = 1;
 			DeleteListItem( pc, pli );
@@ -532,7 +532,7 @@ static void CPROC SetFontAlphaSelection( uintptr_t psv, PSI_CONTROL pc )
 
 //-------------------------------------------------------------------------
 
-int CPROC SampleMouse( PCOMMON pc, int32_t x, int32_t y, uint32_t b )
+int CPROC SampleMouse( PSI_CONTROL pc, int32_t x, int32_t y, uint32_t b )
 {
 	return 0;
 //  PFONT_DIALOG pfd = (PFONT_DIALOG)psv;
@@ -554,12 +554,12 @@ static void CPROC ButtonApply( uintptr_t psvControl, PSI_CONTROL pc )
 
 extern CONTROL_REGISTRATION font_sample;
 
-int CPROC InitFontSample( PCOMMON pc, va_list args )
+int CPROC InitFontSample( PSI_CONTROL pc, va_list args )
 {
 	return 1;
 }
 
-int CPROC InitFontSizer( PCOMMON pc, va_list args )
+int CPROC InitFontSizer( PSI_CONTROL pc, va_list args )
 {
 	return 1;
 }
@@ -657,7 +657,7 @@ SFTFont PickScaledFontWithUpdate( int32_t x, int32_t y
 														 // resulting parameters for the data and size of data
 														 // which may be passe dto RenderFontData
 														, POINTER *pFontData
-														, PCOMMON pAbove
+														, PSI_CONTROL pAbove
 														, void (CPROC *UpdateFont)( uintptr_t psv, SFTFont font )
 														, uintptr_t psvUpdate )
 {
@@ -861,7 +861,7 @@ SFTFont PickScaledFontWithUpdate( int32_t x, int32_t y
 
 	AddCommonButtons( fdData.pFrame, &fdData.done, &fdData.okay );
 	{
-		PCOMMON pc = GetControl( fdData.pFrame, BTN_OKAY );
+		PSI_CONTROL pc = GetControl( fdData.pFrame, BTN_OKAY );
 #define COMMON_BUTTON_HEIGHT 19
 		MoveSizeCommon( pc
 						  , DIALOG_WIDTH - 60, 240 - ( ( COMMON_BUTTON_HEIGHT + 5 ) * 2 )
@@ -1021,7 +1021,7 @@ PSI_PROC( SFTFont, PickFontWithUpdate )( int32_t x, int32_t y
 											// resulting parameters for the data and size of data
 											// which may be passe dto RenderFontData
 										  , POINTER *pFontData
-										  , PCOMMON pAbove
+										  , PSI_CONTROL pAbove
 										  , void (CPROC *UpdateFont)( uintptr_t psv, SFTFont font )
 										  , uintptr_t psvUpdate )
 {
@@ -1030,7 +1030,7 @@ PSI_PROC( SFTFont, PickFontWithUpdate )( int32_t x, int32_t y
 
 void CPROC UpdateCommonFont( uintptr_t psvCommon, SFTFont font )
 {
-	SetCommonFont( (PCOMMON)psvCommon, font );
+	SetCommonFont( (PSI_CONTROL)psvCommon, font );
 }
 
 PSI_PROC( SFTFont, PickFontFor )( int32_t x, int32_t y
@@ -1038,8 +1038,8 @@ PSI_PROC( SFTFont, PickFontFor )( int32_t x, int32_t y
 										// resulting parameters for the data and size of data
 										// which may be passe dto RenderFontData
 									  , POINTER *pFontData
-									  , PCOMMON pAbove
-									  , PCOMMON pUpdateFontFor )
+									  , PSI_CONTROL pAbove
+									  , PSI_CONTROL pUpdateFontFor )
 {
 	return PickFontWithUpdate( x, y, pFontDataSize, pFontData, pAbove, UpdateCommonFont, (uintptr_t)pUpdateFontFor );
 }
@@ -1049,7 +1049,7 @@ PSI_PROC( SFTFont, PickFont )( int32_t x, int32_t y
 									// resulting parameters for the data and size of data
 									// which may be passe dto RenderFontData
 								  , POINTER *pFontData
-								  , PCOMMON pAbove )
+								  , PSI_CONTROL pAbove )
 {
 	return PickFontWithUpdate( x, y, pFontDataSize, pFontData, pAbove, NULL, 0 );
 }
