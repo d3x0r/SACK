@@ -4331,10 +4331,10 @@ void DestroyCommonExx( PSI_CONTROL *ppc, int level DBG_PASS )
 						CustomDestroy = GetRegisteredProcedureExx((PCLASSROOT)data,(CTEXTSTR)NULL,int,name,(PSI_CONTROL));
 						if( CustomDestroy )
 						{
-							lprintf( WIDE("Invoking custom destroy") );
+							//lprintf( WIDE("Invoking custom destroy") );
 							if( !CustomDestroy( pc ) )
 							{
-								lprintf( WIDE("extra destroy has returned failure... so what?") );
+								//lprintf( WIDE("extra destroy has returned failure... so what?") );
 							}
 						}
 					}
@@ -4349,7 +4349,7 @@ void DestroyCommonExx( PSI_CONTROL *ppc, int level DBG_PASS )
 						{
 							if( !CustomDestroy( pc ) )
 							{
-								lprintf( WIDE("extra destroy has returned failure... so what?") );
+								//lprintf( WIDE("extra destroy has returned failure... so what?") );
 							}
 						}
 					}
