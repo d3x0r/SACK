@@ -667,6 +667,7 @@ void PSI_SetFrameBorder( PSI_CONTROL pc, PFrameBorder border )
 	pc->border = border;
 	if( !( pc->BorderType & BORDER_USER_PROC ) )
 		pc->DrawBorder = (pc->border&&pc->border->BorderImage)?DrawFancyFrame:DrawNormalFrame;
+	border->drawFill = 1;
 	UpdateSurface( pc );
 }
 

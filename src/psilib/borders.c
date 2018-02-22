@@ -220,7 +220,7 @@ void CPROC DrawFancyFrame( PSI_CONTROL pc )
 									, ALPHA_TRANSPARENT, BLOT_COPY );		
 		break;
 	}
-	if( border->drawFill ) {
+	if( pc->flags.bInitial || border->drawFill ) {
 		BlotScaledImageSizedEx( window, border->BorderSegment[SEGMENT_CENTER]
 			, pc->surface_rect.x, pc->surface_rect.y
 			, pc->surface_rect.width, pc->surface_rect.height
