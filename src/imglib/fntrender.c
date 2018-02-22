@@ -1924,7 +1924,7 @@ SFTFont RenderScaledFontData( PFONTDATA pfd, PFRACTION width_scale, PFRACTION he
 	LoadAllFonts(); // load cache data so we can resolve user data
 	if( pfd->magic != MAGIC_PICK_FONT && pfd->magic != MAGIC_RENDER_FONT )
 	{
-		lprintf( "Attempt to decode %s", pfd );
+		//lprintf( "Attempt to decode %s", pfd );
 		delete_pfd = TRUE;
 		if( strncmp( (char*)pfd, "pick,", 4 ) == 0 )
 		{
@@ -1943,17 +1943,17 @@ SFTFont RenderScaledFontData( PFONTDATA pfd, PFRACTION width_scale, PFRACTION he
 				//lprintf( "%d,%d,%d,%d,%d,%d", family, style, file, width, height, flags );
 				if( family < (int)fg.nFonts )
 				{
-					lprintf( "family %s", fg.pFontCache[family].name );
+					//lprintf( "family %s", fg.pFontCache[family].name );
 					ofs = snprintf( buf, 256, "%s", fg.pFontCache[family].name );
 					ofs += 1;
 					if( style < (int)fg.pFontCache[family].nStyles )
 					{
-						lprintf( "style %s", fg.pFontCache[family].styles[style].name );
+						//lprintf( "style %s", fg.pFontCache[family].styles[style].name );
 						ofs += snprintf( buf + ofs, 256-ofs,"%s", fg.pFontCache[family].styles[style].name );
 						ofs += 1;
 						if( file < (int)fg.pFontCache[family].styles[style].nFiles )
 						{
-							lprintf( "file %s", fg.pFontCache[family].styles[style].files[file].file );
+							//lprintf( "file %s", fg.pFontCache[family].styles[style].files[file].file );
 							ofs += snprintf( buf + ofs, 256-ofs,"%s", fg.pFontCache[family].styles[style].files[file].file );
 						}
 					}
