@@ -266,7 +266,7 @@ PSI_CONTROL LoadXMLFrameOverExx( PSI_CONTROL parent, CTEXTSTR file, LOGICAL crea
 	size = 0;
 //#ifdef UNDER_CE
 	{
-		FILE *file_read = sack_fopen( 0, file, "rt" );
+		FILE *file_read = sack_fopen( 0, file, "rb" );
 		if( file_read )
 		{
 			size = sack_fsize( file_read );
@@ -287,7 +287,7 @@ PSI_CONTROL LoadXMLFrameOverExx( PSI_CONTROL parent, CTEXTSTR file, LOGICAL crea
 		size = 0;
 		{
 			INDEX group;
-			FILE *file_read = sack_fopen( group = GetFileGroup( WIDE( "PSI Frames" ), WIDE( "./frames" ) ), file, "rt" );
+			FILE *file_read = sack_fopen( group = GetFileGroup( WIDE( "PSI Frames" ), WIDE( "./frames" ) ), file, "rb" );
 			if( file_read )
 			{
 				size = sack_fsize( file_read );
