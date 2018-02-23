@@ -28,8 +28,8 @@ static LOGICAL CPROC FileDroppedOnFrame( uintptr_t psvControl, CTEXTSTR filename
 			{
 				if( current->flags.bHidden )
 					continue;
-				if( ( x < current->original_rect.x ) || 
-					( y < current->original_rect.y ) || 
+				if( ( x < current->window_rect.x ) || 
+					( y < current->window_rect.y ) || 
 					( SUS_GT( x, int32_t, ( current->original_rect.x + current->original_rect.width ) , uint32_t ) ) || 
 					( SUS_GT( y, int32_t, ( current->original_rect.y + current->original_rect.height ), uint32_t ) ) )
 				{
