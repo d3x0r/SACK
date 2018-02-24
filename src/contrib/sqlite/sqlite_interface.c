@@ -86,7 +86,7 @@ struct my_sqlite3_vfs
 
 struct local_data {
 	PLIST registered_vfs;
-} (*local_sqlite_interface);
+} *local_sqlite_interface;
 
 //typedef struct sqlite3_io_methods sqlite3_io_methods;
 
