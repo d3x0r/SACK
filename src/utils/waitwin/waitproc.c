@@ -34,7 +34,7 @@ BOOL GetProcessList( const TEXTCHAR *file )
 	// display information about each process in turn
 	do
 	{
-      //printf( WIDE("Does %s contain %s"), pe32.szExeFile, file );
+		//printf( WIDE("Does %s contain %s"), pe32.szExeFile, file );
 		if( StrCaseStr( pe32.szExeFile, file ) )
 			return 1;
 	} while( Process32Next( hProcessSnap, &pe32 ) );
@@ -48,7 +48,7 @@ SaneWinMain( argc, argv )
 {
 	if( argv[1] )
 	{
-      int wait_exit = 1;
+		int wait_exit = 1;
 		printf( WIDE("waiting for [%s]\n"), argv[1] );
 		if( argc > 2 && argv[2] )
 			if( StrCaseCmp( argv[2], WIDE("started") ) == 0 )
@@ -57,7 +57,7 @@ SaneWinMain( argc, argv )
 				while( !GetProcessList( argv[1] ) )
 					Sleep( 250 );
 			}
-      if( wait_exit )
+		if( wait_exit )
 			while( GetProcessList( argv[1] ) )
 				Sleep( 250 );
 	}
@@ -69,6 +69,6 @@ SaneWinMain( argc, argv )
 				 WIDE("   then this waits for the process to start instead of waiting for it to exit\n")
 				, argv[0] );
 	}
-   return 0;
+	return 0;
 }
 EndSaneWinMain()
