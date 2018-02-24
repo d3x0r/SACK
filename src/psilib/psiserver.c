@@ -111,103 +111,103 @@ SERVER_PROC( void, DisplayFrame)//( PFRAME pf );
 
 SERVER_PROC( void, SizeCommon)//( PFRAME pf, uint32_t w, uint32_t h );
 {
-   SizeCommon( (PCOMMON)params[0], params[1], params[2] );
+   SizeCommon( (PSI_CONTROL)params[0], params[1], params[2] );
    *result_length = INVALID_INDEX;
    return TRUE;
 }
 
 SERVER_PROC( void, SizeCommonRel)//( PFRAME pf, uint32_t w, uint32_t h );
 {
-   SizeCommonRel( (PCOMMON)params[0], params[1], params[2] );
+   SizeCommonRel( (PSI_CONTROL)params[0], params[1], params[2] );
    *result_length = INVALID_INDEX;
    return TRUE;
 }
 
 SERVER_PROC( void, MoveCommon)//( PFRAME pf, int32_t x, int32_t y );
 {
-   MoveCommon( (PCOMMON)params[0], params[1], params[2] );
+   MoveCommon( (PSI_CONTROL)params[0], params[1], params[2] );
    *result_length = INVALID_INDEX;
    return TRUE;
 }
 
 SERVER_PROC( void, MoveCommonRel)//( PFRAME pf, int32_t x, int32_t y );
 {
-   MoveCommonRel( (PCOMMON)params[0], params[1], params[2] );
+   MoveCommonRel( (PSI_CONTROL)params[0], params[1], params[2] );
    *result_length = INVALID_INDEX;
    return TRUE;
 }
 
 SERVER_PROC( void, MoveSizeCommon)//( PFRAME pf, int32_t x, int32_t y, w, h );
 {
-   MoveSizeCommon( (PCOMMON)params[0], params[1], params[2], params[3], params[4]);
+   MoveSizeCommon( (PSI_CONTROL)params[0], params[1], params[2], params[3], params[4]);
    *result_length = INVALID_INDEX;
    return TRUE;
 }
 
 SERVER_PROC( void, MoveSizeCommonRel)//( PFRAME pf, int32_t x, int32_t y, w, y );
 {
-   MoveSizeCommonRel( (PCOMMON)params[0], params[1], params[2], params[3], params[4] );
+   MoveSizeCommonRel( (PSI_CONTROL)params[0], params[1], params[2], params[3], params[4] );
    *result_length = INVALID_INDEX;
    return TRUE;
 }
 
-SERVER_PROC( PCONTROL, GetControl)//( PFRAME pf, int ID );
-{
-   *result_length = INVALID_INDEX;
-   return TRUE;
-}
-
-SERVER_PROC( PCONTROL, FrameBorderX)
+SERVER_PROC( PSI_CONTROL, GetControl)//( PFRAME pf, int ID );
 {
    *result_length = INVALID_INDEX;
    return TRUE;
 }
 
-SERVER_PROC( PCONTROL, FrameBorderY)
+SERVER_PROC( PSI_CONTROL, FrameBorderX)
 {
    *result_length = INVALID_INDEX;
    return TRUE;
 }
 
-SERVER_PROC( PCONTROL, FrameBorderXOfs)
+SERVER_PROC( PSI_CONTROL, FrameBorderY)
 {
    *result_length = INVALID_INDEX;
    return TRUE;
 }
 
-SERVER_PROC( PCONTROL, FrameBorderYOfs)
-{
-   *result_length = INVALID_INDEX;
-   return TRUE;
-}
-SERVER_PROC( PCONTROL, OrphanCommon)
+SERVER_PROC( PSI_CONTROL, FrameBorderXOfs)
 {
    *result_length = INVALID_INDEX;
    return TRUE;
 }
 
-SERVER_PROC( PCONTROL, AdoptCommon)
+SERVER_PROC( PSI_CONTROL, FrameBorderYOfs)
+{
+   *result_length = INVALID_INDEX;
+   return TRUE;
+}
+SERVER_PROC( PSI_CONTROL, OrphanCommon)
 {
    *result_length = INVALID_INDEX;
    return TRUE;
 }
 
-SERVER_PROC( PCONTROL, GetFrameUserData)
+SERVER_PROC( PSI_CONTROL, AdoptCommon)
 {
    *result_length = INVALID_INDEX;
    return TRUE;
 }
-SERVER_PROC( PCONTROL, SetFrameUserData)
+
+SERVER_PROC( PSI_CONTROL, GetFrameUserData)
 {
    *result_length = INVALID_INDEX;
    return TRUE;
 }
-SERVER_PROC( PCONTROL, UpdateFrame)
+SERVER_PROC( PSI_CONTROL, SetFrameUserData)
 {
    *result_length = INVALID_INDEX;
    return TRUE;
 }
-SERVER_PROC( PCONTROL, SetFrameMousePosition)
+SERVER_PROC( PSI_CONTROL, UpdateFrame)
+{
+   *result_length = INVALID_INDEX;
+   return TRUE;
+}
+SERVER_PROC( PSI_CONTROL, SetFrameMousePosition)
 {
    *result_length = INVALID_INDEX;
    return TRUE;
@@ -217,43 +217,43 @@ SERVER_PROC( PCONTROL, SetFrameMousePosition)
 //SERVER_PROC void SetDefaultCancelID( PFRAME pFrame, int nID );
 
 //-------- Generic control functions --------------
-SERVER_PROC( PFRAME, GetFrame)//( PCONTROL pc );
+SERVER_PROC( PFRAME, GetFrame)//( PSI_CONTROL pc );
 {
    *result_length = INVALID_INDEX;
    return TRUE;
 }
 
-SERVER_PROC( PCONTROL, GetNearControl)//( PCONTROL pc, int ID );
+SERVER_PROC( PSI_CONTROL, GetNearControl)//( PSI_CONTROL pc, int ID );
 {
    *result_length = INVALID_INDEX;
    return TRUE;
 }
 
-SERVER_PROC( void, GetCommonTextEx)//( PCONTROL pc, char *buffer, int buflen, int bCString );
+SERVER_PROC( void, GetCommonTextEx)//( PSI_CONTROL pc, char *buffer, int buflen, int bCString );
 {
    *result_length = INVALID_INDEX;
    return TRUE;
 }
 
-SERVER_PROC( void, SetControlText)//( PCONTROL pc, char *text );
+SERVER_PROC( void, SetControlText)//( PSI_CONTROL pc, char *text );
 {
    *result_length = INVALID_INDEX;
    return TRUE;
 }
 
-SERVER_PROC( void, SetControlFocus)//( PCONTROL pc );
+SERVER_PROC( void, SetControlFocus)//( PSI_CONTROL pc );
 {
    *result_length = INVALID_INDEX;
    return TRUE;
 }
 
-SERVER_PROC( void, EnableControl)//( PCONTROL pc, int bEnable );
+SERVER_PROC( void, EnableControl)//( PSI_CONTROL pc, int bEnable );
 {
    *result_length = INVALID_INDEX;
    return TRUE;
 }
 
-SERVER_PROC( int, IsControlEnabled)//( PCONTROL pc );
+SERVER_PROC( int, IsControlEnabled)//( PSI_CONTROL pc );
 {
    *result_length = INVALID_INDEX;
    return TRUE;
@@ -264,7 +264,7 @@ typedef struct client_init_tag {
 	uintptr_t psvClient;
 } CLIENT_INIT, *PCLIENT_INIT;
 
-static int ClientEventInitControl( uintptr_t psv, PCONTROL pc, uint32_t ID )
+static int ClientEventInitControl( uintptr_t psv, PSI_CONTROL pc, uint32_t ID )
 {
 	PCLIENT_INIT init = (PCLIENT_INIT)psv;
    psv = init->psvClient;
@@ -273,7 +273,7 @@ static int ClientEventInitControl( uintptr_t psv, PCONTROL pc, uint32_t ID )
 						 );
 }
 
-SERVER_PROC( PCONTROL, CreateControlExx )//( PFRAME pFrame
+SERVER_PROC( PSI_CONTROL, CreateControlExx )//( PFRAME pFrame
                    ////   , int nID
                    //   , int x, int y
                    ///   , int w, int h
@@ -299,56 +299,56 @@ SERVER_PROC( PCONTROL, CreateControlExx )//( PFRAME pFrame
    return TRUE;
 }
 
-SERVER_PROC( Image,GetControlSurface)//( PCONTROL pc );
+SERVER_PROC( Image,GetControlSurface)//( PSI_CONTROL pc );
 {
    *result_length = INVALID_INDEX;
    return TRUE;
 }
 
-SERVER_PROC( void, SetCommonDraw)//( PCONTROL pc, void (*Draw)//(PCONTROL pc ) );
+SERVER_PROC( void, SetCommonDraw)//( PSI_CONTROL pc, void (*Draw)//(PSI_CONTROL pc ) );
 {
    *result_length = INVALID_INDEX;
    return TRUE;
 }
 
-SERVER_PROC( void, SetCommonMouse)//( PCONTROL pc, void (*MouseMethod)//(PCONTROL pc, int x, int y, int b ) );
+SERVER_PROC( void, SetCommonMouse)//( PSI_CONTROL pc, void (*MouseMethod)//(PSI_CONTROL pc, int x, int y, int b ) );
 {
    *result_length = INVALID_INDEX;
    return TRUE;
 }
 
-SERVER_PROC( void, SetCommonKey) //( PCONTROL pc, void (*KeyMethod)//( PCONTROL pc, int key ) );
+SERVER_PROC( void, SetCommonKey) //( PSI_CONTROL pc, void (*KeyMethod)//( PSI_CONTROL pc, int key ) );
 {
    *result_length = INVALID_INDEX;
    return TRUE;
 }
 
-SERVER_PROC( void, UpdateControl)//( PCONTROL pc );
+SERVER_PROC( void, UpdateControl)//( PSI_CONTROL pc );
 {
    *result_length = INVALID_INDEX;
    return TRUE;
 }
 
-SERVER_PROC( int, GetControlID)//( PCONTROL pc );
+SERVER_PROC( int, GetControlID)//( PSI_CONTROL pc );
 {
    *result_length = INVALID_INDEX;
    return TRUE;
 }
 
 
-SERVER_PROC( void, DestroyControlEx)//( PCONTROL pc );
+SERVER_PROC( void, DestroyControlEx)//( PSI_CONTROL pc );
 {
    *result_length = INVALID_INDEX;
    return TRUE;
 }
 
-SERVER_PROC( void, SetNoFocus)//( PCONTROL pc );
+SERVER_PROC( void, SetNoFocus)//( PSI_CONTROL pc );
 {
    *result_length = INVALID_INDEX;
    return TRUE;
 }
 
-SERVER_PROC( void *, ControlExtraData)//( PCONTROL pc );
+SERVER_PROC( void *, ControlExtraData)//( PSI_CONTROL pc );
 {
    *result_length = INVALID_INDEX;
    return TRUE;
@@ -388,73 +388,73 @@ SERVER_PROC( void, ProcessControlMessages)//(void);
 }
 
 //------ BUTTONS ------------
-SERVER_PROC( PCONTROL, MakeButton)//( PFRAME pFrame, int attr, int x, int y, int w, int h
+SERVER_PROC( PSI_CONTROL, MakeButton)//( PFRAME pFrame, int attr, int x, int y, int w, int h
                 ///  , uintptr_t nID
                 ///  , char *caption
-                 // , void (*PushMethod)//(PCONTROL pc, uintptr_t psv)
+                 // , void (*PushMethod)//(PSI_CONTROL pc, uintptr_t psv)
                  // , uintptr_t Data );
 {
    *result_length = INVALID_INDEX;
    return TRUE;
 }
 
-SERVER_PROC( PCONTROL, MakeImageButton)//( PFRAME pFrame, int attr, int x, int y, int w, int h
+SERVER_PROC( PSI_CONTROL, MakeImageButton)//( PFRAME pFrame, int attr, int x, int y, int w, int h
                 //  , Image pImage
                 //  , uintptr_t nID
-                //  , void (*PushMethod)//(PCONTROL pc, uintptr_t psv)
+                //  , void (*PushMethod)//(PSI_CONTROL pc, uintptr_t psv)
                 //  , uintptr_t Data );
 {
    *result_length = INVALID_INDEX;
    return TRUE;
 }
 
-SERVER_PROC( PCONTROL, MakeCustomDrawnButton)//( PFRAME pFrame, int attr, int x, int y, int w, int h
-                 // , void (*DrawMethod)//(PCONTROL pc)
+SERVER_PROC( PSI_CONTROL, MakeCustomDrawnButton)//( PFRAME pFrame, int attr, int x, int y, int w, int h
+                 // , void (*DrawMethod)//(PSI_CONTROL pc)
                  // , uintptr_t nID
-                 /// , void (*PushMethod)//(PCONTROL pc, uintptr_t psv), uintptr_t Data );
+                 /// , void (*PushMethod)//(PSI_CONTROL pc, uintptr_t psv), uintptr_t Data );
 {
    *result_length = INVALID_INDEX;
    return TRUE;
 }
 
-SERVER_PROC( void, PressButton)//( PCONTROL pc, int bPressed );
+SERVER_PROC( void, PressButton)//( PSI_CONTROL pc, int bPressed );
 {
    *result_length = INVALID_INDEX;
    return TRUE;
 }
 
-SERVER_PROC( int, IsButtonPressed)//( PCONTROL pc );
+SERVER_PROC( int, IsButtonPressed)//( PSI_CONTROL pc );
 {
    *result_length = INVALID_INDEX;
    return TRUE;
 }
 
 
-SERVER_PROC( PCONTROL, MakeCheckButton)//( PFRAME pFrame, int attr, int x, int y, int w, int h
+SERVER_PROC( PSI_CONTROL, MakeCheckButton)//( PFRAME pFrame, int attr, int x, int y, int w, int h
                    ///     , uintptr_t nID, char *text
-                   //     , void (*CheckProc)//(PCONTROL pc, uintptr_t psv )
+                   //     , void (*CheckProc)//(PSI_CONTROL pc, uintptr_t psv )
                    //     , uintptr_t psv );
 {
    *result_length = INVALID_INDEX;
    return TRUE;
 }
 
-SERVER_PROC( PCONTROL, MakeRadioButton)//( PFRAME pFrame, int attr, int x, int y, int w, int h
+SERVER_PROC( PSI_CONTROL, MakeRadioButton)//( PFRAME pFrame, int attr, int x, int y, int w, int h
 						 //  	, uintptr_t nID, uint32_t GroupID, char *text
-						 //  	, void (*CheckProc)//(PCONTROL pc, uintptr_t psv )
+						 //  	, void (*CheckProc)//(PSI_CONTROL pc, uintptr_t psv )
 						 ///  	, uintptr_t psv );
 {
    *result_length = INVALID_INDEX;
    return TRUE;
 }
 
-SERVER_PROC( int, GetCheckState)//( PCONTROL pc );
+SERVER_PROC( int, GetCheckState)//( PSI_CONTROL pc );
 {
    *result_length = INVALID_INDEX;
    return TRUE;
 }
 
-SERVER_PROC( void, SetCheckState)//( PCONTROL pc, int nState );
+SERVER_PROC( void, SetCheckState)//( PSI_CONTROL pc, int nState );
 {
    *result_length = INVALID_INDEX;
    return TRUE;
@@ -462,20 +462,20 @@ SERVER_PROC( void, SetCheckState)//( PCONTROL pc, int nState );
 
 
 //------ Static Text -----------
-SERVER_PROC( PCONTROL, MakeTextControl)//( PFRAME pf, int flags, int x, int y, int w, int h
+SERVER_PROC( PSI_CONTROL, MakeTextControl)//( PFRAME pf, int flags, int x, int y, int w, int h
                    //     , uintptr_t nID, char *text );
 {
    *result_length = INVALID_INDEX;
    return TRUE;
 }
-SERVER_PROC( void, SetTextControlColors )//( PCONTROL pc, CDATA fore, CDATA back )
+SERVER_PROC( void, SetTextControlColors )//( PSI_CONTROL pc, CDATA fore, CDATA back )
 {
    *result_length = INVALID_INDEX;
    return TRUE;
 }
 
 //------- Edit Control ---------
-SERVER_PROC( PCONTROL, MakeEditControl)//( PFRAME pf, int options, int x, int y, int w, int h
+SERVER_PROC( PSI_CONTROL, MakeEditControl)//( PFRAME pf, int options, int x, int y, int w, int h
                    //     , uintptr_t nID, char *text );
 {
    *result_length = INVALID_INDEX;
@@ -485,13 +485,13 @@ SERVER_PROC( PCONTROL, MakeEditControl)//( PFRAME pf, int options, int x, int y,
 // Use GetControlText/SetControlText
 
 //------- Slider Control --------
-SERVER_PROC( PCONTROL, MakeSlider)//( PFRAME pf, int flags, int x, int y, int w, int h, uintptr_t nID, void (*SliderUpdated)//(PCONTROL pc, int val) );
+SERVER_PROC( PSI_CONTROL, MakeSlider)//( PFRAME pf, int flags, int x, int y, int w, int h, uintptr_t nID, void (*SliderUpdated)//(PSI_CONTROL pc, int val) );
 {
    *result_length = INVALID_INDEX;
    return TRUE;
 }
 
-SERVER_PROC( void, SetSliderValues)//( PCONTROL pc, int min, int current, int max );
+SERVER_PROC( void, SetSliderValues)//( PSI_CONTROL pc, int min, int current, int max );
 {
    *result_length = INVALID_INDEX;
    return TRUE;
@@ -509,44 +509,44 @@ SERVER_PROC( int, PickColor)//( CDATA *result, CDATA original, PFRAME pAbove );
 
 
 //------- ListBox Control --------
-SERVER_PROC( PCONTROL, MakeListBox)//( PFRAME pf, int options, int x, int y, int w, int h, uintptr_t nID );
+SERVER_PROC( PSI_CONTROL, MakeListBox)//( PFRAME pf, int options, int x, int y, int w, int h, uintptr_t nID );
 {
    *result_length = INVALID_INDEX;
    return TRUE;
 }
 
 
-SERVER_PROC( void, ResetList)//( PCONTROL pc );
+SERVER_PROC( void, ResetList)//( PSI_CONTROL pc );
 {
    *result_length = INVALID_INDEX;
    return TRUE;
 }
 
-SERVER_PROC( PLISTITEM, AddListItem)//( PCONTROL pc, char *text );
+SERVER_PROC( PLISTITEM, AddListItem)//( PSI_CONTROL pc, char *text );
 {
    *result_length = INVALID_INDEX;
    return TRUE;
 }
 
-SERVER_PROC( PLISTITEM, AddListItemEx)//( PCONTROL pc, char *text );
+SERVER_PROC( PLISTITEM, AddListItemEx)//( PSI_CONTROL pc, char *text );
 {
    *result_length = INVALID_INDEX;
    return TRUE;
 }
 
-SERVER_PROC( PLISTITEM, InsertListItem)//( PCONTROL pc, char *text );
+SERVER_PROC( PLISTITEM, InsertListItem)//( PSI_CONTROL pc, char *text );
 {
    *result_length = INVALID_INDEX;
    return TRUE;
 }
 
-SERVER_PROC( PLISTITEM, InsertListItemEx)//( PCONTROL pc, char *text );
+SERVER_PROC( PLISTITEM, InsertListItemEx)//( PSI_CONTROL pc, char *text );
 {
    *result_length = INVALID_INDEX;
    return TRUE;
 }
 
-SERVER_PROC( void, DeleteListItem)//( PCONTROL pc, PLISTITEM hli );
+SERVER_PROC( void, DeleteListItem)//( PSI_CONTROL pc, PLISTITEM hli );
 {
    *result_length = INVALID_INDEX;
    return TRUE;
@@ -570,31 +570,31 @@ SERVER_PROC( void, GetListItemText)//( PLISTITEM hli, int bufsize, char *buffer 
    return TRUE;
 }
 
-SERVER_PROC( PLISTITEM, GetSelectedItem)//( PCONTROL pc );
+SERVER_PROC( PLISTITEM, GetSelectedItem)//( PSI_CONTROL pc );
 {
    *result_length = INVALID_INDEX;
    return TRUE;
 }
 
-SERVER_PROC( void, SetSelectedItem)//( PCONTROL pc, PLISTITEM hli );
+SERVER_PROC( void, SetSelectedItem)//( PSI_CONTROL pc, PLISTITEM hli );
 {
    *result_length = INVALID_INDEX;
    return TRUE;
 }
 
-SERVER_PROC( void, SetCurrentItem)//( PCONTROL pc, PLISTITEM hli );
+SERVER_PROC( void, SetCurrentItem)//( PSI_CONTROL pc, PLISTITEM hli );
 {
    *result_length = INVALID_INDEX;
    return TRUE;
 }
 
-SERVER_PROC( PLISTITEM, FindListItem)//( PCONTROL pc, char *text );
+SERVER_PROC( PLISTITEM, FindListItem)//( PSI_CONTROL pc, char *text );
 {
    *result_length = INVALID_INDEX;
    return TRUE;
 }
 
-SERVER_PROC( PLISTITEM, GetNthItem )//( PCONTROL pc, int idx );
+SERVER_PROC( PLISTITEM, GetNthItem )//( PSI_CONTROL pc, int idx );
 {
    *result_length = INVALID_INDEX;
    return TRUE;
@@ -607,7 +607,7 @@ SERVER_PROC(PFONT, SetSelChangeHandler)//()
    return TRUE;
 }
 
-SERVER_PROC( void, SetDoubleClickHandler)//( PCONTROL pc, DoubleClicker proc, uintptr_t psvUser );
+SERVER_PROC( void, SetDoubleClickHandler)//( PSI_CONTROL pc, DoubleClicker proc, uintptr_t psvUser );
 {
    *result_length = INVALID_INDEX;
    return TRUE;
@@ -616,7 +616,7 @@ SERVER_PROC( void, SetDoubleClickHandler)//( PCONTROL pc, DoubleClicker proc, ui
 
 //------- GridBox Control --------
 #ifdef __LINUX__
-SERVER_PROC(PCONTROL, MakeGridBox)//( PFRAME pf, int options, int x, int y, int w, int h,
+SERVER_PROC(PSI_CONTROL, MakeGridBox)//( PFRAME pf, int options, int x, int y, int w, int h,
                   //               int viewport_x, int viewport_y, int total_x, int total_y,
                      //            int row_thickness, int column_thickness, uintptr_t nID );
 {
@@ -692,19 +692,19 @@ SERVER_PROC( int, PSI_OpenFileEx)//( char *basepath, char *types, char *result, 
 
 
 //------- Scroll Control --------
-SERVER_PROC( void, SetScrollParams)//( PCONTROL pc, int min, int cur, int range, int max );
+SERVER_PROC( void, SetScrollParams)//( PSI_CONTROL pc, int min, int cur, int range, int max );
 {
    *result_length = INVALID_INDEX;
    return TRUE;
 }
 
-SERVER_PROC( PCONTROL, MakeScrollBar)//( PFRAME pf, int flags, int x, int y, int w, int h, uintptr_t nID  );
+SERVER_PROC( PSI_CONTROL, MakeScrollBar)//( PFRAME pf, int flags, int x, int y, int w, int h, uintptr_t nID  );
 {
    *result_length = INVALID_INDEX;
    return TRUE;
 }
 
-SERVER_PROC( void, SetScrollUpdateMethod)//( PCONTROL pc
+SERVER_PROC( void, SetScrollUpdateMethod)//( PSI_CONTROL pc
 					//, void (*UpdateProc)(uintptr_t psv, int type, int current)
 					///, uintptr_t data );
 {
@@ -712,7 +712,7 @@ SERVER_PROC( void, SetScrollUpdateMethod)//( PCONTROL pc
    return TRUE;
 }
 
-SERVER_PROC( void, MoveScrollBar) // ( PCONTROL pc, int method ) - evertthing but drag.
+SERVER_PROC( void, MoveScrollBar) // ( PSI_CONTROL pc, int method ) - evertthing but drag.
 {
    *result_length = INVALID_INDEX;
    return TRUE;

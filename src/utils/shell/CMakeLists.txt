@@ -191,7 +191,7 @@ ${LAST_GCC_PROGRAM_SOURCE}
     ${SOURCES_ROOT}/deadstart/deadstart_core.c 
 )
 
-set( project wshell )
+set( project wshell.admin )
 
 
 set( NO_AUTO_DEADSTART_CORE ON )
@@ -225,6 +225,15 @@ add_custom_command(TARGET
                   )
 endif( WIN32 AND CMAKE_COMPILER_IS_GNUCC )
 install( TARGETS ${project} DESTINATION bin )
+
+
+set( project wshell )
+add_portable_program(${project} WIN32 ${BASE_SOURCES} )
+SET_PROPERTY(TARGET ${project} APPEND PROPERTY COMPILE_DEFINITIONS "__STATIC__;SACK_BAG_EXPORTS;__NO_MSGSVR__;__NO_OPTIONS__;__NO_DEFAULT_INTERFACES__;__NO_NETWORK__;__DISABLE_UDP_SYSLOG__" )
+SET_TARGET_PROPERTIES(${project} PROPERTIES FOLDER utils )
+target_link_libraries( ${project}  ${PLATFORM_LIBRARIES})
+install( TARGETS ${project} DESTINATION bin )
+
 
 
 

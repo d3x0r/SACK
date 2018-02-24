@@ -78,8 +78,8 @@ typedef struct gridbox_tag
     unsigned int bSingle : 1; // alternative multiple selections can be made
     unsigned int bDestroying : 1;
   } localflags;
-	PCONTROL pcScroll;
-	PCONTROL pcScrolly;
+	PSI_CONTROL pcScroll;
+	PSI_CONTROL pcScrolly;
 
   //	int TimeLastClick;
   int x, y, b; // old mouse info;
@@ -92,25 +92,25 @@ typedef struct gridbox_tag
   int ColThickness;
   int RowThickness;
 
-  void (*RenderCell)(PCONTROL, uintptr_t);
-  void (*RenderCellSelected)(PCONTROL, uintptr_t);
-  void (*SingleClickCell)(PCONTROL);
+  void (*RenderCell)(PSI_CONTROL, uintptr_t);
+  void (*RenderCellSelected)(PSI_CONTROL, uintptr_t);
+  void (*SingleClickCell)(PSI_CONTROL);
   DoubleClicker CellDClickHandler;
   uintptr_t psvCellDoubleClick;
   int CellTimeLastClick;
   int Cellx, Celly, Cellb; // old mouse info;
 
-  void (*RenderRowBarCell)(PCONTROL, uintptr_t);
-  void (*RenderRowBarCellSelected)(PCONTROL, uintptr_t);
-  void (*SingleClickRowBarCell)(PCONTROL);
+  void (*RenderRowBarCell)(PSI_CONTROL, uintptr_t);
+  void (*RenderRowBarCellSelected)(PSI_CONTROL, uintptr_t);
+  void (*SingleClickRowBarCell)(PSI_CONTROL);
   DoubleClicker TopDClickHandler;  
   uintptr_t psvDoubleClick;
   int RowTimeLastClick;
   int Rowx, Rowy, Rowb; // old mouse info;
 
-  void (*RenderColumnBarCell)(PCONTROL, uintptr_t);
-  void (*RenderColumnBarCellSelected)(PCONTROL, uintptr_t);
-  void (*SingleClickColumnBarCell)(PCONTROL);
+  void (*RenderColumnBarCell)(PSI_CONTROL, uintptr_t);
+  void (*RenderColumnBarCellSelected)(PSI_CONTROL, uintptr_t);
+  void (*SingleClickColumnBarCell)(PSI_CONTROL);
   DoubleClicker ColumnDClickHandler;
   uintptr_t psvColumnDoubleClick;
   int ColumnTimeLastClick;
@@ -136,28 +136,28 @@ typedef struct gridbox_tag
 
 
 /*------12/18/02: Probably not a good idea to use these yet...----*/
-void SetTotalCellsX(PCONTROL pc, int i)
+void SetTotalCellsX(PSI_CONTROL pc, int i)
 {
   PGRIDBOX pgb = (PGRIDBOX)pc;
   pgb->total_x_cells = i;
   //...as if this was all there is to resizing...
 }
 
-void SetTotalCellsY(PCONTROL pc, int i)
+void SetTotalCellsY(PSI_CONTROL pc, int i)
 {
   PGRIDBOX pgb = (PGRIDBOX)pc;
   pgb->total_y_cells = i;
   //...as if this was all there is to resizing...
 }
 
-void SetViewportCellsX(PCONTROL pc, int i)
+void SetViewportCellsX(PSI_CONTROL pc, int i)
 {
   PGRIDBOX pgb = (PGRIDBOX)pc;
   pgb->viewport_x_cells = i;
   //...as if this was all there is to resizing...
 }
 
-void SetViewportCellsY(PCONTROL pc, int i)
+void SetViewportCellsY(PSI_CONTROL pc, int i)
 {
   PGRIDBOX pgb = (PGRIDBOX)pc;
   pgb->viewport_y_cells = i;
@@ -249,9 +249,9 @@ int TackOnARow(PGRID pc, int nrows)
 ------------------------------*/
 
 //---------------------------------------------------------------------------
-static void RenderGridBox( PCONTROL pc );
+static void RenderGridBox( PSI_CONTROL pc );
 
-void DeleteGridItem( PCONTROL pc, HGRIDITEM hgi)
+void DeleteGridItem( PSI_CONTROL pc, HGRIDITEM hgi)
 {
   Log("Destroying a grid object");
 
@@ -300,7 +300,7 @@ void DeleteGridItem( PCONTROL pc, HGRIDITEM hgi)
 
 //---------------------------------------------------------------------------
 
-PSI_PROC( void, ResetGrid )( PCONTROL pc )
+PSI_PROC( void, ResetGrid )( PSI_CONTROL pc )
 {
 	if( pc->common.nType == GRIDBOX_CONTROL )
 	{
@@ -315,7 +315,7 @@ PSI_PROC( void, ResetGrid )( PCONTROL pc )
 
 //---------------------------------------------------------------------------
 
-static void DestroyGridBox( PCONTROL pc )
+static void DestroyGridBox( PSI_CONTROL pc )
 {
 	if( pc->common.nType == GRIDBOX_CONTROL )
 	{
@@ -380,7 +380,7 @@ static void DestroyGridBox( PCONTROL pc )
 //-------------------------Data functions-----------------------------------
 
 //shyly assigns data in the x, y position.  IE, if there isn't room, it will fail.
-int AssignDataXY(PCONTROL pc, int x, int y)
+int AssignDataXY(PSI_CONTROL pc, int x, int y)
 {
   PGRIDBOX pgb = (PGRIDBOX)pc;
   //first, do we have room for this co-ordinate
@@ -407,7 +407,7 @@ void ClearSelectedItemsXY( PGRIDBOX pgb )
 
 //---------------------------------------------------------------------------
 
-static void RenderGridBox( PCONTROL pc )
+static void RenderGridBox( PSI_CONTROL pc )
 {
 
   Log("RENDERING...");
@@ -467,7 +467,7 @@ static void RenderGridBox( PCONTROL pc )
 
 //---------------------------------------------------------------------------
 
-PSI_PROC( HGRIDITEM, GetXYthItem )( PCONTROL pc, int idx, int idy )
+PSI_PROC( HGRIDITEM, GetXYthItem )( PSI_CONTROL pc, int idx, int idy )
 {
 	PGRIDBOX pgb = (PGRIDBOX)pc;
 	PGRIDITEM pgi, _pgi;
@@ -525,7 +525,7 @@ void ScrollBarUpdateX( uintptr_t psvGrid, int type, int current )
 	if( pgb->common.common.nType == GRIDBOX_CONTROL )
 	{
      //pgb->firstshown = (PGRIDITEM)GetNthItem( pgb, current );
-		RenderGridBox( (PCONTROL)pgb );
+		RenderGridBox( (PSI_CONTROL)pgb );
 	}	
 }
 
@@ -537,7 +537,7 @@ void ScrollBarUpdateY( uintptr_t psvGrid, int type, int current )
 	if( pgb->common.common.nType == GRIDBOX_CONTROL )
 	{
      //pgb->firstshown = (PGRIDITEM)GetNthItem( pgb, current );
-		RenderGridBox( (PCONTROL)pgb );
+		RenderGridBox( (PSI_CONTROL)pgb );
 	}	
 }
 
@@ -550,7 +550,7 @@ void UpdateScrollForGrid( PGRIDBOX pgb )
 }
 //---------------------------------------------------------------------------
 
-void MouseGridBox( PCONTROL pc, int x, int y, int b )
+void MouseGridBox( PSI_CONTROL pc, int x, int y, int b )
 {
 	if( pc->common.nType == GRIDBOX_CONTROL )
 	{
@@ -635,7 +635,7 @@ void MouseGridBox( PCONTROL pc, int x, int y, int b )
 }
 //---------------------------------------------------------------------------
 
-static void KeyGridControl( PCONTROL pc, int key )
+static void KeyGridControl( PSI_CONTROL pc, int key )
 {
 	if( pc->common.nType == GRIDBOX_CONTROL )
 	{
@@ -709,7 +709,7 @@ static void KeyGridControl( PCONTROL pc, int key )
 
 //---------------------------------------------------------------------------
 
-PCONTROL MakeGridBox( PFRAME pf, int options, int x, int y, int w, int h, 
+PSI_CONTROL MakeGridBox( PFRAME pf, int options, int x, int y, int w, int h, 
                       int viewport_x, int viewport_y, int total_x, int total_y, 
                       int row_thickness, int column_thickness, uintptr_t nID )
 {
@@ -777,13 +777,13 @@ PCONTROL MakeGridBox( PFRAME pf, int options, int x, int y, int w, int h,
 	pgb->common.KeyProc = KeyGridControl;
 	pgb->common.Destroy = DestroyGridBox;
 	pgb->options = options;
-	SetControlMouse( (PCONTROL)pgb, MouseGridBox );
+	SetControlMouse( (PSI_CONTROL)pgb, MouseGridBox );
 	pgb->items 	 = NULL;
 	pgb->last 	 = NULL;
    pgb->current = NULL;
    pgb->firstshown = NULL;
    pgb->lastshown  = NULL;
-	return (PCONTROL)pgb;
+	return (PSI_CONTROL)pgb;
 }
 
 //---------------------------------------------------------------------------
@@ -792,7 +792,7 @@ PCONTROL MakeGridBox( PFRAME pf, int options, int x, int y, int w, int h,
 
 //---------------------------------------------------------------------------
 
-HGRIDITEM AddGridItem( PCONTROL pc, char *text, int x, int y, uintptr_t data)
+HGRIDITEM AddGridItem( PSI_CONTROL pc, char *text, int x, int y, uintptr_t data)
 {
 	if( pc->common.nType == GRIDBOX_CONTROL )
 	{
@@ -864,7 +864,7 @@ add_at_end:
 
 //---------------------------------------------------------------------------
 
-void SetSelectedItemXY( PCONTROL pc, HGRIDITEM hgi )
+void SetSelectedItemXY( PSI_CONTROL pc, HGRIDITEM hgi )
 {
 	if( pc->common.nType == GRIDBOX_CONTROL )
 	{
@@ -879,7 +879,7 @@ void SetSelectedItemXY( PCONTROL pc, HGRIDITEM hgi )
 
 //---------------------------------------------------------------------------
 
-void SetCurrentItemXY( PCONTROL pc, HGRIDITEM hgi )
+void SetCurrentItemXY( PSI_CONTROL pc, HGRIDITEM hgi )
 {
 	if( pc->common.nType == GRIDBOX_CONTROL )
 	{
@@ -911,7 +911,7 @@ uintptr_t GetItemDataXY( HGRIDITEM hgi )
 
 //---------------------------------------------------------------------------
 
-PSI_PROC( HGRIDITEM, GetSelectedItemXY )( PCONTROL pc )
+PSI_PROC( HGRIDITEM, GetSelectedItemXY )( PSI_CONTROL pc )
 {
 	if( pc->common.nType == GRIDBOX_CONTROL )
 	{
@@ -939,7 +939,7 @@ PSI_PROC( void, GetItemTextXY )( HGRIDITEM hgi, char *buffer, int bufsize )
 
 //---------------------------------------------------------------------------
 
-PSI_PROC( int, GetSelectedItemsXY )( PCONTROL pc, HGRIDITEM *pGrid, int *nSize )
+PSI_PROC( int, GetSelectedItemsXY )( PSI_CONTROL pc, HGRIDITEM *pGrid, int *nSize )
 {
 	if( pc->common.nType == GRIDBOX_CONTROL )
 	{
@@ -951,7 +951,7 @@ PSI_PROC( int, GetSelectedItemsXY )( PCONTROL pc, HGRIDITEM *pGrid, int *nSize )
 
 //---------------------------------------------------------------------------
 
-PSI_PROC( HGRIDITEM, FindGridItemXY )( PCONTROL pc, char *text )
+PSI_PROC( HGRIDITEM, FindGridItemXY )( PSI_CONTROL pc, char *text )
 {
 	if( pc->common.nType == GRIDBOX_CONTROL )
 	{
@@ -971,7 +971,7 @@ PSI_PROC( HGRIDITEM, FindGridItemXY )( PCONTROL pc, char *text )
 
 //---------------------------------------------------------------------------
 
-PSI_PROC( void, SetGridColumnClickHandler )( PCONTROL pc, DoubleClicker proc, uintptr_t psvUser )
+PSI_PROC( void, SetGridColumnClickHandler )( PSI_CONTROL pc, DoubleClicker proc, uintptr_t psvUser )
 {
 	if( pc->common.nType == GRIDBOX_CONTROL )
 	{

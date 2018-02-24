@@ -11,10 +11,10 @@ int first = 1;
 Image active;
 Image inactive;
 
-PCOMMON MakePages( PCOMMON frame )
+PSI_CONTROL MakePages( PSI_CONTROL frame )
 {
-	PCOMMON sheets;
-	PCOMMON sheet[3];
+	PSI_CONTROL sheets;
+	PSI_CONTROL sheet[3];
 	CDATA cActive = BASE_COLOR_BLACK;
 	CDATA cInactive = BASE_COLOR_WHITE;
 	uint32_t width, height;
@@ -44,13 +44,13 @@ PCOMMON MakePages( PCOMMON frame )
 	AddSheet( sheets, sheet[0] );
 	AddSheet( sheets, sheet[1] );
 	AddSheet( sheets, sheet[2] );
-	return (PCOMMON)sheet[0];
+	return (PSI_CONTROL)sheet[0];
 }
 
 SaneWinMain( argc, argv )
 {
 	{
-		PCOMMON frame;
+		PSI_CONTROL frame;
 		active = LoadImageFile( WIDE("whitetab.png") );
 		inactive = LoadImageFile( WIDE("blacktab.png") );
 		frame = CreateFrame( WIDE("Sheet Test"), 0, 0, 480, 320, BORDER_NORMAL, NULL );

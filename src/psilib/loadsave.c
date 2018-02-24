@@ -48,7 +48,7 @@ static void SaveCommon( PSI_CONTROL pc, PVARTEXT out )
 //---------------------------------------------------------------------------
 
 #if 0
-static int SaveControlFile( PCONTROL pc, PVARTEXT out, int level )
+static int SaveControlFile( PSI_CONTROL pc, PVARTEXT out, int level )
 {
 	// + 1 includes the null - +3 & makes it integral number of dwords...
 	char id[32];
@@ -61,8 +61,8 @@ static int SaveControlFile( PCONTROL pc, PVARTEXT out, int level )
 	vtprintf( out, WIDE("CONTROL ") );
 	SaveCommon( (PSI_CONTROL)pc, out );
 	{
-      void (CPROC *Save)(PCONTROL,PVARTEXT);
-		if( Save=GetRegisteredProcedure( id, void,Save,(PCONTROL,PVARTEXT)) )
+      void (CPROC *Save)(PSI_CONTROL,PVARTEXT);
+		if( Save=GetRegisteredProcedure( id, void,Save,(PSI_CONTROL,PVARTEXT)) )
          Save( pc, out );
 	}
    vtprintf( out, WIDE("\n") );
@@ -87,7 +87,7 @@ static int SaveFrameFile( PSI_CONTROL pc, PVARTEXT out, int level )
    SaveCommon( pc, out );
    vtprintf( out, WIDE("\n") );
 	{
-		PCONTROL pControl;
+		PSI_CONTROL pControl;
 		for( pControl = pc->child; pControl; pControl = pControl->next )
 		{
 			if( pControl->child )
@@ -103,8 +103,8 @@ static int SaveFrameFile( PSI_CONTROL pc, PVARTEXT out, int level )
 	vtprintf( out, WIDE("GROUP END ") );
 	// for now I think this should be associated at end of grouping...
 	{
-      void (CPROC *Save)(PCONTROL,PVARTEXT);
-		if( Save=GetRegisteredProcedure( id, void,Save,(PCONTROL,PVARTEXT)) )
+      void (CPROC *Save)(PSI_CONTROL,PVARTEXT);
+		if( Save=GetRegisteredProcedure( id, void,Save,(PSI_CONTROL,PVARTEXT)) )
 			Save( (PSI_CONTROL)pc, out );
 	}
    vtprintf( out, WIDE("\n") );
@@ -164,15 +164,15 @@ static int DecodeControlInfo( POINTER rawinfo, uint32_t size, PSI_CONTROL pFrame
         char caption[];
 	 } *info = (struct info_tag *)rawinfo;
 
-	 PCONTROL pc;
-    int (CPROC *ControlInit)(uintptr_t,PCONTROL,uint32_t);
+	 PSI_CONTROL pc;
+    int (CPROC *ControlInit)(uintptr_t,PSI_CONTROL,uint32_t);
     Log5( WIDE("Decoding control: %s %d %d %d %d"),info->caption
                                        , info->rect.x, info->rect.y
 		  , info->rect.width, info->rect.height );
 	 {
 		 char procclass[64];
        sprintf( procclass, PSI_ROOT_REGISTRY WIDE("/control/%d"), info->nType );
-		 ControlInit = GetRegisteredProcedure( procclass, int, Init, (uintptr_t,PCONTROL,uint32_t) );
+		 ControlInit = GetRegisteredProcedure( procclass, int, Init, (uintptr_t,PSI_CONTROL,uint32_t) );
 		 pc = RestoreControl( pFrame, info->rect.x, info->rect.y
 							  , info->rect.width, info->rect.height
 							  , info->nID

@@ -14,19 +14,19 @@ void CPROC output( uintptr_t psv, PTASK_INFO task, CTEXTSTR buffer, size_t size 
 
 void CPROC ended( uintptr_t psv, PTASK_INFO task )
 {
-   lprintf( WIDE("Task has ended.") );
-   done = 1;
+	lprintf( WIDE("Task has ended.") );
+	done = 1;
 }
 
 
 SaneWinMain( argc, argv )
 {
-   int nowait = 0;
+	int nowait = 0;
 	int task_monitor = 0;
-   int noinput = 0;
+	int noinput = 0;
 #ifdef __WATCOMC__
 	TEXTCHAR **newargv = NewArray( TEXTCHAR*, argc + 1 );
-   int cp_argv;
+	int cp_argv;
 	for( cp_argv = 0; cp_argv < argc; cp_argv++ )
 		newargv[cp_argv] = (TEXTCHAR*)argv[cp_argv];
 	newargv[cp_argv] = NULL;
@@ -41,28 +41,28 @@ SaneWinMain( argc, argv )
 #endif
 
 		if( !( task = LaunchPeerProgram( args[0], NULL, args, output, ended, 0 ) ) )
-         done = 1;
+			done = 1;
 	}
 	else
 	{
-      int delay = 0;
+		int delay = 0;
 		int offset = 1;
 		while( argv[offset] && argv[offset][0] == '-' )
 		{
 			if( StrCaseCmp( argv[offset]+1, WIDE("nowait") ) == 0 )
-            nowait = 1;
+				nowait = 1;
 			if( StrCaseCmp( argv[offset]+1, WIDE("taskmon") ) == 0 )
-            task_monitor = 1;
+				task_monitor = 1;
 			if( StrCaseCmp( argv[offset]+1, WIDE("noin") ) == 0 )
-            noinput = 1;
+				noinput = 1;
 			if( StrCaseCmp( argv[offset]+1, WIDE("local") ) == 0 )
 			{
-            SetCurrentPath( OSALOT_GetEnvironmentVariable( WIDE("MY_LOAD_PATH") ) );
+				SetCurrentPath( OSALOT_GetEnvironmentVariable( WIDE("MY_LOAD_PATH") ) );
 			}
 			if( StrCaseCmp( argv[offset]+1, WIDE("delay") ) == 0 )
 			{
 				delay = atoi( argv[offset+1] );
-            offset++; // used an extra parameter
+				offset++; // used an extra parameter
 			}
 			offset++;
 		}

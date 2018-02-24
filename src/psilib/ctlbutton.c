@@ -787,7 +787,7 @@ int CPROC ConfigureCustomDrawnButton( PSI_CONTROL pc )
 	ValidatedControlData( PBUTTON, CUSTOM_BUTTON, pb, pc );
 	//ARG( uint32_t, attr );
 	//FP_ARG( void, DrawMethod,(uintptr_t psv, PSI_CONTROL pc) );
-	//FP_ARG( void, PushMethod,(uintptr_t psv, PCONTROL pc) );
+	//FP_ARG( void, PushMethod,(uintptr_t psv, PSI_CONTROL pc) );
 	//ARG( uintptr_t, Data );
 	Init();
 #if 0

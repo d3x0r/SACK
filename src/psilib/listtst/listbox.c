@@ -9,13 +9,13 @@ int bDone, bOkay;
 #define EDT_NEWTEXT 1002
 #define LST_TREE  1003
 #define TXT_TEST 1004
-PCONTROL pcList, pcTree, pcText;
+PSI_CONTROL pcList, pcTree, pcText;
 
 
 
-void CPROC AddItem( uintptr_t psvEdit, PCONTROL pc )
+void CPROC AddItem( uintptr_t psvEdit, PSI_CONTROL pc )
 {
-	PCONTROL edit = (PCONTROL)psvEdit;
+	PSI_CONTROL edit = (PSI_CONTROL)psvEdit;
 	TEXTCHAR msg[256];
 	GetControlText( edit, msg, 256 );
 	AddListItem( GetNearControl( pc, LST_FIRST ), msg );
@@ -28,7 +28,7 @@ PSI_CONTROL CreateListTester( PSI_CONTROL parent )
 {
 	int n;
 	uint32_t used, free, blocks, freeblocks;
-   	PCOMMON pf;
+   	PSI_CONTROL pf;
 	GetMemStats( &free, &used, &blocks, &freeblocks );
 
 	printf( WIDE("Mem Stats: %") _32f WIDE(" %") _32f WIDE(" %") _32f WIDE(" %") _32f WIDE("\n")

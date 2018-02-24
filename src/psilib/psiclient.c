@@ -6,21 +6,21 @@
 
 
 #define CONTROL_PROC_DEF( name )                  \
-	PCONTROL vConfig##name( PCONTROL pControl, va_list args );  \
-	PCONTROL Config##name( PCONTROL pc, ... ); \
-	PCONTROL Make##name( PFRAME pFrame, int attr \
+	PSI_CONTROL vConfig##name( PSI_CONTROL pControl, va_list args );  \
+	PSI_CONTROL Config##name( PSI_CONTROL pc, ... ); \
+	PSI_CONTROL Make##name( PFRAME pFrame, int attr \
 	              , int x, int y, int w, int h \
 	, uintptr_t nID, ... ) \
 	{    \
    return NULL;  \
 }                                   \
-	PCONTROL Config##name( PCONTROL pControl, ... )           \
+	PSI_CONTROL Config##name( PSI_CONTROL pControl, ... )           \
 	{                                                         \
      va_list ap;                                             \
      va_start(ap, pControl );                                \
 	  return vConfig##name( pControl, ap );                   \
 	}                                                          \
-	PCONTROL vConfig##name( PCONTROL pControl, va_list args )
+	PSI_CONTROL vConfig##name( PSI_CONTROL pControl, va_list args )
 
 typedef struct global_tag
 {
@@ -36,8 +36,8 @@ typedef struct client_commmon_control_frame {
    // the handle which the server desires...
 	union {
       PFRAME   frame;
-		PCONTROL control;
-      PCOMMON  common;
+		PSI_CONTROL control;
+      PSI_CONTROL  common;
 	} server;
 	// events which will be dispatched potentially to the client...
 	// although the client itself may not have these referenced
@@ -101,7 +101,7 @@ static void ControlEventProcessor( uint32_t EventMsg, uint32_t *data, uint32_t l
 	case MSG_ControlInit:
 		{
 			PCLIENT_CONTROL pcc = (PCLIENT_CONTROL)data[0];
-			pcc->InitResult = pcc->InitProc( pcc->psvInit, (PCONTROL)pcc, pcc->ID );
+			pcc->InitResult = pcc->InitProc( pcc->psvInit, (PSI_CONTROL)pcc, pcc->ID );
          pcc->flags.bInitComplete = 1;
 		}
       break;
@@ -203,49 +203,49 @@ PSI_PROC( void, DisplayFrame)( PFRAME pf )
 	SendServerMessage( MSG_DisplayFrame, &pcf->common.server.frame, sizeof( pcf->common.server.frame ) );
 }
 
-PSI_PROC( void, SizeCommon)( PCOMMON pf, uint32_t w, uint32_t h )
+PSI_PROC( void, SizeCommon)( PSI_CONTROL pf, uint32_t w, uint32_t h )
 {
 	PCLIENT_FRAME pcf = (PCLIENT_FRAME)pf;
    pf = pcf->common.server.frame;
 	SendServerMessage( MSG_SizeCommon, &pf, ParamLength( pf, h ) );
 }
 
-PSI_PROC( void, MoveCommon)( PCOMMON pf, int32_t x, int32_t y )
+PSI_PROC( void, MoveCommon)( PSI_CONTROL pf, int32_t x, int32_t y )
 {
 	PCLIENT_FRAME pcf = (PCLIENT_FRAME)pf;
    pf = pcf->common.server.frame;
 	SendServerMessage( MSG_MoveCommon, &pf, ParamLength( pf, y ) );
 }
 
-PSI_PROC( void, SizeMoveCommon)( PCOMMON pf, int32_t x, int32_t y )
+PSI_PROC( void, SizeMoveCommon)( PSI_CONTROL pf, int32_t x, int32_t y )
 {
 	PCLIENT_FRAME pcf = (PCLIENT_FRAME)pf;
    pf = pcf->common.server.frame;
 	SendServerMessage( MSG_MoveSizeCommon, &pf, ParamLength( pf, y ) );
 }
 
-PSI_PROC( void, SizeCommonRel)( PCOMMON pf, uint32_t w, uint32_t h )
+PSI_PROC( void, SizeCommonRel)( PSI_CONTROL pf, uint32_t w, uint32_t h )
 {
 	PCLIENT_FRAME pcf = (PCLIENT_FRAME)pf;
    pf = pcf->common.server.frame;
 	SendServerMessage( MSG_SizeCommonRel, &pf, ParamLength( pf, h ) );
 }
 
-PSI_PROC( void, MoveCommonRel)( PCOMMON pf, int32_t x, int32_t y )
+PSI_PROC( void, MoveCommonRel)( PSI_CONTROL pf, int32_t x, int32_t y )
 {
 	PCLIENT_FRAME pcf = (PCLIENT_FRAME)pf;
    pf = pcf->common.server.frame;
 	SendServerMessage( MSG_MoveCommonRel, &pf, ParamLength( pf, y ) );
 }
 
-PSI_PROC( void, SizeMoveCommonRel)( PCOMMON pf, int32_t x, int32_t y )
+PSI_PROC( void, SizeMoveCommonRel)( PSI_CONTROL pf, int32_t x, int32_t y )
 {
 	PCLIENT_FRAME pcf = (PCLIENT_FRAME)pf;
    pf = pcf->common.server.frame;
 	SendServerMessage( MSG_MoveSizeCommonRel, &pf, ParamLength( pf, y ) );
 }
 #undef GetControl
-PSI_PROC( PCONTROL, GetControl)( PCOMMON pf, int ID )
+PSI_PROC( PSI_CONTROL, GetControl)( PSI_CONTROL pf, int ID )
 {
 	PCLIENT_FRAME pcf = (PCLIENT_FRAME)pf;
 	uint32_t responce
@@ -266,40 +266,40 @@ PSI_PROC( PCONTROL, GetControl)( PCOMMON pf, int ID )
 
 //-------- Generic control functions --------------
 #undef GetFrame
-PSI_PROC( PFRAME, GetFrame )( PCOMMON pc )
-#define GetFrame(c) GetFrame((PCOMMON)pc)
+PSI_PROC( PFRAME, GetFrame )( PSI_CONTROL pc )
+#define GetFrame(c) GetFrame((PSI_CONTROL)pc)
 {
    return NULL;
 }
 
-PSI_PROC( PCONTROL, GetNearControl)( PCONTROL pc, int ID )
+PSI_PROC( PSI_CONTROL, GetNearControl)( PSI_CONTROL pc, int ID )
 {
    return NULL;
 }
 
-PSI_PROC( void, GetControlTextEx)( PCONTROL pc, char *buffer, int buflen, int bCString )
+PSI_PROC( void, GetControlTextEx)( PSI_CONTROL pc, char *buffer, int buflen, int bCString )
 {
 }
 
-PSI_PROC( void, SetControlText)( PCONTROL pc, CTEXTSTR text )
+PSI_PROC( void, SetControlText)( PSI_CONTROL pc, CTEXTSTR text )
 {
 
 }
 
-PSI_PROC( void, SetControlFocus)( PFRAME pf, PCONTROL pc )
+PSI_PROC( void, SetControlFocus)( PFRAME pf, PSI_CONTROL pc )
 {
 }
 
-PSI_PROC( void, EnableControl)( PCONTROL pc, int bEnable )
+PSI_PROC( void, EnableControl)( PSI_CONTROL pc, int bEnable )
 {
 }
 
-PSI_PROC( int, IsControlEnabled)( PCONTROL pc )
+PSI_PROC( int, IsControlEnabled)( PSI_CONTROL pc )
 {
    return FALSE;
 }
 
-PSI_PROC( PCONTROL, CreateControlExx)( PFRAME pFrame
+PSI_PROC( PSI_CONTROL, CreateControlExx)( PFRAME pFrame
                                      , uint32_t attr  // attributes (custom use per type)
 												 , int x, int y
 												 , int w, int h
@@ -330,7 +330,7 @@ PSI_PROC( PCONTROL, CreateControlExx)( PFRAME pFrame
 }
 
 #undef CreateControl
-PSI_PROC( PCONTROL, CreateControl)( PFRAME pFrame
+PSI_PROC( PSI_CONTROL, CreateControl)( PFRAME pFrame
                       , int nID
                       , int x, int y
                       , int w, int h
@@ -340,42 +340,42 @@ PSI_PROC( PCONTROL, CreateControl)( PFRAME pFrame
    return NULL;
 }
 
-PSI_PROC( Image,GetControlSurface)( PCONTROL pc )
+PSI_PROC( Image,GetControlSurface)( PSI_CONTROL pc )
 {
    return NULL;
 }
 
-PSI_PROC( void, SetCommonDraw)( PCOMMON pc, void (*Draw)(uintptr_t psv, PCONTROL pc ), uintptr_t psv )
+PSI_PROC( void, SetCommonDraw)( PSI_CONTROL pc, void (*Draw)(uintptr_t psv, PSI_CONTROL pc ), uintptr_t psv )
 {
 }
 
-PSI_PROC( void, SetCommonMouse)( PCOMMON pc, void (*MouseMethod)(uintptr_t pc, int32_t x, int32_t y, uint32_t b ), uintptr_t psv )
+PSI_PROC( void, SetCommonMouse)( PSI_CONTROL pc, void (*MouseMethod)(uintptr_t pc, int32_t x, int32_t y, uint32_t b ), uintptr_t psv )
 {
 }
 
-PSI_PROC( void, SetCommonKey )( PCOMMON pc, void (*KeyMethod)( uintptr_t pc, uint32_t key ), uintptr_t psv )
+PSI_PROC( void, SetCommonKey )( PSI_CONTROL pc, void (*KeyMethod)( uintptr_t pc, uint32_t key ), uintptr_t psv )
 {
 }
 
-PSI_PROC( void, UpdateControl)( PCONTROL pc )
+PSI_PROC( void, UpdateControl)( PSI_CONTROL pc )
 {
 }
 
-PSI_PROC( int, GetControlID)( PCONTROL pc )
+PSI_PROC( int, GetControlID)( PSI_CONTROL pc )
 {
    return 0;
 }
 
 
-PSI_PROC( void, DestroyControlEx)( PCONTROL pc DBG_PASS )
+PSI_PROC( void, DestroyControlEx)( PSI_CONTROL pc DBG_PASS )
 {
 }
 
-PSI_PROC( void, SetNoFocus)( PCONTROL pc )
+PSI_PROC( void, SetNoFocus)( PSI_CONTROL pc )
 {
 }
 
-PSI_PROC( void *, ControlExtraData)( PCONTROL pc )
+PSI_PROC( void *, ControlExtraData)( PSI_CONTROL pc )
 {
    return NULL;
 }
@@ -407,54 +407,54 @@ PSI_PROC( void, ProcessControlMessages)(void)
 
 //------ BUTTONS ------------
 CONTROL_PROC_DEF( Button, (char *caption
-					 , void (*PushMethod)(uintptr_t psv, PCONTROL pc)
+					 , void (*PushMethod)(uintptr_t psv, PSI_CONTROL pc)
 					 , uintptr_t Data) )
 {
    return NULL;
 }
 
 CONTROL_PROC_DEF( ImageButton, Image pImage
-                  , void (*PushMethod)(uintptr_t psv, PCONTROL pc)
+                  , void (*PushMethod)(uintptr_t psv, PSI_CONTROL pc)
                   , uintptr_t Data )
 {
    return NULL;
 }
 
-CONTROL_PROC_DEF( CustomDrawnButton, void (*DrawMethod)(uintptr_t, PCONTROL pc)
-                  , void (*PushMethod)(uintptr_t psv, PCONTROL pc), uintptr_t Data )
+CONTROL_PROC_DEF( CustomDrawnButton, void (*DrawMethod)(uintptr_t, PSI_CONTROL pc)
+                  , void (*PushMethod)(uintptr_t psv, PSI_CONTROL pc), uintptr_t Data )
 {
    return NULL;
 }
 
-PSI_PROC( void, PressButton)( PCONTROL pc, int bPressed )
+PSI_PROC( void, PressButton)( PSI_CONTROL pc, int bPressed )
 {
 }
 
-PSI_PROC( int, IsButtonPressed)( PCONTROL pc )
+PSI_PROC( int, IsButtonPressed)( PSI_CONTROL pc )
 {
    return 0;
 }
 
 
-CONTROL_PROC_DEF( CheckButton, void (*CheckProc)(uintptr_t psv, PCONTROL pc)
+CONTROL_PROC_DEF( CheckButton, void (*CheckProc)(uintptr_t psv, PSI_CONTROL pc)
                         , uintptr_t psv )
 {
    return NULL;
 }
 
 CONTROL_PROC_DEF( RadioButton, uint32_t GroupID, char *text
-						   	, void (*CheckProc)(uintptr_t psv, PCONTROL pc)
+						   	, void (*CheckProc)(uintptr_t psv, PSI_CONTROL pc)
 						   	, uintptr_t psv )
 {
    return NULL;
 }
 
-PSI_PROC( int, GetCheckState)( PCONTROL pc )
+PSI_PROC( int, GetCheckState)( PSI_CONTROL pc )
 {
    return 0;
 }
 
-PSI_PROC( void, SetCheckState)( PCONTROL pc, int nState )
+PSI_PROC( void, SetCheckState)( PSI_CONTROL pc, int nState )
 {
    return;
 }
@@ -476,12 +476,12 @@ CONTROL_PROC_DEF( EditControl, CTEXTSTR text )
 // Use GetControlText/SetControlText
 
 //------- Slider Control --------
-CONTROL_PROC_DEF( Slider, void (*SliderUpdated)(uintptr_t, PCONTROL pc, int val), uintptr_t psv )
+CONTROL_PROC_DEF( Slider, void (*SliderUpdated)(uintptr_t, PSI_CONTROL pc, int val), uintptr_t psv )
 {
    return NULL;
 }
 
-PSI_PROC( void, SetSliderValues)( PCONTROL pc, int min, int current, int max )
+PSI_PROC( void, SetSliderValues)( PSI_CONTROL pc, int min, int current, int max )
 {
 }
 
@@ -502,31 +502,31 @@ CONTROL_PROC_DEF( ListBox )
 }
 
 
-PSI_PROC( void, ResetList)( PCONTROL pc )
+PSI_PROC( void, ResetList)( PSI_CONTROL pc )
 {
 }
 
-PSI_PROC( PLISTITEM, AddListItem)( PCONTROL pc, const char *text )
-{
-   return NULL;
-}
-
-PSI_PROC( PLISTITEM, AddListItemEx)( PCONTROL pc, int nLevel, const char *text )
+PSI_PROC( PLISTITEM, AddListItem)( PSI_CONTROL pc, const char *text )
 {
    return NULL;
 }
 
-PSI_PROC( PLISTITEM, InsertListItem)( PCONTROL pc, PLISTITEM prior, char *text )
+PSI_PROC( PLISTITEM, AddListItemEx)( PSI_CONTROL pc, int nLevel, const char *text )
 {
    return NULL;
 }
 
-PSI_PROC( PLISTITEM, InsertListItemEx)( PCONTROL pc, PLISTITEM prior, int nLevel, char *text )
+PSI_PROC( PLISTITEM, InsertListItem)( PSI_CONTROL pc, PLISTITEM prior, char *text )
 {
    return NULL;
 }
 
-PSI_PROC( void, DeleteListItem)( PCONTROL pc, PLISTITEM hli )
+PSI_PROC( PLISTITEM, InsertListItemEx)( PSI_CONTROL pc, PLISTITEM prior, int nLevel, char *text )
+{
+   return NULL;
+}
+
+PSI_PROC( void, DeleteListItem)( PSI_CONTROL pc, PLISTITEM hli )
 {
 }
 
@@ -543,38 +543,38 @@ PSI_PROC( void, GetListItemText)( PLISTITEM hli, int bufsize, char *buffer )
 {
 }
 
-PSI_PROC( PLISTITEM, GetSelectedItem)( PCONTROL pc )
+PSI_PROC( PLISTITEM, GetSelectedItem)( PSI_CONTROL pc )
 {
    return 0;
 }
 
-PSI_PROC( void, SetSelectedItem)( PCONTROL pc, PLISTITEM hli )
+PSI_PROC( void, SetSelectedItem)( PSI_CONTROL pc, PLISTITEM hli )
 {
 }
 
-PSI_PROC( void, SetCurrentItem)( PCONTROL pc, PLISTITEM hli )
+PSI_PROC( void, SetCurrentItem)( PSI_CONTROL pc, PLISTITEM hli )
 {
 }
 
-PSI_PROC( PLISTITEM, FindListItem)( PCONTROL pc, char *text )
-{
-   return NULL;
-}
-
-PSI_PROC( PLISTITEM, GetNthItem )( PCONTROL pc, int idx )
+PSI_PROC( PLISTITEM, FindListItem)( PSI_CONTROL pc, char *text )
 {
    return NULL;
 }
 
+PSI_PROC( PLISTITEM, GetNthItem )( PSI_CONTROL pc, int idx )
+{
+   return NULL;
+}
 
-PSI_PROC( void, SetDoubleClickHandler)( PCONTROL pc, DoubleClicker proc, uintptr_t psvUser )
+
+PSI_PROC( void, SetDoubleClickHandler)( PSI_CONTROL pc, DoubleClicker proc, uintptr_t psvUser )
 {
 }
 
 
 //------- GridBox Control --------
 #ifdef __LINUX__
-PSI_PROC(PCONTROL, MakeGridBox)( PFRAME pf, int options, int x, int y, int w, int h
+PSI_PROC(PSI_CONTROL, MakeGridBox)( PFRAME pf, int options, int x, int y, int w, int h
                                , int viewport_x, int viewport_y, int total_x, int total_y
                                , int row_thickness, int column_thickness, uintptr_t nID )
 {
@@ -640,7 +640,7 @@ PSI_PROC( int, PSI_OpenFileEx)( char *basepath, char *types, char *result, int C
 //------- Scroll Control --------
 #define SCROLL_HORIZONTAL 1
 #define SCROLL_VERITCAL   0
-PSI_PROC( void, SetScrollParams)( PCONTROL pc, int min, int cur, int range, int max )
+PSI_PROC( void, SetScrollParams)( PSI_CONTROL pc, int min, int cur, int range, int max )
 {
 }
 
@@ -649,7 +649,7 @@ CONTROL_PROC_DEF( ScrollBar  )
    return NULL;
 }
 
-PSI_PROC( void, SetScrollUpdateMethod)( PCONTROL pc
+PSI_PROC( void, SetScrollUpdateMethod)( PSI_CONTROL pc
 					, void (*UpdateProc)(uintptr_t psv, int type, int current)
 					, uintptr_t data )
 {

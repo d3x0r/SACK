@@ -7,7 +7,7 @@
 // quick and dirty fix... just get rid of this param
 #define ALIAS_WRAPPER(name) name
 
-PSI_PROC(PSI_CONTROL, NotNULL)( PCOMMON pf, int options, int x, int y, int w, int h,
+PSI_PROC(PSI_CONTROL, NotNULL)( PSI_CONTROL pf, int options, int x, int y, int w, int h,
                                  int viewport_x, int viewport_y, int total_x, int total_y,
 									 int row_thickness, int column_thickness, uintptr_t nID )
 {

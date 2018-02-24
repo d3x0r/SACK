@@ -680,7 +680,7 @@ void TryLoadingFrameImage( void );
 Image CopyOriginalSurfaceEx( PSI_CONTROL pc, Image use_image DBG_PASS );
 #define CopyOriginalSurface(pc,i) CopyOriginalSurfaceEx(pc,i DBG_SRC )
 
-//#define PCOMMON PSI_CONTROL
+//#define PSI_CONTROL PSI_CONTROL
 
 CDATA *basecolor( PSI_CONTROL pc );
 

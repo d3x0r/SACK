@@ -20,7 +20,7 @@
 //-------------------------------------------------------------------------
 
 uintptr_t psvFont;
-static int CPROC DrawFont( PCOMMON renderer )
+static int CPROC DrawFont( PSI_CONTROL renderer )
 {
 	SFTFont font = (SFTFont)psvFont;
 	Image image = GetFrameSurface( renderer );
@@ -134,7 +134,7 @@ SaneWinMain( argc, argv )
 	}
 	psvFont = (uintptr_t)font;
 	{
-		PCOMMON pRend = CreateFrame( WIDE("Demo Font"), 10, 10, 300, 300, BORDER_NORMAL, NULL );
+		PSI_CONTROL pRend = CreateFrame( WIDE("Demo Font"), 10, 10, 300, 300, BORDER_NORMAL, NULL );
 		AddCommonDraw( pRend, DrawFont );
 		//DrawFont( (uintptr_t)font, pRend );
 		DisplayFrame( pRend );

@@ -4,7 +4,7 @@
 
 int main( void )
 {
-	PCOMMON frame;
+	PSI_CONTROL frame;
 	while( 1 )
 	{
       int okay = 0, done = 0;
