@@ -82,11 +82,11 @@ struct my_sqlite3_vfs
 #  undef l
 #endif
 
-#define l local_sqlite_interface
+#define l (*local_sqlite_interface)
 
 struct local_data {
 	PLIST registered_vfs;
-} local_sqlite_interface;
+} (*local_sqlite_interface);
 
 //typedef struct sqlite3_io_methods sqlite3_io_methods;
 
@@ -668,6 +668,8 @@ static void SimpleShutdown( POINTER p )
 
 static void DoInitVFS( void )
 {
+	if( l.registered_vfs )
+		return;
 	sqlite3_config( SQLITE_CONFIG_LOG, errorLogCallback, 0);
 
 	{
@@ -711,7 +713,9 @@ static void CPROC DropSQLiteInterface( POINTER p )
 
 PRIORITY_PRELOAD( RegisterSQLiteInterface, SQL_PRELOAD_PRIORITY-2 )
 {
-	RegisterInterface( WIDE("sqlite3"), GetSQLiteInterface, DropSQLiteInterface );
+	SimpleRegisterAndCreateGlobal( local_sqlite_interface );
+	if( !GetInterface( "sqlite3" ) )
+		RegisterInterface( WIDE("sqlite3"), GetSQLiteInterface, DropSQLiteInterface );
 
 }
 
