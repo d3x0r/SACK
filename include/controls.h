@@ -894,7 +894,7 @@ PSI_PROC( void, HideControl )( PSI_CONTROL pf );
 PSI_PROC( LOGICAL, IsControlHidden )( PSI_CONTROL pc );
 
 PSI_PROC( void, RevealCommonEx )( PSI_CONTROL pf DBG_PASS );
-#define RevealCommon(pc) RevealCommonEx(pc DBG_SRC );
+#define RevealCommon(pc) RevealCommonEx(pc DBG_SRC )
 
 PSI_PROC( void, SizeCommon)( PSI_CONTROL pf, uint32_t w, uint32_t h );
 #define SizeControl(c,x,y) SizeCommon((PSI_CONTROL)c,x,y)
@@ -1847,12 +1847,15 @@ PSI_PROC( PSI_CONTROL, SetListboxIsTree )( PSI_CONTROL pc, int bTree );
 #define LISTBOX_SORT_NORMAL 1
 #define LISTBOX_SORT_DISABLE 0
 PSI_PROC( PSI_CONTROL, SetListboxSort )( PSI_CONTROL pc, int bSortTrue ); // may someday add SORT_INVERSE?
+PSI_PROC( PSI_CONTROL, SetListboxHorizontalScroll )( PSI_CONTROL pc, int bEnable, int max );
 PSI_PROC( PSI_CONTROL, SetListboxMultiSelect )( PSI_CONTROL, int bEnable );
 PSI_PROC( PSI_CONTROL, SetListboxMultiSelectEx )( PSI_CONTROL, int bEnable, int bLazy );
 PSI_PROC( int, GetListboxMultiSelectEx )( PSI_CONTROL, int *multi, int *lazy );
 PSI_PROC( int, GetListboxMultiSelect )( PSI_CONTROL ); // returns only multiselect option, not lazy with multselect
 PSI_PROC( void, ResetList)( PSI_CONTROL pc );
-// put an item at end of list.
+PSI_PROC( PLISTITEM, SetListboxHeader )( PSI_CONTROL pc, const TEXTCHAR *text );
+PSI_PROC( int, MeasureListboxItem )( PSI_CONTROL pc, CTEXTSTR item );
+	// put an item at end of list.
 PSI_PROC( PLISTITEM, AddListItem)( PSI_CONTROL pc, CTEXTSTR text );
 PSI_PROC( PLISTITEM, AddListItemEx)( PSI_CONTROL pc, int nLevel, CTEXTSTR text );
 // put an item after a known item... NULL to add at head of list.
