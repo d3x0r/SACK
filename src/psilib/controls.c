@@ -674,11 +674,15 @@ void PSI_SetFrameBorder( PSI_CONTROL pc, PFrameBorder border )
 //#define basecolor(pc) ((pc)?((pc)->border?(pc)->border->defaultcolors:(pc)->basecolors):(g.DefaultBorder?g.DefaultBorder->defaultcolors:DefaultColors))
 CDATA *basecolor( PSI_CONTROL pc )
 {
+	xlprintf( "get base color pc: %p %p %p", pc, pc?pc->basecolors:0, pc?pc->border:0 );
 	if( pc )
-		if ((pc)->border)
-			return (pc)->border->defaultcolors;
-		else
-			return (pc)->basecolors;
+		if( ( pc )->border ) {
+			return ( pc )->border->defaultcolors;
+		} else {
+			if( pc->basecolors )
+				return ( pc )->basecolors;
+			return basecolor( pc->parent );
+		}
 	else
 		if (g.DefaultBorder)
 			return g.DefaultBorder->defaultcolors;
@@ -901,13 +905,14 @@ PSI_PROC( CDATA, GetBaseColor )( INDEX idx )
 
 PSI_PROC( void, SetControlColor )( PSI_CONTROL pc, INDEX idx, CDATA c )
 {
-	//lprintf( WIDE("Color %d was %08X and is now %08X"), idx, basecolor(pc)[idx], c );
 	if( pc )
 	{
-		if( basecolor(pc) == DefaultColors )
+		CDATA *oldColors;
+		if( basecolor(pc) == ( oldColors = DefaultColors )
+			|| ( pc->parent && ( (oldColors = pc->parent->basecolors) == pc->basecolors) ) )
 		{
 			pc->basecolors = NewArray( CDATA, sizeof( DefaultColors ) / sizeof( CDATA ) );
-			MemCpy( pc->basecolors, DefaultColors, sizeof( DefaultColors ) );
+			MemCpy( pc->basecolors, oldColors, sizeof( DefaultColors ) );
 		}
 		basecolor(pc)[idx] = c;
 	}
@@ -2605,7 +2610,7 @@ PROCEDURE RealCreateCommonExx( PSI_CONTROL *pResult
 	pc = (PSI_CONTROL)AllocateEx( sizeof( FR_CT_COMMON ) DBG_RELAY );
 	MemSet( pc, 0, sizeof( FR_CT_COMMON ) );
 	pc->class_root = root;
-	pc->basecolors = basecolor( pContainer );
+	//pc->basecolors = basecolor( pContainer );
 	{
 		uint32_t size = GetRegisteredIntValue( root, WIDE("extra") );
 		if( size )
