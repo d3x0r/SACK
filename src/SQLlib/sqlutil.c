@@ -45,33 +45,29 @@ static int CPROC MySqlUtilStrCmp( uintptr_t s1, uintptr_t s2 )
 
 PTREEROOT GetTableCache( PODBC odbc, CTEXTSTR tablename )
 {
-	static PTREEROOT tables;
+	//static PTREEROOT tables;
 	PTREEROOT newcache;
 	struct params parameters;
 	parameters.odbc = odbc;
 	parameters.name = tablename;
 	//lprintf( WIDE("Looking for name cache of table %s"), tablename );
-	if( !tables )
+	if( !g.tables )
 	{
-		//lprintf( WIDE("Creating initial tree.") );
-		tables = CreateBinaryTreeExx( BT_OPT_NODUPLICATES
+		g.tables = CreateBinaryTreeExx( BT_OPT_NODUPLICATES
 										 , MyParmCmp
 										 , NULL );
 	}
-	if( !( newcache = (PTREEROOT)FindInBinaryTree( tables, (uintptr_t)&parameters ) ) )
+	if( !( newcache = (PTREEROOT)FindInBinaryTree( g.tables, (uintptr_t)&parameters ) ) )
 	{
 		struct params *saveparams = New( struct params );
 		saveparams->name = StrDup( tablename );
 		saveparams->odbc = odbc;
-		//lprintf( WIDE("Failed to find entry, create new tree for cache") );
-		AddBinaryNode( tables
+		AddBinaryNode( g.tables
 						 , newcache = CreateBinaryTreeExx( BT_OPT_NODUPLICATES
 																	, MySqlUtilStrCmp
 																	, NULL )
 						 , (uintptr_t)saveparams );
 	}
-	//else
-	//   lprintf( WIDE("Found tree cache...") );
 	return newcache;
 }
 

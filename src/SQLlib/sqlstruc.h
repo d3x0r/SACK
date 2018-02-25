@@ -205,6 +205,10 @@ struct pssql_global
 	PLIST odbc_queues;
 	PLIST option_database_init;
 	PLIST database_init;
+
+	// ----- shared with option code; these need to be shared between instances.
+	PTREEROOT tables;  // some 
+
 };
 #endif
 

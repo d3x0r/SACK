@@ -798,8 +798,10 @@ SQLGETOPTION_PROC( size_t, SACK_GetPrivateProfileStringExxx )( PODBC odbc
 		char *buffer;
 		size_t buflen;
 		// maybe do an if( l.flags.bLogOptionsRead )
+#if defined( _DEBUG )
 		if( global_sqlstub_data->flags.bLogOptionConnection )
 			_lprintf(DBG_RELAY)( WIDE( "Getting option {%s}[%s]%s=%s" ), pINIFile, pSection, pOptname, pDefaultbuf );
+#endif
 		opt_node = GetOptionIndexExx( odbc, OPTION_ROOT_VALUE, NULL, pINIFile, pSection, pOptname, TRUE, FALSE DBG_RELAY );
 		// used to have a test - get option value index; but option index == node_id
 		// so it just returned the same node; but not quite, huh?
@@ -833,8 +835,10 @@ SQLGETOPTION_PROC( size_t, SACK_GetPrivateProfileStringExxx )( PODBC odbc
 			// create the option branch since it doesn't exist...
 			{
 				SetOptionStringValue( GetOptionTreeExxx( odbc, NULL DBG_SRC ), opt_node, pBuffer );
+#if defined( _DEBUG )
 				if( global_sqlstub_data->flags.bLogOptionConnection )
 					lprintf( WIDE("default Result [%s]"), pBuffer );
+#endif
 				if( drop_odbc )
 					DropOptionODBC( odbc );
 				LeaveCriticalSec( &og.cs_option );
@@ -847,8 +851,10 @@ SQLGETOPTION_PROC( size_t, SACK_GetPrivateProfileStringExxx )( PODBC odbc
 			MemCpy( pBuffer, buffer, buflen = ((buflen+1<(nBuffer) )?(buflen+1):nBuffer) );
 			buflen--;
 			pBuffer[buflen] = 0;
+#if defined( _DEBUG )
 			if( global_sqlstub_data->flags.bLogOptionConnection )
 				lprintf( WIDE( "buffer result is [%s]" ), pBuffer );
+#endif
 			if( drop_odbc )
 				DropOptionODBC( odbc );
 			LeaveCriticalSec( &og.cs_option );
@@ -1000,6 +1006,10 @@ SQLGETOPTION_PROC( LOGICAL, SACK_WritePrivateOptionStringEx )( PODBC odbc, CTEXT
       TEXTCHAR buf[128];
       pINIFile = ResolveININame( odbc, pSection, buf, pINIFile );
 	}
+#if defined( _DEBUG )
+	if( global_sqlstub_data->flags.bLogOptionConnection )
+		_lprintf( DBG_RELAY )( WIDE( "Setting option {%s}[%s]%s=%s" ), pINIFile, pSection, pName, pValue );
+#endif
 	optval = GetOptionIndexExxx( odbc, NULL, NULL, pINIFile, pSection, pName, TRUE, FALSE, FALSE DBG_SRC );
 	if( !optval )
 	{
