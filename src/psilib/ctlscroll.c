@@ -195,7 +195,7 @@ static int CPROC ScrollBarMouse( PSI_CONTROL pc, int32_t x, int32_t y, uint32_t 
 					// this is effectively -1 * the delta - so the scroll
 					// goes 'increasing' to the right
 					x -= psb->height;
-					desired_top = ( psb->grabbed_x - x );
+					desired_top = ( x - psb->grabbed_x );
 					desired_top = ( desired_top * psb->max ) / psb->width;
 					if( desired_top > ( psb->max - psb->range ) )
 						desired_top = psb->max - psb->range;
@@ -229,7 +229,7 @@ static int CPROC ScrollBarMouse( PSI_CONTROL pc, int32_t x, int32_t y, uint32_t 
 		{
 			if( psb->scrollflags.bHorizontal ) 
 			{
-				x -= psb->height;
+				x -= psb->height; // width of arrow
 				if( x < psb->top )
 				{
 					MoveScrollBar( pc, UPD_RANGEUP );
@@ -543,11 +543,11 @@ static void OnSizeCommon( SCROLLBAR_CONTROL_NAME )( PSI_CONTROL pc, LOGICAL begi
 //static void CPROC ResizeScrollbar( PSI_CONTROL pc )
 {
 	ValidatedControlData( PSCROLLBAR, SCROLLBAR_CONTROL, psb, pc );
-   //lprintf( "Resizing %p", pc );
+	//lprintf( "Resizing %p", pc );
 	if( psb )
 	{
 		int32_t width = 15;
-      //lprintf( "Resize called." );
+		//lprintf( "Resize called." );
 		ScaleCoords( (PSI_CONTROL)pc, &width, NULL );
 		// resize the scrollbar accordingly...
 		//lprintf( WIDE( "Getting a resize on the scrollbar..." ) );

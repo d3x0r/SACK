@@ -34,6 +34,7 @@ typedef struct listbox_tag
 	Image  ListSurface;
 	PLISTITEM items // first item
 				, last // last item
+				, header  // this is the first line shown - always
 				, current // current (focus cursor on this)
 				, firstshown // first item shown
 				, lastshown  // last item shown
@@ -51,14 +52,17 @@ typedef struct listbox_tag
 		uint32_t bSizable_Columns : 1;
 		uint32_t bSortable_Columns : 1;
 		uint32_t bLazyMulti : 1; // just click on item toggles state.
+		uint32_t bHorizontalScroll : 1;
 	} flags;
 	PSI_CONTROL pcScroll;
+	PSI_CONTROL pcHScroll;
 	int nLastLevel;
 	int TimeLastClick;
 	int x, y, b; // old mouse info;
 
 	int nTabstops;
 	int nTabstop[30];
+	int nXOffset;  // horizontal scroll affect
 
 	SelectionChanged SelChangeHandler;
 	uintptr_t psvSelChange;
@@ -229,11 +233,12 @@ static void AdjustItemsIntoBox( PSI_CONTROL pc )
 
 static int RenderRelationLines( PSI_CONTROL pc, Image surface, PLISTITEM pli, int drawthis )
 {
-	//ValidatedControlData( PLISTBOX, LISTBOX_CONTROL, plb, pc );
+	ValidatedControlData( PLISTBOX, LISTBOX_CONTROL, plb, pc );
 	PLISTITEM pliNextUpLevel;
 	int x, y, ymin, ymax;
 	pliNextUpLevel = pli->next;
 	x = pli->nLevel * (1.75*pli->height) + (pli->height*1.75)/2;
+	x -= plb->nXOffset;
 	y = pli->top + ( pli->height / 2 );
 	ymin = pli->top;
 	ymax = pli->top + pli->height;
@@ -270,6 +275,7 @@ static int RenderRelationLines( PSI_CONTROL pc, Image surface, PLISTITEM pli, in
 	pliNextUpLevel = pli;
 
 	x =  x + ((pli->height)*1.75*2)/3;
+	x -= plb->nXOffset;
 
 	while( pliNextUpLevel )
 	{
@@ -292,7 +298,7 @@ static int RenderRelationLines( PSI_CONTROL pc, Image surface, PLISTITEM pli, in
 static int RenderItemKnob( PSI_CONTROL pc, Image surface, PLISTITEM pli )
 {
 	PLISTITEM pliNextUpLevel;
-	//ValidatedControlData( PLISTBOX, LISTBOX_CONTROL, plb, pc );
+	ValidatedControlData( PLISTBOX, LISTBOX_CONTROL, plb, pc );
 	int x, y; // x, y of center...
 	int line_length = pli->height*5/12;
 	int line_length_inner = pli->height*3/12;
@@ -311,6 +317,7 @@ static int RenderItemKnob( PSI_CONTROL pc, Image surface, PLISTITEM pli )
 	while( pliNextUpLevel && ( pliNextUpLevel->nLevel > pli->nLevel ) )
 		pliNextUpLevel = pliNextUpLevel->prior;
 	x = pli->nLevel * (pli->height*1.75) + ((pli->height*1.75)/2);
+	x -= plb->nXOffset;
 	y = pli->top + ( pli->height / 2 );
 
 	// this draws the box with a + in it...
@@ -384,6 +391,132 @@ static void UpdateScrollForList//Ex
 
 //---------------------------------------------------------------------------
 
+static void DrawLine( PSI_CONTROL pc, PLISTBOX plb, PLISTITEM pli, int y, int h ) {
+	TEXTCHAR *start = pli->text;
+	TEXTCHAR *end;
+	CDATA lineColor = GetControlColor( pc, SHADE );
+	SFTFont font = GetFrameFont( pc );
+	int32_t right = 0;
+	int tab = 0;
+	int x;
+	Image pSurface = plb->ListSurface;
+	pli->top = y;
+	pli->height = h;
+
+	while( start ) {
+		uint32_t width = 0;
+		int32_t column;
+		int32_t nextColumn;
+		int bRight = 0;
+		if( tab < plb->nTabstops ) {
+			column = plb->nTabstop[tab];
+			nextColumn = plb->nTabstop[tab+1];
+			if( plb->nTabstop[tab] < 0 ) {
+				bRight = 1;
+				column = plb->nTabstop[tab + 1];
+				if( column < 0 )
+					column = -column;
+			}
+		}
+		//lprintf( "tab stop was %d", column );
+		ScaleCoords( pc, &column, NULL );
+		ScaleCoords( pc, &nextColumn, NULL );
+		//lprintf( "tab stop is %d", column );
+		end = strchr( start, '\t' );
+		if( !end )
+			end = start + strlen( start );
+
+		width = GetStringSizeFontEx( start, end - start, NULL, NULL, font );
+		if( bRight ) {
+			column -= width;
+		}
+
+		// results as max of either next tabstop or start plus stringlength
+		if( ( nextColumn - column ) > width ) {
+			if( nextColumn > right )
+				right = nextColumn;
+			x = ( ( nextColumn - column ) - width ) / 2;
+		} else {
+			x = 0;
+			if( ( x + width + column ) > right )
+				right = ( x + width + column );
+		}
+		//xlprintf( 1 )( "show: %d %d %d %d %s %s", x, column, nextColumn, width, start, end);
+		PutStringFontEx( pSurface, x + column - plb->nXOffset, y, basecolor( pc )[EDIT_TEXT], 0, start, end - start, font );
+		do_vline( pSurface, nextColumn - plb->nXOffset, 0, h, lineColor );
+
+		tab++;
+		if( tab >= plb->nTabstops )
+			tab = plb->nTabstops - 1;
+		if( end[0] )
+			start = end + 1;
+		else
+			start = NULL;
+	}
+	do_hline( pSurface, h+1, 0 - plb->nXOffset, right - plb->nXOffset, lineColor );
+}
+
+int MeasureListboxItem( PSI_CONTROL pc, CTEXTSTR item ) {
+	ValidatedControlData( PLISTBOX, LISTBOX_CONTROL, plb, pc );
+	CTEXTSTR start = item;
+	CTEXTSTR end;
+	SFTFont font = GetFrameFont( pc );
+	int32_t right = 0;
+	int tab = 0;
+	int x;
+	Image pSurface = plb->ListSurface;
+
+	while( start ) {
+		uint32_t width = 0;
+		int32_t column;
+		int32_t nextColumn;
+		int bRight = 0;
+		if( tab < plb->nTabstops ) {
+			column = plb->nTabstop[tab];
+			nextColumn = plb->nTabstop[tab + 1];
+			if( plb->nTabstop[tab] < 0 ) {
+				bRight = 1;
+				column = plb->nTabstop[tab + 1];
+				if( column < 0 )
+					column = -column;
+			}
+		}
+		//lprintf( "tab stop was %d", column );
+		ScaleCoords( pc, &column, NULL );
+		ScaleCoords( pc, &nextColumn, NULL );
+		//lprintf( "tab stop is %d", column );
+		end = strchr( start, '\t' );
+
+		tab++;
+		if( tab >= plb->nTabstops )
+			tab = plb->nTabstops - 1;
+
+		if( !end ) { // one single column, or no more columns...
+			end = start + strlen( start );
+
+			width = GetStringSizeFontEx( start, end - start, NULL, NULL, font );
+			if( bRight ) {
+				column -= width;
+			}
+			if( ( nextColumn - column ) > width )
+				x = ( ( nextColumn - column ) - width ) / 2;
+			else
+				x = 0;
+
+			if( ( x + width + column ) > right )
+				right = ( x + width + column );
+
+		}
+
+		if( end[0] )
+			start = end + 1;
+		else
+			start = NULL;
+	}
+	return right;
+}
+
+
 static int OnDrawCommon( LISTBOX_CONTROL_NAME )( PSI_CONTROL pc )
 {
 	int bFirstDraw;
@@ -423,6 +556,10 @@ static int OnDrawCommon( LISTBOX_CONTROL_NAME )( PSI_CONTROL pc )
 		pli = pli->next;
 	}
 	//pli = plb->firstshown;
+	if( plb->header ) {
+		DrawLine( pc, plb, plb->header, 0, h );
+		y += h + 1;
+	}
 	while( pli && SUS_LT( y, int, pc->surface_rect.height, IMAGE_SIZE_COORDINATE ) )
 	{
 		TEXTCHAR *start = pli->text;
@@ -464,11 +601,11 @@ static int OnDrawCommon( LISTBOX_CONTROL_NAME )( PSI_CONTROL pc )
 			}
 			if( pli->flags.bSelected )
 			{
-				PutStringFontEx( pSurface, x + column, y, basecolor(pc)[SELECT_TEXT], 0, start, end-start, font );
+				PutStringFontEx( pSurface, x + column - plb->nXOffset, y, basecolor(pc)[SELECT_TEXT], 0, start, end-start, font );
 			}
 			else
 			{
-				PutStringFontEx( pSurface, x + column, y, basecolor(pc)[EDIT_TEXT], 0, start, end-start, font );
+				PutStringFontEx( pSurface, x + column - plb->nXOffset, y, basecolor(pc)[EDIT_TEXT], 0, start, end-start, font );
 			}
 			tab++;
 			if( tab >= plb->nTabstops )
@@ -480,7 +617,7 @@ static int OnDrawCommon( LISTBOX_CONTROL_NAME )( PSI_CONTROL pc )
 		}
 		if( pc->flags.bFocused &&
 			 plb->current == pli )
-			do_line( pSurface, x + 1, y + h-2, w - 6, y + h - 2, basecolor(pc)[SHADE] );
+			do_line( pSurface, x + 1 - plb->nXOffset, y + h-2, w - 6, y + h - 2, basecolor(pc)[SHADE] );
 		y += h;
 		//xlprintf(LOG_ALWAYS)( "y is %ld and height is %ld", y , pSurface->height );
 		if( SUS_LT( y, int, pSurface->height, IMAGE_SIZE_COORDINATE )  ) // probably is only partially shown...
@@ -748,6 +885,18 @@ static void CPROC ScrollBarUpdate( uintptr_t psvList, int type, int current )
 		plb->firstshown = (PLISTITEM)GetNthItem( pc, current );
 		SmudgeCommon( pc );
 	}	
+}
+
+
+//---------------------------------------------------------------------------
+
+static void CPROC HScrollBarUpdate( uintptr_t psvList, int type, int current ) {
+	PSI_CONTROL pc = (PSI_CONTROL)psvList;
+	ValidatedControlData( PLISTBOX, LISTBOX_CONTROL, plb, pc );
+	if( pc->nType == LISTBOX_CONTROL ) {
+		plb->nXOffset = current;
+		SmudgeCommon( pc );
+	}
 }
 
 
@@ -1135,6 +1284,58 @@ int CPROC InitListBox( PSI_CONTROL pc )
 
 //---------------------------------------------------------------------------
 
+//CONTROL_PROC_DEF( LISTBOX_CONTROL, LISTBOX, ListBox, (uint32_t attr) )
+PSI_PROC( PSI_CONTROL, SetListboxHorizontalScroll )( PSI_CONTROL pc, int bEnable, int max ) {
+//ARG( uint32_t, attr );
+	// there are no args to listbox...
+	// there are options though - tree list, etc...
+	// they should be passed!
+	ValidatedControlData( PLISTBOX, LISTBOX_CONTROL, plb, pc );
+	int32_t width = GetFontHeight( GetCommonFont( pc ) ) * 1.2;
+
+	if( plb && bEnable && !plb->pcHScroll ) {
+		//ScaleCoords( (PSI_CONTROL)pc, &width, NULL );
+		UnmakeImageFile( plb->ListSurface );
+		plb->ListSurface = MakeSubImage( pc->Surface
+			, 0, 0
+			, pc->surface_rect.width - width
+			, pc->surface_rect.height - width );
+		plb->pcHScroll = MakePrivateControl( pc, SCROLLBAR_CONTROL
+			, 0, pc->surface_rect.height - width
+			, pc->surface_rect.width - width, width
+			, pc->nID );
+		SetScrollUpdateMethod( plb->pcHScroll, HScrollBarUpdate, (uintptr_t)pc );
+		SetScrollParams( plb->pcHScroll, 0, 0, pc->surface_rect.width, max + width );
+		SetNoFocus( plb->pcHScroll );
+		plb->flags.bHorizontalScroll = 1;
+		return pc;
+	}
+	else if( plb && bEnable && plb->pcHScroll ) {
+		UnmakeImageFile( plb->ListSurface );
+		plb->ListSurface = MakeSubImage( pc->Surface
+			, 0, 0
+			, pc->surface_rect.width - width
+			, pc->surface_rect.height - width );
+		SetScrollParams( plb->pcHScroll, 0, 0, pc->surface_rect.width, max + width );
+		RevealCommon( plb->pcHScroll );
+		plb->flags.bHorizontalScroll = 1;
+		return pc;
+	}
+	else if( plb && !bEnable && plb->pcHScroll ) {
+		UnmakeImageFile( plb->ListSurface );
+		plb->ListSurface = MakeSubImage( pc->Surface
+			, 0, 0
+			, pc->surface_rect.width - width
+			, pc->surface_rect.height );
+		HideControl( plb->pcHScroll );
+		plb->flags.bHorizontalScroll = 0;
+		return pc;
+	}
+	return pc;
+}
+
+//---------------------------------------------------------------------------
+
 PSI_PROC( PSI_CONTROL, SetListboxIsTree )( PSI_CONTROL pc, int bTree )
 {
 	ValidatedControlData( PLISTBOX, LISTBOX_CONTROL, plb, pc );
@@ -1223,21 +1424,40 @@ PLISTITEM InsertListItemEx( PSI_CONTROL pc, PLISTITEM pPrior, int nLevel, CTEXTS
 
 //---------------------------------------------------------------------------
 
-PLISTITEM AddListItemEx( PSI_CONTROL pc, int nLevel, const TEXTCHAR *text )
+PLISTITEM SetListboxHeader( PSI_CONTROL pc, const TEXTCHAR *text )
 {
 	PLISTITEM pli = NULL;
 	ValidatedControlData( PLISTBOX, LISTBOX_CONTROL, plb, pc );
 	if( plb )
 	{
 		// sort by default.
-		if( !plb->flags.bTree && plb->flags.bSortNormal )
-		{
+		pli = (PLISTITEM)Allocate( sizeof( LISTITEM ) );
+		pli->text = StrDup( text );
+		pli->pPopup = NULL;
+		pli->flags.bSelected = FALSE;
+		pli->flags.bFocused = FALSE;
+		pli->flags.bOpen = FALSE;
+		pli->nLevel = plb->nLastLevel;
+		pli->data = 0;
+		pli->within_list = pc;
+		plb->header = pli;
+		return pli;
+	}
+	return 0;
+}
+
+//---------------------------------------------------------------------------
+
+PLISTITEM AddListItemEx( PSI_CONTROL pc, int nLevel, const TEXTCHAR *text ) {
+	PLISTITEM pli = NULL;
+	ValidatedControlData( PLISTBOX, LISTBOX_CONTROL, plb, pc );
+	if( plb ) {
+		// sort by default.
+		if( !plb->flags.bTree && plb->flags.bSortNormal ) {
 			PLISTITEM find;
 			find = plb->items;
-			while( find )
-			{
-				if( strcmp( find->text, text ) > 0 )
-				{
+			while( find ) {
+				if( strcmp( find->text, text ) > 0 ) {
 					pli = InsertListItem( pc, find->prior, text );
 					break;
 				}
@@ -1245,18 +1465,14 @@ PLISTITEM AddListItemEx( PSI_CONTROL pc, int nLevel, const TEXTCHAR *text )
 			}
 			if( !find )
 				goto add_at_end;
-		}
-		else
-		{
+		} else {
 		add_at_end:
 			pli = InsertListItem( pc, plb->last, text );
 		}
 		pli->nLevel = nLevel;
-		if( !plb->flags.bNoUpdate )
-		{
+		if( !plb->flags.bNoUpdate ) {
 			int bOpen = TRUE;
-			if( nLevel )
-			{
+			if( nLevel ) {
 				PLISTITEM parent;
 				parent = pli->prior;
 				while( parent && parent->nLevel >= nLevel )
@@ -1268,8 +1484,7 @@ PLISTITEM AddListItemEx( PSI_CONTROL pc, int nLevel, const TEXTCHAR *text )
 			}
 			//Log( WIDE("Added an item, therefore update this list?!") );
 			// should only auto adjust when adding items...
-			if( bOpen )
-			{
+			if( bOpen ) {
 				AdjustItemsIntoBox( pc );
 				plb->flags.bInitial = TRUE;
 			}
@@ -1714,14 +1929,23 @@ static void OnSizeCommon( LISTBOX_CONTROL_NAME )( PSI_CONTROL pc, LOGICAL begin_
 	//lprintf( "Resize listbox" );
 	if( plb )
 	{
-		int32_t width = 15;
-		ScaleCoords( (PSI_CONTROL)pc, &width, NULL );
+		int32_t width = GetFontHeight( GetCommonFont( pc ) ) * 1.2;
+		//ScaleCoords( (PSI_CONTROL)pc, &width, NULL );
 		// resize the scrollbar accordingly...
-		ResizeImage( plb->ListSurface, pc->surface_rect.width - width
-												 , pc->surface_rect.height );
-		MoveSizeCommon( plb->pcScroll , pc->surface_rect.width-width, 0
-						  , width, pc->surface_rect.height
-						  );
+		if( plb->flags.bHorizontalScroll ) {
+			MoveSizeCommon( plb->pcHScroll, 0, pc->surface_rect.height - width
+				, pc->surface_rect.width - width, width
+			);
+
+			ResizeImage( plb->ListSurface, pc->surface_rect.width - width
+				, pc->surface_rect.height - width );
+		} else {
+			ResizeImage( plb->ListSurface, pc->surface_rect.width - width
+				, pc->surface_rect.height );
+		}
+		MoveSizeCommon( plb->pcScroll, pc->surface_rect.width - width, 0
+			, width, pc->surface_rect.height
+		);
 	}
 }
 
