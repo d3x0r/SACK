@@ -674,7 +674,7 @@ void PSI_SetFrameBorder( PSI_CONTROL pc, PFrameBorder border )
 //#define basecolor(pc) ((pc)?((pc)->border?(pc)->border->defaultcolors:(pc)->basecolors):(g.DefaultBorder?g.DefaultBorder->defaultcolors:DefaultColors))
 CDATA *basecolor( PSI_CONTROL pc )
 {
-	xlprintf( "get base color pc: %p %p %p", pc, pc?pc->basecolors:0, pc?pc->border:0 );
+	//xlprintf( "get base color pc: %p %p %p", pc, pc?pc->basecolors:0, pc?pc->border:0 );
 	if( pc )
 		if( ( pc )->border ) {
 			return ( pc )->border->defaultcolors;
@@ -907,14 +907,13 @@ PSI_PROC( void, SetControlColor )( PSI_CONTROL pc, INDEX idx, CDATA c )
 {
 	if( pc )
 	{
-		CDATA *oldColors;
-		if( basecolor(pc) == ( oldColors = DefaultColors )
-			|| ( pc->parent && ( (oldColors = pc->parent->basecolors) == pc->basecolors) ) )
-		{
-			pc->basecolors = NewArray( CDATA, sizeof( DefaultColors ) / sizeof( CDATA ) );
-			MemCpy( pc->basecolors, oldColors, sizeof( DefaultColors ) );
+		if( basecolor( pc ) == DefaultColors ) {
+			if( !pc->border ) {
+				pc->basecolors = NewArray( CDATA, sizeof( DefaultColors ) / sizeof( CDATA ) );
+				MemCpy( pc->basecolors, DefaultColors, sizeof( DefaultColors ) );
+			} // otherwise we'll be setting the border default... which can be shared... 
 		}
-		basecolor(pc)[idx] = c;
+		basecolor( pc )[idx] = c;
 	}
 }
 
