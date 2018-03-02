@@ -807,7 +807,7 @@ static uuid_rc_t uuid_export_txt(const uuid_t *uuid, void *_data_ptr, size_t *da
     /* provide result */
     out_len = strlen(out_ptr)+1;
     if (*data_ptr == NULL) {
-        *data_ptr = (void *)out_ptr;
+        *data_ptr = (char *)out_ptr;
         if (data_len != NULL)
             *data_len = out_len;
     }

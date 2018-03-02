@@ -37,6 +37,8 @@
 /* own headers (part 2/2) */
 #include "uuid_md5.h"
 
+#ifndef MD5_ALGORITHM_DEFINED
+
 /*
  * This is a RFC 1321 compliant Message Digest 5 (MD5) algorithm
  * implementation. It is directly derived from the RSA code published in
@@ -366,7 +368,7 @@ static void Decode(
                     | (((UINT4)input[j+3]) << 24);
     return;
 }
-
+#endif
 /*
 ** ==== END RFC 1321 CODE ====
 */

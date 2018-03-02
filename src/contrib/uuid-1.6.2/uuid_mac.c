@@ -145,6 +145,9 @@ int mac_address(unsigned char *data_ptr, size_t data_len)
 #if defined(SIOCGARP)
     /* use SIOCGARP ioctl(2) on SVR4 class platforms (Solaris, etc) */
     {
+#ifndef MAXHOSTNAMELEN
+#define MAXHOSTNAMELEN 256
+#endif
         char hostname[MAXHOSTNAMELEN];
         struct hostent *he;
         struct arpreq ar;

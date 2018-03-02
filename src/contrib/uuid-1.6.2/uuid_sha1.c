@@ -37,6 +37,7 @@
 /* own headers (part 2/2) */
 #include "uuid_sha1.h"
 
+#ifndef _SHA1_H_
 /*
  *  This is a RFC 3174 compliant Secure Hash Function (SHA-1) algorithm
  *  implementation. It is directly derived from the SHA-1 reference
@@ -339,6 +340,8 @@ static void SHA1PadMessage(SHA1Context *context)
     SHA1ProcessMessageBlock(context);
     return;
 }
+
+#endif
 
 /*
 ** ==== END RFC 3174 CODE ====

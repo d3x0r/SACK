@@ -3,7 +3,6 @@
 **  [automatically generated and maintained by GNU shtool]
 */
 
-#ifdef _UUID_VERS_H_AS_HEADER_
 
 #ifndef _UUID_VERS_H_
 #define _UUID_VERS_H_
@@ -24,6 +23,9 @@ typedef struct {
 extern _uuid_version_t _uuid_version;
 
 #endif /* _UUID_VERS_H_ */
+
+
+#ifdef _UUID_VERS_H_AS_HEADER_
 
 #else /* _UUID_VERS_H_AS_HEADER_ */
 
