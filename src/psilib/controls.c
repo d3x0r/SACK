@@ -375,26 +375,7 @@ void GetMyInterface( void )
 			}
 			lprintf( WIDE("Fail image load once...") );
 		}
-		else
-		{
-			if( !DefaultColors[0] )
-			{
-				DefaultColors[0] = Color( 192, 192, 192 ); // highlight
-				DefaultColors[1] = AColor( 53, 96, 89, 255 ); // normal
-				DefaultColors[2] = Color( 35, 63, 57 ); // shade
-				DefaultColors[3] = Color( 0, 0, 1 ); // shadow
-				DefaultColors[4] = Color( 0, 240, 240 ); // text
-				DefaultColors[5] = Color( 88,124,200 ); // caption background
-				DefaultColors[6] = Color( 240, 240, 240 ); // cannot be black(0). caption text
-				DefaultColors[7] = Color( 89, 120, 120 ); // inactive caption background
-				DefaultColors[8] = Color( 0, 0, 1 );     // inactive caption text (not black)
-				DefaultColors[9] = Color( 0, 0, 128 );  // text select background
-				DefaultColors[10] = Color( 220, 220, 220 ); // text select foreground
-				DefaultColors[11] = AColor( 192, 192, 192, 255 ); // edit background
-				DefaultColors[12] = Color( 0, 0, 1 );  // edit text
-				DefaultColors[13] = Color( 120, 120, 180 ); // scroll bar...
-			}
-		}
+		SetControlImageInterface( g.MyImageInterface );
 	}
 	if( !g.MyDisplayInterface )
 	{
@@ -415,49 +396,10 @@ void GetMyInterface( void )
 		}
 		else
 		{
-			if( !(g.flags.always_draw = RequiresDrawAll()) )
-				g.flags.allow_threaded_draw = AllowsAnyThreadToUpdate();
-			g.flags.allow_copy_from_render = VidlibRenderAllowsCopy();
 		}
+		SetControlInterface( g.MyDisplayInterface );
 	}
-#ifdef __ANDROID__
-	if( !g.default_font )
-	{
-		uint32_t w, h;
-		GetDisplaySize( &w, &h );
-		if( h > w )
-			g.default_font = RenderFontFileScaledEx( WIDE("%resources%/fonts/MyriadPro.ttf"), w / 34, h / 48, NULL, NULL, 2/*FONT_FLAG_8BIT*/, NULL, NULL );
-		else
-			g.default_font = RenderFontFileScaledEx( WIDE("%resources%/fonts/MyriadPro.ttf"), w / 58, h / 32, NULL, NULL, 2/*FONT_FLAG_8BIT*/, NULL, NULL );
-	}
-#else
-	if( !g.default_font )
-	{
-		TEXTCHAR buffer[256];
-		CTEXTSTR default_name;
 
-		uint32_t w, h;
-		int bias_x, bias_y;
-		GetFileGroup( WIDE( "Resources" ), WIDE( "@/../Resources" ) );
-		//GetDisplaySize( &w, &h );
-		//g.default_font = RenderFontFileScaledEx( WIDE("%resources%/fonts/rod.ttf"), 20, 20, NULL, NULL, 0*2/*FONT_FLAG_8BIT*/, NULL, NULL );
-		//g.default_font = RenderFontFileScaledEx( WIDE("rod.ttf"), 18, 18, NULL, NULL, 2/*FONT_FLAG_8BIT*/, NULL, NULL );
-		if( sack_exists( "c:/windows/fonts/msyh.ttf" ) )
-			default_name = WIDE("msyh.ttf");
-		else if( sack_exists( "c:/windows/fonts/msyh.ttc" ) )
-			default_name = WIDE("msyh.ttc");
-		else
-			default_name = WIDE("arialbd.ttf");
-		SACK_GetProfileString( WIDE("SACK/PSI/Font"), WIDE("Default File"), default_name, buffer, 256 );
-		w = SACK_GetProfileInt( WIDE( "SACK/PSI/Font" ), WIDE( "Default Width" ), 18 );
-		h = SACK_GetProfileInt( WIDE( "SACK/PSI/Font" ), WIDE( "Default Height" ), 18 );
-		g.default_font = RenderFontFileScaledEx( buffer, w, h, NULL, NULL, 2/*FONT_FLAG_8BIT*/, NULL, NULL );
-		bias_x = SACK_GetProfileInt( WIDE( "SACK/PSI/Font" ), WIDE( "Bias X" ), 0 );
-		bias_y = SACK_GetProfileInt( WIDE( "SACK/PSI/Font" ), WIDE( "Bias Y" ), 0 );
-		//lprintf( "default font %p %d,%d", g.default_font, bias_x, bias_y );
-		//SetFontBias( g.default_font, bias_x, bias_y );
-	}
-#endif
 }
 #endif
 
@@ -565,7 +507,10 @@ PFrameBorder PSI_CreateBorder( Image image, int width, int height, int anchors, 
 				return border;
 		}
 		border = New( FrameBorder );
-		border->defaultcolors = DefaultColors;
+		border->hasFill = 0;
+		border->drawFill = 0;
+		border->defaultcolors = (CDATA*)Allocate( sizeof( DefaultColors ) );
+		MemCpy( border->defaultcolors, DefaultColors, sizeof( DefaultColors ) );
 		border->BorderImage = image;
 		if( border->BorderImage )
 		{
@@ -623,9 +568,9 @@ PFrameBorder PSI_CreateBorder( Image image, int width, int height, int anchors, 
 					, WIDE( "Use center base colors" )
 					, 1 )*/ )
 			{
-				CDATA *old_colors = border->defaultcolors;
-				border->defaultcolors = (CDATA*)Allocate( sizeof( DefaultColors ) );
-				MemCpy( border->defaultcolors, old_colors, sizeof( DefaultColors ) );
+				//CDATA *old_colors = border->defaultcolors;
+				//border->defaultcolors = (CDATA*)Allocate( sizeof( DefaultColors ) );
+				//MemCpy( border->defaultcolors, DefaultColors, sizeof( DefaultColors ) );
 				if( border->BorderSegment[SEGMENT_CENTER]->height >= 2 
 					&& border->BorderSegment[SEGMENT_CENTER]->width >= 7
 					&& defines_colors )
@@ -653,7 +598,8 @@ PFrameBorder PSI_CreateBorder( Image image, int width, int height, int anchors, 
 					, border->BorderWidth, border->BorderHeight
 					, MiddleSegmentWidth, MiddleSegmentHeight );
 
-
+				if( MiddleSegmentWidth > 2 * border->BorderWidth )
+					border->hasFill = TRUE;
 			}
 		}
 		AddLink( &g.borders, border );
@@ -832,6 +778,64 @@ PRELOAD( DefaultControlStartup )
 
 PSI_PROC( PIMAGE_INTERFACE, SetControlImageInterface )( PIMAGE_INTERFACE DisplayInterface )
 {
+	g.MyImageInterface = DisplayInterface;
+
+	if( !DisplayInterface ) return DisplayInterface;
+
+	if( !DefaultColors[0] ) {
+		DefaultColors[0] = Color( 192, 192, 192 ); // highlight
+		DefaultColors[1] = AColor( 53, 96, 89, 255 ); // normal
+		DefaultColors[2] = Color( 35, 63, 57 ); // shade
+		DefaultColors[3] = Color( 0, 0, 1 ); // shadow
+		DefaultColors[4] = Color( 0, 240, 240 ); // text
+		DefaultColors[5] = Color( 88, 124, 200 ); // caption background
+		DefaultColors[6] = Color( 240, 240, 240 ); // cannot be black(0). caption text
+		DefaultColors[7] = Color( 89, 120, 120 ); // inactive caption background
+		DefaultColors[8] = Color( 0, 0, 1 );     // inactive caption text (not black)
+		DefaultColors[9] = Color( 0, 0, 128 );  // text select background
+		DefaultColors[10] = Color( 220, 220, 220 ); // text select foreground
+		DefaultColors[11] = AColor( 192, 192, 192, 255 ); // edit background
+		DefaultColors[12] = Color( 0, 0, 1 );  // edit text
+		DefaultColors[13] = Color( 120, 120, 180 ); // scroll bar...
+	}
+
+#ifdef __ANDROID__
+	if( !g.default_font ) {
+		uint32_t w, h;
+		GetDisplaySize( &w, &h );
+		if( h > w )
+			g.default_font = RenderFontFileScaledEx( WIDE( "%resources%/fonts/MyriadPro.ttf" ), w / 34, h / 48, NULL, NULL, 2/*FONT_FLAG_8BIT*/, NULL, NULL );
+		else
+			g.default_font = RenderFontFileScaledEx( WIDE( "%resources%/fonts/MyriadPro.ttf" ), w / 58, h / 32, NULL, NULL, 2/*FONT_FLAG_8BIT*/, NULL, NULL );
+	}
+#else
+	if( !g.default_font ) {
+		TEXTCHAR buffer[256];
+		CTEXTSTR default_name;
+
+		uint32_t w, h;
+		int bias_x, bias_y;
+		GetFileGroup( WIDE( "Resources" ), WIDE( "@/../Resources" ) );
+		//GetDisplaySize( &w, &h );
+		//g.default_font = RenderFontFileScaledEx( WIDE("%resources%/fonts/rod.ttf"), 20, 20, NULL, NULL, 0*2/*FONT_FLAG_8BIT*/, NULL, NULL );
+		//g.default_font = RenderFontFileScaledEx( WIDE("rod.ttf"), 18, 18, NULL, NULL, 2/*FONT_FLAG_8BIT*/, NULL, NULL );
+		if( sack_exists( "c:/windows/fonts/msyh.ttf" ) )
+			default_name = WIDE( "msyh.ttf" );
+		else if( sack_exists( "c:/windows/fonts/msyh.ttc" ) )
+			default_name = WIDE( "msyh.ttc" );
+		else
+			default_name = WIDE( "arialbd.ttf" );
+		SACK_GetProfileString( WIDE( "SACK/PSI/Font" ), WIDE( "Default File" ), default_name, buffer, 256 );
+		w = SACK_GetProfileInt( WIDE( "SACK/PSI/Font" ), WIDE( "Default Width" ), 18 );
+		h = SACK_GetProfileInt( WIDE( "SACK/PSI/Font" ), WIDE( "Default Height" ), 18 );
+		g.default_font = RenderFontFileScaledEx( buffer, w, h, NULL, NULL, 2/*FONT_FLAG_8BIT*/, NULL, NULL );
+		bias_x = SACK_GetProfileInt( WIDE( "SACK/PSI/Font" ), WIDE( "Bias X" ), 0 );
+		bias_y = SACK_GetProfileInt( WIDE( "SACK/PSI/Font" ), WIDE( "Bias Y" ), 0 );
+		//lprintf( "default font %p %d,%d", g.default_font, bias_x, bias_y );
+		//SetFontBias( g.default_font, bias_x, bias_y );
+	}
+#endif
+
 #ifndef PSI_SERVICE
 #  ifdef USE_INTERFACES
 	return g.MyImageInterface = DisplayInterface;
@@ -843,11 +847,11 @@ PSI_PROC( PIMAGE_INTERFACE, SetControlImageInterface )( PIMAGE_INTERFACE Display
 
 PSI_PROC( PRENDER_INTERFACE, SetControlInterface )( PRENDER_INTERFACE DisplayInterface )
 {
-#ifndef PSI_SERVICE
-#  ifdef USE_INTERFACES
-	return g.MyDisplayInterface = DisplayInterface;
-#endif
-#endif
+	g.MyDisplayInterface = DisplayInterface;
+	if( !( g.flags.always_draw = RequiresDrawAll() ) )
+		g.flags.allow_threaded_draw = AllowsAnyThreadToUpdate();
+	g.flags.allow_copy_from_render = VidlibRenderAllowsCopy();
+
 	return DisplayInterface;
 }
 //---------------------------------------------------------------------------
@@ -1318,8 +1322,13 @@ static int OnDrawCommon( WIDE("Frame") )( PSI_CONTROL pc )
 	if( g.flags.bLogDebugUpdate )
 		lprintf( WIDE( "-=-=-=-=- Output Frame background..." ) );
 #endif
-	if( !pc->border )
-		BlatColorAlpha( pc->Surface, 0, 0, pc->surface_rect.width, pc->surface_rect.height, basecolor(pc)[NORMAL] );
+	lprintf( "Drawing frame on %p %p %d", pc, pc->border, pc->border ? pc->border->hasFill : 0 );
+	if( !pc->border || !pc->border->hasFill ) {
+		if( !pc->parent )
+			BlatColor( pc->Surface, 0, 0, pc->surface_rect.width, pc->surface_rect.height, basecolor( pc )[NORMAL] );
+		else
+			BlatColorAlpha( pc->Surface, 0, 0, pc->surface_rect.width, pc->surface_rect.height, basecolor( pc )[NORMAL] );
+	}
 	DrawFrameCaption( pc );
 	return 1;
 }

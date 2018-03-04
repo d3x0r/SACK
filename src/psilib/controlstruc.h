@@ -248,6 +248,7 @@ typedef struct frame_border {
 	} Border;
 	Image BorderImage;
 	Image BorderSegment[9]; // really 8, but symetry is kept
+	LOGICAL hasFill;
 	LOGICAL drawFill;
 } FrameBorder;
 

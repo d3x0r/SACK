@@ -1008,7 +1008,7 @@ SQLGETOPTION_PROC( LOGICAL, SACK_WritePrivateOptionStringEx )( PODBC odbc, CTEXT
 	}
 #if defined( _DEBUG )
 	if( global_sqlstub_data->flags.bLogOptionConnection )
-		_lprintf( DBG_RELAY )( WIDE( "Setting option {%s}[%s]%s=%s" ), pINIFile, pSection, pName, pValue );
+		_lprintf( DBG_SRC )( WIDE( "Setting option {%s}[%s]%s=%s" ), pINIFile, pSection, pName, pValue );
 #endif
 	optval = GetOptionIndexExxx( odbc, NULL, NULL, pINIFile, pSection, pName, TRUE, FALSE, FALSE DBG_SRC );
 	if( !optval )
