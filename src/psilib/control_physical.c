@@ -197,7 +197,7 @@ static void CPROC FrameRedraw( uintptr_t psvFrame, PRENDERER psvSelf )
 #ifdef DEBUG_BORDER_DRAWING
 				lprintf( "Drawing border here too.." );
 #endif
-				if( pc->border->hasFill )
+				if( pc->border && pc->border->hasFill )
 					pc->border->drawFill = 1;
 				DrawFrameCaption( pc );
 				pc->DrawBorder( pc );

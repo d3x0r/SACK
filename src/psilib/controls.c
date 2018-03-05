@@ -613,7 +613,8 @@ void PSI_SetFrameBorder( PSI_CONTROL pc, PFrameBorder border )
 	pc->border = border;
 	if( !( pc->BorderType & BORDER_USER_PROC ) )
 		pc->DrawBorder = (pc->border&&pc->border->BorderImage)?DrawFancyFrame:DrawNormalFrame;
-	border->drawFill = 1;
+	if( border )
+		border->drawFill = 1;
 	UpdateSurface( pc );
 }
 
@@ -1322,7 +1323,6 @@ static int OnDrawCommon( WIDE("Frame") )( PSI_CONTROL pc )
 	if( g.flags.bLogDebugUpdate )
 		lprintf( WIDE( "-=-=-=-=- Output Frame background..." ) );
 #endif
-	lprintf( "Drawing frame on %p %p %d", pc, pc->border, pc->border ? pc->border->hasFill : 0 );
 	if( !pc->border || !pc->border->hasFill ) {
 		if( !pc->parent )
 			BlatColor( pc->Surface, 0, 0, pc->surface_rect.width, pc->surface_rect.height, basecolor( pc )[NORMAL] );

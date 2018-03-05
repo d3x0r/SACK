@@ -8,19 +8,27 @@
 #include <string.h> // strchr
 #include <logging.h>
 
-#define USE_IMAGE_INTERFACE ImageInterface
-#define USE_RENDER_INTERFACE RenderInterface
-#include <image.h>
-PIMAGE_INTERFACE ImageInterface;
-#include <render.h>
-PRENDER_INTERFACE RenderInterface;
+
+#include "../global.h" 
+
 #include <psi.h>
+/*
+//#define USE_IMAGE_INTERFACE ImageInterface
+//#define USE_RENDER_INTERFACE RenderInterface
+#define USE_IMAGE_INTERFACE (g.MyImageInterface?g.MyImageInterface:(g.MyImageInterface=GetImageInterface() ))
+#define USE_RENDER_INTERFACE (g.MyDisplayInterface?g.MyDisplayInterface:(g.MyDisplayInterface=GetDisplayInterface() ))
+
+#include <image.h>
+//PIMAGE_INTERFACE ImageInterface;
+#include <render.h>
+//PRENDER_INTERFACE RenderInterface;
 #include <controls.h>
 #include <keybrd.h>
+*/
+
 
 //#define PutStringEx(i,x,y,f,b,s,l) { Log6( "Putting string: %ld,%ld %ld %*.*s", x,y,l,l,l,s); PutStringFontEx( i,x,y,f,b,s,l,NULL); }
 //#define BlatColor(i,x,y,w,h,c)	  { Log5( "BlatColor: %ld,%ld %ld,%ld %08lx", x, y, w, h, c ); BlatColor( i,x,y,w,h,c ); }
-
 #include "consolestruc.h"
 #include "interface.h"
 #include "WinLogic.h"
@@ -694,8 +702,8 @@ static void FillDefaultColors( void )
 
 PRELOAD(RegisterConsole)
 {
-	ImageInterface = GetImageInterface();
-	RenderInterface = GetDisplayInterface();
+	//ImageInterface = GetImageInterface();
+	//RenderInterface = GetDisplayInterface();
 	DoRegisterControl( &ConsoleClass );
 	//SimpleRegisterMethod( WIDE( "psi/control/" ) WIDE( "Dekware PSI Console" ) WIDE( "/rtti/extra init" )
 	//						  , InitDekwareConsole, WIDE( "int" ), WIDE( "extra init" ), WIDE( "(PSI_CONTROL)" ) );
