@@ -328,7 +328,7 @@ PRIORITY_PRELOAD( InitGlobal, DEFAULT_PRELOAD_PRIORITY )
 #    define XCHG(p,val)  __atomic_exchange_n(p,val,__ATOMIC_RELAXED)
 ///  for some reason __GNUC_VERSION doesn't exist from android ?
 #  elif defined __ARM__ || defined __ANDROID__
-//#    define XCHG(p,val)  __atomic_exchange_n(p,val,__ATOMIC_RELAXED)
+#    define XCHG(p,val)  __atomic_exchange_n(p,val,__ATOMIC_RELAXED)
 #  else
 #pragma message( "NOT GNUC COMPILER")
 inline uint32_t DoXchg( volatile uint32_t* p, uint32_t val ) { __asm__( WIDE( "lock xchg (%2),%0" ) :WIDE( "=a" )(val) : WIDE( "0" )(val), WIDE( "c" )(p) ); return val; }
