@@ -73,72 +73,72 @@ static char phex[] = "0123456789abcdef";
 
 enum { OP_HANG = -1 // used to indicate prior op complete, please hang on tree
 		// after hanging, please re-check current symbol
-	  , OP_NOOP = 0
+     , OP_NOOP = 0
      , OP_SUBEXPRESSION // (...)
 
-	  , OP_INT_OPERAND_8
-	  , OP_INT_OPERAND_16
-	  , OP_INT_OPERAND_32
-	  , OP_INT_OPERAND_64
+     , OP_INT_OPERAND_8
+     , OP_INT_OPERAND_16
+     , OP_INT_OPERAND_32
+     , OP_INT_OPERAND_64
 
-	  , OP_SINT_OPERAND_8
-	  , OP_SINT_OPERAND_16
-	  , OP_SINT_OPERAND_32
-	  , OP_SINT_OPERAND_64
+     , OP_SINT_OPERAND_8
+     , OP_SINT_OPERAND_16
+     , OP_SINT_OPERAND_32
+     , OP_SINT_OPERAND_64
 
-	  , OP_FLT_OPERAND_32
-	  , OP_FLT_OPERAND_64
+     , OP_FLT_OPERAND_32
+     , OP_FLT_OPERAND_64
 
-	  , OP_CHARACTER_STRING
-	  , OP_CHARACTER_CONST
+     , OP_CHARACTER_STRING
+     , OP_CHARACTER_CONST
 
-	  , OP_SETEQUAL                     // =  equality
-	  , OP_ISEQUAL                      // == comparison
+     , OP_SETEQUAL                     // =  equality
+     , OP_ISEQUAL                      // == comparison
 
-	  , OP_PLUS                         // +
-	  , OP_INCREMENT                    // ++
-	  , OP_PLUSEQUAL                    // +=
+     , OP_PLUS                         // +
+     , OP_INCREMENT                    // ++
+     , OP_PLUSEQUAL                    // +=
 
-	  , OP_MINUS                        // -
-	  , OP_DECREMENT                    // --
-	  , OP_MINUSEQUAL                   // -=
+     , OP_MINUS                        // -
+     , OP_DECREMENT                    // --
+     , OP_MINUSEQUAL                   // -=
 
-	  , OP_MULTIPLY                     // *
-	  , OP_MULTIPLYEQUAL                // *=
-	  , OP_MOD                          // %
-	  , OP_MODEQUAL                     // %=
-	  , OP_DIVIDE                       // /
-	  , OP_DIVIDEEQUAL                  // /=
+     , OP_MULTIPLY                     // *
+     , OP_MULTIPLYEQUAL                // *=
+     , OP_MOD                          // %
+     , OP_MODEQUAL                     // %=
+     , OP_DIVIDE                       // /
+     , OP_DIVIDEEQUAL                  // /=
 
-	  , OP_XOR                          // ^
-	  , OP_XOREQUAL                     // ^=
+     , OP_XOR                          // ^
+     , OP_XOREQUAL                     // ^=
 
-	  , OP_BINARYNOT                    // ~
-	  , OP_LOGICALNOT                   // !
-	  , OP_NOTEQUAL                     // !=
+     , OP_BINARYNOT                    // ~
+     , OP_LOGICALNOT                   // !
+     , OP_NOTEQUAL                     // !=
 
-	  , OP_GREATER                      // >
-	  , OP_SHIFTRIGHT                   // >>
-	  , OP_GREATEREQUAL                 // >=
-	  , OP_SHREQUAL                     // >>=
+     , OP_GREATER                      // >
+     , OP_SHIFTRIGHT                   // >>
+     , OP_GREATEREQUAL                 // >=
+     , OP_SHREQUAL                     // >>=
 
-	  , OP_LESSER                       // <
-	  , OP_SHIFTLEFT                    // <<
-	  , OP_LESSEREQUAL                  // <=
-	  , OP_SHLEQUAL                     // <<=
+     , OP_LESSER                       // <
+     , OP_SHIFTLEFT                    // <<
+     , OP_LESSEREQUAL                  // <=
+     , OP_SHLEQUAL                     // <<=
 
-	  , OP_BINARYAND                    // &
-	  , OP_LOGICALAND                   // &&
-	  , OP_ANDEQUAL                     // &=
+     , OP_BINARYAND                    // &
+     , OP_LOGICALAND                   // &&
+     , OP_ANDEQUAL                     // &=
 
-	  , OP_BINARYOR                     // |
-	  , OP_LOGICALOR                    // ||
-	  , OP_OREQUAL                      // |=
+     , OP_BINARYOR                     // |
+     , OP_LOGICALOR                    // ||
+     , OP_OREQUAL                      // |=
 
-	  , OP_COMPARISON                   // ?
-	  , OP_ELSE_COMPARISON					// :
-	  , OP_COMMA
-	  //, OP_DOT
+     , OP_COMPARISON                   // ?
+     , OP_ELSE_COMPARISON					// :
+     , OP_COMMA
+     //, OP_DOT
      //, OP_
 };
 
@@ -177,42 +177,42 @@ struct relation {
 #define NUM_RELATIONS (sizeof(Relations)/sizeof(RELATION))
 
 RELATION Relations[] = { { OP_NOOP      , { { '=', OP_SETEQUAL }
-								                  , { '<', OP_LESSER }
-								                  , { '>', OP_GREATER }
-								                  , { '+', OP_PLUS }
-								                  , { '-', OP_MINUS }
-								                  , { '*', OP_MULTIPLY }
-								                  , { '/', OP_DIVIDE }
-								                  , { '%', OP_MOD }
-								                  , { '^', OP_XOR }
-								                  , { '~', OP_BINARYNOT }
-								                  , { '!', OP_LOGICALNOT }
-								                  , { '&', OP_BINARYAND }
-								                  , { '|', OP_BINARYOR }
-								                  , { '?', OP_COMPARISON }
-								                  , { ':', OP_ELSE_COMPARISON } 
-								                  , { ',', OP_COMMA } } }
-							  , { OP_SETEQUAL  , { { '=', OP_ISEQUAL } } }
-							  , { OP_PLUS      , { { '+', OP_INCREMENT }
-							  					      , { '=', OP_PLUSEQUAL } } }
-							  , { OP_MINUS     , { { '-', OP_DECREMENT }
-							                     , { '=', OP_MINUSEQUAL } } }
-							  , { OP_MULTIPLY  , { { '=', OP_MULTIPLYEQUAL } } }
-							  , { OP_MOD       , { { '=', OP_MODEQUAL } } }
-							  , { OP_DIVIDE    , { { '=', OP_DIVIDEEQUAL } } }
-							  , { OP_XOR       , { { '=', OP_XOREQUAL } } }
-							  , { OP_LOGICALNOT, { { '=', OP_NOTEQUAL } } }
-							  , { OP_GREATER   , { { '>', OP_SHIFTRIGHT }
-							  						   , { '=', OP_GREATEREQUAL } } }
-							  , { OP_SHIFTRIGHT, { { '=', OP_SHREQUAL } } }
-							  , { OP_LESSER    , { { '<', OP_SHIFTLEFT }
-							  					      , { '=', OP_LESSEREQUAL } } }
-							  , { OP_SHIFTLEFT , { { '=', OP_SHLEQUAL } } }
-							  , { OP_BINARYAND , { { '&', OP_LOGICALAND }
-							  				         , { '=', OP_ANDEQUAL } } }
-							  , { OP_BINARYOR  , { { '|', OP_LOGICALOR }
-							                     , { '=', OP_OREQUAL } } }
-							  };
+                                          , { '<', OP_LESSER }
+                                          , { '>', OP_GREATER }
+                                          , { '+', OP_PLUS }
+                                          , { '-', OP_MINUS }
+                                          , { '*', OP_MULTIPLY }
+                                          , { '/', OP_DIVIDE }
+                                          , { '%', OP_MOD }
+                                          , { '^', OP_XOR }
+                                          , { '~', OP_BINARYNOT }
+                                          , { '!', OP_LOGICALNOT }
+                                          , { '&', OP_BINARYAND }
+                                          , { '|', OP_BINARYOR }
+                                          , { '?', OP_COMPARISON }
+                                          , { ':', OP_ELSE_COMPARISON }
+                                          , { ',', OP_COMMA } } }
+                       , { OP_SETEQUAL  , { { '=', OP_ISEQUAL } } }
+                       , { OP_PLUS      , { { '+', OP_INCREMENT }
+                                          , { '=', OP_PLUSEQUAL } } }
+                       , { OP_MINUS     , { { '-', OP_DECREMENT }
+                                          , { '=', OP_MINUSEQUAL } } }
+                       , { OP_MULTIPLY  , { { '=', OP_MULTIPLYEQUAL } } }
+                       , { OP_MOD       , { { '=', OP_MODEQUAL } } }
+                       , { OP_DIVIDE    , { { '=', OP_DIVIDEEQUAL } } }
+                       , { OP_XOR       , { { '=', OP_XOREQUAL } } }
+                       , { OP_LOGICALNOT, { { '=', OP_NOTEQUAL } } }
+                       , { OP_GREATER   , { { '>', OP_SHIFTRIGHT }
+                                          , { '=', OP_GREATEREQUAL } } }
+                       , { OP_SHIFTRIGHT, { { '=', OP_SHREQUAL } } }
+                       , { OP_LESSER    , { { '<', OP_SHIFTLEFT }
+                                          , { '=', OP_LESSEREQUAL } } }
+                       , { OP_SHIFTLEFT , { { '=', OP_SHLEQUAL } } }
+                       , { OP_BINARYAND , { { '&', OP_LOGICALAND }
+                                          , { '=', OP_ANDEQUAL } } }
+                       , { OP_BINARYOR  , { { '|', OP_LOGICALOR }
+                                          , { '=', OP_OREQUAL } } }
+                       };
 
 //--------------------------------------------------------------------------
 
@@ -637,7 +637,7 @@ POPNODE BuildExpression( void ) // expression is queued
 				int n, len = (int)GetTextSize( thisword );
 				for( n = 0; n < thisword->format.spaces; n++ )
 				{
-					if( !overflow && 
+					if( !overflow &&
 						 (ThisOp->data.i & 0xFF00000000000000LL) )
 					{
 						overflow = 1;
