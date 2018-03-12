@@ -143,25 +143,25 @@ enum { OP_HANG = -1 // used to indicate prior op complete, please hang on tree
 };
 
 char *fullopname[] = { "noop", WIDE("sub-expr")
-					 ,  "uint8_t",  "uint16_t",  "uint32_t",  "uint64_t" // unsigned int
-					 , WIDE("int8_t"), WIDE("int16_t"), WIDE("int32_t"), WIDE("int64_t") // signed int
-					 , WIDE("float"), WIDE("double") // float ops
-					 , WIDE("string"), WIDE("character")
-					 , WIDE("="), WIDE("==")
-					 , WIDE("+"), WIDE("++"), WIDE("+=")
-					 , WIDE("-"), WIDE("--"), WIDE("-=")
-					 , WIDE("*"), WIDE("*=")
-					 , WIDE("%"), WIDE("%=")
-					 , WIDE("/"), WIDE("/=")
-					 , WIDE("^"), WIDE("^=")
-					 , WIDE("~")
-					 , WIDE("!"), WIDE("!=")
-					 , WIDE(">"), WIDE(">>"), WIDE(">="), WIDE(">>=")
-					 , WIDE("<"), WIDE("<<"), WIDE("<="), WIDE("<<=")
-					 , WIDE("&"), WIDE("&&"), WIDE("&=")
-					 , WIDE("|"), WIDE("||"), WIDE("|=")
-					 , WIDE("?"), WIDE(":"), WIDE(",")
-					 };
+                     ,  "uint8_t",  "uint16_t",  "uint32_t",  "uint64_t" // unsigned int
+                     , WIDE("int8_t"), WIDE("int16_t"), WIDE("int32_t"), WIDE("int64_t") // signed int
+                     , WIDE("float"), WIDE("double") // float ops
+                     , WIDE("string"), WIDE("character")
+                     , WIDE("="), WIDE("==")
+                     , WIDE("+"), WIDE("++"), WIDE("+=")
+                     , WIDE("-"), WIDE("--"), WIDE("-=")
+                     , WIDE("*"), WIDE("*=")
+                     , WIDE("%"), WIDE("%=")
+                     , WIDE("/"), WIDE("/=")
+                     , WIDE("^"), WIDE("^=")
+                     , WIDE("~")
+                     , WIDE("!"), WIDE("!=")
+                     , WIDE(">"), WIDE(">>"), WIDE(">="), WIDE(">>=")
+                     , WIDE("<"), WIDE("<<"), WIDE("<="), WIDE("<<=")
+                     , WIDE("&"), WIDE("&&"), WIDE("&=")
+                     , WIDE("|"), WIDE("||"), WIDE("|=")
+                     , WIDE("?"), WIDE(":"), WIDE(",")
+                     };
 
 
 typedef struct relation RELATION, *PRELATION;
@@ -189,11 +189,11 @@ RELATION Relations[] = { { OP_NOOP      , { { '=', OP_SETEQUAL }
 								                  , { '!', OP_LOGICALNOT }
 								                  , { '&', OP_BINARYAND }
 								                  , { '|', OP_BINARYOR }
-														, { '?', OP_COMPARISON }
-														, { ':', OP_ELSE_COMPARISON } 
-														, { ',', OP_COMMA } } }
+								                  , { '?', OP_COMPARISON }
+								                  , { ':', OP_ELSE_COMPARISON } 
+								                  , { ',', OP_COMMA } } }
 							  , { OP_SETEQUAL  , { { '=', OP_ISEQUAL } } }
-							  , { OP_PLUS		 , { { '+', OP_INCREMENT }
+							  , { OP_PLUS      , { { '+', OP_INCREMENT }
 							  					      , { '=', OP_PLUSEQUAL } } }
 							  , { OP_MINUS     , { { '-', OP_DECREMENT }
 							                     , { '=', OP_MINUSEQUAL } } }
@@ -220,9 +220,9 @@ static POPNODE GetOpNodeEx( DBG_VOIDPASS )
 #define GetOpNode() GetOpNodeEx( DBG_VOIDSRC )
 {
 	POPNODE pOp = AllocateEx( sizeof( OPNODE ) DBG_RELAY );
-   memset( pOp, 0, sizeof( OPNODE ) );
+	memset( pOp, 0, sizeof( OPNODE ) );
 	pOp->op     = OP_NOOP;
-   return pOp;
+	return pOp;
 }
 
 //--------------------------------------------------------------------------
@@ -241,8 +241,8 @@ void DestroyOpNodeEx( POPNODE node DBG_PASS )
 	if( node->left )
 		node->left->right = node->right;
 	if( node->right )
-      node->right->left = node->left;
-   ReleaseExx( (void**)&node DBG_RELAY );
+		node->right->left = node->left;
+	ReleaseExx( (void**)&node DBG_RELAY );
 }
 
 //--------------------------------------------------------------------------
@@ -250,15 +250,15 @@ void DestroyOpNodeEx( POPNODE node DBG_PASS )
 void DestroyExpressionEx( POPNODE root DBG_PASS )
 {
 	POPNODE next;
-   // go to the start of the expression...
+	// go to the start of the expression...
 	if( !root )
 		return;
 	while( root->left )
 		root = root->left;
-   next = root;
+	next = root;
 	while( root = next )
 	{
-      next = root->right;
+		next = root->right;
 		DestroyOpNodeEx( root DBG_RELAY );
 	}
 }
@@ -296,10 +296,10 @@ POPNODE SubstNodes( POPNODE _this_left, POPNODE _this_right, POPNODE that )
 		if( _this_right->right )
 			_this_right->right->left = that_right;
 		that_right->right = _this_right->right;
-      _this_right->right = NULL;
+		_this_right->right = NULL;
 		return _this_left;
 	}
-   return NULL;
+	return NULL;
 }
 
 //--------------------------------------------------------------------------
@@ -361,8 +361,8 @@ static int RelateOpNode( POPNODE *root, POPNODE node )
 	case OP_ANDEQUAL:
 	case OP_OREQUAL:
 		fprintf( stderr, WIDE("%s(%d) Error: preprocessor expression may not use operand %s\n")
-				, GetCurrentFileName(), GetCurrentLine(), fullopname[ node->op ] );
-      DestroyOpNode( node );
+		       , GetCurrentFileName(), GetCurrentLine(), fullopname[ node->op ] );
+		DestroyOpNode( node );
 		return 0;
 		break;
 	}
@@ -399,68 +399,68 @@ static int GetInteger( LONGEST_INT *result, int *length )
 	int unsigned_value = 0;
 	int long_value = 0;
 
-   if( p[0] >= '0' && p[0] <= '9' )
-   {
-  	   accum = 0;
-  	   if( p[0] == '0' && p[1] && ( p[1] == 'x' || p[1] == 'X' ) )
-  	   {
-  		   char *hexchar;
-  		   int okay = 1;
-  		   p += 2;
-  		   while( p[0] && okay )
-  		   {
-     		   if( hexchar = strchr( pHEX, p[0] ) )
-	   		{
-  				   accum *= 16;
-  				   accum += hexchar - pHEX;
-  			   }
-  			   else if( hexchar = strchr( phex, p[0] ) )
-  			   {
-  			   	accum *= 16;
-  				   accum += hexchar - phex;
-  			   }
-  			   else
-  			   {
-  				   okay = 0;
-  				   if( *p == '.' )
-  				   {
-  				   	fprintf( stderr, WIDE("%s(%d) Error: Hexadecimal may not be used to define a float.\n"), GetCurrentFileName(), GetCurrentLine() );
-  				   	return 2; // invalid number.
-  				   }
+	if( p[0] >= '0' && p[0] <= '9' )
+	{
+  		accum = 0;
+  		if( p[0] == '0' && p[1] && ( p[1] == 'x' || p[1] == 'X' ) )
+  		{
+  			char *hexchar;
+  			int okay = 1;
+  			p += 2;
+  			while( p[0] && okay )
+  			{
+	  			if( hexchar = strchr( pHEX, p[0] ) )
+				{
+  					accum *= 16;
+  					accum += hexchar - pHEX;
   				}
-			   p++;
+  				else if( hexchar = strchr( phex, p[0] ) )
+  				{
+  					accum *= 16;
+  					accum += hexchar - phex;
+  				}
+  				else
+  				{
+  					okay = 0;
+  					if( *p == '.' )
+  					{
+  						fprintf( stderr, WIDE("%s(%d) Error: Hexadecimal may not be used to define a float.\n"), GetCurrentFileName(), GetCurrentLine() );
+  						return 2; // invalid number.
+  					}
+  				}
+				p++;
 			}
-     	}
-     	else if( p[0] == '0' )
-     	{
-     		// octal
-	   	while( p[0] >= '0' && p[0] <= '7' )
-  		   {
-     		   accum *= 8;
-     		   accum += p[0] - '0';
+	  	}
+	  	else if( p[0] == '0' )
+	  	{
+	  		// octal
+			while( p[0] >= '0' && p[0] <= '7' )
+  			{
+	  			accum *= 8;
+	  			accum += p[0] - '0';
 			 	p++;
-       	}
-       	if( p[0] == '.' )
-       	{
-       		return 1;
-       	}
-       	else if( p[0] )
-       	{
-       		if( p[0] < 32 )
-	       		fprintf( stderr, WIDE("%s(%d) Error: Octal constant has invalid character 0x%02x\n"), GetCurrentFileName(), GetCurrentLine() , p[0] );
+		 	}
+		 	if( p[0] == '.' )
+		 	{
+		 		return 1;
+		 	}
+		 	else if( p[0] )
+		 	{
+		 		if( p[0] < 32 )
+			 		fprintf( stderr, WIDE("%s(%d) Error: Octal constant has invalid character 0x%02x\n"), GetCurrentFileName(), GetCurrentLine() , p[0] );
 				else
-	       		fprintf( stderr, WIDE("%s(%d) Error: Octal constant has invalid character '%c'\n"), GetCurrentFileName(), GetCurrentLine() , p[0] );
-       		return 2;
-       	}
-     	}
-  	   else
-  	   {
-	   	while( p[0] >= '0' && p[0] <= '9' )
-  		   {
-     		   accum *= 10;
-     		   accum += p[0] - '0';
+			 		fprintf( stderr, WIDE("%s(%d) Error: Octal constant has invalid character '%c'\n"), GetCurrentFileName(), GetCurrentLine() , p[0] );
+		 		return 2;
+		 	}
+	  	}
+  		else
+  		{
+			while( p[0] >= '0' && p[0] <= '9' )
+  			{
+	  			accum *= 10;
+	  			accum += p[0] - '0';
 			 	p++;
-       	}
+		 	}
   			if( *p == '.' )
   				return 1; // invalid number... should consider as float after.
 		}
@@ -496,10 +496,10 @@ static int GetInteger( LONGEST_INT *result, int *length )
 			{
 				if( p[0] < 32 )
 					fprintf( stderr, WIDE("%s(%d) Error: Invalid type specification 0x%02x.\n")
-								, GetCurrentFileName(), GetCurrentLine(), p[1] );
+					       , GetCurrentFileName(), GetCurrentLine(), p[1] );
 				else
 					fprintf( stderr, WIDE("%s(%d) Error: Invalid type specification '%c'.\n")
-								, GetCurrentFileName(), GetCurrentLine(), p[1] );
+					       , GetCurrentFileName(), GetCurrentLine(), p[1] );
 				return 2;
 
 			}
@@ -514,7 +514,7 @@ static int GetInteger( LONGEST_INT *result, int *length )
 
 //--------------------------------------------------------------------------
 // result 0: float value okay
-//        1: invalid conversion
+//   	  1: invalid conversion
 //  this may require multiple tokens to resolve... '.' '-' '+' are all
 // seperate symbols.
 static int GetFloat( LONGEST_FLT *result, int *length )
@@ -566,15 +566,15 @@ void LogExpression( POPNODE root )
 
 POPNODE BuildExpression( void ) // expression is queued
 {
-   char *pExp;
-   int nLastLogical = 0;
-   int nResult = 0;
+	char *pExp;
+	int nLastLogical = 0;
+	int nResult = 0;
 	int quote = 0;
 	int overflow = 0;
-   POPNODE ThisOp = GetOpNode();
-   POPNODE branch = NULL;
-   PTEXT thisword;
-   //return 0; // force false output ... needs work on substitutions...
+	POPNODE ThisOp = GetOpNode();
+	POPNODE branch = NULL;
+	PTEXT thisword;
+	//return 0; // force false output ... needs work on substitutions...
 
 	//if( g.bDebugLog )
 	//{
@@ -582,18 +582,18 @@ POPNODE BuildExpression( void ) // expression is queued
 	//	DumpSegs( GetCurrentWord() );
 	//}
 
-   while( ( thisword = GetCurrentWord() ) )
-   {
-   	int n;
-      pExp = GetText( thisword );
-      //printf( WIDE("word: %s\n"), pExp );
+	while( ( thisword = GetCurrentWord() ) )
+	{
+		int n;
+		pExp = GetText( thisword );
+		//printf( WIDE("word: %s\n"), pExp );
 		if( pExp[0] == '\'' )
 		{
 			if( quote == '\'' )
 			{
 				overflow = 0;
-	         RelateOpNode( &branch, ThisOp );
-		     	ThisOp = GetOpNode();
+				RelateOpNode( &branch, ThisOp );
+			  	ThisOp = GetOpNode();
 				quote = 0;
 			}
 			else if( !quote )
@@ -611,8 +611,8 @@ POPNODE BuildExpression( void ) // expression is queued
 				PTEXT tmp = BuildLine( ThisOp->data.string );
 				LineRelease( ThisOp->data.string );
 				ThisOp->data.string = tmp;
-	         RelateOpNode( &branch, ThisOp );
-		     	ThisOp = GetOpNode();
+				RelateOpNode( &branch, ThisOp );
+			  	ThisOp = GetOpNode();
 				quote = 0;
 			}
 			else if( !quote )
@@ -630,7 +630,7 @@ POPNODE BuildExpression( void ) // expression is queued
 			{
 				ThisOp->data.string =
 					SegAppend( ThisOp->data.string
-								, SegDuplicate( thisword ) );
+					         , SegDuplicate( thisword ) );
 			}
 			else if( ThisOp->op == OP_CHARACTER_CONST )
 			{
@@ -642,7 +642,7 @@ POPNODE BuildExpression( void ) // expression is queued
 					{
 						overflow = 1;
 						fprintf( stderr, WIDE("%s(%d): warning character constant overflow.\n")
-										, GetCurrentFileName(), GetCurrentLine() );
+						       , GetCurrentFileName(), GetCurrentLine() );
 					}
 					ThisOp->data.i *= 256;
 					ThisOp->data.i += ' ';
@@ -657,8 +657,8 @@ POPNODE BuildExpression( void ) // expression is queued
 			continue;
 		}
 
-      if( pExp[0] == '(' )
-      {
+		if( pExp[0] == '(' )
+		{
 			POPNODE subexpression;
 
 			if( ThisOp->op != OP_NOOP )
@@ -666,32 +666,32 @@ POPNODE BuildExpression( void ) // expression is queued
 			//if( g.bDebugLog )
 			//{
 			//	fprintf( stddbg, WIDE("Adding operation: ") );
-         //   LogExpression( ThisOp );
+			//	LogExpression( ThisOp );
 			//}
 				RelateOpNode( &branch, ThisOp );
 				ThisOp = GetOpNode();
 			}
 
 			StepCurrentWord();
-         subexpression = BuildExpression();
-         pExp = GetText( GetCurrentWord() );
-         if( pExp && pExp[0] != ')' )
-         {
-         	fprintf( stderr, WIDE("(%s)%d Error: Invalid expression\n"), GetCurrentFileName(), GetCurrentLine() );
-         	DestroyExpression( branch );
+			subexpression = BuildExpression();
+			pExp = GetText( GetCurrentWord() );
+			if( pExp && pExp[0] != ')' )
+			{
+				fprintf( stderr, WIDE("(%s)%d Error: Invalid expression\n"), GetCurrentFileName(), GetCurrentLine() );
+				DestroyExpression( branch );
 				DestroyOpNode( ThisOp );
-         	return NULL;
-         	// invalid pairing of parens in expression
+				return NULL;
+				// invalid pairing of parens in expression
 			}
-         ThisOp->op = OP_SUBEXPRESSION;
-         ThisOp->data.sub = subexpression;
-         RelateOpNode( &branch, ThisOp );
-        	ThisOp = GetOpNode();
-         // pExp = GetText( GetCurrentWord() );
-         // on return check current token as ')'
-      }
-      else if( pExp[0] == ')' )
-      {
+			ThisOp->op = OP_SUBEXPRESSION;
+			ThisOp->data.sub = subexpression;
+			RelateOpNode( &branch, ThisOp );
+		  	ThisOp = GetOpNode();
+			// pExp = GetText( GetCurrentWord() );
+			// on return check current token as ')'
+		}
+		else if( pExp[0] == ')' )
+		{
 			if( ThisOp->op != OP_NOOP )
 			{
 				RelateOpNode( &branch, ThisOp );
@@ -703,49 +703,49 @@ POPNODE BuildExpression( void ) // expression is queued
 			//	fprintf( stddbg, WIDE("Built Expression: ")) ;
 			//	LogExpression( branch );
 			//}
-         return branch;
-      }
-      else if( ( pExp[0] >= '0' && pExp[0] <= '9' ) ||
-      			( pExp[0] == '.' ) )
-      {
-      	LONGEST_INT i;
-     		LONGEST_FLT f;
-      	int len;
-      	switch( GetInteger( &i, &len ) )
-      	{
-      	case 0: // good integer.
+			return branch;
+		}
+		else if( ( pExp[0] >= '0' && pExp[0] <= '9' ) ||
+					( pExp[0] == '.' ) )
+		{
+			LONGEST_INT i;
+	  		LONGEST_FLT f;
+			int len;
+			switch( GetInteger( &i, &len ) )
+			{
+			case 0: // good integer.
 				if( ThisOp->op != OP_NOOP )
 				{
 					RelateOpNode( &branch, ThisOp );
 					ThisOp = GetOpNode();
 				}
-         	ThisOp->op = OP_INT_OPERAND_64;
-         	ThisOp->data.i = i;
-         	RelateOpNode( &branch, ThisOp );
-         	ThisOp = GetOpNode();
-      		break;
-      	case 1: // might be a float...
-      		switch( GetFloat( &f, &len ) )
-      		{
-      		case 0:
+				ThisOp->op = OP_INT_OPERAND_64;
+				ThisOp->data.i = i;
+				RelateOpNode( &branch, ThisOp );
+				ThisOp = GetOpNode();
+				break;
+			case 1: // might be a float...
+				switch( GetFloat( &f, &len ) )
+				{
+				case 0:
 
-      		case 1: // invalid conversion (invalid number)
-      			DestroyExpression( branch ); // also if preprocessor - this always must fail
+				case 1: // invalid conversion (invalid number)
+					DestroyExpression( branch ); // also if preprocessor - this always must fail
 					DestroyOpNode( ThisOp );
 					//if( g.bDebugLog )
 					//{
 					//	fprintf( stddbg, WIDE("Built Expression 2: ")) ;
 					//	LogExpression( branch );
 					//}
-      			return branch;
-      		}
-      		break;
-      	case 2: // invalid number
-      		break;
-      	}
-      }
-      else if( pExp[0] == '_' || ( pExp[0] >= 'A' && pExp[0] <= 'Z' )
-      								|| ( pExp[0] >= 'a' && pExp[0] <= 'z' )  )
+					return branch;
+				}
+				break;
+			case 2: // invalid number
+				break;
+			}
+		}
+		else if( pExp[0] == '_' || ( pExp[0] >= 'A' && pExp[0] <= 'Z' )
+										|| ( pExp[0] >= 'a' && pExp[0] <= 'z' )  )
 		{
 			// this is unsubstituted, is not a predefined thing, etc,
 			// therefore this is a 0.
@@ -765,48 +765,48 @@ POPNODE BuildExpression( void ) // expression is queued
 				ThisOp = GetOpNode();
 			}
 		}
-      else {
-      	if( !thisword->format.spaces || ThisOp->op == OP_NOOP )
-      	{
-	      retry_this_operator:
+		else {
+			if( !thisword->format.spaces || ThisOp->op == OP_NOOP )
+			{
+			retry_this_operator:
 				for( n = 0; n < NUM_RELATIONS; n++ )
-	   	   {
-   	   	 	if( Relations[n].thisop == ThisOp->op )
-      	 		{
-	       			int o;
-   	    			for( o = 0; Relations[n].trans[o].ch; o++ )
-	   	    		{
-   	   	 			if( Relations[n].trans[o].ch == pExp[0] )
+				{
+				 	if( Relations[n].thisop == ThisOp->op )
+			 		{
+			 			int o;
+			 			for( o = 0; Relations[n].trans[o].ch; o++ )
+				 		{
+				 			if( Relations[n].trans[o].ch == pExp[0] )
 							{
 								//if( g.bDebugLog )
 								//{
 								//	fprintf( stddbg, WIDE("%s becomes %s\n"),
 								//			  ThisOp->op<0?"???":fullopname[ThisOp->op], fullopname[Relations[n].trans[o].becomes] );
 								//}
-       						ThisOp->op = Relations[n].trans[o].becomes;
-	       					break;
-   	    				}
-	   	    		}
-   	   	 		if( !Relations[n].trans[o].ch )
-      	 			{
-      	 				//fprintf( stddbg, WIDE("Invalid expression addition\n") );
+		 						ThisOp->op = Relations[n].trans[o].becomes;
+			 					break;
+			 				}
+				 		}
+				 		if( !Relations[n].trans[o].ch )
+			 			{
+			 				//fprintf( stddbg, WIDE("Invalid expression addition\n") );
 							fprintf( stderr, WIDE("%s(%d): Error invalid operator: %s\n")
-											, GetCurrentFileName()
-											, GetCurrentLine()
-											, pExp );
-	       				// invalid expression addition....
-   	    				n = NUM_RELATIONS;
-	   	    		}
-   	   	 		break;
-	      	 	}
-		      }
-		   }
-		   else // spaces seperate operators.
-		   	n = NUM_RELATIONS;
-	      // then this operator does not add to the prior operator...
-	      // therefore hang the old, create the new...
-   	   if( n == NUM_RELATIONS ) // unfound
-      	{
+							       , GetCurrentFileName()
+							       , GetCurrentLine()
+							       , pExp );
+			 				// invalid expression addition....
+			 				n = NUM_RELATIONS;
+				 		}
+				 		break;
+				 	}
+				}
+			}
+			else // spaces seperate operators.
+				n = NUM_RELATIONS;
+			// then this operator does not add to the prior operator...
+			// therefore hang the old, create the new...
+			if( n == NUM_RELATIONS ) // unfound
+			{
 				if( ThisOp->op != OP_NOOP )
 				{
 					RelateOpNode( &branch, ThisOp );
@@ -815,9 +815,9 @@ POPNODE BuildExpression( void ) // expression is queued
 				}
 				DestroyExpression( branch );
 				return NULL;
-	      }
+			}
 		}
-      StepCurrentWord();
+		StepCurrentWord();
 	}
 
 	//if( g.bDebugLog )
@@ -825,7 +825,7 @@ POPNODE BuildExpression( void ) // expression is queued
 	//	fprintf( stddbg, WIDE("Deleting: ") );
 	//	LogExpression( ThisOp );
 	//}
-   DestroyOpNode( ThisOp );
+	DestroyOpNode( ThisOp );
 	//if( g.bDebugLog )
 	//{
 	//	fprintf( stddbg, WIDE("Built Expression: ")) ;
@@ -844,7 +844,7 @@ int IsValue( POPNODE *node, int collapse_sub )
 {
 	POPNODE temp;
 	if( !node )
-      return FALSE;
+		return FALSE;
 	switch( (*node)->op )
 	{
 	case OP_INT_OPERAND_8:
@@ -861,20 +861,20 @@ int IsValue( POPNODE *node, int collapse_sub )
 	case OP_FLT_OPERAND_32:
 	case OP_FLT_OPERAND_64:
 		fprintf( stderr, WIDE("%s(%d): Floating point operand is not supported\n")
-				 , GetCurrentFileName(), GetCurrentLine() );
+		       , GetCurrentFileName(), GetCurrentLine() );
 		return FALSE;
 
 	case OP_SUBEXPRESSION:
 		if( collapse_sub )
 		{
 			temp = ResolveExpression( &(*node)->data.sub );
-         (*node)->data.sub = NULL;
+			(*node)->data.sub = NULL;
 			DestroyOpNode( SubstNode( *node, temp ) );
 			*node = temp;
 		}
-      return TRUE;
+		return TRUE;
 	}
-   return FALSE;
+	return FALSE;
 }
 
 //--------------------------------------------------------------------------
@@ -893,9 +893,9 @@ void ApplyBinaryNot( POPNODE node )
 	case OP_SINT_OPERAND_32:
 	case OP_SINT_OPERAND_64:
 		node->data.i = ~node->data.i;
-      break;
+		break;
 	default:
-      fprintf( stderr, WIDE("Dunno how we got here...\n") );
+		fprintf( stderr, WIDE("Dunno how we got here...\n") );
 	}
 }
 
@@ -915,9 +915,9 @@ void ApplyLogicalNot( POPNODE node )
 	case OP_SINT_OPERAND_32:
 	case OP_SINT_OPERAND_64:
 		node->data.i = !node->data.i;
-      break;
+		break;
 	default:
-      fprintf( stderr, WIDE("Dunno how we got here...\n") );
+		fprintf( stderr, WIDE("Dunno how we got here...\n") );
 	}
 }
 
@@ -937,9 +937,9 @@ void ApplyNegative( POPNODE node )
 	case OP_SINT_OPERAND_32:
 	case OP_SINT_OPERAND_64:
 		node->data.i = -node->data.i;
-      break;
+		break;
 	default:
-      fprintf( stderr, WIDE("Dunno how we got here...\n") );
+		fprintf( stderr, WIDE("Dunno how we got here...\n") );
 	}
 }
 
@@ -950,7 +950,7 @@ POPNODE ApplyMultiply( POPNODE node1, POPNODE node2 )
 	POPNODE result = GetOpNode();
 	result->op = OP_SINT_OPERAND_64;
 	result->data.i = node1->data.i * node2->data.i;
-   return result;
+	return result;
 }
 
 //--------------------------------------------------------------------------
@@ -959,7 +959,7 @@ POPNODE ApplyDivide( POPNODE node1, POPNODE node2 )
 {
 	POPNODE result = GetOpNode();
 	result->op = OP_SINT_OPERAND_64;
-   if( node2->data.i != 0 )
+	if( node2->data.i != 0 )
 		result->data.i = node1->data.i * node2->data.i;
 	else
 	{
@@ -970,7 +970,7 @@ POPNODE ApplyDivide( POPNODE node1, POPNODE node2 )
 		result->data.i = 0xFFFFFFFFFFFFFFFFULL;
 #endif
 	}
-   return result;
+	return result;
 }
 
 //--------------------------------------------------------------------------
@@ -980,7 +980,7 @@ POPNODE ApplyModulus( POPNODE node1, POPNODE node2 )
 	POPNODE result = GetOpNode();
 	result->op = OP_SINT_OPERAND_64;
 	result->data.i = node1->data.i % node2->data.i;
-   return result;
+	return result;
 }
 
 //--------------------------------------------------------------------------
@@ -990,7 +990,7 @@ POPNODE ApplyShiftRight( POPNODE node1, POPNODE node2 )
 	POPNODE result = GetOpNode();
 	result->op = OP_SINT_OPERAND_64;
 	result->data.i = node1->data.i >> node2->data.i;
-   return result;
+	return result;
 }
 
 //--------------------------------------------------------------------------
@@ -1000,7 +1000,7 @@ POPNODE ApplyShiftLeft( POPNODE node1, POPNODE node2 )
 	POPNODE result = GetOpNode();
 	result->op = OP_SINT_OPERAND_64;
 	result->data.i = node1->data.i << node2->data.i;
-   return result;
+	return result;
 }
 
 //--------------------------------------------------------------------------
@@ -1012,8 +1012,8 @@ POPNODE ApplyGreater( POPNODE node1, POPNODE node2 )
 	if( node1->data.i > node2->data.i )
 		result->data.i = 1;
 	else
-      result->data.i = 0;
-   return result;
+		result->data.i = 0;
+	return result;
 }
 
 //--------------------------------------------------------------------------
@@ -1025,8 +1025,8 @@ POPNODE ApplyLesser( POPNODE node1, POPNODE node2 )
 	if( node1->data.i < node2->data.i )
 		result->data.i = 1;
 	else
-      result->data.i = 0;
-   return result;
+		result->data.i = 0;
+	return result;
 }
 
 //--------------------------------------------------------------------------
@@ -1038,8 +1038,8 @@ POPNODE ApplyGreaterEqual( POPNODE node1, POPNODE node2 )
 	if( node1->data.i >= node2->data.i )
 		result->data.i = 1;
 	else
-      result->data.i = 0;
-   return result;
+		result->data.i = 0;
+	return result;
 }
 
 //--------------------------------------------------------------------------
@@ -1051,8 +1051,8 @@ POPNODE ApplyLesserEqual( POPNODE node1, POPNODE node2 )
 	if( node1->data.i <= node2->data.i )
 		result->data.i = 1;
 	else
-      result->data.i = 0;
-   return result;
+		result->data.i = 0;
+	return result;
 }
 
 //--------------------------------------------------------------------------
@@ -1064,8 +1064,8 @@ POPNODE ApplyIsEqual( POPNODE node1, POPNODE node2 )
 	if( node1->data.i == node2->data.i )
 		result->data.i = 1;
 	else
-      result->data.i = 0;
-   return result;
+		result->data.i = 0;
+	return result;
 }
 
 //--------------------------------------------------------------------------
@@ -1077,8 +1077,8 @@ POPNODE ApplyIsNotEqual( POPNODE node1, POPNODE node2 )
 	if( node1->data.i != node2->data.i )
 		result->data.i = 1;
 	else
-      result->data.i = 0;
-   return result;
+		result->data.i = 0;
+	return result;
 }
 
 //--------------------------------------------------------------------------
@@ -1088,7 +1088,7 @@ POPNODE ApplyBinaryAnd( POPNODE node1, POPNODE node2 )
 	POPNODE result = GetOpNode();
 	result->op = OP_SINT_OPERAND_64;
 	result->data.i = node1->data.i & node2->data.i;
-   return result;
+	return result;
 }
 
 //--------------------------------------------------------------------------
@@ -1098,7 +1098,7 @@ POPNODE ApplyBinaryOr( POPNODE node1, POPNODE node2 )
 	POPNODE result = GetOpNode();
 	result->op = OP_SINT_OPERAND_64;
 	result->data.i = node1->data.i | node2->data.i;
-   return result;
+	return result;
 }
 
 //--------------------------------------------------------------------------
@@ -1108,7 +1108,7 @@ POPNODE ApplyXor( POPNODE node1, POPNODE node2 )
 	POPNODE result = GetOpNode();
 	result->op = OP_SINT_OPERAND_64;
 	result->data.i = node1->data.i ^ node2->data.i;
-   return result;
+	return result;
 }
 
 //--------------------------------------------------------------------------
@@ -1120,9 +1120,9 @@ POPNODE ApplyLogicalAnd( POPNODE node1, POPNODE node2 )
 	result->data.i = node1->data.i && node2->data.i;
 	//if( g.bDebugLog )
 	//{
-   //   fprintf( stddbg, WIDE("%Ld && %Ld == %Ld\n"), node1->data.i, node2->data.i, result->data.i );
+	//	fprintf( stddbg, WIDE("%Ld && %Ld == %Ld\n"), node1->data.i, node2->data.i, result->data.i );
 	//}
-   return result;
+	return result;
 }
 
 //--------------------------------------------------------------------------
@@ -1132,7 +1132,7 @@ POPNODE ApplyLogicalOr( POPNODE node1, POPNODE node2 )
 	POPNODE result = GetOpNode();
 	result->op = OP_SINT_OPERAND_64;
 	result->data.i = node1->data.i || node2->data.i;
-   return result;
+	return result;
 }
 
 //--------------------------------------------------------------------------
@@ -1142,7 +1142,7 @@ POPNODE ApplyAddition( POPNODE node1, POPNODE node2 )
 	POPNODE result = GetOpNode();
 	result->op = OP_SINT_OPERAND_64;
 	result->data.i = node1->data.i + node2->data.i;
-   return result;
+	return result;
 }
 
 //--------------------------------------------------------------------------
@@ -1154,10 +1154,10 @@ POPNODE ResolveExpression( POPNODE *expr )
 	POPNODE node;
 	node = (*expr);
 	//if( g.bDebugLog )
-   //   LogExpression( node );
+	//	LogExpression( node );
 	while( node )
 	{
-       // first loop - handle ! and ~
+		 // first loop - handle ! and ~
 		if( node->op == OP_SUBEXPRESSION )
 		{
 			POPNODE sub;
@@ -1167,7 +1167,7 @@ POPNODE ResolveExpression( POPNODE *expr )
 			DestroyExpression( node );
 			if( node == (*expr) )
 				(*expr) = sub;
-         node = (*expr);
+			node = (*expr);
 			continue;
 		}
 		else if( node->op == OP_BINARYNOT )
@@ -1175,9 +1175,9 @@ POPNODE ResolveExpression( POPNODE *expr )
 			if( !node->right )
 			{
 				fprintf( stderr, WIDE("%s(%d): Error binary not operator(~) with no right hand operand\n")
-						 , GetCurrentFileName()
-						 , GetCurrentLine() );
-            g.ErrorCount++;
+				       , GetCurrentFileName()
+				       , GetCurrentLine() );
+				g.ErrorCount++;
 				return NULL;
 			}
 			{
@@ -1188,25 +1188,25 @@ POPNODE ResolveExpression( POPNODE *expr )
 					DestroyOpNode( GrabNode( node ) );
 					if( node == (*expr) )
 						(*expr) = right;
-               node = (*expr);
+					node = (*expr);
 				}
 				else
 				{
 					fprintf( stderr, WIDE("%s(%d): Error binary not(~) is not followed by an integer...\n")
-							 , GetCurrentFileName()
-							 , GetCurrentLine() );
+					       , GetCurrentFileName()
+					       , GetCurrentLine() );
 					g.ErrorCount++;
 				}
 			}
-         continue;
+			continue;
 		}
 		else if( node->op == OP_LOGICALNOT )
 		{
 			if( !node->right )
 			{
 				fprintf( stderr, WIDE("%s(%d): Error logical not operator with no right hand operand\n")
-						 , GetCurrentFileName(), GetCurrentLine() );
-            g.ErrorCount++;
+				       , GetCurrentFileName(), GetCurrentLine() );
+				g.ErrorCount++;
 				return NULL;
 			}
 			{
@@ -1216,59 +1216,59 @@ POPNODE ResolveExpression( POPNODE *expr )
 					ApplyLogicalNot( right );
 					DestroyOpNode( GrabNode( node ) );
 					if( node == (*expr) )
-                  (*expr) = right;
-               node = (*expr);
+						(*expr) = right;
+					node = (*expr);
 				}
 				else
 				{
 					fprintf( stderr, WIDE("%s(%d): Logical not is not followed by an integer...\n")
-							 , GetCurrentFileName()
-							 , GetCurrentLine() );
+					       , GetCurrentFileName()
+					       , GetCurrentLine() );
 					g.ErrorCount++;
 				}
 			}
-         continue;
+			continue;
 		}
 		else if( node->op == OP_PLUS )
 		{
-         POPNODE right = node->right;
+			POPNODE right = node->right;
 			DestroyOpNode( node );
 			if( node == (*expr) )
 				(*expr) = right;
 			node = (*expr);
-         continue;
+			continue;
 		}
 		else if( node->op == OP_MINUS )
 		{
 			POPNODE right = node->right;
 			if( IsValue( &right, TRUE ) )
 			{
-            ApplyNegative( right );
+				ApplyNegative( right );
 				DestroyOpNode( node );
 				if( node == (*expr) )
 					(*expr) = right;
 				node = (*expr);
-            continue;
+				continue;
 			}
 			else
 			{
 				fprintf( stderr, WIDE("%s(%d): Negative operator is not followed by a value\n")
-						 , GetCurrentFileName()
-						 , GetCurrentLine() );
-            g.ErrorCount++;
-            return NULL;
+				       , GetCurrentFileName()
+				       , GetCurrentLine() );
+				g.ErrorCount++;
+				return NULL;
 			}
 		}
-      node = node->right;
+		node = node->right;
 	}
-   //if( g.bDebugLog )
+	//if( g.bDebugLog )
 	//	fprintf( stddbg, WIDE("Done with unary +,-,!,~,()") );
 	node = (*expr);
-   //if( g.bDebugLog )
+	//if( g.bDebugLog )
 	//	LogExpression(node);
 	while( node )
 	{
-      // Second loop handle * / %
+		// Second loop handle * / %
 		if( node->op == OP_MULTIPLY )
 		{
 			POPNODE left, right;
@@ -1277,7 +1277,7 @@ POPNODE ResolveExpression( POPNODE *expr )
 			if( IsValue( &left, TRUE )
 				&& IsValue( &right, TRUE ) )
 			{
-            POPNODE result;
+				POPNODE result;
 				result = ApplyMultiply( left, right );
 				DestroyExpression( SubstNodes( left, right, result ) );
 				if( (*expr) == left )
@@ -1288,9 +1288,9 @@ POPNODE ResolveExpression( POPNODE *expr )
 			else
 			{
 				fprintf( stderr, WIDE("%s(%d): Error invalid operands to multiply?\n")
-						 , GetCurrentFileName()
-						 , GetCurrentLine() );
-            g.ErrorCount++;
+				       , GetCurrentFileName()
+				       , GetCurrentLine() );
+				g.ErrorCount++;
 			}
 		}
 		if( node->op == OP_DIVIDE )
@@ -1301,7 +1301,7 @@ POPNODE ResolveExpression( POPNODE *expr )
 			if( IsValue( &left, TRUE )
 				&& IsValue( &right, TRUE ) )
 			{
-            POPNODE result;
+				POPNODE result;
 				result = ApplyDivide( left, right );
 				DestroyExpression( SubstNodes( left, right, result ) );
 				if( (*expr) == left )
@@ -1312,9 +1312,9 @@ POPNODE ResolveExpression( POPNODE *expr )
 			else
 			{
 				fprintf( stderr, WIDE("%s(%d): Error invalid operands to divide?\n")
-						 , GetCurrentFileName()
-						 , GetCurrentLine() );
-            g.ErrorCount++;
+				       , GetCurrentFileName()
+				       , GetCurrentLine() );
+				g.ErrorCount++;
 			}
 		}
 		if( node->op == OP_MOD )
@@ -1325,7 +1325,7 @@ POPNODE ResolveExpression( POPNODE *expr )
 			if( IsValue( &left, TRUE )
 				&& IsValue( &right, TRUE ) )
 			{
-            POPNODE result;
+				POPNODE result;
 				result = ApplyModulus( left, right );
 				DestroyExpression( SubstNodes( left, right, result ) );
 				if( (*expr) == left )
@@ -1335,17 +1335,17 @@ POPNODE ResolveExpression( POPNODE *expr )
 			}
 			else
 			{
-            fprintf( stderr, WIDE("%s(%d): Error invalid operands to mod?\n")
-						 , GetCurrentFileName()
-						 , GetCurrentLine() );
-            g.ErrorCount++;
+				fprintf( stderr, WIDE("%s(%d): Error invalid operands to mod?\n")
+				       , GetCurrentFileName()
+				       , GetCurrentLine() );
+				g.ErrorCount++;
 			}
 		}
-      node = node->right;
+		node = node->right;
 	}
-   // +/- additive operators would be next - but already done as unary.
-   node = (*expr);
-   //if( g.bDebugLog )
+	// +/- additive operators would be next - but already done as unary.
+	node = (*expr);
+	//if( g.bDebugLog )
 	//	LogExpression(node);
 	while( node )
 	{
@@ -1358,7 +1358,7 @@ POPNODE ResolveExpression( POPNODE *expr )
 			if( IsValue( &left, TRUE )
 				&& IsValue( &right, TRUE ) )
 			{
-            POPNODE result;
+				POPNODE result;
 				result = ApplyShiftRight( left, right );
 				DestroyExpression( SubstNodes( left, right, result ) );
 				if( (*expr) == left )
@@ -1368,10 +1368,10 @@ POPNODE ResolveExpression( POPNODE *expr )
 			}
 			else
 			{
-            fprintf( stderr, WIDE("%s(%d): Error invalid operands to shift right?\n")
-						 , GetCurrentFileName()
-						 , GetCurrentLine() );
-            g.ErrorCount++;
+				fprintf( stderr, WIDE("%s(%d): Error invalid operands to shift right?\n")
+				       , GetCurrentFileName()
+				       , GetCurrentLine() );
+				g.ErrorCount++;
 			}
 		}
 		if( node->op == OP_SHIFTLEFT )
@@ -1382,7 +1382,7 @@ POPNODE ResolveExpression( POPNODE *expr )
 			if( IsValue( &left, TRUE )
 				&& IsValue( &right, TRUE ) )
 			{
-            POPNODE result;
+				POPNODE result;
 				result = ApplyShiftLeft( left, right );
 				DestroyExpression( SubstNodes( left, right, result ) );
 				if( (*expr) == left )
@@ -1392,18 +1392,18 @@ POPNODE ResolveExpression( POPNODE *expr )
 			}
 			else
 			{
-            fprintf( stderr, WIDE("%s(%d): Error invalid operands to shift left?\n")
-						 , GetCurrentFileName()
-						 , GetCurrentLine() );
-            g.ErrorCount++;
+				fprintf( stderr, WIDE("%s(%d): Error invalid operands to shift left?\n")
+				       , GetCurrentFileName()
+				       , GetCurrentLine() );
+				g.ErrorCount++;
 			}
 		}
-      node = node->right;
+		node = node->right;
 	}
-   node = (*expr);
+	node = (*expr);
 	while( node )
 	{
-      // 4th loop handle > < >= <= comparisons (result in 0/1)
+		// 4th loop handle > < >= <= comparisons (result in 0/1)
 		if( node->op == OP_GREATER )
 		{
 			POPNODE left, right;
@@ -1412,7 +1412,7 @@ POPNODE ResolveExpression( POPNODE *expr )
 			if( IsValue( &left, TRUE )
 				&& IsValue( &right, TRUE ) )
 			{
-            POPNODE result;
+				POPNODE result;
 				result = ApplyGreater( left, right );
 				DestroyExpression( SubstNodes( left, right, result ) );
 				if( (*expr) == left )
@@ -1422,10 +1422,10 @@ POPNODE ResolveExpression( POPNODE *expr )
 			}
 			else
 			{
-            fprintf( stderr, WIDE("%s(%d): Error invalid operands to greater?\n")
-						 , GetCurrentFileName()
-						 , GetCurrentLine() );
-            g.ErrorCount++;
+				fprintf( stderr, WIDE("%s(%d): Error invalid operands to greater?\n")
+				       , GetCurrentFileName()
+				       , GetCurrentLine() );
+				g.ErrorCount++;
 			}
 		}
 		if( node->op == OP_LESSER )
@@ -1436,7 +1436,7 @@ POPNODE ResolveExpression( POPNODE *expr )
 			if( IsValue( &left, TRUE )
 				&& IsValue( &right, TRUE ) )
 			{
-            POPNODE result;
+				POPNODE result;
 				result = ApplyLesser( left, right );
 				DestroyExpression( SubstNodes( left, right, result ) );
 				if( (*expr) == left )
@@ -1446,10 +1446,10 @@ POPNODE ResolveExpression( POPNODE *expr )
 			}
 			else
 			{
-            fprintf( stderr, WIDE("%s(%d): Error invalid operands to lesser?\n")
-						 , GetCurrentFileName()
-						 , GetCurrentLine() );
-            g.ErrorCount++;
+				fprintf( stderr, WIDE("%s(%d): Error invalid operands to lesser?\n")
+				       , GetCurrentFileName()
+				       , GetCurrentLine() );
+				g.ErrorCount++;
 			}
 		}
 		if( node->op == OP_GREATEREQUAL )
@@ -1460,7 +1460,7 @@ POPNODE ResolveExpression( POPNODE *expr )
 			if( IsValue( &left, TRUE )
 				&& IsValue( &right, TRUE ) )
 			{
-            POPNODE result;
+				POPNODE result;
 				result = ApplyGreaterEqual( left, right );
 				DestroyExpression( SubstNodes( left, right, result ) );
 				if( (*expr) == left )
@@ -1470,11 +1470,11 @@ POPNODE ResolveExpression( POPNODE *expr )
 			}
 			else
 			{
-            fprintf( stderr, WIDE("%s(%d): Error invalid operands to greater equal?\n")
-						 , GetCurrentFileName()
-						 , GetCurrentLine() );
-            LogExpression( *expr );
-            g.ErrorCount++;
+				fprintf( stderr, WIDE("%s(%d): Error invalid operands to greater equal?\n")
+				       , GetCurrentFileName()
+				       , GetCurrentLine() );
+				LogExpression( *expr );
+				g.ErrorCount++;
 			}
 		}
 		if( node->op == OP_LESSEREQUAL )
@@ -1485,7 +1485,7 @@ POPNODE ResolveExpression( POPNODE *expr )
 			if( IsValue( &left, TRUE )
 				&& IsValue( &right, TRUE ) )
 			{
-            POPNODE result;
+				POPNODE result;
 				result = ApplyLesserEqual( left, right );
 				DestroyExpression( SubstNodes( left, right, result ) );
 				if( (*expr) == left )
@@ -1496,19 +1496,19 @@ POPNODE ResolveExpression( POPNODE *expr )
 			else
 			{
 				fprintf( stderr, WIDE("%s(%d): Invalid operands to lesser equal?\n")
-						 , GetCurrentFileName()
-						 , GetCurrentLine() );
-            g.ErrorCount++;
+				       , GetCurrentFileName()
+				       , GetCurrentLine() );
+				g.ErrorCount++;
 			}
 		}
-      node = node->right;
+		node = node->right;
 	}
-   node = (*expr);
-   //if( g.bDebugLog )
+	node = (*expr);
+	//if( g.bDebugLog )
 	//	LogExpression(node);
 	while( node )
 	{
-      // 5th loop handle == !=
+		// 5th loop handle == !=
 		if( node->op == OP_ISEQUAL )
 		{
 			POPNODE left, right;
@@ -1517,7 +1517,7 @@ POPNODE ResolveExpression( POPNODE *expr )
 			if( IsValue( &left, TRUE )
 				&& IsValue( &right, TRUE ) )
 			{
-            POPNODE result;
+				POPNODE result;
 				result = ApplyIsEqual( left, right );
 				DestroyExpression( SubstNodes( left, right, result ) );
 				if( (*expr) == left )
@@ -1528,9 +1528,9 @@ POPNODE ResolveExpression( POPNODE *expr )
 			else
 			{
 				fprintf( stderr, WIDE("%s(%d): Error invalid operands to equal?\n")
-						 , GetCurrentFileName()
-						 , GetCurrentLine() );
-            g.ErrorCount++;
+				       , GetCurrentFileName()
+				       , GetCurrentLine() );
+				g.ErrorCount++;
 			}
 		}
 		if( node->op == OP_NOTEQUAL )
@@ -1541,7 +1541,7 @@ POPNODE ResolveExpression( POPNODE *expr )
 			if( IsValue( &left, TRUE )
 				&& IsValue( &right, TRUE ) )
 			{
-            POPNODE result;
+				POPNODE result;
 				result = ApplyIsNotEqual( left, right );
 				DestroyExpression( SubstNodes( left, right, result ) );
 				if( (*expr) == left )
@@ -1552,20 +1552,20 @@ POPNODE ResolveExpression( POPNODE *expr )
 			else
 			{
 				fprintf( stderr, WIDE("%s(%d): Error invalid operands to not equal?\n")
-						 , GetCurrentFileName()
-						 , GetCurrentLine() );
-            LogExpression( *expr );
-            g.ErrorCount++;
+				       , GetCurrentFileName()
+				       , GetCurrentLine() );
+				LogExpression( *expr );
+				g.ErrorCount++;
 			}
 		}
-      node = node->right;
+		node = node->right;
 	}
-   node = (*expr);
-   //if( g.bDebugLog )
+	node = (*expr);
+	//if( g.bDebugLog )
 	//	LogExpression(node);
 	while( node )
 	{
-      // 6th loop
+		// 6th loop
 		if( node->op == OP_BINARYAND )
 		{
 			POPNODE left, right;
@@ -1574,7 +1574,7 @@ POPNODE ResolveExpression( POPNODE *expr )
 			if( IsValue( &left, TRUE )
 				&& IsValue( &right, TRUE ) )
 			{
-            POPNODE result;
+				POPNODE result;
 				result = ApplyBinaryAnd( left, right );
 				DestroyExpression( SubstNodes( left, right, result ) );
 				if( (*expr) == left )
@@ -1585,19 +1585,19 @@ POPNODE ResolveExpression( POPNODE *expr )
 			else
 			{
 				fprintf( stderr, WIDE("%s(%d): Error invalid operands to not equal?\n")
-						 , GetCurrentFileName()
-						 , GetCurrentLine() );
-            g.ErrorCount++;
+				       , GetCurrentFileName()
+				       , GetCurrentLine() );
+				g.ErrorCount++;
 			}
 		}
-      node = node->right;
+		node = node->right;
 	}
-   node = (*expr);
-   //if( g.bDebugLog )
+	node = (*expr);
+	//if( g.bDebugLog )
 	//	LogExpression(node);
 	while( node )
 	{
-      // 7th loop
+		// 7th loop
 		if( node->op == OP_XOR )
 		{
 			POPNODE left, right;
@@ -1606,7 +1606,7 @@ POPNODE ResolveExpression( POPNODE *expr )
 			if( IsValue( &left, TRUE )
 				&& IsValue( &right, TRUE ) )
 			{
-            POPNODE result;
+				POPNODE result;
 				result = ApplyXor( left, right );
 				DestroyExpression( SubstNodes( left, right, result ) );
 				if( (*expr) == left )
@@ -1617,19 +1617,19 @@ POPNODE ResolveExpression( POPNODE *expr )
 			else
 			{
 				fprintf( stderr, WIDE("%s(%d): Error invalid operands to not equal?\n")
-						 , GetCurrentFileName()
-						 , GetCurrentLine() );
-            g.ErrorCount++;
+				       , GetCurrentFileName()
+				       , GetCurrentLine() );
+				g.ErrorCount++;
 			}
 		}
-      node = node->right;
+		node = node->right;
 	}
-   node = (*expr);
-   //if( g.bDebugLog )
+	node = (*expr);
+	//if( g.bDebugLog )
 	//	LogExpression(node);
 	while( node )
 	{
-      // 8th loop
+		// 8th loop
 		if( node->op == OP_BINARYOR )
 		{
 			POPNODE left, right;
@@ -1638,7 +1638,7 @@ POPNODE ResolveExpression( POPNODE *expr )
 			if( IsValue( &left, TRUE )
 				&& IsValue( &right, TRUE ) )
 			{
-            POPNODE result;
+				POPNODE result;
 				result = ApplyBinaryOr( left, right );
 				DestroyExpression( SubstNodes( left, right, result ) );
 				if( (*expr) == left )
@@ -1649,19 +1649,19 @@ POPNODE ResolveExpression( POPNODE *expr )
 			else
 			{
 				fprintf( stderr, WIDE("%s(%d): Error invalid operands to not equal?\n")
-						 , GetCurrentFileName()
-						 , GetCurrentLine() );
-            g.ErrorCount++;
+				       , GetCurrentFileName()
+				       , GetCurrentLine() );
+				g.ErrorCount++;
 			}
 		}
-      node = node->right;
+		node = node->right;
 	}
-   node = (*expr);
-   //if( g.bDebugLog )
+	node = (*expr);
+	//if( g.bDebugLog )
 	//	LogExpression(node);
 	while( node )
 	{
-      // 8th loop
+		// 8th loop
 		if( node->op == OP_LOGICALAND )
 		{
 			POPNODE left, right;
@@ -1670,7 +1670,7 @@ POPNODE ResolveExpression( POPNODE *expr )
 			if( IsValue( &left, TRUE )
 				&& IsValue( &right, TRUE ) )
 			{
-            POPNODE result;
+				POPNODE result;
 				result = ApplyLogicalAnd( left, right );
 				DestroyExpression( SubstNodes( left, right, result ) );
 				if( (*expr) == left )
@@ -1681,15 +1681,15 @@ POPNODE ResolveExpression( POPNODE *expr )
 			else
 			{
 				fprintf( stderr, WIDE("%s(%d): Error invalid operands to not equal?\n")
-						 , GetCurrentFileName()
-						 , GetCurrentLine() );
-            g.ErrorCount++;
+				       , GetCurrentFileName()
+				       , GetCurrentLine() );
+				g.ErrorCount++;
 			}
 		}
-      node = node->right;
+		node = node->right;
 	}
-   node = (*expr);
-   //if( g.bDebugLog )
+	node = (*expr);
+	//if( g.bDebugLog )
 	//	LogExpression(node);
 	while( node )
 	{
@@ -1702,7 +1702,7 @@ POPNODE ResolveExpression( POPNODE *expr )
 			if( IsValue( &left, TRUE )
 				&& IsValue( &right, TRUE ) )
 			{
-            POPNODE result;
+				POPNODE result;
 				result = ApplyLogicalOr( left, right );
 				DestroyExpression( SubstNodes( left, right, result ) );
 				if( (*expr) == left )
@@ -1713,14 +1713,14 @@ POPNODE ResolveExpression( POPNODE *expr )
 			else
 			{
 				fprintf( stderr, WIDE("%s(%d): Error invalid operands to not equal?\n")
-						 , GetCurrentFileName()
-						 , GetCurrentLine() );
-            g.ErrorCount++;
+				       , GetCurrentFileName()
+				       , GetCurrentLine() );
+				g.ErrorCount++;
 			}
 		}
 		node = node->right;
 	}
-   node = (*expr);
+	node = (*expr);
 	while( node )
 	{
 		// and finally - add all subsequent operators...
@@ -1729,17 +1729,17 @@ POPNODE ResolveExpression( POPNODE *expr )
 		if( node && right )
 		{
 			POPNODE result;
-         result = ApplyAddition( node, right );
+			result = ApplyAddition( node, right );
 			DestroyExpression( SubstNodes( node, right, result ) );
 			(*expr) = result;
 			node = (*expr);
 			continue;
 		}
-      node = node->right;
+		node = node->right;
 	}
-   //if( g.bDebugLog )
+	//if( g.bDebugLog )
 	//	LogExpression(*expr);
-   return *expr;
+	return *expr;
 }
 
 //--------------------------------------------------------------------------
@@ -1752,7 +1752,7 @@ int IsValidExpression( POPNODE *ppexpr )
 	// subsequently when done - any operands next to each other are
 	// implied +'s
 	POPNODE node = *ppexpr;
-   int prior_operand = 0;
+	int prior_operand = 0;
 	while( node )
 	{
 		if( node->op == OP_COMMA )
@@ -1768,24 +1768,24 @@ int IsValidExpression( POPNODE *ppexpr )
 		{
 			if( !IsValidExpression( &node->data.sub ) )
 				return FALSE;
-         prior_operand = 1;
+			prior_operand = 1;
 		}
 		else if( IsValue( &node, FALSE ) )
 		{
 			if( prior_operand )
 			{
-            LogExpression( *ppexpr );
+				LogExpression( *ppexpr );
 				fprintf( stderr, WIDE("%s(%d): Multiple operands with no operator!\n")
-					      , GetCurrentFileName(), GetCurrentLine() );
+				       , GetCurrentFileName(), GetCurrentLine() );
 				return FALSE;
 			}
-         prior_operand = 1;
+			prior_operand = 1;
 		}
 		else
-         prior_operand = 0;
-      node = node->right;
+			prior_operand = 0;
+		node = node->right;
 	}
-   return TRUE;
+	return TRUE;
 }
 
 //--------------------------------------------------------------------------
@@ -1799,7 +1799,7 @@ LONGEST_INT ProcessExpression( void )
 		if( tree->left || tree->right )
 		{
 			fprintf( stderr, WIDE("%s(%d): Expression failed to resolve completely...\n")
-					, GetCurrentFileName(), GetCurrentLine() );
+			       , GetCurrentFileName(), GetCurrentLine() );
 		}
 		{
 			LONGEST_INT resultval = 0;
@@ -1812,5 +1812,5 @@ LONGEST_INT ProcessExpression( void )
 		}
 	}
 	DestroyExpression( tree );
-   return 0;
+	return 0;
 }
