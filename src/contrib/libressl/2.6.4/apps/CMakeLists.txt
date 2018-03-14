@@ -1,3 +1,5 @@
+if( NOT __ANDROID__ )
 add_subdirectory(ocspcheck)
 add_subdirectory(openssl)
 add_subdirectory(nc)
+endif( NOT __ANDROID__ )

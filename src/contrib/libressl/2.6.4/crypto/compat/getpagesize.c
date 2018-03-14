@@ -5,7 +5,7 @@
 #ifdef _MSC_VER
 #include <windows.h>
 #endif
-
+#ifndef __ANDROID__
 int
 getpagesize(void) {
 #ifdef _MSC_VER
@@ -16,3 +16,4 @@ getpagesize(void) {
 	return sysconf(_SC_PAGESIZE);
 #endif
 }
+#endif
