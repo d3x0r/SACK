@@ -1831,7 +1831,7 @@ PMEM DigSpace( TEXTSTR pWhat, TEXTSTR pWhere, uintptr_t *dwSize )
 	if( !pMem )
 	{
 		// did reference BASE_MEMORY...
-		ll_lprintf( WIDE("Create view of file for memory access failed at ????") );
+		ll_lprintf( WIDE("Create view of file for memory access failed at %p %p"), pWhat, pWhere );
 		CloseSpace( (POINTER)pMem );
 		return NULL;
 	}
