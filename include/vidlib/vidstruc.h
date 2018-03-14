@@ -212,6 +212,7 @@ typedef struct HVIDEO_tag
 
 #  if defined( __3D__ )
 	struct display_camera *camera;
+	
 	MATRIX fModelView;
 	PTRANSFORM transform;
 #  endif
@@ -308,6 +309,11 @@ typedef struct HVIDEO_tag
 		BIT_FIELD bRendering : 1; // while rendering, set this; prevents destroy-while-draw
 		BIT_FIELD bFullScreen : 1; // trigger full screen, don't resize internal surface.
 		BIT_FIELD bNotFullScreen : 1; // temporary override for internal mouse handling
+#if defined( __3D__ )
+		BIT_FIELD bAnchorWorld : 1;
+		BIT_FIELD bAnchorLocal : 1;
+		BIT_FIELD bAnchorView : 1;
+#endif
 	} flags;
 
 	struct HVIDEO_tag *pNext, *pPrior;

@@ -2151,7 +2151,6 @@ IMAGE_PROC_PTR( void, ResetImageBuffers )( Image image, LOGICAL image_only );
 #endif
 
 #ifdef USE_IMAGE_LEVEL
-#warning ...
 #define PASTELEVEL(level,name) level##name
 #define LEVEL_ALIAS(name)      PASTELEVEL(USE_IMAGE_LEVEL,name)
 #  ifdef STUPID_NO_DATA_EXPORTS
