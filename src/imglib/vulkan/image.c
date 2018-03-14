@@ -49,7 +49,7 @@ ASM_IMAGE_NAMESPACE_END
 
 IMAGE_NAMESPACE
 
-static void OnFirstDraw3d( WIDE( "@00 PUREGL Image Library" ) )( uintptr_t psv )
+static void OnFirstDraw3d( WIDE( "@00 Vulkan Image Library" ) )( uintptr_t psv )
 {
 	LOGICAL tmp;
 	const uint8_t * val;
@@ -64,7 +64,7 @@ static void OnFirstDraw3d( WIDE( "@00 PUREGL Image Library" ) )( uintptr_t psv )
 	}
 }
 
-static uintptr_t OnInit3d( WIDE( "@00 PUREGL Image Library" ) )( PMatrix projection, PTRANSFORM camera, RCOORD *pIdentity_depty, RCOORD *aspect )
+static uintptr_t OnInit3d( WIDE( "@00 Vulkan Image Library" ) )( PMatrix projection, PTRANSFORM camera, RCOORD *pIdentity_depty, RCOORD *aspect )
 {
 	INDEX idx;
 	struct vkSurfaceData *vkSurface;
@@ -146,7 +146,7 @@ static void ReleaseTextures( struct glSurfaceData *glSurface )
    ForAllInSet( ImageFile, image_common_local.Images, ReleaseTexture, (uintptr_t)glSurface );
 }
 
-static void OnClose3d( WIDE( "@00 PUREGL Image Library" ) )( uintptr_t psvInit )
+static void OnClose3d( WIDE( "@00 Vulkan Image Library" ) )( uintptr_t psvInit )
 {
 	struct glSurfaceData *glSurface = (struct glSurfaceData *)psvInit;
 	//lprintf( WIDE("cleaning up shaders here...") );
@@ -155,7 +155,7 @@ static void OnClose3d( WIDE( "@00 PUREGL Image Library" ) )( uintptr_t psvInit )
 	ReleaseTextures( glSurface );
 }
 
-static void OnBeginDraw3d( WIDE( "@00 PUREGL Image Library" ) )( uintptr_t psvInit, PTRANSFORM camera )
+static void OnBeginDraw3d( WIDE( "@00 Vulkan Image Library" ) )( uintptr_t psvInit, PTRANSFORM camera )
 {
 	l.vkActiveSurface = (struct vkSurfaceData *)psvInit;
 	l.vkImageIndex = l.vkActiveSurface->index;
@@ -167,7 +167,7 @@ static void OnBeginDraw3d( WIDE( "@00 PUREGL Image Library" ) )( uintptr_t psvIn
 	ClearShaders();
 }
 
-static void OnDraw3d( WIDE( "@00 PUREGL Image Library" ) )( uintptr_t psvInit )
+static void OnDraw3d( WIDE( "@00 Vulkan Image Library" ) )( uintptr_t psvInit )
 {
 	struct glSurfaceData *glSurface = (struct glSurfaceData *)psvInit;
 	FlushShaders( glSurface );
