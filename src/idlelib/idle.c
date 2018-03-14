@@ -207,6 +207,7 @@ IDLE_PROC( int, IdleFor )( uint32_t dwMilliseconds )
    return IdleForEx( dwMilliseconds DBG_SRC );
 }
 
+#undef procs
 
 #ifdef __cplusplus
 }; //namespace sack {
