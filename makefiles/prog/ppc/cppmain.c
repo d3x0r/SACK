@@ -391,12 +391,13 @@ int ProcessInclude( int bNext )
 	{
 		AddFileDepend( g.pFileStack, basename, basename );
 	}
-	fprintf( stderr, WIDE("%s(%d) Warning could not process include file %c%s%c\n")
-			  , GetCurrentFileName(), GetCurrentLine()
-					, (pEnd!= GetCurrentWord())?GetCurrentWord()->data.data[0]:' '
-					, basename
-					, (pEnd != GetCurrentWord()) ? pEnd->data.data[0] : ' '
-			);
+	if( !g.flags.bSkipSystemIncludeOut )
+		fprintf( stderr, WIDE("%s(%d) Warning could not process include file %c%s%c\n")
+		       , GetCurrentFileName(), GetCurrentLine()
+		       , (pEnd!= GetCurrentWord())?GetCurrentWord()->data.data[0]:' '
+		       , basename
+		       , (pEnd != GetCurrentWord()) ? pEnd->data.data[0] : ' '
+		);
 	//g.ErrorCount++;
 
 	// at this point - offer to add another path...
@@ -939,6 +940,10 @@ int PreProcessLine( void )
 			}
 			else if( TextLike( pOp, WIDE("pack") ) )
 			{
+				if( g.flags.skip_logic_processing || g.flags.skip_define_processing ) {
+					SetCurrentWord( pFirstWord );
+					return TRUE;
+				}
 				if( g.bDebugLog )
 				{
 					PTEXT pOut;
@@ -983,6 +988,10 @@ int PreProcessLine( void )
 			else
 			{
 				PTEXT pOut;
+				if( g.flags.skip_logic_processing || g.flags.skip_define_processing ) {
+					SetCurrentWord( pFirstWord );
+					return TRUE;
+				}
 				pOut = BuildLineEx( pOp, FALSE DBG_SRC );
 				fprintf( stderr, WIDE("%s(%d): Unknown pragma: %s\n")
 						 , GetCurrentFileName()
@@ -1009,6 +1018,10 @@ int PreProcessLine( void )
 		else if( TextLike( pDirective, WIDE("error") ) )
 		{
 			PTEXT pOut;
+			if( g.flags.skip_logic_processing || g.flags.skip_define_processing ) {
+				SetCurrentWord( pFirstWord );
+				return TRUE;
+			}
 			pOut = BuildLineEx( GetCurrentWord(), FALSE DBG_SRC );
 			fprintf( stderr, WIDE("%s(%d): Error %s\n")
 					 , GetCurrentFileName()
