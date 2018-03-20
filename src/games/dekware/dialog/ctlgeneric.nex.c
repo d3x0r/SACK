@@ -9,7 +9,7 @@
 
 #include "global.h" // common for this plugin
 
-static void InitControlObject( PENTITY pe, PCOMMON pc )
+static void InitControlObject( PENTITY pe, PSI_CONTROL pc )
 {
 	//AddBehavior();
 	//AddMethod();
@@ -17,7 +17,7 @@ static void InitControlObject( PENTITY pe, PCOMMON pc )
 	//connect PSI events to behaviors...
 }
 
-static int CPROC CustomEditButton( PCOMMON pc )
+static int CPROC CustomEditButton( PSI_CONTROL pc )
 {
 	InitControlObject( CommonInitControl( pc ), pc );
    return 1;
@@ -26,6 +26,6 @@ static int CPROC CustomEditButton( PCOMMON pc )
 PRELOAD( RegisterExtraInits )
 {
 	SimpleRegisterMethod( WIDE("psi/control/") WIDE("generic control name") WIDE("/rtti")
-							  , CustomEditButton, WIDE("int"), WIDE("extra init"), WIDE("(PCOMMON)") );
+							  , CustomEditButton, WIDE("int"), WIDE("extra init"), WIDE("(PSI_CONTROL)") );
 }
 

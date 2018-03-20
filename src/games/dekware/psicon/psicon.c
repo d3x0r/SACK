@@ -182,7 +182,7 @@ void CPROC KeystrokePaste( PCONSOLE_INFO pdp )
 
 //----------------------------------------------------------------------------
 
-int CPROC RenderChildWindow( PCOMMON pc )
+int CPROC RenderChildWindow( PSI_CONTROL pc )
 {
 	PCONSOLE_INFO pdp = (PCONSOLE_INFO)GetCommonUserData(pc);
 	//lprintf( WIDE("Rendering window.") );
@@ -215,7 +215,7 @@ int CPROC RenderChildWindow( PCOMMON pc )
 
 //----------------------------------------------------------------------------
 
-int CPROC KeyEventProc( PCOMMON pc, uint32_t key )
+int CPROC KeyEventProc( PSI_CONTROL pc, uint32_t key )
 {
 	PCONSOLE_INFO pdp = (PCONSOLE_INFO)GetCommonUserData( pc );
 	// this must here gather keystrokes and pass them forward into the
@@ -255,7 +255,7 @@ int CPROC KeyEventProc( PCOMMON pc, uint32_t key )
 
 //----------------------------------------------------------------------------
 
-int CPROC MouseHandler( PCOMMON pc, int32_t x, int32_t y, uint32_t b )
+int CPROC MouseHandler( PSI_CONTROL pc, int32_t x, int32_t y, uint32_t b )
 {
 	static int32_t _x, _y;
 	static uint32_t _b;
@@ -668,7 +668,7 @@ PRELOAD(RegisterConsole)
 	l.pii = GetImageInterface();
 	DoRegisterControl( &ConsoleClass );
 	SimpleRegisterMethod( WIDE("psi/control/") WIDE("Dekware PSI Console") WIDE("/rtti/extra init")
-							  , InitDekwareConsole, WIDE("int"), WIDE("extra init"), WIDE("(PCOMMON)") );
+							  , InitDekwareConsole, WIDE("int"), WIDE("extra init"), WIDE("(PSI_CONTROL)") );
 
 	crColorTable[0] = Color( 0,0,1 ); 
 	crColorTable[1] =Color( 0, 0, 128 ); 

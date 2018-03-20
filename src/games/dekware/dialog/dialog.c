@@ -31,8 +31,8 @@ static int ObjectMethod( WIDE("psi_control"), WIDE("save"), WIDE("Save Control (
 	PTEXT filename = GetFileName( ps, &params );
 	if( filename )
 	{
-		PCOMMON_TRACKER pct = (PCOMMON_TRACKER)GetLink( &ps->Current->pPlugin, g.iCommon );
-		PCOMMON pc = pct->control.pc;
+		PSI_CONTROL_TRACKER pct = (PSI_CONTROL_TRACKER)GetLink( &ps->Current->pPlugin, g.iCommon );
+		PSI_CONTROL pc = pct->control.pc;
 		if( pc )
 		{
 			if( SaveXMLFrame( pc, GetText( filename ) ) )
@@ -62,8 +62,8 @@ static int ObjectMethod( WIDE("psi_control"), WIDE("edit"), WIDE("Edit Control (
 //int DoEditCommon
 ( PSENTIENT ps, PENTITY pe, PTEXT params )
 {
-	PCOMMON_TRACKER pct = (PCOMMON_TRACKER)GetLink( &ps->Current->pPlugin, g.iCommon );
-	PCOMMON pc = pct->control.pc;
+	PSI_CONTROL_TRACKER pct = (PSI_CONTROL_TRACKER)GetLink( &ps->Current->pPlugin, g.iCommon );
+	PSI_CONTROL pc = pct->control.pc;
 	if( pc )
 	{
 		TEXTCHAR *option = GetText( GetParam( ps, &params ) );
@@ -79,8 +79,8 @@ static int ObjectMethod( WIDE("psi_control"), WIDE("hide"), WIDE("Hide Control (
 //int DoHideCommon
 	( PSENTIENT ps, PENTITY pe, PTEXT params )
 {
-	PCOMMON_TRACKER pct = (PCOMMON_TRACKER)GetLink( &ps->Current->pPlugin, g.iCommon );
-	PCOMMON pc = pct->control.pc;
+	PSI_CONTROL_TRACKER pct = (PSI_CONTROL_TRACKER)GetLink( &ps->Current->pPlugin, g.iCommon );
+	PSI_CONTROL pc = pct->control.pc;
 	if( pc )
 	{
 		HideControl( pc );
@@ -94,8 +94,8 @@ static int ObjectMethod( WIDE("psi_control"), WIDE("show"), WIDE("Show Control (
 //int DoShowCommon
 ( PSENTIENT ps, PENTITY pe, PTEXT params )
 {
-	PCOMMON_TRACKER pct = (PCOMMON_TRACKER)GetLink( &ps->Current->pPlugin, g.iCommon );
-	PCOMMON pc = pct->control.pc;
+	PSI_CONTROL_TRACKER pct = (PSI_CONTROL_TRACKER)GetLink( &ps->Current->pPlugin, g.iCommon );
+	PSI_CONTROL pc = pct->control.pc;
 	if( pc )
 	{
 		DisplayFrame( pc );
@@ -107,8 +107,8 @@ static int ObjectMethod( WIDE("psi_control"), WIDE("show"), WIDE("Show Control (
 
 void DestroyAControl( PENTITY pe )
 {
-	//PCOMMON pc = GetLink( &pe->pPlugin, g.iCommon );
-	PCOMMON_TRACKER pComTrack = (PCOMMON_TRACKER)GetLink( &pe->pPlugin, g.iCommon );
+	//PSI_CONTROL pc = GetLink( &pe->pPlugin, g.iCommon );
+	PSI_CONTROL_TRACKER pComTrack = (PSI_CONTROL_TRACKER)GetLink( &pe->pPlugin, g.iCommon );
 	if( pComTrack )
 	{
 		DeleteLink( &g.pMyFrames, pe );
@@ -129,7 +129,7 @@ void DestroyAControl( PENTITY pe )
 static int CPROC CreatePopupThing( PSENTIENT ps, PENTITY peNew, PTEXT params )
 {
 	PMENU menu = CreatePopup();
-	PCOMMON_TRACKER pComTrack = New( COMMON_TRACKER );
+	PSI_CONTROL_TRACKER pComTrack = New( COMMON_TRACKER );
 	pComTrack->control.menu = menu;
 	pComTrack->flags.created_internally = 1;
 	pComTrack->flags.menu = 1;
@@ -162,8 +162,8 @@ static PTEXT CPROC SetCaption( uintptr_t psv
 							  , PTEXT newvalue )
 {
 	{
-		PCOMMON_TRACKER pct = (PCOMMON_TRACKER)psv;//GetLink( &pe->pPlugin, g.iCommon );
-      PCOMMON pc = pct->control.pc;
+		PSI_CONTROL_TRACKER pct = (PSI_CONTROL_TRACKER)psv;//GetLink( &pe->pPlugin, g.iCommon );
+      PSI_CONTROL pc = pct->control.pc;
 		if( pc )
 		{
 			PTEXT line = BuildLine( newvalue );
@@ -219,7 +219,7 @@ static void DumpMacros( PVARTEXT vt, PENTITY pe )
 
 //--------------------------------------------------------------------------
 
- PENTITY GetOneOfMyFrames( PCOMMON pc )
+ PENTITY GetOneOfMyFrames( PSI_CONTROL pc )
 {
 	PENTITY peCheck;
 	INDEX idx;
@@ -228,12 +228,12 @@ static void DumpMacros( PVARTEXT vt, PENTITY pe )
 		// this can accidentally create a list which will create a memory leak.
 		if( peCheck->pPlugin )
 		{
-			PCOMMON_TRACKER pctCheck = (PCOMMON_TRACKER)GetLink( &peCheck->pPlugin, g.iCommon );
+			PSI_CONTROL_TRACKER pctCheck = (PSI_CONTROL_TRACKER)GetLink( &peCheck->pPlugin, g.iCommon );
 			// and 099.99% of the time it won't be... fuhk
 			//lprintf( WIDE("this list may be orphaned... %p"), pctCheck );
 			if( pctCheck )
 			{
-				PCOMMON pcCheck = pctCheck->control.pc;
+				PSI_CONTROL pcCheck = pctCheck->control.pc;
 				if( pc == pcCheck )
 				{
 					return peCheck;
@@ -247,9 +247,9 @@ static void DumpMacros( PVARTEXT vt, PENTITY pe )
 
 //--------------------------------------------------------------------------
 
-int CPROC SaveCommonMacroData( PCOMMON pc, PVARTEXT pvt )
+int CPROC SaveCommonMacroData( PSI_CONTROL pc, PVARTEXT pvt )
 {
-	PCOMMON pcFrame = GetFrame( pc );
+	PSI_CONTROL pcFrame = GetFrame( pc );
 	PENTITY peFrame = (PENTITY)GetOneOfMyFrames( pcFrame );
 	if( peFrame && IsOneOfMyFrames( peFrame ) )
 	{
@@ -276,13 +276,13 @@ static volatile_variable_entry common_vars[] = { { DEFTEXT(WIDE("caption"))
 #endif
 
 //--------------------------------------------------------------------------
-PENTITY CommonInitControl( PCOMMON pc )
+PENTITY CommonInitControl( PSI_CONTROL pc )
 {
 	PENTITY peNew = NULL;
 	EnterCriticalSec( &g.csCreating );
 	{
-		PCOMMON_TRACKER pComTrack = New( COMMON_TRACKER );
-		PCOMMON pcFrame = GetParentControl( pc );
+		PSI_CONTROL_TRACKER pComTrack = New( COMMON_TRACKER );
+		PSI_CONTROL pcFrame = GetParentControl( pc );
 		pComTrack->control.pc = pc;
 		pComTrack->flags.created_internally = 0;
 		pComTrack->flags.menu = 0;
@@ -338,8 +338,8 @@ static int OnCreateObject( WIDE("psi_control"), WIDE("generic control...") )
 ( PSENTIENT ps, PENTITY peNew, PTEXT params )
 {
 	PENTITY peFrame = FindContainer( peNew );
-	PCOMMON_TRACKER pct = (PCOMMON_TRACKER)GetLink( &peFrame->pPlugin, g.iCommon );
-	PCOMMON pc;
+	PSI_CONTROL_TRACKER pct = (PSI_CONTROL_TRACKER)GetLink( &peFrame->pPlugin, g.iCommon );
+	PSI_CONTROL pc;
 	TEXTCHAR *control_type;
 	if( pct )
 	{
@@ -398,7 +398,7 @@ static int OnCreateObject( WIDE("psi_control"), WIDE("generic control...") )
 			if( !pw ) pw = WIDE("320");
 			if( !ph ) ph = WIDE("250");
 			{
-				PCOMMON pNewControl;
+				PSI_CONTROL pNewControl;
 				EnterCriticalSec( &g.csCreating );
 				g.peCreating = peNew;
 				pNewControl = MakeNamedCaptionedControl( pc, control_type
@@ -453,21 +453,21 @@ static int OnCreateObject( WIDE("psi_control"), WIDE("generic control...") )
 	return 1; // abort creation for now.
 }
 
-int CPROC CustomFrameInit( PCOMMON pc )
+int CPROC CustomFrameInit( PSI_CONTROL pc )
 {
 	CommonInitControl( pc );
 	return 1;
 }
 
 //--------------------------------------------------------------------------
-static int CPROC CustomDefaultInit( PCOMMON pc )
+static int CPROC CustomDefaultInit( PSI_CONTROL pc )
 {
 	CommonInitControl( pc );
 	return 1;
 }
 
 //--------------------------------------------------------------------------
-static int CPROC CustomDefaultDestroy( PCOMMON pc )
+static int CPROC CustomDefaultDestroy( PSI_CONTROL pc )
 {
 	// registered as destroy of control...
    // predates On___ behaviors.
@@ -500,12 +500,12 @@ PUBLIC( TEXTCHAR *, RegisterRoutines )( void )
 
 	// this registers a default, if the control itself does not specify...
 	SimpleRegisterMethod( WIDE("psi/control/rtti/extra init")
-							  , CustomDefaultInit, WIDE("int"), WIDE("dekware common init"), WIDE("(PCOMMON)") );
+							  , CustomDefaultInit, WIDE("int"), WIDE("dekware common init"), WIDE("(PSI_CONTROL)") );
 	SimpleRegisterMethod( WIDE("psi/control/rtti/extra destroy")
-							  , CustomDefaultDestroy, WIDE("int"), WIDE("dekware common destroy"), WIDE("(PCOMMON)") );
+							  , CustomDefaultDestroy, WIDE("int"), WIDE("dekware common destroy"), WIDE("(PSI_CONTROL)") );
 
 	SimpleRegisterMethod( WIDE("psi/control/") CONTROL_FRAME_NAME  WIDE("/rtti/extra init")
-							  , CustomFrameInit, WIDE("int"), WIDE("extra init"), WIDE("(PCOMMON)") );
+							  , CustomFrameInit, WIDE("int"), WIDE("extra init"), WIDE("(PSI_CONTROL)") );
 	return DekVersion;
 }
 

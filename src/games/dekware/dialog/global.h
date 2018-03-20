@@ -12,14 +12,14 @@ typedef struct {
 } MY_CONTROL_DATA, *PMY_CONTROL_DATA;
 
 
-typedef struct common_tracker COMMON_TRACKER, *PCOMMON_TRACKER;
+typedef struct common_tracker COMMON_TRACKER, *PSI_CONTROL_TRACKER;
 struct common_tracker {
 	struct {
 		uint32_t created_internally : 1;
 		uint32_t menu : 1;
 	} flags;
 	union {
-		PCOMMON pc;
+		PSI_CONTROL pc;
 		PMENU menu;
 	}control;
 
@@ -40,7 +40,7 @@ extern
 
 
 void DestroyAControl( PENTITY pe );
-PENTITY GetOneOfMyFrames( PCOMMON pc );
+PENTITY GetOneOfMyFrames( PSI_CONTROL pc );
 int IsOneOfMyFrames( PENTITY pe );
-int CPROC SaveCommonMacroData( PCOMMON pc, PVARTEXT pvt );
-PENTITY CommonInitControl( PCOMMON pc );
+int CPROC SaveCommonMacroData( PSI_CONTROL pc, PVARTEXT pvt );
+PENTITY CommonInitControl( PSI_CONTROL pc );

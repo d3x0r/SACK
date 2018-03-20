@@ -326,9 +326,9 @@ done:
 
 //---------------------------------------------------------------------------
 
-static PTEXT CPROC TelnetHandle( PDATAPATH pdpCommon, PTEXT pText )
+static PTEXT CPROC TelnetHandle( PDATAPATH pdPSI_CONTROL, PTEXT pText )
 {
-   PMYDATAPATH pdp = (PMYDATAPATH)pdpCommon;
+   PMYDATAPATH pdp = (PMYDATAPATH)pdPSI_CONTROL;
    INDEX idx;
    int nState;
    TEXTCHAR *ptext;
@@ -414,9 +414,9 @@ static int CPROC Read( PDATAPATH pdp )
 
 //---------------------------------------------------------------------------
 
-static PTEXT CPROC ValidateEOL( PDATAPATH pdpCommon, PTEXT line )
+static PTEXT CPROC ValidateEOL( PDATAPATH pdPSI_CONTROL, PTEXT line )
 {
-   //PMYDATAPATH pdp = (PMYDATAPATH)pdpCommon;
+   //PMYDATAPATH pdp = (PMYDATAPATH)pdPSI_CONTROL;
 	PTEXT end, check;
 	// outbound return is added at the end of the line.
 	// so if there is no return, don't add one...
@@ -451,9 +451,9 @@ static int CPROC Write( PDATAPATH pdp )
 
 //---------------------------------------------------------------------------
 
-static int CPROC Close( PDATAPATH pdpCommon )
+static int CPROC Close( PDATAPATH pdPSI_CONTROL )
 {
-   PMYDATAPATH pdp = (PMYDATAPATH)pdpCommon;
+   PMYDATAPATH pdp = (PMYDATAPATH)pdPSI_CONTROL;
 	VarTextDestroy( &pdp->vt );
    pdp->common.Type = 0;
    return 0;

@@ -9,19 +9,19 @@
 
 // this is a variable in dialog.nex
 
-void CPROC DoListItemOpened( uintptr_t psvUser, PCONTROL pc, PLISTITEM hli, LOGICAL bOpened )
+void CPROC DoListItemOpened( uintptr_t psvUser, PSI_CONTROL pc, PLISTITEM hli, LOGICAL bOpened )
 {
 	PENTITY pe = (PENTITY)psvUser;
    InvokeBehavior( WIDE("open"), pe, pe->pControlledBy, NULL );
 }
 
-void CPROC DoDoubleClicker( uintptr_t psvUser, PCONTROL pc, PLISTITEM hli )
+void CPROC DoDoubleClicker( uintptr_t psvUser, PSI_CONTROL pc, PLISTITEM hli )
 {
 	PENTITY pe = (PENTITY)psvUser;
    InvokeBehavior( WIDE("double"), pe, pe->pControlledBy, NULL );
 }
 
-void CPROC DoSelectionChanged ( uintptr_t psvUser, PCOMMON pc, PLISTITEM hli )
+void CPROC DoSelectionChanged ( uintptr_t psvUser, PSI_CONTROL pc, PLISTITEM hli )
 {
 	PENTITY pe = (PENTITY)psvUser;
    InvokeBehavior( WIDE("select"), pe, pe->pControlledBy, NULL );
@@ -31,8 +31,8 @@ static int ObjectMethod( WIDE("psi_listbox"), WIDE("add"), WIDE("Add an item to 
 //static int CPROC AddItem
 ( PSENTIENT ps, PENTITY pe, PTEXT parameters )
 {
-	PCOMMON_TRACKER pct = (PCOMMON_TRACKER)GetLink( &ps->Current->pPlugin, g.iCommon );
-	PCOMMON pc = pct->control.pc;
+	PSI_CONTROL_TRACKER pct = (PSI_CONTROL_TRACKER)GetLink( &ps->Current->pPlugin, g.iCommon );
+	PSI_CONTROL pc = pct->control.pc;
    // macro duplicate so subsitutions happen...
 	PTEXT line = BuildLine( parameters );
 	AddListItem( pc, GetText( line ) );
@@ -45,8 +45,8 @@ static int ObjectMethod( WIDE("psi_listbox"), WIDE("tree"), WIDE("Add an item to
 ( PSENTIENT ps, PENTITY pe, PTEXT parameters )
 {
 	PTEXT temp = GetParam( ps, &parameters );
-	PCOMMON_TRACKER pct = (PCOMMON_TRACKER)GetLink( &ps->Current->pPlugin, g.iCommon );
-	PCOMMON pc = pct->control.pc;
+	PSI_CONTROL_TRACKER pct = (PSI_CONTROL_TRACKER)GetLink( &ps->Current->pPlugin, g.iCommon );
+	PSI_CONTROL pc = pct->control.pc;
 	if( temp )
 	{
       LOGICAL yesno;
@@ -76,7 +76,7 @@ static int OnCreateObject( WIDE("psi_listbox"), WIDE("a PSI List Control") )( PS
    return 0;
 }
 
-static void InitControlObject( PENTITY pe, PCOMMON pc )
+static void InitControlObject( PENTITY pe, PSI_CONTROL pc )
 {
 	if( !pe )
       return;
@@ -91,7 +91,7 @@ static void InitControlObject( PENTITY pe, PCOMMON pc )
    SetSelChangeHandler( pc, DoSelectionChanged, (uintptr_t)pe );
 }
 
-int CPROC CustomInitListbox( PCOMMON pc )
+int CPROC CustomInitListbox( PSI_CONTROL pc )
 {
 	InitControlObject( CommonInitControl( pc ), pc );
    return 1;
@@ -100,6 +100,6 @@ int CPROC CustomInitListbox( PCOMMON pc )
 PRELOAD( LstRegisterExtraInits )
 {
 	SimpleRegisterMethod( WIDE("psi/control/") LISTBOX_CONTROL_NAME WIDE("/rtti/extra init")
-							  , CustomInitListbox, WIDE("int"), WIDE("extra init"), WIDE("(PCOMMON)") );
+							  , CustomInitListbox, WIDE("int"), WIDE("extra init"), WIDE("(PSI_CONTROL)") );
 }
 

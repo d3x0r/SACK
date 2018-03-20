@@ -24,7 +24,7 @@ static PTEXT ObjectVolatileVariableGet( WIDE("psi_button"), WIDE("check_state"),
 	}
 	{
 
-		PCOMMON pc = (PCOMMON)GetLink( &pe->pPlugin, g.iCommon );
+		PSI_CONTROL pc = (PSI_CONTROL)GetLink( &pe->pPlugin, g.iCommon );
 		if( pc )
 		{
 		}
@@ -39,7 +39,7 @@ static PTEXT ObjectVolatileVariableSet( WIDE("psi_button"), WIDE("check_state"),
 						 , PTEXT newvalue )
 {
 	{
-		PCOMMON pc = (PCOMMON)GetLink( &pe->pPlugin, g.iCommon );
+		PSI_CONTROL pc = (PSI_CONTROL)GetLink( &pe->pPlugin, g.iCommon );
 		if( pc )
 		{
 			PTEXT tmp = newvalue;
@@ -67,7 +67,7 @@ static PTEXT ObjectVolatileVariableGet( WIDE("psi_button"), WIDE("pressed"), WID
       *lastvalue = NULL;
 	}
 	{
-		PCOMMON pc = (PCOMMON)GetLink( &pe->pPlugin, g.iCommon );
+		PSI_CONTROL pc = (PSI_CONTROL)GetLink( &pe->pPlugin, g.iCommon );
 		if( pc )
 		{
 			DECLTEXT( yes, WIDE("yes") );
@@ -88,7 +88,7 @@ static PTEXT ObjectVolatileVariableSet( WIDE("psi_button"), WIDE("pressed"), WID
 						 , PTEXT newvalue )
 {
 	{
-		PCOMMON pc = (PCOMMON)GetLink( &pe->pPlugin, g.iCommon );
+		PSI_CONTROL pc = (PSI_CONTROL)GetLink( &pe->pPlugin, g.iCommon );
 		if( pc )
 		{
 			PTEXT tmp = newvalue;
@@ -109,7 +109,7 @@ static PTEXT ObjectVolatileVariableSet( WIDE("psi_button"), WIDE("color"), WIDE(
 						 , PTEXT newvalue )
 {
 	{
-		PCOMMON pc = (PCOMMON)GetLink( &pe->pPlugin, g.iCommon );
+		PSI_CONTROL pc = (PSI_CONTROL)GetLink( &pe->pPlugin, g.iCommon );
 		if( pc )
 		{
 			PTEXT tmp = newvalue;
@@ -137,7 +137,7 @@ volatile_variable_entry normal_button_vars[] = { { DEFTEXT(WIDE("color")), NULL 
 																 , SetCheckStateVar }
 };
 #endif
-static void CPROC ButtonClick( uintptr_t psv, PCOMMON pc )
+static void CPROC ButtonClick( uintptr_t psv, PSI_CONTROL pc )
 {
 	PENTITY pe = (PENTITY)psv;
    InvokeBehavior( WIDE("click"), pe, pe->pControlledBy, NULL );
@@ -148,7 +148,7 @@ static void CPROC ButtonClick( uintptr_t psv, PCOMMON pc )
 //void CPROC ButtonDraw(
 
 
-static void InitControlObject( PENTITY pe, PCOMMON pc )
+static void InitControlObject( PENTITY pe, PSI_CONTROL pc )
 {
 	if( !pe )
       return;
@@ -163,7 +163,7 @@ static void InitControlObject( PENTITY pe, PCOMMON pc )
    //SetButtonPushMethod( pc, ButtonClick, (uintptr_t)pe );
 }
 
-int CPROC CustomPressButton( PCOMMON pc )
+int CPROC CustomPressButton( PSI_CONTROL pc )
 {
 	PENTITY pe = GetOneOfMyFrames( pc );
 	if( pe )
@@ -171,7 +171,7 @@ int CPROC CustomPressButton( PCOMMON pc )
    return 0;
 }
 
-int CPROC CustomDrawButton( PCOMMON pc )
+int CPROC CustomDrawButton( PSI_CONTROL pc )
 {
 	PENTITY pe = GetOneOfMyFrames( pc );
 	if( pe )
@@ -179,7 +179,7 @@ int CPROC CustomDrawButton( PCOMMON pc )
    return 0;
 }
 
-int CPROC CustomInitButton( PCOMMON pc )
+int CPROC CustomInitButton( PSI_CONTROL pc )
 {
 	InitControlObject( CommonInitControl( pc ), pc );
    // if we returned a zero - what would YOu expect?  the caller does not care ATM.
@@ -189,28 +189,28 @@ int CPROC CustomInitButton( PCOMMON pc )
 PRELOAD( BtnRegisterExtraInits )
 {
 	SimpleRegisterMethod( WIDE("psi/control/") NORMAL_BUTTON_NAME WIDE("/rtti/extra init")
-							  , CustomInitButton, WIDE("int"), WIDE("extra init"), WIDE("(PCOMMON)") );
+							  , CustomInitButton, WIDE("int"), WIDE("extra init"), WIDE("(PSI_CONTROL)") );
 	SimpleRegisterMethod( WIDE("psi/control/") CUSTOM_BUTTON_NAME WIDE("/rtti/extra init")
-							  , CustomInitButton, WIDE("int"), WIDE("extra init"), WIDE("(PCOMMON)") );
+							  , CustomInitButton, WIDE("int"), WIDE("extra init"), WIDE("(PSI_CONTROL)") );
 	SimpleRegisterMethod( WIDE("psi/control/") IMAGE_BUTTON_NAME  WIDE("/rtti/extra init")
-							  , CustomInitButton, WIDE("int"), WIDE("extra init"), WIDE("(PCOMMON)") );
+							  , CustomInitButton, WIDE("int"), WIDE("extra init"), WIDE("(PSI_CONTROL)") );
 	SimpleRegisterMethod( WIDE("psi/control/") RADIO_BUTTON_NAME  WIDE("/rtti/extra init")
-							  , CustomInitButton, WIDE("int"), WIDE("extra init"), WIDE("(PCOMMON)") );
+							  , CustomInitButton, WIDE("int"), WIDE("extra init"), WIDE("(PSI_CONTROL)") );
 
    // register methods which result in on-click events
    SimpleRegisterMethod( WIDE("psi/control/") NORMAL_BUTTON_NAME  WIDE("/rtti/extra press")
-							  , CustomPressButton, WIDE("int"), WIDE("extra dekware press"), WIDE("(PCOMMON)") );
+							  , CustomPressButton, WIDE("int"), WIDE("extra dekware press"), WIDE("(PSI_CONTROL)") );
    SimpleRegisterMethod( WIDE("psi/control/") CUSTOM_BUTTON_NAME  WIDE("/rtti/extra press")
-							  , CustomPressButton, WIDE("int"), WIDE("extra dekware press"), WIDE("(PCOMMON)") );
+							  , CustomPressButton, WIDE("int"), WIDE("extra dekware press"), WIDE("(PSI_CONTROL)") );
    SimpleRegisterMethod( WIDE("psi/control/") IMAGE_BUTTON_NAME  WIDE("/rtti/extra press")
-							  , CustomPressButton, WIDE("int"), WIDE("extra dekware press"), WIDE("(PCOMMON)") );
+							  , CustomPressButton, WIDE("int"), WIDE("extra dekware press"), WIDE("(PSI_CONTROL)") );
 
    // register methods which result in on-draw events.
    SimpleRegisterMethod( WIDE("psi/control/") CUSTOM_BUTTON_NAME  WIDE("/rtti/extra draw")
-							  , CustomDrawButton, WIDE("int"), WIDE("extra dekware draw"), WIDE("(PCOMMON)") );
+							  , CustomDrawButton, WIDE("int"), WIDE("extra dekware draw"), WIDE("(PSI_CONTROL)") );
 
 
 	SimpleRegisterMethod( WIDE("psi/control/") NORMAL_BUTTON_NAME WIDE("/rtti")
-							  , SaveCommonMacroData, WIDE("int"), WIDE("extra save"), WIDE("(PCOMMON,PVARTEXT)") );
+							  , SaveCommonMacroData, WIDE("int"), WIDE("extra save"), WIDE("(PSI_CONTROL,PVARTEXT)") );
 }
 
