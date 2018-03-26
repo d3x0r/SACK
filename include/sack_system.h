@@ -63,12 +63,12 @@ typedef void (CPROC*TaskOutput)(uintptr_t, PTASK_INFO task, CTEXTSTR buffer, siz
 #define LPP_OPTION_SUSPEND              32
 
 SYSTEM_PROC( PTASK_INFO, LaunchPeerProgramExx )( CTEXTSTR program, CTEXTSTR path, PCTEXTSTR args
-															  , int flags
-															  , TaskOutput OutputHandler
-															  , TaskEnd EndNotice
-															  , uintptr_t psv
-																DBG_PASS
-															  );
+                                               , int flags
+                                               , TaskOutput OutputHandler
+                                               , TaskEnd EndNotice
+                                               , uintptr_t psv
+                                                DBG_PASS
+                                               );
 
 SYSTEM_PROC( PTASK_INFO, LaunchProgramEx )( CTEXTSTR program, CTEXTSTR path, PCTEXTSTR args, TaskEnd EndNotice, uintptr_t psv );
 // launch a process, program name (including leading path), a optional path to start in (defaults to
@@ -122,19 +122,19 @@ SYSTEM_PROC( LOGICAL, IsSystemShuttingDown )( void );
 // HandlePeerOutput is called whenever a peer task has generated output on stdout or stderr
 //   - someday evolution may require processing stdout and stderr with different event handlers
 SYSTEM_PROC( PTASK_INFO, LaunchPeerProgramEx )( CTEXTSTR program, CTEXTSTR path, PCTEXTSTR args
-															 , TaskOutput HandlePeerOutput
-															 , TaskEnd EndNotice
-															 , uintptr_t psv
-															  DBG_PASS
-															 );
+                                              , TaskOutput HandlePeerOutput
+                                              , TaskEnd EndNotice
+                                              , uintptr_t psv
+                                               DBG_PASS
+                                              );
 #define LaunchPeerProgram(prog,path,args,out,end,psv) LaunchPeerProgramEx(prog,path,args,out,end,psv DBG_SRC)
 
 
 SYSTEM_PROC( PTASK_INFO, SystemEx )( CTEXTSTR command_line
-															  , TaskOutput OutputHandler
-															  , uintptr_t psv
-																DBG_PASS
-											  );
+                                   , TaskOutput OutputHandler
+                                   , uintptr_t psv
+                                   DBG_PASS
+                                   );
 #define System(command_line,output_handler,user_data) SystemEx( command_line, output_handler, user_data DBG_SRC )
 
 // generate output to a task... read by peer task on standard input pipe
