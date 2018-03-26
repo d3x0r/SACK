@@ -53,7 +53,7 @@ typedef void (CPROC*TaskOutput)(uintptr_t, PTASK_INFO task, CTEXTSTR buffer, siz
 
 // Run a program completely detached from the current process
 // it runs independantly.  Program does not suspend until it completes.
-// No way at all to know if the program works or fails.
+// Use GetTaskExitCode() to get the return code of the process
 #define LPP_OPTION_DO_NOT_HIDE           1
 // for services to launch normal processes (never got it to work; used to work in XP/NT?)
 #define LPP_OPTION_IMPERSONATE_EXPLORER  2
