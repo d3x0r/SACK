@@ -291,7 +291,7 @@ Get the current color of a common interface color...
 </menu>
 
 <hr>
-<h3>PFRAME CreateFrame( CTEXTSTR caption, int x, int y, int w, int h, _32 Border Flags, PFRAME pAbove )</h3>
+<h3>PFRAME CreateFrame( CTEXTSTR caption, int x, int y, int w, int h, uint32_t Border Flags, PFRAME pAbove )</h3>
 <h5></h5>
 <h4></h4>
 <menu>
@@ -306,7 +306,7 @@ Show a control.  If there is no previously defined renderer for this control, th
 any container control, and displayed on a renderer.
 </menu>
 
-<h3>PCOMMON GetControl( PCOMMON pf, _32 ID )</h3>
+<h3>PCOMMON GetControl( PCOMMON pf, uint32_t ID )</h3>
 <menu>
 Get a control from a container control (such as a frame).
 The first control that has the ID matching the ID specified will
@@ -331,16 +331,16 @@ or scrollbar which have no location for a caption to be displayed.
 
 <table>
 <tr><td><h3> PCOMMON MakeControl</td><td><h3>( PCOMMON pContainer
-<tr><td></td><td><h3>				, _32 nType
+<tr><td></td><td><h3>				, uint32_t nType
 <tr><td></td><td><h3>				, int x, int y
 <tr><td></td><td><h3>				, int w, int h
-<tr><td></td><td><h3>				, _32 nID
+<tr><td></td><td><h3>				, uint32_t nID
 <tr><td></td><td><h3>				, ... )
 <tr><td><h3> PCOMMON VMakeControl</td><td><h3>( PCOMMON pContainer
-<tr><td></td><td><h3>				, _32 nType
+<tr><td></td><td><h3>				, uint32_t nType
 <tr><td></td><td><h3>				, int x, int y
 <tr><td></td><td><h3>				, int w, int h
-<tr><td></td><td><h3>				, _32 nID
+<tr><td></td><td><h3>				, uint32_t nID
 <tr><td></td><td><h3>				, va_list args )
 </table> 
 <menu>
@@ -354,17 +354,17 @@ VMakeControl takes a variable argument pointer rather than having the parameters
 
 <table>
 <tr><td><h3> PCOMMON MakeCaptionedControl</td><td><h3>( PCOMMON pContainer
-<tr><td></td><td><h3>				, _32 nType
+<tr><td></td><td><h3>				, uint32_t nType
 <tr><td></td><td><h3>				, int x, int y
 <tr><td></td><td><h3>				, int w, int h
-<tr><td></td><td><h3>				, _32 nID
+<tr><td></td><td><h3>				, uint32_t nID
 <tr><td></td><td><h3>				, CTEXTSTR caption
 <tr><td></td><td><h3>				, ... )
 <tr><td><h3> PCOMMON VMakeCaptionedControl</td><td><h3>( PCOMMON pContainer
-<tr><td></td><td><h3>				, _32 nType
+<tr><td></td><td><h3>				, uint32_t nType
 <tr><td></td><td><h3>				, int x, int y
 <tr><td></td><td><h3>				, int w, int h
-<tr><td></td><td><h3>				, _32 nID
+<tr><td></td><td><h3>				, uint32_t nID
 <tr><td></td><td><h3>				, CTEXTSTR caption
 <tr><td></td><td><h3>				, va_list args )
 </table> 
@@ -384,14 +384,14 @@ VMakeCationedControl takes a variable argument pointer rather than having the pa
 <tr><td></td><td><h3>				, CTEXTSTR pType
 <tr><td></td><td><h3>				, int x, int y
 <tr><td></td><td><h3>				, int w, int h
-<tr><td></td><td><h3>				, _32 nID
+<tr><td></td><td><h3>				, uint32_t nID
 <tr><td></td><td><h3>				, CTEXTSTR caption
 <tr><td></td><td><h3>				, ... )
 <tr><td><h3> PCOMMON MakeNamedCaptionedControl</td><td><h3>( PCOMMON pContainer
 <tr><td></td><td><h3>				, CTEXTSTR pType
 <tr><td></td><td><h3>				, int x, int y
 <tr><td></td><td><h3>				, int w, int h
-<tr><td></td><td><h3>				, _32 nID
+<tr><td></td><td><h3>				, uint32_t nID
 <tr><td></td><td><h3>				, CTEXTSTR caption
 <tr><td></td><td><h3>				, ... )
 </table> 
@@ -418,10 +418,10 @@ control, and need to implement custom control stuff.
 return FALSE to abort creation of the control.  Return non-zero to allow control creation.
 <tr><td><td></td><td>int (*load)(PCOMMON, ... );<br> Undefined Yet.  Invoked when a frame is loaded from a file.
 <tr><td><td></td><td>int (*draw)(PCOMMON);<br>Invoked when the control needs to be refreshed.  Multiple draw methods may be associated with a control.  Return 0 to allow further draw routines to be invoked.  Return 1 to end drawing dispatch.
-<tr><td><td></td><td>int (*mouse)(PCOMMON, S_32 x, S_32 y, _32 b );<br>This is invoked when the control receives a mouse event.  
+<tr><td><td></td><td>int (*mouse)(PCOMMON, int32_t x, int32_t y, uint32_t b );<br>This is invoked when the control receives a mouse event.  
 By default only button changes are snet to the control, moving the mouse is filtered.  
 A special value of 0xFFFFFFFF is passed as the buttons when the mouse leaves the control while a mouse button is down.
-<tr><td><td></td><td>int (*key)(PCOMMON, _32 key );<br>A key has been pressed while this control has the focus.  Key interpretation is done using methods in the Renderer.  (video display library)
+<tr><td><td></td><td>int (*key)(PCOMMON, uint32_t key );<br>A key has been pressed while this control has the focus.  Key interpretation is done using methods in the Renderer.  (video display library)
 <tr><td><td></td><td>... more ....
 <tr><td><td></td><td>... and more....
 </table>
@@ -469,7 +469,7 @@ Also, See colordef.(h/doc).
 
 PSI_PROC( PFRAME, CreateFrame)( char *caption, int x, int y
    						, int w, int h
-     						, _32 BorderFlags
+     						, uint32_t BorderFlags
     						, PFRAME hAbove );
 
 Creates a frame, a window if you will, it has a title bar, and someday icons to 
@@ -694,15 +694,15 @@ Controls</h3></center>
 <p>All controls have the following arguments
 <menu>
 <br>PFRAME pContainer - the container to put the control into.
-<br>, _32 attr - attributes - custom per control. see LIST_OPT for instance.
-<br>, S_32 x, y - the x,y position within the frame to create the control at.
-<br>, _32 width, height - the size of the control surface, including the border.
-<br>, _32 ID - the ID of the control, for reference by GetControl() for instance.
+<br>, uint32_t attr - attributes - custom per control. see LIST_OPT for instance.
+<br>, int32_t x, y - the x,y position within the frame to create the control at.
+<br>, uint32_t width, height - the size of the control surface, including the border.
+<br>, uint32_t ID - the ID of the control, for reference by GetControl() for instance.
 </menu>
 
 <h2>//------ BUTTONS ------------</h2>
 <h3><table>
-<tr><td><h3>PSI_PROC( PCONTROL, MakeButton)</td><td><h3>( PFRAME pFrame, _32 attr, int x, int y, int w, int h</tr>
+<tr><td><h3>PSI_PROC( PCONTROL, MakeButton)</td><td><h3>( PFRAME pFrame, uint32_t attr, int x, int y, int w, int h</tr>
 <td></td><td><h3>, int nID
 </td></tr>
 <td></td><td><h3>                  , char *caption
@@ -797,8 +797,8 @@ PSI_PROC( void, DestroyPopup)( PMENU pm );
 // get sub-menu data...
 PSI_PROC( void ,*GetPopupData)( PMENU pm, int item );
 PSI_PROC( PMENUITEM, AppendPopupItem)( PMENU pm, int type, PTRSZVAL dwID, POINTER pData );
-PSI_PROC( PMENUITEM, CheckPopupItem)( PMENU pm, _32 dwID, _32 state );
-PSI_PROC( PMENUITEM, DeletePopupItem)( PMENU pm, _32 dwID, _32 state );
+PSI_PROC( PMENUITEM, CheckPopupItem)( PMENU pm, uint32_t dwID, uint32_t state );
+PSI_PROC( PMENUITEM, DeletePopupItem)( PMENU pm, uint32_t dwID, uint32_t state );
 PSI_PROC( int, TrackPopup)( PMENU hMenuSub );
 
 //------- File Control --------

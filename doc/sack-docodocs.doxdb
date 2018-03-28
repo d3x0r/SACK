@@ -994,7 +994,7 @@
       <target id="html">../output/_XML_NAMESPACE_END.html</target>
       <target id="pdf">pdf://1647@sack-docodocs.pdf</target>
     </link>
-    <link topicid="AddCommonAcceptDroppedFiles@PSI_CONTROL@void __cdecl*AcceptDroppedFilesMethodPSI_CONTROL, CTEXTSTR file, S_32 x, S_32 y" displaystring="AddCommonAcceptDroppedFiles Function">
+    <link topicid="AddCommonAcceptDroppedFiles@PSI_CONTROL@void __cdecl*AcceptDroppedFilesMethodPSI_CONTROL, CTEXTSTR file, int32_t x, int32_t y" displaystring="AddCommonAcceptDroppedFiles Function">
       <target id="pdf">pdf://1456@sack-docodocs.pdf</target>
     </link>
     <link topicid="AddCommonButtons@PSI_CONTROL@int *@int *" displaystring="AddCommonButtons Function">
@@ -1006,10 +1006,10 @@
     <link topicid="AddCommonDraw@PSI_CONTROL@int __cdecl*Draw PSI_CONTROL pc" displaystring="AddCommonDraw Function">
       <target id="pdf">pdf://1457@sack-docodocs.pdf</target>
     </link>
-    <link topicid="AddCommonKey@PSI_CONTROL@int __cdecl*KeyPSI_CONTROL,_32" displaystring="AddCommonKey Function">
+    <link topicid="AddCommonKey@PSI_CONTROL@int __cdecl*KeyPSI_CONTROL,uint32_t" displaystring="AddCommonKey Function">
       <target id="pdf">pdf://1458@sack-docodocs.pdf</target>
     </link>
-    <link topicid="AddCommonMouse@PSI_CONTROL@int __cdecl*MouseMethodPSI_CONTROL, S_32 x, S_32 y, _32 b" displaystring="AddCommonMouse Function">
+    <link topicid="AddCommonMouse@PSI_CONTROL@int __cdecl*MouseMethodPSI_CONTROL, int32_t x, int32_t y, uint32_t b" displaystring="AddCommonMouse Function">
       <target id="pdf">pdf://1459@sack-docodocs.pdf</target>
     </link>
     <link topicid="AddListItem@PSI_CONTROL@CTEXTSTR" displaystring="AddListItem Function">
@@ -1204,7 +1204,7 @@
     <link topicid="CHANGEHANDLER" displaystring="CHANGEHANDLER Type">
       <target id="html">../output/CHANGEHANDLER.html</target>
     </link>
-    <link topicid="CheckPopupItem@PMENU@_32@_32" displaystring="CheckPopupItem Function">
+    <link topicid="CheckPopupItem@PMENU@uint32_t@uint32_t" displaystring="CheckPopupItem Function">
       <target id="pdf">pdf://1308@sack-docodocs.pdf</target>
     </link>
     <link topicid="ClearSelectedItems@PSI_CONTROL" displaystring="ClearSelectedItems Function">
@@ -1584,7 +1584,7 @@
     <link topicid="CONTROL_PROC@ListBox@void" displaystring="CONTROL_PROC Function">
       <target id="pdf">pdf://1471@sack-docodocs.pdf</target>
     </link>
-    <link topicid="CONTROL_PROC@ScrollBar@_32 attr" displaystring="CONTROL_PROC Function">
+    <link topicid="CONTROL_PROC@ScrollBar@uint32_t attr" displaystring="CONTROL_PROC Function">
       <target id="pdf">pdf://1472@sack-docodocs.pdf</target>
     </link>
     <link topicid="CONTROL_REGISTRATION" displaystring="CONTROL_REGISTRATION Structure">
@@ -1628,10 +1628,10 @@
       <target id="html">../output/CPROC.html</target>
       <target id="pdf">pdf://215@sack-docodocs.pdf</target>
     </link>
-    <link topicid="CreateFrame@CTEXTSTR@int@int@int@int@_32@PSI_CONTROL" displaystring="CreateFrame Function">
+    <link topicid="CreateFrame@CTEXTSTR@int@int@int@int@uint32_t@PSI_CONTROL" displaystring="CreateFrame Function">
       <target id="pdf">pdf://1315@sack-docodocs.pdf</target>
     </link>
-    <link topicid="CreateFrameFromRenderer@CTEXTSTR@_32@PRENDERER" displaystring="CreateFrameFromRenderer Function">
+    <link topicid="CreateFrameFromRenderer@CTEXTSTR@uint32_t@PRENDERER" displaystring="CreateFrameFromRenderer Function">
       <target id="pdf">pdf://1317@sack-docodocs.pdf</target>
     </link>
     <link topicid="CreatePopup" displaystring="CreatePopup Function">
@@ -1673,7 +1673,7 @@
     <link topicid="DeleteListItem@PSI_CONTROL@PLISTITEM" displaystring="DeleteListItem Function">
       <target id="pdf">pdf://1362@sack-docodocs.pdf</target>
     </link>
-    <link topicid="DeletePopupItem@PMENU@_32@_32" displaystring="DeletePopupItem Function">
+    <link topicid="DeletePopupItem@PMENU@uint32_t@uint32_t" displaystring="DeletePopupItem Function">
       <target id="pdf">pdf://1310@sack-docodocs.pdf</target>
     </link>
     <link topicid="DestroyCommon" displaystring="DestroyCommon Macro">
@@ -1697,7 +1697,7 @@
     <link topicid="DIMENSIONS" displaystring="DIMENSIONS Macro">
       <target id="html">../output/DIMENSIONS.html</target>
     </link>
-    <link topicid="DisableSheet@PSI_CONTROL@_32@LOGICAL" displaystring="DisableSheet Function">
+    <link topicid="DisableSheet@PSI_CONTROL@uint32_t@LOGICAL" displaystring="DisableSheet Function">
       <target id="pdf">pdf://1477@sack-docodocs.pdf</target>
     </link>
     <link topicid="DisableUpdateListBox@PSI_CONTROL@LOGICAL" displaystring="DisableUpdateListBox Function">
@@ -1784,7 +1784,7 @@
     <link topicid="EditFrame@PSI_CONTROL@int" displaystring="EditFrame Function">
       <target id="pdf">pdf://1488@sack-docodocs.pdf</target>
     </link>
-    <link topicid="EditFrameProperties@PSI_CONTROL@S_32@S_32" displaystring="EditFrameProperties Function">
+    <link topicid="EditFrameProperties@PSI_CONTROL@int32_t@int32_t" displaystring="EditFrameProperties Function">
       <target id="pdf">pdf://1489@sack-docodocs.pdf</target>
     </link>
     <link topicid="EnableCommonUpdates@PSI_CONTROL@int" displaystring="EnableCommonUpdates Function">
@@ -1937,16 +1937,16 @@
       <target id="html">../output/FRACTIONS_DEFINED.html</target>
       <target id="pdf">pdf://1831@sack-docodocs.pdf</target>
     </link>
-    <link topicid="FrameBorderX@_32" displaystring="FrameBorderX Function">
+    <link topicid="FrameBorderX@uint32_t" displaystring="FrameBorderX Function">
       <target id="pdf">pdf://1330@sack-docodocs.pdf</target>
     </link>
-    <link topicid="FrameBorderXOfs@_32" displaystring="FrameBorderXOfs Function">
+    <link topicid="FrameBorderXOfs@uint32_t" displaystring="FrameBorderXOfs Function">
       <target id="pdf">pdf://1332@sack-docodocs.pdf</target>
     </link>
-    <link topicid="FrameBorderY@PSI_CONTROL@_32@CTEXTSTR" displaystring="FrameBorderY Function">
+    <link topicid="FrameBorderY@PSI_CONTROL@uint32_t@CTEXTSTR" displaystring="FrameBorderY Function">
       <target id="pdf">pdf://1334@sack-docodocs.pdf</target>
     </link>
-    <link topicid="FrameBorderYOfs@PSI_CONTROL@_32@CTEXTSTR" displaystring="FrameBorderYOfs Function">
+    <link topicid="FrameBorderYOfs@PSI_CONTROL@uint32_t@CTEXTSTR" displaystring="FrameBorderYOfs Function">
       <target id="pdf">pdf://1336@sack-docodocs.pdf</target>
     </link>
     <link topicid="FrameInitProc" displaystring="FrameInitProc Type">
@@ -2078,7 +2078,7 @@
     <link topicid="GetNthTreeItem@PSI_CONTROL@PLISTITEM@int@int" displaystring="GetNthTreeItem Function">
       <target id="pdf">pdf://1511@sack-docodocs.pdf</target>
     </link>
-    <link topicid="GetPhysicalCoordinate@PSI_CONTROL@S_32 *@S_32 *@int" displaystring="GetPhysicalCoordinate Function">
+    <link topicid="GetPhysicalCoordinate@PSI_CONTROL@int32_t *@int32_t *@int" displaystring="GetPhysicalCoordinate Function">
       <target id="pdf">pdf://1512@sack-docodocs.pdf</target>
     </link>
     <link topicid="GetPopupData@PMENU@int" displaystring="GetPopupData Function">
@@ -2105,13 +2105,13 @@
     <link topicid="GetSelectedItem@PSI_CONTROL" displaystring="GetSelectedItem Function">
       <target id="pdf">pdf://1296@sack-docodocs.pdf</target>
     </link>
-    <link topicid="GetSheet@PSI_CONTROL@_32" displaystring="GetSheet Function">
+    <link topicid="GetSheet@PSI_CONTROL@uint32_t" displaystring="GetSheet Function">
       <target id="pdf">pdf://1513@sack-docodocs.pdf</target>
     </link>
-    <link topicid="GetSheetControl@PSI_CONTROL@_32@_32" displaystring="GetSheetControl Function">
+    <link topicid="GetSheetControl@PSI_CONTROL@uint32_t@uint32_t" displaystring="GetSheetControl Function">
       <target id="pdf">pdf://1514@sack-docodocs.pdf</target>
     </link>
-    <link topicid="GetSheetSize@PSI_CONTROL@_32 *@_32 *" displaystring="GetSheetSize Function">
+    <link topicid="GetSheetSize@PSI_CONTROL@uint32_t *@uint32_t *" displaystring="GetSheetSize Function">
       <target id="pdf">pdf://1515@sack-docodocs.pdf</target>
     </link>
     <link topicid="global.h" displaystring="global.h">
@@ -2428,7 +2428,7 @@
     <link topicid="LoadFrameFromFile@FILE *@PSI_CONTROL@FrameInitProc@PTRSZVAL" displaystring="LoadFrameFromFile Function">
       <target id="pdf">pdf://1525@sack-docodocs.pdf</target>
     </link>
-    <link topicid="LoadFrameFromMemory@POINTER@_32@PSI_CONTROL@FrameInitProc@PTRSZVAL" displaystring="LoadFrameFromMemory Function">
+    <link topicid="LoadFrameFromMemory@POINTER@uint32_t@PSI_CONTROL@FrameInitProc@PTRSZVAL" displaystring="LoadFrameFromMemory Function">
       <target id="pdf">pdf://1526@sack-docodocs.pdf</target>
     </link>
     <link topicid="loadsock.h" displaystring="loadsock.h">
@@ -2468,16 +2468,16 @@
     <link topicid="MakeButton" displaystring="MakeButton Macro">
       <target id="pdf">pdf://1897@sack-docodocs.pdf</target>
     </link>
-    <link topicid="MakeCaptionedControl@PSI_CONTROL@_32@int@int@int@int@_32@CTEXTSTR" displaystring="MakeCaptionedControl Function">
+    <link topicid="MakeCaptionedControl@PSI_CONTROL@uint32_t@int@int@int@int@uint32_t@CTEXTSTR" displaystring="MakeCaptionedControl Function">
       <target id="pdf">pdf://1437@sack-docodocs.pdf</target>
     </link>
     <link topicid="MakeCheckButton" displaystring="MakeCheckButton Macro">
       <target id="pdf">pdf://1898@sack-docodocs.pdf</target>
     </link>
-    <link topicid="MakeControl@PSI_CONTROL@_32@int@int@int@int@_32" displaystring="MakeControl Function">
+    <link topicid="MakeControl@PSI_CONTROL@uint32_t@int@int@int@int@uint32_t" displaystring="MakeControl Function">
       <target id="pdf">pdf://1397@sack-docodocs.pdf</target>
     </link>
-    <link topicid="MakeControlParam@PSI_CONTROL@_32@int@int@int@int@_32@POINTER" displaystring="MakeControlParam Function">
+    <link topicid="MakeControlParam@PSI_CONTROL@uint32_t@int@int@int@int@uint32_t@POINTER" displaystring="MakeControlParam Function">
       <target id="pdf">pdf://1529@sack-docodocs.pdf</target>
     </link>
     <link topicid="MakeCustomDrawnButton" displaystring="MakeCustomDrawnButton Macro">
@@ -2492,19 +2492,19 @@
     <link topicid="MakeListBox" displaystring="MakeListBox Macro">
       <target id="pdf">pdf://1396@sack-docodocs.pdf</target>
     </link>
-    <link topicid="MakeNamedCaptionedControl@PSI_CONTROL@CTEXTSTR@int@int@int@int@_32@CTEXTSTR" displaystring="MakeNamedCaptionedControl Function">
+    <link topicid="MakeNamedCaptionedControl@PSI_CONTROL@CTEXTSTR@int@int@int@int@uint32_t@CTEXTSTR" displaystring="MakeNamedCaptionedControl Function">
       <target id="pdf">pdf://1530@sack-docodocs.pdf</target>
     </link>
-    <link topicid="MakeNamedCaptionedControlByName@PCOMMON@CTEXTSTR@int@int@int@int@CTEXTSTR@_32@CTEXTSTR" displaystring="MakeNamedCaptionedControlByName Function">
+    <link topicid="MakeNamedCaptionedControlByName@PCOMMON@CTEXTSTR@int@int@int@int@CTEXTSTR@uint32_t@CTEXTSTR" displaystring="MakeNamedCaptionedControlByName Function">
       <target id="pdf">pdf://1531@sack-docodocs.pdf</target>
     </link>
-    <link topicid="MakeNamedControl@PSI_CONTROL@CTEXTSTR@int@int@int@int@_32" displaystring="MakeNamedControl Function">
+    <link topicid="MakeNamedControl@PSI_CONTROL@CTEXTSTR@int@int@int@int@uint32_t" displaystring="MakeNamedControl Function">
       <target id="pdf">pdf://1532@sack-docodocs.pdf</target>
     </link>
-    <link topicid="MakePrivateControl@PSI_CONTROL@_32@int@int@int@int@_32" displaystring="MakePrivateControl Function">
+    <link topicid="MakePrivateControl@PSI_CONTROL@uint32_t@int@int@int@int@uint32_t" displaystring="MakePrivateControl Function">
       <target id="pdf">pdf://1533@sack-docodocs.pdf</target>
     </link>
-    <link topicid="MakePrivateNamedControl@PSI_CONTROL@CTEXTSTR@int@int@int@int@_32" displaystring="MakePrivateNamedControl Function">
+    <link topicid="MakePrivateNamedControl@PSI_CONTROL@CTEXTSTR@int@int@int@int@uint32_t" displaystring="MakePrivateNamedControl Function">
       <target id="pdf">pdf://1535@sack-docodocs.pdf</target>
     </link>
     <link topicid="MakeRadioButton" displaystring="MakeRadioButton Macro">
@@ -2644,10 +2644,10 @@
     <link topicid="MONITOR_FILE_FLAG_SUBCURSE" displaystring="MONITOR_FILE_FLAG_SUBCURSE Macro">
       <target id="html">../output/MONITOR_FILE_FLAG_SUBCURSE.html</target>
     </link>
-    <link topicid="MoveCommon@PSI_CONTROL@S_32@S_32" displaystring="MoveCommon Function">
+    <link topicid="MoveCommon@PSI_CONTROL@int32_t@int32_t" displaystring="MoveCommon Function">
       <target id="pdf">pdf://1379@sack-docodocs.pdf</target>
     </link>
-    <link topicid="MoveCommonRel@PSI_CONTROL@S_32@S_32" displaystring="MoveCommonRel Function">
+    <link topicid="MoveCommonRel@PSI_CONTROL@int32_t@int32_t" displaystring="MoveCommonRel Function">
       <target id="pdf">pdf://1381@sack-docodocs.pdf</target>
     </link>
     <link topicid="MoveControl" displaystring="MoveControl Macro">
@@ -2671,10 +2671,10 @@
     <link topicid="MoveScrollBar@PSI_CONTROL@int" displaystring="MoveScrollBar Function">
       <target id="pdf">pdf://1383@sack-docodocs.pdf</target>
     </link>
-    <link topicid="MoveSizeCommon@PSI_CONTROL@S_32@S_32@_32@_32" displaystring="MoveSizeCommon Function">
+    <link topicid="MoveSizeCommon@PSI_CONTROL@int32_t@int32_t@uint32_t@uint32_t" displaystring="MoveSizeCommon Function">
       <target id="pdf">pdf://1385@sack-docodocs.pdf</target>
     </link>
-    <link topicid="MoveSizeCommonRel@PSI_CONTROL@S_32@S_32@_32@_32" displaystring="MoveSizeCommonRel Function">
+    <link topicid="MoveSizeCommonRel@PSI_CONTROL@int32_t@int32_t@uint32_t@uint32_t" displaystring="MoveSizeCommonRel Function">
       <target id="pdf">pdf://1387@sack-docodocs.pdf</target>
     </link>
     <link topicid="MoveSizeControl" displaystring="MoveSizeControl Macro">
@@ -2874,7 +2874,7 @@
     <link topicid="ParseXMLFrame" displaystring="ParseXMLFrame Macro">
       <target id="pdf">pdf://1980@sack-docodocs.pdf</target>
     </link>
-    <link topicid="ParseXMLFrameEx@POINTER@_32 size" displaystring="ParseXMLFrameEx Function">
+    <link topicid="ParseXMLFrameEx@POINTER@uint32_t size" displaystring="ParseXMLFrameEx Function">
       <target id="pdf">pdf://1542@sack-docodocs.pdf</target>
     </link>
     <link topicid="paste" displaystring="paste Macro">
@@ -2921,19 +2921,19 @@
     <link topicid="PFILEMON" displaystring="PFILEMON Type">
       <target id="html">../output/PFILEMON.html</target>
     </link>
-    <link topicid="PickFont@S_32@S_32@P_32@POINTER *@PSI_CONTROL" displaystring="PickFont Function">
+    <link topicid="PickFont@int32_t@int32_t@P_32@POINTER *@PSI_CONTROL" displaystring="PickFont Function">
       <target id="pdf">pdf://1280@sack-docodocs.pdf</target>
     </link>
-    <link topicid="PickFontFor@S_32@S_32@P_32@POINTER *@PSI_CONTROL@PSI_CONTROL" displaystring="PickFontFor Function">
+    <link topicid="PickFontFor@int32_t@int32_t@P_32@POINTER *@PSI_CONTROL@PSI_CONTROL" displaystring="PickFontFor Function">
       <target id="pdf">pdf://1543@sack-docodocs.pdf</target>
     </link>
-    <link topicid="PickFontWithUpdate@S_32@S_32@P_32@POINTER *@PCOMMON@void __cdecl *UpdateFont PTRSZVAL psv, Font font@PTRSZVAL" displaystring="PickFontWithUpdate Function">
+    <link topicid="PickFontWithUpdate@int32_t@int32_t@P_32@POINTER *@PCOMMON@void __cdecl *UpdateFont PTRSZVAL psv, Font font@PTRSZVAL" displaystring="PickFontWithUpdate Function">
       <target id="pdf">pdf://1544@sack-docodocs.pdf</target>
     </link>
     <link topicid="PickScaledFont" displaystring="PickScaledFont Macro">
       <target id="pdf">pdf://1984@sack-docodocs.pdf</target>
     </link>
-    <link topicid="PickScaledFontWithUpdate@S_32@S_32@PFRACTION@PFRACTION@P_32@POINTER *@PCOMMON@void __cdecl *UpdateFont PTRSZVAL psv, Font font@PTRSZVAL" displaystring="PickScaledFontWithUpdate Function">
+    <link topicid="PickScaledFontWithUpdate@int32_t@int32_t@PFRACTION@PFRACTION@P_32@POINTER *@PCOMMON@void __cdecl *UpdateFont PTRSZVAL psv, Font font@PTRSZVAL" displaystring="PickScaledFontWithUpdate Function">
       <target id="pdf">pdf://1545@sack-docodocs.pdf</target>
     </link>
     <link topicid="PLISTITEM" displaystring="PLISTITEM Type">
@@ -3076,7 +3076,7 @@
     <link topicid="PSI_OpenFile@CTEXTSTR@CTEXTSTR@TEXTSTR" displaystring="PSI_OpenFile Function">
       <target id="pdf">pdf://1346@sack-docodocs.pdf</target>
     </link>
-    <link topicid="PSI_PickFile@PSI_CONTROL@CTEXTSTR@CTEXTSTR@TEXTSTR@_32@int" displaystring="PSI_PickFile Function">
+    <link topicid="PSI_PickFile@PSI_CONTROL@CTEXTSTR@CTEXTSTR@TEXTSTR@uint32_t@int" displaystring="PSI_PickFile Function">
       <target id="pdf">pdf://1546@sack-docodocs.pdf</target>
     </link>
     <link topicid="PSI_PROC_PTR" displaystring="PSI_PROC_PTR Macro">
@@ -3141,7 +3141,7 @@
       <target id="html">../output/PSI_XML_NAMESPACE_END.html</target>
       <target id="pdf">pdf://2025@sack-docodocs.pdf</target>
     </link>
-    <link topicid="PSIMakeImageButton@PCOMMON@int@int@int@int@_32@Image@void __cdecl*PushMethodPTRSZVAL psv, PCONTROL pc@PTRSZVAL" displaystring="PSIMakeImageButton Function">
+    <link topicid="PSIMakeImageButton@PCOMMON@int@int@int@int@uint32_t@Image@void __cdecl*PushMethodPTRSZVAL psv, PCONTROL pc@PTRSZVAL" displaystring="PSIMakeImageButton Function">
       <target id="pdf">pdf://1547@sack-docodocs.pdf</target>
     </link>
     <link topicid="PSPRITE_METHOD" displaystring="PSPRITE_METHOD Macro">
@@ -3223,7 +3223,7 @@
       <target id="html">../output/Relinquish.html</target>
       <target id="pdf">pdf://2045@sack-docodocs.pdf</target>
     </link>
-    <link topicid="RemoveSheet@PSI_CONTROL@_32" displaystring="RemoveSheet Function">
+    <link topicid="RemoveSheet@PSI_CONTROL@uint32_t" displaystring="RemoveSheet Function">
       <target id="pdf">pdf://1552@sack-docodocs.pdf</target>
     </link>
     <link topicid="render.h" displaystring="render.h">
@@ -3729,8 +3729,8 @@
       <target id="html">../output/sack__containers__BinaryTree__CreateBinaryTreeEx.html</target>
       <target id="pdf">pdf://208@sack-docodocs.pdf</target>
     </link>
-    <link topicid="sack::containers::BinaryTree::CreateBinaryTreeExtended@_32@GenericCompare@GenericDestroy Destroy" displaystring="sack::containers::BinaryTree::CreateBinaryTreeExtended Function">
-      <target id="html">../output/sack__containers__BinaryTree__CreateBinaryTreeExtended@_32@GenericCompare@GenericDestroy_Destroy.html</target>
+    <link topicid="sack::containers::BinaryTree::CreateBinaryTreeExtended@uint32_t@GenericCompare@GenericDestroy Destroy" displaystring="sack::containers::BinaryTree::CreateBinaryTreeExtended Function">
+      <target id="html">../output/sack__containers__BinaryTree__CreateBinaryTreeExtended@uint32_t@GenericCompare@GenericDestroy_Destroy.html</target>
       <target id="pdf">pdf://185@sack-docodocs.pdf</target>
     </link>
     <link topicid="sack::containers::BinaryTree::CreateBinaryTreeExx" displaystring="sack::containers::BinaryTree::CreateBinaryTreeExx Macro">
@@ -4260,7 +4260,7 @@
       <target id="html">../output/sack__containers__message__DequeMsg.html</target>
       <target id="pdf">pdf://312@sack-docodocs.pdf</target>
     </link>
-    <link topicid="sack::containers::message::DequeMsgEx@PMSGHANDLE@_32 *@POINTER@PTRSZVAL@_32 options" displaystring="sack::containers::message::DequeMsgEx Function">
+    <link topicid="sack::containers::message::DequeMsgEx@PMSGHANDLE@uint32_t *@POINTER@PTRSZVAL@uint32_t options" displaystring="sack::containers::message::DequeMsgEx Function">
       <target id="html">../output/sack__containers__message__DequeMsgEx@PMSGHANDLE@_32__@POINTER@PTRSZVAL@_32_options.html</target>
       <target id="pdf">pdf://306@sack-docodocs.pdf</target>
     </link>
@@ -4268,7 +4268,7 @@
       <target id="html">../output/sack__containers__message__EnqueMsg.html</target>
       <target id="pdf">pdf://313@sack-docodocs.pdf</target>
     </link>
-    <link topicid="sack::containers::message::EnqueMsgEx@PMSGHANDLE@POINTER@PTRSZVAL@_32 options" displaystring="sack::containers::message::EnqueMsgEx Function">
+    <link topicid="sack::containers::message::EnqueMsgEx@PMSGHANDLE@POINTER@PTRSZVAL@uint32_t options" displaystring="sack::containers::message::EnqueMsgEx Function">
       <target id="html">../output/sack__containers__message__EnqueMsgEx@PMSGHANDLE@POINTER@PTRSZVAL@_32_options.html</target>
       <target id="pdf">pdf://307@sack-docodocs.pdf</target>
     </link>
@@ -4308,8 +4308,8 @@
       <target id="html">../output/sack__containers__message__PeekMsg.html</target>
       <target id="pdf">pdf://321@sack-docodocs.pdf</target>
     </link>
-    <link topicid="sack::containers::message::PeekMsgEx@PMSGHANDLE@_32@POINTER@PTRSZVAL@_32 options" displaystring="sack::containers::message::PeekMsgEx Function">
-      <target id="html">../output/sack__containers__message__PeekMsgEx@PMSGHANDLE@_32@POINTER@PTRSZVAL@_32_options.html</target>
+    <link topicid="sack::containers::message::PeekMsgEx@PMSGHANDLE@uint32_t@POINTER@PTRSZVAL@uint32_t options" displaystring="sack::containers::message::PeekMsgEx Function">
+      <target id="html">../output/sack__containers__message__PeekMsgEx@PMSGHANDLE@uint32_t@POINTER@PTRSZVAL@_32_options.html</target>
       <target id="pdf">pdf://309@sack-docodocs.pdf</target>
     </link>
     <link topicid="sack::containers::message::PMSGHANDLE" displaystring="sack::containers::message::PMSGHANDLE Type">
@@ -4914,7 +4914,7 @@
       <target id="html">../output/sack__containers__text__LineLengthEx.html</target>
       <target id="pdf">pdf://482@sack-docodocs.pdf</target>
     </link>
-    <link topicid="sack::containers::text::LineLengthExEx@PTEXT@_32@INDEX@PTEXT" displaystring="sack::containers::text::LineLengthExEx Function">
+    <link topicid="sack::containers::text::LineLengthExEx@PTEXT@uint32_t@INDEX@PTEXT" displaystring="sack::containers::text::LineLengthExEx Function">
       <target id="pdf">pdf://415@sack-docodocs.pdf</target>
     </link>
     <link topicid="sack::containers::text::LineLengthExEx@PTEXT@LOGICAL@int@PTEXT" displaystring="sack::containers::text::LineLengthExEx Function">
@@ -4924,7 +4924,7 @@
       <target id="html">../output/sack__containers__text__LineLengthExx.html</target>
       <target id="pdf">pdf://483@sack-docodocs.pdf</target>
     </link>
-    <link topicid="sack::containers::text::LineLengthExx@PTEXT@_32@PTEXT" displaystring="sack::containers::text::LineLengthExx Function">
+    <link topicid="sack::containers::text::LineLengthExx@PTEXT@uint32_t@PTEXT" displaystring="sack::containers::text::LineLengthExx Function">
       <target id="pdf">pdf://416@sack-docodocs.pdf</target>
     </link>
     <link topicid="sack::containers::text::LineLengthExx@PTEXT@LOGICAL@PTEXT" displaystring="sack::containers::text::LineLengthExx Function">
@@ -4969,8 +4969,8 @@
       <target id="html">../output/sack__containers__text__RecallUserInput@PUSER_INPUT_BUFFER@int.html</target>
       <target id="pdf">pdf://418@sack-docodocs.pdf</target>
     </link>
-    <link topicid="sack::containers::text::RegisterTextExtension@_32@PTEXT__cdecl*PTRSZVAL,POINTER@PTRSZVAL" displaystring="sack::containers::text::RegisterTextExtension Function">
-      <target id="html">../output/sack__containers__text__RegisterTextExtension@_32@PTEXT__cdecl_PTRSZVAL,POINTER@PTRSZVAL.html</target>
+    <link topicid="sack::containers::text::RegisterTextExtension@uint32_t@PTEXT__cdecl*PTRSZVAL,POINTER@PTRSZVAL" displaystring="sack::containers::text::RegisterTextExtension Function">
+      <target id="html">../output/sack__containers__text__RegisterTextExtension@uint32_t@PTEXT__cdecl_PTRSZVAL,POINTER@PTRSZVAL.html</target>
       <target id="pdf">pdf://419@sack-docodocs.pdf</target>
     </link>
     <link topicid="sack::containers::text::SameText@PTEXT@PTEXT" displaystring="sack::containers::text::SameText Function">
@@ -4988,17 +4988,17 @@
     <link topicid="sack::containers::text::SegConcat" displaystring="sack::containers::text::SegConcat Macro">
       <target id="pdf">pdf://487@sack-docodocs.pdf</target>
     </link>
-    <link topicid="sack::containers::text::SegConcatEx@PTEXT@PTEXT@S_32@S_32 length" displaystring="sack::containers::text::SegConcatEx Function">
+    <link topicid="sack::containers::text::SegConcatEx@PTEXT@PTEXT@int32_t@int32_t length" displaystring="sack::containers::text::SegConcatEx Function">
       <target id="pdf">pdf://425@sack-docodocs.pdf</target>
     </link>
-    <link topicid="sack::containers::text::SegConcatEx@PTEXT@PTEXT@S_32@size_t length" displaystring="sack::containers::text::SegConcatEx Function">
-      <target id="html">../output/sack__containers__text__SegConcatEx@PTEXT@PTEXT@S_32@size_t_length.html</target>
+    <link topicid="sack::containers::text::SegConcatEx@PTEXT@PTEXT@int32_t@size_t length" displaystring="sack::containers::text::SegConcatEx Function">
+      <target id="html">../output/sack__containers__text__SegConcatEx@PTEXT@PTEXT@int32_t@size_t_length.html</target>
     </link>
     <link topicid="sack::containers::text::SegCreate" displaystring="sack::containers::text::SegCreate Macro">
       <target id="html">../output/sack__containers__text__SegCreate.html</target>
       <target id="pdf">pdf://488@sack-docodocs.pdf</target>
     </link>
-    <link topicid="sack::containers::text::SegCreateEx@S_32 nSize" displaystring="sack::containers::text::SegCreateEx Function">
+    <link topicid="sack::containers::text::SegCreateEx@int32_t nSize" displaystring="sack::containers::text::SegCreateEx Function">
       <target id="pdf">pdf://426@sack-docodocs.pdf</target>
     </link>
     <link topicid="sack::containers::text::SegCreateEx@size_t nSize" displaystring="sack::containers::text::SegCreateEx Function">
@@ -5291,8 +5291,8 @@
       <target id="html">../output/sack__containers__text__VarTextCreateEx@DBG_VOIDPASS.html</target>
       <target id="pdf">pdf://452@sack-docodocs.pdf</target>
     </link>
-    <link topicid="sack::containers::text::VarTextCreateExEx@_32@_32 expand" displaystring="sack::containers::text::VarTextCreateExEx Function">
-      <target id="html">../output/sack__containers__text__VarTextCreateExEx@_32@_32_expand.html</target>
+    <link topicid="sack::containers::text::VarTextCreateExEx@uint32_t@uint32_t expand" displaystring="sack::containers::text::VarTextCreateExEx Function">
+      <target id="html">../output/sack__containers__text__VarTextCreateExEx@uint32_t@_32_expand.html</target>
       <target id="pdf">pdf://453@sack-docodocs.pdf</target>
     </link>
     <link topicid="sack::containers::text::VarTextCreateExx" displaystring="sack::containers::text::VarTextCreateExx Macro">
@@ -6080,12 +6080,12 @@
       <target id="html">../output/sack__image__BASE_COLOR_YELLOW.html</target>
       <target id="pdf">pdf://700@sack-docodocs.pdf</target>
     </link>
-    <link topicid="sack::image::BlatColor@Image@S_32@S_32@_32@_32@CDATA" displaystring="sack::image::BlatColor Function">
-      <target id="html">../output/sack__image__BlatColor@Image@S_32@S_32@_32@_32@CDATA.html</target>
+    <link topicid="sack::image::BlatColor@Image@int32_t@int32_t@uint32_t@uint32_t@CDATA" displaystring="sack::image::BlatColor Function">
+      <target id="html">../output/sack__image__BlatColor@Image@int32_t@int32_t@uint32_t@uint32_t@CDATA.html</target>
       <target id="pdf">pdf://611@sack-docodocs.pdf</target>
     </link>
-    <link topicid="sack::image::BlatColorAlpha@Image@S_32@S_32@_32@_32@CDATA" displaystring="sack::image::BlatColorAlpha Function">
-      <target id="html">../output/sack__image__BlatColorAlpha@Image@S_32@S_32@_32@_32@CDATA.html</target>
+    <link topicid="sack::image::BlatColorAlpha@Image@int32_t@int32_t@uint32_t@uint32_t@CDATA" displaystring="sack::image::BlatColorAlpha Function">
+      <target id="html">../output/sack__image__BlatColorAlpha@Image@int32_t@int32_t@uint32_t@uint32_t@CDATA.html</target>
       <target id="pdf">pdf://612@sack-docodocs.pdf</target>
     </link>
     <link topicid="sack::image::blot_methods" displaystring="sack::image::blot_methods Enumeration">
@@ -6100,8 +6100,8 @@
       <target id="html">../output/sack__image__BlotImageAlpha.html</target>
       <target id="pdf">pdf://702@sack-docodocs.pdf</target>
     </link>
-    <link topicid="sack::image::BlotImageEx@Image@Image@S_32@S_32@_32@_32@..." displaystring="sack::image::BlotImageEx Function">
-      <target id="html">../output/sack__image__BlotImageEx@Image@Image@S_32@S_32@_32@_32@___.html</target>
+    <link topicid="sack::image::BlotImageEx@Image@Image@int32_t@int32_t@uint32_t@uint32_t@..." displaystring="sack::image::BlotImageEx Function">
+      <target id="html">../output/sack__image__BlotImageEx@Image@Image@int32_t@int32_t@uint32_t@uint32_t@___.html</target>
       <target id="pdf">pdf://613@sack-docodocs.pdf</target>
     </link>
     <link topicid="sack::image::BlotImageMultiShaded" displaystring="sack::image::BlotImageMultiShaded Macro">
@@ -6116,16 +6116,16 @@
       <target id="html">../output/sack__image__BlotImageShaded.html</target>
       <target id="pdf">pdf://705@sack-docodocs.pdf</target>
     </link>
-    <link topicid="sack::image::BlotImageSizedEx@Image@Image@S_32@S_32@S_32@S_32@_32@_32@_32@_32@..." displaystring="sack::image::BlotImageSizedEx Function">
-      <target id="html">../output/sack__image__BlotImageSizedEx@Image@Image@S_32@S_32@S_32@S_32@_32@_32@_32@_32@___.html</target>
+    <link topicid="sack::image::BlotImageSizedEx@Image@Image@int32_t@int32_t@int32_t@int32_t@uint32_t@uint32_t@uint32_t@uint32_t@..." displaystring="sack::image::BlotImageSizedEx Function">
+      <target id="html">../output/sack__image__BlotImageSizedEx@Image@Image@int32_t@int32_t@int32_t@int32_t@uint32_t@uint32_t@uint32_t@uint32_t@___.html</target>
       <target id="pdf">pdf://614@sack-docodocs.pdf</target>
     </link>
     <link topicid="sack::image::BlotOperation" displaystring="sack::image::BlotOperation Enumeration">
       <target id="html">../output/sack__image__BlotOperation.html</target>
       <target id="pdf">pdf://733@sack-docodocs.pdf</target>
     </link>
-    <link topicid="sack::image::BlotScaledImageSizedEx@Image@Image@S_32@S_32@_32@_32@S_32@S_32@_32@_32@_32@_32@..." displaystring="sack::image::BlotScaledImageSizedEx Function">
-      <target id="html">../output/sack__image__BlotScaledImageSizedEx@Image@Image@S_32@S_32@_32@_32@S_32@S_32@_32@_32@_32@_32@___.html</target>
+    <link topicid="sack::image::BlotScaledImageSizedEx@Image@Image@int32_t@int32_t@uint32_t@uint32_t@int32_t@int32_t@uint32_t@uint32_t@uint32_t@uint32_t@..." displaystring="sack::image::BlotScaledImageSizedEx Function">
+      <target id="html">../output/sack__image__BlotScaledImageSizedEx@Image@Image@int32_t@int32_t@uint32_t@uint32_t@int32_t@int32_t@uint32_t@uint32_t@uint32_t@uint32_t@___.html</target>
       <target id="pdf">pdf://615@sack-docodocs.pdf</target>
     </link>
     <link topicid="sack::image::BlotSprite@Image@PSPRITE" displaystring="sack::image::BlotSprite Function">
@@ -6140,8 +6140,8 @@
       <target id="html">../output/sack__image__boundry_rectangle_tag.html</target>
       <target id="pdf">pdf://734@sack-docodocs.pdf</target>
     </link>
-    <link topicid="sack::image::BuildImageFileEx@PCOLOR@_32@_32 height" displaystring="sack::image::BuildImageFileEx Function">
-      <target id="html">../output/sack__image__BuildImageFileEx@PCOLOR@_32@_32_height.html</target>
+    <link topicid="sack::image::BuildImageFileEx@PCOLOR@uint32_t@uint32_t height" displaystring="sack::image::BuildImageFileEx Function">
+      <target id="html">../output/sack__image__BuildImageFileEx@PCOLOR@uint32_t@_32_height.html</target>
       <target id="pdf">pdf://617@sack-docodocs.pdf</target>
     </link>
     <link topicid="sack::image::CDATA" displaystring="sack::image::CDATA Type">
@@ -6175,8 +6175,8 @@
       <target id="html">../output/sack__image__DataState.html</target>
       <target id="pdf">pdf://750@sack-docodocs.pdf</target>
     </link>
-    <link topicid="sack::image::DecodeMemoryToImage@P_8@_32" displaystring="sack::image::DecodeMemoryToImage Function">
-      <target id="html">../output/sack__image__DecodeMemoryToImage@P_8@_32.html</target>
+    <link topicid="sack::image::DecodeMemoryToImage@P_8@uint32_t" displaystring="sack::image::DecodeMemoryToImage Function">
+      <target id="html">../output/sack__image__DecodeMemoryToImage@P_8@uint32_t.html</target>
     </link>
     <link topicid="sack::image::DestroyFont@Font *" displaystring="sack::image::DestroyFont Function">
       <target id="html">../output/sack__image__DestroyFont@Font__.html</target>
@@ -6286,7 +6286,7 @@
       <target id="html">../output/sack__image__GetFontHeight@Font.html</target>
       <target id="pdf">pdf://626@sack-docodocs.pdf</target>
     </link>
-    <link topicid="sack::image::GetFontRenderData@Font@POINTER *@_32 *" displaystring="sack::image::GetFontRenderData Function">
+    <link topicid="sack::image::GetFontRenderData@Font@POINTER *@uint32_t *" displaystring="sack::image::GetFontRenderData Function">
       <target id="pdf">pdf://627@sack-docodocs.pdf</target>
     </link>
     <link topicid="sack::image::GetFontRenderData@Font@POINTER *@size_t *" displaystring="sack::image::GetFontRenderData Function">
@@ -6306,7 +6306,7 @@
     <link topicid="sack::image::GetImageInterface" displaystring="sack::image::GetImageInterface Function">
       <target id="pdf">pdf://630@sack-docodocs.pdf</target>
     </link>
-    <link topicid="sack::image::GetImageSize@Image@_32 *@_32 *" displaystring="sack::image::GetImageSize Function">
+    <link topicid="sack::image::GetImageSize@Image@uint32_t *@uint32_t *" displaystring="sack::image::GetImageSize Function">
       <target id="html">../output/sack__image__GetImageSize@Image@_32__@_32__.html</target>
       <target id="pdf">pdf://632@sack-docodocs.pdf</target>
     </link>
@@ -6317,8 +6317,8 @@
     <link topicid="sack::image::GetImageTransformation@Image" displaystring="sack::image::GetImageTransformation Function">
       <target id="html">../output/sack__image__GetImageTransformation@Image.html</target>
     </link>
-    <link topicid="sack::image::GetMaxStringLengthFont@_32@Font" displaystring="sack::image::GetMaxStringLengthFont Function">
-      <target id="html">../output/sack__image__GetMaxStringLengthFont@_32@Font.html</target>
+    <link topicid="sack::image::GetMaxStringLengthFont@uint32_t@Font" displaystring="sack::image::GetMaxStringLengthFont Function">
+      <target id="html">../output/sack__image__GetMaxStringLengthFont@uint32_t@Font.html</target>
       <target id="pdf">pdf://634@sack-docodocs.pdf</target>
     </link>
     <link topicid="sack::image::getpixel" displaystring="sack::image::getpixel Variable">
@@ -6328,7 +6328,7 @@
     <link topicid="sack::image::GetRedValue@CDATA" displaystring="sack::image::GetRedValue Function">
       <target id="html">../output/sack__image__GetRedValue@CDATA.html</target>
     </link>
-    <link topicid="sack::image::GetStringRenderSizeFontEx@CTEXTSTR@_32@_32 *@_32 *@_32 *@Font" displaystring="sack::image::GetStringRenderSizeFontEx Function">
+    <link topicid="sack::image::GetStringRenderSizeFontEx@CTEXTSTR@uint32_t@uint32_t *@uint32_t *@uint32_t *@Font" displaystring="sack::image::GetStringRenderSizeFontEx Function">
       <target id="pdf">pdf://636@sack-docodocs.pdf</target>
     </link>
     <link topicid="sack::image::GetStringSizeEx" displaystring="sack::image::GetStringSizeEx Macro">
@@ -6338,10 +6338,10 @@
     <link topicid="sack::image::GetStringSizeFont" displaystring="sack::image::GetStringSizeFont Macro">
       <target id="html">../output/sack__image__GetStringSizeFont.html</target>
     </link>
-    <link topicid="sack::image::GetStringSizeFontEx@CTEXTSTR@_32@_32 *@_32 *@Font" displaystring="sack::image::GetStringSizeFontEx Function">
+    <link topicid="sack::image::GetStringSizeFontEx@CTEXTSTR@uint32_t@uint32_t *@uint32_t *@Font" displaystring="sack::image::GetStringSizeFontEx Function">
       <target id="pdf">pdf://637@sack-docodocs.pdf</target>
     </link>
-    <link topicid="sack::image::GetStringSizeFontEx@CTEXTSTR@size_t@_32 *@_32 *@Font" displaystring="sack::image::GetStringSizeFontEx Function">
+    <link topicid="sack::image::GetStringSizeFontEx@CTEXTSTR@size_t@uint32_t *@uint32_t *@Font" displaystring="sack::image::GetStringSizeFontEx Function">
       <target id="html">../output/sack__image__GetStringSizeFontEx@CTEXTSTR@size_t@_32__@_32__@Font.html</target>
     </link>
     <link topicid="sack::image::GLColor" displaystring="sack::image::GLColor Macro">
@@ -6403,13 +6403,13 @@
     <link topicid="sack::image::image_interface_tag::DIMAGE_PROC_PTR@void@plotalpha" displaystring="image_interface_tag::DIMAGE_PROC_PTR Method (void, plotalpha)">
       <target id="pdf">pdf://1020@sack-docodocs.pdf</target>
     </link>
-    <link topicid="sack::image::image_interface_tag::IMAGE_PROC_PTR@_32@GetFontHeight" displaystring="image_interface_tag::IMAGE_PROC_PTR Method (_32, GetFontHeight)">
+    <link topicid="sack::image::image_interface_tag::IMAGE_PROC_PTR@uint32_t@GetFontHeight" displaystring="image_interface_tag::IMAGE_PROC_PTR Method (uint32_t, GetFontHeight)">
       <target id="pdf">pdf://1039@sack-docodocs.pdf</target>
     </link>
-    <link topicid="sack::image::image_interface_tag::IMAGE_PROC_PTR@_32@GetMaxStringLengthFont" displaystring="image_interface_tag::IMAGE_PROC_PTR Method (_32, GetMaxStringLengthFont)">
+    <link topicid="sack::image::image_interface_tag::IMAGE_PROC_PTR@uint32_t@GetMaxStringLengthFont" displaystring="image_interface_tag::IMAGE_PROC_PTR Method (uint32_t, GetMaxStringLengthFont)">
       <target id="pdf">pdf://1040@sack-docodocs.pdf</target>
     </link>
-    <link topicid="sack::image::image_interface_tag::IMAGE_PROC_PTR@_32@GetStringSizeFontEx" displaystring="image_interface_tag::IMAGE_PROC_PTR Method (_32, GetStringSizeFontEx)">
+    <link topicid="sack::image::image_interface_tag::IMAGE_PROC_PTR@uint32_t@GetStringSizeFontEx" displaystring="image_interface_tag::IMAGE_PROC_PTR Method (uint32_t, GetStringSizeFontEx)">
       <target id="pdf">pdf://1041@sack-docodocs.pdf</target>
     </link>
     <link topicid="sack::image::image_interface_tag::IMAGE_PROC_PTR@DataState@BeginTransferData" displaystring="image_interface_tag::IMAGE_PROC_PTR Method (DataState, BeginTransferData)">
@@ -6619,8 +6619,8 @@
       <target id="html">../output/sack__image__ImageFlags.html</target>
       <target id="pdf">pdf://743@sack-docodocs.pdf</target>
     </link>
-    <link topicid="sack::image::ImageRawBMPFile@_8*@_32" displaystring="sack::image::ImageRawBMPFile Function">
-      <target id="html">../output/sack__image__ImageRawBMPFile@_8_@_32.html</target>
+    <link topicid="sack::image::ImageRawBMPFile@_8*@uint32_t" displaystring="sack::image::ImageRawBMPFile Function">
+      <target id="html">../output/sack__image__ImageRawBMPFile@_8_@uint32_t.html</target>
       <target id="pdf">pdf://638@sack-docodocs.pdf</target>
     </link>
     <link topicid="sack::image::IMG_ADDRESS" displaystring="sack::image::IMG_ADDRESS Macro">
@@ -6786,17 +6786,17 @@
     <link topicid="sack::image::interface::PROC_ALIAS" displaystring="sack::image::interface::PROC_ALIAS Macro">
       <target id="html">../output/sack__image__interface__PROC_ALIAS.html</target>
     </link>
-    <link topicid="sack::image::InternalRenderFont@_32@_32@_32@S_16@S_16@_32" displaystring="sack::image::InternalRenderFont Function">
+    <link topicid="sack::image::InternalRenderFont@uint32_t@uint32_t@uint32_t@S_16@S_16@uint32_t" displaystring="sack::image::InternalRenderFont Function">
       <target id="pdf">pdf://639@sack-docodocs.pdf</target>
     </link>
-    <link topicid="sack::image::InternalRenderFont@_32@_32@_32@S_32@S_32@_32" displaystring="sack::image::InternalRenderFont Function">
-      <target id="html">../output/sack__image__InternalRenderFont@_32@_32@_32@S_32@S_32@_32.html</target>
+    <link topicid="sack::image::InternalRenderFont@uint32_t@uint32_t@uint32_t@int32_t@int32_t@uint32_t" displaystring="sack::image::InternalRenderFont Function">
+      <target id="html">../output/sack__image__InternalRenderFont@uint32_t@uint32_t@uint32_t@int32_t@int32_t@uint32_t.html</target>
     </link>
-    <link topicid="sack::image::InternalRenderFontFile@CTEXTSTR@S_16@S_16@_32" displaystring="sack::image::InternalRenderFontFile Function">
+    <link topicid="sack::image::InternalRenderFontFile@CTEXTSTR@S_16@S_16@uint32_t" displaystring="sack::image::InternalRenderFontFile Function">
       <target id="pdf">pdf://640@sack-docodocs.pdf</target>
     </link>
-    <link topicid="sack::image::InternalRenderFontFile@CTEXTSTR@S_32@S_32@_32" displaystring="sack::image::InternalRenderFontFile Function">
-      <target id="html">../output/sack__image__InternalRenderFontFile@CTEXTSTR@S_32@S_32@_32.html</target>
+    <link topicid="sack::image::InternalRenderFontFile@CTEXTSTR@int32_t@int32_t@uint32_t" displaystring="sack::image::InternalRenderFontFile Function">
+      <target id="html">../output/sack__image__InternalRenderFontFile@CTEXTSTR@int32_t@int32_t@uint32_t.html</target>
     </link>
     <link topicid="sack::image::IntersectRectangle@IMAGE_RECTANGLE *@IMAGE_RECTANGLE *@IMAGE_RECTANGLE *" displaystring="sack::image::IntersectRectangle Function">
       <target id="html">../output/sack__image__IntersectRectangle@IMAGE_RECTANGLE__@IMAGE_RECTANGLE__@IMAGE_RECTANGLE__.html</target>
@@ -6838,8 +6838,8 @@
     <link topicid="sack::image::MakeColor@COLOR_CHANNEL@COLOR_CHANNEL@COLOR_CHANNEL" displaystring="sack::image::MakeColor Function">
       <target id="html">../output/sack__image__MakeColor@COLOR_CHANNEL@COLOR_CHANNEL@COLOR_CHANNEL.html</target>
     </link>
-    <link topicid="sack::image::MakeImageFileEx@_32@_32 Height" displaystring="sack::image::MakeImageFileEx Function">
-      <target id="html">../output/sack__image__MakeImageFileEx@_32@_32_Height.html</target>
+    <link topicid="sack::image::MakeImageFileEx@uint32_t@uint32_t Height" displaystring="sack::image::MakeImageFileEx Function">
+      <target id="html">../output/sack__image__MakeImageFileEx@uint32_t@_32_Height.html</target>
       <target id="pdf">pdf://645@sack-docodocs.pdf</target>
     </link>
     <link topicid="sack::image::MakeSpriteImage" displaystring="sack::image::MakeSpriteImage Macro">
@@ -6853,16 +6853,16 @@
       <target id="html">../output/sack__image__MakeSpriteImageFileEx@CTEXTSTR_fname.html</target>
       <target id="pdf">pdf://647@sack-docodocs.pdf</target>
     </link>
-    <link topicid="sack::image::MakeSubImageEx@Image@S_32@S_32@_32@_32 height" displaystring="sack::image::MakeSubImageEx Function">
-      <target id="html">../output/sack__image__MakeSubImageEx@Image@S_32@S_32@_32@_32_height.html</target>
+    <link topicid="sack::image::MakeSubImageEx@Image@int32_t@int32_t@uint32_t@uint32_t height" displaystring="sack::image::MakeSubImageEx Function">
+      <target id="html">../output/sack__image__MakeSubImageEx@Image@int32_t@int32_t@uint32_t@_32_height.html</target>
       <target id="pdf">pdf://648@sack-docodocs.pdf</target>
     </link>
     <link topicid="sack::image::MergeRectangle@IMAGE_RECTANGLE *@IMAGE_RECTANGLE *@IMAGE_RECTANGLE *" displaystring="sack::image::MergeRectangle Function">
       <target id="html">../output/sack__image__MergeRectangle@IMAGE_RECTANGLE__@IMAGE_RECTANGLE__@IMAGE_RECTANGLE__.html</target>
       <target id="pdf">pdf://649@sack-docodocs.pdf</target>
     </link>
-    <link topicid="sack::image::MoveImage@Image@S_32@S_32" displaystring="sack::image::MoveImage Function">
-      <target id="html">../output/sack__image__MoveImage@Image@S_32@S_32.html</target>
+    <link topicid="sack::image::MoveImage@Image@int32_t@int32_t" displaystring="sack::image::MoveImage Function">
+      <target id="html">../output/sack__image__MoveImage@Image@int32_t@int32_t.html</target>
       <target id="pdf">pdf://650@sack-docodocs.pdf</target>
     </link>
     <link topicid="sack::image::OpenFontFile@CTEXTSTR@POINTER *@FT_Face *@int" displaystring="sack::image::OpenFontFile Function">
@@ -6943,19 +6943,19 @@
     <link topicid="sack::image::PutCharacter" displaystring="sack::image::PutCharacter Macro">
       <target id="html">../output/sack__image__PutCharacter.html</target>
     </link>
-    <link topicid="sack::image::PutCharacterFont@Image@S_32@S_32@CDATA@CDATA@_32@Font" displaystring="sack::image::PutCharacterFont Function">
-      <target id="html">../output/sack__image__PutCharacterFont@Image@S_32@S_32@CDATA@CDATA@_32@Font.html</target>
+    <link topicid="sack::image::PutCharacterFont@Image@int32_t@int32_t@CDATA@CDATA@uint32_t@Font" displaystring="sack::image::PutCharacterFont Function">
+      <target id="html">../output/sack__image__PutCharacterFont@Image@int32_t@int32_t@CDATA@CDATA@uint32_t@Font.html</target>
     </link>
-    <link topicid="sack::image::PutCharacterFont@Image@S_32@S_32@CDATA@CDATA@TEXTCHAR@Font" displaystring="sack::image::PutCharacterFont Function">
+    <link topicid="sack::image::PutCharacterFont@Image@int32_t@int32_t@CDATA@CDATA@TEXTCHAR@Font" displaystring="sack::image::PutCharacterFont Function">
       <target id="pdf">pdf://652@sack-docodocs.pdf</target>
     </link>
     <link topicid="sack::image::PutCharacterInvert" displaystring="sack::image::PutCharacterInvert Macro">
       <target id="html">../output/sack__image__PutCharacterInvert.html</target>
     </link>
-    <link topicid="sack::image::PutCharacterInvertFont@Image@S_32@S_32@CDATA@CDATA@_32@Font" displaystring="sack::image::PutCharacterInvertFont Function">
-      <target id="html">../output/sack__image__PutCharacterInvertFont@Image@S_32@S_32@CDATA@CDATA@_32@Font.html</target>
+    <link topicid="sack::image::PutCharacterInvertFont@Image@int32_t@int32_t@CDATA@CDATA@uint32_t@Font" displaystring="sack::image::PutCharacterInvertFont Function">
+      <target id="html">../output/sack__image__PutCharacterInvertFont@Image@int32_t@int32_t@CDATA@CDATA@uint32_t@Font.html</target>
     </link>
-    <link topicid="sack::image::PutCharacterInvertFont@Image@S_32@S_32@CDATA@CDATA@TEXTCHAR@Font" displaystring="sack::image::PutCharacterInvertFont Function">
+    <link topicid="sack::image::PutCharacterInvertFont@Image@int32_t@int32_t@CDATA@CDATA@TEXTCHAR@Font" displaystring="sack::image::PutCharacterInvertFont Function">
       <target id="pdf">pdf://653@sack-docodocs.pdf</target>
     </link>
     <link topicid="sack::image::PutCharacterInvertVertical" displaystring="sack::image::PutCharacterInvertVertical Macro">
@@ -6967,16 +6967,16 @@
     <link topicid="sack::image::PutCharacterVertical" displaystring="sack::image::PutCharacterVertical Macro">
       <target id="html">../output/sack__image__PutCharacterVertical.html</target>
     </link>
-    <link topicid="sack::image::PutCharacterVerticalFont@Image@S_32@S_32@CDATA@CDATA@_32@Font" displaystring="sack::image::PutCharacterVerticalFont Function">
-      <target id="html">../output/sack__image__PutCharacterVerticalFont@Image@S_32@S_32@CDATA@CDATA@_32@Font.html</target>
+    <link topicid="sack::image::PutCharacterVerticalFont@Image@int32_t@int32_t@CDATA@CDATA@uint32_t@Font" displaystring="sack::image::PutCharacterVerticalFont Function">
+      <target id="html">../output/sack__image__PutCharacterVerticalFont@Image@int32_t@int32_t@CDATA@CDATA@uint32_t@Font.html</target>
     </link>
-    <link topicid="sack::image::PutCharacterVerticalFont@Image@S_32@S_32@CDATA@CDATA@TEXTCHAR@Font" displaystring="sack::image::PutCharacterVerticalFont Function">
+    <link topicid="sack::image::PutCharacterVerticalFont@Image@int32_t@int32_t@CDATA@CDATA@TEXTCHAR@Font" displaystring="sack::image::PutCharacterVerticalFont Function">
       <target id="pdf">pdf://654@sack-docodocs.pdf</target>
     </link>
-    <link topicid="sack::image::PutCharacterVerticalInvertFont@Image@S_32@S_32@CDATA@CDATA@_32@Font" displaystring="sack::image::PutCharacterVerticalInvertFont Function">
-      <target id="html">../output/sack__image__PutCharacterVerticalInvertFont@Image@S_32@S_32@CDATA@CDATA@_32@Font.html</target>
+    <link topicid="sack::image::PutCharacterVerticalInvertFont@Image@int32_t@int32_t@CDATA@CDATA@uint32_t@Font" displaystring="sack::image::PutCharacterVerticalInvertFont Function">
+      <target id="html">../output/sack__image__PutCharacterVerticalInvertFont@Image@int32_t@int32_t@CDATA@CDATA@uint32_t@Font.html</target>
     </link>
-    <link topicid="sack::image::PutCharacterVerticalInvertFont@Image@S_32@S_32@CDATA@CDATA@TEXTCHAR@Font" displaystring="sack::image::PutCharacterVerticalInvertFont Function">
+    <link topicid="sack::image::PutCharacterVerticalInvertFont@Image@int32_t@int32_t@CDATA@CDATA@TEXTCHAR@Font" displaystring="sack::image::PutCharacterVerticalInvertFont Function">
       <target id="pdf">pdf://655@sack-docodocs.pdf</target>
     </link>
     <link topicid="sack::image::PutString" displaystring="sack::image::PutString Macro">
@@ -6988,11 +6988,11 @@
     <link topicid="sack::image::PutStringFont" displaystring="sack::image::PutStringFont Macro">
       <target id="html">../output/sack__image__PutStringFont.html</target>
     </link>
-    <link topicid="sack::image::PutStringFontEx@Image@S_32@S_32@CDATA@CDATA@CTEXTSTR@_32@Font" displaystring="sack::image::PutStringFontEx Function">
+    <link topicid="sack::image::PutStringFontEx@Image@int32_t@int32_t@CDATA@CDATA@CTEXTSTR@uint32_t@Font" displaystring="sack::image::PutStringFontEx Function">
       <target id="pdf">pdf://656@sack-docodocs.pdf</target>
     </link>
-    <link topicid="sack::image::PutStringFontEx@Image@S_32@S_32@CDATA@CDATA@CTEXTSTR@size_t@Font" displaystring="sack::image::PutStringFontEx Function">
-      <target id="html">../output/sack__image__PutStringFontEx@Image@S_32@S_32@CDATA@CDATA@CTEXTSTR@size_t@Font.html</target>
+    <link topicid="sack::image::PutStringFontEx@Image@int32_t@int32_t@CDATA@CDATA@CTEXTSTR@size_t@Font" displaystring="sack::image::PutStringFontEx Function">
+      <target id="html">../output/sack__image__PutStringFontEx@Image@int32_t@int32_t@CDATA@CDATA@CTEXTSTR@size_t@Font.html</target>
     </link>
     <link topicid="sack::image::PutStringInvert" displaystring="sack::image::PutStringInvert Macro">
       <target id="html">../output/sack__image__PutStringInvert.html</target>
@@ -7003,11 +7003,11 @@
     <link topicid="sack::image::PutStringInvertFont" displaystring="sack::image::PutStringInvertFont Macro">
       <target id="html">../output/sack__image__PutStringInvertFont.html</target>
     </link>
-    <link topicid="sack::image::PutStringInvertFontEx@Image@S_32@S_32@CDATA@CDATA@CTEXTSTR@_32@Font" displaystring="sack::image::PutStringInvertFontEx Function">
+    <link topicid="sack::image::PutStringInvertFontEx@Image@int32_t@int32_t@CDATA@CDATA@CTEXTSTR@uint32_t@Font" displaystring="sack::image::PutStringInvertFontEx Function">
       <target id="pdf">pdf://657@sack-docodocs.pdf</target>
     </link>
-    <link topicid="sack::image::PutStringInvertFontEx@Image@S_32@S_32@CDATA@CDATA@CTEXTSTR@size_t@Font" displaystring="sack::image::PutStringInvertFontEx Function">
-      <target id="html">../output/sack__image__PutStringInvertFontEx@Image@S_32@S_32@CDATA@CDATA@CTEXTSTR@size_t@Font.html</target>
+    <link topicid="sack::image::PutStringInvertFontEx@Image@int32_t@int32_t@CDATA@CDATA@CTEXTSTR@size_t@Font" displaystring="sack::image::PutStringInvertFontEx Function">
+      <target id="html">../output/sack__image__PutStringInvertFontEx@Image@int32_t@int32_t@CDATA@CDATA@CTEXTSTR@size_t@Font.html</target>
     </link>
     <link topicid="sack::image::PutStringInvertVertical" displaystring="sack::image::PutStringInvertVertical Macro">
       <target id="html">../output/sack__image__PutStringInvertVertical.html</target>
@@ -7018,11 +7018,11 @@
     <link topicid="sack::image::PutStringInvertVerticalFont" displaystring="sack::image::PutStringInvertVerticalFont Macro">
       <target id="html">../output/sack__image__PutStringInvertVerticalFont.html</target>
     </link>
-    <link topicid="sack::image::PutStringInvertVerticalFontEx@Image@S_32@S_32@CDATA@CDATA@CTEXTSTR@_32@Font" displaystring="sack::image::PutStringInvertVerticalFontEx Function">
+    <link topicid="sack::image::PutStringInvertVerticalFontEx@Image@int32_t@int32_t@CDATA@CDATA@CTEXTSTR@uint32_t@Font" displaystring="sack::image::PutStringInvertVerticalFontEx Function">
       <target id="pdf">pdf://658@sack-docodocs.pdf</target>
     </link>
-    <link topicid="sack::image::PutStringInvertVerticalFontEx@Image@S_32@S_32@CDATA@CDATA@CTEXTSTR@size_t@Font" displaystring="sack::image::PutStringInvertVerticalFontEx Function">
-      <target id="html">../output/sack__image__PutStringInvertVerticalFontEx@Image@S_32@S_32@CDATA@CDATA@CTEXTSTR@size_t@Font.html</target>
+    <link topicid="sack::image::PutStringInvertVerticalFontEx@Image@int32_t@int32_t@CDATA@CDATA@CTEXTSTR@size_t@Font" displaystring="sack::image::PutStringInvertVerticalFontEx Function">
+      <target id="html">../output/sack__image__PutStringInvertVerticalFontEx@Image@int32_t@int32_t@CDATA@CDATA@CTEXTSTR@size_t@Font.html</target>
     </link>
     <link topicid="sack::image::PutStringVertical" displaystring="sack::image::PutStringVertical Macro">
       <target id="html">../output/sack__image__PutStringVertical.html</target>
@@ -7033,18 +7033,18 @@
     <link topicid="sack::image::PutStringVerticalFont" displaystring="sack::image::PutStringVerticalFont Macro">
       <target id="html">../output/sack__image__PutStringVerticalFont.html</target>
     </link>
-    <link topicid="sack::image::PutStringVerticalFontEx@Image@S_32@S_32@CDATA@CDATA@CTEXTSTR@_32@Font" displaystring="sack::image::PutStringVerticalFontEx Function">
+    <link topicid="sack::image::PutStringVerticalFontEx@Image@int32_t@int32_t@CDATA@CDATA@CTEXTSTR@uint32_t@Font" displaystring="sack::image::PutStringVerticalFontEx Function">
       <target id="pdf">pdf://659@sack-docodocs.pdf</target>
     </link>
-    <link topicid="sack::image::PutStringVerticalFontEx@Image@S_32@S_32@CDATA@CDATA@CTEXTSTR@size_t@Font" displaystring="sack::image::PutStringVerticalFontEx Function">
-      <target id="html">../output/sack__image__PutStringVerticalFontEx@Image@S_32@S_32@CDATA@CDATA@CTEXTSTR@size_t@Font.html</target>
+    <link topicid="sack::image::PutStringVerticalFontEx@Image@int32_t@int32_t@CDATA@CDATA@CTEXTSTR@size_t@Font" displaystring="sack::image::PutStringVerticalFontEx Function">
+      <target id="html">../output/sack__image__PutStringVerticalFontEx@Image@int32_t@int32_t@CDATA@CDATA@CTEXTSTR@size_t@Font.html</target>
     </link>
     <link topicid="sack::image::RedVal" displaystring="sack::image::RedVal Macro">
       <target id="html">../output/sack__image__RedVal.html</target>
       <target id="pdf">pdf://726@sack-docodocs.pdf</target>
     </link>
-    <link topicid="sack::image::RemakeImageEx@Image@PCOLOR@_32@_32 height" displaystring="sack::image::RemakeImageEx Function">
-      <target id="html">../output/sack__image__RemakeImageEx@Image@PCOLOR@_32@_32_height.html</target>
+    <link topicid="sack::image::RemakeImageEx@Image@PCOLOR@uint32_t@uint32_t height" displaystring="sack::image::RemakeImageEx Function">
+      <target id="html">../output/sack__image__RemakeImageEx@Image@PCOLOR@uint32_t@_32_height.html</target>
       <target id="pdf">pdf://618@sack-docodocs.pdf</target>
     </link>
     <link topicid="sack::image::render" displaystring="sack::image::render Namespace">
@@ -7102,13 +7102,13 @@
     <link topicid="sack::image::render::ACTIVEMESSAGE" displaystring="sack::image::render::ACTIVEMESSAGE Structure">
       <target id="pdf">pdf://912@sack-docodocs.pdf</target>
     </link>
-    <link topicid="sack::image::render::BeginCalibration@_32" displaystring="sack::image::render::BeginCalibration Function">
+    <link topicid="sack::image::render::BeginCalibration@uint32_t" displaystring="sack::image::render::BeginCalibration Function">
       <target id="pdf">pdf://791@sack-docodocs.pdf</target>
     </link>
-    <link topicid="sack::image::render::BindEventToKey@PRENDERER@_32@_32@KeyTriggerHandler@PTRSZVAL" displaystring="sack::image::render::BindEventToKey Function">
+    <link topicid="sack::image::render::BindEventToKey@PRENDERER@uint32_t@uint32_t@KeyTriggerHandler@PTRSZVAL" displaystring="sack::image::render::BindEventToKey Function">
       <target id="pdf">pdf://792@sack-docodocs.pdf</target>
     </link>
-    <link topicid="sack::image::render::BindEventToKeyEx@PKEYDEFINE@_32@_32@KeyTriggerHandler@PTRSZVAL" displaystring="sack::image::render::BindEventToKeyEx Function">
+    <link topicid="sack::image::render::BindEventToKeyEx@PKEYDEFINE@uint32_t@uint32_t@KeyTriggerHandler@PTRSZVAL" displaystring="sack::image::render::BindEventToKeyEx Function">
       <target id="pdf">pdf://793@sack-docodocs.pdf</target>
     </link>
     <link topicid="sack::image::render::BREAK_LASTBUTTON" displaystring="sack::image::render::BREAK_LASTBUTTON Macro">
@@ -7171,7 +7171,7 @@
     <link topicid="sack::image::render::EnableOpenGLView@PRENDERER@int@int@int@int" displaystring="sack::image::render::EnableOpenGLView Function">
       <target id="pdf">pdf://804@sack-docodocs.pdf</target>
     </link>
-    <link topicid="sack::image::render::EnableSpriteMethod@PRENDERER@void__cdecl*RenderSpritesPTRSZVAL psv, PRENDERER renderer, S_32 x, S_32 y, _32 w, _32 h@PTRSZVAL" displaystring="sack::image::render::EnableSpriteMethod Function">
+    <link topicid="sack::image::render::EnableSpriteMethod@PRENDERER@void__cdecl*RenderSpritesPTRSZVAL psv, PRENDERER renderer, int32_t x, int32_t y, uint32_t w, uint32_t h@PTRSZVAL" displaystring="sack::image::render::EnableSpriteMethod Function">
       <target id="html">../output/sack__image__render__EnableSpriteMethod@PRENDERER@void__cdecl_RenderSpritesPTRSZVAL_psv,_PRENDERER_renderer,_S_32_x,_S_32_y,__32_w,__32_h@PTRSZVAL.html</target>
       <target id="pdf">pdf://805@sack-docodocs.pdf</target>
     </link>
@@ -7187,10 +7187,10 @@
     <link topicid="sack::image::render::GeneralCallback" displaystring="sack::image::render::GeneralCallback Type">
       <target id="pdf">pdf://919@sack-docodocs.pdf</target>
     </link>
-    <link topicid="sack::image::render::GenerateMouseDeltaRaw@S_32@S_32@_32" displaystring="sack::image::render::GenerateMouseDeltaRaw Function">
+    <link topicid="sack::image::render::GenerateMouseDeltaRaw@int32_t@int32_t@uint32_t" displaystring="sack::image::render::GenerateMouseDeltaRaw Function">
       <target id="pdf">pdf://809@sack-docodocs.pdf</target>
     </link>
-    <link topicid="sack::image::render::GenerateMouseRaw@S_32@S_32@_32" displaystring="sack::image::render::GenerateMouseRaw Function">
+    <link topicid="sack::image::render::GenerateMouseRaw@int32_t@int32_t@uint32_t" displaystring="sack::image::render::GenerateMouseRaw Function">
       <target id="pdf">pdf://810@sack-docodocs.pdf</target>
     </link>
     <link topicid="sack::image::render::GetDisplayImage@PRENDERER" displaystring="sack::image::render::GetDisplayImage Function">
@@ -7199,29 +7199,29 @@
     <link topicid="sack::image::render::GetDisplayInterface" displaystring="sack::image::render::GetDisplayInterface Macro">
       <target id="pdf">pdf://877@sack-docodocs.pdf</target>
     </link>
-    <link topicid="sack::image::render::GetDisplayPosition@PRENDERER@S_32 *@S_32 *@_32 *@_32 *" displaystring="sack::image::render::GetDisplayPosition Function">
+    <link topicid="sack::image::render::GetDisplayPosition@PRENDERER@int32_t *@int32_t *@uint32_t *@uint32_t *" displaystring="sack::image::render::GetDisplayPosition Function">
       <target id="pdf">pdf://812@sack-docodocs.pdf</target>
     </link>
-    <link topicid="sack::image::render::GetDisplaySize@_32 *@_32 *" displaystring="sack::image::render::GetDisplaySize Function">
+    <link topicid="sack::image::render::GetDisplaySize@uint32_t *@uint32_t *" displaystring="sack::image::render::GetDisplaySize Function">
       <target id="pdf">pdf://813@sack-docodocs.pdf</target>
     </link>
-    <link topicid="sack::image::render::GetDisplaySizeEx@int@S_32 *@S_32 *@_32 *@_32 *" displaystring="sack::image::render::GetDisplaySizeEx Function">
+    <link topicid="sack::image::render::GetDisplaySizeEx@int@int32_t *@int32_t *@uint32_t *@uint32_t *" displaystring="sack::image::render::GetDisplaySizeEx Function">
       <target id="pdf">pdf://814@sack-docodocs.pdf</target>
     </link>
     <link topicid="sack::image::render::GetKeyText@int" displaystring="sack::image::render::GetKeyText Function">
       <target id="pdf">pdf://815@sack-docodocs.pdf</target>
     </link>
-    <link topicid="sack::image::render::GetMousePosition@S_32 *@S_32 *" displaystring="sack::image::render::GetMousePosition Function">
+    <link topicid="sack::image::render::GetMousePosition@int32_t *@int32_t *" displaystring="sack::image::render::GetMousePosition Function">
       <target id="pdf">pdf://816@sack-docodocs.pdf</target>
     </link>
-    <link topicid="sack::image::render::GetMouseState@S_32 *@S_32 *@_32 *" displaystring="sack::image::render::GetMouseState Function">
+    <link topicid="sack::image::render::GetMouseState@int32_t *@int32_t *@uint32_t *" displaystring="sack::image::render::GetMouseState Function">
       <target id="pdf">pdf://817@sack-docodocs.pdf</target>
     </link>
     <link topicid="sack::image::render::GetNativeHandle@PRENDERER" displaystring="sack::image::render::GetNativeHandle Function">
       <target id="html">../output/sack__image__render__GetNativeHandle@PRENDERER.html</target>
       <target id="pdf">pdf://818@sack-docodocs.pdf</target>
     </link>
-    <link topicid="sack::image::render::HandleKeyEvents@PKEYDEFINE@_32" displaystring="sack::image::render::HandleKeyEvents Function">
+    <link topicid="sack::image::render::HandleKeyEvents@PKEYDEFINE@uint32_t" displaystring="sack::image::render::HandleKeyEvents Function">
       <target id="pdf">pdf://819@sack-docodocs.pdf</target>
     </link>
     <link topicid="sack::image::render::HasFocus@PRENDERER" displaystring="sack::image::render::HasFocus Function">
@@ -7263,7 +7263,7 @@
     <link topicid="sack::image::render::IsKeyDown@PRENDERER@int" displaystring="sack::image::render::IsKeyDown Function">
       <target id="pdf">pdf://824@sack-docodocs.pdf</target>
     </link>
-    <link topicid="sack::image::render::IssueUpdateLayeredEx@PRENDERER@LOGICAL@S_32@S_32@_32@_32 h" displaystring="sack::image::render::IssueUpdateLayeredEx Function">
+    <link topicid="sack::image::render::IssueUpdateLayeredEx@PRENDERER@LOGICAL@int32_t@int32_t@uint32_t@uint32_t h" displaystring="sack::image::render::IssueUpdateLayeredEx Function">
       <target id="pdf">pdf://825@sack-docodocs.pdf</target>
     </link>
     <link topicid="sack::image::render::IsTopmost@PRENDERER" displaystring="sack::image::render::IsTopmost Function">
@@ -7421,16 +7421,16 @@
     <link topicid="sack::image::render::MouseCallback" displaystring="sack::image::render::MouseCallback Type">
       <target id="pdf">pdf://923@sack-docodocs.pdf</target>
     </link>
-    <link topicid="sack::image::render::MoveDisplay@PRENDERER@S_32@S_32" displaystring="sack::image::render::MoveDisplay Function">
+    <link topicid="sack::image::render::MoveDisplay@PRENDERER@int32_t@int32_t" displaystring="sack::image::render::MoveDisplay Function">
       <target id="pdf">pdf://833@sack-docodocs.pdf</target>
     </link>
-    <link topicid="sack::image::render::MoveDisplayRel@PRENDERER@S_32@S_32" displaystring="sack::image::render::MoveDisplayRel Function">
+    <link topicid="sack::image::render::MoveDisplayRel@PRENDERER@int32_t@int32_t" displaystring="sack::image::render::MoveDisplayRel Function">
       <target id="pdf">pdf://834@sack-docodocs.pdf</target>
     </link>
-    <link topicid="sack::image::render::MoveSizeDisplay@PRENDERER@S_32@S_32@S_32@S_32" displaystring="sack::image::render::MoveSizeDisplay Function">
+    <link topicid="sack::image::render::MoveSizeDisplay@PRENDERER@int32_t@int32_t@int32_t@int32_t" displaystring="sack::image::render::MoveSizeDisplay Function">
       <target id="pdf">pdf://835@sack-docodocs.pdf</target>
     </link>
-    <link topicid="sack::image::render::MoveSizeDisplayRel@PRENDERER@S_32@S_32@S_32@S_32" displaystring="sack::image::render::MoveSizeDisplayRel Function">
+    <link topicid="sack::image::render::MoveSizeDisplayRel@PRENDERER@int32_t@int32_t@int32_t@int32_t" displaystring="sack::image::render::MoveSizeDisplayRel Function">
       <target id="pdf">pdf://836@sack-docodocs.pdf</target>
     </link>
     <link topicid="sack::image::render::OpenDisplay" displaystring="sack::image::render::OpenDisplay Macro">
@@ -7445,17 +7445,17 @@
       <target id="html">../output/sack__image__render__OpenDisplayAboveSized.html</target>
       <target id="pdf">pdf://898@sack-docodocs.pdf</target>
     </link>
-    <link topicid="sack::image::render::OpenDisplayAboveSizedAt@_32@_32@_32@S_32@S_32@PRENDERER" displaystring="sack::image::render::OpenDisplayAboveSizedAt Function">
+    <link topicid="sack::image::render::OpenDisplayAboveSizedAt@uint32_t@uint32_t@uint32_t@int32_t@int32_t@PRENDERER" displaystring="sack::image::render::OpenDisplayAboveSizedAt Function">
       <target id="pdf">pdf://837@sack-docodocs.pdf</target>
     </link>
-    <link topicid="sack::image::render::OpenDisplayAboveUnderSizedAt@_32@_32@_32@S_32@S_32@PRENDERER@PRENDERER" displaystring="sack::image::render::OpenDisplayAboveUnderSizedAt Function">
+    <link topicid="sack::image::render::OpenDisplayAboveUnderSizedAt@uint32_t@uint32_t@uint32_t@int32_t@int32_t@PRENDERER@PRENDERER" displaystring="sack::image::render::OpenDisplayAboveUnderSizedAt Function">
       <target id="pdf">pdf://838@sack-docodocs.pdf</target>
     </link>
     <link topicid="sack::image::render::OpenDisplaySized" displaystring="sack::image::render::OpenDisplaySized Macro">
       <target id="html">../output/sack__image__render__OpenDisplaySized.html</target>
       <target id="pdf">pdf://899@sack-docodocs.pdf</target>
     </link>
-    <link topicid="sack::image::render::OpenDisplaySizedAt@_32@_32@_32@S_32@S_32" displaystring="sack::image::render::OpenDisplaySizedAt Function">
+    <link topicid="sack::image::render::OpenDisplaySizedAt@uint32_t@uint32_t@uint32_t@int32_t@int32_t" displaystring="sack::image::render::OpenDisplaySizedAt Function">
       <target id="pdf">pdf://839@sack-docodocs.pdf</target>
     </link>
     <link topicid="sack::image::render::OpenDisplayUnderSizedAt" displaystring="sack::image::render::OpenDisplayUnderSizedAt Macro">
@@ -7466,7 +7466,7 @@
       <target id="html">../output/sack__image__render__OwnMouse.html</target>
       <target id="pdf">pdf://901@sack-docodocs.pdf</target>
     </link>
-    <link topicid="sack::image::render::OwnMouseEx@PRENDERER@_32 bOwn" displaystring="sack::image::render::OwnMouseEx Function">
+    <link topicid="sack::image::render::OwnMouseEx@PRENDERER@uint32_t bOwn" displaystring="sack::image::render::OwnMouseEx Function">
       <target id="pdf">pdf://840@sack-docodocs.pdf</target>
     </link>
     <link topicid="sack::image::render::PACTIVEMESSAGE" displaystring="sack::image::render::PACTIVEMESSAGE Structure">
@@ -7509,7 +7509,7 @@
     <link topicid="sack::image::render::ReadDisplay" displaystring="sack::image::render::ReadDisplay Macro">
       <target id="pdf">pdf://906@sack-docodocs.pdf</target>
     </link>
-    <link topicid="sack::image::render::ReadDisplayEx@PRENDERER@TEXTSTR@_32@LOGICAL" displaystring="sack::image::render::ReadDisplayEx Function">
+    <link topicid="sack::image::render::ReadDisplayEx@PRENDERER@TEXTSTR@uint32_t@LOGICAL" displaystring="sack::image::render::ReadDisplayEx Function">
       <target id="pdf">pdf://843@sack-docodocs.pdf</target>
     </link>
     <link topicid="sack::image::render::ReadDisplayLine" displaystring="sack::image::render::ReadDisplayLine Macro">
@@ -7528,10 +7528,10 @@
     <link topicid="sack::image::render::render_interface_tag" displaystring="sack::image::render::render_interface_tag Structure">
       <target id="pdf">pdf://790@sack-docodocs.pdf</target>
     </link>
-    <link topicid="sack::image::render::render_interface_tag::RENDER_PROC_PTR@_32@IsKeyDown" displaystring="render_interface_tag::RENDER_PROC_PTR Method (_32, IsKeyDown)">
+    <link topicid="sack::image::render::render_interface_tag::RENDER_PROC_PTR@uint32_t@IsKeyDown" displaystring="render_interface_tag::RENDER_PROC_PTR Method (uint32_t, IsKeyDown)">
       <target id="pdf">pdf://944@sack-docodocs.pdf</target>
     </link>
-    <link topicid="sack::image::render::render_interface_tag::RENDER_PROC_PTR@_32@KeyDown" displaystring="render_interface_tag::RENDER_PROC_PTR Method (_32, KeyDown)">
+    <link topicid="sack::image::render::render_interface_tag::RENDER_PROC_PTR@uint32_t@KeyDown" displaystring="render_interface_tag::RENDER_PROC_PTR Method (uint32_t, KeyDown)">
       <target id="pdf">pdf://945@sack-docodocs.pdf</target>
     </link>
     <link topicid="sack::image::render::render_interface_tag::RENDER_PROC_PTR@char@GetKeyText" displaystring="render_interface_tag::RENDER_PROC_PTR Method (char, GetKeyText)">
@@ -7772,7 +7772,7 @@
       <target id="html">../output/sack__image__render__SetDisplayNoMouse@PRENDERER@int.html</target>
       <target id="pdf">pdf://854@sack-docodocs.pdf</target>
     </link>
-    <link topicid="sack::image::render::SetDisplaySize@_32@_32" displaystring="sack::image::render::SetDisplaySize Function">
+    <link topicid="sack::image::render::SetDisplaySize@uint32_t@uint32_t" displaystring="sack::image::render::SetDisplaySize Function">
       <target id="pdf">pdf://855@sack-docodocs.pdf</target>
     </link>
     <link topicid="sack::image::render::SetKeyboardHandler@PRENDERER@KeyProc@PTRSZVAL" displaystring="sack::image::render::SetKeyboardHandler Function">
@@ -7784,7 +7784,7 @@
     <link topicid="sack::image::render::SetMouseHandler@PRENDERER@MouseCallback@PTRSZVAL" displaystring="sack::image::render::SetMouseHandler Function">
       <target id="pdf">pdf://858@sack-docodocs.pdf</target>
     </link>
-    <link topicid="sack::image::render::SetMousePosition@PRENDERER@S_32@S_32" displaystring="sack::image::render::SetMousePosition Function">
+    <link topicid="sack::image::render::SetMousePosition@PRENDERER@int32_t@int32_t" displaystring="sack::image::render::SetMousePosition Function">
       <target id="pdf">pdf://859@sack-docodocs.pdf</target>
     </link>
     <link topicid="sack::image::render::SetRedrawHandler@PRENDERER@RedrawCallback@PTRSZVAL" displaystring="sack::image::render::SetRedrawHandler Function">
@@ -7796,16 +7796,16 @@
     <link topicid="sack::image::render::SetRenderReadCallback@PRENDERER@RenderReadCallback@PTRSZVAL" displaystring="sack::image::render::SetRenderReadCallback Function">
       <target id="pdf">pdf://862@sack-docodocs.pdf</target>
     </link>
-    <link topicid="sack::image::render::SizeDisplay@PRENDERER@_32@_32" displaystring="sack::image::render::SizeDisplay Function">
+    <link topicid="sack::image::render::SizeDisplay@PRENDERER@uint32_t@uint32_t" displaystring="sack::image::render::SizeDisplay Function">
       <target id="pdf">pdf://863@sack-docodocs.pdf</target>
     </link>
-    <link topicid="sack::image::render::SizeDisplayRel@PRENDERER@S_32@S_32" displaystring="sack::image::render::SizeDisplayRel Function">
+    <link topicid="sack::image::render::SizeDisplayRel@PRENDERER@int32_t@int32_t" displaystring="sack::image::render::SizeDisplayRel Function">
       <target id="pdf">pdf://864@sack-docodocs.pdf</target>
     </link>
     <link topicid="sack::image::render::SyncRender@PRENDERER" displaystring="sack::image::render::SyncRender Function">
       <target id="pdf">pdf://865@sack-docodocs.pdf</target>
     </link>
-    <link topicid="sack::image::render::UnbindKey@PRENDERER@_32@_32" displaystring="sack::image::render::UnbindKey Function">
+    <link topicid="sack::image::render::UnbindKey@PRENDERER@uint32_t@uint32_t" displaystring="sack::image::render::UnbindKey Function">
       <target id="pdf">pdf://866@sack-docodocs.pdf</target>
     </link>
     <link topicid="sack::image::render::UnlockRenderer@PRENDERER" displaystring="sack::image::render::UnlockRenderer Function">
@@ -7820,7 +7820,7 @@
     <link topicid="sack::image::render::UpdateDisplayPortion" displaystring="sack::image::render::UpdateDisplayPortion Macro">
       <target id="pdf">pdf://910@sack-docodocs.pdf</target>
     </link>
-    <link topicid="sack::image::render::UpdateDisplayPortionEx@PRENDERER@S_32@S_32@_32@_32 height" displaystring="sack::image::render::UpdateDisplayPortionEx Function">
+    <link topicid="sack::image::render::UpdateDisplayPortionEx@PRENDERER@int32_t@int32_t@uint32_t@uint32_t height" displaystring="sack::image::render::UpdateDisplayPortionEx Function">
       <target id="pdf">pdf://868@sack-docodocs.pdf</target>
     </link>
     <link topicid="sack::image::render::VIDEO" displaystring="sack::image::render::VIDEO Structure">
@@ -7841,26 +7841,26 @@
     <link topicid="sack::image::RenderFontFile" displaystring="sack::image::RenderFontFile Macro">
       <target id="html">../output/sack__image__RenderFontFile.html</target>
     </link>
-    <link topicid="sack::image::RenderFontFileEx@CTEXTSTR@_32@_32@_32@P_32@POINTER *" displaystring="sack::image::RenderFontFileEx Function">
+    <link topicid="sack::image::RenderFontFileEx@CTEXTSTR@uint32_t@uint32_t@uint32_t@P_32@POINTER *" displaystring="sack::image::RenderFontFileEx Function">
       <target id="pdf">pdf://660@sack-docodocs.pdf</target>
     </link>
-    <link topicid="sack::image::RenderFontFileEx@CTEXTSTR@_32@_32@_32@size_t *@POINTER *" displaystring="sack::image::RenderFontFileEx Function">
-      <target id="html">../output/sack__image__RenderFontFileEx@CTEXTSTR@_32@_32@_32@size_t__@POINTER__.html</target>
+    <link topicid="sack::image::RenderFontFileEx@CTEXTSTR@uint32_t@uint32_t@uint32_t@size_t *@POINTER *" displaystring="sack::image::RenderFontFileEx Function">
+      <target id="html">../output/sack__image__RenderFontFileEx@CTEXTSTR@uint32_t@uint32_t@uint32_t@size_t__@POINTER__.html</target>
     </link>
     <link topicid="sack::image::RenderScaledFont" displaystring="sack::image::RenderScaledFont Macro">
       <target id="html">../output/sack__image__RenderScaledFont.html</target>
     </link>
-    <link topicid="sack::image::RenderScaledFont@CTEXTSTR@_32@_32@PFRACTION@PFRACTION@_32" displaystring="sack::image::RenderScaledFont Function">
-      <target id="html">../output/sack__image__RenderScaledFont@CTEXTSTR@_32@_32@PFRACTION@PFRACTION@_32.html</target>
+    <link topicid="sack::image::RenderScaledFont@CTEXTSTR@uint32_t@uint32_t@PFRACTION@PFRACTION@uint32_t" displaystring="sack::image::RenderScaledFont Function">
+      <target id="html">../output/sack__image__RenderScaledFont@CTEXTSTR@uint32_t@uint32_t@PFRACTION@PFRACTION@uint32_t.html</target>
     </link>
     <link topicid="sack::image::RenderScaledFontData@PFONTDATA@PFRACTION@PFRACTION" displaystring="sack::image::RenderScaledFontData Function">
       <target id="pdf">pdf://661@sack-docodocs.pdf</target>
     </link>
-    <link topicid="sack::image::RenderScaledFontEx@CTEXTSTR@_32@_32@PFRACTION@PFRACTION@_32@size_t *@POINTER *" displaystring="sack::image::RenderScaledFontEx Function">
-      <target id="html">../output/sack__image__RenderScaledFontEx@CTEXTSTR@_32@_32@PFRACTION@PFRACTION@_32@size_t__@POINTER__.html</target>
+    <link topicid="sack::image::RenderScaledFontEx@CTEXTSTR@uint32_t@uint32_t@PFRACTION@PFRACTION@uint32_t@size_t *@POINTER *" displaystring="sack::image::RenderScaledFontEx Function">
+      <target id="html">../output/sack__image__RenderScaledFontEx@CTEXTSTR@uint32_t@uint32_t@PFRACTION@PFRACTION@uint32_t@size_t__@POINTER__.html</target>
     </link>
-    <link topicid="sack::image::ResizeImageEx@Image@S_32@S_32 height" displaystring="sack::image::ResizeImageEx Function">
-      <target id="html">../output/sack__image__ResizeImageEx@Image@S_32@S_32_height.html</target>
+    <link topicid="sack::image::ResizeImageEx@Image@int32_t@int32_t height" displaystring="sack::image::ResizeImageEx Function">
+      <target id="html">../output/sack__image__ResizeImageEx@Image@int32_t@S_32_height.html</target>
       <target id="pdf">pdf://663@sack-docodocs.pdf</target>
     </link>
     <link topicid="sack::image::rotate_scaled_sprite@Image@PSPRITE@fixed@fixed@fixed" displaystring="sack::image::rotate_scaled_sprite Function">
@@ -7881,8 +7881,8 @@
     <link topicid="sack::image::SetAlphaValue@CDATA@COLOR_CHANNEL" displaystring="sack::image::SetAlphaValue Function">
       <target id="html">../output/sack__image__SetAlphaValue@CDATA@COLOR_CHANNEL.html</target>
     </link>
-    <link topicid="sack::image::SetBlotMethod@_32" displaystring="sack::image::SetBlotMethod Function">
-      <target id="html">../output/sack__image__SetBlotMethod@_32.html</target>
+    <link topicid="sack::image::SetBlotMethod@uint32_t" displaystring="sack::image::SetBlotMethod Function">
+      <target id="html">../output/sack__image__SetBlotMethod@uint32_t.html</target>
       <target id="pdf">pdf://667@sack-docodocs.pdf</target>
     </link>
     <link topicid="sack::image::SetBlue" displaystring="sack::image::SetBlue Macro">
@@ -7891,7 +7891,7 @@
     <link topicid="sack::image::SetBlueValue@CDATA@COLOR_CHANNEL" displaystring="sack::image::SetBlueValue Function">
       <target id="html">../output/sack__image__SetBlueValue@CDATA@COLOR_CHANNEL.html</target>
     </link>
-    <link topicid="sack::image::SetFontRendererData@Font@POINTER@_32" displaystring="sack::image::SetFontRendererData Function">
+    <link topicid="sack::image::SetFontRendererData@Font@POINTER@uint32_t" displaystring="sack::image::SetFontRendererData Function">
       <target id="pdf">pdf://668@sack-docodocs.pdf</target>
     </link>
     <link topicid="sack::image::SetFontRendererData@Font@POINTER@size_t" displaystring="sack::image::SetFontRendererData Function">
@@ -7921,20 +7921,20 @@
     <link topicid="sack::image::SetRedValue@CDATA@COLOR_CHANNEL" displaystring="sack::image::SetRedValue Function">
       <target id="html">../output/sack__image__SetRedValue@CDATA@COLOR_CHANNEL.html</target>
     </link>
-    <link topicid="sack::image::SetSavePortion@void __cdecl*_SavePortion  PSPRITE_METHOD psm, _32 x, _32 y, _32 w, _32 h" displaystring="sack::image::SetSavePortion Function">
+    <link topicid="sack::image::SetSavePortion@void __cdecl*_SavePortion  PSPRITE_METHOD psm, uint32_t x, uint32_t y, uint32_t w, uint32_t h" displaystring="sack::image::SetSavePortion Function">
       <target id="html">../output/sack__image__SetSavePortion@void___cdecl__SavePortion__PSPRITE_METHOD_psm,__32_x,__32_y,__32_w,__32_h.html</target>
       <target id="pdf">pdf://671@sack-docodocs.pdf</target>
     </link>
-    <link topicid="sack::image::SetSpriteHotspot@PSPRITE@S_32@S_32" displaystring="sack::image::SetSpriteHotspot Function">
-      <target id="html">../output/sack__image__SetSpriteHotspot@PSPRITE@S_32@S_32.html</target>
+    <link topicid="sack::image::SetSpriteHotspot@PSPRITE@int32_t@int32_t" displaystring="sack::image::SetSpriteHotspot Function">
+      <target id="html">../output/sack__image__SetSpriteHotspot@PSPRITE@int32_t@int32_t.html</target>
       <target id="pdf">pdf://672@sack-docodocs.pdf</target>
     </link>
-    <link topicid="sack::image::SetSpritePosition@PSPRITE@S_32@S_32" displaystring="sack::image::SetSpritePosition Function">
-      <target id="html">../output/sack__image__SetSpritePosition@PSPRITE@S_32@S_32.html</target>
+    <link topicid="sack::image::SetSpritePosition@PSPRITE@int32_t@int32_t" displaystring="sack::image::SetSpritePosition Function">
+      <target id="html">../output/sack__image__SetSpritePosition@PSPRITE@int32_t@int32_t.html</target>
       <target id="pdf">pdf://673@sack-docodocs.pdf</target>
     </link>
-    <link topicid="sack::image::SetStringBehavior@Image@_32" displaystring="sack::image::SetStringBehavior Function">
-      <target id="html">../output/sack__image__SetStringBehavior@Image@_32.html</target>
+    <link topicid="sack::image::SetStringBehavior@Image@uint32_t" displaystring="sack::image::SetStringBehavior Function">
+      <target id="html">../output/sack__image__SetStringBehavior@Image@uint32_t.html</target>
       <target id="pdf">pdf://674@sack-docodocs.pdf</target>
     </link>
     <link topicid="sack::image::simple_font_tag" displaystring="sack::image::simple_font_tag Structure">
@@ -8014,8 +8014,8 @@
     <link topicid="sack::intershell.LABEL_TYPE_VALUE_STRING" displaystring="LABEL_TYPE_VALUE_STRING">
       <target id="html">../output/sack__intershell__label_variable_types.html</target>
     </link>
-    <link topicid="sack::intershell::AddButtonLayout@PMENU_BUTTON@int@int@Font *@CDATA@_32" displaystring="sack::intershell::AddButtonLayout Function">
-      <target id="html">../output/sack__intershell__AddButtonLayout@PMENU_BUTTON@int@int@Font__@CDATA@_32.html</target>
+    <link topicid="sack::intershell::AddButtonLayout@PMENU_BUTTON@int@int@Font *@CDATA@uint32_t" displaystring="sack::intershell::AddButtonLayout Function">
+      <target id="html">../output/sack__intershell__AddButtonLayout@PMENU_BUTTON@int@int@Font__@CDATA@uint32_t.html</target>
     </link>
     <link topicid="sack::intershell::BeginCanvasConfiguration@PSI_CONTROL" displaystring="sack::intershell::BeginCanvasConfiguration Function">
       <target id="html">../output/sack__intershell__BeginCanvasConfiguration@PSI_CONTROL.html</target>
@@ -8167,8 +8167,8 @@
     <link topicid="sack::intershell::InterShell_SetButtonText@PMENU_BUTTON@CTEXTSTR" displaystring="sack::intershell::InterShell_SetButtonText Function">
       <target id="html">../output/sack__intershell__InterShell_SetButtonText@PMENU_BUTTON@CTEXTSTR.html</target>
     </link>
-    <link topicid="sack::intershell::InterShell_SetPageLayout@PSI_CONTROL@_32@_32" displaystring="sack::intershell::InterShell_SetPageLayout Function">
-      <target id="html">../output/sack__intershell__InterShell_SetPageLayout@PSI_CONTROL@_32@_32.html</target>
+    <link topicid="sack::intershell::InterShell_SetPageLayout@PSI_CONTROL@uint32_t@uint32_t" displaystring="sack::intershell::InterShell_SetPageLayout Function">
+      <target id="html">../output/sack__intershell__InterShell_SetPageLayout@PSI_CONTROL@uint32_t@uint32_t.html</target>
     </link>
     <link topicid="sack::intershell::InterShell_TranslateLabelText@PPAGE_LABEL@TEXTSTR@int@CTEXTSTR" displaystring="sack::intershell::InterShell_TranslateLabelText Function">
       <target id="html">../output/sack__intershell__InterShell_TranslateLabelText@PPAGE_LABEL@TEXTSTR@int@CTEXTSTR.html</target>
@@ -8347,14 +8347,14 @@
     <link topicid="sack::intershell::PVARIABLE" displaystring="sack::intershell::PVARIABLE Type">
       <target id="html">../output/sack__intershell__PVARIABLE.html</target>
     </link>
-    <link topicid="sack::intershell::RestartMenu@PTRSZVAL@_32" displaystring="sack::intershell::RestartMenu Function">
-      <target id="html">../output/sack__intershell__RestartMenu@PTRSZVAL@_32.html</target>
+    <link topicid="sack::intershell::RestartMenu@PTRSZVAL@uint32_t" displaystring="sack::intershell::RestartMenu Function">
+      <target id="html">../output/sack__intershell__RestartMenu@PTRSZVAL@uint32_t.html</target>
     </link>
     <link topicid="sack::intershell::RestoreCurrentPage@PSI_CONTROL" displaystring="sack::intershell::RestoreCurrentPage Function">
       <target id="html">../output/sack__intershell__RestoreCurrentPage@PSI_CONTROL.html</target>
     </link>
-    <link topicid="sack::intershell::ResumeMenu@PTRSZVAL@_32" displaystring="sack::intershell::ResumeMenu Function">
-      <target id="html">../output/sack__intershell__ResumeMenu@PTRSZVAL@_32.html</target>
+    <link topicid="sack::intershell::ResumeMenu@PTRSZVAL@uint32_t" displaystring="sack::intershell::ResumeMenu Function">
+      <target id="html">../output/sack__intershell__ResumeMenu@PTRSZVAL@uint32_t.html</target>
     </link>
     <link topicid="sack::intershell::SaveCanvasConfiguration@FILE *@PSI_CONTROL" displaystring="sack::intershell::SaveCanvasConfiguration Function">
       <target id="html">../output/sack__intershell__SaveCanvasConfiguration@FILE__@PSI_CONTROL.html</target>
@@ -8522,11 +8522,11 @@
       <target id="html">../output/sack__logging___lprintf.html</target>
       <target id="pdf">pdf://1110@sack-docodocs.pdf</target>
     </link>
-    <link topicid="sack::logging::_vxlprintf@_32 level" displaystring="sack::logging::_vxlprintf Function">
+    <link topicid="sack::logging::_vxlprintf@uint32_t level" displaystring="sack::logging::_vxlprintf Function">
       <target id="html">../output/sack__logging___vxlprintf@_32_level.html</target>
       <target id="pdf">pdf://1090@sack-docodocs.pdf</target>
     </link>
-    <link topicid="sack::logging::_xlprintf@_32 level" displaystring="sack::logging::_xlprintf Function">
+    <link topicid="sack::logging::_xlprintf@uint32_t level" displaystring="sack::logging::_xlprintf Function">
       <target id="html">../output/sack__logging___xlprintf@_32_level.html</target>
       <target id="pdf">pdf://1091@sack-docodocs.pdf</target>
     </link>
@@ -8598,13 +8598,13 @@
       <target id="html">../output/sack__logging__LogBinary.html</target>
       <target id="pdf">pdf://1097@sack-docodocs.pdf</target>
     </link>
-    <link topicid="sack::logging::LogBinaryEx@P_8@_32 size" displaystring="sack::logging::LogBinaryEx Function">
+    <link topicid="sack::logging::LogBinaryEx@P_8@uint32_t size" displaystring="sack::logging::LogBinaryEx Function">
       <target id="pdf">pdf://1099@sack-docodocs.pdf</target>
     </link>
     <link topicid="sack::logging::LogBinaryEx@P_8@size_t size" displaystring="sack::logging::LogBinaryEx Function">
       <target id="html">../output/sack__logging__LogBinaryEx@P_8@size_t_size.html</target>
     </link>
-    <link topicid="sack::logging::LogBinaryFL@P_8@_32 size" displaystring="sack::logging::LogBinaryFL Function">
+    <link topicid="sack::logging::LogBinaryFL@P_8@uint32_t size" displaystring="sack::logging::LogBinaryFL Function">
       <target id="pdf">pdf://1100@sack-docodocs.pdf</target>
     </link>
     <link topicid="sack::logging::LogBinaryFL@P_8@size_t size" displaystring="sack::logging::LogBinaryFL Function">
@@ -8642,8 +8642,8 @@
       <target id="html">../output/sack__logging__SetSystemLog@enum_syslog_types@void__.html</target>
       <target id="pdf">pdf://1104@sack-docodocs.pdf</target>
     </link>
-    <link topicid="sack::logging::SetSystemLoggingLevel@_32" displaystring="sack::logging::SetSystemLoggingLevel Function">
-      <target id="html">../output/sack__logging__SetSystemLoggingLevel@_32.html</target>
+    <link topicid="sack::logging::SetSystemLoggingLevel@uint32_t" displaystring="sack::logging::SetSystemLoggingLevel Function">
+      <target id="html">../output/sack__logging__SetSystemLoggingLevel@uint32_t.html</target>
       <target id="pdf">pdf://1105@sack-docodocs.pdf</target>
     </link>
     <link topicid="sack::logging::syslog_types" displaystring="sack::logging::syslog_types Enumeration">
@@ -8674,8 +8674,8 @@
       <target id="html">../output/sack__logging__SystemLogFL@CTEXTSTR.html</target>
       <target id="pdf">pdf://1108@sack-docodocs.pdf</target>
     </link>
-    <link topicid="sack::logging::SystemLogTime@_32" displaystring="sack::logging::SystemLogTime Function">
-      <target id="html">../output/sack__logging__SystemLogTime@_32.html</target>
+    <link topicid="sack::logging::SystemLogTime@uint32_t" displaystring="sack::logging::SystemLogTime Function">
+      <target id="html">../output/sack__logging__SystemLogTime@uint32_t.html</target>
       <target id="pdf">pdf://1109@sack-docodocs.pdf</target>
     </link>
     <link topicid="sack::logging::UserLoggingCallback" displaystring="sack::logging::UserLoggingCallback Type">
@@ -8792,8 +8792,8 @@
       <target id="html">../output/sack__math__fraction__fraction_tag.html</target>
       <target id="pdf">pdf://1154@sack-docodocs.pdf</target>
     </link>
-    <link topicid="sack::math::fraction::InverseScaleValue@PFRACTION@S_32" displaystring="sack::math::fraction::InverseScaleValue Function">
-      <target id="html">../output/sack__math__fraction__InverseScaleValue@PFRACTION@S_32.html</target>
+    <link topicid="sack::math::fraction::InverseScaleValue@PFRACTION@int32_t" displaystring="sack::math::fraction::InverseScaleValue Function">
+      <target id="html">../output/sack__math__fraction__InverseScaleValue@PFRACTION@int32_t.html</target>
       <target id="pdf">pdf://1142@sack-docodocs.pdf</target>
     </link>
     <link topicid="sack::math::fraction::LogCoords@PCOORDPAIR" displaystring="sack::math::fraction::LogCoords Function">
@@ -8816,12 +8816,12 @@
       <target id="html">../output/sack__math__fraction__ReduceFraction@PFRACTION.html</target>
       <target id="pdf">pdf://1145@sack-docodocs.pdf</target>
     </link>
-    <link topicid="sack::math::fraction::ScaleFraction@PFRACTION@S_32@PFRACTION" displaystring="sack::math::fraction::ScaleFraction Function">
-      <target id="html">../output/sack__math__fraction__ScaleFraction@PFRACTION@S_32@PFRACTION.html</target>
+    <link topicid="sack::math::fraction::ScaleFraction@PFRACTION@int32_t@PFRACTION" displaystring="sack::math::fraction::ScaleFraction Function">
+      <target id="html">../output/sack__math__fraction__ScaleFraction@PFRACTION@int32_t@PFRACTION.html</target>
       <target id="pdf">pdf://1146@sack-docodocs.pdf</target>
     </link>
-    <link topicid="sack::math::fraction::ScaleValue@PFRACTION@S_32" displaystring="sack::math::fraction::ScaleValue Function">
-      <target id="html">../output/sack__math__fraction__ScaleValue@PFRACTION@S_32.html</target>
+    <link topicid="sack::math::fraction::ScaleValue@PFRACTION@int32_t" displaystring="sack::math::fraction::ScaleValue Function">
+      <target id="html">../output/sack__math__fraction__ScaleValue@PFRACTION@int32_t.html</target>
       <target id="pdf">pdf://1147@sack-docodocs.pdf</target>
     </link>
     <link topicid="sack::math::fraction::SetFraction" displaystring="sack::math::fraction::SetFraction Macro">
@@ -9284,11 +9284,11 @@
       <target id="html">../output/sack__memory__GetFirstUsedBlock@PMEM.html</target>
       <target id="pdf">pdf://1174@sack-docodocs.pdf</target>
     </link>
-    <link topicid="sack::memory::GetHeapMemStatsEx@PMEM@_32 *@_32 *@_32 *@_32 *pFreeChunks" displaystring="sack::memory::GetHeapMemStatsEx Function">
+    <link topicid="sack::memory::GetHeapMemStatsEx@PMEM@uint32_t *@uint32_t *@uint32_t *@uint32_t *pFreeChunks" displaystring="sack::memory::GetHeapMemStatsEx Function">
       <target id="html">../output/sack__memory__GetHeapMemStatsEx@PMEM@_32__@_32__@_32__@_32__pFreeChunks.html</target>
       <target id="pdf">pdf://1177@sack-docodocs.pdf</target>
     </link>
-    <link topicid="sack::memory::GetMemStats@_32 *@_32 *@_32 *@_32 *" displaystring="sack::memory::GetMemStats Function">
+    <link topicid="sack::memory::GetMemStats@uint32_t *@uint32_t *@uint32_t *@uint32_t *" displaystring="sack::memory::GetMemStats Function">
       <target id="html">../output/sack__memory__GetMemStats@_32__@_32__@_32__@_32__.html</target>
       <target id="pdf">pdf://1178@sack-docodocs.pdf</target>
     </link>
@@ -9324,8 +9324,8 @@
       <target id="html">../output/sack__memory__LockedDecrement@P_32.html</target>
       <target id="pdf">pdf://1188@sack-docodocs.pdf</target>
     </link>
-    <link topicid="sack::memory::LockedExchange@PV_32@_32" displaystring="sack::memory::LockedExchange Function">
-      <target id="html">../output/sack__memory__LockedExchange@PV_32@_32.html</target>
+    <link topicid="sack::memory::LockedExchange@PV_32@uint32_t" displaystring="sack::memory::LockedExchange Function">
+      <target id="html">../output/sack__memory__LockedExchange@PV_32@uint32_t.html</target>
       <target id="pdf">pdf://1189@sack-docodocs.pdf</target>
     </link>
     <link topicid="sack::memory::LockedExchange64@PV_64@_64" displaystring="sack::memory::LockedExchange64 Function">
@@ -9735,11 +9735,11 @@
     <link topicid="sack::network::cReadCompleteEx" displaystring="sack::network::cReadCompleteEx Type">
       <target id="html">../output/sack__network__cReadCompleteEx.html</target>
     </link>
-    <link topicid="sack::network::CreateAddress@_32@_16" displaystring="sack::network::CreateAddress Function">
-      <target id="html">../output/sack__network__CreateAddress@_32@_16.html</target>
+    <link topicid="sack::network::CreateAddress@uint32_t@_16" displaystring="sack::network::CreateAddress Function">
+      <target id="html">../output/sack__network__CreateAddress@uint32_t@_16.html</target>
     </link>
-    <link topicid="sack::network::CreateAddress_hton@_32@_16" displaystring="sack::network::CreateAddress_hton Function">
-      <target id="html">../output/sack__network__CreateAddress_hton@_32@_16.html</target>
+    <link topicid="sack::network::CreateAddress_hton@uint32_t@_16" displaystring="sack::network::CreateAddress_hton Function">
+      <target id="html">../output/sack__network__CreateAddress_hton@uint32_t@_16.html</target>
     </link>
     <link topicid="sack::network::CreateLocal@_16" displaystring="sack::network::CreateLocal Function">
       <target id="html">../output/sack__network__CreateLocal@_16.html</target>
@@ -9753,11 +9753,11 @@
     <link topicid="sack::network::cWriteComplete" displaystring="sack::network::cWriteComplete Type">
       <target id="html">../output/sack__network__cWriteComplete.html</target>
     </link>
-    <link topicid="sack::network::DoPing@CTEXTSTR@int@_32@int@PVARTEXT@LOGICAL@void *ResultCallback _32 dwIP, CTEXTSTR name, int min, int max, int avg, int drop, int hops" displaystring="sack::network::DoPing Function">
-      <target id="html">../output/sack__network__DoPing@CTEXTSTR@int@_32@int@PVARTEXT@LOGICAL@void__ResultCallback__32_dwIP,_CTEXTSTR_name,_int_min,_int_max,_int_avg,_int_drop,_int_hops.html</target>
+    <link topicid="sack::network::DoPing@CTEXTSTR@int@uint32_t@int@PVARTEXT@LOGICAL@void *ResultCallback uint32_t dwIP, CTEXTSTR name, int min, int max, int avg, int drop, int hops" displaystring="sack::network::DoPing Function">
+      <target id="html">../output/sack__network__DoPing@CTEXTSTR@int@uint32_t@int@PVARTEXT@LOGICAL@void__ResultCallback__32_dwIP,_CTEXTSTR_name,_int_min,_int_max,_int_avg,_int_drop,_int_hops.html</target>
     </link>
-    <link topicid="sack::network::DoPingEx@CTEXTSTR@int@_32@int@PVARTEXT@LOGICAL@void *ResultCallback PTRSZVAL psv, _32 dwIP, CTEXTSTR name, int min, int max, int avg, int drop, int hops@PTRSZVAL" displaystring="sack::network::DoPingEx Function">
-      <target id="html">../output/sack__network__DoPingEx@CTEXTSTR@int@_32@int@PVARTEXT@LOGICAL@void__ResultCallback_PTRSZVAL_psv,__32_dwIP,_CTEXTSTR_name,_int_min,_int_max,_int_avg,_int_drop,_int_hops@PTRSZVAL.html</target>
+    <link topicid="sack::network::DoPingEx@CTEXTSTR@int@uint32_t@int@PVARTEXT@LOGICAL@void *ResultCallback PTRSZVAL psv, uint32_t dwIP, CTEXTSTR name, int min, int max, int avg, int drop, int hops@PTRSZVAL" displaystring="sack::network::DoPingEx Function">
+      <target id="html">../output/sack__network__DoPingEx@CTEXTSTR@int@uint32_t@int@PVARTEXT@LOGICAL@void__ResultCallback_PTRSZVAL_psv,__32_dwIP,_CTEXTSTR_name,_int_min,_int_max,_int_avg,_int_drop,_int_hops@PTRSZVAL.html</target>
     </link>
     <link topicid="sack::network::DoWhois@CTEXTSTR@CTEXTSTR@PVARTEXT" displaystring="sack::network::DoWhois Function">
       <target id="html">../output/sack__network__DoWhois@CTEXTSTR@CTEXTSTR@PVARTEXT.html</target>
@@ -9765,7 +9765,7 @@
     <link topicid="sack::network::DuplicateAddress@SOCKADDR *" displaystring="sack::network::DuplicateAddress Function">
       <target id="html">../output/sack__network__DuplicateAddress@SOCKADDR__.html</target>
     </link>
-    <link topicid="sack::network::GetAddressParts@SOCKADDR *@_32 *@_16 *" displaystring="sack::network::GetAddressParts Function">
+    <link topicid="sack::network::GetAddressParts@SOCKADDR *@uint32_t *@_16 *" displaystring="sack::network::GetAddressParts Function">
       <target id="html">../output/sack__network__GetAddressParts@SOCKADDR__@_32__@_16__.html</target>
     </link>
     <link topicid="sack::network::GetMacAddress@PCLIENT" displaystring="sack::network::GetMacAddress Function">
@@ -9846,8 +9846,8 @@
     <link topicid="sack::network::network::SetClientKeepAlive@LOGICAL" displaystring="network::SetClientKeepAlive Method">
       <target id="html">../output/sack__network__network__SetClientKeepAlive@LOGICAL.html</target>
     </link>
-    <link topicid="sack::network::network::SetLong@int@_32" displaystring="network::SetLong Method">
-      <target id="html">../output/sack__network__network__SetLong@int@_32.html</target>
+    <link topicid="sack::network::network::SetLong@int@uint32_t" displaystring="network::SetLong Method">
+      <target id="html">../output/sack__network__network__SetLong@int@uint32_t.html</target>
     </link>
     <link topicid="sack::network::network::SetNoDelay@LOGICAL" displaystring="network::SetNoDelay Method">
       <target id="html">../output/sack__network__network__SetNoDelay@LOGICAL.html</target>
@@ -10415,7 +10415,7 @@
     <link topicid="sack::PSI::_SQLPromptINIValue@CTEXTSTR@CTEXTSTR@CTEXTSTR@TEXTSTR@size_t@CTEXTSTR" displaystring="sack::PSI::_SQLPromptINIValue Function">
       <target id="html">../output/sack__PSI___SQLPromptINIValue@CTEXTSTR@CTEXTSTR@CTEXTSTR@TEXTSTR@size_t@CTEXTSTR.html</target>
     </link>
-    <link topicid="sack::PSI::AddCommonAcceptDroppedFiles@PSI_CONTROL@void __cdecl*AcceptDroppedFilesMethodPSI_CONTROL, CTEXTSTR file, S_32 x, S_32 y" displaystring="sack::PSI::AddCommonAcceptDroppedFiles Function">
+    <link topicid="sack::PSI::AddCommonAcceptDroppedFiles@PSI_CONTROL@void __cdecl*AcceptDroppedFilesMethodPSI_CONTROL, CTEXTSTR file, int32_t x, int32_t y" displaystring="sack::PSI::AddCommonAcceptDroppedFiles Function">
       <target id="html">../output/sack__PSI__AddCommonAcceptDroppedFiles@PSI_CONTROL@void___cdecl_AcceptDroppedFilesMethodPSI_CONTROL,_CTEXTSTR_file,_S_32_x,_S_32_y.html</target>
     </link>
     <link topicid="sack::PSI::AddCommonButtons@PSI_CONTROL@int *@int *" displaystring="sack::PSI::AddCommonButtons Function">
@@ -10427,10 +10427,10 @@
     <link topicid="sack::PSI::AddCommonDraw@PSI_CONTROL@int __cdecl*Draw PSI_CONTROL pc" displaystring="sack::PSI::AddCommonDraw Function">
       <target id="html">../output/sack__PSI__AddCommonDraw@PSI_CONTROL@int___cdecl_Draw_PSI_CONTROL_pc.html</target>
     </link>
-    <link topicid="sack::PSI::AddCommonKey@PSI_CONTROL@int __cdecl*KeyPSI_CONTROL,_32" displaystring="sack::PSI::AddCommonKey Function">
-      <target id="html">../output/sack__PSI__AddCommonKey@PSI_CONTROL@int___cdecl_KeyPSI_CONTROL,_32.html</target>
+    <link topicid="sack::PSI::AddCommonKey@PSI_CONTROL@int __cdecl*KeyPSI_CONTROL,uint32_t" displaystring="sack::PSI::AddCommonKey Function">
+      <target id="html">../output/sack__PSI__AddCommonKey@PSI_CONTROL@int___cdecl_KeyPSI_CONTROL,uint32_t.html</target>
     </link>
-    <link topicid="sack::PSI::AddCommonMouse@PSI_CONTROL@int __cdecl*MouseMethodPSI_CONTROL, S_32 x, S_32 y, _32 b" displaystring="sack::PSI::AddCommonMouse Function">
+    <link topicid="sack::PSI::AddCommonMouse@PSI_CONTROL@int __cdecl*MouseMethodPSI_CONTROL, int32_t x, int32_t y, uint32_t b" displaystring="sack::PSI::AddCommonMouse Function">
       <target id="html">../output/sack__PSI__AddCommonMouse@PSI_CONTROL@int___cdecl_MouseMethodPSI_CONTROL,_S_32_x,_S_32_y,__32_b.html</target>
     </link>
     <link topicid="sack::PSI::AdoptCommon@PSI_CONTROL@PSI_CONTROL@PSI_CONTROL" displaystring="sack::PSI::AdoptCommon Function">
@@ -10520,8 +10520,8 @@
     <link topicid="sack::PSI::button::PressButton@PSI_CONTROL@int" displaystring="sack::PSI::button::PressButton Function">
       <target id="html">../output/sack__PSI__button__PressButton@PSI_CONTROL@int.html</target>
     </link>
-    <link topicid="sack::PSI::button::PSIMakeImageButton@PSI_CONTROL@int@int@int@int@_32@Image@void __cdecl*PushMethodPTRSZVAL psv, PSI_CONTROL pc@PTRSZVAL" displaystring="sack::PSI::button::PSIMakeImageButton Function">
-      <target id="html">../output/sack__PSI__button__PSIMakeImageButton@PSI_CONTROL@int@int@int@int@_32@Image@void___cdecl_PushMethodPTRSZVAL_psv,_PSI_CONTROL_pc@PTRSZVAL.html</target>
+    <link topicid="sack::PSI::button::PSIMakeImageButton@PSI_CONTROL@int@int@int@int@uint32_t@Image@void __cdecl*PushMethodPTRSZVAL psv, PSI_CONTROL pc@PTRSZVAL" displaystring="sack::PSI::button::PSIMakeImageButton Function">
+      <target id="html">../output/sack__PSI__button__PSIMakeImageButton@PSI_CONTROL@int@int@int@int@uint32_t@Image@void___cdecl_PushMethodPTRSZVAL_psv,_PSI_CONTROL_pc@PTRSZVAL.html</target>
     </link>
     <link topicid="sack::PSI::button::RadioButtonAttributes" displaystring="sack::PSI::button::RadioButtonAttributes Enumeration">
       <target id="html">../output/sack__PSI__button__RadioButtonAttributes.html</target>
@@ -10682,11 +10682,11 @@
     <link topicid="sack::PSI::CopyOriginalSurfaceEx@PCONTROL@Image use_image" displaystring="sack::PSI::CopyOriginalSurfaceEx Function">
       <target id="html">../output/sack__PSI__CopyOriginalSurfaceEx@PCONTROL@Image_use_image.html</target>
     </link>
-    <link topicid="sack::PSI::CreateFrame@CTEXTSTR@int@int@int@int@_32@PSI_CONTROL" displaystring="sack::PSI::CreateFrame Function">
-      <target id="html">../output/sack__PSI__CreateFrame@CTEXTSTR@int@int@int@int@_32@PSI_CONTROL.html</target>
+    <link topicid="sack::PSI::CreateFrame@CTEXTSTR@int@int@int@int@uint32_t@PSI_CONTROL" displaystring="sack::PSI::CreateFrame Function">
+      <target id="html">../output/sack__PSI__CreateFrame@CTEXTSTR@int@int@int@int@uint32_t@PSI_CONTROL.html</target>
     </link>
-    <link topicid="sack::PSI::CreateFrameFromRenderer@CTEXTSTR@_32@PRENDERER" displaystring="sack::PSI::CreateFrameFromRenderer Function">
-      <target id="html">../output/sack__PSI__CreateFrameFromRenderer@CTEXTSTR@_32@PRENDERER.html</target>
+    <link topicid="sack::PSI::CreateFrameFromRenderer@CTEXTSTR@uint32_t@PRENDERER" displaystring="sack::PSI::CreateFrameFromRenderer Function">
+      <target id="html">../output/sack__PSI__CreateFrameFromRenderer@CTEXTSTR@uint32_t@PRENDERER.html</target>
     </link>
     <link topicid="sack::PSI::DeclMethod" displaystring="sack::PSI::DeclMethod Macro">
       <target id="html">../output/sack__PSI__DeclMethod.html</target>
@@ -10847,35 +10847,35 @@
     <link topicid="sack::PSI::font" displaystring="sack::PSI::font Namespace">
       <target id="html">../output/sack__PSI__font.html</target>
     </link>
-    <link topicid="sack::PSI::font::PickFont@S_32@S_32@size_t *@POINTER *@PSI_CONTROL" displaystring="sack::PSI::font::PickFont Function">
-      <target id="html">../output/sack__PSI__font__PickFont@S_32@S_32@size_t__@POINTER__@PSI_CONTROL.html</target>
+    <link topicid="sack::PSI::font::PickFont@int32_t@int32_t@size_t *@POINTER *@PSI_CONTROL" displaystring="sack::PSI::font::PickFont Function">
+      <target id="html">../output/sack__PSI__font__PickFont@int32_t@int32_t@size_t__@POINTER__@PSI_CONTROL.html</target>
     </link>
-    <link topicid="sack::PSI::font::PickFontFor@S_32@S_32@size_t *@POINTER *@PSI_CONTROL@PSI_CONTROL" displaystring="sack::PSI::font::PickFontFor Function">
-      <target id="html">../output/sack__PSI__font__PickFontFor@S_32@S_32@size_t__@POINTER__@PSI_CONTROL@PSI_CONTROL.html</target>
+    <link topicid="sack::PSI::font::PickFontFor@int32_t@int32_t@size_t *@POINTER *@PSI_CONTROL@PSI_CONTROL" displaystring="sack::PSI::font::PickFontFor Function">
+      <target id="html">../output/sack__PSI__font__PickFontFor@int32_t@int32_t@size_t__@POINTER__@PSI_CONTROL@PSI_CONTROL.html</target>
     </link>
-    <link topicid="sack::PSI::font::PickFontWithUpdate@S_32@S_32@size_t *@POINTER *@PSI_CONTROL@void __cdecl *UpdateFont PTRSZVAL psv, Font font@PTRSZVAL" displaystring="sack::PSI::font::PickFontWithUpdate Function">
-      <target id="html">../output/sack__PSI__font__PickFontWithUpdate@S_32@S_32@size_t__@POINTER__@PSI_CONTROL@void___cdecl__UpdateFont_PTRSZVAL_psv,_Font_font@PTRSZVAL.html</target>
+    <link topicid="sack::PSI::font::PickFontWithUpdate@int32_t@int32_t@size_t *@POINTER *@PSI_CONTROL@void __cdecl *UpdateFont PTRSZVAL psv, Font font@PTRSZVAL" displaystring="sack::PSI::font::PickFontWithUpdate Function">
+      <target id="html">../output/sack__PSI__font__PickFontWithUpdate@int32_t@int32_t@size_t__@POINTER__@PSI_CONTROL@void___cdecl__UpdateFont_PTRSZVAL_psv,_Font_font@PTRSZVAL.html</target>
     </link>
     <link topicid="sack::PSI::font::PickScaledFont" displaystring="sack::PSI::font::PickScaledFont Macro">
       <target id="html">../output/sack__PSI__font__PickScaledFont.html</target>
     </link>
-    <link topicid="sack::PSI::font::PickScaledFontWithUpdate@S_32@S_32@PFRACTION@PFRACTION@size_t *@POINTER *@PSI_CONTROL@void __cdecl *UpdateFont PTRSZVAL psv, Font font@PTRSZVAL" displaystring="sack::PSI::font::PickScaledFontWithUpdate Function">
-      <target id="html">../output/sack__PSI__font__PickScaledFontWithUpdate@S_32@S_32@PFRACTION@PFRACTION@size_t__@POINTER__@PSI_CONTROL@void___cdecl__UpdateFont_PTRSZVAL_psv,_Font_font@PTRSZVAL.html</target>
+    <link topicid="sack::PSI::font::PickScaledFontWithUpdate@int32_t@int32_t@PFRACTION@PFRACTION@size_t *@POINTER *@PSI_CONTROL@void __cdecl *UpdateFont PTRSZVAL psv, Font font@PTRSZVAL" displaystring="sack::PSI::font::PickScaledFontWithUpdate Function">
+      <target id="html">../output/sack__PSI__font__PickScaledFontWithUpdate@int32_t@int32_t@PFRACTION@PFRACTION@size_t__@POINTER__@PSI_CONTROL@void___cdecl__UpdateFont_PTRSZVAL_psv,_Font_font@PTRSZVAL.html</target>
     </link>
     <link topicid="sack::PSI::FP_ARG" displaystring="sack::PSI::FP_ARG Macro">
       <target id="html">../output/sack__PSI__FP_ARG.html</target>
     </link>
-    <link topicid="sack::PSI::FrameBorderX@PSI_CONTROL@_32" displaystring="sack::PSI::FrameBorderX Function">
-      <target id="html">../output/sack__PSI__FrameBorderX@PSI_CONTROL@_32.html</target>
+    <link topicid="sack::PSI::FrameBorderX@PSI_CONTROL@uint32_t" displaystring="sack::PSI::FrameBorderX Function">
+      <target id="html">../output/sack__PSI__FrameBorderX@PSI_CONTROL@uint32_t.html</target>
     </link>
-    <link topicid="sack::PSI::FrameBorderXOfs@PSI_CONTROL@_32" displaystring="sack::PSI::FrameBorderXOfs Function">
-      <target id="html">../output/sack__PSI__FrameBorderXOfs@PSI_CONTROL@_32.html</target>
+    <link topicid="sack::PSI::FrameBorderXOfs@PSI_CONTROL@uint32_t" displaystring="sack::PSI::FrameBorderXOfs Function">
+      <target id="html">../output/sack__PSI__FrameBorderXOfs@PSI_CONTROL@uint32_t.html</target>
     </link>
-    <link topicid="sack::PSI::FrameBorderY@PSI_CONTROL@_32@CTEXTSTR" displaystring="sack::PSI::FrameBorderY Function">
-      <target id="html">../output/sack__PSI__FrameBorderY@PSI_CONTROL@_32@CTEXTSTR.html</target>
+    <link topicid="sack::PSI::FrameBorderY@PSI_CONTROL@uint32_t@CTEXTSTR" displaystring="sack::PSI::FrameBorderY Function">
+      <target id="html">../output/sack__PSI__FrameBorderY@PSI_CONTROL@uint32_t@CTEXTSTR.html</target>
     </link>
-    <link topicid="sack::PSI::FrameBorderYOfs@PSI_CONTROL@_32@CTEXTSTR" displaystring="sack::PSI::FrameBorderYOfs Function">
-      <target id="html">../output/sack__PSI__FrameBorderYOfs@PSI_CONTROL@_32@CTEXTSTR.html</target>
+    <link topicid="sack::PSI::FrameBorderYOfs@PSI_CONTROL@uint32_t@CTEXTSTR" displaystring="sack::PSI::FrameBorderYOfs Function">
+      <target id="html">../output/sack__PSI__FrameBorderYOfs@PSI_CONTROL@uint32_t@CTEXTSTR.html</target>
     </link>
     <link topicid="sack::PSI::FrameInitProc" displaystring="sack::PSI::FrameInitProc Type">
       <target id="html">../output/sack__PSI__FrameInitProc.html</target>
@@ -10961,7 +10961,7 @@
     <link topicid="sack::PSI::GetNearControl@PSI_CONTROL@int" displaystring="sack::PSI::GetNearControl Function">
       <target id="html">../output/sack__PSI__GetNearControl@PSI_CONTROL@int.html</target>
     </link>
-    <link topicid="sack::PSI::GetPhysicalCoordinate@PSI_CONTROL@S_32 *@S_32 *@int" displaystring="sack::PSI::GetPhysicalCoordinate Function">
+    <link topicid="sack::PSI::GetPhysicalCoordinate@PSI_CONTROL@int32_t *@int32_t *@int" displaystring="sack::PSI::GetPhysicalCoordinate Function">
       <target id="html">../output/sack__PSI__GetPhysicalCoordinate@PSI_CONTROL@S_32__@S_32__@int.html</target>
     </link>
     <link topicid="sack::PSI::HideCommon@PSI_CONTROL" displaystring="sack::PSI::HideCommon Function">
@@ -11138,7 +11138,7 @@
     <link topicid="sack::PSI::listbox::SetDoubleClickHandler@PSI_CONTROL@DoubleClicker@PTRSZVAL" displaystring="sack::PSI::listbox::SetDoubleClickHandler Function">
       <target id="html">../output/sack__PSI__listbox__SetDoubleClickHandler@PSI_CONTROL@DoubleClicker@PTRSZVAL.html</target>
     </link>
-    <link topicid="sack::PSI::listbox::SetItemContextMenu@PLISTITEM@PMENU@void __cdecl*MenuProcPTRSZVAL, PLISTITEM, _32 menuopt@PTRSZVAL" displaystring="sack::PSI::listbox::SetItemContextMenu Function">
+    <link topicid="sack::PSI::listbox::SetItemContextMenu@PLISTITEM@PMENU@void __cdecl*MenuProcPTRSZVAL, PLISTITEM, uint32_t menuopt@PTRSZVAL" displaystring="sack::PSI::listbox::SetItemContextMenu Function">
       <target id="html">../output/sack__PSI__listbox__SetItemContextMenu@PLISTITEM@PMENU@void___cdecl_MenuProcPTRSZVAL,_PLISTITEM,__32_menuopt@PTRSZVAL.html</target>
     </link>
     <link topicid="sack::PSI::listbox::SetItemData@PLISTITEM@PTRSZVAL" displaystring="sack::PSI::listbox::SetItemData Function">
@@ -11180,32 +11180,32 @@
     <link topicid="sack::PSI::LoadFrameFromFile@FILE *@PSI_CONTROL@FrameInitProc@PTRSZVAL" displaystring="sack::PSI::LoadFrameFromFile Function">
       <target id="html">../output/sack__PSI__LoadFrameFromFile@FILE__@PSI_CONTROL@FrameInitProc@PTRSZVAL.html</target>
     </link>
-    <link topicid="sack::PSI::LoadFrameFromMemory@POINTER@_32@PSI_CONTROL@FrameInitProc@PTRSZVAL" displaystring="sack::PSI::LoadFrameFromMemory Function">
-      <target id="html">../output/sack__PSI__LoadFrameFromMemory@POINTER@_32@PSI_CONTROL@FrameInitProc@PTRSZVAL.html</target>
+    <link topicid="sack::PSI::LoadFrameFromMemory@POINTER@uint32_t@PSI_CONTROL@FrameInitProc@PTRSZVAL" displaystring="sack::PSI::LoadFrameFromMemory Function">
+      <target id="html">../output/sack__PSI__LoadFrameFromMemory@POINTER@uint32_t@PSI_CONTROL@FrameInitProc@PTRSZVAL.html</target>
     </link>
-    <link topicid="sack::PSI::MakeCaptionedControl@PSI_CONTROL@_32@int@int@int@int@_32@CTEXTSTR" displaystring="sack::PSI::MakeCaptionedControl Function">
-      <target id="html">../output/sack__PSI__MakeCaptionedControl@PSI_CONTROL@_32@int@int@int@int@_32@CTEXTSTR.html</target>
+    <link topicid="sack::PSI::MakeCaptionedControl@PSI_CONTROL@uint32_t@int@int@int@int@uint32_t@CTEXTSTR" displaystring="sack::PSI::MakeCaptionedControl Function">
+      <target id="html">../output/sack__PSI__MakeCaptionedControl@PSI_CONTROL@uint32_t@int@int@int@int@uint32_t@CTEXTSTR.html</target>
     </link>
-    <link topicid="sack::PSI::MakeControl@PSI_CONTROL@_32@int@int@int@int@_32" displaystring="sack::PSI::MakeControl Function">
-      <target id="html">../output/sack__PSI__MakeControl@PSI_CONTROL@_32@int@int@int@int@_32.html</target>
+    <link topicid="sack::PSI::MakeControl@PSI_CONTROL@uint32_t@int@int@int@int@uint32_t" displaystring="sack::PSI::MakeControl Function">
+      <target id="html">../output/sack__PSI__MakeControl@PSI_CONTROL@uint32_t@int@int@int@int@uint32_t.html</target>
     </link>
-    <link topicid="sack::PSI::MakeControlParam@PSI_CONTROL@_32@int@int@int@int@_32@POINTER" displaystring="sack::PSI::MakeControlParam Function">
-      <target id="html">../output/sack__PSI__MakeControlParam@PSI_CONTROL@_32@int@int@int@int@_32@POINTER.html</target>
+    <link topicid="sack::PSI::MakeControlParam@PSI_CONTROL@uint32_t@int@int@int@int@uint32_t@POINTER" displaystring="sack::PSI::MakeControlParam Function">
+      <target id="html">../output/sack__PSI__MakeControlParam@PSI_CONTROL@uint32_t@int@int@int@int@uint32_t@POINTER.html</target>
     </link>
-    <link topicid="sack::PSI::MakeNamedCaptionedControl@PSI_CONTROL@CTEXTSTR@int@int@int@int@_32@CTEXTSTR" displaystring="sack::PSI::MakeNamedCaptionedControl Function">
-      <target id="html">../output/sack__PSI__MakeNamedCaptionedControl@PSI_CONTROL@CTEXTSTR@int@int@int@int@_32@CTEXTSTR.html</target>
+    <link topicid="sack::PSI::MakeNamedCaptionedControl@PSI_CONTROL@CTEXTSTR@int@int@int@int@uint32_t@CTEXTSTR" displaystring="sack::PSI::MakeNamedCaptionedControl Function">
+      <target id="html">../output/sack__PSI__MakeNamedCaptionedControl@PSI_CONTROL@CTEXTSTR@int@int@int@int@uint32_t@CTEXTSTR.html</target>
     </link>
-    <link topicid="sack::PSI::MakeNamedCaptionedControlByName@PSI_CONTROL@CTEXTSTR@int@int@int@int@CTEXTSTR@_32@CTEXTSTR" displaystring="sack::PSI::MakeNamedCaptionedControlByName Function">
-      <target id="html">../output/sack__PSI__MakeNamedCaptionedControlByName@PSI_CONTROL@CTEXTSTR@int@int@int@int@CTEXTSTR@_32@CTEXTSTR.html</target>
+    <link topicid="sack::PSI::MakeNamedCaptionedControlByName@PSI_CONTROL@CTEXTSTR@int@int@int@int@CTEXTSTR@uint32_t@CTEXTSTR" displaystring="sack::PSI::MakeNamedCaptionedControlByName Function">
+      <target id="html">../output/sack__PSI__MakeNamedCaptionedControlByName@PSI_CONTROL@CTEXTSTR@int@int@int@int@CTEXTSTR@uint32_t@CTEXTSTR.html</target>
     </link>
-    <link topicid="sack::PSI::MakeNamedControl@PSI_CONTROL@CTEXTSTR@int@int@int@int@_32" displaystring="sack::PSI::MakeNamedControl Function">
-      <target id="html">../output/sack__PSI__MakeNamedControl@PSI_CONTROL@CTEXTSTR@int@int@int@int@_32.html</target>
+    <link topicid="sack::PSI::MakeNamedControl@PSI_CONTROL@CTEXTSTR@int@int@int@int@uint32_t" displaystring="sack::PSI::MakeNamedControl Function">
+      <target id="html">../output/sack__PSI__MakeNamedControl@PSI_CONTROL@CTEXTSTR@int@int@int@int@uint32_t.html</target>
     </link>
-    <link topicid="sack::PSI::MakePrivateControl@PSI_CONTROL@_32@int@int@int@int@_32" displaystring="sack::PSI::MakePrivateControl Function">
-      <target id="html">../output/sack__PSI__MakePrivateControl@PSI_CONTROL@_32@int@int@int@int@_32.html</target>
+    <link topicid="sack::PSI::MakePrivateControl@PSI_CONTROL@uint32_t@int@int@int@int@uint32_t" displaystring="sack::PSI::MakePrivateControl Function">
+      <target id="html">../output/sack__PSI__MakePrivateControl@PSI_CONTROL@uint32_t@int@int@int@int@uint32_t.html</target>
     </link>
-    <link topicid="sack::PSI::MakePrivateNamedControl@PSI_CONTROL@CTEXTSTR@int@int@int@int@_32" displaystring="sack::PSI::MakePrivateNamedControl Function">
-      <target id="html">../output/sack__PSI__MakePrivateNamedControl@PSI_CONTROL@CTEXTSTR@int@int@int@int@_32.html</target>
+    <link topicid="sack::PSI::MakePrivateNamedControl@PSI_CONTROL@CTEXTSTR@int@int@int@int@uint32_t" displaystring="sack::PSI::MakePrivateNamedControl Function">
+      <target id="html">../output/sack__PSI__MakePrivateNamedControl@PSI_CONTROL@CTEXTSTR@int@int@int@int@uint32_t.html</target>
     </link>
     <link topicid="sack::PSI::MK_PSI_VERSION" displaystring="sack::PSI::MK_PSI_VERSION Macro">
       <target id="html">../output/sack__PSI__MK_PSI_VERSION.html</target>
@@ -11213,11 +11213,11 @@
     <link topicid="sack::PSI::MKPFRAME" displaystring="sack::PSI::MKPFRAME Macro">
       <target id="html">../output/sack__PSI__MKPFRAME.html</target>
     </link>
-    <link topicid="sack::PSI::MoveCommon@PSI_CONTROL@S_32@S_32" displaystring="sack::PSI::MoveCommon Function">
-      <target id="html">../output/sack__PSI__MoveCommon@PSI_CONTROL@S_32@S_32.html</target>
+    <link topicid="sack::PSI::MoveCommon@PSI_CONTROL@int32_t@int32_t" displaystring="sack::PSI::MoveCommon Function">
+      <target id="html">../output/sack__PSI__MoveCommon@PSI_CONTROL@int32_t@int32_t.html</target>
     </link>
-    <link topicid="sack::PSI::MoveCommonRel@PSI_CONTROL@S_32@S_32" displaystring="sack::PSI::MoveCommonRel Function">
-      <target id="html">../output/sack__PSI__MoveCommonRel@PSI_CONTROL@S_32@S_32.html</target>
+    <link topicid="sack::PSI::MoveCommonRel@PSI_CONTROL@int32_t@int32_t" displaystring="sack::PSI::MoveCommonRel Function">
+      <target id="html">../output/sack__PSI__MoveCommonRel@PSI_CONTROL@int32_t@int32_t.html</target>
     </link>
     <link topicid="sack::PSI::MoveControl" displaystring="sack::PSI::MoveControl Macro">
       <target id="html">../output/sack__PSI__MoveControl.html</target>
@@ -11231,11 +11231,11 @@
     <link topicid="sack::PSI::MoveFrameRel" displaystring="sack::PSI::MoveFrameRel Macro">
       <target id="html">../output/sack__PSI__MoveFrameRel.html</target>
     </link>
-    <link topicid="sack::PSI::MoveSizeCommon@PSI_CONTROL@S_32@S_32@_32@_32" displaystring="sack::PSI::MoveSizeCommon Function">
-      <target id="html">../output/sack__PSI__MoveSizeCommon@PSI_CONTROL@S_32@S_32@_32@_32.html</target>
+    <link topicid="sack::PSI::MoveSizeCommon@PSI_CONTROL@int32_t@int32_t@uint32_t@uint32_t" displaystring="sack::PSI::MoveSizeCommon Function">
+      <target id="html">../output/sack__PSI__MoveSizeCommon@PSI_CONTROL@int32_t@int32_t@uint32_t@uint32_t.html</target>
     </link>
-    <link topicid="sack::PSI::MoveSizeCommonRel@PSI_CONTROL@S_32@S_32@_32@_32" displaystring="sack::PSI::MoveSizeCommonRel Function">
-      <target id="html">../output/sack__PSI__MoveSizeCommonRel@PSI_CONTROL@S_32@S_32@_32@_32.html</target>
+    <link topicid="sack::PSI::MoveSizeCommonRel@PSI_CONTROL@int32_t@int32_t@uint32_t@uint32_t" displaystring="sack::PSI::MoveSizeCommonRel Function">
+      <target id="html">../output/sack__PSI__MoveSizeCommonRel@PSI_CONTROL@int32_t@int32_t@uint32_t@uint32_t.html</target>
     </link>
     <link topicid="sack::PSI::MoveSizeControl" displaystring="sack::PSI::MoveSizeControl Macro">
       <target id="html">../output/sack__PSI__MoveSizeControl.html</target>
@@ -11468,14 +11468,14 @@
     <link topicid="sack::PSI::popup::AppendPopupItem@PMENU@int@PTRSZVAL@CPOINTER" displaystring="sack::PSI::popup::AppendPopupItem Function">
       <target id="html">../output/sack__PSI__popup__AppendPopupItem@PMENU@int@PTRSZVAL@CPOINTER.html</target>
     </link>
-    <link topicid="sack::PSI::popup::CheckPopupItem@PMENU@_32@_32" displaystring="sack::PSI::popup::CheckPopupItem Function">
-      <target id="html">../output/sack__PSI__popup__CheckPopupItem@PMENU@_32@_32.html</target>
+    <link topicid="sack::PSI::popup::CheckPopupItem@PMENU@uint32_t@uint32_t" displaystring="sack::PSI::popup::CheckPopupItem Function">
+      <target id="html">../output/sack__PSI__popup__CheckPopupItem@PMENU@uint32_t@uint32_t.html</target>
     </link>
     <link topicid="sack::PSI::popup::CreatePopup" displaystring="sack::PSI::popup::CreatePopup Function">
       <target id="html">../output/sack__PSI__popup__CreatePopup.html</target>
     </link>
-    <link topicid="sack::PSI::popup::DeletePopupItem@PMENU@_32@_32" displaystring="sack::PSI::popup::DeletePopupItem Function">
-      <target id="html">../output/sack__PSI__popup__DeletePopupItem@PMENU@_32@_32.html</target>
+    <link topicid="sack::PSI::popup::DeletePopupItem@PMENU@uint32_t@uint32_t" displaystring="sack::PSI::popup::DeletePopupItem Function">
+      <target id="html">../output/sack__PSI__popup__DeletePopupItem@PMENU@uint32_t@uint32_t.html</target>
     </link>
     <link topicid="sack::PSI::popup::DestroyPopup@PMENU" displaystring="sack::PSI::popup::DestroyPopup Function">
       <target id="html">../output/sack__PSI__popup__DestroyPopup@PMENU.html</target>
@@ -11522,8 +11522,8 @@
     <link topicid="sack::PSI::properties::EditFrame@PSI_CONTROL@int" displaystring="sack::PSI::properties::EditFrame Function">
       <target id="html">../output/sack__PSI__properties__EditFrame@PSI_CONTROL@int.html</target>
     </link>
-    <link topicid="sack::PSI::properties::EditFrameProperties@PSI_CONTROL@S_32@S_32" displaystring="sack::PSI::properties::EditFrameProperties Function">
-      <target id="html">../output/sack__PSI__properties__EditFrameProperties@PSI_CONTROL@S_32@S_32.html</target>
+    <link topicid="sack::PSI::properties::EditFrameProperties@PSI_CONTROL@int32_t@int32_t" displaystring="sack::PSI::properties::EditFrameProperties Function">
+      <target id="html">../output/sack__PSI__properties__EditFrameProperties@PSI_CONTROL@int32_t@int32_t.html</target>
     </link>
     <link topicid="sack::PSI::PSI_CONTROL" displaystring="sack::PSI::PSI_CONTROL Type">
       <target id="html">../output/sack__PSI__PSI_CONTROL.html</target>
@@ -11531,8 +11531,8 @@
     <link topicid="sack::PSI::PSI_OpenFile@CTEXTSTR@CTEXTSTR@TEXTSTR" displaystring="sack::PSI::PSI_OpenFile Function">
       <target id="html">../output/sack__PSI__PSI_OpenFile@CTEXTSTR@CTEXTSTR@TEXTSTR.html</target>
     </link>
-    <link topicid="sack::PSI::PSI_PickFile@PSI_CONTROL@CTEXTSTR@CTEXTSTR@TEXTSTR@_32@int" displaystring="sack::PSI::PSI_PickFile Function">
-      <target id="html">../output/sack__PSI__PSI_PickFile@PSI_CONTROL@CTEXTSTR@CTEXTSTR@TEXTSTR@_32@int.html</target>
+    <link topicid="sack::PSI::PSI_PickFile@PSI_CONTROL@CTEXTSTR@CTEXTSTR@TEXTSTR@uint32_t@int" displaystring="sack::PSI::PSI_PickFile Function">
+      <target id="html">../output/sack__PSI__PSI_PickFile@PSI_CONTROL@CTEXTSTR@CTEXTSTR@TEXTSTR@uint32_t@int.html</target>
     </link>
     <link topicid="sack::PSI::PSI_PROC" displaystring="sack::PSI::PSI_PROC Macro">
       <target id="html">../output/sack__PSI__PSI_PROC.html</target>
@@ -11609,13 +11609,13 @@
     <link topicid="sack::PSI::SetBaseColor@INDEX@CDATA" displaystring="sack::PSI::SetBaseColor Function">
       <target id="html">../output/sack__PSI__SetBaseColor@INDEX@CDATA.html</target>
     </link>
-    <link topicid="sack::PSI::SetCommonAcceptDroppedFiles@PSI_CONTROL@void __cdecl*AcceptDroppedFilesMethodPSI_CONTROL, CTEXTSTR file, S_32 x, S_32 y" displaystring="sack::PSI::SetCommonAcceptDroppedFiles Function">
+    <link topicid="sack::PSI::SetCommonAcceptDroppedFiles@PSI_CONTROL@void __cdecl*AcceptDroppedFilesMethodPSI_CONTROL, CTEXTSTR file, int32_t x, int32_t y" displaystring="sack::PSI::SetCommonAcceptDroppedFiles Function">
       <target id="html">../output/sack__PSI__SetCommonAcceptDroppedFiles@PSI_CONTROL@void___cdecl_AcceptDroppedFilesMethodPSI_CONTROL,_CTEXTSTR_file,_S_32_x,_S_32_y.html</target>
     </link>
     <link topicid="sack::PSI::SetCommonBorder" displaystring="sack::PSI::SetCommonBorder Macro">
       <target id="html">../output/sack__PSI__SetCommonBorder.html</target>
     </link>
-    <link topicid="sack::PSI::SetCommonBorderEx@PSI_CONTROL@_32 BorderType" displaystring="sack::PSI::SetCommonBorderEx Function">
+    <link topicid="sack::PSI::SetCommonBorderEx@PSI_CONTROL@uint32_t BorderType" displaystring="sack::PSI::SetCommonBorderEx Function">
       <target id="html">../output/sack__PSI__SetCommonBorderEx@PSI_CONTROL@_32_BorderType.html</target>
     </link>
     <link topicid="sack::PSI::SetCommonButtons@PSI_CONTROL@int *@int *" displaystring="sack::PSI::SetCommonButtons Function">
@@ -11630,13 +11630,13 @@
     <link topicid="sack::PSI::SetCommonFont@PSI_CONTROL@Font" displaystring="sack::PSI::SetCommonFont Function">
       <target id="html">../output/sack__PSI__SetCommonFont@PSI_CONTROL@Font.html</target>
     </link>
-    <link topicid="sack::PSI::SetCommonKey@PSI_CONTROL@int __cdecl*KeyPSI_CONTROL,_32" displaystring="sack::PSI::SetCommonKey Function">
-      <target id="html">../output/sack__PSI__SetCommonKey@PSI_CONTROL@int___cdecl_KeyPSI_CONTROL,_32.html</target>
+    <link topicid="sack::PSI::SetCommonKey@PSI_CONTROL@int __cdecl*KeyPSI_CONTROL,uint32_t" displaystring="sack::PSI::SetCommonKey Function">
+      <target id="html">../output/sack__PSI__SetCommonKey@PSI_CONTROL@int___cdecl_KeyPSI_CONTROL,uint32_t.html</target>
     </link>
     <link topicid="sack::PSI::SetCommonLoad@PSI_CONTROL@void __cdecl*int PSI_CONTROL" displaystring="sack::PSI::SetCommonLoad Function">
       <target id="html">../output/sack__PSI__SetCommonLoad@PSI_CONTROL@void___cdecl_int_PSI_CONTROL.html</target>
     </link>
-    <link topicid="sack::PSI::SetCommonMouse@PSI_CONTROL@int __cdecl*MouseMethodPSI_CONTROL, S_32 x, S_32 y, _32 b" displaystring="sack::PSI::SetCommonMouse Function">
+    <link topicid="sack::PSI::SetCommonMouse@PSI_CONTROL@int __cdecl*MouseMethodPSI_CONTROL, int32_t x, int32_t y, uint32_t b" displaystring="sack::PSI::SetCommonMouse Function">
       <target id="html">../output/sack__PSI__SetCommonMouse@PSI_CONTROL@int___cdecl_MouseMethodPSI_CONTROL,_S_32_x,_S_32_y,__32_b.html</target>
     </link>
     <link topicid="sack::PSI::SetCommonSave@PSI_CONTROL@void __cdecl*int PSI_CONTROL" displaystring="sack::PSI::SetCommonSave Function">
@@ -11705,8 +11705,8 @@
     <link topicid="sack::PSI::SetUpdateRegion" displaystring="sack::PSI::SetUpdateRegion Macro">
       <target id="html">../output/sack__PSI__SetUpdateRegion.html</target>
     </link>
-    <link topicid="sack::PSI::SetUpdateRegionEx@PSI_CONTROL@S_32@S_32@_32@_32 rh" displaystring="sack::PSI::SetUpdateRegionEx Function">
-      <target id="html">../output/sack__PSI__SetUpdateRegionEx@PSI_CONTROL@S_32@S_32@_32@_32_rh.html</target>
+    <link topicid="sack::PSI::SetUpdateRegionEx@PSI_CONTROL@int32_t@int32_t@uint32_t@uint32_t rh" displaystring="sack::PSI::SetUpdateRegionEx Function">
+      <target id="html">../output/sack__PSI__SetUpdateRegionEx@PSI_CONTROL@int32_t@int32_t@uint32_t@_32_rh.html</target>
     </link>
     <link topicid="sack::PSI::sheet_control" displaystring="sack::PSI::sheet_control Namespace">
       <target id="html">../output/sack__PSI__sheet_control.html</target>
@@ -11714,35 +11714,35 @@
     <link topicid="sack::PSI::sheet_control::AddSheet@PSI_CONTROL@PSI_CONTROL" displaystring="sack::PSI::sheet_control::AddSheet Function">
       <target id="html">../output/sack__PSI__sheet_control__AddSheet@PSI_CONTROL@PSI_CONTROL.html</target>
     </link>
-    <link topicid="sack::PSI::sheet_control::DisableSheet@PSI_CONTROL@_32@LOGICAL" displaystring="sack::PSI::sheet_control::DisableSheet Function">
-      <target id="html">../output/sack__PSI__sheet_control__DisableSheet@PSI_CONTROL@_32@LOGICAL.html</target>
+    <link topicid="sack::PSI::sheet_control::DisableSheet@PSI_CONTROL@uint32_t@LOGICAL" displaystring="sack::PSI::sheet_control::DisableSheet Function">
+      <target id="html">../output/sack__PSI__sheet_control__DisableSheet@PSI_CONTROL@uint32_t@LOGICAL.html</target>
     </link>
     <link topicid="sack::PSI::sheet_control::GetCurrentSheet@PSI_CONTROL" displaystring="sack::PSI::sheet_control::GetCurrentSheet Function">
       <target id="html">../output/sack__PSI__sheet_control__GetCurrentSheet@PSI_CONTROL.html</target>
     </link>
-    <link topicid="sack::PSI::sheet_control::GetSheet@PSI_CONTROL@_32" displaystring="sack::PSI::sheet_control::GetSheet Function">
-      <target id="html">../output/sack__PSI__sheet_control__GetSheet@PSI_CONTROL@_32.html</target>
+    <link topicid="sack::PSI::sheet_control::GetSheet@PSI_CONTROL@uint32_t" displaystring="sack::PSI::sheet_control::GetSheet Function">
+      <target id="html">../output/sack__PSI__sheet_control__GetSheet@PSI_CONTROL@uint32_t.html</target>
     </link>
-    <link topicid="sack::PSI::sheet_control::GetSheetControl@PSI_CONTROL@_32@_32" displaystring="sack::PSI::sheet_control::GetSheetControl Function">
-      <target id="html">../output/sack__PSI__sheet_control__GetSheetControl@PSI_CONTROL@_32@_32.html</target>
+    <link topicid="sack::PSI::sheet_control::GetSheetControl@PSI_CONTROL@uint32_t@uint32_t" displaystring="sack::PSI::sheet_control::GetSheetControl Function">
+      <target id="html">../output/sack__PSI__sheet_control__GetSheetControl@PSI_CONTROL@uint32_t@uint32_t.html</target>
     </link>
-    <link topicid="sack::PSI::sheet_control::GetSheetSize@PSI_CONTROL@_32 *@_32 *" displaystring="sack::PSI::sheet_control::GetSheetSize Function">
+    <link topicid="sack::PSI::sheet_control::GetSheetSize@PSI_CONTROL@uint32_t *@uint32_t *" displaystring="sack::PSI::sheet_control::GetSheetSize Function">
       <target id="html">../output/sack__PSI__sheet_control__GetSheetSize@PSI_CONTROL@_32__@_32__.html</target>
     </link>
     <link topicid="sack::PSI::sheet_control::MakeSheetControl" displaystring="sack::PSI::sheet_control::MakeSheetControl Macro">
       <target id="html">../output/sack__PSI__sheet_control__MakeSheetControl.html</target>
     </link>
-    <link topicid="sack::PSI::sheet_control::RemoveSheet@PSI_CONTROL@_32" displaystring="sack::PSI::sheet_control::RemoveSheet Function">
-      <target id="html">../output/sack__PSI__sheet_control__RemoveSheet@PSI_CONTROL@_32.html</target>
+    <link topicid="sack::PSI::sheet_control::RemoveSheet@PSI_CONTROL@uint32_t" displaystring="sack::PSI::sheet_control::RemoveSheet Function">
+      <target id="html">../output/sack__PSI__sheet_control__RemoveSheet@PSI_CONTROL@uint32_t.html</target>
     </link>
-    <link topicid="sack::PSI::sheet_control::SetCurrentSheet@PSI_CONTROL@_32" displaystring="sack::PSI::sheet_control::SetCurrentSheet Function">
-      <target id="html">../output/sack__PSI__sheet_control__SetCurrentSheet@PSI_CONTROL@_32.html</target>
+    <link topicid="sack::PSI::sheet_control::SetCurrentSheet@PSI_CONTROL@uint32_t" displaystring="sack::PSI::sheet_control::SetCurrentSheet Function">
+      <target id="html">../output/sack__PSI__sheet_control__SetCurrentSheet@PSI_CONTROL@uint32_t.html</target>
     </link>
-    <link topicid="sack::PSI::sheet_control::SetSheetTabImages@PSI_CONTROL@_32@Image@Image" displaystring="sack::PSI::sheet_control::SetSheetTabImages Function">
-      <target id="html">../output/sack__PSI__sheet_control__SetSheetTabImages@PSI_CONTROL@_32@Image@Image.html</target>
+    <link topicid="sack::PSI::sheet_control::SetSheetTabImages@PSI_CONTROL@uint32_t@Image@Image" displaystring="sack::PSI::sheet_control::SetSheetTabImages Function">
+      <target id="html">../output/sack__PSI__sheet_control__SetSheetTabImages@PSI_CONTROL@uint32_t@Image@Image.html</target>
     </link>
-    <link topicid="sack::PSI::sheet_control::SetSheetTabTextColors@PSI_CONTROL@_32@CDATA@CDATA" displaystring="sack::PSI::sheet_control::SetSheetTabTextColors Function">
-      <target id="html">../output/sack__PSI__sheet_control__SetSheetTabTextColors@PSI_CONTROL@_32@CDATA@CDATA.html</target>
+    <link topicid="sack::PSI::sheet_control::SetSheetTabTextColors@PSI_CONTROL@uint32_t@CDATA@CDATA" displaystring="sack::PSI::sheet_control::SetSheetTabTextColors Function">
+      <target id="html">../output/sack__PSI__sheet_control__SetSheetTabTextColors@PSI_CONTROL@uint32_t@CDATA@CDATA.html</target>
     </link>
     <link topicid="sack::PSI::sheet_control::SetTabImages@PSI_CONTROL@Image@Image" displaystring="sack::PSI::sheet_control::SetTabImages Function">
       <target id="html">../output/sack__PSI__sheet_control__SetTabImages@PSI_CONTROL@Image@Image.html</target>
@@ -11762,11 +11762,11 @@
     <link topicid="sack::PSI::SimpleUserQuery@TEXTSTR@int@CTEXTSTR@PSI_CONTROL" displaystring="sack::PSI::SimpleUserQuery Function">
       <target id="html">../output/sack__PSI__SimpleUserQuery@TEXTSTR@int@CTEXTSTR@PSI_CONTROL.html</target>
     </link>
-    <link topicid="sack::PSI::SizeCommon@PSI_CONTROL@_32@_32" displaystring="sack::PSI::SizeCommon Function">
-      <target id="html">../output/sack__PSI__SizeCommon@PSI_CONTROL@_32@_32.html</target>
+    <link topicid="sack::PSI::SizeCommon@PSI_CONTROL@uint32_t@uint32_t" displaystring="sack::PSI::SizeCommon Function">
+      <target id="html">../output/sack__PSI__SizeCommon@PSI_CONTROL@uint32_t@uint32_t.html</target>
     </link>
-    <link topicid="sack::PSI::SizeCommonRel@PSI_CONTROL@_32@_32" displaystring="sack::PSI::SizeCommonRel Function">
-      <target id="html">../output/sack__PSI__SizeCommonRel@PSI_CONTROL@_32@_32.html</target>
+    <link topicid="sack::PSI::SizeCommonRel@PSI_CONTROL@uint32_t@uint32_t" displaystring="sack::PSI::SizeCommonRel Function">
+      <target id="html">../output/sack__PSI__SizeCommonRel@PSI_CONTROL@uint32_t@uint32_t.html</target>
     </link>
     <link topicid="sack::PSI::SizeControl" displaystring="sack::PSI::SizeControl Macro">
       <target id="html">../output/sack__PSI__SizeControl.html</target>
@@ -11900,11 +11900,11 @@
     <link topicid="sack::PSI::ValidatedControlData" displaystring="sack::PSI::ValidatedControlData Macro">
       <target id="html">../output/sack__PSI__ValidatedControlData.html</target>
     </link>
-    <link topicid="sack::PSI::VMakeCaptionedControl@PSI_CONTROL@_32@int@int@int@int@_32@CTEXTSTR" displaystring="sack::PSI::VMakeCaptionedControl Function">
-      <target id="html">../output/sack__PSI__VMakeCaptionedControl@PSI_CONTROL@_32@int@int@int@int@_32@CTEXTSTR.html</target>
+    <link topicid="sack::PSI::VMakeCaptionedControl@PSI_CONTROL@uint32_t@int@int@int@int@uint32_t@CTEXTSTR" displaystring="sack::PSI::VMakeCaptionedControl Function">
+      <target id="html">../output/sack__PSI__VMakeCaptionedControl@PSI_CONTROL@uint32_t@int@int@int@int@uint32_t@CTEXTSTR.html</target>
     </link>
-    <link topicid="sack::PSI::VMakeControl@PSI_CONTROL@_32@int@int@int@int@_32" displaystring="sack::PSI::VMakeControl Function">
-      <target id="html">../output/sack__PSI__VMakeControl@PSI_CONTROL@_32@int@int@int@int@_32.html</target>
+    <link topicid="sack::PSI::VMakeControl@PSI_CONTROL@uint32_t@int@int@int@int@uint32_t" displaystring="sack::PSI::VMakeControl Function">
+      <target id="html">../output/sack__PSI__VMakeControl@PSI_CONTROL@uint32_t@int@int@int@int@uint32_t.html</target>
     </link>
     <link topicid="sack::PSI::xml" displaystring="sack::PSI::xml Namespace">
       <target id="html">../output/sack__PSI__xml.html</target>
@@ -11995,7 +11995,7 @@
       <target id="html">../output/sack__S_16.html</target>
       <target id="pdf">pdf://119@sack-docodocs.pdf</target>
     </link>
-    <link topicid="sack::S_32" displaystring="sack::S_32 Type">
+    <link topicid="sack::int32_t" displaystring="sack::int32_t Type">
       <target id="html">../output/sack__S_32.html</target>
       <target id="pdf">pdf://121@sack-docodocs.pdf</target>
     </link>
@@ -12174,23 +12174,23 @@
     <link topicid="sack::sql::options::interface::option_interface_tag::METHOD_PTR@LOGICAL@WriteProfileStringEx" displaystring="option_interface_tag::METHOD_PTR Method (LOGICAL, WriteProfileStringEx)">
       <target id="html">../output/sack__sql__options__interface__option_interface_tag__METHOD_PTR@LOGICAL@WriteProfileStringEx.html</target>
     </link>
-    <link topicid="sack::sql::options::interface::option_interface_tag::METHOD_PTR@S_32@GetPrivateProfileInt" displaystring="option_interface_tag::METHOD_PTR Method (S_32, GetPrivateProfileInt)">
-      <target id="html">../output/sack__sql__options__interface__option_interface_tag__METHOD_PTR@S_32@GetPrivateProfileInt.html</target>
+    <link topicid="sack::sql::options::interface::option_interface_tag::METHOD_PTR@int32_t@GetPrivateProfileInt" displaystring="option_interface_tag::METHOD_PTR Method (int32_t, GetPrivateProfileInt)">
+      <target id="html">../output/sack__sql__options__interface__option_interface_tag__METHOD_PTR@int32_t@GetPrivateProfileInt.html</target>
     </link>
-    <link topicid="sack::sql::options::interface::option_interface_tag::METHOD_PTR@S_32@GetPrivateProfileIntEx" displaystring="option_interface_tag::METHOD_PTR Method (S_32, GetPrivateProfileIntEx)">
-      <target id="html">../output/sack__sql__options__interface__option_interface_tag__METHOD_PTR@S_32@GetPrivateProfileIntEx.html</target>
+    <link topicid="sack::sql::options::interface::option_interface_tag::METHOD_PTR@int32_t@GetPrivateProfileIntEx" displaystring="option_interface_tag::METHOD_PTR Method (int32_t, GetPrivateProfileIntEx)">
+      <target id="html">../output/sack__sql__options__interface__option_interface_tag__METHOD_PTR@int32_t@GetPrivateProfileIntEx.html</target>
     </link>
-    <link topicid="sack::sql::options::interface::option_interface_tag::METHOD_PTR@S_32@GetProfileInt" displaystring="option_interface_tag::METHOD_PTR Method (S_32, GetProfileInt)">
-      <target id="html">../output/sack__sql__options__interface__option_interface_tag__METHOD_PTR@S_32@GetProfileInt.html</target>
+    <link topicid="sack::sql::options::interface::option_interface_tag::METHOD_PTR@int32_t@GetProfileInt" displaystring="option_interface_tag::METHOD_PTR Method (int32_t, GetProfileInt)">
+      <target id="html">../output/sack__sql__options__interface__option_interface_tag__METHOD_PTR@int32_t@GetProfileInt.html</target>
     </link>
-    <link topicid="sack::sql::options::interface::option_interface_tag::METHOD_PTR@S_32@GetProfileIntEx" displaystring="option_interface_tag::METHOD_PTR Method (S_32, GetProfileIntEx)">
-      <target id="html">../output/sack__sql__options__interface__option_interface_tag__METHOD_PTR@S_32@GetProfileIntEx.html</target>
+    <link topicid="sack::sql::options::interface::option_interface_tag::METHOD_PTR@int32_t@GetProfileIntEx" displaystring="option_interface_tag::METHOD_PTR Method (int32_t, GetProfileIntEx)">
+      <target id="html">../output/sack__sql__options__interface__option_interface_tag__METHOD_PTR@int32_t@GetProfileIntEx.html</target>
     </link>
-    <link topicid="sack::sql::options::interface::option_interface_tag::METHOD_PTR@S_32@WritePrivateProfileInt" displaystring="option_interface_tag::METHOD_PTR Method (S_32, WritePrivateProfileInt)">
-      <target id="html">../output/sack__sql__options__interface__option_interface_tag__METHOD_PTR@S_32@WritePrivateProfileInt.html</target>
+    <link topicid="sack::sql::options::interface::option_interface_tag::METHOD_PTR@int32_t@WritePrivateProfileInt" displaystring="option_interface_tag::METHOD_PTR Method (int32_t, WritePrivateProfileInt)">
+      <target id="html">../output/sack__sql__options__interface__option_interface_tag__METHOD_PTR@int32_t@WritePrivateProfileInt.html</target>
     </link>
-    <link topicid="sack::sql::options::interface::option_interface_tag::METHOD_PTR@S_32@WriteProfileInt" displaystring="option_interface_tag::METHOD_PTR Method (S_32, WriteProfileInt)">
-      <target id="html">../output/sack__sql__options__interface__option_interface_tag__METHOD_PTR@S_32@WriteProfileInt.html</target>
+    <link topicid="sack::sql::options::interface::option_interface_tag::METHOD_PTR@int32_t@WriteProfileInt" displaystring="option_interface_tag::METHOD_PTR Method (int32_t, WriteProfileInt)">
+      <target id="html">../output/sack__sql__options__interface__option_interface_tag__METHOD_PTR@int32_t@WriteProfileInt.html</target>
     </link>
     <link topicid="sack::sql::options::interface::option_interface_tag::METHOD_PTR@size_t@GetPrivateProfileString" displaystring="option_interface_tag::METHOD_PTR Method (size_t, GetPrivateProfileString)">
       <target id="html">../output/sack__sql__options__interface__option_interface_tag__METHOD_PTR@size_t@GetPrivateProfileString.html</target>
@@ -12261,11 +12261,11 @@
     <link topicid="sack::sql::options::SACK_OPTION_NAMESPACE_END" displaystring="sack::sql::options::SACK_OPTION_NAMESPACE_END Macro">
       <target id="html">../output/sack__sql__options__SACK_OPTION_NAMESPACE_END.html</target>
     </link>
-    <link topicid="sack::sql::options::SACK_WritePrivateProfileInt@CTEXTSTR@CTEXTSTR@S_32@CTEXTSTR" displaystring="sack::sql::options::SACK_WritePrivateProfileInt Function">
-      <target id="html">../output/sack__sql__options__SACK_WritePrivateProfileInt@CTEXTSTR@CTEXTSTR@S_32@CTEXTSTR.html</target>
+    <link topicid="sack::sql::options::SACK_WritePrivateProfileInt@CTEXTSTR@CTEXTSTR@int32_t@CTEXTSTR" displaystring="sack::sql::options::SACK_WritePrivateProfileInt Function">
+      <target id="html">../output/sack__sql__options__SACK_WritePrivateProfileInt@CTEXTSTR@CTEXTSTR@int32_t@CTEXTSTR.html</target>
     </link>
-    <link topicid="sack::sql::options::SACK_WritePrivateProfileIntEx@CTEXTSTR@CTEXTSTR@S_32@CTEXTSTR@LOGICAL" displaystring="sack::sql::options::SACK_WritePrivateProfileIntEx Function">
-      <target id="html">../output/sack__sql__options__SACK_WritePrivateProfileIntEx@CTEXTSTR@CTEXTSTR@S_32@CTEXTSTR@LOGICAL.html</target>
+    <link topicid="sack::sql::options::SACK_WritePrivateProfileIntEx@CTEXTSTR@CTEXTSTR@int32_t@CTEXTSTR@LOGICAL" displaystring="sack::sql::options::SACK_WritePrivateProfileIntEx Function">
+      <target id="html">../output/sack__sql__options__SACK_WritePrivateProfileIntEx@CTEXTSTR@CTEXTSTR@int32_t@CTEXTSTR@LOGICAL.html</target>
     </link>
     <link topicid="sack::sql::options::SACK_WritePrivateProfileString@CTEXTSTR@CTEXTSTR@CTEXTSTR@CTEXTSTR" displaystring="sack::sql::options::SACK_WritePrivateProfileString Function">
       <target id="html">../output/sack__sql__options__SACK_WritePrivateProfileString@CTEXTSTR@CTEXTSTR@CTEXTSTR@CTEXTSTR.html</target>
@@ -12276,11 +12276,11 @@
     <link topicid="sack::sql::options::SACK_WriteProfileBlobOdbc@PODBC@CTEXTSTR@CTEXTSTR@TEXTCHAR *@size_t" displaystring="sack::sql::options::SACK_WriteProfileBlobOdbc Function">
       <target id="html">../output/sack__sql__options__SACK_WriteProfileBlobOdbc@PODBC@CTEXTSTR@CTEXTSTR@TEXTCHAR__@size_t.html</target>
     </link>
-    <link topicid="sack::sql::options::SACK_WriteProfileInt@CTEXTSTR@CTEXTSTR@S_32" displaystring="sack::sql::options::SACK_WriteProfileInt Function">
-      <target id="html">../output/sack__sql__options__SACK_WriteProfileInt@CTEXTSTR@CTEXTSTR@S_32.html</target>
+    <link topicid="sack::sql::options::SACK_WriteProfileInt@CTEXTSTR@CTEXTSTR@int32_t" displaystring="sack::sql::options::SACK_WriteProfileInt Function">
+      <target id="html">../output/sack__sql__options__SACK_WriteProfileInt@CTEXTSTR@CTEXTSTR@int32_t.html</target>
     </link>
-    <link topicid="sack::sql::options::SACK_WriteProfileIntEx@CTEXTSTR@CTEXTSTR@S_32@LOGICAL" displaystring="sack::sql::options::SACK_WriteProfileIntEx Function">
-      <target id="html">../output/sack__sql__options__SACK_WriteProfileIntEx@CTEXTSTR@CTEXTSTR@S_32@LOGICAL.html</target>
+    <link topicid="sack::sql::options::SACK_WriteProfileIntEx@CTEXTSTR@CTEXTSTR@int32_t@LOGICAL" displaystring="sack::sql::options::SACK_WriteProfileIntEx Function">
+      <target id="html">../output/sack__sql__options__SACK_WriteProfileIntEx@CTEXTSTR@CTEXTSTR@int32_t@LOGICAL.html</target>
     </link>
     <link topicid="sack::sql::options::SACK_WriteProfileString@CTEXTSTR@CTEXTSTR@CTEXTSTR" displaystring="sack::sql::options::SACK_WriteProfileString Function">
       <target id="html">../output/sack__sql__options__SACK_WriteProfileString@CTEXTSTR@CTEXTSTR@CTEXTSTR.html</target>
@@ -12534,14 +12534,14 @@
     <link topicid="sack::timers::AddTimerEx" displaystring="sack::timers::AddTimerEx Macro">
       <target id="pdf">pdf://1246@sack-docodocs.pdf</target>
     </link>
-    <link topicid="sack::timers::AddTimerExx@_32@_32@TimerCallbackProc@PTRSZVAL user" displaystring="sack::timers::AddTimerExx Function">
-      <target id="html">../output/sack__timers__AddTimerExx@_32@_32@TimerCallbackProc@PTRSZVAL_user.html</target>
+    <link topicid="sack::timers::AddTimerExx@uint32_t@uint32_t@TimerCallbackProc@PTRSZVAL user" displaystring="sack::timers::AddTimerExx Function">
+      <target id="html">../output/sack__timers__AddTimerExx@uint32_t@uint32_t@TimerCallbackProc@PTRSZVAL_user.html</target>
     </link>
     <link topicid="sack::timers::ChangeTimer" displaystring="sack::timers::ChangeTimer Macro">
       <target id="pdf">pdf://1247@sack-docodocs.pdf</target>
     </link>
-    <link topicid="sack::timers::ChangeTimerEx@_32@_32@_32" displaystring="sack::timers::ChangeTimerEx Function">
-      <target id="html">../output/sack__timers__ChangeTimerEx@_32@_32@_32.html</target>
+    <link topicid="sack::timers::ChangeTimerEx@uint32_t@uint32_t@uint32_t" displaystring="sack::timers::ChangeTimerEx Function">
+      <target id="html">../output/sack__timers__ChangeTimerEx@uint32_t@uint32_t@uint32_t.html</target>
     </link>
     <link topicid="sack::timers::critical_section_tag" displaystring="sack::timers::critical_section_tag Structure">
       <target id="html">../output/sack__timers__critical_section_tag.html</target>
@@ -12608,11 +12608,11 @@
       <target id="html">../output/sack__timers__PTHREAD.html</target>
       <target id="pdf">pdf://1260@sack-docodocs.pdf</target>
     </link>
-    <link topicid="sack::timers::RemoveTimer@_32" displaystring="sack::timers::RemoveTimer Function">
-      <target id="html">../output/sack__timers__RemoveTimer@_32.html</target>
+    <link topicid="sack::timers::RemoveTimer@uint32_t" displaystring="sack::timers::RemoveTimer Function">
+      <target id="html">../output/sack__timers__RemoveTimer@uint32_t.html</target>
     </link>
-    <link topicid="sack::timers::RescheduleTimerEx@_32@_32" displaystring="sack::timers::RescheduleTimerEx Function">
-      <target id="html">../output/sack__timers__RescheduleTimerEx@_32@_32.html</target>
+    <link topicid="sack::timers::RescheduleTimerEx@uint32_t@uint32_t" displaystring="sack::timers::RescheduleTimerEx Function">
+      <target id="html">../output/sack__timers__RescheduleTimerEx@uint32_t@uint32_t.html</target>
     </link>
     <link topicid="sack::timers::SLEEP_FOREVER" displaystring="sack::timers::SLEEP_FOREVER Macro">
       <target id="html">../output/sack__timers__SLEEP_FOREVER.html</target>
@@ -12658,7 +12658,7 @@
     <link topicid="sack::timers::WakeableSleep" displaystring="sack::timers::WakeableSleep Macro">
       <target id="pdf">pdf://1255@sack-docodocs.pdf</target>
     </link>
-    <link topicid="sack::timers::WakeableSleepEx@_32 milliseconds" displaystring="sack::timers::WakeableSleepEx Function">
+    <link topicid="sack::timers::WakeableSleepEx@uint32_t milliseconds" displaystring="sack::timers::WakeableSleepEx Function">
       <target id="html">../output/sack__timers__WakeableSleepEx@_32_milliseconds.html</target>
     </link>
     <link topicid="sack::timers::WakeThread" displaystring="sack::timers::WakeThread Macro">
@@ -12897,13 +12897,13 @@
     <link topicid="SetCheckState@PSI_CONTROL@int" displaystring="SetCheckState Function">
       <target id="pdf">pdf://1403@sack-docodocs.pdf</target>
     </link>
-    <link topicid="SetCommonAcceptDroppedFiles@PSI_CONTROL@void __cdecl*AcceptDroppedFilesMethodPSI_CONTROL, CTEXTSTR file, S_32 x, S_32 y" displaystring="SetCommonAcceptDroppedFiles Function">
+    <link topicid="SetCommonAcceptDroppedFiles@PSI_CONTROL@void __cdecl*AcceptDroppedFilesMethodPSI_CONTROL, CTEXTSTR file, int32_t x, int32_t y" displaystring="SetCommonAcceptDroppedFiles Function">
       <target id="pdf">pdf://1568@sack-docodocs.pdf</target>
     </link>
     <link topicid="SetCommonBorder" displaystring="SetCommonBorder Macro">
       <target id="pdf">pdf://2069@sack-docodocs.pdf</target>
     </link>
-    <link topicid="SetCommonBorderEx@PSI_CONTROL@_32 BorderType" displaystring="SetCommonBorderEx Function">
+    <link topicid="SetCommonBorderEx@PSI_CONTROL@uint32_t BorderType" displaystring="SetCommonBorderEx Function">
       <target id="pdf">pdf://1569@sack-docodocs.pdf</target>
     </link>
     <link topicid="SetCommonButtons@PCOMMON@int *@int *" displaystring="SetCommonButtons Function">
@@ -12918,13 +12918,13 @@
     <link topicid="SetCommonFont@PSI_CONTROL@Font" displaystring="SetCommonFont Function">
       <target id="pdf">pdf://1572@sack-docodocs.pdf</target>
     </link>
-    <link topicid="SetCommonKey@PSI_CONTROL@int __cdecl*KeyPSI_CONTROL,_32" displaystring="SetCommonKey Function">
+    <link topicid="SetCommonKey@PSI_CONTROL@int __cdecl*KeyPSI_CONTROL,uint32_t" displaystring="SetCommonKey Function">
       <target id="pdf">pdf://1407@sack-docodocs.pdf</target>
     </link>
     <link topicid="SetCommonLoad@PSI_CONTROL@void __cdecl*int PSI_CONTROL" displaystring="SetCommonLoad Function">
       <target id="pdf">pdf://1573@sack-docodocs.pdf</target>
     </link>
-    <link topicid="SetCommonMouse@PSI_CONTROL@int __cdecl*MouseMethodPSI_CONTROL, S_32 x, S_32 y, _32 b" displaystring="SetCommonMouse Function">
+    <link topicid="SetCommonMouse@PSI_CONTROL@int __cdecl*MouseMethodPSI_CONTROL, int32_t x, int32_t y, uint32_t b" displaystring="SetCommonMouse Function">
       <target id="pdf">pdf://1409@sack-docodocs.pdf</target>
     </link>
     <link topicid="SetCommonSave@PSI_CONTROL@void __cdecl*int PSI_CONTROL" displaystring="SetCommonSave Function">
@@ -12972,7 +12972,7 @@
     <link topicid="SetCurrentItem@PSI_CONTROL@PLISTITEM" displaystring="SetCurrentItem Function">
       <target id="pdf">pdf://1414@sack-docodocs.pdf</target>
     </link>
-    <link topicid="SetCurrentSheet@PSI_CONTROL@_32" displaystring="SetCurrentSheet Function">
+    <link topicid="SetCurrentSheet@PSI_CONTROL@uint32_t" displaystring="SetCurrentSheet Function">
       <target id="pdf">pdf://1582@sack-docodocs.pdf</target>
     </link>
     <link topicid="SetDoubleClickHandler@PSI_CONTROL@DoubleClicker@PTRSZVAL" displaystring="SetDoubleClickHandler Function">
@@ -13014,7 +13014,7 @@
     <link topicid="SetFrameUserData" displaystring="SetFrameUserData Macro">
       <target id="pdf">pdf://1420@sack-docodocs.pdf</target>
     </link>
-    <link topicid="SetItemContextMenu@PLISTITEM@PMENU@void __cdecl*MenuProcPTRSZVAL, PLISTITEM, _32 menuopt@PTRSZVAL" displaystring="SetItemContextMenu Function">
+    <link topicid="SetItemContextMenu@PLISTITEM@PMENU@void __cdecl*MenuProcPTRSZVAL, PLISTITEM, uint32_t menuopt@PTRSZVAL" displaystring="SetItemContextMenu Function">
       <target id="pdf">pdf://1589@sack-docodocs.pdf</target>
     </link>
     <link topicid="SetItemData@PLISTITEM@PTRSZVAL" displaystring="SetItemData Function">
@@ -13062,10 +13062,10 @@
     <link topicid="SetSelectedItem@PSI_CONTROL@PLISTITEM" displaystring="SetSelectedItem Function">
       <target id="pdf">pdf://1432@sack-docodocs.pdf</target>
     </link>
-    <link topicid="SetSheetTabImages@PSI_CONTROL@_32@Image@Image" displaystring="SetSheetTabImages Function">
+    <link topicid="SetSheetTabImages@PSI_CONTROL@uint32_t@Image@Image" displaystring="SetSheetTabImages Function">
       <target id="pdf">pdf://1599@sack-docodocs.pdf</target>
     </link>
-    <link topicid="SetSheetTabTextColors@PSI_CONTROL@_32@CDATA@CDATA" displaystring="SetSheetTabTextColors Function">
+    <link topicid="SetSheetTabTextColors@PSI_CONTROL@uint32_t@CDATA@CDATA" displaystring="SetSheetTabTextColors Function">
       <target id="pdf">pdf://1600@sack-docodocs.pdf</target>
     </link>
     <link topicid="SetSliderOptions@PSI_CONTROL@int" displaystring="SetSliderOptions Function">
@@ -13092,7 +13092,7 @@
     <link topicid="SetUpdateRegion" displaystring="SetUpdateRegion Macro">
       <target id="pdf">pdf://2076@sack-docodocs.pdf</target>
     </link>
-    <link topicid="SetUpdateRegionEx@PSI_CONTROL@S_32@S_32@_32@_32 rh" displaystring="SetUpdateRegionEx Function">
+    <link topicid="SetUpdateRegionEx@PSI_CONTROL@int32_t@int32_t@uint32_t@uint32_t rh" displaystring="SetUpdateRegionEx Function">
       <target id="pdf">pdf://1606@sack-docodocs.pdf</target>
     </link>
     <link topicid="SHA1_SOURCE" displaystring="SHA1_SOURCE Macro">
@@ -13146,10 +13146,10 @@
     <link topicid="SimpleUserQuery@TEXTSTR@int@CTEXTSTR@PCOMMON" displaystring="SimpleUserQuery Function">
       <target id="pdf">pdf://1607@sack-docodocs.pdf</target>
     </link>
-    <link topicid="SizeCommon@PSI_CONTROL@_32@_32" displaystring="SizeCommon Function">
+    <link topicid="SizeCommon@PSI_CONTROL@uint32_t@uint32_t" displaystring="SizeCommon Function">
       <target id="pdf">pdf://1442@sack-docodocs.pdf</target>
     </link>
-    <link topicid="SizeCommonRel@PSI_CONTROL@_32@_32" displaystring="SizeCommonRel Function">
+    <link topicid="SizeCommonRel@PSI_CONTROL@uint32_t@uint32_t" displaystring="SizeCommonRel Function">
       <target id="pdf">pdf://1444@sack-docodocs.pdf</target>
     </link>
     <link topicid="SizeControl" displaystring="SizeControl Macro">
@@ -13561,10 +13561,10 @@
     <link topicid="vidstruc.h" displaystring="vidstruc.h">
       <target id="html">../output/vidstruc_h.html</target>
     </link>
-    <link topicid="VMakeCaptionedControl@PSI_CONTROL@_32@int@int@int@int@_32@CTEXTSTR" displaystring="VMakeCaptionedControl Function">
+    <link topicid="VMakeCaptionedControl@PSI_CONTROL@uint32_t@int@int@int@int@uint32_t@CTEXTSTR" displaystring="VMakeCaptionedControl Function">
       <target id="pdf">pdf://1615@sack-docodocs.pdf</target>
     </link>
-    <link topicid="VMakeControl@PSI_CONTROL@_32@int@int@int@int@_32" displaystring="VMakeControl Function">
+    <link topicid="VMakeControl@PSI_CONTROL@uint32_t@int@int@int@int@uint32_t" displaystring="VMakeControl Function">
       <target id="pdf">pdf://1616@sack-docodocs.pdf</target>
     </link>
     <link topicid="WIDE__FILE__" displaystring="WIDE__FILE__ Macro">

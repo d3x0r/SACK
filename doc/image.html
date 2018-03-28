@@ -42,7 +42,7 @@ be called through this interface pointer.</td></tr>
 <tr><td>Image</td><td>Contains information about an image.  The application has a limited knowledge of this
 structure detailing its position and size.</td></tr>
 <tr><td>Font</td><td>Contains a font.  The application has no knowledge of the content of this structure.</td></tr>
-<tr><td>CDATA, COLOR</td><td>A color reference.  CDATA is a flat _32 bit value, COLOR is an array of colors.  Most
+<tr><td>CDATA, COLOR</td><td>A color reference.  CDATA is a flat uint32_t bit value, COLOR is an array of colors.  Most
 routines use CDATA now, since color was difficult to actually use.  They may still be converted to each other</td></tr>
 <tr><td>PCDATA</td><td>A pointer to a color (often as a 2 dimensional array of colors ie. An image surface.</td></tr>
 <tr><td>PCOLOR</td><td>A very difficult value to use - a pointer to an array of bytes detailing color</td></tr>
@@ -168,7 +168,7 @@ cleanup that can be done.  However, if image is being used as a service, then
 there is quite a bit of cleanup that needs to be done.
 </menu>
 <hr>
-<h3>void SetBlotMethod( _32 method )</h3>
+<h3>void SetBlotMethod( uint32_t method )</h3>
 <menu>
 method is one of 3 values...
 <menu><table><caption>methods</caption>
@@ -181,7 +181,7 @@ will always work, if slowly.
 </menu>
 
 <hr>
-<h3>void SetStringBehavior( Image image, _32 method )</h3>
+<h3>void SetStringBehavior( Image image, uint32_t method )</h3>
 <menu>
 Unimplemented - intent....
 <menu><table><caption>methods</caption>
@@ -216,7 +216,7 @@ max = 256, d = 64, result is 3/4 of c1 and 1/4 c2...<br>
 </menu>
 
 <hr>
-<h3>Image MakeImageFileEx( _32 width, _32 height DBG_PASS)</h3>
+<h3>Image MakeImageFileEx( uint32_t width, uint32_t height DBG_PASS)</h3>
 <h5>also referenced by these macros</h5>
 <h4>MakeImageFile( width, height )</h4>
 <menu>
@@ -228,8 +228,8 @@ image which has no size is not an image.
 <hr>
 <table>
 <tr><td><h3>Image MakeSubImageEx</td><td><h3>( Image image
-<tr><td></td><td><h3>, S_32 x, S_32 y
-<tr><td></td><td><h3>, _32 width, _32 height
+<tr><td></td><td><h3>, int32_t x, int32_t y
+<tr><td></td><td><h3>, uint32_t width, uint32_t height
 <tr><td></td><td><h3>DBG_PASS)</h3>
 </table>
 <h5>also referenced by these macros</h5>
@@ -258,7 +258,7 @@ black, and therefore would need to be not quite black Color(0,0,1) for instance.
 </menu>
 
 <hr>
-<h3>Image DecodeMemoryToImage( char *buf, _32 size )</h3>
+<h3>Image DecodeMemoryToImage( char *buf, uint32_t size )</h3>
 <menu>
 If a buffer exists in memory which resembles loading a file off of a disk, this
 routine may be used to decode the image data into an image.  LoadImageFile actually
@@ -277,7 +277,7 @@ then the containing image is destroyed.
 </menu>
 
 <hr>
-<h3>Image BuildImageFileEx( PCDATA pc, _32 width, _32 height DBG_PASS)</h3>
+<h3>Image BuildImageFileEx( PCDATA pc, uint32_t width, uint32_t height DBG_PASS)</h3>
 <h5>also referenced by these macros</h5>
 <h4>BuildImageFile( pc, width, height )</h4>
 <menu>
@@ -287,7 +287,7 @@ and height determine an image.
 </menu>
 
 <hr>
-<h3>Image RemakeImageEx( Image image, PCDATA pc, _32 width, _32 height DBG_PASS )</h4>
+<h3>Image RemakeImageEx( Image image, PCDATA pc, uint32_t width, uint32_t height DBG_PASS )</h4>
 <h5>also referenced by these macros</h5>
 <h4>RemakeImage( image, pc, width, height )</h4>
 <menu>
@@ -328,7 +328,7 @@ Resets any clipping boundries previously set.
 </menu>
 
 <hr>
-<h3>void ResizeImageEx( Image image, S_32 width, S_32 height DBG_PASS )</h3>
+<h3>void ResizeImageEx( Image image, int32_t width, int32_t height DBG_PASS )</h3>
 <h5>also referenced by these macros</h5>
 <h4>ResizeImage( image, width, height )</h4>
 <menu>
@@ -338,7 +338,7 @@ this new surface.
 </menu>
 
 <hr>
-<h3>void MoveImage( Image image, S_32 x, S_32 y )</h3>
+<h3>void MoveImage( Image image, int32_t x, int32_t y )</h3>
 <menu>
 This has no real effect on top level images.  But for sub images, this will
 cause them to be relocated within their parent image.
@@ -347,12 +347,12 @@ cause them to be relocated within their parent image.
 <hr>
 <table>
 <tr><td><h3>void BlatColor</td><td><h3>( Image image
-<tr><td></td><td><h3>, S_32 x, S_32 y
-<tr><td></td><td><h3>, _32 width, _32 height
+<tr><td></td><td><h3>, int32_t x, int32_t y
+<tr><td></td><td><h3>, uint32_t width, uint32_t height
 <tr><td></td><td><h3>, CDATA color )<br>
 <tr><td><h3>void BlatAlphaColor</td><td><h3>( Image image
-<tr><td></td><td><h3>, S_32 x, S_32 y
-<tr><td></td><td><h3>, _32 width, _32 height
+<tr><td></td><td><h3>, int32_t x, int32_t y
+<tr><td></td><td><h3>, uint32_t width, uint32_t height
 <tr><td></td><td><h3>, CDATA color )<br>
 </table>
 <h4>also referenced by these macros</h4>
@@ -373,16 +373,16 @@ ClearImage(image,color) is a macro which calls BlatColor( image, 0, 0, image.wid
 <table>
 <tr><td><h3>void BlotImageEx</td><td><h3>( Image dest
 <tr><td></td><td><h3>, Image src
-<tr><td></td><td><h3>, S_32 x, S_32 y
-<tr><td></td><td><h3>, _32 transparent
-<tr><td></td><td><h3>, _32 method, ... )<br>
+<tr><td></td><td><h3>, int32_t x, int32_t y
+<tr><td></td><td><h3>, uint32_t transparent
+<tr><td></td><td><h3>, uint32_t method, ... )<br>
 <tr><td><h3>void BlotImageSizedEx</td><td><h3>( Image dest
 <tr><td></td><td><h3>, Image src
-<tr><td></td><td><h3>, S_32 x, S_32 y
-<tr><td></td><td><h3>, S_32 xs, S_32 ys
-<tr><td></td><td><h3>, _32 width, _32 height
-<tr><td></td><td><h3>, _32 transparent
-<tr><td></td><td><h3>, _32 method, ... )</h3>
+<tr><td></td><td><h3>, int32_t x, int32_t y
+<tr><td></td><td><h3>, int32_t xs, int32_t ys
+<tr><td></td><td><h3>, uint32_t width, uint32_t height
+<tr><td></td><td><h3>, uint32_t transparent
+<tr><td></td><td><h3>, uint32_t method, ... )</h3>
 </table>
 <h5>also referenced by these macros</h5>
 <h4>
@@ -422,12 +422,12 @@ These routines copy one image (src) to another image (dest) without scaling.
 
 <hr>
 <h3><table><tr><td><h3>void BlotScaledImageSizedEx</td><td><h3>( Image pifDest, Image pifSrc</td></tr>
-                                   <tr><td><h3></td><td><h3>, S_32 xd, S_32 yd</td></tr>
-                                   <tr><td><h3></td><td><h3>, _32 wd, _32 hd</td></tr>
-                                   <tr><td><h3></td><td><h3>, S_32 xs, S_32 ys</td></tr>
-                                   <tr><td><h3></td><td><h3>, _32 ws, _32 hs</td></tr>
-                                   <tr><td><h3></td><td><h3>, _32 nTransparent</td></tr>
-                                   <tr><td><h3></td><td><h3>, _32 method, ... )</td></tr></table></h3>
+                                   <tr><td><h3></td><td><h3>, int32_t xd, int32_t yd</td></tr>
+                                   <tr><td><h3></td><td><h3>, uint32_t wd, uint32_t hd</td></tr>
+                                   <tr><td><h3></td><td><h3>, int32_t xs, int32_t ys</td></tr>
+                                   <tr><td><h3></td><td><h3>, uint32_t ws, uint32_t hs</td></tr>
+                                   <tr><td><h3></td><td><h3>, uint32_t nTransparent</td></tr>
+                                   <tr><td><h3></td><td><h3>, uint32_t method, ... )</td></tr></table></h3>
 <h5>also referenced by these macros</h5>
 <h4>
 <center>copy blots</center>
@@ -468,21 +468,21 @@ These routines copy one image (src) to another image (dest) scaled.
 </table>
 </menu>
 <hr>
-<h3>void plot( Image image, S_32 x, S_32 y, CDATA c)<br>
-void plotalpha( Image image, S_32 x, S_32 y, CDATA c)</h3>
+<h3>void plot( Image image, int32_t x, int32_t y, CDATA c)<br>
+void plotalpha( Image image, int32_t x, int32_t y, CDATA c)</h3>
 <menu>
 Puts a pixel of color 'c' at (x, y) on 'image'.  The color is stored exactly.
 If the alpha version is used, then the alpha channel on the pixel is applied
 to compute the resulting pixel based on prior content plus the new pixel.
 </menu>
 <hr>
-<h3>CDATA getpixel( Image image, S_32 x, S_32 y )</h3>
+<h3>CDATA getpixel( Image image, int32_t x, int32_t y )</h3>
 <menu>
 Returns the pixel which is at (x, y) on image.
 </menu>
 <hr>
-<h3>void do_line( Image image, S_32 x, S_32 y, S_32 xto, S_32 yto, CDATA color)<br>
-void do_lineAlpha( Image image, S_32 x, S_32 y, S_32 xto, S_32 yto, CDATA color)
+<h3>void do_line( Image image, int32_t x, int32_t y, int32_t xto, int32_t yto, CDATA color)<br>
+void do_lineAlpha( Image image, int32_t x, int32_t y, int32_t xto, int32_t yto, CDATA color)
 </h3>
 <menu>
 Draws a line no more than 1 pixel thick from x, y to xto, yto.  This is always
@@ -491,14 +491,14 @@ the same line.  If the Alpha version is used, the color is applied according to
 its alpha channel value.  Otherwise, the color is literally set.
 </menu>
 <hr>
-<h3>void do_hline( Image image, S_32 y, S_32 xfrom, S_32 xto, CDATA color )<br>
-void do_hlineAlpha( Image image, S_32 y, S_32 xfrom, S_32 xto, CDATA color )</h3>
+<h3>void do_hline( Image image, int32_t y, int32_t xfrom, int32_t xto, CDATA color )<br>
+void do_hlineAlpha( Image image, int32_t y, int32_t xfrom, int32_t xto, CDATA color )</h3>
 <menu>
 Specialized line algorithm to do horizontal lines.
 </menu>
 <hr>
-<h3>void do_vline( Image image, S_32 x, S_32 yfrom, S_32 yto, CDATA color )<br>
-void do_vlineAlpha( Image image, S_32 x, S_32 yfrom, S_32 yto, CDATA color )</h3>
+<h3>void do_vline( Image image, int32_t x, int32_t yfrom, int32_t yto, CDATA color )<br>
+void do_vlineAlpha( Image image, int32_t x, int32_t yfrom, int32_t yto, CDATA color )</h3>
 <menu>
 Specialized line algorithm to do vertical lines.
 </menu>
@@ -512,13 +512,13 @@ passed to all functions which expect a font, in which case, this font handle
 is used.
 </menu>
 <hr>
-<h3>_32 GetFontHeight( Font )</h3>
+<h3>uint32_t GetFontHeight( Font )</h3>
 <menu>
 Returns the height of the font.  This height member should be available
 for application reference in the Font structure?
 </menu>
 <hr>
-<h3>_32 GetStringSizeFontEx( CTEXTSTR pString, _32 len, _32 *width, _32 *height, Font UseFont )</h3>
+<h3>uint32_t GetStringSizeFontEx( CTEXTSTR pString, uint32_t len, uint32_t *width, uint32_t *height, Font UseFont )</h3>
 <h5>also referenced by these macros</h5>
 <h4>
 GetStringSizeEx(s,len,pw,ph) <br>
@@ -538,20 +538,20 @@ and not global anymore.....
 </menu>
 
 <hr>
-<table><tr><td><h3>_32 PutCharacterFont</td><td><h3>( Image pImage</td></tr>
-     			      <tr><td></td><td><h3>, S_32 x, S_32 y</td></tr>
+<table><tr><td><h3>uint32_t PutCharacterFont</td><td><h3>( Image pImage</td></tr>
+     			      <tr><td></td><td><h3>, int32_t x, int32_t y</td></tr>
        			      <tr><td></td><td><h3>, CDATA color, CDATA background</td></tr>
        			      <tr><td></td><td><h3>, unsigned char c, Font font );</td></tr>
-       <tr><td><h3>_32 PutCharacterInvertFont</td><td><h3>( Image pImage</td></tr>
-     			      <tr><td></td><td><h3>, S_32 x, S_32 y</td></tr>
+       <tr><td><h3>uint32_t PutCharacterInvertFont</td><td><h3>( Image pImage</td></tr>
+     			      <tr><td></td><td><h3>, int32_t x, int32_t y</td></tr>
        			      <tr><td></td><td><h3>, CDATA color, CDATA background</td></tr>
        			      <tr><td></td><td><h3>, unsigned char c, Font font );</td></tr>
-       <tr><td><h3>_32 PutCharacterVerticalFont</td><td><h3>( Image pImage</td></tr>
-     			      <tr><td></td><td><h3>, S_32 x, S_32 y</td></tr>
+       <tr><td><h3>uint32_t PutCharacterVerticalFont</td><td><h3>( Image pImage</td></tr>
+     			      <tr><td></td><td><h3>, int32_t x, int32_t y</td></tr>
        			      <tr><td></td><td><h3>, CDATA color, CDATA background</td></tr>
        			      <tr><td></td><td><h3>, unsigned char c, Font font );</td></tr>
-       <tr><td><h3>_32 PutCharacterVerticalInvertFont</td><td><h3>( Image pImage</td></tr>
-     			      <tr><td></td><td><h3>, S_32 x, S_32 y</td></tr>
+       <tr><td><h3>uint32_t PutCharacterVerticalInvertFont</td><td><h3>( Image pImage</td></tr>
+     			      <tr><td></td><td><h3>, int32_t x, int32_t y</td></tr>
        			      <tr><td></td><td><h3>, CDATA color, CDATA background</td></tr>
        			      <tr><td></td><td><h3>, unsigned char c, Font font );</td></tr>
                               </table>
@@ -581,25 +581,25 @@ right direction, assuming the first character is the 'left'.
 
 <hr>
 <table>
-<tr><td><h3>_32 PutStringFontEx</td><td><h3>( Image pImage</td></tr>
-<tr><td></td><td><h3>, S_32 x, S_32 y</td></tr>
+<tr><td><h3>uint32_t PutStringFontEx</td><td><h3>( Image pImage</td></tr>
+<tr><td></td><td><h3>, int32_t x, int32_t y</td></tr>
 <tr><td></td><td><h3>, CDATA color, CDATA background</td></tr>
-<tr><td></td><td><h3>, char *pc, _32 nLen</td></tr>
+<tr><td></td><td><h3>, char *pc, uint32_t nLen</td></tr>
 <tr><td></td><td><h3>, Font font )</td></tr>
-<tr><td><h3>_32 PutStringVerticalFontEx</td><td><h3>( Image pImage</td></tr>
-<tr><td></td><td><h3>, S_32 x, S_32 y</td></tr>
+<tr><td><h3>uint32_t PutStringVerticalFontEx</td><td><h3>( Image pImage</td></tr>
+<tr><td></td><td><h3>, int32_t x, int32_t y</td></tr>
 <tr><td></td><td><h3>, CDATA color, CDATA background</td></tr>
-<tr><td></td><td><h3>, char *pc, _32 nLen</td></tr>
+<tr><td></td><td><h3>, char *pc, uint32_t nLen</td></tr>
 <tr><td></td><td><h3>, Font font )</td></tr>
-<tr><td><h3>_32 PutStringInvertFontEx</td><td><h3>( Image pImage</td></tr>
-<tr><td></td><td><h3>, S_32 x, S_32 y</td></tr>
+<tr><td><h3>uint32_t PutStringInvertFontEx</td><td><h3>( Image pImage</td></tr>
+<tr><td></td><td><h3>, int32_t x, int32_t y</td></tr>
 <tr><td></td><td><h3>, CDATA color, CDATA background</td></tr>
-<tr><td></td><td><h3>, char *pc, _32 nLen</td></tr>
+<tr><td></td><td><h3>, char *pc, uint32_t nLen</td></tr>
 <tr><td></td><td><h3>, Font font )</td></tr>
-<tr><td><h3>_32 PutStringInvertVerticalFontEx</td><td><h3>( Image pImage</td></tr>
-<tr><td></td><td><h3>, S_32 x, S_32 y</td></tr>
+<tr><td><h3>uint32_t PutStringInvertVerticalFontEx</td><td><h3>( Image pImage</td></tr>
+<tr><td></td><td><h3>, int32_t x, int32_t y</td></tr>
 <tr><td></td><td><h3>, CDATA color, CDATA background</td></tr>
-<tr><td></td><td><h3>, char *pc, _32 nLen</td></tr>
+<tr><td></td><td><h3>, char *pc, uint32_t nLen</td></tr>
 <tr><td></td><td><h3>, Font font )</td></tr>
 </table>
 <h5>also referenced by these macros</h5>
@@ -636,7 +636,7 @@ the upper-left of the first character in normal orientation..
 <menu>
 </menu>
 <hr>
-<h3>_32 GetMaxStringLengthFont( S_32 width, Font font )</h3>
+<h3>uint32_t GetMaxStringLengthFont( int32_t width, Font font )</h3>
 <menu>
 Based on the average size of the font's characters, result in the maximum
 string length that may be shown in this width using this font.

@@ -49,9 +49,9 @@ In debug mode - the following symbols are defined as...<br><br>
 <tr><td>DBG_SRC</td><td>, __FILE__, __LINE__</td><td>passing 'here' to a routine expecting DBG_PASS (after 1 or more paramters)</td></tr>
 <tr><td>DBG_LEADSRC</td><td>__FILE__, __LINE__, </td><td>passing 'here' to a routine expecting DBG_LEADPASS (before 1 or more paramters)</td></tr>
 <tr><td>DBG_VOIDSRC</td><td>__FILE__, __LINE__</td><td>passing 'here' to a routine expecting DBG_VOIDPASS when otherwise the function has no (void) paramters.</td></tr>
-<tr><td>DBG_PASS</td><td>, CTEXTSTR pFile, _32 nLine</td><td>Defining that a routine accepts a 'here' from the caller after 1 or more paramters.</td></tr>
-<tr><td>DBG_LEADPASS</td><td>CTEXTSTR pFile, _32 nLine, </td><td>Defining that a routine accepts a 'here' from the caller before 1 or more paramters.</td></tr>
-<tr><td>DBG_VOIDPASS</td><td>CTEXTSTR pFile, _32 nLine</td><td>Defining that a routine accepts a 'here' from the caller when otherwise no (void) paramters are used.</td></tr>
+<tr><td>DBG_PASS</td><td>, CTEXTSTR pFile, uint32_t nLine</td><td>Defining that a routine accepts a 'here' from the caller after 1 or more paramters.</td></tr>
+<tr><td>DBG_LEADPASS</td><td>CTEXTSTR pFile, uint32_t nLine, </td><td>Defining that a routine accepts a 'here' from the caller before 1 or more paramters.</td></tr>
+<tr><td>DBG_VOIDPASS</td><td>CTEXTSTR pFile, uint32_t nLine</td><td>Defining that a routine accepts a 'here' from the caller when otherwise no (void) paramters are used.</td></tr>
 <tr><td>DBG_RELAY</td><td>, pFile, nLine</td><td>Used to foward information passed in to a DBG_PASS to a routine expecting DBG_PASS (after 1 or more parameters)</td></tr>
 <tr><td>DBG_LEADRELAY</td><td>pFile, nLine, </td><td>Used to foward information passed in to a DBG_LEADPASS to a routine expecting DBG_LEADPASS (before 1 or more parameters)</td></tr>
 <tr><td>DBG_VOIDRELAY</td><td>pFile, nLine</td><td>Used to foward information passed in to a DBG_VOIDPASS to a routine expecting DBG_VOIDPASS to a function otherwise expecing no (void) paramters.</td></tr>
@@ -98,16 +98,16 @@ void prefixed( DBG_LEADPASS int a, int b )
 }
 
 //becomes in debug mode...
-void function( CTEXTSTR pFile, _32 nLine )
+void function( CTEXTSTR pFile, uint32_t nLine )
 {
    printf( "%s(%ld): This line marked %d times", __FILE__, __LINE__, i );
    printf( "%s(%ld): called this...", pFile, nLine );
 }
-void another( int a, int b , CTEXTSTR pFile, _32 nLine )
+void another( int a, int b , CTEXTSTR pFile, uint32_t nLine )
 {
    function( pFile, nLine );
 }
-void prefixed( CTEXTSTR pFile, _32 nLine, int a, int b )
+void prefixed( CTEXTSTR pFile, uint32_t nLine, int a, int b )
 {
    another( a, b, pFile, nLine );
    another( a, b, __FILE__, __LINE__ );

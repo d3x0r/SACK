@@ -42,11 +42,11 @@ This is used to define struct SimpleDataBlock types.</td></tr>
 <table border=1>
 <tr><td>_8</td><td>8 bit unsigned value.</td></tr>
 <tr><td>_16</td><td>16 bit unsigned value.</td></tr>
-<tr><td>_32</td><td>32 bit unsigned value.</td></tr>
+<tr><td>uint32_t</td><td>32 bit unsigned value.</td></tr>
 <tr><td>_64</td><td>64 bit unsigned value.</td></tr>
 <tr><td>S_8</td><td>8 bit signed value.</td></tr>
 <tr><td>S_16</td><td>16 bit signed value.</td></tr>
-<tr><td>S_32</td><td>32 bit signed value.</td></tr>
+<tr><td>int32_t</td><td>32 bit signed value.</td></tr>
 <tr><td>S_64</td><td>64 bit signed value.</td></tr>
 <tr><td>P_8</td><td>pointer to an 8 bit unsigned value.</td></tr>
 <tr><td>P_16</td><td>pointer to an 16 bit unsigned value.</td></tr>
@@ -63,8 +63,8 @@ This is used to define struct SimpleDataBlock types.</td></tr>
 <tr><td>TEXTSTR</td><td>A text string.</td></tr>
 <tr><td>TEXTCHAR</td><td>Alias for X_8.  Turns out that under certain C++ compilers
 char is neither equivalent to signed char or unsigned char, therefore this alias had to be created.</td></tr>
-<tr><td>LOGICAL</td><td>A boolean/true false type value... many systems defaulted this type to _32 bits, and desiring
-to conserve space, an attempt was made to make this _8... or even a 1 bit field, but it failed, and finally _32 was
+<tr><td>LOGICAL</td><td>A boolean/true false type value... many systems defaulted this type to uint32_t bits, and desiring
+to conserve space, an attempt was made to make this _8... or even a 1 bit field, but it failed, and finally uint32_t was
 chosen as the type of this.</td></tr>
 <tr><td>INDEX</td><td>An index into an array - a machine natural unsigned integer value.</td></tr>
 <tr><td>POINTER</td><td>A pointer to void.  That's all - just a pointer.</td></tr>

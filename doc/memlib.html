@@ -46,7 +46,7 @@ and such conflicts MAY be overcome.
 <menu>
 An override for the new operator causes new to allocate memory from Allocate().
 </menU>
-<h3>newEx( CTEXTSTR pFile, _32 nLine )</h3>
+<h3>newEx( CTEXTSTR pFile, uint32_t nLine )</h3>
 <menu>
 Used exactly as a 'new' operator would be used.
 An override for the new operator causes new to allocate memory from Allocate().
@@ -85,7 +85,7 @@ Begin OLD documentation.  Still valid...
       a Release from actually returning the block to the free memory pool
       until it has been Released as many times as it was held.
 
-   POINTER Reallocate( POINTER, _32 newsize )
+   POINTER Reallocate( POINTER, uint32_t newsize )
    	This will allocate a new block of the size specified (may be larger
    	or smaller than the existing memory block's size.  The existing
    	memory's content is copied to the new block.  If the new size
@@ -93,7 +93,7 @@ Begin OLD documentation.  Still valid...
    	may be NULL, in which case a new block of memory is created, and
    	is initialized to zero.
 	also:
-		POINTER HeapReallocate( PMEM pHeap, POINTER, _32 size );
+		POINTER HeapReallocate( PMEM pHeap, POINTER, uint32_t size );
 			A block MAY be reallocated into a specified heap, even if the 
 			original block was not from that heap.
 
@@ -107,7 +107,7 @@ Begin OLD documentation.  Still valid...
       If the memory block was not moved, the function returns FALSE, and
       no additional changes are needed.      
 
-	_32 SizeOfMemBlock( POINTER pData )
+	uint32_t SizeOfMemBlock( POINTER pData )
 		The size of a memory block allocated may be discovered using this
 		on a pointer returned from either Allocate or Reallocate.
 
@@ -262,9 +262,9 @@ PMEM OpenSpace( CTEXTSTR pWhat, CTEXTSTR pWhere, P_32 dwSize )
          is updated.
          
 
-PMEM OpenSpaceEx( CTEXTSTR pWhat, CTEXTSTR pWhere, _32 address, P_32 dwSize )
+PMEM OpenSpaceEx( CTEXTSTR pWhat, CTEXTSTR pWhere, uint32_t address, P_32 dwSize )
 
-_32 GetSpaceSize( POINTER pMem )
+uint32_t GetSpaceSize( POINTER pMem )
 	This will result in the size of the memory area allocated (opened).
 
 void  CloseSpace( PBYTE pMem )
@@ -303,7 +303,7 @@ Changing the Compilation by modifying internal #DEFINES
 Alternative Heap Usage
 -----------------------------------------------------
 	struct {
-		_32 dwMemorySize;
+		uint32_t dwMemorySize;
 		POINTER pMemory;
 	} g;
 

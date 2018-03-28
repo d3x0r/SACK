@@ -31,16 +31,16 @@ msgclient
 <tr><td>TYPE</td><td>Usage</td></tr>
 <tr><td>server_function_table</td><td>server_function_table _your_table_name[] = { ServerFunctionEntry(function_name),.... }</td></tr>
 <tr><td>server_message_handler</td><td>A user defined function of the type <br>
-int CPROC server_message_handler( _32 SourceRouteID, _32 MsgID
-				, _32 *params, _32 param_length
-				, _32 *result, _32 *result_length );<br>
+int CPROC server_message_handler( uint32_t SourceRouteID, uint32_t MsgID
+				, uint32_t *params, uint32_t param_length
+				, uint32_t *result, uint32_t *result_length );<br>
 </table>
 
 
 <h2>Routines</h2>
 <menu>
 <hr>
-<h3><table><tr><td><h3>_32 RegisterServiceEx</td><td><h3>( char *name</td></tr>
+<h3><table><tr><td><h3>uint32_t RegisterServiceEx</td><td><h3>( char *name</td></tr>
                                    <tr><td><h3></td><td><h3>, server_function_table functions</td></tr>
                                    <tr><td><h3></td><td><h3>, int entries</td></tr>
                                    <tr><td><h3></td><td><h3>, server_message_handler event_handler )</td></tr></table></h3>
@@ -106,13 +106,13 @@ have idle procs get a chance to process: timers, network, msgserver, display...)
 
 <menu>
 <hr>
-<h3><table><tr><td><h3>_32 LoadService</td><td><h3>( char *name</td></tr>
+<h3><table><tr><td><h3>uint32_t LoadService</td><td><h3>( char *name</td></tr>
   <tr><td></td><td><h3>, EventHandlerFunction func )</table></h3>
 </h3>
 <menu>
-	int CPROC EventHandlerFunction(_32 MsgID
-                                , _32*params
-                                , _32 paramlen)
+	int CPROC EventHandlerFunction(uint32_t MsgID
+                                , uint32_t*params
+                                , uint32_t paramlen)
 <menu>
   <li>MsgID - the message that the server sent as an event(no response required).
   <li>params - the message content
@@ -132,14 +132,14 @@ was not available, or for some reason failed to be available.
 
 <menu>
 <hr>
-<h3><table><tr><td><h3>_32 LoadServiceEx</td><td><h3>( char *name</td></tr>
+<h3><table><tr><td><h3>uint32_t LoadServiceEx</td><td><h3>( char *name</td></tr>
   <tr><td></td><td><h3>, EventHandlerFunctionEx func )</table></h3>
 </h3>
 <menu>
-	int CPROC EventHandlerFunctionEx(_32 SourceID
-        			, _32 MsgID
-                                , _32*params
-                                , _32 paramlen)
+	int CPROC EventHandlerFunctionEx(uint32_t SourceID
+        			, uint32_t MsgID
+                                , uint32_t*params
+                                , uint32_t paramlen)
 <menu>
   <li>SourceID - the ID that the message came from... can be used somewhere
   <li>MsgID - the message that the server sent as an event(no response required).
@@ -161,7 +161,7 @@ a extended version of the event handler function that is passed the SourceID.
 
 <menu>
 <hr>
-<h3><table><tr><td><h3>void UnloadService</td><td><h3>( _32 MsgBase )</td></tr></table></h3>
+<h3><table><tr><td><h3>void UnloadService</td><td><h3>( uint32_t MsgBase )</td></tr></table></h3>
 </h3>
 <menu>
 Disconnects from a service, identified by the base Message ID (the result from
@@ -174,11 +174,11 @@ LoadService or LoadServiceEx).  Sends a disconnect to the server.
 <menu>
 <hr>
 <h3><table><tr><td><h3>int TransactServerMultiMessage</td>
-	     <td><h3>( _32 MsgOut</td></tr>
-<tr><td></td><td><h3>, _32 buffers</td></tr>
-<tr><td></td><td><h3>, _32 MsgIn</td></tr>
-<tr><td></td><td><h3>, _32 BufferIn</td></tr>
-<tr><td></td><td><h3>, _32 *LengthIn</td></tr>
+	     <td><h3>( uint32_t MsgOut</td></tr>
+<tr><td></td><td><h3>, uint32_t buffers</td></tr>
+<tr><td></td><td><h3>, uint32_t MsgIn</td></tr>
+<tr><td></td><td><h3>, uint32_t BufferIn</td></tr>
+<tr><td></td><td><h3>, uint32_t *LengthIn</td></tr>
 <tr><td></td><td><h3>, ... )</td></tr>
 </table></h3>
 </h3>
@@ -198,16 +198,16 @@ the server's unique MsgBase added to it, so that the message is routed to the
 correct place...</td></tr>
 <tr><td>buffers</td><td>Count of buffer pairs sent as variable arguments at the
 end of these arguments</td></tr>
-<tr><td>MsgId</td><td>The address of a _32 type variable which receives the
+<tr><td>MsgId</td><td>The address of a uint32_t type variable which receives the
 response message ID from the server (should be MsgOut or'd with SERVER_SUCCESS or
 SERVER_FAILURE).   May be NULL.</td></tr>
 <tr><td>BufferIn</td><td>Pointer to a buffer to accept responce data from
 the service. May be NULL if no data is expected from the result</td></tr>
-<tr><td>LengthIn</td><td>Pointer to a _32 type variable which receives the
+<tr><td>LengthIn</td><td>Pointer to a uint32_t type variable which receives the
 size of the buffer returned.  (also, this value is the maximum size of the buffer
 which allows the library to protect the application from data overrun.)</td></tr>
 </td></tr>
-<tr><td>...</td><td>Varaible arguments at the end are pairs of (POINTER data, _32 length).</td></tr>
+<tr><td>...</td><td>Varaible arguments at the end are pairs of (POINTER data, uint32_t length).</td></tr>
 </table>
 <br>
 </menu>
@@ -217,9 +217,9 @@ which allows the library to protect the application from data overrun.)</td></tr
 <menu>
 <hr>
 <h3><table><tr><td><h3>int SendMultiServiceEvent</td>
-	     <td><h3>( _32 client_pid</td></tr>
-<tr><td></td><td><h3>, _32 event_id</td></tr>
-<tr><td></td><td><h3>, _32 parts</td></tr>
+	     <td><h3>( uint32_t client_pid</td></tr>
+<tr><td></td><td><h3>, uint32_t event_id</td></tr>
+<tr><td></td><td><h3>, uint32_t parts</td></tr>
 <tr><td></td><td><h3>, ... )</td></tr>
 </table></h3>
 </h3>
@@ -234,8 +234,8 @@ server should send to specify which client gets the event.</td></tr>
 <tr><td>event_id</td><td>Message ID to send to the client.  This message needs
 to be biased with the value returned from RegisterService (the registered service 
 base message ID).</td></tr>
-<tr><td>parts</td><td>count of (POINTER,_32 length) parameters passed as variable parameters.</td></tr>
-<tr><td>...</td><td>Varaible arguments at the end are pairs of ( [POINTER data, _32 length], [], ... )</td></tr>
+<tr><td>parts</td><td>count of (POINTER,uint32_t length) parameters passed as variable parameters.</td></tr>
+<tr><td>...</td><td>Varaible arguments at the end are pairs of ( [POINTER data, uint32_t length], [], ... )</td></tr>
 </table>
 <br>
 </menu>
@@ -271,13 +271,13 @@ some creative application may be able to use these.<br><br>
 <menu>
 <hr>
 <h3><table><tr><td><h3>int TransactRoutedServerMultiMessageEx</td>
-	     <td><h3>( _32 RouteID</td></tr>
-<tr><td></td><td><h3>, _32 MsgOut</td></tr>
-<tr><td></td><td><h3>, _32 buffers</td></tr>
-<tr><td></td><td><h3>, _32 MsgIn</td></tr>
-<tr><td></td><td><h3>, _32 BufferIn</td></tr>
-<tr><td></td><td><h3>, _32 *LengthIn</td></tr>
-<tr><td></td><td><h3>, _32 timeout</td></tr>
+	     <td><h3>( uint32_t RouteID</td></tr>
+<tr><td></td><td><h3>, uint32_t MsgOut</td></tr>
+<tr><td></td><td><h3>, uint32_t buffers</td></tr>
+<tr><td></td><td><h3>, uint32_t MsgIn</td></tr>
+<tr><td></td><td><h3>, uint32_t BufferIn</td></tr>
+<tr><td></td><td><h3>, uint32_t *LengthIn</td></tr>
+<tr><td></td><td><h3>, uint32_t timeout</td></tr>
 <tr><td></td><td><h3>, ... )</td></tr>
 </table></h3>
 </h3>
@@ -299,18 +299,18 @@ the server's unique MsgBase added to it, so that the message is routed to the
 correct place... (maybe this only applies for non-RouteID functions...</td></tr>
 <tr><td>buffers</td><td>Count of buffer pairs sent as variable arguments at the
 end of these arguments</td></tr>
-<tr><td>MsgId</td><td>The address of a _32 type variable which receives the
+<tr><td>MsgId</td><td>The address of a uint32_t type variable which receives the
 response message ID from the server (should be MsgOut or'd with SERVER_SUCCESS or
 SERVER_FAILURE).   May be NULL.</td></tr>
 <tr><td>BufferIn</td><td>Pointer to a buffer to accept responce data from
 the service. May be NULL if no data is expected from the result</td></tr>
-<tr><td>LengthIn</td><td>Pointer to a _32 type variable which receives the
+<tr><td>LengthIn</td><td>Pointer to a uint32_t type variable which receives the
 size of the buffer returned.  (also, this value is the maximum size of the buffer
 which allows the library to protect the application from data overrun.)</td></tr>
 <tr><td>timeout</td><td>A different timeout from the default, specified in milliseconds.
 If 0, the default timeout is used (2 seconds for Debug mode, and 200ms for release mode)
 </td></tr>
-<tr><td>...</td><td>Varaible arguments at the end are pairs of (POINTER data, _32 length).</td></tr>
+<tr><td>...</td><td>Varaible arguments at the end are pairs of (POINTER data, uint32_t length).</td></tr>
 </table>
 <br>
 </menu>
@@ -320,7 +320,7 @@ If 0, the default timeout is used (2 seconds for Debug mode, and 200ms for relea
 
 <menu>
 <hr>
-<h3><table><tr><td><h3>int ProbeClientAlive</td><td><h3>( _32 RouteID )</td></tr></table></h3>
+<h3><table><tr><td><h3>int ProbeClientAlive</td><td><h3>( uint32_t RouteID )</td></tr></table></h3>
 </h3>
 <menu>
 Requests of a specific client it's alive status... This is also an extra-short

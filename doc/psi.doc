@@ -548,8 +548,8 @@ PSI_PROC( void, DestroyPopup)( PMENU pm );
 // get sub-menu data...
 PSI_PROC( void ,*GetPopupData)( PMENU pm, int item );
 PSI_PROC( PMENUITEM, AppendPopupItem)( PMENU pm, int type, PTRSZVAL dwID, POINTER pData );
-PSI_PROC( PMENUITEM, CheckPopupItem)( PMENU pm, _32 dwID, _32 state );
-PSI_PROC( PMENUITEM, DeletePopupItem)( PMENU pm, _32 dwID, _32 state );
+PSI_PROC( PMENUITEM, CheckPopupItem)( PMENU pm, uint32_t dwID, uint32_t state );
+PSI_PROC( PMENUITEM, DeletePopupItem)( PMENU pm, uint32_t dwID, uint32_t state );
 PSI_PROC( int, TrackPopup)( PMENU hMenuSub );
 
 //------- File Control --------

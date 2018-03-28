@@ -25,16 +25,16 @@
     <link topicid="_16" displaystring="_16 Type">
       <target id="html">../output/_16.html</target>
     </link>
-    <link topicid="_32" displaystring="_32 Type">
-      <target id="html">../output/_32.html</target>
+    <link topicid="uint32_t" displaystring="uint32_t Type">
+      <target id="html">../output/uint32_t.html</target>
     </link>
-    <link topicid="_32 *result_length )" displaystring="_32 *result_length ) Variable">
+    <link topicid="uint32_t *result_length )" displaystring="uint32_t *result_length ) Variable">
       <target id="html">../output/_32__result_length_).html</target>
     </link>
-    <link topicid="_32 MsgBase)" displaystring="_32 MsgBase) Variable">
+    <link topicid="uint32_t MsgBase)" displaystring="uint32_t MsgBase) Variable">
       <target id="html">../output/_32_MsgBase).html</target>
     </link>
-    <link topicid="_32 paramlen)" displaystring="_32 paramlen) Variable">
+    <link topicid="uint32_t paramlen)" displaystring="uint32_t paramlen) Variable">
       <target id="html">../output/_32_paramlen).html</target>
     </link>
     <link topicid="_3DUpdateCallback" displaystring="_3DUpdateCallback Type">
@@ -55,14 +55,14 @@
     <link topicid="_POINT" displaystring="_POINT Type">
       <target id="html">../output/_POINT.html</target>
     </link>
-    <link topicid="_vxlprintf@_32" displaystring="_vxlprintf Function">
-      <target id="html">../output/_vxlprintf@_32.html</target>
+    <link topicid="_vxlprintf@uint32_t" displaystring="_vxlprintf Function">
+      <target id="html">../output/_vxlprintf@uint32_t.html</target>
     </link>
     <link topicid="_X" displaystring="_X Variable">
       <target id="html">../output/_X.html</target>
     </link>
-    <link topicid="_xlprintf@_32" displaystring="_xlprintf Function">
-      <target id="html">../output/_xlprintf@_32.html</target>
+    <link topicid="_xlprintf@uint32_t" displaystring="_xlprintf Function">
+      <target id="html">../output/_xlprintf@uint32_t.html</target>
     </link>
     <link topicid="_Y" displaystring="_Y Variable">
       <target id="html">../output/_Y.html</target>
@@ -115,7 +115,7 @@
     <link topicid="AddBinaryNodeEx@PTREEROOT@POINTER@PTRSZVAL" displaystring="AddBinaryNodeEx Function">
       <target id="html">../output/AddBinaryNodeEx@PTREEROOT@POINTER@PTRSZVAL.html</target>
     </link>
-    <link topicid="AddCommonAcceptDroppedFiles@PSI_CONTROL@void  *AcceptDroppedFilesMethodPSI_CONTROL, CTEXTSTR file, S_32 x, S_32 y" displaystring="AddCommonAcceptDroppedFiles Function">
+    <link topicid="AddCommonAcceptDroppedFiles@PSI_CONTROL@void  *AcceptDroppedFilesMethodPSI_CONTROL, CTEXTSTR file, int32_t x, int32_t y" displaystring="AddCommonAcceptDroppedFiles Function">
       <target id="html">../output/AddCommonAcceptDroppedFiles@PSI_CONTROL@void___AcceptDroppedFilesMethodPSI_CONTROL,_CTEXTSTR_file,_S_32_x,_S_32_y.html</target>
     </link>
     <link topicid="AddCommonButtons@PSI_CONTROL@int *@int *" displaystring="AddCommonButtons Function">
@@ -127,10 +127,10 @@
     <link topicid="AddCommonDraw@PSI_CONTROL@int  *Draw PSI_CONTROL pc" displaystring="AddCommonDraw Function">
       <target id="html">../output/AddCommonDraw@PSI_CONTROL@int___Draw_PSI_CONTROL_pc.html</target>
     </link>
-    <link topicid="AddCommonKey@PSI_CONTROL@int  *KeyPSI_CONTROL,_32" displaystring="AddCommonKey Function">
-      <target id="html">../output/AddCommonKey@PSI_CONTROL@int___KeyPSI_CONTROL,_32.html</target>
+    <link topicid="AddCommonKey@PSI_CONTROL@int  *KeyPSI_CONTROL,uint32_t" displaystring="AddCommonKey Function">
+      <target id="html">../output/AddCommonKey@PSI_CONTROL@int___KeyPSI_CONTROL,uint32_t.html</target>
     </link>
-    <link topicid="AddCommonMouse@PSI_CONTROL@int  *MouseMethodPSI_CONTROL, S_32 x, S_32 y, _32 b" displaystring="AddCommonMouse Function">
+    <link topicid="AddCommonMouse@PSI_CONTROL@int  *MouseMethodPSI_CONTROL, int32_t x, int32_t y, uint32_t b" displaystring="AddCommonMouse Function">
       <target id="html">../output/AddCommonMouse@PSI_CONTROL@int___MouseMethodPSI_CONTROL,_S_32_x,_S_32_y,__32_b.html</target>
     </link>
     <link topicid="AddConfigurationEx@PCONFIG_HANDLER@CTEXTSTR@USER_CONFIG_HANDLER" displaystring="AddConfigurationEx Function">
@@ -181,8 +181,8 @@
     <link topicid="AddSystrayMenuFunction@CTEXTSTR@void  *functionvoid" displaystring="AddSystrayMenuFunction Function">
       <target id="html">../output/AddSystrayMenuFunction@CTEXTSTR@void___functionvoid.html</target>
     </link>
-    <link topicid="AddTimerExx@_32@_32@void  *callbackPTRSZVAL user@PTRSZVAL" displaystring="AddTimerExx Function">
-      <target id="html">../output/AddTimerExx@_32@_32@void___callbackPTRSZVAL_user@PTRSZVAL.html</target>
+    <link topicid="AddTimerExx@uint32_t@uint32_t@void  *callbackPTRSZVAL user@PTRSZVAL" displaystring="AddTimerExx Function">
+      <target id="html">../output/AddTimerExx@uint32_t@uint32_t@void___callbackPTRSZVAL_user@PTRSZVAL.html</target>
     </link>
     <link topicid="AddTransformCallback@PTRANSFORM@MotionCallback@PTRSZVAL" displaystring="AddTransformCallback Function">
       <target id="html">../output/AddTransformCallback@PTRANSFORM@MotionCallback@PTRSZVAL.html</target>
@@ -277,8 +277,8 @@
     <link topicid="BeginBatchUpdate" displaystring="BeginBatchUpdate Function">
       <target id="html">../output/BeginBatchUpdate.html</target>
     </link>
-    <link topicid="BeginCalibration@_32" displaystring="BeginCalibration Function">
-      <target id="html">../output/BeginCalibration@_32.html</target>
+    <link topicid="BeginCalibration@uint32_t" displaystring="BeginCalibration Function">
+      <target id="html">../output/BeginCalibration@uint32_t.html</target>
     </link>
     <link topicid="BeginConfiguration@PCONFIG_HANDLER" displaystring="BeginConfiguration Function">
       <target id="html">../output/BeginConfiguration@PCONFIG_HANDLER.html</target>
@@ -286,11 +286,11 @@
     <link topicid="BeginNamedConfiguration@PCONFIG_HANDLER@CTEXTSTR" displaystring="BeginNamedConfiguration Function">
       <target id="html">../output/BeginNamedConfiguration@PCONFIG_HANDLER@CTEXTSTR.html</target>
     </link>
-    <link topicid="BindEventToKey@PRENDERER@_32@_32@KeyTriggerHandler@PTRSZVAL" displaystring="BindEventToKey Function">
-      <target id="html">../output/BindEventToKey@PRENDERER@_32@_32@KeyTriggerHandler@PTRSZVAL.html</target>
+    <link topicid="BindEventToKey@PRENDERER@uint32_t@uint32_t@KeyTriggerHandler@PTRSZVAL" displaystring="BindEventToKey Function">
+      <target id="html">../output/BindEventToKey@PRENDERER@uint32_t@uint32_t@KeyTriggerHandler@PTRSZVAL.html</target>
     </link>
-    <link topicid="BindEventToKeyEx@PKEYDEFINE@_32@_32@KeyTriggerHandler@PTRSZVAL" displaystring="BindEventToKeyEx Function">
-      <target id="html">../output/BindEventToKeyEx@PKEYDEFINE@_32@_32@KeyTriggerHandler@PTRSZVAL.html</target>
+    <link topicid="BindEventToKeyEx@PKEYDEFINE@uint32_t@uint32_t@KeyTriggerHandler@PTRSZVAL" displaystring="BindEventToKeyEx Function">
+      <target id="html">../output/BindEventToKeyEx@PKEYDEFINE@uint32_t@uint32_t@KeyTriggerHandler@PTRSZVAL.html</target>
     </link>
     <link topicid="BIT_FIELD" displaystring="BIT_FIELD Type">
       <target id="html">../output/BIT_FIELD.html</target>
@@ -298,11 +298,11 @@
     <link topicid="blank" displaystring="blank Variable">
       <target id="html">../output/blank.html</target>
     </link>
-    <link topicid="BlatColor@Image@S_32@S_32@_32@_32@CDATA" displaystring="BlatColor Function">
-      <target id="html">../output/BlatColor@Image@S_32@S_32@_32@_32@CDATA.html</target>
+    <link topicid="BlatColor@Image@int32_t@int32_t@uint32_t@uint32_t@CDATA" displaystring="BlatColor Function">
+      <target id="html">../output/BlatColor@Image@int32_t@int32_t@uint32_t@uint32_t@CDATA.html</target>
     </link>
-    <link topicid="BlatColorAlpha@Image@S_32@S_32@_32@_32@CDATA" displaystring="BlatColorAlpha Function">
-      <target id="html">../output/BlatColorAlpha@Image@S_32@S_32@_32@_32@CDATA.html</target>
+    <link topicid="BlatColorAlpha@Image@int32_t@int32_t@uint32_t@uint32_t@CDATA" displaystring="BlatColorAlpha Function">
+      <target id="html">../output/BlatColorAlpha@Image@int32_t@int32_t@uint32_t@uint32_t@CDATA.html</target>
     </link>
     <link topicid="BLOT_ASM" displaystring="BLOT_ASM">
       <target id="html">../output/blot_methods.html</target>
@@ -316,14 +316,14 @@
     <link topicid="BLOT_MMX" displaystring="BLOT_MMX">
       <target id="html">../output/blot_methods.html</target>
     </link>
-    <link topicid="BlotImageEx@Image@Image@S_32@S_32@_32@_32@..." displaystring="BlotImageEx Function">
-      <target id="html">../output/BlotImageEx@Image@Image@S_32@S_32@_32@_32@___.html</target>
+    <link topicid="BlotImageEx@Image@Image@int32_t@int32_t@uint32_t@uint32_t@..." displaystring="BlotImageEx Function">
+      <target id="html">../output/BlotImageEx@Image@Image@int32_t@int32_t@uint32_t@uint32_t@___.html</target>
     </link>
-    <link topicid="BlotImageSizedEx@Image@Image@S_32@S_32@S_32@S_32@_32@_32@_32@_32@..." displaystring="BlotImageSizedEx Function">
-      <target id="html">../output/BlotImageSizedEx@Image@Image@S_32@S_32@S_32@S_32@_32@_32@_32@_32@___.html</target>
+    <link topicid="BlotImageSizedEx@Image@Image@int32_t@int32_t@int32_t@int32_t@uint32_t@uint32_t@uint32_t@uint32_t@..." displaystring="BlotImageSizedEx Function">
+      <target id="html">../output/BlotImageSizedEx@Image@Image@int32_t@int32_t@int32_t@int32_t@uint32_t@uint32_t@uint32_t@uint32_t@___.html</target>
     </link>
-    <link topicid="BlotScaledImageSizedEx@Image@Image@S_32@S_32@_32@_32@S_32@S_32@_32@_32@_32@_32@..." displaystring="BlotScaledImageSizedEx Function">
-      <target id="html">../output/BlotScaledImageSizedEx@Image@Image@S_32@S_32@_32@_32@S_32@S_32@_32@_32@_32@_32@___.html</target>
+    <link topicid="BlotScaledImageSizedEx@Image@Image@int32_t@int32_t@uint32_t@uint32_t@int32_t@int32_t@uint32_t@uint32_t@uint32_t@uint32_t@..." displaystring="BlotScaledImageSizedEx Function">
+      <target id="html">../output/BlotScaledImageSizedEx@Image@Image@int32_t@int32_t@uint32_t@uint32_t@int32_t@int32_t@uint32_t@uint32_t@uint32_t@uint32_t@___.html</target>
     </link>
     <link topicid="BlotSprite@Image@PSPRITE" displaystring="BlotSprite Function">
       <target id="html">../output/BlotSprite@Image@PSPRITE.html</target>
@@ -343,8 +343,8 @@
     <link topicid="BUFFER_LENGTH_PAIR" displaystring="BUFFER_LENGTH_PAIR Structure">
       <target id="html">../output/BUFFER_LENGTH_PAIR.html</target>
     </link>
-    <link topicid="BuildImageFileEx@PCOLOR@_32@_32" displaystring="BuildImageFileEx Function">
-      <target id="html">../output/BuildImageFileEx@PCOLOR@_32@_32.html</target>
+    <link topicid="BuildImageFileEx@PCOLOR@uint32_t@uint32_t" displaystring="BuildImageFileEx Function">
+      <target id="html">../output/BuildImageFileEx@PCOLOR@uint32_t@uint32_t.html</target>
     </link>
     <link topicid="BuildLineExEx@PTEXT@int@INDEX@PTEXT" displaystring="BuildLineExEx Function">
       <target id="html">../output/BuildLineExEx@PTEXT@int@INDEX@PTEXT.html</target>
@@ -397,8 +397,8 @@
     <link topicid="ChangeIconEx@CTEXTSTR" displaystring="ChangeIconEx Function">
       <target id="html">../output/ChangeIconEx@CTEXTSTR.html</target>
     </link>
-    <link topicid="ChangeTimerEx@_32@_32@_32" displaystring="ChangeTimerEx Function">
-      <target id="html">../output/ChangeTimerEx@_32@_32@_32.html</target>
+    <link topicid="ChangeTimerEx@uint32_t@uint32_t@uint32_t" displaystring="ChangeTimerEx Function">
+      <target id="html">../output/ChangeTimerEx@uint32_t@uint32_t@uint32_t.html</target>
     </link>
     <link topicid="CHARACTER" displaystring="CHARACTER Structure">
       <target id="html">../output/CHARACTER.html</target>
@@ -406,11 +406,11 @@
     <link topicid="CheckClassRoot@CTEXTSTR" displaystring="CheckClassRoot Function">
       <target id="html">../output/CheckClassRoot@CTEXTSTR.html</target>
     </link>
-    <link topicid="CheckODBCTable@PODBC@PTABLE@_32" displaystring="CheckODBCTable Function">
-      <target id="html">../output/CheckODBCTable@PODBC@PTABLE@_32.html</target>
+    <link topicid="CheckODBCTable@PODBC@PTABLE@uint32_t" displaystring="CheckODBCTable Function">
+      <target id="html">../output/CheckODBCTable@PODBC@PTABLE@uint32_t.html</target>
     </link>
-    <link topicid="CheckPopupItem@PMENU@_32@_32" displaystring="CheckPopupItem Function">
-      <target id="html">../output/CheckPopupItem@PMENU@_32@_32.html</target>
+    <link topicid="CheckPopupItem@PMENU@uint32_t@uint32_t" displaystring="CheckPopupItem Function">
+      <target id="html">../output/CheckPopupItem@PMENU@uint32_t@uint32_t.html</target>
     </link>
     <link topicid="ClearDefaultFilters@PCONFIG_HANDLER" displaystring="ClearDefaultFilters Function">
       <target id="html">../output/ClearDefaultFilters@PCONFIG_HANDLER.html</target>
@@ -565,7 +565,7 @@
     <link topicid="ConvertDBTimeString@CTEXTSTR@CTEXTSTR *@int *@int *@int *@int *@int *@int *" displaystring="ConvertDBTimeString Function">
       <target id="html">../output/ConvertDBTimeString@CTEXTSTR@CTEXTSTR__@int__@int__@int__@int__@int__@int__.html</target>
     </link>
-    <link topicid="ConvertSQLDateEx@CTEXTSTR@int *@int *@int *@int *@int *@int *@int *@S_32 *" displaystring="ConvertSQLDateEx Function">
+    <link topicid="ConvertSQLDateEx@CTEXTSTR@int *@int *@int *@int *@int *@int *@int *@int32_t *" displaystring="ConvertSQLDateEx Function">
       <target id="html">../output/ConvertSQLDateEx@CTEXTSTR@int__@int__@int__@int__@int__@int__@int__@S_32__.html</target>
     </link>
     <link topicid="ConvertTickToMicrosecond@_64" displaystring="ConvertTickToMicrosecond Function">
@@ -619,14 +619,14 @@
     <link topicid="CreateActiveMessage@int@int@..." displaystring="CreateActiveMessage Function">
       <target id="html">../output/CreateActiveMessage@int@int@___.html</target>
     </link>
-    <link topicid="CreateAddress@_32@_16" displaystring="CreateAddress Function">
-      <target id="html">../output/CreateAddress@_32@_16.html</target>
+    <link topicid="CreateAddress@uint32_t@_16" displaystring="CreateAddress Function">
+      <target id="html">../output/CreateAddress@uint32_t@_16.html</target>
     </link>
-    <link topicid="CreateAddress_hton@_32@_16" displaystring="CreateAddress_hton Function">
-      <target id="html">../output/CreateAddress_hton@_32@_16.html</target>
+    <link topicid="CreateAddress_hton@uint32_t@_16" displaystring="CreateAddress_hton Function">
+      <target id="html">../output/CreateAddress_hton@uint32_t@_16.html</target>
     </link>
-    <link topicid="CreateBinaryTreeExtended@_32@GenericCompare@GenericDestroy" displaystring="CreateBinaryTreeExtended Function">
-      <target id="html">../output/CreateBinaryTreeExtended@_32@GenericCompare@GenericDestroy.html</target>
+    <link topicid="CreateBinaryTreeExtended@uint32_t@GenericCompare@GenericDestroy" displaystring="CreateBinaryTreeExtended Function">
+      <target id="html">../output/CreateBinaryTreeExtended@uint32_t@GenericCompare@GenericDestroy.html</target>
     </link>
     <link topicid="createCache" displaystring="createCache Function">
       <target id="html">../output/createCache.html</target>
@@ -649,11 +649,11 @@
     <link topicid="CreateFamilyTree@int  *ComparePTRSZVAL key1, PTRSZVAL key2@void  *DestroyPOINTER user, PTRSZVAL key" displaystring="CreateFamilyTree Function">
       <target id="html">../output/CreateFamilyTree@int___ComparePTRSZVAL_key1,_PTRSZVAL_key2@void___DestroyPOINTER_user,_PTRSZVAL_key.html</target>
     </link>
-    <link topicid="CreateFrame@CTEXTSTR@int@int@int@int@_32@PSI_CONTROL" displaystring="CreateFrame Function">
-      <target id="html">../output/CreateFrame@CTEXTSTR@int@int@int@int@_32@PSI_CONTROL.html</target>
+    <link topicid="CreateFrame@CTEXTSTR@int@int@int@int@uint32_t@PSI_CONTROL" displaystring="CreateFrame Function">
+      <target id="html">../output/CreateFrame@CTEXTSTR@int@int@int@int@uint32_t@PSI_CONTROL.html</target>
     </link>
-    <link topicid="CreateFrameFromRenderer@CTEXTSTR@_32@PRENDERER" displaystring="CreateFrameFromRenderer Function">
-      <target id="html">../output/CreateFrameFromRenderer@CTEXTSTR@_32@PRENDERER.html</target>
+    <link topicid="CreateFrameFromRenderer@CTEXTSTR@uint32_t@PRENDERER" displaystring="CreateFrameFromRenderer Function">
+      <target id="html">../output/CreateFrameFromRenderer@CTEXTSTR@uint32_t@PRENDERER.html</target>
     </link>
     <link topicid="CreateKeyBinder" displaystring="CreateKeyBinder Function">
       <target id="html">../output/CreateKeyBinder.html</target>
@@ -694,8 +694,8 @@
     <link topicid="CreateSockAddress@CTEXTSTR@_16" displaystring="CreateSockAddress Function">
       <target id="html">../output/CreateSockAddress@CTEXTSTR@_16.html</target>
     </link>
-    <link topicid="CreateTableEx@CTEXTSTR@CTEXTSTR@CTEXTSTR@_32" displaystring="CreateTableEx Function">
-      <target id="html">../output/CreateTableEx@CTEXTSTR@CTEXTSTR@CTEXTSTR@_32.html</target>
+    <link topicid="CreateTableEx@CTEXTSTR@CTEXTSTR@CTEXTSTR@uint32_t" displaystring="CreateTableEx Function">
+      <target id="html">../output/CreateTableEx@CTEXTSTR@CTEXTSTR@CTEXTSTR@uint32_t.html</target>
     </link>
     <link topicid="CreateTransform" displaystring="CreateTransform Function">
       <target id="html">../output/CreateTransform.html</target>
@@ -757,20 +757,20 @@
     <link topicid="datastore.h" displaystring="datastore.h">
       <target id="html">../output/datastore_h.html</target>
     </link>
-    <link topicid="DataStore_CreateDataSetLinkEx@INDEX@_32@_32@_32@_32" displaystring="DataStore_CreateDataSetLinkEx Function">
-      <target id="html">../output/DataStore_CreateDataSetLinkEx@INDEX@_32@_32@_32@_32.html</target>
+    <link topicid="DataStore_CreateDataSetLinkEx@INDEX@uint32_t@uint32_t@uint32_t@uint32_t" displaystring="DataStore_CreateDataSetLinkEx Function">
+      <target id="html">../output/DataStore_CreateDataSetLinkEx@INDEX@uint32_t@uint32_t@uint32_t@uint32_t.html</target>
     </link>
     <link topicid="DataStore_CreateDataType@INDEX" displaystring="DataStore_CreateDataType Function">
       <target id="html">../output/DataStore_CreateDataType@INDEX.html</target>
     </link>
-    <link topicid="DataStore_CreateLink@INDEX@_32@INDEX" displaystring="DataStore_CreateLink Function">
-      <target id="html">../output/DataStore_CreateLink@INDEX@_32@INDEX.html</target>
+    <link topicid="DataStore_CreateLink@INDEX@uint32_t@INDEX" displaystring="DataStore_CreateLink Function">
+      <target id="html">../output/DataStore_CreateLink@INDEX@uint32_t@INDEX.html</target>
     </link>
     <link topicid="DataStore_GetFromDataSet@INDEX@POINTER@INDEX" displaystring="DataStore_GetFromDataSet Function">
       <target id="html">../output/DataStore_GetFromDataSet@INDEX@POINTER@INDEX.html</target>
     </link>
-    <link topicid="DataStore_RegisterNamedDataType@CTEXTSTR@_32" displaystring="DataStore_RegisterNamedDataType Function">
-      <target id="html">../output/DataStore_RegisterNamedDataType@CTEXTSTR@_32.html</target>
+    <link topicid="DataStore_RegisterNamedDataType@CTEXTSTR@uint32_t" displaystring="DataStore_RegisterNamedDataType Function">
+      <target id="html">../output/DataStore_RegisterNamedDataType@CTEXTSTR@uint32_t.html</target>
     </link>
     <link topicid="DB_KEY_DEF" displaystring="DB_KEY_DEF Type">
       <target id="html">../output/DB_KEY_DEF.html</target>
@@ -793,11 +793,11 @@
     <link topicid="DebugDumpMemFile@CTEXTSTR" displaystring="DebugDumpMemFile Function">
       <target id="html">../output/DebugDumpMemFile@CTEXTSTR.html</target>
     </link>
-    <link topicid="DecodeBinaryConfig@CTEXTSTR@POINTER *@_32 *" displaystring="DecodeBinaryConfig Function">
+    <link topicid="DecodeBinaryConfig@CTEXTSTR@POINTER *@uint32_t *" displaystring="DecodeBinaryConfig Function">
       <target id="html">../output/DecodeBinaryConfig@CTEXTSTR@POINTER__@_32__.html</target>
     </link>
-    <link topicid="DecodeMemoryToImage@P_8@_32" displaystring="DecodeMemoryToImage Function">
-      <target id="html">../output/DecodeMemoryToImage@P_8@_32.html</target>
+    <link topicid="DecodeMemoryToImage@P_8@uint32_t" displaystring="DecodeMemoryToImage Function">
+      <target id="html">../output/DecodeMemoryToImage@P_8@uint32_t.html</target>
     </link>
     <link topicid="Defragment@POINTER *" displaystring="Defragment Function">
       <target id="html">../output/Defragment@POINTER__.html</target>
@@ -844,8 +844,8 @@
     <link topicid="DeleteOption@INDEX" displaystring="DeleteOption Function">
       <target id="html">../output/DeleteOption@INDEX.html</target>
     </link>
-    <link topicid="DeletePopupItem@PMENU@_32@_32" displaystring="DeletePopupItem Function">
-      <target id="html">../output/DeletePopupItem@PMENU@_32@_32.html</target>
+    <link topicid="DeletePopupItem@PMENU@uint32_t@uint32_t" displaystring="DeletePopupItem Function">
+      <target id="html">../output/DeletePopupItem@PMENU@uint32_t@uint32_t.html</target>
     </link>
     <link topicid="DeleteSet@GENERICSET **" displaystring="DeleteSet Function">
       <target id="html">../output/DeleteSet@GENERICSET___.html</target>
@@ -865,8 +865,8 @@
     <link topicid="DequeLink@PLINKQUEUE *" displaystring="DequeLink Function">
       <target id="html">../output/DequeLink@PLINKQUEUE__.html</target>
     </link>
-    <link topicid="DequeMsgEx@PMSGHANDLE@_32 *@POINTER@PTRSZVAL@_32" displaystring="DequeMsgEx Function">
-      <target id="html">../output/DequeMsgEx@PMSGHANDLE@_32__@POINTER@PTRSZVAL@_32.html</target>
+    <link topicid="DequeMsgEx@PMSGHANDLE@uint32_t *@POINTER@PTRSZVAL@uint32_t" displaystring="DequeMsgEx Function">
+      <target id="html">../output/DequeMsgEx@PMSGHANDLE@_32__@POINTER@PTRSZVAL@uint32_t.html</target>
     </link>
     <link topicid="DestroyBinaryTree@PTREEROOT" displaystring="DestroyBinaryTree Function">
       <target id="html">../output/DestroyBinaryTree@PTREEROOT.html</target>
@@ -904,8 +904,8 @@
     <link topicid="DisableMouseOnIdle@PRENDERER@LOGICAL" displaystring="DisableMouseOnIdle Function">
       <target id="html">../output/DisableMouseOnIdle@PRENDERER@LOGICAL.html</target>
     </link>
-    <link topicid="DisableSheet@PSI_CONTROL@_32@LOGICAL" displaystring="DisableSheet Function">
-      <target id="html">../output/DisableSheet@PSI_CONTROL@_32@LOGICAL.html</target>
+    <link topicid="DisableSheet@PSI_CONTROL@uint32_t@LOGICAL" displaystring="DisableSheet Function">
+      <target id="html">../output/DisableSheet@PSI_CONTROL@uint32_t@LOGICAL.html</target>
     </link>
     <link topicid="DisableUpdateListBox@PSI_CONTROL@LOGICAL" displaystring="DisableUpdateListBox Function">
       <target id="html">../output/DisableUpdateListBox@PSI_CONTROL@LOGICAL.html</target>
@@ -958,11 +958,11 @@
     <link topicid="do_vlineAlpha" displaystring="do_vlineAlpha Variable">
       <target id="html">../output/do_vlineAlpha.html</target>
     </link>
-    <link topicid="DoPing@CTEXTSTR@int@_32@int@PVARTEXT@LOGICAL@void *ResultCallback _32 dwIP, CTEXTSTR name, int min, int max, int avg, int drop, int hops" displaystring="DoPing Function">
-      <target id="html">../output/DoPing@CTEXTSTR@int@_32@int@PVARTEXT@LOGICAL@void__ResultCallback__32_dwIP,_CTEXTSTR_name,_int_min,_int_max,_int_avg,_int_drop,_int_hops.html</target>
+    <link topicid="DoPing@CTEXTSTR@int@uint32_t@int@PVARTEXT@LOGICAL@void *ResultCallback uint32_t dwIP, CTEXTSTR name, int min, int max, int avg, int drop, int hops" displaystring="DoPing Function">
+      <target id="html">../output/DoPing@CTEXTSTR@int@uint32_t@int@PVARTEXT@LOGICAL@void__ResultCallback__32_dwIP,_CTEXTSTR_name,_int_min,_int_max,_int_avg,_int_drop,_int_hops.html</target>
     </link>
-    <link topicid="DoPingEx@CTEXTSTR@int@_32@int@PVARTEXT@LOGICAL@void *ResultCallback PTRSZVAL psv, _32 dwIP, CTEXTSTR name, int min, int max, int avg, int drop, int hops@PTRSZVAL" displaystring="DoPingEx Function">
-      <target id="html">../output/DoPingEx@CTEXTSTR@int@_32@int@PVARTEXT@LOGICAL@void__ResultCallback_PTRSZVAL_psv,__32_dwIP,_CTEXTSTR_name,_int_min,_int_max,_int_avg,_int_drop,_int_hops@PTRSZVAL.html</target>
+    <link topicid="DoPingEx@CTEXTSTR@int@uint32_t@int@PVARTEXT@LOGICAL@void *ResultCallback PTRSZVAL psv, uint32_t dwIP, CTEXTSTR name, int min, int max, int avg, int drop, int hops@PTRSZVAL" displaystring="DoPingEx Function">
+      <target id="html">../output/DoPingEx@CTEXTSTR@int@uint32_t@int@PVARTEXT@LOGICAL@void__ResultCallback_PTRSZVAL_psv,__32_dwIP,_CTEXTSTR_name,_int_min,_int_max,_int_avg,_int_drop,_int_hops@PTRSZVAL.html</target>
     </link>
     <link topicid="doReadEx@PCLIENT@POINTER@int@LOGICAL" displaystring="doReadEx Function">
       <target id="html">../output/doReadEx@PCLIENT@POINTER@int@LOGICAL.html</target>
@@ -1069,8 +1069,8 @@
     <link topicid="EditFrame@PSI_CONTROL@int" displaystring="EditFrame Function">
       <target id="html">../output/EditFrame@PSI_CONTROL@int.html</target>
     </link>
-    <link topicid="EditFrameProperties@PSI_CONTROL@S_32@S_32" displaystring="EditFrameProperties Function">
-      <target id="html">../output/EditFrameProperties@PSI_CONTROL@S_32@S_32.html</target>
+    <link topicid="EditFrameProperties@PSI_CONTROL@int32_t@int32_t" displaystring="EditFrameProperties Function">
+      <target id="html">../output/EditFrameProperties@PSI_CONTROL@int32_t@int32_t.html</target>
     </link>
     <link topicid="ElapseClock@PSI_CONTROL" displaystring="ElapseClock Function">
       <target id="html">../output/ElapseClock@PSI_CONTROL.html</target>
@@ -1105,11 +1105,11 @@
     <link topicid="EnableOpenGLView@PRENDERER@int@int@int@int" displaystring="EnableOpenGLView Function">
       <target id="html">../output/EnableOpenGLView@PRENDERER@int@int@int@int.html</target>
     </link>
-    <link topicid="EnableSpriteMethod@PRENDERER@void *RenderSpritesPTRSZVAL psv, PRENDERER renderer, S_32 x, S_32 y, _32 w, _32 h@PTRSZVAL" displaystring="EnableSpriteMethod Function">
+    <link topicid="EnableSpriteMethod@PRENDERER@void *RenderSpritesPTRSZVAL psv, PRENDERER renderer, int32_t x, int32_t y, uint32_t w, uint32_t h@PTRSZVAL" displaystring="EnableSpriteMethod Function">
       <target id="html">../output/EnableSpriteMethod@PRENDERER@void__RenderSpritesPTRSZVAL_psv,_PRENDERER_renderer,_S_32_x,_S_32_y,__32_w,__32_h@PTRSZVAL.html</target>
     </link>
-    <link topicid="EncodeBinaryConfig@TEXTSTR *@POINTER@_32" displaystring="EncodeBinaryConfig Function">
-      <target id="html">../output/EncodeBinaryConfig@TEXTSTR__@POINTER@_32.html</target>
+    <link topicid="EncodeBinaryConfig@TEXTSTR *@POINTER@uint32_t" displaystring="EncodeBinaryConfig Function">
+      <target id="html">../output/EncodeBinaryConfig@TEXTSTR__@POINTER@uint32_t.html</target>
     </link>
     <link topicid="EndBatchUpdate" displaystring="EndBatchUpdate Function">
       <target id="html">../output/EndBatchUpdate.html</target>
@@ -1144,8 +1144,8 @@
     <link topicid="EnqueLinkEx@PLINKQUEUE *@POINTER" displaystring="EnqueLinkEx Function">
       <target id="html">../output/EnqueLinkEx@PLINKQUEUE__@POINTER.html</target>
     </link>
-    <link topicid="EnqueMsgEx@PMSGHANDLE@POINTER@PTRSZVAL@_32" displaystring="EnqueMsgEx Function">
-      <target id="html">../output/EnqueMsgEx@PMSGHANDLE@POINTER@PTRSZVAL@_32.html</target>
+    <link topicid="EnqueMsgEx@PMSGHANDLE@POINTER@PTRSZVAL@uint32_t" displaystring="EnqueMsgEx Function">
+      <target id="html">../output/EnqueMsgEx@PMSGHANDLE@POINTER@PTRSZVAL@uint32_t.html</target>
     </link>
     <link topicid="EnqueUserInputHistory@PUSER_INPUT_BUFFER@PTEXT" displaystring="EnqueUserInputHistory Function">
       <target id="html">../output/EnqueUserInputHistory@PUSER_INPUT_BUFFER@PTEXT.html</target>
@@ -1159,10 +1159,10 @@
     <link topicid="EnumListItems@PSI_CONTROL@PLISTITEM@void  *HandleListItem PTRSZVAL,PSI_CONTROL,PLISTITEM@PTRSZVAL" displaystring="EnumListItems Function">
       <target id="html">../output/EnumListItems@PSI_CONTROL@PLISTITEM@void___HandleListItem_PTRSZVAL,PSI_CONTROL,PLISTITEM@PTRSZVAL.html</target>
     </link>
-    <link topicid="EnumOptions@INDEX@int  *ProcessPTRSZVAL psv, CTEXTSTR name, _32 ID, int flags@PTRSZVAL" displaystring="EnumOptions Function">
+    <link topicid="EnumOptions@INDEX@int  *ProcessPTRSZVAL psv, CTEXTSTR name, uint32_t ID, int flags@PTRSZVAL" displaystring="EnumOptions Function">
       <target id="html">../output/EnumOptions@INDEX@int___ProcessPTRSZVAL_psv,_CTEXTSTR_name,__32_ID,_int_flags@PTRSZVAL.html</target>
     </link>
-    <link topicid="EnumOptionsEx@PODBC@INDEX@int  *ProcessPTRSZVAL psv, CTEXTSTR name, _32 ID, int flags@PTRSZVAL" displaystring="EnumOptionsEx Function">
+    <link topicid="EnumOptionsEx@PODBC@INDEX@int  *ProcessPTRSZVAL psv, CTEXTSTR name, uint32_t ID, int flags@PTRSZVAL" displaystring="EnumOptionsEx Function">
       <target id="html">../output/EnumOptionsEx@PODBC@INDEX@int___ProcessPTRSZVAL_psv,_CTEXTSTR_name,__32_ID,_int_flags@PTRSZVAL.html</target>
     </link>
     <link topicid="EnumSelectedListItems@PSI_CONTROL@PLISTITEM@void  *HandleListItem PTRSZVAL, PSI_CONTROL ,PLISTITEM@PTRSZVAL" displaystring="EnumSelectedListItems Function">
@@ -1336,17 +1336,17 @@
     <link topicid="fractions.h" displaystring="fractions.h">
       <target id="html">../output/fractions_h.html</target>
     </link>
-    <link topicid="FrameBorderX@_32" displaystring="FrameBorderX Function">
-      <target id="html">../output/FrameBorderX@_32.html</target>
+    <link topicid="FrameBorderX@uint32_t" displaystring="FrameBorderX Function">
+      <target id="html">../output/FrameBorderX@uint32_t.html</target>
     </link>
-    <link topicid="FrameBorderXOfs@_32" displaystring="FrameBorderXOfs Function">
-      <target id="html">../output/FrameBorderXOfs@_32.html</target>
+    <link topicid="FrameBorderXOfs@uint32_t" displaystring="FrameBorderXOfs Function">
+      <target id="html">../output/FrameBorderXOfs@uint32_t.html</target>
     </link>
-    <link topicid="FrameBorderY@PSI_CONTROL@_32@CTEXTSTR" displaystring="FrameBorderY Function">
-      <target id="html">../output/FrameBorderY@PSI_CONTROL@_32@CTEXTSTR.html</target>
+    <link topicid="FrameBorderY@PSI_CONTROL@uint32_t@CTEXTSTR" displaystring="FrameBorderY Function">
+      <target id="html">../output/FrameBorderY@PSI_CONTROL@uint32_t@CTEXTSTR.html</target>
     </link>
-    <link topicid="FrameBorderYOfs@PSI_CONTROL@_32@CTEXTSTR" displaystring="FrameBorderYOfs Function">
-      <target id="html">../output/FrameBorderYOfs@PSI_CONTROL@_32@CTEXTSTR.html</target>
+    <link topicid="FrameBorderYOfs@PSI_CONTROL@uint32_t@CTEXTSTR" displaystring="FrameBorderYOfs Function">
+      <target id="html">../output/FrameBorderYOfs@PSI_CONTROL@uint32_t@CTEXTSTR.html</target>
     </link>
     <link topicid="FrameInitProc" displaystring="FrameInitProc Type">
       <target id="html">../output/FrameInitProc.html</target>
@@ -1357,11 +1357,11 @@
     <link topicid="GeneralCallback" displaystring="GeneralCallback Type">
       <target id="html">../output/GeneralCallback.html</target>
     </link>
-    <link topicid="GenerateMouseDeltaRaw@S_32@S_32@_32" displaystring="GenerateMouseDeltaRaw Function">
-      <target id="html">../output/GenerateMouseDeltaRaw@S_32@S_32@_32.html</target>
+    <link topicid="GenerateMouseDeltaRaw@int32_t@int32_t@uint32_t" displaystring="GenerateMouseDeltaRaw Function">
+      <target id="html">../output/GenerateMouseDeltaRaw@int32_t@int32_t@uint32_t.html</target>
     </link>
-    <link topicid="GenerateMouseRaw@S_32@S_32@_32" displaystring="GenerateMouseRaw Function">
-      <target id="html">../output/GenerateMouseRaw@S_32@S_32@_32.html</target>
+    <link topicid="GenerateMouseRaw@int32_t@int32_t@uint32_t" displaystring="GenerateMouseRaw Function">
+      <target id="html">../output/GenerateMouseRaw@int32_t@int32_t@uint32_t.html</target>
     </link>
     <link topicid="generic_function" displaystring="generic_function Type">
       <target id="html">../output/generic_function.html</target>
@@ -1381,7 +1381,7 @@
     <link topicid="GetAccel@PTRANSFORM@P_POINT" displaystring="GetAccel Function">
       <target id="html">../output/GetAccel@PTRANSFORM@P_POINT.html</target>
     </link>
-    <link topicid="GetAddressParts@SOCKADDR *@_32 *@_16 *" displaystring="GetAddressParts Function">
+    <link topicid="GetAddressParts@SOCKADDR *@uint32_t *@_16 *" displaystring="GetAddressParts Function">
       <target id="html">../output/GetAddressParts@SOCKADDR__@_32__@_16__.html</target>
     </link>
     <link topicid="GetApplicationPointer@PTEXT" displaystring="GetApplicationPointer Function">
@@ -1492,13 +1492,13 @@
     <link topicid="GetDisplayKeyboard@PRENDERER" displaystring="GetDisplayKeyboard Function">
       <target id="html">../output/GetDisplayKeyboard@PRENDERER.html</target>
     </link>
-    <link topicid="GetDisplayPosition@PRENDERER@S_32 *@S_32 *@_32 *@_32 *" displaystring="GetDisplayPosition Function">
+    <link topicid="GetDisplayPosition@PRENDERER@int32_t *@int32_t *@uint32_t *@uint32_t *" displaystring="GetDisplayPosition Function">
       <target id="html">../output/GetDisplayPosition@PRENDERER@S_32__@S_32__@_32__@_32__.html</target>
     </link>
-    <link topicid="GetDisplaySize@_32 *@_32 *" displaystring="GetDisplaySize Function">
+    <link topicid="GetDisplaySize@uint32_t *@uint32_t *" displaystring="GetDisplaySize Function">
       <target id="html">../output/GetDisplaySize@_32__@_32__.html</target>
     </link>
-    <link topicid="GetDisplaySizeEx@int@S_32 *@S_32 *@_32 *@_32 *" displaystring="GetDisplaySizeEx Function">
+    <link topicid="GetDisplaySizeEx@int@int32_t *@int32_t *@uint32_t *@uint32_t *" displaystring="GetDisplaySizeEx Function">
       <target id="html">../output/GetDisplaySizeEx@int@S_32__@S_32__@_32__@_32__.html</target>
     </link>
     <link topicid="GetEditControlPropertyPage@PSI_CONTROL" displaystring="GetEditControlPropertyPage Function">
@@ -1531,7 +1531,7 @@
     <link topicid="GetFontHeight@Font" displaystring="GetFontHeight Function">
       <target id="html">../output/GetFontHeight@Font.html</target>
     </link>
-    <link topicid="GetFontRenderData@Font@POINTER *@_32 *" displaystring="GetFontRenderData Function">
+    <link topicid="GetFontRenderData@Font@POINTER *@uint32_t *" displaystring="GetFontRenderData Function">
       <target id="html">../output/GetFontRenderData@Font@POINTER__@_32__.html</target>
     </link>
     <link topicid="GetFrame@PSI_CONTROL" displaystring="GetFrame Function">
@@ -1567,7 +1567,7 @@
     <link topicid="GetGreatestNode@PTREEROOT" displaystring="GetGreatestNode Function">
       <target id="html">../output/GetGreatestNode@PTREEROOT.html</target>
     </link>
-    <link topicid="GetHeapMemStatsEx@PMEM@_32 *@_32 *@_32 *@_32 *" displaystring="GetHeapMemStatsEx Function">
+    <link topicid="GetHeapMemStatsEx@PMEM@uint32_t *@uint32_t *@uint32_t *@uint32_t *" displaystring="GetHeapMemStatsEx Function">
       <target id="html">../output/GetHeapMemStatsEx@PMEM@_32__@_32__@_32__@_32__.html</target>
     </link>
     <link topicid="GetImageAuxRect@Image@P_IMAGE_RECTANGLE" displaystring="GetImageAuxRect Function">
@@ -1576,7 +1576,7 @@
     <link topicid="GetImageInterface" displaystring="GetImageInterface Function">
       <target id="html">../output/GetImageInterface.html</target>
     </link>
-    <link topicid="GetImageSize@Image@_32 *@_32 *" displaystring="GetImageSize Function">
+    <link topicid="GetImageSize@Image@uint32_t *@uint32_t *" displaystring="GetImageSize Function">
       <target id="html">../output/GetImageSize@Image@_32__@_32__.html</target>
     </link>
     <link topicid="GetImageSurface@Image" displaystring="GetImageSurface Function">
@@ -1636,19 +1636,19 @@
     <link topicid="GetMatchingFileName@CTEXTSTR@int@TEXTSTR@int" displaystring="GetMatchingFileName Function">
       <target id="html">../output/GetMatchingFileName@CTEXTSTR@int@TEXTSTR@int.html</target>
     </link>
-    <link topicid="GetMaxStringLengthFont@_32@Font" displaystring="GetMaxStringLengthFont Function">
-      <target id="html">../output/GetMaxStringLengthFont@_32@Font.html</target>
+    <link topicid="GetMaxStringLengthFont@uint32_t@Font" displaystring="GetMaxStringLengthFont Function">
+      <target id="html">../output/GetMaxStringLengthFont@uint32_t@Font.html</target>
     </link>
     <link topicid="GetMemberIndex@GENERICSET **@POINTER@int@int" displaystring="GetMemberIndex Function">
       <target id="html">../output/GetMemberIndex@GENERICSET___@POINTER@int@int.html</target>
     </link>
-    <link topicid="GetMemStats@_32 *@_32 *@_32 *@_32 *" displaystring="GetMemStats Function">
+    <link topicid="GetMemStats@uint32_t *@uint32_t *@uint32_t *@uint32_t *" displaystring="GetMemStats Function">
       <target id="html">../output/GetMemStats@_32__@_32__@_32__@_32__.html</target>
     </link>
-    <link topicid="GetMousePosition@S_32 *@S_32 *" displaystring="GetMousePosition Function">
+    <link topicid="GetMousePosition@int32_t *@int32_t *" displaystring="GetMousePosition Function">
       <target id="html">../output/GetMousePosition@S_32__@S_32__.html</target>
     </link>
-    <link topicid="GetMouseState@S_32 *@S_32 *@_32 *" displaystring="GetMouseState Function">
+    <link topicid="GetMouseState@int32_t *@int32_t *@uint32_t *" displaystring="GetMouseState Function">
       <target id="html">../output/GetMouseState@S_32__@S_32__@_32__.html</target>
     </link>
     <link topicid="GetNativeHandle@PRENDERER" displaystring="GetNativeHandle Function">
@@ -1690,11 +1690,11 @@
     <link topicid="GetNthTreeItem@PSI_CONTROL@PLISTITEM@int@int" displaystring="GetNthTreeItem Function">
       <target id="html">../output/GetNthTreeItem@PSI_CONTROL@PLISTITEM@int@int.html</target>
     </link>
-    <link topicid="GetOptionStringValue@INDEX@char *@_32" displaystring="GetOptionStringValue Function">
-      <target id="html">../output/GetOptionStringValue@INDEX@char__@_32.html</target>
+    <link topicid="GetOptionStringValue@INDEX@char *@uint32_t" displaystring="GetOptionStringValue Function">
+      <target id="html">../output/GetOptionStringValue@INDEX@char__@uint32_t.html</target>
     </link>
-    <link topicid="GetOptionStringValueEx@PODBC@INDEX@char *@_32" displaystring="GetOptionStringValueEx Function">
-      <target id="html">../output/GetOptionStringValueEx@PODBC@INDEX@char__@_32.html</target>
+    <link topicid="GetOptionStringValueEx@PODBC@INDEX@char *@uint32_t" displaystring="GetOptionStringValueEx Function">
+      <target id="html">../output/GetOptionStringValueEx@PODBC@INDEX@char__@uint32_t.html</target>
     </link>
     <link topicid="GetOptionValueIndex@INDEX" displaystring="GetOptionValueIndex Function">
       <target id="html">../output/GetOptionValueIndex@INDEX.html</target>
@@ -1714,7 +1714,7 @@
     <link topicid="GetParentNode@PTREEROOT" displaystring="GetParentNode Function">
       <target id="html">../output/GetParentNode@PTREEROOT.html</target>
     </link>
-    <link topicid="GetPhysicalCoordinate@PSI_CONTROL@S_32 *@S_32 *@int" displaystring="GetPhysicalCoordinate Function">
+    <link topicid="GetPhysicalCoordinate@PSI_CONTROL@int32_t *@int32_t *@int" displaystring="GetPhysicalCoordinate Function">
       <target id="html">../output/GetPhysicalCoordinate@PSI_CONTROL@S_32__@S_32__@int.html</target>
     </link>
     <link topicid="getpixel" displaystring="getpixel Variable">
@@ -1786,13 +1786,13 @@
     <link topicid="GetSetMemberEx@GENERICSET **@INDEX@int@int@int" displaystring="GetSetMemberEx Function">
       <target id="html">../output/GetSetMemberEx@GENERICSET___@INDEX@int@int@int.html</target>
     </link>
-    <link topicid="GetSheet@PSI_CONTROL@_32" displaystring="GetSheet Function">
-      <target id="html">../output/GetSheet@PSI_CONTROL@_32.html</target>
+    <link topicid="GetSheet@PSI_CONTROL@uint32_t" displaystring="GetSheet Function">
+      <target id="html">../output/GetSheet@PSI_CONTROL@uint32_t.html</target>
     </link>
-    <link topicid="GetSheetControl@PSI_CONTROL@_32@_32" displaystring="GetSheetControl Function">
-      <target id="html">../output/GetSheetControl@PSI_CONTROL@_32@_32.html</target>
+    <link topicid="GetSheetControl@PSI_CONTROL@uint32_t@uint32_t" displaystring="GetSheetControl Function">
+      <target id="html">../output/GetSheetControl@PSI_CONTROL@uint32_t@uint32_t.html</target>
     </link>
-    <link topicid="GetSheetSize@PSI_CONTROL@_32 *@_32 *" displaystring="GetSheetSize Function">
+    <link topicid="GetSheetSize@PSI_CONTROL@uint32_t *@uint32_t *" displaystring="GetSheetSize Function">
       <target id="html">../output/GetSheetSize@PSI_CONTROL@_32__@_32__.html</target>
     </link>
     <link topicid="GetSizeofFile@TEXTCHAR *@P_32" displaystring="GetSizeofFile Function">
@@ -1828,11 +1828,11 @@
     <link topicid="GetSQLTypes" displaystring="GetSQLTypes Function">
       <target id="html">../output/GetSQLTypes.html</target>
     </link>
-    <link topicid="GetStringRenderSizeFontEx@CTEXTSTR@_32@_32 *@_32 *@_32 *@Font" displaystring="GetStringRenderSizeFontEx Function">
-      <target id="html">../output/GetStringRenderSizeFontEx@CTEXTSTR@_32@_32__@_32__@_32__@Font.html</target>
+    <link topicid="GetStringRenderSizeFontEx@CTEXTSTR@uint32_t@uint32_t *@uint32_t *@uint32_t *@Font" displaystring="GetStringRenderSizeFontEx Function">
+      <target id="html">../output/GetStringRenderSizeFontEx@CTEXTSTR@uint32_t@_32__@_32__@_32__@Font.html</target>
     </link>
-    <link topicid="GetStringSizeFontEx@CTEXTSTR@_32@_32 *@_32 *@Font" displaystring="GetStringSizeFontEx Function">
-      <target id="html">../output/GetStringSizeFontEx@CTEXTSTR@_32@_32__@_32__@Font.html</target>
+    <link topicid="GetStringSizeFontEx@CTEXTSTR@uint32_t@uint32_t *@uint32_t *@Font" displaystring="GetStringSizeFontEx Function">
+      <target id="html">../output/GetStringSizeFontEx@CTEXTSTR@uint32_t@_32__@_32__@Font.html</target>
     </link>
     <link topicid="GetSystemID" displaystring="GetSystemID Function">
       <target id="html">../output/GetSystemID.html</target>
@@ -1873,8 +1873,8 @@
     <link topicid="GuaranteeAddr@PCLIENT@SOCKADDR *" displaystring="GuaranteeAddr Function">
       <target id="html">../output/GuaranteeAddr@PCLIENT@SOCKADDR__.html</target>
     </link>
-    <link topicid="HandleKeyEvents@PKEYDEFINE@_32" displaystring="HandleKeyEvents Function">
-      <target id="html">../output/HandleKeyEvents@PKEYDEFINE@_32.html</target>
+    <link topicid="HandleKeyEvents@PKEYDEFINE@uint32_t" displaystring="HandleKeyEvents Function">
+      <target id="html">../output/HandleKeyEvents@PKEYDEFINE@uint32_t.html</target>
     </link>
     <link topicid="HasFocus@PRENDERER" displaystring="HasFocus Function">
       <target id="html">../output/HasFocus@PRENDERER.html</target>
@@ -1915,8 +1915,8 @@
     <link topicid="idle.h" displaystring="idle.h">
       <target id="html">../output/idle_h.html</target>
     </link>
-    <link topicid="IdleFor@_32" displaystring="IdleFor Function">
-      <target id="html">../output/IdleFor@_32.html</target>
+    <link topicid="IdleFor@uint32_t" displaystring="IdleFor Function">
+      <target id="html">../output/IdleFor@uint32_t.html</target>
     </link>
     <link topicid="IdleProc" displaystring="IdleProc Type">
       <target id="html">../output/IdleProc.html</target>
@@ -1960,8 +1960,8 @@
     <link topicid="ImageFile_tag" displaystring="ImageFile_tag Structure">
       <target id="html">../output/ImageFile_tag.html</target>
     </link>
-    <link topicid="ImageRawBMPFile@_8*@_32" displaystring="ImageRawBMPFile Function">
-      <target id="html">../output/ImageRawBMPFile@_8_@_32.html</target>
+    <link topicid="ImageRawBMPFile@_8*@uint32_t" displaystring="ImageRawBMPFile Function">
+      <target id="html">../output/ImageRawBMPFile@_8_@uint32_t.html</target>
     </link>
     <link topicid="imagestruct.h" displaystring="imagestruct.h">
       <target id="html">../output/imagestruct_h.html</target>
@@ -1999,14 +1999,14 @@
     <link topicid="interface.h" displaystring="interface.h">
       <target id="html">../output/interface_h.html</target>
     </link>
-    <link topicid="InternalRenderFont@_32@_32@_32@S_16@S_16@_32" displaystring="InternalRenderFont Function">
-      <target id="html">../output/InternalRenderFont@_32@_32@_32@S_16@S_16@_32.html</target>
+    <link topicid="InternalRenderFont@uint32_t@uint32_t@uint32_t@S_16@S_16@uint32_t" displaystring="InternalRenderFont Function">
+      <target id="html">../output/InternalRenderFont@uint32_t@uint32_t@uint32_t@S_16@S_16@uint32_t.html</target>
     </link>
     <link topicid="InternalRenderFontCharacter@PFONT_RENDERER@PFONT@INDEX" displaystring="InternalRenderFontCharacter Function">
       <target id="html">../output/InternalRenderFontCharacter@PFONT_RENDERER@PFONT@INDEX.html</target>
     </link>
-    <link topicid="InternalRenderFontFile@CTEXTSTR@S_16@S_16@_32" displaystring="InternalRenderFontFile Function">
-      <target id="html">../output/InternalRenderFontFile@CTEXTSTR@S_16@S_16@_32.html</target>
+    <link topicid="InternalRenderFontFile@CTEXTSTR@S_16@S_16@uint32_t" displaystring="InternalRenderFontFile Function">
+      <target id="html">../output/InternalRenderFontFile@CTEXTSTR@S_16@S_16@uint32_t.html</target>
     </link>
     <link topicid="IntersectRectangle@IMAGE_RECTANGLE *@IMAGE_RECTANGLE *@IMAGE_RECTANGLE *" displaystring="IntersectRectangle Function">
       <target id="html">../output/IntersectRectangle@IMAGE_RECTANGLE__@IMAGE_RECTANGLE__@IMAGE_RECTANGLE__.html</target>
@@ -2014,8 +2014,8 @@
     <link topicid="INVALID_MESSAGE" displaystring="INVALID_MESSAGE">
       <target id="html">../output/service_messages.html</target>
     </link>
-    <link topicid="InverseScaleValue@PFRACTION@S_32" displaystring="InverseScaleValue Function">
-      <target id="html">../output/InverseScaleValue@PFRACTION@S_32.html</target>
+    <link topicid="InverseScaleValue@PFRACTION@int32_t" displaystring="InverseScaleValue Function">
+      <target id="html">../output/InverseScaleValue@PFRACTION@int32_t.html</target>
     </link>
     <link topicid="Invert@P_POINT" displaystring="Invert Function">
       <target id="html">../output/Invert@P_POINT.html</target>
@@ -2077,8 +2077,8 @@
     <link topicid="IsSQLReady" displaystring="IsSQLReady Function">
       <target id="html">../output/IsSQLReady.html</target>
     </link>
-    <link topicid="IssueUpdateLayeredEx@PRENDERER@LOGICAL@S_32@S_32@_32@_32" displaystring="IssueUpdateLayeredEx Function">
-      <target id="html">../output/IssueUpdateLayeredEx@PRENDERER@LOGICAL@S_32@S_32@_32@_32.html</target>
+    <link topicid="IssueUpdateLayeredEx@PRENDERER@LOGICAL@int32_t@int32_t@uint32_t@uint32_t" displaystring="IssueUpdateLayeredEx Function">
+      <target id="html">../output/IssueUpdateLayeredEx@PRENDERER@LOGICAL@int32_t@int32_t@uint32_t@uint32_t.html</target>
     </link>
     <link topicid="IsThisThreadEx@PTHREAD" displaystring="IsThisThreadEx Function">
       <target id="html">../output/IsThisThreadEx@PTHREAD.html</target>
@@ -2149,11 +2149,11 @@
     <link topicid="LineDuplicateEx@PTEXT" displaystring="LineDuplicateEx Function">
       <target id="html">../output/LineDuplicateEx@PTEXT.html</target>
     </link>
-    <link topicid="LineLengthExEx@PTEXT@_32@INDEX@PTEXT" displaystring="LineLengthExEx Function">
-      <target id="html">../output/LineLengthExEx@PTEXT@_32@INDEX@PTEXT.html</target>
+    <link topicid="LineLengthExEx@PTEXT@uint32_t@INDEX@PTEXT" displaystring="LineLengthExEx Function">
+      <target id="html">../output/LineLengthExEx@PTEXT@uint32_t@INDEX@PTEXT.html</target>
     </link>
-    <link topicid="LineLengthExx@PTEXT@_32@PTEXT" displaystring="LineLengthExx Function">
-      <target id="html">../output/LineLengthExx@PTEXT@_32@PTEXT.html</target>
+    <link topicid="LineLengthExx@PTEXT@uint32_t@PTEXT" displaystring="LineLengthExx Function">
+      <target id="html">../output/LineLengthExx@PTEXT@uint32_t@PTEXT.html</target>
     </link>
     <link topicid="LineReleaseEx@PTEXT" displaystring="LineReleaseEx Function">
       <target id="html">../output/LineReleaseEx@PTEXT.html</target>
@@ -2197,8 +2197,8 @@
     <link topicid="LoadFrameFromFile@FILE *@PSI_CONTROL@FrameInitProc@PTRSZVAL" displaystring="LoadFrameFromFile Function">
       <target id="html">../output/LoadFrameFromFile@FILE__@PSI_CONTROL@FrameInitProc@PTRSZVAL.html</target>
     </link>
-    <link topicid="LoadFrameFromMemory@POINTER@_32@PSI_CONTROL@FrameInitProc@PTRSZVAL" displaystring="LoadFrameFromMemory Function">
-      <target id="html">../output/LoadFrameFromMemory@POINTER@_32@PSI_CONTROL@FrameInitProc@PTRSZVAL.html</target>
+    <link topicid="LoadFrameFromMemory@POINTER@uint32_t@PSI_CONTROL@FrameInitProc@PTRSZVAL" displaystring="LoadFrameFromMemory Function">
+      <target id="html">../output/LoadFrameFromMemory@POINTER@uint32_t@PSI_CONTROL@FrameInitProc@PTRSZVAL.html</target>
     </link>
     <link topicid="LoadFunctionEx@CTEXTSTR@CTEXTSTR" displaystring="LoadFunctionEx Function">
       <target id="html">../output/LoadFunctionEx@CTEXTSTR@CTEXTSTR.html</target>
@@ -2245,8 +2245,8 @@
     <link topicid="LockedDecrement@P_32" displaystring="LockedDecrement Function">
       <target id="html">../output/LockedDecrement@P_32.html</target>
     </link>
-    <link topicid="LockedExchange@PV_32@_32" displaystring="LockedExchange Function">
-      <target id="html">../output/LockedExchange@PV_32@_32.html</target>
+    <link topicid="LockedExchange@PV_32@uint32_t" displaystring="LockedExchange Function">
+      <target id="html">../output/LockedExchange@PV_32@uint32_t.html</target>
     </link>
     <link topicid="LockedExchange64@PV_64@_64" displaystring="LockedExchange64 Function">
       <target id="html">../output/LockedExchange64@PV_64@_64.html</target>
@@ -2254,14 +2254,14 @@
     <link topicid="LockedIncrement@P_32" displaystring="LockedIncrement Function">
       <target id="html">../output/LockedIncrement@P_32.html</target>
     </link>
-    <link topicid="LogBinary@P_8@_32" displaystring="LogBinary Function">
-      <target id="html">../output/LogBinary@P_8@_32.html</target>
+    <link topicid="LogBinary@P_8@uint32_t" displaystring="LogBinary Function">
+      <target id="html">../output/LogBinary@P_8@uint32_t.html</target>
     </link>
-    <link topicid="LogBinaryEx@P_8@_32" displaystring="LogBinaryEx Function">
-      <target id="html">../output/LogBinaryEx@P_8@_32.html</target>
+    <link topicid="LogBinaryEx@P_8@uint32_t" displaystring="LogBinaryEx Function">
+      <target id="html">../output/LogBinaryEx@P_8@uint32_t.html</target>
     </link>
-    <link topicid="LogBinaryFL@P_8@_32@CTEXTSTR@_32" displaystring="LogBinaryFL Function">
-      <target id="html">../output/LogBinaryFL@P_8@_32@CTEXTSTR@_32.html</target>
+    <link topicid="LogBinaryFL@P_8@uint32_t@CTEXTSTR@uint32_t" displaystring="LogBinaryFL Function">
+      <target id="html">../output/LogBinaryFL@P_8@uint32_t@CTEXTSTR@uint32_t.html</target>
     </link>
     <link topicid="LogCoords@PCOORDPAIR" displaystring="LogCoords Function">
       <target id="html">../output/LogCoords@PCOORDPAIR.html</target>
@@ -2278,8 +2278,8 @@
     <link topicid="MakeAbsoluteTopmost@PRENDERER" displaystring="MakeAbsoluteTopmost Function">
       <target id="html">../output/MakeAbsoluteTopmost@PRENDERER.html</target>
     </link>
-    <link topicid="MakeCaptionedControl@PSI_CONTROL@_32@int@int@int@int@_32@CTEXTSTR" displaystring="MakeCaptionedControl Function">
-      <target id="html">../output/MakeCaptionedControl@PSI_CONTROL@_32@int@int@int@int@_32@CTEXTSTR.html</target>
+    <link topicid="MakeCaptionedControl@PSI_CONTROL@uint32_t@int@int@int@int@uint32_t@CTEXTSTR" displaystring="MakeCaptionedControl Function">
+      <target id="html">../output/MakeCaptionedControl@PSI_CONTROL@uint32_t@int@int@int@int@uint32_t@CTEXTSTR.html</target>
     </link>
     <link topicid="MakeClockAnalog@PSI_CONTROL" displaystring="MakeClockAnalog Function">
       <target id="html">../output/MakeClockAnalog@PSI_CONTROL.html</target>
@@ -2287,35 +2287,35 @@
     <link topicid="MakeClockAnalogEx@PSI_CONTROL@CTEXTSTR@struct clock_image_thing *" displaystring="MakeClockAnalogEx Function">
       <target id="html">../output/MakeClockAnalogEx@PSI_CONTROL@CTEXTSTR@struct_clock_image_thing__.html</target>
     </link>
-    <link topicid="MakeControl@PSI_CONTROL@_32@int@int@int@int@_32" displaystring="MakeControl Function">
-      <target id="html">../output/MakeControl@PSI_CONTROL@_32@int@int@int@int@_32.html</target>
+    <link topicid="MakeControl@PSI_CONTROL@uint32_t@int@int@int@int@uint32_t" displaystring="MakeControl Function">
+      <target id="html">../output/MakeControl@PSI_CONTROL@uint32_t@int@int@int@int@uint32_t.html</target>
     </link>
-    <link topicid="MakeControlParam@PSI_CONTROL@_32@int@int@int@int@_32@POINTER" displaystring="MakeControlParam Function">
-      <target id="html">../output/MakeControlParam@PSI_CONTROL@_32@int@int@int@int@_32@POINTER.html</target>
+    <link topicid="MakeControlParam@PSI_CONTROL@uint32_t@int@int@int@int@uint32_t@POINTER" displaystring="MakeControlParam Function">
+      <target id="html">../output/MakeControlParam@PSI_CONTROL@uint32_t@int@int@int@int@uint32_t@POINTER.html</target>
     </link>
     <link topicid="MakeDisplayFrom@HWND" displaystring="MakeDisplayFrom Function">
       <target id="html">../output/MakeDisplayFrom@HWND.html</target>
     </link>
-    <link topicid="MakeImageFileEx@_32@_32" displaystring="MakeImageFileEx Function">
-      <target id="html">../output/MakeImageFileEx@_32@_32.html</target>
+    <link topicid="MakeImageFileEx@uint32_t@uint32_t" displaystring="MakeImageFileEx Function">
+      <target id="html">../output/MakeImageFileEx@uint32_t@uint32_t.html</target>
     </link>
-    <link topicid="MakeNamedCaptionedControl@PSI_CONTROL@CTEXTSTR@int@int@int@int@_32@CTEXTSTR" displaystring="MakeNamedCaptionedControl Function">
-      <target id="html">../output/MakeNamedCaptionedControl@PSI_CONTROL@CTEXTSTR@int@int@int@int@_32@CTEXTSTR.html</target>
+    <link topicid="MakeNamedCaptionedControl@PSI_CONTROL@CTEXTSTR@int@int@int@int@uint32_t@CTEXTSTR" displaystring="MakeNamedCaptionedControl Function">
+      <target id="html">../output/MakeNamedCaptionedControl@PSI_CONTROL@CTEXTSTR@int@int@int@int@uint32_t@CTEXTSTR.html</target>
     </link>
-    <link topicid="MakeNamedCaptionedControlByName@PSI_CONTROL@CTEXTSTR@int@int@int@int@CTEXTSTR@_32@CTEXTSTR" displaystring="MakeNamedCaptionedControlByName Function">
-      <target id="html">../output/MakeNamedCaptionedControlByName@PSI_CONTROL@CTEXTSTR@int@int@int@int@CTEXTSTR@_32@CTEXTSTR.html</target>
+    <link topicid="MakeNamedCaptionedControlByName@PSI_CONTROL@CTEXTSTR@int@int@int@int@CTEXTSTR@uint32_t@CTEXTSTR" displaystring="MakeNamedCaptionedControlByName Function">
+      <target id="html">../output/MakeNamedCaptionedControlByName@PSI_CONTROL@CTEXTSTR@int@int@int@int@CTEXTSTR@uint32_t@CTEXTSTR.html</target>
     </link>
-    <link topicid="MakeNamedControl@PSI_CONTROL@CTEXTSTR@int@int@int@int@_32" displaystring="MakeNamedControl Function">
-      <target id="html">../output/MakeNamedControl@PSI_CONTROL@CTEXTSTR@int@int@int@int@_32.html</target>
+    <link topicid="MakeNamedControl@PSI_CONTROL@CTEXTSTR@int@int@int@int@uint32_t" displaystring="MakeNamedControl Function">
+      <target id="html">../output/MakeNamedControl@PSI_CONTROL@CTEXTSTR@int@int@int@int@uint32_t.html</target>
     </link>
     <link topicid="MakePath@CTEXTSTR" displaystring="MakePath Function">
       <target id="html">../output/MakePath@CTEXTSTR.html</target>
     </link>
-    <link topicid="MakePrivateControl@PSI_CONTROL@_32@int@int@int@int@_32" displaystring="MakePrivateControl Function">
-      <target id="html">../output/MakePrivateControl@PSI_CONTROL@_32@int@int@int@int@_32.html</target>
+    <link topicid="MakePrivateControl@PSI_CONTROL@uint32_t@int@int@int@int@uint32_t" displaystring="MakePrivateControl Function">
+      <target id="html">../output/MakePrivateControl@PSI_CONTROL@uint32_t@int@int@int@int@uint32_t.html</target>
     </link>
-    <link topicid="MakePrivateNamedControl@PSI_CONTROL@CTEXTSTR@int@int@int@int@_32" displaystring="MakePrivateNamedControl Function">
-      <target id="html">../output/MakePrivateNamedControl@PSI_CONTROL@CTEXTSTR@int@int@int@int@_32.html</target>
+    <link topicid="MakePrivateNamedControl@PSI_CONTROL@CTEXTSTR@int@int@int@int@uint32_t" displaystring="MakePrivateNamedControl Function">
+      <target id="html">../output/MakePrivateNamedControl@PSI_CONTROL@CTEXTSTR@int@int@int@int@uint32_t.html</target>
     </link>
     <link topicid="MakeSpriteImageEx@Image" displaystring="MakeSpriteImageEx Function">
       <target id="html">../output/MakeSpriteImageEx@Image.html</target>
@@ -2323,8 +2323,8 @@
     <link topicid="MakeSpriteImageFileEx@CTEXTSTR" displaystring="MakeSpriteImageFileEx Function">
       <target id="html">../output/MakeSpriteImageFileEx@CTEXTSTR.html</target>
     </link>
-    <link topicid="MakeSubImageEx@Image@S_32@S_32@_32@_32" displaystring="MakeSubImageEx Function">
-      <target id="html">../output/MakeSubImageEx@Image@S_32@S_32@_32@_32.html</target>
+    <link topicid="MakeSubImageEx@Image@int32_t@int32_t@uint32_t@uint32_t" displaystring="MakeSubImageEx Function">
+      <target id="html">../output/MakeSubImageEx@Image@int32_t@int32_t@uint32_t@uint32_t.html</target>
     </link>
     <link topicid="MakeThread" displaystring="MakeThread Function">
       <target id="html">../output/MakeThread.html</target>
@@ -2386,20 +2386,20 @@
     <link topicid="Move@PTRANSFORM" displaystring="Move Function">
       <target id="html">../output/Move@PTRANSFORM.html</target>
     </link>
-    <link topicid="MoveCommon@PSI_CONTROL@S_32@S_32" displaystring="MoveCommon Function">
-      <target id="html">../output/MoveCommon@PSI_CONTROL@S_32@S_32.html</target>
+    <link topicid="MoveCommon@PSI_CONTROL@int32_t@int32_t" displaystring="MoveCommon Function">
+      <target id="html">../output/MoveCommon@PSI_CONTROL@int32_t@int32_t.html</target>
     </link>
-    <link topicid="MoveCommonRel@PSI_CONTROL@S_32@S_32" displaystring="MoveCommonRel Function">
-      <target id="html">../output/MoveCommonRel@PSI_CONTROL@S_32@S_32.html</target>
+    <link topicid="MoveCommonRel@PSI_CONTROL@int32_t@int32_t" displaystring="MoveCommonRel Function">
+      <target id="html">../output/MoveCommonRel@PSI_CONTROL@int32_t@int32_t.html</target>
     </link>
-    <link topicid="MoveDisplay@PRENDERER@S_32@S_32" displaystring="MoveDisplay Function">
-      <target id="html">../output/MoveDisplay@PRENDERER@S_32@S_32.html</target>
+    <link topicid="MoveDisplay@PRENDERER@int32_t@int32_t" displaystring="MoveDisplay Function">
+      <target id="html">../output/MoveDisplay@PRENDERER@int32_t@int32_t.html</target>
     </link>
-    <link topicid="MoveDisplayRel@PRENDERER@S_32@S_32" displaystring="MoveDisplayRel Function">
-      <target id="html">../output/MoveDisplayRel@PRENDERER@S_32@S_32.html</target>
+    <link topicid="MoveDisplayRel@PRENDERER@int32_t@int32_t" displaystring="MoveDisplayRel Function">
+      <target id="html">../output/MoveDisplayRel@PRENDERER@int32_t@int32_t.html</target>
     </link>
-    <link topicid="MoveImage@Image@S_32@S_32" displaystring="MoveImage Function">
-      <target id="html">../output/MoveImage@Image@S_32@S_32.html</target>
+    <link topicid="MoveImage@Image@int32_t@int32_t" displaystring="MoveImage Function">
+      <target id="html">../output/MoveImage@Image@int32_t@int32_t.html</target>
     </link>
     <link topicid="MoveListItem@PSI_CONTROL@PLISTITEM@int" displaystring="MoveListItem Function">
       <target id="html">../output/MoveListItem@PSI_CONTROL@PLISTITEM@int.html</target>
@@ -2410,17 +2410,17 @@
     <link topicid="MoveScrollBar@PSI_CONTROL@int" displaystring="MoveScrollBar Function">
       <target id="html">../output/MoveScrollBar@PSI_CONTROL@int.html</target>
     </link>
-    <link topicid="MoveSizeCommon@PSI_CONTROL@S_32@S_32@_32@_32" displaystring="MoveSizeCommon Function">
-      <target id="html">../output/MoveSizeCommon@PSI_CONTROL@S_32@S_32@_32@_32.html</target>
+    <link topicid="MoveSizeCommon@PSI_CONTROL@int32_t@int32_t@uint32_t@uint32_t" displaystring="MoveSizeCommon Function">
+      <target id="html">../output/MoveSizeCommon@PSI_CONTROL@int32_t@int32_t@uint32_t@uint32_t.html</target>
     </link>
-    <link topicid="MoveSizeCommonRel@PSI_CONTROL@S_32@S_32@_32@_32" displaystring="MoveSizeCommonRel Function">
-      <target id="html">../output/MoveSizeCommonRel@PSI_CONTROL@S_32@S_32@_32@_32.html</target>
+    <link topicid="MoveSizeCommonRel@PSI_CONTROL@int32_t@int32_t@uint32_t@uint32_t" displaystring="MoveSizeCommonRel Function">
+      <target id="html">../output/MoveSizeCommonRel@PSI_CONTROL@int32_t@int32_t@uint32_t@uint32_t.html</target>
     </link>
-    <link topicid="MoveSizeDisplay@PRENDERER@S_32@S_32@S_32@S_32" displaystring="MoveSizeDisplay Function">
-      <target id="html">../output/MoveSizeDisplay@PRENDERER@S_32@S_32@S_32@S_32.html</target>
+    <link topicid="MoveSizeDisplay@PRENDERER@int32_t@int32_t@int32_t@int32_t" displaystring="MoveSizeDisplay Function">
+      <target id="html">../output/MoveSizeDisplay@PRENDERER@int32_t@int32_t@int32_t@int32_t.html</target>
     </link>
-    <link topicid="MoveSizeDisplayRel@PRENDERER@S_32@S_32@S_32@S_32" displaystring="MoveSizeDisplayRel Function">
-      <target id="html">../output/MoveSizeDisplayRel@PRENDERER@S_32@S_32@S_32@S_32.html</target>
+    <link topicid="MoveSizeDisplayRel@PRENDERER@int32_t@int32_t@int32_t@int32_t" displaystring="MoveSizeDisplayRel Function">
+      <target id="html">../output/MoveSizeDisplayRel@PRENDERER@int32_t@int32_t@int32_t@int32_t.html</target>
     </link>
     <link topicid="MSG_SERVICE_DATA" displaystring="MSG_SERVICE_DATA">
       <target id="html">../output/server_event_messages.html</target>
@@ -2500,14 +2500,14 @@
     <link topicid="OpenCloseNotification" displaystring="OpenCloseNotification Type">
       <target id="html">../output/OpenCloseNotification.html</target>
     </link>
-    <link topicid="OpenDisplayAboveSizedAt@_32@_32@_32@S_32@S_32@PRENDERER" displaystring="OpenDisplayAboveSizedAt Function">
-      <target id="html">../output/OpenDisplayAboveSizedAt@_32@_32@_32@S_32@S_32@PRENDERER.html</target>
+    <link topicid="OpenDisplayAboveSizedAt@uint32_t@uint32_t@uint32_t@int32_t@int32_t@PRENDERER" displaystring="OpenDisplayAboveSizedAt Function">
+      <target id="html">../output/OpenDisplayAboveSizedAt@uint32_t@uint32_t@uint32_t@int32_t@int32_t@PRENDERER.html</target>
     </link>
-    <link topicid="OpenDisplayAboveUnderSizedAt@_32@_32@_32@S_32@S_32@PRENDERER@PRENDERER" displaystring="OpenDisplayAboveUnderSizedAt Function">
-      <target id="html">../output/OpenDisplayAboveUnderSizedAt@_32@_32@_32@S_32@S_32@PRENDERER@PRENDERER.html</target>
+    <link topicid="OpenDisplayAboveUnderSizedAt@uint32_t@uint32_t@uint32_t@int32_t@int32_t@PRENDERER@PRENDERER" displaystring="OpenDisplayAboveUnderSizedAt Function">
+      <target id="html">../output/OpenDisplayAboveUnderSizedAt@uint32_t@uint32_t@uint32_t@int32_t@int32_t@PRENDERER@PRENDERER.html</target>
     </link>
-    <link topicid="OpenDisplaySizedAt@_32@_32@_32@S_32@S_32" displaystring="OpenDisplaySizedAt Function">
-      <target id="html">../output/OpenDisplaySizedAt@_32@_32@_32@S_32@S_32.html</target>
+    <link topicid="OpenDisplaySizedAt@uint32_t@uint32_t@uint32_t@int32_t@int32_t" displaystring="OpenDisplaySizedAt Function">
+      <target id="html">../output/OpenDisplaySizedAt@uint32_t@uint32_t@uint32_t@int32_t@int32_t.html</target>
     </link>
     <link topicid="OpenListItem@PLISTITEM@int" displaystring="OpenListItem Function">
       <target id="html">../output/OpenListItem@PLISTITEM@int.html</target>
@@ -2575,8 +2575,8 @@
     <link topicid="OwnCommonMouse@PSI_CONTROL@int" displaystring="OwnCommonMouse Function">
       <target id="html">../output/OwnCommonMouse@PSI_CONTROL@int.html</target>
     </link>
-    <link topicid="OwnMouseEx@PRENDERER@_32" displaystring="OwnMouseEx Function">
-      <target id="html">../output/OwnMouseEx@PRENDERER@_32.html</target>
+    <link topicid="OwnMouseEx@PRENDERER@uint32_t" displaystring="OwnMouseEx Function">
+      <target id="html">../output/OwnMouseEx@PRENDERER@uint32_t.html</target>
     </link>
     <link topicid="P_0" displaystring="P_0 Type">
       <target id="html">../output/P_0.html</target>
@@ -2617,8 +2617,8 @@
     <link topicid="ParseIntoArgs@TEXTCHAR *@int *@TEXTCHAR ***" displaystring="ParseIntoArgs Function">
       <target id="html">../output/ParseIntoArgs@TEXTCHAR__@int__@TEXTCHAR____.html</target>
     </link>
-    <link topicid="ParseXMLFrameEx@POINTER@_32" displaystring="ParseXMLFrameEx Function">
-      <target id="html">../output/ParseXMLFrameEx@POINTER@_32.html</target>
+    <link topicid="ParseXMLFrameEx@POINTER@uint32_t" displaystring="ParseXMLFrameEx Function">
+      <target id="html">../output/ParseXMLFrameEx@POINTER@uint32_t.html</target>
     </link>
     <link topicid="pathchr@CTEXTSTR" displaystring="pathchr Function">
       <target id="html">../output/pathchr@CTEXTSTR.html</target>
@@ -2716,8 +2716,8 @@
     <link topicid="PeekLink@PLINKSTACK *" displaystring="PeekLink Function">
       <target id="html">../output/PeekLink@PLINKSTACK__.html</target>
     </link>
-    <link topicid="PeekMsgEx@PMSGHANDLE@_32@POINTER@PTRSZVAL@_32" displaystring="PeekMsgEx Function">
-      <target id="html">../output/PeekMsgEx@PMSGHANDLE@_32@POINTER@PTRSZVAL@_32.html</target>
+    <link topicid="PeekMsgEx@PMSGHANDLE@uint32_t@POINTER@PTRSZVAL@uint32_t" displaystring="PeekMsgEx Function">
+      <target id="html">../output/PeekMsgEx@PMSGHANDLE@uint32_t@POINTER@PTRSZVAL@uint32_t.html</target>
     </link>
     <link topicid="PeekQueue@PLINKQUEUE" displaystring="PeekQueue Function">
       <target id="html">../output/PeekQueue@PLINKQUEUE.html</target>
@@ -2752,17 +2752,17 @@
     <link topicid="PGENERICSET" displaystring="PGENERICSET Structure">
       <target id="html">../output/PGENERICSET.html</target>
     </link>
-    <link topicid="PickFont@S_32@S_32@P_32@POINTER *@PSI_CONTROL" displaystring="PickFont Function">
-      <target id="html">../output/PickFont@S_32@S_32@P_32@POINTER__@PSI_CONTROL.html</target>
+    <link topicid="PickFont@int32_t@int32_t@P_32@POINTER *@PSI_CONTROL" displaystring="PickFont Function">
+      <target id="html">../output/PickFont@int32_t@int32_t@P_32@POINTER__@PSI_CONTROL.html</target>
     </link>
-    <link topicid="PickFontFor@S_32@S_32@P_32@POINTER *@PSI_CONTROL@PSI_CONTROL" displaystring="PickFontFor Function">
-      <target id="html">../output/PickFontFor@S_32@S_32@P_32@POINTER__@PSI_CONTROL@PSI_CONTROL.html</target>
+    <link topicid="PickFontFor@int32_t@int32_t@P_32@POINTER *@PSI_CONTROL@PSI_CONTROL" displaystring="PickFontFor Function">
+      <target id="html">../output/PickFontFor@int32_t@int32_t@P_32@POINTER__@PSI_CONTROL@PSI_CONTROL.html</target>
     </link>
-    <link topicid="PickFontWithUpdate@S_32@S_32@P_32@POINTER *@PSI_CONTROL@void  *UpdateFont PTRSZVAL psv, Font font@PTRSZVAL" displaystring="PickFontWithUpdate Function">
-      <target id="html">../output/PickFontWithUpdate@S_32@S_32@P_32@POINTER__@PSI_CONTROL@void___UpdateFont_PTRSZVAL_psv,_Font_font@PTRSZVAL.html</target>
+    <link topicid="PickFontWithUpdate@int32_t@int32_t@P_32@POINTER *@PSI_CONTROL@void  *UpdateFont PTRSZVAL psv, Font font@PTRSZVAL" displaystring="PickFontWithUpdate Function">
+      <target id="html">../output/PickFontWithUpdate@int32_t@int32_t@P_32@POINTER__@PSI_CONTROL@void___UpdateFont_PTRSZVAL_psv,_Font_font@PTRSZVAL.html</target>
     </link>
-    <link topicid="PickScaledFontWithUpdate@S_32@S_32@PFRACTION@PFRACTION@P_32@POINTER *@PSI_CONTROL@void  *UpdateFont PTRSZVAL psv, Font font@PTRSZVAL" displaystring="PickScaledFontWithUpdate Function">
-      <target id="html">../output/PickScaledFontWithUpdate@S_32@S_32@PFRACTION@PFRACTION@P_32@POINTER__@PSI_CONTROL@void___UpdateFont_PTRSZVAL_psv,_Font_font@PTRSZVAL.html</target>
+    <link topicid="PickScaledFontWithUpdate@int32_t@int32_t@PFRACTION@PFRACTION@P_32@POINTER *@PSI_CONTROL@void  *UpdateFont PTRSZVAL psv, Font font@PTRSZVAL" displaystring="PickScaledFontWithUpdate Function">
+      <target id="html">../output/PickScaledFontWithUpdate@int32_t@int32_t@PFRACTION@PFRACTION@P_32@POINTER__@PSI_CONTROL@void___UpdateFont_PTRSZVAL_psv,_Font_font@PTRSZVAL.html</target>
     </link>
     <link topicid="pid_t" displaystring="pid_t Type">
       <target id="html">../output/pid_t.html</target>
@@ -2899,8 +2899,8 @@
     <link topicid="PrintVectorStdEx@TEXTCHAR *@VECTOR" displaystring="PrintVectorStdEx Function">
       <target id="html">../output/PrintVectorStdEx@TEXTCHAR__@VECTOR.html</target>
     </link>
-    <link topicid="ProbeClientAlive@_32" displaystring="ProbeClientAlive Function">
-      <target id="html">../output/ProbeClientAlive@_32.html</target>
+    <link topicid="ProbeClientAlive@uint32_t" displaystring="ProbeClientAlive Function">
+      <target id="html">../output/ProbeClientAlive@uint32_t.html</target>
     </link>
     <link topicid="PROCEDURE" displaystring="PROCEDURE Type">
       <target id="html">../output/PROCEDURE.html</target>
@@ -2944,8 +2944,8 @@
     <link topicid="PSI_OpenFile@CTEXTSTR@CTEXTSTR@TEXTSTR" displaystring="PSI_OpenFile Function">
       <target id="html">../output/PSI_OpenFile@CTEXTSTR@CTEXTSTR@TEXTSTR.html</target>
     </link>
-    <link topicid="PSI_PickFile@PSI_CONTROL@CTEXTSTR@CTEXTSTR@TEXTSTR@_32@int" displaystring="PSI_PickFile Function">
-      <target id="html">../output/PSI_PickFile@PSI_CONTROL@CTEXTSTR@CTEXTSTR@TEXTSTR@_32@int.html</target>
+    <link topicid="PSI_PickFile@PSI_CONTROL@CTEXTSTR@CTEXTSTR@TEXTSTR@uint32_t@int" displaystring="PSI_PickFile Function">
+      <target id="html">../output/PSI_PickFile@PSI_CONTROL@CTEXTSTR@CTEXTSTR@TEXTSTR@uint32_t@int.html</target>
     </link>
     <link topicid="PSIConsoleLoadFile@PSI_CONTROL@CTEXTSTR" displaystring="PSIConsoleLoadFile Function">
       <target id="html">../output/PSIConsoleLoadFile@PSI_CONTROL@CTEXTSTR.html</target>
@@ -2956,8 +2956,8 @@
     <link topicid="PSIConsoleSaveFile@PSI_CONTROL@CTEXTSTR" displaystring="PSIConsoleSaveFile Function">
       <target id="html">../output/PSIConsoleSaveFile@PSI_CONTROL@CTEXTSTR.html</target>
     </link>
-    <link topicid="PSIMakeImageButton@PSI_CONTROL@int@int@int@int@_32@Image@void  *PushMethodPTRSZVAL psv, PSI_CONTROL pc@PTRSZVAL" displaystring="PSIMakeImageButton Function">
-      <target id="html">../output/PSIMakeImageButton@PSI_CONTROL@int@int@int@int@_32@Image@void___PushMethodPTRSZVAL_psv,_PSI_CONTROL_pc@PTRSZVAL.html</target>
+    <link topicid="PSIMakeImageButton@PSI_CONTROL@int@int@int@int@uint32_t@Image@void  *PushMethodPTRSZVAL psv, PSI_CONTROL pc@PTRSZVAL" displaystring="PSIMakeImageButton Function">
+      <target id="html">../output/PSIMakeImageButton@PSI_CONTROL@int@int@int@int@uint32_t@Image@void___PushMethodPTRSZVAL_psv,_PSI_CONTROL_pc@PTRSZVAL.html</target>
     </link>
     <link topicid="PSPACENODE" displaystring="PSPACENODE Type">
       <target id="html">../output/PSPACENODE.html</target>
@@ -3022,17 +3022,17 @@
     <link topicid="PushSQLQueryExEx@PODBC" displaystring="PushSQLQueryExEx Function">
       <target id="html">../output/PushSQLQueryExEx@PODBC.html</target>
     </link>
-    <link topicid="PutCharacterFont@Image@S_32@S_32@CDATA@CDATA@TEXTCHAR@Font" displaystring="PutCharacterFont Function">
-      <target id="html">../output/PutCharacterFont@Image@S_32@S_32@CDATA@CDATA@TEXTCHAR@Font.html</target>
+    <link topicid="PutCharacterFont@Image@int32_t@int32_t@CDATA@CDATA@TEXTCHAR@Font" displaystring="PutCharacterFont Function">
+      <target id="html">../output/PutCharacterFont@Image@int32_t@int32_t@CDATA@CDATA@TEXTCHAR@Font.html</target>
     </link>
-    <link topicid="PutCharacterInvertFont@Image@S_32@S_32@CDATA@CDATA@TEXTCHAR@Font" displaystring="PutCharacterInvertFont Function">
-      <target id="html">../output/PutCharacterInvertFont@Image@S_32@S_32@CDATA@CDATA@TEXTCHAR@Font.html</target>
+    <link topicid="PutCharacterInvertFont@Image@int32_t@int32_t@CDATA@CDATA@TEXTCHAR@Font" displaystring="PutCharacterInvertFont Function">
+      <target id="html">../output/PutCharacterInvertFont@Image@int32_t@int32_t@CDATA@CDATA@TEXTCHAR@Font.html</target>
     </link>
-    <link topicid="PutCharacterVerticalFont@Image@S_32@S_32@CDATA@CDATA@TEXTCHAR@Font" displaystring="PutCharacterVerticalFont Function">
-      <target id="html">../output/PutCharacterVerticalFont@Image@S_32@S_32@CDATA@CDATA@TEXTCHAR@Font.html</target>
+    <link topicid="PutCharacterVerticalFont@Image@int32_t@int32_t@CDATA@CDATA@TEXTCHAR@Font" displaystring="PutCharacterVerticalFont Function">
+      <target id="html">../output/PutCharacterVerticalFont@Image@int32_t@int32_t@CDATA@CDATA@TEXTCHAR@Font.html</target>
     </link>
-    <link topicid="PutCharacterVerticalInvertFont@Image@S_32@S_32@CDATA@CDATA@TEXTCHAR@Font" displaystring="PutCharacterVerticalInvertFont Function">
-      <target id="html">../output/PutCharacterVerticalInvertFont@Image@S_32@S_32@CDATA@CDATA@TEXTCHAR@Font.html</target>
+    <link topicid="PutCharacterVerticalInvertFont@Image@int32_t@int32_t@CDATA@CDATA@TEXTCHAR@Font" displaystring="PutCharacterVerticalInvertFont Function">
+      <target id="html">../output/PutCharacterVerticalInvertFont@Image@int32_t@int32_t@CDATA@CDATA@TEXTCHAR@Font.html</target>
     </link>
     <link topicid="PutDisplayAbove@PRENDERER@PRENDERER" displaystring="PutDisplayAbove Function">
       <target id="html">../output/PutDisplayAbove@PRENDERER@PRENDERER.html</target>
@@ -3040,17 +3040,17 @@
     <link topicid="PutDisplayIn@PRENDERER@PRENDERER" displaystring="PutDisplayIn Function">
       <target id="html">../output/PutDisplayIn@PRENDERER@PRENDERER.html</target>
     </link>
-    <link topicid="PutStringFontEx@Image@S_32@S_32@CDATA@CDATA@CTEXTSTR@_32@Font" displaystring="PutStringFontEx Function">
-      <target id="html">../output/PutStringFontEx@Image@S_32@S_32@CDATA@CDATA@CTEXTSTR@_32@Font.html</target>
+    <link topicid="PutStringFontEx@Image@int32_t@int32_t@CDATA@CDATA@CTEXTSTR@uint32_t@Font" displaystring="PutStringFontEx Function">
+      <target id="html">../output/PutStringFontEx@Image@int32_t@int32_t@CDATA@CDATA@CTEXTSTR@uint32_t@Font.html</target>
     </link>
-    <link topicid="PutStringInvertFontEx@Image@S_32@S_32@CDATA@CDATA@CTEXTSTR@_32@Font" displaystring="PutStringInvertFontEx Function">
-      <target id="html">../output/PutStringInvertFontEx@Image@S_32@S_32@CDATA@CDATA@CTEXTSTR@_32@Font.html</target>
+    <link topicid="PutStringInvertFontEx@Image@int32_t@int32_t@CDATA@CDATA@CTEXTSTR@uint32_t@Font" displaystring="PutStringInvertFontEx Function">
+      <target id="html">../output/PutStringInvertFontEx@Image@int32_t@int32_t@CDATA@CDATA@CTEXTSTR@uint32_t@Font.html</target>
     </link>
-    <link topicid="PutStringInvertVerticalFontEx@Image@S_32@S_32@CDATA@CDATA@CTEXTSTR@_32@Font" displaystring="PutStringInvertVerticalFontEx Function">
-      <target id="html">../output/PutStringInvertVerticalFontEx@Image@S_32@S_32@CDATA@CDATA@CTEXTSTR@_32@Font.html</target>
+    <link topicid="PutStringInvertVerticalFontEx@Image@int32_t@int32_t@CDATA@CDATA@CTEXTSTR@uint32_t@Font" displaystring="PutStringInvertVerticalFontEx Function">
+      <target id="html">../output/PutStringInvertVerticalFontEx@Image@int32_t@int32_t@CDATA@CDATA@CTEXTSTR@uint32_t@Font.html</target>
     </link>
-    <link topicid="PutStringVerticalFontEx@Image@S_32@S_32@CDATA@CDATA@CTEXTSTR@_32@Font" displaystring="PutStringVerticalFontEx Function">
-      <target id="html">../output/PutStringVerticalFontEx@Image@S_32@S_32@CDATA@CDATA@CTEXTSTR@_32@Font.html</target>
+    <link topicid="PutStringVerticalFontEx@Image@int32_t@int32_t@CDATA@CDATA@CTEXTSTR@uint32_t@Font" displaystring="PutStringVerticalFontEx Function">
+      <target id="html">../output/PutStringVerticalFontEx@Image@int32_t@int32_t@CDATA@CDATA@CTEXTSTR@uint32_t@Font.html</target>
     </link>
     <link topicid="PV_32" displaystring="PV_32 Type">
       <target id="html">../output/PV_32.html</target>
@@ -3082,8 +3082,8 @@
     <link topicid="RCOORD" displaystring="RCOORD Type">
       <target id="html">../output/RCOORD.html</target>
     </link>
-    <link topicid="ReadDisplayEx@PRENDERER@TEXTSTR@_32@LOGICAL" displaystring="ReadDisplayEx Function">
-      <target id="html">../output/ReadDisplayEx@PRENDERER@TEXTSTR@_32@LOGICAL.html</target>
+    <link topicid="ReadDisplayEx@PRENDERER@TEXTSTR@uint32_t@LOGICAL" displaystring="ReadDisplayEx Function">
+      <target id="html">../output/ReadDisplayEx@PRENDERER@TEXTSTR@uint32_t@LOGICAL.html</target>
     </link>
     <link topicid="ReAddSpaceNodeEx@PSPACENODE *@PSPACENODE@P_IMAGE_POINT@P_IMAGE_POINT" displaystring="ReAddSpaceNodeEx Function">
       <target id="html">../output/ReAddSpaceNodeEx@PSPACENODE__@PSPACENODE@P_IMAGE_POINT@P_IMAGE_POINT.html</target>
@@ -3178,8 +3178,8 @@
     <link topicid="RegisterServiceExx@char *@server_function_table@int@server_message_handler@server_message_handler_ex@PTRSZVAL" displaystring="RegisterServiceExx Function">
       <target id="html">../output/RegisterServiceExx@char__@server_function_table@int@server_message_handler@server_message_handler_ex@PTRSZVAL.html</target>
     </link>
-    <link topicid="RegisterTextExtension@_32@PTEXT *PTRSZVAL,POINTER@PTRSZVAL" displaystring="RegisterTextExtension Function">
-      <target id="html">../output/RegisterTextExtension@_32@PTEXT__PTRSZVAL,POINTER@PTRSZVAL.html</target>
+    <link topicid="RegisterTextExtension@uint32_t@PTEXT *PTRSZVAL,POINTER@PTRSZVAL" displaystring="RegisterTextExtension Function">
+      <target id="html">../output/RegisterTextExtension@uint32_t@PTEXT__PTRSZVAL,POINTER@PTRSZVAL.html</target>
     </link>
     <link topicid="RegisterValue@CTEXTSTR@CTEXTSTR@CTEXTSTR" displaystring="RegisterValue Function">
       <target id="html">../output/RegisterValue@CTEXTSTR@CTEXTSTR@CTEXTSTR.html</target>
@@ -3205,8 +3205,8 @@
     <link topicid="ReleaseRegisteredFunctionEx@PCLASSROOT@CTEXTSTR@CTEXTSTR" displaystring="ReleaseRegisteredFunctionEx Function">
       <target id="html">../output/ReleaseRegisteredFunctionEx@PCLASSROOT@CTEXTSTR@CTEXTSTR.html</target>
     </link>
-    <link topicid="RemakeImageEx@Image@PCOLOR@_32@_32" displaystring="RemakeImageEx Function">
-      <target id="html">../output/RemakeImageEx@Image@PCOLOR@_32@_32.html</target>
+    <link topicid="RemakeImageEx@Image@PCOLOR@uint32_t@uint32_t" displaystring="RemakeImageEx Function">
+      <target id="html">../output/RemakeImageEx@Image@PCOLOR@uint32_t@uint32_t.html</target>
     </link>
     <link topicid="RemoveBinaryNode@PTREEROOT@POINTER@PTRSZVAL" displaystring="RemoveBinaryNode Function">
       <target id="html">../output/RemoveBinaryNode@PTREEROOT@POINTER@PTRSZVAL.html</target>
@@ -3223,14 +3223,14 @@
     <link topicid="RemoveLastFoundNode@PTREEROOT" displaystring="RemoveLastFoundNode Function">
       <target id="html">../output/RemoveLastFoundNode@PTREEROOT.html</target>
     </link>
-    <link topicid="RemoveSheet@PSI_CONTROL@_32" displaystring="RemoveSheet Function">
-      <target id="html">../output/RemoveSheet@PSI_CONTROL@_32.html</target>
+    <link topicid="RemoveSheet@PSI_CONTROL@uint32_t" displaystring="RemoveSheet Function">
+      <target id="html">../output/RemoveSheet@PSI_CONTROL@uint32_t.html</target>
     </link>
     <link topicid="RemoveSpaceNode@PSPACENODE" displaystring="RemoveSpaceNode Function">
       <target id="html">../output/RemoveSpaceNode@PSPACENODE.html</target>
     </link>
-    <link topicid="RemoveTimer@_32" displaystring="RemoveTimer Function">
-      <target id="html">../output/RemoveTimer@_32.html</target>
+    <link topicid="RemoveTimer@uint32_t" displaystring="RemoveTimer Function">
+      <target id="html">../output/RemoveTimer@uint32_t.html</target>
     </link>
     <link topicid="render.h" displaystring="render.h">
       <target id="html">../output/render_h.html</target>
@@ -3244,11 +3244,11 @@
     <link topicid="RENDERER" displaystring="RENDERER Type">
       <target id="html">../output/RENDERER.html</target>
     </link>
-    <link topicid="RenderFont@POINTER@_32" displaystring="RenderFont Function">
-      <target id="html">../output/RenderFont@POINTER@_32.html</target>
+    <link topicid="RenderFont@POINTER@uint32_t" displaystring="RenderFont Function">
+      <target id="html">../output/RenderFont@POINTER@uint32_t.html</target>
     </link>
-    <link topicid="RenderFontFileEx@CTEXTSTR@_32@_32@_32@P_32@POINTER *" displaystring="RenderFontFileEx Function">
-      <target id="html">../output/RenderFontFileEx@CTEXTSTR@_32@_32@_32@P_32@POINTER__.html</target>
+    <link topicid="RenderFontFileEx@CTEXTSTR@uint32_t@uint32_t@uint32_t@P_32@POINTER *" displaystring="RenderFontFileEx Function">
+      <target id="html">../output/RenderFontFileEx@CTEXTSTR@uint32_t@uint32_t@uint32_t@P_32@POINTER__.html</target>
     </link>
     <link topicid="RenderReadCallback" displaystring="RenderReadCallback Type">
       <target id="html">../output/RenderReadCallback.html</target>
@@ -3265,11 +3265,11 @@
     <link topicid="required_table_tag" displaystring="required_table_tag Structure">
       <target id="html">../output/required_table_tag.html</target>
     </link>
-    <link topicid="RescheduleTimer@_32" displaystring="RescheduleTimer Function">
-      <target id="html">../output/RescheduleTimer@_32.html</target>
+    <link topicid="RescheduleTimer@uint32_t" displaystring="RescheduleTimer Function">
+      <target id="html">../output/RescheduleTimer@uint32_t.html</target>
     </link>
-    <link topicid="RescheduleTimerEx@_32@_32" displaystring="RescheduleTimerEx Function">
-      <target id="html">../output/RescheduleTimerEx@_32@_32.html</target>
+    <link topicid="RescheduleTimerEx@uint32_t@uint32_t" displaystring="RescheduleTimerEx Function">
+      <target id="html">../output/RescheduleTimerEx@uint32_t@uint32_t.html</target>
     </link>
     <link topicid="ResetList@PSI_CONTROL" displaystring="ResetList Function">
       <target id="html">../output/ResetList@PSI_CONTROL.html</target>
@@ -3277,8 +3277,8 @@
     <link topicid="ResetPopup@PMENU" displaystring="ResetPopup Function">
       <target id="html">../output/ResetPopup@PMENU.html</target>
     </link>
-    <link topicid="ResizeImageEx@Image@S_32@S_32" displaystring="ResizeImageEx Function">
-      <target id="html">../output/ResizeImageEx@Image@S_32@S_32.html</target>
+    <link topicid="ResizeImageEx@Image@int32_t@int32_t" displaystring="ResizeImageEx Function">
+      <target id="html">../output/ResizeImageEx@Image@int32_t@int32_t.html</target>
     </link>
     <link topicid="responce_tag" displaystring="responce_tag Structure">
       <target id="html">../output/responce_tag.html</target>
@@ -3346,8 +3346,8 @@
     <link topicid="S_16" displaystring="S_16 Type">
       <target id="html">../output/S_16.html</target>
     </link>
-    <link topicid="S_32" displaystring="S_32 Type">
-      <target id="html">../output/S_32.html</target>
+    <link topicid="int32_t" displaystring="int32_t Type">
+      <target id="html">../output/int32_t.html</target>
     </link>
     <link topicid="S_64" displaystring="S_64 Type">
       <target id="html">../output/S_64.html</target>
@@ -3376,35 +3376,35 @@
     <link topicid="sack_fwrite@CPOINTER@int@int@FILE *" displaystring="sack_fwrite Function">
       <target id="html">../output/sack_fwrite@CPOINTER@int@int@FILE__.html</target>
     </link>
-    <link topicid="SACK_GetPrivateProfileInt@CTEXTSTR@CTEXTSTR@S_32@CTEXTSTR" displaystring="SACK_GetPrivateProfileInt Function">
-      <target id="html">../output/SACK_GetPrivateProfileInt@CTEXTSTR@CTEXTSTR@S_32@CTEXTSTR.html</target>
+    <link topicid="SACK_GetPrivateProfileInt@CTEXTSTR@CTEXTSTR@int32_t@CTEXTSTR" displaystring="SACK_GetPrivateProfileInt Function">
+      <target id="html">../output/SACK_GetPrivateProfileInt@CTEXTSTR@CTEXTSTR@int32_t@CTEXTSTR.html</target>
     </link>
-    <link topicid="SACK_GetPrivateProfileIntEx@CTEXTSTR@CTEXTSTR@S_32@CTEXTSTR@LOGICAL" displaystring="SACK_GetPrivateProfileIntEx Function">
-      <target id="html">../output/SACK_GetPrivateProfileIntEx@CTEXTSTR@CTEXTSTR@S_32@CTEXTSTR@LOGICAL.html</target>
+    <link topicid="SACK_GetPrivateProfileIntEx@CTEXTSTR@CTEXTSTR@int32_t@CTEXTSTR@LOGICAL" displaystring="SACK_GetPrivateProfileIntEx Function">
+      <target id="html">../output/SACK_GetPrivateProfileIntEx@CTEXTSTR@CTEXTSTR@int32_t@CTEXTSTR@LOGICAL.html</target>
     </link>
-    <link topicid="SACK_GetPrivateProfileString@CTEXTSTR@CTEXTSTR@CTEXTSTR@char *@_32@CTEXTSTR" displaystring="SACK_GetPrivateProfileString Function">
-      <target id="html">../output/SACK_GetPrivateProfileString@CTEXTSTR@CTEXTSTR@CTEXTSTR@char__@_32@CTEXTSTR.html</target>
+    <link topicid="SACK_GetPrivateProfileString@CTEXTSTR@CTEXTSTR@CTEXTSTR@char *@uint32_t@CTEXTSTR" displaystring="SACK_GetPrivateProfileString Function">
+      <target id="html">../output/SACK_GetPrivateProfileString@CTEXTSTR@CTEXTSTR@CTEXTSTR@char__@uint32_t@CTEXTSTR.html</target>
     </link>
-    <link topicid="SACK_GetPrivateProfileStringEx@CTEXTSTR@CTEXTSTR@CTEXTSTR@char *@_32@CTEXTSTR@LOGICAL" displaystring="SACK_GetPrivateProfileStringEx Function">
-      <target id="html">../output/SACK_GetPrivateProfileStringEx@CTEXTSTR@CTEXTSTR@CTEXTSTR@char__@_32@CTEXTSTR@LOGICAL.html</target>
+    <link topicid="SACK_GetPrivateProfileStringEx@CTEXTSTR@CTEXTSTR@CTEXTSTR@char *@uint32_t@CTEXTSTR@LOGICAL" displaystring="SACK_GetPrivateProfileStringEx Function">
+      <target id="html">../output/SACK_GetPrivateProfileStringEx@CTEXTSTR@CTEXTSTR@CTEXTSTR@char__@uint32_t@CTEXTSTR@LOGICAL.html</target>
     </link>
-    <link topicid="SACK_GetProfileBlob@CTEXTSTR@CTEXTSTR@char **@_32 *" displaystring="SACK_GetProfileBlob Function">
+    <link topicid="SACK_GetProfileBlob@CTEXTSTR@CTEXTSTR@char **@uint32_t *" displaystring="SACK_GetProfileBlob Function">
       <target id="html">../output/SACK_GetProfileBlob@CTEXTSTR@CTEXTSTR@char___@_32__.html</target>
     </link>
-    <link topicid="SACK_GetProfileBlobOdbc@PODBC@CTEXTSTR@CTEXTSTR@char **@_32 *" displaystring="SACK_GetProfileBlobOdbc Function">
+    <link topicid="SACK_GetProfileBlobOdbc@PODBC@CTEXTSTR@CTEXTSTR@char **@uint32_t *" displaystring="SACK_GetProfileBlobOdbc Function">
       <target id="html">../output/SACK_GetProfileBlobOdbc@PODBC@CTEXTSTR@CTEXTSTR@char___@_32__.html</target>
     </link>
-    <link topicid="SACK_GetProfileInt@CTEXTSTR@CTEXTSTR@S_32" displaystring="SACK_GetProfileInt Function">
-      <target id="html">../output/SACK_GetProfileInt@CTEXTSTR@CTEXTSTR@S_32.html</target>
+    <link topicid="SACK_GetProfileInt@CTEXTSTR@CTEXTSTR@int32_t" displaystring="SACK_GetProfileInt Function">
+      <target id="html">../output/SACK_GetProfileInt@CTEXTSTR@CTEXTSTR@int32_t.html</target>
     </link>
-    <link topicid="SACK_GetProfileIntEx@CTEXTSTR@CTEXTSTR@S_32@LOGICAL" displaystring="SACK_GetProfileIntEx Function">
-      <target id="html">../output/SACK_GetProfileIntEx@CTEXTSTR@CTEXTSTR@S_32@LOGICAL.html</target>
+    <link topicid="SACK_GetProfileIntEx@CTEXTSTR@CTEXTSTR@int32_t@LOGICAL" displaystring="SACK_GetProfileIntEx Function">
+      <target id="html">../output/SACK_GetProfileIntEx@CTEXTSTR@CTEXTSTR@int32_t@LOGICAL.html</target>
     </link>
-    <link topicid="SACK_GetProfileString@CTEXTSTR@CTEXTSTR@CTEXTSTR@char *@_32" displaystring="SACK_GetProfileString Function">
-      <target id="html">../output/SACK_GetProfileString@CTEXTSTR@CTEXTSTR@CTEXTSTR@char__@_32.html</target>
+    <link topicid="SACK_GetProfileString@CTEXTSTR@CTEXTSTR@CTEXTSTR@char *@uint32_t" displaystring="SACK_GetProfileString Function">
+      <target id="html">../output/SACK_GetProfileString@CTEXTSTR@CTEXTSTR@CTEXTSTR@char__@uint32_t.html</target>
     </link>
-    <link topicid="SACK_GetProfileStringEx@CTEXTSTR@CTEXTSTR@CTEXTSTR@char *@_32@LOGICAL" displaystring="SACK_GetProfileStringEx Function">
-      <target id="html">../output/SACK_GetProfileStringEx@CTEXTSTR@CTEXTSTR@CTEXTSTR@char__@_32@LOGICAL.html</target>
+    <link topicid="SACK_GetProfileStringEx@CTEXTSTR@CTEXTSTR@CTEXTSTR@char *@uint32_t@LOGICAL" displaystring="SACK_GetProfileStringEx Function">
+      <target id="html">../output/SACK_GetProfileStringEx@CTEXTSTR@CTEXTSTR@CTEXTSTR@char__@uint32_t@LOGICAL.html</target>
     </link>
     <link topicid="sack_lseek@HANDLE@int@int" displaystring="sack_lseek Function">
       <target id="html">../output/sack_lseek@HANDLE@int@int.html</target>
@@ -3433,11 +3433,11 @@
     <link topicid="sack_write@HANDLE@CPOINTER@int" displaystring="sack_write Function">
       <target id="html">../output/sack_write@HANDLE@CPOINTER@int.html</target>
     </link>
-    <link topicid="SACK_WritePrivateProfileInt@CTEXTSTR@CTEXTSTR@S_32@CTEXTSTR" displaystring="SACK_WritePrivateProfileInt Function">
-      <target id="html">../output/SACK_WritePrivateProfileInt@CTEXTSTR@CTEXTSTR@S_32@CTEXTSTR.html</target>
+    <link topicid="SACK_WritePrivateProfileInt@CTEXTSTR@CTEXTSTR@int32_t@CTEXTSTR" displaystring="SACK_WritePrivateProfileInt Function">
+      <target id="html">../output/SACK_WritePrivateProfileInt@CTEXTSTR@CTEXTSTR@int32_t@CTEXTSTR.html</target>
     </link>
-    <link topicid="SACK_WritePrivateProfileIntEx@CTEXTSTR@CTEXTSTR@S_32@CTEXTSTR@LOGICAL" displaystring="SACK_WritePrivateProfileIntEx Function">
-      <target id="html">../output/SACK_WritePrivateProfileIntEx@CTEXTSTR@CTEXTSTR@S_32@CTEXTSTR@LOGICAL.html</target>
+    <link topicid="SACK_WritePrivateProfileIntEx@CTEXTSTR@CTEXTSTR@int32_t@CTEXTSTR@LOGICAL" displaystring="SACK_WritePrivateProfileIntEx Function">
+      <target id="html">../output/SACK_WritePrivateProfileIntEx@CTEXTSTR@CTEXTSTR@int32_t@CTEXTSTR@LOGICAL.html</target>
     </link>
     <link topicid="SACK_WritePrivateProfileString@CTEXTSTR@CTEXTSTR@CTEXTSTR@CTEXTSTR" displaystring="SACK_WritePrivateProfileString Function">
       <target id="html">../output/SACK_WritePrivateProfileString@CTEXTSTR@CTEXTSTR@CTEXTSTR@CTEXTSTR.html</target>
@@ -3445,17 +3445,17 @@
     <link topicid="SACK_WritePrivateProfileStringEx@CTEXTSTR@CTEXTSTR@CTEXTSTR@CTEXTSTR@LOGICAL" displaystring="SACK_WritePrivateProfileStringEx Function">
       <target id="html">../output/SACK_WritePrivateProfileStringEx@CTEXTSTR@CTEXTSTR@CTEXTSTR@CTEXTSTR@LOGICAL.html</target>
     </link>
-    <link topicid="SACK_WriteProfileBlob@CTEXTSTR@CTEXTSTR@char *@_32" displaystring="SACK_WriteProfileBlob Function">
-      <target id="html">../output/SACK_WriteProfileBlob@CTEXTSTR@CTEXTSTR@char__@_32.html</target>
+    <link topicid="SACK_WriteProfileBlob@CTEXTSTR@CTEXTSTR@char *@uint32_t" displaystring="SACK_WriteProfileBlob Function">
+      <target id="html">../output/SACK_WriteProfileBlob@CTEXTSTR@CTEXTSTR@char__@uint32_t.html</target>
     </link>
-    <link topicid="SACK_WriteProfileBlobOdbc@PODBC@CTEXTSTR@CTEXTSTR@char *@_32" displaystring="SACK_WriteProfileBlobOdbc Function">
-      <target id="html">../output/SACK_WriteProfileBlobOdbc@PODBC@CTEXTSTR@CTEXTSTR@char__@_32.html</target>
+    <link topicid="SACK_WriteProfileBlobOdbc@PODBC@CTEXTSTR@CTEXTSTR@char *@uint32_t" displaystring="SACK_WriteProfileBlobOdbc Function">
+      <target id="html">../output/SACK_WriteProfileBlobOdbc@PODBC@CTEXTSTR@CTEXTSTR@char__@uint32_t.html</target>
     </link>
-    <link topicid="SACK_WriteProfileInt@CTEXTSTR@CTEXTSTR@S_32" displaystring="SACK_WriteProfileInt Function">
-      <target id="html">../output/SACK_WriteProfileInt@CTEXTSTR@CTEXTSTR@S_32.html</target>
+    <link topicid="SACK_WriteProfileInt@CTEXTSTR@CTEXTSTR@int32_t" displaystring="SACK_WriteProfileInt Function">
+      <target id="html">../output/SACK_WriteProfileInt@CTEXTSTR@CTEXTSTR@int32_t.html</target>
     </link>
-    <link topicid="SACK_WriteProfileIntEx@CTEXTSTR@CTEXTSTR@S_32@LOGICAL" displaystring="SACK_WriteProfileIntEx Function">
-      <target id="html">../output/SACK_WriteProfileIntEx@CTEXTSTR@CTEXTSTR@S_32@LOGICAL.html</target>
+    <link topicid="SACK_WriteProfileIntEx@CTEXTSTR@CTEXTSTR@int32_t@LOGICAL" displaystring="SACK_WriteProfileIntEx Function">
+      <target id="html">../output/SACK_WriteProfileIntEx@CTEXTSTR@CTEXTSTR@int32_t@LOGICAL.html</target>
     </link>
     <link topicid="SACK_WriteProfileString@CTEXTSTR@CTEXTSTR@CTEXTSTR" displaystring="SACK_WriteProfileString Function">
       <target id="html">../output/SACK_WriteProfileString@CTEXTSTR@CTEXTSTR@CTEXTSTR.html</target>
@@ -3499,11 +3499,11 @@
     <link topicid="ScaleCoords@PSI_CONTROL@PS_32@PS_32" displaystring="ScaleCoords Function">
       <target id="html">../output/ScaleCoords@PSI_CONTROL@PS_32@PS_32.html</target>
     </link>
-    <link topicid="ScaleFraction@PFRACTION@S_32@PFRACTION" displaystring="ScaleFraction Function">
-      <target id="html">../output/ScaleFraction@PFRACTION@S_32@PFRACTION.html</target>
+    <link topicid="ScaleFraction@PFRACTION@int32_t@PFRACTION" displaystring="ScaleFraction Function">
+      <target id="html">../output/ScaleFraction@PFRACTION@int32_t@PFRACTION.html</target>
     </link>
-    <link topicid="ScaleValue@PFRACTION@S_32" displaystring="ScaleValue Function">
-      <target id="html">../output/ScaleValue@PFRACTION@S_32.html</target>
+    <link topicid="ScaleValue@PFRACTION@int32_t" displaystring="ScaleValue Function">
+      <target id="html">../output/ScaleValue@PFRACTION@int32_t.html</target>
     </link>
     <link topicid="ScanDrives@void  *ProcessPTRSZVAL user, CTEXTSTR letter, int flags@PTRSZVAL" displaystring="ScanDrives Function">
       <target id="html">../output/ScanDrives@void___ProcessPTRSZVAL_user,_CTEXTSTR_letter,_int_flags@PTRSZVAL.html</target>
@@ -3517,11 +3517,11 @@
     <link topicid="SegBreak@PTEXT" displaystring="SegBreak Function">
       <target id="html">../output/SegBreak@PTEXT.html</target>
     </link>
-    <link topicid="SegConcatEx@PTEXT@PTEXT@S_32@S_32" displaystring="SegConcatEx Function">
-      <target id="html">../output/SegConcatEx@PTEXT@PTEXT@S_32@S_32.html</target>
+    <link topicid="SegConcatEx@PTEXT@PTEXT@int32_t@int32_t" displaystring="SegConcatEx Function">
+      <target id="html">../output/SegConcatEx@PTEXT@PTEXT@int32_t@int32_t.html</target>
     </link>
-    <link topicid="SegCreateEx@S_32" displaystring="SegCreateEx Function">
-      <target id="html">../output/SegCreateEx@S_32.html</target>
+    <link topicid="SegCreateEx@int32_t" displaystring="SegCreateEx Function">
+      <target id="html">../output/SegCreateEx@int32_t.html</target>
     </link>
     <link topicid="SegCreateFrom_64Ex@S_64" displaystring="SegCreateFrom_64Ex Function">
       <target id="html">../output/SegCreateFrom_64Ex@S_64.html</target>
@@ -3571,20 +3571,20 @@
     <link topicid="SendActiveMessage@PRENDERER@PACTIVEMESSAGE" displaystring="SendActiveMessage Function">
       <target id="html">../output/SendActiveMessage@PRENDERER@PACTIVEMESSAGE.html</target>
     </link>
-    <link topicid="SendInMessage@_32@_32@POINTER@_32" displaystring="SendInMessage Function">
-      <target id="html">../output/SendInMessage@_32@_32@POINTER@_32.html</target>
+    <link topicid="SendInMessage@uint32_t@uint32_t@POINTER@uint32_t" displaystring="SendInMessage Function">
+      <target id="html">../output/SendInMessage@uint32_t@uint32_t@POINTER@uint32_t.html</target>
     </link>
-    <link topicid="SendInMultiMessage@_32@_32@_32@BUFFER_LENGTH_PAIR *" displaystring="SendInMultiMessage Function">
-      <target id="html">../output/SendInMultiMessage@_32@_32@_32@BUFFER_LENGTH_PAIR__.html</target>
+    <link topicid="SendInMultiMessage@uint32_t@uint32_t@uint32_t@BUFFER_LENGTH_PAIR *" displaystring="SendInMultiMessage Function">
+      <target id="html">../output/SendInMultiMessage@uint32_t@uint32_t@uint32_t@BUFFER_LENGTH_PAIR__.html</target>
     </link>
-    <link topicid="SendMultiServiceEvent@_32@_32@_32@..." displaystring="SendMultiServiceEvent Function">
-      <target id="html">../output/SendMultiServiceEvent@_32@_32@_32@___.html</target>
+    <link topicid="SendMultiServiceEvent@uint32_t@uint32_t@uint32_t@..." displaystring="SendMultiServiceEvent Function">
+      <target id="html">../output/SendMultiServiceEvent@uint32_t@uint32_t@uint32_t@___.html</target>
     </link>
     <link topicid="SendMultiServiceEventEx" displaystring="SendMultiServiceEventEx Function">
       <target id="html">../output/SendMultiServiceEventEx.html</target>
     </link>
-    <link topicid="SendMultiServiceEventPairs@_32@_32@_32@BUFFER_LENGTH_PAIR *" displaystring="SendMultiServiceEventPairs Function">
-      <target id="html">../output/SendMultiServiceEventPairs@_32@_32@_32@BUFFER_LENGTH_PAIR__.html</target>
+    <link topicid="SendMultiServiceEventPairs@uint32_t@uint32_t@uint32_t@BUFFER_LENGTH_PAIR *" displaystring="SendMultiServiceEventPairs Function">
+      <target id="html">../output/SendMultiServiceEventPairs@uint32_t@uint32_t@uint32_t@BUFFER_LENGTH_PAIR__.html</target>
     </link>
     <link topicid="SendMultiServiceEventProto" displaystring="SendMultiServiceEventProto Type">
       <target id="html">../output/SendMultiServiceEventProto.html</target>
@@ -3592,17 +3592,17 @@
     <link topicid="SendOutMessage@PQMSG@int" displaystring="SendOutMessage Function">
       <target id="html">../output/SendOutMessage@PQMSG@int.html</target>
     </link>
-    <link topicid="SendRoutedServerMessage@_32@_32@POINTER@_32" displaystring="SendRoutedServerMessage Function">
-      <target id="html">../output/SendRoutedServerMessage@_32@_32@POINTER@_32.html</target>
+    <link topicid="SendRoutedServerMessage@uint32_t@uint32_t@POINTER@uint32_t" displaystring="SendRoutedServerMessage Function">
+      <target id="html">../output/SendRoutedServerMessage@uint32_t@uint32_t@POINTER@uint32_t.html</target>
     </link>
-    <link topicid="SendRoutedServerMultiMessage@_32@_32@_32@..." displaystring="SendRoutedServerMultiMessage Function">
-      <target id="html">../output/SendRoutedServerMultiMessage@_32@_32@_32@___.html</target>
+    <link topicid="SendRoutedServerMultiMessage@uint32_t@uint32_t@uint32_t@..." displaystring="SendRoutedServerMultiMessage Function">
+      <target id="html">../output/SendRoutedServerMultiMessage@uint32_t@uint32_t@uint32_t@___.html</target>
     </link>
-    <link topicid="SendServerMessage@_32@POINTER@_32" displaystring="SendServerMessage Function">
-      <target id="html">../output/SendServerMessage@_32@POINTER@_32.html</target>
+    <link topicid="SendServerMessage@uint32_t@POINTER@uint32_t" displaystring="SendServerMessage Function">
+      <target id="html">../output/SendServerMessage@uint32_t@POINTER@uint32_t.html</target>
     </link>
-    <link topicid="SendServerMultiMessage@_32@_32@..." displaystring="SendServerMultiMessage Function">
-      <target id="html">../output/SendServerMultiMessage@_32@_32@___.html</target>
+    <link topicid="SendServerMultiMessage@uint32_t@uint32_t@..." displaystring="SendServerMultiMessage Function">
+      <target id="html">../output/SendServerMultiMessage@uint32_t@uint32_t@___.html</target>
     </link>
     <link topicid="SendUDPEx@PCLIENT@CPOINTER@int@SOCKADDR *" displaystring="SendUDPEx Function">
       <target id="html">../output/SendUDPEx@PCLIENT@CPOINTER@int@SOCKADDR__.html</target>
@@ -3682,8 +3682,8 @@
     <link topicid="SetBaseColor@INDEX@CDATA" displaystring="SetBaseColor Function">
       <target id="html">../output/SetBaseColor@INDEX@CDATA.html</target>
     </link>
-    <link topicid="SetBlotMethod@_32" displaystring="SetBlotMethod Function">
-      <target id="html">../output/SetBlotMethod@_32.html</target>
+    <link topicid="SetBlotMethod@uint32_t" displaystring="SetBlotMethod Function">
+      <target id="html">../output/SetBlotMethod@uint32_t.html</target>
     </link>
     <link topicid="SetButtonAttributes@PSI_CONTROL@int" displaystring="SetButtonAttributes Function">
       <target id="html">../output/SetButtonAttributes@PSI_CONTROL@int.html</target>
@@ -3736,11 +3736,11 @@
     <link topicid="SetCloseHandler@PRENDERER@CloseCallback@PTRSZVAL" displaystring="SetCloseHandler Function">
       <target id="html">../output/SetCloseHandler@PRENDERER@CloseCallback@PTRSZVAL.html</target>
     </link>
-    <link topicid="SetCommonAcceptDroppedFiles@PSI_CONTROL@void  *AcceptDroppedFilesMethodPSI_CONTROL, CTEXTSTR file, S_32 x, S_32 y" displaystring="SetCommonAcceptDroppedFiles Function">
+    <link topicid="SetCommonAcceptDroppedFiles@PSI_CONTROL@void  *AcceptDroppedFilesMethodPSI_CONTROL, CTEXTSTR file, int32_t x, int32_t y" displaystring="SetCommonAcceptDroppedFiles Function">
       <target id="html">../output/SetCommonAcceptDroppedFiles@PSI_CONTROL@void___AcceptDroppedFilesMethodPSI_CONTROL,_CTEXTSTR_file,_S_32_x,_S_32_y.html</target>
     </link>
-    <link topicid="SetCommonBorderEx@PSI_CONTROL@_32" displaystring="SetCommonBorderEx Function">
-      <target id="html">../output/SetCommonBorderEx@PSI_CONTROL@_32.html</target>
+    <link topicid="SetCommonBorderEx@PSI_CONTROL@uint32_t" displaystring="SetCommonBorderEx Function">
+      <target id="html">../output/SetCommonBorderEx@PSI_CONTROL@uint32_t.html</target>
     </link>
     <link topicid="SetCommonButtons@PSI_CONTROL@int *@int *" displaystring="SetCommonButtons Function">
       <target id="html">../output/SetCommonButtons@PSI_CONTROL@int__@int__.html</target>
@@ -3754,13 +3754,13 @@
     <link topicid="SetCommonFont@PSI_CONTROL@Font" displaystring="SetCommonFont Function">
       <target id="html">../output/SetCommonFont@PSI_CONTROL@Font.html</target>
     </link>
-    <link topicid="SetCommonKey@PSI_CONTROL@int  *KeyPSI_CONTROL,_32" displaystring="SetCommonKey Function">
-      <target id="html">../output/SetCommonKey@PSI_CONTROL@int___KeyPSI_CONTROL,_32.html</target>
+    <link topicid="SetCommonKey@PSI_CONTROL@int  *KeyPSI_CONTROL,uint32_t" displaystring="SetCommonKey Function">
+      <target id="html">../output/SetCommonKey@PSI_CONTROL@int___KeyPSI_CONTROL,uint32_t.html</target>
     </link>
     <link topicid="SetCommonLoad@PSI_CONTROL@void  *int PSI_CONTROL" displaystring="SetCommonLoad Function">
       <target id="html">../output/SetCommonLoad@PSI_CONTROL@void___int_PSI_CONTROL.html</target>
     </link>
-    <link topicid="SetCommonMouse@PSI_CONTROL@int  *MouseMethodPSI_CONTROL, S_32 x, S_32 y, _32 b" displaystring="SetCommonMouse Function">
+    <link topicid="SetCommonMouse@PSI_CONTROL@int  *MouseMethodPSI_CONTROL, int32_t x, int32_t y, uint32_t b" displaystring="SetCommonMouse Function">
       <target id="html">../output/SetCommonMouse@PSI_CONTROL@int___MouseMethodPSI_CONTROL,_S_32_x,_S_32_y,__32_b.html</target>
     </link>
     <link topicid="SetCommonSave@PSI_CONTROL@void  *int PSI_CONTROL" displaystring="SetCommonSave Function">
@@ -3811,8 +3811,8 @@
     <link topicid="SetCurrentPath@CTEXTSTR" displaystring="SetCurrentPath Function">
       <target id="html">../output/SetCurrentPath@CTEXTSTR.html</target>
     </link>
-    <link topicid="SetCurrentSheet@PSI_CONTROL@_32" displaystring="SetCurrentSheet Function">
-      <target id="html">../output/SetCurrentSheet@PSI_CONTROL@_32.html</target>
+    <link topicid="SetCurrentSheet@PSI_CONTROL@uint32_t" displaystring="SetCurrentSheet Function">
+      <target id="html">../output/SetCurrentSheet@PSI_CONTROL@uint32_t.html</target>
     </link>
     <link topicid="SetDataItemEx@PDATALIST *@INDEX@POINTER" displaystring="SetDataItemEx Function">
       <target id="html">../output/SetDataItemEx@PDATALIST__@INDEX@POINTER.html</target>
@@ -3829,8 +3829,8 @@
     <link topicid="SetDisplayNoMouse@PRENDERER@int" displaystring="SetDisplayNoMouse Function">
       <target id="html">../output/SetDisplayNoMouse@PRENDERER@int.html</target>
     </link>
-    <link topicid="SetDisplaySize@_32@_32" displaystring="SetDisplaySize Function">
-      <target id="html">../output/SetDisplaySize@_32@_32.html</target>
+    <link topicid="SetDisplaySize@uint32_t@uint32_t" displaystring="SetDisplaySize Function">
+      <target id="html">../output/SetDisplaySize@uint32_t@uint32_t.html</target>
     </link>
     <link topicid="SetDoubleClickHandler@PSI_CONTROL@DoubleClicker@PTRSZVAL" displaystring="SetDoubleClickHandler Function">
       <target id="html">../output/SetDoubleClickHandler@PSI_CONTROL@DoubleClicker@PTRSZVAL.html</target>
@@ -3850,11 +3850,11 @@
     <link topicid="SetFileWriteTime@CTEXTSTR@_64" displaystring="SetFileWriteTime Function">
       <target id="html">../output/SetFileWriteTime@CTEXTSTR@_64.html</target>
     </link>
-    <link topicid="SetFMonitorForceScanTime@PMONITOR@_32" displaystring="SetFMonitorForceScanTime Function">
-      <target id="html">../output/SetFMonitorForceScanTime@PMONITOR@_32.html</target>
+    <link topicid="SetFMonitorForceScanTime@PMONITOR@uint32_t" displaystring="SetFMonitorForceScanTime Function">
+      <target id="html">../output/SetFMonitorForceScanTime@PMONITOR@uint32_t.html</target>
     </link>
-    <link topicid="SetFontRendererData@Font@POINTER@_32" displaystring="SetFontRendererData Function">
-      <target id="html">../output/SetFontRendererData@Font@POINTER@_32.html</target>
+    <link topicid="SetFontRendererData@Font@POINTER@uint32_t" displaystring="SetFontRendererData Function">
+      <target id="html">../output/SetFontRendererData@Font@POINTER@uint32_t.html</target>
     </link>
     <link topicid="SetFrameInit@PSI_CONTROL@ControlInitProc@PTRSZVAL" displaystring="SetFrameInit Function">
       <target id="html">../output/SetFrameInit@PSI_CONTROL@ControlInitProc@PTRSZVAL.html</target>
@@ -3886,7 +3886,7 @@
     <link topicid="SetInterfaceConfigFile@TEXTCHAR *" displaystring="SetInterfaceConfigFile Function">
       <target id="html">../output/SetInterfaceConfigFile@TEXTCHAR__.html</target>
     </link>
-    <link topicid="SetItemContextMenu@PLISTITEM@PMENU@void  *MenuProcPTRSZVAL, PLISTITEM, _32 menuopt@PTRSZVAL" displaystring="SetItemContextMenu Function">
+    <link topicid="SetItemContextMenu@PLISTITEM@PMENU@void  *MenuProcPTRSZVAL, PLISTITEM, uint32_t menuopt@PTRSZVAL" displaystring="SetItemContextMenu Function">
       <target id="html">../output/SetItemContextMenu@PLISTITEM@PMENU@void___MenuProcPTRSZVAL,_PLISTITEM,__32_menuopt@PTRSZVAL.html</target>
     </link>
     <link topicid="SetItemData@PLISTITEM@PTRSZVAL" displaystring="SetItemData Function">
@@ -3934,8 +3934,8 @@
     <link topicid="SetMouseHandler@PRENDERER@MouseCallback@PTRSZVAL" displaystring="SetMouseHandler Function">
       <target id="html">../output/SetMouseHandler@PRENDERER@MouseCallback@PTRSZVAL.html</target>
     </link>
-    <link topicid="SetMousePosition@PRENDERER@S_32@S_32" displaystring="SetMousePosition Function">
-      <target id="html">../output/SetMousePosition@PRENDERER@S_32@S_32.html</target>
+    <link topicid="SetMousePosition@PRENDERER@int32_t@int32_t" displaystring="SetMousePosition Function">
+      <target id="html">../output/SetMousePosition@PRENDERER@int32_t@int32_t.html</target>
     </link>
     <link topicid="SetNetworkCloseCallback@PCLIENT@cCloseCallback" displaystring="SetNetworkCloseCallback Function">
       <target id="html">../output/SetNetworkCloseCallback@PCLIENT@cCloseCallback.html</target>
@@ -3988,7 +3988,7 @@
     <link topicid="SetRotation@PTRANSFORM@PC_POINT" displaystring="SetRotation Function">
       <target id="html">../output/SetRotation@PTRANSFORM@PC_POINT.html</target>
     </link>
-    <link topicid="SetSavePortion@void  *_SavePortion  PSPRITE_METHOD psm, _32 x, _32 y, _32 w, _32 h" displaystring="SetSavePortion Function">
+    <link topicid="SetSavePortion@void  *_SavePortion  PSPRITE_METHOD psm, uint32_t x, uint32_t y, uint32_t w, uint32_t h" displaystring="SetSavePortion Function">
       <target id="html">../output/SetSavePortion@void____SavePortion__PSPRITE_METHOD_psm,__32_x,__32_y,__32_w,__32_h.html</target>
     </link>
     <link topicid="SetScrollParams@PSI_CONTROL@int@int@int@int" displaystring="SetScrollParams Function">
@@ -4003,11 +4003,11 @@
     <link topicid="SetSelectedItem@PSI_CONTROL@PLISTITEM" displaystring="SetSelectedItem Function">
       <target id="html">../output/SetSelectedItem@PSI_CONTROL@PLISTITEM.html</target>
     </link>
-    <link topicid="SetSheetTabImages@PSI_CONTROL@_32@Image@Image" displaystring="SetSheetTabImages Function">
-      <target id="html">../output/SetSheetTabImages@PSI_CONTROL@_32@Image@Image.html</target>
+    <link topicid="SetSheetTabImages@PSI_CONTROL@uint32_t@Image@Image" displaystring="SetSheetTabImages Function">
+      <target id="html">../output/SetSheetTabImages@PSI_CONTROL@uint32_t@Image@Image.html</target>
     </link>
-    <link topicid="SetSheetTabTextColors@PSI_CONTROL@_32@CDATA@CDATA" displaystring="SetSheetTabTextColors Function">
-      <target id="html">../output/SetSheetTabTextColors@PSI_CONTROL@_32@CDATA@CDATA.html</target>
+    <link topicid="SetSheetTabTextColors@PSI_CONTROL@uint32_t@CDATA@CDATA" displaystring="SetSheetTabTextColors Function">
+      <target id="html">../output/SetSheetTabTextColors@PSI_CONTROL@uint32_t@CDATA@CDATA.html</target>
     </link>
     <link topicid="SetSliderOptions@PSI_CONTROL@int" displaystring="SetSliderOptions Function">
       <target id="html">../output/SetSliderOptions@PSI_CONTROL@int.html</target>
@@ -4021,26 +4021,26 @@
     <link topicid="SetSpeed@PTRANSFORM@PC_POINT" displaystring="SetSpeed Function">
       <target id="html">../output/SetSpeed@PTRANSFORM@PC_POINT.html</target>
     </link>
-    <link topicid="SetSpriteHotspot@PSPRITE@S_32@S_32" displaystring="SetSpriteHotspot Function">
-      <target id="html">../output/SetSpriteHotspot@PSPRITE@S_32@S_32.html</target>
+    <link topicid="SetSpriteHotspot@PSPRITE@int32_t@int32_t" displaystring="SetSpriteHotspot Function">
+      <target id="html">../output/SetSpriteHotspot@PSPRITE@int32_t@int32_t.html</target>
     </link>
-    <link topicid="SetSpritePosition@PSPRITE@S_32@S_32" displaystring="SetSpritePosition Function">
-      <target id="html">../output/SetSpritePosition@PSPRITE@S_32@S_32.html</target>
+    <link topicid="SetSpritePosition@PSPRITE@int32_t@int32_t" displaystring="SetSpritePosition Function">
+      <target id="html">../output/SetSpritePosition@PSPRITE@int32_t@int32_t.html</target>
     </link>
     <link topicid="SetSQLLoggingDisable@PODBC@LOGICAL" displaystring="SetSQLLoggingDisable Function">
       <target id="html">../output/SetSQLLoggingDisable@PODBC@LOGICAL.html</target>
     </link>
-    <link topicid="SetStringBehavior@Image@_32" displaystring="SetStringBehavior Function">
-      <target id="html">../output/SetStringBehavior@Image@_32.html</target>
+    <link topicid="SetStringBehavior@Image@uint32_t" displaystring="SetStringBehavior Function">
+      <target id="html">../output/SetStringBehavior@Image@uint32_t.html</target>
     </link>
-    <link topicid="SetSyslogOptions@_32 *" displaystring="SetSyslogOptions Function">
+    <link topicid="SetSyslogOptions@uint32_t *" displaystring="SetSyslogOptions Function">
       <target id="html">../output/SetSyslogOptions@_32__.html</target>
     </link>
     <link topicid="SetSystemLog@enum syslog_types@void *" displaystring="SetSystemLog Function">
       <target id="html">../output/SetSystemLog@enum_syslog_types@void__.html</target>
     </link>
-    <link topicid="SetSystemLoggingLevel@_32" displaystring="SetSystemLoggingLevel Function">
-      <target id="html">../output/SetSystemLoggingLevel@_32.html</target>
+    <link topicid="SetSystemLoggingLevel@uint32_t" displaystring="SetSystemLoggingLevel Function">
+      <target id="html">../output/SetSystemLoggingLevel@uint32_t.html</target>
     </link>
     <link topicid="SetTabImages@PSI_CONTROL@Image@Image" displaystring="SetTabImages Function">
       <target id="html">../output/SetTabImages@PSI_CONTROL@Image@Image.html</target>
@@ -4060,8 +4060,8 @@
     <link topicid="SetTimeScale@RCOORD" displaystring="SetTimeScale Function">
       <target id="html">../output/SetTimeScale@RCOORD.html</target>
     </link>
-    <link topicid="SetUpdateRegionEx@PSI_CONTROL@S_32@S_32@_32@_32" displaystring="SetUpdateRegionEx Function">
-      <target id="html">../output/SetUpdateRegionEx@PSI_CONTROL@S_32@S_32@_32@_32.html</target>
+    <link topicid="SetUpdateRegionEx@PSI_CONTROL@int32_t@int32_t@uint32_t@uint32_t" displaystring="SetUpdateRegionEx Function">
+      <target id="html">../output/SetUpdateRegionEx@PSI_CONTROL@int32_t@int32_t@uint32_t@uint32_t.html</target>
     </link>
     <link topicid="SetUserInputInsert@PUSER_INPUT_BUFFER@int" displaystring="SetUserInputInsert Function">
       <target id="html">../output/SetUserInputInsert@PUSER_INPUT_BUFFER@int.html</target>
@@ -4102,17 +4102,17 @@
     <link topicid="SinAngle@PC_POINT@PC_POINT" displaystring="SinAngle Function">
       <target id="html">../output/SinAngle@PC_POINT@PC_POINT.html</target>
     </link>
-    <link topicid="SizeCommon@PSI_CONTROL@_32@_32" displaystring="SizeCommon Function">
-      <target id="html">../output/SizeCommon@PSI_CONTROL@_32@_32.html</target>
+    <link topicid="SizeCommon@PSI_CONTROL@uint32_t@uint32_t" displaystring="SizeCommon Function">
+      <target id="html">../output/SizeCommon@PSI_CONTROL@uint32_t@uint32_t.html</target>
     </link>
-    <link topicid="SizeCommonRel@PSI_CONTROL@_32@_32" displaystring="SizeCommonRel Function">
-      <target id="html">../output/SizeCommonRel@PSI_CONTROL@_32@_32.html</target>
+    <link topicid="SizeCommonRel@PSI_CONTROL@uint32_t@uint32_t" displaystring="SizeCommonRel Function">
+      <target id="html">../output/SizeCommonRel@PSI_CONTROL@uint32_t@uint32_t.html</target>
     </link>
-    <link topicid="SizeDisplay@PRENDERER@_32@_32" displaystring="SizeDisplay Function">
-      <target id="html">../output/SizeDisplay@PRENDERER@_32@_32.html</target>
+    <link topicid="SizeDisplay@PRENDERER@uint32_t@uint32_t" displaystring="SizeDisplay Function">
+      <target id="html">../output/SizeDisplay@PRENDERER@uint32_t@uint32_t.html</target>
     </link>
-    <link topicid="SizeDisplayRel@PRENDERER@S_32@S_32" displaystring="SizeDisplayRel Function">
-      <target id="html">../output/SizeDisplayRel@PRENDERER@S_32@S_32.html</target>
+    <link topicid="SizeDisplayRel@PRENDERER@int32_t@int32_t" displaystring="SizeDisplayRel Function">
+      <target id="html">../output/SizeDisplayRel@PRENDERER@int32_t@int32_t.html</target>
     </link>
     <link topicid="SizeOfMemBlock@CPOINTER" displaystring="SizeOfMemBlock Function">
       <target id="html">../output/SizeOfMemBlock@CPOINTER.html</target>
@@ -4168,8 +4168,8 @@
     <link topicid="SQLCommit@PODBC" displaystring="SQLCommit Function">
       <target id="html">../output/SQLCommit@PODBC.html</target>
     </link>
-    <link topicid="SQLCreateTableEx@PODBC@CTEXTSTR@CTEXTSTR@CTEXTSTR@_32" displaystring="SQLCreateTableEx Function">
-      <target id="html">../output/SQLCreateTableEx@PODBC@CTEXTSTR@CTEXTSTR@CTEXTSTR@_32.html</target>
+    <link topicid="SQLCreateTableEx@PODBC@CTEXTSTR@CTEXTSTR@CTEXTSTR@uint32_t" displaystring="SQLCreateTableEx Function">
+      <target id="html">../output/SQLCreateTableEx@PODBC@CTEXTSTR@CTEXTSTR@CTEXTSTR@uint32_t.html</target>
     </link>
     <link topicid="SQLEndQuery@PODBC" displaystring="SQLEndQuery Function">
       <target id="html">../output/SQLEndQuery@PODBC.html</target>
@@ -4360,11 +4360,11 @@
     <link topicid="SystemLogEx@CTEXTSTR" displaystring="SystemLogEx Function">
       <target id="html">../output/SystemLogEx@CTEXTSTR.html</target>
     </link>
-    <link topicid="SystemLogFL@CTEXTSTR@CTEXTSTR@_32" displaystring="SystemLogFL Function">
-      <target id="html">../output/SystemLogFL@CTEXTSTR@CTEXTSTR@_32.html</target>
+    <link topicid="SystemLogFL@CTEXTSTR@CTEXTSTR@uint32_t" displaystring="SystemLogFL Function">
+      <target id="html">../output/SystemLogFL@CTEXTSTR@CTEXTSTR@uint32_t.html</target>
     </link>
-    <link topicid="SystemLogTime@_32" displaystring="SystemLogTime Function">
-      <target id="html">../output/SystemLogTime@_32.html</target>
+    <link topicid="SystemLogTime@uint32_t" displaystring="SystemLogTime Function">
+      <target id="html">../output/SystemLogTime@uint32_t.html</target>
     </link>
     <link topicid="systray.h" displaystring="systray.h">
       <target id="html">../output/systray_h.html</target>
@@ -4438,20 +4438,20 @@
     <link topicid="TrackPopup@PMENU@PSI_CONTROL" displaystring="TrackPopup Function">
       <target id="html">../output/TrackPopup@PMENU@PSI_CONTROL.html</target>
     </link>
-    <link topicid="TransactRoutedServerMultiMessageEx@_32@_32@_32@_32 *@POINTER@_32 *@_32@..." displaystring="TransactRoutedServerMultiMessageEx Function">
-      <target id="html">../output/TransactRoutedServerMultiMessageEx@_32@_32@_32@_32__@POINTER@_32__@_32@___.html</target>
+    <link topicid="TransactRoutedServerMultiMessageEx@uint32_t@uint32_t@uint32_t@uint32_t *@POINTER@uint32_t *@uint32_t@..." displaystring="TransactRoutedServerMultiMessageEx Function">
+      <target id="html">../output/TransactRoutedServerMultiMessageEx@uint32_t@uint32_t@uint32_t@_32__@POINTER@_32__@uint32_t@___.html</target>
     </link>
-    <link topicid="TransactServerMessageEx@_32@CPOINTER@_32@_32 *@POINTER@_32 *" displaystring="TransactServerMessageEx Function">
-      <target id="html">../output/TransactServerMessageEx@_32@CPOINTER@_32@_32__@POINTER@_32__.html</target>
+    <link topicid="TransactServerMessageEx@uint32_t@CPOINTER@uint32_t@uint32_t *@POINTER@uint32_t *" displaystring="TransactServerMessageEx Function">
+      <target id="html">../output/TransactServerMessageEx@uint32_t@CPOINTER@uint32_t@_32__@POINTER@_32__.html</target>
     </link>
-    <link topicid="TransactServerMessageExx@_32@CPOINTER@_32@_32 *@POINTER@_32 *@_32" displaystring="TransactServerMessageExx Function">
-      <target id="html">../output/TransactServerMessageExx@_32@CPOINTER@_32@_32__@POINTER@_32__@_32.html</target>
+    <link topicid="TransactServerMessageExx@uint32_t@CPOINTER@uint32_t@uint32_t *@POINTER@uint32_t *@uint32_t" displaystring="TransactServerMessageExx Function">
+      <target id="html">../output/TransactServerMessageExx@uint32_t@CPOINTER@uint32_t@_32__@POINTER@_32__@uint32_t.html</target>
     </link>
-    <link topicid="TransactServerMultiMessage@_32@_32@_32 *@POINTER@_32 *@..." displaystring="TransactServerMultiMessage Function">
-      <target id="html">../output/TransactServerMultiMessage@_32@_32@_32__@POINTER@_32__@___.html</target>
+    <link topicid="TransactServerMultiMessage@uint32_t@uint32_t@uint32_t *@POINTER@uint32_t *@..." displaystring="TransactServerMultiMessage Function">
+      <target id="html">../output/TransactServerMultiMessage@uint32_t@uint32_t@_32__@POINTER@_32__@___.html</target>
     </link>
-    <link topicid="TransactServerMultiMessageEx@_32@_32@_32 *@POINTER@_32 *@_32@..." displaystring="TransactServerMultiMessageEx Function">
-      <target id="html">../output/TransactServerMultiMessageEx@_32@_32@_32__@POINTER@_32__@_32@___.html</target>
+    <link topicid="TransactServerMultiMessageEx@uint32_t@uint32_t@uint32_t *@POINTER@uint32_t *@uint32_t@..." displaystring="TransactServerMultiMessageEx Function">
+      <target id="html">../output/TransactServerMultiMessageEx@uint32_t@uint32_t@_32__@POINTER@_32__@uint32_t@___.html</target>
     </link>
     <link topicid="TransactServerMultiMessageExEx" displaystring="TransactServerMultiMessageExEx Function">
       <target id="html">../output/TransactServerMultiMessageExEx.html</target>
@@ -4489,8 +4489,8 @@
     <link topicid="UNABLE_TO_LOAD" displaystring="UNABLE_TO_LOAD">
       <target id="html">../output/server_failure_messages.html</target>
     </link>
-    <link topicid="UnbindKey@PRENDERER@_32@_32" displaystring="UnbindKey Function">
-      <target id="html">../output/UnbindKey@PRENDERER@_32@_32.html</target>
+    <link topicid="UnbindKey@PRENDERER@uint32_t@uint32_t" displaystring="UnbindKey Function">
+      <target id="html">../output/UnbindKey@PRENDERER@uint32_t@uint32_t.html</target>
     </link>
     <link topicid="UnloadFont@Font" displaystring="UnloadFont Function">
       <target id="html">../output/UnloadFont@Font.html</target>
@@ -4498,8 +4498,8 @@
     <link topicid="UnloadFunctionEx@generic_function*" displaystring="UnloadFunctionEx Function">
       <target id="html">../output/UnloadFunctionEx@generic_function_.html</target>
     </link>
-    <link topicid="UnloadService@_32" displaystring="UnloadService Function">
-      <target id="html">../output/UnloadService@_32.html</target>
+    <link topicid="UnloadService@uint32_t" displaystring="UnloadService Function">
+      <target id="html">../output/UnloadService@uint32_t.html</target>
     </link>
     <link topicid="UnmakeImageFileEx@Image" displaystring="UnmakeImageFileEx Function">
       <target id="html">../output/UnmakeImageFileEx@Image.html</target>
@@ -4516,8 +4516,8 @@
     <link topicid="UnregisterIcon" displaystring="UnregisterIcon Function">
       <target id="html">../output/UnregisterIcon.html</target>
     </link>
-    <link topicid="UnregisterService@_32" displaystring="UnregisterService Function">
-      <target id="html">../output/UnregisterService@_32.html</target>
+    <link topicid="UnregisterService@uint32_t" displaystring="UnregisterService Function">
+      <target id="html">../output/UnregisterService@uint32_t.html</target>
     </link>
     <link topicid="Up@PTRANSFORM@RCOORD" displaystring="Up Function">
       <target id="html">../output/Up@PTRANSFORM@RCOORD.html</target>
@@ -4531,8 +4531,8 @@
     <link topicid="UpdateDisplayEx@PRENDERER" displaystring="UpdateDisplayEx Function">
       <target id="html">../output/UpdateDisplayEx@PRENDERER.html</target>
     </link>
-    <link topicid="UpdateDisplayPortionEx@PRENDERER@S_32@S_32@_32@_32" displaystring="UpdateDisplayPortionEx Function">
-      <target id="html">../output/UpdateDisplayPortionEx@PRENDERER@S_32@S_32@_32@_32.html</target>
+    <link topicid="UpdateDisplayPortionEx@PRENDERER@int32_t@int32_t@uint32_t@uint32_t" displaystring="UpdateDisplayPortionEx Function">
+      <target id="html">../output/UpdateDisplayPortionEx@PRENDERER@int32_t@int32_t@uint32_t@uint32_t.html</target>
     </link>
     <link topicid="UpdateFrameEx@PSI_CONTROL@int@int@int@int" displaystring="UpdateFrameEx Function">
       <target id="html">../output/UpdateFrameEx@PSI_CONTROL@int@int@int@int.html</target>
@@ -4570,8 +4570,8 @@
     <link topicid="VarTextCreateEx" displaystring="VarTextCreateEx Function">
       <target id="html">../output/VarTextCreateEx.html</target>
     </link>
-    <link topicid="VarTextCreateExEx@_32@_32" displaystring="VarTextCreateExEx Function">
-      <target id="html">../output/VarTextCreateExEx@_32@_32.html</target>
+    <link topicid="VarTextCreateExEx@uint32_t@uint32_t" displaystring="VarTextCreateExEx Function">
+      <target id="html">../output/VarTextCreateExEx@uint32_t@uint32_t.html</target>
     </link>
     <link topicid="VarTextDestroyEx@PVARTEXT*" displaystring="VarTextDestroyEx Function">
       <target id="html">../output/VarTextDestroyEx@PVARTEXT_.html</target>
@@ -4615,11 +4615,11 @@
     <link topicid="vidstruc.h" displaystring="vidstruc.h">
       <target id="html">../output/vidstruc_h.html</target>
     </link>
-    <link topicid="VMakeCaptionedControl@PSI_CONTROL@_32@int@int@int@int@_32@CTEXTSTR" displaystring="VMakeCaptionedControl Function">
-      <target id="html">../output/VMakeCaptionedControl@PSI_CONTROL@_32@int@int@int@int@_32@CTEXTSTR.html</target>
+    <link topicid="VMakeCaptionedControl@PSI_CONTROL@uint32_t@int@int@int@int@uint32_t@CTEXTSTR" displaystring="VMakeCaptionedControl Function">
+      <target id="html">../output/VMakeCaptionedControl@PSI_CONTROL@uint32_t@int@int@int@int@uint32_t@CTEXTSTR.html</target>
     </link>
-    <link topicid="VMakeControl@PSI_CONTROL@_32@int@int@int@int@_32" displaystring="VMakeControl Function">
-      <target id="html">../output/VMakeControl@PSI_CONTROL@_32@int@int@int@int@_32.html</target>
+    <link topicid="VMakeControl@PSI_CONTROL@uint32_t@int@int@int@int@uint32_t" displaystring="VMakeControl Function">
+      <target id="html">../output/VMakeControl@PSI_CONTROL@uint32_t@int@int@int@int@uint32_t.html</target>
     </link>
     <link topicid="vpcprintf@PSI_CONTROL@CTEXTSTR@va_list" displaystring="vpcprintf Function">
       <target id="html">../output/vpcprintf@PSI_CONTROL@CTEXTSTR@va_list.html</target>
@@ -4636,11 +4636,11 @@
     <link topicid="vvtprintf@PVARTEXT@CTEXTSTR@va_list" displaystring="vvtprintf Function">
       <target id="html">../output/vvtprintf@PVARTEXT@CTEXTSTR@va_list.html</target>
     </link>
-    <link topicid="WakeableSleep@_32" displaystring="WakeableSleep Function">
-      <target id="html">../output/WakeableSleep@_32.html</target>
+    <link topicid="WakeableSleep@uint32_t" displaystring="WakeableSleep Function">
+      <target id="html">../output/WakeableSleep@uint32_t.html</target>
     </link>
-    <link topicid="WakeableSleepEx@_32" displaystring="WakeableSleepEx Function">
-      <target id="html">../output/WakeableSleepEx@_32.html</target>
+    <link topicid="WakeableSleepEx@uint32_t" displaystring="WakeableSleepEx Function">
+      <target id="html">../output/WakeableSleepEx@uint32_t.html</target>
     </link>
     <link topicid="WakeThreadEx@PTHREAD" displaystring="WakeThreadEx Function">
       <target id="html">../output/WakeThreadEx@PTHREAD.html</target>
@@ -5069,12 +5069,12 @@
       <field name="_UnmakeImageFileEx"></field>
       <field name="_UnmakeSprite"></field>
       <field name="c1, CDATA c2 , int d, int max )"></field>
-      <field name="pBuffer, S_32 x, S_32 y, S_32 xto, S_32 yto, CDATA color )"></field>
-      <field name="pBuffer, S_32 x, S_32 y, S_32 xto, S_32 yto, CDATA color)"></field>
-      <field name="pi, S_32 x, S_32 y )"></field>
-      <field name="pi, S_32 x, S_32 y, CDATA c )"></field>
-      <field name="pImage, S_32 x, S_32 yfrom, S_32 yto, CDATA color )"></field>
-      <field name="pImage, S_32 y, S_32 xfrom, S_32 xto, CDATA color )"></field>
+      <field name="pBuffer, int32_t x, int32_t y, int32_t xto, int32_t yto, CDATA color )"></field>
+      <field name="pBuffer, int32_t x, int32_t y, int32_t xto, int32_t yto, CDATA color)"></field>
+      <field name="pi, int32_t x, int32_t y )"></field>
+      <field name="pi, int32_t x, int32_t y, CDATA c )"></field>
+      <field name="pImage, int32_t x, int32_t yfrom, int32_t yto, CDATA color )"></field>
+      <field name="pImage, int32_t y, int32_t xfrom, int32_t xto, CDATA color )"></field>
     </class>
     <class name="ImageFile_tag" language="1" type="4" using="">
       <field name="actual_height"></field>

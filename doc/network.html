@@ -163,7 +163,7 @@ way:<br><br>
 </p><p>Use the following API functions to signal your application from time
 to time with appropriate data or status:<br>
 </p><p>void SetNetworkLong(PCLIENT lpClient,int nLong,DWORD dwValue);<br>
-... or in the *nix world ...<br> void SetNetworkLong(PCLIENT lpClient,int nLong,_32 dwValue)
+... or in the *nix world ...<br> void SetNetworkLong(PCLIENT lpClient,int nLong,uint32_t dwValue)
 <br><br><small>Sometimes a long is too long, a word is better...</small><br>void SetNetworkWord(PCLIENT lpClient,int nLong,WORD
 wValue);<br><br><br><small>Other useful API function calls that are similar:</small><br>DWORD GetNetworkLong(PCLIENT lpClient,int nLong);<br> WORD
 GetNetworkWord(PCLIENT lpClient,int nWord);<br><br>The <i>PCLIENT</i> is often
@@ -178,7 +178,7 @@ ReadComplete function:
 <br>
 <br><small>The structure of the API function call is thus: </small>
 <br><b>SetNetworkLong</b>(<i>(PCLIENT)</i> pc, NL_LAST_MESSAGE ,
-<i>(_32)</i> x );   <br> ... or ... <br>
+<i>(uint32_t)</i> x );   <br> ... or ... <br>
 <br><b>SetNetworkLong</b>( pc, NL_LAST_MESSAGE ,
 <font color="#0080ff">GetTickCount() </font> );  
 <p><br></p><hr width="600" size="2" align="left"><h4>The Verbose Explanation</h4>
@@ -283,7 +283,7 @@ net.ReadMsg( POINTER buffer, int length );
 <br>&nbsp;&nbsp;&nbsp;&nbsp; Release( pMyPointer  );
 <br>}
 
-<br>void <font color="#0080ff">ReadComplete</font>(  PCLIENT pc, POINTER buffer, _32 length )
+<br>void <font color="#0080ff">ReadComplete</font>(  PCLIENT pc, POINTER buffer, uint32_t length )
 <br>{
 <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;  if( !buffer )
 <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;	{
@@ -291,7 +291,7 @@ net.ReadMsg( POINTER buffer, int length );
 <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;	}
 <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;	else  //!buffer
 <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;	{
-<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;           _32 lastmsg = GetNetworkLong( pc, NL_LASTMSG );
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;           uint32_t lastmsg = GetNetworkLong( pc, NL_LASTMSG );
 <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;          
 <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;          switch (lastmsg)
 <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;          {

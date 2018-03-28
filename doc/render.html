@@ -48,12 +48,12 @@ the same application.
 The Icon associated with the Windows container window.  (HICON hIcon not Image)
 Some systems however take a Image for this (Linux/SDL/X).
 </menu>
-<h3>void  GetDisplaySize ( _32 *width, _32 *height );</h3>
+<h3>void  GetDisplaySize ( uint32_t *width, uint32_t *height );</h3>
 <menu>
 Gets the current dimension of the primary desktop that the application is
 currently associated with.
 </menu>
-<h3>void  SetDisplaySize ( _32 width, _32 height );</h3>
+<h3>void  SetDisplaySize ( uint32_t width, uint32_t height );</h3>
 <menu>
 Windows support for modifying the current display width and height.  It
 also attempts to put the display into 32 bit mode.
@@ -68,12 +68,12 @@ and you call this, it will result in 0 if no message processed, 1 if 1 or more
 events were handled, and -1 if the rendering subsystem has closed.  (Registered
 as an IdleProc now, please call Idle() instead ).
 </menu>
-<h3>PRENDERER OpenDisplaySizedAt ( _32 attributes, _32 width, _32 height, S_32 x, S_32 y );</h3>
+<h3>PRENDERER OpenDisplaySizedAt ( uint32_t attributes, uint32_t width, uint32_t height, int32_t x, int32_t y );</h3>
 <menu>
 Returns a rendering surface with the specified attributes (none?), width, height (if 0 or less?, 256 default), and
 position (if -1, use system default?).
 </menu>
-<h3>PRENDERER  OpenDisplayAboveSizedAt ( _32 attributes, _32 width, _32 height, S_32 x, S_32 y, PRENDERER above );</h3>
+<h3>PRENDERER  OpenDisplayAboveSizedAt ( uint32_t attributes, uint32_t width, uint32_t height, int32_t x, int32_t y, PRENDERER above );</h3>
 <menu>
 This opens a display which is related as a child of another renderer.  This has the advantage of zorder input
 lock.
@@ -82,7 +82,7 @@ lock.
 <menu>
 Closes a rendering surface which was opened....
 </menu>
-<h3>void UpdateDisplayPortionEx ( PRENDERER, S_32 x, S_32 y, _32 width, _32 height DBG_PASS );</h3>
+<h3>void UpdateDisplayPortionEx ( PRENDERER, int32_t x, int32_t y, uint32_t width, uint32_t height DBG_PASS );</h3>
 <menu>
 Drawing operations done to the Image returned from GetDisplaySurface() are not updated to the display
 until they are instructed to be such.  There are certain system events which will cause this image
@@ -97,26 +97,26 @@ Updates the current image to the display... (actually called UpdateDisplayPortio
 <menu>
 Erases the image of the display and updates to the physical display.  Erased color is AColor(0,0,0,255).
 </menu>
-<h3>void GetDisplayPosition ( PRENDERER, S_32 *x, S_32 *y, _32 *width, _32 *height );</h3>
+<h3>void GetDisplayPosition ( PRENDERER, int32_t *x, int32_t *y, uint32_t *width, uint32_t *height );</h3>
 <menu>
 Return the current width, height, and position of a renderer.  If parameters passed are NULL,
 then that information obviously cannot be returned.
 </menu>
-<h3>void MoveDisplay ( PRENDERER, S_32 x, S_32 y );</h3>
+<h3>void MoveDisplay ( PRENDERER, int32_t x, int32_t y );</h3>
 <menu>
 Move the display to the specified coordiates. (upper left corner of display to position)
 </menu>
-<h3>void MoveDisplayRel ( PRENDERER, S_32 delx, S_32 dely );</h3>
+<h3>void MoveDisplayRel ( PRENDERER, int32_t delx, int32_t dely );</h3>
 <menu>
 Move the display a bit 
 </menu>
-<h3>void SizeDisplay ( PRENDERER, _32 w, _32 h );</h3>
+<h3>void SizeDisplay ( PRENDERER, uint32_t w, uint32_t h );</h3>
 <menu>
 </menu>
-<h3>void SizeDisplayRel ( PRENDERER, S_32 delw, S_32 delh );</h3>
+<h3>void SizeDisplayRel ( PRENDERER, int32_t delw, int32_t delh );</h3>
 <menu>
 </menu>
-<h3>void MoveSizeDisplayRel  ( PRENDERER hVideo, S_32 delx, S_32 dely, S_32 delw, S_32 delh );</h3>
+<h3>void MoveSizeDisplayRel  ( PRENDERER hVideo, int32_t delx, int32_t dely, int32_t delw, int32_t delh );</h3>
 <menu>
 </menu>
 <h3>void PutDisplayAbove ( PRENDERER, PRENDERER ); // this that - put this above that</h3>
@@ -143,10 +143,10 @@ Move the display a bit
 <h3>void SetDefaultHandler ( PRENDERER, GeneralCallback, PTRSZVAL );</h3>
 <menu>
 </menu>
-<h3>void GetMousePosition ( S_32 *x, S_32 *y );</h3>
+<h3>void GetMousePosition ( int32_t *x, int32_t *y );</h3>
 <menu>
 </menu>
-<h3>void SetMousePosition ( PRENDERER, S_32 x, S_32 y );</h3>
+<h3>void SetMousePosition ( PRENDERER, int32_t x, int32_t y );</h3>
 <menu>
 </menu>
 <h3>LOGICAL HasFocus ( PRENDERER );</h3>
@@ -161,10 +161,10 @@ Move the display a bit
 <h3>char GetKeyText ( int key );</h3>
 <menu>
 </menu>
-<h3>_32 IsKeyDown  ( PRENDERER display, int key );</h3>
+<h3>uint32_t IsKeyDown  ( PRENDERER display, int key );</h3>
 <menu>
 </menu>
-<h3>_32 KeyDown  ( PRENDERER display, int key );</h3>
+<h3>uint32_t KeyDown  ( PRENDERER display, int key );</h3>
 <menu>
 </menu>
 <h3>LOGICAL DisplayIsValid  ( PRENDERER display );</h3>
@@ -173,7 +173,7 @@ Move the display a bit
     // own==0 release else mouse owned.
 <menu>
 </menu>
-<h3>void OwnMouseEx  ( PRENDERER display, _32 Own DBG_PASS);</h3>
+<h3>void OwnMouseEx  ( PRENDERER display, uint32_t Own DBG_PASS);</h3>
 <menu>
 </menu>
 <h3>int BeginCalibration  ( int points );</h3>
@@ -200,7 +200,7 @@ Move the display a bit
 <h3>//GetKeyText</h3>
 <menu>
 </menu>
-<h3>void MoveSizeDisplay  ( PRENDERER hVideo, S_32 x, S_32 y, S_32 w, S_32 h );</h3>
+<h3>void MoveSizeDisplay  ( PRENDERER hVideo, int32_t x, int32_t y, int32_t w, int32_t h );</h3>
 <menu>
 </menu>
 <h3>void MakeTopmost  ( PRENDERER hVideo );</h3>
