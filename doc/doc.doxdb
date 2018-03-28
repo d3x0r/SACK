@@ -1795,8 +1795,8 @@
     <link topicid="GetSheetSize@PSI_CONTROL@uint32_t *@uint32_t *" displaystring="GetSheetSize Function">
       <target id="html">../output/GetSheetSize@PSI_CONTROL@_32__@_32__.html</target>
     </link>
-    <link topicid="GetSizeofFile@TEXTCHAR *@P_32" displaystring="GetSizeofFile Function">
-      <target id="html">../output/GetSizeofFile@TEXTCHAR__@P_32.html</target>
+    <link topicid="GetSizeofFile@TEXTCHAR *@uint32_t*" displaystring="GetSizeofFile Function">
+      <target id="html">../output/GetSizeofFile@TEXTCHAR__@uint32_t*.html</target>
     </link>
     <link topicid="GetSpaceMax@PSPACENODE" displaystring="GetSpaceMax Function">
       <target id="html">../output/GetSpaceMax@PSPACENODE.html</target>
@@ -2242,8 +2242,8 @@
     <link topicid="LocateInBinaryTree@PTREEROOT@PTRSZVAL@int  *fuzzy PTRSZVAL psv, PTRSZVAL node_key" displaystring="LocateInBinaryTree Function">
       <target id="html">../output/LocateInBinaryTree@PTREEROOT@PTRSZVAL@int___fuzzy_PTRSZVAL_psv,_PTRSZVAL_node_key.html</target>
     </link>
-    <link topicid="LockedDecrement@P_32" displaystring="LockedDecrement Function">
-      <target id="html">../output/LockedDecrement@P_32.html</target>
+    <link topicid="LockedDecrement@uint32_t*" displaystring="LockedDecrement Function">
+      <target id="html">../output/LockedDecrement@uint32_t*.html</target>
     </link>
     <link topicid="LockedExchange@PV_32@uint32_t" displaystring="LockedExchange Function">
       <target id="html">../output/LockedExchange@PV_32@uint32_t.html</target>
@@ -2251,8 +2251,8 @@
     <link topicid="LockedExchange64@PV_64@_64" displaystring="LockedExchange64 Function">
       <target id="html">../output/LockedExchange64@PV_64@_64.html</target>
     </link>
-    <link topicid="LockedIncrement@P_32" displaystring="LockedIncrement Function">
-      <target id="html">../output/LockedIncrement@P_32.html</target>
+    <link topicid="LockedIncrement@uint32_t*" displaystring="LockedIncrement Function">
+      <target id="html">../output/LockedIncrement@uint32_t*.html</target>
     </link>
     <link topicid="LogBinary@P_8@uint32_t" displaystring="LogBinary Function">
       <target id="html">../output/LogBinary@P_8@uint32_t.html</target>
@@ -2515,8 +2515,8 @@
     <link topicid="OpenSpace@CTEXTSTR@CTEXTSTR@PTRSZVAL *" displaystring="OpenSpace Function">
       <target id="html">../output/OpenSpace@CTEXTSTR@CTEXTSTR@PTRSZVAL__.html</target>
     </link>
-    <link topicid="OpenSpaceExx@CTEXTSTR@CTEXTSTR@PTRSZVAL@PTRSZVAL *@P_32" displaystring="OpenSpaceExx Function">
-      <target id="html">../output/OpenSpaceExx@CTEXTSTR@CTEXTSTR@PTRSZVAL@PTRSZVAL__@P_32.html</target>
+    <link topicid="OpenSpaceExx@CTEXTSTR@CTEXTSTR@PTRSZVAL@PTRSZVAL *@uint32_t*" displaystring="OpenSpaceExx Function">
+      <target id="html">../output/OpenSpaceExx@CTEXTSTR@CTEXTSTR@PTRSZVAL@PTRSZVAL__@uint32_t*.html</target>
     </link>
     <link topicid="OpenSQL" displaystring="OpenSQL Function">
       <target id="html">../output/OpenSQL.html</target>
@@ -2584,8 +2584,8 @@
     <link topicid="P_16" displaystring="P_16 Type">
       <target id="html">../output/P_16.html</target>
     </link>
-    <link topicid="P_32" displaystring="P_32 Type">
-      <target id="html">../output/P_32.html</target>
+    <link topicid="uint32_t*" displaystring="uint32_t* Type">
+      <target id="html">../output/uint32_t*.html</target>
     </link>
     <link topicid="P_64" displaystring="P_64 Type">
       <target id="html">../output/P_64.html</target>
@@ -2752,17 +2752,17 @@
     <link topicid="PGENERICSET" displaystring="PGENERICSET Structure">
       <target id="html">../output/PGENERICSET.html</target>
     </link>
-    <link topicid="PickFont@int32_t@int32_t@P_32@POINTER *@PSI_CONTROL" displaystring="PickFont Function">
-      <target id="html">../output/PickFont@int32_t@int32_t@P_32@POINTER__@PSI_CONTROL.html</target>
+    <link topicid="PickFont@int32_t@int32_t@uint32_t*@POINTER *@PSI_CONTROL" displaystring="PickFont Function">
+      <target id="html">../output/PickFont@int32_t@int32_t@uint32_t*@POINTER__@PSI_CONTROL.html</target>
     </link>
-    <link topicid="PickFontFor@int32_t@int32_t@P_32@POINTER *@PSI_CONTROL@PSI_CONTROL" displaystring="PickFontFor Function">
-      <target id="html">../output/PickFontFor@int32_t@int32_t@P_32@POINTER__@PSI_CONTROL@PSI_CONTROL.html</target>
+    <link topicid="PickFontFor@int32_t@int32_t@uint32_t*@POINTER *@PSI_CONTROL@PSI_CONTROL" displaystring="PickFontFor Function">
+      <target id="html">../output/PickFontFor@int32_t@int32_t@uint32_t*@POINTER__@PSI_CONTROL@PSI_CONTROL.html</target>
     </link>
-    <link topicid="PickFontWithUpdate@int32_t@int32_t@P_32@POINTER *@PSI_CONTROL@void  *UpdateFont PTRSZVAL psv, Font font@PTRSZVAL" displaystring="PickFontWithUpdate Function">
-      <target id="html">../output/PickFontWithUpdate@int32_t@int32_t@P_32@POINTER__@PSI_CONTROL@void___UpdateFont_PTRSZVAL_psv,_Font_font@PTRSZVAL.html</target>
+    <link topicid="PickFontWithUpdate@int32_t@int32_t@uint32_t*@POINTER *@PSI_CONTROL@void  *UpdateFont PTRSZVAL psv, Font font@PTRSZVAL" displaystring="PickFontWithUpdate Function">
+      <target id="html">../output/PickFontWithUpdate@int32_t@int32_t@uint32_t*@POINTER__@PSI_CONTROL@void___UpdateFont_PTRSZVAL_psv,_Font_font@PTRSZVAL.html</target>
     </link>
-    <link topicid="PickScaledFontWithUpdate@int32_t@int32_t@PFRACTION@PFRACTION@P_32@POINTER *@PSI_CONTROL@void  *UpdateFont PTRSZVAL psv, Font font@PTRSZVAL" displaystring="PickScaledFontWithUpdate Function">
-      <target id="html">../output/PickScaledFontWithUpdate@int32_t@int32_t@PFRACTION@PFRACTION@P_32@POINTER__@PSI_CONTROL@void___UpdateFont_PTRSZVAL_psv,_Font_font@PTRSZVAL.html</target>
+    <link topicid="PickScaledFontWithUpdate@int32_t@int32_t@PFRACTION@PFRACTION@uint32_t*@POINTER *@PSI_CONTROL@void  *UpdateFont PTRSZVAL psv, Font font@PTRSZVAL" displaystring="PickScaledFontWithUpdate Function">
+      <target id="html">../output/PickScaledFontWithUpdate@int32_t@int32_t@PFRACTION@PFRACTION@uint32_t*@POINTER__@PSI_CONTROL@void___UpdateFont_PTRSZVAL_psv,_Font_font@PTRSZVAL.html</target>
     </link>
     <link topicid="pid_t" displaystring="pid_t Type">
       <target id="html">../output/pid_t.html</target>
@@ -3247,8 +3247,8 @@
     <link topicid="RenderFont@POINTER@uint32_t" displaystring="RenderFont Function">
       <target id="html">../output/RenderFont@POINTER@uint32_t.html</target>
     </link>
-    <link topicid="RenderFontFileEx@CTEXTSTR@uint32_t@uint32_t@uint32_t@P_32@POINTER *" displaystring="RenderFontFileEx Function">
-      <target id="html">../output/RenderFontFileEx@CTEXTSTR@uint32_t@uint32_t@uint32_t@P_32@POINTER__.html</target>
+    <link topicid="RenderFontFileEx@CTEXTSTR@uint32_t@uint32_t@uint32_t@uint32_t*@POINTER *" displaystring="RenderFontFileEx Function">
+      <target id="html">../output/RenderFontFileEx@CTEXTSTR@uint32_t@uint32_t@uint32_t@uint32_t*@POINTER__.html</target>
     </link>
     <link topicid="RenderReadCallback" displaystring="RenderReadCallback Type">
       <target id="html">../output/RenderReadCallback.html</target>

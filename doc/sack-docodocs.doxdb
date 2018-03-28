@@ -2921,19 +2921,19 @@
     <link topicid="PFILEMON" displaystring="PFILEMON Type">
       <target id="html">../output/PFILEMON.html</target>
     </link>
-    <link topicid="PickFont@int32_t@int32_t@P_32@POINTER *@PSI_CONTROL" displaystring="PickFont Function">
+    <link topicid="PickFont@int32_t@int32_t@uint32_t*@POINTER *@PSI_CONTROL" displaystring="PickFont Function">
       <target id="pdf">pdf://1280@sack-docodocs.pdf</target>
     </link>
-    <link topicid="PickFontFor@int32_t@int32_t@P_32@POINTER *@PSI_CONTROL@PSI_CONTROL" displaystring="PickFontFor Function">
+    <link topicid="PickFontFor@int32_t@int32_t@uint32_t*@POINTER *@PSI_CONTROL@PSI_CONTROL" displaystring="PickFontFor Function">
       <target id="pdf">pdf://1543@sack-docodocs.pdf</target>
     </link>
-    <link topicid="PickFontWithUpdate@int32_t@int32_t@P_32@POINTER *@PCOMMON@void __cdecl *UpdateFont PTRSZVAL psv, Font font@PTRSZVAL" displaystring="PickFontWithUpdate Function">
+    <link topicid="PickFontWithUpdate@int32_t@int32_t@uint32_t*@POINTER *@PCOMMON@void __cdecl *UpdateFont PTRSZVAL psv, Font font@PTRSZVAL" displaystring="PickFontWithUpdate Function">
       <target id="pdf">pdf://1544@sack-docodocs.pdf</target>
     </link>
     <link topicid="PickScaledFont" displaystring="PickScaledFont Macro">
       <target id="pdf">pdf://1984@sack-docodocs.pdf</target>
     </link>
-    <link topicid="PickScaledFontWithUpdate@int32_t@int32_t@PFRACTION@PFRACTION@P_32@POINTER *@PCOMMON@void __cdecl *UpdateFont PTRSZVAL psv, Font font@PTRSZVAL" displaystring="PickScaledFontWithUpdate Function">
+    <link topicid="PickScaledFontWithUpdate@int32_t@int32_t@PFRACTION@PFRACTION@uint32_t*@POINTER *@PCOMMON@void __cdecl *UpdateFont PTRSZVAL psv, Font font@PTRSZVAL" displaystring="PickScaledFontWithUpdate Function">
       <target id="pdf">pdf://1545@sack-docodocs.pdf</target>
     </link>
     <link topicid="PLISTITEM" displaystring="PLISTITEM Type">
@@ -5559,8 +5559,8 @@
       <target id="html">../output/sack__filesys__GetMatchingFileName@CTEXTSTR@int@TEXTSTR@int.html</target>
       <target id="pdf">pdf://561@sack-docodocs.pdf</target>
     </link>
-    <link topicid="sack::filesys::GetSizeofFile@TEXTCHAR *@P_32" displaystring="sack::filesys::GetSizeofFile Function">
-      <target id="html">../output/sack__filesys__GetSizeofFile@TEXTCHAR__@P_32.html</target>
+    <link topicid="sack::filesys::GetSizeofFile@TEXTCHAR *@uint32_t*" displaystring="sack::filesys::GetSizeofFile Function">
+      <target id="html">../output/sack__filesys__GetSizeofFile@TEXTCHAR__@uint32_t*.html</target>
       <target id="pdf">pdf://562@sack-docodocs.pdf</target>
     </link>
     <link topicid="sack::filesys::GetTimeAsFileTime" displaystring="sack::filesys::GetTimeAsFileTime Function">
@@ -7841,7 +7841,7 @@
     <link topicid="sack::image::RenderFontFile" displaystring="sack::image::RenderFontFile Macro">
       <target id="html">../output/sack__image__RenderFontFile.html</target>
     </link>
-    <link topicid="sack::image::RenderFontFileEx@CTEXTSTR@uint32_t@uint32_t@uint32_t@P_32@POINTER *" displaystring="sack::image::RenderFontFileEx Function">
+    <link topicid="sack::image::RenderFontFileEx@CTEXTSTR@uint32_t@uint32_t@uint32_t@uint32_t*@POINTER *" displaystring="sack::image::RenderFontFileEx Function">
       <target id="pdf">pdf://660@sack-docodocs.pdf</target>
     </link>
     <link topicid="sack::image::RenderFontFileEx@CTEXTSTR@uint32_t@uint32_t@uint32_t@size_t *@POINTER *" displaystring="sack::image::RenderFontFileEx Function">
@@ -8059,8 +8059,8 @@
     <link topicid="sack::intershell::GetCommonButtonControls@PSI_CONTROL" displaystring="sack::intershell::GetCommonButtonControls Function">
       <target id="html">../output/sack__intershell__GetCommonButtonControls@PSI_CONTROL.html</target>
     </link>
-    <link topicid="sack::intershell::GetPageSize@P_32@P_32" displaystring="sack::intershell::GetPageSize Function">
-      <target id="html">../output/sack__intershell__GetPageSize@P_32@P_32.html</target>
+    <link topicid="sack::intershell::GetPageSize@uint32_t*@uint32_t*" displaystring="sack::intershell::GetPageSize Function">
+      <target id="html">../output/sack__intershell__GetPageSize@uint32_t*@uint32_t*.html</target>
     </link>
     <link topicid="sack::intershell::HidePageEx" displaystring="sack::intershell::HidePageEx Macro">
       <target id="html">../output/sack__intershell__HidePageEx.html</target>
@@ -9320,8 +9320,8 @@
       <target id="html">../output/sack__memory__InitHeap@PMEM@PTRSZVAL.html</target>
       <target id="pdf">pdf://1186@sack-docodocs.pdf</target>
     </link>
-    <link topicid="sack::memory::LockedDecrement@P_32" displaystring="sack::memory::LockedDecrement Function">
-      <target id="html">../output/sack__memory__LockedDecrement@P_32.html</target>
+    <link topicid="sack::memory::LockedDecrement@uint32_t*" displaystring="sack::memory::LockedDecrement Function">
+      <target id="html">../output/sack__memory__LockedDecrement@uint32_t*.html</target>
       <target id="pdf">pdf://1188@sack-docodocs.pdf</target>
     </link>
     <link topicid="sack::memory::LockedExchange@PV_32@uint32_t" displaystring="sack::memory::LockedExchange Function">
@@ -9339,8 +9339,8 @@
     <link topicid="sack::memory::LockedExchangePtrSzVal" displaystring="sack::memory::LockedExchangePtrSzVal Macro">
       <target id="html">../output/sack__memory__LockedExchangePtrSzVal.html</target>
     </link>
-    <link topicid="sack::memory::LockedIncrement@P_32" displaystring="sack::memory::LockedIncrement Function">
-      <target id="html">../output/sack__memory__LockedIncrement@P_32.html</target>
+    <link topicid="sack::memory::LockedIncrement@uint32_t*" displaystring="sack::memory::LockedIncrement Function">
+      <target id="html">../output/sack__memory__LockedIncrement@uint32_t*.html</target>
       <target id="pdf">pdf://1192@sack-docodocs.pdf</target>
     </link>
     <link topicid="sack::memory::MemCmp@CPOINTER@CPOINTER@PTRSZVAL" displaystring="sack::memory::MemCmp Function">
@@ -9388,8 +9388,8 @@
       <target id="html">../output/sack__memory__OpenSpace@CTEXTSTR@CTEXTSTR@PTRSZVAL__.html</target>
       <target id="pdf">pdf://1187@sack-docodocs.pdf</target>
     </link>
-    <link topicid="sack::memory::OpenSpaceExx@CTEXTSTR@CTEXTSTR@PTRSZVAL@PTRSZVAL *@P_32" displaystring="sack::memory::OpenSpaceExx Function">
-      <target id="html">../output/sack__memory__OpenSpaceExx@CTEXTSTR@CTEXTSTR@PTRSZVAL@PTRSZVAL__@P_32.html</target>
+    <link topicid="sack::memory::OpenSpaceExx@CTEXTSTR@CTEXTSTR@PTRSZVAL@PTRSZVAL *@uint32_t*" displaystring="sack::memory::OpenSpaceExx Function">
+      <target id="html">../output/sack__memory__OpenSpaceExx@CTEXTSTR@CTEXTSTR@PTRSZVAL@PTRSZVAL__@uint32_t*.html</target>
       <target id="pdf">pdf://1197@sack-docodocs.pdf</target>
     </link>
     <link topicid="sack::memory::PMEM" displaystring="sack::memory::PMEM Type">
@@ -10120,7 +10120,7 @@
       <target id="html">../output/sack__P_16.html</target>
       <target id="pdf">pdf://114@sack-docodocs.pdf</target>
     </link>
-    <link topicid="sack::P_32" displaystring="sack::P_32 Type">
+    <link topicid="sack::uint32_t*" displaystring="sack::uint32_t* Type">
       <target id="html">../output/sack__P_32.html</target>
       <target id="pdf">pdf://115@sack-docodocs.pdf</target>
     </link>

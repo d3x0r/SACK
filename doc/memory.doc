@@ -182,7 +182,7 @@ Additional Memory Related Functions
 
 Opening Shared Memory Spaces
 ----------------------------------------
-PMEM OpenSpace( CTEXTSTR pWhat, CTEXTSTR pWhere, P_32 dwSize )
+PMEM OpenSpace( CTEXTSTR pWhat, CTEXTSTR pWhere, uint32_t* dwSize )
    pWhat - a string name of the mapping object for a common name
            to open between processes...(named region)
    pWhere - is the name of a file to use as the memory....
@@ -210,7 +210,7 @@ PMEM OpenSpace( CTEXTSTR pWhat, CTEXTSTR pWhere, P_32 dwSize )
          is updated.
          
 
-PMEM OpenSpaceEx( CTEXTSTR pWhat, CTEXTSTR pWhere, uint32_t address, P_32 dwSize )
+PMEM OpenSpaceEx( CTEXTSTR pWhat, CTEXTSTR pWhere, uint32_t address, uint32_t* dwSize )
 
 uint32_t GetSpaceSize( POINTER pMem )
 	This will result in the size of the memory area allocated (opened).
