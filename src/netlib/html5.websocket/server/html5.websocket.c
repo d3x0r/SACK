@@ -20,14 +20,14 @@ HTML5_WEBSOCKET_NAMESPACE
 typedef struct html5_web_socket *HTML5WebSocket;
 
 
-const TEXTCHAR *base64 = WIDE("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=");
+const TEXTCHAR *wssbase64 = WIDE("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=");
 
-static void encodeblock( unsigned char in[3], TEXTCHAR out[4], int len )
+static void wssencodeblock( unsigned char in[3], TEXTCHAR out[4], int len )
 {
-    out[0] = base64[ in[0] >> 2 ];
-    out[1] = base64[ ((in[0] & 0x03) << 4) | ((in[1] & 0xf0) >> 4) ];
-    out[2] = (unsigned char) (len > 1 ? base64[ ((in[1] & 0x0f) << 2) | ((in[2] & 0xc0) >> 6) ] : '=');
-    out[3] = (unsigned char) (len > 2 ? base64[ in[2] & 0x3f ] : '=');
+    out[0] = wssbase64[ in[0] >> 2 ];
+    out[1] = wssbase64[ ((in[0] & 0x03) << 4) | ((in[1] & 0xf0) >> 4) ];
+    out[2] = (unsigned char) (len > 1 ? wssbase64[ ((in[1] & 0x0f) << 2) | ((in[2] & 0xc0) >> 6) ] : '=');
+    out[3] = (unsigned char) (len > 2 ? wssbase64[ in[2] & 0x3f ] : '=');
 }
 
 static LOGICAL ComputeReplyKey2( PVARTEXT pvt_output, HTML5WebSocket socket, PTEXT key1, PTEXT key2 )
@@ -439,7 +439,7 @@ static void CPROC read_complete( PCLIENT pc, POINTER buffer, size_t length )
 										blocklen = SHA1HashSize - n * 3;
 										if( blocklen > 3 )
 											blocklen = 3;
-										encodeblock( Message_Digest + n * 3, output + n * 4, blocklen );
+										wssencodeblock( Message_Digest + n * 3, output + n * 4, blocklen );
 									}
 									output[n * 4 + 0] = 0;
 									// s3pPLMBiTxaQ9kYGzzhZRbK+xOo=

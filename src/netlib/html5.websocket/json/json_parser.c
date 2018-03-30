@@ -949,9 +949,11 @@ void _json_dispose_message( PDATALIST *msg_data )
 	if( !msg_data ) return;
 	DATA_FORALL( (*msg_data), idx, struct json_value_container*, val )
 	{
+		// names and string buffers for JSON parsed values in a single buffer
+		// associated with the root message.
 		//if( val->name ) Release( val->name );
 		//if( val->string ) Release( val->string );
-		if( val->value_type == VALUE_OBJECT || val->value_type == VALUE_ARRAY )
+		if( val->contains )
 			_json_dispose_message( val->_contains );
 	}
 	// quick method

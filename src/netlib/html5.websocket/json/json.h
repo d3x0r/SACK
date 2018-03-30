@@ -79,6 +79,10 @@ enum word_char_states {
 	//WORD_POS_INFINITY_8,// instead of stepping to this value here, go to RESET
 	WORD_POS_FIELD, 
 	WORD_POS_AFTER_FIELD, 
+	WORD_POS_PROPER_NAME, 
+	WORD_POS_AFTER_PROPER_NAME, 
+	WORD_POS_AFTER_GET,
+	WORD_POS_AFTER_SET,
 };
 
 enum parse_context_modes {
@@ -86,8 +90,9 @@ enum parse_context_modes {
  CONTEXT_IN_ARRAY = 1,
  CONTEXT_IN_OBJECT = 2,
  CONTEXT_OBJECT_FIELD = 3,
- CONTEXT_OBJECT_FIELD_VALUE = 4
-};
+ CONTEXT_OBJECT_FIELD_VALUE = 4,
+ CONTEXT_EXPRESSION = 7, 
+ };
 
 struct json_parse_context {
 	enum parse_context_modes context;
@@ -158,6 +163,7 @@ struct json_parse_state {
 	enum parse_context_modes parse_context;
 	struct json_value_container val;
 	int comment;
+	TEXTRUNE operatorAccum;
 
 	PLINKQUEUE *inBuffers;
 	//char const * input;     // current input buffer start
@@ -167,6 +173,8 @@ struct json_parse_state {
 	LOGICAL complete_at_end;
 	LOGICAL gatheringString;
 	TEXTRUNE gatheringStringFirstChar;
+	TEXTRUNE gatheringCodeLastChar; 
+	int codeDepth; /* string overload with code */
 	LOGICAL gatheringNumber;
 	LOGICAL numberExponent;
 	LOGICAL numberFromHex;

@@ -7,14 +7,14 @@
 
 #include "local.h"
 
-static const TEXTCHAR *base64 = WIDE( "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=" );
+static const TEXTCHAR *wscbase64 = WIDE( "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=" );
 
-static void encodeblock( unsigned char in[3], TEXTCHAR out[4], int len )
+static void wscencodeblock( unsigned char in[3], TEXTCHAR out[4], int len )
 {
-	out[0] = base64[in[0] >> 2];
-	out[1] = base64[((in[0] & 0x03) << 4) | ((in[1] & 0xf0) >> 4)];
-	out[2] = (unsigned char)(len > 1 ? base64[((in[1] & 0x0f) << 2) | ((in[2] & 0xc0) >> 6)] : '=');
-	out[3] = (unsigned char)(len > 2 ? base64[in[2] & 0x3f] : '=');
+	out[0] = wscbase64[in[0] >> 2];
+	out[1] = wscbase64[((in[0] & 0x03) << 4) | ((in[1] & 0xf0) >> 4)];
+	out[2] = (unsigned char)(len > 1 ? wscbase64[((in[1] & 0x0f) << 2) | ((in[2] & 0xc0) >> 6)] : '=');
+	out[3] = (unsigned char)(len > 2 ? wscbase64[in[2] & 0x3f] : '=');
 }
 
 
@@ -48,7 +48,7 @@ static void SendRequestHeader( WebSocketClient websock )
 			blocklen = 16 - n * 3;
 			if( blocklen > 3 )
 				blocklen = 3;
-			encodeblock( buf + n * 3, output + n * 4, blocklen );
+			wscencodeblock( buf + n * 3, output + n * 4, blocklen );
 		}
 		output[n * 4 + 0] = 0;
 		vtprintf( pvtHeader, "%s\r\n", output );
