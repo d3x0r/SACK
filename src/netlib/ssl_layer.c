@@ -20,7 +20,7 @@
 
 SACK_NETWORK_NAMESPACE
 
-LOGICAL ssl_Send( PCLIENT pc, POINTER buffer, size_t length ) {
+LOGICAL ssl_Send( PCLIENT pc, CPOINTER buffer, size_t length ) {
 	return FALSE;
 }
 
