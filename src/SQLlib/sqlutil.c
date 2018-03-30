@@ -1656,10 +1656,12 @@ retry:
 					int colfirst = 1;
 					{
 						{
+#if defined( USE_SQLITE ) || defined( USE_SQLITE_INTERFACE )
 							if( odbc->flags.bSQLite_native )
 								vtprintf( pvtCreate, WIDE("%s FOREIGN KEY  (" )
 										  , first?WIDE(""):WIDE(",") );
 							else
+#endif
 								vtprintf( pvtCreate, WIDE("%sCONSTRAINT `%s` FOREIGN KEY (" )
 										  , first?WIDE(""):WIDE(",")
 										  , table->constraints.constraint[n].name );

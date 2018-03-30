@@ -5022,13 +5022,11 @@ void SQLDropODBC( PODBC odbc )
 }
 
 POINTER GetODBCHandle( PODBC odbc ) {
-	if( odbc->flags.bSQLite_native )
 #if defined( USE_SQLITE ) || defined( USE_SQLITE_INTERFACE )
+	if( odbc->flags.bSQLite_native )
 		return (POINTER)odbc->db;
-#else
-		;
-#endif
 	else
+#endif
 #ifdef USE_ODBC
 		return (POINTER)odbc->hdbc;
 #else
