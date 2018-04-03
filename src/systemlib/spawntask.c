@@ -654,6 +654,7 @@ SYSTEM_PROC( PTASK_INFO, LaunchPeerProgramExx )( CTEXTSTR program, CTEXTSTR path
 					}
 					Release( tmp );
 				}
+				lprintf( WIDE( "exec failed - and this is ALLL bad... %d" ), errno );
 				if( OutputHandler ) {
 					close( task->hStdIn.pair[0] );
 					close( task->hStdOut.pair[1] );
@@ -662,7 +663,6 @@ SYSTEM_PROC( PTASK_INFO, LaunchPeerProgramExx )( CTEXTSTR program, CTEXTSTR path
 				close( 0 );
 				close( 1 );
 				close( 2 );
-				lprintf( WIDE( "exec failed - and this is ALLL bad... %d" ), errno );
 				//DebugBreak();
 				// well as long as this runs before
 				// the other all will be well...

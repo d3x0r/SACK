@@ -1301,7 +1301,7 @@ int TryShellExecute( PTASK_INFO task, CTEXTSTR path, CTEXTSTR program, PTEXT cmd
 
 // Run a program completely detached from the current process
 // it runs independantly.  Program does not suspend until it completes.
-// No way at all to know if the program works or fails.
+// Use GetTaskExitCode() to get the return code of the process
 SYSTEM_PROC( PTASK_INFO, LaunchProgramEx )( CTEXTSTR program, CTEXTSTR path, PCTEXTSTR args, TaskEnd EndNotice, uintptr_t psv )
 {
 	return LaunchPeerProgramExx( program, path, args
