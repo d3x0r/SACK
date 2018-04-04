@@ -190,6 +190,23 @@ JSON_EMITTER_PROC( int, json6_parse_add_data )( struct json_parse_state *context
                                                  , size_t msglen
                                                  );
 
+// Add some data to parse for json stream (which may consist of multiple values)
+// return 1 when a completed value/object is available.
+// after returning 1, call json_parse_get_data.  It is possible that there is
+// still unconsumed data that can begin a new object.  Call this with NULL, 0 for data
+// to consume this internal data.  if this returns 0, then there is no further object
+// to retrieve.
+// if this returns -1, an error in parsing has occured, and no further parsing can happen.
+JSON_EMITTER_PROC( int, vesl_parse_add_data )( struct json_parse_state *context
+	, const char * msg
+	, size_t msglen
+	);
+
+// one shot, just process this one message.
+JSON_EMITTER_PROC( LOGICAL, vesl_parse_message )(const char * msg
+	, size_t msglen
+	, PDATALIST *msg_data_out
+	);
 
 
 JSON_EMITTER_PROC( LOGICAL, json_decode_message )(  struct json_context *format
@@ -201,19 +218,50 @@ JSON_EMITTER_PROC( LOGICAL, json_decode_message )(  struct json_context *format
 enum json_value_types {
 	VALUE_UNDEFINED = -1
 	, VALUE_UNSET = 0
-	, VALUE_NULL //= 1
-	, VALUE_TRUE //= 2
-	, VALUE_FALSE //= 3
-	, VALUE_STRING //= 4
-	, VALUE_NUMBER //= 5
-	, VALUE_OBJECT //= 6
-	, VALUE_ARRAY //= 7
-	, VALUE_NEG_NAN //= 8
-	, VALUE_NAN //= 9
-	, VALUE_NEG_INFINITY //= 10
-	, VALUE_INFINITY //= 11
-	, VALUE_DATE  // = 12
-	, VALUE_EMPTY
+	, VALUE_NULL //= 1 no data
+	, VALUE_TRUE //= 2 no data
+	, VALUE_FALSE //= 3 no data
+	, VALUE_STRING //= 4 string
+	, VALUE_NUMBER //= 5 string + result_d | result_n
+	, VALUE_OBJECT //= 6 contains
+	, VALUE_ARRAY //= 7 contains
+
+	// up to here is supported in JSON
+	, VALUE_NEG_NAN //= 8 no data
+	, VALUE_NAN //= 9 no data
+	, VALUE_NEG_INFINITY //= 10 no data
+	, VALUE_INFINITY //= 11 no data
+	, VALUE_DATE  // = 12 UNIMPLEMENTED
+	, VALUE_EMPTY // = 13 no data; used in [,,,] as place holder of empty
+
+	// --- up to here is supports in JSON(6)
+	, VALUE_NEED_EVAL // = 14 string needs to be parsed for expressions.
+
+	, VALUE_VARIABLE // contains
+	, VALUE_FUNCTION // code (string), contains
+	, VALUE_FUNCTION_CALL // code (string), contains[n] = parameters
+
+	, VALUE_EXPRESSION //  ( ... ) or { ... } , string, contains[n] = value(s) last is THE value
+	, VALUE_OPERATOR // Symbolic operator, with combination rules so the operator text is complete.
+
+	, VALUE_OP_IF // 'if'  contains[1], contains[1], contains[2]
+	, VALUE_OP_TRINARY_THEN // '?'  contains[N] expressions to evaluate
+	, VALUE_OP_TRINARY_ELSE // ':'  contains[N] expressions to evaluate
+	, VALUE_OP_SWITCH // 'switch'
+	, VALUE_OP_CASE // 'case'
+	, VALUE_OP_FOR // 'for'   no data, contains[0], contains[1], contains[2],
+	, VALUE_OP_BREAK // 'break'  // strip optional label break
+	, VALUE_OP_WHILE // 'while'
+	, VALUE_OP_DO // 'do'
+	, VALUE_OP_CONTINUE // 'continue'
+	, VALUE_OP_GOTO // 'goto'
+	
+	, VALUE_OP_STOP // 'stop'
+
+	, VALUE_OP_THIS // 'this'
+	, VALUE_OP_HOLDER // 'holder'
+	, VALUE_OP_BASE // 'base'
+
 };
 
 struct json_value_container {
@@ -222,11 +270,15 @@ struct json_value_container {
 	enum json_value_types value_type; // value from above indiciating the type of this value
 	char *string;   // the string value of this value (strings and number types only)
 	size_t stringLen;
+	
 	int float_result;  // boolean whether to use result_n or result_d
-	double result_d;
-	int64_t result_n;
+	union {
+		double result_d;
+		int64_t result_n;
+		//struct json_value_container *nextToken;
+	};
 	PDATALIST contains;  // list of struct json_value_container that this contains.
-	PDATALIST *_contains;  // list of struct json_value_container that this contains.
+	PDATALIST *_contains;  // acutal source datalist(?)
 };
 
 
@@ -251,6 +303,8 @@ JSON_EMITTER_PROC( char*, json6_escape_string )( const char * string );
 // require Release the result.  pass by length so \0 characters can be kept and don't early terminate.  Result with new length also.
 // this does not translate control chararacters like \n, \t, since strings are allowed to be muliline.
 JSON_EMITTER_PROC( char*, json6_escape_string_length )( const char *string, size_t len, size_t *outlen );
+
+
 
 #ifdef __cplusplus
 } } SACK_NAMESPACE_END
