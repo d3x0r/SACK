@@ -9,7 +9,7 @@
 namespace sack { namespace task { namespace construct {
 using namespace sack::msg::client;
 #endif
-
+#define l summonser_construct_local
 typedef struct local_tag
 {
 	int init_ran;
@@ -143,7 +143,7 @@ ATEXIT( Ended )
 		UnloadService( SUMMONER_NAME );
 	}
 }
-
+#undef l
 #ifdef __cplusplus
 }}} //namespace sack namespace 
 #endif
