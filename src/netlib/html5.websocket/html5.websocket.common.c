@@ -121,6 +121,7 @@ static void _SendWebSocketMessage( PCLIENT pc, int opcode, int final, int do_mas
 void SendWebSocketMessage( PCLIENT pc, int opcode, int final, int do_mask, const uint8_t* payload, size_t length, int use_ssl ) {
 	struct web_socket_input_state *input = (struct web_socket_input_state *)GetNetworkLong( pc, 1 );
 
+#ifndef __NO_WEBSOCK_COMPRESSION__
 	if( (!input->flags.do_not_deflate) && input->flags.deflate && opcode < 3 ) {
 		int r;
 		if( opcode ) opcode |= 0x40;
@@ -153,7 +154,9 @@ void SendWebSocketMessage( PCLIENT pc, int opcode, int final, int do_mask, const
 		_SendWebSocketMessage( pc, opcode, final, do_mask, (uint8_t*)input->deflateBuf, input->deflater.total_out, use_ssl );
 		deflateReset( &input->deflater );
 	}
-	else {
+	else 
+#endif
+	{
 		opcode = (final ? 0x80 : 0x00) | opcode;
 		_SendWebSocketMessage( pc, opcode, final, do_mask, payload, length, use_ssl );
 	}
@@ -178,6 +181,7 @@ static void ResetInputState( WebSocketInputState websock )
 }
 
 
+#ifndef __NO_WEBSOCK_COMPRESSION__
 //typedef unsigned( *in_func ) OF( (void FAR *,
 //		z_const unsigned char FAR * FAR *) );
 //typedef int( *out_func ) OF( (void FAR *, unsigned char FAR *, unsigned) );
@@ -193,6 +197,7 @@ static int CPROC inflateBackOutput( void* state, unsigned char *output, unsigned
 	websock->inflateBufUsed += outlen;
 	return Z_OK;
 }
+#endif
 
 /* opcodes
  *  %x0 denotes a continuation frame
@@ -345,6 +350,7 @@ void ProcessWebSockProtocol( WebSocketInputState websock, PCLIENT pc, const uint
 					/// single packet, final...
 					//LogBinary( websock->fragment_collection, websock->fragment_collection_length );
 					if( websock->on_event ) {
+#ifndef __NO_WEBSOCK_COMPRESSION__
 						if( websock->flags.deflate && ( websock->RSV1 & 0x40 ) ) {
 							int r;
 							websock->inflateBufUsed = 0;
@@ -375,7 +381,9 @@ void ProcessWebSockProtocol( WebSocketInputState websock, PCLIENT pc, const uint
 								, websock->inflateBuf, websock->inflateBufUsed );
 							inflateReset( &websock->inflater );
 						}
-						else {
+						else
+#endif
+						{
 							//lprintf( "Completed packet; %d %d", websock->input_type, websock->fragment_collection_length );
 							websock->on_event( pc, websock->psv_open, websock->input_type, websock->fragment_collection, websock->fragment_collection_length );
 						}

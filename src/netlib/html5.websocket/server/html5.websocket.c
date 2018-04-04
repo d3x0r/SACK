@@ -208,12 +208,14 @@ static void CPROC destroyHttpState( HTML5WebSocket socket, PCLIENT pc_client ) {
 	}
 	if( socket->input_state.close_reason )
 		Deallocate( char*, socket->input_state.close_reason );
+#ifndef __NO_WEBSOCK_COMPRESSION__
 	if( socket->input_state.flags.deflate ) {
 		deflateEnd( &socket->input_state.deflater );
 		inflateEnd( &socket->input_state.inflater );
 		Deallocate( POINTER, socket->input_state.inflateBuf );
 		Deallocate( POINTER, socket->input_state.deflateBuf );
 	}
+#endif
 	Deallocate( uint8_t*, socket->input_state.fragment_collection );
 	DestroyHttpState( socket->http_state );
 	Deallocate( POINTER, socket->buffer );
@@ -289,6 +291,7 @@ static void CPROC read_complete( PCLIENT pc, POINTER buffer, size_t length )
 							// "client_no_context_takeover"
 							// "server_max_window_bits"
 							// "client_max_window_bits"
+#ifndef __NO_WEBSOCK_COMPRESSION__
 							if( TextLike( opt, "permessage-deflate" ) ) {
 								socket->input_state.flags.deflate = socket->input_state.flags.deflate & 1;
 								if( socket->input_state.flags.deflate ) {
@@ -296,7 +299,9 @@ static void CPROC read_complete( PCLIENT pc, POINTER buffer, size_t length )
 									socket->input_state.client_max_bits = 15;
 								}
 							}
-							else if( TextLike( opt, "client_max_window_bits" ) ) {
+							else 
+#endif
+							if( TextLike( opt, "client_max_window_bits" ) ) {
 								opt = NEXTLINE( opt );
 								if( opt ) {
 									if( GetText( opt )[0] == '=' ) {
@@ -331,6 +336,7 @@ static void CPROC read_complete( PCLIENT pc, POINTER buffer, size_t length )
 							opt = NEXTLINE( opt );
 						}
 						LineRelease( options );
+#ifndef __NO_WEBSOCK_COMPRESSION__
 						if( socket->input_state.flags.deflate && !socket->input_state.flags.do_not_deflate ) {
 							if( deflateInit2( &socket->input_state.deflater
 								, Z_BEST_SPEED, Z_DEFLATED
@@ -353,6 +359,7 @@ static void CPROC read_complete( PCLIENT pc, POINTER buffer, size_t length )
 								socket->input_state.deflateBufLen = 4096;
 							}
 						}
+#endif
 					}
 					else {
 						socket->input_state.flags.deflate = 0;
