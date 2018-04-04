@@ -379,6 +379,8 @@ SET( JSON_SOURCES
 		${SOURCES_ROOT}src/netlib/html5.websocket/json/json_emitter.c
 		${SOURCES_ROOT}src/netlib/html5.websocket/json/json_parser.c
 		${SOURCES_ROOT}src/netlib/html5.websocket/json/json6_parser.c
+		${SOURCES_ROOT}src/netlib/html5.websocket/json/vesl_parser.c
+		${SOURCES_ROOT}src/netlib/html5.websocket/json/vesl_code_parser.c
 	)
 
 SET( HTML5_SOURCES
