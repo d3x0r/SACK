@@ -79,6 +79,7 @@ enum word_char_states {
 	//WORD_POS_INFINITY_8,// instead of stepping to this value here, go to RESET
 	WORD_POS_FIELD, 
 	WORD_POS_AFTER_FIELD, 
+	WORD_POS_DOT_OPERATOR,
 	WORD_POS_PROPER_NAME, 
 	WORD_POS_AFTER_PROPER_NAME, 
 	WORD_POS_AFTER_GET,
@@ -91,7 +92,6 @@ enum parse_context_modes {
  CONTEXT_IN_OBJECT = 2,
  CONTEXT_OBJECT_FIELD = 3,
  CONTEXT_OBJECT_FIELD_VALUE = 4,
- CONTEXT_EXPRESSION = 7, 
  };
 
 struct json_parse_context {
@@ -99,6 +99,7 @@ struct json_parse_context {
 	PDATALIST *elements;
 	char *name;	
 	size_t nameLen;	
+	struct json_value_container valState;
 	struct json_context_object *object;
 };
 
@@ -194,6 +195,8 @@ struct json_parse_state {
 	TEXTRUNE hex_char;
 	int hex_char_len;
 	LOGICAL stringOct;
+
+	LOGICAL weakSpace;
 	//char *token_begin;
 };
 typedef struct json_parse_state PARSE_STATE, *PPARSE_STATE;
