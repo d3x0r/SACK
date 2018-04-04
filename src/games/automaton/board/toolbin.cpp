@@ -16,7 +16,7 @@ class TOOLBIN
 {
 public:
 	PIBOARD board;
-	PCOMMON display;
+	PSI_CONTROL display;
 	uint32_t cell_width, cell_height;
 public:
 	TOOLBIN(PIBOARD boar);
@@ -24,12 +24,12 @@ public:
 
 };
 
-int CPROC MouseToolbin( PCOMMON pc, int32_t x, int32_t y, uint32_t b )
+int CPROC MouseToolbin( PSI_CONTROL pc, int32_t x, int32_t y, uint32_t b )
 {
    return TRUE;
 }
 
-int CPROC DrawToolbin( PCOMMON pc )
+int CPROC DrawToolbin( PSI_CONTROL pc )
 {
 	ValidatedControlData( PTOOLBIN, toolbin_control.TypeID, toolbin, pc );
 	if( toolbin )
@@ -66,7 +66,7 @@ void TOOLBIN::Init( PIBOARD board )
 }
 
 
-PSI_CONTROL SetBoardControlBoard( PCOMMON pc, PIBOARD board )
+PSI_CONTROL SetBoardControlBoard( PSI_CONTROL pc, PIBOARD board )
 {
 	ValidatedControlData( PTOOLBIN, toolbin_control.TypeID, toolbin, pc );
 	if( toolbin )
@@ -85,7 +85,7 @@ TOOLBIN::TOOLBIN( PIBOARD board )
 											, board );
 }
 
-int CPROC InitToolbinControl( PCOMMON pc )
+int CPROC InitToolbinControl( PSI_CONTROL pc )
 {
    return TRUE;
 }

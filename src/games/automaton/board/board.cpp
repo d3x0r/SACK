@@ -22,7 +22,7 @@
 //   struct { struct { int a, b; }; int c, d; } cannot be initialized
 //   defining a array, and then initializing it later cannot be done.
 //   // maybe that's not the real issue.
-extern DIR_DELTA DirDeltaMap[8];
+//extern DIR_DELTA DirDeltaMap[8];
 
 // I really do hate having circular dependancies....
 void CPROC BoardRefreshExtern( uintptr_t dwUser, PRENDERER renderer );
@@ -628,7 +628,7 @@ public:
 };
 
 #if 0
-int CPROC PSIBoardRefreshExtern( PCOMMON pc )
+int CPROC PSIBoardRefreshExtern( PSI_CONTROL pc )
 {
 	ValidatedControlData( BOARD*, pb, , pc );
 	if( pb )
@@ -646,7 +646,7 @@ void CPROC BoardRefreshExtern( uintptr_t dwUser, PRENDERER renderer )
 }
 
 
-int CPROC DoMouseExtern( uintptr_t dwUser, int32_t x, int32_t y, uint32_t b )
+uintptr_t CPROC DoMouseExtern( uintptr_t dwUser, int32_t x, int32_t y, uint32_t b )
 {
    BOARD *pb = (BOARD*)dwUser;
    pb->DoMouse( x, y, b );
@@ -1109,10 +1109,8 @@ LOGICAL BOARD::Load( PODBC odbc, CTEXTSTR boardname )
 				results;
 				FetchSQLRecord( odbc, &results ) )
 			{
-				//PIPEICE peice_type = GetPeice( peices, results[1] );
-				INDEX iLayer = IntCreateFromText( results[0] );
+				INDEX iLayer = (INDEX)IntCreateFromText( results[0] );
 				PLAYER pl = (PLAYER)ForAllInSet( LAYER, this->LayerPool, CheckIsLayer, (uintptr_t)iLayer );
-				//(PLAYER)this->LayerPool->forall( CheckIsLayer, iLayer );
 				if( !pl )
 				{
 					pl = new(&LayerPool,&LayerDataPool) LAYER( odbc, peices, iLayer );

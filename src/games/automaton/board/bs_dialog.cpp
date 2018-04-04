@@ -10,7 +10,7 @@
 
 typedef struct neuron_dialog_data_tag
 {
-	PCOMMON frame;
+	PSI_CONTROL frame;
 	PNEURON neuron;
 	PSYNAPSE synapse;
 } DIALOG_DATA, *PDIALOG_DATA;
@@ -53,7 +53,7 @@ int ActiveSynapses( void )
 	return cnt;
 }
 
-void CPROC DonePushed( uintptr_t psv, PCOMMON pc )
+void CPROC DonePushed( uintptr_t psv, PSI_CONTROL pc )
 {
 	PDIALOG_DATA pndd = (PDIALOG_DATA)psv;
 	EnterCriticalSec( &l.cs );
@@ -94,7 +94,7 @@ void CPROC RefreshFrame( uintptr_t psv )
 	LeaveCriticalSec( &l.cs );
 }
 
-void CPROC SliderChanged( uintptr_t psv, PCOMMON pc, int val )
+void CPROC SliderChanged( uintptr_t psv, PSI_CONTROL pc, int val )
 {
 	PDIALOG_DATA pndd = (PDIALOG_DATA)psv;
 	if( pndd->neuron )

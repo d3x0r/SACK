@@ -62,7 +62,7 @@ LOGICAL CPROC PageDownKey( uintptr_t psv, uint32_t keycode )
 	return 1;
 }
 
-int CPROC EditMouseCallback( uintptr_t dwUser, int32_t x, int32_t y, uint32_t b )
+uintptr_t CPROC EditMouseCallback( uintptr_t dwUser, int32_t x, int32_t y, uint32_t b )
 {
 	static int _x, _y, _right, _left;
 	int right, left;

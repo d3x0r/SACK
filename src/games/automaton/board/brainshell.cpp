@@ -760,7 +760,7 @@ public:
 	{
 		// nothing special to do on destroy background
 	}
-	PEICE_PROC( void, Properties )( uintptr_t psv, PCOMMON parent );
+	PEICE_PROC( void, Properties )( uintptr_t psv, PSI_CONTROL parent );
 	PEICE_PROC( int, Connect )( uintptr_t psvTo
 				  , int rowto, int colto
 				  , uintptr_t psvFrom
