@@ -1,5 +1,5 @@
 #include <stdhdrs.h>
-
+#include <deadstart.h>
 #define JSON_EMITTER_SOURCE
 #include <json_emitter.h>
 
