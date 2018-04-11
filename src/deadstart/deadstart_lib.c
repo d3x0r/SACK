@@ -8,7 +8,9 @@
 
 #pragma GCC visibility push(hidden)
 
-#define paste(a,b) a##b
+#ifndef paste
+#  define paste(a,b) a##b
+#endif
 #define paste2(a,b) paste(a,b)
 
 //#ifndef (
