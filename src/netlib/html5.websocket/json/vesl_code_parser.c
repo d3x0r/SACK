@@ -16,18 +16,12 @@
 
 //typedef OPNODE OPNODE;
 
-#ifdef __cplusplus 
 #  define O_O v.
-#else
-#  define O_O
-#endif
 
 
 typedef struct vesl_accumulator {
 	struct json_value_container
-#ifdef __cplusplus
 		v
-#endif
 		;
 	//struct vesl_op_node *parent;
 	PDATALIST localData; // list of OPNODE
@@ -37,9 +31,7 @@ typedef struct vesl_accumulator {
 
 typedef struct vesl_op_node {
 	struct json_value_container
-#ifdef __cplusplus
 		v
-#endif
 		;
 	//struct vesl_op_node *parent;
 	//PDATALIST localData; // list of OPNODE
