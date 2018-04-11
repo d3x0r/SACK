@@ -1531,16 +1531,20 @@ retry:
 						int k;
 						for( k = 0; k < table->keys.count; k++ )
 						{
+							if( table->keys.key[k].flags.bPrimary && !table->keys.key[k].colnames[1] )
+							{
+								if( StrCmp( table->keys.key[k].colnames[0], table->fields.field[n].name ) == 0 )
+								{
+									vtprintf( pvtCreate, WIDE(" PRIMARY KEY") );
+								}
+							}
 							if( table->keys.key[k].flags.bUnique && !table->keys.key[k].colnames[1] )
 							{
 								if( StrCmp( table->keys.key[k].colnames[0], table->fields.field[n].name ) == 0 )
 								{
-									vtprintf( pvtCreate, WIDE(" CONSTRAINT `%s` UNIQUE")
-											  , table->keys.key[k].name
-											  );
+									vtprintf( pvtCreate, WIDE( " UNIQUE" ) );
 								}
 							}
-
 						}
 					}
 #endif

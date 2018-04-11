@@ -392,7 +392,7 @@ static POPTION_TREE_NODE GetOptionIndexExxx( PODBC odbc, POPTION_TREE_NODE paren
 	if( og.flags.bUseProgramDefault )
 	{
 		if( !_program )
-         _program_length = StrLen( _program = GetProgramName() );
+		_program_length = StrLen( _program = GetProgramName() );
 		if( ( StrCaseCmp( file, DEFAULT_PUBLIC_KEY ) == 0 )
 			&& ( StrCaseCmpEx( pBranch, _program, _program_length ) == 0 ) )
 		{
