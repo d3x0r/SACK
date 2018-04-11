@@ -53,7 +53,7 @@ DeclareSet( accumulator );
 DeclareSet( opnode );
 
 
-#define right(n)  (GetDataItemAddress( OPNODE, (n)->O_O contains, 0 ))
+#define right(n)  ((OPNODE)GetDataItem( &(n)->O_O contains, 0 ))
 #define left(n)  ((n)->last_value)
 //#define right(n)  (GetDataItemAddress( OPNODE*, (n)->O_O contains, 1 ))[0]
 
@@ -951,7 +951,7 @@ OPNODE ResolveExpression( struct vesl_code_parser_state*l, PDATALIST expr, ACCUM
 
 int IsValue( struct vesl_code_parser_state*l, OPNODE node, ACCUMULATOR accumulator, int collapse_sub )
 {
-	OPNODE temp;
+	//OPNODE temp;
 	if( !node ) {
 		return FALSE;
 	}
@@ -1119,7 +1119,7 @@ void ApplyModulus( struct vesl_code_parser_state *l, ACCUMULATOR result, OPNODE 
 				if( node2->O_O float_result ) {
 					result->O_O result_d = fmod( result->O_O result_d, node2->O_O result_d );
 				}  else
-					result->O_O result_d = fmod( result->O_O result_d, node2->O_O result_n );
+					result->O_O result_d = fmod( result->O_O result_d, (double)node2->O_O result_n );
 			} else {
 				lprintf( "Multiple Operator unsupported Operand: %(1)" );
 
@@ -1128,7 +1128,7 @@ void ApplyModulus( struct vesl_code_parser_state *l, ACCUMULATOR result, OPNODE 
 			if( node2->O_O value_type == VALUE_NUMBER ) {
 				if( node2->O_O float_result ) {
 					result->O_O float_result = TRUE;
-					result->O_O result_d = fmod( result->O_O result_n, node2->O_O result_d );
+					result->O_O result_d = fmod( (double)result->O_O result_n, node2->O_O result_d );
 				} else
 					result->O_O result_n %= node2->O_O result_n;
 			} else {
@@ -1302,9 +1302,9 @@ OPNODE ResolveExpression( struct vesl_code_parser_state *l, PDATALIST subExpr, A
 {
 	// find highest operand... next next next next....
 	OPNODE node = l->root;
-	OPNODE expr;
+	//OPNODE expr;
 	PDATALIST exprList = subExpr;
-	INDEX idx;
+	//INDEX idx;
 #if 0
 	//node = (*expr);
 	//if( g.bDebugLog )
