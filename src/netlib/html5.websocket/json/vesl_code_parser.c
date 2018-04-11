@@ -242,25 +242,25 @@ enum { OP_HANG = VALUE_OP_BASE + 20 /*-1*/  // used to indicate prior value_type
      //, OP_
 };
 
-char *fullopname[] = { "noop", WIDE("sub-expr")
-                     ,  "uint8_t",  "uint16_t",  "uint32_t",  "uint64_t" // unsigned int
-                     , WIDE("int8_t"), WIDE("int16_t"), WIDE("int32_t"), WIDE("int64_t") // signed int
-                     , WIDE("float"), WIDE("double") // float ops
-                     , WIDE("string"), WIDE("character")
-                     , WIDE("="), WIDE("==")
-                     , WIDE("+"), WIDE("++"), WIDE("+=")
-                     , WIDE("-"), WIDE("--"), WIDE("-=")
-                     , WIDE("*"), WIDE("*=")
-                     , WIDE("%"), WIDE("%=")
-                     , WIDE("/"), WIDE("/=")
-                     , WIDE("^"), WIDE("^=")
-                     , WIDE("~")
-                     , WIDE("!"), WIDE("!=")
-                     , WIDE(">"), WIDE(">>"), WIDE(">="), WIDE(">>=")
-                     , WIDE("<"), WIDE("<<"), WIDE("<="), WIDE("<<=")
-                     , WIDE("&"), WIDE("&&"), WIDE("&=")
-                     , WIDE("|"), WIDE("||"), WIDE("|=")
-                     , WIDE("?"), WIDE(":"), WIDE(",")
+const char *fullopname[] = { "noop", WIDE("sub-expr")
+                           ,  "uint8_t",  "uint16_t",  "uint32_t",  "uint64_t" // unsigned int
+                           , WIDE("int8_t"), WIDE("int16_t"), WIDE("int32_t"), WIDE("int64_t") // signed int
+                           , WIDE("float"), WIDE("double") // float ops
+                           , WIDE("string"), WIDE("character")
+                           , WIDE("="), WIDE("==")
+                           , WIDE("+"), WIDE("++"), WIDE("+=")
+                           , WIDE("-"), WIDE("--"), WIDE("-=")
+                           , WIDE("*"), WIDE("*=")
+                           , WIDE("%"), WIDE("%=")
+                           , WIDE("/"), WIDE("/=")
+                           , WIDE("^"), WIDE("^=")
+                           , WIDE("~")
+                           , WIDE("!"), WIDE("!=")
+                           , WIDE(">"), WIDE(">>"), WIDE(">="), WIDE(">>=")
+                           , WIDE("<"), WIDE("<<"), WIDE("<="), WIDE("<<=")
+                           , WIDE("&"), WIDE("&&"), WIDE("&=")
+                           , WIDE("|"), WIDE("||"), WIDE("|=")
+                           , WIDE("?"), WIDE(":"), WIDE(",")
                      };
 
 
@@ -677,9 +677,9 @@ void LogExpression( OPNODE root )
 			lprintf( WIDE("(%s = %lld)"), fullopname[root->O_O value_type],root->O_O result_n );
 		}
 #ifdef __LINUX__
-		if( right(root) )
-			if( left(root)(right) != root )
-				asm( WIDE("int $3\n") );
+//		if( right(root) )
+//			if( left(root)(right) != root )
+//				asm( WIDE("int $3\n") );
 #endif
 		root = right(root);
 	}
