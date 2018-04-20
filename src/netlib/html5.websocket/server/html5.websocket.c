@@ -231,6 +231,7 @@ static void CPROC closed( PCLIENT pc_client ) {
 static void CPROC read_complete( PCLIENT pc, POINTER buffer, size_t length )
 {
 	HTML5WebSocket socket = (HTML5WebSocket)GetNetworkLong( pc, 0 );
+	if( !socket ) return; // closing/closed....
 	if( buffer )
 	{
 		int result;
@@ -514,7 +515,7 @@ static void CPROC read_complete( PCLIENT pc, POINTER buffer, size_t length )
 		}
 		else
 		{
-			//lprintf( WIDE("Okay then hand this as data to process... within protocol") );
+			lprintf( WIDE("Okay then hand this as data to process... within protocol") );
 			if( socket->flags.rfc6455 )
 			{
 				ProcessWebSockProtocol( &socket->input_state, pc, (uint8_t*)buffer, length );

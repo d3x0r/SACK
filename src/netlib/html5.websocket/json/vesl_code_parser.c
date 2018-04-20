@@ -7,9 +7,9 @@
 #define C_PRE_PROCESSOR
 #include <stdhdrs.h> // debug only...
 #include <math.h>
-#include <json_emitter.h> 
+#include <vesl_emitter.h> 
 
-#include "json.h"
+#include "vesl.h"
 
 #define LONGEST_INT uint64_t
 #define LONGEST_FLT double
@@ -18,9 +18,9 @@
 
 #  define O_O v.
 
-
+#if 0
 typedef struct vesl_accumulator {
-	struct json_value_container
+	struct vesl_value_container
 		v
 		;
 	//struct vesl_op_node *parent;
@@ -30,7 +30,7 @@ typedef struct vesl_accumulator {
 } *ACCUMULATOR, accumulator;
 
 typedef struct vesl_op_node {
-	struct json_value_container
+	struct vesl_value_container
 		v
 		;
 	//struct vesl_op_node *parent;
@@ -1865,3 +1865,4 @@ LONGEST_INT ProcessExpression(  )
 
 #undef left
 #undef right
+#endif

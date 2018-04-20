@@ -197,6 +197,8 @@ struct json_parse_state {
 	LOGICAL stringOct;
 
 	LOGICAL weakSpace;
+
+	PDATALIST root;
 	//char *token_begin;
 };
 typedef struct json_parse_state PARSE_STATE, *PPARSE_STATE;
