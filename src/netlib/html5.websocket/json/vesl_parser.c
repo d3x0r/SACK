@@ -1042,7 +1042,7 @@ void vesl_preinit_state( struct vesl_parse_state *state ) {
 }
 
 /* I guess this is a good parser */
-static struct vesl_parse_state * vesl_begin_parse( void )
+struct vesl_parse_state * vesl_begin_parse( void )
 {
 	struct vesl_parse_state *state = GetFromSet( PARSE_STATE, &vpsd.parseStates );//New( struct vesl_parse_state );
 	vesl_state_init( state );
@@ -1050,7 +1050,7 @@ static struct vesl_parse_state * vesl_begin_parse( void )
 }
 
 
-static PDATALIST vesl_parse_get_data( struct vesl_parse_state *state ) {
+PDATALIST vesl_parse_get_data( struct vesl_parse_state *state ) {
 	PDATALIST *result = state->elements;
 	state->elements = GetFromSet( PDATALIST, &vpsd.dataLists );// CreateDataList( sizeof( state->val ) );
 	if( !state->elements[0] ) state->elements[0] = CreateDataList( sizeof( state->val ) );
@@ -1080,7 +1080,7 @@ static void _vesl_dispose_message( PDATALIST *msg_data )
 }
 
 
-static void vesl_parse_dispose_state( struct vesl_parse_state **ppState ) {
+void vesl_parse_dispose_state( struct vesl_parse_state **ppState ) {
 	struct vesl_parse_state *state = (*ppState);
 	struct vesl_parse_context *old_context;
 	PPARSE_BUFFER buffer;
