@@ -204,6 +204,7 @@ extern
 #endif
 struct vesl_parser_shared_data vpsd;
 
+// shared to code parser...
 void _vesl_dispose_message( PDATALIST *msg_data );
 
 

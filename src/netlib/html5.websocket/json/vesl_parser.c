@@ -1058,7 +1058,7 @@ PDATALIST vesl_parse_get_data( struct vesl_parse_state *state ) {
 	return result[0];
 }
 
-static void _vesl_dispose_message( PDATALIST *msg_data )
+void _vesl_dispose_message( PDATALIST *msg_data )
 {
 	struct vesl_value_container *val;
 	INDEX idx;
