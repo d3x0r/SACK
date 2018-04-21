@@ -671,6 +671,13 @@ void TerminateClosedClientEx( PCLIENT pc DBG_PASS )
 #ifdef VERBOSE_DEBUG
 			lprintf( "close soekcet." );
 #endif
+#if !defined( SHUT_WR ) && defined( _WIN32 )
+#  define SHUT_WR SD_SEND
+#endif
+			shutdown( pc->Socket, SHUT_WR );
+#if defined( _WIN32 )
+#undef SHUT_WR
+#endif
 			closesocket( pc->Socket );
 			while( pc->lpFirstPending )
 			{
@@ -1013,7 +1020,8 @@ static void HandleEvent( PCLIENT pClient )
 						//	lprintf( WIDE("FD_Write") );
 #endif
 						// returns true while it wrote or there is data to write
-						TCPWrite(pClient);
+						if( pClient->lpFirstPending )
+							TCPWrite(pClient);
 						if( !pClient->lpFirstPending ) {
 							if( pClient->dwFlags & CF_TOCLOSE )
 							{
@@ -1023,7 +1031,6 @@ static void HandleEvent( PCLIENT pClient )
 								TerminateClosedClient( pClient );
 							}
 						}
-
 						NetworkUnlock( pClient, 0 );
 					}
 				}
@@ -1393,7 +1400,7 @@ int CPROC ProcessNetworkMessages( struct peer_thread_info *thread, uintptr_t qui
 #endif
 		thread->nWaitEvents = thread->nEvents;
 		thread->flags.bProcessing = 0;
-		while( thread->counting ) Relinquish();
+		while( thread->counting ) { thread->nWaitEvents = thread->nEvents; Relinquish(); }
 		result = WSAWaitForMultipleEvents( thread->nEvents
 													, (const HANDLE *)thread->event_list->data
 													, FALSE
@@ -3447,6 +3454,14 @@ void InternalRemoveClientExx(PCLIENT lpClient, LOGICAL bBlockNotify, LOGICAL bLi
 			}
 			Relinquish();
 		}
+		while( !NetworkLockEx( lpClient, 1 DBG_SRC ) )
+		{
+			if( !(lpClient->dwFlags & CF_ACTIVE) )
+			{
+				return;
+			}
+			Relinquish();
+		}
 
 		// allow application a chance to clean it's references
 		// to this structure before closing and cleaning it.
@@ -3506,6 +3521,7 @@ void InternalRemoveClientExx(PCLIENT lpClient, LOGICAL bBlockNotify, LOGICAL bLi
 		//lprintf( WIDE( "Leaving network critical section" ) );
 		LeaveCriticalSec( &globalNetworkData.csNetwork );
 		NetworkUnlockEx( lpClient, 0 DBG_SRC );
+		NetworkUnlockEx( lpClient, 1 DBG_SRC );
 	}
 #ifdef LOG_DEBUG_CLOSING
 	else
@@ -3528,10 +3544,16 @@ void RemoveClientExx(PCLIENT lpClient, LOGICAL bBlockNotify, LOGICAL bLinger DBG
 	} else
 #endif
 	{
+		int n = 0;
 		// UDP still needs to be done this way...
 		//
 		InternalRemoveClientExx( lpClient, bBlockNotify, bLinger DBG_RELAY );
-		TerminateClosedClient( lpClient );
+		if( NetworkLock( lpClient, 0 ) && ((n=1),NetworkLock( lpClient, 1 )) ) {
+			TerminateClosedClient( lpClient );
+		}
+		else if( n ) {
+			NetworkUnlock( lpClient, 0 );
+		}
 	}
 }
 
