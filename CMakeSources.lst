@@ -367,6 +367,7 @@ if( NOT __NO_NETWORK__ )
 set( SACK_PLUSPLUS_HEADERS ${SACK_PLUSPLUS_HEADERS}
      ${SOURCES_ROOT}src/netlib/html5.websocket/client/local.h
      ${SOURCES_ROOT}src/netlib/html5.websocket/json/json.h
+     ${SOURCES_ROOT}src/netlib/html5.websocket/json/vesl.h
      ${SOURCES_ROOT}src/netlib/html5.websocket/html5.websocket.common.h
      ${SOURCES_ROOT}src/netlib/html5.websocket/json/unicode_non_identifiers.h
      )
