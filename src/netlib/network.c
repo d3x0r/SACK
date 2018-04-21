@@ -1456,7 +1456,7 @@ int CPROC ProcessNetworkMessages( struct peer_thread_info *thread, uintptr_t qui
 				PCLIENT pc = (PCLIENT)GetLink( &thread->monitor_list, result - (WSA_WAIT_EVENT_0) );
 				//if( pcLock ) {
 					if( !pc || ( pc->dwFlags & CF_AVAILABLE ) ) {
-						lprintf( "thread event happened on a now available client." );
+						//lprintf( "thread event happened on a now available client." );
 					}
 					else
 						HandleEvent( pc );
