@@ -1744,7 +1744,7 @@ int CPROC ProcessNetworkMessages( struct peer_thread_info *thread, uintptr_t unu
 		}
 		if( cnt > 0 )
 		{
-			int closed = 0;
+			int closed;
 			int n;
 			struct event_data *event_data;
 			THREAD_ID prior = 0;
@@ -1753,6 +1753,7 @@ int CPROC ProcessNetworkMessages( struct peer_thread_info *thread, uintptr_t unu
 			lprintf( "process %d events", cnt );
 #  endif
 			for( n = 0; n < cnt; n++ ) {
+            closed = 0;
 #  ifdef __MAC__
 				event_data = (struct event_data*)events[n].udata;
 #  ifdef LOG_NOTICES
