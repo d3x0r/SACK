@@ -598,6 +598,8 @@ void ClearClient( PCLIENT pc DBG_PASS )
 		_lprintf(DBG_RELAY)( WIDE( "Clear Client %p  %08x   %08x" ), pc, pc->dwFlags, dwFlags );
 #endif
 	MemSet( pc, 0, sizeof( CLIENT ) ); // clear all information...
+
+	// Socket is now 0; which for linux is a valid handle... which is what I get for events...
 	pc->csLockRead = csr;
 	pc->csLockWrite = csw;
 	pc->lpUserData = pbtemp;
@@ -711,8 +713,10 @@ void TerminateClosedClientEx( PCLIENT pc DBG_PASS )
 		LeaveCriticalSec( &globalNetworkData.csNetwork );
 		//NetworkUnlock( pc );
 	}
+#ifdef LOG_PENDING
 	else
 		lprintf( WIDE("Client's state was not CLOSED...") );
+#endif
 }
 
 //----------------------------------------------------------------------------
@@ -1507,7 +1511,10 @@ static uintptr_t CPROC NetworkThreadProc( PTHREAD thread );
 void RemoveThreadEvent( PCLIENT pc ) {
 	struct peer_thread_info *thread = pc->this_thread;
 	// could be closed (accept, initial read, protocol causes close before ever completing getting scheduled)
-	if( !thread ) return;
+	if( !thread ) {
+	 	lprintf( "didn't have one? %p", pc );
+		return;
+	}
 	{
 #  ifdef __MAC__
 #    ifdef __64__
@@ -1543,6 +1550,12 @@ void RemoveThreadEvent( PCLIENT pc ) {
 #    endif
 #  else
 		int r;
+#ifdef LOG_NETWORK_EVENT_THREAD
+		lprintf( "Removing event %p   %d from poll %d", pc, pc->Socket, thread->epoll_fd );
+#endif
+		//r = epoll_ctl( thread->epoll_fd, EPOLL_CTL_DISABLE, pc->Socket, NULL );
+		//if( r < 0 ) lprintf( "Error removing:%d", errno );
+		
 		r = epoll_ctl( thread->epoll_fd, EPOLL_CTL_DEL, pc->Socket, NULL );
 		if( r < 0 ) lprintf( "Error removing:%d", errno );
 		if( pc->SocketBroadcast ) {
@@ -1580,8 +1593,12 @@ void AddThreadEvent( PCLIENT pc, int broadcast )
 {
 	struct peer_thread_info *peer = globalNetworkData.root_thread;
 	LOGICAL addPeer = FALSE;
+	if( pc->Socket <= 0 ) {
+		lprintf( "SAVED FROM A FATAL INFINITE EVENT LOOP");
+		return;
+	}
 #ifdef LOG_NOTICES
-	if( globalNetworkData.flags.bLogNotices )
+	//if( globalNetworkData.flags.bLogNotices )
 		lprintf( "Add thread event %p %d %08x  %s", pc, broadcast?pc->SocketBroadcast:pc->Socket, pc->dwFlags, broadcast?"broadcast":"direct" );
 #endif
 	if( !broadcast ) {
@@ -1694,13 +1711,17 @@ void AddThreadEvent( PCLIENT pc, int broadcast )
 			ev.events = EPOLLIN | EPOLLOUT | EPOLLRDHUP | EPOLLET;
 		}
 #ifdef LOG_NETWORK_EVENT_THREAD
-		lprintf( "peer add socket to %d now has 0x%x events", peer->epoll_fd, ev.events );
+		lprintf( "peer add socket %d to %d now has 0x%x events", pc->Socket, peer->epoll_fd, ev.events );
 #endif
 		r = epoll_ctl( peer->epoll_fd, EPOLL_CTL_ADD, broadcast?pc->SocketBroadcast:pc->Socket, &ev );
 		if( r < 0 ) lprintf( "Error adding:%d %d", errno, broadcast?pc->SocketBroadcast:pc->Socket );
 #  endif
 	}
+#ifdef LOG_NETWORK_EVENT_THREAD
+	lprintf( "added thread: %p  %p  %p  ", pc, pc->this_thread, peer );
+#endif
 	if( !pc->this_thread ) {
+
 		LockedIncrement( &peer->nEvents );
 		pc->this_thread = peer;
 		pc->flags.bAddedToEvents = 1;
@@ -1744,7 +1765,7 @@ int CPROC ProcessNetworkMessages( struct peer_thread_info *thread, uintptr_t unu
 		}
 		if( cnt > 0 )
 		{
-			int closed = 0;
+			int closed;
 			int n;
 			struct event_data *event_data;
 			THREAD_ID prior = 0;
@@ -1753,6 +1774,7 @@ int CPROC ProcessNetworkMessages( struct peer_thread_info *thread, uintptr_t unu
 			lprintf( "process %d events", cnt );
 #  endif
 			for( n = 0; n < cnt; n++ ) {
+				closed = 0;
 #  ifdef __MAC__
 				event_data = (struct event_data*)events[n].udata;
 #  ifdef LOG_NOTICES
@@ -1782,16 +1804,21 @@ int CPROC ProcessNetworkMessages( struct peer_thread_info *thread, uintptr_t unu
 				if( events[n].events & EPOLLIN )
 #  endif
 				{
+					int locked;
+					locked = 1;
 
 					while( !NetworkLock( event_data->pc, 1 ) ) {
 						if( !( event_data->pc->dwFlags & CF_ACTIVE ) ) {
 #  ifdef LOG_NETWORK_EVENT_THREAD
 							lprintf( "failed lock dwFlags : %8x", event_data->pc->dwFlags );
 #  endif
+							locked = 0;
 							break;
 						}
-						if( event_data->pc->dwFlags & CF_AVAILABLE )
+						if( event_data->pc->dwFlags & CF_AVAILABLE ) {
+							locked = 0;
 							break;
+						}
 						Relinquish();
 					}
 					if( !( event_data->pc->dwFlags & ( CF_ACTIVE | CF_CLOSED ) ) ) {
@@ -1813,9 +1840,12 @@ int CPROC ProcessNetworkMessages( struct peer_thread_info *thread, uintptr_t unu
 #  endif
 					if( event_data->pc->dwFlags & CF_CLOSED ) {
 						PCLIENT pClient = event_data->pc;
-						lprintf( "socket is already closed... what do we need to do?");
-						WakeableSleep( 100 );
-						if( !pClient->bDraining )
+						// close notice went to application; all resources for application are gone.
+						// any pending reads are no longre valid.
+
+						//lprintf( "socket is already closed... what do we need to do?");
+						//WakeableSleep( 100 );
+						if( 0 && !pClient->bDraining )
 						{
 							size_t bytes_read;
 							// act of reading can result in a close...
@@ -1830,13 +1860,13 @@ int CPROC ProcessNetworkMessages( struct peer_thread_info *thread, uintptr_t unu
 							}
 						}
 #  ifdef LOG_NOTICES
-						if( globalNetworkData.flags.bLogNotices )
+						//if( globalNetworkData.flags.bLogNotices )
 							lprintf(WIDE( "FD_CLOSE... %p  %08x" ), pClient, pClient->dwFlags );
 #  endif
 						//if( pClient->dwFlags & CF_ACTIVE )
 						{
 							// might already be cleared and gone..
-							InternalRemoveClientEx( pClient, FALSE, TRUE );
+							//InternalRemoveClientEx( pClient, FALSE, TRUE );
 							TerminateClosedClient( pClient );
 							closed = 1;
 						}
@@ -1884,10 +1914,10 @@ int CPROC ProcessNetworkMessages( struct peer_thread_info *thread, uintptr_t unu
 						if( ( read == -1 ) && ( event_data->pc->dwFlags & CF_TOCLOSE ) )
 						{
 #ifdef LOG_NOTICES
-							if( globalNetworkData.flags.bLogNotices )
+							//if( globalNetworkData.flags.bLogNotices )
 								lprintf( WIDE( "Pending read failed - reset connection." ) );
 #endif
-							InternalRemoveClientEx( event_data->pc, FALSE, FALSE );
+							//InternalRemoveClientEx( event_data->pc, FALSE, FALSE );
 							TerminateClosedClient( event_data->pc );
 							closed = 1;
 						}
@@ -1902,10 +1932,13 @@ int CPROC ProcessNetworkMessages( struct peer_thread_info *thread, uintptr_t unu
 #endif
 						event_data->pc->dwFlags |= CF_READREADY;
 					}
-					LeaveCriticalSec( &event_data->pc->csLockRead );
+					if( locked )
+						LeaveCriticalSec( &event_data->pc->csLockRead );
 				}
 
 				if( !closed && ( event_data->pc->dwFlags & CF_ACTIVE ) ) {
+					int locked;
+					locked = 1;
 #  ifdef __MAC__
 					if( events[n].filter == EVFILT_WRITE )
 #  else
@@ -1918,14 +1951,21 @@ int CPROC ProcessNetworkMessages( struct peer_thread_info *thread, uintptr_t unu
 #  endif
 
 						while( !NetworkLock( event_data->pc, 0 ) ) {
+							if( !( event_data->pc->dwFlags & CF_WRITEISPENDED ) ) {
+								locked = 0;
+								break;
+							}
 							if( !( event_data->pc->dwFlags & CF_ACTIVE ) ) {
 #  ifdef LOG_NETWORK_EVENT_THREAD
 								lprintf( "failed lock dwFlags : %8x", event_data->pc->dwFlags );
 #  endif
+								locked = 0;
 								break;
 							}
-							if( event_data->pc->dwFlags & CF_AVAILABLE )
+							if( event_data->pc->dwFlags & CF_AVAILABLE ) {
+								locked = 0;
 								break;
+							}
 							Relinquish();
 						}
 						if( !( event_data->pc->dwFlags & ( CF_ACTIVE | CF_CLOSED ) ) ) {
@@ -2024,8 +2064,11 @@ int CPROC ProcessNetworkMessages( struct peer_thread_info *thread, uintptr_t unu
 							event_data->pc->dwFlags &= ~CF_WRITEISPENDED;
 							TCPWrite( event_data->pc );
 						}
-						LeaveCriticalSec( &event_data->pc->csLockWrite );
+						if( locked )
+							NetworkUnlock( event_data->pc, 0 );
 					}
+				} else {
+					//lprintf( "Already closed? Stop looping on this event? %p %d %x", event_data->pc, event_data->pc->Socket, event_data->pc->dwFlags );
 				}
 			}
 			// had some event  - return 1 to continue working...
@@ -3440,9 +3483,9 @@ void InternalRemoveClientExx(PCLIENT lpClient, LOGICAL bBlockNotify, LOGICAL bLi
 			return;
 		}
 		if( lpClient->lpFirstPending || ( lpClient->dwFlags & CF_WRITEPENDING ) ) {
-//#ifdef LOG_DEBUG_CLOSING
+#ifdef LOG_DEBUG_CLOSING
 			lprintf( "CLOSE WHILE WAITING FOR WRITE TO FINISH..." );
-//#endif
+#endif
 			lpClient->dwFlags |= CF_TOCLOSE;
 			return;
 		}
@@ -3548,12 +3591,14 @@ void RemoveClientExx(PCLIENT lpClient, LOGICAL bBlockNotify, LOGICAL bLinger DBG
 		// UDP still needs to be done this way...
 		//
 		InternalRemoveClientExx( lpClient, bBlockNotify, bLinger DBG_RELAY );
+#ifndef __LINUX__
 		if( NetworkLock( lpClient, 0 ) && ((n=1),NetworkLock( lpClient, 1 )) ) {
 			TerminateClosedClient( lpClient );
 		}
 		else if( n ) {
 			NetworkUnlock( lpClient, 0 );
 		}
+#endif
 	}
 }
 

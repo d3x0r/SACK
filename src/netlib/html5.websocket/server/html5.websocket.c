@@ -196,6 +196,14 @@ static void HandleData( HTML5WebSocket socket, PCLIENT pc, POINTER buffer, size_
 	}
 }
 
+void ResetWebsocketRequestHandler( PCLIENT pc ) {
+	HTML5WebSocket socket = (HTML5WebSocket)GetNetworkLong( pc, 0 );
+	if( !socket ) return; // closing/closed....
+	socket->flags.initial_handshake_done = 0;
+	socket->flags.http_request_only = 0;
+   EndHttp( socket->http_state );
+}
+
 static void CPROC destroyHttpState( HTML5WebSocket socket, PCLIENT pc_client ) {
 	//HTML5WebSocket socket = (HTML5WebSocket)GetNetworkLong( pc_client, 0 );
 	if( socket->flags.in_open_event ) {
@@ -241,7 +249,8 @@ static void CPROC read_complete( PCLIENT pc, POINTER buffer, size_t length )
 		TEXTSTR tmp = (TEXTSTR)buffer;
 #endif
 		//LogBinary( buffer, length );
-		if( !socket->flags.initial_handshake_done )
+		//lprintf( "handle data: handshake: %d",socket->flags.initial_handshake_done );
+		if( !socket->flags.initial_handshake_done || socket->flags.http_request_only )
 		{
 			//lprintf( WIDE("Initial handshake is not done...") );
 			((char*)buffer)[length] = 0; // make sure nul terminated.
@@ -267,9 +276,9 @@ static void CPROC read_complete( PCLIENT pc, POINTER buffer, size_t length )
 						socket->flags.initial_handshake_done = 1;
 						socket->flags.http_request_only = 1;
 						socket->flags.in_open_event = 1;
-						if( socket->input_state.on_request )
+						if( socket->input_state.on_request ) {
 							socket->input_state.on_request( pc, socket->input_state.psv_on );
-						else {
+						} else {
 							socket->flags.in_open_event = 0;
 							RemoveClient( pc );
 							return;
@@ -545,7 +554,7 @@ static void CPROC connected( PCLIENT pc_server, PCLIENT pc_new )
 	if( ssl_IsClientSecure( pc_new ) )
 		socket->input_state.flags.use_ssl = 1;
 	socket->http_state = CreateHttpState(); // start a new http state collector
-
+	//lprintf( "Init socket: handshake: %p %p  %d", pc_new, socket, socket->flags.initial_handshake_done );
 	SetNetworkLong( pc_new, 0, (uintptr_t)socket );
 	SetNetworkLong( pc_new, 1, (uintptr_t)&socket->input_state );
 	SetNetworkReadComplete( pc_new, read_complete );
