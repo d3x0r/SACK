@@ -127,7 +127,7 @@ void AcceptClient(PCLIENT pListen)
 #endif
 
 #ifdef LOG_SOCKET_CREATION
-	Log2( WIDE("Accepted socket %d  (%d)"), pNewClient->Socket, nTemp );
+	lprintf( WIDE("Accepted socket %p %d  (%d)"), pNewClient, pNewClient->Socket, nTemp );
 #endif
 	//DumpAddr( WIDE("Client's Address"), pNewClient->saClient );
 	{
@@ -218,19 +218,21 @@ void AcceptClient(PCLIENT pListen)
 					pNewClient->write.WriteComplete( pNewClient );
 				pNewClient->bWriteComplete = FALSE;
 			}
-			NetworkUnlockEx( pNewClient, 0 DBG_SRC );
-			NetworkUnlockEx( pNewClient, 1 DBG_SRC );
-		}
-		if( pNewClient->Socket ) {
+			//lprintf( "Is it already closed HERE???");
+			if( pNewClient->Socket ) {
 #ifdef USE_WSA_EVENTS
-			if( globalNetworkData.flags.bLogNotices )
-				lprintf( WIDE( "SET GLOBAL EVENT (accepted socket added)  %p  %p" ), pNewClient, pNewClient->event );
-			EnqueLink( &globalNetworkData.client_schedule, pNewClient );
-			WSASetEvent( globalNetworkData.hMonitorThreadControlEvent );
+				if( globalNetworkData.flags.bLogNotices )
+					lprintf( WIDE( "SET GLOBAL EVENT (accepted socket added)  %p  %p" ), pNewClient, pNewClient->event );
+				EnqueLink( &globalNetworkData.client_schedule, pNewClient );
+				WSASetEvent( globalNetworkData.hMonitorThreadControlEvent );
 #endif
 #ifdef __LINUX__
-			AddThreadEvent( pNewClient, 0 );
+				AddThreadEvent( pNewClient, 0 );
 #endif
+			}
+
+			NetworkUnlockEx( pNewClient, 0 DBG_SRC );
+			NetworkUnlockEx( pNewClient, 1 DBG_SRC );
 		}
 	}
 	else // accept failed...
@@ -905,7 +907,7 @@ int FinishPendingRead(PCLIENT lpClient DBG_PASS )  // only time this should be c
 		{
 #ifdef DEBUG_SOCK_IO
 			//nCount++;
-			_lprintf( DBG_RELAY )( WIDE("FinishPendingRead %d %d" )
+			_lprintf( DBG_RELAY )( WIDE("FinishPendingRead %p %d %d" ), lpClient
 				, lpClient->RecvPending.dwUsed, lpClient->RecvPending.dwAvail );
 #endif
 			nRecv = recv(lpClient->Socket,
@@ -994,14 +996,14 @@ int FinishPendingRead(PCLIENT lpClient DBG_PASS )  // only time this should be c
 		if( !( lpClient->dwFlags & CF_READWAITING ) )
 		{
 #ifdef LOG_PENDING
-			lprintf( WIDE("Waiting on a queued read... result to callback.") );
+			//lprintf( WIDE("Waiting on a queued read... result to callback.") );
 #endif
 			if( ( !lpClient->RecvPending.dwAvail || // completed all of the read
 				  ( lpClient->RecvPending.dwUsed &&   // or completed some of the read
 					lpClient->RecvPending.s.bStream ) ) )
 			{
 #ifdef LOG_PENDING
-				lprintf( WIDE("Sending completed read to application") );
+				//lprintf( WIDE("Sending completed read to application") );
 #endif
 				lpClient->dwFlags &= ~CF_READPENDING;
 				if( lpClient->read.ReadComplete )  // and there's a read complete callback available
