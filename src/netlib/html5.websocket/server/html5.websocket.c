@@ -241,7 +241,7 @@ static void CPROC read_complete( PCLIENT pc, POINTER buffer, size_t length )
 		TEXTSTR tmp = (TEXTSTR)buffer;
 #endif
 		//LogBinary( buffer, length );
-		if( !socket->flags.initial_handshake_done )
+		if( !socket->flags.initial_handshake_done || socket->flags.http_request_only )
 		{
 			//lprintf( WIDE("Initial handshake is not done...") );
 			((char*)buffer)[length] = 0; // make sure nul terminated.
