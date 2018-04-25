@@ -186,6 +186,8 @@ int ProcessHttp( PCLIENT pc, struct HttpState *pHttpState )
 				//start = 0; // new packet and still collecting header....
 				for( pos = 0; ( pos < size ) && !pHttpState->final; pos++ )
 				{
+					if( (pos - start - bLine) < 0 )
+						continue;
 					if( c[pos] == '\r' )
 						bLine++;
 					else if( c[pos] == '\n' )
