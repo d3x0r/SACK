@@ -9,7 +9,6 @@
 #ifdef BUILD_NODE_ADDON
 #  ifdef NODE_MAJOR_VERSION
 #    if NODE_MAJOR_VERSION >= 10
-# error BUILD WITH HACK
 #      define HACK_NODE_TLS
 #    endif
 #  endif
