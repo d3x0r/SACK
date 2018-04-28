@@ -2,6 +2,19 @@
 
 
 #include <stdhdrs.h>
+#ifdef BUILD_NODE_ADDON
+#  include <node_version.h>
+#endif
+
+#ifdef BUILD_NODE_ADDON
+#  ifdef NODE_MAJOR_VERSION
+#    if NODE_MAJOR_VERSION >= 10
+# error BUILD WITH HACK
+#      define HACK_NODE_TLS
+#    endif
+#  endif
+#endif
+
 #ifdef _WIN32
 #  include <wincrypt.h>
 #  include <prsht.h>
@@ -641,12 +654,8 @@ LOGICAL ssl_BeginServer( PCLIENT pc, CPOINTER cert, size_t certlen, CPOINTER key
 		BIO_free( keybuf );
 	}
 
-#ifdef NODE_MAJOR_VERSION
-#  if NODE_MAJOR_VERSION >= 10
+#ifdef HACK_NODE_TLS
 	ses->ctx = SSL_CTX_new( TLS_server_method()/*TLSv1_2_server_method()*/ );
-#  else
-	ses->ctx = SSL_CTX_new( TLSv1_2_server_method() );
-#  endif
 #else
 	ses->ctx = SSL_CTX_new( TLSv1_2_server_method() );
 #endif
