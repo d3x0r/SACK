@@ -88,6 +88,9 @@ SACK_NETWORK_NAMESPACE
 
 PRELOAD( InitNetworkGlobalOptions )
 {
+#ifdef __LINUX__
+	signal(SIGPIPE, SIG_IGN);
+#endif
 #ifndef __NO_OPTIONS__
 	globalNetworkData.flags.bLogProtocols = SACK_GetProfileIntEx( WIDE("SACK"), WIDE( "Network/Log Protocols" ), 0, TRUE );
 	globalNetworkData.flags.bShortLogReceivedData = SACK_GetProfileIntEx( WIDE( "SACK" ), WIDE( "Network/Log Network Received Data(64 byte max)" ), 0, TRUE );
