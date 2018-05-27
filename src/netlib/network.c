@@ -471,7 +471,7 @@ void SetAddrName( SOCKADDR *addr, const char *name )
 SOCKADDR *AllocAddrEx( DBG_VOIDPASS )
 {
 	SOCKADDR *lpsaAddr=(SOCKADDR*)AllocateEx( MAGIC_SOCKADDR_LENGTH + 2 * sizeof( uintptr_t ) DBG_RELAY );
-	MemSet( lpsaAddr, 0, MAGIC_SOCKADDR_LENGTH );
+	memset( lpsaAddr, 0, MAGIC_SOCKADDR_LENGTH );
 	//initialize socket length to something identifiable?
 	((uintptr_t*)lpsaAddr)[0] = 3;
 	((uintptr_t*)lpsaAddr)[1] = 0; // string representation of address
@@ -508,7 +508,7 @@ PCLIENT GrabClientEx( PCLIENT pClient DBG_PASS )
 
 //----------------------------------------------------------------------------
 
-PCLIENT AddAvailable( PCLIENT pClient )
+static PCLIENT AddAvailable( PCLIENT pClient )
 {
 	if( pClient )
 	{
@@ -527,7 +527,7 @@ PCLIENT AddAvailable( PCLIENT pClient )
 }
 
 //----------------------------------------------------------------------------
-
+// used externally by udp/tcp
 PCLIENT AddActive( PCLIENT pClient )
 {
 	if( pClient )
@@ -548,7 +548,7 @@ PCLIENT AddActive( PCLIENT pClient )
 
 //----------------------------------------------------------------------------
 
-PCLIENT AddClosed( PCLIENT pClient )
+static PCLIENT AddClosed( PCLIENT pClient )
 {
 	if( pClient )
 	{
@@ -568,7 +568,7 @@ PCLIENT AddClosed( PCLIENT pClient )
 
 //----------------------------------------------------------------------------
 
-void ClearClient( PCLIENT pc DBG_PASS )
+static void ClearClient( PCLIENT pc DBG_PASS )
 {
 	uintptr_t* pbtemp;
 	PCLIENT next;
@@ -615,7 +615,7 @@ void ClearClient( PCLIENT pc DBG_PASS )
 
 //----------------------------------------------------------------------------
 
-void NetworkGloalLock( DBG_VOIDPASS ) {
+static void NetworkGlobalLock( DBG_VOIDPASS ) {
 	LOGICAL locked = FALSE;
 	do {
 #ifdef USE_NATIVE_CRITICAL_SECTION
@@ -625,7 +625,7 @@ void NetworkGloalLock( DBG_VOIDPASS ) {
 #endif
 		{
 #ifdef LOG_NETWORK_LOCKING
-			_lprintf( DBG_RELAY )(WIDE( "Failed enter global? %lld" ), globalNetworkData.csNetwork.dwThreadId );
+			_lprintf( DBG_RELAY )(WIDE( "Failed enter global? %lld" ), globalNetworkData.csNetwork.dwThreadID );
 #endif
 			Relinquish();
 		}
@@ -2514,9 +2514,6 @@ get_client:
 #ifdef LOG_NETWORK_LOCKING
 		lprintf( WIDE("GetFreeNetworkClient left global") );
 #endif
-#if 0
-		RescheduleTimerEx( globalNetworkData.uPendingTimer, 1 );
-#endif
 		Relinquish();
 		if( globalNetworkData.AvailableClients )
 		{
@@ -3597,6 +3594,8 @@ void RemoveClientExx(PCLIENT lpClient, LOGICAL bBlockNotify, LOGICAL bLinger DBG
 #ifndef __LINUX__
 		if( NetworkLock( lpClient, 0 ) && ((n=1),NetworkLock( lpClient, 1 )) ) {
 			TerminateClosedClient( lpClient );
+			NetworkUnlock( lpClient, 0 );
+			NetworkUnlock( lpClient, 1 );
 		}
 		else if( n ) {
 			NetworkUnlock( lpClient, 0 );
