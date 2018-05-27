@@ -10,6 +10,7 @@
 
 
 #ifdef	HAS_STDLIB_H
+#include        <string.h>
 #include	<stdlib.h>
 #else
 #	include "proto.h"

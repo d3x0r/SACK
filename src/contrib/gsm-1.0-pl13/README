@@ -35,3 +35,11 @@ Fax: +49.30.31425156, Phone: +49.30.31424315
 Copyright 1992 by Jutta Degener and Carsten Bormann, Technische
 Universitaet Berlin.  See the accompanying file "COPYRIGHT" for
 details.  THERE IS ABSOLUTELY NO WARRANTY FOR THIS SOFTWARE.
+
+---
+2019-05-20
+
+Github https://github.com/d3x0r/gsm Created for lack of finding
+any other place to post patches/changes.  This builds nearly immdiately
+using Emscripten. 
+
