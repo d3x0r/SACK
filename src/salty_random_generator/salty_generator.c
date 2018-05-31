@@ -216,7 +216,7 @@ char *SRG_ID_Generator( void ) {
 }
 
 
-#if WIN32
+#ifdef WIN32
 #if 0  
 // if standalone?
 BOOL WINAPI DllMain(
