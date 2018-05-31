@@ -1931,6 +1931,41 @@ LOGICAL sack_exists( const char * filename )
 
 //----------------------------------------------------------------------------
 
+LOGICAL sack_isPathEx ( const char *filename, struct file_system_mounted_interface *fsi )
+{
+	FILE *tmp;
+	if( fsi && fsi->fsi && fsi->fsi->exists )
+	{
+		int result = fsi->fsi->is_directory( fsi->psvInstance, filename );
+		return result;
+	}
+	else if( ( tmp = fopen( filename, "rb" ) ) )
+	{
+		fclose( tmp );
+		return TRUE;
+	}
+	return FALSE;
+}
+
+//----------------------------------------------------------------------------
+
+LOGICAL sack_isPath( const char * filename )
+{
+	struct file_system_mounted_interface *mount = (*winfile_local).mounted_file_systems;
+	while( mount )
+	{
+		if( sack_isPathEx( filename, mount ) )
+		{
+			(*winfile_local).last_find_mount = mount;
+			return TRUE;
+		}
+		mount = mount->next;
+	}
+	return FALSE;
+}
+
+//----------------------------------------------------------------------------
+
 int  sack_renameEx ( CTEXTSTR file_source, CTEXTSTR new_name, struct file_system_mounted_interface *mount )
 {
 	int status;
@@ -2256,7 +2291,7 @@ static	LOGICAL CPROC sack_filesys_find_is_directory( struct find_cursor *_cursor
 
 }
 
-static	LOGICAL CPROC sack_filesys_is_directory( const char *buffer ){
+static	LOGICAL CPROC sack_filesys_is_directory( uintptr_t psvInstance, const char *buffer ){
 	return IsPath( buffer );
 }
 

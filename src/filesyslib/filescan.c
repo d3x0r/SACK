@@ -417,7 +417,7 @@ typedef struct myfinddata {
 				findhandle(pInfo) = (HANDLECAST)-1;
 		else
 		{
-#if WIN32
+#ifdef WIN32
 			findhandle(pInfo) = findfirst( findmask, finddata(pInfo) );
 #else
 			lprintf( "opendir [%s]", findbasename(pInfo) );
@@ -534,7 +534,7 @@ getnext:
 	}
 	else
 	{
-#if WIN32 
+#ifdef WIN32 
 		//lprintf( "... %s", finddata(pInfo)->name );
 #  ifdef UNDER_CE
 		if( !StrCmp( WIDE("."), finddata(pInfo)->cFileName ) ||
@@ -589,7 +589,7 @@ getnext:
 			}
 			else
 			{
-#if WIN32
+#ifdef WIN32
 #  ifdef UNDER_CE
 				tnprintf( pData->buffer, MAX_PATH_NAME, WIDE("%s%s%s")
 						  , pData->prior?pData->prior->buffer:WIDE( "" )
@@ -618,7 +618,7 @@ getnext:
 			}
 			else
 			{
-#if WIN32
+#ifdef WIN32
 #  ifdef UNDER_CE
 				tnprintf( pData->buffer, MAX_PATH_NAME, WIDE("%s"), finddata(pInfo)->cFileName );
 #  else
@@ -645,7 +645,7 @@ getnext:
 	if( ((flags & (SFF_DIRECTORIES | SFF_SUBCURSE))
 		&& (pData->scanning_mount && pData->scanning_mount->fsi
 			&& (pData->scanning_mount->fsi->is_directory
-				&& pData->scanning_mount->fsi->is_directory( pDataBuffer ))))
+				&& pData->scanning_mount->fsi->is_directory( pData->scanning_mount->psvInstance, pDataBuffer ))))
 		|| (!(pData->scanning_mount ? pData->scanning_mount->fsi : NULL)
 #ifdef WIN32
 #  ifdef UNDER_CE
