@@ -843,7 +843,7 @@ static void KillDependants( PMYTASK_INFO task )
 		INDEX idx2;
 		PTASK_INFO info;
 		lprintf( WIDE("Terminating dependant program %s"), dependant->name );
-		dependant->flags.bStopped = 1;
+		//dependant->flags.bStopped = 1;
 		LIST_FORALL( dependant->spawns, idx2, PTASK_INFO, info )
 		{
 			lprintf( WIDE("begin terminate") );
@@ -883,15 +883,15 @@ static void CPROC TaskEnded( uintptr_t psv, PTASK_INFO task_ended )
 	task->flags.bStarted = 0;
 	if( FindLink( &task->spawns, (POINTER)task_ended ) != INVALID_INDEX )
 	{
-		lprintf( "Killing dep" );
+		//lprintf( "Killing dep" );
 		KillDependants( task );
-		lprintf( "Delete from spawn" );
+		//lprintf( "Delete from spawn" );
 		DeleteLink( &task->spawns, (POINTER)task_ended );
 		if( !task->flags.bStopped
 			&& task->flags.bRestart
 			&& !task->flags.bFailedSpawn )
 			ScheduleTask( task );
-		lprintf( "wake loader" );
+		//lprintf( "wake loader" );
 		WakeThread( l.pLoadingThread );
 		//DebugBreak();
 	}
@@ -1072,13 +1072,13 @@ static void LoadTasks( void )
 
 //--------------------------------------------------------------------------
 
-static void UnloadTask( PMYTASK_INFO task )
+static void UnloadTask( PMYTASK_INFO task, LOGICAL bShutdown )
 {
 	INDEX idx2;
 	PTASK_INFO info;
 	KillDependants( task );
 	lprintf( WIDE("Terminating program %s"), task->name );
-	task->flags.bStopped = 1;
+	task->flags.bStopped = bShutdown;
 	LIST_FORALL( task->spawns, idx2, PTASK_INFO, info )
 	{
 		lprintf( WIDE("begin terminate") );
@@ -1093,7 +1093,7 @@ static void UnloadTasks( void )
 	PMYTASK_INFO task;
 	LIST_FORALL( l.tasks, idx, PMYTASK_INFO, task )
 	{
-		UnloadTask( task );
+		UnloadTask( task, TRUE );
 	}
 }
 
@@ -1218,7 +1218,7 @@ static void CPROC AvatarReadComplete( PCLIENT pc, POINTER buffer, size_t len )
 						PMYTASK_INFO task = (PMYTASK_INFO)GetLink( &l.tasks, idx );
 						if( task->flags.bStarted )
 						{
-							UnloadTask( task );
+							UnloadTask( task, TRUE );
 						}
 						pns->state = NET_STATE_COMMAND;
 						toread = 4;
@@ -1231,6 +1231,7 @@ static void CPROC AvatarReadComplete( PCLIENT pc, POINTER buffer, size_t len )
 						// put this task in the started list.
 						if( !task->flags.bStarted )
 						{
+							task->flags.bStopped = 0;
 							LinkThing( l.schedule, task );
 							WakeThread( l.pLoadingThread );
 						}
