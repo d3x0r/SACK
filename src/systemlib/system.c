@@ -1585,6 +1585,11 @@ SYSTEM_PROC( generic_function, LoadFunctionExx )( CTEXTSTR libname, CTEXTSTR fun
 			tnprintf( library->name
 				, fullnameLen - (library->name-library->full_name)
 				, WIDE("%s"), libname );
+			library->name = (char*)pathrchr( library->full_name );
+			if( library->name )
+				library->name++;
+			else
+				library->name = library->full_name;
 		}
 		else
 		{
@@ -1613,7 +1618,7 @@ SYSTEM_PROC( generic_function, LoadFunctionExx )( CTEXTSTR libname, CTEXTSTR fun
 #  ifdef UNICODE
 			char *libname = CStrDup( library->name );
 #  else
-#        define libname library->name
+//#        define libname library->name
 #  endif
 			//lprintf( "trying external load...%s", library->name );
 			l.ExternalLoadLibrary( libname );
