@@ -114,7 +114,15 @@ static void CPROC _PatchFile( uintptr_t psv,  CTEXTSTR filename, int flags )
 static void StoreFile( CTEXTSTR filemask )
 {
 	void *info = NULL;
-	while( ScanFilesEx( NULL, filemask, &info, _StoreFile, SFF_DIRECTORIES|SFF_SUBCURSE|SFF_SUBPATHONLY, 0, FALSE, sack_get_default_mount() ) );
+	char * tmppath = strdup( filemask );
+	char *end = pathrchr( tmppath );
+	if( end ) {
+		end[0] = 0; end++;
+	} else {
+		end = tmppath;
+		tmppath = NULL;
+	}
+	while( ScanFilesEx( tmppath, end, &info, _StoreFile, SFF_DIRECTORIES|SFF_SUBCURSE|SFF_SUBPATHONLY, 0, FALSE, sack_get_default_mount() ) );
 }
 
 static int PatchFile( CTEXTSTR vfsName, CTEXTSTR filemask, uintptr_t version, CTEXTSTR key1, CTEXTSTR key2 )
@@ -197,7 +205,7 @@ static void ExtractFile( CTEXTSTR filemask )
 
 #define Seek(a,b) (((uintptr_t)a)+(b))
 
-#if WIN32
+#ifdef WIN32
 
 POINTER GetExtraData( POINTER block )
 {

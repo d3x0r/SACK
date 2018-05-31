@@ -7,13 +7,23 @@
  BAT[1] = name space; directory offsets land in a block referenced by this chain
  */
 #define SACK_VFS_SOURCE
-#include <stdhdrs.h>
-#include <ctype.h> // tolower on linux
-#include <filesys.h>
-#include <procreg.h>
-#include <salty_generator.h>
-#include <sack_vfs.h>
-#include <sqlgetoption.h>
+#if 1
+#  include <stdhdrs.h>
+#  include <ctype.h> // tolower on linux
+#  include <filesys.h>
+#  include <procreg.h>
+#  include <salty_generator.h>
+#  include <sack_vfs.h>
+#  include <sqlgetoption.h>
+#else
+#  include <sack.h>
+#  include <ctype.h> // tolower on linux
+//#include <filesys.h>
+//#include <procreg.h>
+//#include <salty_generator.h>
+//#include <sack_vfs.h>
+//#include <sqlgetoption.h>
+#endif
 
 SACK_VFS_NAMESPACE
 //#define PARANOID_INIT
@@ -39,13 +49,13 @@ static struct {
 #define GFB_INIT_DIRENT 1
 #define GFB_INIT_NAMES  2
 static BLOCKINDEX GetFreeBlock( struct volume *vol, int init );
-static struct directory_entry * ScanDirectory( struct volume *vol, const char * filename, struct directory_entry *dirkey );
+static struct directory_entry * ScanDirectory( struct volume *vol, const char * filename, struct directory_entry *dirkey, int path_match );
 
 static char mytolower( int c ) {	if( c == '\\' ) return '/'; return tolower( c ); }
 
 // read the byte from namespace at offset; decrypt byte in-register
 // compare against the filename bytes.
-static int MaskStrCmp( struct volume *vol, const char * filename, FPI name_offset ) {
+static int MaskStrCmp( struct volume *vol, const char * filename, FPI name_offset, int path_match ) {
 	if( vol->key ) {
 		int c;
 		while(  ( c = ( ((uint8_t*)vol->disk)[name_offset] ^ vol->usekey[BLOCK_CACHE_NAMES][name_offset&BLOCK_MASK] ) )
@@ -54,12 +64,28 @@ static int MaskStrCmp( struct volume *vol, const char * filename, FPI name_offse
 			if( del ) return del;
 			filename++;
 			name_offset++;
+			if( path_match && !filename[0] ) {
+				c = ( ((uint8_t*)vol->disk)[name_offset] ^ vol->usekey[BLOCK_CACHE_NAMES][name_offset&BLOCK_MASK] );
+				if( c == '/' || c == '\\' )
+					return 0;
+			}
 		}
 		// c will be 0 or filename will be 0...
 		return filename[0] - c;
 	} else {
 		//LoG( "doesn't volume always have a key?" );
-		return StrCaseCmp( filename, (const char *)(((uint8_t*)vol->disk) + name_offset) );
+		if( path_match ) {
+			int l;
+			int r = StrCaseCmpEx( filename, (const char *)(((uint8_t*)vol->disk) + name_offset), l = strlen( filename ) );
+			if( !r )
+				if( ((const char *)(((uint8_t*)vol->disk) + name_offset))[l] == '/' || ((const char *)(((uint8_t*)vol->disk) + name_offset))[l] == '\\' )
+					return 0;
+				else
+					return 1;
+			return r;
+		}
+		else
+			return StrCaseCmp( filename, (const char *)(((uint8_t*)vol->disk) + name_offset) );
 	}
 }
 
@@ -202,7 +228,7 @@ static LOGICAL ValidateBAT( struct volume *vol ) {
 			if( m < BLOCKS_PER_BAT ) break;
 		}
 	}
-	if( !ScanDirectory( vol, NULL, NULL ) ) return FALSE;
+	if( !ScanDirectory( vol, NULL, NULL, 0 ) ) return FALSE;
 	return TRUE;
 }
 
@@ -878,11 +904,12 @@ const char *sack_vfs_get_signature( struct volume *vol ) {
 	return signature;
 }
 
-struct directory_entry * ScanDirectory( struct volume *vol, const char * filename, struct directory_entry *dirkey ) {
+struct directory_entry * ScanDirectory( struct volume *vol, const char * filename, struct directory_entry *dirkey, int path_match ) {
 	size_t n;
 	BLOCKINDEX this_dir_block = 0;
 	BLOCKINDEX next_dir_block;
 	struct directory_entry *next_entries;
+	if( filename && filename[0] == '.' && filename[1] == '/' ) filename += 2;
 	do {
 		enum block_cache_entries cache = BLOCK_CACHE_DIRECTORY;
 		next_entries = BTSEEK( struct directory_entry *, vol, this_dir_block, cache );
@@ -908,8 +935,8 @@ struct directory_entry * ScanDirectory( struct volume *vol, const char * filenam
 			//testname =
 			if( filename ) {
 				TSEEK( const char *, vol, name_ofs, name_cache ); // have to do the seek to the name block otherwise it might not be loaded.
-				if( MaskStrCmp( vol, filename, name_ofs ) == 0 ) {
-					dirkey[0] = (*entkey);
+				if( MaskStrCmp( vol, filename, name_ofs, path_match ) == 0 ) {
+					if( dirkey ) dirkey[0] = (*entkey);
 					LoG( "return found entry: %p (%" _size_f ":%" _size_f ") %s", next_entries + n, name_ofs, next_entries[n].first_block ^ dirkey->first_block, filename );
 					return next_entries + n;
 				}
@@ -951,7 +978,7 @@ static FPI SaveFileName( struct volume *vol, const char * filename ) {
 				}
 			}
 			else
-				if( MaskStrCmp( vol, filename, name - (unsigned char*)vol->disk ) == 0 ) {
+				if( MaskStrCmp( vol, filename, name - (unsigned char*)vol->disk, 0 ) == 0 ) {
 					LoG( "using existing entry for new file...%s", filename );
 					return ((uintptr_t)name) - ((uintptr_t)vol->disk);
 				}
@@ -1010,7 +1037,7 @@ struct sack_vfs_file * CPROC sack_vfs_openfile( struct volume *vol, const char *
 	while( LockedExchange( &vol->lock, 1 ) ) Relinquish();
 	if( filename[0] == '.' && filename[1] == '/' ) filename += 2;
 	LoG( "sack_vfs open %s = %p on %s", filename, file, vol->volname );
-	file->entry = ScanDirectory( vol, filename, &file->dirent_key );
+	file->entry = ScanDirectory( vol, filename, &file->dirent_key, 0 );
 	if( !file->entry ) {
 		if( vol->read_only ) { LoG( "Fail open: readonly" ); vol->lock = 0; Deallocate( struct sack_vfs_file *, file ); return NULL; }
 		else file->entry = GetNewDirectory( vol, filename );
@@ -1037,7 +1064,7 @@ int CPROC sack_vfs_exists( struct volume *vol, const char * file ) {
 	struct directory_entry *ent;
 	while( LockedExchange( &vol->lock, 1 ) ) Relinquish();
 	if( file[0] == '.' && file[1] == '/' ) file += 2;
-	ent = ScanDirectory( vol, file, &entkey );
+	ent = ScanDirectory( vol, file, &entkey, 0 );
 	//lprintf( "sack_vfs exists %s %s", ent?"ya":"no", file );
 	vol->lock = 0;
 	if( ent ) return TRUE;
@@ -1296,7 +1323,7 @@ int CPROC sack_vfs_unlink_file( struct volume *vol, const char * filename ) {
 	if( !vol ) return 0;
 	while( LockedExchange( &vol->lock, 1 ) ) Relinquish();
 	LoG( "unlink file:%s", filename );
-	if( ( entry  = ScanDirectory( vol, filename, &entkey ) ) ) {
+	if( ( entry  = ScanDirectory( vol, filename, &entkey, 0 ) ) ) {
 		sack_vfs_unlink_file_entry( vol, entry, &entkey, entry->first_block ^ entkey.first_block );
 		result = 1;
 	}
@@ -1395,7 +1422,13 @@ int CPROC sack_vfs_find_next( struct find_info *info ) { return iterate_find( in
 char * CPROC sack_vfs_find_get_name( struct find_info *info ) { return info->filename; }
 size_t CPROC sack_vfs_find_get_size( struct find_info *info ) { return info->filesize; }
 LOGICAL CPROC sack_vfs_find_is_directory( struct find_cursor *cursor ) { return FALSE; }
-LOGICAL CPROC sack_vfs_is_directory( const char *cursor ) { return FALSE; }
+LOGICAL CPROC sack_vfs_is_directory( uintptr_t psvInstance, const char *path ) {
+	struct volume *vol = (struct volume *)psvInstance;
+	if( ScanDirectory( vol, path, NULL, 1 ) ) {
+		return TRUE;
+	}
+	return FALSE;
+}
 
 static LOGICAL CPROC sack_vfs_rename( uintptr_t psvInstance, const char *original, const char *newname ) {
 	struct volume *vol = (struct volume *)psvInstance;
@@ -1403,10 +1436,10 @@ static LOGICAL CPROC sack_vfs_rename( uintptr_t psvInstance, const char *origina
 		struct directory_entry entkey;
 		struct directory_entry *entry;
 		while( LockedExchange( &vol->lock, 1 ) ) Relinquish();
-		if( ( entry  = ScanDirectory( vol, original, &entkey ) ) ) {
+		if( ( entry  = ScanDirectory( vol, original, &entkey, 0 ) ) ) {
 			struct directory_entry new_entkey;
 			struct directory_entry *new_entry;
-			if( ( new_entry = ScanDirectory( vol, newname, &new_entkey ) ) ) return FALSE;
+			if( ( new_entry = ScanDirectory( vol, newname, &new_entkey, 0 ) ) ) return FALSE;
 			entry->name_offset = SaveFileName( vol, newname ) ^ entkey.name_offset;
 			vol->lock = 0;
 			return TRUE;
