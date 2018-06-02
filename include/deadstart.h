@@ -493,6 +493,20 @@ struct rt_init // structure placed in XI/YI segment
 #  define DEADSTART_SECTION "deadstart_list"
 #endif
 
+
+#ifdef __MANUAL_PRELOAD__
+
+#define PRIORITY_PRELOAD(name,pr) static void name(void); \
+	RTINIT_STATIC struct rt_init pastejunk(name,_ctor_label)	\
+	__attribute__((section(DEADSTART_SECTION))) __attribute__((used))	 = \
+	{0,0,pr INIT_PADDING, __LINE__, name PASS_FILENAME	, TOSTR(name) JUNKINIT(name)} ; \
+	void name(void); \
+	void pastejunk(registerStartup,name)(void) __attribute__((constructor)); \
+	void pastejunk(registerStartup,name)(void) {	 RegisterPriorityStartupProc(name,TOSTR(name),pr,NULL DBG_SRC); } \
+	void name(void)
+
+#else
+
 #define PRIORITY_PRELOAD(name,pr) static void name(void); \
 	RTINIT_STATIC struct rt_init pastejunk(name,_ctor_label) \
 	  __attribute__((section(DEADSTART_SECTION))) __attribute__((used)) \
@@ -503,6 +517,8 @@ struct rt_init // structure placed in XI/YI segment
 	JUNKINIT(name)}; \
 	void name(void) __attribute__((used));  \
 	void name(void)
+
+#endif
 
 typedef void(*atexit_priority_proc)(void (*)(void),CTEXTSTR,int DBG_PASS);
 #define PRIORITY_ATEXIT(name,priority) static void name(void); \
