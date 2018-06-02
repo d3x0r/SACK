@@ -192,7 +192,7 @@ struct global_memory_tag {
 };
 
 #ifdef __STATIC__
-static struct global_memory_tag global_memory_data = { 0x10000 * 0x08, 0, 0
+static struct global_memory_tag global_memory_data = { 0x10000 * 0x08, 1, 1
 													, 0 /* log criticalsec */
 													, 0 /* min alloc */
 													, 0 /* pagesize */
