@@ -149,8 +149,6 @@ else( __ANDROID__ )
 	       set( CMAKE_EXE_LINKER_FLAGS "-Wl,--as-needed" )
 	       set( CMAKE_SHARED_LINKER_FLAGS "-Wl,--as-needed" )
 	       set( CMAKE_MODULE_LINKER_FLAGS "-Wl,--as-needed" )
-      else( NOT APPLE )
-
       endif( NOT APPLE )
        if( GCC )
            if( __64__ )
