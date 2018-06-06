@@ -15,6 +15,13 @@ if( PLATFORM_DEFINES )
    STRING( REPLACE " " ";" PLATFORM_DEFINES ${PLATFORM_DEFINES} )
 endif()
 
+    if( UNIX )
+        if( NOT APPLE )
+            set( CMAKE_EXE_LINKER_FLAGS "-Wl,--as-needed" )
+            set( CMAKE_SHARED_LINKER_FLAGS "-Wl,--as-needed" )
+            set( CMAKE_MODULE_LINKER_FLAGS "-Wl,--as-needed" )
+        endif( NOT APPLE )
+    endif( UNIX )
 
 add_definitions( ${PLATFORM_DEFINES} )
 
