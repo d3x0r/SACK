@@ -41,8 +41,7 @@ static void StoreFileAs( CTEXTSTR filename, CTEXTSTR asfile )
 
 static void CPROC _StoreFile( uintptr_t psv,  CTEXTSTR filename, int flags )
 {
-	if( flags & SFF_DIRECTORY ) {
-		// don't need to do anything with directories... already
+	if( flags & SFF_DIRECTORY ) {// don't need to do anything with directories... already
       // doing subcurse option.
 	} else {
 		FILE *in = sack_fopenEx( 0, filename, "rb", sack_get_default_mount() );
@@ -434,6 +433,7 @@ SaneWinMain( argc, argv )
 {
 	int arg;
 	uintptr_t version = 0;
+	SetSystemLog( SYSLOG_FILE, stdout );
 	if( argc < 2 ) { usage(); return 0; }
 
 	l.fsi = sack_get_filesystem_interface( SACK_VFS_FILESYSTEM_NAME );
