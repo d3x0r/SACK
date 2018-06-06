@@ -82,6 +82,7 @@ html5.websocket.h
 html5.websocket.client.h
 json_emitter.h
 printer.h
+vesl_emitter.h
 )
 
 # sqlite3.h
