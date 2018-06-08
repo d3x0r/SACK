@@ -566,11 +566,15 @@ SaneWinMain( argc, argv )
 				printf( "Failed to open output header file: %s", argv[arg+1] );
 				return 2;
 			}
-			fprintf( output, "const char *%s = \"%s\";\n", argv[arg+2], signature );
-			fclose( output );
+			sack_fprintf( output, "const char *%s = \"%s\";\n", argv[arg+2], signature );
+			sack_fclose( output );
 			arg += 2;
 		}
 	}
+	if( l.current_vol )
+		sack_vfs_unload_volume( l.current_vol );
+	if( l.current_vol_source )
+		sack_vfs_unload_volume( l.current_vol_source );
 	return 0;
 }
 EndSaneWinMain()

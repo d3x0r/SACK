@@ -53,6 +53,28 @@ static struct directory_entry * ScanDirectory( struct volume *vol, const char * 
 
 static char mytolower( int c ) {	if( c == '\\' ) return '/'; return tolower( c ); }
 
+
+static int  PathCaseCmpEx ( CTEXTSTR s1, CTEXTSTR s2, size_t maxlen )
+{
+	if( !s1 )
+		if( s2 )
+			return -1;
+		else
+			return 0;
+	else
+		if( !s2 )
+			return 1;
+	if( s1 == s2 )
+		return 0; // ==0 is success.
+	for( ;s1[0] && s2[0] && ( (s1[0]=='/'&&s2[0]=='\\')||(s1[0]=='\\'&&s2[0]=='/')||
+									 (((s1[0] >='a' && s1[0] <='z' )?s1[0]-('a'-'A'):s1[0])
+									 == ((s2[0] >='a' && s2[0] <='z' )?s2[0]-('a'-'A'):s2[0])) ) && maxlen;
+		  s1++, s2++, maxlen-- );
+	if( maxlen )
+		return tolower(s1[0]) - tolower(s2[0]);
+	return 0;
+}
+
 // read the byte from namespace at offset; decrypt byte in-register
 // compare against the filename bytes.
 static int MaskStrCmp( struct volume *vol, const char * filename, FPI name_offset, int path_match ) {
@@ -61,6 +83,9 @@ static int MaskStrCmp( struct volume *vol, const char * filename, FPI name_offse
 		while(  ( c = ( ((uint8_t*)vol->disk)[name_offset] ^ vol->usekey[BLOCK_CACHE_NAMES][name_offset&BLOCK_MASK] ) )
 			  && filename[0] ) {
 			int del = mytolower(filename[0]) - mytolower(c);
+			if( ( filename[0] == '/' && c == '\\' )
+			    || ( filename[0] == '\\' && c == '/' ) )
+				del = 0;
 			if( del ) return del;
 			filename++;
 			name_offset++;
@@ -76,7 +101,7 @@ static int MaskStrCmp( struct volume *vol, const char * filename, FPI name_offse
 		//LoG( "doesn't volume always have a key?" );
 		if( path_match ) {
 			int l;
-			int r = StrCaseCmpEx( filename, (const char *)(((uint8_t*)vol->disk) + name_offset), l = strlen( filename ) );
+			int r = PathCaseCmpEx( filename, (const char *)(((uint8_t*)vol->disk) + name_offset), l = strlen( filename ) );
 			if( !r )
 				if( ((const char *)(((uint8_t*)vol->disk) + name_offset))[l] == '/' || ((const char *)(((uint8_t*)vol->disk) + name_offset))[l] == '\\' )
 					return 0;
@@ -85,7 +110,7 @@ static int MaskStrCmp( struct volume *vol, const char * filename, FPI name_offse
 			return r;
 		}
 		else
-			return StrCaseCmp( filename, (const char *)(((uint8_t*)vol->disk) + name_offset) );
+			return PathCaseCmpEx( filename, (const char *)(((uint8_t*)vol->disk) + name_offset), strlen(filename) );
 	}
 }
 
@@ -1423,9 +1448,12 @@ char * CPROC sack_vfs_find_get_name( struct find_info *info ) { return info->fil
 size_t CPROC sack_vfs_find_get_size( struct find_info *info ) { return info->filesize; }
 LOGICAL CPROC sack_vfs_find_is_directory( struct find_cursor *cursor ) { return FALSE; }
 LOGICAL CPROC sack_vfs_is_directory( uintptr_t psvInstance, const char *path ) {
-	struct volume *vol = (struct volume *)psvInstance;
-	if( ScanDirectory( vol, path, NULL, 1 ) ) {
-		return TRUE;
+	if( path[0] == '.' && path[1] == 0 ) return TRUE;
+	{
+		struct volume *vol = (struct volume *)psvInstance;
+		if( ScanDirectory( vol, path, NULL, 1 ) ) {
+			return TRUE;
+		}
 	}
 	return FALSE;
 }
