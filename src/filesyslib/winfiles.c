@@ -2368,6 +2368,18 @@ static int CPROC sack_filesys_exists( uintptr_t psv, const char *filename ) {
 
 struct file_system_mounted_interface *sack_get_default_mount( void ) { return (*winfile_local).default_mount; }
 
+struct file_system_interface * sack_get_mounted_filesystem_interface( struct file_system_mounted_interface *mount ){
+	if( mount )
+		return mount->fsi;
+   return NULL;
+}
+
+uintptr_t sack_get_mounted_filesystem_instance( struct file_system_mounted_interface *mount ){
+	if( mount )
+		return mount->psvInstance;
+   return NULL;
+}
+
 struct file_system_mounted_interface *sack_get_mounted_filesystem( const char *name )
 {
 	struct file_system_mounted_interface *root = (*winfile_local).mounted_file_systems;
