@@ -743,7 +743,7 @@ getnext:
 																							  , pData->file_buffer
 #  endif
 #else
-																							  , pData->scanning_mount?pData->scanning_mount->fsi->find_get_name( findcursor( pInfo ) ) ? de->d_name
+																							  , pData->scanning_mount?pData->scanning_mount->fsi->find_get_name( findcursor( pInfo ) ) : de->d_name
 #endif
 																								// yes this is silly - but it's correct...
 																							  , (flags & SFF_IGNORECASE)?0:0 ) ) )

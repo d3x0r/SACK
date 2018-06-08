@@ -608,22 +608,22 @@ static void DetectUnicodeBOM( FILE *file ) {
 
 
 //Encoding	Representation (hexadecimal)	Representation (decimal)	Bytes as CP1252 characters
-//UTF-8[t 1]		EF BB BF		239 187 191	ï»¿
-//UTF-16 (BE)		FE FF			254 255	þÿ      þÿ
-//UTF-16 (LE)		FF FE			255 254	ÿþ      ÿþ
-//UTF-32 (BE)		00 00 FE FF		0 0 254 255	??þÿ (? refers to the ASCII null character)
-//UTF-32 (LE)		FF FE 00 00[t 2]	255 254 0 0	ÿþ?? (? refers to the ASCII null character)
+//UTF-8[t 1]		EF BB BF		239 187 191
+//UTF-16 (BE)		FE FF			254 255
+//UTF-16 (LE)		FF FE			255 254
+//UTF-32 (BE)		00 00 FE FF		0 0 254 255
+//UTF-32 (LE)		FF FE 00 00[t 2]	255 254 0 0
 //UTF-7[t 1]		2B 2F 76 38             43 47 118 56	+/v9
 //			2B 2F 76 39		43 47 118 43	+/v+
 //			2B 2F 76 2B             43 47 118 47	+/v/
 //			2B 2F 76 2F[t 3]	43 47 118 57	+/v8
 //			2B 2F 76 38 2D[t 4]	43 47 118 56 45	+/v8-
 //		
-//UTF-1[t 1]		F7 64 4C	247 100 76	÷dL
-//UTF-EBCDIC[t 1]	DD 73 66 73	221 115 102 115	Ýsfs
-//SCSU[t 1]		0E FE FF[t 5]	14 254 255	?þÿ (? represents the ASCII "shift out" character)
-//BOCU-1[t 1]		FB EE 28	251 238 40	ûî(
-//GB-18030[t 1]		84 31 95 33	132 49 149 51	„1•3
+//UTF-1[t 1]		F7 64 4C	247 100 76
+//UTF-EBCDIC[t 1]	DD 73 66 73	221 115 102 115
+//SCSU[t 1]		0E FE FF[t 5]	14 254 255
+//BOCU-1[t 1]		FB EE 28	251 238 40
+//GB-18030[t 1]		84 31 95 33	132 49 149 51
 	struct file* _file = (struct file*)file;
 	// file was opened with 't' flag, test what sort of 't' the file might be.
 	// can result in conversion based on UNICODE (utf-16) compilation flag is set or not (UTF8).
@@ -2189,7 +2189,7 @@ static	struct find_cursor * CPROC sack_filesys_find_create_cursor ( uintptr_t ps
 #ifdef WIN32
    // windows mode is delayed until findfirst
 #else
-	cursor->handle = opendir( root );
+	cursor->handle = opendir( root?root:"." );
 #endif
 	return (struct find_cursor *)cursor;
 }
