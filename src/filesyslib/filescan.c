@@ -410,13 +410,15 @@ typedef struct myfinddata {
 		else {
 			tnprintf( findmask, sizeof( findmask ), WIDE( "*" ) );
 		}
-		if( pData->scanning_mount?pData->scanning_mount->fsi:NULL )
+		if( pData->scanning_mount?pData->scanning_mount->fsi:NULL ) {
+#ifndef _WIN32
+			de = NULL;
+#endif
 			if( pData->scanning_mount->fsi->find_first( findcursor(pInfo) ) )
 				findhandle(pInfo) = 0;
 			else
 				findhandle(pInfo) = (HANDLECAST)-1;
-		else
-		{
+		} else {
 #ifdef WIN32
 			findhandle(pInfo) = findfirst( findmask, finddata(pInfo) );
 #else
@@ -741,7 +743,7 @@ getnext:
 																							  , pData->file_buffer
 #  endif
 #else
-																							  , de->d_name
+																							  , pData->scanning_mount?pData->scanning_mount->fsi->find_get_name( findcursor( pInfo ) ) ? de->d_name
 #endif
 																								// yes this is silly - but it's correct...
 																							  , (flags & SFF_IGNORECASE)?0:0 ) ) )
