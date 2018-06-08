@@ -361,6 +361,7 @@ static LOGICAL ExpandVolume( struct volume *vol ) {
 		}
 		new_disk = (struct disk*)OpenSpaceExx( NULL, vol->volname, 0, &vol->dwSize, &created );
 		if( new_disk && vol->dwSize ) {
+			CloseSpace( vol->diskReal );
 			vol->diskReal = new_disk;
 #ifdef WIN32
 			// elf has a different signature to check for .so extended data...
@@ -413,6 +414,7 @@ static LOGICAL ExpandVolume( struct volume *vol ) {
 	if( new_disk && new_disk != vol->disk ) {
 		INDEX idx;
 		struct sack_vfs_file *file;
+		CloseSpace( vol->diskReal );
 		vol->diskReal = new_disk;
 #ifdef WIN32
 		// elf has a different signature to check for .so extended data...
@@ -572,7 +574,11 @@ static BLOCKINDEX vfs_GetNextBlock( struct volume *vol, BLOCKINDEX block, int in
 		UpdateSegmentKey( vol, BLOCK_CACHE_BAT, seg );
 	}
 	check_val ^= ((BLOCKINDEX*)vol->usekey[BLOCK_CACHE_BAT])[block & (BLOCKS_PER_BAT-1)];
-	if( check_val == EOFBLOCK ) {
+	if( check_val == EOBBLOCK ) {
+		(this_BAT[block & (BLOCKS_PER_BAT-1)]) = EOFBLOCK^((BLOCKINDEX*)vol->usekey[BLOCK_CACHE_BAT])[block & (BLOCKS_PER_BAT-1)];
+		(this_BAT[1+block & (BLOCKS_PER_BAT-1)]) = EOBBLOCK^((BLOCKINDEX*)vol->usekey[BLOCK_CACHE_BAT])[1+block & (BLOCKS_PER_BAT-1)];
+	}
+	if( check_val == EOFBLOCK || check_val == EOBBLOCK ) {
 		if( expand ) {
 			BLOCKINDEX key = vol->key?((BLOCKINDEX*)vol->usekey[BLOCK_CACHE_BAT])[block & (BLOCKS_PER_BAT-1)]:0;
 			check_val = GetFreeBlock( vol, init );
