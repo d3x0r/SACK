@@ -100,7 +100,7 @@ static int MaskStrCmp( struct volume *vol, const char * filename, FPI name_offse
 	} else {
 		//LoG( "doesn't volume always have a key?" );
 		if( path_match ) {
-			int l;
+			size_t l;
 			int r = PathCaseCmpEx( filename, (const char *)(((uint8_t*)vol->disk) + name_offset), l = strlen( filename ) );
 			if( !r )
 				if( ((const char *)(((uint8_t*)vol->disk) + name_offset))[l] == '/' || ((const char *)(((uint8_t*)vol->disk) + name_offset))[l] == '\\' )

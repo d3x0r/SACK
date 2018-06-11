@@ -358,7 +358,7 @@ static void ssl_ReadComplete( PCLIENT pc, POINTER buffer, size_t length )
 						pc->ssl_session->obuffer = NewArray( uint8_t, pc->ssl_session->obuflen = pending * 2 );
 						//lprintf( "making obuffer bigger %d %d", pending, pending * 2 );
 					}
-					read  = BIO_read( pc->ssl_session->wbio, pc->ssl_session->obuffer, pending/*(int)pc->ssl_session->obuflen*/ );
+					read  = BIO_read( pc->ssl_session->wbio, pc->ssl_session->obuffer, (int)pending );
 					if( read < 0 ) {
 						ERR_print_errors_cb( logerr, (void*)__LINE__ );
 						lprintf( "failed to read pending control data...SSL will fail without it." );
