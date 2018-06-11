@@ -2371,13 +2371,13 @@ struct file_system_mounted_interface *sack_get_default_mount( void ) { return (*
 struct file_system_interface * sack_get_mounted_filesystem_interface( struct file_system_mounted_interface *mount ){
 	if( mount )
 		return mount->fsi;
-   return NULL;
+	return NULL;
 }
 
 uintptr_t sack_get_mounted_filesystem_instance( struct file_system_mounted_interface *mount ){
 	if( mount )
 		return mount->psvInstance;
-   return NULL;
+	return 0;
 }
 
 struct file_system_mounted_interface *sack_get_mounted_filesystem( const char *name )

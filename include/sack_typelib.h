@@ -2717,7 +2717,7 @@ TYPELIB_PROC  TEXTCHAR * TYPELIB_CALLTYPE  EncodeBase64Ex( uint8_t* buf, size_t 
    outsize is updated with the length of the buffer.
    result should be Release()'d
  */
-TYPELIB_PROC  char * TYPELIB_CALLTYPE  DecodeBase64Ex( uint8_t* buf, size_t length, size_t *outsize, const char *encoding );
+TYPELIB_PROC  uint8_t * TYPELIB_CALLTYPE  DecodeBase64Ex( char* buf, size_t length, size_t *outsize, const char *encoding );
 
 /* xor a base64 encoded string over a utf8 string, keeping the utf8 characters in the same length...
    although technically this can result in invalid character encoding where upper bits get zeroed 

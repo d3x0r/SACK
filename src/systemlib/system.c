@@ -1585,6 +1585,7 @@ SYSTEM_PROC( generic_function, LoadFunctionExx )( CTEXTSTR libname, CTEXTSTR fun
 			tnprintf( library->name
 				, fullnameLen - (library->name-library->full_name)
 				, WIDE("%s"), libname );
+			library->long_name = library->name;
 			library->name = (char*)pathrchr( library->full_name );
 			if( library->name )
 				library->name++;
@@ -1595,6 +1596,7 @@ SYSTEM_PROC( generic_function, LoadFunctionExx )( CTEXTSTR libname, CTEXTSTR fun
 		{
 			StrCpy( library->full_name, libname );
 			library->alt_full_name = library->full_name;
+			library->long_name = library->full_name;
 			library->name = (char*)pathrchr( library->full_name );
 			library->loading = 0;
 			if( library->name )

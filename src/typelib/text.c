@@ -3665,7 +3665,7 @@ static void encodeblock( unsigned char in[3], TEXTCHAR out[4], size_t len, const
 	out[3] = (len > 2 ? base64[ in[2] & 0x3f ] : base64[64]);
 }
 
-static void decodeblock( unsigned char in[4], char out[3], size_t len, const char *base64 )
+static void decodeblock( char in[4], uint8_t out[3], size_t len, const char *base64 )
 {
 	const char *index[4];
 	int n;
@@ -3706,14 +3706,14 @@ TEXTCHAR *EncodeBase64Ex( uint8_t* buf, size_t length, size_t *outsize, const ch
 	return real_output;
 }
 
-char *DecodeBase64Ex( uint8_t* buf, size_t length, size_t *outsize, const char *base64 )
+uint8_t *DecodeBase64Ex( char* buf, size_t length, size_t *outsize, const char *base64 )
 {
-	char * real_output;
+	uint8_t * real_output;
 	if( !base64 )
 		base64 = _base64;
 	else if( ((uintptr_t)base64) == 1 )
 		base64 = _base642;
-	real_output = NewArray( char, ( ( ( length + 1 ) * 3 ) / 4 ) + 1 );
+	real_output = NewArray( uint8_t, ( ( ( length + 1 ) * 3 ) / 4 ) + 1 );
 	{
 		size_t n;
 		for( n = 0; n < (length+3)/4; n++ )
@@ -3722,7 +3722,7 @@ char *DecodeBase64Ex( uint8_t* buf, size_t length, size_t *outsize, const char *
 			blocklen = length - n*4;
 			if( blocklen > 4 )
 				blocklen = 4;
-			decodeblock( ((uint8_t*)buf) + n * 4, real_output + n*3, blocklen, base64 );
+			decodeblock( buf + n * 4, real_output + n*3, blocklen, base64 );
 		}
 		real_output[n*3] = 0;
 	}
