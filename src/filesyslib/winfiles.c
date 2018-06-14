@@ -118,8 +118,24 @@ static void UpdateLocalDataPath( void )
 		Deallocate( TEXTSTR, (*winfile_local).data_file_root );
 	(*winfile_local).data_file_root = realpath;
 	MakePath( (*winfile_local).data_file_root );
+
+
+	SHGetFolderPath( NULL, CSIDL_LOCAL_APPDATA, NULL, SHGFP_TYPE_CURRENT, path );
+	realpath = NewArray( TEXTCHAR, len = StrLen( path )
+							  + StrLen( (*winfile_local).producer?(*winfile_local).producer:WIDE("") )
+							  + StrLen( (*winfile_local).application?(*winfile_local).application:WIDE("") ) + 3 ); // worse case +3
+	tnprintf( realpath, len, WIDE("%s%s%s%s%s"), path
+			  , (*winfile_local).producer?WIDE("/"):WIDE(""), (*winfile_local).producer?(*winfile_local).producer:WIDE("")
+			  , (*winfile_local).application?WIDE("/"):WIDE(""), (*winfile_local).application?(*winfile_local).application:WIDE("")
+			  );
+	if( (*winfile_local).local_data_file_root )
+		Deallocate( TEXTSTR, (*winfile_local).local_data_file_root );
+	(*winfile_local).local_data_file_root = realpath;
+	MakePath( (*winfile_local).local_data_file_root );
+
 #else
 	(*winfile_local).data_file_root = StrDup( WIDE(".") );
+	(*winfile_local).local_data_file_root = StrDup( WIDE(".") );
 
 #endif
 }
@@ -378,6 +394,14 @@ TEXTSTR ExpandPathEx( CTEXTSTR path, struct file_system_interface *fsi )
 				tnprintf( tmp_path, len, WIDE( "%s/%s" ), here, path + 2 );
 			}
 			else if( ( path[0] == '*' ) && ( ( path[1] == '/' ) || ( path[1] == '\\' ) ) )
+			{
+				CTEXTSTR here;
+				size_t len;
+				here = (*winfile_local).data_file_root;
+				tmp_path = NewArray( TEXTCHAR, len = ( StrLen( here ) + StrLen( path ) ) );
+				tnprintf( tmp_path, len, WIDE( "%s/%s" ), here, path + 2 );
+			}
+			else if( ( path[0] == ';' ) && ( ( path[1] == '/' ) || ( path[1] == '\\' ) ) )
 			{
 				CTEXTSTR here;
 				size_t len;

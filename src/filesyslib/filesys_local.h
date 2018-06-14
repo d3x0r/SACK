@@ -29,6 +29,7 @@ extern
 		BIT_FIELD bInitialized : 1;
 		BIT_FIELD bDeallocateClosedFiles : 1;
 	} flags;
+	TEXTSTR local_data_file_root;
 	TEXTSTR data_file_root;
 	TEXTSTR producer;
 	TEXTSTR application;
