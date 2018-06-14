@@ -186,6 +186,14 @@ void SRG_ResetEntropy( struct random_context *ctx )
 	ctx->bits_avail = 0;
 }
 
+void SRG_FeedEntropy( struct random_context *ctx, const uint8_t *salt, size_t salt_size )
+{
+	if( ctx->use_version2 )
+		sha512_update( &ctx->sha512, salt, (unsigned int)salt_size );
+	else
+		SHA1Input( &ctx->sha1_ctx, salt, salt_size );
+}
+
 void SRG_SaveState( struct random_context *ctx, POINTER *external_buffer_holder )
 {
 	if( !(*external_buffer_holder) )

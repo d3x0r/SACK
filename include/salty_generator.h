@@ -31,6 +31,9 @@ SRG_EXPORT int32_t SRG_GetEntropy( struct random_context *ctx, int bits, int get
 // next call to getentropy will be the same as the first call after create.
 SRG_EXPORT void SRG_ResetEntropy( struct random_context *ctx );
 
+// Manually load some salt into the next enropy buffer to e retreived.
+// sets up to add the next salt into the buffer.
+SRG_EXPORT void SRG_FeedEntropy( struct random_context *ctx, const uint8_t *salt, size_t salt_size );
 
 // restore the random contxt from the external holder specified
 // { 
