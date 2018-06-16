@@ -384,6 +384,11 @@ PRIORITY_ATEXIT( StopTimers, ATEXIT_PRIORITY_TIMERS )
 
 static void InitWakeup( PTHREAD thread, CTEXTSTR event_name )
 {
+#ifdef _DEBUG
+	int prior;
+	prior = SetAllocateLogging( FALSE );
+#endif
+
 	if( !event_name )
 		event_name = WIDE("ThreadSignal");
 	thread->thread_event_name = StrDup( event_name );
@@ -492,6 +497,10 @@ static void InitWakeup( PTHREAD thread, CTEXTSTR event_name )
 	}
 #endif
 #endif
+#ifdef _DEBUG
+	SetAllocateLogging( prior );
+#endif
+
 }
 
 //--------------------------------------------------------------------------
