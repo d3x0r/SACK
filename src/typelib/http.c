@@ -54,6 +54,7 @@ struct HttpState {
 		BIT_FIELD ssl : 1; // prevent issuing network reads... ssl pushes data from internal buffers
 		BIT_FIELD success : 1;
 	}flags;
+   uint32_t lock;
 };
 
 struct HttpServer {
@@ -83,6 +84,14 @@ PRELOAD( loadOption ) {
 #ifndef __NO_OPTIONS__
 	l.flags.bLogReceived = SACK_GetProfileIntEx( GetProgramName(), WIDE( "SACK/HTTP/Enable Logging Received Data" ), 0, TRUE );
 #endif
+}
+
+static void lockHttp( struct HttpState *state ) {
+   while( LockedExchange( &state->lock, 1 ) );
+}
+
+static void unlockHttp( struct HttpState *state ) {
+   state->lock = 0;
 }
 
 void GatherHttpData( struct HttpState *pHttpState )
@@ -147,9 +156,11 @@ void ProcessURL_CGI( struct HttpState *pHttpState, PTEXT params )
 //int ProcessHttp( struct HttpState *pHttpState )
 int ProcessHttp( PCLIENT pc, struct HttpState *pHttpState )
 {
+   lockHttp( pHttpState );
 	if( pHttpState->final )
 	{
 		GatherHttpData( pHttpState );
+		unlockHttp( pHttpState );
 		if( pHttpState->flags.success && !pHttpState->returned_status ) {
 			pHttpState->returned_status = 1;
 			return pHttpState->numeric_code;
@@ -453,6 +464,7 @@ int ProcessHttp( PCLIENT pc, struct HttpState *pHttpState )
 			GatherHttpData( pHttpState );
 		}
 	}
+   unlockHttp( pHttpState );
 
 	if( pHttpState->final &&
 		( ( pHttpState->content_length
@@ -605,6 +617,7 @@ struct HttpState *CreateHttpState( void )
 
 void EndHttp( struct HttpState *pHttpState )
 {
+   lockHttp( pHttpState );
 	pHttpState->final = 0;
 
 	pHttpState->content_length = 0;
@@ -641,6 +654,7 @@ void EndHttp( struct HttpState *pHttpState )
 		}
 		EmptyList( &pHttpState->fields );
 	}
+   unlockHttp( pHttpState );
 }
 
 PTEXT GetHttpContent( struct HttpState *pHttpState )
