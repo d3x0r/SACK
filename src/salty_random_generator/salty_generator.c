@@ -50,14 +50,14 @@ static void NeedBits( struct random_context *ctx )
 	if( ctx->use_version3 ) {
 		if( ctx->salt_size )
 			sha3_update( &ctx->sha3, (const uint8_t*)ctx->salt, (unsigned int)ctx->salt_size );
-		sha3_final( &ctx->sha3, ctx->entropy2 );
+		sha3_final( &ctx->sha3, ctx->entropy3 );
 		sha3_init( &ctx->sha3, SHA3_DIGEST_SIZE );
-		sha3_update( &ctx->sha3, ctx->entropy2, SHA3_DIGEST_SIZE );
-		ctx->bits_avail = sizeof( ctx->entropy2 ) * 8;
+		sha3_update( &ctx->sha3, ctx->entropy3, SHA3_DIGEST_SIZE );
+		ctx->bits_avail = sizeof( ctx->entropy3 ) * 8;
 	} else if( ctx->use_version2_256 ) {
 		if( ctx->salt_size )
 			sha256_update( &ctx->sha256, (const uint8_t*)ctx->salt, (unsigned int)ctx->salt_size );
-		sha256_final( &ctx->sha256, ctx->entropy2 );
+		sha256_final( &ctx->sha256, ctx->entropy2_256 );
 		sha256_init( &ctx->sha256 );
 		sha256_update( &ctx->sha256, ctx->entropy2_256, SHA512_DIGEST_SIZE );
 		ctx->bits_avail = sizeof( ctx->entropy2_256 ) * 8;
@@ -280,6 +280,24 @@ char *SRG_ID_Generator( void ) {
 	if( !ctx ) ctx = SRG_CreateEntropy2( salt_generator, 0 );
 	SRG_GetEntropyBuffer( ctx, buf, 8*(16+16) );
 	return EncodeBase64Ex( (uint8*)buf, (16+16), &outlen, (const char *)1 );
+}
+
+char *SRG_ID_Generator_256( void ) {
+	static struct random_context *ctx;
+	uint32_t buf[2 * (16 + 16)];
+	size_t outlen;
+	if( !ctx ) ctx = SRG_CreateEntropy2_256( salt_generator, 0 );
+	SRG_GetEntropyBuffer( ctx, buf, 8 * (16 + 16) );
+	return EncodeBase64Ex( (uint8*)buf, (16 + 16), &outlen, (const char *)1 );
+}
+
+char *SRG_ID_Generator3( void ) {
+	static struct random_context *ctx;
+	uint32_t buf[2 * (16 + 16)];
+	size_t outlen;
+	if( !ctx ) ctx = SRG_CreateEntropy3( salt_generator, 0 );
+	SRG_GetEntropyBuffer( ctx, buf, 8 * (16 + 16) );
+	return EncodeBase64Ex( (uint8*)buf, (16 + 16), &outlen, (const char *)1 );
 }
 
 

@@ -163,7 +163,7 @@ void *sha3(const void *in, size_t inlen, void *md, int mdlen)
 
     sha3_init(&sha3, mdlen);
     sha3_update(&sha3, in, inlen);
-    sha3_final(md, &sha3);
+    sha3_final(&sha3, md);
 
     return md;
 }
