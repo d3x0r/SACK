@@ -3486,8 +3486,9 @@ void InternalRemoveClientExx(PCLIENT lpClient, LOGICAL bBlockNotify, LOGICAL bLi
 #ifdef LOG_DEBUG_CLOSING
 			lprintf( "CLOSE WHILE WAITING FOR WRITE TO FINISH..." );
 #endif
-			lpClient->dwFlags |= CF_TOCLOSE;
-			return;
+			//lpClient->dwFlags |= CF_TOCLOSE;
+			//return;
+			// continue on; otherwise the close event gets lost...
 		}
 		while( !NetworkLockEx( lpClient, 0 DBG_SRC ) )
 		{
