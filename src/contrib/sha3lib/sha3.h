@@ -1,6 +1,7 @@
 // from https://github.com/mjosaarinen/tiny_sha3/blob/master/sha3.h  2017/19/12
 // sha3.h
 // 19-Nov-11  Markku-Juhani O. Saarinen <mjos@iki.fi>
+// 2018-06-16 modified _final api to pass context then digest (reverse params from original)
 
 #ifndef SHA3_H
 #define SHA3_H
@@ -31,7 +32,7 @@ void sha3_keccakf(uint64_t st[25]);
 // OpenSSL - like interfece
 int sha3_init(sha3_ctx_t *c, int mdlen);    // mdlen = hash output in bytes
 int sha3_update(sha3_ctx_t *c, const void *data, size_t len);
-int sha3_final(void *md, sha3_ctx_t *c);    // digest goes to md
+int sha3_final(sha3_ctx_t *c, void *md );    // digest goes to md
 
 // compute a sha3 hash (md) of given byte length from "in"
 void *sha3(const void *in, size_t inlen, void *md, int mdlen);

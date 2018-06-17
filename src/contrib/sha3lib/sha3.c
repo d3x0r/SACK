@@ -6,6 +6,8 @@
 // Revised 07-Aug-15 to match with official release of FIPS PUB 202 "SHA3"
 // Revised 03-Sep-15 for portability + OpenSSL - style API
 
+// 2018-06-16 modified _final api to pass context then digest (reverse params from original)
+
 #include "sha3.h"
 
 // update the state with given number of rounds
@@ -105,7 +107,8 @@ void sha3_keccakf(uint64_t st[25])
 int sha3_init(sha3_ctx_t *c, int mdlen)
 {
     int i;
-
+	if( mdlen > 100 )
+        mdlen = 100;
     for (i = 0; i < 25; i++)
         c->st.q[i] = 0;
     c->mdlen = mdlen;
@@ -137,7 +140,7 @@ int sha3_update(sha3_ctx_t *c, const void *data, size_t len)
 
 // finalize and output a hash
 
-int sha3_final(void *md, sha3_ctx_t *c)
+int sha3_final( sha3_ctx_t *c, void *md )
 {
     int i;
 
