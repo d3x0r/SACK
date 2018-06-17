@@ -59,7 +59,7 @@ static void NeedBits( struct random_context *ctx )
 			sha256_update( &ctx->sha256, (const uint8_t*)ctx->salt, (unsigned int)ctx->salt_size );
 		sha256_final( &ctx->sha256, ctx->entropy2_256 );
 		sha256_init( &ctx->sha256 );
-		sha256_update( &ctx->sha256, ctx->entropy2_256, SHA512_DIGEST_SIZE );
+		sha256_update( &ctx->sha256, ctx->entropy2_256, SHA256_DIGEST_SIZE );
 		ctx->bits_avail = sizeof( ctx->entropy2_256 ) * 8;
 	} else if( ctx->use_version2 )
 	{
